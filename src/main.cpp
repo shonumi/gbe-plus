@@ -9,15 +9,28 @@
 // This is main. It all begins here ;)
 
 #include "core.h"
+#include "config.h"
 
-int main() 
+int main(int argc, char* args[]) 
 {
 
 	SDL_Event event;
 
 	Core gba;
 
-	gba.core_mmu.read_file("test.gba");
+	//Parse command-line arguments
+	for(int x = 0; x++ < argc - 1;) 
+	{ 
+		std::string temp_arg = args[x]; 
+		config::cli_args.push_back(temp_arg);
+	}
+
+	if(!parse_cli_args()) { return 0; }
+
+	//Read specified ROM file
+	if(!gba.core_mmu.read_file(config::rom_file)) { return 0; }
+
+	//Engage the core
 	gba.start();
 	gba.db_unit.debug_mode = true;
 
