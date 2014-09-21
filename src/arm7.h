@@ -76,6 +76,13 @@ class ARM7
 		UND
 	};
 
+	//ARM CPU instruction mode enumerations
+	enum instr_modes
+	{
+		ARM,
+		THUMB
+	};
+
 	cpu_modes current_cpu_mode;
 
 	//Internal registers - 32bits each
@@ -159,7 +166,7 @@ class ARM7
 	arm_instructions instruction_operation[3];
 	u8 pipeline_pointer;
 
-	std::string arm_mode;
+	instr_modes arm_mode;
 	u8 debug_message;
 	u32 debug_code;
 

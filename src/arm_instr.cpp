@@ -25,7 +25,7 @@ void ARM7::branch_exchange(u32 current_arm_instruction)
 		//Switch to THUMB mode if necessary
 		if(result & 0x1) 
 		{ 
-			arm_mode = "THUMB"; 
+			arm_mode = THUMB; 
 			result &= ~0x1;
 			//std::cout<<"\n\n ** Switching to THUMB Mode ** \n\n";
 		}

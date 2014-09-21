@@ -627,7 +627,7 @@ void ARM7::hireg_bx(u16 current_thumb_instruction)
 			//Switch to ARM mode if necessary
 			if((operand & 0x1) == 0)
 			{
-				arm_mode = "ARM";
+				arm_mode = ARM;
 				//std::cout<<"\n\n ** Switching to ARM Mode ** \n\n";
 			}
 

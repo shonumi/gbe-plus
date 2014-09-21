@@ -41,7 +41,7 @@ void ARM7::reset()
 	running = false;
 	bool in_interrupt = false;
 
-	arm_mode = "ARM";
+	arm_mode = ARM;
 	current_cpu_mode = SYS;
 
 	debug_message = 0xFF;
@@ -220,7 +220,7 @@ u32 ARM7::get_spsr() const
 {
 	switch(current_cpu_mode)
 	{
-		case SYS: return reg.cpsr; std::cout<<"CPU::Warning - Tried to read SPSR in USER-SYSTEM mode\n"; break;
+		case SYS: std::cout<<"CPU::Warning - Tried to read SPSR in USER-SYSTEM mode\n"; return reg.cpsr; break;
 		case FIQ: return reg.spsr_fiq; break;
 		case SVC: return reg.spsr_svc; break;
 		case ABT: return reg.spsr_abt; break;
@@ -247,7 +247,7 @@ void ARM7::set_spsr(u32 value)
 void ARM7::fetch()
 {
 	//Fetch THUMB instructions
-	if(arm_mode == "THUMB")
+	if(arm_mode == THUMB)
 	{
 		//Read 16-bit THUMB instruction
 		instruction_pipeline[pipeline_pointer] = mem->read_u16(reg.r15);
@@ -257,7 +257,7 @@ void ARM7::fetch()
 	}
 
 	//Fetch ARM instructions
-	else if(arm_mode == "ARM")
+	else if(arm_mode == ARM)
 	{
 		//Read 32-bit ARM instruction
 		instruction_pipeline[pipeline_pointer] = mem->read_u32(reg.r15);
@@ -275,7 +275,7 @@ void ARM7::decode()
 	if(instruction_operation[pipeline_id] == PIPELINE_FILL) { return; }
 
 	//Decode THUMB instructions
-	if(arm_mode == "THUMB")
+	if(arm_mode == THUMB)
 	{
 		u16 current_instruction = instruction_pipeline[pipeline_id];
 		
@@ -329,7 +329,7 @@ void ARM7::decode()
 	}
 
 	//Decode ARM instructions
-	if(arm_mode == "ARM")
+	if(arm_mode == ARM)
 	{
 		u32 current_instruction = instruction_pipeline[pipeline_id];
 
@@ -377,7 +377,7 @@ void ARM7::execute()
 	}
 
 	//Execute THUMB instruction
-	if(arm_mode == "THUMB")
+	if(arm_mode == THUMB)
 	{
 		switch(instruction_operation[pipeline_id])
 		{
@@ -429,7 +429,7 @@ void ARM7::execute()
 	}
 
 	//Execute ARM instruction
-	else if(arm_mode == "ARM")
+	else if(arm_mode == ARM)
 	{
 		//Conditionally execute ARM instruction
 		if(check_condition(instruction_pipeline[pipeline_id]))
@@ -483,15 +483,15 @@ void ARM7::flush_pipeline()
 	instruction_operation[0] = instruction_operation[1] = instruction_operation[2] = PIPELINE_FILL;
 }
 
-/****** Updates the PC after a cycle ******/
+/****** Updates the PC after each fetch-decode-execute ******/
 void ARM7::update_pc()
 {
-	if(arm_mode == "ARM")
+	if(arm_mode == ARM)
 	{
 		reg.r15 += 4;
 	}
 
-	else if(arm_mode == "THUMB")
+	else if(arm_mode == THUMB)
 	{
 		reg.r15 += 2;
 	}
@@ -849,13 +849,17 @@ void ARM7::handle_interrupt()
 	u16 if_check = mem->read_u16(REG_IF);
 	u16 ie_check = mem->read_u16(REG_IE);
 
+	//TODO - Implement a better way of exiting interrupts other than recognizing the SUB PC, #4 instruction
+	//TODO - Correctly set CPSR flags (don't force THUMB mode)
+	//TODO - Check the CPU's interrupt flag in addition to the GBA's IME register
+
 	//Exit interrupt
 	if((in_interrupt) && (debug_code == 0xE25EF004))
 	{
 		reg.cpsr = get_spsr();
 		needs_flush = true;
 		current_cpu_mode = SYS;
-		arm_mode = "THUMB";
+		arm_mode = THUMB;
 		mem->write_u16(REG_IME, 0x1);
 		in_interrupt = false;
 	}
@@ -874,15 +878,15 @@ void ARM7::handle_interrupt()
 				//If a Branch instruction has just executed, the PC technically should be 2 fetches ahead before the interrupt triggers
 				//GBE+ does not do the fetches right away, so the PC is not updated until later
 				//This screws with LR, so here we manually adjust LR by 2 instruction sizes.
-				if((needs_flush == true) && (arm_mode == "THUMB")) { set_reg(14, (reg.r15 + 4)); }
-				else if((needs_flush == true) && (arm_mode == "ARM")) { set_reg(14, (reg.r15 + 8)); }
+				if((needs_flush == true) && (arm_mode == THUMB)) { set_reg(14, (reg.r15 + 4)); }
+				else if((needs_flush == true) && (arm_mode == ARM)) { set_reg(14, (reg.r15 + 8)); }
 				else { set_reg(14, reg.r15); }
 
 				reg.r15 = 0x18;
 				set_spsr(reg.cpsr);
 				needs_flush = true;
 				in_interrupt = true;
-				arm_mode = "ARM";
+				arm_mode = ARM;
 				mem->write_u16(REG_IME, 0x0);
 				return;
 			}
