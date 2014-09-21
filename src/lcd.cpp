@@ -112,6 +112,10 @@ void LCD::render_scanline()
 /****** Run LCD for one cycle ******/
 void LCD::step()
 {
+	//TODO - Set V-Counter Flag
+	//TODO - Set/Reset Bits 0 and 1 of DISPSTAT
+	//TODO - Implement V-Counter interrupt
+
 	lcd_clock++;
 
 	//Only draw if Forced Blank is disabled
@@ -141,7 +145,7 @@ void LCD::step()
 				scanline_pixel_counter = 0;
 
 				//Raise HBlank interrupt
-				mem->memory_map[REG_IF] |= 0x2;
+				if(mem->memory_map[DISPSTAT] & 0x10) { mem->memory_map[REG_IF] |= 0x2; }
 
 				//Push scanline data to final buffer
 				for(int x = 0, y = (240 * current_scanline); x < 240; x++, y++)
@@ -163,7 +167,7 @@ void LCD::step()
 				lcd_mode = 2;
 
 				//Raise VBlank interrupt
-				mem->memory_map[REG_IF] |= 0x1;
+				if(mem->memory_map[DISPSTAT] & 0x8) { mem->memory_map[REG_IF] |= 0x1; }
 
 				//Render final buffer
 				//Lock source surface
@@ -190,7 +194,10 @@ void LCD::step()
 			if((lcd_clock % 1232) == 960) 
 			{ 
 				current_scanline++; 
-				mem->memory_map[REG_IF] |= 0x2; 
+				if(mem->memory_map[DISPSTAT] & 0x10) 
+				{ 
+					mem->memory_map[REG_IF] |= 0x2; 
+				} 
 			}
 
 			//Reset LCD clock
