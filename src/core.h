@@ -26,7 +26,7 @@ class Core
 		void stop();
 
 		void debug_step();
-		void debug_display();
+		void debug_display() const;
 		void debug_process_command();
 
 		bool running;

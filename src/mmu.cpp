@@ -38,19 +38,19 @@ MMU::~MMU()
 }
 
 /****** Read byte from memory ******/
-u8 MMU::read_u8(u32 address) 
+u8 MMU::read_u8(u32 address) const
 {
 	return memory_map[address];
 }
 
 /****** Read 2 bytes from memory ******/
-u16 MMU::read_u16(u32 address)
+u16 MMU::read_u16(u32 address) const
 {
 	return ((read_u8(address+1) << 8) | read_u8(address)); 
 }
 
 /****** Read 4 bytes from memory ******/
-u32 MMU::read_u32(u32 address)
+u32 MMU::read_u32(u32 address) const
 {
 	return ((read_u8(address+3) << 24) | (read_u8(address+2) << 16) | (read_u8(address+1) << 8) | read_u8(address));
 }

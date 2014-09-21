@@ -52,7 +52,7 @@ void ARM7::reset()
 }
 
 /****** CPU register getter ******/
-u32 ARM7::get_reg(u8 g_reg)
+u32 ARM7::get_reg(u8 g_reg) const
 {
 	switch(g_reg)
 	{
@@ -216,7 +216,7 @@ void ARM7::set_reg(u8 s_reg, u32 value)
 }
 
 /****** Saved Program Status Register getter ******/
-u32 ARM7::get_spsr()
+u32 ARM7::get_spsr() const
 {
 	switch(current_cpu_mode)
 	{
@@ -498,7 +498,7 @@ void ARM7::update_pc()
 }
 
 /****** Check conditional code ******/
-bool ARM7::check_condition(u32 current_arm_instruction)
+bool ARM7::check_condition(u32 current_arm_instruction) const
 {
 	switch(current_arm_instruction >> 28)
 	{
