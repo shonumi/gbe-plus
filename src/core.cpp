@@ -79,7 +79,7 @@ void Core::debug_step()
 }
 
 /****** Debugger - Display relevant info to the screen ******/
-void Core::debug_display()
+void Core::debug_display() const
 {
 	switch(core_cpu.debug_message)
 	{

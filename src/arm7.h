@@ -184,9 +184,9 @@ class ARM7
 	void reset();
 
 	//Get and set ARM registers
-	u32 get_reg(u8 g_reg);
+	u32 get_reg(u8 g_reg) const;
 	void set_reg(u8 s_reg, u32 value);
-	u32 get_spsr();
+	u32 get_spsr() const;
 	void set_spsr(u32 value);
 
 	//ARM instructions
@@ -222,7 +222,7 @@ class ARM7
 	//Misc CPU helpers
 	void update_condition_logical(u32 result, u8 shift_out);
 	void update_condition_arithmetic(u32 input, u32 operand, u32 result, bool addition);
-	bool check_condition(u32 current_arm_instruction);
+	bool check_condition(u32 current_arm_instruction) const;
 	u8 logical_shift_left(u32& input, u8 offset);
 	u8 logical_shift_right(u32& input, u8 offset);
 	u8 arithmetic_shift_right(u32& input, u8 offset);
