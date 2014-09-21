@@ -859,9 +859,9 @@ void ARM7::handle_interrupt()
 		reg.cpsr = get_spsr();
 		needs_flush = true;
 		current_cpu_mode = SYS;
-		arm_mode = THUMB;
 		mem->write_u16(REG_IME, 0x1);
 		in_interrupt = false;
+		arm_mode = (reg.cpsr & 0x20) ? THUMB : ARM;
 	}
 
 	//Jump into an interrupt, check if the master flag is enabled
@@ -887,6 +887,7 @@ void ARM7::handle_interrupt()
 				needs_flush = true;
 				in_interrupt = true;
 				arm_mode = ARM;
+				reg.cpsr &= ~0x20;
 				mem->write_u16(REG_IME, 0x0);
 				return;
 			}

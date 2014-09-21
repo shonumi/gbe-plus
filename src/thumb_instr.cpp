@@ -628,7 +628,7 @@ void ARM7::hireg_bx(u16 current_thumb_instruction)
 			if((operand & 0x1) == 0)
 			{
 				arm_mode = ARM;
-				//std::cout<<"\n\n ** Switching to ARM Mode ** \n\n";
+				reg.cpsr &= ~0x20;
 			}
 
 			//BX
