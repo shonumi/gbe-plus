@@ -16,6 +16,7 @@ namespace config
 {
 	std::string rom_file = "";
 	std::vector <std::string> cli_args;
+	bool use_debugger = false;
 }
 
 /****** Parse arguments passed from the command-line ******/
@@ -36,7 +37,10 @@ bool parse_cli_args()
 		//Parse the rest of the arguments if any		
 		for(int x = 1; x < config::cli_args.size(); x++)
 		{	
-			if(true) 
+			//Run GBE+ in debug mode
+			if((config::cli_args[x] == "-d") || (config::cli_args[x] == "--debug")) { config::use_debugger = true; }
+
+			else
 			{
 				std::cout<<"Error : Unknown argument - " << config::cli_args[x] << "\n";
 				return false;

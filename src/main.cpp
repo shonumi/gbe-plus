@@ -32,7 +32,7 @@ int main(int argc, char* args[])
 
 	//Engage the core
 	gba.start();
-	gba.db_unit.debug_mode = true;
+	gba.db_unit.debug_mode = config::use_debugger;
 
 	//Begin running the core
 	while(gba.running)

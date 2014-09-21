@@ -22,6 +22,7 @@ namespace config
 { 
 	extern std::string rom_file;
 	extern std::vector <std::string> cli_args;
+	extern bool use_debugger;
 }
 
 #endif // GBA_CONFIG
