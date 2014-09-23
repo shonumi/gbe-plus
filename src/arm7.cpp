@@ -345,6 +345,12 @@ void ARM7::decode()
 			instruction_operation[pipeline_id] = ARM_4;
 		}
 
+		else if((current_instruction & 0xD900000) == 0x1000000) 
+		{
+			//ARM_6
+			instruction_operation[pipeline_id] = ARM_6;
+		}
+
 		else if(((current_instruction >> 26) & 0x3) == 0x0)
 		{
 			//ARM_5
@@ -450,6 +456,11 @@ void ARM7::execute()
 				case ARM_5:
 					data_processing(instruction_pipeline[pipeline_id]);
 					debug_message = 0x16; debug_code = instruction_pipeline[pipeline_id];
+					break;
+
+				case ARM_6:
+					psr_transfer(instruction_pipeline[pipeline_id]);
+					debug_message = 0x17; debug_code = instruction_pipeline[pipeline_id];
 					break;
 
 				case ARM_9:

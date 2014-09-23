@@ -367,6 +367,112 @@ void ARM7::data_processing(u32 current_arm_instruction)
 	}
 }
 
+/****** ARM.6 PSR Transfer ******/
+void ARM7::psr_transfer(u32 current_arm_instruction)
+{
+	//Determine if an immediate or a register will be used as input (MSR only) - Bit 25
+	bool use_immediate = (current_arm_instruction & 0x2000000) ? true : false;
+
+	//Determine access is for CPSR or SPSR - Bit 22
+	u8 psr = (current_arm_instruction & 0x400000) ? 1 : 0;
+
+	//Grab opcode
+	u8 op = (current_arm_instruction & 0x200000) ? 1 : 0;
+
+	switch(op)
+	{
+		//MRS
+		case 0x0:
+			{
+				//Grab destination register - Bits 12-15
+				u8 dest_reg = ((current_arm_instruction >> 12) & 0xFF);
+
+				if(dest_reg == 15) { std::cout<<"CPU::Warning - ARM.6 R15 used as Destination Register \n"; }
+
+				//Store CPSR into destination register
+				if(psr == 0) { set_reg(dest_reg, reg.cpsr); }
+		
+				//Store SPSR into destination register
+				else { set_reg(dest_reg, get_spsr()); }
+			}
+			break;
+
+		//MSR
+		case 0x1:
+			{
+				u32 input = 0;
+
+				//Create Op Field mask
+				u32 op_field_mask = 0;
+
+				//Flag field - Bit 19
+				if(current_arm_instruction & 0x80000) { op_field_mask |= 0xFF000000; }
+	
+				//Status field - Bit 18
+				if(current_arm_instruction & 0x40000) 
+				{ 
+					op_field_mask |= 0x00FF0000;
+					std::cout<<"CPU::Warning - ARM.6 MSR enabled access to Status Field \n";
+				}
+
+				//Extension field - Bit 17
+				if(current_arm_instruction & 0x20000) 
+				{ 
+					op_field_mask |= 0x0000FF00;
+					std::cout<<"CPU::Warning - ARM.6 MSR enabled access to Extension Field \n";
+				}
+
+				//Control field - Bit 15
+				if(current_arm_instruction & 0x10000) { op_field_mask |= 0x000000FF; }
+
+				//Use shifted 8-bit immediate as input
+				if(use_immediate) 
+				{
+					//Grab shift offset - Bits 8-11
+					u8 offset = ((current_arm_instruction >> 8) & 0xF);
+
+					//Grab 8-bit immediate - Bits 0-7
+					input = (current_arm_instruction) & 0xFF;
+
+					rotate_right_special(input, offset);
+				}
+
+				//Use register as input
+				else
+				{
+					//Grab source register - Bits 0-3
+					u8 src_reg = (current_arm_instruction & 0xF);
+
+					if(src_reg == 15) { std::cout<<"CPU::Warning - ARM.6 R15 used as Source Register \n"; }
+
+					input = get_reg(src_reg);
+					input &= op_field_mask;
+				}
+
+				//Write into CPSR
+				if(psr == 0) 
+				{ 
+					reg.cpsr &= ~op_field_mask;
+					reg.cpsr |= input;
+				}
+	
+				//Write into SPSR
+				else
+				{
+					u32 temp_spsr = get_spsr();
+					temp_spsr &= ~op_field_mask;
+					temp_spsr |= input;
+					set_spsr(temp_spsr);
+				} 
+			}
+			break;
+	}
+
+	//Clock CPU and controllers - 1S
+	clock((reg.r15 + 4), false);
+} 
+		
+
 /****** ARM.9 Single Data Transfer ******/
 void ARM7::single_data_transfer(u32 current_arm_instruction)
 {

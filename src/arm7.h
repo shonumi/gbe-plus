@@ -200,6 +200,7 @@ class ARM7
 	void branch_exchange(u32 current_arm_instruction);
 	void branch_link(u32 current_arm_instruction);
 	void data_processing(u32 current_arm_instruction);
+	void psr_transfer(u32 current_arm_instruction);
 	void single_data_transfer(u32 current_arm_instruction);
 	void block_data_transfer(u32 current_arm_instruction);
 
