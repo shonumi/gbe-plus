@@ -38,6 +38,8 @@ void ARM7::reset()
 	reg.r14_irq = reg.spsr_irq = 0;
 	reg.r14_und = reg.spsr_und = 0;
 
+	lbl_addr = 0;
+
 	running = false;
 	bool in_interrupt = false;
 
@@ -321,6 +323,12 @@ void ARM7::decode()
 			instruction_operation[pipeline_id] = THUMB_10;
 		}
 
+		else if((current_instruction >> 12) == 0xB)
+		{
+			//THUMB_14
+			instruction_operation[pipeline_id] = THUMB_14;
+		}
+
 		else if((current_instruction >> 12) == 13)
 		{
 			//THUMB_16
@@ -420,6 +428,11 @@ void ARM7::execute()
 			case THUMB_10:
 				load_store_halfword(instruction_pipeline[pipeline_id]);
 				debug_message = 0x9; debug_code = instruction_pipeline[pipeline_id];
+				break;
+
+			case THUMB_14:
+				push_pop(instruction_pipeline[pipeline_id]);
+				debug_message = 0xD; debug_code = instruction_pipeline[pipeline_id];
 				break;
 
 			case THUMB_16:

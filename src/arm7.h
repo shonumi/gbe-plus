@@ -147,17 +147,6 @@ class ARM7
 
 	} reg;
 
-	struct tempers
-	{
-		u8 dest_reg;
-		u8 src_reg;
-		u8 offset;
-		u8 op;
-		u8 shift_out;
-		u32 result;
-		u32 input;
-	} temp;
-
 	bool running;
 	bool needs_flush;
 	bool in_interrupt;
@@ -169,6 +158,9 @@ class ARM7
 	instr_modes arm_mode;
 	u8 debug_message;
 	u32 debug_code;
+
+	//Long branch with link address
+	u32 lbl_addr;
 
 	MMU* mem;
 
