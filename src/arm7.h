@@ -159,9 +159,6 @@ class ARM7
 	u8 debug_message;
 	u32 debug_code;
 
-	//Long branch with link address
-	u32 lbl_addr;
-
 	MMU* mem;
 
 	//Audio-Video controllers
@@ -213,6 +210,7 @@ class ARM7
 	void push_pop(u16 current_thumb_instruction);
 	void multiple_load_store(u16 current_thumb_instruction);
 	void conditional_branch(u16 current_thumb_instruction);
+	void long_branch_link(u16 current_thumb_instruction);
 
 	//System functions
 	void clock(u32 access_address, bool first_access);

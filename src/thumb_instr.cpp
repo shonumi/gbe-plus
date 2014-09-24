@@ -1509,4 +1509,49 @@ void ARM7::conditional_branch(u16 current_thumb_instruction)
 	} 
 }
 
+/****** THUMB.19 Long Branch with Link ******/
+void ARM7::long_branch_link(u16 current_thumb_instruction)
+{
+	//Determine if this is the first or second instruction executed
+	bool first_op = (((current_thumb_instruction >> 11) & 0x1F) == 0x1F) ? false : true;
+	
+	u32 lbl_addr = 0;
 
+	//Perform 1st 16-bit operation
+	if(first_op)
+	{
+		//Grab upper 11-bits of destination address, add to PC
+		lbl_addr = ((current_thumb_instruction & 0x7FF) << 12);
+		lbl_addr += reg.r15;
+		set_reg(14, lbl_addr);
+
+
+		//Clock CPU and controllers - 1S
+		clock(reg.r15, false);
+	}
+
+	//TODO - Figure out how to convert 23-bit 2's complement...
+
+	//Perform 2nd 16-bit operation
+	else
+	{
+		//Grab address of the "next" instruction to place in LR, set Bit 0 to 1
+		u32 next_instr_addr = (reg.r15 - 2);
+		next_instr_addr |= 1;
+
+		//Grab lower 11-bits of destination address
+		lbl_addr = get_reg(14);
+		lbl_addr += ((current_thumb_instruction & 0x7FF) << 1);
+
+		//Clock CPU and controllers - 1N
+		clock(reg.r15, true);
+
+		reg.r15 = lbl_addr;
+		needs_flush = true;
+		set_reg(14, next_instr_addr);
+
+		//Clock CPU and controllers - 2S
+		clock(reg.r15, false);
+		clock((reg.r15 + 2), false);
+	}
+}

@@ -38,8 +38,6 @@ void ARM7::reset()
 	reg.r14_irq = reg.spsr_irq = 0;
 	reg.r14_und = reg.spsr_und = 0;
 
-	lbl_addr = 0;
-
 	running = false;
 	bool in_interrupt = false;
 
@@ -334,6 +332,12 @@ void ARM7::decode()
 			//THUMB_16
 			instruction_operation[pipeline_id] = THUMB_16;
 		}
+
+		else if((current_instruction >> 11) >= 0x1E)
+		{
+			//THUMB_19
+			instruction_operation[pipeline_id] = THUMB_19;
+		}
 	}
 
 	//Decode ARM instructions
@@ -438,6 +442,11 @@ void ARM7::execute()
 			case THUMB_16:
 				conditional_branch(instruction_pipeline[pipeline_id]);
 				debug_message = 0xF; debug_code = instruction_pipeline[pipeline_id];
+				break;
+
+			case THUMB_19:
+				long_branch_link(instruction_pipeline[pipeline_id]);
+				debug_message = 0x12; debug_code = instruction_pipeline[pipeline_id];
 				break;
 
 			default:
