@@ -74,8 +74,8 @@ void Core::debug_step()
 		debug_process_command();
 	}
 
-	//After adding a breakpoint, just ask for more input
-	else if((db_unit.last_command == "bp") || (db_unit.last_command == "sm")) { debug_process_command(); }
+	//After some commands, wait for more input
+	else if((db_unit.last_command == "bp") || (db_unit.last_command == "sm") || (db_unit.last_command == "h")) { debug_process_command(); }
 }
 
 /****** Debugger - Display relevant info to the screen ******/
@@ -307,10 +307,24 @@ void Core::debug_process_command()
 			}
 		}
 
+		//Print help information
+		else if(command == "h")
+		{
+			std::cout<<"n \t\t Run next Fetch-Decode-Execute stage\n";
+			std::cout<<"c \t\t Continue until next breakpoint\n";
+			std::cout<<"bp \t\t Set breakpoint, format 0x1234ABCD\n";
+			std::cout<<"sm \t\t Show memory, format 0x1234ABCD\n";
+			std::cout<<"dq \t\t Quit the debugger\n";
+			std::cout<<"q \t\t Quit GBE+\n\n";
+
+			valid_command = true;
+			db_unit.last_command = "h";
+		}	
+
 		//Request valid input again
 		else if(!valid_command)
 		{
-			std::cout<<"\nInvalid input : " << command << "\n";
+			std::cout<<"\nInvalid input : " << command << " - Type h for help\n";
 			std::cout<<": ";
 			std::getline(std::cin, command);
 		}
