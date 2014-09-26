@@ -279,19 +279,19 @@ void ARM7::decode()
 	{
 		u16 current_instruction = instruction_pipeline[pipeline_id];
 		
-		if(((current_instruction >> 13) == 0) && (((current_instruction >> 11) & 0x7) != 3))
+		if(((current_instruction >> 13) == 0) && (((current_instruction >> 11) & 0x7) != 0x3))
 		{
 			//THUMB_1
 			instruction_operation[pipeline_id] = THUMB_1;
 		}
 
-		else if(((current_instruction >> 11) & 0x1F) == 3)
+		else if(((current_instruction >> 11) & 0x1F) == 0x3)
 		{
 			//THUMB_2
 			instruction_operation[pipeline_id] = THUMB_2;
 		}
 
-		else if((current_instruction >> 13) == 1)
+		else if((current_instruction >> 13) == 0x1)
 		{
 			//THUMB_3
 			instruction_operation[pipeline_id] = THUMB_3;
@@ -309,16 +309,34 @@ void ARM7::decode()
 			instruction_operation[pipeline_id] = THUMB_5;
 		}
 
-		else if(((current_instruction >> 13) & 0x7) == 3)
+		else if((current_instruction >> 11) == 0x9)
+		{
+			//THUMB_6
+			instruction_operation[pipeline_id] = THUMB_6;
+		}
+
+		else if(((current_instruction >> 13) & 0x7) == 0x3)
 		{
 			//THUMB_9
 			instruction_operation[pipeline_id] = THUMB_9;
 		}
 
-		else if((current_instruction >> 12) == 8)
+		else if((current_instruction >> 12) == 0x8)
 		{
 			//THUMB_10
 			instruction_operation[pipeline_id] = THUMB_10;
+		}
+
+		else if((current_instruction >> 12) == 0x9)
+		{
+			//THUMB_11
+			instruction_operation[pipeline_id] = THUMB_11;
+		}
+
+		else if((current_instruction >> 8) == 0xB0)
+		{
+			//THUMB_13
+			instruction_operation[pipeline_id] = THUMB_13;
 		}
 
 		else if((current_instruction >> 12) == 0xB)
@@ -424,6 +442,11 @@ void ARM7::execute()
 				debug_message = 0x4; debug_code = instruction_pipeline[pipeline_id];
 				break;
 
+			case THUMB_6:
+				load_pc_relative(instruction_pipeline[pipeline_id]);
+				debug_message = 0x5; debug_code = instruction_pipeline[pipeline_id];
+				break;
+
 			case THUMB_9:
 	 			load_store_imm_offset(instruction_pipeline[pipeline_id]);
 				debug_message = 0x8; debug_code = instruction_pipeline[pipeline_id];
@@ -432,6 +455,16 @@ void ARM7::execute()
 			case THUMB_10:
 				load_store_halfword(instruction_pipeline[pipeline_id]);
 				debug_message = 0x9; debug_code = instruction_pipeline[pipeline_id];
+				break;
+
+			case THUMB_11:
+				load_store_sp_relative(instruction_pipeline[pipeline_id]);
+				debug_message = 0xA; debug_code = instruction_pipeline[pipeline_id];
+				break;
+
+			case THUMB_13:
+				add_offset_sp(instruction_pipeline[pipeline_id]);
+				debug_message = 0xC; debug_code = instruction_pipeline[pipeline_id];
 				break;
 
 			case THUMB_14:

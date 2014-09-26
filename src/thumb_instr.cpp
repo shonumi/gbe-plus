@@ -1530,8 +1530,6 @@ void ARM7::long_branch_link(u16 current_thumb_instruction)
 		clock(reg.r15, false);
 	}
 
-	//TODO - Figure out how to convert 23-bit 2's complement...
-
 	//Perform 2nd 16-bit operation
 	else
 	{
