@@ -844,7 +844,7 @@ void ARM7::rotate_right_special(u32& input, u8 offset)
 			if(carry_out) { input |= 0x80000000; }
 		}
 	}
-}
+}			
 
 /****** Runs audio and video controllers every clock cycle ******/
 void ARM7::clock(u32 access_addr, bool first_access)
@@ -899,6 +899,7 @@ void ARM7::clock(u32 access_addr, bool first_access)
 	for(int x = 0; x < access_cycles; x++)
 	{
 		controllers.video.step();
+		clock_dma();
 	}
 }
 
@@ -906,6 +907,50 @@ void ARM7::clock(u32 access_addr, bool first_access)
 void ARM7::clock()
 {
 	controllers.video.step();
+	clock_dma();
+}
+
+/****** Runs DMA controllers every clock cycle ******/
+void ARM7::clock_dma()
+{
+	//DMA3
+	if(mem->dma[3].enable)
+	{
+		//Wait 2 cycles after DMA is enabled before actual transfer
+		if(mem->dma[3].delay != 0) { mem->dma[3].delay--; }
+
+		//See if DMA Start Timing conditions dictate a transfer
+		else
+		{
+			//Check DMA Start Timings
+			switch(((mem->dma[3].control >> 12) & 0x3))
+			{
+				//Immediate
+				case 0x0:
+					std::cout<<"Immediate DMA!\n";
+					mem->dma[3].enable = false;
+					break;
+
+				//VBlank
+				case 0x1:
+					std::cout<<"VBlank DMA!\n";
+					mem->dma[3].enable = false;
+					break;
+
+				//HBlank
+				case 0x2:
+					std::cout<<"HBlank DMA!\n";
+					mem->dma[3].enable = false;
+					break;
+
+				//Special
+				case 0x3:
+					std::cout<<"Special DMA!\n";
+					mem->dma[3].enable = false;
+					break;
+			}
+		}
+	}
 }
 
 /****** Jumps to or exits an interrupt ******/

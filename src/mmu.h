@@ -24,6 +24,17 @@ class MMU
 
 	std::vector <u8> memory_map;
 
+	struct dma_controllers
+	{
+		bool enable;
+		bool started;
+		u32 start_address;
+		u32 destination_address;
+		u16 word_count;
+		u16 control;
+		u8 delay;
+	} dma[4];
+
 	MMU();
 	~MMU();
 
