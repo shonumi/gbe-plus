@@ -31,6 +31,10 @@ const u32 CPSR_Z_FLAG = 0x40000000;
 const u32 CPSR_C_FLAG = 0x20000000;
 const u32 CPSR_V_FLAG = 0x10000000;
 const u32 CPSR_Q_FLAG = 0x8000000;
+const u32 CPSR_IRQ = 0x80;
+const u32 CPSR_FIQ = 0x40;
+const u32 CPSR_STATE = 0x20;
+const u32 CPSR_MODE = 0x1F;
 
 /* Display Registers */
 const u32 DISPCNT = 0x4000000;

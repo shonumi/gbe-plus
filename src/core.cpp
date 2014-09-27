@@ -81,6 +81,7 @@ void Core::debug_step()
 /****** Debugger - Display relevant info to the screen ******/
 void Core::debug_display() const
 {
+	//Display current CPU action
 	switch(core_cpu.debug_message)
 	{
 		case 0xFF:
@@ -150,7 +151,8 @@ void Core::debug_display() const
 		case 0x1F:
 			std::cout << std::hex << "CPU::Skipping ARM Instruction : 0x" << core_cpu.debug_code << "\n\n"; break;
 	}
-		
+
+	//Display CPU registers
 	std::cout<< std::hex <<"R0 : 0x" << std::setw(8) << std::setfill('0') << core_cpu.get_reg(0) << 
 		" -- R4  : 0x" << std::setw(8) << std::setfill('0') << core_cpu.get_reg(4) << 
 		" -- R8  : 0x" << std::setw(8) << std::setfill('0') << core_cpu.get_reg(8) << 
@@ -171,7 +173,33 @@ void Core::debug_display() const
 		" -- R11 : 0x" << std::setw(8) << std::setfill('0') << core_cpu.get_reg(11) << 
 		" -- R15 : 0x" << std::setw(8) << std::setfill('0') << core_cpu.get_reg(15) << "\n";
 
-	std::cout<< std::hex <<"CPSR : 0x" << std::setw(8) << std::setfill('0') << core_cpu.reg.cpsr << "\n";
+	//Grab CPSR Flags and status
+	std::string cpsr_stats = "(";
+
+	if(core_cpu.reg.cpsr & CPSR_N_FLAG) { cpsr_stats += "N"; }
+	else { cpsr_stats += "."; }
+
+	if(core_cpu.reg.cpsr & CPSR_Z_FLAG) { cpsr_stats += "Z"; }
+	else { cpsr_stats += "."; }
+
+	if(core_cpu.reg.cpsr & CPSR_C_FLAG) { cpsr_stats += "C"; }
+	else { cpsr_stats += "."; }
+
+	if(core_cpu.reg.cpsr & CPSR_V_FLAG) { cpsr_stats += "V"; }
+	else { cpsr_stats += "."; }
+
+	cpsr_stats += "  ";
+
+	if(core_cpu.reg.cpsr & CPSR_IRQ) { cpsr_stats += "I"; }
+	else { cpsr_stats += "."; }
+
+	if(core_cpu.reg.cpsr & CPSR_FIQ) { cpsr_stats += "F"; }
+	else { cpsr_stats += "."; }
+
+	if(core_cpu.reg.cpsr & CPSR_STATE) { cpsr_stats += "T)"; }
+	else { cpsr_stats += ".)"; }
+
+	std::cout<< std::hex <<"CPSR : 0x" << std::setw(8) << std::setfill('0') << core_cpu.reg.cpsr << "\t" << cpsr_stats << "\n";
 }
 
 /****** Debugger - Wait for user input, process it to decide what next to do ******/
