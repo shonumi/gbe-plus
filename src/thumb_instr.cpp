@@ -1130,6 +1130,7 @@ void ARM7::add_offset_sp(u16 current_thumb_instruction)
 void ARM7::push_pop(u16 current_thumb_instruction)
 {
 	//TODO - Fix R13 banking, only works in USER mode
+	//TODO - How to properly increment R13 when popping PC?
 
 	//Grab register list - Bits 0-7
 	u8 r_list = (current_thumb_instruction & 0xFF);
@@ -1199,9 +1200,9 @@ void ARM7::push_pop(u16 current_thumb_instruction)
 			{
 				if(r_list & 0x1)
 				{
+					reg.r13 += 4;
 					u32 pop_value = mem->read_u32(reg.r13);
 					set_reg(x, pop_value);
-					reg.r13 += 4;
 
 					//Clock CPU and controllers - (n)S
 					if(n_count > 1) { clock(reg.r13, false); }
