@@ -631,6 +631,9 @@ void ARM7::hireg_bx(u16 current_thumb_instruction)
 				reg.cpsr &= ~0x20;
 			}
 
+			//Align operand to half-word
+			else { operand &= ~0x1; }
+
 			//BX
 			if(dr_msb) 
 			{
