@@ -409,7 +409,8 @@ void ARM7::alu_ops(u16 current_thumb_instruction)
 
 		//NEG
 		case 0x9:
-			result = (0 - operand);
+			input = 0;
+			result = (input - operand);
 			update_condition_arithmetic(input, operand, result, false);
 
 			set_reg(dest_reg, result);
