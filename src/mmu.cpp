@@ -68,7 +68,7 @@ void MMU::write_u8(u32 address, u8 value)
 
 		case DMA0CNT_H:
 			//Start DMA0 transfer if Bit 15 goes from 0 to 1
-			if((value & 0x8000) && ((memory_map[DMA0CNT_H] & 0x8000) == 0))
+			if((value & 0x80) && ((memory_map[DMA0CNT_H] & 0x80) == 0))
 			{
 				dma[0].enable = true;
 				dma[0].started = false;
@@ -76,14 +76,14 @@ void MMU::write_u8(u32 address, u8 value)
 			}
 
 			//Halt DMA0 transfer if Bit 15 goes from 1 to 0
-			else if(((value & 0x8000) == 0) && (memory_map[DMA0CNT_H] & 0x8000)) { dma[0].enable = false; }
+			else if(((value & 0x80) == 0) && (memory_map[DMA0CNT_H] & 0x80)) { dma[0].enable = false; }
 
 			memory_map[DMA0CNT_H] = value;
 			break;
 
 		case DMA1CNT_H:
 			//Start DMA1 transfer if Bit 15 goes from 0 to 1
-			if((value & 0x8000) && ((memory_map[DMA1CNT_H] & 0x8000) == 0))
+			if((value & 0x80) && ((memory_map[DMA1CNT_H] & 0x80) == 0))
 			{
 				dma[1].enable = true;
 				dma[1].started = false;
@@ -91,14 +91,14 @@ void MMU::write_u8(u32 address, u8 value)
 			}
 
 			//Halt DMA1 transfer if Bit 15 goes from 1 to 0
-			else if(((value & 0x8000) == 0) && (memory_map[DMA1CNT_H] & 0x8000)) { dma[1].enable = false; }
+			else if(((value & 0x80) == 0) && (memory_map[DMA1CNT_H] & 0x80)) { dma[1].enable = false; }
 
 			memory_map[DMA1CNT_H] = value;
 			break;
 
 		case DMA2CNT_H:
 			//Start DMA2 transfer if Bit 15 goes from 0 to 1
-			if((value & 0x8000) && ((memory_map[DMA2CNT_H] & 0x8000) == 0))
+			if((value & 0x80) && ((memory_map[DMA2CNT_H] & 0x80) == 0))
 			{
 				dma[2].enable = true;
 				dma[2].started = false;
@@ -106,14 +106,14 @@ void MMU::write_u8(u32 address, u8 value)
 			}
 
 			//Halt DMA2 transfer if Bit 15 goes from 1 to 0
-			else if(((value & 0x8000) == 0) && (memory_map[DMA2CNT_H] & 0x8000)) { dma[2].enable = false; }
+			else if(((value & 0x80) == 0) && (memory_map[DMA2CNT_H] & 0x80)) { dma[2].enable = false; }
 
 			memory_map[DMA2CNT_H] = value;
 			break;
 
 		case DMA3CNT_H:
 			//Start DMA3 transfer if Bit 15 goes from 0 to 1
-			if((value & 0x8000) && ((memory_map[DMA3CNT_H] & 0x8000) == 0))
+			if((value & 0x80) && ((memory_map[DMA3CNT_H] & 0x80) == 0))
 			{
 				dma[3].enable = true;
 				dma[3].started = false;
@@ -121,7 +121,7 @@ void MMU::write_u8(u32 address, u8 value)
 			}
 
 			//Halt DMA3 transfer if Bit 15 goes from 1 to 0
-			else if(((value & 0x8000) == 0) && (memory_map[DMA3CNT_H] & 0x8000)) { dma[3].enable = false; }
+			else if(((value & 0x80) == 0) && (memory_map[DMA3CNT_H] & 0x80)) { dma[3].enable = false; }
 			
 			memory_map[DMA3CNT_H] = value;
 			break;
