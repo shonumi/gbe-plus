@@ -556,6 +556,9 @@ void ARM7::hireg_bx(u16 current_thumb_instruction)
 	{
 		//ADD
 		case 0x0:
+			//When the destination register is the PC, auto-align operand to half-word
+			if(dest_reg == 15) { operand &= ~0x1; }
+
 			//Destination is not PC
 			if(dest_reg != 15)
 			{
@@ -595,6 +598,9 @@ void ARM7::hireg_bx(u16 current_thumb_instruction)
 
 		//MOV
 		case 0x2:
+			//When the destination register is the PC, auto-align operand to half-word
+			if(dest_reg == 15) { operand &= ~0x1; }
+
 			//Operand is not PC
 			if(dest_reg != 15)
 			{
