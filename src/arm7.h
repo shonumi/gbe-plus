@@ -210,6 +210,7 @@ class ARM7
 	void push_pop(u16 current_thumb_instruction);
 	void multiple_load_store(u16 current_thumb_instruction);
 	void conditional_branch(u16 current_thumb_instruction);
+	void unconditional_branch(u16 current_thumb_instruction);
 	void long_branch_link(u16 current_thumb_instruction);
 
 	//System functions

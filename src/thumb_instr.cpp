@@ -1166,7 +1166,7 @@ void ARM7::push_pop(u16 current_thumb_instruction)
 					u32 push_value = get_reg(x);
 					mem->write_u32(reg.r13, push_value);
 					reg.r13 -= 4;
-					
+
 					//Clock CPU and controllers - (n)S
 					if((n_count - 1) != 0) { clock(reg.r13, false); n_count--; }
 
@@ -1512,6 +1512,38 @@ void ARM7::conditional_branch(u16 current_thumb_instruction)
 		//Clock CPU and controllers - 1S
 		clock(reg.r15, false);
 	} 
+}
+
+/****** THUMB.18 Unconditional Branch ******/
+void ARM7::unconditional_branch(u16 current_thumb_instruction)
+{
+	//Grab 11-bit offset - Bits 0-10
+	u16 offset = (current_thumb_instruction & 0x7FF);
+
+	s16 jump_addr = 0;
+
+	//Calculate jump address
+	//Convert Two's Complement
+	if(offset & 0x400)
+	{
+		offset--;
+		offset = ~offset;
+		offset &= 0x7FF;
+
+		jump_addr = (offset * -2);
+	}
+
+	else { jump_addr = (offset * 2); }
+
+	needs_flush = true;
+
+	//Clock CPU and controllers - 1N
+	clock(reg.r15, true);
+
+	//Clock CPU and controllers - 2S 
+	reg.r15 += jump_addr;  
+	clock(reg.r15, false);
+	clock((reg.r15 + 2), false);
 }
 
 /****** THUMB.19 Long Branch with Link ******/

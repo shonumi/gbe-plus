@@ -351,6 +351,12 @@ void ARM7::decode()
 			instruction_operation[pipeline_id] = THUMB_16;
 		}
 
+		else if((current_instruction >> 11) == 0x1C)
+		{
+			//THUMB_18
+			instruction_operation[pipeline_id] = THUMB_18;
+		}
+
 		else if((current_instruction >> 11) >= 0x1E)
 		{
 			//THUMB_19
@@ -475,6 +481,11 @@ void ARM7::execute()
 			case THUMB_16:
 				conditional_branch(instruction_pipeline[pipeline_id]);
 				debug_message = 0xF; debug_code = instruction_pipeline[pipeline_id];
+				break;
+
+			case THUMB_18:
+				unconditional_branch(instruction_pipeline[pipeline_id]);
+				debug_message = 0x11; debug_code = instruction_pipeline[pipeline_id];
 				break;
 
 			case THUMB_19:
