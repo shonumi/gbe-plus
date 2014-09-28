@@ -1161,10 +1161,18 @@ void ARM7::push_pop(u16 current_thumb_instruction)
 	{
 		//PUSH
 		case 0x0:
-			if(pc_lr_bit) { n_count++; }
-
 			//Clock CPU and controllers - 1N
 			clock(reg.r15, true);
+
+			//Optionally store LR onto the stack
+			if(pc_lr_bit) 
+			{ 
+				mem->write_u32(reg.r13, reg.r14); 
+				reg.r13 -= 4; 
+
+				//Clock CPU and controllers - 1S
+				clock(reg.r13, false);
+			}
 
 			//Cycle through the register list
 			for(int x = 0; x < 8; x++)
@@ -1183,16 +1191,6 @@ void ARM7::push_pop(u16 current_thumb_instruction)
 				}
 
 				r_list >>= 1;
-			}
-
-			//Optionally store LR onto the stack
-			if(pc_lr_bit) 
-			{ 
-				mem->write_u32(reg.r13, reg.r14); 
-				reg.r13 -= 4; 
-
-				//Clock CPU and controllers - 1N
-				clock(reg.r13, true);
 			}
 
 			break;
