@@ -119,8 +119,8 @@ void ARM7::add_sub_immediate(u16 current_thumb_instruction)
 	set_reg(dest_reg, result);
 
 	//Update condition codes
-	if(op & 0x1){ update_condition_arithmetic(input, operand, result, true); }
-	else { update_condition_arithmetic(input, operand, result, false); }
+	if(op & 0x1){ update_condition_arithmetic(input, operand, result, false); }
+	else { update_condition_arithmetic(input, operand, result, true); }
 
 	//Clock CPU and controllers - 1S
 	clock(reg.r15, false);

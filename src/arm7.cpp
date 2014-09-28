@@ -705,8 +705,13 @@ void ARM7::update_condition_arithmetic(u32 input, u32 operand, u32 result, bool 
 	if(result == 0) { reg.cpsr |= CPSR_Z_FLAG; }
 	else { reg.cpsr &= ~CPSR_Z_FLAG; }
 
-	//Carry flag
+	//Carry flag - Addition
 	if((input & 0x80000000) && !(result & 0x80000000) && (addition)) { reg.cpsr |= CPSR_C_FLAG; }
+
+	//Carry flag - Subtraction
+	else if((operand < input) && (!addition)) { reg.cpsr |= CPSR_C_FLAG; }
+
+	else { reg.cpsr &= ~CPSR_C_FLAG; }
 
 	//Overflow flag
 	if(addition)
