@@ -545,9 +545,9 @@ void ARM7::hireg_bx(u16 current_thumb_instruction)
 	u8 shift_out = 0;
 	u8 carry_out = (reg.cpsr & CPSR_C_FLAG) ? 1 : 0;
 
-	if((op < 3) && (sr_msb == 0) && (dr_msb == 0)) 
+	if((op == 3) && (dr_msb != 0)) 
 	{ 
-		std::cout<<"CPU::Error - THUMB.5 MSBs of Source and Destination registers are both zero\n";
+		std::cout<<"CPU::Error - THUMB.5 Using BX but MSBd is set \n";
 		running = false;
 		return;
 	}
@@ -629,7 +629,7 @@ void ARM7::hireg_bx(u16 current_thumb_instruction)
 
 			break;
 
-		//BX-BLX
+		//BX
 		case 0x3:
 			//Switch to ARM mode if necessary
 			if((operand & 0x1) == 0)
@@ -641,48 +641,20 @@ void ARM7::hireg_bx(u16 current_thumb_instruction)
 			//Align operand to half-word
 			else { operand &= ~0x1; }
 
-			//BX
-			if(dr_msb) 
+			//Clock CPU and controllers - 1N
+			clock(reg.r15, true);
+
+			//Auto-align PC when using R15 as an operand
+			if(src_reg == 15)
 			{
-				//Clock CPU and controllers - 1N
-				clock(reg.r15, true);
-
-				//Auto-align PC when using R15 as an operand
-				if(src_reg == 15)
-				{
-					reg.r15 &= ~0x2;
-				}
-
-				else { reg.r15 = operand; }
-
-				//Clock CPU and controllers - 2S
-				clock(reg.r15, false);
-				clock((reg.r15 + 2), false);
+				reg.r15 &= ~0x2;
 			}
 
-			//BLX
-			else 
-			{
-				//Clock CPU and controllers - 1N
-				clock(reg.r15, true);
+			else { reg.r15 = operand; }
 
-				if(src_reg == 15) 
-				{ 
-					std::cout<<"CPU::Error - THUMB.5 BLX using R15 \n";
-					running = false;
-					return;
-				}
-		
-				else 
-				{
-					set_reg(14, (reg.r15 - 4));
-					reg.r15 = operand;
-				}
-
-				//Clock CPU and controllers - 2S
-				clock(reg.r15, false);
-				clock((reg.r15 + 2), false);
-			}
+			//Clock CPU and controllers - 2S
+			clock(reg.r15, false);
+			clock((reg.r15 + 2), false);
 
 			needs_flush = true;
 			break;
