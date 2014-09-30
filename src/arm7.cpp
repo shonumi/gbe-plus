@@ -345,6 +345,12 @@ void ARM7::decode()
 			instruction_operation[pipeline_id] = THUMB_14;
 		}
 
+		else if((current_instruction >> 12) == 0xC)
+		{
+			//THUMB_15
+			instruction_operation[pipeline_id] = THUMB_15;
+		}
+
 		else if((current_instruction >> 12) == 13)
 		{
 			//THUMB_16
@@ -476,6 +482,11 @@ void ARM7::execute()
 			case THUMB_14:
 				push_pop(instruction_pipeline[pipeline_id]);
 				debug_message = 0xD; debug_code = instruction_pipeline[pipeline_id];
+				break;
+
+			case THUMB_15:
+				multiple_load_store(instruction_pipeline[pipeline_id]);
+				debug_message = 0xE; debug_code = instruction_pipeline[pipeline_id];
 				break;
 
 			case THUMB_16:
