@@ -1538,7 +1538,6 @@ void ARM7::long_branch_link(u16 current_thumb_instruction)
 		lbl_addr += reg.r15;
 		set_reg(14, lbl_addr);
 
-
 		//Clock CPU and controllers - 1S
 		clock(reg.r15, false);
 	}
@@ -1557,7 +1556,14 @@ void ARM7::long_branch_link(u16 current_thumb_instruction)
 		//Clock CPU and controllers - 1N
 		clock(reg.r15, true);
 
-		reg.r15 = lbl_addr;
+		//Wow, documentation on this little part right here sucks, even in the official ARM documents :(
+		//The resulting 23-bit 2's complement address is *not* added to the PC at all. It's *placed* into it (whatever that was supposed to mean...)
+		//In reality, the lower 23-bits of the PC are cleared, and the 23-bit address becomes the cleared out bits
+
+		lbl_addr &= 0x7FFFFF;
+		reg.r15 &= ~0x7FFFFF;
+		reg.r15 |= lbl_addr;
+
 		needs_flush = true;
 		set_reg(14, next_instr_addr);
 
