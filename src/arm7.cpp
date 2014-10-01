@@ -315,6 +315,12 @@ void ARM7::decode()
 			instruction_operation[pipeline_id] = THUMB_6;
 		}
 
+		else if((current_instruction >> 12) == 0x5)
+		{
+			//THUMB_8
+			instruction_operation[pipeline_id] = THUMB_8;
+		}
+
 		else if(((current_instruction >> 13) & 0x7) == 0x3)
 		{
 			//THUMB_9
@@ -457,6 +463,11 @@ void ARM7::execute()
 			case THUMB_6:
 				load_pc_relative(instruction_pipeline[pipeline_id]);
 				debug_message = 0x5; debug_code = instruction_pipeline[pipeline_id];
+				break;
+
+			case THUMB_8:
+				load_store_sign_ex(instruction_pipeline[pipeline_id]);
+				debug_message = 0x7; debug_code = instruction_pipeline[pipeline_id];
 				break;
 
 			case THUMB_9:
@@ -1005,7 +1016,7 @@ void ARM7::handle_interrupt()
 	}
 
 	//Jump into an interrupt, check if the master flag is enabled
-	if(ime_check & 0x1)
+	if((ime_check & 0x1) & (reg.cpsr & CPSR_IRQ))
 	{
 		//Match up bits in IE and IF
 		for(int x = 0; x < 14; x++)
