@@ -1412,7 +1412,7 @@ void ARM7::conditional_branch(u16 current_thumb_instruction)
 
 		//BLS
 		case 0x9:
-			if((reg.cpsr & CPSR_Z_FLAG) && ((reg.cpsr & CPSR_C_FLAG) == 0)) { needs_flush = true; }
+			if((reg.cpsr & CPSR_Z_FLAG) || ((reg.cpsr & CPSR_C_FLAG) == 0)) { needs_flush = true; }
 			break;
 
 		//BGE
@@ -1456,7 +1456,7 @@ void ARM7::conditional_branch(u16 current_thumb_instruction)
 				u8 v = (reg.cpsr & CPSR_V_FLAG) ? 1 : 0;
 				u8 z = (reg.cpsr & CPSR_Z_FLAG) ? 1 : 0;
 
-				if((z == 1) && (n != v)) { needs_flush = true; }
+				if((z == 1) || (n != v)) { needs_flush = true; }
 			}
 
 			break;
