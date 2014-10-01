@@ -1138,9 +1138,9 @@ void ARM7::push_pop(u16 current_thumb_instruction)
 
 			//Optionally store LR onto the stack
 			if(pc_lr_bit) 
-			{ 
-				mem->write_u32(reg.r13, reg.r14); 
-				reg.r13 -= 4; 
+			{
+				reg.r13 -= 4;
+				mem->write_u32(reg.r13, reg.r14);  
 
 				//Clock CPU and controllers - 1S
 				clock(reg.r13, false);
@@ -1151,9 +1151,9 @@ void ARM7::push_pop(u16 current_thumb_instruction)
 			{
 				if(r_list & 0x1)
 				{
+					reg.r13 -= 4;
 					u32 push_value = get_reg(x);
 					mem->write_u32(reg.r13, push_value);
-					reg.r13 -= 4;
 
 					//Clock CPU and controllers - (n)S
 					if((n_count - 1) != 0) { clock(reg.r13, false); n_count--; }
@@ -1177,9 +1177,9 @@ void ARM7::push_pop(u16 current_thumb_instruction)
 			{
 				if(r_list & (1 << x))
 				{
-					reg.r13 += 4;
 					u32 pop_value = mem->read_u32(reg.r13);
 					set_reg(x, pop_value);
+					reg.r13 += 4;
 
 					//Clock CPU and controllers - (n)S
 					if(n_count > 1) { clock(reg.r13, false); }
@@ -1197,6 +1197,10 @@ void ARM7::push_pop(u16 current_thumb_instruction)
 
 				//Clock CPU and controllers - 2S
 				reg.r15 = mem->read_u32(reg.r13);
+				reg.r15 &= ~0x1;
+				reg.r13 += 4;
+				needs_flush = true;
+
 				clock(reg.r15, false);
 				clock((reg.r15 + 2), false); 
 			}
