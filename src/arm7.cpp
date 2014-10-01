@@ -339,6 +339,12 @@ void ARM7::decode()
 			instruction_operation[pipeline_id] = THUMB_11;
 		}
 
+		else if((current_instruction >> 12) == 0xA)
+		{
+			//THUMB_12
+			instruction_operation[pipeline_id] = THUMB_12;
+		}
+
 		else if((current_instruction >> 8) == 0xB0)
 		{
 			//THUMB_13
@@ -483,6 +489,11 @@ void ARM7::execute()
 			case THUMB_11:
 				load_store_sp_relative(instruction_pipeline[pipeline_id]);
 				debug_message = 0xA; debug_code = instruction_pipeline[pipeline_id];
+				break;
+
+			case THUMB_12:
+				get_relative_address(instruction_pipeline[pipeline_id]);
+				debug_message = 0xB; debug_code = instruction_pipeline[pipeline_id];
 				break;
 
 			case THUMB_13:
@@ -657,7 +668,7 @@ bool ARM7::check_condition(u32 current_arm_instruction) const
 
 		//LS
 		case 0x9:
-			if((reg.cpsr & CPSR_Z_FLAG) && ((reg.cpsr & CPSR_C_FLAG) == 0)) { return true; }
+			if((reg.cpsr & CPSR_Z_FLAG) || ((reg.cpsr & CPSR_C_FLAG) == 0)) { return true; }
 			else { return false; }
 			break;
 
@@ -702,7 +713,7 @@ bool ARM7::check_condition(u32 current_arm_instruction) const
 				u8 v = (reg.cpsr & CPSR_V_FLAG) ? 1 : 0;
 				u8 z = (reg.cpsr & CPSR_Z_FLAG) ? 1 : 0;
 
-				if((z == 1) && (n != v)) { return true; }
+				if((z == 1) || (n != v)) { return true; }
 				else { return false; }
 			}
 			break;
