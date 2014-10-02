@@ -112,18 +112,12 @@ void MMU::write_u8(u32 address, u8 value)
 			break;
 
 		case DMA3CNT_H:
-			//Start DMA3 transfer if Bit 15 goes from 0 to 1
-			if((value & 0x80) && ((memory_map[DMA3CNT_H] & 0x80) == 0))
-			{
-				dma[3].enable = true;
-				dma[3].started = false;
-				dma[3].delay = 2;
-			}
+		case DMA3CNT_H+1:
+			dma[3].enable = true;
+			dma[3].started = false;
+			dma[3].delay = 2;
 
-			//Halt DMA3 transfer if Bit 15 goes from 1 to 0
-			else if(((value & 0x80) == 0) && (memory_map[DMA3CNT_H] & 0x80)) { dma[3].enable = false; }
-			
-			memory_map[DMA3CNT_H] = value;
+			memory_map[address] = value;
 			break;
 
 		default:

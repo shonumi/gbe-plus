@@ -964,21 +964,81 @@ void ARM7::clock()
 /****** Runs DMA controllers every clock cycle ******/
 void ARM7::clock_dma()
 {
+	//TODO - Move to separate .cpp
+	//TODO - Everything!
+
 	//DMA3
 	if(mem->dma[3].enable)
 	{
-		//Wait 2 cycles after DMA is enabled before actual transfer
+		//Wait 2 cycles after DMA is triggered before actual transfer
 		if(mem->dma[3].delay != 0) { mem->dma[3].delay--; }
 
 		//See if DMA Start Timing conditions dictate a transfer
 		else
 		{
+			mem->dma[3].start_address = (mem->read_u32(DMA3SAD) & 0xFFFFFFF);
+			mem->dma[3].destination_address = (mem->read_u32(DMA3DAD) & 0xFFFFFFF);
+			mem->dma[3].word_count = mem->read_u16(DMA3CNT_L);
+			mem->dma[3].word_type = (mem->memory_map[DMA3CNT_H] & 0x4) ? 1 : 0;
+
+			mem->dma[3].control = mem->read_u16(DMA3CNT_H);
+			mem->dma[3].dest_addr_ctrl = (mem->read_u16(DMA3CNT_H) >> 5) & 0x3;
+			mem->dma[3].src_addr_ctrl = (mem->read_u16(DMA3CNT_H) >> 7) & 0x3;
+
+			u32 temp_value = 0;
+
 			//Check DMA Start Timings
 			switch(((mem->dma[3].control >> 12) & 0x3))
 			{
 				//Immediate
 				case 0x0:
-					std::cout<<"Immediate DMA!\n";
+					//Set word count of transfer to max (0x10000) if specified as zero
+					if(mem->dma[3].word_count == 0) { mem->dma[3].word_count = 0x10000; }
+
+					//16-bit transfer
+					if(mem->dma[3].word_type == 0)
+					{
+						while(mem->dma[3].word_count != 0)
+						{
+							temp_value = mem->read_u16(mem->dma[3].start_address);
+							mem->write_u16(mem->dma[3].destination_address, temp_value);
+
+							//Update DMA3 Start Address
+							if(mem->dma[3].src_addr_ctrl == 0) { mem->dma[3].start_address += 2; }
+							else if(mem->dma[3].src_addr_ctrl == 1) { mem->dma[3].start_address -= 2; }
+							else if(mem->dma[3].src_addr_ctrl == 3) { std::cout<<"Panic here!\n"; }
+
+							//Update DMA3 Destination Address
+							if(mem->dma[3].dest_addr_ctrl == 0) { mem->dma[3].destination_address += 2; }
+							else if(mem->dma[3].src_addr_ctrl == 1) { mem->dma[3].destination_address -= 2; }
+							else if(mem->dma[3].src_addr_ctrl == 3) { std::cout<<"Panic here also!\n"; }
+
+							mem->dma[3].word_count--;
+						}
+					}
+
+					//32-bit transfer
+					else
+					{
+						while(mem->dma[3].word_count != 0)
+						{
+							temp_value = mem->read_u32(mem->dma[3].start_address);
+							mem->write_u32(mem->dma[3].destination_address, temp_value);
+
+							//Update DMA3 Start Address
+							if(mem->dma[3].src_addr_ctrl == 0) { mem->dma[3].start_address += 4; }
+							else if(mem->dma[3].src_addr_ctrl == 1) { mem->dma[3].start_address -= 4; }
+							else if(mem->dma[3].src_addr_ctrl == 3) { std::cout<<"Panic here!\n"; }
+
+							//Update DMA3 Destination Address
+							if(mem->dma[3].dest_addr_ctrl == 0) { mem->dma[3].destination_address += 4; }
+							else if(mem->dma[3].src_addr_ctrl == 1) { mem->dma[3].destination_address -= 4; }
+							else if(mem->dma[3].src_addr_ctrl == 3) { std::cout<<"Panic here also!\n"; }
+
+							mem->dma[3].word_count--;
+						}
+					}
+
 					mem->dma[3].enable = false;
 					break;
 

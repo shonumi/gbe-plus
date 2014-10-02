@@ -30,8 +30,12 @@ class MMU
 		bool started;
 		u32 start_address;
 		u32 destination_address;
-		u16 word_count;
+		u32 current_dma_position;
+		u32 word_count;
+		u8 word_type;
 		u16 control;
+		u8 dest_addr_ctrl;
+		u8 src_addr_ctrl;
 		u8 delay;
 	} dma[4];
 
