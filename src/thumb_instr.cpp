@@ -1004,7 +1004,7 @@ void ARM7::load_store_sp_relative(u16 current_thumb_instruction)
 	u8 op = (current_thumb_instruction & 0x800) ? 1 : 0;
 
 	u32 value = 0;
-	u32 op_addr = reg.r13;
+	u32 op_addr = get_reg(13);
 
 	offset <<= 2;
 	op_addr += offset;
