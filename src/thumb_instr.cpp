@@ -1147,9 +1147,9 @@ void ARM7::push_pop(u16 current_thumb_instruction)
 			}
 
 			//Cycle through the register list
-			for(int x = 0; x < 8; x++)
+			for(int x = 7; x >= 0; x--)
 			{
-				if(r_list & 0x1)
+				if(r_list & (1 << x))
 				{
 					reg.r13 -= 4;
 					u32 push_value = get_reg(x);
@@ -1161,8 +1161,6 @@ void ARM7::push_pop(u16 current_thumb_instruction)
 					//Clock CPU and controllers - 1N
 					else { clock(reg.r13, true); x = 10; break; }
 				}
-
-				r_list >>= 1;
 			}
 
 			break;
@@ -1173,9 +1171,9 @@ void ARM7::push_pop(u16 current_thumb_instruction)
 			clock(reg.r15, true);
 			
 			//Cycle through the register list
-			for(int x = 7; x >= 0; x--)
+			for(int x = 0; x < 8; x++)
 			{
-				if(r_list & (1 << x))
+				if(r_list & 0x1)
 				{
 					u32 pop_value = mem->read_u32(reg.r13);
 					set_reg(x, pop_value);
@@ -1184,6 +1182,8 @@ void ARM7::push_pop(u16 current_thumb_instruction)
 					//Clock CPU and controllers - (n)S
 					if(n_count > 1) { clock(reg.r13, false); }
 				}
+
+				r_list >>= 1;
 			}
 
 			//Optionally load PC from the stack
