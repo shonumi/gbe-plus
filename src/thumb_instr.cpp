@@ -1463,16 +1463,15 @@ void ARM7::conditional_branch(u16 current_thumb_instruction)
 
 		//Undefined
 		case 0xE:
-			std::cout<<"CPU::Error - THUMB.16 BLX Undefined opcode 0xE \n";
+			std::cout<<"CPU::Error - THUMB.16 Undefined opcode 0xE \n";
 			running = false;
 			break;
 
 		//SWI
 		case 0xF:
-			std::cout<<"CPU::Error - THUMB.16 SWI not implemented yet. Come back later...\n";
-			//running = false;
-			//SWIs on the GBA always call the BIOS. Until GBE+ can emulate those calls via HLE or LLE, they are ignored for now
-			//TODO: Fix this ^
+			//Process SWIs via HLE
+			//TODO: Make and LLE version
+			process_swi((current_thumb_instruction & 0xFF));
 			break;
 	}
 

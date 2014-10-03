@@ -229,6 +229,9 @@ class ARM7
 	u8 rotate_right(u32& input, u8 offset);
 	void rotate_right_special(u32& input, u8 offset);
 
+	//HLE Software Interrupts (BIOS Calls)
+	void process_swi(u8 comment);
+
 };
 		
 #endif // GBA_CPU
