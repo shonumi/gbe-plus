@@ -42,7 +42,8 @@ void ARM7::process_swi(u8 comment)
 
 		//VBlankIntrWait
 		case 0x5:
-			std::cout<<"SWI::VBlank Interrupt Wait (not implemented yet) \n";
+			std::cout<<"SWI::VBlank Interrupt Wait \n";
+			swi_vblankintrwait();
 			break;
 
 		//Div
@@ -237,7 +238,7 @@ void ARM7::process_swi(u8 comment)
 	}
 }
 
-/****** HLE Implementation of CPUSet ******/
+/****** HLE implementation of CPUSet ******/
 void ARM7::swi_cpuset()
 {
 	//TODO - Timings
@@ -318,3 +319,25 @@ void ARM7::swi_cpuset()
 	}
 }
 
+/****** HLE implementation of VBlankIntrWait ******/
+void ARM7::swi_vblankintrwait()
+{
+	//Set R0 and R1 to 1
+	set_reg(0, 1);
+	set_reg(1, 1);
+
+	//Force IME on, Force IRQ bit in CPSR
+	mem->write_u16(REG_IME, 0x1);
+	reg.cpsr |= CPSR_IRQ;
+
+	u8 previous_mode = controllers.video.lcd_mode;
+	bool mode_change = false;
+
+	//Run controllers until VBlank interrupt is generated
+	while(!mode_change)
+	{
+		clock();
+		if((controllers.video.lcd_mode == 2) && (previous_mode != 2)) { mode_change = true; mem->memory_map[REG_IF] |= 0x1; }
+		else { previous_mode = controllers.video.lcd_mode; }
+	}
+}

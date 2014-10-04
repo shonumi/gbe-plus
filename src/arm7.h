@@ -232,7 +232,7 @@ class ARM7
 	//HLE Software Interrupts (BIOS Calls)
 	void process_swi(u8 comment);
 	void swi_cpuset();
-
+	void swi_vblankintrwait();
 };
 		
 #endif // GBA_CPU
