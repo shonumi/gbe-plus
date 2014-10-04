@@ -1087,7 +1087,7 @@ void ARM7::handle_interrupt()
 	}
 
 	//Jump into an interrupt, check if the master flag is enabled
-	if((ime_check & 0x1) & (reg.cpsr & CPSR_IRQ))
+	if((ime_check & 0x1) && (reg.cpsr & CPSR_IRQ))
 	{
 		//Match up bits in IE and IF
 		for(int x = 0; x < 14; x++)

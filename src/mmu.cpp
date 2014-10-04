@@ -122,7 +122,14 @@ void MMU::write_u8(u32 address, u8 value)
 
 		default:
 			memory_map[address] = value;
-	}	
+	}
+
+	//Mirror memory from 0x03007FXX to 0x03FFFFXX
+	if((address >= 0x03007F00) && (address <= 0x03007FFF)) 
+	{
+		u32 mirror_addr = 0x03FFFF00 + (address & 0xFF);
+		memory_map[mirror_addr] = value;
+	} 
 }
 
 /****** Write 2 bytes into memory ******/
