@@ -28,7 +28,9 @@ ARM7::~ARM7()
 void ARM7::reset()
 {
 	reg.r0 = reg.r1 = reg.r2 = reg.r3 = reg.r4 = reg.r5 = reg.r6 = reg.r7 = reg.r8 = reg.r9 = reg.r10 = reg.r11 = reg.r12 = reg.r14 = 0;
-	reg.r13 = reg.r13_fiq = reg.r13_svc = reg.r13_abt = reg.r13_irq = reg.r13_und = 0x03007F00;
+	reg.r13 = reg.r13_fiq = reg.r13_abt = reg.r13_und = 0x03007F00;
+	reg.r13_svc = 0x03007FE0;
+	reg.r13_irq = 0x03007FA0;
 	reg.r15 = 0x8000000;
 	reg.cpsr = 0x5F;
 
