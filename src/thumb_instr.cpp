@@ -1142,7 +1142,7 @@ void ARM7::push_pop(u16 current_thumb_instruction)
 			if(pc_lr_bit) 
 			{
 				r13 -= 4;
-				mem->write_u32(r13, reg.r14);  
+				mem->write_u32(r13, get_reg(14));  
 
 				//Clock CPU and controllers - 1S
 				clock(r13, false);
