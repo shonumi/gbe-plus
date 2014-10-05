@@ -1108,8 +1108,10 @@ void ARM7::add_offset_sp(u16 current_thumb_instruction)
 /****** THUMB.14 Push-Pop Registers ******/
 void ARM7::push_pop(u16 current_thumb_instruction)
 {
-	//TODO - Fix R13 banking, only works in USER mode
 	//TODO - How to properly increment R13 when popping PC?
+
+	//Grab stack pointer from current CPU mode
+	u32 r13 = get_reg(13);
 
 	//Grab register list - Bits 0-7
 	u8 r_list = (current_thumb_instruction & 0xFF);
@@ -1139,11 +1141,11 @@ void ARM7::push_pop(u16 current_thumb_instruction)
 			//Optionally store LR onto the stack
 			if(pc_lr_bit) 
 			{
-				reg.r13 -= 4;
-				mem->write_u32(reg.r13, reg.r14);  
+				r13 -= 4;
+				mem->write_u32(r13, reg.r14);  
 
 				//Clock CPU and controllers - 1S
-				clock(reg.r13, false);
+				clock(r13, false);
 			}
 
 			//Cycle through the register list
@@ -1151,15 +1153,15 @@ void ARM7::push_pop(u16 current_thumb_instruction)
 			{
 				if(r_list & (1 << x))
 				{
-					reg.r13 -= 4;
+					r13 -= 4;
 					u32 push_value = get_reg(x);
-					mem->write_u32(reg.r13, push_value);
+					mem->write_u32(r13, push_value);
 
 					//Clock CPU and controllers - (n)S
-					if((n_count - 1) != 0) { clock(reg.r13, false); n_count--; }
+					if((n_count - 1) != 0) { clock(r13, false); n_count--; }
 
 					//Clock CPU and controllers - 1N
-					else { clock(reg.r13, true); x = 10; break; }
+					else { clock(r13, true); x = 10; break; }
 				}
 			}
 
@@ -1175,12 +1177,12 @@ void ARM7::push_pop(u16 current_thumb_instruction)
 			{
 				if(r_list & 0x1)
 				{
-					u32 pop_value = mem->read_u32(reg.r13);
+					u32 pop_value = mem->read_u32(r13);
 					set_reg(x, pop_value);
-					reg.r13 += 4;
+					r13 += 4;
 
 					//Clock CPU and controllers - (n)S
-					if(n_count > 1) { clock(reg.r13, false); }
+					if(n_count > 1) { clock(r13, false); }
 				}
 
 				r_list >>= 1;
@@ -1196,9 +1198,9 @@ void ARM7::push_pop(u16 current_thumb_instruction)
 				clock(reg.r15, true);
 
 				//Clock CPU and controllers - 2S
-				reg.r15 = mem->read_u32(reg.r13);
+				reg.r15 = mem->read_u32(r13);
 				reg.r15 &= ~0x1;
-				reg.r13 += 4;
+				r13 += 4;
 				needs_flush = true;
 
 				clock(reg.r15, false);
@@ -1217,6 +1219,9 @@ void ARM7::push_pop(u16 current_thumb_instruction)
 
 			break;
 	}
+
+	//Update stack pointer for current CPU mode
+	set_reg(13, r13);
 }
 
 /****** THUMB.15 Multiple Load-Store ******/
