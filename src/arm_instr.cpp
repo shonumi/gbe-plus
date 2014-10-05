@@ -670,20 +670,20 @@ void ARM7::block_data_transfer(u32 current_arm_instruction)
 	{
 		for(int x = 0; x < 16; x++)
 		{
-			//Increment before transfer if pre-indexing
-			if(pre_post == 1) { base_addr += 4; }
-
 			if(r_list & (1 << x)) 
-			{ 
+			{
+				//Increment before transfer if pre-indexing
+				if(pre_post == 1) { base_addr += 4; }
+
 				//Store registers
 				if(load_store == 0) { mem->write_u32(base_addr, get_reg(x)); }
 			
 				//Load registers
 				else { set_reg(x, mem->read_u32(base_addr)); }
+
+				//Increment after transfer if post-indexing
+				if(pre_post == 0) { base_addr += 4; }
 			}
-			
-			//Increment after transfer if post-indexing
-			if(pre_post == 0) { base_addr += 4; }
 
 			//Write back the into base register
 			if(write_back == 1) { set_reg(base_reg, base_addr); }
@@ -695,20 +695,20 @@ void ARM7::block_data_transfer(u32 current_arm_instruction)
 	{
 		for(int x = 15; x >= 0; x--)
 		{
-			//Decrement before transfer if pre-indexing
-			if(pre_post == 1) { base_addr -= 4; }
-
 			if(r_list & (1 << x)) 
-			{ 
+			{
+				//Decrement before transfer if pre-indexing
+				if(pre_post == 1) { base_addr -= 4; }
+
 				//Store registers
 				if(load_store == 0) { mem->write_u32(base_addr, get_reg(x)); }
 			
 				//Load registers
 				else { set_reg(x, mem->read_u32(base_addr)); }
+
+				//Decrement after transfer if post-indexing
+				if(pre_post == 0) { base_addr -= 4; }
 			}
-			
-			//Decrement after transfer if post-indexing
-			if(pre_post == 0) { base_addr -= 4; }
 
 			//Write back the into base register
 			if(write_back == 1) { set_reg(base_reg, base_addr); }
