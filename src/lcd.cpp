@@ -70,14 +70,20 @@ bool LCD::init()
 /****** Render pixels for a given scanline (per-pixel) ******/
 void LCD::render_scanline()
 {
+	//Find out where the map base address is - Bits 2-3 of BG0CNT
+	u32 map_base_addr = 0x6000000 + (0x800 * ((mem->read_u16(BG0CNT) >> 2) & 0x3));
+
+	//Find out where the tile base address is - Bits 8-12 of BG0CNT
+	u32 tile_base_addr = 0x6000000 + (0x4000 * ((mem->read_u16(BG0CNT) >> 8) & 0x1F));
+
 	//Get current map entry for rendered pixel
 	u16 tile_number = (32 * (current_scanline/8)) + (scanline_pixel_counter/8);
 
 	//Look at the Tile Map #(tile_number), see what Tile # it points to
-	u16 map_entry = mem->read_u16(0x6000800 + (tile_number * 2));
+	u16 map_entry = mem->read_u16(map_base_addr + (tile_number * 2));
 
 	//Get address of Tile #(map_entry)
-	u32 tile_addr = 0x6004000 + (map_entry * 32);
+	u32 tile_addr = tile_base_addr + (map_entry * 32);
 
 	//Get current line of tile being rendered
 	u8 current_tile_line = (current_scanline % 8);
@@ -94,6 +100,7 @@ void LCD::render_scanline()
 
 	u16 color_bytes = mem->read_u16(0x5000000 + (raw_color * 2));
 
+	//ARGB conversion
 	u8 red = ((color_bytes & 0x1F) * 8);
 	color_bytes >>= 5;
 
