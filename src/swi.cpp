@@ -328,7 +328,7 @@ void ARM7::swi_vblankintrwait()
 
 	//Force IME on, Force IRQ bit in CPSR
 	mem->write_u16(REG_IME, 0x1);
-	reg.cpsr |= CPSR_IRQ;
+	reg.cpsr &= ~CPSR_IRQ;
 
 	u8 previous_mode = controllers.video.lcd_mode;
 	bool mode_change = false;

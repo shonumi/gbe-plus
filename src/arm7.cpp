@@ -1090,6 +1090,7 @@ void ARM7::handle_interrupt()
 	if((in_interrupt) && (debug_code == 0xE25EF004))
 	{
 		reg.cpsr = get_spsr();
+		reg.cpsr &= ~CPSR_IRQ;
 		needs_flush = true;
 		current_cpu_mode = SYS;
 		mem->write_u16(REG_IME, 0x1);
@@ -1098,7 +1099,7 @@ void ARM7::handle_interrupt()
 	}
 
 	//Jump into an interrupt, check if the master flag is enabled
-	if((ime_check & 0x1) && (reg.cpsr & CPSR_IRQ))
+	if((ime_check & 0x1) && ((reg.cpsr & CPSR_IRQ) == 0))
 	{
 		//Match up bits in IE and IF
 		for(int x = 0; x < 14; x++)
@@ -1121,6 +1122,7 @@ void ARM7::handle_interrupt()
 				in_interrupt = true;
 				arm_mode = ARM;
 				reg.cpsr &= ~0x20;
+				reg.cpsr |= CPSR_IRQ;
 				mem->write_u16(REG_IME, 0x0);
 				return;
 			}
