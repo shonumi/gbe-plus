@@ -71,10 +71,10 @@ bool LCD::init()
 void LCD::render_scanline()
 {
 	//Find out where the map base address is - Bits 2-3 of BG0CNT
-	u32 map_base_addr = 0x6000000 + (0x800 * ((mem->read_u16(BG0CNT) >> 2) & 0x3));
+	u32 map_base_addr = 0x6000000 + (0x800 * ((mem->read_u16(BG0CNT) >> 8) & 0x1F));
 
 	//Find out where the tile base address is - Bits 8-12 of BG0CNT
-	u32 tile_base_addr = 0x6000000 + (0x4000 * ((mem->read_u16(BG0CNT) >> 8) & 0x1F));
+	u32 tile_base_addr = 0x6000000 + (0x4000 * ((mem->read_u16(BG0CNT) >> 2) & 0x3));
 
 	//Get current map entry for rendered pixel
 	u16 tile_number = (32 * (current_scanline/8)) + (scanline_pixel_counter/8);
