@@ -337,7 +337,7 @@ void ARM7::swi_vblankintrwait()
 	while(!mode_change)
 	{
 		clock();
-		if((controllers.video.lcd_mode == 2) && (previous_mode != 2)) { mode_change = true; mem->memory_map[REG_IF] |= 0x1; }
+		if((controllers.video.lcd_mode == 2) && (previous_mode != 2)) { mode_change = true; mem->memory_map[REG_IF] |= 0x1; reg.r15 += 2; }
 		else { previous_mode = controllers.video.lcd_mode; }
 	}
 }

@@ -476,6 +476,8 @@ void ARM7::psr_transfer(u32 current_arm_instruction)
 /****** ARM.9 Single Data Transfer ******/
 void ARM7::single_data_transfer(u32 current_arm_instruction)
 {
+	//TODO - If, PC is src/dest reg, must be PC+12 (or rather PC+4 since GBE+ always returns PC+8 anyway)
+
 	//Grab Immediate-Offset flag - Bit 25
 	u8 offset_is_register = (current_arm_instruction & 0x2000000) ? 1 : 0;
 
@@ -546,7 +548,7 @@ void ARM7::single_data_transfer(u32 current_arm_instruction)
 	}
 
 
-	//Increment or decrement after transfer if post-indexing
+	//Increment or decrement before transfer if pre-indexing
 	if(pre_post == 1) 
 	{ 
 		if(up_down == 1) { base_addr += base_offset; }
@@ -631,6 +633,131 @@ void ARM7::single_data_transfer(u32 current_arm_instruction)
 		clock(reg.r15, false);
 	}
 }
+
+/****** ARM.10 Halfword-Signed Transfer ******/
+void ARM7::halfword_signed_transfer(u32 current_arm_instruction)
+{
+	//TODO - Timings
+
+	//Grab Pre-Post bit - Bit 24
+	u8 pre_post = (current_arm_instruction & 0x1000000) ? 1 : 0;
+
+	//Grab Up-Down bit - Bit 23
+	u8 up_down = (current_arm_instruction & 0x800000) ? 1 : 0;
+
+	//Grab Immediate-Offset flag - Bit 22
+	u8 offset_is_register = (current_arm_instruction & 0x400000) ? 1 : 0;
+
+	//Grab Write-Back bit - Bit 21
+	u8 write_back = (current_arm_instruction & 0x200000) ? 1 : 0;
+
+	//Grab Load-Store bit - Bit 20
+	u8 load_store = (current_arm_instruction & 0x100000) ? 1 : 0;
+
+	//Grab the Base Register - Bits 16-19
+	u8 base_reg = ((current_arm_instruction >> 16) & 0xF);
+
+	//Grab the Destination Register - Bits 12-15
+	u8 dest_reg = ((current_arm_instruction >> 12) & 0xF);
+
+	//Grab opcode Bits 5-6
+	u8 op = ((current_arm_instruction >> 5) & 0x3);
+
+	//Write-Back is always enabled for Post-Indexing
+	if(pre_post == 0) { write_back = 1; }
+
+	u32 base_offset = 0;
+	u32 base_addr = get_reg(base_reg);
+	u32 value = 0;
+
+	//Determine offset if offset is a register
+	if(offset_is_register == 0)
+	{
+		//Register is Bits 0-3
+		base_offset = get_reg((current_arm_instruction & 0xF));
+
+		if((current_arm_instruction & 0xF) == 15) { std::cout<<"CPU::Warning - ARM.10 Offset Register is PC\n"; }
+	}
+
+	//Determine offset if offset is immediate
+	else
+	{
+		//Upper 4 bits are Bits 8-11
+		base_offset = (current_arm_instruction >> 8) & 0xF;
+		base_offset <<= 4;
+
+		//Lower 4 bits are Bits 0-3
+		base_offset |= (current_arm_instruction & 0xF);
+	}
+
+	//Increment or decrement before transfer if pre-indexing
+	if(pre_post == 1) 
+	{ 
+		if(up_down == 1) { base_addr += base_offset; }
+		else { base_addr -= base_offset; } 
+	}
+
+	//Perform Load or Store ops
+	switch(op)
+	{
+		//Load-Store unsigned halfword
+		case 0x1:
+			//Store halfword
+			if(load_store == 0)
+			{
+				value = get_reg(dest_reg);
+	
+				//If PC is the Destination Register, add 4
+				if(dest_reg == 15) { value += 4; }
+
+				value &= 0xFFFF;
+				mem->write_u16(base_addr, value);
+			}
+
+			//Load halfword
+			else
+			{
+				value = mem->read_u16(base_addr);
+				set_reg(dest_reg, value);
+			}
+
+			break;
+
+		//Load signed byte (sign extended)
+		case 0x2:
+			value = mem->read_u8(base_addr);
+
+			if(value & 0x80) { value |= 0xFFFFFF00; }
+			set_reg(dest_reg, value);
+
+			break;
+
+		//Load signed halfword (sign extended)
+		case 0x3:
+			value = mem->read_u16(base_addr);
+
+			if(value & 0x8000) { value |= 0xFFFF0000; }
+			set_reg(dest_reg, value);
+
+			break;
+
+		//SWP
+		default: std::cout<<"This is actually ARM.12 - Single Data Swap\n";
+	}
+
+	//Increment or decrement after transfer if post-indexing
+	if(pre_post == 0) 
+	{ 
+		if(up_down == 1) { base_addr += base_offset; }
+		else { base_addr -= base_offset; } 
+	}
+
+	//Write-back into base register
+	if(write_back == 1){ set_reg(base_reg, base_addr); }
+}
+
+
+
 
 /****** ARM.11 Block Data Transfer ******/
 void ARM7::block_data_transfer(u32 current_arm_instruction)
@@ -719,7 +846,7 @@ void ARM7::block_data_transfer(u32 current_arm_instruction)
 	//Store PC, add or sub 0x40 to base address
 	else { std::cout<<"Empty RList not implemented, too lazy atm :p\n"; }
 }
-		
+
 		
 
 		

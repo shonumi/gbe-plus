@@ -578,6 +578,11 @@ void ARM7::execute()
 					debug_message = 0x19; debug_code = instruction_pipeline[pipeline_id];
 					break;
 
+				case ARM_10:
+					halfword_signed_transfer(instruction_pipeline[pipeline_id]);
+					debug_message = 0x1A; debug_code = instruction_pipeline[pipeline_id];
+					break;
+
 				case ARM_11:
 					block_data_transfer(instruction_pipeline[pipeline_id]);
 					debug_message = 0x1B; debug_code = instruction_pipeline[pipeline_id];

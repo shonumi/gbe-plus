@@ -191,6 +191,7 @@ class ARM7
 	void data_processing(u32 current_arm_instruction);
 	void psr_transfer(u32 current_arm_instruction);
 	void single_data_transfer(u32 current_arm_instruction);
+	void halfword_signed_transfer(u32 current_arm_instruction);
 	void block_data_transfer(u32 current_arm_instruction);
 
 	//THUMB instructions
