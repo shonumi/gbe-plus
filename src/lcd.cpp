@@ -125,58 +125,62 @@ void LCD::step()
 
 	lcd_clock++;
 
-	//Only draw if Forced Blank is disabled
-	if((mem->memory_map[DISPCNT] & 0x80) == 0)
+	//Mode 0 - Scanline rendering
+	if(((lcd_clock % 1232) <= 960) && (lcd_clock < 197120)) 
 	{
-		//Mode 0 - Scanline rendering
-		if(((lcd_clock % 1232) <= 960) && (lcd_clock < 197120)) 
-		{
-			//Change mode
-			if(lcd_mode != 0) { lcd_mode = 0; }
+		//Change mode
+		if(lcd_mode != 0) { lcd_mode = 0; }
 
-			//Render scanline data (per-pixel every 4 cycles)
-			if((lcd_clock % 4) == 0) 
-			{
-				render_scanline();
-				scanline_pixel_counter++;
-			}
+		//Render scanline data (per-pixel every 4 cycles)
+		if((lcd_clock % 4) == 0) 
+		{
+			render_scanline();
+			scanline_pixel_counter++;
+			mem->write_u16(VCOUNT, current_scanline);
 		}
+	}
 
-		//Mode 1 - H-Blank
-		else if(((lcd_clock % 1232) > 960) && (lcd_clock < 197120))
-		{
-			//Change mode
-			if(lcd_mode != 1) 
-			{ 
-				lcd_mode = 1;
-				scanline_pixel_counter = 0;
+	//Mode 1 - H-Blank
+	else if(((lcd_clock % 1232) > 960) && (lcd_clock < 197120))
+	{
+		//Change mode
+		if(lcd_mode != 1) 
+		{ 
+			lcd_mode = 1;
+			scanline_pixel_counter = 0;
 
-				//Raise HBlank interrupt
-				if(mem->memory_map[DISPSTAT] & 0x10) { mem->memory_map[REG_IF] |= 0x2; }
+			//Raise HBlank interrupt
+			if(mem->memory_map[DISPSTAT] & 0x10) { mem->memory_map[REG_IF] |= 0x2; }
 
-				//Push scanline data to final buffer
+			//Push scanline data to final buffer - Only if Forced Blank is disabled
+			if((mem->memory_map[DISPCNT] & 0x80) == 0)
+			{
 				for(int x = 0, y = (240 * current_scanline); x < 240; x++, y++)
 				{
 					screen_buffer[y] = scanline_buffer[x];
 				}
-
-				//Increment scanline count
-				current_scanline++;
 			}
+
+			//Increment scanline count
+			current_scanline++;
+			mem->write_u16(VCOUNT, current_scanline);
 		}
+	}
 
-		//Mode 2 - VBlank
-		else
-		{
-			//Change mode
-			if(lcd_mode != 2) 
-			{ 
-				lcd_mode = 2;
+	//Mode 2 - VBlank
+	else
+	{
+		//Change mode
+		if(lcd_mode != 2) 
+		{ 
+			lcd_mode = 2;
 
-				//Raise VBlank interrupt
-				if(mem->memory_map[DISPSTAT] & 0x8) { mem->memory_map[REG_IF] |= 0x1; }
+			//Raise VBlank interrupt
+			if(mem->memory_map[DISPSTAT] & 0x8) { mem->memory_map[REG_IF] |= 0x1; }
 
-				//Render final buffer
+			//Render final buffer - Only if Forced Blank is disabled
+			if((mem->memory_map[DISPCNT] & 0x80) == 0)
+			{
 				//Lock source surface
 				if(SDL_MUSTLOCK(internal_screen)){ SDL_LockSurface(internal_screen); }
 				u32* out_pixel_data = (u32*)internal_screen->pixels;
@@ -189,28 +193,35 @@ void LCD::step()
 				//Blit
 				SDL_BlitSurface(internal_screen, 0, final_screen, 0);
 				if(SDL_Flip(final_screen) == -1) { std::cout<<"LCD::Error - Could not blit\n"; }
+			}
 
-				frame_current_time = SDL_GetTicks();
-				if((frame_current_time - frame_start_time) < (1000/60)) { SDL_Delay((1000/60) - (frame_current_time - frame_start_time));}
+			frame_current_time = SDL_GetTicks();
+			if((frame_current_time - frame_start_time) < (1000/60)) { SDL_Delay((1000/60) - (frame_current_time - frame_start_time));}
 				
-				fps_count++;
-				if((SDL_GetTicks() - fps_time) >= 1000) { fps_time = SDL_GetTicks(); std::cout<<"FPS : " <<  std::dec << (int)fps_count << "\n"; fps_count = 0; }
-			}
+			fps_count++;
+			if((SDL_GetTicks() - fps_time) >= 1000) { fps_time = SDL_GetTicks(); std::cout<<"FPS : " <<  std::dec << (int)fps_count << "\n"; fps_count = 0; }
+		}
 
-			//Raise HBlank interrupt
-			if((lcd_clock % 1232) == 960) 
+		//Raise HBlank interrupt
+		if((lcd_clock % 1232) == 960) 
+		{ 
+			current_scanline++;
+			mem->write_u16(VCOUNT, current_scanline);
+				
+			if(mem->memory_map[DISPSTAT] & 0x10) 
 			{ 
-				current_scanline++; 
-				if(mem->memory_map[DISPSTAT] & 0x10) 
-				{ 
-					mem->memory_map[REG_IF] |= 0x2; 
-				} 
-			}
+				mem->memory_map[REG_IF] |= 0x2; 
+			} 
+		}
 
-			//Reset LCD clock
-			if(lcd_clock == 280896) { lcd_clock = 0; current_scanline = 0; scanline_pixel_counter = 0; frame_start_time = SDL_GetTicks();}
+		//Reset LCD clock
+		if(lcd_clock == 280896) 
+		{ 
+			lcd_clock = 0; 
+			current_scanline = 0; 
+			scanline_pixel_counter = 0; 
+			frame_start_time = SDL_GetTicks();
+			mem->write_u16(VCOUNT, 0);
 		}
 	}
 }
-
-

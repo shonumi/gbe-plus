@@ -39,6 +39,7 @@ const u32 CPSR_MODE = 0x1F;
 /* Display Registers */
 const u32 DISPCNT = 0x4000000;
 const u32 DISPSTAT = 0x4000004;
+const u32 VCOUNT = 0x4000006;
 const u32 BG0CNT = 0x4000008;
 const u32 BG1CNT = 0x400000A;
 const u32 BG2CNT = 0x400000C;
