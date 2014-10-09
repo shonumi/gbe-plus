@@ -1053,15 +1053,15 @@ void ARM7::get_relative_address(u16 current_thumb_instruction)
 	//Grab opcode - Bit 11
 	u8 op = (current_thumb_instruction & 0x800) ? 1 : 0;
 
-	u32 op_addr = (offset << 2);
 	u32 value = 0;
+	offset <<= 2;
 
 	//Perform get relative address ops
 	switch(op)
 	{
 		//Rd = PC + nn
 		case 0x0:
-			value = ((reg.r15 - 4) & ~0x2) + offset;
+			value = (reg.r15 & ~0x2) + offset;
 			set_reg(dest_reg, value);
 			break;
 
