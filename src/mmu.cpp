@@ -29,6 +29,8 @@ MMU::MMU()
 
 	dma[0].enable = dma[1].enable = dma[2].enable = dma[3].enable = false;
 
+	lcd_updates.oam_update = false;
+
 	std::cout<<"MMU::Initialized\n";
 }
 
@@ -129,7 +131,13 @@ void MMU::write_u8(u32 address, u8 value)
 	{
 		u32 mirror_addr = 0x03FFFF00 + (address & 0xFF);
 		memory_map[mirror_addr] = value;
-	} 
+	}
+
+	//Trigger OAM update in LCD
+	else if((address >= 0x07000000) && (address <= 0x070003FF))
+	{
+		lcd_updates.oam_update = true;
+	}
 }
 
 /****** Write 2 bytes into memory ******/

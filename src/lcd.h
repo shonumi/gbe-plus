@@ -34,6 +34,24 @@ class LCD
 
 	private:
 
+	void update_oam();
+
+	struct oam_entries
+	{
+		//X-Y Coordinates - X (0-511), Y(0-255)
+		u16 x;
+		u8 y;
+	
+		//Horizonal and vertical flipping options
+		bool h_flip;
+		bool v_flip;
+
+		u16 obj_tile_number;
+		u8 bg_priority;
+		u8 bit_depth;
+		u8 palette_number;
+	} obj[128];
+		
 	//Screen data
 	SDL_Surface* final_screen;
 	SDL_Surface* internal_screen;

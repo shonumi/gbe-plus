@@ -67,6 +67,12 @@ bool LCD::init()
 	return true;
 }
 
+/****** Updates all OAM when values in memory change ******/
+void LCD::update_oam()
+{
+	mem->lcd_updates.oam_update = false;
+}
+
 /****** Render pixels for a given scanline (per-pixel) ******/
 void LCD::render_scanline()
 {
@@ -139,6 +145,9 @@ void LCD::step()
 	//TODO - Implement V-Counter interrupt
 
 	lcd_clock++;
+
+	//Update OAM
+	if(mem->lcd_updates.oam_update) { update_oam(); }
 
 	//Mode 0 - Scanline rendering
 	if(((lcd_clock % 1232) <= 960) && (lcd_clock < 197120)) 

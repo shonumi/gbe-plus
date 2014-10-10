@@ -24,6 +24,7 @@ class MMU
 
 	std::vector <u8> memory_map;
 
+	//Structure to handle DMA transfes
 	struct dma_controllers
 	{
 		bool enable;
@@ -38,6 +39,13 @@ class MMU
 		u8 src_addr_ctrl;
 		u8 delay;
 	} dma[4];
+
+	//Structure detailing actions LCD should take when certain memory areas are written to
+	//Only the LCD should read these (and subsequently reset them when applicable)
+	struct lcd_triggers
+	{
+		bool oam_update;
+	} lcd_updates;
 
 	MMU();
 	~MMU();
