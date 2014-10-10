@@ -70,6 +70,9 @@ bool LCD::init()
 /****** Render pixels for a given scanline (per-pixel) ******/
 void LCD::render_scanline()
 {
+	//Determine whether color depth is 4-bit or 8-bit
+	u8 bit_depth = (mem->read_u16(BG0CNT) & 0x80) ? 8 : 4;
+
 	//Find out where the map base address is - Bits 2-3 of BG0CNT
 	u32 map_base_addr = 0x6000000 + (0x800 * ((mem->read_u16(BG0CNT) >> 8) & 0x1F));
 
@@ -80,10 +83,10 @@ void LCD::render_scanline()
 	u16 tile_number = (32 * (current_scanline/8)) + (scanline_pixel_counter/8);
 
 	//Look at the Tile Map #(tile_number), see what Tile # it points to
-	u16 map_entry = mem->read_u16(map_base_addr + (tile_number * 2));
+	u16 map_entry = mem->read_u16(map_base_addr + (tile_number * 2)) & 0x3FF;
 
 	//Get address of Tile #(map_entry)
-	u32 tile_addr = tile_base_addr + (map_entry * 32);
+	u32 tile_addr = tile_base_addr + (map_entry * (bit_depth << 3));
 
 	//Get current line of tile being rendered
 	u8 current_tile_line = (current_scanline % 8);
@@ -91,14 +94,28 @@ void LCD::render_scanline()
 	//Get current pixel of tile being rendered
 	u8 current_tile_pixel = (scanline_pixel_counter % 8) + (current_tile_line * 8);
 
-	//Grab the byte corresponding to (current_tile_pixel), render it as ARGB
-	tile_addr += (current_tile_pixel >> 1);
-	u8 raw_color = mem->read_u8(tile_addr);
+	u16 color_bytes = 0;
 
-	if((current_tile_pixel % 2) == 0) { raw_color &= 0xF; }
-	else { raw_color >>= 4; }
+	//Grab the byte corresponding to (current_tile_pixel), render it as ARGB - 4-bit version
+	if(bit_depth == 4)
+	{
+		tile_addr += (current_tile_pixel >> 1);
+		u8 raw_color = mem->read_u8(tile_addr);
 
-	u16 color_bytes = mem->read_u16(0x5000000 + (raw_color * 2));
+		if((current_tile_pixel % 2) == 0) { raw_color &= 0xF; }
+		else { raw_color >>= 4; }
+
+		color_bytes = mem->read_u16(0x5000000 + (raw_color * 2));
+	}
+
+	//Grab the byte corresponding to (current_tile_pixel), render it as ARGB - 8-bit version
+	else
+	{
+
+		tile_addr += current_tile_pixel;
+		u8 raw_color = mem->read_u8(tile_addr);
+		color_bytes = mem->read_u16(0x5000000 + (raw_color * 2));
+	}
 
 	//ARGB conversion
 	u8 red = ((color_bytes & 0x1F) * 8);
@@ -113,8 +130,6 @@ void LCD::render_scanline()
 
 	scanline_buffer[scanline_pixel_counter] = final_color;
 }
-
-	
 
 /****** Run LCD for one cycle ******/
 void LCD::step()
