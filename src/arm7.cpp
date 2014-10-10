@@ -995,7 +995,7 @@ void ARM7::clock_dma()
 			mem->dma[3].start_address = (mem->read_u32(DMA3SAD) & 0xFFFFFFF);
 			mem->dma[3].destination_address = (mem->read_u32(DMA3DAD) & 0xFFFFFFF);
 			mem->dma[3].word_count = mem->read_u16(DMA3CNT_L);
-			mem->dma[3].word_type = (mem->memory_map[DMA3CNT_H] & 0x4) ? 1 : 0;
+			mem->dma[3].word_type = (mem->read_u16(DMA3CNT_H) & 0x400) ? 1 : 0;
 
 			mem->dma[3].control = mem->read_u16(DMA3CNT_H);
 			mem->dma[3].dest_addr_ctrl = (mem->read_u16(DMA3CNT_H) >> 5) & 0x3;
