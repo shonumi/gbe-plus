@@ -319,8 +319,17 @@ void ARM7::decode()
 
 		else if((current_instruction >> 12) == 0x5)
 		{
-			//THUMB_8
-			instruction_operation[pipeline_id] = THUMB_8;
+			if(current_instruction & 0x200)
+			{
+				//THUMB_8
+				instruction_operation[pipeline_id] = THUMB_8;
+			}
+
+			else
+			{
+				//THUMB_7
+				instruction_operation[pipeline_id] = THUMB_7;
+			}
 		}
 
 		else if(((current_instruction >> 13) & 0x7) == 0x3)
@@ -480,6 +489,11 @@ void ARM7::execute()
 			case THUMB_6:
 				load_pc_relative(instruction_pipeline[pipeline_id]);
 				debug_message = 0x5; debug_code = instruction_pipeline[pipeline_id];
+				break;
+
+			case THUMB_7:
+				load_store_reg_offset(instruction_pipeline[pipeline_id]);
+				debug_message = 0x6; debug_code = instruction_pipeline[pipeline_id];
 				break;
 
 			case THUMB_8:
