@@ -471,8 +471,75 @@ void ARM7::psr_transfer(u32 current_arm_instruction)
 	//Clock CPU and controllers - 1S
 	clock((reg.r15 + 4), false);
 } 
-		
 
+
+/****** ARM.7 Multiply and Multiply-Accumulate ******/
+void ARM7::multiply(u32 current_arm_instruction)
+{
+	//TODO - Timings
+	//TODO - The rest of the opcodes
+	//TODO - Find out what GBATEK means when it says the carry flag is 'destroyed'.
+	//TODO - Set conditions
+
+	//Grab operand register Rm - Bits 0-3
+	u8 op_rm_reg = (current_arm_instruction) & 0xF;
+
+	//Grab operand register Rs - Bits 8-11
+	u8 op_rs_reg = ((current_arm_instruction >> 8) & 0xF);
+
+	//Grab accumulate register Rn - Bits 12-15
+	u8 accu_reg = ((current_arm_instruction >> 12) & 0xF);
+
+	//Grab destination register Rd - Bits 16-19
+	u8 dest_reg = ((current_arm_instruction >> 16) & 0xF);
+
+	//Determine if condition codes should be updated - Bit 20
+	bool set_condition = (current_arm_instruction & 0x100000) ? true : false;
+
+	//Grab opcode - Bits 21-24
+	u8 op_code = ((current_arm_instruction >> 21) & 0xF);
+
+	//Make sure no operand or destination register is R15
+	if(op_rm_reg == 15) { std::cout<<"CPU::Warning - ARM.7 R15 used as Rm\n"; }
+	if(op_rs_reg == 15) { std::cout<<"CPU::Warning - ARM.7 R15 used as Rs\n"; }
+	if(accu_reg == 15) { std::cout<<"CPU::Warning - ARM.7 R15 used as Rn\n"; }
+	if(dest_reg == 15) { std::cout<<"CPU::Warning - ARM.7 R15 used as Rd\n"; }
+
+	u32 Rm = get_reg(op_rm_reg);
+	u32 Rs = get_reg(op_rs_reg);
+	u32 Rn = get_reg(accu_reg);
+	u32 Rd = get_reg(dest_reg);
+
+	u64 value_64 = 0;
+	u32 value_32 = 0;
+
+	//Perform multiplication ops
+	switch(op_code)
+	{
+		//MUL
+		case 0x0:
+			value_32 = (Rm * Rs);
+			set_reg(dest_reg, Rd);
+			
+			break;
+
+		//UMULL
+		case 0x4:
+			value_64 = (Rm * Rs);
+			
+			//Set Rn to low 32-bits, Rd to high 32-bits
+			Rn = (value_64 & 0xFFFFFFFF);
+			Rd = (value_64 >> 32);
+
+			set_reg(accu_reg, Rn);
+			set_reg(dest_reg, Rd);
+
+			break;
+
+		default: std::cout<<"CPU::Warning:: - ARM.7 Invalid or unimplemented opcode : " << std::hex << (int)op_code << "\n";
+	}
+}
+			
 /****** ARM.9 Single Data Transfer ******/
 void ARM7::single_data_transfer(u32 current_arm_instruction)
 {
