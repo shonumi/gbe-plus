@@ -14,7 +14,7 @@
 void ARM7::branch_exchange(u32 current_arm_instruction)
 {
 	//Grab source register - Bits 0-2
-	u8 src_reg = (current_arm_instruction & 0x7);
+	u8 src_reg = (current_arm_instruction & 0xF);
 
 	//Valid registers : 0-14
 	if(src_reg <= 14)
