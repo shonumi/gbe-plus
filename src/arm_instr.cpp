@@ -848,8 +848,55 @@ void ARM7::block_data_transfer(u32 current_arm_instruction)
 }
 
 		
+/****** ARM.12 - Single Data Swap ******/
+void ARM7::single_data_swap(u32 current_arm_instruction)
+{
+	//TODO - Timings
 
+	//Grab source register - Bits 0-3
+	u8 src_reg = (current_arm_instruction & 0xF);
+
+	//Grab destination register - Bits 12-15
+	u8 dest_reg = ((current_arm_instruction >> 12) & 0xF);
 		
+	//Grab base register - Bits 16-19
+	u8 base_reg = ((current_arm_instruction >> 16) & 0xF);
+
+	//Determine if a byte or word is being swapped - Bit 22
+	u8 byte_word = (current_arm_instruction & 0x400000) ? 1 : 0;
+
+	u32 base_addr = get_reg(base_reg);
+	u32 dest_value = 0;
+	u32 swap_value = 0;
+
+	//Swap a single byte
+	if(byte_word == 1)
+	{
+		//Grab values before swapping
+		dest_value = mem->read_u8(base_addr);
+		swap_value = (get_reg(src_reg) & 0xFF);
+
+		//Swap the values
+		mem->write_u8(base_addr, swap_value);
+		set_reg(dest_reg, dest_value);
+	}
+
+	//Swap a single word
+	else
+	{
+		//Grab values before swapping
+		dest_value = mem->read_u32(base_addr);
+		swap_value = get_reg(src_reg);
+
+		//Swap the values
+		mem->write_u32(base_addr, swap_value);
+		set_reg(dest_reg, dest_value);
+	}
+}
+		
+
+
+
 
 	
 
