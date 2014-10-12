@@ -71,11 +71,161 @@ bool LCD::init()
 void LCD::update_oam()
 {
 	mem->lcd_updates.oam_update = false;
+	
+	u32 oam_ptr = 0x7000000;
+	u16 attribute = 0;
+
+	for(int x = 0; x < 3; x++)
+	{
+		//Read and parse Attribute 0
+		attribute = mem->read_u16(oam_ptr);
+		oam_ptr += 2;
+
+		obj[x].y = (attribute & 0xFF);
+		obj[x].bit_depth = (attribute & 0x2000) ? 8 : 4;
+		obj[x].shape = (attribute >> 14);
+
+		//Read and parse Attribute 1
+		attribute = mem->read_u16(oam_ptr);
+		oam_ptr += 2;
+
+		obj[x].x = (attribute & 0x1FF);
+		obj[x].h_flip = (attribute & 1000) ? true : false;
+		obj[x].v_flip = (attribute & 2000) ? true : false;
+		obj[x].size = (attribute >> 14);
+
+		//Read and parse Attribute 2
+		attribute = mem->read_u16(oam_ptr);
+		oam_ptr += 4;
+
+		obj[x].tile_number = (attribute & 0x1FF);
+		obj[x].bg_priority = ((attribute >> 10) & 0x3);
+		obj[x].palette_number = ((attribute >> 12) & 0xF); 
+
+		//Determine dimensions of the sprite
+		switch(obj[x].size)
+		{
+			//Size 0 - 8x8, 16x8, 8x16
+			case 0x0:
+				if(obj[x].shape == 0) { obj[x].width = 8; obj[x].height = 8; }
+				else if(obj[x].shape == 1) { obj[x].width = 16; obj[x].height = 8; }
+				else if(obj[x].shape == 2) { obj[x].width = 8; obj[x].height = 16; }
+				break;
+
+			//Size 1 - 16x16, 32x8, 8x32
+			case 0x1:
+				if(obj[x].shape == 0) { obj[x].width = 16; obj[x].height = 16; }
+				else if(obj[x].shape == 1) { obj[x].width = 32; obj[x].height = 8; }
+				else if(obj[x].shape == 2) { obj[x].width = 8; obj[x].height = 32; }
+				break;
+
+			//Size 2 - 32x32, 32x16, 16x32
+			case 0x2:
+				if(obj[x].shape == 0) { obj[x].width = 32; obj[x].height = 32; }
+				else if(obj[x].shape == 1) { obj[x].width = 32; obj[x].height = 16; }
+				else if(obj[x].shape == 2) { obj[x].width = 16; obj[x].height = 32; }
+				break;
+
+			//Size 3 - 64x64, 64x32, 32x64
+			case 0x3:
+				if(obj[x].shape == 0) { obj[x].width = 64; obj[x].height = 64; }
+				else if(obj[x].shape == 1) { obj[x].width = 64; obj[x].height = 32; }
+				else if(obj[x].shape == 2) { obj[x].width = 32; obj[x].height = 64; }
+				break;
+		}
+	}
+}
+
+/****** Determines if a sprite pixel should be rendered, and if so draws it to the current scanline pixel ******/
+bool LCD::render_sprite_pixel()
+{
+	//TODO - Figure out sprite drawing priorities (in relation to other sprites, e.g. overlapping sprites
+	//TODO - Account for BG priorities
+	//TODO - Horizontal + Vertical flipping
+
+	bool render_sprite = false;
+	u8 sprite_id = 0;
+
+	//Cycle through all of the sprites
+	for(int x = 0; x < 3; x++)
+	{
+		//Check to see if sprite is rendered on the current scanline
+		if((current_scanline >= obj[x].y) && (current_scanline <= (obj[x].y + obj[x].height)))
+		{
+			
+			//Check to see if current_scanline_pixel is within sprite
+			if((scanline_pixel_counter >= obj[x].x) && (scanline_pixel_counter <= (obj[x].x + obj[x].width)))
+			{
+				render_sprite = true;
+				sprite_id = x;
+			}
+		}
+	}
+
+	//If no sprites are rendered for this pixel, exit now, draw BG pixel instead
+	if(!render_sprite) { return false; }
+
+	//Determine meta x-coordinate of rendered sprite pixel
+	u8 meta_x = (scanline_pixel_counter - obj[sprite_id].x) / 8;
+
+	//Determine meta Y-coordinate of rendered sprite pixel
+	u8 meta_y = (current_scanline - obj[sprite_id].y) / 8;
+
+	//Determine which 8x8 section to draw pixel from
+	u8 meta_sprite_tile = (meta_y * (obj[sprite_id].width/8)) + meta_x;
+
+	//Determine sprite tile address
+	u32 sprite_tile_addr = 0x6010000 + ((meta_sprite_tile + obj[sprite_id].tile_number) * (obj[sprite_id].bit_depth << 3));
+
+	meta_x = (scanline_pixel_counter - obj[sprite_id].x) % 8;
+	meta_y = (current_scanline - obj[sprite_id].y) % 8;
+
+	u8 sprite_tile_pixel = (meta_y * 8) + meta_x;
+	u16 color_bytes = 0;
+
+	//Grab the byte corresponding to (current_tile_pixel), render it as ARGB - 4-bit version
+	if(obj[sprite_id].bit_depth == 4)
+	{
+		sprite_tile_addr += (sprite_tile_pixel >> 1);
+		u8 raw_color = mem->read_u8(sprite_tile_addr);
+		if(raw_color == 0) { return false; }
+
+		if((sprite_tile_pixel % 2) == 0) { raw_color &= 0xF; }
+		else { raw_color >>= 4; }
+
+		color_bytes = mem->read_u16(0x5000200 + (obj[sprite_id].palette_number * 32) + (raw_color * 2));
+	}
+
+	//Grab the byte corresponding to (current_tile_pixel), render it as ARGB - 8-bit version
+	else
+	{
+		sprite_tile_addr += sprite_tile_pixel;
+		u8 raw_color = mem->read_u8(sprite_tile_addr);
+		if(raw_color == 0) { return false; }
+		color_bytes = mem->read_u16(0x5000200 + (obj[sprite_id].palette_number * 2) + (raw_color * 2));
+	}
+
+	//ARGB conversion
+	u8 red = ((color_bytes & 0x1F) * 8);
+	color_bytes >>= 5;
+
+	u8 green = ((color_bytes & 0x1F) * 8);
+	color_bytes >>= 5;
+
+	u8 blue = ((color_bytes & 0x1F) * 8);
+
+	u32 final_color =  0xFF000000 | (red << 16) | (green << 8) | (blue);
+
+	scanline_buffer[scanline_pixel_counter] = final_color;
+
+	return true;
 }
 
 /****** Render pixels for a given scanline (per-pixel) ******/
 void LCD::render_scanline()
 {
+	if(render_sprite_pixel()) { return; }
+
 	//Determine whether color depth is 4-bit or 8-bit
 	u8 bit_depth = (mem->read_u16(BG0CNT) & 0x80) ? 8 : 4;
 

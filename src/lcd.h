@@ -46,7 +46,14 @@ class LCD
 		bool h_flip;
 		bool v_flip;
 
-		u16 obj_tile_number;
+		//Shape and size, dimensions
+		u8 shape;
+		u8 size;
+		u8 width;
+		u8 height;
+
+		//Misc properties
+		u16 tile_number;
 		u8 bg_priority;
 		u8 bit_depth;
 		u8 palette_number;
@@ -70,6 +77,7 @@ class LCD
 	int fps_time;
 
 	void render_scanline();
+	bool render_sprite_pixel();
 };
 
 #endif // GBA_LCD
