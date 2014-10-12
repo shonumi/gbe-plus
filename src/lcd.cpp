@@ -145,6 +145,8 @@ bool LCD::render_sprite_pixel()
 
 	bool render_sprite = false;
 	u8 sprite_id = 0;
+	u32 sprite_tile_addr = 0;
+	u8 meta_sprite_tile = 0;
 
 	//Cycle through all of the sprites
 	for(int x = 0; x < 3; x++)
@@ -171,11 +173,19 @@ bool LCD::render_sprite_pixel()
 	//Determine meta Y-coordinate of rendered sprite pixel
 	u8 meta_y = (current_scanline - obj[sprite_id].y) / 8;
 
-	//Determine which 8x8 section to draw pixel from
-	u8 meta_sprite_tile = (meta_y * (obj[sprite_id].width/8)) + meta_x;
+	//Determine which 8x8 section to draw pixel from, and what tile that actually represents in VRAM
+	if(mem->read_u16(DISPCNT) & 0x40)
+	{
+		meta_sprite_tile = (meta_y * (obj[sprite_id].width/8)) + meta_x + obj[sprite_id].tile_number;	
+	}
 
-	//Determine sprite tile address
-	u32 sprite_tile_addr = 0x6010000 + ((meta_sprite_tile + obj[sprite_id].tile_number) * (obj[sprite_id].bit_depth << 3));
+	else
+	{
+		meta_sprite_tile = obj[sprite_id].tile_number + (meta_y * 32) + meta_x;
+	}
+
+	//Determine sprite address
+	sprite_tile_addr = 0x6010000 + (meta_sprite_tile * (obj[sprite_id].bit_depth << 3));
 
 	meta_x = (scanline_pixel_counter - obj[sprite_id].x) % 8;
 	meta_y = (current_scanline - obj[sprite_id].y) % 8;
