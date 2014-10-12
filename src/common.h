@@ -45,6 +45,10 @@ const u32 BG1CNT = 0x400000A;
 const u32 BG2CNT = 0x400000C;
 const u32 BG3CNT = 0x400000E;
 
+/* Input */
+const u32 KEYINPUT = 0x4000130;
+const u32 KEYCNT = 0x4000132;
+
 /* Interrupts */
 const u32 REG_IE = 0x4000200;
 const u32 REG_IF = 0x4000202;

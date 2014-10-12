@@ -40,6 +40,7 @@ class Core
 
 		MMU core_mmu;
 		ARM7 core_cpu;
+		GamePad core_pad;
 };
 		
 #endif // EMU_CORE

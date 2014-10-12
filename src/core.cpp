@@ -23,6 +23,9 @@ Core::Core()
 	//Link LCD and MMU
 	core_cpu.controllers.video.mem = &core_mmu;
 
+	//Link MMU and GamePad
+	core_cpu.mem->g_pad = &core_pad;
+
 	db_unit.debug_mode = false;
 	db_unit.last_command = "n";
 }

@@ -17,6 +17,15 @@ namespace config
 	std::string rom_file = "";
 	std::vector <std::string> cli_args;
 	bool use_debugger = false;
+
+	//Default keyboard bindings
+	//Arrow Z = A button, X = B button, START = Return, Select = Space
+	//UP, LEFT, DOWN, RIGHT = Arrow keys
+	int key_a = 122; int key_b = 120; int key_start = 13; int key_select = 32; 
+	int key_left = 276; int key_right = 275; int key_down = 274; int key_up = 273;
+
+	//Default joystick dead-zone
+	int dead_zone = 16000;
 }
 
 /****** Parse arguments passed from the command-line ******/

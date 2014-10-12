@@ -17,6 +17,7 @@
 #include <iostream>
 
 #include "common.h"
+#include "gamepad.h"
 
 class MMU
 {
@@ -59,6 +60,8 @@ class MMU
 	void write_u32(u32 address, u32 value);
 
 	bool read_file(std::string filename);
+
+	GamePad* g_pad;
 };
 
 #endif // GBA_MMU

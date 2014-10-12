@@ -47,6 +47,14 @@ else
 	exit
 fi
 
+if g++ -c -O3 -funroll-loops gamepad.cpp -lSDL; then
+	echo -e "Compiling Gamepad...			\E[32m[DONE]\E[37m"
+else
+	echo -e "Compiling Gamepad...			\E[31m[ERROR]\E[37m"
+	exit
+fi
+
+
 if g++ -c -O3 -funroll-loops config.cpp -lSDL; then
 	echo -e "Compiling Config...			\E[32m[DONE]\E[37m"
 else
@@ -62,7 +70,7 @@ else
 	exit
 fi
 
-if g++ -o gbe_plus core.o arm7.o arm_instr.o thumb_instr.o swi.o mmu.o lcd.o config.o main.o -lSDL; then
+if g++ -o gbe_plus core.o arm7.o arm_instr.o thumb_instr.o swi.o mmu.o gamepad.o lcd.o config.o main.o -lSDL; then
 	echo -e "Linking Project...			\E[32m[DONE]\E[37m"
 else
 	echo -e "Linking Project...			\E[31m[ERROR]\E[37m"

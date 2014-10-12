@@ -42,6 +42,11 @@ int main(int argc, char* args[])
 		{
 			//X out of a window
 			if(event.type == SDL_QUIT) { gba.stop(); SDL_Quit(); }
+
+			//Process gamepad input
+			else if((event.type == SDL_KEYDOWN) || (event.type == SDL_KEYUP) 
+			|| (event.type == SDL_JOYBUTTONDOWN) || (event.type == SDL_JOYBUTTONUP)
+			|| (event.type == SDL_JOYAXISMOTION) || (event.type == SDL_JOYHATMOTION)) { gba.core_pad.handle_input(event); }
 		}
 
 		//Run the CPU

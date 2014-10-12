@@ -44,7 +44,19 @@ MMU::~MMU()
 /****** Read byte from memory ******/
 u8 MMU::read_u8(u32 address) const
 {
-	return memory_map[address];
+	switch(address)
+	{
+		case KEYINPUT:
+			return (g_pad->key_input & 0xFF);
+			break;
+
+		case KEYINPUT+1:
+			return (g_pad->key_input >> 8);
+			break;
+		
+		default:
+			return memory_map[address];
+	}
 }
 
 /****** Read 2 bytes from memory ******/
@@ -121,6 +133,8 @@ void MMU::write_u8(u32 address, u8 value)
 
 			memory_map[address] = value;
 			break;
+
+		case KEYINPUT: break;
 
 		default:
 			memory_map[address] = value;
