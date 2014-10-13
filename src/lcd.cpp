@@ -75,7 +75,7 @@ void LCD::update_oam()
 	u32 oam_ptr = 0x7000000;
 	u16 attribute = 0;
 
-	for(int x = 0; x < 3; x++)
+	for(int x = 0; x < 128; x++)
 	{
 		//Read and parse Attribute 0
 		attribute = mem->read_u16(oam_ptr);
@@ -149,7 +149,7 @@ bool LCD::render_sprite_pixel()
 	u8 meta_sprite_tile = 0;
 
 	//Cycle through all of the sprites
-	for(int x = 0; x < 3; x++)
+	for(int x = 0; x < 128; x++)
 	{
 		//Check to see if sprite is rendered on the current scanline
 		if((current_scanline >= obj[x].y) && (current_scanline <= (obj[x].y + obj[x].height)))
@@ -212,7 +212,7 @@ bool LCD::render_sprite_pixel()
 		sprite_tile_addr += sprite_tile_pixel;
 		u8 raw_color = mem->read_u8(sprite_tile_addr);
 		if(raw_color == 0) { return false; }
-		color_bytes = mem->read_u16(0x5000200 + (obj[sprite_id].palette_number * 2) + (raw_color * 2));
+		color_bytes = mem->read_u16(0x5000200 + (raw_color * 2));
 	}
 
 	//ARGB conversion
@@ -251,6 +251,9 @@ void LCD::render_scanline()
 	//Look at the Tile Map #(tile_number), see what Tile # it points to
 	u16 map_entry = mem->read_u16(map_base_addr + (tile_number * 2)) & 0x3FF;
 
+	//Grab the Palette number of the tiles
+	u8 palette_number = (mem->read_u16(map_base_addr + (tile_number * 2)) >> 12);
+
 	//Get address of Tile #(map_entry)
 	u32 tile_addr = tile_base_addr + (map_entry * (bit_depth << 3));
 
@@ -271,7 +274,7 @@ void LCD::render_scanline()
 		if((current_tile_pixel % 2) == 0) { raw_color &= 0xF; }
 		else { raw_color >>= 4; }
 
-		color_bytes = mem->read_u16(0x5000000 + (raw_color * 2));
+		color_bytes = mem->read_u16(0x5000000 + (palette_number * 32) + (raw_color * 2));
 	}
 
 	//Grab the byte corresponding to (current_tile_pixel), render it as ARGB - 8-bit version
