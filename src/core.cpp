@@ -27,6 +27,7 @@ Core::Core()
 	core_cpu.mem->g_pad = &core_pad;
 
 	db_unit.debug_mode = false;
+	db_unit.display_cycles = false;
 	db_unit.last_command = "n";
 }
 
@@ -78,7 +79,8 @@ void Core::debug_step()
 	}
 
 	//After some commands, wait for more input
-	else if((db_unit.last_command == "bp") || (db_unit.last_command == "sm") || (db_unit.last_command == "h")) { debug_process_command(); }
+	else if((db_unit.last_command == "bp") || (db_unit.last_command == "sm") || (db_unit.last_command == "h")
+	|| (db_unit.last_command == "dc") || (db_unit.last_command == "cr")) { debug_process_command(); }
 }
 
 /****** Debugger - Display relevant info to the screen ******/
@@ -203,6 +205,9 @@ void Core::debug_display() const
 	else { cpsr_stats += ".)"; }
 
 	std::cout<< std::hex <<"CPSR : 0x" << std::setw(8) << std::setfill('0') << core_cpu.reg.cpsr << "\t" << cpsr_stats << "\n";
+
+	//Display current CPU cycles
+	if(db_unit.display_cycles) { std::cout<<"Current CPU cycles : " << std::dec << core_cpu.debug_cycles << "\n"; }
 }
 
 /****** Debugger - Wait for user input, process it to decide what next to do ******/
@@ -338,6 +343,34 @@ void Core::debug_process_command()
 			}
 		}
 
+		//Toggle display of CPU cycles
+		else if(command == "dc")
+		{
+			if(db_unit.display_cycles) 
+			{
+				std::cout<<"\nDisplay CPU cycles disabled\n";
+				db_unit.display_cycles = false;
+			}
+		
+			else
+			{
+				std::cout<<"\nDisplay CPU cycles enabled\n";
+				db_unit.display_cycles = true;
+			}
+
+			valid_command = true;
+			db_unit.last_command = "dc";
+		}
+
+		//Reset CPU cycles counter
+		else if(command == "cr")
+		{
+			std::cout<<"\nCPU cycle counter reset to 0\n";
+
+			valid_command = true;
+			core_cpu.debug_cycles = 0;
+		}
+
 		//Print help information
 		else if(command == "h")
 		{
@@ -346,6 +379,8 @@ void Core::debug_process_command()
 			std::cout<<"bp \t\t Set breakpoint, format 0x1234ABCD\n";
 			std::cout<<"sm \t\t Show memory, format 0x1234ABCD\n";
 			std::cout<<"dq \t\t Quit the debugger\n";
+			std::cout<<"dc \t\t Toggle CPU cycle display\n";
+			std::cout<<"cr \t\t Reset CPU cycle counter\n";
 			std::cout<<"q \t\t Quit GBE+\n\n";
 
 			valid_command = true;

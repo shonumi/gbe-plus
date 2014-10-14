@@ -84,6 +84,7 @@ class ARM7
 	};
 
 	cpu_modes current_cpu_mode;
+	instr_modes arm_mode;
 
 	//Internal registers - 32bits each
 	struct registers
@@ -155,9 +156,9 @@ class ARM7
 	arm_instructions instruction_operation[3];
 	u8 pipeline_pointer;
 
-	instr_modes arm_mode;
 	u8 debug_message;
 	u32 debug_code;
+	u32 debug_cycles;
 
 	MMU* mem;
 

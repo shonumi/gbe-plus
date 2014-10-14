@@ -48,6 +48,7 @@ void ARM7::reset()
 
 	debug_message = 0xFF;
 	debug_code = 0;
+	debug_cycles = 0;
 
 	flush_pipeline();
 	mem = NULL;
@@ -981,6 +982,7 @@ void ARM7::clock(u32 access_addr, bool first_access)
 	{
 		controllers.video.step();
 		clock_dma();
+		debug_cycles++;
 	}
 }
 

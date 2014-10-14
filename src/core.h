@@ -34,6 +34,7 @@ class Core
 		struct debugging
 		{
 			bool debug_mode;
+			bool display_cycles;
 			std::vector <u32> breakpoints;
 			std::string last_command;
 		} db_unit;
