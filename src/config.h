@@ -24,6 +24,7 @@ namespace config
 	extern std::vector <std::string> cli_args;
 	extern bool use_debugger;
 	extern int key_a, key_b, key_start, key_select, key_up, key_down, key_left, key_right;
+	extern int joy_a, joy_b, joy_start, joy_select, joy_up, joy_down, joy_left, joy_right;
 	extern int dead_zone;
 }
 

@@ -43,6 +43,9 @@ void Core::start()
 		running = false;
 		core_cpu.running = false;
 	}
+
+	//Initialize the GamePad
+	core_pad.init();
 }
 
 /****** Stop the core ******/

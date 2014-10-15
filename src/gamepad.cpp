@@ -16,17 +16,21 @@ GamePad::GamePad()
 {
 	pad = 0;
 	key_input = 0x3FF;
+	jstick = NULL;
+	up_shadow = down_shadow = left_shadow = right_shadow = false;
+}
 
+/****** Initialize GamePad ******/
+void GamePad::init()
+{
 	jstick = NULL;
 	jstick = SDL_JoystickOpen(0);
-
-	up_shadow = down_shadow = left_shadow = right_shadow = false;
 
 	if((jstick == NULL) && (SDL_NumJoysticks() >= 1)) { std::cout<<"Input : Could not initialize joystick \n"; }
 	else if((jstick == NULL) && (SDL_NumJoysticks() == 0)) { std::cout<<"Input : No joysticks detected \n"; }
 }
 
-/****** GamePad Destructor *******/
+/****** GamePad Destructor ******/
 GamePad::~GamePad() { } 
 
 /****** Handle input from keyboard or joystick for processing ******/
@@ -211,53 +215,51 @@ void GamePad::process_keyboard(int pad, bool pressed)
 /****** Processes input based on unique pad # for joysticks ******/
 void GamePad::process_joystick(int pad, bool pressed)
 {
-	/*
 	//Emulate A button press
-	if((pad == config::joy_a) && (pressed)) { p14 &= ~0x1; }
+	if((pad == config::joy_a) && (pressed)) { key_input &= ~0x1; }
 
 	//Emulate A button release
-	else if((pad == config::joy_a) && (!pressed)) { p14 |= 0x1; }
+	else if((pad == config::joy_a) && (!pressed)) { key_input |= 0x1; }
 
 	//Emulate B button press
-	else if((pad == config::joy_b) && (pressed)) { p14 &= ~0x2; }
+	else if((pad == config::joy_b) && (pressed)) { key_input &= ~0x2; }
 
 	//Emulate B button release
-	else if((pad == config::joy_b) && (!pressed)) { p14 |= 0x2; }
+	else if((pad == config::joy_b) && (!pressed)) { key_input |= 0x2; }
 
 	//Emulate Select button press
-	else if((pad == config::joy_select) && (pressed)) { p14 &= ~0x4; }
+	else if((pad == config::joy_select) && (pressed)) { key_input &= ~0x4; }
 
 	//Emulate Select button release
-	else if((pad == config::joy_select) && (!pressed)) { p14 |= 0x4; }
+	else if((pad == config::joy_select) && (!pressed)) { key_input |= 0x4; }
 
 	//Emulate Start button press
-	else if((pad == config::joy_start) && (pressed)) { p14 &= ~0x8; }
+	else if((pad == config::joy_start) && (pressed)) { key_input &= ~0x8; }
 
 	//Emulate Start button release
-	else if((pad == config::joy_start) && (!pressed)) { p14 |= 0x8; }
+	else if((pad == config::joy_start) && (!pressed)) { key_input |= 0x8; }
 
 	//Emulate Right DPad press
-	else if((pad == config::joy_right) && (pressed)) { p15 &= ~0x1; p15 |= 0x2; }
+	else if((pad == config::joy_right) && (pressed)) { key_input &= ~0x10; key_input |= 0x20; }
 
 	//Emulate Right DPad release
-	else if((pad == config::joy_right) && (!pressed)) { p15 |= 0x1; p15 |= 0x2;}
+	else if((pad == config::joy_right) && (!pressed)) { key_input |= 0x10; key_input |= 0x20;}
 
 	//Emulate Left DPad press
-	else if((pad == config::joy_left) && (pressed)) { p15 &= ~0x2; p15 |= 0x1; }
+	else if((pad == config::joy_left) && (pressed)) { key_input &= ~0x20; key_input |= 0x10; }
 
 	//Emulate Left DPad release
-	else if((pad == config::joy_left) && (!pressed)) { p15 |= 0x2; p15 |= 0x1; }
+	else if((pad == config::joy_left) && (!pressed)) { key_input |= 0x20; key_input |= 0x10; }
 
 	//Emulate Up DPad press
-	else if((pad == config::joy_up) && (pressed)) { p15 &= ~0x4; p15 |= 0x8; }
+	else if((pad == config::joy_up) && (pressed)) { key_input &= ~0x40; key_input |= 0x80; }
 
 	//Emulate Up DPad release
-	else if((pad == config::joy_up) && (!pressed)) { p15 |= 0x4; p15 |= 0x8;}
+	else if((pad == config::joy_up) && (!pressed)) { key_input |= 0x40; key_input |= 0x80;}
 
 	//Emulate Down DPad press
-	else if((pad == config::joy_down) && (pressed)) { p15 &= ~0x8; p15 |= 0x4;}
+	else if((pad == config::joy_down) && (pressed)) { key_input &= ~0x80; key_input |= 0x40;}
 
 	//Emulate Down DPad release
-	else if((pad == config::joy_down) && (!pressed)) { p15 |= 0x8; p15 |= 0x4; }
-	*/
+	else if((pad == config::joy_down) && (!pressed)) { key_input |= 0x80; key_input |= 0x40; }
 }

@@ -24,6 +24,10 @@ namespace config
 	int key_a = 122; int key_b = 120; int key_start = 13; int key_select = 32; 
 	int key_left = 276; int key_right = 275; int key_down = 274; int key_up = 273;
 
+	//Default joystick bindings
+	int joy_a = 101; int joy_b = 100; int joy_start = 109; int joy_select = 108;
+	int joy_left = 200; int joy_right = 201; int joy_up = 202; int joy_down = 203;
+
 	//Default joystick dead-zone
 	int dead_zone = 16000;
 }

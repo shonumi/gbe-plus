@@ -27,6 +27,7 @@ class GamePad
 	~GamePad();
 
 	void handle_input(SDL_Event &event);
+	void init();
 
 	int pad;
 	u16 key_input;
