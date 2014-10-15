@@ -77,10 +77,6 @@ void Core::debug_step()
 		debug_display();
 		debug_process_command();
 	}
-
-	//After some commands, wait for more input
-	else if((db_unit.last_command == "bp") || (db_unit.last_command == "sm") || (db_unit.last_command == "h")
-	|| (db_unit.last_command == "dc") || (db_unit.last_command == "cr")) { debug_process_command(); }
 }
 
 /****** Debugger - Display relevant info to the screen ******/
@@ -285,7 +281,8 @@ void Core::debug_process_command()
 			{
 				db_unit.breakpoints.push_back(bp);
 				db_unit.last_command = "bp";
-				std::cout<<"\nBreakpoint added at 0x" << std::hex << bp << "\n"; 
+				std::cout<<"\nBreakpoint added at 0x" << std::hex << bp << "\n";
+				debug_process_command();
 			}
 		}
 
@@ -340,6 +337,7 @@ void Core::debug_process_command()
 			{
 				db_unit.last_command = "sm";
 				std::cout<<"Memory @ " << hex_string << " : 0x" << std::hex << (int)core_mmu.read_u8(mem_location) << "\n";
+				debug_process_command();
 			}
 		}
 
@@ -360,6 +358,7 @@ void Core::debug_process_command()
 
 			valid_command = true;
 			db_unit.last_command = "dc";
+			debug_process_command();
 		}
 
 		//Reset CPU cycles counter
@@ -369,6 +368,7 @@ void Core::debug_process_command()
 
 			valid_command = true;
 			core_cpu.debug_cycles = 0;
+			debug_process_command();
 		}
 
 		//Print help information
@@ -385,6 +385,7 @@ void Core::debug_process_command()
 
 			valid_command = true;
 			db_unit.last_command = "h";
+			debug_process_command();
 		}	
 
 		//Request valid input again
