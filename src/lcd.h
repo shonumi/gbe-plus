@@ -78,6 +78,7 @@ class LCD
 
 	void render_scanline();
 	bool render_sprite_pixel();
+	bool render_bg_pixel(u32 bg_control);
 };
 
 #endif // GBA_LCD

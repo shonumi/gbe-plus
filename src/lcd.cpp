@@ -234,19 +234,24 @@ bool LCD::render_sprite_pixel()
 	return true;
 }
 
-/****** Render pixels for a given scanline (per-pixel) ******/
-void LCD::render_scanline()
+/****** Determines if a background pixel should be rendered, and if so draws it to the current scanline pixel ******/
+bool LCD::render_bg_pixel(u32 bg_control)
 {
-	if(render_sprite_pixel()) { return; }
+	u32 display_control = mem->read_u16(DISPCNT);
+
+	if(((display_control & 0x100) == 0) && (bg_control == BG0CNT)) { return false; }
+	else if(((display_control & 0x200) == 0) && (bg_control == BG1CNT)) { return false; }
+	else if(((display_control & 0x400) == 0) && (bg_control == BG2CNT)) { return false; }
+	else if(((display_control & 0x800) == 0) && (bg_control == BG3CNT)) { return false; }
 
 	//Determine whether color depth is 4-bit or 8-bit
-	u8 bit_depth = (mem->read_u16(BG0CNT) & 0x80) ? 8 : 4;
+	u8 bit_depth = (mem->read_u16(bg_control) & 0x80) ? 8 : 4;
 
-	//Find out where the map base address is - Bits 2-3 of BG0CNT
-	u32 map_base_addr = 0x6000000 + (0x800 * ((mem->read_u16(BG0CNT) >> 8) & 0x1F));
+	//Find out where the map base address is - Bits 2-3 of BG(X)CNT
+	u32 map_base_addr = 0x6000000 + (0x800 * ((mem->read_u16(bg_control) >> 8) & 0x1F));
 
-	//Find out where the tile base address is - Bits 8-12 of BG0CNT
-	u32 tile_base_addr = 0x6000000 + (0x4000 * ((mem->read_u16(BG0CNT) >> 2) & 0x3));
+	//Find out where the tile base address is - Bits 8-12 of BG(X)CNT
+	u32 tile_base_addr = 0x6000000 + (0x4000 * ((mem->read_u16(bg_control) >> 2) & 0x3));
 
 	//Get current map entry for rendered pixel
 	u16 tile_number = (32 * (current_scanline/8)) + (scanline_pixel_counter/8);
@@ -277,6 +282,9 @@ void LCD::render_scanline()
 		if((current_tile_pixel % 2) == 0) { raw_color &= 0xF; }
 		else { raw_color >>= 4; }
 
+		//If the bg color is transparent, abort drawing
+		if(raw_color == 0) { return false; }
+
 		color_bytes = mem->read_u16(0x5000000 + (palette_number * 32) + (raw_color * 2));
 	}
 
@@ -286,6 +294,10 @@ void LCD::render_scanline()
 
 		tile_addr += current_tile_pixel;
 		u8 raw_color = mem->read_u8(tile_addr);
+
+		//If the bg color is transparent, abort drawing
+		if(raw_color == 0) { return false; }
+
 		color_bytes = mem->read_u16(0x5000000 + (raw_color * 2));
 	}
 
@@ -301,6 +313,27 @@ void LCD::render_scanline()
 	u32 final_color =  0xFF000000 | (red << 16) | (green << 8) | (blue);
 
 	scanline_buffer[scanline_pixel_counter] = final_color;
+
+	return true;
+}
+
+/****** Render pixels for a given scanline (per-pixel) ******/
+void LCD::render_scanline()
+{
+	if(render_sprite_pixel()) { return; }
+
+	u8 priority_0 = mem->read_u16(BG0CNT) & 0x3;
+	u8 priority_1 = mem->read_u16(BG1CNT) & 0x3;
+	u8 priority_2 = mem->read_u16(BG2CNT) & 0x3;
+	u8 priority_3 = mem->read_u16(BG3CNT) & 0x3;
+
+	for(int x = 3; x >= 0; x--)
+	{
+		if(priority_3 == x) { render_bg_pixel(BG3CNT); }
+		if(priority_2 == x) { render_bg_pixel(BG2CNT); }
+		if(priority_1 == x) { render_bg_pixel(BG1CNT); }
+		if(priority_0 == x) { render_bg_pixel(BG0CNT); }
+	}
 }
 
 /****** Run LCD for one cycle ******/
