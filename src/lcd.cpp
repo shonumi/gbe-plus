@@ -143,6 +143,9 @@ bool LCD::render_sprite_pixel()
 	//TODO - Account for BG priorities
 	//TODO - Horizontal + Vertical flipping
 
+	//If sprites are disabled, quit now
+	if((mem->read_u16(DISPCNT) & 0x1000) == 0) { return false; }
+
 	bool render_sprite = false;
 	u8 sprite_id = 0;
 	u32 sprite_tile_addr = 0;
