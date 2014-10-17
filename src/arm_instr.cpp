@@ -556,7 +556,7 @@ void ARM7::multiply(u32 current_arm_instruction)
 
 			break;
 
-		default: std::cout<<"CPU::Warning:: - ARM.7 Invalid or unimplemented opcode : " << std::hex << (int)op_code << "\n";
+		default: std::cout<<"CPU::Warning:: - ARM.7 Invalid or unimplemented opcode : " << std::hex << (int)op_code << "\n"; std::cout<<"OP -> 0x" << current_arm_instruction << "\n";
 	}
 }
 			
@@ -830,8 +830,8 @@ void ARM7::halfword_signed_transfer(u32 current_arm_instruction)
 
 		//SWP
 		default:
+			std::cout<<"This is actually ARM.12 - Single Data Swap\n";
 			return;
-			//std::cout<<"This is actually ARM.12 - Single Data Swap\n";
 	}
 
 	//Increment or decrement after transfer if post-indexing

@@ -419,13 +419,46 @@ void ARM7::decode()
 
 		else if(((current_instruction >> 26) & 0x3) == 0x0)
 		{
-			//ARM_10
-			if((current_instruction & 0x10) && (current_instruction & 0x80))
+			if((current_instruction & 0x80) && ((current_instruction & 0x10) == 0))
 			{
-				instruction_operation[pipeline_id] = ARM_10;
+				//ARM.5
+				if((current_instruction & 0x100000) && (((current_instruction >> 23) & 0x3) == 0x2))
+				{
+					instruction_operation[pipeline_id] = ARM_5;
+				}
+
+				//ARM.7
+				else
+				{
+					instruction_operation[pipeline_id] = ARM_7;
+				}
 			}
 
-			//ARM_5
+			else if((current_instruction & 0x80) && (current_instruction & 0x10))
+			{
+				if(((current_instruction >> 4) & 0xF) == 0x9)
+				{
+					//ARM.12
+					if(((current_instruction >> 23) & 0x3) == 0x2)
+					{
+						instruction_operation[pipeline_id] = ARM_12;
+					}
+
+					//ARM.7
+					else
+					{
+						instruction_operation[pipeline_id] = ARM_7;
+					}
+				}
+
+				//ARM.10
+				else
+				{
+					instruction_operation[pipeline_id] = ARM_10;
+				}
+			}
+
+			//ARM.5
 			else
 			{
 				instruction_operation[pipeline_id] = ARM_5;
@@ -588,6 +621,11 @@ void ARM7::execute()
 					debug_message = 0x17; debug_code = instruction_pipeline[pipeline_id];
 					break;
 
+				case ARM_7:
+					multiply(instruction_pipeline[pipeline_id]);
+					debug_message = 0x18; debug_code = instruction_pipeline[pipeline_id];
+					break;
+
 				case ARM_9:
 					single_data_transfer(instruction_pipeline[pipeline_id]);
 					debug_message = 0x19; debug_code = instruction_pipeline[pipeline_id];
@@ -601,6 +639,11 @@ void ARM7::execute()
 				case ARM_11:
 					block_data_transfer(instruction_pipeline[pipeline_id]);
 					debug_message = 0x1B; debug_code = instruction_pipeline[pipeline_id];
+					break;
+
+				case ARM_12:
+					single_data_swap(instruction_pipeline[pipeline_id]);
+					debug_message = 0x1C; debug_code = instruction_pipeline[pipeline_id];
 					break;
 
 				default:
