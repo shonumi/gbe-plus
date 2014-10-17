@@ -42,7 +42,7 @@ void ARM7::process_swi(u8 comment)
 
 		//VBlankIntrWait
 		case 0x5:
-			std::cout<<"SWI::VBlank Interrupt Wait \n";
+			//std::cout<<"SWI::VBlank Interrupt Wait \n";
 			swi_vblankintrwait();
 			break;
 
@@ -79,7 +79,8 @@ void ARM7::process_swi(u8 comment)
 
 		//CPUFastSet
 		case 0xC:
-			std::cout<<"SWI::CPU Fast Set (not implemented yet) \n";
+			std::cout<<"SWI::CPU Fast Set \n";
+			swi_cpufastset();
 			break;
 
 		//GetBIOSChecksum
@@ -235,6 +236,56 @@ void ARM7::process_swi(u8 comment)
 		default:
 			std::cout<<"SWI::Error - Unknown BIOS function 0x" << std::hex << (int)comment << "\n";
 			break;
+	}
+}
+
+/****** HLE implementation of CPUFastSet ******/
+void ARM7::swi_cpufastset()
+{
+	//TODO - Timings
+	//TODO - Memory alignments
+
+	//Grab source address - R0
+	u32 src_addr = get_reg(0);
+
+	//Grab destination address - R1
+	u32 dest_addr = get_reg(1);
+
+	//Grab transfer control options - R2
+	u32 transfer_control = get_reg(2);
+
+	//Transfer size - Bits 0-20 of R2
+	u32 transfer_size = (transfer_control & 0x1FFFFF);
+
+	//Determine if the transfer operation is copy or fill - Bit 24 of R2
+	u8 copy_fill = (transfer_control & 0x1000000) ? 1 : 0;
+
+	u32 temp = 0;
+
+	while(transfer_size != 0)
+	{
+		//Copy from source to destination
+		if(copy_fill == 0)
+		{
+			temp = mem->read_u32(src_addr);
+			mem->write_u32(dest_addr, temp);
+			
+			src_addr += 4;
+			dest_addr += 4;
+
+			transfer_size--;
+		}
+
+		//Fill first entry from source with destination
+		else
+		{
+			temp = mem->read_u32(src_addr);
+			mem->write_u32(dest_addr, temp);
+			
+			dest_addr += 4;
+			
+			transfer_size--;
+		}
 	}
 }
 
