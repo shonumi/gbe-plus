@@ -259,6 +259,9 @@ bool LCD::render_bg_pixel(u32 bg_control)
 	//Look at the Tile Map #(tile_number), see what Tile # it points to
 	u16 map_entry = mem->read_u16(map_base_addr + (tile_number * 2)) & 0x3FF;
 
+	//Grab horizontal and vertical flipping options
+	u8 flip_options = (mem->read_u16(map_base_addr + (tile_number * 2)) >> 10) & 0x3;
+
 	//Grab the Palette number of the tiles
 	u8 palette_number = (mem->read_u16(map_base_addr + (tile_number * 2)) >> 12);
 
@@ -270,6 +273,24 @@ bool LCD::render_bg_pixel(u32 bg_control)
 
 	//Get current pixel of tile being rendered
 	u8 current_tile_pixel = (scanline_pixel_counter % 8) + (current_tile_line * 8);
+
+	if(flip_options & 0x1) 
+	{
+		u8 h_flip = (current_tile_pixel % 8);
+	
+		//Horizontal flipping
+		if(h_flip < 4) 
+		{
+			h_flip = ((7 - h_flip) - h_flip);
+			current_tile_pixel += h_flip;
+		}
+
+		else
+		{
+			h_flip = 7 - (2 * (7 - h_flip));
+			current_tile_pixel -= h_flip;
+		}
+	}
 
 	u16 color_bytes = 0;
 
@@ -291,7 +312,6 @@ bool LCD::render_bg_pixel(u32 bg_control)
 	//Grab the byte corresponding to (current_tile_pixel), render it as ARGB - 8-bit version
 	else
 	{
-
 		tile_addr += current_tile_pixel;
 		u8 raw_color = mem->read_u8(tile_addr);
 
