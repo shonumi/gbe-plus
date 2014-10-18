@@ -340,13 +340,30 @@ bool LCD::render_bg_pixel(u32 bg_control)
 /****** Render pixels for a given scanline (per-pixel) ******/
 void LCD::render_scanline()
 {
+	//Use BG Palette #0, Color #0 as the backdrop
+	u8 color_bytes = mem->read_u16(0x5000000);
+	u8 red = ((color_bytes & 0x1F) * 8);
+	color_bytes >>= 5;
+
+	u8 green = ((color_bytes & 0x1F) * 8);
+	color_bytes >>= 5;
+
+	u8 blue = ((color_bytes & 0x1F) * 8);
+
+	u32 final_color =  0xFF000000 | (red << 16) | (green << 8) | (blue);
+
+	scanline_buffer[scanline_pixel_counter] = final_color;
+
+	//Render sprites
 	if(render_sprite_pixel()) { return; }
 
+	//Grab BG priorities 
 	u8 priority_0 = mem->read_u16(BG0CNT) & 0x3;
 	u8 priority_1 = mem->read_u16(BG1CNT) & 0x3;
 	u8 priority_2 = mem->read_u16(BG2CNT) & 0x3;
 	u8 priority_3 = mem->read_u16(BG3CNT) & 0x3;
 
+	//Render BGs based on priority (3 is the 'lowest', 0 is the 'highest')
 	for(int x = 3; x >= 0; x--)
 	{
 		if(priority_3 == x) { render_bg_pixel(BG3CNT); }
