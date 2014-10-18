@@ -244,6 +244,40 @@ bool LCD::render_bg_pixel(u32 bg_control)
 	else if(((display_control & 0x400) == 0) && (bg_control == BG2CNT)) { return false; }
 	else if(((display_control & 0x800) == 0) && (bg_control == BG3CNT)) { return false; }
 
+	//Grab BG scrolling registers
+	u16 x_scroll = 0;
+	u16 y_scroll = 0;
+	u8 temp_scanline = current_scanline;
+
+	switch(bg_control)
+	{
+		//BG0 scroll values
+		case BG0CNT: 
+			x_scroll = mem->read_u16(BG0HOFS) & 0x1FF;
+			y_scroll = mem->read_u16(BG0VOFS) & 0x1FF;
+			break;
+
+		//BG1 scroll values
+		case BG1CNT: 
+			x_scroll = mem->read_u16(BG1HOFS) & 0x1FF;
+			y_scroll = mem->read_u16(BG1VOFS) & 0x1FF;
+			break;
+
+		//BG2 scroll values
+		case BG2CNT: 
+			x_scroll = mem->read_u16(BG2HOFS) & 0x1FF;
+			y_scroll = mem->read_u16(BG2VOFS) & 0x1FF;
+			break;
+
+		//BG3 scroll values
+		case BG3CNT: 
+			x_scroll = mem->read_u16(BG3HOFS) & 0x1FF;
+			y_scroll = mem->read_u16(BG3VOFS) & 0x1FF;
+			break;
+	}
+
+	current_scanline += y_scroll;
+
 	//Determine whether color depth is 4-bit or 8-bit
 	u8 bit_depth = (mem->read_u16(bg_control) & 0x80) ? 8 : 4;
 
@@ -304,7 +338,7 @@ bool LCD::render_bg_pixel(u32 bg_control)
 		else { raw_color >>= 4; }
 
 		//If the bg color is transparent, abort drawing
-		if(raw_color == 0) { return false; }
+		if(raw_color == 0) { current_scanline -= y_scroll; return false; }
 
 		color_bytes = mem->read_u16(0x5000000 + (palette_number * 32) + (raw_color * 2));
 	}
@@ -316,7 +350,7 @@ bool LCD::render_bg_pixel(u32 bg_control)
 		u8 raw_color = mem->read_u8(tile_addr);
 
 		//If the bg color is transparent, abort drawing
-		if(raw_color == 0) { return false; }
+		if(raw_color == 0) { current_scanline -= y_scroll; return false; }
 
 		color_bytes = mem->read_u16(0x5000000 + (raw_color * 2));
 	}
@@ -333,6 +367,7 @@ bool LCD::render_bg_pixel(u32 bg_control)
 	u32 final_color =  0xFF000000 | (red << 16) | (green << 8) | (blue);
 
 	scanline_buffer[scanline_pixel_counter] = final_color;
+	current_scanline -= y_scroll;
 
 	return true;
 }

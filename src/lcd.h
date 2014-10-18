@@ -69,7 +69,7 @@ class LCD
 
 	u32 lcd_clock;
 	u32 scanline_pixel_counter;
-	u32 current_scanline;
+	u8 current_scanline;
 
 	int frame_start_time;
 	int frame_current_time;
