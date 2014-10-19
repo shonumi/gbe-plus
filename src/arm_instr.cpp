@@ -483,6 +483,19 @@ void ARM7::psr_transfer(u32 current_arm_instruction)
 				{ 
 					reg.cpsr &= ~op_field_mask;
 					reg.cpsr |= input;
+
+					//Set the CPU mode accordingly
+					switch((reg.cpsr & 0x1F))
+					{
+						case 0x10: current_cpu_mode = USR; break;
+						case 0x11: current_cpu_mode = FIQ; break;
+						case 0x12: current_cpu_mode = IRQ; break;
+						case 0x13: current_cpu_mode = SVC; break;
+						case 0x17: current_cpu_mode = ABT; break;
+						case 0x1B: current_cpu_mode = UND; break;
+						case 0x1F: current_cpu_mode = SYS; break;
+						default: std::cout<<"CPU::Warning - ARM.6 CPSR setting unknown CPU mode\n";
+					}
 				}
 	
 				//Write into SPSR

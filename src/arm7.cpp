@@ -111,6 +111,7 @@ u32 ARM7::get_reg(u8 g_reg) const
 		case 13: 
 			switch(current_cpu_mode)
 			{
+				case USR:
 				case SYS: return reg.r13; break;
 				case FIQ: return reg.r13_fiq; break;
 				case SVC: return reg.r13_svc; break;
@@ -123,6 +124,7 @@ u32 ARM7::get_reg(u8 g_reg) const
 		case 14: 
 			switch(current_cpu_mode)
 			{
+				case USR:
 				case SYS: return reg.r14; break;
 				case FIQ: return reg.r14_fiq; break;
 				case SVC: return reg.r14_svc; break;
@@ -193,6 +195,7 @@ void ARM7::set_reg(u8 s_reg, u32 value)
 		case 13: 
 			switch(current_cpu_mode)
 			{
+				case USR:
 				case SYS: reg.r13 = value; break;
 				case FIQ: reg.r13_fiq = value; break;
 				case SVC: reg.r13_svc = value; break;
@@ -205,6 +208,7 @@ void ARM7::set_reg(u8 s_reg, u32 value)
 		case 14: 
 			switch(current_cpu_mode)
 			{
+				case USR:
 				case SYS: reg.r14 = value; break;
 				case FIQ: reg.r14_fiq = value; break;
 				case SVC: reg.r14_svc = value; break;
@@ -223,6 +227,7 @@ u32 ARM7::get_spsr() const
 {
 	switch(current_cpu_mode)
 	{
+		case USR:
 		case SYS: std::cout<<"CPU::Warning - Tried to read SPSR in USER-SYSTEM mode\n"; return reg.cpsr; break;
 		case FIQ: return reg.spsr_fiq; break;
 		case SVC: return reg.spsr_svc; break;
@@ -237,6 +242,7 @@ void ARM7::set_spsr(u32 value)
 {
 	switch(current_cpu_mode)
 	{
+		case USR:
 		case SYS: std::cout<<"CPU::Warning - Tried to write SPSR in USER-SYSTEM mode\n"; break;
 		case FIQ: reg.spsr_fiq = value; break;
 		case SVC: reg.spsr_svc = value; break;

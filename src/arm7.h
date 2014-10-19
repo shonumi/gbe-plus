@@ -68,6 +68,7 @@ class ARM7
 	//ARM CPU mode enumerations
 	enum cpu_modes
 	{
+		USR,
 		SYS,
 		FIQ,
 		SVC,
