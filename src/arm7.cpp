@@ -653,7 +653,7 @@ void ARM7::execute()
 			}
 		}
 
-		else { debug_message = 0x1E; debug_code = instruction_pipeline[pipeline_id]; }
+		else { debug_message = 0x1F; debug_code = instruction_pipeline[pipeline_id]; }
 	}
 
 }

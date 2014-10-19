@@ -267,7 +267,7 @@ void ARM7::swi_div()
 
 	//R3 = absolute value of division
 	if(result < 0) { result *= -1; }
-	set_reg(r3, result);
+	set_reg(3, result);
 }
 
 /****** HLE implementation of CPUFastSet ******/
