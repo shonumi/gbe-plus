@@ -414,7 +414,7 @@ void ARM7::psr_transfer(u32 current_arm_instruction)
 		case 0x0:
 			{
 				//Grab destination register - Bits 12-15
-				u8 dest_reg = ((current_arm_instruction >> 12) & 0xFF);
+				u8 dest_reg = ((current_arm_instruction >> 12) & 0xF);
 
 				if(dest_reg == 15) { std::cout<<"CPU::Warning - ARM.6 R15 used as Destination Register \n"; }
 
