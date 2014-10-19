@@ -8,6 +8,8 @@
 //
 // Emulates the GBA's Software Interrupts via High Level Emulation
 
+#include <cmath>
+
 #include "arm7.h"
 
 /****** Process Software Interrupts ******/
@@ -48,7 +50,8 @@ void ARM7::process_swi(u8 comment)
 
 		//Div
 		case 0x6:
-			std::cout<<"SWI::Divide (not implemented yet) \n";
+			std::cout<<"SWI::Divide \n";
+			swi_div();
 			break;
 
 		//DivARM
@@ -237,6 +240,34 @@ void ARM7::process_swi(u8 comment)
 			std::cout<<"SWI::Error - Unknown BIOS function 0x" << std::hex << (int)comment << "\n";
 			break;
 	}
+}
+
+/****** HLE implementation of Div ******/
+void ARM7::swi_div()
+{
+	//Grab the numerator - R0
+	s32 num = get_reg(0);
+	
+	//Grab the denominator - R1
+	s32 den = get_reg(1);
+
+	s32 result = 0;
+	s32 modulo = 0;
+
+	//Do NOT divide by 0
+	if(den == 0) { std::cout<<"SWI::Warning - Div tried to divide by zero (ignoring operation) \n"; return; }
+
+	//R0 = result of division
+	result = num/den;
+	set_reg(0, result);
+
+	//R1 = mod of inputs
+	modulo = num % den;
+	set_reg(1, modulo);
+
+	//R3 = absolute value of division
+	if(result < 0) { result *= -1; }
+	set_reg(r3, result);
 }
 
 /****** HLE implementation of CPUFastSet ******/
