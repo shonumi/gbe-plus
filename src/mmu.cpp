@@ -77,7 +77,8 @@ void MMU::write_u8(u32 address, u8 value)
 	switch(address)
 	{
 		case REG_IF:
-			memory_map[REG_IF] &= ~value;
+		case REG_IF+1:
+			memory_map[address] &= ~value;
 			break;
 
 		case DMA0CNT_H:

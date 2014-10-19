@@ -1157,7 +1157,6 @@ void ARM7::handle_interrupt()
 		reg.cpsr &= ~CPSR_IRQ;
 		needs_flush = true;
 		current_cpu_mode = SYS;
-		mem->write_u16(REG_IME, 0x1);
 		in_interrupt = false;
 		arm_mode = (reg.cpsr & 0x20) ? THUMB : ARM;
 	}
@@ -1187,7 +1186,6 @@ void ARM7::handle_interrupt()
 				arm_mode = ARM;
 				reg.cpsr &= ~0x20;
 				reg.cpsr |= CPSR_IRQ;
-				mem->write_u16(REG_IME, 0x0);
 				return;
 			}
 		}
