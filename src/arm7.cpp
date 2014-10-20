@@ -469,6 +469,12 @@ void ARM7::decode()
 					}
 				}
 
+				//ARM.5
+				else if(current_instruction & 0x2000000)
+				{
+					instruction_operation[pipeline_id] = ARM_5;
+				}
+
 				//ARM.10
 				else
 				{
