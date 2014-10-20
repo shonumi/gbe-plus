@@ -444,8 +444,14 @@ void ARM7::decode()
 			{
 				if(((current_instruction >> 4) & 0xF) == 0x9)
 				{
+					//ARM.5
+					if(current_instruction & 0x2000000)
+					{
+						instruction_operation[pipeline_id] = ARM_5;
+					}
+
 					//ARM.12
-					if(((current_instruction >> 23) & 0x3) == 0x2)
+					else if(((current_instruction >> 23) & 0x3) == 0x2)
 					{
 						instruction_operation[pipeline_id] = ARM_12;
 					}
