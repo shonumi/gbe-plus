@@ -431,7 +431,6 @@ void LCD::step()
 		{
 			render_scanline();
 			scanline_pixel_counter++;
-			mem->write_u16(VCOUNT, current_scanline);
 		}
 	}
 
@@ -459,6 +458,7 @@ void LCD::step()
 			//Increment scanline count
 			current_scanline++;
 			mem->write_u16(VCOUNT, current_scanline);
+			scanline_compare();
 		}
 	}
 
@@ -502,6 +502,7 @@ void LCD::step()
 		{ 
 			current_scanline++;
 			mem->write_u16(VCOUNT, current_scanline);
+			scanline_compare();
 				
 			if(mem->memory_map[DISPSTAT] & 0x10) 
 			{ 
@@ -514,9 +515,36 @@ void LCD::step()
 		{ 
 			lcd_clock = 0; 
 			current_scanline = 0; 
+			scanline_compare();
 			scanline_pixel_counter = 0; 
 			frame_start_time = SDL_GetTicks();
 			mem->write_u16(VCOUNT, 0);
 		}
 	}
 }
+
+/****** Compare VCOUNT to LYC ******/
+void LCD::scanline_compare()
+{
+	u16 disp_stat = mem->read_u16(DISPSTAT);
+	u8 lyc = disp_stat >> 8;
+	
+	//Raise VCOUNT interrupt
+	if(current_scanline == lyc)
+	{
+		if(mem->memory_map[DISPSTAT] & 0x20) 
+		{ 
+			mem->memory_map[REG_IF] |= 0x4; 
+		}
+
+		disp_stat |= 0x4;
+		mem->write_u16(DISPSTAT, disp_stat);
+	}
+
+	else
+	{
+		disp_stat &= ~0x4;
+		mem->write_u16(DISPSTAT, disp_stat);
+	}
+}
+		
