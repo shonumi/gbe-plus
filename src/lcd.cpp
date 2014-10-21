@@ -423,6 +423,9 @@ void LCD::step()
 	//Mode 0 - Scanline rendering
 	if(((lcd_clock % 1232) <= 960) && (lcd_clock < 197120)) 
 	{
+		//Toggle HBlank flag OFF
+		mem->memory_map[DISPSTAT] &= ~0x2;
+
 		//Change mode
 		if(lcd_mode != 0) { lcd_mode = 0; }
 
@@ -437,6 +440,9 @@ void LCD::step()
 	//Mode 1 - H-Blank
 	else if(((lcd_clock % 1232) > 960) && (lcd_clock < 197120))
 	{
+		//Toggle HBlank flag ON
+		mem->memory_map[DISPSTAT] |= 0x2;
+
 		//Change mode
 		if(lcd_mode != 1) 
 		{ 
@@ -465,6 +471,12 @@ void LCD::step()
 	//Mode 2 - VBlank
 	else
 	{
+		//Toggle HBlank flag ON
+		mem->memory_map[DISPSTAT] |= 0x1;
+
+		//Toggle HBlank flag OFF
+		mem->memory_map[DISPSTAT] &= ~0x2;
+
 		//Change mode
 		if(lcd_mode != 2) 
 		{ 
@@ -499,7 +511,10 @@ void LCD::step()
 
 		//Raise HBlank interrupt
 		if((lcd_clock % 1232) == 960) 
-		{ 
+		{
+			//Toggle HBlank flag ON
+			mem->memory_map[DISPSTAT] |= 0x2;
+
 			current_scanline++;
 			mem->write_u16(VCOUNT, current_scanline);
 			scanline_compare();
@@ -512,7 +527,13 @@ void LCD::step()
 
 		//Reset LCD clock
 		if(lcd_clock == 280896) 
-		{ 
+		{
+			//Toggle VBlank flag OFF
+			mem->memory_map[DISPSTAT] &= ~0x1;
+
+			//Toggle HBlank flag OFF
+			mem->memory_map[DISPSTAT] &= ~0x2;
+
 			lcd_clock = 0; 
 			current_scanline = 0; 
 			scanline_compare();
@@ -537,12 +558,14 @@ void LCD::scanline_compare()
 			mem->memory_map[REG_IF] |= 0x4; 
 		}
 
+		//Toggle VCOUNT flag ON
 		disp_stat |= 0x4;
 		mem->write_u16(DISPSTAT, disp_stat);
 	}
 
 	else
 	{
+		//Toggle VCOUNT flag OFF
 		disp_stat &= ~0x4;
 		mem->write_u16(DISPSTAT, disp_stat);
 	}
