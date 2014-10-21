@@ -434,7 +434,13 @@ void ARM7::decode()
 				}
 
 				//ARM.5
-				else if((current_instruction & 0x100000) && (((current_instruction >> 23) & 0x7) == 0x2))
+				else if((current_instruction & 0x100000) && (((current_instruction >> 23) & 0x3) == 0x2))
+				{
+					instruction_operation[pipeline_id] = ARM_5;
+				}
+
+				//ARM.5
+				else if(((current_instruction >> 23) & 0x3) != 0x2)
 				{
 					instruction_operation[pipeline_id] = ARM_5;
 				}
