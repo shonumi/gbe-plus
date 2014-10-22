@@ -373,7 +373,7 @@ void ARM7::data_processing(u32 current_arm_instruction)
 		//MVN
 		case 0xF:
 			result = ~operand;
-			set_reg(0, result);
+			set_reg(dest_reg, result);
 
 			//Update condtion codes
 			if(set_condition) { update_condition_logical(result, shift_out); }
