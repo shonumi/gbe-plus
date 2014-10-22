@@ -561,7 +561,7 @@ void ARM7::multiply(u32 current_arm_instruction)
 		//MUL
 		case 0x0:
 			value_32 = (Rm * Rs);
-			set_reg(dest_reg, Rd);
+			set_reg(dest_reg, value_32);
 			
 			break;
 
@@ -579,6 +579,7 @@ void ARM7::multiply(u32 current_arm_instruction)
 			break;
 
 		default: std::cout<<"CPU::Warning:: - ARM.7 Invalid or unimplemented opcode : " << std::hex << (int)op_code << "\n"; std::cout<<"OP -> 0x" << current_arm_instruction << "\n";
+			 std::cout<<"PC -> 0x" << std::hex << reg.r15 << "\n";
 	}
 }
 			
