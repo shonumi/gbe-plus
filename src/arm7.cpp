@@ -833,6 +833,10 @@ bool ARM7::check_condition(u32 current_arm_instruction) const
 /****** Updates the condition codes in the CPSR register after logical operations ******/
 void ARM7::update_condition_logical(u32 result, u8 shift_out)
 {
+	//Negative flag
+	if(result & 0x80000000) { reg.cpsr |= CPSR_N_FLAG; }
+	else { reg.cpsr &= ~CPSR_N_FLAG; }
+
 	//Zero flag
 	if(result == 0) { reg.cpsr |= CPSR_Z_FLAG; }
 	else { reg.cpsr &= ~CPSR_Z_FLAG; }
