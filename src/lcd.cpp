@@ -395,7 +395,7 @@ bool LCD::render_bg_mode_0(u32 bg_control)
 bool LCD::render_bg_mode_4(u32 bg_control)
 {
 	//Determine which byte in VRAM to read for color data
-	u32 bitmap_entry = (0x6000000 + (current_scanline * 8) + scanline_pixel_counter);
+	u32 bitmap_entry = (0x6000000 + (current_scanline * 240) + scanline_pixel_counter);
 
 	u8 raw_color = mem->read_u8(bitmap_entry);
 	if(raw_color == 0) { return false; }
