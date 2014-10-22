@@ -364,6 +364,7 @@ void ARM7::data_processing(u32 current_arm_instruction)
 		//BIC
 		case 0xE:
 			result = (input & (~operand));
+			set_reg(dest_reg, result);
 
 			//Update condtion codes
 			if(set_condition) { update_condition_logical(result, shift_out); }
