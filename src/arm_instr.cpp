@@ -564,13 +564,34 @@ void ARM7::multiply(u32 current_arm_instruction)
 			value_32 = (Rm * Rs);
 			set_reg(dest_reg, value_32);
 
-			//Negative flag
-			if(value_32 & 0x80000000) { reg.cpsr |= CPSR_N_FLAG; }
-			else { reg.cpsr &= ~CPSR_N_FLAG; }
+			if(set_condition)
+			{
+				//Negative flag
+				if(value_32 & 0x80000000) { reg.cpsr |= CPSR_N_FLAG; }
+				else { reg.cpsr &= ~CPSR_N_FLAG; }
 
-			//Zero flag
-			if(value_32 == 0) { reg.cpsr |= CPSR_Z_FLAG; }
-			else { reg.cpsr &= ~CPSR_Z_FLAG; }
+				//Zero flag
+				if(value_32 == 0) { reg.cpsr |= CPSR_Z_FLAG; }
+				else { reg.cpsr &= ~CPSR_Z_FLAG; }
+			}
+			
+			break;
+
+		//MLA
+		case 0x1:
+			value_32 = (Rm * Rs) + Rn;
+			set_reg(dest_reg, value_32);
+
+			if(set_condition)
+			{
+				//Negative flag
+				if(value_32 & 0x80000000) { reg.cpsr |= CPSR_N_FLAG; }
+				else { reg.cpsr &= ~CPSR_N_FLAG; }
+
+				//Zero flag
+				if(value_32 == 0) { reg.cpsr |= CPSR_Z_FLAG; }
+				else { reg.cpsr &= ~CPSR_Z_FLAG; }
+			}
 			
 			break;
 
