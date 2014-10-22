@@ -244,6 +244,25 @@ bool LCD::render_bg_pixel(u32 bg_control)
 	else if(((display_control & 0x400) == 0) && (bg_control == BG2CNT)) { return false; }
 	else if(((display_control & 0x800) == 0) && (bg_control == BG3CNT)) { return false; }
 
+	//Render BG pixel according to current BG Mode
+	switch(display_control & 0x7)
+	{
+		//BG Mode 0
+		case 0:
+			render_bg_mode_0(bg_control); break;
+
+		//BG Mode 4
+		case 4:
+			render_bg_mode_4(bg_control); break;
+
+		default:
+			std::cout<<"LCD::invalid or unsupported BG Mode : " << std::dec << (display_control & 0x7);
+	}
+}
+
+/****** Render BG Mode 0 ******/
+bool LCD::render_bg_mode_0(u32 bg_control)
+{
 	//Grab BG scrolling registers
 	u16 x_scroll = 0;
 	u16 y_scroll = 0;
@@ -368,6 +387,33 @@ bool LCD::render_bg_pixel(u32 bg_control)
 
 	scanline_buffer[scanline_pixel_counter] = final_color;
 	current_scanline -= y_scroll;
+
+	return true;
+}
+
+/****** Render BG Mode 4 ******/
+bool LCD::render_bg_mode_4(u32 bg_control)
+{
+	//Determine which byte in VRAM to read for color data
+	u32 bitmap_entry = (0x6000000 + (current_scanline * 8) + scanline_pixel_counter);
+
+	u8 raw_color = mem->read_u8(bitmap_entry);
+	if(raw_color == 0) { return false; }
+
+	u16 color_bytes = mem->read_u16(0x5000000 + (raw_color * 2));
+
+	//ARGB conversion
+	u8 red = ((color_bytes & 0x1F) * 8);
+	color_bytes >>= 5;
+
+	u8 green = ((color_bytes & 0x1F) * 8);
+	color_bytes >>= 5;
+
+	u8 blue = ((color_bytes & 0x1F) * 8);
+
+	u32 final_color =  0xFF000000 | (red << 16) | (green << 8) | (blue);
+
+	scanline_buffer[scanline_pixel_counter] = final_color;
 
 	return true;
 }
