@@ -237,7 +237,7 @@ void ARM7::alu_ops(u16 current_thumb_instruction)
 		//LSL
 		case 0x2:
 			operand &= 0xFF;
-			shift_out = logical_shift_left(input, operand);
+			if(operand != 0) { shift_out = logical_shift_left(input, operand); }
 			result = input;
 
 			//Zero flag
@@ -268,7 +268,7 @@ void ARM7::alu_ops(u16 current_thumb_instruction)
 		//LSR
 		case 0x3:
 			operand &= 0xFF;
-			shift_out = logical_shift_right(input, operand);
+			if(operand != 0) { shift_out = logical_shift_right(input, operand); }
 			result = input;
 
 			//Zero flag
@@ -299,7 +299,7 @@ void ARM7::alu_ops(u16 current_thumb_instruction)
 		//ASR
 		case 0x4:
 			operand &= 0xFF;
-			shift_out = logical_shift_right(input, operand);
+			if(operand != 0) { shift_out = logical_shift_right(input, operand); }
 			result = input;
 
 			//Zero flag
@@ -358,7 +358,7 @@ void ARM7::alu_ops(u16 current_thumb_instruction)
 		//ROR
 		case 0x7:
 			operand &= 0xFF;
-			shift_out = rotate_right(input, operand);
+			if(operand != 0) { shift_out = rotate_right(input, operand); }
 			result = input;
 
 			//Zero flag
