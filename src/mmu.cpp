@@ -44,6 +44,9 @@ MMU::~MMU()
 /****** Read byte from memory ******/
 u8 MMU::read_u8(u32 address) const
 {
+	//Check for unused memory first
+	if(address >= 0x10000000) { std::cout<<"Out of bounds read : 0x" << std::hex << address << "\n"; return 0; }
+
 	switch(address)
 	{
 		case KEYINPUT:
@@ -74,6 +77,9 @@ u32 MMU::read_u32(u32 address) const
 /****** Write byte into memory ******/
 void MMU::write_u8(u32 address, u8 value)
 {
+	//Check for unused memory first
+	if(address >= 0x10000000) { std::cout<<"Out of bounds write : 0x" << std::hex << address << "\n"; return; }
+
 	switch(address)
 	{
 		case REG_IF:
