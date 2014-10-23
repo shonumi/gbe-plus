@@ -59,13 +59,9 @@ void ARM7::move_shifted_register(u16 current_thumb_instruction)
 	if(result & 0x80000000) { reg.cpsr |= CPSR_N_FLAG; }
 	else { reg.cpsr &= ~CPSR_N_FLAG; }
 
-
-	//Carry flag - Only affected if shift is non-zero - LSL #0 is unaffected anyway
-	if(offset != 0)
-	{
-		if(shift_out == 1) { reg.cpsr |= CPSR_C_FLAG; }
-		else if(shift_out == 0) { reg.cpsr &= ~CPSR_C_FLAG; }
-	}
+	//Carry flag
+	if(shift_out == 1) { reg.cpsr |= CPSR_C_FLAG; }
+	else if(shift_out == 0) { reg.cpsr &= ~CPSR_C_FLAG; }
 
 	//Clock CPU and controllers - 1S
 	clock(reg.r15, false);
@@ -895,7 +891,14 @@ void ARM7::load_store_imm_offset(u16 current_thumb_instruction)
 			op_addr += offset;
 			clock(reg.r15, true);
 
+			//Hax
+			//if(op_addr == 0x40000DC) 
+			//{ 
+			//	value = (mem->read_u16(reg.r15) << 16) |  mem->read_u16(reg.r15);
+			//}
+
 			//Clock CPU and controllers - 1I
+			//else { value = mem->read_u32(op_addr); }
 			value = mem->read_u32(op_addr);
 			clock();
 
@@ -980,6 +983,8 @@ void ARM7::load_store_halfword(u16 current_thumb_instruction)
 			clock(reg.r15, true);
 
 			//Clock CPU and controllers - 1I
+			//if(op_addr == 0x40000de) { value = 0; }
+			//else { value = mem->read_u16(op_addr); }
 			value = mem->read_u16(op_addr);
 			clock();
 
