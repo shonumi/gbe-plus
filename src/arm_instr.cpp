@@ -553,7 +553,7 @@ void ARM7::multiply(u32 current_arm_instruction)
 	u32 Rn = get_reg(accu_reg);
 	u32 Rd = get_reg(dest_reg);
 
-	u64 value_64 = 0;
+	u64 value_64 = 1;
 	u32 value_32 = 0;
 
 	//Perform multiplication ops
@@ -597,7 +597,7 @@ void ARM7::multiply(u32 current_arm_instruction)
 
 		//UMULL
 		case 0x4:
-			value_64 = (Rm * Rs);
+			value_64 = (value_64 * Rm * Rs);
 			
 			//Set Rn to low 32-bits, Rd to high 32-bits
 			Rn = (value_64 & 0xFFFFFFFF);
@@ -605,6 +605,17 @@ void ARM7::multiply(u32 current_arm_instruction)
 
 			set_reg(accu_reg, Rn);
 			set_reg(dest_reg, Rd);
+
+			if(set_condition)
+			{
+				//Negative flag
+				if(value_64 & 0x8000000000000000) { reg.cpsr |= CPSR_N_FLAG; }
+				else { reg.cpsr &= ~CPSR_N_FLAG; }
+
+				//Zero flag
+				if(value_64 == 0) { reg.cpsr |= CPSR_Z_FLAG; }
+				else { reg.cpsr &= ~CPSR_Z_FLAG; }
+			}
 
 			break;
 
