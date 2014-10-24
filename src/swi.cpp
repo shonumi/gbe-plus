@@ -108,6 +108,7 @@ void ARM7::process_swi(u8 comment)
 
 		//LZ77UnCompWram
 		case 0x11:
+			swi_lz77uncompvram();
 			std::cout<<"SWI::LZ77 Uncompress Work RAM (not implemented yet) \n";
 			break;
 
