@@ -113,7 +113,8 @@ void ARM7::process_swi(u8 comment)
 
 		//LZ77UnCompVram
 		case 0x12:
-			std::cout<<"SWI::LZ77 Uncompress Video RAM (not implemented yet) \n";
+			swi_lz77uncompvram();
+			std::cout<<"SWI::LZ77 Uncompress Video RAM \n";
 			break;
 
 		//HuffUnComp
@@ -421,5 +422,74 @@ void ARM7::swi_vblankintrwait()
 		clock();
 		if((controllers.video.lcd_mode == 2) && (previous_mode != 2)) { mode_change = true; mem->memory_map[REG_IF] |= 0x1; reg.r15 += 2; }
 		else { previous_mode = controllers.video.lcd_mode; }
+	}
+}
+
+/****** HLE implementation of LZ77UnCompVram ******/
+void ARM7::swi_lz77uncompvram()
+{
+	//Grab source address - R0
+	u32 src_addr = get_reg(0);
+
+	//Grab destination address - R1
+	u32 dest_addr = get_reg(1);
+
+	//Grab data header
+	u32 data_header = mem->read_u32(src_addr);
+
+	//Grab compressed data size in bytes
+	u32 data_size = (data_header >> 8);
+
+	//Pointer to current address of compressed data that needs to be processed
+	//When uncompression starts, move 5 bytes from source address (header + flag)
+	u32 data_ptr = src_addr + 4;
+
+	u8 temp = 0;
+
+	//Uncompress data
+	while(data_size > 0)
+	{
+		//Grab flag data
+		u8 flag_data = mem->read_u8(data_ptr++);
+
+		//Process 8 blocks
+		for(int x = 7; x >= 0; x--)
+		{
+			u8 block_type = (flag_data & (1 << x)) ? 1 : 0;
+
+			//Block Type 0 - Uncompressed
+			if(block_type == 0)
+			{
+				temp = mem->read_u8(data_ptr++);
+				mem->write_u8(dest_addr++, temp);
+				
+				data_size--;
+				if(data_size == 0) { return; }
+			}
+
+
+			//Block Type 1 - Compressed
+			else
+			{
+				u16 compressed_block = mem->read_u16(data_ptr);
+				data_ptr += 2;
+
+				u16 distance = ((compressed_block & 0xF) << 8);
+				distance |= (compressed_block >> 8);
+
+				u8 length = ((compressed_block >> 4) & 0xF) + 3;
+
+				//Copy length+3 Bytes from dest_addr-length-1 to dest_addr
+				for(int y = 0; y < length; y++)
+				{
+					temp = mem->read_u8(dest_addr - distance - 1);
+					mem->write_u8(dest_addr, temp);
+					
+					dest_addr++;
+					data_size--;
+					if(data_size == 0) { return; }
+				}
+			}
+		}
 	}
 }

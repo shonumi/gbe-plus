@@ -240,6 +240,7 @@ class ARM7
 	void swi_cpufastset();
 	void swi_cpuset();
 	void swi_vblankintrwait();
+	void swi_lz77uncompvram();
 };
 		
 #endif // GBA_CPU
