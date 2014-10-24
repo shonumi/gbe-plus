@@ -155,11 +155,11 @@ bool LCD::render_sprite_pixel()
 	for(int x = 0; x < 128; x++)
 	{
 		//Check to see if sprite is rendered on the current scanline
-		if((current_scanline >= obj[x].y) && (current_scanline <= (obj[x].y + obj[x].height)))
+		if((current_scanline >= obj[x].y) && (current_scanline <= (obj[x].y + obj[x].height - 1)))
 		{
 			
 			//Check to see if current_scanline_pixel is within sprite
-			if((scanline_pixel_counter >= obj[x].x) && (scanline_pixel_counter <= (obj[x].x + obj[x].width)))
+			if((scanline_pixel_counter >= obj[x].x) && (scanline_pixel_counter <= (obj[x].x + obj[x].width - 1)))
 			{
 				render_sprite = true;
 				sprite_id = x;
@@ -250,6 +250,10 @@ bool LCD::render_bg_pixel(u32 bg_control)
 		//BG Mode 0
 		case 0:
 			render_bg_mode_0(bg_control); break;
+
+		//BG Mode 1
+		//case 1:
+		//	render_bg_mode_0(bg_control); break;
 
 		//BG Mode 4
 		case 4:
