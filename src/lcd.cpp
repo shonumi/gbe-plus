@@ -98,9 +98,12 @@ void LCD::update_oam()
 		attribute = mem->read_u16(oam_ptr);
 		oam_ptr += 4;
 
-		obj[x].tile_number = (attribute & 0x1FF);
+		obj[x].tile_number = (attribute & 0x3FF);
 		obj[x].bg_priority = ((attribute >> 10) & 0x3);
 		obj[x].palette_number = ((attribute >> 12) & 0xF); 
+
+		//if(x == 0) { std::cout<<"OAM 0 -> " << std::dec << obj[x].tile_number << "\n"; 
+		//	     std::cout<<"OAM Pal -> " << std::dec << (int)obj[x].palette_number << "\n"; }
 
 		//Determine dimensions of the sprite
 		switch(obj[x].size)
@@ -149,7 +152,7 @@ bool LCD::render_sprite_pixel()
 	bool render_sprite = false;
 	u8 sprite_id = 0;
 	u32 sprite_tile_addr = 0;
-	u8 meta_sprite_tile = 0;
+	u32 meta_sprite_tile = 0;
 
 	//Cycle through all of the sprites
 	for(int x = 0; x < 128; x++)
@@ -461,10 +464,6 @@ void LCD::render_scanline()
 /****** Run LCD for one cycle ******/
 void LCD::step()
 {
-	//TODO - Set V-Counter Flag
-	//TODO - Set/Reset Bits 0 and 1 of DISPSTAT
-	//TODO - Implement V-Counter interrupt
-
 	lcd_clock++;
 
 	//Update OAM
