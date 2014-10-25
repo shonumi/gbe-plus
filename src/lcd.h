@@ -58,6 +58,9 @@ class LCD
 		u8 bit_depth;
 		u8 palette_number;
 	} obj[128];
+
+	u8 obj_render_list[128];
+	u8 obj_render_length;
 		
 	//Screen data
 	SDL_Surface* final_screen;

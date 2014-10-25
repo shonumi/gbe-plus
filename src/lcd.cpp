@@ -102,9 +102,6 @@ void LCD::update_oam()
 		obj[x].bg_priority = ((attribute >> 10) & 0x3);
 		obj[x].palette_number = ((attribute >> 12) & 0xF); 
 
-		//if(x == 0) { std::cout<<"OAM 0 -> " << std::dec << obj[x].tile_number << "\n"; 
-		//	     std::cout<<"OAM Pal -> " << std::dec << (int)obj[x].palette_number << "\n"; }
-
 		//Determine dimensions of the sprite
 		switch(obj[x].size)
 		{
@@ -142,7 +139,6 @@ void LCD::update_oam()
 /****** Determines if a sprite pixel should be rendered, and if so draws it to the current scanline pixel ******/
 bool LCD::render_sprite_pixel()
 {
-	//TODO - Figure out sprite drawing priorities (in relation to other sprites, e.g. overlapping sprites
 	//TODO - Account for BG priorities
 	//TODO - Horizontal + Vertical flipping
 
@@ -153,6 +149,8 @@ bool LCD::render_sprite_pixel()
 	u8 sprite_id = 0;
 	u32 sprite_tile_addr = 0;
 	u32 meta_sprite_tile = 0;
+	obj_render_length = 0;
+	u8 raw_color = 0;
 
 	//Cycle through all of the sprites
 	for(int x = 0; x < 128; x++)
@@ -160,12 +158,11 @@ bool LCD::render_sprite_pixel()
 		//Check to see if sprite is rendered on the current scanline
 		if((current_scanline >= obj[x].y) && (current_scanline <= (obj[x].y + obj[x].height - 1)))
 		{
-			
 			//Check to see if current_scanline_pixel is within sprite
 			if((scanline_pixel_counter >= obj[x].x) && (scanline_pixel_counter <= (obj[x].x + obj[x].width - 1)))
 			{
+				obj_render_list[obj_render_length++] = x;
 				render_sprite = true;
-				sprite_id = x;
 			}
 		}
 	}
@@ -173,66 +170,75 @@ bool LCD::render_sprite_pixel()
 	//If no sprites are rendered for this pixel, exit now, draw BG pixel instead
 	if(!render_sprite) { return false; }
 
-	//Determine meta x-coordinate of rendered sprite pixel
-	u8 meta_x = (scanline_pixel_counter - obj[sprite_id].x) / 8;
-
-	//Determine meta Y-coordinate of rendered sprite pixel
-	u8 meta_y = (current_scanline - obj[sprite_id].y) / 8;
-
-	//Determine which 8x8 section to draw pixel from, and what tile that actually represents in VRAM
-	if(mem->read_u16(DISPCNT) & 0x40)
+	//Cycle through all sprites that are rendering on this pixel, draw them according to their priority
+	for(int x = obj_render_length; x > 0; x--)
 	{
-		meta_sprite_tile = (meta_y * (obj[sprite_id].width/8)) + meta_x + obj[sprite_id].tile_number;	
+		sprite_id = obj_render_list[x-1];
+
+		//Determine meta x-coordinate of rendered sprite pixel
+		u8 meta_x = (scanline_pixel_counter - obj[sprite_id].x) / 8;
+
+		//Determine meta Y-coordinate of rendered sprite pixel
+		u8 meta_y = (current_scanline - obj[sprite_id].y) / 8;
+
+		//Determine which 8x8 section to draw pixel from, and what tile that actually represents in VRAM
+		if(mem->read_u16(DISPCNT) & 0x40)
+		{
+			meta_sprite_tile = (meta_y * (obj[sprite_id].width/8)) + meta_x + obj[sprite_id].tile_number;	
+		}
+
+		else
+		{
+			meta_sprite_tile = obj[sprite_id].tile_number + (meta_y * 32) + meta_x;
+		}
+
+		//Determine sprite address
+		sprite_tile_addr = 0x6010000 + (meta_sprite_tile * (obj[sprite_id].bit_depth << 3));
+
+		meta_x = (scanline_pixel_counter - obj[sprite_id].x) % 8;
+		meta_y = (current_scanline - obj[sprite_id].y) % 8;
+
+		u8 sprite_tile_pixel = (meta_y * 8) + meta_x;
+		u16 color_bytes = 0;
+
+		//Grab the byte corresponding to (current_tile_pixel), render it as ARGB - 4-bit version
+		if(obj[sprite_id].bit_depth == 4)
+		{
+			sprite_tile_addr += (sprite_tile_pixel >> 1);
+			raw_color = mem->read_u8(sprite_tile_addr);
+
+			if((sprite_tile_pixel % 2) == 0) { raw_color &= 0xF; }
+			else { raw_color >>= 4; }
+
+			color_bytes = mem->read_u16(0x5000200 + (obj[sprite_id].palette_number * 32) + (raw_color * 2));
+		}
+
+		//Grab the byte corresponding to (current_tile_pixel), render it as ARGB - 8-bit version
+		else
+		{
+			sprite_tile_addr += sprite_tile_pixel;
+			raw_color = mem->read_u8(sprite_tile_addr);
+
+			color_bytes = mem->read_u16(0x5000200 + (raw_color * 2));
+		}
+
+		//Only draw sprite pixel if it is not transparent, e.g. not Color #0 of a palette
+		if(raw_color != 0)
+		{
+			//ARGB conversion
+			u8 red = ((color_bytes & 0x1F) * 8);
+			color_bytes >>= 5;
+
+			u8 green = ((color_bytes & 0x1F) * 8);
+			color_bytes >>= 5;
+
+			u8 blue = ((color_bytes & 0x1F) * 8);
+
+			u32 final_color =  0xFF000000 | (red << 16) | (green << 8) | (blue);
+
+			scanline_buffer[scanline_pixel_counter] = final_color;
+		}
 	}
-
-	else
-	{
-		meta_sprite_tile = obj[sprite_id].tile_number + (meta_y * 32) + meta_x;
-	}
-
-	//Determine sprite address
-	sprite_tile_addr = 0x6010000 + (meta_sprite_tile * (obj[sprite_id].bit_depth << 3));
-
-	meta_x = (scanline_pixel_counter - obj[sprite_id].x) % 8;
-	meta_y = (current_scanline - obj[sprite_id].y) % 8;
-
-	u8 sprite_tile_pixel = (meta_y * 8) + meta_x;
-	u16 color_bytes = 0;
-
-	//Grab the byte corresponding to (current_tile_pixel), render it as ARGB - 4-bit version
-	if(obj[sprite_id].bit_depth == 4)
-	{
-		sprite_tile_addr += (sprite_tile_pixel >> 1);
-		u8 raw_color = mem->read_u8(sprite_tile_addr);
-		if(raw_color == 0) { return false; }
-
-		if((sprite_tile_pixel % 2) == 0) { raw_color &= 0xF; }
-		else { raw_color >>= 4; }
-
-		color_bytes = mem->read_u16(0x5000200 + (obj[sprite_id].palette_number * 32) + (raw_color * 2));
-	}
-
-	//Grab the byte corresponding to (current_tile_pixel), render it as ARGB - 8-bit version
-	else
-	{
-		sprite_tile_addr += sprite_tile_pixel;
-		u8 raw_color = mem->read_u8(sprite_tile_addr);
-		if(raw_color == 0) { return false; }
-		color_bytes = mem->read_u16(0x5000200 + (raw_color * 2));
-	}
-
-	//ARGB conversion
-	u8 red = ((color_bytes & 0x1F) * 8);
-	color_bytes >>= 5;
-
-	u8 green = ((color_bytes & 0x1F) * 8);
-	color_bytes >>= 5;
-
-	u8 blue = ((color_bytes & 0x1F) * 8);
-
-	u32 final_color =  0xFF000000 | (red << 16) | (green << 8) | (blue);
-
-	scanline_buffer[scanline_pixel_counter] = final_color;
 
 	return true;
 }
@@ -442,9 +448,6 @@ void LCD::render_scanline()
 
 	scanline_buffer[scanline_pixel_counter] = final_color;
 
-	//Render sprites
-	if(render_sprite_pixel()) { return; }
-
 	//Grab BG priorities 
 	u8 priority_0 = mem->read_u16(BG0CNT) & 0x3;
 	u8 priority_1 = mem->read_u16(BG1CNT) & 0x3;
@@ -459,6 +462,9 @@ void LCD::render_scanline()
 		if(priority_1 == x) { render_bg_pixel(BG1CNT); }
 		if(priority_0 == x) { render_bg_pixel(BG0CNT); }
 	}
+
+	//Render sprites
+	render_sprite_pixel();
 }
 
 /****** Run LCD for one cycle ******/
