@@ -201,6 +201,28 @@ bool LCD::render_sprite_pixel()
 			}
 		}
 
+		//Vertical flip the internal Y coordinate
+		if(obj[sprite_id].v_flip)
+		{
+			u16 v_flip = sprite_tile_pixel_y;
+			u8 height = obj[sprite_id].height;
+			u8 f_height = (height - 1);
+			
+	
+			//Vertical flipping
+			if(v_flip < (height/2)) 
+			{
+				v_flip = ((f_height - v_flip) - v_flip);
+				sprite_tile_pixel_y += v_flip;
+			}
+
+			else
+			{
+				v_flip = f_height - (2 * (f_height - v_flip));
+				sprite_tile_pixel_y -= v_flip;
+			}
+		}
+
 		//Determine meta x-coordinate of rendered sprite pixel
 		u8 meta_x = (sprite_tile_pixel_x / 8);
 
