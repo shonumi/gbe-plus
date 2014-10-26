@@ -90,8 +90,8 @@ void LCD::update_oam()
 		oam_ptr += 2;
 
 		obj[x].x = (attribute & 0x1FF);
-		obj[x].h_flip = (attribute & 1000) ? true : false;
-		obj[x].v_flip = (attribute & 2000) ? true : false;
+		obj[x].h_flip = (attribute & 0x1000) ? true : false;
+		obj[x].v_flip = (attribute & 0x2000) ? true : false;
 		obj[x].size = (attribute >> 14);
 
 		//Read and parse Attribute 2
@@ -175,11 +175,37 @@ bool LCD::render_sprite_pixel()
 	{
 		sprite_id = obj_render_list[x-1];
 
+		//Determine the internal X-Y coordinates of the sprite's pixel
+		u16 sprite_tile_pixel_x = scanline_pixel_counter - obj[sprite_id].x;
+		u16 sprite_tile_pixel_y = current_scanline - obj[sprite_id].y;
+
+		//Horizontal flip the internal X coordinate
+		if(obj[sprite_id].h_flip)
+		{
+			u16 h_flip = sprite_tile_pixel_x;
+			u8 width = obj[sprite_id].width;
+			u8 f_width = (width - 1);
+			
+	
+			//Horizontal flipping
+			if(h_flip < (width/2)) 
+			{
+				h_flip = ((f_width - h_flip) - h_flip);
+				sprite_tile_pixel_x += h_flip;
+			}
+
+			else
+			{
+				h_flip = f_width - (2 * (f_width - h_flip));
+				sprite_tile_pixel_x -= h_flip;
+			}
+		}
+
 		//Determine meta x-coordinate of rendered sprite pixel
-		u8 meta_x = (scanline_pixel_counter - obj[sprite_id].x) / 8;
+		u8 meta_x = (sprite_tile_pixel_x / 8);
 
 		//Determine meta Y-coordinate of rendered sprite pixel
-		u8 meta_y = (current_scanline - obj[sprite_id].y) / 8;
+		u8 meta_y = (sprite_tile_pixel_y / 8);
 
 		//Determine which 8x8 section to draw pixel from, and what tile that actually represents in VRAM
 		if(mem->read_u16(DISPCNT) & 0x40)
@@ -195,8 +221,8 @@ bool LCD::render_sprite_pixel()
 		//Determine sprite address
 		sprite_tile_addr = 0x6010000 + (meta_sprite_tile * (obj[sprite_id].bit_depth << 3));
 
-		meta_x = (scanline_pixel_counter - obj[sprite_id].x) % 8;
-		meta_y = (current_scanline - obj[sprite_id].y) % 8;
+		meta_x = (sprite_tile_pixel_x % 8);
+		meta_y = (sprite_tile_pixel_y % 8);
 
 		u8 sprite_tile_pixel = (meta_y * 8) + meta_x;
 		u16 color_bytes = 0;
