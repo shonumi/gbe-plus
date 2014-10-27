@@ -249,7 +249,7 @@ bool LCD::render_sprite_pixel()
 		u8 sprite_tile_pixel = (meta_y * 8) + meta_x;
 		u16 color_bytes = 0;
 
-		//Grab the byte corresponding to (current_tile_pixel), render it as ARGB - 4-bit version
+		//Grab the byte corresponding to (sprite_tile_pixel), render it as ARGB - 4-bit version
 		if(obj[sprite_id].bit_depth == 4)
 		{
 			sprite_tile_addr += (sprite_tile_pixel >> 1);
@@ -261,7 +261,7 @@ bool LCD::render_sprite_pixel()
 			color_bytes = mem->read_u16(0x5000200 + (obj[sprite_id].palette_number * 32) + (raw_color * 2));
 		}
 
-		//Grab the byte corresponding to (current_tile_pixel), render it as ARGB - 8-bit version
+		//Grab the byte corresponding to (sprite_tile_pixel), render it as ARGB - 8-bit version
 		else
 		{
 			sprite_tile_addr += sprite_tile_pixel;
@@ -327,7 +327,6 @@ bool LCD::render_bg_mode_0(u32 bg_control)
 	//Grab BG scrolling registers
 	u16 x_scroll = 0;
 	u16 y_scroll = 0;
-	u8 temp_scanline = current_scanline;
 
 	switch(bg_control)
 	{
@@ -356,7 +355,8 @@ bool LCD::render_bg_mode_0(u32 bg_control)
 			break;
 	}
 
-	current_scanline += y_scroll;
+	u8 bg_size = (bg_control >> 14);
+	std::cout<<"BG 0 Size ->" << std::dec << (int)bg_size << "\n";
 
 	//Determine whether color depth is 4-bit or 8-bit
 	u8 bit_depth = (mem->read_u16(bg_control) & 0x80) ? 8 : 4;
@@ -368,7 +368,7 @@ bool LCD::render_bg_mode_0(u32 bg_control)
 	u32 tile_base_addr = 0x6000000 + (0x4000 * ((mem->read_u16(bg_control) >> 2) & 0x3));
 
 	//Get current map entry for rendered pixel
-	u16 tile_number = (32 * (current_scanline/8)) + (scanline_pixel_counter/8);
+	u16 tile_number = (32 * (((current_scanline+y_scroll) % 256) /8)) + ( ((scanline_pixel_counter+x_scroll) % 256) /8);
 
 	//Look at the Tile Map #(tile_number), see what Tile # it points to
 	u16 map_entry = mem->read_u16(map_base_addr + (tile_number * 2)) & 0x3FF;
@@ -382,30 +382,49 @@ bool LCD::render_bg_mode_0(u32 bg_control)
 	//Get address of Tile #(map_entry)
 	u32 tile_addr = tile_base_addr + (map_entry * (bit_depth << 3));
 
-	//Get current line of tile being rendered
-	u8 current_tile_line = (current_scanline % 8);
+	//Determine the internal X-Y coordinates of the BG's pixel
+	u8 current_tile_pixel_x = (scanline_pixel_counter + x_scroll) % 8;
+	u8 current_tile_pixel_y = (current_scanline + y_scroll) % 8;
 
-	//Get current pixel of tile being rendered
-	u8 current_tile_pixel = (scanline_pixel_counter % 8) + (current_tile_line * 8);
-
+	//Horizontal flip the internal X coordinate
 	if(flip_options & 0x1) 
 	{
-		u8 h_flip = (current_tile_pixel % 8);
+		u8 h_flip = (current_tile_pixel_x % 8);
 	
 		//Horizontal flipping
 		if(h_flip < 4) 
 		{
 			h_flip = ((7 - h_flip) - h_flip);
-			current_tile_pixel += h_flip;
+			current_tile_pixel_x += h_flip;
 		}
 
 		else
 		{
 			h_flip = 7 - (2 * (7 - h_flip));
-			current_tile_pixel -= h_flip;
+			current_tile_pixel_x -= h_flip;
 		}
 	}
 
+	//Vertical flip the internal Y coordinate
+	if(flip_options & 0x2) 
+	{
+		u8 v_flip = (current_tile_pixel_y % 8);
+	
+		//Vertical flipping
+		if(v_flip < 4) 
+		{
+			v_flip = ((7 - v_flip) - v_flip);
+			current_tile_pixel_y += v_flip;
+		}
+
+		else
+		{
+			v_flip = 7 - (2 * (7 - v_flip));
+			current_tile_pixel_y -= v_flip;
+		}
+	}
+
+	u8 current_tile_pixel = (current_tile_pixel_y * 8) + current_tile_pixel_x;
 	u16 color_bytes = 0;
 
 	//Grab the byte corresponding to (current_tile_pixel), render it as ARGB - 4-bit version
@@ -418,7 +437,7 @@ bool LCD::render_bg_mode_0(u32 bg_control)
 		else { raw_color >>= 4; }
 
 		//If the bg color is transparent, abort drawing
-		if(raw_color == 0) { current_scanline -= y_scroll; return false; }
+		if(raw_color == 0) { return false; }
 
 		color_bytes = mem->read_u16(0x5000000 + (palette_number * 32) + (raw_color * 2));
 	}
@@ -430,7 +449,7 @@ bool LCD::render_bg_mode_0(u32 bg_control)
 		u8 raw_color = mem->read_u8(tile_addr);
 
 		//If the bg color is transparent, abort drawing
-		if(raw_color == 0) { current_scanline -= y_scroll; return false; }
+		if(raw_color == 0) { return false; }
 
 		color_bytes = mem->read_u16(0x5000000 + (raw_color * 2));
 	}
@@ -447,7 +466,6 @@ bool LCD::render_bg_mode_0(u32 bg_control)
 	u32 final_color =  0xFF000000 | (red << 16) | (green << 8) | (blue);
 
 	scanline_buffer[scanline_pixel_counter] = final_color;
-	current_scanline -= y_scroll;
 
 	return true;
 }
@@ -574,7 +592,7 @@ void LCD::step()
 	//Mode 2 - VBlank
 	else
 	{
-		//Toggle HBlank flag ON
+		//Toggle VBlank flag ON
 		mem->memory_map[DISPSTAT] |= 0x1;
 
 		//Toggle HBlank flag OFF
