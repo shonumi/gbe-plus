@@ -41,7 +41,7 @@ void ARM7::reset()
 	reg.r14_und = reg.spsr_und = 0;
 
 	running = false;
-	bool in_interrupt = false;
+	in_interrupt = false;
 
 	arm_mode = ARM;
 	current_cpu_mode = SYS;
