@@ -355,20 +355,77 @@ bool LCD::render_bg_mode_0(u32 bg_control)
 			break;
 	}
 
-	u8 bg_size = (bg_control >> 14);
-	std::cout<<"BG 0 Size ->" << std::dec << (int)bg_size << "\n";
+	u16 bg_size = (mem->read_u16(bg_control) >> 14);
+	u16 bg_width = 256;
+	u16 bg_height = 256;
+	u32 screen_offset = 0;
+
+	//Determine BG screen size
+	switch(bg_size)
+	{
+		//256x256
+		case 0x0:
+			bg_width = 256;
+			bg_height = 256;
+			break;
+
+		//512x256
+		case 0x1:
+			bg_width = 512;
+			bg_height = 256;
+			break;
+
+		//256x512
+		case 0x2:
+			bg_width = 256;
+			bg_height = 512;
+			break;
+
+		//512x512
+		case 0x3:
+			bg_width = 512;
+			bg_height = 512;
+			break;
+	}
+
+	//Determine meta x-coordinate of rendered BG pixel
+	u8 meta_x = ((scanline_pixel_counter + x_scroll) % bg_width) / 256;
+
+	//Determine meta Y-coordinate of rendered BG pixel
+	u8 meta_y = ((current_scanline + y_scroll) % bg_height) / 256;
+
+	//Determine the address offset for the screen
+	//SC1 - 512x256
+	if((meta_x == 1) && (bg_size == 1)) { screen_offset = 0x800;  }
+
+	//SC1 - 256x512
+	else if((meta_x == 0) && (meta_y == 1) && (bg_size == 2)) { screen_offset = 0x800; }
+
+	//SC1 - 512x512
+	else if((meta_x == 1) && (meta_y == 0) && (bg_size == 3)) { screen_offset = 0x800; }
+
+	//SC2 - 512x512
+	else if((meta_x == 0) && (meta_y == 1) && (bg_size == 3)) { screen_offset = 0x1000; }
+
+	//SC3 - 512x512
+	else if((meta_x == 1) && (meta_y == 1) && (bg_size == 3)) { screen_offset = 0x1800; }
 
 	//Determine whether color depth is 4-bit or 8-bit
 	u8 bit_depth = (mem->read_u16(bg_control) & 0x80) ? 8 : 4;
 
 	//Find out where the map base address is - Bits 2-3 of BG(X)CNT
 	u32 map_base_addr = 0x6000000 + (0x800 * ((mem->read_u16(bg_control) >> 8) & 0x1F));
+	map_base_addr += screen_offset;
 
 	//Find out where the tile base address is - Bits 8-12 of BG(X)CNT
 	u32 tile_base_addr = 0x6000000 + (0x4000 * ((mem->read_u16(bg_control) >> 2) & 0x3));
 
+	//Determine the X-Y coordinates of the BG's tile on the tile map
+	u16 current_tile_pixel_x = ((scanline_pixel_counter + x_scroll) % 256);
+	u16 current_tile_pixel_y = ((current_scanline + y_scroll) % 256);
+
 	//Get current map entry for rendered pixel
-	u16 tile_number = (32 * (((current_scanline+y_scroll) % 256) /8)) + ( ((scanline_pixel_counter+x_scroll) % 256) /8);
+	u16 tile_number = ((current_tile_pixel_y / 8) * 32) + (current_tile_pixel_x / 8);
 
 	//Look at the Tile Map #(tile_number), see what Tile # it points to
 	u16 map_entry = mem->read_u16(map_base_addr + (tile_number * 2)) & 0x3FF;
@@ -381,10 +438,6 @@ bool LCD::render_bg_mode_0(u32 bg_control)
 
 	//Get address of Tile #(map_entry)
 	u32 tile_addr = tile_base_addr + (map_entry * (bit_depth << 3));
-
-	//Determine the internal X-Y coordinates of the BG's pixel
-	u8 current_tile_pixel_x = (scanline_pixel_counter + x_scroll) % 8;
-	u8 current_tile_pixel_y = (current_scanline + y_scroll) % 8;
 
 	//Horizontal flip the internal X coordinate
 	if(flip_options & 0x1) 
@@ -424,7 +477,7 @@ bool LCD::render_bg_mode_0(u32 bg_control)
 		}
 	}
 
-	u8 current_tile_pixel = (current_tile_pixel_y * 8) + current_tile_pixel_x;
+	u8 current_tile_pixel = ((current_tile_pixel_y % 8) * 8) + (current_tile_pixel_x % 8);
 	u16 color_bytes = 0;
 
 	//Grab the byte corresponding to (current_tile_pixel), render it as ARGB - 4-bit version
