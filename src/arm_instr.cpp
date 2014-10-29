@@ -906,11 +906,8 @@ void ARM7::halfword_signed_transfer(u32 current_arm_instruction)
 	}
 
 	//Write-back into base register
-	if(write_back == 1){ set_reg(base_reg, base_addr); }
+	if((write_back == 1) && (base_reg != dest_reg)) { set_reg(base_reg, base_addr); }
 }
-
-
-
 
 /****** ARM.11 Block Data Transfer ******/
 void ARM7::block_data_transfer(u32 current_arm_instruction)
@@ -999,7 +996,6 @@ void ARM7::block_data_transfer(u32 current_arm_instruction)
 	//Store PC, add or sub 0x40 to base address
 	else { std::cout<<"Empty RList not implemented, too lazy atm :p\n"; }
 }
-
 		
 /****** ARM.12 - Single Data Swap ******/
 void ARM7::single_data_swap(u32 current_arm_instruction)
@@ -1046,17 +1042,3 @@ void ARM7::single_data_swap(u32 current_arm_instruction)
 		set_reg(dest_reg, dest_value);
 	}
 }
-		
-
-
-
-
-	
-
-
-
-
-
-
-
-
