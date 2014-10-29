@@ -765,8 +765,8 @@ void ARM7::single_data_transfer(u32 current_arm_instruction)
 
 	//Write back into base register
 	//Post-indexing ALWAYS does this. Pre-Indexing does this optionally
-	if(pre_post == 0) { set_reg(base_reg, base_addr); }
-	else if((pre_post == 1) && (write_back == 1)) { set_reg(base_reg, base_addr); }
+	if((pre_post == 0) && (base_reg != dest_reg)) { set_reg(base_reg, base_addr); }
+	else if((pre_post == 1) && (write_back == 1) && (base_reg != dest_reg)) { set_reg(base_reg, base_addr); }
 
 	//Timings for LDR - PC
 	if((dest_reg == 15) && (load_store == 1)) 
