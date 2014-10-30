@@ -156,7 +156,7 @@ void ARM7::data_processing(u32 current_arm_instruction)
 	u32 result = 0;
 	u32 input = get_reg(src_reg);
 	u32 operand = 0;
-	u8 shift_out = 0;
+	u8 shift_out = 2;
 
 	//Use immediate as operand
 	if(use_immediate)
@@ -185,6 +185,9 @@ void ARM7::data_processing(u32 current_arm_instruction)
 		else
 		{
 			offset = get_reg((current_arm_instruction >> 8) & 0xF);
+
+			if(src_reg == 15) { input += 4; }
+			if((current_arm_instruction & 0xF) == 15) { operand += 4; }
 			
 			//Valid registers to shift by are R0-R14
 			if(((current_arm_instruction >> 8) & 0xF) == 0xF) { std::cout<< "CPU::Error - ARM.5 Data Processing - Shifting Register-Operand by PC \n"; running = false; }
@@ -195,22 +198,26 @@ void ARM7::data_processing(u32 current_arm_instruction)
 		{
 			//LSL
 			case 0x0:
-				shift_out = logical_shift_left(operand, offset);
+				if((!shift_immediate) && (offset == 0)) { break; }
+				else { shift_out = logical_shift_left(operand, offset); }
 				break;
 
 			//LSR
 			case 0x1:
-				shift_out = logical_shift_right(operand, offset);
+				if((!shift_immediate) && (offset == 0)) { break; }
+				else { shift_out = logical_shift_right(operand, offset); }
 				break;
 
 			//ASR
 			case 0x2:
-				shift_out = arithmetic_shift_right(operand, offset);
+				if((!shift_immediate) && (offset == 0)) { break; }
+				else { shift_out = arithmetic_shift_right(operand, offset); }
 				break;
 
 			//ROR
 			case 0x3:
-				shift_out = rotate_right(operand, offset);
+				if((!shift_immediate) && (offset == 0)) { break; }
+				else { shift_out = rotate_right(operand, offset); }
 				break;
 		}
 		
@@ -218,7 +225,7 @@ void ARM7::data_processing(u32 current_arm_instruction)
 		clock();
 
 		//After shifting by register with the PC as the destination register, PC jumps 4 bytes ahead
-		if((dest_reg == 15) && (!shift_immediate)) { reg.r15 += 4; }
+		//if((dest_reg == 15) && (!shift_immediate)) { reg.r15 += 4; }
 	}		
 
 	//TODO - When op is 0x8 through 0xB, make sure Bit 20 is 1 (rather force it? Unsure)
