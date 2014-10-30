@@ -223,9 +223,6 @@ void ARM7::data_processing(u32 current_arm_instruction)
 		
 		//Clock CPU and controllers - 1I
 		clock();
-
-		//After shifting by register with the PC as the destination register, PC jumps 4 bytes ahead
-		//if((dest_reg == 15) && (!shift_immediate)) { reg.r15 += 4; }
 	}		
 
 	//TODO - When op is 0x8 through 0xB, make sure Bit 20 is 1 (rather force it? Unsure)
@@ -303,7 +300,7 @@ void ARM7::data_processing(u32 current_arm_instruction)
 			set_reg(dest_reg, result);
 
 			//Update condtion codes
-			if(set_condition) { update_condition_arithmetic(input, operand, result, false); }
+			if(set_condition) { update_condition_arithmetic(input, (operand + shift_out - 1), result, false); }
 			break;
 
 		//RSC
@@ -315,7 +312,7 @@ void ARM7::data_processing(u32 current_arm_instruction)
 			set_reg(dest_reg, result);
 
 			//Update condtion codes
-			if(set_condition) { update_condition_arithmetic(input, operand, result, false); }
+			if(set_condition) { update_condition_arithmetic(input, (operand + shift_out - 1), result, false); }
 			break;
 
 		//TST
