@@ -933,17 +933,15 @@ u8 ARM7::arithmetic_shift_right(u32& input, u8 offset)
 
 	if(offset > 0)
 	{
-		//Convert input to a signed 32-bit integer, shifting it in C++ is equivalent to arithmetic shifting
-		s32 s_input = input;
+		u8 high_bit = (input & 0x80000000) ? 1 : 0;		
 
-		//Test for carry
-		//Perform ASR #(n-1), if Bit 0 is 1, we know it will carry out
-		//Note, doesn't matter that we do logical shifting here, carry out is the same
-		u32 carry_test = input >> (offset - 1);
-		carry_out = (carry_test & 0x1) ? 1 : 0;
-
-		s_input >>= offset;
-		input = s_input;
+		//Basically LSR, but bits become Bit 31
+		for(int x = 0; x < offset; x++)
+		{
+			carry_out = (input & 0x1) ? 1 : 0;
+			input >>= 1;
+			if(high_bit == 1) { input |= 0x80000000; }
+		}	
 	}
 
 	//ASR #0
