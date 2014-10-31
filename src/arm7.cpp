@@ -1003,6 +1003,56 @@ void ARM7::rotate_right_special(u32& input, u8 offset)
 	}
 }			
 
+/****** Checks 32-bit address before reading/writing for special case scenarios ******/
+void ARM7::mem_check_32(u32 addr, u32& value, bool load_store)
+{
+	//Assume normal operation until a special case occurs
+	bool normal_operation = true;
+
+	//Check for special case scenarios for read ops
+	if(load_store)
+	{
+		//Misaligned LDR or SWP
+		if((addr & 0x1) || (addr & 0x2)) 
+		{
+			normal_operation = false;
+
+			//Force alignment by word, then rotate right the read
+			u8 offset = (addr & 0x3) * 8;
+			value = mem->read_u32(addr & ~0x3);
+			rotate_right(value, offset);
+		}
+
+		//Out of bounds unused memory
+		if((addr & ~0x3) >= 0x10000000)
+		{
+			normal_operation = false;
+	
+			//Read the opcode instruction at PC
+			value = mem->read_u32(reg.r15);
+		}
+
+		//Normal operation
+		if(normal_operation) { value = mem->read_u32(addr); }
+	}
+
+	//Check for special case scenarios for write ops
+	else
+	{
+		//Misaligned STR
+		if((addr & 0x1) || (addr & 0x2)) 
+		{
+			normal_operation = false;
+
+			//Force alignment by word, but that's all, no rotation
+			value = mem->read_u32(addr & ~0x3);
+		}
+
+		//Normal operation
+		else { value = mem->read_u32(addr); }
+	}
+}
+
 /****** Runs audio and video controllers every clock cycle ******/
 void ARM7::clock(u32 access_addr, bool first_access)
 {

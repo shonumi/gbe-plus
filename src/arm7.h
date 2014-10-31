@@ -233,6 +233,7 @@ class ARM7
 	u8 arithmetic_shift_right(u32& input, u8 offset);
 	u8 rotate_right(u32& input, u8 offset);
 	void rotate_right_special(u32& input, u8 offset);
+	void mem_check_32(u32 addr, u32& value, bool load_store);
 
 	//HLE Software Interrupts (BIOS Calls)
 	void process_swi(u8 comment);
