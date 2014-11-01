@@ -866,16 +866,31 @@ void ARM7::update_condition_arithmetic(u32 input, u32 operand, u32 result, bool 
 	else { reg.cpsr &= ~CPSR_C_FLAG; }
 
 	//Overflow flag
+	u8 input_msb = (input & 0x80000000) ? 1 : 0;
+	u8 operand_msb = (operand & 0x80000000) ? 1 : 0;
+	u8 result_msb = (result & 0x80000000) ? 1 : 0;
+
 	if(addition)
 	{
-		u64 real_result = input + operand;
-		if((input <= 0x7FFFFFFF) && (operand <= 0x7FFFFFFF) && (real_result >= 0x80000000)) { reg.cpsr |= CPSR_V_FLAG; }
-		else { reg.cpsr &= ~CPSR_V_FLAG; }
+		if(input_msb != operand_msb) { reg.cpsr &= ~CPSR_V_FLAG; }
+		
+		else
+		{
+			if((result_msb == input_msb) && (result_msb == operand_msb)) { reg.cpsr |= CPSR_V_FLAG; }
+			else { reg.cpsr &= ~CPSR_V_FLAG; }
+		}
 	}
 
-	//TODO: Overflow flag is set during subtraction somehow
-
-	else { reg.cpsr &= ~CPSR_V_FLAG; }
+	else
+	{
+		if(input_msb == operand_msb) { reg.cpsr &= ~CPSR_V_FLAG; }
+		
+		else
+		{
+			if(result_msb == operand_msb) { reg.cpsr |= CPSR_V_FLAG; }
+			else { reg.cpsr &= ~CPSR_V_FLAG; }
+		}
+	}
 }
 
 /****** Performs 32-bit logical shift left - Returns Carry Out ******/
