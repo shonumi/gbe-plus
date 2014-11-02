@@ -1047,6 +1047,15 @@ void ARM7::mem_check_32(u32 addr, u32& value, bool load_store)
 			value = mem->read_u32(reg.r15);
 		}
 
+		//Return 0 for the following addresses for I/0 (One 16-bit fragment is unreadable/not used)
+		switch(addr)
+		{
+			case 0x40000B8:
+			case 0x40000C4:
+			case 0x40000D0:
+			case 0x40000DC: value = 0; normal_operation = false;
+		}
+
 		//Normal operation
 		if(normal_operation) { value = mem->read_u32(addr); }
 	}
