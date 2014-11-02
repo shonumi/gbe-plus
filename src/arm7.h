@@ -224,6 +224,10 @@ class ARM7
 	void clock_dma();
 	void handle_interrupt();
 
+	//DMA functions
+	void dma0();
+	void dma3();
+
 	//Misc CPU helpers
 	void update_condition_logical(u32 result, u8 shift_out);
 	void update_condition_arithmetic(u32 input, u32 operand, u32 result, bool addition);
