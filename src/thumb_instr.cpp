@@ -859,7 +859,7 @@ void ARM7::load_store_imm_offset(u16 current_thumb_instruction)
 	u8 base_reg = ((current_thumb_instruction >> 3) & 0x7);
 
 	//Grab offset - Bits 6-10
-	u8 offset = ((current_thumb_instruction >> 6) & 0x1F);
+	u16 offset = ((current_thumb_instruction >> 6) & 0x1F);
 
 	//Grab opcode - Bits 11-12
 	u8 op = ((current_thumb_instruction >> 11) & 0x3);
@@ -951,7 +951,7 @@ void ARM7::load_store_halfword(u16 current_thumb_instruction)
 	u8 base_reg = ((current_thumb_instruction >> 3) & 0x7);
 
 	//Grab offset - Bits 6-10
-	u8 offset = ((current_thumb_instruction >> 6) & 0x1F);
+	u16 offset = ((current_thumb_instruction >> 6) & 0x1F);
 
 	//Grab opcode - Bit 11
 	u8 op = (current_thumb_instruction & 0x800) ? 1 : 0;
@@ -1000,7 +1000,7 @@ void ARM7::load_store_halfword(u16 current_thumb_instruction)
 void ARM7::load_store_sp_relative(u16 current_thumb_instruction)
 {
 	//Grab 8-bit offset - Bits 0-7
-	u8 offset = (current_thumb_instruction & 0xFF);
+	u16 offset = (current_thumb_instruction & 0xFF);
 
 	//Grab source-destination register - Bits 8-10
 	u8 src_dest_reg = ((current_thumb_instruction >> 8) & 0x7);
@@ -1050,7 +1050,7 @@ void ARM7::load_store_sp_relative(u16 current_thumb_instruction)
 void ARM7::get_relative_address(u16 current_thumb_instruction)
 {
 	//Grab 8-bit offset - Bits 0-7
-	u8 offset = (current_thumb_instruction & 0xFF);
+	u16 offset = (current_thumb_instruction & 0xFF);
 
 	//Grab destination register - Bits 8-10
 	u8 dest_reg = ((current_thumb_instruction >> 8) & 0x3);
@@ -1085,7 +1085,7 @@ void ARM7::get_relative_address(u16 current_thumb_instruction)
 void ARM7::add_offset_sp(u16 current_thumb_instruction)
 {
 	//Grab 7-bit offset - Bits 0-6
-	u8 offset = (current_thumb_instruction & 0x7F);
+	u16 offset = (current_thumb_instruction & 0x7F);
 
 	//Grab opcode - Bit 7
 	u8 op = (current_thumb_instruction & 0x80) ? 1 : 0;
