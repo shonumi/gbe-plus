@@ -876,8 +876,8 @@ void ARM7::update_condition_arithmetic(u32 input, u32 operand, u32 result, bool 
 		
 		else
 		{
-			if((result_msb == input_msb) && (result_msb == operand_msb)) { reg.cpsr |= CPSR_V_FLAG; }
-			else { reg.cpsr &= ~CPSR_V_FLAG; }
+			if((result_msb == input_msb) && (result_msb == operand_msb)) { reg.cpsr &= ~CPSR_V_FLAG; }
+			else { reg.cpsr |= CPSR_V_FLAG; }
 		}
 	}
 
