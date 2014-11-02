@@ -20,8 +20,8 @@ void ARM7::dma0()
 	//See if DMA Start Timing conditions dictate a transfer
 	else
 	{
-		mem->dma[0].start_address = (mem->read_u32(DMA0SAD) & 0xFFFFFFF);
-		mem->dma[0].destination_address = (mem->read_u32(DMA0DAD) & 0xFFFFFFF);
+		mem->dma[0].start_address = (mem->read_u32(DMA0SAD) & 0x7FFFFFF);
+		mem->dma[0].destination_address = (mem->read_u32(DMA0DAD) & 0x7FFFFFF);
 		mem->dma[0].word_count = mem->read_u16(DMA0CNT_L);
 		mem->dma[0].word_type = (mem->read_u16(DMA0CNT_H) & 0x400) ? 1 : 0;
 

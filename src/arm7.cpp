@@ -1051,9 +1051,7 @@ void ARM7::mem_check_32(u32 addr, u32& value, bool load_store)
 		switch(addr)
 		{
 			case 0x40000B8:
-			case 0x40000C4:
-			case 0x40000D0:
-			case 0x40000DC: value = 0; normal_operation = false;
+			case 0x40000DC: value = 0; normal_operation = false; break;
 		}
 
 		//Normal operation
