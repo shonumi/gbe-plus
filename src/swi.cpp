@@ -109,7 +109,7 @@ void ARM7::process_swi(u8 comment)
 		//LZ77UnCompWram
 		case 0x11:
 			swi_lz77uncompvram();
-			std::cout<<"SWI::LZ77 Uncompress Work RAM (not implemented yet) \n";
+			std::cout<<"SWI::LZ77 Uncompress Work RAM \n";
 			break;
 
 		//LZ77UnCompVram
@@ -120,7 +120,8 @@ void ARM7::process_swi(u8 comment)
 
 		//HuffUnComp
 		case 0x13:
-			std::cout<<"SWI::Huffman Uncompress (not implemented yet) \n";
+			swi_huffuncomp();
+			std::cout<<"SWI::Huffman Uncompress \n";
 			break;
 
 		//RLUnCompWram
@@ -443,7 +444,7 @@ void ARM7::swi_lz77uncompvram()
 
 	//Pointer to current address of compressed data that needs to be processed
 	//When uncompression starts, move 5 bytes from source address (header + flag)
-	u32 data_ptr = src_addr + 4;
+	u32 data_ptr = (src_addr + 4);
 
 	u8 temp = 0;
 
@@ -494,3 +495,116 @@ void ARM7::swi_lz77uncompvram()
 		}
 	}
 }
+
+/****** HLE implementation of HuffUnComp ******/
+void ARM7::swi_huffuncomp()
+{
+	//Grab source address - R0
+	u32 src_addr = get_reg(0);
+
+	//Grab destination address - R1
+	u32 dest_addr = get_reg(1);
+
+	//Grab data header
+	u32 data_header = mem->read_u32(src_addr);
+
+	//Grab data bit-size
+	u8 bit_size = (data_header & 0xF);
+
+	if((bit_size != 4) || (bit_size != 8)) { std::cout<<"SWI::Warning - HuffUnComp has irregular data size : " << (int)bit_size << "\n"; }
+
+	//Grab compressed data size in bytes - Data comes in units of 32-bits, 4 bytes
+	u32 data_size = (data_header >> 8);
+
+	//Pointer to current address that needs to be processed
+	//When uncompression start, points to data after the header (the first Tree Size attribute)
+	u32 data_ptr = (src_addr + 4);
+
+	u8 data_shift = 0;
+	u32 temp = 0;
+
+	//Uncompress data
+	while(data_size > 0)
+	{
+		//Grab Tree Size
+		u8 tree_size = mem->read_u8(data_ptr);
+
+		//Grab the 32-bit compressed bitstream
+		u32 bitstream = mem->read_u32(data_ptr + ((tree_size/2) - 1));
+		u32 bitstream_addr = data_ptr + ((tree_size/2) - 1);
+		u8 bitstream_counter = 32;
+
+		data_ptr++;
+
+		//Grab the root node
+		u32 root_node_addr = data_ptr;
+
+		bool is_data_node = false;
+
+		//Begin parsing the nodes, starting with root node
+		while(bitstream_counter > 0)
+		{
+			u8 node = mem->read_u8(data_ptr);
+			u8 node_offset = (node & 0x3F);
+			u8 node_0_type = (node & 0x80) ? 1 : 0;
+			u8 node_1_type = (node & 0x40) ? 1 : 0;
+
+			//If this node is a data node, read data
+			if(is_data_node) 
+			{
+				//Grab data from the node
+				u8 data = 0;
+
+				if(data_size == 4) { data = node & 0xF; }
+				else { data = node; }
+
+				//Add data to 32-bit value
+				temp |= (data << data_shift);
+				data_shift += bit_size;
+
+				//Transfer completed 32-bit value to memory
+				if(data_shift >= 32) 
+				{ 
+					mem->write_u32(dest_addr, temp);
+					dest_addr += 4;
+					data_size -= 4;
+
+					if(data_size == 0) { return; } 
+				}
+
+				//Return to root node
+				data_ptr = root_node_addr;
+				is_data_node = false;
+			}
+
+			//If this node is a child node, continue along the binary trees
+			else
+			{
+				//Read bitstream bit, decide if child_node.0 or child_node.1 should be looked at
+				u8 bitstream_bit = (bitstream & (bitstream_counter - 1)) ? 1 : 0;
+				bitstream_counter--;
+
+				//Go offset for child_node.1
+				if(bitstream_bit == 1) 
+				{ 
+					data_ptr = (data_ptr & ~0x1) + (node_offset * 2) + 3;
+					if(node_1_type == 1) { is_data_node = true; }
+					else { is_data_node = false; }
+				}
+
+				//Go offset for child_node.0
+				else 
+				{ 
+					data_ptr = (data_ptr & ~0x1) + (node_offset * 2) + 2;
+					if(node_0_type == 0) { is_data_node = true; }
+					else { is_data_node = false; }
+				}
+				
+			}
+		}
+
+		//After this 32-bit bitstream is complete, move onto the next tree table
+		data_ptr = (bitstream_addr + 4);
+	}
+}
+	
