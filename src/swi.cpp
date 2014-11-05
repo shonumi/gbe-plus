@@ -76,13 +76,13 @@ void ARM7::process_swi(u8 comment)
 
 		//CPUSet
 		case 0xB:
-			std::cout<<"SWI::CPU Set \n";
+			//std::cout<<"SWI::CPU Set \n";
 			swi_cpuset();
 			break;
 
 		//CPUFastSet
 		case 0xC:
-			std::cout<<"SWI::CPU Fast Set \n";
+			//std::cout<<"SWI::CPU Fast Set \n";
 			swi_cpufastset();
 			break;
 
@@ -511,10 +511,11 @@ void ARM7::swi_huffuncomp()
 	//Grab data bit-size
 	u8 bit_size = (data_header & 0xF);
 
-	if((bit_size != 4) || (bit_size != 8)) { std::cout<<"SWI::Warning - HuffUnComp has irregular data size : " << (int)bit_size << "\n"; }
+	if((bit_size != 4) && (bit_size != 8)) { std::cout<<"SWI::Warning - HuffUnComp has irregular data size : " << (int)bit_size << "\n"; }
 
 	//Grab compressed data size in bytes - Data comes in units of 32-bits, 4 bytes
 	u32 data_size = (data_header >> 8);
+	while((data_size & 0x3) != 0) { data_size++; }
 
 	//Pointer to current address that needs to be processed
 	//When uncompression start, points to data after the header (the first Tree Size attribute)
@@ -523,26 +524,32 @@ void ARM7::swi_huffuncomp()
 	u8 data_shift = 0;
 	u32 temp = 0;
 
+	std::cout<<"Source Addr : 0x" << std::hex << src_addr << "\n";
+	std::cout<<"Dest   Addr : 0x" << std::hex << dest_addr << "\n";
+	std::cout<<"Data   Size : 0x" << std::hex << data_size << "\n";
+	std::cout<<"Bit    Size : 0x" << std::hex << (int)bit_size << "\n";
+
+	//Grab Tree Size
+	u16 tree_size = mem->read_u8(data_ptr++);
+	tree_size = ((tree_size + 1) * 2) - 1;
+
+	//Grab the root node
+	u32 root_node_addr = data_ptr;
+	u32 node_position = 0;
+
+	//Grab the 32-bit compressed bitstream
+	u32 bitstream = mem->read_u32(data_ptr + tree_size);
+	u32 bitstream_addr = (data_ptr + tree_size);
+	u32 bitstream_mask = 0x80000000;
+
+	u8 count = 0;
+	bool is_data_node = false;
+
 	//Uncompress data
 	while(data_size > 0)
 	{
-		//Grab Tree Size
-		u8 tree_size = mem->read_u8(data_ptr);
-
-		//Grab the 32-bit compressed bitstream
-		u32 bitstream = mem->read_u32(data_ptr + ((tree_size/2) - 1));
-		u32 bitstream_addr = data_ptr + ((tree_size/2) - 1);
-		u8 bitstream_counter = 32;
-
-		data_ptr++;
-
-		//Grab the root node
-		u32 root_node_addr = data_ptr;
-
-		bool is_data_node = false;
-
 		//Begin parsing the nodes, starting with root node
-		while(bitstream_counter > 0)
+		while(bitstream_mask != 0)
 		{
 			u8 node = mem->read_u8(data_ptr);
 			u8 node_offset = (node & 0x3F);
@@ -564,10 +571,15 @@ void ARM7::swi_huffuncomp()
 
 				//Transfer completed 32-bit value to memory
 				if(data_shift >= 32) 
-				{ 
+				{
+	    				std::cout<<"DESTINATION : 0x" << std::hex << dest_addr << "\n";
+					std::cout<<"32 BIT DATA : 0x" << std::hex << temp << "\n\n";
+
 					mem->write_u32(dest_addr, temp);
 					dest_addr += 4;
 					data_size -= 4;
+					temp = 0;
+					data_shift = 0;
 
 					if(data_size == 0) { return; } 
 				}
@@ -575,36 +587,42 @@ void ARM7::swi_huffuncomp()
 				//Return to root node
 				data_ptr = root_node_addr;
 				is_data_node = false;
+				node_position = 0;
 			}
 
 			//If this node is a child node, continue along the binary trees
 			else
 			{
+				if(node_position == 0) { node_position++; }
+				else { node_position += ((node_offset + 1) * 2); }
+			
 				//Read bitstream bit, decide if child_node.0 or child_node.1 should be looked at
-				u8 bitstream_bit = (bitstream & (bitstream_counter - 1)) ? 1 : 0;
-				bitstream_counter--;
+				u8 bitstream_bit = (bitstream & bitstream_mask) ? 1 : 0;
+				bitstream_mask >>= 1;
 
 				//Go offset for child_node.1
 				if(bitstream_bit == 1) 
-				{ 
-					data_ptr = (data_ptr & ~0x1) + (node_offset * 2) + 3;
+				{
+					data_ptr = (root_node_addr + node_position + 1);
 					if(node_1_type == 1) { is_data_node = true; }
 					else { is_data_node = false; }
 				}
 
 				//Go offset for child_node.0
 				else 
-				{ 
-					data_ptr = (data_ptr & ~0x1) + (node_offset * 2) + 2;
-					if(node_0_type == 0) { is_data_node = true; }
+				{
+					data_ptr = (root_node_addr + node_position);
+					if(node_0_type == 1) { is_data_node = true; }
 					else { is_data_node = false; }
 				}
 				
 			}
 		}
 
-		//After this 32-bit bitstream is complete, move onto the next tree table
-		data_ptr = (bitstream_addr + 4);
+		//After this 32-bit bitstream is complete, move onto the next bitstream
+		bitstream_addr += 4;
+		bitstream = mem->read_u32(bitstream_addr);
+		bitstream_mask = 0x80000000;
 	}
 }
 	
