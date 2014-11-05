@@ -76,13 +76,13 @@ void ARM7::process_swi(u8 comment)
 
 		//CPUSet
 		case 0xB:
-			//std::cout<<"SWI::CPU Set \n";
+			std::cout<<"SWI::CPU Set \n";
 			swi_cpuset();
 			break;
 
 		//CPUFastSet
 		case 0xC:
-			//std::cout<<"SWI::CPU Fast Set \n";
+			std::cout<<"SWI::CPU Fast Set \n";
 			swi_cpufastset();
 			break;
 
@@ -524,11 +524,6 @@ void ARM7::swi_huffuncomp()
 	u8 data_shift = 0;
 	u32 temp = 0;
 
-	std::cout<<"Source Addr : 0x" << std::hex << src_addr << "\n";
-	std::cout<<"Dest   Addr : 0x" << std::hex << dest_addr << "\n";
-	std::cout<<"Data   Size : 0x" << std::hex << data_size << "\n";
-	std::cout<<"Bit    Size : 0x" << std::hex << (int)bit_size << "\n";
-
 	//Grab Tree Size
 	u16 tree_size = mem->read_u8(data_ptr++);
 	tree_size = ((tree_size + 1) * 2) - 1;
@@ -572,9 +567,6 @@ void ARM7::swi_huffuncomp()
 				//Transfer completed 32-bit value to memory
 				if(data_shift >= 32) 
 				{
-	    				std::cout<<"DESTINATION : 0x" << std::hex << dest_addr << "\n";
-					std::cout<<"32 BIT DATA : 0x" << std::hex << temp << "\n\n";
-
 					mem->write_u32(dest_addr, temp);
 					dest_addr += 4;
 					data_size -= 4;
