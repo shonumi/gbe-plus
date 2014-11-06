@@ -99,7 +99,8 @@ void ARM7::process_swi(u8 comment)
 
 		//OBJAffineSet
 		case 0xF:
-			std::cout<<"SWI::OBJ Affine Set (not implemented yet) \n";
+			std::cout<<"SWI::OBJ Affine Set \n";
+			swi_objaffineset();
 			break;
 
 		//BitUnPack
@@ -624,13 +625,13 @@ void ARM7::swi_bgaffineset()
 {
 	const double PI = 3.1415926535897;
 
-	//Grab source data field address
+	//Grab source data field address - R0
 	u32 src_addr = get_reg(0);
 
-	//Grab destination field address
+	//Grab destination field address - R1
 	u32 dest_addr = get_reg(1);
 
-	//Grab the number of calculations to perform
+	//Grab the number of calculations to perform - R2
 	u32 calc_count = get_reg(2);
 
 	//Perform the desired number of calculations
@@ -675,3 +676,48 @@ void ARM7::swi_bgaffineset()
 		mem->write_u32(dest_addr, start_y); dest_addr += 4;
 	}
 } 
+
+/****** HLE implementation of OBJAffineSet ******/
+void ARM7::swi_objaffineset()
+{
+	const double PI = 3.1415926535897;
+
+	//Grab source data field address - R0
+	u32 src_addr = get_reg(0);
+
+	//Grab destination field address - R1
+	u32 dest_addr = get_reg(1);
+
+	//Grab the number of calculations to perform - R2
+	u32 calc_count = get_reg(2);
+
+	//Grab offset to parameter address - R3
+	s32 offset = get_reg(3);
+
+	//Perform the desired number of calculations
+	while(calc_count-- > 0)
+	{
+		//Grab the X-Y scaling ratios
+		s16 scale_x = mem->read_u16(src_addr); src_addr += 2;
+		s16 scale_y = mem->read_u16(src_addr); src_addr += 2;
+
+		//Grab the angle of rotation, add 4 to keep data structure aligned by word-size
+		u16 theta = mem->read_u16(src_addr); src_addr += 4;
+		theta = (theta/0x80) * PI;
+
+		double cos_angle = cos(theta);
+		double sin_angle = sin(theta);
+
+		//Calculate differences in X-Y coordinates for this line and the next
+		s16 diff_x1 = (scale_x * cos_angle);
+		s16 diff_x2 = (scale_x * sin_angle);
+		s16 diff_y1 = (scale_y * cos_angle);
+		s16 diff_y2 = (scale_y * sin_angle);
+
+		//Write to destination data structure
+		mem->write_u16(dest_addr, diff_x1); dest_addr += offset;
+		mem->write_u16(dest_addr, -diff_x2); dest_addr += offset;
+		mem->write_u16(dest_addr, diff_y1); dest_addr += offset;
+		mem->write_u16(dest_addr, diff_y2); dest_addr += offset;
+	}
+}
