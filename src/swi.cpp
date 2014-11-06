@@ -93,7 +93,8 @@ void ARM7::process_swi(u8 comment)
 
 		//BGAffineSet
 		case 0xE:
-			std::cout<<"SWI::BG Affine Set (not implemented yet) \n";
+			std::cout<<"SWI::BG Affine Set \n";
+			swi_bgaffineset();
 			break;
 
 		//OBJAffineSet
@@ -108,20 +109,20 @@ void ARM7::process_swi(u8 comment)
 
 		//LZ77UnCompWram
 		case 0x11:
-			swi_lz77uncompvram();
 			std::cout<<"SWI::LZ77 Uncompress Work RAM \n";
+			swi_lz77uncompvram();
 			break;
 
 		//LZ77UnCompVram
 		case 0x12:
-			swi_lz77uncompvram();
 			std::cout<<"SWI::LZ77 Uncompress Video RAM \n";
+			swi_lz77uncompvram();
 			break;
 
 		//HuffUnComp
 		case 0x13:
-			swi_huffuncomp();
 			std::cout<<"SWI::Huffman Uncompress \n";
+			swi_huffuncomp();
 			break;
 
 		//RLUnCompWram
@@ -618,3 +619,59 @@ void ARM7::swi_huffuncomp()
 	}
 }
 	
+/****** HLE implementation of BGAffineSet ******/
+void ARM7::swi_bgaffineset()
+{
+	const double PI = 3.1415926535897;
+
+	//Grab source data field address
+	u32 src_addr = get_reg(0);
+
+	//Grab destination field address
+	u32 dest_addr = get_reg(1);
+
+	//Grab the number of calculations to perform
+	u32 calc_count = get_reg(2);
+
+	//Perform the desired number of calculations
+	while(calc_count-- > 0)
+	{
+		//Grab original data's central X-Y coordinates
+		s32 center_x = mem->read_u32(src_addr); src_addr += 4;
+		s32 center_y = mem->read_u32(src_addr); src_addr += 4;
+
+		//Grab the display's central X-Y coordinates
+		s16 display_x = mem->read_u16(src_addr); src_addr += 2;
+		s16 display_y = mem->read_u16(src_addr); src_addr += 2;
+
+		//Grab the X-Y scaling ratios
+		s16 scale_x = mem->read_u16(src_addr); src_addr += 2;
+		s16 scale_y = mem->read_u16(src_addr); src_addr += 2;
+
+		//Grab the angle of rotation, add 4 to keep data structure aligned by word-size
+		u16 theta = mem->read_u16(src_addr); src_addr += 4;
+		theta = (theta/0x80) * PI;
+
+		double cos_angle = cos(theta);
+		double sin_angle = sin(theta);
+
+		//Calculate differences in X-Y coordinates for this line and the next
+		s16 diff_x1 = (scale_x * cos_angle);
+		s16 diff_x2 = (scale_x * sin_angle);
+		s16 diff_y1 = (scale_y * cos_angle);
+		s16 diff_y2 = (scale_y * sin_angle);
+
+		//Write to destination data structure
+		mem->write_u16(dest_addr, diff_x1); dest_addr += 2;
+		mem->write_u16(dest_addr, -diff_x2); dest_addr += 2;
+		mem->write_u16(dest_addr, diff_y1); dest_addr += 2;
+		mem->write_u16(dest_addr, diff_y2); dest_addr += 2;
+
+		//Calculate start X-Y coordinates
+		s32 start_x = (center_x - diff_x1 * display_x + diff_x2 * display_y);
+		s32 start_y = (center_y - diff_y1 * display_x + diff_y2 * display_y);
+
+		mem->write_u32(dest_addr, start_x); dest_addr += 4;
+		mem->write_u32(dest_addr, start_y); dest_addr += 4;
+	}
+} 
