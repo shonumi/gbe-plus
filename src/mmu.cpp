@@ -19,6 +19,8 @@ MMU::MMU()
 	//HLE stuff
 	memory_map[DISPCNT] = 0x80;
 
+	bios_lock = false;
+
 	write_u32(0x18, 0xEA000042);
 	write_u32(0x128, 0xE92D500F);
 	write_u32(0x12C, 0xE3A00301);
@@ -26,6 +28,8 @@ MMU::MMU()
 	write_u32(0x134, 0xE510F004);
 	write_u32(0x138, 0xE8BD500F);
 	write_u32(0x13C, 0xE25EF004);
+
+	bios_lock = true;
 
 	dma[0].enable = dma[1].enable = dma[2].enable = dma[3].enable = false;
 
@@ -79,6 +83,9 @@ void MMU::write_u8(u32 address, u8 value)
 {
 	//Check for unused memory first
 	if(address >= 0x10000000) { std::cout<<"Out of bounds write : 0x" << std::hex << address << "\n"; return; }
+
+	//BIOS is read-only, prevent any attempted writes
+	else if((address <= 0x3FF) && (bios_lock)) { return; }
 
 	switch(address)
 	{

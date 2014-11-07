@@ -25,6 +25,8 @@ class MMU
 
 	std::vector <u8> memory_map;
 
+	bool bios_lock;
+
 	//Structure to handle DMA transfes
 	struct dma_controllers
 	{
