@@ -38,8 +38,10 @@ int main(int argc, char* args[])
 	while(gba.running)
 	{
 		//Handle SDL Events
-		if((gba.core_cpu.controllers.video.lcd_mode == 2) && SDL_PollEvent(&event))
+		if(gba.core_cpu.controllers.video.current_scanline == 160)
 		{
+			SDL_PollEvent(&event);
+
 			//X out of a window
 			if(event.type == SDL_QUIT) { gba.stop(); SDL_Quit(); }
 

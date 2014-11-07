@@ -23,6 +23,7 @@ class LCD
 	MMU* mem;
 
 	u8 lcd_mode;
+	u8 current_scanline;
 
 	//Core Functions
 	LCD();
@@ -72,7 +73,6 @@ class LCD
 
 	u32 lcd_clock;
 	u32 scanline_pixel_counter;
-	u8 current_scanline;
 
 	int frame_start_time;
 	int frame_current_time;
