@@ -1072,7 +1072,7 @@ void ARM7::get_relative_address(u16 current_thumb_instruction)
 
 		//Rd = SP + nn
 		case 0x1:
-			value = reg.r13 + offset;
+			value = get_reg(13) + offset;
 			set_reg(dest_reg, value);
 			break;
 	}
@@ -1092,19 +1092,25 @@ void ARM7::add_offset_sp(u16 current_thumb_instruction)
 
 	offset <<= 2;
 
+	//Grab stack pointer from current CPU mode
+	u32 r13 = get_reg(13);
+
 	//Perform add offset ops
 	switch(op)
 	{
 		//SP = SP + nn
 		case 0x0:
-			reg.r13 += offset;
+			r13 += offset;
 			break;
 
 		//SP = SP - nn
 		case 0x1:
-			reg.r13 -= offset;
+			r13 -= offset;
 			break;
 	}
+
+	//Update stack pointer for current CPU mode
+	set_reg(13, r13);
 
 	//Clock CPU and controllers - 1S
 	clock(reg.r15, false);
