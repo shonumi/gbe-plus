@@ -554,7 +554,7 @@ bool LCD::render_bg_mode_4(u32 bg_control)
 void LCD::render_scanline()
 {
 	//Use BG Palette #0, Color #0 as the backdrop
-	u8 color_bytes = mem->read_u16(0x5000000);
+	u16 color_bytes = mem->read_u16(0x5000000);
 	u8 red = ((color_bytes & 0x1F) * 8);
 	color_bytes >>= 5;
 
