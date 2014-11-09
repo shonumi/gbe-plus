@@ -1053,7 +1053,7 @@ void ARM7::get_relative_address(u16 current_thumb_instruction)
 	u16 offset = (current_thumb_instruction & 0xFF);
 
 	//Grab destination register - Bits 8-10
-	u8 dest_reg = ((current_thumb_instruction >> 8) & 0x3);
+	u8 dest_reg = ((current_thumb_instruction >> 8) & 0x7);
 
 	//Grab opcode - Bit 11
 	u8 op = (current_thumb_instruction & 0x800) ? 1 : 0;
