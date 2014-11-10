@@ -1046,3 +1046,15 @@ void ARM7::single_data_swap(u32 current_arm_instruction)
 		set_reg(dest_reg, dest_value);
 	}
 }
+
+/****** ARM.13 - Software Interrupt ******/
+void ARM7::software_interrupt_breakpoint(u32 current_arm_instruction)
+{
+	//TODO - Timings
+	//TODO - LLE version of SWIs
+
+	//Grab SWI comment - Bits 0-23
+	u32 comment = (current_arm_instruction & 0xFFFFFF);
+
+	process_swi(comment);
+}
