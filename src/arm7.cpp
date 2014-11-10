@@ -506,6 +506,12 @@ void ARM7::decode()
 			//ARM_11
 			instruction_operation[pipeline_id] = ARM_11;
 		}
+
+		else if(((current_instruction >> 24) & 0xF) == 0xF)
+		{
+			//ARM_13
+			instruction_operation[pipeline_id] = ARM_13;
+		}
 	}
 }
 
@@ -674,6 +680,11 @@ void ARM7::execute()
 				case ARM_12:
 					single_data_swap(instruction_pipeline[pipeline_id]);
 					debug_message = 0x1C; debug_code = instruction_pipeline[pipeline_id];
+					break;
+
+				case ARM_13:
+					software_interrupt_breakpoint(instruction_pipeline[pipeline_id]);
+					debug_message = 0x1D; debug_code = instruction_pipeline[pipeline_id];
 					break;
 
 				default:

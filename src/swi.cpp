@@ -13,7 +13,7 @@
 #include "arm7.h"
 
 /****** Process Software Interrupts ******/
-void ARM7::process_swi(u8 comment)
+void ARM7::process_swi(u32 comment)
 {
 	switch(comment)
 	{
@@ -242,7 +242,7 @@ void ARM7::process_swi(u8 comment)
 			break;
 
 		default:
-			std::cout<<"SWI::Error - Unknown BIOS function 0x" << std::hex << (int)comment << "\n";
+			std::cout<<"SWI::Error - Unknown BIOS function 0x" << std::hex << comment << "\n";
 			break;
 	}
 }

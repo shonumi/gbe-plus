@@ -197,6 +197,7 @@ class ARM7
 	void halfword_signed_transfer(u32 current_arm_instruction);
 	void block_data_transfer(u32 current_arm_instruction);
 	void single_data_swap(u32 current_arm_instruction);
+	void software_interrupt_breakpoint(u32 current_arm_instruction);
 
 	//THUMB instructions
 	void move_shifted_register(u16 current_thumb_instruction);
@@ -240,7 +241,7 @@ class ARM7
 	void mem_check_32(u32 addr, u32& value, bool load_store);
 
 	//HLE Software Interrupts (BIOS Calls)
-	void process_swi(u8 comment);
+	void process_swi(u32 comment);
 	void swi_div();
 	void swi_cpufastset();
 	void swi_cpuset();
