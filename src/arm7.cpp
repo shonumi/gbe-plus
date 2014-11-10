@@ -1047,11 +1047,12 @@ void ARM7::mem_check_32(u32 addr, u32& value, bool load_store)
 			value = mem->read_u32(reg.r15);
 		}
 
-		//Return 0 for the following addresses for I/0 (One 16-bit fragment is unreadable/not used)
+		//Return opcode @ PC for the following addresses for I/0 (One 16-bit fragment is unreadable/not used)
 		switch(addr)
 		{
+			//TODO - THUMB and ARM versions need to return different values, here only THUMB works
 			case 0x40000B8:
-			case 0x40000DC: value = 0; normal_operation = false; break;
+			case 0x40000DC: value = (mem->read_u16(reg.r15) << 16) |  mem->read_u16(reg.r15); normal_operation = false; break;
 		}
 
 		//Normal operation
@@ -1067,11 +1068,11 @@ void ARM7::mem_check_32(u32 addr, u32& value, bool load_store)
 			normal_operation = false;
 
 			//Force alignment by word, but that's all, no rotation
-			value = mem->read_u32(addr & ~0x3);
+			mem->write_u32((addr & ~0x3), value);
 		}
 
 		//Normal operation
-		else { value = mem->read_u32(addr); }
+		else { mem->write_u32(addr, value); }
 	}
 }
 
