@@ -960,7 +960,11 @@ void ARM7::block_data_transfer(u32 current_arm_instruction)
 				if(load_store == 0) { mem->write_u32(base_addr, get_reg(x)); }
 			
 				//Load registers
-				else { set_reg(x, mem->read_u32(base_addr)); }
+				else 
+				{ 
+					set_reg(x, mem->read_u32(base_addr));
+					if(x == 15) { needs_flush = true; } 
+				}
 
 				//Increment after transfer if post-indexing
 				if(pre_post == 0) { base_addr += 4; }
@@ -985,7 +989,11 @@ void ARM7::block_data_transfer(u32 current_arm_instruction)
 				if(load_store == 0) { mem->write_u32(base_addr, get_reg(x)); }
 			
 				//Load registers
-				else { set_reg(x, mem->read_u32(base_addr)); }
+				else 
+				{ 
+					set_reg(x, mem->read_u32(base_addr));
+					if(x == 15) { needs_flush = true; } 
+				}
 
 				//Decrement after transfer if post-indexing
 				if(pre_post == 0) { base_addr -= 4; }
