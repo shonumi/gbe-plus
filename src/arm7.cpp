@@ -1087,6 +1087,61 @@ void ARM7::mem_check_32(u32 addr, u32& value, bool load_store)
 	}
 }
 
+/****** Checks 16-bit address before reading/writing for special case scenarios ******/
+void ARM7::mem_check_16(u32 addr, u32& value, bool load_store)
+{
+	//Assume normal operation until a special case occurs
+	bool normal_operation = true;
+
+	//Check for special case scenarios for read ops
+	if(load_store)
+	{
+		//Misaligned LDR
+		if(addr & 0x1) 
+		{
+			normal_operation = false;
+
+			//Force alignment by halfword
+			value = mem->read_u16(addr & ~0x1);
+		}
+
+		//Out of bounds unused memory
+		if((addr & ~0x1) >= 0x10000000)
+		{
+			normal_operation = false;
+	
+			//Read the opcode instruction at PC
+			value = mem->read_u16(reg.r15);
+		}
+
+		//Return 0 for certain readable I/O
+		switch(addr)
+		{
+			case 0x40000BA:
+			case 0x40000DE: value = 0; normal_operation = false; break;
+		}
+
+		//Normal operation
+		if(normal_operation) { value = mem->read_u16(addr); }
+	}
+
+	//Check for special case scenarios for write ops
+	else
+	{
+		//Misaligned STR
+		if(addr & 0x1) 
+		{
+			normal_operation = false;
+
+			//Force alignment by word, but that's all, no rotation
+			mem->write_u16((addr & ~0x1), value);
+		}
+
+		//Normal operation
+		else { mem->write_u16(addr, value); }
+	}
+}
+
 /****** Runs audio and video controllers every clock cycle ******/
 void ARM7::clock(u32 access_addr, bool first_access)
 {

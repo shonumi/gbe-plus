@@ -789,7 +789,7 @@ void ARM7::load_store_sign_ex(u16 current_thumb_instruction)
 			//Clock CPU and controllers - 1N
 			value = get_reg(src_dest_reg);
 			value &= 0xFFFF;
-			mem->write_u16(op_addr, value);
+			mem_check_16(op_addr, value, false);
 			clock(reg.r15, true);
 
 			break;
@@ -814,13 +814,13 @@ void ARM7::load_store_sign_ex(u16 current_thumb_instruction)
 
 		//LDRH
 		case 0x2:
-			//Since value is u32 and 0, it is alread zero-extended :)
+			//Since value is u32 and 0, it is already zero-extended :)
 			
 			//Clock CPU and controllers - 1N
 			clock(reg.r15, true);
 
 			//Clock CPU and controllers - 1I
-			value = mem->read_u16(op_addr);
+			mem_check_16(op_addr, value, true);
 			clock();
 
 			//Clock CPU and controllers - 1S
@@ -835,7 +835,7 @@ void ARM7::load_store_sign_ex(u16 current_thumb_instruction)
 			clock(reg.r15, true);
 
 			//Clock CPU and controllers - 1I
-			value = mem->read_u16(op_addr);
+			mem_check_16(op_addr, value, true);
 			clock();
 
 			//Sign extend from Bit 15
@@ -879,7 +879,7 @@ void ARM7::load_store_imm_offset(u16 current_thumb_instruction)
 			clock(reg.r15, true);
 			
 			//Clock CPU and controllers - 1N
-			mem->write_u32(op_addr, value);
+			mem_check_32(op_addr, value, false);
 			clock(op_addr, true);
 			
 			break;
@@ -891,14 +891,7 @@ void ARM7::load_store_imm_offset(u16 current_thumb_instruction)
 			op_addr += offset;
 			clock(reg.r15, true);
 
-			//Hax
-			//if(op_addr == 0x40000DC) 
-			//{ 
-			//	value = (mem->read_u16(reg.r15) << 16) |  mem->read_u16(reg.r15);
-			//}
-
 			//Clock CPU and controllers - 1I
-			//else { value = mem->read_u32(op_addr); }
 			mem_check_32(op_addr, value, true);
 			clock();
 
@@ -919,6 +912,7 @@ void ARM7::load_store_imm_offset(u16 current_thumb_instruction)
 			mem->write_u8(op_addr, value);
 			clock(op_addr, true);
 
+			//Hax
 			if((op_addr >= 0x5000000) && (op_addr <= 0x70003FF)) { mem->write_u8((op_addr+1), value); }
 
 			break;
@@ -972,7 +966,7 @@ void ARM7::load_store_halfword(u16 current_thumb_instruction)
 
 			//Clock CPU and controllers - 1N
 			value = get_reg(src_dest_reg);
-			mem->write_u16(op_addr, value);
+			mem_check_16(op_addr, value, false);
 			clock(op_addr, true);
 
 			break;
@@ -983,9 +977,7 @@ void ARM7::load_store_halfword(u16 current_thumb_instruction)
 			clock(reg.r15, true);
 
 			//Clock CPU and controllers - 1I
-			//if(op_addr == 0x40000de) { value = 0; }
-			//else { value = mem->read_u16(op_addr); }
-			value = mem->read_u16(op_addr);
+			mem_check_16(op_addr, value, true);
 			clock();
 
 			//Clock CPU and controllers - 1S
@@ -1024,7 +1016,7 @@ void ARM7::load_store_sp_relative(u16 current_thumb_instruction)
 
 			//Clock CPU and controllers - 1N
 			value = get_reg(src_dest_reg);
-			mem->write_u32(op_addr, value);
+			mem_check_32(op_addr, value, false);
 			clock(op_addr, true);
 
 			break;
@@ -1124,6 +1116,9 @@ void ARM7::push_pop(u16 current_thumb_instruction)
 	//Grab stack pointer from current CPU mode
 	u32 r13 = get_reg(13);
 
+	//Grab link register from current CPU mode
+	u32 lr = get_reg(14);
+
 	//Grab register list - Bits 0-7
 	u8 r_list = (current_thumb_instruction & 0xFF);
 
@@ -1153,7 +1148,8 @@ void ARM7::push_pop(u16 current_thumb_instruction)
 			if(pc_lr_bit) 
 			{
 				r13 -= 4;
-				mem->write_u32(r13, get_reg(14));  
+				mem_check_32(r13, lr, false);
+				set_reg(14, lr);  
 
 				//Clock CPU and controllers - 1S
 				clock(r13, false);
@@ -1166,7 +1162,7 @@ void ARM7::push_pop(u16 current_thumb_instruction)
 				{
 					r13 -= 4;
 					u32 push_value = get_reg(x);
-					mem->write_u32(r13, push_value);
+					mem_check_32(r13, push_value, false);
 
 					//Clock CPU and controllers - (n)S
 					if((n_count - 1) != 0) { clock(r13, false); n_count--; }
@@ -1188,7 +1184,8 @@ void ARM7::push_pop(u16 current_thumb_instruction)
 			{
 				if(r_list & 0x1)
 				{
-					u32 pop_value = mem->read_u32(r13);
+					u32 pop_value = 0;
+					mem_check_32(r13, pop_value, true);
 					set_reg(x, pop_value);
 					r13 += 4;
 
@@ -1209,7 +1206,7 @@ void ARM7::push_pop(u16 current_thumb_instruction)
 				clock(reg.r15, true);
 
 				//Clock CPU and controllers - 2S
-				reg.r15 = mem->read_u32(r13);
+				mem_check_32(r13, reg.r15, true);
 				reg.r15 &= ~0x1;
 				r13 += 4;
 				needs_flush = true;
@@ -1274,7 +1271,7 @@ void ARM7::multiple_load_store(u16 current_thumb_instruction)
 					if(r_list & 0x1)
 					{
 						reg_value = get_reg(x);
-						mem->write_u32(base_addr, reg_value);
+						mem_check_32(base_addr, reg_value, false);
 
 						//Update base register
 						base_addr += 4;
@@ -1295,7 +1292,7 @@ void ARM7::multiple_load_store(u16 current_thumb_instruction)
 			else
 			{
 				//Store PC, then add 0x40 to base register
-				mem->write_u32(base_addr, reg.r15);
+				mem_check_32(base_addr, reg.r15, false);
 				base_addr += 0x40;
 				set_reg(base_reg, base_addr);
 
@@ -1318,7 +1315,7 @@ void ARM7::multiple_load_store(u16 current_thumb_instruction)
 				{
 					if(r_list & 0x1)
 					{
-						reg_value = mem->read_u32(base_addr);
+						mem_check_32(base_addr, reg_value, true);
 						set_reg(x, reg_value);
 
 						//Update base register
@@ -1343,7 +1340,7 @@ void ARM7::multiple_load_store(u16 current_thumb_instruction)
 			else
 			{
 				//Load PC, then add 0x40 to base register
-				reg.r15 = mem->read_u32(base_addr);
+				mem_check_32(base_addr, reg.r15, true);
 				base_addr += 0x40;
 				set_reg(base_reg, base_addr);
 
