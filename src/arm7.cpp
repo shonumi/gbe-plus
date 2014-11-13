@@ -45,6 +45,7 @@ void ARM7::reset()
 
 	arm_mode = ARM;
 	current_cpu_mode = SYS;
+	bios_read_state = BIOS_STARTUP;
 
 	debug_message = 0xFF;
 	debug_code = 0;
@@ -1058,6 +1059,20 @@ void ARM7::mem_check_32(u32 addr, u32& value, bool load_store)
 			value = mem->read_u32(reg.r15);
 		}
 
+		//Return specific values when trying to read BIOS when PC is not within the BIOS
+		if(((addr & ~0x3) <= 0x3FF) && (reg.r15 > 0x3FF))
+		{
+			normal_operation = false;
+
+			switch(bios_read_state)
+			{
+				case BIOS_STARTUP: value = 0xE129F000; break;
+				case BIOS_IRQ_EXECUTE : value = 0xE25EF004; break;
+				case BIOS_IRQ_FINISH : value = 0xE55EC002; break;
+				case BIOS_SWI_FINISH : value = 0xE3A02004; break;
+			}
+		}
+
 		//Return opcode @ PC for the following addresses for I/0 (One 16-bit fragment is unreadable/not used)
 		switch(addr)
 		{
@@ -1235,6 +1250,7 @@ void ARM7::handle_interrupt()
 		current_cpu_mode = SYS;
 		in_interrupt = false;
 		arm_mode = (reg.cpsr & 0x20) ? THUMB : ARM;
+		bios_read_state = BIOS_IRQ_FINISH;
 	}
 
 	//Jump into an interrupt, check if the master flag is enabled
@@ -1262,6 +1278,7 @@ void ARM7::handle_interrupt()
 				arm_mode = ARM;
 				reg.cpsr &= ~0x20;
 				reg.cpsr |= CPSR_IRQ;
+				bios_read_state = BIOS_IRQ_EXECUTE;
 				return;
 			}
 		}

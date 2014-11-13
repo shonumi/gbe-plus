@@ -84,8 +84,18 @@ class ARM7
 		THUMB
 	};
 
+	//BIOS read-state enumerations
+	enum bios_state
+	{
+		BIOS_STARTUP,
+		BIOS_IRQ_EXECUTE,
+		BIOS_IRQ_FINISH,
+		BIOS_SWI_FINISH
+	};
+
 	cpu_modes current_cpu_mode;
 	instr_modes arm_mode;
+	bios_state bios_read_state;
 
 	//Internal registers - 32bits each
 	struct registers

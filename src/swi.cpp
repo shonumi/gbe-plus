@@ -250,6 +250,8 @@ void ARM7::process_swi(u32 comment)
 /****** HLE implementation of Div ******/
 void ARM7::swi_div()
 {
+	bios_read_state = BIOS_SWI_FINISH;
+
 	//Grab the numerator - R0
 	s32 num = get_reg(0);
 	
@@ -280,6 +282,8 @@ void ARM7::swi_cpufastset()
 {
 	//TODO - Timings
 	//TODO - Memory alignments
+
+	bios_read_state = BIOS_SWI_FINISH;
 
 	//Grab source address - R0
 	u32 src_addr = get_reg(0);
@@ -330,6 +334,8 @@ void ARM7::swi_cpuset()
 {
 	//TODO - Timings
 	//TODO - Memory alignments
+
+	bios_read_state = BIOS_SWI_FINISH;
 
 	//Grab source address - R0
 	u32 src_addr = get_reg(0);
@@ -409,6 +415,8 @@ void ARM7::swi_cpuset()
 /****** HLE implementation of VBlankIntrWait ******/
 void ARM7::swi_vblankintrwait()
 {
+	bios_read_state = BIOS_SWI_FINISH;
+
 	//Set R0 and R1 to 1
 	set_reg(0, 1);
 	set_reg(1, 1);
@@ -432,6 +440,8 @@ void ARM7::swi_vblankintrwait()
 /****** HLE implementation of LZ77UnCompVram ******/
 void ARM7::swi_lz77uncompvram()
 {
+	bios_read_state = BIOS_SWI_FINISH;
+
 	//Grab source address - R0
 	u32 src_addr = get_reg(0);
 
@@ -501,6 +511,8 @@ void ARM7::swi_lz77uncompvram()
 /****** HLE implementation of HuffUnComp ******/
 void ARM7::swi_huffuncomp()
 {
+	bios_read_state = BIOS_SWI_FINISH;
+
 	//Grab source address - R0
 	u32 src_addr = get_reg(0);
 
@@ -623,6 +635,8 @@ void ARM7::swi_huffuncomp()
 /****** HLE implementation of BGAffineSet ******/
 void ARM7::swi_bgaffineset()
 {
+	bios_read_state = BIOS_SWI_FINISH;
+
 	const double PI = 3.1415926535897;
 
 	//Grab source data field address - R0
@@ -680,6 +694,8 @@ void ARM7::swi_bgaffineset()
 /****** HLE implementation of OBJAffineSet ******/
 void ARM7::swi_objaffineset()
 {
+	bios_read_state = BIOS_SWI_FINISH;
+
 	const double PI = 3.1415926535897;
 
 	//Grab source data field address - R0
