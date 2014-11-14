@@ -945,6 +945,19 @@ void ARM7::block_data_transfer(u32 current_arm_instruction)
 	if(base_reg == 15) { std::cout<<"CPU::Warning - ARM.11 R15 used as Base Register \n"; }
 
 	u32 base_addr = get_reg(base_reg);
+	u32 old_base = base_addr;
+	u8 transfer_reg = 0xFF;
+
+	//Find out the first register in the Register List
+	for(int x = 0; x < 16; x++)
+	{
+		if(r_list & (1 << x))
+		{
+			transfer_reg = x;
+			x = 0xFF;
+			break;
+		}
+	}
 
 	//Load-Store with an ascending stack order, Up-Down = 1
 	if((up_down == 1) && (r_list != 0))
@@ -952,16 +965,21 @@ void ARM7::block_data_transfer(u32 current_arm_instruction)
 		for(int x = 0; x < 16; x++)
 		{
 			if(r_list & (1 << x)) 
-			{
+			{					
 				//Increment before transfer if pre-indexing
 				if(pre_post == 1) { base_addr += 4; }
 
 				//Store registers
-				if(load_store == 0) { mem->write_u32(base_addr, get_reg(x)); }
+				if(load_store == 0) 
+				{
+					if((x == transfer_reg) && (base_reg == transfer_reg)) { mem->write_u32(base_addr, old_base); }
+					else { mem->write_u32(base_addr, get_reg(x)); }
+				}
 			
 				//Load registers
 				else 
-				{ 
+				{
+					if((x == transfer_reg) && (base_reg == transfer_reg)) { write_back = 0; }
 					set_reg(x, mem->read_u32(base_addr));
 					if(x == 15) { needs_flush = true; } 
 				}
@@ -986,11 +1004,16 @@ void ARM7::block_data_transfer(u32 current_arm_instruction)
 				if(pre_post == 1) { base_addr -= 4; }
 
 				//Store registers
-				if(load_store == 0) { mem->write_u32(base_addr, get_reg(x)); }
+				if(load_store == 0) 
+				{ 
+					if((x == transfer_reg) && (base_reg == transfer_reg)) { mem->write_u32(base_addr, old_base); }
+					else { mem->write_u32(base_addr, get_reg(x)); }
+				}
 			
 				//Load registers
 				else 
-				{ 
+				{
+					if((x == transfer_reg) && (base_reg == transfer_reg)) { write_back = 0; }
 					set_reg(x, mem->read_u32(base_addr));
 					if(x == 15) { needs_flush = true; } 
 				}
