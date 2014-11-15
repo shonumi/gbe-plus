@@ -1248,6 +1248,22 @@ void ARM7::multiple_load_store(u16 current_thumb_instruction)
 	u32 reg_value = 0;
 	u8 n_count = 0;
 
+	u32 old_base = base_addr;
+	u8 transfer_reg = 0xFF;
+	bool write_back = true;
+
+	//Find out the first register in the Register List
+	for(int x = 0; x < 8; x++)
+	{
+		if(r_list & (1 << x))
+		{
+			transfer_reg = x;
+			x = 0xFF;
+			break;
+		}
+	}
+
+
 	//Grab n_count
 	for(int x = 0; x < 8; x++)
 	{
@@ -1271,7 +1287,9 @@ void ARM7::multiple_load_store(u16 current_thumb_instruction)
 					if(r_list & 0x1)
 					{
 						reg_value = get_reg(x);
-						mem_check_32(base_addr, reg_value, false);
+
+						if((x == transfer_reg) && (base_reg == transfer_reg)) { mem_check_32(base_addr, old_base, false); }
+						else { mem_check_32(base_addr, reg_value, false); }
 
 						//Update base register
 						base_addr += 4;
@@ -1315,12 +1333,14 @@ void ARM7::multiple_load_store(u16 current_thumb_instruction)
 				{
 					if(r_list & 0x1)
 					{
+						if((x == transfer_reg) && (base_reg == transfer_reg)) { write_back = false; }
+
 						mem_check_32(base_addr, reg_value, true);
 						set_reg(x, reg_value);
 
 						//Update base register
 						base_addr += 4;
-						set_reg(base_reg, base_addr);
+						if(write_back) { set_reg(base_reg, base_addr); }
 
 						//Clock CPU and controllers - (n)S
 						if(n_count > 1) { clock(base_addr, false); }
