@@ -229,7 +229,7 @@ u32 ARM7::get_spsr() const
 	switch(current_cpu_mode)
 	{
 		case USR:
-		case SYS: std::cout<<"CPU::Warning - Tried to read SPSR in USER-SYSTEM mode\n"; return reg.cpsr; break;
+		case SYS: return reg.cpsr; break;
 		case FIQ: return reg.spsr_fiq; break;
 		case SVC: return reg.spsr_svc; break;
 		case ABT: return reg.spsr_abt; break;
@@ -1254,7 +1254,7 @@ void ARM7::handle_interrupt()
 	}
 
 	//Jump into an interrupt, check if the master flag is enabled
-	if((ime_check & 0x1) && ((reg.cpsr & CPSR_IRQ) == 0))
+	if((ime_check & 0x1) && ((reg.cpsr & CPSR_IRQ) == 0) && (!in_interrupt))
 	{
 		//Match up bits in IE and IF
 		for(int x = 0; x < 14; x++)
@@ -1267,9 +1267,11 @@ void ARM7::handle_interrupt()
 				//If a Branch instruction has just executed, the PC technically should be 2 fetches ahead before the interrupt triggers
 				//GBE+ does not do the fetches right away, so the PC is not updated until later
 				//This screws with LR, so here we manually adjust LR by 2 instruction sizes.
-				if((needs_flush == true) && (arm_mode == THUMB)) { set_reg(14, (reg.r15 + 4)); }
-				else if((needs_flush == true) && (arm_mode == ARM)) { set_reg(14, (reg.r15 + 8)); }
-				else { set_reg(14, reg.r15); }
+				if((needs_flush) && (arm_mode == THUMB)) { set_reg(14, (reg.r15 + 4)); }
+				else if((needs_flush) && (arm_mode == ARM)) { set_reg(14, (reg.r15 + 8)); }
+				
+				else if((!needs_flush) && (arm_mode == THUMB)) { set_reg(14, (reg.r15 + 2)); }
+				else if((!needs_flush) && (arm_mode == ARM)) { set_reg(14, (reg.r15 + 4)); }
 
 				reg.r15 = 0x18;
 				set_spsr(reg.cpsr);
