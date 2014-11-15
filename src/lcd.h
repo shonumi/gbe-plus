@@ -33,6 +33,10 @@ class LCD
 	void reset();
 	bool init();
 
+	//Screen data
+	SDL_Surface* final_screen;
+	SDL_Surface* internal_screen;
+
 	private:
 
 	void update_oam();
@@ -62,10 +66,6 @@ class LCD
 
 	u8 obj_render_list[128];
 	u8 obj_render_length;
-		
-	//Screen data
-	SDL_Surface* final_screen;
-	SDL_Surface* internal_screen;
 
 	//Screen pixel buffer
 	std::vector<u32> scanline_buffer;

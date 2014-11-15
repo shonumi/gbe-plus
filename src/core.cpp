@@ -11,6 +11,8 @@
 // Can start, stop, and reset emulator
 
 #include <iomanip>
+#include <ctime>
+#include <sstream>
 
 #include "core.h"
 
@@ -409,5 +411,24 @@ void Core::handle_hotkey(SDL_Event& event)
 	{
 		running = false; 
 		SDL_Quit();
+	}
+
+	//Screenshot on F9
+	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F9)) 
+	{
+		std::stringstream save_stream;
+		std::string save_name = "";
+
+		//Prefix SDL Ticks to screenshot name
+		save_stream << SDL_GetTicks();
+		save_name += save_stream.str();
+		save_stream.str(std::string());
+
+		//Append random number to screenshot name
+		srand(SDL_GetTicks());
+		save_stream << rand() % 1024 << rand() % 1024 << rand() % 1024;
+		save_name += save_stream.str() + ".bmp";
+	
+		SDL_SaveBMP(core_cpu.controllers.video.final_screen, save_name.c_str());
 	}
 }
