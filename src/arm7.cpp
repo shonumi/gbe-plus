@@ -229,7 +229,7 @@ u32 ARM7::get_spsr() const
 	switch(current_cpu_mode)
 	{
 		case USR:
-		case SYS: return reg.cpsr; break;
+		case SYS: std::cout<<"CPU::Warning - Tried to read SPSR in USER-SYSTEM mode\n"; return reg.cpsr; break;
 		case FIQ: return reg.spsr_fiq; break;
 		case SVC: return reg.spsr_svc; break;
 		case ABT: return reg.spsr_abt; break;
