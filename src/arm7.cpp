@@ -1251,6 +1251,7 @@ void ARM7::handle_interrupt()
 		in_interrupt = false;
 		arm_mode = (reg.cpsr & 0x20) ? THUMB : ARM;
 		bios_read_state = BIOS_IRQ_FINISH;
+		debug_code = 0xFEEDBACC;
 	}
 
 	//Jump into an interrupt, check if the master flag is enabled
