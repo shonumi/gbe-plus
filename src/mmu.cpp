@@ -202,8 +202,42 @@ bool MMU::read_file(std::string filename)
 	file.close();
 	std::cout<<"MMU : " << filename << " loaded successfully. \n";
 
+	//Try to auto-detect save-type, if any
+	for(u32 x = 0x8000000; x < (0x8000000 + file_size); x+=4)
+	{
+		switch(memory_map[x])
+		{
+			//EEPROM
+			case 0x45:
+				if((memory_map[x+1] == 0x45) && (memory_map[x+2] == 0x50) && (memory_map[x+3] == 0x52) && (memory_map[x+4] == 0x4F) && (memory_map[x+5] == 0x4D))
+				{
+					std::cout<<"MMU::EEPROM save type detected\n";
+					return true;
+				}
+				
+				break;
+
+			//FLASH RAM
+			case 0x46:
+				if((memory_map[x+1] == 0x4C) && (memory_map[x+2] == 0x41) && (memory_map[x+3] == 0x53) && (memory_map[x+4] == 0x48))
+				{
+					std::cout<<"MMU::FLASH RAM save type detected\n";
+					return true;
+				}
+
+				break;
+
+			//SRAM
+			case 0x53:
+				if((memory_map[x+1] == 0x52) && (memory_map[x+2] == 0x41) && (memory_map[x+3] == 0x4D))
+				{
+					std::cout<<"MMU::SRAM save type detected\n";
+					return true;
+				}
+
+				break;
+		}
+	}
+		
 	return true;
-}
-
-
-	
+}	
