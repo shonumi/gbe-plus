@@ -29,6 +29,8 @@ class Core
 		void debug_display() const;
 		void debug_process_command();
 
+		void handle_hotkey(SDL_Event& event);
+
 		bool running;
 	
 		struct debugging

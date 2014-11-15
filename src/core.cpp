@@ -401,10 +401,13 @@ void Core::debug_process_command()
 	}
 }
 	
-
-
-
-
-
-
-
+/****** Process hotkey input ******/
+void Core::handle_hotkey(SDL_Event& event)
+{
+	//Quit on Q or ESC
+	if((event.type == SDL_KEYDOWN) && ((event.key.keysym.sym == SDLK_q) || (event.key.keysym.sym == SDLK_ESCAPE)))
+	{
+		running = false; 
+		SDL_Quit();
+	}
+}
