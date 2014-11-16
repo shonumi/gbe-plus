@@ -71,7 +71,12 @@ int main(int argc, char* args[])
 			}
 		}
 
-		else { gba.stop(); }
+		//Stop emulation, save data if necessary
+		else 
+		{
+			gba.core_mmu.save_backup(config::save_file);
+			gba.stop(); 
+		}
 	}
 
 	/*

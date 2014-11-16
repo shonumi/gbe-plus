@@ -15,6 +15,7 @@
 namespace config
 {
 	std::string rom_file = "";
+	std::string save_file = "";
 	std::vector <std::string> cli_args;
 	bool use_debugger = false;
 
@@ -46,6 +47,7 @@ bool parse_cli_args()
 	{
 		//ROM file is always first argument
 		config::rom_file = config::cli_args[0];
+		config::save_file = config::rom_file + ".sav";
 
 		//Parse the rest of the arguments if any		
 		for(int x = 1; x < config::cli_args.size(); x++)

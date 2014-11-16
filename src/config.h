@@ -21,6 +21,7 @@ bool parse_cli_args();
 namespace config
 { 
 	extern std::string rom_file;
+	extern std::string save_file;
 	extern std::vector <std::string> cli_args;
 	extern bool use_debugger;
 	extern int key_a, key_b, key_start, key_select, key_up, key_down, key_left, key_right;

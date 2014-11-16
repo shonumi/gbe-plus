@@ -35,6 +35,8 @@ MMU::MMU()
 
 	lcd_updates.oam_update = false;
 
+	current_save_type = NONE;
+
 	std::cout<<"MMU::Initialized\n";
 }
 
@@ -202,6 +204,8 @@ bool MMU::read_file(std::string filename)
 	file.close();
 	std::cout<<"MMU : " << filename << " loaded successfully. \n";
 
+	std::string backup_file = filename + ".sav";
+
 	//Try to auto-detect save-type, if any
 	for(u32 x = 0x8000000; x < (0x8000000 + file_size); x+=4)
 	{
@@ -212,6 +216,7 @@ bool MMU::read_file(std::string filename)
 				if((memory_map[x+1] == 0x45) && (memory_map[x+2] == 0x50) && (memory_map[x+3] == 0x52) && (memory_map[x+4] == 0x4F) && (memory_map[x+5] == 0x4D))
 				{
 					std::cout<<"MMU::EEPROM save type detected\n";
+					current_save_type = EEPROM;
 					return true;
 				}
 				
@@ -222,6 +227,8 @@ bool MMU::read_file(std::string filename)
 				if((memory_map[x+1] == 0x4C) && (memory_map[x+2] == 0x41) && (memory_map[x+3] == 0x53) && (memory_map[x+4] == 0x48))
 				{
 					std::cout<<"MMU::FLASH RAM save type detected\n";
+					current_save_type = FLASH;
+					load_backup(backup_file);
 					return true;
 				}
 
@@ -232,6 +239,8 @@ bool MMU::read_file(std::string filename)
 				if((memory_map[x+1] == 0x52) && (memory_map[x+2] == 0x41) && (memory_map[x+3] == 0x4D))
 				{
 					std::cout<<"MMU::SRAM save type detected\n";
+					current_save_type = SRAM;
+					load_backup(backup_file);
 					return true;
 				}
 
@@ -240,4 +249,72 @@ bool MMU::read_file(std::string filename)
 	}
 		
 	return true;
-}	
+}
+
+/****** Load backup save data ******/
+bool MMU::load_backup(std::string filename)
+{
+	std::ifstream file(filename.c_str(), std::ios::binary);
+	std::vector<u8> save_data;
+
+	if(!file.is_open()) 
+	{
+		std::cout<<"MMU::" << filename << " save data could not be opened. Check file path or permissions. \n";
+		return false;
+	}
+
+	//Get the file size
+	file.seekg(0, file.end);
+	u32 file_size = file.tellg();
+	file.seekg(0, file.beg);
+	save_data.resize(file_size);
+
+	if(file_size > 0x7FFF) { std::cout<<"MMU::Warning - Irregular backup save size\n"; }
+
+	//Read data from file
+	file.read(reinterpret_cast<char*> (&save_data[0]), file_size);
+
+	//Write that data into 0xE000000 to 0xE007FFF
+	for(u32 x = 0; x < 0x7FFF; x++)
+	{
+		memory_map[0xE000000 + x] = save_data[x];
+	}
+
+	file.close();
+
+	std::cout<<"MMU::Loaded save data file " << filename <<  "\n";
+
+	return true;
+}
+
+/****** Save backup save data ******/
+bool MMU::save_backup(std::string filename)
+{
+	//Save FLASH and SRAM
+	if((current_save_type == SRAM) || (current_save_type == FLASH))
+	{
+		std::ofstream file(filename.c_str(), std::ios::binary);
+		std::vector<u8> save_data;
+
+		if(!file.is_open()) 
+		{
+			std::cout<<"MMU::" << filename << " save data could not be written. Check file path or permissions. \n";
+			return false;
+		}
+
+
+		//Grab data from 0xE000000 to 0xE007FFF
+		for(u32 x = 0; x < 0x7FFF; x++)
+		{
+			save_data.push_back(memory_map[0xE000000 + x]);
+		}
+
+		//Write the data to a file
+		file.write(reinterpret_cast<char*> (&save_data[0]), 0x7FFF);
+		file.close();
+	}
+
+	std::cout<<"MMU::Wrote save data file " << filename <<  "\n";
+
+	return true;
+}

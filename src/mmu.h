@@ -23,6 +23,17 @@ class MMU
 {
 	public:
 
+	//Cartridge save-type enumerations
+	enum backup_types
+	{
+		NONE,
+		EEPROM,
+		FLASH,
+		SRAM
+	};
+
+	backup_types current_save_type;
+
 	std::vector <u8> memory_map;
 
 	bool bios_lock;
@@ -62,6 +73,8 @@ class MMU
 	void write_u32(u32 address, u32 value);
 
 	bool read_file(std::string filename);
+	bool save_backup(std::string filename);
+	bool load_backup(std::string filename);
 
 	GamePad* g_pad;
 };
