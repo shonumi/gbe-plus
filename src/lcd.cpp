@@ -67,7 +67,7 @@ bool LCD::init()
 	return true;
 }
 
-/****** Updates all OAM when values in memory change ******/
+/****** Updates OAM entries when values in memory change ******/
 void LCD::update_oam()
 {
 	mem->lcd_updates.oam_update = false;
@@ -77,61 +77,67 @@ void LCD::update_oam()
 
 	for(int x = 0; x < 128; x++)
 	{
-		//Read and parse Attribute 0
-		attribute = mem->read_u16(oam_ptr);
-		oam_ptr += 2;
-
-		obj[x].y = (attribute & 0xFF);
-		obj[x].bit_depth = (attribute & 0x2000) ? 8 : 4;
-		obj[x].shape = (attribute >> 14);
-
-		//Read and parse Attribute 1
-		attribute = mem->read_u16(oam_ptr);
-		oam_ptr += 2;
-
-		obj[x].x = (attribute & 0x1FF);
-		obj[x].h_flip = (attribute & 0x1000) ? true : false;
-		obj[x].v_flip = (attribute & 0x2000) ? true : false;
-		obj[x].size = (attribute >> 14);
-
-		//Read and parse Attribute 2
-		attribute = mem->read_u16(oam_ptr);
-		oam_ptr += 4;
-
-		obj[x].tile_number = (attribute & 0x3FF);
-		obj[x].bg_priority = ((attribute >> 10) & 0x3);
-		obj[x].palette_number = ((attribute >> 12) & 0xF); 
-
-		//Determine dimensions of the sprite
-		switch(obj[x].size)
+		//Update if OAM entry has changed
+		if(mem->lcd_updates.oam_update_list[x])
 		{
-			//Size 0 - 8x8, 16x8, 8x16
-			case 0x0:
-				if(obj[x].shape == 0) { obj[x].width = 8; obj[x].height = 8; }
-				else if(obj[x].shape == 1) { obj[x].width = 16; obj[x].height = 8; }
-				else if(obj[x].shape == 2) { obj[x].width = 8; obj[x].height = 16; }
-				break;
+			mem->lcd_updates.oam_update_list[x] = false;
 
-			//Size 1 - 16x16, 32x8, 8x32
-			case 0x1:
-				if(obj[x].shape == 0) { obj[x].width = 16; obj[x].height = 16; }
-				else if(obj[x].shape == 1) { obj[x].width = 32; obj[x].height = 8; }
-				else if(obj[x].shape == 2) { obj[x].width = 8; obj[x].height = 32; }
-				break;
+			//Read and parse Attribute 0
+			attribute = mem->read_u16(oam_ptr);
+			oam_ptr += 2;
 
-			//Size 2 - 32x32, 32x16, 16x32
-			case 0x2:
-				if(obj[x].shape == 0) { obj[x].width = 32; obj[x].height = 32; }
-				else if(obj[x].shape == 1) { obj[x].width = 32; obj[x].height = 16; }
-				else if(obj[x].shape == 2) { obj[x].width = 16; obj[x].height = 32; }
-				break;
+			obj[x].y = (attribute & 0xFF);
+			obj[x].bit_depth = (attribute & 0x2000) ? 8 : 4;
+			obj[x].shape = (attribute >> 14);
 
-			//Size 3 - 64x64, 64x32, 32x64
-			case 0x3:
-				if(obj[x].shape == 0) { obj[x].width = 64; obj[x].height = 64; }
-				else if(obj[x].shape == 1) { obj[x].width = 64; obj[x].height = 32; }
-				else if(obj[x].shape == 2) { obj[x].width = 32; obj[x].height = 64; }
-				break;
+			//Read and parse Attribute 1
+			attribute = mem->read_u16(oam_ptr);
+			oam_ptr += 2;
+
+			obj[x].x = (attribute & 0x1FF);
+			obj[x].h_flip = (attribute & 0x1000) ? true : false;
+			obj[x].v_flip = (attribute & 0x2000) ? true : false;
+			obj[x].size = (attribute >> 14);
+
+			//Read and parse Attribute 2
+			attribute = mem->read_u16(oam_ptr);
+			oam_ptr += 4;
+
+			obj[x].tile_number = (attribute & 0x3FF);
+			obj[x].bg_priority = ((attribute >> 10) & 0x3);
+			obj[x].palette_number = ((attribute >> 12) & 0xF); 
+
+			//Determine dimensions of the sprite
+			switch(obj[x].size)
+			{
+				//Size 0 - 8x8, 16x8, 8x16
+				case 0x0:
+					if(obj[x].shape == 0) { obj[x].width = 8; obj[x].height = 8; }
+					else if(obj[x].shape == 1) { obj[x].width = 16; obj[x].height = 8; }
+					else if(obj[x].shape == 2) { obj[x].width = 8; obj[x].height = 16; }
+					break;
+
+				//Size 1 - 16x16, 32x8, 8x32
+				case 0x1:
+					if(obj[x].shape == 0) { obj[x].width = 16; obj[x].height = 16; }
+					else if(obj[x].shape == 1) { obj[x].width = 32; obj[x].height = 8; }
+					else if(obj[x].shape == 2) { obj[x].width = 8; obj[x].height = 32; }
+					break;
+
+				//Size 2 - 32x32, 32x16, 16x32
+				case 0x2:
+					if(obj[x].shape == 0) { obj[x].width = 32; obj[x].height = 32; }
+					else if(obj[x].shape == 1) { obj[x].width = 32; obj[x].height = 16; }
+					else if(obj[x].shape == 2) { obj[x].width = 16; obj[x].height = 32; }
+					break;
+
+				//Size 3 - 64x64, 64x32, 32x64
+				case 0x3:
+					if(obj[x].shape == 0) { obj[x].width = 64; obj[x].height = 64; }
+					else if(obj[x].shape == 1) { obj[x].width = 64; obj[x].height = 32; }
+					else if(obj[x].shape == 2) { obj[x].width = 32; obj[x].height = 64; }
+					break;
+			}
 		}
 	}
 }

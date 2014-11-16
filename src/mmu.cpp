@@ -34,6 +34,7 @@ MMU::MMU()
 	dma[0].enable = dma[1].enable = dma[2].enable = dma[3].enable = false;
 
 	lcd_updates.oam_update = false;
+	lcd_updates.oam_update_list.resize(128, false);
 
 	current_save_type = NONE;
 
@@ -161,6 +162,7 @@ void MMU::write_u8(u32 address, u8 value)
 	else if((address >= 0x07000000) && (address <= 0x070003FF))
 	{
 		lcd_updates.oam_update = true;
+		lcd_updates.oam_update_list[(address & 0x3FF) >> 3] = true;
 	}
 }
 

@@ -59,6 +59,7 @@ class MMU
 	struct lcd_triggers
 	{
 		bool oam_update;
+		std::vector<bool> oam_update_list;
 	} lcd_updates;
 
 	MMU();
