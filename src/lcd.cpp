@@ -177,9 +177,9 @@ bool LCD::render_sprite_pixel()
 	if(!render_sprite) { return false; }
 
 	//Cycle through all sprites that are rendering on this pixel, draw them according to their priority
-	for(int x = obj_render_length; x > 0; x--)
+	for(int x = 0; x < obj_render_length; x++)
 	{
-		sprite_id = obj_render_list[x-1];
+		sprite_id = obj_render_list[x];
 
 		//Determine the internal X-Y coordinates of the sprite's pixel
 		u16 sprite_tile_pixel_x = scanline_pixel_counter - obj[sprite_id].x;
@@ -291,10 +291,13 @@ bool LCD::render_sprite_pixel()
 			u32 final_color =  0xFF000000 | (red << 16) | (green << 8) | (blue);
 
 			scanline_buffer[scanline_pixel_counter] = final_color;
+
+			return true;
 		}
 	}
 
-	return true;
+	//Return false if nothing was drawn
+	return false;
 }
 
 /****** Determines if a background pixel should be rendered, and if so draws it to the current scanline pixel ******/
