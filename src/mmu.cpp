@@ -314,9 +314,9 @@ bool MMU::save_backup(std::string filename)
 		//Write the data to a file
 		file.write(reinterpret_cast<char*> (&save_data[0]), 0x7FFF);
 		file.close();
-	}
 
-	std::cout<<"MMU::Wrote save data file " << filename <<  "\n";
+		std::cout<<"MMU::Wrote save data file " << filename <<  "\n";
+	}
 
 	return true;
 }
