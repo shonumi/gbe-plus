@@ -66,6 +66,7 @@ class LCD
 
 	u8 obj_render_list[128];
 	u8 obj_render_length;
+	u8 last_obj_priority;
 
 	//Screen pixel buffer
 	std::vector<u32> scanline_buffer;

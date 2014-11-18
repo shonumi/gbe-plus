@@ -279,6 +279,8 @@ bool LCD::render_sprite_pixel()
 		//Only draw sprite pixel if it is not transparent, e.g. not Color #0 of a palette
 		if(raw_color != 0)
 		{
+			last_obj_priority = obj[sprite_id].bg_priority;
+			
 			//ARGB conversion
 			u8 red = ((color_bytes & 0x1F) * 8);
 			color_bytes >>= 5;
@@ -315,7 +317,7 @@ bool LCD::render_bg_pixel(u32 bg_control)
 	{
 		//BG Mode 0
 		case 0:
-			render_bg_mode_0(bg_control); break;
+			return render_bg_mode_0(bg_control); break;
 
 		//BG Mode 1
 		//case 1:
@@ -323,10 +325,11 @@ bool LCD::render_bg_pixel(u32 bg_control)
 
 		//BG Mode 4
 		case 4:
-			render_bg_mode_4(bg_control); break;
+			return render_bg_mode_4(bg_control); break;
 
 		default:
 			std::cout<<"LCD::invalid or unsupported BG Mode : " << std::dec << (display_control & 0x7);
+			return false;
 	}
 }
 
@@ -562,6 +565,9 @@ bool LCD::render_bg_mode_4(u32 bg_control)
 /****** Render pixels for a given scanline (per-pixel) ******/
 void LCD::render_scanline()
 {
+	bool obj_render = false;
+	last_obj_priority = 0xFF;
+
 	//Use BG Palette #0, Color #0 as the backdrop
 	u16 color_bytes = mem->read_u16(0x5000000);
 	u8 red = ((color_bytes & 0x1F) * 8);
@@ -576,6 +582,9 @@ void LCD::render_scanline()
 
 	scanline_buffer[scanline_pixel_counter] = final_color;
 
+	//Render sprites
+	obj_render = render_sprite_pixel();
+
 	//Grab BG priorities 
 	u8 priority_0 = mem->read_u16(BG0CNT) & 0x3;
 	u8 priority_1 = mem->read_u16(BG1CNT) & 0x3;
@@ -583,16 +592,32 @@ void LCD::render_scanline()
 	u8 priority_3 = mem->read_u16(BG3CNT) & 0x3;
 
 	//Render BGs based on priority (3 is the 'lowest', 0 is the 'highest')
-	for(int x = 3; x >= 0; x--)
+	for(int x = 0; x <= 3; x++)
 	{
-		if(priority_3 == x) { render_bg_pixel(BG3CNT); }
-		if(priority_2 == x) { render_bg_pixel(BG2CNT); }
-		if(priority_1 == x) { render_bg_pixel(BG1CNT); }
-		if(priority_0 == x) { render_bg_pixel(BG0CNT); }
-	}
+		if(priority_0 == x) 
+		{
+			if((obj_render) && (last_obj_priority <= x)) { return; }
+			if(render_bg_pixel(BG0CNT)) { return; } 
+		}
 
-	//Render sprites
-	render_sprite_pixel();
+		if(priority_1 == x) 
+		{
+			if((obj_render) && (last_obj_priority <= x)) { return; }
+			if(render_bg_pixel(BG1CNT)) { return; } 
+		}
+
+		if(priority_2 == x) 
+		{
+			if((obj_render) && (last_obj_priority <= x)) { return; }
+			if(render_bg_pixel(BG2CNT)) { return; } 
+		}
+
+		if(priority_3 == x) 
+		{
+			if((obj_render) && (last_obj_priority <= x)) { return; }
+			if(render_bg_pixel(BG3CNT)) { return; } 
+		}
+	}
 }
 
 /****** Run LCD for one cycle ******/
