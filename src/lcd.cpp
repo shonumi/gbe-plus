@@ -142,12 +142,69 @@ void LCD::update_oam()
 	}
 }
 
+/****** Updates palette entries when values in memory change ******/
+void LCD::update_palettes()
+{
+	//Update BG palettes
+	if(mem->lcd_updates.bg_pal_update)
+	{
+		mem->lcd_updates.bg_pal_update = false;
+
+		//Cycle through all updates to BG palettes
+		for(int x = 0; x < 256; x++)
+		{
+			//If this palette has been updated, convert to ARGB
+			if(mem->lcd_updates.bg_pal_update_list[x])
+			{
+				mem->lcd_updates.bg_pal_update_list[x] = false;
+
+				u16 color_bytes = mem->read_u16(0x5000000 + (x * 2));
+
+				u8 red = ((color_bytes & 0x1F) * 8);
+				color_bytes >>= 5;
+
+				u8 green = ((color_bytes & 0x1F) * 8);
+				color_bytes >>= 5;
+
+				u8 blue = ((color_bytes & 0x1F) * 8);
+
+				pal[x][0] =  0xFF000000 | (red << 16) | (green << 8) | (blue);
+			}
+		}
+	}
+
+	//Update OBJ palettes
+	if(mem->lcd_updates.obj_pal_update)
+	{
+		mem->lcd_updates.obj_pal_update = false;
+
+		//Cycle through all updates to OBJ palettes
+		for(int x = 0; x < 256; x++)
+		{
+			//If this palette has been updated, convert to ARGB
+			if(mem->lcd_updates.obj_pal_update_list[x])
+			{
+				mem->lcd_updates.obj_pal_update_list[x] = false;
+
+				u16 color_bytes = mem->read_u16(0x5000200 + (x * 2));
+
+				u8 red = ((color_bytes & 0x1F) * 8);
+				color_bytes >>= 5;
+
+				u8 green = ((color_bytes & 0x1F) * 8);
+				color_bytes >>= 5;
+
+				u8 blue = ((color_bytes & 0x1F) * 8);
+
+				pal[x][1] =  0xFF000000 | (red << 16) | (green << 8) | (blue);
+			}
+		}
+	}
+}
+
 /****** Determines if a sprite pixel should be rendered, and if so draws it to the current scanline pixel ******/
 bool LCD::render_sprite_pixel()
 {
-	//TODO - Account for BG priorities
-	//TODO - Horizontal + Vertical flipping
-
 	//If sprites are disabled, quit now
 	if((mem->read_u16(DISPCNT) & 0x1000) == 0) { return false; }
 
@@ -253,7 +310,6 @@ bool LCD::render_sprite_pixel()
 		meta_y = (sprite_tile_pixel_y % 8);
 
 		u8 sprite_tile_pixel = (meta_y * 8) + meta_x;
-		u16 color_bytes = 0;
 
 		//Grab the byte corresponding to (sprite_tile_pixel), render it as ARGB - 4-bit version
 		if(obj[sprite_id].bit_depth == 4)
@@ -264,7 +320,12 @@ bool LCD::render_sprite_pixel()
 			if((sprite_tile_pixel % 2) == 0) { raw_color &= 0xF; }
 			else { raw_color >>= 4; }
 
-			color_bytes = mem->read_u16(0x5000200 + (obj[sprite_id].palette_number * 32) + (raw_color * 2));
+			if(raw_color != 0) 
+			{
+				scanline_buffer[scanline_pixel_counter] = pal[((obj[sprite_id].palette_number * 32) + (raw_color * 2)) >> 1][1];
+				last_obj_priority = obj[sprite_id].bg_priority;
+				return true;
+			}
 		}
 
 		//Grab the byte corresponding to (sprite_tile_pixel), render it as ARGB - 8-bit version
@@ -273,28 +334,12 @@ bool LCD::render_sprite_pixel()
 			sprite_tile_addr += sprite_tile_pixel;
 			raw_color = mem->read_u8(sprite_tile_addr);
 
-			color_bytes = mem->read_u16(0x5000200 + (raw_color * 2));
-		}
-
-		//Only draw sprite pixel if it is not transparent, e.g. not Color #0 of a palette
-		if(raw_color != 0)
-		{
-			last_obj_priority = obj[sprite_id].bg_priority;
-			
-			//ARGB conversion
-			u8 red = ((color_bytes & 0x1F) * 8);
-			color_bytes >>= 5;
-
-			u8 green = ((color_bytes & 0x1F) * 8);
-			color_bytes >>= 5;
-
-			u8 blue = ((color_bytes & 0x1F) * 8);
-
-			u32 final_color =  0xFF000000 | (red << 16) | (green << 8) | (blue);
-
-			scanline_buffer[scanline_pixel_counter] = final_color;
-
-			return true;
+			if(raw_color != 0) 
+			{
+				scanline_buffer[scanline_pixel_counter] = pal[raw_color][1];
+				last_obj_priority = obj[sprite_id].bg_priority;
+				return true;
+			}
 		}
 	}
 
@@ -490,7 +535,6 @@ bool LCD::render_bg_mode_0(u32 bg_control)
 	}
 
 	u8 current_tile_pixel = ((current_tile_pixel_y % 8) * 8) + (current_tile_pixel_x % 8);
-	u16 color_bytes = 0;
 
 	//Grab the byte corresponding to (current_tile_pixel), render it as ARGB - 4-bit version
 	if(bit_depth == 4)
@@ -504,7 +548,7 @@ bool LCD::render_bg_mode_0(u32 bg_control)
 		//If the bg color is transparent, abort drawing
 		if(raw_color == 0) { return false; }
 
-		color_bytes = mem->read_u16(0x5000000 + (palette_number * 32) + (raw_color * 2));
+		scanline_buffer[scanline_pixel_counter] = pal[((palette_number * 32) + (raw_color * 2)) >> 1][0];
 	}
 
 	//Grab the byte corresponding to (current_tile_pixel), render it as ARGB - 8-bit version
@@ -516,21 +560,8 @@ bool LCD::render_bg_mode_0(u32 bg_control)
 		//If the bg color is transparent, abort drawing
 		if(raw_color == 0) { return false; }
 
-		color_bytes = mem->read_u16(0x5000000 + (raw_color * 2));
+		scanline_buffer[scanline_pixel_counter] = pal[raw_color][0];
 	}
-
-	//ARGB conversion
-	u8 red = ((color_bytes & 0x1F) * 8);
-	color_bytes >>= 5;
-
-	u8 green = ((color_bytes & 0x1F) * 8);
-	color_bytes >>= 5;
-
-	u8 blue = ((color_bytes & 0x1F) * 8);
-
-	u32 final_color =  0xFF000000 | (red << 16) | (green << 8) | (blue);
-
-	scanline_buffer[scanline_pixel_counter] = final_color;
 
 	return true;
 }
@@ -569,18 +600,7 @@ void LCD::render_scanline()
 	last_obj_priority = 0xFF;
 
 	//Use BG Palette #0, Color #0 as the backdrop
-	u16 color_bytes = mem->read_u16(0x5000000);
-	u8 red = ((color_bytes & 0x1F) * 8);
-	color_bytes >>= 5;
-
-	u8 green = ((color_bytes & 0x1F) * 8);
-	color_bytes >>= 5;
-
-	u8 blue = ((color_bytes & 0x1F) * 8);
-
-	u32 final_color =  0xFF000000 | (red << 16) | (green << 8) | (blue);
-
-	scanline_buffer[scanline_pixel_counter] = final_color;
+	scanline_buffer[scanline_pixel_counter] = pal[0][0];
 
 	//Render sprites
 	obj_render = render_sprite_pixel();
@@ -640,6 +660,9 @@ void LCD::step()
 		//Render scanline data (per-pixel every 4 cycles)
 		if((lcd_clock % 4) == 0) 
 		{
+			//Update palettes if necessary before rendering
+			if((mem->lcd_updates.bg_pal_update) || (mem->lcd_updates.obj_pal_update)) { update_palettes(); }
+
 			render_scanline();
 			scanline_pixel_counter++;
 		}

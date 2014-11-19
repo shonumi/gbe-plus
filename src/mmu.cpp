@@ -36,6 +36,12 @@ MMU::MMU()
 	lcd_updates.oam_update = false;
 	lcd_updates.oam_update_list.resize(128, false);
 
+	lcd_updates.bg_pal_update = true;
+	lcd_updates.bg_pal_update_list.resize(256, true);
+
+	lcd_updates.obj_pal_update = true;
+	lcd_updates.obj_pal_update_list.resize(256, true);
+
 	current_save_type = NONE;
 
 	std::cout<<"MMU::Initialized\n";
@@ -151,11 +157,25 @@ void MMU::write_u8(u32 address, u8 value)
 			memory_map[address] = value;
 	}
 
-	//Mirror memory from 0x03007FXX to 0x03FFFFXX
-	if((address >= 0x03007F00) && (address <= 0x03007FFF)) 
+	//Mirror memory from 0x3007FXX to 0x3FFFFXX
+	if((address >= 0x3007F00) && (address <= 0x3007FFF)) 
 	{
 		u32 mirror_addr = 0x03FFFF00 + (address & 0xFF);
 		memory_map[mirror_addr] = value;
+	}
+
+	//Trigger BG palette update in LCD
+	else if((address >= 0x5000000) && (address <= 0x50001FF))
+	{
+		lcd_updates.bg_pal_update = true;
+		lcd_updates.bg_pal_update_list[(address & 0x1FF) >> 1] = true;
+	}
+
+	//Trigger OBJ palette update in LCD
+	else if((address >= 0x5000200) && (address <= 0x50003FF))
+	{
+		lcd_updates.obj_pal_update = true;
+		lcd_updates.obj_pal_update_list[(address & 0x1FF) >> 1] = true;
 	}
 
 	//Trigger OAM update in LCD

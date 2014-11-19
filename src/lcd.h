@@ -40,6 +40,7 @@ class LCD
 	private:
 
 	void update_oam();
+	void update_palettes();
 
 	struct oam_entries
 	{
@@ -67,6 +68,8 @@ class LCD
 	u8 obj_render_list[128];
 	u8 obj_render_length;
 	u8 last_obj_priority;
+
+	u32 pal[256][2];
 
 	//Screen pixel buffer
 	std::vector<u32> scanline_buffer;
