@@ -42,6 +42,8 @@ MMU::MMU()
 	lcd_updates.obj_pal_update = true;
 	lcd_updates.obj_pal_update_list.resize(256, true);
 
+	lcd_updates.bg_offset_update = false;
+
 	current_save_type = NONE;
 
 	std::cout<<"MMU::Initialized\n";
@@ -162,6 +164,11 @@ void MMU::write_u8(u32 address, u8 value)
 	{
 		u32 mirror_addr = 0x03FFFF00 + (address & 0xFF);
 		memory_map[mirror_addr] = value;
+	}
+
+	else if((address >= 0x4000010) && (address <= 0x400001F))
+	{
+		lcd_updates.bg_offset_update = true;
 	}
 
 	//Trigger BG palette update in LCD

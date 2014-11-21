@@ -41,6 +41,7 @@ class LCD
 
 	void update_oam();
 	void update_palettes();
+	void update_bg_offset();
 
 	struct oam_entries
 	{
@@ -70,6 +71,8 @@ class LCD
 	u8 last_obj_priority;
 
 	u32 pal[256][2];
+	u16 bg_offset_x[4];
+	u16 bg_offset_y[4];
 
 	//Screen pixel buffer
 	std::vector<u32> scanline_buffer;
