@@ -61,7 +61,8 @@ void ARM7::process_swi(u32 comment)
 
 		//Sqrt
 		case 0x8:
-			std::cout<<"SWI::Square Root (not implemented yet) \n";
+			swi_sqrt();
+			std::cout<<"SWI::Square Root \n";
 			break;
 
 		//ArcTan
@@ -275,6 +276,19 @@ void ARM7::swi_div()
 	//R3 = absolute value of division
 	if(result < 0) { result *= -1; }
 	set_reg(3, result);
+}
+
+/****** HLE implementation of Sqrt ******/
+void ARM7::swi_sqrt()
+{
+	bios_read_state = BIOS_SWI_FINISH;
+
+	//Grab input
+	u32 input = get_reg(0);
+
+	//Set result of operation
+	u16 result = sqrt(input);
+	set_reg(0, result);
 }
 
 /****** HLE implementation of CPUFastSet ******/
