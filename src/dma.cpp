@@ -30,6 +30,8 @@ void ARM7::dma0()
 		mem->dma[0].src_addr_ctrl = (mem->read_u16(DMA0CNT_H) >> 7) & 0x3;
 
 		u32 temp_value = 0;
+		u32 original_src_addr = mem->dma[3].start_address;
+		u32 original_dest_addr = mem->dma[3].destination_address;
 
 		//Check DMA Start Timings
 		switch(((mem->dma[0].control >> 12) & 0x3))
@@ -50,12 +52,12 @@ void ARM7::dma0()
 						//Update DMA0 Start Address
 						if(mem->dma[0].src_addr_ctrl == 0) { mem->dma[0].start_address += 2; }
 						else if(mem->dma[0].src_addr_ctrl == 1) { mem->dma[0].start_address -= 2; }
-						else if(mem->dma[0].src_addr_ctrl == 3) { std::cout<<"Panic here!\n"; }
+						else if(mem->dma[0].src_addr_ctrl == 3) { mem->dma[0].start_address += 2; }
 
 						//Update DMA0 Destination Address
 						if(mem->dma[0].dest_addr_ctrl == 0) { mem->dma[0].destination_address += 2; }
-						else if(mem->dma[0].src_addr_ctrl == 1) { mem->dma[0].destination_address -= 2; }
-						else if(mem->dma[0].src_addr_ctrl == 3) { std::cout<<"Panic here also!\n"; }
+						else if(mem->dma[0].dest_addr_ctrl == 1) { mem->dma[0].destination_address -= 2; }
+						else if(mem->dma[0].dest_addr_ctrl == 3) { mem->dma[0].destination_address += 2; }
 
 						mem->dma[0].word_count--;
 					}
@@ -72,15 +74,19 @@ void ARM7::dma0()
 						//Update DMA0 Start Address
 						if(mem->dma[0].src_addr_ctrl == 0) { mem->dma[0].start_address += 4; }
 						else if(mem->dma[0].src_addr_ctrl == 1) { mem->dma[0].start_address -= 4; }
-						else if(mem->dma[0].src_addr_ctrl == 3) { std::cout<<"Panic here!\n"; }
+						else if(mem->dma[0].src_addr_ctrl == 3) { mem->dma[0].start_address += 4; }
 
 						//Update DMA0 Destination Address
 						if(mem->dma[0].dest_addr_ctrl == 0) { mem->dma[0].destination_address += 4; }
-						else if(mem->dma[0].src_addr_ctrl == 1) { mem->dma[0].destination_address -= 4; }
-						else if(mem->dma[0].src_addr_ctrl == 3) { std::cout<<"Panic here also!\n"; }
+						else if(mem->dma[0].dest_addr_ctrl == 1) { mem->dma[0].destination_address -= 4; }
+						else if(mem->dma[0].dest_addr_ctrl == 3) { mem->dma[0].destination_address += 4; }
 
 						mem->dma[0].word_count--;
 					}
+
+					//Reload if control flags are set to 0x3
+					if(mem->dma[0].src_addr_ctrl == 3) { mem->dma[0].src_addr_ctrl = original_src_addr; }
+					if(mem->dma[0].dest_addr_ctrl == 3) { mem->dma[0].dest_addr_ctrl = original_dest_addr; }
 				}
 
 				mem->dma[0].enable = false;
@@ -126,6 +132,8 @@ void ARM7::dma3()
 		mem->dma[3].src_addr_ctrl = (mem->read_u16(DMA3CNT_H) >> 7) & 0x3;
 
 		u32 temp_value = 0;
+		u32 original_src_addr = mem->dma[3].start_address;
+		u32 original_dest_addr = mem->dma[3].destination_address;
 
 		//Check DMA Start Timings
 		switch(((mem->dma[3].control >> 12) & 0x3))
@@ -146,12 +154,12 @@ void ARM7::dma3()
 						//Update DMA3 Start Address
 						if(mem->dma[3].src_addr_ctrl == 0) { mem->dma[3].start_address += 2; }
 						else if(mem->dma[3].src_addr_ctrl == 1) { mem->dma[3].start_address -= 2; }
-						else if(mem->dma[3].src_addr_ctrl == 3) { std::cout<<"Panic here!\n"; }
+						else if(mem->dma[3].src_addr_ctrl == 3) { mem->dma[3].start_address += 2; }
 
 						//Update DMA3 Destination Address
 						if(mem->dma[3].dest_addr_ctrl == 0) { mem->dma[3].destination_address += 2; }
-						else if(mem->dma[3].src_addr_ctrl == 1) { mem->dma[3].destination_address -= 2; }
-						else if(mem->dma[3].src_addr_ctrl == 3) { std::cout<<"Panic here also!\n"; }
+						else if(mem->dma[3].dest_addr_ctrl == 1) { mem->dma[3].destination_address -= 2; }
+						else if(mem->dma[3].dest_addr_ctrl == 3) { mem->dma[3].destination_address += 2; }
 
 						mem->dma[3].word_count--;
 					}
@@ -168,15 +176,19 @@ void ARM7::dma3()
 						//Update DMA3 Start Address
 						if(mem->dma[3].src_addr_ctrl == 0) { mem->dma[3].start_address += 4; }
 						else if(mem->dma[3].src_addr_ctrl == 1) { mem->dma[3].start_address -= 4; }
-						else if(mem->dma[3].src_addr_ctrl == 3) { std::cout<<"Panic here!\n"; }
+						else if(mem->dma[3].src_addr_ctrl == 3) { mem->dma[3].start_address += 4; }
 
 						//Update DMA3 Destination Address
 						if(mem->dma[3].dest_addr_ctrl == 0) { mem->dma[3].destination_address += 4; }
-						else if(mem->dma[3].src_addr_ctrl == 1) { mem->dma[3].destination_address -= 4; }
-						else if(mem->dma[3].src_addr_ctrl == 3) { std::cout<<"Panic here also!\n"; }
+						else if(mem->dma[3].dest_addr_ctrl == 1) { mem->dma[3].destination_address -= 4; }
+						else if(mem->dma[3].dest_addr_ctrl == 3) { mem->dma[3].destination_address += 4; }
 
 						mem->dma[3].word_count--;
 					}
+
+					//Reload if control flags are set to 0x3
+					if(mem->dma[3].src_addr_ctrl == 3) { mem->dma[3].src_addr_ctrl = original_src_addr; }
+					if(mem->dma[3].dest_addr_ctrl == 3) { mem->dma[3].dest_addr_ctrl = original_dest_addr; }
 				}
 
 				mem->dma[3].enable = false;
