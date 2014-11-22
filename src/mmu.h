@@ -36,6 +36,10 @@ class MMU
 
 	std::vector <u8> memory_map;
 
+	//Memory access timings (Nonsequential and Sequential)
+	u8 n_clock;
+	u8 s_clock;
+
 	bool bios_lock;
 
 	//Structure to handle DMA transfes

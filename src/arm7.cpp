@@ -1175,35 +1175,11 @@ void ARM7::clock(u32 access_addr, bool first_access)
 	//Wait State 0
 	if((access_addr >= 0x8000000) && (access_addr <= 0x9FFFFFF))
 	{
-		u16 wait_control = mem->read_u16(0x4000204);
-
 		//Determine first access cycles (Non-Sequential)
-		if(first_access)
-		{
-			wait_control >>= 2; 
-			wait_control &= 0x3;
-
-			switch(wait_control)
-			{
-				case 0x0: access_cycles += 4; break;
-				case 0x1: access_cycles += 3; break;
-				case 0x2: access_cycles += 2; break;
-				case 0x3: access_cycles += 8; break;
-			}
-		}
+		if(first_access) { access_cycles += mem->n_clock;  }
 
 		//Determine second access cycles (Sequential)
-		else
-		{
-			wait_control >>= 4;
-			wait_control &= 0x1;
-
-			switch(wait_control)
-			{
-				case 0x0: access_cycles += 2; break;
-				case 0x1: access_cycles += 1; break;
-			}
-		}
+		else { access_cycles += mem->s_clock; }
 	}
 
 	//Run controllers for each cycle		 

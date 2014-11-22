@@ -31,6 +31,10 @@ MMU::MMU()
 
 	bios_lock = true;
 
+	//Default memory access timings (4, 2)
+	n_clock = 4;
+	s_clock = 2;
+
 	dma[0].enable = dma[1].enable = dma[2].enable = dma[3].enable = false;
 
 	lcd_updates.oam_update = false;
@@ -154,6 +158,31 @@ void MMU::write_u8(u32 address, u8 value)
 			break;
 
 		case KEYINPUT: break;
+
+		case WAITCNT:
+		case WAITCNT+1:
+			{
+				memory_map[address] = value;
+				u16 wait_control = read_u16(WAITCNT);
+
+				//Determine first access cycles (Non-Sequential)
+				switch((wait_control >> 2) & 0x3)
+				{
+					case 0x0: n_clock = 4; break;
+					case 0x1: n_clock = 3; break;
+					case 0x2: n_clock = 2; break;
+					case 0x3: n_clock = 8; break;
+				}
+
+				//Determine second access cycles (Sequential)
+				switch((wait_control >> 4) & 0x1)
+				{
+					case 0x0: s_clock = 2; break;
+					case 0x1: s_clock = 1; break;
+				}
+			}
+
+			break;
 
 		default:
 			memory_map[address] = value;

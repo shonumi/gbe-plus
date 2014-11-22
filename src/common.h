@@ -63,6 +63,9 @@ const u32 REG_IE = 0x4000200;
 const u32 REG_IF = 0x4000202;
 const u32 REG_IME = 0x4000208;
 
+/* Wait Control */
+const u32 WAITCNT = 0x4000204;
+
 /* DMA */
 const u32 DMA0SAD = 0x40000B0;
 const u32 DMA1SAD = 0x40000BC;
