@@ -210,6 +210,18 @@ void GamePad::process_keyboard(int pad, bool pressed)
 		if(up_shadow) { key_input &= ~0x40; }
 		else { key_input |= 0x40; } 
 	}
+
+	//Emulate R Trigger press
+	else if((pad == config::key_r_trigger) && (pressed)) { key_input |= 0x100; }
+
+	//Emulate R Trigger release
+	else if((pad == config::key_r_trigger) && (!pressed)) { key_input &= ~0x100; }
+
+	//Emulate L Trigger press
+	else if((pad == config::key_l_trigger) && (pressed)) { key_input |= 0x200; }
+
+	//Emulate L Trigger release
+	else if((pad == config::key_l_trigger) && (!pressed)) { key_input &= ~0x200; }
 }
 
 /****** Processes input based on unique pad # for joysticks ******/
@@ -262,4 +274,16 @@ void GamePad::process_joystick(int pad, bool pressed)
 
 	//Emulate Down DPad release
 	else if((pad == config::joy_down) && (!pressed)) { key_input |= 0x80; key_input |= 0x40; }
+
+	//Emulate R Trigger press
+	else if((pad == config::joy_r_trigger) && (pressed)) { key_input |= 0x100; }
+
+	//Emulate R Trigger release
+	else if((pad == config::joy_r_trigger) && (!pressed)) { key_input &= ~0x100; }
+
+	//Emulate L Trigger press
+	else if((pad == config::joy_l_trigger) && (pressed)) { key_input |= 0x200; }
+
+	//Emulate L Trigger release
+	else if((pad == config::joy_l_trigger) && (!pressed)) { key_input &= ~0x200; }
 }
