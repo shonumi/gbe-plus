@@ -30,8 +30,8 @@ void ARM7::dma0()
 		mem->dma[0].src_addr_ctrl = (mem->read_u16(DMA0CNT_H) >> 7) & 0x3;
 
 		u32 temp_value = 0;
-		u32 original_src_addr = mem->dma[3].start_address;
-		u32 original_dest_addr = mem->dma[3].destination_address;
+		u32 original_src_addr = mem->dma[0].start_address;
+		u32 original_dest_addr = mem->dma[0].destination_address;
 
 		//Check DMA Start Timings
 		switch(((mem->dma[0].control >> 12) & 0x3))
