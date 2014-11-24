@@ -34,6 +34,8 @@ namespace config
 
 	//Default joystick dead-zone
 	int dead_zone = 16000;
+
+	u32 flags = 0;
 }
 
 /****** Parse arguments passed from the command-line ******/

@@ -431,4 +431,15 @@ void Core::handle_hotkey(SDL_Event& event)
 	
 		SDL_SaveBMP(core_cpu.controllers.video.final_screen, save_name.c_str());
 	}
+
+	//Toggle Fullscreen on F12
+	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F12))
+	{
+		//Switch flags
+		if(config::flags == 0x80000000) { config::flags = 0; }
+		else { config::flags = 0x80000000; }
+
+		//Initialize the screen
+		core_cpu.controllers.video.final_screen = SDL_SetVideoMode(240, 160, 32, SDL_SWSURFACE | config::flags);
+	}
 }
