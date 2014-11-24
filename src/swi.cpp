@@ -29,7 +29,8 @@ void ARM7::process_swi(u32 comment)
 
 		//Halt
 		case 0x2:
-			std::cout<<"SWI::Halt (not implemented yet) \n";
+			std::cout<<"SWI::Halt \n";
+			swi_halt();
 			break;
 
 		//Stop-Sleep
@@ -77,13 +78,13 @@ void ARM7::process_swi(u32 comment)
 
 		//CPUSet
 		case 0xB:
-			std::cout<<"SWI::CPU Set \n";
+			//std::cout<<"SWI::CPU Set \n";
 			swi_cpuset();
 			break;
 
 		//CPUFastSet
 		case 0xC:
-			std::cout<<"SWI::CPU Fast Set \n";
+			//std::cout<<"SWI::CPU Fast Set \n";
 			swi_cpufastset();
 			break;
 
@@ -245,6 +246,31 @@ void ARM7::process_swi(u32 comment)
 		default:
 			std::cout<<"SWI::Error - Unknown BIOS function 0x" << std::hex << comment << "\n";
 			break;
+	}
+}
+
+/****** HLE implementation of Halt ******/
+void ARM7::swi_halt()
+{
+	bios_read_state = BIOS_SWI_FINISH;
+
+	u16 if_check, ie_check = 0; 
+	bool halt = true;
+
+	//Run controllers until an interrupt happens
+	while(halt)
+	{
+		clock();
+
+		if_check = mem->read_u16(REG_IF);
+		ie_check = mem->read_u16(REG_IE);
+
+		//Match up bits in IE and IF
+		for(int x = 0; x < 14; x++)
+		{
+			//When there is a match, exit HALT mode
+			if((ie_check & (1 << x)) && (if_check & (1 << x))) { halt = false; }
+		}
 	}
 }
 
