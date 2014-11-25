@@ -1086,6 +1086,7 @@ void ARM7::software_interrupt_breakpoint(u32 current_arm_instruction)
 
 	//Grab SWI comment - Bits 0-23
 	u32 comment = (current_arm_instruction & 0xFFFFFF);
+	comment >>= 16;
 
 	process_swi(comment);
 }
