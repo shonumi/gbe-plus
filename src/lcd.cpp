@@ -693,6 +693,9 @@ void LCD::step()
 			current_scanline++;
 			mem->write_u16(VCOUNT, current_scanline);
 			scanline_compare();
+	
+			//Start HBlank DMA
+			mem->start_blank_dma();
 		}
 	}
 
@@ -750,7 +753,10 @@ void LCD::step()
 			if(mem->memory_map[DISPSTAT] & 0x10) 
 			{ 
 				mem->memory_map[REG_IF] |= 0x2; 
-			} 
+			}
+
+			//Start HBlank DMA
+			mem->start_blank_dma();
 		}
 
 		//Reset LCD clock

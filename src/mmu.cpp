@@ -36,6 +36,7 @@ MMU::MMU()
 	s_clock = 2;
 
 	dma[0].enable = dma[1].enable = dma[2].enable = dma[3].enable = false;
+	dma[0].started = dma[1].started = dma[2].started = dma[3].started = false;
 
 	lcd_updates.oam_update = false;
 	lcd_updates.oam_update_list.resize(128, false);
@@ -375,4 +376,28 @@ bool MMU::save_backup(std::string filename)
 	}
 
 	return true;
+}
+
+/****** Start the DMA channels during blanking periods ******/
+void MMU::start_blank_dma()
+{
+	//Repeat bits automatically enable DMAs
+	if(dma[0].control & 0x200) { dma[0].enable; }
+	if(dma[3].control & 0x200) { dma[3].enable; }
+
+	//DMA0
+	if(dma[0].enable)
+	{
+		u8 dma_type = ((dma[0].control >> 12) & 0x3);
+		
+		if(dma_type == 2) { dma[0].started = true; }
+	}
+
+	//DMA3
+	if(dma[3].enable)
+	{
+		u8 dma_type = ((dma[3].control >> 12) & 0x3);
+		
+		if(dma_type == 2) { dma[3].started = true; }
+	}
 }

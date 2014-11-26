@@ -74,6 +74,8 @@ class MMU
 	MMU();
 	~MMU();
 
+	void start_blank_dma();
+
 	u8 read_u8(u32 address) const;
 	u16 read_u16(u32 address) const;
 	u32 read_u32(u32 address) const;
