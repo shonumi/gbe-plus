@@ -253,6 +253,7 @@ class ARM7
 
 	//HLE Software Interrupts (BIOS Calls)
 	void process_swi(u32 comment);
+	void swi_registerramreset();
 	void swi_div();
 	void swi_sqrt();
 	void swi_cpufastset();

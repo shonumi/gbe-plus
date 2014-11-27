@@ -24,12 +24,13 @@ void ARM7::process_swi(u32 comment)
 
 		//RegisterRAMReset
 		case 0x1:
-			std::cout<<"SWI::Register RAM Reset (not implemented yet) \n";
+			std::cout<<"SWI::Register RAM Reset \n";
+			swi_registerramreset();
 			break;
 
 		//Halt
 		case 0x2:
-			std::cout<<"SWI::Halt \n";
+			//std::cout<<"SWI::Halt \n";
 			swi_halt();
 			break;
 
@@ -51,7 +52,7 @@ void ARM7::process_swi(u32 comment)
 
 		//Div
 		case 0x6:
-			std::cout<<"SWI::Divide \n";
+			//std::cout<<"SWI::Divide \n";
 			swi_div();
 			break;
 
@@ -78,13 +79,13 @@ void ARM7::process_swi(u32 comment)
 
 		//CPUSet
 		case 0xB:
-			//std::cout<<"SWI::CPU Set \n";
+			std::cout<<"SWI::CPU Set \n";
 			swi_cpuset();
 			break;
 
 		//CPUFastSet
 		case 0xC:
-			//std::cout<<"SWI::CPU Fast Set \n";
+			std::cout<<"SWI::CPU Fast Set \n";
 			swi_cpufastset();
 			break;
 
@@ -246,6 +247,63 @@ void ARM7::process_swi(u32 comment)
 		default:
 			std::cout<<"SWI::Error - Unknown BIOS function 0x" << std::hex << comment << "\n";
 			break;
+	}
+}
+
+/****** HLE implementation of RegisterRAMReset ******/
+void ARM7::swi_registerramreset()
+{
+	bios_read_state = BIOS_SWI_FINISH;
+
+	//Grab reset flags - R0
+	u8 reset_flags = (get_reg(0) & 0xFF);
+	u32 x = 0;
+
+	//Clear 256K WRAM
+	if(reset_flags & 0x1)
+	{
+		for(x = 0x2000000; x < 0x2040000; x++) { mem->memory_map[x] = 0; }
+	}
+
+	//Clear 32KB WRAM, excluding the stack
+	if(reset_flags & 0x2)
+	{
+		for(x = 0x3000000; x < 0x3007E00; x++) { mem->memory_map[x] = 0; }
+	}
+
+	//Clear Palette VRAM
+	if(reset_flags & 0x4)
+	{
+	 	for(x = 0x5000000; x < 0x5000400; x++) { mem->memory_map[x] = 0; }
+	}
+
+	//Clear VRAM
+	if(reset_flags & 0x8)
+	{
+		for(x = 0x6000000; x < 0x6018000; x++) { mem->memory_map[x] = 0; }
+	}
+
+	//Clear OAM
+	if(reset_flags & 0x10)
+	{
+		for(x = 0x7000000; x < 0x7000400; x++) { mem->memory_map[x] = 0; }
+	}
+
+	//Reset SIO
+	//TODO - Probably only relevant when GBE+ implements multiplayer modes
+
+	//Reset Sound Registers
+	if(reset_flags & 0x40)
+	{
+		for(x = 0x4000060; x < 0x40000B0; x++) { mem->memory_map[x] = 0; }
+	}
+
+	//Reset all other registers (mainly display and timer registers?)
+	if(reset_flags & 0x80)
+	{
+		for(x = 0x4000000; x < 0x4000060; x++) { mem->memory_map[x] = 0; }
+		for(x = 0x4000100; x < 0x4000110; x++) { mem->memory_map[x] = 0; }
+		mem->write_u16(DISPCNT, 0x80);
 	}
 }
 
