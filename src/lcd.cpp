@@ -87,6 +87,7 @@ void LCD::update_oam()
 			oam_ptr += 2;
 
 			obj[x].y = (attribute & 0xFF);
+			obj[x].type = (attribute & 0x200) ? 1 : 0;
 			obj[x].bit_depth = (attribute & 0x2000) ? 8 : 4;
 			obj[x].shape = (attribute >> 14);
 
@@ -241,7 +242,7 @@ bool LCD::render_sprite_pixel()
 	for(int x = 0; x < 128; x++)
 	{
 		//Check to see if sprite is rendered on the current scanline
-		if((current_scanline >= obj[x].y) && (current_scanline <= (obj[x].y + obj[x].height - 1)))
+		if((obj[x].type == 0) && (current_scanline >= obj[x].y) && (current_scanline <= (obj[x].y + obj[x].height - 1)))
 		{
 			//Check to see if current_scanline_pixel is within sprite
 			if((scanline_pixel_counter >= obj[x].x) && (scanline_pixel_counter <= (obj[x].x + obj[x].width - 1)))
@@ -685,6 +686,7 @@ void LCD::step()
 			//Update palettes
 			if((mem->lcd_updates.bg_pal_update) || (mem->lcd_updates.obj_pal_update)) { update_palettes(); }
 
+			//Update BG offsets
 			if(mem->lcd_updates.bg_offset_update) { update_bg_offset(); }
 
 			render_scanline();

@@ -64,6 +64,7 @@ class LCD
 		u8 bg_priority;
 		u8 bit_depth;
 		u8 palette_number;
+		u8 type;
 	} obj[128];
 
 	u8 obj_render_list[128];
