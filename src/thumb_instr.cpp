@@ -1599,6 +1599,7 @@ void ARM7::long_branch_link(u16 current_thumb_instruction)
 		lbl_addr &= 0x7FFFFF;
 		reg.r15 &= ~0x7FFFFF;
 		reg.r15 |= lbl_addr;
+		reg.r15 &= ~0x1;
 
 		needs_flush = true;
 		set_reg(14, next_instr_addr);
