@@ -42,7 +42,7 @@ class MMU
 
 	bool bios_lock;
 
-	//Structure to handle DMA transfes
+	//Structure to handle DMA transfers
 	struct dma_controllers
 	{
 		bool enable;
@@ -58,6 +58,15 @@ class MMU
 		u8 delay;
 	} dma[4];
 
+	//Structure to handle EEPROM reading and writing
+	struct eeprom_controller
+	{
+		u8 bitstream_byte;
+		u16 address;
+		u32 dma_ptr;
+		std::vector <u8> data;
+	} eeprom;
+		
 	//Structure detailing actions LCD should take when certain memory areas are written to
 	//Only the LCD should read these (and subsequently reset them when applicable)
 	struct lcd_triggers
@@ -87,6 +96,10 @@ class MMU
 	bool read_file(std::string filename);
 	bool save_backup(std::string filename);
 	bool load_backup(std::string filename);
+
+	void eeprom_set_addr();
+	void eeprom_read_data();
+	void eeprom_write_data();
 
 	GamePad* g_pad;
 };

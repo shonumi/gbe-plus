@@ -16,6 +16,8 @@ MMU::MMU()
 	memory_map.clear();
 	memory_map.resize(0x10000000, 0);
 
+	eeprom.data.resize(0x200, 0);
+
 	//HLE stuff
 	memory_map[DISPCNT] = 0x80;
 
@@ -399,5 +401,91 @@ void MMU::start_blank_dma()
 		u8 dma_type = ((dma[3].control >> 12) & 0x3);
 		
 		if(dma_type == 2) { dma[3].started = true; }
+	}
+}
+
+/****** Set EEPROM read-write address ******/
+void MMU::eeprom_set_addr()
+{
+	//Clear EEPROM address
+	eeprom.address = 0;
+
+	//Skip 2 bits in the bitstream
+	eeprom.dma_ptr += 4;
+
+	//Read 6 bits from the bitstream, MSB 1st
+	//TODO - Make it work for 14 bits as well
+	u8 bits = 0x20;
+
+	for(int x = 0; x < 6; x++)
+	{
+		u16 bitstream = read_u16(eeprom.dma_ptr);
+		
+		//If bit 0 of the halfword in the bitstream is set, flip the bit for the EEPROM address as well
+		if(bitstream & 0x1) { eeprom.address |= bits; }
+
+		eeprom.dma_ptr += 2;
+		bits >>= 1;
+	}
+}
+
+/****** Read EEPROM data ******/
+void MMU::eeprom_read_data()
+{
+	//Get 8 bytes from EEPROM, write them to address pointed by the DMA
+	for(int x = 0; x < 8; x++)
+	{
+		u8 eeprom_byte = eeprom.data[(eeprom.address * 8) + x];
+		write_u8(eeprom.dma_ptr, eeprom_byte);
+		eeprom.dma_ptr++;
+	}
+}
+
+/****** Write EEPROM data ******/
+void MMU::eeprom_write_data()
+{
+	//Clear EEPROM address
+	eeprom.address = 0;
+
+	//Skip 2 bits in the bitstream
+	eeprom.dma_ptr += 4;
+
+	//Read 6 bits from the bitstream to get EEPROM address, MSB 1st
+	//TODO - Make it work for 14 bits as well
+	u8 bits = 0x20;
+
+	for(int x = 0; x < 6; x++)
+	{
+		u16 bitstream = read_u16(eeprom.dma_ptr);
+		
+		//If bit 0 of the halfword in the bitstream is set, flip the bit for the EEPROM address as well
+		if(bitstream & 0x1) { eeprom.address |= bits; }
+
+		eeprom.dma_ptr += 2;
+		bits >>= 1;
+	}
+
+	u8 temp_byte = 0;
+	u16 temp_addr = (eeprom.address * 8);
+	bits = 0x80;
+
+	//Read 64 bits from the bitstream to store at EEPROM address, MSB 1st
+	for(int x = 0; x < 64; x++)
+	{
+		u16 bitstream = read_u16(eeprom.dma_ptr);
+
+		if(bitstream & 0x1) { temp_byte |= bits; }
+
+		eeprom.dma_ptr += 2;
+		bits >>= 1;
+
+		//On the 8th bit, send the data to EEPROM, reload stuff
+		if(bits == 0) 
+		{
+			eeprom.data[temp_addr] = temp_byte;
+			temp_byte = 0;
+			temp_addr++;
+			bits = 0x80;
+		}
 	}
 }
