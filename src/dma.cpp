@@ -192,6 +192,31 @@ void ARM7::dma3()
 		u32 original_src_addr = mem->dma[3].start_address;
 		u32 original_dest_addr = mem->dma[3].destination_address;
 
+		//Read from EEPROM
+		if((mem->dma[3].start_address >= 0xD000000) && (mem->dma[3].start_address <= 0xDFFFFFF)) 
+		{
+			mem->eeprom.dma_ptr = mem->dma[3].destination_address;
+			mem->eeprom_read_data();
+
+			mem->dma[3].enable = false;
+			return;
+		}
+
+		//Write to EEPROM - Set address or write data
+		if((mem->dma[3].destination_address >= 0xD000000) && (mem->dma[3].destination_address <= 0xDFFFFFF)) 
+		{
+			mem->eeprom.dma_ptr = mem->dma[3].start_address;
+
+			//Set address
+			if((mem->read_u16(mem->eeprom.dma_ptr) & 0x1) && (mem->read_u16(mem->eeprom.dma_ptr+2) & 0x1)) { mem->eeprom_set_addr(); }
+			
+			//Write data
+			else if(mem->read_u8(mem->eeprom.dma_ptr) & 0x1) { mem->eeprom_write_data(); }
+			
+			mem->dma[3].enable = false; 
+			return;
+		}
+
 		//Check DMA Start Timings
 		switch(((mem->dma[3].control >> 12) & 0x3))
 		{

@@ -432,12 +432,32 @@ void MMU::eeprom_set_addr()
 /****** Read EEPROM data ******/
 void MMU::eeprom_read_data()
 {
-	//Get 8 bytes from EEPROM, write them to address pointed by the DMA
-	for(int x = 0; x < 8; x++)
+	//First 4 bits of the stream are ignored, send 0
+	for(int x = 0; x < 4; x++) 
+	{ 
+		write_u16(eeprom.dma_ptr, 0x0);
+		eeprom.dma_ptr += 2;
+	}
+	
+	u16 temp_addr = (eeprom.address * 8);
+	u8 bits = 0x80;
+
+	//Get 64 bits from EEPROM, MSB 1st, write them to address pointed by the DMA (as halfwords)
+	for(int x = 0; x < 64; x++)
 	{
-		u8 eeprom_byte = eeprom.data[(eeprom.address * 8) + x];
-		write_u8(eeprom.dma_ptr, eeprom_byte);
-		eeprom.dma_ptr++;
+		u8 bitstream = (eeprom.data[temp_addr] & bits) ? 1 : 0;
+		bits >>= 1;
+
+		//Write stream to address provided by DMA
+		write_u16(eeprom.dma_ptr, bitstream);
+		eeprom.dma_ptr += 2;
+
+		//On the 8th bit, move to next 8 bits in EEPROM, reload stuff
+		if(bits == 0) 
+		{
+			temp_addr++;
+			bits = 0x80;
+		}
 	}
 }
 
@@ -488,4 +508,6 @@ void MMU::eeprom_write_data()
 			bits = 0x80;
 		}
 	}
+
+	memory_map[0xD000000] = 0x1;
 }
