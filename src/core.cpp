@@ -442,4 +442,22 @@ void Core::handle_hotkey(SDL_Event& event)
 		//Initialize the screen
 		core_cpu.controllers.video.final_screen = SDL_SetVideoMode(240, 160, 32, SDL_SWSURFACE | config::flags);
 	}
+
+	//Pause emulation
+	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_PAUSE))
+	{
+		config::pause_emu = true;
+		std::cout<<"EMU::Paused\n";
+
+		//Delay until pause key is hit again
+		while(config::pause_emu)
+		{
+			SDL_Delay(50);
+			if((SDL_PollEvent(&event)) && (event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_PAUSE))
+			{
+				config::pause_emu = false;
+				std::cout<<"EMU::Unpaused\n";
+			}
+		}
+	}
 }

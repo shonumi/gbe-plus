@@ -36,6 +36,7 @@ namespace config
 	int dead_zone = 16000;
 
 	u32 flags = 0;
+	bool pause_emu = false;
 }
 
 /****** Parse arguments passed from the command-line ******/

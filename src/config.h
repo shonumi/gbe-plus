@@ -28,6 +28,7 @@ namespace config
 	extern int joy_a, joy_b, joy_start, joy_select, joy_up, joy_down, joy_left, joy_right, joy_r_trigger, joy_l_trigger;
 	extern int dead_zone;
 	extern u32 flags;
+	extern bool pause_emu;
 }
 
 #endif // GBA_CONFIG
