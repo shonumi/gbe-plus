@@ -349,8 +349,8 @@ bool MMU::load_backup(std::string filename)
 /****** Save backup save data ******/
 bool MMU::save_backup(std::string filename)
 {
-	//Save FLASH and SRAM
-	if((current_save_type == SRAM) || (current_save_type == FLASH))
+	//Save SRAM
+	if(current_save_type == SRAM)
 	{
 		std::ofstream file(filename.c_str(), std::ios::binary);
 		std::vector<u8> save_data;
