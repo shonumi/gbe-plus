@@ -278,6 +278,7 @@ bool MMU::read_file(std::string filename)
 				{
 					std::cout<<"MMU::EEPROM save type detected\n";
 					current_save_type = EEPROM;
+					load_backup(backup_file);
 					return true;
 				}
 				
@@ -330,15 +331,34 @@ bool MMU::load_backup(std::string filename)
 	file.seekg(0, file.beg);
 	save_data.resize(file_size);
 
-	if(file_size > 0x7FFF) { std::cout<<"MMU::Warning - Irregular backup save size\n"; }
-
-	//Read data from file
-	file.read(reinterpret_cast<char*> (&save_data[0]), file_size);
-
-	//Write that data into 0xE000000 to 0xE007FFF
-	for(u32 x = 0; x < 0x7FFF; x++)
+	//Load SRAM
+	if(current_save_type == SRAM)
 	{
-		memory_map[0xE000000 + x] = save_data[x];
+		if(file_size > 0x7FFF) { std::cout<<"MMU::Warning - Irregular backup save size\n"; }
+
+		//Read data from file
+		file.read(reinterpret_cast<char*> (&save_data[0]), file_size);
+
+		//Write that data into 0xE000000 to 0xE007FFF
+		for(u32 x = 0; x < 0x7FFF; x++)
+		{
+			memory_map[0xE000000 + x] = save_data[x];
+		}
+	}
+
+	//Load EEPROM
+	else if(current_save_type == EEPROM)
+	{
+		if((file_size != 0x200) && (file_size != 0x2000)) { std::cout<<"MMU::Warning - Irregular backup save size\n"; }
+
+		//Read data from file
+		file.read(reinterpret_cast<char*> (&save_data[0]), file_size);
+
+		//Write that data into EEPROM
+		for(u32 x = 0; x < 0x200; x++)
+		{
+			eeprom.data[x] = save_data[x];
+		}
 	}
 
 	file.close();
@@ -372,6 +392,31 @@ bool MMU::save_backup(std::string filename)
 
 		//Write the data to a file
 		file.write(reinterpret_cast<char*> (&save_data[0]), 0x7FFF);
+		file.close();
+
+		std::cout<<"MMU::Wrote save data file " << filename <<  "\n";
+	}
+
+	//Save EEPROM
+	else if(current_save_type == EEPROM)
+	{
+		std::ofstream file(filename.c_str(), std::ios::binary);
+		std::vector<u8> save_data;
+
+		if(!file.is_open()) 
+		{
+			std::cout<<"MMU::" << filename << " save data could not be written. Check file path or permissions. \n";
+			return false;
+		}
+
+		//Grab data from EEPROM
+		for(u32 x = 0; x < 0x200; x++)
+		{
+			save_data.push_back(eeprom.data[x]);
+		}
+
+		//Write the data to a file
+		file.write(reinterpret_cast<char*> (&save_data[0]), 0x200);
 		file.close();
 
 		std::cout<<"MMU::Wrote save data file " << filename <<  "\n";
