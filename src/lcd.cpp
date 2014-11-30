@@ -769,7 +769,7 @@ void LCD::step()
 			if((SDL_GetTicks() - fps_time) >= 1000) { fps_time = SDL_GetTicks(); std::cout<<"FPS : " <<  std::dec << (int)fps_count << "\n"; fps_count = 0; }
 		}
 
-		//Raise HBlank interrupt
+		//Setup HBlank stuff (no HBlank IRQs in VBlank!!)
 		if((lcd_clock % 1232) == 960) 
 		{
 			//Toggle HBlank flag ON
@@ -778,11 +778,6 @@ void LCD::step()
 			current_scanline++;
 			mem->write_u16(VCOUNT, current_scanline);
 			scanline_compare();
-				
-			if(mem->memory_map[DISPSTAT] & 0x10) 
-			{ 
-				mem->memory_map[REG_IF] |= 0x2; 
-			}
 
 			//Start HBlank DMA
 			mem->start_blank_dma();
