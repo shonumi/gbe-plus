@@ -15,6 +15,7 @@
 namespace config
 {
 	std::string rom_file = "";
+	std::string bios_file = "";
 	std::string save_file = "";
 	std::vector <std::string> cli_args;
 	bool use_debugger = false;
@@ -37,6 +38,7 @@ namespace config
 
 	u32 flags = 0;
 	bool pause_emu = false;
+	bool use_bios = false;
 }
 
 /****** Parse arguments passed from the command-line ******/
@@ -45,7 +47,7 @@ bool parse_cli_args()
 	//If no arguments were passed, cannot run without ROM file
 	if(config::cli_args.size() < 1) 
 	{
-		std::cout<<"Error : No ROM file in arguments \n";
+		std::cout<<"Error::No ROM file in arguments \n";
 		return false;
 	}
 
@@ -61,9 +63,21 @@ bool parse_cli_args()
 			//Run GBE+ in debug mode
 			if((config::cli_args[x] == "-d") || (config::cli_args[x] == "--debug")) { config::use_debugger = true; }
 
+			//Load GBA BIOS
+			else if((config::cli_args[x] == "-b") || (config::cli_args[x] == "--bios")) 
+			{
+				if((++x) == config::cli_args.size()) { std::cout<<"Error::No BIOS file in arguments\n"; }
+
+				else 
+				{ 
+					config::use_bios = true; 
+					config::bios_file = config::cli_args[x];
+				}
+			}
+
 			else
 			{
-				std::cout<<"Error : Unknown argument - " << config::cli_args[x] << "\n";
+				std::cout<<"Error::Unknown argument - " << config::cli_args[x] << "\n";
 				return false;
 			}
 		}

@@ -21,6 +21,7 @@ bool parse_cli_args();
 namespace config
 { 
 	extern std::string rom_file;
+	extern std::string bios_file;
 	extern std::string save_file;
 	extern std::vector <std::string> cli_args;
 	extern bool use_debugger;
@@ -29,6 +30,7 @@ namespace config
 	extern int dead_zone;
 	extern u32 flags;
 	extern bool pause_emu;
+	extern bool use_bios;
 }
 
 #endif // GBA_CONFIG

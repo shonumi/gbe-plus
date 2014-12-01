@@ -248,7 +248,7 @@ bool MMU::read_file(std::string filename)
 
 	if(!file.is_open()) 
 	{
-		std::cout<<"MMU : " << filename << " could not be opened. Check file path or permissions. \n";
+		std::cout<<"MMU::" << filename << " could not be opened. Check file path or permissions. \n";
 		return false;
 	}
 
@@ -259,11 +259,11 @@ bool MMU::read_file(std::string filename)
 
 	u8* ex_mem = &memory_map[0x8000000];
 
-	//Read 32KB worth of data from ROM file
+	//Read data from the ROM file
 	file.read((char*)ex_mem, file_size);
 
 	file.close();
-	std::cout<<"MMU : " << filename << " loaded successfully. \n";
+	std::cout<<"MMU::" << filename << " loaded successfully. \n";
 
 	std::string backup_file = filename + ".sav";
 
@@ -310,6 +310,33 @@ bool MMU::read_file(std::string filename)
 		}
 	}
 		
+	return true;
+}
+
+/****** Read BIOS file into memory ******/
+bool MMU::read_bios(std::string filename)
+{
+	std::ifstream file(filename.c_str(), std::ios::binary);
+
+	if(!file.is_open()) 
+	{
+		std::cout<<"MMU::BIOS file " << filename << " could not be opened. Check file path or permissions. \n";
+		return false;
+	}
+
+	//Get the file size
+	file.seekg(0, file.end);
+	u32 file_size = file.tellg();
+	file.seekg(0, file.beg);
+
+	u8* ex_mem = &memory_map[0];
+
+	//Read data from the ROM file
+	file.read((char*)ex_mem, file_size);
+
+	file.close();
+	std::cout<<"MMU::BIOS file " << filename << " loaded successfully. \n";
+
 	return true;
 }
 

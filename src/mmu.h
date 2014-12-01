@@ -94,6 +94,7 @@ class MMU
 	void write_u32(u32 address, u32 value);
 
 	bool read_file(std::string filename);
+	bool read_bios(std::string filename);
 	bool save_backup(std::string filename);
 	bool load_backup(std::string filename);
 

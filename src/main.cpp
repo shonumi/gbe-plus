@@ -29,6 +29,9 @@ int main(int argc, char* args[])
 
 	//Read specified ROM file
 	if(!gba.core_mmu.read_file(config::rom_file)) { return 0; }
+	
+	//Read BIOS file optionally
+	if(config::use_bios) { gba.core_mmu.read_bios(config::bios_file); }
 
 	//Engage the core
 	gba.start();
