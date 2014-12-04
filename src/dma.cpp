@@ -91,6 +91,9 @@ void ARM7::dma0()
 				if(mem->dma[0].src_addr_ctrl == 3) { mem->dma[0].src_addr_ctrl = original_src_addr; }
 				if(mem->dma[0].dest_addr_ctrl == 3) { mem->dma[0].dest_addr_ctrl = original_dest_addr; }
 
+				//Raise DMA0 IRQ if necessary
+				if(mem->dma[0].control & 0x4000) { mem->memory_map[REG_IF+1] |= 0x1; }
+
 				mem->dma[0].enable = false;
 				break;
 
@@ -154,6 +157,9 @@ void ARM7::dma0()
 					//Reload if control flags are set to 0x3
 					if(mem->dma[0].src_addr_ctrl == 3) { mem->dma[0].src_addr_ctrl = original_src_addr; }
 					if(mem->dma[0].dest_addr_ctrl == 3) { mem->dma[0].dest_addr_ctrl = original_dest_addr; }
+
+					//Raise DMA0 IRQ if necessary
+					if(mem->dma[0].control & 0x4000) { mem->memory_map[REG_IF+1] |= 0x1; }
 
 					mem->dma[0].enable = false;
 					mem->dma[0].started = false;
@@ -273,6 +279,9 @@ void ARM7::dma3()
 				if(mem->dma[3].src_addr_ctrl == 3) { mem->dma[3].src_addr_ctrl = original_src_addr; }
 				if(mem->dma[3].dest_addr_ctrl == 3) { mem->dma[3].dest_addr_ctrl = original_dest_addr; }
 
+				//Raise DMA3 IRQ if necessary
+				if(mem->dma[3].control & 0x4000) { mem->memory_map[REG_IF+1] |= 0x8; }
+
 				mem->dma[3].enable = false;
 				break;
 
@@ -336,6 +345,9 @@ void ARM7::dma3()
 					//Reload if control flags are set to 0x3
 					if(mem->dma[3].src_addr_ctrl == 3) { mem->dma[3].src_addr_ctrl = original_src_addr; }
 					if(mem->dma[3].dest_addr_ctrl == 3) { mem->dma[3].dest_addr_ctrl = original_dest_addr; }
+
+					//Raise DMA3 IRQ if necessary
+					if(mem->dma[3].control & 0x4000) { mem->memory_map[REG_IF+1] |= 0x8; }
 
 					mem->dma[3].enable = false;
 					mem->dma[3].started = false;
