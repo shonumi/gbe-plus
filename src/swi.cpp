@@ -19,7 +19,8 @@ void ARM7::process_swi(u32 comment)
 	{
 		//SoftReset
 		case 0x0:
-			std::cout<<"SWI::Soft Reset (not implemented yet) \n";
+			swi_softreset();
+			std::cout<<"SWI::Soft Reset \n";
 			break;
 
 		//RegisterRAMReset
@@ -248,6 +249,44 @@ void ARM7::process_swi(u32 comment)
 			std::cout<<"SWI::Error - Unknown BIOS function 0x" << std::hex << comment << "\n";
 			break;
 	}
+}
+
+/****** HLE implementation of SoftReset ******/
+void ARM7::swi_softreset()
+{
+	bios_read_state = BIOS_SWI_FINISH;
+
+	//Reset IRQ, SVC, and SYS stack pointers
+	reg.r13_svc = 0x03007FE0;
+	reg.r13_irq = 0x03007FA0;
+	reg.r13 = 0x03007F00;
+
+	//Set PC to start of GamePak ROM or 25KB WRAM
+	u8 flag = (mem->read_u8(0x3007FFA) & 0x1) ? 1 : 0;
+	if(flag == 1) { reg.r15 = 0x2000000; }
+	else { reg.r15 = 0x8000000; }
+	needs_flush = true;
+
+	//Set registers R0-R12 to zero
+	for(int x = 0; x <= 12; x++) { set_reg(x, 0); }
+
+	//Set R14_svc, R14_irq, and R14 to zero
+	reg.r14_svc = 0;
+	reg.r14_irq = 0;
+
+	//Set SPSR_svc and SPSR_irq to zero
+	reg.spsr_svc = 0;
+	reg.spsr_irq = 0;
+
+	//Set mode to SYS
+	current_cpu_mode = SYS;
+	reg.cpsr &= ~0x1F;
+	reg.cpsr |= 0x1F;
+
+	//Clear top 0x200 bytes of the 32KB WRAM
+	for(int x = 0x3007E00; x < 0x3008000; x++) { mem->memory_map[x] = 0; }
+
+	arm_mode = ARM;
 }
 
 /****** HLE implementation of RegisterRAMReset ******/
