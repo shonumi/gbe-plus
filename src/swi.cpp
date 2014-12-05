@@ -572,6 +572,11 @@ void ARM7::swi_vblankintrwait()
 		if((controllers.video.lcd_mode == 2) && (previous_mode != 2)) { mode_change = true; mem->memory_map[REG_IF] |= 0x1; reg.r15 += 2; }
 		else { previous_mode = controllers.video.lcd_mode; }
 	}
+
+	//Adjust PC properly
+	//Much like performing a branch before an interrupt, (see arm7.cpp's interrupt handler) except flushing is unnecessary
+	if(arm_mode == THUMB) { reg.r15 -= 2; }
+	else { reg.r15 -= 4; }
 }
 
 /****** HLE implementation of LZ77UnCompVram ******/
