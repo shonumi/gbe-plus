@@ -74,13 +74,12 @@ int main(int argc, char* args[])
 			}
 		}
 
-		//Stop emulation, save data if necessary
-		else 
-		{
-			gba.core_mmu.save_backup(config::save_file);
-			gba.stop(); 
-		}
+		//Stop emulation
+		else { gba.stop(); }
 	}
+
+	//Save data if necessary
+	gba.core_mmu.save_backup(config::save_file);
 
 	/*
 	std::ofstream file("mem.bin", std::ios::binary);
