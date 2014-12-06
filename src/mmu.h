@@ -83,6 +83,8 @@ class MMU
 	MMU();
 	~MMU();
 
+	void reset();
+
 	void start_blank_dma();
 
 	u8 read_u8(u32 address) const;

@@ -13,9 +13,23 @@
 /****** MMU Constructor ******/
 MMU::MMU() 
 {
+	reset();
+}
+
+/****** MMU Deconstructor ******/
+MMU::~MMU() 
+{ 
+	memory_map.clear();
+	std::cout<<"MMU::Shutdown\n"; 
+}
+
+/****** MMU Reset ******/
+void MMU::reset()
+{
 	memory_map.clear();
 	memory_map.resize(0x10000000, 0);
 
+	eeprom.data.clear();
 	eeprom.data.resize(0x200, 0);
 
 	//HLE stuff
@@ -54,13 +68,6 @@ MMU::MMU()
 	current_save_type = NONE;
 
 	std::cout<<"MMU::Initialized\n";
-}
-
-/****** MMU Deconstructor ******/
-MMU::~MMU() 
-{ 
-	memory_map.clear();
-	std::cout<<"MMU::Shutdown\n"; 
 }
 
 /****** Read byte from memory ******/
