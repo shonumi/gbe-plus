@@ -267,7 +267,7 @@ void ARM7::data_processing(u32 current_arm_instruction)
 			set_reg(dest_reg, result);
 
 			//Update condtion codes
-			if(set_condition) { update_condition_arithmetic(input, operand, result, false); }
+			if(set_condition) { update_condition_arithmetic(operand, input, result, false); }
 			break;
 
 		//ADD
@@ -312,7 +312,7 @@ void ARM7::data_processing(u32 current_arm_instruction)
 			set_reg(dest_reg, result);
 
 			//Update condtion codes
-			if(set_condition) { update_condition_arithmetic(input, (operand + shift_out - 1), result, false); }
+			if(set_condition) { update_condition_arithmetic((operand + shift_out - 1), input, result, false); }
 			break;
 
 		//TST
