@@ -58,6 +58,29 @@ void Core::stop()
 	db_unit.debug_mode = false;
 }
 
+/****** Reset the core ******/
+void Core::reset()
+{
+	core_cpu.reset();
+	core_cpu.controllers.video.reset();
+	core_mmu.reset();
+
+	//Link CPU and MMU
+	core_cpu.mem = &core_mmu;
+
+	//Link LCD and MMU
+	core_cpu.controllers.video.mem = &core_mmu;
+
+	//Link MMU and GamePad
+	core_cpu.mem->g_pad = &core_pad;
+
+	//Re-read specified ROM file
+	core_mmu.read_file(config::rom_file);
+
+	//Start everything all over again
+	start();
+}
+
 /****** Debugger - Allow core to run until a breaking condition occurs ******/
 void Core::debug_step()
 {
@@ -460,4 +483,7 @@ void Core::handle_hotkey(SDL_Event& event)
 			}
 		}
 	}
+
+	//Reset emulation on F8
+	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F8)) { reset(); }
 }

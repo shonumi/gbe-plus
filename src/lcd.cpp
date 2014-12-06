@@ -29,6 +29,7 @@ LCD::~LCD()
 void LCD::reset()
 {
 	final_screen = internal_screen = NULL;
+	mem = NULL;
 
 	scanline_buffer.clear();
 	screen_buffer.clear();

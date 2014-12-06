@@ -24,6 +24,7 @@ class Core
 		Core();
 		void start();
 		void stop();
+		void reset();
 
 		void debug_step();
 		void debug_display() const;
