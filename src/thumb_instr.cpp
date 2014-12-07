@@ -299,7 +299,7 @@ void ARM7::alu_ops(u16 current_thumb_instruction)
 		//ASR
 		case 0x4:
 			operand &= 0xFF;
-			if(operand != 0) { shift_out = logical_shift_right(input, operand); }
+			if(operand != 0) { shift_out = arithmetic_shift_right(input, operand); }
 			result = input;
 
 			//Zero flag
