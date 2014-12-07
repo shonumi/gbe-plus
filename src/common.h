@@ -24,6 +24,7 @@ typedef unsigned long long int u64;
 typedef signed char s8;
 typedef signed short s16;
 typedef signed int s32;
+typedef signed long long int s64;
 
 /* CPSR Flags */
 const u32 CPSR_N_FLAG = 0x80000000;
