@@ -418,14 +418,23 @@ void ARM7::decode()
 			instruction_operation[pipeline_id] = ARM_4;
 		}
 
-		//TODO - Move ARM_6 decoding to final stage of ARM_5 decoding		
+		//TODO - Move ARM_6 decoding to final stage of ARM_5 decoding
+		//TODO - Move ARM_12 deconding to final stage of ARM_10 decoding		
 
 		else if((current_instruction & 0xD900000) == 0x1000000) 
 		{
-			//ARM_10
+
 			if((current_instruction & 0x80) && (current_instruction & 0x10) && ((current_instruction & 0x2000000) == 0))
 			{
-				instruction_operation[pipeline_id] = ARM_10;
+				if(((current_instruction >> 5) & 0x3) == 0) 
+				{ 
+					instruction_operation[pipeline_id] = ARM_12;
+				}
+
+				else 
+				{
+					instruction_operation[pipeline_id] = ARM_10;
+				}
 			}
 
 			else 
