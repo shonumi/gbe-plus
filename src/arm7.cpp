@@ -715,7 +715,15 @@ void ARM7::execute()
 			}
 		}
 
-		else { debug_message = 0x1F; debug_code = instruction_pipeline[pipeline_id]; }
+		//Skip ARM instruction
+		else 
+		{ 
+			debug_message = 0x1F; 
+			debug_code = instruction_pipeline[pipeline_id];
+
+			//Clock CPU and controllers - 1S
+			clock(reg.r15, false); 
+		}
 	}
 
 }
