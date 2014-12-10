@@ -659,8 +659,6 @@ void ARM7::multiply(u32 current_arm_instruction)
 /****** ARM.9 Single Data Transfer ******/
 void ARM7::single_data_transfer(u32 current_arm_instruction)
 {
-	//TODO - If, PC is src/dest reg, must be PC+12 (or rather PC+4 since GBE+ always returns PC+8 anyway)
-
 	//Grab Immediate-Offset flag - Bit 25
 	u8 offset_is_register = (current_arm_instruction & 0x2000000) ? 1 : 0;
 
@@ -747,12 +745,14 @@ void ARM7::single_data_transfer(u32 current_arm_instruction)
 		if(byte_word == 1)
 		{
 			value = get_reg(dest_reg);
+			if(dest_reg == 15) { value += 4; }
 			mem->write_u8(base_addr, (value & 0xFF));
 		}
 
 		else
 		{
 			value = get_reg(dest_reg);
+			if(dest_reg == 15) { value += 4; }
 			mem->write_u32(base_addr, value);
 		}
 

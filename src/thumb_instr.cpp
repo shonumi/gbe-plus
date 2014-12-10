@@ -1111,8 +1111,6 @@ void ARM7::add_offset_sp(u16 current_thumb_instruction)
 /****** THUMB.14 Push-Pop Registers ******/
 void ARM7::push_pop(u16 current_thumb_instruction)
 {
-	//TODO - How to properly increment R13 when popping PC?
-
 	//Grab stack pointer from current CPU mode
 	u32 r13 = get_reg(13);
 
