@@ -558,6 +558,7 @@ void ARM7::multiply(u32 current_arm_instruction)
 	u32 Rd = get_reg(dest_reg);
 
 	u64 value_64 = 1;
+	u64 hi_lo = 0;
 	s64 value_s64 = 1;
 	u32 value_32 = 0;
 
@@ -623,6 +624,37 @@ void ARM7::multiply(u32 current_arm_instruction)
 			}
 
 			break;
+
+		//UMLAL
+		case 0x5:
+			//This looks weird, but it is a workaround for compilers that support 64-bit unsigned ints, but complain about shifts greater than 32
+			hi_lo = Rd;
+			hi_lo <<= 16;
+			hi_lo <<= 16;
+			hi_lo |= Rn;
+
+			value_64 = (value_64 * Rm * Rs) + hi_lo;
+			
+			//Set Rn to low 32-bits, Rd to high 32-bits
+			Rn = (value_64 & 0xFFFFFFFF);
+			Rd = (value_64 >> 32);
+
+			set_reg(accu_reg, Rn);
+			set_reg(dest_reg, Rd);
+
+			if(set_condition)
+			{
+				//Negative flag
+				if(value_64 & 0x8000000000000000) { reg.cpsr |= CPSR_N_FLAG; }
+				else { reg.cpsr &= ~CPSR_N_FLAG; }
+
+				//Zero flag
+				if(value_64 == 0) { reg.cpsr |= CPSR_Z_FLAG; }
+				else { reg.cpsr &= ~CPSR_Z_FLAG; }
+			}
+
+			break;
+
 
 		//SMULL
 		case 0x6:
