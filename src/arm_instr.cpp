@@ -681,6 +681,38 @@ void ARM7::multiply(u32 current_arm_instruction)
 			}
 
 			break;
+
+		//SMLAL
+		case 0x7:
+			//This looks weird, but it is a workaround for compilers that support 64-bit unsigned ints, but complain about shifts greater than 32
+			hi_lo = Rd;
+			hi_lo <<= 16;
+			hi_lo <<= 16;
+			hi_lo |= Rn;
+
+			//Messy C++ casting... It works though, and this is what we need
+			value_s64 = (value_s64 * (s32)Rm * (s32)Rs) + hi_lo;
+			value_64 = value_s64;
+
+			//Set Rn to low 32-bits, Rd to high 32-bits
+			Rn = (value_s64 & 0xFFFFFFFF);
+			Rd = (value_s64 >> 32);
+
+			set_reg(accu_reg, Rn);
+			set_reg(dest_reg, Rd);
+
+			if(set_condition)
+			{
+				//Negative flag
+				if(value_s64 & 0x8000000000000000) { reg.cpsr |= CPSR_N_FLAG; }
+				else { reg.cpsr &= ~CPSR_N_FLAG; }
+
+				//Zero flag
+				if(value_s64 == 0) { reg.cpsr |= CPSR_Z_FLAG; }
+				else { reg.cpsr &= ~CPSR_Z_FLAG; }
+			}
+
+			break;
 			
 
 		default: std::cout<<"CPU::Warning:: - ARM.7 Invalid or unimplemented opcode : " << std::hex << (int)op_code << "\n"; std::cout<<"OP -> 0x" << current_arm_instruction << "\n";
