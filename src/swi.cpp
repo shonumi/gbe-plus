@@ -574,9 +574,9 @@ void ARM7::swi_vblankintrwait()
 	}
 
 	//Adjust PC properly
-	//Much like performing a branch before an interrupt, (see arm7.cpp's interrupt handler) except flushing is unnecessary
+	//This is set the LR to PC+nn rather than PC+nn+2 (nn is two THUMB instruction sizes) in GBE+'s interrupt handler
+	//See arm7.cpp for more details.
 	if(arm_mode == THUMB) { reg.r15 -= 2; }
-	else { reg.r15 -= 4; }
 }
 
 /****** HLE implementation of LZ77UnCompVram ******/
