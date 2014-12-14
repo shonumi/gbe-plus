@@ -42,8 +42,8 @@ void ARM7::dma0()
 		{
 			//Immediate
 			case 0x0:
-				//Set word count of transfer to max (0x10000) if specified as zero
-				if(mem->dma[0].word_count == 0) { mem->dma[0].word_count = 0x10000; }
+				//Set word count of transfer to max (0x4000) if specified as zero
+				if(mem->dma[0].word_count == 0) { mem->dma[0].word_count = 0x4000; }
 
 				//16-bit transfer
 				if(mem->dma[0].word_type == 0)
@@ -109,8 +109,8 @@ void ARM7::dma0()
 			case 0x2:
 				if(mem->dma[0].started)
 				{
-					//Set word count of transfer to max (0x10000) if specified as zero
-					if(mem->dma[0].word_count == 0) { mem->dma[0].word_count = 0x10000; }
+					//Set word count of transfer to max (0x4000) if specified as zero
+					if(mem->dma[0].word_count == 0) { mem->dma[0].word_count = 0x4000; }
 
 					//16-bit transfer
 					if(mem->dma[0].word_type == 0)
