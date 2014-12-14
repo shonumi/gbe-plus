@@ -35,6 +35,8 @@ void ARM7::dma0()
 		u32 original_src_addr = mem->dma[0].start_address;
 		u32 original_dest_addr = mem->dma[0].destination_address;
 
+		if((mem->dma[0].control & 0x8000) == 0) { mem->dma[0].enable = false; return; }
+
 		//Check DMA Start Timings
 		switch(((mem->dma[0].control >> 12) & 0x3))
 		{
@@ -197,6 +199,8 @@ void ARM7::dma3()
 		u32 temp_value = 0;
 		u32 original_src_addr = mem->dma[3].start_address;
 		u32 original_dest_addr = mem->dma[3].destination_address;
+
+		if((mem->dma[3].control & 0x8000) == 0) { mem->dma[0].enable = false; return; }
 
 		//Read from EEPROM
 		if((mem->dma[3].start_address >= 0xD000000) && (mem->dma[3].start_address <= 0xDFFFFFF)) 
