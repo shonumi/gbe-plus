@@ -399,6 +399,18 @@ void Core::debug_process_command()
 			debug_process_command();
 		}
 
+		//Reset the emulator
+		else if(command == "rs")
+		{
+			std::cout<<"\nManual reset\n";
+			reset();
+			debug_display();
+
+			valid_command = true;
+			db_unit.last_command = "rs";
+			debug_process_command();
+		}
+
 		//Print help information
 		else if(command == "h")
 		{
@@ -409,6 +421,7 @@ void Core::debug_process_command()
 			std::cout<<"dq \t\t Quit the debugger\n";
 			std::cout<<"dc \t\t Toggle CPU cycle display\n";
 			std::cout<<"cr \t\t Reset CPU cycle counter\n";
+			std::cout<<"rs \t\t Reset emulation\n";
 			std::cout<<"q \t\t Quit GBE+\n\n";
 
 			valid_command = true;

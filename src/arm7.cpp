@@ -15,7 +15,6 @@
 ARM7::ARM7()
 {
 	reset();
-	std::cout<<"CPU::Initialized\n";
 }
 
 /****** CPU Destructor ******/
@@ -53,6 +52,8 @@ void ARM7::reset()
 
 	flush_pipeline();
 	mem = NULL;
+
+	std::cout<<"CPU::Initialized\n";
 }
 
 /****** CPU register getter ******/
