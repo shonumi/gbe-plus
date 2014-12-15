@@ -65,6 +65,8 @@ class LCD
 		u8 bit_depth;
 		u8 palette_number;
 		u8 type;
+		u8 rotate_scale;
+		bool visible;
 	} obj[128];
 
 	u8 obj_render_list[128];

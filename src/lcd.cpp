@@ -88,9 +88,12 @@ void LCD::update_oam()
 			oam_ptr += 2;
 
 			obj[x].y = (attribute & 0xFF);
+			obj[x].rotate_scale = (attribute & 0x100) ? 1 : 0;
 			obj[x].type = (attribute & 0x200) ? 1 : 0;
 			obj[x].bit_depth = (attribute & 0x2000) ? 8 : 4;
 			obj[x].shape = (attribute >> 14);
+			if((!obj[x].rotate_scale) && (obj[x].type)) { obj[x].visible = false; }
+			else { obj[x].visible = true; }
 
 			//Read and parse Attribute 1
 			attribute = mem->read_u16(oam_ptr);
@@ -243,7 +246,7 @@ bool LCD::render_sprite_pixel()
 	for(int x = 0; x < 128; x++)
 	{
 		//Check to see if sprite is rendered on the current scanline
-		if((obj[x].type == 0) && (current_scanline >= obj[x].y) && (current_scanline <= (obj[x].y + obj[x].height - 1)))
+		if((obj[x].visible) && (current_scanline >= obj[x].y) && (current_scanline <= (obj[x].y + obj[x].height - 1)))
 		{
 			//Check to see if current_scanline_pixel is within sprite
 			if((scanline_pixel_counter >= obj[x].x) && (scanline_pixel_counter <= (obj[x].x + obj[x].width - 1)))
