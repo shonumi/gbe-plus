@@ -92,7 +92,7 @@ void LCD::update_oam()
 			obj[x].type = (attribute & 0x200) ? 1 : 0;
 			obj[x].bit_depth = (attribute & 0x2000) ? 8 : 4;
 			obj[x].shape = (attribute >> 14);
-			if((!obj[x].rotate_scale) && (obj[x].type)) { obj[x].visible = false; }
+			if((obj[x].rotate_scale == 0) && (obj[x].type == 1)) { obj[x].visible = false; }
 			else { obj[x].visible = true; }
 
 			//Read and parse Attribute 1
@@ -143,6 +143,9 @@ void LCD::update_oam()
 					else if(obj[x].shape == 2) { obj[x].width = 32; obj[x].height = 64; }
 					break;
 			}
+
+			//Set double-size
+			if((obj[x].rotate_scale == 1) && (obj[x].type == 1)) { obj[x].x += (obj[x].width >> 1); obj[x].y += (obj[x].height >> 1); }
 		}
 	}
 }
