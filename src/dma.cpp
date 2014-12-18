@@ -216,9 +216,21 @@ void ARM7::dma3()
 		if((mem->dma[3].destination_address >= 0xD000000) && (mem->dma[3].destination_address <= 0xDFFFFFF)) 
 		{
 			mem->eeprom.dma_ptr = mem->dma[3].start_address;
+			
+			//Determine EEPROM size based on bitstream length. Default is 512B, here it is set to 8KB if necessary
+			if((!mem->eeprom.size_lock) && ((mem->dma[3].word_count == 0x11) || (mem->dma[3].word_count == 0x51)))
+			{
+				mem->eeprom.data.clear();
+				mem->eeprom.data.resize(0x2000, 0);
+				mem->eeprom.size = 0x2000;
+				mem->eeprom.size_lock = true;
+			}
 
 			//Set address
-			if((mem->read_u16(mem->eeprom.dma_ptr) & 0x1) && (mem->read_u16(mem->eeprom.dma_ptr+2) & 0x1)) { mem->eeprom_set_addr(); }
+			if((mem->read_u16(mem->eeprom.dma_ptr) & 0x1) && (mem->read_u16(mem->eeprom.dma_ptr+2) & 0x1)) 
+			{ 
+				mem->eeprom_set_addr(); 
+			}
 			
 			//Write data
 			else if(mem->read_u8(mem->eeprom.dma_ptr) & 0x1) { mem->eeprom_write_data(); }

@@ -65,6 +65,8 @@ class MMU
 		u16 address;
 		u32 dma_ptr;
 		std::vector <u8> data;
+		u16 size;
+		bool size_lock;
 	} eeprom;
 		
 	//Structure detailing actions LCD should take when certain memory areas are written to

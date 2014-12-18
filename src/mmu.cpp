@@ -31,6 +31,8 @@ void MMU::reset()
 
 	eeprom.data.clear();
 	eeprom.data.resize(0x200, 0);
+	eeprom.size = 0x200;
+	eeprom.size_lock = false;
 
 	//HLE stuff
 	memory_map[DISPCNT] = 0x80;
@@ -385,16 +387,23 @@ bool MMU::load_backup(std::string filename)
 	//Load EEPROM
 	else if(current_save_type == EEPROM)
 	{
-		if((file_size != 0x200) && (file_size != 0x2000)) { std::cout<<"MMU::Warning - Irregular backup save size\n"; }
+		if((file_size != 0x200) && (file_size != 0x2000)) { file_size = 0x200; std::cout<<"MMU::Warning - Irregular backup save size\n"; }
 
 		//Read data from file
 		file.read(reinterpret_cast<char*> (&save_data[0]), file_size);
 
+		//Clear eeprom data and resize
+		eeprom.size = file_size;
+		eeprom.data.clear();
+		eeprom.data.resize(file_size, 0);
+
 		//Write that data into EEPROM
-		for(u32 x = 0; x < 0x200; x++)
+		for(u32 x = 0; x < file_size; x++)
 		{
 			eeprom.data[x] = save_data[x];
 		}
+
+		eeprom.size_lock = true;
 	}
 
 	file.close();
@@ -446,13 +455,13 @@ bool MMU::save_backup(std::string filename)
 		}
 
 		//Grab data from EEPROM
-		for(u32 x = 0; x < 0x200; x++)
+		for(u32 x = 0; x < eeprom.size; x++)
 		{
 			save_data.push_back(eeprom.data[x]);
 		}
 
 		//Write the data to a file
-		file.write(reinterpret_cast<char*> (&save_data[0]), 0x200);
+		file.write(reinterpret_cast<char*> (&save_data[0]), eeprom.size);
 		file.close();
 
 		std::cout<<"MMU::Wrote save data file " << filename <<  "\n";
@@ -494,11 +503,13 @@ void MMU::eeprom_set_addr()
 	//Skip 2 bits in the bitstream
 	eeprom.dma_ptr += 4;
 
-	//Read 6 bits from the bitstream, MSB 1st
-	//TODO - Make it work for 14 bits as well
-	u8 bits = 0x20;
+	//Read 6 or 14 bits from the bitstream, MSB 1st
+	u16 bits = 0x20;
+	u8 bit_length = 6;
+	
+	if(eeprom.size == 0x2000) { bits = 0x2000; bit_length = 14; }
 
-	for(int x = 0; x < 6; x++)
+	for(int x = 0; x < bit_length; x++)
 	{
 		u16 bitstream = read_u16(eeprom.dma_ptr);
 		
@@ -551,11 +562,13 @@ void MMU::eeprom_write_data()
 	//Skip 2 bits in the bitstream
 	eeprom.dma_ptr += 4;
 
-	//Read 6 bits from the bitstream to get EEPROM address, MSB 1st
-	//TODO - Make it work for 14 bits as well
-	u8 bits = 0x20;
+	//Read 6 or 14 bits from the bitstream, MSB 1st
+	u16 bits = 0x20;
+	u8 bit_length = 6;
+	
+	if(eeprom.size == 0x2000) { bits = 0x2000; bit_length = 14; }
 
-	for(int x = 0; x < 6; x++)
+	for(int x = 0; x < bit_length; x++)
 	{
 		u16 bitstream = read_u16(eeprom.dma_ptr);
 		
