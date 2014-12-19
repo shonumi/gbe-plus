@@ -92,7 +92,8 @@ void ARM7::process_swi(u32 comment)
 
 		//GetBIOSChecksum
 		case 0xD:
-			std::cout<<"SWI::Get BIOS Checksum (not implemented yet) \n";
+			std::cout<<"SWI::Get BIOS Checksum \n";
+			swi_getbioschecksum();
 			break;
 
 		//BGAffineSet
@@ -774,6 +775,15 @@ void ARM7::swi_huffuncomp()
 	}
 }
 	
+/****** HLE implementation of GetBIOSChecksum ******/
+void ARM7::swi_getbioschecksum()
+{
+	bios_read_state = BIOS_SWI_FINISH;
+
+	//Return checksum in R0
+	set_reg(0, 0xBAAE187F);
+}
+
 /****** HLE implementation of BGAffineSet ******/
 void ARM7::swi_bgaffineset()
 {
