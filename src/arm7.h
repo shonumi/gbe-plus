@@ -258,6 +258,7 @@ class ARM7
 	void swi_div();
 	void swi_sqrt();
 	void swi_arctan();
+	void swi_arctan2();
 	void swi_cpufastset();
 	void swi_cpuset();
 	void swi_halt();

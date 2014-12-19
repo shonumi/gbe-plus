@@ -76,7 +76,8 @@ void ARM7::process_swi(u32 comment)
 
 		//ArcTan2
 		case 0xA:
-			std::cout<<"SWI::ArcTan2 (not implemented yet) \n";
+			std::cout<<"SWI::ArcTan2 \n";
+			swi_arctan2();
 			break;
 
 		//CPUSet
@@ -436,6 +437,55 @@ void ARM7::swi_arctan()
 
 	//Return arctangent
 	set_reg(0, a);
+}
+
+/****** HLE implementation of ArcTan2 ******/
+void ARM7::swi_arctan2()
+{
+	bios_read_state = BIOS_SWI_FINISH;
+
+	//Grab X - R0
+	s32 x = get_reg(0);
+
+	//Grab Y - R1
+	s32 y = get_reg(1);
+
+	u32 result = 0;
+
+	if (y == 0) { result = ((x >> 16) & 0x8000); }
+	
+	else 
+	{
+		if (x == 0) { result = ((y >> 16) & 0x8000) + 0x4000; } 
+
+		else 
+		{
+			if ((abs(x) > abs(y)) || ((abs(x) == abs(y)) && (!((x < 0) && (y < 0))))) 
+			{
+        			set_reg(1, x);
+        			set_reg(0, (y << 14));
+		
+        			swi_div();
+        			swi_arctan();
+
+        			if (x < 0) { result = 0x8000 + get_reg(0); }
+				else { result = (((y >> 16) & 0x8000) << 1) + get_reg(0); }
+			}
+
+			else 
+			{
+        			set_reg(0, (x << 14));
+	
+        			swi_div();
+        			swi_arctan();
+
+        			result = (0x4000 + ((y >> 16) & 0x8000)) - get_reg(0);
+			}
+    		}
+  	}
+	
+	//Return corrected arctangent
+  	set_reg(0, result);
 }
 
 /****** HLE implementation of CPUFastSet ******/
