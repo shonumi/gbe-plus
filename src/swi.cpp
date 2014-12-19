@@ -64,13 +64,14 @@ void ARM7::process_swi(u32 comment)
 
 		//Sqrt
 		case 0x8:
-			swi_sqrt();
 			std::cout<<"SWI::Square Root \n";
+			swi_sqrt();
 			break;
 
 		//ArcTan
 		case 0x9:
-			std::cout<<"SWI::ArcTan (not implemented yet) \n";
+			std::cout<<"SWI::ArcTan \n";
+			swi_arctan();
 			break;
 
 		//ArcTan2
@@ -413,6 +414,28 @@ void ARM7::swi_sqrt()
 	//Set result of operation
 	u16 result = sqrt(input);
 	set_reg(0, result);
+}
+
+/****** HLE implementation of ArcTan ******/
+void ARM7::swi_arctan()
+{
+	bios_read_state = BIOS_SWI_FINISH;
+
+	//Grab the tangent - R0
+	s32 tan = get_reg(0);
+
+	s32 a =  -((tan * tan) >> 14);
+	s32 b = ((0xA9 * a) >> 14) + 0x390;
+	b = ((b * a) >> 14) + 0x91C;
+	b = ((b * a) >> 14) + 0xFB6;
+	b = ((b * a) >> 14) + 0x16AA;
+	b = ((b * a) >> 14) + 0x2081;
+	b = ((b * a) >> 14) + 0x3651;
+	b = ((b * a) >> 14) + 0xA2F9;
+	a = (b * tan) >> 16;
+
+	//Return arctangent
+	set_reg(0, a);
 }
 
 /****** HLE implementation of CPUFastSet ******/
