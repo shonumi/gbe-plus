@@ -93,6 +93,9 @@ class MMU
 	u16 read_u16(u32 address) const;
 	u32 read_u32(u32 address) const;
 
+	u16 read_u16_fast(u32 address);
+	u32 read_u32_fast(u32 address);
+
 	void write_u8(u32 address, u8 value);
 	void write_u16(u32 address, u16 value);
 	void write_u32(u32 address, u32 value);
