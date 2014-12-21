@@ -125,8 +125,6 @@ void MMU::write_u8(u32 address, u8 value)
 	//Check for unused memory first
 	if(address >= 0x10000000) { std::cout<<"Out of bounds write : 0x" << std::hex << address << "\n"; return; }
 
-	if((address >= 0xE000000) && (address <= 0xE007FFF)) { return; }
-
 	//BIOS is read-only, prevent any attempted writes
 	else if((address <= 0x3FF) && (bios_lock)) { return; }
 
