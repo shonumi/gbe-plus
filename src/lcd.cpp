@@ -84,7 +84,7 @@ void LCD::update_oam()
 			mem->lcd_updates.oam_update_list[x] = false;
 
 			//Read and parse Attribute 0
-			attribute = mem->read_u16(oam_ptr);
+			attribute = mem->read_u16_fast(oam_ptr);
 			oam_ptr += 2;
 
 			obj[x].y = (attribute & 0xFF);
@@ -96,7 +96,7 @@ void LCD::update_oam()
 			else { obj[x].visible = true; }
 
 			//Read and parse Attribute 1
-			attribute = mem->read_u16(oam_ptr);
+			attribute = mem->read_u16_fast(oam_ptr);
 			oam_ptr += 2;
 
 			obj[x].x = (attribute & 0x1FF);
@@ -105,7 +105,7 @@ void LCD::update_oam()
 			obj[x].size = (attribute >> 14);
 
 			//Read and parse Attribute 2
-			attribute = mem->read_u16(oam_ptr);
+			attribute = mem->read_u16_fast(oam_ptr);
 			oam_ptr += 4;
 
 			obj[x].tile_number = (attribute & 0x3FF);
@@ -166,7 +166,7 @@ void LCD::update_palettes()
 			{
 				mem->lcd_updates.bg_pal_update_list[x] = false;
 
-				u16 color_bytes = mem->read_u16(0x5000000 + (x * 2));
+				u16 color_bytes = mem->read_u16_fast(0x5000000 + (x * 2));
 
 				u8 red = ((color_bytes & 0x1F) * 8);
 				color_bytes >>= 5;
@@ -194,7 +194,7 @@ void LCD::update_palettes()
 			{
 				mem->lcd_updates.obj_pal_update_list[x] = false;
 
-				u16 color_bytes = mem->read_u16(0x5000200 + (x * 2));
+				u16 color_bytes = mem->read_u16_fast(0x5000200 + (x * 2));
 
 				u8 red = ((color_bytes & 0x1F) * 8);
 				color_bytes >>= 5;
@@ -216,27 +216,27 @@ void LCD::update_bg_offset()
 	mem->lcd_updates.bg_offset_update = false;
 
 	//BG0 scroll values
-	bg_offset_x[0] = mem->read_u16(BG0HOFS) & 0x1FF;
-	bg_offset_y[0] = mem->read_u16(BG0VOFS) & 0x1FF;
+	bg_offset_x[0] = mem->read_u16_fast(BG0HOFS) & 0x1FF;
+	bg_offset_y[0] = mem->read_u16_fast(BG0VOFS) & 0x1FF;
 
 	//BG1 scroll values
-	bg_offset_x[1] = mem->read_u16(BG1HOFS) & 0x1FF;
-	bg_offset_y[1] = mem->read_u16(BG1VOFS) & 0x1FF;
+	bg_offset_x[1] = mem->read_u16_fast(BG1HOFS) & 0x1FF;
+	bg_offset_y[1] = mem->read_u16_fast(BG1VOFS) & 0x1FF;
 
 	//BG2 scroll values
-	bg_offset_x[2] = mem->read_u16(BG2HOFS) & 0x1FF;
-	bg_offset_y[2] = mem->read_u16(BG2VOFS) & 0x1FF;
+	bg_offset_x[2] = mem->read_u16_fast(BG2HOFS) & 0x1FF;
+	bg_offset_y[2] = mem->read_u16_fast(BG2VOFS) & 0x1FF;
 
 	//BG3 scroll values
-	bg_offset_x[3] = mem->read_u16(BG3HOFS) & 0x1FF;
-	bg_offset_y[3] = mem->read_u16(BG3VOFS) & 0x1FF;
+	bg_offset_x[3] = mem->read_u16_fast(BG3HOFS) & 0x1FF;
+	bg_offset_y[3] = mem->read_u16_fast(BG3VOFS) & 0x1FF;
 }
 
 /****** Determines if a sprite pixel should be rendered, and if so draws it to the current scanline pixel ******/
 bool LCD::render_sprite_pixel()
 {
 	//If sprites are disabled, quit now
-	if((mem->read_u16(DISPCNT) & 0x1000) == 0) { return false; }
+	if((mem->read_u16_fast(DISPCNT) & 0x1000) == 0) { return false; }
 
 	bool render_sprite = false;
 	u8 sprite_id = 0;
@@ -323,7 +323,7 @@ bool LCD::render_sprite_pixel()
 		u8 meta_y = (sprite_tile_pixel_y / 8);
 
 		//Determine which 8x8 section to draw pixel from, and what tile that actually represents in VRAM
-		if(mem->read_u16(DISPCNT) & 0x40)
+		if(mem->read_u16_fast(DISPCNT) & 0x40)
 		{
 			meta_sprite_tile = (meta_y * (obj[sprite_id].width/8)) + meta_x;	
 		}
@@ -380,7 +380,7 @@ bool LCD::render_sprite_pixel()
 /****** Determines if a background pixel should be rendered, and if so draws it to the current scanline pixel ******/
 bool LCD::render_bg_pixel(u32 bg_control)
 {
-	u32 display_control = mem->read_u16(DISPCNT);
+	u32 display_control = mem->read_u16_fast(DISPCNT);
 
 	if(((display_control & 0x100) == 0) && (bg_control == BG0CNT)) { return false; }
 	else if(((display_control & 0x200) == 0) && (bg_control == BG1CNT)) { return false; }
@@ -417,7 +417,7 @@ bool LCD::render_bg_pixel(u32 bg_control)
 bool LCD::render_bg_mode_0(u32 bg_control)
 {
 	u8 bg_id = 0;
-	u16 bg_size = (mem->read_u16(bg_control) >> 14);
+	u16 bg_size = (mem->read_u16_fast(bg_control) >> 14);
 	u16 bg_width = 256;
 	u16 bg_height = 256;
 	u32 screen_offset = 0;
@@ -476,14 +476,14 @@ bool LCD::render_bg_mode_0(u32 bg_control)
 	else if((meta_x == 1) && (meta_y == 1) && (bg_size == 3)) { screen_offset = 0x1800; }
 
 	//Determine whether color depth is 4-bit or 8-bit
-	u8 bit_depth = (mem->read_u16(bg_control) & 0x80) ? 8 : 4;
+	u8 bit_depth = (mem->read_u16_fast(bg_control) & 0x80) ? 8 : 4;
 
 	//Find out where the map base address is - Bits 2-3 of BG(X)CNT
-	u32 map_base_addr = 0x6000000 + (0x800 * ((mem->read_u16(bg_control) >> 8) & 0x1F));
+	u32 map_base_addr = 0x6000000 + (0x800 * ((mem->read_u16_fast(bg_control) >> 8) & 0x1F));
 	map_base_addr += screen_offset;
 
 	//Find out where the tile base address is - Bits 8-12 of BG(X)CNT
-	u32 tile_base_addr = 0x6000000 + (0x4000 * ((mem->read_u16(bg_control) >> 2) & 0x3));
+	u32 tile_base_addr = 0x6000000 + (0x4000 * ((mem->read_u16_fast(bg_control) >> 2) & 0x3));
 
 	//Determine the X-Y coordinates of the BG's tile on the tile map
 	u16 current_tile_pixel_x = ((scanline_pixel_counter + bg_offset_x[bg_id]) % 256);
@@ -493,13 +493,13 @@ bool LCD::render_bg_mode_0(u32 bg_control)
 	u16 tile_number = ((current_tile_pixel_y / 8) * 32) + (current_tile_pixel_x / 8);
 
 	//Look at the Tile Map #(tile_number), see what Tile # it points to
-	u16 map_entry = mem->read_u16(map_base_addr + (tile_number * 2)) & 0x3FF;
+	u16 map_entry = mem->read_u16_fast(map_base_addr + (tile_number * 2)) & 0x3FF;
 
 	//Grab horizontal and vertical flipping options
-	u8 flip_options = (mem->read_u16(map_base_addr + (tile_number * 2)) >> 10) & 0x3;
+	u8 flip_options = (mem->read_u16_fast(map_base_addr + (tile_number * 2)) >> 10) & 0x3;
 
 	//Grab the Palette number of the tiles
-	u8 palette_number = (mem->read_u16(map_base_addr + (tile_number * 2)) >> 12);
+	u8 palette_number = (mem->read_u16_fast(map_base_addr + (tile_number * 2)) >> 12);
 
 	//Get address of Tile #(map_entry)
 	u32 tile_addr = tile_base_addr + (map_entry * (bit_depth << 3));
@@ -578,7 +578,7 @@ bool LCD::render_bg_mode_0(u32 bg_control)
 bool LCD::render_bg_mode_3(u32 bg_control)
 {
 	//Determine which byte in VRAM to read for color data
-	u16 color_bytes = mem->read_u16(0x6000000 + (current_scanline * 480) + (scanline_pixel_counter * 2));
+	u16 color_bytes = mem->read_u16_fast(0x6000000 + (current_scanline * 480) + (scanline_pixel_counter * 2));
 
 	//ARGB conversion
 	u8 red = ((color_bytes & 0x1F) * 8);
@@ -605,7 +605,7 @@ bool LCD::render_bg_mode_4(u32 bg_control)
 	u8 raw_color = mem->read_u8(bitmap_entry);
 	if(raw_color == 0) { return false; }
 
-	u16 color_bytes = mem->read_u16(0x5000000 + (raw_color * 2));
+	u16 color_bytes = mem->read_u16_fast(0x5000000 + (raw_color * 2));
 
 	//ARGB conversion
 	u8 red = ((color_bytes & 0x1F) * 8);
@@ -636,10 +636,10 @@ void LCD::render_scanline()
 	obj_render = render_sprite_pixel();
 
 	//Grab BG priorities 
-	u8 priority_0 = mem->read_u16(BG0CNT) & 0x3;
-	u8 priority_1 = mem->read_u16(BG1CNT) & 0x3;
-	u8 priority_2 = mem->read_u16(BG2CNT) & 0x3;
-	u8 priority_3 = mem->read_u16(BG3CNT) & 0x3;
+	u8 priority_0 = mem->read_u16_fast(BG0CNT) & 0x3;
+	u8 priority_1 = mem->read_u16_fast(BG1CNT) & 0x3;
+	u8 priority_2 = mem->read_u16_fast(BG2CNT) & 0x3;
+	u8 priority_3 = mem->read_u16_fast(BG3CNT) & 0x3;
 
 	//Render BGs based on priority (3 is the 'lowest', 0 is the 'highest')
 	for(int x = 0; x <= 3; x++)
@@ -812,7 +812,7 @@ void LCD::step()
 /****** Compare VCOUNT to LYC ******/
 void LCD::scanline_compare()
 {
-	u16 disp_stat = mem->read_u16(DISPSTAT);
+	u16 disp_stat = mem->read_u16_fast(DISPSTAT);
 	u8 lyc = disp_stat >> 8;
 	
 	//Raise VCOUNT interrupt
