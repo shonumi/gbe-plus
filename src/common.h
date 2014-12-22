@@ -55,6 +55,26 @@ const u32 BG2VOFS = 0x400001A;
 const u32 BG3HOFS = 0x400001C;
 const u32 BG3VOFS = 0x400001E;
 
+const u32 BG2PA = 0x4000020;
+const u32 BG2PB = 0x4000022;
+const u32 BG2PC = 0x4000024;
+const u32 BG2PD = 0x4000026;
+
+const u32 BG2X_L = 0x4000028;
+const u32 BG2X_H = 0x400002A;
+const u32 BG2Y_L = 0x400002C;
+const u32 BG2Y_H = 0x400002E;
+
+const u32 BG3PA = 0x4000030;
+const u32 BG3PB = 0x4000032;
+const u32 BG3PC = 0x4000034;
+const u32 BG3PD = 0x4000036;
+
+const u32 BG3X_L = 0x4000038;
+const u32 BG3X_H = 0x400003A;
+const u32 BG3Y_L = 0x400003C;
+const u32 BG3Y_H = 0x400003E;
+
 /* Input */
 const u32 KEYINPUT = 0x4000130;
 const u32 KEYCNT = 0x4000132;
