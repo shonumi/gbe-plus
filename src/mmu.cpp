@@ -108,13 +108,13 @@ u32 MMU::read_u32(u32 address) const
 }
 
 /****** Reads 2 bytes from memory - No checks done on the read, used for known memory locations such as registers ******/
-u16 MMU::read_u16_fast(u32 address)
+u16 MMU::read_u16_fast(u32 address) const
 {
 	return ((memory_map[address+1] << 8) | memory_map[address]);
 }
 
 /****** Reads 4 bytes from memory - No checks done on the read, used for known memory locations such as registers ******/
-u32 MMU::read_u32_fast(u32 address)
+u32 MMU::read_u32_fast(u32 address) const
 {
 	return ((memory_map[address+3] << 24) | (memory_map[address+2] << 16) | (memory_map[address+1] << 8) | memory_map[address]);
 }
