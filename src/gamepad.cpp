@@ -212,16 +212,16 @@ void GamePad::process_keyboard(int pad, bool pressed)
 	}
 
 	//Emulate R Trigger press
-	else if((pad == config::key_r_trigger) && (pressed)) { key_input |= 0x100; }
+	else if((pad == config::key_r_trigger) && (pressed)) { key_input &= ~0x100; }
 
 	//Emulate R Trigger release
-	else if((pad == config::key_r_trigger) && (!pressed)) { key_input &= ~0x100; }
+	else if((pad == config::key_r_trigger) && (!pressed)) { key_input |= 0x100; }
 
 	//Emulate L Trigger press
-	else if((pad == config::key_l_trigger) && (pressed)) { key_input |= 0x200; }
+	else if((pad == config::key_l_trigger) && (pressed)) { key_input &= ~0x200; }
 
 	//Emulate L Trigger release
-	else if((pad == config::key_l_trigger) && (!pressed)) { key_input &= ~0x200; }
+	else if((pad == config::key_l_trigger) && (!pressed)) { key_input |= 0x200; }
 }
 
 /****** Processes input based on unique pad # for joysticks ******/
