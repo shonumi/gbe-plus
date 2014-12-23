@@ -395,9 +395,17 @@ bool LCD::render_bg_pixel(u32 bg_control)
 			return render_bg_mode_0(bg_control); break;
 
 		//BG Mode 1
-		//TODO - Implement read Mode 1 rendering (mixed mode, Text + Scale-Rotation), only Text Mode works here
 		case 1:
-			return render_bg_mode_0(bg_control); break;
+			//Render BG2 as Scaled+Rotation
+			if(bg_control == BG2CNT) { return render_bg_mode_1(bg_control); }
+
+			//BG3 is never drawn in Mode 1
+			else if(bg_control == BG3CNT) { return false; }
+
+			//Render BG0 and BG1 as Text (same as Mode 0)
+			else { return render_bg_mode_0(bg_control); } 
+
+			break;
 
 		//BG Mode 3
 		case 3:
@@ -570,6 +578,46 @@ bool LCD::render_bg_mode_0(u32 bg_control)
 
 		scanline_buffer[scanline_pixel_counter] = pal[raw_color][0];
 	}
+
+	return true;
+}
+
+/****** Render BG Mode 1 ******/
+bool LCD::render_bg_mode_1(u32 bg_control)
+{
+	//Get BG size in tiles
+	//Pixel sizes -> 0 - 128x128, 1 - 256x256, 2 - 512x512, 3 - 1024x1024
+	u16 bg_tile_size = (16 << (mem->read_u16_fast(bg_control) >> 14));
+
+	//Determine source pixel X-Y coordinates
+	u16 src_x = scanline_pixel_counter;
+	u16 src_y = current_scanline;
+
+	//Find out where the map base address is - Bits 2-3 of BG(X)CNT
+	u32 map_base_addr = 0x6000000 + (0x800 * ((mem->read_u16_fast(bg_control) >> 8) & 0x1F));
+
+	//Find out where the tile base address is - Bits 8-12 of BG(X)CNT
+	u32 tile_base_addr = 0x6000000 + (0x4000 * ((mem->read_u16_fast(bg_control) >> 2) & 0x3));
+
+	//Get current map entry for rendered pixel
+	u16 tile_number = ((src_y / 8) * bg_tile_size) + (src_x / 8);
+
+	//Look at the Tile Map #(tile_number), see what Tile # it points to
+	u16 map_entry = mem->read_u16_fast(map_base_addr + tile_number) & 0xFF;
+
+	//Get address of Tile #(map_entry)
+	u32 tile_addr = tile_base_addr + (map_entry * 64);
+
+	u8 current_tile_pixel = ((src_y % 8) * 8) + (src_x % 8);
+
+	//Grab the byte corresponding to (current_tile_pixel), render it as ARGB - 8-bit version
+	tile_addr += current_tile_pixel;
+	u8 raw_color = mem->read_u8(tile_addr);
+
+	//If the bg color is transparent, abort drawing
+	if(raw_color == 0) { return false; }
+
+	scanline_buffer[scanline_pixel_counter] = pal[raw_color][0];
 
 	return true;
 }

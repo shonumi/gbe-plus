@@ -93,6 +93,7 @@ class LCD
 	bool render_sprite_pixel();
 	bool render_bg_pixel(u32 bg_control);
 	bool render_bg_mode_0(u32 bg_control);
+	bool render_bg_mode_1(u32 bg_control);
 	bool render_bg_mode_3(u32 bg_control);
 	bool render_bg_mode_4(u32 bg_control);
 	void scanline_compare();
