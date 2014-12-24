@@ -890,7 +890,7 @@ void ARM7::swi_bgaffineset()
 
 		//Grab the angle of rotation, add 4 to keep data structure aligned by word-size
 		u16 theta = mem->read_u16(src_addr); src_addr += 4;
-		theta = (theta/0x80) * PI;
+		theta = theta / (0x80 * PI);
 
 		double cos_angle = cos(theta);
 		double sin_angle = sin(theta);
@@ -898,8 +898,8 @@ void ARM7::swi_bgaffineset()
 		//Calculate differences in X-Y coordinates for this line and the next
 		s16 diff_x1 = (scale_x * cos_angle);
 		s16 diff_x2 = (scale_x * sin_angle);
-		s16 diff_y1 = (scale_y * cos_angle);
-		s16 diff_y2 = (scale_y * sin_angle);
+		s16 diff_y1 = (scale_y * sin_angle);
+		s16 diff_y2 = (scale_y * cos_angle);
 
 		//Write to destination data structure
 		mem->write_u16(dest_addr, diff_x1); dest_addr += 2;
@@ -909,7 +909,7 @@ void ARM7::swi_bgaffineset()
 
 		//Calculate start X-Y coordinates
 		s32 start_x = (center_x - diff_x1 * display_x + diff_x2 * display_y);
-		s32 start_y = (center_y - diff_y1 * display_x + diff_y2 * display_y);
+		s32 start_y = (center_y - diff_y1 * display_x - diff_y2 * display_y);
 
 		mem->write_u32(dest_addr, start_x); dest_addr += 4;
 		mem->write_u32(dest_addr, start_y); dest_addr += 4;
@@ -944,7 +944,7 @@ void ARM7::swi_objaffineset()
 
 		//Grab the angle of rotation, add 4 to keep data structure aligned by word-size
 		u16 theta = mem->read_u16(src_addr); src_addr += 4;
-		theta = (theta/0x80) * PI;
+		theta = theta / (0x80 * PI);
 
 		double cos_angle = cos(theta);
 		double sin_angle = sin(theta);
@@ -952,8 +952,8 @@ void ARM7::swi_objaffineset()
 		//Calculate differences in X-Y coordinates for this line and the next
 		s16 diff_x1 = (scale_x * cos_angle);
 		s16 diff_x2 = (scale_x * sin_angle);
-		s16 diff_y1 = (scale_y * cos_angle);
-		s16 diff_y2 = (scale_y * sin_angle);
+		s16 diff_y1 = (scale_y * sin_angle);
+		s16 diff_y2 = (scale_y * cos_angle);
 
 		//Write to destination data structure
 		mem->write_u16(dest_addr, diff_x1); dest_addr += offset;
