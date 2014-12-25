@@ -775,7 +775,7 @@ void LCD::step()
 
 			//Increment scanline count
 			current_scanline++;
-			mem->write_u16(VCOUNT, current_scanline);
+			mem->write_u16_fast(VCOUNT, current_scanline);
 			scanline_compare();
 	
 			//Start HBlank DMA
@@ -831,7 +831,7 @@ void LCD::step()
 			mem->memory_map[DISPSTAT] |= 0x2;
 
 			current_scanline++;
-			mem->write_u16(VCOUNT, current_scanline);
+			mem->write_u16_fast(VCOUNT, current_scanline);
 			scanline_compare();
 
 			//Start HBlank DMA
@@ -852,7 +852,7 @@ void LCD::step()
 			scanline_compare();
 			scanline_pixel_counter = 0; 
 			frame_start_time = SDL_GetTicks();
-			mem->write_u16(VCOUNT, 0);
+			mem->write_u16_fast(VCOUNT, 0);
 		}
 	}
 }
@@ -873,14 +873,14 @@ void LCD::scanline_compare()
 
 		//Toggle VCOUNT flag ON
 		disp_stat |= 0x4;
-		mem->write_u16(DISPSTAT, disp_stat);
+		mem->write_u16_fast(DISPSTAT, disp_stat);
 	}
 
 	else
 	{
 		//Toggle VCOUNT flag OFF
 		disp_stat &= ~0x4;
-		mem->write_u16(DISPSTAT, disp_stat);
+		mem->write_u16_fast(DISPSTAT, disp_stat);
 	}
 }
 		
