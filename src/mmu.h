@@ -77,6 +77,7 @@ class MMU
 		bool bg_pal_update;
 		bool obj_pal_update;
 		bool bg_offset_update;
+		bool bg_params_update;
 		std::vector<bool> oam_update_list;
 		std::vector<bool> bg_pal_update_list;
 		std::vector<bool> obj_pal_update_list;

@@ -42,6 +42,7 @@ class LCD
 	void update_oam();
 	void update_palettes();
 	void update_bg_offset();
+	void update_bg_params();
 
 	struct oam_entries
 	{
@@ -68,6 +69,16 @@ class LCD
 		u8 rotate_scale;
 		bool visible;
 	} obj[128];
+
+	struct bg_scale_rotate_parameters
+	{
+		//Parameters, X-Y reference
+		double a, b, c, d;
+		double x_ref, y_ref;
+		
+		//LUT of precalculated transformation positions
+		std::vector<u32> bg_lut;
+	} bg_params[2];
 
 	u8 obj_render_list[128];
 	u8 obj_render_length;

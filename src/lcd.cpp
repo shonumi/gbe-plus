@@ -9,6 +9,8 @@
 // Draws background, window, and sprites to screen
 // Responsible for blitting pixel data and limiting frame rate
 
+#include <cmath>
+
 #include "lcd.h"
 
 /****** LCD Constructor ******/
@@ -230,6 +232,99 @@ void LCD::update_bg_offset()
 	//BG3 scroll values
 	bg_offset_x[3] = mem->read_u16_fast(BG3HOFS) & 0x1FF;
 	bg_offset_y[3] = mem->read_u16_fast(BG3VOFS) & 0x1FF;
+}
+
+/****** Updates BG scaling + rotation parameters when values change in memory ******/
+void LCD::update_bg_params()
+{
+	//TODO - BG3 parameters
+	u32 bg2_param_addr = BG2PA;
+
+	//Update BG2 parameters
+	for(int x = 0; x < 4; x++)
+	{
+		u16 raw_value = mem->read_u16_fast(bg2_param_addr);
+		bg2_param_addr += 2;
+		
+		//Grab the fractional and integer portions, respectively
+		double final_value = 0.0;
+		if((raw_value & 0xFF) != 0) { final_value = (raw_value & 0xFF) / 256.0; }
+		final_value += (raw_value >> 8) & 0x7F;
+		//if(raw_value & 0x80) { final_value *= -1.0; }
+
+		switch(x)
+		{ 
+			case 0: bg_params[0].a = final_value; break;
+			case 1: bg_params[0].b = final_value; break;
+			case 2: bg_params[0].c = final_value; break;
+			case 3: bg_params[0].d = final_value; break;
+		}
+	}
+
+	u32 x_raw = mem->read_u32_fast(BG2X_L);
+	u32 y_raw = mem->read_u32_fast(BG2Y_L);
+	bg_params[0].x_ref = 0.0;
+	bg_params[0].y_ref = 0.0;
+
+	//Update BG2 X reference, integer then fraction
+	//Note: The reference points are 19-bit signed 2's complement, not mentioned anywhere in docs...
+	if(x_raw & 0x8000000) 
+	{ 
+		u16 x = (((x_raw >> 8) & 0x7FFFF) - 1);
+		x = ~x;
+		bg_params[0].x_ref = -1.0 * x;
+	}
+	else { bg_params[0].x_ref = (x_raw >> 8) & 0x7FFFF; }
+	if((x_raw & 0xFF) != 0) { bg_params[0].x_ref += (x_raw & 0xFF) / 256.0; }
+	
+	//Update BG2 X reference, integer then fraction
+	if(y_raw & 0x8000000) 
+	{ 
+		u16 y = (((y_raw >> 8) & 0x7FFFF) - 1);
+		y = ~y;
+		bg_params[0].y_ref = -1.0 * y;
+	}
+	else { bg_params[0].y_ref = (y_raw >> 8) & 0x7FFFF; }
+	if((y_raw & 0xFF) != 0) { bg_params[0].y_ref += (y_raw & 0xFF) / 256.0; }
+	
+	//Get BG2 size in pixels
+	u16 bg_size = (16 << (mem->read_u16_fast(BG2CNT) >> 14)) << 3;
+	bg_params[0].bg_lut.clear();
+	bg_params[0].bg_lut.resize(0x9600, 0xFFFFFFFF);
+
+	double out_x = bg_params[0].x_ref; 
+	double out_y = bg_params[0].y_ref;
+
+	//Create a precalculated LUT (look-up table) of all transformed positions
+	//For example, when rendering at (120, 80), we need to determine what pixel was rotated/scaled into this position
+	for(int x = 0; x < (bg_size * bg_size); x++)
+	{
+		//Increment reference points by DMX and DMY for calculations
+		if((x % bg_size == 0) && (x > 0))
+		{
+			//x_ref_copy = bg_params[0].x_ref + ((x / bg_size) * bg_params[0].b);
+			//y_ref_copy = bg_params[0].y_ref + ((x / bg_size) * bg_params[0].d);
+			out_x = bg_params[0].x_ref + ((x / bg_size) * bg_params[0].b);
+			out_y = bg_params[0].y_ref + ((x / bg_size) * bg_params[0].d);
+		}
+
+		//Calculate old position
+		u16 src_x = x % bg_size;
+		u16 src_y = x / bg_size;
+		u32 old_pos = (src_y * 240) + src_x;
+
+		//Calculate new position, store to LUT
+		double temp_x = (out_x > 0) ? floor(out_x + 0.5) : ceil(out_x - 0.5);
+		double temp_y = (out_y > 0) ? floor(out_y + 0.5) : ceil(out_y - 0.5);
+		u32 new_pos = (temp_y * 240) + temp_x;
+		
+		if((new_pos < 0x9600) && (old_pos < 0x9600)) { bg_params[0].bg_lut[old_pos] = new_pos; }
+
+		out_x += bg_params[0].a;
+		out_y += bg_params[0].c;
+	}
+
+	mem->lcd_updates.bg_params_update = false;
 }
 
 /****** Determines if a sprite pixel should be rendered, and if so draws it to the current scanline pixel ******/
@@ -585,13 +680,19 @@ bool LCD::render_bg_mode_0(u32 bg_control)
 /****** Render BG Mode 1 ******/
 bool LCD::render_bg_mode_1(u32 bg_control)
 {
-	//Get BG size in tiles
-	//Pixel sizes -> 0 - 128x128, 1 - 256x256, 2 - 512x512, 3 - 1024x1024
+	//Get BG size in pixels, tiles
+	//0 - 128x128, 1 - 256x256, 2 - 512x512, 3 - 1024x1024
 	u16 bg_tile_size = (16 << (mem->read_u16_fast(bg_control) >> 14));
 
 	//Determine source pixel X-Y coordinates
-	u16 src_x = scanline_pixel_counter;
+	u16 src_x = scanline_pixel_counter; 
 	u16 src_y = current_scanline;
+
+	u32 current_pos = (src_y * 240) + src_x;
+	current_pos = bg_params[0].bg_lut[current_pos];
+
+	src_y = current_pos / 240;
+	src_x = current_pos % 240;
 
 	//Find out where the map base address is - Bits 2-3 of BG(X)CNT
 	u32 map_base_addr = 0x6000000 + (0x800 * ((mem->read_u16_fast(bg_control) >> 8) & 0x1F));
@@ -743,6 +844,9 @@ void LCD::step()
 
 			//Update BG offsets
 			if(mem->lcd_updates.bg_offset_update) { update_bg_offset(); }
+
+			//Update BG scaling + rotation parameters
+			if(mem->lcd_updates.bg_params_update) { update_bg_params(); }
 
 			render_scanline();
 			scanline_pixel_counter++;
