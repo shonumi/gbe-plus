@@ -49,6 +49,8 @@ void LCD::reset()
 
 	screen_buffer.resize(0x9600, 0);
 	scanline_buffer.resize(0x100, 0);
+
+	bg_params[0].bg_lut.resize(0x10000, 0xFFFFFFFF);
 }
 
 /****** Initialize LCD with SDL ******/
@@ -277,7 +279,7 @@ void LCD::update_bg_params()
 	else { bg_params[0].x_ref = (x_raw >> 8) & 0x7FFFF; }
 	if((x_raw & 0xFF) != 0) { bg_params[0].x_ref += (x_raw & 0xFF) / 256.0; }
 	
-	//Update BG2 X reference, integer then fraction
+	//Update BG2 Y reference, integer then fraction
 	if(y_raw & 0x8000000) 
 	{ 
 		u16 y = (((y_raw >> 8) & 0x7FFFF) - 1);
@@ -680,7 +682,7 @@ bool LCD::render_bg_mode_0(u32 bg_control)
 /****** Render BG Mode 1 ******/
 bool LCD::render_bg_mode_1(u32 bg_control)
 {
-	//Get BG size in pixels, tiles
+	//Get BG size in tiles
 	//0 - 128x128, 1 - 256x256, 2 - 512x512, 3 - 1024x1024
 	u16 bg_tile_size = (16 << (mem->read_u16_fast(bg_control) >> 14));
 
@@ -690,6 +692,7 @@ bool LCD::render_bg_mode_1(u32 bg_control)
 
 	u32 current_pos = (src_y * 240) + src_x;
 	current_pos = bg_params[0].bg_lut[current_pos];
+	if(current_pos >= 0x9600) { return false; }
 
 	src_y = current_pos / 240;
 	src_x = current_pos % 240;

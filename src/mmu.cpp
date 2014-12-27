@@ -263,7 +263,7 @@ void MMU::write_u16(u32 address, u16 value)
 	write_u8(address, (value & 0xFF));
 }
 
-/****** Write 4 bytes into memory ******/
+/****** Write 2 bytes into memory ******/
 void MMU::write_u32(u32 address, u32 value)
 {
 	write_u8((address+3), ((value >> 24) & 0xFF));
@@ -273,7 +273,7 @@ void MMU::write_u32(u32 address, u32 value)
 }
 
 /****** Writes 2 bytes from memory - No checks done on the read, used for known memory locations such as registers ******/
-void MMU::write_u32_fast(u32 address, u16 value)
+void MMU::write_u16_fast(u32 address, u16 value)
 {
 	memory_map[address] = (value & 0xFF);
 	memory_map[address+1] = ((value >> 8) & 0xFF);
