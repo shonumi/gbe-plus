@@ -101,6 +101,9 @@ class MMU
 	void write_u16(u32 address, u16 value);
 	void write_u32(u32 address, u32 value);
 
+	void write_u16_fast(u32 address, u16 value);
+	void write_u32_fast(u32 address, u32 value);
+
 	bool read_file(std::string filename);
 	bool read_bios(std::string filename);
 	bool save_backup(std::string filename);

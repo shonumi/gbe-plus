@@ -272,6 +272,22 @@ void MMU::write_u32(u32 address, u32 value)
 	write_u8(address, (value & 0xFF));
 }
 
+/****** Writes 2 bytes from memory - No checks done on the read, used for known memory locations such as registers ******/
+void MMU::write_u32_fast(u32 address, u16 value)
+{
+	memory_map[address] = (value & 0xFF);
+	memory_map[address+1] = ((value >> 8) & 0xFF);
+}
+
+/****** Writes 4 bytes from memory - No checks done on the read, used for known memory locations such as registers ******/
+void MMU::write_u32_fast(u32 address, u32 value)
+{
+	memory_map[address] = (value & 0xFF);
+	memory_map[address+1] = ((value >> 8) & 0xFF);
+	memory_map[address+2] = ((value >> 16) & 0xFF);
+	memory_map[address+3] = ((value >> 24) & 0xFF);
+}	
+
 /****** Read binary file to memory ******/
 bool MMU::read_file(std::string filename)
 {
