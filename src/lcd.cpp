@@ -302,7 +302,7 @@ void LCD::update_bg_params()
 	for(int x = 0; x < 0x9600; x++)
 	{
 		//Increment reference points by DMX and DMY for calculations
-		if((x % bg_size == 0) && (x > 0))
+		if((x % 240 == 0) && (x > 0))
 		{
 			bg_params[0].x_ref += bg_params[0].b;
 			bg_params[0].y_ref += bg_params[0].d;
@@ -313,15 +313,21 @@ void LCD::update_bg_params()
 		u16 src_y = x / 240;
 		u32 old_pos = (src_y * 240) + src_x;
 
-		//Calculate new position, store to LUT
+		//Calculate new position using new coordinate space, store to LUT
 		out_x = bg_params[0].x_ref + ((x % 240) * bg_params[0].a);
 		out_y = bg_params[0].y_ref + ((x / 240) * bg_params[0].c);
 
+		//Round results to nearest integer
 		double temp_x = (out_x > 0) ? floor(out_x + 0.5) : ceil(out_x - 0.5);
 		double temp_y = (out_y > 0) ? floor(out_y + 0.5) : ceil(out_y - 0.5);
-		u32 new_pos = (temp_y * 240) + temp_x;
+
+		//Cheap way to do modulus on rounded decimals
+		while(temp_x >= bg_size) { temp_x -= bg_size; }
+		while(temp_y >= bg_size) { temp_y -= bg_size; }
+
+		u32 new_pos = (temp_y * bg_size) + temp_x;
 		
-		if((new_pos < 0x9600) && (old_pos < 0x9600)) { bg_params[0].bg_lut[old_pos] = new_pos; }
+		if(old_pos < 0x9600) { bg_params[0].bg_lut[old_pos] = new_pos; }
 	}
 
 	mem->lcd_updates.bg_params_update = false;
@@ -680,9 +686,10 @@ bool LCD::render_bg_mode_0(u32 bg_control)
 /****** Render BG Mode 1 ******/
 bool LCD::render_bg_mode_1(u32 bg_control)
 {
-	//Get BG size in tiles
+	//Get BG size in tiles, pixels
 	//0 - 128x128, 1 - 256x256, 2 - 512x512, 3 - 1024x1024
 	u16 bg_tile_size = (16 << (mem->read_u16_fast(bg_control) >> 14));
+	u16 bg_pixel_size = bg_tile_size << 3;
 
 	//Determine source pixel X-Y coordinates
 	u16 src_x = scanline_pixel_counter; 
@@ -690,10 +697,9 @@ bool LCD::render_bg_mode_1(u32 bg_control)
 
 	u32 current_pos = (src_y * 240) + src_x;
 	current_pos = bg_params[0].bg_lut[current_pos];
-	if(current_pos >= 0x9600) { return false; }
 
-	src_y = current_pos / 240;
-	src_x = current_pos % 240;
+	src_y = current_pos / bg_pixel_size;
+	src_x = current_pos % bg_pixel_size;
 
 	//Find out where the map base address is - Bits 2-3 of BG(X)CNT
 	u32 map_base_addr = 0x6000000 + (0x800 * ((mem->read_u16_fast(bg_control) >> 8) & 0x1F));
