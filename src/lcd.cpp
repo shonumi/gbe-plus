@@ -299,31 +299,29 @@ void LCD::update_bg_params()
 
 	//Create a precalculated LUT (look-up table) of all transformed positions
 	//For example, when rendering at (120, 80), we need to determine what pixel was rotated/scaled into this position
-	for(int x = 0; x < (bg_size * bg_size); x++)
+	for(int x = 0; x < 0x9600; x++)
 	{
 		//Increment reference points by DMX and DMY for calculations
 		if((x % bg_size == 0) && (x > 0))
 		{
-			//x_ref_copy = bg_params[0].x_ref + ((x / bg_size) * bg_params[0].b);
-			//y_ref_copy = bg_params[0].y_ref + ((x / bg_size) * bg_params[0].d);
-			out_x = bg_params[0].x_ref + ((x / bg_size) * bg_params[0].b);
-			out_y = bg_params[0].y_ref + ((x / bg_size) * bg_params[0].d);
+			bg_params[0].x_ref += bg_params[0].b;
+			bg_params[0].y_ref += bg_params[0].d;
 		}
 
 		//Calculate old position
-		u16 src_x = x % bg_size;
-		u16 src_y = x / bg_size;
+		u16 src_x = x % 240;
+		u16 src_y = x / 240;
 		u32 old_pos = (src_y * 240) + src_x;
 
 		//Calculate new position, store to LUT
+		out_x = bg_params[0].x_ref + ((x % 240) * bg_params[0].a);
+		out_y = bg_params[0].y_ref + ((x / 240) * bg_params[0].c);
+
 		double temp_x = (out_x > 0) ? floor(out_x + 0.5) : ceil(out_x - 0.5);
 		double temp_y = (out_y > 0) ? floor(out_y + 0.5) : ceil(out_y - 0.5);
 		u32 new_pos = (temp_y * 240) + temp_x;
 		
 		if((new_pos < 0x9600) && (old_pos < 0x9600)) { bg_params[0].bg_lut[old_pos] = new_pos; }
-
-		out_x += bg_params[0].a;
-		out_y += bg_params[0].c;
 	}
 
 	mem->lcd_updates.bg_params_update = false;
