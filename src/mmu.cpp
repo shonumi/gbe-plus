@@ -510,8 +510,8 @@ bool MMU::save_backup(std::string filename)
 void MMU::start_blank_dma()
 {
 	//Repeat bits automatically enable DMAs
-	if(dma[0].control & 0x200) { dma[0].enable; }
-	if(dma[3].control & 0x200) { dma[3].enable; }
+	if(dma[0].control & 0x200) { dma[0].enable = true; }
+	if(dma[3].control & 0x200) { dma[3].enable = true; }
 
 	//DMA0
 	if(dma[0].enable)
