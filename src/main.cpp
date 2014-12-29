@@ -37,6 +37,9 @@ int main(int argc, char* args[])
 	gba.start();
 	gba.db_unit.debug_mode = config::use_debugger;
 
+	//Disbale mouse cursor in SDL, it's annoying
+	SDL_ShowCursor(SDL_DISABLE);
+
 	//Begin running the core
 	while(gba.running)
 	{
