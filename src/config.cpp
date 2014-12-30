@@ -39,6 +39,7 @@ namespace config
 	u32 flags = 0;
 	bool pause_emu = false;
 	bool use_bios = false;
+	bool turbo = false;
 }
 
 /****** Parse arguments passed from the command-line ******/
