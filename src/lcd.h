@@ -35,7 +35,6 @@ class LCD
 
 	//Screen data
 	SDL_Surface* final_screen;
-	SDL_Surface* internal_screen;
 
 	private:
 

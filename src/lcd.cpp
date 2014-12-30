@@ -30,7 +30,7 @@ LCD::~LCD()
 /****** Reset LCD ******/
 void LCD::reset()
 {
-	final_screen = internal_screen = NULL;
+	final_screen = final_screen = NULL;
 	mem = NULL;
 
 	scanline_buffer.clear();
@@ -63,7 +63,6 @@ bool LCD::init()
 	}
 
 	final_screen = SDL_SetVideoMode(240, 160, 32, SDL_SWSURFACE);
-	internal_screen = SDL_CreateRGBSurface(SDL_SWSURFACE, 240, 160, 32, 0, 0, 0, 0);
 
 	if(final_screen == NULL) { return false; }
 
@@ -915,16 +914,15 @@ void LCD::step()
 			if((mem->memory_map[DISPCNT] & 0x80) == 0)
 			{
 				//Lock source surface
-				if(SDL_MUSTLOCK(internal_screen)){ SDL_LockSurface(internal_screen); }
-				u32* out_pixel_data = (u32*)internal_screen->pixels;
+				if(SDL_MUSTLOCK(final_screen)){ SDL_LockSurface(final_screen); }
+				u32* out_pixel_data = (u32*)final_screen->pixels;
 
 				for(int a = 0; a < 0x9600; a++) { out_pixel_data[a] = screen_buffer[a]; }
 
 				//Unlock source surface
-				if(SDL_MUSTLOCK(internal_screen)){ SDL_UnlockSurface(internal_screen); }
+				if(SDL_MUSTLOCK(final_screen)){ SDL_UnlockSurface(final_screen); }
 		
-				//Blit
-				SDL_BlitSurface(internal_screen, 0, final_screen, 0);
+				//Display final screen buffer
 				if(SDL_Flip(final_screen) == -1) { std::cout<<"LCD::Error - Could not blit\n"; }
 			}
 
