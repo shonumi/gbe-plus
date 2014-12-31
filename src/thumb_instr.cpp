@@ -912,9 +912,6 @@ void ARM7::load_store_imm_offset(u16 current_thumb_instruction)
 			mem->write_u8(op_addr, value);
 			clock(op_addr, true);
 
-			//Hax
-			if((op_addr >= 0x5000000) && (op_addr <= 0x70003FF)) { mem->write_u8((op_addr+1), value); }
-
 			break;
 
 		//LDRB
