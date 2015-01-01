@@ -22,14 +22,14 @@ void ARM7::dma0()
 	//See if DMA Start Timing conditions dictate a transfer
 	else
 	{
-		mem->dma[0].start_address = (mem->read_u32(DMA0SAD) & 0x7FFFFFF);
-		mem->dma[0].destination_address = (mem->read_u32(DMA0DAD) & 0x7FFFFFF);
-		mem->dma[0].word_count = mem->read_u16(DMA0CNT_L);
-		mem->dma[0].word_type = (mem->read_u16(DMA0CNT_H) & 0x400) ? 1 : 0;
+		mem->dma[0].start_address = (mem->read_u32_fast(DMA0SAD) & 0x7FFFFFF);
+		mem->dma[0].destination_address = (mem->read_u32_fast(DMA0DAD) & 0x7FFFFFF);
+		mem->dma[0].word_count = mem->read_u16_fast(DMA0CNT_L);
+		mem->dma[0].word_type = (mem->read_u16_fast(DMA0CNT_H) & 0x400) ? 1 : 0;
 
 		mem->dma[0].control = mem->read_u16(DMA0CNT_H);
-		mem->dma[0].dest_addr_ctrl = (mem->read_u16(DMA0CNT_H) >> 5) & 0x3;
-		mem->dma[0].src_addr_ctrl = (mem->read_u16(DMA0CNT_H) >> 7) & 0x3;
+		mem->dma[0].dest_addr_ctrl = (mem->read_u16_fast(DMA0CNT_H) >> 5) & 0x3;
+		mem->dma[0].src_addr_ctrl = (mem->read_u16_fast(DMA0CNT_H) >> 7) & 0x3;
 
 		u32 temp_value = 0;
 		u32 original_dest_addr = mem->dma[0].destination_address;
@@ -92,8 +92,8 @@ void ARM7::dma0()
 				if(mem->dma[0].dest_addr_ctrl == 3) { mem->dma[0].destination_address = original_dest_addr; }
 
 				//Write back internal registers to real registers
-				mem->write_u32(DMA0SAD, mem->dma[0].start_address);
-				mem->write_u32(DMA0DAD, mem->dma[0].destination_address);
+				mem->write_u32_fast(DMA0SAD, mem->dma[0].start_address);
+				mem->write_u32_fast(DMA0DAD, mem->dma[0].destination_address);
 
 				//Raise DMA0 IRQ if necessary
 				if(mem->dma[0].control & 0x4000) { mem->memory_map[REG_IF+1] |= 0x1; }
@@ -162,8 +162,8 @@ void ARM7::dma0()
 					if(mem->dma[0].dest_addr_ctrl == 3) { mem->dma[0].destination_address = original_dest_addr; }
 
 					//Write back internal registers to real registers
-					mem->write_u32(DMA0SAD, mem->dma[0].start_address);
-					mem->write_u32(DMA0DAD, mem->dma[0].destination_address);
+					mem->write_u32_fast(DMA0SAD, mem->dma[0].start_address);
+					mem->write_u32_fast(DMA0DAD, mem->dma[0].destination_address);
 
 					//Raise DMA0 IRQ if necessary
 					if(mem->dma[0].control & 0x4000) { mem->memory_map[REG_IF+1] |= 0x1; }
@@ -192,14 +192,14 @@ void ARM7::dma3()
 	//See if DMA Start Timing conditions dictate a transfer
 	else
 	{
-		mem->dma[3].start_address = (mem->read_u32(DMA3SAD) & 0xFFFFFFF);
-		mem->dma[3].destination_address = (mem->read_u32(DMA3DAD) & 0xFFFFFFF);
-		mem->dma[3].word_count = mem->read_u16(DMA3CNT_L);
-		mem->dma[3].word_type = (mem->read_u16(DMA3CNT_H) & 0x400) ? 1 : 0;
+		mem->dma[3].start_address = (mem->read_u32_fast(DMA3SAD) & 0xFFFFFFF);
+		mem->dma[3].destination_address = (mem->read_u32_fast(DMA3DAD) & 0xFFFFFFF);
+		mem->dma[3].word_count = mem->read_u16_fast(DMA3CNT_L);
+		mem->dma[3].word_type = (mem->read_u16_fast(DMA3CNT_H) & 0x400) ? 1 : 0;
 
 		mem->dma[3].control = mem->read_u16(DMA3CNT_H);
-		mem->dma[3].dest_addr_ctrl = (mem->read_u16(DMA3CNT_H) >> 5) & 0x3;
-		mem->dma[3].src_addr_ctrl = (mem->read_u16(DMA3CNT_H) >> 7) & 0x3;
+		mem->dma[3].dest_addr_ctrl = (mem->read_u16_fast(DMA3CNT_H) >> 5) & 0x3;
+		mem->dma[3].src_addr_ctrl = (mem->read_u16_fast(DMA3CNT_H) >> 7) & 0x3;
 
 		u32 temp_value = 0;
 		u32 original_src_addr = mem->dma[3].start_address;
@@ -300,8 +300,8 @@ void ARM7::dma3()
 				if(mem->dma[3].dest_addr_ctrl == 3) { mem->dma[3].destination_address = original_dest_addr; }
 
 				//Write back internal registers to real registers
-				mem->write_u32(DMA3SAD, mem->dma[3].start_address);
-				mem->write_u32(DMA3DAD, mem->dma[3].destination_address);
+				mem->write_u32_fast(DMA3SAD, mem->dma[3].start_address);
+				mem->write_u32_fast(DMA3DAD, mem->dma[3].destination_address);
 
 				//Raise DMA3 IRQ if necessary
 				if(mem->dma[3].control & 0x4000) { mem->memory_map[REG_IF+1] |= 0x8; }
@@ -370,8 +370,8 @@ void ARM7::dma3()
 					if(mem->dma[3].dest_addr_ctrl == 3) { mem->dma[3].destination_address = original_dest_addr; }
 
 					//Write back internal registers to real registers
-					mem->write_u32(DMA3SAD, mem->dma[3].start_address);
-					mem->write_u32(DMA3DAD, mem->dma[3].destination_address);
+					mem->write_u32_fast(DMA3SAD, mem->dma[3].start_address);
+					mem->write_u32_fast(DMA3DAD, mem->dma[3].destination_address);
 
 					//Raise DMA3 IRQ if necessary
 					if(mem->dma[3].control & 0x4000) { mem->memory_map[REG_IF+1] |= 0x8; }
