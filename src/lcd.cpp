@@ -169,15 +169,15 @@ void LCD::update_palettes()
 			{
 				mem->lcd_updates.bg_pal_update_list[x] = false;
 
-				u16 color_bytes = mem->read_u16_fast(0x5000000 + (x * 2));
+				u16 color_bytes = mem->read_u16_fast(0x5000000 + (x << 1));
 
-				u8 red = ((color_bytes & 0x1F) * 8);
+				u8 red = ((color_bytes & 0x1F) << 3);
 				color_bytes >>= 5;
 
-				u8 green = ((color_bytes & 0x1F) * 8);
+				u8 green = ((color_bytes & 0x1F) << 3);
 				color_bytes >>= 5;
 
-				u8 blue = ((color_bytes & 0x1F) * 8);
+				u8 blue = ((color_bytes & 0x1F) << 3);
 
 				pal[x][0] =  0xFF000000 | (red << 16) | (green << 8) | (blue);
 			}
@@ -197,15 +197,15 @@ void LCD::update_palettes()
 			{
 				mem->lcd_updates.obj_pal_update_list[x] = false;
 
-				u16 color_bytes = mem->read_u16_fast(0x5000200 + (x * 2));
+				u16 color_bytes = mem->read_u16_fast(0x5000200 + (x << 1));
 
-				u8 red = ((color_bytes & 0x1F) * 8);
+				u8 red = ((color_bytes & 0x1F) << 3);
 				color_bytes >>= 5;
 
-				u8 green = ((color_bytes & 0x1F) * 8);
+				u8 green = ((color_bytes & 0x1F) << 3);
 				color_bytes >>= 5;
 
-				u8 blue = ((color_bytes & 0x1F) * 8);
+				u8 blue = ((color_bytes & 0x1F) << 3);
 
 				pal[x][1] =  0xFF000000 | (red << 16) | (green << 8) | (blue);
 			}
