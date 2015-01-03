@@ -42,6 +42,7 @@ class LCD
 	void update_palettes();
 	void update_bg_offset();
 	void update_bg_params();
+	void update_obj_render_list();
 
 	struct oam_entries
 	{

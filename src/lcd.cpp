@@ -151,6 +151,25 @@ void LCD::update_oam()
 			if((obj[x].rotate_scale == 1) && (obj[x].type == 1)) { obj[x].x += (obj[x].width >> 1); obj[x].y += (obj[x].height >> 1); }
 		}
 	}
+
+	//Update render list for the current scanline
+	update_obj_render_list();
+}
+
+/****** Updates a list of OBJs to render on the current scanline ******/
+void LCD::update_obj_render_list()
+{
+	obj_render_length = 0;
+
+	//Cycle through all of the sprites
+	for(int x = 0; x < 128; x++)
+	{
+		//Check to see if sprite is rendered on the current scanline
+		if((obj[x].visible) && (current_scanline >= obj[x].y) && (current_scanline <= (obj[x].y + obj[x].height - 1)))
+		{
+			obj_render_list[obj_render_length++] = x;
+		}
+	}
 }
 
 /****** Updates palette entries when values in memory change ******/
@@ -338,137 +357,122 @@ bool LCD::render_sprite_pixel()
 	//If sprites are disabled, quit now
 	if((mem->read_u16_fast(DISPCNT) & 0x1000) == 0) { return false; }
 
-	bool render_sprite = false;
+	//If no sprites are rendered on this line, quit now
+	if(obj_render_list == 0) { return false; }
+
 	u8 sprite_id = 0;
 	u32 sprite_tile_addr = 0;
 	u32 meta_sprite_tile = 0;
-	obj_render_length = 0;
 	u8 raw_color = 0;
-
-	//Cycle through all of the sprites
-	for(int x = 0; x < 128; x++)
-	{
-		//Check to see if sprite is rendered on the current scanline
-		if((obj[x].visible) && (current_scanline >= obj[x].y) && (current_scanline <= (obj[x].y + obj[x].height - 1)))
-		{
-			//Check to see if current_scanline_pixel is within sprite
-			if((scanline_pixel_counter >= obj[x].x) && (scanline_pixel_counter <= (obj[x].x + obj[x].width - 1)))
-			{
-				obj_render_list[obj_render_length++] = x;
-				render_sprite = true;
-			}
-		}
-	}
-
-	//If no sprites are rendered for this pixel, exit now, draw BG pixel instead
-	if(!render_sprite) { return false; }
 
 	//Cycle through all sprites that are rendering on this pixel, draw them according to their priority
 	for(int x = 0; x < obj_render_length; x++)
 	{
 		sprite_id = obj_render_list[x];
 
-		//Determine the internal X-Y coordinates of the sprite's pixel
-		u16 sprite_tile_pixel_x = scanline_pixel_counter - obj[sprite_id].x;
-		u16 sprite_tile_pixel_y = current_scanline - obj[sprite_id].y;
-
-		//Horizontal flip the internal X coordinate
-		if(obj[sprite_id].h_flip)
+		//Check to see if current_scanline_pixel is within sprite
+		if((scanline_pixel_counter >= obj[sprite_id].x) && (scanline_pixel_counter <= (obj[sprite_id].x + obj[sprite_id].width - 1))) 
 		{
-			u16 h_flip = sprite_tile_pixel_x;
-			u8 width = obj[sprite_id].width;
-			u8 f_width = (width - 1);
+			//Determine the internal X-Y coordinates of the sprite's pixel
+			u16 sprite_tile_pixel_x = scanline_pixel_counter - obj[sprite_id].x;
+			u16 sprite_tile_pixel_y = current_scanline - obj[sprite_id].y;
+
+			//Horizontal flip the internal X coordinate
+			if(obj[sprite_id].h_flip)
+			{
+				u16 h_flip = sprite_tile_pixel_x;
+				u8 width = obj[sprite_id].width;
+				u8 f_width = (width - 1);
+			
+				//Horizontal flipping
+				if(h_flip < (width/2)) 
+				{
+					h_flip = ((f_width - h_flip) - h_flip);
+					sprite_tile_pixel_x += h_flip;
+				}
+
+				else
+				{
+					h_flip = f_width - (2 * (f_width - h_flip));
+					sprite_tile_pixel_x -= h_flip;
+				}
+			}
+
+			//Vertical flip the internal Y coordinate
+			if(obj[sprite_id].v_flip)
+			{
+				u16 v_flip = sprite_tile_pixel_y;
+				u8 height = obj[sprite_id].height;
+				u8 f_height = (height - 1);
 			
 	
-			//Horizontal flipping
-			if(h_flip < (width/2)) 
+				//Vertical flipping
+				if(v_flip < (height/2)) 
+				{
+					v_flip = ((f_height - v_flip) - v_flip);
+					sprite_tile_pixel_y += v_flip;
+				}
+
+				else
+				{
+					v_flip = f_height - (2 * (f_height - v_flip));
+					sprite_tile_pixel_y -= v_flip;
+				}
+			}
+
+			//Determine meta x-coordinate of rendered sprite pixel
+			u8 meta_x = (sprite_tile_pixel_x / 8);
+
+			//Determine meta Y-coordinate of rendered sprite pixel
+			u8 meta_y = (sprite_tile_pixel_y / 8);
+
+			//Determine which 8x8 section to draw pixel from, and what tile that actually represents in VRAM
+			if(mem->read_u16_fast(DISPCNT) & 0x40)
 			{
-				h_flip = ((f_width - h_flip) - h_flip);
-				sprite_tile_pixel_x += h_flip;
+				meta_sprite_tile = (meta_y * (obj[sprite_id].width/8)) + meta_x;	
 			}
 
 			else
 			{
-				h_flip = f_width - (2 * (f_width - h_flip));
-				sprite_tile_pixel_x -= h_flip;
+				meta_sprite_tile = (meta_y * 32) + meta_x;
 			}
-		}
 
-		//Vertical flip the internal Y coordinate
-		if(obj[sprite_id].v_flip)
-		{
-			u16 v_flip = sprite_tile_pixel_y;
-			u8 height = obj[sprite_id].height;
-			u8 f_height = (height - 1);
-			
-	
-			//Vertical flipping
-			if(v_flip < (height/2)) 
+			sprite_tile_addr = 0x6010000 + (obj[sprite_id].tile_number << 5) +  (meta_sprite_tile * (obj[sprite_id].bit_depth << 3));
+
+			meta_x = (sprite_tile_pixel_x % 8);
+			meta_y = (sprite_tile_pixel_y % 8);
+
+			u8 sprite_tile_pixel = (meta_y * 8) + meta_x;
+
+			//Grab the byte corresponding to (sprite_tile_pixel), render it as ARGB - 4-bit version
+			if(obj[sprite_id].bit_depth == 4)
 			{
-				v_flip = ((f_height - v_flip) - v_flip);
-				sprite_tile_pixel_y += v_flip;
+				sprite_tile_addr += (sprite_tile_pixel >> 1);
+				raw_color = mem->read_u8(sprite_tile_addr);
+
+				if((sprite_tile_pixel % 2) == 0) { raw_color &= 0xF; }
+				else { raw_color >>= 4; }
+
+				if(raw_color != 0) 
+				{
+					scanline_buffer[scanline_pixel_counter] = pal[((obj[sprite_id].palette_number * 32) + (raw_color * 2)) >> 1][1];
+					last_obj_priority = obj[sprite_id].bg_priority;
+					return true;
+				}
 			}
 
+			//Grab the byte corresponding to (sprite_tile_pixel), render it as ARGB - 8-bit version
 			else
 			{
-				v_flip = f_height - (2 * (f_height - v_flip));
-				sprite_tile_pixel_y -= v_flip;
-			}
-		}
+				sprite_tile_addr += sprite_tile_pixel;
+				raw_color = mem->read_u8(sprite_tile_addr);
 
-		//Determine meta x-coordinate of rendered sprite pixel
-		u8 meta_x = (sprite_tile_pixel_x / 8);
-
-		//Determine meta Y-coordinate of rendered sprite pixel
-		u8 meta_y = (sprite_tile_pixel_y / 8);
-
-		//Determine which 8x8 section to draw pixel from, and what tile that actually represents in VRAM
-		if(mem->read_u16_fast(DISPCNT) & 0x40)
-		{
-			meta_sprite_tile = (meta_y * (obj[sprite_id].width/8)) + meta_x;	
-		}
-
-		else
-		{
-			meta_sprite_tile = (meta_y * 32) + meta_x;
-		}
-
-
-		sprite_tile_addr = 0x6010000 + (obj[sprite_id].tile_number << 5) +  (meta_sprite_tile * (obj[sprite_id].bit_depth << 3));
-
-		meta_x = (sprite_tile_pixel_x % 8);
-		meta_y = (sprite_tile_pixel_y % 8);
-
-		u8 sprite_tile_pixel = (meta_y * 8) + meta_x;
-
-		//Grab the byte corresponding to (sprite_tile_pixel), render it as ARGB - 4-bit version
-		if(obj[sprite_id].bit_depth == 4)
-		{
-			sprite_tile_addr += (sprite_tile_pixel >> 1);
-			raw_color = mem->read_u8(sprite_tile_addr);
-
-			if((sprite_tile_pixel % 2) == 0) { raw_color &= 0xF; }
-			else { raw_color >>= 4; }
-
-			if(raw_color != 0) 
-			{
-				scanline_buffer[scanline_pixel_counter] = pal[((obj[sprite_id].palette_number * 32) + (raw_color * 2)) >> 1][1];
-				last_obj_priority = obj[sprite_id].bg_priority;
-				return true;
-			}
-		}
-
-		//Grab the byte corresponding to (sprite_tile_pixel), render it as ARGB - 8-bit version
-		else
-		{
-			sprite_tile_addr += sprite_tile_pixel;
-			raw_color = mem->read_u8(sprite_tile_addr);
-
-			if(raw_color != 0) 
-			{
-				scanline_buffer[scanline_pixel_counter] = pal[raw_color][1];
-				last_obj_priority = obj[sprite_id].bg_priority;
-				return true;
+				if(raw_color != 0) 
+				{
+					scanline_buffer[scanline_pixel_counter] = pal[raw_color][1];
+					last_obj_priority = obj[sprite_id].bg_priority;
+					return true;
+				}
 			}
 		}
 	}
@@ -837,7 +841,11 @@ void LCD::step()
 		mem->memory_map[DISPSTAT] &= ~0x2;
 
 		//Change mode
-		if(lcd_mode != 0) { lcd_mode = 0; }
+		if(lcd_mode != 0) 
+		{ 
+			lcd_mode = 0; 
+			update_obj_render_list();
+		}
 
 		//Render scanline data (per-pixel every 4 cycles)
 		if((lcd_clock % 4) == 0) 
