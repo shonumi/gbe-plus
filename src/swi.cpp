@@ -538,6 +538,10 @@ void ARM7::swi_cpufastset()
 			transfer_size--;
 		}
 	}
+
+	//Write-back R0, R1
+	set_reg(0, src_addr);
+	set_reg(1, dest_addr);
 }
 
 /****** HLE implementation of CPUSet ******/
@@ -621,6 +625,10 @@ void ARM7::swi_cpuset()
 			transfer_size--;
 		}
 	}
+
+	//Write-back R0, R1
+	set_reg(0, src_addr);
+	set_reg(1, dest_addr);
 }
 
 /****** HLE implementation of VBlankIntrWait ******/
