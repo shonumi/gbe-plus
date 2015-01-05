@@ -36,6 +36,7 @@ void MMU::reset()
 
 	//HLE stuff
 	memory_map[DISPCNT] = 0x80;
+	write_u16(0x4000134, 0x8000);
 
 	bios_lock = false;
 
