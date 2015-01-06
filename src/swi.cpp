@@ -140,7 +140,8 @@ void ARM7::process_swi(u32 comment)
 
 		//RLUnCompVram
 		case 0x15:
-			std::cout<<"SWI::Run Length Uncompress Video RAM (not implemented yet) \n";
+			std::cout<<"SWI::Run Length Uncompress Video RAM \n";
+			swi_rluncompvram();
 			break;
 
 		//Diff8bitUnFilterWram
@@ -857,6 +858,58 @@ void ARM7::swi_huffuncomp()
 		bitstream_mask = 0x80000000;
 	}
 }
+
+/****** HLE implementation of RLUnCompVram ******/
+void ARM7::swi_rluncompvram()
+{
+	bios_read_state = BIOS_SWI_FINISH;
+
+	//Grab source address - R0
+	u32 src_addr = get_reg(0);
+
+	//Grab destination address - R1
+	u32 dest_addr = get_reg(1);
+
+	//Grab data header
+	u32 data_header = mem->read_u32(src_addr);
+
+	u32 data_size = (data_header >> 8);
+
+	//Data pointer to compressed data. Points to first flag.
+	u32 data_ptr = (src_addr + 4);
+
+	//Uncompress data
+	while(data_size > 0)
+	{
+		u8 flag = mem->read_u8(data_ptr++);
+
+		u8 data_length = (flag & 0x7F);
+
+		//Adjust data length, +1 for uncompressed data, +3 for compressed data
+		if(flag & 0x80) { data_length += 3; }
+		else { data_length += 1; }
+
+		//Output the specified byte the amount of times in data_length
+		for(int x = 0; x < data_length; x++)
+		{
+			u8 data_byte = 0;
+
+			//Compressed
+			if(flag & 0x80) { data_byte = mem->read_u8(data_ptr); }
+
+			//Uncompressed
+			else { data_byte = mem->read_u8(data_ptr++); }
+				
+			mem->write_u8(dest_addr++, data_byte);
+			data_size--;
+
+			if(data_size == 0) { return; }
+		}
+
+		//Manually adjust data pointer for compressed data to point to next flag
+		if(flag & 0x80) { data_ptr++; }
+	}
+}		
 	
 /****** HLE implementation of GetBIOSChecksum ******/
 void ARM7::swi_getbioschecksum()
