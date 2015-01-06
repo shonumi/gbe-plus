@@ -135,7 +135,8 @@ void ARM7::process_swi(u32 comment)
 
 		//RLUnCompWram
 		case 0x14:
-			std::cout<<"SWI::Run Length Uncompress Work RAM (not implemented yet) \n";
+			std::cout<<"SWI::Run Length Uncompress Work RAM \n";
+			swi_rluncompvram();
 			break;
 
 		//RLUnCompVram
