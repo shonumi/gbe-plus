@@ -891,6 +891,15 @@ void LCD::step()
 				}
 			}
 
+			//Draw all-white during Forced Blank
+			else
+			{
+				for(int x = 0, y = (240 * current_scanline); x < 240; x++, y++)
+				{
+					screen_buffer[y] = 0xFFFFFFFF;
+				}
+			}
+
 			//Increment scanline count
 			current_scanline++;
 			mem->write_u16_fast(VCOUNT, current_scanline);
