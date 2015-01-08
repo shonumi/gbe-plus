@@ -95,6 +95,9 @@ void ARM7::dma0()
 				mem->write_u32_fast(DMA0SAD, mem->dma[0].start_address);
 				mem->write_u32_fast(DMA0DAD, mem->dma[0].destination_address);
 
+				mem->dma[0].control &= ~0x8000;
+				mem->write_u16_fast(DMA0CNT_H, mem->dma[0].control);
+
 				//Raise DMA0 IRQ if necessary
 				if(mem->dma[0].control & 0x4000) { mem->memory_map[REG_IF+1] |= 0x1; }
 
@@ -302,6 +305,9 @@ void ARM7::dma3()
 				//Write back internal registers to real registers
 				mem->write_u32_fast(DMA3SAD, mem->dma[3].start_address);
 				mem->write_u32_fast(DMA3DAD, mem->dma[3].destination_address);
+
+				mem->dma[3].control &= ~0x8000;
+				mem->write_u16_fast(DMA3CNT_H, mem->dma[3].control);
 
 				//Raise DMA3 IRQ if necessary
 				if(mem->dma[3].control & 0x4000) { mem->memory_map[REG_IF+1] |= 0x8; }
