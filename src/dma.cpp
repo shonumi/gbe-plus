@@ -27,7 +27,7 @@ void ARM7::dma0()
 		mem->dma[0].word_count = mem->read_u16_fast(DMA0CNT_L);
 		mem->dma[0].word_type = (mem->read_u16_fast(DMA0CNT_H) & 0x400) ? 1 : 0;
 
-		mem->dma[0].control = mem->read_u16(DMA0CNT_H);
+		mem->dma[0].control = mem->read_u16_fast(DMA0CNT_H);
 		mem->dma[0].dest_addr_ctrl = (mem->read_u16_fast(DMA0CNT_H) >> 5) & 0x3;
 		mem->dma[0].src_addr_ctrl = (mem->read_u16_fast(DMA0CNT_H) >> 7) & 0x3;
 
@@ -200,7 +200,7 @@ void ARM7::dma3()
 		mem->dma[3].word_count = mem->read_u16_fast(DMA3CNT_L);
 		mem->dma[3].word_type = (mem->read_u16_fast(DMA3CNT_H) & 0x400) ? 1 : 0;
 
-		mem->dma[3].control = mem->read_u16(DMA3CNT_H);
+		mem->dma[3].control = mem->read_u16_fast(DMA3CNT_H);
 		mem->dma[3].dest_addr_ctrl = (mem->read_u16_fast(DMA3CNT_H) >> 5) & 0x3;
 		mem->dma[3].src_addr_ctrl = (mem->read_u16_fast(DMA3CNT_H) >> 7) & 0x3;
 
