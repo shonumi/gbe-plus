@@ -963,9 +963,6 @@ void LCD::step()
 			current_scanline++;
 			mem->write_u16_fast(VCOUNT, current_scanline);
 			scanline_compare();
-
-			//Start HBlank DMA
-			mem->start_blank_dma();
 		}
 
 		//Reset LCD clock
