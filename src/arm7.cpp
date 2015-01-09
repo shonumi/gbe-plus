@@ -1104,15 +1104,15 @@ void ARM7::mem_check_32(u32 addr, u32& value, bool load_store)
 			}
 		}
 
-		//Return zero for the following addresses for I/0 (One 16-bit fragment is unreadable/not used)
+		//Return zero for the lower halfword of the following addresses (only top halfword is readable)
 		switch(addr)
 		{
 			//TODO - THUMB and ARM versions need to return different values, here only THUMB works
 			//TODO - Research this exact behavior. Documentation seems iffy, and many games abuse this
 			//case 0x40000B8:
 			//case 0x40000DC: value = (mem->read_u16(reg.r15) << 16) |  mem->read_u16(reg.r15); normal_operation = false; break;
-			case 0x40000B8:
-			case 0x40000DC: value = 0; normal_operation = false; break;
+			case 0x40000B8: value = (mem->read_u16(0x40000BA) << 16); normal_operation = false; break;
+			case 0x40000DC: value = (mem->read_u16(0x40000DE) << 16); normal_operation = false; break;
 		}
 
 		//Normal operation
