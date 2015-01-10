@@ -723,7 +723,7 @@ void ARM7::load_store_reg_offset(u16 current_thumb_instruction)
 			//Clock CPU and controllers - 1N
 			value = get_reg(src_dest_reg);
 			value &= 0xFF;
-			mem->write_u8(op_addr, value);
+			mem_check_8(op_addr, value, false);
 			clock(op_addr, true);
 
 			break;
@@ -909,7 +909,7 @@ void ARM7::load_store_imm_offset(u16 current_thumb_instruction)
 			clock(reg.r15, true);
 
 			//Clock CPU and controllers - 1N
-			mem->write_u8(op_addr, value);
+			mem_check_8(op_addr, value, false);
 			clock(op_addr, true);
 
 			break;

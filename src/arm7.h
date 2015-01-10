@@ -250,6 +250,7 @@ class ARM7
 	void rotate_right_special(u32& input, u8 offset);
 	void mem_check_32(u32 addr, u32& value, bool load_store);
 	void mem_check_16(u32 addr, u32& value, bool load_store);
+	void mem_check_8(u32 addr, u32& value, bool load_store);
 
 	//HLE Software Interrupts (BIOS Calls)
 	void process_swi(u32 comment);

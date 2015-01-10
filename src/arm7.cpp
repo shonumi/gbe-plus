@@ -1061,7 +1061,7 @@ void ARM7::rotate_right_special(u32& input, u8 offset)
 	}
 }			
 
-/****** Checks 32-bit address before reading/writing for special case scenarios ******/
+/****** Checks address before 32-bit reading/writing for special case scenarios ******/
 void ARM7::mem_check_32(u32 addr, u32& value, bool load_store)
 {
 	//Assume normal operation until a special case occurs
@@ -1136,7 +1136,7 @@ void ARM7::mem_check_32(u32 addr, u32& value, bool load_store)
 	}
 }
 
-/****** Checks 16-bit address before reading/writing for special case scenarios ******/
+/****** Checks address before 16-bit reading/writing for special case scenarios ******/
 void ARM7::mem_check_16(u32 addr, u32& value, bool load_store)
 {
 	//Assume normal operation until a special case occurs
@@ -1190,6 +1190,59 @@ void ARM7::mem_check_16(u32 addr, u32& value, bool load_store)
 		else { mem->write_u16(addr, value); }
 	}
 }
+
+/****** Checks address before 8-bit reading/writing for special case scenarios ******/
+void ARM7::mem_check_8(u32 addr, u32& value, bool load_store)
+{
+	//Assume normal operation until a special case occurs
+	bool normal_operation = true;
+
+	//Check for special case scenarios for read ops (none atm)
+	if(load_store)
+	{
+		//Normal operation
+		if(normal_operation) { value = mem->read_u8(addr); }
+	}
+
+	//Check for special case scenarios for write ops
+	else
+	{
+		//Check if the address is anywhere near VRAM first
+		if((addr >= 0x5000000) && (addr < 0x8000000))
+		{
+			//Ignore 8-bit writes to OBJ VRAM (BG Modes 0-2)
+			if((addr >= 0x6010000) && (addr <= 0x6017FFF) && ((mem->memory_map[DISPCNT] & 0x3) <= 2)) { return; }
+
+			//Ignore 8-bit writes to OBJ VRAM (BG Modes 3-5)
+			else if((addr >= 0x6014000) && (addr <= 0x6017FFF) && ((mem->memory_map[DISPCNT] & 0x3) > 2)) { return; }
+
+			//Ignore 8-bit writes to OAM
+			else if((addr >= 0x7000000) && (addr <= 0x70003FF)) { return; }
+
+			//Special write to BG data (BG Modes 0-2)
+			else if((addr >= 0x6000000) && (addr <= 0x600FFFF) && ((mem->memory_map[DISPCNT] & 0x3) <= 2)) 
+			{
+				mem->write_u16(addr, ((value << 8) | value));
+			}
+
+			//Special write to BG data (BG Modes 3-5)
+			else if((addr >= 0x6000000) && (addr <= 0x6013FFF) && ((mem->memory_map[DISPCNT] & 0x3) > 2)) 
+			{
+				mem->write_u16(addr, ((value << 8) | value));
+			}
+
+			//Special write to Palette data
+			else if((addr >= 0x5000000) && (addr <= 0x50003FF)) 
+			{
+				mem->write_u16(addr, ((value << 8) | value));
+			}
+		}
+		
+		//Normal operation
+		else { mem->write_u16(addr, value); }
+	}
+}
+
 
 /****** Runs audio and video controllers every clock cycle ******/
 void ARM7::clock(u32 access_addr, bool first_access)
