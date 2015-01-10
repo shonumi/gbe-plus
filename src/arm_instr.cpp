@@ -810,7 +810,8 @@ void ARM7::single_data_transfer(u32 current_arm_instruction)
 		{
 			value = get_reg(dest_reg);
 			if(dest_reg == 15) { value += 4; }
-			mem_check_8(base_addr, (value & 0xFF), false);
+			value &= 0xFF;
+			mem_check_8(base_addr, value, false);
 		}
 
 		else
