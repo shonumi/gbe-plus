@@ -1239,7 +1239,7 @@ void ARM7::mem_check_8(u32 addr, u32& value, bool load_store)
 		}
 		
 		//Normal operation
-		else { mem->write_u16(addr, value); }
+		else { mem->write_u8(addr, value); }
 	}
 }
 
