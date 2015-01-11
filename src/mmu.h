@@ -18,6 +18,7 @@
 
 #include "common.h"
 #include "gamepad.h"
+#include "timer.h"
 
 class MMU
 {
@@ -114,6 +115,7 @@ class MMU
 	void eeprom_write_data();
 
 	GamePad* g_pad;
+	std::vector<gba_timer>* timer;
 };
 
 #endif // GBA_MMU

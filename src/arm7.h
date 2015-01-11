@@ -16,8 +16,9 @@
 #include <iostream>
 #include <vector>
 
-#include "mmu.h"
 #include "common.h"
+#include "timer.h"
+#include "mmu.h"
 #include "lcd.h"
 
 
@@ -173,10 +174,11 @@ class ARM7
 
 	MMU* mem;
 
-	//Audio-Video controllers
+	//Audio-Video and other controllers
 	struct io_controllers
 	{
 		LCD video;
+		std::vector<gba_timer> timer;
 	} controllers;
 
 	ARM7();

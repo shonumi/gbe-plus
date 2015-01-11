@@ -75,6 +75,18 @@ const u32 BG3X_H = 0x400003A;
 const u32 BG3Y_L = 0x400003C;
 const u32 BG3Y_H = 0x400003E;
 
+/* Timers */
+const u32 TM0CNT_L = 0x4000100;
+const u32 TM1CNT_L = 0x4000104;
+const u32 TM2CNT_L = 0x4000108;
+const u32 TM3CNT_L = 0x400010C;
+
+const u32 TM0CNT_H = 0x4000102;
+const u32 TM1CNT_H = 0x4000106;
+const u32 TM2CNT_H = 0x400010A;
+const u32 TM3CNT_H = 0x400010E;
+
+
 /* Input */
 const u32 KEYINPUT = 0x4000130;
 const u32 KEYCNT = 0x4000132;

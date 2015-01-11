@@ -74,6 +74,9 @@ void Core::reset()
 	//Link MMU and GamePad
 	core_cpu.mem->g_pad = &core_pad;
 
+	//Link MMU and CPU's timers
+	core_cpu.mem->timer = &core_cpu.controllers.timer;
+
 	//Re-read specified ROM file
 	core_mmu.read_file(config::rom_file);
 

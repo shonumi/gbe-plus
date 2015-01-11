@@ -72,6 +72,7 @@ void MMU::reset()
 	current_save_type = NONE;
 
 	g_pad = NULL;
+	timer = NULL;
 
 	std::cout<<"MMU::Initialized\n";
 }
