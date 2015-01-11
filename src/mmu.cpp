@@ -85,6 +85,38 @@ u8 MMU::read_u8(u32 address) const
 
 	switch(address)
 	{
+		case TM0CNT_L:
+			return (timer->at(0).counter & 0xFF);
+			break;
+
+		case TM0CNT_L+1:
+			return (timer->at(0).counter >> 8);
+			break;
+
+		case TM1CNT_L:
+			return (timer->at(1).counter & 0xFF);
+			break;
+
+		case TM1CNT_L+1:
+			return (timer->at(1).counter >> 8);
+			break;
+
+		case TM2CNT_L:
+			return (timer->at(2).counter & 0xFF);
+			break;
+
+		case TM2CNT_L+1:
+			return (timer->at(2).counter >> 8);
+			break;
+
+		case TM3CNT_L:
+			return (timer->at(3).counter & 0xFF);
+			break;
+
+		case TM3CNT_L+1:
+			return (timer->at(3).counter >> 8);
+			break;
+
 		case KEYINPUT:
 			return (g_pad->key_input & 0xFF);
 			break;
@@ -187,6 +219,90 @@ void MMU::write_u8(u32 address, u8 value)
 			break;
 
 		case KEYINPUT: break;
+
+		case TM0CNT_L:
+		case TM0CNT_L+1:
+			memory_map[address] = value;
+			timer->at(0).reload_value = ((memory_map[TM0CNT_L+1] << 8) | memory_map[TM0CNT_L]);
+			break;
+
+		case TM1CNT_L:
+		case TM1CNT_L+1:
+			memory_map[address] = value;
+			timer->at(1).reload_value = ((memory_map[TM1CNT_L+1] << 8) | memory_map[TM1CNT_L]);
+			break;
+
+		case TM2CNT_L:
+		case TM2CNT_L+1:
+			memory_map[address] = value;
+			timer->at(2).reload_value = ((memory_map[TM2CNT_L+1] << 8) | memory_map[TM2CNT_L]);
+			break;
+
+		case TM3CNT_L:
+		case TM3CNT_L+1:
+			memory_map[address] = value;
+			timer->at(3).reload_value = ((memory_map[TM3CNT_L+1] << 8) | memory_map[TM3CNT_L]);
+			break;
+
+		case TM0CNT_H:
+		case TM0CNT_H+1:
+			memory_map[address] = value;
+
+			switch(memory_map[TM0CNT_H] & 0x3)
+			{
+				case 0x0: timer->at(0).prescalar = 1; break;
+				case 0x1: timer->at(0).prescalar = 64; break;
+				case 0x2: timer->at(0).prescalar = 256; break;
+				case 0x3: timer->at(0).prescalar = 1024; break;
+			}
+
+			timer->at(0).enable = (memory_map[TM0CNT_H] & 0x80) ?  true : false;
+			break;
+
+		case TM1CNT_H:
+		case TM1CNT_H+1:
+			memory_map[address] = value;
+
+			switch(memory_map[TM1CNT_H] & 0x3)
+			{
+				case 0x0: timer->at(1).prescalar = 1; break;
+				case 0x1: timer->at(1).prescalar = 64; break;
+				case 0x2: timer->at(1).prescalar = 256; break;
+				case 0x3: timer->at(1).prescalar = 1024; break;
+			}
+
+			timer->at(1).enable = (memory_map[TM1CNT_H] & 0x80) ?  true : false;
+			break;
+
+		case TM2CNT_H:
+		case TM2CNT_H+1:
+			memory_map[address] = value;
+
+			switch(memory_map[TM2CNT_H] & 0x3)
+			{
+				case 0x0: timer->at(2).prescalar = 1; break;
+				case 0x1: timer->at(2).prescalar = 64; break;
+				case 0x2: timer->at(2).prescalar = 256; break;
+				case 0x3: timer->at(2).prescalar = 1024; break;
+			}
+
+			timer->at(2).enable = (memory_map[TM2CNT_H] & 0x80) ?  true : false;
+			break;
+
+		case TM3CNT_H:
+		case TM3CNT_H+1:
+			memory_map[address] = value;
+
+			switch(memory_map[TM3CNT_H] & 0x3)
+			{
+				case 0x0: timer->at(3).prescalar = 1; break;
+				case 0x1: timer->at(3).prescalar = 64; break;
+				case 0x2: timer->at(3).prescalar = 256; break;
+				case 0x3: timer->at(3).prescalar = 1024; break;
+			}
+
+			timer->at(3).enable = (memory_map[TM3CNT_H] & 0x80) ?  true : false;
+			break;
 
 		case WAITCNT:
 		case WAITCNT+1:

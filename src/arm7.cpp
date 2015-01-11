@@ -46,6 +46,19 @@ void ARM7::reset()
 	current_cpu_mode = SYS;
 	bios_read_state = BIOS_STARTUP;
 
+	controllers.timer.clear();
+	controllers.timer.resize(4);
+	std::cout<<"TIMER SIZE -> " << controllers.timer.size() << "\n";
+
+	for(int x = 0; x < 4; x++)
+	{
+		controllers.timer[x].counter = 0;
+		controllers.timer[x].reload_value = 0;
+		controllers.timer[x].prescalar = 0;
+		controllers.timer[x].cycles = 0;
+		controllers.timer[x].enable = false;
+	}
+
 	debug_message = 0xFF;
 	debug_code = 0;
 	debug_cycles = 0;
@@ -1274,6 +1287,7 @@ void ARM7::clock(u32 access_addr, bool first_access)
 	{
 		controllers.video.step();
 		clock_dma();
+		clock_timers();
 		debug_cycles++;
 	}
 }
@@ -1282,6 +1296,7 @@ void ARM7::clock(u32 access_addr, bool first_access)
 void ARM7::clock()
 {
 	controllers.video.step();
+	clock_timers();
 	clock_dma();
 }
 
@@ -1293,6 +1308,32 @@ void ARM7::clock_dma()
 
 	//DMA3
 	if(mem->dma[3].enable) { dma3(); }
+}
+
+/****** Runs Timer controllers every clock cycle ******/
+void ARM7::clock_timers()
+{
+	for(int x = 0; x < 4; x++)
+	{
+		//See if this timer is enabled first
+		if(controllers.timer[x].enable)
+		{
+			controllers.timer[x].cycles++;
+
+			//If the amount of cycles matches the prescalar, increment counter
+			if(controllers.timer[x].cycles == controllers.timer[x].prescalar)
+			{
+				controllers.timer[x].cycles = 0;
+				controllers.timer[x].counter++;
+
+				//If counter overflows, reload value, trigger interrupt if necessary
+				if(controllers.timer[x].counter == 0) 
+				{
+					controllers.timer[x].counter = controllers.timer[x].reload_value;
+				}
+			}
+		}
+	}
 }
 
 /****** Jumps to or exits an interrupt ******/

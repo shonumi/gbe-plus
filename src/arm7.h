@@ -234,6 +234,7 @@ class ARM7
 	//System functions
 	void clock(u32 access_address, bool first_access);
 	void clock();
+	void clock_timers();
 	void clock_dma();
 	void handle_interrupt();
 

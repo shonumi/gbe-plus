@@ -17,6 +17,7 @@
 struct gba_timer
 {
 	u16 counter;
+	u16 cycles;
 	u16 reload_value;
 	u16 prescalar;
 	bool enable;
