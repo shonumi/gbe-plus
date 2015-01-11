@@ -260,17 +260,17 @@ void MMU::write_u8(u32 address, u8 value)
 /****** Write 2 bytes into memory ******/
 void MMU::write_u16(u32 address, u16 value)
 {
-	write_u8((address+1), ((value >> 8) & 0xFF));
 	write_u8(address, (value & 0xFF));
+	write_u8((address+1), ((value >> 8) & 0xFF));
 }
 
 /****** Write 4 bytes into memory ******/
 void MMU::write_u32(u32 address, u32 value)
 {
-	write_u8((address+3), ((value >> 24) & 0xFF));
-	write_u8((address+2), ((value >> 16) & 0xFF));
-	write_u8((address+1), ((value >> 8) & 0xFF));
 	write_u8(address, (value & 0xFF));
+	write_u8((address+1), ((value >> 8) & 0xFF));
+	write_u8((address+2), ((value >> 16) & 0xFF));
+	write_u8((address+3), ((value >> 24) & 0xFF));
 }
 
 /****** Writes 2 bytes into memory - No checks done on the read, used for known memory locations such as registers ******/
