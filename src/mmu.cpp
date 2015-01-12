@@ -246,7 +246,13 @@ void MMU::write_u8(u32 address, u8 value)
 
 		case TM0CNT_H:
 		case TM0CNT_H+1:
-			memory_map[address] = value;
+			{
+				bool prev_enable = (memory_map[TM0CNT_H] & 0x80) ?  true : false;
+				memory_map[address] = value;
+
+				timer->at(0).enable = (memory_map[TM0CNT_H] & 0x80) ?  true : false;
+				if((timer->at(0).enable) && (!prev_enable)) { timer->at(0).counter = timer->at(0).reload_value; }
+			}
 
 			switch(memory_map[TM0CNT_H] & 0x3)
 			{
@@ -256,12 +262,17 @@ void MMU::write_u8(u32 address, u8 value)
 				case 0x3: timer->at(0).prescalar = 1024; break;
 			}
 
-			timer->at(0).enable = (memory_map[TM0CNT_H] & 0x80) ?  true : false;
 			break;
 
 		case TM1CNT_H:
 		case TM1CNT_H+1:
-			memory_map[address] = value;
+			{
+				bool prev_enable = (memory_map[TM1CNT_H] & 0x80) ?  true : false;
+				memory_map[address] = value;
+
+				timer->at(1).enable = (memory_map[TM1CNT_H] & 0x80) ?  true : false;
+				if((timer->at(1).enable) && (!prev_enable)) { timer->at(1).counter = timer->at(1).reload_value; }
+			}
 
 			switch(memory_map[TM1CNT_H] & 0x3)
 			{
@@ -271,12 +282,17 @@ void MMU::write_u8(u32 address, u8 value)
 				case 0x3: timer->at(1).prescalar = 1024; break;
 			}
 
-			timer->at(1).enable = (memory_map[TM1CNT_H] & 0x80) ?  true : false;
 			break;
 
 		case TM2CNT_H:
 		case TM2CNT_H+1:
-			memory_map[address] = value;
+			{
+				bool prev_enable = (memory_map[TM2CNT_H] & 0x80) ?  true : false;
+				memory_map[address] = value;
+
+				timer->at(2).enable = (memory_map[TM2CNT_H] & 0x80) ?  true : false;
+				if((timer->at(2).enable) && (!prev_enable)) { timer->at(2).counter = timer->at(2).reload_value; }
+			}
 
 			switch(memory_map[TM2CNT_H] & 0x3)
 			{
@@ -286,12 +302,16 @@ void MMU::write_u8(u32 address, u8 value)
 				case 0x3: timer->at(2).prescalar = 1024; break;
 			}
 
-			timer->at(2).enable = (memory_map[TM2CNT_H] & 0x80) ?  true : false;
 			break;
 
 		case TM3CNT_H:
 		case TM3CNT_H+1:
-			memory_map[address] = value;
+			{
+				bool prev_enable = (memory_map[TM3CNT_H] & 0x80) ?  true : false;
+				memory_map[address] = value;
+				timer->at(3).enable = (memory_map[TM3CNT_H] & 0x80) ?  true : false;
+				if((timer->at(3).enable) && (!prev_enable)) { timer->at(3).counter = timer->at(3).reload_value; }
+			}
 
 			switch(memory_map[TM3CNT_H] & 0x3)
 			{
@@ -301,7 +321,6 @@ void MMU::write_u8(u32 address, u8 value)
 				case 0x3: timer->at(3).prescalar = 1024; break;
 			}
 
-			timer->at(3).enable = (memory_map[TM3CNT_H] & 0x80) ?  true : false;
 			break;
 
 		case WAITCNT:
