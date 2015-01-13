@@ -270,7 +270,7 @@ void LCD::update_bg_params()
 		double final_value = 0.0;
 		if((raw_value & 0xFF) != 0) { final_value = (raw_value & 0xFF) / 256.0; }
 		final_value += (raw_value >> 8) & 0x7F;
-		//if(raw_value & 0x80) { final_value *= -1.0; }
+		if(raw_value & 0x8000) { final_value *= -1.0; }
 
 		switch(x)
 		{ 
@@ -448,7 +448,7 @@ bool LCD::render_sprite_pixel()
 			if(obj[sprite_id].bit_depth == 4)
 			{
 				sprite_tile_addr += (sprite_tile_pixel >> 1);
-				raw_color = mem->read_u8(sprite_tile_addr);
+				raw_color = mem->memory_map[sprite_tile_addr];
 
 				if((sprite_tile_pixel % 2) == 0) { raw_color &= 0xF; }
 				else { raw_color >>= 4; }
@@ -465,7 +465,7 @@ bool LCD::render_sprite_pixel()
 			else
 			{
 				sprite_tile_addr += sprite_tile_pixel;
-				raw_color = mem->read_u8(sprite_tile_addr);
+				raw_color = mem->memory_map[sprite_tile_addr];
 
 				if(raw_color != 0) 
 				{
@@ -660,7 +660,7 @@ bool LCD::render_bg_mode_0(u32 bg_control)
 	if(bit_depth == 4)
 	{
 		tile_addr += (current_tile_pixel >> 1);
-		u8 raw_color = mem->read_u8(tile_addr);
+		u8 raw_color = mem->memory_map[tile_addr];
 
 		if((current_tile_pixel % 2) == 0) { raw_color &= 0xF; }
 		else { raw_color >>= 4; }
@@ -675,7 +675,7 @@ bool LCD::render_bg_mode_0(u32 bg_control)
 	else
 	{
 		tile_addr += current_tile_pixel;
-		u8 raw_color = mem->read_u8(tile_addr);
+		u8 raw_color = mem->memory_map[tile_addr];
 
 		//If the bg color is transparent, abort drawing
 		if(raw_color == 0) { return false; }
@@ -723,7 +723,7 @@ bool LCD::render_bg_mode_1(u32 bg_control)
 
 	//Grab the byte corresponding to (current_tile_pixel), render it as ARGB - 8-bit version
 	tile_addr += current_tile_pixel;
-	u8 raw_color = mem->read_u8(tile_addr);
+	u8 raw_color = mem->memory_map[tile_addr];
 
 	//If the bg color is transparent, abort drawing
 	if(raw_color == 0) { return false; }
@@ -761,7 +761,7 @@ bool LCD::render_bg_mode_4(u32 bg_control)
 	//Determine which byte in VRAM to read for color data
 	u32 bitmap_entry = (0x6000000 + (current_scanline * 240) + scanline_pixel_counter);
 
-	u8 raw_color = mem->read_u8(bitmap_entry);
+	u8 raw_color = mem->memory_map[bitmap_entry];
 	if(raw_color == 0) { return false; }
 
 	u16 color_bytes = mem->read_u16_fast(0x5000000 + (raw_color * 2));
