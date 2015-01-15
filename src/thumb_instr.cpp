@@ -921,7 +921,7 @@ void ARM7::load_store_imm_offset(u16 current_thumb_instruction)
 			clock(reg.r15, true);
 
 			//Clock CPU and controllers - 1I
-			value = mem->read_u8(op_addr);
+			mem_check_8(op_addr, value, true);
 			clock();
 
 			//Clock CPU and controllers - 1S

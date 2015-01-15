@@ -1100,7 +1100,8 @@ void ARM7::mem_check_32(u32 addr, u32& value, bool load_store)
 			normal_operation = false;
 	
 			//Read the opcode instruction at PC
-			value = mem->read_u32(reg.r15);
+			if(arm_mode == ARM) { value = mem->read_u32(reg.r15); }
+			else { value = (mem->read_u16(reg.r15) << 16) | mem->read_u16(reg.r15); }
 		}
 
 		//Return specific values when trying to read BIOS when PC is not within the BIOS
@@ -1210,9 +1211,17 @@ void ARM7::mem_check_8(u32 addr, u32& value, bool load_store)
 	//Assume normal operation until a special case occurs
 	bool normal_operation = true;
 
-	//Check for special case scenarios for read ops (none atm)
+	//Check for special case scenarios for read ops
 	if(load_store)
 	{
+		//Undocumented by GBATEK!
+		//Unused 8-bit reads only return the 1st byte of the opcode at the PC (makes sense, but no documentation on this whatsoever)
+		if(addr >= 0x10000000)
+		{
+			normal_operation = false;
+			value = mem->read_u8(reg.r15);
+		}
+
 		//Normal operation
 		if(normal_operation) { value = mem->read_u8(addr); }
 	}
