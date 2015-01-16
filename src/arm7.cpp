@@ -48,7 +48,6 @@ void ARM7::reset()
 
 	controllers.timer.clear();
 	controllers.timer.resize(4);
-	std::cout<<"TIMER SIZE -> " << controllers.timer.size() << "\n";
 
 	for(int x = 0; x < 4; x++)
 	{

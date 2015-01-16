@@ -674,7 +674,7 @@ void ARM7::load_pc_relative(u16 current_thumb_instruction)
 	clock(reg.r15, true);
 
 	//Clock CPU and controllers - 1I
-	value = mem->read_u32(load_addr);
+	mem_check_32(load_addr, value, true);
 	clock();
 
 	//Clock CPU and controllers - 1S
@@ -749,7 +749,7 @@ void ARM7::load_store_reg_offset(u16 current_thumb_instruction)
 			clock(reg.r15, true);
 
 			//Clock CPU and controllers - 1I
-			value = mem->read_u8(op_addr);
+			mem_check_8(op_addr, value, true);
 			clock();
 
 			//Clock CPU and controllers - 1S
