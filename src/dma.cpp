@@ -47,6 +47,10 @@ void ARM7::dma0()
 				//16-bit transfer
 				if(mem->dma[0].word_type == 0)
 				{
+					//Align addresses to half-word
+					mem->dma[0].start_address &= ~0x1;
+					mem->dma[0].destination_address	&= ~0x1;
+
 					while(mem->dma[0].word_count != 0)
 					{
 						temp_value = mem->read_u16(mem->dma[0].start_address);
@@ -69,6 +73,10 @@ void ARM7::dma0()
 				//32-bit transfer
 				else
 				{
+					//Align addresses to word
+					mem->dma[0].start_address &= ~0x3;
+					mem->dma[0].destination_address	&= ~0x3;
+
 					while(mem->dma[0].word_count != 0)
 					{
 						temp_value = mem->read_u32(mem->dma[0].start_address);
@@ -120,6 +128,10 @@ void ARM7::dma0()
 					//16-bit transfer
 					if(mem->dma[0].word_type == 0)
 					{
+						//Align addresses to half-word
+						mem->dma[0].start_address &= ~0x1;
+						mem->dma[0].destination_address	&= ~0x1;
+
 						while(mem->dma[0].word_count != 0)
 						{
 							temp_value = mem->read_u16(mem->dma[0].start_address);
@@ -142,6 +154,10 @@ void ARM7::dma0()
 					//32-bit transfer
 					else
 					{
+						//Align addresses to word
+						mem->dma[0].start_address &= ~0x3;
+						mem->dma[0].destination_address	&= ~0x3;
+
 						while(mem->dma[0].word_count != 0)
 						{
 							temp_value = mem->read_u32(mem->dma[0].start_address);
@@ -258,6 +274,10 @@ void ARM7::dma3()
 				//16-bit transfer
 				if(mem->dma[3].word_type == 0)
 				{
+					//Align addresses to half-word
+					mem->dma[3].start_address &= ~0x1;
+					mem->dma[3].destination_address	&= ~0x1;
+
 					while(mem->dma[3].word_count != 0)
 					{
 						temp_value = mem->read_u16(mem->dma[3].start_address);
@@ -280,6 +300,10 @@ void ARM7::dma3()
 				//32-bit transfer
 				else
 				{
+					//Align addresses to word
+					mem->dma[3].start_address &= ~0x3;
+					mem->dma[3].destination_address	&= ~0x3;
+
 					while(mem->dma[3].word_count != 0)
 					{
 						temp_value = mem->read_u32(mem->dma[3].start_address);
@@ -331,6 +355,10 @@ void ARM7::dma3()
 					//16-bit transfer
 					if(mem->dma[3].word_type == 0)
 					{
+						//Align addresses to half-word
+						mem->dma[3].start_address &= ~0x1;
+						mem->dma[3].destination_address	&= ~0x1;
+
 						while(mem->dma[3].word_count != 0)
 						{
 							temp_value = mem->read_u16(mem->dma[3].start_address);
@@ -353,6 +381,10 @@ void ARM7::dma3()
 					//32-bit transfer
 					else
 					{
+						//Align addresses to word
+						mem->dma[3].start_address &= ~0x3;
+						mem->dma[3].destination_address	&= ~0x3;
+
 						while(mem->dma[3].word_count != 0)
 						{
 							temp_value = mem->read_u32(mem->dma[3].start_address);
