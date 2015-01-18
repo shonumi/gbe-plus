@@ -748,9 +748,7 @@ bool LCD::render_bg_mode_3(u32 bg_control)
 
 	u8 blue = ((color_bytes & 0x1F) * 8);
 
-	u32 final_color =  0xFF000000 | (red << 16) | (green << 8) | (blue);
-
-	scanline_buffer[scanline_pixel_counter] = final_color;
+	scanline_buffer[scanline_pixel_counter] = 0xFF000000 | (red << 16) | (green << 8) | (blue);
 
 	return true;
 }
@@ -758,8 +756,11 @@ bool LCD::render_bg_mode_3(u32 bg_control)
 /****** Render BG Mode 4 ******/
 bool LCD::render_bg_mode_4(u32 bg_control)
 {
+	//Determine frame base addr
+	u32 frame_base = (mem->memory_map[DISPCNT] & 0x20) ? 0x600A000 : 0x6000000;
+
 	//Determine which byte in VRAM to read for color data
-	u32 bitmap_entry = (0x6000000 + (current_scanline * 240) + scanline_pixel_counter);
+	u32 bitmap_entry = (frame_base + (current_scanline * 240) + scanline_pixel_counter);
 
 	u8 raw_color = mem->memory_map[bitmap_entry];
 	if(raw_color == 0) { return false; }
@@ -775,9 +776,7 @@ bool LCD::render_bg_mode_4(u32 bg_control)
 
 	u8 blue = ((color_bytes & 0x1F) * 8);
 
-	u32 final_color =  0xFF000000 | (red << 16) | (green << 8) | (blue);
-
-	scanline_buffer[scanline_pixel_counter] = final_color;
+	scanline_buffer[scanline_pixel_counter] = 0xFF000000 | (red << 16) | (green << 8) | (blue);;
 
 	return true;
 }
