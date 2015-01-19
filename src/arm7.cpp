@@ -1338,6 +1338,12 @@ void ARM7::clock_timers()
 				if(controllers.timer[x].counter == 0) 
 				{
 					controllers.timer[x].counter = controllers.timer[x].reload_value;
+
+					//Interrupt
+					if(controllers.timer[x].interrupt)
+					{
+						mem->memory_map[REG_IF] |= (8 << x);
+					}
 				}
 			}
 		}

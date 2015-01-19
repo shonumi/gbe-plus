@@ -21,6 +21,7 @@ struct gba_timer
 	u16 reload_value;
 	u16 prescalar;
 	bool enable;
+	bool interrupt;
 };
 
 #endif // GBA_TIMER
