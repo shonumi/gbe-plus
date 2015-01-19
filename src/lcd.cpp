@@ -757,7 +757,7 @@ bool LCD::render_bg_mode_3(u32 bg_control)
 bool LCD::render_bg_mode_4(u32 bg_control)
 {
 	//Determine frame base addr
-	u32 frame_base = (mem->memory_map[DISPCNT] & 0x20) ? 0x600A000 : 0x6000000;
+	u32 frame_base = (mem->memory_map[DISPCNT] & 0x10) ? 0x600A000 : 0x6000000;
 
 	//Determine which byte in VRAM to read for color data
 	u32 bitmap_entry = (frame_base + (current_scanline * 240) + scanline_pixel_counter);
