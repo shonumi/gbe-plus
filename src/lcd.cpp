@@ -232,28 +232,6 @@ void LCD::update_palettes()
 	}
 }
 
-/****** Updates bg offsets when values in memory change ******/
-void LCD::update_bg_offset()
-{
-	mem->lcd_updates.bg_offset_update = false;
-
-	//BG0 scroll values
-	bg_offset_x[0] = mem->read_u16_fast(BG0HOFS) & 0x1FF;
-	bg_offset_y[0] = mem->read_u16_fast(BG0VOFS) & 0x1FF;
-
-	//BG1 scroll values
-	bg_offset_x[1] = mem->read_u16_fast(BG1HOFS) & 0x1FF;
-	bg_offset_y[1] = mem->read_u16_fast(BG1VOFS) & 0x1FF;
-
-	//BG2 scroll values
-	bg_offset_x[2] = mem->read_u16_fast(BG2HOFS) & 0x1FF;
-	bg_offset_y[2] = mem->read_u16_fast(BG2VOFS) & 0x1FF;
-
-	//BG3 scroll values
-	bg_offset_x[3] = mem->read_u16_fast(BG3HOFS) & 0x1FF;
-	bg_offset_y[3] = mem->read_u16_fast(BG3VOFS) & 0x1FF;
-}
-
 /****** Updates BG scaling + rotation parameters when values change in memory ******/
 void LCD::update_bg_params()
 {
@@ -566,10 +544,10 @@ bool LCD::render_bg_mode_0(u32 bg_control)
 	}
 
 	//Determine meta x-coordinate of rendered BG pixel
-	u8 meta_x = ((scanline_pixel_counter + bg_offset_x[bg_id]) % bg_width) / 256;
+	u8 meta_x = ((scanline_pixel_counter + lcd_stat.bg_offset_x[bg_id]) % bg_width) / 256;
 
 	//Determine meta Y-coordinate of rendered BG pixel
-	u8 meta_y = ((current_scanline + bg_offset_y[bg_id]) % bg_height) / 256;
+	u8 meta_y = ((current_scanline + lcd_stat.bg_offset_y[bg_id]) % bg_height) / 256;
 
 	//Determine the address offset for the screen
 	//SC1 - 512x256
@@ -598,8 +576,8 @@ bool LCD::render_bg_mode_0(u32 bg_control)
 	u32 tile_base_addr = 0x6000000 + (0x4000 * ((mem->read_u16_fast(bg_control) >> 2) & 0x3));
 
 	//Determine the X-Y coordinates of the BG's tile on the tile map
-	u16 current_tile_pixel_x = ((scanline_pixel_counter + bg_offset_x[bg_id]) % 256);
-	u16 current_tile_pixel_y = ((current_scanline + bg_offset_y[bg_id]) % 256);
+	u16 current_tile_pixel_x = ((scanline_pixel_counter + lcd_stat.bg_offset_x[bg_id]) % 256);
+	u16 current_tile_pixel_y = ((current_scanline + lcd_stat.bg_offset_y[bg_id]) % 256);
 
 	//Get current map entry for rendered pixel
 	u16 tile_number = ((current_tile_pixel_y / 8) * 32) + (current_tile_pixel_x / 8);
@@ -854,9 +832,6 @@ void LCD::step()
 
 			//Update palettes
 			if((mem->lcd_updates.bg_pal_update) || (mem->lcd_updates.obj_pal_update)) { update_palettes(); }
-
-			//Update BG offsets
-			if(mem->lcd_updates.bg_offset_update) { update_bg_offset(); }
 
 			//Update BG scaling + rotation parameters
 			if(mem->lcd_updates.bg_params_update) { update_bg_params(); }

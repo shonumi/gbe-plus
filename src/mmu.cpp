@@ -165,6 +165,54 @@ void MMU::write_u8(u32 address, u8 value)
 
 	switch(address)
 	{
+		case BG0HOFS:
+		case BG0HOFS+1:
+			memory_map[address] = value;
+			lcd_stat->bg_offset_x[0] = ((memory_map[BG0HOFS+1] << 8) | memory_map[BG0HOFS]);
+			break;
+
+		case BG0VOFS:
+		case BG0VOFS+1:
+			memory_map[address] = value;
+			lcd_stat->bg_offset_y[0] = ((memory_map[BG0VOFS+1] << 8) | memory_map[BG0VOFS]);
+			break;
+
+		case BG1HOFS:
+		case BG1HOFS+1:
+			memory_map[address] = value;
+			lcd_stat->bg_offset_x[1] = ((memory_map[BG1HOFS+1] << 8) | memory_map[BG1HOFS]);
+			break;
+
+		case BG1VOFS:
+		case BG1VOFS+1:
+			memory_map[address] = value;
+			lcd_stat->bg_offset_y[1] = ((memory_map[BG1VOFS+1] << 8) | memory_map[BG1VOFS]);
+			break;
+
+		case BG2HOFS:
+		case BG2HOFS+1:
+			memory_map[address] = value;
+			lcd_stat->bg_offset_x[2] = ((memory_map[BG2HOFS+1] << 8) | memory_map[BG2HOFS]);
+			break;
+
+		case BG2VOFS:
+		case BG2VOFS+1:
+			memory_map[address] = value;
+			lcd_stat->bg_offset_y[2] = ((memory_map[BG2VOFS+1] << 8) | memory_map[BG2VOFS]);
+			break;
+
+		case BG3HOFS:
+		case BG3HOFS+1:
+			memory_map[address] = value;
+			lcd_stat->bg_offset_x[3] = ((memory_map[BG3HOFS+1] << 8) | memory_map[BG3HOFS]);
+			break;
+
+		case BG3VOFS:
+		case BG3VOFS+1:
+			memory_map[address] = value;
+			lcd_stat->bg_offset_y[3] = ((memory_map[BG3VOFS+1] << 8) | memory_map[BG3VOFS]);
+			break;
+
 		case REG_IF:
 		case REG_IF+1:
 			memory_map[address] &= ~value;
@@ -783,3 +831,6 @@ void MMU::eeprom_write_data()
 
 	memory_map[0xD000000] = 0x1;
 }
+
+/****** Points the MMU to an lcd_data structure (FROM THE LCD ITSELF) ******/
+void MMU::set_lcd_data(lcd_data* ex_lcd_stat) { lcd_stat = ex_lcd_stat; }

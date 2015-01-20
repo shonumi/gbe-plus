@@ -19,6 +19,7 @@
 #include "common.h"
 #include "gamepad.h"
 #include "timer.h"
+#include "lcd_data.h"
 
 class MMU
 {
@@ -114,8 +115,15 @@ class MMU
 	void eeprom_read_data();
 	void eeprom_write_data();
 
+	void set_lcd_data(lcd_data* ex_lcd_stat);
+
 	GamePad* g_pad;
 	std::vector<gba_timer>* timer;
+
+	private:
+
+	//Only the MMU and LCD should communicate through this structure
+	lcd_data* lcd_stat;
 };
 
 #endif // GBA_MMU

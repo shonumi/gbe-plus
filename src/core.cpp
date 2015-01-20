@@ -24,6 +24,7 @@ Core::Core()
 
 	//Link LCD and MMU
 	core_cpu.controllers.video.mem = &core_mmu;
+	core_mmu.set_lcd_data(&core_cpu.controllers.video.lcd_stat);
 
 	//Link MMU and GamePad
 	core_cpu.mem->g_pad = &core_pad;
