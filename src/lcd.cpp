@@ -51,6 +51,16 @@ void LCD::reset()
 	scanline_buffer.resize(0x100, 0);
 
 	bg_params[0].bg_lut.resize(0x10000, 0xFFFFFFFF);
+
+	for(int x = 0; x < 4; x++)
+	{
+		lcd_stat.bg_control[x] = 0;
+		lcd_stat.bg_offset_x[x] = 0;
+		lcd_stat.bg_offset_y[x] = 0;
+		lcd_stat.bg_priority[x] = 0;
+		lcd_stat.mode_0_width[x] = 256;
+		lcd_stat.mode_0_height[x] = 256;
+	}
 }
 
 /****** Initialize LCD with SDL ******/
@@ -333,7 +343,7 @@ void LCD::update_bg_params()
 bool LCD::render_sprite_pixel()
 {
 	//If sprites are disabled, quit now
-	if((mem->read_u16_fast(DISPCNT) & 0x1000) == 0) { return false; }
+	if((lcd_stat.display_control & 0x1000) == 0) { return false; }
 
 	//If no sprites are rendered on this line, quit now
 	if(obj_render_list == 0) { return false; }
@@ -405,7 +415,7 @@ bool LCD::render_sprite_pixel()
 			u8 meta_y = (sprite_tile_pixel_y / 8);
 
 			//Determine which 8x8 section to draw pixel from, and what tile that actually represents in VRAM
-			if(mem->read_u16_fast(DISPCNT) & 0x40)
+			if(lcd_stat.display_control & 0x40)
 			{
 				meta_sprite_tile = (meta_y * (obj[sprite_id].width/8)) + meta_x;	
 			}
@@ -462,15 +472,13 @@ bool LCD::render_sprite_pixel()
 /****** Determines if a background pixel should be rendered, and if so draws it to the current scanline pixel ******/
 bool LCD::render_bg_pixel(u32 bg_control)
 {
-	u32 display_control = mem->read_u16_fast(DISPCNT);
-
-	if(((display_control & 0x100) == 0) && (bg_control == BG0CNT)) { return false; }
-	else if(((display_control & 0x200) == 0) && (bg_control == BG1CNT)) { return false; }
-	else if(((display_control & 0x400) == 0) && (bg_control == BG2CNT)) { return false; }
-	else if(((display_control & 0x800) == 0) && (bg_control == BG3CNT)) { return false; }
+	if(((lcd_stat.display_control & 0x100) == 0) && (bg_control == BG0CNT)) { return false; }
+	else if(((lcd_stat.display_control & 0x200) == 0) && (bg_control == BG1CNT)) { return false; }
+	else if(((lcd_stat.display_control & 0x400) == 0) && (bg_control == BG2CNT)) { return false; }
+	else if(((lcd_stat.display_control & 0x800) == 0) && (bg_control == BG3CNT)) { return false; }
 
 	//Render BG pixel according to current BG Mode
-	switch(display_control & 0x7)
+	switch(lcd_stat.display_control & 0x7)
 	{
 		//BG Mode 0
 		case 0:
@@ -498,7 +506,7 @@ bool LCD::render_bg_pixel(u32 bg_control)
 			return render_bg_mode_4(bg_control); break;
 
 		default:
-			std::cout<<"LCD::invalid or unsupported BG Mode : " << std::dec << (display_control & 0x7);
+			std::cout<<"LCD::invalid or unsupported BG Mode : " << std::dec << (lcd_stat.display_control & 0x7);
 			return false;
 	}
 }
@@ -506,48 +514,18 @@ bool LCD::render_bg_pixel(u32 bg_control)
 /****** Render BG Mode 0 ******/
 bool LCD::render_bg_mode_0(u32 bg_control)
 {
-	u8 bg_id = 0;
-	u16 bg_size = (mem->read_u16_fast(bg_control) >> 14);
-	u16 bg_width = 256;
-	u16 bg_height = 256;
+	//Set BG ID to determine which BG is being rendered.
+	u8 bg_id = (bg_control - 0x4000008) >> 1;
+	
+	//BG size and offset
+	u16 bg_size = (lcd_stat.bg_control[bg_id] >> 14);
 	u32 screen_offset = 0;
 
-	//Set BG ID to determine which BG is being rendered.
-	bg_id = (bg_control - 0x4000008) >> 1;
-
-	//Determine BG screen size
-	switch(bg_size)
-	{
-		//256x256
-		case 0x0:
-			bg_width = 256;
-			bg_height = 256;
-			break;
-
-		//512x256
-		case 0x1:
-			bg_width = 512;
-			bg_height = 256;
-			break;
-
-		//256x512
-		case 0x2:
-			bg_width = 256;
-			bg_height = 512;
-			break;
-
-		//512x512
-		case 0x3:
-			bg_width = 512;
-			bg_height = 512;
-			break;
-	}
-
 	//Determine meta x-coordinate of rendered BG pixel
-	u8 meta_x = ((scanline_pixel_counter + lcd_stat.bg_offset_x[bg_id]) % bg_width) / 256;
+	u8 meta_x = ((scanline_pixel_counter + lcd_stat.bg_offset_x[bg_id]) % lcd_stat.mode_0_width[bg_id]) / 256;
 
 	//Determine meta Y-coordinate of rendered BG pixel
-	u8 meta_y = ((current_scanline + lcd_stat.bg_offset_y[bg_id]) % bg_height) / 256;
+	u8 meta_y = ((current_scanline + lcd_stat.bg_offset_y[bg_id]) % lcd_stat.mode_0_height[bg_id]) / 256;
 
 	//Determine the address offset for the screen
 	//SC1 - 512x256
@@ -771,34 +749,28 @@ void LCD::render_scanline()
 	//Render sprites
 	obj_render = render_sprite_pixel();
 
-	//Grab BG priorities 
-	u8 priority_0 = mem->read_u16_fast(BG0CNT) & 0x3;
-	u8 priority_1 = mem->read_u16_fast(BG1CNT) & 0x3;
-	u8 priority_2 = mem->read_u16_fast(BG2CNT) & 0x3;
-	u8 priority_3 = mem->read_u16_fast(BG3CNT) & 0x3;
-
 	//Render BGs based on priority (3 is the 'lowest', 0 is the 'highest')
 	for(int x = 0; x <= 3; x++)
 	{
-		if(priority_0 == x) 
+		if(lcd_stat.bg_priority[0] == x) 
 		{
 			if((obj_render) && (last_obj_priority <= x)) { return; }
 			if(render_bg_pixel(BG0CNT)) { return; } 
 		}
 
-		if(priority_1 == x) 
+		if(lcd_stat.bg_priority[1] == x) 
 		{
 			if((obj_render) && (last_obj_priority <= x)) { return; }
 			if(render_bg_pixel(BG1CNT)) { return; } 
 		}
 
-		if(priority_2 == x) 
+		if(lcd_stat.bg_priority[2] == x) 
 		{
 			if((obj_render) && (last_obj_priority <= x)) { return; }
 			if(render_bg_pixel(BG2CNT)) { return; } 
 		}
 
-		if(priority_3 == x) 
+		if(lcd_stat.bg_priority[3] == x) 
 		{
 			if((obj_render) && (last_obj_priority <= x)) { return; }
 			if(render_bg_pixel(BG3CNT)) { return; } 

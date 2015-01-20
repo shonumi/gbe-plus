@@ -165,6 +165,76 @@ void MMU::write_u8(u32 address, u8 value)
 
 	switch(address)
 	{
+		case DISPCNT:
+		case DISPCNT+1:
+			memory_map[address] = value;
+			lcd_stat->display_control = ((memory_map[DISPCNT+1] << 8) | memory_map[DISPCNT]);
+			break;
+
+		case BG0CNT:
+		case BG0CNT+1:
+			memory_map[address] = value;
+			lcd_stat->bg_priority[0] = memory_map[BG0CNT] & 0x3;
+			lcd_stat->bg_control[0] = ((memory_map[BG0CNT+1] << 8) | memory_map[BG0CNT]);
+
+			switch(lcd_stat->bg_control[0] >> 14)
+			{
+				case 0x0: lcd_stat->mode_0_width[0] = 256; lcd_stat->mode_0_height[0] = 256; break;
+				case 0x1: lcd_stat->mode_0_width[0] = 512; lcd_stat->mode_0_height[0] = 256; break;
+				case 0x2: lcd_stat->mode_0_width[0] = 256; lcd_stat->mode_0_height[0] = 512; break;
+				case 0x3: lcd_stat->mode_0_width[0] = 512; lcd_stat->mode_0_height[0] = 512; break;
+			}
+
+			break;
+
+		case BG1CNT:
+		case BG1CNT+1:
+			memory_map[address] = value;
+			lcd_stat->bg_priority[1] = memory_map[BG1CNT] & 0x3;
+			lcd_stat->bg_control[1] = ((memory_map[BG1CNT+1] << 8) | memory_map[BG1CNT]);
+
+			switch(lcd_stat->bg_control[1] >> 14)
+			{
+				case 0x0: lcd_stat->mode_0_width[1] = 256; lcd_stat->mode_0_height[1] = 256; break;
+				case 0x1: lcd_stat->mode_0_width[1] = 512; lcd_stat->mode_0_height[1] = 256; break;
+				case 0x2: lcd_stat->mode_0_width[1] = 256; lcd_stat->mode_0_height[1] = 512; break;
+				case 0x3: lcd_stat->mode_0_width[1] = 512; lcd_stat->mode_0_height[1] = 512; break;
+			}
+
+			break;
+
+		case BG2CNT:
+		case BG2CNT+1:
+			memory_map[address] = value;
+			lcd_stat->bg_priority[2] = memory_map[BG2CNT] & 0x3;
+			lcd_stat->bg_control[2] = ((memory_map[BG2CNT+1] << 8) | memory_map[BG2CNT]);
+
+			switch(lcd_stat->bg_control[2] >> 14)
+			{
+				case 0x0: lcd_stat->mode_0_width[2] = 256; lcd_stat->mode_0_height[2] = 256; break;
+				case 0x1: lcd_stat->mode_0_width[2] = 512; lcd_stat->mode_0_height[2] = 256; break;
+				case 0x2: lcd_stat->mode_0_width[2] = 256; lcd_stat->mode_0_height[2] = 512; break;
+				case 0x3: lcd_stat->mode_0_width[2] = 512; lcd_stat->mode_0_height[2] = 512; break;
+			}
+
+			break;
+
+		case BG3CNT:
+		case BG3CNT+1:
+			memory_map[address] = value;
+			lcd_stat->bg_priority[3] = memory_map[BG3CNT] & 0x3;
+			lcd_stat->bg_control[3] = ((memory_map[BG3CNT+1] << 8) | memory_map[BG3CNT]);
+
+			switch(lcd_stat->bg_control[3] >> 14)
+			{
+				case 0x0: lcd_stat->mode_0_width[3] = 256; lcd_stat->mode_0_height[3] = 256; break;
+				case 0x1: lcd_stat->mode_0_width[3] = 512; lcd_stat->mode_0_height[3] = 256; break;
+				case 0x2: lcd_stat->mode_0_width[3] = 256; lcd_stat->mode_0_height[3] = 512; break;
+				case 0x3: lcd_stat->mode_0_width[3] = 512; lcd_stat->mode_0_height[3] = 512; break;
+			}
+
+			break;
+
 		case BG0HOFS:
 		case BG0HOFS+1:
 			memory_map[address] = value;
