@@ -52,6 +52,21 @@ void LCD::reset()
 
 	bg_params[0].bg_lut.resize(0x10000, 0xFFFFFFFF);
 
+	//Initialize various LCD status variables
+	lcd_stat.oam_update = false;
+	lcd_stat.oam_update_list.resize(128, false);
+
+	lcd_stat.bg_pal_update = true;
+	lcd_stat.bg_pal_update_list.resize(256, true);
+
+	lcd_stat.obj_pal_update = true;
+	lcd_stat.obj_pal_update_list.resize(256, true);
+
+	lcd_stat.bg_offset_update = false;
+	lcd_stat.bg_params_update = true;
+
+	lcd_stat.frame_base = 0x6000000;
+
 	for(int x = 0; x < 4; x++)
 	{
 		lcd_stat.bg_control[x] = 0;
@@ -72,7 +87,7 @@ bool LCD::init()
 		return false;
 	}
 
-	final_screen = SDL_SetVideoMode(240, 160, 32, SDL_SWSURFACE);
+	final_screen = SDL_SetVideoMode(240, 160, 32, SDL_HWSURFACE);
 
 	if(final_screen == NULL) { return false; }
 
@@ -84,7 +99,7 @@ bool LCD::init()
 /****** Updates OAM entries when values in memory change ******/
 void LCD::update_oam()
 {
-	mem->lcd_updates.oam_update = false;
+	lcd_stat.oam_update = false;
 	
 	u32 oam_ptr = 0x7000000;
 	u16 attribute = 0;
@@ -92,9 +107,9 @@ void LCD::update_oam()
 	for(int x = 0; x < 128; x++)
 	{
 		//Update if OAM entry has changed
-		if(mem->lcd_updates.oam_update_list[x])
+		if(lcd_stat.oam_update_list[x])
 		{
-			mem->lcd_updates.oam_update_list[x] = false;
+			lcd_stat.oam_update_list[x] = false;
 
 			//Read and parse Attribute 0
 			attribute = mem->read_u16_fast(oam_ptr);
@@ -186,17 +201,17 @@ void LCD::update_obj_render_list()
 void LCD::update_palettes()
 {
 	//Update BG palettes
-	if(mem->lcd_updates.bg_pal_update)
+	if(lcd_stat.bg_pal_update)
 	{
-		mem->lcd_updates.bg_pal_update = false;
+		lcd_stat.bg_pal_update = false;
 
 		//Cycle through all updates to BG palettes
 		for(int x = 0; x < 256; x++)
 		{
 			//If this palette has been updated, convert to ARGB
-			if(mem->lcd_updates.bg_pal_update_list[x])
+			if(lcd_stat.bg_pal_update_list[x])
 			{
-				mem->lcd_updates.bg_pal_update_list[x] = false;
+				lcd_stat.bg_pal_update_list[x] = false;
 
 				u16 color_bytes = mem->read_u16_fast(0x5000000 + (x << 1));
 
@@ -214,17 +229,17 @@ void LCD::update_palettes()
 	}
 
 	//Update OBJ palettes
-	if(mem->lcd_updates.obj_pal_update)
+	if(lcd_stat.obj_pal_update)
 	{
-		mem->lcd_updates.obj_pal_update = false;
+		lcd_stat.obj_pal_update = false;
 
 		//Cycle through all updates to OBJ palettes
 		for(int x = 0; x < 256; x++)
 		{
 			//If this palette has been updated, convert to ARGB
-			if(mem->lcd_updates.obj_pal_update_list[x])
+			if(lcd_stat.obj_pal_update_list[x])
 			{
-				mem->lcd_updates.obj_pal_update_list[x] = false;
+				lcd_stat.obj_pal_update_list[x] = false;
 
 				u16 color_bytes = mem->read_u16_fast(0x5000200 + (x << 1));
 
@@ -336,7 +351,7 @@ void LCD::update_bg_params()
 		if(old_pos < 0x9600) { bg_params[0].bg_lut[old_pos] = new_pos; }
 	}
 
-	mem->lcd_updates.bg_params_update = false;
+	lcd_stat.bg_params_update = false;
 }
 
 /****** Determines if a sprite pixel should be rendered, and if so draws it to the current scanline pixel ******/
@@ -712,11 +727,8 @@ bool LCD::render_bg_mode_3()
 /****** Render BG Mode 4 ******/
 bool LCD::render_bg_mode_4()
 {
-	//Determine frame base addr
-	u32 frame_base = (mem->memory_map[DISPCNT] & 0x10) ? 0x600A000 : 0x6000000;
-
 	//Determine which byte in VRAM to read for color data
-	u32 bitmap_entry = (frame_base + (current_scanline * 240) + scanline_pixel_counter);
+	u32 bitmap_entry = (lcd_stat.frame_base + (current_scanline * 240) + scanline_pixel_counter);
 
 	u8 raw_color = mem->memory_map[bitmap_entry];
 	if(raw_color == 0) { return false; }
@@ -789,13 +801,13 @@ void LCD::step()
 		if((lcd_clock % 4) == 0) 
 		{
 			//Update OAM
-			if(mem->lcd_updates.oam_update) { update_oam(); }
+			if(lcd_stat.oam_update) { update_oam(); }
 
 			//Update palettes
-			if((mem->lcd_updates.bg_pal_update) || (mem->lcd_updates.obj_pal_update)) { update_palettes(); }
+			if((lcd_stat.bg_pal_update) || (lcd_stat.obj_pal_update)) { update_palettes(); }
 
 			//Update BG scaling + rotation parameters
-			if(mem->lcd_updates.bg_params_update) { update_bg_params(); }
+			if(lcd_stat.bg_params_update) { update_bg_params(); }
 
 			render_scanline();
 			scanline_pixel_counter++;

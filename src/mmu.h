@@ -70,20 +70,6 @@ class MMU
 		u16 size;
 		bool size_lock;
 	} eeprom;
-		
-	//Structure detailing actions LCD should take when certain memory areas are written to
-	//Only the LCD should read these (and subsequently reset them when applicable)
-	struct lcd_triggers
-	{
-		bool oam_update;
-		bool bg_pal_update;
-		bool obj_pal_update;
-		bool bg_offset_update;
-		bool bg_params_update;
-		std::vector<bool> oam_update_list;
-		std::vector<bool> bg_pal_update_list;
-		std::vector<bool> obj_pal_update_list;
-	} lcd_updates;
 
 	MMU();
 	~MMU();

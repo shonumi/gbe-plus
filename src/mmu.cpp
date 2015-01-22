@@ -57,18 +57,6 @@ void MMU::reset()
 	dma[0].enable = dma[1].enable = dma[2].enable = dma[3].enable = false;
 	dma[0].started = dma[1].started = dma[2].started = dma[3].started = false;
 
-	lcd_updates.oam_update = false;
-	lcd_updates.oam_update_list.resize(128, false);
-
-	lcd_updates.bg_pal_update = true;
-	lcd_updates.bg_pal_update_list.resize(256, true);
-
-	lcd_updates.obj_pal_update = true;
-	lcd_updates.obj_pal_update_list.resize(256, true);
-
-	lcd_updates.bg_offset_update = false;
-	lcd_updates.bg_params_update = true;
-
 	current_save_type = NONE;
 
 	g_pad = NULL;
@@ -169,6 +157,7 @@ void MMU::write_u8(u32 address, u8 value)
 		case DISPCNT+1:
 			memory_map[address] = value;
 			lcd_stat->display_control = ((memory_map[DISPCNT+1] << 8) | memory_map[DISPCNT]);
+			lcd_stat->frame_base = (memory_map[DISPCNT] & 0x10) ? 0x600A000 : 0x6000000;
 			break;
 
 		case BG0CNT:
@@ -485,34 +474,34 @@ void MMU::write_u8(u32 address, u8 value)
 	//Trigger BG offset update in LCD
 	else if((address >= 0x4000010) && (address <= 0x400001F))
 	{
-		lcd_updates.bg_offset_update = true;
+		lcd_stat->bg_offset_update = true;
 	}
 
 	//Trigger BG scaling+rotation parameter update in LCD
 	else if((address >= 0x4000020) && (address <= 0x400003F))
 	{
-		lcd_updates.bg_params_update = true;
+		lcd_stat->bg_params_update = true;
 	}
 
 	//Trigger BG palette update in LCD
 	else if((address >= 0x5000000) && (address <= 0x50001FF))
 	{
-		lcd_updates.bg_pal_update = true;
-		lcd_updates.bg_pal_update_list[(address & 0x1FF) >> 1] = true;
+		lcd_stat->bg_pal_update = true;
+		lcd_stat->bg_pal_update_list[(address & 0x1FF) >> 1] = true;
 	}
 
 	//Trigger OBJ palette update in LCD
 	else if((address >= 0x5000200) && (address <= 0x50003FF))
 	{
-		lcd_updates.obj_pal_update = true;
-		lcd_updates.obj_pal_update_list[(address & 0x1FF) >> 1] = true;
+		lcd_stat->obj_pal_update = true;
+		lcd_stat->obj_pal_update_list[(address & 0x1FF) >> 1] = true;
 	}
 
 	//Trigger OAM update in LCD
 	else if((address >= 0x07000000) && (address <= 0x070003FF))
 	{
-		lcd_updates.oam_update = true;
-		lcd_updates.oam_update_list[(address & 0x3FF) >> 3] = true;
+		lcd_stat->oam_update = true;
+		lcd_stat->oam_update_list[(address & 0x3FF) >> 3] = true;
 	}
 }
 

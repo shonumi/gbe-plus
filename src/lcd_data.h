@@ -12,12 +12,15 @@
 #ifndef GBA_LCD_DATA
 #define GBA_LCD_DATA
 
+#include <vector>
+
 #include "common.h"
 
 struct lcd_data
 {
 	u16 display_control;
 	u16 bg_control[4];
+	u32 frame_base;
 
 	u16 bg_offset_x[4];
 	u16 bg_offset_y[4];
@@ -25,6 +28,18 @@ struct lcd_data
 
 	u16 mode_0_width[4];
 	u16 mode_0_height[4];
+
+	bool oam_update;
+	std::vector<bool> oam_update_list;
+
+	bool bg_pal_update;
+	std::vector<bool> bg_pal_update_list;
+
+	bool obj_pal_update;
+	std::vector<bool> obj_pal_update_list;
+
+	bool bg_offset_update;
+	bool bg_params_update;
 };
 
 #endif // GBA_LCD_DATA
