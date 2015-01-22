@@ -87,7 +87,7 @@ bool LCD::init()
 		return false;
 	}
 
-	final_screen = SDL_SetVideoMode(240, 160, 32, SDL_HWSURFACE);
+	final_screen = SDL_SetVideoMode(240, 160, 32, SDL_SWSURFACE);
 
 	if(final_screen == NULL) { return false; }
 
