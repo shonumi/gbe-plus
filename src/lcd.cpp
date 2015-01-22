@@ -499,11 +499,11 @@ bool LCD::render_bg_pixel(u32 bg_control)
 
 		//BG Mode 3
 		case 3:
-			return render_bg_mode_3(bg_control); break;
+			return render_bg_mode_3(); break;
 
 		//BG Mode 4
 		case 4:
-			return render_bg_mode_4(bg_control); break;
+			return render_bg_mode_4(); break;
 
 		default:
 			std::cout<<"LCD::invalid or unsupported BG Mode : " << std::dec << (lcd_stat.display_control & 0x7);
@@ -690,7 +690,7 @@ bool LCD::render_bg_mode_1(u32 bg_control)
 }
 
 /****** Render BG Mode 3 ******/
-bool LCD::render_bg_mode_3(u32 bg_control)
+bool LCD::render_bg_mode_3()
 {
 	//Determine which byte in VRAM to read for color data
 	u16 color_bytes = mem->read_u16_fast(0x6000000 + (current_scanline * 480) + (scanline_pixel_counter * 2));
@@ -710,7 +710,7 @@ bool LCD::render_bg_mode_3(u32 bg_control)
 }
 
 /****** Render BG Mode 4 ******/
-bool LCD::render_bg_mode_4(u32 bg_control)
+bool LCD::render_bg_mode_4()
 {
 	//Determine frame base addr
 	u32 frame_base = (mem->memory_map[DISPCNT] & 0x10) ? 0x600A000 : 0x6000000;
@@ -721,18 +721,7 @@ bool LCD::render_bg_mode_4(u32 bg_control)
 	u8 raw_color = mem->memory_map[bitmap_entry];
 	if(raw_color == 0) { return false; }
 
-	u16 color_bytes = mem->read_u16_fast(0x5000000 + (raw_color * 2));
-
-	//ARGB conversion
-	u8 red = ((color_bytes & 0x1F) * 8);
-	color_bytes >>= 5;
-
-	u8 green = ((color_bytes & 0x1F) * 8);
-	color_bytes >>= 5;
-
-	u8 blue = ((color_bytes & 0x1F) * 8);
-
-	scanline_buffer[scanline_pixel_counter] = 0xFF000000 | (red << 16) | (green << 8) | (blue);;
+	scanline_buffer[scanline_pixel_counter] = pal[raw_color][0];
 
 	return true;
 }
