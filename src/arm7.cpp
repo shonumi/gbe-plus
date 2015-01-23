@@ -242,7 +242,7 @@ u32 ARM7::get_spsr() const
 	switch(current_cpu_mode)
 	{
 		case USR:
-		case SYS: std::cout<<"CPU::Warning - Tried to read SPSR in USER-SYSTEM mode\n"; return reg.cpsr; break;
+		case SYS: return reg.cpsr; break;
 		case FIQ: return reg.spsr_fiq; break;
 		case SVC: return reg.spsr_svc; break;
 		case ABT: return reg.spsr_abt; break;
@@ -257,7 +257,7 @@ void ARM7::set_spsr(u32 value)
 	switch(current_cpu_mode)
 	{
 		case USR:
-		case SYS: std::cout<<"CPU::Warning - Tried to write SPSR in USER-SYSTEM mode\n"; break;
+		case SYS: break;
 		case FIQ: reg.spsr_fiq = value; break;
 		case SVC: reg.spsr_svc = value; break;
 		case ABT: reg.spsr_abt = value; break;
@@ -1125,6 +1125,8 @@ void ARM7::mem_check_32(u32 addr, u32& value, bool load_store)
 			//case 0x40000B8:
 			//case 0x40000DC: value = (mem->read_u16(reg.r15) << 16) |  mem->read_u16(reg.r15); normal_operation = false; break;
 			case 0x40000B8: value = (mem->read_u16(0x40000BA) << 16); normal_operation = false; break;
+			case 0x40000C6: value = (mem->read_u16(0x40000C6) << 16); normal_operation = false; break;
+			case 0x40000D2: value = (mem->read_u16(0x40000D2) << 16); normal_operation = false; break;
 			case 0x40000DC: value = (mem->read_u16(0x40000DE) << 16); normal_operation = false; break;
 		}
 
@@ -1180,6 +1182,8 @@ void ARM7::mem_check_16(u32 addr, u32& value, bool load_store)
 		switch(addr)
 		{
 			case 0x40000BA:
+			case 0x40000C6:
+			case 0x40000D2:
 			case 0x40000DE: value = 0; normal_operation = false; break;
 		}
 
