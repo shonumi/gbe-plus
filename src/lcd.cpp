@@ -30,7 +30,7 @@ LCD::~LCD()
 /****** Reset LCD ******/
 void LCD::reset()
 {
-	final_screen = final_screen = NULL;
+	final_screen = NULL;
 	mem = NULL;
 
 	scanline_buffer.clear();
@@ -559,14 +559,14 @@ bool LCD::render_bg_mode_0(u32 bg_control)
 	else if((meta_x == 1) && (meta_y == 1) && (bg_size == 3)) { screen_offset = 0x1800; }
 
 	//Determine whether color depth is 4-bit or 8-bit
-	u8 bit_depth = (mem->read_u16_fast(bg_control) & 0x80) ? 8 : 4;
+	u8 bit_depth = (lcd_stat.bg_control[bg_id] & 0x80) ? 8 : 4;
 
 	//Find out where the map base address is - Bits 2-3 of BG(X)CNT
-	u32 map_base_addr = 0x6000000 + (0x800 * ((mem->read_u16_fast(bg_control) >> 8) & 0x1F));
+	u32 map_base_addr = 0x6000000 + (0x800 * ((lcd_stat.bg_control[bg_id] >> 8) & 0x1F));
 	map_base_addr += screen_offset;
 
 	//Find out where the tile base address is - Bits 8-12 of BG(X)CNT
-	u32 tile_base_addr = 0x6000000 + (0x4000 * ((mem->read_u16_fast(bg_control) >> 2) & 0x3));
+	u32 tile_base_addr = 0x6000000 + (0x4000 * ((lcd_stat.bg_control[bg_id] >> 2) & 0x3));
 
 	//Determine the X-Y coordinates of the BG's tile on the tile map
 	u16 current_tile_pixel_x = ((scanline_pixel_counter + lcd_stat.bg_offset_x[bg_id]) % 256);
