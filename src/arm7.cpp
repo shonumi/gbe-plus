@@ -1128,15 +1128,14 @@ void ARM7::mem_check_32(u32 addr, u32& value, bool load_store)
 			case 0x40000D2: value = (mem->read_u16(0x40000D2) << 16); normal_operation = false; break;
 			case 0x40000DE: value = (mem->read_u16(0x40000DE) << 16); normal_operation = false; break;
 
-			//Return 32-bit or mirrored 16-bit opcode for the following addresses (only bottom halfword is readable)
+			//Return 0 for the following addresses (only bottom halfword is readable)
 
 			//DMAxCNT_L
 			case 0x40000B8:
  			case 0x40000C4:
 			case 0x40000D0:
 			case 0x40000DC:
-				if(arm_mode == ARM) { value = mem->read_u32(reg.r15); }
-				else { value = (mem->read_u16(reg.r15) << 16) | mem->read_u16(reg.r15); }
+				value = 0;
 				normal_operation = false;
 				break;
 		}
