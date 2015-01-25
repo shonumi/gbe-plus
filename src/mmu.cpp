@@ -582,11 +582,35 @@ bool MMU::read_file(std::string filename)
 
 			//FLASH RAM
 			case 0x46:
-				if((memory_map[x+1] == 0x4C) && (memory_map[x+2] == 0x41) && (memory_map[x+3] == 0x53) && (memory_map[x+4] == 0x48))
+				//64KB "FLASH_Vnnn"
+				if((memory_map[x+1] == 0x4C) && (memory_map[x+2] == 0x41) && (memory_map[x+3] == 0x53) && (memory_map[x+4] == 0x48) && (memory_map[x+5] == 0x5F))
 				{
-					std::cout<<"MMU::FLASH RAM save type detected\n";
-					current_save_type = FLASH;
+					std::cout<<"MMU::FLASH RAM (64KB) save type detected\n";
+					current_save_type = FLASH_64;
 					load_backup(backup_file);
+					write_u16(0xE000000, 0x1B32);
+					return true;
+				}
+
+				//64KB "FLASH512_Vnnn"
+				else if((memory_map[x+1] == 0x4C) && (memory_map[x+2] == 0x41) && (memory_map[x+3] == 0x53) && (memory_map[x+4] == 0x48) && (memory_map[x+5] == 0x35)
+				&& (memory_map[x+6] == 0x35) && (memory_map[x+7] == 0x31) && (memory_map[x+8] == 0x32)) 
+				{
+					std::cout<<"MMU::FLASH RAM (64KB) save type detected\n";
+					current_save_type = FLASH_64;
+					load_backup(backup_file);
+					write_u16(0xE000000, 0x1B32);
+					return true;
+				}
+
+				//128KB "FLASH1M_V"
+				else if((memory_map[x+1] == 0x4C) && (memory_map[x+2] == 0x41) && (memory_map[x+3] == 0x53) && (memory_map[x+4] == 0x48) && (memory_map[x+5] == 0x31)
+				&& (memory_map[x+6] == 0x4D))
+				{
+					std::cout<<"MMU::FLASH RAM (128KB) save type detected\n";
+					current_save_type = FLASH_128;
+					load_backup(backup_file);
+					write_u16(0xE000000, 0x9C2);
 					return true;
 				}
 

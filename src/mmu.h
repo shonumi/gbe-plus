@@ -30,7 +30,8 @@ class MMU
 	{
 		NONE,
 		EEPROM,
-		FLASH,
+		FLASH_64,
+		FLASH_128,
 		SRAM
 	};
 
