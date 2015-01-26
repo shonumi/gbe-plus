@@ -72,6 +72,15 @@ class MMU
 		bool size_lock;
 	} eeprom;
 
+	//Structure to handle FLASH RAM reading and writing
+	struct flash_ram_controller
+	{
+		u8 current_command;
+		u8 bank;
+		std::vector <u8> data;
+		bool write_single_byte;
+	} flash_ram;
+
 	MMU();
 	~MMU();
 
@@ -101,6 +110,10 @@ class MMU
 	void eeprom_set_addr();
 	void eeprom_read_data();
 	void eeprom_write_data();
+
+	void flash_erase_chip();
+	void flash_erase_sector(u32 sector);
+	void flash_switch_bank();
 
 	void set_lcd_data(lcd_data* ex_lcd_stat);
 

@@ -34,6 +34,12 @@ void MMU::reset()
 	eeprom.size = 0x200;
 	eeprom.size_lock = false;
 
+	flash_ram.data.clear();
+	flash_ram.data.resize(0x10000, 0xFF);
+	flash_ram.bank = 0;
+	flash_ram.current_command = 0;
+	flash_ram.write_single_byte = false;
+
 	//HLE stuff
 	memory_map[DISPCNT] = 0x80;
 	write_u16(0x4000134, 0x8000);
@@ -70,6 +76,12 @@ u8 MMU::read_u8(u32 address) const
 {
 	//Check for unused memory first
 	if(address >= 0x10000000) { std::cout<<"Out of bounds read : 0x" << std::hex << address << "\n"; return 0; }
+
+	//Read from FLASH RAM
+	if(((current_save_type == FLASH_64) || (current_save_type == FLASH_128)) && (address >= 0xE000000) && (address <= 0xE00FFFF))
+	{
+		return flash_ram.data[(address & 0xFFFF)];
+	}
 
 	switch(address)
 	{
@@ -460,6 +472,92 @@ void MMU::write_u8(u32 address, u8 value)
 
 			break;
 
+		case FLASH_RAM_CMD0:
+			if((current_save_type == FLASH_64) || (current_save_type == FLASH_128))
+			{
+				//1st byte of the command
+				if((flash_ram.current_command == 0) && (value == 0xAA)) { flash_ram.current_command++; }
+
+				//3rd byte of the command, execute command
+				else if(flash_ram.current_command == 2)
+				{
+					switch(value)
+					{
+						//FLASH erase chip
+						case 0x10: 
+							flash_erase_chip();
+							flash_ram.current_command = 0;
+							break;
+
+						//FLASH erase command
+						case 0x80:
+							flash_ram.current_command = 0;
+							break;			
+
+						//FLASH ID start
+						case 0x90:
+							if(current_save_type == FLASH_64) { flash_ram.data[0] = 0x32; flash_ram.data[1] = 0x1B; }
+							else { flash_ram.data[0] = 0xC2; flash_ram.data[1] = 0x09; }
+
+							flash_ram.current_command = 0;
+							break;
+
+						//Write byte
+						case 0xA0: 
+							flash_ram.write_single_byte = true;
+							flash_ram.current_command = 0;
+							break;
+
+						//Bank switch
+						case 0xB0:
+							flash_ram.current_command = 0;
+							break;
+
+						//FLASH ID end
+						case 0xF0: 
+							flash_ram.current_command = 0; 
+							break;
+
+						default: std::cout<<"MMU::Unknown FLASH RAM command 0x" << std::hex << (int)value << "\n"; break;
+					}
+				}
+			}
+
+			break;
+
+		case FLASH_RAM_CMD1:
+			if((current_save_type == FLASH_64) || (current_save_type == FLASH_128))
+			{
+				if(flash_ram.current_command == 1) { flash_ram.current_command++; }
+			}
+		
+			break;
+
+		case FLASH_RAM_SEC0:
+		case FLASH_RAM_SEC1:
+		case FLASH_RAM_SEC2:
+		case FLASH_RAM_SEC3:
+		case FLASH_RAM_SEC4:
+		case FLASH_RAM_SEC5:
+		case FLASH_RAM_SEC6:
+		case FLASH_RAM_SEC7:
+		case FLASH_RAM_SEC8:
+		case FLASH_RAM_SEC9:
+		case FLASH_RAM_SECA:
+		case FLASH_RAM_SECB:
+		case FLASH_RAM_SECC:
+		case FLASH_RAM_SECD:
+		case FLASH_RAM_SECE:
+		case FLASH_RAM_SECF:
+			if(((current_save_type == FLASH_64) || (current_save_type == FLASH_128)) && (value == 0x30))
+			{
+				flash_erase_sector(address);
+				flash_ram.current_command = 0;
+			}
+
+			break;
+
+
 		default:
 			memory_map[address] = value;
 	}
@@ -498,10 +596,26 @@ void MMU::write_u8(u32 address, u8 value)
 	}
 
 	//Trigger OAM update in LCD
-	else if((address >= 0x07000000) && (address <= 0x070003FF))
+	else if((address >= 0x7000000) && (address <= 0x70003FF))
 	{
 		lcd_stat->oam_update = true;
 		lcd_stat->oam_update_list[(address & 0x3FF) >> 3] = true;
+	}
+
+	//Write to FLASH RAM
+	else if(((current_save_type == FLASH_64) || (current_save_type == FLASH_128)) && (flash_ram.write_single_byte) && (address >= 0xE000000) && (address <= 0xE00FFFF))
+	{
+		if((address == FLASH_RAM_CMD0) || (address == FLASH_RAM_CMD1))
+		{ 
+			flash_ram.data[(address & 0xFFFF)] = value;
+			return; 
+		}
+
+		else 
+		{
+			flash_ram.data[(address & 0xFFFF)] = value;
+			flash_ram.write_single_byte = false;
+		}
 	}
 }
 
@@ -588,18 +702,20 @@ bool MMU::read_file(std::string filename)
 					std::cout<<"MMU::FLASH RAM (64KB) save type detected\n";
 					current_save_type = FLASH_64;
 					load_backup(backup_file);
-					write_u16(0xE000000, 0x1B32);
+					flash_ram.data[0] = 0x32;
+					flash_ram.data[1] = 0x1B;
 					return true;
 				}
 
 				//64KB "FLASH512_Vnnn"
 				else if((memory_map[x+1] == 0x4C) && (memory_map[x+2] == 0x41) && (memory_map[x+3] == 0x53) && (memory_map[x+4] == 0x48) && (memory_map[x+5] == 0x35)
-				&& (memory_map[x+6] == 0x35) && (memory_map[x+7] == 0x31) && (memory_map[x+8] == 0x32)) 
+				&& (memory_map[x+6] == 0x31) && (memory_map[x+7] == 0x32)) 
 				{
 					std::cout<<"MMU::FLASH RAM (64KB) save type detected\n";
 					current_save_type = FLASH_64;
 					load_backup(backup_file);
-					write_u16(0xE000000, 0x1B32);
+					flash_ram.data[0] = 0x32;
+					flash_ram.data[1] = 0x1B;
 					return true;
 				}
 
@@ -610,7 +726,8 @@ bool MMU::read_file(std::string filename)
 					std::cout<<"MMU::FLASH RAM (128KB) save type detected\n";
 					current_save_type = FLASH_128;
 					load_backup(backup_file);
-					write_u16(0xE000000, 0x9C2);
+					flash_ram.data[0] = 0xC2;
+					flash_ram.data[1] = 0x09;
 					return true;
 				}
 
@@ -715,6 +832,19 @@ bool MMU::load_backup(std::string filename)
 		eeprom.size_lock = true;
 	}
 
+	//Load 64KB FLASH RAM
+	if(current_save_type == FLASH_64)
+	{
+		//Read data from file
+		file.read(reinterpret_cast<char*> (&save_data[0]), file_size);
+
+		//Write that data into 0xE000000 to 0xE00FFFF of FLASH RAM
+		for(u32 x = 0; x < 0x10000; x++)
+		{
+			flash_ram.data[x] = save_data[x];
+		}
+	}
+
 	file.close();
 
 	std::cout<<"MMU::Loaded save data file " << filename <<  "\n";
@@ -771,6 +901,32 @@ bool MMU::save_backup(std::string filename)
 
 		//Write the data to a file
 		file.write(reinterpret_cast<char*> (&save_data[0]), eeprom.size);
+		file.close();
+
+		std::cout<<"MMU::Wrote save data file " << filename <<  "\n";
+	}
+
+	//Save 64KB FLASH RAM
+	else if(current_save_type == FLASH_64)
+	{
+		std::ofstream file(filename.c_str(), std::ios::binary);
+		std::vector<u8> save_data;
+
+		if(!file.is_open()) 
+		{
+			std::cout<<"MMU::" << filename << " save data could not be written. Check file path or permissions. \n";
+			return false;
+		}
+
+
+		//Grab data from 0xE000000 to 0xE00FFFF from FLASH RAM
+		for(u32 x = 0; x < 0x10000; x++)
+		{
+			save_data.push_back(flash_ram.data[x]);
+		}
+
+		//Write the data to a file
+		file.write(reinterpret_cast<char*> (&save_data[0]), 0x10000);
 		file.close();
 
 		std::cout<<"MMU::Wrote save data file " << filename <<  "\n";
@@ -914,6 +1070,18 @@ void MMU::eeprom_write_data()
 
 	memory_map[0xD000000] = 0x1;
 }
+
+/****** Erase entire FLASH RAM ******/
+void MMU::flash_erase_chip()
+{
+	for(int x = 0; x < 0x10000; x++) { flash_ram.data[x] = 0xFF; }
+}
+
+/****** Erase 4KB sector of FLASH RAM ******/
+void MMU::flash_erase_sector(u32 sector)
+{
+	for(u32 x = sector; x < (sector + 0x1000); x++) { flash_ram.data[(x & 0xFFFF)] = 0xFF; }
+}	
 
 /****** Points the MMU to an lcd_data structure (FROM THE LCD ITSELF) ******/
 void MMU::set_lcd_data(lcd_data* ex_lcd_stat) { lcd_stat = ex_lcd_stat; }
