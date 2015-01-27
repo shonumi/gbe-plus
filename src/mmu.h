@@ -77,8 +77,11 @@ class MMU
 	{
 		u8 current_command;
 		u8 bank;
-		std::vector <u8> data;
+		std::vector< std::vector<u8> > data;
 		bool write_single_byte;
+		bool switch_bank;
+		bool grab_ids;
+		bool next_write;
 	} flash_ram;
 
 	MMU();
