@@ -503,7 +503,6 @@ void MMU::write_u8(u32 address, u8 value)
 
 						//FLASH erase command
 						case 0x80:
-							//std::cout<<"ERASE COMMAND\n";
 							flash_ram.current_command = 0;
 							break;			
 
@@ -624,17 +623,8 @@ void MMU::write_u8(u32 address, u8 value)
 	//Write to FLASH RAM
 	else if(((current_save_type == FLASH_64) || (current_save_type == FLASH_128)) && (flash_ram.next_write) && (address >= 0xE000000) && (address <= 0xE00FFFF))
 	{
-		if((address == FLASH_RAM_CMD0) || (address == FLASH_RAM_CMD1))
-		{ 
-			flash_ram.data[flash_ram.bank][(address & 0xFFFF)] = value;
-			return; 
-		}
-
-		else 
-		{
 			flash_ram.data[flash_ram.bank][(address & 0xFFFF)] = value;
 			flash_ram.next_write = false;
-		}
 	}
 
 	if(flash_ram.write_single_byte) 
@@ -1152,9 +1142,6 @@ void MMU::flash_erase_chip()
 /****** Erase 4KB sector of FLASH RAM ******/
 void MMU::flash_erase_sector(u32 sector)
 {
-	//std::cout<<"SEKTOR CLEAR -> 0x" << std::hex << sector <<"\n";
-	//std::cout<<"BANK ->" << int(flash_ram.bank) << "\n\n";
-
 	for(u32 x = sector; x < (sector + 0x1000); x++) 
 	{ 
 		flash_ram.data[flash_ram.bank][(x & 0xFFFF)] = 0xFF; 
