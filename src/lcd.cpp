@@ -66,10 +66,12 @@ void LCD::reset()
 	lcd_stat.bg_params_update = true;
 
 	lcd_stat.frame_base = 0x6000000;
+	lcd_stat.bg_mode = 0;
 
 	for(int x = 0; x < 4; x++)
 	{
 		lcd_stat.bg_control[x] = 0;
+		lcd_stat.bg_enable[x] = false;
 		lcd_stat.bg_offset_x[x] = 0;
 		lcd_stat.bg_offset_y[x] = 0;
 		lcd_stat.bg_priority[x] = 0;
@@ -487,13 +489,13 @@ bool LCD::render_sprite_pixel()
 /****** Determines if a background pixel should be rendered, and if so draws it to the current scanline pixel ******/
 bool LCD::render_bg_pixel(u32 bg_control)
 {
-	if(((lcd_stat.display_control & 0x100) == 0) && (bg_control == BG0CNT)) { return false; }
-	else if(((lcd_stat.display_control & 0x200) == 0) && (bg_control == BG1CNT)) { return false; }
-	else if(((lcd_stat.display_control & 0x400) == 0) && (bg_control == BG2CNT)) { return false; }
-	else if(((lcd_stat.display_control & 0x800) == 0) && (bg_control == BG3CNT)) { return false; }
+	if((!lcd_stat.bg_enable[0]) && (bg_control == BG0CNT)) { return false; }
+	else if((!lcd_stat.bg_enable[1]) && (bg_control == BG1CNT)) { return false; }
+	else if((!lcd_stat.bg_enable[2]) && (bg_control == BG2CNT)) { return false; }
+	else if((!lcd_stat.bg_enable[3]) && (bg_control == BG3CNT)) { return false; }
 
 	//Render BG pixel according to current BG Mode
-	switch(lcd_stat.display_control & 0x7)
+	switch(lcd_stat.bg_mode)
 	{
 		//BG Mode 0
 		case 0:

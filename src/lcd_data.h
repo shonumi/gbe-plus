@@ -20,7 +20,9 @@ struct lcd_data
 {
 	u16 display_control;
 	u16 bg_control[4];
+	bool bg_enable[4];
 	u32 frame_base;
+	u8 bg_mode;
 
 	u16 bg_offset_x[4];
 	u16 bg_offset_y[4];
