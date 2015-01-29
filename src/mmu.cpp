@@ -196,6 +196,9 @@ void MMU::write_u8(u32 address, u8 value)
 			lcd_stat->bg_priority[0] = memory_map[BG0CNT] & 0x3;
 			lcd_stat->bg_control[0] = ((memory_map[BG0CNT+1] << 8) | memory_map[BG0CNT]);
 
+			lcd_stat->bg_base_map_addr[0] = 0x6000000 + (0x800 * ((lcd_stat->bg_control[0] >> 8) & 0x1F));
+			lcd_stat->bg_base_tile_addr[0] = 0x6000000 + (0x4000 * ((lcd_stat->bg_control[0] >> 2) & 0x3));
+
 			switch(lcd_stat->bg_control[0] >> 14)
 			{
 				case 0x0: lcd_stat->mode_0_width[0] = 256; lcd_stat->mode_0_height[0] = 256; break;
@@ -211,6 +214,9 @@ void MMU::write_u8(u32 address, u8 value)
 			memory_map[address] = value;
 			lcd_stat->bg_priority[1] = memory_map[BG1CNT] & 0x3;
 			lcd_stat->bg_control[1] = ((memory_map[BG1CNT+1] << 8) | memory_map[BG1CNT]);
+
+			lcd_stat->bg_base_map_addr[1] = 0x6000000 + (0x800 * ((lcd_stat->bg_control[1] >> 8) & 0x1F));
+			lcd_stat->bg_base_tile_addr[1] = 0x6000000 + (0x4000 * ((lcd_stat->bg_control[1] >> 2) & 0x3));
 
 			switch(lcd_stat->bg_control[1] >> 14)
 			{
@@ -228,6 +234,9 @@ void MMU::write_u8(u32 address, u8 value)
 			lcd_stat->bg_priority[2] = memory_map[BG2CNT] & 0x3;
 			lcd_stat->bg_control[2] = ((memory_map[BG2CNT+1] << 8) | memory_map[BG2CNT]);
 
+			lcd_stat->bg_base_map_addr[2] = 0x6000000 + (0x800 * ((lcd_stat->bg_control[2] >> 8) & 0x1F));
+			lcd_stat->bg_base_tile_addr[2] = 0x6000000 + (0x4000 * ((lcd_stat->bg_control[2] >> 2) & 0x3));
+
 			switch(lcd_stat->bg_control[2] >> 14)
 			{
 				case 0x0: lcd_stat->mode_0_width[2] = 256; lcd_stat->mode_0_height[2] = 256; break;
@@ -243,6 +252,9 @@ void MMU::write_u8(u32 address, u8 value)
 			memory_map[address] = value;
 			lcd_stat->bg_priority[3] = memory_map[BG3CNT] & 0x3;
 			lcd_stat->bg_control[3] = ((memory_map[BG3CNT+1] << 8) | memory_map[BG3CNT]);
+
+			lcd_stat->bg_base_map_addr[3] = 0x6000000 + (0x800 * ((lcd_stat->bg_control[3] >> 8) & 0x1F));
+			lcd_stat->bg_base_tile_addr[3] = 0x6000000 + (0x4000 * ((lcd_stat->bg_control[3] >> 2) & 0x3));
 
 			switch(lcd_stat->bg_control[3] >> 14)
 			{

@@ -75,6 +75,8 @@ void LCD::reset()
 		lcd_stat.bg_offset_x[x] = 0;
 		lcd_stat.bg_offset_y[x] = 0;
 		lcd_stat.bg_priority[x] = 0;
+		lcd_stat.bg_base_tile_addr[x] = 0x6000000;
+		lcd_stat.bg_base_map_addr[x] = 0x6000000;
 		lcd_stat.mode_0_width[x] = 256;
 		lcd_stat.mode_0_height[x] = 256;
 	}
@@ -563,12 +565,8 @@ bool LCD::render_bg_mode_0(u32 bg_control)
 	//Determine whether color depth is 4-bit or 8-bit
 	u8 bit_depth = (lcd_stat.bg_control[bg_id] & 0x80) ? 8 : 4;
 
-	//Find out where the map base address is - Bits 2-3 of BG(X)CNT
-	u32 map_base_addr = 0x6000000 + (0x800 * ((lcd_stat.bg_control[bg_id] >> 8) & 0x1F));
-	map_base_addr += screen_offset;
-
-	//Find out where the tile base address is - Bits 8-12 of BG(X)CNT
-	u32 tile_base_addr = 0x6000000 + (0x4000 * ((lcd_stat.bg_control[bg_id] >> 2) & 0x3));
+	//Add screen offset to current BG map base address
+	u32 map_base_addr = lcd_stat.bg_base_map_addr[bg_id] + screen_offset;
 
 	//Determine the X-Y coordinates of the BG's tile on the tile map
 	u16 current_tile_pixel_x = ((scanline_pixel_counter + lcd_stat.bg_offset_x[bg_id]) % 256);
@@ -587,7 +585,7 @@ bool LCD::render_bg_mode_0(u32 bg_control)
 	u8 palette_number = (mem->read_u16_fast(map_base_addr + (tile_number * 2)) >> 12);
 
 	//Get address of Tile #(map_entry)
-	u32 tile_addr = tile_base_addr + (map_entry * (bit_depth << 3));
+	u32 tile_addr = lcd_stat.bg_base_tile_addr[bg_id] + (map_entry * (bit_depth << 3));
 
 	//Horizontal flip the internal X coordinate
 	if(flip_options & 0x1) 
@@ -662,6 +660,9 @@ bool LCD::render_bg_mode_0(u32 bg_control)
 /****** Render BG Mode 1 ******/
 bool LCD::render_bg_mode_1(u32 bg_control)
 {
+	//Set BG ID to determine which BG is being rendered.
+	u8 bg_id = (bg_control - 0x4000008) >> 1;
+
 	//Get BG size in tiles, pixels
 	//0 - 128x128, 1 - 256x256, 2 - 512x512, 3 - 1024x1024
 	u16 bg_tile_size = (16 << (mem->read_u16_fast(bg_control) >> 14));
@@ -677,20 +678,14 @@ bool LCD::render_bg_mode_1(u32 bg_control)
 	src_y = current_pos / bg_pixel_size;
 	src_x = current_pos % bg_pixel_size;
 
-	//Find out where the map base address is - Bits 2-3 of BG(X)CNT
-	u32 map_base_addr = 0x6000000 + (0x800 * ((mem->read_u16_fast(bg_control) >> 8) & 0x1F));
-
-	//Find out where the tile base address is - Bits 8-12 of BG(X)CNT
-	u32 tile_base_addr = 0x6000000 + (0x4000 * ((mem->read_u16_fast(bg_control) >> 2) & 0x3));
-
 	//Get current map entry for rendered pixel
 	u16 tile_number = ((src_y / 8) * bg_tile_size) + (src_x / 8);
 
 	//Look at the Tile Map #(tile_number), see what Tile # it points to
-	u16 map_entry = mem->read_u16_fast(map_base_addr + tile_number) & 0xFF;
+	u16 map_entry = mem->read_u16_fast(lcd_stat.bg_base_map_addr[bg_id] + tile_number) & 0xFF;
 
 	//Get address of Tile #(map_entry)
-	u32 tile_addr = tile_base_addr + (map_entry * 64);
+	u32 tile_addr = lcd_stat.bg_base_tile_addr[bg_id] + (map_entry * 64);
 
 	u8 current_tile_pixel = ((src_y % 8) * 8) + (src_x % 8);
 
