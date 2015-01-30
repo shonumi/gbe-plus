@@ -753,15 +753,7 @@ void ARM7::flush_pipeline()
 /****** Updates the PC after each fetch-decode-execute ******/
 void ARM7::update_pc()
 {
-	if(arm_mode == ARM)
-	{
-		reg.r15 += 4;
-	}
-
-	else if(arm_mode == THUMB)
-	{
-		reg.r15 += 2;
-	}
+	reg.r15 += (arm_mode == ARM) ? 4 : 2;
 }
 
 /****** Check conditional code ******/
@@ -1295,7 +1287,7 @@ void ARM7::clock(u32 access_addr, bool first_access)
 	}
 
 	//Wait State 0
-	if((access_addr >= 0x8000000) && (access_addr <= 0x9FFFFFF))
+	else if((access_addr >= 0x8000000) && (access_addr <= 0x9FFFFFF))
 	{
 		//Determine first access cycles (Non-Sequential)
 		if(first_access) { access_cycles += mem->n_clock;  }
