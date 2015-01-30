@@ -273,7 +273,7 @@ void ARM7::fetch()
 	if(arm_mode == THUMB)
 	{
 		//Read 16-bit THUMB instruction
-		instruction_pipeline[pipeline_pointer] = mem->read_u16(reg.r15);
+		instruction_pipeline[pipeline_pointer] = mem->read_u16_fast(reg.r15);
 
 		//Set the operation to perform as UNDEFINED until decoded
 		instruction_operation[pipeline_pointer] = UNDEFINED;
@@ -283,7 +283,7 @@ void ARM7::fetch()
 	else if(arm_mode == ARM)
 	{
 		//Read 32-bit ARM instruction
-		instruction_pipeline[pipeline_pointer] = mem->read_u32(reg.r15);
+		instruction_pipeline[pipeline_pointer] = mem->read_u32_fast(reg.r15);
 
 		//Set the operation to perform as UNDEFINED until decoded
 		instruction_operation[pipeline_pointer] = UNDEFINED;
