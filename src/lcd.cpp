@@ -575,14 +575,17 @@ bool LCD::render_bg_mode_0(u32 bg_control)
 	//Get current map entry for rendered pixel
 	u16 tile_number = ((current_tile_pixel_y / 8) * 32) + (current_tile_pixel_x / 8);
 
+	//Grab the map's data
+	u16 map_data = mem->read_u16_fast(map_base_addr + (tile_number * 2));
+
 	//Look at the Tile Map #(tile_number), see what Tile # it points to
-	u16 map_entry = mem->read_u16_fast(map_base_addr + (tile_number * 2)) & 0x3FF;
+	u16 map_entry = map_data & 0x3FF;
 
 	//Grab horizontal and vertical flipping options
-	u8 flip_options = (mem->read_u16_fast(map_base_addr + (tile_number * 2)) >> 10) & 0x3;
+	u8 flip_options = (map_data >> 10) & 0x3;
 
 	//Grab the Palette number of the tiles
-	u8 palette_number = (mem->read_u16_fast(map_base_addr + (tile_number * 2)) >> 12);
+	u8 palette_number = (map_data >> 12);
 
 	//Get address of Tile #(map_entry)
 	u32 tile_addr = lcd_stat.bg_base_tile_addr[bg_id] + (map_entry * (bit_depth << 3));
