@@ -1359,7 +1359,7 @@ void ARM7::clock_timers()
 /****** Jumps to or exits an interrupt ******/
 void ARM7::handle_interrupt()
 {
-	u16 ime_check = mem->read_u16_fast(REG_IME);
+	u16 ime_check = mem->memory_map[REG_IME];
 	u16 if_check = mem->read_u16_fast(REG_IF);
 	u16 ie_check = mem->read_u16_fast(REG_IE);
 
