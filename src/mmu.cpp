@@ -233,6 +233,7 @@ void MMU::write_u8(u32 address, u8 value)
 			memory_map[address] = value;
 			lcd_stat->bg_priority[2] = memory_map[BG2CNT] & 0x3;
 			lcd_stat->bg_control[2] = ((memory_map[BG2CNT+1] << 8) | memory_map[BG2CNT]);
+			lcd_stat->bg_params_update = true;
 
 			lcd_stat->bg_base_map_addr[2] = 0x6000000 + (0x800 * ((lcd_stat->bg_control[2] >> 8) & 0x1F));
 			lcd_stat->bg_base_tile_addr[2] = 0x6000000 + (0x4000 * ((lcd_stat->bg_control[2] >> 2) & 0x3));
