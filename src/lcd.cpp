@@ -315,36 +315,44 @@ void LCD::update_bg_params()
 	if((y_raw & 0xFF) != 0) { bg_params[0].y_ref += (y_raw & 0xFF) / 256.0; }
 	
 	//Get BG2 size in pixels
-	u16 bg_size = (16 << (mem->read_u16_fast(BG2CNT) >> 14)) << 3;
-	bg_params[0].bg_lut.clear();
-	bg_params[0].bg_lut.resize(0x9600, 0xFFFFFFFF);
+	u16 bg_size = (16 << (lcd_stat.bg_control[2] >> 14)) << 3;
 
 	double out_x = bg_params[0].x_ref; 
 	double out_y = bg_params[0].y_ref;
 
+	double temp_x = 0.0;
+	double temp_y = 0.0;
+
+	u16 src_x = 0;
+	u16 src_y = 0;
+
 	//Create a precalculated LUT (look-up table) of all transformed positions
 	//For example, when rendering at (120, 80), we need to determine what pixel was rotated/scaled into this position
-	for(int x = 0; x < 0x9600; x++)
+	for(int x = 0; x < 0x9600; x++, src_x++)
 	{
 		//Increment reference points by DMX and DMY for calculations
 		if((x % 240 == 0) && (x > 0))
 		{
 			bg_params[0].x_ref += bg_params[0].b;
 			bg_params[0].y_ref += bg_params[0].d;
+
+			out_x = bg_params[0].x_ref;
+			out_y = bg_params[0].y_ref;
+
+			src_x = 0;
+			src_y++;
 		}
 
 		//Calculate old position
-		u16 src_x = x % 240;
-		u16 src_y = x / 240;
 		u32 old_pos = (src_y * 240) + src_x;
 
 		//Calculate new position using new coordinate space, store to LUT
-		out_x = bg_params[0].x_ref + ((x % 240) * bg_params[0].a);
-		out_y = bg_params[0].y_ref + ((x / 240) * bg_params[0].c);
+		out_x += bg_params[0].a;
+		out_y += bg_params[0].c;
 
 		//Round results to nearest integer
-		double temp_x = (out_x > 0) ? floor(out_x + 0.5) : ceil(out_x - 0.5);
-		double temp_y = (out_y > 0) ? floor(out_y + 0.5) : ceil(out_y - 0.5);
+		temp_x = (out_x > 0) ? floor(out_x + 0.5) : ceil(out_x - 0.5);
+		temp_y = (out_y > 0) ? floor(out_y + 0.5) : ceil(out_y - 0.5);
 
 		//Cheap way to do modulus on rounded decimals
 		while(temp_x >= bg_size) { temp_x -= bg_size; }
@@ -668,7 +676,7 @@ bool LCD::render_bg_mode_1(u32 bg_control)
 
 	//Get BG size in tiles, pixels
 	//0 - 128x128, 1 - 256x256, 2 - 512x512, 3 - 1024x1024
-	u16 bg_tile_size = (16 << (mem->read_u16_fast(bg_control) >> 14));
+	u16 bg_tile_size = (16 << (lcd_stat.bg_control[2] >> 14));
 	u16 bg_pixel_size = bg_tile_size << 3;
 
 	//Determine source pixel X-Y coordinates
@@ -795,6 +803,9 @@ void LCD::step()
 		{ 
 			lcd_mode = 0; 
 			update_obj_render_list();
+
+			//Update BG scaling + rotation parameters
+			if(lcd_stat.bg_params_update) { update_bg_params(); }
 		}
 
 		//Render scanline data (per-pixel every 4 cycles)
@@ -805,9 +816,6 @@ void LCD::step()
 
 			//Update palettes
 			if((lcd_stat.bg_pal_update) || (lcd_stat.obj_pal_update)) { update_palettes(); }
-
-			//Update BG scaling + rotation parameters
-			if(lcd_stat.bg_params_update) { update_bg_params(); }
 
 			render_scanline();
 			scanline_pixel_counter++;
