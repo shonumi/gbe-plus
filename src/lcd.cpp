@@ -91,7 +91,8 @@ bool LCD::init()
 		return false;
 	}
 
-	final_screen = SDL_SetVideoMode(240, 160, 32, SDL_SWSURFACE);
+	if(config::use_opengl) { opengl_init(); }
+	else { final_screen = SDL_SetVideoMode(240, 160, 32, SDL_SWSURFACE); }
 
 	if(final_screen == NULL) { return false; }
 
@@ -894,8 +895,14 @@ void LCD::step()
 				//Unlock source surface
 				if(SDL_MUSTLOCK(final_screen)){ SDL_UnlockSurface(final_screen); }
 		
-				//Display final screen buffer
-				if(SDL_Flip(final_screen) == -1) { std::cout<<"LCD::Error - Could not blit\n"; }
+				//Display final screen buffer - OpenGL
+				if(config::use_opengl) { opengl_blit(); }
+				
+				//Display final screen buffer - SDL
+				else 
+				{
+					if(SDL_Flip(final_screen) == -1) { std::cout<<"LCD::Error - Could not blit\n"; }
+				}
 			}
 
 			//Limit framerate

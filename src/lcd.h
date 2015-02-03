@@ -10,6 +10,7 @@
 // Responsible for blitting pixel data and limiting frame rate
 
 #include "SDL/SDL.h"
+#include "SDL/SDL_opengl.h"
 #include "mmu.h"
 
 #ifndef GBA_LCD
@@ -35,6 +36,7 @@ class LCD
 
 	//Screen data
 	SDL_Surface* final_screen;
+	GLuint lcd_texture;
 
 	lcd_data lcd_stat;
 
@@ -44,6 +46,9 @@ class LCD
 	void update_palettes();
 	void update_bg_params();
 	void update_obj_render_list();
+
+	void opengl_init();
+	void opengl_blit();
 
 	struct oam_entries
 	{

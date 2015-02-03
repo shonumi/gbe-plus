@@ -39,6 +39,7 @@ namespace config
 	u32 flags = 0;
 	bool pause_emu = false;
 	bool use_bios = false;
+	bool use_opengl = false;
 	bool turbo = false;
 }
 
@@ -75,6 +76,9 @@ bool parse_cli_args()
 					config::bios_file = config::cli_args[x];
 				}
 			}
+
+			//Use OpenGL for screen drawing
+			else if(config::cli_args[x] == "--opengl") { config::use_opengl = true; }
 
 			else
 			{
