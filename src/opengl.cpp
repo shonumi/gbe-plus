@@ -1,9 +1,9 @@
-// GB Enhanced+ Copyright Daniel Baxter 2013
+// GB Enhanced+ Copyright Daniel Baxter 2015
 // Licensed under the GPLv2
 // See LICENSE.txt for full license text
 
 // File : opengl.cpp
-// Date : February 02, 2014
+// Date : February 02, 2015
 // Description : Handles OpenGL functionality
 //
 // Sets up OpenGL for use in GBE+
@@ -14,18 +14,18 @@
 /****** Initialize OpenGL through SDL ******/
 void LCD::opengl_init()
 {
-	SDL_SetVideoMode(240, 160, 32, SDL_OPENGL);
+	SDL_SetVideoMode((240 * config::scaling_factor), (160 * config::scaling_factor), 32, SDL_OPENGL);
 		
 	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glClearColor(0, 0, 0, 0);
 
-	glViewport(0, 0, 240, 160);
+	glViewport(0, 0, (240 * config::scaling_factor), (160 * config::scaling_factor));
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
-	glOrtho(0, 240, 160, 0, -1, 1);
+	glOrtho(0, (240 * config::scaling_factor), (160 * config::scaling_factor), 0, -1, 1);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
@@ -43,12 +43,10 @@ void LCD::opengl_blit()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-	int width = 120;
-	int height = 80;
-	int x = 120;
-	int y = 80;
+	int width = (120 * config::scaling_factor);
+	int height = (80 * config::scaling_factor);
 
-	glTranslatef(x, y, 0);
+	glTranslatef(width, height, 0);
 
 	glBindTexture(GL_TEXTURE_2D, lcd_texture);
 	glBegin(GL_QUADS);

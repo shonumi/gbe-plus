@@ -41,6 +41,8 @@ namespace config
 	bool use_bios = false;
 	bool use_opengl = false;
 	bool turbo = false;
+
+	u8 scaling_factor = 1;
 }
 
 /****** Parse arguments passed from the command-line ******/
@@ -79,6 +81,21 @@ bool parse_cli_args()
 
 			//Use OpenGL for screen drawing
 			else if(config::cli_args[x] == "--opengl") { config::use_opengl = true; }
+
+			//Scale screen by 2x
+			else if(config::cli_args[x] == "--2x") { config::scaling_factor = 2; }
+
+			//Scale screen by 3x
+			else if(config::cli_args[x] == "--3x") { config::scaling_factor = 3; }
+
+			//Scale screen by 4x
+			else if(config::cli_args[x] == "--4x") { config::scaling_factor = 4; }
+
+			//Scale screen by 5x
+			else if(config::cli_args[x] == "--5x") { config::scaling_factor = 5; }
+
+			//Scale screen by 6x
+			else if(config::cli_args[x] == "--6x") { config::scaling_factor = 6; }
 
 			else
 			{

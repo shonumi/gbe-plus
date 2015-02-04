@@ -909,7 +909,8 @@ void LCD::step()
 			if(!config::turbo)
 			{
 				frame_current_time = SDL_GetTicks();
-				if((frame_current_time - frame_start_time) < (1000/60)) { SDL_Delay((1000/60) - (frame_current_time - frame_start_time));}
+				if((frame_current_time - frame_start_time) < 16) { SDL_Delay(16 - (frame_current_time - frame_start_time));}
+				frame_start_time = SDL_GetTicks();
 			}
 				
 			fps_count++;
@@ -940,7 +941,6 @@ void LCD::step()
 			current_scanline = 0; 
 			scanline_compare();
 			scanline_pixel_counter = 0; 
-			frame_start_time = SDL_GetTicks();
 			mem->write_u16_fast(VCOUNT, 0);
 		}
 	}

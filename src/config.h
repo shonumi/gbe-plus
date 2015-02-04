@@ -33,6 +33,7 @@ namespace config
 	extern bool use_bios;
 	extern bool use_opengl;
 	extern bool turbo;
+	extern u8 scaling_factor;
 }
 
 #endif // GBA_CONFIG
