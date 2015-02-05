@@ -26,6 +26,7 @@ struct lcd_data
 	u16 bg_offset_x[4];
 	u16 bg_offset_y[4];
 	u8 bg_priority[4];
+	u8 bg_depth[4];
 	bool bg_enable[4];
 	u32 bg_base_map_addr[4];
 	u32 bg_base_tile_addr[4];

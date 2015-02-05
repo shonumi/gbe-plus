@@ -75,6 +75,7 @@ void LCD::reset()
 		lcd_stat.bg_offset_x[x] = 0;
 		lcd_stat.bg_offset_y[x] = 0;
 		lcd_stat.bg_priority[x] = 0;
+		lcd_stat.bg_depth[x] = 4;
 		lcd_stat.bg_base_tile_addr[x] = 0x6000000;
 		lcd_stat.bg_base_map_addr[x] = 0x6000000;
 		lcd_stat.mode_0_width[x] = 256;
@@ -571,9 +572,6 @@ bool LCD::render_bg_mode_0(u32 bg_control)
 	//SC3 - 512x512
 	else if((meta_x == 1) && (meta_y == 1) && (bg_size == 3)) { screen_offset = 0x1800; }
 
-	//Determine whether color depth is 4-bit or 8-bit
-	u8 bit_depth = (lcd_stat.bg_control[bg_id] & 0x80) ? 8 : 4;
-
 	//Add screen offset to current BG map base address
 	u32 map_base_addr = lcd_stat.bg_base_map_addr[bg_id] + screen_offset;
 
@@ -597,7 +595,7 @@ bool LCD::render_bg_mode_0(u32 bg_control)
 	u8 palette_number = (map_data >> 12);
 
 	//Get address of Tile #(map_entry)
-	u32 tile_addr = lcd_stat.bg_base_tile_addr[bg_id] + (map_entry * (bit_depth << 3));
+	u32 tile_addr = lcd_stat.bg_base_tile_addr[bg_id] + (map_entry * (lcd_stat.bg_depth[bg_id] << 3));
 
 	//Horizontal flip the internal X coordinate
 	if(flip_options & 0x1) 
@@ -640,7 +638,7 @@ bool LCD::render_bg_mode_0(u32 bg_control)
 	u8 current_tile_pixel = ((current_tile_pixel_y % 8) * 8) + (current_tile_pixel_x % 8);
 
 	//Grab the byte corresponding to (current_tile_pixel), render it as ARGB - 4-bit version
-	if(bit_depth == 4)
+	if(lcd_stat.bg_depth[bg_id] == 4)
 	{
 		tile_addr += (current_tile_pixel >> 1);
 		u8 raw_color = mem->memory_map[tile_addr];
