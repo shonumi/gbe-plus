@@ -274,49 +274,49 @@ void MMU::write_u8(u32 address, u8 value)
 		case BG0HOFS:
 		case BG0HOFS+1:
 			memory_map[address] = value;
-			lcd_stat->bg_offset_x[0] = ((memory_map[BG0HOFS+1] << 8) | memory_map[BG0HOFS]);
+			lcd_stat->bg_offset_x[0] = ((memory_map[BG0HOFS+1] << 8) | memory_map[BG0HOFS]) & 0x1FF;
 			break;
 
 		case BG0VOFS:
 		case BG0VOFS+1:
 			memory_map[address] = value;
-			lcd_stat->bg_offset_y[0] = ((memory_map[BG0VOFS+1] << 8) | memory_map[BG0VOFS]);
+			lcd_stat->bg_offset_y[0] = ((memory_map[BG0VOFS+1] << 8) | memory_map[BG0VOFS]) & 0x1FF;
 			break;
 
 		case BG1HOFS:
 		case BG1HOFS+1:
 			memory_map[address] = value;
-			lcd_stat->bg_offset_x[1] = ((memory_map[BG1HOFS+1] << 8) | memory_map[BG1HOFS]);
+			lcd_stat->bg_offset_x[1] = ((memory_map[BG1HOFS+1] << 8) | memory_map[BG1HOFS]) & 0x1FF;
 			break;
 
 		case BG1VOFS:
 		case BG1VOFS+1:
 			memory_map[address] = value;
-			lcd_stat->bg_offset_y[1] = ((memory_map[BG1VOFS+1] << 8) | memory_map[BG1VOFS]);
+			lcd_stat->bg_offset_y[1] = ((memory_map[BG1VOFS+1] << 8) | memory_map[BG1VOFS]) & 0x1FF;
 			break;
 
 		case BG2HOFS:
 		case BG2HOFS+1:
 			memory_map[address] = value;
-			lcd_stat->bg_offset_x[2] = ((memory_map[BG2HOFS+1] << 8) | memory_map[BG2HOFS]);
+			lcd_stat->bg_offset_x[2] = ((memory_map[BG2HOFS+1] << 8) | memory_map[BG2HOFS]) & 0x1FF;
 			break;
 
 		case BG2VOFS:
 		case BG2VOFS+1:
 			memory_map[address] = value;
-			lcd_stat->bg_offset_y[2] = ((memory_map[BG2VOFS+1] << 8) | memory_map[BG2VOFS]);
+			lcd_stat->bg_offset_y[2] = ((memory_map[BG2VOFS+1] << 8) | memory_map[BG2VOFS]) & 0x1FF;
 			break;
 
 		case BG3HOFS:
 		case BG3HOFS+1:
 			memory_map[address] = value;
-			lcd_stat->bg_offset_x[3] = ((memory_map[BG3HOFS+1] << 8) | memory_map[BG3HOFS]);
+			lcd_stat->bg_offset_x[3] = ((memory_map[BG3HOFS+1] << 8) | memory_map[BG3HOFS]) & 0x1FF;
 			break;
 
 		case BG3VOFS:
 		case BG3VOFS+1:
 			memory_map[address] = value;
-			lcd_stat->bg_offset_y[3] = ((memory_map[BG3VOFS+1] << 8) | memory_map[BG3VOFS]);
+			lcd_stat->bg_offset_y[3] = ((memory_map[BG3VOFS+1] << 8) | memory_map[BG3VOFS]) & 0x1FF;
 			break;
 
 		case REG_IF:
