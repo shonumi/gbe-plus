@@ -34,6 +34,9 @@ struct lcd_data
 	u16 mode_0_width[4];
 	u16 mode_0_height[4];
 
+	u8 bg_flip_lut[256];
+	u16 screen_offset_lut[512];
+
 	bool oam_update;
 	std::vector<bool> oam_update_list;
 

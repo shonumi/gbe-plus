@@ -68,6 +68,16 @@ void LCD::reset()
 	lcd_stat.frame_base = 0x6000000;
 	lcd_stat.bg_mode = 0;
 
+	for(int x = 0, y = 255; x < 255; x++, y--)
+	{
+		lcd_stat.bg_flip_lut[x] = (y % 8);
+	}
+
+	for(int x = 0; x < 512; x++)
+	{
+		lcd_stat.screen_offset_lut[x] = (x > 255) ? 0x800 : 0x0;
+	}
+
 	for(int x = 0; x < 4; x++)
 	{
 		lcd_stat.bg_control[x] = 0;
@@ -551,26 +561,32 @@ bool LCD::render_bg_mode_0(u32 bg_control)
 	u32 screen_offset = 0;
 
 	//Determine meta x-coordinate of rendered BG pixel
-	u8 meta_x = ((scanline_pixel_counter + lcd_stat.bg_offset_x[bg_id]) % lcd_stat.mode_0_width[bg_id]) / 256;
+	u16 meta_x = ((scanline_pixel_counter + lcd_stat.bg_offset_x[bg_id]) % lcd_stat.mode_0_width[bg_id]);
 
 	//Determine meta Y-coordinate of rendered BG pixel
-	u8 meta_y = ((current_scanline + lcd_stat.bg_offset_y[bg_id]) % lcd_stat.mode_0_height[bg_id]) / 256;
-
+	u16 meta_y = ((current_scanline + lcd_stat.bg_offset_y[bg_id]) % lcd_stat.mode_0_height[bg_id]);
+	
 	//Determine the address offset for the screen
-	//SC1 - 512x256
-	if((meta_x == 1) && (bg_size == 1)) { screen_offset = 0x800;  }
+	switch(bg_size)
+	{
+		//Size 0 - 256x256
+		case 0x0: break;
 
-	//SC1 - 256x512
-	else if((meta_x == 0) && (meta_y == 1) && (bg_size == 2)) { screen_offset = 0x800; }
+		//Size 1 - 512x256
+		case 0x1: 
+			screen_offset = lcd_stat.screen_offset_lut[meta_x];
+			break;
 
-	//SC1 - 512x512
-	else if((meta_x == 1) && (meta_y == 0) && (bg_size == 3)) { screen_offset = 0x800; }
+		//Size 2 - 256x512
+		case 0x2:
+			screen_offset = lcd_stat.screen_offset_lut[meta_y];
+			break;
 
-	//SC2 - 512x512
-	else if((meta_x == 0) && (meta_y == 1) && (bg_size == 3)) { screen_offset = 0x1000; }
-
-	//SC3 - 512x512
-	else if((meta_x == 1) && (meta_y == 1) && (bg_size == 3)) { screen_offset = 0x1800; }
+		//Size 3 - 512x512
+		case 0x3:
+			screen_offset = (meta_y > 255) ? (lcd_stat.screen_offset_lut[meta_x] | 0x1000) : lcd_stat.screen_offset_lut[meta_x];
+			break;
+	}
 
 	//Add screen offset to current BG map base address
 	u32 map_base_addr = lcd_stat.bg_base_map_addr[bg_id] + screen_offset;
@@ -597,42 +613,25 @@ bool LCD::render_bg_mode_0(u32 bg_control)
 	//Get address of Tile #(map_entry)
 	u32 tile_addr = lcd_stat.bg_base_tile_addr[bg_id] + (map_entry * (lcd_stat.bg_depth[bg_id] << 3));
 
-	//Horizontal flip the internal X coordinate
-	if(flip_options & 0x1) 
+	switch(flip_options)
 	{
-		u8 h_flip = (current_tile_pixel_x % 8);
-	
-		//Horizontal flipping
-		if(h_flip < 4) 
-		{
-			h_flip = ((7 - h_flip) - h_flip);
-			current_tile_pixel_x += h_flip;
-		}
+		case 0x0: break;
 
-		else
-		{
-			h_flip = 7 - (2 * (7 - h_flip));
-			current_tile_pixel_x -= h_flip;
-		}
-	}
+		//Horizontal flip
+		case 0x1: 
+			current_tile_pixel_x = lcd_stat.bg_flip_lut[current_tile_pixel_x];
+			break;
 
-	//Vertical flip the internal Y coordinate
-	if(flip_options & 0x2) 
-	{
-		u8 v_flip = (current_tile_pixel_y % 8);
-	
-		//Vertical flipping
-		if(v_flip < 4) 
-		{
-			v_flip = ((7 - v_flip) - v_flip);
-			current_tile_pixel_y += v_flip;
-		}
+		//Vertical flip
+		case 0x2:
+			current_tile_pixel_y = lcd_stat.bg_flip_lut[current_tile_pixel_y];
+			break;
 
-		else
-		{
-			v_flip = 7 - (2 * (7 - v_flip));
-			current_tile_pixel_y -= v_flip;
-		}
+		//Horizontal + vertical flip
+		case 0x3:
+			current_tile_pixel_x = lcd_stat.bg_flip_lut[current_tile_pixel_x];
+			current_tile_pixel_y = lcd_stat.bg_flip_lut[current_tile_pixel_y];
+			break;
 	}
 
 	u8 current_tile_pixel = ((current_tile_pixel_y % 8) * 8) + (current_tile_pixel_x % 8);
@@ -758,7 +757,7 @@ void LCD::render_scanline()
 	obj_render = render_sprite_pixel();
 
 	//Render BGs based on priority (3 is the 'lowest', 0 is the 'highest')
-	for(int x = 0; x <= 3; x++)
+	for(int x = 0; x < 4; x++)
 	{
 		if(lcd_stat.bg_priority[0] == x) 
 		{
