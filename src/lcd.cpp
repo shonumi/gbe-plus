@@ -909,9 +909,17 @@ void LCD::step()
 				if((frame_current_time - frame_start_time) < 16) { SDL_Delay(16 - (frame_current_time - frame_start_time));}
 				frame_start_time = SDL_GetTicks();
 			}
-				
+
+			//Update FPS counter + title
 			fps_count++;
-			if((SDL_GetTicks() - fps_time) >= 1000) { fps_time = SDL_GetTicks(); std::cout<<"FPS : " <<  std::dec << (int)fps_count << "\n"; fps_count = 0; }
+			if((SDL_GetTicks() - fps_time) >= 1000) 
+			{ 
+				fps_time = SDL_GetTicks(); 
+				config::title.str("");
+				config::title << "GBE+ " << fps_count << "FPS";
+				SDL_WM_SetCaption(config::title.str().c_str(), NULL);
+				fps_count = 0; 
+			}
 		}
 
 		//Setup HBlank stuff (no HBlank IRQs in VBlank!!)

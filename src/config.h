@@ -13,6 +13,7 @@
 
 #include <vector>
 #include <string>
+#include <sstream>
 
 #include "common.h"
 
@@ -34,6 +35,7 @@ namespace config
 	extern bool use_opengl;
 	extern bool turbo;
 	extern u8 scaling_factor;
+	extern std::stringstream title;
 }
 
 #endif // GBA_CONFIG

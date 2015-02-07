@@ -43,6 +43,8 @@ namespace config
 	bool turbo = false;
 
 	u8 scaling_factor = 1;
+
+	std::stringstream title;
 }
 
 /****** Parse arguments passed from the command-line ******/
