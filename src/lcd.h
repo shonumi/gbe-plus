@@ -33,6 +33,7 @@ class LCD
 	void step();
 	void reset();
 	bool init();
+	void opengl_init();
 
 	//Screen data
 	SDL_Surface* final_screen;
@@ -47,7 +48,6 @@ class LCD
 	void update_bg_params();
 	void update_obj_render_list();
 
-	void opengl_init();
 	void opengl_blit();
 
 	struct oam_entries

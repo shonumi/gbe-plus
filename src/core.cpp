@@ -483,7 +483,15 @@ void Core::handle_hotkey(SDL_Event& event)
 		else { config::flags = 0x80000000; }
 
 		//Initialize the screen
-		core_cpu.controllers.video.final_screen = SDL_SetVideoMode(240, 160, 32, SDL_SWSURFACE | config::flags);
+		if(!config::use_opengl)
+		{
+			core_cpu.controllers.video.final_screen = SDL_SetVideoMode(240, 160, 32, SDL_SWSURFACE | config::flags);
+		}
+
+		else
+		{
+			core_cpu.controllers.video.opengl_init();
+		}
 	}
 
 	//Pause emulation
