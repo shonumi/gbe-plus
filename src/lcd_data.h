@@ -27,6 +27,7 @@ struct lcd_data
 	u16 bg_offset_y[4];
 	u8 bg_priority[4];
 	u8 bg_depth[4];
+	u8 bg_size[4];
 	bool bg_enable[4];
 	u32 bg_base_map_addr[4];
 	u32 bg_base_tile_addr[4];
@@ -35,6 +36,8 @@ struct lcd_data
 	u16 mode_0_height[4];
 
 	u8 bg_flip_lut[256];
+	u8 bg_tile_lut[256][256];
+	u16 bg_num_lut[256][256];
 	u16 screen_offset_lut[512];
 
 	bool oam_update;

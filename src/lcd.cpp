@@ -73,6 +73,23 @@ void LCD::reset()
 		lcd_stat.bg_flip_lut[x] = (y % 8);
 	}
 
+	for(int y = 0; y < 256; y++)
+	{
+		for(int x = 0; x < 256; x++)
+		{
+			lcd_stat.bg_tile_lut[x][y] = ((y % 8) * 8) + (x % 8);
+		}
+	}
+
+	for(int y = 0; y < 256; y++)
+	{
+		for(int x = 0; x < 256; x++)
+		{
+			lcd_stat.bg_num_lut[x][y] = ((y / 8) * 32) + (x / 8);
+		}
+	}
+
+
 	for(int x = 0; x < 512; x++)
 	{
 		lcd_stat.screen_offset_lut[x] = (x > 255) ? 0x800 : 0x0;
@@ -86,6 +103,7 @@ void LCD::reset()
 		lcd_stat.bg_offset_y[x] = 0;
 		lcd_stat.bg_priority[x] = 0;
 		lcd_stat.bg_depth[x] = 4;
+		lcd_stat.bg_size[x] = 0;
 		lcd_stat.bg_base_tile_addr[x] = 0x6000000;
 		lcd_stat.bg_base_map_addr[x] = 0x6000000;
 		lcd_stat.mode_0_width[x] = 256;
@@ -556,9 +574,8 @@ bool LCD::render_bg_mode_0(u32 bg_control)
 	//Set BG ID to determine which BG is being rendered.
 	u8 bg_id = (bg_control - 0x4000008) >> 1;
 	
-	//BG size and offset
-	u16 bg_size = (lcd_stat.bg_control[bg_id] >> 14);
-	u32 screen_offset = 0;
+	//BG offset
+	u16 screen_offset = 0;
 
 	//Determine meta x-coordinate of rendered BG pixel
 	u16 meta_x = ((scanline_pixel_counter + lcd_stat.bg_offset_x[bg_id]) % lcd_stat.mode_0_width[bg_id]);
@@ -567,7 +584,7 @@ bool LCD::render_bg_mode_0(u32 bg_control)
 	u16 meta_y = ((current_scanline + lcd_stat.bg_offset_y[bg_id]) % lcd_stat.mode_0_height[bg_id]);
 	
 	//Determine the address offset for the screen
-	switch(bg_size)
+	switch(lcd_stat.bg_size[bg_id])
 	{
 		//Size 0 - 256x256
 		case 0x0: break;
@@ -596,7 +613,7 @@ bool LCD::render_bg_mode_0(u32 bg_control)
 	u16 current_tile_pixel_y = ((current_scanline + lcd_stat.bg_offset_y[bg_id]) % 256);
 
 	//Get current map entry for rendered pixel
-	u16 tile_number = ((current_tile_pixel_y / 8) * 32) + (current_tile_pixel_x / 8);
+	u16 tile_number = lcd_stat.bg_num_lut[current_tile_pixel_x][current_tile_pixel_y];
 
 	//Grab the map's data
 	u16 map_data = mem->read_u16_fast(map_base_addr + (tile_number * 2));
@@ -634,7 +651,7 @@ bool LCD::render_bg_mode_0(u32 bg_control)
 			break;
 	}
 
-	u8 current_tile_pixel = ((current_tile_pixel_y % 8) * 8) + (current_tile_pixel_x % 8);
+	u8 current_tile_pixel = lcd_stat.bg_tile_lut[current_tile_pixel_x][current_tile_pixel_y];
 
 	//Grab the byte corresponding to (current_tile_pixel), render it as ARGB - 4-bit version
 	if(lcd_stat.bg_depth[bg_id] == 4)
