@@ -36,7 +36,7 @@ struct lcd_data
 	u16 mode_0_height[4];
 
 	u8 bg_flip_lut[256];
-	u8 bg_tile_lut[256][256];
+	u16 bg_tile_lut[256][256];
 	u16 bg_num_lut[256][256];
 	u16 screen_offset_lut[512];
 
