@@ -614,12 +614,6 @@ void MMU::write_u8(u32 address, u8 value)
 		memory_map[mirror_addr] = value;
 	}
 
-	//Trigger BG offset update in LCD
-	else if((address >= 0x4000010) && (address <= 0x400001F))
-	{
-		lcd_stat->bg_offset_update = true;
-	}
-
 	//Trigger BG scaling+rotation parameter update in LCD
 	else if((address >= 0x4000020) && (address <= 0x400003F))
 	{

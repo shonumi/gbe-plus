@@ -49,7 +49,6 @@ struct lcd_data
 	bool obj_pal_update;
 	std::vector<bool> obj_pal_update_list;
 
-	bool bg_offset_update;
 	bool bg_params_update;
 };
 

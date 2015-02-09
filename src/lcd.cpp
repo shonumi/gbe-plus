@@ -62,7 +62,6 @@ void LCD::reset()
 	lcd_stat.obj_pal_update = true;
 	lcd_stat.obj_pal_update_list.resize(256, true);
 
-	lcd_stat.bg_offset_update = false;
 	lcd_stat.bg_params_update = true;
 
 	lcd_stat.frame_base = 0x6000000;
