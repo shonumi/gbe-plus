@@ -32,6 +32,15 @@ struct lcd_data
 	u32 bg_base_map_addr[4];
 	u32 bg_base_tile_addr[4];
 
+	bool window_enable[2];
+	bool window_in_enable[3][2];
+	bool windown_out_enable[3][2];
+
+	u16 window_x1[2];
+	u16 window_x2[2];
+	u16 window_y1[2];
+	u16 window_y2[2];
+
 	u16 mode_0_width[4];
 	u16 mode_0_height[4];
 

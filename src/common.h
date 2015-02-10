@@ -75,6 +75,15 @@ const u32 BG3X_H = 0x400003A;
 const u32 BG3Y_L = 0x400003C;
 const u32 BG3Y_H = 0x400003E;
 
+const u32 WIN0H = 0x4000040;
+const u32 WIN1H = 0x4000042;
+
+const u32 WIN0V = 0x4000044;
+const u32 WIN1V = 0x4000046;
+
+const u32 WININ = 0x4000048;
+const u32 WINOUT = 0x400004A;
+
 /* Timers */
 const u32 TM0CNT_L = 0x4000100;
 const u32 TM1CNT_L = 0x4000104;

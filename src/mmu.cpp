@@ -184,6 +184,9 @@ void MMU::write_u8(u32 address, u8 value)
 			lcd_stat->bg_mode = lcd_stat->display_control & 0x7;
 			lcd_stat->frame_base = (memory_map[DISPCNT] & 0x10) ? 0x600A000 : 0x6000000;
 
+			lcd_stat->window_enable[0] = (lcd_stat->display_control & 0x2000) ? true : false;
+			lcd_stat->window_enable[1] = (lcd_stat->display_control & 0x4000) ? true : false;
+
 			lcd_stat->bg_enable[0] = (lcd_stat->display_control & 0x100) ? true : false;
 			lcd_stat->bg_enable[1] = (lcd_stat->display_control & 0x200) ? true : false;
 			lcd_stat->bg_enable[2] = (lcd_stat->display_control & 0x400) ? true : false;
@@ -321,6 +324,46 @@ void MMU::write_u8(u32 address, u8 value)
 		case BG3VOFS+1:
 			memory_map[address] = value;
 			lcd_stat->bg_offset_y[3] = ((memory_map[BG3VOFS+1] << 8) | memory_map[BG3VOFS]) & 0x1FF;
+			break;
+
+		case WIN0H:
+		case WIN0H+1:
+			memory_map[address] = value;
+			lcd_stat->window_x1[0] = memory_map[WIN0H+1];
+			lcd_stat->window_x2[0] = memory_map[WIN0H] + 1;
+
+			if(lcd_stat->window_x2[0] > 240) { lcd_stat->window_x2[0] = 240; }
+			if(lcd_stat->window_x2[0] < lcd_stat->window_x1[0]) { lcd_stat->window_x2[0] = lcd_stat->window_x1[0] = 240; }
+			break;
+
+		case WIN1H:
+		case WIN1H+1:
+			memory_map[address] = value;
+			lcd_stat->window_x1[1] = memory_map[WIN1H+1];
+			lcd_stat->window_x2[1] = memory_map[WIN1H] + 1;
+
+			if(lcd_stat->window_x2[1] > 240) { lcd_stat->window_x2[1] = 240; }
+			if(lcd_stat->window_x2[1] < lcd_stat->window_x1[1]) { lcd_stat->window_x2[1] = lcd_stat->window_x1[1] = 240; }
+			break;
+
+		case WIN0V:
+		case WIN0V+1:
+			memory_map[address] = value;
+			lcd_stat->window_y1[0] = memory_map[WIN0V+1];
+			lcd_stat->window_y2[0] = memory_map[WIN0V] + 1;
+
+			if(lcd_stat->window_y2[0] > 160) { lcd_stat->window_y2[0] = 160; }
+			if(lcd_stat->window_y2[0] < lcd_stat->window_y1[0]) { lcd_stat->window_y2[0] = lcd_stat->window_y1[0] = 160; }
+			break;
+
+		case WIN1V:
+		case WIN1V+1:
+			memory_map[address] = value;
+			lcd_stat->window_y1[1] = memory_map[WIN1V+1];
+			lcd_stat->window_y2[1] = memory_map[WIN1V] + 1;
+
+			if(lcd_stat->window_y2[1] > 160) { lcd_stat->window_y2[1] = 160; }
+			if(lcd_stat->window_y2[1] < lcd_stat->window_y1[1]) { lcd_stat->window_y2[1] = lcd_stat->window_y1[1] = 160; }
 			break;
 
 		case REG_IF:
