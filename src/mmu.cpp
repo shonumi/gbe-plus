@@ -366,6 +366,46 @@ void MMU::write_u8(u32 address, u8 value)
 			if(lcd_stat->window_y2[1] < lcd_stat->window_y1[1]) { lcd_stat->window_y2[1] = lcd_stat->window_y1[1] = 160; }
 			break;
 
+		case WININ:
+			memory_map[address] = value;
+			lcd_stat->window_in_enable[0][0] = (value & 0x1) ? true : false;
+			lcd_stat->window_in_enable[1][0] = (value & 0x2) ? true : false;
+			lcd_stat->window_in_enable[2][0] = (value & 0x4) ? true : false;
+			lcd_stat->window_in_enable[3][0] = (value & 0x8) ? true : false;
+			lcd_stat->window_in_enable[4][0] = (value & 0x10) ? true : false;
+			lcd_stat->window_in_enable[5][0] = (value & 0x20) ? true : false;
+			break;
+
+		case WININ+1:
+			memory_map[address] = value;
+			lcd_stat->window_in_enable[0][1] = (value & 0x1) ? true : false;
+			lcd_stat->window_in_enable[1][1] = (value & 0x2) ? true : false;
+			lcd_stat->window_in_enable[2][1] = (value & 0x4) ? true : false;
+			lcd_stat->window_in_enable[3][1] = (value & 0x8) ? true : false;
+			lcd_stat->window_in_enable[4][1] = (value & 0x10) ? true : false;
+			lcd_stat->window_in_enable[5][1] = (value & 0x20) ? true : false;
+			break;
+
+		case WINOUT:
+			memory_map[address] = value;
+			lcd_stat->woutdow_out_enable[0][0] = (value & 0x1) ? true : false;
+			lcd_stat->woutdow_out_enable[1][0] = (value & 0x2) ? true : false;
+			lcd_stat->woutdow_out_enable[2][0] = (value & 0x4) ? true : false;
+			lcd_stat->woutdow_out_enable[3][0] = (value & 0x8) ? true : false;
+			lcd_stat->woutdow_out_enable[4][0] = (value & 0x10) ? true : false;
+			lcd_stat->woutdow_out_enable[5][0] = (value & 0x20) ? true : false;
+			break;
+
+		case WINOUT+1:
+			memory_map[address] = value;
+			lcd_stat->woutdow_out_enable[0][1] = (value & 0x1) ? true : false;
+			lcd_stat->woutdow_out_enable[1][1] = (value & 0x2) ? true : false;
+			lcd_stat->woutdow_out_enable[2][1] = (value & 0x4) ? true : false;
+			lcd_stat->woutdow_out_enable[3][1] = (value & 0x8) ? true : false;
+			lcd_stat->woutdow_out_enable[4][1] = (value & 0x10) ? true : false;
+			lcd_stat->woutdow_out_enable[5][1] = (value & 0x20) ? true : false;
+			break;
+
 		case REG_IF:
 		case REG_IF+1:
 			memory_map[address] &= ~value;
