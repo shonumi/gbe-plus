@@ -764,6 +764,7 @@ bool LCD::render_bg_mode_4()
 void LCD::render_scanline()
 {
 	bool obj_render = false;
+	bool in_window = false;
 	last_obj_priority = 0xFF;
 
 	//Use BG Palette #0, Color #0 as the backdrop
@@ -772,30 +773,46 @@ void LCD::render_scanline()
 	//Render sprites
 	obj_render = render_sprite_pixel();
 
+	//Determine window status of this pixel
+	if(lcd_stat.window_enable[0])
+	{
+		if((scanline_pixel_counter < lcd_stat.window_x1[0]) || (scanline_pixel_counter > lcd_stat.window_x2[0])
+		|| (current_scanline < lcd_stat.window_y1[0]) || (current_scanline > lcd_stat.window_y2[0]))
+		{
+			in_window = false;
+		}
+		
+		else { in_window = true; }
+	}
+
 	//Render BGs based on priority (3 is the 'lowest', 0 is the 'highest')
 	for(int x = 0; x < 4; x++)
 	{
 		if(lcd_stat.bg_priority[0] == x) 
 		{
 			if((obj_render) && (last_obj_priority <= x)) { return; }
+			if((lcd_stat.window_enable[0]) && (!in_window) && (!lcd_stat.window_out_enable[0][0])) { return; }
 			if(render_bg_pixel(BG0CNT)) { return; } 
 		}
 
 		if(lcd_stat.bg_priority[1] == x) 
 		{
 			if((obj_render) && (last_obj_priority <= x)) { return; }
+			if((lcd_stat.window_enable[0]) && (!in_window) && (!lcd_stat.window_out_enable[1][0])) { return; }
 			if(render_bg_pixel(BG1CNT)) { return; } 
 		}
 
 		if(lcd_stat.bg_priority[2] == x) 
 		{
 			if((obj_render) && (last_obj_priority <= x)) { return; }
+			if((lcd_stat.window_enable[0]) && (!in_window) && (!lcd_stat.window_out_enable[1][0])) { return; }
 			if(render_bg_pixel(BG2CNT)) { return; } 
 		}
 
 		if(lcd_stat.bg_priority[3] == x) 
 		{
 			if((obj_render) && (last_obj_priority <= x)) { return; }
+			if((lcd_stat.window_enable[0]) && (!in_window) && (!lcd_stat.window_out_enable[0][0])) { return; }
 			if(render_bg_pixel(BG3CNT)) { return; } 
 		}
 	}
