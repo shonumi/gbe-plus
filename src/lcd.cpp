@@ -792,6 +792,7 @@ void LCD::render_scanline()
 		{
 			if((obj_render) && (last_obj_priority <= x)) { return; }
 			if((lcd_stat.window_enable[0]) && (!in_window) && (!lcd_stat.window_out_enable[0][0])) { return; }
+			if((lcd_stat.window_enable[0]) && (in_window) && (!lcd_stat.window_in_enable[0][0])) { return; }
 			if(render_bg_pixel(BG0CNT)) { return; } 
 		}
 
@@ -799,20 +800,24 @@ void LCD::render_scanline()
 		{
 			if((obj_render) && (last_obj_priority <= x)) { return; }
 			if((lcd_stat.window_enable[0]) && (!in_window) && (!lcd_stat.window_out_enable[1][0])) { return; }
+			if((lcd_stat.window_enable[0]) && (in_window) && (!lcd_stat.window_in_enable[1][0])) { return; }
 			if(render_bg_pixel(BG1CNT)) { return; } 
 		}
 
 		if(lcd_stat.bg_priority[2] == x) 
 		{
 			if((obj_render) && (last_obj_priority <= x)) { return; }
-			if((lcd_stat.window_enable[0]) && (!in_window) && (!lcd_stat.window_out_enable[1][0])) { return; }
+			if((lcd_stat.window_enable[0]) && (!in_window) && (!lcd_stat.window_out_enable[2][0])) { return; }
+			if((lcd_stat.window_enable[0]) && (in_window) && (!lcd_stat.window_in_enable[2][0])) { return; }
 			if(render_bg_pixel(BG2CNT)) { return; } 
 		}
 
 		if(lcd_stat.bg_priority[3] == x) 
 		{
 			if((obj_render) && (last_obj_priority <= x)) { return; }
-			if((lcd_stat.window_enable[0]) && (!in_window) && (!lcd_stat.window_out_enable[0][0])) { return; }
+			if((lcd_stat.window_enable[0]) && (!in_window) && (!lcd_stat.window_out_enable[3][0])) { return; }
+			if((lcd_stat.window_enable[0]) && (in_window) && (!lcd_stat.window_in_enable[3][0])) { return; }
+
 			if(render_bg_pixel(BG3CNT)) { return; } 
 		}
 	}
