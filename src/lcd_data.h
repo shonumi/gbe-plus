@@ -16,6 +16,14 @@
 
 #include "common.h"
 
+enum sfx_types
+{
+	NORMAL,
+	ALPHA_BLEND,
+	BRIGHTNESS_UP,
+	BRIGHTNESS_DOWN,
+};
+
 struct lcd_data
 {
 	u16 display_control;
@@ -43,6 +51,10 @@ struct lcd_data
 
 	u16 mode_0_width[4];
 	u16 mode_0_height[4];
+
+	sfx_types current_sfx_type;
+	bool sfx_target[6][2];
+	double brightness_coef;
 
 	u8 bg_flip_lut[256];
 	u16 bg_tile_lut[256][256];

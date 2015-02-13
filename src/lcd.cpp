@@ -30,6 +30,9 @@ LCD::~LCD()
 /****** Reset LCD ******/
 void LCD::reset()
 {
+	//TODO - Add comments for LUT generation
+	//TODO - Properly initialize some lcd_stat variables (window_enable and the like)
+
 	final_screen = NULL;
 	mem = NULL;
 
@@ -66,6 +69,8 @@ void LCD::reset()
 
 	lcd_stat.frame_base = 0x6000000;
 	lcd_stat.bg_mode = 0;
+
+	lcd_stat.current_sfx_type = NORMAL;
 
 	for(int x = 0, y = 255; x < 255; x++, y--)
 	{

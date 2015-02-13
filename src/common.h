@@ -84,6 +84,10 @@ const u32 WIN1V = 0x4000046;
 const u32 WININ = 0x4000048;
 const u32 WINOUT = 0x400004A;
 
+const u32 BLDCNT = 0x4000050;
+const u32 BLDALPHA = 0x4000052;
+const u32 BLDY = 0x4000054;
+
 /* Timers */
 const u32 TM0CNT_L = 0x4000100;
 const u32 TM1CNT_L = 0x4000104;

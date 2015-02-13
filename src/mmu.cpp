@@ -406,6 +406,40 @@ void MMU::write_u8(u32 address, u8 value)
 			lcd_stat->window_out_enable[5][1] = (value & 0x20) ? true : false;
 			break;
 
+		case BLDCNT:
+			memory_map[address] = value;
+			lcd_stat->sfx_target[0][0] = (value & 0x1) ? true : false;
+			lcd_stat->sfx_target[1][0] = (value & 0x2) ? true : false;
+			lcd_stat->sfx_target[2][0] = (value & 0x4) ? true : false;
+			lcd_stat->sfx_target[3][0] = (value & 0x8) ? true : false;
+			lcd_stat->sfx_target[4][0] = (value & 0x10) ? true : false;
+			lcd_stat->sfx_target[5][0] = (value & 0x20) ? true : false;
+
+			switch(value >> 6)
+			{
+				case 0x0: lcd_stat->current_sfx_type = NORMAL; break;
+				case 0x1: lcd_stat->current_sfx_type = ALPHA_BLEND; break;
+				case 0x2: lcd_stat->current_sfx_type = BRIGHTNESS_UP; break;
+				case 0x3: lcd_stat->current_sfx_type = BRIGHTNESS_DOWN; break;
+			}			
+
+			break;
+
+		case BLDCNT+1:
+			memory_map[address] = value;
+			lcd_stat->sfx_target[0][0] = (value & 0x1) ? true : false;
+			lcd_stat->sfx_target[1][0] = (value & 0x2) ? true : false;
+			lcd_stat->sfx_target[2][0] = (value & 0x4) ? true : false;
+			lcd_stat->sfx_target[3][0] = (value & 0x8) ? true : false;
+			lcd_stat->sfx_target[4][0] = (value & 0x10) ? true : false;
+			lcd_stat->sfx_target[5][0] = (value & 0x20) ? true : false;
+			break;
+
+		case BLDY:
+			memory_map[address] = value;
+			lcd_stat->brightness_coef = (value & 0x1F) / 16.0;
+			break;
+
 		case REG_IF:
 		case REG_IF+1:
 			memory_map[address] &= ~value;
