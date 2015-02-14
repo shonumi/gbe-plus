@@ -70,6 +70,7 @@ void LCD::reset()
 	lcd_stat.frame_base = 0x6000000;
 	lcd_stat.bg_mode = 0;
 
+	lcd_stat.in_window = false;
 	lcd_stat.current_sfx_type = NORMAL;
 
 	for(int x = 0, y = 255; x < 255; x++, y--)
@@ -252,6 +253,7 @@ void LCD::update_palettes()
 				lcd_stat.bg_pal_update_list[x] = false;
 
 				u16 color_bytes = mem->read_u16_fast(0x5000000 + (x << 1));
+				raw_pal[x][0] = color_bytes;
 
 				u8 red = ((color_bytes & 0x1F) << 3);
 				color_bytes >>= 5;
@@ -280,6 +282,7 @@ void LCD::update_palettes()
 				lcd_stat.obj_pal_update_list[x] = false;
 
 				u16 color_bytes = mem->read_u16_fast(0x5000200 + (x << 1));
+				raw_pal[x][1] = color_bytes;
 
 				u8 red = ((color_bytes & 0x1F) << 3);
 				color_bytes >>= 5;
@@ -670,6 +673,7 @@ bool LCD::render_bg_mode_0(u32 bg_control)
 		if(raw_color == 0) { return false; }
 
 		scanline_buffer[scanline_pixel_counter] = pal[((palette_number * 32) + (raw_color * 2)) >> 1][0];
+		last_raw_color = raw_pal[((palette_number * 32) + (raw_color * 2)) >> 1][0];
 	}
 
 	//Grab the byte corresponding to (current_tile_pixel), render it as ARGB - 8-bit version
@@ -682,6 +686,7 @@ bool LCD::render_bg_mode_0(u32 bg_control)
 		if(raw_color == 0) { return false; }
 
 		scanline_buffer[scanline_pixel_counter] = pal[raw_color][0];
+		last_raw_color = raw_pal[raw_color][0];
 	}
 
 	return true;
@@ -769,8 +774,10 @@ bool LCD::render_bg_mode_4()
 void LCD::render_scanline()
 {
 	bool obj_render = false;
-	bool in_window = false;
+	lcd_stat.in_window = false;
 	last_obj_priority = 0xFF;
+	last_bg_priority = 0xFF;
+	last_raw_color = raw_pal[0][0];
 
 	//Use BG Palette #0, Color #0 as the backdrop
 	scanline_buffer[scanline_pixel_counter] = pal[0][0];
@@ -784,10 +791,10 @@ void LCD::render_scanline()
 		if((scanline_pixel_counter < lcd_stat.window_x1[0]) || (scanline_pixel_counter > lcd_stat.window_x2[0])
 		|| (current_scanline < lcd_stat.window_y1[0]) || (current_scanline > lcd_stat.window_y2[0]))
 		{
-			in_window = false;
+			lcd_stat.in_window = false;
 		}
 		
-		else { in_window = true; }
+		else { lcd_stat.in_window = true; }
 	}
 
 	//Render BGs based on priority (3 is the 'lowest', 0 is the 'highest')
@@ -796,38 +803,111 @@ void LCD::render_scanline()
 		if(lcd_stat.bg_priority[0] == x) 
 		{
 			if((obj_render) && (last_obj_priority <= x)) { return; }
-			if((lcd_stat.window_enable[0]) && (!in_window) && (!lcd_stat.window_out_enable[0][0])) { return; }
-			if((lcd_stat.window_enable[0]) && (in_window) && (!lcd_stat.window_in_enable[0][0])) { return; }
-			if(render_bg_pixel(BG0CNT)) { return; } 
+			if((lcd_stat.window_enable[0]) && (!lcd_stat.in_window) && (!lcd_stat.window_out_enable[0][0])) { return; }
+			if((lcd_stat.window_enable[0]) && (lcd_stat.in_window) && (!lcd_stat.window_in_enable[0][0])) { return; }
+			if(render_bg_pixel(BG0CNT)) { last_bg_priority = 0; return; } 
 		}
 
 		if(lcd_stat.bg_priority[1] == x) 
 		{
 			if((obj_render) && (last_obj_priority <= x)) { return; }
-			if((lcd_stat.window_enable[0]) && (!in_window) && (!lcd_stat.window_out_enable[1][0])) { return; }
-			if((lcd_stat.window_enable[0]) && (in_window) && (!lcd_stat.window_in_enable[1][0])) { return; }
-			if(render_bg_pixel(BG1CNT)) { return; } 
+			if((lcd_stat.window_enable[0]) && (!lcd_stat.in_window) && (!lcd_stat.window_out_enable[1][0])) { return; }
+			if((lcd_stat.window_enable[0]) && (lcd_stat.in_window) && (!lcd_stat.window_in_enable[1][0])) { return; }
+			if(render_bg_pixel(BG1CNT)) { last_bg_priority = 1; return; } 
 		}
 
 		if(lcd_stat.bg_priority[2] == x) 
 		{
 			if((obj_render) && (last_obj_priority <= x)) { return; }
-			if((lcd_stat.window_enable[0]) && (!in_window) && (!lcd_stat.window_out_enable[2][0])) { return; }
-			if((lcd_stat.window_enable[0]) && (in_window) && (!lcd_stat.window_in_enable[2][0])) { return; }
-			if(render_bg_pixel(BG2CNT)) { return; } 
+			if((lcd_stat.window_enable[0]) && (!lcd_stat.in_window) && (!lcd_stat.window_out_enable[2][0])) { return; }
+			if((lcd_stat.window_enable[0]) && (lcd_stat.in_window) && (!lcd_stat.window_in_enable[2][0])) { return; }
+			if(render_bg_pixel(BG2CNT)) { last_bg_priority = 2; return; } 
 		}
 
 		if(lcd_stat.bg_priority[3] == x) 
 		{
 			if((obj_render) && (last_obj_priority <= x)) { return; }
-			if((lcd_stat.window_enable[0]) && (!in_window) && (!lcd_stat.window_out_enable[3][0])) { return; }
-			if((lcd_stat.window_enable[0]) && (in_window) && (!lcd_stat.window_in_enable[3][0])) { return; }
-
-			if(render_bg_pixel(BG3CNT)) { return; } 
+			if((lcd_stat.window_enable[0]) && (!lcd_stat.in_window) && (!lcd_stat.window_out_enable[3][0])) { return; }
+			if((lcd_stat.window_enable[0]) && (lcd_stat.in_window) && (!lcd_stat.window_in_enable[3][0])) { return; }
+			if(render_bg_pixel(BG3CNT)) { last_bg_priority = 3; return; } 
 		}
 	}
 }
 
+/****** Applies the GBA's SFX to a pixel ******/
+void LCD::apply_sfx()
+{
+	bool do_sfx = false;
+
+	//Apply SFX if in Window 0
+	if((lcd_stat.window_enable[0]) && (lcd_stat.in_window) && (lcd_stat.window_in_enable[5][0])) { do_sfx = true; }
+
+	//Apply SFX if out of Window 0
+	else if((lcd_stat.window_enable[0]) && (!lcd_stat.in_window) && (lcd_stat.window_out_enable[5][0])) { do_sfx = true; }
+
+	if(!do_sfx) { return; }
+
+	//Apply the specified SFX
+	switch(lcd_stat.current_sfx_type)
+	{
+		case BRIGHTNESS_UP: 
+			if(last_bg_priority == 0xFF) { return; }
+			scanline_buffer[scanline_pixel_counter] = brightness_up(); 
+			break;
+
+		case BRIGHTNESS_DOWN:
+			if(last_bg_priority == 0xFF) { return; }
+			scanline_buffer[scanline_pixel_counter] = brightness_down(); 
+			break;
+	}
+}
+
+/****** SFX - Increase brightness ******/
+u32 LCD::brightness_up()
+{
+	u16 color_bytes = last_raw_color;
+	u16 result = 0;
+
+	//Increase RGB intensities
+	u8 red = (color_bytes & 0x1F);
+	result = red + ((0x1F - red) * lcd_stat.brightness_coef);
+	red = (result > 0x1F) ? 0x1F : result;
+	color_bytes >>= 5;
+
+	u8 green = (color_bytes & 0x1F);
+	result = green + ((0x1F - green) * lcd_stat.brightness_coef);
+	green = (result > 0x1F) ? 0x1F : result;
+	color_bytes >>= 5;
+
+	u8 blue = (color_bytes & 0x1F);
+	result = blue + ((0x1F - blue) * lcd_stat.brightness_coef);
+	blue = (result > 0x1F) ? 0x1F : result;
+
+	//Return 32-bit color
+	return 0xFF000000 | (red << 19) | (green << 11) | (blue << 3);
+}
+
+/****** SFX - Decrease brightness ******/
+u32 LCD::brightness_down()
+{
+	u16 color_bytes = last_raw_color;
+
+	//Decrease RGB intensities 
+	u8 red = (color_bytes & 0x1F);
+	red -= (red * lcd_stat.brightness_coef);
+	color_bytes >>= 5;
+
+	u8 green = (color_bytes & 0x1F);
+	green -= (green * lcd_stat.brightness_coef);
+	color_bytes >>= 5;
+
+	u8 blue = (color_bytes & 0x1F);
+	blue -= (blue * lcd_stat.brightness_coef);
+
+	//Return 32-bit color
+	return 0xFF000000 | (red << 19) | (green << 11) | (blue << 3);
+}
+	
 /****** Run LCD for one cycle ******/
 void LCD::step()
 {
@@ -859,6 +939,7 @@ void LCD::step()
 			if((lcd_stat.bg_pal_update) || (lcd_stat.obj_pal_update)) { update_palettes(); }
 
 			render_scanline();
+			if(lcd_stat.current_sfx_type != NORMAL) { apply_sfx(); }
 			scanline_pixel_counter++;
 		}
 	}

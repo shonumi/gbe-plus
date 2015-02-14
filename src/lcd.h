@@ -89,8 +89,11 @@ class LCD
 	u8 obj_render_list[128];
 	u8 obj_render_length;
 	u8 last_obj_priority;
+	u8 last_bg_priority;
+	u16 last_raw_color;
 
 	u32 pal[256][2];
+	u16 raw_pal[256][2];
 	u16 bg_offset_x[4];
 	u16 bg_offset_y[4];
 
@@ -114,6 +117,10 @@ class LCD
 	bool render_bg_mode_3();
 	bool render_bg_mode_4();
 	void scanline_compare();
+
+	void apply_sfx();
+	u32 brightness_up();
+	u32 brightness_down();
 };
 
 #endif // GBA_LCD

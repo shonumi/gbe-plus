@@ -43,6 +43,7 @@ struct lcd_data
 	bool window_enable[2];
 	bool window_in_enable[6][2];
 	bool window_out_enable[6][2];
+	bool in_window;
 
 	u16 window_x1[2];
 	u16 window_x2[2];

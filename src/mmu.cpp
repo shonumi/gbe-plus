@@ -328,6 +328,8 @@ void MMU::write_u8(u32 address, u8 value)
 
 		case WIN0H:
 		case WIN0H+1:
+			if(memory_map[address] == value) { return ; }
+
 			memory_map[address] = value;
 			lcd_stat->window_x1[0] = memory_map[WIN0H+1];
 			lcd_stat->window_x2[0] = memory_map[WIN0H] + 1;
@@ -338,6 +340,8 @@ void MMU::write_u8(u32 address, u8 value)
 
 		case WIN1H:
 		case WIN1H+1:
+			if(memory_map[address] == value) { return ; }
+
 			memory_map[address] = value;
 			lcd_stat->window_x1[1] = memory_map[WIN1H+1];
 			lcd_stat->window_x2[1] = memory_map[WIN1H] + 1;
@@ -348,6 +352,8 @@ void MMU::write_u8(u32 address, u8 value)
 
 		case WIN0V:
 		case WIN0V+1:
+			if(memory_map[address] == value) { return ; }
+
 			memory_map[address] = value;
 			lcd_stat->window_y1[0] = memory_map[WIN0V+1];
 			lcd_stat->window_y2[0] = memory_map[WIN0V] + 1;
@@ -358,6 +364,8 @@ void MMU::write_u8(u32 address, u8 value)
 
 		case WIN1V:
 		case WIN1V+1:
+			if(memory_map[address] == value) { return ; }
+
 			memory_map[address] = value;
 			lcd_stat->window_y1[1] = memory_map[WIN1V+1];
 			lcd_stat->window_y2[1] = memory_map[WIN1V] + 1;
@@ -436,7 +444,10 @@ void MMU::write_u8(u32 address, u8 value)
 			break;
 
 		case BLDY:
+			if(memory_map[address] == value) { return ; }
+
 			memory_map[address] = value;
+			if(value > 0xF) { value = 0x10; }
 			lcd_stat->brightness_coef = (value & 0x1F) / 16.0;
 			break;
 
