@@ -344,7 +344,7 @@ void MMU::write_u8(u32 address, u8 value)
 
 			memory_map[address] = value;
 			lcd_stat->window_x1[1] = memory_map[WIN1H+1];
-			lcd_stat->window_x2[1] = memory_map[WIN1H] + 1;
+			lcd_stat->window_x2[1] = memory_map[WIN1H];
 
 			if(lcd_stat->window_x2[1] > 240) { lcd_stat->window_x2[1] = 240; }
 			if(lcd_stat->window_x2[1] < lcd_stat->window_x1[1]) { lcd_stat->window_x2[1] = lcd_stat->window_x1[1] = 240; }
@@ -356,7 +356,7 @@ void MMU::write_u8(u32 address, u8 value)
 
 			memory_map[address] = value;
 			lcd_stat->window_y1[0] = memory_map[WIN0V+1];
-			lcd_stat->window_y2[0] = memory_map[WIN0V] + 1;
+			lcd_stat->window_y2[0] = memory_map[WIN0V];
 
 			if(lcd_stat->window_y2[0] > 160) { lcd_stat->window_y2[0] = 160; }
 			if(lcd_stat->window_y2[0] < lcd_stat->window_y1[0]) { lcd_stat->window_y2[0] = lcd_stat->window_y1[0] = 160; }
