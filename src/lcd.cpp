@@ -845,6 +845,9 @@ void LCD::apply_sfx()
 	//Apply SFX if out of Window 0
 	else if((lcd_stat.window_enable[0]) && (!lcd_stat.in_window) && (lcd_stat.window_out_enable[5][0])) { do_sfx = true; }
 
+	//Apply SFX to whole screen
+	else if(!lcd_stat.window_enable[0]) { do_sfx = true; }
+
 	if(!do_sfx) { return; }
 
 	//Apply the specified SFX
