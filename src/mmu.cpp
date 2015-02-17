@@ -435,12 +435,12 @@ void MMU::write_u8(u32 address, u8 value)
 
 		case BLDCNT+1:
 			memory_map[address] = value;
-			lcd_stat->sfx_target[0][0] = (value & 0x1) ? true : false;
-			lcd_stat->sfx_target[1][0] = (value & 0x2) ? true : false;
-			lcd_stat->sfx_target[2][0] = (value & 0x4) ? true : false;
-			lcd_stat->sfx_target[3][0] = (value & 0x8) ? true : false;
-			lcd_stat->sfx_target[4][0] = (value & 0x10) ? true : false;
-			lcd_stat->sfx_target[5][0] = (value & 0x20) ? true : false;
+			lcd_stat->sfx_target[0][1] = (value & 0x1) ? true : false;
+			lcd_stat->sfx_target[1][1] = (value & 0x2) ? true : false;
+			lcd_stat->sfx_target[2][1] = (value & 0x4) ? true : false;
+			lcd_stat->sfx_target[3][1] = (value & 0x8) ? true : false;
+			lcd_stat->sfx_target[4][1] = (value & 0x10) ? true : false;
+			lcd_stat->sfx_target[5][1] = (value & 0x20) ? true : false;
 			break;
 
 		case BLDY:

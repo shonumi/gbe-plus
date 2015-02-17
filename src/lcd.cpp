@@ -508,6 +508,7 @@ bool LCD::render_sprite_pixel()
 				if(raw_color != 0) 
 				{
 					scanline_buffer[scanline_pixel_counter] = pal[((obj[sprite_id].palette_number * 32) + (raw_color * 2)) >> 1][1];
+					last_raw_color = raw_pal[((obj[sprite_id].palette_number * 32) + (raw_color * 2)) >> 1][1];
 					last_obj_priority = obj[sprite_id].bg_priority;
 					return true;
 				}
@@ -522,6 +523,7 @@ bool LCD::render_sprite_pixel()
 				if(raw_color != 0) 
 				{
 					scanline_buffer[scanline_pixel_counter] = pal[raw_color][1];
+					last_raw_color = raw_pal[raw_color][1];
 					last_obj_priority = obj[sprite_id].bg_priority;
 					return true;
 				}
@@ -732,6 +734,7 @@ bool LCD::render_bg_mode_1(u32 bg_control)
 	if(raw_color == 0) { return false; }
 
 	scanline_buffer[scanline_pixel_counter] = pal[raw_color][0];
+	last_raw_color = raw_pal[raw_color][0];
 
 	return true;
 }
@@ -752,6 +755,7 @@ bool LCD::render_bg_mode_3()
 	u8 blue = ((color_bytes & 0x1F) * 8);
 
 	scanline_buffer[scanline_pixel_counter] = 0xFF000000 | (red << 16) | (green << 8) | (blue);
+	last_raw_color = color_bytes;
 
 	return true;
 }
@@ -766,6 +770,7 @@ bool LCD::render_bg_mode_4()
 	if(raw_color == 0) { return false; }
 
 	scanline_buffer[scanline_pixel_counter] = pal[raw_color][0];
+	last_raw_color = raw_pal[raw_color][0];
 
 	return true;
 }
@@ -802,7 +807,7 @@ void LCD::render_scanline()
 	{
 		if(lcd_stat.bg_priority[0] == x) 
 		{
-			if((obj_render) && (last_obj_priority <= x)) { return; }
+			if((obj_render) && (last_obj_priority <= x)) { last_bg_priority = 4; return; }
 			if((lcd_stat.window_enable[0]) && (!lcd_stat.in_window) && (!lcd_stat.window_out_enable[0][0])) { return; }
 			if((lcd_stat.window_enable[0]) && (lcd_stat.in_window) && (!lcd_stat.window_in_enable[0][0])) { return; }
 			if(render_bg_pixel(BG0CNT)) { last_bg_priority = 0; return; } 
@@ -810,7 +815,7 @@ void LCD::render_scanline()
 
 		if(lcd_stat.bg_priority[1] == x) 
 		{
-			if((obj_render) && (last_obj_priority <= x)) { return; }
+			if((obj_render) && (last_obj_priority <= x)) { last_bg_priority = 4; return; }
 			if((lcd_stat.window_enable[0]) && (!lcd_stat.in_window) && (!lcd_stat.window_out_enable[1][0])) { return; }
 			if((lcd_stat.window_enable[0]) && (lcd_stat.in_window) && (!lcd_stat.window_in_enable[1][0])) { return; }
 			if(render_bg_pixel(BG1CNT)) { last_bg_priority = 1; return; } 
@@ -818,7 +823,7 @@ void LCD::render_scanline()
 
 		if(lcd_stat.bg_priority[2] == x) 
 		{
-			if((obj_render) && (last_obj_priority <= x)) { return; }
+			if((obj_render) && (last_obj_priority <= x)) { last_bg_priority = 4; return; }
 			if((lcd_stat.window_enable[0]) && (!lcd_stat.in_window) && (!lcd_stat.window_out_enable[2][0])) { return; }
 			if((lcd_stat.window_enable[0]) && (lcd_stat.in_window) && (!lcd_stat.window_in_enable[2][0])) { return; }
 			if(render_bg_pixel(BG2CNT)) { last_bg_priority = 2; return; } 
@@ -826,7 +831,7 @@ void LCD::render_scanline()
 
 		if(lcd_stat.bg_priority[3] == x) 
 		{
-			if((obj_render) && (last_obj_priority <= x)) { return; }
+			if((obj_render) && (last_obj_priority <= x)) { last_bg_priority = 4; return; }
 			if((lcd_stat.window_enable[0]) && (!lcd_stat.in_window) && (!lcd_stat.window_out_enable[3][0])) { return; }
 			if((lcd_stat.window_enable[0]) && (lcd_stat.in_window) && (!lcd_stat.window_in_enable[3][0])) { return; }
 			if(render_bg_pixel(BG3CNT)) { last_bg_priority = 3; return; } 
@@ -837,6 +842,9 @@ void LCD::render_scanline()
 /****** Applies the GBA's SFX to a pixel ******/
 void LCD::apply_sfx()
 {
+	if(last_bg_priority == 0xFF) { return; }
+	if(!lcd_stat.sfx_target[last_bg_priority][0]) { return; }
+
 	bool do_sfx = false;
 
 	//Apply SFX if in Window 0
@@ -854,12 +862,10 @@ void LCD::apply_sfx()
 	switch(lcd_stat.current_sfx_type)
 	{
 		case BRIGHTNESS_UP: 
-			if(last_bg_priority == 0xFF) { return; }
 			scanline_buffer[scanline_pixel_counter] = brightness_up(); 
 			break;
 
 		case BRIGHTNESS_DOWN:
-			if(last_bg_priority == 0xFF) { return; }
 			scanline_buffer[scanline_pixel_counter] = brightness_down(); 
 			break;
 	}
