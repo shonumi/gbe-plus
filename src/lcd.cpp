@@ -781,7 +781,7 @@ void LCD::render_scanline()
 	bool obj_render = false;
 	lcd_stat.in_window = false;
 	last_obj_priority = 0xFF;
-	last_bg_priority = 0xFF;
+	last_bg_priority = 0x5;
 	last_raw_color = raw_pal[0][0];
 
 	//Use BG Palette #0, Color #0 as the backdrop
@@ -842,7 +842,6 @@ void LCD::render_scanline()
 /****** Applies the GBA's SFX to a pixel ******/
 void LCD::apply_sfx()
 {
-	if(last_bg_priority == 0xFF) { return; }
 	if(!lcd_stat.sfx_target[last_bg_priority][0]) { return; }
 
 	bool do_sfx = false;
