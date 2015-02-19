@@ -932,7 +932,7 @@ u32 LCD::alpha_blend()
 	bool do_blending = false;
 
 	//Grab next closest 2nd target, if any
-	for(int x = 6; x >= 0; x--)
+	for(int x = 3; x >= 0; x--)
 	{
 		if(lcd_stat.sfx_target[x][1])
 		{
@@ -949,17 +949,13 @@ u32 LCD::alpha_blend()
 
 				//Blend with BG3
 				case 0x3: do_blending = render_bg_pixel(BG3CNT); break;
-
-				//Blend with OBJ
-				case 0x4: do_blending = render_sprite_pixel(); break;
-
-				//Blend with Backdrop
-				case 0x5: do_blending = true; last_raw_color = raw_pal[0][0]; break;
 			}
 		}
 
 		if(do_blending) { break; }
 	}
+
+	//TODO - Proper implementations of BD and OBJ blending
 
 	//Abort if no 2nd target can blend
 	if(!do_blending) { return final_color; }
