@@ -443,6 +443,22 @@ void MMU::write_u8(u32 address, u8 value)
 			lcd_stat->sfx_target[5][1] = (value & 0x20) ? true : false;
 			break;
 
+		case BLDALPHA:
+			if(memory_map[address] == value) { return; }
+			
+			memory_map[address] = value;
+			if(value > 0xF) { value = 0x10; }
+			lcd_stat->alpha_a_coef = (value & 0x1F) / 16.0;
+			break;
+
+		case BLDALPHA+1:
+			if(memory_map[address] == value) { return; }
+			
+			memory_map[address] = value;
+			if(value > 0xF) { value = 0x10; }
+			lcd_stat->alpha_b_coef = (value & 0x1F) / 16.0;
+			break;
+
 		case BLDY:
 			if(memory_map[address] == value) { return ; }
 

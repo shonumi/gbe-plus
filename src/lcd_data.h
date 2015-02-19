@@ -56,6 +56,8 @@ struct lcd_data
 	sfx_types current_sfx_type;
 	bool sfx_target[6][2];
 	double brightness_coef;
+	double alpha_a_coef;
+	double alpha_b_coef;
 
 	u8 bg_flip_lut[256];
 	u16 bg_tile_lut[256][256];

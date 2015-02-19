@@ -860,6 +860,10 @@ void LCD::apply_sfx()
 	//Apply the specified SFX
 	switch(lcd_stat.current_sfx_type)
 	{
+		case ALPHA_BLEND:
+			scanline_buffer[scanline_pixel_counter] = alpha_blend();
+			break;
+
 		case BRIGHTNESS_UP: 
 			scanline_buffer[scanline_pixel_counter] = brightness_up(); 
 			break;
@@ -911,6 +915,71 @@ u32 LCD::brightness_down()
 
 	u8 blue = (color_bytes & 0x1F);
 	blue -= (blue * lcd_stat.brightness_coef);
+
+	//Return 32-bit color
+	return 0xFF000000 | (red << 19) | (green << 11) | (blue << 3);
+}
+
+/****** SFX - Alpha blending ******/
+u32 LCD::alpha_blend()
+{		
+	//Grab the current 32-bit color for this pixel, in case no alpha blending occurs
+	u32 final_color = scanline_buffer[scanline_pixel_counter];
+
+	u16 color_1 = last_raw_color;
+	u16 color_2 = 0x0;
+	u16 result = 0;
+	bool do_blending = false;
+
+	//Grab next closest 2nd target, if any
+	for(int x = 6; x >= 0; x--)
+	{
+		if(lcd_stat.sfx_target[x][1])
+		{
+			switch(x)
+			{
+				//Blend with BG0
+				case 0x0: do_blending = render_bg_pixel(BG0CNT); break;
+
+				//Blend with BG1
+				case 0x1: do_blending = render_bg_pixel(BG1CNT); break;
+
+				//Blend with BG2
+				case 0x2: do_blending = render_bg_pixel(BG2CNT); break;
+
+				//Blend with BG3
+				case 0x3: do_blending = render_bg_pixel(BG3CNT); break;
+
+				//Blend with OBJ
+				case 0x4: do_blending = render_sprite_pixel(); break;
+
+				//Blend with Backdrop
+				case 0x5: do_blending = true; last_raw_color = raw_pal[0][0]; break;
+			}
+		}
+
+		if(do_blending) { break; }
+	}
+
+	//Abort if no 2nd target can blend
+	if(!do_blending) { return final_color; }
+
+	color_2 = last_raw_color;
+
+	result = ((color_1 & 0x1F) * lcd_stat.alpha_a_coef) + ((color_2 & 0x1F) * lcd_stat.alpha_b_coef);
+	u8 red = (result > 0x1F) ? 0x1F : result;
+	color_1 >>= 5;
+	color_2 >>= 5;
+
+	result = ((color_1 & 0x1F) * lcd_stat.alpha_a_coef) + ((color_2 & 0x1F) * lcd_stat.alpha_b_coef);
+	u8 green = (result > 0x1F) ? 0x1F : result;
+	color_1 >>= 5;
+	color_2 >>= 5;
+
+	result = ((color_1 & 0x1F) * lcd_stat.alpha_a_coef) + ((color_2 & 0x1F) * lcd_stat.alpha_b_coef);
+	u8 blue = (result > 0x1F) ? 0x1F : result;
+	color_1 >>= 5;
+	color_2 >>= 5;
 
 	//Return 32-bit color
 	return 0xFF000000 | (red << 19) | (green << 11) | (blue << 3);

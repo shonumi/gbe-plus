@@ -121,6 +121,7 @@ class LCD
 	void apply_sfx();
 	u32 brightness_up();
 	u32 brightness_down();
+	u32 alpha_blend();
 };
 
 #endif // GBA_LCD
