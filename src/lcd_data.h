@@ -41,6 +41,7 @@ struct lcd_data
 	u32 bg_base_tile_addr[4];
 
 	bool window_enable[2];
+	bool obj_win_enable;
 	bool window_in_enable[6][2];
 	bool window_out_enable[6][2];
 	bool in_window;

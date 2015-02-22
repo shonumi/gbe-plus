@@ -71,6 +71,7 @@ void LCD::reset()
 	lcd_stat.bg_mode = 0;
 
 	lcd_stat.in_window = false;
+	lcd_stat.obj_win_enable = false;
 	lcd_stat.current_sfx_type = NORMAL;
 
 	for(int x = 0, y = 255; x < 255; x++, y--)
@@ -157,8 +158,10 @@ void LCD::update_oam()
 			obj[x].y = (attribute & 0xFF);
 			obj[x].rotate_scale = (attribute & 0x100) ? 1 : 0;
 			obj[x].type = (attribute & 0x200) ? 1 : 0;
+			obj[x].mode = (attribute >> 10) & 0x3;
 			obj[x].bit_depth = (attribute & 0x2000) ? 8 : 4;
 			obj[x].shape = (attribute >> 14);
+
 			if((obj[x].rotate_scale == 0) && (obj[x].type == 1)) { obj[x].visible = false; }
 			else { obj[x].visible = true; }
 
@@ -507,10 +510,16 @@ bool LCD::render_sprite_pixel()
 
 				if(raw_color != 0) 
 				{
-					scanline_buffer[scanline_pixel_counter] = pal[((obj[sprite_id].palette_number * 32) + (raw_color * 2)) >> 1][1];
-					last_raw_color = raw_pal[((obj[sprite_id].palette_number * 32) + (raw_color * 2)) >> 1][1];
-					last_obj_priority = obj[sprite_id].bg_priority;
-					return true;
+					//If this sprite is in OBJ Window mode, do not render it, but set a flag indicating the LCD passed over its pixel
+					if(obj[sprite_id].mode == 2) { obj_win_pixel = true; }
+
+					else 
+					{
+						scanline_buffer[scanline_pixel_counter] = pal[((obj[sprite_id].palette_number * 32) + (raw_color * 2)) >> 1][1];
+						last_raw_color = raw_pal[((obj[sprite_id].palette_number * 32) + (raw_color * 2)) >> 1][1];
+						last_obj_priority = obj[sprite_id].bg_priority;
+						return true;
+					}
 				}
 			}
 
@@ -522,10 +531,16 @@ bool LCD::render_sprite_pixel()
 
 				if(raw_color != 0) 
 				{
-					scanline_buffer[scanline_pixel_counter] = pal[raw_color][1];
-					last_raw_color = raw_pal[raw_color][1];
-					last_obj_priority = obj[sprite_id].bg_priority;
-					return true;
+					//If this sprite is in OBJ Window mode, do not render it, but set a flag indicating the LCD passed over its pixel
+					if(obj[sprite_id].mode == 2) { obj_win_pixel = true; }
+
+					else
+					{
+						scanline_buffer[scanline_pixel_counter] = pal[raw_color][1];
+						last_raw_color = raw_pal[raw_color][1];
+						last_obj_priority = obj[sprite_id].bg_priority;
+						return true;
+					}
 				}
 			}
 		}
@@ -783,6 +798,7 @@ void LCD::render_scanline()
 	last_obj_priority = 0xFF;
 	last_bg_priority = 0x5;
 	last_raw_color = raw_pal[0][0];
+	obj_win_pixel = false;
 
 	//Use BG Palette #0, Color #0 as the backdrop
 	scanline_buffer[scanline_pixel_counter] = pal[0][0];
@@ -851,6 +867,9 @@ void LCD::apply_sfx()
 
 	//Apply SFX if out of Window 0
 	else if((lcd_stat.window_enable[0]) && (!lcd_stat.in_window) && (lcd_stat.window_out_enable[5][0])) { do_sfx = true; }
+
+	//Apply SFX if in OBJ Window
+	else if((lcd_stat.obj_win_enable) && (obj_win_pixel) && (lcd_stat.window_out_enable[5][1])) { do_sfx = true; }
 
 	//Apply SFX to whole screen
 	else if(!lcd_stat.window_enable[0]) { do_sfx = true; }

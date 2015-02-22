@@ -186,6 +186,7 @@ void MMU::write_u8(u32 address, u8 value)
 
 			lcd_stat->window_enable[0] = (lcd_stat->display_control & 0x2000) ? true : false;
 			lcd_stat->window_enable[1] = (lcd_stat->display_control & 0x4000) ? true : false;
+			lcd_stat->obj_win_enable = (lcd_stat->display_control & 0x8000) ? true : false;
 
 			lcd_stat->bg_enable[0] = (lcd_stat->display_control & 0x100) ? true : false;
 			lcd_stat->bg_enable[1] = (lcd_stat->display_control & 0x200) ? true : false;

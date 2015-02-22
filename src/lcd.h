@@ -72,6 +72,7 @@ class LCD
 		u8 bit_depth;
 		u8 palette_number;
 		u8 type;
+		u8 mode;
 		u8 rotate_scale;
 		bool visible;
 	} obj[128];
@@ -91,6 +92,7 @@ class LCD
 	u8 last_obj_priority;
 	u8 last_bg_priority;
 	u16 last_raw_color;
+	bool obj_win_pixel;
 
 	u32 pal[256][2];
 	u16 raw_pal[256][2];
