@@ -950,7 +950,7 @@ u32 LCD::alpha_blend()
 	u16 result = 0;
 	bool do_blending = false;
 
-	//TODO - Proper implementations of BD and OBJ blending
+	//TODO - Proper implementation of BD blending
 	if(last_bg_priority > 3) { return final_color; }
 
 	u8 current_bg_priority = lcd_stat.bg_priority[last_bg_priority] + 1;
@@ -958,6 +958,9 @@ u32 LCD::alpha_blend()
 	//Grab next closest 2nd target, if any
 	for(int x = current_bg_priority; x < 4; x++)
 	{
+		//Blend with OBJ
+		if((last_obj_priority == x) && (lcd_stat.sfx_target[4][1]) && (!do_blending)) { do_blending = render_sprite_pixel(); }
+	
 		//Blend with BG0
 		if((lcd_stat.bg_priority[0] == x) && (lcd_stat.sfx_target[0][1]) && (!do_blending)) { do_blending = render_bg_pixel(BG0CNT); }
 
