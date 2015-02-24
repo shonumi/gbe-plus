@@ -858,7 +858,11 @@ void LCD::render_scanline()
 /****** Applies the GBA's SFX to a pixel ******/
 void LCD::apply_sfx()
 {
-	if(!lcd_stat.sfx_target[last_bg_priority][0]) { return; }
+	//If doing brightness up/down and the last pixel drawn is not a target, abort SFX
+	if((!lcd_stat.sfx_target[last_bg_priority][0]) && (lcd_stat.current_sfx_type != ALPHA_BLEND)) { return; }
+
+	//If doing alpha blending outside of the OBJ Window and the last pixel drawn is not a target, abort SFX 
+	if((!lcd_stat.sfx_target[last_bg_priority][0]) && (lcd_stat.current_sfx_type == ALPHA_BLEND) && (!obj_win_pixel)) { return; }
 
 	bool do_sfx = false;
 
@@ -949,6 +953,33 @@ u32 LCD::alpha_blend()
 	u16 color_2 = 0x0;
 	u16 result = 0;
 	bool do_blending = false;
+
+	//When blending with an OBJ Window pixel, the 1st target needs to be manually calculated
+	if(obj_win_pixel)
+	{
+		for(int x = 0; x < 4; x++)
+		{
+			//OBJ is 1st target
+			if((last_obj_priority == x) && (lcd_stat.sfx_target[4][0]) && (!do_blending)) { do_blending = render_sprite_pixel();  }
+	
+			//BG0 is 1st target
+			if((lcd_stat.bg_priority[0] == x) && (lcd_stat.sfx_target[0][0]) && (!do_blending)) { do_blending = render_bg_pixel(BG0CNT); last_bg_priority = 0; }
+
+			//BG1 is 1st target
+			if((lcd_stat.bg_priority[1] == x) && (lcd_stat.sfx_target[1][0]) && (!do_blending)) { do_blending = render_bg_pixel(BG1CNT); last_bg_priority = 1; }
+
+			//BG2 is 1st target
+			if((lcd_stat.bg_priority[2] == x) && (lcd_stat.sfx_target[2][0]) && (!do_blending)) { do_blending = render_bg_pixel(BG2CNT); last_bg_priority = 2; }
+
+			//BG3 is 1st target
+			if((lcd_stat.bg_priority[3] == x) && (lcd_stat.sfx_target[3][0]) && (!do_blending)) { do_blending = render_bg_pixel(BG3CNT); last_bg_priority = 3; }
+
+			if(do_blending) { x = 4; }
+		}
+
+		do_blending = false;
+		color_1 = last_raw_color;
+	}
 
 	//TODO - Proper implementation of BD blending
 	if(last_bg_priority > 3) { return final_color; }
