@@ -795,6 +795,7 @@ void LCD::render_scanline()
 {
 	bool obj_render = false;
 	lcd_stat.in_window = false;
+	lcd_stat.current_window = 0;
 	last_obj_priority = 0xFF;
 	last_bg_priority = 0x5;
 	last_raw_color = raw_pal[0][0];
@@ -815,7 +816,18 @@ void LCD::render_scanline()
 			lcd_stat.in_window = false;
 		}
 		
-		else { lcd_stat.in_window = true; }
+		else { lcd_stat.in_window = true; lcd_stat.current_window = 0; }
+	}
+
+	if((lcd_stat.window_enable[1]) && (!lcd_stat.in_window))
+	{
+		if((scanline_pixel_counter < lcd_stat.window_x1[1]) || (scanline_pixel_counter > lcd_stat.window_x2[1])
+		|| (current_scanline < lcd_stat.window_y1[1]) || (current_scanline > lcd_stat.window_y2[1]))
+		{
+			lcd_stat.in_window = false;
+		}
+		
+		else { lcd_stat.in_window = true; lcd_stat.current_window = 1; }
 	}
 
 	//Render BGs based on priority (3 is the 'lowest', 0 is the 'highest')
@@ -824,32 +836,32 @@ void LCD::render_scanline()
 		if(lcd_stat.bg_priority[0] == x) 
 		{
 			if((obj_render) && (last_obj_priority <= x)) { last_bg_priority = 4; return; }
-			else if((lcd_stat.window_enable[0]) && (!lcd_stat.in_window) && (!lcd_stat.window_out_enable[0][0])) { }
-			else if((lcd_stat.window_enable[0]) && (lcd_stat.in_window) && (!lcd_stat.window_in_enable[0][0])) { }
+			else if((lcd_stat.window_enable[lcd_stat.current_window]) && (!lcd_stat.in_window) && (!lcd_stat.window_out_enable[0][0])) { }
+			else if((lcd_stat.window_enable[lcd_stat.current_window]) && (lcd_stat.in_window) && (!lcd_stat.window_in_enable[0][lcd_stat.current_window])) { }
 			else if(render_bg_pixel(BG0CNT)) { last_bg_priority = 0; return; } 
 		}
 
 		if(lcd_stat.bg_priority[1] == x) 
 		{
 			if((obj_render) && (last_obj_priority <= x)) { last_bg_priority = 4; return; }
-			else if((lcd_stat.window_enable[0]) && (!lcd_stat.in_window) && (!lcd_stat.window_out_enable[1][0])) { }
-			else if((lcd_stat.window_enable[0]) && (lcd_stat.in_window) && (!lcd_stat.window_in_enable[1][0])) { }
+			else if((lcd_stat.window_enable[lcd_stat.current_window]) && (!lcd_stat.in_window) && (!lcd_stat.window_out_enable[1][0])) { }
+			else if((lcd_stat.window_enable[lcd_stat.current_window]) && (lcd_stat.in_window) && (!lcd_stat.window_in_enable[1][lcd_stat.current_window])) { }
 			else if(render_bg_pixel(BG1CNT)) { last_bg_priority = 1; return; } 
 		}
 
 		if(lcd_stat.bg_priority[2] == x) 
 		{
 			if((obj_render) && (last_obj_priority <= x)) { last_bg_priority = 4; return; }
-			else if((lcd_stat.window_enable[0]) && (!lcd_stat.in_window) && (!lcd_stat.window_out_enable[2][0])) { }
-			else if((lcd_stat.window_enable[0]) && (lcd_stat.in_window) && (!lcd_stat.window_in_enable[2][0])) { }
+			else if((lcd_stat.window_enable[lcd_stat.current_window]) && (!lcd_stat.in_window) && (!lcd_stat.window_out_enable[2][0])) { }
+			else if((lcd_stat.window_enable[lcd_stat.current_window]) && (lcd_stat.in_window) && (!lcd_stat.window_in_enable[2][lcd_stat.current_window])) { }
 			else if(render_bg_pixel(BG2CNT)) { last_bg_priority = 2; return; } 
 		}
 
 		if(lcd_stat.bg_priority[3] == x) 
 		{
 			if((obj_render) && (last_obj_priority <= x)) { last_bg_priority = 4; return; }
-			else if((lcd_stat.window_enable[0]) && (!lcd_stat.in_window) && (!lcd_stat.window_out_enable[3][0])) { }
-			else if((lcd_stat.window_enable[0]) && (lcd_stat.in_window) && (!lcd_stat.window_in_enable[3][0])) { }
+			else if((lcd_stat.window_enable[lcd_stat.current_window]) && (!lcd_stat.in_window) && (!lcd_stat.window_out_enable[3][0])) { }
+			else if((lcd_stat.window_enable[lcd_stat.current_window]) && (lcd_stat.in_window) && (!lcd_stat.window_in_enable[3][lcd_stat.current_window])) { }
 			else if(render_bg_pixel(BG3CNT)) { last_bg_priority = 3; return; } 
 		}
 	}
@@ -866,17 +878,17 @@ void LCD::apply_sfx()
 
 	bool do_sfx = false;
 
-	//Apply SFX if in Window 0
-	if((lcd_stat.window_enable[0]) && (lcd_stat.in_window) && (lcd_stat.window_in_enable[5][0])) { do_sfx = true; }
+	//Apply SFX if in Window
+	if((lcd_stat.window_enable[lcd_stat.current_window]) && (lcd_stat.in_window) && (lcd_stat.window_in_enable[5][lcd_stat.current_window])) { do_sfx = true; }
 
-	//Apply SFX if out of Window 0
-	else if((lcd_stat.window_enable[0]) && (!lcd_stat.in_window) && (lcd_stat.window_out_enable[5][0])) { do_sfx = true; }
+	//Apply SFX if out of Window
+	else if((lcd_stat.window_enable[lcd_stat.current_window]) && (!lcd_stat.in_window) && (lcd_stat.window_out_enable[5][0])) { do_sfx = true; }
 
 	//Apply SFX if in OBJ Window
 	else if((lcd_stat.obj_win_enable) && (obj_win_pixel) && (lcd_stat.window_out_enable[5][1])) { do_sfx = true; }
 
 	//Apply SFX to whole screen
-	else if(!lcd_stat.window_enable[0]) { do_sfx = true; }
+	else if(!lcd_stat.window_enable[lcd_stat.current_window]) { do_sfx = true; }
 
 	if(!do_sfx) { return; }
 
