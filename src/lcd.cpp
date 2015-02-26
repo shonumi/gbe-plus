@@ -518,6 +518,7 @@ bool LCD::render_sprite_pixel()
 						scanline_buffer[scanline_pixel_counter] = pal[((obj[sprite_id].palette_number * 32) + (raw_color * 2)) >> 1][1];
 						last_raw_color = raw_pal[((obj[sprite_id].palette_number * 32) + (raw_color * 2)) >> 1][1];
 						last_obj_priority = obj[sprite_id].bg_priority;
+						last_obj_mode = obj[sprite_id].mode;
 						return true;
 					}
 				}
@@ -539,6 +540,7 @@ bool LCD::render_sprite_pixel()
 						scanline_buffer[scanline_pixel_counter] = pal[raw_color][1];
 						last_raw_color = raw_pal[raw_color][1];
 						last_obj_priority = obj[sprite_id].bg_priority;
+						last_obj_mode = obj[sprite_id].mode;
 						return true;
 					}
 				}
@@ -798,6 +800,7 @@ void LCD::render_scanline()
 	lcd_stat.current_window = 0;
 	last_obj_priority = 0xFF;
 	last_bg_priority = 0x5;
+	last_obj_mode = 0;
 	last_raw_color = raw_pal[0][0];
 	obj_win_pixel = false;
 
@@ -873,6 +876,10 @@ void LCD::apply_sfx()
 	//If doing brightness up/down and the last pixel drawn is not a target, abort SFX
 	if((!lcd_stat.sfx_target[last_bg_priority][0]) && (lcd_stat.current_sfx_type != ALPHA_BLEND)) { return; }
 
+	//If doing brightness up/down and the OBJ mode is Semi-Transparent, abort SFX
+	//TODO: Force Alpha Blending if the OBJ is 1st target
+	if((last_bg_priority == 4) && (lcd_stat.current_sfx_type != ALPHA_BLEND) && (last_obj_mode == 1)) { return; }
+
 	//If doing alpha blending outside of the OBJ Window and the last pixel drawn is not a target, abort SFX 
 	if((!lcd_stat.sfx_target[last_bg_priority][0]) && (lcd_stat.current_sfx_type == ALPHA_BLEND) && (!obj_win_pixel)) { return; }
 
@@ -885,10 +892,10 @@ void LCD::apply_sfx()
 	else if((lcd_stat.window_enable[lcd_stat.current_window]) && (!lcd_stat.in_window) && (lcd_stat.window_out_enable[5][0])) { do_sfx = true; }
 
 	//Apply SFX if in OBJ Window
-	else if((lcd_stat.obj_win_enable) && (obj_win_pixel) && (lcd_stat.window_out_enable[5][1])) { do_sfx = true; }
+	//else if((lcd_stat.obj_win_enable) && (obj_win_pixel) && (lcd_stat.window_out_enable[5][1])) { do_sfx = true; }
 
 	//Apply SFX to whole screen
-	else if(!lcd_stat.window_enable[lcd_stat.current_window]) { do_sfx = true; }
+	else if((!lcd_stat.window_enable[0]) && (!lcd_stat.window_enable[1])) { do_sfx = true; }
 
 	if(!do_sfx) { return; }
 

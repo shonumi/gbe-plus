@@ -90,6 +90,7 @@ class LCD
 	u8 obj_render_list[128];
 	u8 obj_render_length;
 	u8 last_obj_priority;
+	u8 last_obj_mode;
 	u8 last_bg_priority;
 	u16 last_raw_color;
 	bool obj_win_pixel;
