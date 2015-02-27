@@ -1000,7 +1000,7 @@ u32 LCD::alpha_blend()
 		color_1 = last_raw_color;
 	}
 
-	//TODO - Proper implementation of BD blending
+	//TODO - Proper implementation of blending when normal OBJs and BDs are the 1st targets
 	if(last_bg_priority > 3) { return final_color; }
 
 	u8 current_bg_priority = lcd_stat.bg_priority[last_bg_priority] + 1;
@@ -1025,6 +1025,9 @@ u32 LCD::alpha_blend()
 
 		if(do_blending) { x = 4; }
 	}
+
+	//Grab BD as 2nd target if possible
+	if((!do_blending) && (lcd_stat.sfx_target[5][1])) { last_raw_color = raw_pal[0][0]; do_blending = true; }
 
 	//Abort if no 2nd target can blend
 	if(!do_blending) { return final_color; }
