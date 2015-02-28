@@ -1003,7 +1003,7 @@ u32 LCD::alpha_blend()
 	//TODO - Proper implementation of blending when normal OBJs and BDs are the 1st targets
 	if(last_bg_priority > 3) { return final_color; }
 
-	u8 current_bg_priority = lcd_stat.bg_priority[last_bg_priority] + 1;
+	u8 current_bg_priority = lcd_stat.bg_priority[last_bg_priority];
 
 	//Grab next closest 2nd target, if any
 	for(int x = current_bg_priority; x < 4; x++)
@@ -1012,16 +1012,16 @@ u32 LCD::alpha_blend()
 		if((last_obj_priority == x) && (lcd_stat.sfx_target[4][1]) && (!do_blending)) { do_blending = render_sprite_pixel(); }
 	
 		//Blend with BG0
-		if((lcd_stat.bg_priority[0] == x) && (lcd_stat.sfx_target[0][1]) && (!do_blending)) { do_blending = render_bg_pixel(BG0CNT); }
+		if((lcd_stat.bg_priority[0] == x) && (lcd_stat.sfx_target[0][1]) && (last_bg_priority != 0) &&  (!do_blending)) { do_blending = render_bg_pixel(BG0CNT); }
 
 		//Blend with BG1
-		if((lcd_stat.bg_priority[1] == x) && (lcd_stat.sfx_target[1][1]) && (!do_blending)) { do_blending = render_bg_pixel(BG1CNT); }
+		if((lcd_stat.bg_priority[1] == x) && (lcd_stat.sfx_target[1][1]) && (last_bg_priority != 1) && (!do_blending)) { do_blending = render_bg_pixel(BG1CNT); }
 
 		//Blend with BG2
-		if((lcd_stat.bg_priority[2] == x) && (lcd_stat.sfx_target[2][1]) && (!do_blending)) { do_blending = render_bg_pixel(BG2CNT); }
+		if((lcd_stat.bg_priority[2] == x) && (lcd_stat.sfx_target[2][1]) && (last_bg_priority != 2) && (!do_blending)) { do_blending = render_bg_pixel(BG2CNT); }
 
 		//Blend with BG3
-		if((lcd_stat.bg_priority[3] == x) && (lcd_stat.sfx_target[3][1]) && (!do_blending)) { do_blending = render_bg_pixel(BG3CNT); }
+		if((lcd_stat.bg_priority[3] == x) && (lcd_stat.sfx_target[3][1]) && (last_bg_priority != 3) && (!do_blending)) { do_blending = render_bg_pixel(BG3CNT); }
 
 		if(do_blending) { x = 4; }
 	}
