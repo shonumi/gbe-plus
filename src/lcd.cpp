@@ -971,6 +971,7 @@ u32 LCD::alpha_blend()
 	u16 color_1 = last_raw_color;
 	u16 color_2 = 0x0;
 	u16 result = 0;
+	u8 next_bg_priority = 0;
 	bool do_blending = false;
 
 	//When blending with an OBJ Window pixel, the 1st target needs to be manually calculated
@@ -1009,25 +1010,28 @@ u32 LCD::alpha_blend()
 	for(int x = current_bg_priority; x < 4; x++)
 	{
 		//Blend with OBJ
-		if((last_obj_priority == x) && (lcd_stat.sfx_target[4][1]) && (!do_blending)) { do_blending = render_sprite_pixel(); }
+		if((last_obj_priority == x) && (!do_blending)) { do_blending = render_sprite_pixel(); next_bg_priority = 4; }
 	
 		//Blend with BG0
-		if((lcd_stat.bg_priority[0] == x) && (lcd_stat.sfx_target[0][1]) && (last_bg_priority != 0) &&  (!do_blending)) { do_blending = render_bg_pixel(BG0CNT); }
+		if((lcd_stat.bg_priority[0] == x) && (last_bg_priority != 0) && (!do_blending)) { do_blending = render_bg_pixel(BG0CNT); next_bg_priority = 0; }
 
 		//Blend with BG1
-		if((lcd_stat.bg_priority[1] == x) && (lcd_stat.sfx_target[1][1]) && (last_bg_priority != 1) && (!do_blending)) { do_blending = render_bg_pixel(BG1CNT); }
+		if((lcd_stat.bg_priority[1] == x) && (last_bg_priority != 1) && (!do_blending)) { do_blending = render_bg_pixel(BG1CNT); next_bg_priority = 1; }
 
 		//Blend with BG2
-		if((lcd_stat.bg_priority[2] == x) && (lcd_stat.sfx_target[2][1]) && (last_bg_priority != 2) && (!do_blending)) { do_blending = render_bg_pixel(BG2CNT); }
+		if((lcd_stat.bg_priority[2] == x) && (last_bg_priority != 2) && (!do_blending)) { do_blending = render_bg_pixel(BG2CNT); next_bg_priority = 2; }
 
 		//Blend with BG3
-		if((lcd_stat.bg_priority[3] == x) && (lcd_stat.sfx_target[3][1]) && (last_bg_priority != 3) && (!do_blending)) { do_blending = render_bg_pixel(BG3CNT); }
+		if((lcd_stat.bg_priority[3] == x) && (last_bg_priority != 3) && (!do_blending)) { do_blending = render_bg_pixel(BG3CNT); next_bg_priority = 3; }
 
 		if(do_blending) { x = 4; }
 	}
 
 	//Grab BD as 2nd target if possible
 	if((!do_blending) && (lcd_stat.sfx_target[5][1])) { last_raw_color = raw_pal[0][0]; do_blending = true; }
+
+	//If the 2nd target is rendered and not specified for blending, abort 
+	if((do_blending) && (!lcd_stat.sfx_target[next_bg_priority][1])) { return final_color; } 
 
 	//Abort if no 2nd target can blend
 	if(!do_blending) { return final_color; }
