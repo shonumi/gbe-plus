@@ -881,7 +881,7 @@ void LCD::apply_sfx()
 	if((last_bg_priority == 4) && (lcd_stat.current_sfx_type != ALPHA_BLEND) && (last_obj_mode == 1)) { return; }
 
 	//If doing alpha blending outside of the OBJ Window and the last pixel drawn is not a target, abort SFX 
-	if((!lcd_stat.sfx_target[last_bg_priority][0]) && (lcd_stat.current_sfx_type == ALPHA_BLEND) && (!obj_win_pixel)) { return; }
+	if((!lcd_stat.sfx_target[last_bg_priority][0]) && (lcd_stat.current_sfx_type == ALPHA_BLEND) && (!obj_win_pixel) && (last_obj_mode != 1)) { return; }
 
 	bool do_sfx = false;
 
@@ -896,6 +896,9 @@ void LCD::apply_sfx()
 
 	//Apply SFX to whole screen
 	else if((!lcd_stat.window_enable[0]) && (!lcd_stat.window_enable[1]) && (!lcd_stat.obj_win_enable)) { do_sfx = true; }
+
+	//Apply SFX (alpha-blending) if OBJ is semi-transparent
+	else if(last_obj_mode == 1) { do_sfx = true; }
 
 	if(!do_sfx) { return; }
 
@@ -980,7 +983,7 @@ u32 LCD::alpha_blend()
 		for(int x = 0; x < 4; x++)
 		{
 			//OBJ is 1st target
-			if((last_obj_priority == x) && (lcd_stat.sfx_target[4][0]) && (!do_blending)) { do_blending = render_sprite_pixel();  }
+			if((last_obj_priority == x) && (lcd_stat.sfx_target[4][0]) && (!do_blending)) { do_blending = render_sprite_pixel(); last_bg_priority = 4;  }
 	
 			//BG0 is 1st target
 			if((lcd_stat.bg_priority[0] == x) && (lcd_stat.sfx_target[0][0]) && (!do_blending)) { do_blending = render_bg_pixel(BG0CNT); last_bg_priority = 0; }
@@ -1001,16 +1004,17 @@ u32 LCD::alpha_blend()
 		color_1 = last_raw_color;
 	}
 
-	//TODO - Proper implementation of blending when normal OBJs and BDs are the 1st targets
-	if(last_bg_priority > 3) { return final_color; }
+	//If the BD is the 1st target, abort alpha blending (no pixel technically exists behind it for blending)
+	if(last_bg_priority == 5) { return final_color; }
 
-	u8 current_bg_priority = lcd_stat.bg_priority[last_bg_priority];
+	//Determine which priority to start looking at to grab the 2nd target
+	u8 current_bg_priority = (last_bg_priority == 4) ? lcd_stat.bg_priority[last_obj_priority] : lcd_stat.bg_priority[last_bg_priority];
 
 	//Grab next closest 2nd target, if any
 	for(int x = current_bg_priority; x < 4; x++)
 	{
 		//Blend with OBJ
-		if((last_obj_priority == x) && (!do_blending)) { do_blending = render_sprite_pixel(); next_bg_priority = 4; }
+		if((last_obj_priority == x) && (last_bg_priority != 4) && (!do_blending)) { do_blending = render_sprite_pixel(); next_bg_priority = 4; }
 	
 		//Blend with BG0
 		if((lcd_stat.bg_priority[0] == x) && (last_bg_priority != 0) && (!do_blending)) { do_blending = render_bg_pixel(BG0CNT); next_bg_priority = 0; }
@@ -1038,6 +1042,7 @@ u32 LCD::alpha_blend()
 
 	color_2 = last_raw_color;
 
+	//Alpha-blending
 	result = ((color_1 & 0x1F) * lcd_stat.alpha_a_coef) + ((color_2 & 0x1F) * lcd_stat.alpha_b_coef);
 	u8 red = (result > 0x1F) ? 0x1F : result;
 	color_1 >>= 5;
