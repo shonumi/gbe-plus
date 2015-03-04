@@ -260,6 +260,7 @@ class ARM7
 	void swi_softreset();
 	void swi_registerramreset();
 	void swi_div();
+	void swi_divarm();
 	void swi_sqrt();
 	void swi_arctan();
 	void swi_arctan2();

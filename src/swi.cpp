@@ -59,7 +59,8 @@ void ARM7::process_swi(u32 comment)
 
 		//DivARM
 		case 0x7:
-			std::cout<<"SWI::Divide ARM (not implemented yet) \n";
+			std::cout<<"SWI::Divide ARM \n";
+			swi_divarm();
 			break;
 
 		//Sqrt
@@ -192,7 +193,7 @@ void ARM7::process_swi(u32 comment)
 
 		//MidiKey2Freq
 		case 0x1F:
-			std::cout<<"SWI::Midi Key to Frequency (not implemented yet) \n";
+			//std::cout<<"SWI::Midi Key to Frequency (not implemented yet) \n";
 			break;
 
 		//Undocumented Sound Function 0
@@ -394,6 +395,36 @@ void ARM7::swi_div()
 
 	//Do NOT divide by 0
 	if(den == 0) { std::cout<<"SWI::Warning - Div tried to divide by zero (ignoring operation) \n"; return; }
+
+	//R0 = result of division
+	result = num/den;
+	set_reg(0, result);
+
+	//R1 = mod of inputs
+	modulo = num % den;
+	set_reg(1, modulo);
+
+	//R3 = absolute value of division
+	if(result < 0) { result *= -1; }
+	set_reg(3, result);
+}
+
+/****** HLE implementation of DivARM ******/
+void ARM7::swi_divarm()
+{
+	bios_read_state = BIOS_SWI_FINISH;
+
+	//Grab the numerator - R1
+	s32 num = get_reg(1);
+	
+	//Grab the denominator - R0
+	s32 den = get_reg(0);
+
+	s32 result = 0;
+	s32 modulo = 0;
+
+	//Do NOT divide by 0
+	if(den == 0) { std::cout<<"SWI::Warning - DivARM tried to divide by zero (ignoring operation) \n"; return; }
 
 	//R0 = result of division
 	result = num/den;
