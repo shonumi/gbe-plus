@@ -88,6 +88,30 @@ const u32 BLDCNT = 0x4000050;
 const u32 BLDALPHA = 0x4000052;
 const u32 BLDY = 0x4000054;
 
+/* Sound */
+const u32 SND1CNT_L = 0x4000060;
+const u32 SND1CNT_H = 0x4000062;
+const u32 SND1CNT_X = 0x4000064;
+
+const u32 SND2CNT_L = 0x4000068;
+const u32 SND2CNT_H = 0x400006C;
+
+const u32 SND3CNT_L = 0x4000070;
+const u32 SND3CNT_H = 0x4000072;
+const u32 SND3CNT_X = 0x4000074;
+
+const u32 SND4CNT_L = 0x4000078;
+const u32 SND4CNT_H = 0x400007C;
+
+const u32 SNDCNT_L = 0x4000080;
+const u32 SNDCNT_H = 0x4000082;
+const u32 SNDCNT_X = 0x4000084;
+
+const u32 SNDBIAS = 0x4000088;
+const u32 WAVERAM = 0x4000090;
+const u32 FIFO_A = 0x40000A0;
+const u32 FIFO_B = 0x40000A4;
+
 /* Timers */
 const u32 TM0CNT_L = 0x4000100;
 const u32 TM1CNT_L = 0x4000104;
