@@ -467,6 +467,42 @@ void MMU::write_u8(u32 address, u8 value)
 			if(value > 0xF) { value = 0x10; }
 			lcd_stat->brightness_coef = (value & 0x1F) / 16.0;
 			break;
+		
+		case SND1CNT_H:
+		case SND1CNT_H+1:
+			memory_map[address] = value;
+			apu_stat->channel[0].duty_cycle = (memory_map[SND1CNT_H] >> 6) & 0x3;
+
+			switch(apu_stat->channel[0].duty_cycle)
+			{
+				case 0x0: apu_stat->channel[0].duty_cycle_clock = (apu_stat->channel[0].output_clock * 0.125); break;
+				case 0x1: apu_stat->channel[0].duty_cycle_clock = (apu_stat->channel[0].output_clock * 0.25); break;
+				case 0x2: apu_stat->channel[0].duty_cycle_clock = (apu_stat->channel[0].output_clock * 0.5); break;
+				case 0x3: apu_stat->channel[0].duty_cycle_clock = (apu_stat->channel[0].output_clock * 0.75); break;
+			}
+			break;
+
+
+		case SND1CNT_X:
+		case SND1CNT_X+1:
+			memory_map[address] = value;
+			apu_stat->channel[0].raw_frequency = ((memory_map[SND1CNT_X+1] << 8) | memory_map[SND1CNT_X]) & 0x7FF;
+			apu_stat->channel[0].output_frequency = (131072.0 / apu_stat->channel[0].raw_frequency);
+			apu_stat->channel[0].output_clock = (16777216 / apu_stat->channel[0].output_frequency);
+
+			switch(apu_stat->channel[0].duty_cycle)
+			{
+				case 0x0: apu_stat->channel[0].duty_cycle_clock = (apu_stat->channel[0].output_clock * 0.125); break;
+				case 0x1: apu_stat->channel[0].duty_cycle_clock = (apu_stat->channel[0].output_clock * 0.25); break;
+				case 0x2: apu_stat->channel[0].duty_cycle_clock = (apu_stat->channel[0].output_clock * 0.5); break;
+				case 0x3: apu_stat->channel[0].duty_cycle_clock = (apu_stat->channel[0].output_clock * 0.75); break;
+			}
+
+			apu_stat->channel[0].length_flag = (memory_map[SND1CNT_X+1] & 0x40) ? true : false;
+			apu_stat->channel[0].playing = (memory_map[SND1CNT_X+1] & 0x80) ? true : false;
+
+			if((address == SND1CNT_X+1) && (apu_stat->channel[0].playing)) { apu_stat->channel[0].clock = 0; }
+			break;
 
 		case REG_IF:
 		case REG_IF+1:
