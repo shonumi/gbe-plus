@@ -54,6 +54,13 @@ else
 	exit
 fi
 
+if g++ -c -O3 -funroll-loops apu.cpp -lSDL; then
+	echo -e "Compiling APU...			\E[32m[DONE]\E[37m"
+else
+	echo -e "Compiling APU...			\E[31m[ERROR]\E[37m"
+	exit
+fi
+
 if g++ -c -O3 -funroll-loops opengl.cpp -lSDL -lGL; then
 	echo -e "Compiling OpenGL...			\E[32m[DONE]\E[37m"
 else
@@ -84,7 +91,7 @@ else
 	exit
 fi
 
-if g++ -o gbe_plus core.o arm7.o dma.o arm_instr.o thumb_instr.o swi.o mmu.o gamepad.o lcd.o opengl.o config.o main.o -lSDL -lGL; then
+if g++ -o gbe_plus core.o arm7.o dma.o arm_instr.o thumb_instr.o swi.o mmu.o gamepad.o lcd.o apu.o opengl.o config.o main.o -lSDL -lGL; then
 	echo -e "Linking Project...			\E[32m[DONE]\E[37m"
 else
 	echo -e "Linking Project...			\E[31m[ERROR]\E[37m"

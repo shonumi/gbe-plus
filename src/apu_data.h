@@ -12,8 +12,6 @@
 #ifndef GBA_APU_DATA
 #define GBA_APU_DATA
 
-#include <vector>
-
 #include "common.h"
 
 struct apu_data
@@ -29,7 +27,7 @@ struct apu_data
 
 		u32 duty_cycle_start;
 		u32 duty_cycle_end;
-	} channels[4];
+	} channel[4];
 
 	bool sound_on;
 	bool stereo;

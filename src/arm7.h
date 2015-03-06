@@ -20,6 +20,7 @@
 #include "timer.h"
 #include "mmu.h"
 #include "lcd.h"
+#include "apu.h"
 
 
 class ARM7
@@ -178,6 +179,7 @@ class ARM7
 	struct io_controllers
 	{
 		LCD video;
+		APU audio;
 		std::vector<gba_timer> timer;
 	} controllers;
 

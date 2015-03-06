@@ -26,6 +26,10 @@ Core::Core()
 	core_cpu.controllers.video.mem = &core_mmu;
 	core_mmu.set_lcd_data(&core_cpu.controllers.video.lcd_stat);
 
+	//Link APU and MMU
+	core_cpu.controllers.audio.mem = &core_mmu;
+	core_mmu.set_apu_data(&core_cpu.controllers.audio.apu_stat);
+
 	//Link MMU and GamePad
 	core_cpu.mem->g_pad = &core_pad;
 
@@ -50,6 +54,13 @@ void Core::start()
 		core_cpu.running = false;
 	}
 
+	//Initialize audio output
+	if(!core_cpu.controllers.audio.init())
+	{
+		running = false;
+		core_cpu.running = false;
+	}
+
 	//Initialize the GamePad
 	core_pad.init();
 }
@@ -67,6 +78,7 @@ void Core::reset()
 {
 	core_cpu.reset();
 	core_cpu.controllers.video.reset();
+	core_cpu.controllers.audio.reset();
 	core_mmu.reset();
 
 	//Link CPU and MMU
@@ -74,6 +86,9 @@ void Core::reset()
 
 	//Link LCD and MMU
 	core_cpu.controllers.video.mem = &core_mmu;
+
+	//Link APU and MMU
+	core_cpu.controllers.audio.mem = &core_mmu;
 
 	//Link MMU and GamePad
 	core_cpu.mem->g_pad = &core_pad;

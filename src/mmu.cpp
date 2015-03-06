@@ -1317,3 +1317,6 @@ void MMU::flash_erase_sector(u32 sector)
 
 /****** Points the MMU to an lcd_data structure (FROM THE LCD ITSELF) ******/
 void MMU::set_lcd_data(lcd_data* ex_lcd_stat) { lcd_stat = ex_lcd_stat; }
+
+/****** Points the MMU to an apu_data structure (FROM THE APU ITSELF) ******/
+void MMU::set_apu_data(apu_data* ex_apu_stat) { apu_stat = ex_apu_stat; }

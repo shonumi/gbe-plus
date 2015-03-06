@@ -20,6 +20,7 @@
 #include "gamepad.h"
 #include "timer.h"
 #include "lcd_data.h"
+#include "apu_data.h"
 
 class MMU
 {
@@ -119,6 +120,7 @@ class MMU
 	void flash_switch_bank();
 
 	void set_lcd_data(lcd_data* ex_lcd_stat);
+	void set_apu_data(apu_data* ex_apu_stat);
 
 	GamePad* g_pad;
 	std::vector<gba_timer>* timer;
@@ -127,6 +129,9 @@ class MMU
 
 	//Only the MMU and LCD should communicate through this structure
 	lcd_data* lcd_stat;
+
+	//Only the MMU and APU should communicate through this structure
+	apu_data* apu_stat;
 };
 
 #endif // GBA_MMU
