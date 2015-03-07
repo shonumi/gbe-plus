@@ -37,7 +37,11 @@ struct apu_data
 		u8 sweep_direction;
 		u8 sweep_time;
 
+		s16 buffer[2048];
+		s16 buffer_index;
+
 		u32 clock;
+		s16 output_sample;
 	} channel[4];
 
 	bool sound_on;
