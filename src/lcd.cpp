@@ -30,7 +30,6 @@ LCD::~LCD()
 /****** Reset LCD ******/
 void LCD::reset()
 {
-	//TODO - Add comments for LUT generation
 	//TODO - Properly initialize some lcd_stat variables (window_enable and the like)
 
 	final_screen = NULL;
@@ -74,11 +73,13 @@ void LCD::reset()
 	lcd_stat.obj_win_enable = false;
 	lcd_stat.current_sfx_type = NORMAL;
 
+	//BG Flip LUT generation
 	for(int x = 0, y = 255; x < 255; x++, y--)
 	{
 		lcd_stat.bg_flip_lut[x] = (y % 8);
 	}
 
+	//BG Tile # LUT generation
 	for(int y = 0; y < 256; y++)
 	{
 		for(int x = 0; x < 256; x++)
@@ -87,6 +88,7 @@ void LCD::reset()
 		}
 	}
 
+	//BG Tile Map# LUT generation
 	for(int y = 0; y < 256; y++)
 	{
 		for(int x = 0; x < 256; x++)
