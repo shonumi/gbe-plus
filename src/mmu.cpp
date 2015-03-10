@@ -468,6 +468,14 @@ void MMU::write_u8(u32 address, u8 value)
 			lcd_stat->brightness_coef = (value & 0x1F) / 16.0;
 			break;
 		
+		case SND1CNT_L:
+			memory_map[address] = value
+			apu_stat.channel[0].sweep_shift = value & 0x7;
+			apu_stat.channel[0].sweep_direction = (value & 0x8) ? 1 : 0;
+			apu_stat.channel[0].sweep_time = (value >> 4) & 0x7;
+			break;
+
+
 		case SND1CNT_H:
 		case SND1CNT_H+1:
 			memory_map[address] = value;
