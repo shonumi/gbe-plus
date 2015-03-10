@@ -21,27 +21,29 @@ struct apu_data
 	{
 		u16 raw_frequency;
 		double output_frequency;
-		u32 output_clock;
 
 		u8 duration;
-		u32 duration_clock;
 		u32 volume;
 
 		bool playing;
 		bool length_flag;
 
 		u8 duty_cycle;
-		u32 duty_cycle_clock;
+		u8 duty_cycle_start;
+		u8 duty_cycle_end;
+
+		u8 envelope_direction;
+		u8 envelope_step;
+		u8 envelope_counter;
 
 		u8 sweep_shift;
 		u8 sweep_direction;
 		u8 sweep_time;
+		u8 sweep_counter;
+		bool sweep_on;
 
-		s16 buffer[2048];
-		s16 buffer_index;
-
-		u32 clock;
-		s16 output_sample;
+		u32 frequency_distance;
+		int sample_length;
 	} channel[4];
 
 	bool sound_on;

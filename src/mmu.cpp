@@ -469,10 +469,10 @@ void MMU::write_u8(u32 address, u8 value)
 			break;
 		
 		case SND1CNT_L:
-			memory_map[address] = value
-			apu_stat.channel[0].sweep_shift = value & 0x7;
-			apu_stat.channel[0].sweep_direction = (value & 0x8) ? 1 : 0;
-			apu_stat.channel[0].sweep_time = (value >> 4) & 0x7;
+			memory_map[address] = value;
+			apu_stat->channel[0].sweep_shift = value & 0x7;
+			apu_stat->channel[0].sweep_direction = (value & 0x8) ? 1 : 0;
+			apu_stat->channel[0].sweep_time = (value >> 4) & 0x7;
 			break;
 
 
@@ -483,10 +483,25 @@ void MMU::write_u8(u32 address, u8 value)
 
 			switch(apu_stat->channel[0].duty_cycle)
 			{
-				case 0x0: apu_stat->channel[0].duty_cycle_clock = (apu_stat->channel[0].output_clock * 0.125); break;
-				case 0x1: apu_stat->channel[0].duty_cycle_clock = (apu_stat->channel[0].output_clock * 0.25); break;
-				case 0x2: apu_stat->channel[0].duty_cycle_clock = (apu_stat->channel[0].output_clock * 0.5); break;
-				case 0x3: apu_stat->channel[0].duty_cycle_clock = (apu_stat->channel[0].output_clock * 0.75); break;
+				case 0x0: 
+					apu_stat->channel[0].duty_cycle_start = 0;
+					apu_stat->channel[0].duty_cycle_end = 1;
+					break;
+
+				case 0x1: 
+					apu_stat->channel[0].duty_cycle_start = 0;
+					apu_stat->channel[0].duty_cycle_end = 2;
+					break;
+
+				case 0x2: 
+					apu_stat->channel[0].duty_cycle_start = 0;
+					apu_stat->channel[0].duty_cycle_end = 4;
+					break;
+
+				case 0x3: 
+					apu_stat->channel[0].duty_cycle_start = 0;
+					apu_stat->channel[0].duty_cycle_end = 6;
+					break;
 			}
 
 			break;
@@ -497,14 +512,28 @@ void MMU::write_u8(u32 address, u8 value)
 			memory_map[address] = value;
 			apu_stat->channel[0].raw_frequency = ((memory_map[SND1CNT_X+1] << 8) | memory_map[SND1CNT_X]) & 0x7FF;
 			apu_stat->channel[0].output_frequency = (131072.0 / (2048 - apu_stat->channel[0].raw_frequency));
-			apu_stat->channel[0].output_clock = (16777216 / apu_stat->channel[0].output_frequency);
 
 			switch(apu_stat->channel[0].duty_cycle)
 			{
-				case 0x0: apu_stat->channel[0].duty_cycle_clock = (apu_stat->channel[0].output_clock * 0.125); break;
-				case 0x1: apu_stat->channel[0].duty_cycle_clock = (apu_stat->channel[0].output_clock * 0.25); break;
-				case 0x2: apu_stat->channel[0].duty_cycle_clock = (apu_stat->channel[0].output_clock * 0.5); break;
-				case 0x3: apu_stat->channel[0].duty_cycle_clock = (apu_stat->channel[0].output_clock * 0.75); break;
+				case 0x0: 
+					apu_stat->channel[0].duty_cycle_start = 0;
+					apu_stat->channel[0].duty_cycle_end = 1;
+					break;
+
+				case 0x1: 
+					apu_stat->channel[0].duty_cycle_start = 0;
+					apu_stat->channel[0].duty_cycle_end = 2;
+					break;
+
+				case 0x2: 
+					apu_stat->channel[0].duty_cycle_start = 0;
+					apu_stat->channel[0].duty_cycle_end = 4;
+					break;
+
+				case 0x3: 
+					apu_stat->channel[0].duty_cycle_start = 0;
+					apu_stat->channel[0].duty_cycle_end = 6;
+					break;
 			}
 
 			apu_stat->channel[0].length_flag = (memory_map[SND1CNT_X+1] & 0x40) ? true : false;
@@ -512,8 +541,7 @@ void MMU::write_u8(u32 address, u8 value)
 
 			if((address == SND1CNT_X+1) && (apu_stat->channel[0].playing)) 
 			{ 
-				apu_stat->channel[0].clock = 0;
-				apu_stat->channel[0].output_sample = -32768;
+				apu_stat->channel[0].frequency_distance = 0;
 			}
 
 			break;
