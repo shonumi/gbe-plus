@@ -43,7 +43,7 @@ void APU::reset()
 		apu_stat.channel[x].raw_frequency = 0;
 		apu_stat.channel[x].output_frequency = 0.0;
 
-		apu_stat.channel[x].duration = 0;
+		apu_stat.channel[x].duration = 5000;
 		apu_stat.channel[x].volume = 0;
 
 		apu_stat.channel[x].playing = false;
@@ -100,9 +100,65 @@ bool APU::init()
 	}
 }
 
+/******* Generate samples for GBA sound channel 1 ******/
+void APU::generate_channel_1_samples(s16* stream, int length)
+{
+	//Generate samples from the last output of the channel
+	if(apu_stat.channel[0].playing)
+	{
+		int frequency_samples = 44100/apu_stat.channel[0].output_frequency;
+
+		for(int x = 0; x < length; x++, apu_stat.channel[0].sample_length--)
+		{
+			if(apu_stat.channel[0].sample_length > 0)
+			{
+				apu_stat.channel[0].frequency_distance++;
+
+				//Reset frequency distance
+				if(apu_stat.channel[0].frequency_distance >= frequency_samples) { apu_stat.channel[0].frequency_distance = 0; }
+		
+				//Generate high wave form if duty cycle is on AND volume is not muted
+				if((apu_stat.channel[0].frequency_distance >= (frequency_samples/8) * apu_stat.channel[0].duty_cycle_start) 
+				&& (apu_stat.channel[0].frequency_distance < (frequency_samples/8) * apu_stat.channel[0].duty_cycle_end))
+				{
+					stream[x] = 32767;
+				}
+
+				//Generate low wave form if duty cycle is off OR volume is muted
+				else { stream[x] = -32768; }
+
+			}
+
+			//Continuously generate sound if necessary
+			else if(apu_stat.channel[0].sample_length == 0) { apu_stat.channel[0].sample_length = (apu_stat.channel[0].duration * 44100)/1000; }
+
+			//Or stop sound after duration has been met, reset Sound 1 On Flag
+			//else { channel[0].sample_length = 0; stream[x] = -32768; channel[0].playing = false; mem_link->memory_map[0xFF26] &= ~0x1; }
+		}
+	}
+
+	//Otherwise, generate silence
+	else 
+	{
+		for(int x = 0; x < length; x++) { stream[x] = -32768; }
+	}
+}	
+
 /****** Run APU for one cycle ******/
 void APU::step() { }		
 
 /****** SDL Audio Callback ******/ 
-void audio_callback(void* _apu, u8 *_stream, int _length) { }
+void audio_callback(void* _apu, u8 *_stream, int _length)
+{
+	s16* stream = (s16*) _stream;
+	int length = _length/2;
+
+	s16 channel_1_stream[length];
+
+	APU* apu_link = (APU*) _apu;
+	apu_link->generate_channel_1_samples(channel_1_stream, length);
+
+	SDL_MixAudio((u8*)stream, (u8*)channel_1_stream, length*2, SDL_MIX_MAXVOLUME/16);
+}
+
 		

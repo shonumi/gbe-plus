@@ -22,7 +22,7 @@ struct apu_data
 		u16 raw_frequency;
 		double output_frequency;
 
-		u8 duration;
+		u32 duration;
 		u32 volume;
 
 		bool playing;
