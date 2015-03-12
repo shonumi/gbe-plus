@@ -130,10 +130,15 @@ void APU::generate_channel_1_samples(s16* stream, int length)
 			}
 
 			//Continuously generate sound if necessary
-			else if(apu_stat.channel[0].sample_length == 0) { apu_stat.channel[0].sample_length = (apu_stat.channel[0].duration * 44100)/1000; }
+			else if((apu_stat.channel[0].sample_length == 0) && (!apu_stat.channel[0].length_flag)) { apu_stat.channel[0].sample_length = (apu_stat.channel[0].duration * 44100)/1000; }
 
 			//Or stop sound after duration has been met, reset Sound 1 On Flag
-			//else { channel[0].sample_length = 0; stream[x] = -32768; channel[0].playing = false; mem_link->memory_map[0xFF26] &= ~0x1; }
+			else if((apu_stat.channel[0].sample_length == 0) && (apu_stat.channel[0].length_flag)) 
+			{ 
+				stream[x] = -32768; 
+				apu_stat.channel[0].sample_length = 0; 
+				apu_stat.channel[0].playing = false; 
+			}
 		}
 	}
 

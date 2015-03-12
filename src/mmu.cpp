@@ -479,6 +479,8 @@ void MMU::write_u8(u32 address, u8 value)
 		case SND1CNT_H:
 		case SND1CNT_H+1:
 			memory_map[address] = value;
+			apu_stat->channel[0].duration = (memory_map[SND1CNT_H] & 0x3F);
+			apu_stat->channel[0].duration = 1000/(256/(64 - apu_stat->channel[0].duration));
 			apu_stat->channel[0].duty_cycle = (memory_map[SND1CNT_H] >> 6) & 0x3;
 
 			switch(apu_stat->channel[0].duty_cycle)
