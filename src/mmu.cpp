@@ -506,6 +506,9 @@ void MMU::write_u8(u32 address, u8 value)
 					break;
 			}
 
+			apu_stat->channel[0].envelope_step = (memory_map[SND1CNT_H+1] & 0x7);
+			apu_stat->channel[0].envelope_direction = (memory_map[SND1CNT_H+1] & 0x8) ? 1 : 0;
+			apu_stat->channel[0].volume = (memory_map[SND1CNT_H+1] >> 4) & 0xF;
 			break;
 
 
@@ -542,9 +545,11 @@ void MMU::write_u8(u32 address, u8 value)
 			apu_stat->channel[0].playing = (memory_map[SND1CNT_X+1] & 0x80) ? true : false;
 
 			if((address == SND1CNT_X+1) && (apu_stat->channel[0].playing)) 
-			{ 
+			{
+				std::cout<<"VOLUME ->" << apu_stat->channel[0].volume << "\n";
 				apu_stat->channel[0].frequency_distance = 0;
 				apu_stat->channel[0].sample_length = (apu_stat->channel[0].duration * 44100)/1000;
+				apu_stat->channel[0].envelope_counter = 0;
 			}
 
 			break;

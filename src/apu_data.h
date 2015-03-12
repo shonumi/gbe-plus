@@ -34,7 +34,7 @@ struct apu_data
 
 		u8 envelope_direction;
 		u8 envelope_step;
-		u8 envelope_counter;
+		u32 envelope_counter;
 
 		u8 sweep_shift;
 		u8 sweep_direction;

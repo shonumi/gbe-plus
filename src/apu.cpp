@@ -110,6 +110,28 @@ void APU::generate_channel_1_samples(s16* stream, int length)
 
 		for(int x = 0; x < length; x++, apu_stat.channel[0].sample_length--)
 		{
+
+			//Process audio envelope
+			if(apu_stat.channel[0].envelope_step >= 1)
+			{
+				apu_stat.channel[0].envelope_counter++;
+
+				if(apu_stat.channel[0].envelope_counter >= ((44100.0/64) * apu_stat.channel[0].envelope_step)) 
+				{		
+					//Decrease volume
+					if((apu_stat.channel[0].envelope_direction == 0) && (apu_stat.channel[0].volume >= 1)) { apu_stat.channel[0].volume--; std::cout<<"DOWN\n"; }
+				
+					//Increase volume
+					else if((apu_stat.channel[0].envelope_direction == 1) && (apu_stat.channel[0].volume < 0xF)) { apu_stat.channel[0].volume++; }
+
+					apu_stat.channel[0].envelope_counter = 0;
+				}
+			}
+
+			//Reset frequency distance
+			if(apu_stat.channel[0].frequency_distance >= frequency_samples) { apu_stat.channel[0].frequency_distance = 0; }
+
+			//Process audio waveform
 			if(apu_stat.channel[0].sample_length > 0)
 			{
 				apu_stat.channel[0].frequency_distance++;
@@ -119,9 +141,10 @@ void APU::generate_channel_1_samples(s16* stream, int length)
 		
 				//Generate high wave form if duty cycle is on AND volume is not muted
 				if((apu_stat.channel[0].frequency_distance >= (frequency_samples/8) * apu_stat.channel[0].duty_cycle_start) 
-				&& (apu_stat.channel[0].frequency_distance < (frequency_samples/8) * apu_stat.channel[0].duty_cycle_end))
+				&& (apu_stat.channel[0].frequency_distance < (frequency_samples/8) * apu_stat.channel[0].duty_cycle_end)
+				&& (apu_stat.channel[0].volume != 0))
 				{
-					stream[x] = 32767;
+					stream[x] = -32768 + (4369 * apu_stat.channel[0].volume);
 				}
 
 				//Generate low wave form if duty cycle is off OR volume is muted
