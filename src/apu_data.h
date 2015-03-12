@@ -39,7 +39,7 @@ struct apu_data
 		u8 sweep_shift;
 		u8 sweep_direction;
 		u8 sweep_time;
-		u8 sweep_counter;
+		u32 sweep_counter;
 		bool sweep_on;
 
 		u32 frequency_distance;

@@ -111,6 +111,57 @@ void APU::generate_channel_1_samples(s16* stream, int length)
 		for(int x = 0; x < length; x++, apu_stat.channel[0].sample_length--)
 		{
 
+			//Process audio sweep
+			if(apu_stat.channel[0].sweep_time >= 1)
+			{
+				apu_stat.channel[0].sweep_counter++;
+
+				if(apu_stat.channel[0].sweep_counter >= ((44100.0/128) * apu_stat.channel[0].sweep_time))
+				{
+					int pre_calc = 0;
+
+					//Increase frequency
+					if(apu_stat.channel[0].sweep_direction == 0)
+					{
+						if(apu_stat.channel[0].sweep_shift >= 1) { pre_calc = (apu_stat.channel[0].raw_frequency >> apu_stat.channel[0].sweep_shift); }
+
+						//When frequency is greater than 131KHz, stop sound
+						if((apu_stat.channel[0].raw_frequency + pre_calc) >= 0x800) 
+						{ 
+							apu_stat.channel[0].volume = apu_stat.channel[0].sweep_shift = apu_stat.channel[0].envelope_step = apu_stat.channel[0].sweep_time = 0; 
+							apu_stat.channel[0].playing = false; 
+						}
+
+						else 
+						{ 
+							apu_stat.channel[0].raw_frequency += pre_calc;
+							apu_stat.channel[0].output_frequency = 131072.0/(2048 - apu_stat.channel[0].raw_frequency);
+							mem->memory_map[SND1CNT_X] = (apu_stat.channel[0].raw_frequency & 0xFF);
+							mem->memory_map[SND1CNT_X+1] &= ~0x7;
+							mem->memory_map[SND1CNT_X+1] |= ((apu_stat.channel[0].raw_frequency >> 8) & 0x7);
+						}
+					}
+
+						//Decrease frequency
+						else if(apu_stat.channel[0].sweep_direction == 1)
+						{
+							if(apu_stat.channel[0].sweep_shift >= 1) { pre_calc = (apu_stat.channel[0].raw_frequency >> apu_stat.channel[0].sweep_shift); }
+
+							//Only sweep down when result of frequency change is greater than zero
+							if((apu_stat.channel[0].raw_frequency - pre_calc) >= 0) 
+							{ 
+								apu_stat.channel[0].raw_frequency -= pre_calc;
+								apu_stat.channel[0].output_frequency = 131072.0/(2048 - apu_stat.channel[0].raw_frequency);
+								mem->memory_map[SND1CNT_X] = (apu_stat.channel[0].raw_frequency & 0xFF);
+								mem->memory_map[SND1CNT_X+1] &= ~0x7;
+								mem->memory_map[SND1CNT_X+1] |= ((apu_stat.channel[0].raw_frequency >> 8) & 0x7);
+							}
+						}
+
+						apu_stat.channel[0].sweep_counter = 0;
+					}
+				} 
+
 			//Process audio envelope
 			if(apu_stat.channel[0].envelope_step >= 1)
 			{
@@ -119,7 +170,7 @@ void APU::generate_channel_1_samples(s16* stream, int length)
 				if(apu_stat.channel[0].envelope_counter >= ((44100.0/64) * apu_stat.channel[0].envelope_step)) 
 				{		
 					//Decrease volume
-					if((apu_stat.channel[0].envelope_direction == 0) && (apu_stat.channel[0].volume >= 1)) { apu_stat.channel[0].volume--; std::cout<<"DOWN\n"; }
+					if((apu_stat.channel[0].envelope_direction == 0) && (apu_stat.channel[0].volume >= 1)) { apu_stat.channel[0].volume--; }
 				
 					//Increase volume
 					else if((apu_stat.channel[0].envelope_direction == 1) && (apu_stat.channel[0].volume < 0xF)) { apu_stat.channel[0].volume++; }

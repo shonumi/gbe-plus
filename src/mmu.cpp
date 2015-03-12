@@ -546,10 +546,10 @@ void MMU::write_u8(u32 address, u8 value)
 
 			if((address == SND1CNT_X+1) && (apu_stat->channel[0].playing)) 
 			{
-				std::cout<<"VOLUME ->" << apu_stat->channel[0].volume << "\n";
 				apu_stat->channel[0].frequency_distance = 0;
 				apu_stat->channel[0].sample_length = (apu_stat->channel[0].duration * 44100)/1000;
 				apu_stat->channel[0].envelope_counter = 0;
+				apu_stat->channel[0].sweep_counter = 0;
 			}
 
 			break;
