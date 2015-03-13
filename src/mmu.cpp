@@ -475,7 +475,6 @@ void MMU::write_u8(u32 address, u8 value)
 			apu_stat->channel[0].sweep_time = (value >> 4) & 0x7;
 			break;
 
-
 		case SND1CNT_H:
 		case SND1CNT_H+1:
 			memory_map[address] = value;
@@ -629,7 +628,67 @@ void MMU::write_u8(u32 address, u8 value)
 			}
 
 			break;
+
+		case SND3CNT_L:
+			apu_stat->waveram_size = (memory_map[SND3CNT_L] & 0x20) ? 1 : 0;
+			apu_stat->waveram_bank = (memory_map[SND3CNT_L] & 0x40) ? 1 : 0;
+			break;
+
+		case SND3CNT_H:
+		case SND3CNT_H+1:
+			apu_stat->channel[2].duration = memory_map[SND3CNT_H];
+			apu_stat->channel[2].duration = 1000/(256/(64 - apu_stat->channel[2].duration));
+
+			if(memory_map[SND3CNT_H+1] & 0x80) { apu_stat->channel[2].volume = 0xB; }
 			
+			else 
+			{
+				switch((memory_map[SND3CNT_H+1] >> 13) & 0x3)
+				{
+					case 0x0: apu_stat->channel[2].volume = 0x0; break;
+					case 0x1: apu_stat->channel[2].volume = 0x3; break;
+					case 0x2: apu_stat->channel[2].volume = 0x7; break;
+					case 0x3: apu_stat->channel[2].volume = 0xB; break;
+				}
+			}
+		
+			break;
+
+		case SND3CNT_X:
+		case SND3CNT_X+1:
+			apu_stat->channel[2].raw_frequency = ((memory_map[SND3CNT_X+1] << 8) | memory_map[SND3CNT_X]) & 0x7FF;
+			apu_stat->channel[2].output_frequency = (131072.0 / (2048 - apu_stat->channel[2].raw_frequency));
+
+			apu_stat->channel[2].length_flag = (memory_map[SND3CNT_X+1] & 0x40) ? true : false;
+			apu_stat->channel[2].playing = (memory_map[SND3CNT_X+1] & 0x80) ? true : false;
+
+			if((address == SND3CNT_X+1) && (apu_stat->channel[2].playing)) 
+			{
+				apu_stat->channel[2].frequency_distance = 0;
+				apu_stat->channel[2].sample_length = (apu_stat->channel[2].duration * 44100)/1000;
+			}
+
+			break;
+
+		case WAVERAM0_L : apu_stat->waveram_data[(apu_stat->waveram_bank << 3)] = value; break;
+		case WAVERAM0_L+1: apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 1] = value; break;
+		case WAVERAM0_H: apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 2] = value; break;
+		case WAVERAM0_H+1: apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 3] = value; break;
+
+		case WAVERAM1_L : apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 4] = value; break;
+		case WAVERAM1_L+1: apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 5] = value; break;
+		case WAVERAM1_H: apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 6] = value; break;
+		case WAVERAM1_H+1: apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 7] = value; break;
+
+		case WAVERAM2_L : apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 8] = value; break;
+		case WAVERAM2_L+1: apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 9] = value; break;
+		case WAVERAM2_H: apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 10] = value; break;
+		case WAVERAM2_H+1: apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 11] = value; break;
+
+		case WAVERAM3_L : apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 12] = value; break;
+		case WAVERAM3_L+1: apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 13] = value; break;
+		case WAVERAM3_H: apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 14] = value; break;
+		case WAVERAM3_H+1: apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 15] = value; break;
 
 		case REG_IF:
 		case REG_IF+1:

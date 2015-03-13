@@ -68,9 +68,10 @@ void APU::reset()
 
 	apu_stat.waveram_bank = 0;
 	apu_stat.waveram_sample = 0;
+	apu_stat.waveram_size = 0;
 
 	//Clear waveram data
-	for(int x = 0; x < 0x40; x++) { apu_stat.waveram_data[x] = 0; }
+	for(int x = 0; x < 0x20; x++) { apu_stat.waveram_data[x] = 0; }
 }
 
 /****** Initialize APU with SDL ******/
