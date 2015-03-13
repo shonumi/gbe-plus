@@ -554,6 +554,83 @@ void MMU::write_u8(u32 address, u8 value)
 
 			break;
 
+		case SND2CNT_L:
+		case SND2CNT_L+1:
+			memory_map[address] = value;
+			apu_stat->channel[1].duration = (memory_map[SND2CNT_L] & 0x3F);
+			apu_stat->channel[1].duration = 1000/(256/(64 - apu_stat->channel[1].duration));
+			apu_stat->channel[1].duty_cycle = (memory_map[SND2CNT_L] >> 6) & 0x3;
+
+			switch(apu_stat->channel[1].duty_cycle)
+			{
+				case 0x0: 
+					apu_stat->channel[1].duty_cycle_start = 0;
+					apu_stat->channel[1].duty_cycle_end = 1;
+					break;
+
+				case 0x1: 
+					apu_stat->channel[1].duty_cycle_start = 0;
+					apu_stat->channel[1].duty_cycle_end = 2;
+					break;
+
+				case 0x2: 
+					apu_stat->channel[1].duty_cycle_start = 0;
+					apu_stat->channel[1].duty_cycle_end = 4;
+					break;
+
+				case 0x3: 
+					apu_stat->channel[1].duty_cycle_start = 0;
+					apu_stat->channel[1].duty_cycle_end = 6;
+					break;
+			}
+
+			apu_stat->channel[1].envelope_step = (memory_map[SND2CNT_L+1] & 0x7);
+			apu_stat->channel[1].envelope_direction = (memory_map[SND2CNT_L+1] & 0x8) ? 1 : 0;
+			apu_stat->channel[1].volume = (memory_map[SND2CNT_L+1] >> 4) & 0xF;
+			break;
+
+		case SND2CNT_H:
+		case SND2CNT_H+1:
+			memory_map[address] = value;
+			apu_stat->channel[1].raw_frequency = ((memory_map[SND2CNT_H+1] << 8) | memory_map[SND2CNT_H]) & 0x7FF;
+			apu_stat->channel[1].output_frequency = (131072.0 / (2048 - apu_stat->channel[1].raw_frequency));
+
+			switch(apu_stat->channel[1].duty_cycle)
+			{
+				case 0x0: 
+					apu_stat->channel[1].duty_cycle_start = 0;
+					apu_stat->channel[1].duty_cycle_end = 1;
+					break;
+
+				case 0x1: 
+					apu_stat->channel[1].duty_cycle_start = 0;
+					apu_stat->channel[1].duty_cycle_end = 2;
+					break;
+
+				case 0x2: 
+					apu_stat->channel[1].duty_cycle_start = 0;
+					apu_stat->channel[1].duty_cycle_end = 4;
+					break;
+
+				case 0x3: 
+					apu_stat->channel[1].duty_cycle_start = 0;
+					apu_stat->channel[1].duty_cycle_end = 6;
+					break;
+			}
+
+			apu_stat->channel[1].length_flag = (memory_map[SND2CNT_H+1] & 0x40) ? true : false;
+			apu_stat->channel[1].playing = (memory_map[SND2CNT_H+1] & 0x80) ? true : false;
+
+			if((address == SND2CNT_H+1) && (apu_stat->channel[1].playing)) 
+			{
+				apu_stat->channel[1].frequency_distance = 0;
+				apu_stat->channel[1].sample_length = (apu_stat->channel[1].duration * 44100)/1000;
+				apu_stat->channel[1].envelope_counter = 0;
+			}
+
+			break;
+			
+
 		case REG_IF:
 		case REG_IF+1:
 			memory_map[address] &= ~value;

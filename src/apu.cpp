@@ -36,6 +36,7 @@ void APU::reset()
 	apu_stat.channel_right_volume = 0;
 	apu_stat.dma_left_volume = 0;
 	apu_stat.dma_right_volume = 0;
+
 	
 	//Reset Channel 1-4 data
 	for(int x = 0; x < 4; x++)
@@ -64,6 +65,12 @@ void APU::reset()
 		apu_stat.channel[x].frequency_distance = 0;
 		apu_stat.channel[x].sample_length = 0;
 	}
+
+	apu_stat.waveram_bank = 0;
+	apu_stat.waveram_sample = 0;
+
+	//Clear waveram data
+	for(int x = 0; x < 0x40; x++) { apu_stat.waveram_data[x] = 0; }
 }
 
 /****** Initialize APU with SDL ******/
@@ -179,9 +186,6 @@ void APU::generate_channel_1_samples(s16* stream, int length)
 				}
 			}
 
-			//Reset frequency distance
-			if(apu_stat.channel[0].frequency_distance >= frequency_samples) { apu_stat.channel[0].frequency_distance = 0; }
-
 			//Process audio waveform
 			if(apu_stat.channel[0].sample_length > 0)
 			{
@@ -221,7 +225,75 @@ void APU::generate_channel_1_samples(s16* stream, int length)
 	{
 		for(int x = 0; x < length; x++) { stream[x] = -32768; }
 	}
-}	
+}
+
+/******* Generate samples for GBA sound channel 2 ******/
+void APU::generate_channel_2_samples(s16* stream, int length)
+{
+	//Generate samples from the last output of the channel
+	if(apu_stat.channel[1].playing)
+	{
+		int frequency_samples = 44100/apu_stat.channel[1].output_frequency;
+
+		for(int x = 0; x < length; x++, apu_stat.channel[1].sample_length--)
+		{
+			//Process audio envelope
+			if(apu_stat.channel[1].envelope_step >= 1)
+			{
+				apu_stat.channel[1].envelope_counter++;
+
+				if(apu_stat.channel[1].envelope_counter >= ((44100.0/64) * apu_stat.channel[1].envelope_step)) 
+				{		
+					//Decrease volume
+					if((apu_stat.channel[1].envelope_direction == 0) && (apu_stat.channel[1].volume >= 1)) { apu_stat.channel[1].volume--; }
+				
+					//Increase volume
+					else if((apu_stat.channel[1].envelope_direction == 1) && (apu_stat.channel[1].volume < 0xF)) { apu_stat.channel[1].volume++; }
+
+					apu_stat.channel[1].envelope_counter = 0;
+				}
+			}
+
+			//Process audio waveform
+			if(apu_stat.channel[1].sample_length > 0)
+			{
+				apu_stat.channel[1].frequency_distance++;
+
+				//Reset frequency distance
+				if(apu_stat.channel[1].frequency_distance >= frequency_samples) { apu_stat.channel[1].frequency_distance = 0; }
+		
+				//Generate high wave form if duty cycle is on AND volume is not muted
+				if((apu_stat.channel[1].frequency_distance >= (frequency_samples/8) * apu_stat.channel[1].duty_cycle_start) 
+				&& (apu_stat.channel[1].frequency_distance < (frequency_samples/8) * apu_stat.channel[1].duty_cycle_end)
+				&& (apu_stat.channel[1].volume != 0))
+				{
+					stream[x] = -32768 + (4369 * apu_stat.channel[1].volume);
+				}
+
+				//Generate low wave form if duty cycle is off OR volume is muted
+				else { stream[x] = -32768; }
+
+			}
+
+			//Continuously generate sound if necessary
+			else if((apu_stat.channel[1].sample_length == 0) && (!apu_stat.channel[1].length_flag)) { apu_stat.channel[1].sample_length = (apu_stat.channel[1].duration * 44100)/1000; }
+
+			//Or stop sound after duration has been met, reset Sound 1 On Flag
+			else if((apu_stat.channel[1].sample_length == 0) && (apu_stat.channel[1].length_flag)) 
+			{ 
+				stream[x] = -32768; 
+				apu_stat.channel[1].sample_length = 0; 
+				apu_stat.channel[1].playing = false; 
+			}
+		}
+	}
+
+	//Otherwise, generate silence
+	else 
+	{
+		for(int x = 0; x < length; x++) { stream[x] = -32768; }
+	}
+}
 
 /****** Run APU for one cycle ******/
 void APU::step() { }		
@@ -233,11 +305,14 @@ void audio_callback(void* _apu, u8 *_stream, int _length)
 	int length = _length/2;
 
 	s16 channel_1_stream[length];
+	s16 channel_2_stream[length];
 
 	APU* apu_link = (APU*) _apu;
 	apu_link->generate_channel_1_samples(channel_1_stream, length);
+	apu_link->generate_channel_2_samples(channel_1_stream, length);
 
 	SDL_MixAudio((u8*)stream, (u8*)channel_1_stream, length*2, SDL_MIX_MAXVOLUME/16);
+	SDL_MixAudio((u8*)stream, (u8*)channel_2_stream, length*2, SDL_MIX_MAXVOLUME/16);
 }
 
 		
