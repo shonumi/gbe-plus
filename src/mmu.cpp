@@ -136,6 +136,26 @@ u8 MMU::read_u8(u32 address) const
 		case KEYINPUT+1:
 			return (g_pad->key_input >> 8);
 			break;
+
+		case WAVERAM0_L : return apu_stat->waveram_data[(apu_stat->waveram_bank << 3)]; break;
+		case WAVERAM0_L+1: return apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 1]; break;
+		case WAVERAM0_H: return apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 2]; break;
+		case WAVERAM0_H+1: return apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 3]; break;
+
+		case WAVERAM1_L : return apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 4]; break;
+		case WAVERAM1_L+1: return apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 5]; break;
+		case WAVERAM1_H: return apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 6]; break;
+		case WAVERAM1_H+1: return apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 7]; break;
+
+		case WAVERAM2_L : return apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 8]; break;
+		case WAVERAM2_L+1: return apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 9]; break;
+		case WAVERAM2_H: return apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 10]; break;
+		case WAVERAM2_H+1: return apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 11]; break;
+
+		case WAVERAM3_L : return apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 12]; break;
+		case WAVERAM3_L+1: return apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 13]; break;
+		case WAVERAM3_H: return apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 14]; break;
+		case WAVERAM3_H+1: return apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 15]; break;
 		
 		default:
 			return memory_map[address];
