@@ -650,7 +650,7 @@ void MMU::write_u8(u32 address, u8 value)
 			break;
 
 		case SND3CNT_L:
-			apu_stat->waveram_size = (memory_map[SND3CNT_L] & 0x20) ? 1 : 0;
+			apu_stat->waveram_size = (memory_map[SND3CNT_L] & 0x20) ? 32 : 64;
 			apu_stat->waveram_bank = (memory_map[SND3CNT_L] & 0x40) ? 1 : 0;
 			break;
 

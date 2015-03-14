@@ -9,6 +9,8 @@
 // Sets up SDL audio for mixing
 // Generates and mixes samples for the GBA's 4 sound channels + DMA channels  
 
+#include <cmath>
+
 #include "apu.h"
 
 /****** APU Constructor ******/
@@ -296,6 +298,68 @@ void APU::generate_channel_2_samples(s16* stream, int length)
 	}
 }
 
+/******* Generate samples for GBA sound channel 3 ******/
+void APU::generate_channel_3_samples(s16* stream, int length)
+{
+	//Generate samples from the last output of the channel
+	if(apu_stat.channel[2].playing)
+	{
+		//Determine amount of samples per waveform sample
+		double wave_step = (44100.0/apu_stat.channel[2].output_frequency) / 32;
+
+		int frequency_samples = 44100/apu_stat.channel[2].output_frequency;
+
+		for(int x = 0; x < length; x++, apu_stat.channel[2].sample_length--)
+		{
+			if(apu_stat.channel[2].sample_length > 0)
+			{
+				apu_stat.channel[2].frequency_distance++;
+				
+				//Reset frequency distance
+				if(apu_stat.channel[2].frequency_distance >= frequency_samples) { apu_stat.channel[2].frequency_distance = 0; }
+
+				//Determine which step in the waveform the current sample corresponds to
+				u8 step = int(floor(apu_stat.channel[2].frequency_distance/wave_step)) % 32;
+
+				//Grab wave RAM sample data for even samples
+				if(step % 2 == 0)
+				{
+					apu_stat.waveram_sample = apu_stat.waveram_data[(apu_stat.waveram_bank << 3) + step] >> 4;
+	
+					//Scale waveform to S16 audio stream
+					stream[x] = -32768 + (4369 * apu_stat.waveram_sample * apu_stat.channel[2].volume);
+				}
+
+				//Grab wave RAM step data for odd steps
+				else
+				{
+					apu_stat.waveram_sample = apu_stat.waveram_data[(apu_stat.waveram_bank << 3) + step] & 0xF;
+	
+					//Scale waveform to S16 audio stream
+					stream[x] = -32768 + (4369 * apu_stat.waveram_sample * apu_stat.channel[2].volume);
+				}
+			}
+
+			//Continuously generate sound if necessary
+			else if((apu_stat.channel[2].sample_length == 0) && (!apu_stat.channel[2].length_flag)) { apu_stat.channel[2].sample_length = (apu_stat.channel[2].duration * 44100)/1000; }
+
+			//Or stop sound after duration has been met, reset Sound 1 On Flag
+			else if((apu_stat.channel[2].sample_length == 0) && (apu_stat.channel[2].length_flag)) 
+			{ 
+				stream[x] = -32768; 
+				apu_stat.channel[2].sample_length = 0; 
+				apu_stat.channel[2].playing = false; 
+			}
+		}
+	}
+
+	//Otherwise, generate silence
+	else 
+	{
+		for(int x = 0; x < length; x++) { stream[x] = -32768; }
+	}
+}
+
 /****** Run APU for one cycle ******/
 void APU::step() { }		
 
@@ -307,13 +371,16 @@ void audio_callback(void* _apu, u8 *_stream, int _length)
 
 	s16 channel_1_stream[length];
 	s16 channel_2_stream[length];
+	s16 channel_3_stream[length];
 
 	APU* apu_link = (APU*) _apu;
 	apu_link->generate_channel_1_samples(channel_1_stream, length);
 	apu_link->generate_channel_2_samples(channel_1_stream, length);
+	apu_link->generate_channel_3_samples(channel_1_stream, length);
 
 	SDL_MixAudio((u8*)stream, (u8*)channel_1_stream, length*2, SDL_MIX_MAXVOLUME/16);
 	SDL_MixAudio((u8*)stream, (u8*)channel_2_stream, length*2, SDL_MIX_MAXVOLUME/16);
+	SDL_MixAudio((u8*)stream, (u8*)channel_3_stream, length*2, SDL_MIX_MAXVOLUME/16);
 }
 
 		
