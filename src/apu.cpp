@@ -306,6 +306,7 @@ void APU::generate_channel_3_samples(s16* stream, int length)
 	{
 		//Determine amount of samples per waveform sample
 		double wave_step = (44100.0/apu_stat.channel[2].output_frequency) / 32;
+		if(wave_step == 0) { return; }
 
 		int frequency_samples = 44100/apu_stat.channel[2].output_frequency;
 
@@ -324,19 +325,21 @@ void APU::generate_channel_3_samples(s16* stream, int length)
 				//Grab wave RAM sample data for even samples
 				if(step % 2 == 0)
 				{
+					step >>= 1;
 					apu_stat.waveram_sample = apu_stat.waveram_data[(apu_stat.waveram_bank << 3) + step] >> 4;
 	
 					//Scale waveform to S16 audio stream
-					stream[x] = -32768 + (4369 * apu_stat.waveram_sample * apu_stat.channel[2].volume);
+					stream[x] = -32768 + (4369 * apu_stat.waveram_sample);
 				}
 
 				//Grab wave RAM step data for odd steps
 				else
 				{
+					step >>= 1;
 					apu_stat.waveram_sample = apu_stat.waveram_data[(apu_stat.waveram_bank << 3) + step] & 0xF;
 	
 					//Scale waveform to S16 audio stream
-					stream[x] = -32768 + (4369 * apu_stat.waveram_sample * apu_stat.channel[2].volume);
+					stream[x] = -32768 + (4369 * apu_stat.waveram_sample);
 				}
 			}
 
@@ -375,8 +378,8 @@ void audio_callback(void* _apu, u8 *_stream, int _length)
 
 	APU* apu_link = (APU*) _apu;
 	apu_link->generate_channel_1_samples(channel_1_stream, length);
-	apu_link->generate_channel_2_samples(channel_1_stream, length);
-	apu_link->generate_channel_3_samples(channel_1_stream, length);
+	apu_link->generate_channel_2_samples(channel_2_stream, length);
+	apu_link->generate_channel_3_samples(channel_3_stream, length);
 
 	SDL_MixAudio((u8*)stream, (u8*)channel_1_stream, length*2, SDL_MIX_MAXVOLUME/16);
 	SDL_MixAudio((u8*)stream, (u8*)channel_2_stream, length*2, SDL_MIX_MAXVOLUME/16);

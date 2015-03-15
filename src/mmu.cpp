@@ -650,14 +650,16 @@ void MMU::write_u8(u32 address, u8 value)
 			break;
 
 		case SND3CNT_L:
+			memory_map[address] = value;
 			apu_stat->waveram_size = (memory_map[SND3CNT_L] & 0x20) ? 32 : 64;
 			apu_stat->waveram_bank = (memory_map[SND3CNT_L] & 0x40) ? 1 : 0;
 			break;
 
 		case SND3CNT_H:
 		case SND3CNT_H+1:
+			memory_map[address] = value;
 			apu_stat->channel[2].duration = memory_map[SND3CNT_H];
-			apu_stat->channel[2].duration = 1000/(256/(64 - apu_stat->channel[2].duration));
+			apu_stat->channel[2].duration = 1000/(256 - apu_stat->channel[2].duration);
 
 			if(memory_map[SND3CNT_H+1] & 0x80) { apu_stat->channel[2].volume = 0xB; }
 			
@@ -666,9 +668,9 @@ void MMU::write_u8(u32 address, u8 value)
 				switch((memory_map[SND3CNT_H+1] >> 13) & 0x3)
 				{
 					case 0x0: apu_stat->channel[2].volume = 0x0; break;
-					case 0x1: apu_stat->channel[2].volume = 0x3; break;
+					case 0x1: apu_stat->channel[2].volume = 0xF; break;
 					case 0x2: apu_stat->channel[2].volume = 0x7; break;
-					case 0x3: apu_stat->channel[2].volume = 0xB; break;
+					case 0x3: apu_stat->channel[2].volume = 0x3; break;
 				}
 			}
 		
@@ -676,11 +678,12 @@ void MMU::write_u8(u32 address, u8 value)
 
 		case SND3CNT_X:
 		case SND3CNT_X+1:
+			memory_map[address] = value;
 			apu_stat->channel[2].raw_frequency = ((memory_map[SND3CNT_X+1] << 8) | memory_map[SND3CNT_X]) & 0x7FF;
 			apu_stat->channel[2].output_frequency = (131072.0 / (2048 - apu_stat->channel[2].raw_frequency));
 
 			apu_stat->channel[2].length_flag = (memory_map[SND3CNT_X+1] & 0x40) ? true : false;
-			apu_stat->channel[2].playing = (memory_map[SND3CNT_X+1] & 0x80) ? true : false;
+			if((memory_map[SND3CNT_X+1] & 0x80) && (!apu_stat->channel[2].playing)) { apu_stat->channel[2].playing = true; }
 
 			if((address == SND3CNT_X+1) && (apu_stat->channel[2].playing)) 
 			{
@@ -802,10 +805,10 @@ void MMU::write_u8(u32 address, u8 value)
 
 			switch(memory_map[TM0CNT_H] & 0x3)
 			{
-				case 0x0: timer->at(0).prescalar = 1; break;
-				case 0x1: timer->at(0).prescalar = 64; break;
-				case 0x2: timer->at(0).prescalar = 256; break;
-				case 0x3: timer->at(0).prescalar = 1024; break;
+				case 0x0: timer->at(0).prescalar = (1 << 24); break;
+				case 0x1: timer->at(0).prescalar = (1 << 18); break;
+				case 0x2: timer->at(0).prescalar = (1 << 16); break;
+				case 0x3: timer->at(0).prescalar = (1 << 14); break;
 			}
 
 			break;
@@ -823,10 +826,10 @@ void MMU::write_u8(u32 address, u8 value)
 
 			switch(memory_map[TM1CNT_H] & 0x3)
 			{
-				case 0x0: timer->at(1).prescalar = 1; break;
-				case 0x1: timer->at(1).prescalar = 64; break;
-				case 0x2: timer->at(1).prescalar = 256; break;
-				case 0x3: timer->at(1).prescalar = 1024; break;
+				case 0x0: timer->at(1).prescalar = (1 << 24); break;
+				case 0x1: timer->at(1).prescalar = (1 << 18); break;
+				case 0x2: timer->at(1).prescalar = (1 << 16); break;
+				case 0x3: timer->at(1).prescalar = (1 << 14); break;
 			}
 
 			break;
@@ -844,10 +847,10 @@ void MMU::write_u8(u32 address, u8 value)
 
 			switch(memory_map[TM2CNT_H] & 0x3)
 			{
-				case 0x0: timer->at(2).prescalar = 1; break;
-				case 0x1: timer->at(2).prescalar = 64; break;
-				case 0x2: timer->at(2).prescalar = 256; break;
-				case 0x3: timer->at(2).prescalar = 1024; break;
+				case 0x0: timer->at(2).prescalar = (1 << 24); break;
+				case 0x1: timer->at(2).prescalar = (1 << 18); break;
+				case 0x2: timer->at(2).prescalar = (1 << 16); break;
+				case 0x3: timer->at(2).prescalar = (1 << 14); break;
 			}
 
 			break;
@@ -865,10 +868,10 @@ void MMU::write_u8(u32 address, u8 value)
 
 			switch(memory_map[TM3CNT_H] & 0x3)
 			{
-				case 0x0: timer->at(3).prescalar = 1; break;
-				case 0x1: timer->at(3).prescalar = 64; break;
-				case 0x2: timer->at(3).prescalar = 256; break;
-				case 0x3: timer->at(3).prescalar = 1024; break;
+				case 0x0: timer->at(3).prescalar = (1 << 24); break;
+				case 0x1: timer->at(3).prescalar = (1 << 18); break;
+				case 0x2: timer->at(3).prescalar = (1 << 16); break;
+				case 0x3: timer->at(3).prescalar = (1 << 14); break;
 			}
 
 			break;
