@@ -499,7 +499,7 @@ void MMU::write_u8(u32 address, u8 value)
 		case SND1CNT_H+1:
 			memory_map[address] = value;
 			apu_stat->channel[0].duration = (memory_map[SND1CNT_H] & 0x3F);
-			apu_stat->channel[0].duration = 1000/(256/(64 - apu_stat->channel[0].duration));
+			apu_stat->channel[0].duration = ((64 - apu_stat->channel[0].duration) / 256.0) * 1000.0;
 			apu_stat->channel[0].duty_cycle = (memory_map[SND1CNT_H] >> 6) & 0x3;
 
 			switch(apu_stat->channel[0].duty_cycle)
@@ -577,7 +577,7 @@ void MMU::write_u8(u32 address, u8 value)
 		case SND2CNT_L+1:
 			memory_map[address] = value;
 			apu_stat->channel[1].duration = (memory_map[SND2CNT_L] & 0x3F);
-			apu_stat->channel[1].duration = 1000/(256/(64 - apu_stat->channel[1].duration));
+			apu_stat->channel[1].duration = ((64 - apu_stat->channel[1].duration) / 256.0) * 1000.0;
 			apu_stat->channel[1].duty_cycle = (memory_map[SND2CNT_L] >> 6) & 0x3;
 
 			switch(apu_stat->channel[1].duty_cycle)
@@ -656,11 +656,12 @@ void MMU::write_u8(u32 address, u8 value)
 			break;
 
 		case SND3CNT_H:
-		case SND3CNT_H+1:
 			memory_map[address] = value;
 			apu_stat->channel[2].duration = memory_map[SND3CNT_H];
-			apu_stat->channel[2].duration = 1000/(256 - apu_stat->channel[2].duration);
+			apu_stat->channel[2].duration = ((256 - apu_stat->channel[2].duration) / 256.0) * 1000.0;;
+			break;
 
+		case SND3CNT_H+1:
 			if(memory_map[SND3CNT_H+1] & 0x80) { apu_stat->channel[2].volume = 0xB; }
 			
 			else 
@@ -805,10 +806,10 @@ void MMU::write_u8(u32 address, u8 value)
 
 			switch(memory_map[TM0CNT_H] & 0x3)
 			{
-				case 0x0: timer->at(0).prescalar = (1 << 24); break;
-				case 0x1: timer->at(0).prescalar = (1 << 18); break;
-				case 0x2: timer->at(0).prescalar = (1 << 16); break;
-				case 0x3: timer->at(0).prescalar = (1 << 14); break;
+				case 0x0: timer->at(0).prescalar = 1; break;
+				case 0x1: timer->at(0).prescalar = 64; break;
+				case 0x2: timer->at(0).prescalar = 256; break;
+				case 0x3: timer->at(0).prescalar = 1024; break;
 			}
 
 			break;
@@ -826,10 +827,10 @@ void MMU::write_u8(u32 address, u8 value)
 
 			switch(memory_map[TM1CNT_H] & 0x3)
 			{
-				case 0x0: timer->at(1).prescalar = (1 << 24); break;
-				case 0x1: timer->at(1).prescalar = (1 << 18); break;
-				case 0x2: timer->at(1).prescalar = (1 << 16); break;
-				case 0x3: timer->at(1).prescalar = (1 << 14); break;
+				case 0x0: timer->at(1).prescalar = 1; break;
+				case 0x1: timer->at(1).prescalar = 64; break;
+				case 0x2: timer->at(1).prescalar = 256; break;
+				case 0x3: timer->at(1).prescalar = 1024; break;
 			}
 
 			break;
@@ -847,10 +848,10 @@ void MMU::write_u8(u32 address, u8 value)
 
 			switch(memory_map[TM2CNT_H] & 0x3)
 			{
-				case 0x0: timer->at(2).prescalar = (1 << 24); break;
-				case 0x1: timer->at(2).prescalar = (1 << 18); break;
-				case 0x2: timer->at(2).prescalar = (1 << 16); break;
-				case 0x3: timer->at(2).prescalar = (1 << 14); break;
+				case 0x0: timer->at(2).prescalar = 1; break;
+				case 0x1: timer->at(2).prescalar = 64; break;
+				case 0x2: timer->at(2).prescalar = 256; break;
+				case 0x3: timer->at(2).prescalar = 1024; break;
 			}
 
 			break;
@@ -868,10 +869,10 @@ void MMU::write_u8(u32 address, u8 value)
 
 			switch(memory_map[TM3CNT_H] & 0x3)
 			{
-				case 0x0: timer->at(3).prescalar = (1 << 24); break;
-				case 0x1: timer->at(3).prescalar = (1 << 18); break;
-				case 0x2: timer->at(3).prescalar = (1 << 16); break;
-				case 0x3: timer->at(3).prescalar = (1 << 14); break;
+				case 0x0: timer->at(3).prescalar = 1; break;
+				case 0x1: timer->at(3).prescalar = 64; break;
+				case 0x2: timer->at(3).prescalar = 256; break;
+				case 0x3: timer->at(3).prescalar = 1024; break;
 			}
 
 			break;
