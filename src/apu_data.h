@@ -26,6 +26,7 @@ struct apu_data
 		u32 volume;
 
 		bool playing;
+		bool enable;
 		bool length_flag;
 
 		u8 duty_cycle;

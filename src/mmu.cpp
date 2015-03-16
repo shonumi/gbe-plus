@@ -653,6 +653,7 @@ void MMU::write_u8(u32 address, u8 value)
 			memory_map[address] = value;
 			apu_stat->waveram_size = (memory_map[SND3CNT_L] & 0x20) ? 32 : 64;
 			apu_stat->waveram_bank = (memory_map[SND3CNT_L] & 0x40) ? 1 : 0;
+			apu_stat->channel[2].enable = (memory_map[SND3CNT_L] & 0x80) ? true : false;
 			break;
 
 		case SND3CNT_H:

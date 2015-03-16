@@ -50,6 +50,7 @@ void APU::reset()
 		apu_stat.channel[x].volume = 0;
 
 		apu_stat.channel[x].playing = false;
+		apu_stat.channel[x].enable = false;
 		apu_stat.channel[x].length_flag = false;
 
 		apu_stat.channel[x].duty_cycle_start = 0;
@@ -302,7 +303,7 @@ void APU::generate_channel_2_samples(s16* stream, int length)
 void APU::generate_channel_3_samples(s16* stream, int length)
 {
 	//Generate samples from the last output of the channel
-	if(apu_stat.channel[2].playing)
+	if((apu_stat.channel[2].playing) && (apu_stat.channel[2].enable))
 	{
 		//Determine amount of samples per waveform sample
 		double wave_step = (44100.0/apu_stat.channel[2].output_frequency) / 32;
