@@ -663,19 +663,8 @@ void MMU::write_u8(u32 address, u8 value)
 			break;
 
 		case SND3CNT_H+1:
-			if(memory_map[SND3CNT_H+1] & 0x80) { apu_stat->channel[2].volume = 0xB; }
-			
-			else 
-			{
-				switch((memory_map[SND3CNT_H+1] >> 13) & 0x3)
-				{
-					case 0x0: apu_stat->channel[2].volume = 0x0; break;
-					case 0x1: apu_stat->channel[2].volume = 0xF; break;
-					case 0x2: apu_stat->channel[2].volume = 0x7; break;
-					case 0x3: apu_stat->channel[2].volume = 0x3; break;
-				}
-			}
-		
+			if(memory_map[SND3CNT_H+1] & 0x80) { apu_stat->channel[2].volume = 4; }
+			else { apu_stat->channel[2].volume = (memory_map[SND3CNT_H+1] >> 13) & 0x3; }
 			break;
 
 		case SND3CNT_X:

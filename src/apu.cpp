@@ -330,7 +330,15 @@ void APU::generate_channel_3_samples(s16* stream, int length)
 					apu_stat.waveram_sample = apu_stat.waveram_data[(apu_stat.waveram_bank << 3) + step] >> 4;
 	
 					//Scale waveform to S16 audio stream
-					stream[x] = -32768 + (4369 * apu_stat.waveram_sample);
+					switch(apu_stat.channel[2].volume)
+					{
+						case 0x0: stream[x] = -32768; break;
+						case 0x1: stream[x] = -32768 + (4369 * apu_stat.waveram_sample); break;
+						case 0x2: stream[x] = (-32768 + (4369 * apu_stat.waveram_sample)) * 0.5; break;
+						case 0x3: stream[x] = (-32768 + (4369 * apu_stat.waveram_sample)) * 0.25; break;
+						case 0x4: stream[x] = (-32768 + (4369 * apu_stat.waveram_sample)) * 0.75; break;
+						default: stream[x] = -32768; break;
+					}
 				}
 
 				//Grab wave RAM step data for odd steps
@@ -340,7 +348,15 @@ void APU::generate_channel_3_samples(s16* stream, int length)
 					apu_stat.waveram_sample = apu_stat.waveram_data[(apu_stat.waveram_bank << 3) + step] & 0xF;
 	
 					//Scale waveform to S16 audio stream
-					stream[x] = -32768 + (4369 * apu_stat.waveram_sample);
+					switch(apu_stat.channel[2].volume)
+					{
+						case 0x0: stream[x] = -32768; break;
+						case 0x1: stream[x] = -32768 + (4369 * apu_stat.waveram_sample); break;
+						case 0x2: stream[x] = (-32768 + (4369 * apu_stat.waveram_sample)) * 0.5; break;
+						case 0x3: stream[x] = (-32768 + (4369 * apu_stat.waveram_sample)) * 0.25; break;
+						case 0x4: stream[x] = (-32768 + (4369 * apu_stat.waveram_sample)) * 0.75; break;
+						default: stream[x] = -32768; break;
+					}
 				}
 			}
 
