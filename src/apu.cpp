@@ -69,7 +69,8 @@ void APU::reset()
 		apu_stat.channel[x].sample_length = 0;
 	}
 
-	apu_stat.waveram_bank = 0;
+	apu_stat.waveram_bank_play = 0;
+	apu_stat.waveram_bank_rw = 1;
 	apu_stat.waveram_sample = 0;
 	apu_stat.waveram_size = 0;
 
@@ -306,7 +307,7 @@ void APU::generate_channel_3_samples(s16* stream, int length)
 	if((apu_stat.channel[2].playing) && (apu_stat.channel[2].enable))
 	{
 		//Determine amount of samples per waveform sample
-		double wave_step = (44100.0/apu_stat.channel[2].output_frequency) / 32;
+		double wave_step = (44100.0/apu_stat.channel[2].output_frequency) / apu_stat.waveram_size;
 		if(wave_step == 0) { return; }
 
 		int frequency_samples = 44100/apu_stat.channel[2].output_frequency;
@@ -321,13 +322,22 @@ void APU::generate_channel_3_samples(s16* stream, int length)
 				if(apu_stat.channel[2].frequency_distance >= frequency_samples) { apu_stat.channel[2].frequency_distance = 0; }
 
 				//Determine which step in the waveform the current sample corresponds to
-				u8 step = int(floor(apu_stat.channel[2].frequency_distance/wave_step)) % 32;
+				u8 step = int(floor(apu_stat.channel[2].frequency_distance/wave_step)) % apu_stat.waveram_size;
 
 				//Grab wave RAM sample data for even samples
 				if(step % 2 == 0)
 				{
 					step >>= 1;
-					apu_stat.waveram_sample = apu_stat.waveram_data[(apu_stat.waveram_bank << 3) + step] >> 4;
+
+					if(apu_stat.waveram_size == 32) 
+					{
+						apu_stat.waveram_sample = apu_stat.waveram_data[(apu_stat.waveram_bank_play << 4) + step] >> 4;
+					}
+
+					else
+					{
+						apu_stat.waveram_sample = apu_stat.waveram_data[step] >> 4;
+					}
 	
 					//Scale waveform to S16 audio stream
 					switch(apu_stat.channel[2].volume)
@@ -345,7 +355,16 @@ void APU::generate_channel_3_samples(s16* stream, int length)
 				else
 				{
 					step >>= 1;
-					apu_stat.waveram_sample = apu_stat.waveram_data[(apu_stat.waveram_bank << 3) + step] & 0xF;
+
+					if(apu_stat.waveram_size == 32) 
+					{
+						apu_stat.waveram_sample = apu_stat.waveram_data[(apu_stat.waveram_bank_play << 4) + step] & 0xF;
+					}
+
+					else
+					{
+						apu_stat.waveram_sample = apu_stat.waveram_data[step] & 0xF;
+					}
 	
 					//Scale waveform to S16 audio stream
 					switch(apu_stat.channel[2].volume)

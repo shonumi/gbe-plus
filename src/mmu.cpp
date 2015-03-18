@@ -137,25 +137,25 @@ u8 MMU::read_u8(u32 address) const
 			return (g_pad->key_input >> 8);
 			break;
 
-		case WAVERAM0_L : return apu_stat->waveram_data[(apu_stat->waveram_bank << 3)]; break;
-		case WAVERAM0_L+1: return apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 1]; break;
-		case WAVERAM0_H: return apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 2]; break;
-		case WAVERAM0_H+1: return apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 3]; break;
+		case WAVERAM0_L : return apu_stat->waveram_data[(apu_stat->waveram_bank_rw << 4)]; break;
+		case WAVERAM0_L+1: return apu_stat->waveram_data[(apu_stat->waveram_bank_rw << 4) + 1]; break;
+		case WAVERAM0_H: return apu_stat->waveram_data[(apu_stat->waveram_bank_rw << 4) + 2]; break;
+		case WAVERAM0_H+1: return apu_stat->waveram_data[(apu_stat->waveram_bank_rw << 4) + 3]; break;
 
-		case WAVERAM1_L : return apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 4]; break;
-		case WAVERAM1_L+1: return apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 5]; break;
-		case WAVERAM1_H: return apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 6]; break;
-		case WAVERAM1_H+1: return apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 7]; break;
+		case WAVERAM1_L : return apu_stat->waveram_data[(apu_stat->waveram_bank_rw << 4) + 4]; break;
+		case WAVERAM1_L+1: return apu_stat->waveram_data[(apu_stat->waveram_bank_rw << 4) + 5]; break;
+		case WAVERAM1_H: return apu_stat->waveram_data[(apu_stat->waveram_bank_rw << 4) + 6]; break;
+		case WAVERAM1_H+1: return apu_stat->waveram_data[(apu_stat->waveram_bank_rw << 4) + 7]; break;
 
-		case WAVERAM2_L : return apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 8]; break;
-		case WAVERAM2_L+1: return apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 9]; break;
-		case WAVERAM2_H: return apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 10]; break;
-		case WAVERAM2_H+1: return apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 11]; break;
+		case WAVERAM2_L : return apu_stat->waveram_data[(apu_stat->waveram_bank_rw << 4) + 8]; break;
+		case WAVERAM2_L+1: return apu_stat->waveram_data[(apu_stat->waveram_bank_rw << 4) + 9]; break;
+		case WAVERAM2_H: return apu_stat->waveram_data[(apu_stat->waveram_bank_rw << 4) + 10]; break;
+		case WAVERAM2_H+1: return apu_stat->waveram_data[(apu_stat->waveram_bank_rw << 4) + 11]; break;
 
-		case WAVERAM3_L : return apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 12]; break;
-		case WAVERAM3_L+1: return apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 13]; break;
-		case WAVERAM3_H: return apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 14]; break;
-		case WAVERAM3_H+1: return apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 15]; break;
+		case WAVERAM3_L : return apu_stat->waveram_data[(apu_stat->waveram_bank_rw << 4) + 12]; break;
+		case WAVERAM3_L+1: return apu_stat->waveram_data[(apu_stat->waveram_bank_rw << 4) + 13]; break;
+		case WAVERAM3_H: return apu_stat->waveram_data[(apu_stat->waveram_bank_rw << 4) + 14]; break;
+		case WAVERAM3_H+1: return apu_stat->waveram_data[(apu_stat->waveram_bank_rw << 4) + 15]; break;
 		
 		default:
 			return memory_map[address];
@@ -651,8 +651,9 @@ void MMU::write_u8(u32 address, u8 value)
 
 		case SND3CNT_L:
 			memory_map[address] = value;
-			apu_stat->waveram_size = (memory_map[SND3CNT_L] & 0x20) ? 32 : 64;
-			apu_stat->waveram_bank = (memory_map[SND3CNT_L] & 0x40) ? 1 : 0;
+			apu_stat->waveram_size = (memory_map[SND3CNT_L] & 0x20) ? 64 : 32;
+			apu_stat->waveram_bank_play = (memory_map[SND3CNT_L] & 0x40) ? 1 : 0;
+			apu_stat->waveram_bank_rw = (memory_map[SND3CNT_L] & 0x40) ? 0 : 1;
 			apu_stat->channel[2].enable = (memory_map[SND3CNT_L] & 0x80) ? true : false;
 			break;
 
@@ -685,25 +686,25 @@ void MMU::write_u8(u32 address, u8 value)
 
 			break;
 
-		case WAVERAM0_L : apu_stat->waveram_data[(apu_stat->waveram_bank << 3)] = value; break;
-		case WAVERAM0_L+1: apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 1] = value; break;
-		case WAVERAM0_H: apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 2] = value; break;
-		case WAVERAM0_H+1: apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 3] = value; break;
+		case WAVERAM0_L : apu_stat->waveram_data[(apu_stat->waveram_bank_rw << 4)] = value; break;
+		case WAVERAM0_L+1: apu_stat->waveram_data[(apu_stat->waveram_bank_rw << 4) + 1] = value; break;
+		case WAVERAM0_H: apu_stat->waveram_data[(apu_stat->waveram_bank_rw << 4) + 2] = value; break;
+		case WAVERAM0_H+1: apu_stat->waveram_data[(apu_stat->waveram_bank_rw << 4) + 3] = value; break;
 
-		case WAVERAM1_L : apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 4] = value; break;
-		case WAVERAM1_L+1: apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 5] = value; break;
-		case WAVERAM1_H: apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 6] = value; break;
-		case WAVERAM1_H+1: apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 7] = value; break;
+		case WAVERAM1_L : apu_stat->waveram_data[(apu_stat->waveram_bank_rw << 4) + 4] = value; break;
+		case WAVERAM1_L+1: apu_stat->waveram_data[(apu_stat->waveram_bank_rw << 4) + 5] = value; break;
+		case WAVERAM1_H: apu_stat->waveram_data[(apu_stat->waveram_bank_rw << 4) + 6] = value; break;
+		case WAVERAM1_H+1: apu_stat->waveram_data[(apu_stat->waveram_bank_rw << 4) + 7] = value; break;
 
-		case WAVERAM2_L : apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 8] = value; break;
-		case WAVERAM2_L+1: apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 9] = value; break;
-		case WAVERAM2_H: apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 10] = value; break;
-		case WAVERAM2_H+1: apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 11] = value; break;
+		case WAVERAM2_L : apu_stat->waveram_data[(apu_stat->waveram_bank_rw << 4) + 8] = value; break;
+		case WAVERAM2_L+1: apu_stat->waveram_data[(apu_stat->waveram_bank_rw << 4) + 9] = value; break;
+		case WAVERAM2_H: apu_stat->waveram_data[(apu_stat->waveram_bank_rw << 4) + 10] = value; break;
+		case WAVERAM2_H+1: apu_stat->waveram_data[(apu_stat->waveram_bank_rw << 4) + 11] = value; break;
 
-		case WAVERAM3_L : apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 12] = value; break;
-		case WAVERAM3_L+1: apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 13] = value; break;
-		case WAVERAM3_H: apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 14] = value; break;
-		case WAVERAM3_H+1: apu_stat->waveram_data[(apu_stat->waveram_bank << 3) + 15] = value; break;
+		case WAVERAM3_L : apu_stat->waveram_data[(apu_stat->waveram_bank_rw << 4) + 12] = value; break;
+		case WAVERAM3_L+1: apu_stat->waveram_data[(apu_stat->waveram_bank_rw << 4) + 13] = value; break;
+		case WAVERAM3_H: apu_stat->waveram_data[(apu_stat->waveram_bank_rw << 4) + 14] = value; break;
+		case WAVERAM3_H+1: apu_stat->waveram_data[(apu_stat->waveram_bank_rw << 4) + 15] = value; break;
 
 		case REG_IF:
 		case REG_IF+1:

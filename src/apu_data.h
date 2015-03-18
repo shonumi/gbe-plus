@@ -55,7 +55,8 @@ struct apu_data
 	u8 dma_left_volume;
 	u8 dma_right_volume;
 
-	u8 waveram_bank;
+	u8 waveram_bank_play;
+	u8 waveram_bank_rw;
 	u8 waveram_sample;
 	u8 waveram_size;
 	u8 waveram_data[0x20];
