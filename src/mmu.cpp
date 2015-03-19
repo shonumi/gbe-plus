@@ -660,7 +660,7 @@ void MMU::write_u8(u32 address, u8 value)
 		case SND3CNT_H:
 			memory_map[address] = value;
 			apu_stat->channel[2].duration = memory_map[SND3CNT_H];
-			apu_stat->channel[2].duration = ((256 - apu_stat->channel[2].duration) / 256.0) * 1000.0;;
+			apu_stat->channel[2].duration = ((256 - apu_stat->channel[2].duration) / 256.0) * 1000.0;
 			break;
 
 		case SND3CNT_H+1:
@@ -673,7 +673,7 @@ void MMU::write_u8(u32 address, u8 value)
 		case SND3CNT_X+1:
 			memory_map[address] = value;
 			apu_stat->channel[2].raw_frequency = ((memory_map[SND3CNT_X+1] << 8) | memory_map[SND3CNT_X]) & 0x7FF;
-			apu_stat->channel[2].output_frequency = (131072.0 / (2048 - apu_stat->channel[2].raw_frequency));
+			apu_stat->channel[2].output_frequency = (131072.0 / (2048 - apu_stat->channel[2].raw_frequency)) / 2;
 
 			apu_stat->channel[2].length_flag = (memory_map[SND3CNT_X+1] & 0x40) ? true : false;
 			if((memory_map[SND3CNT_X+1] & 0x80) && (!apu_stat->channel[2].playing)) { apu_stat->channel[2].playing = true; }
