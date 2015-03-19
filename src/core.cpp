@@ -513,6 +513,7 @@ void Core::handle_hotkey(SDL_Event& event)
 	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_PAUSE))
 	{
 		config::pause_emu = true;
+		SDL_PauseAudio(1);
 		std::cout<<"EMU::Paused\n";
 
 		//Delay until pause key is hit again
@@ -522,6 +523,7 @@ void Core::handle_hotkey(SDL_Event& event)
 			if((SDL_PollEvent(&event)) && (event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_PAUSE))
 			{
 				config::pause_emu = false;
+				SDL_PauseAudio(0);
 				std::cout<<"EMU::Unpaused\n";
 			}
 		}
