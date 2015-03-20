@@ -306,11 +306,14 @@ void APU::generate_channel_3_samples(s16* stream, int length)
 	//Generate samples from the last output of the channel
 	if((apu_stat.channel[2].playing) && (apu_stat.channel[2].enable))
 	{
+		double waveform_frequency = apu_stat.channel[2].output_frequency;
+		if(apu_stat.waveram_size == 64) { waveform_frequency /= 2.0; }
+
 		//Determine amount of samples per waveform sample
-		double wave_step = (44100.0/apu_stat.channel[2].output_frequency) / apu_stat.waveram_size;
+		double wave_step = (44100.0/waveform_frequency) / apu_stat.waveram_size;
 		if(wave_step == 0) { return; }
 
-		int frequency_samples = 44100/apu_stat.channel[2].output_frequency;
+		int frequency_samples = 44100/waveform_frequency;
 
 		for(int x = 0; x < length; x++, apu_stat.channel[2].sample_length--)
 		{
