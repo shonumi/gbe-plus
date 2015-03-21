@@ -27,6 +27,8 @@ struct apu_data
 
 		bool playing;
 		bool enable;
+		bool right_enable;
+		bool left_enable;
 		bool length_flag;
 
 		u8 duty_cycle;

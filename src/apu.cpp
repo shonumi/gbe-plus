@@ -39,7 +39,6 @@ void APU::reset()
 	apu_stat.dma_left_volume = 0;
 	apu_stat.dma_right_volume = 0;
 
-	
 	//Reset Channel 1-4 data
 	for(int x = 0; x < 4; x++)
 	{
@@ -51,6 +50,8 @@ void APU::reset()
 
 		apu_stat.channel[x].playing = false;
 		apu_stat.channel[x].enable = false;
+		apu_stat.channel[x].left_enable = false;
+		apu_stat.channel[x].right_enable = false;
 		apu_stat.channel[x].length_flag = false;
 
 		apu_stat.channel[x].duty_cycle_start = 0;
@@ -88,7 +89,7 @@ bool APU::init()
     	desired_spec.freq = 44100;
 	desired_spec.format = AUDIO_S16SYS;
     	desired_spec.channels = 1;
-    	desired_spec.samples = 2048;
+    	desired_spec.samples = 4096;
     	desired_spec.callback = audio_callback;
     	desired_spec.userdata = this;
 
@@ -116,7 +117,7 @@ bool APU::init()
 void APU::generate_channel_1_samples(s16* stream, int length)
 {
 	//Generate samples from the last output of the channel
-	if(apu_stat.channel[0].playing)
+	if((apu_stat.channel[0].playing) && (apu_stat.channel[0].left_enable || apu_stat.channel[0].right_enable))
 	{
 		int frequency_samples = 44100/apu_stat.channel[0].output_frequency;
 
@@ -209,7 +210,6 @@ void APU::generate_channel_1_samples(s16* stream, int length)
 
 				//Generate low wave form if duty cycle is off OR volume is muted
 				else { stream[x] = -32768; }
-
 			}
 
 			//Continuously generate sound if necessary
@@ -236,7 +236,7 @@ void APU::generate_channel_1_samples(s16* stream, int length)
 void APU::generate_channel_2_samples(s16* stream, int length)
 {
 	//Generate samples from the last output of the channel
-	if(apu_stat.channel[1].playing)
+	if((apu_stat.channel[1].playing) && (apu_stat.channel[1].left_enable || apu_stat.channel[1].right_enable))
 	{
 		int frequency_samples = 44100/apu_stat.channel[1].output_frequency;
 
@@ -278,6 +278,8 @@ void APU::generate_channel_2_samples(s16* stream, int length)
 				//Generate low wave form if duty cycle is off OR volume is muted
 				else { stream[x] = -32768; }
 
+				if(stream[x] != -32768) { std::cout<<"YO\n"; }
+
 			}
 
 			//Continuously generate sound if necessary
@@ -304,7 +306,7 @@ void APU::generate_channel_2_samples(s16* stream, int length)
 void APU::generate_channel_3_samples(s16* stream, int length)
 {
 	//Generate samples from the last output of the channel
-	if((apu_stat.channel[2].playing) && (apu_stat.channel[2].enable))
+	if((apu_stat.channel[2].playing) && (apu_stat.channel[2].enable) && (apu_stat.channel[2].left_enable || apu_stat.channel[2].right_enable))
 	{
 		double waveform_frequency = apu_stat.channel[2].output_frequency;
 		if(apu_stat.waveram_size == 64) { waveform_frequency /= 2.0; }
