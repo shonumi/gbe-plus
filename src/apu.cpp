@@ -123,7 +123,6 @@ void APU::generate_channel_1_samples(s16* stream, int length)
 
 		for(int x = 0; x < length; x++, apu_stat.channel[0].sample_length--)
 		{
-
 			//Process audio sweep
 			if(apu_stat.channel[0].sweep_time >= 1)
 			{
@@ -313,7 +312,13 @@ void APU::generate_channel_3_samples(s16* stream, int length)
 
 		//Determine amount of samples per waveform sample
 		double wave_step = (44100.0/waveform_frequency) / apu_stat.waveram_size;
-		if(wave_step == 0) { return; }
+
+		//Generate silence if samples per waveform sample is zero
+		if(wave_step == 0) 
+		{ 
+			for(int x = 0; x < length; x++) { stream[x] = -32768; }
+			return;
+		}
 
 		int frequency_samples = 44100/waveform_frequency;
 
