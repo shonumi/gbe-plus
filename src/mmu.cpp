@@ -563,6 +563,8 @@ void MMU::write_u8(u32 address, u8 value)
 			apu_stat->channel[0].length_flag = (memory_map[SND1CNT_X+1] & 0x40) ? true : false;
 			apu_stat->channel[0].playing = (memory_map[SND1CNT_X+1] & 0x80) ? true : false;
 
+			if(apu_stat->channel[0].volume == 0) { apu_stat->channel[0].playing = false; }
+
 			if((address == SND1CNT_X+1) && (apu_stat->channel[0].playing)) 
 			{
 				apu_stat->channel[0].frequency_distance = 0;
@@ -639,6 +641,8 @@ void MMU::write_u8(u32 address, u8 value)
 
 			apu_stat->channel[1].length_flag = (memory_map[SND2CNT_H+1] & 0x40) ? true : false;
 			apu_stat->channel[1].playing = (memory_map[SND2CNT_H+1] & 0x80) ? true : false;
+
+			if(apu_stat->channel[1].volume == 0) { apu_stat->channel[1].playing = false; }
 
 			if((address == SND2CNT_H+1) && (apu_stat->channel[1].playing)) 
 			{
