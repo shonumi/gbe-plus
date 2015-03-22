@@ -75,6 +75,12 @@ void APU::reset()
 	apu_stat.waveram_sample = 0;
 	apu_stat.waveram_size = 0;
 
+	apu_stat.noise_dividing_ratio = 1;
+	apu_stat.noise_prescalar = 1;
+	apu_stat.noise_stages = 0;
+	apu_stat.noise_7_stage_lsfr = 0x40;
+	apu_stat.noise_15_stage_lsfr = 0x4000;
+
 	//Clear waveram data
 	for(int x = 0; x < 0x20; x++) { apu_stat.waveram_data[x] = 0; }
 }
@@ -276,9 +282,6 @@ void APU::generate_channel_2_samples(s16* stream, int length)
 
 				//Generate low wave form if duty cycle is off OR volume is muted
 				else { stream[x] = -32768; }
-
-				if(stream[x] != -32768) { std::cout<<"YO\n"; }
-
 			}
 
 			//Continuously generate sound if necessary
@@ -409,6 +412,107 @@ void APU::generate_channel_3_samples(s16* stream, int length)
 	}
 }
 
+/******* Generate samples for GBA sound channel 4 ******/
+void APU::generate_channel_4_samples(s16* stream, int length)
+{
+	//Generate samples from the last output of the channel
+	if((apu_stat.channel[3].playing) && (apu_stat.channel[3].left_enable || apu_stat.channel[3].right_enable))
+	{
+		double samples_per_freq = apu_stat.channel[3].output_frequency/44100;
+		double samples_per_freq_counter = 0;
+		u32 lsfr_runs = 0;
+
+		for(int x = 0; x < length; x++, apu_stat.channel[3].sample_length--)
+		{
+			if(apu_stat.channel[3].sample_length > 0)
+			{
+				apu_stat.channel[3].frequency_distance++;
+				samples_per_freq_counter += samples_per_freq;
+
+				//Process audio envelope
+				if(apu_stat.channel[3].envelope_step >= 1)
+				{
+					apu_stat.channel[3].envelope_counter++;
+
+					if(apu_stat.channel[3].envelope_counter >= ((44100.0/64) * apu_stat.channel[3].envelope_step)) 
+					{		
+						//Decrease volume
+						if((apu_stat.channel[3].envelope_direction == 0) && (apu_stat.channel[3].volume >= 1)) { apu_stat.channel[3].volume--; }
+				
+						//Increase volume
+						else if((apu_stat.channel[3].envelope_direction == 1) && (apu_stat.channel[3].volume < 0xF)) { apu_stat.channel[3].volume++; }
+
+						apu_stat.channel[3].envelope_counter = 0;
+					}
+				}
+
+				//Determine how many times to run LSFR
+				if(samples_per_freq_counter >= 1)
+				{
+					lsfr_runs = 0;
+					while(samples_per_freq_counter >= 1)
+					{
+						samples_per_freq_counter -= 1.0;
+						lsfr_runs++;
+					}
+
+					//Run LSFR
+					for(int y = 0; y < lsfr_runs; y++)
+					{
+						//7-stage
+						if(apu_stat.noise_stages == 7)
+						{
+							u8 bit_0 = (apu_stat.noise_7_stage_lsfr & 0x1) ? 1 : 0;
+							u8 bit_1 = (apu_stat.noise_7_stage_lsfr & 0x2) ? 1 : 0;
+							u8 result = bit_0 ^ bit_1;
+							apu_stat.noise_7_stage_lsfr >>= 1;
+							
+							if(result == 1) { apu_stat.noise_7_stage_lsfr |= 0x40; }
+						}
+
+						//15-stage
+						else if(apu_stat.noise_stages == 15)
+						{
+							u8 bit_0 = (apu_stat.noise_15_stage_lsfr & 0x1) ? 1 : 0;
+							u8 bit_1 = (apu_stat.noise_15_stage_lsfr & 0x2) ? 1 : 0;
+							u8 result = bit_0 ^ bit_1;
+							apu_stat.noise_15_stage_lsfr >>= 1;
+							
+							if(result == 1) { apu_stat.noise_15_stage_lsfr |= 0x4000; }
+						}
+					}
+				}
+
+				//Generate high wave if LSFR returns 1 from first byte and volume is not muted
+				if((apu_stat.noise_stages == 15) && (apu_stat.noise_15_stage_lsfr & 0x1) && (apu_stat.channel[3].volume >= 1)) 
+				{ 
+					stream[x] = -32768 + (4369 * apu_stat.channel[3].volume); 
+				}
+
+				else if((apu_stat.noise_stages == 7) && (apu_stat.noise_7_stage_lsfr & 0x1) && (apu_stat.channel[3].volume >= 1)) 
+				{ 
+					stream[x] = -32768 + (4369 * apu_stat.channel[3].volume); 
+				}
+
+				//Or generate low wave
+				else { stream[x] = -32768; }
+			}
+
+			//Continuously generate sound if necessary
+			else if(apu_stat.channel[3].sample_length == 0) { apu_stat.channel[3].sample_length = (apu_stat.channel[3].duration * 44100)/1000; }
+
+			//Or stop sound after duration has been met, reset Sound 4 On Flag
+			else { apu_stat.channel[3].sample_length = 0; stream[x] = -32768; apu_stat.channel[3].playing = false; }
+		}
+	}
+
+	//Otherwise, generate silence
+	else 
+	{
+		for(int x = 0; x < length; x++) { stream[x] = -32768; }
+	}
+}
+
 /****** Run APU for one cycle ******/
 void APU::step() { }		
 
@@ -421,15 +525,18 @@ void audio_callback(void* _apu, u8 *_stream, int _length)
 	s16 channel_1_stream[length];
 	s16 channel_2_stream[length];
 	s16 channel_3_stream[length];
+	s16 channel_4_stream[length];
 
 	APU* apu_link = (APU*) _apu;
 	apu_link->generate_channel_1_samples(channel_1_stream, length);
 	apu_link->generate_channel_2_samples(channel_2_stream, length);
 	apu_link->generate_channel_3_samples(channel_3_stream, length);
+	apu_link->generate_channel_4_samples(channel_4_stream, length);
 
 	SDL_MixAudio((u8*)stream, (u8*)channel_1_stream, length*2, SDL_MIX_MAXVOLUME/16);
 	SDL_MixAudio((u8*)stream, (u8*)channel_2_stream, length*2, SDL_MIX_MAXVOLUME/16);
 	SDL_MixAudio((u8*)stream, (u8*)channel_3_stream, length*2, SDL_MIX_MAXVOLUME/16);
+	SDL_MixAudio((u8*)stream, (u8*)channel_4_stream, length*2, SDL_MIX_MAXVOLUME/16);
 }
 
 		

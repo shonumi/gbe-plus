@@ -62,6 +62,12 @@ struct apu_data
 	u8 waveram_sample;
 	u8 waveram_size;
 	u8 waveram_data[0x20];
+
+	double noise_dividing_ratio;
+	u32 noise_prescalar;
+	u8 noise_stages;
+	u8 noise_7_stage_lsfr;
+	u16 noise_15_stage_lsfr;
 };
 
 #endif // GBA_APU_DATA

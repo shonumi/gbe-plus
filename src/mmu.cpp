@@ -530,7 +530,6 @@ void MMU::write_u8(u32 address, u8 value)
 			apu_stat->channel[0].volume = (memory_map[SND1CNT_H+1] >> 4) & 0xF;
 			break;
 
-
 		case SND1CNT_X:
 		case SND1CNT_X+1:
 			memory_map[address] = value;
@@ -686,6 +685,54 @@ void MMU::write_u8(u32 address, u8 value)
 			{
 				apu_stat->channel[2].frequency_distance = 0;
 				apu_stat->channel[2].sample_length = (apu_stat->channel[2].duration * 44100)/1000;
+			}
+
+			break;
+
+		case SND4CNT_L:
+		case SND4CNT_L+1:
+			memory_map[address] = value;
+			apu_stat->channel[3].duration = (memory_map[SND4CNT_L] & 0x3F);
+			apu_stat->channel[3].duration = ((64 - apu_stat->channel[3].duration) / 256.0) * 1000.0;
+			apu_stat->channel[3].duty_cycle = (memory_map[SND4CNT_L] >> 6) & 0x3;
+
+			apu_stat->channel[3].envelope_step = (memory_map[SND4CNT_L+1] & 0x7);
+			apu_stat->channel[3].envelope_direction = (memory_map[SND4CNT_L+1] & 0x8) ? 1 : 0;
+			apu_stat->channel[3].volume = (memory_map[SND4CNT_L+1] >> 4) & 0xF;
+			break;
+
+		case SND4CNT_H:
+			memory_map[address] = value;
+
+			switch(memory_map[SND4CNT_H] & 0x7)
+			{
+				case 0x0: apu_stat->noise_dividing_ratio = 0.5; break;
+				case 0x1: apu_stat->noise_dividing_ratio = 1.0; break;
+				case 0x2: apu_stat->noise_dividing_ratio = 2.0; break;
+				case 0x3: apu_stat->noise_dividing_ratio = 3.0; break;
+				case 0x4: apu_stat->noise_dividing_ratio = 4.0; break;
+				case 0x5: apu_stat->noise_dividing_ratio = 5.0; break;
+				case 0x6: apu_stat->noise_dividing_ratio = 6.0; break;
+				case 0x7: apu_stat->noise_dividing_ratio = 7.0; break;
+			}
+
+			apu_stat->noise_stages = (memory_map[SND4CNT_H] & 0x8) ? 7 : 15;
+			apu_stat->noise_prescalar = 2 << (memory_map[SND4CNT_H] >> 4);
+			apu_stat->channel[3].output_frequency = (524288 / apu_stat->noise_dividing_ratio) / apu_stat->noise_prescalar;
+			break;
+
+		case SND4CNT_H+1:
+			memory_map[address] = value;
+			apu_stat->channel[3].length_flag = (memory_map[SND4CNT_H+1] & 0x40) ? true : false;
+			apu_stat->channel[3].playing = (memory_map[SND4CNT_H+1] & 0x80) ? true : false;
+
+			if(apu_stat->channel[3].volume == 0) { apu_stat->channel[3].playing = false; }
+
+			if((address == SND4CNT_H+1) && (apu_stat->channel[3].playing)) 
+			{
+				apu_stat->channel[3].frequency_distance = 0;
+				apu_stat->channel[3].sample_length = (apu_stat->channel[3].duration * 44100)/1000;
+				apu_stat->channel[3].envelope_counter = 0;
 			}
 
 			break;
