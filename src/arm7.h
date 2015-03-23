@@ -242,6 +242,8 @@ class ARM7
 
 	//DMA functions
 	void dma0();
+	void dma1();
+	void dma2();
 	void dma3();
 
 	//Misc CPU helpers

@@ -799,33 +799,21 @@ void MMU::write_u8(u32 address, u8 value)
 			break;
 
 		case DMA1CNT_H:
-			//Start DMA1 transfer if Bit 15 goes from 0 to 1
-			if((value & 0x80) && ((memory_map[DMA1CNT_H] & 0x80) == 0))
-			{
-				dma[1].enable = true;
-				dma[1].started = false;
-				dma[1].delay = 2;
-			}
+		case DMA1CNT_H+1:
+			dma[1].enable = true;
+			dma[1].started = false;
+			dma[1].delay = 2;
 
-			//Halt DMA1 transfer if Bit 15 goes from 1 to 0
-			else if(((value & 0x80) == 0) && (memory_map[DMA1CNT_H] & 0x80)) { dma[1].enable = false; }
-
-			memory_map[DMA1CNT_H] = value;
+			memory_map[address] = value;
 			break;
 
 		case DMA2CNT_H:
-			//Start DMA2 transfer if Bit 15 goes from 0 to 1
-			if((value & 0x80) && ((memory_map[DMA2CNT_H] & 0x80) == 0))
-			{
-				dma[2].enable = true;
-				dma[2].started = false;
-				dma[2].delay = 2;
-			}
+		case DMA2CNT_H+1:
+			dma[2].enable = true;
+			dma[2].started = false;
+			dma[2].delay = 2;
 
-			//Halt DMA2 transfer if Bit 15 goes from 1 to 0
-			else if(((value & 0x80) == 0) && (memory_map[DMA2CNT_H] & 0x80)) { dma[2].enable = false; }
-
-			memory_map[DMA2CNT_H] = value;
+			memory_map[address] = value;
 			break;
 
 		case DMA3CNT_H:

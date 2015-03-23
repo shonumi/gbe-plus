@@ -1300,8 +1300,8 @@ void ARM7::clock(u32 access_addr, bool first_access)
 	for(int x = 0; x < access_cycles; x++)
 	{
 		controllers.video.step();
-		clock_dma();
 		clock_timers();
+		clock_dma();
 		debug_cycles++;
 	}
 }
@@ -1319,6 +1319,12 @@ void ARM7::clock_dma()
 {
 	//DMA0
 	if(mem->dma[0].enable) { dma0(); }
+
+	//DMA1
+	if(mem->dma[1].enable) { dma1(); }
+
+	//DMA2
+	if(mem->dma[2].enable) { dma2(); }
 
 	//DMA3
 	if(mem->dma[3].enable) { dma3(); }
