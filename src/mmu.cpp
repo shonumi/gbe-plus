@@ -749,6 +749,21 @@ void MMU::write_u8(u32 address, u8 value)
 			apu_stat->channel[3].left_enable = (value & 0x80) ? true : false;
 			break;
 
+		case SNDCNT_H:
+		case SNDCNT_H+1:
+			memory_map[address] = value;
+			apu_stat->dma[0].volume = (memory_map[SNDCNT_H] & 0x4) ? 1 : 0;
+			apu_stat->dma[1].volume = (memory_map[SNDCNT_H] & 0x8) ? 1 : 0;
+
+			apu_stat->dma[0].right_enable = (memory_map[SNDCNT_H+1] & 0x1) ? true : false;
+			apu_stat->dma[0].left_enable = (memory_map[SNDCNT_H+1] & 0x2) ? true : false;
+			apu_stat->dma[0].timer = (memory_map[SNDCNT_H+1] & 0x4) ? 1 : 0;
+
+			apu_stat->dma[1].right_enable = (memory_map[SNDCNT_H+1] & 0x10) ? true : false;
+			apu_stat->dma[1].left_enable = (memory_map[SNDCNT_H+1] & 0x20) ? true : false;
+			apu_stat->dma[1].timer = (memory_map[SNDCNT_H+1] & 0x40) ? 1 : 0;
+			break;
+			
 		case WAVERAM0_L : apu_stat->waveram_data[(apu_stat->waveram_bank_rw << 4)] = value; break;
 		case WAVERAM0_L+1: apu_stat->waveram_data[(apu_stat->waveram_bank_rw << 4) + 1] = value; break;
 		case WAVERAM0_H: apu_stat->waveram_data[(apu_stat->waveram_bank_rw << 4) + 2] = value; break;
@@ -828,12 +843,16 @@ void MMU::write_u8(u32 address, u8 value)
 		case TM0CNT_L+1:
 			memory_map[address] = value;
 			timer->at(0).reload_value = ((memory_map[TM0CNT_L+1] << 8) | memory_map[TM0CNT_L]);
+			if(apu_stat->dma[0].timer == 0) { apu_stat->dma[0].output_frequency = (1 << 24) / (0xFFFF - timer->at(0).reload_value); }
+			if(apu_stat->dma[1].timer == 0) { apu_stat->dma[1].output_frequency = (1 << 24) / (0xFFFF - timer->at(0).reload_value); }
 			break;
 
 		case TM1CNT_L:
 		case TM1CNT_L+1:
 			memory_map[address] = value;
 			timer->at(1).reload_value = ((memory_map[TM1CNT_L+1] << 8) | memory_map[TM1CNT_L]);
+			if(apu_stat->dma[0].timer == 1) { apu_stat->dma[0].output_frequency = (1 << 24) / (0xFFFF - timer->at(1).reload_value); }
+			if(apu_stat->dma[1].timer == 1) { apu_stat->dma[1].output_frequency = (1 << 24) / (0xFFFF - timer->at(1).reload_value); }
 			break;
 
 		case TM2CNT_L:

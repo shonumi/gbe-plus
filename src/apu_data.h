@@ -49,6 +49,24 @@ struct apu_data
 		int sample_length;
 	} channel[4];
 
+	//Digital channels, new to the GBA
+	struct dma_channels
+	{
+		u32 output_frequency;
+		u16 counter;
+		u8 timer;
+		u8 volume;
+		int sample_length;
+
+		bool playing;
+		bool enable;
+		bool right_enable;
+		bool left_enable;
+		bool length_flag;
+
+		s8 buffer[0x4000];
+	} dma[2];
+
 	bool sound_on;
 	bool stereo;
 

@@ -83,6 +83,29 @@ void APU::reset()
 
 	//Clear waveram data
 	for(int x = 0; x < 0x20; x++) { apu_stat.waveram_data[x] = 0; }
+
+	//Reset DMA channel data
+	for(int x = 0; x < 2; x++)
+	{
+		apu_stat.dma[x].output_frequency = 0;
+		apu_stat.dma[x].counter = 0;
+		apu_stat.dma[x].timer = 0;
+		apu_stat.dma[x].volume = 0;
+		apu_stat.dma[x].sample_length = 0;
+
+		apu_stat.dma[x].playing = false;
+		apu_stat.dma[x].enable = false;
+		apu_stat.dma[x].right_enable = false;
+		apu_stat.dma[x].left_enable = false;
+		apu_stat.dma[x].length_flag = false;
+	}
+
+	//Reset DMA FIFO buffers
+	for(int x = 0; x < 0x4000; x++) 
+	{
+		apu_stat.dma[0].buffer[x] = 0;
+		apu_stat.dma[1].buffer[x] = 0;
+	}
 }
 
 /****** Initialize APU with SDL ******/
