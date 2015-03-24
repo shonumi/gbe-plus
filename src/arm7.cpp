@@ -1356,6 +1356,22 @@ void ARM7::clock_timers()
 					{
 						mem->memory_map[REG_IF] |= (8 << x);
 					}
+
+					//Timer 0 Audio FIFO A, DMA 1-2
+					if((x == 0) && (controllers.audio.apu_stat.dma[0].timer == 0) && (mem->dma[1].destination_address == FIFO_A)) { mem->dma[1].started = true; }
+					else if((x == 0) && (controllers.audio.apu_stat.dma[0].timer == 0) && (mem->dma[2].destination_address == FIFO_A)) { mem->dma[2].started = true; }
+
+					//Timer 0 Audio FIFO B, DMA 1-2
+					else if((x == 0) && (controllers.audio.apu_stat.dma[1].timer == 0) && (mem->dma[1].destination_address == FIFO_B)) { mem->dma[1].started = true; }
+					else if((x == 0) && (controllers.audio.apu_stat.dma[1].timer == 0) && (mem->dma[2].destination_address == FIFO_B)) { mem->dma[2].started = true; }
+
+					//Timer 1 Audio FIFO A, DMA 1-2
+					else if((x == 1) && (controllers.audio.apu_stat.dma[0].timer == 0) && (mem->dma[1].destination_address == FIFO_A)) { mem->dma[1].started = true; }
+					else if((x == 1) && (controllers.audio.apu_stat.dma[0].timer == 0) && (mem->dma[2].destination_address == FIFO_A)) { mem->dma[2].started = true; }
+
+					//Timer 1 Audio FIFO B, DMA 1-2
+					else if((x == 1) && (controllers.audio.apu_stat.dma[1].timer == 0) && (mem->dma[1].destination_address == FIFO_B)) { mem->dma[1].started = true; }
+					else if((x == 1) && (controllers.audio.apu_stat.dma[1].timer == 0) && (mem->dma[2].destination_address == FIFO_B)) { mem->dma[2].started = true; }
 				}
 			}
 		}
