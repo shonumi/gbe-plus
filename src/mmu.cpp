@@ -789,6 +789,22 @@ void MMU::write_u8(u32 address, u8 value)
 			memory_map[address] &= ~value;
 			break;
 
+		case DMA0SAD:
+		case DMA0SAD+1:
+		case DMA0SAD+2:
+		case DMA0SAD+3:
+			memory_map[address] = value;
+			dma[0].start_address = ((memory_map[DMA0SAD+3] << 24) | (memory_map[DMA0SAD+2] << 16) | (memory_map[DMA0SAD+1] << 8) | memory_map[DMA0SAD]) & 0x7FFFFFF;
+			break;
+
+		case DMA0DAD:
+		case DMA0DAD+1:
+		case DMA0DAD+2:
+		case DMA0DAD+3:
+			memory_map[address] = value;
+			dma[0].destination_address = ((memory_map[DMA0DAD+3] << 24) | (memory_map[DMA0DAD+2] << 16) | (memory_map[DMA0DAD+1] << 8) | memory_map[DMA0DAD]) & 0x7FFFFFF;
+			break;
+
 		case DMA0CNT_H:
 		case DMA0CNT_H+1:
 			dma[0].enable = true;
@@ -796,6 +812,22 @@ void MMU::write_u8(u32 address, u8 value)
 			dma[0].delay = 2;
 
 			memory_map[address] = value;
+			break;
+
+		case DMA1SAD:
+		case DMA1SAD+1:
+		case DMA1SAD+2:
+		case DMA1SAD+3:
+			memory_map[address] = value;
+			dma[1].start_address = ((memory_map[DMA1SAD+3] << 24) | (memory_map[DMA1SAD+2] << 16) | (memory_map[DMA1SAD+1] << 8) | memory_map[DMA1SAD]) & 0xFFFFFFF;
+			break;
+
+		case DMA1DAD:
+		case DMA1DAD+1:
+		case DMA1DAD+2:
+		case DMA1DAD+3:
+			memory_map[address] = value;
+			dma[1].destination_address = ((memory_map[DMA1DAD+3] << 24) | (memory_map[DMA1DAD+2] << 16) | (memory_map[DMA1DAD+1] << 8) | memory_map[DMA1DAD]) & 0x7FFFFFF;
 			break;
 
 		case DMA1CNT_H:
@@ -807,6 +839,22 @@ void MMU::write_u8(u32 address, u8 value)
 			memory_map[address] = value;
 			break;
 
+		case DMA2SAD:
+		case DMA2SAD+1:
+		case DMA2SAD+2:
+		case DMA2SAD+3:
+			memory_map[address] = value;
+			dma[2].start_address = ((memory_map[DMA2SAD+3] << 24) | (memory_map[DMA2SAD+2] << 16) | (memory_map[DMA2SAD+1] << 8) | memory_map[DMA2SAD]) & 0xFFFFFFF;
+			break;
+
+		case DMA2DAD:
+		case DMA2DAD+1:
+		case DMA2DAD+2:
+		case DMA2DAD+3:
+			memory_map[address] = value;
+			dma[2].destination_address = ((memory_map[DMA2DAD+3] << 24) | (memory_map[DMA2DAD+2] << 16) | (memory_map[DMA2DAD+1] << 8) | memory_map[DMA2DAD]) & 0x7FFFFFF;
+			break;
+
 		case DMA2CNT_H:
 		case DMA2CNT_H+1:
 			dma[2].enable = true;
@@ -814,6 +862,22 @@ void MMU::write_u8(u32 address, u8 value)
 			dma[2].delay = 2;
 
 			memory_map[address] = value;
+			break;
+
+		case DMA3SAD:
+		case DMA3SAD+1:
+		case DMA3SAD+2:
+		case DMA3SAD+3:
+			memory_map[address] = value;
+			dma[3].start_address = ((memory_map[DMA3SAD+3] << 24) | (memory_map[DMA3SAD+2] << 16) | (memory_map[DMA3SAD+1] << 8) | memory_map[DMA3SAD]) & 0xFFFFFFF;
+			break;
+
+		case DMA3DAD:
+		case DMA3DAD+1:
+		case DMA3DAD+2:
+		case DMA3DAD+3:
+			memory_map[address] = value;
+			dma[3].destination_address = ((memory_map[DMA3DAD+3] << 24) | (memory_map[DMA3DAD+2] << 16) | (memory_map[DMA3DAD+1] << 8) | memory_map[DMA3DAD]) & 0xFFFFFFF;
 			break;
 
 		case DMA3CNT_H:

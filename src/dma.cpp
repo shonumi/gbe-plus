@@ -22,8 +22,6 @@ void ARM7::dma0()
 	//See if DMA Start Timing conditions dictate a transfer
 	else
 	{
-		mem->dma[0].start_address = (mem->read_u32_fast(DMA0SAD) & 0x7FFFFFF);
-		mem->dma[0].destination_address = (mem->read_u32_fast(DMA0DAD) & 0x7FFFFFF);
 		mem->dma[0].word_count = mem->read_u16_fast(DMA0CNT_L);
 		mem->dma[0].word_type = (mem->read_u16_fast(DMA0CNT_H) & 0x400) ? 1 : 0;
 
@@ -211,8 +209,6 @@ void ARM7::dma1()
 	//See if DMA Start Timing conditions dictate a transfer
 	else
 	{
-		mem->dma[1].start_address = (mem->read_u32_fast(DMA1SAD) & 0xFFFFFFF);
-		mem->dma[1].destination_address = (mem->read_u32_fast(DMA1DAD) & 0x7FFFFFF);
 		mem->dma[1].word_count = mem->read_u16_fast(DMA1CNT_L);
 		mem->dma[1].word_type = (mem->read_u16_fast(DMA1CNT_H) & 0x400) ? 1 : 0;
 
@@ -384,8 +380,8 @@ void ARM7::dma1()
 
 			//Special
 			case 0x3:
-				std::cout<<"Special DMA1!\n";
 				mem->dma[1].enable = false;
+				mem->dma[1].started = false;
 				break;
 		}
 	}
@@ -400,8 +396,6 @@ void ARM7::dma2()
 	//See if DMA Start Timing conditions dictate a transfer
 	else
 	{
-		mem->dma[2].start_address = (mem->read_u32_fast(DMA2SAD) & 0xFFFFFFF);
-		mem->dma[2].destination_address = (mem->read_u32_fast(DMA2DAD) & 0x7FFFFFF);
 		mem->dma[2].word_count = mem->read_u16_fast(DMA2CNT_L);
 		mem->dma[2].word_type = (mem->read_u16_fast(DMA2CNT_H) & 0x400) ? 1 : 0;
 
@@ -573,8 +567,8 @@ void ARM7::dma2()
 
 			//Special
 			case 0x3:
-				std::cout<<"Special DMA2!\n";
 				mem->dma[2].enable = false;
+				mem->dma[2].started = false;
 				break;
 		}
 	}
@@ -589,8 +583,6 @@ void ARM7::dma3()
 	//See if DMA Start Timing conditions dictate a transfer
 	else
 	{
-		mem->dma[3].start_address = (mem->read_u32_fast(DMA3SAD) & 0xFFFFFFF);
-		mem->dma[3].destination_address = (mem->read_u32_fast(DMA3DAD) & 0xFFFFFFF);
 		mem->dma[3].word_count = mem->read_u16_fast(DMA3CNT_L);
 		mem->dma[3].word_type = (mem->read_u16_fast(DMA3CNT_H) & 0x400) ? 1 : 0;
 
