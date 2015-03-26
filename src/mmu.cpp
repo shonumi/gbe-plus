@@ -807,11 +807,14 @@ void MMU::write_u8(u32 address, u8 value)
 
 		case DMA0CNT_H:
 		case DMA0CNT_H+1:
+			memory_map[address] = value;
+			dma[0].control = ((memory_map[DMA0CNT_H+1] << 8) | memory_map[DMA0CNT_H]);
+			dma[0].dest_addr_ctrl = (dma[0].control >> 5) & 0x3;
+			dma[0].src_addr_ctrl = (dma[0].control >> 7) & 0x3;
+			
 			dma[0].enable = true;
 			dma[0].started = false;
 			dma[0].delay = 2;
-
-			memory_map[address] = value;
 			break;
 
 		case DMA1SAD:
@@ -832,11 +835,14 @@ void MMU::write_u8(u32 address, u8 value)
 
 		case DMA1CNT_H:
 		case DMA1CNT_H+1:
+			memory_map[address] = value;
+			dma[1].control = ((memory_map[DMA1CNT_H+1] << 8) | memory_map[DMA1CNT_H]);
+			dma[1].dest_addr_ctrl = (dma[1].control >> 5) & 0x3;
+			dma[1].src_addr_ctrl = (dma[1].control >> 7) & 0x3;
+
 			dma[1].enable = true;
 			dma[1].started = false;
 			dma[1].delay = 2;
-
-			memory_map[address] = value;
 			break;
 
 		case DMA2SAD:
@@ -857,11 +863,14 @@ void MMU::write_u8(u32 address, u8 value)
 
 		case DMA2CNT_H:
 		case DMA2CNT_H+1:
+			memory_map[address] = value;
+			dma[2].control = ((memory_map[DMA2CNT_H+1] << 8) | memory_map[DMA2CNT_H]);
+			dma[2].dest_addr_ctrl = (dma[2].control >> 5) & 0x3;
+			dma[2].src_addr_ctrl = (dma[2].control >> 7) & 0x3;
+
 			dma[2].enable = true;
 			dma[2].started = false;
 			dma[2].delay = 2;
-
-			memory_map[address] = value;
 			break;
 
 		case DMA3SAD:
@@ -882,11 +891,14 @@ void MMU::write_u8(u32 address, u8 value)
 
 		case DMA3CNT_H:
 		case DMA3CNT_H+1:
+			memory_map[address] = value;
+			dma[3].control = ((memory_map[DMA3CNT_H+1] << 8) | memory_map[DMA3CNT_H]);
+			dma[3].dest_addr_ctrl = (dma[3].control >> 5) & 0x3;
+			dma[3].src_addr_ctrl = (dma[3].control >> 7) & 0x3;
+
 			dma[3].enable = true;
 			dma[3].started = false;
 			dma[3].delay = 2;
-
-			memory_map[address] = value;
 			break;
 
 		case KEYINPUT: break;
