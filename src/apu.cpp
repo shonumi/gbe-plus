@@ -29,7 +29,7 @@ APU::~APU()
 /****** Reset APU ******/
 void APU::reset()
 {
-	setup = false;
+	SDL_CloseAudio();
 
 	apu_stat.sound_on = false;
 	apu_stat.stereo = false;

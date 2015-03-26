@@ -24,7 +24,6 @@ class APU
 	MMU* mem;
 
 	apu_data apu_stat;
-	bool setup;
 
 	SDL_AudioSpec desired_spec;
     	SDL_AudioSpec obtained_spec;
