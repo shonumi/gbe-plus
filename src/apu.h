@@ -35,16 +35,11 @@ class APU
 	void reset();
 
 	void generate_channel_1_samples(s16* stream, int length);
-	void play_channel_1();
-
 	void generate_channel_2_samples(s16* stream, int length);
-	void play_channel_2();
-
 	void generate_channel_3_samples(s16* stream, int length);
-	void play_channel_3();
-
 	void generate_channel_4_samples(s16* stream, int length);
-	void play_channel_4();
+	void generate_dma_a_samples(s16* stream, int length);
+	void generate_dma_b_samples(s16* stream, int length);
 
 	void step();
 };

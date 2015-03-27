@@ -823,6 +823,7 @@ void MMU::write_u8(u32 address, u8 value)
 		case DMA1SAD+3:
 			memory_map[address] = value;
 			dma[1].start_address = ((memory_map[DMA1SAD+3] << 24) | (memory_map[DMA1SAD+2] << 16) | (memory_map[DMA1SAD+1] << 8) | memory_map[DMA1SAD]) & 0xFFFFFFF;
+			dma[1].original_start_address = dma[1].start_address;
 			break;
 
 		case DMA1DAD:
@@ -839,6 +840,8 @@ void MMU::write_u8(u32 address, u8 value)
 			dma[1].control = ((memory_map[DMA1CNT_H+1] << 8) | memory_map[DMA1CNT_H]);
 			dma[1].dest_addr_ctrl = (dma[1].control >> 5) & 0x3;
 			dma[1].src_addr_ctrl = (dma[1].control >> 7) & 0x3;
+
+			if((dma[1].control & 0x200) == 0) { dma[1].start_address = dma[1].original_start_address; }
 
 			dma[1].enable = true;
 			dma[1].started = false;

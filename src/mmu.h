@@ -52,6 +52,7 @@ class MMU
 		bool enable;
 		bool started;
 		u32 start_address;
+		u32 original_start_address;
 		u32 destination_address;
 		u32 current_dma_position;
 		u32 word_count;

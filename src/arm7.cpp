@@ -1358,7 +1358,26 @@ void ARM7::clock_timers()
 					}
 
 					//Timer 0 Audio FIFO A, DMA 1-2
-					if((x == 0) && (controllers.audio.apu_stat.dma[0].timer == 0) && (mem->dma[1].destination_address == FIFO_A)) { mem->dma[1].started = true; }
+					if((x == 0) && (controllers.audio.apu_stat.dma[0].timer == 0) && (mem->dma[1].destination_address == FIFO_A)) 
+					{ 
+						controllers.audio.apu_stat.dma[0].buffer[controllers.audio.apu_stat.dma[0].counter++] = mem->memory_map[mem->dma[1].start_address++];
+						controllers.audio.apu_stat.dma[0].buffer[controllers.audio.apu_stat.dma[0].counter++] = mem->memory_map[mem->dma[1].start_address++];
+						controllers.audio.apu_stat.dma[0].buffer[controllers.audio.apu_stat.dma[0].counter++] = mem->memory_map[mem->dma[1].start_address++];
+						controllers.audio.apu_stat.dma[0].buffer[controllers.audio.apu_stat.dma[0].counter++] = mem->memory_map[mem->dma[1].start_address++];
+						controllers.audio.apu_stat.dma[0].buffer[controllers.audio.apu_stat.dma[0].counter++] = mem->memory_map[mem->dma[1].start_address++];
+						controllers.audio.apu_stat.dma[0].buffer[controllers.audio.apu_stat.dma[0].counter++] = mem->memory_map[mem->dma[1].start_address++];
+						controllers.audio.apu_stat.dma[0].buffer[controllers.audio.apu_stat.dma[0].counter++] = mem->memory_map[mem->dma[1].start_address++];
+						controllers.audio.apu_stat.dma[0].buffer[controllers.audio.apu_stat.dma[0].counter++] = mem->memory_map[mem->dma[1].start_address++];
+						controllers.audio.apu_stat.dma[0].buffer[controllers.audio.apu_stat.dma[0].counter++] = mem->memory_map[mem->dma[1].start_address++];
+						controllers.audio.apu_stat.dma[0].buffer[controllers.audio.apu_stat.dma[0].counter++] = mem->memory_map[mem->dma[1].start_address++];
+						controllers.audio.apu_stat.dma[0].buffer[controllers.audio.apu_stat.dma[0].counter++] = mem->memory_map[mem->dma[1].start_address++];
+						controllers.audio.apu_stat.dma[0].buffer[controllers.audio.apu_stat.dma[0].counter++] = mem->memory_map[mem->dma[1].start_address++];
+						controllers.audio.apu_stat.dma[0].buffer[controllers.audio.apu_stat.dma[0].counter++] = mem->memory_map[mem->dma[1].start_address++];
+						controllers.audio.apu_stat.dma[0].buffer[controllers.audio.apu_stat.dma[0].counter++] = mem->memory_map[mem->dma[1].start_address++];
+						controllers.audio.apu_stat.dma[0].buffer[controllers.audio.apu_stat.dma[0].counter++] = mem->memory_map[mem->dma[1].start_address++];
+						controllers.audio.apu_stat.dma[0].buffer[controllers.audio.apu_stat.dma[0].counter++] = mem->memory_map[mem->dma[1].start_address++];
+					}
+
 					else if((x == 0) && (controllers.audio.apu_stat.dma[0].timer == 0) && (mem->dma[2].destination_address == FIFO_A)) { mem->dma[2].started = true; }
 
 					//Timer 0 Audio FIFO B, DMA 1-2
