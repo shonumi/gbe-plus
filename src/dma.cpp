@@ -373,7 +373,7 @@ void ARM7::dma1()
 			//Special
 			case 0x3:
 				mem->dma[1].enable = false;
-				mem->dma[1].started = false;
+				mem->dma[1].started = true;
 				break;
 		}
 	}
@@ -556,7 +556,7 @@ void ARM7::dma2()
 			//Special
 			case 0x3:
 				mem->dma[2].enable = false;
-				mem->dma[2].started = false;
+				mem->dma[2].started = true;
 				break;
 		}
 	}
