@@ -543,16 +543,27 @@ void APU::generate_dma_a_samples(s16* stream, int length)
 	if((apu_stat.dma[0].left_enable || apu_stat.dma[0].right_enable) && (apu_stat.dma[0].counter != 0))
 	{
 		double sample_ratio = apu_stat.dma[0].output_frequency/44100.0;
-		s8 buffer_sample = 0;
+		u8 buffer_sample = 0;
+		s8 buffer_output = 0;
 		u16 buffer_pos = 0;
 
 		for(int x = 0; x < length; x++)
 		{
 			buffer_pos = sample_ratio * x;
 			buffer_sample = apu_stat.dma[0].buffer[buffer_pos];
+			
+			if(buffer_sample & 0x80)
+			{
+				buffer_sample--;
+				buffer_sample = ~buffer_sample;
+				buffer_output = 0 - buffer_sample;
+			}
+
+			else { buffer_output = buffer_sample; }
+			
 
 			//Scale S8 audio to S16
-			stream[x] = buffer_sample * 256;
+			stream[x] = buffer_output * 256;
 		}
 	}
 
@@ -573,16 +584,27 @@ void APU::generate_dma_b_samples(s16* stream, int length)
 	if((apu_stat.dma[1].left_enable || apu_stat.dma[1].right_enable) && (apu_stat.dma[1].counter != 0))
 	{
 		double sample_ratio = apu_stat.dma[1].output_frequency/44100.0;
-		s8 buffer_sample = 0;
+		u8 buffer_sample = 0;
+		s8 buffer_output = 0;
 		u16 buffer_pos = 0;
 
 		for(int x = 0; x < length; x++)
 		{
 			buffer_pos = sample_ratio * x;
 			buffer_sample = apu_stat.dma[1].buffer[buffer_pos];
+			
+			if(buffer_sample & 0x80)
+			{
+				buffer_sample--;
+				buffer_sample = ~buffer_sample;
+				buffer_output = 0 - buffer_sample;
+			}
+
+			else { buffer_output = buffer_sample; }
+			
 
 			//Scale S8 audio to S16
-			stream[x] = buffer_sample * 256;
+			stream[x] = buffer_output * 256;
 		}
 	}
 
