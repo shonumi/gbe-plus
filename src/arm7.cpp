@@ -55,6 +55,7 @@ void ARM7::reset()
 		controllers.timer[x].reload_value = 0;
 		controllers.timer[x].prescalar = 0;
 		controllers.timer[x].cycles = 0;
+		controllers.timer[x].count_up = false;
 		controllers.timer[x].enable = false;
 	}
 
@@ -1344,12 +1345,15 @@ void ARM7::clock_timers()
 			if(controllers.timer[x].cycles == controllers.timer[x].prescalar)
 			{
 				controllers.timer[x].cycles = 0;
-				controllers.timer[x].counter++;
+				if(!controllers.timer[x].count_up) { controllers.timer[x].counter++; }
 
 				//If counter overflows, reload value, trigger interrupt if necessary
 				if(controllers.timer[x].counter == 0) 
 				{
 					controllers.timer[x].counter = controllers.timer[x].reload_value;
+
+					//Increment next timer if in count-up mode
+					if((x < 4) && (controllers.timer[x+1].count_up)) { controllers.timer[x+1].counter++; }
 
 					//Interrupt
 					if(controllers.timer[x].interrupt)
