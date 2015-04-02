@@ -193,7 +193,8 @@ void ARM7::process_swi(u32 comment)
 
 		//MidiKey2Freq
 		case 0x1F:
-			//std::cout<<"SWI::Midi Key to Frequency (not implemented yet) \n";
+			//std::cout<<"SWI::Midi Key to Frequency \n";
+			swi_midikey2freq();
 			break;
 
 		//Undocumented Sound Function 0
@@ -1056,4 +1057,22 @@ void ARM7::swi_objaffineset()
 		mem->write_u16(dest_addr, diff_y1); dest_addr += offset;
 		mem->write_u16(dest_addr, diff_y2); dest_addr += offset;
 	}
+}
+
+/****** HLE implementation of MidiKey2Freq ******/
+void ARM7::swi_midikey2freq()
+{
+	bios_read_state = BIOS_SWI_FINISH;
+
+	//Grab input frequency
+	u32 frequency = mem->read_u32(get_reg(0) + 4);
+
+	//Grab Midi key and fine adjustment value - R1 and R2
+	u8 mk = get_reg(1);
+	u8 fp = get_reg(2);
+
+	double temp_frequency = (180.0 - mk) - (fp / 256.0);
+
+	temp_frequency = pow(2.0, temp_frequency/12.0);
+	set_reg(0, frequency/temp_frequency);
 }
