@@ -88,6 +88,7 @@ void APU::reset()
 	for(int x = 0; x < 2; x++)
 	{
 		apu_stat.dma[x].output_frequency = 0;
+		apu_stat.dma[x].last_position = 0;
 		apu_stat.dma[x].counter = 0;
 		apu_stat.dma[x].timer = 0;
 		apu_stat.dma[x].volume = 0;
@@ -549,7 +550,7 @@ void APU::generate_dma_a_samples(s16* stream, int length)
 
 		for(int x = 0; x < length; x++)
 		{
-			buffer_pos = sample_ratio * x;
+			buffer_pos = apu_stat.dma[0].last_position + (sample_ratio * x);
 			buffer_sample = apu_stat.dma[0].buffer[buffer_pos];
 			
 			if(buffer_sample & 0x80)
@@ -565,16 +566,17 @@ void APU::generate_dma_a_samples(s16* stream, int length)
 			//Scale S8 audio to S16
 			stream[x] = buffer_output * 256;
 		}
+
+		//Reset DMA channel A buffer
+		apu_stat.dma[0].counter = apu_stat.dma[0].last_position = buffer_pos;
 	}
 
 	//Otherwise, generate silence
 	else 
 	{
 		for(int x = 0; x < length; x++) { stream[x] = -32768; }
+		apu_stat.dma[0].counter = apu_stat.dma[0].last_position = 0;
 	}
-
-	//Reset DMA channel A buffer
-	apu_stat.dma[0].counter = 0;
 }
 
 /******* Generate samples for GBA DMA channel B ******/
@@ -590,7 +592,7 @@ void APU::generate_dma_b_samples(s16* stream, int length)
 
 		for(int x = 0; x < length; x++)
 		{
-			buffer_pos = sample_ratio * x;
+			buffer_pos = apu_stat.dma[1].last_position + (sample_ratio * x);
 			buffer_sample = apu_stat.dma[1].buffer[buffer_pos];
 			
 			if(buffer_sample & 0x80)
@@ -606,16 +608,17 @@ void APU::generate_dma_b_samples(s16* stream, int length)
 			//Scale S8 audio to S16
 			stream[x] = buffer_output * 256;
 		}
+
+		//Reset DMA channel A buffer
+		apu_stat.dma[1].counter = apu_stat.dma[1].last_position = buffer_pos;
 	}
 
 	//Otherwise, generate silence
 	else 
 	{
 		for(int x = 0; x < length; x++) { stream[x] = -32768; }
+		apu_stat.dma[1].counter = apu_stat.dma[1].last_position = 0;
 	}
-
-	//Reset DMA channel B buffer
-	apu_stat.dma[1].counter = 0;
 }
 
 /****** Run APU for one cycle ******/
@@ -649,5 +652,3 @@ void audio_callback(void* _apu, u8 *_stream, int _length)
 	SDL_MixAudio((u8*)stream, (u8*)dma_a_stream, length*2, SDL_MIX_MAXVOLUME/16);
 	SDL_MixAudio((u8*)stream, (u8*)dma_b_stream, length*2, SDL_MIX_MAXVOLUME/16);
 }
-
-		

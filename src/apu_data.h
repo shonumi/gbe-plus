@@ -54,6 +54,7 @@ struct apu_data
 	{
 		u32 output_frequency;
 		u16 counter;
+		u16 last_position;
 		u8 timer;
 		u8 volume;
 		int sample_length;
@@ -64,7 +65,7 @@ struct apu_data
 		bool left_enable;
 		bool length_flag;
 
-		s8 buffer[0x4000];
+		s8 buffer[0x10000];
 	} dma[2];
 
 	bool sound_on;
