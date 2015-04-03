@@ -1365,11 +1365,13 @@ void ARM7::clock_timers()
 					if((x == 0) && (controllers.audio.apu_stat.dma[0].timer == 0) && (mem->dma[1].destination_address == FIFO_A) && (mem->dma[1].started)) 
 					{
 						controllers.audio.apu_stat.dma[0].buffer[controllers.audio.apu_stat.dma[0].counter++] = mem->memory_map[mem->dma[1].start_address++];
+						controllers.audio.apu_stat.dma[0].length++;
 					}
 
 					if((x == 0) && (controllers.audio.apu_stat.dma[1].timer == 0) && (mem->dma[2].destination_address == FIFO_B) && (mem->dma[2].started)) 
 					{ 
 						controllers.audio.apu_stat.dma[1].buffer[controllers.audio.apu_stat.dma[1].counter++] = mem->memory_map[mem->dma[2].start_address++];
+						controllers.audio.apu_stat.dma[1].length++;
 					}
 					
 					/*

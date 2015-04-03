@@ -90,15 +90,15 @@ void APU::reset()
 		apu_stat.dma[x].output_frequency = 0;
 		apu_stat.dma[x].last_position = 0;
 		apu_stat.dma[x].counter = 0;
+		apu_stat.dma[x].length = 0;
 		apu_stat.dma[x].timer = 0;
 		apu_stat.dma[x].volume = 0;
-		apu_stat.dma[x].sample_length = 0;
+
 
 		apu_stat.dma[x].playing = false;
 		apu_stat.dma[x].enable = false;
 		apu_stat.dma[x].right_enable = false;
 		apu_stat.dma[x].left_enable = false;
-		apu_stat.dma[x].length_flag = false;
 	}
 
 	//Reset DMA FIFO buffers
@@ -577,6 +577,8 @@ void APU::generate_dma_a_samples(s16* stream, int length)
 		for(int x = 0; x < length; x++) { stream[x] = -32768; }
 		apu_stat.dma[0].counter = apu_stat.dma[0].last_position = 0;
 	}
+
+	apu_stat.dma[0].length = 0;
 }
 
 /******* Generate samples for GBA DMA channel B ******/
@@ -619,6 +621,8 @@ void APU::generate_dma_b_samples(s16* stream, int length)
 		for(int x = 0; x < length; x++) { stream[x] = -32768; }
 		apu_stat.dma[1].counter = apu_stat.dma[1].last_position = 0;
 	}
+
+	apu_stat.dma[1].length = 0;
 }
 
 /****** Run APU for one cycle ******/
