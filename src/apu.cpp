@@ -550,7 +550,7 @@ void APU::generate_dma_a_samples(s16* stream, int length)
 
 		for(int x = 0; x < length; x++)
 		{
-			buffer_pos = apu_stat.dma[0].last_position + (sample_ratio * x);
+			if((sample_ratio * x) < apu_stat.dma[0].length) { buffer_pos = apu_stat.dma[0].last_position + (sample_ratio * x); }
 			buffer_sample = apu_stat.dma[0].buffer[buffer_pos];
 			
 			if(buffer_sample & 0x80)
@@ -594,7 +594,7 @@ void APU::generate_dma_b_samples(s16* stream, int length)
 
 		for(int x = 0; x < length; x++)
 		{
-			buffer_pos = apu_stat.dma[1].last_position + (sample_ratio * x);
+			if((sample_ratio * x) < apu_stat.dma[1].length) { buffer_pos = apu_stat.dma[1].last_position + (sample_ratio * x); }
 			buffer_sample = apu_stat.dma[1].buffer[buffer_pos];
 			
 			if(buffer_sample & 0x80)
