@@ -24,6 +24,7 @@ struct apu_data
 
 		u32 duration;
 		u32 volume;
+		double master_volume;
 
 		bool playing;
 		bool enable;
@@ -70,8 +71,9 @@ struct apu_data
 	bool sound_on;
 	bool stereo;
 
-	u8 channel_left_volume;
-	u8 channel_right_volume;
+	double channel_left_volume;
+	double channel_right_volume;
+
 	u8 dma_left_volume;
 	u8 dma_right_volume;
 

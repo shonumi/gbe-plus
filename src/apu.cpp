@@ -34,8 +34,9 @@ void APU::reset()
 	apu_stat.sound_on = false;
 	apu_stat.stereo = false;
 
-	apu_stat.channel_left_volume = 0;
-	apu_stat.channel_right_volume = 0;
+	apu_stat.channel_left_volume = 0.0;
+	apu_stat.channel_right_volume = 0.0;
+
 	apu_stat.dma_left_volume = 0;
 	apu_stat.dma_right_volume = 0;
 
@@ -102,7 +103,7 @@ void APU::reset()
 	}
 
 	//Reset DMA FIFO buffers
-	for(int x = 0; x < 0x4000; x++) 
+	for(int x = 0; x < 0x10000; x++) 
 	{
 		apu_stat.dma[0].buffer[x] = -127;
 		apu_stat.dma[1].buffer[x] = -127;
@@ -234,7 +235,7 @@ void APU::generate_channel_1_samples(s16* stream, int length)
 				&& (apu_stat.channel[0].frequency_distance < (frequency_samples/8) * apu_stat.channel[0].duty_cycle_end)
 				&& (apu_stat.channel[0].volume != 0))
 				{
-					stream[x] = -32768 + (4369 * apu_stat.channel[0].volume);
+					stream[x] = -32768 + (apu_stat.channel_right_volume * apu_stat.channel[0].volume);
 				}
 
 				//Generate low wave form if duty cycle is off OR volume is muted
@@ -301,7 +302,7 @@ void APU::generate_channel_2_samples(s16* stream, int length)
 				&& (apu_stat.channel[1].frequency_distance < (frequency_samples/8) * apu_stat.channel[1].duty_cycle_end)
 				&& (apu_stat.channel[1].volume != 0))
 				{
-					stream[x] = -32768 + (4369 * apu_stat.channel[1].volume);
+					stream[x] = -32768 + (apu_stat.channel_right_volume * apu_stat.channel[1].volume);
 				}
 
 				//Generate low wave form if duty cycle is off OR volume is muted
@@ -380,10 +381,10 @@ void APU::generate_channel_3_samples(s16* stream, int length)
 					switch(apu_stat.channel[2].volume)
 					{
 						case 0x0: stream[x] = -32768; break;
-						case 0x1: stream[x] = -32768 + (4369 * apu_stat.waveram_sample); break;
-						case 0x2: stream[x] = (-32768 + (4369 * apu_stat.waveram_sample)) * 0.5; break;
-						case 0x3: stream[x] = (-32768 + (4369 * apu_stat.waveram_sample)) * 0.25; break;
-						case 0x4: stream[x] = (-32768 + (4369 * apu_stat.waveram_sample)) * 0.75; break;
+						case 0x1: stream[x] = -32768 + (apu_stat.channel_right_volume * apu_stat.waveram_sample); break;
+						case 0x2: stream[x] = (-32768 + (apu_stat.channel_right_volume * apu_stat.waveram_sample)) * 0.5; break;
+						case 0x3: stream[x] = (-32768 + (apu_stat.channel_right_volume * apu_stat.waveram_sample)) * 0.25; break;
+						case 0x4: stream[x] = (-32768 + (apu_stat.channel_right_volume * apu_stat.waveram_sample)) * 0.75; break;
 						default: stream[x] = -32768; break;
 					}
 				}
@@ -407,10 +408,10 @@ void APU::generate_channel_3_samples(s16* stream, int length)
 					switch(apu_stat.channel[2].volume)
 					{
 						case 0x0: stream[x] = -32768; break;
-						case 0x1: stream[x] = -32768 + (4369 * apu_stat.waveram_sample); break;
-						case 0x2: stream[x] = (-32768 + (4369 * apu_stat.waveram_sample)) * 0.5; break;
-						case 0x3: stream[x] = (-32768 + (4369 * apu_stat.waveram_sample)) * 0.25; break;
-						case 0x4: stream[x] = (-32768 + (4369 * apu_stat.waveram_sample)) * 0.75; break;
+						case 0x1: stream[x] = -32768 + (apu_stat.channel_right_volume * apu_stat.waveram_sample); break;
+						case 0x2: stream[x] = (-32768 + (apu_stat.channel_right_volume * apu_stat.waveram_sample)) * 0.5; break;
+						case 0x3: stream[x] = (-32768 + (apu_stat.channel_right_volume * apu_stat.waveram_sample)) * 0.25; break;
+						case 0x4: stream[x] = (-32768 + (apu_stat.channel_right_volume * apu_stat.waveram_sample)) * 0.75; break;
 						default: stream[x] = -32768; break;
 					}
 				}
@@ -510,12 +511,12 @@ void APU::generate_channel_4_samples(s16* stream, int length)
 				//Generate high wave if LSFR returns 1 from first byte and volume is not muted
 				if((apu_stat.noise_stages == 15) && (apu_stat.noise_15_stage_lsfr & 0x1) && (apu_stat.channel[3].volume >= 1)) 
 				{ 
-					stream[x] = -32768 + (4369 * apu_stat.channel[3].volume); 
+					stream[x] = -32768 + (apu_stat.channel_right_volume * apu_stat.channel[3].volume); 
 				}
 
 				else if((apu_stat.noise_stages == 7) && (apu_stat.noise_7_stage_lsfr & 0x1) && (apu_stat.channel[3].volume >= 1)) 
 				{ 
-					stream[x] = -32768 + (4369 * apu_stat.channel[3].volume); 
+					stream[x] = -32768 + (apu_stat.channel_right_volume * apu_stat.channel[3].volume); 
 				}
 
 				//Or generate low wave
