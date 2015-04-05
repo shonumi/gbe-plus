@@ -34,6 +34,9 @@ void APU::reset()
 	apu_stat.sound_on = false;
 	apu_stat.stereo = false;
 
+	apu_stat.main_volume = 8;
+
+	apu_stat.channel_master_volume = 128;
 	apu_stat.channel_left_volume = 0.0;
 	apu_stat.channel_right_volume = 0.0;
 
@@ -93,8 +96,7 @@ void APU::reset()
 		apu_stat.dma[x].counter = 0;
 		apu_stat.dma[x].length = 0;
 		apu_stat.dma[x].timer = 0;
-		apu_stat.dma[x].volume = 0;
-
+		apu_stat.dma[x].master_volume = 128;
 
 		apu_stat.dma[x].playing = false;
 		apu_stat.dma[x].enable = false;
@@ -650,10 +652,10 @@ void audio_callback(void* _apu, u8 *_stream, int _length)
 	apu_link->generate_dma_a_samples(dma_a_stream, length);
 	apu_link->generate_dma_b_samples(dma_b_stream, length);
 
-	SDL_MixAudio((u8*)stream, (u8*)channel_1_stream, length*2, SDL_MIX_MAXVOLUME/16);
-	SDL_MixAudio((u8*)stream, (u8*)channel_2_stream, length*2, SDL_MIX_MAXVOLUME/16);
-	SDL_MixAudio((u8*)stream, (u8*)channel_3_stream, length*2, SDL_MIX_MAXVOLUME/16);
-	SDL_MixAudio((u8*)stream, (u8*)channel_4_stream, length*2, SDL_MIX_MAXVOLUME/16);
-	SDL_MixAudio((u8*)stream, (u8*)dma_a_stream, length*2, SDL_MIX_MAXVOLUME/16);
-	SDL_MixAudio((u8*)stream, (u8*)dma_b_stream, length*2, SDL_MIX_MAXVOLUME/16);
+	SDL_MixAudio((u8*)stream, (u8*)channel_1_stream, length*2, apu_link->apu_stat.channel_master_volume / apu_link->apu_stat.main_volume);
+	SDL_MixAudio((u8*)stream, (u8*)channel_2_stream, length*2, apu_link->apu_stat.channel_master_volume / apu_link->apu_stat.main_volume);
+	SDL_MixAudio((u8*)stream, (u8*)channel_3_stream, length*2, apu_link->apu_stat.channel_master_volume / apu_link->apu_stat.main_volume);
+	SDL_MixAudio((u8*)stream, (u8*)channel_4_stream, length*2, apu_link->apu_stat.channel_master_volume / apu_link->apu_stat.main_volume);
+	SDL_MixAudio((u8*)stream, (u8*)dma_a_stream, length*2, apu_link->apu_stat.dma[0].master_volume / apu_link->apu_stat.main_volume);
+	SDL_MixAudio((u8*)stream, (u8*)dma_b_stream, length*2, apu_link->apu_stat.dma[1].master_volume / apu_link->apu_stat.main_volume);
 }
