@@ -1094,6 +1094,8 @@ void MMU::write_u8(u32 address, u8 value)
 			break;
 
 		case FLASH_RAM_CMD0:
+			memory_map[address] = value;
+
 			if((current_save_type == FLASH_64) || (current_save_type == FLASH_128))
 			{
 				//1st byte of the command
@@ -1147,6 +1149,8 @@ void MMU::write_u8(u32 address, u8 value)
 			break;
 
 		case FLASH_RAM_CMD1:
+			memory_map[address] = value;
+
 			if(((current_save_type == FLASH_64) || (current_save_type == FLASH_128)) && (value == 0x55))
 			{
 				if(flash_ram.current_command == 1) { flash_ram.current_command++; }
@@ -1170,6 +1174,8 @@ void MMU::write_u8(u32 address, u8 value)
 		case FLASH_RAM_SECD:
 		case FLASH_RAM_SECE:
 		case FLASH_RAM_SECF:
+			memory_map[address] = value;
+
 			if(((current_save_type == FLASH_64) || (current_save_type == FLASH_128)) && (value == 0x30) && (flash_ram.current_command == 2))
 			{
 				flash_erase_sector(address);
