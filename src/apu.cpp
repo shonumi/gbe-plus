@@ -34,7 +34,7 @@ void APU::reset()
 	apu_stat.sound_on = false;
 	apu_stat.stereo = false;
 
-	apu_stat.main_volume = 8;
+	apu_stat.main_volume = 4;
 
 	apu_stat.channel_master_volume = 128;
 	apu_stat.channel_left_volume = 0.0;
