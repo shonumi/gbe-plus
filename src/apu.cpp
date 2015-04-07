@@ -120,7 +120,7 @@ bool APU::init()
 	SDL_InitSubSystem(SDL_INIT_AUDIO);
 
 	//Setup the desired audio specifications
-    	desired_spec.freq = 44100;
+    	desired_spec.freq = apu_stat.sample_rate;
 	desired_spec.format = AUDIO_S16SYS;
     	desired_spec.channels = 1;
     	desired_spec.samples = 4096;
@@ -153,7 +153,7 @@ void APU::generate_channel_1_samples(s16* stream, int length)
 	//Generate samples from the last output of the channel
 	if((apu_stat.channel[0].playing) && (apu_stat.channel[0].left_enable || apu_stat.channel[0].right_enable))
 	{
-		int frequency_samples = 44100/apu_stat.channel[0].output_frequency;
+		int frequency_samples = apu_stat.sample_rate/apu_stat.channel[0].output_frequency;
 
 		for(int x = 0; x < length; x++, apu_stat.channel[0].sample_length--)
 		{
@@ -246,7 +246,7 @@ void APU::generate_channel_1_samples(s16* stream, int length)
 			}
 
 			//Continuously generate sound if necessary
-			else if((apu_stat.channel[0].sample_length == 0) && (!apu_stat.channel[0].length_flag)) { apu_stat.channel[0].sample_length = (apu_stat.channel[0].duration * 44100)/1000; }
+			else if((apu_stat.channel[0].sample_length == 0) && (!apu_stat.channel[0].length_flag)) { apu_stat.channel[0].sample_length = (apu_stat.channel[0].duration * apu_stat.sample_rate)/1000; }
 
 			//Or stop sound after duration has been met, reset Sound 1 On Flag
 			else if((apu_stat.channel[0].sample_length == 0) && (apu_stat.channel[0].length_flag)) 
@@ -271,7 +271,7 @@ void APU::generate_channel_2_samples(s16* stream, int length)
 	//Generate samples from the last output of the channel
 	if((apu_stat.channel[1].playing) && (apu_stat.channel[1].left_enable || apu_stat.channel[1].right_enable))
 	{
-		int frequency_samples = 44100/apu_stat.channel[1].output_frequency;
+		int frequency_samples = apu_stat.sample_rate/apu_stat.channel[1].output_frequency;
 
 		for(int x = 0; x < length; x++, apu_stat.channel[1].sample_length--)
 		{
@@ -313,7 +313,7 @@ void APU::generate_channel_2_samples(s16* stream, int length)
 			}
 
 			//Continuously generate sound if necessary
-			else if((apu_stat.channel[1].sample_length == 0) && (!apu_stat.channel[1].length_flag)) { apu_stat.channel[1].sample_length = (apu_stat.channel[1].duration * 44100)/1000; }
+			else if((apu_stat.channel[1].sample_length == 0) && (!apu_stat.channel[1].length_flag)) { apu_stat.channel[1].sample_length = (apu_stat.channel[1].duration * apu_stat.sample_rate)/1000; }
 
 			//Or stop sound after duration has been met, reset Sound 1 On Flag
 			else if((apu_stat.channel[1].sample_length == 0) && (apu_stat.channel[1].length_flag)) 
@@ -351,7 +351,7 @@ void APU::generate_channel_3_samples(s16* stream, int length)
 			return;
 		}
 
-		int frequency_samples = 44100/waveform_frequency;
+		int frequency_samples = apu_stat.sample_rate/waveform_frequency;
 
 		for(int x = 0; x < length; x++, apu_stat.channel[2].sample_length--)
 		{
@@ -421,7 +421,7 @@ void APU::generate_channel_3_samples(s16* stream, int length)
 			}
 
 			//Continuously generate sound if necessary
-			else if((apu_stat.channel[2].sample_length == 0) && (!apu_stat.channel[2].length_flag)) { apu_stat.channel[2].sample_length = (apu_stat.channel[2].duration * 44100)/1000; }
+			else if((apu_stat.channel[2].sample_length == 0) && (!apu_stat.channel[2].length_flag)) { apu_stat.channel[2].sample_length = (apu_stat.channel[2].duration * apu_stat.sample_rate)/1000; }
 
 			//Or stop sound after duration has been met, reset Sound 1 On Flag
 			else if((apu_stat.channel[2].sample_length == 0) && (apu_stat.channel[2].length_flag)) 
@@ -446,7 +446,7 @@ void APU::generate_channel_4_samples(s16* stream, int length)
 	//Generate samples from the last output of the channel
 	if((apu_stat.channel[3].playing) && (apu_stat.channel[3].left_enable || apu_stat.channel[3].right_enable))
 	{
-		double samples_per_freq = apu_stat.channel[3].output_frequency/44100;
+		double samples_per_freq = apu_stat.channel[3].output_frequency/apu_stat.sample_rate;
 		double samples_per_freq_counter = 0;
 		u32 lsfr_runs = 0;
 
@@ -527,7 +527,7 @@ void APU::generate_channel_4_samples(s16* stream, int length)
 			}
 
 			//Continuously generate sound if necessary
-			else if(apu_stat.channel[3].sample_length == 0) { apu_stat.channel[3].sample_length = (apu_stat.channel[3].duration * 44100)/1000; }
+			else if(apu_stat.channel[3].sample_length == 0) { apu_stat.channel[3].sample_length = (apu_stat.channel[3].duration * apu_stat.sample_rate)/1000; }
 
 			//Or stop sound after duration has been met, reset Sound 4 On Flag
 			else { apu_stat.channel[3].sample_length = 0; stream[x] = -32768; apu_stat.channel[3].playing = false; }
