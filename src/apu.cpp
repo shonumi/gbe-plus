@@ -34,6 +34,7 @@ void APU::reset()
 	apu_stat.sound_on = false;
 	apu_stat.stereo = false;
 
+	apu_stat.sample_rate = 44100.0;
 	apu_stat.main_volume = 4;
 
 	apu_stat.channel_master_volume = 128;
@@ -161,7 +162,7 @@ void APU::generate_channel_1_samples(s16* stream, int length)
 			{
 				apu_stat.channel[0].sweep_counter++;
 
-				if(apu_stat.channel[0].sweep_counter >= ((44100.0/128) * apu_stat.channel[0].sweep_time))
+				if(apu_stat.channel[0].sweep_counter >= ((apu_stat.sample_rate/128) * apu_stat.channel[0].sweep_time))
 				{
 					int pre_calc = 0;
 
@@ -212,7 +213,7 @@ void APU::generate_channel_1_samples(s16* stream, int length)
 			{
 				apu_stat.channel[0].envelope_counter++;
 
-				if(apu_stat.channel[0].envelope_counter >= ((44100.0/64) * apu_stat.channel[0].envelope_step)) 
+				if(apu_stat.channel[0].envelope_counter >= ((apu_stat.sample_rate/64) * apu_stat.channel[0].envelope_step)) 
 				{		
 					//Decrease volume
 					if((apu_stat.channel[0].envelope_direction == 0) && (apu_stat.channel[0].volume >= 1)) { apu_stat.channel[0].volume--; }
@@ -279,7 +280,7 @@ void APU::generate_channel_2_samples(s16* stream, int length)
 			{
 				apu_stat.channel[1].envelope_counter++;
 
-				if(apu_stat.channel[1].envelope_counter >= ((44100.0/64) * apu_stat.channel[1].envelope_step)) 
+				if(apu_stat.channel[1].envelope_counter >= ((apu_stat.sample_rate/64) * apu_stat.channel[1].envelope_step)) 
 				{		
 					//Decrease volume
 					if((apu_stat.channel[1].envelope_direction == 0) && (apu_stat.channel[1].volume >= 1)) { apu_stat.channel[1].volume--; }
@@ -341,7 +342,7 @@ void APU::generate_channel_3_samples(s16* stream, int length)
 		if(apu_stat.waveram_size == 64) { waveform_frequency /= 2.0; }
 
 		//Determine amount of samples per waveform sample
-		double wave_step = (44100.0/waveform_frequency) / apu_stat.waveram_size;
+		double wave_step = (apu_stat.sample_rate/waveform_frequency) / apu_stat.waveram_size;
 
 		//Generate silence if samples per waveform sample is zero
 		if(wave_step == 0) 
@@ -461,7 +462,7 @@ void APU::generate_channel_4_samples(s16* stream, int length)
 				{
 					apu_stat.channel[3].envelope_counter++;
 
-					if(apu_stat.channel[3].envelope_counter >= ((44100.0/64) * apu_stat.channel[3].envelope_step)) 
+					if(apu_stat.channel[3].envelope_counter >= ((apu_stat.sample_rate/64) * apu_stat.channel[3].envelope_step)) 
 					{		
 						//Decrease volume
 						if((apu_stat.channel[3].envelope_direction == 0) && (apu_stat.channel[3].volume >= 1)) { apu_stat.channel[3].volume--; }
@@ -546,7 +547,7 @@ void APU::generate_dma_a_samples(s16* stream, int length)
 	//Generate samples from the last output of the channel
 	if((apu_stat.dma[0].left_enable || apu_stat.dma[0].right_enable) && (apu_stat.dma[0].counter != 0))
 	{
-		double sample_ratio = apu_stat.dma[0].output_frequency/44100.0;
+		double sample_ratio = apu_stat.dma[0].output_frequency/apu_stat.sample_rate;
 		u8 buffer_sample = 0;
 		s8 buffer_output = 0;
 		u16 buffer_pos = 0;
@@ -590,7 +591,7 @@ void APU::generate_dma_b_samples(s16* stream, int length)
 	//Generate samples from the last output of the channel
 	if((apu_stat.dma[1].left_enable || apu_stat.dma[1].right_enable) && (apu_stat.dma[1].counter != 0))
 	{
-		double sample_ratio = apu_stat.dma[1].output_frequency/44100.0;
+		double sample_ratio = apu_stat.dma[1].output_frequency/apu_stat.sample_rate;
 		u8 buffer_sample = 0;
 		s8 buffer_output = 0;
 		u16 buffer_pos = 0;

@@ -567,7 +567,7 @@ void MMU::write_u8(u32 address, u8 value)
 			if((address == SND1CNT_X+1) && (apu_stat->channel[0].playing)) 
 			{
 				apu_stat->channel[0].frequency_distance = 0;
-				apu_stat->channel[0].sample_length = (apu_stat->channel[0].duration * 44100)/1000;
+				apu_stat->channel[0].sample_length = (apu_stat->channel[0].duration * apu_stat->sample_rate)/1000;
 				apu_stat->channel[0].envelope_counter = 0;
 				apu_stat->channel[0].sweep_counter = 0;
 			}
@@ -646,7 +646,7 @@ void MMU::write_u8(u32 address, u8 value)
 			if((address == SND2CNT_H+1) && (apu_stat->channel[1].playing)) 
 			{
 				apu_stat->channel[1].frequency_distance = 0;
-				apu_stat->channel[1].sample_length = (apu_stat->channel[1].duration * 44100)/1000;
+				apu_stat->channel[1].sample_length = (apu_stat->channel[1].duration * apu_stat->sample_rate)/1000;
 				apu_stat->channel[1].envelope_counter = 0;
 			}
 
@@ -684,7 +684,7 @@ void MMU::write_u8(u32 address, u8 value)
 			if((address == SND3CNT_X+1) && (apu_stat->channel[2].playing)) 
 			{
 				apu_stat->channel[2].frequency_distance = 0;
-				apu_stat->channel[2].sample_length = (apu_stat->channel[2].duration * 44100)/1000;
+				apu_stat->channel[2].sample_length = (apu_stat->channel[2].duration * apu_stat->sample_rate)/1000;
 			}
 
 			break;
@@ -731,7 +731,7 @@ void MMU::write_u8(u32 address, u8 value)
 			if((address == SND4CNT_H+1) && (apu_stat->channel[3].playing)) 
 			{
 				apu_stat->channel[3].frequency_distance = 0;
-				apu_stat->channel[3].sample_length = (apu_stat->channel[3].duration * 44100)/1000;
+				apu_stat->channel[3].sample_length = (apu_stat->channel[3].duration * apu_stat->sample_rate)/1000;
 				apu_stat->channel[3].envelope_counter = 0;
 			}
 

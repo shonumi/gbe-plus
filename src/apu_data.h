@@ -71,6 +71,7 @@ struct apu_data
 	bool stereo;
 
 	u8 main_volume;
+	double sample_rate;
 
 	u8 channel_master_volume;
 	double channel_left_volume;
