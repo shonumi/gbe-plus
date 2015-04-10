@@ -69,6 +69,7 @@ void LCD::reset()
 	lcd_stat.frame_base = 0x6000000;
 	lcd_stat.bg_mode = 0;
 	lcd_stat.hblank_interval_free = false;
+	lcd_stat.oam_access = false;
 
 	lcd_stat.in_window = false;
 	lcd_stat.obj_win_enable = false;
@@ -1076,6 +1077,9 @@ void LCD::step()
 		//Toggle HBlank flag OFF
 		mem->memory_map[DISPSTAT] &= ~0x2;
 
+		//Disable OAM access
+		lcd_stat.oam_access = false;
+
 		//Change mode
 		if(lcd_mode != 0) 
 		{ 
@@ -1106,6 +1110,9 @@ void LCD::step()
 	{
 		//Toggle HBlank flag ON
 		mem->memory_map[DISPSTAT] |= 0x2;
+
+		//Permit OAM access if HBlank Interval Free flag is set
+		if(lcd_stat.hblank_interval_free) { lcd_stat.oam_access = true; }
 
 		//Change mode
 		if(lcd_mode != 1) 
@@ -1152,6 +1159,9 @@ void LCD::step()
 
 		//Toggle HBlank flag OFF
 		mem->memory_map[DISPSTAT] &= ~0x2;
+
+		//Permit OAM write access
+		lcd_stat.oam_access = true;
 
 		//Change mode
 		if(lcd_mode != 2) 
