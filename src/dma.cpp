@@ -284,7 +284,7 @@ void ARM7::dma1()
 				mem->write_u16_fast(DMA1CNT_H, mem->dma[1].control);
 
 				//Raise DMA1 IRQ if necessary
-				if(mem->dma[1].control & 0x4000) { mem->memory_map[REG_IF+1] |= 0x1; }
+				if(mem->dma[1].control & 0x4000) { mem->memory_map[REG_IF+1] |= 0x2; }
 
 				mem->dma[1].enable = false;
 				break;
@@ -362,7 +362,7 @@ void ARM7::dma1()
 					mem->write_u32_fast(DMA1DAD, mem->dma[1].destination_address);
 
 					//Raise DMA1 IRQ if necessary
-					if(mem->dma[1].control & 0x4000) { mem->memory_map[REG_IF+1] |= 0x1; }
+					if(mem->dma[1].control & 0x4000) { mem->memory_map[REG_IF+1] |= 0x2; }
 
 					mem->dma[1].enable = false;
 					mem->dma[1].started = false;
@@ -467,7 +467,7 @@ void ARM7::dma2()
 				mem->write_u16_fast(DMA2CNT_H, mem->dma[2].control);
 
 				//Raise DMA2 IRQ if necessary
-				if(mem->dma[2].control & 0x4000) { mem->memory_map[REG_IF+1] |= 0x1; }
+				if(mem->dma[2].control & 0x4000) { mem->memory_map[REG_IF+1] |= 0x4; }
 
 				mem->dma[2].enable = false;
 				break;
@@ -545,7 +545,7 @@ void ARM7::dma2()
 					mem->write_u32_fast(DMA2DAD, mem->dma[2].destination_address);
 
 					//Raise DMA2 IRQ if necessary
-					if(mem->dma[2].control & 0x4000) { mem->memory_map[REG_IF+1] |= 0x1; }
+					if(mem->dma[2].control & 0x4000) { mem->memory_map[REG_IF+1] |= 0x4; }
 
 					mem->dma[2].enable = false;
 					mem->dma[2].started = false;
