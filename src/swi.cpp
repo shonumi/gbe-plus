@@ -338,7 +338,10 @@ void ARM7::swi_registerramreset()
 	//Reset SIO
 	//TODO - See what values SIO MMIO registers have after running BIOS, use them here
 	//For now, just reset RCNT (0x4000134)
-	mem->write_u16(0x4000134, 0x8000);
+	if(reset_flags & 0x20)
+	{
+		mem->write_u16(0x4000134, 0x8000);
+	}
 
 	//Reset Sound Registers
 	if(reset_flags & 0x40)
