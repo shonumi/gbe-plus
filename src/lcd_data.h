@@ -30,6 +30,7 @@ struct lcd_data
 	u16 bg_control[4];
 	u32 frame_base;
 	u8 bg_mode;
+	bool hblank_interval_free;
 
 	u16 bg_offset_x[4];
 	u16 bg_offset_y[4];

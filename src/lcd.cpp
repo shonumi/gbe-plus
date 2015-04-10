@@ -68,6 +68,7 @@ void LCD::reset()
 
 	lcd_stat.frame_base = 0x6000000;
 	lcd_stat.bg_mode = 0;
+	lcd_stat.hblank_interval_free = false;
 
 	lcd_stat.in_window = false;
 	lcd_stat.obj_win_enable = false;

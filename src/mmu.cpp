@@ -203,6 +203,7 @@ void MMU::write_u8(u32 address, u8 value)
 			lcd_stat->display_control = ((memory_map[DISPCNT+1] << 8) | memory_map[DISPCNT]);
 			lcd_stat->bg_mode = lcd_stat->display_control & 0x7;
 			lcd_stat->frame_base = (memory_map[DISPCNT] & 0x10) ? 0x600A000 : 0x6000000;
+			lcd_stat->hblank_interval_free = (memory_map[DISPCNT] & 0x20) ? true : false;
 
 			lcd_stat->window_enable[0] = (lcd_stat->display_control & 0x2000) ? true : false;
 			lcd_stat->window_enable[1] = (lcd_stat->display_control & 0x4000) ? true : false;
