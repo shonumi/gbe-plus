@@ -42,6 +42,8 @@ void ARM7::reset()
 	running = false;
 	in_interrupt = false;
 
+	swi_vblank_wait = false;
+
 	arm_mode = ARM;
 	current_cpu_mode = SYS;
 	bios_read_state = BIOS_STARTUP;
@@ -1426,13 +1428,19 @@ void ARM7::handle_interrupt()
 			//When there is a match, jump to interrupt vector
 			if((ie_check & (1 << x)) && (if_check & (1 << x)))
 			{
+				//If an HLE SWI is waiting for the next VBlank interrupt, advance the PC to complete the SWI call
+				if((swi_vblank_wait) && (x == 0)) 
+				{  
+					reg.r15 += (arm_mode == ARM) ? 4 : 2;
+					swi_vblank_wait = false; 
+				}
+
 				current_cpu_mode = IRQ;
 
 				//If a Branch instruction has just executed, the PC is changed before jumping into the interrupt
 				//When returning from an interrupt, the GBA calls SUBS R15, R14, 0x4 to return where it left off
 				//As a result, LR needs to hold the value of the PC + 4 (really, PC+nn+4, where nn is 2 instruction sizes)
 				if(needs_flush) { set_reg(14, (reg.r15 + 4)); }
-				
 
 				//When there is no Branch, THUMB's LR has to be set to PC+nn+2 (nn is 4, two instruction sizes)
 				//In GBE+, the branch instruction executes, but interrupts happens before PC updates at the new location (so we move the PC along here instead).

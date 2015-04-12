@@ -165,6 +165,8 @@ class ARM7
 	bool needs_flush;
 	bool in_interrupt;
 
+	bool swi_vblank_wait;
+
 	u32 instruction_pipeline[3];
 	arm_instructions instruction_operation[3];
 	u8 pipeline_pointer;

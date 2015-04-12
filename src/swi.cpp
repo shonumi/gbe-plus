@@ -675,6 +675,8 @@ void ARM7::swi_vblankintrwait()
 {
 	bios_read_state = BIOS_SWI_FINISH;
 
+	swi_vblank_wait = true;
+
 	//Set R0 and R1 to 1
 	set_reg(0, 1);
 	set_reg(1, 1);
@@ -683,21 +685,38 @@ void ARM7::swi_vblankintrwait()
 	mem->write_u16(REG_IME, 0x1);
 	reg.cpsr &= ~CPSR_IRQ;
 
-	u8 previous_mode = controllers.video.lcd_mode;
-	bool mode_change = false;
+	u16 if_check, ie_check = 0;
+	bool fire_interrupt = false;
+	bool is_vblank = false;
 
-	//Run controllers until VBlank interrupt is generated
-	while(!mode_change)
+	if_check = mem->read_u16_fast(REG_IF);
+	is_vblank = (if_check & 0x1) ? true : false;
+
+	//Run controllers until an interrupt is generated
+	while(!fire_interrupt && !is_vblank)
 	{
 		clock();
-		if((controllers.video.lcd_mode == 2) && (previous_mode != 2)) { mode_change = true; mem->memory_map[REG_IF] |= 0x1; reg.r15 += 2; }
-		else { previous_mode = controllers.video.lcd_mode; }
+
+		if_check = mem->read_u16_fast(REG_IF);
+		ie_check = mem->read_u16_fast(REG_IE);
+		
+		//Match up bits in IE and IF, execute any non-VBlank interrupts
+		for(int x = 0; x < 14; x++)
+		{
+			//When there is a match, jump to interrupt vector
+			if((ie_check & (1 << x)) && (if_check & (1 << x)))
+			{
+				fire_interrupt = true;
+			}
+		}
+
+		//Execute VBlank interrupts
+		is_vblank = (if_check & 0x1) ? true : false;
 	}
 
-	//Adjust PC properly
-	//This is set the LR to PC+nn rather than PC+nn+2 (nn is two THUMB instruction sizes) in GBE+'s interrupt handler
-	//See arm7.cpp for more details.
-	if(arm_mode == THUMB) { reg.r15 -= 2; }
+	//Artificially hold PC at current location
+	//This SWI will be fetched, decoded, and executed again until it hits VBlank 
+	reg.r15 -= (arm_mode == ARM) ? 4 : 2;
 }
 
 /****** HLE implementation of LZ77UnCompVram ******/
