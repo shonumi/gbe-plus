@@ -37,6 +37,8 @@ int main(int argc, char* args[])
 	gba.start();
 	gba.db_unit.debug_mode = config::use_debugger;
 
+	if(gba.db_unit.debug_mode) { SDL_CloseAudio(); }
+
 	//Disbale mouse cursor in SDL, it's annoying
 	SDL_ShowCursor(SDL_DISABLE);
 
