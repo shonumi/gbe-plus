@@ -541,6 +541,10 @@ void ARM7::swi_cpufastset()
 	//Grab destination address - R1
 	u32 dest_addr = get_reg(1);
 
+	//Abort read/writes to the BIOS
+	if(src_addr <= 0x3FFF) { return; }
+	if(dest_addr <= 0x3FFF) { return; }
+
 	//Grab transfer control options - R2
 	u32 transfer_control = get_reg(2);
 
@@ -596,6 +600,10 @@ void ARM7::swi_cpuset()
 
 	//Grab destination address - R1
 	u32 dest_addr = get_reg(1);
+
+	//Abort read/writes to the BIOS
+	if(src_addr <= 0x3FFF) { return; }
+	if(dest_addr <= 0x3FFF) { return; }
 
 	//Grab transfer control options - R2
 	u32 transfer_control = get_reg(2);
