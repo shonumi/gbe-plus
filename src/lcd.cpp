@@ -765,6 +765,7 @@ bool LCD::render_bg_mode_3()
 {
 	//Determine which byte in VRAM to read for color data
 	u16 color_bytes = mem->read_u16_fast(0x6000000 + (current_scanline * 480) + (scanline_pixel_counter * 2));
+	last_raw_color = color_bytes;
 
 	//ARGB conversion
 	u8 red = ((color_bytes & 0x1F) * 8);
@@ -776,7 +777,6 @@ bool LCD::render_bg_mode_3()
 	u8 blue = ((color_bytes & 0x1F) * 8);
 
 	scanline_buffer[scanline_pixel_counter] = 0xFF000000 | (red << 16) | (green << 8) | (blue);
-	last_raw_color = color_bytes;
 
 	return true;
 }
