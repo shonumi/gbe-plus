@@ -193,7 +193,7 @@ void MMU::write_u8(u32 address, u8 value)
 	if(address >= 0x10000000) { std::cout<<"Out of bounds write : 0x" << std::hex << address << "\n"; return; }
 
 	//BIOS is read-only, prevent any attempted writes
-	else if((address <= 0x3FF) && (bios_lock)) { return; }
+	else if((address <= 0x3FFF) && (bios_lock)) { return; }
 
 	switch(address)
 	{
