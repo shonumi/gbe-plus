@@ -593,7 +593,7 @@ bool LCD::render_bg_pixel(u32 bg_control)
 			return render_bg_mode_4(); break;
 
 		default:
-			std::cout<<"LCD::invalid or unsupported BG Mode : " << std::dec << (lcd_stat.display_control & 0x7);
+			//std::cout<<"LCD::invalid or unsupported BG Mode : " << std::dec << (lcd_stat.display_control & 0x7);
 			return false;
 	}
 }
@@ -1235,11 +1235,13 @@ void LCD::step()
 
 			lcd_clock = 0; 
 			current_scanline = 0; 
+			mem->write_u16_fast(VCOUNT, 0);
 			scanline_compare();
 			scanline_pixel_counter = 0; 
-			mem->write_u16_fast(VCOUNT, 0);
 		}
 	}
+
+	if(mem->memory_map[DISPCNT] & 0x80) { lcd_stat.oam_access = true; }
 }
 
 /****** Compare VCOUNT to LYC ******/
