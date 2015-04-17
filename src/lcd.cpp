@@ -1132,7 +1132,7 @@ void LCD::step()
 			if(mem->memory_map[DISPSTAT] & 0x10) { mem->memory_map[REG_IF] |= 0x2; }
 
 			//Push scanline data to final buffer - Only if Forced Blank is disabled
-			if((mem->memory_map[DISPCNT] & 0x80) == 0)
+			if((lcd_stat.display_control & 0x80) == 0)
 			{
 				for(int x = 0, y = (240 * current_scanline); x < 240; x++, y++)
 				{
@@ -1157,8 +1157,9 @@ void LCD::step()
 	//Mode 2 - VBlank
 	else
 	{
-		//Toggle VBlank flag ON
-		mem->memory_map[DISPSTAT] |= 0x1;
+		//Toggle VBlank flag
+		if(current_scanline < 227 ) { mem->memory_map[DISPSTAT] |= 0x1; }
+		else { mem->memory_map[DISPSTAT] &= ~0x1; }
 
 		//Toggle HBlank flag OFF
 		mem->memory_map[DISPSTAT] &= ~0x2;
@@ -1217,7 +1218,7 @@ void LCD::step()
 		}
 
 		//Setup HBlank stuff (no HBlank IRQs in VBlank!!)
-		if((lcd_clock % 1232) == 960) 
+		else if((lcd_clock % 1232) == 960) 
 		{
 			//Toggle HBlank flag ON
 			mem->memory_map[DISPSTAT] |= 0x2;
@@ -1228,7 +1229,7 @@ void LCD::step()
 		}
 
 		//Reset LCD clock
-		if(lcd_clock == 280896) 
+		else if(lcd_clock == 280896) 
 		{
 			//Toggle VBlank flag OFF
 			mem->memory_map[DISPSTAT] &= ~0x1;
