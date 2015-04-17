@@ -439,44 +439,23 @@ bool LCD::render_sprite_pixel()
 			//Horizontal flip the internal X coordinate
 			if(obj[sprite_id].h_flip)
 			{
-				u16 h_flip = sprite_tile_pixel_x;
-				u8 width = obj[sprite_id].width;
-				u8 f_width = (width - 1);
-			
-				//Horizontal flipping
-				if(h_flip < (width/2)) 
-				{
-					h_flip = ((f_width - h_flip) - h_flip);
-					sprite_tile_pixel_x += h_flip;
-				}
+				s16 h_flip = sprite_tile_pixel_x;
+				h_flip -= (obj[sprite_id].width - 1);
 
-				else
-				{
-					h_flip = f_width - (2 * (f_width - h_flip));
-					sprite_tile_pixel_x -= h_flip;
-				}
+				if(h_flip < 0) { h_flip *= -1; }
+
+				sprite_tile_pixel_x = h_flip;
 			}
 
 			//Vertical flip the internal Y coordinate
 			if(obj[sprite_id].v_flip)
 			{
-				u16 v_flip = sprite_tile_pixel_y;
-				u8 height = obj[sprite_id].height;
-				u8 f_height = (height - 1);
-			
-	
-				//Vertical flipping
-				if(v_flip < (height/2)) 
-				{
-					v_flip = ((f_height - v_flip) - v_flip);
-					sprite_tile_pixel_y += v_flip;
-				}
+				s16 v_flip = sprite_tile_pixel_y;
+				v_flip -= (obj[sprite_id].height - 1);
 
-				else
-				{
-					v_flip = f_height - (2 * (f_height - v_flip));
-					sprite_tile_pixel_y -= v_flip;
-				}
+				if(v_flip < 0) { v_flip *= -1; }
+
+				sprite_tile_pixel_y = v_flip;
 			}
 
 			//Determine meta x-coordinate of rendered sprite pixel
