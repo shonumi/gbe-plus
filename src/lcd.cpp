@@ -1074,6 +1074,14 @@ void LCD::step()
 	//Mode 0 - Scanline rendering
 	if(((lcd_clock % 1232) <= 960) && (lcd_clock < 197120)) 
 	{
+		//Increment scanline count
+		if(mem->memory_map[DISPSTAT] & 0x2)
+		{
+			current_scanline++;
+			mem->write_u16_fast(VCOUNT, current_scanline);
+			scanline_compare();
+		}
+
 		//Toggle HBlank flag OFF
 		mem->memory_map[DISPSTAT] &= ~0x2;
 
@@ -1140,11 +1148,6 @@ void LCD::step()
 					screen_buffer[y] = 0xFFFFFFFF;
 				}
 			}
-
-			//Increment scanline count
-			current_scanline++;
-			mem->write_u16_fast(VCOUNT, current_scanline);
-			scanline_compare();
 	
 			//Start HBlank DMA
 			mem->start_blank_dma();
