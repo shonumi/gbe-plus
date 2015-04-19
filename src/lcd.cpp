@@ -1196,11 +1196,15 @@ void LCD::step()
 			}
 		}
 
-		//Setup HBlank stuff (no HBlank IRQs in VBlank!!)
+		//Setup HBlank
 		else if((lcd_clock % 1232) == 960) 
 		{
 			//Toggle HBlank flag ON
 			mem->memory_map[DISPSTAT] |= 0x2;
+
+			//Raise HBlank interrupt
+			//TODO - Only trigger when entering HBlank for the 1st time
+			if(mem->memory_map[DISPSTAT] & 0x10) { mem->memory_map[REG_IF] |= 0x2; }
 
 			current_scanline++;
 			mem->write_u16_fast(VCOUNT, current_scanline);
