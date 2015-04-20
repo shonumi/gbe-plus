@@ -197,6 +197,7 @@ void MMU::write_u8(u32 address, u8 value)
 
 	switch(address)
 	{
+		//Display Control
 		case DISPCNT:
 		case DISPCNT+1:
 			memory_map[address] = value;
@@ -215,6 +216,7 @@ void MMU::write_u8(u32 address, u8 value)
 			lcd_stat->bg_enable[3] = (lcd_stat->display_control & 0x800) ? true : false;
 			break;
 
+		//BG0 Control
 		case BG0CNT:
 		case BG0CNT+1:
 			memory_map[address] = value;
@@ -236,6 +238,7 @@ void MMU::write_u8(u32 address, u8 value)
 
 			break;
 
+		//BG1 Control
 		case BG1CNT:
 		case BG1CNT+1:
 			memory_map[address] = value;
@@ -257,6 +260,7 @@ void MMU::write_u8(u32 address, u8 value)
 
 			break;
 
+		//BG2 Control
 		case BG2CNT:
 		case BG2CNT+1:
 			memory_map[address] = value;
@@ -279,6 +283,7 @@ void MMU::write_u8(u32 address, u8 value)
 
 			break;
 
+		//BG3 Control
 		case BG3CNT:
 		case BG3CNT+1:
 			memory_map[address] = value;
@@ -300,54 +305,63 @@ void MMU::write_u8(u32 address, u8 value)
 
 			break;
 
+		//BG0 Horizontal Offset
 		case BG0HOFS:
 		case BG0HOFS+1:
 			memory_map[address] = value;
 			lcd_stat->bg_offset_x[0] = ((memory_map[BG0HOFS+1] << 8) | memory_map[BG0HOFS]) & 0x1FF;
 			break;
 
+		//BG0 Vertical Offset
 		case BG0VOFS:
 		case BG0VOFS+1:
 			memory_map[address] = value;
 			lcd_stat->bg_offset_y[0] = ((memory_map[BG0VOFS+1] << 8) | memory_map[BG0VOFS]) & 0x1FF;
 			break;
 
+		//BG1 Horizontal Offset
 		case BG1HOFS:
 		case BG1HOFS+1:
 			memory_map[address] = value;
 			lcd_stat->bg_offset_x[1] = ((memory_map[BG1HOFS+1] << 8) | memory_map[BG1HOFS]) & 0x1FF;
 			break;
 
+		//BG1 Vertical Offset
 		case BG1VOFS:
 		case BG1VOFS+1:
 			memory_map[address] = value;
 			lcd_stat->bg_offset_y[1] = ((memory_map[BG1VOFS+1] << 8) | memory_map[BG1VOFS]) & 0x1FF;
 			break;
 
+		//BG2 Horizontal Offset
 		case BG2HOFS:
 		case BG2HOFS+1:
 			memory_map[address] = value;
 			lcd_stat->bg_offset_x[2] = ((memory_map[BG2HOFS+1] << 8) | memory_map[BG2HOFS]) & 0x1FF;
 			break;
 
+		//BG2 Vertical Offset
 		case BG2VOFS:
 		case BG2VOFS+1:
 			memory_map[address] = value;
 			lcd_stat->bg_offset_y[2] = ((memory_map[BG2VOFS+1] << 8) | memory_map[BG2VOFS]) & 0x1FF;
 			break;
 
+		//BG3 Horizontal Offset
 		case BG3HOFS:
 		case BG3HOFS+1:
 			memory_map[address] = value;
 			lcd_stat->bg_offset_x[3] = ((memory_map[BG3HOFS+1] << 8) | memory_map[BG3HOFS]) & 0x1FF;
 			break;
 
+		//BG3 Vertical Offset
 		case BG3VOFS:
 		case BG3VOFS+1:
 			memory_map[address] = value;
 			lcd_stat->bg_offset_y[3] = ((memory_map[BG3VOFS+1] << 8) | memory_map[BG3VOFS]) & 0x1FF;
 			break;
 
+		//Window 0 Horizontal Coordinates
 		case WIN0H:
 		case WIN0H+1:
 			if(memory_map[address] == value) { return ; }
@@ -360,6 +374,7 @@ void MMU::write_u8(u32 address, u8 value)
 			if(lcd_stat->window_x2[0] < lcd_stat->window_x1[0]) { lcd_stat->window_x2[0] = lcd_stat->window_x1[0] = 240; }
 			break;
 
+		//Window 1 Horizontal Coordinates
 		case WIN1H:
 		case WIN1H+1:
 			if(memory_map[address] == value) { return ; }
@@ -372,6 +387,7 @@ void MMU::write_u8(u32 address, u8 value)
 			if(lcd_stat->window_x2[1] < lcd_stat->window_x1[1]) { lcd_stat->window_x2[1] = lcd_stat->window_x1[1] = 240; }
 			break;
 
+		//Window 0 Vertical Coordinates
 		case WIN0V:
 		case WIN0V+1:
 			if(memory_map[address] == value) { return ; }
@@ -384,6 +400,7 @@ void MMU::write_u8(u32 address, u8 value)
 			if(lcd_stat->window_y2[0] < lcd_stat->window_y1[0]) { lcd_stat->window_y2[0] = lcd_stat->window_y1[0] = 160; }
 			break;
 
+		//Window 1 Vertical Coordinates
 		case WIN1V:
 		case WIN1V+1:
 			if(memory_map[address] == value) { return ; }
@@ -396,6 +413,7 @@ void MMU::write_u8(u32 address, u8 value)
 			if(lcd_stat->window_y2[1] < lcd_stat->window_y1[1]) { lcd_stat->window_y2[1] = lcd_stat->window_y1[1] = 160; }
 			break;
 
+		//Window 0 In Enable Flags
 		case WININ:
 			memory_map[address] = value;
 			lcd_stat->window_in_enable[0][0] = (value & 0x1) ? true : false;
@@ -406,6 +424,7 @@ void MMU::write_u8(u32 address, u8 value)
 			lcd_stat->window_in_enable[5][0] = (value & 0x20) ? true : false;
 			break;
 
+		//Window 1 In Enable Flags
 		case WININ+1:
 			memory_map[address] = value;
 			lcd_stat->window_in_enable[0][1] = (value & 0x1) ? true : false;
@@ -416,6 +435,7 @@ void MMU::write_u8(u32 address, u8 value)
 			lcd_stat->window_in_enable[5][1] = (value & 0x20) ? true : false;
 			break;
 
+		//Window 0 Out Enable Flags
 		case WINOUT:
 			memory_map[address] = value;
 			lcd_stat->window_out_enable[0][0] = (value & 0x1) ? true : false;
@@ -426,6 +446,7 @@ void MMU::write_u8(u32 address, u8 value)
 			lcd_stat->window_out_enable[5][0] = (value & 0x20) ? true : false;
 			break;
 
+		//Window 1 Out Enable Flags
 		case WINOUT+1:
 			memory_map[address] = value;
 			lcd_stat->window_out_enable[0][1] = (value & 0x1) ? true : false;
@@ -436,6 +457,7 @@ void MMU::write_u8(u32 address, u8 value)
 			lcd_stat->window_out_enable[5][1] = (value & 0x20) ? true : false;
 			break;
 
+		//SFX Control
 		case BLDCNT:
 			memory_map[address] = value;
 			lcd_stat->sfx_target[0][0] = (value & 0x1) ? true : false;
@@ -465,6 +487,7 @@ void MMU::write_u8(u32 address, u8 value)
 			lcd_stat->sfx_target[5][1] = (value & 0x20) ? true : false;
 			break;
 
+		//SFX Alpha Control
 		case BLDALPHA:
 			if(memory_map[address] == value) { return; }
 			
@@ -481,6 +504,7 @@ void MMU::write_u8(u32 address, u8 value)
 			lcd_stat->alpha_b_coef = (value & 0x1F) / 16.0;
 			break;
 
+		//SFX Brightness Control
 		case BLDY:
 			if(memory_map[address] == value) { return ; }
 
@@ -489,6 +513,7 @@ void MMU::write_u8(u32 address, u8 value)
 			lcd_stat->brightness_coef = (value & 0x1F) / 16.0;
 			break;
 		
+		//Sound Channel 1 Control - Sweep Parameters
 		case SND1CNT_L:
 			memory_map[address] = value;
 			apu_stat->channel[0].sweep_shift = value & 0x7;
@@ -496,6 +521,7 @@ void MMU::write_u8(u32 address, u8 value)
 			apu_stat->channel[0].sweep_time = (value >> 4) & 0x7;
 			break;
 
+		//Sound Channel 1 Control - Duration, Duty Cycle, Envelope, Volume
 		case SND1CNT_H:
 		case SND1CNT_H+1:
 			memory_map[address] = value;
@@ -531,6 +557,7 @@ void MMU::write_u8(u32 address, u8 value)
 			apu_stat->channel[0].volume = (memory_map[SND1CNT_H+1] >> 4) & 0xF;
 			break;
 
+		//Sound Channel 1 Control - Length Flag, Frequency, Duty Cycle, Initial
 		case SND1CNT_X:
 		case SND1CNT_X+1:
 			memory_map[address] = value;
@@ -575,6 +602,7 @@ void MMU::write_u8(u32 address, u8 value)
 
 			break;
 
+		//Sound Channel 2 Control - Duration, Duty Cycle, Envelope, Volume
 		case SND2CNT_L:
 		case SND2CNT_L+1:
 			memory_map[address] = value;
@@ -610,6 +638,7 @@ void MMU::write_u8(u32 address, u8 value)
 			apu_stat->channel[1].volume = (memory_map[SND2CNT_L+1] >> 4) & 0xF;
 			break;
 
+		//Sound Channel 2 Control - Length Flag, Frequency, Duty Cycle, Initial
 		case SND2CNT_H:
 		case SND2CNT_H+1:
 			memory_map[address] = value;
@@ -653,6 +682,7 @@ void MMU::write_u8(u32 address, u8 value)
 
 			break;
 
+		//Sound Channel 3 Control - Wave RAM Parameters + Channel Enable
 		case SND3CNT_L:
 			memory_map[address] = value;
 			apu_stat->waveram_size = (memory_map[SND3CNT_L] & 0x20) ? 64 : 32;
@@ -661,18 +691,21 @@ void MMU::write_u8(u32 address, u8 value)
 			apu_stat->channel[2].enable = (memory_map[SND3CNT_L] & 0x80) ? true : false;
 			break;
 
+		//Sound Channel 3 Control - Duration
 		case SND3CNT_H:
 			memory_map[address] = value;
 			apu_stat->channel[2].duration = memory_map[SND3CNT_H];
 			apu_stat->channel[2].duration = ((256 - apu_stat->channel[2].duration) / 256.0) * 1000.0;
 			break;
 
+		//Sound Channel 3 Control - Volume
 		case SND3CNT_H+1:
 			memory_map[address] = value;
 			if(memory_map[SND3CNT_H+1] & 0x80) { apu_stat->channel[2].volume = 4; }
 			else { apu_stat->channel[2].volume = (memory_map[SND3CNT_H+1] >> 5) & 0x3; }
 			break;
 
+		//Sound Channel 3 Control - Length Flag, Frequency, Initial
 		case SND3CNT_X:
 		case SND3CNT_X+1:
 			memory_map[address] = value;
@@ -690,18 +723,19 @@ void MMU::write_u8(u32 address, u8 value)
 
 			break;
 
+		//Sound Channel 4 Control - Duration, Envelope, Volume
 		case SND4CNT_L:
 		case SND4CNT_L+1:
 			memory_map[address] = value;
 			apu_stat->channel[3].duration = (memory_map[SND4CNT_L] & 0x3F);
 			apu_stat->channel[3].duration = ((64 - apu_stat->channel[3].duration) / 256.0) * 1000.0;
-			apu_stat->channel[3].duty_cycle = (memory_map[SND4CNT_L] >> 6) & 0x3;
 
 			apu_stat->channel[3].envelope_step = (memory_map[SND4CNT_L+1] & 0x7);
 			apu_stat->channel[3].envelope_direction = (memory_map[SND4CNT_L+1] & 0x8) ? 1 : 0;
 			apu_stat->channel[3].volume = (memory_map[SND4CNT_L+1] >> 4) & 0xF;
 			break;
 
+		//Sound Channel 4 Control - Noise Parameters
 		case SND4CNT_H:
 			memory_map[address] = value;
 
@@ -722,6 +756,7 @@ void MMU::write_u8(u32 address, u8 value)
 			apu_stat->channel[3].output_frequency = (524288 / apu_stat->noise_dividing_ratio) / apu_stat->noise_prescalar;
 			break;
 
+		//Sound Channel 4 - Length Flag + Initial
 		case SND4CNT_H+1:
 			memory_map[address] = value;
 			apu_stat->channel[3].length_flag = (memory_map[SND4CNT_H+1] & 0x40) ? true : false;
@@ -738,6 +773,7 @@ void MMU::write_u8(u32 address, u8 value)
 
 			break;
 
+		//General Sound Control - Volumes
 		case SNDCNT_L:
 			memory_map[address] = value;
 
@@ -767,6 +803,7 @@ void MMU::write_u8(u32 address, u8 value)
 
 			break;
 
+		//General Sound Control - Enabled Sound Channels
 		case SNDCNT_L+1:
 			memory_map[address] = value;
 			apu_stat->channel[0].right_enable = (value & 0x1) ? true : false;
@@ -779,6 +816,7 @@ void MMU::write_u8(u32 address, u8 value)
 			apu_stat->channel[3].left_enable = (value & 0x80) ? true : false;
 			break;
 
+		//General Sound Control - Master Volumes + Enabled DMA Channels
 		case SNDCNT_H:
 		case SNDCNT_H+1:
 			memory_map[address] = value;
@@ -803,6 +841,8 @@ void MMU::write_u8(u32 address, u8 value)
 			apu_stat->dma[1].timer = (memory_map[SNDCNT_H+1] & 0x40) ? 1 : 0;
 			break;
 			
+
+		//Wave RAM
 		case WAVERAM0_L : apu_stat->waveram_data[(apu_stat->waveram_bank_rw << 4)] = value; break;
 		case WAVERAM0_L+1: apu_stat->waveram_data[(apu_stat->waveram_bank_rw << 4) + 1] = value; break;
 		case WAVERAM0_H: apu_stat->waveram_data[(apu_stat->waveram_bank_rw << 4) + 2] = value; break;
@@ -828,6 +868,7 @@ void MMU::write_u8(u32 address, u8 value)
 			memory_map[address] &= ~value;
 			break;
 
+		//DMA0 Start Address
 		case DMA0SAD:
 		case DMA0SAD+1:
 		case DMA0SAD+2:
@@ -836,6 +877,7 @@ void MMU::write_u8(u32 address, u8 value)
 			dma[0].start_address = ((memory_map[DMA0SAD+3] << 24) | (memory_map[DMA0SAD+2] << 16) | (memory_map[DMA0SAD+1] << 8) | memory_map[DMA0SAD]) & 0x7FFFFFF;
 			break;
 
+		//DMA0 Destination Address
 		case DMA0DAD:
 		case DMA0DAD+1:
 		case DMA0DAD+2:
@@ -844,6 +886,7 @@ void MMU::write_u8(u32 address, u8 value)
 			dma[0].destination_address = ((memory_map[DMA0DAD+3] << 24) | (memory_map[DMA0DAD+2] << 16) | (memory_map[DMA0DAD+1] << 8) | memory_map[DMA0DAD]) & 0x7FFFFFF;
 			break;
 
+		//DMA0 Control
 		case DMA0CNT_H:
 		case DMA0CNT_H+1:
 			memory_map[address] = value;
@@ -856,6 +899,7 @@ void MMU::write_u8(u32 address, u8 value)
 			dma[0].delay = 2;
 			break;
 
+		//DMA1 Start Address
 		case DMA1SAD:
 		case DMA1SAD+1:
 		case DMA1SAD+2:
@@ -865,6 +909,7 @@ void MMU::write_u8(u32 address, u8 value)
 			dma[1].original_start_address = dma[1].start_address;
 			break;
 
+		//DMA1 Destination Address
 		case DMA1DAD:
 		case DMA1DAD+1:
 		case DMA1DAD+2:
@@ -873,6 +918,7 @@ void MMU::write_u8(u32 address, u8 value)
 			dma[1].destination_address = ((memory_map[DMA1DAD+3] << 24) | (memory_map[DMA1DAD+2] << 16) | (memory_map[DMA1DAD+1] << 8) | memory_map[DMA1DAD]) & 0x7FFFFFF;
 			break;
 
+		//DMA1 Control
 		case DMA1CNT_H:
 		case DMA1CNT_H+1:
 			memory_map[address] = value;
@@ -887,6 +933,7 @@ void MMU::write_u8(u32 address, u8 value)
 			dma[1].delay = 2;
 			break;
 
+		//DMA2 Start Address
 		case DMA2SAD:
 		case DMA2SAD+1:
 		case DMA2SAD+2:
@@ -896,6 +943,7 @@ void MMU::write_u8(u32 address, u8 value)
 			dma[2].original_start_address = dma[2].start_address;
 			break;
 
+		//DMA2 Destination Address
 		case DMA2DAD:
 		case DMA2DAD+1:
 		case DMA2DAD+2:
@@ -904,6 +952,7 @@ void MMU::write_u8(u32 address, u8 value)
 			dma[2].destination_address = ((memory_map[DMA2DAD+3] << 24) | (memory_map[DMA2DAD+2] << 16) | (memory_map[DMA2DAD+1] << 8) | memory_map[DMA2DAD]) & 0x7FFFFFF;
 			break;
 
+		//DMA2 Control
 		case DMA2CNT_H:
 		case DMA2CNT_H+1:
 			memory_map[address] = value;
@@ -918,6 +967,7 @@ void MMU::write_u8(u32 address, u8 value)
 			dma[2].delay = 2;
 			break;
 
+		//DMA3 Start Address
 		case DMA3SAD:
 		case DMA3SAD+1:
 		case DMA3SAD+2:
@@ -926,6 +976,7 @@ void MMU::write_u8(u32 address, u8 value)
 			dma[3].start_address = ((memory_map[DMA3SAD+3] << 24) | (memory_map[DMA3SAD+2] << 16) | (memory_map[DMA3SAD+1] << 8) | memory_map[DMA3SAD]) & 0xFFFFFFF;
 			break;
 
+		//DMA3 Destination Address
 		case DMA3DAD:
 		case DMA3DAD+1:
 		case DMA3DAD+2:
@@ -934,6 +985,7 @@ void MMU::write_u8(u32 address, u8 value)
 			dma[3].destination_address = ((memory_map[DMA3DAD+3] << 24) | (memory_map[DMA3DAD+2] << 16) | (memory_map[DMA3DAD+1] << 8) | memory_map[DMA3DAD]) & 0xFFFFFFF;
 			break;
 
+		//DMA3 Control
 		case DMA3CNT_H:
 		case DMA3CNT_H+1:
 			memory_map[address] = value;
@@ -948,6 +1000,7 @@ void MMU::write_u8(u32 address, u8 value)
 
 		case KEYINPUT: break;
 
+		//Timer 0 Reload Value
 		case TM0CNT_L:
 		case TM0CNT_L+1:
 			memory_map[address] = value;
@@ -956,6 +1009,7 @@ void MMU::write_u8(u32 address, u8 value)
 			if((apu_stat->dma[1].timer == 0) && (timer->at(0).reload_value != 0xFFFF)) { apu_stat->dma[1].output_frequency = (1 << 24) / (0xFFFF - timer->at(0).reload_value); }
 			break;
 
+		//Timer 1 Reload Value
 		case TM1CNT_L:
 		case TM1CNT_L+1:
 			memory_map[address] = value;
@@ -964,18 +1018,21 @@ void MMU::write_u8(u32 address, u8 value)
 			if((apu_stat->dma[1].timer == 1) && (timer->at(1).reload_value != 0xFFFF)) { apu_stat->dma[1].output_frequency = (1 << 24) / (0xFFFF - timer->at(1).reload_value); }
 			break;
 
+		//Timer 2 Reload Value
 		case TM2CNT_L:
 		case TM2CNT_L+1:
 			memory_map[address] = value;
 			timer->at(2).reload_value = ((memory_map[TM2CNT_L+1] << 8) | memory_map[TM2CNT_L]);
 			break;
 
+		//Timer 3 Reload Value
 		case TM3CNT_L:
 		case TM3CNT_L+1:
 			memory_map[address] = value;
 			timer->at(3).reload_value = ((memory_map[TM3CNT_L+1] << 8) | memory_map[TM3CNT_L]);
 			break;
 
+		//Timer 0 Control
 		case TM0CNT_H:
 		case TM0CNT_H+1:
 			{
@@ -997,6 +1054,7 @@ void MMU::write_u8(u32 address, u8 value)
 
 			break;
 
+		//Timer 1 Control
 		case TM1CNT_H:
 		case TM1CNT_H+1:
 			{
@@ -1021,6 +1079,7 @@ void MMU::write_u8(u32 address, u8 value)
 
 			break;
 
+		//Timer 2 Control
 		case TM2CNT_H:
 		case TM2CNT_H+1:
 			{
@@ -1045,6 +1104,7 @@ void MMU::write_u8(u32 address, u8 value)
 
 			break;
 
+		//Timer 3 Control
 		case TM3CNT_H:
 		case TM3CNT_H+1:
 			{
@@ -1069,6 +1129,7 @@ void MMU::write_u8(u32 address, u8 value)
 
 			break;
 
+		//Wait State Control
 		case WAITCNT:
 		case WAITCNT+1:
 			{
