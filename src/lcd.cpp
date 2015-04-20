@@ -563,6 +563,14 @@ bool LCD::render_bg_pixel(u32 bg_control)
 
 			break;
 
+		//BG Mode 2
+		case 0x2:
+			//Render BG2 as Scaled+Rotation
+			if(bg_control == BG2CNT) { return render_bg_mode_1(bg_control); }
+			else { return false; }
+
+			break;
+
 		//BG Mode 3
 		case 3:
 			return render_bg_mode_3(); break;
