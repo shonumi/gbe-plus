@@ -77,16 +77,6 @@ class LCD
 		bool visible;
 	} obj[128];
 
-	struct bg_scale_rotate_parameters
-	{
-		//Parameters, X-Y reference
-		double a, b, c, d;
-		double x_ref, y_ref;
-		
-		//LUT of precalculated transformation positions
-		std::vector<u32> bg_lut;
-	} bg_params[2];
-
 	u8 obj_render_list[128];
 	u8 obj_render_length;
 	u8 last_obj_priority;

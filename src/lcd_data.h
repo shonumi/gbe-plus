@@ -68,6 +68,16 @@ struct lcd_data
 	u16 bg_num_lut[256][256];
 	u16 screen_offset_lut[512];
 
+	struct bg_scale_rotate_parameters
+	{
+		//Parameters, X-Y reference
+		double a, b, c, d;
+		double x_ref, y_ref;
+		
+		//LUT of precalculated transformation positions
+		std::vector<u32> bg_lut;
+	} bg_params[2];
+
 	bool oam_update;
 	std::vector<bool> oam_update_list;
 

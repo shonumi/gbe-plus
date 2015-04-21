@@ -52,7 +52,7 @@ void LCD::reset()
 	screen_buffer.resize(0x9600, 0);
 	scanline_buffer.resize(0x100, 0);
 
-	bg_params[0].bg_lut.resize(0x10000, 0xFFFFFFFF);
+	lcd_stat.bg_params[0].bg_lut.resize(0x10000, 0xFFFFFFFF);
 
 	//Initialize various LCD status variables
 	lcd_stat.oam_update = false;
@@ -309,60 +309,12 @@ void LCD::update_palettes()
 void LCD::update_bg_params()
 {
 	//TODO - BG3 parameters
-	u32 bg2_param_addr = BG2PA;
-
-	//Update BG2 parameters
-	for(int x = 0; x < 4; x++)
-	{
-		u16 raw_value = mem->read_u16_fast(bg2_param_addr);
-		bg2_param_addr += 2;
-		
-		//Grab the fractional and integer portions, respectively
-		double final_value = 0.0;
-		if((raw_value & 0xFF) != 0) { final_value = (raw_value & 0xFF) / 256.0; }
-		final_value += (raw_value >> 8) & 0x7F;
-		if(raw_value & 0x8000) { final_value *= -1.0; }
-
-		switch(x)
-		{ 
-			case 0: bg_params[0].a = final_value; break;
-			case 1: bg_params[0].b = final_value; break;
-			case 2: bg_params[0].c = final_value; break;
-			case 3: bg_params[0].d = final_value; break;
-		}
-	}
-
-	u32 x_raw = mem->read_u32_fast(BG2X_L);
-	u32 y_raw = mem->read_u32_fast(BG2Y_L);
-	bg_params[0].x_ref = 0.0;
-	bg_params[0].y_ref = 0.0;
-
-	//Update BG2 X reference, integer then fraction
-	//Note: The reference points are 19-bit signed 2's complement, not mentioned anywhere in docs...
-	if(x_raw & 0x8000000) 
-	{ 
-		u16 x = (((x_raw >> 8) & 0x7FFFF) - 1);
-		x = ~x;
-		bg_params[0].x_ref = -1.0 * x;
-	}
-	else { bg_params[0].x_ref = (x_raw >> 8) & 0x7FFFF; }
-	if((x_raw & 0xFF) != 0) { bg_params[0].x_ref += (x_raw & 0xFF) / 256.0; }
-	
-	//Update BG2 Y reference, integer then fraction
-	if(y_raw & 0x8000000) 
-	{ 
-		u16 y = (((y_raw >> 8) & 0x7FFFF) - 1);
-		y = ~y;
-		bg_params[0].y_ref = -1.0 * y;
-	}
-	else { bg_params[0].y_ref = (y_raw >> 8) & 0x7FFFF; }
-	if((y_raw & 0xFF) != 0) { bg_params[0].y_ref += (y_raw & 0xFF) / 256.0; }
 	
 	//Get BG2 size in pixels
 	u16 bg_size = (16 << (lcd_stat.bg_control[2] >> 14)) << 3;
 
-	double out_x = bg_params[0].x_ref; 
-	double out_y = bg_params[0].y_ref;
+	double out_x = lcd_stat.bg_params[0].x_ref; 
+	double out_y = lcd_stat.bg_params[0].y_ref;
 
 	double temp_x = 0.0;
 	double temp_y = 0.0;
@@ -377,11 +329,11 @@ void LCD::update_bg_params()
 		//Increment reference points by DMX and DMY for calculations
 		if((x % 240 == 0) && (x > 0))
 		{
-			bg_params[0].x_ref += bg_params[0].b;
-			bg_params[0].y_ref += bg_params[0].d;
+			lcd_stat.bg_params[0].x_ref += lcd_stat.bg_params[0].b;
+			lcd_stat.bg_params[0].y_ref += lcd_stat.bg_params[0].d;
 
-			out_x = bg_params[0].x_ref;
-			out_y = bg_params[0].y_ref;
+			out_x = lcd_stat.bg_params[0].x_ref;
+			out_y = lcd_stat.bg_params[0].y_ref;
 
 			src_x = 0;
 			src_y++;
@@ -391,8 +343,8 @@ void LCD::update_bg_params()
 		u32 old_pos = (src_y * 240) + src_x;
 
 		//Calculate new position using new coordinate space, store to LUT
-		out_x += bg_params[0].a;
-		out_y += bg_params[0].c;
+		out_x += lcd_stat.bg_params[0].a;
+		out_y += lcd_stat.bg_params[0].c;
 
 		//Round results to nearest integer
 		temp_x = (out_x > 0) ? floor(out_x + 0.5) : ceil(out_x - 0.5);
@@ -404,7 +356,7 @@ void LCD::update_bg_params()
 
 		u32 new_pos = (temp_y * bg_size) + temp_x;
 		
-		if(old_pos < 0x9600) { bg_params[0].bg_lut[old_pos] = new_pos; }
+		if(old_pos < 0x9600) { lcd_stat.bg_params[0].bg_lut[old_pos] = new_pos; }
 	}
 
 	lcd_stat.bg_params_update = false;
@@ -718,7 +670,7 @@ bool LCD::render_bg_mode_1(u32 bg_control)
 	u16 src_y = current_scanline;
 
 	u32 current_pos = (src_y * 240) + src_x;
-	current_pos = bg_params[0].bg_lut[current_pos];
+	current_pos = lcd_stat.bg_params[0].bg_lut[current_pos];
 
 	src_y = current_pos / bg_pixel_size;
 	src_x = current_pos % bg_pixel_size;
