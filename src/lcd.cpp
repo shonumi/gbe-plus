@@ -456,8 +456,8 @@ bool LCD::render_bg_pixel(u32 bg_control)
 
 		//BG Mode 2
 		case 0x2:
-			//Render BG2 as Scaled+Rotation
-			if(bg_control == BG2CNT) { return render_bg_mode_1(bg_control); }
+			//Render BG2 and BG3 as Scaled+Rotation
+			if((bg_control == BG2CNT) || (bg_control == BG3CNT)) { return render_bg_mode_1(bg_control); }
 			else { return false; }
 
 			break;
@@ -598,6 +598,7 @@ bool LCD::render_bg_mode_1(u32 bg_control)
 {
 	//Set BG ID to determine which BG is being rendered.
 	u8 bg_id = (bg_control - 0x4000008) >> 1;
+	u8 scale_rot_id = (bg_id == 2) ? 0 : 1;
 
 	//Get BG size in tiles, pixels
 	//0 - 128x128, 1 - 256x256, 2 - 512x512, 3 - 1024x1024
@@ -605,8 +606,8 @@ bool LCD::render_bg_mode_1(u32 bg_control)
 	u16 bg_pixel_size = bg_tile_size << 3;
 
 	//Calculate new X-Y coordinates from scaling+rotation
-	double new_x = lcd_stat.bg_params[0].x_ref + (lcd_stat.bg_params[0].a * scanline_pixel_counter) + (lcd_stat.bg_params[0].b * current_scanline);
-	double new_y = lcd_stat.bg_params[0].y_ref + (lcd_stat.bg_params[0].c * scanline_pixel_counter) + (lcd_stat.bg_params[0].d * current_scanline);
+	double new_x = lcd_stat.bg_params[scale_rot_id].x_ref + (lcd_stat.bg_params[scale_rot_id].a * scanline_pixel_counter) + (lcd_stat.bg_params[scale_rot_id].b * current_scanline);
+	double new_y = lcd_stat.bg_params[scale_rot_id].y_ref + (lcd_stat.bg_params[scale_rot_id].c * scanline_pixel_counter) + (lcd_stat.bg_params[scale_rot_id].d * current_scanline);
 
 	//Round results to nearest integer
 	new_x = (new_x > 0) ? floor(new_x + 0.5) : ceil(new_x - 0.5);

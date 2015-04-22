@@ -486,6 +486,132 @@ void MMU::write_u8(u32 address, u8 value)
 
 			break;
 
+		//BG3 Scale/Rotation Parameter A
+		case BG3PA:
+		case BG3PA+1:
+			memory_map[address] = value;
+			
+			{
+				u16 raw_value = ((memory_map[BG3PA+1] << 8) | memory_map[BG3PA]);
+				
+				//Grab the fractional and integer portions, respectively
+				double final_value = 0.0;
+		
+				if((raw_value & 0xFF) != 0) { final_value = (raw_value & 0xFF) / 256.0; }
+				final_value += (raw_value >> 8) & 0x7F;
+				if(raw_value & 0x8000) { final_value *= -1.0; }
+
+				lcd_stat->bg_params[1].a = final_value;
+			}
+
+			break;
+
+		//BG3 Scale/Rotation Parameter B
+		case BG3PB:
+		case BG3PB+1:
+			memory_map[address] = value;
+			
+			{
+				u16 raw_value = ((memory_map[BG3PB+1] << 8) | memory_map[BG3PB]);
+				
+				//Grab the fractional and integer portions, respectively
+				double final_value = 0.0;
+		
+				if((raw_value & 0xFF) != 0) { final_value = (raw_value & 0xFF) / 256.0; }
+				final_value += (raw_value >> 8) & 0x7F;
+				if(raw_value & 0x8000) { final_value *= -1.0; }
+
+				lcd_stat->bg_params[1].b = final_value;
+			}
+
+			break;
+
+		//BG3 Scale/Rotation Parameter C
+		case BG3PC:
+		case BG3PC+1:
+			memory_map[address] = value;
+			
+			{
+				u16 raw_value = ((memory_map[BG3PC+1] << 8) | memory_map[BG3PC]);
+				
+				//Grab the fractional and integer portions, respectively
+				double final_value = 0.0;
+		
+				if((raw_value & 0xFF) != 0) { final_value = (raw_value & 0xFF) / 256.0; }
+				final_value += (raw_value >> 8) & 0x7F;
+				if(raw_value & 0x8000) { final_value *= -1.0; }
+
+				lcd_stat->bg_params[1].c = final_value;
+			}
+
+			break;
+
+		//BG3 Scale/Rotation Parameter D
+		case BG3PD:
+		case BG3PD+1:
+			memory_map[address] = value;
+			
+			{
+				u16 raw_value = ((memory_map[BG3PD+1] << 8) | memory_map[BG3PD]);
+				
+				//Grab the fractional and integer portions, respectively
+				double final_value = 0.0;
+		
+				if((raw_value & 0xFF) != 0) { final_value = (raw_value & 0xFF) / 256.0; }
+				final_value += (raw_value >> 8) & 0x7F;
+				if(raw_value & 0x8000) { final_value *= -1.0; }
+
+				lcd_stat->bg_params[1].d = final_value;
+			}
+
+			break;
+
+		//BG3 Scale/Rotation X Reference
+		case BG3X_L:
+		case BG3X_L+1:
+		case BG3X_L+2:
+		case BG3X_L+3:
+			memory_map[address] = value;
+
+			{
+				u32 x_raw = ((memory_map[BG3X_L+3] << 24) | (memory_map[BG3X_L+2] << 16) | (memory_map[BG3X_L+1] << 8) | (memory_map[BG3X_L]));
+
+				//Note: The reference points are 19-bit signed 2's complement, not mentioned anywhere in docs...
+				if(x_raw & 0x8000000) 
+				{ 
+					u16 x = (((x_raw >> 8) & 0x7FFFF) - 1);
+					x = ~x;
+					lcd_stat->bg_params[1].x_ref = -1.0 * x;
+				}
+				else { lcd_stat->bg_params[1].x_ref = (x_raw >> 8) & 0x7FFFF; }
+				if((x_raw & 0xFF) != 0) { lcd_stat->bg_params[1].x_ref += (x_raw & 0xFF) / 256.0; }
+			}
+
+			break;
+
+		//BG3 Scale/Rotation Y Reference
+		case BG3Y_L:
+		case BG3Y_L+1:
+		case BG3Y_L+2:
+		case BG3Y_L+3:
+			memory_map[address] = value;
+
+			{
+				u32 y_raw = ((memory_map[BG3Y_L+3] << 24) | (memory_map[BG3Y_L+2] << 16) | (memory_map[BG3Y_L+1] << 8) | (memory_map[BG3Y_L]));
+
+				//Note: The reference points are 19-bit signed 2's complement, not mentioned anywhere in docs...
+				if(y_raw & 0x8000000) 
+				{ 
+					u16 y = (((y_raw >> 8) & 0x7FFFF) - 1);
+					y = ~y;
+					lcd_stat->bg_params[1].y_ref = -1.0 * y;
+				}
+				else { lcd_stat->bg_params[1].y_ref = (y_raw >> 8) & 0x7FFFF; }
+				if((y_raw & 0xFF) != 0) { lcd_stat->bg_params[1].y_ref += (y_raw & 0xFF) / 256.0; }
+			}
+
+			break;
+
 		//Window 0 Horizontal Coordinates
 		case WIN0H:
 		case WIN0H+1:
