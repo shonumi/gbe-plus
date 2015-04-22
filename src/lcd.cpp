@@ -52,8 +52,6 @@ void LCD::reset()
 	screen_buffer.resize(0x9600, 0);
 	scanline_buffer.resize(0x100, 0);
 
-	lcd_stat.bg_params[0].bg_lut.resize(0x10000, 0xFFFFFFFF);
-
 	//Initialize various LCD status variables
 	lcd_stat.oam_update = false;
 	lcd_stat.oam_update_list.resize(128, false);
@@ -63,8 +61,6 @@ void LCD::reset()
 
 	lcd_stat.obj_pal_update = true;
 	lcd_stat.obj_pal_update_list.resize(256, true);
-
-	lcd_stat.bg_params_update = true;
 
 	lcd_stat.frame_base = 0x6000000;
 	lcd_stat.bg_mode = 0;
@@ -303,63 +299,6 @@ void LCD::update_palettes()
 			}
 		}
 	}
-}
-
-/****** Updates BG scaling + rotation parameters when values change in memory ******/
-void LCD::update_bg_params()
-{
-	//TODO - BG3 parameters
-	
-	//Get BG2 size in pixels
-	u16 bg_size = (16 << (lcd_stat.bg_control[2] >> 14)) << 3;
-
-	double out_x = lcd_stat.bg_params[0].x_ref; 
-	double out_y = lcd_stat.bg_params[0].y_ref;
-
-	double temp_x = 0.0;
-	double temp_y = 0.0;
-
-	u16 src_x = 0;
-	u16 src_y = 0;
-
-	//Create a precalculated LUT (look-up table) of all transformed positions
-	//For example, when rendering at (120, 80), we need to determine what pixel was rotated/scaled into this position
-	for(int x = 0; x < 0x9600; x++, src_x++)
-	{
-		//Increment reference points by DMX and DMY for calculations
-		if((x % 240 == 0) && (x > 0))
-		{
-			lcd_stat.bg_params[0].x_ref += lcd_stat.bg_params[0].b;
-			lcd_stat.bg_params[0].y_ref += lcd_stat.bg_params[0].d;
-
-			out_x = lcd_stat.bg_params[0].x_ref;
-			out_y = lcd_stat.bg_params[0].y_ref;
-
-			src_x = 0;
-			src_y++;
-		}
-
-		//Calculate old position
-		u32 old_pos = (src_y * 240) + src_x;
-
-		//Calculate new position using new coordinate space, store to LUT
-		out_x += lcd_stat.bg_params[0].a;
-		out_y += lcd_stat.bg_params[0].c;
-
-		//Round results to nearest integer
-		temp_x = (out_x > 0) ? floor(out_x + 0.5) : ceil(out_x - 0.5);
-		temp_y = (out_y > 0) ? floor(out_y + 0.5) : ceil(out_y - 0.5);
-
-		//Cheap way to do modulus on rounded decimals
-		while(temp_x >= bg_size) { temp_x -= bg_size; }
-		while(temp_y >= bg_size) { temp_y -= bg_size; }
-
-		u32 new_pos = (temp_y * bg_size) + temp_x;
-		
-		if(old_pos < 0x9600) { lcd_stat.bg_params[0].bg_lut[old_pos] = new_pos; }
-	}
-
-	lcd_stat.bg_params_update = false;
 }
 
 /****** Determines if a sprite pixel should be rendered, and if so draws it to the current scanline pixel ******/
@@ -665,15 +604,23 @@ bool LCD::render_bg_mode_1(u32 bg_control)
 	u16 bg_tile_size = (16 << (lcd_stat.bg_control[2] >> 14));
 	u16 bg_pixel_size = bg_tile_size << 3;
 
+	//Calculate new X-Y coordinates from scaling+rotation
+	double new_x = lcd_stat.bg_params[0].x_ref + (lcd_stat.bg_params[0].a * scanline_pixel_counter) + (lcd_stat.bg_params[0].b * current_scanline);
+	double new_y = lcd_stat.bg_params[0].y_ref + (lcd_stat.bg_params[0].c * scanline_pixel_counter) + (lcd_stat.bg_params[0].d * current_scanline);
+
+	//Round results to nearest integer
+	new_x = (new_x > 0) ? floor(new_x + 0.5) : ceil(new_x - 0.5);
+	new_y = (new_y > 0) ? floor(new_y + 0.5) : ceil(new_y - 0.5);
+
+	//Cheap way to do modulus on rounded decimals
+	while(new_x >= bg_pixel_size) { new_x -= bg_pixel_size; }
+	while(new_y >= bg_pixel_size) { new_y -= bg_pixel_size; }
+	while(new_x < 0) { new_x += bg_pixel_size; }
+	while(new_y < 0) { new_y += bg_pixel_size; }
+
 	//Determine source pixel X-Y coordinates
-	u16 src_x = scanline_pixel_counter; 
-	u16 src_y = current_scanline;
-
-	u32 current_pos = (src_y * 240) + src_x;
-	current_pos = lcd_stat.bg_params[0].bg_lut[current_pos];
-
-	src_y = current_pos / bg_pixel_size;
-	src_x = current_pos % bg_pixel_size;
+	u16 src_x = new_x; 
+	u16 src_y = new_y;
 
 	//Get current map entry for rendered pixel
 	u16 tile_number = ((src_y / 8) * bg_tile_size) + (src_x / 8);
@@ -1032,9 +979,6 @@ void LCD::step()
 		{ 
 			lcd_mode = 0; 
 			update_obj_render_list();
-
-			//Update BG scaling + rotation parameters
-			if(lcd_stat.bg_params_update) { update_bg_params(); }
 		}
 
 		//Render scanline data (per-pixel every 4 cycles)

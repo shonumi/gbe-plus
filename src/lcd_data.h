@@ -73,9 +73,6 @@ struct lcd_data
 		//Parameters, X-Y reference
 		double a, b, c, d;
 		double x_ref, y_ref;
-		
-		//LUT of precalculated transformation positions
-		std::vector<u32> bg_lut;
 	} bg_params[2];
 
 	bool oam_update;
@@ -86,8 +83,6 @@ struct lcd_data
 
 	bool obj_pal_update;
 	std::vector<bool> obj_pal_update_list;
-
-	bool bg_params_update;
 };
 
 #endif // GBA_LCD_DATA

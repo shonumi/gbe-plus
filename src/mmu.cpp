@@ -268,7 +268,6 @@ void MMU::write_u8(u32 address, u8 value)
 			lcd_stat->bg_control[2] = ((memory_map[BG2CNT+1] << 8) | memory_map[BG2CNT]);
 			lcd_stat->bg_depth[2] = (lcd_stat->bg_control[2] & 0x80) ? 8 : 4;
 			lcd_stat->bg_size[2] = lcd_stat->bg_control[2] >> 14;
-			lcd_stat->bg_params_update = true;
 
 			lcd_stat->bg_base_map_addr[2] = 0x6000000 + (0x800 * ((lcd_stat->bg_control[2] >> 8) & 0x1F));
 			lcd_stat->bg_base_tile_addr[2] = 0x6000000 + (0x4000 * ((lcd_stat->bg_control[2] >> 2) & 0x3));
@@ -1388,12 +1387,6 @@ void MMU::write_u8(u32 address, u8 value)
 	{
 		u32 mirror_addr = 0x03FFFF00 + (address & 0xFF);
 		memory_map[mirror_addr] = value;
-	}
-
-	//Trigger BG scaling+rotation parameter update in LCD
-	else if((address >= 0x4000020) && (address <= 0x400003F))
-	{
-		lcd_stat->bg_params_update = true;
 	}
 
 	//Trigger BG palette update in LCD

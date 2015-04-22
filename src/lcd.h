@@ -45,7 +45,6 @@ class LCD
 
 	void update_oam();
 	void update_palettes();
-	void update_bg_params();
 	void update_obj_render_list();
 
 	void opengl_blit();
