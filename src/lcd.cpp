@@ -605,7 +605,7 @@ bool LCD::render_bg_mode_1(u32 bg_control)
 
 	//Get BG size in tiles, pixels
 	//0 - 128x128, 1 - 256x256, 2 - 512x512, 3 - 1024x1024
-	u16 bg_tile_size = (16 << (lcd_stat.bg_control[2] >> 14));
+	u16 bg_tile_size = (16 << (lcd_stat.bg_control[bg_id] >> 14));
 	u16 bg_pixel_size = bg_tile_size << 3;
 
 	//Calculate new X-Y coordinates from scaling+rotation
