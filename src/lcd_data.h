@@ -73,6 +73,8 @@ struct lcd_data
 		//Parameters, X-Y reference
 		double a, b, c, d;
 		double x_ref, y_ref;
+
+		bool overflow;
 	} bg_params[2];
 
 	bool oam_update;

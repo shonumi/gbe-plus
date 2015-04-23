@@ -71,6 +71,9 @@ void LCD::reset()
 	lcd_stat.obj_win_enable = false;
 	lcd_stat.current_sfx_type = NORMAL;
 
+	lcd_stat.bg_params[0].overflow = false;
+	lcd_stat.bg_params[1].overflow = false;
+
 	//BG Flip LUT generation
 	for(int x = 0, y = 255; x < 255; x++, y--)
 	{
@@ -613,11 +616,21 @@ bool LCD::render_bg_mode_1(u32 bg_control)
 	new_x = (new_x > 0) ? floor(new_x + 0.5) : ceil(new_x - 0.5);
 	new_y = (new_y > 0) ? floor(new_y + 0.5) : ceil(new_y - 0.5);
 
-	//Cheap way to do modulus on rounded decimals
-	while(new_x >= bg_pixel_size) { new_x -= bg_pixel_size; }
-	while(new_y >= bg_pixel_size) { new_y -= bg_pixel_size; }
-	while(new_x < 0) { new_x += bg_pixel_size; }
-	while(new_y < 0) { new_y += bg_pixel_size; }
+	//Clip BG if coordinates overflow and overflow flag is not set
+	if(!lcd_stat.bg_params[scale_rot_id].overflow)
+	{
+		if((new_x >= bg_pixel_size) || (new_x < 0)) { return false; }
+		if((new_y >= bg_pixel_size) || (new_y < 0)) { return false; }
+	}
+
+	//Wrap BG if coordinates overflow and overflow flag is set
+	else 
+	{
+		while(new_x >= bg_pixel_size) { new_x -= bg_pixel_size; }
+		while(new_y >= bg_pixel_size) { new_y -= bg_pixel_size; }
+		while(new_x < 0) { new_x += bg_pixel_size; }
+		while(new_y < 0) { new_y += bg_pixel_size; }
+	}
 
 	//Determine source pixel X-Y coordinates
 	u16 src_x = new_x; 

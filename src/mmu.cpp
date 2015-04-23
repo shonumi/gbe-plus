@@ -272,6 +272,8 @@ void MMU::write_u8(u32 address, u8 value)
 			lcd_stat->bg_base_map_addr[2] = 0x6000000 + (0x800 * ((lcd_stat->bg_control[2] >> 8) & 0x1F));
 			lcd_stat->bg_base_tile_addr[2] = 0x6000000 + (0x4000 * ((lcd_stat->bg_control[2] >> 2) & 0x3));
 
+			lcd_stat->bg_params[0].overflow = (lcd_stat->bg_control[2] & 0x2000) ? true : false;
+
 			switch(lcd_stat->bg_control[2] >> 14)
 			{
 				case 0x0: lcd_stat->mode_0_width[2] = 256; lcd_stat->mode_0_height[2] = 256; break;
@@ -293,6 +295,8 @@ void MMU::write_u8(u32 address, u8 value)
 
 			lcd_stat->bg_base_map_addr[3] = 0x6000000 + (0x800 * ((lcd_stat->bg_control[3] >> 8) & 0x1F));
 			lcd_stat->bg_base_tile_addr[3] = 0x6000000 + (0x4000 * ((lcd_stat->bg_control[3] >> 2) & 0x3));
+
+			lcd_stat->bg_params[1].overflow = (lcd_stat->bg_control[3] & 0x2000) ? true : false;
 
 			switch(lcd_stat->bg_control[3] >> 14)
 			{
