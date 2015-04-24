@@ -372,14 +372,16 @@ void MMU::write_u8(u32 address, u8 value)
 			{
 				u16 raw_value = ((memory_map[BG2PA+1] << 8) | memory_map[BG2PA]);
 				
-				//Grab the fractional and integer portions, respectively
-				double final_value = 0.0;
-		
-				if((raw_value & 0xFF) != 0) { final_value = (raw_value & 0xFF) / 256.0; }
-				final_value += (raw_value >> 8) & 0x7F;
-				if(raw_value & 0x8000) { final_value *= -1.0; }
-
-				lcd_stat->bg_params[0].a = final_value;
+				//Note: The reference points are 8-bit signed 2's complement, not mentioned anywhere in docs...
+				if(raw_value & 0x8000) 
+				{ 
+					u16 p = ((raw_value >> 8) - 1);
+					p = ~p;
+					p &= 0xFF;
+					lcd_stat->bg_params[0].a = -1.0 * p;
+				}
+				else { lcd_stat->bg_params[0].a = (raw_value >> 8); }
+				if((raw_value & 0xFF) != 0) { lcd_stat->bg_params[0].a += (raw_value & 0xFF) / 256.0; }
 			}
 
 			break;
@@ -392,14 +394,16 @@ void MMU::write_u8(u32 address, u8 value)
 			{
 				u16 raw_value = ((memory_map[BG2PB+1] << 8) | memory_map[BG2PB]);
 				
-				//Grab the fractional and integer portions, respectively
-				double final_value = 0.0;
-		
-				if((raw_value & 0xFF) != 0) { final_value = (raw_value & 0xFF) / 256.0; }
-				final_value += (raw_value >> 8) & 0x7F;
-				if(raw_value & 0x8000) { final_value *= -1.0; }
-
-				lcd_stat->bg_params[0].b = final_value;
+				//Note: The reference points are 8-bit signed 2's complement, not mentioned anywhere in docs...
+				if(raw_value & 0x8000) 
+				{ 
+					u16 p = ((raw_value >> 8) - 1);
+					p = ~p;
+					p &= 0xFF;
+					lcd_stat->bg_params[0].b = -1.0 * p;
+				}
+				else { lcd_stat->bg_params[0].b = (raw_value >> 8); }
+				if((raw_value & 0xFF) != 0) { lcd_stat->bg_params[0].b += (raw_value & 0xFF) / 256.0; }
 			}
 
 			break;
@@ -412,14 +416,16 @@ void MMU::write_u8(u32 address, u8 value)
 			{
 				u16 raw_value = ((memory_map[BG2PC+1] << 8) | memory_map[BG2PC]);
 				
-				//Grab the fractional and integer portions, respectively
-				double final_value = 0.0;
-		
-				if((raw_value & 0xFF) != 0) { final_value = (raw_value & 0xFF) / 256.0; }
-				final_value += (raw_value >> 8) & 0x7F;
-				if(raw_value & 0x8000) { final_value *= -1.0; }
-
-				lcd_stat->bg_params[0].c = final_value;
+				//Note: The reference points are 8-bit signed 2's complement, not mentioned anywhere in docs...
+				if(raw_value & 0x8000) 
+				{ 
+					u16 p = ((raw_value >> 8) - 1);
+					p = ~p;
+					p &= 0xFF;
+					lcd_stat->bg_params[0].c = -1.0 * p;
+				}
+				else { lcd_stat->bg_params[0].c = (raw_value >> 8); }
+				if((raw_value & 0xFF) != 0) { lcd_stat->bg_params[0].c += (raw_value & 0xFF) / 256.0; }
 			}
 
 			break;
@@ -432,14 +438,16 @@ void MMU::write_u8(u32 address, u8 value)
 			{
 				u16 raw_value = ((memory_map[BG2PD+1] << 8) | memory_map[BG2PD]);
 				
-				//Grab the fractional and integer portions, respectively
-				double final_value = 0.0;
-		
-				if((raw_value & 0xFF) != 0) { final_value = (raw_value & 0xFF) / 256.0; }
-				final_value += (raw_value >> 8) & 0x7F;
-				if(raw_value & 0x8000) { final_value *= -1.0; }
-
-				lcd_stat->bg_params[0].d = final_value;
+				//Note: The reference points are 8-bit signed 2's complement, not mentioned anywhere in docs...
+				if(raw_value & 0x8000) 
+				{ 
+					u16 p = ((raw_value >> 8) - 1);
+					p = ~p;
+					p &= 0xFF;
+					lcd_stat->bg_params[0].d = -1.0 * p;
+				}
+				else { lcd_stat->bg_params[0].d = (raw_value >> 8); }
+				if((raw_value & 0xFF) != 0) { lcd_stat->bg_params[0].d += (raw_value & 0xFF) / 256.0; }
 			}
 
 			break;
@@ -457,8 +465,9 @@ void MMU::write_u8(u32 address, u8 value)
 				//Note: The reference points are 19-bit signed 2's complement, not mentioned anywhere in docs...
 				if(x_raw & 0x8000000) 
 				{ 
-					u16 x = (((x_raw >> 8) & 0x7FFFF) - 1);
+					u32 x = ((x_raw >> 8) - 1);
 					x = ~x;
+					x &= 0x7FFFF;
 					lcd_stat->bg_params[0].x_ref = -1.0 * x;
 				}
 				else { lcd_stat->bg_params[0].x_ref = (x_raw >> 8) & 0x7FFFF; }
@@ -480,8 +489,9 @@ void MMU::write_u8(u32 address, u8 value)
 				//Note: The reference points are 19-bit signed 2's complement, not mentioned anywhere in docs...
 				if(y_raw & 0x8000000) 
 				{ 
-					u16 y = (((y_raw >> 8) & 0x7FFFF) - 1);
+					u32 y = ((y_raw >> 8) - 1);
 					y = ~y;
+					y &= 0x7FFFF;
 					lcd_stat->bg_params[0].y_ref = -1.0 * y;
 				}
 				else { lcd_stat->bg_params[0].y_ref = (y_raw >> 8) & 0x7FFFF; }
@@ -498,14 +508,16 @@ void MMU::write_u8(u32 address, u8 value)
 			{
 				u16 raw_value = ((memory_map[BG3PA+1] << 8) | memory_map[BG3PA]);
 				
-				//Grab the fractional and integer portions, respectively
-				double final_value = 0.0;
-		
-				if((raw_value & 0xFF) != 0) { final_value = (raw_value & 0xFF) / 256.0; }
-				final_value += (raw_value >> 8) & 0x7F;
-				if(raw_value & 0x8000) { final_value *= -1.0; }
-
-				lcd_stat->bg_params[1].a = final_value;
+				//Note: The reference points are 8-bit signed 2's complement, not mentioned anywhere in docs...
+				if(raw_value & 0x8000) 
+				{ 
+					u16 p = ((raw_value >> 8) - 1);
+					p = ~p;
+					p &= 0xFF;
+					lcd_stat->bg_params[1].a = -1.0 * p;
+				}
+				else { lcd_stat->bg_params[1].a = (raw_value >> 8); }
+				if((raw_value & 0xFF) != 0) { lcd_stat->bg_params[1].a += (raw_value & 0xFF) / 256.0; }
 			}
 
 			break;
@@ -518,14 +530,16 @@ void MMU::write_u8(u32 address, u8 value)
 			{
 				u16 raw_value = ((memory_map[BG3PB+1] << 8) | memory_map[BG3PB]);
 				
-				//Grab the fractional and integer portions, respectively
-				double final_value = 0.0;
-		
-				if((raw_value & 0xFF) != 0) { final_value = (raw_value & 0xFF) / 256.0; }
-				final_value += (raw_value >> 8) & 0x7F;
-				if(raw_value & 0x8000) { final_value *= -1.0; }
-
-				lcd_stat->bg_params[1].b = final_value;
+				//Note: The reference points are 8-bit signed 2's complement, not mentioned anywhere in docs...
+				if(raw_value & 0x8000) 
+				{ 
+					u16 p = ((raw_value >> 8) - 1);
+					p = ~p;
+					p &= 0xFF;
+					lcd_stat->bg_params[1].b = -1.0 * p;
+				}
+				else { lcd_stat->bg_params[1].b = (raw_value >> 8); }
+				if((raw_value & 0xFF) != 0) { lcd_stat->bg_params[1].b += (raw_value & 0xFF) / 256.0; }
 			}
 
 			break;
@@ -538,14 +552,16 @@ void MMU::write_u8(u32 address, u8 value)
 			{
 				u16 raw_value = ((memory_map[BG3PC+1] << 8) | memory_map[BG3PC]);
 				
-				//Grab the fractional and integer portions, respectively
-				double final_value = 0.0;
-		
-				if((raw_value & 0xFF) != 0) { final_value = (raw_value & 0xFF) / 256.0; }
-				final_value += (raw_value >> 8) & 0x7F;
-				if(raw_value & 0x8000) { final_value *= -1.0; }
-
-				lcd_stat->bg_params[1].c = final_value;
+				//Note: The reference points are 8-bit signed 2's complement, not mentioned anywhere in docs...
+				if(raw_value & 0x8000) 
+				{ 
+					u16 p = ((raw_value >> 8) - 1);
+					p = ~p;
+					p &= 0xFF;
+					lcd_stat->bg_params[1].c = -1.0 * p;
+				}
+				else { lcd_stat->bg_params[1].c = (raw_value >> 8); }
+				if((raw_value & 0xFF) != 0) { lcd_stat->bg_params[1].c += (raw_value & 0xFF) / 256.0; }
 			}
 
 			break;
@@ -558,14 +574,16 @@ void MMU::write_u8(u32 address, u8 value)
 			{
 				u16 raw_value = ((memory_map[BG3PD+1] << 8) | memory_map[BG3PD]);
 				
-				//Grab the fractional and integer portions, respectively
-				double final_value = 0.0;
-		
-				if((raw_value & 0xFF) != 0) { final_value = (raw_value & 0xFF) / 256.0; }
-				final_value += (raw_value >> 8) & 0x7F;
-				if(raw_value & 0x8000) { final_value *= -1.0; }
-
-				lcd_stat->bg_params[1].d = final_value;
+				//Note: The reference points are 8-bit signed 2's complement, not mentioned anywhere in docs...
+				if(raw_value & 0x8000) 
+				{ 
+					u16 p = ((raw_value >> 8) - 1);
+					p = ~p;
+					p &= 0xFF;
+					lcd_stat->bg_params[1].d = -1.0 * p;
+				}
+				else { lcd_stat->bg_params[1].d = (raw_value >> 8); }
+				if((raw_value & 0xFF) != 0) { lcd_stat->bg_params[1].d += (raw_value & 0xFF) / 256.0; }
 			}
 
 			break;
@@ -583,8 +601,9 @@ void MMU::write_u8(u32 address, u8 value)
 				//Note: The reference points are 19-bit signed 2's complement, not mentioned anywhere in docs...
 				if(x_raw & 0x8000000) 
 				{ 
-					u16 x = (((x_raw >> 8) & 0x7FFFF) - 1);
+					u32 x = ((x_raw >> 8) - 1);
 					x = ~x;
+					x &= 0x7FFFF;
 					lcd_stat->bg_params[1].x_ref = -1.0 * x;
 				}
 				else { lcd_stat->bg_params[1].x_ref = (x_raw >> 8) & 0x7FFFF; }
@@ -606,8 +625,9 @@ void MMU::write_u8(u32 address, u8 value)
 				//Note: The reference points are 19-bit signed 2's complement, not mentioned anywhere in docs...
 				if(y_raw & 0x8000000) 
 				{ 
-					u16 y = (((y_raw >> 8) & 0x7FFFF) - 1);
+					u32 y = ((y_raw >> 8) - 1);
 					y = ~y;
+					y &= 0x7FFFF;
 					lcd_stat->bg_params[1].y_ref = -1.0 * y;
 				}
 				else { lcd_stat->bg_params[1].y_ref = (y_raw >> 8) & 0x7FFFF; }
