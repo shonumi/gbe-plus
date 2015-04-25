@@ -108,6 +108,7 @@ class LCD
 	bool render_bg_mode_1(u32 bg_control);
 	bool render_bg_mode_3();
 	bool render_bg_mode_4();
+	bool render_bg_mode_5();
 	void scanline_compare();
 
 	void apply_sfx();

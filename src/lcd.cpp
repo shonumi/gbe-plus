@@ -473,6 +473,10 @@ bool LCD::render_bg_pixel(u32 bg_control)
 		case 4:
 			return render_bg_mode_4(); break;
 
+		//BG Mode 5
+		case 5:
+			return render_bg_mode_5(); break;
+
 		default:
 			//std::cout<<"LCD::invalid or unsupported BG Mode : " << std::dec << (lcd_stat.display_control & 0x7);
 			return false;
@@ -692,6 +696,31 @@ bool LCD::render_bg_mode_4()
 
 	scanline_buffer[scanline_pixel_counter] = pal[raw_color][0];
 	last_raw_color = raw_pal[raw_color][0];
+
+	return true;
+}
+
+/****** Render BG Mode 5 ******/
+bool LCD::render_bg_mode_5()
+{
+	//Restrict rendering to 160x128
+	if(scanline_pixel_counter >= 160) { return false; }
+	if(current_scanline >= 128) { return false; }
+
+	//Determine which byte in VRAM to read for color data
+	u16 color_bytes = mem->read_u16_fast(lcd_stat.frame_base + (current_scanline * 320) + (scanline_pixel_counter * 2));
+	last_raw_color = color_bytes;
+
+	//ARGB conversion
+	u8 red = ((color_bytes & 0x1F) * 8);
+	color_bytes >>= 5;
+
+	u8 green = ((color_bytes & 0x1F) * 8);
+	color_bytes >>= 5;
+
+	u8 blue = ((color_bytes & 0x1F) * 8);
+
+	scanline_buffer[scanline_pixel_counter] = 0xFF000000 | (red << 16) | (green << 8) | (blue);
 
 	return true;
 }
