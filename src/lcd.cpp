@@ -766,6 +766,9 @@ void LCD::render_scanline()
 		else { lcd_stat.in_window = true; lcd_stat.current_window = 1; }
 	}
 
+	if((lcd_stat.window_enable[lcd_stat.current_window]) && (!lcd_stat.in_window) && (!lcd_stat.window_out_enable[4][0])) { obj_render = false; scanline_buffer[scanline_pixel_counter] = pal[0][0]; }
+	else if((lcd_stat.window_enable[lcd_stat.current_window]) && (lcd_stat.in_window) && (!lcd_stat.window_in_enable[4][lcd_stat.current_window])) { obj_render = false; scanline_buffer[scanline_pixel_counter] = pal[0][0]; }
+
 	//Render BGs based on priority (3 is the 'lowest', 0 is the 'highest')
 	for(int x = 0; x < 4; x++)
 	{
