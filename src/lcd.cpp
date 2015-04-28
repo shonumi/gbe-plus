@@ -809,12 +809,13 @@ void LCD::render_scanline()
 /****** Applies the GBA's SFX to a pixel ******/
 void LCD::apply_sfx()
 {
+	sfx_types temp_fx_type = lcd_stat.current_sfx_type;
+
 	//If doing brightness up/down and the last pixel drawn is not a target, abort SFX
 	if((!lcd_stat.sfx_target[last_bg_priority][0]) && (lcd_stat.current_sfx_type != ALPHA_BLEND)) { return; }
 
 	//If doing brightness up/down and the OBJ mode is Semi-Transparent, abort SFX
-	//TODO: Force Alpha Blending if the OBJ is 1st target
-	if((last_bg_priority == 4) && (lcd_stat.current_sfx_type != ALPHA_BLEND) && (last_obj_mode == 1)) { return; }
+	if((last_bg_priority == 4) && (lcd_stat.current_sfx_type != ALPHA_BLEND) && (last_obj_mode == 1)) { lcd_stat.current_sfx_type = ALPHA_BLEND;  }
 
 	//If doing alpha blending outside of the OBJ Window and the last pixel drawn is not a target, abort SFX 
 	if((!lcd_stat.sfx_target[last_bg_priority][0]) && (lcd_stat.current_sfx_type == ALPHA_BLEND) && (!obj_win_pixel) && (last_obj_mode != 1)) { return; }
@@ -853,6 +854,8 @@ void LCD::apply_sfx()
 			scanline_buffer[scanline_pixel_counter] = brightness_down(); 
 			break;
 	}
+
+	lcd_stat.current_sfx_type = temp_fx_type;
 }
 
 /****** SFX - Increase brightness ******/
