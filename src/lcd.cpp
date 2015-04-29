@@ -809,12 +809,12 @@ void LCD::render_scanline()
 /****** Applies the GBA's SFX to a pixel ******/
 void LCD::apply_sfx()
 {
-	sfx_types temp_fx_type = lcd_stat.current_sfx_type;
+	lcd_stat.temp_sfx_type = lcd_stat.current_sfx_type;
 
 	//If doing brightness up/down and the last pixel drawn is not a target, abort SFX
 	if((!lcd_stat.sfx_target[last_bg_priority][0]) && (lcd_stat.current_sfx_type != ALPHA_BLEND)) { return; }
 
-	//If doing brightness up/down and the OBJ mode is Semi-Transparent, abort SFX
+	//If doing brightness up/down and the OBJ mode is Semi-Transparent, force alpha blending
 	if((last_bg_priority == 4) && (lcd_stat.current_sfx_type != ALPHA_BLEND) && (last_obj_mode == 1)) { lcd_stat.current_sfx_type = ALPHA_BLEND;  }
 
 	//If doing alpha blending outside of the OBJ Window and the last pixel drawn is not a target, abort SFX 
@@ -855,7 +855,8 @@ void LCD::apply_sfx()
 			break;
 	}
 
-	lcd_stat.current_sfx_type = temp_fx_type;
+	lcd_stat.current_sfx_type = lcd_stat.temp_sfx_type;
+	lcd_stat.temp_sfx_type = NORMAL;
 }
 
 /****** SFX - Increase brightness ******/
@@ -976,8 +977,17 @@ u32 LCD::alpha_blend()
 	//If the 2nd target is rendered and not specified for blending, abort 
 	if((do_blending) && (!lcd_stat.sfx_target[next_bg_priority][1])) { return final_color; } 
 
-	//Abort if no 2nd target can blend
-	if(!do_blending) { return final_color; }
+	if(!do_blending) 
+	{
+		//If no alpha-blending occurs, see if Brightness Increase can be applied (for semi-transparent OBJ only)
+		if(lcd_stat.temp_sfx_type == BRIGHTNESS_UP) { return brightness_up(); }
+
+		//If no alpha-blending occurs, see if Brightness Decrease can be applied (for semi-transparent OBJ only)
+		else if(lcd_stat.temp_sfx_type == BRIGHTNESS_DOWN) { return brightness_down(); }
+
+		//If no alpha-blending occurs and no fringe cases occur, abort
+		else { return final_color; }
+	}
 
 	color_2 = last_raw_color;
 

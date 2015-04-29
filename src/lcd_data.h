@@ -58,6 +58,7 @@ struct lcd_data
 	u16 mode_0_height[4];
 
 	sfx_types current_sfx_type;
+	sfx_types temp_sfx_type;
 	bool sfx_target[6][2];
 	double brightness_coef;
 	double alpha_a_coef;
