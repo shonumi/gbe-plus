@@ -67,6 +67,10 @@ void LCD::reset()
 	lcd_stat.hblank_interval_free = false;
 	lcd_stat.oam_access = false;
 
+	lcd_stat.window_x1[0] = lcd_stat.window_x1[1] = 0;
+	lcd_stat.window_y1[0] = lcd_stat.window_y1[1] = 0;
+	lcd_stat.window_enable[0] = lcd_stat.window_enable[1] = false;
+
 	lcd_stat.in_window = false;
 	lcd_stat.obj_win_enable = false;
 	lcd_stat.current_sfx_type = NORMAL;
@@ -737,9 +741,6 @@ void LCD::render_scanline()
 	last_raw_color = raw_pal[0][0];
 	obj_win_pixel = false;
 
-	//Use BG Palette #0, Color #0 as the backdrop
-	scanline_buffer[scanline_pixel_counter] = pal[0][0];
-
 	//Render sprites
 	obj_render = render_sprite_pixel();
 
@@ -757,6 +758,8 @@ void LCD::render_scanline()
 
 	if((lcd_stat.window_enable[1]) && (!lcd_stat.in_window))
 	{
+		if(!lcd_stat.window_enable[0]) { lcd_stat.current_window = 1; }
+
 		if((scanline_pixel_counter < lcd_stat.window_x1[1]) || (scanline_pixel_counter > lcd_stat.window_x2[1])
 		|| (current_scanline < lcd_stat.window_y1[1]) || (current_scanline > lcd_stat.window_y2[1]))
 		{
@@ -766,8 +769,9 @@ void LCD::render_scanline()
 		else { lcd_stat.in_window = true; lcd_stat.current_window = 1; }
 	}
 
-	if((lcd_stat.window_enable[lcd_stat.current_window]) && (!lcd_stat.in_window) && (!lcd_stat.window_out_enable[4][0])) { obj_render = false; scanline_buffer[scanline_pixel_counter] = pal[0][0]; }
-	else if((lcd_stat.window_enable[lcd_stat.current_window]) && (lcd_stat.in_window) && (!lcd_stat.window_in_enable[4][lcd_stat.current_window])) { obj_render = false; scanline_buffer[scanline_pixel_counter] = pal[0][0]; }
+	//Turn off OBJ rendering if in/out of a window where OBJ rendering is disabled
+	if((lcd_stat.window_enable[lcd_stat.current_window]) && (!lcd_stat.in_window) && (!lcd_stat.window_out_enable[4][0])) { obj_render = false; }
+	else if((lcd_stat.window_enable[lcd_stat.current_window]) && (lcd_stat.in_window) && (!lcd_stat.window_in_enable[4][lcd_stat.current_window])) { obj_render = false; }
 
 	//Render BGs based on priority (3 is the 'lowest', 0 is the 'highest')
 	for(int x = 0; x < 4; x++)
@@ -804,6 +808,9 @@ void LCD::render_scanline()
 			else if(render_bg_pixel(BG3CNT)) { last_bg_priority = 3; return; } 
 		}
 	}
+
+	//Use BG Palette #0, Color #0 as the backdrop
+	scanline_buffer[scanline_pixel_counter] = pal[0][0];
 }
 
 /****** Applies the GBA's SFX to a pixel ******/
