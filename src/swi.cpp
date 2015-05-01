@@ -567,7 +567,6 @@ void ARM7::swi_arctan2()
 void ARM7::swi_cpufastset()
 {
 	//TODO - Timings
-	//TODO - Memory alignments
 
 	bios_read_state = BIOS_SWI_FINISH;
 
@@ -576,6 +575,9 @@ void ARM7::swi_cpufastset()
 
 	//Grab destination address - R1
 	u32 dest_addr = get_reg(1);
+
+	src_addr &= ~0x3;
+	dest_addr &= ~0x3;
 
 	//Abort read/writes to the BIOS
 	if(src_addr <= 0x3FFF) { return; }
@@ -627,7 +629,6 @@ void ARM7::swi_cpufastset()
 void ARM7::swi_cpuset()
 {
 	//TODO - Timings
-	//TODO - Memory alignments
 
 	bios_read_state = BIOS_SWI_FINISH;
 
@@ -652,6 +653,9 @@ void ARM7::swi_cpuset()
 
 	//Determine if the transfer operation is 16 or 32-bit - Bit 26 of R2
 	u8 transfer_type = (transfer_control & 0x4000000) ? 1 : 0;
+
+	src_addr &= (transfer_type == 0) ? ~0x1 : ~0x3;
+	dest_addr &= (transfer_type == 0) ? ~0x1 : ~0x3; 
 
 	u32 temp_32 = 0;
 	u16 temp_16 = 0;
