@@ -582,7 +582,8 @@ void APU::generate_dma_a_samples(s16* stream, int length)
 		apu_stat.dma[0].counter = apu_stat.dma[0].last_position = 0;
 	}
 
-	apu_stat.dma[0].length = 0;
+	if(apu_stat.dma[0].length > length) { apu_stat.dma[0].length -= length; }
+	else { apu_stat.dma[0].length = 0; }
 }
 
 /******* Generate samples for GBA DMA channel B ******/
@@ -626,7 +627,8 @@ void APU::generate_dma_b_samples(s16* stream, int length)
 		apu_stat.dma[1].counter = apu_stat.dma[1].last_position = 0;
 	}
 
-	apu_stat.dma[1].length = 0;
+	if(apu_stat.dma[1].length > length) { apu_stat.dma[1].length -= length; }
+	else { apu_stat.dma[1].length = 0; }
 }
 
 /****** Run APU for one cycle ******/
