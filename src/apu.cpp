@@ -545,7 +545,7 @@ void APU::generate_channel_4_samples(s16* stream, int length)
 void APU::generate_dma_a_samples(s16* stream, int length)
 {
 	//Generate samples from the last output of the channel
-	if((apu_stat.dma[0].left_enable || apu_stat.dma[0].right_enable) && (apu_stat.dma[0].counter != 0))
+	if((apu_stat.dma[0].left_enable || apu_stat.dma[0].right_enable) && (apu_stat.dma[0].length != 0))
 	{
 		double sample_ratio = apu_stat.dma[0].output_frequency/apu_stat.sample_rate;
 		u8 buffer_sample = 0;
@@ -590,7 +590,7 @@ void APU::generate_dma_a_samples(s16* stream, int length)
 void APU::generate_dma_b_samples(s16* stream, int length)
 {
 	//Generate samples from the last output of the channel
-	if((apu_stat.dma[1].left_enable || apu_stat.dma[1].right_enable) && (apu_stat.dma[1].counter != 0))
+	if((apu_stat.dma[1].left_enable || apu_stat.dma[1].right_enable) && (apu_stat.dma[1].length != 0))
 	{
 		double sample_ratio = apu_stat.dma[1].output_frequency/apu_stat.sample_rate;
 		u8 buffer_sample = 0;
