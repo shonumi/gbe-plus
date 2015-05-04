@@ -1461,13 +1461,13 @@ void MMU::write_u8(u32 address, u8 value)
 		//General Purpose I/O Direction
 		case GPIO_DIRECTION:
 			memory_map[address] = value & 0x1;
-			gpio.readable = (memory_map[address] & 0x1) ? true : false;
+			gpio.in_out = (memory_map[address] & 0x1) ? true : false;
 			break;
 
 		//General Purpose I/O Control
 		case GPIO_CNT:
 			memory_map[address] = value & 0x1;
-			gpio.in_out = (memory_map[address] & 0x1) ? true : false;
+			gpio.readable = (memory_map[address] & 0x1) ? true : false;
 			break;
 
 		case FLASH_RAM_CMD0:
