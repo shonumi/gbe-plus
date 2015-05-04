@@ -46,6 +46,10 @@ void MMU::reset()
 	flash_ram.data[0].resize(0x10000, 0xFF);
 	flash_ram.data[1].resize(0x10000, 0xFF);
 
+	gpio.in_out = false;
+	gpio.readable = false;
+	gpio.input = gpio.output = 0;
+
 	//HLE stuff
 	memory_map[DISPCNT] = 0x80;
 	write_u16(0x4000134, 0x8000);
@@ -156,6 +160,22 @@ u8 MMU::read_u8(u32 address) const
 		case WAVERAM3_L+1: return apu_stat->waveram_data[(apu_stat->waveram_bank_rw << 4) + 13]; break;
 		case WAVERAM3_H: return apu_stat->waveram_data[(apu_stat->waveram_bank_rw << 4) + 14]; break;
 		case WAVERAM3_H+1: return apu_stat->waveram_data[(apu_stat->waveram_bank_rw << 4) + 15]; break;
+
+		//General Purpose I/O Data
+		case GPIO_DATA:
+			if((gpio.in_out) && (gpio.readable)) { return gpio.output; }
+			else if((!gpio.in_out) && (gpio.readable)) { return gpio.input; }
+			break;
+
+		//General Purpose I/O Direction
+		case GPIO_DIRECTION:
+			if(gpio.readable) { return gpio.in_out; }
+			break;
+
+		//General Purpose I/O Control
+		case GPIO_CNT:
+			if(gpio.readable) { return gpio.readable; }
+			break;
 		
 		default:
 			return memory_map[address];
@@ -1428,6 +1448,26 @@ void MMU::write_u8(u32 address, u8 value)
 				}
 			}
 
+			break;
+
+		//General Purpose I/O Data
+		case GPIO_DATA:
+			memory_map[address] = (value & 0x7);
+
+			if(gpio.in_out) { gpio.output = (value & 0x7); }
+			else { gpio.input = (value & 0x7); }
+			break;
+
+		//General Purpose I/O Direction
+		case GPIO_DIRECTION:
+			memory_map[address] = value & 0x1;
+			gpio.readable = (memory_map[address] & 0x1) ? true : false;
+			break;
+
+		//General Purpose I/O Control
+		case GPIO_CNT:
+			memory_map[address] = value & 0x1;
+			gpio.in_out = (memory_map[address] & 0x1) ? true : false;
 			break;
 
 		case FLASH_RAM_CMD0:

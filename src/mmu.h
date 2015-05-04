@@ -36,6 +36,16 @@ class MMU
 		SRAM
 	};
 
+	//Cartridge GPIO-type enumerations
+	enum gpio_types
+	{
+		DISABLED,
+		RTC,
+		SOLAR_SENSOR,
+		RUMBLE,
+		GYRO_SENSOR,
+	};
+
 	backup_types current_save_type;
 
 	std::vector <u8> memory_map;
@@ -85,6 +95,15 @@ class MMU
 		bool grab_ids;
 		bool next_write;
 	} flash_ram;
+
+	//Structure to handle GPIO reading and writing
+	struct gpio_controller
+	{
+		bool readable;
+		bool in_out;
+		u8 input;
+		u8 output;
+	} gpio;
 
 	MMU();
 	~MMU();
