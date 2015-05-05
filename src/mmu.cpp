@@ -49,6 +49,7 @@ void MMU::reset()
 	gpio.in_out = false;
 	gpio.readable = false;
 	gpio.input = gpio.output = 0;
+	gpio.current_type = DISABLED;
 
 	//HLE stuff
 	memory_map[DISPCNT] = 0x80;

@@ -103,6 +103,7 @@ class MMU
 		bool in_out;
 		u8 input;
 		u8 output;
+		gpio_types current_type;
 	} gpio;
 
 	MMU();
