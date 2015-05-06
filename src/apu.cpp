@@ -629,10 +629,7 @@ void APU::generate_dma_b_samples(s16* stream, int length)
 
 	if(apu_stat.dma[1].length > length) { apu_stat.dma[1].length -= length; }
 	else { apu_stat.dma[1].length = 0; }
-}
-
-/****** Run APU for one cycle ******/
-void APU::step() { }		
+}	
 
 /****** SDL Audio Callback ******/ 
 void audio_callback(void* _apu, u8 *_stream, int _length)

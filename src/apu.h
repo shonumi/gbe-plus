@@ -40,8 +40,6 @@ class APU
 	void generate_channel_4_samples(s16* stream, int length);
 	void generate_dma_a_samples(s16* stream, int length);
 	void generate_dma_b_samples(s16* stream, int length);
-
-	void step();
 };
 
 /****** SDL Audio Callback ******/ 
