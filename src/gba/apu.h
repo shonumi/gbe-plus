@@ -16,20 +16,20 @@
 #include <SDL/SDL_audio.h>
 #include "mmu.h"
 
-class APU
+class AGB_APU
 {
 	public:
 	
 	//Link to memory map
-	MMU* mem;
+	AGB_MMU* mem;
 
 	apu_data apu_stat;
 
 	SDL_AudioSpec desired_spec;
     	SDL_AudioSpec obtained_spec;
 
-	APU();
-	~APU();
+	AGB_APU();
+	~AGB_APU();
 
 	bool init();
 	void reset();

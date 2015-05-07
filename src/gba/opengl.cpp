@@ -12,7 +12,7 @@
 #include "lcd.h"
 
 /****** Initialize OpenGL through SDL ******/
-void LCD::opengl_init()
+void AGB_LCD::opengl_init()
 {
 	SDL_SetVideoMode((240 * config::scaling_factor), (160 * config::scaling_factor), 32, SDL_OPENGL | config::flags);
 		
@@ -36,7 +36,7 @@ void LCD::opengl_init()
 }
 
 /****** Blit using OpenGL ******/
-void LCD::opengl_blit()
+void AGB_LCD::opengl_blit()
 {
 	glTexImage2D(GL_TEXTURE_2D, 0, 4, 240, 160, 0, GL_BGRA, GL_UNSIGNED_BYTE, final_screen->pixels);
 

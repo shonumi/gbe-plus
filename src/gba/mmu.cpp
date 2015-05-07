@@ -11,20 +11,20 @@
 #include "mmu.h"
 
 /****** MMU Constructor ******/
-MMU::MMU() 
+AGB_MMU::AGB_MMU() 
 {
 	reset();
 }
 
 /****** MMU Deconstructor ******/
-MMU::~MMU() 
+AGB_MMU::~AGB_MMU() 
 { 
 	memory_map.clear();
 	std::cout<<"MMU::Shutdown\n"; 
 }
 
 /****** MMU Reset ******/
-void MMU::reset()
+void AGB_MMU::reset()
 {
 	memory_map.clear();
 	memory_map.resize(0x10000000, 0);
@@ -83,7 +83,7 @@ void MMU::reset()
 }
 
 /****** Read byte from memory ******/
-u8 MMU::read_u8(u32 address) const
+u8 AGB_MMU::read_u8(u32 address) const
 {
 	//Check for unused memory first
 	if(address >= 0x10000000) { std::cout<<"Out of bounds read : 0x" << std::hex << address << "\n"; return 0; }
@@ -184,31 +184,31 @@ u8 MMU::read_u8(u32 address) const
 }
 
 /****** Read 2 bytes from memory ******/
-u16 MMU::read_u16(u32 address) const
+u16 AGB_MMU::read_u16(u32 address) const
 {
 	return ((read_u8(address+1) << 8) | read_u8(address)); 
 }
 
 /****** Read 4 bytes from memory ******/
-u32 MMU::read_u32(u32 address) const
+u32 AGB_MMU::read_u32(u32 address) const
 {
 	return ((read_u8(address+3) << 24) | (read_u8(address+2) << 16) | (read_u8(address+1) << 8) | read_u8(address));
 }
 
 /****** Reads 2 bytes from memory - No checks done on the read, used for known memory locations such as registers ******/
-u16 MMU::read_u16_fast(u32 address) const
+u16 AGB_MMU::read_u16_fast(u32 address) const
 {
 	return ((memory_map[address+1] << 8) | memory_map[address]);
 }
 
 /****** Reads 4 bytes from memory - No checks done on the read, used for known memory locations such as registers ******/
-u32 MMU::read_u32_fast(u32 address) const
+u32 AGB_MMU::read_u32_fast(u32 address) const
 {
 	return ((memory_map[address+3] << 24) | (memory_map[address+2] << 16) | (memory_map[address+1] << 8) | memory_map[address]);
 }
 
 /****** Write byte into memory ******/
-void MMU::write_u8(u32 address, u8 value)
+void AGB_MMU::write_u8(u32 address, u8 value)
 {
 	//Check for unused memory first
 	if(address >= 0x10000000) { std::cout<<"Out of bounds write : 0x" << std::hex << address << "\n"; return; }
@@ -1616,14 +1616,14 @@ void MMU::write_u8(u32 address, u8 value)
 }
 
 /****** Write 2 bytes into memory ******/
-void MMU::write_u16(u32 address, u16 value)
+void AGB_MMU::write_u16(u32 address, u16 value)
 {
 	write_u8(address, (value & 0xFF));
 	write_u8((address+1), ((value >> 8) & 0xFF));
 }
 
 /****** Write 4 bytes into memory ******/
-void MMU::write_u32(u32 address, u32 value)
+void AGB_MMU::write_u32(u32 address, u32 value)
 {
 	write_u8(address, (value & 0xFF));
 	write_u8((address+1), ((value >> 8) & 0xFF));
@@ -1632,14 +1632,14 @@ void MMU::write_u32(u32 address, u32 value)
 }
 
 /****** Writes 2 bytes into memory - No checks done on the read, used for known memory locations such as registers ******/
-void MMU::write_u16_fast(u32 address, u16 value)
+void AGB_MMU::write_u16_fast(u32 address, u16 value)
 {
 	memory_map[address] = (value & 0xFF);
 	memory_map[address+1] = ((value >> 8) & 0xFF);
 }
 
 /****** Writes 4 bytes into memory - No checks done on the read, used for known memory locations such as registers ******/
-void MMU::write_u32_fast(u32 address, u32 value)
+void AGB_MMU::write_u32_fast(u32 address, u32 value)
 {
 	memory_map[address] = (value & 0xFF);
 	memory_map[address+1] = ((value >> 8) & 0xFF);
@@ -1648,7 +1648,7 @@ void MMU::write_u32_fast(u32 address, u32 value)
 }	
 
 /****** Read binary file to memory ******/
-bool MMU::read_file(std::string filename)
+bool AGB_MMU::read_file(std::string filename)
 {
 	std::ifstream file(filename.c_str(), std::ios::binary);
 
@@ -1741,7 +1741,7 @@ bool MMU::read_file(std::string filename)
 }
 
 /****** Read BIOS file into memory ******/
-bool MMU::read_bios(std::string filename)
+bool AGB_MMU::read_bios(std::string filename)
 {
 	std::ifstream file(filename.c_str(), std::ios::binary);
 
@@ -1768,7 +1768,7 @@ bool MMU::read_bios(std::string filename)
 }
 
 /****** Load backup save data ******/
-bool MMU::load_backup(std::string filename)
+bool AGB_MMU::load_backup(std::string filename)
 {
 	std::ifstream file(filename.c_str(), std::ios::binary);
 	std::vector<u8> save_data;
@@ -1862,7 +1862,7 @@ bool MMU::load_backup(std::string filename)
 }
 
 /****** Save backup save data ******/
-bool MMU::save_backup(std::string filename)
+bool AGB_MMU::save_backup(std::string filename)
 {
 	//Save SRAM
 	if(current_save_type == SRAM)
@@ -1976,7 +1976,7 @@ bool MMU::save_backup(std::string filename)
 }
 
 /****** Start the DMA channels during blanking periods ******/
-void MMU::start_blank_dma()
+void AGB_MMU::start_blank_dma()
 {
 	//Repeat bits automatically enable DMAs
 	if(dma[0].control & 0x200) { dma[0].enable = true; }
@@ -2000,7 +2000,7 @@ void MMU::start_blank_dma()
 }
 
 /****** Set EEPROM read-write address ******/
-void MMU::eeprom_set_addr()
+void AGB_MMU::eeprom_set_addr()
 {
 	//Clear EEPROM address
 	eeprom.address = 0;
@@ -2027,7 +2027,7 @@ void MMU::eeprom_set_addr()
 }
 
 /****** Read EEPROM data ******/
-void MMU::eeprom_read_data()
+void AGB_MMU::eeprom_read_data()
 {
 	//First 4 bits of the stream are ignored, send 0
 	for(int x = 0; x < 4; x++) 
@@ -2059,7 +2059,7 @@ void MMU::eeprom_read_data()
 }
 
 /****** Write EEPROM data ******/
-void MMU::eeprom_write_data()
+void AGB_MMU::eeprom_write_data()
 {
 	//Clear EEPROM address
 	eeprom.address = 0;
@@ -2112,7 +2112,7 @@ void MMU::eeprom_write_data()
 }
 
 /****** Erase entire FLASH RAM ******/
-void MMU::flash_erase_chip()
+void AGB_MMU::flash_erase_chip()
 {
 	for(int x = 0; x < 0x10000; x++) 
 	{ 
@@ -2122,7 +2122,7 @@ void MMU::flash_erase_chip()
 }
 
 /****** Erase 4KB sector of FLASH RAM ******/
-void MMU::flash_erase_sector(u32 sector)
+void AGB_MMU::flash_erase_sector(u32 sector)
 {
 	for(u32 x = sector; x < (sector + 0x1000); x++) 
 	{ 
@@ -2131,7 +2131,7 @@ void MMU::flash_erase_sector(u32 sector)
 }	
 
 /****** Points the MMU to an lcd_data structure (FROM THE LCD ITSELF) ******/
-void MMU::set_lcd_data(lcd_data* ex_lcd_stat) { lcd_stat = ex_lcd_stat; }
+void AGB_MMU::set_lcd_data(lcd_data* ex_lcd_stat) { lcd_stat = ex_lcd_stat; }
 
 /****** Points the MMU to an apu_data structure (FROM THE APU ITSELF) ******/
-void MMU::set_apu_data(apu_data* ex_apu_stat) { apu_stat = ex_apu_stat; }
+void AGB_MMU::set_apu_data(apu_data* ex_apu_stat) { apu_stat = ex_apu_stat; }

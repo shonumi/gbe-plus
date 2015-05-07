@@ -16,19 +16,19 @@
 #ifndef GBA_LCD
 #define GBA_LCD
 
-class LCD
+class AGB_LCD
 {
 	public:
 	
 	//Link to memory map
-	MMU* mem;
+	AGB_MMU* mem;
 
 	u8 lcd_mode;
 	u8 current_scanline;
 
 	//Core Functions
-	LCD();
-	~LCD();
+	AGB_LCD();
+	~AGB_LCD();
 
 	void step();
 	void reset();

@@ -42,7 +42,7 @@ class Core
 			std::string last_command;
 		} db_unit;
 
-		MMU core_mmu;
+		AGB_MMU core_mmu;
 		ARM7 core_cpu;
 		GamePad core_pad;
 };

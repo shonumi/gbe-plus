@@ -14,13 +14,13 @@
 #include "lcd.h"
 
 /****** LCD Constructor ******/
-LCD::LCD()
+AGB_LCD::AGB_LCD()
 {
 	reset();
 }
 
 /****** LCD Destructor ******/
-LCD::~LCD()
+AGB_LCD::~AGB_LCD()
 {
 	screen_buffer.clear();
 	scanline_buffer.clear();
@@ -28,7 +28,7 @@ LCD::~LCD()
 }
 
 /****** Reset LCD ******/
-void LCD::reset()
+void AGB_LCD::reset()
 {
 	//TODO - Properly initialize some lcd_stat variables (window_enable and the like)
 
@@ -125,7 +125,7 @@ void LCD::reset()
 }
 
 /****** Initialize LCD with SDL ******/
-bool LCD::init()
+bool AGB_LCD::init()
 {
 	if(SDL_Init(SDL_INIT_EVERYTHING) == -1)
 	{
@@ -144,7 +144,7 @@ bool LCD::init()
 }
 
 /****** Updates OAM entries when values in memory change ******/
-void LCD::update_oam()
+void AGB_LCD::update_oam()
 {
 	lcd_stat.oam_update = false;
 	
@@ -231,7 +231,7 @@ void LCD::update_oam()
 }
 
 /****** Updates a list of OBJs to render on the current scanline ******/
-void LCD::update_obj_render_list()
+void AGB_LCD::update_obj_render_list()
 {
 	obj_render_length = 0;
 
@@ -247,7 +247,7 @@ void LCD::update_obj_render_list()
 }
 
 /****** Updates palette entries when values in memory change ******/
-void LCD::update_palettes()
+void AGB_LCD::update_palettes()
 {
 	//Update BG palettes
 	if(lcd_stat.bg_pal_update)
@@ -309,7 +309,7 @@ void LCD::update_palettes()
 }
 
 /****** Determines if a sprite pixel should be rendered, and if so draws it to the current scanline pixel ******/
-bool LCD::render_sprite_pixel()
+bool AGB_LCD::render_sprite_pixel()
 {
 	//If sprites are disabled, quit now
 	if((lcd_stat.display_control & 0x1000) == 0) { return false; }
@@ -434,7 +434,7 @@ bool LCD::render_sprite_pixel()
 }
 
 /****** Determines if a background pixel should be rendered, and if so draws it to the current scanline pixel ******/
-bool LCD::render_bg_pixel(u32 bg_control)
+bool AGB_LCD::render_bg_pixel(u32 bg_control)
 {
 	if((!lcd_stat.bg_enable[0]) && (bg_control == BG0CNT)) { return false; }
 	else if((!lcd_stat.bg_enable[1]) && (bg_control == BG1CNT)) { return false; }
@@ -488,7 +488,7 @@ bool LCD::render_bg_pixel(u32 bg_control)
 }
 
 /****** Render BG Mode 0 ******/
-bool LCD::render_bg_mode_0(u32 bg_control)
+bool AGB_LCD::render_bg_mode_0(u32 bg_control)
 {
 	//Set BG ID to determine which BG is being rendered.
 	u8 bg_id = (bg_control - 0x4000008) >> 1;
@@ -605,7 +605,7 @@ bool LCD::render_bg_mode_0(u32 bg_control)
 }
 
 /****** Render BG Mode 1 ******/
-bool LCD::render_bg_mode_1(u32 bg_control)
+bool AGB_LCD::render_bg_mode_1(u32 bg_control)
 {
 	//Set BG ID to determine which BG is being rendered.
 	u8 bg_id = (bg_control - 0x4000008) >> 1;
@@ -669,7 +669,7 @@ bool LCD::render_bg_mode_1(u32 bg_control)
 }
 
 /****** Render BG Mode 3 ******/
-bool LCD::render_bg_mode_3()
+bool AGB_LCD::render_bg_mode_3()
 {
 	//Determine which byte in VRAM to read for color data
 	u16 color_bytes = mem->read_u16_fast(0x6000000 + (current_scanline * 480) + (scanline_pixel_counter * 2));
@@ -690,7 +690,7 @@ bool LCD::render_bg_mode_3()
 }
 
 /****** Render BG Mode 4 ******/
-bool LCD::render_bg_mode_4()
+bool AGB_LCD::render_bg_mode_4()
 {
 	//Determine which byte in VRAM to read for color data
 	u32 bitmap_entry = (lcd_stat.frame_base + (current_scanline * 240) + scanline_pixel_counter);
@@ -705,7 +705,7 @@ bool LCD::render_bg_mode_4()
 }
 
 /****** Render BG Mode 5 ******/
-bool LCD::render_bg_mode_5()
+bool AGB_LCD::render_bg_mode_5()
 {
 	//Restrict rendering to 160x128
 	if(scanline_pixel_counter >= 160) { return false; }
@@ -730,7 +730,7 @@ bool LCD::render_bg_mode_5()
 }
 
 /****** Render pixels for a given scanline (per-pixel) ******/
-void LCD::render_scanline()
+void AGB_LCD::render_scanline()
 {
 	bool obj_render = false;
 	lcd_stat.in_window = false;
@@ -814,7 +814,7 @@ void LCD::render_scanline()
 }
 
 /****** Applies the GBA's SFX to a pixel ******/
-void LCD::apply_sfx()
+void AGB_LCD::apply_sfx()
 {
 	lcd_stat.temp_sfx_type = lcd_stat.current_sfx_type;
 
@@ -867,7 +867,7 @@ void LCD::apply_sfx()
 }
 
 /****** SFX - Increase brightness ******/
-u32 LCD::brightness_up()
+u32 AGB_LCD::brightness_up()
 {
 	u16 color_bytes = last_raw_color;
 	u16 result = 0;
@@ -892,7 +892,7 @@ u32 LCD::brightness_up()
 }
 
 /****** SFX - Decrease brightness ******/
-u32 LCD::brightness_down()
+u32 AGB_LCD::brightness_down()
 {
 	u16 color_bytes = last_raw_color;
 
@@ -913,7 +913,7 @@ u32 LCD::brightness_down()
 }
 
 /****** SFX - Alpha blending ******/
-u32 LCD::alpha_blend()
+u32 AGB_LCD::alpha_blend()
 {		
 	//Grab the current 32-bit color for this pixel, in case no alpha blending occurs
 	u32 final_color = scanline_buffer[scanline_pixel_counter];
@@ -1019,7 +1019,7 @@ u32 LCD::alpha_blend()
 }
 	
 /****** Run LCD for one cycle ******/
-void LCD::step()
+void AGB_LCD::step()
 {
 	lcd_clock++;
 
@@ -1202,7 +1202,7 @@ void LCD::step()
 }
 
 /****** Compare VCOUNT to LYC ******/
-void LCD::scanline_compare()
+void AGB_LCD::scanline_compare()
 {
 	u16 disp_stat = mem->read_u16_fast(DISPSTAT);
 	u8 lyc = disp_stat >> 8;

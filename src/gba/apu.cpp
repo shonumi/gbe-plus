@@ -14,20 +14,20 @@
 #include "apu.h"
 
 /****** APU Constructor ******/
-APU::APU()
+AGB_APU::AGB_APU()
 {
 	reset();
 }
 
 /****** APU Destructor ******/
-APU::~APU()
+AGB_APU::~AGB_APU()
 {
 	SDL_CloseAudio();
 	std::cout<<"APU::Shutdown\n";
 }
 
 /****** Reset APU ******/
-void APU::reset()
+void AGB_APU::reset()
 {
 	SDL_CloseAudio();
 
@@ -114,7 +114,7 @@ void APU::reset()
 }
 
 /****** Initialize APU with SDL ******/
-bool APU::init()
+bool AGB_APU::init()
 {
 	//Initialize audio subsystem
 	SDL_InitSubSystem(SDL_INIT_AUDIO);
@@ -148,7 +148,7 @@ bool APU::init()
 }
 
 /******* Generate samples for GBA sound channel 1 ******/
-void APU::generate_channel_1_samples(s16* stream, int length)
+void AGB_APU::generate_channel_1_samples(s16* stream, int length)
 {
 	//Generate samples from the last output of the channel
 	if((apu_stat.channel[0].playing) && (apu_stat.channel[0].left_enable || apu_stat.channel[0].right_enable))
@@ -266,7 +266,7 @@ void APU::generate_channel_1_samples(s16* stream, int length)
 }
 
 /******* Generate samples for GBA sound channel 2 ******/
-void APU::generate_channel_2_samples(s16* stream, int length)
+void AGB_APU::generate_channel_2_samples(s16* stream, int length)
 {
 	//Generate samples from the last output of the channel
 	if((apu_stat.channel[1].playing) && (apu_stat.channel[1].left_enable || apu_stat.channel[1].right_enable))
@@ -333,7 +333,7 @@ void APU::generate_channel_2_samples(s16* stream, int length)
 }
 
 /******* Generate samples for GBA sound channel 3 ******/
-void APU::generate_channel_3_samples(s16* stream, int length)
+void AGB_APU::generate_channel_3_samples(s16* stream, int length)
 {
 	//Generate samples from the last output of the channel
 	if((apu_stat.channel[2].playing) && (apu_stat.channel[2].enable) && (apu_stat.channel[2].left_enable || apu_stat.channel[2].right_enable))
@@ -441,7 +441,7 @@ void APU::generate_channel_3_samples(s16* stream, int length)
 }
 
 /******* Generate samples for GBA sound channel 4 ******/
-void APU::generate_channel_4_samples(s16* stream, int length)
+void AGB_APU::generate_channel_4_samples(s16* stream, int length)
 {
 	//Generate samples from the last output of the channel
 	if((apu_stat.channel[3].playing) && (apu_stat.channel[3].left_enable || apu_stat.channel[3].right_enable))
@@ -542,7 +542,7 @@ void APU::generate_channel_4_samples(s16* stream, int length)
 }
 
 /******* Generate samples for GBA DMA channel A ******/
-void APU::generate_dma_a_samples(s16* stream, int length)
+void AGB_APU::generate_dma_a_samples(s16* stream, int length)
 {
 	//Generate samples from the last output of the channel
 	if((apu_stat.dma[0].left_enable || apu_stat.dma[0].right_enable) && (apu_stat.dma[0].length != 0))
@@ -587,7 +587,7 @@ void APU::generate_dma_a_samples(s16* stream, int length)
 }
 
 /******* Generate samples for GBA DMA channel B ******/
-void APU::generate_dma_b_samples(s16* stream, int length)
+void AGB_APU::generate_dma_b_samples(s16* stream, int length)
 {
 	//Generate samples from the last output of the channel
 	if((apu_stat.dma[1].left_enable || apu_stat.dma[1].right_enable) && (apu_stat.dma[1].length != 0))
@@ -644,7 +644,7 @@ void audio_callback(void* _apu, u8 *_stream, int _length)
 	s16 dma_a_stream[length];
 	s16 dma_b_stream[length];
 
-	APU* apu_link = (APU*) _apu;
+	AGB_APU* apu_link = (AGB_APU*) _apu;
 	apu_link->generate_channel_1_samples(channel_1_stream, length);
 	apu_link->generate_channel_2_samples(channel_2_stream, length);
 	apu_link->generate_channel_3_samples(channel_3_stream, length);

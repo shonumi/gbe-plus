@@ -175,13 +175,13 @@ class ARM7
 	u32 debug_code;
 	u32 debug_cycles;
 
-	MMU* mem;
+	AGB_MMU* mem;
 
 	//Audio-Video and other controllers
 	struct io_controllers
 	{
-		LCD video;
-		APU audio;
+		AGB_LCD video;
+		AGB_APU audio;
 		std::vector<gba_timer> timer;
 	} controllers;
 

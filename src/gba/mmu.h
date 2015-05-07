@@ -22,7 +22,7 @@
 #include "lcd_data.h"
 #include "apu_data.h"
 
-class MMU
+class AGB_MMU
 {
 	public:
 
@@ -106,8 +106,8 @@ class MMU
 		gpio_types current_type;
 	} gpio;
 
-	MMU();
-	~MMU();
+	AGB_MMU();
+	~AGB_MMU();
 
 	void reset();
 
