@@ -86,7 +86,7 @@ else
 fi
 
 
-if g++ -c -O3 -funroll-loops gba/main.cpp; then
+if g++ -c -O3 -funroll-loops main.cpp; then
 	echo -e "Compiling Main...			\E[32m[DONE]\E[37m"
 else
 	echo -e "Compiling Main...			\E[31m[ERROR]\E[37m"

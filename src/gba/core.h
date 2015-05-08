@@ -12,39 +12,38 @@
 // Also contains a debugging unit
 
 
-#ifndef EMU_CORE
-#define EMU_CORE
+#ifndef GBA_CORE
+#define GBA_CORE
 
+#include "common/core_emu.h"
 #include "mmu.h"
 #include "arm7.h"
 
-class Core
+class AGB_core : virtual public core_emu
 {
 	public:
-		Core();
+		AGB_core();
+		~AGB_core();
+
+		//Core control
 		void start();
 		void stop();
 		void reset();
+		void handle_hotkey(SDL_Event& event);
+		void run_core();
 
+		//Core debugging
 		void debug_step();
 		void debug_display() const;
 		void debug_process_command();
 
-		void handle_hotkey(SDL_Event& event);
-
-		bool running;
-	
-		struct debugging
-		{
-			bool debug_mode;
-			bool display_cycles;
-			std::vector <u32> breakpoints;
-			std::string last_command;
-		} db_unit;
+		//MMU related functions
+		bool read_file(std::string filename);
+		bool read_bios(std::string filename);
 
 		AGB_MMU core_mmu;
 		ARM7 core_cpu;
 		GamePad core_pad;
 };
 		
-#endif // EMU_CORE
+#endif // GBA_CORE

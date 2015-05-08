@@ -17,7 +17,7 @@
 #include "core.h"
 
 /****** Core Constructor ******/
-Core::Core()
+AGB_core::AGB_core()
 {
 	//Link CPU and MMU
 	core_cpu.mem = &core_mmu;
@@ -42,7 +42,7 @@ Core::Core()
 }
 
 /****** Start the core ******/
-void Core::start()
+void AGB_core::start()
 {
 	running = true;
 	core_cpu.running = true;
@@ -66,7 +66,7 @@ void Core::start()
 }
 
 /****** Stop the core ******/
-void Core::stop()
+void AGB_core::stop()
 {
 	running = false;
 	core_cpu.running = false;
@@ -74,7 +74,7 @@ void Core::stop()
 }
 
 /****** Reset the core ******/
-void Core::reset()
+void AGB_core::reset()
 {
 	core_cpu.reset();
 	core_cpu.controllers.video.reset();
@@ -103,8 +103,57 @@ void Core::reset()
 	start();
 }
 
+/****** Run the core in a loop until exit ******/
+void AGB_core::run_core()
+{
+	//Begin running the core
+	while(running)
+	{
+		//Handle SDL Events
+		if((core_cpu.controllers.video.current_scanline == 160) && SDL_PollEvent(&event))
+		{
+			//X out of a window
+			if(event.type == SDL_QUIT) { stop(); SDL_Quit(); }
+
+			//Process gamepad or hotkey
+			else if((event.type == SDL_KEYDOWN) || (event.type == SDL_KEYUP) 
+			|| (event.type == SDL_JOYBUTTONDOWN) || (event.type == SDL_JOYBUTTONUP)
+			|| (event.type == SDL_JOYAXISMOTION) || (event.type == SDL_JOYHATMOTION)) { core_pad.handle_input(event); handle_hotkey(event); }
+		}
+
+		//Run the CPU
+		if(core_cpu.running)
+		{	
+			if(db_unit.debug_mode) { debug_step(); }
+
+			core_cpu.fetch();
+			core_cpu.decode();
+			core_cpu.execute();
+
+			core_cpu.handle_interrupt();
+		
+			//Flush pipeline if necessary
+			if(core_cpu.needs_flush) { core_cpu.flush_pipeline(); }
+
+			//Else update the pipeline and PC
+			else 
+			{ 
+				core_cpu.pipeline_pointer = (core_cpu.pipeline_pointer + 1) % 3;
+				core_cpu.update_pc(); 
+			}
+		}
+
+		//Stop emulation
+		else { stop(); }
+	}
+
+	//Shutdown core's components
+	core_mmu.AGB_MMU::~AGB_MMU();
+	core_cpu.ARM7::~ARM7();
+}
+
 /****** Debugger - Allow core to run until a breaking condition occurs ******/
-void Core::debug_step()
+void AGB_core::debug_step()
 {
 	//In continue mode, if breakpoints exist, try to stop on one
 	if((db_unit.breakpoints.size() > 0) && (db_unit.last_command == "c"))
@@ -130,7 +179,7 @@ void Core::debug_step()
 }
 
 /****** Debugger - Display relevant info to the screen ******/
-void Core::debug_display() const
+void AGB_core::debug_display() const
 {
 	//Display current CPU action
 	switch(core_cpu.debug_message)
@@ -257,7 +306,7 @@ void Core::debug_display() const
 }
 
 /****** Debugger - Wait for user input, process it to decide what next to do ******/
-void Core::debug_process_command()
+void AGB_core::debug_process_command()
 {
 	std::string command = "";
 	std::cout<< ": ";
@@ -462,7 +511,7 @@ void Core::debug_process_command()
 }
 	
 /****** Process hotkey input ******/
-void Core::handle_hotkey(SDL_Event& event)
+void AGB_core::handle_hotkey(SDL_Event& event)
 {
 	//Quit on Q or ESC
 	if((event.type == SDL_KEYDOWN) && ((event.key.keysym.sym == SDLK_q) || (event.key.keysym.sym == SDLK_ESCAPE)))
@@ -538,3 +587,14 @@ void Core::handle_hotkey(SDL_Event& event)
 	//Reset emulation on F8
 	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F8)) { reset(); }
 }
+
+/****** Read binary file to memory ******/
+bool AGB_core::read_file(std::string filename) { return core_mmu.read_file(filename); }
+
+/****** Read BIOS file into memory ******/
+bool AGB_core::read_bios(std::string filename) 
+{
+	core_cpu.reg.r15 = 0;
+	return core_mmu.read_bios(config::bios_file);
+}
+ 
