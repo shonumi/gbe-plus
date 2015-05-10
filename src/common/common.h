@@ -6,11 +6,8 @@
 // Date : April 09, 2014
 // Description : Common functions and definitions
 //
-// A bunch of typedefs and consts
+// A bunch of typedefs
 // Typedefs make handling GBA hardware easier than C++ types
-// Consts are quick references to commonly used memory locations 
-
-/****** Common Function & Definitions ******/  
 
 #ifndef EMU_COMMON
 #define EMU_COMMON
