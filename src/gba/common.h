@@ -8,8 +8,6 @@
 //
 // Consts are quick references to commonly used memory locations 
 
-/****** Common Function & Definitions ******/  
-
 #ifndef GBA_COMMON
 #define GBA_COMMON
 

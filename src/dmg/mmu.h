@@ -1,0 +1,112 @@
+// GB Enhanced+ Copyright Daniel Baxter 2015
+// Licensed under the GPLv2
+// See LICENSE.txt for full license text
+
+// File : mmu.h
+// Date : May 09, 2015
+// Description : Game Boy (Color) memory manager unit
+//
+// Handles reading and writing bytes to memory locations
+
+#ifndef DMG_MMU
+#define DMG_MMU
+
+#include <fstream>
+#include <string>
+#include <vector>
+#include <iostream>
+
+#include "common/common.h"
+#include "dmg/common.h"
+
+class DMG_MMU
+{
+	public:
+
+	//Memory bank controller-types enumeration
+	enum mbc_types
+	{ 
+		ROM_ONLY, 
+		MBC1, 
+		MBC2, 
+		MBC3, 
+		MBC5 
+	};
+
+	std::vector <u8> memory_map;
+	std::vector <u8> bios;
+
+	//Memory Banks
+	std::vector< std::vector<u8> > read_only_bank;
+	std::vector< std::vector<u8> > random_access_bank;
+
+	//Working RAM Banks - GBC only
+	std::vector< std::vector<u8> > working_ram_bank;
+	std::vector< std::vector<u8> > video_ram;
+
+	//Bank controls
+	u16 rom_bank;
+	u8 ram_bank;
+	u8 wram_bank;
+	u8 vram_bank;
+	u8 bank_bits;
+	u8 bank_mode;
+	bool ram_banking_enabled;
+
+	//BIOS controls
+	bool in_bios;
+	u8 bios_type;
+	u32 bios_size;
+
+	//Cartridge data structure
+	struct cart_data
+	{
+		u32 rom_size;
+		u32 ram_size;
+		cart_type mbc_type;
+		bool battery;
+		bool ram;
+		bool rtc;
+		bool rtc_enabled;
+		u8 rtc_latch_1, rtc_latch_2, rtc_reg[5];
+	} cart;
+
+	DMG_MMU();
+	~DMG_MMU();
+
+	void reset();
+
+	u8 read_u8(u16 address);
+	u16 read_u16(u16 address);
+
+	s8 read_s8(u16 address);
+
+	void write_u8(u16 address, u8 value);
+	void write_u16(u16 address, u16 value);
+
+	bool read_file(std::string filename);
+	bool read_bios(std::string filename);
+	bool save_backup(std::string filename);
+	bool load_backup(std::string filename);
+
+	//Memory Bank Controller dedicated read/write operations
+	void mbc_write(u16 address, u8 value);
+	u8 mbc_read(u16 address);
+
+	void mbc1_write(u16 address, u8 value);
+	u8 mbc1_read(u16 address);
+
+	void mbc2_write(u16 address, u8 value);
+	u8 mbc2_read(u16 address);
+
+	void mbc3_write(u16 address, u8 value);
+	u8 mbc3_read(u16 address);
+
+	void mbc5_write(u16 address, u8 value);
+	u8 mbc5_read(u16 address);
+};
+
+#endif // DMG_MMU
+	
+
+
