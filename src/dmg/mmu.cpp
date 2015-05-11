@@ -660,7 +660,7 @@ bool DMG_MMU::read_bios(std::string filename)
 
 	if(!file.is_open()) 
 	{
-		std::cout<<"MMU::bios.bin could not be opened. Check file path or permission. \n";
+		std::cout<<"MMU::BIOS file " << filename << " could not be opened. Check file path or permissions. \n";
 		return false; 
 	}
 
@@ -680,14 +680,14 @@ bool DMG_MMU::read_bios(std::string filename)
 		if(bios_size == 0x100) { config::gb_type = 1; }
 		else if(bios_size == 0x900) { config::gb_type = 2; }
 
-		std::cout<<"MMU::bios.bin loaded successfully. \n";
+		std::cout<<"MMU::BIOS file " << filename << " loaded successfully. \n";
 
 		return true;
 	}
 
 	else
 	{
-		std::cout<<"MMU::bios.bin has an incorrect file size : (" << bios_size << " bytes) \n";
+		std::cout<<"MMU::BIOS file " << filename << " has an incorrect file size : (" << bios_size << " bytes) \n";
 		return false;
 	}	
 }
@@ -701,7 +701,11 @@ bool DMG_MMU::load_backup(std::string filename)
 		std::string save_ram_file = filename + ".sram";
 		std::ifstream sram(save_ram_file.c_str(), std::ios::binary);
 
-		if(!sram.is_open()) { std::cout<<"MMU::" << save_ram_file << " battery file could not be opened. Check file path or permission\n"; }
+		if(!sram.is_open()) 
+		{ 
+			std::cout<<"MMU::" << filename << " save data could not be opened. Check file path or permissions. \n";
+			return false;
+		}
 
 		else 
 		{
@@ -712,19 +716,26 @@ bool DMG_MMU::load_backup(std::string filename)
 		}
 
 		sram.close();
-		std::cout<<"MMU:: " << save_ram_file << " battery file loaded.\n";
+	
+		std::cout<<"MMU::Loaded save data file " << filename <<  "\n";
 	}
+
+	return true;
 }
 
 /****** Save backup save data ******/
-void DMG_MMU::save_backup(std::string filename)
+bool DMG_MMU::save_backup(std::string filename)
 {
 	if(cart.battery)
 	{
 		std::string save_ram_file = filename + ".sram";
 		std::ofstream sram(save_ram_file.c_str(), std::ios::binary);
 
-		if(!sram.is_open()) { std::cout<<"MMU:: " << save_ram_file << " battery file could not be saved. Check file path or permission\n";  }
+		if(!sram.is_open()) 
+		{ 
+			std::cout<<"MMU::" << filename << " save data could not be written. Check file path or permissions. \n";
+			return false;
+		}
 
 		else 
 		{
@@ -734,7 +745,10 @@ void DMG_MMU::save_backup(std::string filename)
 			}
 
 			sram.close();
-			std::cout<<"MMU:: " << save_ram_file << " battery file saved.\n";
+
+			std::cout<<"MMU::Wrote save data file " << filename <<  "\n";
 		}
 	}
+
+	return true;
 }
