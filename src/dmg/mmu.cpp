@@ -530,7 +530,7 @@ bool DMG_MMU::read_file(std::string filename)
 			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
 			std::cout<<"MMU::ROM Size - " << cart.rom_size << "KB\n";
 
-			//grab_time();
+			grab_time();
 
 			break;
 

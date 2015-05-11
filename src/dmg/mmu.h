@@ -8,8 +8,8 @@
 //
 // Handles reading and writing bytes to memory locations
 
-#ifndef DMG_MMU
-#define DMG_MMU
+#ifndef GB_MMU
+#define GB_MMU
 
 #include <fstream>
 #include <string>
@@ -63,7 +63,7 @@ class DMG_MMU
 	{
 		u32 rom_size;
 		u32 ram_size;
-		cart_type mbc_type;
+		mbc_types mbc_type;
 		bool battery;
 		bool ram;
 		bool rtc;
@@ -75,10 +75,10 @@ class DMG_MMU
 	~DMG_MMU();
 
 	void reset();
+	void grab_time();
 
 	u8 read_u8(u16 address);
 	u16 read_u16(u16 address);
-
 	s8 read_s8(u16 address);
 
 	void write_u8(u16 address, u8 value);
@@ -106,7 +106,7 @@ class DMG_MMU
 	u8 mbc5_read(u16 address);
 };
 
-#endif // DMG_MMU
+#endif // GB_MMU
 	
 
 

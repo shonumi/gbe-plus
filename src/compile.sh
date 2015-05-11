@@ -85,6 +85,56 @@ else
 	exit
 fi
 
+echo -e "\E[32mGBA core complete...\E[37m"
+
+#
+#
+#GBA core is done
+#Move onto DMG/GBC core
+#
+#
+
+if g++ -o dmg/mbc1.o -c -O3 -funroll-loops dmg/mbc1.cpp; then
+	echo -e "Compiling MBC1...			\E[32m[DONE]\E[37m"
+else
+	echo -e "Compiling MBC1...			\E[31m[ERROR]\E[37m"
+	exit
+fi
+
+if g++ -o dmg/mbc2.o -c -O3 -funroll-loops dmg/mbc2.cpp; then
+	echo -e "Compiling MBC2...			\E[32m[DONE]\E[37m"
+else
+	echo -e "Compiling MBC2...			\E[31m[ERROR]\E[37m"
+	exit
+fi
+
+if g++ -o dmg/mbc3.o -c -O3 -funroll-loops dmg/mbc3.cpp; then
+	echo -e "Compiling MBC3...			\E[32m[DONE]\E[37m"
+else
+	echo -e "Compiling MBC3...			\E[31m[ERROR]\E[37m"
+	exit
+fi
+
+if g++ -o dmg/mbc5.o -c -O3 -funroll-loops dmg/mbc5.cpp; then
+	echo -e "Compiling MBC5...			\E[32m[DONE]\E[37m"
+else
+	echo -e "Compiling MBC5...			\E[31m[ERROR]\E[37m"
+	exit
+fi
+
+if g++ -o dmg/mmu.o -c -O3 -funroll-loops dmg/mmu.cpp; then
+	echo -e "Compiling MMU...			\E[32m[DONE]\E[37m"
+else
+	echo -e "Compiling MMU...			\E[31m[ERROR]\E[37m"
+	exit
+fi
+
+#
+#
+#DMG core is done
+#Move onto final compilation
+#
+#
 
 if g++ -o main.o -c -O3 -funroll-loops main.cpp; then
 	echo -e "Compiling Main...			\E[32m[DONE]\E[37m"
