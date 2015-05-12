@@ -144,7 +144,7 @@ class AGB_MMU
 	void set_lcd_data(lcd_data* ex_lcd_stat);
 	void set_apu_data(apu_data* ex_apu_stat);
 
-	GamePad* g_pad;
+	AGB_GamePad* g_pad;
 	std::vector<gba_timer>* timer;
 
 	private:

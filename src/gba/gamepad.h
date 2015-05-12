@@ -19,12 +19,12 @@
 #include "common/common.h"
 #include "config.h"
 
-class GamePad
+class AGB_GamePad
 {
 	public:
 
-	GamePad();
-	~GamePad();
+	AGB_GamePad();
+	~AGB_GamePad();
 
 	void handle_input(SDL_Event &event);
 	void init();

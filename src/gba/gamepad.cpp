@@ -12,7 +12,7 @@
 #include "gamepad.h"
 
 /****** GamePad Constructor *******/
-GamePad::GamePad()
+AGB_GamePad::AGB_GamePad()
 {
 	pad = 0;
 	key_input = 0x3FF;
@@ -21,7 +21,7 @@ GamePad::GamePad()
 }
 
 /****** Initialize GamePad ******/
-void GamePad::init()
+void AGB_GamePad::init()
 {
 	jstick = NULL;
 	jstick = SDL_JoystickOpen(0);
@@ -31,10 +31,10 @@ void GamePad::init()
 }
 
 /****** GamePad Destructor ******/
-GamePad::~GamePad() { } 
+AGB_GamePad::~AGB_GamePad() { } 
 
 /****** Handle input from keyboard or joystick for processing ******/
-void GamePad::handle_input(SDL_Event &event)
+void AGB_GamePad::handle_input(SDL_Event &event)
 {
 	//Key Presses
 	if(event.type == SDL_KEYDOWN)
@@ -133,7 +133,7 @@ void GamePad::handle_input(SDL_Event &event)
 }
 
 /****** Processes input based on unique pad # for keyboards ******/
-void GamePad::process_keyboard(int pad, bool pressed)
+void AGB_GamePad::process_keyboard(int pad, bool pressed)
 {
 	//Emulate A button press
 	if((pad == config::key_a) && (pressed)) { key_input &= ~0x1; }
@@ -225,7 +225,7 @@ void GamePad::process_keyboard(int pad, bool pressed)
 }
 
 /****** Processes input based on unique pad # for joysticks ******/
-void GamePad::process_joystick(int pad, bool pressed)
+void AGB_GamePad::process_joystick(int pad, bool pressed)
 {
 	//Emulate A button press
 	if((pad == config::joy_a) && (pressed)) { key_input &= ~0x1; }

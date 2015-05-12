@@ -43,7 +43,7 @@ class AGB_core : virtual public core_emu
 
 		AGB_MMU core_mmu;
 		ARM7 core_cpu;
-		GamePad core_pad;
+		AGB_GamePad core_pad;
 };
 		
 #endif // GBA_CORE
