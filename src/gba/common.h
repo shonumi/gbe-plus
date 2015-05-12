@@ -8,6 +8,8 @@
 //
 // Consts are quick references to commonly used memory locations 
 
+#include "common/common.h"
+
 #ifndef GBA_COMMON
 #define GBA_COMMON
 

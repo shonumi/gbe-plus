@@ -9,6 +9,8 @@
 // A bunch of consts
 // Consts are quick references to commonly used memory locations 
 
+#include "common/common.h"
+
 #ifndef DMG_COMMON
 #define DMG_COMMON
 

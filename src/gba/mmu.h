@@ -16,8 +16,7 @@
 #include <vector>
 #include <iostream>
 
-#include "common/common.h"
-#include "gba/common.h"
+#include "common.h"
 #include "gamepad.h"
 #include "timer.h"
 #include "lcd_data.h"

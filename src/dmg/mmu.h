@@ -16,8 +16,7 @@
 #include <vector>
 #include <iostream>
 
-#include "common/common.h"
-#include "dmg/common.h"
+#include "common.h"
 
 class DMG_MMU
 {
