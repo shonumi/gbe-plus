@@ -26,8 +26,8 @@ void AGB_GamePad::init()
 	jstick = NULL;
 	jstick = SDL_JoystickOpen(0);
 
-	if((jstick == NULL) && (SDL_NumJoysticks() >= 1)) { std::cout<<"Input : Could not initialize joystick \n"; }
-	else if((jstick == NULL) && (SDL_NumJoysticks() == 0)) { std::cout<<"Input : No joysticks detected \n"; }
+	if((jstick == NULL) && (SDL_NumJoysticks() >= 1)) { std::cout<<"JOY::Could not initialize joystick \n"; }
+	else if((jstick == NULL) && (SDL_NumJoysticks() == 0)) { std::cout<<"JOY::No joysticks detected \n"; }
 }
 
 /****** GamePad Destructor ******/

@@ -121,6 +121,13 @@ else
 	exit
 fi
 
+if g++ -o dmg/mmu.o -c -O3 -funroll-loops dmg/gamepad.cpp; then
+	echo -e "Compiling GamePad...			\E[32m[DONE]\E[37m"
+else
+	echo -e "Compiling GamePad...			\E[31m[ERROR]\E[37m"
+	exit
+fi
+
 echo -e "\E[32mGB/GBC core complete...\E[37m"
 
 #

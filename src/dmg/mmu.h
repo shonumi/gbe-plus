@@ -18,6 +18,7 @@
 
 #include "common.h"
 #include "common/config.h"
+#include "gamepad.h"
 
 class DMG_MMU
 {
@@ -70,6 +71,8 @@ class DMG_MMU
 		bool rtc_enabled;
 		u8 rtc_latch_1, rtc_latch_2, rtc_reg[5];
 	} cart;
+
+	DMG_GamePad* g_pad;
 
 	DMG_MMU();
 	~DMG_MMU();

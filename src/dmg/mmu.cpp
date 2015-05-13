@@ -65,6 +65,8 @@ void DMG_MMU::reset()
 
 	video_ram.resize(0x2);
 	for(int x = 0; x < 0x2; x++) { video_ram[x].resize(0x2000, 0); }
+
+	g_pad = NULL;
 }
 
 /****** Read byte from memory ******/
@@ -159,7 +161,7 @@ u8 DMG_MMU::read_u8(u16 address)
 	*/
 
 	//Read from P1
-	//else if(address == 0xFF00) { return g_pad.read(); }
+	else if(address == 0xFF00) { return g_pad->read(); }
 
 	//Read normally
 	return memory_map[address]; 
@@ -281,7 +283,7 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	}
 
 	//P1 - Joypad register
-	//else if(address == REG_P1) { g_pad.column_id = (value & 0x30); memory_map[REG_P1] = g_pad.read(); }
+	else if(address == REG_P1) { g_pad->column_id = (value & 0x30); memory_map[REG_P1] = g_pad->read(); }
 
 	//Update Sound Channels
 	else if((address >= 0xFF10) && (address <= 0xFF25)) 

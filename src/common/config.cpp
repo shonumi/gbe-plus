@@ -33,6 +33,16 @@ namespace config
 	int agb_joy_r_trigger = 105; int agb_joy_l_trigger = 104;
 	int agb_joy_left = 200; int agb_joy_right = 201; int agb_joy_up = 202; int agb_joy_down = 203;
 
+	//Default keyboard bindings
+	//Arrow Z = A button, X = B button, START = Return, Select = Space
+	//UP, LEFT, DOWN, RIGHT = Arrow keys
+	int dmg_key_a = 122; int dmg_key_b = 120; int dmg_key_start = 13; int dmg_key_select = 32; 
+	int dmg_key_left = 276; int dmg_key_right = 275; int dmg_key_down = 274; int dmg_key_up = 273;
+
+	//Default joystick bindings
+	int dmg_joy_a = 101; int dmg_joy_b = 100; int dmg_joy_start = 109; int dmg_joy_select = 108;
+	int dmg_joy_left = 200; int dmg_joy_right = 201; int dmg_joy_up = 202; int dmg_joy_down = 203;
+
 	//Default joystick dead-zone
 	int dead_zone = 16000;
 
