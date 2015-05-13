@@ -1,4 +1,4 @@
-// GB Enhanced Copyright Daniel Baxter 2015
+// GB Enhanced+ Copyright Daniel Baxter 2015
 // Licensed under the GPLv2
 // See LICENSE.txt for full license text
 

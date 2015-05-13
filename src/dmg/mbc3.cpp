@@ -1,9 +1,9 @@
-// GB Enhanced Copyright Daniel Baxter 2013
+// GB Enhanced+ Copyright Daniel Baxter 2015
 // Licensed under the GPLv2
 // See LICENSE.txt for full license text
 
 // File : mbc3.cpp
-// Date : November 3, 2013
+// Date : May 11, 2015
 // Description : Game Boy Memory Bank Controller 3 I/O handling
 //
 // Handles reading and writing bytes to memory locations for MBC3
