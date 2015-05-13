@@ -9,7 +9,7 @@
 // This is main. It all begins here ;)
 
 #include "gba/core.h"
-#include "gba/config.h"
+#include "common/config.h"
 
 int main(int argc, char* args[]) 
 {

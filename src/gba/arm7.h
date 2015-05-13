@@ -16,7 +16,7 @@
 #include <iostream>
 #include <vector>
 
-#include "common/common.h"
+#include "common.h"
 #include "timer.h"
 #include "mmu.h"
 #include "lcd.h"

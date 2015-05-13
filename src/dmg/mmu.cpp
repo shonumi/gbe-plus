@@ -46,7 +46,7 @@ void DMG_MMU::reset()
 
 	cart.rom_size = 0;
 	cart.ram_size = 0;
-	cart.mbc_type = ROM_ONLY
+	cart.mbc_type = ROM_ONLY;
 	cart.battery = false;
 	cart.ram = false;
 	cart.rtc = false;
@@ -91,10 +91,10 @@ u8 DMG_MMU::read_u8(u16 address)
 	}
 
 	//Read using ROM Banking
-	if((address >= 0x4000) && (address <= 0x7FFF) && (mbc_type != ROM_ONLY)) { return mbc_read(address); }
+	if((address >= 0x4000) && (address <= 0x7FFF) && (cart.mbc_type != ROM_ONLY)) { return mbc_read(address); }
 
 	//Read using RAM Banking
-	if((address >= 0xA000) && (address <= 0xBFFF) && (cart_ram) && (mbc_type != ROM_ONLY)) { return mbc_read(address); }
+	if((address >= 0xA000) && (address <= 0xBFFF) && (cart.ram) && (cart.mbc_type != ROM_ONLY)) { return mbc_read(address); }
 
 	//Read from VRAM, GBC uses banking
 	if((address >= 0x8000) && (address <= 0x9FFF))
@@ -159,7 +159,7 @@ u8 DMG_MMU::read_u8(u16 address)
 	*/
 
 	//Read from P1
-	else if(address == 0xFF00) { return g_pad.read(); }
+	//else if(address == 0xFF00) { return g_pad.read(); }
 
 	//Read normally
 	return memory_map[address]; 
@@ -169,7 +169,7 @@ u8 DMG_MMU::read_u8(u16 address)
 /****** Read signed byte from memory ******/
 s8 DMG_MMU::read_s8(u16 address) 
 {
-	u8 temp = read_byte(address);
+	u8 temp = read_u8(address);
 	s8 s_temp = (s8)temp;
 	return s_temp;
 }
@@ -183,7 +183,7 @@ u16 DMG_MMU::read_u16(u16 address)
 /****** Write Byte To Memory ******/
 void DMG_MMU::write_u8(u16 address, u8 value) 
 {
-	if(mbc_type != ROM_ONLY) { mbc_write(address, value); }
+	if(cart.mbc_type != ROM_ONLY) { mbc_write(address, value); }
 
 	//Write to VRAM, GBC uses banking
 	if((address >= 0x8000) && (address <= 0x9FFF))
@@ -241,7 +241,7 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	{
 		u16 dma_orig = value << 8;
 		u16 dma_dest = 0xFE00;
-		while (dma_dest < 0xFEA0) { write_byte(dma_dest++, read_byte(dma_orig++)); }
+		while (dma_dest < 0xFEA0) { write_u8(dma_dest++, read_u8(dma_orig++)); }
 		//gpu_update_sprite = true;
 	}
 
@@ -281,7 +281,7 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	}
 
 	//P1 - Joypad register
-	else if(address == REG_P1) { g_pad.column_id = (value & 0x30); memory_map[REG_P1] = g_pad.read(); }
+	//else if(address == REG_P1) { g_pad.column_id = (value & 0x30); memory_map[REG_P1] = g_pad.read(); }
 
 	//Update Sound Channels
 	else if((address >= 0xFF10) && (address <= 0xFF25)) 
@@ -291,6 +291,7 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		//apu_update_addr = address; 
 	}
 
+	/*
 	//HDMA transfer
 	else if(address == REG_HDMA5)
 	{
@@ -314,7 +315,6 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		memory_map[address] = value;
 	}
 
-	/*
 	//NR52
 	else if(address == REG_NR52)
 	{
@@ -369,14 +369,14 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 /****** Write word to memory ******/
 void DMG_MMU::write_u16(u16 address, u16 value)
 {
-	write_byte(address, (value & 0xFF));
-	write_byte((address+1), (value >> 8));
+	write_u8(address, (value & 0xFF));
+	write_u8((address+1), (value >> 8));
 }
 
 /****** Determines which if any MBC to read from ******/
 u8 DMG_MMU::mbc_read(u16 address)
 {
-	switch(mbc_type)
+	switch(cart.mbc_type)
 	{
 		case MBC1:
 			return mbc1_read(address);
@@ -399,7 +399,7 @@ u8 DMG_MMU::mbc_read(u16 address)
 /****** Determines which if any MBC to write to ******/
 void DMG_MMU::mbc_write(u16 address, u8 value)
 {
-	switch(mbc_type)
+	switch(cart.mbc_type)
 	{
 		case MBC1:
 			mbc1_write(address, value);
@@ -422,8 +422,6 @@ void DMG_MMU::mbc_write(u16 address, u8 value)
 /****** Read binary file to memory ******/
 bool DMG_MMU::read_file(std::string filename)
 {
-	memset(memory_map, 0, sizeof(memory_map));
-
 	std::ifstream file(filename.c_str(), std::ios::binary);
 
 	if(!file.is_open()) 
@@ -432,8 +430,10 @@ bool DMG_MMU::read_file(std::string filename)
 		return false;
 	}
 
+	u8* ex_mem = &memory_map[0];
+
 	//Read 32KB worth of data from ROM file
-	file.read((char*)memory_map, 0x8000);
+	file.read((char*)ex_mem, 0x8000);
 
 	//Manually HLE MMIO
 	if(!in_bios) 
@@ -622,7 +622,7 @@ bool DMG_MMU::read_file(std::string filename)
 	}
 
 	//Read additional ROM data to banks
-	if(mbc_type != ROM_ONLY)
+	if(cart.mbc_type != ROM_ONLY)
 	{
 		//Use a file positioner
 		u32 file_pos = 0x8000;
@@ -630,7 +630,8 @@ bool DMG_MMU::read_file(std::string filename)
 
 		while(file_pos < (cart.rom_size * 1024))
 		{
-			file.read(reinterpret_cast<char*> (&read_only_bank[bank_count][0]), 0x4000);
+			u8* ex_rom = &read_only_bank[bank_count][0];
+			file.read((char*)ex_rom, 0x4000);
 			file_pos += 0x4000;
 			bank_count++;
 		}
@@ -672,8 +673,10 @@ bool DMG_MMU::read_bios(std::string filename)
 	//Check the file size before reading
 	if((bios_size == 0x100) || (bios_size == 0x900))
 	{
+		u8* ex_bios = &bios[0];
+
 		//Read BIOS data from file
-		file.read((char*)bios, bios_size);
+		file.read((char*)ex_bios, bios_size);
 		file.close();
 
 		//When using the BIOS, set the emulated system type - DMG or GBC respectively
@@ -711,7 +714,8 @@ bool DMG_MMU::load_backup(std::string filename)
 		{
 			for(int x = 0; x < 0x10; x++)
 			{
-				sram.read(reinterpret_cast<char*> (&random_access_bank[x][0]), 0x2000); 
+				u8* ex_ram = &random_access_bank[x][0];
+				sram.read((char*)ex_ram, 0x2000); 
 			}
 		}
 

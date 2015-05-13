@@ -8,14 +8,14 @@
 //
 // Parses command-line arguments to configure GBE options
 
-#ifndef GBA_CONFIG
-#define GBA_CONFIG
+#ifndef EMU_CONFIG
+#define EMU_CONFIG
 
 #include <vector>
 #include <string>
 #include <sstream>
 
-#include "common/common.h"
+#include "common.h"
 
 bool parse_cli_args();
 
@@ -26,8 +26,8 @@ namespace config
 	extern std::string save_file;
 	extern std::vector <std::string> cli_args;
 	extern bool use_debugger;
-	extern int key_a, key_b, key_start, key_select, key_up, key_down, key_left, key_right, key_r_trigger, key_l_trigger;
-	extern int joy_a, joy_b, joy_start, joy_select, joy_up, joy_down, joy_left, joy_right, joy_r_trigger, joy_l_trigger;
+	extern int agb_key_a, agb_key_b, agb_key_start, agb_key_select, agb_key_up, agb_key_down, agb_key_left, agb_key_right, agb_key_r_trigger, agb_key_l_trigger;
+	extern int agb_joy_a, agb_joy_b, agb_joy_start, agb_joy_select, agb_joy_up, agb_joy_down, agb_joy_left, agb_joy_right, agb_joy_r_trigger, agb_joy_l_trigger;
 	extern int dead_zone;
 	extern u32 flags;
 	extern bool pause_emu;
@@ -36,6 +36,7 @@ namespace config
 	extern bool turbo;
 	extern u8 scaling_factor;
 	extern std::stringstream title;
+	extern u8 gb_type;
 }
 
-#endif // GBA_CONFIG
+#endif // EMU_CONFIG

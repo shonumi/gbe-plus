@@ -136,34 +136,34 @@ void AGB_GamePad::handle_input(SDL_Event &event)
 void AGB_GamePad::process_keyboard(int pad, bool pressed)
 {
 	//Emulate A button press
-	if((pad == config::key_a) && (pressed)) { key_input &= ~0x1; }
+	if((pad == config::agb_key_a) && (pressed)) { key_input &= ~0x1; }
 
 	//Emulate A button release
-	else if((pad == config::key_a) && (!pressed)) { key_input |= 0x1; }
+	else if((pad == config::agb_key_a) && (!pressed)) { key_input |= 0x1; }
 
 	//Emulate B button press
-	else if((pad == config::key_b) && (pressed)) { key_input &= ~0x2; }
+	else if((pad == config::agb_key_b) && (pressed)) { key_input &= ~0x2; }
 
 	//Emulate B button release
-	else if((pad == config::key_b) && (!pressed)) { key_input |= 0x2; }
+	else if((pad == config::agb_key_b) && (!pressed)) { key_input |= 0x2; }
 
 	//Emulate Select button press
-	else if((pad == config::key_select) && (pressed)) { key_input &= ~0x4; }
+	else if((pad == config::agb_key_select) && (pressed)) { key_input &= ~0x4; }
 
 	//Emulate Select button release
-	else if((pad == config::key_select) && (!pressed)) { key_input |= 0x4; }
+	else if((pad == config::agb_key_select) && (!pressed)) { key_input |= 0x4; }
 
 	//Emulate Start button press
-	else if((pad == config::key_start) && (pressed)) { key_input &= ~0x8; }
+	else if((pad == config::agb_key_start) && (pressed)) { key_input &= ~0x8; }
 
 	//Emulate Start button release
-	else if((pad == config::key_start) && (!pressed)) { key_input |= 0x8; }
+	else if((pad == config::agb_key_start) && (!pressed)) { key_input |= 0x8; }
 
 	//Emulate Right DPad press
-	else if((pad == config::key_right) && (pressed)) { key_input &= ~0x10; key_input |= 0x20; right_shadow = true; }
+	else if((pad == config::agb_key_right) && (pressed)) { key_input &= ~0x10; key_input |= 0x20; right_shadow = true; }
 
 	//Emulate Right DPad release
-	else if((pad == config::key_right) && (!pressed)) 
+	else if((pad == config::agb_key_right) && (!pressed)) 
 	{
 		right_shadow = false; 
 		key_input |= 0x10;
@@ -173,10 +173,10 @@ void AGB_GamePad::process_keyboard(int pad, bool pressed)
 	}
 
 	//Emulate Left DPad press
-	else if((pad == config::key_left) && (pressed)) { key_input &= ~0x20; key_input |= 0x10; left_shadow = true; }
+	else if((pad == config::agb_key_left) && (pressed)) { key_input &= ~0x20; key_input |= 0x10; left_shadow = true; }
 
 	//Emulate Left DPad release
-	else if((pad == config::key_left) && (!pressed)) 
+	else if((pad == config::agb_key_left) && (!pressed)) 
 	{
 		left_shadow = false;
 		key_input |= 0x20;
@@ -186,10 +186,10 @@ void AGB_GamePad::process_keyboard(int pad, bool pressed)
 	}
 
 	//Emulate Up DPad press
-	else if((pad == config::key_up) && (pressed)) { key_input &= ~0x40; key_input |= 0x80; up_shadow = true; }
+	else if((pad == config::agb_key_up) && (pressed)) { key_input &= ~0x40; key_input |= 0x80; up_shadow = true; }
 
 	//Emulate Up DPad release
-	else if((pad == config::key_up) && (!pressed)) 
+	else if((pad == config::agb_key_up) && (!pressed)) 
 	{
 		up_shadow = false; 
 		key_input |= 0x40;
@@ -199,10 +199,10 @@ void AGB_GamePad::process_keyboard(int pad, bool pressed)
 	}
 
 	//Emulate Down DPad press
-	else if((pad == config::key_down) && (pressed)) { key_input &= ~0x80; key_input |= 0x40; down_shadow = true; }
+	else if((pad == config::agb_key_down) && (pressed)) { key_input &= ~0x80; key_input |= 0x40; down_shadow = true; }
 
 	//Emulate Down DPad release
-	else if((pad == config::key_down) && (!pressed)) 
+	else if((pad == config::agb_key_down) && (!pressed)) 
 	{
 		down_shadow = false;
 		key_input |= 0x80;
@@ -212,78 +212,78 @@ void AGB_GamePad::process_keyboard(int pad, bool pressed)
 	}
 
 	//Emulate R Trigger press
-	else if((pad == config::key_r_trigger) && (pressed)) { key_input &= ~0x100; }
+	else if((pad == config::agb_key_r_trigger) && (pressed)) { key_input &= ~0x100; }
 
 	//Emulate R Trigger release
-	else if((pad == config::key_r_trigger) && (!pressed)) { key_input |= 0x100; }
+	else if((pad == config::agb_key_r_trigger) && (!pressed)) { key_input |= 0x100; }
 
 	//Emulate L Trigger press
-	else if((pad == config::key_l_trigger) && (pressed)) { key_input &= ~0x200; }
+	else if((pad == config::agb_key_l_trigger) && (pressed)) { key_input &= ~0x200; }
 
 	//Emulate L Trigger release
-	else if((pad == config::key_l_trigger) && (!pressed)) { key_input |= 0x200; }
+	else if((pad == config::agb_key_l_trigger) && (!pressed)) { key_input |= 0x200; }
 }
 
 /****** Processes input based on unique pad # for joysticks ******/
 void AGB_GamePad::process_joystick(int pad, bool pressed)
 {
 	//Emulate A button press
-	if((pad == config::joy_a) && (pressed)) { key_input &= ~0x1; }
+	if((pad == config::agb_joy_a) && (pressed)) { key_input &= ~0x1; }
 
 	//Emulate A button release
-	else if((pad == config::joy_a) && (!pressed)) { key_input |= 0x1; }
+	else if((pad == config::agb_joy_a) && (!pressed)) { key_input |= 0x1; }
 
 	//Emulate B button press
-	else if((pad == config::joy_b) && (pressed)) { key_input &= ~0x2; }
+	else if((pad == config::agb_joy_b) && (pressed)) { key_input &= ~0x2; }
 
 	//Emulate B button release
-	else if((pad == config::joy_b) && (!pressed)) { key_input |= 0x2; }
+	else if((pad == config::agb_joy_b) && (!pressed)) { key_input |= 0x2; }
 
 	//Emulate Select button press
-	else if((pad == config::joy_select) && (pressed)) { key_input &= ~0x4; }
+	else if((pad == config::agb_joy_select) && (pressed)) { key_input &= ~0x4; }
 
 	//Emulate Select button release
-	else if((pad == config::joy_select) && (!pressed)) { key_input |= 0x4; }
+	else if((pad == config::agb_joy_select) && (!pressed)) { key_input |= 0x4; }
 
 	//Emulate Start button press
-	else if((pad == config::joy_start) && (pressed)) { key_input &= ~0x8; }
+	else if((pad == config::agb_joy_start) && (pressed)) { key_input &= ~0x8; }
 
 	//Emulate Start button release
-	else if((pad == config::joy_start) && (!pressed)) { key_input |= 0x8; }
+	else if((pad == config::agb_joy_start) && (!pressed)) { key_input |= 0x8; }
 
 	//Emulate Right DPad press
-	else if((pad == config::joy_right) && (pressed)) { key_input &= ~0x10; key_input |= 0x20; }
+	else if((pad == config::agb_joy_right) && (pressed)) { key_input &= ~0x10; key_input |= 0x20; }
 
 	//Emulate Right DPad release
-	else if((pad == config::joy_right) && (!pressed)) { key_input |= 0x10; key_input |= 0x20;}
+	else if((pad == config::agb_joy_right) && (!pressed)) { key_input |= 0x10; key_input |= 0x20;}
 
 	//Emulate Left DPad press
-	else if((pad == config::joy_left) && (pressed)) { key_input &= ~0x20; key_input |= 0x10; }
+	else if((pad == config::agb_joy_left) && (pressed)) { key_input &= ~0x20; key_input |= 0x10; }
 
 	//Emulate Left DPad release
-	else if((pad == config::joy_left) && (!pressed)) { key_input |= 0x20; key_input |= 0x10; }
+	else if((pad == config::agb_joy_left) && (!pressed)) { key_input |= 0x20; key_input |= 0x10; }
 
 	//Emulate Up DPad press
-	else if((pad == config::joy_up) && (pressed)) { key_input &= ~0x40; key_input |= 0x80; }
+	else if((pad == config::agb_joy_up) && (pressed)) { key_input &= ~0x40; key_input |= 0x80; }
 
 	//Emulate Up DPad release
-	else if((pad == config::joy_up) && (!pressed)) { key_input |= 0x40; key_input |= 0x80;}
+	else if((pad == config::agb_joy_up) && (!pressed)) { key_input |= 0x40; key_input |= 0x80;}
 
 	//Emulate Down DPad press
-	else if((pad == config::joy_down) && (pressed)) { key_input &= ~0x80; key_input |= 0x40;}
+	else if((pad == config::agb_joy_down) && (pressed)) { key_input &= ~0x80; key_input |= 0x40;}
 
 	//Emulate Down DPad release
-	else if((pad == config::joy_down) && (!pressed)) { key_input |= 0x80; key_input |= 0x40; }
+	else if((pad == config::agb_joy_down) && (!pressed)) { key_input |= 0x80; key_input |= 0x40; }
 
 	//Emulate R Trigger press
-	else if((pad == config::joy_r_trigger) && (pressed)) { key_input &= ~0x100; }
+	else if((pad == config::agb_joy_r_trigger) && (pressed)) { key_input &= ~0x100; }
 
 	//Emulate R Trigger release
-	else if((pad == config::joy_r_trigger) && (!pressed)) { key_input |= 0x100; }
+	else if((pad == config::agb_joy_r_trigger) && (!pressed)) { key_input |= 0x100; }
 
 	//Emulate L Trigger press
-	else if((pad == config::joy_l_trigger) && (pressed)) { key_input &= ~0x200; }
+	else if((pad == config::agb_joy_l_trigger) && (pressed)) { key_input &= ~0x200; }
 
 	//Emulate L Trigger release
-	else if((pad == config::joy_l_trigger) && (!pressed)) { key_input |= 0x200; }
+	else if((pad == config::agb_joy_l_trigger) && (!pressed)) { key_input |= 0x200; }
 }

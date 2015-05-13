@@ -12,7 +12,7 @@
 #ifndef GBA_TIMER
 #define GBA_TIMER
 
-#include "common/common.h"
+#include "common.h"
 
 struct gba_timer
 {

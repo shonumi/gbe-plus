@@ -16,8 +16,8 @@
 #include <string>
 #include <iostream>
 
-#include "common/common.h"
-#include "config.h"
+#include "common.h"
+#include "common/config.h"
 
 class AGB_GamePad
 {

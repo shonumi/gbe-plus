@@ -17,6 +17,7 @@
 #include <iostream>
 
 #include "common.h"
+#include "common/config.h"
 
 class DMG_MMU
 {

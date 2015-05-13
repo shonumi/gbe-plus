@@ -14,7 +14,7 @@
 
 #include <vector>
 
-#include "common/common.h"
+#include "common.h"
 
 enum sfx_types
 {

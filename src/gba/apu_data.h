@@ -12,7 +12,7 @@
 #ifndef GBA_APU_DATA
 #define GBA_APU_DATA
 
-#include "common/common.h"
+#include "common.h"
 
 struct apu_data
 {

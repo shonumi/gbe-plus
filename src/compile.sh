@@ -77,14 +77,6 @@ else
 	exit
 fi
 
-
-if g++ -o gba/config.o -c -O3 -funroll-loops gba/config.cpp -lSDL; then
-	echo -e "Compiling Config...			\E[32m[DONE]\E[37m"
-else
-	echo -e "Compiling Config...			\E[31m[ERROR]\E[37m"
-	exit
-fi
-
 echo -e "\E[32mGBA core complete...\E[37m"
 
 #
@@ -129,12 +121,21 @@ else
 	exit
 fi
 
+echo -e "\E[32mGB/GBC core complete...\E[37m"
+
 #
 #
 #DMG core is done
 #Move onto final compilation
 #
 #
+
+if g++ -o common/config.o -c -O3 -funroll-loops common/config.cpp -lSDL; then
+	echo -e "Compiling Config...			\E[32m[DONE]\E[37m"
+else
+	echo -e "Compiling Config...			\E[31m[ERROR]\E[37m"
+	exit
+fi
 
 if g++ -o main.o -c -O3 -funroll-loops main.cpp; then
 	echo -e "Compiling Main...			\E[32m[DONE]\E[37m"
@@ -143,7 +144,7 @@ else
 	exit
 fi
 
-if g++ -o gbe_plus gba/core.o gba/arm7.o gba/dma.o gba/arm_instr.o gba/thumb_instr.o gba/swi.o gba/mmu.o gba/gamepad.o gba/lcd.o gba/apu.o gba/opengl.o gba/config.o main.o -lSDL -lGL; then
+if g++ -o gbe_plus gba/core.o gba/arm7.o gba/dma.o gba/arm_instr.o gba/thumb_instr.o gba/swi.o gba/mmu.o gba/gamepad.o gba/lcd.o gba/apu.o gba/opengl.o common/config.o main.o -lSDL -lGL; then
 	echo -e "Linking Project...			\E[32m[DONE]\E[37m"
 else
 	echo -e "Linking Project...			\E[31m[ERROR]\E[37m"

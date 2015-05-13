@@ -20,18 +20,18 @@ namespace config
 	std::vector <std::string> cli_args;
 	bool use_debugger = false;
 
-	//Default keyboard bindings
+	//Default keyboard bindings - GBA
 	//Arrow Z = A button, X = B button, START = Return, Select = Space
 	//UP, LEFT, DOWN, RIGHT = Arrow keys
 	//A key = Left Shoulder, S key = Right Shoulder
-	int key_a = 122; int key_b = 120; int key_start = 13; int key_select = 32;
-	int key_r_trigger = 115; int key_l_trigger = 97;
-	int key_left = 276; int key_right = 275; int key_down = 274; int key_up = 273;
+	int agb_key_a = 122; int agb_key_b = 120; int agb_key_start = 13; int agb_key_select = 32;
+	int agb_key_r_trigger = 115; int agb_key_l_trigger = 97;
+	int agb_key_left = 276; int agb_key_right = 275; int agb_key_down = 274; int agb_key_up = 273;
 
-	//Default joystick bindings
-	int joy_a = 100; int joy_b = 102; int joy_start = 107; int joy_select = 106;
-	int joy_r_trigger = 105; int joy_l_trigger = 104;
-	int joy_left = 200; int joy_right = 201; int joy_up = 202; int joy_down = 203;
+	//Default joystick bindings - GBA
+	int agb_joy_a = 100; int agb_joy_b = 102; int agb_joy_start = 107; int agb_joy_select = 106;
+	int agb_joy_r_trigger = 105; int agb_joy_l_trigger = 104;
+	int agb_joy_left = 200; int agb_joy_right = 201; int agb_joy_up = 202; int agb_joy_down = 203;
 
 	//Default joystick dead-zone
 	int dead_zone = 16000;
@@ -45,6 +45,9 @@ namespace config
 	u8 scaling_factor = 1;
 
 	std::stringstream title;
+
+	//Emulated Gameboy type
+	u8 gb_type = 0;
 }
 
 /****** Parse arguments passed from the command-line ******/
