@@ -14,7 +14,7 @@
 
 #include "common.h"
 
-struct apu_data
+struct agb_apu_data
 {
 	//Sound Channels 1-4, nearly identical to the DMG/GBC
 	struct sound_channels

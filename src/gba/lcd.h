@@ -39,7 +39,7 @@ class AGB_LCD
 	SDL_Surface* final_screen;
 	GLuint lcd_texture;
 
-	lcd_data lcd_stat;
+	agb_lcd_data lcd_stat;
 
 	private:
 

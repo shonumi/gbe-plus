@@ -140,8 +140,8 @@ class AGB_MMU
 	void flash_erase_sector(u32 sector);
 	void flash_switch_bank();
 
-	void set_lcd_data(lcd_data* ex_lcd_stat);
-	void set_apu_data(apu_data* ex_apu_stat);
+	void set_lcd_data(agb_lcd_data* ex_lcd_stat);
+	void set_apu_data(agb_apu_data* ex_apu_stat);
 
 	AGB_GamePad* g_pad;
 	std::vector<gba_timer>* timer;
@@ -149,10 +149,10 @@ class AGB_MMU
 	private:
 
 	//Only the MMU and LCD should communicate through this structure
-	lcd_data* lcd_stat;
+	agb_lcd_data* lcd_stat;
 
 	//Only the MMU and APU should communicate through this structure
-	apu_data* apu_stat;
+	agb_apu_data* apu_stat;
 };
 
 #endif // GBA_MMU

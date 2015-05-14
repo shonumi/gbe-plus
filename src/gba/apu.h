@@ -23,7 +23,7 @@ class AGB_APU
 	//Link to memory map
 	AGB_MMU* mem;
 
-	apu_data apu_stat;
+	agb_apu_data apu_stat;
 
 	SDL_AudioSpec desired_spec;
     	SDL_AudioSpec obtained_spec;

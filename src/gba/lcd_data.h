@@ -24,7 +24,7 @@ enum sfx_types
 	BRIGHTNESS_DOWN,
 };
 
-struct lcd_data
+struct agb_lcd_data
 {
 	u16 display_control;
 	u16 bg_control[4];
