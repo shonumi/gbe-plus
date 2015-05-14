@@ -121,7 +121,14 @@ else
 	exit
 fi
 
-if g++ -o dmg/mmu.o -c -O3 -funroll-loops dmg/gamepad.cpp; then
+if g++ -o dmg/z80.o -c -O3 -funroll-loops dmg/mmu.cpp; then
+	echo -e "Compiling Z80...			\E[32m[DONE]\E[37m"
+else
+	echo -e "Compiling Z80...			\E[31m[ERROR]\E[37m"
+	exit
+fi
+
+if g++ -o dmg/gamepad.o -c -O3 -funroll-loops dmg/gamepad.cpp; then
 	echo -e "Compiling GamePad...			\E[32m[DONE]\E[37m"
 else
 	echo -e "Compiling GamePad...			\E[31m[ERROR]\E[37m"
