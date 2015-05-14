@@ -758,3 +758,6 @@ bool DMG_MMU::save_backup(std::string filename)
 
 	return true;
 }
+
+/****** Points the MMU to an lcd_data structure (FROM THE LCD ITSELF) ******/
+void DMG_MMU::set_lcd_data(dmg_lcd_data* ex_lcd_stat) { lcd_stat = ex_lcd_stat; }

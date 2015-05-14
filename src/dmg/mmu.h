@@ -19,6 +19,7 @@
 #include "common.h"
 #include "common/config.h"
 #include "gamepad.h"
+#include "lcd_data.h"
 
 class DMG_MMU
 {
@@ -107,6 +108,13 @@ class DMG_MMU
 
 	void mbc5_write(u16 address, u8 value);
 	u8 mbc5_read(u16 address);
+
+	void set_lcd_data(dmg_lcd_data* ex_lcd_stat);
+
+	private:
+
+	//Only the MMU and LCD should communicate through this structure
+	dmg_lcd_data* lcd_stat;
 };
 
 #endif // GB_MMU
