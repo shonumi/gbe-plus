@@ -4,10 +4,10 @@
 
 // File : lcd_data.h
 // Date : May 14, 2015
-// Description : Core data
+// Description : Core LCD data
 //
-// Defines the LCD data structures that the MMU will update whenever values are written in memory
-// Only the LCD should read values from this namespace. Only the MMU should write values to this namespace.
+// Defines the LCD data structure that the MMU will update whenever values are written in memory
+// Only the LCD should read values from this structure. Only the MMU should write values to this structure.
 
 #ifndef GB_LCD_DATA
 #define GB_LCD_DATA
@@ -21,9 +21,11 @@ struct dmg_lcd_data
 	u8 lcd_control;
 	bool lcd_enable;
 	bool window_enable;
+	bool obj_enable;
 	u16 window_map_addr;
 	u16 bg_map_addr;
 	u16 bg_tile_addr;
+	u8 obj_size;
 
 	u8 bg_scroll_x;
 	u8 bg_scroll_y;
