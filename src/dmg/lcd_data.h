@@ -33,6 +33,9 @@ struct dmg_lcd_data
 	u8 window_y;
 
 	u8 signed_tile_lut[256];
+
+	bool oam_update;
+	std::vector<bool> oam_update_list;
 };
 
 #endif // GB_LCD_DATA

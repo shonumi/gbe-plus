@@ -226,7 +226,7 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		memory_map[0xFF44] = 0;
 	}
 
-	//LCDC - Sprite mode changes
+	//LCDC
 	else if(address == REG_LCDC)
 	{
 		u8 current_bit = (memory_map[REG_LCDC] & 0x04) ? 1 : 0;
@@ -236,7 +236,44 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		//if(current_bit != new_bit) { gpu_update_sprite = true; }
 
 		memory_map[address] = value;
+
+		lcd_stat->lcd_control = value;
+		lcd_stat->lcd_enable = (value & 0x80) ? true : false;
+		lcd_stat->window_map_addr = (value & 0x40) ? 0x9C00 : 0x9800;
+		lcd_stat->window_enable = (value & 0x20) ? true : false;
+		lcd_stat->bg_tile_addr = (value & 0x10) ? 0x8000 : 0x8800;
+		lcd_stat->bg_map_addr = (value & 0x8) ? 0x9C00 : 0x9800;
+		lcd_stat->obj_size = (value & 0x4) ? 1 : 0;
+		lcd_stat->obj_enable = (value & 0x2) ? true : false;
 	}
+
+	//Scroll Y
+	else if(address == REG_SY)
+	{
+		memory_map[address] = value;
+		lcd_stat->bg_scroll_y = value;
+	}
+
+	//Scroll X
+	else if(address == REG_SX)
+	{
+		memory_map[address] = value;
+		lcd_stat->bg_scroll_x = value;
+	}
+
+	//Window Y
+	else if(address == REG_WY)
+	{
+		memory_map[address] = value;
+		lcd_stat->window_y = (value - 7);
+	}
+
+	//Window X
+	else if(address == REG_WX)
+	{
+		memory_map[address] = value;
+		lcd_stat->window_x = value;
+	}	
 
 	//DMA transfer
 	else if(address == REG_DMA) 
