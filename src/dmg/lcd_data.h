@@ -27,6 +27,13 @@ struct dmg_lcd_data
 	u16 bg_tile_addr;
 	u8 obj_size;
 
+	u8 lcd_mode;
+	u32 lcd_clock;
+	u32 vblank_clock;
+
+	u8 current_scanline;
+	u32 scanline_pixel_counter;
+
 	u8 bg_scroll_x;
 	u8 bg_scroll_y;
 	u8 window_x;

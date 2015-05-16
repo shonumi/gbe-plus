@@ -121,6 +121,13 @@ else
 	exit
 fi
 
+if g++ -o dmg/lcd.o -c -O3 -funroll-loops dmg/lcd.cpp -lSDL; then
+	echo -e "Compiling LCD...			\E[32m[DONE]\E[37m"
+else
+	echo -e "Compiling LCD...			\E[31m[ERROR]\E[37m"
+	exit
+fi
+
 if g++ -o dmg/z80.o -c -O3 -funroll-loops dmg/mmu.cpp; then
 	echo -e "Compiling Z80...			\E[32m[DONE]\E[37m"
 else

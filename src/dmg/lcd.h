@@ -23,14 +23,11 @@ class DMG_LCD
 	//Link to memory map
 	DMG_MMU* mem;
 
-	u8 lcd_mode;
-	u8 current_scanline;
-
 	//Core Functions
 	DMG_LCD();
 	~DMG_LCD();
 
-	void step();
+	void step(int cpu_clock);
 	void reset();
 	bool init();
 	void opengl_init();
@@ -70,9 +67,6 @@ class DMG_LCD
 	//Screen pixel buffer
 	std::vector<u32> scanline_buffer;
 	std::vector<u32> screen_buffer;
-
-	u32 lcd_clock;
-	u32 scanline_pixel_counter;
 
 	int frame_start_time;
 	int frame_current_time;
