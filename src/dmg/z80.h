@@ -16,6 +16,7 @@
 
 #include "common.h"
 #include "mmu.h"
+#include "lcd.h"
 
 class Z80
 {
@@ -83,7 +84,7 @@ class Z80
 	int tima_speed;
 
 	//Memory management unit
-	MMU* mem;
+	DMG_MMU* mem;
 
 	//CPU Running flag
 	bool running;
@@ -94,6 +95,14 @@ class Z80
 	bool halt;
 	bool pause;
 	bool double_speed;
+
+	//Audio-Video and other controllers
+	struct io_controllers
+	{
+		DMG_LCD video;
+		//DMG_APU audio;
+		//dmg timer;
+	} controllers;
 
 	//Core Functions
 	Z80();

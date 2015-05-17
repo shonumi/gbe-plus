@@ -86,6 +86,13 @@ echo -e "\E[32mGBA core complete...\E[37m"
 #
 #
 
+if g++ -o dmg/core.o -c -O3 -funroll-loops dmg/core.cpp; then
+	echo -e "Compiling Core...			\E[32m[DONE]\E[37m"
+else
+	echo -e "Compiling Core...			\E[31m[ERROR]\E[37m"
+	exit
+fi
+
 if g++ -o dmg/mbc1.o -c -O3 -funroll-loops dmg/mbc1.cpp; then
 	echo -e "Compiling MBC1...			\E[32m[DONE]\E[37m"
 else
