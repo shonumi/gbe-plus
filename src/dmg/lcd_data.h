@@ -21,6 +21,7 @@ struct dmg_lcd_data
 	u8 lcd_control;
 	bool lcd_enable;
 	bool window_enable;
+	bool bg_enable;
 	bool obj_enable;
 	u16 window_map_addr;
 	u16 bg_map_addr;
@@ -32,7 +33,7 @@ struct dmg_lcd_data
 	u32 vblank_clock;
 
 	u8 current_scanline;
-	u32 scanline_pixel_counter;
+	u8 scanline_pixel_counter;
 
 	u8 bg_scroll_x;
 	u8 bg_scroll_y;

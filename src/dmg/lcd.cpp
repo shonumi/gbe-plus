@@ -46,6 +46,7 @@ void DMG_LCD::reset()
 	lcd_stat.lcd_control = 0;
 	lcd_stat.lcd_enable = 0;
 	lcd_stat.window_enable = false;
+	lcd_stat.bg_enable = false;
 	lcd_stat.obj_enable = false;
 	lcd_stat.window_map_addr = 0x9800;
 	lcd_stat.bg_map_addr = 0x9800;
@@ -117,7 +118,77 @@ void DMG_LCD::scanline_compare()
 }
 
 /****** Render pixels for a given scanline (per-scanline) - DMG version ******/
-void DMG_LCD::render_dmg_scanline() { }
+void DMG_LCD::render_dmg_scanline() 
+{ 
+	lcd_stat.scanline_pixel_counter = (0x100 - lcd_stat.bg_scroll_x);
+	u8 rendered_scanline = lcd_stat.current_scanline + mem->memory_map[REG_SY];
+	u8 current_bgp = mem->memory_map[REG_BGP];
+	u8 bgp[4];
+
+	//Determine Background/Window Palette - From lightest to darkest
+	bgp[0] = current_bgp & 0x3;
+	bgp[1] = (current_bgp >> 2) & 0x3;
+	bgp[2] = (current_bgp >> 4) & 0x3;
+	bgp[3] = (current_bgp >> 6) & 0x3;
+
+	//Determine which tiles we should generate to get the scanline data - integer division ftw :p
+	u16 tile_lower_range = (lcd_stat.current_scanline/8) * 32;
+	u16 tile_upper_range = tile_lower_range + 32;
+
+	//Draw background pixel data
+	if(lcd_stat.bg_enable)
+	{
+		//Determine which line of the tiles to generate pixels for this scanline
+		u8 tile_line = rendered_scanline % 8;
+
+		//Generate background pixel data for selected tiles
+		for(int x = tile_lower_range; x < tile_upper_range; x++)
+		{
+			u8 map_entry = mem->read_u8(lcd_stat.bg_map_addr + x);
+			u8 tile_pixel = 0;
+
+			//Convert tile number to signed if necessary
+			if(lcd_stat.bg_map_addr == 0x8800) { map_entry = lcd_stat.signed_tile_lut[map_entry]; }
+
+			//Calculate the address of the 8x1 pixel data based on map entry
+			u16 tile_addr = (lcd_stat.bg_tile_addr + (map_entry << 4) + (tile_line << 1));
+
+			//Grab bytes from VRAM representing 8x1 pixel data
+			u16 tile_data = mem->read_u16(tile_addr);
+
+			for(int y = 7; y >= 0; y--)
+			{
+				//Calculate raw value of the tile's pixel
+				tile_pixel = (((tile_data >> 8) & (1 << y)) << 1)  | (tile_data & (1 << y));
+				
+				switch(bgp[tile_pixel])
+				{
+					case 0: 
+						scanline_buffer[lcd_stat.scanline_pixel_counter++] = config::DMG_BG_PAL[0];
+						break;
+
+					case 1: 
+						scanline_buffer[lcd_stat.scanline_pixel_counter++] = config::DMG_BG_PAL[1];
+						break;
+
+					case 2: 
+						scanline_buffer[lcd_stat.scanline_pixel_counter++] = config::DMG_BG_PAL[2];
+						break;
+
+					case 3: 
+						scanline_buffer[lcd_stat.scanline_pixel_counter++] = config::DMG_BG_PAL[3];
+						break;
+				}
+			}
+		}
+	}
+
+	//Push scanline buffer to screen buffer
+	for(int x = 0; x < 160; x++)
+	{
+		screen_buffer[(160 * lcd_stat.current_scanline) + x] = scanline_buffer[x];
+	}
+}
 
 /****** Execute LCD operations ******/
 void DMG_LCD::step(int cpu_clock) 

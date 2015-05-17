@@ -39,6 +39,7 @@ namespace config
 	extern u8 scaling_factor;
 	extern std::stringstream title;
 	extern u8 gb_type;
+	extern u32 DMG_BG_PAL[4];
 }
 
 #endif // EMU_CONFIG

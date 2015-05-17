@@ -58,6 +58,9 @@ namespace config
 
 	//Emulated Gameboy type
 	u8 gb_type = 0;
+
+	//Default Gameboy BG palettes
+	u32 DMG_BG_PAL[4] = { 0xFFFFFFFF, 0xFFC0C0C0, 0xFF606060, 0xFF000000 }; 
 }
 
 /****** Parse arguments passed from the command-line ******/
