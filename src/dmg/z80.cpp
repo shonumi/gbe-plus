@@ -48,6 +48,8 @@ void Z80::reset()
 	double_speed = false;
 
 	mem = NULL;
+
+	std::cout<<"CPU::Initialized\n";
 }
 
 /****** Z80 Reset - For BIOS ******/
@@ -78,6 +80,8 @@ void Z80::reset_bios()
 	double_speed = false;
 
 	mem = NULL;
+
+	std::cout<<"CPU::Initialized\n";
 }
 
 /****** Handle Interrupts to Z80 ******/

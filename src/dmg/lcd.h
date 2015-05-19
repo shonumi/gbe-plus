@@ -30,7 +30,7 @@ class DMG_LCD
 	void step(int cpu_clock);
 	void reset();
 	bool init();
-	void opengl_init();
+	bool opengl_init();
 
 	//Screen data
 	SDL_Surface* final_screen;

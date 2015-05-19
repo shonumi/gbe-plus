@@ -97,7 +97,7 @@ bool DMG_LCD::init()
 	}
 
 	if(config::use_opengl) { std::cout<<"LCD::Error - OpenGL not implemented yet\n"; return false; }
-	else { final_screen = SDL_SetVideoMode(240, 160, 32, SDL_SWSURFACE); }
+	else { final_screen = SDL_SetVideoMode(160, 144, 32, SDL_SWSURFACE); }
 
 	if(final_screen == NULL) { return false; }
 
@@ -105,6 +105,9 @@ bool DMG_LCD::init()
 
 	return true;
 }
+
+/****** Initialize LCD with OpenGL ******/
+bool DMG_LCD::opengl_init() { }
 
 /****** Compares LY and LYC - Generates STAT interrupt ******/
 void DMG_LCD::scanline_compare()
@@ -279,7 +282,7 @@ void DMG_LCD::step(int cpu_clock)
 				lcd_stat.lcd_mode = 1;
 
 				//Setup the VBlank clock to count 10 scanlines
-				lcd_stat.vblank_clock = (lcd_stat.lcd_clock - 65664);
+				lcd_stat.vblank_clock -= 65664;
 					
 				//VBlank STAT INT
 				if(mem->memory_map[REG_STAT] & 0x10) { mem->memory_map[REG_IF] |= 2; }

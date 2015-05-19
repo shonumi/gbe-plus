@@ -74,6 +74,7 @@ class Z80
 
 	u8 temp_byte;
 	u16 temp_word;
+	u8 opcode;
 
 	//Internal CPU clock
 	int cpu_clock_m, cpu_clock_t;

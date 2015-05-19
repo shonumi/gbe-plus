@@ -137,8 +137,8 @@ void DMG_core::run_core()
 			//Process Opcodes
 			else 
 			{
-				u8 op = core_mmu.read_u8(core_cpu.reg.pc++);
-				core_cpu.exec_op(op);
+				core_cpu.opcode = core_mmu.read_u8(core_cpu.reg.pc++);
+				core_cpu.exec_op(core_cpu.opcode);
 			}
 
 			//Update LCD
@@ -157,13 +157,64 @@ void DMG_core::run_core()
 /****** Debugger - Allow core to run until a breaking condition occurs ******/
 void DMG_core::debug_step()
 {
+	//In continue mode, if breakpoints exist, try to stop on one
+	if((db_unit.breakpoints.size() > 0) && (db_unit.last_command == "c"))
+	{
+		for(int x = 0; x < db_unit.breakpoints.size(); x++)
+		{
+			//When a BP is matched, display info, wait for next input command
+			if(core_cpu.reg.pc == db_unit.breakpoints[x])
+			{
+				debug_display();
+				debug_process_command();
+			}
+		}
 
+	}
+
+	//When in next instruction mode, simply display info, wait for next input command
+	else if(db_unit.last_command == "n")
+	{
+		debug_display();
+		debug_process_command();
+	}
 }
 
 /****** Debugger - Display relevant info to the screen ******/
 void DMG_core::debug_display() const
 {
+	std::cout << std::hex << "CPU::Executing Opcode : 0x" << (u32)core_cpu.opcode << "\n\n";
 
+	//Display CPU registers
+	std::cout<< std::hex <<"A  : 0x" << std::setw(2) << std::setfill('0') << (u32)core_cpu.reg.a << 
+		"   -- B  : 0x" << std::setw(2) << std::setfill('0') << (u32)core_cpu.reg.b << 
+		" -- C  : 0x" << std::setw(2) << std::setfill('0') << (u32)core_cpu.reg.c << "\n";
+
+	std::cout<< std::hex << std::setw(2) << "               "
+		"D  : 0x" << std::setw(2) << std::setfill('0') << (u32)core_cpu.reg.d << 
+		" -- E  : 0x" << std::setw(2) << std::setfill('0') << (u32)core_cpu.reg.e << "\n";
+
+	std::cout<< std::hex <<"PC : 0x" << std::setw(4) << std::setfill('0') << (u32)core_cpu.reg.pc << 
+		" -- H  : 0x" << std::setw(2) << std::setfill('0') << (u32)core_cpu.reg.h << 
+		" -- L  : 0x" << std::setw(2) << std::setfill('0') << (u32)core_cpu.reg.l << "\n";
+
+	std::string flag_stats = "(";
+
+	if(core_cpu.reg.f & 0x80) { flag_stats += "Z"; }
+	else { flag_stats += "."; }
+
+	if(core_cpu.reg.f & 0x40) { flag_stats += "N"; }
+	else { flag_stats += "."; }
+
+	if(core_cpu.reg.f & 0x20) { flag_stats += "H"; }
+	else { flag_stats += "."; }
+
+	if(core_cpu.reg.f & 0x10) { flag_stats += "C"; }
+	else { flag_stats += "."; }
+
+	flag_stats += ")";
+
+	std::cout<< std::hex <<"FLAGS : 0x" << std::setw(2) << std::setfill('0') << (u32)core_cpu.reg.f << "\t" << flag_stats << "\n\n";
 }
 
 /****** Debugger - Wait for user input, process it to decide what next to do ******/
