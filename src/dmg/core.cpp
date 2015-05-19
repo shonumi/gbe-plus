@@ -186,17 +186,19 @@ void DMG_core::debug_display() const
 	std::cout << std::hex << "CPU::Executing Opcode : 0x" << (u32)core_cpu.opcode << "\n\n";
 
 	//Display CPU registers
-	std::cout<< std::hex <<"A  : 0x" << std::setw(2) << std::setfill('0') << (u32)core_cpu.reg.a << 
-		"   -- B  : 0x" << std::setw(2) << std::setfill('0') << (u32)core_cpu.reg.b << 
+	std::cout<< std::hex <<"A  : 0x" << std::setw(2) << std::setfill('0') << (u32)core_cpu.reg.a << "\n";
+
+	std::cout<< std::hex <<"B  : 0x" << std::setw(2) << std::setfill('0') << (u32)core_cpu.reg.b << 
 		" -- C  : 0x" << std::setw(2) << std::setfill('0') << (u32)core_cpu.reg.c << "\n";
 
-	std::cout<< std::hex << std::setw(2) << "               "
-		"D  : 0x" << std::setw(2) << std::setfill('0') << (u32)core_cpu.reg.d << 
+	std::cout<< std::hex << "D  : 0x" << std::setw(2) << std::setfill('0') << (u32)core_cpu.reg.d << 
 		" -- E  : 0x" << std::setw(2) << std::setfill('0') << (u32)core_cpu.reg.e << "\n";
 
-	std::cout<< std::hex <<"PC : 0x" << std::setw(4) << std::setfill('0') << (u32)core_cpu.reg.pc << 
-		" -- H  : 0x" << std::setw(2) << std::setfill('0') << (u32)core_cpu.reg.h << 
+	std::cout<< std::hex << "H  : 0x" << std::setw(2) << std::setfill('0') << (u32)core_cpu.reg.h << 
 		" -- L  : 0x" << std::setw(2) << std::setfill('0') << (u32)core_cpu.reg.l << "\n";
+
+	std::cout<< std::hex <<"PC : 0x" << std::setw(4) << std::setfill('0') << (u32)core_cpu.reg.pc <<
+		" -- SP  : 0x" << std::setw(4) << std::setfill('0') << (u32)core_cpu.reg.sp << "\n";
 
 	std::string flag_stats = "(";
 
