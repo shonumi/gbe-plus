@@ -77,7 +77,12 @@ else
 	exit
 fi
 
-echo -e "\E[32mGBA core complete...\E[37m"
+if ld -r gba/core.o gba/arm7.o gba/dma.o gba/arm_instr.o gba/thumb_instr.o gba/swi.o gba/mmu.o gba/lcd.o gba/apu.o gba/opengl.o gba/gamepad.o -o gba/gba.o; then
+	echo -e "\E[32mGBA core complete...\E[37m"
+else
+	echo -e "\E[31mGBA core complete...\E[37m"
+	exit
+fi
 
 #
 #
@@ -135,7 +140,7 @@ else
 	exit
 fi
 
-if g++ -o dmg/z80.o -c -O3 -funroll-loops dmg/mmu.cpp; then
+if g++ -o dmg/z80.o -c -O3 -funroll-loops dmg/z80.cpp; then
 	echo -e "Compiling Z80...			\E[32m[DONE]\E[37m"
 else
 	echo -e "Compiling Z80...			\E[31m[ERROR]\E[37m"
@@ -149,7 +154,12 @@ else
 	exit
 fi
 
-echo -e "\E[32mGB/GBC core complete...\E[37m"
+if ld -r dmg/core.o dmg/mbc1.o dmg/mbc2.o dmg/mbc3.o dmg/mbc5.o dmg/mmu.o dmg/lcd.o dmg/z80.o dmg/gamepad.o -o dmg/dmg.o; then
+	echo -e "\E[32mGB/GBC core complete...\E[37m"
+else
+	echo -e "\E[31mGB/GBC core complete...\E[37m"
+	exit
+fi
 
 #
 #
@@ -172,7 +182,7 @@ else
 	exit
 fi
 
-if g++ -o gbe_plus gba/core.o gba/arm7.o gba/dma.o gba/arm_instr.o gba/thumb_instr.o gba/swi.o gba/mmu.o gba/gamepad.o gba/lcd.o gba/apu.o gba/opengl.o common/config.o main.o -lSDL -lGL; then
+if g++ -o gbe_plus gba/gba.o dmg/dmg.o common/config.o main.o -lSDL -lGL; then
 	echo -e "Linking Project...			\E[32m[DONE]\E[37m"
 else
 	echo -e "Linking Project...			\E[31m[ERROR]\E[37m"
