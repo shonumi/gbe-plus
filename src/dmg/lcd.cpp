@@ -151,7 +151,7 @@ void DMG_LCD::render_dmg_scanline()
 			u8 tile_pixel = 0;
 
 			//Convert tile number to signed if necessary
-			if(lcd_stat.bg_map_addr == 0x8800) { map_entry = lcd_stat.signed_tile_lut[map_entry]; }
+			//if(lcd_stat.bg_map_addr == 0x8800) { map_entry = lcd_stat.signed_tile_lut[map_entry]; }
 
 			//Calculate the address of the 8x1 pixel data based on map entry
 			u16 tile_addr = (lcd_stat.bg_tile_addr + (map_entry << 4) + (tile_line << 1));
@@ -306,6 +306,25 @@ void DMG_LCD::step(int cpu_clock)
 				{
 					if(SDL_Flip(final_screen) == -1) { std::cout<<"LCD::Error - Could not blit\n"; }
 				}
+			}
+
+			//Limit framerate
+			if(!config::turbo)
+			{
+				frame_current_time = SDL_GetTicks();
+				if((frame_current_time - frame_start_time) < 16) { SDL_Delay(16 - (frame_current_time - frame_start_time));}
+				frame_start_time = SDL_GetTicks();
+			}
+
+			//Update FPS counter + title
+			fps_count++;
+			if((SDL_GetTicks() - fps_time) >= 1000) 
+			{ 
+				fps_time = SDL_GetTicks(); 
+				config::title.str("");
+				config::title << "GBE+ " << fps_count << "FPS";
+				SDL_WM_SetCaption(config::title.str().c_str(), NULL);
+				fps_count = 0; 
 			}
 		}
 
