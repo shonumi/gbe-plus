@@ -151,7 +151,7 @@ void DMG_LCD::render_dmg_scanline()
 			u8 tile_pixel = 0;
 
 			//Convert tile number to signed if necessary
-			//if(lcd_stat.bg_map_addr == 0x8800) { map_entry = lcd_stat.signed_tile_lut[map_entry]; }
+			if(lcd_stat.bg_tile_addr == 0x8800) { map_entry = lcd_stat.signed_tile_lut[map_entry]; }
 
 			//Calculate the address of the 8x1 pixel data based on map entry
 			u16 tile_addr = (lcd_stat.bg_tile_addr + (map_entry << 4) + (tile_line << 1));
@@ -285,6 +285,9 @@ void DMG_LCD::step(int cpu_clock)
 					
 			//VBlank STAT INT
 			if(mem->memory_map[REG_STAT] & 0x10) { mem->memory_map[REG_IF] |= 2; }
+
+			//VBlank INT
+			mem->memory_map[REG_IF] |= 1;
 
 			//Render final screen buffer
 			if(lcd_stat.lcd_enable)
