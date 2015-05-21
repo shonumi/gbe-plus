@@ -224,6 +224,8 @@ void AGB_LCD::update_oam()
 			//Set double-size
 			if((obj[x].rotate_scale == 1) && (obj[x].type == 1)) { obj[x].x += (obj[x].width >> 1); obj[x].y += (obj[x].height >> 1); }
 		}
+
+		else { oam_ptr += 8; }
 	}
 
 	//Update render list for the current scanline
