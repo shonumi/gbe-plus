@@ -39,6 +39,8 @@ AGB_core::AGB_core()
 	db_unit.debug_mode = false;
 	db_unit.display_cycles = false;
 	db_unit.last_command = "n";
+
+	std::cout<<"GBE::Launching GBA core\n";
 }
 
 /****** Start the core ******/

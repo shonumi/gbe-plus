@@ -39,6 +39,8 @@ DMG_core::DMG_core()
 	db_unit.debug_mode = false;
 	db_unit.display_cycles = false;
 	db_unit.last_command = "n";
+
+	std::cout<<"GBE::Launching DMG-GBC core\n";
 }
 
 /****** Start the core ******/
@@ -173,7 +175,7 @@ void DMG_core::run_core()
 
 					if(core_mmu.memory_map[REG_TIMA] == 0)
 					{
-						core_mmu.memory_map[REG_IF] |= 0x04;
+						core_mmu.memory_map[IF_FLAG] |= 0x04;
 						core_mmu.memory_map[REG_TIMA] = core_mmu.memory_map[REG_TMA];
 					}	
 

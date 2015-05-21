@@ -33,8 +33,8 @@ const u16 REG_TMA = 0xFF06;
 const u16 REG_TAC = 0xFF07;
 
 //Interrupt Flags
-const u16 REG_IF = 0xFF0F;
-const u16 REG_IE = 0xFFFF;
+const u16 IF_FLAG = 0xFF0F;
+const u16 IE_FLAG = 0xFFFF;
 
 //Display registers
 const u16 REG_LCDC = 0xFF40;

@@ -67,6 +67,8 @@ void DMG_MMU::reset()
 	for(int x = 0; x < 0x2; x++) { video_ram[x].resize(0x2000, 0); }
 
 	g_pad = NULL;
+
+	std::cout<<"MMU::Initialized\n";
 }
 
 /****** Read byte from memory ******/

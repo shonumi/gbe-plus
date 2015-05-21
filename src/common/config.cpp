@@ -57,6 +57,8 @@ namespace config
 	std::stringstream title;
 
 	//Emulated Gameboy type
+	//TODO - Make this an enum
+	//0 - DMG, 1 - DMG on GBC, 2 - GBC, 3 - GBA, 4 - NDS????
 	u8 gb_type = 0;
 
 	//Default Gameboy BG palettes
@@ -78,6 +80,13 @@ bool parse_cli_args()
 		//ROM file is always first argument
 		config::rom_file = config::cli_args[0];
 		config::save_file = config::rom_file + ".sav";
+
+		//Determine Gameboy type based on file name
+		//Note, DMG and GBC games are automatically detected in the Gameboy MMU, so only check for GBA types here
+		std::size_t dot = config::rom_file.find_last_of(".");
+		std::string ext = config::rom_file.substr(dot);
+
+		if(ext == ".gba") { config::gb_type = 3; } 
 
 		//Parse the rest of the arguments if any		
 		for(int x = 1; x < config::cli_args.size(); x++)

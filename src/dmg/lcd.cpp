@@ -115,7 +115,7 @@ void DMG_LCD::scanline_compare()
 	if(mem->memory_map[REG_LY] == mem->memory_map[REG_LYC]) 
 	{ 
 		mem->memory_map[REG_STAT] |= 0x4; 
-		if(mem->memory_map[REG_STAT] & 0x40) { mem->memory_map[REG_IF] |= 2; }
+		if(mem->memory_map[REG_STAT] & 0x40) { mem->memory_map[IF_FLAG] |= 2; }
 	}
 	else { mem->memory_map[REG_STAT] &= ~0x4; }
 }
@@ -246,7 +246,7 @@ void DMG_LCD::step(int cpu_clock)
 				lcd_stat.lcd_mode = 2;
 
 				//OAM STAT INT
-				if(mem->memory_map[REG_STAT] & 0x20) { mem->memory_map[REG_IF] |= 2; }
+				if(mem->memory_map[REG_STAT] & 0x20) { mem->memory_map[IF_FLAG] |= 2; }
 			}
 		}
 
@@ -267,7 +267,7 @@ void DMG_LCD::step(int cpu_clock)
 				render_dmg_scanline();
 
 				//HBlank STAT INT
-				if(mem->memory_map[REG_STAT] & 0x08) { mem->memory_map[REG_IF] |= 2; }
+				if(mem->memory_map[REG_STAT] & 0x08) { mem->memory_map[IF_FLAG] |= 2; }
 			}
 		}
 	}
@@ -284,10 +284,10 @@ void DMG_LCD::step(int cpu_clock)
 			lcd_stat.vblank_clock = lcd_stat.lcd_clock - 65664;
 					
 			//VBlank STAT INT
-			if(mem->memory_map[REG_STAT] & 0x10) { mem->memory_map[REG_IF] |= 2; }
+			if(mem->memory_map[REG_STAT] & 0x10) { mem->memory_map[IF_FLAG] |= 2; }
 
 			//VBlank INT
-			mem->memory_map[REG_IF] |= 1;
+			mem->memory_map[IF_FLAG] |= 1;
 
 			//Render final screen buffer
 			if(lcd_stat.lcd_enable)

@@ -17,7 +17,10 @@ Z80::Z80()
 }
 
 /****** Z80 Deconstructor ******/
-Z80::~Z80() { }
+Z80::~Z80() 
+{ 
+	std::cout<<"CPU::Shutdown\n";
+}
 
 /****** Z80 Reset ******/
 void Z80::reset() 
@@ -91,11 +94,11 @@ bool Z80::handle_interrupts()
 	if(interrupt)
 	{
 		//Perform VBlank Interrupt
-		if((mem->memory_map[REG_IE] & 0x01) && (mem->memory_map[REG_IF] & 0x01))
+		if((mem->memory_map[IE_FLAG] & 0x01) && (mem->memory_map[IF_FLAG] & 0x01))
 		{
 			interrupt = false;
 			halt = false;
-			mem->memory_map[REG_IF] &= ~0x01;
+			mem->memory_map[IF_FLAG] &= ~0x01;
 			reg.sp -= 2;
 			mem->write_u16(reg.sp, reg.pc);
 			reg.pc = 0x40;
@@ -104,11 +107,11 @@ bool Z80::handle_interrupts()
 		}
 
 		//Perform LCD Status Interrupt
-		if((mem->memory_map[REG_IE] & 0x02) && (mem->memory_map[REG_IF] & 0x02))
+		if((mem->memory_map[IE_FLAG] & 0x02) && (mem->memory_map[IF_FLAG] & 0x02))
 		{
 			interrupt = false;
 			halt = false;
-			mem->memory_map[REG_IF] &= ~0x02;
+			mem->memory_map[IF_FLAG] &= ~0x02;
 			reg.sp -= 2;
 			mem->write_u16(reg.sp, reg.pc);
 			reg.pc = 0x48;
@@ -117,11 +120,11 @@ bool Z80::handle_interrupts()
 		}
 
 		//Perform Timer Overflow Interrupt
-		if((mem->memory_map[REG_IE] & 0x04) && (mem->memory_map[REG_IF] & 0x04))
+		if((mem->memory_map[IE_FLAG] & 0x04) && (mem->memory_map[IF_FLAG] & 0x04))
 		{
 			interrupt = false;
 			halt = false;
-			mem->memory_map[REG_IF] &= ~0x04;
+			mem->memory_map[IF_FLAG] &= ~0x04;
 			reg.sp -= 2;
 			mem->write_u16(reg.sp, reg.pc);
 			reg.pc = 0x50;
@@ -133,7 +136,7 @@ bool Z80::handle_interrupts()
 	}
 
 	//When IME is disabled, pending interrupts will exit the Halt state
-	else if(mem->memory_map[REG_IF] && mem->memory_map[REG_IE]) { halt = false; return false; }
+	else if(mem->memory_map[IF_FLAG] && mem->memory_map[IE_FLAG]) { halt = false; return false; }
 
 	else { return false; }
 }	
