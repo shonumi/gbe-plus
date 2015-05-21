@@ -135,7 +135,7 @@ void DMG_LCD::render_dmg_scanline()
 	bgp[3] = (current_bgp >> 6) & 0x3;
 
 	//Determine which tiles we should generate to get the scanline data - integer division ftw :p
-	u16 tile_lower_range = (lcd_stat.current_scanline/8) * 32;
+	u16 tile_lower_range = (rendered_scanline / 8) * 32;
 	u16 tile_upper_range = tile_lower_range + 32;
 
 	//Draw background pixel data
