@@ -213,6 +213,12 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		//gpu_update_bg_tile = true;
 		//gpu_update_addr.push_back(address);
 		memory_map[address] = value;
+
+		//Determine Background/Window Palette - From lightest to darkest
+		lcd_stat->bgp[0] = value & 0x3;
+		lcd_stat->bgp[1] = (value >> 2) & 0x3;
+		lcd_stat->bgp[2] = (value >> 4) & 0x3;
+		lcd_stat->bgp[3] = (value >> 6) & 0x3;
 	}
 
 	//OBP0 and OBP1
