@@ -284,7 +284,6 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		u16 dma_orig = value << 8;
 		u16 dma_dest = 0xFE00;
 		while (dma_dest < 0xFEA0) { write_u8(dma_dest++, read_u8(dma_orig++)); }
-		//gpu_update_sprite = true;
 	}
 
 	//Internal RAM - Write to ECHO RAM as well
@@ -319,7 +318,8 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	else if((address >= 0xFE00) && (address <= 0xFEA0))
 	{
 		memory_map[address] = value;
-		//gpu_update_sprite = true;
+		lcd_stat->oam_update = true;
+		lcd_stat->oam_update_list[(address & 0xA0) >> 2] = true;
 	}
 
 	//P1 - Joypad register

@@ -66,7 +66,7 @@ void DMG_LCD::reset()
 	lcd_stat.window_y = 0;
 
 	lcd_stat.oam_update = false;
-	lcd_stat.oam_update_list.resize(64, false);
+	lcd_stat.oam_update_list.resize(40, false);
 
 	//Signed tile lookup generation
 	for(int x = 0; x < 256; x++)
@@ -118,6 +118,66 @@ void DMG_LCD::scanline_compare()
 		if(mem->memory_map[REG_STAT] & 0x40) { mem->memory_map[IF_FLAG] |= 2; }
 	}
 	else { mem->memory_map[REG_STAT] &= ~0x4; }
+}
+
+/****** Updates OAM entries when values in memory change ******/
+void DMG_LCD::update_oam()
+{
+	lcd_stat.oam_update = false;
+
+	u16 oam_ptr = 0xFE00;
+	u8 attribute = 0;
+
+	for(int x = 0; x < 40; x++)
+	{
+		//Update if OAM entry has changed
+		if(lcd_stat.oam_update_list[x])
+		{
+			lcd_stat.oam_update_list[x] = false;
+
+			obj[x].height = 8;
+
+			//Read and parse Attribute 0
+			attribute = mem->memory_map[oam_ptr++];
+			obj[x].y = (attribute - 16);
+
+			//Read and parse Attribute 1
+			attribute = mem->memory_map[oam_ptr++];
+			obj[x].x = (attribute - 8);
+
+			//Read and parse Attribute 2
+			obj[x].tile_number = mem->memory_map[oam_ptr++];
+
+			//Read and parse Attribute 3
+			attribute = mem->memory_map[oam_ptr++];
+			obj[x].palette_number = (attribute & 0x10) ? 1 : 0;
+			obj[x].h_flip = (attribute & 0x20) ? true : false;
+			obj[x].v_flip = (attribute & 0x40) ? true : false;
+			obj[x].bg_priority = (attribute & 0x80) ? 1 : 0;
+		}
+
+		else { oam_ptr++; }
+	}	
+
+	//Update render list for the current scanline
+	update_obj_render_list();	
+}
+
+/****** Updates a list of OBJs to render on the current scanline ******/
+void DMG_LCD::update_obj_render_list()
+{
+	obj_render_length = 0;
+
+	//Cycle through all of the sprites
+	for(int x = 0; x < 40; x++)
+	{
+		//Check to see if sprite is rendered on the current scanline
+		if((lcd_stat.current_scanline >= obj[x].y) && (lcd_stat.current_scanline <= (obj[x].y + obj[x].height - 1)))
+		{
+			obj_render_list[obj_render_length++] = x;
+			if(obj_render_length == 8) { return; }
+		}
+	}
 }
 
 /****** Render pixels for a given scanline (per-scanline) - DMG version ******/
@@ -262,6 +322,9 @@ void DMG_LCD::step(int cpu_clock)
 			if(lcd_stat.lcd_mode != 0)
 			{
 				lcd_stat.lcd_mode = 0;
+
+				//Update OAM
+				if(lcd_stat.oam_update) { update_oam(); }
 
 				//Render scanline when first entering Mode 0
 				render_dmg_scanline();

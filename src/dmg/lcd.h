@@ -59,7 +59,7 @@ class DMG_LCD
 		u8 bit_depth;
 		u8 palette_number;
 		
-	} obj[64];
+	} obj[40];
 
 	u8 obj_render_list[8];
 	u8 obj_render_length;
