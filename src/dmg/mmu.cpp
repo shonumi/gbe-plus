@@ -221,11 +221,24 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		lcd_stat->bgp[3] = (value >> 6) & 0x3;
 	}
 
-	//OBP0 and OBP1
-	else if((address == REG_OBP0) || (address == REG_OBP1))
+	//OBP0
+	else if(address == REG_OBP0)
 	{
-		//gpu_update_sprite = true;
-		memory_map[address] = value;
+		//Determine Sprite Palettes - From lightest to darkest
+		lcd_stat->obp[0][0] = value  & 0x3;
+		lcd_stat->obp[1][0] = (value >> 2) & 0x3;
+		lcd_stat->obp[2][0] = (value >> 4) & 0x3;
+		lcd_stat->obp[3][0] = (value >> 6) & 0x3;
+	}
+
+	//OBP0
+	else if(address == REG_OBP0)
+	{
+		//Determine Sprite Palettes - From lightest to darkest
+		lcd_stat->obp[0][1] = value  & 0x3;
+		lcd_stat->obp[1][1] = (value >> 2) & 0x3;
+		lcd_stat->obp[2][1] = (value >> 4) & 0x3;
+		lcd_stat->obp[3][1] = (value >> 6) & 0x3;
 	}
 
 	//Current scanline
@@ -325,7 +338,7 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	{
 		memory_map[address] = value;
 		lcd_stat->oam_update = true;
-		lcd_stat->oam_update_list[(address & 0xA0) >> 2] = true;
+		lcd_stat->oam_update_list[(address & ~0xFE00) >> 2] = true;
 	}
 
 	//P1 - Joypad register

@@ -36,6 +36,7 @@ struct dmg_lcd_data
 	u8 scanline_pixel_counter;
 
 	u8 bgp[4];
+	u8 obp[4][2];
 
 	u8 bg_scroll_x;
 	u8 bg_scroll_y;

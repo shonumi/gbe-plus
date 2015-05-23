@@ -66,8 +66,8 @@ void DMG_LCD::reset()
 	lcd_stat.window_x = 0;
 	lcd_stat.window_y = 0;
 
-	lcd_stat.oam_update = false;
-	lcd_stat.oam_update_list.resize(40, false);
+	lcd_stat.oam_update = true;
+	lcd_stat.oam_update_list.resize(40, true);
 
 	//Signed tile lookup generation
 	for(int x = 0; x < 256; x++)
@@ -157,7 +157,7 @@ void DMG_LCD::update_oam()
 			obj[x].bg_priority = (attribute & 0x80) ? 1 : 0;
 		}
 
-		else { oam_ptr++; }
+		else { oam_ptr+= 4; }
 	}	
 
 	//Update render list for the current scanline
@@ -168,15 +168,28 @@ void DMG_LCD::update_oam()
 void DMG_LCD::update_obj_render_list()
 {
 	obj_render_length = 0;
+	u8 scanline_pixel = 0;
+
+	u8 obj_x_sort[40];
+	u8 obj_sort_length = 0;
 
 	//Cycle through all of the sprites
 	for(int x = 0; x < 40; x++)
 	{
 		//Check to see if sprite is rendered on the current scanline
-		if((lcd_stat.current_scanline >= obj[x].y) && (lcd_stat.current_scanline <= (obj[x].y + obj[x].height - 1)))
+		if((lcd_stat.current_scanline >= obj[x].y) && (lcd_stat.current_scanline < (obj[x].y + 8)))
 		{
-			obj_render_list[obj_render_length++] = x;
-			if(obj_render_length == 8) { return; }
+			obj_x_sort[obj_sort_length++] = x;
+		}
+	}
+
+	//Sort them based on X coordinate
+	for(int scanline_pixel = 0; scanline_pixel < 160; scanline_pixel++)
+	{
+		for(int x = 0; x < obj_sort_length; x++)
+		{
+			u8 sprite_id = obj_x_sort[x];
+			if(obj[sprite_id].x == scanline_pixel) { obj_render_list[obj_render_length++] = sprite_id; }
 		}
 	}
 }
@@ -188,7 +201,7 @@ void DMG_LCD::render_dmg_scanline()
 	if(lcd_stat.bg_enable) { render_dmg_bg_scanline(); }
 
 	//Draw sprite pixel data
-	//if(lcd_stat.obj_enable { render_dmg_sprite_scanline(); }
+	if(lcd_stat.obj_enable) { render_dmg_sprite_scanline(); }
 
 	//Push scanline buffer to screen buffer
 	for(int x = 0; x < 160; x++)
@@ -233,7 +246,7 @@ void DMG_LCD::render_dmg_bg_scanline()
 			tile_pixel |= (tile_data & (1 << y)) ? 1 : 0;
 
 			//Set the raw color of the BG
-			scanline_raw[lcd_stat.scanline_pixel_counter] = lcd_stat.bgp[tile_pixel];
+			scanline_raw[lcd_stat.scanline_pixel_counter] = tile_pixel;
 				
 			switch(lcd_stat.bgp[tile_pixel])
 			{
@@ -253,6 +266,99 @@ void DMG_LCD::render_dmg_bg_scanline()
 					scanline_buffer[lcd_stat.scanline_pixel_counter++] = config::DMG_BG_PAL[3];
 					break;
 			}
+		}
+	}
+}
+
+/****** Renders pixels for OBJs (per-scanline) - DMG version ******/
+void DMG_LCD::render_dmg_sprite_scanline()
+{
+	//If no sprites are rendered on this line, quit now
+	if(obj_render_list == 0) { return; }
+
+	lcd_stat.scanline_pixel_counter = 0;
+
+	u8 sprite_id = 0;
+	u16 sprite_tile_addr = 0;
+	u8 raw_color = 0;
+	u8 sprite_count = 0;
+
+	//Cycle through all sprites that are rendering on this pixel, draw them according to their priority
+	for(int x = 0; x < obj_render_length; x++)
+	{
+		sprite_id = obj_render_list[x];
+		bool scan_sprites = false;
+
+		while(!scan_sprites) 
+		{
+			//Stop if rendering goes offscreen
+			if(lcd_stat.scanline_pixel_counter == 160) { return; }
+
+			//Check to see if current_scanline_pixel is within sprite
+			if((lcd_stat.scanline_pixel_counter >= obj[sprite_id].x) && (lcd_stat.scanline_pixel_counter < (obj[sprite_id].x + 8))) 
+			{
+				//Enforce 8 sprite per-scanline limit
+				if(sprite_count++ == 8) { return; }
+
+				scan_sprites = true;
+
+				//Determine which line of the tiles to generate pixels for this scanline
+				u8 tile_line = (lcd_stat.current_scanline - obj[sprite_id].y);
+				u8 tile_pixel = 0;
+
+				//Calculate the address of the 8x1 pixel data based on map entry
+				u16 tile_addr = (0x8000 + (obj[sprite_id].tile_number << 4) + (tile_line << 1));
+
+				//Grab bytes from VRAM representing 8x1 pixel data
+				u16 tile_data = mem->read_u16(tile_addr);
+
+				for(int y = 7 - (lcd_stat.scanline_pixel_counter - obj[sprite_id].x); y >= 0; y--)
+				{
+					bool draw_obj_pixel = true;
+
+					//Calculate raw value of the tile's pixel
+					tile_pixel = ((tile_data >> 8) & (1 << y)) ? 2 : 0;
+					tile_pixel |= (tile_data & (1 << y)) ? 1 : 0;
+
+					//If raw color is zero, this is the sprite's transparency, abort rendering this pixel
+					if(tile_pixel == 0) { draw_obj_pixel = false; }
+
+					//If sprite is below BG and BG raw color is non-zero, abort rendering this pixel
+					else if((obj[sprite_id].bg_priority == 1) && (scanline_raw[lcd_stat.scanline_pixel_counter] != 0)) { draw_obj_pixel = false; }
+				
+					//Render sprite pixel
+					if(draw_obj_pixel)
+					{
+						switch(lcd_stat.obp[tile_pixel][obj[sprite_id].palette_number])
+						{
+							case 0: 
+								scanline_buffer[lcd_stat.scanline_pixel_counter++] = config::DMG_BG_PAL[0];
+								break;
+
+							case 1: 
+								scanline_buffer[lcd_stat.scanline_pixel_counter++] = config::DMG_BG_PAL[1];
+								break;
+
+							case 2: 
+								scanline_buffer[lcd_stat.scanline_pixel_counter++] = config::DMG_BG_PAL[2];
+								break;
+
+							case 3: 
+								scanline_buffer[lcd_stat.scanline_pixel_counter++] = config::DMG_BG_PAL[3];
+								break;
+						}
+					}
+
+					//Move onto next pixel in scanline to see if sprite rendering occurs
+					else { lcd_stat.scanline_pixel_counter++; }
+
+					//Stop if rendering goes offscreen
+					if(lcd_stat.scanline_pixel_counter == 160) { return; }
+				}
+			}
+
+			//Move onto next pixel in scanline to see if sprite rendering occurs
+			else { lcd_stat.scanline_pixel_counter++; }
 		}
 	}
 }
@@ -328,6 +434,7 @@ void DMG_LCD::step(int cpu_clock)
 
 				//Update OAM
 				if(lcd_stat.oam_update) { update_oam(); }
+				else { update_obj_render_list(); }
 
 				//Render scanline when first entering Mode 0
 				render_dmg_scanline();
