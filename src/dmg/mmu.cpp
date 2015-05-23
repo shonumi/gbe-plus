@@ -224,6 +224,8 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	//OBP0
 	else if(address == REG_OBP0)
 	{
+		memory_map[address] = value;
+
 		//Determine Sprite Palettes - From lightest to darkest
 		lcd_stat->obp[0][0] = value  & 0x3;
 		lcd_stat->obp[1][0] = (value >> 2) & 0x3;
@@ -231,9 +233,11 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		lcd_stat->obp[3][0] = (value >> 6) & 0x3;
 	}
 
-	//OBP0
-	else if(address == REG_OBP0)
+	//OBP1
+	else if(address == REG_OBP1)
 	{
+		memory_map[address] = value;
+
 		//Determine Sprite Palettes - From lightest to darkest
 		lcd_stat->obp[0][1] = value  & 0x3;
 		lcd_stat->obp[1][1] = (value >> 2) & 0x3;
