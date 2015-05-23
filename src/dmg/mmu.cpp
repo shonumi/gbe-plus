@@ -334,7 +334,7 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	}
 
 	//OAM - Direct writes
-	else if((address >= 0xFE00) && (address <= 0xFEA0))
+	else if((address >= 0xFE00) && (address < 0xFEA0))
 	{
 		memory_map[address] = value;
 		lcd_stat->oam_update = true;
