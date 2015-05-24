@@ -275,11 +275,6 @@ void DMG_LCD::render_dmg_sprite_scanline()
 	//If no sprites are rendered on this line, quit now
 	if(obj_render_length < 0) { return; }
 
-	u8 sprite_id = 0;
-	u16 sprite_tile_addr = 0;
-	u8 raw_color = 0;
-	u8 sprite_count = 0;
-
 	//Cycle through all sprites that are rendering on this pixel, draw them according to their priority
 	for(int x = obj_render_length; x >= 0; x--)
 	{
