@@ -210,8 +210,6 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	//BGP
 	else if(address == REG_BGP)
 	{
-		//gpu_update_bg_tile = true;
-		//gpu_update_addr.push_back(address);
 		memory_map[address] = value;
 
 		//Determine Background/Window Palette - From lightest to darkest

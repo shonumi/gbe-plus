@@ -62,12 +62,12 @@ class DMG_LCD
 	} obj[40];
 
 	u8 obj_render_list[8];
-	u8 obj_render_length;
+	int obj_render_length;
 
 	//Screen pixel buffer
-	std::vector<u32> scanline_buffer;
-	std::vector<u32> screen_buffer;
-	std::vector<u8> scanline_raw;
+	u32 scanline_buffer[0x100];
+	u32 screen_buffer[0x5A00];
+	u8 scanline_raw [0x100];
 
 	int frame_start_time;
 	int frame_current_time;
