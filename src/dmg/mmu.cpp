@@ -701,7 +701,7 @@ bool DMG_MMU::read_file(std::string filename)
 	}
 
 	file.close();
-	std::cout<<"MMU::" << filename << " loaded successfully. \n"; 
+	std::cout<<"MMU::" << filename << " loaded successfully. \n";
 
 	//Determine if cart is DMG or GBC and which system GBE will try to emulate
 	//Only necessary for Auto system detection.
@@ -713,6 +713,9 @@ bool DMG_MMU::read_file(std::string filename)
 		else if((memory_map[ROM_COLOR] == 0x80) && (config::gb_type == 0)) { config::gb_type = 2; }
 		else if((memory_map[ROM_COLOR] == 0xC0) && (config::gb_type == 0)) { config::gb_type = 2; }
 	}
+
+	//Load backup save data if applicable
+        load_backup(config::save_file);
 
 	return true;
 }
@@ -764,8 +767,7 @@ bool DMG_MMU::load_backup(std::string filename)
 	//Load Saved RAM if available
 	if(cart.battery)
 	{
-		std::string save_ram_file = filename + ".sram";
-		std::ifstream sram(save_ram_file.c_str(), std::ios::binary);
+		std::ifstream sram(filename.c_str(), std::ios::binary);
 
 		if(!sram.is_open()) 
 		{ 
@@ -795,8 +797,7 @@ bool DMG_MMU::save_backup(std::string filename)
 {
 	if(cart.battery)
 	{
-		std::string save_ram_file = filename + ".sram";
-		std::ofstream sram(save_ram_file.c_str(), std::ios::binary);
+		std::ofstream sram(filename.c_str(), std::ios::binary);
 
 		if(!sram.is_open()) 
 		{ 
