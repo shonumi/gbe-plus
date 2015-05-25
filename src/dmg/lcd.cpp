@@ -77,6 +77,12 @@ void DMG_LCD::reset()
 			lcd_stat.signed_tile_lut[x] = tile_number;
 		}
 	}
+
+	//8 pixel (horizontal+vertical) flipping lookup generation
+	for(int x = 0; x < 8; x++) { lcd_stat.flip_8[x] = (7 - x); }
+
+	//16 pixel (vertical) flipping lookup generation
+        for(int x = 0; x < 16; x++) { lcd_stat.flip_16[x] = (15 - x); }
 }
 
 /****** Initialize LCD with SDL ******/
@@ -283,8 +289,10 @@ void DMG_LCD::render_dmg_sprite_scanline()
 		//Set the current pixel to start obj rendering
 		lcd_stat.scanline_pixel_counter = obj[sprite_id].x;
 		
-		//Determine which line of the tiles to generate pixels for this scanline
+		//Determine which line of the tiles to generate pixels for this scanline		
 		u8 tile_line = (lcd_stat.current_scanline - obj[sprite_id].y);
+		if(obj[sprite_id].v_flip) { tile_line = lcd_stat.flip_8[tile_line]; }
+
 		u8 tile_pixel = 0;
 
 		//Calculate the address of the 8x1 pixel data based on map entry
@@ -298,14 +306,20 @@ void DMG_LCD::render_dmg_sprite_scanline()
 			bool draw_obj_pixel = true;
 
 			//Calculate raw value of the tile's pixel
-			tile_pixel = ((tile_data >> 8) & (1 << y)) ? 2 : 0;
-			tile_pixel |= (tile_data & (1 << y)) ? 1 : 0;
+			if(obj[sprite_id].h_flip) 
+			{
+				tile_pixel = ((tile_data >> 8) & (1 << lcd_stat.flip_8[y])) ? 2 : 0;
+				tile_pixel |= (tile_data & (1 << lcd_stat.flip_8[y])) ? 1 : 0;
+			}
 
-			//Only render sprite if it's displayed at all
-			if(obj[sprite_id].x >= 160) { draw_obj_pixel = false; }
+			else 
+			{
+				tile_pixel = ((tile_data >> 8) & (1 << y)) ? 2 : 0;
+				tile_pixel |= (tile_data & (1 << y)) ? 1 : 0;
+			}
 
 			//If raw color is zero, this is the sprite's transparency, abort rendering this pixel
-			else if(tile_pixel == 0) { draw_obj_pixel = false; }
+			if(tile_pixel == 0) { draw_obj_pixel = false; }
 
 			//If sprite is below BG and BG raw color is non-zero, abort rendering this pixel
 			else if((obj[sprite_id].bg_priority == 1) && (scanline_raw[lcd_stat.scanline_pixel_counter] != 0)) { draw_obj_pixel = false; }
@@ -335,9 +349,6 @@ void DMG_LCD::render_dmg_sprite_scanline()
 
 			//Move onto next pixel in scanline to see if sprite rendering occurs
 			else { lcd_stat.scanline_pixel_counter++; }
-
-			//Stop if rendering goes offscreen
-			if(lcd_stat.scanline_pixel_counter >= 160) { y = 8; break; }
 		}
 	}
 }
