@@ -294,7 +294,7 @@ void DMG_LCD::render_dmg_sprite_scanline()
 		
 		//Determine which line of the tiles to generate pixels for this scanline		
 		u8 tile_line = (lcd_stat.current_scanline - obj[sprite_id].y);
-		if(obj[sprite_id].v_flip) { tile_line = lcd_stat.flip_8[tile_line]; }
+		if(obj[sprite_id].v_flip) { tile_line = (lcd_stat.obj_size == 8) ? lcd_stat.flip_8[tile_line] : lcd_stat.flip_16[tile_line]; }
 
 		u8 tile_pixel = 0;
 
