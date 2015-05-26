@@ -173,8 +173,11 @@ void DMG_LCD::update_obj_render_list()
 	//Cycle through all of the sprites
 	for(int x = 0; x < 40; x++)
 	{
+		u8 test_top = ((obj[x].y + lcd_stat.obj_size) > 0x100) ? 0 : obj[x].y;
+		u8 test_bottom = (obj[x].y + lcd_stat.obj_size);
+
 		//Check to see if sprite is rendered on the current scanline
-		if((lcd_stat.current_scanline >= obj[x].y) && (lcd_stat.current_scanline < (obj[x].y + lcd_stat.obj_size)))
+		if((lcd_stat.current_scanline >= test_top) && (lcd_stat.current_scanline < test_bottom))
 		{
 			obj_x_sort[obj_sort_length++] = x;
 		}

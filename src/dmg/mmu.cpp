@@ -252,12 +252,6 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	//LCDC
 	else if(address == REG_LCDC)
 	{
-		u8 current_bit = (memory_map[REG_LCDC] & 0x04) ? 1 : 0;
-		u8 new_bit = (value & 0x04) ? 1 : 0;
-
-		//We're switching sprite modes, so update all sprites)
-		//if(current_bit != new_bit) { gpu_update_sprite = true; }
-
 		memory_map[address] = value;
 
 		lcd_stat->lcd_control = value;
