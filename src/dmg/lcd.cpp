@@ -174,7 +174,7 @@ void DMG_LCD::update_obj_render_list()
 	for(int x = 0; x < 40; x++)
 	{
 		//Check to see if sprite is rendered on the current scanline
-		if((lcd_stat.current_scanline >= obj[x].y) && (lcd_stat.current_scanline < (obj[x].y + 8)))
+		if((lcd_stat.current_scanline >= obj[x].y) && (lcd_stat.current_scanline < (obj[x].y + lcd_stat.obj_size)))
 		{
 			obj_x_sort[obj_sort_length++] = x;
 		}

@@ -266,7 +266,7 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		lcd_stat->window_enable = (value & 0x20) ? true : false;
 		lcd_stat->bg_tile_addr = (value & 0x10) ? 0x8000 : 0x8800;
 		lcd_stat->bg_map_addr = (value & 0x8) ? 0x9C00 : 0x9800;
-		lcd_stat->obj_size = (value & 0x4) ? 1 : 0;
+		lcd_stat->obj_size = (value & 0x4) ? 16 : 8;
 		lcd_stat->obj_enable = (value & 0x2) ? true : false;
 		lcd_stat->bg_enable = (value & 0x1) ? true : false;
 	}
