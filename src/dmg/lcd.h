@@ -61,7 +61,7 @@ class DMG_LCD
 		
 	} obj[40];
 
-	u8 obj_render_list[8];
+	u8 obj_render_list[10];
 	int obj_render_length;
 
 	//Screen pixel buffer

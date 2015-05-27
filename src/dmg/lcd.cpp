@@ -197,7 +197,7 @@ void DMG_LCD::update_obj_render_list()
 			}
 
 			//Enforce 8 sprite-per-scanline limit
-			if(obj_render_length == 7) { return; }
+			if(obj_render_length == 9) { return; }
 		}
 	}
 }
