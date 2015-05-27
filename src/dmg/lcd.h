@@ -79,6 +79,7 @@ class DMG_LCD
 
 	void render_dmg_scanline();
 	void render_dmg_bg_scanline();
+	void render_dmg_win_scanline();
 	void render_dmg_sprite_scanline();
 
 	bool render_dmg_sprite_pixel();

@@ -283,14 +283,14 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	else if(address == REG_WY)
 	{
 		memory_map[address] = value;
-		lcd_stat->window_y = (value - 7);
+		lcd_stat->window_y = value;
 	}
 
 	//Window X
 	else if(address == REG_WX)
 	{
 		memory_map[address] = value;
-		lcd_stat->window_x = value;
+		lcd_stat->window_x = (value - 7);
 	}	
 
 	//DMA transfer

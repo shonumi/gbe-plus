@@ -196,7 +196,7 @@ void DMG_LCD::update_obj_render_list()
 				obj_render_list[obj_render_length] = sprite_id; 
 			}
 
-			//Enforce 8 sprite-per-scanline limit
+			//Enforce 10 sprite-per-scanline limit
 			if(obj_render_length == 9) { return; }
 		}
 	}
@@ -207,6 +207,9 @@ void DMG_LCD::render_dmg_scanline()
 {
 	//Draw background pixel data
 	if(lcd_stat.bg_enable) { render_dmg_bg_scanline(); }
+
+	//Draw window pixel data
+	if(lcd_stat.window_enable) { render_dmg_win_scanline(); }
 
 	//Draw sprite pixel data
 	if(lcd_stat.obj_enable) { render_dmg_sprite_scanline(); }
@@ -222,7 +225,7 @@ void DMG_LCD::render_dmg_scanline()
 void DMG_LCD::render_dmg_bg_scanline()
 {
 	//Determine where to start drawing
-	u8 rendered_scanline = lcd_stat.current_scanline + mem->memory_map[REG_SY];
+	u8 rendered_scanline = lcd_stat.current_scanline + lcd_stat.bg_scroll_y;
 	lcd_stat.scanline_pixel_counter = (0x100 - lcd_stat.bg_scroll_x);
 
 	//Determine which tiles we should generate to get the scanline data - integer division ftw :p
@@ -274,6 +277,72 @@ void DMG_LCD::render_dmg_bg_scanline()
 					scanline_buffer[lcd_stat.scanline_pixel_counter++] = config::DMG_BG_PAL[3];
 					break;
 			}
+		}
+	}
+}
+
+/****** Renders pixels for the Window (per-scanline) - DMG version ******/
+void DMG_LCD::render_dmg_win_scanline()
+{
+	//Determine if scanline is within window, if not abort rendering
+	if((lcd_stat.current_scanline < lcd_stat.window_y) || (lcd_stat.window_x >= 160)) { return; }
+
+	//Determine where to start drawing
+	u8 rendered_scanline = lcd_stat.current_scanline - lcd_stat.window_y;
+	lcd_stat.scanline_pixel_counter = lcd_stat.window_x;
+
+	//Determine which tiles we should generate to get the scanline data - integer division ftw :p
+	u16 tile_lower_range = (rendered_scanline / 8) * 32;
+	u16 tile_upper_range = tile_lower_range + 32;
+
+	//Determine which line of the tiles to generate pixels for this scanline
+	u8 tile_line = rendered_scanline % 8;
+
+	//Generate background pixel data for selected tiles
+	for(int x = tile_lower_range; x < tile_upper_range; x++)
+	{
+		u8 map_entry = mem->read_u8(lcd_stat.window_map_addr + x);
+		u8 tile_pixel = 0;
+
+		//Convert tile number to signed if necessary
+		if(lcd_stat.bg_tile_addr == 0x8800) { map_entry = lcd_stat.signed_tile_lut[map_entry]; }
+
+		//Calculate the address of the 8x1 pixel data based on map entry
+		u16 tile_addr = (lcd_stat.bg_tile_addr + (map_entry << 4) + (tile_line << 1));
+
+		//Grab bytes from VRAM representing 8x1 pixel data
+		u16 tile_data = mem->read_u16(tile_addr);
+
+		for(int y = 7; y >= 0; y--)
+		{
+			//Calculate raw value of the tile's pixel
+			tile_pixel = ((tile_data >> 8) & (1 << y)) ? 2 : 0;
+			tile_pixel |= (tile_data & (1 << y)) ? 1 : 0;
+
+			//Set the raw color of the BG
+			scanline_raw[lcd_stat.scanline_pixel_counter] = tile_pixel;
+				
+			switch(lcd_stat.bgp[tile_pixel])
+			{
+				case 0: 
+					scanline_buffer[lcd_stat.scanline_pixel_counter++] = config::DMG_BG_PAL[0];
+					break;
+
+				case 1: 
+					scanline_buffer[lcd_stat.scanline_pixel_counter++] = config::DMG_BG_PAL[1];
+					break;
+
+				case 2: 
+					scanline_buffer[lcd_stat.scanline_pixel_counter++] = config::DMG_BG_PAL[2];
+					break;
+
+				case 3: 
+					scanline_buffer[lcd_stat.scanline_pixel_counter++] = config::DMG_BG_PAL[3];
+					break;
+			}
+
+			//Abort rendering if next pixel is off-screen
+			if(lcd_stat.scanline_pixel_counter == 160) { return; }
 		}
 	}
 }
