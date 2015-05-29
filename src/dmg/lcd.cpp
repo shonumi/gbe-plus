@@ -36,7 +36,7 @@ void DMG_LCD::reset()
 
 	//Initialize various LCD status variables
 	lcd_stat.lcd_control = 0;
-	lcd_stat.lcd_enable = 0;
+	lcd_stat.lcd_enable = true;
 	lcd_stat.window_enable = false;
 	lcd_stat.bg_enable = false;
 	lcd_stat.obj_enable = false;
@@ -59,6 +59,8 @@ void DMG_LCD::reset()
 
 	lcd_stat.oam_update = true;
 	lcd_stat.oam_update_list.resize(40, true);
+
+	lcd_stat.on_off = false;
 
 	//Signed tile lookup generation
 	for(int x = 0; x < 256; x++)
@@ -428,166 +430,164 @@ void DMG_LCD::render_dmg_sprite_scanline()
 /****** Execute LCD operations ******/
 void DMG_LCD::step(int cpu_clock) 
 {
-	/*if(mem->gpu_reset_ticks) { gpu_clock = 0; mem->gpu_reset_ticks = false; }
-
-	//Enable LCD
-	if((mem->memory_map[REG_LCDC] & 0x80) && (!lcd_enabled)) 
-	{ 
-		lcd_enabled = true;
-		gpu_mode = 2;
-	}
- 
-	//Update background tile
-	if(mem->gpu_update_bg_tile)
+        //Enable the LCD
+	if((lcd_stat.on_off) && (lcd_stat.lcd_enable)) 
 	{
-		if(config::gb_type != 2) { update_bg_tile(); }
-		else { update_gbc_bg_tile(); }
-		mem->gpu_update_bg_tile = false;
+		lcd_stat.on_off = false;
+		lcd_stat.lcd_mode = 2;
 	}
 
-	//Update sprites
-	if(mem->gpu_update_sprite)
+	//Disable the LCD (VBlank only?)
+	else if((lcd_stat.on_off) && (!lcd_stat.lcd_enable))
 	{
-		generate_sprites();
-		mem->gpu_update_sprite = false;
-	}
-
-	*/
-
-
-	lcd_stat.lcd_clock += cpu_clock;
-
-	//Modes 0, 2, and 3 - Outside of VBlank
-	if(lcd_stat.lcd_clock < 65664)
-	{
-		//Mode 2 - OAM Read
-		if((lcd_stat.lcd_clock % 456) < 80)
+		lcd_stat.on_off = false;
+	
+		if(lcd_stat.lcd_mode == 1)
 		{
-			if(lcd_stat.lcd_mode != 2)
+			lcd_stat.current_scanline = mem->memory_map[REG_LY] = 0;
+			scanline_compare();
+			lcd_stat.lcd_clock = 0;
+			lcd_stat.lcd_mode = 0;
+		}
+	}
+
+	//Perform LCD operations if LCD is enabled
+	if(lcd_stat.lcd_enable) 
+	{
+		lcd_stat.lcd_clock += cpu_clock;
+
+		//Modes 0, 2, and 3 - Outside of VBlank
+		if(lcd_stat.lcd_clock < 65664)
+		{
+			//Mode 2 - OAM Read
+			if((lcd_stat.lcd_clock % 456) < 80)
 			{
-				//Increment scanline when entering Mode 2, signifies the end of HBlank
-				//When coming from VBlank, this must part must be ignored
-				if(lcd_stat.lcd_mode != 1)
+				if(lcd_stat.lcd_mode != 2)
 				{
-					lcd_stat.current_scanline++;
-					mem->memory_map[REG_LY] = lcd_stat.current_scanline;
-					scanline_compare();
+					//Increment scanline when entering Mode 2, signifies the end of HBlank
+					//When coming from VBlank, this must part must be ignored
+					if(lcd_stat.lcd_mode != 1)
+					{
+						lcd_stat.current_scanline++;
+						mem->memory_map[REG_LY] = lcd_stat.current_scanline;
+						scanline_compare();
+					}
+
+					lcd_stat.lcd_mode = 2;
+
+					//OAM STAT INT
+					if(mem->memory_map[REG_STAT] & 0x20) { mem->memory_map[IF_FLAG] |= 2; }
 				}
+			}
 
-				lcd_stat.lcd_mode = 2;
+			//Mode 3 - VRAM Read
+			else if((lcd_stat.lcd_clock % 456) < 252)
+			{
+				if(lcd_stat.lcd_mode != 3) { lcd_stat.lcd_mode = 3; }
+			}
 
-				//OAM STAT INT
-				if(mem->memory_map[REG_STAT] & 0x20) { mem->memory_map[IF_FLAG] |= 2; }
+			//Mode 0 - HBlank
+			else
+			{
+				if(lcd_stat.lcd_mode != 0)
+				{
+					lcd_stat.lcd_mode = 0;
+
+					//Update OAM
+					if(lcd_stat.oam_update) { update_oam(); }
+					else { update_obj_render_list(); }
+
+					//Render scanline when first entering Mode 0
+					render_dmg_scanline();
+
+					//HBlank STAT INT
+					if(mem->memory_map[REG_STAT] & 0x08) { mem->memory_map[IF_FLAG] |= 2; }
+				}
 			}
 		}
 
-		//Mode 3 - VRAM Read
-		else if((lcd_stat.lcd_clock % 456) < 252)
-		{
-			if(lcd_stat.lcd_mode != 3) { lcd_stat.lcd_mode = 3; }
-		}
-
-		//Mode 0 - HBlank
+		//Mode 1 - VBlank
 		else
 		{
-			if(lcd_stat.lcd_mode != 0)
+			//Entering VBlank
+			if(lcd_stat.lcd_mode != 1)
 			{
-				lcd_stat.lcd_mode = 0;
+				lcd_stat.lcd_mode = 1;
 
-				//Update OAM
-				if(lcd_stat.oam_update) { update_oam(); }
-				else { update_obj_render_list(); }
-
-				//Render scanline when first entering Mode 0
-				render_dmg_scanline();
-
-				//HBlank STAT INT
-				if(mem->memory_map[REG_STAT] & 0x08) { mem->memory_map[IF_FLAG] |= 2; }
-			}
-		}
-	}
-
-	//Mode 1 - VBlank
-	else
-	{
-		//Entering VBlank
-		if(lcd_stat.lcd_mode != 1)
-		{
-			lcd_stat.lcd_mode = 1;
-
-			//Setup the VBlank clock to count 10 scanlines
-			lcd_stat.vblank_clock = lcd_stat.lcd_clock - 65664;
+				//Setup the VBlank clock to count 10 scanlines
+				lcd_stat.vblank_clock = lcd_stat.lcd_clock - 65664;
 					
-			//VBlank STAT INT
-			if(mem->memory_map[REG_STAT] & 0x10) { mem->memory_map[IF_FLAG] |= 2; }
+				//VBlank STAT INT
+				if(mem->memory_map[REG_STAT] & 0x10) { mem->memory_map[IF_FLAG] |= 2; }
 
-			//VBlank INT
-			mem->memory_map[IF_FLAG] |= 1;
+				//VBlank INT
+				mem->memory_map[IF_FLAG] |= 1;
 
-			//Render final screen buffer
-			if(lcd_stat.lcd_enable)
-			{
-				//Lock source surface
-				if(SDL_MUSTLOCK(final_screen)){ SDL_LockSurface(final_screen); }
-				u32* out_pixel_data = (u32*)final_screen->pixels;
-
-				for(int a = 0; a < 0x5A00; a++) { out_pixel_data[a] = screen_buffer[a]; }
-
-				//Unlock source surface
-				if(SDL_MUSTLOCK(final_screen)){ SDL_UnlockSurface(final_screen); }
-		
-				//Display final screen buffer - OpenGL
-				if(config::use_opengl) {  }
-				
-				//Display final screen buffer - SDL
-				else 
+				//Render final screen buffer
+				if(lcd_stat.lcd_enable)
 				{
-					if(SDL_Flip(final_screen) == -1) { std::cout<<"LCD::Error - Could not blit\n"; }
+					//Lock source surface
+					if(SDL_MUSTLOCK(final_screen)){ SDL_LockSurface(final_screen); }
+					u32* out_pixel_data = (u32*)final_screen->pixels;
+
+					for(int a = 0; a < 0x5A00; a++) { out_pixel_data[a] = screen_buffer[a]; }
+
+					//Unlock source surface
+					if(SDL_MUSTLOCK(final_screen)){ SDL_UnlockSurface(final_screen); }
+		
+					//Display final screen buffer - OpenGL
+					if(config::use_opengl) {  }
+				
+					//Display final screen buffer - SDL
+					else 
+					{
+						if(SDL_Flip(final_screen) == -1) { std::cout<<"LCD::Error - Could not blit\n"; }
+					}
+				}
+
+				//Limit framerate
+				if(!config::turbo)
+				{
+					frame_current_time = SDL_GetTicks();
+					if((frame_current_time - frame_start_time) < 16) { SDL_Delay(16 - (frame_current_time - frame_start_time));}
+					frame_start_time = SDL_GetTicks();
+				}
+
+				//Update FPS counter + title
+				fps_count++;
+				if((SDL_GetTicks() - fps_time) >= 1000) 
+				{ 
+					fps_time = SDL_GetTicks(); 
+					config::title.str("");
+					config::title << "GBE+ " << fps_count << "FPS";
+					SDL_WM_SetCaption(config::title.str().c_str(), NULL);
+					fps_count = 0; 
 				}
 			}
 
-			//Limit framerate
-			if(!config::turbo)
+			//Processing VBlank
+			else
 			{
-				frame_current_time = SDL_GetTicks();
-				if((frame_current_time - frame_start_time) < 16) { SDL_Delay(16 - (frame_current_time - frame_start_time));}
-				frame_start_time = SDL_GetTicks();
-			}
+				lcd_stat.vblank_clock += cpu_clock;
 
-			//Update FPS counter + title
-			fps_count++;
-			if((SDL_GetTicks() - fps_time) >= 1000) 
-			{ 
-				fps_time = SDL_GetTicks(); 
-				config::title.str("");
-				config::title << "GBE+ " << fps_count << "FPS";
-				SDL_WM_SetCaption(config::title.str().c_str(), NULL);
-				fps_count = 0; 
-			}
-		}
-
-		//Processing VBlank
-		else
-		{
-			lcd_stat.vblank_clock += cpu_clock;
-
-			//Increment scanline count
-			if(lcd_stat.vblank_clock >= 456)
-			{
-				lcd_stat.vblank_clock -= 456;
-				lcd_stat.current_scanline++;
-
-				mem->memory_map[REG_LY] = lcd_stat.current_scanline;
-				scanline_compare();
-
-				//After 10 lines, VBlank is done, returns to top screen in Mode 2
-				if(lcd_stat.current_scanline == 153) 
+				//Increment scanline count
+				if(lcd_stat.vblank_clock >= 456)
 				{
-					lcd_stat.lcd_clock -= 70224;
-					lcd_stat.current_scanline = 0;
+					lcd_stat.vblank_clock -= 456;
+					lcd_stat.current_scanline++;
 
 					mem->memory_map[REG_LY] = lcd_stat.current_scanline;
 					scanline_compare();
+
+					//After 10 lines, VBlank is done, returns to top screen in Mode 2
+					if(lcd_stat.current_scanline == 153) 
+					{
+						lcd_stat.lcd_clock -= 70224;
+						lcd_stat.current_scanline = 0;
+
+						mem->memory_map[REG_LY] = lcd_stat.current_scanline;
+						scanline_compare();
+					}
 				}
 			}
 		}

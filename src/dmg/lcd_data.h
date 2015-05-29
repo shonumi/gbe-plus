@@ -49,6 +49,8 @@ struct dmg_lcd_data
 
 	bool oam_update;
 	std::vector<bool> oam_update_list;
+
+	bool on_off;
 };
 
 #endif // GB_LCD_DATA

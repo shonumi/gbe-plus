@@ -246,13 +246,16 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	//Current scanline
 	else if(address == REG_LY) 
 	{ 
-		memory_map[0xFF44] = 0;
+		memory_map[REG_LY] = 0;
+		lcd_stat->current_scanline = 0;
 	}
 
 	//LCDC
 	else if(address == REG_LCDC)
 	{
 		memory_map[address] = value;
+
+		lcd_stat->on_off = lcd_stat->lcd_enable;
 
 		lcd_stat->lcd_control = value;
 		lcd_stat->lcd_enable = (value & 0x80) ? true : false;
@@ -263,6 +266,10 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		lcd_stat->obj_size = (value & 0x4) ? 16 : 8;
 		lcd_stat->obj_enable = (value & 0x2) ? true : false;
 		lcd_stat->bg_enable = (value & 0x1) ? true : false;
+
+		//Check to see if the LCD was turned off/on while on/off (VBlank only?)
+		if(lcd_stat->on_off != lcd_stat->lcd_enable) { lcd_stat->on_off = true; }
+		else { lcd_stat->on_off = false; }
 	}
 
 	//Scroll Y
