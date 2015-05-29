@@ -96,7 +96,7 @@ bool DMG_LCD::init()
 		return false;
 	}
 
-	if(config::use_opengl) { std::cout<<"LCD::Error - OpenGL not implemented yet\n"; return false; }
+	if(config::use_opengl) {opengl_init(); }
 	else { final_screen = SDL_SetVideoMode(160, 144, 32, SDL_SWSURFACE); }
 
 	if(final_screen == NULL) { return false; }
@@ -105,9 +105,6 @@ bool DMG_LCD::init()
 
 	return true;
 }
-
-/****** Initialize LCD with OpenGL ******/
-bool DMG_LCD::opengl_init() { }
 
 /****** Compares LY and LYC - Generates STAT interrupt ******/
 void DMG_LCD::scanline_compare()
@@ -536,7 +533,7 @@ void DMG_LCD::step(int cpu_clock)
 					if(SDL_MUSTLOCK(final_screen)){ SDL_UnlockSurface(final_screen); }
 		
 					//Display final screen buffer - OpenGL
-					if(config::use_opengl) {  }
+					if(config::use_opengl) { opengl_blit(); }
 				
 					//Display final screen buffer - SDL
 					else 

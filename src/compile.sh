@@ -147,6 +147,13 @@ else
 	exit
 fi
 
+if g++ -o dmg/opengl.o -c -O3 -funroll-loops dmg/opengl.cpp -lSDL -lGL; then
+	echo -e "Compiling OpenGL...			\E[32m[DONE]\E[37m"
+else
+	echo -e "Compiling OpenGL...			\E[31m[ERROR]\E[37m"
+	exit
+fi
+
 if g++ -o dmg/gamepad.o -c -O3 -funroll-loops dmg/gamepad.cpp; then
 	echo -e "Compiling GamePad...			\E[32m[DONE]\E[37m"
 else
@@ -154,7 +161,7 @@ else
 	exit
 fi
 
-if ld -r dmg/core.o dmg/mbc1.o dmg/mbc2.o dmg/mbc3.o dmg/mbc5.o dmg/mmu.o dmg/lcd.o dmg/z80.o dmg/gamepad.o -o dmg/dmg.o; then
+if ld -r dmg/core.o dmg/mbc1.o dmg/mbc2.o dmg/mbc3.o dmg/mbc5.o dmg/mmu.o dmg/lcd.o dmg/z80.o dmg/opengl.o dmg/gamepad.o -o dmg/dmg.o; then
 	echo -e "\E[32mGB/GBC core complete...\E[37m"
 else
 	echo -e "\E[31mGB/GBC core complete...\E[37m"
