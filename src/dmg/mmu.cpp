@@ -205,8 +205,105 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 			//gpu_update_addr.push_back(address);
 			//if(address <= 0x8FFF) { gpu_update_sprite = true; }
 		}
-	}	
-	
+	}
+
+	//NR10 - Sweep Parameters
+	else if(address == NR10)
+	{
+		memory_map[address] = value;
+		apu_stat->channel[0].sweep_shift = value & 0x7;
+		apu_stat->channel[0].sweep_direction = (value & 0x8) ? 1 : 0;
+		apu_stat->channel[0].sweep_time = (value >> 4) & 0x7;
+	}
+
+	//NR11 - Duration, Duty Cycle
+	else if(address == NR11)
+	{
+		memory_map[address] = value;
+		apu_stat->channel[0].duration = (value & 0x3F);
+		apu_stat->channel[0].duration = ((64 - apu_stat->channel[0].duration) / 256.0) * 1000.0;
+		apu_stat->channel[0].duty_cycle = (value >> 6) & 0x3;
+
+		switch(apu_stat->channel[0].duty_cycle)
+		{
+			case 0x0: 
+				apu_stat->channel[0].duty_cycle_start = 0;
+				apu_stat->channel[0].duty_cycle_end = 1;
+				break;
+
+			case 0x1: 
+				apu_stat->channel[0].duty_cycle_start = 0;
+				apu_stat->channel[0].duty_cycle_end = 2;
+				break;
+
+			case 0x2: 
+				apu_stat->channel[0].duty_cycle_start = 0;
+				apu_stat->channel[0].duty_cycle_end = 4;
+				break;
+
+			case 0x3: 
+				apu_stat->channel[0].duty_cycle_start = 0;
+				apu_stat->channel[0].duty_cycle_end = 6;
+				break;
+		}
+	}
+
+	//NR12 - Envelope, Volume
+	else if(address == NR12)
+	{
+		memory_map[address] = value;
+		apu_stat->channel[0].envelope_step = (value & 0x7);
+		apu_stat->channel[0].envelope_direction = (value & 0x8) ? 1 : 0;
+		apu_stat->channel[0].volume = (value >> 4) & 0xF;
+	}
+
+	//NR13 - Frequency LO
+	else if(address == NR13)
+	{
+		memory_map[address] = value;
+		apu_stat->channel[0].raw_frequency = ((memory_map[NR14] << 8) | memory_map[NR13]) & 0x7FF;
+		apu_stat->channel[0].output_frequency = (131072.0 / (2048 - apu_stat->channel[0].raw_frequency));
+	}
+
+	//NR14 - Frequency HI, Initial
+	else if(address == NR14)
+	{
+		memory_map[address] = value;
+		apu_stat->channel[0].raw_frequency = ((memory_map[NR14] << 8) | memory_map[NR13]) & 0x7FF;
+		apu_stat->channel[0].output_frequency = (131072.0 / (2048 - apu_stat->channel[0].raw_frequency));
+
+		apu_stat->channel[0].length_flag = (value & 0x40) ? true : false;
+		apu_stat->channel[0].playing = (value & 0x80) ? true : false;
+
+		if(apu_stat->channel[0].volume == 0) { apu_stat->channel[0].playing = false; }
+
+		if(apu_stat->channel[0].playing) 
+		{
+			apu_stat->channel[0].frequency_distance = 0;
+			apu_stat->channel[0].sample_length = (apu_stat->channel[0].duration * apu_stat->sample_rate)/1000;
+			apu_stat->channel[0].envelope_counter = 0;
+			apu_stat->channel[0].sweep_counter = 0;
+		}
+	}
+
+	//NR52 Sound On/Off
+	else if(address == NR52)
+	{
+		//Sound on
+		if(value & 0x80) 
+		{
+			memory_map[address] |= 0x80;
+			apu_stat->sound_on = true;
+		}
+
+		//Sound off
+		else
+		{
+			memory_map[address] &= ~0x80;
+			apu_stat->sound_on = false;
+		}
+	}
+
 	//BGP
 	else if(address == REG_BGP)
 	{
@@ -824,3 +921,6 @@ bool DMG_MMU::save_backup(std::string filename)
 
 /****** Points the MMU to an lcd_data structure (FROM THE LCD ITSELF) ******/
 void DMG_MMU::set_lcd_data(dmg_lcd_data* ex_lcd_stat) { lcd_stat = ex_lcd_stat; }
+
+/****** Points the MMU to an apu_data structure (FROM THE APU ITSELF) ******/
+void DMG_MMU::set_apu_data(dmg_apu_data* ex_apu_stat) { apu_stat = ex_apu_stat; }

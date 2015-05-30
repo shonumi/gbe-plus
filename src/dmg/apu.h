@@ -7,7 +7,7 @@
 // Description : Game Boy APU emulation
 //
 // Sets up SDL audio for mixing
-// Generates and mixes samples for the GBA's 4 sound channels + DMA channels 
+// Generates and mixes samples for the GB's 4 sound channels
 
 #ifndef GB_APU
 #define GB_APU
@@ -23,7 +23,7 @@ class DMG_APU
 	//Link to memory map
 	DMG_MMU* mem;
 
-	agb_apu_data apu_stat;
+	dmg_apu_data apu_stat;
 
 	SDL_AudioSpec desired_spec;
     	SDL_AudioSpec obtained_spec;
@@ -41,6 +41,6 @@ class DMG_APU
 };
 
 /****** SDL Audio Callback ******/ 
-void audio_callback(void* _apu, u8 *_stream, int _length);
+void dmg_audio_callback(void* _apu, u8 *_stream, int _length);
 
 #endif // GB_APU 

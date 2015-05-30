@@ -140,6 +140,13 @@ else
 	exit
 fi
 
+if g++ -o dmg/apu.o -c -O3 -funroll-loops dmg/apu.cpp -lSDL; then
+	echo -e "Compiling APU...			\E[32m[DONE]\E[37m"
+else
+	echo -e "Compiling APU...			\E[31m[ERROR]\E[37m"
+	exit
+fi
+
 if g++ -o dmg/z80.o -c -O3 -funroll-loops dmg/z80.cpp; then
 	echo -e "Compiling Z80...			\E[32m[DONE]\E[37m"
 else
@@ -161,7 +168,7 @@ else
 	exit
 fi
 
-if ld -r dmg/core.o dmg/mbc1.o dmg/mbc2.o dmg/mbc3.o dmg/mbc5.o dmg/mmu.o dmg/lcd.o dmg/z80.o dmg/opengl.o dmg/gamepad.o -o dmg/dmg.o; then
+if ld -r dmg/core.o dmg/mbc1.o dmg/mbc2.o dmg/mbc3.o dmg/mbc5.o dmg/mmu.o dmg/lcd.o dmg/apu.o dmg/z80.o dmg/opengl.o dmg/gamepad.o -o dmg/dmg.o; then
 	echo -e "\E[32mGB/GBC core complete...\E[37m"
 else
 	echo -e "\E[31mGB/GBC core complete...\E[37m"

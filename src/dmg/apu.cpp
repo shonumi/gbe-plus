@@ -122,7 +122,7 @@ bool DMG_APU::init()
 void DMG_APU::generate_channel_1_samples(s16* stream, int length)
 {
 	//Generate samples from the last output of the channel
-	if((apu_stat.channel[0].playing) && (apu_stat.channel[0].left_enable || apu_stat.channel[0].right_enable))
+	if((apu_stat.channel[0].playing) && (apu_stat.sound_on))
 	{
 		int frequency_samples = apu_stat.sample_rate/apu_stat.channel[0].output_frequency;
 
@@ -153,31 +153,31 @@ void DMG_APU::generate_channel_1_samples(s16* stream, int length)
 						{ 
 							apu_stat.channel[0].raw_frequency += pre_calc;
 							apu_stat.channel[0].output_frequency = 131072.0/(2048 - apu_stat.channel[0].raw_frequency);
-							mem->memory_map[SND1CNT_X] = (apu_stat.channel[0].raw_frequency & 0xFF);
-							mem->memory_map[SND1CNT_X+1] &= ~0x7;
-							mem->memory_map[SND1CNT_X+1] |= ((apu_stat.channel[0].raw_frequency >> 8) & 0x7);
+							mem->memory_map[NR13] = (apu_stat.channel[0].raw_frequency & 0xFF);
+							mem->memory_map[NR14] &= ~0x7;
+							mem->memory_map[NR14] |= ((apu_stat.channel[0].raw_frequency >> 8) & 0x7);
 						}
 					}
 
-						//Decrease frequency
-						else if(apu_stat.channel[0].sweep_direction == 1)
-						{
-							if(apu_stat.channel[0].sweep_shift >= 1) { pre_calc = (apu_stat.channel[0].raw_frequency >> apu_stat.channel[0].sweep_shift); }
+					//Decrease frequency
+					else if(apu_stat.channel[0].sweep_direction == 1)
+					{
+						if(apu_stat.channel[0].sweep_shift >= 1) { pre_calc = (apu_stat.channel[0].raw_frequency >> apu_stat.channel[0].sweep_shift); }
 
-							//Only sweep down when result of frequency change is greater than zero
-							if((apu_stat.channel[0].raw_frequency - pre_calc) >= 0) 
-							{ 
-								apu_stat.channel[0].raw_frequency -= pre_calc;
-								apu_stat.channel[0].output_frequency = 131072.0/(2048 - apu_stat.channel[0].raw_frequency);
-								mem->memory_map[SND1CNT_X] = (apu_stat.channel[0].raw_frequency & 0xFF);
-								mem->memory_map[SND1CNT_X+1] &= ~0x7;
-								mem->memory_map[SND1CNT_X+1] |= ((apu_stat.channel[0].raw_frequency >> 8) & 0x7);
-							}
+						//Only sweep down when result of frequency change is greater than zero
+						if((apu_stat.channel[0].raw_frequency - pre_calc) >= 0) 
+						{ 
+							apu_stat.channel[0].raw_frequency -= pre_calc;
+							apu_stat.channel[0].output_frequency = 131072.0/(2048 - apu_stat.channel[0].raw_frequency);
+							mem->memory_map[NR13] = (apu_stat.channel[0].raw_frequency & 0xFF);
+							mem->memory_map[NR14] &= ~0x7;
+							mem->memory_map[NR14] |= ((apu_stat.channel[0].raw_frequency >> 8) & 0x7);
 						}
-
-						apu_stat.channel[0].sweep_counter = 0;
 					}
-				} 
+
+					apu_stat.channel[0].sweep_counter = 0;
+				}
+			} 
 
 			//Process audio envelope
 			if(apu_stat.channel[0].envelope_step >= 1)
@@ -209,7 +209,7 @@ void DMG_APU::generate_channel_1_samples(s16* stream, int length)
 				&& (apu_stat.channel[0].frequency_distance < (frequency_samples/8) * apu_stat.channel[0].duty_cycle_end)
 				&& (apu_stat.channel[0].volume != 0))
 				{
-					stream[x] = -32768 + (apu_stat.channel_right_volume * apu_stat.channel[0].volume);
+					stream[x] = -32768 + (4369 * apu_stat.channel[0].volume);
 				}
 
 				//Generate low wave form if duty cycle is off OR volume is muted
@@ -309,11 +309,8 @@ void DMG_APU::generate_channel_3_samples(s16* stream, int length)
 	//Generate samples from the last output of the channel
 	if((apu_stat.channel[2].playing) && (apu_stat.channel[2].enable) && (apu_stat.channel[2].left_enable || apu_stat.channel[2].right_enable))
 	{
-		double waveform_frequency = apu_stat.channel[2].output_frequency;
-		if(apu_stat.waveram_size == 64) { waveform_frequency /= 2.0; }
-
 		//Determine amount of samples per waveform sample
-		double wave_step = (apu_stat.sample_rate/waveform_frequency) / apu_stat.waveram_size;
+		double wave_step = (apu_stat.sample_rate/apu_stat.channel[2].output_frequency) / 32.0;
 
 		//Generate silence if samples per waveform sample is zero
 		if(wave_step == 0) 
@@ -322,7 +319,7 @@ void DMG_APU::generate_channel_3_samples(s16* stream, int length)
 			return;
 		}
 
-		int frequency_samples = apu_stat.sample_rate/waveform_frequency;
+		int frequency_samples = apu_stat.sample_rate/apu_stat.channel[2].output_frequency;
 
 		for(int x = 0; x < length; x++, apu_stat.channel[2].sample_length--)
 		{
@@ -334,7 +331,7 @@ void DMG_APU::generate_channel_3_samples(s16* stream, int length)
 				if(apu_stat.channel[2].frequency_distance >= frequency_samples) { apu_stat.channel[2].frequency_distance = 0; }
 
 				//Determine which step in the waveform the current sample corresponds to
-				u8 step = int(floor(apu_stat.channel[2].frequency_distance/wave_step)) % apu_stat.waveram_size;
+				u8 step = int(floor(apu_stat.channel[2].frequency_distance/wave_step));
 
 				//Grab wave RAM sample data for even samples
 				if(step % 2 == 0)
@@ -507,12 +504,12 @@ void dmg_audio_callback(void* _apu, u8 *_stream, int _length)
 
 	DMG_APU* apu_link = (DMG_APU*) _apu;
 	apu_link->generate_channel_1_samples(channel_1_stream, length);
-	apu_link->generate_channel_2_samples(channel_2_stream, length);
-	apu_link->generate_channel_3_samples(channel_3_stream, length);
-	apu_link->generate_channel_4_samples(channel_4_stream, length);
+	//apu_link->generate_channel_2_samples(channel_2_stream, length);
+	//apu_link->generate_channel_3_samples(channel_3_stream, length);
+	//apu_link->generate_channel_4_samples(channel_4_stream, length);
 
-	SDL_MixAudio((u8*)stream, (u8*)channel_1_stream, length*2, apu_link->apu_stat.channel_master_volume / apu_link->apu_stat.main_volume);
-	SDL_MixAudio((u8*)stream, (u8*)channel_2_stream, length*2, apu_link->apu_stat.channel_master_volume / apu_link->apu_stat.main_volume);
-	SDL_MixAudio((u8*)stream, (u8*)channel_3_stream, length*2, apu_link->apu_stat.channel_master_volume / apu_link->apu_stat.main_volume);
-	SDL_MixAudio((u8*)stream, (u8*)channel_4_stream, length*2, apu_link->apu_stat.channel_master_volume / apu_link->apu_stat.main_volume);
+	SDL_MixAudio((u8*)stream, (u8*)channel_1_stream, length*2, apu_link->apu_stat.channel_master_volume);
+	//SDL_MixAudio((u8*)stream, (u8*)channel_2_stream, length*2, apu_link->apu_stat.channel_master_volume);
+	//SDL_MixAudio((u8*)stream, (u8*)channel_3_stream, length*2, apu_link->apu_stat.channel_master_volume);
+	//SDL_MixAudio((u8*)stream, (u8*)channel_4_stream, length*2, apu_link->apu_stat.channel_master_volume);
 }

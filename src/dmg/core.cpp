@@ -27,8 +27,8 @@ DMG_core::DMG_core()
 	core_mmu.set_lcd_data(&core_cpu.controllers.video.lcd_stat);
 
 	//Link APU and MMU
-	//core_cpu.controllers.audio.mem = &core_mmu;
-	//core_mmu.set_apu_data(&core_cpu.controllers.audio.apu_stat);
+	core_cpu.controllers.audio.mem = &core_mmu;
+	core_mmu.set_apu_data(&core_cpu.controllers.audio.apu_stat);
 
 	//Link MMU and GamePad
 	core_cpu.mem->g_pad = &core_pad;
@@ -57,11 +57,11 @@ void DMG_core::start()
 	}
 
 	//Initialize audio output
-	//if(!core_cpu.controllers.audio.init())
-	//{
-	//	running = false;
-	//	core_cpu.running = false;
-	//}
+	if(!core_cpu.controllers.audio.init())
+	{
+		running = false;
+		core_cpu.running = false;
+	}
 
 	//Initialize the GamePad
 	core_pad.init();

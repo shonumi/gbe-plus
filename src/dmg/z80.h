@@ -17,6 +17,7 @@
 #include "common.h"
 #include "mmu.h"
 #include "lcd.h"
+#include "apu.h"
 
 class Z80
 {
@@ -101,7 +102,7 @@ class Z80
 	struct io_controllers
 	{
 		DMG_LCD video;
-		//DMG_APU audio;
+		DMG_APU audio;
 		//dmg timer;
 	} controllers;
 
