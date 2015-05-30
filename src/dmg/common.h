@@ -36,6 +36,32 @@ const u16 REG_TAC = 0xFF07;
 const u16 IF_FLAG = 0xFF0F;
 const u16 IE_FLAG = 0xFFFF;
 
+//Sound registers
+const u16 NR10 = 0xFF10;
+const u16 NR11 = 0xFF11;
+const u16 NR12 = 0xFF12;
+const u16 NR13 = 0xFF13;
+const u16 NR14 = 0xFF14;
+
+const u16 NR21 = 0xFF16;
+const u16 NR22 = 0xFF17;
+const u16 NR24 = 0xFF19;
+
+const u16 NR30 = 0xFF1A;
+const u16 NR31 = 0xFF1B;
+const u16 NR32 = 0xFF1C;
+const u16 NR33 = 0xFF1D;
+const u16 NR34 = 0xFF1E;
+
+const u16 NR41 = 0xFF20;
+const u16 NR42 = 0xFF21;
+const u16 NR43 = 0xFF22;
+const u16 NR44 = 0xFF23;
+
+const u16 NR50 = 0xFF24;
+const u16 NR51 = 0xFF25;
+const u16 NR52 = 0xFF26;
+
 //Display registers
 const u16 REG_LCDC = 0xFF40;
 const u16 REG_STAT = 0xFF41;
