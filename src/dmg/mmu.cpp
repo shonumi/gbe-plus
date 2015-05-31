@@ -214,6 +214,9 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		apu_stat->channel[0].sweep_shift = value & 0x7;
 		apu_stat->channel[0].sweep_direction = (value & 0x8) ? 1 : 0;
 		apu_stat->channel[0].sweep_time = (value >> 4) & 0x7;
+
+		if((apu_stat->channel[0].sweep_shift != 0) || (apu_stat->channel[0].sweep_time != 0)) { apu_stat->channel[0].sweep_on = true; }
+		else { apu_stat->channel[0].sweep_on = false; }
 	}
 
 	//NR11 - Duration, Duty Cycle
@@ -261,21 +264,35 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	else if(address == NR13)
 	{
 		memory_map[address] = value;
-		apu_stat->channel[0].raw_frequency = ((memory_map[NR14] << 8) | memory_map[NR13]) & 0x7FF;
-		apu_stat->channel[0].output_frequency = (131072.0 / (2048 - apu_stat->channel[0].raw_frequency));
+		
+		//If sweep is active, do not update frequency
+		//This emulates the sweep's shadow registers
+		if(!apu_stat->channel[0].sweep_on)
+		{
+			apu_stat->channel[0].raw_frequency = ((memory_map[NR14] << 8) | memory_map[NR13]) & 0x7FF;
+			apu_stat->channel[0].output_frequency = (131072.0 / (2048 - apu_stat->channel[0].raw_frequency));
+		}
 	}
 
 	//NR14 - Frequency HI, Initial
 	else if(address == NR14)
 	{
 		memory_map[address] = value;
-		apu_stat->channel[0].raw_frequency = ((memory_map[NR14] << 8) | memory_map[NR13]) & 0x7FF;
-		apu_stat->channel[0].output_frequency = (131072.0 / (2048 - apu_stat->channel[0].raw_frequency));
-
 		apu_stat->channel[0].length_flag = (value & 0x40) ? true : false;
-		apu_stat->channel[0].playing = (value & 0x80) ? true : false;
 
-		if(apu_stat->channel[0].volume == 0) { apu_stat->channel[0].playing = false; }
+		//If sweep is active, do not update frequency
+		//This emulates the sweep's shadow registers
+		if(!apu_stat->channel[0].sweep_on)
+		{
+			apu_stat->channel[0].raw_frequency = ((memory_map[NR14] << 8) | memory_map[NR13]) & 0x7FF;
+			apu_stat->channel[0].output_frequency = (131072.0 / (2048 - apu_stat->channel[0].raw_frequency));
+		}
+
+		//Check initial flag to start playing sound
+		if(value & 0x80) { apu_stat->channel[0].playing = true; }
+
+		//Turn off sound channel if envelope volume is 0 and mode is subtraction
+		if((apu_stat->channel[0].volume == 0) && (apu_stat->channel[0].envelope_direction == 0)) { apu_stat->channel[0].playing = false; std::cout<<"Killed here\n"; }
 
 		if(apu_stat->channel[0].playing) 
 		{
@@ -283,6 +300,10 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 			apu_stat->channel[0].sample_length = (apu_stat->channel[0].duration * apu_stat->sample_rate)/1000;
 			apu_stat->channel[0].envelope_counter = 0;
 			apu_stat->channel[0].sweep_counter = 0;
+
+			//Always update frequency when triggering the initial
+			apu_stat->channel[0].raw_frequency = ((memory_map[NR14] << 8) | memory_map[NR13]) & 0x7FF;
+			apu_stat->channel[0].output_frequency = (131072.0 / (2048 - apu_stat->channel[0].raw_frequency));
 		}
 	}
 
