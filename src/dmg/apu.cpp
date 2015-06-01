@@ -37,7 +37,7 @@ void DMG_APU::reset()
 	apu_stat.sample_rate = 44100.0;
 	apu_stat.main_volume = 4;
 
-	apu_stat.channel_master_volume = 128;
+	apu_stat.channel_master_volume = 32;
 	apu_stat.channel_left_volume = 0.0;
 	apu_stat.channel_right_volume = 0.0;
 

@@ -292,7 +292,7 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		if(value & 0x80) { apu_stat->channel[0].playing = true; }
 
 		//Turn off sound channel if envelope volume is 0 and mode is subtraction
-		if((apu_stat->channel[0].volume == 0) && (apu_stat->channel[0].envelope_direction == 0)) { apu_stat->channel[0].playing = false; std::cout<<"Killed here\n"; }
+		if((apu_stat->channel[0].volume == 0) && (apu_stat->channel[0].envelope_direction == 0)) { apu_stat->channel[0].playing = false; }
 
 		if(apu_stat->channel[0].playing) 
 		{

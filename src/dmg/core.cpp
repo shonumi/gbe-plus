@@ -80,7 +80,7 @@ void DMG_core::reset()
 {
 	core_cpu.reset();
 	core_cpu.controllers.video.reset();
-	//core_cpu.controllers.audio.reset();
+	core_cpu.controllers.audio.reset();
 	core_mmu.reset();
 
 	//Link CPU and MMU
