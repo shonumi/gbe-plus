@@ -207,24 +207,10 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		}
 	}
 
-	//NR10 - Sweep Parameters
-	else if(address == NR10)
-	{
-		memory_map[address] = value;
-		apu_stat->channel[0].sweep_shift = value & 0x7;
-		apu_stat->channel[0].sweep_direction = (value & 0x8) ? 1 : 0;
-		apu_stat->channel[0].sweep_time = (value >> 4) & 0x7;
-
-		if((apu_stat->channel[0].sweep_shift != 0) || (apu_stat->channel[0].sweep_time != 0)) { apu_stat->channel[0].sweep_on = true; }
-		else { apu_stat->channel[0].sweep_on = false; }
-	}
-
 	//NR11 - Duration, Duty Cycle
 	else if(address == NR11)
 	{
 		memory_map[address] = value;
-		apu_stat->channel[0].duration = (value & 0x3F);
-		apu_stat->channel[0].duration = ((64 - apu_stat->channel[0].duration) / 256.0) * 1000.0;
 		apu_stat->channel[0].duty_cycle = (value >> 6) & 0x3;
 
 		switch(apu_stat->channel[0].duty_cycle)
@@ -255,9 +241,23 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	else if(address == NR12)
 	{
 		memory_map[address] = value;
-		apu_stat->channel[0].envelope_step = (value & 0x7);
-		apu_stat->channel[0].envelope_direction = (value & 0x8) ? 1 : 0;
-		apu_stat->channel[0].volume = (value >> 4) & 0xF;
+		u8 current_step = apu_stat->channel[0].envelope_step;
+		u8 next_step = (value & 0x07) ? 1 : 0;
+		u8 next_volume = (value >> 4);
+		u8 next_direction = (value & 0x08) ? 1 : 0;
+
+		//Envelope timer is not reset unless sound is initializes
+		//Envelope timer does start if it is turned off at first, but turned on after sound initializes
+		if((current_step == 0) && (next_step != 0)) 
+		{
+			apu_stat->channel[0].volume = (value >> 4);
+			apu_stat->channel[0].envelope_direction = (value & 0x08) ? 1 : 0;
+			apu_stat->channel[0].envelope_step = (value & 0x07);
+			apu_stat->channel[0].envelope_counter = 0; 
+		}
+
+		//Turn off sound channel if envelope volume is 0 and mode is subtraction
+		if(next_direction == next_volume == 0) { apu_stat->channel[0].playing = false; }
 	}
 
 	//NR13 - Frequency LO
@@ -278,32 +278,79 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	else if(address == NR14)
 	{
 		memory_map[address] = value;
-		apu_stat->channel[0].length_flag = (value & 0x40) ? true : false;
 
 		//If sweep is active, do not update frequency
 		//This emulates the sweep's shadow registers
-		if(!apu_stat->channel[0].sweep_on)
+		//However, always update frequency when initializing sound
+		if((!apu_stat->channel[0].sweep_on) || (value & 0x80))
 		{
 			apu_stat->channel[0].raw_frequency = ((memory_map[NR14] << 8) | memory_map[NR13]) & 0x7FF;
 			apu_stat->channel[0].output_frequency = (131072.0 / (2048 - apu_stat->channel[0].raw_frequency));
 		}
 
-		//Check initial flag to start playing sound
+		//Check initial flag to start playing sound, check length flag
 		if(value & 0x80) { apu_stat->channel[0].playing = true; }
+		apu_stat->channel[0].length_flag = (value & 0x40) ? true : false;
 
-		//Turn off sound channel if envelope volume is 0 and mode is subtraction
-		if((apu_stat->channel[0].volume == 0) && (apu_stat->channel[0].envelope_direction == 0)) { apu_stat->channel[0].playing = false; }
-
-		if(apu_stat->channel[0].playing) 
+		//Initialize sound
+		//Updates various sound parameters
+		if(value & 0x80) 
 		{
+			//Duty cycle
+			switch((memory_map[NR11] >> 6))
+			{
+				case 0x0:
+					apu_stat->channel[0].duty_cycle_start = 1;
+					apu_stat->channel[0].duty_cycle_end = 2;
+					break;
+
+				case 0x1:
+					apu_stat->channel[0].duty_cycle_start = 0;
+					apu_stat->channel[0].duty_cycle_end = 2;
+					break;
+
+				case 0x2:
+					apu_stat->channel[0].duty_cycle_start = 0;
+					apu_stat->channel[0].duty_cycle_end = 4;
+					break;
+
+				case 0x3:
+					apu_stat->channel[0].duty_cycle_start = 2;
+					apu_stat->channel[0].duty_cycle_end = 8;
+					break;
+			}
+
+			//Duration
+			if(!apu_stat->channel[0].length_flag) { apu_stat->channel[0].duration = 5000; }
+		
+			else 
+			{
+				apu_stat->channel[0].duration = (memory_map[NR11] & 0x3F);
+				apu_stat->channel[0].duration = ((64 - apu_stat->channel[0].duration) / 256.0) * 1000.0;
+			}
+
+			//Volume & Envelope
+			apu_stat->channel[0].volume = (memory_map[NR12] >> 4);
+			apu_stat->channel[0].envelope_direction = (memory_map[NR12] & 0x08) ? 1 : 0;
+			apu_stat->channel[0].envelope_step = (memory_map[NR12] & 0x07);
+
+			//std::cout<<"Envelope Direction -> " << (int)apu_stat->channel[0].envelope_direction << "\n";
+			//std::cout<<"Envelope Volume -> " << (int)apu_stat->channel[0].volume << "\n";
+			//std::cout<<"Envelope Step -> " << (int)apu_stat->channel[0].envelope_step << "\n";
+
+			//Sweep
+			apu_stat->channel[0].sweep_direction = (memory_map[NR10] & 0x08) ? 1 : 0;
+			apu_stat->channel[0].sweep_time = ((memory_map[NR10] >> 4) & 0x7);
+			apu_stat->channel[0].sweep_shift = (memory_map[NR10] & 0x7);
+
+			if((apu_stat->channel[0].sweep_shift != 0) || (apu_stat->channel[0].sweep_time != 0)) { apu_stat->channel[0].sweep_on = true; }
+			else { apu_stat->channel[0].sweep_on = false; }
+
+			//Internal APU time-keeping
 			apu_stat->channel[0].frequency_distance = 0;
 			apu_stat->channel[0].sample_length = (apu_stat->channel[0].duration * apu_stat->sample_rate)/1000;
 			apu_stat->channel[0].envelope_counter = 0;
 			apu_stat->channel[0].sweep_counter = 0;
-
-			//Always update frequency when triggering the initial
-			apu_stat->channel[0].raw_frequency = ((memory_map[NR14] << 8) | memory_map[NR13]) & 0x7FF;
-			apu_stat->channel[0].output_frequency = (131072.0 / (2048 - apu_stat->channel[0].raw_frequency));
 		}
 	}
 
