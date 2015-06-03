@@ -240,7 +240,7 @@ void DMG_APU::generate_channel_1_samples(s16* stream, int length)
 void DMG_APU::generate_channel_2_samples(s16* stream, int length)
 {
 	//Generate samples from the last output of the channel
-	if((apu_stat.channel[1].playing) && (apu_stat.channel[1].left_enable || apu_stat.channel[1].right_enable))
+	if((apu_stat.channel[1].playing) && (apu_stat.sound_on))
 	{
 		int frequency_samples = apu_stat.sample_rate/apu_stat.channel[1].output_frequency;
 
@@ -276,7 +276,7 @@ void DMG_APU::generate_channel_2_samples(s16* stream, int length)
 				&& (apu_stat.channel[1].frequency_distance < (frequency_samples/8) * apu_stat.channel[1].duty_cycle_end)
 				&& (apu_stat.channel[1].volume != 0))
 				{
-					stream[x] = -32768 + (apu_stat.channel_right_volume * apu_stat.channel[1].volume);
+					stream[x] = -32768 + (4369 * apu_stat.channel[1].volume);
 				}
 
 				//Generate low wave form if duty cycle is off OR volume is muted
@@ -504,12 +504,12 @@ void dmg_audio_callback(void* _apu, u8 *_stream, int _length)
 
 	DMG_APU* apu_link = (DMG_APU*) _apu;
 	apu_link->generate_channel_1_samples(channel_1_stream, length);
-	//apu_link->generate_channel_2_samples(channel_2_stream, length);
+	apu_link->generate_channel_2_samples(channel_2_stream, length);
 	//apu_link->generate_channel_3_samples(channel_3_stream, length);
 	//apu_link->generate_channel_4_samples(channel_4_stream, length);
 
 	SDL_MixAudio((u8*)stream, (u8*)channel_1_stream, length*2, apu_link->apu_stat.channel_master_volume);
-	//SDL_MixAudio((u8*)stream, (u8*)channel_2_stream, length*2, apu_link->apu_stat.channel_master_volume);
+	SDL_MixAudio((u8*)stream, (u8*)channel_2_stream, length*2, apu_link->apu_stat.channel_master_volume);
 	//SDL_MixAudio((u8*)stream, (u8*)channel_3_stream, length*2, apu_link->apu_stat.channel_master_volume);
 	//SDL_MixAudio((u8*)stream, (u8*)channel_4_stream, length*2, apu_link->apu_stat.channel_master_volume);
 }

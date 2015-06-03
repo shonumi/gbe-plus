@@ -45,6 +45,7 @@ const u16 NR14 = 0xFF14;
 
 const u16 NR21 = 0xFF16;
 const u16 NR22 = 0xFF17;
+const u16 NR23 = 0xFF18;
 const u16 NR24 = 0xFF19;
 
 const u16 NR30 = 0xFF1A;
