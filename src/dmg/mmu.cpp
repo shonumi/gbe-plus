@@ -493,6 +493,21 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		}
 	}
 
+	//NR51 SO1-SO2 Sound Channel Output
+	//Note, in mono-sound mode, these effectively control per-channel sound output
+	else if(address == NR51)
+	{
+		memory_map[address] = value;
+		apu_stat->channel[0].so1_output = (value & 0x1) ? true : false;
+		apu_stat->channel[1].so1_output = (value & 0x2) ? true : false;
+		apu_stat->channel[2].so1_output = (value & 0x4) ? true : false;
+		apu_stat->channel[3].so1_output = (value & 0x8) ? true : false;
+		apu_stat->channel[0].so2_output = (value & 0x10) ? true : false;
+		apu_stat->channel[1].so2_output = (value & 0x20) ? true : false;
+		apu_stat->channel[2].so2_output = (value & 0x40) ? true : false;
+		apu_stat->channel[3].so2_output = (value & 0x80) ? true : false;
+	}
+
 	//NR52 Sound On/Off
 	else if(address == NR52)
 	{

@@ -70,6 +70,9 @@ void DMG_APU::reset()
 
 		apu_stat.channel[x].frequency_distance = 0;
 		apu_stat.channel[x].sample_length = 0;
+
+		apu_stat.channel[x].so1_output = false;
+		apu_stat.channel[x].so2_output = false;
 	}
 
 	apu_stat.waveram_sample = 0;
@@ -121,8 +124,11 @@ bool DMG_APU::init()
 /******* Generate samples for GB sound channel 1 ******/
 void DMG_APU::generate_channel_1_samples(s16* stream, int length)
 {
+	bool output_status = false;
+	if((apu_stat.channel[0].so1_output) || (apu_stat.channel[0].so2_output)) { output_status = true; }
+
 	//Generate samples from the last output of the channel
-	if((apu_stat.channel[0].playing) && (apu_stat.sound_on))
+	if((apu_stat.channel[0].playing) && (apu_stat.sound_on) && (output_status))
 	{
 		int frequency_samples = apu_stat.sample_rate/apu_stat.channel[0].output_frequency;
 
@@ -239,8 +245,11 @@ void DMG_APU::generate_channel_1_samples(s16* stream, int length)
 /******* Generate samples for GB sound channel 2 ******/
 void DMG_APU::generate_channel_2_samples(s16* stream, int length)
 {
+	bool output_status = false;
+	if((apu_stat.channel[1].so1_output) || (apu_stat.channel[1].so2_output)) { output_status = true; }
+
 	//Generate samples from the last output of the channel
-	if((apu_stat.channel[1].playing) && (apu_stat.sound_on))
+	if((apu_stat.channel[1].playing) && (apu_stat.sound_on) && (output_status))
 	{
 		int frequency_samples = apu_stat.sample_rate/apu_stat.channel[1].output_frequency;
 

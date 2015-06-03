@@ -47,6 +47,9 @@ struct dmg_apu_data
 
 		u32 frequency_distance;
 		int sample_length;
+
+		bool so1_output;
+		bool so2_output;
 	} channel[4];
 
 	bool sound_on;
