@@ -207,7 +207,7 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		}
 	}
 
-	//NR11 - Duration, Duty Cycle
+	//NR11 - Duty Cycle
 	else if(address == NR11)
 	{
 		memory_map[address] = value;
@@ -477,19 +477,78 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 			apu_stat->channel[1].envelope_direction = (memory_map[NR22] & 0x08) ? 1 : 0;
 			apu_stat->channel[1].envelope_step = (memory_map[NR22] & 0x07);
 
-			//Sweep
-			apu_stat->channel[1].sweep_direction = (memory_map[NR10] & 0x08) ? 1 : 0;
-			apu_stat->channel[1].sweep_time = ((memory_map[NR10] >> 4) & 0x7);
-			apu_stat->channel[1].sweep_shift = (memory_map[NR10] & 0x7);
-
-			if((apu_stat->channel[1].sweep_shift != 0) || (apu_stat->channel[1].sweep_time != 0)) { apu_stat->channel[1].sweep_on = true; }
-			else { apu_stat->channel[1].sweep_on = false; }
-
 			//Internal APU time-keeping
 			apu_stat->channel[1].frequency_distance = 0;
 			apu_stat->channel[1].sample_length = (apu_stat->channel[1].duration * apu_stat->sample_rate)/1000;
 			apu_stat->channel[1].envelope_counter = 0;
 			apu_stat->channel[1].sweep_counter = 0;
+		}
+	}
+
+	//NR31 - Duration
+	else if(address == NR31)
+	{
+		memory_map[address] = value;
+
+		//Duration
+		if(!apu_stat->channel[2].length_flag) { apu_stat->channel[2].duration = 5000; }
+		
+		else 
+		{
+			apu_stat->channel[2].duration = memory_map[NR31];
+			apu_stat->channel[2].duration = ((256 - apu_stat->channel[2].duration) / 256.0) * 1000.0;
+		}
+		
+		apu_stat->channel[2].sample_length = (apu_stat->channel[2].duration * apu_stat->sample_rate)/1000;
+	}
+
+	//NR32 - Volume
+	else if(address == NR32)
+	{
+		memory_map[address] = value;
+
+		switch((value >> 5) & 0x3)
+		{
+			//0%
+			case 0x0: apu_stat->channel[2].volume = 4; break;
+	
+			//100%
+			case 0x1: apu_stat->channel[2].volume = 0; break;
+
+			//50%
+			case 0x2: apu_stat->channel[2].volume = 1; break;
+
+			//25%
+			case 0x3: apu_stat->channel[2].volume = 2; break;
+		}
+	}
+
+	//NR33 - Frequency LO
+	else if(address == NR33)
+	{
+		memory_map[address] = value;
+		apu_stat->channel[2].raw_frequency = ((memory_map[NR34] << 8) | memory_map[NR33]) & 0x7FF;
+		apu_stat->channel[2].output_frequency = (131072.0 / (2048 - apu_stat->channel[2].raw_frequency));
+		apu_stat->channel[2].output_frequency /= 2.0;
+	}
+
+	//NR34 - Frequency HI, Initial
+	else if(address == NR34)
+	{
+		memory_map[address] = value;
+		//Check initial flag to start playing sound, check length flag
+		if(value & 0x80) { apu_stat->channel[2].playing = true; }
+		apu_stat->channel[2].length_flag = (value & 0x40) ? true : false;
+
+		//Frequency
+		apu_stat->channel[2].raw_frequency = ((memory_map[NR34] << 8) | memory_map[NR33]) & 0x7FF;
+		apu_stat->channel[2].output_frequency = (131072.0 / (2048 - apu_stat->channel[2].raw_frequency));
+		apu_stat->channel[2].output_frequency /= 2.0;
+
+		if(value & 0x80)
+		{
+			//Internal APU time-keeping
+			apu_stat->channel[2].frequency_distance = 0;
 		}
 	}
 

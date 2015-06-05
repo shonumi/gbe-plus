@@ -63,7 +63,6 @@ struct dmg_apu_data
 	double channel_right_volume;
 
 	u8 waveram_sample;
-	u8 waveram_data[0x20];
 
 	double noise_dividing_ratio;
 	u32 noise_prescalar;
