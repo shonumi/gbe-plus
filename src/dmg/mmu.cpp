@@ -40,7 +40,7 @@ void DMG_MMU::reset()
 	bank_mode = 0;
 	ram_banking_enabled = false;
 
-	in_bios = false;
+	in_bios = config::use_bios;
 	bios_type = 1;
 	bios_size = 0x100;
 
@@ -1121,6 +1121,9 @@ bool DMG_MMU::read_bios(std::string filename)
 	//Check the file size before reading
 	if((bios_size == 0x100) || (bios_size == 0x900))
 	{
+		//Resize BIOS memory
+		bios.resize(bios_size);
+
 		u8* ex_bios = &bios[0];
 
 		//Read BIOS data from file

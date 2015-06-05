@@ -13,7 +13,8 @@
 /****** Z80 Constructor ******/
 Z80::Z80() 
 {
-	reset();
+	if(config::use_bios) { reset_bios(); }
+	else { reset(); }
 }
 
 /****** Z80 Deconstructor ******/
