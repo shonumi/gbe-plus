@@ -552,6 +552,90 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		}
 	}
 
+	//NR42 - Envelope, Volume
+	else if(address == NR42)
+	{
+		memory_map[address] = value;
+		u8 current_step = apu_stat->channel[3].envelope_step;
+		u8 next_step = (value & 0x07) ? 1 : 0;
+		u8 next_volume = (value >> 4);
+		u8 next_direction = (value & 0x08) ? 1 : 0;
+
+		//Envelope timer is not reset unless sound is initializes
+		//Envelope timer does start if it is turned off at first, but turned on after sound initializes
+		if((current_step == 0) && (next_step != 0)) 
+		{
+			apu_stat->channel[3].volume = (value >> 4);
+			apu_stat->channel[3].envelope_direction = (value & 0x08) ? 1 : 0;
+			apu_stat->channel[3].envelope_step = (value & 0x07);
+			apu_stat->channel[3].envelope_counter = 0; 
+		}
+
+		//Turn off sound channel if envelope volume is 0 and mode is subtraction
+		if(next_direction == next_volume == 0) { apu_stat->channel[3].playing = false; }
+	}
+
+	//NR43 - Polynomial Counter
+	else if(address == NR43)
+	{
+		memory_map[address] = value;
+
+		//Dividing ratio
+		switch(value & 0x7)
+		{
+			case 0x0: apu_stat->noise_dividing_ratio = 0.5; break;
+			case 0x1: apu_stat->noise_dividing_ratio = 1.0; break;
+			case 0x2: apu_stat->noise_dividing_ratio = 2.0; break;
+			case 0x3: apu_stat->noise_dividing_ratio = 3.0; break;
+			case 0x4: apu_stat->noise_dividing_ratio = 4.0; break;
+			case 0x5: apu_stat->noise_dividing_ratio = 5.0; break;
+			case 0x6: apu_stat->noise_dividing_ratio = 6.0; break;
+			case 0x7: apu_stat->noise_dividing_ratio = 7.0; break;
+		}
+
+		//Prescalar
+		apu_stat->noise_prescalar = 2 << (value >> 4);
+
+		//LSFR Stages
+		if(value & 0x8) { apu_stat->noise_stages = 7; }
+		else { apu_stat->noise_stages = 15; }
+
+		apu_stat->channel[3].output_frequency = (524288/apu_stat->noise_dividing_ratio)/apu_stat->noise_prescalar;
+	}
+
+	//NR44 - Initial
+	else if(address == NR44)
+	{
+		memory_map[address] = value;
+
+		//Check initial flag to start playing sound, check length flag
+		if(value & 0x80) { apu_stat->channel[3].playing = true; }
+		apu_stat->channel[3].length_flag = (value & 0x40) ? true : false;
+
+		if(value & 0x80)
+		{
+			//Duration
+			if(!apu_stat->channel[3].length_flag) { apu_stat->channel[3].duration = 5000; }
+		
+			else 
+			{
+				apu_stat->channel[3].duration = (memory_map[NR41] & 0x3F);
+				apu_stat->channel[3].duration = ((64 - apu_stat->channel[3].duration) / 256.0) * 1000.0;
+			}
+
+			//Volume & Envelope
+			apu_stat->channel[3].volume = (memory_map[NR42] >> 4);
+			apu_stat->channel[3].envelope_direction = (memory_map[NR42] & 0x08) ? 1 : 0;
+			apu_stat->channel[3].envelope_step = (memory_map[NR42] & 0x07);
+
+			//Internal APU time-keeping
+			apu_stat->channel[3].frequency_distance = 0;
+			apu_stat->channel[3].envelope_counter = 0;
+			apu_stat->noise_7_stage_lsfr = 0x40;
+			apu_stat->noise_15_stage_lsfr = 0x4000;
+		}
+	}
+
 	//NR51 SO1-SO2 Sound Channel Output
 	//Note, in mono-sound mode, these effectively control per-channel sound output
 	else if(address == NR51)
@@ -681,6 +765,7 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	//DMA transfer
 	else if(address == REG_DMA) 
 	{
+		memory_map[address] = value;
 		u16 dma_orig = value << 8;
 		u16 dma_dest = 0xFE00;
 		while (dma_dest < 0xFEA0) { write_u8(dma_dest++, read_u8(dma_orig++)); }

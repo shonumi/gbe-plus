@@ -386,8 +386,11 @@ void DMG_APU::generate_channel_3_samples(s16* stream, int length)
 /******* Generate samples for GB sound channel 4 ******/
 void DMG_APU::generate_channel_4_samples(s16* stream, int length)
 {
+	bool output_status = false;
+	if((apu_stat.channel[3].so1_output) || (apu_stat.channel[3].so2_output)) { output_status = true; }
+
 	//Generate samples from the last output of the channel
-	if((apu_stat.channel[3].playing) && (apu_stat.channel[3].left_enable || apu_stat.channel[3].right_enable))
+	if((apu_stat.channel[3].playing) && (apu_stat.sound_on) && (output_status))
 	{
 		double samples_per_freq = apu_stat.channel[3].output_frequency/apu_stat.sample_rate;
 		double samples_per_freq_counter = 0;
@@ -457,12 +460,12 @@ void DMG_APU::generate_channel_4_samples(s16* stream, int length)
 				//Generate high wave if LSFR returns 1 from first byte and volume is not muted
 				if((apu_stat.noise_stages == 15) && (apu_stat.noise_15_stage_lsfr & 0x1) && (apu_stat.channel[3].volume >= 1)) 
 				{ 
-					stream[x] = -32768 + (apu_stat.channel_right_volume * apu_stat.channel[3].volume); 
+					stream[x] = -32768 + (4369 * apu_stat.channel[3].volume); 
 				}
 
 				else if((apu_stat.noise_stages == 7) && (apu_stat.noise_7_stage_lsfr & 0x1) && (apu_stat.channel[3].volume >= 1)) 
 				{ 
-					stream[x] = -32768 + (apu_stat.channel_right_volume * apu_stat.channel[3].volume); 
+					stream[x] = -32768 + (4369 * apu_stat.channel[3].volume); 
 				}
 
 				//Or generate low wave
@@ -499,10 +502,10 @@ void dmg_audio_callback(void* _apu, u8 *_stream, int _length)
 	apu_link->generate_channel_1_samples(channel_1_stream, length);
 	apu_link->generate_channel_2_samples(channel_2_stream, length);
 	apu_link->generate_channel_3_samples(channel_3_stream, length);
-	//apu_link->generate_channel_4_samples(channel_4_stream, length);
+	apu_link->generate_channel_4_samples(channel_4_stream, length);
 
 	SDL_MixAudio((u8*)stream, (u8*)channel_1_stream, length*2, apu_link->apu_stat.channel_master_volume);
 	SDL_MixAudio((u8*)stream, (u8*)channel_2_stream, length*2, apu_link->apu_stat.channel_master_volume);
 	SDL_MixAudio((u8*)stream, (u8*)channel_3_stream, length*2, apu_link->apu_stat.channel_master_volume);
-	//SDL_MixAudio((u8*)stream, (u8*)channel_4_stream, length*2, apu_link->apu_stat.channel_master_volume);
+	SDL_MixAudio((u8*)stream, (u8*)channel_4_stream, length*2, apu_link->apu_stat.channel_master_volume);
 }
