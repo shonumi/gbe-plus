@@ -157,7 +157,7 @@ void DMG_LCD::update_oam()
 	}	
 
 	//Update render list for the current scanline
-	update_obj_render_list();	
+	update_obj_render_list();
 }
 
 /****** Updates a list of OBJs to render on the current scanline ******/
@@ -180,6 +180,8 @@ void DMG_LCD::update_obj_render_list()
 		{
 			obj_x_sort[obj_sort_length++] = x;
 		}
+
+		if(obj_sort_length == 10) { break; }
 	}
 
 	//Sort them based on X coordinate
