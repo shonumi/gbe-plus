@@ -74,16 +74,33 @@ class DMG_LCD
 	int fps_count;
 	int fps_time;
 
+	//OAM updates
 	void update_oam();
 	void update_obj_render_list();
 
+	//GBC color palette updates
+	void update_bg_colors();
+	void update_obj_colors();
+
+	//Per-scanline rendering - DMG (B/W)
 	void render_dmg_scanline();
 	void render_dmg_bg_scanline();
 	void render_dmg_win_scanline();
-	void render_dmg_sprite_scanline();
+	void render_dmg_obj_scanline();
 
-	bool render_dmg_sprite_pixel();
+	//Per-scanline rendering - GBC
+	void render_gbc_scanline();
+	void render_gbc_bg_scanline();
+	void render_gbc_win_scanline();
+	void render_gbc_obj_scanline();
+
+	//Per-pixel rendering - DMG (B/W)
+	bool render_dmg_obj_pixel();
 	bool render_dmg_bg_pixel();
+
+	//GBC HDMAs
+	void hdma();
+	void ghdma();
 
 	void scanline_compare();
 

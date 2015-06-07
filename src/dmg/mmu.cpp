@@ -120,7 +120,6 @@ u8 DMG_MMU::read_u8(u16 address)
 		else if((address >= 0xD000) && (address <= 0xDFFF)) { return working_ram_bank[wram_bank][address - 0xD000]; }
 	}
 
-	/*
 	//Read background color palette data
 	if(address == REG_BCPD)
 	{ 
@@ -131,13 +130,13 @@ u8 DMG_MMU::read_u8(u16 address)
 		//Read lower-nibble of color
 		if(hi_lo == 0) 
 		{ 
-			return (background_colors_raw[color][palette] & 0xFF);
+			return (lcd_stat->bg_colors_raw[color][palette] & 0xFF);
 		}
 
 		//Read upper-nibble of color
 		else
 		{
-			return (background_colors_raw[color][palette] >> 8);
+			return (lcd_stat->bg_colors_raw[color][palette] >> 8);
 		}
 	}
 
@@ -151,16 +150,15 @@ u8 DMG_MMU::read_u8(u16 address)
 		//Read lower-nibble of color
 		if(hi_lo == 0) 
 		{ 
-			return (sprite_colors_raw[color][palette] & 0xFF);
+			return (lcd_stat->obj_colors_raw[color][palette] & 0xFF);
 		}
 
 		//Read upper-nibble of color
 		else
 		{
-			return (sprite_colors_raw[color][palette] >> 8);
+			return (lcd_stat->obj_colors_raw[color][palette] >> 8);
 		}
 	}
-	*/
 
 	//Read from P1
 	else if(address == 0xFF00) { return g_pad->read(); }
@@ -810,48 +808,28 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	//P1 - Joypad register
 	else if(address == REG_P1) { g_pad->column_id = (value & 0x30); memory_map[REG_P1] = g_pad->read(); }
 
-	//Update Sound Channels
-	else if((address >= 0xFF10) && (address <= 0xFF25)) 
-	{
-		memory_map[address] = value;
-		//apu_update_channel = true; 
-		//apu_update_addr = address; 
-	}
-
-	/*
 	//HDMA transfer
 	else if(address == REG_HDMA5)
 	{
 		//Halt Horizontal DMA transfer if one is already in progress and 0 is now written to Bit 7
-		if(((value & 0x80) == 0) && (gpu_hdma_in_progress)) 
+		if(((value & 0x80) == 0) && (lcd_stat->hdma_in_progress)) 
 		{ 
-			gpu_hdma_in_progress = false;
-			gpu_hdma_current_line = 0;
+			lcd_stat->hdma_in_progress = false;
+			lcd_stat->hdma_current_line = 0;
 			value = 0x80;
 		}
 
 		//If not halting a current HDMA transfer, start a new one, determine its type
 		else 
 		{
-			gpu_hdma_in_progress = true;
-			gpu_hdma_current_line = 0;
-			gpu_hdma_type = (value & 0x80) ? 1 : 0;
+			lcd_stat->hdma_in_progress = true;
+			lcd_stat->hdma_current_line = 0;
+			lcd_stat->hdma_type = (value & 0x80) ? 1 : 0;
 			value &= ~0x80;
 		}
 
 		memory_map[address] = value;
 	}
-
-	//NR52
-	else if(address == REG_NR52)
-	{
-		//Only bit 7 is writable
-		if(value & 0x80) { memory_map[address] |= 0x80; }
-		
-		//When Bit 7 is cleared, so are Bits 0-3, Bits 6-4 are ALWAYS set to 1
-		else { memory_map[address] = 0x70; }
-	}
-	*/
 
 	//VBK - Update VRAM bank
 	else if(address == REG_VBK) 
@@ -871,15 +849,15 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	//BCPD - Update background color palettes
 	else if(address == REG_BCPD)
 	{
-		//gpu_update_bg_colors = true;
 		memory_map[address] = value;
+		lcd_stat->update_bg_colors = true;
 	}
 
 	//OCPD - Update sprite color palettes
 	else if(address == REG_OCPD)
 	{
-		//gpu_update_sprite_colors = true;
 		memory_map[address] = value;
+		lcd_stat->update_obj_colors = true;
 	}
 
 	//SVBK - Update Working RAM bank

@@ -62,6 +62,24 @@ void DMG_LCD::reset()
 
 	lcd_stat.on_off = false;
 
+	lcd_stat.update_bg_colors = false;
+	lcd_stat.update_obj_colors = false;
+	lcd_stat.hdma_in_progress = false;
+	lcd_stat.hdma_current_line = 0;
+	lcd_stat.hdma_type = 0;
+
+	//Clear GBC color palettes
+	for(int x = 0; x < 4; x++)
+	{
+		for(int y =  0; y < 8; y++)
+		{
+			lcd_stat.obj_colors_raw[x][y] = 0;
+			lcd_stat.obj_colors_final[x][y] = 0;
+			lcd_stat.bg_colors_raw[x][y] = 0;
+			lcd_stat.bg_colors_final[x][y] = 0;
+		}
+	}
+
 	//Signed tile lookup generation
 	for(int x = 0; x < 256; x++)
 	{
@@ -213,7 +231,26 @@ void DMG_LCD::render_dmg_scanline()
 	if(lcd_stat.window_enable) { render_dmg_win_scanline(); }
 
 	//Draw sprite pixel data
-	if(lcd_stat.obj_enable) { render_dmg_sprite_scanline(); }
+	if(lcd_stat.obj_enable) { render_dmg_obj_scanline(); }
+
+	//Push scanline buffer to screen buffer
+	for(int x = 0; x < 160; x++)
+	{
+		screen_buffer[(160 * lcd_stat.current_scanline) + x] = scanline_buffer[x];
+	}
+}
+
+/****** Render pixels for a given scanline (per-scanline) - DMG version ******/
+void DMG_LCD::render_gbc_scanline() 
+{
+	//Draw background pixel data
+	if(lcd_stat.bg_enable) { render_gbc_bg_scanline(); }
+
+	//Draw window pixel data
+	if(lcd_stat.window_enable) { render_gbc_win_scanline(); }
+
+	//Draw sprite pixel data
+	//if(lcd_stat.obj_enable) { render_gbc_obj_scanline(); }
 
 	//Push scanline buffer to screen buffer
 	for(int x = 0; x < 160; x++)
@@ -278,6 +315,71 @@ void DMG_LCD::render_dmg_bg_scanline()
 					scanline_buffer[lcd_stat.scanline_pixel_counter++] = config::DMG_BG_PAL[3];
 					break;
 			}
+		}
+	}
+}
+
+/****** Renders pixels for the BG (per-scanline) - GBC version ******/
+void DMG_LCD::render_gbc_bg_scanline()
+{
+	//Determine where to start drawing
+	u8 rendered_scanline = lcd_stat.current_scanline + lcd_stat.bg_scroll_y;
+	lcd_stat.scanline_pixel_counter = (0x100 - lcd_stat.bg_scroll_x);
+
+	//Determine which tiles we should generate to get the scanline data - integer division ftw :p
+	u16 tile_lower_range = (rendered_scanline / 8) * 32;
+	u16 tile_upper_range = tile_lower_range + 32;
+
+	//Generate background pixel data for selected tiles
+	for(int x = tile_lower_range; x < tile_upper_range; x++)
+	{
+		//Always read CHR data from Bank 0
+		u8 old_vram_bank = mem->vram_bank;
+		mem->vram_bank = 0;
+
+		u8 map_entry = mem->read_u8(lcd_stat.bg_map_addr + x);
+		u8 tile_pixel = 0;
+
+		//Read BG Map attributes from Bank 1
+		mem->vram_bank = 1;
+		u8 bg_map_attribute = mem->read_u8(lcd_stat.bg_map_addr + x);
+		u8 bg_palette = bg_map_attribute & 0x7;
+		mem->vram_bank = (bg_map_attribute & 0x8) ? 1 : 0;
+
+		//Determine which line of the tiles to generate pixels for this scanline
+		u8 tile_line = rendered_scanline % 8;
+		if(bg_map_attribute & 0x40) { tile_line = lcd_stat.flip_8[tile_line]; }
+
+		//Convert tile number to signed if necessary
+		if(lcd_stat.bg_tile_addr == 0x8800) { map_entry = lcd_stat.signed_tile_lut[map_entry]; }
+
+		//Calculate the address of the 8x1 pixel data based on map entry
+		u16 tile_addr = (lcd_stat.bg_tile_addr + (map_entry << 4) + (tile_line << 1));
+
+		//Grab bytes from VRAM representing 8x1 pixel data
+		u16 tile_data = mem->read_u16(tile_addr);
+		mem->vram_bank = old_vram_bank;
+
+		for(int y = 7; y >= 0; y--)
+		{
+			//Calculate raw value of the tile's pixel
+			if(bg_map_attribute & 0x20) 
+			{
+				tile_pixel = ((tile_data >> 8) & (1 << lcd_stat.flip_8[y])) ? 2 : 0;
+				tile_pixel |= (tile_data & (1 << lcd_stat.flip_8[y])) ? 1 : 0;
+			}
+
+			else 
+			{
+				tile_pixel = ((tile_data >> 8) & (1 << y)) ? 2 : 0;
+				tile_pixel |= (tile_data & (1 << y)) ? 1 : 0;
+			}
+
+			//Set the raw color of the BG
+			scanline_raw[lcd_stat.scanline_pixel_counter] = tile_pixel;
+
+			//Set the raw color of the BG
+			scanline_buffer[lcd_stat.scanline_pixel_counter++] = lcd_stat.bg_colors_final[tile_pixel][bg_palette];
 		}
 	}
 }
@@ -348,8 +450,79 @@ void DMG_LCD::render_dmg_win_scanline()
 	}
 }
 
+/****** Renders pixels for the Window (per-scanline) - GBC version ******/
+void DMG_LCD::render_gbc_win_scanline()
+{
+	//Determine if scanline is within window, if not abort rendering
+	if((lcd_stat.current_scanline < lcd_stat.window_y) || (lcd_stat.window_x >= 160)) { return; }
+
+	//Determine where to start drawing
+	u8 rendered_scanline = lcd_stat.current_scanline - lcd_stat.window_y;
+	lcd_stat.scanline_pixel_counter = lcd_stat.window_x;
+
+	//Determine which tiles we should generate to get the scanline data - integer division ftw :p
+	u16 tile_lower_range = (rendered_scanline / 8) * 32;
+	u16 tile_upper_range = tile_lower_range + 32;
+
+	//Generate background pixel data for selected tiles
+	for(int x = tile_lower_range; x < tile_upper_range; x++)
+	{
+		//Always read CHR data from Bank 0
+		u8 old_vram_bank = mem->vram_bank;
+		mem->vram_bank = 0;
+
+		u8 map_entry = mem->read_u8(lcd_stat.window_map_addr + x);
+		u8 tile_pixel = 0;
+
+		//Read BG Map attributes from Bank 1
+		mem->vram_bank = 1;
+		u8 bg_map_attribute = mem->read_u8(lcd_stat.window_map_addr + x);
+		u8 bg_palette = bg_map_attribute & 0x7;
+		mem->vram_bank = (bg_map_attribute & 0x8) ? 1 : 0;
+
+		//Determine which line of the tiles to generate pixels for this scanline
+		u8 tile_line = rendered_scanline % 8;
+		if(bg_map_attribute & 0x40) { tile_line = lcd_stat.flip_8[tile_line]; }
+
+		//Convert tile number to signed if necessary
+		if(lcd_stat.bg_tile_addr == 0x8800) { map_entry = lcd_stat.signed_tile_lut[map_entry]; }
+
+		//Calculate the address of the 8x1 pixel data based on map entry
+		u16 tile_addr = (lcd_stat.bg_tile_addr + (map_entry << 4) + (tile_line << 1));
+
+		//Grab bytes from VRAM representing 8x1 pixel data
+		u16 tile_data = mem->read_u16(tile_addr);
+		mem->vram_bank = old_vram_bank;
+
+		for(int y = 7; y >= 0; y--)
+		{
+			//Calculate raw value of the tile's pixel
+			if(bg_map_attribute & 0x20) 
+			{
+				tile_pixel = ((tile_data >> 8) & (1 << lcd_stat.flip_8[y])) ? 2 : 0;
+				tile_pixel |= (tile_data & (1 << lcd_stat.flip_8[y])) ? 1 : 0;
+			}
+
+			else 
+			{
+				tile_pixel = ((tile_data >> 8) & (1 << y)) ? 2 : 0;
+				tile_pixel |= (tile_data & (1 << y)) ? 1 : 0;
+			}
+
+			//Set the raw color of the BG
+			scanline_raw[lcd_stat.scanline_pixel_counter] = tile_pixel;
+
+			//Set the raw color of the BG
+			scanline_buffer[lcd_stat.scanline_pixel_counter++] = lcd_stat.bg_colors_final[tile_pixel][bg_palette];
+
+			//Abort rendering if next pixel is off-screen
+			if(lcd_stat.scanline_pixel_counter == 160) { return; }
+		}
+	}
+}
+
 /****** Renders pixels for OBJs (per-scanline) - DMG version ******/
-void DMG_LCD::render_dmg_sprite_scanline()
+void DMG_LCD::render_dmg_obj_scanline()
 {
 	//If no sprites are rendered on this line, quit now
 	if(obj_render_length < 0) { return; }
@@ -403,19 +576,19 @@ void DMG_LCD::render_dmg_sprite_scanline()
 				switch(lcd_stat.obp[tile_pixel][obj[sprite_id].palette_number])
 				{
 					case 0: 
-						scanline_buffer[lcd_stat.scanline_pixel_counter++] = config::DMG_BG_PAL[0];
+						scanline_buffer[lcd_stat.scanline_pixel_counter++] = config::DMG_OBJ_PAL[0][obj[sprite_id].palette_number];
 						break;
 
 					case 1: 
-						scanline_buffer[lcd_stat.scanline_pixel_counter++] = config::DMG_BG_PAL[1];
+						scanline_buffer[lcd_stat.scanline_pixel_counter++] = config::DMG_OBJ_PAL[1][obj[sprite_id].palette_number];
 						break;
 
 					case 2: 
-						scanline_buffer[lcd_stat.scanline_pixel_counter++] = config::DMG_BG_PAL[2];
+						scanline_buffer[lcd_stat.scanline_pixel_counter++] = config::DMG_OBJ_PAL[2][obj[sprite_id].palette_number];
 						break;
 
 					case 3: 
-						scanline_buffer[lcd_stat.scanline_pixel_counter++] = config::DMG_BG_PAL[3];
+						scanline_buffer[lcd_stat.scanline_pixel_counter++] = config::DMG_OBJ_PAL[3][obj[sprite_id].palette_number];
 						break;
 				}
 			}
@@ -424,6 +597,185 @@ void DMG_LCD::render_dmg_sprite_scanline()
 			else { lcd_stat.scanline_pixel_counter++; }
 		}
 	}
+}
+
+/****** Update background color palettes on the GBC ******/
+void DMG_LCD::update_bg_colors()
+{
+	u8 hi_lo = (mem->memory_map[REG_BCPS] & 0x1);
+	u8 color = (mem->memory_map[REG_BCPS] >> 1) & 0x3;
+	u8 palette = (mem->memory_map[REG_BCPS] >> 3) & 0x7;
+	u8 auto_increment = (mem->memory_map[REG_BCPS]) & 0x80;
+
+	//Update lower-nibble of color
+	if(hi_lo == 0) 
+	{ 
+		lcd_stat.bg_colors_raw[color][palette] &= 0xFF00;
+		lcd_stat.bg_colors_raw[color][palette] |= mem->memory_map[REG_BCPD];
+	}
+
+	//Update upper-nibble of color
+	else
+	{
+		lcd_stat.bg_colors_raw[color][palette] &= 0xFF;
+		lcd_stat.bg_colors_raw[color][palette] |= (mem->memory_map[REG_BCPD] << 8);
+	}
+
+	//Auto update palette index
+	if(mem->memory_map[REG_BCPS] & 0x80)
+	{
+		u8 new_index = mem->memory_map[REG_BCPS] & 0x3F;
+		new_index = (new_index + 1) & 0x3F;
+		mem->memory_map[REG_BCPS] = (0x80 | new_index);
+	}
+
+	//Convert RGB5 to 32-bit ARGB
+	u16 color_bytes = lcd_stat.bg_colors_raw[color][palette];
+
+	u8 red = ((color_bytes & 0x1F) * 8);
+	color_bytes >>= 5;
+
+	u8 green = ((color_bytes & 0x1F) * 8);
+	color_bytes >>= 5;
+
+	u8 blue = ((color_bytes & 0x1F) * 8);
+
+	lcd_stat.bg_colors_final[color][palette] = 0xFF000000 | (red << 16) | (green << 8) | (blue);
+	lcd_stat.bg_colors_raw[color][palette] = lcd_stat.bg_colors_raw[color][palette];
+
+	//Update DMG BG palette when using GBC BIOS
+	if(mem->in_bios)
+	{
+		config::DMG_BG_PAL[0] = lcd_stat.bg_colors_final[0][0];
+		config::DMG_BG_PAL[1] = lcd_stat.bg_colors_final[1][0];
+		config::DMG_BG_PAL[2] = lcd_stat.bg_colors_final[2][0];
+		config::DMG_BG_PAL[3] = lcd_stat.bg_colors_final[3][0];
+	}
+
+	lcd_stat.update_bg_colors = false;
+}
+
+/****** Update sprite color palettes on the GBC ******/
+void DMG_LCD::update_obj_colors()
+{
+	u8 hi_lo = (mem->memory_map[REG_OCPS] & 0x1);
+	u8 color = (mem->memory_map[REG_OCPS] >> 1) & 0x3;
+	u8 palette = (mem->memory_map[REG_OCPS] >> 3) & 0x7;
+	u8 auto_increment = (mem->memory_map[REG_OCPS]) & 0x80;
+
+	//Update lower-nibble of color
+	if(hi_lo == 0) 
+	{ 
+		lcd_stat.obj_colors_raw[color][palette] &= 0xFF00;
+		lcd_stat.obj_colors_raw[color][palette] |= mem->memory_map[REG_OCPD];
+	}
+
+	//Update upper-nibble of color
+	else
+	{
+		lcd_stat.obj_colors_raw[color][palette] &= 0xFF;
+		lcd_stat.obj_colors_raw[color][palette] |= (mem->memory_map[REG_OCPD] << 8);
+	}
+
+	//Auto update palette index
+	if(mem->memory_map[REG_OCPS] & 0x80)
+	{
+		u8 new_index = mem->memory_map[REG_OCPS] & 0x3F;
+		new_index = (new_index + 1) & 0x3F;
+		mem->memory_map[REG_OCPS] = (0x80 | new_index);
+	}
+
+	//Convert RGB5 to 32-bit ARGB
+	u16 color_bytes = lcd_stat.obj_colors_raw[color][palette];
+
+	u8 red = ((color_bytes & 0x1F) * 8);
+	color_bytes >>= 5;
+
+	u8 green = ((color_bytes & 0x1F) * 8);
+	color_bytes >>= 5;
+
+	u8 blue = ((color_bytes & 0x1F) * 8);
+
+	lcd_stat.obj_colors_final[color][palette] = 0xFF000000 | (red << 16) | (green << 8) | (blue);
+	lcd_stat.obj_colors_raw[color][palette] = lcd_stat.obj_colors_raw[color][palette];
+
+	//Update DMG OBJ palettes when using GBC BIOS
+	if(mem->in_bios)
+	{
+		config::DMG_OBJ_PAL[0][0] = lcd_stat.obj_colors_final[0][0];
+		config::DMG_OBJ_PAL[1][0] = lcd_stat.obj_colors_final[1][0];
+		config::DMG_OBJ_PAL[2][0] = lcd_stat.obj_colors_final[2][0];
+		config::DMG_OBJ_PAL[3][0] = lcd_stat.obj_colors_final[3][0];
+
+		config::DMG_OBJ_PAL[0][1] = lcd_stat.obj_colors_final[0][1];
+		config::DMG_OBJ_PAL[1][1] = lcd_stat.obj_colors_final[1][1];
+		config::DMG_OBJ_PAL[2][1] = lcd_stat.obj_colors_final[2][1];
+		config::DMG_OBJ_PAL[3][1] = lcd_stat.obj_colors_final[3][1];
+	}
+
+	lcd_stat.update_obj_colors = false;
+}
+
+/****** GBC General HDMA ******/
+void DMG_LCD::ghdma()
+{
+	u16 start_addr = (mem->memory_map[REG_HDMA1] << 8) | mem->memory_map[REG_HDMA2];
+	u16 dest_addr = (mem->memory_map[REG_HDMA3] << 8) | mem->memory_map[REG_HDMA4];
+
+	//Ignore bottom 4 bits of start address
+	start_addr &= 0xFFF0;
+
+	//Ignore top 3 bits and bottom 4 bits of destination address
+	dest_addr &= 0x1FF0;
+
+	//Destination is ALWAYS in VRAM
+	dest_addr |= 0x8000;
+
+	u8 transfer_byte_count = (mem->memory_map[REG_HDMA5] & 0x7F) + 1;
+
+	for(u16 x = 0; x < (transfer_byte_count * 16); x++)
+	{
+		mem->write_u8(dest_addr++, mem->read_u8(start_addr++));
+	}
+
+	lcd_stat.hdma_in_progress = false;
+	mem->memory_map[REG_HDMA5] = 0xFF;
+}
+
+/****** GBC Horizontal DMA ******/
+void DMG_LCD::hdma()
+{
+	u16 start_addr = (mem->memory_map[REG_HDMA1] << 8) | mem->memory_map[REG_HDMA2];
+	u16 dest_addr = (mem->memory_map[REG_HDMA3] << 8) | mem->memory_map[REG_HDMA4];
+	u8 line_transfer_count = (mem->memory_map[REG_HDMA5] & 0x7F);
+
+	start_addr += (lcd_stat.hdma_current_line * 16);
+	dest_addr += (lcd_stat.hdma_current_line * 16);
+
+	//Ignore bottom 4 bits of start address
+	start_addr &= 0xFFF0;
+
+	//Ignore top 3 bits and bottom 4 bits of destination address
+	dest_addr &= 0x1FF0;
+
+	//Destination is ALWAYS in VRAM
+	dest_addr |= 0x8000;
+
+	for(u16 x = 0; x < 16; x++)
+	{
+		mem->write_u8(dest_addr++, mem->read_u8(start_addr++));
+	}
+							
+	lcd_stat.hdma_current_line++;
+
+	if(line_transfer_count == 0) 
+	{ 
+		lcd_stat.hdma_in_progress = false;
+		lcd_stat.hdma_current_line = 0;
+		mem->memory_map[REG_HDMA5] = 0xFF;
+	}
+
+	else { line_transfer_count--; mem->memory_map[REG_HDMA5] = line_transfer_count; }
 }
 
 /****** Execute LCD operations ******/
@@ -452,6 +804,15 @@ void DMG_LCD::step(int cpu_clock)
 		lcd_stat.lcd_clock = 0;
 		lcd_stat.lcd_mode = 0;
 	}
+
+	//Update background color palettes on the GBC
+	if((lcd_stat.update_bg_colors) && (config::gb_type == 2)) { update_bg_colors(); }
+
+	//Update sprite color palettes on the GBC
+	if((lcd_stat.update_obj_colors) && (config::gb_type == 2)) { update_obj_colors(); }
+
+	//General HDMA
+	if((lcd_stat.hdma_in_progress) && (lcd_stat.hdma_type == 0) && (config::gb_type == 2)) { ghdma(); }
 
 	//Perform LCD operations if LCD is enabled
 	if(lcd_stat.lcd_enable) 
@@ -495,12 +856,16 @@ void DMG_LCD::step(int cpu_clock)
 				{
 					lcd_stat.lcd_mode = 0;
 
+					//Horizontal blanking DMA
+					if((lcd_stat.hdma_in_progress) && (lcd_stat.hdma_type == 1) && (config::gb_type == 2)) { hdma(); }
+
 					//Update OAM
 					if(lcd_stat.oam_update) { update_oam(); }
 					else { update_obj_render_list(); }
 
 					//Render scanline when first entering Mode 0
-					render_dmg_scanline();
+					if(config::gb_type != 2 ) { render_dmg_scanline(); }
+					else { render_gbc_scanline(); }
 
 					//HBlank STAT INT
 					if(mem->memory_map[REG_STAT] & 0x08) { mem->memory_map[IF_FLAG] |= 2; }
@@ -597,5 +962,3 @@ void DMG_LCD::step(int cpu_clock)
 
 	mem->memory_map[REG_STAT] = (mem->memory_map[REG_STAT] & ~0x3) | lcd_stat.lcd_mode;
 }
-
-

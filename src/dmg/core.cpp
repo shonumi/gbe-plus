@@ -108,6 +108,8 @@ void DMG_core::reset()
 /****** Run the core in a loop until exit ******/
 void DMG_core::run_core()
 {
+	if(config::gb_type == 2) { core_cpu.reg.a = 0x11; }
+
 	//Begin running the core
 	while(running)
 	{
@@ -144,7 +146,8 @@ void DMG_core::run_core()
 			}
 
 			//Update LCD
-			core_cpu.controllers.video.step(core_cpu.cycles);
+			if(core_cpu.double_speed) { core_cpu.controllers.video.step(core_cpu.cycles >> 1); }
+			else { core_cpu.controllers.video.step(core_cpu.cycles); }
 
 			//Update DIV timer - Every 4 M clocks
 			core_cpu.div_counter += core_cpu.cycles;

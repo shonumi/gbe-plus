@@ -51,6 +51,18 @@ struct dmg_lcd_data
 	std::vector<bool> oam_update_list;
 
 	bool on_off;
+
+	bool update_bg_colors;
+	bool update_obj_colors;
+	bool hdma_in_progress;
+	u8 hdma_current_line;
+	u8 hdma_type;
+
+	u16 obj_colors_raw[4][8];
+	u16 bg_colors_raw[4][8];
+
+	u32 obj_colors_final[4][8];
+	u32 bg_colors_final[4][8]; 
 };
 
 #endif // GB_LCD_DATA

@@ -62,12 +62,18 @@ namespace config
 	u8 gb_type = 0;
 
 	//Default Gameboy BG palettes
-	u32 DMG_BG_PAL[4] = { 0xFFFFFFFF, 0xFFC0C0C0, 0xFF606060, 0xFF000000 }; 
+	u32 DMG_BG_PAL[4];
+	u32 DMG_OBJ_PAL[4][2];
 }
 
 /****** Parse arguments passed from the command-line ******/
 bool parse_cli_args()
 {
+	config::DMG_BG_PAL[0] = config::DMG_OBJ_PAL[0][0] = config::DMG_OBJ_PAL[0][1] = 0xFFFFFFFF;
+	config::DMG_BG_PAL[1] = config::DMG_OBJ_PAL[1][0] = config::DMG_OBJ_PAL[1][1] = 0xFFC0C0C0;
+	config::DMG_BG_PAL[2] = config::DMG_OBJ_PAL[2][0] = config::DMG_OBJ_PAL[2][1] = 0xFF606060;
+	config::DMG_BG_PAL[3] = config::DMG_OBJ_PAL[3][0] = config::DMG_OBJ_PAL[3][1] = 0xFF000000;
+
 	//If no arguments were passed, cannot run without ROM file
 	if(config::cli_args.size() < 1) 
 	{
