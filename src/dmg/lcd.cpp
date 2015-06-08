@@ -162,9 +162,12 @@ void DMG_LCD::update_oam()
 
 			//Read and parse Attribute 2
 			obj[x].tile_number = mem->memory_map[oam_ptr++];
+			if(lcd_stat.obj_size == 16) { obj[x].tile_number &= ~0x1; }
 
 			//Read and parse Attribute 3
 			attribute = mem->memory_map[oam_ptr++];
+			obj[x].color_palette_number = (attribute & 0x7);
+			obj[x].vram_bank = (attribute & 0x8) ? 1 : 0;
 			obj[x].palette_number = (attribute & 0x10) ? 1 : 0;
 			obj[x].h_flip = (attribute & 0x20) ? true : false;
 			obj[x].v_flip = (attribute & 0x40) ? true : false;
@@ -190,6 +193,7 @@ void DMG_LCD::update_obj_render_list()
 	//Cycle through all of the sprites
 	for(int x = 0; x < 40; x++)
 	{
+		lcd_stat.obj_size = 16;
 		u8 test_top = ((obj[x].y + lcd_stat.obj_size) > 0x100) ? 0 : obj[x].y;
 		u8 test_bottom = (obj[x].y + lcd_stat.obj_size);
 
@@ -250,7 +254,7 @@ void DMG_LCD::render_gbc_scanline()
 	if(lcd_stat.window_enable) { render_gbc_win_scanline(); }
 
 	//Draw sprite pixel data
-	//if(lcd_stat.obj_enable) { render_gbc_obj_scanline(); }
+	if(lcd_stat.obj_enable) { render_gbc_obj_scanline(); }
 
 	//Push scanline buffer to screen buffer
 	for(int x = 0; x < 160; x++)
@@ -599,6 +603,70 @@ void DMG_LCD::render_dmg_obj_scanline()
 	}
 }
 
+/****** Renders pixels for OBJs (per-scanline) - GBC version ******/
+void DMG_LCD::render_gbc_obj_scanline()
+{
+	//If no sprites are rendered on this line, quit now
+	if(obj_render_length < 0) { return; }
+
+	//Cycle through all sprites that are rendering on this pixel, draw them according to their priority
+	for(int x = obj_render_length; x >= 0; x--)
+	{
+		u8 sprite_id = obj_render_list[x];
+
+		//Set the current pixel to start obj rendering
+		lcd_stat.scanline_pixel_counter = obj[sprite_id].x;
+		
+		//Determine which line of the tiles to generate pixels for this scanline		
+		u8 tile_line = (lcd_stat.current_scanline - obj[sprite_id].y);
+		if(obj[sprite_id].v_flip) { tile_line = (lcd_stat.obj_size == 8) ? lcd_stat.flip_8[tile_line] : lcd_stat.flip_16[tile_line]; }
+
+		u8 tile_pixel = 0;
+
+		//Calculate the address of the 8x1 pixel data based on map entry
+		u16 tile_addr = (0x8000 + (obj[sprite_id].tile_number << 4) + (tile_line << 1));
+
+		//Grab bytes from VRAM representing 8x1 pixel data
+		u8 old_vram_bank = mem->vram_bank;
+		mem->vram_bank = obj[sprite_id].vram_bank;
+		u16 tile_data = mem->read_u16(tile_addr);
+		mem->vram_bank = old_vram_bank;
+
+		for(int y = 7; y >= 0; y--)
+		{
+			bool draw_obj_pixel = true;
+
+			//Calculate raw value of the tile's pixel
+			if(obj[sprite_id].h_flip) 
+			{
+				tile_pixel = ((tile_data >> 8) & (1 << lcd_stat.flip_8[y])) ? 2 : 0;
+				tile_pixel |= (tile_data & (1 << lcd_stat.flip_8[y])) ? 1 : 0;
+			}
+
+			else 
+			{
+				tile_pixel = ((tile_data >> 8) & (1 << y)) ? 2 : 0;
+				tile_pixel |= (tile_data & (1 << y)) ? 1 : 0;
+			}
+
+			//If raw color is zero, this is the sprite's transparency, abort rendering this pixel
+			if(tile_pixel == 0) { draw_obj_pixel = false; }
+
+			//If sprite is below BG and BG raw color is non-zero, abort rendering this pixel
+			else if((obj[sprite_id].bg_priority == 1) && (scanline_raw[lcd_stat.scanline_pixel_counter] != 0)) { draw_obj_pixel = false; }
+				
+			//Render sprite pixel
+			if(draw_obj_pixel)
+			{
+				scanline_buffer[lcd_stat.scanline_pixel_counter++] = lcd_stat.obj_colors_final[tile_pixel][obj[sprite_id].color_palette_number];
+			}
+
+			//Move onto next pixel in scanline to see if sprite rendering occurs
+			else { lcd_stat.scanline_pixel_counter++; }
+		}
+	}
+}
+
 /****** Update background color palettes on the GBC ******/
 void DMG_LCD::update_bg_colors()
 {
@@ -716,8 +784,8 @@ void DMG_LCD::update_obj_colors()
 	lcd_stat.update_obj_colors = false;
 }
 
-/****** GBC General HDMA ******/
-void DMG_LCD::ghdma()
+/****** GBC General Purpose DMA ******/
+void DMG_LCD::gdma()
 {
 	u16 start_addr = (mem->memory_map[REG_HDMA1] << 8) | mem->memory_map[REG_HDMA2];
 	u16 dest_addr = (mem->memory_map[REG_HDMA3] << 8) | mem->memory_map[REG_HDMA4];
@@ -811,8 +879,8 @@ void DMG_LCD::step(int cpu_clock)
 	//Update sprite color palettes on the GBC
 	if((lcd_stat.update_obj_colors) && (config::gb_type == 2)) { update_obj_colors(); }
 
-	//General HDMA
-	if((lcd_stat.hdma_in_progress) && (lcd_stat.hdma_type == 0) && (config::gb_type == 2)) { ghdma(); }
+	//General Purpose DMA
+	if((lcd_stat.hdma_in_progress) && (lcd_stat.hdma_type == 0) && (config::gb_type == 2)) { gdma(); }
 
 	//Perform LCD operations if LCD is enabled
 	if(lcd_stat.lcd_enable) 

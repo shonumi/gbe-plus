@@ -58,6 +58,8 @@ class DMG_LCD
 		u8 bg_priority;
 		u8 bit_depth;
 		u8 palette_number;
+		u8 vram_bank;
+		u8 color_palette_number;
 		
 	} obj[40];
 
@@ -98,9 +100,9 @@ class DMG_LCD
 	bool render_dmg_obj_pixel();
 	bool render_dmg_bg_pixel();
 
-	//GBC HDMAs
+	//GBC DMAs
 	void hdma();
-	void ghdma();
+	void gdma();
 
 	void scanline_compare();
 
