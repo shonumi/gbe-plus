@@ -190,37 +190,61 @@ void DMG_LCD::update_obj_render_list()
 	u8 obj_x_sort[40];
 	u8 obj_sort_length = 0;
 
-	//Cycle through all of the sprites
-	for(int x = 0; x < 40; x++)
+	//Update render list for DMG games
+	if(config::gb_type != 2)
 	{
-		lcd_stat.obj_size = 16;
-		u8 test_top = ((obj[x].y + lcd_stat.obj_size) > 0x100) ? 0 : obj[x].y;
-		u8 test_bottom = (obj[x].y + lcd_stat.obj_size);
-
-		//Check to see if sprite is rendered on the current scanline
-		if((lcd_stat.current_scanline >= test_top) && (lcd_stat.current_scanline < test_bottom))
+		//Cycle through all of the sprites
+		for(int x = 0; x < 40; x++)
 		{
-			obj_x_sort[obj_sort_length++] = x;
+			u8 test_top = ((obj[x].y + lcd_stat.obj_size) > 0x100) ? 0 : obj[x].y;
+			u8 test_bottom = (obj[x].y + lcd_stat.obj_size);
+
+			//Check to see if sprite is rendered on the current scanline
+			if((lcd_stat.current_scanline >= test_top) && (lcd_stat.current_scanline < test_bottom))
+			{
+				obj_x_sort[obj_sort_length++] = x;
+			}
+
+			if(obj_sort_length == 10) { break; }
 		}
 
-		if(obj_sort_length == 10) { break; }
+		//Sort them based on X coordinate
+		for(int scanline_pixel = 0; scanline_pixel < 256; scanline_pixel++)
+		{
+			for(int x = 0; x < obj_sort_length; x++)
+			{
+				u8 sprite_id = obj_x_sort[x];
+
+				if(obj[sprite_id].x == scanline_pixel) 
+				{
+					obj_render_length++;
+					obj_render_list[obj_render_length] = sprite_id; 
+				}
+
+				//Enforce 10 sprite-per-scanline limit
+				if(obj_render_length == 9) { return; }
+			}
+		}
 	}
 
-	//Sort them based on X coordinate
-	for(int scanline_pixel = 0; scanline_pixel < 256; scanline_pixel++)
+	//Update render list for GBC games
+	else
 	{
-		for(int x = 0; x < obj_sort_length; x++)
+		//Cycle through all of the sprites
+		for(int x = 0; x < 40; x++)
 		{
-			u8 sprite_id = obj_x_sort[x];
+			u8 test_top = ((obj[x].y + lcd_stat.obj_size) > 0x100) ? 0 : obj[x].y;
+			u8 test_bottom = (obj[x].y + lcd_stat.obj_size);
 
-			if(obj[sprite_id].x == scanline_pixel) 
+			//Check to see if sprite is rendered on the current scanline
+			if((lcd_stat.current_scanline >= test_top) && (lcd_stat.current_scanline < test_bottom))
 			{
 				obj_render_length++;
-				obj_render_list[obj_render_length] = sprite_id; 
+				obj_render_list[obj_render_length] = x; 
 			}
 
 			//Enforce 10 sprite-per-scanline limit
-			if(obj_render_length == 9) { return; }
+			if(obj_render_length == 9) { break; }
 		}
 	}
 }
