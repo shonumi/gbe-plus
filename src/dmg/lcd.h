@@ -69,7 +69,8 @@ class DMG_LCD
 	//Screen pixel buffer
 	u32 scanline_buffer[0x100];
 	u32 screen_buffer[0x5A00];
-	u8 scanline_raw [0x100];
+	u8 scanline_raw[0x100];
+	u8 scanline_priority[0x100];
 
 	int frame_start_time;
 	int frame_current_time;

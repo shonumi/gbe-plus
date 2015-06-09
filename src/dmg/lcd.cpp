@@ -372,6 +372,7 @@ void DMG_LCD::render_gbc_bg_scanline()
 		mem->vram_bank = 1;
 		u8 bg_map_attribute = mem->read_u8(lcd_stat.bg_map_addr + x);
 		u8 bg_palette = bg_map_attribute & 0x7;
+		u8 bg_priority = (bg_map_attribute & 0x80) ? 1 : 0;
 		mem->vram_bank = (bg_map_attribute & 0x8) ? 1 : 0;
 
 		//Determine which line of the tiles to generate pixels for this scanline
@@ -406,7 +407,10 @@ void DMG_LCD::render_gbc_bg_scanline()
 			//Set the raw color of the BG
 			scanline_raw[lcd_stat.scanline_pixel_counter] = tile_pixel;
 
-			//Set the raw color of the BG
+			//Set the BG-to-OBJ priority
+			scanline_priority[lcd_stat.scanline_pixel_counter] = bg_priority;
+
+			//Set the final color of the BG
 			scanline_buffer[lcd_stat.scanline_pixel_counter++] = lcd_stat.bg_colors_final[tile_pixel][bg_palette];
 		}
 	}
@@ -506,6 +510,7 @@ void DMG_LCD::render_gbc_win_scanline()
 		mem->vram_bank = 1;
 		u8 bg_map_attribute = mem->read_u8(lcd_stat.window_map_addr + x);
 		u8 bg_palette = bg_map_attribute & 0x7;
+		u8 bg_priority = (bg_map_attribute & 0x80) ? 1 : 0;
 		mem->vram_bank = (bg_map_attribute & 0x8) ? 1 : 0;
 
 		//Determine which line of the tiles to generate pixels for this scanline
@@ -540,7 +545,10 @@ void DMG_LCD::render_gbc_win_scanline()
 			//Set the raw color of the BG
 			scanline_raw[lcd_stat.scanline_pixel_counter] = tile_pixel;
 
-			//Set the raw color of the BG
+			//Set the BG-to-OBJ priority
+			scanline_priority[lcd_stat.scanline_pixel_counter] = bg_priority;
+
+			//Set the final color of the BG
 			scanline_buffer[lcd_stat.scanline_pixel_counter++] = lcd_stat.bg_colors_final[tile_pixel][bg_palette];
 
 			//Abort rendering if next pixel is off-screen
@@ -678,6 +686,9 @@ void DMG_LCD::render_gbc_obj_scanline()
 
 			//If sprite is below BG and BG raw color is non-zero, abort rendering this pixel
 			else if((obj[sprite_id].bg_priority == 1) && (scanline_raw[lcd_stat.scanline_pixel_counter] != 0)) { draw_obj_pixel = false; }
+
+			//If sprite is above BG but BG has priority and BG raw color is non-zero, abort rendering this pixel
+			else if((obj[sprite_id].bg_priority == 0) && (scanline_priority[lcd_stat.scanline_pixel_counter] == 1) && (scanline_raw[lcd_stat.scanline_pixel_counter] != 0)) { draw_obj_pixel = false; }
 				
 			//Render sprite pixel
 			if(draw_obj_pixel)
