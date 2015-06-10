@@ -681,6 +681,9 @@ void DMG_LCD::render_gbc_obj_scanline()
 				tile_pixel |= (tile_data & (1 << y)) ? 1 : 0;
 			}
 
+			//If Bit 0 of LCDC is clear, always give sprites priority
+			if(!lcd_stat.bg_enable) { scanline_priority[lcd_stat.scanline_pixel_counter] = 0; }
+
 			//If raw color is zero, this is the sprite's transparency, abort rendering this pixel
 			if(tile_pixel == 0) { draw_obj_pixel = false; }
 
