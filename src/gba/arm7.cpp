@@ -1099,7 +1099,7 @@ void ARM7::mem_check_32(u32 addr, u32& value, bool load_store)
 		}
 
 		//Return specific values when trying to read BIOS when PC is not within the BIOS
-		if(((addr & ~0x3) <= 0x3FF) && (reg.r15 > 0x3FF))
+		if(((addr & ~0x3) <= 0x3FFF) && (reg.r15 > 0x3FFF))
 		{
 			normal_operation = false;
 
@@ -1190,6 +1190,20 @@ void ARM7::mem_check_16(u32 addr, u32& value, bool load_store)
 			case 0x40000C6:
 			case 0x40000D2:
 			case 0x40000DE: value = 0; normal_operation = false; break;
+		}
+
+		//Return specific values when trying to read BIOS when PC is not within the BIOS
+		if(((addr & ~0x1) <= 0x3FFF) && (reg.r15 > 0x3FFF))
+		{
+			normal_operation = false;
+
+			switch(bios_read_state)
+			{
+				case BIOS_STARTUP: value = 0xF000; break;
+				case BIOS_IRQ_EXECUTE : value = 0xF004; break;
+				case BIOS_IRQ_FINISH : value = 0xC002; break;
+				case BIOS_SWI_FINISH : value = 0x2004; break;
+			}
 		}
 
 		//Normal operation
