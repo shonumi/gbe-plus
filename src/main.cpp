@@ -17,7 +17,11 @@ int main(int argc, char* args[])
 
 	core_emu* gbe_plus = NULL;
 
+	//Parse .ini options
+	if(!parse_ini_file()) { return 0; }
+
 	//Parse command-line arguments
+	//These will override .ini options!
 	for(int x = 0; x++ < argc - 1;) 
 	{ 
 		std::string temp_arg = args[x]; 
@@ -34,7 +38,10 @@ int main(int argc, char* args[])
 	if(!gbe_plus->read_file(config::rom_file)) { return 0; }
 	
 	//Read BIOS file optionally
-	if(config::use_bios) { gbe_plus->read_bios(config::bios_file); }
+	if(config::use_bios) 
+	{ 
+		if(!gbe_plus->read_bios(config::bios_file)) { return 0; } 
+	}
 
 	//Engage the core
 	gbe_plus->start();

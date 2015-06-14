@@ -9,6 +9,7 @@
 // Parses command-line arguments to configure GBE options
 
 #include <iostream>
+#include <fstream>
 
 #include "config.h"
 
@@ -18,6 +19,7 @@ namespace config
 	std::string bios_file = "";
 	std::string save_file = "";
 	std::vector <std::string> cli_args;
+	std::vector <std::string> ini_opts;
 	bool use_debugger = false;
 
 	//Default keyboard bindings - GBA
@@ -29,7 +31,7 @@ namespace config
 	int agb_key_left = 276; int agb_key_right = 275; int agb_key_down = 274; int agb_key_up = 273;
 
 	//Default joystick bindings - GBA
-	int agb_joy_a = 100; int agb_joy_b = 102; int agb_joy_start = 107; int agb_joy_select = 106;
+	int agb_joy_a = 100; int agb_joy_b = 101; int agb_joy_start = 107; int agb_joy_select = 106;
 	int agb_joy_r_trigger = 105; int agb_joy_l_trigger = 104;
 	int agb_joy_left = 200; int agb_joy_right = 201; int agb_joy_up = 202; int agb_joy_down = 203;
 
@@ -40,7 +42,7 @@ namespace config
 	int dmg_key_left = 276; int dmg_key_right = 275; int dmg_key_down = 274; int dmg_key_up = 273;
 
 	//Default joystick bindings
-	int dmg_joy_a = 101; int dmg_joy_b = 100; int dmg_joy_start = 109; int dmg_joy_select = 108;
+	int dmg_joy_a = 100; int dmg_joy_b = 101; int dmg_joy_start = 107; int dmg_joy_select = 106;
 	int dmg_joy_left = 200; int dmg_joy_right = 201; int dmg_joy_up = 202; int dmg_joy_down = 203;
 
 	//Default joystick dead-zone
@@ -77,7 +79,7 @@ bool parse_cli_args()
 	//If no arguments were passed, cannot run without ROM file
 	if(config::cli_args.size() < 1) 
 	{
-		std::cout<<"Error::No ROM file in arguments \n";
+		std::cout<<"GBE::Error - No ROM file in arguments \n";
 		return false;
 	}
 
@@ -103,7 +105,7 @@ bool parse_cli_args()
 			//Load GBA BIOS
 			else if((config::cli_args[x] == "-b") || (config::cli_args[x] == "--bios")) 
 			{
-				if((++x) == config::cli_args.size()) { std::cout<<"Error::No BIOS file in arguments\n"; }
+				if((++x) == config::cli_args.size()) { std::cout<<"GBE::Error - No BIOS file in arguments\n"; }
 
 				else 
 				{ 
@@ -132,11 +134,427 @@ bool parse_cli_args()
 
 			else
 			{
-				std::cout<<"Error::Unknown argument - " << config::cli_args[x] << "\n";
+				std::cout<<"GBE::Error - Unknown argument - " << config::cli_args[x] << "\n";
 				return false;
 			}
 		}
 
 		return true;
 	}
-} 
+}
+
+/****** Parse optins from the .ini file ******/
+bool parse_ini_file()
+{
+	std::ifstream file("gbe.ini", std::ios::in); 
+	std::string input_line = "";
+	std::string line_char = "";
+
+	//Clear existing .ini parameters
+	config::ini_opts.clear();
+
+	if(!file.is_open())
+	{
+		std::cout<<"GBE::Error - Could not open gbe.ini configuration file. Check file path or permissions. \n";
+		return false; 
+	}
+
+	//Cycle through whole file, line-by-line
+	while(getline(file, input_line))
+	{
+		line_char = input_line[0];	
+	
+		//Check if line starts with [ - if not, skip line
+		if(line_char == "[")
+		{
+			std::string line_item = "";
+
+			//Cycle through line, character-by-character
+			for(int x = 0; ++x < input_line.length();)
+			{
+				line_char = input_line[x];
+
+				//Check the character for item limiter : or ] - Push to Vector
+				if((line_char == ":") || (line_char == "]")) 
+				{
+					config::ini_opts.push_back(line_item);
+					line_item = ""; 
+				}
+
+				else { line_item += line_char; }
+			}
+		}
+	}
+	
+	file.close();
+
+	//Cycle through all items in the .ini file
+	//Set options as appropiate
+
+	int size = config::ini_opts.size();
+	int output = 0;
+	std::string ini_item = "";
+
+	for(int x = 0; x < size; x++)
+	{
+		ini_item = config::ini_opts[x];
+
+		//Use BIOS
+		if(ini_item == "#use_bios")
+		{
+			if((x + 1) < size) 
+			{
+				ini_item = config::ini_opts[++x];
+				std::stringstream temp_stream(ini_item);
+				temp_stream >> output;
+
+				if(output == 1) { config::use_bios = true; }
+				else { config::use_bios = false; }
+			}
+
+			else 
+			{ 
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#use_bios) \n";
+				return false;
+			}
+		}
+
+		//Use OpenGL
+		else if(ini_item == "#use_opengl")
+		{
+			if((x + 1) < size) 
+			{
+				ini_item = config::ini_opts[++x];
+				std::stringstream temp_stream(ini_item);
+				temp_stream >> output;
+
+				if(output == 1) { config::use_opengl = true; }
+				else { config::use_opengl = false; }
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#use_opengl) \n";
+				return false;
+			}
+		}
+
+		//Use gamepad dead zone
+		else if(ini_item == "#dead_zone")
+		{
+			if((x + 1) < size) 
+			{
+				ini_item = config::ini_opts[++x];
+				std::stringstream temp_stream(ini_item);
+				temp_stream >> output;
+
+				if((output >= 0) && (output <= 32767)) { config::dead_zone = output; }
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#dead_zone) \n";
+				return false;
+			}
+		}
+
+		//Scaling factor
+		else if(ini_item == "#scaling_factor")
+		{
+			if((x + 1) < size) 
+			{
+				ini_item = config::ini_opts[++x];
+				std::stringstream temp_stream(ini_item);
+				temp_stream >> output;
+
+				if((output >= 1) && (output <= 10)) { config::scaling_factor = output; }
+				else { config::scaling_factor = 1; }
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#scaling_factor) \n";
+				return false;
+			}
+		}
+
+
+		//DMG-GBC keyboard controls
+		else if(ini_item == "#dmg_key_controls")
+		{
+			if((x + 8) < size)
+			{
+				std::stringstream temp_stream;
+
+				//A
+				temp_stream << config::ini_opts[++x];
+				temp_stream >> config::dmg_key_a;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//B
+				temp_stream << config::ini_opts[++x];
+				temp_stream >> config::dmg_key_b;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//START
+				temp_stream << config::ini_opts[++x];
+				temp_stream >> config::dmg_key_start;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//SELECT
+				temp_stream << config::ini_opts[++x];
+				temp_stream >> config::dmg_key_select;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//LEFT
+				temp_stream << config::ini_opts[++x];
+				temp_stream >> config::dmg_key_left;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//RIGHT
+				temp_stream << config::ini_opts[++x];
+				temp_stream >> config::dmg_key_right;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//UP
+				temp_stream << config::ini_opts[++x];
+				temp_stream >> config::dmg_key_up;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//DOWN
+				temp_stream << config::ini_opts[++x];
+				temp_stream >> config::dmg_key_down;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#dmg_key_controls) \n";
+				return false;
+			}
+		}
+
+		//DMG-GBC gamepad controls
+		else if(ini_item == "#dmg_joy_controls")
+		{
+			if((x + 8) < size)
+			{
+				std::stringstream temp_stream;
+
+				//A
+				temp_stream << config::ini_opts[++x];
+				temp_stream >> config::dmg_joy_a;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//B
+				temp_stream << config::ini_opts[++x];
+				temp_stream >> config::dmg_joy_b;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//START
+				temp_stream << config::ini_opts[++x];
+				temp_stream >> config::dmg_joy_start;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//SELECT
+				temp_stream << config::ini_opts[++x];
+				temp_stream >> config::dmg_joy_select;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//LEFT
+				temp_stream << config::ini_opts[++x];
+				temp_stream >> config::dmg_joy_left;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//RIGHT
+				temp_stream << config::ini_opts[++x];
+				temp_stream >> config::dmg_joy_right;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//UP
+				temp_stream << config::ini_opts[++x];
+				temp_stream >> config::dmg_joy_up;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//DOWN
+				temp_stream << config::ini_opts[++x];
+				temp_stream >> config::dmg_joy_down;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#dmg_joy_controls) \n";
+				return false;
+			}
+		}
+
+		//GBA keyboard controls
+		else if(ini_item == "#agb_key_controls")
+		{
+			if((x + 10) < size)
+			{
+				std::stringstream temp_stream;
+
+				//A
+				temp_stream << config::ini_opts[++x];
+				temp_stream >> config::agb_key_a;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//B
+				temp_stream << config::ini_opts[++x];
+				temp_stream >> config::agb_key_b;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//START
+				temp_stream << config::ini_opts[++x];
+				temp_stream >> config::agb_key_start;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//SELECT
+				temp_stream << config::ini_opts[++x];
+				temp_stream >> config::agb_key_select;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//LEFT
+				temp_stream << config::ini_opts[++x];
+				temp_stream >> config::agb_key_left;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//RIGHT
+				temp_stream << config::ini_opts[++x];
+				temp_stream >> config::agb_key_right;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//UP
+				temp_stream << config::ini_opts[++x];
+				temp_stream >> config::agb_key_up;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//DOWN
+				temp_stream << config::ini_opts[++x];
+				temp_stream >> config::agb_key_down;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//LEFT TRIGGER
+				temp_stream << config::ini_opts[++x];
+				temp_stream >> config::agb_key_l_trigger;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//RIGHT TRIGGER
+				temp_stream << config::ini_opts[++x];
+				temp_stream >> config::agb_key_r_trigger;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#agb_key_controls) \n";
+				return false;
+			}
+		}
+
+		//GBA gamepad controls
+		else if(ini_item == "#agb_joy_controls")
+		{
+			if((x + 10) < size)
+			{
+				std::stringstream temp_stream;
+
+				//A
+				temp_stream << config::ini_opts[++x];
+				temp_stream >> config::agb_joy_a;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//B
+				temp_stream << config::ini_opts[++x];
+				temp_stream >> config::agb_joy_b;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//START
+				temp_stream << config::ini_opts[++x];
+				temp_stream >> config::agb_joy_start;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//SELECT
+				temp_stream << config::ini_opts[++x];
+				temp_stream >> config::agb_joy_select;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//LEFT
+				temp_stream << config::ini_opts[++x];
+				temp_stream >> config::agb_joy_left;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//RIGHT
+				temp_stream << config::ini_opts[++x];
+				temp_stream >> config::agb_joy_right;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//UP
+				temp_stream << config::ini_opts[++x];
+				temp_stream >> config::agb_joy_up;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//DOWN
+				temp_stream << config::ini_opts[++x];
+				temp_stream >> config::agb_joy_down;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//LEFT TRIGGER
+				temp_stream << config::ini_opts[++x];
+				temp_stream >> config::agb_joy_l_trigger;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//RIGHT TRIGGER
+				temp_stream << config::ini_opts[++x];
+				temp_stream >> config::agb_joy_r_trigger;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#agb_joy_controls) \n";
+				return false;
+			}
+		}
+	}
+
+	return true;
+}

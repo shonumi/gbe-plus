@@ -7,6 +7,6 @@ set(HEADERS
 	)
 
 
-add_library(common STATIC ${SRCS} ${HEADERS} )
+add_library(common STATIC ${SRCS} ${HEADERS})
 
 target_link_libraries(common ${SDL_LIBRARY})

@@ -9,7 +9,8 @@ set(SRCS
 	mmu.cpp
 	opengl.cpp
 	swi.cpp
-	thumb_instr.cpp)
+	thumb_instr.cpp
+	)
 
 set(HEADERS
 	apu.h
@@ -21,8 +22,9 @@ set(HEADERS
 	lcd.h
 	lcd_data.h
 	mmu.h
-	timer.h)
+	timer.h
+	)
 
-add_library(gba STATIC ${SRCS} ${HEADERS} )
+add_library(gba STATIC ${SRCS} ${HEADERS})
 
 target_link_libraries(gba ${SDL_LIBRARY} ${OPENGL_gl_LIBRARY}) 

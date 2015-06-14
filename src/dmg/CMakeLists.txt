@@ -24,6 +24,6 @@ set(HEADERS
 	z80.h
 	)
 
-add_library(dmg STATIC ${SRCS} ${HEADERS} )
+add_library(dmg STATIC ${SRCS} ${HEADERS})
 
 target_link_libraries(dmg ${SDL_LIBRARY} ${OPENGL_gl_LIBRARY}) 
