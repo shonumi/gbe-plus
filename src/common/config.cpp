@@ -18,6 +18,9 @@ namespace config
 	std::string rom_file = "";
 	std::string bios_file = "";
 	std::string save_file = "";
+	std::string dmg_bios_path = "";
+	std::string gbc_bios_path = "";
+	std::string agb_bios_path = "";
 	std::vector <std::string> cli_args;
 	std::vector <std::string> ini_opts;
 	bool use_debugger = false;
@@ -162,7 +165,8 @@ bool parse_ini_file()
 	//Cycle through whole file, line-by-line
 	while(getline(file, input_line))
 	{
-		line_char = input_line[0];	
+		line_char = input_line[0];
+		bool ignore = false;	
 	
 		//Check if line starts with [ - if not, skip line
 		if(line_char == "[")
@@ -174,8 +178,12 @@ bool parse_ini_file()
 			{
 				line_char = input_line[x];
 
+				//Check for single-quotes, don't parse ":" or "]" within them
+				if((line_char == "'") && (!ignore)) { ignore = true; }
+				else if((line_char == "'") && (ignore)) { ignore = false; }
+
 				//Check the character for item limiter : or ] - Push to Vector
-				if((line_char == ":") || (line_char == "]")) 
+				else if(((line_char == ":") || (line_char == "]")) && (!ignore)) 
 				{
 					config::ini_opts.push_back(line_item);
 					line_item = ""; 
@@ -217,6 +225,60 @@ bool parse_ini_file()
 				std::cout<<"GBE::Error - Could not parse gbe.ini (#use_bios) \n";
 				return false;
 			}
+		}
+
+		//DMG BIOS path
+		else if(ini_item == "#dmg_bios_path")
+		{
+			if((x + 1) < size) 
+			{
+				ini_item = config::ini_opts[++x];
+				std::string first_char = "";
+				first_char = ini_item[0];
+				
+				//When left blank, don't parse the next line item
+				if(first_char != "#") { config::dmg_bios_path = ini_item; }
+				else { config::dmg_bios_path = ""; x--;}
+ 
+			}
+
+			else { config::dmg_bios_path = ""; }
+		}
+
+		//GBC BIOS path
+		else if(ini_item == "#gbc_bios_path")
+		{
+			if((x + 1) < size) 
+			{
+				ini_item = config::ini_opts[++x];
+				std::string first_char = "";
+				first_char = ini_item[0];
+				
+				//When left blank, don't parse the next line item
+				if(first_char != "#") { config::gbc_bios_path = ini_item; }
+				else { config::gbc_bios_path = ""; x--;}
+ 
+			}
+
+			else { config::gbc_bios_path = ""; }
+		}
+
+		//GBA BIOS path
+		else if(ini_item == "#agb_bios_path")
+		{
+			if((x + 1) < size) 
+			{
+				ini_item = config::ini_opts[++x];
+				std::string first_char = "";
+				first_char = ini_item[0];
+				
+				//When left blank, don't parse the next line item
+				if(first_char != "#") { config::agb_bios_path = ini_item; }
+				else { config::agb_bios_path = ""; x--;}
+ 
+			}
+
+			else { config::agb_bios_path = ""; }
 		}
 
 		//Use OpenGL

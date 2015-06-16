@@ -39,7 +39,18 @@ int main(int argc, char* args[])
 	
 	//Read BIOS file optionally
 	if(config::use_bios) 
-	{ 
+	{
+		//If no bios file was passed from the command-line arguments, defer to .ini options
+		if(config::bios_file == "")
+		{
+			switch(config::gb_type)
+			{
+				case 0x1 : config::bios_file = config::dmg_bios_path; break;
+				case 0x2 : config::bios_file = config::gbc_bios_path; break;
+				case 0x3 : config::bios_file = config::agb_bios_path; break;
+			}
+		}
+
 		if(!gbe_plus->read_bios(config::bios_file)) { return 0; } 
 	}
 
