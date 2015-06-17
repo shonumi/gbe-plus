@@ -29,7 +29,6 @@ namespace config
 	extern std::string gbc_bios_path;
 	extern std::string agb_bios_path;
 	extern std::vector <std::string> cli_args;
-	extern std::vector <std::string> ini_opts;
 
 	extern int agb_key_a, agb_key_b, agb_key_start, agb_key_select, agb_key_up, agb_key_down, agb_key_left, agb_key_right, agb_key_r_trigger, agb_key_l_trigger;
 	extern int agb_joy_a, agb_joy_b, agb_joy_start, agb_joy_select, agb_joy_up, agb_joy_down, agb_joy_left, agb_joy_right, agb_joy_r_trigger, agb_joy_l_trigger;

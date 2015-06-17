@@ -22,7 +22,6 @@ namespace config
 	std::string gbc_bios_path = "";
 	std::string agb_bios_path = "";
 	std::vector <std::string> cli_args;
-	std::vector <std::string> ini_opts;
 	bool use_debugger = false;
 
 	//Default keyboard bindings - GBA
@@ -154,7 +153,8 @@ bool parse_ini_file()
 	std::string line_char = "";
 
 	//Clear existing .ini parameters
-	config::ini_opts.clear();
+	std::vector <std::string> ini_opts;
+	ini_opts.clear();
 
 	if(!file.is_open())
 	{
@@ -185,7 +185,7 @@ bool parse_ini_file()
 				//Check the character for item limiter : or ] - Push to Vector
 				else if(((line_char == ":") || (line_char == "]")) && (!ignore)) 
 				{
-					config::ini_opts.push_back(line_item);
+					ini_opts.push_back(line_item);
 					line_item = ""; 
 				}
 
@@ -199,20 +199,20 @@ bool parse_ini_file()
 	//Cycle through all items in the .ini file
 	//Set options as appropiate
 
-	int size = config::ini_opts.size();
+	int size = ini_opts.size();
 	int output = 0;
 	std::string ini_item = "";
 
 	for(int x = 0; x < size; x++)
 	{
-		ini_item = config::ini_opts[x];
+		ini_item = ini_opts[x];
 
 		//Use BIOS
 		if(ini_item == "#use_bios")
 		{
 			if((x + 1) < size) 
 			{
-				ini_item = config::ini_opts[++x];
+				ini_item = ini_opts[++x];
 				std::stringstream temp_stream(ini_item);
 				temp_stream >> output;
 
@@ -232,7 +232,7 @@ bool parse_ini_file()
 		{
 			if((x + 1) < size) 
 			{
-				ini_item = config::ini_opts[++x];
+				ini_item = ini_opts[++x];
 				std::string first_char = "";
 				first_char = ini_item[0];
 				
@@ -250,7 +250,7 @@ bool parse_ini_file()
 		{
 			if((x + 1) < size) 
 			{
-				ini_item = config::ini_opts[++x];
+				ini_item = ini_opts[++x];
 				std::string first_char = "";
 				first_char = ini_item[0];
 				
@@ -268,7 +268,7 @@ bool parse_ini_file()
 		{
 			if((x + 1) < size) 
 			{
-				ini_item = config::ini_opts[++x];
+				ini_item = ini_opts[++x];
 				std::string first_char = "";
 				first_char = ini_item[0];
 				
@@ -286,7 +286,7 @@ bool parse_ini_file()
 		{
 			if((x + 1) < size) 
 			{
-				ini_item = config::ini_opts[++x];
+				ini_item = ini_opts[++x];
 				std::stringstream temp_stream(ini_item);
 				temp_stream >> output;
 
@@ -306,7 +306,7 @@ bool parse_ini_file()
 		{
 			if((x + 1) < size) 
 			{
-				ini_item = config::ini_opts[++x];
+				ini_item = ini_opts[++x];
 				std::stringstream temp_stream(ini_item);
 				temp_stream >> output;
 
@@ -325,7 +325,7 @@ bool parse_ini_file()
 		{
 			if((x + 1) < size) 
 			{
-				ini_item = config::ini_opts[++x];
+				ini_item = ini_opts[++x];
 				std::stringstream temp_stream(ini_item);
 				temp_stream >> output;
 
@@ -349,49 +349,49 @@ bool parse_ini_file()
 				std::stringstream temp_stream;
 
 				//A
-				temp_stream << config::ini_opts[++x];
+				temp_stream << ini_opts[++x];
 				temp_stream >> config::dmg_key_a;
 				temp_stream.clear();
 				temp_stream.str(std::string());
 
 				//B
-				temp_stream << config::ini_opts[++x];
+				temp_stream << ini_opts[++x];
 				temp_stream >> config::dmg_key_b;
 				temp_stream.clear();
 				temp_stream.str(std::string());
 
 				//START
-				temp_stream << config::ini_opts[++x];
+				temp_stream << ini_opts[++x];
 				temp_stream >> config::dmg_key_start;
 				temp_stream.clear();
 				temp_stream.str(std::string());
 
 				//SELECT
-				temp_stream << config::ini_opts[++x];
+				temp_stream << ini_opts[++x];
 				temp_stream >> config::dmg_key_select;
 				temp_stream.clear();
 				temp_stream.str(std::string());
 
 				//LEFT
-				temp_stream << config::ini_opts[++x];
+				temp_stream << ini_opts[++x];
 				temp_stream >> config::dmg_key_left;
 				temp_stream.clear();
 				temp_stream.str(std::string());
 
 				//RIGHT
-				temp_stream << config::ini_opts[++x];
+				temp_stream << ini_opts[++x];
 				temp_stream >> config::dmg_key_right;
 				temp_stream.clear();
 				temp_stream.str(std::string());
 
 				//UP
-				temp_stream << config::ini_opts[++x];
+				temp_stream << ini_opts[++x];
 				temp_stream >> config::dmg_key_up;
 				temp_stream.clear();
 				temp_stream.str(std::string());
 
 				//DOWN
-				temp_stream << config::ini_opts[++x];
+				temp_stream << ini_opts[++x];
 				temp_stream >> config::dmg_key_down;
 				temp_stream.clear();
 				temp_stream.str(std::string());
@@ -412,49 +412,49 @@ bool parse_ini_file()
 				std::stringstream temp_stream;
 
 				//A
-				temp_stream << config::ini_opts[++x];
+				temp_stream << ini_opts[++x];
 				temp_stream >> config::dmg_joy_a;
 				temp_stream.clear();
 				temp_stream.str(std::string());
 
 				//B
-				temp_stream << config::ini_opts[++x];
+				temp_stream << ini_opts[++x];
 				temp_stream >> config::dmg_joy_b;
 				temp_stream.clear();
 				temp_stream.str(std::string());
 
 				//START
-				temp_stream << config::ini_opts[++x];
+				temp_stream << ini_opts[++x];
 				temp_stream >> config::dmg_joy_start;
 				temp_stream.clear();
 				temp_stream.str(std::string());
 
 				//SELECT
-				temp_stream << config::ini_opts[++x];
+				temp_stream << ini_opts[++x];
 				temp_stream >> config::dmg_joy_select;
 				temp_stream.clear();
 				temp_stream.str(std::string());
 
 				//LEFT
-				temp_stream << config::ini_opts[++x];
+				temp_stream << ini_opts[++x];
 				temp_stream >> config::dmg_joy_left;
 				temp_stream.clear();
 				temp_stream.str(std::string());
 
 				//RIGHT
-				temp_stream << config::ini_opts[++x];
+				temp_stream << ini_opts[++x];
 				temp_stream >> config::dmg_joy_right;
 				temp_stream.clear();
 				temp_stream.str(std::string());
 
 				//UP
-				temp_stream << config::ini_opts[++x];
+				temp_stream << ini_opts[++x];
 				temp_stream >> config::dmg_joy_up;
 				temp_stream.clear();
 				temp_stream.str(std::string());
 
 				//DOWN
-				temp_stream << config::ini_opts[++x];
+				temp_stream << ini_opts[++x];
 				temp_stream >> config::dmg_joy_down;
 				temp_stream.clear();
 				temp_stream.str(std::string());
@@ -475,61 +475,61 @@ bool parse_ini_file()
 				std::stringstream temp_stream;
 
 				//A
-				temp_stream << config::ini_opts[++x];
+				temp_stream << ini_opts[++x];
 				temp_stream >> config::agb_key_a;
 				temp_stream.clear();
 				temp_stream.str(std::string());
 
 				//B
-				temp_stream << config::ini_opts[++x];
+				temp_stream << ini_opts[++x];
 				temp_stream >> config::agb_key_b;
 				temp_stream.clear();
 				temp_stream.str(std::string());
 
 				//START
-				temp_stream << config::ini_opts[++x];
+				temp_stream << ini_opts[++x];
 				temp_stream >> config::agb_key_start;
 				temp_stream.clear();
 				temp_stream.str(std::string());
 
 				//SELECT
-				temp_stream << config::ini_opts[++x];
+				temp_stream << ini_opts[++x];
 				temp_stream >> config::agb_key_select;
 				temp_stream.clear();
 				temp_stream.str(std::string());
 
 				//LEFT
-				temp_stream << config::ini_opts[++x];
+				temp_stream << ini_opts[++x];
 				temp_stream >> config::agb_key_left;
 				temp_stream.clear();
 				temp_stream.str(std::string());
 
 				//RIGHT
-				temp_stream << config::ini_opts[++x];
+				temp_stream << ini_opts[++x];
 				temp_stream >> config::agb_key_right;
 				temp_stream.clear();
 				temp_stream.str(std::string());
 
 				//UP
-				temp_stream << config::ini_opts[++x];
+				temp_stream << ini_opts[++x];
 				temp_stream >> config::agb_key_up;
 				temp_stream.clear();
 				temp_stream.str(std::string());
 
 				//DOWN
-				temp_stream << config::ini_opts[++x];
+				temp_stream << ini_opts[++x];
 				temp_stream >> config::agb_key_down;
 				temp_stream.clear();
 				temp_stream.str(std::string());
 
 				//LEFT TRIGGER
-				temp_stream << config::ini_opts[++x];
+				temp_stream << ini_opts[++x];
 				temp_stream >> config::agb_key_l_trigger;
 				temp_stream.clear();
 				temp_stream.str(std::string());
 
 				//RIGHT TRIGGER
-				temp_stream << config::ini_opts[++x];
+				temp_stream << ini_opts[++x];
 				temp_stream >> config::agb_key_r_trigger;
 				temp_stream.clear();
 				temp_stream.str(std::string());
@@ -550,61 +550,61 @@ bool parse_ini_file()
 				std::stringstream temp_stream;
 
 				//A
-				temp_stream << config::ini_opts[++x];
+				temp_stream << ini_opts[++x];
 				temp_stream >> config::agb_joy_a;
 				temp_stream.clear();
 				temp_stream.str(std::string());
 
 				//B
-				temp_stream << config::ini_opts[++x];
+				temp_stream << ini_opts[++x];
 				temp_stream >> config::agb_joy_b;
 				temp_stream.clear();
 				temp_stream.str(std::string());
 
 				//START
-				temp_stream << config::ini_opts[++x];
+				temp_stream << ini_opts[++x];
 				temp_stream >> config::agb_joy_start;
 				temp_stream.clear();
 				temp_stream.str(std::string());
 
 				//SELECT
-				temp_stream << config::ini_opts[++x];
+				temp_stream << ini_opts[++x];
 				temp_stream >> config::agb_joy_select;
 				temp_stream.clear();
 				temp_stream.str(std::string());
 
 				//LEFT
-				temp_stream << config::ini_opts[++x];
+				temp_stream << ini_opts[++x];
 				temp_stream >> config::agb_joy_left;
 				temp_stream.clear();
 				temp_stream.str(std::string());
 
 				//RIGHT
-				temp_stream << config::ini_opts[++x];
+				temp_stream << ini_opts[++x];
 				temp_stream >> config::agb_joy_right;
 				temp_stream.clear();
 				temp_stream.str(std::string());
 
 				//UP
-				temp_stream << config::ini_opts[++x];
+				temp_stream << ini_opts[++x];
 				temp_stream >> config::agb_joy_up;
 				temp_stream.clear();
 				temp_stream.str(std::string());
 
 				//DOWN
-				temp_stream << config::ini_opts[++x];
+				temp_stream << ini_opts[++x];
 				temp_stream >> config::agb_joy_down;
 				temp_stream.clear();
 				temp_stream.str(std::string());
 
 				//LEFT TRIGGER
-				temp_stream << config::ini_opts[++x];
+				temp_stream << ini_opts[++x];
 				temp_stream >> config::agb_joy_l_trigger;
 				temp_stream.clear();
 				temp_stream.str(std::string());
 
 				//RIGHT TRIGGER
-				temp_stream << config::ini_opts[++x];
+				temp_stream << ini_opts[++x];
 				temp_stream >> config::agb_joy_r_trigger;
 				temp_stream.clear();
 				temp_stream.str(std::string());
