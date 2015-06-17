@@ -18,6 +18,7 @@
 #include "common.h"
 
 bool parse_cli_args();
+void parse_filenames();
 bool parse_ini_file();
 
 namespace config
