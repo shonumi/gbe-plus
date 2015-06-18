@@ -1382,12 +1382,18 @@ void ARM7::clock_timers()
 					{
 						controllers.audio.apu_stat.dma[0].buffer[controllers.audio.apu_stat.dma[0].counter++] = mem->memory_map[mem->dma[1].start_address++];
 						controllers.audio.apu_stat.dma[0].length++;
+
+						//Trigger DMA IRQ after 16th bit is transferred
+						if((mem->memory_map[REG_IE+1] & 0x2) && ((controllers.audio.apu_stat.dma[0].counter % 16) == 0)) { mem->memory_map[REG_IF+1] |= 0x2; }
 					}
 
 					if((x == 0) && (controllers.audio.apu_stat.dma[1].timer == 0) && (mem->dma[2].destination_address == FIFO_B) && (mem->dma[2].started)) 
 					{ 
 						controllers.audio.apu_stat.dma[1].buffer[controllers.audio.apu_stat.dma[1].counter++] = mem->memory_map[mem->dma[2].start_address++];
 						controllers.audio.apu_stat.dma[1].length++;
+
+						//Trigger DMA IRQ after 16th bit is transferred
+						if((mem->memory_map[REG_IE+1] & 0x4) && ((controllers.audio.apu_stat.dma[1].counter % 16) == 0)) { mem->memory_map[REG_IF+1] |= 0x4; }
 					}
 					
 					/*
