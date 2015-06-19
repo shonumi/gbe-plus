@@ -9,9 +9,14 @@
 // Main menu for the main window
 // Has options like File, Emulation, Options, About...
 
-#include "main_menu.h"
+#include <iostream>
+
 #include <QMenu>
 #include <QMenuBar>
+#include <QFileDialog>
+#include <QString>
+
+#include "main_menu.h"
 
 /****** Main menu constructor ******/
 main_menu::main_menu(QWidget *parent) : QMainWindow(parent)
@@ -74,4 +79,18 @@ main_menu::main_menu(QWidget *parent) : QMainWindow(parent)
 
 	help = menuBar()->addMenu("&Help");
 	help->addAction(about);
+
+	//Setup signals
+	connect(quit, SIGNAL(triggered()), qApp, SLOT(quit()));
+	connect(open, SIGNAL(triggered()), this, SLOT(open_file()));
 }
+
+/****** Open game file ******/
+void main_menu::open_file()
+{
+	std::cout<<"Hey\n";
+	QString fileName = QFileDialog::getOpenFileName(this, tr("Open"), "/home/", tr("GBx files (*.gb *.gbc *.gba)"));
+}
+
+
+

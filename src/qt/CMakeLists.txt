@@ -1,6 +1,8 @@
+set(CMAKE_AUTOMOC ON)
+
 set(SRCS
-	main_menu.cpp
 	main.cpp
+	main_menu.cpp
 	)
 
 set(HEADERS

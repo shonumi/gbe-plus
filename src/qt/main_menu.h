@@ -17,9 +17,13 @@
 
 class main_menu : public QMainWindow
 {
+	Q_OBJECT
+	
 	public:
-
 	main_menu(QWidget *parent = 0);
+
+	private slots:
+	void open_file();
 };
 
 #endif
