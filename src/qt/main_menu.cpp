@@ -9,14 +9,14 @@
 // Main menu for the main window
 // Has options like File, Emulation, Options, About...
 
-#include <iostream>
-
 #include <QMenu>
 #include <QMenuBar>
 #include <QFileDialog>
 #include <QString>
 
 #include "main_menu.h"
+
+#include "common/config.h"
 
 /****** Main menu constructor ******/
 main_menu::main_menu(QWidget *parent) : QMainWindow(parent)
@@ -83,14 +83,77 @@ main_menu::main_menu(QWidget *parent) : QMainWindow(parent)
 	//Setup signals
 	connect(quit, SIGNAL(triggered()), qApp, SLOT(quit()));
 	connect(open, SIGNAL(triggered()), this, SLOT(open_file()));
+
+	gbe_plus = NULL;
 }
 
 /****** Open game file ******/
 void main_menu::open_file()
 {
-	std::cout<<"Hey\n";
-	QString fileName = QFileDialog::getOpenFileName(this, tr("Open"), "/home/", tr("GBx files (*.gb *.gbc *.gba)"));
+	QString filename = QFileDialog::getOpenFileName(this, tr("Open"), "", tr("GBx files (*.gb *.gbc *.gba)"));
+	if(filename.isNull()) { return; }
+
+	config::rom_file = filename.toStdString();
+	config::save_file = config::rom_file + ".sav";
+
+	//Determine Gameboy type based on file name
+	//Note, DMG and GBC games are automatically detected in the Gameboy MMU, so only check for GBA types here
+	std::size_t dot = config::rom_file.find_last_of(".");
+	std::string ext = config::rom_file.substr(dot);
+
+	if(ext == ".gba") { config::gb_type = 3; }
+
+	boot_game();
 }
 
+/****** Boots and starts emulation ******/
+void main_menu::boot_game()
+{
+	//Start the appropiate system core - DMG/GBC or GBA
+	if(config::gb_type == 3) { gbe_plus = new AGB_core(); }
+	else { gbe_plus = new DMG_core(); }
 
+	//Parse .ini options
+	//if(!parse_ini_file()) { return 0; }
 
+	//Parse command-line arguments
+	//These will override .ini options!
+	//if(!parse_cli_args()) { return 0; }
+
+	//Read specified ROM file
+	if(!gbe_plus->read_file(config::rom_file)) { return; }
+	
+	//Read BIOS file optionally
+	if(config::use_bios) 
+	{
+		//If no bios file was passed from the command-line arguments, defer to .ini options
+		if(config::bios_file == "")
+		{
+			switch(config::gb_type)
+			{
+				case 0x1 : config::bios_file = config::dmg_bios_path; break;
+				case 0x2 : config::bios_file = config::gbc_bios_path; break;
+				case 0x3 : config::bios_file = config::agb_bios_path; break;
+			}
+		}
+
+		if(!gbe_plus->read_bios(config::bios_file)) { return; } 
+	}
+
+	//Engage the core
+	gbe_plus->start();
+	gbe_plus->db_unit.debug_mode = config::use_debugger;
+
+	if(gbe_plus->db_unit.debug_mode) { SDL_CloseAudio(); }
+
+	//Disbale mouse cursor in SDL, it's annoying
+	SDL_ShowCursor(SDL_DISABLE);
+
+	//Set program window caption
+	SDL_WM_SetCaption("GBE+", NULL);
+
+	//Actually run the core
+	gbe_plus->run_core();
+
+	gbe_plus->core_emu::~core_emu();
+}

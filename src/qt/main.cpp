@@ -14,6 +14,7 @@
  
 int main(int argc, char* args[]) 
 {
+	QApplication::setAttribute(Qt::AA_X11InitThreads);
 	QApplication app(argc, args);
  
 	main_menu window;

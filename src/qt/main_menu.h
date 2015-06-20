@@ -15,6 +15,9 @@
 #include <QMainWindow>
 #include <QApplication>
 
+#include "gba/core.h"
+#include "dmg/core.h"
+
 class main_menu : public QMainWindow
 {
 	Q_OBJECT
@@ -24,6 +27,11 @@ class main_menu : public QMainWindow
 
 	private slots:
 	void open_file();
+
+	private:
+	core_emu* gbe_plus;
+
+	void boot_game();
 };
 
 #endif

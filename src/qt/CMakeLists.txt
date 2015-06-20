@@ -10,4 +10,5 @@ set(HEADERS
 	)
 
 add_executable(gbe_plus_qt ${SRCS} ${HEADERS})
-target_link_libraries(gbe_plus_qt ${GBE_QT_LIBS}) 
+target_link_libraries(gbe_plus_qt common gba dmg)
+target_link_libraries(gbe_plus_qt ${SDL_LIBRARY} ${OPENGL_gl_LIBRARY} ${GBE_QT_LIBS}) 
