@@ -9,17 +9,12 @@
 // Main menu for the main window
 // Has options like File, Emulation, Options, About...
 
-#include <QMenu>
-#include <QMenuBar>
-#include <QFileDialog>
-#include <QString>
-
 #include "main_menu.h"
 
 #include "common/config.h"
 
 /****** Main menu constructor ******/
-main_menu::main_menu(QWidget *parent) : QMainWindow(parent)
+main_menu::main_menu(QWidget *parent) : QWidget(parent)
 {
 	//Setup actions
 	QAction *open = new QAction("&Open", this);
@@ -46,43 +41,54 @@ main_menu::main_menu(QWidget *parent) : QMainWindow(parent)
 
 	fullscreen->setCheckable(true);
 
+	QMenuBar* menu_bar;
+	menu_bar = new QMenuBar(this);
+
 	//Setup File menu
 	QMenu *file;
 
-	file = menuBar()->addMenu("&File");
+	file = new QMenu(tr("&File"), this);
 	file->addAction(open);
 	file->addSeparator();
 	file->addAction(quit);
+	menu_bar->addMenu(file);
 
 	//Setup Emulation menu
 	QMenu *emulation;
 
-	emulation = menuBar()->addMenu("&Emulation");
+	emulation = new QMenu(tr("&Emulation"), this);
 	emulation->addAction(pause);
 	emulation->addAction(reset);
 	emulation->addSeparator();
 	emulation->addAction(fullscreen);
 	emulation->addAction(screenshot);
+	menu_bar->addMenu(emulation);
 
 	//Setup Options menu
 	QMenu *options;
 	
-	options = menuBar()->addMenu("&Options");
+	options = new QMenu(tr("&Options"), this);
 	options->addAction(general);
 	options->addSeparator();
 	options->addAction(display);
 	options->addAction(sound);
 	options->addAction(controls);
+	menu_bar->addMenu(options);
 
 	//Setup Help menu
 	QMenu *help;
 
-	help = menuBar()->addMenu("&Help");
+	help = new QMenu(tr("&Help"), this);
 	help->addAction(about);
+	menu_bar->addMenu(help);
 
 	//Setup signals
 	connect(quit, SIGNAL(triggered()), qApp, SLOT(quit()));
 	connect(open, SIGNAL(triggered()), this, SLOT(open_file()));
+
+	QVBoxLayout *layout = new QVBoxLayout;
+	layout->setMenuBar(menu_bar);
+	setLayout(layout);
 
 	gbe_plus = NULL;
 }
@@ -156,4 +162,15 @@ void main_menu::boot_game()
 	gbe_plus->run_core();
 
 	gbe_plus->core_emu::~core_emu();
+
+	config::gb_type = 0;
+}
+
+void main_menu::paintEvent(QPaintEvent *e)
+{
+	Q_UNUSED(e);
+
+	QPainter painter(this);
+	painter.setBrush(Qt::black);
+	painter.drawRect(0, 0, width(), height());
 }

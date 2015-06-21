@@ -8,8 +8,6 @@
 //
 // This is main. It all begins here ;)
 
-#include <QApplication>
-
 #include "main_menu.h"
  
 int main(int argc, char* args[]) 

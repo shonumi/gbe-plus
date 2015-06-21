@@ -12,18 +12,20 @@
 #ifndef MAINMENU_GBE_QT
 #define MAINMENU_GBE_QT
 
-#include <QMainWindow>
-#include <QApplication>
+#include <QtGui>
 
 #include "gba/core.h"
 #include "dmg/core.h"
 
-class main_menu : public QMainWindow
+class main_menu : public QWidget
 {
 	Q_OBJECT
 	
 	public:
 	main_menu(QWidget *parent = 0);
+
+	protected:
+	void paintEvent(QPaintEvent *event);
 
 	private slots:
 	void open_file();
