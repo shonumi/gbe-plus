@@ -65,6 +65,10 @@ namespace config
 	//0 - DMG, 1 - DMG on GBC, 2 - GBC, 3 - GBA, 4 - NDS????
 	u8 gb_type = 0;
 
+	bool sdl_render = true;
+
+	void (*render_external)(std::vector<u32>&);
+
 	//Default Gameboy BG palettes
 	u32 DMG_BG_PAL[4];
 	u32 DMG_OBJ_PAL[4][2];

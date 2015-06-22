@@ -3,10 +3,12 @@ set(CMAKE_AUTOMOC ON)
 set(SRCS
 	main.cpp
 	main_menu.cpp
+	render.cpp
 	)
 
 set(HEADERS
 	main_menu.h
+	render.h
 	)
 
 add_executable(gbe_plus_qt ${SRCS} ${HEADERS})

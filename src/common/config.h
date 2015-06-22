@@ -46,9 +46,14 @@ namespace config
 	extern u8 scaling_factor;
 	extern std::stringstream title;
 	extern u8 gb_type;
+	extern bool sdl_render;
 
 	extern u32 DMG_BG_PAL[4];
 	extern u32 DMG_OBJ_PAL[4][2];
+
+	//Function pointer for external rendering
+	//This function is provided by frontends that will not rely on SDL
+	extern void (*render_external)(std::vector<u32>&);
 }
 
 #endif // EMU_CONFIG

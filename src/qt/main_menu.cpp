@@ -10,6 +10,7 @@
 // Has options like File, Emulation, Options, About...
 
 #include "main_menu.h"
+#include "render.h"
 
 #include "common/config.h"
 
@@ -109,6 +110,9 @@ void main_menu::open_file()
 
 	if(ext == ".gba") { config::gb_type = 3; }
 
+	config::sdl_render = false;
+	config::render_external = render_screen;
+
 	boot_game();
 }
 
@@ -166,6 +170,7 @@ void main_menu::boot_game()
 	config::gb_type = 0;
 }
 
+/****** Updates the main window ******/
 void main_menu::paintEvent(QPaintEvent *e)
 {
 	Q_UNUSED(e);
