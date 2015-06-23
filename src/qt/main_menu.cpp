@@ -84,12 +84,14 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	menu_bar->addMenu(help);
 
 	//Setup signals
-	connect(quit, SIGNAL(triggered()), qApp, SLOT(quit()));
+	connect(quit, SIGNAL(triggered()), this, SLOT(quit()));
 	connect(open, SIGNAL(triggered()), this, SLOT(open_file()));
 
 	QVBoxLayout *layout = new QVBoxLayout;
 	layout->setMenuBar(menu_bar);
 	setLayout(layout);
+
+	menu_height = menu_bar->height();
 
 	gbe_plus = NULL;
 }
@@ -112,16 +114,40 @@ void main_menu::open_file()
 
 	config::sdl_render = false;
 	config::render_external = render_screen;
+	qt_gui::screen = NULL;
+
+	if(gbe_plus != NULL) { gbe_plus->core_emu::~core_emu(); }
 
 	boot_game();
+}
+
+void main_menu::quit()
+{
+	//Close the core
+	if(gbe_plus != NULL) { gbe_plus->core_emu::~core_emu(); }
+
+	//Close SDL
+	SDL_Quit();
+
+	//Exit the application
+	exit(0);
 }
 
 /****** Boots and starts emulation ******/
 void main_menu::boot_game()
 {
 	//Start the appropiate system core - DMG/GBC or GBA
-	if(config::gb_type == 3) { gbe_plus = new AGB_core(); }
-	else { gbe_plus = new DMG_core(); }
+	if(config::gb_type == 3) 
+	{ 
+		gbe_plus = new AGB_core();
+		resize(240, 160+menu_height);
+	}
+
+	else 
+	{ 
+		gbe_plus = new DMG_core();
+		resize(160, 144+menu_height);
+	}
 
 	//Parse .ini options
 	//if(!parse_ini_file()) { return 0; }
@@ -156,12 +182,6 @@ void main_menu::boot_game()
 
 	if(gbe_plus->db_unit.debug_mode) { SDL_CloseAudio(); }
 
-	//Disbale mouse cursor in SDL, it's annoying
-	SDL_ShowCursor(SDL_DISABLE);
-
-	//Set program window caption
-	SDL_WM_SetCaption("GBE+", NULL);
-
 	//Actually run the core
 	gbe_plus->run_core();
 
@@ -173,9 +193,29 @@ void main_menu::boot_game()
 /****** Updates the main window ******/
 void main_menu::paintEvent(QPaintEvent *e)
 {
-	Q_UNUSED(e);
+	if(qt_gui::screen == NULL)
+	{
+		QPainter painter(this);
+		painter.setBrush(Qt::black);
+		painter.drawRect(0, 0, width(), height());
+	}
 
-	QPainter painter(this);
-	painter.setBrush(Qt::black);
-	painter.drawRect(0, 0, width(), height());
+	else
+	{
+		QPainter painter(this);
+		painter.drawImage(0, menu_height, *qt_gui::screen);
+	}
+}
+
+/****** Closes the main window ******/
+void main_menu::closeEvent(QCloseEvent *e)
+{
+	//Close the core
+	if(gbe_plus != NULL) { gbe_plus->core_emu::~core_emu(); }
+
+	//Close SDL
+	SDL_Quit();
+
+	//Exit the application
+	exit(0);
 }

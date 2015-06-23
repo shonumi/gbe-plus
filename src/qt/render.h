@@ -11,7 +11,7 @@
 #ifndef QT_RENDER
 #define QT_RENDER
 
-#include <QtGui>
+#include "main_menu.h"
 
 #include <vector>
 
@@ -21,7 +21,8 @@ void render_screen(std::vector<u32>& image);
 
 namespace qt_gui
 {
-	extern QImage screen;
+	extern QImage* screen;
+	extern main_menu* draw_surface;
 }
 
 #endif // QT_RENDER 

@@ -8,7 +8,7 @@
 //
 // This is main. It all begins here ;)
 
-#include "main_menu.h"
+#include "render.h"
  
 int main(int argc, char* args[]) 
 {
@@ -16,9 +16,10 @@ int main(int argc, char* args[])
 	QApplication app(argc, args);
 
 	//Initialize SDL subsystems - Do not initialize audio/video
-	SDL_Init(SDL_INIT_TIMER | SDL_INIT_JOYSTICK | SDL_INIT_EVENTTHREAD);
+	SDL_Init(SDL_INIT_EVERYTHING);
 
 	main_menu window;
+	qt_gui::draw_surface = &window;
 
 	window.resize(350, 150);
 	window.setWindowTitle("GBE+");

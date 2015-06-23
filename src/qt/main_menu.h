@@ -26,12 +26,16 @@ class main_menu : public QWidget
 
 	protected:
 	void paintEvent(QPaintEvent *event);
+	void closeEvent(QCloseEvent *event);
 
 	private slots:
 	void open_file();
+	void quit();
 
 	private:
 	core_emu* gbe_plus;
+
+	int menu_height;
 
 	void boot_game();
 };
