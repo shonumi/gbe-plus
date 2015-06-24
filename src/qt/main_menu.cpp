@@ -100,8 +100,12 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 /****** Open game file ******/
 void main_menu::open_file()
 {
+	SDL_PauseAudio(1);
+
 	QString filename = QFileDialog::getOpenFileName(this, tr("Open"), "", tr("GBx files (*.gb *.gbc *.gba)"));
-	if(filename.isNull()) { return; }
+	if(filename.isNull()) { SDL_PauseAudio(0); return; }
+
+	SDL_PauseAudio(0);
 
 	config::rom_file = filename.toStdString();
 	config::save_file = config::rom_file + ".sav";
@@ -112,6 +116,7 @@ void main_menu::open_file()
 	std::string ext = config::rom_file.substr(dot);
 
 	if(ext == ".gba") { config::gb_type = 3; }
+	else { config::gb_type = 0; }
 
 	config::sdl_render = false;
 	config::render_external = render_screen;
@@ -139,19 +144,18 @@ void main_menu::quit()
 /****** Boots and starts emulation ******/
 void main_menu::boot_game()
 {
-
 	//Start the appropiate system core - DMG/GBC or GBA
 	if(config::gb_type == 3) 
 	{ 
 		gbe_plus = new AGB_core();
-		resize(240, 160+menu_height);
+		resize(480, 320+menu_height);
 		qt_gui::screen = new QImage(240, 160, QImage::Format_ARGB32);
 	}
 
 	else 
 	{ 
 		gbe_plus = new DMG_core();
-		resize(160, 144+menu_height);
+		resize(320, 288+menu_height);
 		qt_gui::screen = new QImage(160, 144, QImage::Format_ARGB32);
 	}
 
