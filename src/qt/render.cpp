@@ -28,18 +28,12 @@ void render_screen(std::vector<u32>& image)
 	if(config::gb_type == 3) { width = 240; height = 160; }
 	else { width = 160; height = 144; }
 
-	//Create new instance of the screen image
-	if(qt_gui::screen == NULL)
+	//Fill in image with pixels from the emulated LCD
+	for(int y = 0; y < height; y++)
 	{
-		qt_gui::screen = new QImage(reinterpret_cast<unsigned char*> (&image[0]), width, height, QImage::Format_ARGB32);
-	}
+		u32* pixel_data = (u32*)qt_gui::screen->scanLine(y);
 
-	//Free memory the old instance, make a new one
-	//TODO - There has to be a better way than this.
-	else
-	{
-		delete qt_gui::screen;
-		qt_gui::screen = new QImage(reinterpret_cast<unsigned char*> (&image[0]), width, height, QImage::Format_ARGB32);
+		for(int x = 0; x < width; x++) { pixel_data[x] = image[x + (y*width)]; }
 	}
 
 	if(qt_gui::draw_surface != NULL) { qt_gui::draw_surface->update(); }

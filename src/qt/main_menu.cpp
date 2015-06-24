@@ -115,6 +115,8 @@ void main_menu::open_file()
 
 	config::sdl_render = false;
 	config::render_external = render_screen;
+
+	if(qt_gui::screen != NULL) { delete qt_gui::screen; }
 	qt_gui::screen = NULL;
 
 	if(gbe_plus != NULL) { gbe_plus->core_emu::~core_emu(); }
@@ -137,17 +139,20 @@ void main_menu::quit()
 /****** Boots and starts emulation ******/
 void main_menu::boot_game()
 {
+
 	//Start the appropiate system core - DMG/GBC or GBA
 	if(config::gb_type == 3) 
 	{ 
 		gbe_plus = new AGB_core();
 		resize(240, 160+menu_height);
+		qt_gui::screen = new QImage(240, 160, QImage::Format_ARGB32);
 	}
 
 	else 
 	{ 
 		gbe_plus = new DMG_core();
 		resize(160, 144+menu_height);
+		qt_gui::screen = new QImage(160, 144, QImage::Format_ARGB32);
 	}
 
 	//Parse .ini options
@@ -203,8 +208,9 @@ void main_menu::paintEvent(QPaintEvent *e)
 
 	else
 	{
+		QImage final_screen = qt_gui::screen->scaled(width(), height()-menu_height);
 		QPainter painter(this);
-		painter.drawImage(0, menu_height, *qt_gui::screen);
+		painter.drawImage(0, menu_height, final_screen);
 	}
 }
 
