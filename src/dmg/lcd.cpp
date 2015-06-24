@@ -29,6 +29,16 @@ void DMG_LCD::reset()
 	final_screen = NULL;
 	mem = NULL;
 
+	screen_buffer.clear();
+	scanline_buffer.clear();
+	scanline_raw.clear();
+	scanline_priority.clear();
+
+	screen_buffer.resize(0x5A00, 0);
+	scanline_buffer.resize(0x100, 0);
+	scanline_raw.resize(0x100, 0);
+	scanline_priority.resize(0x100, 0);
+
 	frame_start_time = 0;
 	frame_current_time = 0;
 	fps_count = 0;
@@ -108,16 +118,19 @@ void DMG_LCD::reset()
 /****** Initialize LCD with SDL ******/
 bool DMG_LCD::init()
 {
-	if(SDL_Init(SDL_INIT_EVERYTHING) == -1)
+	if(config::sdl_render)
 	{
-		std::cout<<"LCD::Error - Could not initialize SDL\n";
-		return false;
+		if(SDL_Init(SDL_INIT_EVERYTHING) == -1)
+		{
+			std::cout<<"LCD::Error - Could not initialize SDL\n";
+			return false;
+		}
+
+		if(config::use_opengl) {opengl_init(); }
+		else { final_screen = SDL_SetVideoMode(160, 144, 32, SDL_SWSURFACE); }
+
+		if(final_screen == NULL) { return false; }
 	}
-
-	if(config::use_opengl) {opengl_init(); }
-	else { final_screen = SDL_SetVideoMode(160, 144, 32, SDL_SWSURFACE); }
-
-	if(final_screen == NULL) { return false; }
 
 	std::cout<<"LCD::Initialized\n";
 
@@ -999,23 +1012,30 @@ void DMG_LCD::step(int cpu_clock)
 				//Render final screen buffer
 				if(lcd_stat.lcd_enable)
 				{
-					//Lock source surface
-					if(SDL_MUSTLOCK(final_screen)){ SDL_LockSurface(final_screen); }
-					u32* out_pixel_data = (u32*)final_screen->pixels;
-
-					for(int a = 0; a < 0x5A00; a++) { out_pixel_data[a] = screen_buffer[a]; }
-
-					//Unlock source surface
-					if(SDL_MUSTLOCK(final_screen)){ SDL_UnlockSurface(final_screen); }
-		
-					//Display final screen buffer - OpenGL
-					if(config::use_opengl) { opengl_blit(); }
-				
-					//Display final screen buffer - SDL
-					else 
+					//Use SDL
+					if(config::sdl_render)
 					{
-						if(SDL_Flip(final_screen) == -1) { std::cout<<"LCD::Error - Could not blit\n"; }
+						//Lock source surface
+						if(SDL_MUSTLOCK(final_screen)){ SDL_LockSurface(final_screen); }
+						u32* out_pixel_data = (u32*)final_screen->pixels;
+
+						for(int a = 0; a < 0x5A00; a++) { out_pixel_data[a] = screen_buffer[a]; }
+
+						//Unlock source surface
+						if(SDL_MUSTLOCK(final_screen)){ SDL_UnlockSurface(final_screen); }
+		
+						//Display final screen buffer - OpenGL
+						if(config::use_opengl) { opengl_blit(); }
+				
+						//Display final screen buffer - SDL
+						else 
+						{
+							if(SDL_Flip(final_screen) == -1) { std::cout<<"LCD::Error - Could not blit\n"; }
+						}
 					}
+
+					//Use external rendering method (GUI)
+					else { config::render_external(screen_buffer); }
 				}
 
 				//Limit framerate
@@ -1028,7 +1048,7 @@ void DMG_LCD::step(int cpu_clock)
 
 				//Update FPS counter + title
 				fps_count++;
-				if((SDL_GetTicks() - fps_time) >= 1000) 
+				if(((SDL_GetTicks() - fps_time) >= 1000) && (config::sdl_render)) 
 				{ 
 					fps_time = SDL_GetTicks(); 
 					config::title.str("");

@@ -86,6 +86,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	//Setup signals
 	connect(quit, SIGNAL(triggered()), this, SLOT(quit()));
 	connect(open, SIGNAL(triggered()), this, SLOT(open_file()));
+	connect(screenshot, SIGNAL(triggered()), this, SLOT(screenshot()));
 
 	QVBoxLayout *layout = new QVBoxLayout;
 	layout->setMenuBar(menu_bar);
@@ -219,3 +220,31 @@ void main_menu::closeEvent(QCloseEvent *e)
 	//Exit the application
 	exit(0);
 }
+
+/****** Pauses emulation ******/
+void main_menu::pause() { }
+
+/****** Takes screenshot ******/
+void main_menu::screenshot()
+{
+	if(gbe_plus != NULL)
+	{
+		std::stringstream save_stream;
+		std::string save_name = "";
+
+		//Prefix SDL Ticks to screenshot name
+		save_stream << SDL_GetTicks();
+		save_name += save_stream.str();
+		save_stream.str(std::string());
+
+		//Append random number to screenshot name
+		srand(SDL_GetTicks());
+		save_stream << rand() % 1024 << rand() % 1024 << rand() % 1024;
+		save_name += save_stream.str() + ".png";
+
+		QString qt_save_name = QString::fromStdString(save_name);
+	
+		qt_gui::screen->save(qt_save_name, "PNG");
+	}
+}
+

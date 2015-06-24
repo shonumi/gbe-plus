@@ -30,6 +30,8 @@ class main_menu : public QWidget
 
 	private slots:
 	void open_file();
+	void screenshot();
+	void pause();
 	void quit();
 
 	private:

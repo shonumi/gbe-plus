@@ -127,16 +127,19 @@ void AGB_LCD::reset()
 /****** Initialize LCD with SDL ******/
 bool AGB_LCD::init()
 {
-	if(SDL_Init(SDL_INIT_EVERYTHING) == -1)
+	if(config::sdl_render)
 	{
-		std::cout<<"LCD::Error - Could not initialize SDL\n";
-		return false;
+		if(SDL_Init(SDL_INIT_EVERYTHING) == -1)
+		{
+			std::cout<<"LCD::Error - Could not initialize SDL\n";
+			return false;
+		}
+
+		if(config::use_opengl) { opengl_init(); }
+		else { final_screen = SDL_SetVideoMode(240, 160, 32, SDL_SWSURFACE); }
+
+		if(final_screen == NULL) { return false; }
 	}
-
-	if(config::use_opengl) { opengl_init(); }
-	else { final_screen = SDL_SetVideoMode(240, 160, 32, SDL_SWSURFACE); }
-
-	if(final_screen == NULL) { return false; }
 
 	std::cout<<"LCD::Initialized\n";
 
@@ -1129,23 +1132,30 @@ void AGB_LCD::step()
 			//Render final buffer - Only if Forced Blank is disabled
 			if((mem->memory_map[DISPCNT] & 0x80) == 0)
 			{
-				//Lock source surface
-				if(SDL_MUSTLOCK(final_screen)){ SDL_LockSurface(final_screen); }
-				u32* out_pixel_data = (u32*)final_screen->pixels;
-
-				for(int a = 0; a < 0x9600; a++) { out_pixel_data[a] = screen_buffer[a]; }
-
-				//Unlock source surface
-				if(SDL_MUSTLOCK(final_screen)){ SDL_UnlockSurface(final_screen); }
-		
-				//Display final screen buffer - OpenGL
-				if(config::use_opengl) { opengl_blit(); }
-				
-				//Display final screen buffer - SDL
-				else 
+				//Use SDL
+				if(config::sdl_render)
 				{
-					if(SDL_Flip(final_screen) == -1) { std::cout<<"LCD::Error - Could not blit\n"; }
+					//Lock source surface
+					if(SDL_MUSTLOCK(final_screen)){ SDL_LockSurface(final_screen); }
+					u32* out_pixel_data = (u32*)final_screen->pixels;
+
+					for(int a = 0; a < 0x9600; a++) { out_pixel_data[a] = screen_buffer[a]; }
+
+					//Unlock source surface
+					if(SDL_MUSTLOCK(final_screen)){ SDL_UnlockSurface(final_screen); }
+		
+					//Display final screen buffer - OpenGL
+					if(config::use_opengl) { opengl_blit(); }
+				
+					//Display final screen buffer - SDL
+					else 
+					{
+						if(SDL_Flip(final_screen) == -1) { std::cout<<"LCD::Error - Could not blit\n"; }
+					}
 				}
+
+				//Use external rendering method (GUI)
+				else { config::render_external(screen_buffer); }
 			}
 
 			//Limit framerate
@@ -1158,7 +1168,7 @@ void AGB_LCD::step()
 
 			//Update FPS counter + title
 			fps_count++;
-			if((SDL_GetTicks() - fps_time) >= 1000) 
+			if(((SDL_GetTicks() - fps_time) >= 1000) && (config::sdl_render))
 			{ 
 				fps_time = SDL_GetTicks(); 
 				config::title.str("");
