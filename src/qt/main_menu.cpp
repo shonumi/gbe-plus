@@ -169,11 +169,7 @@ void main_menu::boot_game()
 	}
 
 	//Parse .ini options
-	//if(!parse_ini_file()) { return 0; }
-
-	//Parse command-line arguments
-	//These will override .ini options!
-	//if(!parse_cli_args()) { return 0; }
+	parse_ini_file();
 
 	//Read specified ROM file
 	if(!gbe_plus->read_file(config::rom_file)) { return; }
@@ -203,10 +199,6 @@ void main_menu::boot_game()
 
 	//Actually run the core
 	gbe_plus->run_core();
-
-	gbe_plus->core_emu::~core_emu();
-
-	config::gb_type = 0;
 }
 
 /****** Updates the main window ******/
