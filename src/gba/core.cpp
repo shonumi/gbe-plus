@@ -75,6 +75,13 @@ void AGB_core::stop()
 	db_unit.debug_mode = false;
 }
 
+/****** Shutdown core's components ******/
+void AGB_core::shutdown()
+{
+	core_mmu.AGB_MMU::~AGB_MMU();
+	core_cpu.ARM7::~ARM7();
+}
+
 /****** Reset the core ******/
 void AGB_core::reset()
 {
@@ -149,9 +156,8 @@ void AGB_core::run_core()
 		else { stop(); }
 	}
 
-	//Shutdown core's components
-	core_mmu.AGB_MMU::~AGB_MMU();
-	core_cpu.ARM7::~ARM7();
+	//Shutdown core
+	shutdown();
 }
 
 /****** Debugger - Allow core to run until a breaking condition occurs ******/

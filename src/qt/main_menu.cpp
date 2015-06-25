@@ -124,7 +124,12 @@ void main_menu::open_file()
 	if(qt_gui::screen != NULL) { delete qt_gui::screen; }
 	qt_gui::screen = NULL;
 
-	if(gbe_plus != NULL) { gbe_plus->core_emu::~core_emu(); }
+	//Close the core
+	if(gbe_plus != NULL) 
+	{
+		gbe_plus->shutdown();
+		gbe_plus->core_emu::~core_emu();
+	}
 
 	boot_game();
 }
@@ -132,7 +137,11 @@ void main_menu::open_file()
 void main_menu::quit()
 {
 	//Close the core
-	if(gbe_plus != NULL) { gbe_plus->core_emu::~core_emu(); }
+	if(gbe_plus != NULL) 
+	{
+		gbe_plus->shutdown();
+		gbe_plus->core_emu::~core_emu();
+	}
 
 	//Close SDL
 	SDL_Quit();

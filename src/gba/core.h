@@ -29,6 +29,7 @@ class AGB_core : virtual public core_emu
 		void start();
 		void stop();
 		void reset();
+		void shutdown();
 		void handle_hotkey(SDL_Event& event);
 		void run_core();
 

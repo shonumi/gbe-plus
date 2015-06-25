@@ -72,6 +72,13 @@ void DMG_core::stop()
 	db_unit.debug_mode = false;
 }
 
+/****** Shutdown core's components ******/
+void DMG_core::shutdown()
+{
+	core_mmu.DMG_MMU::~DMG_MMU();
+	core_cpu.Z80::~Z80();
+}
+
 /****** Reset the core ******/
 void DMG_core::reset()
 {
@@ -185,9 +192,8 @@ void DMG_core::run_core()
 		else { stop(); }
 	}
 
-	//Shutdown core's components
-	core_mmu.DMG_MMU::~DMG_MMU();
-	core_cpu.Z80::~Z80();
+	//Shutdown core
+	shutdown();
 }
 
 /****** Debugger - Allow core to run until a breaking condition occurs ******/
