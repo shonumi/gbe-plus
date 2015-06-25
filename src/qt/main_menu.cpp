@@ -231,7 +231,11 @@ void main_menu::paintEvent(QPaintEvent *e)
 void main_menu::closeEvent(QCloseEvent *e)
 {
 	//Close the core
-	if(gbe_plus != NULL) { gbe_plus->core_emu::~core_emu(); }
+	if(gbe_plus != NULL) 
+	{
+		gbe_plus->shutdown();
+		gbe_plus->core_emu::~core_emu();
+	}
 
 	//Close SDL
 	SDL_Quit();
