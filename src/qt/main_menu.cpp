@@ -87,6 +87,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	connect(quit, SIGNAL(triggered()), this, SLOT(quit()));
 	connect(open, SIGNAL(triggered()), this, SLOT(open_file()));
 	connect(screenshot, SIGNAL(triggered()), this, SLOT(screenshot()));
+	connect(reset, SIGNAL(triggered()), this, SLOT(reset()));
 
 	QVBoxLayout *layout = new QVBoxLayout;
 	layout->setMenuBar(menu_bar);
@@ -134,6 +135,7 @@ void main_menu::open_file()
 	boot_game();
 }
 
+/****** Exits the emulator ******/
 void main_menu::quit()
 {
 	//Close the core
@@ -238,6 +240,17 @@ void main_menu::closeEvent(QCloseEvent *e)
 
 /****** Pauses emulation ******/
 void main_menu::pause() { }
+
+/****** Resets emulation ******/
+void main_menu::reset()
+{
+	if(gbe_plus != NULL) 
+	{
+		gbe_plus->shutdown();
+		gbe_plus->core_emu::~core_emu();
+		boot_game();
+	}
+}	
 
 /****** Takes screenshot ******/
 void main_menu::screenshot()

@@ -32,6 +32,7 @@ class main_menu : public QWidget
 	void open_file();
 	void screenshot();
 	void pause();
+	void reset();
 	void quit();
 
 	private:
@@ -42,4 +43,4 @@ class main_menu : public QWidget
 	void boot_game();
 };
 
-#endif
+#endif //MAINMENU_GBE_QT
