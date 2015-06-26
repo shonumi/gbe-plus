@@ -164,6 +164,7 @@ u8 AGB_MMU::read_u8(u32 address) const
 		case WAVERAM3_H+1: return apu_stat->waveram_data[(apu_stat->waveram_bank_rw << 4) + 15]; break;
 
 		//General Purpose I/O Data
+		/*
 		case GPIO_DATA:
 			if((gpio.in_out) && (gpio.readable)) { return gpio.output; }
 			else if((!gpio.in_out) && (gpio.readable)) { return gpio.input; }
@@ -178,6 +179,7 @@ u8 AGB_MMU::read_u8(u32 address) const
 		case GPIO_CNT:
 			if(gpio.readable) { return gpio.readable; }
 			break;
+		*/
 		
 		default:
 			return memory_map[address];
@@ -1453,6 +1455,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			break;
 
 		//General Purpose I/O Data
+		/*
 		case GPIO_DATA:
 			memory_map[address] = (value & 0x7);
 
@@ -1471,6 +1474,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			memory_map[address] = value & 0x1;
 			gpio.readable = (memory_map[address] & 0x1) ? true : false;
 			break;
+		*/
 
 		case FLASH_RAM_CMD0:
 			memory_map[address] = value;
