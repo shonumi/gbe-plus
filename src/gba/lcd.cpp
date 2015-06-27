@@ -959,6 +959,9 @@ u32 AGB_LCD::alpha_blend()
 	//If the BD is the 1st target, abort alpha blending (no pixel technically exists behind it for blending)
 	if(last_bg_priority == 5) { return final_color; }
 
+	//If BG0-3 was drawn last but is not the 1st target, abort alpha blending
+	if((last_bg_priority < 4) && (!lcd_stat.sfx_target[last_bg_priority][0])) { return final_color; }
+
 	//Determine which priority to start looking at to grab the 2nd target
 	u8 current_bg_priority = (last_bg_priority == 4) ? lcd_stat.bg_priority[last_obj_priority] : lcd_stat.bg_priority[last_bg_priority];
 
