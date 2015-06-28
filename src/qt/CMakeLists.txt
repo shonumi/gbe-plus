@@ -4,11 +4,13 @@ set(SRCS
 	main.cpp
 	main_menu.cpp
 	render.cpp
+	general_settings.cpp
 	)
 
 set(HEADERS
 	main_menu.h
 	render.h
+	general_settings.h
 	)
 
 add_executable(gbe_plus_qt ${SRCS} ${HEADERS})

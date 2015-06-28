@@ -3,7 +3,7 @@
 // See LICENSE.txt for full license text
 
 // File : main.cpp
-// Date : July 18, 2015
+// Date : June 18, 2015
 // Description : The emulator (Qt version)
 //
 // This is main. It all begins here ;)
@@ -21,7 +21,7 @@ int main(int argc, char* args[])
 	main_menu window;
 	qt_gui::draw_surface = &window;
 
-	window.resize(350, 150);
+	window.resize(450, 300);
 	window.setWindowTitle("GBE+");
 	window.show();
  

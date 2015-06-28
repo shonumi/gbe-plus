@@ -3,7 +3,7 @@
 // See LICENSE.txt for full license text
 
 // File : main_menu.h
-// Date : July 18, 2015
+// Date : June 18, 2015
 // Description : Main menu
 //
 // Main menu for the main window
@@ -13,6 +13,8 @@
 #define MAINMENU_GBE_QT
 
 #include <QtGui>
+
+#include "general_settings.h"
 
 #include "gba/core.h"
 #include "dmg/core.h"
@@ -34,9 +36,11 @@ class main_menu : public QWidget
 	void pause();
 	void reset();
 	void quit();
+	void show_settings();
 
 	private:
 	core_emu* gbe_plus;
+	gen_settings* settings;
 
 	int menu_height;
 

@@ -3,7 +3,7 @@
 // See LICENSE.txt for full license text
 
 // File : main_menu.cpp
-// Date : July 18, 2015
+// Date : June 18, 2015
 // Description : Main menu
 //
 // Main menu for the main window
@@ -38,7 +38,9 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	quit->setShortcut(tr("CTRL+Q"));
 
 	pause->setShortcut(tr("CTRL+P"));
-	reset->setShortcut(tr("CTRL+R"));
+	reset->setShortcut(tr("F8"));
+	fullscreen->setShortcut(tr("F12"));
+	screenshot->setShortcut(tr("F9"));
 
 	fullscreen->setCheckable(true);
 
@@ -88,6 +90,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	connect(open, SIGNAL(triggered()), this, SLOT(open_file()));
 	connect(screenshot, SIGNAL(triggered()), this, SLOT(screenshot()));
 	connect(reset, SIGNAL(triggered()), this, SLOT(reset()));
+	connect(general, SIGNAL(triggered()), this, SLOT(show_settings()));
 
 	QVBoxLayout *layout = new QVBoxLayout;
 	layout->setMenuBar(menu_bar);
@@ -96,6 +99,9 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	menu_height = menu_bar->height();
 
 	gbe_plus = NULL;
+
+	//Set up settings dialog
+	settings = new gen_settings();
 }
 
 /****** Open game file ******/
@@ -276,3 +282,5 @@ void main_menu::screenshot()
 	}
 }
 
+/****** Shows the General settings dialog ******/
+void main_menu::show_settings() { settings->show(); }
