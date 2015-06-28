@@ -963,7 +963,7 @@ u32 AGB_LCD::alpha_blend()
 	if((last_bg_priority < 4) && (!lcd_stat.sfx_target[last_bg_priority][0])) { return final_color; }
 
 	//Determine which priority to start looking at to grab the 2nd target
-	u8 current_bg_priority = (last_bg_priority == 4) ? lcd_stat.bg_priority[last_obj_priority] : lcd_stat.bg_priority[last_bg_priority];
+	u8 current_bg_priority = (last_bg_priority == 4) ? last_obj_priority : lcd_stat.bg_priority[last_bg_priority];
 
 	//Grab next closest 2nd target, if any
 	for(int x = current_bg_priority; x < 4; x++)
