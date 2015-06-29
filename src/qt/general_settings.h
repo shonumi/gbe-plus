@@ -21,13 +21,16 @@ class gen_settings : public QDialog
 	public:
 	gen_settings(QWidget *parent = 0);
 
-	private:
 	QTabWidget* tabs;
 	QDialogButtonBox* tabs_button;
 
 	//General tab widgets
 	QComboBox* sys_type;
 	QCheckBox* bios;
+
+	//Display tab widgets
+	QComboBox* screen_scale;
+	QCheckBox* ogl;
 };
 
 #endif //SETTINGS_GBE_QT 

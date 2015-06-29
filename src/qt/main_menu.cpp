@@ -91,6 +91,9 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	connect(screenshot, SIGNAL(triggered()), this, SLOT(screenshot()));
 	connect(reset, SIGNAL(triggered()), this, SLOT(reset()));
 	connect(general, SIGNAL(triggered()), this, SLOT(show_settings()));
+	connect(display, SIGNAL(triggered()), this, SLOT(show_display_settings()));
+	connect(sound, SIGNAL(triggered()), this, SLOT(show_sound_settings()));
+	connect(controls, SIGNAL(triggered()), this, SLOT(show_control_settings()));
 
 	QVBoxLayout *layout = new QVBoxLayout;
 	layout->setMenuBar(menu_bar);
@@ -283,4 +286,13 @@ void main_menu::screenshot()
 }
 
 /****** Shows the General settings dialog ******/
-void main_menu::show_settings() { settings->show(); }
+void main_menu::show_settings() { settings->show(); settings->tabs->setCurrentIndex(0); }
+
+/****** Shows the Display settings dialog ******/
+void main_menu::show_display_settings() { settings->show(); settings->tabs->setCurrentIndex(1); }
+
+/****** Shows the Sound settings dialog ******/
+void main_menu::show_sound_settings() { settings->show(); settings->tabs->setCurrentIndex(2); }
+
+/****** Shows the Control settings dialog ******/
+void main_menu::show_control_settings() { settings->show(); settings->tabs->setCurrentIndex(3); }

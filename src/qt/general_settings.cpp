@@ -27,11 +27,10 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	tabs->addTab(sound, tr("Sound"));
 	tabs->addTab(controls, tr("Controls"));
 
-	tabs_button = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+	tabs_button = new QDialogButtonBox(QDialogButtonBox::Close);
 
 	//General settings - Emulated system type
 	QWidget* sys_type_set = new QWidget(general);
-
 	QLabel* sys_type_label = new QLabel("Emulated System Type : ", sys_type_set);
 	sys_type = new QComboBox(sys_type_set);
 	sys_type->addItem("Auto");
@@ -40,6 +39,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	sys_type->addItem("Game Boy Advance [GBA]");
 
 	QHBoxLayout* sys_type_layout = new QHBoxLayout;
+	sys_type_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	sys_type_layout->addWidget(sys_type_label);
 	sys_type_layout->addWidget(sys_type);
 	sys_type_set->setLayout(sys_type_layout);
@@ -60,6 +60,42 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	gen_layout->addWidget(sys_type_set);
 	gen_layout->addWidget(bios_set);
 	general->setLayout(gen_layout);
+
+
+	//Display settings - Screen scale
+	QWidget* screen_scale_set = new QWidget(display);
+	QLabel* screen_scale_label = new QLabel("Screen Scale : ");
+	screen_scale = new QComboBox(screen_scale_set);
+	screen_scale->addItem("1x");
+	screen_scale->addItem("2x");
+	screen_scale->addItem("3x");
+	screen_scale->addItem("4x");
+	screen_scale->addItem("5x");
+	screen_scale->addItem("6x");
+
+	QHBoxLayout* screen_scale_layout = new QHBoxLayout;
+	screen_scale_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	screen_scale_layout->addWidget(screen_scale_label);
+	screen_scale_layout->addWidget(screen_scale);
+	screen_scale_set->setLayout(screen_scale_layout);
+
+	
+	//Display settings - Use OpenGL
+	QWidget* ogl_set = new QWidget(display);
+	QLabel* ogl_label = new QLabel("Use OpenGL");
+	ogl = new QCheckBox(ogl_set);
+
+	QHBoxLayout* ogl_layout = new QHBoxLayout;
+	ogl_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	ogl_layout->addWidget(ogl);
+	ogl_layout->addWidget(ogl_label);
+	ogl_set->setLayout(ogl_layout);
+
+	QVBoxLayout* disp_layout = new QVBoxLayout;
+	disp_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	disp_layout->addWidget(screen_scale_set);
+	disp_layout->addWidget(ogl_set);
+	display->setLayout(disp_layout);
 
 	connect(tabs_button, SIGNAL(accepted()), this, SLOT(accept()));
 	connect(tabs_button, SIGNAL(rejected()), this, SLOT(reject()));

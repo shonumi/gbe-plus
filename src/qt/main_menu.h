@@ -37,6 +37,9 @@ class main_menu : public QWidget
 	void reset();
 	void quit();
 	void show_settings();
+	void show_display_settings();
+	void show_sound_settings();
+	void show_control_settings();
 
 	private:
 	core_emu* gbe_plus;
