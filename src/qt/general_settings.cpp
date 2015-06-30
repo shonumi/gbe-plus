@@ -61,7 +61,6 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	gen_layout->addWidget(bios_set);
 	general->setLayout(gen_layout);
 
-
 	//Display settings - Screen scale
 	QWidget* screen_scale_set = new QWidget(display);
 	QLabel* screen_scale_label = new QLabel("Screen Scale : ");
@@ -79,7 +78,6 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	screen_scale_layout->addWidget(screen_scale);
 	screen_scale_set->setLayout(screen_scale_layout);
 
-	
 	//Display settings - Use OpenGL
 	QWidget* ogl_set = new QWidget(display);
 	QLabel* ogl_label = new QLabel("Use OpenGL");
@@ -96,6 +94,38 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	disp_layout->addWidget(screen_scale_set);
 	disp_layout->addWidget(ogl_set);
 	display->setLayout(disp_layout);
+
+	//Sound settings - Output frequency
+	QWidget* freq_set = new QWidget(sound);
+	QLabel* freq_label = new QLabel("Output Frequency : ");
+	freq = new QComboBox(freq_set);
+	freq->addItem("48000Hz");
+	freq->addItem("44100Hz");
+	freq->addItem("22050Hz");
+	freq->addItem("11025Hz");
+
+	QHBoxLayout* freq_layout = new QHBoxLayout;
+	freq_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	freq_layout->addWidget(freq_label);
+	freq_layout->addWidget(freq);
+	freq_set->setLayout(freq_layout);
+
+	//Sound settings - Sound on/off
+	QWidget* sound_on_set = new QWidget(sound);
+	QLabel* sound_on_label = new QLabel("Enable Sound");
+	sound_on = new QCheckBox(sound_on_set);
+
+	QHBoxLayout* sound_on_layout = new QHBoxLayout;
+	sound_on_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	sound_on_layout->addWidget(sound_on);
+	sound_on_layout->addWidget(sound_on_label);
+	sound_on_set->setLayout(sound_on_layout);
+
+	QVBoxLayout* audio_layout = new QVBoxLayout;
+	audio_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	audio_layout->addWidget(freq_set);
+	audio_layout->addWidget(sound_on_set);
+	sound->setLayout(audio_layout);
 
 	connect(tabs_button, SIGNAL(accepted()), this, SLOT(accept()));
 	connect(tabs_button, SIGNAL(rejected()), this, SLOT(reject()));

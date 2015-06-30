@@ -31,6 +31,10 @@ class gen_settings : public QDialog
 	//Display tab widgets
 	QComboBox* screen_scale;
 	QCheckBox* ogl;
+
+	//Sound tab widgets
+	QComboBox* freq;
+	QCheckBox* sound_on;
 };
 
 #endif //SETTINGS_GBE_QT 
