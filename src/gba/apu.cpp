@@ -37,7 +37,7 @@ void AGB_APU::reset()
 	apu_stat.sample_rate = 44100.0;
 	apu_stat.main_volume = 4;
 
-	apu_stat.channel_master_volume = 128;
+	apu_stat.channel_master_volume = config::volume;
 	apu_stat.channel_left_volume = 0.0;
 	apu_stat.channel_right_volume = 0.0;
 
@@ -97,7 +97,7 @@ void AGB_APU::reset()
 		apu_stat.dma[x].counter = 0;
 		apu_stat.dma[x].length = 0;
 		apu_stat.dma[x].timer = 0;
-		apu_stat.dma[x].master_volume = 128;
+		apu_stat.dma[x].master_volume = config::volume;
 
 		apu_stat.dma[x].playing = false;
 		apu_stat.dma[x].enable = false;
@@ -141,6 +141,10 @@ bool AGB_APU::init()
 
 	else
 	{
+		apu_stat.channel_master_volume = config::volume;
+		apu_stat.dma[0].master_volume = config::volume;
+		apu_stat.dma[1].master_volume = config::volume;
+
 		SDL_PauseAudio(0);
 		std::cout<<"APU::Initialized\n";
 		return true;

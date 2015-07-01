@@ -65,6 +65,8 @@ namespace config
 	//0 - DMG, 1 - DMG on GBC, 2 - GBC, 3 - GBA, 4 - NDS????
 	u8 gb_type = 0;
 
+	u8 volume = 32;
+
 	bool sdl_render = true;
 
 	void (*render_external)(std::vector<u32>&);
@@ -326,6 +328,25 @@ bool parse_ini_file()
 			else 
 			{
 				std::cout<<"GBE::Error - Could not parse gbe.ini (#dead_zone) \n";
+				return false;
+			}
+		}
+
+		//Volume settings
+		else if(ini_item == "#volume")
+		{
+			if((x + 1) < size)
+			{
+				ini_item = ini_opts[++x];
+				std::stringstream temp_stream(ini_item);
+				temp_stream >> output;
+
+				if((output >= 0) && (output <= 128)) { config::volume = output; }
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#volume) \n";
 				return false;
 			}
 		}
@@ -619,6 +640,7 @@ bool parse_ini_file()
 				temp_stream.clear();
 				temp_stream.str(std::string());
 			}
+
 
 			else 
 			{

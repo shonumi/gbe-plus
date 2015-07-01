@@ -1122,14 +1122,14 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 
 			switch(memory_map[SNDCNT_H] & 0x3)
 			{
-				case 0x0: apu_stat->channel_master_volume = 8; break;
-				case 0x1: apu_stat->channel_master_volume = 16; break;
-				case 0x2: apu_stat->channel_master_volume = 32; break;
+				case 0x0: apu_stat->channel_master_volume = (config::volume >> 4); break;
+				case 0x1: apu_stat->channel_master_volume = (config::volume >> 3); break;
+				case 0x2: apu_stat->channel_master_volume = (config::volume >> 2); break;
 				case 0x3: std::cout<<"MMU::Setting prohibited Sound Channel master volume - 0x3\n"; break;
 			}
 
-			apu_stat->dma[0].master_volume = (memory_map[SNDCNT_H] & 0x4) ? 128 : 64;
-			apu_stat->dma[1].master_volume = (memory_map[SNDCNT_H] & 0x8) ? 128 : 64;
+			apu_stat->dma[0].master_volume = (memory_map[SNDCNT_H] & 0x4) ? config::volume : (config::volume >> 1);
+			apu_stat->dma[1].master_volume = (memory_map[SNDCNT_H] & 0x8) ? config::volume : (config::volume >> 1);
 
 			apu_stat->dma[0].right_enable = (memory_map[SNDCNT_H+1] & 0x1) ? true : false;
 			apu_stat->dma[0].left_enable = (memory_map[SNDCNT_H+1] & 0x2) ? true : false;
