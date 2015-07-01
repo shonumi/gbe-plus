@@ -121,10 +121,25 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	sound_on_layout->addWidget(sound_on_label);
 	sound_on_set->setLayout(sound_on_layout);
 
+	//Sound settings - Volume
+	QWidget* volume_set = new QWidget(sound);
+	QLabel* volume_label = new QLabel("Volume : ");
+	volume = new QSlider(sound);
+	volume->setMaximum(128);
+	volume->setMinimum(0);
+	volume->setOrientation(Qt::Horizontal);
+
+	QHBoxLayout* volume_layout = new QHBoxLayout;
+	volume_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	volume_layout->addWidget(volume_label);
+	volume_layout->addWidget(volume);
+	volume_set->setLayout(volume_layout);
+
 	QVBoxLayout* audio_layout = new QVBoxLayout;
 	audio_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	audio_layout->addWidget(freq_set);
 	audio_layout->addWidget(sound_on_set);
+	audio_layout->addWidget(volume_set);
 	sound->setLayout(audio_layout);
 
 	connect(tabs_button, SIGNAL(accepted()), this, SLOT(accept()));

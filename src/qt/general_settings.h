@@ -34,6 +34,7 @@ class gen_settings : public QDialog
 
 	//Sound tab widgets
 	QComboBox* freq;
+	QSlider* volume;
 	QCheckBox* sound_on;
 };
 
