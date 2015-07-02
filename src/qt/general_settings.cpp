@@ -9,7 +9,14 @@
 // Dialog for various options
 // Deals with Graphics, Audio, Input, Paths, etc
 
+#include <iostream>
+
 #include "general_settings.h"
+#include "main_menu.h"
+
+#include "common/config.h"
+
+core_emu* main_menu::gbe_plus = NULL;
 
 /****** General settings constructor ******/
 gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
@@ -127,6 +134,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	volume = new QSlider(sound);
 	volume->setMaximum(128);
 	volume->setMinimum(0);
+	volume->setValue(128);
 	volume->setOrientation(Qt::Horizontal);
 
 	QHBoxLayout* volume_layout = new QHBoxLayout;
@@ -144,6 +152,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 
 	connect(tabs_button, SIGNAL(accepted()), this, SLOT(accept()));
 	connect(tabs_button, SIGNAL(rejected()), this, SLOT(reject()));
+	connect(volume, SIGNAL(valueChanged(int)), this, SLOT(volume_change()));
 
 	QVBoxLayout* main_layout = new QVBoxLayout;
 	main_layout->addWidget(tabs);
@@ -153,4 +162,9 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 
 	resize(450, 450);
 	setWindowTitle(tr("GBE+ Settings"));
+}
+
+void gen_settings::volume_change() 
+{
+	main_menu::gbe_plus->update_volume(volume->value());
 }

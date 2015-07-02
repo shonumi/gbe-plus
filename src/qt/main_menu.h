@@ -25,6 +25,7 @@ class main_menu : public QWidget
 	
 	public:
 	main_menu(QWidget *parent = 0);
+	static core_emu* gbe_plus;
 
 	protected:
 	void paintEvent(QPaintEvent *event);
@@ -42,7 +43,6 @@ class main_menu : public QWidget
 	void show_control_settings();
 
 	private:
-	core_emu* gbe_plus;
 	gen_settings* settings;
 
 	int menu_height;

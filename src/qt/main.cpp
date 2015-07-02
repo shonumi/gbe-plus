@@ -15,7 +15,7 @@ int main(int argc, char* args[])
 	QApplication::setAttribute(Qt::AA_X11InitThreads);
 	QApplication app(argc, args);
 
-	//Initialize SDL subsystems - Do not initialize audio/video
+	//Initialize SDL subsystems
 	SDL_Init(SDL_INIT_EVERYTHING);
 
 	main_menu window;

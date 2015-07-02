@@ -36,6 +36,9 @@ class gen_settings : public QDialog
 	QComboBox* freq;
 	QSlider* volume;
 	QCheckBox* sound_on;
+
+	private slots:
+	void volume_change();
 };
 
 #endif //SETTINGS_GBE_QT 

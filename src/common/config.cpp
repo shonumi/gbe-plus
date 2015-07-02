@@ -65,7 +65,7 @@ namespace config
 	//0 - DMG, 1 - DMG on GBC, 2 - GBC, 3 - GBA, 4 - NDS????
 	u8 gb_type = 0;
 
-	u8 volume = 32;
+	u8 volume = 128;
 
 	bool sdl_render = true;
 

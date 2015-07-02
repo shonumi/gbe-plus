@@ -596,6 +596,24 @@ void AGB_core::handle_hotkey(SDL_Event& event)
 	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F8)) { reset(); }
 }
 
+/****** Updates the core's volume ******/
+void AGB_core::update_volume(u8 volume)
+{
+	config::volume = volume;
+	u8 sound_control = core_mmu.memory_map[SNDCNT_H];
+
+	switch(sound_control & 0x3)
+	{
+		case 0x0: core_cpu.controllers.audio.apu_stat.channel_master_volume = (config::volume >> 4); break;
+		case 0x1: core_cpu.controllers.audio.apu_stat.channel_master_volume = (config::volume >> 3); break;
+		case 0x2: core_cpu.controllers.audio.apu_stat.channel_master_volume = (config::volume >> 2); break;
+		case 0x3: std::cout<<"MMU::Setting prohibited Sound Channel master volume - 0x3\n"; break;
+	}
+
+	core_cpu.controllers.audio.apu_stat.dma[0].master_volume = (sound_control & 0x4) ? config::volume : (config::volume >> 1);
+	core_cpu.controllers.audio.apu_stat.dma[1].master_volume = (sound_control & 0x8) ? config::volume : (config::volume >> 1);
+}
+
 /****** Read binary file to memory ******/
 bool AGB_core::read_file(std::string filename) { return core_mmu.read_file(filename); }
 

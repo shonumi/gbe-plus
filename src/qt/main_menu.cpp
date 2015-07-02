@@ -101,7 +101,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 
 	menu_height = menu_bar->height();
 
-	gbe_plus = NULL;
+	main_menu::gbe_plus = NULL;
 
 	//Set up settings dialog
 	settings = new gen_settings();
@@ -135,10 +135,10 @@ void main_menu::open_file()
 	qt_gui::screen = NULL;
 
 	//Close the core
-	if(gbe_plus != NULL) 
+	if(main_menu::gbe_plus != NULL) 
 	{
-		gbe_plus->shutdown();
-		gbe_plus->core_emu::~core_emu();
+		main_menu::gbe_plus->shutdown();
+		main_menu::gbe_plus->core_emu::~core_emu();
 	}
 
 	boot_game();
@@ -148,10 +148,10 @@ void main_menu::open_file()
 void main_menu::quit()
 {
 	//Close the core
-	if(gbe_plus != NULL) 
+	if(main_menu::gbe_plus != NULL) 
 	{
-		gbe_plus->shutdown();
-		gbe_plus->core_emu::~core_emu();
+		main_menu::gbe_plus->shutdown();
+		main_menu::gbe_plus->core_emu::~core_emu();
 	}
 
 	//Close SDL
@@ -167,14 +167,14 @@ void main_menu::boot_game()
 	//Start the appropiate system core - DMG/GBC or GBA
 	if(config::gb_type == 3) 
 	{ 
-		gbe_plus = new AGB_core();
+		main_menu::gbe_plus = new AGB_core();
 		resize(480, 320+menu_height);
 		qt_gui::screen = new QImage(240, 160, QImage::Format_ARGB32);
 	}
 
 	else 
 	{ 
-		gbe_plus = new DMG_core();
+		main_menu::gbe_plus = new DMG_core();
 		resize(320, 288+menu_height);
 		qt_gui::screen = new QImage(160, 144, QImage::Format_ARGB32);
 	}
@@ -183,7 +183,7 @@ void main_menu::boot_game()
 	parse_ini_file();
 
 	//Read specified ROM file
-	if(!gbe_plus->read_file(config::rom_file)) { return; }
+	if(!main_menu::gbe_plus->read_file(config::rom_file)) { return; }
 	
 	//Read BIOS file optionally
 	if(config::use_bios) 
@@ -199,17 +199,17 @@ void main_menu::boot_game()
 			}
 		}
 
-		if(!gbe_plus->read_bios(config::bios_file)) { return; } 
+		if(!main_menu::gbe_plus->read_bios(config::bios_file)) { return; } 
 	}
 
 	//Engage the core
-	gbe_plus->start();
-	gbe_plus->db_unit.debug_mode = config::use_debugger;
+	main_menu::gbe_plus->start();
+	main_menu::gbe_plus->db_unit.debug_mode = config::use_debugger;
 
-	if(gbe_plus->db_unit.debug_mode) { SDL_CloseAudio(); }
+	if(main_menu::gbe_plus->db_unit.debug_mode) { SDL_CloseAudio(); }
 
 	//Actually run the core
-	gbe_plus->run_core();
+	main_menu::gbe_plus->run_core();
 }
 
 /****** Updates the main window ******/
@@ -234,10 +234,10 @@ void main_menu::paintEvent(QPaintEvent *e)
 void main_menu::closeEvent(QCloseEvent *e)
 {
 	//Close the core
-	if(gbe_plus != NULL) 
+	if(main_menu::gbe_plus != NULL) 
 	{
-		gbe_plus->shutdown();
-		gbe_plus->core_emu::~core_emu();
+		main_menu::gbe_plus->shutdown();
+		main_menu::gbe_plus->core_emu::~core_emu();
 	}
 
 	//Close SDL
@@ -253,10 +253,10 @@ void main_menu::pause() { }
 /****** Resets emulation ******/
 void main_menu::reset()
 {
-	if(gbe_plus != NULL) 
+	if(main_menu::gbe_plus != NULL) 
 	{
-		gbe_plus->shutdown();
-		gbe_plus->core_emu::~core_emu();
+		main_menu::gbe_plus->shutdown();
+		main_menu::gbe_plus->core_emu::~core_emu();
 		boot_game();
 	}
 }	
@@ -264,7 +264,7 @@ void main_menu::reset()
 /****** Takes screenshot ******/
 void main_menu::screenshot()
 {
-	if(gbe_plus != NULL)
+	if(main_menu::gbe_plus != NULL)
 	{
 		std::stringstream save_stream;
 		std::string save_name = "";

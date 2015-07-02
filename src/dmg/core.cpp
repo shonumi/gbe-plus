@@ -544,6 +544,13 @@ void DMG_core::handle_hotkey(SDL_Event& event)
 	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F8)) { reset(); }
 }
 
+/****** Updates the core's volume ******/
+void DMG_core::update_volume(u8 volume)
+{
+	config::volume = volume;
+	core_cpu.controllers.audio.apu_stat.channel_master_volume = config::volume;
+}
+
 /****** Read binary file to memory ******/
 bool DMG_core::read_file(std::string filename) { return core_mmu.read_file(filename); }
 
