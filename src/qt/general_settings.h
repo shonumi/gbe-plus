@@ -39,6 +39,7 @@ class gen_settings : public QDialog
 
 	private slots:
 	void volume_change();
+	void mute();
 };
 
 #endif //SETTINGS_GBE_QT 

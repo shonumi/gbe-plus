@@ -121,6 +121,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	QWidget* sound_on_set = new QWidget(sound);
 	QLabel* sound_on_label = new QLabel("Enable Sound");
 	sound_on = new QCheckBox(sound_on_set);
+	sound_on->setChecked(true);
 
 	QHBoxLayout* sound_on_layout = new QHBoxLayout;
 	sound_on_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -153,6 +154,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(tabs_button, SIGNAL(accepted()), this, SLOT(accept()));
 	connect(tabs_button, SIGNAL(rejected()), this, SLOT(reject()));
 	connect(volume, SIGNAL(valueChanged(int)), this, SLOT(volume_change()));
+	connect(sound_on, SIGNAL(stateChanged(int)), this, SLOT(mute()));
 
 	QVBoxLayout* main_layout = new QVBoxLayout;
 	main_layout->addWidget(tabs);
@@ -164,7 +166,29 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	setWindowTitle(tr("GBE+ Settings"));
 }
 
+/****** Dynamically changes the core's volume ******/
 void gen_settings::volume_change() 
 {
-	main_menu::gbe_plus->update_volume(volume->value());
+	if((main_menu::gbe_plus != NULL) && (sound_on->isChecked()))
+	{
+		main_menu::gbe_plus->update_volume(volume->value());
+	}
 }
+
+/****** Mutes the core's volume ******/
+void gen_settings::mute()
+{
+	if(main_menu::gbe_plus != NULL)
+	{
+		//Unmute, use slider volume
+		if(sound_on->isChecked()) { main_menu::gbe_plus->update_volume(volume->value()); }
+
+		//Mute
+		else { main_menu::gbe_plus->update_volume(0); }
+	}
+}
+
+
+
+
+
