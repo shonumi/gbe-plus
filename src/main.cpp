@@ -16,6 +16,9 @@ int main(int argc, char* args[])
 {
 	core_emu* gbe_plus = NULL;
 
+	//Start SDL from the main thread now, report specific init errors later in the core
+	SDL_Init(SDL_INIT_VIDEO);
+
 	//Grab command-line arguments
 	for(int x = 0; x++ < argc - 1;) 
 	{ 
@@ -23,10 +26,6 @@ int main(int argc, char* args[])
 		config::cli_args.push_back(temp_arg);
 		parse_filenames();
 	}
-	
-	//Start the appropiate system core - DMG/GBC or GBA
-	if(config::gb_type == 3) { gbe_plus = new AGB_core(); }
-	else { gbe_plus = new DMG_core(); }
 
 	//Parse .ini options
 	if(!parse_ini_file()) { return 0; }
@@ -34,6 +33,10 @@ int main(int argc, char* args[])
 	//Parse command-line arguments
 	//These will override .ini options!
 	if(!parse_cli_args()) { return 0; }
+
+	//Start the appropiate system core - DMG/GBC or GBA
+	if(config::gb_type == 3) { gbe_plus = new AGB_core(); }
+	else { gbe_plus = new DMG_core(); }
 
 	//Read specified ROM file
 	if(!gbe_plus->read_file(config::rom_file)) { return 0; }
