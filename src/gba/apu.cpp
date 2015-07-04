@@ -34,7 +34,7 @@ void AGB_APU::reset()
 	apu_stat.sound_on = false;
 	apu_stat.stereo = false;
 
-	apu_stat.sample_rate = 44100.0;
+	apu_stat.sample_rate = config::sample_rate;
 	apu_stat.main_volume = 4;
 
 	apu_stat.channel_master_volume = config::volume;

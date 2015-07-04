@@ -65,7 +65,9 @@ namespace config
 	//0 - DMG, 1 - DMG on GBC, 2 - GBC, 3 - GBA, 4 - NDS????
 	u8 gb_type = 0;
 
+	//Sound parameters
 	u8 volume = 128;
+	double sample_rate = 44100;
 
 	bool sdl_render = true;
 
@@ -347,6 +349,25 @@ bool parse_ini_file()
 			else 
 			{
 				std::cout<<"GBE::Error - Could not parse gbe.ini (#volume) \n";
+				return false;
+			}
+		}
+
+		//Sample rate
+		else if(ini_item == "#sample_rate")
+		{
+			if((x + 1) < size)
+			{
+				ini_item = ini_opts[++x];
+				std::stringstream temp_stream(ini_item);
+				temp_stream >> output;
+
+				if((output >= 1) && (output <= 48000)) { config::sample_rate = (double)output; }
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#sample_rate) \n";
 				return false;
 			}
 		}
