@@ -103,6 +103,9 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 
 	main_menu::gbe_plus = NULL;
 
+	//Parse .ini options
+	parse_ini_file();
+
 	//Set up settings dialog
 	settings = new gen_settings();
 }
@@ -130,6 +133,7 @@ void main_menu::open_file()
 
 	config::sdl_render = false;
 	config::render_external = render_screen;
+	config::sample_rate = settings->sample_rate;
 
 	if(qt_gui::screen != NULL) { delete qt_gui::screen; }
 	qt_gui::screen = NULL;
@@ -164,6 +168,8 @@ void main_menu::quit()
 /****** Boots and starts emulation ******/
 void main_menu::boot_game()
 {
+	config::sample_rate = settings->sample_rate;
+
 	//Start the appropiate system core - DMG/GBC or GBA
 	if(config::gb_type == 3) 
 	{ 
@@ -178,9 +184,6 @@ void main_menu::boot_game()
 		resize(320, 288+menu_height);
 		qt_gui::screen = new QImage(160, 144, QImage::Format_ARGB32);
 	}
-
-	//Parse .ini options
-	parse_ini_file();
 
 	//Read specified ROM file
 	if(!main_menu::gbe_plus->read_file(config::rom_file)) { return; }

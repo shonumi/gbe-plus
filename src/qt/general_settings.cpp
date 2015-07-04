@@ -108,8 +108,9 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	freq = new QComboBox(freq_set);
 	freq->addItem("48000Hz");
 	freq->addItem("44100Hz");
-	freq->addItem("22050Hz");
-	freq->addItem("11025Hz");
+	freq->addItem("20500Hz");
+	freq->addItem("10250Hz");
+	freq->setCurrentIndex(1);
 
 	QHBoxLayout* freq_layout = new QHBoxLayout;
 	freq_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -154,6 +155,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(tabs_button, SIGNAL(accepted()), this, SLOT(accept()));
 	connect(tabs_button, SIGNAL(rejected()), this, SLOT(reject()));
 	connect(volume, SIGNAL(valueChanged(int)), this, SLOT(volume_change()));
+	connect(freq, SIGNAL(currentIndexChanged(int)), this, SLOT(sample_rate_change()));
 	connect(sound_on, SIGNAL(stateChanged(int)), this, SLOT(mute()));
 
 	QVBoxLayout* main_layout = new QVBoxLayout;
@@ -161,6 +163,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	main_layout->addWidget(tabs_button);
 	setLayout(main_layout);
 
+	sample_rate = config::sample_rate;
 
 	resize(450, 450);
 	setWindowTitle(tr("GBE+ Settings"));
@@ -188,7 +191,16 @@ void gen_settings::mute()
 	}
 }
 
-
-
+/****** Changes the core's sample rate ******/
+void gen_settings::sample_rate_change()
+{
+	switch(freq->currentIndex())
+	{
+		case 0: sample_rate = 48000.0; break;
+		case 1: sample_rate = 41000.0; break;
+		case 2: sample_rate = 20500.0; break;
+		case 3: sample_rate = 10250.0; break;
+	}
+}
 
 

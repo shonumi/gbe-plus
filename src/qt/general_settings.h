@@ -37,8 +37,11 @@ class gen_settings : public QDialog
 	QSlider* volume;
 	QCheckBox* sound_on;
 
+	double sample_rate;
+
 	private slots:
 	void volume_change();
+	void sample_rate_change();
 	void mute();
 };
 
