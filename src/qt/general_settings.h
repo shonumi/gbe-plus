@@ -38,8 +38,10 @@ class gen_settings : public QDialog
 	QCheckBox* sound_on;
 
 	double sample_rate;
+	bool resize_screen;
 
 	private slots:
+	void screen_scale_change();
 	void volume_change();
 	void sample_rate_change();
 	void mute();

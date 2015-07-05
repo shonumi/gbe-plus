@@ -102,6 +102,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	menu_height = menu_bar->height();
 
 	main_menu::gbe_plus = NULL;
+	config::scaling_factor = 2;
 
 	//Parse .ini options
 	parse_ini_file();
@@ -172,16 +173,22 @@ void main_menu::boot_game()
 
 	//Start the appropiate system core - DMG/GBC or GBA
 	if(config::gb_type == 3) 
-	{ 
+	{
+		base_width = 240;
+		base_height = 160;
+
 		main_menu::gbe_plus = new AGB_core();
-		resize(480, 320+menu_height);
+		resize((base_width * config::scaling_factor), (base_height * config::scaling_factor) + menu_height);
 		qt_gui::screen = new QImage(240, 160, QImage::Format_ARGB32);
 	}
 
 	else 
-	{ 
+	{
+		base_width = 160;
+		base_height = 144;
+
 		main_menu::gbe_plus = new DMG_core();
-		resize(320, 288+menu_height);
+		resize((base_width * config::scaling_factor), (base_height * config::scaling_factor) + menu_height);
 		qt_gui::screen = new QImage(160, 144, QImage::Format_ARGB32);
 	}
 
@@ -227,6 +234,13 @@ void main_menu::paintEvent(QPaintEvent *e)
 
 	else
 	{
+		//Check for resize
+		if(settings->resize_screen)
+		{
+			resize((base_width * config::scaling_factor), (base_height * config::scaling_factor) + menu_height);
+			settings->resize_screen = false;
+		}
+
 		QImage final_screen = qt_gui::screen->scaled(width(), height()-menu_height);
 		QPainter painter(this);
 		painter.drawImage(0, menu_height, final_screen);

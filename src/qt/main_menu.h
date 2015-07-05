@@ -46,6 +46,8 @@ class main_menu : public QWidget
 	gen_settings* settings;
 
 	int menu_height;
+	u32 base_width;
+	u32 base_height;
 
 	void boot_game();
 };
