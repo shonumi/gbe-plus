@@ -124,14 +124,6 @@ void main_menu::open_file()
 	config::rom_file = filename.toStdString();
 	config::save_file = config::rom_file + ".sav";
 
-	//Determine Gameboy type based on file name
-	//Note, DMG and GBC games are automatically detected in the Gameboy MMU, so only check for GBA types here
-	std::size_t dot = config::rom_file.find_last_of(".");
-	std::string ext = config::rom_file.substr(dot);
-
-	if(ext == ".gba") { config::gb_type = 3; }
-	else { config::gb_type = 0; }
-
 	config::sdl_render = false;
 	config::render_external = render_screen;
 	config::sample_rate = settings->sample_rate;
@@ -170,6 +162,16 @@ void main_menu::quit()
 void main_menu::boot_game()
 {
 	config::sample_rate = settings->sample_rate;
+
+	//Determine Gameboy type based on file name
+	//Note, DMG and GBC games are automatically detected in the Gameboy MMU, so only check for GBA types here
+	std::size_t dot = config::rom_file.find_last_of(".");
+	std::string ext = config::rom_file.substr(dot);
+
+	config::gb_type = settings->sys_type->currentIndex();
+	
+	if(ext == ".gba") { config::gb_type = 3; }
+	else if((ext != ".gba") && (config::gb_type == 3)) { config::gb_type = 2; }
 
 	//Start the appropiate system core - DMG/GBC or GBA
 	if(config::gb_type == 3) 
