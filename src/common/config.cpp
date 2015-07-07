@@ -85,6 +85,17 @@ namespace config
 	};
 }
 
+/****** Validates emulated system type ******/
+void validate_system_type()
+{
+	std::size_t dot = config::rom_file.find_last_of(".");
+	std::string ext = config::rom_file.substr(dot);
+
+	//Force GBC mode if system type is set to GBA, but a GB/GBC game is loaded
+	//TODO - Emulate the GBA's GBC functionality (stretching with L/R)
+	if((ext != ".gba") && (config::gb_type == 3)) { config::gb_type = 2; }
+}
+
 /****** Parse arguments passed from the command-line ******/
 bool parse_cli_args()
 {
@@ -157,7 +168,11 @@ void parse_filenames()
 	std::string ext = config::rom_file.substr(dot);
 
 	if(ext == ".gba") { config::gb_type = 3; }
-} 
+
+	//Force GBC mode if system type is set to GBA, but a GB/GBC game is loaded
+	//TODO - Emulate the GBA's GBC functionality (stretching with L/R)
+	else if((ext != ".gba") && (config::gb_type == 3)) { config::gb_type = 2; }
+}
 
 /****** Parse optins from the .ini file ******/
 bool parse_ini_file()
@@ -237,6 +252,29 @@ bool parse_ini_file()
 			else 
 			{ 
 				std::cout<<"GBE::Error - Could not parse gbe.ini (#use_bios) \n";
+				return false;
+			}
+		}
+
+		//Set emulated system type
+		else if(ini_item == "#system_type")
+		{
+			if((x + 1) < size) 
+			{
+				ini_item = ini_opts[++x];
+				std::stringstream temp_stream(ini_item);
+				temp_stream >> output;
+
+				if((output >= 0) && (output <= 3)) 
+				{
+					config::gb_type = output;
+					validate_system_type();
+				}
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#system_type) \n";
 				return false;
 			}
 		}

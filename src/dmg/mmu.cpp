@@ -1152,9 +1152,12 @@ bool DMG_MMU::read_file(std::string filename)
 	//Only necessary for Auto system detection.
 	//For now, even if forcing GBC, when encountering DMG carts, revert to DMG mode, dunno how the palettes work yet
 	//When using the DMG bootrom or GBC BIOS, those files determine emulated system type later
-	if(memory_map[ROM_COLOR] == 0) { config::gb_type = 1; }
-	else if(memory_map[ROM_COLOR] == 0x80) { config::gb_type = 2; }
-	else if(memory_map[ROM_COLOR] == 0xC0) { config::gb_type = 2; }
+	if(config::gb_type == 0)
+	{
+		if(memory_map[ROM_COLOR] == 0) { config::gb_type = 1; }
+		else if(memory_map[ROM_COLOR] == 0x80) { config::gb_type = 2; }
+		else if(memory_map[ROM_COLOR] == 0xC0) { config::gb_type = 2; }
+	}
 
 	//Load backup save data if applicable
         load_backup(config::save_file);
