@@ -28,11 +28,13 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	QDialog* display = new QDialog;
 	QDialog* sound = new QDialog;
 	QDialog* controls = new QDialog;
+	QDialog* paths = new QDialog;
 
 	tabs->addTab(general, tr("General"));
 	tabs->addTab(display, tr("Display"));
 	tabs->addTab(sound, tr("Sound"));
 	tabs->addTab(controls, tr("Controls"));
+	tabs->addTab(paths, tr("Paths"));
 
 	tabs_button = new QDialogButtonBox(QDialogButtonBox::Close);
 
@@ -152,6 +154,56 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	audio_layout->addWidget(volume_set);
 	sound->setLayout(audio_layout);
 
+	//Path settings - DMG BIOS
+	QWidget* dmg_bios_set = new QWidget(paths);
+	dmg_bios_label = new QLabel("DMG Boot ROM :  ");
+	QPushButton* dmg_bios_button = new QPushButton("Browse");
+	dmg_bios = new QLineEdit(paths);
+	dmg_bios->setReadOnly(true);
+
+	QHBoxLayout* dmg_bios_layout = new QHBoxLayout;
+	dmg_bios_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	dmg_bios_layout->addWidget(dmg_bios_label);
+	dmg_bios_layout->addWidget(dmg_bios);
+	dmg_bios_layout->addWidget(dmg_bios_button);
+	dmg_bios_set->setLayout(dmg_bios_layout);
+	dmg_bios_label->resize(50, dmg_bios_label->height());
+
+	//Path settings - GBC BIOS
+	QWidget* gbc_bios_set = new QWidget(paths);
+	gbc_bios_label = new QLabel("GBC Boot ROM :  ");
+	QPushButton* gbc_bios_button = new QPushButton("Browse");
+	gbc_bios = new QLineEdit(paths);
+	gbc_bios->setReadOnly(true);
+
+	QHBoxLayout* gbc_bios_layout = new QHBoxLayout;
+	gbc_bios_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	gbc_bios_layout->addWidget(gbc_bios_label);
+	gbc_bios_layout->addWidget(gbc_bios);
+	gbc_bios_layout->addWidget(gbc_bios_button);
+	gbc_bios_set->setLayout(gbc_bios_layout);
+
+	//Path settings - GBA BIOS
+	QWidget* gba_bios_set = new QWidget(paths);
+	gba_bios_label = new QLabel("GBA BIOS :  ");
+	QPushButton* gba_bios_button = new QPushButton("Browse");
+	gba_bios = new QLineEdit(paths);
+	gba_bios->setReadOnly(true);
+
+	QHBoxLayout* gba_bios_layout = new QHBoxLayout;
+	gba_bios_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	gba_bios_layout->addWidget(gba_bios_label);
+	gba_bios_layout->addWidget(gba_bios);
+	gba_bios_layout->addWidget(gba_bios_button);
+	gba_bios_set->setLayout(gba_bios_layout);
+
+	QVBoxLayout* paths_layout = new QVBoxLayout;
+	paths_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	paths_layout->addWidget(dmg_bios_set);
+	paths_layout->addWidget(gbc_bios_set);
+	paths_layout->addWidget(gba_bios_set);
+	paths->setLayout(paths_layout);
+
 	connect(tabs_button, SIGNAL(accepted()), this, SLOT(accept()));
 	connect(tabs_button, SIGNAL(rejected()), this, SLOT(reject()));
 	connect(screen_scale, SIGNAL(currentIndexChanged(int)), this, SLOT(screen_scale_change()));
@@ -159,6 +211,18 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(freq, SIGNAL(currentIndexChanged(int)), this, SLOT(sample_rate_change()));
 	connect(sound_on, SIGNAL(stateChanged(int)), this, SLOT(mute()));
 
+
+	QSignalMapper* paths_mapper = new QSignalMapper(this);
+	connect(dmg_bios_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
+	connect(gbc_bios_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
+	connect(gba_bios_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
+
+	paths_mapper->setMapping(dmg_bios_button, 0);
+	paths_mapper->setMapping(gbc_bios_button, 1);
+	paths_mapper->setMapping(gba_bios_button, 2);
+	connect(paths_mapper, SIGNAL(mapped(int)), this, SLOT(set_paths(int))) ;
+
+	//Final tab layout
 	QVBoxLayout* main_layout = new QVBoxLayout;
 	main_layout->addWidget(tabs);
 	main_layout->addWidget(tabs_button);
@@ -212,4 +276,35 @@ void gen_settings::sample_rate_change()
 	}
 }
 
+/****** Sets a path via file browser ******/
+void gen_settings::set_paths(int index)
+{
+	QString filename = QFileDialog::getOpenFileName(this, tr("Open"), "", tr("All files (*)"));
+	if(filename.isNull()) { return; }
+
+	switch(index)
+	{
+		case 0: 
+			config::dmg_bios_path = filename.toStdString();
+			dmg_bios->setText(filename);
+			break;
+
+		case 1:
+			config::gbc_bios_path = filename.toStdString();
+			gbc_bios->setText(filename);
+			break;
+
+		case 2:
+			config::agb_bios_path = filename.toStdString();
+			gba_bios->setText(filename);
+			break;
+	}
+}
+
+/****** Updates the settings window ******/
+void gen_settings::paintEvent(QPaintEvent *e)
+{
+	gbc_bios_label->setMinimumWidth(dmg_bios_label->width());
+	gba_bios_label->setMinimumWidth(dmg_bios_label->width());
+}
 

@@ -40,11 +40,24 @@ class gen_settings : public QDialog
 	double sample_rate;
 	bool resize_screen;
 
+	//Paths tab widgets
+	QLineEdit* dmg_bios;
+	QLineEdit* gbc_bios;
+	QLineEdit* gba_bios;
+
+	QLabel* dmg_bios_label;
+	QLabel* gbc_bios_label;
+	QLabel* gba_bios_label;
+
+	protected:
+	void paintEvent(QPaintEvent *event);
+
 	private slots:
 	void screen_scale_change();
 	void volume_change();
 	void sample_rate_change();
 	void mute();
+	void set_paths(int index);
 };
 
 #endif //SETTINGS_GBE_QT 
