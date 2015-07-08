@@ -206,11 +206,11 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 
 	connect(tabs_button, SIGNAL(accepted()), this, SLOT(accept()));
 	connect(tabs_button, SIGNAL(rejected()), this, SLOT(reject()));
+	connect(bios, SIGNAL(stateChanged(int)), this, SLOT(set_bios()));
 	connect(screen_scale, SIGNAL(currentIndexChanged(int)), this, SLOT(screen_scale_change()));
 	connect(volume, SIGNAL(valueChanged(int)), this, SLOT(volume_change()));
 	connect(freq, SIGNAL(currentIndexChanged(int)), this, SLOT(sample_rate_change()));
 	connect(sound_on, SIGNAL(stateChanged(int)), this, SLOT(mute()));
-
 
 	QSignalMapper* paths_mapper = new QSignalMapper(this);
 	connect(dmg_bios_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
@@ -233,6 +233,13 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 
 	resize(450, 450);
 	setWindowTitle(tr("GBE+ Settings"));
+}
+
+/****** Toggles whether to use the Boot ROM or BIOS ******/
+void gen_settings::set_bios()
+{
+	if(bios->isChecked()) { config::use_bios = true; }
+	else { config::use_bios = false; }
 }
 
 /****** Changes the display scale ******/

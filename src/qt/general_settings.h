@@ -53,6 +53,7 @@ class gen_settings : public QDialog
 	void paintEvent(QPaintEvent *event);
 
 	private slots:
+	void set_bios();
 	void screen_scale_change();
 	void volume_change();
 	void sample_rate_change();
