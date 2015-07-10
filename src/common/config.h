@@ -17,6 +17,7 @@
 
 #include "common.h"
 
+void reset_dmg_colors();
 void validate_system_type();
 bool parse_cli_args();
 void parse_filenames();

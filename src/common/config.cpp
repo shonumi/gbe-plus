@@ -85,6 +85,25 @@ namespace config
 	};
 }
 
+/****** Reset DMG default colors ******/
+void reset_dmg_colors()
+{
+	config::DMG_BG_PAL[0] = 0xFFFFFFFF;
+	config::DMG_BG_PAL[1] = 0xFFC0C0C0;
+	config::DMG_BG_PAL[2] = 0xFF606060;
+	config::DMG_BG_PAL[3] = 0xFF000000;
+
+	config::DMG_OBJ_PAL[0][0] = 0xFFFFFFFF;
+	config::DMG_OBJ_PAL[1][0] = 0xFFC0C0C0;
+	config::DMG_OBJ_PAL[2][0] = 0xFF606060;
+	config::DMG_OBJ_PAL[3][0] = 0xFF000000;
+
+	config::DMG_OBJ_PAL[0][1] = 0xFFFFFFFF;
+	config::DMG_OBJ_PAL[1][1] = 0xFFC0C0C0;
+	config::DMG_OBJ_PAL[2][1] = 0xFF606060;
+	config::DMG_OBJ_PAL[3][1] = 0xFF000000;
+}
+
 /****** Validates emulated system type ******/
 void validate_system_type()
 {

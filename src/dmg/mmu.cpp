@@ -88,7 +88,7 @@ u8 DMG_MMU::read_u8(u16 address)
 			std::cout<<"MMU::Exiting BIOS \n";
 
 			//For DMG on GBC games, we switch back to DMG Mode (we just take the colors the BIOS gives us)
-			if((bios_size == 0x900) && (memory_map[ROM_COLOR] == 0)) { config::gb_type = 1; }
+			if((bios_size == 0x900) && (memory_map[ROM_COLOR] != 0x80) && (memory_map[ROM_COLOR] != 0xC0)) { config::gb_type = 1; }
 		}
 
 		else if(address < bios_size) { return bios[address]; }
@@ -1152,11 +1152,18 @@ bool DMG_MMU::read_file(std::string filename)
 	//Only necessary for Auto system detection.
 	//For now, even if forcing GBC, when encountering DMG carts, revert to DMG mode, dunno how the palettes work yet
 	//When using the DMG bootrom or GBC BIOS, those files determine emulated system type later
-	if(((config::gb_type == 0) || (config::gb_type == 2)) && (!config::use_bios))
+	if((config::gb_type == 0) || (config::gb_type == 2))
 	{
-		if(memory_map[ROM_COLOR] == 0) { config::gb_type = 1; }
+		//Always use GBC mode when booting from the GBC bootrom
+		if((config::gb_type == 2) && (config::use_bios)) { config::gb_type = 2; }
+
+		else if(memory_map[ROM_COLOR] == 0) { config::gb_type = 1; }
 		else if(memory_map[ROM_COLOR] == 0x80) { config::gb_type = 2; }
 		else if(memory_map[ROM_COLOR] == 0xC0) { config::gb_type = 2; }
+
+		//If another value is present, this is a DMG game
+		//The value is likely part of the ASCII title
+		else { config::gb_type = 1; }
 	}
 
 	//Load backup save data if applicable
