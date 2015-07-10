@@ -107,12 +107,16 @@ void reset_dmg_colors()
 /****** Validates emulated system type ******/
 void validate_system_type()
 {
+	//Determine Gameboy type based on file name
+	//Note, DMG and GBC games are automatically detected in the Gameboy MMU, so only check for GBA types here
 	std::size_t dot = config::rom_file.find_last_of(".");
 	std::string ext = config::rom_file.substr(dot);
 
+	if(ext == ".gba") { config::gb_type = 3; }
+
 	//Force GBC mode if system type is set to GBA, but a GB/GBC game is loaded
 	//TODO - Emulate the GBA's GBC functionality (stretching with L/R)
-	if((ext != ".gba") && (config::gb_type == 3)) { config::gb_type = 2; }
+	else if((ext != ".gba") && (config::gb_type == 3)) { config::gb_type = 2; }
 }
 
 /****** Parse arguments passed from the command-line ******/
@@ -181,16 +185,7 @@ void parse_filenames()
 	config::rom_file = config::cli_args[0];
 	config::save_file = config::rom_file + ".sav";
 
-	//Determine Gameboy type based on file name
-	//Note, DMG and GBC games are automatically detected in the Gameboy MMU, so only check for GBA types here
-	std::size_t dot = config::rom_file.find_last_of(".");
-	std::string ext = config::rom_file.substr(dot);
-
-	if(ext == ".gba") { config::gb_type = 3; }
-
-	//Force GBC mode if system type is set to GBA, but a GB/GBC game is loaded
-	//TODO - Emulate the GBA's GBC functionality (stretching with L/R)
-	else if((ext != ".gba") && (config::gb_type == 3)) { config::gb_type = 2; }
+	validate_system_type();
 }
 
 /****** Parse optins from the .ini file ******/

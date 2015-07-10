@@ -34,6 +34,9 @@ int main(int argc, char* args[])
 	//These will override .ini options!
 	if(!parse_cli_args()) { return 0; }
 
+	//Validate the emulated system type
+	validate_system_type();
+
 	//Start the appropiate system core - DMG/GBC or GBA
 	if(config::gb_type == 3) { gbe_plus = new AGB_core(); }
 	else { gbe_plus = new DMG_core(); }
