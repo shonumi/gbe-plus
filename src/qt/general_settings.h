@@ -21,6 +21,8 @@ class gen_settings : public QDialog
 	public:
 	gen_settings(QWidget *parent = 0);
 
+	void set_ini_options();
+
 	QTabWidget* tabs;
 	QDialogButtonBox* tabs_button;
 

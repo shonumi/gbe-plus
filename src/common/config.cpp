@@ -107,6 +107,8 @@ void reset_dmg_colors()
 /****** Validates emulated system type ******/
 void validate_system_type()
 {
+	if(config::rom_file.empty()) { return; }
+
 	//Determine Gameboy type based on file name
 	//Note, DMG and GBC games are automatically detected in the Gameboy MMU, so only check for GBA types here
 	std::size_t dot = config::rom_file.find_last_of(".");

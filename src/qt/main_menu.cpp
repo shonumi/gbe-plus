@@ -109,6 +109,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 
 	//Set up settings dialog
 	settings = new gen_settings();
+	settings->set_ini_options();
 }
 
 /****** Open game file ******/

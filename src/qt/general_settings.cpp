@@ -80,6 +80,10 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	screen_scale->addItem("4x");
 	screen_scale->addItem("5x");
 	screen_scale->addItem("6x");
+	screen_scale->addItem("7x");
+	screen_scale->addItem("8x");
+	screen_scale->addItem("9x");
+	screen_scale->addItem("10x");
 
 	QHBoxLayout* screen_scale_layout = new QHBoxLayout;
 	screen_scale_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -233,6 +237,46 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 
 	resize(450, 450);
 	setWindowTitle(tr("GBE+ Settings"));
+}
+
+/****** Sets various widgets to values based on the current config paramters (from .ini file) ******/
+void gen_settings::set_ini_options()
+{
+	//Emulated system type
+	sys_type->setCurrentIndex(config::gb_type);
+
+	//BIOS or Boot ROM option
+	if(config::use_bios) { bios->setChecked(true); }
+
+	//Screen scale options
+	screen_scale->setCurrentIndex(config::scaling_factor - 1);
+
+	//OpenGL option
+	if(config::use_opengl) { ogl->setChecked(true); }
+
+	//Sample rate option
+	switch((int)config::sample_rate)
+	{
+		case 10250: freq->setCurrentIndex(0); break;
+		case 20500: freq->setCurrentIndex(1); break;
+		case 41000: freq->setCurrentIndex(2); break;
+		case 48000: freq->setCurrentIndex(3); break;
+	}
+
+	//Mute option
+	//TODO - Add mute for .ini options
+
+	//Volume option
+	volume->setValue(config::volume);
+
+	//BIOS and Boot ROM paths
+	QString path_1(QString::fromStdString(config::dmg_bios_path));
+	QString path_2(QString::fromStdString(config::gbc_bios_path));
+	QString path_3(QString::fromStdString(config::agb_bios_path));
+
+	dmg_bios->setText(path_1);
+	gbc_bios->setText(path_2);
+	gba_bios->setText(path_3);
 }
 
 /****** Toggles whether to use the Boot ROM or BIOS ******/
