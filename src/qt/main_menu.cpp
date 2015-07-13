@@ -222,7 +222,7 @@ void main_menu::boot_game()
 }
 
 /****** Updates the main window ******/
-void main_menu::paintEvent(QPaintEvent *e)
+void main_menu::paintEvent(QPaintEvent* event)
 {
 	if(qt_gui::screen == NULL)
 	{
@@ -247,7 +247,7 @@ void main_menu::paintEvent(QPaintEvent *e)
 }
 
 /****** Closes the main window ******/
-void main_menu::closeEvent(QCloseEvent *e)
+void main_menu::closeEvent(QCloseEvent* event)
 {
 	//Close the core
 	if(main_menu::gbe_plus != NULL) 
@@ -261,6 +261,30 @@ void main_menu::closeEvent(QCloseEvent *e)
 
 	//Exit the application
 	exit(0);
+}
+
+/****** Handle keypress input ******/
+void main_menu::keyPressEvent(QKeyEvent* event)
+{
+	int sdl_key = qtkey_to_sdlkey(event->key());
+
+	//Force input processing in the core
+	if(main_menu::gbe_plus != NULL)
+	{
+		gbe_plus->feed_key_input(sdl_key, true);
+	}
+}
+
+/****** Handle key release input ******/
+void main_menu::keyReleaseEvent(QKeyEvent* event)
+{
+	int sdl_key = qtkey_to_sdlkey(event->key());
+	
+	//Force input processing in the core
+	if(main_menu::gbe_plus != NULL)
+	{
+		gbe_plus->feed_key_input(sdl_key, false);
+	}
 }
 
 /****** Pauses emulation ******/
@@ -314,7 +338,7 @@ void main_menu::show_sound_settings() { settings->show(); settings->tabs->setCur
 void main_menu::show_control_settings() { settings->show(); settings->tabs->setCurrentIndex(3); }
 
 /****** Translate Qt keys into SDL keycodes ******/
-int main_menu::qtkey_to_sdlkey(Qt::Key key)
+int main_menu::qtkey_to_sdlkey(int key)
 {
 	//Cycle through keys that need special translation
 	switch(key)
@@ -359,6 +383,13 @@ int main_menu::qtkey_to_sdlkey(Qt::Key key)
 		case Qt::Key_F12: return SDLK_F12; break;
 	}
 
-	//ASCII mapped keys are the same
-	if((key >= 0x20) && (key <= 0xFF)) { return key; }
+	//ASCII mapped keys are the same for 0x20 to 0x40
+	if((key >= 0x20) && (key <= 0x40)) { return key; }
+
+	//ASCII mapped lower-case keys get translated in upper-case
+	//SDL only recognizes the upper-case ones
+	else if((key >= 0x41) && (key <= 0x5A)) { return (key + 32); }
+
+	//Other ASCII mapped keys are mostly the same
+	else if(key <= 0xFF) { return key; }
 }

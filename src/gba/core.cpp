@@ -614,6 +614,12 @@ void AGB_core::update_volume(u8 volume)
 	core_cpu.controllers.audio.apu_stat.dma[1].master_volume = (sound_control & 0x8) ? config::volume : (config::volume >> 1);
 }
 
+/****** Feeds key input from an external source (useful for TAS) ******/
+void AGB_core::feed_key_input(int sdl_key, bool pressed)
+{
+	core_pad.process_keyboard(sdl_key, pressed);
+}
+
 /****** Read binary file to memory ******/
 bool AGB_core::read_file(std::string filename) { return core_mmu.read_file(filename); }
 

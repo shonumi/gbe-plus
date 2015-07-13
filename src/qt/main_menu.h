@@ -28,8 +28,10 @@ class main_menu : public QWidget
 	static core_emu* gbe_plus;
 
 	protected:
-	void paintEvent(QPaintEvent *event);
-	void closeEvent(QCloseEvent *event);
+	void paintEvent(QPaintEvent* event);
+	void closeEvent(QCloseEvent* event);
+	void keyPressEvent(QKeyEvent* event);
+	void keyReleaseEvent(QKeyEvent* event);
 
 	private slots:
 	void open_file();
@@ -43,7 +45,7 @@ class main_menu : public QWidget
 	void show_control_settings();
 
 	private:
-	int qtkey_to_sdlkey(Qt::Key key);
+	int qtkey_to_sdlkey(int key);
 
 	gen_settings* settings;
 

@@ -33,6 +33,7 @@ class core_emu
 	virtual void run_core() = 0;
 	virtual	void handle_hotkey(SDL_Event& event) = 0;
 	virtual void update_volume(u8 volume) = 0;
+	virtual void feed_key_input(int sdl_key, bool pressed) = 0;
 
 	//Core debugging
 	virtual	void debug_step() = 0;

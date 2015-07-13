@@ -551,6 +551,12 @@ void DMG_core::update_volume(u8 volume)
 	core_cpu.controllers.audio.apu_stat.channel_master_volume = config::volume;
 }
 
+/****** Feeds key input from an external source (useful for TAS) ******/
+void DMG_core::feed_key_input(int sdl_key, bool pressed)
+{
+	core_pad.process_keyboard(sdl_key, pressed);
+}
+
 /****** Read binary file to memory ******/
 bool DMG_core::read_file(std::string filename) { return core_mmu.read_file(filename); }
 

@@ -29,6 +29,9 @@ class AGB_GamePad
 	void handle_input(SDL_Event &event);
 	void init();
 
+	void process_keyboard(int pad, bool pressed);
+	void process_joystick(int pad, bool pressed);
+
 	int pad;
 	u16 key_input;
 
@@ -38,9 +41,6 @@ class AGB_GamePad
 	bool up_shadow, down_shadow, left_shadow, right_shadow;
 
 	SDL_Joystick* jstick;
-
-	void process_keyboard(int pad, bool pressed);
-	void process_joystick(int pad, bool pressed);
 };
 
 #endif // GBA_GAMEPAD
