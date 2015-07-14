@@ -158,6 +158,184 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	audio_layout->addWidget(volume_set);
 	sound->setLayout(audio_layout);
 
+
+	//Control settings - Device
+	QWidget* input_device_set = new QWidget(controls);
+	QLabel* input_device_label = new QLabel("Input Device : ");
+	input_device = new QComboBox(input_device_set);
+	input_device->addItem("Keyboard");
+
+	QHBoxLayout* input_device_layout = new QHBoxLayout;
+	input_device_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	input_device_layout->addWidget(input_device_label);
+	input_device_layout->addWidget(input_device);
+	input_device_set->setLayout(input_device_layout);
+
+	//Control settings - A button
+	QWidget* input_a_set = new QWidget(controls);
+	QLabel* input_a_label = new QLabel("Button A : ");
+	input_a = new QLineEdit(controls);
+	config_a = new QPushButton("Configure");
+	input_a->setMaximumWidth(100);
+	config_a->setMaximumWidth(100);
+
+	QHBoxLayout* input_a_layout = new QHBoxLayout;
+	input_a_layout->addWidget(input_a_label, 0, Qt::AlignLeft);
+	input_a_layout->addWidget(input_a, 0, Qt::AlignLeft);
+	input_a_layout->addWidget(config_a, 0, Qt::AlignLeft);
+	input_a_layout->setContentsMargins(6, 0, 0, 0);
+	input_a_set->setLayout(input_a_layout);
+
+	//Control settings - B button
+	QWidget* input_b_set = new QWidget(controls);
+	QLabel* input_b_label = new QLabel("Button B : ");
+	input_b = new QLineEdit(controls);
+	config_b = new QPushButton("Configure");
+	input_b->setMaximumWidth(100);
+	config_b->setMaximumWidth(100);
+
+	QHBoxLayout* input_b_layout = new QHBoxLayout;
+	input_b_layout->addWidget(input_b_label, 0, Qt::AlignLeft);
+	input_b_layout->addWidget(input_b, 0, Qt::AlignLeft);
+	input_b_layout->addWidget(config_b, 0, Qt::AlignLeft);
+	input_b_layout->setContentsMargins(6, 0, 0, 0);
+	input_b_set->setLayout(input_b_layout);
+
+	//Control settings - START button
+	QWidget* input_start_set = new QWidget(controls);
+	QLabel* input_start_label = new QLabel("START : ");
+	input_start = new QLineEdit(controls);
+	config_start = new QPushButton("Configure");
+	input_start->setMaximumWidth(100);
+	config_start->setMaximumWidth(100);
+
+	QHBoxLayout* input_start_layout = new QHBoxLayout;
+	input_start_layout->addWidget(input_start_label, 0, Qt::AlignLeft);
+	input_start_layout->addWidget(input_start, 0, Qt::AlignLeft);
+	input_start_layout->addWidget(config_start, 0, Qt::AlignLeft);
+	input_start_layout->setContentsMargins(6, 0, 0, 0);
+	input_start_set->setLayout(input_start_layout);
+
+	//Control settings - SELECT button
+	QWidget* input_select_set = new QWidget(controls);
+	QLabel* input_select_label = new QLabel("SELECT : ");
+	input_select = new QLineEdit(controls);
+	config_select = new QPushButton("Configure");
+	input_select->setMaximumWidth(100);
+	config_select->setMaximumWidth(100);
+
+	QHBoxLayout* input_select_layout = new QHBoxLayout;
+	input_select_layout->addWidget(input_select_label, 0, Qt::AlignLeft);
+	input_select_layout->addWidget(input_select, 0, Qt::AlignLeft);
+	input_select_layout->addWidget(config_select, 0, Qt::AlignLeft);
+	input_select_layout->setContentsMargins(6, 0, 0, 0);
+	input_select_set->setLayout(input_select_layout);
+
+	//Control settings - Left
+	QWidget* input_left_set = new QWidget(controls);
+	QLabel* input_left_label = new QLabel("LEFT : ");
+	input_left = new QLineEdit(controls);
+	config_left = new QPushButton("Configure");
+	input_left->setMaximumWidth(100);
+	config_left->setMaximumWidth(100);
+
+	QHBoxLayout* input_left_layout = new QHBoxLayout;
+	input_left_layout->addWidget(input_left_label, 0, Qt::AlignLeft);
+	input_left_layout->addWidget(input_left, 0, Qt::AlignLeft);
+	input_left_layout->addWidget(config_left, 0, Qt::AlignLeft);
+	input_left_layout->setContentsMargins(6, 0, 0, 0);
+	input_left_set->setLayout(input_left_layout);
+
+	//Control settings - Right
+	QWidget* input_right_set = new QWidget(controls);
+	QLabel* input_right_label = new QLabel("RIGHT : ");
+	input_right = new QLineEdit(controls);
+	config_right = new QPushButton("Configure");
+	input_right->setMaximumWidth(100);
+	config_right->setMaximumWidth(100);
+
+	QHBoxLayout* input_right_layout = new QHBoxLayout;
+	input_right_layout->addWidget(input_right_label, 0, Qt::AlignLeft);
+	input_right_layout->addWidget(input_right, 0, Qt::AlignLeft);
+	input_right_layout->addWidget(config_right, 0, Qt::AlignLeft);
+	input_right_layout->setContentsMargins(6, 0, 0, 0);
+	input_right_set->setLayout(input_right_layout);
+
+	//Control settings - Up
+	QWidget* input_up_set = new QWidget(controls);
+	QLabel* input_up_label = new QLabel("UP : ");
+	input_up = new QLineEdit(controls);
+	config_up = new QPushButton("Configure");
+	input_up->setMaximumWidth(100);
+	config_up->setMaximumWidth(100);
+
+	QHBoxLayout* input_up_layout = new QHBoxLayout;
+	input_up_layout->addWidget(input_up_label, 0, Qt::AlignLeft);
+	input_up_layout->addWidget(input_up, 0, Qt::AlignLeft);
+	input_up_layout->addWidget(config_up, 0, Qt::AlignLeft);
+	input_up_layout->setContentsMargins(6, 0, 0, 0);
+	input_up_set->setLayout(input_up_layout);
+
+	//Control settings - Down
+	QWidget* input_down_set = new QWidget(controls);
+	QLabel* input_down_label = new QLabel("DOWN : ");
+	input_down = new QLineEdit(controls);
+	config_down = new QPushButton("Configure");
+	input_down->setMaximumWidth(100);
+	config_down->setMaximumWidth(100);
+
+	QHBoxLayout* input_down_layout = new QHBoxLayout;
+	input_down_layout->addWidget(input_down_label, 0, Qt::AlignLeft);
+	input_down_layout->addWidget(input_down, 0, Qt::AlignLeft);
+	input_down_layout->addWidget(config_down, 0, Qt::AlignLeft);
+	input_down_layout->setContentsMargins(6, 0, 0, 0);
+	input_down_set->setLayout(input_down_layout);
+
+	//Control settings - Right Trigger
+	QWidget* input_r_set = new QWidget(controls);
+	QLabel* input_r_label = new QLabel("Trigger R : ");
+	input_r = new QLineEdit(controls);
+	config_r = new QPushButton("Configure");
+	input_r->setMaximumWidth(100);
+	config_r->setMaximumWidth(100);
+
+	QHBoxLayout* input_r_layout = new QHBoxLayout;
+	input_r_layout->addWidget(input_r_label, 0, Qt::AlignLeft);
+	input_r_layout->addWidget(input_r, 0, Qt::AlignLeft);
+	input_r_layout->addWidget(config_r, 0, Qt::AlignLeft);
+	input_r_layout->setContentsMargins(6, 0, 0, 0);
+	input_r_set->setLayout(input_r_layout);
+
+	//Control settings - Left Trigger
+	QWidget* input_l_set = new QWidget(controls);
+	QLabel* input_l_label = new QLabel("Trigger L : ");
+	input_l = new QLineEdit(controls);
+	config_l = new QPushButton("Configure");
+	input_l->setMaximumWidth(100);
+	config_l->setMaximumWidth(100);
+
+	QHBoxLayout* input_l_layout = new QHBoxLayout;
+	input_l_layout->addWidget(input_l_label, 0, Qt::AlignLeft);
+	input_l_layout->addWidget(input_l, 0, Qt::AlignLeft);
+	input_l_layout->addWidget(config_l, 0, Qt::AlignLeft);
+	input_l_layout->setContentsMargins(6, 0, 0, 0);
+	input_l_set->setLayout(input_l_layout);
+
+	QVBoxLayout* controls_layout = new QVBoxLayout;
+	controls_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	controls_layout->addWidget(input_device_set);
+	controls_layout->addWidget(input_a_set);
+	controls_layout->addWidget(input_b_set);
+	controls_layout->addWidget(input_start_set);
+	controls_layout->addWidget(input_select_set);
+	controls_layout->addWidget(input_left_set);
+	controls_layout->addWidget(input_right_set);
+	controls_layout->addWidget(input_up_set);
+	controls_layout->addWidget(input_down_set);
+	controls_layout->addWidget(input_l_set);
+	controls_layout->addWidget(input_r_set);
+	controls->setLayout(controls_layout);
+
 	//Path settings - DMG BIOS
 	QWidget* dmg_bios_set = new QWidget(paths);
 	dmg_bios_label = new QLabel("DMG Boot ROM :  ");
@@ -355,6 +533,8 @@ void gen_settings::set_paths(int index)
 /****** Updates the settings window ******/
 void gen_settings::paintEvent(QPaintEvent *e)
 {
+	//input_a->setMaximumWidth(50);
+
 	gbc_bios_label->setMinimumWidth(dmg_bios_label->width());
 	gba_bios_label->setMinimumWidth(dmg_bios_label->width());
 }

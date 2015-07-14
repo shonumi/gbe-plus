@@ -51,6 +51,31 @@ class gen_settings : public QDialog
 	QLabel* gbc_bios_label;
 	QLabel* gba_bios_label;
 
+	//Controls tab widget
+	QComboBox* input_device;
+
+	QLineEdit* input_a;
+	QLineEdit* input_b;
+	QLineEdit* input_start;
+	QLineEdit* input_select;
+	QLineEdit* input_left;
+	QLineEdit* input_right;
+	QLineEdit* input_up;
+	QLineEdit* input_down;
+	QLineEdit* input_l;
+	QLineEdit* input_r;
+
+	QPushButton* config_a;
+	QPushButton* config_b;
+	QPushButton* config_start;
+	QPushButton* config_select;
+	QPushButton* config_left;
+	QPushButton* config_right;
+	QPushButton* config_up;
+	QPushButton* config_down;
+	QPushButton* config_l;
+	QPushButton* config_r;
+
 	protected:
 	void paintEvent(QPaintEvent *event);
 
