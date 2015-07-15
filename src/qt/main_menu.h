@@ -45,8 +45,6 @@ class main_menu : public QWidget
 	void show_control_settings();
 
 	private:
-	int qtkey_to_sdlkey(int key);
-
 	gen_settings* settings;
 
 	int menu_height;

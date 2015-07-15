@@ -42,6 +42,10 @@ class gen_settings : public QDialog
 	double sample_rate;
 	bool resize_screen;
 
+	bool grab_input;
+	int last_key;
+	int input_index;
+
 	//Paths tab widgets
 	QLineEdit* dmg_bios;
 	QLineEdit* gbc_bios;
@@ -78,6 +82,7 @@ class gen_settings : public QDialog
 
 	protected:
 	void paintEvent(QPaintEvent *event);
+	void keyPressEvent(QKeyEvent* event);
 
 	private slots:
 	void set_bios();
@@ -86,6 +91,7 @@ class gen_settings : public QDialog
 	void sample_rate_change();
 	void mute();
 	void set_paths(int index);
+	void configure_button(int button);
 };
 
 #endif //SETTINGS_GBE_QT 

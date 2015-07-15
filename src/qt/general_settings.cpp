@@ -13,6 +13,7 @@
 
 #include "general_settings.h"
 #include "main_menu.h"
+#include "qt_common.h"
 
 #include "common/config.h"
 
@@ -402,7 +403,31 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	paths_mapper->setMapping(dmg_bios_button, 0);
 	paths_mapper->setMapping(gbc_bios_button, 1);
 	paths_mapper->setMapping(gba_bios_button, 2);
-	connect(paths_mapper, SIGNAL(mapped(int)), this, SLOT(set_paths(int))) ;
+	connect(paths_mapper, SIGNAL(mapped(int)), this, SLOT(set_paths(int)));
+
+	QSignalMapper* button_config = new QSignalMapper(this);
+	connect(config_a, SIGNAL(clicked()), button_config, SLOT(map()));
+	connect(config_b, SIGNAL(clicked()), button_config, SLOT(map()));
+	connect(config_start, SIGNAL(clicked()), button_config, SLOT(map()));
+	connect(config_select, SIGNAL(clicked()), button_config, SLOT(map()));
+	connect(config_left, SIGNAL(clicked()), button_config, SLOT(map()));
+	connect(config_right, SIGNAL(clicked()), button_config, SLOT(map()));
+	connect(config_up, SIGNAL(clicked()), button_config, SLOT(map()));
+	connect(config_down, SIGNAL(clicked()), button_config, SLOT(map()));
+	connect(config_l, SIGNAL(clicked()), button_config, SLOT(map()));
+	connect(config_r, SIGNAL(clicked()), button_config, SLOT(map()));
+
+	button_config->setMapping(config_a, 0);
+	button_config->setMapping(config_b, 1);
+	button_config->setMapping(config_start, 2);
+	button_config->setMapping(config_select, 3);
+	button_config->setMapping(config_left, 4);
+	button_config->setMapping(config_right, 5);
+	button_config->setMapping(config_up, 6);
+	button_config->setMapping(config_down, 7);
+	button_config->setMapping(config_l, 8);
+	button_config->setMapping(config_r, 9);
+	connect(button_config, SIGNAL(mapped(int)), this, SLOT(configure_button(int))) ;
 
 	//Final tab layout
 	QVBoxLayout* main_layout = new QVBoxLayout;
@@ -412,6 +437,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 
 	sample_rate = config::sample_rate;
 	resize_screen = false;
+	grab_input = false;
 
 	resize(450, 450);
 	setWindowTitle(tr("GBE+ Settings"));
@@ -530,12 +556,136 @@ void gen_settings::set_paths(int index)
 	}
 }
 
-/****** Updates the settings window ******/
-void gen_settings::paintEvent(QPaintEvent *e)
+/****** Prepares GUI to receive input for controller configuration ******/
+void gen_settings::configure_button(int button)
 {
-	//input_a->setMaximumWidth(50);
+	if(!grab_input)
+	{
+		switch(button)
+		{
+			case 0: 
+				config_a->setText("Enter Input");
+				break;
 
+			case 1: 
+				config_b->setText("Enter Input");
+				break;
+
+			case 2: 
+				config_start->setText("Enter Input");
+				break;
+
+			case 3: 
+				config_select->setText("Enter Input");
+				break;
+
+			case 4: 
+				config_left->setText("Enter Input");
+				break;
+
+			case 5: 
+				config_right->setText("Enter Input");
+				break;
+
+			case 6: 
+				config_up->setText("Enter Input");
+				break;
+
+			case 7: 
+				config_down->setText("Enter Input");
+				break;
+
+			case 8: 
+				config_l->setText("Enter Input");
+				break;
+
+			case 9: 
+				config_r->setText("Enter Input");
+				break;
+		}
+
+		grab_input = true;
+		input_index = button;
+	}
+}				
+
+/****** Updates the settings window ******/
+void gen_settings::paintEvent(QPaintEvent* event)
+{
 	gbc_bios_label->setMinimumWidth(dmg_bios_label->width());
 	gba_bios_label->setMinimumWidth(dmg_bios_label->width());
 }
 
+/****** Handle keypress input ******/
+void gen_settings::keyPressEvent(QKeyEvent* event)
+{
+	if(grab_input)
+	{
+		last_key = qtkey_to_sdlkey(event->key());
+
+		switch(input_index)
+		{
+			case 0: 
+				config_a->setText("Configure");
+				input_a->setText(QString::number(last_key));
+				config::agb_key_a = config::dmg_key_a = last_key;
+				break;
+
+			case 1: 
+				config_b->setText("Configure");
+				input_b->setText(QString::number(last_key));
+				config::agb_key_b = config::dmg_key_b = last_key;
+				break;
+
+			case 2: 
+				config_start->setText("Configure");
+				input_start->setText(QString::number(last_key));
+				config::agb_key_start = config::dmg_key_start = last_key;
+				break;
+
+			case 3: 
+				config_select->setText("Configure");
+				input_select->setText(QString::number(last_key));
+				config::agb_key_select = config::dmg_key_select = last_key;
+				break;
+
+			case 4: 
+				config_left->setText("Configure");
+				input_left->setText(QString::number(last_key));
+				config::agb_key_left = config::dmg_key_left = last_key;
+				break;
+
+			case 5: 
+				config_right->setText("Configure");
+				input_right->setText(QString::number(last_key));
+				config::agb_key_right = config::dmg_key_right = last_key;
+				break;
+
+			case 6: 
+				config_up->setText("Configure");
+				input_up->setText(QString::number(last_key));
+				config::agb_key_up = config::dmg_key_up = last_key;
+				break;
+
+			case 7: 
+				config_down->setText("Configure");
+				input_down->setText(QString::number(last_key));
+				config::agb_key_down = config::dmg_key_down = last_key;
+				break;
+
+			case 8: 
+				config_l->setText("Configure");
+				input_l->setText(QString::number(last_key));
+				config::agb_key_l_trigger = last_key;
+				break;
+
+			case 9: 
+				config_r->setText("Configure");
+				input_r->setText(QString::number(last_key));
+				config::agb_key_r_trigger = last_key;
+				break;
+		}
+
+		grab_input = false;
+	}
+}
