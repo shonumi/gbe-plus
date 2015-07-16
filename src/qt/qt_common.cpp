@@ -68,4 +68,6 @@ int qtkey_to_sdlkey(int key)
 
 	//Other ASCII mapped keys are mostly the same
 	else if(key <= 0xFF) { return key; }
+
+	else { return -1; }
 } 

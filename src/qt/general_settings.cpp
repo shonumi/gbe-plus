@@ -159,7 +159,6 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	audio_layout->addWidget(volume_set);
 	sound->setLayout(audio_layout);
 
-
 	//Control settings - Device
 	QWidget* input_device_set = new QWidget(controls);
 	QLabel* input_device_label = new QLabel("Input Device : ");
@@ -435,6 +434,75 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	main_layout->addWidget(tabs_button);
 	setLayout(main_layout);
 
+	//Config button formatting
+	config_a->setMinimumWidth(150);
+	config_b->setMinimumWidth(150);
+	config_start->setMinimumWidth(150);
+	config_select->setMinimumWidth(150);
+	config_left->setMinimumWidth(150);
+	config_right->setMinimumWidth(150);
+	config_up->setMinimumWidth(150);
+	config_down->setMinimumWidth(150);
+	config_l->setMinimumWidth(150);
+	config_r->setMinimumWidth(150);
+
+	input_a->setReadOnly(true);
+	input_b->setReadOnly(true);
+	input_start->setReadOnly(true);
+	input_select->setReadOnly(true);
+	input_left->setReadOnly(true);
+	input_right->setReadOnly(true);
+	input_up->setReadOnly(true);
+	input_down->setReadOnly(true);
+	input_l->setReadOnly(true);
+	input_r->setReadOnly(true);
+
+	//Install event filters
+	config_a->installEventFilter(this);
+	config_b->installEventFilter(this);
+	config_start->installEventFilter(this);
+	config_select->installEventFilter(this);
+	config_left->installEventFilter(this);
+	config_right->installEventFilter(this);
+	config_up->installEventFilter(this);
+	config_down->installEventFilter(this);
+	config_l->installEventFilter(this);
+	config_r->installEventFilter(this);
+
+	input_a->installEventFilter(this);
+	input_b->installEventFilter(this);
+	input_start->installEventFilter(this);
+	input_select->installEventFilter(this);
+	input_left->installEventFilter(this);
+	input_right->installEventFilter(this);
+	input_up->installEventFilter(this);
+	input_down->installEventFilter(this);
+	input_l->installEventFilter(this);
+	input_r->installEventFilter(this);
+
+	//Set focus policies
+	config_a->setFocusPolicy(Qt::NoFocus);
+	config_b->setFocusPolicy(Qt::NoFocus);
+	config_start->setFocusPolicy(Qt::NoFocus);
+	config_select->setFocusPolicy(Qt::NoFocus);
+	config_left->setFocusPolicy(Qt::NoFocus);
+	config_right->setFocusPolicy(Qt::NoFocus);
+	config_up->setFocusPolicy(Qt::NoFocus);
+	config_down->setFocusPolicy(Qt::NoFocus);
+	config_l->setFocusPolicy(Qt::NoFocus);
+	config_r->setFocusPolicy(Qt::NoFocus);
+
+	input_a->setFocusPolicy(Qt::NoFocus);
+	input_b->setFocusPolicy(Qt::NoFocus);
+	input_start->setFocusPolicy(Qt::NoFocus);
+	input_select->setFocusPolicy(Qt::NoFocus);
+	input_left->setFocusPolicy(Qt::NoFocus);
+	input_right->setFocusPolicy(Qt::NoFocus);
+	input_up->setFocusPolicy(Qt::NoFocus);
+	input_down->setFocusPolicy(Qt::NoFocus);
+	input_l->setFocusPolicy(Qt::NoFocus);
+	input_r->setFocusPolicy(Qt::NoFocus);
+
 	sample_rate = config::sample_rate;
 	resize_screen = false;
 	grab_input = false;
@@ -565,47 +633,66 @@ void gen_settings::configure_button(int button)
 		{
 			case 0: 
 				config_a->setText("Enter Input");
+				input_a->setFocus();
+				input_index = 0;
 				break;
 
 			case 1: 
 				config_b->setText("Enter Input");
+				input_b->setFocus();
+				input_index = 1;
 				break;
 
 			case 2: 
 				config_start->setText("Enter Input");
+				input_start->setFocus();
+				input_index = 2;
 				break;
 
 			case 3: 
 				config_select->setText("Enter Input");
+				input_select->setFocus();
+				input_index = 3;
 				break;
 
 			case 4: 
 				config_left->setText("Enter Input");
+				input_left->setFocus();
+				input_index = 4;
 				break;
 
 			case 5: 
 				config_right->setText("Enter Input");
+				input_right->setFocus();
+				input_index = 5;
 				break;
 
 			case 6: 
 				config_up->setText("Enter Input");
+				input_up->setFocus();
+				input_index = 6;
 				break;
 
 			case 7: 
 				config_down->setText("Enter Input");
+				input_down->setFocus();
+				input_index = 7;
 				break;
 
 			case 8: 
 				config_l->setText("Enter Input");
+				input_l->setFocus();
+				input_index = 8;
 				break;
 
 			case 9: 
 				config_r->setText("Enter Input");
+				input_r->setFocus();
+				input_index = 9;
 				break;
 		}
 
 		grab_input = true;
-		input_index = button;
 	}
 }				
 
@@ -622,42 +709,49 @@ void gen_settings::keyPressEvent(QKeyEvent* event)
 	if(grab_input)
 	{
 		last_key = qtkey_to_sdlkey(event->key());
+		if(last_key == -1) { return; }
 
 		switch(input_index)
 		{
 			case 0: 
 				config_a->setText("Configure");
 				input_a->setText(QString::number(last_key));
+				input_a->clearFocus();
 				config::agb_key_a = config::dmg_key_a = last_key;
 				break;
 
 			case 1: 
 				config_b->setText("Configure");
 				input_b->setText(QString::number(last_key));
+				input_b->clearFocus();
 				config::agb_key_b = config::dmg_key_b = last_key;
 				break;
 
 			case 2: 
 				config_start->setText("Configure");
 				input_start->setText(QString::number(last_key));
+				input_start->clearFocus();
 				config::agb_key_start = config::dmg_key_start = last_key;
 				break;
 
 			case 3: 
 				config_select->setText("Configure");
 				input_select->setText(QString::number(last_key));
+				input_select->clearFocus();
 				config::agb_key_select = config::dmg_key_select = last_key;
 				break;
 
 			case 4: 
 				config_left->setText("Configure");
 				input_left->setText(QString::number(last_key));
+				input_left->clearFocus();
 				config::agb_key_left = config::dmg_key_left = last_key;
 				break;
 
 			case 5: 
 				config_right->setText("Configure");
 				input_right->setText(QString::number(last_key));
+				input_right->clearFocus();
 				config::agb_key_right = config::dmg_key_right = last_key;
 				break;
 
@@ -670,22 +764,37 @@ void gen_settings::keyPressEvent(QKeyEvent* event)
 			case 7: 
 				config_down->setText("Configure");
 				input_down->setText(QString::number(last_key));
+				input_down->clearFocus();
 				config::agb_key_down = config::dmg_key_down = last_key;
 				break;
 
 			case 8: 
 				config_l->setText("Configure");
 				input_l->setText(QString::number(last_key));
+				input_l->clearFocus();
 				config::agb_key_l_trigger = last_key;
 				break;
 
 			case 9: 
 				config_r->setText("Configure");
 				input_r->setText(QString::number(last_key));
+				input_r->clearFocus();
 				config::agb_key_r_trigger = last_key;
 				break;
 		}
 
 		grab_input = false;
+		input_index = -1;
 	}
+}
+
+bool gen_settings::eventFilter(QObject* target, QEvent* event)
+{
+	if(event->type() == QEvent::KeyPress)
+	{
+		QKeyEvent* key_event = static_cast<QKeyEvent*>(event);
+		keyPressEvent(key_event);
+	}
+
+	return QDialog::eventFilter(target, event);
 }

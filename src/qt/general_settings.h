@@ -81,8 +81,9 @@ class gen_settings : public QDialog
 	QPushButton* config_r;
 
 	protected:
-	void paintEvent(QPaintEvent *event);
+	void paintEvent(QPaintEvent* event);
 	void keyPressEvent(QKeyEvent* event);
+	bool eventFilter(QObject* target, QEvent* event);
 
 	private slots:
 	void set_bios();
