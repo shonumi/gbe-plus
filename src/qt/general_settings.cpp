@@ -541,6 +541,18 @@ void gen_settings::set_ini_options()
 	//Volume option
 	volume->setValue(config::volume);
 
+	//Controls
+	if(config::agb_key_a != 0) { input_a->setText(QString::number(config::agb_key_a)); }
+	if(config::agb_key_b != 0) { input_b->setText(QString::number(config::agb_key_b)); }
+	if(config::agb_key_start != 0) { input_start->setText(QString::number(config::agb_key_start)); }
+	if(config::agb_key_select != 0) { input_select->setText(QString::number(config::agb_key_select)); }
+	if(config::agb_key_left != 0) { input_left->setText(QString::number(config::agb_key_left)); }
+	if(config::agb_key_right != 0) { input_right->setText(QString::number(config::agb_key_right)); }
+	if(config::agb_key_up != 0) { input_up->setText(QString::number(config::agb_key_up)); }
+	if(config::agb_key_down != 0) { input_down->setText(QString::number(config::agb_key_down)); }
+	if(config::agb_key_l_trigger != 0) { input_l->setText(QString::number(config::agb_key_l_trigger)); }
+	if(config::agb_key_r_trigger != 0) { input_r->setText(QString::number(config::agb_key_r_trigger)); }
+
 	//BIOS and Boot ROM paths
 	QString path_1(QString::fromStdString(config::dmg_bios_path));
 	QString path_2(QString::fromStdString(config::gbc_bios_path));
