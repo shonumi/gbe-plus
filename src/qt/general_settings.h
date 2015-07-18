@@ -12,6 +12,8 @@
 #ifndef SETTINGS_GBE_QT
 #define SETTINGS_GBE_QT
 
+#include <SDL/SDL.h>
+
 #include <QtGui>
 
 class gen_settings : public QDialog
@@ -92,7 +94,14 @@ class gen_settings : public QDialog
 	void sample_rate_change();
 	void mute();
 	void set_paths(int index);
+	void input_device_change();
 	void configure_button(int button);
+
+	private:
+	void process_joystick_event();
+
+	SDL_Joystick* jstick;
+	int input_type;
 };
 
 #endif //SETTINGS_GBE_QT 

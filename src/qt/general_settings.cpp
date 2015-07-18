@@ -393,6 +393,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(volume, SIGNAL(valueChanged(int)), this, SLOT(volume_change()));
 	connect(freq, SIGNAL(currentIndexChanged(int)), this, SLOT(sample_rate_change()));
 	connect(sound_on, SIGNAL(stateChanged(int)), this, SLOT(mute()));
+	connect(input_device, SIGNAL(currentIndexChanged(int)), this, SLOT(input_device_change()));
 
 	QSignalMapper* paths_mapper = new QSignalMapper(this);
 	connect(dmg_bios_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
@@ -503,9 +504,19 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	input_l->setFocusPolicy(Qt::NoFocus);
 	input_r->setFocusPolicy(Qt::NoFocus);
 
+	//Joystick handling
+	jstick = SDL_JoystickOpen(0);
+	
+	if(jstick != NULL)
+	{
+		std::string joy_name = SDL_JoystickName(0);
+		input_device->addItem(QString::fromStdString(joy_name));
+	}
+
 	sample_rate = config::sample_rate;
 	resize_screen = false;
 	grab_input = false;
+	input_type = 0;
 
 	resize(450, 450);
 	setWindowTitle(tr("GBE+ Settings"));
@@ -541,17 +552,17 @@ void gen_settings::set_ini_options()
 	//Volume option
 	volume->setValue(config::volume);
 
-	//Controls
-	if(config::agb_key_a != 0) { input_a->setText(QString::number(config::agb_key_a)); }
-	if(config::agb_key_b != 0) { input_b->setText(QString::number(config::agb_key_b)); }
-	if(config::agb_key_start != 0) { input_start->setText(QString::number(config::agb_key_start)); }
-	if(config::agb_key_select != 0) { input_select->setText(QString::number(config::agb_key_select)); }
-	if(config::agb_key_left != 0) { input_left->setText(QString::number(config::agb_key_left)); }
-	if(config::agb_key_right != 0) { input_right->setText(QString::number(config::agb_key_right)); }
-	if(config::agb_key_up != 0) { input_up->setText(QString::number(config::agb_key_up)); }
-	if(config::agb_key_down != 0) { input_down->setText(QString::number(config::agb_key_down)); }
-	if(config::agb_key_l_trigger != 0) { input_l->setText(QString::number(config::agb_key_l_trigger)); }
-	if(config::agb_key_r_trigger != 0) { input_r->setText(QString::number(config::agb_key_r_trigger)); }
+	//Keyboard controls
+	input_a->setText(QString::number(config::agb_key_a));
+	input_b->setText(QString::number(config::agb_key_b));
+	input_start->setText(QString::number(config::agb_key_start));
+	input_select->setText(QString::number(config::agb_key_select));
+	input_left->setText(QString::number(config::agb_key_left));
+	input_right->setText(QString::number(config::agb_key_right));
+	input_up->setText(QString::number(config::agb_key_up));
+	input_down->setText(QString::number(config::agb_key_down));
+	input_l->setText(QString::number(config::agb_key_l_trigger));
+	input_r->setText(QString::number(config::agb_key_r_trigger));
 
 	//BIOS and Boot ROM paths
 	QString path_1(QString::fromStdString(config::dmg_bios_path));
@@ -636,6 +647,41 @@ void gen_settings::set_paths(int index)
 	}
 }
 
+/****** Changes the input device to configure ******/
+void gen_settings::input_device_change()
+{
+	input_type = input_device->currentIndex();
+
+	//Switch to keyboard input configuration
+	if(input_type == 0)
+	{
+		input_a->setText(QString::number(config::agb_key_a));
+		input_b->setText(QString::number(config::agb_key_b));
+		input_start->setText(QString::number(config::agb_key_start));
+		input_select->setText(QString::number(config::agb_key_select));
+		input_left->setText(QString::number(config::agb_key_left));
+		input_right->setText(QString::number(config::agb_key_right));
+		input_up->setText(QString::number(config::agb_key_up));
+		input_down->setText(QString::number(config::agb_key_down));
+		input_l->setText(QString::number(config::agb_key_l_trigger));
+		input_r->setText(QString::number(config::agb_key_r_trigger));
+	}
+
+	else
+	{
+		input_a->setText(QString::number(config::agb_joy_a));
+		input_b->setText(QString::number(config::agb_joy_b));
+		input_start->setText(QString::number(config::agb_joy_start));
+		input_select->setText(QString::number(config::agb_joy_select));
+		input_left->setText(QString::number(config::agb_joy_left));
+		input_right->setText(QString::number(config::agb_joy_right));
+		input_up->setText(QString::number(config::agb_joy_up));
+		input_down->setText(QString::number(config::agb_joy_down));
+		input_l->setText(QString::number(config::agb_joy_l_trigger));
+		input_r->setText(QString::number(config::agb_joy_r_trigger));
+	}
+}
+
 /****** Prepares GUI to receive input for controller configuration ******/
 void gen_settings::configure_button(int button)
 {
@@ -705,6 +751,7 @@ void gen_settings::configure_button(int button)
 		}
 
 		grab_input = true;
+		if(input_type != 0) { process_joystick_event(); }
 	}
 }				
 
@@ -799,6 +846,134 @@ void gen_settings::keyPressEvent(QKeyEvent* event)
 		input_index = -1;
 	}
 }
+
+/****** Handles joystick input ******/
+void gen_settings::process_joystick_event()
+{
+	SDL_Event joy_event;
+	int pad = 0;
+
+	//This is a cheap way to flush all current events
+	//Gather all events in queue... then do nothing with them
+	//We only care about new ones from this point on
+	while(SDL_PollEvent(&joy_event)) { }
+
+	while(grab_input)
+	{
+		while(SDL_PollEvent(&joy_event))
+		{
+			//Generate pad id
+			switch(joy_event.type)
+			{
+				case SDL_JOYBUTTONDOWN: 
+					pad = 100 + joy_event.jbutton.button; 
+					grab_input = false;
+					break;
+
+				case SDL_JOYAXISMOTION:
+					if(abs(joy_event.jaxis.value) >= config::dead_zone)
+					{
+						pad = 200 + (joy_event.jaxis.axis * 2);
+						if(joy_event.jaxis.value > 0) { pad++; }
+						grab_input = false;
+					}
+
+					break;
+
+				case SDL_JOYHATMOTION:
+					pad = 300 + (joy_event.jhat.hat * 4);
+					grab_input = false;
+						
+					switch(joy_event.jhat.value)
+					{
+						case SDL_HAT_RIGHT: pad += 1; break;
+						case SDL_HAT_UP: pad += 2; break;
+						case SDL_HAT_DOWN: pad += 3; break;
+					}
+
+					break;
+			}
+		}
+
+		SDL_Delay(16);
+		QApplication::processEvents();
+	}
+
+	switch(input_index)
+	{
+		case 0: 
+			config_a->setText("Configure");
+			input_a->setText(QString::number(pad));
+			input_a->clearFocus();
+			config::agb_joy_a = config::dmg_joy_a = pad;
+			break;
+
+		case 1: 
+			config_b->setText("Configure");
+			input_b->setText(QString::number(pad));
+			input_b->clearFocus();
+			config::agb_joy_b = config::dmg_joy_b = pad;
+			break;
+
+		case 2: 
+			config_start->setText("Configure");
+			input_start->setText(QString::number(pad));
+			input_start->clearFocus();
+			config::agb_joy_start = config::dmg_joy_start = pad;
+			break;
+
+		case 3: 
+			config_select->setText("Configure");
+			input_select->setText(QString::number(pad));
+			input_select->clearFocus();
+			config::agb_joy_select = config::dmg_joy_select = pad;
+			break;
+
+		case 4: 
+			config_left->setText("Configure");
+			input_left->setText(QString::number(pad));
+			input_left->clearFocus();
+			config::agb_joy_left = config::dmg_joy_left = pad;
+			break;
+
+		case 5: 
+			config_right->setText("Configure");
+			input_right->setText(QString::number(pad));
+			input_right->clearFocus();
+			config::agb_joy_right = config::dmg_joy_right = pad;
+			break;
+
+		case 6: 
+			config_up->setText("Configure");
+			input_up->setText(QString::number(pad));
+			config::agb_joy_up = config::dmg_joy_up = pad;
+			break;
+
+		case 7: 
+			config_down->setText("Configure");
+			input_down->setText(QString::number(pad));
+			input_down->clearFocus();
+			config::agb_joy_down = config::dmg_joy_down = pad;
+			break;
+
+		case 8: 
+			config_l->setText("Configure");
+			input_l->setText(QString::number(pad));
+			input_l->clearFocus();
+			config::agb_joy_l_trigger = pad;
+			break;
+
+		case 9: 
+			config_r->setText("Configure");
+			input_r->setText(QString::number(pad));
+			input_r->clearFocus();
+			config::agb_joy_r_trigger = pad;
+			break;
+	}
+
+	input_index = -1;
+	QApplication::processEvents();
+}		
 
 bool gen_settings::eventFilter(QObject* target, QEvent* event)
 {
