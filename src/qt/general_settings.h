@@ -85,6 +85,7 @@ class gen_settings : public QDialog
 	protected:
 	void paintEvent(QPaintEvent* event);
 	void keyPressEvent(QKeyEvent* event);
+	void closeEvent(QCloseEvent* event);
 	bool eventFilter(QObject* target, QEvent* event);
 
 	private slots:
@@ -96,6 +97,7 @@ class gen_settings : public QDialog
 	void set_paths(int index);
 	void input_device_change();
 	void configure_button(int button);
+	void close_input();
 
 	private:
 	void process_joystick_event();

@@ -388,6 +388,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 
 	connect(tabs_button, SIGNAL(accepted()), this, SLOT(accept()));
 	connect(tabs_button, SIGNAL(rejected()), this, SLOT(reject()));
+	connect(tabs_button->button(QDialogButtonBox::Close), SIGNAL(clicked()), this, SLOT(close_input()));
 	connect(bios, SIGNAL(stateChanged(int)), this, SLOT(set_bios()));
 	connect(screen_scale, SIGNAL(currentIndexChanged(int)), this, SLOT(screen_scale_change()));
 	connect(volume, SIGNAL(valueChanged(int)), this, SLOT(volume_change()));
@@ -753,99 +754,7 @@ void gen_settings::configure_button(int button)
 		grab_input = true;
 		if(input_type != 0) { process_joystick_event(); }
 	}
-}				
-
-/****** Updates the settings window ******/
-void gen_settings::paintEvent(QPaintEvent* event)
-{
-	gbc_bios_label->setMinimumWidth(dmg_bios_label->width());
-	gba_bios_label->setMinimumWidth(dmg_bios_label->width());
-}
-
-/****** Handle keypress input ******/
-void gen_settings::keyPressEvent(QKeyEvent* event)
-{
-	if(grab_input)
-	{
-		last_key = qtkey_to_sdlkey(event->key());
-		if(last_key == -1) { return; }
-
-		switch(input_index)
-		{
-			case 0: 
-				config_a->setText("Configure");
-				input_a->setText(QString::number(last_key));
-				input_a->clearFocus();
-				config::agb_key_a = config::dmg_key_a = last_key;
-				break;
-
-			case 1: 
-				config_b->setText("Configure");
-				input_b->setText(QString::number(last_key));
-				input_b->clearFocus();
-				config::agb_key_b = config::dmg_key_b = last_key;
-				break;
-
-			case 2: 
-				config_start->setText("Configure");
-				input_start->setText(QString::number(last_key));
-				input_start->clearFocus();
-				config::agb_key_start = config::dmg_key_start = last_key;
-				break;
-
-			case 3: 
-				config_select->setText("Configure");
-				input_select->setText(QString::number(last_key));
-				input_select->clearFocus();
-				config::agb_key_select = config::dmg_key_select = last_key;
-				break;
-
-			case 4: 
-				config_left->setText("Configure");
-				input_left->setText(QString::number(last_key));
-				input_left->clearFocus();
-				config::agb_key_left = config::dmg_key_left = last_key;
-				break;
-
-			case 5: 
-				config_right->setText("Configure");
-				input_right->setText(QString::number(last_key));
-				input_right->clearFocus();
-				config::agb_key_right = config::dmg_key_right = last_key;
-				break;
-
-			case 6: 
-				config_up->setText("Configure");
-				input_up->setText(QString::number(last_key));
-				config::agb_key_up = config::dmg_key_up = last_key;
-				break;
-
-			case 7: 
-				config_down->setText("Configure");
-				input_down->setText(QString::number(last_key));
-				input_down->clearFocus();
-				config::agb_key_down = config::dmg_key_down = last_key;
-				break;
-
-			case 8: 
-				config_l->setText("Configure");
-				input_l->setText(QString::number(last_key));
-				input_l->clearFocus();
-				config::agb_key_l_trigger = last_key;
-				break;
-
-			case 9: 
-				config_r->setText("Configure");
-				input_r->setText(QString::number(last_key));
-				input_r->clearFocus();
-				config::agb_key_r_trigger = last_key;
-				break;
-		}
-
-		grab_input = false;
-		input_index = -1;
-	}
-}
+}			
 
 /****** Handles joystick input ******/
 void gen_settings::process_joystick_event()
@@ -973,10 +882,129 @@ void gen_settings::process_joystick_event()
 
 	input_index = -1;
 	QApplication::processEvents();
-}		
+}
 
+/****** Close all pending input configuration ******/
+void gen_settings::close_input()
+{
+	config_a->setText("Configure");
+	config_b->setText("Configure");
+	config_start->setText("Configure");
+	config_select->setText("Configure");
+	config_left->setText("Configure");
+	config_right->setText("Configure");
+	config_up->setText("Configure");
+	config_down->setText("Configure");
+	config_l->setText("Configure");
+	config_r->setText("Configure");
+
+	input_index = -1;
+	grab_input = false;
+}
+
+/****** Updates the settings window ******/
+void gen_settings::paintEvent(QPaintEvent* event)
+{
+	gbc_bios_label->setMinimumWidth(dmg_bios_label->width());
+	gba_bios_label->setMinimumWidth(dmg_bios_label->width());
+}
+
+/****** Closes the settings window ******/
+void gen_settings::closeEvent(QCloseEvent* event)
+{
+	//Close any on-going input configuration
+	close_input();
+}
+
+/****** Handle keypress input ******/
+void gen_settings::keyPressEvent(QKeyEvent* event)
+{
+	if(grab_input)
+	{
+		last_key = qtkey_to_sdlkey(event->key());
+		if(last_key == -1) { return; }
+
+		switch(input_index)
+		{
+			case 0: 
+				config_a->setText("Configure");
+				input_a->setText(QString::number(last_key));
+				input_a->clearFocus();
+				config::agb_key_a = config::dmg_key_a = last_key;
+				break;
+
+			case 1: 
+				config_b->setText("Configure");
+				input_b->setText(QString::number(last_key));
+				input_b->clearFocus();
+				config::agb_key_b = config::dmg_key_b = last_key;
+				break;
+
+			case 2: 
+				config_start->setText("Configure");
+				input_start->setText(QString::number(last_key));
+				input_start->clearFocus();
+				config::agb_key_start = config::dmg_key_start = last_key;
+				break;
+
+			case 3: 
+				config_select->setText("Configure");
+				input_select->setText(QString::number(last_key));
+				input_select->clearFocus();
+				config::agb_key_select = config::dmg_key_select = last_key;
+				break;
+
+			case 4: 
+				config_left->setText("Configure");
+				input_left->setText(QString::number(last_key));
+				input_left->clearFocus();
+				config::agb_key_left = config::dmg_key_left = last_key;
+				break;
+
+			case 5: 
+				config_right->setText("Configure");
+				input_right->setText(QString::number(last_key));
+				input_right->clearFocus();
+				config::agb_key_right = config::dmg_key_right = last_key;
+				break;
+
+			case 6: 
+				config_up->setText("Configure");
+				input_up->setText(QString::number(last_key));
+				config::agb_key_up = config::dmg_key_up = last_key;
+				break;
+
+			case 7: 
+				config_down->setText("Configure");
+				input_down->setText(QString::number(last_key));
+				input_down->clearFocus();
+				config::agb_key_down = config::dmg_key_down = last_key;
+				break;
+
+			case 8: 
+				config_l->setText("Configure");
+				input_l->setText(QString::number(last_key));
+				input_l->clearFocus();
+				config::agb_key_l_trigger = last_key;
+				break;
+
+			case 9: 
+				config_r->setText("Configure");
+				input_r->setText(QString::number(last_key));
+				input_r->clearFocus();
+				config::agb_key_r_trigger = last_key;
+				break;
+		}
+
+		grab_input = false;
+		input_index = -1;
+	}
+}
+
+/****** Event filter for settings window ******/
 bool gen_settings::eventFilter(QObject* target, QEvent* event)
 {
+	//Filter all keypresses, pass them along to input configuration if necessary
 	if(event->type() == QEvent::KeyPress)
 	{
 		QKeyEvent* key_event = static_cast<QKeyEvent*>(event);
