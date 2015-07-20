@@ -386,6 +386,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	paths_layout->addWidget(gba_bios_set);
 	paths->setLayout(paths_layout);
 
+	connect(tabs, SIGNAL(currentChanged(int)), this, SLOT(close_input()));
 	connect(tabs_button, SIGNAL(accepted()), this, SLOT(accept()));
 	connect(tabs_button, SIGNAL(rejected()), this, SLOT(reject()));
 	connect(tabs_button->button(QDialogButtonBox::Close), SIGNAL(clicked()), this, SLOT(close_input()));
