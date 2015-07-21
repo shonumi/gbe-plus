@@ -89,6 +89,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	//Setup signals
 	connect(quit, SIGNAL(triggered()), this, SLOT(quit()));
 	connect(open, SIGNAL(triggered()), this, SLOT(open_file()));
+	connect(pause, SIGNAL(triggered()), this, SLOT(pause()));
 	connect(screenshot, SIGNAL(triggered()), this, SLOT(screenshot()));
 	connect(reset, SIGNAL(triggered()), this, SLOT(reset()));
 	connect(general, SIGNAL(triggered()), this, SLOT(show_settings()));
@@ -164,6 +165,7 @@ void main_menu::quit()
 void main_menu::boot_game()
 {
 	config::sample_rate = settings->sample_rate;
+	config::pause_emu = false;
 
 	//Determine Gameboy type based on file name
 	//Note, DMG and GBC games are automatically detected in the Gameboy MMU, so only check for GBA types here
@@ -288,8 +290,32 @@ void main_menu::keyReleaseEvent(QKeyEvent* event)
 	}
 }
 
-/****** Pauses emulation ******/
-void main_menu::pause() { }
+/****** Qt SLOT to pause the emulator ******/
+void main_menu::pause()
+{
+	if(main_menu::gbe_plus != NULL)
+	{
+		//Unpause
+		if(config::pause_emu) { config::pause_emu = false; }
+
+		//Pause
+		else
+		{
+			config::pause_emu = true;
+			pause_emu();
+		}
+	}
+}
+
+/****** Pauses the emulator ******/
+void main_menu::pause_emu()
+{
+	while(config::pause_emu) 
+	{
+		SDL_Delay(16);
+		QApplication::processEvents();
+	}
+}
 
 /****** Resets emulation ******/
 void main_menu::reset()

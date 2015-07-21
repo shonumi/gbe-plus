@@ -52,6 +52,7 @@ class main_menu : public QWidget
 	u32 base_height;
 
 	void boot_game();
+	void pause_emu();
 };
 
 #endif //MAINMENU_GBE_QT
