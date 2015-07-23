@@ -10,6 +10,7 @@ set(SRCS
 	mmu.cpp
 	opengl.cpp
 	z80.cpp
+	custom_graphics.cpp
 	)
 
 set(HEADERS
@@ -22,6 +23,8 @@ set(HEADERS
 	lcd_data.h
 	mmu.h
 	z80.h
+	custom_graphics.h
+	custom_graphics_data.h
 	)
 
 add_library(dmg STATIC ${SRCS} ${HEADERS})

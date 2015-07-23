@@ -168,7 +168,14 @@ else
 	exit
 fi
 
-if ld -r dmg/core.o dmg/mbc1.o dmg/mbc2.o dmg/mbc3.o dmg/mbc5.o dmg/mmu.o dmg/lcd.o dmg/apu.o dmg/z80.o dmg/opengl.o dmg/gamepad.o -o dmg/dmg.o; then
+if g++ -o dmg/custom_graphics.o -c -O3 -funroll-loops dmg/custom_graphics.cpp; then
+	echo -e "Compiling Custom GFX...			\E[32m[DONE]\E[37m"
+else
+	echo -e "Compiling Custom GFX...			\E[31m[ERROR]\E[37m"
+	exit
+fi
+
+if ld -r dmg/core.o dmg/mbc1.o dmg/mbc2.o dmg/mbc3.o dmg/mbc5.o dmg/mmu.o dmg/lcd.o dmg/apu.o dmg/z80.o dmg/opengl.o dmg/gamepad.o dmg/custom_graphics.o -o dmg/dmg.o; then
 	echo -e "\E[32mGB/GBC core complete...\E[37m"
 else
 	echo -e "\E[31mGB/GBC core complete...\E[37m"
