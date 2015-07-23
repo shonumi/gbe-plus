@@ -43,9 +43,11 @@ class main_menu : public QWidget
 	void show_display_settings();
 	void show_sound_settings();
 	void show_control_settings();
+	void show_about();
 
 	private:
 	gen_settings* settings;
+	QWidget* about_box;
 
 	int menu_height;
 	u32 base_width;

@@ -96,6 +96,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	connect(display, SIGNAL(triggered()), this, SLOT(show_display_settings()));
 	connect(sound, SIGNAL(triggered()), this, SLOT(show_sound_settings()));
 	connect(controls, SIGNAL(triggered()), this, SLOT(show_control_settings()));
+	connect(about, SIGNAL(triggered()), this, SLOT(show_about()));
 
 	QVBoxLayout *layout = new QVBoxLayout;
 	layout->setMenuBar(menu_bar);
@@ -112,6 +113,36 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	//Set up settings dialog
 	settings = new gen_settings();
 	settings->set_ini_options();
+
+	//Setup About pop-up
+	about_box = new QWidget();
+	about_box->resize(300, 250);
+	about_box->setWindowTitle("About GBE+");
+
+	QDialogButtonBox* about_button = new QDialogButtonBox(QDialogButtonBox::Close);
+	connect(about_button->button(QDialogButtonBox::Close), SIGNAL(clicked()), about_box, SLOT(close()));
+
+	QLabel* emu_title = new QLabel("GBE+ 1.0");
+	QFont font = emu_title->font();
+	font.setPointSize(18);
+	font.setBold(true);
+	emu_title->setFont(font);
+
+	QLabel* emu_desc = new QLabel("A GB/GBC/GBA emulator with enhancements");
+	QLabel* emu_copyright = new QLabel("Copyright D.S. Baxter 2014-2015");
+	QLabel* emu_proj_copyright = new QLabel("Copyright GBE+ Team 2014-2015");
+	QLabel* emu_license = new QLabel("This program is licensed under the GNU GPLv2");
+
+	QVBoxLayout* about_layout = new QVBoxLayout;
+	about_layout->addWidget(emu_title, 0, Qt::AlignCenter | Qt::AlignTop);
+	about_layout->addWidget(emu_desc, 0, Qt::AlignCenter | Qt::AlignTop);
+	about_layout->addWidget(emu_copyright, 0, Qt::AlignCenter | Qt::AlignTop);
+	about_layout->addWidget(emu_proj_copyright, 0, Qt::AlignCenter | Qt::AlignTop);
+	about_layout->addWidget(emu_license, 0, Qt::AlignCenter | Qt::AlignTop);
+	about_layout->addWidget(about_button);
+	about_box->setLayout(about_layout);
+	
+	about_box->hide();
 }
 
 /****** Open game file ******/
@@ -363,3 +394,10 @@ void main_menu::show_sound_settings() { settings->show(); settings->tabs->setCur
 
 /****** Shows the Control settings dialog ******/
 void main_menu::show_control_settings() { settings->show(); settings->tabs->setCurrentIndex(3); }
+
+/****** Shows the About box ******/
+void main_menu::show_about() 
+{ 
+	if(about_box->isHidden()) { about_box->show(); }
+	else if ((!about_box->isMinimized()) && (!about_box->isHidden())){ about_box->hide(); }
+}
