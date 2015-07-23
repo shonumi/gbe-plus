@@ -196,6 +196,13 @@ else
 	exit
 fi
 
+if g++ -o common/hash.o -c -O3 -funroll-loops common/hash.cpp; then
+	echo -e "Compiling Hash...			\E[32m[DONE]\E[37m"
+else
+	echo -e "Compiling Hash...			\E[31m[ERROR]\E[37m"
+	exit
+fi
+
 if g++ -o main.o -c -O3 -funroll-loops main.cpp; then
 	echo -e "Compiling Main...			\E[32m[DONE]\E[37m"
 else
@@ -203,7 +210,7 @@ else
 	exit
 fi
 
-if g++ -o gbe_plus gba/gba.o dmg/dmg.o common/config.o main.o -lSDL -lGL; then
+if g++ -o gbe_plus gba/gba.o dmg/dmg.o common/config.o common/hash.o main.o -lSDL -lGL; then
 	echo -e "Linking Project...			\E[32m[DONE]\E[37m"
 else
 	echo -e "Linking Project...			\E[31m[ERROR]\E[37m"

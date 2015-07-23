@@ -1,9 +1,13 @@
-set(SRCS config.cpp)
+set(SRCS
+	config.cpp
+	hash.cpp
+	)
 
 set(HEADERS
 	common.h
 	core_emu.h
 	config.h
+	hash.h
 	)
 
 
