@@ -9,12 +9,13 @@
 // Draws background, window, and sprites to screen
 // Responsible for blitting pixel data and limiting frame rate
 
+#ifndef GB_LCD
+#define GB_LCD
+
 #include "SDL/SDL.h"
 #include "SDL/SDL_opengl.h"
 #include "mmu.h"
-
-#ifndef GB_LCD
-#define GB_LCD
+#include "custom_graphics_data.h"
 
 class DMG_LCD
 {
@@ -32,11 +33,28 @@ class DMG_LCD
 	bool init();
 	void opengl_init();
 
+	//Custom GFX functions
+	bool load_manifest(std::string filename);
+	void load_image_data(int size, SDL_Surface* custom_source, u32 custom_dest[]);
+
+	void dump_dmg_obj(u8 obj_index);
+	void dump_dmg_bg(u16 addr);
+
+	void dump_gbc_obj(u16 addr);
+	void dump_gbc_bg(u16 addr);
+
+	void load_dmg_obj(u16 obj_index);
+	void load_dmg_bg(u16 bg_index);
+
+	void load_gbc_obj(u16 obj_index);
+	void load_gbc_bg(u16 bg_index);
+
 	//Screen data
 	SDL_Surface* final_screen;
 	GLuint lcd_texture;
 
 	dmg_lcd_data lcd_stat;
+	dmg_cgfx_data cgfx_stat;
 
 	private:
 

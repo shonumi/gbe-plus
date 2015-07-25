@@ -191,7 +191,7 @@ void DMG_core::run_core()
 		//Stop emulation
 		else { stop(); }
 	}
-
+	
 	//Shutdown core
 	shutdown();
 }

@@ -23,10 +23,9 @@ set(HEADERS
 	lcd_data.h
 	mmu.h
 	z80.h
-	custom_graphics.h
 	custom_graphics_data.h
 	)
 
 add_library(dmg STATIC ${SRCS} ${HEADERS})
 
-target_link_libraries(dmg ${SDL_LIBRARY} ${OPENGL_gl_LIBRARY}) 
+target_link_libraries(dmg common ${SDL_LIBRARY} ${OPENGL_gl_LIBRARY}) 

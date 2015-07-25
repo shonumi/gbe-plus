@@ -20,6 +20,12 @@
 struct dmg_cgfx_data
 { 
 	std::vector <std::string> manifest;
+
+	std::vector <std::string> current_obj_hash;
+	std::vector <std::string> current_bg_hash;
+
+	std::vector <std::string> obj_hash_list;
+	std::vector <std::string> bg_hash_list;
 };
 
 #endif // GB_CGFX_DATA
