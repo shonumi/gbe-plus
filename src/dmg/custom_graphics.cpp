@@ -118,7 +118,99 @@ void DMG_LCD::dump_dmg_obj(u8 obj_index)
 }
 
 /****** Dumps DMG BG tile from selected memory address ******/
-void DMG_LCD::dump_dmg_bg(u16 addr) { }
+void DMG_LCD::dump_dmg_bg(u16 bg_index) 
+{
+	SDL_Surface* bg_dump = NULL;
+	bool add_hash = true;
+
+	cgfx_stat.current_bg_hash[bg_index] = "";
+	std::string final_hash = "";
+
+	//Generate salt for hash - Use BG palette (mirrored to 16-bits)
+	u16 hash_salt = ((mem->memory_map[REG_BGP] << 8) | mem->memory_map[REG_BGP]);
+
+	//Grab OBJ tile addr from index
+	u16 bg_tile_addr = (bg_index * 16) + 0x8000;
+
+	//Create a hash for this sprite
+	for(int x = 0; x < 4; x++)
+	{
+		u16 temp_hash = mem->memory_map[(x * 4) + bg_tile_addr];
+		temp_hash << 8;
+		temp_hash += mem->memory_map[(x * 4) + bg_tile_addr + 1];
+		temp_hash = temp_hash ^ hash_salt;
+		cgfx_stat.current_bg_hash[bg_index] += raw_to_64(temp_hash);
+
+		temp_hash = mem->memory_map[(x * 4) + bg_tile_addr + 2];
+		temp_hash << 8;
+		temp_hash += mem->memory_map[(x * 4) + bg_tile_addr + 3];
+		temp_hash = temp_hash ^ hash_salt;
+		cgfx_stat.current_bg_hash[bg_index] += raw_to_64(temp_hash);
+	}
+
+	final_hash = cgfx_stat.current_bg_hash[bg_index];
+
+	//Update the OBJ hash list
+	for(int x = 0; x < cgfx_stat.bg_hash_list.size(); x++)
+	{
+		if(final_hash == cgfx_stat.bg_hash_list[x]) { add_hash = false; return; }
+	}
+
+	//For new OBJs, dump BMP file
+	if(add_hash) 
+	{ 
+		cgfx_stat.bg_hash_list.push_back(final_hash);
+
+		bg_dump = SDL_CreateRGBSurface(SDL_SWSURFACE, 8, 8, 32, 0, 0, 0, 0);
+		std::string dump_file = "Dump/BG/" + final_hash + ".bmp";
+
+		if(SDL_MUSTLOCK(bg_dump)) { SDL_LockSurface(bg_dump); }
+
+		u32* dump_pixel_data = (u32*)bg_dump->pixels;
+		u8 pixel_counter = 0;
+
+		//Generate RGBA values of the sprite for the dump file
+		for(int x = 0; x < 8; x++)
+		{
+			//Grab bytes from VRAM representing 8x1 pixel data
+			u16 raw_data = mem->read_u16(bg_tile_addr);
+
+			//Grab individual pixels
+			for(int y = 7; y >= 0; y--)
+			{
+				u8 raw_pixel = ((raw_data >> 8) & (1 << y)) ? 2 : 0;
+				raw_pixel |= (raw_data & (1 << y)) ? 1 : 0;
+
+				switch(lcd_stat.bgp[raw_pixel])
+				{
+					case 0: 
+						dump_pixel_data[pixel_counter++] = 0xFFFFFFFF;
+						break;
+
+					case 1: 
+						dump_pixel_data[pixel_counter++] = 0xFFC0C0C0;
+						break;
+
+					case 2: 
+						dump_pixel_data[pixel_counter++] = 0xFF606060;
+						break;
+
+					case 3: 
+						dump_pixel_data[pixel_counter++] = 0xFF000000;
+						break;
+				}
+			}
+
+			bg_tile_addr += 2;
+		}
+
+		if(SDL_MUSTLOCK(bg_dump)) { SDL_UnlockSurface(bg_dump); }
+
+		//Save to BMP
+		std::cout<<"LCD::Saving Background Tile - " << dump_file << "\n";
+		SDL_SaveBMP(bg_dump, dump_file.c_str());
+	}
+}
 
 /****** Dumps GBC OBJ tile from selected memory address ******/
 void DMG_LCD::dump_gbc_obj(u16 addr) { }
