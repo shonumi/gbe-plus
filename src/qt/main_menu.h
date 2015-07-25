@@ -15,6 +15,7 @@
 #include <QtGui>
 
 #include "general_settings.h"
+#include "cgfx.h"
 
 #include "gba/core.h"
 #include "dmg/core.h"
@@ -43,10 +44,12 @@ class main_menu : public QWidget
 	void show_display_settings();
 	void show_sound_settings();
 	void show_control_settings();
+	void show_cgfx();
 	void show_about();
 
 	private:
 	gen_settings* settings;
+	gbe_cgfx* cgfx;
 	QWidget* about_box;
 
 	int menu_height;

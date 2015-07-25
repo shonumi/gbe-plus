@@ -19,20 +19,23 @@
 main_menu::main_menu(QWidget *parent) : QWidget(parent)
 {
 	//Setup actions
-	QAction *open = new QAction("&Open", this);
-	QAction *quit = new QAction ("&Quit", this);
+	QAction* open = new QAction("&Open", this);
+	QAction* quit = new QAction ("&Quit", this);
 
-	QAction *pause = new QAction("&Pause", this);
-	QAction *reset = new QAction("&Reset", this);
-	QAction *fullscreen = new QAction("Fullscreen", this);
-	QAction *screenshot = new QAction("Screenshot", this);
+	QAction* pause = new QAction("&Pause", this);
+	QAction* reset = new QAction("&Reset", this);
+	QAction* fullscreen = new QAction("Fullscreen", this);
+	QAction* screenshot = new QAction("Screenshot", this);
 
-	QAction *general = new QAction("General Settings...", this);
-	QAction *display = new QAction("Display", this);
-	QAction *sound = new QAction("Sound", this);
-	QAction *controls = new QAction("Controls", this);
+	QAction* general = new QAction("General Settings...", this);
+	QAction* display = new QAction("Display", this);
+	QAction* sound = new QAction("Sound", this);
+	QAction* controls = new QAction("Controls", this);
 
-	QAction *about = new QAction("About", this);
+	QAction* custom_gfx = new QAction("Custom Graphics...", this);
+	QAction* debugging = new QAction("Debugger", this);
+
+	QAction* about = new QAction("About", this);
 
 	//Set shortcuts for actions
 	open->setShortcut(tr("CTRL+O"));
@@ -49,7 +52,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	menu_bar = new QMenuBar(this);
 
 	//Setup File menu
-	QMenu *file;
+	QMenu* file;
 
 	file = new QMenu(tr("&File"), this);
 	file->addAction(open);
@@ -58,7 +61,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	menu_bar->addMenu(file);
 
 	//Setup Emulation menu
-	QMenu *emulation;
+	QMenu* emulation;
 
 	emulation = new QMenu(tr("&Emulation"), this);
 	emulation->addAction(pause);
@@ -69,7 +72,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	menu_bar->addMenu(emulation);
 
 	//Setup Options menu
-	QMenu *options;
+	QMenu* options;
 	
 	options = new QMenu(tr("&Options"), this);
 	options->addAction(general);
@@ -79,8 +82,16 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	options->addAction(controls);
 	menu_bar->addMenu(options);
 
+	//Advanced menu
+	QMenu* advanced;
+
+	advanced = new QMenu(tr("&Advanced"), this);
+	advanced->addAction(custom_gfx);
+	advanced->addAction(debugging);
+	menu_bar->addMenu(advanced);
+
 	//Setup Help menu
-	QMenu *help;
+	QMenu* help;
 
 	help = new QMenu(tr("&Help"), this);
 	help->addAction(about);
@@ -96,9 +107,10 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	connect(display, SIGNAL(triggered()), this, SLOT(show_display_settings()));
 	connect(sound, SIGNAL(triggered()), this, SLOT(show_sound_settings()));
 	connect(controls, SIGNAL(triggered()), this, SLOT(show_control_settings()));
+	connect(custom_gfx, SIGNAL(triggered()), this, SLOT(show_cgfx()));
 	connect(about, SIGNAL(triggered()), this, SLOT(show_about()));
 
-	QVBoxLayout *layout = new QVBoxLayout;
+	QVBoxLayout* layout = new QVBoxLayout;
 	layout->setMenuBar(menu_bar);
 	setLayout(layout);
 
@@ -113,6 +125,10 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	//Set up settings dialog
 	settings = new gen_settings();
 	settings->set_ini_options();
+
+	//Set up custom graphics dialog
+	cgfx = new gbe_cgfx();
+	cgfx->hide();
 
 	//Setup About pop-up
 	about_box = new QWidget();
@@ -394,6 +410,9 @@ void main_menu::show_sound_settings() { settings->show(); settings->tabs->setCur
 
 /****** Shows the Control settings dialog ******/
 void main_menu::show_control_settings() { settings->show(); settings->tabs->setCurrentIndex(3); }
+
+/****** Shows the Custom Graphics dialog ******/
+void main_menu::show_cgfx() { cgfx->show(); }
 
 /****** Shows the About box ******/
 void main_menu::show_about() 
