@@ -32,6 +32,15 @@ class gbe_cgfx : public QDialog
 
 	//BG tab widgets
 	std::vector<QImage> cgfx_bg;
+
+	private:
+	QWidget* obj_set;
+	QWidget* bg_set;
+
+	QGridLayout* obj_layout;
+	QGridLayout* bg_layout;
+
+	void setup_obj_window(int rows, int count);
 };
 
 #endif //CGFX_GBE_QT 
