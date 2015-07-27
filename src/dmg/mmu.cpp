@@ -1171,13 +1171,14 @@ bool DMG_MMU::read_file(std::string filename)
 
 		//Some sound registers are set, however, don't actually play sound
 		for(int x = 0; x < 4; x++) { apu_stat->channel[x].playing = false; }
+	}
 
-		//Some I/O registers are 0xFF on DMG units, 0x0 on GBC/GBA units
-		if(config::gb_type != 2)
-		{
-			write_u8(REG_OBP0, 0xFF);
-			write_u8(REG_OBP1, 0xFF);
-		}
+	//Manually set some I/O registers
+	//Some I/O registers are 0xFF on DMG units, 0x0 on GBC/GBA units
+	if(config::gb_type < 2)
+	{
+		write_u8(REG_OBP0, 0xFF);
+		write_u8(REG_OBP1, 0xFF);
 	}
 
 	//Load backup save data if applicable
