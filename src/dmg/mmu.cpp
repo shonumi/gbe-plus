@@ -940,39 +940,6 @@ bool DMG_MMU::read_file(std::string filename)
 	//Read 32KB worth of data from ROM file
 	file.read((char*)ex_mem, 0x8000);
 
-	//Manually HLE MMIO
-	if(!in_bios) 
-	{
-		write_u8(REG_LCDC, 0x91);
-		write_u8(REG_BGP, 0xFC);
-		write_u8(REG_OBP0, 0xFF);
-		write_u8(REG_OBP1, 0xFF);
-		write_u8(REG_P1, 0xFF);
-		write_u8(REG_DIV, 0xAF);
-		write_u8(REG_TAC, 0xF8);
-		write_u8(0xFF10, 0x80);
-		write_u8(0xFF11, 0xBF);
-   		write_u8(0xFF12, 0xF3); 
-  		write_u8(0xFF14, 0xBF); 
-   		write_u8(0xFF16, 0x3F); 
-   		write_u8(0xFF17, 0x00); 
-   		write_u8(0xFF19, 0xBF); 
-   		write_u8(0xFF1A, 0x7F); 
-   		write_u8(0xFF1B, 0xFF); 
-   		write_u8(0xFF1C, 0x9F); 
-   		write_u8(0xFF1E, 0xBF); 
-   		write_u8(0xFF20, 0xFF); 
-   		write_u8(0xFF21, 0x00); 
-   		write_u8(0xFF22, 0x00); 
-   		write_u8(0xFF23, 0xBF); 
-   		write_u8(0xFF24, 0x77); 
-   		write_u8(0xFF25, 0xF3);
-		write_u8(0xFF26, 0xF1);
-
-		//Some sound registers are set, however, don't actually play sound
-		for(int x = 0; x < 4; x++) { apu_stat->channel[x].playing = false; }
-	}
-
 	//Determine MBC type
 	switch(memory_map[ROM_MBC])
 	{
@@ -1164,6 +1131,44 @@ bool DMG_MMU::read_file(std::string filename)
 		//If another value is present, this is a DMG game
 		//The value is likely part of the ASCII title
 		else { config::gb_type = 1; }
+	}
+
+	//Manually HLE MMIO
+	if(!in_bios) 
+	{
+		write_u8(REG_LCDC, 0x91);
+		write_u8(REG_BGP, 0xFC);
+		write_u8(REG_P1, 0xFF);
+		write_u8(REG_DIV, 0xAF);
+		write_u8(REG_TAC, 0xF8);
+		write_u8(0xFF10, 0x80);
+		write_u8(0xFF11, 0xBF);
+   		write_u8(0xFF12, 0xF3); 
+  		write_u8(0xFF14, 0xBF); 
+   		write_u8(0xFF16, 0x3F); 
+   		write_u8(0xFF17, 0x00); 
+   		write_u8(0xFF19, 0xBF); 
+   		write_u8(0xFF1A, 0x7F); 
+   		write_u8(0xFF1B, 0xFF); 
+   		write_u8(0xFF1C, 0x9F); 
+   		write_u8(0xFF1E, 0xBF); 
+   		write_u8(0xFF20, 0xFF); 
+   		write_u8(0xFF21, 0x00); 
+   		write_u8(0xFF22, 0x00); 
+   		write_u8(0xFF23, 0xBF); 
+   		write_u8(0xFF24, 0x77); 
+   		write_u8(0xFF25, 0xF3);
+		write_u8(0xFF26, 0xF1);
+
+		//Some sound registers are set, however, don't actually play sound
+		for(int x = 0; x < 4; x++) { apu_stat->channel[x].playing = false; }
+
+		//Some I/O registers are 0xFF on DMG units, 0x0 on GBC/GBA units
+		if(config::gb_type != 2)
+		{
+			write_u8(REG_OBP0, 0xFF);
+			write_u8(REG_OBP1, 0xFF);
+		}
 	}
 
 	//Load backup save data if applicable
