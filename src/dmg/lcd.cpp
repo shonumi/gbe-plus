@@ -278,6 +278,7 @@ void DMG_LCD::render_dmg_scanline()
 	for(int x = 0; x < 160; x++)
 	{
 		screen_buffer[(160 * lcd_stat.current_scanline) + x] = scanline_buffer[x];
+		scanline_buffer[x] = 0xFFFFFFFF;
 	}
 }
 
