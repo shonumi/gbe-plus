@@ -995,6 +995,15 @@ bool DMG_MMU::read_file(std::string filename)
 			std::cout<<"MMU::ROM Size - " << cart.rom_size << "KB\n";
 			break;
 
+		case 0x8:
+			cart.mbc_type = ROM_ONLY;
+			cart.ram = true;
+
+			std::cout<<"MMU::Cartridge Type - ROM + RAM\n";
+			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
+			std::cout<<"MMU::ROM Size - " << cart.rom_size << "KB\n";
+			break;
+
 		case 0x10:
 			cart.mbc_type = MBC3;
 			cart.ram = true;
