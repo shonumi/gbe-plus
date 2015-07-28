@@ -40,9 +40,6 @@ int main(int argc, char* args[])
 	//Start the appropiate system core - DMG/GBC or GBA
 	if(config::gb_type == 3) { gbe_plus = new AGB_core(); }
 	else { gbe_plus = new DMG_core(); }
-
-	//Read specified ROM file
-	if(!gbe_plus->read_file(config::rom_file)) { return 0; }
 	
 	//Read BIOS file optionally
 	if(config::use_bios) 
@@ -60,6 +57,9 @@ int main(int argc, char* args[])
 
 		if(!gbe_plus->read_bios(config::bios_file)) { return 0; } 
 	}
+
+	//Read specified ROM file
+	if(!gbe_plus->read_file(config::rom_file)) { return 0; }
 
 	//Engage the core
 	gbe_plus->start();
