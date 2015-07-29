@@ -86,4 +86,119 @@ void gbe_cgfx::setup_obj_window(int rows, int count)
 
 	obj_set->setLayout(obj_layout);
 }
+
+/****** Updates the OBJ dumping window ******/
+void gbe_cgfx::update_obj_window(int rows, int count)
+{
+	if(main_menu::gbe_plus == NULL) { return; }
+
+	//Clear out previous widgets
+	if(!cgfx_obj.empty())
+	{
+		for(int x = 0; x < cgfx_obj.size(); x++)
+		{
+			//Remove QImages from the layout
+			obj_layout->removeItem(obj_layout->itemAt(x));
+		}
+
+		cgfx_obj.clear();
+	}
+
+	//Generate the correct number of QImages
+	for(int x = 0; x < count; x++)
+	{
+		cgfx_obj.push_back(grab_obj_data(x));
 		
+		//Set QImage to black first
+		for(int pixel_counter = 0; pixel_counter < 4096; pixel_counter++)
+		{
+			cgfx_obj[x].setPixel((pixel_counter % 64), (pixel_counter / 64), 0xFF000000);
+		}
+		
+		//Wrap QImage in a QLabel
+		QLabel* obj_label = new QLabel;
+		obj_label->setPixmap(QPixmap::fromImage(cgfx_obj[x]));
+
+		obj_layout->addWidget(obj_label, (x / rows), (x % rows));
+	}
+
+	obj_set->setLayout(obj_layout);
+}
+
+/****** Grabs an OBJ in VRAM and converts it to a QImage ******/
+QImage gbe_cgfx::grab_obj_data(int obj_index)
+{
+	std::vector<u8>* mem = main_menu::gbe_plus->get_core_memory();
+	std::vector<u32> obj_pixels;
+
+	//Determine if in 8x8 or 8x16 mode
+	u8 obj_height = (mem->at(REG_LCDC) & 0x04) ? 16 : 8;
+
+	//Grab OBJ tile addr from index
+	u16 obj_tile_addr = (obj_index * 16) + 0x8000;
+
+	//Setup palettes
+	u8 obp[4][2];
+
+	u8 value = mem->at(REG_OBP0);
+	obp[0][0] = value  & 0x3;
+	obp[1][0] = (value >> 2) & 0x3;
+	obp[2][0] = (value >> 4) & 0x3;
+	obp[3][0] = (value >> 6) & 0x3;
+
+	value = mem->at(REG_OBP1);
+	obp[0][1] = value  & 0x3;
+	obp[1][1] = (value >> 2) & 0x3;
+	obp[2][1] = (value >> 4) & 0x3;
+	obp[3][1] = (value >> 6) & 0x3;
+
+	//Grab palette number from OAM
+	u8 pal_num = (mem->at(OAM + (obj_index * 4) + 3) & 0x10) ? 1 : 0;
+
+	//Pull data from VRAM into the ARGB vector
+	for(int x = 0; x < obj_height; x++)
+	{
+		//Grab bytes from VRAM representing 8x1 pixel data
+		u16 raw_data = (mem->at(obj_tile_addr + 1) << 8) | mem->at(obj_tile_addr);
+
+		//Grab individual pixels
+		for(int y = 7; y >= 0; y--)
+		{
+			u8 raw_pixel = ((raw_data >> 8) & (1 << y)) ? 2 : 0;
+			raw_pixel |= (raw_data & (1 << y)) ? 1 : 0;
+
+			switch(obp[raw_pixel][pal_num])
+			{
+				case 0: 
+					obj_pixels.push_back(0xFFFFFFFF);
+					break;
+
+				case 1: 
+					obj_pixels.push_back(0xFFC0C0C0);
+					break;
+
+				case 2: 
+					obj_pixels.push_back(0xFF606060);
+					break;
+
+				case 3: 
+					obj_pixels.push_back(0xFF000000);
+					break;
+			}
+		}
+
+		obj_tile_addr += 2;
+	}
+
+	QImage raw_image(8, obj_height, QImage::Format_ARGB32);	
+
+	//Copy raw pixels to QImage
+	for(int x = 0; x < obj_pixels.size(); x++)
+	{
+		raw_image.setPixel((x % 8), (x / 8), obj_pixels[x]);
+	}
+
+	//Scale final output to 64x64
+	QImage final_image = raw_image.scaled(64, 64);
+	return final_image;
+}

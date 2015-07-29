@@ -43,6 +43,7 @@ class core_emu
 	//MMU related functions
 	virtual bool read_file(std::string filename) = 0;
 	virtual bool read_bios(std::string filename) = 0;
+	virtual std::vector<u8>* get_core_memory() = 0;
 
 	bool running;
 	SDL_Event event;

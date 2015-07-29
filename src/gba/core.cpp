@@ -629,4 +629,9 @@ bool AGB_core::read_bios(std::string filename)
 	core_cpu.reg.r15 = 0;
 	return core_mmu.read_bios(config::bios_file);
 }
- 
+
+/****** Returns core memory ******/
+std::vector<u8>* AGB_core::get_core_memory()
+{
+	return &core_mmu.memory_map;
+}

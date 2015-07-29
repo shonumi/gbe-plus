@@ -562,4 +562,9 @@ bool DMG_core::read_file(std::string filename) { return core_mmu.read_file(filen
 
 /****** Read BIOS file into memory ******/
 bool DMG_core::read_bios(std::string filename) { return core_mmu.read_bios(config::bios_file); }
- 
+
+/****** Returns core memory ******/
+std::vector<u8>* DMG_core::get_core_memory()
+{
+	return &core_mmu.memory_map;
+}

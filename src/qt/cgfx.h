@@ -24,6 +24,8 @@ class gbe_cgfx : public QDialog
 	public:
 	gbe_cgfx(QWidget *parent = 0);
 
+	void update_obj_window(int rows, int count);
+
 	QTabWidget* tabs;
 	QDialogButtonBox* tabs_button;
 
@@ -41,6 +43,7 @@ class gbe_cgfx : public QDialog
 	QGridLayout* bg_layout;
 
 	void setup_obj_window(int rows, int count);
+	QImage grab_obj_data(int obj_index);
 };
 
 #endif //CGFX_GBE_QT 
