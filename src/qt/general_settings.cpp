@@ -593,15 +593,20 @@ void gen_settings::screen_scale_change()
 /****** Dynamically changes the core's volume ******/
 void gen_settings::volume_change() 
 {
+	//Update volume while playing
 	if((main_menu::gbe_plus != NULL) && (sound_on->isChecked()))
 	{
 		main_menu::gbe_plus->update_volume(volume->value());
 	}
+
+	//Update the volume while using only the GUI
+	else { config::volume = volume->value(); }	
 }
 
 /****** Mutes the core's volume ******/
 void gen_settings::mute()
 {
+	//Mute/unmute while playing
 	if(main_menu::gbe_plus != NULL)
 	{
 		//Unmute, use slider volume
@@ -609,6 +614,16 @@ void gen_settings::mute()
 
 		//Mute
 		else { main_menu::gbe_plus->update_volume(0); }
+	}
+
+	//Mute/unmute while using only the GUI
+	else
+	{
+		//Unmute, use slider volume
+		if(sound_on->isChecked()) { config::volume = volume->value(); }
+
+		//Mute
+		else { config::volume = 0; }
 	}
 }
 

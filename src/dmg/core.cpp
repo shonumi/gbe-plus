@@ -548,7 +548,7 @@ void DMG_core::handle_hotkey(SDL_Event& event)
 void DMG_core::update_volume(u8 volume)
 {
 	config::volume = volume;
-	core_cpu.controllers.audio.apu_stat.channel_master_volume = config::volume;
+	core_cpu.controllers.audio.apu_stat.channel_master_volume = (config::volume >> 2);
 }
 
 /****** Feeds key input from an external source (useful for TAS) ******/
