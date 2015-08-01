@@ -43,7 +43,7 @@ class AGB_core : virtual public core_emu
 		//MMU related functions
 		bool read_file(std::string filename);
 		bool read_bios(std::string filename);
-		std::vector<u8>* get_core_memory();
+		u8 ex_read_u8(u16 address);
 
 		AGB_MMU core_mmu;
 		ARM7 core_cpu;

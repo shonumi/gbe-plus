@@ -43,7 +43,7 @@ class DMG_core : virtual public core_emu
 		//MMU related functions
 		bool read_file(std::string filename);
 		bool read_bios(std::string filename);
-		std::vector<u8>* get_core_memory();
+		u8 ex_read_u8(u16 address);
 
 		DMG_MMU core_mmu;
 		Z80 core_cpu;
