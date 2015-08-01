@@ -31,14 +31,11 @@ class gbe_cgfx : public QDialog
 
 	//OBJ tab widgets
 	std::vector<QImage> cgfx_obj;
+	std::vector<QLabel*> obj_label;
 
 	//BG tab widgets
 	std::vector<QImage> cgfx_bg;
-
-	bool draw_ready;
-
-	protected:
-	void paintEvent(QPaintEvent* event);
+	std::vector<QLabel*> bg_label;
 
 	private:
 	QWidget* obj_set;

@@ -14,8 +14,6 @@
 /****** General settings constructor ******/
 gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 {
-	draw_ready = false;
-
 	//Set up tabs
 	tabs = new QTabWidget(this);
 	
@@ -51,8 +49,6 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 
 	resize(600, 600);
 	setWindowTitle(tr("Custom Graphics"));
-
-	draw_ready = true;
 }
 
 /****** Sets up the OBJ dumping window ******/
@@ -60,6 +56,7 @@ void gbe_cgfx::setup_obj_window(int rows, int count)
 {
 	//Clear out previous widgets
 	cgfx_obj.clear();
+	obj_label.clear();
 
 	//Generate the correct number of QImages
 	for(int x = 0; x < count; x++)
@@ -71,7 +68,16 @@ void gbe_cgfx::setup_obj_window(int rows, int count)
 		{
 			cgfx_obj[x].setPixel((pixel_counter % 64), (pixel_counter / 64), 0xFF000000);
 		}
+
+		//Wrap QImage in a QLabel
+		QLabel* label = new QLabel;
+		label->setPixmap(QPixmap::fromImage(cgfx_obj[x]));
+		obj_label.push_back(label);
+
+		obj_layout->addWidget(obj_label[x], (x / rows), (x % rows));
 	}
+
+	obj_set->setLayout(obj_layout);
 }
 
 /****** Updates the OBJ dumping window ******/
@@ -80,13 +86,31 @@ void gbe_cgfx::update_obj_window(int rows, int count)
 	if(main_menu::gbe_plus == NULL) { return; }
 
 	//Clear out previous widgets
+	for(int x = 0; x < obj_label.size(); x++)
+	{
+		//Remove QLabels from the layout
+		//Manual memory management is not ideal, but QLabels can't be copied (can't be pushed back to a vector)
+		obj_layout->removeItem(obj_layout->itemAt(x));
+		delete obj_label[x];
+	}
+
 	cgfx_obj.clear();
+	obj_label.clear();
 
 	//Generate the correct number of QImages
 	for(int x = 0; x < count; x++)
 	{
 		cgfx_obj.push_back(grab_obj_data(x));
+
+		//Wrap QImage in a QLabel
+		QLabel* label = new QLabel;
+		label->setPixmap(QPixmap::fromImage(cgfx_obj[x]));
+		obj_label.push_back(label);
+
+		obj_layout->addWidget(obj_label[x], (x / rows), (x % rows));
 	}
+
+	obj_set->setLayout(obj_layout);
 }
 
 /****** Grabs an OBJ in VRAM and converts it to a QImage ******/
@@ -165,25 +189,4 @@ QImage gbe_cgfx::grab_obj_data(int obj_index)
 	//Scale final output to 64x64
 	QImage final_image = raw_image.scaled(64, 64);
 	return final_image;
-}
-
-/****** Updates the main window ******/
-void gbe_cgfx::paintEvent(QPaintEvent* event)
-{
-	if(!cgfx_obj.empty())
-	{
-		//Draw OBJs
-		if(tabs->currentIndex() == 0)
-		{
-			QPainter painter(this);
-			
-			int x_coordinate = 15;
-			int y_coordinate = 50;
-
-			for(int x = 0; x < 40; x++)
-			{ 
-				painter.drawImage(x_coordinate + ((x % 8) * 72), y_coordinate + ((x / 8) * 72), cgfx_obj[x]);
-			}
-		}
-	}
 }
