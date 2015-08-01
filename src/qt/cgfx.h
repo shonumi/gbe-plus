@@ -31,11 +31,11 @@ class gbe_cgfx : public QDialog
 
 	//OBJ tab widgets
 	std::vector<QImage> cgfx_obj;
-	std::vector<QLabel*> obj_label;
+	std::vector<QPushButton*> obj_button;
 
 	//BG tab widgets
 	std::vector<QImage> cgfx_bg;
-	std::vector<QLabel*> bg_label;
+	std::vector<QPushButton*> bg_button;
 
 	private:
 	QWidget* obj_set;

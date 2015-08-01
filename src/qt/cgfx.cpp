@@ -56,7 +56,7 @@ void gbe_cgfx::setup_obj_window(int rows, int count)
 {
 	//Clear out previous widgets
 	cgfx_obj.clear();
-	obj_label.clear();
+	obj_button.clear();
 
 	//Generate the correct number of QImages
 	for(int x = 0; x < count; x++)
@@ -70,11 +70,13 @@ void gbe_cgfx::setup_obj_window(int rows, int count)
 		}
 
 		//Wrap QImage in a QLabel
-		QLabel* label = new QLabel;
-		label->setPixmap(QPixmap::fromImage(cgfx_obj[x]));
-		obj_label.push_back(label);
+		QPushButton* label = new QPushButton;
+		label->setIcon(QPixmap::fromImage(cgfx_obj[x]));
+		label->setIconSize(QPixmap::fromImage(cgfx_obj[x]).rect().size());
+		label->setFlat(true);
+		obj_button.push_back(label);
 
-		obj_layout->addWidget(obj_label[x], (x / rows), (x % rows));
+		obj_layout->addWidget(obj_button[x], (x / rows), (x % rows));
 	}
 
 	obj_set->setLayout(obj_layout);
@@ -86,16 +88,16 @@ void gbe_cgfx::update_obj_window(int rows, int count)
 	if(main_menu::gbe_plus == NULL) { return; }
 
 	//Clear out previous widgets
-	for(int x = 0; x < obj_label.size(); x++)
+	for(int x = 0; x < obj_button.size(); x++)
 	{
-		//Remove QLabels from the layout
-		//Manual memory management is not ideal, but QLabels can't be copied (can't be pushed back to a vector)
+		//Remove QWidgets from the layout
+		//Manual memory management is not ideal, but QWidgets can't be copied (can't be pushed back to a vector)
 		obj_layout->removeItem(obj_layout->itemAt(x));
-		delete obj_label[x];
+		delete obj_button[x];
 	}
 
 	cgfx_obj.clear();
-	obj_label.clear();
+	obj_button.clear();
 
 	//Generate the correct number of QImages
 	for(int x = 0; x < count; x++)
@@ -103,11 +105,14 @@ void gbe_cgfx::update_obj_window(int rows, int count)
 		cgfx_obj.push_back(grab_obj_data(x));
 
 		//Wrap QImage in a QLabel
-		QLabel* label = new QLabel;
-		label->setPixmap(QPixmap::fromImage(cgfx_obj[x]));
-		obj_label.push_back(label);
+		QPushButton* label = new QPushButton;
+		label->setIcon(QPixmap::fromImage(cgfx_obj[x]));
+		label->setIconSize(QPixmap::fromImage(cgfx_obj[x]).rect().size());
+		label->setFlat(true);
 
-		obj_layout->addWidget(obj_label[x], (x / rows), (x % rows));
+		obj_button.push_back(label);
+
+		obj_layout->addWidget(obj_button[x], (x / rows), (x % rows));
 	}
 
 	obj_set->setLayout(obj_layout);
