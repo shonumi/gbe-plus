@@ -46,9 +46,12 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 
 	connect(tabs_button, SIGNAL(accepted()), this, SLOT(accept()));
 	connect(tabs_button, SIGNAL(rejected()), this, SLOT(reject()));
+	connect(tabs_button->button(QDialogButtonBox::Close), SIGNAL(clicked()), this, SLOT(close_cgfx()));
 
 	resize(600, 600);
 	setWindowTitle(tr("Custom Graphics"));
+
+	pause = false;
 }
 
 /****** Sets up the OBJ dumping window ******/
@@ -195,3 +198,9 @@ QImage gbe_cgfx::grab_obj_data(int obj_index)
 	QImage final_image = raw_image.scaled(64, 64);
 	return final_image;
 }
+
+/****** Closes the CGFX window ******/
+void gbe_cgfx::closeEvent(QCloseEvent* event) { close_cgfx(); }
+
+/****** Closes the CGFX window ******/
+void gbe_cgfx::close_cgfx() { pause = false; config::pause_emu = false; }

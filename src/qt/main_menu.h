@@ -28,6 +28,8 @@ class main_menu : public QWidget
 	main_menu(QWidget *parent = 0);
 	static core_emu* gbe_plus;
 
+	void pause_emu();
+
 	protected:
 	void paintEvent(QPaintEvent* event);
 	void closeEvent(QCloseEvent* event);
@@ -57,7 +59,6 @@ class main_menu : public QWidget
 	u32 base_height;
 
 	void boot_game();
-	void pause_emu();
 };
 
 #endif //MAINMENU_GBE_QT

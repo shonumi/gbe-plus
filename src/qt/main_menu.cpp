@@ -343,7 +343,12 @@ void main_menu::pause()
 	if(main_menu::gbe_plus != NULL)
 	{
 		//Unpause
-		if(config::pause_emu) { config::pause_emu = false; }
+		if(config::pause_emu) 
+		{
+			if(cgfx->pause) { return; }
+
+			config::pause_emu = false; 
+		}
 
 		//Pause
 		else
@@ -412,7 +417,13 @@ void main_menu::show_sound_settings() { settings->show(); settings->tabs->setCur
 void main_menu::show_control_settings() { settings->show(); settings->tabs->setCurrentIndex(3); }
 
 /****** Shows the Custom Graphics dialog ******/
-void main_menu::show_cgfx() { cgfx->update_obj_window(8, 40); cgfx->show(); }
+void main_menu::show_cgfx() 
+{ 
+	cgfx->update_obj_window(8, 40);
+	cgfx->show();
+	cgfx->pause = true;
+	pause();
+}
 
 /****** Shows the About box ******/
 void main_menu::show_about() 

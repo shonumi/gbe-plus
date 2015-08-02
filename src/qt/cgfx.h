@@ -37,6 +37,11 @@ class gbe_cgfx : public QDialog
 	std::vector<QImage> cgfx_bg;
 	std::vector<QPushButton*> bg_button;
 
+	bool pause;
+
+	protected:
+	void closeEvent(QCloseEvent* event);
+
 	private:
 	QWidget* obj_set;
 	QWidget* bg_set;
@@ -46,6 +51,9 @@ class gbe_cgfx : public QDialog
 
 	void setup_obj_window(int rows, int count);
 	QImage grab_obj_data(int obj_index);
+
+	private slots:
+	void close_cgfx();
 };
 
 #endif //CGFX_GBE_QT 
