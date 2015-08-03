@@ -40,6 +40,9 @@ class DMG_core : virtual public core_emu
 		void debug_display() const;
 		void debug_process_command();
 
+		//CGFX interface
+		void dump_obj(int obj_index);
+
 		//MMU related functions
 		bool read_file(std::string filename);
 		bool read_bios(std::string filename);

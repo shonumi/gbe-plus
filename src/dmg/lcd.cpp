@@ -113,6 +113,9 @@ void DMG_LCD::reset()
 
 	//16 pixel (vertical) flipping lookup generation
         for(int x = 0; x < 16; x++) { lcd_stat.flip_16[x] = (15 - x); }
+
+	cgfx_stat.current_obj_hash.clear();
+	cgfx_stat.current_obj_hash.resize(40);
 }
 
 /****** Initialize LCD with SDL ******/

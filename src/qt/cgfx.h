@@ -49,11 +49,15 @@ class gbe_cgfx : public QDialog
 	QGridLayout* obj_layout;
 	QGridLayout* bg_layout;
 
+	QSignalMapper* obj_signal;
+	QSignalMapper* bg_signal;
+
 	void setup_obj_window(int rows, int count);
 	QImage grab_obj_data(int obj_index);
 
 	private slots:
 	void close_cgfx();
+	void dump_obj(int obj_index);
 };
 
 #endif //CGFX_GBE_QT 

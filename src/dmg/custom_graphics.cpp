@@ -35,20 +35,20 @@ void DMG_LCD::dump_dmg_obj(u8 obj_index)
 	obj_height = (mem->memory_map[REG_LCDC] & 0x04) ? 16 : 8;
 
 	//Grab OBJ tile addr from index
-	u16 obj_tile_addr = (obj_index * 16) + 0x8000;
+	u16 obj_tile_addr = 0x8000 + (obj[obj_index].tile_number << 4);
 
 	//Create a hash for this sprite
 	for(int x = 0; x < obj_height/2; x++)
 	{
-		u16 temp_hash = mem->memory_map[(x * 4) + obj_tile_addr];
+		u16 temp_hash = mem->read_u8((x * 4) + obj_tile_addr);
 		temp_hash << 8;
-		temp_hash += mem->memory_map[(x * 4) + obj_tile_addr + 1];
+		temp_hash += mem->read_u8((x * 4) + obj_tile_addr + 1);
 		temp_hash = temp_hash ^ hash_salt;
 		cgfx_stat.current_obj_hash[obj_index] += raw_to_64(temp_hash);
 
-		temp_hash = mem->memory_map[(x * 4) + obj_tile_addr + 2];
+		temp_hash = mem->read_u8((x * 4) + obj_tile_addr + 2);
 		temp_hash << 8;
-		temp_hash += mem->memory_map[(x * 4) + obj_tile_addr + 3];
+		temp_hash += mem->read_u8((x * 4) + obj_tile_addr + 3);
 		temp_hash = temp_hash ^ hash_salt;
 		cgfx_stat.current_obj_hash[obj_index] += raw_to_64(temp_hash);
 	}

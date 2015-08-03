@@ -45,6 +45,9 @@ class core_emu
 	virtual bool read_bios(std::string filename) = 0;
 	virtual u8 ex_read_u8(u16 address) = 0;
 
+	//CGFX interface
+	virtual void dump_obj(int obj_index) = 0;
+
 	bool running;
 	SDL_Event event;
 	

@@ -568,3 +568,10 @@ u8 DMG_core::ex_read_u8(u16 address)
 {
 	return core_mmu.read_u8(address);
 }
+
+/****** Dumps selected OBJ to a file ******/
+void DMG_core::dump_obj(int obj_index)
+{
+	//DMG OBJs
+	if(config::gb_type < 2) { core_cpu.controllers.video.dump_dmg_obj(obj_index); }
+}

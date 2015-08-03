@@ -33,9 +33,13 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 
 	setup_obj_window(8, 40);
 
+	//Setup scroll areas
+	QScrollArea* obj_scroll = new QScrollArea;
+	obj_scroll->setWidget(obj_set);
+
 	//OBJ Tab layout
 	QVBoxLayout* obj_tab_layout = new QVBoxLayout;
-	obj_tab_layout->addWidget(obj_set);
+	obj_tab_layout->addWidget(obj_scroll);
 	obj_tab->setLayout(obj_tab_layout);
 
 	//Final tab layout
@@ -102,6 +106,11 @@ void gbe_cgfx::update_obj_window(int rows, int count)
 	cgfx_obj.clear();
 	obj_button.clear();
 
+	//Setup signal mapper
+	if(obj_signal != NULL) { delete obj_signal; }
+	obj_signal = new QSignalMapper;
+	
+
 	//Generate the correct number of QImages
 	for(int x = 0; x < count; x++)
 	{
@@ -114,11 +123,15 @@ void gbe_cgfx::update_obj_window(int rows, int count)
 		label->setFlat(true);
 
 		obj_button.push_back(label);
-
 		obj_layout->addWidget(obj_button[x], (x / rows), (x % rows));
+
+		//Map signals
+		connect(obj_button[x], SIGNAL(clicked()), obj_signal, SLOT(map()));
+		obj_signal->setMapping(obj_button[x], x);
 	}
 
 	obj_set->setLayout(obj_layout);
+	connect(obj_signal, SIGNAL(mapped(int)), this, SLOT(dump_obj(int))) ;
 }
 
 /****** Grabs an OBJ in VRAM and converts it to a QImage ******/
@@ -204,3 +217,6 @@ void gbe_cgfx::closeEvent(QCloseEvent* event) { close_cgfx(); }
 
 /****** Closes the CGFX window ******/
 void gbe_cgfx::close_cgfx() { pause = false; config::pause_emu = false; }
+
+/****** Dumps the selected OBJ ******/
+void gbe_cgfx::dump_obj(int obj_index) { main_menu::gbe_plus->dump_obj(obj_index); }
