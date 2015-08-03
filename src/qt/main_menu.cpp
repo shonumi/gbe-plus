@@ -362,11 +362,15 @@ void main_menu::pause()
 /****** Pauses the emulator ******/
 void main_menu::pause_emu()
 {
+	SDL_PauseAudio(1);
+
 	while(config::pause_emu) 
 	{
 		SDL_Delay(16);
 		QApplication::processEvents();
 	}
+
+	SDL_PauseAudio(0);
 }
 
 /****** Resets emulation ******/
