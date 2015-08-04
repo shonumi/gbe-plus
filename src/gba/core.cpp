@@ -638,3 +638,6 @@ u8 AGB_core::ex_read_u8(u16 address)
 
 /****** Dumps selected OBJ to a file ******/
 void AGB_core::dump_obj(int obj_index) { }
+
+/****** Dumps selected BG tile to a file ******/
+void AGB_core::dump_bg(int bg_index) { }

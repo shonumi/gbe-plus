@@ -575,3 +575,10 @@ void DMG_core::dump_obj(int obj_index)
 	//DMG OBJs
 	if(config::gb_type < 2) { core_cpu.controllers.video.dump_dmg_obj(obj_index); }
 }
+
+/****** Dumps selected BG tile to a file ******/
+void DMG_core::dump_bg(int bg_index)
+{
+	//DMG OBJs
+	if(config::gb_type < 2) { core_cpu.controllers.video.dump_dmg_bg(bg_index); }
+}

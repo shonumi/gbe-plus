@@ -47,6 +47,7 @@ class core_emu
 
 	//CGFX interface
 	virtual void dump_obj(int obj_index) = 0;
+	virtual void dump_bg(int bg_index) = 0;
 
 	bool running;
 	SDL_Event event;

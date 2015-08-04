@@ -32,21 +32,33 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	bg_layout = new QGridLayout;
 
 	setup_obj_window(8, 40);
+	setup_bg_window(8, 384);
 
 	//Setup scroll areas
 	QScrollArea* obj_scroll = new QScrollArea;
 	obj_scroll->setWidget(obj_set);
+
+	QScrollArea* bg_scroll = new QScrollArea;
+	bg_scroll->setWidget(bg_set);
 
 	//OBJ Tab layout
 	QVBoxLayout* obj_tab_layout = new QVBoxLayout;
 	obj_tab_layout->addWidget(obj_scroll);
 	obj_tab->setLayout(obj_tab_layout);
 
+	//BG Tab layout
+	QVBoxLayout* bg_tab_layout = new QVBoxLayout;
+	bg_tab_layout->addWidget(bg_scroll);
+	bg_tab->setLayout(bg_tab_layout);
+
 	//Final tab layout
 	QVBoxLayout* main_layout = new QVBoxLayout;
 	main_layout->addWidget(tabs);
 	main_layout->addWidget(tabs_button);
 	setLayout(main_layout);
+
+	obj_signal = NULL;
+	bg_signal = NULL;
 
 	connect(tabs_button, SIGNAL(accepted()), this, SLOT(accept()));
 	connect(tabs_button, SIGNAL(rejected()), this, SLOT(reject()));
@@ -109,7 +121,6 @@ void gbe_cgfx::update_obj_window(int rows, int count)
 	//Setup signal mapper
 	if(obj_signal != NULL) { delete obj_signal; }
 	obj_signal = new QSignalMapper;
-	
 
 	//Generate the correct number of QImages
 	for(int x = 0; x < count; x++)
@@ -212,6 +223,147 @@ QImage gbe_cgfx::grab_obj_data(int obj_index)
 	return final_image;
 }
 
+/****** Sets up the BG dumping window ******/
+void gbe_cgfx::setup_bg_window(int rows, int count)
+{
+	//Clear out previous widgets
+	cgfx_bg.clear();
+	bg_button.clear();
+
+	//Generate the correct number of QImages
+	for(int x = 0; x < count; x++)
+	{
+		cgfx_bg.push_back(QImage(64, 64, QImage::Format_ARGB32));
+		
+		//Set QImage to black first
+		for(int pixel_counter = 0; pixel_counter < 4096; pixel_counter++)
+		{
+			cgfx_bg[x].setPixel((pixel_counter % 64), (pixel_counter / 64), 0xFF000000);
+		}
+
+		//Wrap QImage in a QLabel
+		QPushButton* label = new QPushButton;
+		label->setIcon(QPixmap::fromImage(cgfx_bg[x]));
+		label->setIconSize(QPixmap::fromImage(cgfx_bg[x]).rect().size());
+		label->setFlat(true);
+		bg_button.push_back(label);
+
+		bg_layout->addWidget(bg_button[x], (x / rows), (x % rows));
+	}
+
+	bg_set->setLayout(bg_layout);
+}
+
+/****** Updates the BG dumping window ******/
+void gbe_cgfx::update_bg_window(int rows, int count)
+{
+	if(main_menu::gbe_plus == NULL) { return; }
+
+	//Clear out previous widgets
+	for(int x = 0; x < bg_button.size(); x++)
+	{
+		//Remove QWidgets from the layout
+		//Manual memory management is not ideal, but QWidgets can't be copied (can't be pushed back to a vector)
+		bg_layout->removeItem(bg_layout->itemAt(x));
+		delete bg_button[x];
+	}
+
+	cgfx_bg.clear();
+	bg_button.clear();
+
+	//Setup signal mapper
+	if(bg_signal != NULL) { delete bg_signal; }
+	bg_signal = new QSignalMapper;
+	
+	//Generate the correct number of QImages
+	for(int x = 0; x < count; x++)
+	{
+		cgfx_bg.push_back(grab_bg_data(x));
+
+		//Wrap QImage in a QLabel
+		QPushButton* label = new QPushButton;
+		label->setIcon(QPixmap::fromImage(cgfx_bg[x]));
+		label->setIconSize(QPixmap::fromImage(cgfx_bg[x]).rect().size());
+		label->setFlat(true);
+
+		bg_button.push_back(label);
+		bg_layout->addWidget(bg_button[x], (x / rows), (x % rows));
+
+		//Map signals
+		connect(bg_button[x], SIGNAL(clicked()), bg_signal, SLOT(map()));
+		bg_signal->setMapping(bg_button[x], x);
+	}
+
+	bg_set->setLayout(bg_layout);
+	connect(bg_signal, SIGNAL(mapped(int)), this, SLOT(dump_bg(int))) ;
+}
+
+/****** Grabs a BG tile in VRAM and converts it to a QImage ******/
+QImage gbe_cgfx::grab_bg_data(int bg_index)
+{
+	std::vector<u32> bg_pixels;
+
+	//Setup palette
+	u8 bgp[4];
+
+	u8 value = main_menu::gbe_plus->ex_read_u8(REG_BGP);
+	bgp[0] = value  & 0x3;
+	bgp[1] = (value >> 2) & 0x3;
+	bgp[2] = (value >> 4) & 0x3;
+	bgp[3] = (value >> 6) & 0x3;
+
+	//Grab bg tile addr from index
+	u16 tile_num = bg_index;
+	u16 bg_tile_addr = 0x8000 + (tile_num << 4);
+
+	//Pull data from VRAM into the ARGB vector
+	for(int x = 0; x < 8; x++)
+	{
+		//Grab bytes from VRAM representing 8x1 pixel data
+		u16 raw_data = (main_menu::gbe_plus->ex_read_u8(bg_tile_addr + 1) << 8) | main_menu::gbe_plus->ex_read_u8(bg_tile_addr);
+
+		//Grab individual pixels
+		for(int y = 7; y >= 0; y--)
+		{
+			u8 raw_pixel = ((raw_data >> 8) & (1 << y)) ? 2 : 0;
+			raw_pixel |= (raw_data & (1 << y)) ? 1 : 0;
+
+			switch(bgp[raw_pixel])
+			{
+				case 0: 
+					bg_pixels.push_back(0xFFFFFFFF);
+					break;
+
+				case 1: 
+					bg_pixels.push_back(0xFFC0C0C0);
+					break;
+
+				case 2: 
+					bg_pixels.push_back(0xFF606060);
+					break;
+
+				case 3: 
+					bg_pixels.push_back(0xFF000000);
+					break;
+			}
+		}
+
+		bg_tile_addr += 2;
+	}
+
+	QImage raw_image(8, 8, QImage::Format_ARGB32);	
+
+	//Copy raw pixels to QImage
+	for(int x = 0; x < bg_pixels.size(); x++)
+	{
+		raw_image.setPixel((x % 8), (x / 8), bg_pixels[x]);
+	}
+
+	//Scale final output to 64x64
+	QImage final_image = raw_image.scaled(64, 64);
+	return final_image;
+}
+
 /****** Closes the CGFX window ******/
 void gbe_cgfx::closeEvent(QCloseEvent* event) { close_cgfx(); }
 
@@ -220,3 +372,6 @@ void gbe_cgfx::close_cgfx() { pause = false; config::pause_emu = false; }
 
 /****** Dumps the selected OBJ ******/
 void gbe_cgfx::dump_obj(int obj_index) { main_menu::gbe_plus->dump_obj(obj_index); }
+
+/****** Dumps the selected BG ******/
+void gbe_cgfx::dump_bg(int bg_index) { main_menu::gbe_plus->dump_bg(bg_index); }

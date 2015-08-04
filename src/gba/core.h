@@ -42,6 +42,7 @@ class AGB_core : virtual public core_emu
 
 		//CGFX interface
 		void dump_obj(int obj_index);
+		void dump_bg(int bg_index);
 
 		//MMU related functions
 		bool read_file(std::string filename);
