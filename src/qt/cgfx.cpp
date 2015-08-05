@@ -26,7 +26,7 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	tabs_button = new QDialogButtonBox(QDialogButtonBox::Close);
 
 	obj_set = new QWidget(obj_tab);
-	bg_set = new QWidget(bg_set);
+	bg_set = new QWidget(bg_tab);
 
 	obj_layout = new QGridLayout;
 	bg_layout = new QGridLayout;
