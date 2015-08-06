@@ -1,6 +1,7 @@
 set(SRCS
 	config.cpp
 	hash.cpp
+	util.cpp
 	)
 
 set(HEADERS
@@ -8,6 +9,7 @@ set(HEADERS
 	core_emu.h
 	config.h
 	hash.h
+	util.h
 	)
 
 
