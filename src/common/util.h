@@ -19,9 +19,19 @@
 
 namespace util
 {
+	struct hsv
+	{
+		double hue;
+		double saturation;
+		double value;
+	};
+
 	bool save_png(SDL_Surface* source, std::string filename);
 	u8 rgb_min(u32 color);
 	u8 rgb_max(u32 color);
+
+	u32 hsv_to_rgb(hsv color);
+	hsv rgb_to_hsv(u32 color);
 }
 
 #endif // GBE_UTIL 
