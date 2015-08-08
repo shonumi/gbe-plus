@@ -77,6 +77,7 @@ void DMG_core::shutdown()
 {
 	core_mmu.DMG_MMU::~DMG_MMU();
 	core_cpu.Z80::~Z80();
+	config::gba_enhance = false;
 }
 
 /****** Reset the core ******/

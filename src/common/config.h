@@ -48,6 +48,7 @@ namespace config
 	extern u8 scaling_factor;
 	extern std::stringstream title;
 	extern u8 gb_type;
+	extern bool gba_enhance;
 	extern bool sdl_render;
 
 	extern u8 volume;

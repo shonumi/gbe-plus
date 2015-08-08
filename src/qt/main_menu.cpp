@@ -222,7 +222,8 @@ void main_menu::boot_game()
 	config::gb_type = settings->sys_type->currentIndex();
 	
 	if(ext == ".gba") { config::gb_type = 3; }
-	else if((ext != ".gba") && (config::gb_type == 3)) { config::gb_type = 2; }
+	else if((ext != ".gba") && (config::gb_type == 3)) { config::gb_type = 2; config::gba_enhance = true; }
+	else { config::gba_enhance = false; }
 
 	//Start the appropiate system core - DMG/GBC or GBA
 	if(config::gb_type == 3) 

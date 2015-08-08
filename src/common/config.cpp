@@ -65,6 +65,9 @@ namespace config
 	//0 - DMG, 1 - DMG on GBC, 2 - GBC, 3 - GBA, 4 - NDS????
 	u8 gb_type = 0;
 
+	//Boolean dictating whether this is a DMG/GBC game on a GBA
+	bool gba_enhance = false;
+
 	//Sound parameters
 	u8 volume = 128;
 	double sample_rate = 44100;
@@ -118,7 +121,11 @@ void validate_system_type()
 
 	//Force GBC mode if system type is set to GBA, but a GB/GBC game is loaded
 	//TODO - Emulate the GBA's GBC functionality (stretching with L/R)
-	else if((ext != ".gba") && (config::gb_type == 3)) { config::gb_type = 2; }
+	else if((ext != ".gba") && (config::gb_type == 3)) 
+	{
+		config::gb_type = 2;
+		config::gba_enhance = true;
+	}
 }
 
 /****** Parse arguments passed from the command-line ******/

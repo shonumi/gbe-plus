@@ -28,7 +28,7 @@ void Z80::reset()
 {
 	//Values represent HLE BIOS
 	reg.a = (config::gb_type == 2) ? 0x11 : 0x01;
-	reg.b = 0x00;
+	reg.b = (config::gba_enhance) ? 0x01 : 0x00;
 	reg.c = 0x13;
 	reg.d = 0x00;
 	reg.e = 0xD8;
