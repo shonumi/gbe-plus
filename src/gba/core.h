@@ -43,11 +43,14 @@ class AGB_core : virtual public core_emu
 		//CGFX interface
 		void dump_obj(int obj_index);
 		void dump_bg(int bg_index);
+		u32* get_obj_palette(int pal_index);
+		u32* get_bg_palette(int pal_index);
 
 		//MMU related functions
 		bool read_file(std::string filename);
 		bool read_bios(std::string filename);
 		u8 ex_read_u8(u16 address);
+		void ex_write_u8(u16 address, u8 value);
 
 		AGB_MMU core_mmu;
 		ARM7 core_cpu;

@@ -54,7 +54,10 @@ class gbe_cgfx : public QDialog
 	QSignalMapper* bg_signal;
 
 	void setup_obj_window(int rows, int count);
+
 	QImage grab_obj_data(int obj_index);
+	QImage grab_dmg_obj_data(int obj_index);
+	QImage grab_gbc_obj_data(int obj_index);
 
 	void setup_bg_window(int rows, int count);
 	QImage grab_bg_data(int bg_index);

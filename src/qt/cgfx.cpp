@@ -145,8 +145,17 @@ void gbe_cgfx::update_obj_window(int rows, int count)
 	connect(obj_signal, SIGNAL(mapped(int)), this, SLOT(dump_obj(int))) ;
 }
 
-/****** Grabs an OBJ in VRAM and converts it to a QImage ******/
+/****** Grabs an OBJ in VRAM and converts it to a QImage - DMG Version ******/
 QImage gbe_cgfx::grab_obj_data(int obj_index)
+{
+	//Grab DMG OBJs
+	if(config::gb_type < 2) { return grab_dmg_obj_data(obj_index); }
+
+	else { return grab_gbc_obj_data(obj_index); }
+}
+
+/****** Grabs an OBJ in VRAM and converts it to a QImage - DMG Version ******/
+QImage gbe_cgfx::grab_dmg_obj_data(int obj_index)
 {
 	std::vector<u32> obj_pixels;
 
@@ -209,6 +218,70 @@ QImage gbe_cgfx::grab_obj_data(int obj_index)
 
 		obj_tile_addr += 2;
 	}
+
+	QImage raw_image(8, obj_height, QImage::Format_ARGB32);	
+
+	//Copy raw pixels to QImage
+	for(int x = 0; x < obj_pixels.size(); x++)
+	{
+		raw_image.setPixel((x % 8), (x / 8), obj_pixels[x]);
+	}
+
+	//Scale final output to 64x64
+	QImage final_image = raw_image.scaled(64, 64);
+	return final_image;
+}
+
+/****** Grabs an OBJ in VRAM and converts it to a QImage - DMG Version ******/
+QImage gbe_cgfx::grab_gbc_obj_data(int obj_index)
+{
+	std::vector<u32> obj_pixels;
+
+	//Determine if in 8x8 or 8x16 mode
+	u8 obj_height = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x04) ? 16 : 8;
+
+	//Grab palette number from OAM
+	u8 pal_num = (main_menu::gbe_plus->ex_read_u8(OAM + (obj_index * 4) + 3) & 0x7);
+	u8 tile_num = main_menu::gbe_plus->ex_read_u8(OAM + (obj_index * 4) + 2);
+	
+	//Grab VRAM banks
+	u8 current_vram_bank = main_menu::gbe_plus->ex_read_u8(REG_VBK);
+	u8 obj_vram_bank = (main_menu::gbe_plus->ex_read_u8(OAM + (obj_index * 4) + 3) & 0x8) ? 1 : 0;
+	main_menu::gbe_plus->ex_write_u8(REG_VBK, obj_vram_bank);
+
+	//Setup palettes
+	u32 obp[4];
+
+	u32* color = main_menu::gbe_plus->get_obj_palette(pal_num);
+
+	obp[0] = *color; color += 8;
+	obp[1] = *color; color += 8;
+	obp[2] = *color; color += 8;
+	obp[3] = *color; color += 8;
+
+	//Grab OBJ tile addr from index
+	u16 obj_tile_addr = 0x8000 + (tile_num << 4);
+
+	//Pull data from VRAM into the ARGB vector
+	for(int x = 0; x < obj_height; x++)
+	{
+		//Grab bytes from VRAM representing 8x1 pixel data
+		u16 raw_data = (main_menu::gbe_plus->ex_read_u8(obj_tile_addr + 1) << 8) | main_menu::gbe_plus->ex_read_u8(obj_tile_addr);
+
+		//Grab individual pixels
+		for(int y = 7; y >= 0; y--)
+		{
+			u8 raw_pixel = ((raw_data >> 8) & (1 << y)) ? 2 : 0;
+			raw_pixel |= (raw_data & (1 << y)) ? 1 : 0;
+
+			obj_pixels.push_back(obp[raw_pixel]);
+		}
+
+		obj_tile_addr += 2;
+	}
+
+	//Return VRAM bank to normal
+	main_menu::gbe_plus->ex_write_u8(REG_VBK, current_vram_bank);
 
 	QImage raw_image(8, obj_height, QImage::Format_ARGB32);	
 

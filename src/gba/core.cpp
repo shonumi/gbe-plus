@@ -631,13 +631,25 @@ bool AGB_core::read_bios(std::string filename)
 }
 
 /****** Returns a byte from core memory ******/
-u8 AGB_core::ex_read_u8(u16 address)
-{
-	return core_mmu.read_u8(address);
-}
+u8 AGB_core::ex_read_u8(u16 address) { return core_mmu.read_u8(address); }
+
+/****** Writes a byte to core memory ******/
+void AGB_core::ex_write_u8(u16 address, u8 value) { core_mmu.write_u8(address, value); }
 
 /****** Dumps selected OBJ to a file ******/
 void AGB_core::dump_obj(int obj_index) { }
 
 /****** Dumps selected BG tile to a file ******/
 void AGB_core::dump_bg(int bg_index) { }
+
+/****** Grabs the OBJ palette ******/
+u32* AGB_core::get_obj_palette(int pal_index) 
+{
+	return NULL; 
+}
+
+/****** Grabs the BG palette ******/
+u32* AGB_core::get_bg_palette(int pal_index)
+{
+	return NULL;
+}

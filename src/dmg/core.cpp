@@ -565,10 +565,10 @@ bool DMG_core::read_file(std::string filename) { return core_mmu.read_file(filen
 bool DMG_core::read_bios(std::string filename) { return core_mmu.read_bios(config::bios_file); }
 
 /****** Returns a byte from core memory ******/
-u8 DMG_core::ex_read_u8(u16 address)
-{
-	return core_mmu.read_u8(address);
-}
+u8 DMG_core::ex_read_u8(u16 address) { return core_mmu.read_u8(address); }
+
+/****** Writes a byte to core memory ******/
+void DMG_core::ex_write_u8(u16 address, u8 value) { core_mmu.write_u8(address, value); }
 
 /****** Dumps selected OBJ to a file ******/
 void DMG_core::dump_obj(int obj_index)
@@ -582,4 +582,16 @@ void DMG_core::dump_bg(int bg_index)
 {
 	//DMG OBJs
 	if(config::gb_type < 2) { core_cpu.controllers.video.dump_dmg_bg(bg_index); }
+}
+
+/****** Grabs the OBJ palette ******/
+u32* DMG_core::get_obj_palette(int pal_index)
+{
+	return &core_cpu.controllers.video.lcd_stat.obj_colors_final[0][pal_index];
+}
+
+/****** Grabs the BG palette ******/
+u32* DMG_core::get_bg_palette(int pal_index)
+{
+	return &core_cpu.controllers.video.lcd_stat.bg_colors_final[0][pal_index];
 }
