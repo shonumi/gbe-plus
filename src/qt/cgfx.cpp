@@ -232,7 +232,7 @@ QImage gbe_cgfx::grab_dmg_obj_data(int obj_index)
 	return final_image;
 }
 
-/****** Grabs an OBJ in VRAM and converts it to a QImage - DMG Version ******/
+/****** Grabs an OBJ in VRAM and converts it to a QImage - GBC Version ******/
 QImage gbe_cgfx::grab_gbc_obj_data(int obj_index)
 {
 	std::vector<u32> obj_pixels;
@@ -374,6 +374,15 @@ void gbe_cgfx::update_bg_window(int rows, int count)
 /****** Grabs a BG tile in VRAM and converts it to a QImage ******/
 QImage gbe_cgfx::grab_bg_data(int bg_index)
 {
+	//Grab DMG BG tiles
+	if(config::gb_type < 2) { return grab_dmg_bg_data(bg_index); }
+
+	else { return grab_gbc_bg_data(bg_index); }
+}
+
+/****** Grabs a BG tile in VRAM and converts it to a QImage - DMG version ******/
+QImage gbe_cgfx::grab_dmg_bg_data(int bg_index)
+{
 	std::vector<u32> bg_pixels;
 
 	//Setup palette
@@ -437,6 +446,86 @@ QImage gbe_cgfx::grab_bg_data(int bg_index)
 	return final_image;
 }
 
+/****** Grabs a BG tile and converts it to a QImage - GBC Version ******/
+QImage gbe_cgfx::grab_gbc_bg_data(int bg_index)
+{
+	std::vector<u32> bg_pixels;
+
+	u8 pal_num = 0;
+
+	//Grab BG tile addr from index
+	u16 tile_num = bg_index;
+	u16 bg_tile_addr = 0x8000 + (tile_num << 4);
+
+	//Estimate tile numbers
+	if(bg_index > 255) { bg_index -= 255; }
+
+	//Estimate the tilemap
+	u16 tilemap_addr = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x8) ? 0x9C00 : 0x9800; 
+
+	//Grab VRAM banks
+	u8 current_vram_bank = main_menu::gbe_plus->ex_read_u8(REG_VBK);
+	u8 bg_vram_bank = 0;
+	main_menu::gbe_plus->ex_write_u8(REG_VBK, 0);
+
+	//Estimate the color palette
+	for(u16 x = tilemap_addr; x < (tilemap_addr + 0x400); x++)
+	{
+		u8 map_entry = main_menu::gbe_plus->ex_read_u8(x);
+
+		if(map_entry == bg_index)
+		{
+			main_menu::gbe_plus->ex_write_u8(REG_VBK, 1);
+			pal_num = (main_menu::gbe_plus->ex_read_u8(x) & 0x7);
+			bg_vram_bank = (main_menu::gbe_plus->ex_read_u8(x) & 0x8) ? 1 : 0;
+		}
+	}
+
+	main_menu::gbe_plus->ex_write_u8(REG_VBK, bg_vram_bank);
+
+	//Setup palettes
+	u32 bgp[4];
+
+	u32* color = main_menu::gbe_plus->get_bg_palette(pal_num);
+
+	bgp[0] = *color; color += 8;
+	bgp[1] = *color; color += 8;
+	bgp[2] = *color; color += 8;
+	bgp[3] = *color; color += 8;
+
+	//Pull data from VRAM into the ARGB vector
+	for(int x = 0; x < 8; x++)
+	{
+		//Grab bytes from VRAM representing 8x1 pixel data
+		u16 raw_data = (main_menu::gbe_plus->ex_read_u8(bg_tile_addr + 1) << 8) | main_menu::gbe_plus->ex_read_u8(bg_tile_addr);
+
+		//Grab individual pixels
+		for(int y = 7; y >= 0; y--)
+		{
+			u8 raw_pixel = ((raw_data >> 8) & (1 << y)) ? 2 : 0;
+			raw_pixel |= (raw_data & (1 << y)) ? 1 : 0;
+
+			bg_pixels.push_back(bgp[raw_pixel]);
+		}
+
+		bg_tile_addr += 2;
+	}
+
+	//Return VRAM bank to normal
+	main_menu::gbe_plus->ex_write_u8(REG_VBK, current_vram_bank);
+
+	QImage raw_image(8, 8, QImage::Format_ARGB32);	
+
+	//Copy raw pixels to QImage
+	for(int x = 0; x < bg_pixels.size(); x++)
+	{
+		raw_image.setPixel((x % 8), (x / 8), bg_pixels[x]);
+	}
+
+	//Scale final output to 64x64
+	QImage final_image = raw_image.scaled(64, 64);
+	return final_image;
+}
 /****** Closes the CGFX window ******/
 void gbe_cgfx::closeEvent(QCloseEvent* event) { close_cgfx(); }
 

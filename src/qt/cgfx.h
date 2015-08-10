@@ -60,7 +60,10 @@ class gbe_cgfx : public QDialog
 	QImage grab_gbc_obj_data(int obj_index);
 
 	void setup_bg_window(int rows, int count);
+
 	QImage grab_bg_data(int bg_index);
+	QImage grab_dmg_bg_data(int bg_index);
+	QImage grab_gbc_bg_data(int bg_index);
 
 	private slots:
 	void close_cgfx();
