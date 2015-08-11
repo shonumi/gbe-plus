@@ -406,13 +406,8 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	{
 		memory_map[address] = value;
 		
-		//If sweep is active, do not update frequency
-		//This emulates the sweep's shadow registers
-		if(!apu_stat->channel[1].sweep_on)
-		{
-			apu_stat->channel[1].raw_frequency = ((memory_map[NR24] << 8) | memory_map[NR23]) & 0x7FF;
-			apu_stat->channel[1].output_frequency = (131072.0 / (2048 - apu_stat->channel[1].raw_frequency));
-		}
+		apu_stat->channel[1].raw_frequency = ((memory_map[NR24] << 8) | memory_map[NR23]) & 0x7FF;
+		apu_stat->channel[1].output_frequency = (131072.0 / (2048 - apu_stat->channel[1].raw_frequency));
 	}
 
 	//NR24 - Frequency HI, Initial
@@ -420,14 +415,9 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	{
 		memory_map[address] = value;
 
-		//If sweep is active, do not update frequency
-		//This emulates the sweep's shadow registers
-		//However, always update frequency when initializing sound
-		if((!apu_stat->channel[1].sweep_on) || (value & 0x80))
-		{
-			apu_stat->channel[1].raw_frequency = ((memory_map[NR24] << 8) | memory_map[NR23]) & 0x7FF;
-			apu_stat->channel[1].output_frequency = (131072.0 / (2048 - apu_stat->channel[1].raw_frequency));
-		}
+		//Frequency
+		apu_stat->channel[1].raw_frequency = ((memory_map[NR24] << 8) | memory_map[NR23]) & 0x7FF;
+		apu_stat->channel[1].output_frequency = (131072.0 / (2048 - apu_stat->channel[1].raw_frequency));
 
 		//Check initial flag to start playing sound, check length flag
 		if(value & 0x80) { apu_stat->channel[1].playing = true; }
@@ -437,6 +427,8 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		//Updates various sound parameters
 		if(value & 0x80) 
 		{
+
+
 			//Duty cycle
 			switch((memory_map[NR21] >> 6))
 			{
@@ -534,6 +526,7 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	else if(address == NR34)
 	{
 		memory_map[address] = value;
+
 		//Check initial flag to start playing sound, check length flag
 		if(value & 0x80) { apu_stat->channel[2].playing = true; }
 		apu_stat->channel[2].length_flag = (value & 0x40) ? true : false;
@@ -554,6 +547,7 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	else if(address == NR42)
 	{
 		memory_map[address] = value;
+
 		u8 current_step = apu_stat->channel[3].envelope_step;
 		u8 next_step = (value & 0x07) ? 1 : 0;
 		u8 next_volume = (value >> 4);
