@@ -16,7 +16,12 @@
 
 #include "common.h"
 
-std::string raw_to_64(u16 input_word);
+namespace hash
+{
+	extern std::string base_64_index;
+
+	std::string raw_to_64(u16 input_word);
+}
 
 #endif // GBE_HASH
 	

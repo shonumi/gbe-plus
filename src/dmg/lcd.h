@@ -38,15 +38,15 @@ class DMG_LCD
 	void load_image_data(int size, SDL_Surface* custom_source, u32 custom_dest[]);
 
 	void dump_dmg_obj(u8 obj_index);
-	void dump_dmg_bg(u16 addr);
+	void dump_dmg_bg(u16 bg_index);
 
-	void dump_gbc_obj(u16 addr);
-	void dump_gbc_bg(u16 addr);
+	void dump_gbc_obj(u8 obj_index);
+	void dump_gbc_bg(u16 bg_index);
 
-	void load_dmg_obj(u16 obj_index);
+	void load_dmg_obj(u8 obj_index);
 	void load_dmg_bg(u16 bg_index);
 
-	void load_gbc_obj(u16 obj_index);
+	void load_gbc_obj(u8 obj_index);
 	void load_gbc_bg(u16 bg_index);
 
 	//Screen data

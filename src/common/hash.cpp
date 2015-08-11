@@ -13,8 +13,8 @@
 
 namespace hash
 {
-	std::string base_64_index = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+-";
-}
+
+std::string base_64_index = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+-";
 
 /***** Converts 16-bit data to Base 64 text ******/
 std::string raw_to_64(u16 input_word)
@@ -35,8 +35,4 @@ std::string raw_to_64(u16 input_word)
 	return output;
 }
 
-
-	 
-	
-
-
+} //Namespace
