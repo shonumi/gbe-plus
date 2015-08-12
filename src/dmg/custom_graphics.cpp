@@ -11,6 +11,7 @@
 
 #include "common/hash.h"
 #include "common/util.h"
+#include "common/cgfx_common.h"
 #include "lcd.h"
 
 /****** Loads the manifest file ******/
@@ -310,4 +311,93 @@ void DMG_LCD::dump_dmg_bg(u16 bg_index)
 }
 
 /****** Dumps GBC BG tile from selected memory address ******/
-void DMG_LCD::dump_gbc_bg(u16 bg_index) { }
+void DMG_LCD::dump_gbc_bg(u16 bg_index) 
+{
+	SDL_Surface* bg_dump = NULL;
+	bool add_hash = true;
+
+	cgfx_stat.current_bg_hash[bg_index] = "";
+	std::string final_hash = "";
+
+	//Grab OBJ tile addr from index
+	u16 bg_tile_addr = 0x8000 + (bg_index << 4);
+
+	//Set VRAM bank
+	u8 old_vram_bank = mem->vram_bank;
+	mem->vram_bank = cgfx::gbc_bg_vram_bank;
+
+	//Create a hash for this BG tile
+	for(int x = 0; x < 4; x++)
+	{
+		u16 temp_hash = mem->read_u8((x * 4) + bg_tile_addr);
+		temp_hash << 8;
+		temp_hash += mem->read_u8((x * 4) + bg_tile_addr + 1);
+		cgfx_stat.current_bg_hash[bg_index] += hash::raw_to_64(temp_hash);
+
+		temp_hash = mem->read_u8((x * 4) + bg_tile_addr + 2);
+		temp_hash << 8;
+		temp_hash += mem->read_u8((x * 4) + bg_tile_addr + 3);
+		cgfx_stat.current_bg_hash[bg_index] += hash::raw_to_64(temp_hash);
+	}
+
+	//Prepend the hues to each hash
+	std::string hue_data = "";
+	
+	for(int x = 0; x < 4; x++)
+	{
+		util::hsv color = util::rgb_to_hsv(lcd_stat.bg_colors_final[x][cgfx::gbc_bg_color_pal]);
+		u8 hue = (color.hue / 10);
+		hue_data += hash::base_64_index[hue];
+	}
+
+	cgfx_stat.current_bg_hash[bg_index] = hue_data + "_" + cgfx_stat.current_bg_hash[bg_index];
+
+	final_hash = cgfx_stat.current_bg_hash[bg_index];
+
+	//Update the BG hash list
+	for(int x = 0; x < cgfx_stat.bg_hash_list.size(); x++)
+	{
+		if(final_hash == cgfx_stat.bg_hash_list[x]) { add_hash = false; return; }
+	}
+
+	//For new BGs, dump BMP file
+	if(add_hash) 
+	{ 
+		cgfx_stat.bg_hash_list.push_back(final_hash);
+
+		bg_dump = SDL_CreateRGBSurface(SDL_SWSURFACE, 8, 8, 32, 0, 0, 0, 0);
+		std::string dump_file = "Dump/Sprites/" + final_hash + ".bmp";
+
+		if(SDL_MUSTLOCK(bg_dump)) { SDL_LockSurface(bg_dump); }
+
+		u32* dump_pixel_data = (u32*)bg_dump->pixels;
+		u8 pixel_counter = 0;
+
+		//Generate RGBA values of the sprite for the dump file
+		for(int x = 0; x < 8; x++)
+		{
+			//Grab bytes from VRAM representing 8x1 pixel data
+			u16 raw_data = mem->read_u16(bg_tile_addr);
+
+			//Grab individual pixels
+			for(int y = 7; y >= 0; y--)
+			{
+				u8 raw_pixel = ((raw_data >> 8) & (1 << y)) ? 2 : 0;
+				raw_pixel |= (raw_data & (1 << y)) ? 1 : 0;
+
+				dump_pixel_data[pixel_counter++] = lcd_stat.bg_colors_final[raw_pixel][cgfx::gbc_bg_color_pal];
+			}
+
+			bg_tile_addr += 2;
+		}
+
+		if(SDL_MUSTLOCK(bg_dump)) { SDL_UnlockSurface(bg_dump); }
+
+		//Save to BMP
+		std::cout<<"LCD::Saving Sprite - " << dump_file << "\n";
+		SDL_SaveBMP(bg_dump, dump_file.c_str());
+	}
+
+	//Reset VRAM bank
+	mem->vram_bank = old_vram_bank;
+}

@@ -17,6 +17,8 @@
 
 #include <QtGui>
 
+#include "common/common.h"
+
 class gbe_cgfx : public QDialog
 {
 	Q_OBJECT
@@ -52,6 +54,9 @@ class gbe_cgfx : public QDialog
 
 	QSignalMapper* obj_signal;
 	QSignalMapper* bg_signal;
+
+	std::vector<u8> estimated_palette;
+	std::vector<u8> estimated_vram_bank;
 
 	void setup_obj_window(int rows, int count);
 

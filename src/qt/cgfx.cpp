@@ -8,6 +8,7 @@
 //
 // Dialog for various custom graphics options
 
+#include "common/cgfx_common.h"
 #include "cgfx.h"
 #include "main_menu.h"
 
@@ -63,6 +64,9 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	connect(tabs_button, SIGNAL(accepted()), this, SLOT(accept()));
 	connect(tabs_button, SIGNAL(rejected()), this, SLOT(reject()));
 	connect(tabs_button->button(QDialogButtonBox::Close), SIGNAL(clicked()), this, SLOT(close_cgfx()));
+
+	estimated_palette.resize(384, 0);
+	estimated_vram_bank.resize(384, 0);
 
 	resize(600, 600);
 	setWindowTitle(tr("Custom Graphics"));
@@ -452,6 +456,7 @@ QImage gbe_cgfx::grab_gbc_bg_data(int bg_index)
 	std::vector<u32> bg_pixels;
 
 	u8 pal_num = 0;
+	int original_bg_index = bg_index;
 
 	//Grab BG tile addr from index
 	u16 tile_num = bg_index;
@@ -478,6 +483,9 @@ QImage gbe_cgfx::grab_gbc_bg_data(int bg_index)
 			main_menu::gbe_plus->ex_write_u8(REG_VBK, 1);
 			pal_num = (main_menu::gbe_plus->ex_read_u8(x) & 0x7);
 			bg_vram_bank = (main_menu::gbe_plus->ex_read_u8(x) & 0x8) ? 1 : 0;
+
+			estimated_vram_bank[original_bg_index] = bg_vram_bank;
+			estimated_palette[original_bg_index] = pal_num;
 		}
 	}
 
@@ -536,4 +544,13 @@ void gbe_cgfx::close_cgfx() { pause = false; config::pause_emu = false; }
 void gbe_cgfx::dump_obj(int obj_index) { main_menu::gbe_plus->dump_obj(obj_index); }
 
 /****** Dumps the selected BG ******/
-void gbe_cgfx::dump_bg(int bg_index) { main_menu::gbe_plus->dump_bg(bg_index); }
+void gbe_cgfx::dump_bg(int bg_index) 
+{
+	if(config::gb_type == 2)
+	{
+		cgfx::gbc_bg_color_pal = estimated_palette[bg_index];
+		cgfx::gbc_bg_vram_bank = estimated_vram_bank[bg_index];
+	}
+
+	main_menu::gbe_plus->dump_bg(bg_index);
+}
