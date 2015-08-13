@@ -185,6 +185,8 @@ QImage gbe_cgfx::grab_dmg_obj_data(int obj_index)
 	u8 pal_num = (main_menu::gbe_plus->ex_read_u8(OAM + (obj_index * 4) + 3) & 0x10) ? 1 : 0;
 	u8 tile_num = main_menu::gbe_plus->ex_read_u8(OAM + (obj_index * 4) + 2);
 
+	if(obj_height == 16) { tile_num &= ~0x1; }
+
 	//Grab OBJ tile addr from index
 	u16 obj_tile_addr = 0x8000 + (tile_num << 4);
 
@@ -247,6 +249,8 @@ QImage gbe_cgfx::grab_gbc_obj_data(int obj_index)
 	//Grab palette number from OAM
 	u8 pal_num = (main_menu::gbe_plus->ex_read_u8(OAM + (obj_index * 4) + 3) & 0x7);
 	u8 tile_num = main_menu::gbe_plus->ex_read_u8(OAM + (obj_index * 4) + 2);
+
+	if(obj_height == 16) { tile_num &= ~0x1; }
 	
 	//Grab VRAM banks
 	u8 current_vram_bank = main_menu::gbe_plus->ex_read_u8(REG_VBK);
