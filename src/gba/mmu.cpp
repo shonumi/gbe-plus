@@ -240,6 +240,17 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			lcd_stat->bg_enable[3] = (lcd_stat->display_control & 0x800) ? true : false;
 			break;
 
+		//Display Status
+		case DISPSTAT:
+			{
+				u8 read_only_bits = (memory_map[DISPSTAT] & 0x7);
+				
+				memory_map[address] = (value & ~0x7);
+				memory_map[address] |= read_only_bits;
+			}
+ 
+			break;
+
 		//BG0 Control
 		case BG0CNT:
 		case BG0CNT+1:
