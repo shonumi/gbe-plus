@@ -32,6 +32,13 @@ namespace util
 
 	u32 hsv_to_rgb(hsv color);
 	hsv rgb_to_hsv(u32 color);
+
+	u32 reflect(u32 src, u8 bit);
+	void init_crc32_table();
+	u32 get_crc32(u8* data, u32 length);
+
+	extern u32 crc32_table[256];
+	extern u32 poly32;
 }
 
 #endif // GBE_UTIL 

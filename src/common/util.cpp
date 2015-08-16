@@ -15,6 +15,12 @@
 namespace util
 {
 
+//CRC32 Polynomial
+u32 poly32 = 0x04C11DB7;
+
+//CRC lookup table
+u32 crc32_table[256];
+
 /****** Saves an SDL Surface to a PNG file ******/
 bool save_png(SDL_Surface* source, std::string filename)
 {
@@ -187,6 +193,52 @@ u32 hsv_to_rgb(hsv color)
 
 	final_color = 0xFF000000 | (out_r << 16) | (out_g << 8) | out_b;
 	return final_color;
-}	
+}
+
+/****** Mirrors bits ******/
+u32 reflect(u32 src, u8 bit)
+{
+	//2nd parameter 'bit' defines which to stop mirroring, e.g. generally Bit 7, Bit 15, or Bit 31 (count from zero)
+
+	u32 out = 0;
+
+	for(int x = 0; x <= bit; x++)
+	{
+		if(src & 0x1) { out |= (1 << (bit - x)); }
+		src >>= 1;
+	}
+
+	return out;
+}
+
+/****** Sets up the CRC lookup table ******/
+void init_crc32_table()
+{
+	for(int x = 0; x < 256; x++)
+	{
+		crc32_table[x] = (reflect(x, 7) << 24);
+
+		for(int y = 0; y < 8; y++)
+		{
+			crc32_table[x] = (crc32_table[x] << 1) ^ (crc32_table[x] & (1 << 31) ? poly32 : 0);
+		}
+
+		crc32_table[x] = reflect(crc32_table[x], 31);
+	}
+}
+
+/****** Return CRC for given data ******/
+u32 get_crc32(u8* data, u32 length)
+{
+	u32 crc32 = 0xFFFFFFFF;
+
+	for(int x = 0; x < length; x++)
+	{
+		crc32 = (crc32 >> 8) ^ crc32_table[(crc32 & 0xFF) ^ (*data)];
+		data++;
+	}
+
+	return (crc32 ^ 0xFFFFFFFF);
+}
 
 } //Namespace
