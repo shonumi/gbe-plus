@@ -9,13 +9,125 @@
 // Handles dumping original BG and Sprite tiles
 // Handles loading custom pixel data
 
+#include <fstream>
+#include <sstream>
+
 #include "common/hash.h"
 #include "common/util.h"
 #include "common/cgfx_common.h"
 #include "lcd.h"
 
 /****** Loads the manifest file ******/
-bool DMG_LCD::load_manifest(std::string filename) { }
+bool DMG_LCD::load_manifest(std::string filename) 
+{
+	std::ifstream file(filename.c_str(), std::ios::in); 
+	std::string input_line = "";
+	std::string line_char = "";
+
+	//Clear existing hash data
+	cgfx_stat.obj_hash_list.clear();
+	cgfx_stat.bg_hash_list.clear();
+
+	//Clear existing manifest data
+	cgfx_stat.manifest.clear();
+	cgfx_stat.m_files.clear();
+	cgfx_stat.m_types.clear();
+	cgfx_stat.m_vram_addr.clear();
+	cgfx_stat.m_auto_bright.clear();
+
+	if(!file.is_open())
+	{
+		std::cout<<"GBE::CGFX - Could not open manifest file " << filename << ". Check file path or permissions. \n";
+		return false; 
+	}
+
+	//Cycle through whole file, line-by-line
+	while(getline(file, input_line))
+	{
+		line_char = input_line[0];
+		bool ignore = false;	
+	
+		//Check if line starts with [ - if not, skip line
+		if(line_char == "[")
+		{
+			std::string line_item = "";
+
+			//Cycle through line, character-by-character
+			for(int x = 0; ++x < input_line.length();)
+			{
+				line_char = input_line[x];
+
+				//Check for single-quotes, don't parse ":" or "]" within them
+				if((line_char == "'") && (!ignore)) { ignore = true; }
+				else if((line_char == "'") && (ignore)) { ignore = false; }
+
+				//Check the character for item limiter : or ] - Push to Vector
+				else if(((line_char == ":") || (line_char == "]")) && (!ignore)) 
+				{
+					cgfx_stat.manifest.push_back(line_item);
+					line_item = ""; 
+				}
+
+				else { line_item += line_char; }
+			}
+		}
+	}
+	
+	file.close();
+
+	//Determine if manifest is properly formed (roughly)
+	//Each manifest entry should have 5 parameters
+	if((cgfx_stat.manifest.size() % 5) != 0)
+	{
+		std::cout<<"GBE::CGFX - Manifest file " << filename << " has some missing parameters for some entries. \n";
+		return false;
+	}
+
+	//Parse entries
+	for(int x = 0; x < cgfx_stat.manifest.size();)
+	{
+		//Grab hash
+		std::string hash = cgfx_stat.manifest[x++];
+
+		//Grab file associated with hash
+		cgfx_stat.m_files.push_back(cgfx_stat.manifest[x++]);
+
+		//Grab the type
+		std::stringstream type_stream(cgfx_stat.manifest[x++]);
+		int type_byte = 0;
+		type_stream >> type_byte;
+		cgfx_stat.m_types.push_back(type_byte);
+
+		switch(type_byte)
+		{
+			//DMG, GBC, or GBA OBJ
+			case 1:
+			case 2:
+			case 3:
+				cgfx_stat.m_id.push_back(cgfx_stat.obj_hash_list.size());
+				cgfx_stat.obj_hash_list.push_back(hash);
+				break;
+
+			//DMG, GBC, or GBA BG
+			case 11:
+			case 22:
+			case 33:
+				cgfx_stat.m_id.push_back(cgfx_stat.bg_hash_list.size());
+				cgfx_stat.bg_hash_list.push_back(hash);
+				break;
+		
+			//Undefined type
+			default:
+				std::cout<<"GBE::CGFX - Undefined hash type " << (int)type_byte << "\n";
+				return false;
+		}
+
+		//TODO - VRAM Address and Auto Bright Extensions
+		x += 2;
+	}
+
+	return true;
+}
 
 /****** Loads 24-bit data from source and converts it to 32-bit ARGB ******/
 void DMG_LCD::load_image_data(int size, SDL_Surface* custom_source, u32 custom_dest[]) { }
