@@ -1126,8 +1126,13 @@ void AGB_LCD::step()
 
 		//Change mode
 		if(lcd_mode != 2) 
-		{ 
+		{
 			lcd_mode = 2;
+
+			//Increment scanline count
+			current_scanline++;
+			mem->write_u16_fast(VCOUNT, current_scanline);
+			scanline_compare();
 
 			//Raise VBlank interrupt
 			if(mem->memory_map[DISPSTAT] & 0x8) { mem->memory_map[REG_IF] |= 0x1; }
