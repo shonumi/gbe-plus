@@ -35,6 +35,7 @@ class gen_settings : public QDialog
 	//Display tab widgets
 	QComboBox* screen_scale;
 	QCheckBox* ogl;
+	QCheckBox* load_cgfx;
 
 	//Sound tab widgets
 	QComboBox* freq;
@@ -52,10 +53,12 @@ class gen_settings : public QDialog
 	QLineEdit* dmg_bios;
 	QLineEdit* gbc_bios;
 	QLineEdit* gba_bios;
+	QLineEdit* manifest;
 
 	QLabel* dmg_bios_label;
 	QLabel* gbc_bios_label;
 	QLabel* gba_bios_label;
+	QLabel* manifest_label;
 
 	//Controls tab widget
 	QComboBox* input_device;
@@ -91,6 +94,7 @@ class gen_settings : public QDialog
 	private slots:
 	void set_bios();
 	void screen_scale_change();
+	void set_cgfx();
 	void volume_change();
 	void sample_rate_change();
 	void mute();

@@ -32,6 +32,10 @@ class gbe_cgfx : public QDialog
 	QTabWidget* tabs;
 	QDialogButtonBox* tabs_button;
 
+	//Configure tab widgets
+	QCheckBox* auto_dump_obj;
+	QCheckBox* auto_dump_bg;
+
 	//OBJ tab widgets
 	std::vector<QImage> cgfx_obj;
 	std::vector<QPushButton*> obj_button;
@@ -74,6 +78,8 @@ class gbe_cgfx : public QDialog
 	void close_cgfx();
 	void dump_obj(int obj_index);
 	void dump_bg(int bg_index);
+	void set_auto_obj();
+	void set_auto_bg();
 };
 
 #endif //CGFX_GBE_QT 

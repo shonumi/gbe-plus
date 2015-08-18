@@ -18,13 +18,24 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	//Set up tabs
 	tabs = new QTabWidget(this);
 	
+	QDialog* config_tab = new QDialog;
 	QDialog* obj_tab = new QDialog;
 	QDialog* bg_tab = new QDialog;
 
+	tabs->addTab(config_tab, tr("Configure"));
 	tabs->addTab(obj_tab, tr("OBJ Tiles"));
 	tabs->addTab(bg_tab, tr("BG Tiles"));
 
 	tabs_button = new QDialogButtonBox(QDialogButtonBox::Close);
+
+	//Setup Configure widgets
+	QWidget* auto_dump_obj_set = new QWidget(config_tab);
+	QLabel* auto_dump_obj_label = new QLabel("Automatically dump OBJ tiles", auto_dump_obj_set);
+	auto_dump_obj = new QCheckBox(auto_dump_obj_set);
+
+	QWidget* auto_dump_bg_set = new QWidget(config_tab);
+	QLabel* auto_dump_bg_label = new QLabel("Automatically dump BG tiles", auto_dump_bg_set);
+	auto_dump_bg = new QCheckBox(auto_dump_bg_set);
 
 	obj_set = new QWidget(obj_tab);
 	bg_set = new QWidget(bg_tab);
@@ -41,6 +52,25 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 
 	QScrollArea* bg_scroll = new QScrollArea;
 	bg_scroll->setWidget(bg_set);
+
+	//Configure Tab layout
+	QHBoxLayout* auto_dump_obj_layout = new QHBoxLayout;
+	auto_dump_obj_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	auto_dump_obj_layout->addWidget(auto_dump_obj);
+	auto_dump_obj_layout->addWidget(auto_dump_obj_label);
+	auto_dump_obj_set->setLayout(auto_dump_obj_layout);
+
+	QHBoxLayout* auto_dump_bg_layout = new QHBoxLayout;
+	auto_dump_bg_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	auto_dump_bg_layout->addWidget(auto_dump_bg);
+	auto_dump_bg_layout->addWidget(auto_dump_bg_label);
+	auto_dump_bg_set->setLayout(auto_dump_bg_layout);
+
+	QVBoxLayout* config_tab_layout = new QVBoxLayout;
+	config_tab_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	config_tab_layout->addWidget(auto_dump_obj_set);
+	config_tab_layout->addWidget(auto_dump_bg_set);
+	config_tab->setLayout(config_tab_layout);
 
 	//OBJ Tab layout
 	QVBoxLayout* obj_tab_layout = new QVBoxLayout;
@@ -64,6 +94,8 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	connect(tabs_button, SIGNAL(accepted()), this, SLOT(accept()));
 	connect(tabs_button, SIGNAL(rejected()), this, SLOT(reject()));
 	connect(tabs_button->button(QDialogButtonBox::Close), SIGNAL(clicked()), this, SLOT(close_cgfx()));
+	connect(auto_dump_obj, SIGNAL(stateChanged(int)), this, SLOT(set_auto_obj()));
+	connect(auto_dump_bg, SIGNAL(stateChanged(int)), this, SLOT(set_auto_bg()));
 
 	estimated_palette.resize(384, 0);
 	estimated_vram_bank.resize(384, 0);
@@ -557,4 +589,18 @@ void gbe_cgfx::dump_bg(int bg_index)
 	}
 
 	main_menu::gbe_plus->dump_bg(bg_index);
+}
+
+/****** Toggles automatic dumping of OBJ tiles ******/
+void gbe_cgfx::set_auto_obj()
+{
+	if(auto_dump_obj->isChecked()) { cgfx::auto_dump_obj = true; }
+	else { cgfx::auto_dump_obj = false; }
+}
+
+/****** Toggles automatic dumping of BG tiles ******/
+void gbe_cgfx::set_auto_bg()
+{
+	if(auto_dump_bg->isChecked()) { cgfx::auto_dump_bg = true; }
+	else { cgfx::auto_dump_bg = false; }
 }

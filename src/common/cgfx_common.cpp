@@ -14,4 +14,8 @@ namespace cgfx
 { 
 	u8 gbc_bg_color_pal = 0;
 	u8 gbc_bg_vram_bank = 0;
+
+	bool load_cgfx = false;
+	bool auto_dump_obj = false;
+	bool auto_dump_bg = false;
 }

@@ -16,6 +16,7 @@
 #include "qt_common.h"
 
 #include "common/config.h"
+#include "common/cgfx_common.h"
 
 core_emu* main_menu::gbe_plus = NULL;
 
@@ -103,10 +104,22 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	ogl_layout->addWidget(ogl_label);
 	ogl_set->setLayout(ogl_layout);
 
+	//Display settings - Use OpenGL
+	QWidget* load_cgfx_set = new QWidget(display);
+	QLabel* load_cgfx_label = new QLabel("Load Custom Graphics (CGFX)");
+	load_cgfx = new QCheckBox(load_cgfx_set);
+
+	QHBoxLayout* load_cgfx_layout = new QHBoxLayout;
+	load_cgfx_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	load_cgfx_layout->addWidget(load_cgfx);
+	load_cgfx_layout->addWidget(load_cgfx_label);
+	load_cgfx_set->setLayout(load_cgfx_layout);
+
 	QVBoxLayout* disp_layout = new QVBoxLayout;
 	disp_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	disp_layout->addWidget(screen_scale_set);
 	disp_layout->addWidget(ogl_set);
+	disp_layout->addWidget(load_cgfx_set);
 	display->setLayout(disp_layout);
 
 	//Sound settings - Output frequency
@@ -379,11 +392,26 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	gba_bios_layout->addWidget(gba_bios_button);
 	gba_bios_set->setLayout(gba_bios_layout);
 
+	//Path settings - CGFX Manifest
+	QWidget* manifest_set = new QWidget(paths);
+	manifest_label = new QLabel("CGFX Manifest :  ");
+	QPushButton* manifest_button = new QPushButton("Browse");
+	manifest = new QLineEdit(paths);
+	manifest->setReadOnly(true);
+
+	QHBoxLayout* manifest_layout = new QHBoxLayout;
+	manifest_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	manifest_layout->addWidget(manifest_label);
+	manifest_layout->addWidget(manifest);
+	manifest_layout->addWidget(manifest_button);
+	manifest_set->setLayout(manifest_layout);
+
 	QVBoxLayout* paths_layout = new QVBoxLayout;
 	paths_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	paths_layout->addWidget(dmg_bios_set);
 	paths_layout->addWidget(gbc_bios_set);
 	paths_layout->addWidget(gba_bios_set);
+	paths_layout->addWidget(manifest_set);
 	paths->setLayout(paths_layout);
 
 	connect(tabs, SIGNAL(currentChanged(int)), this, SLOT(close_input()));
@@ -392,6 +420,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(tabs_button->button(QDialogButtonBox::Close), SIGNAL(clicked()), this, SLOT(close_input()));
 	connect(bios, SIGNAL(stateChanged(int)), this, SLOT(set_bios()));
 	connect(screen_scale, SIGNAL(currentIndexChanged(int)), this, SLOT(screen_scale_change()));
+	connect(load_cgfx, SIGNAL(stateChanged(int)), this, SLOT(set_cgfx()));
 	connect(volume, SIGNAL(valueChanged(int)), this, SLOT(volume_change()));
 	connect(freq, SIGNAL(currentIndexChanged(int)), this, SLOT(sample_rate_change()));
 	connect(sound_on, SIGNAL(stateChanged(int)), this, SLOT(mute()));
@@ -401,10 +430,12 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(dmg_bios_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
 	connect(gbc_bios_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
 	connect(gba_bios_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
+	connect(manifest_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
 
 	paths_mapper->setMapping(dmg_bios_button, 0);
 	paths_mapper->setMapping(gbc_bios_button, 1);
 	paths_mapper->setMapping(gba_bios_button, 2);
+	paths_mapper->setMapping(manifest_button, 3);
 	connect(paths_mapper, SIGNAL(mapped(int)), this, SLOT(set_paths(int)));
 
 	QSignalMapper* button_config = new QSignalMapper(this);
@@ -588,6 +619,13 @@ void gen_settings::screen_scale_change()
 {
 	config::scaling_factor = (screen_scale->currentIndex() + 1);
 	resize_screen = true;
+}
+
+/****** Toggles activation of custom graphics ******/
+void gen_settings::set_cgfx()
+{
+	if(load_cgfx->isChecked()) { cgfx::load_cgfx = true; }
+	else { cgfx::load_cgfx = false; }
 }
 
 /****** Dynamically changes the core's volume ******/
@@ -923,6 +961,7 @@ void gen_settings::paintEvent(QPaintEvent* event)
 {
 	gbc_bios_label->setMinimumWidth(dmg_bios_label->width());
 	gba_bios_label->setMinimumWidth(dmg_bios_label->width());
+	manifest_label->setMinimumWidth(dmg_bios_label->width());
 }
 
 /****** Closes the settings window ******/

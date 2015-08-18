@@ -17,6 +17,10 @@ namespace cgfx
 { 
 	extern u8 gbc_bg_color_pal;
 	extern u8 gbc_bg_vram_bank;
+
+	extern bool load_cgfx;
+	extern bool auto_dump_obj;
+	extern bool auto_dump_bg;
 }
 
 #endif // GBE_CGFX 
