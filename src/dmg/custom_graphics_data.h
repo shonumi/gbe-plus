@@ -40,6 +40,10 @@ struct dmg_cgfx_data
 	//List of all computed hashes
 	std::vector <std::string> obj_hash_list;
 	std::vector <std::string> bg_hash_list;
+
+	//Pixel data for all computed hashes (when loading CGFX)
+	std::vector< std::vector<u32> > obj_pixel_data;
+	std::vector< std::vector<u32> > bg_pixel_data;
 };
 
 #endif // GB_CGFX_DATA

@@ -122,6 +122,9 @@ bool DMG_LCD::load_manifest(std::string filename)
 				return false;
 		}
 
+		//Load image based on filename and hash type
+		if(!load_image_data()) { return false; }
+
 		//TODO - VRAM Address and Auto Bright Extensions
 		x += 2;
 	}
@@ -130,7 +133,44 @@ bool DMG_LCD::load_manifest(std::string filename)
 }
 
 /****** Loads 24-bit data from source and converts it to 32-bit ARGB ******/
-void DMG_LCD::load_image_data(int size, SDL_Surface* custom_source, u32 custom_dest[]) { }
+bool DMG_LCD::load_image_data() 
+{
+	//TODO - PNG loading via SDL_image
+
+	//NOTE - Only call this function during manifest loading, immediately after the filename AND type are parsed
+	std::string filename = cgfx_stat.m_files.front();
+	SDL_Surface* source = SDL_LoadBMP(filename.c_str());
+
+	if(source == NULL)
+	{
+		std::cout<<"GBE::CGFX - Could not load " << filename << "\n";
+		return false;
+	}
+
+	int custom_bpp = source->format->BitsPerPixel;
+
+	if(custom_bpp != 24)
+	{
+		std::cout<<"GBE::CGFX - " << filename << " has " << custom_bpp << "bpp instead of 24bpp \n";
+		return false;
+	}
+		
+	std::vector<u32> cgfx_pixels;
+
+	//Load 24-bit data
+	u8* pixel_data = (u8*)source->pixels;
+	for(int a = 0, b = 0; a < (source->w * source->h); a++, b+=3)
+	{
+
+		cgfx_pixels.push_back (0xFF000000 | (pixel_data[b+2] << 16) | (pixel_data[b+1] << 8) | (pixel_data[b]));
+	}
+
+	//Store OBJ pixel data
+	if(cgfx_stat.m_types.front() < 10) { cgfx_stat.obj_pixel_data.push_back(cgfx_pixels); }
+
+	//Store BG pixel data
+	else { cgfx_stat.bg_pixel_data.push_back(cgfx_pixels); }
+}
 
 /****** Dumps DMG OBJ tile from selected memory address ******/
 void DMG_LCD::dump_dmg_obj(u8 obj_index) 
@@ -478,7 +518,7 @@ void DMG_LCD::dump_gbc_bg(u16 bg_index)
 		cgfx_stat.bg_hash_list.push_back(final_hash);
 
 		bg_dump = SDL_CreateRGBSurface(SDL_SWSURFACE, 8, 8, 32, 0, 0, 0, 0);
-		std::string dump_file = "Dump/Sprites/" + final_hash + ".bmp";
+		std::string dump_file = "Dump/BG/" + final_hash + ".bmp";
 
 		if(SDL_MUSTLOCK(bg_dump)) { SDL_LockSurface(bg_dump); }
 
@@ -506,7 +546,7 @@ void DMG_LCD::dump_gbc_bg(u16 bg_index)
 		if(SDL_MUSTLOCK(bg_dump)) { SDL_UnlockSurface(bg_dump); }
 
 		//Save to BMP
-		std::cout<<"LCD::Saving Sprite - " << dump_file << "\n";
+		std::cout<<"LCD::Saving Background Tile - " << dump_file << "\n";
 		SDL_SaveBMP(bg_dump, dump_file.c_str());
 	}
 
