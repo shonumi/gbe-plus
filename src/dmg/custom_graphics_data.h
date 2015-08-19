@@ -44,6 +44,10 @@ struct dmg_cgfx_data
 	//Pixel data for all computed hashes (when loading CGFX)
 	std::vector< std::vector<u32> > obj_pixel_data;
 	std::vector< std::vector<u32> > bg_pixel_data;
+
+	//List of all tiles that have been updated
+	std::vector <bool> obj_update_list;
+	std::vector <bool> bg_update_list;
 };
 
 #endif // GB_CGFX_DATA

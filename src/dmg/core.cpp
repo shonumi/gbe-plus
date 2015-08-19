@@ -25,6 +25,7 @@ DMG_core::DMG_core()
 	//Link LCD and MMU
 	core_cpu.controllers.video.mem = &core_mmu;
 	core_mmu.set_lcd_data(&core_cpu.controllers.video.lcd_stat);
+	core_mmu.set_cgfx_data(&core_cpu.controllers.video.cgfx_stat);
 
 	//Link APU and MMU
 	core_cpu.controllers.audio.mem = &core_mmu;

@@ -11,6 +11,8 @@
 #ifndef GBE_CGFX
 #define GBE_CGFX
 
+#include <string>
+
 #include "common.h"
 
 namespace cgfx
@@ -21,6 +23,8 @@ namespace cgfx
 	extern bool load_cgfx;
 	extern bool auto_dump_obj;
 	extern bool auto_dump_bg;
+
+	extern std::string manifest_file;
 }
 
 #endif // GBE_CGFX 

@@ -18,4 +18,6 @@ namespace cgfx
 	bool load_cgfx = false;
 	bool auto_dump_obj = false;
 	bool auto_dump_bg = false;
+
+	std::string manifest_file = "";
 }

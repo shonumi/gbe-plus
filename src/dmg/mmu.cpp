@@ -11,6 +11,7 @@
 // Also loads ROM and BIOS files
 
 #include "mmu.h"
+#include "common/cgfx_common.h"
 
 /****** MMU Constructor ******/
 DMG_MMU::DMG_MMU() 
@@ -195,14 +196,6 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		
 		//GBC write to VRAM Bank 0 - DMG read normally, also from Bank 0, though it doesn't use banking technically
 		else { video_ram[0][address - 0x8000] = value; }
-
-		//VRAM - Background tiles update
-		if((address >= 0x8000) && (address <= 0x97FF))
-		{
-			//gpu_update_bg_tile = true;
-			//gpu_update_addr.push_back(address);
-			//if(address <= 0x8FFF) { gpu_update_sprite = true; }
-		}
 	}
 
 	//NR11 - Duty Cycle
@@ -863,6 +856,18 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	}
 
 	else if(address > 0x7FFF) { memory_map[address] = value; }
+
+	//CGFX processing - Check for OBJ updates
+	if((cgfx::load_cgfx) && ((address & ~0x9F) == 0xFE00))
+	{
+		cgfx_stat->obj_update_list[(address & ~0xFE00) >> 2] = true;
+	}
+
+	//CGFX processing - Check for BG updates
+	else if((cgfx::load_cgfx) && (address >= 0x8000) && (address <= 0x97FF))
+	{
+		cgfx_stat->bg_update_list[(address & ~0x8000) >> 4] = true;
+	}
 }
 
 /****** Write word to memory ******/
@@ -1287,6 +1292,9 @@ bool DMG_MMU::save_backup(std::string filename)
 
 /****** Points the MMU to an lcd_data structure (FROM THE LCD ITSELF) ******/
 void DMG_MMU::set_lcd_data(dmg_lcd_data* ex_lcd_stat) { lcd_stat = ex_lcd_stat; }
+
+/****** Points the MMU to an cgfx_data structure (FROM THE LCD ITSELF) ******/
+void DMG_MMU::set_cgfx_data(dmg_cgfx_data* ex_cgfx_stat) { cgfx_stat = ex_cgfx_stat; }
 
 /****** Points the MMU to an apu_data structure (FROM THE APU ITSELF) ******/
 void DMG_MMU::set_apu_data(dmg_apu_data* ex_apu_stat) { apu_stat = ex_apu_stat; }

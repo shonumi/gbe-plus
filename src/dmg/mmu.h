@@ -20,6 +20,7 @@
 #include "common/config.h"
 #include "gamepad.h"
 #include "lcd_data.h"
+#include "custom_graphics_data.h"
 #include "apu_data.h"
 
 class DMG_MMU
@@ -111,12 +112,16 @@ class DMG_MMU
 	u8 mbc5_read(u16 address);
 
 	void set_lcd_data(dmg_lcd_data* ex_lcd_stat);
+	void set_cgfx_data(dmg_cgfx_data* ex_cgfx_stat);
 	void set_apu_data(dmg_apu_data* ex_apu_stat);
 
 	private:
 
 	//Only the MMU and LCD should communicate through this structure
 	dmg_lcd_data* lcd_stat;
+
+	//Only the MMU and the LCD should communicate through this structure
+	dmg_cgfx_data* cgfx_stat;
 
 	//Only the MMU and APU should communicate through this structure
 	dmg_apu_data* apu_stat;

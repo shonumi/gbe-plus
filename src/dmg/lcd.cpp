@@ -118,8 +118,14 @@ void DMG_LCD::reset()
 	cgfx_stat.current_obj_hash.clear();
 	cgfx_stat.current_obj_hash.resize(40);
 
+	cgfx_stat.obj_update_list.clear();
+	cgfx_stat.obj_update_list.resize(40);
+
 	cgfx_stat.current_bg_hash.clear();
 	cgfx_stat.current_bg_hash.resize(384);
+
+	cgfx_stat.bg_update_list.clear();
+	cgfx_stat.bg_update_list.resize(384);
 }
 
 /****** Initialize LCD with SDL ******/
