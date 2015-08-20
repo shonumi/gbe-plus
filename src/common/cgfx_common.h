@@ -24,6 +24,8 @@ namespace cgfx
 	extern bool auto_dump_obj;
 	extern bool auto_dump_bg;
 
+	extern u32 transparency_color;
+
 	extern std::string manifest_file;
 }
 

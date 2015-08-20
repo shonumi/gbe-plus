@@ -10,6 +10,7 @@
 // Responsible for blitting pixel data and limiting frame rate
 
 #include "lcd.h"
+#include "common/cgfx_common.h"
 
 /****** LCD Constructor ******/
 DMG_LCD::DMG_LCD()
@@ -126,6 +127,8 @@ void DMG_LCD::reset()
 
 	cgfx_stat.bg_update_list.clear();
 	cgfx_stat.bg_update_list.resize(384);
+
+	//load_manifest(cgfx::manifest_file);
 }
 
 /****** Initialize LCD with SDL ******/
@@ -198,6 +201,9 @@ void DMG_LCD::update_oam()
 			obj[x].h_flip = (attribute & 0x20) ? true : false;
 			obj[x].v_flip = (attribute & 0x40) ? true : false;
 			obj[x].bg_priority = (attribute & 0x80) ? 1 : 0;
+
+			//Update OBJ hashes
+			if(cgfx::load_cgfx) { update_dmg_obj_hash(x); }
 		}
 
 		else { oam_ptr+= 4; }
@@ -595,6 +601,11 @@ void DMG_LCD::render_dmg_obj_scanline()
 	{
 		u8 sprite_id = obj_render_list[x];
 
+		//Render CGFX
+		if((cgfx::load_cgfx) && (has_hash(cgfx_stat.current_obj_hash[sprite_id]))) { render_cgfx_dmg_obj_scanline(sprite_id); }
+
+		else {
+
 		//Set the current pixel to start obj rendering
 		lcd_stat.scanline_pixel_counter = obj[sprite_id].x;
 		
@@ -659,8 +670,36 @@ void DMG_LCD::render_dmg_obj_scanline()
 			//Move onto next pixel in scanline to see if sprite rendering occurs
 			else { lcd_stat.scanline_pixel_counter++; }
 		}
+		}
 	}
 }
+
+/****** Renders pixeld for OBJs (per-scanline) - DMG CGFX version ******/
+void DMG_LCD::render_cgfx_dmg_obj_scanline(u8 sprite_id)
+{
+	//Set the current pixel to start obj rendering
+	lcd_stat.scanline_pixel_counter = obj[sprite_id].x;
+		
+	//Determine which line of the tiles to generate pixels for this scanline		
+	u8 tile_line = (lcd_stat.current_scanline - obj[sprite_id].y);
+	if(obj[sprite_id].v_flip) { tile_line = (lcd_stat.obj_size == 8) ? lcd_stat.flip_8[tile_line] : lcd_stat.flip_16[tile_line]; }
+
+	//If sprite is below BG and BG raw color is non-zero, abort rendering this pixel
+	if((obj[sprite_id].bg_priority == 1) && (scanline_raw[lcd_stat.scanline_pixel_counter] != 0)) { return; }
+
+	//Grab the ID of this hash to pull custom pixel data
+	u16 obj_id = cgfx_stat.m_id[cgfx_stat.last_id];
+
+	u16 tile_pixel = (8 * tile_line);
+
+	//TODO - Transparency color
+	//TODO - V and H flipping
+
+	for(int x = tile_pixel; x < (tile_pixel + 8); x++)
+	{
+		scanline_buffer[lcd_stat.scanline_pixel_counter++] = cgfx_stat.obj_pixel_data[obj_id][x];
+	}
+}	
 
 /****** Renders pixels for OBJs (per-scanline) - GBC version ******/
 void DMG_LCD::render_gbc_obj_scanline()

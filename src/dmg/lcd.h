@@ -43,11 +43,13 @@ class DMG_LCD
 	void dump_gbc_obj(u8 obj_index);
 	void dump_gbc_bg(u16 bg_index);
 
-	void load_dmg_obj(u8 obj_index);
-	void load_dmg_bg(u16 bg_index);
+	void update_dmg_obj_hash(u8 obj_index);
+	void update_dmg_bg_hash(u16 bg_index);
 
-	void load_gbc_obj(u8 obj_index);
-	void load_gbc_bg(u16 bg_index);
+	void update_gbc_obj_hash(u8 obj_index);
+	void update_gbc_bg_hash(u16 bg_index);
+
+	bool has_hash(std::string hash);
 
 	//Screen data
 	SDL_Surface* final_screen;
@@ -108,6 +110,9 @@ class DMG_LCD
 	void render_dmg_bg_scanline();
 	void render_dmg_win_scanline();
 	void render_dmg_obj_scanline();
+
+	//Per-scanline rendering - DMG (CGFX)
+	void render_cgfx_dmg_obj_scanline(u8 sprite_id);
 
 	//Per-scanline rendering - GBC
 	void render_gbc_scanline();

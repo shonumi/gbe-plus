@@ -30,6 +30,7 @@ bool DMG_LCD::load_manifest(std::string filename)
 
 	//Clear existing manifest data
 	cgfx_stat.manifest.clear();
+	cgfx_stat.m_hashes.clear();
 	cgfx_stat.m_files.clear();
 	cgfx_stat.m_types.clear();
 	cgfx_stat.m_vram_addr.clear();
@@ -106,6 +107,7 @@ bool DMG_LCD::load_manifest(std::string filename)
 			case 3:
 				cgfx_stat.m_id.push_back(cgfx_stat.obj_hash_list.size());
 				cgfx_stat.obj_hash_list.push_back(hash);
+				cgfx_stat.m_hashes.push_back(hash);
 				break;
 
 			//DMG, GBC, or GBA BG
@@ -114,6 +116,7 @@ bool DMG_LCD::load_manifest(std::string filename)
 			case 33:
 				cgfx_stat.m_id.push_back(cgfx_stat.bg_hash_list.size());
 				cgfx_stat.bg_hash_list.push_back(hash);
+				cgfx_stat.m_hashes.push_back(hash);
 				break;
 		
 			//Undefined type
@@ -552,4 +555,60 @@ void DMG_LCD::dump_gbc_bg(u16 bg_index)
 
 	//Reset VRAM bank
 	mem->vram_bank = old_vram_bank;
+}
+
+/****** Updates the current hash for the selected DMG OBJ ******/
+void DMG_LCD::update_dmg_obj_hash(u8 obj_index)
+{
+	u8 obj_height = 0;
+	bool add_hash = true;
+
+	cgfx_stat.current_obj_hash[obj_index] = "";
+	std::string final_hash = "";
+
+	//Generate salt for hash - Use OBJ palettes
+	u16 hash_salt = ((mem->memory_map[REG_OBP0] << 8) | mem->memory_map[REG_OBP1]);
+
+	//Determine if in 8x8 or 8x16 mode
+	obj_height = (mem->memory_map[REG_LCDC] & 0x04) ? 16 : 8;
+
+	//Grab OBJ tile addr from index
+	u16 obj_tile_addr = 0x8000 + (obj[obj_index].tile_number << 4);
+
+	//Create a hash for this OBJ tile
+	for(int x = 0; x < obj_height/2; x++)
+	{
+		u16 temp_hash = mem->read_u8((x * 4) + obj_tile_addr);
+		temp_hash << 8;
+		temp_hash += mem->read_u8((x * 4) + obj_tile_addr + 1);
+		temp_hash = temp_hash ^ hash_salt;
+		cgfx_stat.current_obj_hash[obj_index] += hash::raw_to_64(temp_hash);
+
+		temp_hash = mem->read_u8((x * 4) + obj_tile_addr + 2);
+		temp_hash << 8;
+		temp_hash += mem->read_u8((x * 4) + obj_tile_addr + 3);
+		temp_hash = temp_hash ^ hash_salt;
+		cgfx_stat.current_obj_hash[obj_index] += hash::raw_to_64(temp_hash);
+	}
+
+	final_hash = cgfx_stat.current_obj_hash[obj_index];
+
+	//Update the OBJ hash list
+	for(int x = 0; x < cgfx_stat.obj_hash_list.size(); x++)
+	{
+		if(final_hash == cgfx_stat.obj_hash_list[x]) { return; }
+	}
+
+	cgfx_stat.obj_hash_list.push_back(final_hash);
+}
+
+/****** Search for an existing hash from the manifest ******/
+bool DMG_LCD::has_hash(std::string hash)
+{
+	for(int x = 0; x < cgfx_stat.m_hashes.size(); x++)
+	{
+		if(hash == cgfx_stat.m_hashes[x]) { cgfx_stat.last_id = x; return true; }
+	}
+
+	return false;
 }

@@ -22,16 +22,20 @@ struct dmg_cgfx_data
 	std::vector <std::string> manifest;
 	
 	//Data pulled from manifest file
+	//Hashes - Actual hash data. Duplicated abd sorted into separate OBJ + BG lists
 	//Files - Location of the image file used for this hash
 	//Types - Determines what system a hash belongs to (DMG, GBC, GBA) and if it's an OBJ or BG
 	//ID - Keeps track of which manifest entry corresponds to which OBJ or BG entry
 	//VRAM Address - If not zero, this value is computed with the hash
-	//Auto Bright - Boolean to auto adjust CGFX assets to the original GBC or GBA palette brightness 
+	//Auto Bright - Boolean to auto adjust CGFX assets to the original GBC or GBA palette brightness
+	std::vector <std::string> m_hashes;
 	std::vector <std::string> m_files;
 	std::vector <u8> m_types;
 	std::vector <u16> m_id;
 	std::vector <u32> m_vram_addr;
 	std::vector <bool> m_auto_bright;
+
+	u32 last_id;
 
 	//Working hash list of graphics in VRAM
 	std::vector <std::string> current_obj_hash;
@@ -46,7 +50,8 @@ struct dmg_cgfx_data
 	std::vector< std::vector<u32> > bg_pixel_data;
 
 	//List of all tiles that have been updated
-	std::vector <bool> obj_update_list;
+	//NOTE - OBJs don't need a list, since the LCD keeps track of OAM updates
+	//The LCD does not keep track of BG updates, however.
 	std::vector <bool> bg_update_list;
 };
 
