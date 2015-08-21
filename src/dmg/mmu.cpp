@@ -857,14 +857,8 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 
 	else if(address > 0x7FFF) { memory_map[address] = value; }
 
-	//CGFX processing - Check for OBJ updates
-	if((cgfx::load_cgfx) && ((address & ~0x9F) == 0xFE00))
-	{
-		cgfx_stat->obj_update_list[(address & ~0xFE00) >> 2] = true;
-	}
-
 	//CGFX processing - Check for BG updates
-	else if((cgfx::load_cgfx) && (address >= 0x8000) && (address <= 0x97FF))
+	if((cgfx::load_cgfx) && (address >= 0x8000) && (address <= 0x97FF))
 	{
 		cgfx_stat->bg_update_list[(address & ~0x8000) >> 4] = true;
 	}

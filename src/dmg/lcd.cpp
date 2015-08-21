@@ -119,16 +119,13 @@ void DMG_LCD::reset()
 	cgfx_stat.current_obj_hash.clear();
 	cgfx_stat.current_obj_hash.resize(40);
 
-	cgfx_stat.obj_update_list.clear();
-	cgfx_stat.obj_update_list.resize(40);
-
 	cgfx_stat.current_bg_hash.clear();
 	cgfx_stat.current_bg_hash.resize(384);
 
 	cgfx_stat.bg_update_list.clear();
 	cgfx_stat.bg_update_list.resize(384);
 
-	//load_manifest(cgfx::manifest_file);
+	load_manifest(cgfx::manifest_file);
 }
 
 /****** Initialize LCD with SDL ******/
@@ -691,13 +688,23 @@ void DMG_LCD::render_cgfx_dmg_obj_scanline(u8 sprite_id)
 	u16 obj_id = cgfx_stat.m_id[cgfx_stat.last_id];
 
 	u16 tile_pixel = (8 * tile_line);
+	u32 custom_color = 0;
 
-	//TODO - Transparency color
-	//TODO - V and H flipping
+	//Account for horizontal flipping
+	lcd_stat.scanline_pixel_counter = obj[sprite_id].h_flip ? (lcd_stat.scanline_pixel_counter + 8) : lcd_stat.scanline_pixel_counter;
+	s16 counter = obj[sprite_id].h_flip ? -1 : 1;
 
+	//Output 8x1 line of custom pixel data
 	for(int x = tile_pixel; x < (tile_pixel + 8); x++)
 	{
-		scanline_buffer[lcd_stat.scanline_pixel_counter++] = cgfx_stat.obj_pixel_data[obj_id][x];
+		custom_color = cgfx_stat.obj_pixel_data[obj_id][x];
+
+		if(custom_color != cgfx::transparency_color)
+		{
+			scanline_buffer[lcd_stat.scanline_pixel_counter] = cgfx_stat.obj_pixel_data[obj_id][x];
+		}
+
+		lcd_stat.scanline_pixel_counter += counter;
 	}
 }	
 
