@@ -38,7 +38,8 @@ bool DMG_LCD::load_manifest(std::string filename)
 
 	if(!file.is_open())
 	{
-		std::cout<<"GBE::CGFX - Could not open manifest file " << filename << ". Check file path or permissions. \n";
+		std::cout<<"CGFX::Could not open manifest file " << filename << ". Check file path or permissions. \n";
+		cgfx::load_cgfx = false;
 		return false; 
 	}
 
@@ -80,7 +81,8 @@ bool DMG_LCD::load_manifest(std::string filename)
 	//Each manifest entry should have 5 parameters
 	if((cgfx_stat.manifest.size() % 5) != 0)
 	{
-		std::cout<<"GBE::CGFX - Manifest file " << filename << " has some missing parameters for some entries. \n";
+		std::cout<<"CGFX::Manifest file " << filename << " has some missing parameters for some entries. \n";
+		cgfx::load_cgfx = false;
 		return false;
 	}
 
@@ -121,7 +123,7 @@ bool DMG_LCD::load_manifest(std::string filename)
 		
 			//Undefined type
 			default:
-				std::cout<<"GBE::CGFX - Undefined hash type " << (int)type_byte << "\n";
+				std::cout<<"CGFX::Undefined hash type " << (int)type_byte << "\n";
 				return false;
 		}
 
@@ -131,6 +133,8 @@ bool DMG_LCD::load_manifest(std::string filename)
 		//TODO - VRAM Address and Auto Bright Extensions
 		x += 2;
 	}
+
+	std::cout<<"CGFX::" << filename << "loaded successfully\n"; 
 
 	return true;
 }

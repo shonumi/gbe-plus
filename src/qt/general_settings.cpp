@@ -597,14 +597,16 @@ void gen_settings::set_ini_options()
 	input_l->setText(QString::number(config::agb_key_l_trigger));
 	input_r->setText(QString::number(config::agb_key_r_trigger));
 
-	//BIOS and Boot ROM paths
+	//BIOS, Boot ROM and Manifest paths
 	QString path_1(QString::fromStdString(config::dmg_bios_path));
 	QString path_2(QString::fromStdString(config::gbc_bios_path));
 	QString path_3(QString::fromStdString(config::agb_bios_path));
+	QString path_4(QString::fromStdString(cgfx::manifest_file));
 
 	dmg_bios->setText(path_1);
 	gbc_bios->setText(path_2);
 	gba_bios->setText(path_3);
+	manifest->setText(path_4);
 }
 
 /****** Toggles whether to use the Boot ROM or BIOS ******/
@@ -698,6 +700,11 @@ void gen_settings::set_paths(int index)
 		case 2:
 			config::agb_bios_path = filename.toStdString();
 			gba_bios->setText(filename);
+			break;
+
+		case 3:
+			cgfx::manifest_file = filename.toStdString();
+			manifest->setText(filename);
 			break;
 	}
 }
