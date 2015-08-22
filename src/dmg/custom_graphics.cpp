@@ -113,9 +113,9 @@ bool DMG_LCD::load_manifest(std::string filename)
 				break;
 
 			//DMG, GBC, or GBA BG
-			case 11:
-			case 22:
-			case 33:
+			case 10:
+			case 20:
+			case 30:
 				cgfx_stat.m_id.push_back(cgfx_stat.bg_hash_list.size());
 				cgfx_stat.bg_hash_list.push_back(hash);
 				cgfx_stat.m_hashes.push_back(hash);
@@ -134,7 +134,7 @@ bool DMG_LCD::load_manifest(std::string filename)
 		x += 2;
 	}
 
-	std::cout<<"CGFX::" << filename << "loaded successfully\n"; 
+	std::cout<<"CGFX::" << filename << " loaded successfully\n"; 
 
 	return true;
 }
@@ -145,7 +145,7 @@ bool DMG_LCD::load_image_data()
 	//TODO - PNG loading via SDL_image
 
 	//NOTE - Only call this function during manifest loading, immediately after the filename AND type are parsed
-	std::string filename = cgfx_stat.m_files.front();
+	std::string filename = cgfx_stat.m_files.back();
 	SDL_Surface* source = SDL_LoadBMP(filename.c_str());
 
 	if(source == NULL)
@@ -173,7 +173,7 @@ bool DMG_LCD::load_image_data()
 	}
 
 	//Store OBJ pixel data
-	if(cgfx_stat.m_types.front() < 10) { cgfx_stat.obj_pixel_data.push_back(cgfx_pixels); }
+	if(cgfx_stat.m_types.back() < 10) { cgfx_stat.obj_pixel_data.push_back(cgfx_pixels); }
 
 	//Store BG pixel data
 	else { cgfx_stat.bg_pixel_data.push_back(cgfx_pixels); }
@@ -565,7 +565,6 @@ void DMG_LCD::dump_gbc_bg(u16 bg_index)
 void DMG_LCD::update_dmg_obj_hash(u8 obj_index)
 {
 	u8 obj_height = 0;
-	bool add_hash = true;
 
 	cgfx_stat.current_obj_hash[obj_index] = "";
 	std::string final_hash = "";
@@ -604,6 +603,45 @@ void DMG_LCD::update_dmg_obj_hash(u8 obj_index)
 	}
 
 	cgfx_stat.obj_hash_list.push_back(final_hash);
+}
+
+/****** Updates the current hash for the selected DMG BG tile ******/
+void DMG_LCD::update_dmg_bg_hash(u16 bg_index)
+{
+	cgfx_stat.current_bg_hash[bg_index] = "";
+	std::string final_hash = "";
+
+	//Generate salt for hash - Use BG palette (mirrored to 16-bits)
+	u16 hash_salt = ((mem->memory_map[REG_BGP] << 8) | mem->memory_map[REG_BGP]);
+
+	//Grab BG tile addr from index
+	u16 bg_tile_addr = (bg_index * 16) + 0x8000;
+
+	//Create a hash for this BG tile
+	for(int x = 0; x < 4; x++)
+	{
+		u16 temp_hash = mem->read_u8((x * 4) + bg_tile_addr);
+		temp_hash << 8;
+		temp_hash += mem->read_u8((x * 4) + bg_tile_addr + 1);
+		temp_hash = temp_hash ^ hash_salt;
+		cgfx_stat.current_bg_hash[bg_index] += hash::raw_to_64(temp_hash);
+
+		temp_hash = mem->read_u8((x * 4) + bg_tile_addr + 2);
+		temp_hash << 8;
+		temp_hash += mem->read_u8((x * 4) + bg_tile_addr + 3);
+		temp_hash = temp_hash ^ hash_salt;
+		cgfx_stat.current_bg_hash[bg_index] += hash::raw_to_64(temp_hash);
+	}
+
+	final_hash = cgfx_stat.current_bg_hash[bg_index];
+
+	//Update the BG hash list
+	for(int x = 0; x < cgfx_stat.bg_hash_list.size(); x++)
+	{
+		if(final_hash == cgfx_stat.bg_hash_list[x]) { return; }
+	}
+
+	cgfx_stat.bg_hash_list.push_back(final_hash);
 }
 
 /****** Search for an existing hash from the manifest ******/

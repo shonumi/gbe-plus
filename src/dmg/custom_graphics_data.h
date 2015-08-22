@@ -53,6 +53,7 @@ struct dmg_cgfx_data
 	//NOTE - OBJs don't need a list, since the LCD keeps track of OAM updates
 	//The LCD does not keep track of BG updates, however.
 	std::vector <bool> bg_update_list;
+	bool update_bg;
 };
 
 #endif // GB_CGFX_DATA

@@ -664,6 +664,17 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		lcd_stat->bgp[1] = (value >> 2) & 0x3;
 		lcd_stat->bgp[2] = (value >> 4) & 0x3;
 		lcd_stat->bgp[3] = (value >> 6) & 0x3;
+
+		//Update CGFX
+		if(cgfx::load_cgfx)
+		{
+			for(int x = 0; x < 384; x++)
+			{
+				cgfx_stat->bg_update_list[x] = true;
+			}
+			
+			cgfx_stat->update_bg = true;
+		}
 	}
 
 	//OBP0
@@ -861,6 +872,7 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	if((cgfx::load_cgfx) && (address >= 0x8000) && (address <= 0x97FF))
 	{
 		cgfx_stat->bg_update_list[(address & ~0x8000) >> 4] = true;
+		cgfx_stat->update_bg = true;
 	}
 }
 
