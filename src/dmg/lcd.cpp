@@ -504,39 +504,48 @@ void DMG_LCD::render_dmg_win_scanline()
 		//Calculate the address of the 8x1 pixel data based on map entry
 		u16 tile_addr = (lcd_stat.bg_tile_addr + (map_entry << 4) + (tile_line << 1));
 
-		//Grab bytes from VRAM representing 8x1 pixel data
-		u16 tile_data = mem->read_u16(tile_addr);
+		u16 bg_id = (((lcd_stat.bg_tile_addr + (map_entry << 4)) & ~0x8000) >> 4);
+		
+		//Render CGFX
+		if((cgfx::load_cgfx) && (has_hash(cgfx_stat.current_bg_hash[bg_id]))) { render_cgfx_dmg_bg_scanline(bg_id); }
 
-		for(int y = 7; y >= 0; y--)
+		//Render original pixel data
+		else
 		{
-			//Calculate raw value of the tile's pixel
-			tile_pixel = ((tile_data >> 8) & (1 << y)) ? 2 : 0;
-			tile_pixel |= (tile_data & (1 << y)) ? 1 : 0;
+			//Grab bytes from VRAM representing 8x1 pixel data
+			u16 tile_data = mem->read_u16(tile_addr);
 
-			//Set the raw color of the BG
-			scanline_raw[lcd_stat.scanline_pixel_counter] = tile_pixel;
-				
-			switch(lcd_stat.bgp[tile_pixel])
+			for(int y = 7; y >= 0; y--)
 			{
-				case 0: 
-					scanline_buffer[lcd_stat.scanline_pixel_counter++] = config::DMG_BG_PAL[0];
-					break;
+				//Calculate raw value of the tile's pixel
+				tile_pixel = ((tile_data >> 8) & (1 << y)) ? 2 : 0;
+				tile_pixel |= (tile_data & (1 << y)) ? 1 : 0;
 
-				case 1: 
-					scanline_buffer[lcd_stat.scanline_pixel_counter++] = config::DMG_BG_PAL[1];
-					break;
+				//Set the raw color of the BG
+				scanline_raw[lcd_stat.scanline_pixel_counter] = tile_pixel;
+				
+				switch(lcd_stat.bgp[tile_pixel])
+				{
+					case 0: 
+						scanline_buffer[lcd_stat.scanline_pixel_counter++] = config::DMG_BG_PAL[0];
+						break;
 
-				case 2: 
-					scanline_buffer[lcd_stat.scanline_pixel_counter++] = config::DMG_BG_PAL[2];
-					break;
+					case 1: 
+						scanline_buffer[lcd_stat.scanline_pixel_counter++] = config::DMG_BG_PAL[1];
+						break;
 
-				case 3: 
-					scanline_buffer[lcd_stat.scanline_pixel_counter++] = config::DMG_BG_PAL[3];
-					break;
+					case 2: 
+						scanline_buffer[lcd_stat.scanline_pixel_counter++] = config::DMG_BG_PAL[2];
+						break;
+
+					case 3: 
+						scanline_buffer[lcd_stat.scanline_pixel_counter++] = config::DMG_BG_PAL[3];
+						break;
+				}
+
+				//Abort rendering if next pixel is off-screen
+				if(lcd_stat.scanline_pixel_counter == 160) { return; }
 			}
-
-			//Abort rendering if next pixel is off-screen
-			if(lcd_stat.scanline_pixel_counter == 160) { return; }
 		}
 	}
 }
