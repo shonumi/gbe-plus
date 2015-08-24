@@ -714,6 +714,7 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		memory_map[address] = value;
 
 		lcd_stat->on_off = lcd_stat->lcd_enable;
+		u8 old_size = lcd_stat->obj_size;
 
 		lcd_stat->lcd_control = value;
 		lcd_stat->lcd_enable = (value & 0x80) ? true : false;
@@ -728,6 +729,14 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		//Check to see if the LCD was turned off/on while on/off (VBlank only?)
 		if(lcd_stat->on_off != lcd_stat->lcd_enable) { lcd_stat->on_off = true; }
 		else { lcd_stat->on_off = false; }
+
+		//Update all sprites if the OBJ size changes
+		if(old_size != lcd_stat->obj_size)
+		{
+			lcd_stat->oam_update = true;
+		
+			for(int x = 0; x < 40; x++) { lcd_stat->oam_update_list[x] = true; }
+		}
 	}
 
 	//Scroll Y
