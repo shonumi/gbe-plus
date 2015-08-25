@@ -1109,7 +1109,12 @@ void DMG_LCD::step(int cpu_clock)
 			if(lcd_stat.lcd_mode != 1)
 			{
 				lcd_stat.lcd_mode = 1;
-
+				
+				//Increment scanline count
+				lcd_stat.current_scanline++;
+				mem->memory_map[REG_LY] = lcd_stat.current_scanline;
+				scanline_compare();
+				
 				//Setup the VBlank clock to count 10 scanlines
 				lcd_stat.vblank_clock = lcd_stat.lcd_clock - 65664;
 					
@@ -1183,7 +1188,7 @@ void DMG_LCD::step(int cpu_clock)
 					scanline_compare();
 
 					//After 10 lines, VBlank is done, returns to top screen in Mode 2
-					if(lcd_stat.current_scanline == 153) 
+					if(lcd_stat.current_scanline == 154) 
 					{
 						lcd_stat.lcd_clock -= 70224;
 						lcd_stat.current_scanline = 0;
