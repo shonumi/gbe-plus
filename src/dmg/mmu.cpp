@@ -739,6 +739,15 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		}
 	}
 
+	//STAT
+	else if(address == REG_STAT)
+	{
+		u8 read_only_bits = (memory_map[REG_STAT] & 0x7);
+
+		memory_map[address] = (value & ~0x7);
+		memory_map[address] |= read_only_bits;
+	}
+
 	//Scroll Y
 	else if(address == REG_SY)
 	{
