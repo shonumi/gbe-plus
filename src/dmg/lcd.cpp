@@ -1185,15 +1185,27 @@ void DMG_LCD::step(int cpu_clock)
 					lcd_stat.vblank_clock -= 456;
 					lcd_stat.current_scanline++;
 
-					mem->memory_map[REG_LY] = lcd_stat.current_scanline;
-					scanline_compare();
+					//By line 153, LCD has actually reached the top of the screen again
+					//It will sit at Line 0 for 456 before entering Mode 2 properly
+					//Line 0 STAT-LYC IRQs should be triggered here
+					if(lcd_stat.current_scanline == 153)
+					{
+						lcd_stat.current_scanline = 0;
+						mem->memory_map[REG_LY] = lcd_stat.current_scanline;
+						scanline_compare();
+					}
 
-					//After 10 lines, VBlank is done, returns to top screen in Mode 2
-					if(lcd_stat.current_scanline == 154) 
+					//After sitting on Line 0 for 456 cycles, reset LCD clock, scanline count
+					else if(lcd_stat.current_scanline == 1) 
 					{
 						lcd_stat.lcd_clock -= 70224;
 						lcd_stat.current_scanline = 0;
+						mem->memory_map[REG_LY] = lcd_stat.current_scanline;
+					}
 
+					//Process Lines 144-152 normally
+					else
+					{
 						mem->memory_map[REG_LY] = lcd_stat.current_scanline;
 						scanline_compare();
 					}
