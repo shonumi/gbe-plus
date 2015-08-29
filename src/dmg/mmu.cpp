@@ -1305,6 +1305,17 @@ bool DMG_MMU::save_backup(std::string filename)
 				sram.write(reinterpret_cast<char*> (&random_access_bank[x][0]), 0x2000); 
 			}
 
+			//Add RTC data
+			if(cart.rtc) 
+			{
+				grab_time();
+			
+				for(int x = 0; x < 5; x++)
+				{
+					sram.write(reinterpret_cast<char*> (&cart.rtc_reg[x]), 0x1);
+				}
+			} 
+
 			sram.close();
 
 			std::cout<<"MMU::Wrote save data file " << filename <<  "\n";
