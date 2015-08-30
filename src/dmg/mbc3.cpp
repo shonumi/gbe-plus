@@ -37,6 +37,8 @@ void DMG_MMU::grab_time()
 	temp_day >>= 8;
 	if(temp_day == 1) { cart.rtc_reg[4] |= 0x1; }
 	else { cart.rtc_reg[4] &= ~0x1; }
+
+	for(int x = 0; x < 5; x++) { cart.latch_reg[x] = cart.rtc_reg[x]; }
 }
 
 /****** Performs write operations specific to the MBC3 ******/
@@ -111,7 +113,7 @@ u8 DMG_MMU::mbc3_read(u16 address)
 	else if((address >= 0xA000) && (address <= 0xBFFF))
 	{
 		if((ram_banking_enabled) && (bank_bits <= 3)) { return random_access_bank[bank_bits][address - 0xA000]; }
-		else if((cart.rtc_enabled) && (bank_bits >= 0x8) && (bank_bits <= 0xC)) { return cart.rtc_reg[bank_bits - 8]; }
+		else if((cart.rtc_enabled) && (bank_bits >= 0x8) && (bank_bits <= 0xC)) { return cart.latch_reg[bank_bits - 8]; }
 		else { return 0x00; }
 	}
 }

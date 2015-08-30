@@ -72,7 +72,9 @@ class DMG_MMU
 		bool ram;
 		bool rtc;
 		bool rtc_enabled;
+		bool rtc_latched;
 		u8 rtc_latch_1, rtc_latch_2, rtc_reg[5];
+		u8 latch_reg[5];
 	} cart;
 
 	DMG_GamePad* g_pad;
