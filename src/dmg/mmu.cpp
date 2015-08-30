@@ -375,12 +375,13 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	else if(address == NR22)
 	{
 		memory_map[address] = value;
+
 		u8 current_step = apu_stat->channel[1].envelope_step;
 		u8 next_step = (value & 0x07) ? 1 : 0;
 		u8 next_volume = (value >> 4);
 		u8 next_direction = (value & 0x08) ? 1 : 0;
 
-		//Envelope timer is not reset unless sound is initializes
+		//Envelope timer is not reset unless sound initializes
 		//Envelope timer does start if it is turned off at first, but turned on after sound initializes
 		if((current_step == 0) && (next_step != 0)) 
 		{
@@ -546,7 +547,7 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		u8 next_volume = (value >> 4);
 		u8 next_direction = (value & 0x08) ? 1 : 0;
 
-		//Envelope timer is not reset unless sound is initializes
+		//Envelope timer is not reset unless sound initializes
 		//Envelope timer does start if it is turned off at first, but turned on after sound initializes
 		if((current_step == 0) && (next_step != 0)) 
 		{
@@ -607,6 +608,8 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 				apu_stat->channel[3].duration = (memory_map[NR41] & 0x3F);
 				apu_stat->channel[3].duration = ((64 - apu_stat->channel[3].duration) / 256.0) * 1000.0;
 			}
+
+			apu_stat->channel[3].sample_length = (apu_stat->channel[3].duration * apu_stat->sample_rate)/1000;
 
 			//Volume & Envelope
 			apu_stat->channel[3].volume = (memory_map[NR42] >> 4);

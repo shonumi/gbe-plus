@@ -475,10 +475,18 @@ void DMG_APU::generate_channel_4_samples(s16* stream, int length)
 			}
 
 			//Continuously generate sound if necessary
-			else if(apu_stat.channel[3].sample_length == 0) { apu_stat.channel[3].sample_length = (apu_stat.channel[3].duration * apu_stat.sample_rate)/1000; }
+			else if((apu_stat.channel[3].sample_length == 0) && (!apu_stat.channel[3].length_flag)) 
+			{
+				apu_stat.channel[3].sample_length = (apu_stat.channel[3].duration * apu_stat.sample_rate)/1000;
+			}
 
 			//Or stop sound after duration has been met, reset Sound 4 On Flag
-			else { apu_stat.channel[3].sample_length = 0; stream[x] = -32768; apu_stat.channel[3].playing = false; }
+			else if((apu_stat.channel[3].sample_length == 0) && (apu_stat.channel[3].length_flag))
+			{
+				stream[x] = -32768;
+				apu_stat.channel[3].sample_length = 0;
+				apu_stat.channel[3].playing = false;
+			}
 		}
 	}
 
