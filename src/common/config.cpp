@@ -12,6 +12,7 @@
 #include <fstream>
 
 #include "config.h"
+#include "cgfx_common.h"
 
 namespace config
 {
@@ -729,6 +730,44 @@ bool parse_ini_file()
 				std::cout<<"GBE::Error - Could not parse gbe.ini (#agb_joy_controls) \n";
 				return false;
 			}
+		}
+
+		//Use CGFX
+		else if(ini_item == "#use_cgfx")
+		{
+			if((x + 1) < size) 
+			{
+				ini_item = ini_opts[++x];
+				std::stringstream temp_stream(ini_item);
+				temp_stream >> output;
+
+				if(output == 1) { cgfx::load_cgfx = true; }
+				else { cgfx::load_cgfx = false; }
+			}
+
+			else 
+			{ 
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#use_cgfx) \n";
+				return false;
+			}
+		}
+
+		//CGFX manifest path
+		else if(ini_item == "#manifest_path")
+		{
+			if((x + 1) < size) 
+			{
+				ini_item = ini_opts[++x];
+				std::string first_char = "";
+				first_char = ini_item[0];
+				
+				//When left blank, don't parse the next line item
+				if(first_char != "#") { cgfx::manifest_file = ini_item; }
+				else { cgfx::manifest_file = ""; x--;}
+ 
+			}
+
+			else { cgfx::manifest_file = ""; }
 		}
 	}
 

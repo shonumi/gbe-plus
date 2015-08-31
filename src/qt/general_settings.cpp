@@ -570,6 +570,9 @@ void gen_settings::set_ini_options()
 	//OpenGL option
 	if(config::use_opengl) { ogl->setChecked(true); }
 
+	//CGFX option
+	if(cgfx::load_cgfx) { load_cgfx->setChecked(true); }
+
 	//Sample rate option
 	switch((int)config::sample_rate)
 	{
