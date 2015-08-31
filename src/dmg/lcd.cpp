@@ -128,7 +128,7 @@ void DMG_LCD::reset()
 	cgfx_stat.update_bg = false;
 
 	//Load CGFX manifest
-	if(cgfx::load_cgfx) { load_manifest(cgfx::manifest_file); }
+	if(cgfx::load_cgfx) { cgfx::load_cgfx = load_manifest(cgfx::manifest_file); }
 }
 
 /****** Initialize LCD with SDL ******/

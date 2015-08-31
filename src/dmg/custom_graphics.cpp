@@ -39,7 +39,6 @@ bool DMG_LCD::load_manifest(std::string filename)
 	if(!file.is_open())
 	{
 		std::cout<<"CGFX::Could not open manifest file " << filename << ". Check file path or permissions. \n";
-		cgfx::load_cgfx = false;
 		return false; 
 	}
 
@@ -82,7 +81,6 @@ bool DMG_LCD::load_manifest(std::string filename)
 	if((cgfx_stat.manifest.size() % 5) != 0)
 	{
 		std::cout<<"CGFX::Manifest file " << filename << " has some missing parameters for some entries. \n";
-		cgfx::load_cgfx = false;
 		return false;
 	}
 
