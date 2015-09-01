@@ -26,7 +26,7 @@ void render_screen(std::vector<u32>& image)
 	//Determine the dimensions of the source image
 	//GBA = 240x160, GB-GBC = 160x144
 	if(config::gb_type == 3) { width = 240; height = 160; }
-	else { width = 160; height = 144; }
+	else { width = config::sys_width; height = config::sys_height; }
 
 	//Fill in image with pixels from the emulated LCD
 	for(int y = 0; y < height; y++)

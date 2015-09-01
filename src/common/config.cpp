@@ -73,6 +73,10 @@ namespace config
 	u8 volume = 128;
 	double sample_rate = 44100;
 
+	//System screen sizes
+	u32 sys_width = 0;
+	u32 sys_height = 0;
+
 	bool sdl_render = true;
 
 	void (*render_external)(std::vector<u32>&);

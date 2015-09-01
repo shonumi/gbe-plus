@@ -14,6 +14,7 @@
 #include "render.h"
 
 #include "common/config.h"
+#include "common/cgfx_common.h"
 
 /****** Main menu constructor ******/
 main_menu::main_menu(QWidget *parent) : QWidget(parent)
@@ -238,12 +239,12 @@ void main_menu::boot_game()
 
 	else 
 	{
-		base_width = 160;
-		base_height = 144;
+		base_width = (160 * cgfx::scaling_factor);
+		base_height = (144 * cgfx::scaling_factor);
 
 		main_menu::gbe_plus = new DMG_core();
 		resize((base_width * config::scaling_factor), (base_height * config::scaling_factor) + menu_height);
-		qt_gui::screen = new QImage(160, 144, QImage::Format_ARGB32);
+		qt_gui::screen = new QImage(base_width, base_height, QImage::Format_ARGB32);
 	}
 
 	//Read specified ROM file

@@ -89,6 +89,7 @@ class DMG_LCD
 	//Screen pixel buffer
 	std::vector<u32> scanline_buffer;
 	std::vector<u32> screen_buffer;
+	std::vector<u32> hd_screen_buffer;
 	std::vector<u32> scanline_raw;
 	std::vector<u32> scanline_priority;
 

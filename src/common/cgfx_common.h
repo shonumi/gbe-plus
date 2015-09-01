@@ -25,6 +25,7 @@ namespace cgfx
 	extern bool auto_dump_bg;
 
 	extern u32 transparency_color;
+	extern u8 scaling_factor;
 
 	extern std::string manifest_file;
 }

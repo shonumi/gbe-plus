@@ -14,37 +14,37 @@
 /****** Initialize OpenGL through SDL ******/
 void DMG_LCD::opengl_init()
 {
-	SDL_SetVideoMode((160 * config::scaling_factor), (144 * config::scaling_factor), 32, SDL_OPENGL | config::flags);
+	SDL_SetVideoMode((config::sys_width * config::scaling_factor), (config::sys_height * config::scaling_factor), 32, SDL_OPENGL | config::flags);
 		
 	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glClearColor(0, 0, 0, 0);
 
-	glViewport(0, 0, (160 * config::scaling_factor), (144 * config::scaling_factor));
+	glViewport(0, 0, (config::sys_width * config::scaling_factor), (config::sys_height * config::scaling_factor));
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
-	glOrtho(0, (160 * config::scaling_factor), (144 * config::scaling_factor), 0, -1, 1);
+	glOrtho(0, (config::sys_width * config::scaling_factor), (config::sys_height * config::scaling_factor), 0, -1, 1);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
 	glGenTextures(1, &lcd_texture);
 	glBindTexture(GL_TEXTURE_2D, lcd_texture);
 
-	final_screen = SDL_CreateRGBSurface(SDL_SWSURFACE, 160, 144, 32, 0, 0, 0, 0);
+	final_screen = SDL_CreateRGBSurface(SDL_SWSURFACE, config::sys_width, config::sys_height, 32, 0, 0, 0, 0);
 }
 
 /****** Blit using OpenGL ******/
 void DMG_LCD::opengl_blit()
 {
-	glTexImage2D(GL_TEXTURE_2D, 0, 4, 160, 144, 0, GL_BGRA, GL_UNSIGNED_BYTE, final_screen->pixels);
+	glTexImage2D(GL_TEXTURE_2D, 0, 4, config::sys_width, config::sys_height, 0, GL_BGRA, GL_UNSIGNED_BYTE, final_screen->pixels);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-	int width = (80 * config::scaling_factor);
-	int height = (72 * config::scaling_factor);
+	int width = ((config::sys_width >> 1) * config::scaling_factor);
+	int height = ((config::sys_height >> 1) * config::scaling_factor);
 
 	glTranslatef(width, height, 0);
 
