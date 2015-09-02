@@ -773,6 +773,26 @@ bool parse_ini_file()
 
 			else { cgfx::manifest_file = ""; }
 		}
+
+		//CGFX Scaling factor
+		else if(ini_item == "#cgfx_scaling_factor")
+		{
+			if((x + 1) < size) 
+			{
+				ini_item = ini_opts[++x];
+				std::stringstream temp_stream(ini_item);
+				temp_stream >> output;
+
+				if((output >= 1) && (output <= 10)) { cgfx::scaling_factor = output; }
+				else { cgfx::scaling_factor = 1; }
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#cgfx_scaling_factor) \n";
+				return false;
+			}
+		}
 	}
 
 	return true;
