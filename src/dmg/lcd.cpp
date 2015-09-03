@@ -448,19 +448,21 @@ void DMG_LCD::render_cgfx_dmg_bg_scanline(u16 bg_id)
 		else
 		{
 			u32 pos = (lcd_stat.scanline_pixel_counter * cgfx::scaling_factor) + (lcd_stat.current_scanline * cgfx::scaling_factor * config::sys_width);
-			u32 bg_pos = (x * config::scaling_factor) + (tile_line * cgfx::scaling_factor * 8);
+			u32 bg_pos = (x * cgfx::scaling_factor) + (tile_line * cgfx::scaling_factor * 8);
 			
-			if(lcd_stat.scanline_pixel_counter >= 160) { return; }
-
-			for(int a = 0; a < cgfx::scaling_factor; a++)
+			if(lcd_stat.scanline_pixel_counter < 160)
 			{
-				for(int b = 0; b < cgfx::scaling_factor; b++)
+
+				for(int a = 0; a < cgfx::scaling_factor; a++)
 				{
-					hd_screen_buffer[pos + b] = cgfx_stat.bg_pixel_data[bg_tile_id][bg_pos + b];
-				}
+					for(int b = 0; b < cgfx::scaling_factor; b++)
+					{
+						hd_screen_buffer[pos + b] = cgfx_stat.bg_pixel_data[bg_tile_id][bg_pos + b];
+					}
 				
-				pos += config::sys_width;
-				bg_pos += (8 * cgfx::scaling_factor);
+					pos += config::sys_width;
+					bg_pos += (8 * cgfx::scaling_factor);
+				}
 			}
 
 			lcd_stat.scanline_pixel_counter++;
@@ -803,8 +805,6 @@ void DMG_LCD::render_dmg_obj_scanline()
 
 				//Move onto next pixel in scanline to see if sprite rendering occurs
 				else { lcd_stat.scanline_pixel_counter++; }
-
-
 			}
 		}
 	}
@@ -836,31 +836,37 @@ void DMG_LCD::render_cgfx_dmg_obj_scanline(u8 sprite_id)
 	//Output 8x1 line of custom pixel data
 	for(int x = tile_pixel; x < (tile_pixel + 8); x++)
 	{
-		custom_color = cgfx_stat.obj_pixel_data[obj_id][x];
-
-		if(custom_color != cgfx::transparency_color)
+		//Render 1:1
+		if(cgfx::scaling_factor <= 1)
 		{
-			//Render 1:1
-			if(cgfx::scaling_factor <= 1)
+			custom_color = cgfx_stat.obj_pixel_data[obj_id][x];
+
+			if(custom_color != cgfx::transparency_color)
 			{
 				scanline_buffer[lcd_stat.scanline_pixel_counter] = cgfx_stat.obj_pixel_data[obj_id][x];
 			}
+		}
 
-			//Render HD
-			else
-			{
-				u32 pos = (lcd_stat.scanline_pixel_counter * cgfx::scaling_factor) + (lcd_stat.current_scanline * cgfx::scaling_factor * config::sys_width);
-				u32 obj_pos = (x * config::scaling_factor) + (tile_line * cgfx::scaling_factor * 8);
+		//Render HD
+		else
+		{
+			u32 pos = (lcd_stat.scanline_pixel_counter * cgfx::scaling_factor) + (lcd_stat.current_scanline * cgfx::scaling_factor * config::sys_width);
+			u32 obj_pos = (x * cgfx::scaling_factor) + (tile_line * cgfx::scaling_factor * 8);
 			
-				if(lcd_stat.scanline_pixel_counter >= 160) { return; }
-
+			if(lcd_stat.scanline_pixel_counter < 160)
+			{
 				for(int a = 0; a < cgfx::scaling_factor; a++)
 				{
 					for(int b = 0; b < cgfx::scaling_factor; b++)
 					{
-						hd_screen_buffer[pos + b] = cgfx_stat.obj_pixel_data[obj_id][obj_pos + b];
+						custom_color = cgfx_stat.obj_pixel_data[obj_id][obj_pos + b];
+
+						if(custom_color != cgfx::transparency_color)
+						{
+							hd_screen_buffer[pos + b] = cgfx_stat.obj_pixel_data[obj_id][obj_pos + b];
+						}
 					}
-				
+
 					pos += config::sys_width;
 					obj_pos += (8 * cgfx::scaling_factor);
 				}

@@ -19,7 +19,7 @@ namespace cgfx
 	bool auto_dump_obj = false;
 	bool auto_dump_bg = false;
 
-	u8 scaling_factor = 2;
+	u8 scaling_factor = 1;
 	u32 transparency_color = 0xFF00FF00;
 
 	std::string manifest_file = "";
