@@ -852,6 +852,7 @@ void DMG_LCD::render_cgfx_dmg_obj_scanline(u8 sprite_id)
 		{
 			u32 pos = (lcd_stat.scanline_pixel_counter * cgfx::scaling_factor) + (lcd_stat.current_scanline * cgfx::scaling_factor * config::sys_width);
 			u32 obj_pos = (x * cgfx::scaling_factor) + (tile_line * cgfx::scaling_factor * 8);
+			u32 c = 0;
 			
 			if(lcd_stat.scanline_pixel_counter < 160)
 			{
@@ -859,11 +860,12 @@ void DMG_LCD::render_cgfx_dmg_obj_scanline(u8 sprite_id)
 				{
 					for(int b = 0; b < cgfx::scaling_factor; b++)
 					{
-						custom_color = cgfx_stat.obj_pixel_data[obj_id][obj_pos + b];
+						c = obj[sprite_id].h_flip ? (cgfx::scaling_factor - b - 1) : b;
+						custom_color = cgfx_stat.obj_pixel_data[obj_id][obj_pos + c];
 
 						if(custom_color != cgfx::transparency_color)
 						{
-							hd_screen_buffer[pos + b] = cgfx_stat.obj_pixel_data[obj_id][obj_pos + b];
+							hd_screen_buffer[pos + b] = cgfx_stat.obj_pixel_data[obj_id][obj_pos + c];
 						}
 					}
 
