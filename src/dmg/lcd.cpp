@@ -436,8 +436,19 @@ void DMG_LCD::render_cgfx_dmg_bg_scanline(u16 bg_id)
 	//Grab the ID of this hash to pull custom pixel data
 	u16 bg_tile_id = cgfx_stat.m_id[cgfx_stat.last_id];
 
-	for(int x = (tile_line * 8); x < ((tile_line * 8) + 8); x++)
+	//Grab bytes from VRAM representing 8x1 pixel data - Used for drawing the raw_scanline
+	u16 tile_data = mem->read_u16(0x8000 + (bg_id << 4) + (tile_line << 1));
+	u8 tile_pixel = 0;
+
+	for(int x = (tile_line * 8), y = 7; x < ((tile_line * 8) + 8); x++, y--)
 	{
+		//Calculate raw value of the tile's pixel
+		tile_pixel = ((tile_data >> 8) & (1 << y)) ? 2 : 0;
+		tile_pixel |= (tile_data & (1 << y)) ? 1 : 0;
+
+		//Set the raw color of the BG
+		scanline_raw[lcd_stat.scanline_pixel_counter] = tile_pixel;
+
 		//Render 1:1
 		if(cgfx::scaling_factor <= 1)
 		{
@@ -841,10 +852,9 @@ void DMG_LCD::render_cgfx_dmg_obj_scanline(u8 sprite_id)
 		{
 			custom_color = cgfx_stat.obj_pixel_data[obj_id][x];
 
-			if(custom_color != cgfx::transparency_color)
-			{
-				scanline_buffer[lcd_stat.scanline_pixel_counter] = cgfx_stat.obj_pixel_data[obj_id][x];
-			}
+			if(custom_color == cgfx::transparency_color) { }
+			else if((obj[sprite_id].bg_priority == 1) && (scanline_raw[lcd_stat.scanline_pixel_counter] != 0)) { }
+			else { scanline_buffer[lcd_stat.scanline_pixel_counter] = cgfx_stat.obj_pixel_data[obj_id][x]; }
 		}
 
 		//Render HD
@@ -863,10 +873,9 @@ void DMG_LCD::render_cgfx_dmg_obj_scanline(u8 sprite_id)
 						c = obj[sprite_id].h_flip ? (cgfx::scaling_factor - b - 1) : b;
 						custom_color = cgfx_stat.obj_pixel_data[obj_id][obj_pos + c];
 
-						if(custom_color != cgfx::transparency_color)
-						{
-							hd_screen_buffer[pos + b] = cgfx_stat.obj_pixel_data[obj_id][obj_pos + c];
-						}
+						if(custom_color == cgfx::transparency_color) { }
+						else if((obj[sprite_id].bg_priority == 1) && (scanline_raw[lcd_stat.scanline_pixel_counter] != 0)) { }
+						else { hd_screen_buffer[pos + b] = cgfx_stat.obj_pixel_data[obj_id][obj_pos + c]; }
 					}
 
 					pos += config::sys_width;
