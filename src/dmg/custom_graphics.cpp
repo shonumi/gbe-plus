@@ -594,6 +594,9 @@ void DMG_LCD::update_dmg_obj_hash(u8 obj_index)
 
 	final_hash = cgfx_stat.current_obj_hash[obj_index];
 
+	//Optionally auto-dump DMG OBJ
+	if(cgfx::auto_dump_obj) { dump_dmg_obj(obj_index); }
+
 	//Update the OBJ hash list
 	for(int x = 0; x < cgfx_stat.obj_hash_list.size(); x++)
 	{
@@ -632,6 +635,9 @@ void DMG_LCD::update_dmg_bg_hash(u16 bg_index)
 	}
 
 	final_hash = cgfx_stat.current_bg_hash[bg_index];
+
+	//Optionally auto-dump DMG BG
+	if(cgfx::auto_dump_bg) { dump_dmg_bg(bg_index); }
 
 	//Update the BG hash list
 	for(int x = 0; x < cgfx_stat.bg_hash_list.size(); x++)

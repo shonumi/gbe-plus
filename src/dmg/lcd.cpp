@@ -220,7 +220,7 @@ void DMG_LCD::update_oam()
 			obj[x].bg_priority = (attribute & 0x80) ? 1 : 0;
 
 			//CGFX - Update OBJ hashes
-			if(cgfx::load_cgfx) { update_dmg_obj_hash(x); }
+			if((cgfx::load_cgfx) || (cgfx::auto_dump_obj)) { update_dmg_obj_hash(x); }
 		}
 
 		else { oam_ptr+= 4; }
