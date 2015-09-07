@@ -226,6 +226,9 @@ void main_menu::boot_game()
 	else if((ext != ".gba") && (config::gb_type == 3)) { config::gb_type = 2; config::gba_enhance = true; }
 	else { config::gba_enhance = false; }
 
+	//Determine CGFX scaling factor
+	cgfx::scaling_factor = (settings->cgfx_scale->currentIndex() + 1);
+
 	//Start the appropiate system core - DMG/GBC or GBA
 	if(config::gb_type == 3) 
 	{

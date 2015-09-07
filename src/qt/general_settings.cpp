@@ -93,6 +93,27 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	screen_scale_layout->addWidget(screen_scale);
 	screen_scale_set->setLayout(screen_scale_layout);
 
+	//Display settings - CGFX scale
+	QWidget* cgfx_scale_set = new QWidget(display);
+	QLabel* cgfx_scale_label = new QLabel("Custom Graphics (CGFX) Scale : ");
+	cgfx_scale = new QComboBox(cgfx_scale_set);
+	cgfx_scale->addItem("1x");
+	cgfx_scale->addItem("2x");
+	cgfx_scale->addItem("3x");
+	cgfx_scale->addItem("4x");
+	cgfx_scale->addItem("5x");
+	cgfx_scale->addItem("6x");
+	cgfx_scale->addItem("7x");
+	cgfx_scale->addItem("8x");
+	cgfx_scale->addItem("9x");
+	cgfx_scale->addItem("10x");
+
+	QHBoxLayout* cgfx_scale_layout = new QHBoxLayout;
+	cgfx_scale_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	cgfx_scale_layout->addWidget(cgfx_scale_label);
+	cgfx_scale_layout->addWidget(cgfx_scale);
+	cgfx_scale_set->setLayout(cgfx_scale_layout);
+
 	//Display settings - Use OpenGL
 	QWidget* ogl_set = new QWidget(display);
 	QLabel* ogl_label = new QLabel("Use OpenGL");
@@ -118,6 +139,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	QVBoxLayout* disp_layout = new QVBoxLayout;
 	disp_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	disp_layout->addWidget(screen_scale_set);
+	disp_layout->addWidget(cgfx_scale_set);
 	disp_layout->addWidget(ogl_set);
 	disp_layout->addWidget(load_cgfx_set);
 	display->setLayout(disp_layout);
@@ -566,6 +588,9 @@ void gen_settings::set_ini_options()
 
 	//Screen scale options
 	screen_scale->setCurrentIndex(config::scaling_factor - 1);
+
+	//CGFX scale options
+	cgfx_scale->setCurrentIndex(cgfx::scaling_factor - 1);
 
 	//OpenGL option
 	if(config::use_opengl) { ogl->setChecked(true); }

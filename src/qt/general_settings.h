@@ -34,6 +34,7 @@ class gen_settings : public QDialog
 
 	//Display tab widgets
 	QComboBox* screen_scale;
+	QComboBox* cgfx_scale;
 	QCheckBox* ogl;
 	QCheckBox* load_cgfx;
 
