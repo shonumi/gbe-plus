@@ -226,6 +226,12 @@ void AGB_LCD::update_oam()
 
 			//Set double-size
 			if((obj[x].rotate_scale == 1) && (obj[x].type == 1)) { obj[x].x += (obj[x].width >> 1); obj[x].y += (obj[x].height >> 1); }
+
+			obj[x].left = obj[x].x;
+			obj[x].right = (obj[x].x + obj[x].width - 1);
+
+			obj[x].top = obj[x].y;
+			obj[x].bottom = (obj[x].y + obj[x].height - 1);
 		}
 
 		else { oam_ptr += 8; }
@@ -244,7 +250,7 @@ void AGB_LCD::update_obj_render_list()
 	for(int x = 0; x < 128; x++)
 	{
 		//Check to see if sprite is rendered on the current scanline
-		if((obj[x].visible) && (current_scanline >= obj[x].y) && (current_scanline <= (obj[x].y + obj[x].height - 1)))
+		if((obj[x].visible) && (current_scanline >= obj[x].top) && (current_scanline <= obj[x].bottom))
 		{
 			obj_render_list[obj_render_length++] = x;
 		}
@@ -333,7 +339,7 @@ bool AGB_LCD::render_sprite_pixel()
 		sprite_id = obj_render_list[x];
 
 		//Check to see if current_scanline_pixel is within sprite
-		if((scanline_pixel_counter >= obj[sprite_id].x) && (scanline_pixel_counter <= (obj[sprite_id].x + obj[sprite_id].width - 1))) 
+		if((scanline_pixel_counter >= obj[sprite_id].left) && (scanline_pixel_counter <= obj[sprite_id].right)) 
 		{
 			//Determine the internal X-Y coordinates of the sprite's pixel
 			u16 sprite_tile_pixel_x = scanline_pixel_counter - obj[sprite_id].x;
