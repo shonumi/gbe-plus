@@ -227,11 +227,15 @@ void AGB_LCD::update_oam()
 			//Set double-size
 			if((obj[x].rotate_scale == 1) && (obj[x].type == 1)) { obj[x].x += (obj[x].width >> 1); obj[x].y += (obj[x].height >> 1); }
 
+			//Precalulate OBJ boundaries
 			obj[x].left = obj[x].x;
 			obj[x].right = (obj[x].x + obj[x].width - 1);
 
 			obj[x].top = obj[x].y;
 			obj[x].bottom = (obj[x].y + obj[x].height - 1);
+
+			//Precalculate OBJ base address
+			obj[x].addr = 0x6010000 + (obj[x].tile_number << 5);
 		}
 
 		else { oam_ptr += 8; }
@@ -326,7 +330,7 @@ bool AGB_LCD::render_sprite_pixel()
 	if((lcd_stat.display_control & 0x1000) == 0) { return false; }
 
 	//If no sprites are rendered on this line, quit now
-	if(obj_render_list == 0) { return false; }
+	if(obj_render_length == 0) { return false; }
 
 	u8 sprite_id = 0;
 	u32 sprite_tile_addr = 0;
@@ -384,7 +388,7 @@ bool AGB_LCD::render_sprite_pixel()
 				meta_sprite_tile = (meta_y * 32) + meta_x;
 			}
 
-			sprite_tile_addr = 0x6010000 + (obj[sprite_id].tile_number << 5) +  (meta_sprite_tile * (obj[sprite_id].bit_depth << 3));
+			sprite_tile_addr = obj[sprite_id].addr + (meta_sprite_tile * (obj[sprite_id].bit_depth << 3));
 
 			meta_x = (sprite_tile_pixel_x % 8);
 			meta_y = (sprite_tile_pixel_y % 8);

@@ -72,6 +72,7 @@ class AGB_LCD
 		u8 height;
 
 		//Misc properties
+		u32 addr;
 		u16 tile_number;
 		u8 bg_priority;
 		u8 bit_depth;
