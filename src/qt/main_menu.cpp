@@ -228,6 +228,7 @@ void main_menu::boot_game()
 
 	//Determine CGFX scaling factor
 	cgfx::scaling_factor = (settings->cgfx_scale->currentIndex() + 1);
+	if(!cgfx::load_cgfx) { cgfx::scaling_factor = 1; }
 
 	//Start the appropiate system core - DMG/GBC or GBA
 	if(config::gb_type == 3) 
