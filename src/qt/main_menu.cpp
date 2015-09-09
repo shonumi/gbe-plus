@@ -431,6 +431,7 @@ void main_menu::show_cgfx()
 { 
 	cgfx->update_obj_window(8, 40);
 	cgfx->update_bg_window(8, 384);
+	cgfx->draw_dmg_bg();
 	cgfx->show();
 	cgfx->pause = true;
 	pause();

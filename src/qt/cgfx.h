@@ -28,6 +28,7 @@ class gbe_cgfx : public QDialog
 
 	void update_obj_window(int rows, int count);
 	void update_bg_window(int rows, int count);
+	void draw_dmg_bg();
 
 	QTabWidget* tabs;
 	QDialogButtonBox* tabs_button;
@@ -52,15 +53,20 @@ class gbe_cgfx : public QDialog
 	private:
 	QWidget* obj_set;
 	QWidget* bg_set;
+	QWidget* layers_set;
 
 	QGridLayout* obj_layout;
 	QGridLayout* bg_layout;
+	QGridLayout* layers_layout;
 
 	QSignalMapper* obj_signal;
 	QSignalMapper* bg_signal;
 
 	std::vector<u8> estimated_palette;
 	std::vector<u8> estimated_vram_bank;
+
+	QLabel* current_layer;
+	QComboBox* layer_select;
 
 	void setup_obj_window(int rows, int count);
 

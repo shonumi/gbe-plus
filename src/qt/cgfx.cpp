@@ -21,10 +21,12 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	QDialog* config_tab = new QDialog;
 	QDialog* obj_tab = new QDialog;
 	QDialog* bg_tab = new QDialog;
+	QDialog* layers_tab = new QDialog;
 
 	tabs->addTab(config_tab, tr("Configure"));
 	tabs->addTab(obj_tab, tr("OBJ Tiles"));
 	tabs->addTab(bg_tab, tr("BG Tiles"));
+	tabs->addTab(layers_tab, tr("Layers"));
 
 	tabs_button = new QDialogButtonBox(QDialogButtonBox::Close);
 
@@ -39,9 +41,11 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 
 	obj_set = new QWidget(obj_tab);
 	bg_set = new QWidget(bg_tab);
+	layers_set = new QWidget(layers_tab);
 
 	obj_layout = new QGridLayout;
 	bg_layout = new QGridLayout;
+	layers_layout = new QGridLayout;
 
 	setup_obj_window(8, 40);
 	setup_bg_window(8, 384);
@@ -52,6 +56,27 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 
 	QScrollArea* bg_scroll = new QScrollArea;
 	bg_scroll->setWidget(bg_set);
+
+	//Setup Layers widgets
+	QImage temp_img(320, 288, QImage::Format_ARGB32);
+	temp_img.fill(qRgb(0, 0, 0));
+
+	current_layer = new QLabel;
+	current_layer->setPixmap(QPixmap::fromImage(temp_img));
+
+	//Layer combo-box
+	QWidget* select_set = new QWidget(layers_tab);
+	QLabel* select_set_label = new QLabel("Graphics Layer : ");
+	layer_select = new QComboBox(select_set);
+	layer_select->addItem("Background");
+	layer_select->addItem("Window");
+	layer_select->addItem("OBJ");
+
+	QHBoxLayout* layer_select_layout = new QHBoxLayout;
+	layer_select_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	layer_select_layout->addWidget(select_set_label);
+	layer_select_layout->addWidget(layer_select);
+	select_set->setLayout(layer_select_layout);
 
 	//Configure Tab layout
 	QHBoxLayout* auto_dump_obj_layout = new QHBoxLayout;
@@ -82,6 +107,12 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	bg_tab_layout->addWidget(bg_scroll);
 	bg_tab->setLayout(bg_tab_layout);
 
+	//Layers Tab layout
+	QVBoxLayout* layers_tab_layout = new QVBoxLayout;
+	layers_tab_layout->addWidget(select_set);
+	layers_tab_layout->addWidget(current_layer);
+	layers_tab->setLayout(layers_tab_layout);
+	
 	//Final tab layout
 	QVBoxLayout* main_layout = new QVBoxLayout;
 	main_layout->addWidget(tabs);
@@ -100,7 +131,7 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	estimated_palette.resize(384, 0);
 	estimated_vram_bank.resize(384, 0);
 
-	resize(600, 600);
+	resize(800, 450);
 	setWindowTitle(tr("Custom Graphics"));
 
 	pause = false;
@@ -603,4 +634,102 @@ void gbe_cgfx::set_auto_bg()
 {
 	if(auto_dump_bg->isChecked()) { cgfx::auto_dump_bg = true; }
 	else { cgfx::auto_dump_bg = false; }
+}
+
+/****** Draws the DMG BG layer ******/
+void gbe_cgfx::draw_dmg_bg()
+{
+	if(main_menu::gbe_plus == NULL) { return; }
+
+	std::vector<u32> bg_pixels;
+
+	//Setup palette
+	u8 bgp[4];
+
+	u8 value = main_menu::gbe_plus->ex_read_u8(REG_BGP);
+	bgp[0] = value  & 0x3;
+	bgp[1] = (value >> 2) & 0x3;
+	bgp[2] = (value >> 4) & 0x3;
+	bgp[3] = (value >> 6) & 0x3;
+
+	//Determine BG Map & Tile address
+	u16 bg_map_addr = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x8) ? 0x9C00 : 0x9800;
+	u16 bg_tile_addr = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x10) ? 0x8000 : 0x8800;
+
+	for(u8 current_scanline = 0; current_scanline < 144; current_scanline++)
+	{
+		//Determine where to start drawing
+		u8 rendered_scanline = current_scanline + main_menu::gbe_plus->ex_read_u8(REG_SY);
+		u8 scanline_pixel_counter = (0x100 - main_menu::gbe_plus->ex_read_u8(REG_SX));
+		u8 pixel_counter = 0;
+
+		//Determine which tiles we should generate to get the scanline data - integer division ftw :p
+		u16 tile_lower_range = (rendered_scanline / 8) * 32;
+		u16 tile_upper_range = tile_lower_range + 32;
+
+		//Determine which line of the tiles to generate pixels for this scanline
+		u8 tile_line = rendered_scanline % 8;
+
+		//Generate background pixel data for selected tiles
+		for(int x = tile_lower_range; x < tile_upper_range; x++)
+		{
+			u8 map_entry = main_menu::gbe_plus->ex_read_u8(bg_map_addr + x);
+			u8 tile_pixel = 0;
+
+			//Convert tile number to signed if necessary
+			if(bg_tile_addr == 0x8800) 
+			{
+				if(map_entry <= 127) { map_entry += 128; }
+				else { map_entry -= 128; }
+			}
+
+			//Calculate the address of the 8x1 pixel data based on map entry
+			u16 tile_addr = (bg_tile_addr + (map_entry << 4) + (tile_line << 1));
+
+			//Grab bytes from VRAM representing 8x1 pixel data
+			u16 tile_data = (main_menu::gbe_plus->ex_read_u8(tile_addr + 1) << 8) | main_menu::gbe_plus->ex_read_u8(tile_addr);
+
+			for(int y = 7; y >= 0; y--)
+			{
+				//Calculate raw value of the tile's pixel
+				tile_pixel = ((tile_data >> 8) & (1 << y)) ? 2 : 0;
+				tile_pixel |= (tile_data & (1 << y)) ? 1 : 0;
+				
+				switch(bgp[tile_pixel])
+				{
+					case 0: 
+						bg_pixels.push_back(config::DMG_BG_PAL[0]);
+						break;
+
+					case 1: 
+						bg_pixels.push_back(config::DMG_BG_PAL[1]);
+						break;
+
+					case 2: 
+						bg_pixels.push_back(config::DMG_BG_PAL[2]);
+						break;
+
+					case 3: 
+						bg_pixels.push_back(config::DMG_BG_PAL[3]);
+						break;
+				}
+
+				pixel_counter++;
+				if(pixel_counter == 160) { x = tile_upper_range; break; }
+			}
+		}
+	}
+
+	QImage raw_image(160, 144, QImage::Format_ARGB32);	
+
+	//Copy raw pixels to QImage
+	for(int x = 0; x < bg_pixels.size(); x++)
+	{
+		raw_image.setPixel((x % 160), (x / 160), bg_pixels[x]);
+	}
+
+	raw_image = raw_image.scaled(320, 288);
+
+	//Set label Pixmap
+	current_layer->setPixmap(QPixmap::fromImage(raw_image));
 }
