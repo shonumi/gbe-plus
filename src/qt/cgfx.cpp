@@ -642,6 +642,7 @@ void gbe_cgfx::draw_dmg_bg()
 	if(main_menu::gbe_plus == NULL) { return; }
 
 	std::vector<u32> bg_pixels;
+	u32 scanline_pixel_buffer[256];
 
 	//Setup palette
 	u8 bgp[4];
@@ -661,7 +662,6 @@ void gbe_cgfx::draw_dmg_bg()
 		//Determine where to start drawing
 		u8 rendered_scanline = current_scanline + main_menu::gbe_plus->ex_read_u8(REG_SY);
 		u8 scanline_pixel_counter = (0x100 - main_menu::gbe_plus->ex_read_u8(REG_SX));
-		u8 pixel_counter = 0;
 
 		//Determine which tiles we should generate to get the scanline data - integer division ftw :p
 		u16 tile_lower_range = (rendered_scanline / 8) * 32;
@@ -698,26 +698,26 @@ void gbe_cgfx::draw_dmg_bg()
 				switch(bgp[tile_pixel])
 				{
 					case 0: 
-						bg_pixels.push_back(config::DMG_BG_PAL[0]);
+						scanline_pixel_buffer[scanline_pixel_counter++] = config::DMG_BG_PAL[0];
 						break;
 
 					case 1: 
-						bg_pixels.push_back(config::DMG_BG_PAL[1]);
+						scanline_pixel_buffer[scanline_pixel_counter++] = config::DMG_BG_PAL[1];
 						break;
 
 					case 2: 
-						bg_pixels.push_back(config::DMG_BG_PAL[2]);
+						scanline_pixel_buffer[scanline_pixel_counter++] = config::DMG_BG_PAL[2];
 						break;
 
 					case 3: 
-						bg_pixels.push_back(config::DMG_BG_PAL[3]);
+						scanline_pixel_buffer[scanline_pixel_counter++] = config::DMG_BG_PAL[3];
 						break;
 				}
-
-				pixel_counter++;
-				if(pixel_counter == 160) { x = tile_upper_range; break; }
 			}
 		}
+
+		//Copy scanline buffer to BG buffer
+		for(u8 pixel_counter = 0; pixel_counter < 160; pixel_counter++) { bg_pixels.push_back(scanline_pixel_buffer[pixel_counter]); }
 	}
 
 	QImage raw_image(160, 144, QImage::Format_ARGB32);	
