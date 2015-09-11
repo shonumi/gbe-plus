@@ -733,3 +733,121 @@ void gbe_cgfx::draw_dmg_bg()
 	//Set label Pixmap
 	current_layer->setPixmap(QPixmap::fromImage(raw_image));
 }
+
+/****** Draws the DMG Window layer ******/
+void gbe_cgfx::draw_dmg_win()
+{
+	if(main_menu::gbe_plus == NULL) { return; }
+
+	std::vector<u32> bg_pixels;
+	u32 scanline_pixel_buffer[256];
+
+	//Setup palette
+	u8 bgp[4];
+
+	u8 value = main_menu::gbe_plus->ex_read_u8(REG_BGP);
+	bgp[0] = value  & 0x3;
+	bgp[1] = (value >> 2) & 0x3;
+	bgp[2] = (value >> 4) & 0x3;
+	bgp[3] = (value >> 6) & 0x3;
+
+	//Determine BG Map & Tile address
+	u16 win_map_addr = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x40) ? 0x9C00 : 0x9800;
+	u16 bg_tile_addr = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x10) ? 0x8000 : 0x8800;
+
+	for(u8 current_scanline = 0; current_scanline < 144; current_scanline++)
+	{
+		//Determine where to start drawing
+		u8 rendered_scanline = current_scanline - main_menu::gbe_plus->ex_read_u8(REG_WY);
+		u8 scanline_pixel_counter = main_menu::gbe_plus->ex_read_u8(REG_WX) - 7;
+
+		bool draw_line = true;
+
+		//Determine if scanline is within window, if not abort rendering
+		if(current_scanline < main_menu::gbe_plus->ex_read_u8(REG_WY)) 
+		{
+			for(u8 pixel_counter = 0; pixel_counter < 160; pixel_counter++) { bg_pixels.push_back(0xFFFFFFFF); }
+			draw_line = false;
+		}
+
+		//Determine which tiles we should generate to get the scanline data - integer division ftw :p
+		u16 tile_lower_range = (rendered_scanline / 8) * 32;
+		u16 tile_upper_range = tile_lower_range + 32;
+
+		//Determine which line of the tiles to generate pixels for this scanline
+		u8 tile_line = rendered_scanline % 8;
+
+		//Generate background pixel data for selected tiles
+		for(int x = tile_lower_range; x < tile_upper_range; x++)
+		{
+			u8 map_entry = main_menu::gbe_plus->ex_read_u8(win_map_addr + x);
+			u8 tile_pixel = 0;
+
+			//Convert tile number to signed if necessary
+			if(bg_tile_addr == 0x8800) 
+			{
+				if(map_entry <= 127) { map_entry += 128; }
+				else { map_entry -= 128; }
+			}
+
+			//Calculate the address of the 8x1 pixel data based on map entry
+			u16 tile_addr = (bg_tile_addr + (map_entry << 4) + (tile_line << 1));
+
+			//Grab bytes from VRAM representing 8x1 pixel data
+			u16 tile_data = (main_menu::gbe_plus->ex_read_u8(tile_addr + 1) << 8) | main_menu::gbe_plus->ex_read_u8(tile_addr);
+
+			for(int y = 7; y >= 0; y--)
+			{
+				//Calculate raw value of the tile's pixel
+				tile_pixel = ((tile_data >> 8) & (1 << y)) ? 2 : 0;
+				tile_pixel |= (tile_data & (1 << y)) ? 1 : 0;
+
+				if(scanline_pixel_counter >= 160) { scanline_pixel_buffer[scanline_pixel_counter++] = 0xFFFFFFFF; }
+
+				else
+				{
+					switch(bgp[tile_pixel])
+					{
+						case 0: 
+							scanline_pixel_buffer[scanline_pixel_counter++] = config::DMG_BG_PAL[0];
+							break;
+
+						case 1: 
+							scanline_pixel_buffer[scanline_pixel_counter++] = config::DMG_BG_PAL[1];
+							break;
+
+						case 2:
+							scanline_pixel_buffer[scanline_pixel_counter++] = config::DMG_BG_PAL[2];
+							break;
+
+						case 3:
+							scanline_pixel_buffer[scanline_pixel_counter++] = config::DMG_BG_PAL[3];
+							break;
+					}
+				}
+			}
+		}
+
+		//Copy scanline buffer to BG buffer
+		if(draw_line)
+		{
+			for(u8 pixel_counter = 0; pixel_counter < 160; pixel_counter++)
+			{
+				bg_pixels.push_back(scanline_pixel_buffer[pixel_counter]);
+			}
+		}
+	}
+
+	QImage raw_image(160, 144, QImage::Format_ARGB32);	
+
+	//Copy raw pixels to QImage
+	for(int x = 0; x < bg_pixels.size(); x++)
+	{
+		raw_image.setPixel((x % 160), (x / 160), bg_pixels[x]);
+	}
+
+	raw_image = raw_image.scaled(320, 288);
+
+	//Set label Pixmap
+	current_layer->setPixmap(QPixmap::fromImage(raw_image));
+}

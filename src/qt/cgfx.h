@@ -28,7 +28,9 @@ class gbe_cgfx : public QDialog
 
 	void update_obj_window(int rows, int count);
 	void update_bg_window(int rows, int count);
+
 	void draw_dmg_bg();
+	void draw_dmg_win();
 
 	QTabWidget* tabs;
 	QDialogButtonBox* tabs_button;
@@ -36,6 +38,9 @@ class gbe_cgfx : public QDialog
 	//Configure tab widgets
 	QCheckBox* auto_dump_obj;
 	QCheckBox* auto_dump_bg;
+
+	//Layers tab widgets
+	QComboBox* layer_select;
 
 	//OBJ tab widgets
 	std::vector<QImage> cgfx_obj;
@@ -66,7 +71,6 @@ class gbe_cgfx : public QDialog
 	std::vector<u8> estimated_vram_bank;
 
 	QLabel* current_layer;
-	QComboBox* layer_select;
 
 	void setup_obj_window(int rows, int count);
 
