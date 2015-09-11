@@ -90,6 +90,7 @@ class gbe_cgfx : public QDialog
 	void dump_bg(int bg_index);
 	void set_auto_obj();
 	void set_auto_bg();
+	void layer_change();
 };
 
 #endif //CGFX_GBE_QT 

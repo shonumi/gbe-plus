@@ -127,6 +127,7 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	connect(tabs_button->button(QDialogButtonBox::Close), SIGNAL(clicked()), this, SLOT(close_cgfx()));
 	connect(auto_dump_obj, SIGNAL(stateChanged(int)), this, SLOT(set_auto_obj()));
 	connect(auto_dump_bg, SIGNAL(stateChanged(int)), this, SLOT(set_auto_bg()));
+	connect(layer_select, SIGNAL(currentIndexChanged(int)), this, SLOT(layer_change()));
 
 	estimated_palette.resize(384, 0);
 	estimated_vram_bank.resize(384, 0);
@@ -634,6 +635,16 @@ void gbe_cgfx::set_auto_bg()
 {
 	if(auto_dump_bg->isChecked()) { cgfx::auto_dump_bg = true; }
 	else { cgfx::auto_dump_bg = false; }
+}
+
+/****** Changes the current viewable layer for dumping ******/
+void gbe_cgfx::layer_change()
+{
+	switch(layer_select->currentIndex())
+	{
+		case 0: draw_dmg_bg(); break;
+		case 1: draw_dmg_win(); break;
+	}
 }
 
 /****** Draws the DMG BG layer ******/
