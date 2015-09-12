@@ -436,6 +436,7 @@ void main_menu::show_cgfx()
 	{
 		case 0: cgfx->draw_dmg_bg(); break;
 		case 1: cgfx->draw_dmg_win(); break;
+		case 2: cgfx->draw_dmg_obj(); break;
 	}
 
 	cgfx->show();
