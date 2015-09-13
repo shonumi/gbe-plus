@@ -322,7 +322,7 @@ void DMG_LCD::render_dmg_scanline()
 void DMG_LCD::render_gbc_scanline() 
 {
 	//Draw background pixel data
-	if(lcd_stat.bg_enable) { render_gbc_bg_scanline(); }
+	render_gbc_bg_scanline();
 
 	//Draw window pixel data
 	if(lcd_stat.window_enable) { render_gbc_win_scanline(); }
