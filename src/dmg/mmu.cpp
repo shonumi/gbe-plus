@@ -248,7 +248,7 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		}
 
 		//Turn off sound channel if envelope volume is 0 and mode is subtraction
-		if(next_direction == next_volume == 0) { apu_stat->channel[0].playing = false; }
+		if((next_direction == 0) && (next_volume == 0)) { apu_stat->channel[0].playing = false; }
 	}
 
 	//NR13 - Frequency LO
@@ -392,7 +392,7 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		}
 
 		//Turn off sound channel if envelope volume is 0 and mode is subtraction
-		if(next_direction == next_volume == 0) { apu_stat->channel[1].playing = false; }
+		if((next_direction == 0) && (next_volume == 0)) { apu_stat->channel[1].playing = false; }
 	}
 
 	//NR23 - Frequency LO
@@ -558,7 +558,7 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		}
 
 		//Turn off sound channel if envelope volume is 0 and mode is subtraction
-		if(next_direction == next_volume == 0) { apu_stat->channel[3].playing = false; }
+		if((next_direction == 0) && (next_volume == 0)) { apu_stat->channel[3].playing = false; }
 	}
 
 	//NR43 - Polynomial Counter
@@ -728,6 +728,8 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		lcd_stat->obj_size = (value & 0x4) ? 16 : 8;
 		lcd_stat->obj_enable = (value & 0x2) ? true : false;
 		lcd_stat->bg_enable = (value & 0x1) ? true : false;
+
+		if(!lcd_stat->bg_enable) { std::cout<<"YOYO\n"; }
 
 		//Check to see if the LCD was turned off/on while on/off (VBlank only?)
 		if(lcd_stat->on_off != lcd_stat->lcd_enable) { lcd_stat->on_off = true; }
