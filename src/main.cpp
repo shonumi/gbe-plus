@@ -10,6 +10,7 @@
 
 #include "gba/core.h"
 #include "dmg/core.h"
+#include "nds/core.h"
 #include "common/config.h"
 
 int main(int argc, char* args[]) 
