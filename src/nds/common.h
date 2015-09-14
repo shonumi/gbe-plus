@@ -65,7 +65,7 @@ const u32 NDS_BLDCNT = 0x4000050;
 const u32 NDS_BLDALPHA = 0x4000052;
 const u32 NDS_BLDY = 0x4000054;
 
-const u32 NDS_IE 0x4000210;
-const u32 NDS_IF 0x4000214;
+const u32 NDS_IE = 0x4000210;
+const u32 NDS_IF = 0x4000214;
 
 #endif // NDS_COMMON 

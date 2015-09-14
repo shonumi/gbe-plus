@@ -1,10 +1,12 @@
 set(SRCS
 	core.cpp
+	mmu.cpp
 	)
 
 set(HEADERS
 	common.h
 	core.h
+	mmu.h
 	)
 
 add_library(nds STATIC ${SRCS} ${HEADERS})
