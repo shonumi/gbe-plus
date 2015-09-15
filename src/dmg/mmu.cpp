@@ -729,8 +729,6 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		lcd_stat->obj_enable = (value & 0x2) ? true : false;
 		lcd_stat->bg_enable = (value & 0x1) ? true : false;
 
-		if(!lcd_stat->bg_enable) { std::cout<<"YOYO\n"; }
-
 		//Check to see if the LCD was turned off/on while on/off (VBlank only?)
 		if(lcd_stat->on_off != lcd_stat->lcd_enable) { lcd_stat->on_off = true; }
 		else { lcd_stat->on_off = false; }

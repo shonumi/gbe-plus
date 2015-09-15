@@ -793,6 +793,79 @@ bool parse_ini_file()
 				return false;
 			}
 		}
+
+		//CGFX Transparency color
+		else if(ini_item == "#cgfx_transparency")
+		{
+			if((x + 1) < size)
+			{
+				ini_item = ini_opts[++x];
+				std::size_t found = ini_item.find("0x");
+				std::string format = ini_item.substr(0, 2);
+
+				//Value must be in hex format with "0x"
+				if(format != "0x")
+				{
+					std::cout<<"GBE::Error - Could not parse gbe.ini (#cgfx_transparency) \n";
+					return false;
+				}
+
+				std::string hex_color = ini_item.substr(found + 2);
+
+				//Value must not be more than 8 characters long for AARRGGBB
+				if(hex_color.size() > 8)
+				{
+					std::cout<<"GBE::Error - Could not parse gbe.ini (#cgfx_transparency) \n";
+					return false;
+				}
+
+				u32 transparency = 0;
+				std::string hex_char = "";
+
+				//Parse the string into hex
+				for(int x = (hex_color.size() - 1), y = 0; x >= 0; x--, y += 4)
+				{
+					hex_char = hex_color[x];
+
+					if(hex_char == "0") { transparency += (0 << y); }
+					else if(hex_char == "1") { transparency += (1 << y); }
+					else if(hex_char == "2") { transparency += (2 << y); }
+					else if(hex_char == "3") { transparency += (3 << y); }
+					else if(hex_char == "4") { transparency += (4 << y); }
+					else if(hex_char == "5") { transparency += (5 << y); }
+					else if(hex_char == "6") { transparency += (6 << y); }
+					else if(hex_char == "7") { transparency += (7 << y); }
+					else if(hex_char == "8") { transparency += (8 << y); }
+					else if(hex_char == "9") { transparency += (9 << y); }
+					else if(hex_char == "A") { transparency += (10 << y); }
+					else if(hex_char == "a") { transparency += (10 << y); }
+					else if(hex_char == "B") { transparency += (11 << y); }
+					else if(hex_char == "b") { transparency += (11 << y); }
+					else if(hex_char == "C") { transparency += (12 << y); }
+					else if(hex_char == "c") { transparency += (12 << y); }
+					else if(hex_char == "D") { transparency += (13 << y); }
+					else if(hex_char == "d") { transparency += (13 << y); }
+					else if(hex_char == "E") { transparency += (14 << y); }
+					else if(hex_char == "e") { transparency += (14 << y); }
+					else if(hex_char == "F") { transparency += (15 << y); }
+					else if(hex_char == "f") { transparency += (15 << y); }
+
+					else 
+					{
+						std::cout<<"GBE::Error - Could not parse gbe.ini (#cgfx_transparency) \n";
+						return false;
+					}
+				}
+
+				cgfx::transparency_color = transparency;
+			}
+
+			else
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#cgfx_transparency) \n";
+				return false;
+			}
+		}
 	}
 
 	return true;
