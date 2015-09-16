@@ -1075,7 +1075,7 @@ void gbe_cgfx::update_preview(u32 x, u32 y)
 		u16 bg_tile_addr = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x10) ? 0x8000 : 0x8800;
 
 		//Determine the map entry from on-screen coordinates
-		u8 tile_x = (0x100 - main_menu::gbe_plus->ex_read_u8(REG_SX)) + x;
+		u8 tile_x = main_menu::gbe_plus->ex_read_u8(REG_SX) + x;
 		u8 tile_y = main_menu::gbe_plus->ex_read_u8(REG_SY) + y;
 		u16 map_entry = (tile_x / 8) + ((tile_y / 8) * 32);
 
