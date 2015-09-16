@@ -55,6 +55,7 @@ class gbe_cgfx : public QDialog
 
 	protected:
 	void closeEvent(QCloseEvent* event);
+	bool eventFilter(QObject* target, QEvent* event);
 
 	private:
 	QWidget* obj_set;
@@ -72,8 +73,10 @@ class gbe_cgfx : public QDialog
 	std::vector<u8> estimated_vram_bank;
 
 	QLabel* current_layer;
+	QLabel* current_tile;
 
 	void setup_obj_window(int rows, int count);
+	void update_preview(u32 x, u32 y);
 
 	QImage grab_obj_data(int obj_index);
 	QImage grab_dmg_obj_data(int obj_index);

@@ -61,8 +61,16 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	QImage temp_img(320, 288, QImage::Format_ARGB32);
 	temp_img.fill(qRgb(0, 0, 0));
 
+	QImage temp_pix(128, 128, QImage::Format_ARGB32);
+	temp_pix.fill(qRgb(0, 0, 0));
+
 	current_layer = new QLabel;
 	current_layer->setPixmap(QPixmap::fromImage(temp_img));
+	current_layer->setMouseTracking(true);
+	current_layer->installEventFilter(this);
+
+	current_tile = new QLabel;
+	current_tile->setPixmap(QPixmap::fromImage(temp_pix));
 
 	//Layer combo-box
 	QWidget* select_set = new QWidget(layers_tab);
@@ -108,9 +116,10 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	bg_tab->setLayout(bg_tab_layout);
 
 	//Layers Tab layout
-	QVBoxLayout* layers_tab_layout = new QVBoxLayout;
-	layers_tab_layout->addWidget(select_set);
-	layers_tab_layout->addWidget(current_layer);
+	QGridLayout* layers_tab_layout = new QGridLayout;
+	layers_tab_layout->addWidget(select_set, 0, 0, 1, 1);
+	layers_tab_layout->addWidget(current_layer, 1, 0, 1, 1);
+	layers_tab_layout->addWidget(current_tile, 0, 2, 1, 1);
 	layers_tab->setLayout(layers_tab_layout);
 	
 	//Final tab layout
@@ -1047,4 +1056,58 @@ void gbe_cgfx::draw_dmg_obj()
 
 	//Set label Pixmap
 	current_layer->setPixmap(QPixmap::fromImage(raw_image));
+}
+
+/****** Update the preview for layers ******/
+void gbe_cgfx::update_preview(u32 x, u32 y)
+{
+	if(main_menu::gbe_plus == NULL) { return; }
+
+	x >>= 1;
+	y >>= 1;
+
+	std::vector<u32> tile_pixels;
+
+	if(layer_select->currentIndex() == 0) 
+	{
+		//Determine BG Map & Tile address
+		u16 bg_map_addr = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x8) ? 0x9C00 : 0x9800;
+		u16 bg_tile_addr = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x10) ? 0x8000 : 0x8800;
+
+		//Determine the map entry from on-screen coordinates
+		u8 tile_x = (0x100 - main_menu::gbe_plus->ex_read_u8(REG_SX)) + x;
+		u8 tile_y = main_menu::gbe_plus->ex_read_u8(REG_SY) + y;
+		u16 map_entry = (tile_x / 8) + ((tile_y / 8) * 32);
+
+		u8 map_value = main_menu::gbe_plus->ex_read_u8(bg_map_addr + map_entry);
+
+		//Convert tile number to signed if necessary
+		if(bg_tile_addr == 0x8800) 
+		{
+			if(map_value <= 127) { map_value += 128; }
+			else { map_value -= 128; }
+		}
+
+		u16 bg_index = (((bg_tile_addr + (map_value << 4)) & ~0x8000) >> 4);
+
+		QImage final_image = grab_dmg_bg_data(bg_index).scaled(128, 128);
+		current_tile->setPixmap(QPixmap::fromImage(final_image));
+	}
+}
+
+/****** Event filter for settings window ******/
+bool gbe_cgfx::eventFilter(QObject* target, QEvent* event)
+{
+	//Check to see if mouse is hovered over current layer
+	if(event->type() == QEvent::MouseMove)
+	{
+		QMouseEvent* mouse_event = static_cast<QMouseEvent*>(event);
+		u32 x = mouse_event->x();
+		u32 y = mouse_event->y();		
+
+		//Update the preview
+		if((mouse_event->x() <= 320) && (mouse_event->y() <= 288)) { update_preview(x, y); }
+	}
+
+	return QDialog::eventFilter(target, event);
 }
