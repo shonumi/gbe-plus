@@ -1068,6 +1068,7 @@ void gbe_cgfx::update_preview(u32 x, u32 y)
 
 	std::vector<u32> tile_pixels;
 
+	//Update preview for DMG BG
 	if(layer_select->currentIndex() == 0) 
 	{
 		//Determine BG Map & Tile address
@@ -1080,6 +1081,35 @@ void gbe_cgfx::update_preview(u32 x, u32 y)
 		u16 map_entry = (tile_x / 8) + ((tile_y / 8) * 32);
 
 		u8 map_value = main_menu::gbe_plus->ex_read_u8(bg_map_addr + map_entry);
+
+		//Convert tile number to signed if necessary
+		if(bg_tile_addr == 0x8800) 
+		{
+			if(map_value <= 127) { map_value += 128; }
+			else { map_value -= 128; }
+		}
+
+		u16 bg_index = (((bg_tile_addr + (map_value << 4)) & ~0x8000) >> 4);
+
+		QImage final_image = grab_dmg_bg_data(bg_index).scaled(128, 128);
+		current_tile->setPixmap(QPixmap::fromImage(final_image));
+	}
+
+	//Update preview for DMG Window
+	if(layer_select->currentIndex() == 1)
+	{
+		//Determine BG Map & Tile address
+		u16 win_map_addr = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x40) ? 0x9C00 : 0x9800;
+		u16 bg_tile_addr = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x10) ? 0x8000 : 0x8800;
+
+		u8 wx = main_menu::gbe_plus->ex_read_u8(REG_WX) - 7;
+	
+		//Determine the map entry from on-screen coordinates
+		u8 tile_x = x - wx;
+		u8 tile_y = y - main_menu::gbe_plus->ex_read_u8(REG_WY);
+		u16 map_entry = (tile_x / 8) + ((tile_y / 8) * 32);
+
+		u8 map_value = main_menu::gbe_plus->ex_read_u8(win_map_addr + map_entry);
 
 		//Convert tile number to signed if necessary
 		if(bg_tile_addr == 0x8800) 
