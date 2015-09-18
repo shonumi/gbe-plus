@@ -1096,7 +1096,7 @@ void gbe_cgfx::update_preview(u32 x, u32 y)
 	}
 
 	//Update preview for DMG Window
-	if(layer_select->currentIndex() == 1)
+	else if(layer_select->currentIndex() == 1)
 	{
 		//Determine BG Map & Tile address
 		u16 win_map_addr = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x40) ? 0x9C00 : 0x9800;
@@ -1122,6 +1122,47 @@ void gbe_cgfx::update_preview(u32 x, u32 y)
 
 		QImage final_image = grab_dmg_bg_data(bg_index).scaled(128, 128);
 		current_tile->setPixmap(QPixmap::fromImage(final_image));
+	}
+
+	//Update preview for DMG OBJ 
+	else if(layer_select->currentIndex() == 2)
+	{
+		//Determine if in 8x8 or 8x16 mode
+		u8 obj_height = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x04) ? 16 : 8;
+
+		for(int obj_index = 0; obj_index < 40; obj_index++)
+		{
+			//Grab X-Y OBJ coordinates
+			u8 obj_x = main_menu::gbe_plus->ex_read_u8(OAM + (obj_index * 4) + 1);
+			u8 obj_y = main_menu::gbe_plus->ex_read_u8(OAM + (obj_index * 4));
+
+			obj_x -= 8;
+			obj_y -= 16;
+
+			u8 test_left = ((obj_x + 8) > 0x100) ? 0 : obj_x;
+			u8 test_right = (obj_x + 8);
+
+			u8 test_top = ((obj_y + obj_height) > 0x100) ? 0 : obj_y;
+			u8 test_bottom = (obj_y + obj_height);
+
+			bool h_flip = (main_menu::gbe_plus->ex_read_u8(OAM + (obj_index * 4) + 3) & 0x20) ? true : false;
+			bool v_flip = (main_menu::gbe_plus->ex_read_u8(OAM + (obj_index * 4) + 3) & 0x40) ? true : false;
+
+			if((x >= test_left) && (x <= test_right) && (y >= test_top) && (y <= test_bottom))
+			{
+				if(obj_height == 8)
+				{
+					QImage final_image = grab_dmg_obj_data(obj_index).scaled(128, 128).mirrored(h_flip, v_flip);
+					current_tile->setPixmap(QPixmap::fromImage(final_image));
+				}
+
+				else
+				{
+					QImage final_image = grab_dmg_obj_data(obj_index).scaled(64, 128).mirrored(h_flip, v_flip);
+					current_tile->setPixmap(QPixmap::fromImage(final_image));
+				}
+			}
+		}
 	}
 }
 
