@@ -8,8 +8,8 @@
 //
 // Handles reading and writing bytes to memory locations
 
-#ifndef DS_MMU
-#define DS_MMU
+#ifndef NDS_MMU
+#define NDS_MMU
 
 #include <fstream>
 #include <string>
@@ -18,7 +18,7 @@
 
 #include "common.h"
 
-class NDS_MMU
+class NTR_MMU
 {
 	public:
 
@@ -29,8 +29,26 @@ class NDS_MMU
 	u8 n_clock;
 	u8 s_clock;
 
-	NDS_MMU();
-	~NDS_MMU();
+	struct cart_header
+	{
+		std::string title;
+		std::string game_code;
+		std::string maker_code;
+		u8 unit_code;
+
+		u32 arm9_rom_offset;
+		u32 arm9_entry_addr;
+		u32 arm9_ram_addr;
+		u32 arm9_size;
+
+		u32 arm7_rom_offset;
+		u32 arm7_entry_addr;
+		u32 arm7_ram_addr;
+		u32 arm7_size;
+	} header;
+
+	NTR_MMU();
+	~NTR_MMU();
 
 	void reset();
 
@@ -52,8 +70,10 @@ class NDS_MMU
 	bool read_bios(std::string filename);
 	bool save_backup(std::string filename);
 	bool load_backup(std::string filename);
+
+	void parse_header();
 };
 
-#endif // DS_MMU
+#endif // NDS_MMU
 
 

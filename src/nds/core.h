@@ -12,16 +12,16 @@
 // Also contains a debugging unit
 
 
-#ifndef DS_CORE
-#define DS_CORE
+#ifndef NDS_CORE
+#define NDS_CORE
 
 #include "common/core_emu.h"
 
-class NDS_core : virtual public core_emu
+class NTR_core : virtual public core_emu
 {
 	public:
-		NDS_core();
-		~NDS_core();
+		NTR_core();
+		~NTR_core();
 
 		//Core control
 		void start();
@@ -57,4 +57,4 @@ class NDS_core : virtual public core_emu
 		*/
 };
 		
-#endif // DS_CORE
+#endif // NDS_CORE

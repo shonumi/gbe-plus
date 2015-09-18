@@ -11,20 +11,20 @@
 #include "mmu.h"
 
 /****** MMU Constructor ******/
-NDS_MMU::NDS_MMU() 
+NTR_MMU::NTR_MMU() 
 {
 	reset();
 }
 
 /****** MMU Deconstructor ******/
-NDS_MMU::~NDS_MMU() 
+NTR_MMU::~NTR_MMU() 
 { 
 	memory_map.clear();
 	std::cout<<"MMU::Shutdown\n"; 
 }
 
 /****** MMU Reset ******/
-void NDS_MMU::reset()
+void NTR_MMU::reset()
 {
 	memory_map.clear();
 	memory_map.resize(0xB000000, 0);
@@ -40,7 +40,7 @@ void NDS_MMU::reset()
 }
 
 /****** Read byte from memory ******/
-u8 NDS_MMU::read_u8(u32 address) const
+u8 NTR_MMU::read_u8(u32 address) const
 {
 	//Check for unused memory first
 	if(address >= 0xB000000) { std::cout<<"Out of bounds read : 0x" << std::hex << address << "\n"; return 0; }
@@ -49,31 +49,31 @@ u8 NDS_MMU::read_u8(u32 address) const
 }
 
 /****** Read 2 bytes from memory ******/
-u16 NDS_MMU::read_u16(u32 address) const
+u16 NTR_MMU::read_u16(u32 address) const
 {
 	return ((read_u8(address+1) << 8) | read_u8(address)); 
 }
 
 /****** Read 4 bytes from memory ******/
-u32 NDS_MMU::read_u32(u32 address) const
+u32 NTR_MMU::read_u32(u32 address) const
 {
 	return ((read_u8(address+3) << 24) | (read_u8(address+2) << 16) | (read_u8(address+1) << 8) | read_u8(address));
 }
 
 /****** Reads 2 bytes from memory - No checks done on the read, used for known memory locations such as registers ******/
-u16 NDS_MMU::read_u16_fast(u32 address) const
+u16 NTR_MMU::read_u16_fast(u32 address) const
 {
 	return ((memory_map[address+1] << 8) | memory_map[address]);
 }
 
 /****** Reads 4 bytes from memory - No checks done on the read, used for known memory locations such as registers ******/
-u32 NDS_MMU::read_u32_fast(u32 address) const
+u32 NTR_MMU::read_u32_fast(u32 address) const
 {
 	return ((memory_map[address+3] << 24) | (memory_map[address+2] << 16) | (memory_map[address+1] << 8) | memory_map[address]);
 }
 
 /****** Write byte into memory ******/
-void NDS_MMU::write_u8(u32 address, u8 value)
+void NTR_MMU::write_u8(u32 address, u8 value)
 {
 	//Check for unused memory first
 	if(address >= 0x10000000) { std::cout<<"Out of bounds write : 0x" << std::hex << address << "\n"; return; }
@@ -323,14 +323,14 @@ void NDS_MMU::write_u8(u32 address, u8 value)
 }
 
 /****** Write 2 bytes into memory ******/
-void NDS_MMU::write_u16(u32 address, u16 value)
+void NTR_MMU::write_u16(u32 address, u16 value)
 {
 	write_u8(address, (value & 0xFF));
 	write_u8((address+1), ((value >> 8) & 0xFF));
 }
 
 /****** Write 4 bytes into memory ******/
-void NDS_MMU::write_u32(u32 address, u32 value)
+void NTR_MMU::write_u32(u32 address, u32 value)
 {
 	write_u8(address, (value & 0xFF));
 	write_u8((address+1), ((value >> 8) & 0xFF));
@@ -339,14 +339,14 @@ void NDS_MMU::write_u32(u32 address, u32 value)
 }
 
 /****** Writes 2 bytes into memory - No checks done on the read, used for known memory locations such as registers ******/
-void NDS_MMU::write_u16_fast(u32 address, u16 value)
+void NTR_MMU::write_u16_fast(u32 address, u16 value)
 {
 	memory_map[address] = (value & 0xFF);
 	memory_map[address+1] = ((value >> 8) & 0xFF);
 }
 
 /****** Writes 4 bytes into memory - No checks done on the read, used for known memory locations such as registers ******/
-void NDS_MMU::write_u32_fast(u32 address, u32 value)
+void NTR_MMU::write_u32_fast(u32 address, u32 value)
 {
 	memory_map[address] = (value & 0xFF);
 	memory_map[address+1] = ((value >> 8) & 0xFF);
@@ -355,7 +355,7 @@ void NDS_MMU::write_u32_fast(u32 address, u32 value)
 }	
 
 /****** Read binary file to memory ******/
-bool NDS_MMU::read_file(std::string filename)
+bool NTR_MMU::read_file(std::string filename)
 {
 	std::ifstream file(filename.c_str(), std::ios::binary);
 
@@ -370,6 +370,8 @@ bool NDS_MMU::read_file(std::string filename)
 	u32 file_size = file.tellg();
 	file.seekg(0, file.beg);
 
+	cart_data.resize(file_size);
+
 	//Read data from the ROM file
 	file.read(reinterpret_cast<char*> (&cart_data[0]), file_size);
 
@@ -383,10 +385,59 @@ bool NDS_MMU::read_file(std::string filename)
 }
 
 /****** Read BIOS file into memory ******/
-bool NDS_MMU::read_bios(std::string filename) { return true; }
+bool NTR_MMU::read_bios(std::string filename) { return true; }
 
 /****** Load backup save data ******/
-bool NDS_MMU::load_backup(std::string filename) { return true; }
+bool NTR_MMU::load_backup(std::string filename) { return true; }
 
 /****** Save backup save data ******/
-bool NDS_MMU::save_backup(std::string filename) { return true; }
+bool NTR_MMU::save_backup(std::string filename) { return true; }
+
+/****** Parses cartridge header ******/
+void NTR_MMU::parse_header()
+{
+	//Game title
+	header.title = "";
+	for(int x = 0; x < 12; x++) { header.title += cart_data[x]; }
+
+	//Game code
+	header.game_code = "";
+	for(int x = 0; x < 4; x++) { header.game_code += cart_data[0xC + x]; }
+
+	//Maker code
+	header.maker_code = "";
+	for(int x = 0; x < 2; x++) { header.maker_code += cart_data[0x10 + x]; }
+
+	//ARM9 ROM Offset
+	header.arm9_rom_offset = 0;
+	for(int x = 0; x < 4; x++) 
+	{
+		header.arm9_rom_offset <<= 8;
+		header.arm9_rom_offset += cart_data[0x20 + x];
+	}
+
+	//ARM9 Entry Address
+	header.arm9_entry_addr = 0;
+	for(int x = 0; x < 4; x++) 
+	{
+		header.arm9_entry_addr <<= 8;
+		header.arm9_entry_addr += cart_data[0x24 + x];
+	}
+
+	//ARM9 RAM Address
+	header.arm9_ram_addr = 0;
+	for(int x = 0; x < 4; x++) 
+	{
+		header.arm9_ram_addr <<= 8;
+		header.arm9_ram_addr += cart_data[0x28 + x];
+	}
+
+	//ARM9 Size
+	header.arm9_size = 0;
+	for(int x = 0; x < 4; x++) 
+	{
+		header.arm9_size <<= 8;
+		header.arm9_size += cart_data[0x2C + x];
+	}
+}
+

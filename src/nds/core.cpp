@@ -17,7 +17,7 @@
 #include "core.h"
 
 /****** Core Constructor ******/
-NDS_core::NDS_core()
+NTR_core::NTR_core()
 {
 	/*
 	//Link CPU and MMU
@@ -46,7 +46,7 @@ NDS_core::NDS_core()
 }
 
 /****** Start the core ******/
-void NDS_core::start()
+void NTR_core::start()
 {
 	/*
 	running = true;
@@ -72,7 +72,7 @@ void NDS_core::start()
 }
 
 /****** Stop the core ******/
-void NDS_core::stop()
+void NTR_core::stop()
 {
 	/*
 	running = false;
@@ -82,10 +82,10 @@ void NDS_core::stop()
 }
 
 /****** Shutdown core's components ******/
-void NDS_core::shutdown() { }
+void NTR_core::shutdown() { }
 
 /****** Reset the core ******/
-void NDS_core::reset()
+void NTR_core::reset()
 {
 	/*
 	core_cpu.reset();
@@ -117,7 +117,7 @@ void NDS_core::reset()
 }
 
 /****** Run the core in a loop until exit ******/
-void NDS_core::run_core()
+void NTR_core::run_core()
 {
 	/*
 	//Begin running the core
@@ -167,7 +167,7 @@ void NDS_core::run_core()
 }
 
 /****** Debugger - Allow core to run until a breaking condition occurs ******/
-void NDS_core::debug_step()
+void NTR_core::debug_step()
 {
 	/*
 	//In continue mode, if breakpoints exist, try to stop on one
@@ -195,7 +195,7 @@ void NDS_core::debug_step()
 }
 
 /****** Debugger - Display relevant info to the screen ******/
-void NDS_core::debug_display() const
+void NTR_core::debug_display() const
 {
 	/*
 	//Display current CPU action
@@ -324,7 +324,7 @@ void NDS_core::debug_display() const
 }
 
 /****** Debugger - Wait for user input, process it to decide what next to do ******/
-void NDS_core::debug_process_command()
+void NTR_core::debug_process_command()
 {
 	/*
 	std::string command = "";
@@ -531,7 +531,7 @@ void NDS_core::debug_process_command()
 }
 	
 /****** Process hotkey input ******/
-void NDS_core::handle_hotkey(SDL_Event& event)
+void NTR_core::handle_hotkey(SDL_Event& event)
 {
 	/*
 	//Quit on Q or ESC
@@ -611,31 +611,31 @@ void NDS_core::handle_hotkey(SDL_Event& event)
 }
 
 /****** Updates the core's volume ******/
-void NDS_core::update_volume(u8 volume) { }
+void NTR_core::update_volume(u8 volume) { }
 
 /****** Feeds key input from an external source (useful for TAS) ******/
-void NDS_core::feed_key_input(int sdl_key, bool pressed) { }
+void NTR_core::feed_key_input(int sdl_key, bool pressed) { }
 
 /****** Read binary file to memory ******/
-bool NDS_core::read_file(std::string filename) { }
+bool NTR_core::read_file(std::string filename) { }
 
 /****** Read BIOS file into memory ******/
-bool NDS_core::read_bios(std::string filename) { }
+bool NTR_core::read_bios(std::string filename) { }
 
 /****** Returns a byte from core memory ******/
-u8 NDS_core::ex_read_u8(u16 address) { }
+u8 NTR_core::ex_read_u8(u16 address) { }
 
 /****** Writes a byte to core memory ******/
-void NDS_core::ex_write_u8(u16 address, u8 value) { }
+void NTR_core::ex_write_u8(u16 address, u8 value) { }
 
 /****** Dumps selected OBJ to a file ******/
-void NDS_core::dump_obj(int obj_index) { }
+void NTR_core::dump_obj(int obj_index) { }
 
 /****** Dumps selected BG tile to a file ******/
-void NDS_core::dump_bg(int bg_index) { }
+void NTR_core::dump_bg(int bg_index) { }
 
 /****** Grabs the OBJ palette ******/
-u32* NDS_core::get_obj_palette(int pal_index) { }
+u32* NTR_core::get_obj_palette(int pal_index) { }
 
 /****** Grabs the BG palette ******/
-u32* NDS_core::get_bg_palette(int pal_index) { }
+u32* NTR_core::get_bg_palette(int pal_index) { }
