@@ -77,6 +77,7 @@ class gbe_cgfx : public QDialog
 
 	void setup_obj_window(int rows, int count);
 	void update_preview(u32 x, u32 y);
+	void dump_layer_tile(u32 x, u32 y);
 
 	QImage grab_obj_data(int obj_index);
 	QImage grab_dmg_obj_data(int obj_index);

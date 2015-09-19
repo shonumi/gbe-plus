@@ -1166,6 +1166,94 @@ void gbe_cgfx::update_preview(u32 x, u32 y)
 	}
 }
 
+/****** Dumps the tile from a given layer ******/
+void gbe_cgfx::dump_layer_tile(u32 x, u32 y)
+{
+	if(main_menu::gbe_plus == NULL) { return; }
+
+	x >>= 1;
+	y >>= 1;
+
+	//Dump from DMG BG
+	if(layer_select->currentIndex() == 0) 
+	{
+		//Determine BG Map & Tile address
+		u16 bg_map_addr = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x8) ? 0x9C00 : 0x9800;
+		u16 bg_tile_addr = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x10) ? 0x8000 : 0x8800;
+
+		//Determine the map entry from on-screen coordinates
+		u8 tile_x = main_menu::gbe_plus->ex_read_u8(REG_SX) + x;
+		u8 tile_y = main_menu::gbe_plus->ex_read_u8(REG_SY) + y;
+		u16 map_entry = (tile_x / 8) + ((tile_y / 8) * 32);
+
+		u8 map_value = main_menu::gbe_plus->ex_read_u8(bg_map_addr + map_entry);
+
+		//Convert tile number to signed if necessary
+		if(bg_tile_addr == 0x8800) 
+		{
+			if(map_value <= 127) { map_value += 128; }
+			else { map_value -= 128; }
+		}
+
+		u16 bg_index = (((bg_tile_addr + (map_value << 4)) & ~0x8000) >> 4);
+
+		dump_bg(bg_index);
+	}
+
+	//Dump from DMG Window
+	else if(layer_select->currentIndex() == 1)
+	{
+		//Determine BG Map & Tile address
+		u16 win_map_addr = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x40) ? 0x9C00 : 0x9800;
+		u16 bg_tile_addr = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x10) ? 0x8000 : 0x8800;
+
+		u8 wx = main_menu::gbe_plus->ex_read_u8(REG_WX) - 7;
+	
+		//Determine the map entry from on-screen coordinates
+		u8 tile_x = x - wx;
+		u8 tile_y = y - main_menu::gbe_plus->ex_read_u8(REG_WY);
+		u16 map_entry = (tile_x / 8) + ((tile_y / 8) * 32);
+
+		u8 map_value = main_menu::gbe_plus->ex_read_u8(win_map_addr + map_entry);
+
+		//Convert tile number to signed if necessary
+		if(bg_tile_addr == 0x8800) 
+		{
+			if(map_value <= 127) { map_value += 128; }
+			else { map_value -= 128; }
+		}
+
+		u16 bg_index = (((bg_tile_addr + (map_value << 4)) & ~0x8000) >> 4);
+
+		dump_bg(bg_index);
+	}
+
+	//Dump from DMG OBJ 
+	else if(layer_select->currentIndex() == 2)
+	{
+		//Determine if in 8x8 or 8x16 mode
+		u8 obj_height = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x04) ? 16 : 8;
+
+		for(int obj_index = 0; obj_index < 40; obj_index++)
+		{
+			//Grab X-Y OBJ coordinates
+			u8 obj_x = main_menu::gbe_plus->ex_read_u8(OAM + (obj_index * 4) + 1);
+			u8 obj_y = main_menu::gbe_plus->ex_read_u8(OAM + (obj_index * 4));
+
+			obj_x -= 8;
+			obj_y -= 16;
+
+			u8 test_left = ((obj_x + 8) > 0x100) ? 0 : obj_x;
+			u8 test_right = (obj_x + 8);
+
+			u8 test_top = ((obj_y + obj_height) > 0x100) ? 0 : obj_y;
+			u8 test_bottom = (obj_y + obj_height);
+
+			if((x >= test_left) && (x <= test_right) && (y >= test_top) && (y <= test_bottom)) { dump_obj(obj_index); }
+		}
+	}
+}
+
 /****** Event filter for settings window ******/
 bool gbe_cgfx::eventFilter(QObject* target, QEvent* event)
 {
@@ -1178,6 +1266,17 @@ bool gbe_cgfx::eventFilter(QObject* target, QEvent* event)
 
 		//Update the preview
 		if((mouse_event->x() <= 320) && (mouse_event->y() <= 288)) { update_preview(x, y); }
+	}
+
+	//Check to see if mouse is clicked over current layer
+	else if(event->type() == QEvent::MouseButtonPress)
+	{
+		QMouseEvent* mouse_event = static_cast<QMouseEvent*>(event);
+		u32 x = mouse_event->x();
+		u32 y = mouse_event->y();		
+
+		//Update the preview
+		if((mouse_event->x() <= 320) && (mouse_event->y() <= 288)) { dump_layer_tile(x, y); }
 	}
 
 	return QDialog::eventFilter(target, event);
