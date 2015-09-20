@@ -72,6 +72,24 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	current_tile = new QLabel;
 	current_tile->setPixmap(QPixmap::fromImage(temp_pix));
 
+	//Layer Label Info
+	QWidget* layer_info = new QWidget;
+
+	tile_id = new QLabel("Tile ID : ");
+	tile_addr = new QLabel("Tile Address : ");
+	tile_size = new QLabel("Tile Size : ");
+	h_v_flip = new QLabel("H-Flip :    V Flip : ");
+	tile_palette = new QLabel("Tile Palette : ");
+
+	QVBoxLayout* layer_info_layout = new QVBoxLayout;
+	layer_info_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	layer_info_layout->addWidget(tile_id);
+	layer_info_layout->addWidget(tile_addr);
+	layer_info_layout->addWidget(tile_size);
+	layer_info_layout->addWidget(h_v_flip);
+	layer_info_layout->addWidget(tile_palette);
+	layer_info->setLayout(layer_info_layout);
+
 	//Layer combo-box
 	QWidget* select_set = new QWidget(layers_tab);
 	QLabel* select_set_label = new QLabel("Graphics Layer : ");
@@ -119,7 +137,9 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	QGridLayout* layers_tab_layout = new QGridLayout;
 	layers_tab_layout->addWidget(select_set, 0, 0, 1, 1);
 	layers_tab_layout->addWidget(current_layer, 1, 0, 1, 1);
-	layers_tab_layout->addWidget(current_tile, 0, 2, 1, 1);
+
+	layers_tab_layout->addWidget(current_tile, 1, 1, 1, 1);
+	layers_tab_layout->addWidget(layer_info, 0, 1, 1, 1);
 	layers_tab->setLayout(layers_tab_layout);
 	
 	//Final tab layout
@@ -1093,6 +1113,28 @@ void gbe_cgfx::update_preview(u32 x, u32 y)
 
 		QImage final_image = grab_dmg_bg_data(bg_index).scaled(128, 128);
 		current_tile->setPixmap(QPixmap::fromImage(final_image));
+
+		//Tile info - ID
+		QString id("Tile ID : ");
+		id += QString::number(bg_index);
+		tile_id->setText(id);
+
+		//Tile info - Address
+		QString addr("Tile Address : 0x");
+		addr += QString::number((bg_tile_addr + (map_value << 4)), 16).toUpper();
+		tile_addr->setText(addr);
+
+		//Tile info - Size
+		QString size("Tile Size : 8x8");
+		tile_size->setText(size);
+
+		//Tile info - H/V Flip
+		QString flip("H-Flip : N    V-Flip : N");
+		h_v_flip->setText(flip);
+
+		//Tile info - Palette
+		QString pal("Tile Palette : BGP");
+		tile_palette->setText(pal);
 	}
 
 	//Update preview for DMG Window
@@ -1122,6 +1164,28 @@ void gbe_cgfx::update_preview(u32 x, u32 y)
 
 		QImage final_image = grab_dmg_bg_data(bg_index).scaled(128, 128);
 		current_tile->setPixmap(QPixmap::fromImage(final_image));
+
+		//Tile info - ID
+		QString id("Tile ID : ");
+		id += QString::number(bg_index);
+		tile_id->setText(id); 
+
+		//Tile info - Address
+		QString addr("Tile Address : 0x");
+		addr += QString::number((bg_tile_addr + (map_value << 4)), 16).toUpper();
+		tile_addr->setText(addr);
+
+		//Tile info - Size
+		QString size("Tile Size : 8x8");
+		tile_size->setText(size);
+
+		//Tile info - H/V Flip
+		QString flip("H-Flip : N    V-Flip : N");
+		h_v_flip->setText(flip);
+
+		//Tile info - Palette
+		QString pal("Tile Palette : BGP");
+		tile_palette->setText(pal);
 	}
 
 	//Update preview for DMG OBJ 
@@ -1148,19 +1212,57 @@ void gbe_cgfx::update_preview(u32 x, u32 y)
 			bool h_flip = (main_menu::gbe_plus->ex_read_u8(OAM + (obj_index * 4) + 3) & 0x20) ? true : false;
 			bool v_flip = (main_menu::gbe_plus->ex_read_u8(OAM + (obj_index * 4) + 3) & 0x40) ? true : false;
 
+			u8 obj_tile = main_menu::gbe_plus->ex_read_u8(OAM + (obj_index * 4) + 2);
+			if(obj_height == 16) { obj_tile &= ~0x1; }
+
+			u8 obj_pal = (main_menu::gbe_plus->ex_read_u8(OAM + (obj_index * 4) + 3) & 0x10) ? 1 : 0;
+
 			if((x >= test_left) && (x <= test_right) && (y >= test_top) && (y <= test_bottom))
 			{
 				if(obj_height == 8)
 				{
 					QImage final_image = grab_dmg_obj_data(obj_index).scaled(128, 128).mirrored(h_flip, v_flip);
 					current_tile->setPixmap(QPixmap::fromImage(final_image));
+
+					//Tile info - Size
+					QString size("Tile Size : 8x8");
+					tile_size->setText(size);
 				}
 
 				else
 				{
 					QImage final_image = grab_dmg_obj_data(obj_index).scaled(64, 128).mirrored(h_flip, v_flip);
 					current_tile->setPixmap(QPixmap::fromImage(final_image));
+
+					//Tile info - Size
+					QString size("Tile Size : 8x16");
+					tile_size->setText(size);
 				}
+
+				//Tile info - ID
+				QString id("Tile ID : ");
+				id += QString::number(obj_index);
+				tile_id->setText(id);
+
+				//Tile info - Address
+				QString addr("Tile Address : 0x");
+				addr += QString::number((0x8000 + (obj_tile << 4)), 16).toUpper();
+				tile_addr->setText(addr);
+
+				//Tile info - H/V Flip
+				QString flip;
+				
+				if((!h_flip) && (!v_flip)) { flip = "H-Flip : N    V-Flip : N"; }
+				else if((h_flip) && (!v_flip)) { flip = "H-Flip : Y    V-Flip : N"; }
+				else if((!h_flip) && (v_flip)) { flip = "H-Flip : N    V-Flip : Y"; }
+				else { flip = "H-Flip : Y    V-Flip : Y"; }				
+
+				h_v_flip->setText(flip);
+
+				//Tile info - Palette
+				QString pal;
+				pal = (obj_pal == 0) ? "Tile Palette : OBP0" : "Tile Palette : OBP1";
+				tile_palette->setText(pal);
 			}
 		}
 	}

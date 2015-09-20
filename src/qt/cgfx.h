@@ -42,6 +42,11 @@ class gbe_cgfx : public QDialog
 
 	//Layers tab widgets
 	QComboBox* layer_select;
+	QLabel* tile_id;
+	QLabel* tile_addr;
+	QLabel* tile_size;
+	QLabel* h_v_flip;
+	QLabel* tile_palette;
 
 	//OBJ tab widgets
 	std::vector<QImage> cgfx_obj;
