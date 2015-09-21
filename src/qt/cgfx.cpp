@@ -327,8 +327,18 @@ QImage gbe_cgfx::grab_dmg_obj_data(int obj_index)
 	}
 
 	//Scale final output to 64x64
-	QImage final_image = raw_image.scaled(64, 64);
-	return final_image;
+	if(obj_height == 8)
+	{
+		QImage final_image = raw_image.scaled(64, 64);
+		return final_image;
+	}
+
+	//Scale final output to 32x64
+	else
+	{
+		QImage final_image = raw_image.scaled(32, 64);
+		return final_image;
+	}
 }
 
 /****** Grabs an OBJ in VRAM and converts it to a QImage - GBC Version ******/
@@ -393,8 +403,18 @@ QImage gbe_cgfx::grab_gbc_obj_data(int obj_index)
 	}
 
 	//Scale final output to 64x64
-	QImage final_image = raw_image.scaled(64, 64);
-	return final_image;
+	if(obj_height == 8)
+	{
+		QImage final_image = raw_image.scaled(64, 64);
+		return final_image;
+	}
+
+	//Scale final output to 32x64
+	else
+	{
+		QImage final_image = raw_image.scaled(32, 64);
+		return final_image;
+	}
 }
 
 /****** Sets up the BG dumping window ******/
