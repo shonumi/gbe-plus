@@ -220,7 +220,11 @@ void DMG_LCD::update_oam()
 			obj[x].bg_priority = (attribute & 0x80) ? 1 : 0;
 
 			//CGFX - Update OBJ hashes
-			if((cgfx::load_cgfx) || (cgfx::auto_dump_obj)) { update_dmg_obj_hash(x); }
+			if((cgfx::load_cgfx) || (cgfx::auto_dump_obj)) 
+			{
+				if(config::gb_type == 2) { update_gbc_obj_hash(x); }
+				else { update_dmg_obj_hash(x); }
+			}
 		}
 
 		else { oam_ptr+= 4; }
@@ -899,61 +903,69 @@ void DMG_LCD::render_gbc_obj_scanline()
 	{
 		u8 sprite_id = obj_render_list[x];
 
-		//Set the current pixel to start obj rendering
-		lcd_stat.scanline_pixel_counter = obj[sprite_id].x;
-		
-		//Determine which line of the tiles to generate pixels for this scanline		
-		u8 tile_line = (lcd_stat.current_scanline - obj[sprite_id].y);
-		if(obj[sprite_id].v_flip) { tile_line = (lcd_stat.obj_size == 8) ? lcd_stat.flip_8[tile_line] : lcd_stat.flip_16[tile_line]; }
+		//Render CGFX
+		if((cgfx::load_cgfx) && (has_hash(cgfx_stat.current_obj_hash[sprite_id]))) { render_cgfx_dmg_obj_scanline(sprite_id); }
 
-		u8 tile_pixel = 0;
-
-		//Calculate the address of the 8x1 pixel data based on map entry
-		u16 tile_addr = (0x8000 + (obj[sprite_id].tile_number << 4) + (tile_line << 1));
-
-		//Grab bytes from VRAM representing 8x1 pixel data
-		u8 old_vram_bank = mem->vram_bank;
-		mem->vram_bank = obj[sprite_id].vram_bank;
-		u16 tile_data = mem->read_u16(tile_addr);
-		mem->vram_bank = old_vram_bank;
-
-		for(int y = 7; y >= 0; y--)
+		//Render original pixel data
+		else
 		{
-			bool draw_obj_pixel = true;
+			//Set the current pixel to start obj rendering
+			lcd_stat.scanline_pixel_counter = obj[sprite_id].x;
+		
+			//Determine which line of the tiles to generate pixels for this scanline		
+			u8 tile_line = (lcd_stat.current_scanline - obj[sprite_id].y);
+			if(obj[sprite_id].v_flip) { tile_line = (lcd_stat.obj_size == 8) ? lcd_stat.flip_8[tile_line] : lcd_stat.flip_16[tile_line]; }
 
-			//Calculate raw value of the tile's pixel
-			if(obj[sprite_id].h_flip) 
+			u8 tile_pixel = 0;
+
+			//Calculate the address of the 8x1 pixel data based on map entry
+			u16 tile_addr = (0x8000 + (obj[sprite_id].tile_number << 4) + (tile_line << 1));
+
+			//Grab bytes from VRAM representing 8x1 pixel data
+			u8 old_vram_bank = mem->vram_bank;
+			mem->vram_bank = obj[sprite_id].vram_bank;
+			u16 tile_data = mem->read_u16(tile_addr);
+			mem->vram_bank = old_vram_bank;
+
+			for(int y = 7; y >= 0; y--)
 			{
-				tile_pixel = ((tile_data >> 8) & (1 << lcd_stat.flip_8[y])) ? 2 : 0;
-				tile_pixel |= (tile_data & (1 << lcd_stat.flip_8[y])) ? 1 : 0;
-			}
+				bool draw_obj_pixel = true;
 
-			else 
-			{
-				tile_pixel = ((tile_data >> 8) & (1 << y)) ? 2 : 0;
-				tile_pixel |= (tile_data & (1 << y)) ? 1 : 0;
-			}
+				//Calculate raw value of the tile's pixel
+				if(obj[sprite_id].h_flip) 
+				{
+					tile_pixel = ((tile_data >> 8) & (1 << lcd_stat.flip_8[y])) ? 2 : 0;
+					tile_pixel |= (tile_data & (1 << lcd_stat.flip_8[y])) ? 1 : 0;
+				}
 
-			//If Bit 0 of LCDC is clear, always give sprites priority
-			if(!lcd_stat.bg_enable) { scanline_priority[lcd_stat.scanline_pixel_counter] = 0; }
+				else 
+				{
+					tile_pixel = ((tile_data >> 8) & (1 << y)) ? 2 : 0;
+					tile_pixel |= (tile_data & (1 << y)) ? 1 : 0;
+				}
 
-			//If raw color is zero, this is the sprite's transparency, abort rendering this pixel
-			if(tile_pixel == 0) { draw_obj_pixel = false; }
+				//If Bit 0 of LCDC is clear, always give sprites priority
+				if(!lcd_stat.bg_enable) { scanline_priority[lcd_stat.scanline_pixel_counter] = 0; }
 
-			//If sprite is below BG and BG raw color is non-zero, abort rendering this pixel
-			else if((obj[sprite_id].bg_priority == 1) && (scanline_raw[lcd_stat.scanline_pixel_counter] != 0)) { draw_obj_pixel = false; }
+				//If raw color is zero, this is the sprite's transparency, abort rendering this pixel
+				if(tile_pixel == 0) { draw_obj_pixel = false; }
 
-			//If sprite is above BG but BG has priority and BG raw color is non-zero, abort rendering this pixel
-			else if((obj[sprite_id].bg_priority == 0) && (scanline_priority[lcd_stat.scanline_pixel_counter] == 1) && (scanline_raw[lcd_stat.scanline_pixel_counter] != 0)) { draw_obj_pixel = false; }
+				//If sprite is below BG and BG raw color is non-zero, abort rendering this pixel
+				else if((obj[sprite_id].bg_priority == 1) && (scanline_raw[lcd_stat.scanline_pixel_counter] != 0)) { draw_obj_pixel = false; }
+
+				//If sprite is above BG but BG has priority and BG raw color is non-zero, abort rendering this pixel
+				else if((obj[sprite_id].bg_priority == 0) && (scanline_priority[lcd_stat.scanline_pixel_counter] == 1) 
+				&& (scanline_raw[lcd_stat.scanline_pixel_counter] != 0)) { draw_obj_pixel = false; }
 				
-			//Render sprite pixel
-			if(draw_obj_pixel)
-			{
-				scanline_buffer[lcd_stat.scanline_pixel_counter++] = lcd_stat.obj_colors_final[tile_pixel][obj[sprite_id].color_palette_number];
-			}
+				//Render sprite pixel
+				if(draw_obj_pixel)
+				{
+					scanline_buffer[lcd_stat.scanline_pixel_counter++] = lcd_stat.obj_colors_final[tile_pixel][obj[sprite_id].color_palette_number];
+				}
 
-			//Move onto next pixel in scanline to see if sprite rendering occurs
-			else { lcd_stat.scanline_pixel_counter++; }
+				//Move onto next pixel in scanline to see if sprite rendering occurs
+				else { lcd_stat.scanline_pixel_counter++; }
+			}
 		}
 	}
 }
@@ -1073,6 +1085,15 @@ void DMG_LCD::update_obj_colors()
 	}
 
 	lcd_stat.update_obj_colors = false;
+
+	//CGFX - Update OBJ hashes
+	if((cgfx::load_cgfx) || (cgfx::auto_dump_obj)) 
+	{
+		for(int x = 0; x < 40; x++)
+		{
+			if(obj[x].color_palette_number == palette) { update_gbc_obj_hash(x); }
+		}
+	}
 }
 
 /****** GBC General Purpose DMA ******/

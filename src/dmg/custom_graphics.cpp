@@ -606,6 +606,62 @@ void DMG_LCD::update_dmg_obj_hash(u8 obj_index)
 	cgfx_stat.obj_hash_list.push_back(final_hash);
 }
 
+/****** Updates the current hash for the selected GBC OBJ ******/
+void DMG_LCD::update_gbc_obj_hash(u8 obj_index) 
+{
+	u8 obj_height = 0;
+
+	cgfx_stat.current_obj_hash[obj_index] = "";
+	std::string final_hash = "";
+
+	//Determine if in 8x8 or 8x16 mode
+	obj_height = (mem->memory_map[REG_LCDC] & 0x04) ? 16 : 8;
+
+	//Grab OBJ tile addr from index
+	u16 obj_tile_addr = 0x8000 + (obj[obj_index].tile_number << 4);
+
+	//Grab VRAM bank
+	u8 old_vram_bank = mem->vram_bank;
+	mem->vram_bank = obj[obj_index].vram_bank;
+
+	//Create a hash for this OBJ tile
+	for(int x = 0; x < obj_height/2; x++)
+	{
+		u16 temp_hash = mem->read_u8((x * 4) + obj_tile_addr);
+		temp_hash << 8;
+		temp_hash += mem->read_u8((x * 4) + obj_tile_addr + 1);
+		cgfx_stat.current_obj_hash[obj_index] += hash::raw_to_64(temp_hash);
+
+		temp_hash = mem->read_u8((x * 4) + obj_tile_addr + 2);
+		temp_hash << 8;
+		temp_hash += mem->read_u8((x * 4) + obj_tile_addr + 3);
+		cgfx_stat.current_obj_hash[obj_index] += hash::raw_to_64(temp_hash);
+	}
+
+	//Prepend the hues to each hash
+	std::string hue_data = "";
+	
+	for(int x = 0; x < 4; x++)
+	{
+		util::hsv color = util::rgb_to_hsv(lcd_stat.obj_colors_final[x][obj[obj_index].palette_number]);
+		u8 hue = (color.hue / 10);
+		hue_data += hash::base_64_index[hue];
+	}
+
+	cgfx_stat.current_obj_hash[obj_index] = hue_data + "_" + cgfx_stat.current_obj_hash[obj_index];
+
+	final_hash = cgfx_stat.current_obj_hash[obj_index];
+
+	//Update the OBJ hash list
+	for(int x = 0; x < cgfx_stat.obj_hash_list.size(); x++)
+	{
+		if(final_hash == cgfx_stat.obj_hash_list[x]) { return; }
+	}
+
+	//Reset VRAM bank
+	mem->vram_bank = old_vram_bank;
+}
+
 /****** Updates the current hash for the selected DMG BG tile ******/
 void DMG_LCD::update_dmg_bg_hash(u16 bg_index)
 {
