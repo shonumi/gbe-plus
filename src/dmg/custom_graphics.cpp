@@ -327,7 +327,7 @@ void DMG_LCD::dump_gbc_obj(u8 obj_index)
 	//Update the OBJ hash list
 	for(int x = 0; x < cgfx_stat.obj_hash_list.size(); x++)
 	{
-		if(final_hash == cgfx_stat.obj_hash_list[x]) { add_hash = false; return; }
+		if(final_hash == cgfx_stat.obj_hash_list[x]) { mem->vram_bank = old_vram_bank; return; }
 	}
 
 	//For new OBJs, dump BMP file
@@ -514,7 +514,7 @@ void DMG_LCD::dump_gbc_bg(u16 bg_index)
 	//Update the BG hash list
 	for(int x = 0; x < cgfx_stat.bg_hash_list.size(); x++)
 	{
-		if(final_hash == cgfx_stat.bg_hash_list[x]) { add_hash = false; return; }
+		if(final_hash == cgfx_stat.bg_hash_list[x]) { mem->vram_bank = old_vram_bank; return; }
 	}
 
 	//For new BGs, dump BMP file
@@ -652,14 +652,14 @@ void DMG_LCD::update_gbc_obj_hash(u8 obj_index)
 
 	final_hash = cgfx_stat.current_obj_hash[obj_index];
 
+	//Reset VRAM bank
+	mem->vram_bank = old_vram_bank;
+
 	//Update the OBJ hash list
 	for(int x = 0; x < cgfx_stat.obj_hash_list.size(); x++)
 	{
 		if(final_hash == cgfx_stat.obj_hash_list[x]) { return; }
 	}
-
-	//Reset VRAM bank
-	mem->vram_bank = old_vram_bank;
 }
 
 /****** Updates the current hash for the selected DMG BG tile ******/
