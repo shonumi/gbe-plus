@@ -122,6 +122,10 @@ class DMG_LCD
 	void render_gbc_win_scanline();
 	void render_gbc_obj_scanline();
 
+	//Per-scanline rendering - DMG (CGFX)
+	void render_cgfx_gbc_obj_scanline(u8 sprite_id);
+	void render_cgfx_gbc_bg_scanline(u16 bg_id);
+
 	//Per-pixel rendering - DMG (B/W)
 	bool render_dmg_obj_pixel();
 	bool render_dmg_bg_pixel();

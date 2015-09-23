@@ -904,7 +904,7 @@ void DMG_LCD::render_gbc_obj_scanline()
 		u8 sprite_id = obj_render_list[x];
 
 		//Render CGFX
-		if((cgfx::load_cgfx) && (has_hash(cgfx_stat.current_obj_hash[sprite_id]))) { render_cgfx_dmg_obj_scanline(sprite_id); }
+		if((cgfx::load_cgfx) && (has_hash(cgfx_stat.current_obj_hash[sprite_id]))) { render_cgfx_gbc_obj_scanline(sprite_id); }
 
 		//Render original pixel data
 		else
@@ -967,6 +967,79 @@ void DMG_LCD::render_gbc_obj_scanline()
 				else { lcd_stat.scanline_pixel_counter++; }
 			}
 		}
+	}
+}
+
+/****** Renders pixels for OBJs (per-scanline) - GBC CGFX version ******/
+void DMG_LCD::render_cgfx_gbc_obj_scanline(u8 sprite_id)
+{
+	//Set the current pixel to start obj rendering
+	lcd_stat.scanline_pixel_counter = obj[sprite_id].x;
+		
+	//Determine which line of the tiles to generate pixels for this scanline		
+	u8 tile_line = (lcd_stat.current_scanline - obj[sprite_id].y);
+	if(obj[sprite_id].v_flip) { tile_line = (lcd_stat.obj_size == 8) ? lcd_stat.flip_8[tile_line] : lcd_stat.flip_16[tile_line]; }
+
+	//If sprite is below BG and BG raw color is non-zero, abort rendering this pixel
+	if((obj[sprite_id].bg_priority == 1) && (scanline_raw[lcd_stat.scanline_pixel_counter] != 0)) { return; }
+
+	//Grab the ID of this hash to pull custom pixel data
+	u16 obj_id = cgfx_stat.m_id[cgfx_stat.last_id];
+
+	u16 tile_pixel = (8 * tile_line);
+	u32 custom_color = 0;
+
+	//Account for horizontal flipping
+	lcd_stat.scanline_pixel_counter = obj[sprite_id].h_flip ? (lcd_stat.scanline_pixel_counter + 7) : lcd_stat.scanline_pixel_counter;
+	s16 counter = obj[sprite_id].h_flip ? -1 : 1;
+
+	//Output 8x1 line of custom pixel data
+	for(int x = tile_pixel; x < (tile_pixel + 8); x++)
+	{
+		if(!lcd_stat.bg_enable) { scanline_priority[lcd_stat.scanline_pixel_counter] = 0; }
+
+		//Render 1:1
+		if(cgfx::scaling_factor <= 1)
+		{
+			custom_color = cgfx_stat.obj_pixel_data[obj_id][x];
+
+			if(custom_color == cgfx::transparency_color) { }
+			else if((obj[sprite_id].bg_priority == 1) && (scanline_raw[lcd_stat.scanline_pixel_counter] != 0)) { }
+			else if((obj[sprite_id].bg_priority == 0) && (scanline_priority[lcd_stat.scanline_pixel_counter] == 1) 
+			&& (scanline_raw[lcd_stat.scanline_pixel_counter] != 0)) { }
+			else { scanline_buffer[lcd_stat.scanline_pixel_counter] = cgfx_stat.obj_pixel_data[obj_id][x]; }
+		}
+
+		//Render HD
+		else
+		{
+			u32 pos = (lcd_stat.scanline_pixel_counter * cgfx::scaling_factor) + (lcd_stat.current_scanline * cgfx::scaling_factor * config::sys_width);
+			u32 obj_pos = (x * cgfx::scaling_factor) + (tile_line * cgfx::scaling_factor * 8);
+			u32 c = 0;
+			
+			if(lcd_stat.scanline_pixel_counter < 160)
+			{
+				for(int a = 0; a < cgfx::scaling_factor; a++)
+				{
+					for(int b = 0; b < cgfx::scaling_factor; b++)
+					{
+						c = obj[sprite_id].h_flip ? (cgfx::scaling_factor - b - 1) : b;
+						custom_color = cgfx_stat.obj_pixel_data[obj_id][obj_pos + c];
+
+						if(custom_color == cgfx::transparency_color) { }
+						else if((obj[sprite_id].bg_priority == 1) && (scanline_raw[lcd_stat.scanline_pixel_counter] != 0)) { }
+						else if((obj[sprite_id].bg_priority == 0) && (scanline_priority[lcd_stat.scanline_pixel_counter] == 1) 
+						&& (scanline_raw[lcd_stat.scanline_pixel_counter] != 0)) { }
+						else { hd_screen_buffer[pos + b] = cgfx_stat.obj_pixel_data[obj_id][obj_pos + c]; }
+					}
+
+					pos += config::sys_width;
+					obj_pos += (8 * cgfx::scaling_factor);
+				}
+			}
+		}
+
+		lcd_stat.scanline_pixel_counter += counter;
 	}
 }
 
