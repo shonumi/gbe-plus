@@ -18,6 +18,7 @@ namespace cgfx
 	bool load_cgfx = false;
 	bool auto_dump_obj = false;
 	bool auto_dump_bg = false;
+	bool ignore_blank_dumps = false;
 
 	u8 scaling_factor = 1;
 	u32 transparency_color = 0xFF00FF00;

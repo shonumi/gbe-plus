@@ -39,6 +39,10 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	QLabel* auto_dump_bg_label = new QLabel("Automatically dump BG tiles", auto_dump_bg_set);
 	auto_dump_bg = new QCheckBox(auto_dump_bg_set);
 
+	QWidget* blank_set = new QWidget(config_tab);
+	QLabel* blank_label = new QLabel("Ignore blank/empty tiles when dumping", blank_set);
+	blank = new QCheckBox(blank_set);
+
 	obj_set = new QWidget(obj_tab);
 	bg_set = new QWidget(bg_tab);
 	layers_set = new QWidget(layers_tab);
@@ -117,10 +121,17 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	auto_dump_bg_layout->addWidget(auto_dump_bg_label);
 	auto_dump_bg_set->setLayout(auto_dump_bg_layout);
 
+	QHBoxLayout* blank_layout = new QHBoxLayout;
+	blank_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	blank_layout->addWidget(blank);
+	blank_layout->addWidget(blank_label);
+	blank_set->setLayout(blank_layout);
+
 	QVBoxLayout* config_tab_layout = new QVBoxLayout;
 	config_tab_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	config_tab_layout->addWidget(auto_dump_obj_set);
 	config_tab_layout->addWidget(auto_dump_bg_set);
+	config_tab_layout->addWidget(blank_set);
 	config_tab->setLayout(config_tab_layout);
 
 	//OBJ Tab layout
@@ -156,6 +167,7 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	connect(tabs_button->button(QDialogButtonBox::Close), SIGNAL(clicked()), this, SLOT(close_cgfx()));
 	connect(auto_dump_obj, SIGNAL(stateChanged(int)), this, SLOT(set_auto_obj()));
 	connect(auto_dump_bg, SIGNAL(stateChanged(int)), this, SLOT(set_auto_bg()));
+	connect(blank, SIGNAL(stateChanged(int)), this, SLOT(set_blanks()));
 	connect(layer_select, SIGNAL(currentIndexChanged(int)), this, SLOT(layer_change()));
 
 	estimated_palette.resize(384, 0);
@@ -684,6 +696,13 @@ void gbe_cgfx::set_auto_bg()
 {
 	if(auto_dump_bg->isChecked()) { cgfx::auto_dump_bg = true; }
 	else { cgfx::auto_dump_bg = false; }
+}
+
+/****** Toggles whether to ignore blank dumps ******/
+void gbe_cgfx::set_blanks()
+{
+	if(blank->isChecked()) { cgfx::ignore_blank_dumps = true; }
+	else { cgfx::ignore_blank_dumps = false; }
 }
 
 /****** Changes the current viewable layer for dumping ******/

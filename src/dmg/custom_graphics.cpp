@@ -270,6 +270,19 @@ void DMG_LCD::dump_dmg_obj(u8 obj_index)
 
 		if(SDL_MUSTLOCK(obj_dump)) { SDL_UnlockSurface(obj_dump); }
 
+		//Ignore blank or empty dumps
+		if(cgfx::ignore_blank_dumps)
+		{
+			bool blank = true;
+
+			for(int x = 1; x < pixel_counter; x++)
+			{
+				if(dump_pixel_data[0] != dump_pixel_data[x]) { blank = false; break; }
+			}
+
+			if(blank) { return; }
+		}
+
 		//Save to BMP
 		std::cout<<"LCD::Saving Sprite - " << dump_file << "\n";
 		SDL_SaveBMP(obj_dump, dump_file.c_str());
@@ -362,6 +375,19 @@ void DMG_LCD::dump_gbc_obj(u8 obj_index)
 		}
 
 		if(SDL_MUSTLOCK(obj_dump)) { SDL_UnlockSurface(obj_dump); }
+
+		//Ignore blank or empty dumps
+		if(cgfx::ignore_blank_dumps)
+		{
+			bool blank = true;
+
+			for(int x = 1; x < pixel_counter; x++)
+			{
+				if(dump_pixel_data[0] != dump_pixel_data[x]) { blank = false; break; }
+			}
+
+			if(blank) { return; }
+		}
 
 		//Save to BMP
 		std::cout<<"LCD::Saving Sprite - " << dump_file << "\n";
@@ -461,6 +487,19 @@ void DMG_LCD::dump_dmg_bg(u16 bg_index)
 
 		if(SDL_MUSTLOCK(bg_dump)) { SDL_UnlockSurface(bg_dump); }
 
+		//Ignore blank or empty dumps
+		if(cgfx::ignore_blank_dumps)
+		{
+			bool blank = true;
+
+			for(int x = 1; x < pixel_counter; x++)
+			{
+				if(dump_pixel_data[0] != dump_pixel_data[x]) { blank = false; break; }
+			}
+
+			if(blank) { return; }
+		}
+
 		//Save to BMP
 		std::cout<<"LCD::Saving Background Tile - " << dump_file << "\n";
 		SDL_SaveBMP(bg_dump, dump_file.c_str());
@@ -549,6 +588,19 @@ void DMG_LCD::dump_gbc_bg(u16 bg_index)
 		}
 
 		if(SDL_MUSTLOCK(bg_dump)) { SDL_UnlockSurface(bg_dump); }
+
+		//Ignore blank or empty dumps
+		if(cgfx::ignore_blank_dumps)
+		{
+			bool blank = true;
+
+			for(int x = 1; x < pixel_counter; x++)
+			{
+				if(dump_pixel_data[0] != dump_pixel_data[x]) { blank = false; break; }
+			}
+
+			if(blank) { return; }
+		}
 
 		//Save to BMP
 		std::cout<<"LCD::Saving Background Tile - " << dump_file << "\n";

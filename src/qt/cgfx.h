@@ -39,6 +39,7 @@ class gbe_cgfx : public QDialog
 	//Configure tab widgets
 	QCheckBox* auto_dump_obj;
 	QCheckBox* auto_dump_bg;
+	QCheckBox* blank;
 
 	//Layers tab widgets
 	QComboBox* layer_select;
@@ -100,6 +101,7 @@ class gbe_cgfx : public QDialog
 	void dump_bg(int bg_index);
 	void set_auto_obj();
 	void set_auto_bg();
+	void set_blanks();
 	void layer_change();
 };
 
