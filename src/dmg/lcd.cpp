@@ -961,6 +961,24 @@ void DMG_LCD::render_gbc_obj_scanline()
 				if(draw_obj_pixel)
 				{
 					scanline_buffer[lcd_stat.scanline_pixel_counter++] = lcd_stat.obj_colors_final[tile_pixel][obj[sprite_id].color_palette_number];
+
+					u8 last_scanline_pixel = lcd_stat.scanline_pixel_counter - 1;
+
+					//Render HD
+					if((cgfx::load_cgfx) && (cgfx::scaling_factor > 1) && (last_scanline_pixel < 160))
+					{
+						u32 pos = (last_scanline_pixel * cgfx::scaling_factor) + (lcd_stat.current_scanline * cgfx::scaling_factor * config::sys_width);
+			
+						for(int a = 0; a < cgfx::scaling_factor; a++)
+						{
+							for(int b = 0; b < cgfx::scaling_factor; b++)
+							{
+								hd_screen_buffer[pos + b] = scanline_buffer[last_scanline_pixel];
+							}
+	
+							pos += config::sys_width;
+						}
+					}
 				}
 
 				//Move onto next pixel in scanline to see if sprite rendering occurs
