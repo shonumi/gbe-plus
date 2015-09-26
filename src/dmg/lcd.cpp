@@ -91,7 +91,7 @@ void DMG_LCD::reset()
 		}
 	}
 
-	//Signed tile lookup generation
+	//Signed-to-unsigned tile lookup generation
 	for(int x = 0; x < 256; x++)
 	{
 		u8 tile_number = x;
@@ -106,6 +106,24 @@ void DMG_LCD::reset()
 		{ 
 			tile_number -= 128;
 			lcd_stat.signed_tile_lut[x] = tile_number;
+		}
+	}
+
+	//Unsigned-to-signed tile lookup generation
+	for(int x = 0; x < 256; x++)
+	{
+		u8 tile_number = x;
+
+		if(tile_number >= 127)
+		{
+			tile_number -= 128;
+			lcd_stat.unsigned_tile_lut[x] = tile_number;
+		}
+
+		else 
+		{ 
+			tile_number += 128;
+			lcd_stat.unsigned_tile_lut[x] = tile_number;
 		}
 	}
 
@@ -124,6 +142,9 @@ void DMG_LCD::reset()
 
 	cgfx_stat.bg_update_list.clear();
 	cgfx_stat.bg_update_list.resize(384);
+
+	cgfx_stat.bg_map_update_list.clear();
+	cgfx_stat.bg_map_update_list.resize(2048);
 
 	cgfx_stat.update_bg = false;
 
@@ -1337,9 +1358,24 @@ void DMG_LCD::step(int cpu_clock)
 					//CGFX - Update BG Hashes
 					if(cgfx_stat.update_bg)
 					{
-						for(int x = 0; x < 384; x++)
+						if(config::gb_type == 1)
 						{
-							if(cgfx_stat.bg_update_list[x]) { update_dmg_bg_hash(x); }
+							for(int x = 0; x < 384; x++)
+							{
+								if(cgfx_stat.bg_update_list[x]) { update_dmg_bg_hash(x); }
+							}
+						}
+
+						else
+						{
+							for(int x = 0; x < 2048; x++)
+							{
+								if(cgfx_stat.bg_map_update_list[x]) 
+								{
+									update_gbc_bg_hash(x);
+									cgfx_stat.bg_map_update_list[x] = false;
+								}
+							}
 						}
 
 						cgfx_stat.update_bg = false;
@@ -1362,7 +1398,7 @@ void DMG_LCD::step(int cpu_clock)
 			if(lcd_stat.lcd_mode != 1)
 			{
 				lcd_stat.lcd_mode = 1;
-				
+
 				//Increment scanline count
 				lcd_stat.current_scanline++;
 				mem->memory_map[REG_LY] = lcd_stat.current_scanline;

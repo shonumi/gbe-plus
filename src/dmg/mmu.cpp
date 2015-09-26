@@ -894,6 +894,19 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	{
 		cgfx_stat->bg_update_list[(address & ~0x8000) >> 4] = true;
 		cgfx_stat->update_bg = true;
+
+		//GBC BG Tile Data update
+		if(config::gb_type == 2)
+		{
+			u8 bg_tile_number = (address & ~0x8800) >> 4;
+			bg_tile_number = (lcd_stat->bg_map_addr == 0x8800) ? lcd_stat->unsigned_tile_lut[bg_tile_number] : bg_tile_number;
+
+			//Scan BG map for all tiles that use this tile number
+			for(int x = 0; x < 2048; x++)
+			{
+				if(video_ram[0][x] == bg_tile_number) { cgfx_stat->bg_map_update_list[x] = true; }
+			}
+		}
 	}
 }
 

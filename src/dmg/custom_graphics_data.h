@@ -54,6 +54,8 @@ struct dmg_cgfx_data
 	//The LCD does not keep track of BG updates, however.
 	std::vector <bool> bg_update_list;
 	bool update_bg;
+
+	std::vector <bool> bg_map_update_list;
 };
 
 #endif // GB_CGFX_DATA

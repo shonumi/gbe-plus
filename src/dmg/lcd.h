@@ -47,7 +47,7 @@ class DMG_LCD
 	void update_dmg_bg_hash(u16 bg_index);
 
 	void update_gbc_obj_hash(u8 obj_index);
-	void update_gbc_bg_hash(u16 bg_index);
+	void update_gbc_bg_hash(u16 map_addr);
 
 	bool has_hash(std::string hash);
 

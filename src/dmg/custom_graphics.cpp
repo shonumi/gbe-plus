@@ -756,6 +756,71 @@ void DMG_LCD::update_dmg_bg_hash(u16 bg_index)
 	cgfx_stat.bg_hash_list.push_back(final_hash);
 }
 
+/****** Updates the current hash for the selected GBC BG tile ******/
+void DMG_LCD::update_gbc_bg_hash(u16 map_addr)
+{
+	//Grab VRAM bank
+	u8 old_vram_bank = mem->vram_bank;
+	mem->vram_bank = 1;
+
+	//Parse BG attributes
+	u8 bg_attribute = mem->read_u8(map_addr);
+	u8 palette = bg_attribute & 0x7;
+	u8 vram_bank = (bg_attribute & 0x8) ? 1 : 0;
+
+	mem->vram_bank = 0;
+	u8 tile_number = mem->read_u8(map_addr);
+	mem->vram_bank = vram_bank;
+
+	//Convert tile number to signed if necessary
+	if(lcd_stat.bg_tile_addr == 0x8800) { tile_number = lcd_stat.signed_tile_lut[tile_number]; }
+	
+	u16 bg_tile_addr = lcd_stat.bg_tile_addr + (tile_number << 4);
+	u8 bg_index = ((bg_tile_addr & ~0x8000) >> 4);
+
+	cgfx_stat.current_bg_hash[bg_index] = "";
+	std::string final_hash = "";
+
+	//Create a hash for this BG tile
+	for(int x = 0; x < 4; x++)
+	{
+		u16 temp_hash = mem->read_u8((x * 4) + bg_tile_addr);
+		temp_hash << 8;
+		temp_hash += mem->read_u8((x * 4) + bg_tile_addr + 1);
+		cgfx_stat.current_bg_hash[bg_index] += hash::raw_to_64(temp_hash);
+
+		temp_hash = mem->read_u8((x * 4) + bg_tile_addr + 2);
+		temp_hash << 8;
+		temp_hash += mem->read_u8((x * 4) + bg_tile_addr + 3);
+		cgfx_stat.current_bg_hash[bg_index] += hash::raw_to_64(temp_hash);
+	}
+
+	//Prepend the hues to each hash
+	std::string hue_data = "";
+	
+	for(int x = 0; x < 4; x++)
+	{
+		util::hsv color = util::rgb_to_hsv(lcd_stat.bg_colors_final[x][palette]);
+		u8 hue = (color.hue / 10);
+		hue_data += hash::base_64_index[hue];
+	}
+
+	cgfx_stat.current_bg_hash[bg_index] = hue_data + "_" + cgfx_stat.current_bg_hash[bg_index];
+
+	final_hash = cgfx_stat.current_bg_hash[bg_index];
+
+	//Update the BG hash list
+	for(int x = 0; x < cgfx_stat.bg_hash_list.size(); x++)
+	{
+		if(final_hash == cgfx_stat.bg_hash_list[x]) { mem->vram_bank = old_vram_bank; return; }
+	}
+
+	cgfx_stat.bg_hash_list.push_back(final_hash);
+
+	//Reset VRAM bank
+	mem->vram_bank = old_vram_bank;
+}	
+
 /****** Search for an existing hash from the manifest ******/
 bool DMG_LCD::has_hash(std::string hash)
 {
