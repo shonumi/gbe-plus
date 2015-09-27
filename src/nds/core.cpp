@@ -40,9 +40,9 @@ NTR_core::NTR_core()
 	db_unit.debug_mode = false;
 	db_unit.display_cycles = false;
 	db_unit.last_command = "n";
+	*/
 
 	std::cout<<"GBE::Launching NDS core\n";
-	*/
 }
 
 /****** Start the core ******/
@@ -82,7 +82,10 @@ void NTR_core::stop()
 }
 
 /****** Shutdown core's components ******/
-void NTR_core::shutdown() { }
+void NTR_core::shutdown() 
+{ 
+	core_mmu.NTR_MMU::~NTR_MMU();
+}
 
 /****** Reset the core ******/
 void NTR_core::reset()
@@ -91,8 +94,11 @@ void NTR_core::reset()
 	core_cpu.reset();
 	core_cpu.controllers.video.reset();
 	core_cpu.controllers.audio.reset();
-	core_mmu.reset();
+	*/
 
+	core_mmu.reset();
+	
+	/*
 	//Link CPU and MMU
 	core_cpu.mem = &core_mmu;
 
@@ -617,16 +623,16 @@ void NTR_core::update_volume(u8 volume) { }
 void NTR_core::feed_key_input(int sdl_key, bool pressed) { }
 
 /****** Read binary file to memory ******/
-bool NTR_core::read_file(std::string filename) { }
+bool NTR_core::read_file(std::string filename) { return core_mmu.read_file(filename); }
 
 /****** Read BIOS file into memory ******/
 bool NTR_core::read_bios(std::string filename) { }
 
 /****** Returns a byte from core memory ******/
-u8 NTR_core::ex_read_u8(u16 address) { }
+u8 NTR_core::ex_read_u8(u16 address) { return core_mmu.read_u8(address); }
 
 /****** Writes a byte to core memory ******/
-void NTR_core::ex_write_u8(u16 address, u8 value) { }
+void NTR_core::ex_write_u8(u16 address, u8 value) { core_mmu.write_u8(address, value); }
 
 /****** Dumps selected OBJ to a file ******/
 void NTR_core::dump_obj(int obj_index) { }

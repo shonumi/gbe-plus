@@ -223,6 +223,7 @@ void main_menu::boot_game()
 	config::gb_type = settings->sys_type->currentIndex();
 	
 	if(ext == ".gba") { config::gb_type = 3; }
+	else if(ext == ".nds") { config::gb_type = 4; }
 	else if((ext != ".gba") && (config::gb_type == 3)) { config::gb_type = 2; config::gba_enhance = true; }
 	else { config::gba_enhance = false; }
 
@@ -230,7 +231,7 @@ void main_menu::boot_game()
 	cgfx::scaling_factor = (settings->cgfx_scale->currentIndex() + 1);
 	if(!cgfx::load_cgfx) { cgfx::scaling_factor = 1; }
 
-	//Start the appropiate system core - DMG/GBC or GBA
+	//Start the appropiate system core - DMG, GBC, GBA, or NDS
 	if(config::gb_type == 3) 
 	{
 		base_width = 240;
@@ -240,6 +241,17 @@ void main_menu::boot_game()
 		resize((base_width * config::scaling_factor), (base_height * config::scaling_factor) + menu_height);
 		qt_gui::screen = new QImage(240, 160, QImage::Format_ARGB32);
 	}
+
+	//TODO - Use real DS screen dimensions
+	else if(config::gb_type == 4)
+	{
+		base_width = 240;
+		base_height = 160;
+
+		main_menu::gbe_plus = new NTR_core();
+		resize((base_width * config::scaling_factor), (base_height * config::scaling_factor) + menu_height);
+		qt_gui::screen = new QImage(240, 160, QImage::Format_ARGB32);
+	}	
 
 	else 
 	{

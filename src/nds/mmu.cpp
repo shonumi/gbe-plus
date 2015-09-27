@@ -380,7 +380,9 @@ bool NTR_MMU::read_file(std::string filename)
 
 	file.close();
 	std::cout<<"MMU::" << filename << " loaded successfully. \n";
-		
+
+	parse_header();
+
 	return true;
 }
 
@@ -407,6 +409,10 @@ void NTR_MMU::parse_header()
 	//Maker code
 	header.maker_code = "";
 	for(int x = 0; x < 2; x++) { header.maker_code += cart_data[0x10 + x]; }
+
+	std::cout<<"MMU::Game Title - " << header.title << "\n";
+	std::cout<<"MMU::Game Code - " << header.game_code << "\n";
+	std::cout<<"MMU::Maker Code - " << header.maker_code << "\n";
 
 	//ARM9 ROM Offset
 	header.arm9_rom_offset = 0;
@@ -440,4 +446,3 @@ void NTR_MMU::parse_header()
 		header.arm9_size += cart_data[0x2C + x];
 	}
 }
-

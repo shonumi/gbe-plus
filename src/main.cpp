@@ -38,9 +38,10 @@ int main(int argc, char* args[])
 	//Validate the emulated system type
 	validate_system_type();
 
-	//Start the appropiate system core - DMG/GBC or GBA
+	//Start the appropiate system core - DMG, GBC, GBA, or NDS
 	if(config::gb_type == 3) { gbe_plus = new AGB_core(); }
-	else { gbe_plus = new DMG_core(); }
+	else if((config::gb_type >= 0) && (config::gb_type <= 2)) { gbe_plus = new DMG_core(); }
+	else { gbe_plus = new NTR_core(); }
 	
 	//Read BIOS file optionally
 	if(config::use_bios) 

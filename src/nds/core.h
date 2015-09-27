@@ -16,6 +16,7 @@
 #define NDS_CORE
 
 #include "common/core_emu.h"
+#include "mmu.h"
 
 class NTR_core : virtual public core_emu
 {
@@ -50,8 +51,9 @@ class NTR_core : virtual public core_emu
 		u8 ex_read_u8(u16 address);
 		void ex_write_u8(u16 address, u8 value);
 
+		NTR_MMU core_mmu;
+		
 		/*
-		NDS_MMU core_mmu;
 		ARM7 core_cpu;
 		NDS_GamePad core_pad;
 		*/

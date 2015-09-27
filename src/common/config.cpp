@@ -123,6 +123,7 @@ void validate_system_type()
 	std::string ext = config::rom_file.substr(dot);
 
 	if(ext == ".gba") { config::gb_type = 3; }
+	else if(ext == ".nds") { config::gb_type = 4; }
 
 	//Force GBC mode if system type is set to GBA, but a GB/GBC game is loaded
 	//TODO - Emulate the GBA's GBC functionality (stretching with L/R)
@@ -293,7 +294,7 @@ bool parse_ini_file()
 				std::stringstream temp_stream(ini_item);
 				temp_stream >> output;
 
-				if((output >= 0) && (output <= 3)) 
+				if((output >= 0) && (output <= 4)) 
 				{
 					config::gb_type = output;
 					validate_system_type();

@@ -19,6 +19,7 @@
 
 #include "gba/core.h"
 #include "dmg/core.h"
+#include "nds/core.h"
 
 class main_menu : public QWidget
 {
