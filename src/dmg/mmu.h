@@ -119,6 +119,8 @@ class DMG_MMU
 
 	private:
 
+	u8 previous_value;
+
 	//Only the MMU and LCD should communicate through this structure
 	dmg_lcd_data* lcd_stat;
 

@@ -143,8 +143,8 @@ void DMG_LCD::reset()
 	cgfx_stat.bg_update_list.clear();
 	cgfx_stat.bg_update_list.resize(384);
 
-	cgfx_stat.bg_map_update_list.clear();
-	cgfx_stat.bg_map_update_list.resize(2048);
+	cgfx_stat.bg_tile_update_list.clear();
+	cgfx_stat.bg_tile_update_list.resize(256);
 
 	cgfx_stat.update_bg = false;
 
@@ -1368,12 +1368,19 @@ void DMG_LCD::step(int cpu_clock)
 
 						else
 						{
-							for(int x = 0; x < 2048; x++)
+							//Check for updates based on tile data
+							for(int tile_number = 0; tile_number < 256; tile_number++)
 							{
-								if(cgfx_stat.bg_map_update_list[x]) 
+								//Cycle through all tile numbers that were updated
+								if(cgfx_stat.bg_tile_update_list[tile_number])
 								{
-									update_gbc_bg_hash(x);
-									cgfx_stat.bg_map_update_list[x] = false;
+									//Scan BG map for all tiles that use this tile number
+									for(int x = 0; x < 2048; x++)
+									{
+										if(mem->video_ram[0][x] == tile_number) { update_gbc_bg_hash(0x9800 + x); }
+									}
+
+									cgfx_stat.bg_tile_update_list[tile_number] = false;
 								}
 							}
 						}

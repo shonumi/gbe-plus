@@ -192,10 +192,18 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	if((address >= 0x8000) && (address <= 0x9FFF))
 	{
 		//GBC write to VRAM Bank 1
-		if((vram_bank == 1) && (config::gb_type == 2)) { video_ram[1][address - 0x8000] = value; }
+		if((vram_bank == 1) && (config::gb_type == 2)) 
+		{
+			previous_value = video_ram[1][address - 0x8000];
+			video_ram[1][address - 0x8000] = value;
+		}
 		
 		//GBC write to VRAM Bank 0 - DMG read normally, also from Bank 0, though it doesn't use banking technically
-		else { video_ram[0][address - 0x8000] = value; }
+		else 
+		{
+			previous_value = video_ram[0][address - 0x8000];
+			video_ram[0][address - 0x8000] = value;
+		}
 	}
 
 	//NR11 - Duty Cycle
@@ -421,8 +429,6 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		//Updates various sound parameters
 		if(value & 0x80) 
 		{
-
-
 			//Duty cycle
 			switch((memory_map[NR21] >> 6))
 			{
@@ -892,20 +898,19 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	//CGFX processing - Check for BG updates
 	if((cgfx::load_cgfx || cgfx::auto_dump_bg) && (address >= 0x8000) && (address <= 0x97FF))
 	{
+		//If the last VRAM value is the same, do not update
+		//Some games GBC games will spam VRAM addresses with the same data
+		if(previous_value == value) { return; }
+
 		cgfx_stat->bg_update_list[(address & ~0x8000) >> 4] = true;
 		cgfx_stat->update_bg = true;
 
 		//GBC BG Tile Data update
 		if(config::gb_type == 2)
 		{
-			u8 bg_tile_number = (address & ~0x8800) >> 4;
-			bg_tile_number = (lcd_stat->bg_map_addr == 0x8800) ? lcd_stat->unsigned_tile_lut[bg_tile_number] : bg_tile_number;
-
-			//Scan BG map for all tiles that use this tile number
-			for(int x = 0; x < 2048; x++)
-			{
-				if(video_ram[0][x] == bg_tile_number) { cgfx_stat->bg_map_update_list[x] = true; }
-			}
+			u8 tile_number = (address & ~0x8800) >> 4;
+			tile_number = (lcd_stat->bg_map_addr == 0x8800) ? lcd_stat->unsigned_tile_lut[tile_number] : tile_number;
+			cgfx_stat->bg_tile_update_list[tile_number] = true;
 		}
 	}
 }
