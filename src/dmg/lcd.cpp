@@ -149,7 +149,11 @@ void DMG_LCD::reset()
 	cgfx_stat.bg_tile_update_list.clear();
 	cgfx_stat.bg_tile_update_list.resize(256);
 
+	cgfx_stat.bg_map_update_list.clear();
+	cgfx_stat.bg_map_update_list.resize(2048);
+
 	cgfx_stat.update_bg = false;
+	cgfx_stat.update_map = false;
 
 	//Initialize system screen dimensions
 	config::sys_width = 160;
@@ -1394,6 +1398,21 @@ void DMG_LCD::step(int cpu_clock)
 						cgfx_stat.update_bg = false;
 					}
 
+					if(cgfx_stat.update_map)
+					{
+						//Update specific map entries
+						for(int x = 0; x < 2048; x++)
+						{
+							if(cgfx_stat.bg_map_update_list[x]) 
+							{
+								update_gbc_bg_hash(0x9800 + x);
+								cgfx_stat.bg_map_update_list[x] = false;
+							}
+						}
+						
+						cgfx_stat.update_map = false;
+					}
+					
 					//Render scanline when first entering Mode 0
 					if(config::gb_type != 2 ) { render_dmg_scanline(); }
 					else { render_gbc_scanline(); }

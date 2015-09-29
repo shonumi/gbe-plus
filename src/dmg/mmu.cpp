@@ -896,27 +896,37 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	else if(address > 0x7FFF) { memory_map[address] = value; }
 
 	//CGFX processing - Check for BG updates
-	if((cgfx::load_cgfx || cgfx::auto_dump_bg) && (address >= 0x8000) && (address <= 0x97FF))
+	if((cgfx::load_cgfx || cgfx::auto_dump_bg) && (address >= 0x8000) && (address <= 0x9FFF))
 	{
 		//If the last VRAM value is the same, do not update
 		//Some games GBC games will spam VRAM addresses with the same data
 		if(previous_value == value) { return; }
 
 		//DMG BG Tile data update
-		if(config::gb_type == 1)
+		if((config::gb_type == 1) && (address <= 0x97FF))
 		{
-			cgfx_stat->bg_update_list[(address & ~0x8000) >> 4] = true;
 			cgfx_stat->update_bg = true;
+
+			cgfx_stat->bg_update_list[(address & ~0x8000) >> 4] = true;
 		}
 
 		//GBC BG Tile Data update
-		else if((config::gb_type == 2) && (vram_bank == 0))
+		else if((config::gb_type == 2) && (address <= 0x97FF))
 		{
 			cgfx_stat->update_bg = true;
 
-			u8 tile_number = (address & ~0x8800) >> 4;
-			tile_number = (lcd_stat->bg_map_addr == 0x8800) ? lcd_stat->unsigned_tile_lut[tile_number] : tile_number;
+			u8 tile_number = (address - lcd_stat->bg_tile_addr) >> 4;
+			tile_number = (lcd_stat->bg_tile_addr == 0x8800) ? lcd_stat->unsigned_tile_lut[tile_number] : tile_number;
 			cgfx_stat->bg_tile_update_list[tile_number] = true;
+		}
+
+		//GBC BG Map Data update
+		else if((config::gb_type == 2) && (address >= 0x9800))
+		{
+			cgfx_stat->update_map = true;
+
+			u8 map_number = address - 0x9800;
+			cgfx_stat->bg_map_update_list[map_number] = true;
 		}
 	}
 }
