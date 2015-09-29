@@ -140,6 +140,9 @@ void DMG_LCD::reset()
 	cgfx_stat.current_bg_hash.clear();
 	cgfx_stat.current_bg_hash.resize(384);
 
+	cgfx_stat.current_gbc_bg_hash.clear();
+	cgfx_stat.current_gbc_bg_hash.resize(2048);
+
 	cgfx_stat.bg_update_list.clear();
 	cgfx_stat.bg_update_list.resize(384);
 
@@ -543,6 +546,9 @@ void DMG_LCD::render_gbc_bg_scanline()
 
 		//Calculate the address of the 8x1 pixel data based on map entry
 		u16 tile_addr = (lcd_stat.bg_tile_addr + (map_entry << 4) + (tile_line << 1));
+		
+		u16 map_id = (lcd_stat.bg_map_addr + x) - 0x9800;
+		if(has_hash(cgfx_stat.current_gbc_bg_hash[map_id])) { bg_palette = 7; }
 
 		//Grab bytes from VRAM representing 8x1 pixel data
 		u16 tile_data = mem->read_u16(tile_addr);

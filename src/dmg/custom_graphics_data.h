@@ -40,6 +40,7 @@ struct dmg_cgfx_data
 	//Working hash list of graphics in VRAM
 	std::vector <std::string> current_obj_hash;
 	std::vector <std::string> current_bg_hash;
+	std::vector <std::string> current_gbc_bg_hash;
 
 	//List of all computed hashes
 	std::vector <std::string> obj_hash_list;

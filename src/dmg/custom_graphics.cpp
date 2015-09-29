@@ -776,9 +776,9 @@ void DMG_LCD::update_gbc_bg_hash(u16 map_addr)
 	if(lcd_stat.bg_tile_addr == 0x8800) { tile_number = lcd_stat.signed_tile_lut[tile_number]; }
 	
 	u16 bg_tile_addr = lcd_stat.bg_tile_addr + (tile_number << 4);
-	u8 bg_index = ((bg_tile_addr & ~0x8000) >> 4);
+	u16 bg_index = map_addr - 0x9800;
 
-	cgfx_stat.current_bg_hash[bg_index] = "";
+	cgfx_stat.current_gbc_bg_hash[bg_index] = "";
 	std::string final_hash = "";
 
 	//Create a hash for this BG tile
@@ -787,12 +787,12 @@ void DMG_LCD::update_gbc_bg_hash(u16 map_addr)
 		u16 temp_hash = mem->read_u8((x * 4) + bg_tile_addr);
 		temp_hash << 8;
 		temp_hash += mem->read_u8((x * 4) + bg_tile_addr + 1);
-		cgfx_stat.current_bg_hash[bg_index] += hash::raw_to_64(temp_hash);
+		cgfx_stat.current_gbc_bg_hash[bg_index] += hash::raw_to_64(temp_hash);
 
 		temp_hash = mem->read_u8((x * 4) + bg_tile_addr + 2);
 		temp_hash << 8;
 		temp_hash += mem->read_u8((x * 4) + bg_tile_addr + 3);
-		cgfx_stat.current_bg_hash[bg_index] += hash::raw_to_64(temp_hash);
+		cgfx_stat.current_gbc_bg_hash[bg_index] += hash::raw_to_64(temp_hash);
 	}
 
 	//Prepend the hues to each hash
@@ -805,9 +805,9 @@ void DMG_LCD::update_gbc_bg_hash(u16 map_addr)
 		hue_data += hash::base_64_index[hue];
 	}
 
-	cgfx_stat.current_bg_hash[bg_index] = hue_data + "_" + cgfx_stat.current_bg_hash[bg_index];
+	cgfx_stat.current_gbc_bg_hash[bg_index] = hue_data + "_" + cgfx_stat.current_gbc_bg_hash[bg_index];
 
-	final_hash = cgfx_stat.current_bg_hash[bg_index];
+	final_hash = cgfx_stat.current_gbc_bg_hash[bg_index];
 
 	//Update the BG hash list
 	for(int x = 0; x < cgfx_stat.bg_hash_list.size(); x++)

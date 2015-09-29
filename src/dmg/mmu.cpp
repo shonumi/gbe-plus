@@ -902,12 +902,18 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		//Some games GBC games will spam VRAM addresses with the same data
 		if(previous_value == value) { return; }
 
-		cgfx_stat->bg_update_list[(address & ~0x8000) >> 4] = true;
-		cgfx_stat->update_bg = true;
+		//DMG BG Tile data update
+		if(config::gb_type == 1)
+		{
+			cgfx_stat->bg_update_list[(address & ~0x8000) >> 4] = true;
+			cgfx_stat->update_bg = true;
+		}
 
 		//GBC BG Tile Data update
-		if(config::gb_type == 2)
+		else if(config::gb_type == 2)
 		{
+			cgfx_stat->update_bg = true;
+
 			u8 tile_number = (address & ~0x8800) >> 4;
 			tile_number = (lcd_stat->bg_map_addr == 0x8800) ? lcd_stat->unsigned_tile_lut[tile_number] : tile_number;
 			cgfx_stat->bg_tile_update_list[tile_number] = true;
