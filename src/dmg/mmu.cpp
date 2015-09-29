@@ -910,7 +910,7 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		}
 
 		//GBC BG Tile Data update
-		else if(config::gb_type == 2)
+		else if((config::gb_type == 2) && (vram_bank == 0))
 		{
 			cgfx_stat->update_bg = true;
 
