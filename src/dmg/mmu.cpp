@@ -916,7 +916,6 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 			cgfx_stat->update_bg = true;
 
 			u8 tile_number = (address - lcd_stat->bg_tile_addr) >> 4;
-			tile_number = (lcd_stat->bg_tile_addr == 0x8800) ? lcd_stat->unsigned_tile_lut[tile_number] : tile_number;
 			cgfx_stat->bg_tile_update_list[tile_number] = true;
 		}
 
