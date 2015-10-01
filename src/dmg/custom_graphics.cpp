@@ -506,7 +506,7 @@ void DMG_LCD::dump_dmg_bg(u16 bg_index)
 	}
 }
 
-/****** Dumps GBC BG tile from selected memory address ******/
+/****** Dumps GBC BG tile from selected memory address (GUI version) ******/
 void DMG_LCD::dump_gbc_bg(u16 bg_index) 
 {
 	SDL_Surface* bg_dump = NULL;
@@ -611,6 +611,55 @@ void DMG_LCD::dump_gbc_bg(u16 bg_index)
 	mem->vram_bank = old_vram_bank;
 }
 
+/****** Dumps GBC BG tile from selected memory address (Auto-dump version) ******/
+void DMG_LCD::dump_gbc_bg(std::string final_hash, u16 bg_tile_addr, u8 palette) 
+{
+	SDL_Surface* bg_dump = SDL_CreateRGBSurface(SDL_SWSURFACE, 8, 8, 32, 0, 0, 0, 0);
+	std::string dump_file = "Dump/BG/" + final_hash + ".bmp";
+
+	if(SDL_MUSTLOCK(bg_dump)) { SDL_LockSurface(bg_dump); }
+
+	u32* dump_pixel_data = (u32*)bg_dump->pixels;
+	u8 pixel_counter = 0;
+
+	//Generate RGBA values of the sprite for the dump file
+	for(int x = 0; x < 8; x++)
+	{
+		//Grab bytes from VRAM representing 8x1 pixel data
+		u16 raw_data = mem->read_u16(bg_tile_addr);
+
+		//Grab individual pixels
+		for(int y = 7; y >= 0; y--)
+		{
+			u8 raw_pixel = ((raw_data >> 8) & (1 << y)) ? 2 : 0;
+			raw_pixel |= (raw_data & (1 << y)) ? 1 : 0;
+
+			dump_pixel_data[pixel_counter++] = lcd_stat.bg_colors_final[raw_pixel][palette];
+		}
+
+		bg_tile_addr += 2;
+	}
+
+	if(SDL_MUSTLOCK(bg_dump)) { SDL_UnlockSurface(bg_dump); }
+
+	//Ignore blank or empty dumps
+	if(cgfx::ignore_blank_dumps)
+	{
+		bool blank = true;
+
+		for(int x = 1; x < pixel_counter; x++)
+		{
+			if(dump_pixel_data[0] != dump_pixel_data[x]) { blank = false; break; }
+		}
+
+		if(blank) { return; }
+	}
+
+	//Save to BMP
+	std::cout<<"LCD::Saving Background Tile - " << dump_file << "\n";
+	SDL_SaveBMP(bg_dump, dump_file.c_str());
+}
+
 /****** Updates the current hash for the selected DMG OBJ ******/
 void DMG_LCD::update_dmg_obj_hash(u8 obj_index)
 {
@@ -703,6 +752,9 @@ void DMG_LCD::update_gbc_obj_hash(u8 obj_index)
 	cgfx_stat.current_obj_hash[obj_index] = hue_data + "_" + cgfx_stat.current_obj_hash[obj_index];
 
 	final_hash = cgfx_stat.current_obj_hash[obj_index];
+
+	//Optionally auto-dump GBC OBJ
+	if(cgfx::auto_dump_obj) { dump_gbc_obj(obj_index); }
 
 	//Reset VRAM bank
 	mem->vram_bank = old_vram_bank;
@@ -816,6 +868,9 @@ void DMG_LCD::update_gbc_bg_hash(u16 map_addr)
 	}
 
 	cgfx_stat.bg_hash_list.push_back(final_hash);
+
+	//Optionally auto-dump GBC BG
+	if(cgfx::auto_dump_bg) { dump_gbc_bg(final_hash, bg_tile_addr, palette); }
 
 	//Reset VRAM bank
 	mem->vram_bank = old_vram_bank;

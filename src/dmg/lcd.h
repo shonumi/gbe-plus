@@ -42,6 +42,7 @@ class DMG_LCD
 
 	void dump_gbc_obj(u8 obj_index);
 	void dump_gbc_bg(u16 bg_index);
+	void dump_gbc_bg(std::string final_hash, u16 bg_tile_addr, u8 palette);
 
 	void update_dmg_obj_hash(u8 obj_index);
 	void update_dmg_bg_hash(u16 bg_index);
