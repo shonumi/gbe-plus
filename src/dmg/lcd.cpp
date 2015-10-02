@@ -814,32 +814,58 @@ void DMG_LCD::render_gbc_win_scanline()
 		u16 tile_data = mem->read_u16(tile_addr);
 		mem->vram_bank = old_vram_bank;
 
-		for(int y = 7; y >= 0; y--)
+		//Render CGFX
+		u16 map_id = (lcd_stat.window_map_addr + x) - 0x9800;
+		if(has_hash(cgfx_stat.current_gbc_bg_hash[map_id])) { render_cgfx_gbc_bg_scanline(tile_data, bg_map_attribute); }
+
+		//Render original pixel data
+		else
 		{
-			//Calculate raw value of the tile's pixel
-			if(bg_map_attribute & 0x20) 
+			for(int y = 7; y >= 0; y--)
 			{
-				tile_pixel = ((tile_data >> 8) & (1 << lcd_stat.flip_8[y])) ? 2 : 0;
-				tile_pixel |= (tile_data & (1 << lcd_stat.flip_8[y])) ? 1 : 0;
+				//Calculate raw value of the tile's pixel
+				if(bg_map_attribute & 0x20) 
+				{
+					tile_pixel = ((tile_data >> 8) & (1 << lcd_stat.flip_8[y])) ? 2 : 0;
+					tile_pixel |= (tile_data & (1 << lcd_stat.flip_8[y])) ? 1 : 0;
+				}
+
+				else 
+				{
+					tile_pixel = ((tile_data >> 8) & (1 << y)) ? 2 : 0;
+					tile_pixel |= (tile_data & (1 << y)) ? 1 : 0;
+				}
+
+				//Set the raw color of the BG
+				scanline_raw[lcd_stat.scanline_pixel_counter] = tile_pixel;
+
+				//Set the BG-to-OBJ priority
+				scanline_priority[lcd_stat.scanline_pixel_counter] = bg_priority;
+
+				//Set the final color of the BG
+				scanline_buffer[lcd_stat.scanline_pixel_counter++] = lcd_stat.bg_colors_final[tile_pixel][bg_palette];
+
+				u8 last_scanline_pixel = lcd_stat.scanline_pixel_counter - 1;
+
+				//Render HD
+				if((cgfx::load_cgfx) && (cgfx::scaling_factor > 1) && (last_scanline_pixel < 160))
+				{
+					u32 pos = (last_scanline_pixel * cgfx::scaling_factor) + (lcd_stat.current_scanline * cgfx::scaling_factor * config::sys_width);
+			
+					for(int a = 0; a < cgfx::scaling_factor; a++)
+					{
+						for(int b = 0; b < cgfx::scaling_factor; b++)
+						{
+							hd_screen_buffer[pos + b] = scanline_buffer[last_scanline_pixel];
+						}
+	
+						pos += config::sys_width;
+					}
+				}
+
+				//Abort rendering if next pixel is off-screen
+				if(lcd_stat.scanline_pixel_counter == 160) { return; }
 			}
-
-			else 
-			{
-				tile_pixel = ((tile_data >> 8) & (1 << y)) ? 2 : 0;
-				tile_pixel |= (tile_data & (1 << y)) ? 1 : 0;
-			}
-
-			//Set the raw color of the BG
-			scanline_raw[lcd_stat.scanline_pixel_counter] = tile_pixel;
-
-			//Set the BG-to-OBJ priority
-			scanline_priority[lcd_stat.scanline_pixel_counter] = bg_priority;
-
-			//Set the final color of the BG
-			scanline_buffer[lcd_stat.scanline_pixel_counter++] = lcd_stat.bg_colors_final[tile_pixel][bg_palette];
-
-			//Abort rendering if next pixel is off-screen
-			if(lcd_stat.scanline_pixel_counter == 160) { return; }
 		}
 	}
 }
