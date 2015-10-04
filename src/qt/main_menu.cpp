@@ -432,11 +432,26 @@ void main_menu::show_cgfx()
 	cgfx->update_obj_window(8, 40);
 	cgfx->update_bg_window(8, 384);
 	
-	switch(cgfx->layer_select->currentIndex())
+	//Draw DMG layers
+	if(config::gb_type < 2)
 	{
-		case 0: cgfx->draw_dmg_bg(); break;
-		case 1: cgfx->draw_dmg_win(); break;
-		case 2: cgfx->draw_dmg_obj(); break;
+		switch(cgfx->layer_select->currentIndex())
+		{
+			case 0: cgfx->draw_dmg_bg(); break;
+			case 1: cgfx->draw_dmg_win(); break;
+			case 2: cgfx->draw_dmg_obj(); break;
+		}
+	}
+
+	//Draw GBC layers
+	else
+	{
+		switch(cgfx->layer_select->currentIndex())
+		{
+			case 0: cgfx->draw_gbc_bg(); break;
+			//case 1: draw_dmg_win(); break;
+			//case 2: draw_dmg_obj(); break;
+		}
 	}
 
 	cgfx->show();

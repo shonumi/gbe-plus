@@ -33,6 +33,8 @@ class gbe_cgfx : public QDialog
 	void draw_dmg_win();
 	void draw_dmg_obj();
 
+	void draw_gbc_bg();
+
 	QTabWidget* tabs;
 	QDialogButtonBox* tabs_button;
 
