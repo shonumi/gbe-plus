@@ -607,11 +607,14 @@ void gen_settings::set_ini_options()
 		case 48000: freq->setCurrentIndex(3); break;
 	}
 
+	u8 temp_volume = config::volume;
+
 	//Mute option
-	//TODO - Add mute for .ini options
+	if(config::mute == 1) { sound_on->setChecked(false); }
+	else { sound_on->setChecked(true); }
 
 	//Volume option
-	volume->setValue(config::volume);
+	volume->setValue(temp_volume);
 
 	//Keyboard controls
 	input_a->setText(QString::number(config::agb_key_a));

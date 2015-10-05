@@ -72,6 +72,7 @@ namespace config
 	//Sound parameters
 	u8 volume = 128;
 	double sample_rate = 44100;
+	bool mute = false;
 
 	//System screen sizes
 	u32 sys_width = 0;
@@ -415,6 +416,25 @@ bool parse_ini_file()
 			else 
 			{
 				std::cout<<"GBE::Error - Could not parse gbe.ini (#volume) \n";
+				return false;
+			}
+		}
+
+		//Mute settings
+		else if(ini_item == "#mute")
+		{
+			if((x + 1) < size)
+			{
+				ini_item = ini_opts[++x];
+				std::stringstream temp_stream(ini_item);
+				temp_stream >> output;
+
+				if((output >= 0) && (output <= 1)) { config::mute = output; }
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#mute) \n";
 				return false;
 			}
 		}

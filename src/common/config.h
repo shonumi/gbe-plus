@@ -53,6 +53,7 @@ namespace config
 
 	extern u8 volume;
 	extern double sample_rate;
+	extern bool mute;
 
 	extern u32 sys_width;
 	extern u32 sys_height;
