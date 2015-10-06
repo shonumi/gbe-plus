@@ -450,7 +450,7 @@ void main_menu::show_cgfx()
 		{
 			case 0: cgfx->draw_gbc_bg(); break;
 			case 1: cgfx->draw_gbc_win(); break;
-			//case 2: draw_dmg_obj(); break;
+			case 2: cgfx->draw_gbc_obj(); break;
 		}
 	}
 

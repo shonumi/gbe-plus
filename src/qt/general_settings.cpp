@@ -607,6 +607,7 @@ void gen_settings::set_ini_options()
 		case 48000: freq->setCurrentIndex(3); break;
 	}
 
+	//Grab volume, checking mute calls the slot, which resets the volume
 	u8 temp_volume = config::volume;
 
 	//Mute option
