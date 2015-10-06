@@ -566,8 +566,6 @@ void ARM7::swi_arctan2()
 /****** HLE implementation of CPUFastSet ******/
 void ARM7::swi_cpufastset()
 {
-	//TODO - Timings
-
 	bios_read_state = BIOS_SWI_FINISH;
 
 	//Grab source address - R0
@@ -628,8 +626,6 @@ void ARM7::swi_cpufastset()
 /****** HLE implementation of CPUSet ******/
 void ARM7::swi_cpuset()
 {
-	//TODO - Timings
-
 	bios_read_state = BIOS_SWI_FINISH;
 
 	//Grab source address - R0

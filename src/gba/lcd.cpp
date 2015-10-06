@@ -30,8 +30,6 @@ AGB_LCD::~AGB_LCD()
 /****** Reset LCD ******/
 void AGB_LCD::reset()
 {
-	//TODO - Properly initialize some lcd_stat variables (window_enable and the like)
-
 	final_screen = NULL;
 	mem = NULL;
 
