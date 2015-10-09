@@ -1201,12 +1201,14 @@ void AGB_LCD::step()
 			mem->memory_map[DISPSTAT] |= 0x2;
 
 			//Raise HBlank interrupt
-			//TODO - Only trigger when entering HBlank for the 1st time
 			if(mem->memory_map[DISPSTAT] & 0x10) { mem->memory_map[REG_IF] |= 0x2; }
 
 			current_scanline++;
 			mem->write_u16_fast(VCOUNT, current_scanline);
 			scanline_compare();
+
+			//Start HBlank DMA
+			mem->start_blank_dma();
 		}
 
 		//Reset LCD clock
