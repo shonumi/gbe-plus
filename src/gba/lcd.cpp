@@ -1050,15 +1050,15 @@ void AGB_LCD::step()
 			scanline_compare();
 		}
 
-		//Toggle HBlank flag OFF
-		mem->memory_map[DISPSTAT] &= ~0x2;
-
 		//Disable OAM access
 		lcd_stat.oam_access = false;
 
 		//Change mode
 		if(lcd_mode != 0) 
-		{ 
+		{
+			//Toggle HBlank flag OFF
+			mem->memory_map[DISPSTAT] &= ~0x2;
+
 			lcd_mode = 0; 
 			update_obj_render_list();
 		}
@@ -1081,15 +1081,15 @@ void AGB_LCD::step()
 	//Mode 1 - H-Blank
 	else if(((lcd_clock % 1232) > 960) && (lcd_clock < 197120))
 	{
-		//Toggle HBlank flag ON
-		mem->memory_map[DISPSTAT] |= 0x2;
-
 		//Permit OAM access if HBlank Interval Free flag is set
 		if(lcd_stat.hblank_interval_free) { lcd_stat.oam_access = true; }
 
 		//Change mode
 		if(lcd_mode != 1) 
-		{ 
+		{
+			//Toggle HBlank flag ON
+			mem->memory_map[DISPSTAT] |= 0x2;
+
 			lcd_mode = 1;
 			scanline_pixel_counter = 0;
 
@@ -1126,9 +1126,6 @@ void AGB_LCD::step()
 		if(current_scanline < 227 ) { mem->memory_map[DISPSTAT] |= 0x1; }
 		else { mem->memory_map[DISPSTAT] &= ~0x1; }
 
-		//Toggle HBlank flag OFF
-		mem->memory_map[DISPSTAT] &= ~0x2;
-
 		//Permit OAM write access
 		lcd_stat.oam_access = true;
 
@@ -1136,6 +1133,9 @@ void AGB_LCD::step()
 		if(lcd_mode != 2) 
 		{
 			lcd_mode = 2;
+
+			//Toggle HBlank flag OFF
+			mem->memory_map[DISPSTAT] &= ~0x2;
 
 			//Increment scanline count
 			current_scanline++;
@@ -1202,13 +1202,6 @@ void AGB_LCD::step()
 
 			//Raise HBlank interrupt
 			if(mem->memory_map[DISPSTAT] & 0x10) { mem->memory_map[REG_IF] |= 0x2; }
-
-			current_scanline++;
-			mem->write_u16_fast(VCOUNT, current_scanline);
-			scanline_compare();
-
-			//Start HBlank DMA
-			mem->start_blank_dma();
 		}
 
 		//Reset LCD clock
@@ -1225,6 +1218,17 @@ void AGB_LCD::step()
 			mem->write_u16_fast(VCOUNT, 0);
 			scanline_compare();
 			scanline_pixel_counter = 0; 
+		}
+
+		//Increment Scanline after HBlank
+		else if(lcd_clock % 1232 == 0)
+		{
+			//Toggle HBlank flag OFF
+			mem->memory_map[DISPSTAT] &= ~0x2;
+
+			current_scanline++;
+			mem->write_u16_fast(VCOUNT, current_scanline);
+			scanline_compare();
 		}
 	}
 
@@ -1257,4 +1261,3 @@ void AGB_LCD::scanline_compare()
 		mem->write_u16_fast(DISPSTAT, disp_stat);
 	}
 }
-		
