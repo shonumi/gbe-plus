@@ -72,8 +72,22 @@ void AGB_MMU::reset()
 	n_clock = 4;
 	s_clock = 2;
 
-	dma[0].enable = dma[1].enable = dma[2].enable = dma[3].enable = false;
-	dma[0].started = dma[1].started = dma[2].started = dma[3].started = false;
+	//Setup DMA info
+	for(int x = 0; x < 4; x++)
+	{
+		dma[x].enable = false;
+		dma[x].started = false;
+		dma[x].start_address = 0;
+		dma[x].original_start_address = 0;
+		dma[x].destination_address = 0;
+		dma[x].current_dma_position = 0;
+		dma[x].word_count = 0;
+		u8 word_type = 0;
+		u16 control = 0;
+		u8 dest_addr_ctrl = 0;
+		u8 src_addr_ctrl = 0;
+		u8 delay = 0;
+	}
 
 	current_save_type = NONE;
 
@@ -1856,7 +1870,7 @@ bool AGB_MMU::load_backup(std::string filename)
 	}
 
 	//Load 64KB FLASH RAM
-	if(current_save_type == FLASH_64)
+	else if(current_save_type == FLASH_64)
 	{
 		//Read data from file
 		file.read(reinterpret_cast<char*> (&save_data[0]), file_size);
@@ -1869,7 +1883,7 @@ bool AGB_MMU::load_backup(std::string filename)
 	}
 
 	//Load 128KB FLASH RAM
-	if(current_save_type == FLASH_128)
+	else if(current_save_type == FLASH_128)
 	{
 		//Read data from file
 		file.read(reinterpret_cast<char*> (&save_data[0]), file_size);
