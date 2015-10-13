@@ -753,6 +753,8 @@ void AGB_LCD::render_scanline()
 	last_obj_mode = 0;
 	last_raw_color = raw_pal[0][0];
 	obj_win_pixel = false;
+	u8 bg_render_list[4];
+	u8 bg_id;
 
 	//Render sprites
 	obj_render = render_sprite_pixel();
@@ -786,40 +788,24 @@ void AGB_LCD::render_scanline()
 	if((lcd_stat.window_enable[lcd_stat.current_window]) && (!lcd_stat.in_window) && (!lcd_stat.window_out_enable[4][0])) { obj_render = false; }
 	else if((lcd_stat.window_enable[lcd_stat.current_window]) && (lcd_stat.in_window) && (!lcd_stat.window_in_enable[4][lcd_stat.current_window])) { obj_render = false; }
 
+	//Determine BG rendering priority
+	for(int x = 0, list_length = 0; x < 4; x++)
+	{
+		if(lcd_stat.bg_priority[0] == x) { bg_render_list[list_length++] = 0; }
+		if(lcd_stat.bg_priority[1] == x) { bg_render_list[list_length++] = 1; }
+		if(lcd_stat.bg_priority[2] == x) { bg_render_list[list_length++] = 2; }
+		if(lcd_stat.bg_priority[3] == x) { bg_render_list[list_length++] = 3; }
+	}
+
 	//Render BGs based on priority (3 is the 'lowest', 0 is the 'highest')
 	for(int x = 0; x < 4; x++)
 	{
-		if(lcd_stat.bg_priority[0] == x) 
-		{
-			if((obj_render) && (last_obj_priority <= x)) { last_bg_priority = 4; return; }
-			else if((lcd_stat.window_enable[lcd_stat.current_window]) && (!lcd_stat.in_window) && (!lcd_stat.window_out_enable[0][0])) { }
-			else if((lcd_stat.window_enable[lcd_stat.current_window]) && (lcd_stat.in_window) && (!lcd_stat.window_in_enable[0][lcd_stat.current_window])) { }
-			else if(render_bg_pixel(BG0CNT)) { last_bg_priority = 0; return; } 
-		}
+		bg_id = bg_render_list[x];
 
-		if(lcd_stat.bg_priority[1] == x) 
-		{
-			if((obj_render) && (last_obj_priority <= x)) { last_bg_priority = 4; return; }
-			else if((lcd_stat.window_enable[lcd_stat.current_window]) && (!lcd_stat.in_window) && (!lcd_stat.window_out_enable[1][0])) { }
-			else if((lcd_stat.window_enable[lcd_stat.current_window]) && (lcd_stat.in_window) && (!lcd_stat.window_in_enable[1][lcd_stat.current_window])) { }
-			else if(render_bg_pixel(BG1CNT)) { last_bg_priority = 1; return; } 
-		}
-
-		if(lcd_stat.bg_priority[2] == x) 
-		{
-			if((obj_render) && (last_obj_priority <= x)) { last_bg_priority = 4; return; }
-			else if((lcd_stat.window_enable[lcd_stat.current_window]) && (!lcd_stat.in_window) && (!lcd_stat.window_out_enable[2][0])) { }
-			else if((lcd_stat.window_enable[lcd_stat.current_window]) && (lcd_stat.in_window) && (!lcd_stat.window_in_enable[2][lcd_stat.current_window])) { }
-			else if(render_bg_pixel(BG2CNT)) { last_bg_priority = 2; return; } 
-		}
-
-		if(lcd_stat.bg_priority[3] == x) 
-		{
-			if((obj_render) && (last_obj_priority <= x)) { last_bg_priority = 4; return; }
-			else if((lcd_stat.window_enable[lcd_stat.current_window]) && (!lcd_stat.in_window) && (!lcd_stat.window_out_enable[3][0])) { }
-			else if((lcd_stat.window_enable[lcd_stat.current_window]) && (lcd_stat.in_window) && (!lcd_stat.window_in_enable[3][lcd_stat.current_window])) { }
-			else if(render_bg_pixel(BG3CNT)) { last_bg_priority = 3; return; } 
-		}
+		if((obj_render) && (last_obj_priority <= lcd_stat.bg_priority[bg_id])) { last_bg_priority = 4; return; }
+		else if((lcd_stat.window_enable[lcd_stat.current_window]) && (!lcd_stat.in_window) && (!lcd_stat.window_out_enable[bg_id][0])) { continue; }
+		else if((lcd_stat.window_enable[lcd_stat.current_window]) && (lcd_stat.in_window) && (!lcd_stat.window_in_enable[bg_id][lcd_stat.current_window])) { continue; }
+		else if(render_bg_pixel(BG0CNT + (bg_id << 1))) { last_bg_priority = bg_id; return; }
 	}
 
 	//Use BG Palette #0, Color #0 as the backdrop
