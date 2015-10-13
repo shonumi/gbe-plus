@@ -805,6 +805,7 @@ void AGB_LCD::render_scanline()
 		if((obj_render) && (last_obj_priority <= lcd_stat.bg_priority[bg_id])) { last_bg_priority = 4; return; }
 		else if((lcd_stat.window_enable[lcd_stat.current_window]) && (!lcd_stat.in_window) && (!lcd_stat.window_out_enable[bg_id][0])) { continue; }
 		else if((lcd_stat.window_enable[lcd_stat.current_window]) && (lcd_stat.in_window) && (!lcd_stat.window_in_enable[bg_id][lcd_stat.current_window])) { continue; }
+		else if((lcd_stat.obj_win_enable) && (!obj_win_pixel) && (!lcd_stat.window_out_enable[bg_id][0])) { continue; }
 		else if(render_bg_pixel(BG0CNT + (bg_id << 1))) { last_bg_priority = bg_id; return; }
 	}
 
