@@ -59,6 +59,7 @@ class core_emu
 	{
 		bool debug_mode;
 		bool display_cycles;
+		bool print_all;
 		std::vector <u32> breakpoints;
 		std::string last_command;
 	} db_unit;
