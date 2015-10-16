@@ -248,13 +248,17 @@ void AGB_LCD::update_obj_render_list()
 {
 	obj_render_length = 0;
 
-	//Cycle through all of the sprites
-	for(int x = 0; x < 128; x++)
+	//Sort them based on BG priorities
+	for(int bg = 0; bg < 4; bg++)
 	{
-		//Check to see if sprite is rendered on the current scanline
-		if((obj[x].visible) && (current_scanline >= obj[x].top) && (current_scanline <= obj[x].bottom))
-		{
-			obj_render_list[obj_render_length++] = x;
+		//Cycle through all of the sprites
+		for(int x = 0; x < 128; x++)
+		{	
+			//Check to see if sprite is rendered on the current scanline
+			if((obj[x].visible) && (current_scanline >= obj[x].top) && (current_scanline <= obj[x].bottom) && (obj[x].bg_priority == bg))
+			{
+				obj_render_list[obj_render_length++] = x;
+			}
 		}
 	}
 }
