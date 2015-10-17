@@ -453,10 +453,7 @@ bool AGB_LCD::render_sprite_pixel()
 /****** Determines if a background pixel should be rendered, and if so draws it to the current scanline pixel ******/
 bool AGB_LCD::render_bg_pixel(u32 bg_control)
 {
-	if((!lcd_stat.bg_enable[0]) && (bg_control == BG0CNT)) { return false; }
-	else if((!lcd_stat.bg_enable[1]) && (bg_control == BG1CNT)) { return false; }
-	else if((!lcd_stat.bg_enable[2]) && (bg_control == BG2CNT)) { return false; }
-	else if((!lcd_stat.bg_enable[3]) && (bg_control == BG3CNT)) { return false; }
+	if(!lcd_stat.bg_enable[(bg_control - 0x4000008) >> 1]) { return false; }
 
 	//Render BG pixel according to current BG Mode
 	switch(lcd_stat.bg_mode)
