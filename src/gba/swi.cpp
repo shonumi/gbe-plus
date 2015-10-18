@@ -877,7 +877,6 @@ void ARM7::swi_huffuncomp()
 	u32 bitstream_addr = (data_ptr + tree_size);
 	u32 bitstream_mask = 0x80000000;
 
-	u8 count = 0;
 	bool is_data_node = false;
 
 	//Uncompress data

@@ -266,7 +266,6 @@ void DMG_LCD::update_oam()
 void DMG_LCD::update_obj_render_list()
 {
 	obj_render_length = -1;
-	u8 scanline_pixel = 0;
 
 	u8 obj_x_sort[40];
 	u8 obj_sort_length = 0;
@@ -1215,7 +1214,6 @@ void DMG_LCD::update_bg_colors()
 	u8 hi_lo = (mem->memory_map[REG_BCPS] & 0x1);
 	u8 color = (mem->memory_map[REG_BCPS] >> 1) & 0x3;
 	u8 palette = (mem->memory_map[REG_BCPS] >> 3) & 0x7;
-	u8 auto_increment = (mem->memory_map[REG_BCPS]) & 0x80;
 
 	//Update lower-nibble of color
 	if(hi_lo == 0) 
@@ -1271,7 +1269,6 @@ void DMG_LCD::update_obj_colors()
 	u8 hi_lo = (mem->memory_map[REG_OCPS] & 0x1);
 	u8 color = (mem->memory_map[REG_OCPS] >> 1) & 0x3;
 	u8 palette = (mem->memory_map[REG_OCPS] >> 3) & 0x7;
-	u8 auto_increment = (mem->memory_map[REG_OCPS]) & 0x80;
 
 	//Update lower-nibble of color
 	if(hi_lo == 0) 

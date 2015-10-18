@@ -1391,9 +1391,6 @@ void gbe_cgfx::draw_gbc_obj()
 
 	for(u8 current_scanline = 0; current_scanline < 144; current_scanline++)
 	{
-		u8 obj_x_sort[40];
-		u8 obj_sort_length = 0;
-
 		u8 obj_render_list[10];
 		int obj_render_length = -1;
 
