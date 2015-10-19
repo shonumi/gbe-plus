@@ -2144,7 +2144,7 @@ void Z80::exec_op(u8 opcode)
 			cycles += 4;
 			break;
 
-		//LD A, C
+		//LDH A, C
 		case 0xF2 :
 			reg.a = mem->read_u8(0xFF00 | reg.c);
 			cycles += 8;

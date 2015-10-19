@@ -200,13 +200,13 @@ void DMG_LCD::dump_dmg_obj(u8 obj_index)
 	for(int x = 0; x < obj_height/2; x++)
 	{
 		u16 temp_hash = mem->read_u8((x * 4) + obj_tile_addr);
-		temp_hash << 8;
+		temp_hash <<= 8;
 		temp_hash += mem->read_u8((x * 4) + obj_tile_addr + 1);
 		temp_hash = temp_hash ^ hash_salt;
 		cgfx_stat.current_obj_hash[obj_index] += hash::raw_to_64(temp_hash);
 
 		temp_hash = mem->read_u8((x * 4) + obj_tile_addr + 2);
-		temp_hash << 8;
+		temp_hash <<= 8;
 		temp_hash += mem->read_u8((x * 4) + obj_tile_addr + 3);
 		temp_hash = temp_hash ^ hash_salt;
 		cgfx_stat.current_obj_hash[obj_index] += hash::raw_to_64(temp_hash);
@@ -313,12 +313,12 @@ void DMG_LCD::dump_gbc_obj(u8 obj_index)
 	for(int x = 0; x < obj_height/2; x++)
 	{
 		u16 temp_hash = mem->read_u8((x * 4) + obj_tile_addr);
-		temp_hash << 8;
+		temp_hash <<= 8;
 		temp_hash += mem->read_u8((x * 4) + obj_tile_addr + 1);
 		cgfx_stat.current_obj_hash[obj_index] += hash::raw_to_64(temp_hash);
 
 		temp_hash = mem->read_u8((x * 4) + obj_tile_addr + 2);
-		temp_hash << 8;
+		temp_hash <<= 8;
 		temp_hash += mem->read_u8((x * 4) + obj_tile_addr + 3);
 		cgfx_stat.current_obj_hash[obj_index] += hash::raw_to_64(temp_hash);
 	}
@@ -417,13 +417,13 @@ void DMG_LCD::dump_dmg_bg(u16 bg_index)
 	for(int x = 0; x < 4; x++)
 	{
 		u16 temp_hash = mem->read_u8((x * 4) + bg_tile_addr);
-		temp_hash << 8;
+		temp_hash <<= 8;
 		temp_hash += mem->read_u8((x * 4) + bg_tile_addr + 1);
 		temp_hash = temp_hash ^ hash_salt;
 		cgfx_stat.current_bg_hash[bg_index] += hash::raw_to_64(temp_hash);
 
 		temp_hash = mem->read_u8((x * 4) + bg_tile_addr + 2);
-		temp_hash << 8;
+		temp_hash <<= 8;
 		temp_hash += mem->read_u8((x * 4) + bg_tile_addr + 3);
 		temp_hash = temp_hash ^ hash_salt;
 		cgfx_stat.current_bg_hash[bg_index] += hash::raw_to_64(temp_hash);
@@ -526,12 +526,12 @@ void DMG_LCD::dump_gbc_bg(u16 bg_index)
 	for(int x = 0; x < 4; x++)
 	{
 		u16 temp_hash = mem->read_u8((x * 4) + bg_tile_addr);
-		temp_hash << 8;
+		temp_hash <<= 8;
 		temp_hash += mem->read_u8((x * 4) + bg_tile_addr + 1);
 		cgfx_stat.current_bg_hash[bg_index] += hash::raw_to_64(temp_hash);
 
 		temp_hash = mem->read_u8((x * 4) + bg_tile_addr + 2);
-		temp_hash << 8;
+		temp_hash <<= 8;
 		temp_hash += mem->read_u8((x * 4) + bg_tile_addr + 3);
 		cgfx_stat.current_bg_hash[bg_index] += hash::raw_to_64(temp_hash);
 	}
@@ -681,13 +681,13 @@ void DMG_LCD::update_dmg_obj_hash(u8 obj_index)
 	for(int x = 0; x < obj_height/2; x++)
 	{
 		u16 temp_hash = mem->read_u8((x * 4) + obj_tile_addr);
-		temp_hash << 8;
+		temp_hash <<= 8;
 		temp_hash += mem->read_u8((x * 4) + obj_tile_addr + 1);
 		temp_hash = temp_hash ^ hash_salt;
 		cgfx_stat.current_obj_hash[obj_index] += hash::raw_to_64(temp_hash);
 
 		temp_hash = mem->read_u8((x * 4) + obj_tile_addr + 2);
-		temp_hash << 8;
+		temp_hash <<= 8;
 		temp_hash += mem->read_u8((x * 4) + obj_tile_addr + 3);
 		temp_hash = temp_hash ^ hash_salt;
 		cgfx_stat.current_obj_hash[obj_index] += hash::raw_to_64(temp_hash);
@@ -729,12 +729,12 @@ void DMG_LCD::update_gbc_obj_hash(u8 obj_index)
 	for(int x = 0; x < obj_height/2; x++)
 	{
 		u16 temp_hash = mem->read_u8((x * 4) + obj_tile_addr);
-		temp_hash << 8;
+		temp_hash <<= 8;
 		temp_hash += mem->read_u8((x * 4) + obj_tile_addr + 1);
 		cgfx_stat.current_obj_hash[obj_index] += hash::raw_to_64(temp_hash);
 
 		temp_hash = mem->read_u8((x * 4) + obj_tile_addr + 2);
-		temp_hash << 8;
+		temp_hash <<= 8;
 		temp_hash += mem->read_u8((x * 4) + obj_tile_addr + 3);
 		cgfx_stat.current_obj_hash[obj_index] += hash::raw_to_64(temp_hash);
 	}
@@ -782,13 +782,13 @@ void DMG_LCD::update_dmg_bg_hash(u16 bg_index)
 	for(int x = 0; x < 4; x++)
 	{
 		u16 temp_hash = mem->read_u8((x * 4) + bg_tile_addr);
-		temp_hash << 8;
+		temp_hash <<= 8;
 		temp_hash += mem->read_u8((x * 4) + bg_tile_addr + 1);
 		temp_hash = temp_hash ^ hash_salt;
 		cgfx_stat.current_bg_hash[bg_index] += hash::raw_to_64(temp_hash);
 
 		temp_hash = mem->read_u8((x * 4) + bg_tile_addr + 2);
-		temp_hash << 8;
+		temp_hash <<= 8;
 		temp_hash += mem->read_u8((x * 4) + bg_tile_addr + 3);
 		temp_hash = temp_hash ^ hash_salt;
 		cgfx_stat.current_bg_hash[bg_index] += hash::raw_to_64(temp_hash);
@@ -837,12 +837,12 @@ void DMG_LCD::update_gbc_bg_hash(u16 map_addr)
 	for(int x = 0; x < 4; x++)
 	{
 		u16 temp_hash = mem->read_u8((x * 4) + bg_tile_addr);
-		temp_hash << 8;
+		temp_hash <<= 8;
 		temp_hash += mem->read_u8((x * 4) + bg_tile_addr + 1);
 		cgfx_stat.current_gbc_bg_hash[bg_index] += hash::raw_to_64(temp_hash);
 
 		temp_hash = mem->read_u8((x * 4) + bg_tile_addr + 2);
-		temp_hash << 8;
+		temp_hash <<= 8;
 		temp_hash += mem->read_u8((x * 4) + bg_tile_addr + 3);
 		cgfx_stat.current_gbc_bg_hash[bg_index] += hash::raw_to_64(temp_hash);
 	}
