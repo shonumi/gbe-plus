@@ -1423,10 +1423,6 @@ void ARM7::clock_timers()
 /****** Jumps to or exits an interrupt ******/
 void ARM7::handle_interrupt()
 {
-	u16 ime_check = mem->memory_map[REG_IME];
-	u16 if_check = mem->read_u16_fast(REG_IF);
-	u16 ie_check = mem->read_u16_fast(REG_IE);
-
 	//TODO - Implement a better way of exiting interrupts other than recognizing the SUB PC, #4 instruction
 
 	//Exit interrupt
@@ -1443,8 +1439,11 @@ void ARM7::handle_interrupt()
 	}
 
 	//Jump into an interrupt, check if the master flag is enabled
-	if((ime_check & 0x1) && ((reg.cpsr & CPSR_IRQ) == 0) && (!in_interrupt))
+	if((mem->memory_map[REG_IME] & 0x1) && ((reg.cpsr & CPSR_IRQ) == 0) && (!in_interrupt))
 	{
+		u16 if_check = mem->read_u16_fast(REG_IF);
+		u16 ie_check = mem->read_u16_fast(REG_IE);
+
 		//Match up bits in IE and IF
 		for(int x = 0; x < 14; x++)
 		{
