@@ -1063,6 +1063,30 @@ bool DMG_MMU::read_file(std::string filename)
 			std::cout<<"MMU::ROM Size - " << cart.rom_size << "KB\n";
 			break;
 
+		case 0x9:
+			std::cout<<"MMU::Cartridge Type - ROM + RAM + Battery\n";
+			std::cout<<"MMU::MBC type currently unsupported \n";
+			return false;
+			break;
+
+		case 0xB:
+			std::cout<<"MMU::Cartridge Type - ROM + MMM01\n";
+			std::cout<<"MMU::MBC type currently unsupported \n";
+			return false;
+			break;
+
+		case 0xC:
+			std::cout<<"MMU::Cartridge Type - ROM + MMM01 + SRAM\n";
+			std::cout<<"MMU::MBC type currently unsupported \n";
+			return false;
+			break;
+
+		case 0xD:
+			std::cout<<"MMU::Cartridge Type - ROM + MMM01 + SRAM + Battery\n";
+			std::cout<<"MMU::MBC type currently unsupported \n";
+			return false;
+			break;
+
 		case 0x10:
 			cart.mbc_type = MBC3;
 			cart.ram = true;
@@ -1156,6 +1180,24 @@ bool DMG_MMU::read_file(std::string filename)
 			std::cout<<"MMU::Cartridge Type - MBC5 + RAM + Battery + Rumble\n";
 			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
 			std::cout<<"MMU::ROM Size - " << cart.rom_size << "KB\n";
+			break;
+
+		case 0x1F:
+			std::cout<<"MMU::Cartridge Type - Gameboy Camera\n";
+			std::cout<<"MMU::MBC type currently unsupported \n";
+			return false;
+			break;
+
+		case 0xFD:
+			std::cout<<"MMU::Cartridge Type - Bandai TAMA5\n";
+			std::cout<<"MMU::MBC type currently unsupported \n";
+			return false;
+			break;
+
+		case 0xFE:
+			std::cout<<"MMU::Cartridge Type - Hudson HuC-3\n";
+			std::cout<<"MMU::MBC type currently unsupported \n";
+			return false;
 			break;
 
 		default:
