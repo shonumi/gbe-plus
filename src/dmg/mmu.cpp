@@ -1188,6 +1188,12 @@ bool DMG_MMU::read_file(std::string filename)
 			return false;
 			break;
 
+		case 0x22:
+			std::cout<<"MMU:Cartridge Type - MBC7\n";
+			std::cout<<"MMU::MBC type currently unsupported \n";
+			return false;
+			break;
+
 		case 0xFD:
 			std::cout<<"MMU::Cartridge Type - Bandai TAMA5\n";
 			std::cout<<"MMU::MBC type currently unsupported \n";
