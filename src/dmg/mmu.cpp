@@ -1064,9 +1064,13 @@ bool DMG_MMU::read_file(std::string filename)
 			break;
 
 		case 0x9:
+			cart.mbc_type = ROM_ONLY;
+			cart.ram = true;
+			cart.battery = true;
+
 			std::cout<<"MMU::Cartridge Type - ROM + RAM + Battery\n";
-			std::cout<<"MMU::MBC type currently unsupported \n";
-			return false;
+			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
+			std::cout<<"MMU::ROM Size - " << cart.rom_size << "KB\n";
 			break;
 
 		case 0xB:
@@ -1354,11 +1358,23 @@ bool DMG_MMU::load_backup(std::string filename)
 
 		else 
 		{
-			for(int x = 0; x < 0x10; x++)
+
+			//Read MBC RAM
+			if(cart.mbc_type != ROM_ONLY)
 			{
-				u8* ex_ram = &random_access_bank[x][0];
-				sram.read((char*)ex_ram, 0x2000); 
+				for(int x = 0; x < 0x10; x++)
+				{
+					u8* ex_ram = &random_access_bank[x][0];
+					sram.read((char*)ex_ram, 0x2000); 
+				}
 			}
+
+			//Read 8KB Cart RAM
+			else
+			{
+				u8* ex_ram = &memory_map[0xA000];
+				sram.read((char*)ex_ram, 0x2000);
+			} 
 		}
 
 		sram.close();
@@ -1384,10 +1400,21 @@ bool DMG_MMU::save_backup(std::string filename)
 
 		else 
 		{
-			for(int x = 0; x < 0x10; x++)
+			//Save MBC RAM
+			if(cart.mbc_type != ROM_ONLY)
 			{
-				sram.write(reinterpret_cast<char*> (&random_access_bank[x][0]), 0x2000); 
+				for(int x = 0; x < 0x10; x++)
+				{
+					sram.write(reinterpret_cast<char*> (&random_access_bank[x][0]), 0x2000); 
+				}
 			}
+
+			//Save 8KB Cart RAM
+			else
+			{
+				sram.write(reinterpret_cast<char*> (&memory_map[0xA000]), 0x2000);
+			}
+					
 
 			//Add RTC data
 			if(cart.rtc) 
