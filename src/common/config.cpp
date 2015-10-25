@@ -117,10 +117,18 @@ void reset_dmg_colors()
 void validate_system_type()
 {
 	if(config::rom_file.empty()) { return; }
+	if((config::rom_file == "-h") || (config::rom_file == "--help")) { config::cli_args.push_back(config::rom_file); return; } 
 
 	//Determine Gameboy type based on file name
 	//Note, DMG and GBC games are automatically detected in the Gameboy MMU, so only check for GBA types here
 	std::size_t dot = config::rom_file.find_last_of(".");
+	
+	if(dot == std::string::npos)
+	{
+		std::cout<<"GBE::Warning - Could not determine the emulated system type for file " << config::rom_file << "\n";
+		return;
+	}
+
 	std::string ext = config::rom_file.substr(dot);
 
 	if(ext == ".gba") { config::gb_type = 3; }
@@ -193,6 +201,22 @@ bool parse_cli_args()
 
 			//Set system type - GBA
 			else if(config::cli_args[x] == "--sys-gba") { config::gb_type = 3; }
+
+			//Print Help
+			else if((config::cli_args[x] == "-h") || (config::cli_args[x] == "--help")) 
+			{
+				std::cout<<"GBE+ Command Line Options:\n";
+				std::cout<<"-b [FILE], --bios [FILE] \t\t Load and use BIOS file\n";
+				std::cout<<"-d, --debug \t\t\t\t Start the command-line debugger\n";
+				std::cout<<"--opengl \t\t\t\t Use OpenGL for screen drawing and scaling\n";
+				std::cout<<"--2x, --3x, --4x, --5x, --6x \t\t Scale screen by a given factor (OpenGL only)\n";
+				std::cout<<"--sys-auto \t\t\t\t Set the emulated system type to AUTO\n";
+				std::cout<<"--sys-dmg \t\t\t\t Set the emulated system type to DMG (old Gameboy)\n";
+				std::cout<<"--sys-gbc \t\t\t\t Set the emulated system type to GBC\n";
+				std::cout<<"--sys-gba \t\t\t\t Set the emulated system type to GBA\n";
+				std::cout<<"-h, --help \t\t\t\t Print these help messages\n";
+				return false;
+			}
 
 			else
 			{
