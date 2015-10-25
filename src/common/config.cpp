@@ -152,7 +152,7 @@ bool parse_cli_args()
 			//Run GBE+ in debug mode
 			if((config::cli_args[x] == "-d") || (config::cli_args[x] == "--debug")) { config::use_debugger = true; }
 
-			//Load GBA BIOS
+			//Load BIOS
 			else if((config::cli_args[x] == "-b") || (config::cli_args[x] == "--bios")) 
 			{
 				if((++x) == config::cli_args.size()) { std::cout<<"GBE::Error - No BIOS file in arguments\n"; }
@@ -181,6 +181,18 @@ bool parse_cli_args()
 
 			//Scale screen by 6x
 			else if(config::cli_args[x] == "--6x") { config::scaling_factor = 6; }
+
+			//Set system type - Auto
+			else if(config::cli_args[x] == "--sys-auto") { config::gb_type = 0; }
+
+			//Set system type - DMG
+			else if(config::cli_args[x] == "--sys-dmg") { config::gb_type = 1; }
+
+			//Set system type - GBC
+			else if(config::cli_args[x] == "--sys-gbc") { config::gb_type = 2; }
+
+			//Set system type - GBA
+			else if(config::cli_args[x] == "--sys-gba") { config::gb_type = 3; }
 
 			else
 			{
