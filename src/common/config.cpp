@@ -113,6 +113,260 @@ void reset_dmg_colors()
 	config::DMG_OBJ_PAL[3][1] = 0xFF000000;
 }
 
+/****** Set DMG colors based on GBC BIOS ******/
+void set_dmg_colors(u8 color_type)
+{
+	switch(color_type)
+	{
+		//No input
+		case 1:
+			config::DMG_BG_PAL[0] = 0xFFF8F8F8;
+			config::DMG_BG_PAL[1] = 0xFF78F830;
+			config::DMG_BG_PAL[2] = 0xFF0060C0;
+			config::DMG_BG_PAL[3] = 0xFF000000;
+
+			config::DMG_OBJ_PAL[0][0] = 0xFFF8F8F8;
+			config::DMG_OBJ_PAL[1][0] = 0xFFF88080;
+			config::DMG_OBJ_PAL[2][0] = 0xFF903838;
+			config::DMG_OBJ_PAL[3][0] = 0xFF000000;
+
+			config::DMG_OBJ_PAL[0][1] = 0xFFF8F8F8;
+			config::DMG_OBJ_PAL[1][1] = 0xFFF88080;
+			config::DMG_OBJ_PAL[2][1] = 0xFF903838;
+			config::DMG_OBJ_PAL[3][1] = 0xFF000000;
+
+			break;
+
+		//UP
+		case 2:
+			config::DMG_BG_PAL[0] = 0xFFF8F8F8;
+			config::DMG_BG_PAL[1] = 0xFFF8A860;
+			config::DMG_BG_PAL[2] = 0xFF803000;
+			config::DMG_BG_PAL[3] = 0xFF000000;
+
+			config::DMG_OBJ_PAL[0][0] = 0xFFF8F8F8;
+			config::DMG_OBJ_PAL[1][0] = 0xFFF8A860;
+			config::DMG_OBJ_PAL[2][0] = 0xFF803000;
+			config::DMG_OBJ_PAL[3][0] = 0xFF000000;
+
+			config::DMG_OBJ_PAL[0][1] = 0xFFF8F8F8;
+			config::DMG_OBJ_PAL[1][1] = 0xFFF8A860;
+			config::DMG_OBJ_PAL[2][1] = 0xFF803000;
+			config::DMG_OBJ_PAL[3][1] = 0xFF000000;
+
+			break;
+
+		//DOWN
+		case 3:
+			config::DMG_BG_PAL[0] = 0xFFF8F8A0;
+			config::DMG_BG_PAL[1] = 0xFFF89090;
+			config::DMG_BG_PAL[2] = 0xFF9090F8;
+			config::DMG_BG_PAL[3] = 0xFF000000;
+
+			config::DMG_OBJ_PAL[0][0] = 0xFFF8F8A0;
+			config::DMG_OBJ_PAL[1][0] = 0xFFF89090;
+			config::DMG_OBJ_PAL[2][0] = 0xFF9090F8;
+			config::DMG_OBJ_PAL[3][0] = 0xFF000000;
+
+			config::DMG_OBJ_PAL[0][1] = 0xFFF8F8A0;
+			config::DMG_OBJ_PAL[1][1] = 0xFFF89090;
+			config::DMG_OBJ_PAL[2][1] = 0xFF9090F8;
+			config::DMG_OBJ_PAL[3][1] = 0xFF000000;
+
+			break;
+
+		//LEFT
+		case 4:
+			config::DMG_BG_PAL[0] = 0xFFF8F8F8;
+			config::DMG_BG_PAL[1] = 0xFF60A0F8;
+			config::DMG_BG_PAL[2] = 0xFF0000F8;
+			config::DMG_BG_PAL[3] = 0xFF000000;
+
+			config::DMG_OBJ_PAL[0][0] = 0xFFF8F8F8;
+			config::DMG_OBJ_PAL[1][0] = 0xFFF88080;
+			config::DMG_OBJ_PAL[2][0] = 0xFF903838;
+			config::DMG_OBJ_PAL[3][0] = 0xFF000000;
+
+			config::DMG_OBJ_PAL[0][1] = 0xFFF8F8F8;
+			config::DMG_OBJ_PAL[1][1] = 0xFF78F830;
+			config::DMG_OBJ_PAL[2][1] = 0xFF008000;
+			config::DMG_OBJ_PAL[3][1] = 0xFF000000;
+
+			break;
+
+		//RIGHT
+		case 5:
+			config::DMG_BG_PAL[0] = 0xFFF8F8F8;
+			config::DMG_BG_PAL[1] = 0xFF50F800;
+			config::DMG_BG_PAL[2] = 0xFFF84000;
+			config::DMG_BG_PAL[3] = 0xFF000000;
+
+			config::DMG_OBJ_PAL[0][0] = 0xFFF8F8F8;
+			config::DMG_OBJ_PAL[1][0] = 0xFF50F800;
+			config::DMG_OBJ_PAL[2][0] = 0xFFF84000;
+			config::DMG_OBJ_PAL[3][0] = 0xFF000000;
+
+			config::DMG_OBJ_PAL[0][1] = 0xFFF8F8F8;
+			config::DMG_OBJ_PAL[1][1] = 0xFF50F800;
+			config::DMG_OBJ_PAL[2][1] = 0xFFF84000;
+			config::DMG_OBJ_PAL[3][1] = 0xFF000000;
+
+			break;
+
+		//UP + A
+		case 6:
+                        config::DMG_BG_PAL[0] = 0xFFF8F8F8;
+                        config::DMG_BG_PAL[1] = 0xFFF88080;
+                        config::DMG_BG_PAL[2] = 0xFF903838;
+                        config::DMG_BG_PAL[3] = 0xFF000000;
+
+                        config::DMG_OBJ_PAL[0][0] = 0xFFF8F8F8;
+                        config::DMG_OBJ_PAL[1][0] = 0xFF78F830;
+                        config::DMG_OBJ_PAL[2][0] = 0xFF008000;
+                        config::DMG_OBJ_PAL[3][0] = 0xFF000000;
+
+                        config::DMG_OBJ_PAL[0][1] = 0xFFF8F8F8;
+                        config::DMG_OBJ_PAL[1][1] = 0xFF60A0F8;
+                        config::DMG_OBJ_PAL[2][1] = 0xFF0000F8;
+                        config::DMG_OBJ_PAL[3][1] = 0xFF000000;
+
+			break;
+
+		//DOWN + A
+		case 7:
+                        config::DMG_BG_PAL[0] = 0xFFF8F8F8;
+                        config::DMG_BG_PAL[1] = 0xFFF8F800;
+                        config::DMG_BG_PAL[2] = 0xFFF80000;
+                        config::DMG_BG_PAL[3] = 0xFF000000;
+
+                        config::DMG_OBJ_PAL[0][0] = 0xFFF8F8F8;
+                        config::DMG_OBJ_PAL[1][0] = 0xFFF8F800;
+                        config::DMG_OBJ_PAL[2][0] = 0xFFF80000;
+                        config::DMG_OBJ_PAL[3][0] = 0xFF000000;
+
+                        config::DMG_OBJ_PAL[0][1] = 0xFFF8F8F8;
+                        config::DMG_OBJ_PAL[1][1] = 0xFFF8F800;
+                        config::DMG_OBJ_PAL[2][1] = 0xFFF80000;
+                        config::DMG_OBJ_PAL[3][1] = 0xFF000000;
+
+			break;
+
+		//LEFT + A
+		case 8:
+                        config::DMG_BG_PAL[0] = 0xFFF8F8F8;
+                        config::DMG_BG_PAL[1] = 0xFF8888D8;
+                        config::DMG_BG_PAL[2] = 0xFF505088;
+                        config::DMG_BG_PAL[3] = 0xFF000000;
+
+                        config::DMG_OBJ_PAL[0][0] = 0xFFF8F8F8;
+                        config::DMG_OBJ_PAL[1][0] = 0xFFF88080;
+                        config::DMG_OBJ_PAL[2][0] = 0xFF903838;
+                        config::DMG_OBJ_PAL[3][0] = 0xFF000000;
+
+                        config::DMG_OBJ_PAL[0][1] = 0xFFF8F8F8;
+                        config::DMG_OBJ_PAL[1][1] = 0xFFF8A860;
+                        config::DMG_OBJ_PAL[2][1] = 0xFF803000;
+                        config::DMG_OBJ_PAL[3][1] = 0xFF000000;
+
+			break;
+
+		//RIGHT + A
+		case 9:
+                        config::DMG_BG_PAL[0] = 0xFFF8F8F8;
+                        config::DMG_BG_PAL[1] = 0xFF78F830;
+                        config::DMG_BG_PAL[2] = 0xFF0060C0;
+                        config::DMG_BG_PAL[3] = 0xFF000000;
+
+                        config::DMG_OBJ_PAL[0][0] = 0xFFF8F8F8;
+                        config::DMG_OBJ_PAL[1][0] = 0xFFF88080;
+                        config::DMG_OBJ_PAL[2][0] = 0xFF903838;
+                        config::DMG_OBJ_PAL[3][0] = 0xFF000000;
+
+                        config::DMG_OBJ_PAL[0][1] = 0xFFF8F8F8;
+                        config::DMG_OBJ_PAL[1][1] = 0xFFF88080;
+                        config::DMG_OBJ_PAL[2][1] = 0xFF903838;
+                        config::DMG_OBJ_PAL[3][1] = 0xFF000000;
+
+			break;
+
+		//UP + B
+		case 10:
+                        config::DMG_BG_PAL[0] = 0xFFF8E0C0;
+                        config::DMG_BG_PAL[1] = 0xFFC89880;
+                        config::DMG_BG_PAL[2] = 0xFF806828;
+                        config::DMG_BG_PAL[3] = 0xFF583008;
+
+                        config::DMG_OBJ_PAL[0][0] = 0xFFF8F8F8;
+                        config::DMG_OBJ_PAL[1][0] = 0xFFF8A860;
+                        config::DMG_OBJ_PAL[2][0] = 0xFF803000;
+                        config::DMG_OBJ_PAL[3][0] = 0xFF000000;
+
+                        config::DMG_OBJ_PAL[0][1] = 0xFFF8F8F8;
+                        config::DMG_OBJ_PAL[1][1] = 0xFFF8A860;
+                        config::DMG_OBJ_PAL[2][1] = 0xFF803000;
+                        config::DMG_OBJ_PAL[3][1] = 0xFF000000;
+
+			break;
+
+		//DOWN + B
+		case 11:
+                        config::DMG_BG_PAL[0] = 0xFFF8F8F8;
+                        config::DMG_BG_PAL[1] = 0xFFF8F800;
+                        config::DMG_BG_PAL[2] = 0xFF784800;
+                        config::DMG_BG_PAL[3] = 0xFF000000;
+
+                        config::DMG_OBJ_PAL[0][0] = 0xFFF8F8F8;
+                        config::DMG_OBJ_PAL[1][0] = 0xFF60A0F8;
+                        config::DMG_OBJ_PAL[2][0] = 0xFF0000F8;
+                        config::DMG_OBJ_PAL[3][0] = 0xFF000000;
+
+                        config::DMG_OBJ_PAL[0][1] = 0xFFF8F8F8;
+                        config::DMG_OBJ_PAL[1][1] = 0xFF78F830;
+                        config::DMG_OBJ_PAL[2][1] = 0xFF008000;
+                        config::DMG_OBJ_PAL[3][1] = 0xFF000000;
+
+			break;
+
+		//LEFT + B
+		case 12:
+                        config::DMG_BG_PAL[0] = 0xFFF8F8F8;
+                        config::DMG_BG_PAL[1] = 0xFFA0A0A0;
+                        config::DMG_BG_PAL[2] = 0xFF505050;
+                        config::DMG_BG_PAL[3] = 0xFF000000;
+
+                        config::DMG_OBJ_PAL[0][0] = 0xFFF8F8F8;
+                        config::DMG_OBJ_PAL[1][0] = 0xFFA0A0A0;
+                        config::DMG_OBJ_PAL[2][0] = 0xFF505050;
+                        config::DMG_OBJ_PAL[3][0] = 0xFF000000;
+
+                        config::DMG_OBJ_PAL[0][1] = 0xFFF8F8F8;
+                        config::DMG_OBJ_PAL[1][1] = 0xFFA0A0A0;
+                        config::DMG_OBJ_PAL[2][1] = 0xFF505050;
+                        config::DMG_OBJ_PAL[3][1] = 0xFF000000;
+
+			break;
+
+		//RIGHT + B
+		case 13:
+                        config::DMG_BG_PAL[0] = 0xFF000000;
+                        config::DMG_BG_PAL[1] = 0xFF008080;
+                        config::DMG_BG_PAL[2] = 0xFFF8D800;
+                        config::DMG_BG_PAL[3] = 0xFFF8F8F8;
+
+                        config::DMG_OBJ_PAL[0][0] = 0xFF000000;
+                        config::DMG_OBJ_PAL[1][0] = 0xFF008080;
+                        config::DMG_OBJ_PAL[2][0] = 0xFFF8D800;
+                        config::DMG_OBJ_PAL[3][0] = 0xFFF8F8F8;
+
+                        config::DMG_OBJ_PAL[0][1] = 0xFF000000;
+                        config::DMG_OBJ_PAL[1][1] = 0xFF008080;
+                        config::DMG_OBJ_PAL[2][1] = 0xFFF8D800;
+                        config::DMG_OBJ_PAL[3][1] = 0xFFF8F8F8;
+
+			break;
+	}
+}	
+
 /****** Validates emulated system type ******/
 void validate_system_type()
 {
@@ -514,6 +768,25 @@ bool parse_ini_file()
 			}
 		}
 
+
+		//Emulated DMG-on-GBC palette
+		else if(ini_item == "#dmg_on_gbc_pal")
+		{
+			if((x + 1) < size) 
+			{
+				ini_item = ini_opts[++x];
+				std::stringstream temp_stream(ini_item);
+				temp_stream >> output;
+
+				if((output >= 1) && (output <= 13)) { set_dmg_colors(output); }
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#dmg_on_gbc_pal) \n";
+				return false;
+			}
+		}
 
 		//DMG-GBC keyboard controls
 		else if(ini_item == "#dmg_key_controls")

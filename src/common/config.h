@@ -18,6 +18,7 @@
 #include "common.h"
 
 void reset_dmg_colors();
+void set_dmg_colors(u8 color_type);
 void validate_system_type();
 bool parse_cli_args();
 void parse_filenames();
