@@ -47,6 +47,8 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	fullscreen->setShortcut(tr("F12"));
 	screenshot->setShortcut(tr("F9"));
 
+	pause->setCheckable(true);
+	pause->setObjectName("pause_action");
 	fullscreen->setCheckable(true);
 
 	QMenuBar* menu_bar;
@@ -214,6 +216,8 @@ void main_menu::boot_game()
 {
 	config::sample_rate = settings->sample_rate;
 	config::pause_emu = false;
+
+	findChild<QAction*>("pause_action")->setChecked(false);
 
 	//Determine Gameboy type based on file name
 	//Note, DMG and GBC games are automatically detected in the Gameboy MMU, so only check for GBA types here
