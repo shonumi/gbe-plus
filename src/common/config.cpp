@@ -61,6 +61,8 @@ namespace config
 
 	std::stringstream title;
 
+	u8 dmg_gbc_pal = 0;
+
 	//Emulated Gameboy type
 	//TODO - Make this an enum
 	//0 - DMG, 1 - DMG on GBC, 2 - GBC, 3 - GBA, 4 - NDS????
@@ -118,6 +120,11 @@ void set_dmg_colors(u8 color_type)
 {
 	switch(color_type)
 	{
+		//Default palette
+		case 0:
+			reset_dmg_colors();
+			break;
+
 		//No input
 		case 1:
 			config::DMG_BG_PAL[0] = 0xFFF8F8F8;
@@ -778,7 +785,11 @@ bool parse_ini_file()
 				std::stringstream temp_stream(ini_item);
 				temp_stream >> output;
 
-				if((output >= 1) && (output <= 13)) { set_dmg_colors(output); }
+				if((output >= 1) && (output <= 13)) 
+				{
+					config::dmg_gbc_pal = output;
+					set_dmg_colors(config::dmg_gbc_pal);
+				}
 			}
 
 			else 

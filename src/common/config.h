@@ -51,6 +51,7 @@ namespace config
 	extern u8 gb_type;
 	extern bool gba_enhance;
 	extern bool sdl_render;
+	extern u8 dmg_gbc_pal;
 
 	extern u8 volume;
 	extern double sample_rate;

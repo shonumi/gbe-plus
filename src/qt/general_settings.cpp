@@ -114,6 +114,31 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	cgfx_scale_layout->addWidget(cgfx_scale);
 	cgfx_scale_set->setLayout(cgfx_scale_layout);
 
+	//Display settings - DMG on GBC palette
+	QWidget* dmg_gbc_pal_set = new QWidget(display);
+	QLabel* dmg_gbc_pal_label = new QLabel("DMG-on-GBC Color Palette : ");
+	dmg_gbc_pal = new QComboBox(dmg_gbc_pal_set);
+	dmg_gbc_pal->addItem("OFF");
+	dmg_gbc_pal->addItem("NO INPUT");
+	dmg_gbc_pal->addItem("UP");
+	dmg_gbc_pal->addItem("DOWN");
+	dmg_gbc_pal->addItem("LEFT");
+	dmg_gbc_pal->addItem("RIGHT");
+	dmg_gbc_pal->addItem("UP+A");
+	dmg_gbc_pal->addItem("DOWN+A");
+	dmg_gbc_pal->addItem("LEFT+A");
+	dmg_gbc_pal->addItem("RIGHT+A");
+	dmg_gbc_pal->addItem("UP+B");
+	dmg_gbc_pal->addItem("DOWN+B");
+	dmg_gbc_pal->addItem("LEFT+B");
+	dmg_gbc_pal->addItem("RIGHT+B");
+
+	QHBoxLayout* dmg_gbc_pal_layout = new QHBoxLayout;
+	dmg_gbc_pal_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	dmg_gbc_pal_layout->addWidget(dmg_gbc_pal_label);
+	dmg_gbc_pal_layout->addWidget(dmg_gbc_pal);
+	dmg_gbc_pal_set->setLayout(dmg_gbc_pal_layout);
+	
 	//Display settings - Use OpenGL
 	QWidget* ogl_set = new QWidget(display);
 	QLabel* ogl_label = new QLabel("Use OpenGL");
@@ -140,6 +165,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	disp_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	disp_layout->addWidget(screen_scale_set);
 	disp_layout->addWidget(cgfx_scale_set);
+	disp_layout->addWidget(dmg_gbc_pal_set);
 	disp_layout->addWidget(ogl_set);
 	disp_layout->addWidget(load_cgfx_set);
 	display->setLayout(disp_layout);
@@ -442,6 +468,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(tabs_button->button(QDialogButtonBox::Close), SIGNAL(clicked()), this, SLOT(close_input()));
 	connect(bios, SIGNAL(stateChanged(int)), this, SLOT(set_bios()));
 	connect(screen_scale, SIGNAL(currentIndexChanged(int)), this, SLOT(screen_scale_change()));
+	connect(dmg_gbc_pal, SIGNAL(currentIndexChanged(int)), this, SLOT(dmg_gbc_pal_change()));
 	connect(load_cgfx, SIGNAL(stateChanged(int)), this, SLOT(set_cgfx()));
 	connect(volume, SIGNAL(valueChanged(int)), this, SLOT(volume_change()));
 	connect(freq, SIGNAL(currentIndexChanged(int)), this, SLOT(sample_rate_change()));
@@ -592,6 +619,9 @@ void gen_settings::set_ini_options()
 	//CGFX scale options
 	cgfx_scale->setCurrentIndex(cgfx::scaling_factor - 1);
 
+	//DMG-on-GBC palette options
+	dmg_gbc_pal->setCurrentIndex(config::dmg_gbc_pal);
+
 	//OpenGL option
 	if(config::use_opengl) { ogl->setChecked(true); }
 
@@ -653,6 +683,13 @@ void gen_settings::screen_scale_change()
 {
 	config::scaling_factor = (screen_scale->currentIndex() + 1);
 	resize_screen = true;
+}
+
+/****** Changes the emulated DMG-on-GBC palette ******/
+void gen_settings::dmg_gbc_pal_change()
+{
+	config::dmg_gbc_pal = (dmg_gbc_pal->currentIndex());
+	set_dmg_colors(config::dmg_gbc_pal);
 }
 
 /****** Toggles activation of custom graphics ******/
