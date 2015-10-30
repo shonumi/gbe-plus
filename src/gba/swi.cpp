@@ -304,16 +304,16 @@ void ARM7::swi_softreset()
 	reg.r13_irq = 0x03007FA0;
 	reg.r13 = 0x03007F00;
 
-	//Set PC to start of GamePak ROM or 25KB WRAM
-	u8 flag = (mem->read_u8(0x3007FFA) & 0x1) ? 1 : 0;
-	if(flag == 1) { reg.r15 = 0x2000000; }
-	else { reg.r15 = 0x8000000; }
+	//Set PC to start of GamePak ROM or 256KB WRAM
+	u8 flag = mem->read_u8(0x3007FFA);
+	if(flag == 0) { reg.r15 = 0x8000000; }
+	else { reg.r15 = 0x2000000; }
 	needs_flush = true;
 
 	//Set registers R0-R12 to zero
 	for(int x = 0; x <= 12; x++) { set_reg(x, 0); }
 
-	//Set R14_svc, R14_irq, and R14 to zero
+	//Set R14_svc, R14_irq to zero, R14 to the return address
 	reg.r14_svc = 0;
 	reg.r14_irq = 0;
 
