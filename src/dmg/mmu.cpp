@@ -1216,6 +1216,19 @@ bool DMG_MMU::read_file(std::string filename)
 			return false;
 	}
 
+	//Calculate 8-bit checksum
+	u8 checksum = 0;
+
+	for(u16 x = 0x134; x < 0x14D; x++)
+	{
+		checksum = checksum - memory_map[x] - 1;
+	}
+
+	if(checksum != memory_map[0x14D]) 
+	{
+		std::cout<<"MMU::Warning - Cartridge Header Checksum is 0x" << std::hex << (int)memory_map[0x14D] <<". Correct value is 0x" << (int)checksum << "\n";
+	}
+
 	//Read additional ROM data to banks
 	if(cart.mbc_type != ROM_ONLY)
 	{
