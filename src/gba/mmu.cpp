@@ -1727,6 +1727,18 @@ bool AGB_MMU::read_file(std::string filename)
 	file.close();
 	std::cout<<"MMU::" << filename << " loaded successfully. \n";
 
+	//Calculate 8-bit checksum
+	u8 checksum = 0;
+
+	for(u32 x = 0x80000A0; x < 0x80000BD; x++) { checksum = checksum - memory_map[x]; }
+
+	checksum = checksum - 0x19;
+
+	if(checksum != memory_map[0x80000BD]) 
+	{
+		std::cout<<"MMU::Warning - Cartridge Header Checksum is 0x" << std::hex << (int)memory_map[0x80000BD] <<". Correct value is 0x" << (int)checksum << "\n";
+	}
+
 	std::string backup_file = filename + ".sav";
 
 	//Try to auto-detect save-type, if any
