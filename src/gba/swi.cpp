@@ -73,7 +73,8 @@ void ARM7::process_swi(u32 comment)
 
 		//Stop-Sleep
 		case 0x3:
-			std::cout<<"SWI::Stop-Sleep (not implemented yet) \n";
+			std::cout<<"SWI::Stop-Sleep \n";
+			swi_sleep();
 			break;
 
 		//IntrWait
@@ -417,6 +418,14 @@ void ARM7::swi_halt()
 			if((ie_check & (1 << x)) && (if_check & (1 << x))) { halt = false; }
 		}
 	}
+}
+
+/****** HLE implementation of Sleep ******/
+void ARM7::swi_sleep()
+{
+	bios_read_state = BIOS_SWI_FINISH;
+	sleep = true;
+	running = false;
 }
 
 /****** HLE implementation of Div ******/

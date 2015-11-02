@@ -1021,7 +1021,42 @@ u32 AGB_LCD::alpha_blend()
 	//Return 32-bit color
 	return 0xFF000000 | (red << 19) | (green << 11) | (blue << 3);
 }
-	
+
+/****** Immediately draw current buffer to the screen ******/
+void AGB_LCD::update()
+{
+	//Use SDL
+	if(config::sdl_render)
+	{
+		//Lock source surface
+		if(SDL_MUSTLOCK(final_screen)){ SDL_LockSurface(final_screen); }
+		u32* out_pixel_data = (u32*)final_screen->pixels;
+
+		for(int a = 0; a < 0x9600; a++) { out_pixel_data[a] = screen_buffer[a]; }
+
+		//Unlock source surface
+		if(SDL_MUSTLOCK(final_screen)){ SDL_UnlockSurface(final_screen); }
+		
+		//Display final screen buffer - OpenGL
+		if(config::use_opengl) { opengl_blit(); }
+				
+		//Display final screen buffer - SDL
+		else 
+		{
+			if(SDL_Flip(final_screen) == -1) { std::cout<<"LCD::Error - Could not blit\n"; }
+		}
+	}
+
+	//Use external rendering method (GUI)
+	else { config::render_external(screen_buffer); }
+}
+
+/****** Clears the screen buffer with a given color ******/
+void AGB_LCD::clear_screen_buffer(u32 color)
+{
+	for(u32 x = 0; x < 0x9600; x++) { screen_buffer[x] = color; }
+}
+
 /****** Run LCD for one cycle ******/
 void AGB_LCD::step()
 {

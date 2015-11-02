@@ -71,9 +71,16 @@ void AGB_core::start()
 /****** Stop the core ******/
 void AGB_core::stop()
 {
-	running = false;
-	core_cpu.running = false;
-	db_unit.debug_mode = false;
+	//Handle CPU Sleep mode
+	if(core_cpu.sleep) { sleep(); }
+
+	//Or stop completely
+	else
+	{
+		running = false;
+		core_cpu.running = false;
+		db_unit.debug_mode = false;
+	}
 }
 
 /****** Shutdown core's components ******/
@@ -81,6 +88,34 @@ void AGB_core::shutdown()
 {
 	core_mmu.AGB_MMU::~AGB_MMU();
 	core_cpu.ARM7::~ARM7();
+}
+
+/****** Force the core to sleep ******/
+void AGB_core::sleep()
+{
+	//White out LCD
+	core_cpu.controllers.video.clear_screen_buffer(0xFFFFFFFF);
+	core_cpu.controllers.video.update();
+
+	//Wait for L+R+Select input
+	bool l_r_select = false;
+
+	while(!l_r_select)
+	{
+		SDL_PollEvent(&event);
+
+		if((event.type == SDL_KEYDOWN) || (event.type == SDL_KEYUP) 
+		|| (event.type == SDL_JOYBUTTONDOWN) || (event.type == SDL_JOYBUTTONUP)
+		|| (event.type == SDL_JOYAXISMOTION) || (event.type == SDL_JOYHATMOTION)) { core_pad.handle_input(event); handle_hotkey(event); }
+
+		if(((core_pad.key_input & 0x4) == 0) && ((core_pad.key_input & 0x100) == 0) && ((core_pad.key_input & 0x200) == 0)) { l_r_select = true; }
+
+		SDL_Delay(50);
+		core_cpu.controllers.video.update();
+	}
+
+	core_cpu.sleep = false;
+	core_cpu.running = true;
 }
 
 /****** Reset the core ******/

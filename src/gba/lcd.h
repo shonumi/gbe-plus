@@ -34,6 +34,8 @@ class AGB_LCD
 	void reset();
 	bool init();
 	void opengl_init();
+	void update();
+	void clear_screen_buffer(u32 color);
 
 	//Screen data
 	SDL_Surface* final_screen;
