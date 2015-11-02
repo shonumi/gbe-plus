@@ -68,6 +68,10 @@ void AGB_MMU::reset()
 
 	bios_lock = true;
 
+	//HLE some post-boot registers
+	write_u8(0x4000300, 0x1);
+	write_u8(0x4000410, 0xFF);
+
 	//Default memory access timings (4, 2)
 	n_clock = 4;
 	s_clock = 2;
