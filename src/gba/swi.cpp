@@ -345,52 +345,51 @@ void ARM7::swi_registerramreset()
 	//Clear 256K WRAM
 	if(reset_flags & 0x1)
 	{
-		for(x = 0x2000000; x < 0x2040000; x++) { mem->memory_map[x] = 0; }
+		for(x = 0x2000000; x < 0x2040000; x++) { mem->write_u8(x, 0x0); }
 	}
 
 	//Clear 32KB WRAM, excluding the stack
 	if(reset_flags & 0x2)
 	{
-		for(x = 0x3000000; x < 0x3007E00; x++) { mem->memory_map[x] = 0; }
+		for(x = 0x3000000; x < 0x3007E00; x++) { mem->write_u8(x, 0x0); }
 	}
 
 	//Clear Palette VRAM
 	if(reset_flags & 0x4)
 	{
-	 	for(x = 0x5000000; x < 0x5000400; x++) { mem->memory_map[x] = 0; }
+	 	for(x = 0x5000000; x < 0x5000400; x++) { mem->write_u8(x, 0x0); }
 	}
 
 	//Clear VRAM
 	if(reset_flags & 0x8)
 	{
-		for(x = 0x6000000; x < 0x6018000; x++) { mem->memory_map[x] = 0; }
+		for(x = 0x6000000; x < 0x6018000; x++) { mem->write_u8(x, 0x0); }
 	}
 
 	//Clear OAM
 	if(reset_flags & 0x10)
 	{
-		for(x = 0x7000000; x < 0x7000400; x++) { mem->memory_map[x] = 0; }
+		for(x = 0x7000000; x < 0x7000400; x++) { mem->write_u8(x, 0x0); }
 	}
 
 	//Reset SIO
-	//TODO - See what values SIO MMIO registers have after running BIOS, use them here
-	//For now, just reset RCNT (0x4000134)
 	if(reset_flags & 0x20)
 	{
 		mem->write_u16(0x4000134, 0x8000);
+		for(x = 0x4000136; x <  0x400015A; x++) { mem->write_u8(x, 0x0); }
 	}
 
 	//Reset Sound Registers
 	if(reset_flags & 0x40)
 	{
-		for(x = 0x4000060; x < 0x40000B0; x++) { mem->memory_map[x] = 0; }
+		for(x = 0x4000060; x < 0x40000B0; x++) { mem->write_u8(x, 0x0); }
 	}
 
 	//Reset all other registers (mainly display and timer registers?)
 	if(reset_flags & 0x80)
 	{
-		for(x = 0x4000000; x < 0x4000060; x++) { mem->memory_map[x] = 0; }
-		for(x = 0x4000100; x < 0x4000110; x++) { mem->memory_map[x] = 0; }
+		for(x = 0x4000000; x < 0x4000060; x++) { mem->write_u8(x, 0x0); }
+		for(x = 0x4000100; x < 0x4000110; x++) { mem->write_u8(x, 0x0); }
 		mem->write_u16(DISPCNT, 0x80);
 	}
 }

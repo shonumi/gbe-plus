@@ -52,9 +52,14 @@ void AGB_MMU::reset()
 	gpio.input = gpio.output = 0;
 	gpio.current_type = DISABLED;
 
-	//HLE stuff
-	memory_map[DISPCNT] = 0x80;
-	write_u16(0x4000134, 0x8000);
+	//HLE some post-boot registers
+	if(!config::use_bios)
+	{
+		memory_map[DISPCNT] = 0x80;
+		write_u16(0x4000134, 0x8000);
+		write_u8(0x4000300, 0x1);
+		write_u8(0x4000410, 0xFF);
+	}
 
 	bios_lock = false;
 
@@ -67,13 +72,6 @@ void AGB_MMU::reset()
 	write_u32(0x13C, 0xE25EF004);
 
 	bios_lock = true;
-
-	//HLE some post-boot registers
-	if(!config::use_bios)
-	{
-		write_u8(0x4000300, 0x1);
-		write_u8(0x4000410, 0xFF);
-	}
 
 	//Default memory access timings (4, 2)
 	n_clock = 4;
