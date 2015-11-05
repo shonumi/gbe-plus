@@ -174,6 +174,13 @@ void main_menu::open_file()
 
 	SDL_PauseAudio(0);
 
+	//Close the core
+	if(main_menu::gbe_plus != NULL) 
+	{
+		main_menu::gbe_plus->shutdown();
+		main_menu::gbe_plus->core_emu::~core_emu();
+	}
+
 	config::rom_file = filename.toStdString();
 	config::save_file = config::rom_file + ".sav";
 
@@ -183,13 +190,6 @@ void main_menu::open_file()
 
 	if(qt_gui::screen != NULL) { delete qt_gui::screen; }
 	qt_gui::screen = NULL;
-
-	//Close the core
-	if(main_menu::gbe_plus != NULL) 
-	{
-		main_menu::gbe_plus->shutdown();
-		main_menu::gbe_plus->core_emu::~core_emu();
-	}
 
 	boot_game();
 }
