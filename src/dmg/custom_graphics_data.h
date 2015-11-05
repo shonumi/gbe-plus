@@ -40,6 +40,7 @@ struct dmg_cgfx_data
 	//Working hash list of graphics in VRAM
 	std::vector <std::string> current_obj_hash;
 	std::vector <std::string> current_bg_hash;
+	std::vector <std::string> current_gbc_bg_hash;
 
 	//List of all computed hashes
 	std::vector <std::string> obj_hash_list;
@@ -54,8 +55,10 @@ struct dmg_cgfx_data
 	//The LCD does not keep track of BG updates, however.
 	std::vector <bool> bg_update_list;
 	bool update_bg;
+	bool update_map;
 
 	std::vector <bool> bg_tile_update_list;
+	std::vector <bool> bg_map_update_list;
 };
 
 #endif // GB_CGFX_DATA

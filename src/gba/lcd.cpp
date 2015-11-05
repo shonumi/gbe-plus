@@ -30,8 +30,6 @@ AGB_LCD::~AGB_LCD()
 /****** Reset LCD ******/
 void AGB_LCD::reset()
 {
-	//TODO - Properly initialize some lcd_stat variables (window_enable and the like)
-
 	final_screen = NULL;
 	mem = NULL;
 
@@ -250,13 +248,17 @@ void AGB_LCD::update_obj_render_list()
 {
 	obj_render_length = 0;
 
-	//Cycle through all of the sprites
-	for(int x = 0; x < 128; x++)
+	//Sort them based on BG priorities
+	for(int bg = 0; bg < 4; bg++)
 	{
-		//Check to see if sprite is rendered on the current scanline
-		if((obj[x].visible) && (current_scanline >= obj[x].top) && (current_scanline <= obj[x].bottom))
-		{
-			obj_render_list[obj_render_length++] = x;
+		//Cycle through all of the sprites
+		for(int x = 0; x < 128; x++)
+		{	
+			//Check to see if sprite is rendered on the current scanline
+			if((obj[x].visible) && (current_scanline >= obj[x].top) && (current_scanline <= obj[x].bottom) && (obj[x].bg_priority == bg))
+			{
+				obj_render_list[obj_render_length++] = x;
+			}
 		}
 	}
 }
@@ -451,10 +453,7 @@ bool AGB_LCD::render_sprite_pixel()
 /****** Determines if a background pixel should be rendered, and if so draws it to the current scanline pixel ******/
 bool AGB_LCD::render_bg_pixel(u32 bg_control)
 {
-	if((!lcd_stat.bg_enable[0]) && (bg_control == BG0CNT)) { return false; }
-	else if((!lcd_stat.bg_enable[1]) && (bg_control == BG1CNT)) { return false; }
-	else if((!lcd_stat.bg_enable[2]) && (bg_control == BG2CNT)) { return false; }
-	else if((!lcd_stat.bg_enable[3]) && (bg_control == BG3CNT)) { return false; }
+	if(!lcd_stat.bg_enable[(bg_control - 0x4000008) >> 1]) { return false; }
 
 	//Render BG pixel according to current BG Mode
 	switch(lcd_stat.bg_mode)
@@ -755,6 +754,8 @@ void AGB_LCD::render_scanline()
 	last_obj_mode = 0;
 	last_raw_color = raw_pal[0][0];
 	obj_win_pixel = false;
+	u8 bg_render_list[4];
+	u8 bg_id;
 
 	//Render sprites
 	obj_render = render_sprite_pixel();
@@ -788,40 +789,25 @@ void AGB_LCD::render_scanline()
 	if((lcd_stat.window_enable[lcd_stat.current_window]) && (!lcd_stat.in_window) && (!lcd_stat.window_out_enable[4][0])) { obj_render = false; }
 	else if((lcd_stat.window_enable[lcd_stat.current_window]) && (lcd_stat.in_window) && (!lcd_stat.window_in_enable[4][lcd_stat.current_window])) { obj_render = false; }
 
+	//Determine BG rendering priority
+	for(int x = 0, list_length = 0; x < 4; x++)
+	{
+		if(lcd_stat.bg_priority[0] == x) { bg_render_list[list_length++] = 0; }
+		if(lcd_stat.bg_priority[1] == x) { bg_render_list[list_length++] = 1; }
+		if(lcd_stat.bg_priority[2] == x) { bg_render_list[list_length++] = 2; }
+		if(lcd_stat.bg_priority[3] == x) { bg_render_list[list_length++] = 3; }
+	}
+
 	//Render BGs based on priority (3 is the 'lowest', 0 is the 'highest')
 	for(int x = 0; x < 4; x++)
 	{
-		if(lcd_stat.bg_priority[0] == x) 
-		{
-			if((obj_render) && (last_obj_priority <= x)) { last_bg_priority = 4; return; }
-			else if((lcd_stat.window_enable[lcd_stat.current_window]) && (!lcd_stat.in_window) && (!lcd_stat.window_out_enable[0][0])) { }
-			else if((lcd_stat.window_enable[lcd_stat.current_window]) && (lcd_stat.in_window) && (!lcd_stat.window_in_enable[0][lcd_stat.current_window])) { }
-			else if(render_bg_pixel(BG0CNT)) { last_bg_priority = 0; return; } 
-		}
+		bg_id = bg_render_list[x];
 
-		if(lcd_stat.bg_priority[1] == x) 
-		{
-			if((obj_render) && (last_obj_priority <= x)) { last_bg_priority = 4; return; }
-			else if((lcd_stat.window_enable[lcd_stat.current_window]) && (!lcd_stat.in_window) && (!lcd_stat.window_out_enable[1][0])) { }
-			else if((lcd_stat.window_enable[lcd_stat.current_window]) && (lcd_stat.in_window) && (!lcd_stat.window_in_enable[1][lcd_stat.current_window])) { }
-			else if(render_bg_pixel(BG1CNT)) { last_bg_priority = 1; return; } 
-		}
-
-		if(lcd_stat.bg_priority[2] == x) 
-		{
-			if((obj_render) && (last_obj_priority <= x)) { last_bg_priority = 4; return; }
-			else if((lcd_stat.window_enable[lcd_stat.current_window]) && (!lcd_stat.in_window) && (!lcd_stat.window_out_enable[2][0])) { }
-			else if((lcd_stat.window_enable[lcd_stat.current_window]) && (lcd_stat.in_window) && (!lcd_stat.window_in_enable[2][lcd_stat.current_window])) { }
-			else if(render_bg_pixel(BG2CNT)) { last_bg_priority = 2; return; } 
-		}
-
-		if(lcd_stat.bg_priority[3] == x) 
-		{
-			if((obj_render) && (last_obj_priority <= x)) { last_bg_priority = 4; return; }
-			else if((lcd_stat.window_enable[lcd_stat.current_window]) && (!lcd_stat.in_window) && (!lcd_stat.window_out_enable[3][0])) { }
-			else if((lcd_stat.window_enable[lcd_stat.current_window]) && (lcd_stat.in_window) && (!lcd_stat.window_in_enable[3][lcd_stat.current_window])) { }
-			else if(render_bg_pixel(BG3CNT)) { last_bg_priority = 3; return; } 
-		}
+		if((obj_render) && (last_obj_priority <= lcd_stat.bg_priority[bg_id])) { last_bg_priority = 4; return; }
+		else if((lcd_stat.window_enable[lcd_stat.current_window]) && (!lcd_stat.in_window) && (!lcd_stat.window_out_enable[bg_id][0])) { continue; }
+		else if((lcd_stat.window_enable[lcd_stat.current_window]) && (lcd_stat.in_window) && (!lcd_stat.window_in_enable[bg_id][lcd_stat.current_window])) { continue; }
+		else if((lcd_stat.obj_win_enable) && (!obj_win_pixel) && (!lcd_stat.window_out_enable[bg_id][0])) { continue; }
+		else if(render_bg_pixel(BG0CNT + (bg_id << 1))) { last_bg_priority = bg_id; return; }
 	}
 
 	//Use BG Palette #0, Color #0 as the backdrop
@@ -1035,7 +1021,42 @@ u32 AGB_LCD::alpha_blend()
 	//Return 32-bit color
 	return 0xFF000000 | (red << 19) | (green << 11) | (blue << 3);
 }
-	
+
+/****** Immediately draw current buffer to the screen ******/
+void AGB_LCD::update()
+{
+	//Use SDL
+	if(config::sdl_render)
+	{
+		//Lock source surface
+		if(SDL_MUSTLOCK(final_screen)){ SDL_LockSurface(final_screen); }
+		u32* out_pixel_data = (u32*)final_screen->pixels;
+
+		for(int a = 0; a < 0x9600; a++) { out_pixel_data[a] = screen_buffer[a]; }
+
+		//Unlock source surface
+		if(SDL_MUSTLOCK(final_screen)){ SDL_UnlockSurface(final_screen); }
+		
+		//Display final screen buffer - OpenGL
+		if(config::use_opengl) { opengl_blit(); }
+				
+		//Display final screen buffer - SDL
+		else 
+		{
+			if(SDL_Flip(final_screen) == -1) { std::cout<<"LCD::Error - Could not blit\n"; }
+		}
+	}
+
+	//Use external rendering method (GUI)
+	else { config::render_external(screen_buffer); }
+}
+
+/****** Clears the screen buffer with a given color ******/
+void AGB_LCD::clear_screen_buffer(u32 color)
+{
+	for(u32 x = 0; x < 0x9600; x++) { screen_buffer[x] = color; }
+}
+
 /****** Run LCD for one cycle ******/
 void AGB_LCD::step()
 {
@@ -1052,15 +1073,15 @@ void AGB_LCD::step()
 			scanline_compare();
 		}
 
-		//Toggle HBlank flag OFF
-		mem->memory_map[DISPSTAT] &= ~0x2;
-
 		//Disable OAM access
 		lcd_stat.oam_access = false;
 
 		//Change mode
 		if(lcd_mode != 0) 
-		{ 
+		{
+			//Toggle HBlank flag OFF
+			mem->memory_map[DISPSTAT] &= ~0x2;
+
 			lcd_mode = 0; 
 			update_obj_render_list();
 		}
@@ -1083,15 +1104,15 @@ void AGB_LCD::step()
 	//Mode 1 - H-Blank
 	else if(((lcd_clock % 1232) > 960) && (lcd_clock < 197120))
 	{
-		//Toggle HBlank flag ON
-		mem->memory_map[DISPSTAT] |= 0x2;
-
 		//Permit OAM access if HBlank Interval Free flag is set
 		if(lcd_stat.hblank_interval_free) { lcd_stat.oam_access = true; }
 
 		//Change mode
 		if(lcd_mode != 1) 
-		{ 
+		{
+			//Toggle HBlank flag ON
+			mem->memory_map[DISPSTAT] |= 0x2;
+
 			lcd_mode = 1;
 			scanline_pixel_counter = 0;
 
@@ -1128,9 +1149,6 @@ void AGB_LCD::step()
 		if(current_scanline < 227 ) { mem->memory_map[DISPSTAT] |= 0x1; }
 		else { mem->memory_map[DISPSTAT] &= ~0x1; }
 
-		//Toggle HBlank flag OFF
-		mem->memory_map[DISPSTAT] &= ~0x2;
-
 		//Permit OAM write access
 		lcd_stat.oam_access = true;
 
@@ -1138,6 +1156,9 @@ void AGB_LCD::step()
 		if(lcd_mode != 2) 
 		{
 			lcd_mode = 2;
+
+			//Toggle HBlank flag OFF
+			mem->memory_map[DISPSTAT] &= ~0x2;
 
 			//Increment scanline count
 			current_scanline++;
@@ -1203,12 +1224,7 @@ void AGB_LCD::step()
 			mem->memory_map[DISPSTAT] |= 0x2;
 
 			//Raise HBlank interrupt
-			//TODO - Only trigger when entering HBlank for the 1st time
 			if(mem->memory_map[DISPSTAT] & 0x10) { mem->memory_map[REG_IF] |= 0x2; }
-
-			current_scanline++;
-			mem->write_u16_fast(VCOUNT, current_scanline);
-			scanline_compare();
 		}
 
 		//Reset LCD clock
@@ -1225,6 +1241,17 @@ void AGB_LCD::step()
 			mem->write_u16_fast(VCOUNT, 0);
 			scanline_compare();
 			scanline_pixel_counter = 0; 
+		}
+
+		//Increment Scanline after HBlank
+		else if(lcd_clock % 1232 == 0)
+		{
+			//Toggle HBlank flag OFF
+			mem->memory_map[DISPSTAT] &= ~0x2;
+
+			current_scanline++;
+			mem->write_u16_fast(VCOUNT, current_scanline);
+			scanline_compare();
 		}
 	}
 
@@ -1257,4 +1284,3 @@ void AGB_LCD::scanline_compare()
 		mem->write_u16_fast(DISPSTAT, disp_stat);
 	}
 }
-		

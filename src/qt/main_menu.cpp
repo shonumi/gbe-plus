@@ -47,6 +47,8 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	fullscreen->setShortcut(tr("F12"));
 	screenshot->setShortcut(tr("F9"));
 
+	pause->setCheckable(true);
+	pause->setObjectName("pause_action");
 	fullscreen->setCheckable(true);
 
 	QMenuBar* menu_bar;
@@ -172,6 +174,13 @@ void main_menu::open_file()
 
 	SDL_PauseAudio(0);
 
+	//Close the core
+	if(main_menu::gbe_plus != NULL) 
+	{
+		main_menu::gbe_plus->shutdown();
+		main_menu::gbe_plus->core_emu::~core_emu();
+	}
+
 	config::rom_file = filename.toStdString();
 	config::save_file = config::rom_file + ".sav";
 
@@ -181,13 +190,6 @@ void main_menu::open_file()
 
 	if(qt_gui::screen != NULL) { delete qt_gui::screen; }
 	qt_gui::screen = NULL;
-
-	//Close the core
-	if(main_menu::gbe_plus != NULL) 
-	{
-		main_menu::gbe_plus->shutdown();
-		main_menu::gbe_plus->core_emu::~core_emu();
-	}
 
 	boot_game();
 }
@@ -214,6 +216,8 @@ void main_menu::boot_game()
 {
 	config::sample_rate = settings->sample_rate;
 	config::pause_emu = false;
+
+	findChild<QAction*>("pause_action")->setChecked(false);
 
 	//Determine Gameboy type based on file name
 	//Note, DMG and GBC games are automatically detected in the Gameboy MMU, so only check for GBA types here
@@ -444,11 +448,26 @@ void main_menu::show_cgfx()
 	cgfx->update_obj_window(8, 40);
 	cgfx->update_bg_window(8, 384);
 	
-	switch(cgfx->layer_select->currentIndex())
+	//Draw DMG layers
+	if(config::gb_type < 2)
 	{
-		case 0: cgfx->draw_dmg_bg(); break;
-		case 1: cgfx->draw_dmg_win(); break;
-		case 2: cgfx->draw_dmg_obj(); break;
+		switch(cgfx->layer_select->currentIndex())
+		{
+			case 0: cgfx->draw_dmg_bg(); break;
+			case 1: cgfx->draw_dmg_win(); break;
+			case 2: cgfx->draw_dmg_obj(); break;
+		}
+	}
+
+	//Draw GBC layers
+	else
+	{
+		switch(cgfx->layer_select->currentIndex())
+		{
+			case 0: cgfx->draw_gbc_bg(); break;
+			case 1: cgfx->draw_gbc_win(); break;
+			case 2: cgfx->draw_gbc_obj(); break;
+		}
 	}
 
 	cgfx->show();

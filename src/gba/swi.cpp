@@ -73,7 +73,8 @@ void ARM7::process_swi(u32 comment)
 
 		//Stop-Sleep
 		case 0x3:
-			std::cout<<"SWI::Stop-Sleep (not implemented yet) \n";
+			std::cout<<"SWI::Stop-Sleep \n";
+			swi_sleep();
 			break;
 
 		//IntrWait
@@ -304,16 +305,16 @@ void ARM7::swi_softreset()
 	reg.r13_irq = 0x03007FA0;
 	reg.r13 = 0x03007F00;
 
-	//Set PC to start of GamePak ROM or 25KB WRAM
-	u8 flag = (mem->read_u8(0x3007FFA) & 0x1) ? 1 : 0;
-	if(flag == 1) { reg.r15 = 0x2000000; }
-	else { reg.r15 = 0x8000000; }
+	//Set PC to start of GamePak ROM or 256KB WRAM
+	u8 flag = mem->read_u8(0x3007FFA);
+	if(flag == 0) { reg.r15 = 0x8000000; }
+	else { reg.r15 = 0x2000000; }
 	needs_flush = true;
 
 	//Set registers R0-R12 to zero
 	for(int x = 0; x <= 12; x++) { set_reg(x, 0); }
 
-	//Set R14_svc, R14_irq, and R14 to zero
+	//Set R14_svc, R14_irq to zero, R14 to the return address
 	reg.r14_svc = 0;
 	reg.r14_irq = 0;
 
@@ -344,52 +345,51 @@ void ARM7::swi_registerramreset()
 	//Clear 256K WRAM
 	if(reset_flags & 0x1)
 	{
-		for(x = 0x2000000; x < 0x2040000; x++) { mem->memory_map[x] = 0; }
+		for(x = 0x2000000; x < 0x2040000; x++) { mem->write_u8(x, 0x0); }
 	}
 
 	//Clear 32KB WRAM, excluding the stack
 	if(reset_flags & 0x2)
 	{
-		for(x = 0x3000000; x < 0x3007E00; x++) { mem->memory_map[x] = 0; }
+		for(x = 0x3000000; x < 0x3007E00; x++) { mem->write_u8(x, 0x0); }
 	}
 
 	//Clear Palette VRAM
 	if(reset_flags & 0x4)
 	{
-	 	for(x = 0x5000000; x < 0x5000400; x++) { mem->memory_map[x] = 0; }
+	 	for(x = 0x5000000; x < 0x5000400; x++) { mem->write_u8(x, 0x0); }
 	}
 
 	//Clear VRAM
 	if(reset_flags & 0x8)
 	{
-		for(x = 0x6000000; x < 0x6018000; x++) { mem->memory_map[x] = 0; }
+		for(x = 0x6000000; x < 0x6018000; x++) { mem->write_u8(x, 0x0); }
 	}
 
 	//Clear OAM
 	if(reset_flags & 0x10)
 	{
-		for(x = 0x7000000; x < 0x7000400; x++) { mem->memory_map[x] = 0; }
+		for(x = 0x7000000; x < 0x7000400; x++) { mem->write_u8(x, 0x0); }
 	}
 
 	//Reset SIO
-	//TODO - See what values SIO MMIO registers have after running BIOS, use them here
-	//For now, just reset RCNT (0x4000134)
 	if(reset_flags & 0x20)
 	{
 		mem->write_u16(0x4000134, 0x8000);
+		for(x = 0x4000136; x <  0x400015A; x++) { mem->write_u8(x, 0x0); }
 	}
 
 	//Reset Sound Registers
 	if(reset_flags & 0x40)
 	{
-		for(x = 0x4000060; x < 0x40000B0; x++) { mem->memory_map[x] = 0; }
+		for(x = 0x4000060; x < 0x40000B0; x++) { mem->write_u8(x, 0x0); }
 	}
 
 	//Reset all other registers (mainly display and timer registers?)
 	if(reset_flags & 0x80)
 	{
-		for(x = 0x4000000; x < 0x4000060; x++) { mem->memory_map[x] = 0; }
-		for(x = 0x4000100; x < 0x4000110; x++) { mem->memory_map[x] = 0; }
+		for(x = 0x4000000; x < 0x4000060; x++) { mem->write_u8(x, 0x0); }
+		for(x = 0x4000100; x < 0x4000110; x++) { mem->write_u8(x, 0x0); }
 		mem->write_u16(DISPCNT, 0x80);
 	}
 }
@@ -417,6 +417,14 @@ void ARM7::swi_halt()
 			if((ie_check & (1 << x)) && (if_check & (1 << x))) { halt = false; }
 		}
 	}
+}
+
+/****** HLE implementation of Sleep ******/
+void ARM7::swi_sleep()
+{
+	bios_read_state = BIOS_SWI_FINISH;
+	sleep = true;
+	running = false;
 }
 
 /****** HLE implementation of Div ******/
@@ -566,8 +574,6 @@ void ARM7::swi_arctan2()
 /****** HLE implementation of CPUFastSet ******/
 void ARM7::swi_cpufastset()
 {
-	//TODO - Timings
-
 	bios_read_state = BIOS_SWI_FINISH;
 
 	//Grab source address - R0
@@ -628,8 +634,6 @@ void ARM7::swi_cpufastset()
 /****** HLE implementation of CPUSet ******/
 void ARM7::swi_cpuset()
 {
-	//TODO - Timings
-
 	bios_read_state = BIOS_SWI_FINISH;
 
 	//Grab source address - R0
@@ -881,7 +885,6 @@ void ARM7::swi_huffuncomp()
 	u32 bitstream_addr = (data_ptr + tree_size);
 	u32 bitstream_mask = 0x80000000;
 
-	u8 count = 0;
 	bool is_data_node = false;
 
 	//Uncompress data

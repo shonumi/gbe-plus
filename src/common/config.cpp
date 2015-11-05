@@ -61,6 +61,8 @@ namespace config
 
 	std::stringstream title;
 
+	u8 dmg_gbc_pal = 0;
+
 	//Emulated Gameboy type
 	//TODO - Make this an enum
 	//0 - DMG, 1 - DMG on GBC, 2 - GBC, 3 - GBA, 4 - NDS????
@@ -72,6 +74,7 @@ namespace config
 	//Sound parameters
 	u8 volume = 128;
 	double sample_rate = 44100;
+	bool mute = false;
 
 	//System screen sizes
 	u32 sys_width = 0;
@@ -112,14 +115,281 @@ void reset_dmg_colors()
 	config::DMG_OBJ_PAL[3][1] = 0xFF000000;
 }
 
+/****** Set DMG colors based on GBC BIOS ******/
+void set_dmg_colors(u8 color_type)
+{
+	switch(color_type)
+	{
+		//Default palette
+		case 0:
+			reset_dmg_colors();
+			break;
+
+		//No input
+		case 1:
+			config::DMG_BG_PAL[0] = 0xFFF8F8F8;
+			config::DMG_BG_PAL[1] = 0xFF78F830;
+			config::DMG_BG_PAL[2] = 0xFF0060C0;
+			config::DMG_BG_PAL[3] = 0xFF000000;
+
+			config::DMG_OBJ_PAL[0][0] = 0xFFF8F8F8;
+			config::DMG_OBJ_PAL[1][0] = 0xFFF88080;
+			config::DMG_OBJ_PAL[2][0] = 0xFF903838;
+			config::DMG_OBJ_PAL[3][0] = 0xFF000000;
+
+			config::DMG_OBJ_PAL[0][1] = 0xFFF8F8F8;
+			config::DMG_OBJ_PAL[1][1] = 0xFFF88080;
+			config::DMG_OBJ_PAL[2][1] = 0xFF903838;
+			config::DMG_OBJ_PAL[3][1] = 0xFF000000;
+
+			break;
+
+		//UP
+		case 2:
+			config::DMG_BG_PAL[0] = 0xFFF8F8F8;
+			config::DMG_BG_PAL[1] = 0xFFF8A860;
+			config::DMG_BG_PAL[2] = 0xFF803000;
+			config::DMG_BG_PAL[3] = 0xFF000000;
+
+			config::DMG_OBJ_PAL[0][0] = 0xFFF8F8F8;
+			config::DMG_OBJ_PAL[1][0] = 0xFFF8A860;
+			config::DMG_OBJ_PAL[2][0] = 0xFF803000;
+			config::DMG_OBJ_PAL[3][0] = 0xFF000000;
+
+			config::DMG_OBJ_PAL[0][1] = 0xFFF8F8F8;
+			config::DMG_OBJ_PAL[1][1] = 0xFFF8A860;
+			config::DMG_OBJ_PAL[2][1] = 0xFF803000;
+			config::DMG_OBJ_PAL[3][1] = 0xFF000000;
+
+			break;
+
+		//DOWN
+		case 3:
+			config::DMG_BG_PAL[0] = 0xFFF8F8A0;
+			config::DMG_BG_PAL[1] = 0xFFF89090;
+			config::DMG_BG_PAL[2] = 0xFF9090F8;
+			config::DMG_BG_PAL[3] = 0xFF000000;
+
+			config::DMG_OBJ_PAL[0][0] = 0xFFF8F8A0;
+			config::DMG_OBJ_PAL[1][0] = 0xFFF89090;
+			config::DMG_OBJ_PAL[2][0] = 0xFF9090F8;
+			config::DMG_OBJ_PAL[3][0] = 0xFF000000;
+
+			config::DMG_OBJ_PAL[0][1] = 0xFFF8F8A0;
+			config::DMG_OBJ_PAL[1][1] = 0xFFF89090;
+			config::DMG_OBJ_PAL[2][1] = 0xFF9090F8;
+			config::DMG_OBJ_PAL[3][1] = 0xFF000000;
+
+			break;
+
+		//LEFT
+		case 4:
+			config::DMG_BG_PAL[0] = 0xFFF8F8F8;
+			config::DMG_BG_PAL[1] = 0xFF60A0F8;
+			config::DMG_BG_PAL[2] = 0xFF0000F8;
+			config::DMG_BG_PAL[3] = 0xFF000000;
+
+			config::DMG_OBJ_PAL[0][0] = 0xFFF8F8F8;
+			config::DMG_OBJ_PAL[1][0] = 0xFFF88080;
+			config::DMG_OBJ_PAL[2][0] = 0xFF903838;
+			config::DMG_OBJ_PAL[3][0] = 0xFF000000;
+
+			config::DMG_OBJ_PAL[0][1] = 0xFFF8F8F8;
+			config::DMG_OBJ_PAL[1][1] = 0xFF78F830;
+			config::DMG_OBJ_PAL[2][1] = 0xFF008000;
+			config::DMG_OBJ_PAL[3][1] = 0xFF000000;
+
+			break;
+
+		//RIGHT
+		case 5:
+			config::DMG_BG_PAL[0] = 0xFFF8F8F8;
+			config::DMG_BG_PAL[1] = 0xFF50F800;
+			config::DMG_BG_PAL[2] = 0xFFF84000;
+			config::DMG_BG_PAL[3] = 0xFF000000;
+
+			config::DMG_OBJ_PAL[0][0] = 0xFFF8F8F8;
+			config::DMG_OBJ_PAL[1][0] = 0xFF50F800;
+			config::DMG_OBJ_PAL[2][0] = 0xFFF84000;
+			config::DMG_OBJ_PAL[3][0] = 0xFF000000;
+
+			config::DMG_OBJ_PAL[0][1] = 0xFFF8F8F8;
+			config::DMG_OBJ_PAL[1][1] = 0xFF50F800;
+			config::DMG_OBJ_PAL[2][1] = 0xFFF84000;
+			config::DMG_OBJ_PAL[3][1] = 0xFF000000;
+
+			break;
+
+		//UP + A
+		case 6:
+                        config::DMG_BG_PAL[0] = 0xFFF8F8F8;
+                        config::DMG_BG_PAL[1] = 0xFFF88080;
+                        config::DMG_BG_PAL[2] = 0xFF903838;
+                        config::DMG_BG_PAL[3] = 0xFF000000;
+
+                        config::DMG_OBJ_PAL[0][0] = 0xFFF8F8F8;
+                        config::DMG_OBJ_PAL[1][0] = 0xFF78F830;
+                        config::DMG_OBJ_PAL[2][0] = 0xFF008000;
+                        config::DMG_OBJ_PAL[3][0] = 0xFF000000;
+
+                        config::DMG_OBJ_PAL[0][1] = 0xFFF8F8F8;
+                        config::DMG_OBJ_PAL[1][1] = 0xFF60A0F8;
+                        config::DMG_OBJ_PAL[2][1] = 0xFF0000F8;
+                        config::DMG_OBJ_PAL[3][1] = 0xFF000000;
+
+			break;
+
+		//DOWN + A
+		case 7:
+                        config::DMG_BG_PAL[0] = 0xFFF8F8F8;
+                        config::DMG_BG_PAL[1] = 0xFFF8F800;
+                        config::DMG_BG_PAL[2] = 0xFFF80000;
+                        config::DMG_BG_PAL[3] = 0xFF000000;
+
+                        config::DMG_OBJ_PAL[0][0] = 0xFFF8F8F8;
+                        config::DMG_OBJ_PAL[1][0] = 0xFFF8F800;
+                        config::DMG_OBJ_PAL[2][0] = 0xFFF80000;
+                        config::DMG_OBJ_PAL[3][0] = 0xFF000000;
+
+                        config::DMG_OBJ_PAL[0][1] = 0xFFF8F8F8;
+                        config::DMG_OBJ_PAL[1][1] = 0xFFF8F800;
+                        config::DMG_OBJ_PAL[2][1] = 0xFFF80000;
+                        config::DMG_OBJ_PAL[3][1] = 0xFF000000;
+
+			break;
+
+		//LEFT + A
+		case 8:
+                        config::DMG_BG_PAL[0] = 0xFFF8F8F8;
+                        config::DMG_BG_PAL[1] = 0xFF8888D8;
+                        config::DMG_BG_PAL[2] = 0xFF505088;
+                        config::DMG_BG_PAL[3] = 0xFF000000;
+
+                        config::DMG_OBJ_PAL[0][0] = 0xFFF8F8F8;
+                        config::DMG_OBJ_PAL[1][0] = 0xFFF88080;
+                        config::DMG_OBJ_PAL[2][0] = 0xFF903838;
+                        config::DMG_OBJ_PAL[3][0] = 0xFF000000;
+
+                        config::DMG_OBJ_PAL[0][1] = 0xFFF8F8F8;
+                        config::DMG_OBJ_PAL[1][1] = 0xFFF8A860;
+                        config::DMG_OBJ_PAL[2][1] = 0xFF803000;
+                        config::DMG_OBJ_PAL[3][1] = 0xFF000000;
+
+			break;
+
+		//RIGHT + A
+		case 9:
+                        config::DMG_BG_PAL[0] = 0xFFF8F8F8;
+                        config::DMG_BG_PAL[1] = 0xFF78F830;
+                        config::DMG_BG_PAL[2] = 0xFF0060C0;
+                        config::DMG_BG_PAL[3] = 0xFF000000;
+
+                        config::DMG_OBJ_PAL[0][0] = 0xFFF8F8F8;
+                        config::DMG_OBJ_PAL[1][0] = 0xFFF88080;
+                        config::DMG_OBJ_PAL[2][0] = 0xFF903838;
+                        config::DMG_OBJ_PAL[3][0] = 0xFF000000;
+
+                        config::DMG_OBJ_PAL[0][1] = 0xFFF8F8F8;
+                        config::DMG_OBJ_PAL[1][1] = 0xFFF88080;
+                        config::DMG_OBJ_PAL[2][1] = 0xFF903838;
+                        config::DMG_OBJ_PAL[3][1] = 0xFF000000;
+
+			break;
+
+		//UP + B
+		case 10:
+                        config::DMG_BG_PAL[0] = 0xFFF8E0C0;
+                        config::DMG_BG_PAL[1] = 0xFFC89880;
+                        config::DMG_BG_PAL[2] = 0xFF806828;
+                        config::DMG_BG_PAL[3] = 0xFF583008;
+
+                        config::DMG_OBJ_PAL[0][0] = 0xFFF8F8F8;
+                        config::DMG_OBJ_PAL[1][0] = 0xFFF8A860;
+                        config::DMG_OBJ_PAL[2][0] = 0xFF803000;
+                        config::DMG_OBJ_PAL[3][0] = 0xFF000000;
+
+                        config::DMG_OBJ_PAL[0][1] = 0xFFF8F8F8;
+                        config::DMG_OBJ_PAL[1][1] = 0xFFF8A860;
+                        config::DMG_OBJ_PAL[2][1] = 0xFF803000;
+                        config::DMG_OBJ_PAL[3][1] = 0xFF000000;
+
+			break;
+
+		//DOWN + B
+		case 11:
+                        config::DMG_BG_PAL[0] = 0xFFF8F8F8;
+                        config::DMG_BG_PAL[1] = 0xFFF8F800;
+                        config::DMG_BG_PAL[2] = 0xFF784800;
+                        config::DMG_BG_PAL[3] = 0xFF000000;
+
+                        config::DMG_OBJ_PAL[0][0] = 0xFFF8F8F8;
+                        config::DMG_OBJ_PAL[1][0] = 0xFF60A0F8;
+                        config::DMG_OBJ_PAL[2][0] = 0xFF0000F8;
+                        config::DMG_OBJ_PAL[3][0] = 0xFF000000;
+
+                        config::DMG_OBJ_PAL[0][1] = 0xFFF8F8F8;
+                        config::DMG_OBJ_PAL[1][1] = 0xFF78F830;
+                        config::DMG_OBJ_PAL[2][1] = 0xFF008000;
+                        config::DMG_OBJ_PAL[3][1] = 0xFF000000;
+
+			break;
+
+		//LEFT + B
+		case 12:
+                        config::DMG_BG_PAL[0] = 0xFFF8F8F8;
+                        config::DMG_BG_PAL[1] = 0xFFA0A0A0;
+                        config::DMG_BG_PAL[2] = 0xFF505050;
+                        config::DMG_BG_PAL[3] = 0xFF000000;
+
+                        config::DMG_OBJ_PAL[0][0] = 0xFFF8F8F8;
+                        config::DMG_OBJ_PAL[1][0] = 0xFFA0A0A0;
+                        config::DMG_OBJ_PAL[2][0] = 0xFF505050;
+                        config::DMG_OBJ_PAL[3][0] = 0xFF000000;
+
+                        config::DMG_OBJ_PAL[0][1] = 0xFFF8F8F8;
+                        config::DMG_OBJ_PAL[1][1] = 0xFFA0A0A0;
+                        config::DMG_OBJ_PAL[2][1] = 0xFF505050;
+                        config::DMG_OBJ_PAL[3][1] = 0xFF000000;
+
+			break;
+
+		//RIGHT + B
+		case 13:
+                        config::DMG_BG_PAL[0] = 0xFF000000;
+                        config::DMG_BG_PAL[1] = 0xFF008080;
+                        config::DMG_BG_PAL[2] = 0xFFF8D800;
+                        config::DMG_BG_PAL[3] = 0xFFF8F8F8;
+
+                        config::DMG_OBJ_PAL[0][0] = 0xFF000000;
+                        config::DMG_OBJ_PAL[1][0] = 0xFF008080;
+                        config::DMG_OBJ_PAL[2][0] = 0xFFF8D800;
+                        config::DMG_OBJ_PAL[3][0] = 0xFFF8F8F8;
+
+                        config::DMG_OBJ_PAL[0][1] = 0xFF000000;
+                        config::DMG_OBJ_PAL[1][1] = 0xFF008080;
+                        config::DMG_OBJ_PAL[2][1] = 0xFFF8D800;
+                        config::DMG_OBJ_PAL[3][1] = 0xFFF8F8F8;
+
+			break;
+	}
+}	
+
 /****** Validates emulated system type ******/
 void validate_system_type()
 {
 	if(config::rom_file.empty()) { return; }
+	if((config::rom_file == "-h") || (config::rom_file == "--help")) { config::cli_args.push_back(config::rom_file); return; } 
 
 	//Determine Gameboy type based on file name
 	//Note, DMG and GBC games are automatically detected in the Gameboy MMU, so only check for GBA types here
 	std::size_t dot = config::rom_file.find_last_of(".");
+	
+	if(dot == std::string::npos)
+	{
+		std::cout<<"GBE::Warning - Could not determine the emulated system type for file " << config::rom_file << "\n";
+		return;
+	}
+
 	std::string ext = config::rom_file.substr(dot);
 
 	if(ext == ".gba") { config::gb_type = 3; }
@@ -152,7 +422,7 @@ bool parse_cli_args()
 			//Run GBE+ in debug mode
 			if((config::cli_args[x] == "-d") || (config::cli_args[x] == "--debug")) { config::use_debugger = true; }
 
-			//Load GBA BIOS
+			//Load BIOS
 			else if((config::cli_args[x] == "-b") || (config::cli_args[x] == "--bios")) 
 			{
 				if((++x) == config::cli_args.size()) { std::cout<<"GBE::Error - No BIOS file in arguments\n"; }
@@ -181,6 +451,34 @@ bool parse_cli_args()
 
 			//Scale screen by 6x
 			else if(config::cli_args[x] == "--6x") { config::scaling_factor = 6; }
+
+			//Set system type - Auto
+			else if(config::cli_args[x] == "--sys-auto") { config::gb_type = 0; }
+
+			//Set system type - DMG
+			else if(config::cli_args[x] == "--sys-dmg") { config::gb_type = 1; }
+
+			//Set system type - GBC
+			else if(config::cli_args[x] == "--sys-gbc") { config::gb_type = 2; }
+
+			//Set system type - GBA
+			else if(config::cli_args[x] == "--sys-gba") { config::gb_type = 3; }
+
+			//Print Help
+			else if((config::cli_args[x] == "-h") || (config::cli_args[x] == "--help")) 
+			{
+				std::cout<<"GBE+ Command Line Options:\n";
+				std::cout<<"-b [FILE], --bios [FILE] \t\t Load and use BIOS file\n";
+				std::cout<<"-d, --debug \t\t\t\t Start the command-line debugger\n";
+				std::cout<<"--opengl \t\t\t\t Use OpenGL for screen drawing and scaling\n";
+				std::cout<<"--2x, --3x, --4x, --5x, --6x \t\t Scale screen by a given factor (OpenGL only)\n";
+				std::cout<<"--sys-auto \t\t\t\t Set the emulated system type to AUTO\n";
+				std::cout<<"--sys-dmg \t\t\t\t Set the emulated system type to DMG (old Gameboy)\n";
+				std::cout<<"--sys-gbc \t\t\t\t Set the emulated system type to GBC\n";
+				std::cout<<"--sys-gba \t\t\t\t Set the emulated system type to GBA\n";
+				std::cout<<"-h, --help \t\t\t\t Print these help messages\n";
+				return false;
+			}
 
 			else
 			{
@@ -420,6 +718,25 @@ bool parse_ini_file()
 			}
 		}
 
+		//Mute settings
+		else if(ini_item == "#mute")
+		{
+			if((x + 1) < size)
+			{
+				ini_item = ini_opts[++x];
+				std::stringstream temp_stream(ini_item);
+				temp_stream >> output;
+
+				if((output >= 0) && (output <= 1)) { config::mute = output; }
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#mute) \n";
+				return false;
+			}
+		}
+
 		//Sample rate
 		else if(ini_item == "#sample_rate")
 		{
@@ -459,6 +776,29 @@ bool parse_ini_file()
 			}
 		}
 
+
+		//Emulated DMG-on-GBC palette
+		else if(ini_item == "#dmg_on_gbc_pal")
+		{
+			if((x + 1) < size) 
+			{
+				ini_item = ini_opts[++x];
+				std::stringstream temp_stream(ini_item);
+				temp_stream >> output;
+
+				if((output >= 1) && (output <= 13)) 
+				{
+					config::dmg_gbc_pal = output;
+					set_dmg_colors(config::dmg_gbc_pal);
+				}
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#dmg_on_gbc_pal) \n";
+				return false;
+			}
+		}
 
 		//DMG-GBC keyboard controls
 		else if(ini_item == "#dmg_key_controls")

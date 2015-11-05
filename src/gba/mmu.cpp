@@ -52,9 +52,14 @@ void AGB_MMU::reset()
 	gpio.input = gpio.output = 0;
 	gpio.current_type = DISABLED;
 
-	//HLE stuff
-	memory_map[DISPCNT] = 0x80;
-	write_u16(0x4000134, 0x8000);
+	//HLE some post-boot registers
+	if(!config::use_bios)
+	{
+		memory_map[DISPCNT] = 0x80;
+		write_u16(0x4000134, 0x8000);
+		write_u8(0x4000300, 0x1);
+		write_u8(0x4000410, 0xFF);
+	}
 
 	bios_lock = false;
 
@@ -72,8 +77,22 @@ void AGB_MMU::reset()
 	n_clock = 4;
 	s_clock = 2;
 
-	dma[0].enable = dma[1].enable = dma[2].enable = dma[3].enable = false;
-	dma[0].started = dma[1].started = dma[2].started = dma[3].started = false;
+	//Setup DMA info
+	for(int x = 0; x < 4; x++)
+	{
+		dma[x].enable = false;
+		dma[x].started = false;
+		dma[x].start_address = 0;
+		dma[x].original_start_address = 0;
+		dma[x].destination_address = 0;
+		dma[x].current_dma_position = 0;
+		dma[x].word_count = 0;
+		u8 word_type = 0;
+		u16 control = 0;
+		u8 dest_addr_ctrl = 0;
+		u8 src_addr_ctrl = 0;
+		u8 delay = 0;
+	}
 
 	current_save_type = NONE;
 
@@ -681,7 +700,12 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			lcd_stat->window_x2[0] = memory_map[WIN0H];
 
 			if(lcd_stat->window_x2[0] > 240) { lcd_stat->window_x2[0] = 240; }
-			if(lcd_stat->window_x2[0] < lcd_stat->window_x1[0]) { lcd_stat->window_x2[0] = lcd_stat->window_x1[0] = 240; }
+
+			//If the 2nd X coordinate is lower than the 1st, set both to 240
+			if((lcd_stat->window_x2[0] < lcd_stat->window_x1[0]) && (memory_map[WIN0H] != 0)) { lcd_stat->window_x2[0] = lcd_stat->window_x1[0] = 240; }
+
+			//However, if the 2nd X coordinate happens to be zero, this effectively enables the whole screen as the current window
+			else if((lcd_stat->window_x2[0] < lcd_stat->window_x1[0]) && (memory_map[WIN0H] == 0)) { lcd_stat->window_x1[0] = 0; lcd_stat->window_x2[0] = 240; }
 
 			//If the two X coordinates are the same, window should fail to draw
 			//Set both to a pixel that the GBA cannot draw so the LCD won't render it
@@ -698,7 +722,12 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			lcd_stat->window_x2[1] = memory_map[WIN1H];
 
 			if(lcd_stat->window_x2[1] > 240) { lcd_stat->window_x2[1] = 240; }
-			if(lcd_stat->window_x2[1] < lcd_stat->window_x1[1]) { lcd_stat->window_x2[1] = lcd_stat->window_x1[1] = 240; }
+
+			//If the 2nd X coordinate is lower than the 1st, set both to 240
+			if((lcd_stat->window_x2[1] < lcd_stat->window_x1[1]) && (memory_map[WIN1H] != 0)) { lcd_stat->window_x2[1] = lcd_stat->window_x1[1] = 240; }
+
+			//However, if the 2nd X coordinate happens to be zero, this effectively enables the whole screen as the current window
+			else if((lcd_stat->window_x2[1] < lcd_stat->window_x1[1]) && (memory_map[WIN1H] == 0)) { lcd_stat->window_x1[1] = 0; lcd_stat->window_x2[1] = 240; }
 
 			//If the two X coordinates are the same, window should fail to draw
 			//Set both to a pixel that the GBA cannot draw so the LCD won't render it
@@ -1703,6 +1732,18 @@ bool AGB_MMU::read_file(std::string filename)
 	file.close();
 	std::cout<<"MMU::" << filename << " loaded successfully. \n";
 
+	//Calculate 8-bit checksum
+	u8 checksum = 0;
+
+	for(u32 x = 0x80000A0; x < 0x80000BD; x++) { checksum = checksum - memory_map[x]; }
+
+	checksum = checksum - 0x19;
+
+	if(checksum != memory_map[0x80000BD]) 
+	{
+		std::cout<<"MMU::Warning - Cartridge Header Checksum is 0x" << std::hex << (int)memory_map[0x80000BD] <<". Correct value is 0x" << (int)checksum << "\n";
+	}
+
 	std::string backup_file = filename + ".sav";
 
 	//Try to auto-detect save-type, if any
@@ -1856,7 +1897,7 @@ bool AGB_MMU::load_backup(std::string filename)
 	}
 
 	//Load 64KB FLASH RAM
-	if(current_save_type == FLASH_64)
+	else if(current_save_type == FLASH_64)
 	{
 		//Read data from file
 		file.read(reinterpret_cast<char*> (&save_data[0]), file_size);
@@ -1869,7 +1910,7 @@ bool AGB_MMU::load_backup(std::string filename)
 	}
 
 	//Load 128KB FLASH RAM
-	if(current_save_type == FLASH_128)
+	else if(current_save_type == FLASH_128)
 	{
 		//Read data from file
 		file.read(reinterpret_cast<char*> (&save_data[0]), file_size);

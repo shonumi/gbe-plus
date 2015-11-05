@@ -782,7 +782,7 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	else if(address == REG_WX)
 	{
 		memory_map[address] = value;
-		lcd_stat->window_x = (value - 7);
+		lcd_stat->window_x = (value < 7) ? 0 : (value - 7);
 	}	
 
 	//DMA transfer
@@ -896,21 +896,36 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	else if(address > 0x7FFF) { memory_map[address] = value; }
 
 	//CGFX processing - Check for BG updates
-	if((cgfx::load_cgfx || cgfx::auto_dump_bg) && (address >= 0x8000) && (address <= 0x97FF))
+	if((cgfx::load_cgfx || cgfx::auto_dump_bg) && (address >= 0x8000) && (address <= 0x9FFF))
 	{
 		//If the last VRAM value is the same, do not update
 		//Some games GBC games will spam VRAM addresses with the same data
 		if(previous_value == value) { return; }
 
-		cgfx_stat->bg_update_list[(address & ~0x8000) >> 4] = true;
-		cgfx_stat->update_bg = true;
+		//DMG BG Tile data update
+		if((config::gb_type == 1) && (address <= 0x97FF))
+		{
+			cgfx_stat->update_bg = true;
+
+			cgfx_stat->bg_update_list[(address & ~0x8000) >> 4] = true;
+		}
 
 		//GBC BG Tile Data update
-		if(config::gb_type == 2)
+		else if((config::gb_type == 2) && (address <= 0x97FF))
 		{
-			u8 tile_number = (address & ~0x8800) >> 4;
-			tile_number = (lcd_stat->bg_map_addr == 0x8800) ? lcd_stat->unsigned_tile_lut[tile_number] : tile_number;
+			cgfx_stat->update_bg = true;
+
+			u8 tile_number = (address - lcd_stat->bg_tile_addr) >> 4;
 			cgfx_stat->bg_tile_update_list[tile_number] = true;
+		}
+
+		//GBC BG Map Data update
+		else if((config::gb_type == 2) && (address >= 0x9800))
+		{
+			cgfx_stat->update_map = true;
+
+			u8 map_number = address - 0x9800;
+			cgfx_stat->bg_map_update_list[map_number] = true;
 		}
 	}
 }
@@ -1048,6 +1063,34 @@ bool DMG_MMU::read_file(std::string filename)
 			std::cout<<"MMU::ROM Size - " << cart.rom_size << "KB\n";
 			break;
 
+		case 0x9:
+			cart.mbc_type = ROM_ONLY;
+			cart.ram = true;
+			cart.battery = true;
+
+			std::cout<<"MMU::Cartridge Type - ROM + RAM + Battery\n";
+			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
+			std::cout<<"MMU::ROM Size - " << cart.rom_size << "KB\n";
+			break;
+
+		case 0xB:
+			std::cout<<"MMU::Cartridge Type - ROM + MMM01\n";
+			std::cout<<"MMU::MBC type currently unsupported \n";
+			return false;
+			break;
+
+		case 0xC:
+			std::cout<<"MMU::Cartridge Type - ROM + MMM01 + SRAM\n";
+			std::cout<<"MMU::MBC type currently unsupported \n";
+			return false;
+			break;
+
+		case 0xD:
+			std::cout<<"MMU::Cartridge Type - ROM + MMM01 + SRAM + Battery\n";
+			std::cout<<"MMU::MBC type currently unsupported \n";
+			return false;
+			break;
+
 		case 0x10:
 			cart.mbc_type = MBC3;
 			cart.ram = true;
@@ -1143,10 +1186,47 @@ bool DMG_MMU::read_file(std::string filename)
 			std::cout<<"MMU::ROM Size - " << cart.rom_size << "KB\n";
 			break;
 
+		case 0x1F:
+			std::cout<<"MMU::Cartridge Type - Gameboy Camera\n";
+			std::cout<<"MMU::MBC type currently unsupported \n";
+			return false;
+			break;
+
+		case 0x22:
+			std::cout<<"MMU:Cartridge Type - MBC7\n";
+			std::cout<<"MMU::MBC type currently unsupported \n";
+			return false;
+			break;
+
+		case 0xFD:
+			std::cout<<"MMU::Cartridge Type - Bandai TAMA5\n";
+			std::cout<<"MMU::MBC type currently unsupported \n";
+			return false;
+			break;
+
+		case 0xFE:
+			std::cout<<"MMU::Cartridge Type - Hudson HuC-3\n";
+			std::cout<<"MMU::MBC type currently unsupported \n";
+			return false;
+			break;
+
 		default:
 			std::cout<<"Catridge Type - 0x" << std::hex << (int)memory_map[ROM_MBC] << "\n";
 			std::cout<<"MMU::MBC type currently unsupported \n";
 			return false;
+	}
+
+	//Calculate 8-bit checksum
+	u8 checksum = 0;
+
+	for(u16 x = 0x134; x < 0x14D; x++)
+	{
+		checksum = checksum - memory_map[x] - 1;
+	}
+
+	if(checksum != memory_map[0x14D]) 
+	{
+		std::cout<<"MMU::Warning - Cartridge Header Checksum is 0x" << std::hex << (int)memory_map[0x14D] <<". Correct value is 0x" << (int)checksum << "\n";
 	}
 
 	//Read additional ROM data to banks
@@ -1291,11 +1371,23 @@ bool DMG_MMU::load_backup(std::string filename)
 
 		else 
 		{
-			for(int x = 0; x < 0x10; x++)
+
+			//Read MBC RAM
+			if(cart.mbc_type != ROM_ONLY)
 			{
-				u8* ex_ram = &random_access_bank[x][0];
-				sram.read((char*)ex_ram, 0x2000); 
+				for(int x = 0; x < 0x10; x++)
+				{
+					u8* ex_ram = &random_access_bank[x][0];
+					sram.read((char*)ex_ram, 0x2000); 
+				}
 			}
+
+			//Read 8KB Cart RAM
+			else
+			{
+				u8* ex_ram = &memory_map[0xA000];
+				sram.read((char*)ex_ram, 0x2000);
+			} 
 		}
 
 		sram.close();
@@ -1321,10 +1413,21 @@ bool DMG_MMU::save_backup(std::string filename)
 
 		else 
 		{
-			for(int x = 0; x < 0x10; x++)
+			//Save MBC RAM
+			if(cart.mbc_type != ROM_ONLY)
 			{
-				sram.write(reinterpret_cast<char*> (&random_access_bank[x][0]), 0x2000); 
+				for(int x = 0; x < 0x10; x++)
+				{
+					sram.write(reinterpret_cast<char*> (&random_access_bank[x][0]), 0x2000); 
+				}
 			}
+
+			//Save 8KB Cart RAM
+			else
+			{
+				sram.write(reinterpret_cast<char*> (&memory_map[0xA000]), 0x2000);
+			}
+					
 
 			//Add RTC data
 			if(cart.rtc) 

@@ -575,7 +575,6 @@ void ARM7::dma3()
 		mem->dma[3].word_type = (mem->read_u16_fast(DMA3CNT_H) & 0x400) ? 1 : 0;
 
 		u32 temp_value = 0;
-		u32 original_src_addr = mem->dma[3].start_address;
 		u32 original_dest_addr = mem->dma[3].destination_address;
 
 		if((mem->dma[3].control & 0x8000) == 0) { mem->dma[3].enable = false; return; }

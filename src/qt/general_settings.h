@@ -35,6 +35,7 @@ class gen_settings : public QDialog
 	//Display tab widgets
 	QComboBox* screen_scale;
 	QComboBox* cgfx_scale;
+	QComboBox* dmg_gbc_pal;
 	QCheckBox* ogl;
 	QCheckBox* load_cgfx;
 
@@ -95,6 +96,7 @@ class gen_settings : public QDialog
 	private slots:
 	void set_bios();
 	void screen_scale_change();
+	void dmg_gbc_pal_change();
 	void set_cgfx();
 	void volume_change();
 	void sample_rate_change();

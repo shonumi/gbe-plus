@@ -140,13 +140,20 @@ void DMG_LCD::reset()
 	cgfx_stat.current_bg_hash.clear();
 	cgfx_stat.current_bg_hash.resize(384);
 
+	cgfx_stat.current_gbc_bg_hash.clear();
+	cgfx_stat.current_gbc_bg_hash.resize(2048);
+
 	cgfx_stat.bg_update_list.clear();
 	cgfx_stat.bg_update_list.resize(384);
 
 	cgfx_stat.bg_tile_update_list.clear();
 	cgfx_stat.bg_tile_update_list.resize(256);
 
+	cgfx_stat.bg_map_update_list.clear();
+	cgfx_stat.bg_map_update_list.resize(2048);
+
 	cgfx_stat.update_bg = false;
+	cgfx_stat.update_map = false;
 
 	//Initialize system screen dimensions
 	config::sys_width = 160;
@@ -259,7 +266,6 @@ void DMG_LCD::update_oam()
 void DMG_LCD::update_obj_render_list()
 {
 	obj_render_length = -1;
-	u8 scanline_pixel = 0;
 
 	u8 obj_x_sort[40];
 	u8 obj_sort_length = 0;
@@ -548,29 +554,123 @@ void DMG_LCD::render_gbc_bg_scanline()
 		u16 tile_data = mem->read_u16(tile_addr);
 		mem->vram_bank = old_vram_bank;
 
-		for(int y = 7; y >= 0; y--)
+		//Render CGFX
+		u16 map_id = (lcd_stat.bg_map_addr + x) - 0x9800;
+		if(has_hash(cgfx_stat.current_gbc_bg_hash[map_id])) { render_cgfx_gbc_bg_scanline(tile_data, bg_map_attribute); }
+
+		//Render original pixel data
+		else
 		{
-			//Calculate raw value of the tile's pixel
-			if(bg_map_attribute & 0x20) 
+			for(int y = 7; y >= 0; y--)
 			{
-				tile_pixel = ((tile_data >> 8) & (1 << lcd_stat.flip_8[y])) ? 2 : 0;
-				tile_pixel |= (tile_data & (1 << lcd_stat.flip_8[y])) ? 1 : 0;
+				//Calculate raw value of the tile's pixel
+				if(bg_map_attribute & 0x20) 
+				{
+					tile_pixel = ((tile_data >> 8) & (1 << lcd_stat.flip_8[y])) ? 2 : 0;
+					tile_pixel |= (tile_data & (1 << lcd_stat.flip_8[y])) ? 1 : 0;
+				}
+
+				else
+				{
+					tile_pixel = ((tile_data >> 8) & (1 << y)) ? 2 : 0;
+					tile_pixel |= (tile_data & (1 << y)) ? 1 : 0;
+				}
+
+				//Set the raw color of the BG
+				scanline_raw[lcd_stat.scanline_pixel_counter] = tile_pixel;
+
+				//Set the BG-to-OBJ priority
+				scanline_priority[lcd_stat.scanline_pixel_counter] = bg_priority;
+
+				//Set the final color of the BG
+				scanline_buffer[lcd_stat.scanline_pixel_counter++] = lcd_stat.bg_colors_final[tile_pixel][bg_palette];
+
+				u8 last_scanline_pixel = lcd_stat.scanline_pixel_counter - 1;
+
+				//Render HD
+				if((cgfx::load_cgfx) && (cgfx::scaling_factor > 1) && (last_scanline_pixel < 160))
+				{
+					u32 pos = (last_scanline_pixel * cgfx::scaling_factor) + (lcd_stat.current_scanline * cgfx::scaling_factor * config::sys_width);
+			
+					for(int a = 0; a < cgfx::scaling_factor; a++)
+					{
+						for(int b = 0; b < cgfx::scaling_factor; b++)
+						{
+							hd_screen_buffer[pos + b] = scanline_buffer[last_scanline_pixel];
+						}
+	
+						pos += config::sys_width;
+					}
+				}
+			}
+		}
+	}
+}
+
+/****** Renders pixels for the BG (per-scanline) - GBC CGFX version ******/
+void DMG_LCD::render_cgfx_gbc_bg_scanline(u16 tile_data, u8 bg_map_attribute)
+{
+	//Determine where to start drawing
+	u8 rendered_scanline = lcd_stat.current_scanline + lcd_stat.bg_scroll_y;
+
+	//Determine which line of the tiles to generate pixels for this scanline
+	u8 tile_line = rendered_scanline % 8;
+
+	//Grab the ID of this hash to pull custom pixel data
+	u16 bg_tile_id = cgfx_stat.m_id[cgfx_stat.last_id];
+
+	u8 tile_pixel = 0;
+	u8 bg_priority = (bg_map_attribute & 0x80) ? 1 : 0;
+
+	for(int x = (tile_line * 8), y = 7; x < ((tile_line * 8) + 8); x++, y--)
+	{
+		//Calculate raw value of the tile's pixel
+		if(bg_map_attribute & 0x20) 
+		{
+			tile_pixel = ((tile_data >> 8) & (1 << lcd_stat.flip_8[y])) ? 2 : 0;
+			tile_pixel |= (tile_data & (1 << lcd_stat.flip_8[y])) ? 1 : 0;
+		}
+
+		else
+		{
+			tile_pixel = ((tile_data >> 8) & (1 << y)) ? 2 : 0;
+			tile_pixel |= (tile_data & (1 << y)) ? 1 : 0;
+		}
+
+		//Set the raw color of the BG
+		scanline_raw[lcd_stat.scanline_pixel_counter] = tile_pixel;
+
+		//Set the BG-to-OBJ priority
+		scanline_priority[lcd_stat.scanline_pixel_counter] = bg_priority;
+
+		//Render 1:1
+		if(cgfx::scaling_factor <= 1)
+		{
+			scanline_buffer[lcd_stat.scanline_pixel_counter++] = cgfx_stat.bg_pixel_data[bg_tile_id][x];
+		}
+
+		//Render HD
+		else
+		{
+			u32 pos = (lcd_stat.scanline_pixel_counter * cgfx::scaling_factor) + (lcd_stat.current_scanline * cgfx::scaling_factor * config::sys_width);
+			u32 bg_pos = (x * cgfx::scaling_factor) + (tile_line * cgfx::scaling_factor * 8);
+			
+			if(lcd_stat.scanline_pixel_counter < 160)
+			{
+
+				for(int a = 0; a < cgfx::scaling_factor; a++)
+				{
+					for(int b = 0; b < cgfx::scaling_factor; b++)
+					{
+						hd_screen_buffer[pos + b] = cgfx_stat.bg_pixel_data[bg_tile_id][bg_pos + b];
+					}
+				
+					pos += config::sys_width;
+					bg_pos += (8 * cgfx::scaling_factor);
+				}
 			}
 
-			else 
-			{
-				tile_pixel = ((tile_data >> 8) & (1 << y)) ? 2 : 0;
-				tile_pixel |= (tile_data & (1 << y)) ? 1 : 0;
-			}
-
-			//Set the raw color of the BG
-			scanline_raw[lcd_stat.scanline_pixel_counter] = tile_pixel;
-
-			//Set the BG-to-OBJ priority
-			scanline_priority[lcd_stat.scanline_pixel_counter] = bg_priority;
-
-			//Set the final color of the BG
-			scanline_buffer[lcd_stat.scanline_pixel_counter++] = lcd_stat.bg_colors_final[tile_pixel][bg_palette];
+			lcd_stat.scanline_pixel_counter++;
 		}
 	}
 }
@@ -713,32 +813,58 @@ void DMG_LCD::render_gbc_win_scanline()
 		u16 tile_data = mem->read_u16(tile_addr);
 		mem->vram_bank = old_vram_bank;
 
-		for(int y = 7; y >= 0; y--)
+		//Render CGFX
+		u16 map_id = (lcd_stat.window_map_addr + x) - 0x9800;
+		if(has_hash(cgfx_stat.current_gbc_bg_hash[map_id])) { render_cgfx_gbc_bg_scanline(tile_data, bg_map_attribute); }
+
+		//Render original pixel data
+		else
 		{
-			//Calculate raw value of the tile's pixel
-			if(bg_map_attribute & 0x20) 
+			for(int y = 7; y >= 0; y--)
 			{
-				tile_pixel = ((tile_data >> 8) & (1 << lcd_stat.flip_8[y])) ? 2 : 0;
-				tile_pixel |= (tile_data & (1 << lcd_stat.flip_8[y])) ? 1 : 0;
+				//Calculate raw value of the tile's pixel
+				if(bg_map_attribute & 0x20) 
+				{
+					tile_pixel = ((tile_data >> 8) & (1 << lcd_stat.flip_8[y])) ? 2 : 0;
+					tile_pixel |= (tile_data & (1 << lcd_stat.flip_8[y])) ? 1 : 0;
+				}
+
+				else 
+				{
+					tile_pixel = ((tile_data >> 8) & (1 << y)) ? 2 : 0;
+					tile_pixel |= (tile_data & (1 << y)) ? 1 : 0;
+				}
+
+				//Set the raw color of the BG
+				scanline_raw[lcd_stat.scanline_pixel_counter] = tile_pixel;
+
+				//Set the BG-to-OBJ priority
+				scanline_priority[lcd_stat.scanline_pixel_counter] = bg_priority;
+
+				//Set the final color of the BG
+				scanline_buffer[lcd_stat.scanline_pixel_counter++] = lcd_stat.bg_colors_final[tile_pixel][bg_palette];
+
+				u8 last_scanline_pixel = lcd_stat.scanline_pixel_counter - 1;
+
+				//Render HD
+				if((cgfx::load_cgfx) && (cgfx::scaling_factor > 1) && (last_scanline_pixel < 160))
+				{
+					u32 pos = (last_scanline_pixel * cgfx::scaling_factor) + (lcd_stat.current_scanline * cgfx::scaling_factor * config::sys_width);
+			
+					for(int a = 0; a < cgfx::scaling_factor; a++)
+					{
+						for(int b = 0; b < cgfx::scaling_factor; b++)
+						{
+							hd_screen_buffer[pos + b] = scanline_buffer[last_scanline_pixel];
+						}
+	
+						pos += config::sys_width;
+					}
+				}
+
+				//Abort rendering if next pixel is off-screen
+				if(lcd_stat.scanline_pixel_counter == 160) { return; }
 			}
-
-			else 
-			{
-				tile_pixel = ((tile_data >> 8) & (1 << y)) ? 2 : 0;
-				tile_pixel |= (tile_data & (1 << y)) ? 1 : 0;
-			}
-
-			//Set the raw color of the BG
-			scanline_raw[lcd_stat.scanline_pixel_counter] = tile_pixel;
-
-			//Set the BG-to-OBJ priority
-			scanline_priority[lcd_stat.scanline_pixel_counter] = bg_priority;
-
-			//Set the final color of the BG
-			scanline_buffer[lcd_stat.scanline_pixel_counter++] = lcd_stat.bg_colors_final[tile_pixel][bg_palette];
-
-			//Abort rendering if next pixel is off-screen
-			if(lcd_stat.scanline_pixel_counter == 160) { return; }
 		}
 	}
 }
@@ -1088,7 +1214,6 @@ void DMG_LCD::update_bg_colors()
 	u8 hi_lo = (mem->memory_map[REG_BCPS] & 0x1);
 	u8 color = (mem->memory_map[REG_BCPS] >> 1) & 0x3;
 	u8 palette = (mem->memory_map[REG_BCPS] >> 3) & 0x7;
-	u8 auto_increment = (mem->memory_map[REG_BCPS]) & 0x80;
 
 	//Update lower-nibble of color
 	if(hi_lo == 0) 
@@ -1144,7 +1269,6 @@ void DMG_LCD::update_obj_colors()
 	u8 hi_lo = (mem->memory_map[REG_OCPS] & 0x1);
 	u8 color = (mem->memory_map[REG_OCPS] >> 1) & 0x3;
 	u8 palette = (mem->memory_map[REG_OCPS] >> 3) & 0x7;
-	u8 auto_increment = (mem->memory_map[REG_OCPS]) & 0x80;
 
 	//Update lower-nibble of color
 	if(hi_lo == 0) 
@@ -1388,6 +1512,21 @@ void DMG_LCD::step(int cpu_clock)
 						cgfx_stat.update_bg = false;
 					}
 
+					if(cgfx_stat.update_map)
+					{
+						//Update specific map entries
+						for(int x = 0; x < 2048; x++)
+						{
+							if(cgfx_stat.bg_map_update_list[x]) 
+							{
+								update_gbc_bg_hash(0x9800 + x);
+								cgfx_stat.bg_map_update_list[x] = false;
+							}
+						}
+						
+						cgfx_stat.update_map = false;
+					}
+					
 					//Render scanline when first entering Mode 0
 					if(config::gb_type != 2 ) { render_dmg_scanline(); }
 					else { render_gbc_scanline(); }

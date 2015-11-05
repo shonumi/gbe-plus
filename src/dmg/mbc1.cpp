@@ -32,7 +32,7 @@ void DMG_MMU::mbc1_write(u16 address, u8 value)
 	else if((address >= 0x2000) && (address <= 0x3FFF)) 
 	{ 
 		rom_bank = (value & 0x1F);
-		if(rom_bank & 0x1F == 0) { rom_bank += 1; }
+		if((rom_bank & 0x1F) == 0) { rom_bank += 1; }
 	}
 
 	//MBC register - Select ROM bank bits 5 to 6 or Set or RAM bank

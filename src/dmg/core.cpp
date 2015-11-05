@@ -201,6 +201,8 @@ void DMG_core::run_core()
 /****** Debugger - Allow core to run until a breaking condition occurs ******/
 void DMG_core::debug_step()
 {
+	bool printed = false;
+
 	//In continue mode, if breakpoints exist, try to stop on one
 	if((db_unit.breakpoints.size() > 0) && (db_unit.last_command == "c"))
 	{
@@ -211,6 +213,7 @@ void DMG_core::debug_step()
 			{
 				debug_display();
 				debug_process_command();
+				printed = true;
 			}
 		}
 
@@ -221,7 +224,11 @@ void DMG_core::debug_step()
 	{
 		debug_display();
 		debug_process_command();
+		printed = true;
 	}
+
+	//Display every instruction when print all is enabled
+	if((!printed) && (db_unit.print_all)) { debug_display(); } 
 }
 
 /****** Debugger - Display relevant info to the screen ******/
@@ -440,6 +447,26 @@ void DMG_core::debug_process_command()
 			debug_process_command();
 		}
 
+		//Print all instructions to the screen
+		else if(command == "pa")
+		{
+			if(db_unit.print_all)
+			{
+				std::cout<<"\nPrint-All turned off\n";
+				db_unit.print_all = false;
+			}
+
+			else
+			{
+				std::cout<<"\nPrint-All turned on\n";
+				db_unit.print_all = true;
+			}
+
+			valid_command = true;
+			db_unit.last_command = "pa";
+			debug_process_command();
+		}
+
 		//Print help information
 		else if(command == "h")
 		{
@@ -451,6 +478,7 @@ void DMG_core::debug_process_command()
 			std::cout<<"dc \t\t Toggle CPU cycle display\n";
 			std::cout<<"cr \t\t Reset CPU cycle counter\n";
 			std::cout<<"rs \t\t Reset emulation\n";
+			std::cout<<"pa \t\t Toggles printing all instructions to screen\n";
 			std::cout<<"q \t\t Quit GBE+\n\n";
 
 			valid_command = true;

@@ -18,6 +18,7 @@
 #include "common.h"
 
 void reset_dmg_colors();
+void set_dmg_colors(u8 color_type);
 void validate_system_type();
 bool parse_cli_args();
 void parse_filenames();
@@ -50,9 +51,11 @@ namespace config
 	extern u8 gb_type;
 	extern bool gba_enhance;
 	extern bool sdl_render;
+	extern u8 dmg_gbc_pal;
 
 	extern u8 volume;
 	extern double sample_rate;
+	extern bool mute;
 
 	extern u32 sys_width;
 	extern u32 sys_height;

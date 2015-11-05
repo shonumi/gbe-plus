@@ -164,6 +164,7 @@ class ARM7
 	bool running;
 	bool needs_flush;
 	bool in_interrupt;
+	bool sleep;
 
 	bool swi_vblank_wait;
 
@@ -273,6 +274,7 @@ class ARM7
 	void swi_cpufastset();
 	void swi_cpuset();
 	void swi_halt();
+	void swi_sleep();
 	void swi_vblankintrwait();
 	void swi_lz77uncompvram();
 	void swi_rluncompvram();

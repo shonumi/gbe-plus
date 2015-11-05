@@ -38,6 +38,7 @@ AGB_core::AGB_core()
 
 	db_unit.debug_mode = false;
 	db_unit.display_cycles = false;
+	db_unit.print_all = false;
 	db_unit.last_command = "n";
 
 	std::cout<<"GBE::Launching GBA core\n";
@@ -70,9 +71,16 @@ void AGB_core::start()
 /****** Stop the core ******/
 void AGB_core::stop()
 {
-	running = false;
-	core_cpu.running = false;
-	db_unit.debug_mode = false;
+	//Handle CPU Sleep mode
+	if(core_cpu.sleep) { sleep(); }
+
+	//Or stop completely
+	else
+	{
+		running = false;
+		core_cpu.running = false;
+		db_unit.debug_mode = false;
+	}
 }
 
 /****** Shutdown core's components ******/
@@ -80,6 +88,34 @@ void AGB_core::shutdown()
 {
 	core_mmu.AGB_MMU::~AGB_MMU();
 	core_cpu.ARM7::~ARM7();
+}
+
+/****** Force the core to sleep ******/
+void AGB_core::sleep()
+{
+	//White out LCD
+	core_cpu.controllers.video.clear_screen_buffer(0xFFFFFFFF);
+	core_cpu.controllers.video.update();
+
+	//Wait for L+R+Select input
+	bool l_r_select = false;
+
+	while(!l_r_select)
+	{
+		SDL_PollEvent(&event);
+
+		if((event.type == SDL_KEYDOWN) || (event.type == SDL_KEYUP) 
+		|| (event.type == SDL_JOYBUTTONDOWN) || (event.type == SDL_JOYBUTTONUP)
+		|| (event.type == SDL_JOYAXISMOTION) || (event.type == SDL_JOYHATMOTION)) { core_pad.handle_input(event); handle_hotkey(event); }
+
+		if(((core_pad.key_input & 0x4) == 0) && ((core_pad.key_input & 0x100) == 0) && ((core_pad.key_input & 0x200) == 0)) { l_r_select = true; }
+
+		SDL_Delay(50);
+		core_cpu.controllers.video.update();
+	}
+
+	core_cpu.sleep = false;
+	core_cpu.running = true;
 }
 
 /****** Reset the core ******/
@@ -163,6 +199,8 @@ void AGB_core::run_core()
 /****** Debugger - Allow core to run until a breaking condition occurs ******/
 void AGB_core::debug_step()
 {
+	bool printed = false;
+
 	//In continue mode, if breakpoints exist, try to stop on one
 	if((db_unit.breakpoints.size() > 0) && (db_unit.last_command == "c"))
 	{
@@ -173,6 +211,7 @@ void AGB_core::debug_step()
 			{
 				debug_display();
 				debug_process_command();
+				printed = true;
 			}
 		}
 
@@ -183,7 +222,11 @@ void AGB_core::debug_step()
 	{
 		debug_display();
 		debug_process_command();
+		printed = true;
 	}
+
+	//Display every instruction when print all is enabled
+	if((!printed) && (db_unit.print_all)) { debug_display(); } 
 }
 
 /****** Debugger - Display relevant info to the screen ******/
@@ -490,6 +533,26 @@ void AGB_core::debug_process_command()
 			debug_process_command();
 		}
 
+		//Print all instructions to the screen
+		else if(command == "pa")
+		{
+			if(db_unit.print_all)
+			{
+				std::cout<<"\nPrint-All turned off\n";
+				db_unit.print_all = false;
+			}
+
+			else
+			{
+				std::cout<<"\nPrint-All turned on\n";
+				db_unit.print_all = true;
+			}
+
+			valid_command = true;
+			db_unit.last_command = "pa";
+			debug_process_command();
+		}
+
 		//Print help information
 		else if(command == "h")
 		{
@@ -501,6 +564,7 @@ void AGB_core::debug_process_command()
 			std::cout<<"dc \t\t Toggle CPU cycle display\n";
 			std::cout<<"cr \t\t Reset CPU cycle counter\n";
 			std::cout<<"rs \t\t Reset emulation\n";
+			std::cout<<"pa \t\t Toggles printing all instructions to screen\n";
 			std::cout<<"q \t\t Quit GBE+\n\n";
 
 			valid_command = true;

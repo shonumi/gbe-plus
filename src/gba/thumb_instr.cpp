@@ -538,8 +538,6 @@ void ARM7::hireg_bx(u16 current_thumb_instruction)
 	u32 input = get_reg(dest_reg); //Still looks weird, but same as in THUMB.3
 	u32 result = 0;
 	u32 operand = get_reg(src_reg);
-	u8 shift_out = 0;
-	u8 carry_out = (reg.cpsr & CPSR_C_FLAG) ? 1 : 0;
 
 	if((op == 3) && (dr_msb != 0)) 
 	{ 
