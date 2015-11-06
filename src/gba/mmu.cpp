@@ -700,6 +700,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			lcd_stat->window_x2[0] = memory_map[WIN0H];
 
 			if(lcd_stat->window_x2[0] > 240) { lcd_stat->window_x2[0] = 240; }
+			if(lcd_stat->window_x2[0] > 0) { lcd_stat->window_x2[0]--; }
 
 			//If the 2nd X coordinate is lower than the 1st, set both to 240
 			if((lcd_stat->window_x2[0] < lcd_stat->window_x1[0]) && (memory_map[WIN0H] != 0)) { lcd_stat->window_x2[0] = lcd_stat->window_x1[0] = 240; }
@@ -709,7 +710,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 
 			//If the two X coordinates are the same, window should fail to draw
 			//Set both to a pixel that the GBA cannot draw so the LCD won't render it
-			if(lcd_stat->window_x1[0] == lcd_stat->window_x2[0]) { lcd_stat->window_x1[0] = lcd_stat->window_x2[0] = 255; }
+			else if(lcd_stat->window_x1[0] == lcd_stat->window_x2[0]) { lcd_stat->window_x1[0] = lcd_stat->window_x2[0] = 255; }
 			break;
 
 		//Window 1 Horizontal Coordinates
@@ -722,6 +723,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			lcd_stat->window_x2[1] = memory_map[WIN1H];
 
 			if(lcd_stat->window_x2[1] > 240) { lcd_stat->window_x2[1] = 240; }
+			if(lcd_stat->window_x2[1] > 0) { lcd_stat->window_x2[1]--; }
 
 			//If the 2nd X coordinate is lower than the 1st, set both to 240
 			if((lcd_stat->window_x2[1] < lcd_stat->window_x1[1]) && (memory_map[WIN1H] != 0)) { lcd_stat->window_x2[1] = lcd_stat->window_x1[1] = 240; }
@@ -731,7 +733,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 
 			//If the two X coordinates are the same, window should fail to draw
 			//Set both to a pixel that the GBA cannot draw so the LCD won't render it
-			if(lcd_stat->window_x1[1] == lcd_stat->window_x2[1]) { lcd_stat->window_x1[1] = lcd_stat->window_x2[1] = 255; }
+			else if(lcd_stat->window_x1[1] == lcd_stat->window_x2[1]) { lcd_stat->window_x1[1] = lcd_stat->window_x2[1] = 255; }
 			break;
 
 		//Window 0 Vertical Coordinates
@@ -744,11 +746,14 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			lcd_stat->window_y2[0] = memory_map[WIN0V];
 
 			if(lcd_stat->window_y2[0] > 160) { lcd_stat->window_y2[0] = 160; }
+			if(lcd_stat->window_y2[0] > 0) { lcd_stat->window_y2[0]--; }
+
+			//If the 2nd Y coordinate is lower than the 1st, set both to 160
 			if(lcd_stat->window_y2[0] < lcd_stat->window_y1[0]) { lcd_stat->window_y2[0] = lcd_stat->window_y1[0] = 160; }
 
 			//If the two Y coordinates are the same, window should fail to draw
 			//Set both to a pixel that the GBA cannot draw so the LCD won't render it
-			if(lcd_stat->window_y1[0] == lcd_stat->window_y2[0]) { lcd_stat->window_y1[0] = lcd_stat->window_y2[0] = 255; }
+			else if(lcd_stat->window_y1[0] == lcd_stat->window_y2[0]) { lcd_stat->window_y1[0] = lcd_stat->window_y2[0] = 255; }
 			break;
 
 		//Window 1 Vertical Coordinates
@@ -761,11 +766,14 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			lcd_stat->window_y2[1] = memory_map[WIN1V];
 
 			if(lcd_stat->window_y2[1] > 160) { lcd_stat->window_y2[1] = 160; }
+			if(lcd_stat->window_y2[1] > 0) { lcd_stat->window_y2[1]--; }
+
+			//If the 2nd Y coordinate is lower than the 1st, set both to 160
 			if(lcd_stat->window_y2[1] < lcd_stat->window_y1[1]) { lcd_stat->window_y2[1] = lcd_stat->window_y1[1] = 160; }
 
 			//If the two Y coordinates are the same, window should fail to draw
 			//Set both to a pixel that the GBA cannot draw so the LCD won't render it
-			if(lcd_stat->window_y1[1] == lcd_stat->window_y2[1]) { lcd_stat->window_y1[1] = lcd_stat->window_y2[1] = 255; }
+			else if(lcd_stat->window_y1[1] == lcd_stat->window_y2[1]) { lcd_stat->window_y1[1] = lcd_stat->window_y2[1] = 255; }
 			break;
 
 		//Window 0 In Enable Flags
