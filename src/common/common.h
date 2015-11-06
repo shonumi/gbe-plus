@@ -23,4 +23,15 @@ typedef signed short s16;
 typedef signed int s32;
 typedef signed long long int s64;
 
+/* ARM CPSR Flags */
+const u32 CPSR_N_FLAG = 0x80000000;
+const u32 CPSR_Z_FLAG = 0x40000000;
+const u32 CPSR_C_FLAG = 0x20000000;
+const u32 CPSR_V_FLAG = 0x10000000;
+const u32 CPSR_Q_FLAG = 0x8000000;
+const u32 CPSR_IRQ = 0x80;
+const u32 CPSR_FIQ = 0x40;
+const u32 CPSR_STATE = 0x20;
+const u32 CPSR_MODE = 0x1F;
+
 #endif // EMU_COMMON

@@ -19,10 +19,10 @@
 /****** Core Constructor ******/
 NTR_core::NTR_core()
 {
-	/*
 	//Link CPU and MMU
-	core_cpu.mem = &core_mmu;
+	core_cpu_nds9.mem = &core_mmu;
 
+	/*
 	//Link LCD and MMU
 	core_cpu.controllers.video.mem = &core_mmu;
 	core_mmu.set_lcd_data(&core_cpu.controllers.video.lcd_stat);
@@ -85,23 +85,27 @@ void NTR_core::stop()
 void NTR_core::shutdown() 
 { 
 	core_mmu.NTR_MMU::~NTR_MMU();
+	core_cpu_nds9.ARM9::~ARM9();
 }
 
 /****** Reset the core ******/
 void NTR_core::reset()
 {
 	/*
-	core_cpu.reset();
 	core_cpu.controllers.video.reset();
 	core_cpu.controllers.audio.reset();
 	*/
 
+	core_cpu_nds9.reset();
 	core_mmu.reset();
 	
-	/*
-	//Link CPU and MMU
-	core_cpu.mem = &core_mmu;
+	//Re-read specified ROM file
+	core_mmu.read_file(config::rom_file);
 
+	//Link CPU and MMU
+	core_cpu_nds9.mem = &core_mmu;
+
+	/*
 	//Link LCD and MMU
 	core_cpu.controllers.video.mem = &core_mmu;
 
@@ -113,9 +117,6 @@ void NTR_core::reset()
 
 	//Link MMU and CPU's timers
 	core_mmu.timer = &core_cpu.controllers.timer;
-
-	//Re-read specified ROM file
-	core_mmu.read_file(config::rom_file);
 
 	//Start everything all over again
 	start();
@@ -166,10 +167,10 @@ void NTR_core::run_core()
 		//Stop emulation
 		else { stop(); }
 	}
+	*/
 
 	//Shutdown core
 	shutdown();
-	*/
 }
 
 /****** Debugger - Allow core to run until a breaking condition occurs ******/

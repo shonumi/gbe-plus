@@ -16,7 +16,9 @@
 #define NDS_CORE
 
 #include "common/core_emu.h"
+#include "common/config.h"
 #include "mmu.h"
+#include "arm9.h"
 
 class NTR_core : virtual public core_emu
 {
@@ -52,6 +54,7 @@ class NTR_core : virtual public core_emu
 		void ex_write_u8(u16 address, u8 value);
 
 		NTR_MMU core_mmu;
+		ARM9 core_cpu_nds9;
 		
 		/*
 		ARM7 core_cpu;
