@@ -65,8 +65,8 @@ void AGB_LCD::reset()
 	lcd_stat.hblank_interval_free = false;
 	lcd_stat.oam_access = false;
 
-	lcd_stat.window_x1[0] = lcd_stat.window_x1[1] = 0;
-	lcd_stat.window_y1[0] = lcd_stat.window_y1[1] = 0;
+	lcd_stat.window_x1[0] = lcd_stat.window_x1[1] = 0xFF;
+	lcd_stat.window_y1[0] = lcd_stat.window_y1[1] = 0xFF;
 	lcd_stat.window_enable[0] = lcd_stat.window_enable[1] = false;
 
 	lcd_stat.in_window = false;
