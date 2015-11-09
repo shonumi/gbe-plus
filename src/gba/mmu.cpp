@@ -59,6 +59,7 @@ void AGB_MMU::reset()
 		write_u16(0x4000134, 0x8000);
 		write_u8(0x4000300, 0x1);
 		write_u8(0x4000410, 0xFF);
+		write_u32(0x4000800, 0xD000020);
 	}
 
 	bios_lock = false;
