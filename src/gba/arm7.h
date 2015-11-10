@@ -282,6 +282,7 @@ class ARM7
 	void swi_getbioschecksum();
 	void swi_bgaffineset();
 	void swi_objaffineset();
+	void swi_bitunpack();
 	void swi_midikey2freq();
 };
 		

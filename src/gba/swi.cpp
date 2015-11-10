@@ -150,7 +150,8 @@ void ARM7::process_swi(u32 comment)
 
 		//BitUnPack
 		case 0x10:
-			std::cout<<"SWI::Bit Unpack (not implemented yet) \n";
+			std::cout<<"SWI::BitUnpack \n";
+			swi_bitunpack();
 			break;
 
 		//LZ77UnCompWram
@@ -770,6 +771,91 @@ void ARM7::swi_vblankintrwait()
 	//This SWI will be fetched, decoded, and executed again until it hits VBlank 
 	reg.r15 -= (arm_mode == ARM) ? 4 : 2;
 }
+
+/****** HLE implementation of BitUnPack ******/
+void ARM7::swi_bitunpack()
+{
+	bios_read_state = BIOS_SWI_FINISH;
+
+	//Grab source address - R0
+	u32 src_addr = get_reg(0);
+
+	//Grab destination address - R1;
+	u32 dest_addr = get_reg(1);
+
+	//Grab pointer to unpack info - R2;
+	u32 unpack_info_addr = get_reg(2);
+
+	//Grab the length
+	u16 length = mem->read_u16(unpack_info_addr);
+	unpack_info_addr += 2;
+
+	//Grab the source width
+	u8 src_width = mem->read_u8(unpack_info_addr);
+	unpack_info_addr++;
+
+	//Grab the destination width
+	u8 dest_width = mem->read_u8(unpack_info_addr);
+	unpack_info_addr++;
+
+	if(src_width > dest_width)
+	{
+		std::cout<<"SWI::ERROR - BitUnPack source width is greater than destination width\n";
+		return;
+	}
+
+	u8 bit_mask = 0;
+
+	switch(src_width)
+	{
+		case 1: bit_mask = 0x1; break;
+		case 2: bit_mask = 0x3; break;
+		case 4: bit_mask = 0xF; break;
+		case 8: bit_mask = 0xFF; break;
+		default: std::cout<<"SWI::ERROR - Invalid source width\n"; return;
+	}
+
+	//Grab the data offset and zero flag
+	u32 data_offset = mem->read_u32(unpack_info_addr);
+	u8 zero_flag = (data_offset & 0x80000000) ? 1 : 0;
+	data_offset &= ~0x80000000;
+
+	u8 src_byte = 0;
+	u8 src_count = 0;
+	u32 result = 0;
+
+	//Decompress bytes from source addr
+	while(length > 0)
+	{
+		result = 0;
+
+		//Cycle through the byte and expand to destination width
+		for(u8 x = 0; x < 32; x += dest_width)
+		{
+			//Grab new source byte
+			if((src_count % 8) == 0) 
+			{
+				src_byte = mem->read_u8(src_addr++);
+				length--;
+			}
+
+			//Grab the slice
+			u32 slice = (src_byte & bit_mask);
+			src_byte >>= src_width;
+			src_count += src_width;
+
+			if(slice != 0) { slice += data_offset; }
+			else if ((slice == 0) && (zero_flag == 1)) { slice += data_offset; }
+
+			//OR the slice to the final result
+			result |= (slice << x);
+		}
+
+		//Write result to the destination address
+		mem->write_u32(dest_addr, result);
+		dest_addr += 4;
+	}
+}			
 
 /****** HLE implementation of LZ77UnCompVram ******/
 void ARM7::swi_lz77uncompvram()
