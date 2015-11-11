@@ -821,6 +821,23 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			lcd_stat->window_out_enable[5][1] = (value & 0x20) ? true : false;
 			break;
 
+		//Mosiac function
+		case MOSIAC:
+		case MOSIAC+1:
+			memory_map[address] = value;
+
+			lcd_stat->bg_mos_hsize = memory_map[MOSIAC] & 0xF;
+			lcd_stat->bg_mos_vsize = memory_map[MOSIAC] >> 4;
+			lcd_stat->obj_mos_hsize = memory_map[MOSIAC+1] & 0xF;
+			lcd_stat->obj_mos_vsize = memory_map[MOSIAC+1] >> 4;
+
+			if(lcd_stat->bg_mos_hsize) { lcd_stat->bg_mos_hsize--; }
+			if(lcd_stat->bg_mos_vsize) { lcd_stat->bg_mos_vsize--; }
+			if(lcd_stat->obj_mos_hsize) { lcd_stat->obj_mos_hsize--; }
+			if(lcd_stat->obj_mos_vsize) { lcd_stat->obj_mos_vsize--; }
+
+			break;
+
 		//SFX Control
 		case BLDCNT:
 			memory_map[address] = value;
