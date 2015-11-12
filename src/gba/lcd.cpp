@@ -167,6 +167,7 @@ void AGB_LCD::update_oam()
 			obj[x].rotate_scale = (attribute & 0x100) ? 1 : 0;
 			obj[x].type = (attribute & 0x200) ? 1 : 0;
 			obj[x].mode = (attribute >> 10) & 0x3;
+			obj[x].mosiac = (attribute >> 12) & 0x1;
 			obj[x].bit_depth = (attribute & 0x2000) ? 8 : 4;
 			obj[x].shape = (attribute >> 14);
 
@@ -372,6 +373,10 @@ bool AGB_LCD::render_sprite_pixel()
 
 				sprite_tile_pixel_y = v_flip;
 			}
+
+			//Handle the mosiac function
+			if(obj[sprite_id].mosiac && lcd_stat.obj_mos_hsize) { sprite_tile_pixel_x = ((sprite_tile_pixel_x / lcd_stat.obj_mos_hsize) * lcd_stat.obj_mos_hsize); }
+			if(obj[sprite_id].mosiac && lcd_stat.obj_mos_vsize) { sprite_tile_pixel_y = ((sprite_tile_pixel_y / lcd_stat.obj_mos_vsize) * lcd_stat.obj_mos_vsize); }
 
 			//Determine meta x-coordinate of rendered sprite pixel
 			u8 meta_x = (sprite_tile_pixel_x / 8);

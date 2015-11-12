@@ -83,6 +83,7 @@ class AGB_LCD
 		u8 mode;
 		u8 rotate_scale;
 		bool visible;
+		bool mosiac;
 	} obj[128];
 
 	u8 obj_render_list[128];
