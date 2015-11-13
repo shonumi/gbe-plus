@@ -283,6 +283,8 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			lcd_stat->bg_base_map_addr[0] = 0x6000000 + (0x800 * ((lcd_stat->bg_control[0] >> 8) & 0x1F));
 			lcd_stat->bg_base_tile_addr[0] = 0x6000000 + (0x4000 * ((lcd_stat->bg_control[0] >> 2) & 0x3));
 
+			memory_map[BG0CNT+1] &= ~0x20;
+
 			switch(lcd_stat->bg_control[0] >> 14)
 			{
 				case 0x0: lcd_stat->mode_0_width[0] = 256; lcd_stat->mode_0_height[0] = 256; break;
@@ -304,6 +306,8 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 
 			lcd_stat->bg_base_map_addr[1] = 0x6000000 + (0x800 * ((lcd_stat->bg_control[1] >> 8) & 0x1F));
 			lcd_stat->bg_base_tile_addr[1] = 0x6000000 + (0x4000 * ((lcd_stat->bg_control[1] >> 2) & 0x3));
+
+			memory_map[BG1CNT+1] &= ~0x20;
 
 			switch(lcd_stat->bg_control[1] >> 14)
 			{
