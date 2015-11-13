@@ -863,7 +863,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			break;
 
 		case BLDCNT+1:
-			memory_map[address] = value;
+			memory_map[address] = (value & 0x3F);
 			lcd_stat->sfx_target[0][1] = (value & 0x1) ? true : false;
 			lcd_stat->sfx_target[1][1] = (value & 0x2) ? true : false;
 			lcd_stat->sfx_target[2][1] = (value & 0x4) ? true : false;
@@ -876,7 +876,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 		case BLDALPHA:
 			if(memory_map[address] == value) { return; }
 			
-			memory_map[address] = value;
+			memory_map[address] = (value & 0x1F);
 			if(value > 0xF) { value = 0x10; }
 			lcd_stat->alpha_a_coef = (value & 0x1F) / 16.0;
 			break;
@@ -884,7 +884,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 		case BLDALPHA+1:
 			if(memory_map[address] == value) { return; }
 			
-			memory_map[address] = value;
+			memory_map[address] = (value & 0x1F);
 			if(value > 0xF) { value = 0x10; }
 			lcd_stat->alpha_b_coef = (value & 0x1F) / 16.0;
 			break;
