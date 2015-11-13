@@ -783,7 +783,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 
 		//Window 0 In Enable Flags
 		case WININ:
-			memory_map[address] = value;
+			memory_map[address] = (value & 0x3F);
 			lcd_stat->window_in_enable[0][0] = (value & 0x1) ? true : false;
 			lcd_stat->window_in_enable[1][0] = (value & 0x2) ? true : false;
 			lcd_stat->window_in_enable[2][0] = (value & 0x4) ? true : false;
@@ -794,7 +794,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 
 		//Window 1 In Enable Flags
 		case WININ+1:
-			memory_map[address] = value;
+			memory_map[address] = (value & 0x3F);
 			lcd_stat->window_in_enable[0][1] = (value & 0x1) ? true : false;
 			lcd_stat->window_in_enable[1][1] = (value & 0x2) ? true : false;
 			lcd_stat->window_in_enable[2][1] = (value & 0x4) ? true : false;
@@ -805,7 +805,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 
 		//Window 0 Out Enable Flags
 		case WINOUT:
-			memory_map[address] = value;
+			memory_map[address] = (value & 0x3F);
 			lcd_stat->window_out_enable[0][0] = (value & 0x1) ? true : false;
 			lcd_stat->window_out_enable[1][0] = (value & 0x2) ? true : false;
 			lcd_stat->window_out_enable[2][0] = (value & 0x4) ? true : false;
@@ -816,7 +816,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 
 		//Window 1 Out Enable Flags
 		case WINOUT+1:
-			memory_map[address] = value;
+			memory_map[address] = (value & 0x3F);
 			lcd_stat->window_out_enable[0][1] = (value & 0x1) ? true : false;
 			lcd_stat->window_out_enable[1][1] = (value & 0x2) ? true : false;
 			lcd_stat->window_out_enable[2][1] = (value & 0x4) ? true : false;
