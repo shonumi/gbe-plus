@@ -1223,6 +1223,11 @@ void ARM7::mem_check_16(u32 addr, u32& value, bool load_store)
 			case 0x400005A:
 			case 0x400005C:
 			case 0x400005E:
+			case 0x4000066:
+			case 0x400006E:
+			case 0x4000076:
+			case 0x400007A:
+			case 0x400007E:
 			case 0x40000C6:
 			case 0x40000D2:
 			case 0x40000DE: value = 0; normal_operation = false; break;
