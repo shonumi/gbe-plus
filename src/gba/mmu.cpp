@@ -1859,6 +1859,8 @@ bool AGB_MMU::read_bios(std::string filename)
 	u32 file_size = file.tellg();
 	file.seekg(0, file.beg);
 
+	if(file_size != 0x4000) { std::cout<<"MMU::Warning - Irregular BIOS size\n"; }
+	
 	u8* ex_mem = &memory_map[0];
 
 	//Read data from the ROM file
@@ -1891,7 +1893,7 @@ bool AGB_MMU::load_backup(std::string filename)
 	//Load SRAM
 	if(current_save_type == SRAM)
 	{
-		if(file_size > 0x8000) { std::cout<<"MMU::Warning - Irregular backup save size\n"; }
+		if(file_size > 0x8000) { std::cout<<"MMU::Warning - Irregular SRAM backup save size\n"; }
 
 		//Read data from file
 		file.read(reinterpret_cast<char*> (&save_data[0]), file_size);
@@ -1907,7 +1909,7 @@ bool AGB_MMU::load_backup(std::string filename)
 	//Load EEPROM
 	else if(current_save_type == EEPROM)
 	{
-		if((file_size != 0x200) && (file_size != 0x2000)) { file_size = 0x200; std::cout<<"MMU::Warning - Irregular backup save size\n"; }
+		if((file_size != 0x200) && (file_size != 0x2000)) { file_size = 0x200; std::cout<<"MMU::Warning - Irregular EEPROM backup save size\n"; }
 
 		//Read data from file
 		file.read(reinterpret_cast<char*> (&save_data[0]), file_size);
@@ -1929,6 +1931,8 @@ bool AGB_MMU::load_backup(std::string filename)
 	//Load 64KB FLASH RAM
 	else if(current_save_type == FLASH_64)
 	{
+		if(file_size != 0x10000) { std::cout<<MMU::Warning - Irregular FLASH RAM backup save size\n"; }
+
 		//Read data from file
 		file.read(reinterpret_cast<char*> (&save_data[0]), file_size);
 
@@ -1942,6 +1946,8 @@ bool AGB_MMU::load_backup(std::string filename)
 	//Load 128KB FLASH RAM
 	else if(current_save_type == FLASH_128)
 	{
+		if(file_size != 0x20000) { std::cout<<MMU::Warning - Irregular FLASH RAM backup save size\n"; }
+
 		//Read data from file
 		file.read(reinterpret_cast<char*> (&save_data[0]), file_size);
 
