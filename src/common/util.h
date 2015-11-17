@@ -37,6 +37,10 @@ namespace util
 	void init_crc32_table();
 	u32 get_crc32(u8* data, u32 length);
 
+	u8 xbit(u8 a, u8 b);
+	u16 xbit(u16 a, u8 b);
+	u32 xbit(u32 a, u32 b);
+
 	extern u32 crc32_table[256];
 	extern u32 poly32;
 }
