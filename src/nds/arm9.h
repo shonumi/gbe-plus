@@ -155,8 +155,10 @@ class ARM9
 
 	bool swi_vblank_wait;
 
-	u32 instruction_pipeline[3];
-	arm_instructions instruction_operation[3];
+	u32 instruction_pipeline[5];
+	arm_instructions instruction_operation[5];
+	u16 register_list[5];
+	std::vector< std::vector<u32> > address_list;
 	u8 pipeline_pointer;
 
 	u8 debug_message;
@@ -180,6 +182,9 @@ class ARM9
 	void fetch();
 	void decode();
 	void execute();
+	void access_mem();
+	void write_reg();
+
 	void update_pc();
 	void flush_pipeline();
 

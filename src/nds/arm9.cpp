@@ -27,9 +27,9 @@ ARM9::~ARM9()
 void ARM9::reset()
 {
 	reg.r0 = reg.r1 = reg.r2 = reg.r3 = reg.r4 = reg.r5 = reg.r6 = reg.r7 = reg.r8 = reg.r9 = reg.r10 = reg.r11 = reg.r12 = reg.r14 = 0;
-	reg.r13 = reg.r13_fiq = reg.r13_abt = reg.r13_und = 0x03007F00;
-	reg.r13_svc = 0x03007FE0;
-	reg.r13_irq = 0x03007FA0;
+	reg.r13 = reg.r13_fiq = reg.r13_abt = reg.r13_und = 0x803EC0;
+	reg.r13_svc = 0x803FC0;
+	reg.r13_irq = 0x803FA0;
 	reg.r15 = 0x8000000;
 	reg.cpsr = 0x5F;
 
@@ -282,7 +282,7 @@ void ARM9::fetch()
 /****** Decode ARM instruction ******/
 void ARM9::decode()
 {
-	u8 pipeline_id = (pipeline_pointer + 2) % 3;
+	u8 pipeline_id = (pipeline_pointer + 4) % 5;
 
 	if(instruction_operation[pipeline_id] == PIPELINE_FILL) { return; }
 
@@ -541,7 +541,7 @@ void ARM9::decode()
 /****** Execute ARM instruction ******/
 void ARM9::execute()
 {
-	u8 pipeline_id = (pipeline_pointer + 1) % 3;
+	u8 pipeline_id = (pipeline_pointer + 3) % 5;
 
 	if(instruction_operation[pipeline_id] == PIPELINE_FILL) 
 	{
@@ -735,8 +735,8 @@ void ARM9::flush_pipeline()
 {
 	needs_flush = false;
 	pipeline_pointer = 0;
-	instruction_pipeline[0] = instruction_pipeline[1] = instruction_pipeline[2] = 0;
-	instruction_operation[0] = instruction_operation[1] = instruction_operation[2] = PIPELINE_FILL;
+	instruction_pipeline[0] = instruction_pipeline[1] = instruction_pipeline[2] = instruction_pipeline[3] = instruction_pipeline[4] = 0;
+	instruction_operation[0] = instruction_operation[1] = instruction_operation[2] = instruction_operation[3] = instruction_operation[4] = PIPELINE_FILL;
 }
 
 /****** Updates the PC after each fetch-decode-execute ******/
