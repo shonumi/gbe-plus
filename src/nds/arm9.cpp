@@ -303,6 +303,7 @@ void ARM9::decode()
 			instruction_operation[pipeline_id] = THUMB_2;
 		}
 
+		/*
 		else if((current_instruction >> 13) == 0x1)
 		{
 			//THUMB_3
@@ -401,8 +402,10 @@ void ARM9::decode()
 			//THUMB_19
 			instruction_operation[pipeline_id] = THUMB_19;
 		}
+		*/
 	}
 
+	/*
 	//Decode ARM instructions
 	if(arm_mode == ARM)
 	{
@@ -536,6 +539,7 @@ void ARM9::decode()
 			instruction_operation[pipeline_id] = ARM_13;
 		}
 	}
+	*/
 }
 
 /****** Execute ARM instruction ******/
@@ -730,6 +734,42 @@ void ARM9::execute()
 
 }
 
+/****** Access memory stage ******/
+void ARM9::access_mem() 
+{
+	u8 pipeline_id = (pipeline_pointer + 2) % 5;
+	//TODO
+
+	//Clear address list for this pipeline stage
+	for(u8 x = 0; x < 16; x++) { address_list[pipeline_id][x] = 0; }
+}
+
+/****** Register writeback ******/
+void ARM9::write_reg()
+{
+	u8 pipeline_id = (pipeline_pointer + 1) % 5;
+	u8 r_list = register_list[pipeline_id];
+	
+	//Check all registers and write appropiate values to them
+	if(r_list & 0x1) { set_reg(0, value_list[pipeline_id][0]; }
+	if(r_list & 0x2) { set_reg(1, value_list[pipeline_id][1]; }
+	if(r_list & 0x4) { set_reg(2, value_list[pipeline_id][2]; }
+	if(r_list & 0x8) { set_reg(3, value_list[pipeline_id][3]; }
+	if(r_list & 0x10) { set_reg(4, value_list[pipeline_id][4]; }
+	if(r_list & 0x20) { set_reg(5, value_list[pipeline_id][5]; }
+	if(r_list & 0x40) { set_reg(6, value_list[pipeline_id][6]; }
+	if(r_list & 0x80) { set_reg(7, value_list[pipeline_id][7]; }
+	if(r_list & 0x100) { set_reg(8, value_list[pipeline_id][8]; }
+	if(r_list & 0x200) { set_reg(9, value_list[pipeline_id][9]; }
+	if(r_list & 0x400) { set_reg(10, value_list[pipeline_id][10]; }
+	if(r_list & 0x800) { set_reg(11, value_list[pipeline_id][11]; }
+	if(r_list & 0x1000) { set_reg(12, value_list[pipeline_id][12]; }
+	if(r_list & 0x2000) { set_reg(13, value_list[pipeline_id][13]; }
+	if(r_list & 0x4000) { set_reg(14, value_list[pipeline_id][14]; }
+	if(r_list & 0x8000) { set_reg(15, value_list[pipeline_id][15]; }
+}
+	
+
 /****** Flush the pipeline - Called when branching or resetting ******/
 void ARM9::flush_pipeline()
 {
@@ -737,6 +777,16 @@ void ARM9::flush_pipeline()
 	pipeline_pointer = 0;
 	instruction_pipeline[0] = instruction_pipeline[1] = instruction_pipeline[2] = instruction_pipeline[3] = instruction_pipeline[4] = 0;
 	instruction_operation[0] = instruction_operation[1] = instruction_operation[2] = instruction_operation[3] = instruction_operation[4] = PIPELINE_FILL;
+
+	for(u8 x = 0; x < 5; x++) 
+	{
+		for(u8 y = 0; y < 16; y++)
+		{
+			register_list[x][y] = 0;
+			address_list[x][y] = 0;
+			value_list[x][y] = 0;
+		}
+	}
 }
 
 /****** Updates the PC after each fetch-decode-execute ******/

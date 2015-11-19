@@ -13,6 +13,9 @@
 /****** THUMB.1 - Move Shifted Register ******/
 void ARM9::move_shifted_register(u16 current_thumb_instruction)
 {
+	//Grab pipeline ID
+	u8 pipeline_id = (pipeline_pointer + 3) % 5;
+
 	//Grab destination register - Bits 0-2
 	u8 dest_reg = (current_thumb_instruction & 0x7);
 
@@ -51,6 +54,12 @@ void ARM9::move_shifted_register(u16 current_thumb_instruction)
 
 	set_reg(dest_reg, result);
 
+	//Setup Memory and Write-Back stages
+	//Memory: No memory is accessed
+	//Write-back: Write result to 1 destination register
+	register_list[pipeline_id] = (1 << dest_reg);
+	value_list[pipeline_id][dest_reg] = result;
+
 	//Zero flag
 	if(result == 0) { reg.cpsr |= CPSR_Z_FLAG; }
 	else { reg.cpsr &= ~CPSR_Z_FLAG; }
@@ -62,9 +71,6 @@ void ARM9::move_shifted_register(u16 current_thumb_instruction)
 	//Carry flag
 	if(shift_out == 1) { reg.cpsr |= CPSR_C_FLAG; }
 	else if(shift_out == 0) { reg.cpsr &= ~CPSR_C_FLAG; }
-
-	//Clock CPU and controllers - 1S
-	clock(reg.r15, false);
 } 
 
 /****** THUMB.2 - Add-Sub Immediate ******/
@@ -112,14 +118,16 @@ void ARM9::add_sub_immediate(u16 current_thumb_instruction)
 			break;
 	}
 
+	//Setup Memory and Write-Back stages
+	//No memory is accessed
+	//Write-back: Write result to 1 destination register
+	register_list[pipeline_id] = (1 << dest_reg);
+	value_list[pipeline_id][dest_reg] = result;
 	set_reg(dest_reg, result);
 
 	//Update condition codes
 	if(op & 0x1){ update_condition_arithmetic(input, operand, result, false); }
 	else { update_condition_arithmetic(input, operand, result, true); }
-
-	//Clock CPU and controllers - 1S
-	clock(reg.r15, false);
 }
 
 /****** THUMB.3 Move-Compare-Add-Subtract Immediate ******/

@@ -157,9 +157,11 @@ class ARM9
 
 	u32 instruction_pipeline[5];
 	arm_instructions instruction_operation[5];
-	u16 register_list[5];
-	std::vector< std::vector<u32> > address_list;
 	u8 pipeline_pointer;
+
+	u16 register_list[5];
+	u32 address_list[5][16];
+	u32 value_list[5][16];
 
 	u8 debug_message;
 	u32 debug_code;
