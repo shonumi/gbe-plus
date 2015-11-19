@@ -377,25 +377,25 @@ u32 get_crc32(u8* data, u32 length)
 	return (crc32 ^ 0xFFFFFFFF);
 }
 
-/****** Determine if two 8-bit variables share the same bits set bits ******/
+/****** Determine the unique bits of an between two 8-bit variables ******/
 u8 xbit(u8 a, u8 b)
 {
-	u8 x = ~(a ^ b);
-	return ~((a ^ x) | (b ^ x));
+	u8 x = (a ^ b) & a;
+	return x;
 }
 
-/****** Determine if two 16-bit variables share the same bits set bits ******/
+/****** Determine the unique bits of an between two 16-bit variables ******/
 u16 xbit(u16 a, u16 b)
 {
-	u16 x = ~(a ^ b);
-	return ~((a ^ x) | (b ^ x));
+	u16 x = (a ^ b) & a;
+	return x;
 }
 
-/****** Determine if two 32-bit variables share the same bits set bits ******/
+/****** Determine the unique bits of an between two 32-bit variables ******/
 u32 xbit(u32 a, u32 b)
 {
-	u32 x = ~(a ^ b);
-	return ~((a ^ x) | (b ^ x));
+	u32 x = (a ^ b) & a;
+	return x;
 }
 
 } //Namespace
