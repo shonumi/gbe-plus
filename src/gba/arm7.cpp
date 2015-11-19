@@ -1228,9 +1228,33 @@ void ARM7::mem_check_16(u32 addr, u32& value, bool load_store)
 			case 0x4000076:
 			case 0x400007A:
 			case 0x400007E:
+			case 0x4000086:
+			case 0x400008A:
+			case 0x400008C:
+			case 0x400008E:
+			case 0x40000A8:
+			case 0x40000AA:
+			case 0x40000AC:
+			case 0x40000AE:
 			case 0x40000C6:
 			case 0x40000D2:
-			case 0x40000DE: value = 0; normal_operation = false; break;
+			case 0x40000DE:
+			case 0x40000E0:
+			case 0x40000E2:
+			case 0x40000E4:
+			case 0x40000E6:
+			case 0x40000E8:
+			case 0x40000EA:
+			case 0x40000EC:
+			case 0x40000EE:
+			case 0x40000F0:
+			case 0x40000F2:
+			case 0x40000F4:
+			case 0x40000F6:
+			case 0x40000F8:
+			case 0x40000FA:
+			case 0x40000FC:
+			case 0x40000FE: value = 0; normal_operation = false; break;
 		}
 
 		//Return specific values when trying to read BIOS when PC is not within the BIOS
