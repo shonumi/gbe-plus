@@ -86,6 +86,12 @@ struct agb_lcd_data
 
 	bool obj_pal_update;
 	std::vector<bool> obj_pal_update_list;
+
+	u8 bg_mos_hsize;
+	u8 bg_mos_vsize;
+
+	u8 obj_mos_hsize;
+	u8 obj_mos_vsize;
 };
 
 #endif // GBA_LCD_DATA

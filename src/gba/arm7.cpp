@@ -1184,13 +1184,77 @@ void ARM7::mem_check_16(u32 addr, u32& value, bool load_store)
 			value = mem->read_u16(reg.r15);
 		}
 
-		//Return 0 for certain readable I/O
+		//Return 0 for certain readable I/O and Write-Only
 		switch(addr)
 		{
-			case 0x40000BA:
+			case 0x4000010:
+			case 0x4000012:
+			case 0x4000014:
+			case 0x4000016:
+			case 0x4000018:
+			case 0x400001A:
+			case 0x400001C:
+			case 0x400001E:
+			case 0x4000020:
+			case 0x4000022:
+			case 0x4000024:
+			case 0x4000026:
+			case 0x4000028:
+			case 0x400002A:
+			case 0x400002C:
+			case 0x400002E:
+			case 0x4000030:
+			case 0x4000032:
+			case 0x4000034:
+			case 0x4000036:
+			case 0x4000038:
+			case 0x400003A:
+			case 0x400003C:
+			case 0x400003E:
+			case 0x4000040:
+			case 0x4000042:
+			case 0x4000044:
+			case 0x4000046:
+			case 0x400004C:
+			case 0x400004E:
+			case 0x4000054:
+			case 0x4000056:
+			case 0x4000058:
+			case 0x400005A:
+			case 0x400005C:
+			case 0x400005E:
+			case 0x4000066:
+			case 0x400006E:
+			case 0x4000076:
+			case 0x400007A:
+			case 0x400007E:
+			case 0x4000086:
+			case 0x400008A:
+			case 0x400008C:
+			case 0x400008E:
+			case 0x40000A8:
+			case 0x40000AA:
+			case 0x40000AC:
+			case 0x40000AE:
 			case 0x40000C6:
 			case 0x40000D2:
-			case 0x40000DE: value = 0; normal_operation = false; break;
+			case 0x40000DE:
+			case 0x40000E0:
+			case 0x40000E2:
+			case 0x40000E4:
+			case 0x40000E6:
+			case 0x40000E8:
+			case 0x40000EA:
+			case 0x40000EC:
+			case 0x40000EE:
+			case 0x40000F0:
+			case 0x40000F2:
+			case 0x40000F4:
+			case 0x40000F6:
+			case 0x40000F8:
+			case 0x40000FA:
+			case 0x40000FC:
+			case 0x40000FE: value = 0; normal_operation = false; break;
 		}
 
 		//Return specific values when trying to read BIOS when PC is not within the BIOS

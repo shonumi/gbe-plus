@@ -59,6 +59,7 @@ void AGB_MMU::reset()
 		write_u16(0x4000134, 0x8000);
 		write_u8(0x4000300, 0x1);
 		write_u8(0x4000410, 0xFF);
+		write_u32(0x4000800, 0xD000020);
 	}
 
 	bios_lock = false;
@@ -282,6 +283,8 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			lcd_stat->bg_base_map_addr[0] = 0x6000000 + (0x800 * ((lcd_stat->bg_control[0] >> 8) & 0x1F));
 			lcd_stat->bg_base_tile_addr[0] = 0x6000000 + (0x4000 * ((lcd_stat->bg_control[0] >> 2) & 0x3));
 
+			memory_map[BG0CNT+1] &= ~0x20;
+
 			switch(lcd_stat->bg_control[0] >> 14)
 			{
 				case 0x0: lcd_stat->mode_0_width[0] = 256; lcd_stat->mode_0_height[0] = 256; break;
@@ -303,6 +306,8 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 
 			lcd_stat->bg_base_map_addr[1] = 0x6000000 + (0x800 * ((lcd_stat->bg_control[1] >> 8) & 0x1F));
 			lcd_stat->bg_base_tile_addr[1] = 0x6000000 + (0x4000 * ((lcd_stat->bg_control[1] >> 2) & 0x3));
+
+			memory_map[BG1CNT+1] &= ~0x20;
 
 			switch(lcd_stat->bg_control[1] >> 14)
 			{
@@ -700,6 +705,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			lcd_stat->window_x2[0] = memory_map[WIN0H];
 
 			if(lcd_stat->window_x2[0] > 240) { lcd_stat->window_x2[0] = 240; }
+			if(lcd_stat->window_x2[0] > 0) { lcd_stat->window_x2[0]--; }
 
 			//If the 2nd X coordinate is lower than the 1st, set both to 240
 			if((lcd_stat->window_x2[0] < lcd_stat->window_x1[0]) && (memory_map[WIN0H] != 0)) { lcd_stat->window_x2[0] = lcd_stat->window_x1[0] = 240; }
@@ -709,7 +715,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 
 			//If the two X coordinates are the same, window should fail to draw
 			//Set both to a pixel that the GBA cannot draw so the LCD won't render it
-			if(lcd_stat->window_x1[0] == lcd_stat->window_x2[0]) { lcd_stat->window_x1[0] = lcd_stat->window_x2[0] = 255; }
+			else if(lcd_stat->window_x1[0] == lcd_stat->window_x2[0]) { lcd_stat->window_x1[0] = lcd_stat->window_x2[0] = 255; }
 			break;
 
 		//Window 1 Horizontal Coordinates
@@ -722,6 +728,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			lcd_stat->window_x2[1] = memory_map[WIN1H];
 
 			if(lcd_stat->window_x2[1] > 240) { lcd_stat->window_x2[1] = 240; }
+			if(lcd_stat->window_x2[1] > 0) { lcd_stat->window_x2[1]--; }
 
 			//If the 2nd X coordinate is lower than the 1st, set both to 240
 			if((lcd_stat->window_x2[1] < lcd_stat->window_x1[1]) && (memory_map[WIN1H] != 0)) { lcd_stat->window_x2[1] = lcd_stat->window_x1[1] = 240; }
@@ -731,7 +738,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 
 			//If the two X coordinates are the same, window should fail to draw
 			//Set both to a pixel that the GBA cannot draw so the LCD won't render it
-			if(lcd_stat->window_x1[1] == lcd_stat->window_x2[1]) { lcd_stat->window_x1[1] = lcd_stat->window_x2[1] = 255; }
+			else if(lcd_stat->window_x1[1] == lcd_stat->window_x2[1]) { lcd_stat->window_x1[1] = lcd_stat->window_x2[1] = 255; }
 			break;
 
 		//Window 0 Vertical Coordinates
@@ -744,11 +751,14 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			lcd_stat->window_y2[0] = memory_map[WIN0V];
 
 			if(lcd_stat->window_y2[0] > 160) { lcd_stat->window_y2[0] = 160; }
+			if(lcd_stat->window_y2[0] > 0) { lcd_stat->window_y2[0]--; }
+
+			//If the 2nd Y coordinate is lower than the 1st, set both to 160
 			if(lcd_stat->window_y2[0] < lcd_stat->window_y1[0]) { lcd_stat->window_y2[0] = lcd_stat->window_y1[0] = 160; }
 
 			//If the two Y coordinates are the same, window should fail to draw
 			//Set both to a pixel that the GBA cannot draw so the LCD won't render it
-			if(lcd_stat->window_y1[0] == lcd_stat->window_y2[0]) { lcd_stat->window_y1[0] = lcd_stat->window_y2[0] = 255; }
+			else if(lcd_stat->window_y1[0] == lcd_stat->window_y2[0]) { lcd_stat->window_y1[0] = lcd_stat->window_y2[0] = 255; }
 			break;
 
 		//Window 1 Vertical Coordinates
@@ -761,16 +771,19 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			lcd_stat->window_y2[1] = memory_map[WIN1V];
 
 			if(lcd_stat->window_y2[1] > 160) { lcd_stat->window_y2[1] = 160; }
+			if(lcd_stat->window_y2[1] > 0) { lcd_stat->window_y2[1]--; }
+
+			//If the 2nd Y coordinate is lower than the 1st, set both to 160
 			if(lcd_stat->window_y2[1] < lcd_stat->window_y1[1]) { lcd_stat->window_y2[1] = lcd_stat->window_y1[1] = 160; }
 
 			//If the two Y coordinates are the same, window should fail to draw
 			//Set both to a pixel that the GBA cannot draw so the LCD won't render it
-			if(lcd_stat->window_y1[1] == lcd_stat->window_y2[1]) { lcd_stat->window_y1[1] = lcd_stat->window_y2[1] = 255; }
+			else if(lcd_stat->window_y1[1] == lcd_stat->window_y2[1]) { lcd_stat->window_y1[1] = lcd_stat->window_y2[1] = 255; }
 			break;
 
 		//Window 0 In Enable Flags
 		case WININ:
-			memory_map[address] = value;
+			memory_map[address] = (value & 0x3F);
 			lcd_stat->window_in_enable[0][0] = (value & 0x1) ? true : false;
 			lcd_stat->window_in_enable[1][0] = (value & 0x2) ? true : false;
 			lcd_stat->window_in_enable[2][0] = (value & 0x4) ? true : false;
@@ -781,7 +794,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 
 		//Window 1 In Enable Flags
 		case WININ+1:
-			memory_map[address] = value;
+			memory_map[address] = (value & 0x3F);
 			lcd_stat->window_in_enable[0][1] = (value & 0x1) ? true : false;
 			lcd_stat->window_in_enable[1][1] = (value & 0x2) ? true : false;
 			lcd_stat->window_in_enable[2][1] = (value & 0x4) ? true : false;
@@ -792,7 +805,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 
 		//Window 0 Out Enable Flags
 		case WINOUT:
-			memory_map[address] = value;
+			memory_map[address] = (value & 0x3F);
 			lcd_stat->window_out_enable[0][0] = (value & 0x1) ? true : false;
 			lcd_stat->window_out_enable[1][0] = (value & 0x2) ? true : false;
 			lcd_stat->window_out_enable[2][0] = (value & 0x4) ? true : false;
@@ -803,13 +816,30 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 
 		//Window 1 Out Enable Flags
 		case WINOUT+1:
-			memory_map[address] = value;
+			memory_map[address] = (value & 0x3F);
 			lcd_stat->window_out_enable[0][1] = (value & 0x1) ? true : false;
 			lcd_stat->window_out_enable[1][1] = (value & 0x2) ? true : false;
 			lcd_stat->window_out_enable[2][1] = (value & 0x4) ? true : false;
 			lcd_stat->window_out_enable[3][1] = (value & 0x8) ? true : false;
 			lcd_stat->window_out_enable[4][1] = (value & 0x10) ? true : false;
 			lcd_stat->window_out_enable[5][1] = (value & 0x20) ? true : false;
+			break;
+
+		//Mosiac function
+		case MOSIAC:
+		case MOSIAC+1:
+			memory_map[address] = value;
+
+			lcd_stat->bg_mos_hsize = memory_map[MOSIAC] & 0xF;
+			lcd_stat->bg_mos_vsize = memory_map[MOSIAC] >> 4;
+			lcd_stat->obj_mos_hsize = memory_map[MOSIAC+1] & 0xF;
+			lcd_stat->obj_mos_vsize = memory_map[MOSIAC+1] >> 4;
+
+			if(lcd_stat->bg_mos_hsize) { lcd_stat->bg_mos_hsize++; }
+			if(lcd_stat->bg_mos_vsize) { lcd_stat->bg_mos_vsize++; }
+			if(lcd_stat->obj_mos_hsize) { lcd_stat->obj_mos_hsize++; }
+			if(lcd_stat->obj_mos_vsize) { lcd_stat->obj_mos_vsize++; }
+
 			break;
 
 		//SFX Control
@@ -833,7 +863,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			break;
 
 		case BLDCNT+1:
-			memory_map[address] = value;
+			memory_map[address] = (value & 0x3F);
 			lcd_stat->sfx_target[0][1] = (value & 0x1) ? true : false;
 			lcd_stat->sfx_target[1][1] = (value & 0x2) ? true : false;
 			lcd_stat->sfx_target[2][1] = (value & 0x4) ? true : false;
@@ -846,7 +876,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 		case BLDALPHA:
 			if(memory_map[address] == value) { return; }
 			
-			memory_map[address] = value;
+			memory_map[address] = (value & 0x1F);
 			if(value > 0xF) { value = 0x10; }
 			lcd_stat->alpha_a_coef = (value & 0x1F) / 16.0;
 			break;
@@ -854,7 +884,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 		case BLDALPHA+1:
 			if(memory_map[address] == value) { return; }
 			
-			memory_map[address] = value;
+			memory_map[address] = (value & 0x1F);
 			if(value > 0xF) { value = 0x10; }
 			lcd_stat->alpha_b_coef = (value & 0x1F) / 16.0;
 			break;
@@ -1829,6 +1859,8 @@ bool AGB_MMU::read_bios(std::string filename)
 	u32 file_size = file.tellg();
 	file.seekg(0, file.beg);
 
+	if(file_size != 0x4000) { std::cout<<"MMU::Warning - Irregular BIOS size\n"; }
+	
 	u8* ex_mem = &memory_map[0];
 
 	//Read data from the ROM file
@@ -1861,7 +1893,7 @@ bool AGB_MMU::load_backup(std::string filename)
 	//Load SRAM
 	if(current_save_type == SRAM)
 	{
-		if(file_size > 0x8000) { std::cout<<"MMU::Warning - Irregular backup save size\n"; }
+		if(file_size > 0x8000) { std::cout<<"MMU::Warning - Irregular SRAM backup save size\n"; }
 
 		//Read data from file
 		file.read(reinterpret_cast<char*> (&save_data[0]), file_size);
@@ -1877,7 +1909,7 @@ bool AGB_MMU::load_backup(std::string filename)
 	//Load EEPROM
 	else if(current_save_type == EEPROM)
 	{
-		if((file_size != 0x200) && (file_size != 0x2000)) { file_size = 0x200; std::cout<<"MMU::Warning - Irregular backup save size\n"; }
+		if((file_size != 0x200) && (file_size != 0x2000)) { file_size = 0x200; std::cout<<"MMU::Warning - Irregular EEPROM backup save size\n"; }
 
 		//Read data from file
 		file.read(reinterpret_cast<char*> (&save_data[0]), file_size);
@@ -1899,6 +1931,8 @@ bool AGB_MMU::load_backup(std::string filename)
 	//Load 64KB FLASH RAM
 	else if(current_save_type == FLASH_64)
 	{
+		if(file_size != 0x10000) { std::cout<<"MMU::Warning - Irregular FLASH RAM backup save size\n"; }
+
 		//Read data from file
 		file.read(reinterpret_cast<char*> (&save_data[0]), file_size);
 
@@ -1912,6 +1946,8 @@ bool AGB_MMU::load_backup(std::string filename)
 	//Load 128KB FLASH RAM
 	else if(current_save_type == FLASH_128)
 	{
+		if(file_size != 0x20000) { std::cout<<"MMU::Warning - Irregular FLASH RAM backup save size\n"; }
+
 		//Read data from file
 		file.read(reinterpret_cast<char*> (&save_data[0]), file_size);
 
