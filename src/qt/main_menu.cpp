@@ -111,6 +111,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	connect(sound, SIGNAL(triggered()), this, SLOT(show_sound_settings()));
 	connect(controls, SIGNAL(triggered()), this, SLOT(show_control_settings()));
 	connect(custom_gfx, SIGNAL(triggered()), this, SLOT(show_cgfx()));
+	connect(debugging, SIGNAL(triggered()), this, SLOT(show_debugger()));
 	connect(about, SIGNAL(triggered()), this, SLOT(show_about()));
 
 	QVBoxLayout* layout = new QVBoxLayout;
@@ -132,6 +133,10 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	//Set up custom graphics dialog
 	cgfx = new gbe_cgfx();
 	cgfx->hide();
+
+	//Set up DMG-GBC debugger
+	dmg_debugger = new dmg_debug();
+	dmg_debugger->hide();
 
 	//Setup About pop-up
 	about_box = new QWidget();
@@ -461,6 +466,16 @@ void main_menu::show_cgfx()
 	cgfx->show();
 	cgfx->pause = true;
 	pause();
+}
+
+/****** Shows the debugger ******/
+void main_menu::show_debugger()
+{
+	if(main_menu::gbe_plus != NULL)
+	{
+		//Show DMG-GBC debugger
+		if(config::gb_type <= 2) { dmg_debugger->show(); }
+	}
 }
 
 /****** Shows the About box ******/

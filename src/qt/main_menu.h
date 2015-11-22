@@ -16,6 +16,7 @@
 
 #include "general_settings.h"
 #include "cgfx.h"
+#include "debug_dmg.h"
 
 #include "gba/core.h"
 #include "dmg/core.h"
@@ -47,11 +48,13 @@ class main_menu : public QWidget
 	void show_sound_settings();
 	void show_control_settings();
 	void show_cgfx();
+	void show_debugger();
 	void show_about();
 
 	private:
 	gen_settings* settings;
 	gbe_cgfx* cgfx;
+	dmg_debug* dmg_debugger;
 	QWidget* about_box;
 
 	int menu_height;

@@ -7,6 +7,7 @@ set(SRCS
 	general_settings.cpp
 	qt_common.cpp
 	cgfx.cpp
+	debug_dmg.cpp
 	)
 
 set(HEADERS
@@ -15,6 +16,7 @@ set(HEADERS
 	general_settings.h
 	qt_common.h
 	cgfx.h
+	debug_dmg.h
 	)
 
 add_executable(gbe_plus_qt ${SRCS} ${HEADERS})
