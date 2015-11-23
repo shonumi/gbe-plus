@@ -383,6 +383,18 @@ bool NTR_MMU::read_file(std::string filename)
 
 	parse_header();
 
+	//Copy ARM9 binary from offset to entry address
+	for(u32 x = 0; x < header.arm9_size; x++)
+	{
+		memory_map[header.arm9_entry_addr + x] = cart_data[0x200 + header.arm9_rom_offset + x];
+	}
+
+	//Copy ARM7 binary from offset to entry address
+	for(u32 x = 0; x < header.arm7_size; x++)
+	{
+		memory_map[header.arm7_entry_addr + x] = cart_data[0x200 + header.arm7_rom_offset + x];
+	}
+
 	return true;
 }
 
