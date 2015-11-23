@@ -23,6 +23,9 @@ class dmg_debug : public QDialog
 
 	QTabWidget* tabs;
 	QDialogButtonBox* tabs_button;
+	QPushButton* refresh_button;
+
+	void auto_refresh();
 
 	private:
 	//MMIO registers

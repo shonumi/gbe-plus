@@ -474,7 +474,11 @@ void main_menu::show_debugger()
 	if(main_menu::gbe_plus != NULL)
 	{
 		//Show DMG-GBC debugger
-		if(config::gb_type <= 2) { dmg_debugger->show(); }
+		if(config::gb_type <= 2) 
+		{
+			dmg_debugger->auto_refresh();
+			dmg_debugger->show();
+		}
 	}
 }
 
