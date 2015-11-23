@@ -386,13 +386,13 @@ bool NTR_MMU::read_file(std::string filename)
 	//Copy ARM9 binary from offset to entry address
 	for(u32 x = 0; x < header.arm9_size; x++)
 	{
-		memory_map[header.arm9_entry_addr + x] = cart_data[0x200 + header.arm9_rom_offset + x];
+		memory_map[header.arm9_entry_addr + x] = cart_data[header.arm9_rom_offset + x];
 	}
 
 	//Copy ARM7 binary from offset to entry address
 	for(u32 x = 0; x < header.arm7_size; x++)
 	{
-		memory_map[header.arm7_entry_addr + x] = cart_data[0x200 + header.arm7_rom_offset + x];
+		memory_map[header.arm7_entry_addr + x] = cart_data[header.arm7_rom_offset + x];
 	}
 
 	return true;
@@ -431,7 +431,7 @@ void NTR_MMU::parse_header()
 	for(int x = 0; x < 4; x++) 
 	{
 		header.arm9_rom_offset <<= 8;
-		header.arm9_rom_offset += cart_data[0x20 + x];
+		header.arm9_rom_offset |= cart_data[0x23 - x];
 	}
 
 	//ARM9 Entry Address
@@ -439,7 +439,7 @@ void NTR_MMU::parse_header()
 	for(int x = 0; x < 4; x++) 
 	{
 		header.arm9_entry_addr <<= 8;
-		header.arm9_entry_addr += cart_data[0x24 + x];
+		header.arm9_entry_addr |= cart_data[0x27 - x];
 	}
 
 	//ARM9 RAM Address
@@ -447,7 +447,7 @@ void NTR_MMU::parse_header()
 	for(int x = 0; x < 4; x++) 
 	{
 		header.arm9_ram_addr <<= 8;
-		header.arm9_ram_addr += cart_data[0x28 + x];
+		header.arm9_ram_addr |= cart_data[0x2B - x];
 	}
 
 	//ARM9 Size
@@ -455,6 +455,6 @@ void NTR_MMU::parse_header()
 	for(int x = 0; x < 4; x++) 
 	{
 		header.arm9_size <<= 8;
-		header.arm9_size += cart_data[0x2C + x];
+		header.arm9_size |= cart_data[0x2F - x];
 	}
 }
