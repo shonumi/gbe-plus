@@ -76,6 +76,9 @@ void ARM9::move_shifted_register(u16 current_thumb_instruction)
 /****** THUMB.2 - Add-Sub Immediate ******/
 void ARM9::add_sub_immediate(u16 current_thumb_instruction)
 {
+	//Grab pipeline ID
+	u8 pipeline_id = (pipeline_pointer + 3) % 5;
+
 	//Grab destination register - Bits 0-2
 	u8 dest_reg = (current_thumb_instruction & 0x7);
 

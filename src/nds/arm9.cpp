@@ -751,22 +751,22 @@ void ARM9::write_reg()
 	u8 r_list = register_list[pipeline_id];
 	
 	//Check all registers and write appropiate values to them
-	if(r_list & 0x1) { set_reg(0, value_list[pipeline_id][0]; }
-	if(r_list & 0x2) { set_reg(1, value_list[pipeline_id][1]; }
-	if(r_list & 0x4) { set_reg(2, value_list[pipeline_id][2]; }
-	if(r_list & 0x8) { set_reg(3, value_list[pipeline_id][3]; }
-	if(r_list & 0x10) { set_reg(4, value_list[pipeline_id][4]; }
-	if(r_list & 0x20) { set_reg(5, value_list[pipeline_id][5]; }
-	if(r_list & 0x40) { set_reg(6, value_list[pipeline_id][6]; }
-	if(r_list & 0x80) { set_reg(7, value_list[pipeline_id][7]; }
-	if(r_list & 0x100) { set_reg(8, value_list[pipeline_id][8]; }
-	if(r_list & 0x200) { set_reg(9, value_list[pipeline_id][9]; }
-	if(r_list & 0x400) { set_reg(10, value_list[pipeline_id][10]; }
-	if(r_list & 0x800) { set_reg(11, value_list[pipeline_id][11]; }
-	if(r_list & 0x1000) { set_reg(12, value_list[pipeline_id][12]; }
-	if(r_list & 0x2000) { set_reg(13, value_list[pipeline_id][13]; }
-	if(r_list & 0x4000) { set_reg(14, value_list[pipeline_id][14]; }
-	if(r_list & 0x8000) { set_reg(15, value_list[pipeline_id][15]; }
+	if(r_list & 0x1) { set_reg(0, value_list[pipeline_id][0]); }
+	if(r_list & 0x2) { set_reg(1, value_list[pipeline_id][1]); }
+	if(r_list & 0x4) { set_reg(2, value_list[pipeline_id][2]); }
+	if(r_list & 0x8) { set_reg(3, value_list[pipeline_id][3]); }
+	if(r_list & 0x10) { set_reg(4, value_list[pipeline_id][4]); }
+	if(r_list & 0x20) { set_reg(5, value_list[pipeline_id][5]); }
+	if(r_list & 0x40) { set_reg(6, value_list[pipeline_id][6]); }
+	if(r_list & 0x80) { set_reg(7, value_list[pipeline_id][7]); }
+	if(r_list & 0x100) { set_reg(8, value_list[pipeline_id][8]); }
+	if(r_list & 0x200) { set_reg(9, value_list[pipeline_id][9]); }
+	if(r_list & 0x400) { set_reg(10, value_list[pipeline_id][10]); }
+	if(r_list & 0x800) { set_reg(11, value_list[pipeline_id][11]); }
+	if(r_list & 0x1000) { set_reg(12, value_list[pipeline_id][12]); }
+	if(r_list & 0x2000) { set_reg(13, value_list[pipeline_id][13]); }
+	if(r_list & 0x4000) { set_reg(14, value_list[pipeline_id][14]); }
+	if(r_list & 0x8000) { set_reg(15, value_list[pipeline_id][15]); }
 }
 	
 
@@ -780,9 +780,10 @@ void ARM9::flush_pipeline()
 
 	for(u8 x = 0; x < 5; x++) 
 	{
+		register_list[x] = 0;
+
 		for(u8 y = 0; y < 16; y++)
 		{
-			register_list[x][y] = 0;
 			address_list[x][y] = 0;
 			value_list[x][y] = 0;
 		}

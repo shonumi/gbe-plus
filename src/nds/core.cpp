@@ -104,6 +104,7 @@ void NTR_core::reset()
 
 	//Link CPU and MMU
 	core_cpu_nds9.mem = &core_mmu;
+	core_cpu_nds9.reg.r15 = core_mmu.header.arm9_entry_addr;
 
 	/*
 	//Link LCD and MMU
@@ -126,10 +127,10 @@ void NTR_core::reset()
 /****** Run the core in a loop until exit ******/
 void NTR_core::run_core()
 {
-	/*
 	//Begin running the core
 	while(running)
 	{
+		/*
 		//Handle SDL Events
 		if((core_cpu.controllers.video.current_scanline == 160) && SDL_PollEvent(&event))
 		{
@@ -141,33 +142,33 @@ void NTR_core::run_core()
 			|| (event.type == SDL_JOYBUTTONDOWN) || (event.type == SDL_JOYBUTTONUP)
 			|| (event.type == SDL_JOYAXISMOTION) || (event.type == SDL_JOYHATMOTION)) { core_pad.handle_input(event); handle_hotkey(event); }
 		}
+		*/
 
 		//Run the CPU
-		if(core_cpu.running)
+		if(core_cpu_nds9.running)
 		{	
 			if(db_unit.debug_mode) { debug_step(); }
 
-			core_cpu.fetch();
-			core_cpu.decode();
-			core_cpu.execute();
+			core_cpu_nds9.fetch();
+			core_cpu_nds9.decode();
+			core_cpu_nds9.execute();
 
-			core_cpu.handle_interrupt();
+			core_cpu_nds9.handle_interrupt();
 		
 			//Flush pipeline if necessary
-			if(core_cpu.needs_flush) { core_cpu.flush_pipeline(); }
+			if(core_cpu_nds9.needs_flush) { core_cpu_nds9.flush_pipeline(); }
 
 			//Else update the pipeline and PC
 			else 
 			{ 
-				core_cpu.pipeline_pointer = (core_cpu.pipeline_pointer + 1) % 3;
-				core_cpu.update_pc(); 
+				core_cpu_nds9.pipeline_pointer = (core_cpu_nds9.pipeline_pointer + 1) % 5;
+				core_cpu_nds9.update_pc(); 
 			}
 		}
 
 		//Stop emulation
 		else { stop(); }
 	}
-	*/
 
 	//Shutdown core
 	shutdown();
