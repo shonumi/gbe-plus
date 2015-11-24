@@ -19,11 +19,13 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	tabs = new QTabWidget(this);
 
 	QDialog* io_regs = new QDialog;
+	QDialog* palettes = new QDialog;
 	QDialog* ram = new QDialog;
 	QDialog* cpu_instr = new QDialog;
 	QDialog* vram = new QDialog;
 
 	tabs->addTab(io_regs, tr("I/O"));
+	tabs->addTab(palettes, tr("Palettes"));
 	tabs->addTab(ram, tr("RAM"));
 	tabs->addTab(cpu_instr, tr("Disassembly"));
 	tabs->addTab(vram, tr("Graphics"));
@@ -54,7 +56,7 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 
 	//SX
 	QWidget* sx_set = new QWidget(io_regs);
-	QLabel* sx_label = new QLabel("0xFF41 - SX: \t");
+	QLabel* sx_label = new QLabel("0xFF42 - SX: \t");
 	mmio_sx = new QLineEdit(io_regs);
 	mmio_sx->setMaximumWidth(64);
 	mmio_sx->setReadOnly(true);
@@ -66,7 +68,7 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 
 	//SY
 	QWidget* sy_set = new QWidget(io_regs);
-	QLabel* sy_label = new QLabel("0xFF42 - SY: \t");
+	QLabel* sy_label = new QLabel("0xFF43 - SY: \t");
 	mmio_sy = new QLineEdit(io_regs);
 	mmio_sy->setMaximumWidth(64);
 	mmio_sy->setReadOnly(true);
@@ -76,6 +78,54 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	sy_layout->addWidget(mmio_sy, 0, Qt::AlignLeft);
 	sy_set->setLayout(sy_layout);
 
+	//LY
+	QWidget* ly_set = new QWidget(io_regs);
+	QLabel* ly_label = new QLabel("0xFF44 - LY: \t");
+	mmio_ly = new QLineEdit(io_regs);
+	mmio_ly->setMaximumWidth(64);
+	mmio_ly->setReadOnly(true);
+
+	QHBoxLayout* ly_layout = new QHBoxLayout;
+	ly_layout->addWidget(ly_label, 0, Qt::AlignLeft);
+	ly_layout->addWidget(mmio_ly, 0, Qt::AlignLeft);
+	ly_set->setLayout(ly_layout);
+
+	//LYC
+	QWidget* lyc_set = new QWidget(io_regs);
+	QLabel* lyc_label = new QLabel("0xFF45 - LYC: \t");
+	mmio_lyc = new QLineEdit(io_regs);
+	mmio_lyc->setMaximumWidth(64);
+	mmio_lyc->setReadOnly(true);
+
+	QHBoxLayout* lyc_layout = new QHBoxLayout;
+	lyc_layout->addWidget(lyc_label, 0, Qt::AlignLeft);
+	lyc_layout->addWidget(mmio_lyc, 0, Qt::AlignLeft);
+	lyc_set->setLayout(lyc_layout);
+
+	//DMA
+	QWidget* dma_set = new QWidget(io_regs);
+	QLabel* dma_label = new QLabel("0xFF46 - DMA: \t");
+	mmio_dma = new QLineEdit(io_regs);
+	mmio_dma->setMaximumWidth(64);
+	mmio_dma->setReadOnly(true);
+
+	QHBoxLayout* dma_layout = new QHBoxLayout;
+	dma_layout->addWidget(dma_label, 0, Qt::AlignLeft);
+	dma_layout->addWidget(mmio_dma, 0, Qt::AlignLeft);
+	dma_set->setLayout(dma_layout);
+
+	//BGP
+	QWidget* bgp_set = new QWidget(io_regs);
+	QLabel* bgp_label = new QLabel("0xFF47 - BGP: \t");
+	mmio_bgp = new QLineEdit(io_regs);
+	mmio_bgp->setMaximumWidth(64);
+	mmio_bgp->setReadOnly(true);
+
+	QHBoxLayout* bgp_layout = new QHBoxLayout;
+	bgp_layout->addWidget(bgp_label, 0, Qt::AlignLeft);
+	bgp_layout->addWidget(mmio_bgp, 0, Qt::AlignLeft);
+	bgp_set->setLayout(bgp_layout);
+
 	//MMIO tab layout
 	QVBoxLayout* io_layout = new QVBoxLayout;
 	io_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -83,6 +133,10 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	io_layout->addWidget(stat_set);
 	io_layout->addWidget(sx_set);
 	io_layout->addWidget(sy_set);
+	io_layout->addWidget(ly_set);
+	io_layout->addWidget(lyc_set);
+	io_layout->addWidget(dma_set);
+	io_layout->addWidget(bgp_set);
 	io_regs->setLayout(io_layout);
 
 	tabs_button = new QDialogButtonBox(QDialogButtonBox::Close);
@@ -117,6 +171,18 @@ void dmg_debug::refresh()
 
 	temp = main_menu::gbe_plus->ex_read_u8(0xFF43);
 	mmio_sy->setText(QString("%1").arg(temp, 2, 16, QChar('0')).toUpper().prepend("0x"));
+
+	temp = main_menu::gbe_plus->ex_read_u8(0xFF44);
+	mmio_ly->setText(QString("%1").arg(temp, 2, 16, QChar('0')).toUpper().prepend("0x"));
+
+	temp = main_menu::gbe_plus->ex_read_u8(0xFF45);
+	mmio_lyc->setText(QString("%1").arg(temp, 2, 16, QChar('0')).toUpper().prepend("0x"));
+
+	temp = main_menu::gbe_plus->ex_read_u8(0xFF46);
+	mmio_dma->setText(QString("%1").arg(temp, 2, 16, QChar('0')).toUpper().prepend("0x"));
+
+	temp = main_menu::gbe_plus->ex_read_u8(0xFF47);
+	mmio_bgp->setText(QString("%1").arg(temp, 2, 16, QChar('0')).toUpper().prepend("0x"));
 }
 
 /****** Automatically refresh display data - Call this publically ******/

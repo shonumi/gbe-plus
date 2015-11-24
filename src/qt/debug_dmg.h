@@ -33,6 +33,10 @@ class dmg_debug : public QDialog
 	QLineEdit* mmio_stat;
 	QLineEdit* mmio_sx;
 	QLineEdit* mmio_sy;
+	QLineEdit* mmio_ly;
+	QLineEdit* mmio_lyc;
+	QLineEdit* mmio_dma;
+	QLineEdit* mmio_bgp;
 
 	private slots:
 	void refresh();
