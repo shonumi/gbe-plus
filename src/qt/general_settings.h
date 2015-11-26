@@ -51,6 +51,8 @@ class gen_settings : public QDialog
 	int last_key;
 	int input_index;
 
+	QSlider* dead_zone;
+
 	//Paths tab widgets
 	QLineEdit* dmg_bios;
 	QLineEdit* gbc_bios;
@@ -103,6 +105,7 @@ class gen_settings : public QDialog
 	void mute();
 	void set_paths(int index);
 	void input_device_change();
+	void dead_zone_change();
 	void configure_button(int button);
 	void close_input();
 

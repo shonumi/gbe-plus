@@ -232,6 +232,22 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	input_device_layout->addWidget(input_device);
 	input_device_set->setLayout(input_device_layout);
 
+	//Control settings- Dead-zone
+	QWidget* dead_zone_set = new QWidget(controls);
+	QLabel* dead_zone_label = new QLabel("Dead Zone : ");
+	dead_zone = new QSlider(sound);
+	dead_zone->setMaximum(32767);
+	dead_zone->setMinimum(0);
+	dead_zone->setValue(16000);
+	dead_zone->setOrientation(Qt::Horizontal);
+
+	QHBoxLayout* dead_zone_layout = new QHBoxLayout;
+	dead_zone_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	dead_zone_layout->addWidget(dead_zone_label);
+	dead_zone_layout->addWidget(dead_zone);
+	dead_zone_layout->setContentsMargins(6, 0, 0, 0);
+	dead_zone_set->setLayout(dead_zone_layout);
+
 	//Control settings - A button
 	QWidget* input_a_set = new QWidget(controls);
 	QLabel* input_a_label = new QLabel("Button A : ");
@@ -395,6 +411,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	controls_layout->addWidget(input_down_set);
 	controls_layout->addWidget(input_l_set);
 	controls_layout->addWidget(input_r_set);
+	controls_layout->addWidget(dead_zone_set);
 	controls->setLayout(controls_layout);
 
 	//Path settings - DMG BIOS
@@ -473,6 +490,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(volume, SIGNAL(valueChanged(int)), this, SLOT(volume_change()));
 	connect(freq, SIGNAL(currentIndexChanged(int)), this, SLOT(sample_rate_change()));
 	connect(sound_on, SIGNAL(stateChanged(int)), this, SLOT(mute()));
+	connect(dead_zone, SIGNAL(valueChanged(int)), this, SLOT(dead_zone_change()));
 	connect(input_device, SIGNAL(currentIndexChanged(int)), this, SLOT(input_device_change()));
 
 	QSignalMapper* paths_mapper = new QSignalMapper(this);
@@ -647,6 +665,9 @@ void gen_settings::set_ini_options()
 	//Volume option
 	volume->setValue(temp_volume);
 
+	//Dead-zone
+	dead_zone->setValue(config::dead_zone);
+
 	//Keyboard controls
 	input_a->setText(QString::number(config::agb_key_a));
 	input_b->setText(QString::number(config::agb_key_b));
@@ -812,6 +833,9 @@ void gen_settings::input_device_change()
 		input_r->setText(QString::number(config::agb_joy_r_trigger));
 	}
 }
+
+/****** Dynamically changes the core pad's dead-zone ******/
+void gen_settings::dead_zone_change() { config::dead_zone = dead_zone->value(); }	
 
 /****** Prepares GUI to receive input for controller configuration ******/
 void gen_settings::configure_button(int button)
