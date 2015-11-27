@@ -258,7 +258,9 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 
 	io_regs->setLayout(io_layout);
 
+	refresh_button = new QPushButton("Refresh");
 	tabs_button = new QDialogButtonBox(QDialogButtonBox::Close);
+	tabs_button->addButton(refresh_button, QDialogButtonBox::ActionRole);
 
 	//Final tab layout
 	QVBoxLayout* main_layout = new QVBoxLayout;
@@ -268,6 +270,7 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 
 	connect(tabs_button, SIGNAL(accepted()), this, SLOT(accept()));
 	connect(tabs_button, SIGNAL(rejected()), this, SLOT(reject()));
+	connect(refresh_button, SIGNAL(clicked()), this, SLOT(refresh()));
 
 	resize(800, 450);
 	setWindowTitle(tr("DMG-GBC Debugger"));
