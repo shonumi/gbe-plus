@@ -47,21 +47,6 @@ void ARM7::branch_exchange(u32 current_arm_instruction)
 
 				break;
 
-			//Branch and Link
-			case 0x11:
-				//Clock CPU and controllers - 1N
-				clock(reg.r15, true);
-
-				set_reg(14, (reg.r15 - 4));
-				reg.r15 = result;
-				needs_flush = true;
-
-				//Clock CPU and controllers - 2S
-				clock(reg.r15, false);
-				clock((reg.r15 + 4), false);
-
-				break;
-
 			default:
 				std::cout<<"CPU::Error - ARM.3 invalid Branch and Exchange opcode : 0x" << std::hex << op << "\n";
 				running = false;
