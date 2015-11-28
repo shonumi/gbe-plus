@@ -177,7 +177,6 @@ class ARM9
 	u32 value_list[5][16];
 
 	mem_modes read_write_list[5];
-	mem_modes access_type_list[5];
 
 	u8 debug_message;
 	u32 debug_code;

@@ -750,15 +750,13 @@ void ARM9::access_mem()
 	u8 pipeline_id = (pipeline_pointer + 2) % 5;
 
 	if(instruction_operation[pipeline_id] == PIPELINE_FILL) { return; }
-
-	u8 r_list = register_list[pipeline_id];
 	
 	//Cycle through all affected registers
 	for(u8 x = 0; x < 16; x++)
 	{
-		if(r_list & (1 << x))
+		if(address_list[pipeline_id][x] != 0)
 		{
-			switch(access_type_list[pipeline_id])
+			switch(read_write_list[pipeline_id])
 			{
 				//Write register into memory
 				case MEM_WRITE_BYTE: mem->write_u8(address_list[pipeline_id][x], value_list[pipeline_id][x]); break;
@@ -766,9 +764,9 @@ void ARM9::access_mem()
 				case MEM_WRITE_WORD: mem->write_u32(address_list[pipeline_id][x], value_list[pipeline_id][x]); break;
 
 				//Read register into memory
-				case MEM_READ_BYTE: value_list[pipeline_id][x] = mem->read_u8(address_list[pipeline_id][x]);
-				case MEM_READ_HALFWORD: value_list[pipeline_id][x] = mem->read_u16(address_list[pipeline_id][x]);
-				case MEM_READ_WORD: value_list[pipeline_id][x] = mem->read_u32(address_list[pipeline_id][x]);
+				case MEM_READ_BYTE: value_list[pipeline_id][x] = mem->read_u8(address_list[pipeline_id][x]); break;
+				case MEM_READ_HALFWORD: value_list[pipeline_id][x] = mem->read_u16(address_list[pipeline_id][x]); break;
+				case MEM_READ_WORD: value_list[pipeline_id][x] = mem->read_u32(address_list[pipeline_id][x]); break;
 
 				//MEM_NOP, do nothing, finish this pipeline stage
 				default: x = 16; break;
@@ -779,9 +777,8 @@ void ARM9::access_mem()
 	//Clear the address list for this pipeline stage
 	for(u8 x = 0; x < 16; x++) { address_list[pipeline_id][x] = 0; }
 
-	//Clear the read-write list and access type for this pipeline stage
+	//Clear the read-write list for this pipeline stage
 	read_write_list[pipeline_id] = MEM_NOP;
-	access_type_list[pipeline_id] = MEM_NOP;
 }
 
 /****** Register writeback ******/
@@ -830,7 +827,6 @@ void ARM9::flush_pipeline()
 	{
 		register_list[x] = 0;
 		read_write_list[x] = MEM_NOP;
-		access_type_list[x] = MEM_NOP;
 
 		for(u8 y = 0; y < 16; y++)
 		{

@@ -40,7 +40,7 @@ void ARM9::branch_exchange(u32 current_arm_instruction)
 				//Setup Memory and Write-Back stages
 				//Memory: No memory is accessed
 				//Write-back: Write result to PC
-				register_list[pipeline_id] = (1 << 15);
+				register_list[pipeline_id] |= (1 << 15);
 				value_list[pipeline_id][15] = result;
 
 				//Flush pipeline on this instruction
@@ -53,7 +53,7 @@ void ARM9::branch_exchange(u32 current_arm_instruction)
 				//Setup Memory and Write-Back stages
 				//Memory: No memory is accessed
 				//Write-back: Write result to PC, write PC - 4 to LR
-				register_list[pipeline_id] = ((1 << 15) | (1 << 14));
+				register_list[pipeline_id] |= ((1 << 15) | (1 << 14));
 
 				value_list[pipeline_id][14] = (reg.r15 - 4);
 				value_list[pipeline_id][15] = result;
@@ -238,7 +238,7 @@ void ARM9::data_processing(u32 current_arm_instruction)
 
 			//Memory: No memory is accessed
 			//Write-back: Write result to destination register
-			register_list[pipeline_id] = (1 << dest_reg);
+			register_list[pipeline_id] |= (1 << dest_reg);
 			value_list[pipeline_id][dest_reg] = result;
 			
 			//Update condition codes
@@ -251,7 +251,7 @@ void ARM9::data_processing(u32 current_arm_instruction)
 
 			//Memory: No memory is accessed
 			//Write-back: Write result to destination register
-			register_list[pipeline_id] = (1 << dest_reg);
+			register_list[pipeline_id] |= (1 << dest_reg);
 			value_list[pipeline_id][dest_reg] = result;
 
 			//Update condition codes
@@ -264,7 +264,7 @@ void ARM9::data_processing(u32 current_arm_instruction)
 
 			//Memory: No memory is accessed
 			//Write-back: Write result to destination register
-			register_list[pipeline_id] = (1 << dest_reg);
+			register_list[pipeline_id] |= (1 << dest_reg);
 			value_list[pipeline_id][dest_reg] = result;
 
 			//Update condtion codes
@@ -277,7 +277,7 @@ void ARM9::data_processing(u32 current_arm_instruction)
 
 			//Memory: No memory is accessed
 			//Write-back: Write result to destination register
-			register_list[pipeline_id] = (1 << dest_reg);
+			register_list[pipeline_id] |= (1 << dest_reg);
 			value_list[pipeline_id][dest_reg] = result;
 
 			//Update condtion codes
@@ -290,7 +290,7 @@ void ARM9::data_processing(u32 current_arm_instruction)
 
 			//Memory: No memory is accessed
 			//Write-back: Write result to destination register
-			register_list[pipeline_id] = (1 << dest_reg);
+			register_list[pipeline_id] |= (1 << dest_reg);
 			value_list[pipeline_id][dest_reg] = result;
 
 			//Update condtion codes
@@ -306,7 +306,7 @@ void ARM9::data_processing(u32 current_arm_instruction)
 
 			//Memory: No memory is accessed
 			//Write-back: Write result to destination register
-			register_list[pipeline_id] = (1 << dest_reg);
+			register_list[pipeline_id] |= (1 << dest_reg);
 			value_list[pipeline_id][dest_reg] = result;
 
 			//Update condtion codes
@@ -322,7 +322,7 @@ void ARM9::data_processing(u32 current_arm_instruction)
 
 			//Memory: No memory is accessed
 			//Write-back: Write result to destination register
-			register_list[pipeline_id] = (1 << dest_reg);
+			register_list[pipeline_id] |= (1 << dest_reg);
 			value_list[pipeline_id][dest_reg] = result;
 
 			//Update condtion codes
@@ -338,7 +338,7 @@ void ARM9::data_processing(u32 current_arm_instruction)
 
 			//Memory: No memory is accessed
 			//Write-back: Write result to destination register
-			register_list[pipeline_id] = (1 << dest_reg);
+			register_list[pipeline_id] |= (1 << dest_reg);
 			value_list[pipeline_id][dest_reg] = result;
 
 			//Update condtion codes
@@ -399,7 +399,7 @@ void ARM9::data_processing(u32 current_arm_instruction)
 
 			//Memory: No memory is accessed
 			//Write-back: Write result to destination register
-			register_list[pipeline_id] = (1 << dest_reg);
+			register_list[pipeline_id] |= (1 << dest_reg);
 			value_list[pipeline_id][dest_reg] = result;
 
 			//Update condtion codes
@@ -412,7 +412,7 @@ void ARM9::data_processing(u32 current_arm_instruction)
 
 			//Memory: No memory is accessed
 			//Write-back: Write result to destination register
-			register_list[pipeline_id] = (1 << dest_reg);
+			register_list[pipeline_id] |= (1 << dest_reg);
 			value_list[pipeline_id][dest_reg] = result;
 
 			//Update condtion codes
@@ -425,7 +425,7 @@ void ARM9::data_processing(u32 current_arm_instruction)
 
 			//Memory: No memory is accessed
 			//Write-back: Write result to destination register
-			register_list[pipeline_id] = (1 << dest_reg);
+			register_list[pipeline_id] |= (1 << dest_reg);
 			value_list[pipeline_id][dest_reg] = result;
 
 			//Update condtion codes
@@ -438,7 +438,7 @@ void ARM9::data_processing(u32 current_arm_instruction)
 
 			//Memory: No memory is accessed
 			//Write-back: Write result to destination register
-			register_list[pipeline_id] = (1 << dest_reg);
+			register_list[pipeline_id] |= (1 << dest_reg);
 			value_list[pipeline_id][dest_reg] = result;
 
 			//Update condtion codes
@@ -769,6 +769,9 @@ void ARM9::multiply(u32 current_arm_instruction)
 /****** ARM.9 Single Data Transfer ******/
 void ARM9::single_data_transfer(u32 current_arm_instruction)
 {
+	//Grab pipeline ID
+	u8 pipeline_id = (pipeline_pointer + 3) % 5;
+
 	//Grab Immediate-Offset flag - Bit 25
 	u8 offset_is_register = (current_arm_instruction & 0x2000000) ? 1 : 0;
 
@@ -846,9 +849,6 @@ void ARM9::single_data_transfer(u32 current_arm_instruction)
 		else { base_addr -= base_offset; } 
 	}
 
-	//Clock CPU and controllers - 1N
-	clock(reg.r15, true);
-
 	//Store Byte or Word
 	if(load_store == 0) 
 	{
@@ -857,18 +857,27 @@ void ARM9::single_data_transfer(u32 current_arm_instruction)
 			value = get_reg(dest_reg);
 			if(dest_reg == 15) { value += 4; }
 			value &= 0xFF;
-			mem_check_8(base_addr, value, false);
+
+			//Memory: Write a BYTE (destination register) to address
+			//Write-back: Write result to base register if applicable (see below!)
+			register_list[pipeline_id] |= (1 << dest_reg);
+			address_list[pipeline_id][dest_reg] = base_addr;
+			value_list[pipeline_id][dest_reg] = value;
+			read_write_list[pipeline_id] = MEM_WRITE_BYTE;
 		}
 
 		else
 		{
 			value = get_reg(dest_reg);
 			if(dest_reg == 15) { value += 4; }
-			mem->write_u32(base_addr, value);
-		}
 
-		//Clock CPU and controllers - 1N
-		clock(base_addr, true);
+			//Memory: Write a WORD (destination register) to address
+			//Write-back: Write result to base register if applicable (see below!)
+			register_list[pipeline_id] |= (1 << dest_reg);
+			address_list[pipeline_id][dest_reg] = base_addr;
+			value_list[pipeline_id][dest_reg] = value;
+			read_write_list[pipeline_id] = MEM_WRITE_WORD;
+		}
 	}
 
 	//Load Byte or Word
@@ -876,26 +885,22 @@ void ARM9::single_data_transfer(u32 current_arm_instruction)
 	{
 		if(byte_word == 1)
 		{
-			//Clock CPU and controllers - 1I
-			value = mem->read_u8(base_addr);
-			clock();
-
-			//Clock CPU and controllers - 1N
-			if(dest_reg == 15) { clock((reg.r15 + 4), true); } 
-
-			set_reg(dest_reg, value);
+			//Memory: Read a BYTE from memory into to destination register
+			//Write-back: Write result to destination register
+			register_list[pipeline_id] |= (1 << dest_reg);
+			address_list[pipeline_id][dest_reg] = base_addr;
+			value_list[pipeline_id][dest_reg] = value;
+			read_write_list[pipeline_id] = MEM_READ_BYTE;
 		}
 
 		else
 		{
-			//Clock CPU and controllers - 1I
-			mem_check_32(base_addr, value, true);
-			clock();
-
-			//Clock CPU and controllers - 1N
-			if(dest_reg == 15) { clock((reg.r15 + 4), true); } 
-
-			set_reg(dest_reg, value);
+			//Memory: Read a WORD (destination register) to address
+			//Write-back: Write result to destination register
+			register_list[pipeline_id] |= (1 << dest_reg);
+			address_list[pipeline_id][dest_reg] = base_addr;
+			value_list[pipeline_id][dest_reg] = value;
+			read_write_list[pipeline_id] = MEM_READ_WORD;
 		}
 	}
 
@@ -908,23 +913,21 @@ void ARM9::single_data_transfer(u32 current_arm_instruction)
 
 	//Write back into base register
 	//Post-indexing ALWAYS does this. Pre-Indexing does this optionally
-	if((pre_post == 0) && (base_reg != dest_reg)) { set_reg(base_reg, base_addr); }
-	else if((pre_post == 1) && (write_back == 1) && (base_reg != dest_reg)) { set_reg(base_reg, base_addr); }
-
-	//Timings for LDR - PC
-	if((dest_reg == 15) && (load_store == 1)) 
+	if((pre_post == 0) && (base_reg != dest_reg)) 
 	{
-		//Clock CPU and controllser - 2S
-		clock(reg.r15, false);
-		clock((reg.r15 + 4), false);
-		needs_flush = true;
+		register_list[pipeline_id] |= (1 << base_reg);
+		value_list[pipeline_id][base_reg] = base_addr;
 	}
 
-	//Timings for LDR - No PC
-	else if((dest_reg != 15) && (load_store == 1))
+	else if((pre_post == 1) && (write_back == 1) && (base_reg != dest_reg)) 
 	{
-		//Clock CPU and controllers - 1S
-		clock(reg.r15, false);
+		register_list[pipeline_id] |= (1 << base_reg);
+		value_list[pipeline_id][base_reg] = base_addr;
+	}
+
+	if((dest_reg == 15) && (load_store == 1)) 
+	{
+		needs_flush = true;
 	}
 }
 
