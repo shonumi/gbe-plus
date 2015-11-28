@@ -83,6 +83,18 @@ class ARM9
 		THUMB
 	};
 
+	//ARM memory access mode enumerations
+	enum mem_modes
+	{
+		MEM_NOP,
+		MEM_READ_BYTE,
+		MEM_READ_HALFWORD,
+		MEM_READ_WORD,
+		MEM_WRITE_BYTE,
+		MEM_WRITE_HALFWORD,
+		MEM_WRITE_WORD
+	};
+
 	cpu_modes current_cpu_mode;
 	instr_modes arm_mode;
 
@@ -163,6 +175,9 @@ class ARM9
 	u16 register_list[5];
 	u32 address_list[5][16];
 	u32 value_list[5][16];
+
+	mem_modes read_write_list[5];
+	mem_modes access_type_list[5];
 
 	u8 debug_message;
 	u32 debug_code;
