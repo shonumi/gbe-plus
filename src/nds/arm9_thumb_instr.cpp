@@ -52,12 +52,11 @@ void ARM9::move_shifted_register(u16 current_thumb_instruction)
 		default: std::cout<<"CPU::ARM9::Warning: This should not happen in THUMB.1 ... \n"; break;
 	}
 
-	set_reg(dest_reg, result);
-
 	//Setup Memory and Write-Back stages
 	//Memory: No memory is accessed
 	//Write-back: Write result to 1 destination register
 	register_list[pipeline_id] = (1 << dest_reg);
+
 	value_list[pipeline_id][dest_reg] = result;
 
 	//Zero flag
@@ -125,8 +124,8 @@ void ARM9::add_sub_immediate(u16 current_thumb_instruction)
 	//No memory is accessed
 	//Write-back: Write result to 1 destination register
 	register_list[pipeline_id] = (1 << dest_reg);
+
 	value_list[pipeline_id][dest_reg] = result;
-	set_reg(dest_reg, result);
 
 	//Update condition codes
 	if(op & 0x1){ update_condition_arithmetic(input, operand, result, false); }

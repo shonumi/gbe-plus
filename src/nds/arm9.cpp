@@ -405,7 +405,6 @@ void ARM9::decode()
 		*/
 	}
 
-	/*
 	//Decode ARM instructions
 	if(arm_mode == ARM)
 	{
@@ -539,7 +538,6 @@ void ARM9::decode()
 			instruction_operation[pipeline_id] = ARM_13;
 		}
 	}
-	*/
 }
 
 /****** Execute ARM instruction ******/
@@ -650,6 +648,7 @@ void ARM9::execute()
 
 			default:
 				debug_message = 0x13; debug_code = instruction_pipeline[pipeline_id];
+				std::cout<<"CPU::ARM9::Error - Unknown THUMB instruction -> 0x" << std::hex << debug_code << "\n";
 				running = false;
 				break;
 		}
@@ -670,6 +669,7 @@ void ARM9::execute()
 					break;
 
 				case ARM_4:
+					running = false; return;
 					branch_link(instruction_pipeline[pipeline_id]);
 					debug_message = 0x15; debug_code = instruction_pipeline[pipeline_id];
 					break;
@@ -680,42 +680,50 @@ void ARM9::execute()
 					break;
 
 				case ARM_6:
+					running = false; return;
 					psr_transfer(instruction_pipeline[pipeline_id]);
 					debug_message = 0x17; debug_code = instruction_pipeline[pipeline_id];
 					break;
 
 				case ARM_7:
+					running = false; return;
 					multiply(instruction_pipeline[pipeline_id]);
 					debug_message = 0x18; debug_code = instruction_pipeline[pipeline_id];
 					break;
 
 				case ARM_9:
+					running = false; return;
 					single_data_transfer(instruction_pipeline[pipeline_id]);
 					debug_message = 0x19; debug_code = instruction_pipeline[pipeline_id];
 					break;
 
 				case ARM_10:
+					running = false; return;
 					halfword_signed_transfer(instruction_pipeline[pipeline_id]);
 					debug_message = 0x1A; debug_code = instruction_pipeline[pipeline_id];
 					break;
 
 				case ARM_11:
+					running = false; return;
 					block_data_transfer(instruction_pipeline[pipeline_id]);
 					debug_message = 0x1B; debug_code = instruction_pipeline[pipeline_id];
 					break;
 
 				case ARM_12:
+					running = false; return;
 					single_data_swap(instruction_pipeline[pipeline_id]);
 					debug_message = 0x1C; debug_code = instruction_pipeline[pipeline_id];
 					break;
 
 				case ARM_13:
+					running = false; return;
 					software_interrupt_breakpoint(instruction_pipeline[pipeline_id]);
 					debug_message = 0x1D; debug_code = instruction_pipeline[pipeline_id];
 					break;
 
 				default:
 					debug_message = 0x1E; debug_code = instruction_pipeline[pipeline_id];
+					std::cout<<"CPU::ARM9::Error - Unknown ARM instruction -> 0x" << std::hex << debug_code << "\n";
 					running = false;
 					break;
 			}
@@ -738,7 +746,10 @@ void ARM9::execute()
 void ARM9::access_mem() 
 {
 	u8 pipeline_id = (pipeline_pointer + 2) % 5;
-	//TODO
+
+	if(instruction_operation[pipeline_id] == PIPELINE_FILL) { return; }
+
+	//TODO - Everything
 
 	//Clear address list for this pipeline stage
 	for(u8 x = 0; x < 16; x++) { address_list[pipeline_id][x] = 0; }
@@ -748,6 +759,9 @@ void ARM9::access_mem()
 void ARM9::write_reg()
 {
 	u8 pipeline_id = (pipeline_pointer + 1) % 5;
+
+	if(instruction_operation[pipeline_id] == PIPELINE_FILL) { return; }
+
 	u8 r_list = register_list[pipeline_id];
 	
 	//Check all registers and write appropiate values to them
@@ -767,6 +781,9 @@ void ARM9::write_reg()
 	if(r_list & 0x2000) { set_reg(13, value_list[pipeline_id][13]); }
 	if(r_list & 0x4000) { set_reg(14, value_list[pipeline_id][14]); }
 	if(r_list & 0x8000) { set_reg(15, value_list[pipeline_id][15]); }
+
+	//Clear value list for this pipeline stage
+	for(u8 x = 0; x < 16; x++) { value_list[pipeline_id][x] = 0; }
 }
 	
 
@@ -1183,6 +1200,4 @@ void ARM9::handle_interrupt()
 {
 
 }
-	
-				
 				

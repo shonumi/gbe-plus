@@ -13,6 +13,9 @@
 /****** ARM.3 - Branch and Exchange ******/
 void ARM9::branch_exchange(u32 current_arm_instruction)
 {
+	//Grab pipeline ID
+	u8 pipeline_id = (pipeline_pointer + 3) % 5;
+
 	//Grab source register - Bits 0-2
 	u8 src_reg = (current_arm_instruction & 0xF);
 
@@ -28,37 +31,35 @@ void ARM9::branch_exchange(u32 current_arm_instruction)
 			arm_mode = THUMB;
 			reg.cpsr |= 0x20;
 			result &= ~0x1;
-			//std::cout<<"\n\n ** Switching to THUMB Mode ** \n\n";
 		}
 
 		switch(op)
 		{
 			//Branch
 			case 0x1:
-				//Clock CPU and controllers - 1N
-				clock(reg.r15, true);
+				//Setup Memory and Write-Back stages
+				//Memory: No memory is accessed
+				//Write-back: Write result to PC
+				register_list[pipeline_id] = (1 << 15);
+				value_list[pipeline_id][15] = result;
 
-				reg.r15 = result;
+				//Flush pipeline on this instruction
 				needs_flush = true;
-
-				//Clock CPU and controllers - 2S
-				clock(reg.r15, false);
-				clock((reg.r15 + 4), false);
 
 				break;
 
 			//Branch and Link
 			case 0x11:
-				//Clock CPU and controllers - 1N
-				clock(reg.r15, true);
+				//Setup Memory and Write-Back stages
+				//Memory: No memory is accessed
+				//Write-back: Write result to PC, write PC - 4 to LR
+				register_list[pipeline_id] = ((1 << 15) | (1 << 14));
 
-				set_reg(14, (reg.r15 - 4));
-				reg.r15 = result;
+				value_list[pipeline_id][14] = (reg.r15 - 4);
+				value_list[pipeline_id][15] = result;
+
+				//Flush pipeline on this instruction
 				needs_flush = true;
-
-				//Clock CPU and controllers - 2S
-				clock(reg.r15, false);
-				clock((reg.r15 + 4), false);
 
 				break;
 
@@ -136,6 +137,9 @@ void ARM9::branch_link(u32 current_arm_instruction)
 /****** ARM.5 Data Processing ******/
 void ARM9::data_processing(u32 current_arm_instruction)
 {
+	//Grab pipeline ID
+	u8 pipeline_id = (pipeline_pointer + 3) % 5;
+
 	//Determine if an immediate value or a register should be used as the operand
 	bool use_immediate = (current_arm_instruction & 0x2000000) ? true : false;
 
@@ -220,25 +224,23 @@ void ARM9::data_processing(u32 current_arm_instruction)
 				else { shift_out = rotate_right(operand, offset); }
 				break;
 		}
-		
-		//Clock CPU and controllers - 1I
-		clock();
 	}		
 
-	//TODO - When op is 0x8 through 0xB, make sure Bit 20 is 1 (rather force it? Unsure)
-	//TODO - 2nd Operand for TST/TEQ/CMP/CMN must be R0 (rather force it to be R0)
-	//TODO - See GBATEK - S=1, with unused Rd bits=1111b
+	//TODO - Update condition during the final execution stage
 
-	//Clock CPU and controllers - 1N
-	if(dest_reg == 15) { clock(reg.r15, true); set_condition = false; reg.cpsr = get_spsr(); }
+	if(dest_reg == 15) { set_condition = false; reg.cpsr = get_spsr(); }
 
 	switch(op)
 	{
 		//AND
 		case 0x0:
 			result = (input & operand);
-			set_reg(dest_reg, result);
 
+			//Memory: No memory is accessed
+			//Write-back: Write result to destination register
+			register_list[pipeline_id] = (1 << dest_reg);
+			value_list[pipeline_id][dest_reg] = result;
+			
 			//Update condition codes
 			if(set_condition) { update_condition_logical(result, shift_out); }
 			break;
@@ -246,7 +248,11 @@ void ARM9::data_processing(u32 current_arm_instruction)
 		//XOR
 		case 0x1:
 			result = (input ^ operand);
-			set_reg(dest_reg, result);
+
+			//Memory: No memory is accessed
+			//Write-back: Write result to destination register
+			register_list[pipeline_id] = (1 << dest_reg);
+			value_list[pipeline_id][dest_reg] = result;
 
 			//Update condition codes
 			if(set_condition) { update_condition_logical(result, shift_out); }
@@ -255,7 +261,11 @@ void ARM9::data_processing(u32 current_arm_instruction)
 		//SUB
 		case 0x2:
 			result = (input - operand);
-			set_reg(dest_reg, result);
+
+			//Memory: No memory is accessed
+			//Write-back: Write result to destination register
+			register_list[pipeline_id] = (1 << dest_reg);
+			value_list[pipeline_id][dest_reg] = result;
 
 			//Update condtion codes
 			if(set_condition) { update_condition_arithmetic(input, operand, result, false); }
@@ -264,7 +274,11 @@ void ARM9::data_processing(u32 current_arm_instruction)
 		//RSB
 		case 0x3:
 			result = (operand - input);
-			set_reg(dest_reg, result);
+
+			//Memory: No memory is accessed
+			//Write-back: Write result to destination register
+			register_list[pipeline_id] = (1 << dest_reg);
+			value_list[pipeline_id][dest_reg] = result;
 
 			//Update condtion codes
 			if(set_condition) { update_condition_arithmetic(operand, input, result, false); }
@@ -273,7 +287,11 @@ void ARM9::data_processing(u32 current_arm_instruction)
 		//ADD
 		case 0x4:
 			result = (input + operand);
-			set_reg(dest_reg, result);
+
+			//Memory: No memory is accessed
+			//Write-back: Write result to destination register
+			register_list[pipeline_id] = (1 << dest_reg);
+			value_list[pipeline_id][dest_reg] = result;
 
 			//Update condtion codes
 			if(set_condition) { update_condition_arithmetic(input, operand, result, true); }
@@ -285,7 +303,11 @@ void ARM9::data_processing(u32 current_arm_instruction)
 			if(shift_out == 2) { shift_out = (reg.cpsr & CPSR_C_FLAG) ? 1 : 0; }
 
 			result = (input + operand + shift_out);
-			set_reg(dest_reg, result);
+
+			//Memory: No memory is accessed
+			//Write-back: Write result to destination register
+			register_list[pipeline_id] = (1 << dest_reg);
+			value_list[pipeline_id][dest_reg] = result;
 
 			//Update condtion codes
 			if(set_condition) { update_condition_arithmetic(input, operand, result, true); }
@@ -297,7 +319,11 @@ void ARM9::data_processing(u32 current_arm_instruction)
 			if(shift_out == 2) { shift_out = (reg.cpsr & CPSR_C_FLAG) ? 1 : 0; }
 
 			result = (input - operand + shift_out - 1);
-			set_reg(dest_reg, result);
+
+			//Memory: No memory is accessed
+			//Write-back: Write result to destination register
+			register_list[pipeline_id] = (1 << dest_reg);
+			value_list[pipeline_id][dest_reg] = result;
 
 			//Update condtion codes
 			if(set_condition) { update_condition_arithmetic(input, (operand + shift_out - 1), result, false); }
@@ -309,7 +335,11 @@ void ARM9::data_processing(u32 current_arm_instruction)
 			if(shift_out == 2) { shift_out = (reg.cpsr & CPSR_C_FLAG) ? 1 : 0; }
 
 			result = (operand - input + shift_out - 1);
-			set_reg(dest_reg, result);
+
+			//Memory: No memory is accessed
+			//Write-back: Write result to destination register
+			register_list[pipeline_id] = (1 << dest_reg);
+			value_list[pipeline_id][dest_reg] = result;
 
 			//Update condtion codes
 			if(set_condition) { update_condition_arithmetic((operand + shift_out - 1), input, result, false); }
@@ -319,6 +349,10 @@ void ARM9::data_processing(u32 current_arm_instruction)
 		case 0x8:
 			result = (input & operand);
 
+			//Memory: No memory is accessed
+			//Write-back: No registers are written
+			register_list[pipeline_id] = 0;
+
 			//Update condtion codes
 			if(set_condition) { update_condition_logical(result, shift_out); }
 			break;
@@ -326,6 +360,10 @@ void ARM9::data_processing(u32 current_arm_instruction)
 		//TEQ
 		case 0x9:
 			result = (input ^ operand);
+
+			//Memory: No memory is accessed
+			//Write-back: No registers are written
+			register_list[pipeline_id] = 0;
 
 			//Update condtion codes
 			if(set_condition) { update_condition_logical(result, shift_out); }
@@ -335,6 +373,10 @@ void ARM9::data_processing(u32 current_arm_instruction)
 		case 0xA:
 			result = (input - operand);
 
+			//Memory: No memory is accessed
+			//Write-back: No registers are written
+			register_list[pipeline_id] = 0;
+
 			//Update condtion codes
 			if(set_condition) { update_condition_arithmetic(input, operand, result, false); }
 			break;
@@ -342,6 +384,10 @@ void ARM9::data_processing(u32 current_arm_instruction)
 		//CMN
 		case 0xB:
 			result = (input + operand);
+
+			//Memory: No memory is accessed
+			//Write-back: No registers are written
+			register_list[pipeline_id] = 0;
 		
 			//Update condtion codes
 			if(set_condition) { update_condition_arithmetic(input, operand, result, true); }
@@ -350,7 +396,11 @@ void ARM9::data_processing(u32 current_arm_instruction)
 		//ORR
 		case 0xC:
 			result = (input | operand);
-			set_reg(dest_reg, result);
+
+			//Memory: No memory is accessed
+			//Write-back: Write result to destination register
+			register_list[pipeline_id] = (1 << dest_reg);
+			value_list[pipeline_id][dest_reg] = result;
 
 			//Update condtion codes
 			if(set_condition) { update_condition_logical(result, shift_out); }
@@ -359,7 +409,11 @@ void ARM9::data_processing(u32 current_arm_instruction)
 		//MOV
 		case 0xD:
 			result = operand;
-			set_reg(dest_reg, result);
+
+			//Memory: No memory is accessed
+			//Write-back: Write result to destination register
+			register_list[pipeline_id] = (1 << dest_reg);
+			value_list[pipeline_id][dest_reg] = result;
 
 			//Update condtion codes
 			if(set_condition) { update_condition_logical(result, shift_out); }
@@ -368,7 +422,11 @@ void ARM9::data_processing(u32 current_arm_instruction)
 		//BIC
 		case 0xE:
 			result = (input & (~operand));
-			set_reg(dest_reg, result);
+
+			//Memory: No memory is accessed
+			//Write-back: Write result to destination register
+			register_list[pipeline_id] = (1 << dest_reg);
+			value_list[pipeline_id][dest_reg] = result;
 
 			//Update condtion codes
 			if(set_condition) { update_condition_logical(result, shift_out); }
@@ -377,27 +435,15 @@ void ARM9::data_processing(u32 current_arm_instruction)
 		//MVN
 		case 0xF:
 			result = ~operand;
-			set_reg(dest_reg, result);
+
+			//Memory: No memory is accessed
+			//Write-back: Write result to destination register
+			register_list[pipeline_id] = (1 << dest_reg);
+			value_list[pipeline_id][dest_reg] = result;
 
 			//Update condtion codes
 			if(set_condition) { update_condition_logical(result, shift_out); }
 			break;
-	}
-
-	//Timings for PC as destination register
-	if(dest_reg == 15) 
-	{
-		//Clock CPU and controllers - 2S
-		needs_flush = true; 
-		clock(reg.r15, false);
-		clock((reg.r15 + 4), false);
-	}
-
-	//Timings for regular registers
-	else 
-	{
-		//Clock CPU and controllers - 1S
-		clock((reg.r15 + 4), false);
 	}
 }
 

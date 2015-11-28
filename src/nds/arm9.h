@@ -152,6 +152,7 @@ class ARM9
 	bool needs_flush;
 	bool in_interrupt;
 	bool sleep;
+	u8 flush_counter;
 
 	bool swi_vblank_wait;
 
