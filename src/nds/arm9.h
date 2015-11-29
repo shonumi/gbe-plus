@@ -204,6 +204,7 @@ class ARM9
 
 	void update_pc();
 	void flush_pipeline();
+	void stall_pipeline();
 
 	void reset();
 

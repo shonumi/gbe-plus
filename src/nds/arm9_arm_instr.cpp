@@ -71,6 +71,10 @@ void ARM9::branch_exchange(u32 current_arm_instruction)
 	}
 
 	else { std::cout<<"CPU::ARM9::Error - ARM.3 Branch and Exchange - Invalid operand : R15\n"; running = false; }
+
+	//Check for pipeline stalls
+	u8 stall_id = (pipeline_pointer + 2) % 5;
+	if(register_list[pipeline_id] && register_list[stall_id] && (register_list[pipeline_id] & register_list[stall_id])) { stall_pipeline(); }
 }  
 
 /****** ARM.4 - Branch and Branch with Link ******/
@@ -445,6 +449,10 @@ void ARM9::data_processing(u32 current_arm_instruction)
 			if(set_condition) { update_condition_logical(result, shift_out); }
 			break;
 	}
+
+	//Check for pipeline stalls
+	u8 stall_id = (pipeline_pointer + 2) % 5;
+	if(register_list[pipeline_id] && register_list[stall_id] && (register_list[pipeline_id] & register_list[stall_id])) { stall_pipeline(); }
 }
 
 /****** ARM.6 PSR Transfer ******/
@@ -929,6 +937,10 @@ void ARM9::single_data_transfer(u32 current_arm_instruction)
 	{
 		needs_flush = true;
 	}
+
+	//Check for pipeline stalls
+	u8 stall_id = (pipeline_pointer + 2) % 5;
+	if(register_list[pipeline_id] && register_list[stall_id] && (register_list[pipeline_id] & register_list[stall_id])) { stall_pipeline(); }
 }
 
 /****** ARM.10 Halfword-Signed Transfer ******/
@@ -1081,6 +1093,10 @@ void ARM9::halfword_signed_transfer(u32 current_arm_instruction)
 		register_list[pipeline_id] |= (1 << base_reg);
 		value_list[pipeline_id][base_reg] = base_addr;
 	}
+
+	//Check for pipeline stalls
+	u8 stall_id = (pipeline_pointer + 2) % 5;
+	if(register_list[pipeline_id] && register_list[stall_id] && (register_list[pipeline_id] & register_list[stall_id])) { stall_pipeline(); }
 }
 
 /****** ARM.11 Block Data Transfer ******/

@@ -810,6 +810,9 @@ void ARM9::write_reg()
 
 	//Clear value list for this pipeline stage
 	for(u8 x = 0; x < 16; x++) { value_list[pipeline_id][x] = 0; }
+	
+	//Clear register list
+	register_list[pipeline_id] = 0;
 }
 	
 
@@ -832,6 +835,24 @@ void ARM9::flush_pipeline()
 			value_list[x][y] = 0;
 		}
 	}
+}
+
+/****** Stalls the pipeline whenever another instruction is trying to access the same registers or memory address ******/
+void ARM9::stall_pipeline()
+{
+	std::cout<<"CPU::ARM9::Pipeline Stall\n";
+
+	//Finish last two stages of the current instruction (the one doing ALU stuff needs to access mem+write regs)
+	u8 temp_pointer = pipeline_pointer;
+
+	pipeline_pointer = (pipeline_pointer + 1) % 5;
+	access_mem();
+	write_reg();
+
+	pipeline_pointer = (pipeline_pointer + 1) % 5;
+	write_reg();
+
+	pipeline_pointer = temp_pointer;
 }
 
 /****** Updates the PC after each fetch-decode-execute ******/
