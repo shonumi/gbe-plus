@@ -895,7 +895,7 @@ void ARM9::single_data_transfer(u32 current_arm_instruction)
 
 		else
 		{
-			//Memory: Read a WORD (destination register) to address
+			//Memory: Read a WORD from memory into to destination register
 			//Write-back: Write result to destination register
 			register_list[pipeline_id] |= (1 << dest_reg);
 			address_list[pipeline_id][dest_reg] = base_addr;
@@ -934,7 +934,8 @@ void ARM9::single_data_transfer(u32 current_arm_instruction)
 /****** ARM.10 Halfword-Signed Transfer ******/
 void ARM9::halfword_signed_transfer(u32 current_arm_instruction)
 {
-	//TODO - Timings
+	//Grab pipeline ID
+	u8 pipeline_id = (pipeline_pointer + 3) % 5;
 
 	//Grab Pre-Post bit - Bit 24
 	u8 pre_post = (current_arm_instruction & 0x1000000) ? 1 : 0;
@@ -1006,16 +1007,27 @@ void ARM9::halfword_signed_transfer(u32 current_arm_instruction)
 	
 				//If PC is the Destination Register, add 4
 				if(dest_reg == 15) { value += 4; }
-
 				value &= 0xFFFF;
-				mem->write_u16(base_addr, value);
+
+				//Memory: Write a HALFWORD (destination register) to address
+				//Write-back: Write result to base register if applicable (see below!)
+				register_list[pipeline_id] |= (1 << dest_reg);
+				address_list[pipeline_id][dest_reg] = base_addr;
+				value_list[pipeline_id][dest_reg] = value;
+				read_write_list[pipeline_id] = MEM_WRITE_HALFWORD;
 			}
 
 			//Load halfword
 			else
 			{
 				value = mem->read_u16(base_addr);
-				set_reg(dest_reg, value);
+
+				//Memory: Read a HALFWORD from memory into to destination register
+				//Write-back: Write result to destination register
+				register_list[pipeline_id] |= (1 << dest_reg);
+				address_list[pipeline_id][dest_reg] = base_addr;
+				value_list[pipeline_id][dest_reg] = value;
+				read_write_list[pipeline_id] = MEM_READ_HALFWORD;
 			}
 
 			break;
@@ -1025,7 +1037,13 @@ void ARM9::halfword_signed_transfer(u32 current_arm_instruction)
 			value = mem->read_u8(base_addr);
 
 			if(value & 0x80) { value |= 0xFFFFFF00; }
-			set_reg(dest_reg, value);
+
+			//Memory: Read a HALFWORD from memory into to destination register
+			//Write-back: Write result to destination register
+			register_list[pipeline_id] |= (1 << dest_reg);
+			address_list[pipeline_id][dest_reg] = base_addr;
+			value_list[pipeline_id][dest_reg] = value;
+			read_write_list[pipeline_id] = MEM_READ_HALFWORD;
 
 			break;
 
@@ -1034,7 +1052,13 @@ void ARM9::halfword_signed_transfer(u32 current_arm_instruction)
 			value = mem->read_u16(base_addr);
 
 			if(value & 0x8000) { value |= 0xFFFF0000; }
-			set_reg(dest_reg, value);
+
+			//Memory: Read a HALFWORD from memory into to destination register
+			//Write-back: Write result to destination register
+			register_list[pipeline_id] |= (1 << dest_reg);
+			address_list[pipeline_id][dest_reg] = base_addr;
+			value_list[pipeline_id][dest_reg] = value;
+			read_write_list[pipeline_id] = MEM_READ_HALFWORD;
 
 			break;
 
@@ -1052,7 +1076,11 @@ void ARM9::halfword_signed_transfer(u32 current_arm_instruction)
 	}
 
 	//Write-back into base register
-	if((write_back == 1) && (base_reg != dest_reg)) { set_reg(base_reg, base_addr); }
+	if((write_back == 1) && (base_reg != dest_reg)) 
+	{
+		register_list[pipeline_id] |= (1 << base_reg);
+		value_list[pipeline_id][base_reg] = base_addr;
+	}
 }
 
 /****** ARM.11 Block Data Transfer ******/

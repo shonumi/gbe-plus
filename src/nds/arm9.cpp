@@ -692,13 +692,11 @@ void ARM9::execute()
 					break;
 
 				case ARM_9:
-					running = false; return;
 					single_data_transfer(instruction_pipeline[pipeline_id]);
 					debug_message = 0x19; debug_code = instruction_pipeline[pipeline_id];
 					break;
 
 				case ARM_10:
-					running = false; return;
 					halfword_signed_transfer(instruction_pipeline[pipeline_id]);
 					debug_message = 0x1A; debug_code = instruction_pipeline[pipeline_id];
 					break;
@@ -759,9 +757,9 @@ void ARM9::access_mem()
 			switch(read_write_list[pipeline_id])
 			{
 				//Write register into memory
-				case MEM_WRITE_BYTE: mem->write_u8(address_list[pipeline_id][x], value_list[pipeline_id][x]); break;
-				case MEM_WRITE_HALFWORD: mem->write_u16(address_list[pipeline_id][x], value_list[pipeline_id][x]); break;
-				case MEM_WRITE_WORD: mem->write_u32(address_list[pipeline_id][x], value_list[pipeline_id][x]); break;
+				case MEM_WRITE_BYTE: mem->write_u8(address_list[pipeline_id][x], value_list[pipeline_id][x]); register_list[pipeline_id] &= ~(1 << x); break;
+				case MEM_WRITE_HALFWORD: mem->write_u16(address_list[pipeline_id][x], value_list[pipeline_id][x]); register_list[pipeline_id] &= ~(1 << x); break;
+				case MEM_WRITE_WORD: mem->write_u32(address_list[pipeline_id][x], value_list[pipeline_id][x]); register_list[pipeline_id] &= ~(1 << x); break;
 
 				//Read register into memory
 				case MEM_READ_BYTE: value_list[pipeline_id][x] = mem->read_u8(address_list[pipeline_id][x]); break;
