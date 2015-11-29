@@ -48,6 +48,10 @@ class dmg_debug : public QDialog
 	QLineEdit* mmio_nr13;
 	QLineEdit* mmio_nr14;
 
+	//Palette widgets
+	QTableWidget* bg_pal_table;
+	QTableWidget* obj_pal_table;
+
 	private slots:
 	void refresh();
 };

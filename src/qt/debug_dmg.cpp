@@ -258,6 +258,43 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 
 	io_regs->setLayout(io_layout);
 
+	//Background palettes
+	QWidget* bg_pal_set = new QWidget(palettes);
+	bg_pal_set->setMaximumHeight(180);
+	QLabel* bg_pal_label = new QLabel("Background Palettes", bg_pal_set);
+
+	bg_pal_table = new QTableWidget(bg_pal_set);
+	bg_pal_table->setRowCount(8);
+	bg_pal_table->setColumnCount(4);
+	bg_pal_table->setShowGrid(true);
+	bg_pal_table->verticalHeader()->setVisible(false);
+	bg_pal_table->verticalHeader()->setDefaultSectionSize(16);
+	bg_pal_table->horizontalHeader()->setVisible(false);
+	bg_pal_table->horizontalHeader()->setDefaultSectionSize(32);
+	bg_pal_table->setMaximumWidth(132);
+	bg_pal_table->setMaximumHeight(132);
+
+	for(u8 y = 0; y < 8; y++)
+	{
+		for(u8 x = 0; x < 4; x++)
+		{
+			bg_pal_table->setItem(y, x, new QTableWidgetItem);
+			bg_pal_table->item(y, x)->setBackground(Qt::black);
+		}
+	}
+	
+	//Background palettes layout
+	QVBoxLayout* bg_pal_layout = new QVBoxLayout;
+	bg_pal_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	bg_pal_layout->addWidget(bg_pal_label);
+	bg_pal_layout->addWidget(bg_pal_table);
+	bg_pal_set->setLayout(bg_pal_layout);
+
+	QHBoxLayout* palettes_layout = new QHBoxLayout;
+	palettes_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	palettes_layout->addWidget(bg_pal_set);
+	palettes->setLayout(palettes_layout);
+
 	refresh_button = new QPushButton("Refresh");
 	tabs_button = new QDialogButtonBox(QDialogButtonBox::Close);
 	tabs_button->addButton(refresh_button, QDialogButtonBox::ActionRole);
@@ -332,6 +369,27 @@ void dmg_debug::refresh()
 
 	temp = main_menu::gbe_plus->ex_read_u8(NR14);
 	mmio_nr14->setText(QString("%1").arg(temp, 2, 16, QChar('0')).toUpper().prepend("0x"));
+
+	//DMG Palettes
+	
+	u8 ex_bgp[4];
+	temp = main_menu::gbe_plus->ex_read_u8(REG_BGP);
+
+	ex_bgp[0] = temp  & 0x3;
+	ex_bgp[1] = (temp >> 2) & 0x3;
+	ex_bgp[2] = (temp >> 4) & 0x3;
+	ex_bgp[3] = (temp >> 6) & 0x3;
+	
+	for(u8 x = 0; x < 4; x++)
+	{
+		switch(ex_bgp[x])
+		{
+			case 0: bg_pal_table->item(0, x)->setBackground(QColor(0xFF, 0xFF, 0xFF)); break;
+			case 1: bg_pal_table->item(0, x)->setBackground(QColor(0xC0, 0xC0, 0xC0)); break;
+			case 2: bg_pal_table->item(0, x)->setBackground(QColor(0x60, 0x60, 0x60)); break;
+			case 3: bg_pal_table->item(0, x)->setBackground(QColor(0, 0, 0)); break;
+		}
+	}
 }
 
 /****** Automatically refresh display data - Call this publically ******/
