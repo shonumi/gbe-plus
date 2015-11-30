@@ -271,15 +271,18 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	bg_pal_table->verticalHeader()->setDefaultSectionSize(16);
 	bg_pal_table->horizontalHeader()->setVisible(false);
 	bg_pal_table->horizontalHeader()->setDefaultSectionSize(32);
+	bg_pal_table->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	bg_pal_table->setMaximumWidth(132);
 	bg_pal_table->setMaximumHeight(132);
+
+	QBrush blank_brush(Qt::black, Qt::BDiagPattern);
 
 	for(u8 y = 0; y < 8; y++)
 	{
 		for(u8 x = 0; x < 4; x++)
 		{
 			bg_pal_table->setItem(y, x, new QTableWidgetItem);
-			bg_pal_table->item(y, x)->setBackground(Qt::black);
+			bg_pal_table->item(y, x)->setBackground(blank_brush);
 		}
 	}
 	
@@ -371,23 +374,44 @@ void dmg_debug::refresh()
 	mmio_nr14->setText(QString("%1").arg(temp, 2, 16, QChar('0')).toUpper().prepend("0x"));
 
 	//DMG Palettes
-	
-	u8 ex_bgp[4];
-	temp = main_menu::gbe_plus->ex_read_u8(REG_BGP);
-
-	ex_bgp[0] = temp  & 0x3;
-	ex_bgp[1] = (temp >> 2) & 0x3;
-	ex_bgp[2] = (temp >> 4) & 0x3;
-	ex_bgp[3] = (temp >> 6) & 0x3;
-	
-	for(u8 x = 0; x < 4; x++)
+	if(config::gb_type != 2)
 	{
-		switch(ex_bgp[x])
+		u8 ex_bgp[4];
+		temp = main_menu::gbe_plus->ex_read_u8(REG_BGP);
+
+		ex_bgp[0] = temp  & 0x3;
+		ex_bgp[1] = (temp >> 2) & 0x3;
+		ex_bgp[2] = (temp >> 4) & 0x3;
+		ex_bgp[3] = (temp >> 6) & 0x3;
+	
+		for(u8 x = 0; x < 4; x++)
 		{
-			case 0: bg_pal_table->item(0, x)->setBackground(QColor(0xFF, 0xFF, 0xFF)); break;
-			case 1: bg_pal_table->item(0, x)->setBackground(QColor(0xC0, 0xC0, 0xC0)); break;
-			case 2: bg_pal_table->item(0, x)->setBackground(QColor(0x60, 0x60, 0x60)); break;
-			case 3: bg_pal_table->item(0, x)->setBackground(QColor(0, 0, 0)); break;
+			switch(ex_bgp[x])
+			{
+				case 0: bg_pal_table->item(0, x)->setBackground(QColor(0xFF, 0xFF, 0xFF)); break;
+				case 1: bg_pal_table->item(0, x)->setBackground(QColor(0xC0, 0xC0, 0xC0)); break;
+				case 2: bg_pal_table->item(0, x)->setBackground(QColor(0x60, 0x60, 0x60)); break;
+				case 3: bg_pal_table->item(0, x)->setBackground(QColor(0, 0, 0)); break;
+			}
+		}
+	}
+
+	//GBC Palettes
+	else
+	{
+		for(u8 y = 0; y < 8; y++)
+		{
+			u32* color = main_menu::gbe_plus->get_bg_palette(y);
+
+			for(u8 x = 0; x < 4; x++)
+			{
+				u8 blue = (*color) & 0xFF;
+				u8 green = ((*color) >> 8) & 0xFF;
+				u8 red = ((*color) >> 16) & 0xFF;
+
+				bg_pal_table->item(y, x)->setBackground(QColor(red, green, blue));
+				color += 8;
+			}
 		}
 	}
 }
