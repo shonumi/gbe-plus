@@ -669,7 +669,6 @@ void ARM9::execute()
 					break;
 
 				case ARM_4:
-					running = false; return;
 					branch_link(instruction_pipeline[pipeline_id]);
 					debug_message = 0x15; debug_code = instruction_pipeline[pipeline_id];
 					break;
@@ -788,7 +787,7 @@ void ARM9::write_reg()
 
 	if(instruction_operation[pipeline_id] == PIPELINE_FILL) { return; }
 
-	u8 r_list = register_list[pipeline_id];
+	u16 r_list = register_list[pipeline_id];
 	
 	//Check all registers and write appropiate values to them
 	if(r_list & 0x1) { set_reg(0, value_list[pipeline_id][0]); }

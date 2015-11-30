@@ -80,6 +80,9 @@ void ARM9::branch_exchange(u32 current_arm_instruction)
 /****** ARM.4 - Branch and Branch with Link ******/
 void ARM9::branch_link(u32 current_arm_instruction)
 {
+	//Grab pipeline ID
+	u8 pipeline_id = (pipeline_pointer + 3) % 5;
+
 	//Grab offset
 	u32 offset = (current_arm_instruction & 0xFFFFFF);
 
@@ -88,6 +91,7 @@ void ARM9::branch_link(u32 current_arm_instruction)
 
 	s32 jump_addr = 0;
 	u32 final_addr = 0;
+	u32 result = 0;
 
 	//Convert 2's complement
 	if(offset & 0x800000) 
@@ -107,32 +111,35 @@ void ARM9::branch_link(u32 current_arm_instruction)
 	{
 		//Branch
 		case 0x0:
-			//Clock CPU and controllers - 1N
-			clock(reg.r15, true);
+			result = (reg.r15 & ~0xFFFFFF);
+			result |= final_addr;
 
-			reg.r15 &= ~0xFFFFFF;
-			reg.r15 |= final_addr;
+			//Setup Memory and Write-Back stages
+			//Memory: No memory is accessed
+			//Write-back: Write result to PC
+			register_list[pipeline_id] |= (1 << 15);
+			value_list[pipeline_id][15] = result;
+
+			//Flush pipeline on this instruction
 			needs_flush = true;
-
-			//Clock CPU and controllers - 2S
-			clock(reg.r15, false);
-			clock((reg.r15 + 4), false);
 
 			break;
 
 		//Branch and Link
 		case 0x1:
-			//Clock CPU and controllers - 1N
-			clock(reg.r15, true);
+			result = (reg.r15 & ~0xFFFFFF);
+			result |= final_addr;
 
-			set_reg(14, (reg.r15 - 4));
-			reg.r15 &= ~0xFFFFFF;
-			reg.r15 |= final_addr;
+			//Setup Memory and Write-Back stages
+			//Memory: No memory is accessed
+			//Write-back: Write result to PC, write PC - 4 to LR
+			register_list[pipeline_id] |= ((1 << 15) | (1 << 14));
+
+			value_list[pipeline_id][14] = (reg.r15 - 4);
+			value_list[pipeline_id][15] = result;
+
+			//Flush pipeline on this instruction
 			needs_flush = true;
-
-			//Clock CPU and controllers - 2S
-			clock(reg.r15, false);
-			clock((reg.r15 + 4), false);
 
 			break;
 	}
