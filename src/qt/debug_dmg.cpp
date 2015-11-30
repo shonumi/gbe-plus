@@ -293,9 +293,43 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	bg_pal_layout->addWidget(bg_pal_table);
 	bg_pal_set->setLayout(bg_pal_layout);
 
+	//OBJ palettes
+	QWidget* obj_pal_set = new QWidget(palettes);
+	obj_pal_set->setMaximumHeight(180);
+	QLabel* obj_pal_label = new QLabel("OBJ Palettes", obj_pal_set);
+
+	obj_pal_table = new QTableWidget(obj_pal_set);
+	obj_pal_table->setRowCount(8);
+	obj_pal_table->setColumnCount(4);
+	obj_pal_table->setShowGrid(true);
+	obj_pal_table->verticalHeader()->setVisible(false);
+	obj_pal_table->verticalHeader()->setDefaultSectionSize(16);
+	obj_pal_table->horizontalHeader()->setVisible(false);
+	obj_pal_table->horizontalHeader()->setDefaultSectionSize(32);
+	obj_pal_table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+	obj_pal_table->setMaximumWidth(132);
+	obj_pal_table->setMaximumHeight(132);
+
+	for(u8 y = 0; y < 8; y++)
+	{
+		for(u8 x = 0; x < 4; x++)
+		{
+			obj_pal_table->setItem(y, x, new QTableWidgetItem);
+			obj_pal_table->item(y, x)->setBackground(blank_brush);
+		}
+	}
+	
+	//OBJ palettes layout
+	QVBoxLayout* obj_pal_layout = new QVBoxLayout;
+	obj_pal_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	obj_pal_layout->addWidget(obj_pal_label);
+	obj_pal_layout->addWidget(obj_pal_table);
+	obj_pal_set->setLayout(obj_pal_layout);
+
 	QHBoxLayout* palettes_layout = new QHBoxLayout;
 	palettes_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	palettes_layout->addWidget(bg_pal_set);
+	palettes_layout->addWidget(obj_pal_set);
 	palettes->setLayout(palettes_layout);
 
 	refresh_button = new QPushButton("Refresh");
@@ -376,6 +410,7 @@ void dmg_debug::refresh()
 	//DMG Palettes
 	if(config::gb_type != 2)
 	{
+		//BG
 		u8 ex_bgp[4];
 		temp = main_menu::gbe_plus->ex_read_u8(REG_BGP);
 
@@ -394,11 +429,42 @@ void dmg_debug::refresh()
 				case 3: bg_pal_table->item(0, x)->setBackground(QColor(0, 0, 0)); break;
 			}
 		}
+
+		//OBJ
+		u8 ex_obp[4][2];
+		temp = main_menu::gbe_plus->ex_read_u8(REG_OBP0);
+
+		ex_obp[0][0] = temp  & 0x3;
+		ex_obp[1][0] = (temp >> 2) & 0x3;
+		ex_obp[2][0] = (temp >> 4) & 0x3;
+		ex_obp[3][0] = (temp >> 6) & 0x3;
+
+		temp = main_menu::gbe_plus->ex_read_u8(REG_OBP1);
+
+		ex_obp[0][1] = temp  & 0x3;
+		ex_obp[1][1] = (temp >> 2) & 0x3;
+		ex_obp[2][1] = (temp >> 4) & 0x3;
+		ex_obp[3][1] = (temp >> 6) & 0x3;
+
+		for(u8 y = 0; y < 2; y++)
+		{
+			for(u8 x = 0; x < 4; x++)
+			{
+				switch(ex_obp[x][y])
+				{
+					case 0: obj_pal_table->item(y, x)->setBackground(QColor(0xFF, 0xFF, 0xFF)); break;
+					case 1: obj_pal_table->item(y, x)->setBackground(QColor(0xC0, 0xC0, 0xC0)); break;
+					case 2: obj_pal_table->item(y, x)->setBackground(QColor(0x60, 0x60, 0x60)); break;
+					case 3: obj_pal_table->item(y, x)->setBackground(QColor(0, 0, 0)); break;
+				}
+			}
+		}
 	}
 
 	//GBC Palettes
 	else
 	{
+		//BG
 		for(u8 y = 0; y < 8; y++)
 		{
 			u32* color = main_menu::gbe_plus->get_bg_palette(y);
@@ -410,6 +476,22 @@ void dmg_debug::refresh()
 				u8 red = ((*color) >> 16) & 0xFF;
 
 				bg_pal_table->item(y, x)->setBackground(QColor(red, green, blue));
+				color += 8;
+			}
+		}
+
+		//OBJ
+		for(u8 y = 0; y < 8; y++)
+		{
+			u32* color = main_menu::gbe_plus->get_obj_palette(y);
+
+			for(u8 x = 0; x < 4; x++)
+			{
+				u8 blue = (*color) & 0xFF;
+				u8 green = ((*color) >> 8) & 0xFF;
+				u8 red = ((*color) >> 16) & 0xFF;
+
+				obj_pal_table->item(y, x)->setBackground(QColor(red, green, blue));
 				color += 8;
 			}
 		}
