@@ -52,7 +52,15 @@ class dmg_debug : public QDialog
 	QTableWidget* bg_pal_table;
 	QTableWidget* obj_pal_table;
 
+	QLabel* bg_pal_preview;
+	QLabel* obj_pal_preview;
+
+	QLabel* bg_r_label;
+	QLabel* bg_g_label;
+	QLabel* bg_b_label;
+
 	private slots:
+	void preview_bg_color(int y, int x);
 	void refresh();
 };
 

@@ -326,11 +326,38 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	obj_pal_layout->addWidget(obj_pal_table);
 	obj_pal_set->setLayout(obj_pal_layout);
 
-	QHBoxLayout* palettes_layout = new QHBoxLayout;
+	//BG palette preview
+	QImage temp_pix(128, 128, QImage::Format_ARGB32);
+	temp_pix.fill(qRgb(0, 0, 0));
+	bg_pal_preview = new QLabel;
+	bg_pal_preview->setPixmap(QPixmap::fromImage(temp_pix));
+
+	//BG palettes labels + layout
+	QWidget* bg_label_set = new QWidget(palettes);
+	bg_r_label = new QLabel("R : \t", bg_label_set);
+	bg_g_label = new QLabel("G : \t", bg_label_set);
+	bg_b_label = new QLabel("B : \t", bg_label_set);
+	
+	QVBoxLayout* bg_label_layout = new QVBoxLayout;
+	bg_label_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	bg_label_layout->addWidget(bg_r_label);
+	bg_label_layout->addWidget(bg_g_label);
+	bg_label_layout->addWidget(bg_b_label);
+	bg_label_set->setLayout(bg_label_layout);
+	bg_label_set->setMaximumHeight(128);
+	
+	//Palettes layout
+	QGridLayout* palettes_layout = new QGridLayout;
 	palettes_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-	palettes_layout->addWidget(bg_pal_set);
-	palettes_layout->addWidget(obj_pal_set);
+	palettes_layout->addWidget(bg_pal_set, 0, 0, 1, 1);
+	palettes_layout->addWidget(obj_pal_set, 1, 0, 1, 1);
+
+	palettes_layout->addWidget(bg_pal_preview, 0, 1, 1, 1);
+
+	palettes_layout->addWidget(bg_label_set, 0, 2, 1, 1);
+
 	palettes->setLayout(palettes_layout);
+	palettes->setMaximumWidth(500);
 
 	refresh_button = new QPushButton("Refresh");
 	tabs_button = new QDialogButtonBox(QDialogButtonBox::Close);
@@ -344,6 +371,7 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 
 	connect(tabs_button, SIGNAL(accepted()), this, SLOT(accept()));
 	connect(tabs_button, SIGNAL(rejected()), this, SLOT(reject()));
+	connect(bg_pal_table, SIGNAL(cellDoubleClicked (int, int)), this, SLOT(preview_bg_color(int, int)));
 	connect(refresh_button, SIGNAL(clicked()), this, SLOT(refresh()));
 
 	resize(800, 450);
@@ -496,6 +524,21 @@ void dmg_debug::refresh()
 			}
 		}
 	}
+}
+
+/****** Updates a preview of the selected BG Color ******/
+void dmg_debug::preview_bg_color(int y, int x)
+{
+	QImage temp_pix(128, 128, QImage::Format_ARGB32);
+	temp_pix.fill(bg_pal_table->item(y, x)->background().color());
+	bg_pal_preview->setPixmap(QPixmap::fromImage(temp_pix));
+
+	int r, g, b = 0;
+	bg_pal_table->item(y, x)->background().color().getRgb(&r, &g, &b);
+
+	bg_r_label->setText(QString::number(r).prepend("R : ").append("\t"));
+	bg_g_label->setText(QString::number(g).prepend("G : ").append("\t"));
+	bg_b_label->setText(QString::number(b).prepend("B : ").append("\t"));
 }
 
 /****** Automatically refresh display data - Call this publically ******/
