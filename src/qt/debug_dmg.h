@@ -59,8 +59,13 @@ class dmg_debug : public QDialog
 	QLabel* bg_g_label;
 	QLabel* bg_b_label;
 
+	QLabel* obj_r_label;
+	QLabel* obj_g_label;
+	QLabel* obj_b_label;
+
 	private slots:
 	void preview_bg_color(int y, int x);
+	void preview_obj_color(int y, int x);
 	void refresh();
 };
 

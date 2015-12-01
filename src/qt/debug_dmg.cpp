@@ -272,6 +272,7 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	bg_pal_table->horizontalHeader()->setVisible(false);
 	bg_pal_table->horizontalHeader()->setDefaultSectionSize(32);
 	bg_pal_table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+	bg_pal_table->setSelectionMode(QAbstractItemView::NoSelection);
 	bg_pal_table->setMaximumWidth(132);
 	bg_pal_table->setMaximumHeight(132);
 
@@ -307,6 +308,7 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	obj_pal_table->horizontalHeader()->setVisible(false);
 	obj_pal_table->horizontalHeader()->setDefaultSectionSize(32);
 	obj_pal_table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+	obj_pal_table->setSelectionMode(QAbstractItemView::NoSelection);
 	obj_pal_table->setMaximumWidth(132);
 	obj_pal_table->setMaximumHeight(132);
 
@@ -345,6 +347,24 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	bg_label_layout->addWidget(bg_b_label);
 	bg_label_set->setLayout(bg_label_layout);
 	bg_label_set->setMaximumHeight(128);
+
+	//OBJ palette preview
+	obj_pal_preview = new QLabel;
+	obj_pal_preview->setPixmap(QPixmap::fromImage(temp_pix));
+
+	//OBJ palettes labels + layout
+	QWidget* obj_label_set = new QWidget(palettes);
+	obj_r_label = new QLabel("R : \t", obj_label_set);
+	obj_g_label = new QLabel("G : \t", obj_label_set);
+	obj_b_label = new QLabel("B : \t", obj_label_set);
+	
+	QVBoxLayout* obj_label_layout = new QVBoxLayout;
+	obj_label_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	obj_label_layout->addWidget(obj_r_label);
+	obj_label_layout->addWidget(obj_g_label);
+	obj_label_layout->addWidget(obj_b_label);
+	obj_label_set->setLayout(obj_label_layout);
+	obj_label_set->setMaximumHeight(128);
 	
 	//Palettes layout
 	QGridLayout* palettes_layout = new QGridLayout;
@@ -353,8 +373,10 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	palettes_layout->addWidget(obj_pal_set, 1, 0, 1, 1);
 
 	palettes_layout->addWidget(bg_pal_preview, 0, 1, 1, 1);
+	palettes_layout->addWidget(obj_pal_preview, 1, 1, 1, 1);
 
 	palettes_layout->addWidget(bg_label_set, 0, 2, 1, 1);
+	palettes_layout->addWidget(obj_label_set, 1, 2, 1, 1);
 
 	palettes->setLayout(palettes_layout);
 	palettes->setMaximumWidth(500);
@@ -371,7 +393,8 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 
 	connect(tabs_button, SIGNAL(accepted()), this, SLOT(accept()));
 	connect(tabs_button, SIGNAL(rejected()), this, SLOT(reject()));
-	connect(bg_pal_table, SIGNAL(cellDoubleClicked (int, int)), this, SLOT(preview_bg_color(int, int)));
+	connect(bg_pal_table, SIGNAL(cellClicked (int, int)), this, SLOT(preview_bg_color(int, int)));
+	connect(obj_pal_table, SIGNAL(cellClicked (int, int)), this, SLOT(preview_obj_color(int, int)));
 	connect(refresh_button, SIGNAL(clicked()), this, SLOT(refresh()));
 
 	resize(800, 450);
@@ -536,9 +559,24 @@ void dmg_debug::preview_bg_color(int y, int x)
 	int r, g, b = 0;
 	bg_pal_table->item(y, x)->background().color().getRgb(&r, &g, &b);
 
-	bg_r_label->setText(QString::number(r).prepend("R : ").append("\t"));
-	bg_g_label->setText(QString::number(g).prepend("G : ").append("\t"));
-	bg_b_label->setText(QString::number(b).prepend("B : ").append("\t"));
+	bg_r_label->setText(QString::number(r/8).prepend("R : ").append("\t"));
+	bg_g_label->setText(QString::number(g/8).prepend("G : ").append("\t"));
+	bg_b_label->setText(QString::number(b/8).prepend("B : ").append("\t"));
+}
+
+/****** Updates a preview of the selected OBJ Color ******/
+void dmg_debug::preview_obj_color(int y, int x)
+{
+	QImage temp_pix(128, 128, QImage::Format_ARGB32);
+	temp_pix.fill(obj_pal_table->item(y, x)->background().color());
+	obj_pal_preview->setPixmap(QPixmap::fromImage(temp_pix));
+
+	int r, g, b = 0;
+	obj_pal_table->item(y, x)->background().color().getRgb(&r, &g, &b);
+
+	obj_r_label->setText(QString::number(r/8).prepend("R : ").append("\t"));
+	obj_g_label->setText(QString::number(g/8).prepend("G : ").append("\t"));
+	obj_b_label->setText(QString::number(b/8).prepend("B : ").append("\t"));
 }
 
 /****** Automatically refresh display data - Call this publically ******/
