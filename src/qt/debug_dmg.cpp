@@ -20,13 +20,13 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 
 	QDialog* io_regs = new QDialog;
 	QDialog* palettes = new QDialog;
-	QDialog* ram = new QDialog;
+	QDialog* memory = new QDialog;
 	QDialog* cpu_instr = new QDialog;
 	QDialog* vram = new QDialog;
 
 	tabs->addTab(io_regs, tr("I/O"));
 	tabs->addTab(palettes, tr("Palettes"));
-	tabs->addTab(ram, tr("RAM"));
+	tabs->addTab(memory, tr("Memory"));
 	tabs->addTab(cpu_instr, tr("Disassembly"));
 	tabs->addTab(vram, tr("Graphics"));
 
@@ -380,6 +380,38 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 
 	palettes->setLayout(palettes_layout);
 	palettes->setMaximumWidth(500);
+
+	//Memory
+	QWidget* mem_set = new QWidget(memory);
+	mem_set->setMinimumHeight(350);
+
+	QString temp_text;
+	
+	for(u32 x = 0; x < 0xFFFF; x += 16)
+	{
+		temp_text += (QString("%1").arg(x, 4, 16, QChar('0')).toUpper().prepend("0x").append("\n"));
+	}
+
+	mem_addr = new QTextEdit(mem_set);
+	mem_addr->setReadOnly(true);
+	mem_addr->setFixedWidth(100);
+	mem_addr->setText(temp_text);
+	mem_addr->verticalScrollBar()->hide();
+
+	mem_values = new QTextEdit(mem_set);
+	mem_values->setReadOnly(true);
+	mem_values->setFixedWidth(500);
+
+	mem_ascii = new QTextEdit(mem_set);
+	mem_ascii->setReadOnly(true);
+	mem_ascii->setFixedWidth(100);
+
+	QHBoxLayout* mem_layout = new QHBoxLayout;
+	mem_layout->setAlignment(Qt::AlignHCenter);
+	mem_layout->addWidget(mem_addr);
+	mem_layout->addWidget(mem_values);
+	mem_layout->addWidget(mem_ascii);
+	mem_set->setLayout(mem_layout);
 
 	refresh_button = new QPushButton("Refresh");
 	tabs_button = new QDialogButtonBox(QDialogButtonBox::Close);

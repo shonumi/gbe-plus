@@ -63,6 +63,11 @@ class dmg_debug : public QDialog
 	QLabel* obj_g_label;
 	QLabel* obj_b_label;
 
+	//Memory widgets
+	QTextEdit* mem_addr;
+	QTextEdit* mem_values;
+	QTextEdit* mem_ascii;
+
 	private slots:
 	void preview_bg_color(int y, int x);
 	void preview_obj_color(int y, int x);
