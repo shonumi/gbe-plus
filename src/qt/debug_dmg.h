@@ -72,9 +72,12 @@ class dmg_debug : public QDialog
 	QString values_text;
 	QString ascii_text;
 
+	QScrollBar* mem_scrollbar;
+
 	private slots:
 	void preview_bg_color(int y, int x);
 	void preview_obj_color(int y, int x);
+	void scroll_mem(int value);
 	void refresh();
 };
 

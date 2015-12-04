@@ -393,7 +393,7 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 
 	mem_values = new QTextEdit(mem_set);
 	mem_values->setReadOnly(true);
-	mem_values->setFixedWidth(540);
+	mem_values->setFixedWidth(500);
 	mem_values->verticalScrollBar()->hide();
 	mem_values->verticalScrollBar()->setFixedWidth(1);
 
@@ -433,12 +433,18 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	mem_values->setText(values_text);
 	mem_ascii->setText(ascii_text);
 
+	//Memory main scrollbar
+	mem_scrollbar = new QScrollBar(mem_set);
+	mem_scrollbar->setRange(0, 4095);
+	mem_scrollbar->setOrientation(Qt::Vertical);
+
 	//Memory layout
 	QHBoxLayout* mem_layout = new QHBoxLayout;
 	mem_layout->setAlignment(Qt::AlignHCenter);
 	mem_layout->addWidget(mem_addr);
 	mem_layout->addWidget(mem_values);
 	mem_layout->addWidget(mem_ascii);
+	mem_layout->addWidget(mem_scrollbar);
 	mem_set->setLayout(mem_layout);
 
 	refresh_button = new QPushButton("Refresh");
@@ -455,6 +461,7 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	connect(tabs_button, SIGNAL(rejected()), this, SLOT(reject()));
 	connect(bg_pal_table, SIGNAL(cellClicked (int, int)), this, SLOT(preview_bg_color(int, int)));
 	connect(obj_pal_table, SIGNAL(cellClicked (int, int)), this, SLOT(preview_obj_color(int, int)));
+	connect(mem_scrollbar, SIGNAL(valueChanged(int)), this, SLOT(scroll_mem(int)));
 	connect(refresh_button, SIGNAL(clicked()), this, SLOT(refresh()));
 
 	resize(800, 450);
@@ -637,6 +644,15 @@ void dmg_debug::preview_obj_color(int y, int x)
 	obj_r_label->setText(QString::number(r/8).prepend("R : ").append("\t"));
 	obj_g_label->setText(QString::number(g/8).prepend("G : ").append("\t"));
 	obj_b_label->setText(QString::number(b/8).prepend("B : ").append("\t"));
+}
+
+/****** Scrolls all everything in the memory tab ******/
+void dmg_debug::scroll_mem(int value)
+{
+	mem_addr->setTextCursor(QTextCursor(mem_addr->document()->findBlockByLineNumber(value)));
+	mem_values->setTextCursor(QTextCursor(mem_values->document()->findBlockByLineNumber(value)));
+	mem_ascii->setTextCursor(QTextCursor(mem_ascii->document()->findBlockByLineNumber(value)));
+	mem_scrollbar->setValue(value);
 }
 
 /****** Automatically refresh display data - Call this publically ******/
