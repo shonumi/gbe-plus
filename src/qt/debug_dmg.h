@@ -68,6 +68,10 @@ class dmg_debug : public QDialog
 	QTextEdit* mem_values;
 	QTextEdit* mem_ascii;
 
+	QString addr_text;
+	QString values_text;
+	QString ascii_text;
+
 	private slots:
 	void preview_bg_color(int y, int x);
 	void preview_obj_color(int y, int x);

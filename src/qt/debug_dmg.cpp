@@ -385,27 +385,55 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	QWidget* mem_set = new QWidget(memory);
 	mem_set->setMinimumHeight(350);
 
-	QString temp_text;
-	
-	for(u32 x = 0; x < 0xFFFF; x += 16)
-	{
-		temp_text += (QString("%1").arg(x, 4, 16, QChar('0')).toUpper().prepend("0x").append("\n"));
-	}
-
 	mem_addr = new QTextEdit(mem_set);
 	mem_addr->setReadOnly(true);
 	mem_addr->setFixedWidth(100);
-	mem_addr->setText(temp_text);
 	mem_addr->verticalScrollBar()->hide();
+	mem_addr->verticalScrollBar()->setFixedWidth(1);
 
 	mem_values = new QTextEdit(mem_set);
 	mem_values->setReadOnly(true);
-	mem_values->setFixedWidth(500);
+	mem_values->setFixedWidth(540);
+	mem_values->verticalScrollBar()->hide();
+	mem_values->verticalScrollBar()->setFixedWidth(1);
 
 	mem_ascii = new QTextEdit(mem_set);
 	mem_ascii->setReadOnly(true);
 	mem_ascii->setFixedWidth(100);
+	mem_ascii->verticalScrollBar()->hide();
+	mem_ascii->verticalScrollBar()->setFixedWidth(1);
 
+	//Memory QString setup
+	for(u32 x = 0; x < 0xFFFF; x += 16)
+	{
+		if((x + 16) < 0xFFFF) { addr_text += (QString("%1").arg(x, 4, 16, QChar('0')).toUpper().prepend("0x").append("\n")); }
+		else { addr_text += (QString("%1").arg(x, 4, 16, QChar('0')).toUpper().prepend("0x")); }
+	}
+
+	for(u32 x = 0; x < 0x10000; x++)
+	{
+		if((x % 16 == 0) && (x > 0))
+		{
+			values_text += (QString("%1").arg(0, 2, 16, QChar('0')).toUpper().append(" ").prepend("\n"));
+
+			std::string ascii_string(".");
+			ascii_text += QString::fromAscii(ascii_string.c_str()).prepend("\n");
+		}
+
+		else
+		{
+			values_text += (QString("%1").arg(0, 2, 16, QChar('0')).toUpper().append(" "));
+
+			std::string ascii_string(".");
+			ascii_text += QString::fromAscii(ascii_string.c_str());
+		}
+	}
+
+	mem_addr->setText(addr_text);
+	mem_values->setText(values_text);
+	mem_ascii->setText(ascii_text);
+
+	//Memory layout
 	QHBoxLayout* mem_layout = new QHBoxLayout;
 	mem_layout->setAlignment(Qt::AlignHCenter);
 	mem_layout->addWidget(mem_addr);
