@@ -396,12 +396,20 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	mem_values->setFixedWidth(500);
 	mem_values->verticalScrollBar()->hide();
 	mem_values->verticalScrollBar()->setFixedWidth(1);
+	mem_values->setTabStopWidth(25);
 
 	mem_ascii = new QTextEdit(mem_set);
 	mem_ascii->setReadOnly(true);
 	mem_ascii->setFixedWidth(100);
 	mem_ascii->verticalScrollBar()->hide();
 	mem_ascii->verticalScrollBar()->setFixedWidth(1);
+
+	//ASCII lookup setup
+	for(u8 x = 0; x < 0x20; x++) { ascii_lookup += "."; }
+	
+	ascii_lookup += " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
+
+	for(u16 x = 0x7F; x < 0x100; x++) { ascii_lookup += "."; }
 
 	//Memory QString setup
 	for(u32 x = 0; x < 0xFFFF; x += 16)
@@ -414,18 +422,18 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	{
 		if((x % 16 == 0) && (x > 0))
 		{
-			values_text += (QString("%1").arg(0, 2, 16, QChar('0')).toUpper().append(" ").prepend("\n"));
+			values_text += (QString("%1").arg(0, 2, 16, QChar('0')).toUpper().append("\t").prepend("\n"));
 
 			std::string ascii_string(".");
-			ascii_text += QString::fromAscii(ascii_string.c_str()).prepend("\n");
+			ascii_text += QString::fromStdString(ascii_string).prepend("\n");
 		}
 
 		else
 		{
-			values_text += (QString("%1").arg(0, 2, 16, QChar('0')).toUpper().append(" "));
+			values_text += (QString("%1").arg(0, 2, 16, QChar('0')).toUpper().append("\t"));
 
 			std::string ascii_string(".");
-			ascii_text += QString::fromAscii(ascii_string.c_str());
+			ascii_text += QString::fromStdString(ascii_string);
 		}
 	}
 
@@ -614,6 +622,34 @@ void dmg_debug::refresh()
 			}
 		}
 	}
+
+	//Memory viewer
+	values_text.clear();
+	ascii_text.clear();
+
+	for(u32 x = 0; x < 0x10000; x++)
+	{
+		temp = main_menu::gbe_plus->ex_read_u8(x); 
+
+		if((x % 16 == 0) && (x > 0))
+		{
+			values_text += (QString("%1").arg(temp, 2, 16, QChar('0')).toUpper().append("\t").prepend("\n"));
+
+			std::string ascii_string = ascii_lookup.substr(temp, 1);
+			ascii_text += QString::fromStdString(ascii_string).prepend("\n");
+		}
+
+		else
+		{
+			values_text += (QString("%1").arg(temp, 2, 16, QChar('0')).toUpper().append("\t"));
+
+			std::string ascii_string = ascii_lookup.substr(temp, 1);
+			ascii_text += QString::fromStdString(ascii_string);
+		}
+	}
+
+	mem_values->setText(values_text);
+	mem_ascii->setText(ascii_text);
 }
 
 /****** Updates a preview of the selected BG Color ******/

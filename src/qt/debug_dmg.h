@@ -72,6 +72,8 @@ class dmg_debug : public QDialog
 	QString values_text;
 	QString ascii_text;
 
+	std::string ascii_lookup;
+
 	QScrollBar* mem_scrollbar;
 
 	private slots:
