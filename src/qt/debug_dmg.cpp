@@ -382,27 +382,30 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	palettes->setMaximumWidth(500);
 
 	//Memory
+	QFont mono_font("Monospace");
+	mono_font.setStyleHint(QFont::TypeWriter);
+
 	QWidget* mem_set = new QWidget(memory);
 	mem_set->setMinimumHeight(350);
 
 	mem_addr = new QTextEdit(mem_set);
 	mem_addr->setReadOnly(true);
-	mem_addr->setFixedWidth(100);
-	mem_addr->verticalScrollBar()->hide();
-	mem_addr->verticalScrollBar()->setFixedWidth(1);
+	mem_addr->setFixedWidth(80);
+	mem_addr->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	mem_addr->setFont(mono_font);
 
 	mem_values = new QTextEdit(mem_set);
 	mem_values->setReadOnly(true);
 	mem_values->setFixedWidth(500);
-	mem_values->verticalScrollBar()->hide();
-	mem_values->verticalScrollBar()->setFixedWidth(1);
-	mem_values->setTabStopWidth(25);
+	mem_values->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	mem_values->setTabStopWidth(28);
+	mem_values->setFont(mono_font);
 
 	mem_ascii = new QTextEdit(mem_set);
 	mem_ascii->setReadOnly(true);
-	mem_ascii->setFixedWidth(100);
-	mem_ascii->verticalScrollBar()->hide();
-	mem_ascii->verticalScrollBar()->setFixedWidth(1);
+	mem_ascii->setFixedWidth(160);
+	mem_ascii->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	mem_ascii->setFont(mono_font);
 
 	//ASCII lookup setup
 	for(u8 x = 0; x < 0x20; x++) { ascii_lookup += "."; }
@@ -448,7 +451,8 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 
 	//Memory layout
 	QHBoxLayout* mem_layout = new QHBoxLayout;
-	mem_layout->setAlignment(Qt::AlignHCenter);
+	mem_layout->setSpacing(0);
+	mem_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	mem_layout->addWidget(mem_addr);
 	mem_layout->addWidget(mem_values);
 	mem_layout->addWidget(mem_ascii);
