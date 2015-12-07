@@ -74,12 +74,17 @@ class dmg_debug : public QDialog
 
 	std::string ascii_lookup;
 
+	int addr_pos;
+	int values_pos;
+	int ascii_pos;
+
 	QScrollBar* mem_scrollbar;
 
 	private slots:
 	void preview_bg_color(int y, int x);
 	void preview_obj_color(int y, int x);
 	void scroll_mem(int value);
+	void scroll_text(int type);
 	void refresh();
 };
 

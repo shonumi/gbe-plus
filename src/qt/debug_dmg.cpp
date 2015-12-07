@@ -476,6 +476,16 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	connect(mem_scrollbar, SIGNAL(valueChanged(int)), this, SLOT(scroll_mem(int)));
 	connect(refresh_button, SIGNAL(clicked()), this, SLOT(refresh()));
 
+	QSignalMapper* text_mapper = new QSignalMapper(this);
+	connect(mem_addr->verticalScrollBar(), SIGNAL(valueChanged(int)), text_mapper, SLOT(map()));
+	connect(mem_values->verticalScrollBar(), SIGNAL(valueChanged(int)), text_mapper, SLOT(map()));
+	connect(mem_ascii->verticalScrollBar(), SIGNAL(valueChanged(int)), text_mapper, SLOT(map()));
+
+	text_mapper->setMapping(mem_addr->verticalScrollBar(), 0);
+	text_mapper->setMapping(mem_values->verticalScrollBar(), 1);
+	text_mapper->setMapping(mem_ascii->verticalScrollBar(), 2);
+	connect(text_mapper, SIGNAL(mapped(int)), this, SLOT(scroll_text(int)));
+
 	resize(800, 450);
 	setWindowTitle(tr("DMG-GBC Debugger"));
 }
@@ -693,6 +703,43 @@ void dmg_debug::scroll_mem(int value)
 	mem_values->setTextCursor(QTextCursor(mem_values->document()->findBlockByLineNumber(value)));
 	mem_ascii->setTextCursor(QTextCursor(mem_ascii->document()->findBlockByLineNumber(value)));
 	mem_scrollbar->setValue(value);
+}
+
+void dmg_debug::scroll_text(int type) 
+{
+	int line_number = 0;
+	int value = 0;
+
+	//Scroll based on Address
+	if(type == 0)
+	{
+		line_number = mem_addr->textCursor().blockNumber();
+		mem_scrollbar->setValue(line_number);
+
+		value = mem_addr->verticalScrollBar()->value();
+		mem_values->verticalScrollBar()->setValue(value);
+		mem_ascii->verticalScrollBar()->setValue(value);
+	}
+
+	else if(type == 1)
+	{
+		line_number = mem_values->textCursor().blockNumber();
+		mem_scrollbar->setValue(line_number);
+
+		value = mem_values->verticalScrollBar()->value();
+		mem_addr->verticalScrollBar()->setValue(value);
+		mem_ascii->verticalScrollBar()->setValue(value);
+	}
+
+	else if(type == 2)
+	{
+		int line_number = mem_ascii->textCursor().blockNumber();
+		mem_scrollbar->setValue(line_number);
+
+		value = mem_ascii->verticalScrollBar()->value();
+		mem_addr->verticalScrollBar()->setValue(value);
+		mem_values->verticalScrollBar()->setValue(value);
+	}
 }
 
 /****** Automatically refresh display data - Call this publically ******/
