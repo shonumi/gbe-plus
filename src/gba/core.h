@@ -40,6 +40,7 @@ class AGB_core : virtual public core_emu
 		void debug_step();
 		void debug_display() const;
 		void debug_process_command();
+		std::string debug_get_mnemonic(u32 addr);
 
 		//CGFX interface
 		void dump_obj(int obj_index);

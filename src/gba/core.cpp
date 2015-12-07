@@ -581,6 +581,9 @@ void AGB_core::debug_process_command()
 		}
 	}
 }
+
+/****** Returns a string with the mnemonic assembly instruction ******/
+std::string AGB_core::debug_get_mnemonic(u32 addr) { return " "; }
 	
 /****** Process hotkey input ******/
 void AGB_core::handle_hotkey(SDL_Event& event)

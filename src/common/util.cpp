@@ -10,6 +10,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <vector>
 
 #include "util.h"
@@ -396,6 +397,14 @@ u32 xbit(u32 a, u32 b)
 {
 	u32 x = (a ^ b) & a;
 	return x;
+}
+
+/****** Convert a number into hex as a C++ string ******/
+std::string to_hex_str(u32 input)
+{
+	std::stringstream temp;
+	temp << "0x" << std::hex << input;
+	return temp.str();
 }
 
 } //Namespace

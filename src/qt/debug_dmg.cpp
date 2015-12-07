@@ -705,6 +705,7 @@ void dmg_debug::scroll_mem(int value)
 	mem_scrollbar->setValue(value);
 }
 
+/****** Scrolls every QTextEdit in the memory tab ******/
 void dmg_debug::scroll_text(int type) 
 {
 	int line_number = 0;

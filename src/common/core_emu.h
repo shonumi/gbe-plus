@@ -39,6 +39,7 @@ class core_emu
 	virtual	void debug_step() = 0;
 	virtual	void debug_display() const = 0;
 	virtual	void debug_process_command() = 0;
+	virtual std::string debug_get_mnemonic(u32 addr) = 0;
 
 	//MMU related functions
 	virtual bool read_file(std::string filename) = 0;

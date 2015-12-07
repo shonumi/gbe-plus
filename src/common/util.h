@@ -41,6 +41,8 @@ namespace util
 	u16 xbit(u16 a, u16 b);
 	u32 xbit(u32 a, u32 b);
 
+	std::string to_hex_str(u32 input);
+
 	extern u32 crc32_table[256];
 	extern u32 poly32;
 }
