@@ -63,6 +63,7 @@ class core_emu
 		bool print_all;
 		std::vector <u32> breakpoints;
 		std::string last_command;
+		std::string last_mnemonic;
 	} db_unit;
 };
 

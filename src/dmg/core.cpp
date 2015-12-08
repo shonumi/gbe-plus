@@ -39,6 +39,7 @@ DMG_core::DMG_core()
 	db_unit.debug_mode = false;
 	db_unit.display_cycles = false;
 	db_unit.last_command = "n";
+	db_unit.last_mnemonic = "";
 
 	std::cout<<"GBE::Launching DMG-GBC core\n";
 }
@@ -213,6 +214,10 @@ void DMG_core::debug_step()
 			//When a BP is matched, display info, wait for next input command
 			if(core_cpu.reg.pc == db_unit.breakpoints[x])
 			{
+
+				db_unit.last_mnemonic = debug_get_mnemonic(core_cpu.reg.pc);
+				core_cpu.opcode = core_mmu.read_u8(core_cpu.reg.pc);
+
 				debug_display();
 				debug_process_command();
 				printed = true;
@@ -224,6 +229,9 @@ void DMG_core::debug_step()
 	//When in next instruction mode, simply display info, wait for next input command
 	else if(db_unit.last_command == "n")
 	{
+		db_unit.last_mnemonic = debug_get_mnemonic(core_cpu.reg.pc);
+		core_cpu.opcode = core_mmu.read_u8(core_cpu.reg.pc);
+
 		debug_display();
 		debug_process_command();
 		printed = true;
@@ -236,7 +244,7 @@ void DMG_core::debug_step()
 /****** Debugger - Display relevant info to the screen ******/
 void DMG_core::debug_display() const
 {
-	std::cout << std::hex << "CPU::Executing Opcode : 0x" << (u32)core_cpu.opcode << "\n\n";
+	std::cout << std::hex << "CPU::Executing Opcode : 0x" << (u32)core_cpu.opcode << " --> " << db_unit.last_mnemonic << "\n\n";
 
 	//Display CPU registers
 	std::cout<< std::hex <<"A  : 0x" << std::setw(2) << std::setfill('0') << (u32)core_cpu.reg.a << "\n";
@@ -753,9 +761,6 @@ std::string DMG_core::debug_get_mnemonic(u32 addr)
 		case 0xFB: return "EI";
 		case 0xFE: return "CP " + util::to_hex_str(op1);
 		case 0xFF: return "RST 38";
-
-		
-	
 		default: return "UNK INSTR";
 	}
 }
