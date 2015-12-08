@@ -74,18 +74,28 @@ class dmg_debug : public QDialog
 
 	std::string ascii_lookup;
 
-	int addr_pos;
-	int values_pos;
-	int ascii_pos;
-
 	QScrollBar* mem_scrollbar;
+
+	//Disassembler widgets
+	QTextEdit* dasm;
+	QTextEdit* counter;
+
+	QString dasm_text;
+	QString counter_text;
+
+	QScrollBar* dasm_scrollbar;
+
+	bool debug_reset;
 
 	private slots:
 	void preview_bg_color(int y, int x);
 	void preview_obj_color(int y, int x);
 	void scroll_mem(int value);
 	void scroll_text(int type);
+	void scroll_dasm(int value);
+	void scroll_count(int type);
 	void refresh();
+	void refresh_dasm();
 };
 
 #endif //DMG_DEBUG_GBE_QT

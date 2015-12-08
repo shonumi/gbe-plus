@@ -9,6 +9,8 @@
 // Dialog for DMG/GBC debugging
 // Shows MMIO registers, CPU state, instructions, memory
 
+#include "common/util.h"
+
 #include "debug_dmg.h"
 #include "main_menu.h"
 
@@ -459,6 +461,44 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	mem_layout->addWidget(mem_scrollbar);
 	mem_set->setLayout(mem_layout);
 
+	//Disassembler
+	QWidget* dasm_set = new QWidget(cpu_instr);
+	dasm_set->setMinimumHeight(350);
+
+	counter = new QTextEdit(dasm_set);
+	counter->setReadOnly(true);
+	counter->setFixedWidth(80);
+	counter->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	counter->setFont(mono_font);
+
+	dasm = new QTextEdit(dasm_set);
+	dasm->setReadOnly(true);
+	dasm->setFixedWidth(500);
+	dasm->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	dasm->setFont(mono_font);
+
+	//Disassembler QString setup
+	for(u32 x = 0; x < 0x10000; x++)
+	{
+		counter_text += QString("%1").arg(x, 4, 16, QChar('0')).toUpper().prepend("0x").append("\n");
+	}
+
+	counter->setText(counter_text);
+
+	//Memory main scrollbar
+	dasm_scrollbar = new QScrollBar(dasm_set);
+	dasm_scrollbar->setRange(0, 0xFFFF);
+	dasm_scrollbar->setOrientation(Qt::Vertical);
+
+	//Disassembler layout
+	QHBoxLayout* dasm_layout = new QHBoxLayout;
+	dasm_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	dasm_layout->setSpacing(0);
+	dasm_layout->addWidget(counter);
+	dasm_layout->addWidget(dasm);
+	dasm_layout->addWidget(dasm_scrollbar);
+	dasm_set->setLayout(dasm_layout);
+
 	refresh_button = new QPushButton("Refresh");
 	tabs_button = new QDialogButtonBox(QDialogButtonBox::Close);
 	tabs_button->addButton(refresh_button, QDialogButtonBox::ActionRole);
@@ -474,6 +514,7 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	connect(bg_pal_table, SIGNAL(cellClicked (int, int)), this, SLOT(preview_bg_color(int, int)));
 	connect(obj_pal_table, SIGNAL(cellClicked (int, int)), this, SLOT(preview_obj_color(int, int)));
 	connect(mem_scrollbar, SIGNAL(valueChanged(int)), this, SLOT(scroll_mem(int)));
+	connect(dasm_scrollbar, SIGNAL(valueChanged(int)), this, SLOT(scroll_dasm(int)));
 	connect(refresh_button, SIGNAL(clicked()), this, SLOT(refresh()));
 
 	QSignalMapper* text_mapper = new QSignalMapper(this);
@@ -486,14 +527,25 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	text_mapper->setMapping(mem_ascii->verticalScrollBar(), 2);
 	connect(text_mapper, SIGNAL(mapped(int)), this, SLOT(scroll_text(int)));
 
+	QSignalMapper* dasm_mapper = new QSignalMapper(this);
+	connect(counter->verticalScrollBar(), SIGNAL(valueChanged(int)), dasm_mapper, SLOT(map()));
+	connect(dasm->verticalScrollBar(), SIGNAL(valueChanged(int)), dasm_mapper, SLOT(map()));
+
+	dasm_mapper->setMapping(counter->verticalScrollBar(), 0);
+	dasm_mapper->setMapping(dasm->verticalScrollBar(), 1);
+	connect(dasm_mapper, SIGNAL(mapped(int)), this, SLOT(scroll_count(int)));
+
 	resize(800, 450);
 	setWindowTitle(tr("DMG-GBC Debugger"));
+
+	debug_reset = true;
 }
 
 /****** Refresh the display data ******/
 void dmg_debug::refresh() 
 {
 	u16 temp = 0;
+	std::string temp_str = "";
 
 	//Update I/O regs
 	temp = main_menu::gbe_plus->ex_read_u8(REG_LCDC);
@@ -664,7 +716,29 @@ void dmg_debug::refresh()
 
 	mem_values->setText(values_text);
 	mem_ascii->setText(ascii_text);
+
+	//Populate initial disassembly text
+	if(debug_reset)
+	{
+		for(u32 x = 0; x < 0x10000; x++)
+		{
+			temp = main_menu::gbe_plus->ex_read_u8(x);
+			temp_str = util::to_hex_str(temp);
+			
+			//Make sure to print 2 digits always;
+			if(temp <= 0xF) { temp_str += "0"; }
+
+			temp_str += " --> " + main_menu::gbe_plus->debug_get_mnemonic(x) + "\n";
+			dasm_text += QString::fromStdString(temp_str);
+		}
+
+		dasm->setText(dasm_text);
+		debug_reset = false;
+	}	
 }
+
+/****** Updates certain parts of the disassembly text (RAM) ******/
+void dmg_debug::refresh_dasm() { }
 
 /****** Updates a preview of the selected BG Color ******/
 void dmg_debug::preview_bg_color(int y, int x)
@@ -696,7 +770,7 @@ void dmg_debug::preview_obj_color(int y, int x)
 	obj_b_label->setText(QString::number(b/8).prepend("B : ").append("\t"));
 }
 
-/****** Scrolls all everything in the memory tab ******/
+/****** Scrolls everything in the memory tab via main scrollbar ******/
 void dmg_debug::scroll_mem(int value)
 {
 	mem_addr->setTextCursor(QTextCursor(mem_addr->document()->findBlockByLineNumber(value)));
@@ -722,6 +796,7 @@ void dmg_debug::scroll_text(int type)
 		mem_ascii->verticalScrollBar()->setValue(value);
 	}
 
+	//Scroll based on Values
 	else if(type == 1)
 	{
 		line_number = mem_values->textCursor().blockNumber();
@@ -732,6 +807,7 @@ void dmg_debug::scroll_text(int type)
 		mem_ascii->verticalScrollBar()->setValue(value);
 	}
 
+	//Scroll based on ASCII
 	else if(type == 2)
 	{
 		int line_number = mem_ascii->textCursor().blockNumber();
@@ -740,6 +816,41 @@ void dmg_debug::scroll_text(int type)
 		value = mem_ascii->verticalScrollBar()->value();
 		mem_addr->verticalScrollBar()->setValue(value);
 		mem_values->verticalScrollBar()->setValue(value);
+	}
+}
+
+/****** Scrolls all everything in the disassembly tab via main scrollbar ******/
+void dmg_debug::scroll_dasm(int value)
+{
+	counter->setTextCursor(QTextCursor(counter->document()->findBlockByLineNumber(value)));
+	dasm->setTextCursor(QTextCursor(dasm->document()->findBlockByLineNumber(value)));
+	dasm_scrollbar->setValue(value);
+}
+
+/****** Scrolls every QTextEdit in the disassembly tab ******/
+void dmg_debug::scroll_count(int type)
+{
+	int line_number = 0;
+	int value = 0;
+
+	//Scroll based on Counter
+	if(type == 0)
+	{
+		line_number = counter->textCursor().blockNumber();
+		dasm_scrollbar->setValue(line_number);
+
+		value = counter->verticalScrollBar()->value();
+		dasm->verticalScrollBar()->setValue(value);
+	}
+
+	//Scroll based on Disassembly
+	else if(type == 1)
+	{
+		line_number = dasm->textCursor().blockNumber();
+		dasm_scrollbar->setValue(line_number);
+
+		value = dasm->verticalScrollBar()->value();
+		counter->verticalScrollBar()->setValue(value);
 	}
 }
 

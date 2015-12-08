@@ -403,7 +403,7 @@ u32 xbit(u32 a, u32 b)
 std::string to_hex_str(u32 input)
 {
 	std::stringstream temp;
-	temp << "0x" << std::hex << input;
+	temp << "0x" << std::hex << std::uppercase << input;
 	return temp.str();
 }
 
