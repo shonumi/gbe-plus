@@ -94,6 +94,7 @@ class dmg_debug : public QDialog
 	void scroll_text(int type);
 	void scroll_dasm(int value);
 	void scroll_count(int type);
+	void highlight();
 	void refresh();
 	void refresh_dasm();
 };

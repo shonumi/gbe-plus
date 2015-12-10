@@ -485,7 +485,7 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 
 	counter->setText(counter_text);
 
-	//Memory main scrollbar
+	//Disassembler main scrollbar
 	dasm_scrollbar = new QScrollBar(dasm_set);
 	dasm_scrollbar->setRange(0, 0xFFFF);
 	dasm_scrollbar->setOrientation(Qt::Vertical);
@@ -515,6 +515,7 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	connect(obj_pal_table, SIGNAL(cellClicked (int, int)), this, SLOT(preview_obj_color(int, int)));
 	connect(mem_scrollbar, SIGNAL(valueChanged(int)), this, SLOT(scroll_mem(int)));
 	connect(dasm_scrollbar, SIGNAL(valueChanged(int)), this, SLOT(scroll_dasm(int)));
+	connect(dasm, SIGNAL(cursorPositionChanged()), this, SLOT(highlight()));
 	connect(refresh_button, SIGNAL(clicked()), this, SLOT(refresh()));
 
 	QSignalMapper* text_mapper = new QSignalMapper(this);
@@ -717,9 +718,9 @@ void dmg_debug::refresh()
 	mem_values->setText(values_text);
 	mem_ascii->setText(ascii_text);
 
-	//Populate initial disassembly text
 	if(debug_reset)
 	{
+		//Populate initial disassembly text
 		for(u32 x = 0; x < 0x10000; x++)
 		{
 			temp = main_menu::gbe_plus->ex_read_u8(x);
@@ -852,6 +853,24 @@ void dmg_debug::scroll_count(int type)
 		value = dasm->verticalScrollBar()->value();
 		counter->verticalScrollBar()->setValue(value);
 	}
+}
+
+/****** Highlights a block of text for the disassembler ******/
+void dmg_debug::highlight()
+{
+	//Revert old highlighted position
+	QTextCursor* temp = new QTextCursor;
+
+	//Try to undo twice, in case double-clicks occur
+	dasm->document()->undo(temp);
+	dasm->document()->undo(temp);
+
+	QTextCursor cursor(dasm->textCursor());
+	QTextBlockFormat format = cursor.blockFormat();
+
+	format.setBackground(QColor(Qt::blue));
+	format.setForeground(QColor(Qt::white));
+	cursor.setBlockFormat(format);
 }
 
 /****** Automatically refresh display data - Call this publically ******/
