@@ -540,6 +540,7 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	setWindowTitle(tr("DMG-GBC Debugger"));
 
 	debug_reset = true;
+	text_select = 0;
 }
 
 /****** Refresh the display data ******/
@@ -823,6 +824,7 @@ void dmg_debug::scroll_text(int type)
 /****** Scrolls all everything in the disassembly tab via main scrollbar ******/
 void dmg_debug::scroll_dasm(int value)
 {
+	text_select = false;
 	counter->setTextCursor(QTextCursor(counter->document()->findBlockByLineNumber(value)));
 	dasm->setTextCursor(QTextCursor(dasm->document()->findBlockByLineNumber(value)));
 	dasm_scrollbar->setValue(value);
@@ -858,19 +860,22 @@ void dmg_debug::scroll_count(int type)
 /****** Highlights a block of text for the disassembler ******/
 void dmg_debug::highlight()
 {
-	//Revert old highlighted position
-	QTextCursor* temp = new QTextCursor;
+	if(text_select)
+	{
+		QTextCursor cursor = dasm->textCursor();
+		int start_pos = cursor.block().position();
+		int stop_pos = start_pos + cursor.block().length() - 1;
 
-	//Try to undo twice, in case double-clicks occur
-	dasm->document()->undo(temp);
-	dasm->document()->undo(temp);
+		cursor.setPosition(start_pos);
+		cursor.setPosition(stop_pos, QTextCursor::KeepAnchor);
 
-	QTextCursor cursor(dasm->textCursor());
-	QTextBlockFormat format = cursor.blockFormat();
+		last_start = start_pos;
+		last_stop = stop_pos;
 
-	format.setBackground(QColor(Qt::blue));
-	format.setForeground(QColor(Qt::white));
-	cursor.setBlockFormat(format);
+		dasm->setTextCursor(cursor);
+	}
+
+	else { text_select = true; }
 }
 
 /****** Automatically refresh display data - Call this publically ******/

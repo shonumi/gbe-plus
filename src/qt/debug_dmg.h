@@ -85,6 +85,11 @@ class dmg_debug : public QDialog
 
 	QScrollBar* dasm_scrollbar;
 
+	bool text_select;
+
+	int last_start;
+	int last_stop;
+
 	bool debug_reset;
 
 	private slots:
