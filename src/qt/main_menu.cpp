@@ -360,7 +360,7 @@ void main_menu::pause()
 		//Unpause
 		if(config::pause_emu) 
 		{
-			if(cgfx->pause) { return; }
+			if((cgfx->pause) || (dmg_debugger->pause)) { return; }
 
 			config::pause_emu = false; 
 		}
@@ -386,6 +386,12 @@ void main_menu::pause_emu()
 	}
 
 	SDL_PauseAudio(0);
+
+	//If CGFX or debugger are open, continue pause
+	if((cgfx->pause) || (dmg_debugger->pause)) { pause(); }
+
+	//Continue pause if GUI option is still selected - Check this when closing CGFX or debugger
+	if(findChild<QAction*>("pause_action")->isChecked()) { pause(); }
 }
 
 /****** Resets emulation ******/
@@ -478,6 +484,8 @@ void main_menu::show_debugger()
 		{
 			dmg_debugger->auto_refresh();
 			dmg_debugger->show();
+			dmg_debugger->pause = true;
+			pause();
 		}
 	}
 }

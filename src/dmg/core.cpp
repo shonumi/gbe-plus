@@ -214,7 +214,6 @@ void DMG_core::debug_step()
 			//When a BP is matched, display info, wait for next input command
 			if(core_cpu.reg.pc == db_unit.breakpoints[x])
 			{
-
 				db_unit.last_mnemonic = debug_get_mnemonic(core_cpu.reg.pc);
 				core_cpu.opcode = core_mmu.read_u8(core_cpu.reg.pc);
 
@@ -238,7 +237,12 @@ void DMG_core::debug_step()
 	}
 
 	//Display every instruction when print all is enabled
-	if((!printed) && (db_unit.print_all)) { debug_display(); } 
+	if((!printed) && (db_unit.print_all)) 
+	{
+		db_unit.last_mnemonic = debug_get_mnemonic(core_cpu.reg.pc);
+		core_cpu.opcode = core_mmu.read_u8(core_cpu.reg.pc);
+		debug_display();
+	} 
 }
 
 /****** Debugger - Display relevant info to the screen ******/

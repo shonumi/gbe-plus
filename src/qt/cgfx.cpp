@@ -663,6 +663,7 @@ QImage gbe_cgfx::grab_gbc_bg_data(int bg_index)
 	QImage final_image = raw_image.scaled(64, 64);
 	return final_image;
 }
+
 /****** Closes the CGFX window ******/
 void gbe_cgfx::closeEvent(QCloseEvent* event) { close_cgfx(); }
 

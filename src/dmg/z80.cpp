@@ -2211,6 +2211,7 @@ void Z80::exec_op(u8 opcode)
 			break;
 			
 		default :
+			std::cout<<"CPU::Error - Unknown Opcode : 0x" << std::hex << (int) opcode << "\n";
 			running = false;
 	}
 }
@@ -3791,6 +3792,6 @@ void Z80::exec_op(u16 opcode)
 
 		default : 
 			running = false;
-			std::cout<<"Unknown Opcode : 0x" << std::hex << (int) opcode << "\n";
+			std::cout<<"CPU::Error - Unknown Opcode : 0xCB" << std::hex << (int) opcode << "\n";
 	}
 }

@@ -517,6 +517,7 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	connect(dasm_scrollbar, SIGNAL(valueChanged(int)), this, SLOT(scroll_dasm(int)));
 	connect(dasm, SIGNAL(cursorPositionChanged()), this, SLOT(highlight()));
 	connect(refresh_button, SIGNAL(clicked()), this, SLOT(refresh()));
+	connect(tabs_button->button(QDialogButtonBox::Close), SIGNAL(clicked()), this, SLOT(close_debug()));
 
 	QSignalMapper* text_mapper = new QSignalMapper(this);
 	connect(mem_addr->verticalScrollBar(), SIGNAL(valueChanged(int)), text_mapper, SLOT(map()));
@@ -540,8 +541,15 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	setWindowTitle(tr("DMG-GBC Debugger"));
 
 	debug_reset = true;
+	pause = false;
 	text_select = 0;
 }
+
+/****** Closes the debugging window ******/
+void dmg_debug::closeEvent(QCloseEvent* event) { close_debug(); }
+
+/****** Closes the debugging window ******/
+void dmg_debug::close_debug() { pause = false; config::pause_emu = false; }
 
 /****** Refresh the display data ******/
 void dmg_debug::refresh() 

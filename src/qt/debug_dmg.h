@@ -27,6 +27,8 @@ class dmg_debug : public QDialog
 
 	void auto_refresh();
 
+	bool pause;
+
 	private:
 	//MMIO registers
 	QLineEdit* mmio_lcdc;
@@ -92,6 +94,9 @@ class dmg_debug : public QDialog
 
 	bool debug_reset;
 
+	protected:
+	void closeEvent(QCloseEvent* event);
+
 	private slots:
 	void preview_bg_color(int y, int x);
 	void preview_obj_color(int y, int x);
@@ -102,6 +107,7 @@ class dmg_debug : public QDialog
 	void highlight();
 	void refresh();
 	void refresh_dasm();
+	void close_debug();
 };
 
 #endif //DMG_DEBUG_GBE_QT
