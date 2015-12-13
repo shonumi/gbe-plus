@@ -41,6 +41,9 @@ class DMG_core : virtual public core_emu
 		void debug_process_command();
 		std::string debug_get_mnemonic(u32 addr);
 
+		//CPU related functions
+		u32 ex_get_reg(u8 reg_index);
+
 		//CGFX interface
 		void dump_obj(int obj_index);
 		void dump_bg(int bg_index);

@@ -860,6 +860,24 @@ void DMG_core::feed_key_input(int sdl_key, bool pressed)
 	core_pad.process_keyboard(sdl_key, pressed);
 }
 
+/****** Return a CPU register ******/
+u32 DMG_core::ex_get_reg(u8 reg_index)
+{
+	switch(reg_index)
+	{
+		case 0x0: return core_cpu.reg.a;
+		case 0x1: return core_cpu.reg.b;
+		case 0x2: return core_cpu.reg.c;
+		case 0x3: return core_cpu.reg.d;
+		case 0x4: return core_cpu.reg.e;
+		case 0x5: return core_cpu.reg.h;
+		case 0x6: return core_cpu.reg.l;
+		case 0x7: return core_cpu.reg.f;
+		case 0x8: return core_cpu.reg.pc;
+		default: return 0;
+	}
+}
+
 /****** Read binary file to memory ******/
 bool DMG_core::read_file(std::string filename) { return core_mmu.read_file(filename); }
 

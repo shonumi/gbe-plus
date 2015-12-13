@@ -687,6 +687,51 @@ void AGB_core::feed_key_input(int sdl_key, bool pressed)
 	core_pad.process_keyboard(sdl_key, pressed);
 }
 
+/****** Return a CPU register ******/
+u32 AGB_core::ex_get_reg(u8 reg_index)
+{
+	switch(reg_index)
+	{
+		case 0x0: return core_cpu.reg.r0;
+		case 0x1: return core_cpu.reg.r1;
+		case 0x2: return core_cpu.reg.r2;
+		case 0x3: return core_cpu.reg.r3;
+		case 0x4: return core_cpu.reg.r4;
+		case 0x5: return core_cpu.reg.r5;
+		case 0x6: return core_cpu.reg.r6;
+		case 0x7: return core_cpu.reg.r7;
+		case 0x8: return core_cpu.reg.r8;
+		case 0x9: return core_cpu.reg.r9;
+		case 0xA: return core_cpu.reg.r10;
+		case 0xB: return core_cpu.reg.r11;
+		case 0xC: return core_cpu.reg.r12;
+		case 0xD: return core_cpu.reg.r13;
+		case 0xE: return core_cpu.reg.r14;
+		case 0xF: return core_cpu.reg.r15;
+		case 0x10: return core_cpu.reg.cpsr;
+		case 0x11: return core_cpu.reg.r8_fiq;
+		case 0x12: return core_cpu.reg.r9_fiq;
+		case 0x13: return core_cpu.reg.r10_fiq;
+		case 0x14: return core_cpu.reg.r11_fiq;
+		case 0x15: return core_cpu.reg.r12_fiq;
+		case 0x16: return core_cpu.reg.r13_fiq;
+		case 0x17: return core_cpu.reg.r14_fiq;
+		case 0x18: return core_cpu.reg.spsr_fiq;
+		case 0x19: return core_cpu.reg.r13_svc;
+		case 0x1A: return core_cpu.reg.r14_svc;
+		case 0x1B: return core_cpu.reg.spsr_svc;
+		case 0x1C: return core_cpu.reg.r13_abt;
+		case 0x1D: return core_cpu.reg.r14_abt;
+		case 0x1E: return core_cpu.reg.spsr_abt;
+		case 0x1F: return core_cpu.reg.r13_irq;
+		case 0x20: return core_cpu.reg.r14_irq;
+		case 0x21: return core_cpu.reg.spsr_irq;
+		case 0x22: return core_cpu.reg.r13_und;
+		case 0x23: return core_cpu.reg.r14_und;
+		case 0x24: return core_cpu.reg.spsr_und;
+	}
+}
+
 /****** Read binary file to memory ******/
 bool AGB_core::read_file(std::string filename) { return core_mmu.read_file(filename); }
 
