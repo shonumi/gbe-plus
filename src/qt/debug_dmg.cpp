@@ -744,7 +744,15 @@ void dmg_debug::refresh()
 
 		dasm->setText(dasm_text);
 		debug_reset = false;
-	}	
+		refresh();
+	}
+
+	//Scroll disassembly to the PC
+	temp = main_menu::gbe_plus->ex_get_reg(8);
+
+	scroll_dasm(temp);
+	text_select = true;
+	highlight();
 }
 
 /****** Updates certain parts of the disassembly text (RAM) ******/
@@ -836,6 +844,8 @@ void dmg_debug::scroll_dasm(int value)
 	counter->setTextCursor(QTextCursor(counter->document()->findBlockByLineNumber(value)));
 	dasm->setTextCursor(QTextCursor(dasm->document()->findBlockByLineNumber(value)));
 	dasm_scrollbar->setValue(value);
+
+	std::cout<<"Called me -> " << value << "\n";
 }
 
 /****** Scrolls every QTextEdit in the disassembly tab ******/
@@ -876,9 +886,6 @@ void dmg_debug::highlight()
 
 		cursor.setPosition(start_pos);
 		cursor.setPosition(stop_pos, QTextCursor::KeepAnchor);
-
-		last_start = start_pos;
-		last_stop = stop_pos;
 
 		dasm->setTextCursor(cursor);
 	}
