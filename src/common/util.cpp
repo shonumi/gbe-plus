@@ -403,7 +403,14 @@ u32 xbit(u32 a, u32 b)
 std::string to_hex_str(u32 input)
 {
 	std::stringstream temp;
-	temp << "0x" << std::hex << std::uppercase << input;
+
+	//Auto fill with '0's
+	if(input < 0x10) { temp << "0x0" << std::hex << std::uppercase << input; }
+	else if((input < 0x1000) && (input >= 0x100)) { temp << "0x0" << std::hex << std::uppercase << input; }
+	else if((input < 0x100000) && (input >= 0x10000)) { temp << "0x0" << std::hex << std::uppercase << input; }
+	else if((input < 0x10000000) && (input >= 0x1000000)) { temp << "0x0" << std::hex << std::uppercase << input; }
+	else { temp << "0x" << std::hex << std::uppercase << input; }
+
 	return temp.str();
 }
 

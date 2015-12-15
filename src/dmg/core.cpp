@@ -873,7 +873,8 @@ u32 DMG_core::ex_get_reg(u8 reg_index)
 		case 0x5: return core_cpu.reg.h;
 		case 0x6: return core_cpu.reg.l;
 		case 0x7: return core_cpu.reg.f;
-		case 0x8: return core_cpu.reg.pc;
+		case 0x8: return core_cpu.reg.sp;
+		case 0x9: return core_cpu.reg.pc;
 		default: return 0;
 	}
 }

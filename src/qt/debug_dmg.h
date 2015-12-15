@@ -87,6 +87,14 @@ class dmg_debug : public QDialog
 
 	QScrollBar* dasm_scrollbar;
 
+	QLabel* af_label;
+	QLabel* bc_label;
+	QLabel* de_label;
+	QLabel* hl_label;
+	QLabel* pc_label;
+	QLabel* sp_label;
+	QLabel* flags_label;
+
 	bool text_select;
 
 	int last_start;

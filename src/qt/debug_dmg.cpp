@@ -499,6 +499,38 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	dasm_layout->addWidget(dasm_scrollbar);
 	dasm_set->setLayout(dasm_layout);
 
+	//Register labels
+	QWidget* regs_set = new QWidget(cpu_instr);
+	regs_set->setFont(mono_font);
+	af_label = new QLabel("A: 0x00    F: 0x00", regs_set);
+	bc_label = new QLabel("B: 0x00    C: 0x00", regs_set);
+	de_label = new QLabel("D: 0x00    E: 0x00", regs_set);
+	hl_label = new QLabel("H: 0x00    L: 0x00", regs_set);
+	sp_label = new QLabel("SP: 0x0000", regs_set);
+	pc_label = new QLabel("PC: 0x0000", regs_set);
+	flags_label = new QLabel("Flags: ZNHC", regs_set);
+
+	//Register layout
+	QVBoxLayout* regs_layout = new QVBoxLayout;
+	regs_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	regs_layout->setSpacing(4);
+	regs_layout->addWidget(af_label);
+	regs_layout->addWidget(bc_label);
+	regs_layout->addWidget(de_label);
+	regs_layout->addWidget(hl_label);
+	regs_layout->addWidget(sp_label);
+	regs_layout->addWidget(pc_label);
+	regs_layout->addWidget(flags_label);
+	regs_set->setLayout(regs_layout);
+	
+	QHBoxLayout* instr_layout = new QHBoxLayout;
+	instr_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	instr_layout->setSpacing(0);
+	instr_layout->addWidget(dasm_set);
+	instr_layout->addWidget(regs_set);
+	instr_layout->setStretchFactor(regs_set, 15);
+	cpu_instr->setLayout(instr_layout);
+
 	refresh_button = new QPushButton("Refresh");
 	tabs_button = new QDialogButtonBox(QDialogButtonBox::Close);
 	tabs_button->addButton(refresh_button, QDialogButtonBox::ActionRole);
@@ -734,9 +766,6 @@ void dmg_debug::refresh()
 		{
 			temp = main_menu::gbe_plus->ex_read_u8(x);
 			temp_str = util::to_hex_str(temp);
-			
-			//Make sure to print 2 digits always;
-			if(temp <= 0xF) { temp_str += "0"; }
 
 			temp_str += " --> " + main_menu::gbe_plus->debug_get_mnemonic(x) + "\n";
 			dasm_text += QString::fromStdString(temp_str);
@@ -747,8 +776,27 @@ void dmg_debug::refresh()
 		refresh();
 	}
 
+	//Update register values
+	temp_str = "A: " + util::to_hex_str(main_menu::gbe_plus->ex_get_reg(0)) + "    F: " + util::to_hex_str(main_menu::gbe_plus->ex_get_reg(7));
+	af_label->setText(QString::fromStdString(temp_str));
+
+	temp_str = "B: " + util::to_hex_str(main_menu::gbe_plus->ex_get_reg(1)) + "    C: " + util::to_hex_str(main_menu::gbe_plus->ex_get_reg(2));
+	bc_label->setText(QString::fromStdString(temp_str));
+
+	temp_str = "D: " + util::to_hex_str(main_menu::gbe_plus->ex_get_reg(3)) + "    E: " + util::to_hex_str(main_menu::gbe_plus->ex_get_reg(4));
+	de_label->setText(QString::fromStdString(temp_str));
+
+	temp_str = "H: " + util::to_hex_str(main_menu::gbe_plus->ex_get_reg(5)) + "    L: " + util::to_hex_str(main_menu::gbe_plus->ex_get_reg(6));
+	hl_label->setText(QString::fromStdString(temp_str));
+
+	temp_str = "SP: " + util::to_hex_str(main_menu::gbe_plus->ex_get_reg(8));
+	sp_label->setText(QString::fromStdString(temp_str));
+
+	temp_str = "PC: " + util::to_hex_str(main_menu::gbe_plus->ex_get_reg(9));
+	pc_label->setText(QString::fromStdString(temp_str));
+
 	//Scroll disassembly to the PC
-	temp = main_menu::gbe_plus->ex_get_reg(8);
+	temp = main_menu::gbe_plus->ex_get_reg(9);
 
 	scroll_dasm(temp);
 	text_select = true;
@@ -844,8 +892,6 @@ void dmg_debug::scroll_dasm(int value)
 	counter->setTextCursor(QTextCursor(counter->document()->findBlockByLineNumber(value)));
 	dasm->setTextCursor(QTextCursor(dasm->document()->findBlockByLineNumber(value)));
 	dasm_scrollbar->setValue(value);
-
-	std::cout<<"Called me -> " << value << "\n";
 }
 
 /****** Scrolls every QTextEdit in the disassembly tab ******/
