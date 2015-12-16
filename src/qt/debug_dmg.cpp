@@ -510,6 +510,8 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	pc_label = new QLabel("PC: 0x0000", regs_set);
 	flags_label = new QLabel("Flags: ZNHC", regs_set);
 
+	db_next_button = new QPushButton("Next");
+
 	//Register layout
 	QVBoxLayout* regs_layout = new QVBoxLayout;
 	regs_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -521,6 +523,7 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	regs_layout->addWidget(sp_label);
 	regs_layout->addWidget(pc_label);
 	regs_layout->addWidget(flags_label);
+	regs_layout->addWidget(db_next_button);
 	regs_set->setLayout(regs_layout);
 	
 	QHBoxLayout* instr_layout = new QHBoxLayout;
@@ -548,6 +551,7 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	connect(mem_scrollbar, SIGNAL(valueChanged(int)), this, SLOT(scroll_mem(int)));
 	connect(dasm_scrollbar, SIGNAL(valueChanged(int)), this, SLOT(scroll_dasm(int)));
 	connect(dasm, SIGNAL(cursorPositionChanged()), this, SLOT(highlight()));
+	connect(db_next_button, SIGNAL(clicked()), this, SLOT(db_next()));
 	connect(refresh_button, SIGNAL(clicked()), this, SLOT(refresh()));
 	connect(tabs_button->button(QDialogButtonBox::Close), SIGNAL(clicked()), this, SLOT(close_debug()));
 
@@ -573,7 +577,6 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	setWindowTitle(tr("DMG-GBC Debugger"));
 
 	debug_reset = true;
-	pause = false;
 	text_select = 0;
 }
 
@@ -581,7 +584,11 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 void dmg_debug::closeEvent(QCloseEvent* event) { close_debug(); }
 
 /****** Closes the debugging window ******/
-void dmg_debug::close_debug() { pause = false; config::pause_emu = false; }
+void dmg_debug::close_debug() 
+{
+	main_menu::gbe_plus->db_unit.debug_mode = false;
+	main_menu::gbe_plus->db_unit.last_command = "dq";
+}
 
 /****** Refresh the display data ******/
 void dmg_debug::refresh() 
@@ -941,3 +948,29 @@ void dmg_debug::highlight()
 
 /****** Automatically refresh display data - Call this publically ******/
 void dmg_debug::auto_refresh() { refresh(); }
+
+/****** Moves the debugger one instruction in disassembly ******/
+void dmg_debug::db_next() { main_menu::gbe_plus->db_unit.last_command = "n"; }
+
+/****** Steps through the debugger via the GUI ******/
+void dmg_debug_step()
+{
+	//Wait for GUI action
+	while(main_menu::gbe_plus->db_unit.last_command == "")
+	{
+		SDL_Delay(16);
+		QApplication::processEvents();
+		if(SDL_GetAudioStatus() != SDL_AUDIO_PAUSED) { SDL_PauseAudio(1); }
+	}
+
+	//Step once
+	if(main_menu::gbe_plus->db_unit.last_command == "n") {  }
+
+	//Stop debugging
+	if(main_menu::gbe_plus->db_unit.last_command == "dq") 
+	{
+		if(!config::pause_emu) { SDL_PauseAudio(0); }
+	}
+	
+	main_menu::gbe_plus->db_unit.last_command = "";
+}

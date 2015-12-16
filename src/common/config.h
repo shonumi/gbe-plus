@@ -63,9 +63,15 @@ namespace config
 	extern u32 DMG_BG_PAL[4];
 	extern u32 DMG_OBJ_PAL[4][2];
 
+	extern bool use_external_interfaces;
+
 	//Function pointer for external rendering
 	//This function is provided by frontends that will not rely on SDL
 	extern void (*render_external)(std::vector<u32>&);
+
+	//Function pointer for external debugging
+	//This function is provided by frontends that will not rely on the CLI
+	extern void (*debug_external)();
 }
 
 #endif // EMU_CONFIG

@@ -27,8 +27,6 @@ class dmg_debug : public QDialog
 
 	void auto_refresh();
 
-	bool pause;
-
 	private:
 	//MMIO registers
 	QLineEdit* mmio_lcdc;
@@ -95,6 +93,8 @@ class dmg_debug : public QDialog
 	QLabel* sp_label;
 	QLabel* flags_label;
 
+	QPushButton* db_next_button;
+
 	bool text_select;
 
 	int last_start;
@@ -115,7 +115,10 @@ class dmg_debug : public QDialog
 	void highlight();
 	void refresh();
 	void refresh_dasm();
+	void db_next();
 	void close_debug();
 };
+
+void dmg_debug_step();
 
 #endif //DMG_DEBUG_GBE_QT

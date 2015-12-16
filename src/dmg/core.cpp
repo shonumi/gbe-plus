@@ -204,6 +204,14 @@ void DMG_core::run_core()
 /****** Debugger - Allow core to run until a breaking condition occurs ******/
 void DMG_core::debug_step()
 {
+	//Use external interface (GUI) for all debugging
+	if(config::use_external_interfaces)
+	{
+		config::debug_external();
+		return;
+	}
+
+	//Use CLI for all debugging
 	bool printed = false;
 
 	//In continue mode, if breakpoints exist, try to stop on one
