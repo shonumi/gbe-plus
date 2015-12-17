@@ -18,8 +18,6 @@
 #include "common/config.h"
 #include "common/cgfx_common.h"
 
-core_emu* main_menu::gbe_plus = NULL;
-
 /****** General settings constructor ******/
 gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 {

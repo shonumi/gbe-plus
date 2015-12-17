@@ -808,6 +808,8 @@ void dmg_debug::refresh()
 	scroll_dasm(temp);
 	text_select = true;
 	highlight();
+
+	main_menu::gbe_plus->db_unit.last_command = "";
 }
 
 /****** Updates certain parts of the disassembly text (RAM) ******/
@@ -955,22 +957,31 @@ void dmg_debug::db_next() { main_menu::gbe_plus->db_unit.last_command = "n"; }
 /****** Steps through the debugger via the GUI ******/
 void dmg_debug_step()
 {
+	bool halt = true;
+
 	//Wait for GUI action
-	while(main_menu::gbe_plus->db_unit.last_command == "")
+	while((main_menu::gbe_plus->db_unit.last_command == "") && (halt))
 	{
 		SDL_Delay(16);
 		QApplication::processEvents();
 		if(SDL_GetAudioStatus() != SDL_AUDIO_PAUSED) { SDL_PauseAudio(1); }
+
+		//Step once
+		if(main_menu::gbe_plus->db_unit.last_command == "n") 
+		{
+			halt = false;
+		}
+
+		//Stop debugging
+		else if(main_menu::gbe_plus->db_unit.last_command == "dq") 
+		{
+			halt = false;
+			if(!config::pause_emu) { SDL_PauseAudio(0); }
+		}
+
+		else { halt = true; }
 	}
 
-	//Step once
-	if(main_menu::gbe_plus->db_unit.last_command == "n") {  }
-
-	//Stop debugging
-	if(main_menu::gbe_plus->db_unit.last_command == "dq") 
-	{
-		if(!config::pause_emu) { SDL_PauseAudio(0); }
-	}
-	
+	main_menu::dmg_debugger->auto_refresh();
 	main_menu::gbe_plus->db_unit.last_command = "";
 }

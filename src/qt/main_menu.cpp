@@ -120,7 +120,6 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 
 	menu_height = menu_bar->height();
 
-	main_menu::gbe_plus = NULL;
 	config::scaling_factor = 2;
 
 	//Parse .ini options
@@ -135,8 +134,8 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	cgfx->hide();
 
 	//Set up DMG-GBC debugger
-	dmg_debugger = new dmg_debug();
-	dmg_debugger->hide();
+	main_menu::dmg_debugger = new dmg_debug();
+	main_menu::dmg_debugger->hide();
 
 	//Setup About pop-up
 	about_box = new QWidget();
@@ -484,8 +483,8 @@ void main_menu::show_debugger()
 		{
 			SDL_PauseAudio(1);
 			config::debug_external = dmg_debug_step;
-			dmg_debugger->auto_refresh();
-			dmg_debugger->show();
+			main_menu::dmg_debugger->auto_refresh();
+			main_menu::dmg_debugger->show();
 			main_menu::gbe_plus->db_unit.debug_mode = true;
 		}
 	}
@@ -497,3 +496,7 @@ void main_menu::show_about()
 	if(about_box->isHidden()) { about_box->show(); }
 	else if ((!about_box->isMinimized()) && (!about_box->isHidden())){ about_box->hide(); }
 }
+
+/****** Static definitions ******/
+core_emu* main_menu::gbe_plus = NULL;
+dmg_debug* main_menu::dmg_debugger = NULL;
