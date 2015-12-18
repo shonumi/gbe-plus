@@ -511,6 +511,8 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	flags_label = new QLabel("Flags: ZNHC", regs_set);
 
 	db_next_button = new QPushButton("Next");
+	db_set_bp_button = new QPushButton("Set Breakpoint");
+	db_continue_button = new QPushButton("Continue");
 
 	//Register layout
 	QVBoxLayout* regs_layout = new QVBoxLayout;
@@ -524,6 +526,8 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	regs_layout->addWidget(pc_label);
 	regs_layout->addWidget(flags_label);
 	regs_layout->addWidget(db_next_button);
+	regs_layout->addWidget(db_continue_button);
+	regs_layout->addWidget(db_set_bp_button);	
 	regs_set->setLayout(regs_layout);
 	
 	QHBoxLayout* instr_layout = new QHBoxLayout;
@@ -552,6 +556,8 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	connect(dasm_scrollbar, SIGNAL(valueChanged(int)), this, SLOT(scroll_dasm(int)));
 	connect(dasm, SIGNAL(cursorPositionChanged()), this, SLOT(highlight()));
 	connect(db_next_button, SIGNAL(clicked()), this, SLOT(db_next()));
+	connect(db_continue_button, SIGNAL(clicked()), this, SLOT(db_continue()));
+	connect(db_set_bp_button, SIGNAL(clicked()), this, SLOT(db_set_bp()));
 	connect(refresh_button, SIGNAL(clicked()), this, SLOT(refresh()));
 	connect(tabs_button->button(QDialogButtonBox::Close), SIGNAL(clicked()), this, SLOT(close_debug()));
 
@@ -809,7 +815,7 @@ void dmg_debug::refresh()
 	text_select = true;
 	highlight();
 
-	main_menu::gbe_plus->db_unit.last_command = "";
+	if(main_menu::gbe_plus->db_unit.last_command != "c") { main_menu::gbe_plus->db_unit.last_command = ""; }
 }
 
 /****** Updates certain parts of the disassembly text (RAM) ******/
@@ -901,6 +907,8 @@ void dmg_debug::scroll_dasm(int value)
 	counter->setTextCursor(QTextCursor(counter->document()->findBlockByLineNumber(value)));
 	dasm->setTextCursor(QTextCursor(dasm->document()->findBlockByLineNumber(value)));
 	dasm_scrollbar->setValue(value);
+
+	highlighted_dasm_line = value;
 }
 
 /****** Scrolls every QTextEdit in the disassembly tab ******/
@@ -946,21 +954,54 @@ void dmg_debug::highlight()
 	}
 
 	else { text_select = true; }
+
+	highlighted_dasm_line = dasm->textCursor().blockNumber();
 }
 
 /****** Automatically refresh display data - Call this publically ******/
 void dmg_debug::auto_refresh() { refresh(); }
 
 /****** Moves the debugger one instruction in disassembly ******/
-void dmg_debug::db_next() { main_menu::gbe_plus->db_unit.last_command = "n"; }
+void dmg_debug::db_next() 
+{
+	if(main_menu::gbe_plus->db_unit.last_command != "c") { main_menu::gbe_plus->db_unit.last_command = "n"; }
+}
+
+/****** Continues emulation until debugger hits breakpoint ******/
+void dmg_debug::db_continue() { main_menu::gbe_plus->db_unit.last_command = "c"; }
+
+/****** Sets breakpoint at current PC ******/
+void dmg_debug::db_set_bp() 
+{
+	if(main_menu::gbe_plus->db_unit.last_command != "c") { main_menu::gbe_plus->db_unit.last_command = "bp"; }
+}
 
 /****** Steps through the debugger via the GUI ******/
 void dmg_debug_step()
 {
-	main_menu::dmg_debugger->auto_refresh();
-
 	bool halt = true;
-	main_menu::gbe_plus->db_unit.last_command == "";
+	bool bp_continue = true;
+
+	//Continue until breakpoint
+	if(main_menu::gbe_plus->db_unit.last_command == "c")
+	{
+		if(main_menu::gbe_plus->db_unit.breakpoints.size() > 0)
+		{
+			for(int x = 0; x < main_menu::gbe_plus->db_unit.breakpoints.size(); x++)
+			{
+				//When a BP is matched, display info, wait for next input command
+				if(main_menu::gbe_plus->ex_get_reg(9) == main_menu::gbe_plus->db_unit.breakpoints[x])
+				{
+					main_menu::gbe_plus->db_unit.last_command = "";
+					bp_continue = false;
+				}
+			}
+		}
+
+		if(bp_continue) { return; }
+	}
+
+	main_menu::dmg_debugger->auto_refresh();
 
 	//Wait for GUI action
 	while((main_menu::gbe_plus->db_unit.last_command == "") && (halt))
@@ -975,6 +1016,13 @@ void dmg_debug_step()
 			halt = false;
 		}
 
+		//Set breakpoint at current PC
+		else if(main_menu::gbe_plus->db_unit.last_command == "bp")
+		{
+			main_menu::gbe_plus->db_unit.breakpoints.push_back(main_menu::dmg_debugger->highlighted_dasm_line);
+			main_menu::gbe_plus->db_unit.last_command = "";
+		}
+
 		//Stop debugging
 		else if(main_menu::gbe_plus->db_unit.last_command == "dq") 
 		{
@@ -982,6 +1030,7 @@ void dmg_debug_step()
 			if(!config::pause_emu) { SDL_PauseAudio(0); }
 		}
 
+		//Continue waiting for a valid debugging command
 		else { halt = true; }
 	}
 }

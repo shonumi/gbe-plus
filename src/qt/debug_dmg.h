@@ -25,6 +25,8 @@ class dmg_debug : public QDialog
 	QDialogButtonBox* tabs_button;
 	QPushButton* refresh_button;
 
+	u32 highlighted_dasm_line;
+
 	void auto_refresh();
 
 	private:
@@ -94,6 +96,8 @@ class dmg_debug : public QDialog
 	QLabel* flags_label;
 
 	QPushButton* db_next_button;
+	QPushButton* db_set_bp_button;
+	QPushButton* db_continue_button;
 
 	bool text_select;
 
@@ -115,8 +119,11 @@ class dmg_debug : public QDialog
 	void highlight();
 	void refresh();
 	void refresh_dasm();
-	void db_next();
 	void close_debug();
+
+	void db_next();
+	void db_continue();
+	void db_set_bp();
 };
 
 void dmg_debug_step();
