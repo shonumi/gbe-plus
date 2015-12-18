@@ -134,12 +134,12 @@ void DMG_core::run_core()
 		//Run the CPU
 		if(core_cpu.running)
 		{	
-			if(db_unit.debug_mode) { debug_step(); }
-
 			core_cpu.cycles = 0;
 
 			//Handle Interrupts
 			core_cpu.handle_interrupts();
+
+			if(db_unit.debug_mode) { debug_step(); }
 	
 			//Halt CPU if necessary
 			if(core_cpu.halt == true) { core_cpu.cycles += 4; }

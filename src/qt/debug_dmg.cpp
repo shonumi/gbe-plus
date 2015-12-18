@@ -957,7 +957,10 @@ void dmg_debug::db_next() { main_menu::gbe_plus->db_unit.last_command = "n"; }
 /****** Steps through the debugger via the GUI ******/
 void dmg_debug_step()
 {
+	main_menu::dmg_debugger->auto_refresh();
+
 	bool halt = true;
+	main_menu::gbe_plus->db_unit.last_command == "";
 
 	//Wait for GUI action
 	while((main_menu::gbe_plus->db_unit.last_command == "") && (halt))
@@ -981,7 +984,4 @@ void dmg_debug_step()
 
 		else { halt = true; }
 	}
-
-	main_menu::dmg_debugger->auto_refresh();
-	main_menu::gbe_plus->db_unit.last_command = "";
 }
