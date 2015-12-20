@@ -513,6 +513,7 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	db_next_button = new QPushButton("Next");
 	db_set_bp_button = new QPushButton("Set Breakpoint");
 	db_continue_button = new QPushButton("Continue");
+	db_reset_button = new QPushButton("Reset + Run");
 
 	//Register layout
 	QVBoxLayout* regs_layout = new QVBoxLayout;
@@ -527,7 +528,8 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	regs_layout->addWidget(flags_label);
 	regs_layout->addWidget(db_next_button);
 	regs_layout->addWidget(db_continue_button);
-	regs_layout->addWidget(db_set_bp_button);	
+	regs_layout->addWidget(db_set_bp_button);
+	regs_layout->addWidget(db_reset_button);
 	regs_set->setLayout(regs_layout);
 	
 	QHBoxLayout* instr_layout = new QHBoxLayout;
@@ -558,6 +560,7 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	connect(db_next_button, SIGNAL(clicked()), this, SLOT(db_next()));
 	connect(db_continue_button, SIGNAL(clicked()), this, SLOT(db_continue()));
 	connect(db_set_bp_button, SIGNAL(clicked()), this, SLOT(db_set_bp()));
+	connect(db_reset_button, SIGNAL(clicked()), this, SLOT(db_reset()));
 	connect(refresh_button, SIGNAL(clicked()), this, SLOT(refresh()));
 	connect(tabs_button->button(QDialogButtonBox::Close), SIGNAL(clicked()), this, SLOT(close_debug()));
 
@@ -976,6 +979,9 @@ void dmg_debug::db_set_bp()
 	if(main_menu::gbe_plus->db_unit.last_command != "c") { main_menu::gbe_plus->db_unit.last_command = "bp"; }
 }
 
+/****** Resets emulation and runs in continue mode ******/
+void dmg_debug::db_reset() { main_menu::gbe_plus->db_unit.last_command = "rs"; }
+
 /****** Steps through the debugger via the GUI ******/
 void dmg_debug_step()
 {
@@ -1021,6 +1027,13 @@ void dmg_debug_step()
 		{
 			main_menu::gbe_plus->db_unit.breakpoints.push_back(main_menu::dmg_debugger->highlighted_dasm_line);
 			main_menu::gbe_plus->db_unit.last_command = "";
+		}
+
+		//Resets debugging
+		else if(main_menu::gbe_plus->db_unit.last_command == "rs")
+		{
+			main_menu::gbe_plus->db_unit.last_command = "c";
+			main_menu::gbe_plus->reset();
 		}
 
 		//Stop debugging
