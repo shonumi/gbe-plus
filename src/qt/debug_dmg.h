@@ -99,6 +99,7 @@ class dmg_debug : public QDialog
 	QPushButton* db_set_bp_button;
 	QPushButton* db_continue_button;
 	QPushButton* db_reset_button;
+	QPushButton* db_reset_run_button;
 
 	bool text_select;
 
@@ -126,6 +127,7 @@ class dmg_debug : public QDialog
 	void db_continue();
 	void db_set_bp();
 	void db_reset();
+	void db_reset_run();
 };
 
 void dmg_debug_step();
