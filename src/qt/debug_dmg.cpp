@@ -814,6 +814,16 @@ void dmg_debug::refresh()
 	temp_str = "PC: " + util::to_hex_str(main_menu::gbe_plus->ex_get_reg(9));
 	pc_label->setText(QString::fromStdString(temp_str));
 
+	temp_str = "Flags: ";
+	temp = main_menu::gbe_plus->ex_get_reg(7);
+
+	temp_str += (temp & 0x80) ? "Z" : ".";
+	temp_str += (temp & 0x40) ? "N" : ".";
+	temp_str += (temp & 0x20) ? "H" : ".";
+	temp_str += (temp & 0x10) ? "C" : ".";
+
+	flags_label->setText(QString::fromStdString(temp_str));
+
 	//Scroll disassembly to the PC
 	temp = main_menu::gbe_plus->ex_get_reg(9);
 
