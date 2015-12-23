@@ -512,6 +512,7 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 
 	db_next_button = new QPushButton("Next");
 	db_set_bp_button = new QPushButton("Set Breakpoint");
+	db_clear_bp_button = new QPushButton("Clear Breakpoints");
 	db_continue_button = new QPushButton("Continue");
 	db_reset_button = new QPushButton("Reset");
 	db_reset_run_button = new QPushButton("Reset + Run");
@@ -530,6 +531,7 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	regs_layout->addWidget(db_next_button);
 	regs_layout->addWidget(db_continue_button);
 	regs_layout->addWidget(db_set_bp_button);
+	regs_layout->addWidget(db_clear_bp_button);
 	regs_layout->addWidget(db_reset_button);
 	regs_layout->addWidget(db_reset_run_button);
 	regs_set->setLayout(regs_layout);
@@ -561,6 +563,7 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	connect(dasm, SIGNAL(cursorPositionChanged()), this, SLOT(highlight()));
 	connect(db_next_button, SIGNAL(clicked()), this, SLOT(db_next()));
 	connect(db_continue_button, SIGNAL(clicked()), this, SLOT(db_continue()));
+	connect(db_clear_bp_button, SIGNAL(clicked()), this, SLOT(db_clear_bp()));
 	connect(db_set_bp_button, SIGNAL(clicked()), this, SLOT(db_set_bp()));
 	connect(db_reset_button, SIGNAL(clicked()), this, SLOT(db_reset()));
 	connect(db_reset_run_button, SIGNAL(clicked()), this, SLOT(db_reset_run()));
@@ -793,6 +796,8 @@ void dmg_debug::refresh()
 		dasm->setText(dasm_text);
 		debug_reset = false;
 		refresh();
+
+		original_format = dasm->textCursor().blockFormat();
 	}
 
 	//Update register values
@@ -992,6 +997,12 @@ void dmg_debug::db_set_bp()
 	if(main_menu::gbe_plus->db_unit.last_command != "c") { main_menu::gbe_plus->db_unit.last_command = "bp"; }
 }
 
+/****** Clears all breakpoints ******/
+void dmg_debug::db_clear_bp()
+{
+	if(main_menu::gbe_plus->db_unit.last_command != "c") { main_menu::gbe_plus->db_unit.last_command = "cbp"; }
+}
+
 /****** Resets emulation then stops ******/
 void dmg_debug::db_reset() { main_menu::gbe_plus->db_unit.last_command = "rs"; }
 
@@ -1043,6 +1054,23 @@ void dmg_debug_step()
 		{
 			main_menu::gbe_plus->db_unit.breakpoints.push_back(main_menu::dmg_debugger->highlighted_dasm_line);
 			main_menu::gbe_plus->db_unit.last_command = "";
+
+			QTextCursor* temp = new QTextCursor;
+
+			QTextCursor cursor(main_menu::dmg_debugger->dasm->textCursor());
+			QTextBlockFormat format = cursor.blockFormat();
+
+			format.setBackground(QColor(Qt::yellow));
+			cursor.setBlockFormat(format);
+		}
+
+		//Clears all breakpoints
+		else if(main_menu::gbe_plus->db_unit.last_command == "cbp")
+		{
+			main_menu::dmg_debugger->dasm->setText(main_menu::dmg_debugger->dasm_text);
+			main_menu::gbe_plus->db_unit.last_command = "";
+			main_menu::gbe_plus->db_unit.breakpoints.clear();
+			main_menu::dmg_debugger->auto_refresh();
 		}
 
 		//Resets debugging, then stops

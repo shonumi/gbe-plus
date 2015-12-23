@@ -27,6 +27,10 @@ class dmg_debug : public QDialog
 
 	u32 highlighted_dasm_line;
 
+	QTextEdit* dasm;
+	QString dasm_text;
+	QString counter_text;
+
 	void auto_refresh();
 
 	private:
@@ -79,11 +83,7 @@ class dmg_debug : public QDialog
 	QScrollBar* mem_scrollbar;
 
 	//Disassembler widgets
-	QTextEdit* dasm;
 	QTextEdit* counter;
-
-	QString dasm_text;
-	QString counter_text;
 
 	QScrollBar* dasm_scrollbar;
 
@@ -97,9 +97,12 @@ class dmg_debug : public QDialog
 
 	QPushButton* db_next_button;
 	QPushButton* db_set_bp_button;
+	QPushButton* db_clear_bp_button;
 	QPushButton* db_continue_button;
 	QPushButton* db_reset_button;
 	QPushButton* db_reset_run_button;
+
+	QTextBlockFormat original_format;
 
 	bool text_select;
 
@@ -126,6 +129,7 @@ class dmg_debug : public QDialog
 	void db_next();
 	void db_continue();
 	void db_set_bp();
+	void db_clear_bp();
 	void db_reset();
 	void db_reset_run();
 };
