@@ -32,6 +32,7 @@ class dmg_debug : public QDialog
 	QString counter_text;
 
 	void auto_refresh();
+	void clear_format();
 
 	private:
 	//MMIO registers

@@ -982,6 +982,16 @@ void dmg_debug::highlight()
 /****** Automatically refresh display data - Call this publically ******/
 void dmg_debug::auto_refresh() { refresh(); }
 
+/****** Clears the formatting from all breakpoints - Call this publically ******/
+void dmg_debug::clear_format()
+{
+	QTextCursor cursor(dasm->textCursor());
+	cursor.setPosition(QTextCursor::Start, QTextCursor::MoveAnchor);
+	cursor.setBlockFormat(original_format);
+	
+	refresh();
+}
+
 /****** Moves the debugger one instruction in disassembly ******/
 void dmg_debug::db_next() 
 {
@@ -1055,8 +1065,6 @@ void dmg_debug_step()
 			main_menu::gbe_plus->db_unit.breakpoints.push_back(main_menu::dmg_debugger->highlighted_dasm_line);
 			main_menu::gbe_plus->db_unit.last_command = "";
 
-			QTextCursor* temp = new QTextCursor;
-
 			QTextCursor cursor(main_menu::dmg_debugger->dasm->textCursor());
 			QTextBlockFormat format = cursor.blockFormat();
 
@@ -1070,7 +1078,7 @@ void dmg_debug_step()
 			main_menu::dmg_debugger->dasm->setText(main_menu::dmg_debugger->dasm_text);
 			main_menu::gbe_plus->db_unit.last_command = "";
 			main_menu::gbe_plus->db_unit.breakpoints.clear();
-			main_menu::dmg_debugger->auto_refresh();
+			main_menu::dmg_debugger->clear_format();
 		}
 
 		//Resets debugging, then stops
