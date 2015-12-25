@@ -599,7 +599,7 @@ void AGB_core::handle_hotkey(SDL_Event& event)
 	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F9)) 
 	{
 		std::stringstream save_stream;
-		std::string save_name = "";
+		std::string save_name = config::ss_path;
 
 		//Prefix SDL Ticks to screenshot name
 		save_stream << SDL_GetTicks();

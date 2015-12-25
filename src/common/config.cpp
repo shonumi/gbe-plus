@@ -22,6 +22,7 @@ namespace config
 	std::string dmg_bios_path = "";
 	std::string gbc_bios_path = "";
 	std::string agb_bios_path = "";
+	std::string ss_path = "";
 	std::vector <std::string> cli_args;
 	bool use_debugger = false;
 
@@ -660,6 +661,24 @@ bool parse_ini_file()
 			}
 
 			else { config::agb_bios_path = ""; }
+		}
+
+		//Screenshots path
+		else if(ini_item == "#screenshot_path")
+		{
+			if((x + 1) < size) 
+			{
+				ini_item = ini_opts[++x];
+				std::string first_char = "";
+				first_char = ini_item[0];
+				
+				//When left blank, don't parse the next line item
+				if(first_char != "#") { config::ss_path = ini_item; }
+				else { config::ss_path = ""; x--;}
+ 
+			}
+
+			else { config::ss_path = ""; }
 		}
 
 		//Use OpenGL

@@ -410,7 +410,7 @@ void main_menu::screenshot()
 	if(main_menu::gbe_plus != NULL)
 	{
 		std::stringstream save_stream;
-		std::string save_name = "";
+		std::string save_name = config::ss_path;
 
 		//Prefix SDL Ticks to screenshot name
 		save_stream << SDL_GetTicks();
