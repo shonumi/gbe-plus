@@ -58,11 +58,13 @@ class gen_settings : public QDialog
 	QLineEdit* gbc_bios;
 	QLineEdit* gba_bios;
 	QLineEdit* manifest;
+	QLineEdit* screenshot;
 
 	QLabel* dmg_bios_label;
 	QLabel* gbc_bios_label;
 	QLabel* gba_bios_label;
 	QLabel* manifest_label;
+	QLabel* screenshot_label;
 
 	//Controls tab widget
 	QComboBox* input_device;

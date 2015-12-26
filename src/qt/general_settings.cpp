@@ -469,12 +469,27 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	manifest_layout->addWidget(manifest_button);
 	manifest_set->setLayout(manifest_layout);
 
+	//Path settings - Screenshot
+	QWidget* screenshot_set = new QWidget(paths);
+	screenshot_label = new QLabel("Screenshots :  ");
+	QPushButton* screenshot_button = new QPushButton("Browse");
+	screenshot = new QLineEdit(paths);
+	screenshot->setReadOnly(true);
+
+	QHBoxLayout* screenshot_layout = new QHBoxLayout;
+	screenshot_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	screenshot_layout->addWidget(screenshot_label);
+	screenshot_layout->addWidget(screenshot);
+	screenshot_layout->addWidget(screenshot_button);
+	screenshot_set->setLayout(screenshot_layout);
+
 	QVBoxLayout* paths_layout = new QVBoxLayout;
 	paths_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	paths_layout->addWidget(dmg_bios_set);
 	paths_layout->addWidget(gbc_bios_set);
 	paths_layout->addWidget(gba_bios_set);
 	paths_layout->addWidget(manifest_set);
+	paths_layout->addWidget(screenshot_set);
 	paths->setLayout(paths_layout);
 
 	connect(tabs, SIGNAL(currentChanged(int)), this, SLOT(close_input()));
@@ -496,11 +511,13 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(gbc_bios_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
 	connect(gba_bios_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
 	connect(manifest_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
+	connect(screenshot_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
 
 	paths_mapper->setMapping(dmg_bios_button, 0);
 	paths_mapper->setMapping(gbc_bios_button, 1);
 	paths_mapper->setMapping(gba_bios_button, 2);
 	paths_mapper->setMapping(manifest_button, 3);
+	paths_mapper->setMapping(screenshot_button, 4);
 	connect(paths_mapper, SIGNAL(mapped(int)), this, SLOT(set_paths(int)));
 
 	QSignalMapper* button_config = new QSignalMapper(this);
@@ -683,11 +700,13 @@ void gen_settings::set_ini_options()
 	QString path_2(QString::fromStdString(config::gbc_bios_path));
 	QString path_3(QString::fromStdString(config::agb_bios_path));
 	QString path_4(QString::fromStdString(cgfx::manifest_file));
+	QString path_5(QString::fromStdString(config::ss_path));
 
 	dmg_bios->setText(path_1);
 	gbc_bios->setText(path_2);
 	gba_bios->setText(path_3);
 	manifest->setText(path_4);
+	screenshot->setText(path_5);
 }
 
 /****** Toggles whether to use the Boot ROM or BIOS ******/
@@ -793,6 +812,11 @@ void gen_settings::set_paths(int index)
 		case 3:
 			cgfx::manifest_file = filename.toStdString();
 			manifest->setText(filename);
+			break;
+
+		case 4:
+			config::ss_path = filename.toStdString();
+			screenshot->setText(filename);
 			break;
 	}
 }
