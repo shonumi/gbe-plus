@@ -34,7 +34,8 @@ class DMG_MMU
 		MBC1, 
 		MBC2, 
 		MBC3, 
-		MBC5 
+		MBC5,
+		MBC7
 	};
 
 	std::vector <u8> memory_map;
@@ -65,16 +66,30 @@ class DMG_MMU
 	//Cartridge data structure
 	struct cart_data
 	{
+		//General MBC attributes
 		u32 rom_size;
 		u32 ram_size;
 		mbc_types mbc_type;
 		bool battery;
 		bool ram;
+
+		//MBC3 RTC
 		bool rtc;
 		bool rtc_enabled;
 		bool rtc_latched;
 		u8 rtc_latch_1, rtc_latch_2, rtc_reg[5];
 		u8 latch_reg[5];
+
+		//MBC7
+		bool idle;
+		u8 internal_value;
+		u8 internal_state;
+		u8 cs;
+		u8 sk;
+		u8 buffer_length;
+		u8 command_code;
+		u16 addr;
+		u16 buffer;
 	} cart;
 
 	DMG_GamePad* g_pad;
@@ -112,6 +127,9 @@ class DMG_MMU
 
 	void mbc5_write(u16 address, u8 value);
 	u8 mbc5_read(u16 address);
+
+	void mbc7_write(u16 address, u8 value);
+	u8 mbc7_read(u16 address);
 
 	void set_lcd_data(dmg_lcd_data* ex_lcd_stat);
 	void set_cgfx_data(dmg_cgfx_data* ex_cgfx_stat);

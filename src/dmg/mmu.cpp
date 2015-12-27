@@ -50,9 +50,13 @@ void DMG_MMU::reset()
 	cart.mbc_type = ROM_ONLY;
 	cart.battery = false;
 	cart.ram = false;
+
 	cart.rtc = false;
 	cart.rtc_enabled = false;
 	cart.rtc_latch_1 = cart.rtc_latch_2 = 0xFF;
+
+	cart.idle = false;
+	cart.internal_value = cart.internal_state = cart.cs = cart.sk = cart.buffer_length = cart.command_code = cart.addr = cart.buffer = 0;
 
 	//Resize various banks
 	read_only_bank.resize(0x200);
@@ -957,6 +961,10 @@ u8 DMG_MMU::mbc_read(u16 address)
 		case MBC5:
 			return mbc5_read(address);
 			break;
+
+		case MBC7:
+			return mbc7_read(address);
+			break;
 	}
 }
 
@@ -979,6 +987,10 @@ void DMG_MMU::mbc_write(u16 address, u8 value)
 
 		case MBC5:
 			mbc5_write(address, value);
+			break;
+
+		case MBC7:
+			mbc7_write(address, value);
 			break;
 	}
 }
@@ -1193,9 +1205,13 @@ bool DMG_MMU::read_file(std::string filename)
 			break;
 
 		case 0x22:
-			std::cout<<"MMU:Cartridge Type - MBC7\n";
-			std::cout<<"MMU::MBC type currently unsupported \n";
-			return false;
+			cart.mbc_type = MBC7;
+			cart.ram = true;
+			cart.battery = true;
+
+			std::cout<<"MMU::Cartridge Type - MBC7\n";
+			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
+			std::cout<<"MMU::ROM Size - " << cart.rom_size << "KB\n";
 			break;
 
 		case 0xFD:
