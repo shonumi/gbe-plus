@@ -105,6 +105,9 @@ u8 DMG_MMU::read_u8(u16 address)
 	//Read using RAM Banking
 	if((address >= 0xA000) && (address <= 0xBFFF) && (cart.ram) && (cart.mbc_type != ROM_ONLY)) { return mbc_read(address); }
 
+	//MBC7 always has RAM enabled for reading
+	else if((address >= 0xA000) && (address <= 0xBFFF) && (cart.mbc_type == MBC7)) { return mbc7_read(address); }
+
 	//Read from VRAM, GBC uses banking
 	if((address >= 0x8000) && (address <= 0x9FFF))
 	{
@@ -1206,7 +1209,7 @@ bool DMG_MMU::read_file(std::string filename)
 
 		case 0x22:
 			cart.mbc_type = MBC7;
-			cart.ram = true;
+			cart.ram = false;
 			cart.battery = true;
 
 			std::cout<<"MMU::Cartridge Type - MBC7\n";
