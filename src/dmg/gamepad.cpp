@@ -19,6 +19,7 @@ DMG_GamePad::DMG_GamePad()
 	column_id = 0;
 	pad = 0;
 	up_shadow = down_shadow = left_shadow = right_shadow = false;
+	sensor_x = sensor_y = 2047;
 }
 
 /****** Initialize GamePad ******/
@@ -263,6 +264,43 @@ void DMG_GamePad::process_joystick(int pad, bool pressed)
 
 	//Emulate Down DPad release
 	else if((pad == config::dmg_joy_down) && (!pressed)) { p15 |= 0x8; p15 |= 0x4; }
+}
+
+/****** Process gyroscope sensors - Only used for MBC7 ******/
+void DMG_GamePad::process_gyroscope()
+{
+	//When pressing left, increase the sensor X by three
+	if((p15 & 0x2) == 0) 
+	{
+		sensor_x += 3;
+
+		//Limit X to a max of 2197
+		//When it's lower than the minimum, bump it up right away 
+		if(sensor_x > 2197) { sensor_x = 2197; }
+    		if(sensor_x < 2047) { sensor_x = 2057; }
+
+		std::cout<<"LEFT\n";
+	}
+
+	else if((p15 & 0x1) == 0) 
+	{
+		sensor_x -= 3;
+    		if(sensor_x < 1897) { sensor_x = 1897; }
+    		if(sensor_x > 2047) { sensor_x = 2037; }
+		std::cout<<"RIGHT\n";
+  	}
+	
+	else if(sensor_x > 2047) 
+	{
+    		sensor_x -= 2;
+    		if(sensor_x < 2047) { sensor_x = 2047; } 
+	}
+	
+	else if(sensor_x < 2047)
+	{
+    		sensor_x += 2;
+    		if(sensor_x > 2047) { sensor_x = 2047; }
+  	}
 }
 
 /****** Update P1 ******/

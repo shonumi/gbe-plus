@@ -328,26 +328,26 @@ u8 DMG_MMU::mbc7_read(u16 address)
 
 			//Gyroscope X - Low Byte
 			case 0xA020:
-				return 0x0;
+				return (g_pad->sensor_x & 0xFF);
 
 			//Gyroscope X - High Byte
 			case 0xA030:
-				return 0x0;
+				return (g_pad->sensor_x >> 8) & 0xFF;
 
 			//Gyroscope Y - Low Byte
 			case 0xA040:
-				return 0x0;
+				return (g_pad->sensor_y & 0xFF);
 
 			//Gyroscope Y - High Byte
 			case 0xA050:
-				return 0x0;
+				return (g_pad->sensor_y >> 8) & 0xFF;
 
 			//Byte from RAM
 			case 0xA080:
 				return cart.internal_value;
 		
 			default:
-				return 0x0;
+				return 0xFF;
 		}
 	}
 }

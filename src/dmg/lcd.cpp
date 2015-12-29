@@ -1623,6 +1623,9 @@ void DMG_LCD::step(int cpu_clock)
 					SDL_WM_SetCaption(config::title.str().c_str(), NULL);
 					fps_count = 0; 
 				}
+
+				//Process gyroscope
+				if(mem->cart.mbc_type == DMG_MMU::MBC7) { mem->g_pad->process_gyroscope(); }
 			}
 
 			//Processing VBlank
