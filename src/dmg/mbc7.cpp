@@ -152,7 +152,7 @@ void DMG_MMU::mbc7_write_ram(u8 value)
 							//Enable MBC7 writes, reset MBC7 state to 0
 							else if((cart.addr >> 6) == 3)
 							{
-								cart.ram = false;
+								cart.ram = true;
 								cart.internal_state = 0;
 							}
 						}

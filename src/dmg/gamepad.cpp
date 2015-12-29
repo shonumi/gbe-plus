@@ -269,7 +269,7 @@ void DMG_GamePad::process_joystick(int pad, bool pressed)
 /****** Process gyroscope sensors - Only used for MBC7 ******/
 void DMG_GamePad::process_gyroscope()
 {
-	//When pressing left, increase the sensor X by three
+	//When pressing left, increase sensor_x
 	if((p15 & 0x2) == 0) 
 	{
 		sensor_x += 3;
@@ -278,18 +278,20 @@ void DMG_GamePad::process_gyroscope()
 		//When it's lower than the minimum, bump it up right away 
 		if(sensor_x > 2197) { sensor_x = 2197; }
     		if(sensor_x < 2047) { sensor_x = 2057; }
-
-		std::cout<<"LEFT\n";
 	}
 
+	//When pressing right, decrease sensor_x
 	else if((p15 & 0x1) == 0) 
 	{
 		sensor_x -= 3;
+
+		//Limit X to a minimum of 1847
+		//When it's lower than the minimum, bump it up right away 
     		if(sensor_x < 1897) { sensor_x = 1897; }
     		if(sensor_x > 2047) { sensor_x = 2037; }
-		std::cout<<"RIGHT\n";
   	}
 	
+	//When neither left or right is pressed, put the sensor in neutral
 	else if(sensor_x > 2047) 
 	{
     		sensor_x -= 2;
@@ -300,6 +302,41 @@ void DMG_GamePad::process_gyroscope()
 	{
     		sensor_x += 2;
     		if(sensor_x > 2047) { sensor_x = 2047; }
+  	}
+
+	//When pressing up, increase sensor_y
+	if((p15 & 0x4) == 0) 
+	{
+		sensor_y += 3;
+
+		//Limit Y to a max of 2197
+		//When it's lower than the minimum, bump it up right away 
+		if(sensor_y > 2197) { sensor_y = 2197; }
+    		if(sensor_y < 2047) { sensor_y = 2057; }
+	}
+
+	//When pressing down, decrease sensor_y
+	else if((p15 & 0x8) == 0) 
+	{
+		sensor_y -= 3;
+
+		//Limit X to a minimum of 1847
+		//When it's lower than the minimum, bump it up right away 
+    		if(sensor_y < 1897) { sensor_y = 1897; }
+    		if(sensor_y > 2047) { sensor_y = 2037; }
+  	}
+	
+	//When neither up or down is pressed, put the sensor in neutral
+	else if(sensor_y > 2047) 
+	{
+    		sensor_y -= 2;
+    		if(sensor_y < 2047) { sensor_y = 2047; } 
+	}
+	
+	else if(sensor_y < 2047)
+	{
+    		sensor_y += 2;
+    		if(sensor_y > 2047) { sensor_y = 2047; }
   	}
 }
 

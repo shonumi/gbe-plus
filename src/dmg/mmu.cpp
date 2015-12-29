@@ -60,7 +60,7 @@ void DMG_MMU::reset()
 
 	//Resize various banks
 	read_only_bank.resize(0x200);
-	for(int x = 0; x < 0x200; x++) { read_only_bank[x].resize(0x4000, 0); }
+	for(int x = 0; x < 0x200; x++) { read_only_bank[x].resize(0x4000, 0xFF); }
 
 	random_access_bank.resize(0x10);
 	for(int x = 0; x < 0x10; x++) { random_access_bank[x].resize(0x2000, 0); }
