@@ -17,6 +17,8 @@
 #include <iostream>
 
 #include "common.h"
+#include "common/config.h"
+#include "lcd_data.h"
 
 class NTR_MMU
 {
@@ -72,6 +74,11 @@ class NTR_MMU
 	bool load_backup(std::string filename);
 
 	void parse_header();
+
+	private:
+
+	//Only the MMU and LCD should communicate through this structure
+	ntr_lcd_data* lcd_stat;
 };
 
 #endif // NDS_MMU
