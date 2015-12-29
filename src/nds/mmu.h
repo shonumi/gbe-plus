@@ -73,6 +73,8 @@ class NTR_MMU
 	bool save_backup(std::string filename);
 	bool load_backup(std::string filename);
 
+	void set_lcd_data(ntr_lcd_data* ex_lcd_stat);
+
 	void parse_header();
 
 	private:

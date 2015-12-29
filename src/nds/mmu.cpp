@@ -460,3 +460,6 @@ void NTR_MMU::parse_header()
 		header.arm9_size |= cart_data[0x2F - x];
 	}
 }
+
+/****** Points the MMU to an lcd_data structure (FROM THE LCD ITSELF) ******/
+void NTR_MMU::set_lcd_data(ntr_lcd_data* ex_lcd_stat) { lcd_stat = ex_lcd_stat; }

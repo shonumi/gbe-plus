@@ -18,6 +18,7 @@
 
 #include "common.h"
 #include "mmu.h"
+#include "lcd.h"
 
 
 class ARM9
@@ -184,13 +185,11 @@ class ARM9
 
 	NTR_MMU* mem;
 
-	/*
 	//Audio-Video and other controllers
 	struct io_controllers
 	{
-
+		NTR_LCD video;
 	} controllers;
-	*/
 
 	ARM9();
 	~ARM9();

@@ -18,6 +18,7 @@
 #include "common/core_emu.h"
 #include "common/config.h"
 #include "mmu.h"
+#include "lcd.h"
 #include "arm9.h"
 
 class NTR_core : virtual public core_emu

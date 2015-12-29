@@ -22,11 +22,11 @@ NTR_core::NTR_core()
 	//Link CPU and MMU
 	core_cpu_nds9.mem = &core_mmu;
 
-	/*
 	//Link LCD and MMU
-	core_cpu.controllers.video.mem = &core_mmu;
-	core_mmu.set_lcd_data(&core_cpu.controllers.video.lcd_stat);
+	core_cpu_nds9.controllers.video.mem = &core_mmu;
+	core_mmu.set_lcd_data(&core_cpu_nds9.controllers.video.lcd_stat);
 
+	/*
 	//Link APU and MMU
 	core_cpu.controllers.audio.mem = &core_mmu;
 	core_mmu.set_apu_data(&core_cpu.controllers.audio.apu_stat);
@@ -51,14 +51,14 @@ void NTR_core::start()
 	running = true;
 	core_cpu_nds9.running = true;
 
-	/*
 	//Initialize video output
-	if(!core_cpu.controllers.video.init())
+	if(!core_cpu_nds9.controllers.video.init())
 	{
 		running = false;
-		core_cpu.running = false;
+		core_cpu_nds9.running = false;
 	}
 
+	/*
 	//Initialize audio output
 	if(!core_cpu.controllers.audio.init())
 	{
@@ -89,8 +89,9 @@ void NTR_core::shutdown()
 /****** Reset the core ******/
 void NTR_core::reset()
 {
+	core_cpu_nds9.controllers.video.reset();
+
 	/*
-	core_cpu.controllers.video.reset();
 	core_cpu.controllers.audio.reset();
 	*/
 
@@ -103,6 +104,10 @@ void NTR_core::reset()
 	//Link CPU and MMU
 	core_cpu_nds9.mem = &core_mmu;
 	core_cpu_nds9.reg.r15 = core_mmu.header.arm9_entry_addr;
+
+	//Link LCD and MMU
+	core_cpu_nds9.controllers.video.mem = &core_mmu;
+	core_mmu.set_lcd_data(&core_cpu_nds9.controllers.video.lcd_stat);
 
 	/*
 	//Link APU and MMU
