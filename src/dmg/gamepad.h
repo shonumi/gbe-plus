@@ -28,6 +28,7 @@ class DMG_GamePad
 
 	u16 sensor_x;
 	u16 sensor_y;
+	u8 gyro_flags;
 
 	int pad;
 

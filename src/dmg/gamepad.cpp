@@ -212,6 +212,82 @@ void DMG_GamePad::process_keyboard(int pad, bool pressed)
 		if(up_shadow) { p15 &= ~0x4; }
 		else { p15 |= 0x4; } 
 	}
+
+	//Emulate Gyroscope Left tilt press
+	else if((pad == config::gyro_key_left) && (pressed))
+	{
+		gyro_flags |= 0x1;
+		gyro_flags |= 0x10;
+
+		gyro_flags &= ~0x2;
+	}
+
+	//Emulate Gyroscope Left tilt release
+	else if((pad == config::gyro_key_left) && (!pressed))
+	{
+		gyro_flags &= ~0x1;
+		gyro_flags &= ~0x10;
+
+		if(gyro_flags & 0x20) { gyro_flags |= 0x2; }
+		else { gyro_flags &= 0x2; }
+	}
+
+	//Emulate Gyroscope Right tilt press
+	else if((pad == config::gyro_key_right) && (pressed))
+	{
+		gyro_flags |= 0x2;
+		gyro_flags |= 0x20;
+
+		gyro_flags &= ~0x1;
+	}
+
+	//Emulate Gyroscope Reft tilt release
+	else if((pad == config::gyro_key_right) && (!pressed))
+	{
+		gyro_flags &= ~0x2;
+		gyro_flags &= ~0x20;
+
+		if(gyro_flags & 0x10) { gyro_flags |= 0x1; }
+		else { gyro_flags &= 0x1; }
+	}
+
+	//Emulate Gyroscope Up tilt press
+	else if((pad == config::gyro_key_up) && (pressed))
+	{
+		gyro_flags |= 0x4;
+		gyro_flags |= 0x40;
+
+		gyro_flags &= ~0x8;
+	}
+
+	//Emulate Gyroscope Up tilt release
+	else if((pad == config::gyro_key_up) && (!pressed))
+	{
+		gyro_flags &= ~0x4;
+		gyro_flags &= ~0x40;
+
+		if(gyro_flags & 0x80) { gyro_flags |= 0x8; }
+		else { gyro_flags &= 0x8; }
+	}
+
+	//Emulate Gyroscope Down tilt press
+	else if((pad == config::gyro_key_down) && (pressed))
+	{
+		gyro_flags |= 0x8;
+		gyro_flags |= 0x80;
+
+		gyro_flags &= ~0x4;
+	}
+
+	//Emulate Gyroscope Down tilt release
+	else if((pad == config::gyro_key_down) && (!pressed))
+	{
+		gyro_flags &= ~0x8;
+		gyro_flags &= ~0x80;
+
+		if(gyro_flags & 0x40) { gyro_flags |= 0x4; }
+		else { gyro_flags &= 0x4; }
+	}
 }
 
 /****** Processes input based on unique pad # for joysticks ******/
@@ -270,7 +346,7 @@ void DMG_GamePad::process_joystick(int pad, bool pressed)
 void DMG_GamePad::process_gyroscope()
 {
 	//When pressing left, increase sensor_x
-	if((p15 & 0x2) == 0) 
+	if(gyro_flags & 0x1) 
 	{
 		sensor_x += 3;
 
@@ -281,7 +357,7 @@ void DMG_GamePad::process_gyroscope()
 	}
 
 	//When pressing right, decrease sensor_x
-	else if((p15 & 0x1) == 0) 
+	else if(gyro_flags & 0x2) 
 	{
 		sensor_x -= 3;
 
@@ -305,7 +381,7 @@ void DMG_GamePad::process_gyroscope()
   	}
 
 	//When pressing up, increase sensor_y
-	if((p15 & 0x4) == 0) 
+	if(gyro_flags & 0x4) 
 	{
 		sensor_y += 3;
 
@@ -316,7 +392,7 @@ void DMG_GamePad::process_gyroscope()
 	}
 
 	//When pressing down, decrease sensor_y
-	else if((p15 & 0x8) == 0) 
+	else if(gyro_flags & 0x8) 
 	{
 		sensor_y -= 3;
 

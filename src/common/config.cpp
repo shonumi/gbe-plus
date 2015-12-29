@@ -39,15 +39,19 @@ namespace config
 	int agb_joy_r_trigger = 105; int agb_joy_l_trigger = 104;
 	int agb_joy_left = 200; int agb_joy_right = 201; int agb_joy_up = 202; int agb_joy_down = 203;
 
-	//Default keyboard bindings
+	//Default keyboard bindings - DMG
 	//Arrow Z = A button, X = B button, START = Return, Select = Space
 	//UP, LEFT, DOWN, RIGHT = Arrow keys
 	int dmg_key_a = 122; int dmg_key_b = 120; int dmg_key_start = 13; int dmg_key_select = 32; 
 	int dmg_key_left = 276; int dmg_key_right = 275; int dmg_key_down = 274; int dmg_key_up = 273;
 
-	//Default joystick bindings
+	//Default joystick bindings - DMG
 	int dmg_joy_a = 100; int dmg_joy_b = 101; int dmg_joy_start = 107; int dmg_joy_select = 106;
 	int dmg_joy_left = 200; int dmg_joy_right = 201; int dmg_joy_up = 202; int dmg_joy_down = 203;
+
+	//Default keyboard bindings - Gyroscope
+	//Left = 4 (numpad), Right = 6 (numpad), Up = 8 (numpad), Down = 2 (numpad)
+	int gyro_key_left = 260; int gyro_key_right = 262; int gyro_key_up = 264; int gyro_key_down = 258;
 
 	//Default joystick dead-zone
 	int dead_zone = 16000;
@@ -1094,6 +1098,45 @@ bool parse_ini_file()
 			else 
 			{
 				std::cout<<"GBE::Error - Could not parse gbe.ini (#agb_joy_controls) \n";
+				return false;
+			}
+		}
+
+		//Gyroscope keyboard controls
+		else if(ini_item == "#gyro_key_controls")
+		{
+			if((x + 4) < size)
+			{
+				std::stringstream temp_stream;
+
+				//LEFT
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::gyro_key_left;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//RIGHT
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::gyro_key_right;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//UP
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::gyro_key_up;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//DOWN
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::gyro_key_down;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#gyro_key_controls) \n";
 				return false;
 			}
 		}
