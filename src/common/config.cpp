@@ -53,6 +53,9 @@ namespace config
 	//Left = 4 (numpad), Right = 6 (numpad), Up = 8 (numpad), Down = 2 (numpad)
 	int gyro_key_left = 260; int gyro_key_right = 262; int gyro_key_up = 264; int gyro_key_down = 258;
 
+	//Default joystick bindings - Gyroscope
+	int gyro_joy_left = 204; int gyro_joy_right = 205; int gyro_joy_up = 206; int gyro_joy_down = 207;
+
 	//Default joystick dead-zone
 	int dead_zone = 16000;
 
@@ -1137,6 +1140,45 @@ bool parse_ini_file()
 			else 
 			{
 				std::cout<<"GBE::Error - Could not parse gbe.ini (#gyro_key_controls) \n";
+				return false;
+			}
+		}
+
+		//Gyroscope joystick controls
+		else if(ini_item == "#gyro_joy_controls")
+		{
+			if((x + 4) < size)
+			{
+				std::stringstream temp_stream;
+
+				//LEFT
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::gyro_joy_left;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//RIGHT
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::gyro_joy_right;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//UP
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::gyro_joy_up;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//DOWN
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::gyro_joy_down;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#gyro_joy_controls) \n";
 				return false;
 			}
 		}
