@@ -133,24 +133,22 @@ void NTR_core::run_core()
 	//Begin running the core
 	while(running)
 	{
-		/*
 		//Handle SDL Events
-		if((core_cpu.controllers.video.current_scanline == 160) && SDL_PollEvent(&event))
+		if((core_cpu_nds9.controllers.video.current_scanline == 192) && SDL_PollEvent(&event))
 		{
 			//X out of a window
 			if(event.type == SDL_QUIT) { stop(); SDL_Quit(); }
-
-			//Process gamepad or hotkey
-			else if((event.type == SDL_KEYDOWN) || (event.type == SDL_KEYUP) 
-			|| (event.type == SDL_JOYBUTTONDOWN) || (event.type == SDL_JOYBUTTONUP)
-			|| (event.type == SDL_JOYAXISMOTION) || (event.type == SDL_JOYHATMOTION)) { core_pad.handle_input(event); handle_hotkey(event); }
 		}
-		*/
 
 		//Run the CPU
 		if(core_cpu_nds9.running)
 		{	
 			if(db_unit.debug_mode) { debug_step(); }
+
+			core_cpu_nds9.clock();
+			core_cpu_nds9.clock();
+			core_cpu_nds9.clock();
+			core_cpu_nds9.clock();
 
 			core_cpu_nds9.fetch();
 			core_cpu_nds9.decode();

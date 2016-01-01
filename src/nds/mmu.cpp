@@ -30,7 +30,7 @@ void NTR_MMU::reset()
 	memory_map.resize(0xB000000, 0);
 
 	//HLE stuff
-	memory_map[NDS_DISPCNT] = 0x80;
+	memory_map[NDS_DISPCNT_A] = 0x80;
 
 	//Default memory access timings (4, 2)
 	n_clock = 4;
@@ -81,9 +81,14 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 	switch(address)
 	{
 		//Display Control
-		case NDS_DISPCNT:
-		case NDS_DISPCNT+1:
+		case NDS_DISPCNT_A:
+		case NDS_DISPCNT_A+1:
+		case NDS_DISPCNT_A+2:
+		case NDS_DISPCNT_A+3:
 			memory_map[address] = value;
+			lcd_stat->display_control_a = ((memory_map[NDS_DISPCNT_A+3] << 24) | (memory_map[NDS_DISPCNT_A+2] << 16) | (memory_map[NDS_DISPCNT_A+1] << 8) | memory_map[NDS_DISPCNT_A]);
+			lcd_stat->bg_mode_a = (lcd_stat->display_control_a & 0x7);
+			lcd_stat->display_mode_a = (lcd_stat->display_control_a >> 16) & 0x3;
 			break;
 
 		//Display Status
@@ -315,10 +320,32 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		case NDS_BLDY:
 			memory_map[address] = value;
 			break;
-		
+
+		//VRAM Bank A Control
+		case NDS_VRAMCNT_A:
+			memory_map[address] = value;
+			{
+				u8 offset = (value >> 3) & 0x3;
+
+				switch(value & 0x3)
+				{
+					case 0x0: lcd_stat->vram_bank_addr[0] = 0x6800000; break;
+					case 0x1: lcd_stat->vram_bank_addr[0] = (0x6000000 + (0x20000 * offset)); break;
+				}
+			}
+
+			break;
+				
 		default:
 			memory_map[address] = value;
 			break;
+
+		//Trigger BG palette update in LCD - Engine A
+		if((address >= 0x5000000) && (address <= 0x50001FF))
+		{
+			lcd_stat->bg_pal_update_a = true;
+			lcd_stat->bg_pal_update_list_a[(address & 0x1FF) >> 1] = true;
+		}
 	}
 }
 

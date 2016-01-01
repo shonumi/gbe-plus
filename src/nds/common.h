@@ -15,7 +15,7 @@
 #define NDS_COMMON
 
 //Display registers
-const u32 NDS_DISPCNT = 0x4000000;
+const u32 NDS_DISPCNT_A = 0x4000000;
 const u32 NDS_DISPSTAT = 0x4000004;
 const u32 NDS_VCOUNT = 0x4000006;
 const u32 NDS_BG0CNT = 0x4000008;
@@ -64,6 +64,8 @@ const u32 NDS_WINOUT = 0x400004A;
 const u32 NDS_BLDCNT = 0x4000050;
 const u32 NDS_BLDALPHA = 0x4000052;
 const u32 NDS_BLDY = 0x4000054;
+
+const u32 NDS_VRAMCNT_A = 0x4000240;
 
 const u32 NDS_IE = 0x4000210;
 const u32 NDS_IF = 0x4000214;

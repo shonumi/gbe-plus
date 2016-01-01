@@ -1197,8 +1197,9 @@ void ARM9::clock(u32 access_addr, bool first_access)
 	//Run controllers for each cycle		 
 	for(int x = 0; x < access_cycles; x++)
 	{
-		/*
 		controllers.video.step();
+		
+		/*
 		clock_timers();
 		clock_dma();
 		debug_cycles++;
@@ -1209,8 +1210,9 @@ void ARM9::clock(u32 access_addr, bool first_access)
 /****** Runs audio and video controllers every clock cycle ******/
 void ARM9::clock()
 {
-	/*
 	controllers.video.step();
+
+	/*
 	clock_timers();
 	clock_dma();
 	*/

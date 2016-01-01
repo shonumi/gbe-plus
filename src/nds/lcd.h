@@ -24,7 +24,7 @@ class NTR_LCD
 	NTR_MMU* mem;
 
 	u8 lcd_mode;
-	u8 current_scanline;
+	u16 current_scanline;
 
 	//Core Functions
 	NTR_LCD();

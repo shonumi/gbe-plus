@@ -53,7 +53,9 @@ void NTR_LCD::reset()
 	scanline_buffer_a.resize(0x100, 0);
 	scanline_buffer_b.resize(0x100, 0);
 
-	lcd_stat.bg_mode = 0;
+	lcd_stat.bg_pal_update_list_a.resize(0x100, 0);
+
+	lcd_stat.bg_mode_a = 0;
 	lcd_stat.hblank_interval_free = false;
 
 	for(int x = 0; x < 4; x++)
@@ -68,6 +70,8 @@ void NTR_LCD::reset()
 		lcd_stat.bg_base_tile_addr[x] = 0x6000000;
 		lcd_stat.bg_base_map_addr[x] = 0x6000000;
 	}
+
+	for(int x = 0; x < 9; x++) { lcd_stat.vram_bank_addr[x] = 0x0; }
 }
 
 /****** Initialize LCD with SDL ******/
@@ -94,21 +98,21 @@ bool NTR_LCD::init()
 /****** Updates palette entries when values in memory change ******/
 void NTR_LCD::update_palettes()
 {
-	//Update BG palettes
-	if(lcd_stat.bg_pal_update)
+	//Update BG palettes - Engine A
+	if(lcd_stat.bg_pal_update_a)
 	{
-		lcd_stat.bg_pal_update = false;
+		lcd_stat.bg_pal_update_a = false;
 
 		//Cycle through all updates to BG palettes
 		for(int x = 0; x < 256; x++)
 		{
 			//If this palette has been updated, convert to ARGB
-			if(lcd_stat.bg_pal_update_list[x])
+			if(lcd_stat.bg_pal_update_list_a[x])
 			{
-				lcd_stat.bg_pal_update_list[x] = false;
+				lcd_stat.bg_pal_update_list_a[x] = false;
 
 				u16 color_bytes = mem->read_u16_fast(0x5000000 + (x << 1));
-				lcd_stat.raw_pal[x][0] = color_bytes;
+				lcd_stat.raw_bg_pal_a[x] = color_bytes;
 
 				u8 red = ((color_bytes & 0x1F) << 3);
 				color_bytes >>= 5;
@@ -118,7 +122,7 @@ void NTR_LCD::update_palettes()
 
 				u8 blue = ((color_bytes & 0x1F) << 3);
 
-				lcd_stat.pal[x][0] =  0xFF000000 | (red << 16) | (green << 8) | (blue);
+				lcd_stat.bg_pal_a[x] =  0xFF000000 | (red << 16) | (green << 8) | (blue);
 			}
 		}
 	}
@@ -130,14 +134,14 @@ bool NTR_LCD::render_bg_scanline(u32 bg_control)
 	if(!lcd_stat.bg_enable[(bg_control - 0x4000008) >> 1]) { return false; }
 
 	//Render BG pixel according to current BG Mode
-	switch(lcd_stat.bg_mode)
+	switch(lcd_stat.bg_mode_a)
 	{
 		//BG Mode 0
 		case 0:
 			return render_bg_mode_0(bg_control); break;
 
 		default:
-			std::cout<<"LCD::invalid or unsupported BG Mode : " << std::dec << (lcd_stat.display_control & 0x7);
+			std::cout<<"LCD::invalid or unsupported BG Mode : " << std::dec << lcd_stat.bg_mode_a;
 			return false;
 	}
 }
@@ -163,7 +167,48 @@ bool NTR_LCD::render_bg_mode_6(u32 bg_control) { }
 /****** Render pixels for a given scanline (per-pixel) ******/
 void NTR_LCD::render_scanline()
 {
-	//Use BG Palette #0, Color #0 as the backdrop
+	//Render based on display modes
+	switch(lcd_stat.display_mode_a)
+	{
+		//Display Mode 0 - Blank screen
+		case 0x0:
+			for(u16 x = 0; x < 256; x++) { scanline_buffer_a[x] = 0xFFFFFFFF; }
+			break;
+
+		//Display Mode 1 - Tiled BG and OBJ
+		case 0x1:
+			std::cout<<"LCD::Warning - Unsupported Display Mode 1 \n";
+			break;
+
+		//Display Mode 2 - VRAM
+		case 0x2:
+			{
+				u8 vram_block = ((lcd_stat.display_control_a >> 18) & 0x3);
+				u32 vram_addr = lcd_stat.vram_bank_addr[vram_block] + (current_scanline * 256);
+
+				for(u16 x = 0; x < 256; x++)
+				{
+					u16 color_bytes = mem->read_u16_fast(vram_addr + (x << 1));
+
+					u8 red = ((color_bytes & 0x1F) << 3);
+					color_bytes >>= 5;
+
+					u8 green = ((color_bytes & 0x1F) << 3);
+					color_bytes >>= 5;
+
+					u8 blue = ((color_bytes & 0x1F) << 3);
+
+					scanline_buffer_a[x] = 0xFF000000 | (red << 16) | (green << 8) | (blue);
+				}
+			}
+
+			break;
+
+		//Display Mode 3 - Main Memory
+		case 0x3:
+			std::cout<<"LCD::Warning - Unsupported Display Mode 1 \n";
+			break;
+	}		
 }
 
 /****** Immediately draw current buffer to the screen ******/
@@ -213,30 +258,22 @@ void NTR_LCD::step()
 		//Change mode
 		if(lcd_mode != 1) 
 		{
+			//Update 2D engine palettes
+			if(lcd_stat.bg_pal_update_a) { update_palettes(); }
+
 			//Render scanline data
 			render_scanline();
 
+			u32 render_position = (current_scanline * 256);
+
+			//Push scanline pixel data to screen buffer
+			for(u16 x = 0; x < 256; x++)
+			{
+				screen_buffer[render_position + x] = scanline_buffer_a[x];
+				screen_buffer[render_position + x + 0xC000] = scanline_buffer_b[x];
+			}
+
 			lcd_mode = 1;
-
-			//Push scanline data to final buffer - Only if Forced Blank is disabled
-			if((lcd_stat.display_control & 0x80) == 0)
-			{
-				for(int x = 0, y = (256 * current_scanline); x < 256; x++, y++)
-				{
-					screen_buffer[y] = scanline_buffer_a[x];
-					screen_buffer[y + 0xc000] = scanline_buffer_b[x];
-				}
-			}
-
-			//Draw all-white during Forced Blank
-			else
-			{
-				for(int x = 0, y = (256 * current_scanline); x < 256; x++, y++)
-				{
-					screen_buffer[y] = 0xFFFFFFFF;
-					screen_buffer[y + 0xc000] = 0xFFFFFFFF;
-				}
-			}
 		}
 	}
 
@@ -292,11 +329,11 @@ void NTR_LCD::step()
 		//Reset LCD clock
 		else if(lcd_clock == 558060) 
 		{
-			lcd_clock = 0; 
+			lcd_clock = 0;
 		}
 
 		//Increment Scanline after HBlank
-		else if(lcd_clock % 1536 == 0)
+		else if((lcd_clock % 2130) == 1536)
 		{
 			current_scanline++;
 		}

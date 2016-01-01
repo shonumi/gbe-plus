@@ -18,11 +18,20 @@
 
 struct ntr_lcd_data
 {
-	u16 display_control;
+	u32 display_control_a;
+	u32 display_control_b;
+	
+	u8 bg_mode_a;
+	u8 bg_mode_b;
+
+	u8 display_mode_a;
+	u8 display_mode_b;
+
 	u16 bg_control[4];
-	u8 vram_control[9];
-	u8 bg_mode;
 	bool hblank_interval_free;
+
+	u32 vram_bank_addr[9];
+	bool vram_bank_enable[9];
 
 	u16 bg_offset_x[4];
 	u16 bg_offset_y[4];
@@ -33,14 +42,14 @@ struct ntr_lcd_data
 	u32 bg_base_map_addr[4];
 	u32 bg_base_tile_addr[4];
 
-	u32 pal[256][2];
-	u16 raw_pal[256][2];
+	u16 bg_pal_a[256];
+	u16 raw_bg_pal_a[256];
 
-	bool bg_pal_update;
-	std::vector<bool> bg_pal_update_list;
+	bool bg_pal_update_a;
+	std::vector<bool> bg_pal_update_list_a;
 
-	bool obj_pal_update;
-	std::vector<bool> obj_pal_update_list;
+	bool obj_pal_update_a;
+	std::vector<bool> obj_pal_update_list_a;
 };
 
 #endif // NDS_LCD_DATA
