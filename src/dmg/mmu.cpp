@@ -193,7 +193,11 @@ u16 DMG_MMU::read_u16(u16 address)
 /****** Write Byte To Memory ******/
 void DMG_MMU::write_u8(u16 address, u8 value) 
 {
-	if(cart.mbc_type != ROM_ONLY) { mbc_write(address, value); }
+	if(cart.mbc_type != ROM_ONLY) 
+	{
+		mbc_write(address, value);
+		if((address >= 0xA000) && (address <= 0xBFFF)) { return; }
+	}
 
 	//Write to VRAM, GBC uses banking
 	if((address >= 0x8000) && (address <= 0x9FFF))
