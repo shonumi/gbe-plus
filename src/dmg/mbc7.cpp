@@ -165,7 +165,7 @@ void DMG_MMU::mbc7_write_ram(u8 value)
 					//Read one more bit into the buffer
 					//Take Bit 1 of the input
 					cart.buffer <<= 1;
-          				cart.buffer |= (value & 0x02) ? 1:0;
+          				cart.buffer |= (value & 0x02) ? 1 : 0;
 					cart.buffer_length++;
 
           				switch(cart.command_code)

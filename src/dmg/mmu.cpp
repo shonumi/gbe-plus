@@ -1392,13 +1392,20 @@ bool DMG_MMU::load_backup(std::string filename)
 		{
 
 			//Read MBC RAM
-			if(cart.mbc_type != ROM_ONLY)
+			if((cart.mbc_type != ROM_ONLY) && (cart.mbc_type != MBC7))
 			{
 				for(int x = 0; x < 0x10; x++)
 				{
 					u8* ex_ram = &random_access_bank[x][0];
 					sram.read((char*)ex_ram, 0x2000); 
 				}
+			}
+
+			//Read MBC7 RAM
+			else if(cart.mbc_type == MBC7)
+			{
+				u8* ex_ram = &memory_map[0xA000];
+				sram.read((char*)ex_ram, 0x100);
 			}
 
 			//Read 8KB Cart RAM
@@ -1433,12 +1440,18 @@ bool DMG_MMU::save_backup(std::string filename)
 		else 
 		{
 			//Save MBC RAM
-			if(cart.mbc_type != ROM_ONLY)
+			if((cart.mbc_type != ROM_ONLY) && (cart.mbc_type != MBC7))
 			{
 				for(int x = 0; x < 0x10; x++)
 				{
 					sram.write(reinterpret_cast<char*> (&random_access_bank[x][0]), 0x2000); 
 				}
+			}
+
+			//Save MBC7 RAM
+			else if(cart.mbc_type == MBC7)
+			{
+				sram.write(reinterpret_cast<char*> (&memory_map[0xA000]), 0x100);
 			}
 
 			//Save 8KB Cart RAM
