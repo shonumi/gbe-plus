@@ -1233,6 +1233,12 @@ bool DMG_MMU::read_file(std::string filename)
 			return false;
 			break;
 
+		case 0xFF
+			std::cout<<"MMU::Cartridge Type - Hudson HuC-1\n";
+			std::cout<<"MMU::MBC type currently unsupported \n";
+			return false;
+			break;
+
 		default:
 			std::cout<<"Catridge Type - 0x" << std::hex << (int)memory_map[ROM_MBC] << "\n";
 			std::cout<<"MMU::MBC type currently unsupported \n";
