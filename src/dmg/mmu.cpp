@@ -1233,7 +1233,7 @@ bool DMG_MMU::read_file(std::string filename)
 			return false;
 			break;
 
-		case 0xFF
+		case 0xFF:
 			std::cout<<"MMU::Cartridge Type - Hudson HuC-1\n";
 			std::cout<<"MMU::MBC type currently unsupported \n";
 			return false;

@@ -67,6 +67,12 @@ class AGB_LCD
 		bool h_flip;
 		bool v_flip;
 
+		bool x_wrap;
+		bool y_wrap;
+
+		u8 x_wrap_val;
+		u8 y_wrap_val;
+
 		//Shape and size, dimensions
 		u8 shape;
 		u8 size;

@@ -228,10 +228,18 @@ void AGB_LCD::update_oam()
 
 			//Precalulate OBJ boundaries
 			obj[x].left = obj[x].x;
-			obj[x].right = (obj[x].x + obj[x].width - 1);
+			obj[x].right = (obj[x].x + obj[x].width - 1) % 0x1FF;
 
 			obj[x].top = obj[x].y;
 			obj[x].bottom = (obj[x].y + obj[x].height - 1);
+
+			if(obj[x].left > obj[x].right) 
+			{
+				obj[x].x_wrap = true;
+				obj[x].x_wrap_val = (obj[x].width - obj[x].right);
+			}
+
+			else { obj[x].x_wrap = false; }
 
 			//Precalculate OBJ base address
 			obj[x].addr = 0x6010000 + (obj[x].tile_number << 5);
@@ -340,112 +348,115 @@ bool AGB_LCD::render_sprite_pixel()
 	u32 meta_sprite_tile = 0;
 	u8 raw_color = 0;
 
+	u16 sprite_tile_pixel_x = 0;
+	u16 sprite_tile_pixel_y = 0;
+
 	//Cycle through all sprites that are rendering on this pixel, draw them according to their priority
 	for(int x = 0; x < obj_render_length; x++)
 	{
 		sprite_id = obj_render_list[x];
 
 		//Check to see if current_scanline_pixel is within sprite
-		if((scanline_pixel_counter >= obj[sprite_id].left) && (scanline_pixel_counter <= obj[sprite_id].right)) 
+		if((!obj[sprite_id].x_wrap) && ((scanline_pixel_counter < obj[sprite_id].left) || (scanline_pixel_counter > obj[sprite_id].right))) { continue; }
+		else if((obj[sprite_id].x_wrap) && ((scanline_pixel_counter > obj[sprite_id].right) && (scanline_pixel_counter < obj[sprite_id].left))) { continue; }
+
+		//Determine the internal X-Y coordinates of the sprite's pixel
+		sprite_tile_pixel_x = obj[sprite_id].x_wrap ? (scanline_pixel_counter + obj[sprite_id].x_wrap_val) : (scanline_pixel_counter - obj[sprite_id].x);
+		sprite_tile_pixel_y = current_scanline - obj[sprite_id].y;
+
+		//Horizontal flip the internal X coordinate
+		if(obj[sprite_id].h_flip)
 		{
-			//Determine the internal X-Y coordinates of the sprite's pixel
-			u16 sprite_tile_pixel_x = scanline_pixel_counter - obj[sprite_id].x;
-			u16 sprite_tile_pixel_y = current_scanline - obj[sprite_id].y;
+			s16 h_flip = sprite_tile_pixel_x;
+			h_flip -= (obj[sprite_id].width - 1);
 
-			//Horizontal flip the internal X coordinate
-			if(obj[sprite_id].h_flip)
-			{
-				s16 h_flip = sprite_tile_pixel_x;
-				h_flip -= (obj[sprite_id].width - 1);
+			if(h_flip < 0) { h_flip *= -1; }
 
-				if(h_flip < 0) { h_flip *= -1; }
+			sprite_tile_pixel_x = h_flip;
+		}
 
-				sprite_tile_pixel_x = h_flip;
-			}
+		//Vertical flip the internal Y coordinate
+		if(obj[sprite_id].v_flip)
+		{
+			s16 v_flip = sprite_tile_pixel_y;
+			v_flip -= (obj[sprite_id].height - 1);
 
-			//Vertical flip the internal Y coordinate
-			if(obj[sprite_id].v_flip)
-			{
-				s16 v_flip = sprite_tile_pixel_y;
-				v_flip -= (obj[sprite_id].height - 1);
+			if(v_flip < 0) { v_flip *= -1; }
 
-				if(v_flip < 0) { v_flip *= -1; }
+			sprite_tile_pixel_y = v_flip;
+		}
 
-				sprite_tile_pixel_y = v_flip;
-			}
+		//Handle the mosiac function
+		if(obj[sprite_id].mosiac && lcd_stat.obj_mos_hsize) { sprite_tile_pixel_x = ((sprite_tile_pixel_x / lcd_stat.obj_mos_hsize) * lcd_stat.obj_mos_hsize); }
+		if(obj[sprite_id].mosiac && lcd_stat.obj_mos_vsize) { sprite_tile_pixel_y = ((sprite_tile_pixel_y / lcd_stat.obj_mos_vsize) * lcd_stat.obj_mos_vsize); }
 
-			//Handle the mosiac function
-			if(obj[sprite_id].mosiac && lcd_stat.obj_mos_hsize) { sprite_tile_pixel_x = ((sprite_tile_pixel_x / lcd_stat.obj_mos_hsize) * lcd_stat.obj_mos_hsize); }
-			if(obj[sprite_id].mosiac && lcd_stat.obj_mos_vsize) { sprite_tile_pixel_y = ((sprite_tile_pixel_y / lcd_stat.obj_mos_vsize) * lcd_stat.obj_mos_vsize); }
+		//Determine meta x-coordinate of rendered sprite pixel
+		u8 meta_x = (sprite_tile_pixel_x / 8);
 
-			//Determine meta x-coordinate of rendered sprite pixel
-			u8 meta_x = (sprite_tile_pixel_x / 8);
+		//Determine meta Y-coordinate of rendered sprite pixel
+		u8 meta_y = (sprite_tile_pixel_y / 8);
 
-			//Determine meta Y-coordinate of rendered sprite pixel
-			u8 meta_y = (sprite_tile_pixel_y / 8);
+		//Determine which 8x8 section to draw pixel from, and what tile that actually represents in VRAM
+		if(lcd_stat.display_control & 0x40)
+		{
+			meta_sprite_tile = (meta_y * (obj[sprite_id].width/8)) + meta_x;	
+		}
 
-			//Determine which 8x8 section to draw pixel from, and what tile that actually represents in VRAM
-			if(lcd_stat.display_control & 0x40)
-			{
-				meta_sprite_tile = (meta_y * (obj[sprite_id].width/8)) + meta_x;	
-			}
-
-			else
-			{
+		else
+		{
 				meta_sprite_tile = (meta_y * 32) + meta_x;
-			}
+		}
 
-			sprite_tile_addr = obj[sprite_id].addr + (meta_sprite_tile * (obj[sprite_id].bit_depth << 3));
+		sprite_tile_addr = obj[sprite_id].addr + (meta_sprite_tile * (obj[sprite_id].bit_depth << 3));
 
-			meta_x = (sprite_tile_pixel_x % 8);
-			meta_y = (sprite_tile_pixel_y % 8);
+		meta_x = (sprite_tile_pixel_x % 8);
+		meta_y = (sprite_tile_pixel_y % 8);
 
-			u8 sprite_tile_pixel = (meta_y * 8) + meta_x;
+		u8 sprite_tile_pixel = (meta_y * 8) + meta_x;
 
-			//Grab the byte corresponding to (sprite_tile_pixel), render it as ARGB - 4-bit version
-			if(obj[sprite_id].bit_depth == 4)
+		//Grab the byte corresponding to (sprite_tile_pixel), render it as ARGB - 4-bit version
+		if(obj[sprite_id].bit_depth == 4)
+		{
+			sprite_tile_addr += (sprite_tile_pixel >> 1);
+			raw_color = mem->memory_map[sprite_tile_addr];
+
+			if((sprite_tile_pixel % 2) == 0) { raw_color &= 0xF; }
+			else { raw_color >>= 4; }
+
+			if(raw_color != 0) 
 			{
-				sprite_tile_addr += (sprite_tile_pixel >> 1);
-				raw_color = mem->memory_map[sprite_tile_addr];
+				//If this sprite is in OBJ Window mode, do not render it, but set a flag indicating the LCD passed over its pixel
+				if(obj[sprite_id].mode == 2) { obj_win_pixel = true; }
 
-				if((sprite_tile_pixel % 2) == 0) { raw_color &= 0xF; }
-				else { raw_color >>= 4; }
-
-				if(raw_color != 0) 
+				else 
 				{
-					//If this sprite is in OBJ Window mode, do not render it, but set a flag indicating the LCD passed over its pixel
-					if(obj[sprite_id].mode == 2) { obj_win_pixel = true; }
-
-					else 
-					{
-						scanline_buffer[scanline_pixel_counter] = pal[((obj[sprite_id].palette_number * 32) + (raw_color * 2)) >> 1][1];
-						last_raw_color = raw_pal[((obj[sprite_id].palette_number * 32) + (raw_color * 2)) >> 1][1];
-						last_obj_priority = obj[sprite_id].bg_priority;
-						last_obj_mode = obj[sprite_id].mode;
-						return true;
-					}
+					scanline_buffer[scanline_pixel_counter] = pal[((obj[sprite_id].palette_number * 32) + (raw_color * 2)) >> 1][1];
+					last_raw_color = raw_pal[((obj[sprite_id].palette_number * 32) + (raw_color * 2)) >> 1][1];
+					last_obj_priority = obj[sprite_id].bg_priority;
+					last_obj_mode = obj[sprite_id].mode;
+					return true;
 				}
 			}
+		}
 
-			//Grab the byte corresponding to (sprite_tile_pixel), render it as ARGB - 8-bit version
-			else
+		//Grab the byte corresponding to (sprite_tile_pixel), render it as ARGB - 8-bit version
+		else
+		{
+			sprite_tile_addr += sprite_tile_pixel;
+			raw_color = mem->memory_map[sprite_tile_addr];
+
+			if(raw_color != 0) 
 			{
-				sprite_tile_addr += sprite_tile_pixel;
-				raw_color = mem->memory_map[sprite_tile_addr];
+				//If this sprite is in OBJ Window mode, do not render it, but set a flag indicating the LCD passed over its pixel
+				if(obj[sprite_id].mode == 2) { obj_win_pixel = true; }
 
-				if(raw_color != 0) 
+				else
 				{
-					//If this sprite is in OBJ Window mode, do not render it, but set a flag indicating the LCD passed over its pixel
-					if(obj[sprite_id].mode == 2) { obj_win_pixel = true; }
-
-					else
-					{
-						scanline_buffer[scanline_pixel_counter] = pal[raw_color][1];
-						last_raw_color = raw_pal[raw_color][1];
-						last_obj_priority = obj[sprite_id].bg_priority;
-						last_obj_mode = obj[sprite_id].mode;
-						return true;
-					}
+					scanline_buffer[scanline_pixel_counter] = pal[raw_color][1];
+					last_raw_color = raw_pal[raw_color][1];
+					last_obj_priority = obj[sprite_id].bg_priority;
+					last_obj_mode = obj[sprite_id].mode;
+					return true;
 				}
 			}
 		}
