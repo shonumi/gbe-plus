@@ -228,18 +228,27 @@ void AGB_LCD::update_oam()
 
 			//Precalulate OBJ boundaries
 			obj[x].left = obj[x].x;
-			obj[x].right = (obj[x].x + obj[x].width - 1) % 0x1FF;
+			obj[x].right = (obj[x].x + obj[x].width - 1) & 0x1FF;
 
 			obj[x].top = obj[x].y;
 			obj[x].bottom = (obj[x].y + obj[x].height - 1);
 
+			//Precalculate OBJ wrapping
 			if(obj[x].left > obj[x].right) 
 			{
 				obj[x].x_wrap = true;
-				obj[x].x_wrap_val = (obj[x].width - obj[x].right);
+				obj[x].x_wrap_val = (obj[x].width - obj[x].right - 1);
 			}
 
 			else { obj[x].x_wrap = false; }
+
+			if(obj[x].top > obj[x].bottom)
+			{
+				obj[x].y_wrap = true;
+				obj[x].y_wrap_val = (obj[x].height - obj[x].bottom - 1);
+			}
+
+			else { obj[x].y_wrap = false; }
 
 			//Precalculate OBJ base address
 			obj[x].addr = 0x6010000 + (obj[x].tile_number << 5);
@@ -264,7 +273,11 @@ void AGB_LCD::update_obj_render_list()
 		for(int x = 0; x < 128; x++)
 		{	
 			//Check to see if sprite is rendered on the current scanline
-			if((obj[x].visible) && (current_scanline >= obj[x].top) && (current_scanline <= obj[x].bottom) && (obj[x].bg_priority == bg))
+			if(!obj[x].visible) { continue; }
+			else if((!obj[x].y_wrap) && ((current_scanline < obj[x].top) || (current_scanline > obj[x].bottom))) { continue; }
+			else if((obj[x].y_wrap) && ((current_scanline > obj[x].bottom) && (current_scanline < obj[x].top))) { continue; }
+
+			else if(obj[x].bg_priority == bg)
 			{
 				obj_render_list[obj_render_length++] = x;
 			}
@@ -362,7 +375,7 @@ bool AGB_LCD::render_sprite_pixel()
 
 		//Determine the internal X-Y coordinates of the sprite's pixel
 		sprite_tile_pixel_x = obj[sprite_id].x_wrap ? (scanline_pixel_counter + obj[sprite_id].x_wrap_val) : (scanline_pixel_counter - obj[sprite_id].x);
-		sprite_tile_pixel_y = current_scanline - obj[sprite_id].y;
+		sprite_tile_pixel_y = obj[sprite_id].y_wrap ? (current_scanline + obj[sprite_id].y_wrap_val) : (current_scanline - obj[sprite_id].y);
 
 		//Horizontal flip the internal X coordinate
 		if(obj[sprite_id].h_flip)
