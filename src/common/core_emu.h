@@ -32,6 +32,7 @@ class core_emu
 	virtual void shutdown() = 0;
 	virtual void run_core() = 0;
 	virtual	void handle_hotkey(SDL_Event& event) = 0;
+	virtual void handle_hotkey(int input, bool pressed) = 0;
 	virtual void update_volume(u8 volume) = 0;
 	virtual void feed_key_input(int sdl_key, bool pressed) = 0;
 

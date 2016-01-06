@@ -1108,13 +1108,23 @@ void DMG_core::handle_hotkey(SDL_Event& event)
 	}
 
 	//Toggle turbo on
-	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_TAB)) { config::turbo = true; }
+	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == config::hotkey_turbo)) { config::turbo = true; }
 
 	//Toggle turbo off
-	else if((event.type == SDL_KEYUP) && (event.key.keysym.sym == SDLK_TAB)) { config::turbo = false; }
+	else if((event.type == SDL_KEYUP) && (event.key.keysym.sym == config::hotkey_turbo)) { config::turbo = false; }
 		
 	//Reset emulation on F8
 	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F8)) { reset(); }
+}
+
+/****** Process hotkey input - Use exsternally when not using SDL ******/
+void DMG_core::handle_hotkey(int input, bool pressed)
+{
+	//Toggle turbo on
+	if((input == config::hotkey_turbo) && (pressed)) { config::turbo = true; }
+
+	//Toggle turbo off
+	else if((input == config::hotkey_turbo) && (!pressed)) { config::turbo = false; }
 }
 
 /****** Updates the core's volume ******/
@@ -1128,6 +1138,7 @@ void DMG_core::update_volume(u8 volume)
 void DMG_core::feed_key_input(int sdl_key, bool pressed)
 {
 	core_pad.process_keyboard(sdl_key, pressed);
+	handle_hotkey(sdl_key, pressed);
 }
 
 /****** Return a CPU register ******/

@@ -32,6 +32,7 @@ class AGB_core : virtual public core_emu
 		void shutdown();
 		void sleep();
 		void handle_hotkey(SDL_Event& event);
+		void handle_hotkey(int input, bool pressed);
 		void update_volume(u8 volume);
 		void feed_key_input(int sdl_key, bool pressed);
 		void run_core();

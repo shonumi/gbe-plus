@@ -56,6 +56,10 @@ namespace config
 	//Default joystick bindings - Gyroscope
 	int gyro_joy_left = 204; int gyro_joy_right = 205; int gyro_joy_up = 206; int gyro_joy_down = 207;
 
+	//Hotkey bindings
+	//Turbo = TAB
+	int hotkey_turbo = 9;
+
 	//Default joystick dead-zone
 	int dead_zone = 16000;
 
@@ -1179,6 +1183,27 @@ bool parse_ini_file()
 			else 
 			{
 				std::cout<<"GBE::Error - Could not parse gbe.ini (#gyro_joy_controls) \n";
+				return false;
+			}
+		}
+
+		//Hotkeys
+		else if(ini_item == "#hotkeys")
+		{
+			if((x + 1) < size)
+			{
+				std::stringstream temp_stream;
+
+				//Turbo
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::hotkey_turbo;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#hotkeys) \n";
 				return false;
 			}
 		}
