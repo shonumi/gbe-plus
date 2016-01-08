@@ -830,7 +830,7 @@ void gbe_cgfx::draw_dmg_bg()
 	current_layer->setPixmap(QPixmap::fromImage(raw_image));
 }
 
-/****** Draws the DMG BG layer ******/
+/****** Draws the GBC BG layer ******/
 void gbe_cgfx::draw_gbc_bg()
 {
 	if(main_menu::gbe_plus == NULL) { return; }
@@ -859,12 +859,12 @@ void gbe_cgfx::draw_gbc_bg()
 		u16 tile_lower_range = (rendered_scanline / 8) * 32;
 		u16 tile_upper_range = tile_lower_range + 32;
 
-		//Determine which line of the tiles to generate pixels for this scanline
-		u8 tile_line = rendered_scanline % 8;
-
 		//Generate background pixel data for selected tiles
 		for(int x = tile_lower_range; x < tile_upper_range; x++)
 		{
+			//Determine which line of the tiles to generate pixels for this scanline
+			u8 tile_line = rendered_scanline % 8;
+
 			//Read the tile number
 			main_menu::gbe_plus->ex_write_u8(REG_VBK, 0);
 			u8 map_entry = main_menu::gbe_plus->ex_read_u8(bg_map_addr + x);
@@ -1099,12 +1099,12 @@ void gbe_cgfx::draw_gbc_win()
 		u16 tile_lower_range = (rendered_scanline / 8) * 32;
 		u16 tile_upper_range = tile_lower_range + 32;
 
-		//Determine which line of the tiles to generate pixels for this scanline
-		u8 tile_line = rendered_scanline % 8;
-
 		//Generate background pixel data for selected tiles
 		for(int x = tile_lower_range; x < tile_upper_range; x++)
 		{
+			//Determine which line of the tiles to generate pixels for this scanline
+			u8 tile_line = rendered_scanline % 8;
+
 			//Read the tile number
 			main_menu::gbe_plus->ex_write_u8(REG_VBK, 0);
 			u8 map_entry = main_menu::gbe_plus->ex_read_u8(win_map_addr + x);
