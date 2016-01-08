@@ -1527,7 +1527,9 @@ void gbe_cgfx::update_preview(u32 x, u32 y)
 	x >>= 1;
 	y >>= 1;
 
-	std::vector<u32> tile_pixels;
+	//8 pixel (horizontal+vertical) flipping lookup generation
+	u8 flip_8[8];
+	for(int z = 0; z < 8; z++) { flip_8[z] = (7 - z); }
 
 	//Update preview for DMG BG
 	if((layer_select->currentIndex() == 0) && (config::gb_type < 2)) 
@@ -1706,6 +1708,283 @@ void gbe_cgfx::update_preview(u32 x, u32 y)
 				tile_palette->setText(pal);
 			}
 		}
+	}
+
+	//Update preview for GBC BG
+	else if((layer_select->currentIndex() == 0) && (config::gb_type == 2)) 
+	{
+		u32 bg_pixel_data[64];
+		u8 bg_pixel_counter = 0;
+		u8 tile_pixel = 0;
+
+		//Determine BG Map & Tile address
+		u16 bg_map_addr = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x8) ? 0x9C00 : 0x9800;
+		u16 bg_tile_addr = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x10) ? 0x8000 : 0x8800;
+
+		//Determine the map entry from on-screen coordinates
+		u8 tile_x = main_menu::gbe_plus->ex_read_u8(REG_SX) + x;
+		u8 tile_y = main_menu::gbe_plus->ex_read_u8(REG_SY) + y;
+		u16 map_entry = (tile_x / 8) + ((tile_y / 8) * 32);
+
+		u8 current_vram_bank = main_menu::gbe_plus->ex_read_u8(REG_VBK);
+			
+		//Read the BG attributes
+		main_menu::gbe_plus->ex_write_u8(REG_VBK, 1);
+		u8 bg_attribute = main_menu::gbe_plus->ex_read_u8(bg_map_addr + map_entry);
+		u8 pal_num = (bg_attribute & 0x7);
+		u8 vram_bank = (bg_attribute & 0x8) ? 1 : 0;
+		bool h_flip = (bg_attribute & 0x20) ? true : false;
+		bool v_flip = (bg_attribute & 0x40) ? true : false;
+
+		//Setup palettes
+		u32 bgp[4];
+
+		u32* color = main_menu::gbe_plus->get_bg_palette(pal_num);
+
+		bgp[0] = *color; color += 8;
+		bgp[1] = *color; color += 8;
+		bgp[2] = *color; color += 8;
+		bgp[3] = *color; color += 8;
+
+		main_menu::gbe_plus->ex_write_u8(REG_VBK, 0);
+		u8 map_value = main_menu::gbe_plus->ex_read_u8(bg_map_addr + map_entry);
+
+		//Convert tile number to signed if necessary
+		if(bg_tile_addr == 0x8800) 
+		{
+			if(map_value <= 127) { map_value += 128; }
+			else { map_value -= 128; }
+		}
+
+		u16 bg_index = (((bg_tile_addr + (map_value << 4)) & ~0x8000) >> 4);
+
+		//Calculate the address of the BG pixel data based on map entry
+		u16 vram_tile_addr = (bg_tile_addr + (map_value << 4));
+
+		//Grab bytes from VRAM representing BG pixel data
+		main_menu::gbe_plus->ex_write_u8(REG_VBK, vram_bank);
+
+		for(int bg_x = 0; bg_x < 8; bg_x++)
+		{
+			u16 tile_data = (main_menu::gbe_plus->ex_read_u8(vram_tile_addr + 1) << 8) | main_menu::gbe_plus->ex_read_u8(vram_tile_addr);
+
+			//Account for vertical flipping
+			if(v_flip) { bg_pixel_counter = flip_8[bg_x] * 8; }
+
+			for(int bg_y = 7; bg_y >= 0; bg_y--)
+			{
+
+				//Calculate raw value of the tile's pixel
+				if(h_flip) 
+				{
+					tile_pixel = ((tile_data >> 8) & (1 << flip_8[bg_y])) ? 2 : 0;
+					tile_pixel |= (tile_data & (1 << flip_8[bg_y])) ? 1 : 0;
+				}
+
+				else
+				{
+					tile_pixel = ((tile_data >> 8) & (1 << bg_y)) ? 2 : 0;
+					tile_pixel |= (tile_data & (1 << bg_y)) ? 1 : 0;
+				}				
+
+				bg_pixel_data[bg_pixel_counter++] = bgp[tile_pixel];
+			}
+
+			vram_tile_addr += 2;
+		}
+
+		main_menu::gbe_plus->ex_write_u8(REG_VBK, current_vram_bank);
+
+		QImage final_image(8, 8, QImage::Format_ARGB32);	
+
+		//Copy raw pixels to QImage
+		for(int bg_x = 0; bg_x < 64; bg_x++)
+		{
+			final_image.setPixel((bg_x % 8), (bg_x / 8), bg_pixel_data[bg_x]);
+		}
+
+		final_image = final_image.scaled(128, 128);
+		current_tile->setPixmap(QPixmap::fromImage(final_image));
+
+		//Tile info - ID
+		QString id("Tile ID : ");
+		id += QString::number(bg_index);
+		tile_id->setText(id);
+
+		//Tile info - Address
+		QString addr("Tile Address : 0x");
+		addr += QString::number((bg_tile_addr + (map_value << 4)), 16).toUpper();
+		tile_addr->setText(addr);
+
+		//Tile info - Size
+		QString size("Tile Size : 8x8");
+		tile_size->setText(size);
+
+		//Tile info - H/V Flip
+		QString flip("H-Flip : N    V-Flip : N");
+
+		if((!h_flip) && (!v_flip)) { flip = "H-Flip : N    V-Flip : N"; }
+		else if((h_flip) && (!v_flip)) { flip = "H-Flip : Y    V-Flip : N"; }
+		else if((!h_flip) && (v_flip)) { flip = "H-Flip : N    V-Flip : Y"; }
+		else { flip = "H-Flip : Y    V-Flip : Y"; }	
+
+		h_v_flip->setText(flip);
+
+		//Tile info - Palette
+		QString pal;
+				
+		switch(pal_num)
+		{
+			case 0: pal = "Tile Palette : BCP0"; break;
+			case 1: pal = "Tile Palette : BCP1"; break;
+			case 2: pal = "Tile Palette : BCP2"; break;
+			case 3: pal = "Tile Palette : BCP3"; break;
+			case 4: pal = "Tile Palette : BCP4"; break;
+			case 5: pal = "Tile Palette : BCP5"; break;
+			case 6: pal = "Tile Palette : BCP6"; break;
+			case 7: pal = "Tile Palette : BCP7"; break;
+		}
+
+		tile_palette->setText(pal);
+	}
+
+	//Update preview for GBC Window
+	else if((layer_select->currentIndex() == 1) && (config::gb_type == 2)) 
+	{
+		u32 win_pixel_data[64];
+		u8 win_pixel_counter = 0;
+		u8 tile_pixel = 0;
+
+		//Determine BG Map & Tile address
+		u16 win_map_addr = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x40) ? 0x9C00 : 0x9800;
+		u16 win_tile_addr = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x10) ? 0x8000 : 0x8800;
+	
+		//Determine the map entry from on-screen coordinates
+		u8 wx = main_menu::gbe_plus->ex_read_u8(REG_WX) - 7;
+		u8 tile_x = x - wx;
+		u8 tile_y = y - main_menu::gbe_plus->ex_read_u8(REG_WY);
+		u16 map_entry = (tile_x / 8) + ((tile_y / 8) * 32);
+
+		u8 current_vram_bank = main_menu::gbe_plus->ex_read_u8(REG_VBK);
+			
+		//Read the BG attributes
+		main_menu::gbe_plus->ex_write_u8(REG_VBK, 1);
+		u8 bg_attribute = main_menu::gbe_plus->ex_read_u8(win_map_addr + map_entry);
+		u8 pal_num = (bg_attribute & 0x7);
+		u8 vram_bank = (bg_attribute & 0x8) ? 1 : 0;
+		bool h_flip = (bg_attribute & 0x20) ? true : false;
+		bool v_flip = (bg_attribute & 0x40) ? true : false;
+
+		//Setup palettes
+		u32 bgp[4];
+
+		u32* color = main_menu::gbe_plus->get_bg_palette(pal_num);
+
+		bgp[0] = *color; color += 8;
+		bgp[1] = *color; color += 8;
+		bgp[2] = *color; color += 8;
+		bgp[3] = *color; color += 8;
+
+		main_menu::gbe_plus->ex_write_u8(REG_VBK, 0);
+		u8 map_value = main_menu::gbe_plus->ex_read_u8(win_map_addr + map_entry);
+
+		//Convert tile number to signed if necessary
+		if(win_tile_addr == 0x8800) 
+		{
+			if(map_value <= 127) { map_value += 128; }
+			else { map_value -= 128; }
+		}
+
+		u16 bg_index = (((win_tile_addr + (map_value << 4)) & ~0x8000) >> 4);
+
+		//Calculate the address of the BG pixel data based on map entry
+		u16 vram_tile_addr = (win_tile_addr + (map_value << 4));
+
+		//Grab bytes from VRAM representing BG pixel data
+		main_menu::gbe_plus->ex_write_u8(REG_VBK, vram_bank);
+
+		for(int win_x = 0; win_x < 8; win_x++)
+		{
+			u16 tile_data = (main_menu::gbe_plus->ex_read_u8(vram_tile_addr + 1) << 8) | main_menu::gbe_plus->ex_read_u8(vram_tile_addr);
+
+			//Account for vertical flipping
+			if(v_flip) { win_pixel_counter = flip_8[win_x] * 8; }
+
+			for(int win_y = 7; win_y >= 0; win_y--)
+			{
+
+				//Calculate raw value of the tile's pixel
+				if(h_flip) 
+				{
+					tile_pixel = ((tile_data >> 8) & (1 << flip_8[win_y])) ? 2 : 0;
+					tile_pixel |= (tile_data & (1 << flip_8[win_y])) ? 1 : 0;
+				}
+
+				else
+				{
+					tile_pixel = ((tile_data >> 8) & (1 << win_y)) ? 2 : 0;
+					tile_pixel |= (tile_data & (1 << win_y)) ? 1 : 0;
+				}				
+
+				win_pixel_data[win_pixel_counter++] = bgp[tile_pixel];
+			}
+
+			vram_tile_addr += 2;
+		}
+
+		main_menu::gbe_plus->ex_write_u8(REG_VBK, current_vram_bank);
+
+		QImage final_image(8, 8, QImage::Format_ARGB32);	
+
+		//Copy raw pixels to QImage
+		for(int win_x = 0; win_x < 64; win_x++)
+		{
+			final_image.setPixel((win_x % 8), (win_x / 8), win_pixel_data[win_x]);
+		}
+
+		final_image = final_image.scaled(128, 128);
+		current_tile->setPixmap(QPixmap::fromImage(final_image));
+
+		//Tile info - ID
+		QString id("Tile ID : ");
+		id += QString::number(bg_index);
+		tile_id->setText(id);
+
+		//Tile info - Address
+		QString addr("Tile Address : 0x");
+		addr += QString::number((win_tile_addr + (map_value << 4)), 16).toUpper();
+		tile_addr->setText(addr);
+
+		//Tile info - Size
+		QString size("Tile Size : 8x8");
+		tile_size->setText(size);
+
+		//Tile info - H/V Flip
+		QString flip("H-Flip : N    V-Flip : N");
+
+		if((!h_flip) && (!v_flip)) { flip = "H-Flip : N    V-Flip : N"; }
+		else if((h_flip) && (!v_flip)) { flip = "H-Flip : Y    V-Flip : N"; }
+		else if((!h_flip) && (v_flip)) { flip = "H-Flip : N    V-Flip : Y"; }
+		else { flip = "H-Flip : Y    V-Flip : Y"; }	
+
+		h_v_flip->setText(flip);
+
+		//Tile info - Palette
+		QString pal;
+				
+		switch(pal_num)
+		{
+			case 0: pal = "Tile Palette : BCP0"; break;
+			case 1: pal = "Tile Palette : BCP1"; break;
+			case 2: pal = "Tile Palette : BCP2"; break;
+			case 3: pal = "Tile Palette : BCP3"; break;
+			case 4: pal = "Tile Palette : BCP4"; break;
+			case 5: pal = "Tile Palette : BCP5"; break;
+			case 6: pal = "Tile Palette : BCP6"; break;
+			case 7: pal = "Tile Palette : BCP7"; break;
+		}
+
+		tile_palette->setText(pal);
 	}
 
 	//Update preview for GBC OBJ 
