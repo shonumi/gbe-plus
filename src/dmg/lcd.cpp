@@ -397,7 +397,8 @@ void DMG_LCD::render_dmg_bg_scanline()
 		u16 bg_id = (((lcd_stat.bg_tile_addr + (map_entry << 4)) & ~0x8000) >> 4);
 		
 		//Render CGFX
-		if((cgfx::load_cgfx) && (has_hash(cgfx_stat.current_bg_hash[bg_id]))) { render_cgfx_dmg_bg_scanline(bg_id); }
+		u16 hash_addr = lcd_stat.bg_tile_addr + (map_entry << 4);
+		if((cgfx::load_cgfx) && (has_hash(hash_addr, cgfx_stat.current_bg_hash[bg_id]))) { render_cgfx_dmg_bg_scanline(bg_id); }
 
 		//Render original pixel data
 		else 
@@ -556,7 +557,8 @@ void DMG_LCD::render_gbc_bg_scanline()
 
 		//Render CGFX
 		u16 map_id = (lcd_stat.bg_map_addr + x) - 0x9800;
-		if(has_hash(cgfx_stat.current_gbc_bg_hash[map_id])) { render_cgfx_gbc_bg_scanline(tile_data, bg_map_attribute); }
+		u16 hash_addr = lcd_stat.bg_tile_addr + (map_entry << 4);
+		if((cgfx::load_cgfx) && (has_hash(hash_addr, cgfx_stat.current_gbc_bg_hash[map_id]))) { render_cgfx_gbc_bg_scanline(tile_data, bg_map_attribute); }
 
 		//Render original pixel data
 		else
@@ -707,7 +709,8 @@ void DMG_LCD::render_dmg_win_scanline()
 		u16 bg_id = (((lcd_stat.bg_tile_addr + (map_entry << 4)) & ~0x8000) >> 4);
 		
 		//Render CGFX
-		if((cgfx::load_cgfx) && (has_hash(cgfx_stat.current_bg_hash[bg_id]))) { render_cgfx_dmg_bg_scanline(bg_id); }
+		u16 hash_addr = lcd_stat.bg_tile_addr + (map_entry << 4);
+		if((cgfx::load_cgfx) && (has_hash(hash_addr, cgfx_stat.current_bg_hash[bg_id]))) { render_cgfx_dmg_bg_scanline(bg_id); }
 
 		//Render original pixel data
 		else
@@ -815,7 +818,8 @@ void DMG_LCD::render_gbc_win_scanline()
 
 		//Render CGFX
 		u16 map_id = (lcd_stat.window_map_addr + x) - 0x9800;
-		if(has_hash(cgfx_stat.current_gbc_bg_hash[map_id])) { render_cgfx_gbc_bg_scanline(tile_data, bg_map_attribute); }
+		u16 hash_addr = lcd_stat.bg_tile_addr + (map_entry << 4);
+		if((cgfx::load_cgfx) && (has_hash(hash_addr, cgfx_stat.current_gbc_bg_hash[map_id]))) { render_cgfx_gbc_bg_scanline(tile_data, bg_map_attribute); }
 
 		//Render original pixel data
 		else
@@ -881,7 +885,8 @@ void DMG_LCD::render_dmg_obj_scanline()
 		u8 sprite_id = obj_render_list[x];
 
 		//Render CGFX
-		if((cgfx::load_cgfx) && (has_hash(cgfx_stat.current_obj_hash[sprite_id]))) { render_cgfx_dmg_obj_scanline(sprite_id); }
+		u16 hash_addr = 0x8000 + (obj[sprite_id].tile_number << 4);
+		if((cgfx::load_cgfx) && (has_hash(hash_addr, cgfx_stat.current_obj_hash[sprite_id]))) { render_cgfx_dmg_obj_scanline(sprite_id); }
 
 		//Render original pixel data
 		else 
@@ -1051,7 +1056,8 @@ void DMG_LCD::render_gbc_obj_scanline()
 		u8 sprite_id = obj_render_list[x];
 
 		//Render CGFX
-		if((cgfx::load_cgfx) && (has_hash(cgfx_stat.current_obj_hash[sprite_id]))) { render_cgfx_gbc_obj_scanline(sprite_id); }
+		u16 hash_addr = 0x8000 + (obj[sprite_id].tile_number << 4);
+		if((cgfx::load_cgfx) && (has_hash(hash_addr, cgfx_stat.current_obj_hash[sprite_id]))) { render_cgfx_gbc_obj_scanline(sprite_id); }
 
 		//Render original pixel data
 		else

@@ -128,8 +128,19 @@ bool DMG_LCD::load_manifest(std::string filename)
 		//Load image based on filename and hash type
 		if(!load_image_data()) { return false; }
 
-		//TODO - VRAM Address and Auto Bright Extensions
-		x += 2;
+		//EXT_VRAM_ADDR
+		std::stringstream vram_stream(cgfx_stat.manifest[x++]);
+		u32 vram_address = 0;
+		vram_stream >> vram_address;
+		cgfx_stat.m_vram_addr.push_back(vram_address);	
+
+		//EXT_AUTO_BRIGHT
+		std::stringstream bright_stream(cgfx_stat.manifest[x++]);
+		u32 bright_value = 0;
+		bright_stream >> bright_value;
+		
+		if(bright_value == 0) { cgfx_stat.m_auto_bright.push_back(false); }
+		else { cgfx_stat.m_auto_bright.push_back(true); }
 	}
 
 	std::cout<<"CGFX::" << filename << " loaded successfully\n"; 
@@ -877,12 +888,28 @@ void DMG_LCD::update_gbc_bg_hash(u16 map_addr)
 }	
 
 /****** Search for an existing hash from the manifest ******/
-bool DMG_LCD::has_hash(std::string hash)
+bool DMG_LCD::has_hash(u16 addr, std::string hash)
 {
+	bool match = false;
+
 	for(int x = 0; x < cgfx_stat.m_hashes.size(); x++)
 	{
-		if(hash == cgfx_stat.m_hashes[x]) { cgfx_stat.last_id = x; return true; }
+		if(hash == cgfx_stat.m_hashes[x])
+		{
+			if(cgfx_stat.m_vram_addr[x] == 0)
+			{
+				cgfx_stat.last_id = x;
+				match = true;
+			}
+			
+			//Check VRAM addr requirement, if applicable
+			else if(cgfx_stat.m_vram_addr[x] == addr)
+			{
+				cgfx_stat.last_id = x;
+				return true;
+			}
+		}
 	}
 
-	return false;
+	return match;
 }
