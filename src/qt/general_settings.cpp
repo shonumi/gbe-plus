@@ -789,34 +789,56 @@ void gen_settings::sample_rate_change()
 /****** Sets a path via file browser ******/
 void gen_settings::set_paths(int index)
 {
-	QString filename = QFileDialog::getOpenFileName(this, tr("Open"), "", tr("All files (*)"));
-	if(filename.isNull()) { return; }
+	QString path;
+
+	//Open file browser for Boot ROMs, BIOS, and manifests
+	if(index != 4) 
+	{
+		path = QFileDialog::getOpenFileName(this, tr("Open"), "", tr("All files (*)"));
+		if(path.isNull()) { return; }
+	}
+
+	//Open folder browser for screenshots
+	else
+	{
+		path = QFileDialog::getExistingDirectory(this, tr("Open"), "", QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+		if(path.isNull()) { return; }	
+
+		//Make sure path is complete, e.g. has the correct separator at the end
+		//Qt doesn't append this automatically
+		std::string temp_str = path.toStdString();
+		std::string temp_chr = "";
+		temp_chr = temp_str[temp_str.length() - 1];
+
+		if((temp_chr != "/") && (temp_chr != "\\")) { path.append("/"); }
+		path = QDir::toNativeSeparators(path);
+	}
 
 	switch(index)
 	{
 		case 0: 
-			config::dmg_bios_path = filename.toStdString();
-			dmg_bios->setText(filename);
+			config::dmg_bios_path = path.toStdString();
+			dmg_bios->setText(path);
 			break;
 
 		case 1:
-			config::gbc_bios_path = filename.toStdString();
-			gbc_bios->setText(filename);
+			config::gbc_bios_path = path.toStdString();
+			gbc_bios->setText(path);
 			break;
 
 		case 2:
-			config::agb_bios_path = filename.toStdString();
-			gba_bios->setText(filename);
+			config::agb_bios_path = path.toStdString();
+			gba_bios->setText(path);
 			break;
 
 		case 3:
-			cgfx::manifest_file = filename.toStdString();
-			manifest->setText(filename);
+			cgfx::manifest_file = path.toStdString();
+			manifest->setText(path);
 			break;
 
 		case 4:
-			config::ss_path = filename.toStdString();
-			screenshot->setText(filename);
+			config::ss_path = path.toStdString();
+			screenshot->setText(path);
 			break;
 	}
 }
@@ -1084,6 +1106,7 @@ void gen_settings::paintEvent(QPaintEvent* event)
 	gbc_bios_label->setMinimumWidth(dmg_bios_label->width());
 	gba_bios_label->setMinimumWidth(dmg_bios_label->width());
 	manifest_label->setMinimumWidth(dmg_bios_label->width());
+	screenshot_label->setMinimumWidth(dmg_bios_label->width());
 }
 
 /****** Closes the settings window ******/
