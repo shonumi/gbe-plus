@@ -414,4 +414,48 @@ std::string to_hex_str(u32 input)
 	return temp.str();
 }
 
+/****** Converts C++ string representing a hex number into an integer value ******/
+u32 from_hex_str(std::string input)
+{
+	//This function expects the hex string to contain only hexadecimal numbers and letters
+	//E.g. it expects "8000" rather than "0x8000" or "$8000"
+	//Returns 0 if it encounters any unexpected characters
+
+	u32 result = 0;
+	u32 hex_size = (input.size() - 1);
+	std::string hex_char = "";
+
+	//Convert hex string into usable u32
+	for(int x = hex_size, y = 0; x >= 0; x--, y+=4)
+	{
+		hex_char = input[x];
+
+		if(hex_char == "0") { result += (0 << y); }
+		else if(hex_char == "1") { result += (1 << y); }
+		else if(hex_char == "2") { result += (2 << y); }
+		else if(hex_char == "3") { result += (3 << y); }
+		else if(hex_char == "4") { result += (4 << y); }
+		else if(hex_char == "5") { result += (5 << y); }
+		else if(hex_char == "6") { result += (6 << y); }
+		else if(hex_char == "7") { result += (7 << y); }
+		else if(hex_char == "8") { result += (8 << y); }
+		else if(hex_char == "9") { result += (9 << y); }
+		else if(hex_char == "A") { result += (10 << y); }
+		else if(hex_char == "a") { result += (10 << y); }
+		else if(hex_char == "B") { result += (11 << y); }
+		else if(hex_char == "b") { result += (11 << y); }
+		else if(hex_char == "C") { result += (12 << y); }
+		else if(hex_char == "c") { result += (12 << y); }
+		else if(hex_char == "D") { result += (13 << y); }
+		else if(hex_char == "d") { result += (13 << y); }
+		else if(hex_char == "E") { result += (14 << y); }
+		else if(hex_char == "e") { result += (14 << y); }
+		else if(hex_char == "F") { result += (15 << y); }
+		else if(hex_char == "f") { result += (15 << y); }
+		else { return 0; }
+	}
+
+	return result;
+}
+
 } //Namespace
