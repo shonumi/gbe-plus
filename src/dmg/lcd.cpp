@@ -1549,6 +1549,8 @@ void DMG_LCD::step(int cpu_clock)
 			//Entering VBlank
 			if(lcd_stat.lcd_mode != 1)
 			{
+				std::cout<<"VBLANK\n";
+
 				lcd_stat.lcd_mode = 1;
 
 				//Increment scanline count
@@ -1561,6 +1563,9 @@ void DMG_LCD::step(int cpu_clock)
 					
 				//VBlank STAT INT
 				if(mem->memory_map[REG_STAT] & 0x10) { mem->memory_map[IF_FLAG] |= 2; }
+
+				//Raise other STAT INTs on this line
+				if(((mem->memory_map[IE_FLAG] & 0x1) == 0) && ((mem->memory_map[REG_STAT] & 0x20))) { mem->memory_map[IF_FLAG] |= 2; }
 
 				//VBlank INT
 				mem->memory_map[IF_FLAG] |= 1;
