@@ -415,13 +415,13 @@ std::string to_hex_str(u32 input)
 }
 
 /****** Converts C++ string representing a hex number into an integer value ******/
-u32 from_hex_str(std::string input)
+bool from_hex_str(std::string input, u32 &result)
 {
 	//This function expects the hex string to contain only hexadecimal numbers and letters
 	//E.g. it expects "8000" rather than "0x8000" or "$8000"
-	//Returns 0 if it encounters any unexpected characters
+	//Returns false + result = 0 if it encounters any unexpected characters
 
-	u32 result = 0;
+	result = 0;
 	u32 hex_size = (input.size() - 1);
 	std::string hex_char = "";
 
@@ -452,10 +452,10 @@ u32 from_hex_str(std::string input)
 		else if(hex_char == "e") { result += (14 << y); }
 		else if(hex_char == "F") { result += (15 << y); }
 		else if(hex_char == "f") { result += (15 << y); }
-		else { return 0; }
+		else { result = 0; return false; }
 	}
 
-	return result;
+	return true;
 }
 
 } //Namespace

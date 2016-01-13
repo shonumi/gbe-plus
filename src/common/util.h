@@ -42,7 +42,7 @@ namespace util
 	u32 xbit(u32 a, u32 b);
 
 	std::string to_hex_str(u32 input);
-	u32 from_hex_str(std::string input);
+	bool from_hex_str(std::string input, u32 &result);
 
 	extern u32 crc32_table[256];
 	extern u32 poly32;

@@ -1549,8 +1549,6 @@ void DMG_LCD::step(int cpu_clock)
 			//Entering VBlank
 			if(lcd_stat.lcd_mode != 1)
 			{
-				std::cout<<"VBLANK\n";
-
 				lcd_stat.lcd_mode = 1;
 
 				//Increment scanline count

@@ -130,7 +130,8 @@ bool DMG_LCD::load_manifest(std::string filename)
 
 		//EXT_VRAM_ADDR
 		std::stringstream vram_stream(cgfx_stat.manifest[x++]);
-		u32 vram_address = util::from_hex_str(vram_stream.str());
+		u32 vram_address = 0;
+		util::from_hex_str(vram_stream.str(), vram_address);
 		cgfx_stat.m_vram_addr.push_back(vram_address);	
 
 		//EXT_AUTO_BRIGHT
