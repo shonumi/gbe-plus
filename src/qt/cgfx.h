@@ -41,9 +41,15 @@ class gbe_cgfx : public QDialog
 	QDialogButtonBox* tabs_button;
 
 	//Configure tab widgets
+	QCheckBox* advanced;
 	QCheckBox* auto_dump_obj;
 	QCheckBox* auto_dump_bg;
 	QCheckBox* blank;
+
+	//Advanced menu
+	QWidget* advanced_box;
+	QCheckBox* ext_vram;
+	QCheckBox* ext_bright;
 
 	//Layers tab widgets
 	QComboBox* layer_select;
@@ -103,6 +109,8 @@ class gbe_cgfx : public QDialog
 	void close_cgfx();
 	void dump_obj(int obj_index);
 	void dump_bg(int bg_index);
+	void show_advanced_obj(int index);
+	void show_advanced_bg(int index);
 	void set_auto_obj();
 	void set_auto_bg();
 	void set_blanks();

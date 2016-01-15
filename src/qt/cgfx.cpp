@@ -43,6 +43,10 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	QLabel* blank_label = new QLabel("Ignore blank/empty tiles when dumping", blank_set);
 	blank = new QCheckBox(blank_set);
 
+	QWidget* advanced_set = new QWidget(config_tab);
+	QLabel* advanced_label = new QLabel("Use advanced menu", blank_set);
+	advanced = new QCheckBox(advanced_set);
+
 	obj_set = new QWidget(obj_tab);
 	bg_set = new QWidget(bg_tab);
 	layers_set = new QWidget(layers_tab);
@@ -109,6 +113,12 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	select_set->setLayout(layer_select_layout);
 
 	//Configure Tab layout
+	QHBoxLayout* advanced_layout = new QHBoxLayout;
+	advanced_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	advanced_layout->addWidget(advanced);
+	advanced_layout->addWidget(advanced_label);
+	advanced_set->setLayout(advanced_layout);
+
 	QHBoxLayout* auto_dump_obj_layout = new QHBoxLayout;
 	auto_dump_obj_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	auto_dump_obj_layout->addWidget(auto_dump_obj);
@@ -129,6 +139,7 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 
 	QVBoxLayout* config_tab_layout = new QVBoxLayout;
 	config_tab_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	config_tab_layout->addWidget(advanced_set);
 	config_tab_layout->addWidget(auto_dump_obj_set);
 	config_tab_layout->addWidget(auto_dump_bg_set);
 	config_tab_layout->addWidget(blank_set);
@@ -169,6 +180,38 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	connect(auto_dump_bg, SIGNAL(stateChanged(int)), this, SLOT(set_auto_bg()));
 	connect(blank, SIGNAL(stateChanged(int)), this, SLOT(set_blanks()));
 	connect(layer_select, SIGNAL(currentIndexChanged(int)), this, SLOT(layer_change()));
+
+	//CGFX advanced dumping pop-up box
+	advanced_box = new QWidget();
+	advanced_box->resize(350, 250);
+	advanced_box->setWindowTitle("Advanced Tile Dumping");
+	advanced_box->hide();
+
+	QWidget* ext_vram_set = new QWidget(advanced_box);
+	QLabel* ext_vram_label = new QLabel("EXT_VRAM_ADDR", ext_vram_set);
+	ext_vram = new QCheckBox(ext_vram_set);
+
+	QWidget* ext_bright_set = new QWidget(advanced_box);
+	QLabel* ext_bright_label = new QLabel("EXT_AUTO_BRIGHT", ext_bright_set);
+	ext_bright = new QCheckBox(ext_bright_set);
+
+	QHBoxLayout* ext_vram_layout = new QHBoxLayout;
+	ext_vram_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	ext_vram_layout->addWidget(ext_vram);
+	ext_vram_layout->addWidget(ext_vram_label);
+	ext_vram_set->setLayout(ext_vram_layout);
+
+	QHBoxLayout* ext_bright_layout = new QHBoxLayout;
+	ext_bright_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	ext_bright_layout->addWidget(ext_bright);
+	ext_bright_layout->addWidget(ext_bright_label);
+	ext_bright_set->setLayout(ext_bright_layout);
+
+	QVBoxLayout* advanced_box_layout = new QVBoxLayout;
+	advanced_box_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	advanced_box_layout->addWidget(ext_vram_set);
+	advanced_box_layout->addWidget(ext_bright_set);
+	advanced_box->setLayout(advanced_box_layout);
 
 	estimated_palette.resize(384, 0);
 	estimated_vram_bank.resize(384, 0);
@@ -251,7 +294,32 @@ void gbe_cgfx::update_obj_window(int rows, int count)
 	}
 
 	obj_set->setLayout(obj_layout);
-	connect(obj_signal, SIGNAL(mapped(int)), this, SLOT(dump_obj(int))) ;
+	connect(obj_signal, SIGNAL(mapped(int)), this, SLOT(show_advanced_obj(int))) ;
+}
+
+/****** Optionally shows the advanced menu before dumping - OBJ version ******/
+void gbe_cgfx::show_advanced_obj(int index)
+{
+	if(advanced->isChecked()) { advanced_box->show(); }
+	else { dump_obj(index); }
+}
+
+/****** Optionally shows the advanced menu before dumping - OBJ version ******/
+void gbe_cgfx::show_advanced_bg(int index)
+{
+	//When estimating dumpable tiles, use estimated palettes + vram_banks
+	if(config::gb_type == 2)
+	{
+		cgfx::gbc_bg_color_pal = estimated_palette[index];
+		cgfx::gbc_bg_vram_bank = estimated_vram_bank[index];
+	}
+
+	//But if CGFX signals the emulator has a specific tile, use provided attributes
+	//Palette and VRAM bank are already set, so no estimation required
+	else if(config::gb_type == 10) { config::gb_type = 2; }
+
+	if(advanced->isChecked()) { advanced_box->show(); }
+	else { dump_bg(index); }
 }
 
 /****** Grabs an OBJ in VRAM and converts it to a QImage - DMG Version ******/
@@ -501,7 +569,7 @@ void gbe_cgfx::update_bg_window(int rows, int count)
 	}
 
 	bg_set->setLayout(bg_layout);
-	connect(bg_signal, SIGNAL(mapped(int)), this, SLOT(dump_bg(int))) ;
+	connect(bg_signal, SIGNAL(mapped(int)), this, SLOT(show_advanced_bg(int))) ;
 }
 
 /****** Grabs a BG tile in VRAM and converts it to a QImage ******/
@@ -674,21 +742,7 @@ void gbe_cgfx::close_cgfx() { pause = false; config::pause_emu = false; }
 void gbe_cgfx::dump_obj(int obj_index) { main_menu::gbe_plus->dump_obj(obj_index); }
 
 /****** Dumps the selected BG ******/
-void gbe_cgfx::dump_bg(int bg_index) 
-{
-	//When estimating dumpable tiles, use estimated palettes + vram_banks
-	if(config::gb_type == 2)
-	{
-		cgfx::gbc_bg_color_pal = estimated_palette[bg_index];
-		cgfx::gbc_bg_vram_bank = estimated_vram_bank[bg_index];
-	}
-
-	//But if CGFX signals the emulator has a specific tile, use provided attributes
-	//Palette and VRAM bank are already set, so no estimation required
-	else if(config::gb_type == 10) { config::gb_type = 2; }
-
-	main_menu::gbe_plus->dump_bg(bg_index);
-}
+void gbe_cgfx::dump_bg(int bg_index) { main_menu::gbe_plus->dump_bg(bg_index); }
 
 /****** Toggles automatic dumping of OBJ tiles ******/
 void gbe_cgfx::set_auto_obj()
@@ -2115,7 +2169,7 @@ void gbe_cgfx::dump_layer_tile(u32 x, u32 y)
 
 		u16 bg_index = (((bg_tile_addr + (map_value << 4)) & ~0x8000) >> 4);
 
-		dump_bg(bg_index);
+		show_advanced_bg(bg_index);
 	}
 
 	//Dump from DMG Window
@@ -2143,7 +2197,7 @@ void gbe_cgfx::dump_layer_tile(u32 x, u32 y)
 
 		u16 bg_index = (((bg_tile_addr + (map_value << 4)) & ~0x8000) >> 4);
 
-		dump_bg(bg_index);
+		show_advanced_bg(bg_index);
 	}
 
 	//Dump from DMG or GBC OBJ 
@@ -2167,7 +2221,7 @@ void gbe_cgfx::dump_layer_tile(u32 x, u32 y)
 			u8 test_top = ((obj_y + obj_height) > 0x100) ? 0 : obj_y;
 			u8 test_bottom = (obj_y + obj_height);
 
-			if((x >= test_left) && (x <= test_right) && (y >= test_top) && (y <= test_bottom)) { dump_obj(obj_index); }
+			if((x >= test_left) && (x <= test_right) && (y >= test_top) && (y <= test_bottom)) { show_advanced_obj(obj_index); }
 		}
 	}
 
@@ -2211,7 +2265,7 @@ void gbe_cgfx::dump_layer_tile(u32 x, u32 y)
 
 		//Signal no estimation required for VRAM bank and palette
 		config::gb_type = 10;
-		dump_bg(bg_index);
+		show_advanced_bg(bg_index);
 
 		cgfx::gbc_bg_vram_bank = current_vram_bank;
 		cgfx::gbc_bg_color_pal = original_pal;
@@ -2258,7 +2312,7 @@ void gbe_cgfx::dump_layer_tile(u32 x, u32 y)
 
 		//Signal no estimation required for VRAM bank and palette
 		config::gb_type = 10;
-		dump_bg(bg_index);
+		show_advanced_bg(bg_index);
 
 		cgfx::gbc_bg_vram_bank = current_vram_bank;
 		cgfx::gbc_bg_color_pal = original_pal;
