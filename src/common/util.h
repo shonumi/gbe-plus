@@ -44,6 +44,9 @@ namespace util
 	std::string to_hex_str(u32 input);
 	bool from_hex_str(std::string input, u32 &result);
 
+	std::string to_str(u32);
+	bool from_str(std::string input, u32 &result);
+
 	extern u32 crc32_table[256];
 	extern u32 poly32;
 }

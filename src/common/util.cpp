@@ -430,7 +430,7 @@ bool from_hex_str(std::string input, u32 &result)
 	{
 		hex_char = input[x];
 
-		if(hex_char == "0") { result += (0 << y); }
+		if(hex_char == "0") { result += 0; }
 		else if(hex_char == "1") { result += (1 << y); }
 		else if(hex_char == "2") { result += (2 << y); }
 		else if(hex_char == "3") { result += (3 << y); }
@@ -452,6 +452,43 @@ bool from_hex_str(std::string input, u32 &result)
 		else if(hex_char == "e") { result += (14 << y); }
 		else if(hex_char == "F") { result += (15 << y); }
 		else if(hex_char == "f") { result += (15 << y); }
+		else { result = 0; return false; }
+	}
+
+	return true;
+}
+
+/****** Convert an intger into a C++ string ******/
+std::string to_str(u32 input)
+{
+	std::stringstream temp;
+	temp << input;
+	return temp.str();
+}
+
+/****** Converts a string into an integer value ******/
+bool from_str(std::string input, u32 &result)
+{
+	result = 0;
+	u32 size = (input.size() - 1);
+	std::string value_char = "";
+
+	//Convert string into usable u32
+	for(int x = size, y = 0; x >= 0; x--, y *= 10)
+	{
+		value_char = input[x];
+
+		if(value_char == "0") { result += 0; }
+		else if(value_char == "1") { result += (1 * y); }
+		else if(value_char == "2") { result += (2 * y); }
+		else if(value_char == "3") { result += (3 * y); }
+		else if(value_char == "4") { result += (4 * y); }
+		else if(value_char == "5") { result += (5 * y); }
+		else if(value_char == "6") { result += (6 * y); }
+		else if(value_char == "7") { result += (7 * y); }
+		else if(value_char == "8") { result += (8 * y); }
+		else if(value_char == "9") { result += (9 * y); }
+		else if(value_char == "-") { result *= -1; }
 		else { result = 0; return false; }
 	}
 
