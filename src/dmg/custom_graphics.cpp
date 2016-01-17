@@ -298,6 +298,11 @@ void DMG_LCD::dump_dmg_obj(u8 obj_index)
 		std::cout<<"LCD::Saving Sprite - " << dump_file << "\n";
 		SDL_SaveBMP(obj_dump, dump_file.c_str());
 	}
+
+	//Save CGFX data
+	cgfx::last_hash = final_hash;
+	cgfx::last_vram_addr = 0x8000 + (obj[obj_index].tile_number << 4);
+	cgfx::last_type = 1;
 }
 
 /****** Dumps GBC OBJ tile from selected memory address ******/
@@ -407,6 +412,11 @@ void DMG_LCD::dump_gbc_obj(u8 obj_index)
 
 	//Reset VRAM bank
 	mem->vram_bank = old_vram_bank;
+
+	//Save CGFX data
+	cgfx::last_hash = final_hash;
+	cgfx::last_vram_addr = 0x8000 + (obj[obj_index].tile_number << 4);
+	cgfx::last_type = 2;
 }
 
 /****** Dumps DMG BG tile from selected memory address ******/
@@ -515,6 +525,11 @@ void DMG_LCD::dump_dmg_bg(u16 bg_index)
 		std::cout<<"LCD::Saving Background Tile - " << dump_file << "\n";
 		SDL_SaveBMP(bg_dump, dump_file.c_str());
 	}
+
+	//Save CGFX data
+	cgfx::last_hash = final_hash;
+	cgfx::last_vram_addr = (bg_index << 4) + 0x8000;
+	cgfx::last_type = 10;
 }
 
 /****** Dumps GBC BG tile from selected memory address (GUI version) ******/
@@ -620,6 +635,11 @@ void DMG_LCD::dump_gbc_bg(u16 bg_index)
 
 	//Reset VRAM bank
 	mem->vram_bank = old_vram_bank;
+
+	//Save CGFX data
+	cgfx::last_hash = final_hash;
+	cgfx::last_vram_addr = (bg_index << 4) + 0x8000;
+	cgfx::last_type = 20;
 }
 
 /****** Dumps GBC BG tile from selected memory address (Auto-dump version) ******/
@@ -669,6 +689,11 @@ void DMG_LCD::dump_gbc_bg(std::string final_hash, u16 bg_tile_addr, u8 palette)
 	//Save to BMP
 	std::cout<<"LCD::Saving Background Tile - " << dump_file << "\n";
 	SDL_SaveBMP(bg_dump, dump_file.c_str());
+
+	//Save CGFX data
+	cgfx::last_hash = final_hash;
+	cgfx::last_vram_addr = bg_tile_addr - 16;
+	cgfx::last_type = 20;
 }
 
 /****** Updates the current hash for the selected DMG OBJ ******/

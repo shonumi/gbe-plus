@@ -9,6 +9,7 @@
 // Dialog for various custom graphics options
 
 #include "common/cgfx_common.h"
+#include "common/util.h"
 #include "cgfx.h"
 #include "main_menu.h"
 
@@ -182,7 +183,7 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	connect(layer_select, SIGNAL(currentIndexChanged(int)), this, SLOT(layer_change()));
 
 	//CGFX advanced dumping pop-up box
-	advanced_box = new QWidget();
+	advanced_box = new QDialog();
 	advanced_box->resize(350, 250);
 	advanced_box->setWindowTitle("Advanced Tile Dumping");
 	advanced_box->hide();
@@ -194,6 +195,14 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	QWidget* ext_bright_set = new QWidget(advanced_box);
 	QLabel* ext_bright_label = new QLabel("EXT_AUTO_BRIGHT", ext_bright_set);
 	ext_bright = new QCheckBox(ext_bright_set);
+
+	dump_button = new QPushButton("Dump Tile", advanced_box);
+	cancel_button = new QPushButton("Cancel", advanced_box);
+
+	advanced_buttons = new QDialogButtonBox(advanced_box);
+	advanced_buttons->setOrientation(Qt::Horizontal);
+	advanced_buttons->addButton(dump_button, QDialogButtonBox::ActionRole);
+	advanced_buttons->addButton(cancel_button, QDialogButtonBox::ActionRole);
 
 	QHBoxLayout* ext_vram_layout = new QHBoxLayout;
 	ext_vram_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -211,13 +220,20 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	advanced_box_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	advanced_box_layout->addWidget(ext_vram_set);
 	advanced_box_layout->addWidget(ext_bright_set);
+	advanced_box_layout->addWidget(advanced_buttons);
 	advanced_box->setLayout(advanced_box_layout);
+
+	connect(dump_button, SIGNAL(clicked()), this, SLOT(write_manifest_entry()));
+	connect(cancel_button, SIGNAL(clicked()), this, SLOT(close_advanced()));
 
 	estimated_palette.resize(384, 0);
 	estimated_vram_bank.resize(384, 0);
 
 	resize(800, 450);
 	setWindowTitle(tr("Custom Graphics"));
+
+	dump_type = 0;
+	advanced_index = 0;
 
 	pause = false;
 }
@@ -300,7 +316,13 @@ void gbe_cgfx::update_obj_window(int rows, int count)
 /****** Optionally shows the advanced menu before dumping - OBJ version ******/
 void gbe_cgfx::show_advanced_obj(int index)
 {
-	if(advanced->isChecked()) { advanced_box->show(); }
+	if(advanced->isChecked()) 
+	{
+		dump_type = 1;
+		advanced_index = index;
+		advanced_box->show();
+	}
+
 	else { dump_obj(index); }
 }
 
@@ -318,7 +340,13 @@ void gbe_cgfx::show_advanced_bg(int index)
 	//Palette and VRAM bank are already set, so no estimation required
 	else if(config::gb_type == 10) { config::gb_type = 2; }
 
-	if(advanced->isChecked()) { advanced_box->show(); }
+	if(advanced->isChecked()) 
+	{
+		dump_type = 0;
+		advanced_index = index;
+		advanced_box->show();
+	}
+
 	else { dump_bg(index); }
 }
 
@@ -736,7 +764,10 @@ QImage gbe_cgfx::grab_gbc_bg_data(int bg_index)
 void gbe_cgfx::closeEvent(QCloseEvent* event) { close_cgfx(); }
 
 /****** Closes the CGFX window ******/
-void gbe_cgfx::close_cgfx() { pause = false; config::pause_emu = false; }
+void gbe_cgfx::close_cgfx() { pause = false; config::pause_emu = false; advanced_box->hide(); }
+
+/****** Closes the Advanced menu ******/
+void gbe_cgfx::close_advanced() { advanced_box->hide(); }
 
 /****** Dumps the selected OBJ ******/
 void gbe_cgfx::dump_obj(int obj_index) { main_menu::gbe_plus->dump_obj(obj_index); }
@@ -2169,6 +2200,7 @@ void gbe_cgfx::dump_layer_tile(u32 x, u32 y)
 
 		u16 bg_index = (((bg_tile_addr + (map_value << 4)) & ~0x8000) >> 4);
 
+		dump_type = 0;
 		show_advanced_bg(bg_index);
 	}
 
@@ -2197,6 +2229,7 @@ void gbe_cgfx::dump_layer_tile(u32 x, u32 y)
 
 		u16 bg_index = (((bg_tile_addr + (map_value << 4)) & ~0x8000) >> 4);
 
+		dump_type = 0;
 		show_advanced_bg(bg_index);
 	}
 
@@ -2220,6 +2253,8 @@ void gbe_cgfx::dump_layer_tile(u32 x, u32 y)
 
 			u8 test_top = ((obj_y + obj_height) > 0x100) ? 0 : obj_y;
 			u8 test_bottom = (obj_y + obj_height);
+
+			dump_type = 1;
 
 			if((x >= test_left) && (x <= test_right) && (y >= test_top) && (y <= test_bottom)) { show_advanced_obj(obj_index); }
 		}
@@ -2265,6 +2300,7 @@ void gbe_cgfx::dump_layer_tile(u32 x, u32 y)
 
 		//Signal no estimation required for VRAM bank and palette
 		config::gb_type = 10;
+		dump_type = 0;
 		show_advanced_bg(bg_index);
 
 		cgfx::gbc_bg_vram_bank = current_vram_bank;
@@ -2312,6 +2348,7 @@ void gbe_cgfx::dump_layer_tile(u32 x, u32 y)
 
 		//Signal no estimation required for VRAM bank and palette
 		config::gb_type = 10;
+		dump_type = 0;
 		show_advanced_bg(bg_index);
 
 		cgfx::gbc_bg_vram_bank = current_vram_bank;
@@ -2345,4 +2382,27 @@ bool gbe_cgfx::eventFilter(QObject* target, QEvent* event)
 	}
 
 	return QDialog::eventFilter(target, event);
+}
+
+/****** Dumps tiles and writes a manifest entry  ******/
+void gbe_cgfx::write_manifest_entry()
+{
+	//Dump BG
+	if(dump_type == 0) { dump_bg(advanced_index); }
+
+	//Dump OBJ
+	else { dump_obj(advanced_index); }
+
+	//Prepare a string for the manifest entry
+	//Hash + Hash.bmp + Type + EXT_VRAM_ADDR + EXT_AUTO_BRIGHT
+	std::string entry = "";
+
+	std::string gfx_name = cgfx::last_hash + ".bmp";
+	std::string gfx_type = util::to_str(cgfx::last_type);
+	std::string gfx_addr = (ext_vram->isChecked()) ? util::to_hex_str(cgfx::last_vram_addr) : "0";
+	std::string gfx_bright = (ext_bright->isChecked()) ? "1" : "0";
+
+	entry = "[" + cgfx::last_hash + ":'" + gfx_name + "':" + gfx_type + ":" + gfx_addr + ":" + gfx_bright + "]";
+	
+	advanced_box->hide();
 }

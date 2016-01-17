@@ -59,6 +59,10 @@ class gbe_cgfx : public QDialog
 	QLabel* h_v_flip;
 	QLabel* tile_palette;
 
+	QDialogButtonBox* advanced_buttons;
+	QPushButton* cancel_button;
+	QPushButton* dump_button;
+
 	//OBJ tab widgets
 	std::vector<QImage> cgfx_obj;
 	std::vector<QPushButton*> obj_button;
@@ -105,10 +109,15 @@ class gbe_cgfx : public QDialog
 	QImage grab_dmg_bg_data(int bg_index);
 	QImage grab_gbc_bg_data(int bg_index);
 
+	u8 dump_type;
+	int advanced_index;
+
 	private slots:
 	void close_cgfx();
+	void close_advanced();
 	void dump_obj(int obj_index);
 	void dump_bg(int bg_index);
+	void write_manifest_entry();
 	void show_advanced_obj(int index);
 	void show_advanced_bg(int index);
 	void set_auto_obj();
