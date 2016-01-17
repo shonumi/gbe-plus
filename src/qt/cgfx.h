@@ -51,6 +51,18 @@ class gbe_cgfx : public QDialog
 	QCheckBox* ext_vram;
 	QCheckBox* ext_bright;
 
+	QLabel* dest_label;
+	QLineEdit* dest_folder;
+	QPushButton* dest_browse;
+
+	QLabel* name_label;
+	QLineEdit* dest_name;
+	QPushButton* name_browse;
+
+	QDialogButtonBox* advanced_buttons;
+	QPushButton* cancel_button;
+	QPushButton* dump_button;
+
 	//Layers tab widgets
 	QComboBox* layer_select;
 	QLabel* tile_id;
@@ -58,10 +70,6 @@ class gbe_cgfx : public QDialog
 	QLabel* tile_size;
 	QLabel* h_v_flip;
 	QLabel* tile_palette;
-
-	QDialogButtonBox* advanced_buttons;
-	QPushButton* cancel_button;
-	QPushButton* dump_button;
 
 	//OBJ tab widgets
 	std::vector<QImage> cgfx_obj;
@@ -76,6 +84,7 @@ class gbe_cgfx : public QDialog
 	protected:
 	void closeEvent(QCloseEvent* event);
 	bool eventFilter(QObject* target, QEvent* event);
+	void paintEvent(QPaintEvent* event);
 
 	private:
 	QWidget* obj_set;
@@ -120,6 +129,8 @@ class gbe_cgfx : public QDialog
 	void write_manifest_entry();
 	void show_advanced_obj(int index);
 	void show_advanced_bg(int index);
+	void browse_advanced_dir();
+	void browse_advanced_file();
 	void set_auto_obj();
 	void set_auto_bg();
 	void set_blanks();

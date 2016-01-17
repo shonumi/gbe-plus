@@ -13,6 +13,8 @@
 #include "cgfx.h"
 #include "main_menu.h"
 
+#include <fstream>
+
 /****** General settings constructor ******/
 gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 {
@@ -184,9 +186,22 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 
 	//CGFX advanced dumping pop-up box
 	advanced_box = new QDialog();
-	advanced_box->resize(350, 250);
+	advanced_box->resize(500, 250);
 	advanced_box->setWindowTitle("Advanced Tile Dumping");
 	advanced_box->hide();
+
+	//Advanced menu widgets
+	QWidget* dest_set = new QWidget(advanced_box);
+	dest_label = new QLabel("Destination Folder :  ");
+	dest_browse = new QPushButton("Browse");
+	dest_folder = new QLineEdit(dest_set);
+	dest_folder->setReadOnly(true);
+	dest_label->resize(100, dest_label->height());
+
+	QWidget* name_set = new QWidget(advanced_box);
+	name_label = new QLabel("Tile Name :  ");
+	name_browse = new QPushButton("Browse");
+	dest_name = new QLineEdit(name_set);
 
 	QWidget* ext_vram_set = new QWidget(advanced_box);
 	QLabel* ext_vram_label = new QLabel("EXT_VRAM_ADDR", ext_vram_set);
@@ -204,6 +219,21 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	advanced_buttons->addButton(dump_button, QDialogButtonBox::ActionRole);
 	advanced_buttons->addButton(cancel_button, QDialogButtonBox::ActionRole);
 
+	//Advanced menu layouts
+	QHBoxLayout* dest_layout = new QHBoxLayout;
+	dest_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	dest_layout->addWidget(dest_label);
+	dest_layout->addWidget(dest_folder);
+	dest_layout->addWidget(dest_browse);
+	dest_set->setLayout(dest_layout);
+
+	QHBoxLayout* name_layout = new QHBoxLayout;
+	name_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	name_layout->addWidget(name_label);
+	name_layout->addWidget(dest_name);
+	name_layout->addWidget(name_browse);
+	name_set->setLayout(name_layout);
+
 	QHBoxLayout* ext_vram_layout = new QHBoxLayout;
 	ext_vram_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	ext_vram_layout->addWidget(ext_vram);
@@ -218,6 +248,8 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 
 	QVBoxLayout* advanced_box_layout = new QVBoxLayout;
 	advanced_box_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	advanced_box_layout->addWidget(dest_set);
+	advanced_box_layout->addWidget(name_set);
 	advanced_box_layout->addWidget(ext_vram_set);
 	advanced_box_layout->addWidget(ext_bright_set);
 	advanced_box_layout->addWidget(advanced_buttons);
@@ -225,6 +257,8 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 
 	connect(dump_button, SIGNAL(clicked()), this, SLOT(write_manifest_entry()));
 	connect(cancel_button, SIGNAL(clicked()), this, SLOT(close_advanced()));
+	connect(dest_browse, SIGNAL(clicked()), this, SLOT(browse_advanced_dir()));
+	connect(name_browse, SIGNAL(clicked()), this, SLOT(browse_advanced_file()));
 
 	estimated_palette.resize(384, 0);
 	estimated_vram_bank.resize(384, 0);
@@ -2384,6 +2418,13 @@ bool gbe_cgfx::eventFilter(QObject* target, QEvent* event)
 	return QDialog::eventFilter(target, event);
 }
 
+/****** Updates the settings window ******/
+void gbe_cgfx::paintEvent(QPaintEvent* event)
+{
+	//Update GUI elements of the advanced menu
+	name_label->setMinimumWidth(dest_label->width());
+}
+
 /****** Dumps tiles and writes a manifest entry  ******/
 void gbe_cgfx::write_manifest_entry()
 {
@@ -2397,12 +2438,64 @@ void gbe_cgfx::write_manifest_entry()
 	//Hash + Hash.bmp + Type + EXT_VRAM_ADDR + EXT_AUTO_BRIGHT
 	std::string entry = "";
 
-	std::string gfx_name = cgfx::last_hash + ".bmp";
+	std::string gfx_name = "";
+	
+	if(dest_folder->text().isNull()) { gfx_name = cgfx::last_hash + ".bmp"; }
+	else { gfx_name = dest_folder->text().toStdString() + dest_name->text().toStdString(); }
+	
 	std::string gfx_type = util::to_str(cgfx::last_type);
-	std::string gfx_addr = (ext_vram->isChecked()) ? util::to_hex_str(cgfx::last_vram_addr) : "0";
+	std::string gfx_addr = (ext_vram->isChecked()) ? util::to_hex_str(cgfx::last_vram_addr).substr(2) : "0";
 	std::string gfx_bright = (ext_bright->isChecked()) ? "1" : "0";
 
 	entry = "[" + cgfx::last_hash + ":'" + gfx_name + "':" + gfx_type + ":" + gfx_addr + ":" + gfx_bright + "]";
+
+	//Open manifest file, then write to it
+	std::ofstream file(cgfx::manifest_file.c_str(), std::ios::out | std::ios::app);
+
+	//TODO - Add a Qt warning here
+	if(!file.is_open()) { advanced_box->hide(); return; }
+
+	file << "\n" << entry;
+	file.close();
 	
 	advanced_box->hide();
+}
+
+/****** Browse for a directory to use in the advanced menu ******/
+void gbe_cgfx::browse_advanced_dir()
+{
+	QString path;
+
+	path = QFileDialog::getExistingDirectory(this, tr("Open"), "", QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+	if(path.isNull()) { return; }
+
+	//Use relative paths
+	QDir folder;
+	path = folder.relativeFilePath(path);
+
+	//Make sure path is complete, e.g. has the correct separator at the end
+	//Qt doesn't append this automatically
+	std::string temp_str = path.toStdString();
+	std::string temp_chr = "";
+	temp_chr = temp_str[temp_str.length() - 1];
+
+	if((temp_chr != "/") && (temp_chr != "\\")) { path.append("/"); }
+	path = QDir::toNativeSeparators(path);
+
+	dest_folder->setText(path);
+}
+
+/****** Browse for a directory to use in the advanced menu ******/
+void gbe_cgfx::browse_advanced_file()
+{
+	QString path;
+
+	path = QFileDialog::getOpenFileName(this, tr("Open"), "", tr("All files (*)"));
+	if(path.isNull()) { return; }
+
+	//Use relative paths
+	QFileInfo file(path);
+	path = file.fileName();
+
+	dest_name->setText(path);
 }
