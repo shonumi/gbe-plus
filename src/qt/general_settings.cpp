@@ -469,6 +469,36 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	manifest_layout->addWidget(manifest_button);
 	manifest_set->setLayout(manifest_layout);
 
+	//Path settings - CGFX BG Tile Dump Folder
+	QWidget* dump_bg_set = new QWidget(paths);
+	dump_bg_label = new QLabel("BG Dump :  ");
+	QPushButton* dump_bg_button = new QPushButton("Browse");
+	dump_bg = new QLineEdit(paths);
+	dump_bg->setReadOnly(true);
+
+	QHBoxLayout* dump_bg_layout = new QHBoxLayout;
+	dump_bg_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	dump_bg_layout->addWidget(dump_bg_label);
+	dump_bg_layout->addWidget(dump_bg);
+	dump_bg_layout->addWidget(dump_bg_button);
+	dump_bg_set->setLayout(dump_bg_layout);
+	dump_bg_label->resize(50, dump_bg_label->height());
+
+	//Path settings - CGFX OBJ Tile Dump Folder
+	QWidget* dump_obj_set = new QWidget(paths);
+	dump_obj_label = new QLabel("OBJ Dump :  ");
+	QPushButton* dump_obj_button = new QPushButton("Browse");
+	dump_obj = new QLineEdit(paths);
+	dump_obj->setReadOnly(true);
+
+	QHBoxLayout* dump_obj_layout = new QHBoxLayout;
+	dump_obj_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	dump_obj_layout->addWidget(dump_obj_label);
+	dump_obj_layout->addWidget(dump_obj);
+	dump_obj_layout->addWidget(dump_obj_button);
+	dump_obj_set->setLayout(dump_obj_layout);
+	dump_obj_label->resize(50, dump_obj_label->height());
+
 	//Path settings - Screenshot
 	QWidget* screenshot_set = new QWidget(paths);
 	screenshot_label = new QLabel("Screenshots :  ");
@@ -489,6 +519,8 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	paths_layout->addWidget(gbc_bios_set);
 	paths_layout->addWidget(gba_bios_set);
 	paths_layout->addWidget(manifest_set);
+	paths_layout->addWidget(dump_bg_set);
+	paths_layout->addWidget(dump_obj_set);
 	paths_layout->addWidget(screenshot_set);
 	paths->setLayout(paths_layout);
 
@@ -511,6 +543,8 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(gbc_bios_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
 	connect(gba_bios_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
 	connect(manifest_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
+	connect(dump_bg_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
+	connect(dump_obj_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
 	connect(screenshot_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
 
 	paths_mapper->setMapping(dmg_bios_button, 0);
@@ -518,6 +552,8 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	paths_mapper->setMapping(gba_bios_button, 2);
 	paths_mapper->setMapping(manifest_button, 3);
 	paths_mapper->setMapping(screenshot_button, 4);
+	paths_mapper->setMapping(dump_bg_button, 5);
+	paths_mapper->setMapping(dump_obj_button, 6);
 	connect(paths_mapper, SIGNAL(mapped(int)), this, SLOT(set_paths(int)));
 
 	QSignalMapper* button_config = new QSignalMapper(this);
@@ -701,12 +737,16 @@ void gen_settings::set_ini_options()
 	QString path_3(QString::fromStdString(config::agb_bios_path));
 	QString path_4(QString::fromStdString(cgfx::manifest_file));
 	QString path_5(QString::fromStdString(config::ss_path));
+	QString path_6(QString::fromStdString(cgfx::dump_bg_path));
+	QString path_7(QString::fromStdString(cgfx::dump_obj_path));
 
 	dmg_bios->setText(path_1);
 	gbc_bios->setText(path_2);
 	gba_bios->setText(path_3);
 	manifest->setText(path_4);
 	screenshot->setText(path_5);
+	dump_bg->setText(path_6);
+	dump_obj->setText(path_7);
 }
 
 /****** Toggles whether to use the Boot ROM or BIOS ******/
@@ -792,13 +832,13 @@ void gen_settings::set_paths(int index)
 	QString path;
 
 	//Open file browser for Boot ROMs, BIOS, and manifests
-	if(index != 4) 
+	if(index < 4) 
 	{
 		path = QFileDialog::getOpenFileName(this, tr("Open"), "", tr("All files (*)"));
 		if(path.isNull()) { return; }
 	}
 
-	//Open folder browser for screenshots
+	//Open folder browser for screenshots, CGFX dumps
 	else
 	{
 		path = QFileDialog::getExistingDirectory(this, tr("Open"), "", QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
@@ -839,6 +879,16 @@ void gen_settings::set_paths(int index)
 		case 4:
 			config::ss_path = path.toStdString();
 			screenshot->setText(path);
+			break;
+
+		case 5:
+			cgfx::dump_bg_path = path.toStdString();
+			dump_bg->setText(path);
+			break;
+
+		case 6:
+			cgfx::dump_obj_path = path.toStdString();
+			dump_obj->setText(path);
 			break;
 	}
 }
@@ -1106,6 +1156,8 @@ void gen_settings::paintEvent(QPaintEvent* event)
 	gbc_bios_label->setMinimumWidth(dmg_bios_label->width());
 	gba_bios_label->setMinimumWidth(dmg_bios_label->width());
 	manifest_label->setMinimumWidth(dmg_bios_label->width());
+	dump_bg_label->setMinimumWidth(dmg_bios_label->width());
+	dump_obj_label->setMinimumWidth(dmg_bios_label->width());
 	screenshot_label->setMinimumWidth(dmg_bios_label->width());
 }
 

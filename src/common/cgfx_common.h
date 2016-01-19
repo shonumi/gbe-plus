@@ -29,6 +29,8 @@ namespace cgfx
 	extern u8 scaling_factor;
 
 	extern std::string manifest_file;
+	extern std::string dump_bg_path;
+	extern std::string dump_obj_path;
 
 	extern std::string last_hash;
 	extern u32 last_vram_addr;

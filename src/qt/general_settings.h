@@ -58,12 +58,16 @@ class gen_settings : public QDialog
 	QLineEdit* gbc_bios;
 	QLineEdit* gba_bios;
 	QLineEdit* manifest;
+	QLineEdit* dump_bg;
+	QLineEdit* dump_obj;
 	QLineEdit* screenshot;
 
 	QLabel* dmg_bios_label;
 	QLabel* gbc_bios_label;
 	QLabel* gba_bios_label;
 	QLabel* manifest_label;
+	QLabel* dump_bg_label;
+	QLabel* dump_obj_label;
 	QLabel* screenshot_label;
 
 	//Controls tab widget

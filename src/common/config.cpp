@@ -1247,6 +1247,36 @@ bool parse_ini_file()
 			else { cgfx::manifest_file = ""; }
 		}
 
+		//CGFX BG Tile dump folder
+		else if(ini_item == "#dump_bg_path")
+		{
+			if((x + 1) < size) 
+			{
+				ini_item = ini_opts[++x];
+				std::string first_char = "";
+				first_char = ini_item[0];
+				
+				//When left blank, don't parse the next line item
+				if(first_char != "#") { cgfx::dump_bg_path = ini_item; }
+				else { x--; }
+			}
+		}
+
+		//CGFX OBJ Tile dump folder
+		else if(ini_item == "#dump_obj_path")
+		{
+			if((x + 1) < size) 
+			{
+				ini_item = ini_opts[++x];
+				std::string first_char = "";
+				first_char = ini_item[0];
+				
+				//When left blank, don't parse the next line item
+				if(first_char != "#") { cgfx::dump_obj_path = ini_item; }
+				else { x--; }
+			}
+		}
+
 		//CGFX Scaling factor
 		else if(ini_item == "#cgfx_scaling_factor")
 		{

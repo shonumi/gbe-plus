@@ -352,6 +352,27 @@ void gbe_cgfx::show_advanced_obj(int index)
 {
 	if(advanced->isChecked()) 
 	{
+		QString path = QString::fromStdString(cgfx::dump_obj_path);
+
+		//Set the default destination
+		if(!path.isNull())
+		{
+			//Use relative paths
+			QDir folder;
+			path = folder.relativeFilePath(path);
+
+			//Make sure path is complete, e.g. has the correct separator at the end
+			//Qt doesn't append this automatically
+			std::string temp_str = path.toStdString();
+			std::string temp_chr = "";
+			temp_chr = temp_str[temp_str.length() - 1];
+
+			if((temp_chr != "/") && (temp_chr != "\\")) { path.append("/"); }
+			path = QDir::toNativeSeparators(path);
+
+			dest_folder->setText(path);
+		}
+
 		dump_type = 1;
 		advanced_index = index;
 		advanced_box->show();
@@ -376,6 +397,27 @@ void gbe_cgfx::show_advanced_bg(int index)
 
 	if(advanced->isChecked()) 
 	{
+		QString path = QString::fromStdString(cgfx::dump_bg_path);
+
+		//Set the default destination
+		if(!path.isNull())
+		{
+			//Use relative paths
+			QDir folder;
+			path = folder.relativeFilePath(path);
+
+			//Make sure path is complete, e.g. has the correct separator at the end
+			//Qt doesn't append this automatically
+			std::string temp_str = path.toStdString();
+			std::string temp_chr = "";
+			temp_chr = temp_str[temp_str.length() - 1];
+
+			if((temp_chr != "/") && (temp_chr != "\\")) { path.append("/"); }
+			path = QDir::toNativeSeparators(path);
+
+			dest_folder->setText(path);
+		}
+
 		dump_type = 0;
 		advanced_index = index;
 		advanced_box->show();
