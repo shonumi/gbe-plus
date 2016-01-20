@@ -51,8 +51,8 @@ void AGB_LCD::reset()
 	scanline_buffer.resize(0x100, 0);
 
 	//Initialize various LCD status variables
-	lcd_stat.oam_update = false;
-	lcd_stat.oam_update_list.resize(128, false);
+	lcd_stat.oam_update = true;
+	lcd_stat.oam_update_list.resize(128, true);
 
 	lcd_stat.bg_pal_update = true;
 	lcd_stat.bg_pal_update_list.resize(256, true);
