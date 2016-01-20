@@ -373,6 +373,9 @@ void gbe_cgfx::show_advanced_obj(int index)
 			dest_folder->setText(path);
 		}
 
+		cgfx::dump_name = "";
+		dest_name->setText("");
+
 		dump_type = 1;
 		advanced_index = index;
 		advanced_box->show();
@@ -417,6 +420,9 @@ void gbe_cgfx::show_advanced_bg(int index)
 
 			dest_folder->setText(path);
 		}
+
+		cgfx::dump_name = "";
+		dest_name->setText("");
 
 		dump_type = 0;
 		advanced_index = index;
@@ -2378,9 +2384,6 @@ void gbe_cgfx::dump_layer_tile(u32 x, u32 y)
 		config::gb_type = 10;
 		dump_type = 0;
 		show_advanced_bg(bg_index);
-
-		cgfx::gbc_bg_vram_bank = current_vram_bank;
-		cgfx::gbc_bg_color_pal = original_pal;
 	}
 
 	//Dump from GBC Window
@@ -2426,9 +2429,6 @@ void gbe_cgfx::dump_layer_tile(u32 x, u32 y)
 		config::gb_type = 10;
 		dump_type = 0;
 		show_advanced_bg(bg_index);
-
-		cgfx::gbc_bg_vram_bank = current_vram_bank;
-		cgfx::gbc_bg_color_pal = original_pal;
 	}
 }
 
@@ -2470,6 +2470,10 @@ void gbe_cgfx::paintEvent(QPaintEvent* event)
 /****** Dumps tiles and writes a manifest entry  ******/
 void gbe_cgfx::write_manifest_entry()
 {
+	//Process File Name
+	QString path = dest_name->text();
+	if(!path.isNull()) { cgfx::dump_name = path.toStdString(); }
+
 	//Dump BG
 	if(dump_type == 0) { dump_bg(advanced_index); }
 
@@ -2538,6 +2542,7 @@ void gbe_cgfx::browse_advanced_file()
 	//Use relative paths
 	QFileInfo file(path);
 	path = file.fileName();
+	cgfx::dump_name = path.toStdString();
 
 	dest_name->setText(path);
 }

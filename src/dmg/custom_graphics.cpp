@@ -237,7 +237,10 @@ void DMG_LCD::dump_dmg_obj(u8 obj_index)
 		cgfx_stat.obj_hash_list.push_back(final_hash);
 
 		obj_dump = SDL_CreateRGBSurface(SDL_SWSURFACE, 8, obj_height, 32, 0, 0, 0, 0);
-		std::string dump_file = cgfx::dump_obj_path + final_hash + ".bmp";
+		
+		std::string dump_file =  "";
+		if(cgfx::dump_name == "") { dump_file = cgfx::dump_obj_path + final_hash + ".bmp"; }
+		else { dump_file = cgfx::dump_obj_path + cgfx::dump_name; }
 
 		if(SDL_MUSTLOCK(obj_dump)) { SDL_LockSurface(obj_dump); }
 
@@ -365,7 +368,10 @@ void DMG_LCD::dump_gbc_obj(u8 obj_index)
 		cgfx_stat.obj_hash_list.push_back(final_hash);
 
 		obj_dump = SDL_CreateRGBSurface(SDL_SWSURFACE, 8, obj_height, 32, 0, 0, 0, 0);
-		std::string dump_file = cgfx::dump_obj_path + final_hash + ".bmp";
+
+		std::string dump_file =  "";
+		if(cgfx::dump_name == "") { dump_file = cgfx::dump_obj_path + final_hash + ".bmp"; }
+		else { dump_file = cgfx::dump_obj_path + cgfx::dump_name; }
 
 		if(SDL_MUSTLOCK(obj_dump)) { SDL_LockSurface(obj_dump); }
 
@@ -464,7 +470,10 @@ void DMG_LCD::dump_dmg_bg(u16 bg_index)
 		cgfx_stat.bg_hash_list.push_back(final_hash);
 
 		bg_dump = SDL_CreateRGBSurface(SDL_SWSURFACE, 8, 8, 32, 0, 0, 0, 0);
-		std::string dump_file = cgfx::dump_bg_path + final_hash + ".bmp";
+
+		std::string dump_file =  "";
+		if(cgfx::dump_name == "") { dump_file = cgfx::dump_bg_path + final_hash + ".bmp"; }
+		else { dump_file = cgfx::dump_bg_path + cgfx::dump_name; }
 
 		if(SDL_MUSTLOCK(bg_dump)) { SDL_LockSurface(bg_dump); }
 
@@ -588,7 +597,10 @@ void DMG_LCD::dump_gbc_bg(u16 bg_index)
 		cgfx_stat.bg_hash_list.push_back(final_hash);
 
 		bg_dump = SDL_CreateRGBSurface(SDL_SWSURFACE, 8, 8, 32, 0, 0, 0, 0);
-		std::string dump_file = cgfx::dump_bg_path + final_hash + ".bmp";
+
+		std::string dump_file =  "";
+		if(cgfx::dump_name == "") { dump_file = cgfx::dump_bg_path + final_hash + ".bmp"; }
+		else { dump_file = cgfx::dump_bg_path + cgfx::dump_name; }
 
 		if(SDL_MUSTLOCK(bg_dump)) { SDL_LockSurface(bg_dump); }
 
@@ -646,7 +658,10 @@ void DMG_LCD::dump_gbc_bg(u16 bg_index)
 void DMG_LCD::dump_gbc_bg(std::string final_hash, u16 bg_tile_addr, u8 palette) 
 {
 	SDL_Surface* bg_dump = SDL_CreateRGBSurface(SDL_SWSURFACE, 8, 8, 32, 0, 0, 0, 0);
-	std::string dump_file = cgfx::dump_bg_path + final_hash + ".bmp";
+
+	std::string dump_file =  "";
+	if(cgfx::dump_name == "") { dump_file = cgfx::dump_bg_path + final_hash + ".bmp"; }
+	else { dump_file = cgfx::dump_bg_path + cgfx::dump_name; }
 
 	if(SDL_MUSTLOCK(bg_dump)) { SDL_LockSurface(bg_dump); }
 

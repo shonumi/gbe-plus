@@ -26,6 +26,7 @@ namespace cgfx
 	std::string manifest_file = "";
 	std::string dump_bg_path = "Dump/BG/";
 	std::string dump_obj_path = "Dump/OBJ/";
+	std::string dump_name = "";
 
 	std::string last_hash = "";
 	u32 last_vram_addr = 0;
