@@ -2513,6 +2513,8 @@ void gbe_cgfx::browse_advanced_dir()
 	QString path;
 
 	path = QFileDialog::getExistingDirectory(this, tr("Open"), "", QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+	advanced_box->raise();
+
 	if(path.isNull()) { return; }
 
 	//Use relative paths
@@ -2537,6 +2539,8 @@ void gbe_cgfx::browse_advanced_file()
 	QString path;
 
 	path = QFileDialog::getOpenFileName(this, tr("Open"), "", tr("All files (*)"));
+	advanced_box->raise();
+
 	if(path.isNull()) { return; }
 
 	//Use relative paths

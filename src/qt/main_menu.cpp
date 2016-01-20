@@ -32,6 +32,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	QAction* display = new QAction("Display", this);
 	QAction* sound = new QAction("Sound", this);
 	QAction* controls = new QAction("Controls", this);
+	QAction* paths = new QAction("Paths", this);
 
 	QAction* custom_gfx = new QAction("Custom Graphics...", this);
 	QAction* debugging = new QAction("Debugger", this);
@@ -83,6 +84,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	options->addAction(display);
 	options->addAction(sound);
 	options->addAction(controls);
+	options->addAction(paths);
 	menu_bar->addMenu(options);
 
 	//Advanced menu
@@ -110,6 +112,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	connect(display, SIGNAL(triggered()), this, SLOT(show_display_settings()));
 	connect(sound, SIGNAL(triggered()), this, SLOT(show_sound_settings()));
 	connect(controls, SIGNAL(triggered()), this, SLOT(show_control_settings()));
+	connect(paths, SIGNAL(triggered()), this, SLOT(show_paths_settings()));
 	connect(custom_gfx, SIGNAL(triggered()), this, SLOT(show_cgfx()));
 	connect(debugging, SIGNAL(triggered()), this, SLOT(show_debugger()));
 	connect(about, SIGNAL(triggered()), this, SLOT(show_about()));
@@ -439,6 +442,9 @@ void main_menu::show_sound_settings() { settings->show(); settings->tabs->setCur
 
 /****** Shows the Control settings dialog ******/
 void main_menu::show_control_settings() { settings->show(); settings->tabs->setCurrentIndex(3); }
+
+/****** Shows the Paths settings dialog ******/
+void main_menu::show_paths_settings() { settings->show(); settings->tabs->setCurrentIndex(4); }
 
 /****** Shows the Custom Graphics dialog ******/
 void main_menu::show_cgfx() 
