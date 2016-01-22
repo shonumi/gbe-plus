@@ -622,6 +622,9 @@ void DMG_LCD::render_cgfx_gbc_bg_scanline(u16 tile_data, u8 bg_map_attribute)
 	//Grab the ID of this hash to pull custom pixel data
 	u16 bg_tile_id = cgfx_stat.m_id[cgfx_stat.last_id];
 
+	//Grab the auto-bright property of this hash
+	u8 auto_bright = cgfx_stat.m_auto_bright[cgfx_stat.last_id];
+
 	u8 tile_pixel = 0;
 	u8 bg_priority = (bg_map_attribute & 0x80) ? 1 : 0;
 
@@ -649,7 +652,14 @@ void DMG_LCD::render_cgfx_gbc_bg_scanline(u16 tile_data, u8 bg_map_attribute)
 		//Render 1:1
 		if(cgfx::scaling_factor <= 1)
 		{
-			scanline_buffer[lcd_stat.scanline_pixel_counter++] = cgfx_stat.bg_pixel_data[bg_tile_id][x];
+			//Adjust pixel brightness if EXT_AUTO_BRIGHT is set
+			if(auto_bright) 
+			{
+				u32 custom_color = cgfx_stat.bg_pixel_data[bg_tile_id][x];
+				scanline_buffer[lcd_stat.scanline_pixel_counter++] = adjust_pixel_brightness(custom_color, (bg_map_attribute & 0x7), 0);
+			}
+
+			else { scanline_buffer[lcd_stat.scanline_pixel_counter++] = cgfx_stat.bg_pixel_data[bg_tile_id][x]; }
 		}
 
 		//Render HD
@@ -665,7 +675,15 @@ void DMG_LCD::render_cgfx_gbc_bg_scanline(u16 tile_data, u8 bg_map_attribute)
 				{
 					for(int b = 0; b < cgfx::scaling_factor; b++)
 					{
-						hd_screen_buffer[pos + b] = cgfx_stat.bg_pixel_data[bg_tile_id][bg_pos + b];
+
+						//Adjust pixel brightness if EXT_AUTO_BRIGHT is set
+						if(auto_bright)
+						{
+							u32 custom_color = cgfx_stat.bg_pixel_data[bg_tile_id][bg_pos + b];
+							hd_screen_buffer[pos + b] = adjust_pixel_brightness(custom_color, (bg_map_attribute & 0x7), 0);
+						}
+
+						else { hd_screen_buffer[pos + b] = cgfx_stat.bg_pixel_data[bg_tile_id][bg_pos + b]; }
 					}
 				
 					pos += config::sys_width;
@@ -1158,6 +1176,9 @@ void DMG_LCD::render_cgfx_gbc_obj_scanline(u8 sprite_id)
 	//Grab the ID of this hash to pull custom pixel data
 	u16 obj_id = cgfx_stat.m_id[cgfx_stat.last_id];
 
+	//Grab the auto-bright property of this hash
+	u8 auto_bright = cgfx_stat.m_auto_bright[cgfx_stat.last_id];
+
 	u16 tile_pixel = (8 * tile_line);
 	u32 custom_color = 0;
 
@@ -1174,6 +1195,12 @@ void DMG_LCD::render_cgfx_gbc_obj_scanline(u8 sprite_id)
 		if(cgfx::scaling_factor <= 1)
 		{
 			custom_color = cgfx_stat.obj_pixel_data[obj_id][x];
+
+			//Adjust pixel brightness if EXT_AUTO_BRIGHT is set
+			if((auto_bright) && (custom_color != cgfx::transparency_color)) 
+			{
+				custom_color = adjust_pixel_brightness(custom_color, obj[sprite_id].color_palette_number, 1);
+			}
 
 			if(custom_color == cgfx::transparency_color) { }
 			else if((obj[sprite_id].bg_priority == 1) && (scanline_raw[lcd_stat.scanline_pixel_counter] != 0)) { }
@@ -1197,6 +1224,12 @@ void DMG_LCD::render_cgfx_gbc_obj_scanline(u8 sprite_id)
 					{
 						c = obj[sprite_id].h_flip ? (cgfx::scaling_factor - b - 1) : b;
 						custom_color = cgfx_stat.obj_pixel_data[obj_id][obj_pos + c];
+
+						//Adjust pixel brightness if EXT_AUTO_BRIGHT is set
+						if((auto_bright) && (custom_color != cgfx::transparency_color)) 
+						{
+							custom_color = adjust_pixel_brightness(custom_color, obj[sprite_id].color_palette_number, 1);
+						}
 
 						if(custom_color == cgfx::transparency_color) { }
 						else if((obj[sprite_id].bg_priority == 1) && (scanline_raw[lcd_stat.scanline_pixel_counter] != 0)) { }

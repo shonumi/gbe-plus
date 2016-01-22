@@ -138,9 +138,7 @@ bool DMG_LCD::load_manifest(std::string filename)
 		std::stringstream bright_stream(cgfx_stat.manifest[x++]);
 		u32 bright_value = 0;
 		bright_stream >> bright_value;
-		
-		if(bright_value == 0) { cgfx_stat.m_auto_bright.push_back(false); }
-		else { cgfx_stat.m_auto_bright.push_back(true); }
+		cgfx_stat.m_auto_bright.push_back(bright_value);
 	}
 
 	std::cout<<"CGFX::" << filename << " loaded successfully\n"; 

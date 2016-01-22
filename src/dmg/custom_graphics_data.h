@@ -33,7 +33,7 @@ struct dmg_cgfx_data
 	std::vector <u8> m_types;
 	std::vector <u16> m_id;
 	std::vector <u32> m_vram_addr;
-	std::vector <bool> m_auto_bright;
+	std::vector <u16> m_auto_bright;
 
 	u32 last_id;
 
