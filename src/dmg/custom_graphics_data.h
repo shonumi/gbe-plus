@@ -59,6 +59,10 @@ struct dmg_cgfx_data
 
 	std::vector <bool> bg_tile_update_list;
 	std::vector <bool> bg_map_update_list;
+
+	//Average palette brightness
+	u8 bg_pal_brightness[8];
+	u8 obj_pal_brightness[8];
 };
 
 #endif // GB_CGFX_DATA

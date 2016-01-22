@@ -31,4 +31,5 @@ namespace cgfx
 	std::string last_hash = "";
 	u32 last_vram_addr = 0;
 	u8 last_type = 0;
+	u8 last_palette = 0;
 }

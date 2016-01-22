@@ -11,6 +11,7 @@
 
 #include "lcd.h"
 #include "common/cgfx_common.h"
+#include "common/util.h"
 
 /****** LCD Constructor ******/
 DMG_LCD::DMG_LCD()
@@ -1266,7 +1267,25 @@ void DMG_LCD::update_bg_colors()
 		config::DMG_BG_PAL[3] = lcd_stat.bg_colors_final[3][0];
 	}
 
+	//TODO - Update BG hashes
+
 	lcd_stat.update_bg_colors = false;
+
+	//CGFX - Calculate average palette brightness
+	if(cgfx::load_cgfx)
+	{
+		u16 avg = 0;
+		util::hsv temp_color;
+
+		for(u8 x = 0; x < 4; x++)
+		{
+			temp_color = util::rgb_to_hsv(lcd_stat.bg_colors_raw[x][palette]);
+			avg += (temp_color.value * 255);
+		}
+
+		avg >>= 2;
+		cgfx_stat.bg_pal_brightness[palette] = avg;
+	}
 }
 
 /****** Update sprite color palettes on the GBC ******/
@@ -1335,6 +1354,22 @@ void DMG_LCD::update_obj_colors()
 		{
 			if(obj[x].color_palette_number == palette) { update_gbc_obj_hash(x); }
 		}
+	}
+
+	//CGFX - Calculate average palette brightness
+	if(cgfx::load_cgfx)
+	{
+		u16 avg = 0;
+		util::hsv temp_color;
+
+		for(u8 x = 0; x < 4; x++)
+		{
+			temp_color = util::rgb_to_hsv(lcd_stat.obj_colors_raw[x][palette]);
+			avg += (temp_color.value * 255);
+		}
+
+		avg >>= 2;
+		cgfx_stat.obj_pal_brightness[palette] = avg;
 	}
 }
 

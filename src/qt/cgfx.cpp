@@ -2491,7 +2491,7 @@ void gbe_cgfx::write_manifest_entry()
 	
 	std::string gfx_type = util::to_str(cgfx::last_type);
 	std::string gfx_addr = (ext_vram->isChecked()) ? util::to_hex_str(cgfx::last_vram_addr).substr(2) : "0";
-	std::string gfx_bright = (ext_bright->isChecked()) ? "1" : "0";
+	std::string gfx_bright = (ext_bright->isChecked()) ? util::to_str(cgfx::last_palette) : "0";
 
 	entry = "[" + cgfx::last_hash + ":'" + gfx_name + "':" + gfx_type + ":" + gfx_addr + ":" + gfx_bright + "]";
 

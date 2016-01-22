@@ -306,6 +306,7 @@ void DMG_LCD::dump_dmg_obj(u8 obj_index)
 	cgfx::last_hash = final_hash;
 	cgfx::last_vram_addr = 0x8000 + (obj[obj_index].tile_number << 4);
 	cgfx::last_type = 1;
+	cgfx::last_palette = 0;
 }
 
 /****** Dumps GBC OBJ tile from selected memory address ******/
@@ -423,6 +424,7 @@ void DMG_LCD::dump_gbc_obj(u8 obj_index)
 	cgfx::last_hash = final_hash;
 	cgfx::last_vram_addr = 0x8000 + (obj[obj_index].tile_number << 4);
 	cgfx::last_type = 2;
+	cgfx::last_palette = obj[obj_index].color_palette_number;
 }
 
 /****** Dumps DMG BG tile from selected memory address ******/
@@ -539,6 +541,7 @@ void DMG_LCD::dump_dmg_bg(u16 bg_index)
 	cgfx::last_hash = final_hash;
 	cgfx::last_vram_addr = (bg_index << 4) + 0x8000;
 	cgfx::last_type = 10;
+	cgfx::last_palette = 0;
 }
 
 /****** Dumps GBC BG tile from selected memory address (GUI version) ******/
@@ -652,6 +655,7 @@ void DMG_LCD::dump_gbc_bg(u16 bg_index)
 	cgfx::last_hash = final_hash;
 	cgfx::last_vram_addr = (bg_index << 4) + 0x8000;
 	cgfx::last_type = 20;
+	cgfx::last_palette = cgfx::gbc_bg_color_pal;
 }
 
 /****** Dumps GBC BG tile from selected memory address (Auto-dump version) ******/
@@ -709,6 +713,7 @@ void DMG_LCD::dump_gbc_bg(std::string final_hash, u16 bg_tile_addr, u8 palette)
 	cgfx::last_hash = final_hash;
 	cgfx::last_vram_addr = bg_tile_addr - 16;
 	cgfx::last_type = 20;
+	cgfx::last_palette = palette;
 }
 
 /****** Updates the current hash for the selected DMG OBJ ******/
@@ -952,4 +957,48 @@ bool DMG_LCD::has_hash(u16 addr, std::string hash)
 	}
 
 	return match;
+}
+
+/****** Adjusts pixel brightness according to a given GBC palette ******/
+u32 DMG_LCD::adjust_pixel_brightness(u32 color, u8 palette_id, u8 gfx_type)
+{
+	//Compare average palette brightness with input brightness
+	u8 input_brightness = util::rgb_max(color);
+	u8 palette_brightness = (gfx_type) ? cgfx_stat.obj_pal_brightness[palette_id] : cgfx_stat.bg_pal_brightness[palette_id];
+
+	double factor = 0.0;
+	u32 final_color = 0;
+
+	u8 r = (color >> 16);
+	u8 g = (color >> 8);
+	u8 b = color;
+
+	//If average palette brightness is lower, subtract to darken the image
+	if(palette_brightness < input_brightness)
+	{
+		factor = 1 + ((palette_brightness - input_brightness)/255.0);
+
+		if((r * factor) > 255) { r = 255; }
+		else { r *= factor; }
+
+		if((g * factor) > 255) { g = 255; }
+		else { g *= factor; }
+
+		if((b * factor) > 255) { b = 255; }
+		else { b *= factor; }
+	}
+
+	//If average palette brightness is higher, add to brighten image
+	else if(palette_brightness > input_brightness)
+	{
+		factor = ((input_brightness - palette_brightness)/255.0);
+
+		r *= factor;
+		g *= factor;
+		b *= factor;
+	}
+
+	//Form final color
+	final_color = 0xFF000000 | (r << 16) | (g << 8) | (b);
+	return final_color;
 }

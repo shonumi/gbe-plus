@@ -36,6 +36,7 @@ namespace cgfx
 	extern std::string last_hash;
 	extern u32 last_vram_addr;
 	extern u8 last_type;
+	extern u8 last_palette;
 }
 
 #endif // GBE_CGFX 
