@@ -962,44 +962,10 @@ u32 DMG_LCD::adjust_pixel_brightness(u32 color, u8 palette_id, u8 gfx_type)
 {
 	//Compare average palette brightness with input brightness
 	u8 palette_brightness = (gfx_type) ? cgfx_stat.obj_pal_brightness[palette_id] : cgfx_stat.bg_pal_brightness[palette_id];
-	u8 input_brightness = util::get_brightness_fast(color);
-	double factor = palette_brightness / 255.0;
 
-	u8 r = (color >> 16);
-	u8 g = (color >> 8);
-	u8 b = color;
+	util::hsl temp_color = util::rgb_to_hsl(color);
+	temp_color.lightness = palette_brightness / 255.0;
 
-	//Increase RGB intensities
-	if(input_brightness < palette_brightness)
-	{
-		u8 diff = palette_brightness - input_brightness;
-		u16 result = 0;
-
-		result = r + (0.375 * diff);
-		r = (result > 0xFF) ? 0xFF : result;
-
-		result = g + (0.5 * diff);
-		g = (result > 0xFF) ? 0xFF : result;
-
-		result = b + (0.125 * diff);
-		b = (result > 0xFF) ? 0xFF : result;
-	}
-
-	//Decrease RGB intensities
-	else if(input_brightness > palette_brightness)
-	{
-		u8 diff = input_brightness - palette_brightness;
-		u16 result = 0;
-
-		result = r - (0.375 * diff);
-		r = (result < 0) ? 0 : result;
-
-		result = g - (0.5 * diff);
-		g = (result < 0) ? 0 : result;
-
-		result = b - (0.125 * diff);
-		b = (result < 0) ? 0 : result;
-	}
-
-	return 0xFF000000 | (r << 16) | (g << 8) | (b);
+	u32 final_color = util::hsl_to_rgb(temp_color);
+	return final_color;
 }

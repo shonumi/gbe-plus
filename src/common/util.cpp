@@ -332,6 +332,91 @@ u32 hsv_to_rgb(hsv color)
 	return final_color;
 }
 
+/****** Converts RGB to HSL ******/
+hsl rgb_to_hsl(u32 color)
+{
+	hsl final_color;
+
+	u8 r = (color >> 16);
+	u8 g = (color >> 8);
+	u8 b = color;
+
+	//Calculate the color delta
+	double max = rgb_max(color) / 255.0;
+	double min = rgb_min(color) / 255.0;	
+	double color_delta = max - min;
+
+	//Calculate lightness
+	final_color.lightness = (max + min) / 2.0;
+
+	if(color_delta == 0) { final_color.hue = final_color.saturation = 0; }
+
+	else
+	{
+		//Calculate saturation
+		if(final_color.lightness < 0.5) { final_color.saturation = color_delta / (max + min); }
+		else { final_color.saturation = color_delta / (2 - max - min); }
+
+		//Calculate hue
+		double hue_r = r / 255.0;
+		double hue_g = g / 255.0;
+		double hue_b = b / 255.0;
+
+		double r_delta = (((max - hue_r ) / 6.0) + (color_delta / 2.0)) / color_delta;
+		double g_delta = (((max - hue_g ) / 6.0) + (color_delta / 2.0)) / color_delta;
+		double b_delta = (((max - hue_b ) / 6.0) + (color_delta / 2.0)) / color_delta;
+
+		if(hue_r == max) { final_color.hue = b_delta - g_delta; }
+		else if(hue_g == max) { final_color.hue = (1 / 3.0) + r_delta - b_delta; }
+		else if(hue_b == max) { final_color.hue = (2 / 3.0 ) + g_delta - r_delta; }
+
+		if(final_color.hue < 0 ) { final_color.hue += 1; }
+   		else if(final_color.hue > 1 ) { final_color.hue -= 1; }
+	}
+
+	return final_color;
+}
+		
+/****** Converts HSL to RGB ******/
+u32 hsl_to_rgb(hsl color)
+{
+	u32 final_color = 0;
+	
+	u8 r, g, b = 0;
+
+	if(color.saturation == 0) { r = g = b = (color.lightness * 255); }
+
+	else
+	{
+		double hue_factor_1, hue_factor_2 = 0.0;
+
+		if(color.lightness < 0.5) { hue_factor_2 = color.lightness * (1 + color.saturation); }
+		else { hue_factor_2 = (color.lightness + color.saturation) - (color.saturation * color.lightness); }
+
+		hue_factor_1 = (2 * color.lightness) - hue_factor_2;
+
+		r = hue_to_rgb(hue_factor_1, hue_factor_2, color.hue + (1/3.0));
+		g = hue_to_rgb(hue_factor_1, hue_factor_2, color.hue);
+		b = hue_to_rgb(hue_factor_1, hue_factor_2, color.hue - (1/3.0));
+	}
+
+	final_color = 0xFF000000 | (r << 16) | (g << 8) | b;
+	return final_color;	
+}
+
+/****** Converts an HSL hue to an RGB component ******/
+u8 hue_to_rgb(double hue_factor_1, double hue_factor_2, double hue)
+{
+	if(hue < 0) { hue += 1; }
+	else if(hue > 1) { hue -= 1; }
+
+	if((6 * hue) < 1) { return 255 * (hue_factor_1 + (hue_factor_2 - hue_factor_1) * 6 * hue); }
+	else if((2 * hue) < 1) { return 255 * hue_factor_2; }
+	else if((3 * hue) < 2) { return 255 * (hue_factor_1 + (hue_factor_2 - hue_factor_1) * ((2/3.0) - hue) * 6); }
+
+	return 255 * hue_factor_1;
+}
+
 /****** Get the perceived brightness of a pixel - Quick and dirty version ******/
 u8 get_brightness_fast(u32 color)
 {

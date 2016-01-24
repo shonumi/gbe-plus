@@ -26,12 +26,25 @@ namespace util
 		double value;
 	};
 
+	struct hsl
+	{
+		double hue;
+		double saturation;
+		double lightness;
+	};
+
 	bool save_png(SDL_Surface* source, std::string filename);
+
 	u8 rgb_min(u32 color);
 	u8 rgb_max(u32 color);
 
 	u32 hsv_to_rgb(hsv color);
 	hsv rgb_to_hsv(u32 color);
+
+	u32 hsl_to_rgb(hsl color);
+	hsl rgb_to_hsl(u32 color);
+
+	u8 hue_to_rgb(double hue_factor_1, double hue_factor_2, double hue);
 
 	u8 get_brightness_fast(u32 color);
 
