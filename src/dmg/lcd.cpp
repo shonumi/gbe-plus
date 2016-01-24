@@ -1206,7 +1206,7 @@ void DMG_LCD::render_cgfx_gbc_obj_scanline(u8 sprite_id)
 			else if((obj[sprite_id].bg_priority == 1) && (scanline_raw[lcd_stat.scanline_pixel_counter] != 0)) { }
 			else if((obj[sprite_id].bg_priority == 0) && (scanline_priority[lcd_stat.scanline_pixel_counter] == 1) 
 			&& (scanline_raw[lcd_stat.scanline_pixel_counter] != 0)) { }
-			else { scanline_buffer[lcd_stat.scanline_pixel_counter] = cgfx_stat.obj_pixel_data[obj_id][x]; }
+			else { scanline_buffer[lcd_stat.scanline_pixel_counter] = custom_color; }
 		}
 
 		//Render HD
@@ -1235,7 +1235,7 @@ void DMG_LCD::render_cgfx_gbc_obj_scanline(u8 sprite_id)
 						else if((obj[sprite_id].bg_priority == 1) && (scanline_raw[lcd_stat.scanline_pixel_counter] != 0)) { }
 						else if((obj[sprite_id].bg_priority == 0) && (scanline_priority[lcd_stat.scanline_pixel_counter] == 1) 
 						&& (scanline_raw[lcd_stat.scanline_pixel_counter] != 0)) { }
-						else { hd_screen_buffer[pos + b] = cgfx_stat.obj_pixel_data[obj_id][obj_pos + c]; }
+						else { hd_screen_buffer[pos + b] = custom_color; }
 					}
 
 					pos += config::sys_width;
@@ -1308,13 +1308,8 @@ void DMG_LCD::update_bg_colors()
 	if(cgfx::load_cgfx)
 	{
 		u16 avg = 0;
-		util::hsv temp_color;
 
-		for(u8 x = 0; x < 4; x++)
-		{
-			temp_color = util::rgb_to_hsv(lcd_stat.bg_colors_raw[x][palette]);
-			avg += (temp_color.value * 255);
-		}
+		for(u8 x = 0; x < 4; x++) { avg += util::get_brightness_fast(lcd_stat.bg_colors_final[x][palette]); }
 
 		avg >>= 2;
 		cgfx_stat.bg_pal_brightness[palette] = avg;
@@ -1393,13 +1388,8 @@ void DMG_LCD::update_obj_colors()
 	if(cgfx::load_cgfx)
 	{
 		u16 avg = 0;
-		util::hsv temp_color;
 
-		for(u8 x = 0; x < 4; x++)
-		{
-			temp_color = util::rgb_to_hsv(lcd_stat.obj_colors_raw[x][palette]);
-			avg += (temp_color.value * 255);
-		}
+		for(u8 x = 0; x < 4; x++) { avg += util::get_brightness_fast(lcd_stat.obj_colors_final[x][palette]); }
 
 		avg >>= 2;
 		cgfx_stat.obj_pal_brightness[palette] = avg;

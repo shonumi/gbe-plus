@@ -332,6 +332,16 @@ u32 hsv_to_rgb(hsv color)
 	return final_color;
 }
 
+/****** Get the perceived brightness of a pixel - Quick and dirty version ******/
+u8 get_brightness_fast(u32 color)
+{
+	u8 r = (color >> 16);
+	u8 g = (color >> 8);
+	u8 b = color;
+
+	return (r+r+r+g+g+g+g+b) >> 3;
+}
+
 /****** Mirrors bits ******/
 u32 reflect(u32 src, u8 bit)
 {

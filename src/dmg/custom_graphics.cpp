@@ -961,42 +961,45 @@ bool DMG_LCD::has_hash(u16 addr, std::string hash)
 u32 DMG_LCD::adjust_pixel_brightness(u32 color, u8 palette_id, u8 gfx_type)
 {
 	//Compare average palette brightness with input brightness
-	u8 input_brightness = util::rgb_max(color);
 	u8 palette_brightness = (gfx_type) ? cgfx_stat.obj_pal_brightness[palette_id] : cgfx_stat.bg_pal_brightness[palette_id];
-
-	double factor = 0.0;
-	u32 final_color = 0;
+	u8 input_brightness = util::get_brightness_fast(color);
+	double factor = palette_brightness / 255.0;
 
 	u8 r = (color >> 16);
 	u8 g = (color >> 8);
 	u8 b = color;
 
-	//If average palette brightness is lower, subtract to darken the image
-	if(palette_brightness < input_brightness)
+	//Increase RGB intensities
+	if(input_brightness < palette_brightness)
 	{
-		factor = 1 + ((palette_brightness - input_brightness)/255.0);
+		u8 diff = palette_brightness - input_brightness;
+		u16 result = 0;
 
-		if((r * factor) > 255) { r = 255; }
-		else { r *= factor; }
+		result = r + (0.375 * diff);
+		r = (result > 0xFF) ? 0xFF : result;
 
-		if((g * factor) > 255) { g = 255; }
-		else { g *= factor; }
+		result = g + (0.5 * diff);
+		g = (result > 0xFF) ? 0xFF : result;
 
-		if((b * factor) > 255) { b = 255; }
-		else { b *= factor; }
+		result = b + (0.125 * diff);
+		b = (result > 0xFF) ? 0xFF : result;
 	}
 
-	//If average palette brightness is higher, add to brighten image
-	else if(palette_brightness > input_brightness)
+	//Decrease RGB intensities
+	else if(input_brightness > palette_brightness)
 	{
-		factor = ((input_brightness - palette_brightness)/255.0);
+		u8 diff = input_brightness - palette_brightness;
+		u16 result = 0;
 
-		r *= factor;
-		g *= factor;
-		b *= factor;
+		result = r - (0.375 * diff);
+		r = (result < 0) ? 0 : result;
+
+		result = g - (0.5 * diff);
+		g = (result < 0) ? 0 : result;
+
+		result = b - (0.125 * diff);
+		b = (result < 0) ? 0 : result;
 	}
 
-	//Form final color
-	final_color = 0xFF000000 | (r << 16) | (g << 8) | (b);
-	return final_color;
+	return 0xFF000000 | (r << 16) | (g << 8) | (b);
 }
