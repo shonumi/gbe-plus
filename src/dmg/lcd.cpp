@@ -1300,9 +1300,27 @@ void DMG_LCD::update_bg_colors()
 		config::DMG_BG_PAL[3] = lcd_stat.bg_colors_final[3][0];
 	}
 
-	//TODO - Update BG hashes
-
 	lcd_stat.update_bg_colors = false;
+
+	//CGFX - Update BG hashes
+	if((cgfx::load_cgfx) || (cgfx::auto_dump_bg)) 
+	{
+		u8 temp_vram_bank = mem->vram_bank;
+		mem->vram_bank = 1;
+
+		for(u16 x = 0; x < 2048; x++)
+		{
+			u8 bg_pal = (mem->read_u8(0x9800 + x) & 0x7);
+
+			if(bg_pal == palette)
+			{
+				cgfx_stat.update_map = true;
+				cgfx_stat.bg_map_update_list[x] = true;
+			}
+		}
+
+		mem->vram_bank = temp_vram_bank;
+	}
 
 	//CGFX - Calculate average palette brightness
 	if(cgfx::load_cgfx)
