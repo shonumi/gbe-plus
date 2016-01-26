@@ -422,7 +422,7 @@ void DMG_LCD::dump_gbc_obj(u8 obj_index)
 	cgfx::last_hash = final_hash;
 	cgfx::last_vram_addr = 0x8000 + (obj[obj_index].tile_number << 4);
 	cgfx::last_type = 2;
-	cgfx::last_palette = obj[obj_index].color_palette_number;
+	cgfx::last_palette = obj[obj_index].color_palette_number + 1;
 }
 
 /****** Dumps DMG BG tile from selected memory address ******/
@@ -653,7 +653,7 @@ void DMG_LCD::dump_gbc_bg(u16 bg_index)
 	cgfx::last_hash = final_hash;
 	cgfx::last_vram_addr = (bg_index << 4) + 0x8000;
 	cgfx::last_type = 20;
-	cgfx::last_palette = cgfx::gbc_bg_color_pal;
+	cgfx::last_palette = cgfx::gbc_bg_color_pal + 1;
 }
 
 /****** Dumps GBC BG tile from selected memory address (Auto-dump version) ******/
@@ -711,7 +711,7 @@ void DMG_LCD::dump_gbc_bg(std::string final_hash, u16 bg_tile_addr, u8 palette)
 	cgfx::last_hash = final_hash;
 	cgfx::last_vram_addr = bg_tile_addr - 16;
 	cgfx::last_type = 20;
-	cgfx::last_palette = palette;
+	cgfx::last_palette = palette + 1;
 }
 
 /****** Updates the current hash for the selected DMG OBJ ******/
