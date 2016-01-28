@@ -332,6 +332,10 @@ void ARM7::swi_softreset()
 	for(int x = 0x3007E00; x < 0x3008000; x++) { mem->memory_map[x] = 0; }
 
 	arm_mode = ARM;
+	in_interrupt = false;
+
+	//Clear internal input
+	mem->g_pad->clear_input();
 }
 
 /****** HLE implementation of RegisterRAMReset ******/
