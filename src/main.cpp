@@ -28,7 +28,7 @@ int main(int argc, char* args[])
 	}
 
 	//Parse .ini options
-	if(!parse_ini_file()) { return 0; }
+	parse_ini_file();
 
 	//Parse command-line arguments
 	//These will override .ini options!
