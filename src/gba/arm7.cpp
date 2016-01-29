@@ -1493,12 +1493,18 @@ void ARM7::handle_interrupt()
 	//Exit interrupt
 	if((in_interrupt) && (debug_code == 0xE25EF004))
 	{
+		//Set CPSR from SPSR, turn on IRQ flag
 		reg.cpsr = get_spsr();
 		reg.cpsr &= ~CPSR_IRQ;
+		reg.cpsr &= ~0x1F;
+		reg.cpsr |= CPSR_MODE_SYS;
+
+		//Request pipeline flush, signal end of interrupt handling, switch to appropiate ARM/THUMB mode
 		needs_flush = true;
-		current_cpu_mode = SYS;
 		in_interrupt = false;
 		arm_mode = (reg.cpsr & 0x20) ? THUMB : ARM;
+
+		current_cpu_mode = SYS;
 		bios_read_state = BIOS_IRQ_FINISH;
 		debug_code = 0xFEEDBACC;
 	}
@@ -1535,13 +1541,21 @@ void ARM7::handle_interrupt()
 				else if((!needs_flush) && (arm_mode == THUMB)) { set_reg(14, (reg.r15 + 2)); }
 				else if((!needs_flush) && (arm_mode == ARM)) { set_reg(14, reg.r15); }
 
+				//Set PC and SPSR
 				reg.r15 = 0x18;
 				set_spsr(reg.cpsr);
+
+				//Request pipeline flush, signal interrupt handling, and go to ARM mode
 				needs_flush = true;
 				in_interrupt = true;
 				arm_mode = ARM;
+
+				//Alter CPSR bits, turn off THUMB and IRQ flags, set mode bits
 				reg.cpsr &= ~0x20;
 				reg.cpsr |= CPSR_IRQ;
+				reg.cpsr &= ~0x1F;
+				reg.cpsr |= CPSR_MODE_IRQ;
+
 				bios_read_state = BIOS_IRQ_EXECUTE;
 				return;
 			}
