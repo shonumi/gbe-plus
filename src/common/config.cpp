@@ -516,7 +516,7 @@ void parse_filenames()
 	validate_system_type();
 }
 
-/****** Parse optins from the .ini file ******/
+/****** Parse options from the .ini file ******/
 bool parse_ini_file()
 {
 	std::ifstream file("gbe.ini", std::ios::in); 
@@ -569,7 +569,6 @@ bool parse_ini_file()
 
 	//Cycle through all items in the .ini file
 	//Set options as appropiate
-
 	int size = ini_opts.size();
 	int output = 0;
 	std::string ini_item = "";
@@ -1340,5 +1339,111 @@ bool parse_ini_file()
 		}
 	}
 
+	return true;
+}
+
+
+/****** Save options to the .ini file ******/
+bool save_ini_file()
+{
+	std::ifstream in_file("gbe.ini", std::ios::in); 
+	std::string input_line = "";
+	std::string line_char = "";
+
+	std::vector <std::string> output_lines;
+	std::vector <u32> output_count;
+	int line_counter = 0;
+
+	//Clear existing .ini parameters
+	std::vector <std::string> ini_opts;
+	ini_opts.clear();
+
+	if(!in_file.is_open())
+	{
+		std::cout<<"GBE::Error - Could not save gbe.ini configuration file. Check file path or permissions. \n";
+		return false; 
+	}
+
+	//Cycle through whole file, line-by-line
+	while(getline(in_file, input_line))
+	{
+		line_char = input_line[0];
+		bool ignore = false;	
+
+		//Push line to output text for later manipulation
+		output_lines.push_back(input_line);
+	
+		//Check if line starts with [ - if not, skip line
+		if(line_char == "[")
+		{
+			std::string line_item = "";
+
+			//Cycle through line, character-by-character
+			for(int x = 0; ++x < input_line.length();)
+			{
+				line_char = input_line[x];
+
+				//Check for single-quotes, don't parse ":" or "]" within them
+				if((line_char == "'") && (!ignore)) { ignore = true; }
+				else if((line_char == "'") && (ignore)) { ignore = false; }
+
+				//Check the character for item limiter : or ] - Push to Vector
+				else if(((line_char == ":") || (line_char == "]")) && (!ignore)) 
+				{
+					ini_opts.push_back(line_item);
+					output_count.push_back(line_counter);
+					line_item = "";
+				}
+
+				else { line_item += line_char; }
+			}
+		}
+
+		line_counter++;
+	}
+	
+	in_file.close();
+
+	//Cycle through all items in the .ini file
+	//Save options as appropiate
+	int size = ini_opts.size();
+	int line_pos = 0;
+	std::string ini_item = "";
+
+	for(int x = 0; x < size; x++)
+	{
+		ini_item = ini_opts[x];
+
+		//Use BIOS
+		if(ini_item == "#use_bios")
+		{
+			if((x + 1) < size) 
+			{
+				line_pos = output_count[x];
+				std::string val = (config::use_bios) ? "1" : "0";
+
+				output_lines[line_pos] = "[#use_bios:" + val + "]";
+			}
+
+			x += 1;
+		}
+	}
+
+	//Write contents to .ini file
+	std::ofstream out_file("gbe.ini", std::ios::out);
+
+	if(!out_file.is_open())
+	{
+		std::cout<<"GBE::Error - Could not save gbe.ini configuration file. Check file path or permissions. \n";
+		return false; 
+	}
+
+	for(int x = 0; x < output_lines.size(); x++)
+	{
+		output_lines[x] += "\n";
+		out_file << output_lines[x];
+	}
+
+	out_file.close();
 	return true;
 }

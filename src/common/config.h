@@ -23,6 +23,7 @@ void validate_system_type();
 bool parse_cli_args();
 void parse_filenames();
 bool parse_ini_file();
+bool save_ini_file();
 
 namespace config
 { 

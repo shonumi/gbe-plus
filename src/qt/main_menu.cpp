@@ -211,6 +211,9 @@ void main_menu::quit()
 		main_menu::gbe_plus->core_emu::~core_emu();
 	}
 
+	//Save .ini options
+	save_ini_file();
+
 	//Close SDL
 	SDL_Quit();
 
@@ -322,6 +325,9 @@ void main_menu::closeEvent(QCloseEvent* event)
 		main_menu::gbe_plus->shutdown();
 		main_menu::gbe_plus->core_emu::~core_emu();
 	}
+
+	//Save .ini options
+	save_ini_file();
 
 	//Close SDL
 	SDL_Quit();
