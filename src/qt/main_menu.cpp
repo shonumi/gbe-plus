@@ -212,6 +212,7 @@ void main_menu::quit()
 	}
 
 	//Save .ini options
+	config::gb_type = settings->sys_type->currentIndex();
 	save_ini_file();
 
 	//Close SDL
@@ -327,6 +328,7 @@ void main_menu::closeEvent(QCloseEvent* event)
 	}
 
 	//Save .ini options
+	config::gb_type = settings->sys_type->currentIndex();
 	save_ini_file();
 
 	//Close SDL
