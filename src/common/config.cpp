@@ -1417,15 +1417,63 @@ bool save_ini_file()
 		//Use BIOS
 		if(ini_item == "#use_bios")
 		{
-			if((x + 1) < size) 
-			{
-				line_pos = output_count[x];
-				std::string val = (config::use_bios) ? "1" : "0";
+			line_pos = output_count[x];
+			std::string val = (config::use_bios) ? "1" : "0";
 
-				output_lines[line_pos] = "[#use_bios:" + val + "]";
-			}
+			output_lines[line_pos] = "[#use_bios:" + val + "]";
+		}
 
-			x += 1;
+		//Set emulated system type
+		else if(ini_item == "#system_type")
+		{
+			line_pos = output_count[x];
+
+			output_lines[line_pos] = "[#system_type:" + util::to_str(config::gb_type) + "]";
+		}
+
+		//DMG BIOS path
+		else if(ini_item == "#dmg_bios_path")
+		{
+			line_pos = output_count[x];
+			std::string val = (config::dmg_bios_path == "") ? "" : (":" + config::dmg_bios_path);
+
+			output_lines[line_pos] = "[#dmg_bios_path" + val + "]";
+		}
+
+		//GBC BIOS path
+		else if(ini_item == "#gbc_bios_path")
+		{
+			line_pos = output_count[x];
+			std::string val = (config::gbc_bios_path == "") ? "" : (":" + config::gbc_bios_path);
+
+			output_lines[line_pos] = "[#gbc_bios_path" + val + "]";
+		}
+
+		//GBA BIOS path
+		else if(ini_item == "#agb_bios_path")
+		{
+			line_pos = output_count[x];
+			std::string val = (config::agb_bios_path == "") ? "" : (":" + config::agb_bios_path);
+
+			output_lines[line_pos] = "[#agb_bios_path" + val + "]";
+		}
+
+		//Screenshots path
+		else if(ini_item == "#screenshot_path")
+		{
+			line_pos = output_count[x];
+			std::string val = (config::ss_path == "") ? "" : (":" + config::ss_path);
+
+			output_lines[line_pos] = "[#screenshot_path" + val + "]";
+		}
+
+		//Use OpenGL
+		else if(ini_item == "#use_opengl")
+		{
+			line_pos = output_count[x];
+			std::string val = (config::use_opengl) ? "1" : "0";
+
+			output_lines[line_pos] = "[#use_opengl:" + val + "]";
 		}
 	}
 
