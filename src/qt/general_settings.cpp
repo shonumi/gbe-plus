@@ -700,18 +700,27 @@ void gen_settings::set_ini_options()
 	//Sample rate option
 	switch((int)config::sample_rate)
 	{
-		case 10250: freq->setCurrentIndex(0); break;
-		case 20500: freq->setCurrentIndex(1); break;
-		case 41000: freq->setCurrentIndex(2); break;
-		case 48000: freq->setCurrentIndex(3); break;
+		case 10250: freq->setCurrentIndex(3); break;
+		case 20500: freq->setCurrentIndex(2); break;
+		case 41000: freq->setCurrentIndex(1); break;
+		case 48000: freq->setCurrentIndex(0); break;
 	}
 
 	//Grab volume, checking mute calls the slot, which resets the volume
 	u8 temp_volume = config::volume;
 
 	//Mute option
-	if(config::mute == 1) { sound_on->setChecked(false); }
-	else { sound_on->setChecked(true); }
+	if(config::mute == 1)
+	{
+		sound_on->setChecked(false);
+		volume->setEnabled(false);
+	}
+
+	else
+	{
+		sound_on->setChecked(true);
+		volume->setEnabled(true);
+	}
 
 	//Volume option
 	volume->setValue(temp_volume);
@@ -797,20 +806,36 @@ void gen_settings::mute()
 	if(main_menu::gbe_plus != NULL)
 	{
 		//Unmute, use slider volume
-		if(sound_on->isChecked()) { main_menu::gbe_plus->update_volume(volume->value()); }
+		if(sound_on->isChecked())
+		{
+			main_menu::gbe_plus->update_volume(volume->value());
+			volume->setEnabled(true);
+		}
 
 		//Mute
-		else { main_menu::gbe_plus->update_volume(0); }
+		else
+		{
+			main_menu::gbe_plus->update_volume(0);
+			volume->setEnabled(false);
+		}
 	}
 
 	//Mute/unmute while using only the GUI
 	else
 	{
 		//Unmute, use slider volume
-		if(sound_on->isChecked()) { config::volume = volume->value(); }
+		if(sound_on->isChecked())
+		{
+			config::volume = volume->value();
+			volume->setEnabled(true);
+		}
 
 		//Mute
-		else { config::volume = 0; }
+		else
+		{
+			config::volume = 0;
+			volume->setEnabled(false);
+		}
 	}
 }
 

@@ -213,6 +213,17 @@ void main_menu::quit()
 
 	//Save .ini options
 	config::gb_type = settings->sys_type->currentIndex();
+	config::mute = (settings->sound_on->isChecked()) ? false : true;
+	config::volume = settings->volume->value();
+
+	switch(settings->freq->currentIndex())
+	{
+		case 0: config::sample_rate = 48000.0; break;
+		case 1: config::sample_rate = 44000.0; break;
+		case 2: config::sample_rate = 20500.0; break;
+		case 3: config::sample_rate = 10250.0; break;
+	}
+
 	save_ini_file();
 
 	//Close SDL
@@ -329,6 +340,17 @@ void main_menu::closeEvent(QCloseEvent* event)
 
 	//Save .ini options
 	config::gb_type = settings->sys_type->currentIndex();
+	config::mute = (settings->sound_on->isChecked()) ? false : true;
+	config::volume = settings->volume->value();
+	
+	switch(settings->freq->currentIndex())
+	{
+		case 0: config::sample_rate = 48000.0; break;
+		case 1: config::sample_rate = 44000.0; break;
+		case 2: config::sample_rate = 20500.0; break;
+		case 3: config::sample_rate = 10250.0; break;
+	}
+
 	save_ini_file();
 
 	//Close SDL

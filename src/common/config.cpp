@@ -1475,6 +1475,56 @@ bool save_ini_file()
 
 			output_lines[line_pos] = "[#use_opengl:" + val + "]";
 		}
+
+		//Use gamepad dead zone
+		else if(ini_item == "#dead_zone")
+		{
+			line_pos = output_count[x];
+
+			output_lines[line_pos] = "[#dead_zone:" + util::to_str(config::dead_zone) + "]";
+		}
+
+		//Volume settings
+		else if(ini_item == "#volume")
+		{
+			line_pos = output_count[x];
+
+			output_lines[line_pos] = "[#volume:" + util::to_str(config::volume) + "]";
+		}
+
+		//Mute settings
+		else if(ini_item == "#mute")
+		{
+			line_pos = output_count[x];
+			std::string val = (config::mute) ? "1" : "0";
+
+			output_lines[line_pos] = "[#mute:" + val + "]";
+		}
+
+		//Sample rate
+		else if(ini_item == "#sample_rate")
+		{
+			line_pos = output_count[x];
+
+			output_lines[line_pos] = "[#sample_rate:" + util::to_str(config::sample_rate) + "]";
+		}
+
+		//Scaling factor
+		else if(ini_item == "#scaling_factor")
+		{
+			line_pos = output_count[x];
+
+			output_lines[line_pos] = "[#scaling_factor:" + util::to_str(config::scaling_factor) + "]";
+		}
+
+
+		//Emulated DMG-on-GBC palette
+		else if(ini_item == "#dmg_on_gbc_pal")
+		{
+			line_pos = output_count[x];
+
+			output_lines[line_pos] = "[#dmg_on_gbc_pal:" + util::to_str(config::dmg_gbc_pal) + "]";
+		}
 	}
 
 	//Write contents to .ini file
