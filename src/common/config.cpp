@@ -1525,6 +1525,107 @@ bool save_ini_file()
 
 			output_lines[line_pos] = "[#dmg_on_gbc_pal:" + util::to_str(config::dmg_gbc_pal) + "]";
 		}
+
+		//DMG-GBC keyboard controls
+		else if(ini_item == "#dmg_key_controls")
+		{
+			line_pos = output_count[x];
+			std::string val = util::to_str(config::dmg_key_a) + ":";
+			val += util::to_str(config::dmg_key_b) + ":";
+			val += util::to_str(config::dmg_key_start) + ":";
+			val += util::to_str(config::dmg_key_select) + ":";
+			val += util::to_str(config::dmg_key_left) + ":";
+			val += util::to_str(config::dmg_key_right) + ":";
+			val += util::to_str(config::dmg_key_up) + ":";
+			val += util::to_str(config::dmg_key_down);
+
+			output_lines[line_pos] = "[#dmg_key_controls:" + val + "]";
+		}
+
+		//DMG-GBC gamepad controls
+		else if(ini_item == "#dmg_joy_controls")
+		{
+			line_pos = output_count[x];
+			std::string val = util::to_str(config::dmg_joy_a) + ":";
+			val += util::to_str(config::dmg_joy_b) + ":";
+			val += util::to_str(config::dmg_joy_start) + ":";
+			val += util::to_str(config::dmg_joy_select) + ":";
+			val += util::to_str(config::dmg_joy_left) + ":";
+			val += util::to_str(config::dmg_joy_right) + ":";
+			val += util::to_str(config::dmg_joy_up) + ":";
+			val += util::to_str(config::dmg_joy_down);
+
+			output_lines[line_pos] = "[#dmg_joy_controls:" + val + "]";
+		}
+
+		//GBA keyboard controls
+		else if(ini_item == "#agb_key_controls")
+		{
+			line_pos = output_count[x];
+			std::string val = util::to_str(config::agb_key_a) + ":";
+			val += util::to_str(config::agb_key_b) + ":";
+			val += util::to_str(config::agb_key_start) + ":";
+			val += util::to_str(config::agb_key_select) + ":";
+			val += util::to_str(config::agb_key_left) + ":";
+			val += util::to_str(config::agb_key_right) + ":";
+			val += util::to_str(config::agb_key_up) + ":";
+			val += util::to_str(config::agb_key_down) + ":";
+			val += util::to_str(config::agb_key_l_trigger) + ":";
+			val += util::to_str(config::agb_key_r_trigger);
+
+			output_lines[line_pos] = "[#agb_key_controls:" + val + "]";
+		}
+
+		//GBA gamepad controls
+		else if(ini_item == "#agb_joy_controls")
+		{
+			line_pos = output_count[x];
+			std::string val = util::to_str(config::agb_key_a) + ":";
+			val += util::to_str(config::agb_joy_b) + ":";
+			val += util::to_str(config::agb_joy_start) + ":";
+			val += util::to_str(config::agb_joy_select) + ":";
+			val += util::to_str(config::agb_joy_left) + ":";
+			val += util::to_str(config::agb_joy_right) + ":";
+			val += util::to_str(config::agb_joy_up) + ":";
+			val += util::to_str(config::agb_joy_down) + ":";
+			val += util::to_str(config::agb_joy_l_trigger) + ":";
+			val += util::to_str(config::agb_joy_r_trigger);
+
+			output_lines[line_pos] = "[#agb_joy_controls:" + val + "]";
+		}
+
+		//Gyroscope keyboard controls
+		else if(ini_item == "#gyro_key_controls")
+		{
+			line_pos = output_count[x];
+			std::string val = util::to_str(config::gyro_key_left) + ":";
+			val += util::to_str(config::gyro_key_right) + ":";
+			val += util::to_str(config::gyro_key_up) + ":";
+			val += util::to_str(config::gyro_key_down);
+
+			output_lines[line_pos] = "[#gyro_key_controls:" + val + "]";
+		}
+
+		//Gyroscope joystick controls
+		else if(ini_item == "#gyro_joy_controls")
+		{
+			line_pos = output_count[x];
+			std::string val = util::to_str(config::gyro_joy_left) + ":";
+			val += util::to_str(config::gyro_joy_right) + ":";
+			val += util::to_str(config::gyro_joy_up) + ":";
+			val += util::to_str(config::gyro_joy_down);
+
+			output_lines[line_pos] = "[#gyro_joy_controls:" + val + "]";
+		}
+
+		//Hotkeys
+		else if(ini_item == "#hotkeys")
+		{
+			line_pos = output_count[x];
+			std::string val = util::to_str(config::hotkey_turbo);
+
+			output_lines[line_pos] = "[#hotkeys:" + val + "]";
+		}
 	}
 
 	//Write contents to .ini file

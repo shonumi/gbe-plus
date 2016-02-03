@@ -706,12 +706,13 @@ void gen_settings::set_ini_options()
 		case 48000: freq->setCurrentIndex(0); break;
 	}
 
-	//Grab volume, checking mute calls the slot, which resets the volume
-	u8 temp_volume = config::volume;
+	//Volume option
+	volume->setValue(config::volume);
 
 	//Mute option
 	if(config::mute == 1)
 	{
+		config::volume = 0;
 		sound_on->setChecked(false);
 		volume->setEnabled(false);
 	}
@@ -721,9 +722,6 @@ void gen_settings::set_ini_options()
 		sound_on->setChecked(true);
 		volume->setEnabled(true);
 	}
-
-	//Volume option
-	volume->setValue(temp_volume);
 
 	//Dead-zone
 	dead_zone->setValue(config::dead_zone);

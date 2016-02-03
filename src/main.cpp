@@ -30,6 +30,8 @@ int main(int argc, char* args[])
 	//Parse .ini options
 	parse_ini_file();
 
+	if(config::mute) { config::volume = 0; }
+
 	//Parse command-line arguments
 	//These will override .ini options!
 	if(!parse_cli_args()) { return 0; }
