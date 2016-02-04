@@ -1435,7 +1435,7 @@ bool save_ini_file()
 		else if(ini_item == "#dmg_bios_path")
 		{
 			line_pos = output_count[x];
-			std::string val = (config::dmg_bios_path == "") ? "" : (":" + config::dmg_bios_path);
+			std::string val = (config::dmg_bios_path == "") ? "" : (":'" + config::dmg_bios_path + "'");
 
 			output_lines[line_pos] = "[#dmg_bios_path" + val + "]";
 		}
@@ -1444,7 +1444,7 @@ bool save_ini_file()
 		else if(ini_item == "#gbc_bios_path")
 		{
 			line_pos = output_count[x];
-			std::string val = (config::gbc_bios_path == "") ? "" : (":" + config::gbc_bios_path);
+			std::string val = (config::gbc_bios_path == "") ? "" : (":'" + config::gbc_bios_path + "'");
 
 			output_lines[line_pos] = "[#gbc_bios_path" + val + "]";
 		}
@@ -1453,7 +1453,7 @@ bool save_ini_file()
 		else if(ini_item == "#agb_bios_path")
 		{
 			line_pos = output_count[x];
-			std::string val = (config::agb_bios_path == "") ? "" : (":" + config::agb_bios_path);
+			std::string val = (config::agb_bios_path == "") ? "" : (":'" + config::agb_bios_path + "'");
 
 			output_lines[line_pos] = "[#agb_bios_path" + val + "]";
 		}
@@ -1462,7 +1462,7 @@ bool save_ini_file()
 		else if(ini_item == "#screenshot_path")
 		{
 			line_pos = output_count[x];
-			std::string val = (config::ss_path == "") ? "" : (":" + config::ss_path);
+			std::string val = (config::ss_path == "") ? "" : (":'" + config::ss_path + "'");
 
 			output_lines[line_pos] = "[#screenshot_path" + val + "]";
 		}
@@ -1625,6 +1625,60 @@ bool save_ini_file()
 			std::string val = util::to_str(config::hotkey_turbo);
 
 			output_lines[line_pos] = "[#hotkeys:" + val + "]";
+		}
+
+		//Use CGFX
+		else if(ini_item == "#use_cgfx")
+		{
+			line_pos = output_count[x];
+			std::string val = (cgfx::load_cgfx) ? "1" : "0";
+
+			output_lines[line_pos] = "[#use_cgfx:" + val + "]";
+		}
+
+		//CGFX manifest path
+		else if(ini_item == "#manifest_path")
+		{
+			line_pos = output_count[x];
+			std::string val = (cgfx::manifest_file == "") ? "" : (":'" + cgfx::manifest_file + "'");
+
+			output_lines[line_pos] = "[#manifest_path" + val + "]";
+		}
+
+		//CGFX BG Tile dump folder
+		else if(ini_item == "#dump_bg_path")
+		{
+			line_pos = output_count[x];
+			std::string val = (cgfx::dump_bg_path == "") ? "" : (":'" + cgfx::dump_bg_path + "'");
+
+			output_lines[line_pos] = "[#dump_bg_path" + val + "]";
+		}
+
+		//CGFX OBJ Tile dump folder
+		else if(ini_item == "#dump_obj_path")
+		{
+			line_pos = output_count[x];
+			std::string val = (cgfx::dump_obj_path == "") ? "" : (":'" + cgfx::dump_obj_path + "'");
+
+			output_lines[line_pos] = "[#dump_obj_path" + val + "]";
+		}
+
+		//CGFX Scaling factor
+		else if(ini_item == "#cgfx_scaling_factor")
+		{
+			line_pos = output_count[x];
+			std::string val = util::to_str(cgfx::scaling_factor);
+
+			output_lines[line_pos] = "[#cgfx_scaling_factor:" + val + "]";
+		}
+
+		//CGFX Transparency color
+		else if(ini_item == "#cgfx_transparency")
+		{
+			line_pos = output_count[x];
+			std::string val = util::to_hex_str(cgfx::transparency_color);
+
+			output_lines[line_pos] = "[#cgfx_transparency:" + val + "]";
 		}
 	}
 
