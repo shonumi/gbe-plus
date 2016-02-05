@@ -663,10 +663,6 @@ bool AGB_LCD::render_bg_mode_1(u32 bg_control)
 	double new_x = lcd_stat.bg_params[scale_rot_id].x_ref + (lcd_stat.bg_params[scale_rot_id].a * scanline_pixel_counter) + (lcd_stat.bg_params[scale_rot_id].b * current_scanline);
 	double new_y = lcd_stat.bg_params[scale_rot_id].y_ref + (lcd_stat.bg_params[scale_rot_id].c * scanline_pixel_counter) + (lcd_stat.bg_params[scale_rot_id].d * current_scanline);
 
-	//Round results to nearest integer
-	new_x = (new_x > 0) ? floor(new_x + 0.5) : ceil(new_x - 0.5);
-	new_y = (new_y > 0) ? floor(new_y + 0.5) : ceil(new_y - 0.5);
-
 	//Clip BG if coordinates overflow and overflow flag is not set
 	if(!lcd_stat.bg_params[scale_rot_id].overflow)
 	{
@@ -677,11 +673,13 @@ bool AGB_LCD::render_bg_mode_1(u32 bg_control)
 	//Wrap BG if coordinates overflow and overflow flag is set
 	else 
 	{
-		while(new_x >= bg_pixel_size) { new_x -= bg_pixel_size; }
-		while(new_y >= bg_pixel_size) { new_y -= bg_pixel_size; }
-		while(new_x < 0) { new_x += bg_pixel_size; }
-		while(new_y < 0) { new_y += bg_pixel_size; }
+		new_x = fmod(new_x, bg_pixel_size);
+		new_y = fmod(new_y, bg_pixel_size);
 	}
+
+	//Round results to nearest integer
+	new_x = (new_x > 0) ? floor(new_x + 0.5) : ceil(new_x - 0.5);
+	new_y = (new_y > 0) ? floor(new_y + 0.5) : ceil(new_y - 0.5);
 
 	//Determine source pixel X-Y coordinates
 	u16 src_x = new_x; 
