@@ -45,8 +45,6 @@ void ARM7::reset()
 
 	swi_vblank_wait = false;
 
-	bl_state = 0;
-
 	arm_mode = ARM;
 	current_cpu_mode = SYS;
 	bios_read_state = BIOS_STARTUP;

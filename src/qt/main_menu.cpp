@@ -326,7 +326,6 @@ void main_menu::paintEvent(QPaintEvent* event)
 
 		else if(config::request_resize)
 		{
-			std::cout<<"CHANGE\n";
 			base_width = config::sys_width;
 			base_height = config::sys_height;
 

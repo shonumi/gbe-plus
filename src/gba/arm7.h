@@ -176,9 +176,6 @@ class ARM7
 	u32 debug_code;
 	u32 debug_cycles;
 
-	//Thumb long branch state
-	u8 bl_state;
-
 	AGB_MMU* mem;
 
 	//Audio-Video and other controllers
