@@ -84,6 +84,10 @@ namespace config
 	//Boolean dictating whether this is a DMG/GBC game on a GBA
 	bool gba_enhance = false;
 
+	//Variables dictating whether or not to stretch DMG/GBC games when playing on a GBA
+	bool request_resize = false;
+	s8 resize_mode = 0;
+
 	//Sound parameters
 	u8 volume = 128;
 	double sample_rate = 44100;

@@ -65,6 +65,9 @@ namespace config
 	extern u32 sys_width;
 	extern u32 sys_height;
 
+	extern bool request_resize;
+	extern s8 resize_mode;
+
 	extern u32 DMG_BG_PAL[4];
 	extern u32 DMG_OBJ_PAL[4][2];
 

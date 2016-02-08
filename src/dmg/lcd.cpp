@@ -342,12 +342,27 @@ void DMG_LCD::render_dmg_scanline()
 	//Draw sprite pixel data
 	if(lcd_stat.obj_enable) { render_dmg_obj_scanline(); }
 
-	//Push scanline buffer to screen buffer
-	for(int x = 0; x < 160; x++)
+	//Push scanline buffer to screen buffer - Normal version
+	if((config::resize_mode == 0) && (!config::request_resize))
 	{
-		screen_buffer[(160 * lcd_stat.current_scanline) + x] = scanline_buffer[x];
-		scanline_buffer[x] = 0xFFFFFFFF;
+		for(int x = 0; x < 160; x++)
+		{
+			screen_buffer[(config::sys_width * lcd_stat.current_scanline) + x] = scanline_buffer[x];
+			scanline_buffer[x] = 0xFFFFFFFF;
+		}
 	}
+
+	//Push scanline buffer to screen buffer - DMG/GBC on GBA stretch
+	if((config::resize_mode > 0) && (!config::request_resize))
+	{
+		u16 offset = 1960 + (lcd_stat.current_scanline * 240);
+
+		for(int x = 0; x < 160; x++)
+		{
+			screen_buffer[offset + x] = scanline_buffer[x];
+			scanline_buffer[x] = 0xFFFFFFFF;
+		}
+	}	
 }
 
 /****** Render pixels for a given scanline (per-scanline) - DMG version ******/
@@ -362,10 +377,26 @@ void DMG_LCD::render_gbc_scanline()
 	//Draw sprite pixel data
 	if(lcd_stat.obj_enable) { render_gbc_obj_scanline(); }
 
-	//Push scanline buffer to screen buffer
-	for(int x = 0; x < 160; x++)
+	//Push scanline buffer to screen buffer - Normal version
+	if((config::resize_mode == 0) && (!config::request_resize))
 	{
-		screen_buffer[(160 * lcd_stat.current_scanline) + x] = scanline_buffer[x];
+		for(int x = 0; x < 160; x++)
+		{
+			screen_buffer[(config::sys_width * lcd_stat.current_scanline) + x] = scanline_buffer[x];
+			scanline_buffer[x] = 0xFFFFFFFF;
+		}
+	}
+
+	//Push scanline buffer to screen buffer - DMG/GBC on GBA stretch
+	if((config::resize_mode > 0) && (!config::request_resize))
+	{
+		u16 offset = 1960 + (lcd_stat.current_scanline * 240);
+
+		for(int x = 0; x < 160; x++)
+		{
+			screen_buffer[offset + x] = scanline_buffer[x];
+			scanline_buffer[x] = 0xFFFFFFFF;
+		}
 	}
 }
 
@@ -1657,7 +1688,7 @@ void DMG_LCD::step(int cpu_clock)
 						//Regular 1:1 framebuffer rendering
 						if((!cgfx::load_cgfx) || (cgfx::scaling_factor <= 1))
 						{
-							for(int a = 0; a < 0x5A00; a++) { out_pixel_data[a] = screen_buffer[a]; }
+							for(int a = 0; a < screen_buffer.size(); a++) { out_pixel_data[a] = screen_buffer[a]; }
 						}
 
 						//HD CGFX framebuffer rendering
@@ -1711,6 +1742,28 @@ void DMG_LCD::step(int cpu_clock)
 
 				//Process gyroscope
 				if(mem->cart.mbc_type == DMG_MMU::MBC7) { mem->g_pad->process_gyroscope(); }
+
+				//Check for screen resize - DMG/GBC stretch
+				if((config::request_resize) && (config::resize_mode > 0))
+				{
+					config::sys_width = 240;
+					config::sys_height = 160;
+					screen_buffer.clear();
+					screen_buffer.resize(0x9600, 0);
+					init();
+					if(config::sdl_render) { config::request_resize = false; }
+				}
+
+				//Check for screen resize - Normal DMG/GBC screen
+				else if(config::request_resize)
+				{
+					config::sys_width = 160;
+					config::sys_height = 144;
+					screen_buffer.clear();
+					screen_buffer.resize(0x5A00, 0);
+					init();
+					if(config::sdl_render) { config::request_resize = false; }
+				}
 			}
 
 			//Processing VBlank

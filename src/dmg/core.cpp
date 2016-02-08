@@ -1078,7 +1078,7 @@ void DMG_core::handle_hotkey(SDL_Event& event)
 		//Initialize the screen
 		if(!config::use_opengl)
 		{
-			core_cpu.controllers.video.final_screen = SDL_SetVideoMode(160, 144, 32, SDL_SWSURFACE | config::flags);
+			core_cpu.controllers.video.final_screen = SDL_SetVideoMode(config::sys_width, config::sys_height, 32, SDL_SWSURFACE | config::flags);
 		}
 
 		else

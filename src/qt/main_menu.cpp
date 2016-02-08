@@ -274,6 +274,8 @@ void main_menu::boot_game()
 
 		main_menu::gbe_plus = new DMG_core();
 		resize((base_width * config::scaling_factor), (base_height * config::scaling_factor) + menu_height);
+
+		if(qt_gui::screen != NULL) { delete qt_gui::screen; }
 		qt_gui::screen = new QImage(base_width, base_height, QImage::Format_ARGB32);
 	}
 
@@ -320,6 +322,18 @@ void main_menu::paintEvent(QPaintEvent* event)
 		{
 			resize((base_width * config::scaling_factor), (base_height * config::scaling_factor) + menu_height);
 			settings->resize_screen = false;
+		}
+
+		else if(config::request_resize)
+		{
+			std::cout<<"CHANGE\n";
+			base_width = config::sys_width;
+			base_height = config::sys_height;
+
+			if(qt_gui::screen != NULL) { delete qt_gui::screen; }
+			qt_gui::screen = new QImage(config::sys_width, config::sys_height, QImage::Format_ARGB32);
+			resize((base_width * config::scaling_factor), (base_height * config::scaling_factor) + menu_height);
+			config::request_resize = false;
 		}
 
 		QImage final_screen = qt_gui::screen->scaled(width(), height()-menu_height);

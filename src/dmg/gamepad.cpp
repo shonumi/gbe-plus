@@ -288,6 +288,24 @@ void DMG_GamePad::process_keyboard(int pad, bool pressed)
 		if(gyro_flags & 0x40) { gyro_flags |= 0x4; }
 		else { gyro_flags &= ~0x4; }
 	}
+
+	//Emulate R Trigger press - DMG/GBC on GBA ONLY
+	else if((pad == config::agb_key_r_trigger) && (pressed) && (config::gba_enhance))
+	{
+		config::request_resize = true;
+		config::resize_mode--;
+		
+		if(config::resize_mode < 0) { config::resize_mode = 0; }
+	}
+
+	//Emulate L Trigger press - DMG/GBC on GBA ONLY
+	else if((pad == config::agb_key_l_trigger) && (pressed) && (config::gba_enhance))
+	{
+		config::request_resize = true;
+		config::resize_mode++;
+
+		if(config::resize_mode > 2) { config::resize_mode = 2; }
+	}
 }
 
 /****** Processes input based on unique pad # for joysticks ******/
@@ -364,6 +382,24 @@ void DMG_GamePad::process_joystick(int pad, bool pressed)
 
 	//Emulate Gyroscope Down tilt release
 	else if((pad == config::gyro_joy_down) && (!pressed)) { gyro_flags &= ~0x8; }
+
+	//Emulate R Trigger press - DMG/GBC on GBA ONLY
+	else if((pad == config::agb_joy_r_trigger) && (pressed) && (config::gba_enhance))
+	{
+		config::request_resize = true;
+		config::resize_mode--;
+		
+		if(config::resize_mode < 0) { config::resize_mode = 0; }
+	}
+
+	//Emulate L Trigger press - DMG/GBC on GBA ONLY
+	else if((pad == config::agb_joy_l_trigger) && (pressed) && (config::gba_enhance))
+	{
+		config::request_resize = true;
+		config::resize_mode++;
+
+		if(config::resize_mode > 2) { config::resize_mode = 2; }
+	}
 }
 
 /****** Process gyroscope sensors - Only used for MBC7 ******/
