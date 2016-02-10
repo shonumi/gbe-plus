@@ -47,6 +47,7 @@ namespace util
 	u8 hue_to_rgb(double hue_factor_1, double hue_factor_2, double hue);
 
 	u8 get_brightness_fast(u32 color);
+	u32 rgb_blend(u32 color_1, u32 color_2);
 
 	u32 reflect(u32 src, u8 bit);
 	void init_crc32_table();

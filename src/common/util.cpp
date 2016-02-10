@@ -427,6 +427,23 @@ u8 get_brightness_fast(u32 color)
 	return (r+r+r+g+g+g+g+b) >> 3;
 }
 
+/****** Blends the RGB channels of 2 colors ******/
+u32 rgb_blend(u32 color_1, u32 color_2)
+{
+
+	if(color_1 == color_2) { return color_1; }
+
+	u16 r = ((color_1 >> 16) & 0xFF) + ((color_2 >> 16) & 0xFF);
+	u16 g = ((color_1 >> 8) & 0xFF) + ((color_2 >> 8) & 0xFF);
+	u16 b = (color_1 & 0xFF) + (color_2 & 0xFF);
+
+	r >>= 1;
+	g >>= 1;
+	b >>= 1;
+
+	return 0xFF000000 | (r << 16) | (g << 8) | b;
+}
+
 /****** Mirrors bits ******/
 u32 reflect(u32 src, u8 bit)
 {

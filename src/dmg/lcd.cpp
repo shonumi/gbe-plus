@@ -486,10 +486,16 @@ void DMG_LCD::render_dmg_bg_scanline()
 				//Apply DMG/GBC on GBA stretching if applicable
 				if((config::resize_mode == 2) && (last_scanline_pixel < 160))
 				{
-					u8 stretched_pos = (y & 0x1) ? (((last_scanline_pixel + 1) >> 1) * 3) - 1 : ((last_scanline_pixel >> 1) * 3);
-
+					u8 stretched_pos = (lcd_stat.flip_8[y] & 0x1) ? (((last_scanline_pixel + 1) >> 1) * 3) - 1 : ((last_scanline_pixel >> 1) * 3);
 					stretched_buffer[stretched_pos] = scanline_buffer[last_scanline_pixel];
-					if((y & 0x1) == 0) { stretched_pos++; stretched_buffer[stretched_pos] = scanline_buffer[last_scanline_pixel]; }
+
+					if(lcd_stat.flip_8[y] & 0x1)
+					{
+						u8 old_pos = stretched_pos - 1;
+						u8 blend_pos = old_pos - 1;
+						stretched_buffer[old_pos] = scanline_buffer[last_scanline_pixel];
+						stretched_buffer[old_pos] = util::rgb_blend(stretched_buffer[old_pos], stretched_buffer[blend_pos]);
+					}
 				}
 
 				//Render HD
@@ -825,10 +831,16 @@ void DMG_LCD::render_dmg_win_scanline()
 				//Apply DMG/GBC on GBA stretching if applicable
 				if((config::resize_mode == 2) && (last_scanline_pixel < 160))
 				{
-					u8 stretched_pos = (y & 0x1) ? (((last_scanline_pixel + 1) >> 1) * 3) - 1 : ((last_scanline_pixel >> 1) * 3);
-
+					u8 stretched_pos = (lcd_stat.flip_8[y] & 0x1) ? (((last_scanline_pixel + 1) >> 1) * 3) - 1 : ((last_scanline_pixel >> 1) * 3);
 					stretched_buffer[stretched_pos] = scanline_buffer[last_scanline_pixel];
-					if((y & 0x1) == 0) { stretched_pos++; stretched_buffer[stretched_pos] = scanline_buffer[last_scanline_pixel]; }
+
+					if(lcd_stat.flip_8[y] & 0x1)
+					{
+						u8 old_pos = stretched_pos - 1;
+						u8 blend_pos = old_pos - 1;
+						stretched_buffer[old_pos] = scanline_buffer[last_scanline_pixel];
+						stretched_buffer[old_pos] = util::rgb_blend(stretched_buffer[old_pos], stretched_buffer[blend_pos]);
+					}
 				}
 
 				//Render HD
