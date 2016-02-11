@@ -341,6 +341,22 @@ void DMG_LCD::render_dmg_scanline()
 	//Draw window pixel data
 	if(lcd_stat.window_enable) { render_dmg_win_scanline(); }
 
+	//Calculate stretched buffer
+	if(config::resize_mode == 2)
+	{
+		u8 pixel_counter = (0x100 - lcd_stat.bg_scroll_x);
+		u16 stretched_pos = 0;
+		u8 old_pos, blend_pos = 0;
+
+		for(u8 x = 0; x < 160; x++)
+		{
+			old_pos = x;
+			stretched_buffer[stretched_pos++] = scanline_buffer[x++];
+			stretched_buffer[stretched_pos++] = util::rgb_blend(scanline_buffer[old_pos], scanline_buffer[x]);
+			stretched_buffer[stretched_pos++] = scanline_buffer[x];
+		}
+	}
+				
 	//Draw sprite pixel data
 	if(lcd_stat.obj_enable) { render_dmg_obj_scanline(); }
 
@@ -482,21 +498,6 @@ void DMG_LCD::render_dmg_bg_scanline()
 				}
 
 				u8 last_scanline_pixel = lcd_stat.scanline_pixel_counter - 1;
-
-				//Apply DMG/GBC on GBA stretching if applicable
-				if((config::resize_mode == 2) && (last_scanline_pixel < 160))
-				{
-					u8 stretched_pos = (lcd_stat.flip_8[y] & 0x1) ? (((last_scanline_pixel + 1) >> 1) * 3) - 1 : ((last_scanline_pixel >> 1) * 3);
-					stretched_buffer[stretched_pos] = scanline_buffer[last_scanline_pixel];
-
-					if(lcd_stat.flip_8[y] & 0x1)
-					{
-						u8 old_pos = stretched_pos - 1;
-						u8 blend_pos = old_pos - 1;
-						stretched_buffer[old_pos] = scanline_buffer[last_scanline_pixel];
-						stretched_buffer[old_pos] = util::rgb_blend(stretched_buffer[old_pos], stretched_buffer[blend_pos]);
-					}
-				}
 
 				//Render HD
 				if((cgfx::load_cgfx) && (cgfx::scaling_factor > 1) && (last_scanline_pixel < 160))
@@ -827,21 +828,6 @@ void DMG_LCD::render_dmg_win_scanline()
 				}
 
 				u8 last_scanline_pixel = lcd_stat.scanline_pixel_counter - 1;
-
-				//Apply DMG/GBC on GBA stretching if applicable
-				if((config::resize_mode == 2) && (last_scanline_pixel < 160))
-				{
-					u8 stretched_pos = (lcd_stat.flip_8[y] & 0x1) ? (((last_scanline_pixel + 1) >> 1) * 3) - 1 : ((last_scanline_pixel >> 1) * 3);
-					stretched_buffer[stretched_pos] = scanline_buffer[last_scanline_pixel];
-
-					if(lcd_stat.flip_8[y] & 0x1)
-					{
-						u8 old_pos = stretched_pos - 1;
-						u8 blend_pos = old_pos - 1;
-						stretched_buffer[old_pos] = scanline_buffer[last_scanline_pixel];
-						stretched_buffer[old_pos] = util::rgb_blend(stretched_buffer[old_pos], stretched_buffer[blend_pos]);
-					}
-				}
 
 				//Render HD
 				if((cgfx::load_cgfx) && (cgfx::scaling_factor > 1) && (last_scanline_pixel < 160))
