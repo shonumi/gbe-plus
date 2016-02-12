@@ -162,6 +162,10 @@ void DMG_LCD::reset()
 	config::sys_width = 160;
 	config::sys_height = 144;
 
+	//Initialize DMG/GBC on GBA stretching to normal mode
+	config::resize_mode = 0;
+	config::request_resize = false;
+
 	//Load CGFX manifest
 	if(cgfx::load_cgfx) 
 	{
@@ -344,22 +348,6 @@ void DMG_LCD::render_dmg_scanline()
 	//Draw sprite pixel data
 	if(lcd_stat.obj_enable) { render_dmg_obj_scanline(); }
 
-	//Calculate stretched buffer
-	if(config::resize_mode == 2)
-	{
-		u8 pixel_counter = (0x100 - lcd_stat.bg_scroll_x);
-		u16 stretched_pos = 0;
-		u8 old_pos, blend_pos = 0;
-
-		for(u8 x = 0; x < 160; x++)
-		{
-			old_pos = x;
-			stretched_buffer[stretched_pos++] = scanline_buffer[x++];
-			stretched_buffer[stretched_pos++] = util::rgb_blend(scanline_buffer[old_pos], scanline_buffer[x]);
-			stretched_buffer[stretched_pos++] = scanline_buffer[x];
-		}
-	}
-
 	//Push scanline buffer to screen buffer - Normal version
 	if((config::resize_mode == 0) && (!config::request_resize))
 	{
@@ -386,6 +374,17 @@ void DMG_LCD::render_dmg_scanline()
 	else if((config::resize_mode == 2) && (!config::request_resize))
 	{
 		u16 offset = 1920 + (lcd_stat.current_scanline * 240);
+		u8 pixel_counter = (0x100 - lcd_stat.bg_scroll_x);
+		u16 stretched_pos = 0;
+		u8 old_pos, blend_pos = 0;
+
+		for(u8 x = 0; x < 160; x++)
+		{
+			old_pos = x;
+			stretched_buffer[stretched_pos++] = scanline_buffer[x++];
+			stretched_buffer[stretched_pos++] = util::rgb_blend(scanline_buffer[old_pos], scanline_buffer[x]);
+			stretched_buffer[stretched_pos++] = scanline_buffer[x];
+		}
 
 		for(int x = 0; x < 240; x++)
 		{
@@ -393,7 +392,7 @@ void DMG_LCD::render_dmg_scanline()
 			scanline_buffer[x] = 0xFFFFFFFF;
 			stretched_buffer[x] = 0xFFFFFFFF;
 		}
-	}	
+	}
 }
 
 /****** Render pixels for a given scanline (per-scanline) - GBC version ******/
@@ -408,22 +407,6 @@ void DMG_LCD::render_gbc_scanline()
 	//Draw sprite pixel data
 	if(lcd_stat.obj_enable) { render_gbc_obj_scanline(); }
 
-	//Calculate stretched buffer
-	if(config::resize_mode == 2)
-	{
-		u8 pixel_counter = (0x100 - lcd_stat.bg_scroll_x);
-		u16 stretched_pos = 0;
-		u8 old_pos, blend_pos = 0;
-
-		for(u8 x = 0; x < 160; x++)
-		{
-			old_pos = x;
-			stretched_buffer[stretched_pos++] = scanline_buffer[x++];
-			stretched_buffer[stretched_pos++] = util::rgb_blend(scanline_buffer[old_pos], scanline_buffer[x]);
-			stretched_buffer[stretched_pos++] = scanline_buffer[x];
-		}
-	}
-
 	//Push scanline buffer to screen buffer - Normal version
 	if((config::resize_mode == 0) && (!config::request_resize))
 	{
@@ -450,6 +433,17 @@ void DMG_LCD::render_gbc_scanline()
 	else if((config::resize_mode == 2) && (!config::request_resize))
 	{
 		u16 offset = 1920 + (lcd_stat.current_scanline * 240);
+		u8 pixel_counter = (0x100 - lcd_stat.bg_scroll_x);
+		u16 stretched_pos = 0;
+		u8 old_pos, blend_pos = 0;
+
+		for(u8 x = 0; x < 160; x++)
+		{
+			old_pos = x;
+			stretched_buffer[stretched_pos++] = scanline_buffer[x++];
+			stretched_buffer[stretched_pos++] = util::rgb_blend(scanline_buffer[old_pos], scanline_buffer[x]);
+			stretched_buffer[stretched_pos++] = scanline_buffer[x];
+		}
 
 		for(int x = 0; x < 240; x++)
 		{
