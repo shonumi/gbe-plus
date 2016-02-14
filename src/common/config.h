@@ -34,6 +34,7 @@ namespace config
 	extern std::string gbc_bios_path;
 	extern std::string agb_bios_path;
 	extern std::string ss_path;
+	extern std::vector <std::string> recent_files;
 	extern std::vector <std::string> cli_args;
 
 	extern int agb_key_a, agb_key_b, agb_key_start, agb_key_select, agb_key_up, agb_key_down, agb_key_left, agb_key_right, agb_key_r_trigger, agb_key_l_trigger;

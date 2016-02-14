@@ -52,11 +52,14 @@ class main_menu : public QWidget
 	void show_cgfx();
 	void show_debugger();
 	void show_about();
+	void load_recent(int file_id);
 
 	private:
 	gen_settings* settings;
 	gbe_cgfx* cgfx;
 	QWidget* about_box;
+
+	QMenu* recent_list;
 
 	int menu_height;
 	u32 base_width;

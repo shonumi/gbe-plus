@@ -60,6 +60,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 
 	file = new QMenu(tr("&File"), this);
 	file->addAction(open);
+	recent_list = file->addMenu(tr("Recent Files"));
 	file->addSeparator();
 	file->addAction(quit);
 	menu_bar->addMenu(file);
@@ -128,6 +129,25 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	//Parse .ini options
 	parse_ini_file();
 
+
+	//Setup Recent Files
+	QSignalMapper* list_mapper = new QSignalMapper(this);
+
+	for(int x = (config::recent_files.size() - 1); x >= 0; x--)
+	{
+		QString path = QString::fromStdString(config::recent_files[x]);
+		QFileInfo file(path);
+		path = file.fileName();
+
+		QAction* temp = new QAction(path, this);
+		recent_list->addAction(temp);
+
+		connect(temp, SIGNAL(triggered()), list_mapper, SLOT(map()));
+		list_mapper->setMapping(temp, x);
+	}
+
+	connect(list_mapper, SIGNAL(mapped(int)), this, SLOT(load_recent(int)));
+
 	//Set up settings dialog
 	settings = new gen_settings();
 	settings->set_ini_options();
@@ -155,8 +175,8 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	emu_title->setFont(font);
 
 	QLabel* emu_desc = new QLabel("A GB/GBC/GBA emulator with enhancements");
-	QLabel* emu_copyright = new QLabel("Copyright D.S. Baxter 2014-2015");
-	QLabel* emu_proj_copyright = new QLabel("Copyright GBE+ Team 2014-2015");
+	QLabel* emu_copyright = new QLabel("Copyright D.S. Baxter 2014-2016");
+	QLabel* emu_proj_copyright = new QLabel("Copyright GBE+ Team 2014-2016");
 	QLabel* emu_license = new QLabel("This program is licensed under the GNU GPLv2");
 
 	QVBoxLayout* about_layout = new QVBoxLayout;
@@ -197,6 +217,22 @@ void main_menu::open_file()
 
 	if(qt_gui::screen != NULL) { delete qt_gui::screen; }
 	qt_gui::screen = NULL;
+
+	//Search the recent files list and add this path to it
+	bool add_recent = true;
+
+	for(int x = 0; x < config::recent_files.size(); x++)
+	{
+		if(config::recent_files[x] == config::rom_file) { add_recent = false; }
+	}
+
+	if(add_recent)
+	{
+		config::recent_files.push_back(config::rom_file);
+
+		//Delete the earliest element
+		if(config::recent_files.size() > 10) { config::recent_files.erase(config::recent_files.begin()); }
+	}
 
 	boot_game();
 }
@@ -544,6 +580,29 @@ void main_menu::show_about()
 { 
 	if(about_box->isHidden()) { about_box->show(); }
 	else if ((!about_box->isMinimized()) && (!about_box->isHidden())){ about_box->hide(); }
+}
+
+/****** Loads recent file from list ******/
+void main_menu::load_recent(int file_id)
+{
+	//Close the core
+	if(main_menu::gbe_plus != NULL) 
+	{
+		main_menu::gbe_plus->shutdown();
+		main_menu::gbe_plus->core_emu::~core_emu();
+	}
+
+	config::rom_file = config::recent_files[file_id];
+	config::save_file = config::rom_file + ".sav";
+
+	config::sdl_render = false;
+	config::render_external = render_screen;
+	config::sample_rate = settings->sample_rate;
+
+	if(qt_gui::screen != NULL) { delete qt_gui::screen; }
+	qt_gui::screen = NULL;
+
+	boot_game();
 }
 
 /****** Static definitions ******/

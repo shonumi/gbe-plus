@@ -24,6 +24,7 @@ namespace config
 	std::string gbc_bios_path = "";
 	std::string agb_bios_path = "";
 	std::string ss_path = "";
+	std::vector <std::string> recent_files;
 	std::vector <std::string> cli_args;
 	bool use_debugger = false;
 
@@ -526,6 +527,9 @@ bool parse_ini_file()
 	std::ifstream file("gbe.ini", std::ios::in); 
 	std::string input_line = "";
 	std::string line_char = "";
+
+	//Clear recent files
+	config::recent_files.clear();
 
 	//Clear existing .ini parameters
 	std::vector <std::string> ini_opts;
@@ -1341,11 +1345,30 @@ bool parse_ini_file()
 				return false;
 			}
 		}
+
+		//Recent files
+		else if(ini_item == "#recent_files")
+		{
+			if((x + 1) < size) 
+			{
+				ini_item = ini_opts[++x];
+				std::string first_char = "";
+				first_char = ini_item[0];
+				
+				//When left blank, don't parse the next line item
+				if(first_char != "#")
+				{
+					//Only take at most the 1st 10 entries
+					if(config::recent_files.size() < 10) { config::recent_files.push_back(ini_item); }
+				}
+
+				else { x--; }
+			}
+		}
 	}
 
 	return true;
 }
-
 
 /****** Save options to the .ini file ******/
 bool save_ini_file()
@@ -1357,6 +1380,7 @@ bool save_ini_file()
 	std::vector <std::string> output_lines;
 	std::vector <u32> output_count;
 	int line_counter = 0;
+	int recent_count = config::recent_files.size();
 
 	//Clear existing .ini parameters
 	std::vector <std::string> ini_opts;
@@ -1684,6 +1708,12 @@ bool save_ini_file()
 
 			output_lines[line_pos] = "[#cgfx_transparency:" + val + "]";
 		}
+
+		else if(ini_item == "#recent_files")
+		{
+			line_pos = output_count[x];
+			output_lines[line_pos] = "[#ignore#]";
+		}
 	}
 
 	//Write contents to .ini file
@@ -1697,8 +1727,20 @@ bool save_ini_file()
 
 	for(int x = 0; x < output_lines.size(); x++)
 	{
-		output_lines[x] += "\n";
-		out_file << output_lines[x];
+		if(output_lines[x] != "[#ignore#]")
+		{
+			output_lines[x] += "\n";
+			out_file << output_lines[x];
+		}
+	}
+
+	for(int x = 0; x < recent_count; x++)
+	{	
+		std::string val = "'" + config::recent_files[x] + "'";
+		val = "[#recent_files:" + val + "]";
+		
+		if(x == 0) { out_file << val; }
+		else { out_file << "\n" << val; }
 	}
 
 	out_file.close();
