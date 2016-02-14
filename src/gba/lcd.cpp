@@ -774,6 +774,7 @@ bool AGB_LCD::render_bg_mode_5()
 void AGB_LCD::render_scanline()
 {
 	bool obj_render = false;
+	bool winout = false;
 	lcd_stat.in_window = false;
 	lcd_stat.current_window = 0;
 	last_obj_priority = 0xFF;
@@ -816,6 +817,9 @@ void AGB_LCD::render_scanline()
 	if((lcd_stat.window_enable[lcd_stat.current_window]) && (!lcd_stat.in_window) && (!lcd_stat.window_out_enable[4][0])) { obj_render = false; }
 	else if((lcd_stat.window_enable[lcd_stat.current_window]) && (lcd_stat.in_window) && (!lcd_stat.window_in_enable[4][lcd_stat.current_window])) { obj_render = false; }
 
+	//Determine WINOUT status
+	winout = (lcd_stat.obj_win_enable || lcd_stat.window_enable[0] || lcd_stat.window_enable[1]);
+
 	//Determine BG rendering priority
 	for(int x = 0, list_length = 0; x < 4; x++)
 	{
@@ -830,10 +834,19 @@ void AGB_LCD::render_scanline()
 	{
 		bg_id = bg_render_list[x];
 
+		//If an OBJ was the last pixel rendered and has the highest priority, stop rendering BGs now
 		if((obj_render) && (last_obj_priority <= lcd_stat.bg_priority[bg_id])) { last_bg_priority = 4; return; }
-		else if((lcd_stat.window_enable[lcd_stat.current_window]) && (!lcd_stat.in_window) && (!lcd_stat.window_out_enable[bg_id][0])) { continue; }
+
+		//If the last BG pixel is outside the current window, and WINOUT disables this BG layer, skip rendering
+		else if((winout) && (!lcd_stat.in_window) && (!lcd_stat.window_out_enable[bg_id][0])) { continue; }
+
+		//If the last BG pixel is inside the current window, and WININ disables this BG layer, skip rendering
 		else if((lcd_stat.window_enable[lcd_stat.current_window]) && (lcd_stat.in_window) && (!lcd_stat.window_in_enable[bg_id][lcd_stat.current_window])) { continue; }
-		else if((lcd_stat.obj_win_enable) && (!obj_win_pixel) && (!lcd_stat.window_out_enable[bg_id][0])) { continue; }
+
+		//If the last pixel is inside the OBJ window, and WINOUT disables this BG layer for the OBJ window, skip rendering
+		else if((lcd_stat.obj_win_enable) && (obj_win_pixel) && (!lcd_stat.window_out_enable[bg_id][1])) { continue; }
+
+		//Render BG pixel
 		else if(render_bg_pixel(BG0CNT + (bg_id << 1))) { last_bg_priority = bg_id; return; }
 	}
 
