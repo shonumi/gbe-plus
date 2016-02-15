@@ -362,6 +362,8 @@ void main_menu::paintEvent(QPaintEvent* event)
 
 		else if(config::request_resize)
 		{
+			if((config::resize_mode > 0) && (config::sys_width != 240)) { return; }
+
 			base_width = config::sys_width;
 			base_height = config::sys_height;
 

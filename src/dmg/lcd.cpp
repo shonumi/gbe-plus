@@ -1712,6 +1712,28 @@ void DMG_LCD::step(int cpu_clock)
 			{
 				lcd_stat.lcd_mode = 1;
 
+				//Check for screen resize - DMG/GBC stretch
+				if((config::request_resize) && (config::resize_mode > 0))
+				{
+					config::sys_width = 240;
+					config::sys_height = 160;
+					screen_buffer.clear();
+					screen_buffer.resize(0x9600, 0xFFFFFFFF);
+					init();
+					if(config::sdl_render) { config::request_resize = false; }
+				}
+
+				//Check for screen resize - Normal DMG/GBC screen
+				else if(config::request_resize)
+				{
+					config::sys_width = 160;
+					config::sys_height = 144;
+					screen_buffer.clear();
+					screen_buffer.resize(0x5A00, 0xFFFFFFFF);
+					init();
+					if(config::sdl_render) { config::request_resize = false; }
+				}
+
 				//Increment scanline count
 				lcd_stat.current_scanline++;
 				mem->memory_map[REG_LY] = lcd_stat.current_scanline;
@@ -1796,28 +1818,6 @@ void DMG_LCD::step(int cpu_clock)
 
 				//Process gyroscope
 				if(mem->cart.mbc_type == DMG_MMU::MBC7) { mem->g_pad->process_gyroscope(); }
-
-				//Check for screen resize - DMG/GBC stretch
-				if((config::request_resize) && (config::resize_mode > 0))
-				{
-					config::sys_width = 240;
-					config::sys_height = 160;
-					screen_buffer.clear();
-					screen_buffer.resize(0x9600, 0);
-					init();
-					if(config::sdl_render) { config::request_resize = false; }
-				}
-
-				//Check for screen resize - Normal DMG/GBC screen
-				else if(config::request_resize)
-				{
-					config::sys_width = 160;
-					config::sys_height = 144;
-					screen_buffer.clear();
-					screen_buffer.resize(0x5A00, 0);
-					init();
-					if(config::sdl_render) { config::request_resize = false; }
-				}
 			}
 
 			//Processing VBlank
