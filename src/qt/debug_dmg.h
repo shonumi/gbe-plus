@@ -54,6 +54,15 @@ class dmg_debug : public QDialog
 	QLineEdit* mmio_nr12;
 	QLineEdit* mmio_nr13;
 	QLineEdit* mmio_nr14;
+	QLineEdit* mmio_nr21;
+	QLineEdit* mmio_nr22;
+	QLineEdit* mmio_nr23;
+	QLineEdit* mmio_nr24;
+	QLineEdit* mmio_nr30;
+	QLineEdit* mmio_nr31;
+	QLineEdit* mmio_nr32;
+	QLineEdit* mmio_nr33;
+	QLineEdit* mmio_nr34;
 
 	//Palette widgets
 	QTableWidget* bg_pal_table;

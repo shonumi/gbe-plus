@@ -34,210 +34,320 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 
 	//LCDC
 	QWidget* lcdc_set = new QWidget(io_regs);
-	QLabel* lcdc_label = new QLabel("0xFF40 - LCDC: \t");
-	mmio_lcdc = new QLineEdit(io_regs);
+	QLabel* lcdc_label = new QLabel("0xFF40 - LCDC:", lcdc_set);
+	mmio_lcdc = new QLineEdit(lcdc_set);
 	mmio_lcdc->setMaximumWidth(64);
 	mmio_lcdc->setReadOnly(true);
 
 	QHBoxLayout* lcdc_layout = new QHBoxLayout;
 	lcdc_layout->addWidget(lcdc_label, 0, Qt::AlignLeft);
-	lcdc_layout->addWidget(mmio_lcdc, 0, Qt::AlignLeft);
+	lcdc_layout->addWidget(mmio_lcdc, 0, Qt::AlignRight);
 	lcdc_set->setLayout(lcdc_layout);
 
 	//STAT
 	QWidget* stat_set = new QWidget(io_regs);
-	QLabel* stat_label = new QLabel("0xFF41 - STAT: \t");
-	mmio_stat = new QLineEdit(io_regs);
+	QLabel* stat_label = new QLabel("0xFF41 - STAT:", stat_set);
+	mmio_stat = new QLineEdit(stat_set);
 	mmio_stat->setMaximumWidth(64);
 	mmio_stat->setReadOnly(true);
 
 	QHBoxLayout* stat_layout = new QHBoxLayout;
 	stat_layout->addWidget(stat_label, 0, Qt::AlignLeft);
-	stat_layout->addWidget(mmio_stat, 0, Qt::AlignLeft);
+	stat_layout->addWidget(mmio_stat, 0, Qt::AlignRight);
 	stat_set->setLayout(stat_layout);
 
 	//SX
 	QWidget* sx_set = new QWidget(io_regs);
-	QLabel* sx_label = new QLabel("0xFF43 - SX: \t");
-	mmio_sx = new QLineEdit(io_regs);
+	QLabel* sx_label = new QLabel("0xFF43 - SX:", sx_set);
+	mmio_sx = new QLineEdit(sx_set);
 	mmio_sx->setMaximumWidth(64);
 	mmio_sx->setReadOnly(true);
 
 	QHBoxLayout* sx_layout = new QHBoxLayout;
 	sx_layout->addWidget(sx_label, 0, Qt::AlignLeft);
-	sx_layout->addWidget(mmio_sx, 0, Qt::AlignLeft);
+	sx_layout->addWidget(mmio_sx, 0, Qt::AlignRight);
 	sx_set->setLayout(sx_layout);
 
 	//SY
 	QWidget* sy_set = new QWidget(io_regs);
-	QLabel* sy_label = new QLabel("0xFF42 - SY: \t");
-	mmio_sy = new QLineEdit(io_regs);
+	QLabel* sy_label = new QLabel("0xFF42 - SY:", sy_set);
+	mmio_sy = new QLineEdit(sy_set);
 	mmio_sy->setMaximumWidth(64);
 	mmio_sy->setReadOnly(true);
 
 	QHBoxLayout* sy_layout = new QHBoxLayout;
 	sy_layout->addWidget(sy_label, 0, Qt::AlignLeft);
-	sy_layout->addWidget(mmio_sy, 0, Qt::AlignLeft);
+	sy_layout->addWidget(mmio_sy, 0, Qt::AlignRight);
 	sy_set->setLayout(sy_layout);
 
 	//LY
 	QWidget* ly_set = new QWidget(io_regs);
-	QLabel* ly_label = new QLabel("0xFF44 - LY: \t");
-	mmio_ly = new QLineEdit(io_regs);
+	QLabel* ly_label = new QLabel("0xFF44 - LY:", ly_set);
+	mmio_ly = new QLineEdit(ly_set);
 	mmio_ly->setMaximumWidth(64);
 	mmio_ly->setReadOnly(true);
 
 	QHBoxLayout* ly_layout = new QHBoxLayout;
 	ly_layout->addWidget(ly_label, 0, Qt::AlignLeft);
-	ly_layout->addWidget(mmio_ly, 0, Qt::AlignLeft);
+	ly_layout->addWidget(mmio_ly, 0, Qt::AlignRight);
 	ly_set->setLayout(ly_layout);
 
 	//LYC
 	QWidget* lyc_set = new QWidget(io_regs);
-	QLabel* lyc_label = new QLabel("0xFF45 - LYC: \t");
-	mmio_lyc = new QLineEdit(io_regs);
+	QLabel* lyc_label = new QLabel("0xFF45 - LYC:", lyc_set);
+	mmio_lyc = new QLineEdit(lyc_set);
 	mmio_lyc->setMaximumWidth(64);
 	mmio_lyc->setReadOnly(true);
 
 	QHBoxLayout* lyc_layout = new QHBoxLayout;
 	lyc_layout->addWidget(lyc_label, 0, Qt::AlignLeft);
-	lyc_layout->addWidget(mmio_lyc, 0, Qt::AlignLeft);
+	lyc_layout->addWidget(mmio_lyc, 0, Qt::AlignRight);
 	lyc_set->setLayout(lyc_layout);
 
 	//DMA
 	QWidget* dma_set = new QWidget(io_regs);
-	QLabel* dma_label = new QLabel("0xFF46 - DMA: \t");
-	mmio_dma = new QLineEdit(io_regs);
+	QLabel* dma_label = new QLabel("0xFF46 - DMA:", dma_set);
+	mmio_dma = new QLineEdit(dma_set);
 	mmio_dma->setMaximumWidth(64);
 	mmio_dma->setReadOnly(true);
 
 	QHBoxLayout* dma_layout = new QHBoxLayout;
 	dma_layout->addWidget(dma_label, 0, Qt::AlignLeft);
-	dma_layout->addWidget(mmio_dma, 0, Qt::AlignLeft);
+	dma_layout->addWidget(mmio_dma, 0, Qt::AlignRight);
 	dma_set->setLayout(dma_layout);
 
 	//BGP
 	QWidget* bgp_set = new QWidget(io_regs);
-	QLabel* bgp_label = new QLabel("0xFF47 - BGP: \t");
-	mmio_bgp = new QLineEdit(io_regs);
+	QLabel* bgp_label = new QLabel("0xFF47 - BGP:", bgp_set);
+	mmio_bgp = new QLineEdit(bgp_set);
 	mmio_bgp->setMaximumWidth(64);
 	mmio_bgp->setReadOnly(true);
 
 	QHBoxLayout* bgp_layout = new QHBoxLayout;
 	bgp_layout->addWidget(bgp_label, 0, Qt::AlignLeft);
-	bgp_layout->addWidget(mmio_bgp, 0, Qt::AlignLeft);
+	bgp_layout->addWidget(mmio_bgp, 0, Qt::AlignRight);
 	bgp_set->setLayout(bgp_layout);
 
 	//OBP0
 	QWidget* obp0_set = new QWidget(io_regs);
-	QLabel* obp0_label = new QLabel("0xFF48 - OBP0: \t");
-	mmio_obp0 = new QLineEdit(io_regs);
+	QLabel* obp0_label = new QLabel("0xFF48 - OBP0:", obp0_set);
+	mmio_obp0 = new QLineEdit(obp0_set);
 	mmio_obp0->setMaximumWidth(64);
 	mmio_obp0->setReadOnly(true);
 
 	QHBoxLayout* obp0_layout = new QHBoxLayout;
 	obp0_layout->addWidget(obp0_label, 0, Qt::AlignLeft);
-	obp0_layout->addWidget(mmio_obp0, 0, Qt::AlignLeft);
+	obp0_layout->addWidget(mmio_obp0, 0, Qt::AlignRight);
 	obp0_set->setLayout(obp0_layout);
 
 	//OBP1
 	QWidget* obp1_set = new QWidget(io_regs);
-	QLabel* obp1_label = new QLabel("0xFF49 - OBP1: \t");
-	mmio_obp1 = new QLineEdit(io_regs);
+	QLabel* obp1_label = new QLabel("0xFF49 - OBP1:", obp1_set);
+	mmio_obp1 = new QLineEdit(obp1_set);
 	mmio_obp1->setMaximumWidth(64);
 	mmio_obp1->setReadOnly(true);
 
 	QHBoxLayout* obp1_layout = new QHBoxLayout;
 	obp1_layout->addWidget(obp1_label, 0, Qt::AlignLeft);
-	obp1_layout->addWidget(mmio_obp1, 0, Qt::AlignLeft);
+	obp1_layout->addWidget(mmio_obp1, 0, Qt::AlignRight);
 	obp1_set->setLayout(obp1_layout);
 
 	//WY
 	QWidget* wy_set = new QWidget(io_regs);
-	QLabel* wy_label = new QLabel("0xFF4A - WY: \t");
-	mmio_wy = new QLineEdit(io_regs);
+	QLabel* wy_label = new QLabel("0xFF4A - WY:", wy_set);
+	mmio_wy = new QLineEdit(wy_set);
 	mmio_wy->setMaximumWidth(64);
 	mmio_wy->setReadOnly(true);
 
 	QHBoxLayout* wy_layout = new QHBoxLayout;
 	wy_layout->addWidget(wy_label, 0, Qt::AlignLeft);
-	wy_layout->addWidget(mmio_wy, 0, Qt::AlignLeft);
+	wy_layout->addWidget(mmio_wy, 0, Qt::AlignRight);
 	wy_set->setLayout(wy_layout);
 
 	//WX
 	QWidget* wx_set = new QWidget(io_regs);
-	QLabel* wx_label = new QLabel("0xFF4B - WX: \t");
-	mmio_wx = new QLineEdit(io_regs);
+	QLabel* wx_label = new QLabel("0xFF4B - WX:", wx_set);
+	mmio_wx = new QLineEdit(wx_set);
 	mmio_wx->setMaximumWidth(64);
 	mmio_wx->setReadOnly(true);
 
 	QHBoxLayout* wx_layout = new QHBoxLayout;
 	wx_layout->addWidget(wx_label, 0, Qt::AlignLeft);
-	wx_layout->addWidget(mmio_wx, 0, Qt::AlignLeft);
+	wx_layout->addWidget(mmio_wx, 0, Qt::AlignRight);
 	wx_set->setLayout(wx_layout);
 
 	//NR10
 	QWidget* nr10_set = new QWidget(io_regs);
-	QLabel* nr10_label = new QLabel("0xFF10 - NR10: \t");
-	mmio_nr10 = new QLineEdit(io_regs);
+	QLabel* nr10_label = new QLabel("0xFF10 - NR10:", nr10_set);
+	mmio_nr10 = new QLineEdit(nr10_set);
 	mmio_nr10->setMaximumWidth(64);
 	mmio_nr10->setReadOnly(true);
 
 	QHBoxLayout* nr10_layout = new QHBoxLayout;
 	nr10_layout->addWidget(nr10_label, 0, Qt::AlignLeft);
-	nr10_layout->addWidget(mmio_nr10, 0, Qt::AlignLeft);
+	nr10_layout->addWidget(mmio_nr10, 0, Qt::AlignRight);
 	nr10_set->setLayout(nr10_layout);
 
 	//NR11
 	QWidget* nr11_set = new QWidget(io_regs);
-	QLabel* nr11_label = new QLabel("0xFF11 - NR11: \t");
-	mmio_nr11 = new QLineEdit(io_regs);
+	QLabel* nr11_label = new QLabel("0xFF11 - NR11:", nr11_set);
+	mmio_nr11 = new QLineEdit(nr11_set);
 	mmio_nr11->setMaximumWidth(64);
 	mmio_nr11->setReadOnly(true);
 
 	QHBoxLayout* nr11_layout = new QHBoxLayout;
 	nr11_layout->addWidget(nr11_label, 0, Qt::AlignLeft);
-	nr11_layout->addWidget(mmio_nr11, 0, Qt::AlignLeft);
+	nr11_layout->addWidget(mmio_nr11, 0, Qt::AlignRight);
 	nr11_set->setLayout(nr11_layout);
 
 	//NR12
 	QWidget* nr12_set = new QWidget(io_regs);
-	QLabel* nr12_label = new QLabel("0xFF12 - NR12: \t");
-	mmio_nr12 = new QLineEdit(io_regs);
+	QLabel* nr12_label = new QLabel("0xFF12 - NR12:", nr12_set);
+	mmio_nr12 = new QLineEdit(nr12_set);
 	mmio_nr12->setMaximumWidth(64);
 	mmio_nr12->setReadOnly(true);
 
 	QHBoxLayout* nr12_layout = new QHBoxLayout;
 	nr12_layout->addWidget(nr12_label, 0, Qt::AlignLeft);
-	nr12_layout->addWidget(mmio_nr12, 0, Qt::AlignLeft);
+	nr12_layout->addWidget(mmio_nr12, 0, Qt::AlignRight);
 	nr12_set->setLayout(nr12_layout);
 
 	//NR13
 	QWidget* nr13_set = new QWidget(io_regs);
-	QLabel* nr13_label = new QLabel("0xFF13 - NR13: \t");
-	mmio_nr13 = new QLineEdit(io_regs);
+	QLabel* nr13_label = new QLabel("0xFF13 - NR13:", nr13_set);
+	mmio_nr13 = new QLineEdit(nr13_set);
 	mmio_nr13->setMaximumWidth(64);
 	mmio_nr13->setReadOnly(true);
 
 	QHBoxLayout* nr13_layout = new QHBoxLayout;
 	nr13_layout->addWidget(nr13_label, 0, Qt::AlignLeft);
-	nr13_layout->addWidget(mmio_nr13, 0, Qt::AlignLeft);
+	nr13_layout->addWidget(mmio_nr13, 0, Qt::AlignRight);
 	nr13_set->setLayout(nr13_layout);
 
 	//NR14
 	QWidget* nr14_set = new QWidget(io_regs);
-	QLabel* nr14_label = new QLabel("0xFF14 - NR14: \t");
-	mmio_nr14 = new QLineEdit(io_regs);
+	QLabel* nr14_label = new QLabel("0xFF14 - NR14:", nr14_set);
+	mmio_nr14 = new QLineEdit(nr14_set);
 	mmio_nr14->setMaximumWidth(64);
 	mmio_nr14->setReadOnly(true);
 
 	QHBoxLayout* nr14_layout = new QHBoxLayout;
 	nr14_layout->addWidget(nr14_label, 0, Qt::AlignLeft);
-	nr14_layout->addWidget(mmio_nr14, 0, Qt::AlignLeft);
+	nr14_layout->addWidget(mmio_nr14, 0, Qt::AlignRight);
 	nr14_set->setLayout(nr14_layout);
+
+	//NR21
+	QWidget* nr21_set = new QWidget(io_regs);
+	QLabel* nr21_label = new QLabel("0xFF16 - NR21:", nr21_set);
+	mmio_nr21 = new QLineEdit(nr21_set);
+	mmio_nr21->setMaximumWidth(64);
+	mmio_nr21->setReadOnly(true);
+
+	QHBoxLayout* nr21_layout = new QHBoxLayout;
+	nr21_layout->addWidget(nr21_label, 0, Qt::AlignLeft);
+	nr21_layout->addWidget(mmio_nr21, 0, Qt::AlignRight);
+	nr21_set->setLayout(nr21_layout);
+
+	//NR22
+	QWidget* nr22_set = new QWidget(io_regs);
+	QLabel* nr22_label = new QLabel("0xFF17 - NR22:", nr22_set);
+	mmio_nr22 = new QLineEdit(nr22_set);
+	mmio_nr22->setMaximumWidth(64);
+	mmio_nr22->setReadOnly(true);
+
+	QHBoxLayout* nr22_layout = new QHBoxLayout;
+	nr22_layout->addWidget(nr22_label, 0, Qt::AlignLeft);
+	nr22_layout->addWidget(mmio_nr22, 0, Qt::AlignRight);
+	nr22_set->setLayout(nr22_layout);
+
+	//NR23
+	QWidget* nr23_set = new QWidget(io_regs);
+	QLabel* nr23_label = new QLabel("0xFF18 - NR23:", nr23_set);
+	mmio_nr23 = new QLineEdit(nr23_set);
+	mmio_nr23->setMaximumWidth(64);
+	mmio_nr23->setReadOnly(true);
+
+	QHBoxLayout* nr23_layout = new QHBoxLayout;
+	nr23_layout->addWidget(nr23_label, 0, Qt::AlignLeft);
+	nr23_layout->addWidget(mmio_nr23, 0, Qt::AlignRight);
+	nr23_set->setLayout(nr23_layout);
+
+	//NR24
+	QWidget* nr24_set = new QWidget(io_regs);
+	QLabel* nr24_label = new QLabel("0xFF19 - NR24:", nr24_set);
+	mmio_nr24 = new QLineEdit(nr24_set);
+	mmio_nr24->setMaximumWidth(64);
+	mmio_nr24->setReadOnly(true);
+
+	QHBoxLayout* nr24_layout = new QHBoxLayout;
+	nr24_layout->addWidget(nr24_label, 0, Qt::AlignLeft);
+	nr24_layout->addWidget(mmio_nr24, 0, Qt::AlignRight);
+	nr24_set->setLayout(nr24_layout);
+
+	//NR30
+	QWidget* nr30_set = new QWidget(io_regs);
+	QLabel* nr30_label = new QLabel("0xFF1A - NR30:", nr30_set);
+	mmio_nr30 = new QLineEdit(nr30_set);
+	mmio_nr30->setMaximumWidth(64);
+	mmio_nr30->setReadOnly(true);
+
+	QHBoxLayout* nr30_layout = new QHBoxLayout;
+	nr30_layout->addWidget(nr30_label, 0, Qt::AlignLeft);
+	nr30_layout->addWidget(mmio_nr30, 0, Qt::AlignRight);
+	nr30_set->setLayout(nr30_layout);
+
+	//NR31
+	QWidget* nr31_set = new QWidget(io_regs);
+	QLabel* nr31_label = new QLabel("0xFF1B - NR31:", nr31_set);
+	mmio_nr31 = new QLineEdit(nr31_set);
+	mmio_nr31->setMaximumWidth(64);
+	mmio_nr31->setReadOnly(true);
+
+	QHBoxLayout* nr31_layout = new QHBoxLayout;
+	nr31_layout->addWidget(nr31_label, 0, Qt::AlignLeft);
+	nr31_layout->addWidget(mmio_nr31, 0, Qt::AlignRight);
+	nr31_set->setLayout(nr31_layout);
+
+	//NR32
+	QWidget* nr32_set = new QWidget(io_regs);
+	QLabel* nr32_label = new QLabel("0xFF1C - NR32:", nr32_set);
+	mmio_nr32 = new QLineEdit(nr32_set);
+	mmio_nr32->setMaximumWidth(64);
+	mmio_nr32->setReadOnly(true);
+
+	QHBoxLayout* nr32_layout = new QHBoxLayout;
+	nr32_layout->addWidget(nr32_label, 0, Qt::AlignLeft);
+	nr32_layout->addWidget(mmio_nr32, 0, Qt::AlignRight);
+	nr32_set->setLayout(nr32_layout);
+
+	//NR33
+	QWidget* nr33_set = new QWidget(io_regs);
+	QLabel* nr33_label = new QLabel("0xFF1D - NR33:", nr33_set);
+	mmio_nr33 = new QLineEdit(nr33_set);
+	mmio_nr33->setMaximumWidth(64);
+	mmio_nr33->setReadOnly(true);
+
+	QHBoxLayout* nr33_layout = new QHBoxLayout;
+	nr33_layout->addWidget(nr33_label, 0, Qt::AlignLeft);
+	nr33_layout->addWidget(mmio_nr33, 0, Qt::AlignRight);
+	nr33_set->setLayout(nr33_layout);
+
+	//NR34
+	QWidget* nr34_set = new QWidget(io_regs);
+	QLabel* nr34_label = new QLabel("0xFF1E - NR34:", nr34_set);
+	mmio_nr34 = new QLineEdit(nr34_set);
+	mmio_nr34->setMaximumWidth(64);
+	mmio_nr34->setReadOnly(true);
+
+	QHBoxLayout* nr34_layout = new QHBoxLayout;
+	nr34_layout->addWidget(nr34_label, 0, Qt::AlignLeft);
+	nr34_layout->addWidget(mmio_nr34, 0, Qt::AlignRight);
+	nr34_set->setLayout(nr34_layout);
 
 	//MMIO tab layout
 	QGridLayout* io_layout = new QGridLayout;
+	io_layout->setVerticalSpacing(0);
+	io_layout->setHorizontalSpacing(0);
 	io_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	io_layout->addWidget(lcdc_set, 0, 0, 1, 1);
 	io_layout->addWidget(stat_set, 1, 0, 1, 1);
@@ -248,15 +358,25 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	io_layout->addWidget(dma_set, 6, 0, 1, 1);
 	io_layout->addWidget(bgp_set, 7, 0, 1, 1);
 	io_layout->addWidget(obp0_set, 8, 0, 1, 1);
+	io_layout->addWidget(obp1_set, 9, 0, 1, 1);
+	io_layout->addWidget(wy_set, 10, 0, 1, 1);
+	io_layout->addWidget(wx_set, 11, 0, 1, 1);
 
-	io_layout->addWidget(obp1_set, 0, 1, 1, 1);
-	io_layout->addWidget(wy_set, 1, 1, 1, 1);
-	io_layout->addWidget(wx_set, 2, 1, 1, 1);
-	io_layout->addWidget(nr10_set, 3, 1, 1, 1);
-	io_layout->addWidget(nr11_set, 4, 1, 1, 1);
-	io_layout->addWidget(nr12_set, 5, 1, 1, 1);
-	io_layout->addWidget(nr13_set, 6, 1, 1, 1);
-	io_layout->addWidget(nr14_set, 7, 1, 1, 1);
+	io_layout->addWidget(nr10_set, 0, 1, 1, 1);
+	io_layout->addWidget(nr11_set, 1, 1, 1, 1);
+	io_layout->addWidget(nr12_set, 2, 1, 1, 1);
+	io_layout->addWidget(nr13_set, 3, 1, 1, 1);
+	io_layout->addWidget(nr14_set, 4, 1, 1, 1);
+	io_layout->addWidget(nr21_set, 5, 1, 1, 1);
+	io_layout->addWidget(nr22_set, 6, 1, 1, 1);
+	io_layout->addWidget(nr23_set, 7, 1, 1, 1);
+	io_layout->addWidget(nr24_set, 8, 1, 1, 1);
+	io_layout->addWidget(nr30_set, 9, 1, 1, 1);
+	io_layout->addWidget(nr31_set, 10, 1, 1, 1);
+	io_layout->addWidget(nr32_set, 11, 1, 1, 1);
+
+	io_layout->addWidget(nr33_set, 0, 2, 1, 1);
+	io_layout->addWidget(nr34_set, 1, 2, 1, 1);
 
 	io_regs->setLayout(io_layout);
 
@@ -588,7 +708,7 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	dasm_mapper->setMapping(dasm->verticalScrollBar(), 1);
 	connect(dasm_mapper, SIGNAL(mapped(int)), this, SLOT(scroll_count(int)));
 
-	resize(800, 450);
+	resize(800, 500);
 	setWindowTitle(tr("DMG-GBC Debugger"));
 
 	debug_reset = true;
@@ -662,6 +782,33 @@ void dmg_debug::refresh()
 
 	temp = main_menu::gbe_plus->ex_read_u8(NR14);
 	mmio_nr14->setText(QString("%1").arg(temp, 2, 16, QChar('0')).toUpper().prepend("0x"));
+
+	temp = main_menu::gbe_plus->ex_read_u8(NR21);
+	mmio_nr21->setText(QString("%1").arg(temp, 2, 16, QChar('0')).toUpper().prepend("0x"));
+
+	temp = main_menu::gbe_plus->ex_read_u8(NR22);
+	mmio_nr22->setText(QString("%1").arg(temp, 2, 16, QChar('0')).toUpper().prepend("0x"));
+
+	temp = main_menu::gbe_plus->ex_read_u8(NR23);
+	mmio_nr23->setText(QString("%1").arg(temp, 2, 16, QChar('0')).toUpper().prepend("0x"));
+
+	temp = main_menu::gbe_plus->ex_read_u8(NR24);
+	mmio_nr24->setText(QString("%1").arg(temp, 2, 16, QChar('0')).toUpper().prepend("0x"));
+
+	temp = main_menu::gbe_plus->ex_read_u8(NR30);
+	mmio_nr30->setText(QString("%1").arg(temp, 2, 16, QChar('0')).toUpper().prepend("0x"));
+
+	temp = main_menu::gbe_plus->ex_read_u8(NR31);
+	mmio_nr31->setText(QString("%1").arg(temp, 2, 16, QChar('0')).toUpper().prepend("0x"));
+
+	temp = main_menu::gbe_plus->ex_read_u8(NR32);
+	mmio_nr32->setText(QString("%1").arg(temp, 2, 16, QChar('0')).toUpper().prepend("0x"));
+
+	temp = main_menu::gbe_plus->ex_read_u8(NR33);
+	mmio_nr33->setText(QString("%1").arg(temp, 2, 16, QChar('0')).toUpper().prepend("0x"));
+
+	temp = main_menu::gbe_plus->ex_read_u8(NR34);
+	mmio_nr34->setText(QString("%1").arg(temp, 2, 16, QChar('0')).toUpper().prepend("0x"));
 
 	//DMG Palettes
 	if(config::gb_type != 2)
