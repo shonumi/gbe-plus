@@ -1400,7 +1400,6 @@ bool DMG_MMU::load_backup(std::string filename)
 
 		else 
 		{
-
 			//Read MBC RAM
 			if((cart.mbc_type != ROM_ONLY) && (cart.mbc_type != MBC7))
 			{
@@ -1423,6 +1422,13 @@ bool DMG_MMU::load_backup(std::string filename)
 			{
 				u8* ex_ram = &memory_map[0xA000];
 				sram.read((char*)ex_ram, 0x2000);
+			}
+
+			//Read RTC data
+			if(cart.rtc) 
+			{
+				u8* ex_ram = &cart.rtc_reg[0];
+				sram.read((char*)ex_ram, 0x5);
 			} 
 		}
 
