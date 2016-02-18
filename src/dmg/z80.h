@@ -103,7 +103,6 @@ class Z80
 	{
 		DMG_LCD video;
 		DMG_APU audio;
-		//dmg timer;
 	} controllers;
 
 	//Core Functions
@@ -113,6 +112,10 @@ class Z80
 	void reset_bios();
 	void exec_op(u8 opcode);
 	void exec_op(u16 opcode);
+
+	//Serialize data for save state loading/saving
+	bool cpu_read(u32 offset, std::string filename);
+	bool cpu_write(std::string filename);
 
 	//Interrupt handling
 	bool handle_interrupts();

@@ -88,6 +88,85 @@ void Z80::reset_bios()
 	std::cout<<"CPU::Initialized\n";
 }
 
+/****** Read CPU data to save state ******/
+bool Z80::cpu_read(u32 offset, std::string filename)
+{
+	std::ifstream file(filename.c_str(), std::ios::binary);
+	
+	if(!file.is_open()) { return false; }
+
+	//Go to offset
+	file.seekg(offset);
+
+	//Serialize CPU registers data to file stream
+	file.read((char*)&reg.a, sizeof(reg.a));
+	file.read((char*)&reg.b, sizeof(reg.b));
+	file.read((char*)&reg.c, sizeof(reg.c));
+	file.read((char*)&reg.d, sizeof(reg.d));
+	file.read((char*)&reg.e, sizeof(reg.e));
+	file.read((char*)&reg.h, sizeof(reg.h));
+	file.read((char*)&reg.l, sizeof(reg.l));
+	file.read((char*)&reg.f, sizeof(reg.f));
+	file.read((char*)&reg.pc, sizeof(reg.pc));
+	file.read((char*)&reg.sp, sizeof(reg.sp));
+
+	//Serialize CPU clock data to file stream
+	file.read((char*)&cpu_clock_m, sizeof(cpu_clock_m));
+	file.read((char*)&cpu_clock_t, sizeof(cpu_clock_t));
+	file.read((char*)&div_counter, sizeof(div_counter));
+	file.read((char*)&tima_counter, sizeof(tima_counter));
+	file.read((char*)&tima_speed, sizeof(tima_speed));
+	file.read((char*)&cycles, sizeof(cycles));
+	
+	//Serialize misc CPU data to filestream
+	file.read((char*)&running, sizeof(running));
+	file.read((char*)&halt, sizeof(halt));
+	file.read((char*)&pause, sizeof(pause));
+	file.read((char*)&interrupt, sizeof(interrupt));
+	file.read((char*)&double_speed, sizeof(double_speed));
+
+	file.close();
+	return true;
+}
+
+/****** Write CPU data to save state ******/
+bool Z80::cpu_write(std::string filename)
+{
+	std::ofstream file(filename.c_str(), std::ios::binary);
+	
+	if(!file.is_open()) { return false; }
+
+	//Serialize CPU registers data to file stream
+	file.write((char*)&reg.a, sizeof(reg.a));
+	file.write((char*)&reg.b, sizeof(reg.b));
+	file.write((char*)&reg.c, sizeof(reg.c));
+	file.write((char*)&reg.d, sizeof(reg.d));
+	file.write((char*)&reg.e, sizeof(reg.e));
+	file.write((char*)&reg.h, sizeof(reg.h));
+	file.write((char*)&reg.l, sizeof(reg.l));
+	file.write((char*)&reg.f, sizeof(reg.f));
+	file.write((char*)&reg.pc, sizeof(reg.pc));
+	file.write((char*)&reg.sp, sizeof(reg.sp));
+
+	//Serialize CPU clock data to file stream
+	file.write((char*)&cpu_clock_m, sizeof(cpu_clock_m));
+	file.write((char*)&cpu_clock_t, sizeof(cpu_clock_t));
+	file.write((char*)&div_counter, sizeof(div_counter));
+	file.write((char*)&tima_counter, sizeof(tima_counter));
+	file.write((char*)&tima_speed, sizeof(tima_speed));
+	file.write((char*)&cycles, sizeof(cycles));
+	
+	//Serialize misc CPU data to filestream
+	file.write((char*)&running, sizeof(running));
+	file.write((char*)&halt, sizeof(halt));
+	file.write((char*)&pause, sizeof(pause));
+	file.write((char*)&interrupt, sizeof(interrupt));
+	file.write((char*)&double_speed, sizeof(double_speed));
+
+	file.close();
+	return true;
+}
+
 /****** Handle Interrupts to Z80 ******/
 bool Z80::handle_interrupts()
 {

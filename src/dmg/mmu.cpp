@@ -76,6 +76,73 @@ void DMG_MMU::reset()
 	std::cout<<"MMU::Initialized\n";
 }
 
+/****** Read MMU data to save state ******/
+bool DMG_MMU::mmu_read(u32 offset, std::string filename)
+{
+	std::ifstream file(filename.c_str(), std::ios::binary);
+	
+	if(!file.is_open()) { return false; }
+
+	//Go to offset
+	file.seekg(offset);
+
+	//Serialize DMG/GBC RAM from save state
+	u8* ex_ram = &memory_map[0x8000];
+	file.read((char*)ex_ram, 0x8000);
+
+	for(int x = 0; x < 0x2; x++)
+	{
+		ex_ram = &video_ram[x][0];
+		file.read((char*)ex_ram, 0x1000);
+	}
+
+	//Serialize misc MMU data from save state
+	file.read((char*)&rom_bank, sizeof(rom_bank));
+	file.read((char*)&ram_bank, sizeof(ram_bank));
+	file.read((char*)&wram_bank, sizeof(wram_bank));
+	file.read((char*)&vram_bank, sizeof(vram_bank));
+	file.read((char*)&bank_bits, sizeof(bank_bits));
+	file.read((char*)&bank_mode, sizeof(bank_mode));
+	file.read((char*)&ram_banking_enabled, sizeof(ram_banking_enabled));
+	file.read((char*)&in_bios, sizeof(in_bios));
+	file.read((char*)&bios_type, sizeof(bios_type));
+	file.read((char*)&bios_size, sizeof(bios_size));
+	file.read((char*)&cart, sizeof(cart));
+	file.read((char*)&previous_value, sizeof(previous_value));
+
+	file.close();
+	return true;
+}
+
+/****** Write MMU data to save state ******/
+bool DMG_MMU::mmu_write(std::string filename)
+{
+	std::ofstream file(filename.c_str(), std::ios::binary | std::ios::app);
+	
+	if(!file.is_open()) { return false; }
+
+	//Serialize DMG/GBC RAM to save state
+	file.write(reinterpret_cast<char*> (&memory_map[0x8000]), 0x8000);
+	for(int x = 0; x < 0x2; x++) { file.write(reinterpret_cast<char*> (&video_ram[x][0]), 0x1000); }
+
+	//Serialize misc MMU data to save state
+	file.write((char*)&rom_bank, sizeof(rom_bank));
+	file.write((char*)&ram_bank, sizeof(ram_bank));
+	file.write((char*)&wram_bank, sizeof(wram_bank));
+	file.write((char*)&vram_bank, sizeof(vram_bank));
+	file.write((char*)&bank_bits, sizeof(bank_bits));
+	file.write((char*)&bank_mode, sizeof(bank_mode));
+	file.write((char*)&ram_banking_enabled, sizeof(ram_banking_enabled));
+	file.write((char*)&in_bios, sizeof(in_bios));
+	file.write((char*)&bios_type, sizeof(bios_type));
+	file.write((char*)&bios_size, sizeof(bios_size));
+	file.write((char*)&cart, sizeof(cart));
+	file.write((char*)&previous_value, sizeof(previous_value));
+
+	file.close();
+	return true;
+}
+	
 /****** Read byte from memory ******/
 u8 DMG_MMU::read_u8(u16 address) 
 { 

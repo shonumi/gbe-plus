@@ -136,6 +136,10 @@ class DMG_MMU
 	void set_cgfx_data(dmg_cgfx_data* ex_cgfx_stat);
 	void set_apu_data(dmg_apu_data* ex_apu_stat);
 
+	//Serialize data for save state loading/saving
+	bool mmu_read(u32 offset, std::string filename);
+	bool mmu_write(std::string filename);
+
 	private:
 
 	u8 previous_value;
