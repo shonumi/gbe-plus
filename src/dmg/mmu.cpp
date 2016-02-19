@@ -618,6 +618,7 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		{
 			//Internal APU time-keeping
 			apu_stat->channel[2].frequency_distance = 0;
+			apu_stat->channel[2].sample_length = (apu_stat->channel[2].duration * apu_stat->sample_rate)/1000;
 		}
 	}
 
