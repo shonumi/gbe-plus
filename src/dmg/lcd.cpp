@@ -72,7 +72,7 @@ void DMG_LCD::reset()
 	lcd_stat.window_y = 0;
 
 	lcd_stat.oam_update = true;
-	lcd_stat.oam_update_list.resize(40, true);
+	for(int x = 0; x < 40; x++) { lcd_stat.oam_update_list[x] = true; }
 
 	lcd_stat.on_off = false;
 
@@ -202,6 +202,53 @@ bool DMG_LCD::init()
 
 	std::cout<<"LCD::Initialized\n";
 
+	return true;
+}
+
+/****** Read LCD data from save state ******/
+bool DMG_LCD::lcd_read(u32 offset, std::string filename)
+{
+	std::ifstream file(filename.c_str(), std::ios::binary);
+	
+	if(!file.is_open()) { return false; }
+
+	//Go to offset
+	file.seekg(offset);
+
+	//Serialize LCD data from file stream
+	file.read((char*)&lcd_stat, sizeof(lcd_stat));
+	file.read((char*)&obj_render_list, sizeof(obj_render_list));
+	file.read((char*)&obj_render_length, sizeof(lcd_stat));
+
+	//Serialize OBJ data from file stream
+	for(int x = 0; x < 40; x++)
+	{
+		file.read((char*)&obj[x], sizeof(obj[x]));
+	}
+
+	file.close();
+	return true;
+}
+
+/****** Read LCD data from save state ******/
+bool DMG_LCD::lcd_write(std::string filename)
+{
+	std::ofstream file(filename.c_str(), std::ios::binary | std::ios::app);
+	
+	if(!file.is_open()) { return false; }
+
+	//Serialize LCD data to file stream
+	file.write((char*)&lcd_stat, sizeof(lcd_stat));
+	file.write((char*)&obj_render_list, sizeof(obj_render_list));
+	file.write((char*)&obj_render_length, sizeof(lcd_stat));
+
+	//Serialize OBJ data to file stream
+	for(int x = 0; x < 40; x++)
+	{
+		file.write((char*)&obj[x], sizeof(obj[x]));
+	}
+
+	file.close();
 	return true;
 }
 

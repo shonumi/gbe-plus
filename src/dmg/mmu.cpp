@@ -76,7 +76,7 @@ void DMG_MMU::reset()
 	std::cout<<"MMU::Initialized\n";
 }
 
-/****** Read MMU data to save state ******/
+/****** Read MMU data from save state ******/
 bool DMG_MMU::mmu_read(u32 offset, std::string filename)
 {
 	std::ifstream file(filename.c_str(), std::ios::binary);
@@ -93,6 +93,12 @@ bool DMG_MMU::mmu_read(u32 offset, std::string filename)
 	for(int x = 0; x < 0x2; x++)
 	{
 		ex_ram = &video_ram[x][0];
+		file.read((char*)ex_ram, 0x2000);
+	}
+
+	for(int x = 0; x < 0x8; x++)
+	{
+		ex_ram = &working_ram_bank[x][0];
 		file.read((char*)ex_ram, 0x1000);
 	}
 
@@ -123,7 +129,8 @@ bool DMG_MMU::mmu_write(std::string filename)
 
 	//Serialize DMG/GBC RAM to save state
 	file.write(reinterpret_cast<char*> (&memory_map[0x8000]), 0x8000);
-	for(int x = 0; x < 0x2; x++) { file.write(reinterpret_cast<char*> (&video_ram[x][0]), 0x1000); }
+	for(int x = 0; x < 0x2; x++) { file.write(reinterpret_cast<char*> (&video_ram[x][0]), 0x2000); }
+	for(int x = 0; x < 0x8; x++) { file.write(reinterpret_cast<char*> (&working_ram_bank[x][0]), 0x1000); }
 
 	//Serialize misc MMU data to save state
 	file.write((char*)&rom_bank, sizeof(rom_bank));

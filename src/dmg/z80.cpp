@@ -88,7 +88,7 @@ void Z80::reset_bios()
 	std::cout<<"CPU::Initialized\n";
 }
 
-/****** Read CPU data to save state ******/
+/****** Read CPU data from save state ******/
 bool Z80::cpu_read(u32 offset, std::string filename)
 {
 	std::ifstream file(filename.c_str(), std::ios::binary);
@@ -132,7 +132,7 @@ bool Z80::cpu_read(u32 offset, std::string filename)
 /****** Write CPU data to save state ******/
 bool Z80::cpu_write(std::string filename)
 {
-	std::ofstream file(filename.c_str(), std::ios::binary);
+	std::ofstream file(filename.c_str(), std::ios::binary | std::ios::app);
 	
 	if(!file.is_open()) { return false; }
 

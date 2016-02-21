@@ -49,7 +49,7 @@ struct dmg_lcd_data
         u8 flip_16[16];
 
 	bool oam_update;
-	std::vector<bool> oam_update_list;
+	bool oam_update_list[40];
 
 	bool on_off;
 

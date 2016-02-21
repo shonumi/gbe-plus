@@ -53,6 +53,10 @@ class DMG_LCD
 	bool has_hash(u16 addr, std::string hash);
 	u32 adjust_pixel_brightness(u32 color, u8 palette_id, u8 gfx_type);
 
+	//Serialize data for save state loading/saving
+	bool lcd_read(u32 offset, std::string filename);
+	bool lcd_write(std::string filename);
+
 	//Screen data
 	SDL_Surface* final_screen;
 	GLuint lcd_texture;
