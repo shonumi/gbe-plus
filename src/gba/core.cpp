@@ -148,6 +148,12 @@ void AGB_core::reset()
 	start();
 }
 
+/****** Loads a save state ******/
+void AGB_core::load_state(u8 slot) { }
+
+/****** Saves a save state ******/
+void AGB_core::save_state(u8 slot) { }
+
 /****** Run the core in a loop until exit ******/
 void AGB_core::run_core()
 {

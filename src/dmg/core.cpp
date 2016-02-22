@@ -112,7 +112,7 @@ void DMG_core::reset()
 }
 
 /****** Loads a save state ******/
-void DMG_core::load_state()
+void DMG_core::load_state(u8 slot)
 {
 	std::string state_file = config::rom_file + ".ss";
 
@@ -132,7 +132,7 @@ void DMG_core::load_state()
 }
 
 /****** Saves a save state ******/
-void DMG_core::save_state()
+void DMG_core::save_state(u8 slot)
 {
 	std::string state_file = config::rom_file + ".ss";
 
@@ -1085,13 +1085,13 @@ void DMG_core::handle_hotkey(SDL_Event& event)
 	//Quick save state on F1
 	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F1)) 
 	{
-		save_state();
+		save_state(0);
 	}
 
 	//Quick load save state on F2
 	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F2)) 
 	{
-		load_state();
+		load_state(0);
 	}
 
 	//Screenshot on F9

@@ -35,6 +35,8 @@ class AGB_core : virtual public core_emu
 		void handle_hotkey(int input, bool pressed);
 		void update_volume(u8 volume);
 		void feed_key_input(int sdl_key, bool pressed);
+		void save_state(u8 slot);
+		void load_state(u8 slot);
 		void run_core();
 
 		//Core debugging

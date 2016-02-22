@@ -35,6 +35,8 @@ class core_emu
 	virtual void handle_hotkey(int input, bool pressed) = 0;
 	virtual void update_volume(u8 volume) = 0;
 	virtual void feed_key_input(int sdl_key, bool pressed) = 0;
+	virtual	void save_state(u8 slot) = 0;
+	virtual	void load_state(u8 slot) = 0;
 
 	//Core debugging
 	virtual	void debug_step() = 0;
