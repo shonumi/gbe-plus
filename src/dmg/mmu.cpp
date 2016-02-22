@@ -102,6 +102,12 @@ bool DMG_MMU::mmu_read(u32 offset, std::string filename)
 		file.read((char*)ex_ram, 0x1000);
 	}
 
+	for(int x = 0; x < 0x10; x++)
+	{
+		ex_ram = &random_access_bank[x][0];
+		file.read((char*)ex_ram, 0x2000);
+	}
+
 	//Serialize misc MMU data from save state
 	file.read((char*)&rom_bank, sizeof(rom_bank));
 	file.read((char*)&ram_bank, sizeof(ram_bank));
@@ -124,6 +130,8 @@ bool DMG_MMU::mmu_read(u32 offset, std::string filename)
 bool DMG_MMU::mmu_write(std::string filename)
 {
 	std::ofstream file(filename.c_str(), std::ios::binary | std::ios::app);
+
+	u32 block_size = 0;
 	
 	if(!file.is_open()) { return false; }
 
@@ -131,6 +139,9 @@ bool DMG_MMU::mmu_write(std::string filename)
 	file.write(reinterpret_cast<char*> (&memory_map[0x8000]), 0x8000);
 	for(int x = 0; x < 0x2; x++) { file.write(reinterpret_cast<char*> (&video_ram[x][0]), 0x2000); }
 	for(int x = 0; x < 0x8; x++) { file.write(reinterpret_cast<char*> (&working_ram_bank[x][0]), 0x1000); }
+	for(int x = 0; x < 0x10; x++) { file.write(reinterpret_cast<char*> (&random_access_bank[x][0]), 0x2000); }
+
+	block_size = 0x34000;
 
 	//Serialize misc MMU data to save state
 	file.write((char*)&rom_bank, sizeof(rom_bank));

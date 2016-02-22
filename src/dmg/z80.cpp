@@ -132,7 +132,7 @@ bool Z80::cpu_read(u32 offset, std::string filename)
 /****** Write CPU data to save state ******/
 bool Z80::cpu_write(std::string filename)
 {
-	std::ofstream file(filename.c_str(), std::ios::binary | std::ios::app);
+	std::ofstream file(filename.c_str(), std::ios::binary | std::ios::trunc);
 	
 	if(!file.is_open()) { return false; }
 

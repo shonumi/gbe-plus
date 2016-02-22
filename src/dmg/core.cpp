@@ -111,6 +111,39 @@ void DMG_core::reset()
 	start();
 }
 
+/****** Loads a save state ******/
+void DMG_core::load_state()
+{
+	std::string state_file = config::rom_file + ".ss";
+
+	//Offset 0, size 41
+	if(!core_cpu.cpu_read(0, state_file)) { return; }
+	
+	//Offset 41, size 213047
+	if(!core_mmu.mmu_read(41, state_file)) { return; }
+
+	//Offset 213088, size 320
+	if(!core_cpu.controllers.audio.apu_read(213088, state_file)) { return; }
+
+	//Offset 213408
+	if(!core_cpu.controllers.video.lcd_read(213408, state_file)) { return; }
+
+	std::cout<<"GBE::Loaded state " << state_file << "\n";
+}
+
+/****** Saves a save state ******/
+void DMG_core::save_state()
+{
+	std::string state_file = config::rom_file + ".ss";
+
+	if(!core_cpu.cpu_write(state_file)) { return; }
+	if(!core_mmu.mmu_write(state_file)) { return; }
+	if(!core_cpu.controllers.audio.apu_write(state_file)) { return; }
+	if(!core_cpu.controllers.video.lcd_write(state_file)) { return; }
+
+	std::cout<<"GBE::Saved state " << state_file << "\n";
+}
+
 /****** Run the core in a loop until exit ******/
 void DMG_core::run_core()
 {
@@ -1047,6 +1080,18 @@ void DMG_core::handle_hotkey(SDL_Event& event)
 	{
 		running = false; 
 		SDL_Quit();
+	}
+
+	//Quick save state on F1
+	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F1)) 
+	{
+		save_state();
+	}
+
+	//Quick load save state on F2
+	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F2)) 
+	{
+		load_state();
 	}
 
 	//Screenshot on F9
