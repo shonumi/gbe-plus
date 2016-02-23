@@ -96,8 +96,8 @@ class DMG_LCD
 	std::vector<u32> scanline_buffer;
 	std::vector<u32> screen_buffer;
 	std::vector<u32> hd_screen_buffer;
-	std::vector<u32> scanline_raw;
-	std::vector<u32> scanline_priority;
+	std::vector<u8> scanline_raw;
+	std::vector<u8> scanline_priority;
 	std::vector<u32> stretched_buffer;
 
 	int frame_start_time;

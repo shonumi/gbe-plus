@@ -15,6 +15,7 @@
 
 #include "common/config.h"
 #include "common/cgfx_common.h"
+#include "common/util.h"
 
 /****** Main menu constructor ******/
 main_menu::main_menu(QWidget *parent) : QWidget(parent)
@@ -61,6 +62,9 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	file = new QMenu(tr("&File"), this);
 	file->addAction(open);
 	recent_list = file->addMenu(tr("Recent Files"));
+	file->addSeparator();
+	state_save_list = file->addMenu(tr("Save State"));
+	state_load_list = file->addMenu(tr("Load State"));
 	file->addSeparator();
 	file->addAction(quit);
 	menu_bar->addMenu(file);
@@ -147,6 +151,62 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	}
 
 	connect(list_mapper, SIGNAL(mapped(int)), this, SLOT(load_recent(int)));
+
+	//Setup Save States
+	QSignalMapper* save_mapper = new QSignalMapper(this);
+
+	for(int x = 0; x < 10; x++)
+	{
+		QAction* temp;
+
+		if(x == 0) 
+		{
+			temp = new QAction(tr("Quick Save"), this);
+			temp->setShortcut(tr("F1"));
+		}
+		
+		else
+		{
+			std::string slot_id = "Slot " + util::to_str(x);
+			QString slot_name = QString::fromStdString(slot_id);
+			temp = new QAction(slot_name, this);
+		}
+
+		state_save_list->addAction(temp);
+
+		connect(temp, SIGNAL(triggered()), save_mapper, SLOT(map()));
+		save_mapper->setMapping(temp, x);
+	}
+
+	connect(save_mapper, SIGNAL(mapped(int)), this, SLOT(save_state(int)));
+
+	//Setup Load States
+	QSignalMapper* load_mapper = new QSignalMapper(this);
+
+	for(int x = 0; x < 10; x++)
+	{
+		QAction* temp;
+
+		if(x == 0)
+		{
+			temp = new QAction(tr("Quick Load"), this);
+			temp->setShortcut(tr("F2"));
+		}
+		
+		else
+		{
+			std::string slot_id = "Slot " + util::to_str(x);
+			QString slot_name = QString::fromStdString(slot_id);
+			temp = new QAction(slot_name, this);
+		}
+
+		state_load_list->addAction(temp);
+
+		connect(temp, SIGNAL(triggered()), load_mapper, SLOT(map()));
+		load_mapper->setMapping(temp, x);
+	}
+
+	connect(load_mapper, SIGNAL(mapped(int)), this, SLOT(load_state(int)));
 
 	//Set up settings dialog
 	settings = new gen_settings();
@@ -605,6 +665,18 @@ void main_menu::load_recent(int file_id)
 	qt_gui::screen = NULL;
 
 	boot_game();
+}
+
+/****** Saves a save state ******/
+void main_menu::save_state(int slot)
+{
+	if(main_menu::gbe_plus != NULL)  { main_menu::gbe_plus->save_state(slot); }
+}
+
+/****** Loads a save state ******/
+void main_menu::load_state(int slot)
+{
+	if(main_menu::gbe_plus != NULL)  { main_menu::gbe_plus->load_state(slot); }
 }
 
 /****** Static definitions ******/

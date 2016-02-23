@@ -114,7 +114,10 @@ void DMG_core::reset()
 /****** Loads a save state ******/
 void DMG_core::load_state(u8 slot)
 {
+	std::string id = (slot > 0) ? util::to_str(slot) : "";
+
 	std::string state_file = config::rom_file + ".ss";
+	state_file += id;
 
 	//Offset 0, size 41
 	if(!core_cpu.cpu_read(0, state_file)) { return; }
@@ -134,7 +137,10 @@ void DMG_core::load_state(u8 slot)
 /****** Saves a save state ******/
 void DMG_core::save_state(u8 slot)
 {
+	std::string id = (slot > 0) ? util::to_str(slot) : "";
+
 	std::string state_file = config::rom_file + ".ss";
+	state_file += id;
 
 	if(!core_cpu.cpu_write(state_file)) { return; }
 	if(!core_mmu.mmu_write(state_file)) { return; }

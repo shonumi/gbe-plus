@@ -53,6 +53,8 @@ class main_menu : public QWidget
 	void show_debugger();
 	void show_about();
 	void load_recent(int file_id);
+	void save_state(int slot);
+	void load_state(int slot);
 
 	private:
 	gen_settings* settings;
@@ -60,6 +62,8 @@ class main_menu : public QWidget
 	QWidget* about_box;
 
 	QMenu* recent_list;
+	QMenu* state_save_list;
+	QMenu* state_load_list;
 
 	int menu_height;
 	u32 base_width;

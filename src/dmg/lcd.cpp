@@ -217,8 +217,6 @@ bool DMG_LCD::lcd_read(u32 offset, std::string filename)
 
 	//Serialize LCD data from file stream
 	file.read((char*)&lcd_stat, sizeof(lcd_stat));
-	file.read((char*)&obj_render_list, sizeof(obj_render_list));
-	file.read((char*)&obj_render_length, sizeof(lcd_stat));
 
 	//Serialize OBJ data from file stream
 	for(int x = 0; x < 40; x++)
@@ -239,8 +237,6 @@ bool DMG_LCD::lcd_write(std::string filename)
 
 	//Serialize LCD data to file stream
 	file.write((char*)&lcd_stat, sizeof(lcd_stat));
-	file.write((char*)&obj_render_list, sizeof(obj_render_list));
-	file.write((char*)&obj_render_length, sizeof(lcd_stat));
 
 	//Serialize OBJ data to file stream
 	for(int x = 0; x < 40; x++)
