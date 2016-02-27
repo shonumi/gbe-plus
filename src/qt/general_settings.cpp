@@ -797,6 +797,9 @@ void gen_settings::volume_change()
 	else { config::volume = volume->value(); }	
 }
 
+/****** Updates the core's volume - Used when loading save states ******/
+void gen_settings::update_volume() { mute(); }
+
 /****** Mutes the core's volume ******/
 void gen_settings::mute()
 {

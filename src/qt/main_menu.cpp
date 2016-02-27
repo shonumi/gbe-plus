@@ -676,7 +676,13 @@ void main_menu::save_state(int slot)
 /****** Loads a save state ******/
 void main_menu::load_state(int slot)
 {
-	if(main_menu::gbe_plus != NULL)  { main_menu::gbe_plus->load_state(slot); }
+	if(main_menu::gbe_plus != NULL)
+	{
+		main_menu::gbe_plus->load_state(slot);
+
+		//Apply current volume settings
+		settings->update_volume();
+	}
 }
 
 /****** Static definitions ******/

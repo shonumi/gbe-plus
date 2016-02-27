@@ -95,6 +95,8 @@ class gen_settings : public QDialog
 	QPushButton* config_l;
 	QPushButton* config_r;
 
+	void update_volume();
+
 	protected:
 	void paintEvent(QPaintEvent* event);
 	void keyPressEvent(QKeyEvent* event);
