@@ -13,6 +13,7 @@
 
 #include "debug_dmg.h"
 #include "main_menu.h"
+#include "render.h"
 
 /****** DMG/GBC debug constructor ******/
 dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
@@ -1065,6 +1066,8 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 
 	debug_reset = true;
 	text_select = 0;
+	pause = false;
+	old_pause = false;
 }
 
 /****** Closes the debugging window ******/
@@ -1073,8 +1076,23 @@ void dmg_debug::closeEvent(QCloseEvent* event) { close_debug(); }
 /****** Closes the debugging window ******/
 void dmg_debug::close_debug() 
 {
-	main_menu::gbe_plus->db_unit.debug_mode = false;
-	main_menu::gbe_plus->db_unit.last_command = "dq";
+	hide();
+
+	if(main_menu::gbe_plus->db_unit.last_command != "c")
+	{
+		main_menu::gbe_plus->db_unit.debug_mode = false;
+		main_menu::gbe_plus->db_unit.last_command = "dq";
+	}
+
+	else
+	{
+		main_menu::gbe_plus->db_unit.debug_mode = false;
+		main_menu::gbe_plus->db_unit.last_command = "dq";
+
+		main_menu::dmg_debugger->pause = false;
+		config::pause_emu = main_menu::dmg_debugger->old_pause;
+		qt_gui::draw_surface->pause_emu();
+	}	
 }
 
 /****** Refresh the display data ******/
@@ -1627,7 +1645,7 @@ void dmg_debug_step()
 	main_menu::dmg_debugger->auto_refresh();
 
 	//Wait for GUI action
-	while((main_menu::gbe_plus->db_unit.last_command == "") && (halt))
+	while(((main_menu::gbe_plus->db_unit.last_command == "") || (main_menu::gbe_plus->db_unit.last_command == "dq")) && (halt))
 	{
 		SDL_Delay(16);
 		QApplication::processEvents();
@@ -1680,7 +1698,12 @@ void dmg_debug_step()
 		else if(main_menu::gbe_plus->db_unit.last_command == "dq") 
 		{
 			halt = false;
+			main_menu::dmg_debugger->pause = false;
+			config::pause_emu = main_menu::dmg_debugger->old_pause;
+
 			if(!config::pause_emu) { SDL_PauseAudio(0); }
+
+			qt_gui::draw_surface->pause_emu();
 		}
 
 		//Continue waiting for a valid debugging command

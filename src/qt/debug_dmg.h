@@ -26,6 +26,8 @@ class dmg_debug : public QDialog
 	QPushButton* refresh_button;
 
 	u32 highlighted_dasm_line;
+	bool pause;
+	bool old_pause;
 
 	QTextEdit* dasm;
 	QString dasm_text;

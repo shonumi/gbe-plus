@@ -1852,7 +1852,7 @@ void DMG_LCD::step(int cpu_clock)
 				fps_count++;
 				if(((SDL_GetTicks() - fps_time) >= 1000) && (config::sdl_render)) 
 				{ 
-					fps_time = SDL_GetTicks(); 
+					fps_time = SDL_GetTicks();
 					config::title.str("");
 					config::title << "GBE+ " << fps_count << "FPS";
 					SDL_WM_SetCaption(config::title.str().c_str(), NULL);

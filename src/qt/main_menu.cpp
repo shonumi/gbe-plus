@@ -530,6 +530,8 @@ void main_menu::pause_emu()
 
 	SDL_PauseAudio(0);
 
+	if(dmg_debugger->pause) { return; }
+
 	//If CGFX is open, continue pause
 	if(cgfx->pause) { pause(); }
 
@@ -629,6 +631,10 @@ void main_menu::show_debugger()
 		if(config::gb_type <= 2) 
 		{
 			SDL_PauseAudio(1);
+			main_menu::dmg_debugger->old_pause = config::pause_emu;
+			main_menu::dmg_debugger->pause = true;
+			config::pause_emu = false;
+
 			config::debug_external = dmg_debug_step;
 			main_menu::dmg_debugger->auto_refresh();
 			main_menu::dmg_debugger->show();
