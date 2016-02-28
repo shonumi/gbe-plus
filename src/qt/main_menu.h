@@ -29,6 +29,7 @@ class main_menu : public QWidget
 	main_menu(QWidget *parent = 0);
 	static core_emu* gbe_plus;
 	static dmg_debug* dmg_debugger;
+	gbe_cgfx* cgfx;
 
 	void pause_emu();
 
@@ -58,7 +59,6 @@ class main_menu : public QWidget
 
 	private:
 	gen_settings* settings;
-	gbe_cgfx* cgfx;
 	QWidget* about_box;
 
 	QMenu* recent_list;

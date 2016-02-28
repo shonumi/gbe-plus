@@ -12,6 +12,7 @@
 #include "common/util.h"
 #include "cgfx.h"
 #include "main_menu.h"
+#include "render.h"
 
 #include <fstream>
 
@@ -846,7 +847,14 @@ QImage gbe_cgfx::grab_gbc_bg_data(int bg_index)
 void gbe_cgfx::closeEvent(QCloseEvent* event) { close_cgfx(); }
 
 /****** Closes the CGFX window ******/
-void gbe_cgfx::close_cgfx() { pause = false; config::pause_emu = false; advanced_box->hide(); }
+void gbe_cgfx::close_cgfx()
+{
+	if(!qt_gui::draw_surface->dmg_debugger->pause) { qt_gui::draw_surface->findChild<QAction*>("pause_action")->setEnabled(true); }
+
+	pause = false;
+	config::pause_emu = false;
+	advanced_box->hide();
+}
 
 /****** Closes the Advanced menu ******/
 void gbe_cgfx::close_advanced() { advanced_box->hide(); }

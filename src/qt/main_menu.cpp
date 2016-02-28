@@ -591,7 +591,9 @@ void main_menu::show_paths_settings() { settings->show(); settings->tabs->setCur
 
 /****** Shows the Custom Graphics dialog ******/
 void main_menu::show_cgfx() 
-{ 
+{
+	findChild<QAction*>("pause_action")->setEnabled(false);
+
 	cgfx->update_obj_window(8, 40);
 	cgfx->update_bg_window(8, 384);
 	
@@ -619,7 +621,8 @@ void main_menu::show_cgfx()
 
 	cgfx->show();
 	cgfx->pause = true;
-	pause();
+	
+	if(!dmg_debugger->pause) { pause(); }
 }
 
 /****** Shows the debugger ******/
@@ -630,6 +633,8 @@ void main_menu::show_debugger()
 		//Show DMG-GBC debugger
 		if(config::gb_type <= 2) 
 		{
+			findChild<QAction*>("pause_action")->setEnabled(false);
+
 			SDL_PauseAudio(1);
 			main_menu::dmg_debugger->old_pause = config::pause_emu;
 			main_menu::dmg_debugger->pause = true;

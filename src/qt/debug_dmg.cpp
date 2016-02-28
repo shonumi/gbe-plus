@@ -1078,6 +1078,8 @@ void dmg_debug::close_debug()
 {
 	hide();
 
+	if(!qt_gui::draw_surface->cgfx->pause) { qt_gui::draw_surface->findChild<QAction*>("pause_action")->setEnabled(true); }
+
 	if(main_menu::gbe_plus->db_unit.last_command != "c")
 	{
 		main_menu::gbe_plus->db_unit.debug_mode = false;
