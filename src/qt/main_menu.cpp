@@ -53,7 +53,6 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	pause->setObjectName("pause_action");
 	fullscreen->setCheckable(true);
 
-	QMenuBar* menu_bar;
 	menu_bar = new QMenuBar(this);
 
 	//Setup File menu
@@ -122,17 +121,18 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	connect(debugging, SIGNAL(triggered()), this, SLOT(show_debugger()));
 	connect(about, SIGNAL(triggered()), this, SLOT(show_about()));
 
+	sw_screen = new soft_screen();
+
 	QVBoxLayout* layout = new QVBoxLayout;
+	layout->setContentsMargins(0, 0, 0, -1);
+	layout->addWidget(sw_screen);
 	layout->setMenuBar(menu_bar);
 	setLayout(layout);
-
-	menu_height = menu_bar->height();
 
 	config::scaling_factor = 2;
 
 	//Parse .ini options
 	parse_ini_file();
-
 
 	//Setup Recent Files
 	QSignalMapper* list_mapper = new QSignalMapper(this);
@@ -337,6 +337,8 @@ void main_menu::boot_game()
 
 	findChild<QAction*>("pause_action")->setChecked(false);
 
+	menu_height = menu_bar->height();
+
 	//Determine Gameboy type based on file name
 	//Note, DMG and GBC games are automatically detected in the Gameboy MMU, so only check for GBA types here
 	std::size_t dot = config::rom_file.find_last_of(".");
@@ -360,6 +362,7 @@ void main_menu::boot_game()
 
 		main_menu::gbe_plus = new AGB_core();
 		resize((base_width * config::scaling_factor), (base_height * config::scaling_factor) + menu_height);
+		sw_screen->resize((base_width * config::scaling_factor), (base_height * config::scaling_factor));
 		qt_gui::screen = new QImage(240, 160, QImage::Format_ARGB32);
 	}
 
@@ -370,6 +373,7 @@ void main_menu::boot_game()
 
 		main_menu::gbe_plus = new DMG_core();
 		resize((base_width * config::scaling_factor), (base_height * config::scaling_factor) + menu_height);
+		sw_screen->resize((base_width * config::scaling_factor), (base_height * config::scaling_factor));
 
 		if(qt_gui::screen != NULL) { delete qt_gui::screen; }
 		qt_gui::screen = new QImage(base_width, base_height, QImage::Format_ARGB32);
@@ -417,6 +421,7 @@ void main_menu::paintEvent(QPaintEvent* event)
 		if(settings->resize_screen)
 		{
 			resize((base_width * config::scaling_factor), (base_height * config::scaling_factor) + menu_height);
+			sw_screen->resize((base_width * config::scaling_factor), (base_height * config::scaling_factor));
 			settings->resize_screen = false;
 		}
 
@@ -430,12 +435,9 @@ void main_menu::paintEvent(QPaintEvent* event)
 			if(qt_gui::screen != NULL) { delete qt_gui::screen; }
 			qt_gui::screen = new QImage(config::sys_width, config::sys_height, QImage::Format_ARGB32);
 			resize((base_width * config::scaling_factor), (base_height * config::scaling_factor) + menu_height);
+			sw_screen->resize((base_width * config::scaling_factor), (base_height * config::scaling_factor));
 			config::request_resize = false;
 		}
-
-		QImage final_screen = qt_gui::screen->scaled(width(), height()-menu_height);
-		QPainter painter(this);
-		painter.drawImage(0, menu_height, final_screen);
 	}
 }
 

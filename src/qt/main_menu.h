@@ -17,6 +17,7 @@
 #include "general_settings.h"
 #include "cgfx.h"
 #include "debug_dmg.h"
+#include "screens.h"
 
 #include "gba/core.h"
 #include "dmg/core.h"
@@ -30,6 +31,14 @@ class main_menu : public QWidget
 	static core_emu* gbe_plus;
 	static dmg_debug* dmg_debugger;
 	gbe_cgfx* cgfx;
+
+	QMenuBar* menu_bar;
+
+	soft_screen* sw_screen;
+	hard_screen* hw_screen;
+	
+	u32 screen_height;
+	u32 screen_width;
 
 	void pause_emu();
 
