@@ -31,9 +31,11 @@ class hard_screen : public QGLWidget
 	
 	public:
 	hard_screen(QWidget *parent = 0);
+	GLuint lcd_texture;
 
 	protected:
-	void paintEvent(QPaintEvent* event);
+	void initializeGL();
+	void paintGL();
 };
 
 #endif //SCREENS_GBE_QT 
