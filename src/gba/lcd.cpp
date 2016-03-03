@@ -120,6 +120,10 @@ void AGB_LCD::reset()
 		lcd_stat.mode_0_width[x] = 256;
 		lcd_stat.mode_0_height[x] = 256;
 	}
+
+	//Initialize system screen dimensions
+	config::sys_width = 240;
+	config::sys_height = 160;
 }
 
 /****** Initialize LCD with SDL ******/
@@ -137,6 +141,11 @@ bool AGB_LCD::init()
 		else { final_screen = SDL_SetVideoMode(240, 160, 32, SDL_SWSURFACE); }
 
 		if(final_screen == NULL) { return false; }
+	}
+
+	else if((!config::sdl_render) && (config::use_opengl))
+	{
+		final_screen = SDL_CreateRGBSurface(SDL_SWSURFACE, config::sys_width, config::sys_height, 32, 0, 0, 0, 0);
 	}
 
 	std::cout<<"LCD::Initialized\n";
@@ -1091,7 +1100,20 @@ void AGB_LCD::update()
 	else
 	{
 		if(!config::use_opengl) { config::render_external_sw(screen_buffer); }
-		else{ config::render_external_hw(final_screen); }
+
+		else
+		{
+			//Lock source surface
+			if(SDL_MUSTLOCK(final_screen)){ SDL_LockSurface(final_screen); }
+			u32* out_pixel_data = (u32*)final_screen->pixels;
+
+			for(int a = 0; a < 0x9600; a++) { out_pixel_data[a] = screen_buffer[a]; }
+
+			//Unlock source surface
+			if(SDL_MUSTLOCK(final_screen)){ SDL_UnlockSurface(final_screen); }
+
+			config::render_external_hw(final_screen);
+		}
 	}
 }
 
@@ -1241,7 +1263,20 @@ void AGB_LCD::step()
 				else
 				{
 					if(!config::use_opengl) { config::render_external_sw(screen_buffer); }
-					else{ config::render_external_hw(final_screen); }
+
+					else
+					{
+						//Lock source surface
+						if(SDL_MUSTLOCK(final_screen)){ SDL_LockSurface(final_screen); }
+						u32* out_pixel_data = (u32*)final_screen->pixels;
+
+						for(int a = 0; a < 0x9600; a++) { out_pixel_data[a] = screen_buffer[a]; }
+
+						//Unlock source surface
+						if(SDL_MUSTLOCK(final_screen)){ SDL_UnlockSurface(final_screen); }
+
+						config::render_external_hw(final_screen);
+					}
 				}
 			}
 
