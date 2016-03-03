@@ -122,14 +122,19 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	connect(about, SIGNAL(triggered()), this, SLOT(show_about()));
 
 	sw_screen = new soft_screen();
+	hw_screen = new hard_screen();
 
 	QVBoxLayout* layout = new QVBoxLayout;
 	layout->setContentsMargins(0, 0, 0, -1);
 	layout->addWidget(sw_screen);
+	layout->addWidget(hw_screen);
 	layout->setMenuBar(menu_bar);
 	setLayout(layout);
 
 	config::scaling_factor = 2;
+
+	hw_screen->hide();
+	hw_screen->setEnabled(false);
 
 	//Parse .ini options
 	parse_ini_file();
@@ -336,6 +341,25 @@ void main_menu::boot_game()
 	config::sample_rate = settings->sample_rate;
 	config::pause_emu = false;
 
+	//Check OpenGL status
+	if(settings->ogl->isChecked())
+	{
+		config::use_opengl = true;
+		sw_screen->setEnabled(false);
+		sw_screen->hide();
+		hw_screen->setEnabled(true);
+		hw_screen->show();
+	}
+
+	else
+	{
+		config::use_opengl = false;
+		sw_screen->setEnabled(true);
+		sw_screen->show();
+		hw_screen->setEnabled(false);
+		hw_screen->hide();
+	}
+
 	findChild<QAction*>("pause_action")->setChecked(false);
 
 	menu_height = menu_bar->height();
@@ -363,8 +387,11 @@ void main_menu::boot_game()
 
 		main_menu::gbe_plus = new AGB_core();
 		resize((base_width * config::scaling_factor), (base_height * config::scaling_factor) + menu_height);
-		sw_screen->resize((base_width * config::scaling_factor), (base_height * config::scaling_factor));
 		qt_gui::screen = new QImage(240, 160, QImage::Format_ARGB32);
+
+		//Resize drawing screens
+		if(config::use_opengl) { hw_screen->resize((base_width * config::scaling_factor), (base_height * config::scaling_factor)); }
+		else { sw_screen->resize((base_width * config::scaling_factor), (base_height * config::scaling_factor)); }
 	}
 
 	else 
@@ -374,7 +401,10 @@ void main_menu::boot_game()
 
 		main_menu::gbe_plus = new DMG_core();
 		resize((base_width * config::scaling_factor), (base_height * config::scaling_factor) + menu_height);
-		sw_screen->resize((base_width * config::scaling_factor), (base_height * config::scaling_factor));
+
+		//Resize drawing screens
+		if(config::use_opengl) { hw_screen->resize((base_width * config::scaling_factor), (base_height * config::scaling_factor)); }
+		else { sw_screen->resize((base_width * config::scaling_factor), (base_height * config::scaling_factor)); }
 
 		if(qt_gui::screen != NULL) { delete qt_gui::screen; }
 		qt_gui::screen = new QImage(base_width, base_height, QImage::Format_ARGB32);
@@ -422,8 +452,11 @@ void main_menu::paintEvent(QPaintEvent* event)
 		if(settings->resize_screen)
 		{
 			resize((base_width * config::scaling_factor), (base_height * config::scaling_factor) + menu_height);
-			sw_screen->resize((base_width * config::scaling_factor), (base_height * config::scaling_factor));
 			settings->resize_screen = false;
+
+			//Resize drawing screens
+			if(config::use_opengl) { hw_screen->resize((base_width * config::scaling_factor), (base_height * config::scaling_factor)); }
+			else { sw_screen->resize((base_width * config::scaling_factor), (base_height * config::scaling_factor)); }
 		}
 
 		else if(config::request_resize)
@@ -435,9 +468,13 @@ void main_menu::paintEvent(QPaintEvent* event)
 
 			if(qt_gui::screen != NULL) { delete qt_gui::screen; }
 			qt_gui::screen = new QImage(config::sys_width, config::sys_height, QImage::Format_ARGB32);
+
 			resize((base_width * config::scaling_factor), (base_height * config::scaling_factor) + menu_height);
-			sw_screen->resize((base_width * config::scaling_factor), (base_height * config::scaling_factor));
 			config::request_resize = false;
+
+			//Resize drawing screens
+			if(config::use_opengl) { hw_screen->resize((base_width * config::scaling_factor), (base_height * config::scaling_factor)); }
+			else { sw_screen->resize((base_width * config::scaling_factor), (base_height * config::scaling_factor)); }
 		}
 	}
 }
