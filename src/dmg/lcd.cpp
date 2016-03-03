@@ -200,6 +200,11 @@ bool DMG_LCD::init()
 		if(final_screen == NULL) { return false; }
 	}
 
+	else if((!config::sdl_render) && (config::use_opengl))
+	{
+		final_screen = SDL_CreateRGBSurface(SDL_SWSURFACE, config::sys_width, config::sys_height, 32, 0, 0, 0, 0);
+	}
+
 	std::cout<<"LCD::Initialized\n";
 
 	return true;
@@ -1832,11 +1837,38 @@ void DMG_LCD::step(int cpu_clock)
 					//Use external rendering method (GUI)
 					else 
 					{
-						//Regular 1:1 framebuffer rendering
-						if((!cgfx::load_cgfx) || (cgfx::scaling_factor <= 1)) { config::render_external(screen_buffer); }
+						if(!config::use_opengl)
+						{
+							//Regular 1:1 framebuffer rendering
+							if((!cgfx::load_cgfx) || (cgfx::scaling_factor <= 1)) { config::render_external_sw(screen_buffer); }
 						
-						//HD CGFX framebuffer rendering
-						else if((cgfx::load_cgfx) && (cgfx::scaling_factor > 1)) { config::render_external(hd_screen_buffer); }
+							//HD CGFX framebuffer rendering
+							else if((cgfx::load_cgfx) && (cgfx::scaling_factor > 1)) { config::render_external_sw(hd_screen_buffer); }
+						}
+
+						else
+						{
+							//Lock source surface
+							if(SDL_MUSTLOCK(final_screen)){ SDL_LockSurface(final_screen); }
+							u32* out_pixel_data = (u32*)final_screen->pixels;
+
+							//Regular 1:1 framebuffer rendering
+							if((!cgfx::load_cgfx) || (cgfx::scaling_factor <= 1))
+							{
+								for(int a = 0; a < screen_buffer.size(); a++) { out_pixel_data[a] = screen_buffer[a]; }
+							}
+
+							//HD CGFX framebuffer rendering
+							else if((cgfx::load_cgfx) && (cgfx::scaling_factor > 1))
+							{
+								for(int a = 0; a < hd_screen_buffer.size(); a++) { out_pixel_data[a] = hd_screen_buffer[a]; }
+							}
+
+							//Unlock source surface
+							if(SDL_MUSTLOCK(final_screen)){ SDL_UnlockSurface(final_screen); }
+
+							config::render_external_hw(final_screen);
+						}
 					}
 				}
 

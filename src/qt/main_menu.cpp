@@ -272,7 +272,8 @@ void main_menu::open_file()
 	config::save_file = config::rom_file + ".sav";
 
 	config::sdl_render = false;
-	config::render_external = render_screen;
+	config::render_external_sw = render_screen_sw;
+	config::render_external_hw = render_screen_hw;
 	config::sample_rate = settings->sample_rate;
 
 	if(qt_gui::screen != NULL) { delete qt_gui::screen; }
@@ -671,7 +672,8 @@ void main_menu::load_recent(int file_id)
 	config::save_file = config::rom_file + ".sav";
 
 	config::sdl_render = false;
-	config::render_external = render_screen;
+	config::render_external_sw = render_screen_sw;
+	config::render_external_hw = render_screen_hw;
 	config::sample_rate = settings->sample_rate;
 
 	if(qt_gui::screen != NULL) { delete qt_gui::screen; }

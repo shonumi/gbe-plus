@@ -1088,7 +1088,11 @@ void AGB_LCD::update()
 	}
 
 	//Use external rendering method (GUI)
-	else { config::render_external(screen_buffer); }
+	else
+	{
+		if(!config::use_opengl) { config::render_external_sw(screen_buffer); }
+		else{ config::render_external_hw(final_screen); }
+	}
 }
 
 /****** Clears the screen buffer with a given color ******/
@@ -1234,7 +1238,11 @@ void AGB_LCD::step()
 				}
 
 				//Use external rendering method (GUI)
-				else { config::render_external(screen_buffer); }
+				else
+				{
+					if(!config::use_opengl) { config::render_external_sw(screen_buffer); }
+					else{ config::render_external_hw(final_screen); }
+				}
 			}
 
 			//Limit framerate

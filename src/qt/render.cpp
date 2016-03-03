@@ -16,10 +16,11 @@ namespace qt_gui
 {
 	QImage* screen = NULL;
 	main_menu* draw_surface = NULL;
+	SDL_Surface* final_screen = NULL;
 }
 
 /****** Renders an LCD's screen buffer to a QImage ******/
-void render_screen(std::vector<u32>& image) 
+void render_screen_sw(std::vector<u32>& image) 
 {
 	//Manually request screen size before PaintEvent takes effect
 	//Used for DMG/GBC games on GBA
@@ -45,6 +46,16 @@ void render_screen(std::vector<u32>& image)
 	}
 
 	if(qt_gui::draw_surface != NULL) { qt_gui::draw_surface->update(); }
+
+	QApplication::processEvents();
+}
+
+/****** Renders an LCD's screen buffer to an SDL Surface ******/
+void render_screen_hw(SDL_Surface* image) 
+{
+	qt_gui::final_screen = image;
+
+	if(qt_gui::draw_surface != NULL) { qt_gui::draw_surface->hw_screen->updateGL(); }
 
 	QApplication::processEvents();
 }

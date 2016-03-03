@@ -11,6 +11,8 @@
 #ifndef EMU_CONFIG
 #define EMU_CONFIG
 
+
+#include <SDL/SDL.h>
 #include <vector>
 #include <string>
 #include <sstream>
@@ -74,9 +76,13 @@ namespace config
 
 	extern bool use_external_interfaces;
 
-	//Function pointer for external rendering
+	//Function pointer for external software rendering
 	//This function is provided by frontends that will not rely on SDL
-	extern void (*render_external)(std::vector<u32>&);
+	extern void (*render_external_sw)(std::vector<u32>&);
+
+	//Function pointer for external rendering
+	//This function is provided by frontends that will not rely on SDL+OGL
+	extern void (*render_external_hw)(SDL_Surface*);
 
 	//Function pointer for external debugging
 	//This function is provided by frontends that will not rely on the CLI
