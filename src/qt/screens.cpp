@@ -42,6 +42,9 @@ void hard_screen::initializeGL()
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glClearColor(0, 0, 0, 0);
+
+	glGenTextures(1, &lcd_texture);
+	glBindTexture(GL_TEXTURE_2D, lcd_texture);
 }
 
 /****** Hardware screen paint event ******/
@@ -56,12 +59,9 @@ void hard_screen::paintGL()
 
 	else
 	{
-		glViewport(0, 0, (config::sys_width * config::scaling_factor), (config::sys_height * config::scaling_factor));
+		glViewport(0, 0, width(), height());
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
-
-		glGenTextures(1, &lcd_texture);
-		glBindTexture(GL_TEXTURE_2D, lcd_texture);
 
 		glTexImage2D(GL_TEXTURE_2D, 0, 4, config::sys_width, config::sys_height, 0, GL_BGRA, GL_UNSIGNED_BYTE, qt_gui::final_screen->pixels);
 
