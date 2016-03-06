@@ -119,6 +119,7 @@ class gen_settings : public QDialog
 
 	private:
 	void process_joystick_event();
+	void input_delay(QPushButton* input_button); 
 
 	SDL_Joystick* jstick;
 	int input_type;

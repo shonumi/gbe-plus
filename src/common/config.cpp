@@ -1609,7 +1609,7 @@ bool save_ini_file()
 		else if(ini_item == "#agb_joy_controls")
 		{
 			line_pos = output_count[x];
-			std::string val = util::to_str(config::agb_key_a) + ":";
+			std::string val = util::to_str(config::agb_joy_a) + ":";
 			val += util::to_str(config::agb_joy_b) + ":";
 			val += util::to_str(config::agb_joy_start) + ":";
 			val += util::to_str(config::agb_joy_select) + ":";

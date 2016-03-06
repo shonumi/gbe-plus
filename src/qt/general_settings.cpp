@@ -952,6 +952,8 @@ void gen_settings::input_device_change()
 		input_l->setText(QString::number(config::agb_joy_l_trigger));
 		input_r->setText(QString::number(config::agb_joy_r_trigger));
 	}
+
+	close_input();
 }
 
 /****** Dynamically changes the core pad's dead-zone ******/
@@ -960,75 +962,107 @@ void gen_settings::dead_zone_change() { config::dead_zone = dead_zone->value(); 
 /****** Prepares GUI to receive input for controller configuration ******/
 void gen_settings::configure_button(int button)
 {
-	if(!grab_input)
+	if(grab_input) { return; }
+
+	grab_input = true;
+
+	switch(button)
 	{
-		switch(button)
-		{
-			case 0: 
-				config_a->setText("Enter Input");
-				input_a->setFocus();
-				input_index = 0;
-				break;
+		case 0: 
+			input_delay(config_a);
+			input_a->setFocus();
+			input_index = 0;
+			break;
 
-			case 1: 
-				config_b->setText("Enter Input");
-				input_b->setFocus();
-				input_index = 1;
-				break;
+		case 1: 
+			input_delay(config_b);
+			input_b->setFocus();
+			input_index = 1;
+			break;
 
-			case 2: 
-				config_start->setText("Enter Input");
-				input_start->setFocus();
-				input_index = 2;
-				break;
+		case 2: 
+			input_delay(config_start);
+			input_start->setFocus();
+			input_index = 2;
+			break;
 
-			case 3: 
-				config_select->setText("Enter Input");
-				input_select->setFocus();
-				input_index = 3;
-				break;
+		case 3: 
+			input_delay(config_select);
+			input_select->setFocus();
+			input_index = 3;
+			break;
 
-			case 4: 
-				config_left->setText("Enter Input");
-				input_left->setFocus();
-				input_index = 4;
-				break;
+		case 4: 
+			input_delay(config_left);
+			input_left->setFocus();
+			input_index = 4;
+			break;
 
-			case 5: 
-				config_right->setText("Enter Input");
-				input_right->setFocus();
-				input_index = 5;
-				break;
+		case 5: 
+			input_delay(config_right);
+			input_right->setFocus();
+			input_index = 5;
+			break;
 
-			case 6: 
-				config_up->setText("Enter Input");
-				input_up->setFocus();
-				input_index = 6;
-				break;
+		case 6: 
+			input_delay(config_up);
+			input_up->setFocus();
+			input_index = 6;
+			break;
 
-			case 7: 
-				config_down->setText("Enter Input");
-				input_down->setFocus();
-				input_index = 7;
-				break;
+		case 7: 
+			input_delay(config_down);
+			input_down->setFocus();
+			input_index = 7;
+			break;
 
-			case 8: 
-				config_l->setText("Enter Input");
-				input_l->setFocus();
-				input_index = 8;
-				break;
+		case 8: 
+			input_delay(config_l);
+			input_l->setFocus();
+			input_index = 8;
+			break;
 
-			case 9: 
-				config_r->setText("Enter Input");
-				input_r->setFocus();
-				input_index = 9;
-				break;
-		}
-
-		grab_input = true;
-		if(input_type != 0) { process_joystick_event(); }
+		case 9: 
+			input_delay(config_r);
+			input_r->setFocus();
+			input_index = 9;
+			break;
 	}
+
+	if(input_type != 0) { process_joystick_event(); }
 }			
+
+/****** Delays input from the GUI ******/
+void gen_settings::input_delay(QPushButton* input_button)
+{
+	//Delay input for joysticks
+	if(input_type != 0)
+	{
+		input_button->setText("Enter Input - 3");
+		QApplication::processEvents();
+		input_button->setText("Enter Input - 3");
+		input_button->update();
+		QApplication::processEvents();
+		SDL_Delay(1000);
+
+		input_button->setText("Enter Input - 2");
+		QApplication::processEvents();
+		input_button->setText("Enter Input - 2");
+		input_button->update();
+		QApplication::processEvents();
+		SDL_Delay(1000);
+
+		input_button->setText("Enter Input - 1");
+		QApplication::processEvents();
+		input_button->setText("Enter Input - 1");
+		input_button->update();
+		QApplication::processEvents();
+		SDL_Delay(1000);
+	}
+
+	//Grab input immediately for keyboards
+	else { input_button->setText("Enter Input"); }	
+}
 
 /****** Handles joystick input ******/
 void gen_settings::process_joystick_event()
@@ -1036,121 +1070,151 @@ void gen_settings::process_joystick_event()
 	SDL_Event joy_event;
 	int pad = 0;
 
-	//This is a cheap way to flush all current events
-	//Gather all events in queue... then do nothing with them
-	//We only care about new ones from this point on
-	while(SDL_PollEvent(&joy_event)) { }
-
-	while(grab_input)
+	while(SDL_PollEvent(&joy_event))
 	{
-		while(SDL_PollEvent(&joy_event))
+		//Generate pad id
+		switch(joy_event.type)
 		{
-			//Generate pad id
-			switch(joy_event.type)
-			{
-				case SDL_JOYBUTTONDOWN: 
-					pad = 100 + joy_event.jbutton.button; 
+			case SDL_JOYBUTTONDOWN: 
+				pad = 100 + joy_event.jbutton.button; 
+				grab_input = false;
+				break;
+
+			case SDL_JOYAXISMOTION:
+				if(abs(joy_event.jaxis.value) >= config::dead_zone)
+				{
+					pad = 200 + (joy_event.jaxis.axis * 2);
+					if(joy_event.jaxis.value > 0) { pad++; }
 					grab_input = false;
-					break;
+				}
 
-				case SDL_JOYAXISMOTION:
-					if(abs(joy_event.jaxis.value) >= config::dead_zone)
-					{
-						pad = 200 + (joy_event.jaxis.axis * 2);
-						if(joy_event.jaxis.value > 0) { pad++; }
-						grab_input = false;
-					}
+				break;
 
-					break;
-
-				case SDL_JOYHATMOTION:
-					pad = 300 + (joy_event.jhat.hat * 4);
-					grab_input = false;
+			case SDL_JOYHATMOTION:
+				pad = 300 + (joy_event.jhat.hat * 4);
+				grab_input = false;
 						
-					switch(joy_event.jhat.value)
-					{
-						case SDL_HAT_RIGHT: pad += 1; break;
-						case SDL_HAT_UP: pad += 2; break;
-						case SDL_HAT_DOWN: pad += 3; break;
-					}
+				switch(joy_event.jhat.value)
+				{
+					case SDL_HAT_RIGHT: pad += 1; break;
+					case SDL_HAT_UP: pad += 2; break;
+					case SDL_HAT_DOWN: pad += 3; break;
+				}
 
-					break;
-			}
+				break;
 		}
-
-		SDL_Delay(16);
-		QApplication::processEvents();
 	}
 
 	switch(input_index)
 	{
-		case 0: 
+		case 0:
+			if(pad != 0)
+			{
+				config::agb_joy_a = config::dmg_joy_a = pad;
+				input_a->setText(QString::number(pad));
+			}
+
 			config_a->setText("Configure");
-			input_a->setText(QString::number(pad));
 			input_a->clearFocus();
-			config::agb_joy_a = config::dmg_joy_a = pad;
 			break;
 
-		case 1: 
+		case 1:
+			if(pad != 0)
+			{
+				config::agb_joy_b = config::dmg_joy_b = pad;
+				input_b->setText(QString::number(pad));
+			}
+
 			config_b->setText("Configure");
-			input_b->setText(QString::number(pad));
 			input_b->clearFocus();
-			config::agb_joy_b = config::dmg_joy_b = pad;
 			break;
 
-		case 2: 
+		case 2:
+			if(pad != 0)
+			{
+				config::agb_joy_start = config::dmg_joy_start = pad;
+				input_start->setText(QString::number(pad));
+			}
+
 			config_start->setText("Configure");
-			input_start->setText(QString::number(pad));
 			input_start->clearFocus();
-			config::agb_joy_start = config::dmg_joy_start = pad;
 			break;
 
-		case 3: 
+		case 3:
+			if(pad != 0)
+			{
+				config::agb_joy_select = config::dmg_joy_select = pad;
+				input_select->setText(QString::number(pad));
+			}
+
 			config_select->setText("Configure");
-			input_select->setText(QString::number(pad));
 			input_select->clearFocus();
-			config::agb_joy_select = config::dmg_joy_select = pad;
 			break;
 
-		case 4: 
+		case 4:
+			if(pad != 0)
+			{
+				config::agb_joy_left = config::dmg_joy_left = pad;
+				input_left->setText(QString::number(pad));
+			}
+
 			config_left->setText("Configure");
-			input_left->setText(QString::number(pad));
 			input_left->clearFocus();
-			config::agb_joy_left = config::dmg_joy_left = pad;
 			break;
 
-		case 5: 
+		case 5:
+			if(pad != 0)
+			{
+				config::agb_joy_right = config::dmg_joy_right = pad;
+				input_right->setText(QString::number(pad));
+			}
+
 			config_right->setText("Configure");
-			input_right->setText(QString::number(pad));
 			input_right->clearFocus();
-			config::agb_joy_right = config::dmg_joy_right = pad;
 			break;
 
-		case 6: 
+		case 6:
+			if(pad != 0)
+			{
+				config::agb_joy_up = config::dmg_joy_up = pad;
+				input_up->setText(QString::number(pad));
+			}
+
 			config_up->setText("Configure");
-			input_up->setText(QString::number(pad));
-			config::agb_joy_up = config::dmg_joy_up = pad;
+			input_up->clearFocus();
 			break;
 
-		case 7: 
+		case 7:
+			if(pad != 0)
+			{
+				config::agb_joy_down = config::dmg_joy_down = pad;
+				input_down->setText(QString::number(pad));
+			}
+
 			config_down->setText("Configure");
-			input_down->setText(QString::number(pad));
 			input_down->clearFocus();
-			config::agb_joy_down = config::dmg_joy_down = pad;
 			break;
 
 		case 8: 
+			if(pad != 0)
+			{
+				config::agb_joy_l_trigger = pad;
+				input_l->setText(QString::number(pad));
+			}
+
 			config_l->setText("Configure");
-			input_l->setText(QString::number(pad));
 			input_l->clearFocus();
-			config::agb_joy_l_trigger = pad;
 			break;
 
-		case 9: 
+		case 9:
+			if(pad != 0)
+			{
+				config::agb_joy_r_trigger = pad;
+				input_r->setText(QString::number(pad));
+			}
+
 			config_r->setText("Configure");
-			input_r->setText(QString::number(pad));
 			input_r->clearFocus();
-			config::agb_joy_r_trigger = pad;
 			break;
 	}
 
@@ -1200,77 +1264,117 @@ void gen_settings::keyPressEvent(QKeyEvent* event)
 	if(grab_input)
 	{
 		last_key = qtkey_to_sdlkey(event->key());
-		if(last_key == -1) { return; }
 
 		switch(input_index)
 		{
-			case 0: 
+			case 0:
+				if(last_key != -1)
+				{
+					config::agb_key_a = config::dmg_key_a = last_key;
+					input_a->setText(QString::number(last_key));
+				}
+
 				config_a->setText("Configure");
-				input_a->setText(QString::number(last_key));
 				input_a->clearFocus();
-				config::agb_key_a = config::dmg_key_a = last_key;
 				break;
 
-			case 1: 
+			case 1:
+				if(last_key != -1)
+				{
+					config::agb_key_b = config::dmg_key_b = last_key;
+					input_b->setText(QString::number(last_key));
+				}
+
 				config_b->setText("Configure");
-				input_b->setText(QString::number(last_key));
 				input_b->clearFocus();
-				config::agb_key_b = config::dmg_key_b = last_key;
 				break;
 
-			case 2: 
+			case 2:
+				if(last_key != -1)
+				{
+					config::agb_key_start = config::dmg_key_start = last_key;
+					input_start->setText(QString::number(last_key));
+				}
+
 				config_start->setText("Configure");
-				input_start->setText(QString::number(last_key));
 				input_start->clearFocus();
-				config::agb_key_start = config::dmg_key_start = last_key;
 				break;
 
-			case 3: 
+			case 3:
+				if(last_key != -1)
+				{
+					config::agb_key_select = config::dmg_key_select = last_key;
+					input_select->setText(QString::number(last_key));
+				}
+
 				config_select->setText("Configure");
-				input_select->setText(QString::number(last_key));
 				input_select->clearFocus();
-				config::agb_key_select = config::dmg_key_select = last_key;
 				break;
 
-			case 4: 
+			case 4:
+				if(last_key != -1)
+				{
+					config::agb_key_left = config::dmg_key_left = last_key;
+					input_left->setText(QString::number(last_key));
+				}
+
 				config_left->setText("Configure");
-				input_left->setText(QString::number(last_key));
 				input_left->clearFocus();
-				config::agb_key_left = config::dmg_key_left = last_key;
 				break;
 
-			case 5: 
+			case 5:
+				if(last_key != -1)
+				{
+					config::agb_key_right = config::dmg_key_right = last_key;
+					input_right->setText(QString::number(last_key));
+				}
+
 				config_right->setText("Configure");
-				input_right->setText(QString::number(last_key));
 				input_right->clearFocus();
-				config::agb_key_right = config::dmg_key_right = last_key;
 				break;
 
-			case 6: 
+			case 6:
+				if(last_key != -1)
+				{
+					config::agb_key_up = config::dmg_key_up = last_key;
+					input_up->setText(QString::number(last_key));
+				}
+
 				config_up->setText("Configure");
-				input_up->setText(QString::number(last_key));
-				config::agb_key_up = config::dmg_key_up = last_key;
+				input_up->clearFocus();
 				break;
 
-			case 7: 
+			case 7:
+				if(last_key != -1)
+				{
+					config::agb_key_down = config::dmg_key_down = last_key;
+					input_down->setText(QString::number(last_key));
+				}
+
 				config_down->setText("Configure");
-				input_down->setText(QString::number(last_key));
 				input_down->clearFocus();
-				config::agb_key_down = config::dmg_key_down = last_key;
 				break;
 
 			case 8: 
+				if(last_key != -1)
+				{
+					config::agb_key_l_trigger = last_key;
+					input_l->setText(QString::number(last_key));
+				}
+
 				config_l->setText("Configure");
-				input_l->setText(QString::number(last_key));
 				input_l->clearFocus();
-				config::agb_key_l_trigger = last_key;
 				break;
 
-			case 9: 
+			case 9:
+				if(last_key != -1)
+				{
+					config::agb_key_r_trigger = last_key;
+					input_r->setText(QString::number(last_key));
+				}
+
 				config_r->setText("Configure");
-				input_r->setText(QString::number(last_key));
 				input_r->clearFocus();
-				config::agb_key_r_trigger = last_key;
 				break;
 		}
 
