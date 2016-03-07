@@ -53,6 +53,8 @@ void render_screen_sw(std::vector<u32>& image)
 /****** Renders an LCD's screen buffer to an SDL Surface ******/
 void render_screen_hw(SDL_Surface* image) 
 {
+	if(config::request_resize) { qt_gui::draw_surface->update(); }
+
 	qt_gui::final_screen = image;
 
 	if(qt_gui::draw_surface != NULL) { qt_gui::draw_surface->hw_screen->updateGL(); }
