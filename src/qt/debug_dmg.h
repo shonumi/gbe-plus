@@ -150,6 +150,18 @@ class dmg_debug : public QDialog
 	int last_start;
 	int last_stop;
 
+	//OBJ widgets
+	std::vector<QImage> db_obj;
+	std::vector<QPushButton*> db_obj_label;
+	QImage obj_large_preview;
+	QLabel* obj_large_label;
+
+	//BG widgets
+	std::vector<QImage> db_bg;
+	std::vector<QPushButton*> db_bg_label;
+	QImage bg_large_preview;
+	QLabel* bg_large_label;
+
 	bool debug_reset;
 
 	protected:
@@ -163,6 +175,7 @@ class dmg_debug : public QDialog
 	void scroll_dasm(int value);
 	void scroll_count(int type);
 	void highlight();
+	void show_obj(int obj_id);
 	void refresh();
 	void refresh_dasm();
 	void close_debug();

@@ -25,13 +25,15 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	QDialog* palettes = new QDialog;
 	QDialog* memory = new QDialog;
 	QDialog* cpu_instr = new QDialog;
-	QDialog* vram = new QDialog;
+	QDialog* vram_obj = new QDialog;
+	QDialog* vram_bg = new QDialog;
 
 	tabs->addTab(io_regs, tr("I/O"));
 	tabs->addTab(palettes, tr("Palettes"));
 	tabs->addTab(memory, tr("Memory"));
 	tabs->addTab(cpu_instr, tr("Disassembly"));
-	tabs->addTab(vram, tr("Graphics"));
+	tabs->addTab(vram_obj, tr("OBJ"));
+	tabs->addTab(vram_bg, tr("BG"));
 
 	//LCDC
 	QWidget* lcdc_set = new QWidget(io_regs);
@@ -1017,6 +1019,42 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	instr_layout->setStretchFactor(regs_set, 15);
 	cpu_instr->setLayout(instr_layout);
 
+	//Graphics - OBJ
+	db_obj.clear();
+	db_obj_label.clear();
+
+	obj_large_preview = QImage(128, 128, QImage::Format_ARGB32);
+	obj_large_label = new QLabel;
+	obj_large_label->setPixmap(QPixmap::fromImage(obj_large_preview));
+
+	for(int x = 0; x < 40; x++)
+	{
+		db_obj.push_back(QImage(64, 64, QImage::Format_ARGB32));
+
+		QPushButton* temp_label = new QPushButton;
+		temp_label->setIcon(QPixmap::fromImage(db_obj[x]));
+		temp_label->setIconSize(QSize(32, 32));
+		temp_label->setFlat(true);
+
+		db_obj_label.push_back(temp_label);
+	}
+
+	//Graphics - OBJ layout
+	QGridLayout* obj_layout = new QGridLayout;
+	obj_layout->setVerticalSpacing(0);
+	obj_layout->setHorizontalSpacing(2);
+
+	for(int y = 0; y < 5; y++)
+	{
+		for(int x = 0; x < 8; x++)
+		{
+			obj_layout->addWidget(db_obj_label[(y*8) + x], y, x, 1, 1);
+		}
+	}
+
+	obj_layout->addWidget(obj_large_label, 1, 9, 1, 1);
+	vram_obj->setLayout(obj_layout);
+
 	refresh_button = new QPushButton("Refresh");
 	tabs_button = new QDialogButtonBox(QDialogButtonBox::Close);
 	tabs_button->addButton(refresh_button, QDialogButtonBox::ActionRole);
@@ -1060,6 +1098,16 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	dasm_mapper->setMapping(counter->verticalScrollBar(), 0);
 	dasm_mapper->setMapping(dasm->verticalScrollBar(), 1);
 	connect(dasm_mapper, SIGNAL(mapped(int)), this, SLOT(scroll_count(int)));
+
+	QSignalMapper* obj_mapper = new QSignalMapper(this);
+	
+	for(int x = 0; x < 40; x++)
+	{
+		connect(db_obj_label[x], SIGNAL(clicked()), obj_mapper, SLOT(map()));
+		obj_mapper->setMapping(db_obj_label[x], x);
+	}
+
+	connect(obj_mapper, SIGNAL(mapped(int)), this, SLOT(show_obj(int)));
 
 	resize(800, 500);
 	setWindowTitle(tr("DMG-GBC Debugger"));
@@ -1437,6 +1485,13 @@ void dmg_debug::refresh()
 	highlight();
 
 	if(main_menu::gbe_plus->db_unit.last_command != "c") { main_menu::gbe_plus->db_unit.last_command = ""; }
+
+	//Update OBJ
+	for(int x = 0; x < 40; x++)
+	{
+		db_obj[x] = qt_gui::draw_surface->cgfx->grab_obj_data(x);
+		db_obj_label[x]->setIcon(QPixmap::fromImage(db_obj[x]));
+	}
 }
 
 /****** Updates certain parts of the disassembly text (RAM) ******/
@@ -1577,6 +1632,13 @@ void dmg_debug::highlight()
 	else { text_select = true; }
 
 	highlighted_dasm_line = dasm->textCursor().blockNumber();
+}
+
+/****** Updates the OBJ preview ******/
+void dmg_debug::show_obj(int obj_id)
+{
+	obj_large_preview = qt_gui::draw_surface->cgfx->grab_obj_data(obj_id).scaled(128, 128);
+	obj_large_label->setPixmap(QPixmap::fromImage(obj_large_preview));
 }
 
 /****** Automatically refresh display data - Call this publically ******/

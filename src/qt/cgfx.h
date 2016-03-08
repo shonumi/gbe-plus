@@ -81,6 +81,14 @@ class gbe_cgfx : public QDialog
 
 	bool pause;
 
+	QImage grab_obj_data(int obj_index);
+	QImage grab_dmg_obj_data(int obj_index);
+	QImage grab_gbc_obj_data(int obj_index);
+
+	QImage grab_bg_data(int bg_index);
+	QImage grab_dmg_bg_data(int bg_index);
+	QImage grab_gbc_bg_data(int bg_index);
+
 	protected:
 	void closeEvent(QCloseEvent* event);
 	bool eventFilter(QObject* target, QEvent* event);
@@ -108,15 +116,7 @@ class gbe_cgfx : public QDialog
 	void update_preview(u32 x, u32 y);
 	void dump_layer_tile(u32 x, u32 y);
 
-	QImage grab_obj_data(int obj_index);
-	QImage grab_dmg_obj_data(int obj_index);
-	QImage grab_gbc_obj_data(int obj_index);
-
 	void setup_bg_window(int rows, int count);
-
-	QImage grab_bg_data(int bg_index);
-	QImage grab_dmg_bg_data(int bg_index);
-	QImage grab_gbc_bg_data(int bg_index);
 
 	u8 dump_type;
 	int advanced_index;
