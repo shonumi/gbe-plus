@@ -156,6 +156,14 @@ class dmg_debug : public QDialog
 	QImage obj_large_preview;
 	QLabel* obj_large_label;
 
+	QLabel* obj_xy;
+	QLabel* obj_tile;
+	QLabel* obj_addr;
+	QLabel* obj_size;
+	QLabel* obj_flip;
+	QLabel* obj_bank;
+	QLabel* obj_pal;
+
 	//BG widgets
 	std::vector<QImage> db_bg;
 	std::vector<QPushButton*> db_bg_label;

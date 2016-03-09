@@ -1039,9 +1039,28 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 		db_obj_label.push_back(temp_label);
 	}
 
+	QWidget* obj_info = new QWidget;
+	obj_xy = new QLabel("X:    Y: ");
+	obj_tile = new QLabel("Tile ID: ");
+	obj_addr = new QLabel("Tile Address: ");
+	obj_size = new QLabel("Tile Size: ");
+	obj_flip = new QLabel("H-Flip:    V-Flip: ");
+	obj_bank = new QLabel("VRAM Bank: ");
+	obj_pal = new QLabel("Tile Palette: ");
+
+	QVBoxLayout* obj_info_layout = new QVBoxLayout;
+	obj_info_layout->addWidget(obj_xy);
+	obj_info_layout->addWidget(obj_tile);
+	obj_info_layout->addWidget(obj_addr);
+	obj_info_layout->addWidget(obj_size);
+	obj_info_layout->addWidget(obj_flip);
+	obj_info_layout->addWidget(obj_pal);
+	obj_info_layout->addWidget(obj_bank);
+	obj_info->setLayout(obj_info_layout);
+
 	//Graphics - OBJ layout
 	QGridLayout* obj_layout = new QGridLayout;
-	obj_layout->setVerticalSpacing(0);
+	obj_layout->setVerticalSpacing(1);
 	obj_layout->setHorizontalSpacing(2);
 
 	for(int y = 0; y < 5; y++)
@@ -1052,7 +1071,8 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 		}
 	}
 
-	obj_layout->addWidget(obj_large_label, 1, 9, 1, 1);
+	obj_layout->addWidget(obj_large_label, 0, 9, -1, 2, Qt::AlignTop);
+	obj_layout->addWidget(obj_info, 2, 9, -1, 2, Qt::AlignTop);
 	vram_obj->setLayout(obj_layout);
 
 	refresh_button = new QPushButton("Refresh");
@@ -1637,8 +1657,84 @@ void dmg_debug::highlight()
 /****** Updates the OBJ preview ******/
 void dmg_debug::show_obj(int obj_id)
 {
-	obj_large_preview = qt_gui::draw_surface->cgfx->grab_obj_data(obj_id).scaled(128, 128);
+	u8 temp = main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x4;
+	std::string obj_text = "";
+
+	//Update OBJ size
+	if(temp == 0)
+	{
+		obj_large_preview = qt_gui::draw_surface->cgfx->grab_obj_data(obj_id).scaled(128, 128);
+		obj_text = "Tile Size: 8x8";
+		obj_size->setText(QString::fromStdString(obj_text));
+	}
+
+	else
+	{
+		obj_large_preview = qt_gui::draw_surface->cgfx->grab_obj_data(obj_id).scaled(64, 128);
+		obj_text = "Tile Size: 8x16";
+		obj_size->setText(QString::fromStdString(obj_text));
+	}
+
 	obj_large_label->setPixmap(QPixmap::fromImage(obj_large_preview));
+
+	//Update X/Y coordinate
+	u16 vram_addr = 0xFE00 + (4 * obj_id);
+
+	u8 oam_x = main_menu::gbe_plus->ex_read_u8(vram_addr + 1);
+	u8 oam_y = main_menu::gbe_plus->ex_read_u8(vram_addr);
+
+	oam_x -= 8;
+	oam_y -= 16;
+
+	obj_text = "X: " + util::to_str(oam_x) + "  Y: " + util::to_str(oam_y);
+	obj_xy->setText(QString::fromStdString(obj_text));
+
+	//Update Tile ID
+	if(temp == 0) { temp = main_menu::gbe_plus->ex_read_u8(vram_addr + 2); }
+	else { temp = main_menu::gbe_plus->ex_read_u8(vram_addr + 2) & ~0x1; }
+
+	obj_text = "Tile #: " + util::to_str(temp);
+	obj_tile->setText(QString::fromStdString(obj_text));
+
+	//Update Tile Address
+	obj_text = "Tile Address: " + util::to_hex_str(0x8000 + (16 * temp));
+	obj_addr->setText(QString::fromStdString(obj_text));
+
+	//Update Flipping
+	temp = main_menu::gbe_plus->ex_read_u8(vram_addr + 3);
+
+	bool h_flip = temp & 0x20;
+	bool v_flip = temp & 0x40;
+
+	if((!h_flip) && (!v_flip)) { obj_text = "H-Flip : N    V-Flip : N"; }
+	else if((h_flip) && (!v_flip)) { obj_text = "H-Flip : Y    V-Flip : N"; }
+	else if((!h_flip) && (v_flip)) { obj_text = "H-Flip : N    V-Flip : Y"; }
+	else { obj_text = "H-Flip : Y    V-Flip : Y"; }
+
+	obj_flip->setText(QString::fromStdString(obj_text));
+
+	//Update VRAM bank
+	if(config::gb_type < 2) { obj_text = "VRAM Bank: N/A"; }
+	else { obj_text = "VRAM Bank: " + util::to_str((temp >> 3) & 0x1); }
+
+	obj_bank->setText(QString::fromStdString(obj_text));
+
+	//Update Palette
+	if(config::gb_type < 2) 
+	{
+		temp = (temp >> 4) & 0x1;
+		
+		if(temp == 0) { obj_text = "Tile Palette: OBP0"; }
+		else { obj_text = "Tile Palette: OBP1"; }
+	}
+	
+	else
+	{
+		temp &= 0x7;
+		obj_text = "Tile Palette : OCP" + util::to_str(temp);
+	}
+
+	obj_pal->setText(QString::fromStdString(obj_text));
 }
 
 /****** Automatically refresh display data - Call this publically ******/
