@@ -57,7 +57,7 @@ void ARM9::reset()
 	std::cout<<"CPU::ARM9 - Initialized\n";
 }
 
-/****** CPU register getter ******/
+/****** CPU register getter - Returns value from the CURRENT pipeline stage ******/
 u32 ARM9::get_reg(u8 g_reg) const
 {
 	switch(g_reg)
@@ -282,7 +282,7 @@ void ARM9::fetch()
 /****** Decode ARM instruction ******/
 void ARM9::decode()
 {
-	u8 pipeline_id = (pipeline_pointer + 4) % 5;
+	u8 pipeline_id = (pipeline_pointer + 2) % 3;
 
 	if(instruction_operation[pipeline_id] == PIPELINE_FILL) { return; }
 
@@ -543,7 +543,7 @@ void ARM9::decode()
 /****** Execute ARM instruction ******/
 void ARM9::execute()
 {
-	u8 pipeline_id = (pipeline_pointer + 3) % 5;
+	u8 pipeline_id = (pipeline_pointer + 1) % 3;
 
 	if(instruction_operation[pipeline_id] == PIPELINE_FILL) 
 	{
@@ -679,7 +679,6 @@ void ARM9::execute()
 					break;
 
 				case ARM_6:
-					running = false; return;
 					psr_transfer(instruction_pipeline[pipeline_id]);
 					debug_message = 0x17; debug_code = instruction_pipeline[pipeline_id];
 					break;
@@ -737,121 +736,15 @@ void ARM9::execute()
 		}
 	}
 
-}
-
-/****** Access memory stage ******/
-void ARM9::access_mem() 
-{
-	//TODO - Pipeline stalling
-
-	u8 pipeline_id = (pipeline_pointer + 2) % 5;
-
-	if(instruction_operation[pipeline_id] == PIPELINE_FILL) { return; }
-	
-	//Cycle through all affected registers
-	for(u8 x = 0; x < 16; x++)
-	{
-		if(address_list[pipeline_id][x] != 0)
-		{
-			switch(read_write_list[pipeline_id])
-			{
-				//Write register into memory
-				case MEM_WRITE_BYTE: mem->write_u8(address_list[pipeline_id][x], value_list[pipeline_id][x]); register_list[pipeline_id] &= ~(1 << x); break;
-				case MEM_WRITE_HALFWORD: mem->write_u16(address_list[pipeline_id][x], value_list[pipeline_id][x]); register_list[pipeline_id] &= ~(1 << x); break;
-				case MEM_WRITE_WORD: mem->write_u32(address_list[pipeline_id][x], value_list[pipeline_id][x]); register_list[pipeline_id] &= ~(1 << x); break;
-
-				//Read register into memory
-				case MEM_READ_BYTE: value_list[pipeline_id][x] = mem->read_u8(address_list[pipeline_id][x]); break;
-				case MEM_READ_HALFWORD: value_list[pipeline_id][x] = mem->read_u16(address_list[pipeline_id][x]); break;
-				case MEM_READ_WORD: value_list[pipeline_id][x] = mem->read_u32(address_list[pipeline_id][x]); break;
-
-				//MEM_NOP, do nothing, finish this pipeline stage
-				default: x = 16; break;
-			}
-		}
-	}
-
-	//Clear the address list for this pipeline stage
-	for(u8 x = 0; x < 16; x++) { address_list[pipeline_id][x] = 0; }
-
-	//Clear the read-write list for this pipeline stage
-	read_write_list[pipeline_id] = MEM_NOP;
-}
-
-/****** Register writeback ******/
-void ARM9::write_reg()
-{
-	//TODO - Pipeline stalling
-
-	u8 pipeline_id = (pipeline_pointer + 1) % 5;
-
-	if(instruction_operation[pipeline_id] == PIPELINE_FILL) { return; }
-
-	u16 r_list = register_list[pipeline_id];
-	
-	//Check all registers and write appropiate values to them
-	if(r_list & 0x1) { set_reg(0, value_list[pipeline_id][0]); }
-	if(r_list & 0x2) { set_reg(1, value_list[pipeline_id][1]); }
-	if(r_list & 0x4) { set_reg(2, value_list[pipeline_id][2]); }
-	if(r_list & 0x8) { set_reg(3, value_list[pipeline_id][3]); }
-	if(r_list & 0x10) { set_reg(4, value_list[pipeline_id][4]); }
-	if(r_list & 0x20) { set_reg(5, value_list[pipeline_id][5]); }
-	if(r_list & 0x40) { set_reg(6, value_list[pipeline_id][6]); }
-	if(r_list & 0x80) { set_reg(7, value_list[pipeline_id][7]); }
-	if(r_list & 0x100) { set_reg(8, value_list[pipeline_id][8]); }
-	if(r_list & 0x200) { set_reg(9, value_list[pipeline_id][9]); }
-	if(r_list & 0x400) { set_reg(10, value_list[pipeline_id][10]); }
-	if(r_list & 0x800) { set_reg(11, value_list[pipeline_id][11]); }
-	if(r_list & 0x1000) { set_reg(12, value_list[pipeline_id][12]); }
-	if(r_list & 0x2000) { set_reg(13, value_list[pipeline_id][13]); }
-	if(r_list & 0x4000) { set_reg(14, value_list[pipeline_id][14]); }
-	if(r_list & 0x8000) { set_reg(15, value_list[pipeline_id][15]); }
-
-	//Clear value list for this pipeline stage
-	for(u8 x = 0; x < 16; x++) { value_list[pipeline_id][x] = 0; }
-	
-	//Clear register list
-	register_list[pipeline_id] = 0;
-}
-	
+}	
 
 /****** Flush the pipeline - Called when branching or resetting ******/
 void ARM9::flush_pipeline()
 {
 	needs_flush = false;
 	pipeline_pointer = 0;
-	instruction_pipeline[0] = instruction_pipeline[1] = instruction_pipeline[2] = instruction_pipeline[3] = instruction_pipeline[4] = 0;
-	instruction_operation[0] = instruction_operation[1] = instruction_operation[2] = instruction_operation[3] = instruction_operation[4] = PIPELINE_FILL;
-
-	for(u8 x = 0; x < 5; x++) 
-	{
-		register_list[x] = 0;
-		read_write_list[x] = MEM_NOP;
-
-		for(u8 y = 0; y < 16; y++)
-		{
-			address_list[x][y] = 0;
-			value_list[x][y] = 0;
-		}
-	}
-}
-
-/****** Stalls the pipeline whenever another instruction is trying to access the same registers or memory address ******/
-void ARM9::stall_pipeline()
-{
-	std::cout<<"CPU::ARM9::Pipeline Stall\n";
-
-	//Finish last two stages of the current instruction (the one doing ALU stuff needs to access mem+write regs)
-	u8 temp_pointer = pipeline_pointer;
-
-	pipeline_pointer = (pipeline_pointer + 1) % 5;
-	access_mem();
-	write_reg();
-
-	pipeline_pointer = (pipeline_pointer + 1) % 5;
-	write_reg();
-
-	pipeline_pointer = temp_pointer;
+	instruction_pipeline[0] = instruction_pipeline[1] = instruction_pipeline[2];
+	instruction_operation[0] = instruction_operation[1] = instruction_operation[2] = PIPELINE_FILL;;
 }
 
 /****** Updates the PC after each fetch-decode-execute ******/
@@ -1191,6 +1084,9 @@ void ARM9::mem_check_8(u32 addr, u32& value, bool load_store)
 /****** Runs audio and video controllers every clock cycle ******/
 void ARM9::clock(u32 access_addr, bool first_access)
 {
+	//TODO - Everything here
+	return;
+
 	//Determine cycles with Wait States + access timing
 	u8 access_cycles = 1;
 

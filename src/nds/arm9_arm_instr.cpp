@@ -13,9 +13,6 @@
 /****** ARM.3 - Branch and Exchange ******/
 void ARM9::branch_exchange(u32 current_arm_instruction)
 {
-	//Grab pipeline ID
-	u8 pipeline_id = (pipeline_pointer + 3) % 5;
-
 	//Grab source register - Bits 0-2
 	u8 src_reg = (current_arm_instruction & 0xF);
 
@@ -37,52 +34,46 @@ void ARM9::branch_exchange(u32 current_arm_instruction)
 		{
 			//Branch
 			case 0x1:
-				//Setup Memory and Write-Back stages
-				//Memory: No memory is accessed
-				//Write-back: Write result to PC
-				register_list[pipeline_id] |= (1 << 15);
-				value_list[pipeline_id][15] = result;
+				//Clock CPU and controllers - 1N
+				clock(reg.r15, true);
 
-				//Flush pipeline on this instruction
+				reg.r15 = result;
 				needs_flush = true;
+
+				//Clock CPU and controllers - 2S
+				clock(reg.r15, false);
+				clock((reg.r15 + 4), false);
 
 				break;
 
 			//Branch and Link
-			case 0x11:
-				//Setup Memory and Write-Back stages
-				//Memory: No memory is accessed
-				//Write-back: Write result to PC, write PC - 4 to LR
-				register_list[pipeline_id] |= ((1 << 15) | (1 << 14));
+			case 0x3:
+				//Clock CPU and controllers - 1N
+				clock(reg.r15, true);
 
-				value_list[pipeline_id][14] = (reg.r15 - 4);
-				value_list[pipeline_id][15] = result;
-
-				//Flush pipeline on this instruction
+				set_reg(14, (reg.r15 - 4));
+				reg.r15 = result;
 				needs_flush = true;
+
+				//Clock CPU and controllers - 2S
+				clock(reg.r15, false);
+				clock((reg.r15 + 4), false);
 
 				break;
 
 			default:
-				std::cout<<"CPU::ARM9::Error - ARM.3 invalid Branch and Exchange opcode : 0x" << std::hex << op << "\n";
+				std::cout<<"CPU::Error - ARM.3 invalid Branch and Exchange opcode : 0x" << std::hex << op << "\n";
 				running = false;
 				break;
 		}
 	}
 
-	else { std::cout<<"CPU::ARM9::Error - ARM.3 Branch and Exchange - Invalid operand : R15\n"; running = false; }
-
-	//Check for pipeline stalls
-	u8 stall_id = (pipeline_pointer + 2) % 5;
-	if(register_list[pipeline_id] && register_list[stall_id] && (register_list[pipeline_id] & register_list[stall_id])) { stall_pipeline(); }
+	else { std::cout<<"CPU::Error - ARM.3 Branch and Exchange - Invalid operand : R15\n"; running = false; }
 }  
 
 /****** ARM.4 - Branch and Branch with Link ******/
 void ARM9::branch_link(u32 current_arm_instruction)
 {
-	//Grab pipeline ID
-	u8 pipeline_id = (pipeline_pointer + 3) % 5;
-
 	//Grab offset
 	u32 offset = (current_arm_instruction & 0xFFFFFF);
 
@@ -91,7 +82,6 @@ void ARM9::branch_link(u32 current_arm_instruction)
 
 	s32 jump_addr = 0;
 	u32 final_addr = 0;
-	u32 result = 0;
 
 	//Convert 2's complement
 	if(offset & 0x800000) 
@@ -111,35 +101,32 @@ void ARM9::branch_link(u32 current_arm_instruction)
 	{
 		//Branch
 		case 0x0:
-			result = (reg.r15 & ~0xFFFFFF);
-			result |= final_addr;
+			//Clock CPU and controllers - 1N
+			clock(reg.r15, true);
 
-			//Setup Memory and Write-Back stages
-			//Memory: No memory is accessed
-			//Write-back: Write result to PC
-			register_list[pipeline_id] |= (1 << 15);
-			value_list[pipeline_id][15] = result;
-
-			//Flush pipeline on this instruction
+			reg.r15 &= ~0xFFFFFF;
+			reg.r15 |= final_addr;
 			needs_flush = true;
+
+			//Clock CPU and controllers - 2S
+			clock(reg.r15, false);
+			clock((reg.r15 + 4), false);
 
 			break;
 
 		//Branch and Link
 		case 0x1:
-			result = (reg.r15 & ~0xFFFFFF);
-			result |= final_addr;
+			//Clock CPU and controllers - 1N
+			clock(reg.r15, true);
 
-			//Setup Memory and Write-Back stages
-			//Memory: No memory is accessed
-			//Write-back: Write result to PC, write PC - 4 to LR
-			register_list[pipeline_id] |= ((1 << 15) | (1 << 14));
-
-			value_list[pipeline_id][14] = (reg.r15 - 4);
-			value_list[pipeline_id][15] = result;
-
-			//Flush pipeline on this instruction
+			set_reg(14, (reg.r15 - 4));
+			reg.r15 &= ~0xFFFFFF;
+			reg.r15 |= final_addr;
 			needs_flush = true;
+
+			//Clock CPU and controllers - 2S
+			clock(reg.r15, false);
+			clock((reg.r15 + 4), false);
 
 			break;
 	}
@@ -148,9 +135,6 @@ void ARM9::branch_link(u32 current_arm_instruction)
 /****** ARM.5 Data Processing ******/
 void ARM9::data_processing(u32 current_arm_instruction)
 {
-	//Grab pipeline ID
-	u8 pipeline_id = (pipeline_pointer + 3) % 5;
-
 	//Determine if an immediate value or a register should be used as the operand
 	bool use_immediate = (current_arm_instruction & 0x2000000) ? true : false;
 
@@ -205,7 +189,7 @@ void ARM9::data_processing(u32 current_arm_instruction)
 			if((current_arm_instruction & 0xF) == 15) { operand += 4; }
 			
 			//Valid registers to shift by are R0-R14
-			if(((current_arm_instruction >> 8) & 0xF) == 0xF) { std::cout<< "CPU::ARM9::Error - ARM.5 Data Processing - Shifting Register-Operand by PC \n"; running = false; }
+			if(((current_arm_instruction >> 8) & 0xF) == 0xF) { std::cout<< "CPU::Error - ARM.5 Data Processing - Shifting Register-Operand by PC \n"; running = false; }
 		}
 
 		//Shift the register
@@ -235,23 +219,25 @@ void ARM9::data_processing(u32 current_arm_instruction)
 				else { shift_out = rotate_right(operand, offset); }
 				break;
 		}
+		
+		//Clock CPU and controllers - 1I
+		clock();
 	}		
 
-	//TODO - Update condition during the final execution stage
+	//TODO - When op is 0x8 through 0xB, make sure Bit 20 is 1 (rather force it? Unsure)
+	//TODO - 2nd Operand for TST/TEQ/CMP/CMN must be R0 (rather force it to be R0)
+	//TODO - See GBATEK - S=1, with unused Rd bits=1111b
 
-	if(dest_reg == 15) { set_condition = false; reg.cpsr = get_spsr(); }
+	//Clock CPU and controllers - 1N
+	if(dest_reg == 15) { clock(reg.r15, true); set_condition = false; reg.cpsr = get_spsr(); }
 
 	switch(op)
 	{
 		//AND
 		case 0x0:
 			result = (input & operand);
+			set_reg(dest_reg, result);
 
-			//Memory: No memory is accessed
-			//Write-back: Write result to destination register
-			register_list[pipeline_id] |= (1 << dest_reg);
-			value_list[pipeline_id][dest_reg] = result;
-			
 			//Update condition codes
 			if(set_condition) { update_condition_logical(result, shift_out); }
 			break;
@@ -259,11 +245,7 @@ void ARM9::data_processing(u32 current_arm_instruction)
 		//XOR
 		case 0x1:
 			result = (input ^ operand);
-
-			//Memory: No memory is accessed
-			//Write-back: Write result to destination register
-			register_list[pipeline_id] |= (1 << dest_reg);
-			value_list[pipeline_id][dest_reg] = result;
+			set_reg(dest_reg, result);
 
 			//Update condition codes
 			if(set_condition) { update_condition_logical(result, shift_out); }
@@ -272,11 +254,7 @@ void ARM9::data_processing(u32 current_arm_instruction)
 		//SUB
 		case 0x2:
 			result = (input - operand);
-
-			//Memory: No memory is accessed
-			//Write-back: Write result to destination register
-			register_list[pipeline_id] |= (1 << dest_reg);
-			value_list[pipeline_id][dest_reg] = result;
+			set_reg(dest_reg, result);
 
 			//Update condtion codes
 			if(set_condition) { update_condition_arithmetic(input, operand, result, false); }
@@ -285,11 +263,7 @@ void ARM9::data_processing(u32 current_arm_instruction)
 		//RSB
 		case 0x3:
 			result = (operand - input);
-
-			//Memory: No memory is accessed
-			//Write-back: Write result to destination register
-			register_list[pipeline_id] |= (1 << dest_reg);
-			value_list[pipeline_id][dest_reg] = result;
+			set_reg(dest_reg, result);
 
 			//Update condtion codes
 			if(set_condition) { update_condition_arithmetic(operand, input, result, false); }
@@ -298,11 +272,7 @@ void ARM9::data_processing(u32 current_arm_instruction)
 		//ADD
 		case 0x4:
 			result = (input + operand);
-
-			//Memory: No memory is accessed
-			//Write-back: Write result to destination register
-			register_list[pipeline_id] |= (1 << dest_reg);
-			value_list[pipeline_id][dest_reg] = result;
+			set_reg(dest_reg, result);
 
 			//Update condtion codes
 			if(set_condition) { update_condition_arithmetic(input, operand, result, true); }
@@ -314,11 +284,7 @@ void ARM9::data_processing(u32 current_arm_instruction)
 			if(shift_out == 2) { shift_out = (reg.cpsr & CPSR_C_FLAG) ? 1 : 0; }
 
 			result = (input + operand + shift_out);
-
-			//Memory: No memory is accessed
-			//Write-back: Write result to destination register
-			register_list[pipeline_id] |= (1 << dest_reg);
-			value_list[pipeline_id][dest_reg] = result;
+			set_reg(dest_reg, result);
 
 			//Update condtion codes
 			if(set_condition) { update_condition_arithmetic(input, operand, result, true); }
@@ -330,11 +296,7 @@ void ARM9::data_processing(u32 current_arm_instruction)
 			if(shift_out == 2) { shift_out = (reg.cpsr & CPSR_C_FLAG) ? 1 : 0; }
 
 			result = (input - operand + shift_out - 1);
-
-			//Memory: No memory is accessed
-			//Write-back: Write result to destination register
-			register_list[pipeline_id] |= (1 << dest_reg);
-			value_list[pipeline_id][dest_reg] = result;
+			set_reg(dest_reg, result);
 
 			//Update condtion codes
 			if(set_condition) { update_condition_arithmetic(input, (operand + shift_out - 1), result, false); }
@@ -346,11 +308,7 @@ void ARM9::data_processing(u32 current_arm_instruction)
 			if(shift_out == 2) { shift_out = (reg.cpsr & CPSR_C_FLAG) ? 1 : 0; }
 
 			result = (operand - input + shift_out - 1);
-
-			//Memory: No memory is accessed
-			//Write-back: Write result to destination register
-			register_list[pipeline_id] |= (1 << dest_reg);
-			value_list[pipeline_id][dest_reg] = result;
+			set_reg(dest_reg, result);
 
 			//Update condtion codes
 			if(set_condition) { update_condition_arithmetic((operand + shift_out - 1), input, result, false); }
@@ -360,10 +318,6 @@ void ARM9::data_processing(u32 current_arm_instruction)
 		case 0x8:
 			result = (input & operand);
 
-			//Memory: No memory is accessed
-			//Write-back: No registers are written
-			register_list[pipeline_id] = 0;
-
 			//Update condtion codes
 			if(set_condition) { update_condition_logical(result, shift_out); }
 			break;
@@ -371,10 +325,6 @@ void ARM9::data_processing(u32 current_arm_instruction)
 		//TEQ
 		case 0x9:
 			result = (input ^ operand);
-
-			//Memory: No memory is accessed
-			//Write-back: No registers are written
-			register_list[pipeline_id] = 0;
 
 			//Update condtion codes
 			if(set_condition) { update_condition_logical(result, shift_out); }
@@ -384,10 +334,6 @@ void ARM9::data_processing(u32 current_arm_instruction)
 		case 0xA:
 			result = (input - operand);
 
-			//Memory: No memory is accessed
-			//Write-back: No registers are written
-			register_list[pipeline_id] = 0;
-
 			//Update condtion codes
 			if(set_condition) { update_condition_arithmetic(input, operand, result, false); }
 			break;
@@ -395,10 +341,6 @@ void ARM9::data_processing(u32 current_arm_instruction)
 		//CMN
 		case 0xB:
 			result = (input + operand);
-
-			//Memory: No memory is accessed
-			//Write-back: No registers are written
-			register_list[pipeline_id] = 0;
 		
 			//Update condtion codes
 			if(set_condition) { update_condition_arithmetic(input, operand, result, true); }
@@ -407,11 +349,7 @@ void ARM9::data_processing(u32 current_arm_instruction)
 		//ORR
 		case 0xC:
 			result = (input | operand);
-
-			//Memory: No memory is accessed
-			//Write-back: Write result to destination register
-			register_list[pipeline_id] |= (1 << dest_reg);
-			value_list[pipeline_id][dest_reg] = result;
+			set_reg(dest_reg, result);
 
 			//Update condtion codes
 			if(set_condition) { update_condition_logical(result, shift_out); }
@@ -420,11 +358,7 @@ void ARM9::data_processing(u32 current_arm_instruction)
 		//MOV
 		case 0xD:
 			result = operand;
-
-			//Memory: No memory is accessed
-			//Write-back: Write result to destination register
-			register_list[pipeline_id] |= (1 << dest_reg);
-			value_list[pipeline_id][dest_reg] = result;
+			set_reg(dest_reg, result);
 
 			//Update condtion codes
 			if(set_condition) { update_condition_logical(result, shift_out); }
@@ -433,11 +367,7 @@ void ARM9::data_processing(u32 current_arm_instruction)
 		//BIC
 		case 0xE:
 			result = (input & (~operand));
-
-			//Memory: No memory is accessed
-			//Write-back: Write result to destination register
-			register_list[pipeline_id] |= (1 << dest_reg);
-			value_list[pipeline_id][dest_reg] = result;
+			set_reg(dest_reg, result);
 
 			//Update condtion codes
 			if(set_condition) { update_condition_logical(result, shift_out); }
@@ -446,20 +376,28 @@ void ARM9::data_processing(u32 current_arm_instruction)
 		//MVN
 		case 0xF:
 			result = ~operand;
-
-			//Memory: No memory is accessed
-			//Write-back: Write result to destination register
-			register_list[pipeline_id] |= (1 << dest_reg);
-			value_list[pipeline_id][dest_reg] = result;
+			set_reg(dest_reg, result);
 
 			//Update condtion codes
 			if(set_condition) { update_condition_logical(result, shift_out); }
 			break;
 	}
 
-	//Check for pipeline stalls
-	u8 stall_id = (pipeline_pointer + 2) % 5;
-	if(register_list[pipeline_id] && register_list[stall_id] && (register_list[pipeline_id] & register_list[stall_id])) { stall_pipeline(); }
+	//Timings for PC as destination register
+	if(dest_reg == 15) 
+	{
+		//Clock CPU and controllers - 2S
+		needs_flush = true; 
+		clock(reg.r15, false);
+		clock((reg.r15 + 4), false);
+	}
+
+	//Timings for regular registers
+	else 
+	{
+		//Clock CPU and controllers - 1S
+		clock((reg.r15 + 4), false);
+	}
 }
 
 /****** ARM.6 PSR Transfer ******/
@@ -482,7 +420,7 @@ void ARM9::psr_transfer(u32 current_arm_instruction)
 				//Grab destination register - Bits 12-15
 				u8 dest_reg = ((current_arm_instruction >> 12) & 0xF);
 
-				if(dest_reg == 15) { std::cout<<"CPU::ARM9::Warning - ARM.6 R15 used as Destination Register \n"; }
+				if(dest_reg == 15) { std::cout<<"CPU::Warning - ARM.6 R15 used as Destination Register \n"; }
 
 				//Store CPSR into destination register
 				if(psr == 0) { set_reg(dest_reg, reg.cpsr); }
@@ -507,14 +445,14 @@ void ARM9::psr_transfer(u32 current_arm_instruction)
 				if(current_arm_instruction & 0x40000) 
 				{ 
 					op_field_mask |= 0x00FF0000;
-					std::cout<<"CPU::ARM9::Warning - ARM.6 MSR enabled access to Status Field \n";
+					std::cout<<"CPU::Warning - ARM.6 MSR enabled access to Status Field \n";
 				}
 
 				//Extension field - Bit 17
 				if(current_arm_instruction & 0x20000) 
 				{ 
 					op_field_mask |= 0x0000FF00;
-					std::cout<<"CPU::ARM9::Warning - ARM.6 MSR enabled access to Extension Field \n";
+					std::cout<<"CPU::Warning - ARM.6 MSR enabled access to Extension Field \n";
 				}
 
 				//Control field - Bit 15
@@ -538,7 +476,7 @@ void ARM9::psr_transfer(u32 current_arm_instruction)
 					//Grab source register - Bits 0-3
 					u8 src_reg = (current_arm_instruction & 0xF);
 
-					if(src_reg == 15) { std::cout<<"CPU::ARM9::Warning - ARM.6 R15 used as Source Register \n"; }
+					if(src_reg == 15) { std::cout<<"CPU::Warning - ARM.6 R15 used as Source Register \n"; }
 
 					input = get_reg(src_reg);
 					input &= op_field_mask;
@@ -560,7 +498,7 @@ void ARM9::psr_transfer(u32 current_arm_instruction)
 						case 0x17: current_cpu_mode = ABT; break;
 						case 0x1B: current_cpu_mode = UND; break;
 						case 0x1F: current_cpu_mode = SYS; break;
-						default: std::cout<<"CPU::ARM9::Warning - ARM.6 CPSR setting unknown CPU mode\n";
+						default: std::cout<<"CPU::Warning - ARM.6 CPSR setting unknown CPU mode\n";
 					}
 				}
 	
@@ -579,7 +517,6 @@ void ARM9::psr_transfer(u32 current_arm_instruction)
 	//Clock CPU and controllers - 1S
 	clock((reg.r15 + 4), false);
 } 
-
 
 /****** ARM.7 Multiply and Multiply-Accumulate ******/
 void ARM9::multiply(u32 current_arm_instruction)
@@ -784,9 +721,6 @@ void ARM9::multiply(u32 current_arm_instruction)
 /****** ARM.9 Single Data Transfer ******/
 void ARM9::single_data_transfer(u32 current_arm_instruction)
 {
-	//Grab pipeline ID
-	u8 pipeline_id = (pipeline_pointer + 3) % 5;
-
 	//Grab Immediate-Offset flag - Bit 25
 	u8 offset_is_register = (current_arm_instruction & 0x2000000) ? 1 : 0;
 
@@ -864,6 +798,9 @@ void ARM9::single_data_transfer(u32 current_arm_instruction)
 		else { base_addr -= base_offset; } 
 	}
 
+	//Clock CPU and controllers - 1N
+	clock(reg.r15, true);
+
 	//Store Byte or Word
 	if(load_store == 0) 
 	{
@@ -872,27 +809,18 @@ void ARM9::single_data_transfer(u32 current_arm_instruction)
 			value = get_reg(dest_reg);
 			if(dest_reg == 15) { value += 4; }
 			value &= 0xFF;
-
-			//Memory: Write a BYTE (destination register) to address
-			//Write-back: Write result to base register if applicable (see below!)
-			register_list[pipeline_id] |= (1 << dest_reg);
-			address_list[pipeline_id][dest_reg] = base_addr;
-			value_list[pipeline_id][dest_reg] = value;
-			read_write_list[pipeline_id] = MEM_WRITE_BYTE;
+			mem->write_u8(base_addr, value);
 		}
 
 		else
 		{
 			value = get_reg(dest_reg);
 			if(dest_reg == 15) { value += 4; }
-
-			//Memory: Write a WORD (destination register) to address
-			//Write-back: Write result to base register if applicable (see below!)
-			register_list[pipeline_id] |= (1 << dest_reg);
-			address_list[pipeline_id][dest_reg] = base_addr;
-			value_list[pipeline_id][dest_reg] = value;
-			read_write_list[pipeline_id] = MEM_WRITE_WORD;
+			mem->write_u32(base_addr, value);
 		}
+
+		//Clock CPU and controllers - 1N
+		clock(base_addr, true);
 	}
 
 	//Load Byte or Word
@@ -900,22 +828,26 @@ void ARM9::single_data_transfer(u32 current_arm_instruction)
 	{
 		if(byte_word == 1)
 		{
-			//Memory: Read a BYTE from memory into to destination register
-			//Write-back: Write result to destination register
-			register_list[pipeline_id] |= (1 << dest_reg);
-			address_list[pipeline_id][dest_reg] = base_addr;
-			value_list[pipeline_id][dest_reg] = value;
-			read_write_list[pipeline_id] = MEM_READ_BYTE;
+			//Clock CPU and controllers - 1I
+			value = mem->read_u8(base_addr);
+			clock();
+
+			//Clock CPU and controllers - 1N
+			if(dest_reg == 15) { clock((reg.r15 + 4), true); } 
+
+			set_reg(dest_reg, value);
 		}
 
 		else
 		{
-			//Memory: Read a WORD from memory into to destination register
-			//Write-back: Write result to destination register
-			register_list[pipeline_id] |= (1 << dest_reg);
-			address_list[pipeline_id][dest_reg] = base_addr;
-			value_list[pipeline_id][dest_reg] = value;
-			read_write_list[pipeline_id] = MEM_READ_WORD;
+			//Clock CPU and controllers - 1I
+			value = mem->read_u32(base_addr);
+			clock();
+
+			//Clock CPU and controllers - 1N
+			if(dest_reg == 15) { clock((reg.r15 + 4), true); } 
+
+			set_reg(dest_reg, value);
 		}
 	}
 
@@ -928,33 +860,30 @@ void ARM9::single_data_transfer(u32 current_arm_instruction)
 
 	//Write back into base register
 	//Post-indexing ALWAYS does this. Pre-Indexing does this optionally
-	if((pre_post == 0) && (base_reg != dest_reg)) 
-	{
-		register_list[pipeline_id] |= (1 << base_reg);
-		value_list[pipeline_id][base_reg] = base_addr;
-	}
+	if((pre_post == 0) && (base_reg != dest_reg)) { set_reg(base_reg, base_addr); }
+	else if((pre_post == 1) && (write_back == 1) && (base_reg != dest_reg)) { set_reg(base_reg, base_addr); }
 
-	else if((pre_post == 1) && (write_back == 1) && (base_reg != dest_reg)) 
-	{
-		register_list[pipeline_id] |= (1 << base_reg);
-		value_list[pipeline_id][base_reg] = base_addr;
-	}
-
+	//Timings for LDR - PC
 	if((dest_reg == 15) && (load_store == 1)) 
 	{
+		//Clock CPU and controllser - 2S
+		clock(reg.r15, false);
+		clock((reg.r15 + 4), false);
 		needs_flush = true;
 	}
 
-	//Check for pipeline stalls
-	u8 stall_id = (pipeline_pointer + 2) % 5;
-	if(register_list[pipeline_id] && register_list[stall_id] && (register_list[pipeline_id] & register_list[stall_id])) { stall_pipeline(); }
+	//Timings for LDR - No PC
+	else if((dest_reg != 15) && (load_store == 1))
+	{
+		//Clock CPU and controllers - 1S
+		clock(reg.r15, false);
+	}
 }
 
 /****** ARM.10 Halfword-Signed Transfer ******/
 void ARM9::halfword_signed_transfer(u32 current_arm_instruction)
 {
-	//Grab pipeline ID
-	u8 pipeline_id = (pipeline_pointer + 3) % 5;
+	//TODO - Timings
 
 	//Grab Pre-Post bit - Bit 24
 	u8 pre_post = (current_arm_instruction & 0x1000000) ? 1 : 0;
@@ -993,7 +922,7 @@ void ARM9::halfword_signed_transfer(u32 current_arm_instruction)
 		//Register is Bits 0-3
 		base_offset = get_reg((current_arm_instruction & 0xF));
 
-		if((current_arm_instruction & 0xF) == 15) { std::cout<<"CPU::ARM9::Warning - ARM.10 Offset Register is PC\n"; }
+		if((current_arm_instruction & 0xF) == 15) { std::cout<<"CPU::Warning - ARM.10 Offset Register is PC\n"; }
 	}
 
 	//Determine offset if offset is immediate
@@ -1026,27 +955,16 @@ void ARM9::halfword_signed_transfer(u32 current_arm_instruction)
 	
 				//If PC is the Destination Register, add 4
 				if(dest_reg == 15) { value += 4; }
-				value &= 0xFFFF;
 
-				//Memory: Write a HALFWORD (destination register) to address
-				//Write-back: Write result to base register if applicable (see below!)
-				register_list[pipeline_id] |= (1 << dest_reg);
-				address_list[pipeline_id][dest_reg] = base_addr;
-				value_list[pipeline_id][dest_reg] = value;
-				read_write_list[pipeline_id] = MEM_WRITE_HALFWORD;
+				value &= 0xFFFF;
+				mem->write_u16(base_addr, value);
 			}
 
 			//Load halfword
 			else
 			{
 				value = mem->read_u16(base_addr);
-
-				//Memory: Read a HALFWORD from memory into to destination register
-				//Write-back: Write result to destination register
-				register_list[pipeline_id] |= (1 << dest_reg);
-				address_list[pipeline_id][dest_reg] = base_addr;
-				value_list[pipeline_id][dest_reg] = value;
-				read_write_list[pipeline_id] = MEM_READ_HALFWORD;
+				set_reg(dest_reg, value);
 			}
 
 			break;
@@ -1056,13 +974,7 @@ void ARM9::halfword_signed_transfer(u32 current_arm_instruction)
 			value = mem->read_u8(base_addr);
 
 			if(value & 0x80) { value |= 0xFFFFFF00; }
-
-			//Memory: Read a HALFWORD from memory into to destination register
-			//Write-back: Write result to destination register
-			register_list[pipeline_id] |= (1 << dest_reg);
-			address_list[pipeline_id][dest_reg] = base_addr;
-			value_list[pipeline_id][dest_reg] = value;
-			read_write_list[pipeline_id] = MEM_READ_HALFWORD;
+			set_reg(dest_reg, value);
 
 			break;
 
@@ -1071,13 +983,7 @@ void ARM9::halfword_signed_transfer(u32 current_arm_instruction)
 			value = mem->read_u16(base_addr);
 
 			if(value & 0x8000) { value |= 0xFFFF0000; }
-
-			//Memory: Read a HALFWORD from memory into to destination register
-			//Write-back: Write result to destination register
-			register_list[pipeline_id] |= (1 << dest_reg);
-			address_list[pipeline_id][dest_reg] = base_addr;
-			value_list[pipeline_id][dest_reg] = value;
-			read_write_list[pipeline_id] = MEM_READ_HALFWORD;
+			set_reg(dest_reg, value);
 
 			break;
 
@@ -1095,15 +1001,7 @@ void ARM9::halfword_signed_transfer(u32 current_arm_instruction)
 	}
 
 	//Write-back into base register
-	if((write_back == 1) && (base_reg != dest_reg)) 
-	{
-		register_list[pipeline_id] |= (1 << base_reg);
-		value_list[pipeline_id][base_reg] = base_addr;
-	}
-
-	//Check for pipeline stalls
-	u8 stall_id = (pipeline_pointer + 2) % 5;
-	if(register_list[pipeline_id] && register_list[stall_id] && (register_list[pipeline_id] & register_list[stall_id])) { stall_pipeline(); }
+	if((write_back == 1) && (base_reg != dest_reg)) { set_reg(base_reg, base_addr); }
 }
 
 /****** ARM.11 Block Data Transfer ******/

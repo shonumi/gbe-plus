@@ -145,6 +145,7 @@ void NTR_core::run_core()
 		{	
 			if(db_unit.debug_mode) { debug_step(); }
 
+			//TODO - This is temporary
 			core_cpu_nds9.clock();
 			core_cpu_nds9.clock();
 			core_cpu_nds9.clock();
@@ -153,33 +154,19 @@ void NTR_core::run_core()
 			core_cpu_nds9.fetch();
 			core_cpu_nds9.decode();
 			core_cpu_nds9.execute();
-			core_cpu_nds9.access_mem();
-			core_cpu_nds9.write_reg();
 
 			core_cpu_nds9.handle_interrupt();
 		
 			//Flush pipeline if necessary
-			if(core_cpu_nds9.needs_flush)
-			{
-				//Finish last two stages of the current instruction (the one doing ALU stuff needs to access mem+write regs)
-				//At this time, one instruction could possibly still need to write to regs as well
-				//TODO - Figure out where it would be appropiate to check for IRQs during this time
-				core_cpu_nds9.pipeline_pointer = (core_cpu_nds9.pipeline_pointer + 1) % 5;
-				core_cpu_nds9.access_mem();
-				core_cpu_nds9.write_reg();
-
-				core_cpu_nds9.pipeline_pointer = (core_cpu_nds9.pipeline_pointer + 1) % 5;
-				core_cpu_nds9.write_reg();
-
-				core_cpu_nds9.flush_pipeline();
-			}
+			if(core_cpu_nds9.needs_flush) { core_cpu_nds9.flush_pipeline(); }
 
 			//Else update the pipeline and PC
 			else 
 			{ 
-				core_cpu_nds9.pipeline_pointer = (core_cpu_nds9.pipeline_pointer + 1) % 5;
+				core_cpu_nds9.pipeline_pointer = (core_cpu_nds9.pipeline_pointer + 1) % 3;
 				core_cpu_nds9.update_pc(); 
 			}
+
 		}
 
 		//Stop emulation

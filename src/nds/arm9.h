@@ -84,18 +84,6 @@ class ARM9
 		THUMB
 	};
 
-	//ARM memory access mode enumerations
-	enum mem_modes
-	{
-		MEM_NOP,
-		MEM_READ_BYTE,
-		MEM_READ_HALFWORD,
-		MEM_READ_WORD,
-		MEM_WRITE_BYTE,
-		MEM_WRITE_HALFWORD,
-		MEM_WRITE_WORD
-	};
-
 	cpu_modes current_cpu_mode;
 	instr_modes arm_mode;
 
@@ -169,15 +157,9 @@ class ARM9
 
 	bool swi_vblank_wait;
 
-	u32 instruction_pipeline[5];
-	arm_instructions instruction_operation[5];
+	u32 instruction_pipeline[3];
+	arm_instructions instruction_operation[3];
 	u8 pipeline_pointer;
-
-	u16 register_list[5];
-	u32 address_list[5][16];
-	u32 value_list[5][16];
-
-	mem_modes read_write_list[5];
 
 	u8 debug_message;
 	u32 debug_code;
@@ -198,12 +180,9 @@ class ARM9
 	void fetch();
 	void decode();
 	void execute();
-	void access_mem();
-	void write_reg();
 
 	void update_pc();
 	void flush_pipeline();
-	void stall_pipeline();
 
 	void reset();
 
