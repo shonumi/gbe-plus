@@ -50,9 +50,13 @@ void DMG_MMU::reset()
 	cart.mbc_type = ROM_ONLY;
 	cart.battery = false;
 	cart.ram = false;
+
 	cart.rtc = false;
 	cart.rtc_enabled = false;
 	cart.rtc_latch_1 = cart.rtc_latch_2 = 0xFF;
+
+	cart.idle = false;
+	cart.internal_value = cart.internal_state = cart.cs = cart.sk = cart.buffer_length = cart.command_code = cart.addr = cart.buffer = 0;
 
 	//Resize various banks
 	read_only_bank.resize(0x200);
@@ -72,6 +76,87 @@ void DMG_MMU::reset()
 	std::cout<<"MMU::Initialized\n";
 }
 
+/****** Read MMU data from save state ******/
+bool DMG_MMU::mmu_read(u32 offset, std::string filename)
+{
+	std::ifstream file(filename.c_str(), std::ios::binary);
+	
+	if(!file.is_open()) { return false; }
+
+	//Go to offset
+	file.seekg(offset);
+
+	//Serialize DMG/GBC RAM from save state
+	u8* ex_ram = &memory_map[0x8000];
+	file.read((char*)ex_ram, 0x8000);
+
+	for(int x = 0; x < 0x2; x++)
+	{
+		ex_ram = &video_ram[x][0];
+		file.read((char*)ex_ram, 0x2000);
+	}
+
+	for(int x = 0; x < 0x8; x++)
+	{
+		ex_ram = &working_ram_bank[x][0];
+		file.read((char*)ex_ram, 0x1000);
+	}
+
+	for(int x = 0; x < 0x10; x++)
+	{
+		ex_ram = &random_access_bank[x][0];
+		file.read((char*)ex_ram, 0x2000);
+	}
+
+	//Serialize misc MMU data from save state
+	file.read((char*)&rom_bank, sizeof(rom_bank));
+	file.read((char*)&ram_bank, sizeof(ram_bank));
+	file.read((char*)&wram_bank, sizeof(wram_bank));
+	file.read((char*)&vram_bank, sizeof(vram_bank));
+	file.read((char*)&bank_bits, sizeof(bank_bits));
+	file.read((char*)&bank_mode, sizeof(bank_mode));
+	file.read((char*)&ram_banking_enabled, sizeof(ram_banking_enabled));
+	file.read((char*)&in_bios, sizeof(in_bios));
+	file.read((char*)&bios_type, sizeof(bios_type));
+	file.read((char*)&bios_size, sizeof(bios_size));
+	file.read((char*)&cart, sizeof(cart));
+	file.read((char*)&previous_value, sizeof(previous_value));
+
+	file.close();
+	return true;
+}
+
+/****** Write MMU data to save state ******/
+bool DMG_MMU::mmu_write(std::string filename)
+{
+	std::ofstream file(filename.c_str(), std::ios::binary | std::ios::app);
+	
+	if(!file.is_open()) { return false; }
+
+	//Serialize DMG/GBC RAM to save state
+	file.write(reinterpret_cast<char*> (&memory_map[0x8000]), 0x8000);
+	for(int x = 0; x < 0x2; x++) { file.write(reinterpret_cast<char*> (&video_ram[x][0]), 0x2000); }
+	for(int x = 0; x < 0x8; x++) { file.write(reinterpret_cast<char*> (&working_ram_bank[x][0]), 0x1000); }
+	for(int x = 0; x < 0x10; x++) { file.write(reinterpret_cast<char*> (&random_access_bank[x][0]), 0x2000); }
+
+	//Serialize misc MMU data to save state
+	file.write((char*)&rom_bank, sizeof(rom_bank));
+	file.write((char*)&ram_bank, sizeof(ram_bank));
+	file.write((char*)&wram_bank, sizeof(wram_bank));
+	file.write((char*)&vram_bank, sizeof(vram_bank));
+	file.write((char*)&bank_bits, sizeof(bank_bits));
+	file.write((char*)&bank_mode, sizeof(bank_mode));
+	file.write((char*)&ram_banking_enabled, sizeof(ram_banking_enabled));
+	file.write((char*)&in_bios, sizeof(in_bios));
+	file.write((char*)&bios_type, sizeof(bios_type));
+	file.write((char*)&bios_size, sizeof(bios_size));
+	file.write((char*)&cart, sizeof(cart));
+	file.write((char*)&previous_value, sizeof(previous_value));
+
+	file.close();
+	return true;
+}
+	
 /****** Read byte from memory ******/
 u8 DMG_MMU::read_u8(u16 address) 
 { 
@@ -100,6 +185,9 @@ u8 DMG_MMU::read_u8(u16 address)
 
 	//Read using RAM Banking
 	if((address >= 0xA000) && (address <= 0xBFFF) && (cart.ram) && (cart.mbc_type != ROM_ONLY)) { return mbc_read(address); }
+
+	//MBC7 always has RAM enabled for reading
+	else if((address >= 0xA000) && (address <= 0xBFFF) && (cart.mbc_type == MBC7)) { return mbc7_read(address); }
 
 	//Read from VRAM, GBC uses banking
 	if((address >= 0x8000) && (address <= 0x9FFF))
@@ -186,7 +274,11 @@ u16 DMG_MMU::read_u16(u16 address)
 /****** Write Byte To Memory ******/
 void DMG_MMU::write_u8(u16 address, u8 value) 
 {
-	if(cart.mbc_type != ROM_ONLY) { mbc_write(address, value); }
+	if(cart.mbc_type != ROM_ONLY) 
+	{
+		mbc_write(address, value);
+		if((address >= 0xA000) && (address <= 0xBFFF)) { return; }
+	}
 
 	//Write to VRAM, GBC uses banking
 	if((address >= 0x8000) && (address <= 0x9FFF))
@@ -540,6 +632,7 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		{
 			//Internal APU time-keeping
 			apu_stat->channel[2].frequency_distance = 0;
+			apu_stat->channel[2].sample_length = (apu_stat->channel[2].duration * apu_stat->sample_rate)/1000;
 		}
 	}
 
@@ -957,6 +1050,10 @@ u8 DMG_MMU::mbc_read(u16 address)
 		case MBC5:
 			return mbc5_read(address);
 			break;
+
+		case MBC7:
+			return mbc7_read(address);
+			break;
 	}
 }
 
@@ -979,6 +1076,10 @@ void DMG_MMU::mbc_write(u16 address, u8 value)
 
 		case MBC5:
 			mbc5_write(address, value);
+			break;
+
+		case MBC7:
+			mbc7_write(address, value);
 			break;
 	}
 }
@@ -1193,9 +1294,13 @@ bool DMG_MMU::read_file(std::string filename)
 			break;
 
 		case 0x22:
-			std::cout<<"MMU:Cartridge Type - MBC7\n";
-			std::cout<<"MMU::MBC type currently unsupported \n";
-			return false;
+			cart.mbc_type = MBC7;
+			cart.ram = false;
+			cart.battery = true;
+
+			std::cout<<"MMU::Cartridge Type - MBC7\n";
+			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
+			std::cout<<"MMU::ROM Size - " << cart.rom_size << "KB\n";
 			break;
 
 		case 0xFD:
@@ -1206,6 +1311,12 @@ bool DMG_MMU::read_file(std::string filename)
 
 		case 0xFE:
 			std::cout<<"MMU::Cartridge Type - Hudson HuC-3\n";
+			std::cout<<"MMU::MBC type currently unsupported \n";
+			return false;
+			break;
+
+		case 0xFF:
+			std::cout<<"MMU::Cartridge Type - Hudson HuC-1\n";
 			std::cout<<"MMU::MBC type currently unsupported \n";
 			return false;
 			break;
@@ -1371,9 +1482,8 @@ bool DMG_MMU::load_backup(std::string filename)
 
 		else 
 		{
-
 			//Read MBC RAM
-			if(cart.mbc_type != ROM_ONLY)
+			if((cart.mbc_type != ROM_ONLY) && (cart.mbc_type != MBC7))
 			{
 				for(int x = 0; x < 0x10; x++)
 				{
@@ -1382,11 +1492,25 @@ bool DMG_MMU::load_backup(std::string filename)
 				}
 			}
 
+			//Read MBC7 RAM
+			else if(cart.mbc_type == MBC7)
+			{
+				u8* ex_ram = &memory_map[0xA000];
+				sram.read((char*)ex_ram, 0x100);
+			}
+
 			//Read 8KB Cart RAM
 			else
 			{
 				u8* ex_ram = &memory_map[0xA000];
 				sram.read((char*)ex_ram, 0x2000);
+			}
+
+			//Read RTC data
+			if(cart.rtc) 
+			{
+				u8* ex_ram = &cart.rtc_reg[0];
+				sram.read((char*)ex_ram, 0x5);
 			} 
 		}
 
@@ -1414,12 +1538,18 @@ bool DMG_MMU::save_backup(std::string filename)
 		else 
 		{
 			//Save MBC RAM
-			if(cart.mbc_type != ROM_ONLY)
+			if((cart.mbc_type != ROM_ONLY) && (cart.mbc_type != MBC7))
 			{
 				for(int x = 0; x < 0x10; x++)
 				{
 					sram.write(reinterpret_cast<char*> (&random_access_bank[x][0]), 0x2000); 
 				}
+			}
+
+			//Save MBC7 RAM
+			else if(cart.mbc_type == MBC7)
+			{
+				sram.write(reinterpret_cast<char*> (&memory_map[0xA000]), 0x100);
 			}
 
 			//Save 8KB Cart RAM

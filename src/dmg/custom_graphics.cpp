@@ -128,8 +128,17 @@ bool DMG_LCD::load_manifest(std::string filename)
 		//Load image based on filename and hash type
 		if(!load_image_data()) { return false; }
 
-		//TODO - VRAM Address and Auto Bright Extensions
-		x += 2;
+		//EXT_VRAM_ADDR
+		std::stringstream vram_stream(cgfx_stat.manifest[x++]);
+		u32 vram_address = 0;
+		util::from_hex_str(vram_stream.str(), vram_address);
+		cgfx_stat.m_vram_addr.push_back(vram_address);	
+
+		//EXT_AUTO_BRIGHT
+		std::stringstream bright_stream(cgfx_stat.manifest[x++]);
+		u32 bright_value = 0;
+		bright_stream >> bright_value;
+		cgfx_stat.m_auto_bright.push_back(bright_value);
 	}
 
 	std::cout<<"CGFX::" << filename << " loaded successfully\n"; 
@@ -226,7 +235,10 @@ void DMG_LCD::dump_dmg_obj(u8 obj_index)
 		cgfx_stat.obj_hash_list.push_back(final_hash);
 
 		obj_dump = SDL_CreateRGBSurface(SDL_SWSURFACE, 8, obj_height, 32, 0, 0, 0, 0);
-		std::string dump_file = "Dump/Sprites/" + final_hash + ".bmp";
+		
+		std::string dump_file =  "";
+		if(cgfx::dump_name == "") { dump_file = cgfx::dump_obj_path + final_hash + ".bmp"; }
+		else { dump_file = cgfx::dump_obj_path + cgfx::dump_name; }
 
 		if(SDL_MUSTLOCK(obj_dump)) { SDL_LockSurface(obj_dump); }
 
@@ -287,6 +299,12 @@ void DMG_LCD::dump_dmg_obj(u8 obj_index)
 		std::cout<<"LCD::Saving Sprite - " << dump_file << "\n";
 		SDL_SaveBMP(obj_dump, dump_file.c_str());
 	}
+
+	//Save CGFX data
+	cgfx::last_hash = final_hash;
+	cgfx::last_vram_addr = 0x8000 + (obj[obj_index].tile_number << 4);
+	cgfx::last_type = 1;
+	cgfx::last_palette = 0;
 }
 
 /****** Dumps GBC OBJ tile from selected memory address ******/
@@ -349,7 +367,10 @@ void DMG_LCD::dump_gbc_obj(u8 obj_index)
 		cgfx_stat.obj_hash_list.push_back(final_hash);
 
 		obj_dump = SDL_CreateRGBSurface(SDL_SWSURFACE, 8, obj_height, 32, 0, 0, 0, 0);
-		std::string dump_file = "Dump/Sprites/" + final_hash + ".bmp";
+
+		std::string dump_file =  "";
+		if(cgfx::dump_name == "") { dump_file = cgfx::dump_obj_path + final_hash + ".bmp"; }
+		else { dump_file = cgfx::dump_obj_path + cgfx::dump_name; }
 
 		if(SDL_MUSTLOCK(obj_dump)) { SDL_LockSurface(obj_dump); }
 
@@ -396,6 +417,12 @@ void DMG_LCD::dump_gbc_obj(u8 obj_index)
 
 	//Reset VRAM bank
 	mem->vram_bank = old_vram_bank;
+
+	//Save CGFX data
+	cgfx::last_hash = final_hash;
+	cgfx::last_vram_addr = 0x8000 + (obj[obj_index].tile_number << 4);
+	cgfx::last_type = 2;
+	cgfx::last_palette = obj[obj_index].color_palette_number + 1;
 }
 
 /****** Dumps DMG BG tile from selected memory address ******/
@@ -443,7 +470,10 @@ void DMG_LCD::dump_dmg_bg(u16 bg_index)
 		cgfx_stat.bg_hash_list.push_back(final_hash);
 
 		bg_dump = SDL_CreateRGBSurface(SDL_SWSURFACE, 8, 8, 32, 0, 0, 0, 0);
-		std::string dump_file = "Dump/BG/" + final_hash + ".bmp";
+
+		std::string dump_file =  "";
+		if(cgfx::dump_name == "") { dump_file = cgfx::dump_bg_path + final_hash + ".bmp"; }
+		else { dump_file = cgfx::dump_bg_path + cgfx::dump_name; }
 
 		if(SDL_MUSTLOCK(bg_dump)) { SDL_LockSurface(bg_dump); }
 
@@ -504,6 +534,12 @@ void DMG_LCD::dump_dmg_bg(u16 bg_index)
 		std::cout<<"LCD::Saving Background Tile - " << dump_file << "\n";
 		SDL_SaveBMP(bg_dump, dump_file.c_str());
 	}
+
+	//Save CGFX data
+	cgfx::last_hash = final_hash;
+	cgfx::last_vram_addr = (bg_index << 4) + 0x8000;
+	cgfx::last_type = 10;
+	cgfx::last_palette = 0;
 }
 
 /****** Dumps GBC BG tile from selected memory address (GUI version) ******/
@@ -562,7 +598,10 @@ void DMG_LCD::dump_gbc_bg(u16 bg_index)
 		cgfx_stat.bg_hash_list.push_back(final_hash);
 
 		bg_dump = SDL_CreateRGBSurface(SDL_SWSURFACE, 8, 8, 32, 0, 0, 0, 0);
-		std::string dump_file = "Dump/BG/" + final_hash + ".bmp";
+
+		std::string dump_file =  "";
+		if(cgfx::dump_name == "") { dump_file = cgfx::dump_bg_path + final_hash + ".bmp"; }
+		else { dump_file = cgfx::dump_bg_path + cgfx::dump_name; }
 
 		if(SDL_MUSTLOCK(bg_dump)) { SDL_LockSurface(bg_dump); }
 
@@ -609,13 +648,22 @@ void DMG_LCD::dump_gbc_bg(u16 bg_index)
 
 	//Reset VRAM bank
 	mem->vram_bank = old_vram_bank;
+
+	//Save CGFX data
+	cgfx::last_hash = final_hash;
+	cgfx::last_vram_addr = (bg_index << 4) + 0x8000;
+	cgfx::last_type = 20;
+	cgfx::last_palette = cgfx::gbc_bg_color_pal + 1;
 }
 
 /****** Dumps GBC BG tile from selected memory address (Auto-dump version) ******/
 void DMG_LCD::dump_gbc_bg(std::string final_hash, u16 bg_tile_addr, u8 palette) 
 {
 	SDL_Surface* bg_dump = SDL_CreateRGBSurface(SDL_SWSURFACE, 8, 8, 32, 0, 0, 0, 0);
-	std::string dump_file = "Dump/BG/" + final_hash + ".bmp";
+
+	std::string dump_file =  "";
+	if(cgfx::dump_name == "") { dump_file = cgfx::dump_bg_path + final_hash + ".bmp"; }
+	else { dump_file = cgfx::dump_bg_path + cgfx::dump_name; }
 
 	if(SDL_MUSTLOCK(bg_dump)) { SDL_LockSurface(bg_dump); }
 
@@ -658,6 +706,12 @@ void DMG_LCD::dump_gbc_bg(std::string final_hash, u16 bg_tile_addr, u8 palette)
 	//Save to BMP
 	std::cout<<"LCD::Saving Background Tile - " << dump_file << "\n";
 	SDL_SaveBMP(bg_dump, dump_file.c_str());
+
+	//Save CGFX data
+	cgfx::last_hash = final_hash;
+	cgfx::last_vram_addr = bg_tile_addr - 16;
+	cgfx::last_type = 20;
+	cgfx::last_palette = palette + 1;
 }
 
 /****** Updates the current hash for the selected DMG OBJ ******/
@@ -877,12 +931,41 @@ void DMG_LCD::update_gbc_bg_hash(u16 map_addr)
 }	
 
 /****** Search for an existing hash from the manifest ******/
-bool DMG_LCD::has_hash(std::string hash)
+bool DMG_LCD::has_hash(u16 addr, std::string hash)
 {
+	bool match = false;
+
 	for(int x = 0; x < cgfx_stat.m_hashes.size(); x++)
 	{
-		if(hash == cgfx_stat.m_hashes[x]) { cgfx_stat.last_id = x; return true; }
+		if(hash == cgfx_stat.m_hashes[x])
+		{
+			if(cgfx_stat.m_vram_addr[x] == 0)
+			{
+				cgfx_stat.last_id = x;
+				match = true;
+			}
+			
+			//Check VRAM addr requirement, if applicable
+			else if(cgfx_stat.m_vram_addr[x] == addr)
+			{
+				cgfx_stat.last_id = x;
+				return true;
+			}
+		}
 	}
 
-	return false;
+	return match;
+}
+
+/****** Adjusts pixel brightness according to a given GBC palette ******/
+u32 DMG_LCD::adjust_pixel_brightness(u32 color, u8 palette_id, u8 gfx_type)
+{
+	//Compare average palette brightness with input brightness
+	u8 palette_brightness = (gfx_type) ? cgfx_stat.obj_pal_brightness[palette_id] : cgfx_stat.bg_pal_brightness[palette_id];
+
+	util::hsl temp_color = util::rgb_to_hsl(color);
+	temp_color.lightness = palette_brightness / 255.0;
+
+	u32 final_color = util::hsl_to_rgb(temp_color);
+	return final_color;
 }

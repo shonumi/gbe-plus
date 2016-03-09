@@ -13,6 +13,7 @@
 
 #include "config.h"
 #include "cgfx_common.h"
+#include "util.h"
 
 namespace config
 {
@@ -22,6 +23,8 @@ namespace config
 	std::string dmg_bios_path = "";
 	std::string gbc_bios_path = "";
 	std::string agb_bios_path = "";
+	std::string ss_path = "";
+	std::vector <std::string> recent_files;
 	std::vector <std::string> cli_args;
 	bool use_debugger = false;
 
@@ -38,15 +41,26 @@ namespace config
 	int agb_joy_r_trigger = 105; int agb_joy_l_trigger = 104;
 	int agb_joy_left = 200; int agb_joy_right = 201; int agb_joy_up = 202; int agb_joy_down = 203;
 
-	//Default keyboard bindings
+	//Default keyboard bindings - DMG
 	//Arrow Z = A button, X = B button, START = Return, Select = Space
 	//UP, LEFT, DOWN, RIGHT = Arrow keys
 	int dmg_key_a = 122; int dmg_key_b = 120; int dmg_key_start = 13; int dmg_key_select = 32; 
 	int dmg_key_left = 276; int dmg_key_right = 275; int dmg_key_down = 274; int dmg_key_up = 273;
 
-	//Default joystick bindings
+	//Default joystick bindings - DMG
 	int dmg_joy_a = 100; int dmg_joy_b = 101; int dmg_joy_start = 107; int dmg_joy_select = 106;
 	int dmg_joy_left = 200; int dmg_joy_right = 201; int dmg_joy_up = 202; int dmg_joy_down = 203;
+
+	//Default keyboard bindings - Gyroscope
+	//Left = 4 (numpad), Right = 6 (numpad), Up = 8 (numpad), Down = 2 (numpad)
+	int gyro_key_left = 260; int gyro_key_right = 262; int gyro_key_up = 264; int gyro_key_down = 258;
+
+	//Default joystick bindings - Gyroscope
+	int gyro_joy_left = 204; int gyro_joy_right = 205; int gyro_joy_up = 206; int gyro_joy_down = 207;
+
+	//Hotkey bindings
+	//Turbo = TAB
+	int hotkey_turbo = 9;
 
 	//Default joystick dead-zone
 	int dead_zone = 16000;
@@ -71,6 +85,10 @@ namespace config
 	//Boolean dictating whether this is a DMG/GBC game on a GBA
 	bool gba_enhance = false;
 
+	//Variables dictating whether or not to stretch DMG/GBC games when playing on a GBA
+	bool request_resize = false;
+	s8 resize_mode = 0;
+
 	//Sound parameters
 	u8 volume = 128;
 	double sample_rate = 44100;
@@ -82,7 +100,11 @@ namespace config
 
 	bool sdl_render = true;
 
-	void (*render_external)(std::vector<u32>&);
+	bool use_external_interfaces = false;
+
+	void (*render_external_sw)(std::vector<u32>&);
+	void (*render_external_hw)(SDL_Surface*);
+	void (*debug_external)();
 
 	//Default Gameboy BG palettes
 	u32 DMG_BG_PAL[4] = { 0xFFFFFFFF, 0xFFC0C0C0, 0xFF606060, 0xFF000000 };
@@ -501,12 +523,15 @@ void parse_filenames()
 	validate_system_type();
 }
 
-/****** Parse optins from the .ini file ******/
+/****** Parse options from the .ini file ******/
 bool parse_ini_file()
 {
 	std::ifstream file("gbe.ini", std::ios::in); 
 	std::string input_line = "";
 	std::string line_char = "";
+
+	//Clear recent files
+	config::recent_files.clear();
 
 	//Clear existing .ini parameters
 	std::vector <std::string> ini_opts;
@@ -554,7 +579,6 @@ bool parse_ini_file()
 
 	//Cycle through all items in the .ini file
 	//Set options as appropiate
-
 	int size = ini_opts.size();
 	int output = 0;
 	std::string ini_item = "";
@@ -658,6 +682,24 @@ bool parse_ini_file()
 			}
 
 			else { config::agb_bios_path = ""; }
+		}
+
+		//Screenshots path
+		else if(ini_item == "#screenshot_path")
+		{
+			if((x + 1) < size) 
+			{
+				ini_item = ini_opts[++x];
+				std::string first_char = "";
+				first_char = ini_item[0];
+				
+				//When left blank, don't parse the next line item
+				if(first_char != "#") { config::ss_path = ini_item; }
+				else { config::ss_path = ""; x--;}
+ 
+			}
+
+			else { config::ss_path = ""; }
 		}
 
 		//Use OpenGL
@@ -1077,6 +1119,105 @@ bool parse_ini_file()
 			}
 		}
 
+		//Gyroscope keyboard controls
+		else if(ini_item == "#gyro_key_controls")
+		{
+			if((x + 4) < size)
+			{
+				std::stringstream temp_stream;
+
+				//LEFT
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::gyro_key_left;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//RIGHT
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::gyro_key_right;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//UP
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::gyro_key_up;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//DOWN
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::gyro_key_down;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#gyro_key_controls) \n";
+				return false;
+			}
+		}
+
+		//Gyroscope joystick controls
+		else if(ini_item == "#gyro_joy_controls")
+		{
+			if((x + 4) < size)
+			{
+				std::stringstream temp_stream;
+
+				//LEFT
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::gyro_joy_left;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//RIGHT
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::gyro_joy_right;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//UP
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::gyro_joy_up;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//DOWN
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::gyro_joy_down;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#gyro_joy_controls) \n";
+				return false;
+			}
+		}
+
+		//Hotkeys
+		else if(ini_item == "#hotkeys")
+		{
+			if((x + 1) < size)
+			{
+				std::stringstream temp_stream;
+
+				//Turbo
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::hotkey_turbo;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#hotkeys) \n";
+				return false;
+			}
+		}
+
 		//Use CGFX
 		else if(ini_item == "#use_cgfx")
 		{
@@ -1113,6 +1254,36 @@ bool parse_ini_file()
 			}
 
 			else { cgfx::manifest_file = ""; }
+		}
+
+		//CGFX BG Tile dump folder
+		else if(ini_item == "#dump_bg_path")
+		{
+			if((x + 1) < size) 
+			{
+				ini_item = ini_opts[++x];
+				std::string first_char = "";
+				first_char = ini_item[0];
+				
+				//When left blank, don't parse the next line item
+				if(first_char != "#") { cgfx::dump_bg_path = ini_item; }
+				else { x--; }
+			}
+		}
+
+		//CGFX OBJ Tile dump folder
+		else if(ini_item == "#dump_obj_path")
+		{
+			if((x + 1) < size) 
+			{
+				ini_item = ini_opts[++x];
+				std::string first_char = "";
+				first_char = ini_item[0];
+				
+				//When left blank, don't parse the next line item
+				if(first_char != "#") { cgfx::dump_obj_path = ini_item; }
+				else { x--; }
+			}
 		}
 
 		//CGFX Scaling factor
@@ -1161,44 +1332,13 @@ bool parse_ini_file()
 				}
 
 				u32 transparency = 0;
-				std::string hex_char = "";
 
 				//Parse the string into hex
-				for(int x = (hex_color.size() - 1), y = 0; x >= 0; x--, y += 4)
+				if(!util::from_hex_str(hex_color, transparency))
 				{
-					hex_char = hex_color[x];
-
-					if(hex_char == "0") { transparency += (0 << y); }
-					else if(hex_char == "1") { transparency += (1 << y); }
-					else if(hex_char == "2") { transparency += (2 << y); }
-					else if(hex_char == "3") { transparency += (3 << y); }
-					else if(hex_char == "4") { transparency += (4 << y); }
-					else if(hex_char == "5") { transparency += (5 << y); }
-					else if(hex_char == "6") { transparency += (6 << y); }
-					else if(hex_char == "7") { transparency += (7 << y); }
-					else if(hex_char == "8") { transparency += (8 << y); }
-					else if(hex_char == "9") { transparency += (9 << y); }
-					else if(hex_char == "A") { transparency += (10 << y); }
-					else if(hex_char == "a") { transparency += (10 << y); }
-					else if(hex_char == "B") { transparency += (11 << y); }
-					else if(hex_char == "b") { transparency += (11 << y); }
-					else if(hex_char == "C") { transparency += (12 << y); }
-					else if(hex_char == "c") { transparency += (12 << y); }
-					else if(hex_char == "D") { transparency += (13 << y); }
-					else if(hex_char == "d") { transparency += (13 << y); }
-					else if(hex_char == "E") { transparency += (14 << y); }
-					else if(hex_char == "e") { transparency += (14 << y); }
-					else if(hex_char == "F") { transparency += (15 << y); }
-					else if(hex_char == "f") { transparency += (15 << y); }
-
-					else 
-					{
-						std::cout<<"GBE::Error - Could not parse gbe.ini (#cgfx_transparency) \n";
-						return false;
-					}
+					std::cout<<"GBE::Error - Could not parse gbe.ini (#cgfx_transparency) \n";
+					return false;
 				}
-
-				cgfx::transparency_color = transparency;
 			}
 
 			else
@@ -1207,7 +1347,404 @@ bool parse_ini_file()
 				return false;
 			}
 		}
+
+		//Recent files
+		else if(ini_item == "#recent_files")
+		{
+			if((x + 1) < size) 
+			{
+				ini_item = ini_opts[++x];
+				std::string first_char = "";
+				first_char = ini_item[0];
+				
+				//When left blank, don't parse the next line item
+				if(first_char != "#")
+				{
+					//Only take at most the 1st 10 entries
+					if(config::recent_files.size() < 10) { config::recent_files.push_back(ini_item); }
+				}
+
+				else { x--; }
+			}
+		}
 	}
 
+	return true;
+}
+
+/****** Save options to the .ini file ******/
+bool save_ini_file()
+{
+	std::ifstream in_file("gbe.ini", std::ios::in); 
+	std::string input_line = "";
+	std::string line_char = "";
+
+	std::vector <std::string> output_lines;
+	std::vector <u32> output_count;
+	int line_counter = 0;
+	int recent_count = config::recent_files.size();
+
+	//Clear existing .ini parameters
+	std::vector <std::string> ini_opts;
+	ini_opts.clear();
+
+	if(!in_file.is_open())
+	{
+		std::cout<<"GBE::Error - Could not save gbe.ini configuration file. Check file path or permissions. \n";
+		return false; 
+	}
+
+	//Cycle through whole file, line-by-line
+	while(getline(in_file, input_line))
+	{
+		line_char = input_line[0];
+		bool ignore = false;	
+
+		//Push line to output text for later manipulation
+		output_lines.push_back(input_line);
+	
+		//Check if line starts with [ - if not, skip line
+		if(line_char == "[")
+		{
+			std::string line_item = "";
+
+			//Cycle through line, character-by-character
+			for(int x = 0; ++x < input_line.length();)
+			{
+				line_char = input_line[x];
+
+				//Check for single-quotes, don't parse ":" or "]" within them
+				if((line_char == "'") && (!ignore)) { ignore = true; }
+				else if((line_char == "'") && (ignore)) { ignore = false; }
+
+				//Check the character for item limiter : or ] - Push to Vector
+				else if(((line_char == ":") || (line_char == "]")) && (!ignore)) 
+				{
+					ini_opts.push_back(line_item);
+					output_count.push_back(line_counter);
+					line_item = "";
+				}
+
+				else { line_item += line_char; }
+			}
+		}
+
+		line_counter++;
+	}
+	
+	in_file.close();
+
+	//Cycle through all items in the .ini file
+	//Save options as appropiate
+	int size = ini_opts.size();
+	int line_pos = 0;
+	std::string ini_item = "";
+
+	for(int x = 0; x < size; x++)
+	{
+		ini_item = ini_opts[x];
+
+		//Use BIOS
+		if(ini_item == "#use_bios")
+		{
+			line_pos = output_count[x];
+			std::string val = (config::use_bios) ? "1" : "0";
+
+			output_lines[line_pos] = "[#use_bios:" + val + "]";
+		}
+
+		//Set emulated system type
+		else if(ini_item == "#system_type")
+		{
+			line_pos = output_count[x];
+
+			output_lines[line_pos] = "[#system_type:" + util::to_str(config::gb_type) + "]";
+		}
+
+		//DMG BIOS path
+		else if(ini_item == "#dmg_bios_path")
+		{
+			line_pos = output_count[x];
+			std::string val = (config::dmg_bios_path == "") ? "" : (":'" + config::dmg_bios_path + "'");
+
+			output_lines[line_pos] = "[#dmg_bios_path" + val + "]";
+		}
+
+		//GBC BIOS path
+		else if(ini_item == "#gbc_bios_path")
+		{
+			line_pos = output_count[x];
+			std::string val = (config::gbc_bios_path == "") ? "" : (":'" + config::gbc_bios_path + "'");
+
+			output_lines[line_pos] = "[#gbc_bios_path" + val + "]";
+		}
+
+		//GBA BIOS path
+		else if(ini_item == "#agb_bios_path")
+		{
+			line_pos = output_count[x];
+			std::string val = (config::agb_bios_path == "") ? "" : (":'" + config::agb_bios_path + "'");
+
+			output_lines[line_pos] = "[#agb_bios_path" + val + "]";
+		}
+
+		//Screenshots path
+		else if(ini_item == "#screenshot_path")
+		{
+			line_pos = output_count[x];
+			std::string val = (config::ss_path == "") ? "" : (":'" + config::ss_path + "'");
+
+			output_lines[line_pos] = "[#screenshot_path" + val + "]";
+		}
+
+		//Use OpenGL
+		else if(ini_item == "#use_opengl")
+		{
+			line_pos = output_count[x];
+			std::string val = (config::use_opengl) ? "1" : "0";
+
+			output_lines[line_pos] = "[#use_opengl:" + val + "]";
+		}
+
+		//Use gamepad dead zone
+		else if(ini_item == "#dead_zone")
+		{
+			line_pos = output_count[x];
+
+			output_lines[line_pos] = "[#dead_zone:" + util::to_str(config::dead_zone) + "]";
+		}
+
+		//Volume settings
+		else if(ini_item == "#volume")
+		{
+			line_pos = output_count[x];
+
+			output_lines[line_pos] = "[#volume:" + util::to_str(config::volume) + "]";
+		}
+
+		//Mute settings
+		else if(ini_item == "#mute")
+		{
+			line_pos = output_count[x];
+			std::string val = (config::mute) ? "1" : "0";
+
+			output_lines[line_pos] = "[#mute:" + val + "]";
+		}
+
+		//Sample rate
+		else if(ini_item == "#sample_rate")
+		{
+			line_pos = output_count[x];
+
+			output_lines[line_pos] = "[#sample_rate:" + util::to_str(config::sample_rate) + "]";
+		}
+
+		//Scaling factor
+		else if(ini_item == "#scaling_factor")
+		{
+			line_pos = output_count[x];
+
+			output_lines[line_pos] = "[#scaling_factor:" + util::to_str(config::scaling_factor) + "]";
+		}
+
+
+		//Emulated DMG-on-GBC palette
+		else if(ini_item == "#dmg_on_gbc_pal")
+		{
+			line_pos = output_count[x];
+
+			output_lines[line_pos] = "[#dmg_on_gbc_pal:" + util::to_str(config::dmg_gbc_pal) + "]";
+		}
+
+		//DMG-GBC keyboard controls
+		else if(ini_item == "#dmg_key_controls")
+		{
+			line_pos = output_count[x];
+			std::string val = util::to_str(config::dmg_key_a) + ":";
+			val += util::to_str(config::dmg_key_b) + ":";
+			val += util::to_str(config::dmg_key_start) + ":";
+			val += util::to_str(config::dmg_key_select) + ":";
+			val += util::to_str(config::dmg_key_left) + ":";
+			val += util::to_str(config::dmg_key_right) + ":";
+			val += util::to_str(config::dmg_key_up) + ":";
+			val += util::to_str(config::dmg_key_down);
+
+			output_lines[line_pos] = "[#dmg_key_controls:" + val + "]";
+		}
+
+		//DMG-GBC gamepad controls
+		else if(ini_item == "#dmg_joy_controls")
+		{
+			line_pos = output_count[x];
+			std::string val = util::to_str(config::dmg_joy_a) + ":";
+			val += util::to_str(config::dmg_joy_b) + ":";
+			val += util::to_str(config::dmg_joy_start) + ":";
+			val += util::to_str(config::dmg_joy_select) + ":";
+			val += util::to_str(config::dmg_joy_left) + ":";
+			val += util::to_str(config::dmg_joy_right) + ":";
+			val += util::to_str(config::dmg_joy_up) + ":";
+			val += util::to_str(config::dmg_joy_down);
+
+			output_lines[line_pos] = "[#dmg_joy_controls:" + val + "]";
+		}
+
+		//GBA keyboard controls
+		else if(ini_item == "#agb_key_controls")
+		{
+			line_pos = output_count[x];
+			std::string val = util::to_str(config::agb_key_a) + ":";
+			val += util::to_str(config::agb_key_b) + ":";
+			val += util::to_str(config::agb_key_start) + ":";
+			val += util::to_str(config::agb_key_select) + ":";
+			val += util::to_str(config::agb_key_left) + ":";
+			val += util::to_str(config::agb_key_right) + ":";
+			val += util::to_str(config::agb_key_up) + ":";
+			val += util::to_str(config::agb_key_down) + ":";
+			val += util::to_str(config::agb_key_l_trigger) + ":";
+			val += util::to_str(config::agb_key_r_trigger);
+
+			output_lines[line_pos] = "[#agb_key_controls:" + val + "]";
+		}
+
+		//GBA gamepad controls
+		else if(ini_item == "#agb_joy_controls")
+		{
+			line_pos = output_count[x];
+			std::string val = util::to_str(config::agb_joy_a) + ":";
+			val += util::to_str(config::agb_joy_b) + ":";
+			val += util::to_str(config::agb_joy_start) + ":";
+			val += util::to_str(config::agb_joy_select) + ":";
+			val += util::to_str(config::agb_joy_left) + ":";
+			val += util::to_str(config::agb_joy_right) + ":";
+			val += util::to_str(config::agb_joy_up) + ":";
+			val += util::to_str(config::agb_joy_down) + ":";
+			val += util::to_str(config::agb_joy_l_trigger) + ":";
+			val += util::to_str(config::agb_joy_r_trigger);
+
+			output_lines[line_pos] = "[#agb_joy_controls:" + val + "]";
+		}
+
+		//Gyroscope keyboard controls
+		else if(ini_item == "#gyro_key_controls")
+		{
+			line_pos = output_count[x];
+			std::string val = util::to_str(config::gyro_key_left) + ":";
+			val += util::to_str(config::gyro_key_right) + ":";
+			val += util::to_str(config::gyro_key_up) + ":";
+			val += util::to_str(config::gyro_key_down);
+
+			output_lines[line_pos] = "[#gyro_key_controls:" + val + "]";
+		}
+
+		//Gyroscope joystick controls
+		else if(ini_item == "#gyro_joy_controls")
+		{
+			line_pos = output_count[x];
+			std::string val = util::to_str(config::gyro_joy_left) + ":";
+			val += util::to_str(config::gyro_joy_right) + ":";
+			val += util::to_str(config::gyro_joy_up) + ":";
+			val += util::to_str(config::gyro_joy_down);
+
+			output_lines[line_pos] = "[#gyro_joy_controls:" + val + "]";
+		}
+
+		//Hotkeys
+		else if(ini_item == "#hotkeys")
+		{
+			line_pos = output_count[x];
+			std::string val = util::to_str(config::hotkey_turbo);
+
+			output_lines[line_pos] = "[#hotkeys:" + val + "]";
+		}
+
+		//Use CGFX
+		else if(ini_item == "#use_cgfx")
+		{
+			line_pos = output_count[x];
+			std::string val = (cgfx::load_cgfx) ? "1" : "0";
+
+			output_lines[line_pos] = "[#use_cgfx:" + val + "]";
+		}
+
+		//CGFX manifest path
+		else if(ini_item == "#manifest_path")
+		{
+			line_pos = output_count[x];
+			std::string val = (cgfx::manifest_file == "") ? "" : (":'" + cgfx::manifest_file + "'");
+
+			output_lines[line_pos] = "[#manifest_path" + val + "]";
+		}
+
+		//CGFX BG Tile dump folder
+		else if(ini_item == "#dump_bg_path")
+		{
+			line_pos = output_count[x];
+			std::string val = (cgfx::dump_bg_path == "") ? "" : (":'" + cgfx::dump_bg_path + "'");
+
+			output_lines[line_pos] = "[#dump_bg_path" + val + "]";
+		}
+
+		//CGFX OBJ Tile dump folder
+		else if(ini_item == "#dump_obj_path")
+		{
+			line_pos = output_count[x];
+			std::string val = (cgfx::dump_obj_path == "") ? "" : (":'" + cgfx::dump_obj_path + "'");
+
+			output_lines[line_pos] = "[#dump_obj_path" + val + "]";
+		}
+
+		//CGFX Scaling factor
+		else if(ini_item == "#cgfx_scaling_factor")
+		{
+			line_pos = output_count[x];
+			std::string val = util::to_str(cgfx::scaling_factor);
+
+			output_lines[line_pos] = "[#cgfx_scaling_factor:" + val + "]";
+		}
+
+		//CGFX Transparency color
+		else if(ini_item == "#cgfx_transparency")
+		{
+			line_pos = output_count[x];
+			std::string val = util::to_hex_str(cgfx::transparency_color);
+
+			output_lines[line_pos] = "[#cgfx_transparency:" + val + "]";
+		}
+
+		else if(ini_item == "#recent_files")
+		{
+			line_pos = output_count[x];
+			output_lines[line_pos] = "[#ignore#]";
+		}
+	}
+
+	//Write contents to .ini file
+	std::ofstream out_file("gbe.ini", std::ios::out);
+
+	if(!out_file.is_open())
+	{
+		std::cout<<"GBE::Error - Could not save gbe.ini configuration file. Check file path or permissions. \n";
+		return false; 
+	}
+
+	for(int x = 0; x < output_lines.size(); x++)
+	{
+		if(output_lines[x] != "[#ignore#]")
+		{
+			output_lines[x] += "\n";
+			out_file << output_lines[x];
+		}
+	}
+
+	for(int x = 0; x < recent_count; x++)
+	{	
+		std::string val = "'" + config::recent_files[x] + "'";
+		val = "[#recent_files:" + val + "]";
+		
+		if(x == 0) { out_file << val; }
+		else { out_file << "\n" << val; }
+	}
+
+	out_file.close();
 	return true;
 }

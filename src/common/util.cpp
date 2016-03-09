@@ -10,6 +10,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <vector>
 
 #include "util.h"
@@ -331,6 +332,118 @@ u32 hsv_to_rgb(hsv color)
 	return final_color;
 }
 
+/****** Converts RGB to HSL ******/
+hsl rgb_to_hsl(u32 color)
+{
+	hsl final_color;
+
+	u8 r = (color >> 16);
+	u8 g = (color >> 8);
+	u8 b = color;
+
+	//Calculate the color delta
+	double max = rgb_max(color) / 255.0;
+	double min = rgb_min(color) / 255.0;	
+	double color_delta = max - min;
+
+	//Calculate lightness
+	final_color.lightness = (max + min) / 2.0;
+
+	if(color_delta == 0) { final_color.hue = final_color.saturation = 0; }
+
+	else
+	{
+		//Calculate saturation
+		if(final_color.lightness < 0.5) { final_color.saturation = color_delta / (max + min); }
+		else { final_color.saturation = color_delta / (2 - max - min); }
+
+		//Calculate hue
+		double hue_r = r / 255.0;
+		double hue_g = g / 255.0;
+		double hue_b = b / 255.0;
+
+		double r_delta = (((max - hue_r ) / 6.0) + (color_delta / 2.0)) / color_delta;
+		double g_delta = (((max - hue_g ) / 6.0) + (color_delta / 2.0)) / color_delta;
+		double b_delta = (((max - hue_b ) / 6.0) + (color_delta / 2.0)) / color_delta;
+
+		if(hue_r == max) { final_color.hue = b_delta - g_delta; }
+		else if(hue_g == max) { final_color.hue = (1 / 3.0) + r_delta - b_delta; }
+		else if(hue_b == max) { final_color.hue = (2 / 3.0 ) + g_delta - r_delta; }
+
+		if(final_color.hue < 0 ) { final_color.hue += 1; }
+   		else if(final_color.hue > 1 ) { final_color.hue -= 1; }
+	}
+
+	return final_color;
+}
+		
+/****** Converts HSL to RGB ******/
+u32 hsl_to_rgb(hsl color)
+{
+	u32 final_color = 0;
+	
+	u8 r, g, b = 0;
+
+	if(color.saturation == 0) { r = g = b = (color.lightness * 255); }
+
+	else
+	{
+		double hue_factor_1, hue_factor_2 = 0.0;
+
+		if(color.lightness < 0.5) { hue_factor_2 = color.lightness * (1 + color.saturation); }
+		else { hue_factor_2 = (color.lightness + color.saturation) - (color.saturation * color.lightness); }
+
+		hue_factor_1 = (2 * color.lightness) - hue_factor_2;
+
+		r = hue_to_rgb(hue_factor_1, hue_factor_2, color.hue + (1/3.0));
+		g = hue_to_rgb(hue_factor_1, hue_factor_2, color.hue);
+		b = hue_to_rgb(hue_factor_1, hue_factor_2, color.hue - (1/3.0));
+	}
+
+	final_color = 0xFF000000 | (r << 16) | (g << 8) | b;
+	return final_color;	
+}
+
+/****** Converts an HSL hue to an RGB component ******/
+u8 hue_to_rgb(double hue_factor_1, double hue_factor_2, double hue)
+{
+	if(hue < 0) { hue += 1; }
+	else if(hue > 1) { hue -= 1; }
+
+	if((6 * hue) < 1) { return 255 * (hue_factor_1 + (hue_factor_2 - hue_factor_1) * 6 * hue); }
+	else if((2 * hue) < 1) { return 255 * hue_factor_2; }
+	else if((3 * hue) < 2) { return 255 * (hue_factor_1 + (hue_factor_2 - hue_factor_1) * ((2/3.0) - hue) * 6); }
+
+	return 255 * hue_factor_1;
+}
+
+/****** Get the perceived brightness of a pixel - Quick and dirty version ******/
+u8 get_brightness_fast(u32 color)
+{
+	u8 r = (color >> 16);
+	u8 g = (color >> 8);
+	u8 b = color;
+
+	return (r+r+r+g+g+g+g+b) >> 3;
+}
+
+/****** Blends the RGB channels of 2 colors ******/
+u32 rgb_blend(u32 color_1, u32 color_2)
+{
+
+	if(color_1 == color_2) { return color_1; }
+
+	u16 r = ((color_1 >> 16) & 0xFF) + ((color_2 >> 16) & 0xFF);
+	u16 g = ((color_1 >> 8) & 0xFF) + ((color_2 >> 8) & 0xFF);
+	u16 b = (color_1 & 0xFF) + (color_2 & 0xFF);
+
+	r >>= 1;
+	g >>= 1;
+	b >>= 1;
+
+	return 0xFF000000 | (r << 16) | (g << 8) | b;
+}
+
 /****** Mirrors bits ******/
 u32 reflect(u32 src, u8 bit)
 {
@@ -396,6 +509,102 @@ u32 xbit(u32 a, u32 b)
 {
 	u32 x = (a ^ b) & a;
 	return x;
+}
+
+/****** Convert a number into hex as a C++ string ******/
+std::string to_hex_str(u32 input)
+{
+	std::stringstream temp;
+
+	//Auto fill with '0's
+	if(input < 0x10) { temp << "0x0" << std::hex << std::uppercase << input; }
+	else if((input < 0x1000) && (input >= 0x100)) { temp << "0x0" << std::hex << std::uppercase << input; }
+	else if((input < 0x100000) && (input >= 0x10000)) { temp << "0x0" << std::hex << std::uppercase << input; }
+	else if((input < 0x10000000) && (input >= 0x1000000)) { temp << "0x0" << std::hex << std::uppercase << input; }
+	else { temp << "0x" << std::hex << std::uppercase << input; }
+
+	return temp.str();
+}
+
+/****** Converts C++ string representing a hex number into an integer value ******/
+bool from_hex_str(std::string input, u32 &result)
+{
+	//This function expects the hex string to contain only hexadecimal numbers and letters
+	//E.g. it expects "8000" rather than "0x8000" or "$8000"
+	//Returns false + result = 0 if it encounters any unexpected characters
+
+	result = 0;
+	u32 hex_size = (input.size() - 1);
+	std::string hex_char = "";
+
+	//Convert hex string into usable u32
+	for(int x = hex_size, y = 0; x >= 0; x--, y+=4)
+	{
+		hex_char = input[x];
+
+		if(hex_char == "0") { result += 0; }
+		else if(hex_char == "1") { result += (1 << y); }
+		else if(hex_char == "2") { result += (2 << y); }
+		else if(hex_char == "3") { result += (3 << y); }
+		else if(hex_char == "4") { result += (4 << y); }
+		else if(hex_char == "5") { result += (5 << y); }
+		else if(hex_char == "6") { result += (6 << y); }
+		else if(hex_char == "7") { result += (7 << y); }
+		else if(hex_char == "8") { result += (8 << y); }
+		else if(hex_char == "9") { result += (9 << y); }
+		else if(hex_char == "A") { result += (10 << y); }
+		else if(hex_char == "a") { result += (10 << y); }
+		else if(hex_char == "B") { result += (11 << y); }
+		else if(hex_char == "b") { result += (11 << y); }
+		else if(hex_char == "C") { result += (12 << y); }
+		else if(hex_char == "c") { result += (12 << y); }
+		else if(hex_char == "D") { result += (13 << y); }
+		else if(hex_char == "d") { result += (13 << y); }
+		else if(hex_char == "E") { result += (14 << y); }
+		else if(hex_char == "e") { result += (14 << y); }
+		else if(hex_char == "F") { result += (15 << y); }
+		else if(hex_char == "f") { result += (15 << y); }
+		else { result = 0; return false; }
+	}
+
+	return true;
+}
+
+/****** Convert an intger into a C++ string ******/
+std::string to_str(u32 input)
+{
+	std::stringstream temp;
+	temp << input;
+	return temp.str();
+}
+
+/****** Converts a string into an integer value ******/
+bool from_str(std::string input, u32 &result)
+{
+	result = 0;
+	u32 size = (input.size() - 1);
+	std::string value_char = "";
+
+	//Convert string into usable u32
+	for(int x = size, y = 0; x >= 0; x--, y *= 10)
+	{
+		value_char = input[x];
+
+		if(value_char == "0") { result += 0; }
+		else if(value_char == "1") { result += (1 * y); }
+		else if(value_char == "2") { result += (2 * y); }
+		else if(value_char == "3") { result += (3 * y); }
+		else if(value_char == "4") { result += (4 * y); }
+		else if(value_char == "5") { result += (5 * y); }
+		else if(value_char == "6") { result += (6 * y); }
+		else if(value_char == "7") { result += (7 * y); }
+		else if(value_char == "8") { result += (8 * y); }
+		else if(value_char == "9") { result += (9 * y); }
+		else if(value_char == "-") { result *= -1; }
+		else { result = 0; return false; }
+	}
+
+	return true;
 }
 
 } //Namespace

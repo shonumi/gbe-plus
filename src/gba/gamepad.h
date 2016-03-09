@@ -28,6 +28,7 @@ class AGB_GamePad
 
 	void handle_input(SDL_Event &event);
 	void init();
+	void clear_input();
 
 	void process_keyboard(int pad, bool pressed);
 	void process_joystick(int pad, bool pressed);

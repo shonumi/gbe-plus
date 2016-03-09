@@ -26,6 +26,10 @@ class DMG_GamePad
 	u8 p14, p15;
 	u8 column_id;
 
+	u16 sensor_x;
+	u16 sensor_y;
+	u8 gyro_flags;
+
 	int pad;
 
 	//Shadow status for keyboard input
@@ -41,6 +45,7 @@ class DMG_GamePad
 
 	void process_keyboard(int pad, bool pressed);
 	void process_joystick(int pad, bool pressed);
+	void process_gyroscope();
 	u8 read();
 };
 

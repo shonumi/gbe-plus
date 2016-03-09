@@ -34,6 +34,10 @@ class DMG_APU
 	bool init();
 	void reset();
 
+	//Serialize data for save state loading/saving
+	bool apu_read(u32 offset, std::string filename);
+	bool apu_write(std::string filename);
+
 	void generate_channel_1_samples(s16* stream, int length);
 	void generate_channel_2_samples(s16* stream, int length);
 	void generate_channel_3_samples(s16* stream, int length);

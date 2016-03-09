@@ -50,7 +50,12 @@ class DMG_LCD
 	void update_gbc_obj_hash(u8 obj_index);
 	void update_gbc_bg_hash(u16 map_addr);
 
-	bool has_hash(std::string hash);
+	bool has_hash(u16 addr, std::string hash);
+	u32 adjust_pixel_brightness(u32 color, u8 palette_id, u8 gfx_type);
+
+	//Serialize data for save state loading/saving
+	bool lcd_read(u32 offset, std::string filename);
+	bool lcd_write(std::string filename);
 
 	//Screen data
 	SDL_Surface* final_screen;
@@ -91,8 +96,9 @@ class DMG_LCD
 	std::vector<u32> scanline_buffer;
 	std::vector<u32> screen_buffer;
 	std::vector<u32> hd_screen_buffer;
-	std::vector<u32> scanline_raw;
-	std::vector<u32> scanline_priority;
+	std::vector<u8> scanline_raw;
+	std::vector<u8> scanline_priority;
+	std::vector<u32> stretched_buffer;
 
 	int frame_start_time;
 	int frame_current_time;

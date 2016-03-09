@@ -51,16 +51,24 @@ class gen_settings : public QDialog
 	int last_key;
 	int input_index;
 
+	QSlider* dead_zone;
+
 	//Paths tab widgets
 	QLineEdit* dmg_bios;
 	QLineEdit* gbc_bios;
 	QLineEdit* gba_bios;
 	QLineEdit* manifest;
+	QLineEdit* dump_bg;
+	QLineEdit* dump_obj;
+	QLineEdit* screenshot;
 
 	QLabel* dmg_bios_label;
 	QLabel* gbc_bios_label;
 	QLabel* gba_bios_label;
 	QLabel* manifest_label;
+	QLabel* dump_bg_label;
+	QLabel* dump_obj_label;
+	QLabel* screenshot_label;
 
 	//Controls tab widget
 	QComboBox* input_device;
@@ -87,6 +95,8 @@ class gen_settings : public QDialog
 	QPushButton* config_l;
 	QPushButton* config_r;
 
+	void update_volume();
+
 	protected:
 	void paintEvent(QPaintEvent* event);
 	void keyPressEvent(QKeyEvent* event);
@@ -103,11 +113,13 @@ class gen_settings : public QDialog
 	void mute();
 	void set_paths(int index);
 	void input_device_change();
+	void dead_zone_change();
 	void configure_button(int button);
 	void close_input();
 
 	private:
 	void process_joystick_event();
+	void input_delay(QPushButton* input_button); 
 
 	SDL_Joystick* jstick;
 	int input_type;

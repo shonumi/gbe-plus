@@ -7,6 +7,7 @@ set(SRCS
 	mbc2.cpp
 	mbc3.cpp
 	mbc5.cpp
+	mbc7.cpp
 	mmu.cpp
 	opengl.cpp
 	z80.cpp

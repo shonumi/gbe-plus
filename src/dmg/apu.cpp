@@ -120,6 +120,37 @@ bool DMG_APU::init()
 	}
 }
 
+/****** Read APU data from save state ******/
+bool DMG_APU::apu_read(u32 offset, std::string filename)
+{
+	std::ifstream file(filename.c_str(), std::ios::binary);
+	
+	if(!file.is_open()) { return false; }
+
+	//Go to offset
+	file.seekg(offset);
+
+	//Serialize APU data from file stream
+	file.read((char*)&apu_stat, sizeof(apu_stat));
+
+	file.close();
+	return true;
+}
+
+/****** Write APU data to save state ******/
+bool DMG_APU::apu_write(std::string filename)
+{
+	std::ofstream file(filename.c_str(), std::ios::binary | std::ios::app);
+	
+	if(!file.is_open()) { return false; }
+
+	//Serialize CPU registers data to file stream
+	file.write((char*)&apu_stat, sizeof(apu_stat));
+
+	file.close();
+	return true;
+}
+
 /******* Generate samples for GB sound channel 1 ******/
 void DMG_APU::generate_channel_1_samples(s16* stream, int length)
 {

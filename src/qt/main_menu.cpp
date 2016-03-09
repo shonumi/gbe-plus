@@ -15,6 +15,7 @@
 
 #include "common/config.h"
 #include "common/cgfx_common.h"
+#include "common/util.h"
 
 /****** Main menu constructor ******/
 main_menu::main_menu(QWidget *parent) : QWidget(parent)
@@ -32,6 +33,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	QAction* display = new QAction("Display", this);
 	QAction* sound = new QAction("Sound", this);
 	QAction* controls = new QAction("Controls", this);
+	QAction* paths = new QAction("Paths", this);
 
 	QAction* custom_gfx = new QAction("Custom Graphics...", this);
 	QAction* debugging = new QAction("Debugger", this);
@@ -51,7 +53,6 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	pause->setObjectName("pause_action");
 	fullscreen->setCheckable(true);
 
-	QMenuBar* menu_bar;
 	menu_bar = new QMenuBar(this);
 
 	//Setup File menu
@@ -59,6 +60,10 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 
 	file = new QMenu(tr("&File"), this);
 	file->addAction(open);
+	recent_list = file->addMenu(tr("Recent Files"));
+	file->addSeparator();
+	state_save_list = file->addMenu(tr("Save State"));
+	state_load_list = file->addMenu(tr("Load State"));
 	file->addSeparator();
 	file->addAction(quit);
 	menu_bar->addMenu(file);
@@ -83,6 +88,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	options->addAction(display);
 	options->addAction(sound);
 	options->addAction(controls);
+	options->addAction(paths);
 	menu_bar->addMenu(options);
 
 	//Advanced menu
@@ -110,20 +116,102 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	connect(display, SIGNAL(triggered()), this, SLOT(show_display_settings()));
 	connect(sound, SIGNAL(triggered()), this, SLOT(show_sound_settings()));
 	connect(controls, SIGNAL(triggered()), this, SLOT(show_control_settings()));
+	connect(paths, SIGNAL(triggered()), this, SLOT(show_paths_settings()));
 	connect(custom_gfx, SIGNAL(triggered()), this, SLOT(show_cgfx()));
+	connect(debugging, SIGNAL(triggered()), this, SLOT(show_debugger()));
 	connect(about, SIGNAL(triggered()), this, SLOT(show_about()));
 
+	sw_screen = new soft_screen();
+	hw_screen = new hard_screen();
+
 	QVBoxLayout* layout = new QVBoxLayout;
+	layout->setContentsMargins(0, 0, 0, -1);
+	layout->addWidget(sw_screen);
+	layout->addWidget(hw_screen);
 	layout->setMenuBar(menu_bar);
 	setLayout(layout);
 
-	menu_height = menu_bar->height();
-
-	main_menu::gbe_plus = NULL;
 	config::scaling_factor = 2;
+
+	hw_screen->hide();
+	hw_screen->setEnabled(false);
 
 	//Parse .ini options
 	parse_ini_file();
+
+	//Setup Recent Files
+	QSignalMapper* list_mapper = new QSignalMapper(this);
+
+	for(int x = (config::recent_files.size() - 1); x >= 0; x--)
+	{
+		QString path = QString::fromStdString(config::recent_files[x]);
+		QFileInfo file(path);
+		path = file.fileName();
+
+		QAction* temp = new QAction(path, this);
+		recent_list->addAction(temp);
+
+		connect(temp, SIGNAL(triggered()), list_mapper, SLOT(map()));
+		list_mapper->setMapping(temp, x);
+	}
+
+	connect(list_mapper, SIGNAL(mapped(int)), this, SLOT(load_recent(int)));
+
+	//Setup Save States
+	QSignalMapper* save_mapper = new QSignalMapper(this);
+
+	for(int x = 0; x < 10; x++)
+	{
+		QAction* temp;
+
+		if(x == 0) 
+		{
+			temp = new QAction(tr("Quick Save"), this);
+			temp->setShortcut(tr("F1"));
+		}
+		
+		else
+		{
+			std::string slot_id = "Slot " + util::to_str(x);
+			QString slot_name = QString::fromStdString(slot_id);
+			temp = new QAction(slot_name, this);
+		}
+
+		state_save_list->addAction(temp);
+
+		connect(temp, SIGNAL(triggered()), save_mapper, SLOT(map()));
+		save_mapper->setMapping(temp, x);
+	}
+
+	connect(save_mapper, SIGNAL(mapped(int)), this, SLOT(save_state(int)));
+
+	//Setup Load States
+	QSignalMapper* load_mapper = new QSignalMapper(this);
+
+	for(int x = 0; x < 10; x++)
+	{
+		QAction* temp;
+
+		if(x == 0)
+		{
+			temp = new QAction(tr("Quick Load"), this);
+			temp->setShortcut(tr("F2"));
+		}
+		
+		else
+		{
+			std::string slot_id = "Slot " + util::to_str(x);
+			QString slot_name = QString::fromStdString(slot_id);
+			temp = new QAction(slot_name, this);
+		}
+
+		state_load_list->addAction(temp);
+
+		connect(temp, SIGNAL(triggered()), load_mapper, SLOT(map()));
+		load_mapper->setMapping(temp, x);
+	}
+
+	connect(load_mapper, SIGNAL(mapped(int)), this, SLOT(load_state(int)));
 
 	//Set up settings dialog
 	settings = new gen_settings();
@@ -132,6 +220,10 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	//Set up custom graphics dialog
 	cgfx = new gbe_cgfx();
 	cgfx->hide();
+
+	//Set up DMG-GBC debugger
+	main_menu::dmg_debugger = new dmg_debug();
+	main_menu::dmg_debugger->hide();
 
 	//Setup About pop-up
 	about_box = new QWidget();
@@ -148,8 +240,8 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	emu_title->setFont(font);
 
 	QLabel* emu_desc = new QLabel("A GB/GBC/GBA emulator with enhancements");
-	QLabel* emu_copyright = new QLabel("Copyright D.S. Baxter 2014-2015");
-	QLabel* emu_proj_copyright = new QLabel("Copyright GBE+ Team 2014-2015");
+	QLabel* emu_copyright = new QLabel("Copyright D.S. Baxter 2014-2016");
+	QLabel* emu_proj_copyright = new QLabel("Copyright GBE+ Team 2014-2016");
 	QLabel* emu_license = new QLabel("This program is licensed under the GNU GPLv2");
 
 	QVBoxLayout* about_layout = new QVBoxLayout;
@@ -185,11 +277,28 @@ void main_menu::open_file()
 	config::save_file = config::rom_file + ".sav";
 
 	config::sdl_render = false;
-	config::render_external = render_screen;
+	config::render_external_sw = render_screen_sw;
+	config::render_external_hw = render_screen_hw;
 	config::sample_rate = settings->sample_rate;
 
 	if(qt_gui::screen != NULL) { delete qt_gui::screen; }
 	qt_gui::screen = NULL;
+
+	//Search the recent files list and add this path to it
+	bool add_recent = true;
+
+	for(int x = 0; x < config::recent_files.size(); x++)
+	{
+		if(config::recent_files[x] == config::rom_file) { add_recent = false; }
+	}
+
+	if(add_recent)
+	{
+		config::recent_files.push_back(config::rom_file);
+
+		//Delete the earliest element
+		if(config::recent_files.size() > 10) { config::recent_files.erase(config::recent_files.begin()); }
+	}
 
 	boot_game();
 }
@@ -204,6 +313,21 @@ void main_menu::quit()
 		main_menu::gbe_plus->core_emu::~core_emu();
 	}
 
+	//Save .ini options
+	config::gb_type = settings->sys_type->currentIndex();
+	config::mute = (settings->sound_on->isChecked()) ? false : true;
+	config::volume = settings->volume->value();
+
+	switch(settings->freq->currentIndex())
+	{
+		case 0: config::sample_rate = 48000.0; break;
+		case 1: config::sample_rate = 44000.0; break;
+		case 2: config::sample_rate = 20500.0; break;
+		case 3: config::sample_rate = 10250.0; break;
+	}
+
+	save_ini_file();
+
 	//Close SDL
 	SDL_Quit();
 
@@ -217,7 +341,28 @@ void main_menu::boot_game()
 	config::sample_rate = settings->sample_rate;
 	config::pause_emu = false;
 
+	//Check OpenGL status
+	if(settings->ogl->isChecked())
+	{
+		config::use_opengl = true;
+		sw_screen->setEnabled(false);
+		sw_screen->hide();
+		hw_screen->setEnabled(true);
+		hw_screen->show();
+	}
+
+	else
+	{
+		config::use_opengl = false;
+		sw_screen->setEnabled(true);
+		sw_screen->show();
+		hw_screen->setEnabled(false);
+		hw_screen->hide();
+	}
+
 	findChild<QAction*>("pause_action")->setChecked(false);
+
+	menu_height = menu_bar->height();
 
 	//Determine Gameboy type based on file name
 	//Note, DMG and GBC games are automatically detected in the Gameboy MMU, so only check for GBA types here
@@ -244,6 +389,10 @@ void main_menu::boot_game()
 		main_menu::gbe_plus = new AGB_core();
 		resize((base_width * config::scaling_factor), (base_height * config::scaling_factor) + menu_height);
 		qt_gui::screen = new QImage(240, 160, QImage::Format_ARGB32);
+
+		//Resize drawing screens
+		if(config::use_opengl) { hw_screen->resize((base_width * config::scaling_factor), (base_height * config::scaling_factor)); }
+		else { sw_screen->resize((base_width * config::scaling_factor), (base_height * config::scaling_factor)); }
 	}
 
 	//TODO - Use real DS screen dimensions
@@ -264,6 +413,12 @@ void main_menu::boot_game()
 
 		main_menu::gbe_plus = new DMG_core();
 		resize((base_width * config::scaling_factor), (base_height * config::scaling_factor) + menu_height);
+
+		//Resize drawing screens
+		if(config::use_opengl) { hw_screen->resize((base_width * config::scaling_factor), (base_height * config::scaling_factor)); }
+		else { sw_screen->resize((base_width * config::scaling_factor), (base_height * config::scaling_factor)); }
+
+		if(qt_gui::screen != NULL) { delete qt_gui::screen; }
 		qt_gui::screen = new QImage(base_width, base_height, QImage::Format_ARGB32);
 	}
 
@@ -310,11 +465,29 @@ void main_menu::paintEvent(QPaintEvent* event)
 		{
 			resize((base_width * config::scaling_factor), (base_height * config::scaling_factor) + menu_height);
 			settings->resize_screen = false;
+
+			//Resize drawing screens
+			if(config::use_opengl) { hw_screen->resize((base_width * config::scaling_factor), (base_height * config::scaling_factor)); }
+			else { sw_screen->resize((base_width * config::scaling_factor), (base_height * config::scaling_factor)); }
 		}
 
-		QImage final_screen = qt_gui::screen->scaled(width(), height()-menu_height);
-		QPainter painter(this);
-		painter.drawImage(0, menu_height, final_screen);
+		else if(config::request_resize)
+		{
+			if((config::resize_mode > 0) && (config::sys_width != 240)) { return; }
+
+			base_width = config::sys_width;
+			base_height = config::sys_height;
+
+			if(qt_gui::screen != NULL) { delete qt_gui::screen; }
+			qt_gui::screen = new QImage(config::sys_width, config::sys_height, QImage::Format_ARGB32);
+
+			resize((base_width * config::scaling_factor), (base_height * config::scaling_factor) + menu_height);
+			config::request_resize = false;
+
+			//Resize drawing screens
+			if(config::use_opengl) { hw_screen->resize((base_width * config::scaling_factor), (base_height * config::scaling_factor)); }
+			else { sw_screen->resize((base_width * config::scaling_factor), (base_height * config::scaling_factor)); }
+		}
 	}
 }
 
@@ -327,6 +500,21 @@ void main_menu::closeEvent(QCloseEvent* event)
 		main_menu::gbe_plus->shutdown();
 		main_menu::gbe_plus->core_emu::~core_emu();
 	}
+
+	//Save .ini options
+	config::gb_type = settings->sys_type->currentIndex();
+	config::mute = (settings->sound_on->isChecked()) ? false : true;
+	config::volume = settings->volume->value();
+	
+	switch(settings->freq->currentIndex())
+	{
+		case 0: config::sample_rate = 48000.0; break;
+		case 1: config::sample_rate = 44000.0; break;
+		case 2: config::sample_rate = 20500.0; break;
+		case 3: config::sample_rate = 10250.0; break;
+	}
+
+	save_ini_file();
 
 	//Close SDL
 	SDL_Quit();
@@ -393,6 +581,14 @@ void main_menu::pause_emu()
 	}
 
 	SDL_PauseAudio(0);
+
+	if(dmg_debugger->pause) { return; }
+
+	//If CGFX is open, continue pause
+	if(cgfx->pause) { pause(); }
+
+	//Continue pause if GUI option is still selected - Check this when closing CGFX or debugger
+	if(findChild<QAction*>("pause_action")->isChecked()) { pause(); }
 }
 
 /****** Resets emulation ******/
@@ -412,7 +608,7 @@ void main_menu::screenshot()
 	if(main_menu::gbe_plus != NULL)
 	{
 		std::stringstream save_stream;
-		std::string save_name = "";
+		std::string save_name = config::ss_path;
 
 		//Prefix SDL Ticks to screenshot name
 		save_stream << SDL_GetTicks();
@@ -442,9 +638,14 @@ void main_menu::show_sound_settings() { settings->show(); settings->tabs->setCur
 /****** Shows the Control settings dialog ******/
 void main_menu::show_control_settings() { settings->show(); settings->tabs->setCurrentIndex(3); }
 
+/****** Shows the Paths settings dialog ******/
+void main_menu::show_paths_settings() { settings->show(); settings->tabs->setCurrentIndex(4); }
+
 /****** Shows the Custom Graphics dialog ******/
 void main_menu::show_cgfx() 
-{ 
+{
+	findChild<QAction*>("pause_action")->setEnabled(false);
+
 	cgfx->update_obj_window(8, 40);
 	cgfx->update_bg_window(8, 384);
 	
@@ -472,7 +673,31 @@ void main_menu::show_cgfx()
 
 	cgfx->show();
 	cgfx->pause = true;
-	pause();
+	
+	if(!dmg_debugger->pause) { pause(); }
+}
+
+/****** Shows the debugger ******/
+void main_menu::show_debugger()
+{
+	if(main_menu::gbe_plus != NULL)
+	{
+		//Show DMG-GBC debugger
+		if(config::gb_type <= 2) 
+		{
+			findChild<QAction*>("pause_action")->setEnabled(false);
+
+			SDL_PauseAudio(1);
+			main_menu::dmg_debugger->old_pause = config::pause_emu;
+			main_menu::dmg_debugger->pause = true;
+			config::pause_emu = false;
+
+			config::debug_external = dmg_debug_step;
+			main_menu::dmg_debugger->auto_refresh();
+			main_menu::dmg_debugger->show();
+			main_menu::gbe_plus->db_unit.debug_mode = true;
+		}
+	}
 }
 
 /****** Shows the About box ******/
@@ -481,3 +706,49 @@ void main_menu::show_about()
 	if(about_box->isHidden()) { about_box->show(); }
 	else if ((!about_box->isMinimized()) && (!about_box->isHidden())){ about_box->hide(); }
 }
+
+/****** Loads recent file from list ******/
+void main_menu::load_recent(int file_id)
+{
+	//Close the core
+	if(main_menu::gbe_plus != NULL) 
+	{
+		main_menu::gbe_plus->shutdown();
+		main_menu::gbe_plus->core_emu::~core_emu();
+	}
+
+	config::rom_file = config::recent_files[file_id];
+	config::save_file = config::rom_file + ".sav";
+
+	config::sdl_render = false;
+	config::render_external_sw = render_screen_sw;
+	config::render_external_hw = render_screen_hw;
+	config::sample_rate = settings->sample_rate;
+
+	if(qt_gui::screen != NULL) { delete qt_gui::screen; }
+	qt_gui::screen = NULL;
+
+	boot_game();
+}
+
+/****** Saves a save state ******/
+void main_menu::save_state(int slot)
+{
+	if(main_menu::gbe_plus != NULL)  { main_menu::gbe_plus->save_state(slot); }
+}
+
+/****** Loads a save state ******/
+void main_menu::load_state(int slot)
+{
+	if(main_menu::gbe_plus != NULL)
+	{
+		main_menu::gbe_plus->load_state(slot);
+
+		//Apply current volume settings
+		settings->update_volume();
+	}
+}
+
+/****** Static definitions ******/
+core_emu* main_menu::gbe_plus = NULL;
+dmg_debug* main_menu::dmg_debugger = NULL;

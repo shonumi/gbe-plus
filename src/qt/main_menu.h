@@ -16,6 +16,8 @@
 
 #include "general_settings.h"
 #include "cgfx.h"
+#include "debug_dmg.h"
+#include "screens.h"
 
 #include "gba/core.h"
 #include "dmg/core.h"
@@ -28,6 +30,16 @@ class main_menu : public QWidget
 	public:
 	main_menu(QWidget *parent = 0);
 	static core_emu* gbe_plus;
+	static dmg_debug* dmg_debugger;
+	gbe_cgfx* cgfx;
+
+	QMenuBar* menu_bar;
+
+	soft_screen* sw_screen;
+	hard_screen* hw_screen;
+	
+	u32 screen_height;
+	u32 screen_width;
 
 	void pause_emu();
 
@@ -47,13 +59,21 @@ class main_menu : public QWidget
 	void show_display_settings();
 	void show_sound_settings();
 	void show_control_settings();
+	void show_paths_settings();
 	void show_cgfx();
+	void show_debugger();
 	void show_about();
+	void load_recent(int file_id);
+	void save_state(int slot);
+	void load_state(int slot);
 
 	private:
 	gen_settings* settings;
-	gbe_cgfx* cgfx;
 	QWidget* about_box;
+
+	QMenu* recent_list;
+	QMenu* state_save_list;
+	QMenu* state_load_list;
 
 	int menu_height;
 	u32 base_width;

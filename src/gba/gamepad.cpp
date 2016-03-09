@@ -287,3 +287,10 @@ void AGB_GamePad::process_joystick(int pad, bool pressed)
 	//Emulate L Trigger release
 	else if((pad == config::agb_joy_l_trigger) && (!pressed)) { key_input |= 0x200; }
 }
+
+/****** Clears any existing input - Primarily used for the SoftReset SWI ******/
+void AGB_GamePad::clear_input()
+{
+	key_input = 0x3FF;
+	up_shadow = down_shadow = left_shadow = right_shadow = false;
+}

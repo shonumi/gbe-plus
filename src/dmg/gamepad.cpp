@@ -19,6 +19,7 @@ DMG_GamePad::DMG_GamePad()
 	column_id = 0;
 	pad = 0;
 	up_shadow = down_shadow = left_shadow = right_shadow = false;
+	sensor_x = sensor_y = 2047;
 }
 
 /****** Initialize GamePad ******/
@@ -211,6 +212,100 @@ void DMG_GamePad::process_keyboard(int pad, bool pressed)
 		if(up_shadow) { p15 &= ~0x4; }
 		else { p15 |= 0x4; } 
 	}
+
+	//Emulate Gyroscope Left tilt press
+	else if((pad == config::gyro_key_left) && (pressed))
+	{
+		gyro_flags |= 0x1;
+		gyro_flags |= 0x10;
+
+		gyro_flags &= ~0x2;
+	}
+
+	//Emulate Gyroscope Left tilt release
+	else if((pad == config::gyro_key_left) && (!pressed))
+	{
+		gyro_flags &= ~0x1;
+		gyro_flags &= ~0x10;
+
+		if(gyro_flags & 0x20) { gyro_flags |= 0x2; }
+		else { gyro_flags &= ~0x2; }
+	}
+
+	//Emulate Gyroscope Right tilt press
+	else if((pad == config::gyro_key_right) && (pressed))
+	{
+		gyro_flags |= 0x2;
+		gyro_flags |= 0x20;
+
+		gyro_flags &= ~0x1;
+	}
+
+	//Emulate Gyroscope Right tilt release
+	else if((pad == config::gyro_key_right) && (!pressed))
+	{
+		gyro_flags &= ~0x2;
+		gyro_flags &= ~0x20;
+
+		if(gyro_flags & 0x10) { gyro_flags |= 0x1; }
+		else { gyro_flags &= ~0x1; }
+	}
+
+	//Emulate Gyroscope Up tilt press
+	else if((pad == config::gyro_key_up) && (pressed))
+	{
+		gyro_flags |= 0x4;
+		gyro_flags |= 0x40;
+
+		gyro_flags &= ~0x8;
+	}
+
+	//Emulate Gyroscope Up tilt release
+	else if((pad == config::gyro_key_up) && (!pressed))
+	{
+		gyro_flags &= ~0x4;
+		gyro_flags &= ~0x40;
+
+		if(gyro_flags & 0x80) { gyro_flags |= 0x8; }
+		else { gyro_flags &= ~0x8; }
+	}
+
+	//Emulate Gyroscope Down tilt press
+	else if((pad == config::gyro_key_down) && (pressed))
+	{
+		gyro_flags |= 0x8;
+		gyro_flags |= 0x80;
+
+		gyro_flags &= ~0x4;
+	}
+
+	//Emulate Gyroscope Down tilt release
+	else if((pad == config::gyro_key_down) && (!pressed))
+	{
+		gyro_flags &= ~0x8;
+		gyro_flags &= ~0x80;
+
+		if(gyro_flags & 0x40) { gyro_flags |= 0x4; }
+		else { gyro_flags &= ~0x4; }
+	}
+
+	//Emulate R Trigger press - DMG/GBC on GBA ONLY
+	else if((pad == config::agb_key_r_trigger) && (pressed) && (config::gba_enhance))
+	{
+		config::request_resize = true;
+		config::resize_mode--;
+		
+		if(config::resize_mode < 0) { config::resize_mode = 0; }
+	}
+
+	//Emulate L Trigger press - DMG/GBC on GBA ONLY
+	else if((pad == config::agb_key_l_trigger) && (pressed) && (config::gba_enhance))
+	{
+		config::request_resize = true;
+		config::resize_mode++;
+
+		if(config::resize_mode > 2) { config::resize_mode = 2; }
+	}
 }
 
 /****** Processes input based on unique pad # for joysticks ******/
@@ -263,6 +358,122 @@ void DMG_GamePad::process_joystick(int pad, bool pressed)
 
 	//Emulate Down DPad release
 	else if((pad == config::dmg_joy_down) && (!pressed)) { p15 |= 0x8; p15 |= 0x4; }
+
+	//Emulate Gyroscope Left tilt press
+	else if((pad == config::gyro_joy_left) && (pressed)) { gyro_flags |= 0x1; gyro_flags &= ~0x2; }
+
+	//Emulate Gyroscope Left tilt release
+	else if((pad == config::gyro_joy_left) && (!pressed)) { gyro_flags &= ~0x1; }
+
+	//Emulate Gyroscope Right tilt press
+	else if((pad == config::gyro_joy_right) && (pressed)) { gyro_flags |= 0x2; gyro_flags &= ~0x1; }
+
+	//Emulate Gyroscope Right tilt release
+	else if((pad == config::gyro_joy_right) && (!pressed)) { gyro_flags &= ~0x2; }
+
+	//Emulate Gyroscope Up tilt press
+	else if((pad == config::gyro_joy_up) && (pressed)) { gyro_flags |= 0x4; gyro_flags &= ~0x8; }
+
+	//Emulate Gyroscope Up tilt release
+	else if((pad == config::gyro_joy_up) && (!pressed)) { gyro_flags &= ~0x4; }
+
+	//Emulate Gyroscope Down tilt press
+	else if((pad == config::gyro_joy_down) && (pressed)) { gyro_flags |= 0x8; gyro_flags &= ~0x4; }
+
+	//Emulate Gyroscope Down tilt release
+	else if((pad == config::gyro_joy_down) && (!pressed)) { gyro_flags &= ~0x8; }
+
+	//Emulate R Trigger press - DMG/GBC on GBA ONLY
+	else if((pad == config::agb_joy_r_trigger) && (pressed) && (config::gba_enhance))
+	{
+		config::request_resize = true;
+		config::resize_mode--;
+		
+		if(config::resize_mode < 0) { config::resize_mode = 0; }
+	}
+
+	//Emulate L Trigger press - DMG/GBC on GBA ONLY
+	else if((pad == config::agb_joy_l_trigger) && (pressed) && (config::gba_enhance))
+	{
+		config::request_resize = true;
+		config::resize_mode++;
+
+		if(config::resize_mode > 2) { config::resize_mode = 2; }
+	}
+}
+
+/****** Process gyroscope sensors - Only used for MBC7 ******/
+void DMG_GamePad::process_gyroscope()
+{
+	//When pressing left, increase sensor_x
+	if(gyro_flags & 0x1) 
+	{
+		sensor_x += 3;
+
+		//Limit X to a max of 2197
+		//When it's lower than the minimum, bump it up right away 
+		if(sensor_x > 2197) { sensor_x = 2197; }
+    		if(sensor_x < 2047) { sensor_x = 2057; }
+	}
+
+	//When pressing right, decrease sensor_x
+	else if(gyro_flags & 0x2) 
+	{
+		sensor_x -= 3;
+
+		//Limit X to a minimum of 1847
+		//When it's lower than the minimum, bump it up right away 
+    		if(sensor_x < 1897) { sensor_x = 1897; }
+    		if(sensor_x > 2047) { sensor_x = 2037; }
+  	}
+	
+	//When neither left or right is pressed, put the sensor in neutral
+	else if(sensor_x > 2047) 
+	{
+    		sensor_x -= 2;
+    		if(sensor_x < 2047) { sensor_x = 2047; } 
+	}
+	
+	else if(sensor_x < 2047)
+	{
+    		sensor_x += 2;
+    		if(sensor_x > 2047) { sensor_x = 2047; }
+  	}
+
+	//When pressing up, increase sensor_y
+	if(gyro_flags & 0x4) 
+	{
+		sensor_y += 3;
+
+		//Limit Y to a max of 2197
+		//When it's lower than the minimum, bump it up right away 
+		if(sensor_y > 2197) { sensor_y = 2197; }
+    		if(sensor_y < 2047) { sensor_y = 2057; }
+	}
+
+	//When pressing down, decrease sensor_y
+	else if(gyro_flags & 0x8) 
+	{
+		sensor_y -= 3;
+
+		//Limit X to a minimum of 1847
+		//When it's lower than the minimum, bump it up right away 
+    		if(sensor_y < 1897) { sensor_y = 1897; }
+    		if(sensor_y > 2047) { sensor_y = 2037; }
+  	}
+	
+	//When neither up or down is pressed, put the sensor in neutral
+	else if(sensor_y > 2047) 
+	{
+    		sensor_y -= 2;
+    		if(sensor_y < 2047) { sensor_y = 2047; } 
+	}
+	
+	else if(sensor_y < 2047)
+	{
+    		sensor_y += 2;
+    		if(sensor_y > 2047) { sensor_y = 2047; }
+  	}
 }
 
 /****** Update P1 ******/

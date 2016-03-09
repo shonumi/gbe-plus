@@ -17,12 +17,14 @@
 
 #include "common/common.h"
 
-void render_screen(std::vector<u32>& image);
+void render_screen_sw(std::vector<u32>& image);
+void render_screen_hw(SDL_Surface* image);
 
 namespace qt_gui
 {
 	extern QImage* screen;
 	extern main_menu* draw_surface;
+	extern SDL_Surface* final_screen;
 }
 
 #endif // QT_RENDER 

@@ -18,8 +18,6 @@
 #include "common/config.h"
 #include "common/cgfx_common.h"
 
-core_emu* main_menu::gbe_plus = NULL;
-
 /****** General settings constructor ******/
 gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 {
@@ -232,6 +230,22 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	input_device_layout->addWidget(input_device);
 	input_device_set->setLayout(input_device_layout);
 
+	//Control settings- Dead-zone
+	QWidget* dead_zone_set = new QWidget(controls);
+	QLabel* dead_zone_label = new QLabel("Dead Zone : ");
+	dead_zone = new QSlider(sound);
+	dead_zone->setMaximum(32767);
+	dead_zone->setMinimum(0);
+	dead_zone->setValue(16000);
+	dead_zone->setOrientation(Qt::Horizontal);
+
+	QHBoxLayout* dead_zone_layout = new QHBoxLayout;
+	dead_zone_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	dead_zone_layout->addWidget(dead_zone_label);
+	dead_zone_layout->addWidget(dead_zone);
+	dead_zone_layout->setContentsMargins(6, 0, 0, 0);
+	dead_zone_set->setLayout(dead_zone_layout);
+
 	//Control settings - A button
 	QWidget* input_a_set = new QWidget(controls);
 	QLabel* input_a_label = new QLabel("Button A : ");
@@ -395,6 +409,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	controls_layout->addWidget(input_down_set);
 	controls_layout->addWidget(input_l_set);
 	controls_layout->addWidget(input_r_set);
+	controls_layout->addWidget(dead_zone_set);
 	controls->setLayout(controls_layout);
 
 	//Path settings - DMG BIOS
@@ -454,12 +469,59 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	manifest_layout->addWidget(manifest_button);
 	manifest_set->setLayout(manifest_layout);
 
+	//Path settings - CGFX BG Tile Dump Folder
+	QWidget* dump_bg_set = new QWidget(paths);
+	dump_bg_label = new QLabel("BG Dump :  ");
+	QPushButton* dump_bg_button = new QPushButton("Browse");
+	dump_bg = new QLineEdit(paths);
+	dump_bg->setReadOnly(true);
+
+	QHBoxLayout* dump_bg_layout = new QHBoxLayout;
+	dump_bg_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	dump_bg_layout->addWidget(dump_bg_label);
+	dump_bg_layout->addWidget(dump_bg);
+	dump_bg_layout->addWidget(dump_bg_button);
+	dump_bg_set->setLayout(dump_bg_layout);
+	dump_bg_label->resize(50, dump_bg_label->height());
+
+	//Path settings - CGFX OBJ Tile Dump Folder
+	QWidget* dump_obj_set = new QWidget(paths);
+	dump_obj_label = new QLabel("OBJ Dump :  ");
+	QPushButton* dump_obj_button = new QPushButton("Browse");
+	dump_obj = new QLineEdit(paths);
+	dump_obj->setReadOnly(true);
+
+	QHBoxLayout* dump_obj_layout = new QHBoxLayout;
+	dump_obj_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	dump_obj_layout->addWidget(dump_obj_label);
+	dump_obj_layout->addWidget(dump_obj);
+	dump_obj_layout->addWidget(dump_obj_button);
+	dump_obj_set->setLayout(dump_obj_layout);
+	dump_obj_label->resize(50, dump_obj_label->height());
+
+	//Path settings - Screenshot
+	QWidget* screenshot_set = new QWidget(paths);
+	screenshot_label = new QLabel("Screenshots :  ");
+	QPushButton* screenshot_button = new QPushButton("Browse");
+	screenshot = new QLineEdit(paths);
+	screenshot->setReadOnly(true);
+
+	QHBoxLayout* screenshot_layout = new QHBoxLayout;
+	screenshot_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	screenshot_layout->addWidget(screenshot_label);
+	screenshot_layout->addWidget(screenshot);
+	screenshot_layout->addWidget(screenshot_button);
+	screenshot_set->setLayout(screenshot_layout);
+
 	QVBoxLayout* paths_layout = new QVBoxLayout;
 	paths_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	paths_layout->addWidget(dmg_bios_set);
 	paths_layout->addWidget(gbc_bios_set);
 	paths_layout->addWidget(gba_bios_set);
 	paths_layout->addWidget(manifest_set);
+	paths_layout->addWidget(dump_bg_set);
+	paths_layout->addWidget(dump_obj_set);
+	paths_layout->addWidget(screenshot_set);
 	paths->setLayout(paths_layout);
 
 	connect(tabs, SIGNAL(currentChanged(int)), this, SLOT(close_input()));
@@ -473,6 +535,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(volume, SIGNAL(valueChanged(int)), this, SLOT(volume_change()));
 	connect(freq, SIGNAL(currentIndexChanged(int)), this, SLOT(sample_rate_change()));
 	connect(sound_on, SIGNAL(stateChanged(int)), this, SLOT(mute()));
+	connect(dead_zone, SIGNAL(valueChanged(int)), this, SLOT(dead_zone_change()));
 	connect(input_device, SIGNAL(currentIndexChanged(int)), this, SLOT(input_device_change()));
 
 	QSignalMapper* paths_mapper = new QSignalMapper(this);
@@ -480,11 +543,17 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(gbc_bios_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
 	connect(gba_bios_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
 	connect(manifest_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
+	connect(dump_bg_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
+	connect(dump_obj_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
+	connect(screenshot_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
 
 	paths_mapper->setMapping(dmg_bios_button, 0);
 	paths_mapper->setMapping(gbc_bios_button, 1);
 	paths_mapper->setMapping(gba_bios_button, 2);
 	paths_mapper->setMapping(manifest_button, 3);
+	paths_mapper->setMapping(screenshot_button, 4);
+	paths_mapper->setMapping(dump_bg_button, 5);
+	paths_mapper->setMapping(dump_obj_button, 6);
 	connect(paths_mapper, SIGNAL(mapped(int)), this, SLOT(set_paths(int)));
 
 	QSignalMapper* button_config = new QSignalMapper(this);
@@ -631,21 +700,31 @@ void gen_settings::set_ini_options()
 	//Sample rate option
 	switch((int)config::sample_rate)
 	{
-		case 10250: freq->setCurrentIndex(0); break;
-		case 20500: freq->setCurrentIndex(1); break;
-		case 41000: freq->setCurrentIndex(2); break;
-		case 48000: freq->setCurrentIndex(3); break;
+		case 10250: freq->setCurrentIndex(3); break;
+		case 20500: freq->setCurrentIndex(2); break;
+		case 41000: freq->setCurrentIndex(1); break;
+		case 48000: freq->setCurrentIndex(0); break;
 	}
 
-	//Grab volume, checking mute calls the slot, which resets the volume
-	u8 temp_volume = config::volume;
+	//Volume option
+	volume->setValue(config::volume);
 
 	//Mute option
-	if(config::mute == 1) { sound_on->setChecked(false); }
-	else { sound_on->setChecked(true); }
+	if(config::mute == 1)
+	{
+		config::volume = 0;
+		sound_on->setChecked(false);
+		volume->setEnabled(false);
+	}
 
-	//Volume option
-	volume->setValue(temp_volume);
+	else
+	{
+		sound_on->setChecked(true);
+		volume->setEnabled(true);
+	}
+
+	//Dead-zone
+	dead_zone->setValue(config::dead_zone);
 
 	//Keyboard controls
 	input_a->setText(QString::number(config::agb_key_a));
@@ -664,11 +743,17 @@ void gen_settings::set_ini_options()
 	QString path_2(QString::fromStdString(config::gbc_bios_path));
 	QString path_3(QString::fromStdString(config::agb_bios_path));
 	QString path_4(QString::fromStdString(cgfx::manifest_file));
+	QString path_5(QString::fromStdString(config::ss_path));
+	QString path_6(QString::fromStdString(cgfx::dump_bg_path));
+	QString path_7(QString::fromStdString(cgfx::dump_obj_path));
 
 	dmg_bios->setText(path_1);
 	gbc_bios->setText(path_2);
 	gba_bios->setText(path_3);
 	manifest->setText(path_4);
+	screenshot->setText(path_5);
+	dump_bg->setText(path_6);
+	dump_obj->setText(path_7);
 }
 
 /****** Toggles whether to use the Boot ROM or BIOS ******/
@@ -712,6 +797,9 @@ void gen_settings::volume_change()
 	else { config::volume = volume->value(); }	
 }
 
+/****** Updates the core's volume - Used when loading save states ******/
+void gen_settings::update_volume() { mute(); }
+
 /****** Mutes the core's volume ******/
 void gen_settings::mute()
 {
@@ -719,20 +807,36 @@ void gen_settings::mute()
 	if(main_menu::gbe_plus != NULL)
 	{
 		//Unmute, use slider volume
-		if(sound_on->isChecked()) { main_menu::gbe_plus->update_volume(volume->value()); }
+		if(sound_on->isChecked())
+		{
+			main_menu::gbe_plus->update_volume(volume->value());
+			volume->setEnabled(true);
+		}
 
 		//Mute
-		else { main_menu::gbe_plus->update_volume(0); }
+		else
+		{
+			main_menu::gbe_plus->update_volume(0);
+			volume->setEnabled(false);
+		}
 	}
 
 	//Mute/unmute while using only the GUI
 	else
 	{
 		//Unmute, use slider volume
-		if(sound_on->isChecked()) { config::volume = volume->value(); }
+		if(sound_on->isChecked())
+		{
+			config::volume = volume->value();
+			volume->setEnabled(true);
+		}
 
 		//Mute
-		else { config::volume = 0; }
+		else
+		{
+			config::volume = 0;
+			volume->setEnabled(false);
+		}
 	}
 }
 
@@ -751,29 +855,66 @@ void gen_settings::sample_rate_change()
 /****** Sets a path via file browser ******/
 void gen_settings::set_paths(int index)
 {
-	QString filename = QFileDialog::getOpenFileName(this, tr("Open"), "", tr("All files (*)"));
-	if(filename.isNull()) { return; }
+	QString path;
+
+	//Open file browser for Boot ROMs, BIOS, and manifests
+	if(index < 4) 
+	{
+		path = QFileDialog::getOpenFileName(this, tr("Open"), "", tr("All files (*)"));
+		if(path.isNull()) { return; }
+	}
+
+	//Open folder browser for screenshots, CGFX dumps
+	else
+	{
+		path = QFileDialog::getExistingDirectory(this, tr("Open"), "", QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+		if(path.isNull()) { return; }	
+
+		//Make sure path is complete, e.g. has the correct separator at the end
+		//Qt doesn't append this automatically
+		std::string temp_str = path.toStdString();
+		std::string temp_chr = "";
+		temp_chr = temp_str[temp_str.length() - 1];
+
+		if((temp_chr != "/") && (temp_chr != "\\")) { path.append("/"); }
+		path = QDir::toNativeSeparators(path);
+	}
 
 	switch(index)
 	{
 		case 0: 
-			config::dmg_bios_path = filename.toStdString();
-			dmg_bios->setText(filename);
+			config::dmg_bios_path = path.toStdString();
+			dmg_bios->setText(path);
 			break;
 
 		case 1:
-			config::gbc_bios_path = filename.toStdString();
-			gbc_bios->setText(filename);
+			config::gbc_bios_path = path.toStdString();
+			gbc_bios->setText(path);
 			break;
 
 		case 2:
-			config::agb_bios_path = filename.toStdString();
-			gba_bios->setText(filename);
+			config::agb_bios_path = path.toStdString();
+			gba_bios->setText(path);
 			break;
 
 		case 3:
-			cgfx::manifest_file = filename.toStdString();
-			manifest->setText(filename);
+			cgfx::manifest_file = path.toStdString();
+			manifest->setText(path);
+			break;
+
+		case 4:
+			config::ss_path = path.toStdString();
+			screenshot->setText(path);
+			break;
+
+		case 5:
+			cgfx::dump_bg_path = path.toStdString();
+			dump_bg->setText(path);
+			break;
+
+		case 6:
+			cgfx::dump_obj_path = path.toStdString();
+			dump_obj->setText(path);
 			break;
 	}
 }
@@ -811,80 +952,117 @@ void gen_settings::input_device_change()
 		input_l->setText(QString::number(config::agb_joy_l_trigger));
 		input_r->setText(QString::number(config::agb_joy_r_trigger));
 	}
+
+	close_input();
 }
+
+/****** Dynamically changes the core pad's dead-zone ******/
+void gen_settings::dead_zone_change() { config::dead_zone = dead_zone->value(); }	
 
 /****** Prepares GUI to receive input for controller configuration ******/
 void gen_settings::configure_button(int button)
 {
-	if(!grab_input)
+	if(grab_input) { return; }
+
+	grab_input = true;
+
+	switch(button)
 	{
-		switch(button)
-		{
-			case 0: 
-				config_a->setText("Enter Input");
-				input_a->setFocus();
-				input_index = 0;
-				break;
+		case 0: 
+			input_delay(config_a);
+			input_a->setFocus();
+			input_index = 0;
+			break;
 
-			case 1: 
-				config_b->setText("Enter Input");
-				input_b->setFocus();
-				input_index = 1;
-				break;
+		case 1: 
+			input_delay(config_b);
+			input_b->setFocus();
+			input_index = 1;
+			break;
 
-			case 2: 
-				config_start->setText("Enter Input");
-				input_start->setFocus();
-				input_index = 2;
-				break;
+		case 2: 
+			input_delay(config_start);
+			input_start->setFocus();
+			input_index = 2;
+			break;
 
-			case 3: 
-				config_select->setText("Enter Input");
-				input_select->setFocus();
-				input_index = 3;
-				break;
+		case 3: 
+			input_delay(config_select);
+			input_select->setFocus();
+			input_index = 3;
+			break;
 
-			case 4: 
-				config_left->setText("Enter Input");
-				input_left->setFocus();
-				input_index = 4;
-				break;
+		case 4: 
+			input_delay(config_left);
+			input_left->setFocus();
+			input_index = 4;
+			break;
 
-			case 5: 
-				config_right->setText("Enter Input");
-				input_right->setFocus();
-				input_index = 5;
-				break;
+		case 5: 
+			input_delay(config_right);
+			input_right->setFocus();
+			input_index = 5;
+			break;
 
-			case 6: 
-				config_up->setText("Enter Input");
-				input_up->setFocus();
-				input_index = 6;
-				break;
+		case 6: 
+			input_delay(config_up);
+			input_up->setFocus();
+			input_index = 6;
+			break;
 
-			case 7: 
-				config_down->setText("Enter Input");
-				input_down->setFocus();
-				input_index = 7;
-				break;
+		case 7: 
+			input_delay(config_down);
+			input_down->setFocus();
+			input_index = 7;
+			break;
 
-			case 8: 
-				config_l->setText("Enter Input");
-				input_l->setFocus();
-				input_index = 8;
-				break;
+		case 8: 
+			input_delay(config_l);
+			input_l->setFocus();
+			input_index = 8;
+			break;
 
-			case 9: 
-				config_r->setText("Enter Input");
-				input_r->setFocus();
-				input_index = 9;
-				break;
-		}
-
-		grab_input = true;
-		if(input_type != 0) { process_joystick_event(); }
+		case 9: 
+			input_delay(config_r);
+			input_r->setFocus();
+			input_index = 9;
+			break;
 	}
+
+	if(input_type != 0) { process_joystick_event(); }
 }			
+
+/****** Delays input from the GUI ******/
+void gen_settings::input_delay(QPushButton* input_button)
+{
+	//Delay input for joysticks
+	if(input_type != 0)
+	{
+		input_button->setText("Enter Input - 3");
+		QApplication::processEvents();
+		input_button->setText("Enter Input - 3");
+		input_button->update();
+		QApplication::processEvents();
+		SDL_Delay(1000);
+
+		input_button->setText("Enter Input - 2");
+		QApplication::processEvents();
+		input_button->setText("Enter Input - 2");
+		input_button->update();
+		QApplication::processEvents();
+		SDL_Delay(1000);
+
+		input_button->setText("Enter Input - 1");
+		QApplication::processEvents();
+		input_button->setText("Enter Input - 1");
+		input_button->update();
+		QApplication::processEvents();
+		SDL_Delay(1000);
+	}
+
+	//Grab input immediately for keyboards
+	else { input_button->setText("Enter Input"); }	
+}
 
 /****** Handles joystick input ******/
 void gen_settings::process_joystick_event()
@@ -892,121 +1070,151 @@ void gen_settings::process_joystick_event()
 	SDL_Event joy_event;
 	int pad = 0;
 
-	//This is a cheap way to flush all current events
-	//Gather all events in queue... then do nothing with them
-	//We only care about new ones from this point on
-	while(SDL_PollEvent(&joy_event)) { }
-
-	while(grab_input)
+	while(SDL_PollEvent(&joy_event))
 	{
-		while(SDL_PollEvent(&joy_event))
+		//Generate pad id
+		switch(joy_event.type)
 		{
-			//Generate pad id
-			switch(joy_event.type)
-			{
-				case SDL_JOYBUTTONDOWN: 
-					pad = 100 + joy_event.jbutton.button; 
+			case SDL_JOYBUTTONDOWN: 
+				pad = 100 + joy_event.jbutton.button; 
+				grab_input = false;
+				break;
+
+			case SDL_JOYAXISMOTION:
+				if(abs(joy_event.jaxis.value) >= config::dead_zone)
+				{
+					pad = 200 + (joy_event.jaxis.axis * 2);
+					if(joy_event.jaxis.value > 0) { pad++; }
 					grab_input = false;
-					break;
+				}
 
-				case SDL_JOYAXISMOTION:
-					if(abs(joy_event.jaxis.value) >= config::dead_zone)
-					{
-						pad = 200 + (joy_event.jaxis.axis * 2);
-						if(joy_event.jaxis.value > 0) { pad++; }
-						grab_input = false;
-					}
+				break;
 
-					break;
-
-				case SDL_JOYHATMOTION:
-					pad = 300 + (joy_event.jhat.hat * 4);
-					grab_input = false;
+			case SDL_JOYHATMOTION:
+				pad = 300 + (joy_event.jhat.hat * 4);
+				grab_input = false;
 						
-					switch(joy_event.jhat.value)
-					{
-						case SDL_HAT_RIGHT: pad += 1; break;
-						case SDL_HAT_UP: pad += 2; break;
-						case SDL_HAT_DOWN: pad += 3; break;
-					}
+				switch(joy_event.jhat.value)
+				{
+					case SDL_HAT_RIGHT: pad += 1; break;
+					case SDL_HAT_UP: pad += 2; break;
+					case SDL_HAT_DOWN: pad += 3; break;
+				}
 
-					break;
-			}
+				break;
 		}
-
-		SDL_Delay(16);
-		QApplication::processEvents();
 	}
 
 	switch(input_index)
 	{
-		case 0: 
+		case 0:
+			if(pad != 0)
+			{
+				config::agb_joy_a = config::dmg_joy_a = pad;
+				input_a->setText(QString::number(pad));
+			}
+
 			config_a->setText("Configure");
-			input_a->setText(QString::number(pad));
 			input_a->clearFocus();
-			config::agb_joy_a = config::dmg_joy_a = pad;
 			break;
 
-		case 1: 
+		case 1:
+			if(pad != 0)
+			{
+				config::agb_joy_b = config::dmg_joy_b = pad;
+				input_b->setText(QString::number(pad));
+			}
+
 			config_b->setText("Configure");
-			input_b->setText(QString::number(pad));
 			input_b->clearFocus();
-			config::agb_joy_b = config::dmg_joy_b = pad;
 			break;
 
-		case 2: 
+		case 2:
+			if(pad != 0)
+			{
+				config::agb_joy_start = config::dmg_joy_start = pad;
+				input_start->setText(QString::number(pad));
+			}
+
 			config_start->setText("Configure");
-			input_start->setText(QString::number(pad));
 			input_start->clearFocus();
-			config::agb_joy_start = config::dmg_joy_start = pad;
 			break;
 
-		case 3: 
+		case 3:
+			if(pad != 0)
+			{
+				config::agb_joy_select = config::dmg_joy_select = pad;
+				input_select->setText(QString::number(pad));
+			}
+
 			config_select->setText("Configure");
-			input_select->setText(QString::number(pad));
 			input_select->clearFocus();
-			config::agb_joy_select = config::dmg_joy_select = pad;
 			break;
 
-		case 4: 
+		case 4:
+			if(pad != 0)
+			{
+				config::agb_joy_left = config::dmg_joy_left = pad;
+				input_left->setText(QString::number(pad));
+			}
+
 			config_left->setText("Configure");
-			input_left->setText(QString::number(pad));
 			input_left->clearFocus();
-			config::agb_joy_left = config::dmg_joy_left = pad;
 			break;
 
-		case 5: 
+		case 5:
+			if(pad != 0)
+			{
+				config::agb_joy_right = config::dmg_joy_right = pad;
+				input_right->setText(QString::number(pad));
+			}
+
 			config_right->setText("Configure");
-			input_right->setText(QString::number(pad));
 			input_right->clearFocus();
-			config::agb_joy_right = config::dmg_joy_right = pad;
 			break;
 
-		case 6: 
+		case 6:
+			if(pad != 0)
+			{
+				config::agb_joy_up = config::dmg_joy_up = pad;
+				input_up->setText(QString::number(pad));
+			}
+
 			config_up->setText("Configure");
-			input_up->setText(QString::number(pad));
-			config::agb_joy_up = config::dmg_joy_up = pad;
+			input_up->clearFocus();
 			break;
 
-		case 7: 
+		case 7:
+			if(pad != 0)
+			{
+				config::agb_joy_down = config::dmg_joy_down = pad;
+				input_down->setText(QString::number(pad));
+			}
+
 			config_down->setText("Configure");
-			input_down->setText(QString::number(pad));
 			input_down->clearFocus();
-			config::agb_joy_down = config::dmg_joy_down = pad;
 			break;
 
 		case 8: 
+			if(pad != 0)
+			{
+				config::agb_joy_l_trigger = pad;
+				input_l->setText(QString::number(pad));
+			}
+
 			config_l->setText("Configure");
-			input_l->setText(QString::number(pad));
 			input_l->clearFocus();
-			config::agb_joy_l_trigger = pad;
 			break;
 
-		case 9: 
+		case 9:
+			if(pad != 0)
+			{
+				config::agb_joy_r_trigger = pad;
+				input_r->setText(QString::number(pad));
+			}
+
 			config_r->setText("Configure");
-			input_r->setText(QString::number(pad));
 			input_r->clearFocus();
-			config::agb_joy_r_trigger = pad;
 			break;
 	}
 
@@ -1038,6 +1246,9 @@ void gen_settings::paintEvent(QPaintEvent* event)
 	gbc_bios_label->setMinimumWidth(dmg_bios_label->width());
 	gba_bios_label->setMinimumWidth(dmg_bios_label->width());
 	manifest_label->setMinimumWidth(dmg_bios_label->width());
+	dump_bg_label->setMinimumWidth(dmg_bios_label->width());
+	dump_obj_label->setMinimumWidth(dmg_bios_label->width());
+	screenshot_label->setMinimumWidth(dmg_bios_label->width());
 }
 
 /****** Closes the settings window ******/
@@ -1053,77 +1264,117 @@ void gen_settings::keyPressEvent(QKeyEvent* event)
 	if(grab_input)
 	{
 		last_key = qtkey_to_sdlkey(event->key());
-		if(last_key == -1) { return; }
 
 		switch(input_index)
 		{
-			case 0: 
+			case 0:
+				if(last_key != -1)
+				{
+					config::agb_key_a = config::dmg_key_a = last_key;
+					input_a->setText(QString::number(last_key));
+				}
+
 				config_a->setText("Configure");
-				input_a->setText(QString::number(last_key));
 				input_a->clearFocus();
-				config::agb_key_a = config::dmg_key_a = last_key;
 				break;
 
-			case 1: 
+			case 1:
+				if(last_key != -1)
+				{
+					config::agb_key_b = config::dmg_key_b = last_key;
+					input_b->setText(QString::number(last_key));
+				}
+
 				config_b->setText("Configure");
-				input_b->setText(QString::number(last_key));
 				input_b->clearFocus();
-				config::agb_key_b = config::dmg_key_b = last_key;
 				break;
 
-			case 2: 
+			case 2:
+				if(last_key != -1)
+				{
+					config::agb_key_start = config::dmg_key_start = last_key;
+					input_start->setText(QString::number(last_key));
+				}
+
 				config_start->setText("Configure");
-				input_start->setText(QString::number(last_key));
 				input_start->clearFocus();
-				config::agb_key_start = config::dmg_key_start = last_key;
 				break;
 
-			case 3: 
+			case 3:
+				if(last_key != -1)
+				{
+					config::agb_key_select = config::dmg_key_select = last_key;
+					input_select->setText(QString::number(last_key));
+				}
+
 				config_select->setText("Configure");
-				input_select->setText(QString::number(last_key));
 				input_select->clearFocus();
-				config::agb_key_select = config::dmg_key_select = last_key;
 				break;
 
-			case 4: 
+			case 4:
+				if(last_key != -1)
+				{
+					config::agb_key_left = config::dmg_key_left = last_key;
+					input_left->setText(QString::number(last_key));
+				}
+
 				config_left->setText("Configure");
-				input_left->setText(QString::number(last_key));
 				input_left->clearFocus();
-				config::agb_key_left = config::dmg_key_left = last_key;
 				break;
 
-			case 5: 
+			case 5:
+				if(last_key != -1)
+				{
+					config::agb_key_right = config::dmg_key_right = last_key;
+					input_right->setText(QString::number(last_key));
+				}
+
 				config_right->setText("Configure");
-				input_right->setText(QString::number(last_key));
 				input_right->clearFocus();
-				config::agb_key_right = config::dmg_key_right = last_key;
 				break;
 
-			case 6: 
+			case 6:
+				if(last_key != -1)
+				{
+					config::agb_key_up = config::dmg_key_up = last_key;
+					input_up->setText(QString::number(last_key));
+				}
+
 				config_up->setText("Configure");
-				input_up->setText(QString::number(last_key));
-				config::agb_key_up = config::dmg_key_up = last_key;
+				input_up->clearFocus();
 				break;
 
-			case 7: 
+			case 7:
+				if(last_key != -1)
+				{
+					config::agb_key_down = config::dmg_key_down = last_key;
+					input_down->setText(QString::number(last_key));
+				}
+
 				config_down->setText("Configure");
-				input_down->setText(QString::number(last_key));
 				input_down->clearFocus();
-				config::agb_key_down = config::dmg_key_down = last_key;
 				break;
 
 			case 8: 
+				if(last_key != -1)
+				{
+					config::agb_key_l_trigger = last_key;
+					input_l->setText(QString::number(last_key));
+				}
+
 				config_l->setText("Configure");
-				input_l->setText(QString::number(last_key));
 				input_l->clearFocus();
-				config::agb_key_l_trigger = last_key;
 				break;
 
-			case 9: 
+			case 9:
+				if(last_key != -1)
+				{
+					config::agb_key_r_trigger = last_key;
+					input_r->setText(QString::number(last_key));
+				}
+
 				config_r->setText("Configure");
-				input_r->setText(QString::number(last_key));
 				input_r->clearFocus();
-				config::agb_key_r_trigger = last_key;
 				break;
 		}
 

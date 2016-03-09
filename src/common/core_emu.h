@@ -32,13 +32,20 @@ class core_emu
 	virtual void shutdown() = 0;
 	virtual void run_core() = 0;
 	virtual	void handle_hotkey(SDL_Event& event) = 0;
+	virtual void handle_hotkey(int input, bool pressed) = 0;
 	virtual void update_volume(u8 volume) = 0;
 	virtual void feed_key_input(int sdl_key, bool pressed) = 0;
+	virtual	void save_state(u8 slot) = 0;
+	virtual	void load_state(u8 slot) = 0;
 
 	//Core debugging
 	virtual	void debug_step() = 0;
 	virtual	void debug_display() const = 0;
 	virtual	void debug_process_command() = 0;
+	virtual std::string debug_get_mnemonic(u32 addr) = 0;
+
+	//CPU related functions
+	virtual u32 ex_get_reg(u8 reg_index) = 0;
 
 	//MMU related functions
 	virtual bool read_file(std::string filename) = 0;
@@ -62,6 +69,7 @@ class core_emu
 		bool print_all;
 		std::vector <u32> breakpoints;
 		std::string last_command;
+		std::string last_mnemonic;
 	} db_unit;
 };
 

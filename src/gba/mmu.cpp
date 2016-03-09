@@ -246,9 +246,10 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 		case DISPCNT+1:
 			memory_map[address] = value;
 			lcd_stat->display_control = ((memory_map[DISPCNT+1] << 8) | memory_map[DISPCNT]);
-			lcd_stat->bg_mode = lcd_stat->display_control & 0x7;
 			lcd_stat->frame_base = (memory_map[DISPCNT] & 0x10) ? 0x600A000 : 0x6000000;
 			lcd_stat->hblank_interval_free = (memory_map[DISPCNT] & 0x20) ? true : false;
+
+			if((lcd_stat->display_control & 0x7) <= 5) { lcd_stat->bg_mode = lcd_stat->display_control & 0x7; }
 
 			lcd_stat->window_enable[0] = (lcd_stat->display_control & 0x2000) ? true : false;
 			lcd_stat->window_enable[1] = (lcd_stat->display_control & 0x4000) ? true : false;
@@ -1859,7 +1860,14 @@ bool AGB_MMU::read_bios(std::string filename)
 	u32 file_size = file.tellg();
 	file.seekg(0, file.beg);
 
-	if(file_size != 0x4000) { std::cout<<"MMU::Warning - Irregular BIOS size\n"; }
+	if(file_size > 0x4000) { std::cout<<"MMU::Warning - Irregular BIOS size\n"; }
+	
+	if(file_size < 0x4000)
+	{
+		std::cout<<"MMU::Warning - BIOS size too small\n";
+		file.close();
+		return false;
+	}
 	
 	u8* ex_mem = &memory_map[0];
 
@@ -1894,6 +1902,13 @@ bool AGB_MMU::load_backup(std::string filename)
 	if(current_save_type == SRAM)
 	{
 		if(file_size > 0x8000) { std::cout<<"MMU::Warning - Irregular SRAM backup save size\n"; }
+
+		else if(file_size < 0x8000)
+		{
+			std::cout<<"MMU::Warning - SRAM backup save size too small\n";
+			file.close();
+			return false;
+		}
 
 		//Read data from file
 		file.read(reinterpret_cast<char*> (&save_data[0]), file_size);
@@ -1931,7 +1946,14 @@ bool AGB_MMU::load_backup(std::string filename)
 	//Load 64KB FLASH RAM
 	else if(current_save_type == FLASH_64)
 	{
-		if(file_size != 0x10000) { std::cout<<"MMU::Warning - Irregular FLASH RAM backup save size\n"; }
+		if(file_size > 0x10000) { std::cout<<"MMU::Warning - Irregular FLASH RAM backup save size\n"; }
+
+		else if(file_size < 0x10000) 
+		{
+			std::cout<<"MMU::Warning - FLASH RAM backup save size too small\n";
+			file.close();
+			return false;
+		}
 
 		//Read data from file
 		file.read(reinterpret_cast<char*> (&save_data[0]), file_size);
@@ -1946,7 +1968,14 @@ bool AGB_MMU::load_backup(std::string filename)
 	//Load 128KB FLASH RAM
 	else if(current_save_type == FLASH_128)
 	{
-		if(file_size != 0x20000) { std::cout<<"MMU::Warning - Irregular FLASH RAM backup save size\n"; }
+		if(file_size > 0x20000) { std::cout<<"MMU::Warning - Irregular FLASH RAM backup save size\n"; }
+
+		else if(file_size < 0x20000)
+		{
+			std::cout<<"MMU::Warning - FLASH RAM backup save size too small\n";
+			file.close();
+			return false;
+		}
 
 		//Read data from file
 		file.read(reinterpret_cast<char*> (&save_data[0]), file_size);

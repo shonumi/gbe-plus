@@ -41,9 +41,27 @@ class gbe_cgfx : public QDialog
 	QDialogButtonBox* tabs_button;
 
 	//Configure tab widgets
+	QCheckBox* advanced;
 	QCheckBox* auto_dump_obj;
 	QCheckBox* auto_dump_bg;
 	QCheckBox* blank;
+
+	//Advanced menu
+	QWidget* advanced_box;
+	QCheckBox* ext_vram;
+	QCheckBox* ext_bright;
+
+	QLabel* dest_label;
+	QLineEdit* dest_folder;
+	QPushButton* dest_browse;
+
+	QLabel* name_label;
+	QLineEdit* dest_name;
+	QPushButton* name_browse;
+
+	QDialogButtonBox* advanced_buttons;
+	QPushButton* cancel_button;
+	QPushButton* dump_button;
 
 	//Layers tab widgets
 	QComboBox* layer_select;
@@ -63,9 +81,18 @@ class gbe_cgfx : public QDialog
 
 	bool pause;
 
+	QImage grab_obj_data(int obj_index);
+	QImage grab_dmg_obj_data(int obj_index);
+	QImage grab_gbc_obj_data(int obj_index);
+
+	QImage grab_bg_data(int bg_index);
+	QImage grab_dmg_bg_data(int bg_index);
+	QImage grab_gbc_bg_data(int bg_index);
+
 	protected:
 	void closeEvent(QCloseEvent* event);
 	bool eventFilter(QObject* target, QEvent* event);
+	void paintEvent(QPaintEvent* event);
 
 	private:
 	QWidget* obj_set;
@@ -89,20 +116,21 @@ class gbe_cgfx : public QDialog
 	void update_preview(u32 x, u32 y);
 	void dump_layer_tile(u32 x, u32 y);
 
-	QImage grab_obj_data(int obj_index);
-	QImage grab_dmg_obj_data(int obj_index);
-	QImage grab_gbc_obj_data(int obj_index);
-
 	void setup_bg_window(int rows, int count);
 
-	QImage grab_bg_data(int bg_index);
-	QImage grab_dmg_bg_data(int bg_index);
-	QImage grab_gbc_bg_data(int bg_index);
+	u8 dump_type;
+	int advanced_index;
 
 	private slots:
 	void close_cgfx();
+	void close_advanced();
 	void dump_obj(int obj_index);
 	void dump_bg(int bg_index);
+	void write_manifest_entry();
+	void show_advanced_obj(int index);
+	void show_advanced_bg(int index);
+	void browse_advanced_dir();
+	void browse_advanced_file();
 	void set_auto_obj();
 	void set_auto_bg();
 	void set_blanks();
