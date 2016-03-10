@@ -632,11 +632,18 @@ void main_menu::show_paths_settings() { settings->show(); settings->tabs->setCur
 /****** Shows the Custom Graphics dialog ******/
 void main_menu::show_cgfx() 
 {
+	//Draw GBA layers
+	if(config::gb_type == 3)
+	{
+		//Do nothing for now
+		return;
+	}
+
 	findChild<QAction*>("pause_action")->setEnabled(false);
 
 	cgfx->update_obj_window(8, 40);
 	cgfx->update_bg_window(8, 384);
-	
+
 	//Draw DMG layers
 	if(config::gb_type < 2)
 	{
