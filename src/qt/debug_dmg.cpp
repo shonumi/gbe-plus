@@ -32,8 +32,8 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	tabs->addTab(palettes, tr("Palettes"));
 	tabs->addTab(memory, tr("Memory"));
 	tabs->addTab(cpu_instr, tr("Disassembly"));
-	tabs->addTab(vram_obj, tr("OBJ"));
-	tabs->addTab(vram_bg, tr("BG"));
+	tabs->addTab(vram_obj, tr("OBJ Tiles"));
+	tabs->addTab(vram_bg, tr("BG Tiles"));
 
 	//LCDC
 	QWidget* lcdc_set = new QWidget(io_regs);
@@ -1075,6 +1075,42 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	obj_layout->addWidget(obj_info, 2, 9, -1, 2, Qt::AlignTop);
 	vram_obj->setLayout(obj_layout);
 
+	//Graphics - BG
+	db_bg.clear();
+	db_bg_label.clear();
+
+	bg_large_preview = QImage(128, 128, QImage::Format_ARGB32);
+	bg_large_label = new QLabel;
+	bg_large_label->setPixmap(QPixmap::fromImage(bg_large_preview));
+
+	for(int x = 0; x < 256; x++)
+	{
+		db_bg.push_back(QImage(64, 64, QImage::Format_ARGB32));
+
+		QPushButton* temp_label = new QPushButton;
+		temp_label->setIcon(QPixmap::fromImage(db_bg[x]));
+		temp_label->setIconSize(QSize(16, 16));
+		temp_label->setFlat(true);
+
+		db_bg_label.push_back(temp_label);
+	}
+
+	//Graphics - BG layout
+	QGridLayout* bg_layout = new QGridLayout;
+	bg_layout->setVerticalSpacing(0);
+	bg_layout->setHorizontalSpacing(0);
+
+	for(int y = 0; y < 16; y++)
+	{
+		for(int x = 0; x < 16; x++)
+		{
+			bg_layout->addWidget(db_bg_label[(y*16) + x], y, x, 1, 1);
+		}
+	}
+
+	bg_layout->addWidget(bg_large_label, 0, 17, -1, 2, Qt::AlignTop);
+	vram_bg->setLayout(bg_layout);
+
 	refresh_button = new QPushButton("Refresh");
 	tabs_button = new QDialogButtonBox(QDialogButtonBox::Close);
 	tabs_button->addButton(refresh_button, QDialogButtonBox::ActionRole);
@@ -1101,6 +1137,7 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	connect(refresh_button, SIGNAL(clicked()), this, SLOT(refresh()));
 	connect(tabs_button->button(QDialogButtonBox::Close), SIGNAL(clicked()), this, SLOT(close_debug()));
 
+	//Signal mapper for memory scrollbars
 	QSignalMapper* text_mapper = new QSignalMapper(this);
 	connect(mem_addr->verticalScrollBar(), SIGNAL(valueChanged(int)), text_mapper, SLOT(map()));
 	connect(mem_values->verticalScrollBar(), SIGNAL(valueChanged(int)), text_mapper, SLOT(map()));
@@ -1111,6 +1148,7 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	text_mapper->setMapping(mem_ascii->verticalScrollBar(), 2);
 	connect(text_mapper, SIGNAL(mapped(int)), this, SLOT(scroll_text(int)));
 
+	//Signal mapper for disassembly scrollbars
 	QSignalMapper* dasm_mapper = new QSignalMapper(this);
 	connect(counter->verticalScrollBar(), SIGNAL(valueChanged(int)), dasm_mapper, SLOT(map()));
 	connect(dasm->verticalScrollBar(), SIGNAL(valueChanged(int)), dasm_mapper, SLOT(map()));
@@ -1119,6 +1157,7 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	dasm_mapper->setMapping(dasm->verticalScrollBar(), 1);
 	connect(dasm_mapper, SIGNAL(mapped(int)), this, SLOT(scroll_count(int)));
 
+	//Signal mapper for OBJ tiles
 	QSignalMapper* obj_mapper = new QSignalMapper(this);
 	
 	for(int x = 0; x < 40; x++)
@@ -1128,6 +1167,17 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	}
 
 	connect(obj_mapper, SIGNAL(mapped(int)), this, SLOT(show_obj(int)));
+
+	//Signal mapper for BG tiles
+	QSignalMapper* bg_mapper = new QSignalMapper(this);
+	
+	for(int x = 0; x < 256; x++)
+	{
+		connect(db_bg_label[x], SIGNAL(clicked()), bg_mapper, SLOT(map()));
+		bg_mapper->setMapping(db_bg_label[x], x);
+	}
+
+	connect(bg_mapper, SIGNAL(mapped(int)), this, SLOT(show_bg(int)));
 
 	resize(800, 500);
 	setWindowTitle(tr("DMG-GBC Debugger"));
@@ -1512,6 +1562,13 @@ void dmg_debug::refresh()
 		db_obj[x] = qt_gui::draw_surface->cgfx->grab_obj_data(x);
 		db_obj_label[x]->setIcon(QPixmap::fromImage(db_obj[x]));
 	}
+
+	//Update BG
+	for(int x = 0; x < 256; x++)
+	{
+		db_bg[x] = qt_gui::draw_surface->cgfx->grab_bg_data(x);
+		db_bg_label[x]->setIcon(QPixmap::fromImage(db_bg[x]));
+	}
 }
 
 /****** Updates certain parts of the disassembly text (RAM) ******/
@@ -1735,6 +1792,13 @@ void dmg_debug::show_obj(int obj_id)
 	}
 
 	obj_pal->setText(QString::fromStdString(obj_text));
+}
+
+/****** Updates the BG preview ******/
+void dmg_debug::show_bg(int bg_id)
+{
+	bg_large_preview = qt_gui::draw_surface->cgfx->grab_bg_data(bg_id).scaled(128, 128);
+	bg_large_label->setPixmap(QPixmap::fromImage(bg_large_preview));
 }
 
 /****** Automatically refresh display data - Call this publically ******/

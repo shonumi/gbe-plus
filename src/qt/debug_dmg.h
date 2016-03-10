@@ -184,6 +184,7 @@ class dmg_debug : public QDialog
 	void scroll_count(int type);
 	void highlight();
 	void show_obj(int obj_id);
+	void show_bg(int bg_id);
 	void refresh();
 	void refresh_dasm();
 	void close_debug();
