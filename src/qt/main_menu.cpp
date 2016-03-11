@@ -52,6 +52,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	pause->setCheckable(true);
 	pause->setObjectName("pause_action");
 	fullscreen->setCheckable(true);
+	fullscreen->setObjectName("fullscreen_action");
 
 	menu_bar = new QMenuBar(this);
 
@@ -110,6 +111,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	connect(quit, SIGNAL(triggered()), this, SLOT(quit()));
 	connect(open, SIGNAL(triggered()), this, SLOT(open_file()));
 	connect(pause, SIGNAL(triggered()), this, SLOT(pause()));
+	connect(fullscreen, SIGNAL(triggered()), this, SLOT(fullscreen()));
 	connect(screenshot, SIGNAL(triggered()), this, SLOT(screenshot()));
 	connect(reset, SIGNAL(triggered()), this, SLOT(reset()));
 	connect(general, SIGNAL(triggered()), this, SLOT(show_settings()));
@@ -520,6 +522,39 @@ void main_menu::keyPressEvent(QKeyEvent* event)
 	if(main_menu::gbe_plus != NULL)
 	{
 		gbe_plus->feed_key_input(sdl_key, true);
+
+		//Handle fullscreen hotkeys if necessary
+		if(findChild<QAction*>("fullscreen_action")->isChecked())
+		{
+			switch(sdl_key)
+			{
+				//Quick Save State
+				case SDLK_F1:
+					save_state(0);
+					break;
+
+				//Reset
+				case SDLK_F8:
+					reset();
+					break;
+				
+				//Screenshot
+				case SDLK_F9:
+					screenshot();
+					break;
+
+				//Quick Load State
+				case SDLK_F2:
+					load_state(0);
+					break;
+
+				//Fullscreen
+				case SDLK_F12:
+					findChild<QAction*>("fullscreen_action")->setChecked(false);
+					fullscreen();
+					break;
+			}
+		}
 	}
 }
 
@@ -589,6 +624,30 @@ void main_menu::reset()
 		boot_game();
 	}
 }	
+
+/****** Switches to fullscreen mode ******/
+void main_menu::fullscreen()
+{
+	if(main_menu::gbe_plus != NULL)
+	{
+		//Set fullscreen
+		if(findChild<QAction*>("fullscreen_action")->isChecked())
+		{
+			setWindowState(Qt::WindowFullScreen);
+			menu_bar->hide();
+			showFullScreen();
+		}
+
+		else
+		{
+			setWindowState(Qt::WindowNoState);
+			menu_bar->show();
+			showNormal();
+		}
+	}
+
+	else { findChild<QAction*>("fullscreen_action")->setChecked(false); }
+}
 
 /****** Takes screenshot ******/
 void main_menu::screenshot()

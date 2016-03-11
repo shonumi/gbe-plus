@@ -50,6 +50,7 @@ class main_menu : public QWidget
 
 	private slots:
 	void open_file();
+	void fullscreen();
 	void screenshot();
 	void pause();
 	void reset();
