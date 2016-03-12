@@ -65,6 +65,9 @@ namespace config
 	//Default joystick dead-zone
 	int dead_zone = 16000;
 
+	//Default joystick ID
+	int joy_id = 0;
+
 	u32 flags = 0;
 	bool pause_emu = false;
 	bool use_bios = false;

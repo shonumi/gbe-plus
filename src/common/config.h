@@ -47,6 +47,7 @@ namespace config
 	extern int gyro_joy_up, gyro_joy_down, gyro_joy_left, gyro_joy_right;
 	extern int hotkey_turbo;
 	extern int dead_zone;
+	extern int joy_id;
 
 	extern u32 flags;
 	extern bool pause_emu;

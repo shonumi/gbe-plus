@@ -658,9 +658,9 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	//Joystick handling
 	jstick = SDL_JoystickOpen(0);
 	
-	if(jstick != NULL)
+	for(int x = 0; x < SDL_NumJoysticks(); x++)
 	{
-		std::string joy_name = SDL_JoystickName(0);
+		std::string joy_name = SDL_JoystickName(x);
 		input_device->addItem(QString::fromStdString(joy_name));
 	}
 
@@ -951,6 +951,10 @@ void gen_settings::input_device_change()
 		input_down->setText(QString::number(config::agb_joy_down));
 		input_l->setText(QString::number(config::agb_joy_l_trigger));
 		input_r->setText(QString::number(config::agb_joy_r_trigger));
+
+		//Use new joystick id
+		config::joy_id = input_device->currentIndex() - 1;
+		jstick = SDL_JoystickOpen(config::joy_id);
 	}
 
 	close_input();
