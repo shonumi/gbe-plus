@@ -1556,12 +1556,14 @@ void ARM9::long_branch_link(u16 current_thumb_instruction)
 {
 	//Determine if this is the first or second instruction executed
 	bool first_op = (((current_thumb_instruction >> 11) & 0x1F) == 0x1F) ? false : true;
-	
+
 	u32 lbl_addr = 0;
 
 	//Perform 1st 16-bit operation
 	if(first_op)
 	{
+		u8 pre_bit = (reg.r15 & 0x800000) ? 1 : 0;
+
 		//Grab upper 11-bits of destination address, add to PC
 		lbl_addr = ((current_thumb_instruction & 0x7FF) << 12);
 		lbl_addr += reg.r15;
@@ -1569,11 +1571,19 @@ void ARM9::long_branch_link(u16 current_thumb_instruction)
 
 		//Clock CPU and controllers - 1S
 		clock(reg.r15, false);
+
+		u8 post_bit = (reg.r15 & 0x800000) ? 1 : 0;
+
+		//Check for overflows
+		if((pre_bit != post_bit) && (pre_bit == 0)) { reg.r15 &= ~0x800000; }
+		if((pre_bit != post_bit) && (pre_bit == 1)) { reg.r15 |= 0x800000; }
 	}
 
 	//Perform 2nd 16-bit operation
 	else
 	{
+		u8 pre_bit = (reg.r15 & 0x800000) ? 1 : 0;
+
 		//Grab address of the "next" instruction to place in LR, set Bit 0 to 1
 		u32 next_instr_addr = (reg.r15 - 2);
 		next_instr_addr |= 1;
@@ -1585,14 +1595,14 @@ void ARM9::long_branch_link(u16 current_thumb_instruction)
 		//Clock CPU and controllers - 1N
 		clock(reg.r15, true);
 
-		//Wow, documentation on this little part right here sucks, even in the official ARM documents :(
-		//The resulting 23-bit 2's complement address is *not* added to the PC at all. It's *placed* into it (whatever that was supposed to mean...)
-		//In reality, the lower 23-bits of the PC are cleared, and the 23-bit address becomes the cleared out bits
-
-		lbl_addr &= 0x7FFFFF;
-		reg.r15 &= ~0x7FFFFF;
-		reg.r15 |= lbl_addr;
+		reg.r15 = lbl_addr;
 		reg.r15 &= ~0x1;
+
+		u8 post_bit = (reg.r15 & 0x800000) ? 1 : 0;
+
+		//Check for overflows
+		if((pre_bit != post_bit) && (pre_bit == 0)) { reg.r15 &= ~0x800000; }
+		if((pre_bit != post_bit) && (pre_bit == 1)) { reg.r15 |= 0x800000; }
 
 		needs_flush = true;
 		set_reg(14, next_instr_addr);
