@@ -230,7 +230,24 @@ void NTR_LCD::update()
 	}
 
 	//Use external rendering method (GUI)
-	else { config::render_external(screen_buffer); }
+	else
+	{
+		if(!config::use_opengl) { config::render_external_sw(screen_buffer); }
+
+		else
+		{
+			//Lock source surface
+			if(SDL_MUSTLOCK(final_screen)){ SDL_LockSurface(final_screen); }
+			u32* out_pixel_data = (u32*)final_screen->pixels;
+
+			for(int a = 0; a < 0x18000; a++) { out_pixel_data[a] = screen_buffer[a]; }
+
+			//Unlock source surface
+			if(SDL_MUSTLOCK(final_screen)){ SDL_UnlockSurface(final_screen); }
+
+			config::render_external_hw(final_screen);
+		}
+	}
 }
 
 
@@ -304,7 +321,24 @@ void NTR_LCD::step()
 			}
 
 			//Use external rendering method (GUI)
-			else { config::render_external(screen_buffer); }
+			else
+			{
+				if(!config::use_opengl) { config::render_external_sw(screen_buffer); }
+
+				else
+				{
+					//Lock source surface
+					if(SDL_MUSTLOCK(final_screen)){ SDL_LockSurface(final_screen); }
+					u32* out_pixel_data = (u32*)final_screen->pixels;
+
+					for(int a = 0; a < 0x18000; a++) { out_pixel_data[a] = screen_buffer[a]; }
+
+					//Unlock source surface
+					if(SDL_MUSTLOCK(final_screen)){ SDL_UnlockSurface(final_screen); }
+
+					config::render_external_hw(final_screen);
+				}
+			}
 
 			//Limit framerate
 			if(!config::turbo)

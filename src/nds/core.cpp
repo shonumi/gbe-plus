@@ -124,6 +124,12 @@ void NTR_core::reset()
 	start();
 }
 
+/****** Loads a save state ******/
+void NTR_core::load_state(u8 slot) { }
+
+/****** Saves a save state ******/
+void NTR_core::save_state(u8 slot) { }
+
 /****** Run the core in a loop until exit ******/
 void NTR_core::run_core()
 {
@@ -331,6 +337,9 @@ void NTR_core::debug_display() const
 	if(db_unit.display_cycles) { std::cout<<"Current CPU cycles : " << std::dec << core_cpu_nds9.debug_cycles << "\n"; }
 	*/
 }
+
+/****** Returns a string with the mnemonic assembly instruction ******/
+std::string NTR_core::debug_get_mnemonic(u32 addr) { }
 
 /****** Debugger - Wait for user input, process it to decide what next to do ******/
 void NTR_core::debug_process_command()
@@ -731,11 +740,16 @@ void NTR_core::handle_hotkey(SDL_Event& event)
 	*/
 }
 
+void NTR_core::handle_hotkey(int input, bool pressed) { }
+
 /****** Updates the core's volume ******/
 void NTR_core::update_volume(u8 volume) { }
 
 /****** Feeds key input from an external source (useful for TAS) ******/
 void NTR_core::feed_key_input(int sdl_key, bool pressed) { }
+
+/****** Return a CPU register ******/
+u32 NTR_core::ex_get_reg(u8 reg_index) { }
 
 /****** Read binary file to memory ******/
 bool NTR_core::read_file(std::string filename) { return core_mmu.read_file(filename); }

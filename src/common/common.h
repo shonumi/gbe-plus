@@ -34,4 +34,12 @@ const u32 CPSR_FIQ = 0x40;
 const u32 CPSR_STATE = 0x20;
 const u32 CPSR_MODE = 0x1F;
 
+const u32 CPSR_MODE_USR = 0x10;
+const u32 CPSR_MODE_FIQ = 0x11;
+const u32 CPSR_MODE_IRQ = 0x12;
+const u32 CPSR_MODE_SVC = 0x13;
+const u32 CPSR_MODE_ABT = 0x17;
+const u32 CPSR_MODE_UND = 0x1B;
+const u32 CPSR_MODE_SYS = 0x1F;
+
 #endif // EMU_COMMON

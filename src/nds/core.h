@@ -33,14 +33,21 @@ class NTR_core : virtual public core_emu
 		void reset();
 		void shutdown();
 		void handle_hotkey(SDL_Event& event);
+		void handle_hotkey(int input, bool pressed);
 		void update_volume(u8 volume);
 		void feed_key_input(int sdl_key, bool pressed);
+		void save_state(u8 slot);
+		void load_state(u8 slot);
 		void run_core();
 
 		//Core debugging
 		void debug_step();
 		void debug_display() const;
 		void debug_process_command();
+		std::string debug_get_mnemonic(u32 addr);
+
+		//CPU related functions
+		u32 ex_get_reg(u8 reg_index);
 
 		//CGFX interface
 		void dump_obj(int obj_index);
