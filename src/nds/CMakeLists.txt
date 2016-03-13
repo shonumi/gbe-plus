@@ -6,6 +6,7 @@ set(SRCS
 	arm9_thumb_instr.cpp
 	lcd.cpp
 	swi.cpp
+	cp15.cpp
 	)
 
 set(HEADERS
@@ -14,6 +15,7 @@ set(HEADERS
 	mmu.h
 	arm9.h
 	lcd.h
+	cp15.h
 	)
 
 add_library(nds STATIC ${SRCS} ${HEADERS})
