@@ -38,6 +38,7 @@ class gen_settings : public QDialog
 	QComboBox* dmg_gbc_pal;
 	QCheckBox* ogl;
 	QCheckBox* load_cgfx;
+	QCheckBox* aspect_ratio;
 
 	//Sound tab widgets
 	QComboBox* freq;

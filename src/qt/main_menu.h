@@ -28,9 +28,12 @@ class main_menu : public QWidget
 	
 	public:
 	main_menu(QWidget *parent = 0);
+
 	static core_emu* gbe_plus;
 	static dmg_debug* dmg_debugger;
+
 	gbe_cgfx* cgfx;
+	gen_settings* settings;
 
 	QMenuBar* menu_bar;
 
@@ -68,7 +71,6 @@ class main_menu : public QWidget
 	void load_state(int slot);
 
 	private:
-	gen_settings* settings;
 	QWidget* about_box;
 
 	QMenu* recent_list;

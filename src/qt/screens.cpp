@@ -26,9 +26,25 @@ void soft_screen::paintEvent(QPaintEvent* event)
 
 	else
 	{
-		QImage final_screen = qt_gui::screen->scaled(width(), height());
-		QPainter painter(this);
-		painter.drawImage(0, 0, final_screen);
+		//Maintain aspect ratio
+		if(qt_gui::draw_surface->settings->aspect_ratio->isChecked())
+		{
+			QImage final_screen = qt_gui::screen->scaled(width(), height(), Qt::KeepAspectRatio);
+			QPainter painter(this);
+
+			int x_offset = (width() - final_screen.width()) / 2;
+			int y_offset = (height() - final_screen.height()) / 2;
+
+			painter.drawImage(x_offset, y_offset, final_screen);	
+		}
+
+		//Ignore aspect ratio
+		else
+		{
+			QImage final_screen = qt_gui::screen->scaled(width(), height());
+			QPainter painter(this);
+			painter.drawImage(0, 0, final_screen);
+		}
 	}
 }
 

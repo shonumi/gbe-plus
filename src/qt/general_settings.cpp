@@ -148,7 +148,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	ogl_layout->addWidget(ogl_label);
 	ogl_set->setLayout(ogl_layout);
 
-	//Display settings - Use OpenGL
+	//Display settings - Use CGFX
 	QWidget* load_cgfx_set = new QWidget(display);
 	QLabel* load_cgfx_label = new QLabel("Load Custom Graphics (CGFX)");
 	load_cgfx = new QCheckBox(load_cgfx_set);
@@ -159,6 +159,17 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	load_cgfx_layout->addWidget(load_cgfx_label);
 	load_cgfx_set->setLayout(load_cgfx_layout);
 
+	//Display settings - Aspect Ratio
+	QWidget* aspect_set = new QWidget(display);
+	QLabel* aspect_label = new QLabel("Maintain Aspect Ratio");
+	aspect_ratio = new QCheckBox(aspect_set);
+
+	QHBoxLayout* aspect_layout = new QHBoxLayout;
+	aspect_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	aspect_layout->addWidget(aspect_ratio);
+	aspect_layout->addWidget(aspect_label);
+	aspect_set->setLayout(aspect_layout);
+
 	QVBoxLayout* disp_layout = new QVBoxLayout;
 	disp_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	disp_layout->addWidget(screen_scale_set);
@@ -166,6 +177,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	disp_layout->addWidget(dmg_gbc_pal_set);
 	disp_layout->addWidget(ogl_set);
 	disp_layout->addWidget(load_cgfx_set);
+	disp_layout->addWidget(aspect_set);
 	display->setLayout(disp_layout);
 
 	//Sound settings - Output frequency
