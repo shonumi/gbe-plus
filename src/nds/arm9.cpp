@@ -537,6 +537,21 @@ void ARM9::decode()
 			//ARM_13
 			instruction_operation[pipeline_id] = ARM_13;
 		}
+
+		else if(((current_instruction >> 24) & 0xF) == 0xE)
+		{
+			//ARM Coprocessor Register Transfer
+			if(current_instruction & 0x10) { instruction_operation[pipeline_id] = ARM_COP_REG_TRANSFER; }
+			
+			//ARM Coprocessor Data Operation
+			else { instruction_operation[pipeline_id] = ARM_COP_DATA_OP; }
+		}
+
+		else if(((current_instruction >> 25) & 0x7) == 6)
+		{
+			//ARM Coprocessor Data Transfer
+			instruction_operation[pipeline_id] = ARM_COP_DATA_TRANSFER;
+		}
 	}
 }
 
@@ -717,8 +732,23 @@ void ARM9::execute()
 					debug_message = 0x1D; debug_code = instruction_pipeline[pipeline_id];
 					break;
 
-				default:
+				case ARM_COP_REG_TRANSFER:
+					std::cout<<"CPU::ARM9::Warning - MRC/MCR unimplemented\n";
 					debug_message = 0x1E; debug_code = instruction_pipeline[pipeline_id];
+					break;
+
+				case ARM_COP_DATA_TRANSFER:
+					std::cout<<"CPU::ARM9::Warning - LDC/STC unimplemented\n";
+					debug_message = 0x1F; debug_code = instruction_pipeline[pipeline_id];
+					break;
+
+				case ARM_COP_DATA_OP:
+					std::cout<<"CPU::ARM9::Warning - CDP unimplemented\n";
+					debug_message = 0x20; debug_code = instruction_pipeline[pipeline_id];
+					break;
+
+				default:
+					debug_message = 0x21; debug_code = instruction_pipeline[pipeline_id];
 					std::cout<<"CPU::ARM9::Error - Unknown ARM instruction -> 0x" << std::hex << debug_code << "\n";
 					running = false;
 					break;
@@ -728,7 +758,7 @@ void ARM9::execute()
 		//Skip ARM instruction
 		else 
 		{ 
-			debug_message = 0x1F; 
+			debug_message = 0x22; 
 			debug_code = instruction_pipeline[pipeline_id];
 
 			//Clock CPU and controllers - 1S

@@ -278,8 +278,14 @@ void NTR_core::debug_display() const
 		case 0x1D:
 			std::cout << std::hex << "CPU::Executing ARM_13 : 0x" << core_cpu_nds9.debug_code << "\n\n"; break;
 		case 0x1E:
-			std::cout << std::hex << "Unknown ARM Instruction : 0x" << core_cpu_nds9.debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing ARM Coprocessor Register Transfer : 0x" << core_cpu_nds9.debug_code << "\n\n"; break;
 		case 0x1F:
+			std::cout << std::hex << "CPU::Executing ARM Coprocessor Data Transfer : 0x" << core_cpu_nds9.debug_code << "\n\n"; break;
+		case 0x20:
+			std::cout << std::hex << "CPU::Executing ARM Coprocessor Data Operation : 0x" << core_cpu_nds9.debug_code << "\n\n"; break;
+		case 0x21:
+			std::cout << std::hex << "Unknown ARM Instruction : 0x" << core_cpu_nds9.debug_code << "\n\n"; break;
+		case 0x22:
 			std::cout << std::hex << "CPU::Skipping ARM Instruction : 0x" << core_cpu_nds9.debug_code << "\n\n"; break;
 	}
 
