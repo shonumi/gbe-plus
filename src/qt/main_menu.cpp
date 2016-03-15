@@ -668,8 +668,12 @@ void main_menu::screenshot()
 		save_name += save_stream.str() + ".png";
 
 		QString qt_save_name = QString::fromStdString(save_name);
-	
-		qt_gui::screen->save(qt_save_name, "PNG");
+
+		//Save OpenGL screen
+		if(config::use_opengl) { hw_screen->grabFrameBuffer().save(qt_save_name, "PNG"); }
+
+		//Save software screen
+		else { qt_gui::screen->save(qt_save_name, "PNG"); }
 	}
 }
 
