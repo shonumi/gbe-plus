@@ -2016,13 +2016,13 @@ bool AGB_MMU::save_backup(std::string filename)
 
 
 		//Grab data from 0xE000000 to 0xE007FFF
-		for(u32 x = 0; x <= 0x7FFF; x++)
+		for(u32 x = 0; x < 0x8000; x++)
 		{
 			save_data.push_back(memory_map[0xE000000 + x]);
 		}
 
 		//Write the data to a file
-		file.write(reinterpret_cast<char*> (&save_data[0]), 0x7FFF);
+		file.write(reinterpret_cast<char*> (&save_data[0]), 0x8000);
 		file.close();
 
 		std::cout<<"MMU::Wrote save data file " << filename <<  "\n";
