@@ -89,11 +89,46 @@ void hard_screen::paintGL()
 		
 		glTranslatef(-0.5, 0.5, 0);
 
-		glBegin(GL_QUADS);
-		glTexCoord2f(0.0f, 0.0f); glVertex2f(-0.5f, 0.5f);
-		glTexCoord2f(1.0f, 0.0f); glVertex2f(1.5f, 0.5f);
-		glTexCoord2f(1.0f, 1.0f); glVertex2f(1.5f, -1.5f);
-		glTexCoord2f(0.0f, 1.0f); glVertex2f(-0.5f, -1.5f);
-		glEnd();
+		//Maintain aspect ratio
+		if(qt_gui::draw_surface->settings->aspect_ratio->isChecked())
+		{
+			//Find the maximum dimensions that maintain the original aspect ratio
+			double max_width = width() / config::sys_width;
+			double max_height = height() / config::sys_height;
+			double ratio = max_height;
+
+			if(max_width < max_height) { ratio = max_width; }
+
+			max_width = config::sys_width * ratio;
+			max_height = config::sys_height * ratio;
+
+			max_width = max_width / width();
+			max_height = max_height / height();
+
+			//Convert those dimensions to OpenGL coordinates
+			double left, right, top, bottom = 0.0;			
+			left = .5 - max_width;
+			right = .5 + max_width;
+			top = -.5 + max_height;
+			bottom = -.5 - max_height;
+
+			glBegin(GL_QUADS);
+			glTexCoord2f(0.0f, 0.0f); glVertex2f(left, top);
+			glTexCoord2f(1.0f, 0.0f); glVertex2f(right, top);
+			glTexCoord2f(1.0f, 1.0f); glVertex2f(right, bottom);
+			glTexCoord2f(0.0f, 1.0f); glVertex2f(left, bottom);
+			glEnd();
+		}
+
+		//Ignore aspect ratio
+		else
+		{
+			glBegin(GL_QUADS);
+			glTexCoord2f(0.0f, 0.0f); glVertex2f(-0.5f, 0.5f);
+			glTexCoord2f(1.0f, 0.0f); glVertex2f(1.5f, 0.5f);
+			glTexCoord2f(1.0f, 1.0f); glVertex2f(1.5f, -1.5f);
+			glTexCoord2f(0.0f, 1.0f); glVertex2f(-0.5f, -1.5f);
+			glEnd();
+		}
 	}
 }  
