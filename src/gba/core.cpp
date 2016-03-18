@@ -392,38 +392,9 @@ void AGB_core::debug_process_command()
 			valid_command = true;
 			u32 bp = 0;
 			std::string hex_string = command.substr(5);
-			std::string hex_char = "";
-			u32 hex_size = (hex_string.size() - 1);
 
 			//Convert hex string into usable u32
-			for(int x = hex_size, y = 0; x >= 0; x--, y+=4)
-			{
-				hex_char = hex_string[x];
-
-				if(hex_char == "0") { bp += (0 << y); }
-				else if(hex_char == "1") { bp += (1 << y); }
-				else if(hex_char == "2") { bp += (2 << y); }
-				else if(hex_char == "3") { bp += (3 << y); }
-				else if(hex_char == "4") { bp += (4 << y); }
-				else if(hex_char == "5") { bp += (5 << y); }
-				else if(hex_char == "6") { bp += (6 << y); }
-				else if(hex_char == "7") { bp += (7 << y); }
-				else if(hex_char == "8") { bp += (8 << y); }
-				else if(hex_char == "9") { bp += (9 << y); }
-				else if(hex_char == "A") { bp += (10 << y); }
-				else if(hex_char == "a") { bp += (10 << y); }
-				else if(hex_char == "B") { bp += (11 << y); }
-				else if(hex_char == "b") { bp += (11 << y); }
-				else if(hex_char == "C") { bp += (12 << y); }
-				else if(hex_char == "c") { bp += (12 << y); }
-				else if(hex_char == "D") { bp += (13 << y); }
-				else if(hex_char == "d") { bp += (13 << y); }
-				else if(hex_char == "E") { bp += (14 << y); }
-				else if(hex_char == "e") { bp += (14 << y); }
-				else if(hex_char == "F") { bp += (15 << y); }
-				else if(hex_char == "f") { bp += (15 << y); }
-				else { valid_command = false; }
-			}
+			valid_command = util::from_hex_str(hex_string, bp));
 		
 			//Request valid input again
 			if(!valid_command)
@@ -448,38 +419,9 @@ void AGB_core::debug_process_command()
 			valid_command = true;
 			u32 mem_location = 0;
 			std::string hex_string = command.substr(5);
-			std::string hex_char = "";
-			u32 hex_size = (hex_string.size() - 1);
 
 			//Convert hex string into usable u32
-			for(int x = hex_size, y = 0; x >= 0; x--, y+=4)
-			{
-				hex_char = hex_string[x];
-
-				if(hex_char == "0") { mem_location += (0 << y); }
-				else if(hex_char == "1") { mem_location += (1 << y); }
-				else if(hex_char == "2") { mem_location += (2 << y); }
-				else if(hex_char == "3") { mem_location += (3 << y); }
-				else if(hex_char == "4") { mem_location += (4 << y); }
-				else if(hex_char == "5") { mem_location += (5 << y); }
-				else if(hex_char == "6") { mem_location += (6 << y); }
-				else if(hex_char == "7") { mem_location += (7 << y); }
-				else if(hex_char == "8") { mem_location += (8 << y); }
-				else if(hex_char == "9") { mem_location += (9 << y); }
-				else if(hex_char == "A") { mem_location += (10 << y); }
-				else if(hex_char == "a") { mem_location += (10 << y); }
-				else if(hex_char == "B") { mem_location += (11 << y); }
-				else if(hex_char == "b") { mem_location += (11 << y); }
-				else if(hex_char == "C") { mem_location += (12 << y); }
-				else if(hex_char == "c") { mem_location += (12 << y); }
-				else if(hex_char == "D") { mem_location += (13 << y); }
-				else if(hex_char == "d") { mem_location += (13 << y); }
-				else if(hex_char == "E") { mem_location += (14 << y); }
-				else if(hex_char == "e") { mem_location += (14 << y); }
-				else if(hex_char == "F") { mem_location += (15 << y); }
-				else if(hex_char == "f") { mem_location += (15 << y); }
-				else { valid_command = false; }
-			}
+			valid_command = util::from_hex_str(hex_string, mem_location));
 
 			//Request valid input again
 			if(!valid_command)
