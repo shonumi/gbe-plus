@@ -14,6 +14,8 @@
 #include <ctime>
 #include <sstream>
 
+#include "common/util.h"
+
 #include "core.h"
 
 /****** Core Constructor ******/
@@ -394,7 +396,7 @@ void AGB_core::debug_process_command()
 			std::string hex_string = command.substr(5);
 
 			//Convert hex string into usable u32
-			valid_command = util::from_hex_str(hex_string, bp));
+			valid_command = util::from_hex_str(hex_string, bp);
 		
 			//Request valid input again
 			if(!valid_command)
@@ -421,7 +423,7 @@ void AGB_core::debug_process_command()
 			std::string hex_string = command.substr(5);
 
 			//Convert hex string into usable u32
-			valid_command = util::from_hex_str(hex_string, mem_location));
+			valid_command = util::from_hex_str(hex_string, mem_location);
 
 			//Request valid input again
 			if(!valid_command)

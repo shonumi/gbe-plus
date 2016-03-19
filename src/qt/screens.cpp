@@ -27,7 +27,7 @@ void soft_screen::paintEvent(QPaintEvent* event)
 	else
 	{
 		//Maintain aspect ratio
-		if(qt_gui::draw_surface->settings->aspect_ratio->isChecked())
+		if(config::maintain_aspect_ratio)
 		{
 			QImage final_screen = qt_gui::screen->scaled(width(), height(), Qt::KeepAspectRatio);
 			QPainter painter(this);
@@ -90,7 +90,7 @@ void hard_screen::paintGL()
 		glTranslatef(-0.5, 0.5, 0);
 
 		//Maintain aspect ratio
-		if(qt_gui::draw_surface->settings->aspect_ratio->isChecked())
+		if(config::maintain_aspect_ratio)
 		{
 			//Find the maximum dimensions that maintain the original aspect ratio
 			double max_width = width() / config::sys_width;

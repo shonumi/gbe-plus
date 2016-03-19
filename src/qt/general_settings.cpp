@@ -542,6 +542,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(tabs_button->button(QDialogButtonBox::Close), SIGNAL(clicked()), this, SLOT(close_input()));
 	connect(bios, SIGNAL(stateChanged(int)), this, SLOT(set_bios()));
 	connect(screen_scale, SIGNAL(currentIndexChanged(int)), this, SLOT(screen_scale_change()));
+	connect(aspect_ratio, SIGNAL(stateChanged(int)), this, SLOT(aspect_ratio_change()));
 	connect(dmg_gbc_pal, SIGNAL(currentIndexChanged(int)), this, SLOT(dmg_gbc_pal_change()));
 	connect(load_cgfx, SIGNAL(stateChanged(int)), this, SLOT(set_cgfx()));
 	connect(volume, SIGNAL(valueChanged(int)), this, SLOT(volume_change()));
@@ -709,6 +710,9 @@ void gen_settings::set_ini_options()
 	//CGFX option
 	if(cgfx::load_cgfx) { load_cgfx->setChecked(true); }
 
+	//Maintain aspect ratio option
+	if(config::maintain_aspect_ratio) { aspect_ratio->setChecked(true); }
+
 	//Sample rate option
 	switch((int)config::sample_rate)
 	{
@@ -780,6 +784,13 @@ void gen_settings::screen_scale_change()
 {
 	config::scaling_factor = (screen_scale->currentIndex() + 1);
 	resize_screen = true;
+}
+
+/****** Sets whether to maintain the aspect ratio or not ******/
+void gen_settings::aspect_ratio_change()
+{
+	if(aspect_ratio->isChecked()) { config::maintain_aspect_ratio = true; }
+	else { config::maintain_aspect_ratio = false; }
 }
 
 /****** Changes the emulated DMG-on-GBC palette ******/

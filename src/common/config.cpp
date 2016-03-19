@@ -92,6 +92,9 @@ namespace config
 	bool request_resize = false;
 	s8 resize_mode = 0;
 
+	//Aspect ratio
+	bool maintain_aspect_ratio = false;
+
 	//Sound parameters
 	u8 volume = 128;
 	double sample_rate = 44100;
@@ -816,6 +819,26 @@ bool parse_ini_file()
 			else 
 			{
 				std::cout<<"GBE::Error - Could not parse gbe.ini (#scaling_factor) \n";
+				return false;
+			}
+		}
+
+		//Maintain aspect ratio
+		else if(ini_item == "#maintain_aspect_ratio")
+		{
+			if((x + 1) < size) 
+			{
+				ini_item = ini_opts[++x];
+				std::stringstream temp_stream(ini_item);
+				temp_stream >> output;
+
+				if(output == 1) { config::maintain_aspect_ratio = true; }
+				else { config::maintain_aspect_ratio = false; }
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#maintain_aspect_ratio) \n";
 				return false;
 			}
 		}
@@ -1547,6 +1570,15 @@ bool save_ini_file()
 			line_pos = output_count[x];
 
 			output_lines[line_pos] = "[#scaling_factor:" + util::to_str(config::scaling_factor) + "]";
+		}
+
+		//Maintain aspect ratio
+		else if(ini_item == "#maintain_aspect_ratio")
+		{
+			line_pos = output_count[x];
+			std::string val = (config::maintain_aspect_ratio) ? "1" : "0";
+
+			output_lines[line_pos] = "[#maintain_aspect_ratio:" + val + "]";
 		}
 
 
