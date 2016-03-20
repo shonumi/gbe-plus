@@ -495,6 +495,7 @@ void main_menu::closeEvent(QCloseEvent* event)
 	config::gb_type = settings->sys_type->currentIndex();
 	config::mute = (settings->sound_on->isChecked()) ? false : true;
 	config::volume = settings->volume->value();
+	config::use_opengl = (settings->ogl->isChecked()) ? true : false;
 	
 	switch(settings->freq->currentIndex())
 	{
