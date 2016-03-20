@@ -94,20 +94,15 @@ void hard_screen::paintGL()
 		{
 			double max_width, max_height, ratio = 0.0;
 
-			//Find the maximum dimensions that maintain the original aspect ratio
-			if(width() <= height())
-			{
-				ratio = width() / (double)config::sys_width;
-				max_width = width();
-				max_height = config::sys_height * ratio;
-			}
+			max_width = (double)width() / config::sys_width;
+			max_height = (double)height() / config::sys_height;
 
-			else
-			{
-				ratio = height() / (double)config::sys_height;
-				max_height = height();
-				max_width = config::sys_width * ratio;
-			}
+			//Find the maximum dimensions that maintain the original aspect ratio
+			if(max_width <= max_height) { ratio = max_width; }
+			else { ratio = max_height; }
+
+			max_width = config::sys_width * ratio;
+			max_height = config::sys_height * ratio;
 
 			max_width = max_width / width();
 			max_height = max_height / height();
