@@ -399,6 +399,25 @@ void set_dmg_colors(u8 color_type)
                         config::DMG_OBJ_PAL[3][1] = 0xFFF8F8F8;
 
 			break;
+
+		//Classic Green
+		case 14:
+                        config::DMG_BG_PAL[3] = 0xFF091921;
+                        config::DMG_BG_PAL[2] = 0xFF316B52;
+                        config::DMG_BG_PAL[1] = 0xFF8AC573;
+                        config::DMG_BG_PAL[0] = 0xFFE6FFD6;
+
+                        config::DMG_OBJ_PAL[3][0] = 0xFF091921;
+                        config::DMG_OBJ_PAL[2][0] = 0xFF316B52;
+                        config::DMG_OBJ_PAL[1][0] = 0xFF8AC573;
+                        config::DMG_OBJ_PAL[0][0] = 0xFFE6FFD6;
+
+                        config::DMG_OBJ_PAL[3][1] = 0xFF091921;
+                        config::DMG_OBJ_PAL[2][1] = 0xFF316B52;
+                        config::DMG_OBJ_PAL[1][1] = 0xFF8AC573;
+                        config::DMG_OBJ_PAL[0][1] = 0xFFE6FFD6;
+
+			break;
 	}
 }	
 
@@ -853,7 +872,7 @@ bool parse_ini_file()
 				std::stringstream temp_stream(ini_item);
 				temp_stream >> output;
 
-				if((output >= 1) && (output <= 13)) 
+				if((output >= 1) && (output <= 14)) 
 				{
 					config::dmg_gbc_pal = output;
 					set_dmg_colors(config::dmg_gbc_pal);

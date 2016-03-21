@@ -114,22 +114,23 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 
 	//Display settings - DMG on GBC palette
 	QWidget* dmg_gbc_pal_set = new QWidget(display);
-	QLabel* dmg_gbc_pal_label = new QLabel("DMG-on-GBC Color Palette : ");
+	QLabel* dmg_gbc_pal_label = new QLabel("DMG Color Palette : ");
 	dmg_gbc_pal = new QComboBox(dmg_gbc_pal_set);
 	dmg_gbc_pal->addItem("OFF");
-	dmg_gbc_pal->addItem("NO INPUT");
-	dmg_gbc_pal->addItem("UP");
-	dmg_gbc_pal->addItem("DOWN");
-	dmg_gbc_pal->addItem("LEFT");
-	dmg_gbc_pal->addItem("RIGHT");
-	dmg_gbc_pal->addItem("UP+A");
-	dmg_gbc_pal->addItem("DOWN+A");
-	dmg_gbc_pal->addItem("LEFT+A");
-	dmg_gbc_pal->addItem("RIGHT+A");
-	dmg_gbc_pal->addItem("UP+B");
-	dmg_gbc_pal->addItem("DOWN+B");
-	dmg_gbc_pal->addItem("LEFT+B");
-	dmg_gbc_pal->addItem("RIGHT+B");
+	dmg_gbc_pal->addItem("GBC BOOTROM - NO INPUT");
+	dmg_gbc_pal->addItem("GBC BOOTROM - UP");
+	dmg_gbc_pal->addItem("GBC BOOTROM - DOWN");
+	dmg_gbc_pal->addItem("GBC BOOTROM - LEFT");
+	dmg_gbc_pal->addItem("GBC BOOTROM - RIGHT");
+	dmg_gbc_pal->addItem("GBC BOOTROM - UP+A");
+	dmg_gbc_pal->addItem("GBC BOOTROM - DOWN+A");
+	dmg_gbc_pal->addItem("GBC BOOTROM - LEFT+A");
+	dmg_gbc_pal->addItem("GBC BOOTROM - RIGHT+A");
+	dmg_gbc_pal->addItem("GBC BOOTROM - UP+B");
+	dmg_gbc_pal->addItem("GBC BOOTROM - DOWN+B");
+	dmg_gbc_pal->addItem("GBC BOOTROM - LEFT+B");
+	dmg_gbc_pal->addItem("GBC BOOTROM - RIGHT+B");
+	dmg_gbc_pal->addItem("DMG - Classic Green");
 
 	QHBoxLayout* dmg_gbc_pal_layout = new QHBoxLayout;
 	dmg_gbc_pal_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
