@@ -11,6 +11,8 @@
 #include <iostream>
 #include <fstream>
 
+#include <cstdlib>
+
 #include "config.h"
 #include "cgfx_common.h"
 #include "util.h"
@@ -550,7 +552,10 @@ void parse_filenames()
 /****** Parse options from the .ini file ******/
 bool parse_ini_file()
 {
-	std::ifstream file("gbe.ini", std::ios::in); 
+	//Test for Windows or Portable version first
+	//Always give preference to portable .ini settings on every OS
+	std::ifstream file("gbe.ini", std::ios::in);
+
 	std::string input_line = "";
 	std::string line_char = "";
 
@@ -563,8 +568,21 @@ bool parse_ini_file()
 
 	if(!file.is_open())
 	{
-		std::cout<<"GBE::Error - Could not open gbe.ini configuration file. Check file path or permissions. \n";
-		return false; 
+		std::string unix_str = getenv("HOME");
+		std::string last_chr = "";
+
+		last_chr = unix_str[unix_str.length() - 1];
+		unix_str += (last_chr == "/") ? ".gbe_plus/gbe.ini" : "/.gbe_plus/gbe.ini";
+
+
+		//Test for Linux or Unix install location next
+		file.open(unix_str.c_str(), std::ios::in);
+		
+		if(!file.is_open())
+		{
+			std::cout<<"GBE::Error - Could not open gbe.ini configuration file. Check file path or permissions. \n";
+			return false;
+		} 
 	}
 
 	//Cycle through whole file, line-by-line
@@ -1419,7 +1437,10 @@ bool parse_ini_file()
 /****** Save options to the .ini file ******/
 bool save_ini_file()
 {
-	std::ifstream in_file("gbe.ini", std::ios::in); 
+	//Test for Windows or Portable version first
+	//Always give preference to portable .ini settings on every OS
+	std::ifstream in_file("gbe.ini", std::ios::in);
+
 	std::string input_line = "";
 	std::string line_char = "";
 
@@ -1434,8 +1455,20 @@ bool save_ini_file()
 
 	if(!in_file.is_open())
 	{
-		std::cout<<"GBE::Error - Could not save gbe.ini configuration file. Check file path or permissions. \n";
-		return false; 
+		std::string unix_str = getenv("HOME");
+		std::string last_chr = "";
+
+		last_chr = unix_str[unix_str.length() - 1];
+		unix_str += (last_chr == "/") ? ".gbe_plus/gbe.ini" : "/.gbe_plus/gbe.ini";
+
+		//Test for Linux or Unix install location next
+		in_file.open(unix_str.c_str(), std::ios::in);
+		
+		if(!in_file.is_open())
+		{
+			std::cout<<"GBE::Error - Could not open gbe.ini configuration file. Check file path or permissions. \n";
+			return false;
+		} 
 	}
 
 	//Cycle through whole file, line-by-line
