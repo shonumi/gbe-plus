@@ -607,4 +607,31 @@ bool from_str(std::string input, u32 &result)
 	return true;
 }
 
+/****** Loads icon into SDL Surface ******/
+SDL_Surface* load_icon(std::string filename)
+{
+	SDL_Surface* source = SDL_LoadBMP(filename.c_str());
+
+	if(source == NULL)
+	{
+		std::cout<<"GBE::Error - Could not load icon file " << filename << ". Check file path or permissions. \n";
+		return NULL;
+	}
+
+	SDL_Surface* output = SDL_CreateRGBSurface(SDL_SWSURFACE, source->w, source->h, 32, 0, 0, 0, 0);
+
+	//Cycle through all pixels, then set the alpha of all green pixels to zero
+	u8* in_pixel_data = (u8*)source->pixels;
+	u32* out_pixel_data = (u32*)output->pixels;
+
+	for(int a = 0, b = 0; a < (source->w * source->h); a++, b+=3)
+	{
+		out_pixel_data[a] = (0xFF000000 | (in_pixel_data[b+2] << 16) | (in_pixel_data[b+1] << 8) | (in_pixel_data[b]));
+
+		if(out_pixel_data[a] == 0xFF00FF00) { out_pixel_data[a] = 0; }
+	}
+
+	return output;
+}
+
 } //Namespace

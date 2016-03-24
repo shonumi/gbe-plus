@@ -23,8 +23,11 @@ int main(int argc, char* args[])
 	main_menu window;
 	qt_gui::draw_surface = &window;
 
+	QIcon icon(QString::fromStdString(config::cfg_path + "data/gbe_plus.png")); 
+
 	window.resize(450, 300);
 	window.setWindowTitle("GBE+");
+	window.setWindowIcon(icon);
 	window.show();
  
 	return app.exec();

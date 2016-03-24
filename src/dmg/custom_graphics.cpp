@@ -173,10 +173,10 @@ bool DMG_LCD::load_image_data()
 
 	//Load 24-bit data
 	u8* pixel_data = (u8*)source->pixels;
+
 	for(int a = 0, b = 0; a < (source->w * source->h); a++, b+=3)
 	{
-
-		cgfx_pixels.push_back (0xFF000000 | (pixel_data[b+2] << 16) | (pixel_data[b+1] << 8) | (pixel_data[b]));
+		cgfx_pixels.push_back(0xFF000000 | (pixel_data[b+2] << 16) | (pixel_data[b+1] << 8) | (pixel_data[b]));
 	}
 
 	//Store OBJ pixel data

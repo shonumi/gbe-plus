@@ -63,6 +63,8 @@ namespace util
 	std::string to_str(u32);
 	bool from_str(std::string input, u32 &result);
 
+	SDL_Surface* load_icon(std::string filename);
+
 	extern u32 crc32_table[256];
 	extern u32 poly32;
 }

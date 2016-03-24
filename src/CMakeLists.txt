@@ -16,3 +16,4 @@ target_link_libraries(gbe_plus ${SDL_LIBRARY} ${OPENGL_gl_LIBRARY})
 
 install(TARGETS gbe_plus DESTINATION /usr/local/bin)
 install(FILES gbe.ini DESTINATION ~/.gbe_plus/)
+install(FILES data/gbe_plus.png DESTINATION ~/.gbe_plus/data/)

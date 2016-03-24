@@ -26,6 +26,7 @@ namespace config
 	std::string gbc_bios_path = "";
 	std::string agb_bios_path = "";
 	std::string ss_path = "";
+	std::string cfg_path = "";
 	std::vector <std::string> recent_files;
 	std::vector <std::string> cli_args;
 	bool use_debugger = false;
@@ -572,8 +573,8 @@ bool parse_ini_file()
 		std::string last_chr = "";
 
 		last_chr = unix_str[unix_str.length() - 1];
+		config::cfg_path = (last_chr == "/") ? unix_str + ".gbe_plus/" : unix_str + "/.gbe_plus/";
 		unix_str += (last_chr == "/") ? ".gbe_plus/gbe.ini" : "/.gbe_plus/gbe.ini";
-
 
 		//Test for Linux or Unix install location next
 		file.open(unix_str.c_str(), std::ios::in);
@@ -1455,11 +1456,7 @@ bool save_ini_file()
 
 	if(!in_file.is_open())
 	{
-		std::string unix_str = getenv("HOME");
-		std::string last_chr = "";
-
-		last_chr = unix_str[unix_str.length() - 1];
-		unix_str += (last_chr == "/") ? ".gbe_plus/gbe.ini" : "/.gbe_plus/gbe.ini";
+		std::string unix_str = config::cfg_path + "gbe.ini";
 
 		//Test for Linux or Unix install location next
 		in_file.open(unix_str.c_str(), std::ios::in);
