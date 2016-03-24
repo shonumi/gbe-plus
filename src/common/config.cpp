@@ -1440,7 +1440,8 @@ bool save_ini_file()
 {
 	//Test for Windows or Portable version first
 	//Always give preference to portable .ini settings on every OS
-	std::ifstream in_file("gbe.ini", std::ios::in);
+	std::string ini_path = config::cfg_path + "gbe.ini";
+	std::ifstream in_file(ini_path.c_str(), std::ios::in);
 
 	std::string input_line = "";
 	std::string line_char = "";
@@ -1456,16 +1457,8 @@ bool save_ini_file()
 
 	if(!in_file.is_open())
 	{
-		std::string unix_str = config::cfg_path + "gbe.ini";
-
-		//Test for Linux or Unix install location next
-		in_file.open(unix_str.c_str(), std::ios::in);
-		
-		if(!in_file.is_open())
-		{
-			std::cout<<"GBE::Error - Could not open gbe.ini configuration file. Check file path or permissions. \n";
-			return false;
-		} 
+		std::cout<<"GBE::Error - Could not open gbe.ini configuration file. Check file path or permissions. \n";
+		return false; 
 	}
 
 	//Cycle through whole file, line-by-line
@@ -1802,7 +1795,7 @@ bool save_ini_file()
 	}
 
 	//Write contents to .ini file
-	std::ofstream out_file("gbe.ini", std::ios::out);
+	std::ofstream out_file(ini_path.c_str(), std::ios::out);
 
 	if(!out_file.is_open())
 	{
