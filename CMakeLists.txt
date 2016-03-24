@@ -25,3 +25,9 @@ if(QT_GUI)
 endif()
 
 add_subdirectory(src)
+
+SET(USER_HOME $ENV{HOME} CACHE STRING "Target User Home")
+SET(USER $ENV{USER} CACHE STRING "Target User")
+
+MESSAGE("-- Target User Home -> ${USER_HOME}")
+MESSAGE("-- Target User -> ${USER}")
