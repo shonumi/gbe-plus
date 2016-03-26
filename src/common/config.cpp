@@ -27,6 +27,7 @@ namespace config
 	std::string agb_bios_path = "";
 	std::string ss_path = "";
 	std::string cfg_path = "";
+	std::string data_path = "";
 	std::vector <std::string> recent_files;
 	std::vector <std::string> cli_args;
 	bool use_debugger = false;
@@ -556,6 +557,7 @@ bool parse_ini_file()
 	//Test for Windows or Portable version first
 	//Always give preference to portable .ini settings on every OS
 	std::ifstream file("gbe.ini", std::ios::in);
+	config::data_path = "data/";
 
 	std::string input_line = "";
 	std::string line_char = "";
@@ -574,6 +576,7 @@ bool parse_ini_file()
 
 		last_chr = unix_str[unix_str.length() - 1];
 		config::cfg_path = (last_chr == "/") ? unix_str + ".gbe_plus/" : unix_str + "/.gbe_plus/";
+		config::data_path = config::cfg_path + "data/";
 		unix_str += (last_chr == "/") ? ".gbe_plus/gbe.ini" : "/.gbe_plus/gbe.ini";
 
 		//Test for Linux or Unix install location next

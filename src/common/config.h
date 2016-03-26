@@ -37,6 +37,7 @@ namespace config
 	extern std::string agb_bios_path;
 	extern std::string ss_path;
 	extern std::string cfg_path;
+	extern std::string data_path;
 	extern std::vector <std::string> recent_files;
 	extern std::vector <std::string> cli_args;
 
