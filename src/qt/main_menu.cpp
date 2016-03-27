@@ -241,10 +241,14 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	font.setBold(true);
 	emu_title->setFont(font);
 
+	QImage logo(QString::fromStdString(config::cfg_path + "data/icons/gbe_plus.png"));
+	logo = logo.scaled(128, 128);
 	QLabel* emu_desc = new QLabel("A GB/GBC/GBA emulator with enhancements");
 	QLabel* emu_copyright = new QLabel("Copyright D.S. Baxter 2014-2016");
 	QLabel* emu_proj_copyright = new QLabel("Copyright GBE+ Team 2014-2016");
 	QLabel* emu_license = new QLabel("This program is licensed under the GNU GPLv2");
+	QLabel* emu_logo = new QLabel;
+	emu_logo->setPixmap(QPixmap::fromImage(logo));
 
 	QVBoxLayout* about_layout = new QVBoxLayout;
 	about_layout->addWidget(emu_title, 0, Qt::AlignCenter | Qt::AlignTop);
@@ -252,8 +256,10 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	about_layout->addWidget(emu_copyright, 0, Qt::AlignCenter | Qt::AlignTop);
 	about_layout->addWidget(emu_proj_copyright, 0, Qt::AlignCenter | Qt::AlignTop);
 	about_layout->addWidget(emu_license, 0, Qt::AlignCenter | Qt::AlignTop);
+	about_layout->addWidget(emu_logo, 0, Qt::AlignCenter | Qt::AlignTop);
 	about_layout->addWidget(about_button);
 	about_box->setLayout(about_layout);
+	about_box->setWindowIcon(QIcon(QString::fromStdString(config::cfg_path + "data/icons/gbe_plus.png")));
 	
 	about_box->hide();
 }
