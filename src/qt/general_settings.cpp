@@ -537,6 +537,8 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	paths_layout->addWidget(screenshot_set);
 	paths->setLayout(paths_layout);
 
+	data_folder = new data_dialog;
+
 	connect(tabs, SIGNAL(currentChanged(int)), this, SLOT(close_input()));
 	connect(tabs_button, SIGNAL(accepted()), this, SLOT(accept()));
 	connect(tabs_button, SIGNAL(rejected()), this, SLOT(reject()));
@@ -551,6 +553,8 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(sound_on, SIGNAL(stateChanged(int)), this, SLOT(mute()));
 	connect(dead_zone, SIGNAL(valueChanged(int)), this, SLOT(dead_zone_change()));
 	connect(input_device, SIGNAL(currentIndexChanged(int)), this, SLOT(input_device_change()));
+	connect(data_folder, SIGNAL(accepted()), this, SLOT(select_folder()));
+	connect(data_folder, SIGNAL(rejected()), this, SLOT(select_folder()));
 
 	QSignalMapper* paths_mapper = new QSignalMapper(this);
 	connect(dmg_bios_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
@@ -891,7 +895,20 @@ void gen_settings::set_paths(int index)
 	//Open folder browser for screenshots, CGFX dumps
 	else
 	{
-		path = QFileDialog::getExistingDirectory(this, tr("Open"), "", QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+		//Open the data folder for CGFX dumps
+		//On Linux or Unix, this is supposed to be a hidden folder, so we need a custom dialog
+		if(index >= 5)
+		{
+			data_folder->open_data_folder();			
+
+			while(!data_folder->finish) { QApplication::processEvents(); }
+	
+			path = data_folder->directory().path();
+			path = data_folder->path.relativeFilePath(path);
+		}
+
+		else { path = QFileDialog::getExistingDirectory(this, tr("Open"), "", QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks); }
+		
 		if(path.isNull()) { return; }	
 
 		//Make sure path is complete, e.g. has the correct separator at the end
@@ -1423,3 +1440,6 @@ bool gen_settings::eventFilter(QObject* target, QEvent* event)
 
 	return QDialog::eventFilter(target, event);
 }
+
+/****** Selects folder ******/
+void gen_settings::select_folder() { data_folder->finish = true; }

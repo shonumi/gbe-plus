@@ -177,6 +177,8 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	obj_signal = NULL;
 	bg_signal = NULL;
 
+	data_folder = new data_dialog;
+
 	connect(tabs_button, SIGNAL(accepted()), this, SLOT(accept()));
 	connect(tabs_button, SIGNAL(rejected()), this, SLOT(reject()));
 	connect(tabs_button->button(QDialogButtonBox::Close), SIGNAL(clicked()), this, SLOT(close_cgfx()));
@@ -184,6 +186,8 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	connect(auto_dump_bg, SIGNAL(stateChanged(int)), this, SLOT(set_auto_bg()));
 	connect(blank, SIGNAL(stateChanged(int)), this, SLOT(set_blanks()));
 	connect(layer_select, SIGNAL(currentIndexChanged(int)), this, SLOT(layer_change()));
+	connect(data_folder, SIGNAL(accepted()), this, SLOT(select_folder()));
+	connect(data_folder, SIGNAL(rejected()), this, SLOT(select_folder()));
 
 	//CGFX advanced dumping pop-up box
 	advanced_box = new QDialog();
@@ -359,7 +363,7 @@ void gbe_cgfx::show_advanced_obj(int index)
 		if(!path.isNull())
 		{
 			//Use relative paths
-			QDir folder;
+			QDir folder(QString::fromStdString(config::data_path));
 			path = folder.relativeFilePath(path);
 
 			//Make sure path is complete, e.g. has the correct separator at the end
@@ -407,7 +411,7 @@ void gbe_cgfx::show_advanced_bg(int index)
 		if(!path.isNull())
 		{
 			//Use relative paths
-			QDir folder;
+			QDir folder(QString::fromStdString(config::data_path));
 			path = folder.relativeFilePath(path);
 
 			//Make sure path is complete, e.g. has the correct separator at the end
@@ -857,7 +861,11 @@ void gbe_cgfx::close_cgfx()
 }
 
 /****** Closes the Advanced menu ******/
-void gbe_cgfx::close_advanced() { advanced_box->hide(); }
+void gbe_cgfx::close_advanced()
+{
+	advanced_box->hide();
+	cgfx::dump_name = "";
+}
 
 /****** Dumps the selected OBJ ******/
 void gbe_cgfx::dump_obj(int obj_index) { main_menu::gbe_plus->dump_obj(obj_index); }
@@ -2520,14 +2528,16 @@ void gbe_cgfx::browse_advanced_dir()
 {
 	QString path;
 
-	path = QFileDialog::getExistingDirectory(this, tr("Open"), "", QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+	data_folder->open_data_folder();			
+
+	while(!data_folder->finish) { QApplication::processEvents(); }
+	
+	path = data_folder->directory().path();
+	path = data_folder->path.relativeFilePath(path);
+
 	advanced_box->raise();
 
 	if(path.isNull()) { return; }
-
-	//Use relative paths
-	QDir folder;
-	path = folder.relativeFilePath(path);
 
 	//Make sure path is complete, e.g. has the correct separator at the end
 	//Qt doesn't append this automatically
@@ -2546,7 +2556,7 @@ void gbe_cgfx::browse_advanced_file()
 {
 	QString path;
 
-	path = QFileDialog::getOpenFileName(this, tr("Open"), "", tr("All files (*)"));
+	path = QFileDialog::getOpenFileName(this, tr("Open"), QString::fromStdString(config::data_path), tr("All files (*)"));
 	advanced_box->raise();
 
 	if(path.isNull()) { return; }
@@ -2558,3 +2568,6 @@ void gbe_cgfx::browse_advanced_file()
 
 	dest_name->setText(path);
 }
+
+/****** Selects folder ******/
+void gbe_cgfx::select_folder() { data_folder->finish = true; }

@@ -18,6 +18,7 @@
 #include <QtGui>
 
 #include "common/common.h"
+#include "data_dialog.h"
 
 class gbe_cgfx : public QDialog
 {
@@ -79,6 +80,8 @@ class gbe_cgfx : public QDialog
 	std::vector<QImage> cgfx_bg;
 	std::vector<QPushButton*> bg_button;
 
+	data_dialog* data_folder;
+
 	bool pause;
 
 	QImage grab_obj_data(int obj_index);
@@ -135,6 +138,7 @@ class gbe_cgfx : public QDialog
 	void set_auto_bg();
 	void set_blanks();
 	void layer_change();
+	void select_folder();
 };
 
 #endif //CGFX_GBE_QT 

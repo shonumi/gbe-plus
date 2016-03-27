@@ -16,6 +16,8 @@
 
 #include <QtGui>
 
+#include "data_dialog.h"
+
 class gen_settings : public QDialog
 {
 	Q_OBJECT
@@ -44,6 +46,8 @@ class gen_settings : public QDialog
 	QComboBox* freq;
 	QSlider* volume;
 	QCheckBox* sound_on;
+
+	data_dialog* data_folder;
 
 	double sample_rate;
 	bool resize_screen;
@@ -118,6 +122,7 @@ class gen_settings : public QDialog
 	void dead_zone_change();
 	void configure_button(int button);
 	void close_input();
+	void select_folder();
 
 	private:
 	void process_joystick_event();

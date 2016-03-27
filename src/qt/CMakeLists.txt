@@ -9,6 +9,7 @@ set(SRCS
 	cgfx.cpp
 	debug_dmg.cpp
 	screens.cpp
+	data_dialog.cpp
 	)
 
 set(HEADERS
@@ -19,6 +20,7 @@ set(HEADERS
 	cgfx.h
 	debug_dmg.h
 	screens.h
+	data_dialog.cpp
 	)
 
 add_executable(gbe_plus_qt ${SRCS} ${HEADERS})
