@@ -187,8 +187,8 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	freq = new QComboBox(freq_set);
 	freq->addItem("48000Hz");
 	freq->addItem("44100Hz");
-	freq->addItem("20500Hz");
-	freq->addItem("10250Hz");
+	freq->addItem("22050Hz");
+	freq->addItem("11025Hz");
 	freq->setCurrentIndex(1);
 
 	QHBoxLayout* freq_layout = new QHBoxLayout;
@@ -875,8 +875,8 @@ void gen_settings::sample_rate_change()
 	{
 		case 0: sample_rate = 48000.0; break;
 		case 1: sample_rate = 41000.0; break;
-		case 2: sample_rate = 20500.0; break;
-		case 3: sample_rate = 10250.0; break;
+		case 2: sample_rate = 22050.0; break;
+		case 3: sample_rate = 11025.0; break;
 	}
 }
 
