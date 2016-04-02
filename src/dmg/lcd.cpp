@@ -396,8 +396,11 @@ void DMG_LCD::render_dmg_scanline()
 	//Draw sprite pixel data
 	if(lcd_stat.obj_enable) { render_dmg_obj_scanline(); }
 
+	//Ignore CGFX when greater than 1:1
+	if((cgfx::load_cgfx) && (cgfx::scaling_factor > 1)) { return; }
+
 	//Push scanline buffer to screen buffer - Normal version
-	if((config::resize_mode == 0) && (!config::request_resize))
+	else if((config::resize_mode == 0) && (!config::request_resize))
 	{
 		for(int x = 0; x < 160; x++)
 		{
@@ -455,8 +458,11 @@ void DMG_LCD::render_gbc_scanline()
 	//Draw sprite pixel data
 	if(lcd_stat.obj_enable) { render_gbc_obj_scanline(); }
 
+	//Ignore CGFX when greater than 1:1
+	if((cgfx::load_cgfx) && (cgfx::scaling_factor > 1)) { return; }
+
 	//Push scanline buffer to screen buffer - Normal version
-	if((config::resize_mode == 0) && (!config::request_resize))
+	else if((config::resize_mode == 0) && (!config::request_resize))
 	{
 		for(int x = 0; x < 160; x++)
 		{
