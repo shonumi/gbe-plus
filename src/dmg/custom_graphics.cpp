@@ -169,7 +169,19 @@ bool DMG_LCD::load_image_data()
 		return false;
 	}
 
-	std::cout<<"Loaded -> " << filename << "\n";
+	//Verify source width
+	if((source->w % 8) != 0)
+	{
+		std::cout<<"GBE::CGFX - " << filename << " has irregular width -> " << source->w << "\n";
+		return false;
+	}
+
+	//Verify source height
+	if((source->h % 8) != 0)
+	{
+		std::cout<<"GBE::CGFX - " << filename << " has irregular height -> " << source->h << "\n";
+		return false;
+	}
 		
 	std::vector<u32> cgfx_pixels;
 
