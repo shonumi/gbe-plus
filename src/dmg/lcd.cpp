@@ -138,22 +138,22 @@ void DMG_LCD::reset()
 
 	//CGFX setup
 	cgfx_stat.current_obj_hash.clear();
-	cgfx_stat.current_obj_hash.resize(40);
+	cgfx_stat.current_obj_hash.resize(40, "");
 
 	cgfx_stat.current_bg_hash.clear();
-	cgfx_stat.current_bg_hash.resize(384);
+	cgfx_stat.current_bg_hash.resize(384, "");
 
 	cgfx_stat.current_gbc_bg_hash.clear();
-	cgfx_stat.current_gbc_bg_hash.resize(2048);
+	cgfx_stat.current_gbc_bg_hash.resize(2048, "");
 
 	cgfx_stat.bg_update_list.clear();
-	cgfx_stat.bg_update_list.resize(384);
+	cgfx_stat.bg_update_list.resize(384, false);
 
 	cgfx_stat.bg_tile_update_list.clear();
-	cgfx_stat.bg_tile_update_list.resize(256);
+	cgfx_stat.bg_tile_update_list.resize(256, false);
 
 	cgfx_stat.bg_map_update_list.clear();
-	cgfx_stat.bg_map_update_list.resize(2048);
+	cgfx_stat.bg_map_update_list.resize(2048, false);
 
 	cgfx_stat.update_bg = false;
 	cgfx_stat.update_map = false;

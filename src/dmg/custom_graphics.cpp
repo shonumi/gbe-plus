@@ -168,6 +168,8 @@ bool DMG_LCD::load_image_data()
 		std::cout<<"GBE::CGFX - " << filename << " has " << custom_bpp << "bpp instead of 24bpp \n";
 		return false;
 	}
+
+	std::cout<<"Loaded -> " << filename << "\n";
 		
 	std::vector<u32> cgfx_pixels;
 
@@ -184,6 +186,8 @@ bool DMG_LCD::load_image_data()
 
 	//Store BG pixel data
 	else { cgfx_stat.bg_pixel_data.push_back(cgfx_pixels); }
+
+	return true;
 }
 
 /****** Dumps DMG OBJ tile from selected memory address ******/

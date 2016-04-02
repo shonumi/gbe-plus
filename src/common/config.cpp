@@ -557,7 +557,7 @@ bool parse_ini_file()
 	//Test for Windows or Portable version first
 	//Always give preference to portable .ini settings on every OS
 	std::ifstream file("gbe.ini", std::ios::in);
-	config::data_path = "data/";
+	config::data_path = "./data/";
 
 	std::string input_line = "";
 	std::string line_char = "";
