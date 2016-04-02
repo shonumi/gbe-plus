@@ -123,6 +123,7 @@ class gen_settings : public QDialog
 	void configure_button(int button);
 	void close_input();
 	void select_folder();
+	void reject_folder();
 
 	private:
 	void process_joystick_event();

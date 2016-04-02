@@ -187,7 +187,7 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	connect(blank, SIGNAL(stateChanged(int)), this, SLOT(set_blanks()));
 	connect(layer_select, SIGNAL(currentIndexChanged(int)), this, SLOT(layer_change()));
 	connect(data_folder, SIGNAL(accepted()), this, SLOT(select_folder()));
-	connect(data_folder, SIGNAL(rejected()), this, SLOT(select_folder()));
+	connect(data_folder, SIGNAL(rejected()), this, SLOT(reject_folder()));
 
 	//CGFX advanced dumping pop-up box
 	advanced_box = new QDialog();
@@ -2571,3 +2571,10 @@ void gbe_cgfx::browse_advanced_file()
 
 /****** Selects folder ******/
 void gbe_cgfx::select_folder() { data_folder->finish = true; }
+
+/****** Rejectss folder ******/
+void gbe_cgfx::reject_folder()
+{
+	data_folder->finish = true;
+	data_folder->setDirectory(data_folder->last_path);
+}

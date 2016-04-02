@@ -29,6 +29,9 @@ data_dialog::data_dialog(QWidget *parent) : QFileDialog(parent)
 /****** Opens the data folder ******/
 void data_dialog::open_data_folder()
 {
+	//Save last path
+	last_path = path.path();
+
 	path.setPath(QString::fromStdString(config::data_path));
 	path.setFilter(QDir::Hidden);
 

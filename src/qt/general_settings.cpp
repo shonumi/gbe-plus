@@ -554,7 +554,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(dead_zone, SIGNAL(valueChanged(int)), this, SLOT(dead_zone_change()));
 	connect(input_device, SIGNAL(currentIndexChanged(int)), this, SLOT(input_device_change()));
 	connect(data_folder, SIGNAL(accepted()), this, SLOT(select_folder()));
-	connect(data_folder, SIGNAL(rejected()), this, SLOT(select_folder()));
+	connect(data_folder, SIGNAL(rejected()), this, SLOT(reject_folder()));
 
 	QSignalMapper* paths_mapper = new QSignalMapper(this);
 	connect(dmg_bios_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
@@ -1443,3 +1443,10 @@ bool gen_settings::eventFilter(QObject* target, QEvent* event)
 
 /****** Selects folder ******/
 void gen_settings::select_folder() { data_folder->finish = true; }
+
+/****** Rejectss folder ******/
+void gen_settings::reject_folder()
+{
+	data_folder->finish = true;
+	data_folder->setDirectory(data_folder->last_path);
+}

@@ -139,6 +139,7 @@ class gbe_cgfx : public QDialog
 	void set_blanks();
 	void layer_change();
 	void select_folder();
+	void reject_folder();
 };
 
 #endif //CGFX_GBE_QT 

@@ -21,6 +21,7 @@ class data_dialog : public QFileDialog
 	data_dialog(QWidget *parent = 0);
 
 	QDir path;
+	QString last_path;
 	bool finish;
 
 	void open_data_folder();
