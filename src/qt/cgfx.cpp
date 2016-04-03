@@ -273,6 +273,7 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 
 	dump_type = 0;
 	advanced_index = 0;
+	last_custom_path = "";
 
 	pause = false;
 }
@@ -358,6 +359,7 @@ void gbe_cgfx::show_advanced_obj(int index)
 	if(advanced->isChecked()) 
 	{
 		QString path = QString::fromStdString(cgfx::dump_obj_path);
+		if(last_custom_path != "") { path = QString::fromStdString(last_custom_path); }
 
 		//Set the default destination
 		if(!path.isNull())
@@ -406,6 +408,7 @@ void gbe_cgfx::show_advanced_bg(int index)
 	if(advanced->isChecked()) 
 	{
 		QString path = QString::fromStdString(cgfx::dump_bg_path);
+		if(last_custom_path != "") { path = QString::fromStdString(last_custom_path); }
 
 		//Set the default destination
 		if(!path.isNull())
@@ -857,6 +860,7 @@ void gbe_cgfx::close_cgfx()
 
 	pause = false;
 	config::pause_emu = false;
+	last_custom_path = "";
 	advanced_box->hide();
 }
 
@@ -2488,13 +2492,27 @@ void gbe_cgfx::write_manifest_entry()
 {
 	//Process File Name
 	QString path = dest_name->text();
+
 	if(!path.isNull()) { cgfx::dump_name = path.toStdString(); }
+	else { cgfx::dump_name = ""; }
 
 	//Dump BG
-	if(dump_type == 0) { dump_bg(advanced_index); }
+	if(dump_type == 0) 
+	{
+		std::string temp_bg_path = cgfx::dump_bg_path;
+		cgfx::dump_bg_path = dest_folder->text().toStdString();
+		dump_bg(advanced_index);
+		cgfx::dump_bg_path = temp_bg_path;
+	}
 
 	//Dump OBJ
-	else { dump_obj(advanced_index); }
+	else
+	{
+		std::string temp_obj_path = cgfx::dump_obj_path;
+		cgfx::dump_obj_path = dest_folder->text().toStdString();
+		dump_obj(advanced_index);
+		cgfx::dump_obj_path = temp_obj_path;
+	}
 
 	//Prepare a string for the manifest entry
 	//Hash + Hash.bmp + Type + EXT_VRAM_ADDR + EXT_AUTO_BRIGHT
@@ -2549,6 +2567,7 @@ void gbe_cgfx::browse_advanced_dir()
 	path = QDir::toNativeSeparators(path);
 
 	dest_folder->setText(path);
+	last_custom_path = dest_folder->text().toStdString();
 }
 
 /****** Browse for a directory to use in the advanced menu ******/

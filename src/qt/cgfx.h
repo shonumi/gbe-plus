@@ -124,6 +124,8 @@ class gbe_cgfx : public QDialog
 	u8 dump_type;
 	int advanced_index;
 
+	std::string last_custom_path;
+
 	private slots:
 	void close_cgfx();
 	void close_advanced();
