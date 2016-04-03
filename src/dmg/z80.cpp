@@ -216,7 +216,7 @@ bool Z80::handle_interrupts()
 	}
 
 	//When IME is disabled, pending interrupts will exit the Halt state
-	else if(mem->memory_map[IF_FLAG] && mem->memory_map[IE_FLAG]) { halt = false; return false; }
+	else if(mem->memory_map[IF_FLAG] & mem->memory_map[IE_FLAG]) { halt = false; return false; }
 
 	else { return false; }
 }	
