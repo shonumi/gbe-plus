@@ -94,6 +94,7 @@ class Z80
 	//Interrupt flag
 	bool interrupt;
 
+	bool interrupt_delay;
 	bool halt;
 	bool pause;
 	bool double_speed;

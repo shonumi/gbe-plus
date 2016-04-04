@@ -49,6 +49,7 @@ void Z80::reset()
 	halt = false;
 	pause = false;
 	interrupt = false;
+	interrupt_delay = false;
 	double_speed = false;
 
 	mem = NULL;
@@ -170,8 +171,16 @@ bool Z80::cpu_write(std::string filename)
 /****** Handle Interrupts to Z80 ******/
 bool Z80::handle_interrupts()
 {
+	//Delay interrupts when EI is called
+	if(interrupt_delay)
+	{
+		interrupt_delay = false;
+		interrupt = true;
+		return true;
+	}
+
 	//Only perform interrupts when the IME is enabled
-	if(interrupt)
+	else if(interrupt)
 	{
 		//Perform VBlank Interrupt
 		if((mem->memory_map[IE_FLAG] & 0x01) && (mem->memory_map[IF_FLAG] & 0x01))
@@ -2271,7 +2280,7 @@ void Z80::exec_op(u8 opcode)
 
 		//EI
 		case 0xFB :
-			interrupt = true;
+			interrupt_delay = true;
 			cycles += 4;
 			break;
 
@@ -2300,7 +2309,6 @@ void Z80::exec_op(u16 opcode)
 {
 	switch (opcode)
 	{
-
 		//RLC B
 		case 0xCB00 :
 			reg.b = rotate_left_carry(reg.b);
