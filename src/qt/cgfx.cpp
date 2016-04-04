@@ -116,6 +116,40 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	layer_select_layout->addWidget(layer_select);
 	select_set->setLayout(layer_select_layout);
 
+	//Layer section selector - X
+	QWidget* section_x_set = new QWidget(layers_tab);
+	QLabel* section_x_label = new QLabel("Tile X Range: ");
+	
+	rect_x = new QSpinBox(section_x_set);
+	rect_x->setRange(0, 31);
+
+	rect_w = new QSpinBox(section_x_set);
+	rect_w->setRange(0, 31);
+
+	QHBoxLayout* section_x_layout = new QHBoxLayout;
+	section_x_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	section_x_layout->addWidget(section_x_label);
+	section_x_layout->addWidget(rect_x);
+	section_x_layout->addWidget(rect_w);
+	section_x_set->setLayout(section_x_layout);
+
+	//Layer section selector - Y
+	QWidget* section_y_set = new QWidget(layers_tab);
+	QLabel* section_y_label = new QLabel("Tile Y Range: ");
+	
+	rect_y = new QSpinBox(section_y_set);
+	rect_y->setRange(0, 31);
+
+	rect_h = new QSpinBox(section_y_set);
+	rect_h->setRange(0, 31);
+
+	QHBoxLayout* section_y_layout = new QHBoxLayout;
+	section_y_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	section_y_layout->addWidget(section_y_label);
+	section_y_layout->addWidget(rect_y);
+	section_y_layout->addWidget(rect_h);
+	section_y_set->setLayout(section_y_layout);
+
 	//Configure Tab layout
 	QHBoxLayout* advanced_layout = new QHBoxLayout;
 	advanced_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -166,6 +200,8 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 
 	layers_tab_layout->addWidget(current_tile, 1, 1, 1, 1);
 	layers_tab_layout->addWidget(layer_info, 0, 1, 1, 1);
+	layers_tab_layout->addWidget(section_x_set, 2, 1, 1, 1);
+	layers_tab_layout->addWidget(section_y_set, 3, 1, 1, 1);
 	layers_tab->setLayout(layers_tab_layout);
 	
 	//Final tab layout
@@ -188,6 +224,10 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	connect(layer_select, SIGNAL(currentIndexChanged(int)), this, SLOT(layer_change()));
 	connect(data_folder, SIGNAL(accepted()), this, SLOT(select_folder()));
 	connect(data_folder, SIGNAL(rejected()), this, SLOT(reject_folder()));
+	connect(rect_x, SIGNAL(valueChanged(int)), this, SLOT(update_selection()));
+	connect(rect_y, SIGNAL(valueChanged(int)), this, SLOT(update_selection()));
+	connect(rect_w, SIGNAL(valueChanged(int)), this, SLOT(update_selection()));
+	connect(rect_h, SIGNAL(valueChanged(int)), this, SLOT(update_selection()));
 
 	//CGFX advanced dumping pop-up box
 	advanced_box = new QDialog();
@@ -274,6 +314,8 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	dump_type = 0;
 	advanced_index = 0;
 	last_custom_path = "";
+
+	min_x_rect = min_y_rect = max_x_rect = max_y_rect = 255;
 
 	pause = false;
 }
@@ -961,6 +1003,15 @@ void gbe_cgfx::draw_dmg_bg()
 		//Generate background pixel data for selected tiles
 		for(int x = tile_lower_range; x < tile_upper_range; x++)
 		{
+			//Determine if this tile needs to be highlighted for selection dumping
+			bool highlight = false;
+
+			if(((scanline_pixel_counter / 8) >= min_x_rect) && ((scanline_pixel_counter / 8) <= max_x_rect)
+			&& ((current_scanline / 8) >= min_y_rect) && ((current_scanline / 8) <= max_y_rect))
+			{
+				highlight = true;
+			}
+
 			u8 map_entry = main_menu::gbe_plus->ex_read_u8(bg_map_addr + x);
 			u8 tile_pixel = 0;
 
@@ -1000,6 +1051,13 @@ void gbe_cgfx::draw_dmg_bg()
 					case 3: 
 						scanline_pixel_buffer[scanline_pixel_counter++] = config::DMG_BG_PAL[3];
 						break;
+				}
+
+				//Highlight selected pixels, if applicable
+				if(highlight)
+				{
+					u8 temp = scanline_pixel_counter - 1;
+					scanline_pixel_buffer[temp] += 0x00700000;
 				}
 			}
 		}
@@ -1054,6 +1112,15 @@ void gbe_cgfx::draw_gbc_bg()
 		//Generate background pixel data for selected tiles
 		for(int x = tile_lower_range; x < tile_upper_range; x++)
 		{
+			//Determine if this tile needs to be highlighted for selection dumping
+			bool highlight = false;
+
+			if(((scanline_pixel_counter / 8) >= min_x_rect) && ((scanline_pixel_counter / 8) <= max_x_rect)
+			&& ((current_scanline / 8) >= min_y_rect) && ((current_scanline / 8) <= max_y_rect))
+			{
+				highlight = true;
+			}
+
 			//Determine which line of the tiles to generate pixels for this scanline
 			u8 tile_line = rendered_scanline % 8;
 
@@ -1112,6 +1179,13 @@ void gbe_cgfx::draw_gbc_bg()
 				}
 				
 				scanline_pixel_buffer[scanline_pixel_counter++] = bgp[tile_pixel];
+
+				//Highlight selected pixels, if applicable
+				if(highlight)
+				{
+					u8 temp = scanline_pixel_counter - 1;
+					scanline_pixel_buffer[temp] += 0x00700000;
+				}
 			}
 
 			main_menu::gbe_plus->ex_write_u8(REG_VBK, current_vram_bank);
@@ -1181,6 +1255,15 @@ void gbe_cgfx::draw_dmg_win()
 		//Generate background pixel data for selected tiles
 		for(int x = tile_lower_range; x < tile_upper_range; x++)
 		{
+			//Determine if this tile needs to be highlighted for selection dumping
+			bool highlight = false;
+
+			if(((scanline_pixel_counter / 8) >= min_x_rect) && ((scanline_pixel_counter / 8) <= max_x_rect)
+			&& ((current_scanline / 8) >= min_y_rect) && ((current_scanline / 8) <= max_y_rect))
+			{
+				highlight = true;
+			}
+
 			u8 map_entry = main_menu::gbe_plus->ex_read_u8(win_map_addr + x);
 			u8 tile_pixel = 0;
 
@@ -1225,6 +1308,13 @@ void gbe_cgfx::draw_dmg_win()
 							scanline_pixel_buffer[scanline_pixel_counter++] = config::DMG_BG_PAL[3];
 							break;
 					}
+				}
+
+				//Highlight selected pixels, if applicable
+				if(highlight)
+				{
+					u8 temp = scanline_pixel_counter - 1;
+					scanline_pixel_buffer[temp] += 0x00700000;
 				}
 			}
 		}
@@ -1294,6 +1384,15 @@ void gbe_cgfx::draw_gbc_win()
 		//Generate background pixel data for selected tiles
 		for(int x = tile_lower_range; x < tile_upper_range; x++)
 		{
+			//Determine if this tile needs to be highlighted for selection dumping
+			bool highlight = false;
+
+			if(((scanline_pixel_counter / 8) >= min_x_rect) && ((scanline_pixel_counter / 8) <= max_x_rect)
+			&& ((current_scanline / 8) >= min_y_rect) && ((current_scanline / 8) <= max_y_rect))
+			{
+				highlight = true;
+			}
+
 			//Determine which line of the tiles to generate pixels for this scanline
 			u8 tile_line = rendered_scanline % 8;
 
@@ -1353,6 +1452,13 @@ void gbe_cgfx::draw_gbc_win()
 				
 				if(scanline_pixel_counter >= 160) { scanline_pixel_buffer[scanline_pixel_counter++] = 0xFFFFFFFF; }
 				else { scanline_pixel_buffer[scanline_pixel_counter++] = bgp[tile_pixel]; }
+
+				//Highlight selected pixels, if applicable
+				if(highlight)
+				{
+					u8 temp = scanline_pixel_counter - 1;
+					scanline_pixel_buffer[temp] += 0x00700000;
+				}
 			}
 
 			main_menu::gbe_plus->ex_write_u8(REG_VBK, current_vram_bank);
@@ -2591,9 +2697,35 @@ void gbe_cgfx::browse_advanced_file()
 /****** Selects folder ******/
 void gbe_cgfx::select_folder() { data_folder->finish = true; }
 
-/****** Rejectss folder ******/
+/****** Rejects folder ******/
 void gbe_cgfx::reject_folder()
 {
 	data_folder->finish = true;
 	data_folder->setDirectory(data_folder->last_path);
+}
+
+/****** Updates the dumping selection for multiple tiles in the layer tab ******/
+void gbe_cgfx::update_selection()
+{
+	if((rect_x->value() == 0) || (rect_y->value() == 0) || (rect_w->value() == 0) || (rect_h->value() == 0))
+	{
+		min_x_rect = max_x_rect = min_y_rect = max_y_rect = 255;
+		layer_change();
+		return;
+	}
+
+	min_x_rect = rect_x->value();
+	max_x_rect = (min_x_rect + rect_w->value()) - 1;
+	if(max_x_rect > 31) { max_x_rect = 31; }
+
+	min_y_rect = rect_y->value();
+	max_y_rect = (min_y_rect + rect_h->value()) - 1;
+	if(max_y_rect > 31) { max_y_rect = 31; }
+
+	min_x_rect -= 1;
+	max_x_rect -= 1;
+	min_y_rect -= 1;
+	max_y_rect -= 1;
+
+	layer_change();
 }

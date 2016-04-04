@@ -72,6 +72,11 @@ class gbe_cgfx : public QDialog
 	QLabel* h_v_flip;
 	QLabel* tile_palette;
 
+	QSpinBox* rect_x;
+	QSpinBox* rect_w;
+	QSpinBox* rect_y;
+	QSpinBox* rect_h;
+
 	//OBJ tab widgets
 	std::vector<QImage> cgfx_obj;
 	std::vector<QPushButton*> obj_button;
@@ -126,6 +131,9 @@ class gbe_cgfx : public QDialog
 
 	std::string last_custom_path;
 
+	u8 min_x_rect, max_x_rect;
+	u8 min_y_rect, max_y_rect;
+
 	private slots:
 	void close_cgfx();
 	void close_advanced();
@@ -142,6 +150,7 @@ class gbe_cgfx : public QDialog
 	void layer_change();
 	void select_folder();
 	void reject_folder();
+	void update_selection();
 };
 
 #endif //CGFX_GBE_QT 
