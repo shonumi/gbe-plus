@@ -1383,10 +1383,10 @@ bool DMG_MMU::read_file(std::string filename)
 	//Manually HLE MMIO
 	if(!in_bios) 
 	{
+		memory_map[REG_DIV] = 0xAF;
 		write_u8(REG_LCDC, 0x91);
 		write_u8(REG_BGP, 0xFC);
 		write_u8(REG_P1, 0xFF);
-		write_u8(REG_DIV, 0xAF);
 		write_u8(REG_TAC, 0xF8);
 		write_u8(0xFF10, 0x80);
 		write_u8(0xFF11, 0xBF);
