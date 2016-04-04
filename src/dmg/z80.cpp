@@ -82,6 +82,7 @@ void Z80::reset_bios()
 	halt = false;
 	pause = false;
 	interrupt = false;
+	interrupt_delay = false;
 	double_speed = false;
 
 	mem = NULL;

@@ -298,6 +298,9 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		}
 	}
 
+	//DIV - Reset register to zero
+	else if(address == REG_DIV) { memory_map[address] = 0; }
+
 	//NR11 - Duty Cycle
 	else if(address == NR11)
 	{
