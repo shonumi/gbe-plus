@@ -51,6 +51,7 @@ void Z80::reset()
 	interrupt = false;
 	interrupt_delay = false;
 	double_speed = false;
+	skip_instruction = false;
 
 	mem = NULL;
 
@@ -84,6 +85,7 @@ void Z80::reset_bios()
 	interrupt = false;
 	interrupt_delay = false;
 	double_speed = false;
+	skip_instruction = false;
 
 	mem = NULL;
 
@@ -1433,6 +1435,7 @@ void Z80::exec_op(u8 opcode)
 		//HALT
 		case 0x76 :
 			halt = true;
+			skip_instruction = (interrupt) ? false : true;
 			cycles += 4;
 			break; 
 

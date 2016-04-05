@@ -98,6 +98,7 @@ class Z80
 	bool halt;
 	bool pause;
 	bool double_speed;
+	bool skip_instruction;
 
 	//Audio-Video and other controllers
 	struct io_controllers
