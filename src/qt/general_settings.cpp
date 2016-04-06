@@ -721,9 +721,9 @@ void gen_settings::set_ini_options()
 	//Sample rate option
 	switch((int)config::sample_rate)
 	{
-		case 10250: freq->setCurrentIndex(3); break;
-		case 20500: freq->setCurrentIndex(2); break;
-		case 41000: freq->setCurrentIndex(1); break;
+		case 11250: freq->setCurrentIndex(3); break;
+		case 22500: freq->setCurrentIndex(2); break;
+		case 44100: freq->setCurrentIndex(1); break;
 		case 48000: freq->setCurrentIndex(0); break;
 	}
 
@@ -874,7 +874,7 @@ void gen_settings::sample_rate_change()
 	switch(freq->currentIndex())
 	{
 		case 0: sample_rate = 48000.0; break;
-		case 1: sample_rate = 41000.0; break;
+		case 1: sample_rate = 44100.0; break;
 		case 2: sample_rate = 22050.0; break;
 		case 3: sample_rate = 11025.0; break;
 	}
