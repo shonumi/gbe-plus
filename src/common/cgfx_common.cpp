@@ -21,6 +21,7 @@ namespace cgfx
 	bool ignore_blank_dumps = false;
 
 	u8 scaling_factor = 1;
+	u8 scale_squared = 1;
 	u32 transparency_color = 0xFF00FF00;
 
 	std::string manifest_file = "";

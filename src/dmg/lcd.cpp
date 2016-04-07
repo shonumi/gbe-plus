@@ -176,6 +176,7 @@ void DMG_LCD::reset()
 		{
 			config::sys_width *= cgfx::scaling_factor;
 			config::sys_height *= cgfx::scaling_factor;
+			cgfx::scale_squared = cgfx::scaling_factor * cgfx::scaling_factor;
 
 			hd_screen_buffer.clear();
 			hd_screen_buffer.resize((config::sys_width * config::sys_height), 0);
@@ -604,6 +605,7 @@ void DMG_LCD::render_cgfx_dmg_bg_scanline(u16 bg_id)
 
 	//Determine which line of the tiles to generate pixels for this scanline
 	u8 tile_line = rendered_scanline % 8;
+	u8 tile_start = tile_line * 8;
 
 	//Grab the ID of this hash to pull custom pixel data
 	u16 bg_tile_id = cgfx_stat.m_id[cgfx_stat.last_id];
@@ -612,7 +614,7 @@ void DMG_LCD::render_cgfx_dmg_bg_scanline(u16 bg_id)
 	u16 tile_data = mem->read_u16(0x8000 + (bg_id << 4) + (tile_line << 1));
 	u8 tile_pixel = 0;
 
-	for(int x = (tile_line * 8), y = 7; x < ((tile_line * 8) + 8); x++, y--)
+	for(int x = tile_start, y = 7; x < (tile_start + 8); x++, y--)
 	{
 		//Calculate raw value of the tile's pixel
 		tile_pixel = ((tile_data >> 8) & (1 << y)) ? 2 : 0;
@@ -631,7 +633,7 @@ void DMG_LCD::render_cgfx_dmg_bg_scanline(u16 bg_id)
 		else
 		{
 			u32 pos = (lcd_stat.scanline_pixel_counter * cgfx::scaling_factor) + (lcd_stat.current_scanline * cgfx::scaling_factor * config::sys_width);
-			u32 bg_pos = (x * cgfx::scaling_factor) + (tile_line * cgfx::scaling_factor * 8);
+			u32 bg_pos = ((x - tile_start) * cgfx::scaling_factor) + (tile_line * cgfx::scale_squared * 8);
 			
 			if(lcd_stat.scanline_pixel_counter < 160)
 			{
@@ -757,6 +759,7 @@ void DMG_LCD::render_cgfx_gbc_bg_scanline(u16 tile_data, u8 bg_map_attribute)
 
 	//Determine which line of the tiles to generate pixels for this scanline
 	u8 tile_line = rendered_scanline % 8;
+	u8 tile_start = tile_line * 8;
 
 	//Grab the ID of this hash to pull custom pixel data
 	u16 bg_tile_id = cgfx_stat.m_id[cgfx_stat.last_id];
@@ -767,7 +770,7 @@ void DMG_LCD::render_cgfx_gbc_bg_scanline(u16 tile_data, u8 bg_map_attribute)
 	u8 tile_pixel = 0;
 	u8 bg_priority = (bg_map_attribute & 0x80) ? 1 : 0;
 
-	for(int x = (tile_line * 8), y = 7; x < ((tile_line * 8) + 8); x++, y--)
+	for(int x = tile_start, y = 7; x < (tile_start + 8); x++, y--)
 	{
 		//Calculate raw value of the tile's pixel
 		if(bg_map_attribute & 0x20) 
@@ -805,7 +808,7 @@ void DMG_LCD::render_cgfx_gbc_bg_scanline(u16 tile_data, u8 bg_map_attribute)
 		else
 		{
 			u32 pos = (lcd_stat.scanline_pixel_counter * cgfx::scaling_factor) + (lcd_stat.current_scanline * cgfx::scaling_factor * config::sys_width);
-			u32 bg_pos = (x * cgfx::scaling_factor) + (tile_line * cgfx::scaling_factor * 8);
+			u32 bg_pos = ((x - tile_start) * cgfx::scaling_factor) + (tile_line * cgfx::scale_squared * 8);
 			
 			if(lcd_stat.scanline_pixel_counter < 160)
 			{
@@ -1175,9 +1178,9 @@ void DMG_LCD::render_cgfx_dmg_obj_scanline(u8 sprite_id)
 		else
 		{
 			u32 pos = (lcd_stat.scanline_pixel_counter * cgfx::scaling_factor) + (lcd_stat.current_scanline * cgfx::scaling_factor * config::sys_width);
-			u32 obj_pos = (x * cgfx::scaling_factor) + (tile_line * cgfx::scaling_factor * 8);
+			u32 obj_pos = ((x - tile_pixel) * cgfx::scaling_factor) + (tile_line * cgfx::scale_squared * 8);
 			u32 c = 0;
-			
+
 			if(lcd_stat.scanline_pixel_counter < 160)
 			{
 				for(int a = 0; a < cgfx::scaling_factor; a++)
@@ -1352,7 +1355,7 @@ void DMG_LCD::render_cgfx_gbc_obj_scanline(u8 sprite_id)
 		else
 		{
 			u32 pos = (lcd_stat.scanline_pixel_counter * cgfx::scaling_factor) + (lcd_stat.current_scanline * cgfx::scaling_factor * config::sys_width);
-			u32 obj_pos = (x * cgfx::scaling_factor) + (tile_line * cgfx::scaling_factor * 8);
+			u32 obj_pos = ((x - tile_pixel) * cgfx::scaling_factor) + (tile_line * cgfx::scale_squared * 8);
 			u32 c = 0;
 			
 			if(lcd_stat.scanline_pixel_counter < 160)
