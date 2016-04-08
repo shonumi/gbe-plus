@@ -118,7 +118,8 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 
 	//Layer section selector - X
 	QWidget* section_x_set = new QWidget(layers_tab);
-	QLabel* section_x_label = new QLabel("Tile X Range: ");
+	QLabel* section_x_label = new QLabel("Tile X :\t");
+	QLabel* section_w_label = new QLabel("Tile W :\t");
 	
 	rect_x = new QSpinBox(section_x_set);
 	rect_x->setRange(0, 31);
@@ -130,12 +131,14 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	section_x_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	section_x_layout->addWidget(section_x_label);
 	section_x_layout->addWidget(rect_x);
+	section_x_layout->addWidget(section_w_label);
 	section_x_layout->addWidget(rect_w);
 	section_x_set->setLayout(section_x_layout);
 
 	//Layer section selector - Y
 	QWidget* section_y_set = new QWidget(layers_tab);
-	QLabel* section_y_label = new QLabel("Tile Y Range: ");
+	QLabel* section_y_label = new QLabel("Tile Y :\t");
+	QLabel* section_h_label = new QLabel("Tile H :\t");
 	
 	rect_y = new QSpinBox(section_y_set);
 	rect_y->setRange(0, 31);
@@ -147,8 +150,19 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	section_y_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	section_y_layout->addWidget(section_y_label);
 	section_y_layout->addWidget(rect_y);
+	section_y_layout->addWidget(section_h_label);
 	section_y_layout->addWidget(rect_h);
 	section_y_set->setLayout(section_y_layout);
+
+	//Layer GroupBox for section
+	QGroupBox* section_set = new QGroupBox(tr("Dump Selection"));
+	QPushButton* dump_section_button = new QPushButton("Dump Current Selection");
+	QVBoxLayout* section_final_layout = new QVBoxLayout;
+	section_final_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	section_final_layout->addWidget(section_x_set);
+	section_final_layout->addWidget(section_y_set);
+	section_final_layout->addWidget(dump_section_button);
+	section_set->setLayout(section_final_layout);
 
 	//Configure Tab layout
 	QHBoxLayout* advanced_layout = new QHBoxLayout;
@@ -200,8 +214,7 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 
 	layers_tab_layout->addWidget(current_tile, 1, 1, 1, 1);
 	layers_tab_layout->addWidget(layer_info, 0, 1, 1, 1);
-	layers_tab_layout->addWidget(section_x_set, 2, 1, 1, 1);
-	layers_tab_layout->addWidget(section_y_set, 3, 1, 1, 1);
+	layers_tab_layout->addWidget(section_set, 2, 1, 1, 1);
 	layers_tab->setLayout(layers_tab_layout);
 	
 	//Final tab layout
@@ -228,6 +241,7 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	connect(rect_y, SIGNAL(valueChanged(int)), this, SLOT(update_selection()));
 	connect(rect_w, SIGNAL(valueChanged(int)), this, SLOT(update_selection()));
 	connect(rect_h, SIGNAL(valueChanged(int)), this, SLOT(update_selection()));
+	connect(dump_section_button, SIGNAL(clicked()), this, SLOT(dump_selection()));
 
 	//CGFX advanced dumping pop-up box
 	advanced_box = new QDialog();
@@ -1234,7 +1248,8 @@ void gbe_cgfx::draw_dmg_win()
 	{
 		//Determine where to start drawing
 		u8 rendered_scanline = current_scanline - main_menu::gbe_plus->ex_read_u8(REG_WY);
-		u8 scanline_pixel_counter = main_menu::gbe_plus->ex_read_u8(REG_WX) - 7;
+		u8 scanline_pixel_counter = main_menu::gbe_plus->ex_read_u8(REG_WX);
+		scanline_pixel_counter = (scanline_pixel_counter < 7) ? 0 : (scanline_pixel_counter - 7); 
 
 		bool draw_line = true;
 
@@ -1366,7 +1381,8 @@ void gbe_cgfx::draw_gbc_win()
 	{
 		//Determine where to start drawing
 		u8 rendered_scanline = current_scanline - main_menu::gbe_plus->ex_read_u8(REG_WY);
-		u8 scanline_pixel_counter = main_menu::gbe_plus->ex_read_u8(REG_WX) - 7;
+		u8 scanline_pixel_counter = main_menu::gbe_plus->ex_read_u8(REG_WX);
+		scanline_pixel_counter = (scanline_pixel_counter < 7) ? 0 : (scanline_pixel_counter - 7); 
 
 		bool draw_line = true;
 
@@ -1885,7 +1901,8 @@ void gbe_cgfx::update_preview(u32 x, u32 y)
 		u16 win_map_addr = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x40) ? 0x9C00 : 0x9800;
 		u16 bg_tile_addr = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x10) ? 0x8000 : 0x8800;
 
-		u8 wx = main_menu::gbe_plus->ex_read_u8(REG_WX) - 7;
+		u8 wx = main_menu::gbe_plus->ex_read_u8(REG_WX);
+		wx = (wx < 7) ? 0 : (wx - 7); 
 	
 		//Determine the map entry from on-screen coordinates
 		u8 tile_x = x - wx;
@@ -2158,7 +2175,9 @@ void gbe_cgfx::update_preview(u32 x, u32 y)
 		u16 win_tile_addr = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x10) ? 0x8000 : 0x8800;
 	
 		//Determine the map entry from on-screen coordinates
-		u8 wx = main_menu::gbe_plus->ex_read_u8(REG_WX) - 7;
+		u8 wx = main_menu::gbe_plus->ex_read_u8(REG_WX);
+		wx = (wx < 7) ? 0 : (wx - 7); 
+
 		u8 tile_x = x - wx;
 		u8 tile_y = y - main_menu::gbe_plus->ex_read_u8(REG_WY);
 		u16 map_entry = (tile_x / 8) + ((tile_y / 8) * 32);
@@ -2419,7 +2438,8 @@ void gbe_cgfx::dump_layer_tile(u32 x, u32 y)
 		u16 win_map_addr = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x40) ? 0x9C00 : 0x9800;
 		u16 bg_tile_addr = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x10) ? 0x8000 : 0x8800;
 
-		u8 wx = main_menu::gbe_plus->ex_read_u8(REG_WX) - 7;
+		u8 wx = main_menu::gbe_plus->ex_read_u8(REG_WX);
+		wx = (wx < 7) ? 0 : (wx - 7); 
 	
 		//Determine the map entry from on-screen coordinates
 		u8 tile_x = x - wx;
@@ -2520,7 +2540,9 @@ void gbe_cgfx::dump_layer_tile(u32 x, u32 y)
 		u16 win_tile_addr = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x10) ? 0x8000 : 0x8800;
 	
 		//Determine the map entry from on-screen coordinates
-		u8 wx = main_menu::gbe_plus->ex_read_u8(REG_WX) - 7;
+		u8 wx = main_menu::gbe_plus->ex_read_u8(REG_WX);
+		wx = (wx < 7) ? 0 : (wx - 7); 
+
 		u8 tile_x = x - wx;
 		u8 tile_y = y - main_menu::gbe_plus->ex_read_u8(REG_WY);
 		u16 map_entry = (tile_x / 8) + ((tile_y / 8) * 32);
@@ -2729,3 +2751,55 @@ void gbe_cgfx::update_selection()
 
 	layer_change();
 }
+
+/****** Dumps the selection of multiple tiles to a file ******/
+void gbe_cgfx::dump_selection()
+{
+	if((rect_x->value() == 0) || (rect_y->value() == 0) || (rect_w->value() == 0) || (rect_h->value() == 0)) { return; }
+	if(layer_select->currentIndex() == 2) { return; }
+	
+	//Temporarily revert highlighting to extract image
+	u8 temp_x1 = min_x_rect;
+	u8 temp_x2 = max_x_rect;
+	u8 temp_y1 = min_y_rect;
+	u8 temp_y2 = max_y_rect;
+
+	min_x_rect = max_x_rect = min_y_rect = max_y_rect = 255;
+	layer_change();
+
+	//Temporarily convert dimensions to X,Y and WxH format for Qt - DMG/GBC BG version
+	if(layer_select->currentIndex() == 0)
+	{
+		min_x_rect = ((rect_x->value() - 1) * 8) + (main_menu::gbe_plus->ex_read_u8(REG_SX) % 8);
+		max_x_rect = rect_w->value() * 8;
+		min_y_rect = (rect_y->value() - 1) * 8 + (main_menu::gbe_plus->ex_read_u8(REG_SY) % 8);
+		max_y_rect = rect_h->value() * 8;
+	}
+
+	//Temporarily convert dimension to X,Y and WxH format for Qt - DMG/GBC Window version
+	else if(layer_select->currentIndex() == 1)
+	{
+		u8 wx = main_menu::gbe_plus->ex_read_u8(REG_WX);
+		if(wx < 7) { wx = 0; }
+
+		min_x_rect = ((rect_x->value() - 1) * 8) + (wx % 8);
+		max_x_rect = rect_w->value() * 8;
+		min_y_rect = (rect_y->value() - 1) * 8 + (main_menu::gbe_plus->ex_read_u8(REG_WY) % 8);
+		max_y_rect = rect_h->value() * 8;
+	}
+
+	QImage raw_screen = current_layer->pixmap()->toImage().scaled(160, 144);
+	QRect rect(min_x_rect, min_y_rect, max_x_rect, max_y_rect);
+	QString file_path(QString::fromStdString(config::data_path + cgfx::dump_bg_path + "test.bmp"));
+
+	raw_screen = raw_screen.copy(rect);
+	raw_screen.save(file_path);
+
+	//Restore original highlighting
+	min_x_rect = temp_x1;
+	max_x_rect = temp_x2;
+	min_y_rect = temp_y1;
+	max_y_rect = temp_y2;
+	layer_change();
+}
+	
