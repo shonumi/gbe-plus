@@ -128,6 +128,8 @@ bool Z80::cpu_read(u32 offset, std::string filename)
 	file.read((char*)&pause, sizeof(pause));
 	file.read((char*)&interrupt, sizeof(interrupt));
 	file.read((char*)&double_speed, sizeof(double_speed));
+	file.read((char*)&interrupt_delay, sizeof(interrupt_delay));
+	file.read((char*)&skip_instruction, sizeof(skip_instruction));
 
 	file.close();
 	return true;
@@ -166,6 +168,8 @@ bool Z80::cpu_write(std::string filename)
 	file.write((char*)&pause, sizeof(pause));
 	file.write((char*)&interrupt, sizeof(interrupt));
 	file.write((char*)&double_speed, sizeof(double_speed));
+	file.write((char*)&interrupt_delay, sizeof(interrupt_delay));
+	file.write((char*)&skip_instruction, sizeof(skip_instruction));
 
 	file.close();
 	return true;

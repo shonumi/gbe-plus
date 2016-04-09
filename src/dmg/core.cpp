@@ -119,17 +119,17 @@ void DMG_core::load_state(u8 slot)
 	std::string state_file = config::rom_file + ".ss";
 	state_file += id;
 
-	//Offset 0, size 41
+	//Offset 0, size 43
 	if(!core_cpu.cpu_read(0, state_file)) { return; }
 	
-	//Offset 41, size 213047
-	if(!core_mmu.mmu_read(41, state_file)) { return; }
+	//Offset 43, size 213047
+	if(!core_mmu.mmu_read(43, state_file)) { return; }
 
-	//Offset 213088, size 320
-	if(!core_cpu.controllers.audio.apu_read(213088, state_file)) { return; }
+	//Offset 213090, size 320
+	if(!core_cpu.controllers.audio.apu_read(213090, state_file)) { return; }
 
-	//Offset 213408
-	if(!core_cpu.controllers.video.lcd_read(213408, state_file)) { return; }
+	//Offset 213410
+	if(!core_cpu.controllers.video.lcd_read(213410, state_file)) { return; }
 
 	std::cout<<"GBE::Loaded state " << state_file << "\n";
 }
