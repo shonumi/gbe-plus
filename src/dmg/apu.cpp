@@ -151,6 +151,9 @@ bool DMG_APU::apu_write(std::string filename)
 	return true;
 }
 
+/****** Gets the size of APU data for serialization ******/
+u32 DMG_APU::size() { return sizeof(apu_stat); }
+
 /******* Generate samples for GB sound channel 1 ******/
 void DMG_APU::generate_channel_1_samples(s16* stream, int length)
 {

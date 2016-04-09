@@ -156,6 +156,29 @@ bool DMG_MMU::mmu_write(std::string filename)
 	file.close();
 	return true;
 }
+
+/****** Gets the size of MMU data for serialization ******/
+u32 DMG_MMU::size()
+{
+	u32 mmu_size = 0;
+	
+	mmu_size += 0x34000;
+
+	mmu_size += sizeof(rom_bank);
+	mmu_size += sizeof(ram_bank);
+	mmu_size += sizeof(wram_bank);
+	mmu_size += sizeof(vram_bank);
+	mmu_size += sizeof(bank_bits);
+	mmu_size += sizeof(bank_mode);
+	mmu_size += sizeof(ram_banking_enabled);
+	mmu_size += sizeof(in_bios);
+	mmu_size += sizeof(bios_type);
+	mmu_size += sizeof(bios_size);
+	mmu_size += sizeof(cart);
+	mmu_size += sizeof(previous_value);
+
+	return mmu_size;
+}
 	
 /****** Read byte from memory ******/
 u8 DMG_MMU::read_u8(u16 address) 

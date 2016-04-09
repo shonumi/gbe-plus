@@ -118,6 +118,7 @@ class Z80
 	//Serialize data for save state loading/saving
 	bool cpu_read(u32 offset, std::string filename);
 	bool cpu_write(std::string filename);
+	u32 size();
 
 	//Interrupt handling
 	bool handle_interrupts();

@@ -175,6 +175,40 @@ bool Z80::cpu_write(std::string filename)
 	return true;
 }
 
+/****** Gets the size of CPU data for serialization ******/
+u32 Z80::size()
+{
+	u32 cpu_size = 0; 
+
+	cpu_size += sizeof(reg.a);
+	cpu_size += sizeof(reg.b);
+	cpu_size += sizeof(reg.c);
+	cpu_size += sizeof(reg.d);
+	cpu_size += sizeof(reg.e);
+	cpu_size += sizeof(reg.h);
+	cpu_size += sizeof(reg.l);
+	cpu_size += sizeof(reg.f);
+	cpu_size += sizeof(reg.pc);
+	cpu_size += sizeof(reg.sp);
+
+	cpu_size += sizeof(cpu_clock_m);
+	cpu_size += sizeof(cpu_clock_t);
+	cpu_size += sizeof(div_counter);
+	cpu_size += sizeof(tima_counter);
+	cpu_size += sizeof(tima_speed);
+	cpu_size += sizeof(cycles);
+	
+	cpu_size += sizeof(running);
+	cpu_size += sizeof(halt);
+	cpu_size += sizeof(pause);
+	cpu_size += sizeof(interrupt);
+	cpu_size += sizeof(double_speed);
+	cpu_size += sizeof(interrupt_delay);
+	cpu_size += sizeof(skip_instruction);
+
+	return cpu_size;
+}
+
 /****** Handle Interrupts to Z80 ******/
 bool Z80::handle_interrupts()
 {

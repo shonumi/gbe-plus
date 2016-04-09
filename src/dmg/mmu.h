@@ -139,6 +139,7 @@ class DMG_MMU
 	//Serialize data for save state loading/saving
 	bool mmu_read(u32 offset, std::string filename);
 	bool mmu_write(std::string filename);
+	u32 size();
 
 	private:
 
