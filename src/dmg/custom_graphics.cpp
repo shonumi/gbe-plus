@@ -985,3 +985,137 @@ u32 DMG_LCD::adjust_pixel_brightness(u32 color, u8 palette_id, u8 gfx_type)
 	u32 final_color = util::hsl_to_rgb(temp_color);
 	return final_color;
 }
+
+/****** Returns the hash for a specific tile ******/
+std::string DMG_LCD::get_hash(u16 addr, u8 gfx_type)
+{
+	std::string final_hash = "";
+
+	//Get DMG OBJ hash
+	if(gfx_type == 1)
+	{
+		//Generate salt for hash - Use OBJ palettes
+		u16 hash_salt = ((mem->memory_map[REG_OBP0] << 8) | mem->memory_map[REG_OBP1]);
+
+		//Determine if in 8x8 or 8x16 mode
+		u8 obj_height = (mem->memory_map[REG_LCDC] & 0x04) ? 16 : 8;
+
+		//Grab OBJ tile addr from index
+		u16 obj_tile_addr = addr;
+
+		//Create a hash for this OBJ tile
+		for(int x = 0; x < obj_height/2; x++)
+		{
+			u16 temp_hash = mem->read_u8((x * 4) + addr);
+			temp_hash <<= 8;
+			temp_hash += mem->read_u8((x * 4) + addr + 1);
+			temp_hash = temp_hash ^ hash_salt;
+			final_hash += hash::raw_to_64(temp_hash);
+
+			temp_hash = mem->read_u8((x * 4) + addr + 2);
+			temp_hash <<= 8;
+			temp_hash += mem->read_u8((x * 4) + addr + 3);
+			temp_hash = temp_hash ^ hash_salt;
+			final_hash += hash::raw_to_64(temp_hash);
+		}
+	}
+
+	//Get GBC OBJ hash
+	else if(gfx_type == 10)
+	{
+		//Determine if in 8x8 or 8x16 mode
+		u8 obj_height = (mem->memory_map[REG_LCDC] & 0x04) ? 16 : 8;
+
+		//Grab VRAM bank
+		u8 old_vram_bank = mem->vram_bank;
+		mem->vram_bank = cgfx::gbc_obj_vram_bank;
+
+		//Create a hash for this OBJ tile
+		for(int x = 0; x < obj_height/2; x++)
+		{
+			u16 temp_hash = mem->read_u8((x * 4) + addr);
+			temp_hash <<= 8;
+			temp_hash += mem->read_u8((x * 4) + addr + 1);
+			final_hash += hash::raw_to_64(temp_hash);
+
+			temp_hash = mem->read_u8((x * 4) + addr + 2);
+			temp_hash <<= 8;
+			temp_hash += mem->read_u8((x * 4) + addr + 3);
+			final_hash += hash::raw_to_64(temp_hash);
+		}
+
+		//Prepend the hues to each hash
+		std::string hue_data = "";
+	
+		for(int x = 0; x < 4; x++)
+		{
+			util::hsv color = util::rgb_to_hsv(lcd_stat.obj_colors_final[x][cgfx::gbc_obj_color_pal]);
+			u8 hue = (color.hue / 10);
+			hue_data += hash::base_64_index[hue];
+		}
+
+		final_hash = hue_data + "_" + final_hash;
+		mem->vram_bank = old_vram_bank;
+	}
+
+	//Get DMG BG hash
+	else if(gfx_type == 10)
+	{
+		//Generate salt for hash - Use BG palette (mirrored to 16-bits)
+		u16 hash_salt = ((mem->memory_map[REG_BGP] << 8) | mem->memory_map[REG_BGP]);
+
+		//Create a hash for this BG tile
+		for(int x = 0; x < 4; x++)
+		{
+			u16 temp_hash = mem->read_u8((x * 4) + addr);
+			temp_hash <<= 8;
+			temp_hash += mem->read_u8((x * 4) + addr + 1);
+			temp_hash = temp_hash ^ hash_salt;
+			final_hash += hash::raw_to_64(temp_hash);
+
+			temp_hash = mem->read_u8((x * 4) + addr + 2);
+			temp_hash <<= 8;
+			temp_hash += mem->read_u8((x * 4) + addr + 3);
+			temp_hash = temp_hash ^ hash_salt;
+			final_hash += hash::raw_to_64(temp_hash);
+		}
+	}
+
+	//Get GBC BG hash
+	else if(gfx_type == 20)
+	{
+		//Set VRAM bank
+		u8 old_vram_bank = mem->vram_bank;
+		mem->vram_bank = cgfx::gbc_bg_vram_bank;
+
+		//Create a hash for this BG tile
+		for(int x = 0; x < 4; x++)
+		{
+			u16 temp_hash = mem->read_u8((x * 4) + addr);
+			temp_hash <<= 8;
+			temp_hash += mem->read_u8((x * 4) + addr + 1);
+			final_hash += hash::raw_to_64(temp_hash);
+
+			temp_hash = mem->read_u8((x * 4) + addr + 2);
+			temp_hash <<= 8;
+			temp_hash += mem->read_u8((x * 4) + addr + 3);
+			final_hash += hash::raw_to_64(temp_hash);
+		}
+
+		//Prepend the hues to each hash
+		std::string hue_data = "";
+	
+		for(int x = 0; x < 4; x++)
+		{
+			util::hsv color = util::rgb_to_hsv(lcd_stat.bg_colors_final[x][cgfx::gbc_bg_color_pal]);
+			u8 hue = (color.hue / 10);
+			hue_data += hash::base_64_index[hue];
+		}
+
+		final_hash = hue_data + "_" + final_hash;
+		mem->vram_bank = old_vram_bank;
+	}
+
+
+	return final_hash;
+}

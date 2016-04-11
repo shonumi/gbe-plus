@@ -1227,3 +1227,10 @@ u32* DMG_core::get_bg_palette(int pal_index)
 {
 	return &core_cpu.controllers.video.lcd_stat.bg_colors_final[0][pal_index];
 }
+
+/****** Grabs the hash for a specific tile ******/
+std::string DMG_core::get_hash(u32 addr, u8 gfx_type)
+{
+	return core_cpu.controllers.video.get_hash(addr, gfx_type);
+}
+

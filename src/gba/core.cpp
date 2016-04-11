@@ -726,3 +726,6 @@ u32* AGB_core::get_bg_palette(int pal_index)
 {
 	return NULL;
 }
+
+/****** Grabs the hash for a specific tile ******/
+std::string AGB_core::get_hash(u32 addr, u8 gfx_type) { }

@@ -51,6 +51,7 @@ class DMG_LCD
 	void update_gbc_bg_hash(u16 map_addr);
 
 	bool has_hash(u16 addr, std::string hash);
+	std::string get_hash(u16 addr, u8 gfx_type);
 	u32 adjust_pixel_brightness(u32 color, u8 palette_id, u8 gfx_type);
 
 	//Serialize data for save state loading/saving
