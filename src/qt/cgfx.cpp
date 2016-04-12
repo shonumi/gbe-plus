@@ -2738,11 +2738,9 @@ void gbe_cgfx::update_selection()
 
 	min_x_rect = rect_x->value();
 	max_x_rect = (min_x_rect + rect_w->value()) - 1;
-	if(max_x_rect > 31) { max_x_rect = 31; }
 
 	min_y_rect = rect_y->value();
 	max_y_rect = (min_y_rect + rect_h->value()) - 1;
-	if(max_y_rect > 31) { max_y_rect = 31; }
 
 	min_x_rect -= 1;
 	max_x_rect -= 1;
@@ -2755,6 +2753,7 @@ void gbe_cgfx::update_selection()
 /****** Dumps the selection of multiple tiles to a file ******/
 void gbe_cgfx::dump_selection()
 {
+	if(main_menu::gbe_plus == NULL) { return; }
 	if((rect_x->value() == 0) || (rect_y->value() == 0) || (rect_w->value() == 0) || (rect_h->value() == 0)) { return; }
 	if(layer_select->currentIndex() == 2) { return; }
 	
@@ -2801,5 +2800,72 @@ void gbe_cgfx::dump_selection()
 	min_y_rect = temp_y1;
 	max_y_rect = temp_y2;
 	layer_change();
+
+	//Generate manifest entries for selected tiles
+	for(int y = min_y_rect; y < (max_y_rect + 1); y++)
+	{
+		for(int x = min_x_rect; x < (max_x_rect + 1); x++)
+		{
+			hash_tile(x, y);
+		}
+	}		
 }
+
+/****** Hashes the tile from a given layer ******/
+std::string gbe_cgfx::hash_tile(u8 x, u8 y)
+{	
+	//Hash from DMG BG
+	if((layer_select->currentIndex() == 0) && (config::gb_type < 2)) 
+	{
+		//Determine BG Map & Tile address
+		u16 bg_map_addr = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x8) ? 0x9C00 : 0x9800;
+		u16 bg_tile_addr = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x10) ? 0x8000 : 0x8800;
+
+		//Determine the map entry from on-screen coordinates
+		u8 tile_x = x + (main_menu::gbe_plus->ex_read_u8(REG_SX) / 8);
+		u8 tile_y = y + (main_menu::gbe_plus->ex_read_u8(REG_SY) / 8);
+		u16 map_entry = tile_x + (tile_y * 32);
+
+		u8 map_value = main_menu::gbe_plus->ex_read_u8(bg_map_addr + map_entry);
+
+		//Convert tile number to signed if necessary
+		if(bg_tile_addr == 0x8800) 
+		{
+			if(map_value <= 127) { map_value += 128; }
+			else { map_value -= 128; }
+		}
+
+		bg_tile_addr += (map_value * 16);
+		
+		return main_menu::gbe_plus->get_hash(bg_tile_addr, 10);
+	}
+
+	//Hash from DMG Window
+	if((layer_select->currentIndex() == 1) && (config::gb_type < 2)) 
+	{
+		//Determine BG Map & Tile address
+		u16 win_map_addr = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x40) ? 0x9C00 : 0x9800;
+		u16 bg_tile_addr = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x10) ? 0x8000 : 0x8800;
+
+		u8 wx = main_menu::gbe_plus->ex_read_u8(REG_WX);
+		wx = (wx < 7) ? 0 : (wx - 7); 
 	
+		//Determine the map entry from on-screen coordinates
+		u8 tile_x = x - (wx / 8);
+		u8 tile_y = y - (main_menu::gbe_plus->ex_read_u8(REG_WY) / 8);
+		u16 map_entry = tile_x + (tile_y * 32);
+
+		u8 map_value = main_menu::gbe_plus->ex_read_u8(win_map_addr + map_entry);
+
+		//Convert tile number to signed if necessary
+		if(bg_tile_addr == 0x8800) 
+		{
+			if(map_value <= 127) { map_value += 128; }
+			else { map_value -= 128; }
+		}
+
+		bg_tile_addr += (map_value * 16);
+
+		return main_menu::gbe_plus->get_hash(bg_tile_addr, 10);
+	}
+}

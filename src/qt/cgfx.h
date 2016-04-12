@@ -123,6 +123,7 @@ class gbe_cgfx : public QDialog
 	void setup_obj_window(int rows, int count);
 	void update_preview(u32 x, u32 y);
 	void dump_layer_tile(u32 x, u32 y);
+	std::string hash_tile(u8 x, u8 y);
 
 	void setup_bg_window(int rows, int count);
 
