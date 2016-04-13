@@ -213,7 +213,10 @@ void DMG_LCD::dump_dmg_obj(u8 obj_index)
 	std::string final_hash = "";
 
 	//Generate salt for hash - Use OBJ palettes
-	u16 hash_salt = ((mem->memory_map[REG_OBP0] << 8) | mem->memory_map[REG_OBP1]);
+	u16 hash_salt = 0;
+
+	if(obj[obj_index].palette_number == 0) { hash_salt = ((mem->memory_map[REG_OBP0] << 8) | mem->memory_map[REG_OBP1]); }
+	else { hash_salt = ((mem->memory_map[REG_OBP1] << 8) | mem->memory_map[REG_OBP0]); }
 
 	//Determine if in 8x8 or 8x16 mode
 	obj_height = (mem->memory_map[REG_LCDC] & 0x04) ? 16 : 8;
@@ -739,7 +742,10 @@ void DMG_LCD::update_dmg_obj_hash(u8 obj_index)
 	std::string final_hash = "";
 
 	//Generate salt for hash - Use OBJ palettes
-	u16 hash_salt = ((mem->memory_map[REG_OBP0] << 8) | mem->memory_map[REG_OBP1]);
+	u16 hash_salt = 0;
+
+	if(obj[obj_index].palette_number == 0) { hash_salt = ((mem->memory_map[REG_OBP0] << 8) | mem->memory_map[REG_OBP1]); }
+	else { hash_salt = ((mem->memory_map[REG_OBP1] << 8) | mem->memory_map[REG_OBP0]); }
 
 	//Determine if in 8x8 or 8x16 mode
 	obj_height = (mem->memory_map[REG_LCDC] & 0x04) ? 16 : 8;
