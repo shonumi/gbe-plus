@@ -2801,14 +2801,34 @@ void gbe_cgfx::dump_selection()
 	max_y_rect = temp_y2;
 	layer_change();
 
+	//Open manifest file, then write to it
+	std::ofstream file(cgfx::manifest_file.c_str(), std::ios::out | std::ios::app);
+	std::string entry = "";
+
+	//TODO - Add a Qt warning here
+	if(!file.is_open()) { return; }
+
+	//Write main entry
+	//TODO - Fill this in QLineEdit values
+	entry = "[" + config::data_path + cgfx::dump_bg_path + "test.bmp" + ":" + "TEST" + "]";
+	file << "\n" << entry;
+
+	u8 entry_count = 0;
+
 	//Generate manifest entries for selected tiles
 	for(int y = min_y_rect; y < (max_y_rect + 1); y++)
 	{
 		for(int x = min_x_rect; x < (max_x_rect + 1); x++)
 		{
-			hash_tile(x, y);
+			std::string gfx_name = "TEST_" + util::to_str(entry_count++);
+			std::string gfx_type = (config::gb_type == 2) ? "20" : "10";
+			
+			entry = "[" + hash_tile(x, y) + ":" + gfx_name + ":" + gfx_type + ":0:0]";
+			file << "\n" << entry;
 		}
-	}		
+	}
+
+	file.close();
 }
 
 /****** Hashes the tile from a given layer ******/
