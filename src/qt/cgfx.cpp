@@ -92,6 +92,7 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	tile_size = new QLabel("Tile Size : ");
 	h_v_flip = new QLabel("H-Flip :    V Flip : ");
 	tile_palette = new QLabel("Tile Palette : ");
+	hash_text = new QLabel("Tile Hash : ");
 
 	QVBoxLayout* layer_info_layout = new QVBoxLayout;
 	layer_info_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -100,6 +101,7 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	layer_info_layout->addWidget(tile_size);
 	layer_info_layout->addWidget(h_v_flip);
 	layer_info_layout->addWidget(tile_palette);
+	layer_info_layout->addWidget(hash_text);
 	layer_info->setLayout(layer_info_layout);
 
 	//Layer combo-box
@@ -1868,6 +1870,8 @@ void gbe_cgfx::update_preview(u32 x, u32 y)
 
 		u16 bg_index = (((bg_tile_addr + (map_value << 4)) & ~0x8000) >> 4);
 
+		std::string current_hash = "Tile Palette : " + hash_tile(x, y);
+
 		QImage final_image = grab_dmg_bg_data(bg_index).scaled(128, 128);
 		current_tile->setPixmap(QPixmap::fromImage(final_image));
 
@@ -1892,6 +1896,10 @@ void gbe_cgfx::update_preview(u32 x, u32 y)
 		//Tile info - Palette
 		QString pal("Tile Palette : BGP");
 		tile_palette->setText(pal);
+
+		//Tile info - Hash
+		QString hashed = QString::fromStdString(current_hash);
+		hash_text->setText(hashed);
 	}
 
 	//Update preview for DMG Window
@@ -1920,6 +1928,8 @@ void gbe_cgfx::update_preview(u32 x, u32 y)
 
 		u16 bg_index = (((bg_tile_addr + (map_value << 4)) & ~0x8000) >> 4);
 
+		std::string current_hash = "Tile Palette : " + hash_tile(x, y);
+
 		QImage final_image = grab_dmg_bg_data(bg_index).scaled(128, 128);
 		current_tile->setPixmap(QPixmap::fromImage(final_image));
 
@@ -1944,6 +1954,10 @@ void gbe_cgfx::update_preview(u32 x, u32 y)
 		//Tile info - Palette
 		QString pal("Tile Palette : BGP");
 		tile_palette->setText(pal);
+
+		//Tile info - Hash
+		QString hashed = QString::fromStdString(current_hash);
+		hash_text->setText(hashed);
 	}
 
 	//Update preview for DMG OBJ 
@@ -2073,6 +2087,8 @@ void gbe_cgfx::update_preview(u32 x, u32 y)
 
 		u16 bg_index = (((bg_tile_addr + (map_value << 4)) & ~0x8000) >> 4);
 
+		std::string current_hash = "Tile Palette : " + hash_tile(x, y);
+
 		//Calculate the address of the BG pixel data based on map entry
 		u16 vram_tile_addr = (bg_tile_addr + (map_value << 4));
 
@@ -2161,6 +2177,10 @@ void gbe_cgfx::update_preview(u32 x, u32 y)
 		}
 
 		tile_palette->setText(pal);
+
+		//Tile info - Hash
+		QString hashed = QString::fromStdString(current_hash);
+		hash_text->setText(hashed);
 	}
 
 	//Update preview for GBC Window
@@ -2213,6 +2233,8 @@ void gbe_cgfx::update_preview(u32 x, u32 y)
 		}
 
 		u16 bg_index = (((win_tile_addr + (map_value << 4)) & ~0x8000) >> 4);
+
+		std::string current_hash = "Tile Palette : " + hash_tile(x, y);
 
 		//Calculate the address of the BG pixel data based on map entry
 		u16 vram_tile_addr = (win_tile_addr + (map_value << 4));
@@ -2302,6 +2324,10 @@ void gbe_cgfx::update_preview(u32 x, u32 y)
 		}
 
 		tile_palette->setText(pal);
+
+		//Tile info - Hash
+		QString hashed = QString::fromStdString(current_hash);
+		hash_text->setText(hashed);
 	}
 
 	//Update preview for GBC OBJ 
@@ -2823,7 +2849,7 @@ void gbe_cgfx::dump_selection()
 			std::string gfx_name = "TEST_" + util::to_str(entry_count++);
 			std::string gfx_type = (config::gb_type == 2) ? "20" : "10";
 			
-			entry = "[" + hash_tile(x, y) + ":" + gfx_name + ":" + gfx_type + ":0:0]";
+			entry = "[" + hash_tile((x * 8), (y * 8)) + ":" + gfx_name + ":" + gfx_type + ":0:0]";
 			file << "\n" << entry;
 		}
 	}
@@ -2833,7 +2859,7 @@ void gbe_cgfx::dump_selection()
 
 /****** Hashes the tile from a given layer ******/
 std::string gbe_cgfx::hash_tile(u8 x, u8 y)
-{	
+{
 	//Hash from DMG BG
 	if((layer_select->currentIndex() == 0) && (config::gb_type < 2)) 
 	{
@@ -2842,8 +2868,8 @@ std::string gbe_cgfx::hash_tile(u8 x, u8 y)
 		u16 bg_tile_addr = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x10) ? 0x8000 : 0x8800;
 
 		//Determine the map entry from on-screen coordinates
-		u8 tile_x = x + (main_menu::gbe_plus->ex_read_u8(REG_SX) / 8);
-		u8 tile_y = y + (main_menu::gbe_plus->ex_read_u8(REG_SY) / 8);
+		u8 tile_x = (x + main_menu::gbe_plus->ex_read_u8(REG_SX)) / 8;
+		u8 tile_y = (y + main_menu::gbe_plus->ex_read_u8(REG_SY)) / 8;
 		u16 map_entry = tile_x + (tile_y * 32);
 
 		u8 map_value = main_menu::gbe_plus->ex_read_u8(bg_map_addr + map_entry);
@@ -2856,23 +2882,64 @@ std::string gbe_cgfx::hash_tile(u8 x, u8 y)
 		}
 
 		bg_tile_addr += (map_value * 16);
-		
+
 		return main_menu::gbe_plus->get_hash(bg_tile_addr, 10);
 	}
 
+	//Hash from GBC BG
+	else if((layer_select->currentIndex() == 0) && (config::gb_type == 2))
+	{
+ 		//Determine BG Map & Tile address
+		u16 bg_map_addr = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x8) ? 0x9C00 : 0x9800;
+		u16 bg_tile_addr = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x10) ? 0x8000 : 0x8800;
+
+		//Determine the map entry from on-screen coordinates
+		u8 tile_x = (x + main_menu::gbe_plus->ex_read_u8(REG_SX)) / 8;
+		u8 tile_y = (y + main_menu::gbe_plus->ex_read_u8(REG_SY)) / 8;
+
+		u16 map_entry = tile_x + (tile_y * 32);
+
+		u8 old_vram_bank = main_menu::gbe_plus->ex_read_u8(REG_VBK);
+			
+		//Read the BG attributes
+		main_menu::gbe_plus->ex_write_u8(REG_VBK, 1);
+		u8 bg_attribute = main_menu::gbe_plus->ex_read_u8(bg_map_addr + map_entry);
+		u8 pal_num = (bg_attribute & 0x7);
+		u8 vram_bank = (bg_attribute & 0x8) ? 1 : 0;
+
+		main_menu::gbe_plus->ex_write_u8(REG_VBK, 0);
+		u8 map_value = main_menu::gbe_plus->ex_read_u8(bg_map_addr + map_entry);
+
+		//Convert tile number to signed if necessary
+		if(bg_tile_addr == 0x8800) 
+		{
+			if(map_value <= 127) { map_value += 128; }
+			else { map_value -= 128; }
+		}
+
+		bg_tile_addr += (map_value * 16);
+
+		main_menu::gbe_plus->ex_write_u8(REG_VBK, old_vram_bank);
+
+		cgfx::gbc_bg_vram_bank = vram_bank;
+		cgfx::gbc_bg_color_pal = pal_num;
+
+		return main_menu::gbe_plus->get_hash(bg_tile_addr, 20);
+	}
+
 	//Hash from DMG Window
-	if((layer_select->currentIndex() == 1) && (config::gb_type < 2)) 
+	else if((layer_select->currentIndex() == 1) && (config::gb_type < 2)) 
 	{
 		//Determine BG Map & Tile address
 		u16 win_map_addr = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x40) ? 0x9C00 : 0x9800;
 		u16 bg_tile_addr = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x10) ? 0x8000 : 0x8800;
 
+		//Determine the map entry from on-screen coordinates
 		u8 wx = main_menu::gbe_plus->ex_read_u8(REG_WX);
 		wx = (wx < 7) ? 0 : (wx - 7); 
 	
-		//Determine the map entry from on-screen coordinates
-		u8 tile_x = x - (wx / 8);
-		u8 tile_y = y - (main_menu::gbe_plus->ex_read_u8(REG_WY) / 8);
+		u8 tile_x = (x - wx) / 8;
+		u8 tile_y = (y - main_menu::gbe_plus->ex_read_u8(REG_WY)) / 8;
 		u16 map_entry = tile_x + (tile_y * 32);
 
 		u8 map_value = main_menu::gbe_plus->ex_read_u8(win_map_addr + map_entry);
@@ -2888,4 +2955,49 @@ std::string gbe_cgfx::hash_tile(u8 x, u8 y)
 
 		return main_menu::gbe_plus->get_hash(bg_tile_addr, 10);
 	}
+
+	//Hash from GBC Window
+	else if((layer_select->currentIndex() == 1) && (config::gb_type == 2))
+	{
+		//Determine BG Map & Tile address
+		u16 win_map_addr = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x40) ? 0x9C00 : 0x9800;
+		u16 bg_tile_addr = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x10) ? 0x8000 : 0x8800;
+	
+		//Determine the map entry from on-screen coordinates
+		u8 wx = main_menu::gbe_plus->ex_read_u8(REG_WX);
+		wx = (wx < 7) ? 0 : (wx - 7); 
+	
+		u8 tile_x = (x - wx) / 8;
+		u8 tile_y = (y - main_menu::gbe_plus->ex_read_u8(REG_WY)) / 8;
+		u16 map_entry = tile_x + (tile_y * 32);
+
+		u8 old_vram_bank = main_menu::gbe_plus->ex_read_u8(REG_VBK);
+			
+		//Read the BG attributes
+		main_menu::gbe_plus->ex_write_u8(REG_VBK, 1);
+		u8 bg_attribute = main_menu::gbe_plus->ex_read_u8(win_map_addr + map_entry);
+		u8 pal_num = (bg_attribute & 0x7);
+		u8 vram_bank = (bg_attribute & 0x8) ? 1 : 0;
+
+		main_menu::gbe_plus->ex_write_u8(REG_VBK, 0);
+		u8 map_value = main_menu::gbe_plus->ex_read_u8(win_map_addr + map_entry);
+
+		//Convert tile number to signed if necessary
+		if(bg_tile_addr == 0x8800) 
+		{
+			if(map_value <= 127) { map_value += 128; }
+			else { map_value -= 128; }
+		}
+
+		bg_tile_addr += (map_value * 16);
+
+		main_menu::gbe_plus->ex_write_u8(REG_VBK, old_vram_bank);
+
+		cgfx::gbc_bg_vram_bank = vram_bank;
+		cgfx::gbc_bg_color_pal = pal_num;
+
+		return main_menu::gbe_plus->get_hash(bg_tile_addr, 20);
+	}
+
+	else { return ""; }
 }

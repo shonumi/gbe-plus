@@ -1027,7 +1027,7 @@ std::string DMG_LCD::get_hash(u16 addr, u8 gfx_type)
 	}
 
 	//Get GBC OBJ hash
-	else if(gfx_type == 10)
+	else if(gfx_type == 2)
 	{
 		//Determine if in 8x8 or 8x16 mode
 		u8 obj_height = (mem->memory_map[REG_LCDC] & 0x04) ? 16 : 8;

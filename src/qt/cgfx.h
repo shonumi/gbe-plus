@@ -71,6 +71,7 @@ class gbe_cgfx : public QDialog
 	QLabel* tile_size;
 	QLabel* h_v_flip;
 	QLabel* tile_palette;
+	QLabel* hash_text;
 
 	QSpinBox* rect_x;
 	QSpinBox* rect_w;
