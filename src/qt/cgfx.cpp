@@ -334,6 +334,7 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	min_x_rect = min_y_rect = max_x_rect = max_y_rect = 255;
 
 	pause = false;
+	hash_text->setScaledContents(true);
 }
 
 /****** Sets up the OBJ dumping window ******/
@@ -1870,7 +1871,7 @@ void gbe_cgfx::update_preview(u32 x, u32 y)
 
 		u16 bg_index = (((bg_tile_addr + (map_value << 4)) & ~0x8000) >> 4);
 
-		std::string current_hash = "Tile Palette : " + hash_tile(x, y);
+		std::string current_hash = "Tile Hash : " + hash_tile(x, y);
 
 		QImage final_image = grab_dmg_bg_data(bg_index).scaled(128, 128);
 		current_tile->setPixmap(QPixmap::fromImage(final_image));
@@ -1928,7 +1929,7 @@ void gbe_cgfx::update_preview(u32 x, u32 y)
 
 		u16 bg_index = (((bg_tile_addr + (map_value << 4)) & ~0x8000) >> 4);
 
-		std::string current_hash = "Tile Palette : " + hash_tile(x, y);
+		std::string current_hash = "Tile Hash : " + hash_tile(x, y);
 
 		QImage final_image = grab_dmg_bg_data(bg_index).scaled(128, 128);
 		current_tile->setPixmap(QPixmap::fromImage(final_image));
@@ -2035,6 +2036,11 @@ void gbe_cgfx::update_preview(u32 x, u32 y)
 				QString pal;
 				pal = (obj_pal == 0) ? "Tile Palette : OBP0" : "Tile Palette : OBP1";
 				tile_palette->setText(pal);
+
+				//Tile info - Hash
+				std::string current_hash = "Tile Hash : " + hash_tile(x, y);
+				QString hashed = QString::fromStdString(current_hash);
+				hash_text->setText(hashed);
 			}
 		}
 	}
@@ -2087,7 +2093,7 @@ void gbe_cgfx::update_preview(u32 x, u32 y)
 
 		u16 bg_index = (((bg_tile_addr + (map_value << 4)) & ~0x8000) >> 4);
 
-		std::string current_hash = "Tile Palette : " + hash_tile(x, y);
+		std::string current_hash = "Tile Hash : " + hash_tile(x, y);
 
 		//Calculate the address of the BG pixel data based on map entry
 		u16 vram_tile_addr = (bg_tile_addr + (map_value << 4));
@@ -2234,7 +2240,7 @@ void gbe_cgfx::update_preview(u32 x, u32 y)
 
 		u16 bg_index = (((win_tile_addr + (map_value << 4)) & ~0x8000) >> 4);
 
-		std::string current_hash = "Tile Palette : " + hash_tile(x, y);
+		std::string current_hash = "Tile Hash : " + hash_tile(x, y);
 
 		//Calculate the address of the BG pixel data based on map entry
 		u16 vram_tile_addr = (win_tile_addr + (map_value << 4));
@@ -2417,6 +2423,11 @@ void gbe_cgfx::update_preview(u32 x, u32 y)
 				}
 
 				tile_palette->setText(pal);
+
+				//Tile info - Hash
+				std::string current_hash = "Tile Hash : " + hash_tile(x, y);
+				QString hashed = QString::fromStdString(current_hash);
+				hash_text->setText(hashed);
 			}
 		}
 	}
@@ -2997,6 +3008,78 @@ std::string gbe_cgfx::hash_tile(u8 x, u8 y)
 		cgfx::gbc_bg_color_pal = pal_num;
 
 		return main_menu::gbe_plus->get_hash(bg_tile_addr, 20);
+	}
+
+	//Hash from DMG OBJ
+	if((layer_select->currentIndex() == 2) && (config::gb_type < 2)) 
+	{
+		//Determine if in 8x8 or 8x16 mode
+		u8 obj_height = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x04) ? 16 : 8;
+
+		for(int obj_index = 0; obj_index < 40; obj_index++)
+		{
+			//Grab X-Y OBJ coordinates
+			u8 obj_x = main_menu::gbe_plus->ex_read_u8(OAM + (obj_index * 4) + 1);
+			u8 obj_y = main_menu::gbe_plus->ex_read_u8(OAM + (obj_index * 4));
+
+			obj_x -= 8;
+			obj_y -= 16;
+
+			u8 test_left = ((obj_x + 8) > 0x100) ? 0 : obj_x;
+			u8 test_right = (obj_x + 8);
+
+			u8 test_top = ((obj_y + obj_height) > 0x100) ? 0 : obj_y;
+			u8 test_bottom = (obj_y + obj_height);
+
+			if((x >= test_left) && (x <= test_right) && (y >= test_top) && (y <= test_bottom))
+			{
+				//Grab address from OAM
+				u8 tile_number = main_menu::gbe_plus->ex_read_u8(OAM + (obj_index * 4) + 2);
+				if(obj_height == 16) { tile_number &= ~0x1; }
+				u16 obj_tile_addr = 0x8000 + (tile_number * 16);
+
+				return main_menu::gbe_plus->get_hash(obj_tile_addr, 1);
+			}
+		}
+	}
+
+	//Hash from GBC OBJ
+	else if((layer_select->currentIndex() == 2) && (config::gb_type == 2)) 
+	{
+		//Determine if in 8x8 or 8x16 mode
+		u8 obj_height = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x04) ? 16 : 8;
+
+		for(int obj_index = 0; obj_index < 40; obj_index++)
+		{
+			//Grab X-Y OBJ coordinates
+			u8 obj_x = main_menu::gbe_plus->ex_read_u8(OAM + (obj_index * 4) + 1);
+			u8 obj_y = main_menu::gbe_plus->ex_read_u8(OAM + (obj_index * 4));
+
+			obj_x -= 8;
+			obj_y -= 16;
+
+			u8 test_left = ((obj_x + 8) > 0x100) ? 0 : obj_x;
+			u8 test_right = (obj_x + 8);
+
+			u8 test_top = ((obj_y + obj_height) > 0x100) ? 0 : obj_y;
+			u8 test_bottom = (obj_y + obj_height);
+
+			if((x >= test_left) && (x <= test_right) && (y >= test_top) && (y <= test_bottom))
+			{
+				//Grab address from OAM
+				u8 tile_number = main_menu::gbe_plus->ex_read_u8(OAM + (obj_index * 4) + 2);
+				if(obj_height == 16) { tile_number &= ~0x1; }
+				u16 obj_tile_addr = 0x8000 + (tile_number * 16);
+
+				//Grab attributes
+				u8 attributes = main_menu::gbe_plus->ex_read_u8(OAM + (obj_index * 4) + 3);
+				
+				cgfx::gbc_obj_color_pal = attributes & 0x7;
+				cgfx::gbc_obj_vram_bank = (attributes & 0x8) ? 1 : 0;
+
+				return main_menu::gbe_plus->get_hash(obj_tile_addr, 2);
+			}
+		}
 	}
 
 	else { return ""; }
