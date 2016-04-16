@@ -64,9 +64,6 @@ class CP15
 	~CP15();
 
 	void reset();
-
-	void mcr(u32 value);
-	u32 mrc(u8 reg_id);
 };
 
 #endif // NDS9_CP15

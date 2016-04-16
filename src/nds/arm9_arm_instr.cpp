@@ -1181,3 +1181,135 @@ void ARM9::software_interrupt_breakpoint(u32 current_arm_instruction)
 
 	process_swi(comment);
 }
+
+/****** Coprocessor Register Transfer ******/
+void ARM9::coprocessor_register_transfer(u32 current_instruction)
+{
+	//Grab opcode
+	u8 cop_opcode_1 = (current_instruction >> 21) & 0x7;
+
+	//Make sure opcode is zero to access CP15
+	if(cop_opcode_1 != 0)
+	{
+		std::cout<<"COP::Warning - Unknown Coprocessor Opcode 1 in Register Transfer : 0x" << std::hex << (int)cop_opcode_1 << "\n";
+		return;
+	}
+
+	//Grab ARM opcode
+	u8 arm_opcode = (current_instruction & 0x100000) ? 1 : 0;
+
+	//Grab coprocessor/ARM source/destination registers
+	u8 cop_reg = (current_instruction >> 16) & 0xF;
+	u8 arm_reg = (current_instruction >> 12) & 0xF;
+
+	//Grab coprocessor operand
+	u8 cop_opr = current_instruction & 0xF;
+
+	//Grab coprocessor info
+	u8 cop_info = (current_instruction >> 5) & 0x7;
+
+	//Execute MRC
+	if(arm_opcode)
+	{
+		//Move from C0,C0,0 - 2 to ARM register
+		if((cop_reg == 0) && (cop_opr == 0))
+		{
+			switch(cop_info)
+			{
+				case 0x0: set_reg(arm_reg, co_proc.regs[CP15::C0_C0_0]); break;
+				case 0x1: set_reg(arm_reg, co_proc.regs[CP15::C0_C0_1]); break;
+				case 0x2: set_reg(arm_reg, co_proc.regs[CP15::C0_C0_2]); break;
+			}
+		}
+
+		//Move from C1,C0,0 to ARM register
+		else if((cop_reg == 1) && (cop_opr == 0) && (cop_info == 0)) { set_reg(arm_reg, co_proc.regs[CP15::C1_C0_0]); }
+
+		//Move from C2,C0,0 - 1 to ARM register
+		else if((cop_reg == 2) && (cop_opr == 0))
+		{
+			switch(cop_info)
+			{
+				case 0x0: set_reg(arm_reg, co_proc.regs[CP15::C2_C0_0]); break;
+				case 0x1: set_reg(arm_reg, co_proc.regs[CP15::C2_C0_1]); break;
+			}
+		}
+
+		//Move from C3,C0,0 to ARM register
+		else if((cop_reg == 3) && (cop_opr == 0) && (cop_info == 0)) { set_reg(arm_reg, co_proc.regs[CP15::C3_C0_0]); }
+
+		//Move from C5,C0,0 - 3 to ARM register
+		else if((cop_reg == 5) && (cop_opr == 0))
+		{
+			switch(cop_info)
+			{
+				case 0x0: set_reg(arm_reg, co_proc.regs[CP15::C5_C0_0]); break;
+				case 0x1: set_reg(arm_reg, co_proc.regs[CP15::C5_C0_1]); break;
+				case 0x2: set_reg(arm_reg, co_proc.regs[CP15::C5_C0_2]); break;
+				case 0x3: set_reg(arm_reg, co_proc.regs[CP15::C5_C0_3]); break;
+			}
+		}
+
+		//Move from C6,C0-C7,0 to ARM register
+		else if((cop_reg == 0) && (cop_info == 0))
+		{
+			switch(cop_opr)
+			{
+				case 0x0: set_reg(arm_reg, co_proc.regs[CP15::C6_C0_0]); break;
+				case 0x1: set_reg(arm_reg, co_proc.regs[CP15::C6_C1_0]); break;
+				case 0x2: set_reg(arm_reg, co_proc.regs[CP15::C6_C2_0]); break;
+				case 0x3: set_reg(arm_reg, co_proc.regs[CP15::C6_C3_0]); break;
+				case 0x4: set_reg(arm_reg, co_proc.regs[CP15::C6_C4_0]); break;
+				case 0x5: set_reg(arm_reg, co_proc.regs[CP15::C6_C5_0]); break;
+				case 0x6: set_reg(arm_reg, co_proc.regs[CP15::C6_C6_0]); break;
+				case 0x7: set_reg(arm_reg, co_proc.regs[CP15::C6_C7_0]); break;
+
+			}
+		}
+
+		//Move from C6,C0-C7,1 to ARM register
+		else if((cop_reg == 0) && (cop_info == 1))
+		{
+			switch(cop_opr)
+			{
+				case 0x0: set_reg(arm_reg, co_proc.regs[CP15::C6_C0_1]); break;
+				case 0x1: set_reg(arm_reg, co_proc.regs[CP15::C6_C1_1]); break;
+				case 0x2: set_reg(arm_reg, co_proc.regs[CP15::C6_C2_1]); break;
+				case 0x3: set_reg(arm_reg, co_proc.regs[CP15::C6_C3_1]); break;
+				case 0x4: set_reg(arm_reg, co_proc.regs[CP15::C6_C4_1]); break;
+				case 0x5: set_reg(arm_reg, co_proc.regs[CP15::C6_C5_1]); break;
+				case 0x6: set_reg(arm_reg, co_proc.regs[CP15::C6_C6_1]); break;
+				case 0x7: set_reg(arm_reg, co_proc.regs[CP15::C6_C7_1]); break;
+
+			}
+		}
+
+		//Move from C7,Cm,OP to ARM register
+		else if(cop_reg == 7) { set_reg(arm_reg, co_proc.regs[CP15::C7_CM_XX]); }
+
+		//Move from C9,C0,0-1 to ARM register
+		else if((cop_reg == 9) && (cop_opr == 0))
+		{
+			switch(cop_info)
+			{
+				case 0x0: set_reg(arm_reg, co_proc.regs[CP15::C9_C0_0]); break;
+				case 0x1: set_reg(arm_reg, co_proc.regs[CP15::C9_C0_1]); break;
+			}
+		}
+
+		//Move from C9,C1,0-1 to ARM register
+		else if((cop_reg == 9) && (cop_opr == 1))
+		{
+			switch(cop_info)
+			{
+				case 0x0: set_reg(arm_reg, co_proc.regs[CP15::C9_C1_0]); break;
+				case 0x1: set_reg(arm_reg, co_proc.regs[CP15::C9_C1_1]); break;
+			}
+		}
+
+		else
+		{
+			std::cout<<"COP::Warning - MRC accessed unknown C15 register : C" << (int)cop_reg << ",C" << (int)cop_opr << "," << (int)cop_info << "\n";
+		} 
+	}
+}

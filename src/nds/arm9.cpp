@@ -54,6 +54,8 @@ void ARM9::reset()
 	flush_pipeline();
 	mem = NULL;
 
+	co_proc.reset();
+
 	std::cout<<"CPU::ARM9 - Initialized\n";
 }
 
@@ -733,7 +735,7 @@ void ARM9::execute()
 					break;
 
 				case ARM_COP_REG_TRANSFER:
-					std::cout<<"CPU::ARM9::Warning - MRC/MCR unimplemented\n";
+					coprocessor_register_transfer(instruction_pipeline[pipeline_id]);
 					debug_message = 0x1E; debug_code = instruction_pipeline[pipeline_id];
 					break;
 
