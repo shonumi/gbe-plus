@@ -365,7 +365,7 @@ void DMG_LCD::dump_gbc_obj(u8 obj_index)
 	
 	for(int x = 0; x < 4; x++)
 	{
-		util::hsv color = util::rgb_to_hsv(lcd_stat.obj_colors_final[x][obj[obj_index].palette_number]);
+		util::hsv color = util::rgb_to_hsv(lcd_stat.obj_colors_final[x][obj[obj_index].color_palette_number]);
 		u8 hue = (color.hue / 10);
 		hue_data += hash::base_64_index[hue];
 	}
@@ -820,7 +820,7 @@ void DMG_LCD::update_gbc_obj_hash(u8 obj_index)
 	
 	for(int x = 0; x < 4; x++)
 	{
-		util::hsv color = util::rgb_to_hsv(lcd_stat.obj_colors_final[x][obj[obj_index].palette_number]);
+		util::hsv color = util::rgb_to_hsv(lcd_stat.obj_colors_final[x][obj[obj_index].color_palette_number]);
 		u8 hue = (color.hue / 10);
 		hue_data += hash::base_64_index[hue];
 	}
@@ -1000,8 +1000,13 @@ std::string DMG_LCD::get_hash(u16 addr, u8 gfx_type)
 	//Get DMG OBJ hash
 	if(gfx_type == 1)
 	{
+		u8 obj_index = (addr - 0x8000) >> 4;
+
 		//Generate salt for hash - Use OBJ palettes
-		u16 hash_salt = ((mem->memory_map[REG_OBP0] << 8) | mem->memory_map[REG_OBP1]);
+		u16 hash_salt = 0;
+
+		if(obj[obj_index].palette_number == 0) { hash_salt = ((mem->memory_map[REG_OBP0] << 8) | mem->memory_map[REG_OBP1]); }
+		else { hash_salt = ((mem->memory_map[REG_OBP1] << 8) | mem->memory_map[REG_OBP0]); }
 
 		//Determine if in 8x8 or 8x16 mode
 		u8 obj_height = (mem->memory_map[REG_LCDC] & 0x04) ? 16 : 8;
