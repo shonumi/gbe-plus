@@ -2847,7 +2847,7 @@ void gbe_cgfx::dump_selection()
 
 	//Write main entry
 	//TODO - Fill this in QLineEdit values
-	entry = "[" + config::data_path + cgfx::dump_bg_path + "test.bmp" + ":" + "TEST" + "]";
+	entry = "[" + cgfx::dump_bg_path + "test.bmp" + ":" + "TEST" + "]";
 	file << "\n" << entry;
 
 	u8 entry_count = 0;

@@ -36,6 +36,9 @@ bool DMG_LCD::load_manifest(std::string filename)
 	cgfx_stat.m_vram_addr.clear();
 	cgfx_stat.m_auto_bright.clear();
 
+	cgfx_stat.m_meta_files.clear();
+	cgfx_stat.m_meta_names.clear();
+
 	if(!file.is_open())
 	{
 		std::cout<<"CGFX::Could not open manifest file " << filename << ". Check file path or permissions. \n";
@@ -77,8 +80,9 @@ bool DMG_LCD::load_manifest(std::string filename)
 	file.close();
 
 	//Determine if manifest is properly formed (roughly)
-	//Each manifest entry should have 5 parameters
-	if((cgfx_stat.manifest.size() % 5) != 0)
+	//Each manifest normal entry should have 5 parameters
+	//Each metatile entry should have 2 parameters
+	if(((cgfx_stat.manifest.size() % 5) != 0) || ((cgfx_stat.manifest.size() % 2) != 0))
 	{
 		std::cout<<"CGFX::Manifest file " << filename << " has some missing parameters for some entries. \n";
 		return false;
@@ -87,58 +91,78 @@ bool DMG_LCD::load_manifest(std::string filename)
 	//Parse entries
 	for(int x = 0; x < cgfx_stat.manifest.size();)
 	{
-		//Grab hash
-		std::string hash = cgfx_stat.manifest[x++];
-
-		//Grab file associated with hash
-		cgfx_stat.m_files.push_back(cgfx_stat.manifest[x++]);
-
-		//Grab the type
-		std::stringstream type_stream(cgfx_stat.manifest[x++]);
-		int type_byte = 0;
-		type_stream >> type_byte;
-		cgfx_stat.m_types.push_back(type_byte);
-
-		switch(type_byte)
+		//Parse regular entries
+		if((cgfx_stat.manifest.size() % 5) == 0)
 		{
-			//DMG, GBC, or GBA OBJ
-			case 1:
-			case 2:
-			case 3:
-				cgfx_stat.m_id.push_back(cgfx_stat.obj_hash_list.size());
-				cgfx_stat.obj_hash_list.push_back(hash);
-				cgfx_stat.m_hashes.push_back(hash);
-				break;
+			//Grab hash
+			std::string hash = cgfx_stat.manifest[x++];
 
-			//DMG, GBC, or GBA BG
-			case 10:
-			case 20:
-			case 30:
-				cgfx_stat.m_id.push_back(cgfx_stat.bg_hash_list.size());
-				cgfx_stat.bg_hash_list.push_back(hash);
-				cgfx_stat.m_hashes.push_back(hash);
-				break;
+			//Grab file associated with hash
+			cgfx_stat.m_files.push_back(cgfx_stat.manifest[x++]);
+
+			//Grab the type
+			std::stringstream type_stream(cgfx_stat.manifest[x++]);
+			int type_byte = 0;
+			type_stream >> type_byte;
+			cgfx_stat.m_types.push_back(type_byte);
+
+			switch(type_byte)
+			{
+				//DMG, GBC, or GBA OBJ
+				case 1:
+				case 2:
+				case 3:
+					cgfx_stat.m_id.push_back(cgfx_stat.obj_hash_list.size());
+					cgfx_stat.obj_hash_list.push_back(hash);
+					cgfx_stat.m_hashes.push_back(hash);
+					break;
+
+				//DMG, GBC, or GBA BG
+				case 10:
+				case 20:
+				case 30:
+					cgfx_stat.m_id.push_back(cgfx_stat.bg_hash_list.size());
+					cgfx_stat.bg_hash_list.push_back(hash);
+					cgfx_stat.m_hashes.push_back(hash);
+					break;
 		
-			//Undefined type
-			default:
-				std::cout<<"CGFX::Undefined hash type " << (int)type_byte << "\n";
-				return false;
+				//Undefined type
+				default:
+					std::cout<<"CGFX::Undefined hash type " << (int)type_byte << "\n";
+					return false;
+			}
+
+			//Load image based on filename and hash type
+			if(!load_image_data())
+			{
+				if(!find_meta_data()) { return false; }
+			}
+
+			//EXT_VRAM_ADDR
+			std::stringstream vram_stream(cgfx_stat.manifest[x++]);
+			u32 vram_address = 0;
+			util::from_hex_str(vram_stream.str(), vram_address);
+			cgfx_stat.m_vram_addr.push_back(vram_address);	
+
+			//EXT_AUTO_BRIGHT
+			std::stringstream bright_stream(cgfx_stat.manifest[x++]);
+			u32 bright_value = 0;
+			bright_stream >> bright_value;
+			cgfx_stat.m_auto_bright.push_back(bright_value);
 		}
 
-		//Load image based on filename and hash type
-		if(!load_image_data()) { return false; }
+		//Parse metatile entries
+		else
+		{
+			//Grab metafile
+			cgfx_stat.m_meta_files.push_back(cgfx_stat.manifest[x++]);
 
-		//EXT_VRAM_ADDR
-		std::stringstream vram_stream(cgfx_stat.manifest[x++]);
-		u32 vram_address = 0;
-		util::from_hex_str(vram_stream.str(), vram_address);
-		cgfx_stat.m_vram_addr.push_back(vram_address);	
+			//Load image based on filename and hash type
+			if(!load_meta_data()) { return false; }
 
-		//EXT_AUTO_BRIGHT
-		std::stringstream bright_stream(cgfx_stat.manifest[x++]);
-		u32 bright_value = 0;
-		bright_stream >> bright_value;
-		cgfx_stat.m_auto_bright.push_back(bright_value);
+			//Grab base pattern name
+			cgfx_stat.m_meta_files.push_back(cgfx_stat.manifest[x++]);
+		}
 	}
 
 	std::cout<<"CGFX::" << filename << " loaded successfully\n"; 
@@ -202,6 +226,116 @@ bool DMG_LCD::load_image_data()
 	return true;
 }
 
+/****** Loads 24-bit data from source and converts it to 32-bit ARGB - For metatiles ******/
+bool DMG_LCD::load_meta_data() 
+{
+	//TODO - PNG loading via SDL_image
+
+	//NOTE - Only call this function during manifest loading, immediately after the filename is parsed
+	std::string filename = config::data_path + cgfx_stat.m_meta_files.back();
+	SDL_Surface* source = SDL_LoadBMP(filename.c_str());
+
+	if(source == NULL)
+	{
+		std::cout<<"GBE::CGFX - Could not load " << filename << "\n";
+		return false;
+	}
+
+	int custom_bpp = source->format->BitsPerPixel;
+
+	if(custom_bpp != 24)
+	{
+		std::cout<<"GBE::CGFX - " << filename << " has " << custom_bpp << "bpp instead of 24bpp \n";
+		return false;
+	}
+
+	//Verify source width
+	if((source->w % 8) != 0)
+	{
+		std::cout<<"GBE::CGFX - " << filename << " has irregular width -> " << source->w << "\n";
+		return false;
+	}
+
+	//Verify source height
+	if((source->h % 8) != 0)
+	{
+		std::cout<<"GBE::CGFX - " << filename << " has irregular height -> " << source->h << "\n";
+		return false;
+	}
+		
+	std::vector<u32> cgfx_pixels;
+
+	//Load 24-bit data
+	u8* pixel_data = (u8*)source->pixels;
+
+	for(int a = 0, b = 0; a < (source->w * source->h); a++, b+=3)
+	{
+		cgfx_pixels.push_back(0xFF000000 | (pixel_data[b+2] << 16) | (pixel_data[b+1] << 8) | (pixel_data[b]));
+	}
+
+	//Store meta pixel data
+	cgfx_stat.meta_pixel_data.push_back(cgfx_pixels);
+	
+	//Save width and height for reference
+	cgfx_stat.m_meta_width.push_back(source->w);
+	cgfx_stat.m_meta_height.push_back(source->h);
+
+	return true;
+}
+
+/****** Finds meta data from the meta tile for regular manifest entries ******/
+bool DMG_LCD::find_meta_data()
+{
+	//Find the base name for the entry
+	std::string base_name = "";
+	std::string base_number = "";
+	std::string original_name = cgfx_stat.m_files.back();
+	bool is_meta_tile = false;
+	u32 meta_tile_number = 0;
+
+	for(int x = 0; x < original_name.size(); x++)
+	{
+		std::string temp = "";
+		temp += original_name[x];
+
+		if(temp == "_")
+		{
+			is_meta_tile = true;
+		}
+
+		if(!is_meta_tile) { base_name += temp; }
+		else { base_number += temp; }
+	}
+	
+	//Return false if original name does not contain a base name for a metatile
+	if(!is_meta_tile) { return false; }
+
+	//Parse the meta tile number from the original name
+	util::from_str(base_number, meta_tile_number);
+
+	//Search metatile name entries for a match and grab id
+	u32 meta_id = 0;
+	bool found_match = false;
+
+	for(int x = 0; x < cgfx_stat.m_meta_names.size(); x++)
+	{
+		if(cgfx_stat.m_meta_names[x] == base_name)
+		{
+			found_match = true;
+			meta_id = x;
+			break;
+		}
+	}
+
+	//Return false if no meta tile base name exists
+	if(!found_match) { return false; }
+
+	//Grab meta pixel data
+	std::vector<u32> cgfx_pixels;
+
+	return true;
+} 
+	
 /****** Dumps DMG OBJ tile from selected memory address ******/
 void DMG_LCD::dump_dmg_obj(u8 obj_index) 
 {

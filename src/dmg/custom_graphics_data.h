@@ -21,7 +21,7 @@ struct dmg_cgfx_data
 { 
 	std::vector <std::string> manifest;
 	
-	//Data pulled from manifest file
+	//Data pulled from manifest file - Regular entries
 	//Hashes - Actual hash data. Duplicated abd sorted into separate OBJ + BG lists
 	//Files - Location of the image file used for this hash
 	//Types - Determines what system a hash belongs to (DMG, GBC, GBA) and if it's an OBJ or BG
@@ -34,6 +34,15 @@ struct dmg_cgfx_data
 	std::vector <u16> m_id;
 	std::vector <u32> m_vram_addr;
 	std::vector <u16> m_auto_bright;
+
+	//Data pulled from manifest file - Metatile entries
+	//Files - Location of the metatile image file
+	//Names - Base name for parsing entries
+	//ID - Keeps track of where to look for pixel data when generating corresponding normal entries
+	std::vector <std::string> m_meta_files;
+	std::vector <std::string> m_meta_names;
+	std::vector <u32> m_meta_width;
+	std::vector <u32> m_meta_height;
 
 	u32 last_id;
 
@@ -49,6 +58,7 @@ struct dmg_cgfx_data
 	//Pixel data for all computed hashes (when loading CGFX)
 	std::vector< std::vector<u32> > obj_pixel_data;
 	std::vector< std::vector<u32> > bg_pixel_data;
+	std::vector< std::vector<u32> > meta_pixel_data;
 
 	//List of all tiles that have been updated
 	//NOTE - OBJs don't need a list, since the LCD keeps track of OAM updates

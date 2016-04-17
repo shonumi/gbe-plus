@@ -36,6 +36,8 @@ class DMG_LCD
 	//Custom GFX functions
 	bool load_manifest(std::string filename);
 	bool load_image_data();
+	bool load_meta_data();
+	bool find_meta_data();
 
 	void dump_dmg_obj(u8 obj_index);
 	void dump_dmg_bg(u16 bg_index);
