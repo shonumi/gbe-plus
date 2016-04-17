@@ -486,6 +486,38 @@ void NTR_MMU::parse_header()
 		header.arm9_size <<= 8;
 		header.arm9_size |= cart_data[0x2F - x];
 	}
+
+	//ARM7 ROM Offset
+	header.arm7_rom_offset = 0;
+	for(int x = 0; x < 4; x++)
+	{
+		header.arm7_rom_offset <<= 8;
+		header.arm7_rom_offset |= cart_data[0x33 - x];
+	}
+
+	//ARM7 Entry Address
+	header.arm7_entry_addr = 0;
+	for(int x = 0; x < 4; x++) 
+	{
+		header.arm7_entry_addr <<= 8;
+		header.arm7_entry_addr |= cart_data[0x37 - x];
+	}
+
+	//ARM7 RAM Address
+	header.arm7_ram_addr = 0;
+	for(int x = 0; x < 4; x++) 
+	{
+		header.arm7_ram_addr <<= 8;
+		header.arm7_ram_addr |= cart_data[0x3B - x];
+	}
+
+	//ARM7 Size
+	header.arm7_size = 0;
+	for(int x = 0; x < 4; x++) 
+	{
+		header.arm7_size <<= 8;
+		header.arm7_size |= cart_data[0x3F - x];
+	}
 }
 
 /****** Points the MMU to an lcd_data structure (FROM THE LCD ITSELF) ******/
