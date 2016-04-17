@@ -269,6 +269,7 @@ class ARM9
 	void swi_lz77uncompvram();
 	void swi_rluncompvram();
 	void swi_huffuncomp();
+	void swi_isdebugger();
 };
 		
 #endif // NDS9_CPU 

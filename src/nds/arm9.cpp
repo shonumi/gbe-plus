@@ -701,7 +701,7 @@ void ARM9::execute()
 					break;
 
 				case ARM_7:
-					running = false; return;
+					//running = false; return;
 					multiply(instruction_pipeline[pipeline_id]);
 					debug_message = 0x18; debug_code = instruction_pipeline[pipeline_id];
 					break;
@@ -717,19 +717,19 @@ void ARM9::execute()
 					break;
 
 				case ARM_11:
-					running = false; return;
+					//running = false; return;
 					block_data_transfer(instruction_pipeline[pipeline_id]);
 					debug_message = 0x1B; debug_code = instruction_pipeline[pipeline_id];
 					break;
 
 				case ARM_12:
-					running = false; return;
+					//running = false; return;
 					single_data_swap(instruction_pipeline[pipeline_id]);
 					debug_message = 0x1C; debug_code = instruction_pipeline[pipeline_id];
 					break;
 
 				case ARM_13:
-					running = false; return;
+					//running = false; return;
 					software_interrupt_breakpoint(instruction_pipeline[pipeline_id]);
 					debug_message = 0x1D; debug_code = instruction_pipeline[pipeline_id];
 					break;
