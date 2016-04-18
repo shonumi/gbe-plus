@@ -586,7 +586,7 @@ bool from_str(std::string input, u32 &result)
 	std::string value_char = "";
 
 	//Convert string into usable u32
-	for(int x = size, y = 0; x >= 0; x--, y *= 10)
+	for(int x = size, y = 1; x >= 0; x--, y *= 10)
 	{
 		value_char = input[x];
 
