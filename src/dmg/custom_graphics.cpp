@@ -30,6 +30,7 @@ bool DMG_LCD::load_manifest(std::string filename)
 
 	//Clear existing manifest data
 	cgfx_stat.manifest.clear();
+	cgfx_stat.manifest_entry_size.clear();
 	cgfx_stat.m_hashes.clear();
 	cgfx_stat.m_files.clear();
 	cgfx_stat.m_types.clear();
@@ -50,7 +51,8 @@ bool DMG_LCD::load_manifest(std::string filename)
 	{
 		line_char = input_line[0];
 		bool ignore = false;	
-	
+		u8 item_count = 0;	
+
 		//Check if line starts with [ - if not, skip line
 		if(line_char == "[")
 		{
@@ -69,30 +71,34 @@ bool DMG_LCD::load_manifest(std::string filename)
 				else if(((line_char == ":") || (line_char == "]")) && (!ignore)) 
 				{
 					cgfx_stat.manifest.push_back(line_item);
-					line_item = ""; 
+					line_item = "";
+					item_count++;
 				}
 
 				else { line_item += line_char; }
 			}
 		}
+
+		//Determine if manifest is properly formed (roughly)
+		//Each manifest normal entry should have 5 parameters
+		//Each metatile entry should have 2 parameters
+		if((item_count != 5) && (item_count != 2) && (item_count != 0))
+		{
+			std::cout<<"CGFX::Manifest file " << filename << " has some missing parameters for some entries. \n";
+			file.close();
+			return false;
+		}
+
+		else if(item_count != 0) { cgfx_stat.manifest_entry_size.push_back(item_count); }
 	}
 	
 	file.close();
 
-	//Determine if manifest is properly formed (roughly)
-	//Each manifest normal entry should have 5 parameters
-	//Each metatile entry should have 2 parameters
-	if(((cgfx_stat.manifest.size() % 5) != 0) || ((cgfx_stat.manifest.size() % 2) != 0))
-	{
-		std::cout<<"CGFX::Manifest file " << filename << " has some missing parameters for some entries. \n";
-		return false;
-	}
-
 	//Parse entries
-	for(int x = 0; x < cgfx_stat.manifest.size();)
+	for(int x = 0, y = 0; y < cgfx_stat.manifest_entry_size.size(); y++)
 	{
 		//Parse regular entries
-		if((cgfx_stat.manifest.size() % 5) == 0)
+		if(cgfx_stat.manifest_entry_size[y] == 5)
 		{
 			//Grab hash
 			std::string hash = cgfx_stat.manifest[x++];
@@ -133,10 +139,7 @@ bool DMG_LCD::load_manifest(std::string filename)
 			}
 
 			//Load image based on filename and hash type
-			if(!load_image_data())
-			{
-				if(!find_meta_data()) { return false; }
-			}
+			if(!load_image_data()) { return false; }
 
 			//EXT_VRAM_ADDR
 			std::stringstream vram_stream(cgfx_stat.manifest[x++]);
@@ -161,7 +164,7 @@ bool DMG_LCD::load_manifest(std::string filename)
 			if(!load_meta_data()) { return false; }
 
 			//Grab base pattern name
-			cgfx_stat.m_meta_files.push_back(cgfx_stat.manifest[x++]);
+			cgfx_stat.m_meta_names.push_back(cgfx_stat.manifest[x++]);
 		}
 	}
 
@@ -181,6 +184,9 @@ bool DMG_LCD::load_image_data()
 
 	if(source == NULL)
 	{
+		//Attempt to find the meta tile data instead
+		if(find_meta_data()) { return true; }
+
 		std::cout<<"GBE::CGFX - Could not load " << filename << "\n";
 		return false;
 	}
@@ -306,7 +312,9 @@ bool DMG_LCD::find_meta_data()
 		if(!is_meta_tile) { base_name += temp; }
 		else { base_number += temp; }
 	}
-	
+
+	base_number = base_number.substr(1);
+
 	//Return false if original name does not contain a base name for a metatile
 	if(!is_meta_tile) { return false; }
 
@@ -332,6 +340,31 @@ bool DMG_LCD::find_meta_data()
 
 	//Grab meta pixel data
 	std::vector<u32> cgfx_pixels;
+
+	//Find start position inside meta pixel data
+	u32 width = cgfx_stat.m_meta_width[meta_id];
+	u32 height = cgfx_stat.m_meta_height[meta_id];
+	
+	u32 tile_w = width / (8 * cgfx::scaling_factor);
+	u32 tile_h = height / (8 * cgfx::scaling_factor);
+	u32 tile_size = width / tile_w;
+
+	u32 pos = (width * tile_size) * (meta_tile_number / tile_w);
+	pos += (meta_tile_number % tile_w) * tile_size;
+	
+	for(int y = 0; y < tile_size; y++)
+	{
+		for(int x = 0; x < tile_size; x++)
+		{
+			u32 meta_pixel = cgfx_stat.meta_pixel_data[meta_id][pos++];
+			cgfx_pixels.push_back(meta_pixel);
+		}
+
+		pos -= tile_size;
+		pos += width;
+	}
+
+	cgfx_stat.bg_pixel_data.push_back(cgfx_pixels);
 
 	return true;
 } 

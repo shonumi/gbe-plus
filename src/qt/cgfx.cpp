@@ -2816,7 +2816,7 @@ void gbe_cgfx::dump_selection()
 	else if(layer_select->currentIndex() == 1)
 	{
 		u8 wx = main_menu::gbe_plus->ex_read_u8(REG_WX);
-		if(wx < 7) { wx = 0; }
+		wx = (wx < 7) ? 0 : (wx - 7); 
 
 		min_x_rect = ((rect_x->value() - 1) * 8) + (wx % 8);
 		max_x_rect = rect_w->value() * 8;

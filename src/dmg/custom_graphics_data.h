@@ -20,6 +20,7 @@
 struct dmg_cgfx_data
 { 
 	std::vector <std::string> manifest;
+	std::vector <u8> manifest_entry_size;
 	
 	//Data pulled from manifest file - Regular entries
 	//Hashes - Actual hash data. Duplicated abd sorted into separate OBJ + BG lists
