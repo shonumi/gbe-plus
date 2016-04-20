@@ -72,6 +72,7 @@ class DMG_MMU
 		mbc_types mbc_type;
 		bool battery;
 		bool ram;
+		bool multicart;
 
 		//MBC3 RTC
 		bool rtc;
@@ -118,6 +119,9 @@ class DMG_MMU
 
 	void mbc1_write(u16 address, u8 value);
 	u8 mbc1_read(u16 address);
+
+	void mbc1_multicart_write(u16 address, u8 value);
+	u8 mbc1_multicart_read(u16 address);
 
 	void mbc2_write(u16 address, u8 value);
 	u8 mbc2_read(u16 address);

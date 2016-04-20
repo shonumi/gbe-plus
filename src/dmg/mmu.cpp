@@ -50,6 +50,7 @@ void DMG_MMU::reset()
 	cart.mbc_type = ROM_ONLY;
 	cart.battery = false;
 	cart.ram = false;
+	cart.multicart = false;
 
 	cart.rtc = false;
 	cart.rtc_enabled = false;
@@ -202,6 +203,9 @@ u8 DMG_MMU::read_u8(u16 address)
 
 		else if(address < bios_size) { return bios[address]; }
 	}
+
+	//Read using ROM Banking
+	if((cart.multicart) && (address <= 0x3FFF)) { return mbc_read(address); }
 
 	//Read using ROM Banking
 	if((address >= 0x4000) && (address <= 0x7FFF) && (cart.mbc_type != ROM_ONLY)) { return mbc_read(address); }
@@ -1062,7 +1066,7 @@ u8 DMG_MMU::mbc_read(u16 address)
 	switch(cart.mbc_type)
 	{
 		case MBC1:
-			return mbc1_read(address);
+			return cart.multicart ? mbc1_multicart_read(address) : mbc1_read(address);
 			break;
 
 		case MBC2:
@@ -1089,7 +1093,7 @@ void DMG_MMU::mbc_write(u16 address, u8 value)
 	switch(cart.mbc_type)
 	{
 		case MBC1:
-			mbc1_write(address, value);
+			cart.multicart ? mbc1_multicart_write(address, value) : mbc1_write(address, value);
 			break;
 
 		case MBC2:
