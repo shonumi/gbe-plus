@@ -50,7 +50,7 @@ void DMG_MMU::reset()
 	cart.mbc_type = ROM_ONLY;
 	cart.battery = false;
 	cart.ram = false;
-	cart.multicart = false;
+	cart.multicart = config::use_multicart;
 
 	cart.rtc = false;
 	cart.rtc_enabled = false;

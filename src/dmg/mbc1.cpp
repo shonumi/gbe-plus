@@ -111,10 +111,8 @@ u8 DMG_MMU::mbc1_multicart_read(u16 address)
 			u8 ext_rom_bank = ((bank_bits << 5) | rom_bank);
 
 			//Convert standard MBC1 bank to multicart bank
-			ext_rom_bank = ((ext_rom_bank >> 1) & 0x30) | (ext_rom_bank & 0xF);
-
-			//Convert the bank to be 0x0, 0x10, 0x20 or 0x30;
-			ext_rom_bank &= 0x30;
+			//ROM0 bank becomes 0x0, 0x10, 0x20 or 0x30;
+			ext_rom_bank = ((ext_rom_bank >> 1) & 0x30);
 
 			//Read from Banks 2 and above
 			if(ext_rom_bank >= 2) 
@@ -122,7 +120,7 @@ u8 DMG_MMU::mbc1_multicart_read(u16 address)
 				return read_only_bank[ext_rom_bank - 2][address];
 			}
 
-			//When reading from Banks 0-1, just use the memory map
+			//When reading from Banks 0, just use the memory map
 			else { return memory_map[address]; }
 		}
 	}

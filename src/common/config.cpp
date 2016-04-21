@@ -75,6 +75,7 @@ namespace config
 	u32 flags = 0;
 	bool pause_emu = false;
 	bool use_bios = false;
+	bool use_multicart = false;
 	bool use_opengl = false;
 	bool turbo = false;
 
@@ -484,6 +485,9 @@ bool parse_cli_args()
 				}
 			}
 
+			//Use multicart mode if applicable for a given ROM
+			else if(config::cli_args[x] == "--multicart") { config::use_multicart = true; }
+
 			//Use OpenGL for screen drawing
 			else if(config::cli_args[x] == "--opengl") { config::use_opengl = true; }
 
@@ -520,6 +524,7 @@ bool parse_cli_args()
 				std::cout<<"GBE+ Command Line Options:\n";
 				std::cout<<"-b [FILE], --bios [FILE] \t\t Load and use BIOS file\n";
 				std::cout<<"-d, --debug \t\t\t\t Start the command-line debugger\n";
+				std::cout<<"--multicart \t\t\t\t Use multicart mode if applicable\n";
 				std::cout<<"--opengl \t\t\t\t Use OpenGL for screen drawing and scaling\n";
 				std::cout<<"--2x, --3x, --4x, --5x, --6x \t\t Scale screen by a given factor (OpenGL only)\n";
 				std::cout<<"--sys-auto \t\t\t\t Set the emulated system type to AUTO\n";

@@ -54,6 +54,7 @@ namespace config
 	extern u32 flags;
 	extern bool pause_emu;
 	extern bool use_bios;
+	extern bool use_multicart;
 	extern bool use_opengl;
 	extern bool use_debugger;
 	extern bool turbo;
