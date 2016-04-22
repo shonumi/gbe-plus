@@ -78,13 +78,13 @@ u8 DMG_MMU::mbc1_read(u16 address)
 }
 
 
-/****** Performs write operations specific to the MBC1 ******/
+/****** Performs write operations specific to the MBC1M ******/
 void DMG_MMU::mbc1_multicart_write(u16 address, u8 value)
 {
 	//MBC register - Select ROM bank - Bits 0 to 4
 	if((address >= 0x2000) && (address <= 0x3FFF)) 
 	{ 
-		rom_bank = (value & 0x1F);
+		rom_bank = (value & 0xF);
 	}
 
 	//MBC register - Select ROM bank bits 5 to 6 or Set or RAM bank
@@ -96,7 +96,7 @@ void DMG_MMU::mbc1_multicart_write(u16 address, u8 value)
 	else if((address >= 0x6000) && (address <= 0x7FFF)) { bank_mode = (value & 0x1); }
 }
 
-/****** Performs read operations specific to the MBC1 ******/
+/****** Performs read operations specific to the MBC1M ******/
 u8 DMG_MMU::mbc1_multicart_read(u16 address)
 {
 	//Read using ROM Banking - Bank 0
@@ -108,11 +108,7 @@ u8 DMG_MMU::mbc1_multicart_read(u16 address)
 		//When the ROM/RAM select bit is set, read from Banks 0, 0x10, 0x20, or 0x30
 		else
 		{
-			u8 ext_rom_bank = ((bank_bits << 5) | rom_bank);
-
-			//Convert standard MBC1 bank to multicart bank
-			//ROM0 bank becomes 0x0, 0x10, 0x20 or 0x30;
-			ext_rom_bank = ((ext_rom_bank >> 1) & 0x30);
+			u8 ext_rom_bank = (bank_bits << 4);
 
 			//Read from Banks 2 and above
 			if(ext_rom_bank >= 2) 
@@ -128,10 +124,7 @@ u8 DMG_MMU::mbc1_multicart_read(u16 address)
 	//Read using ROM Banking - Banks 1 and above
 	else if((address >= 0x4000) && (address <= 0x7FFF))
 	{
-		u8 ext_rom_bank = ((bank_bits << 5) | rom_bank);
-		
-		//Convert standard MBC1 bank to multicart bank
-		if(bank_mode == 1) { ext_rom_bank = ((ext_rom_bank >> 1) & 0x30) | (ext_rom_bank & 0xF); }
+		u8 ext_rom_bank = ((bank_bits << 4) | rom_bank);
 
 		//If bank is 0x20, 0x40, or 0x60, set to 0x21, 0x41, and 0x61 respectively
 		if(ext_rom_bank == 0x20 || ext_rom_bank == 0x40 || ext_rom_bank == 0x60) { ext_rom_bank++; }
