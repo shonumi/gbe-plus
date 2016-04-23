@@ -27,7 +27,7 @@ NTR_MMU::~NTR_MMU()
 void NTR_MMU::reset()
 {
 	memory_map.clear();
-	memory_map.resize(0xB000000, 0);
+	memory_map.resize(0x10000000, 0);
 
 	//HLE stuff
 	memory_map[NDS_DISPCNT_A] = 0x80;
@@ -43,7 +43,7 @@ void NTR_MMU::reset()
 u8 NTR_MMU::read_u8(u32 address) const
 {
 	//Check for unused memory first
-	if(address >= 0xB000000) { std::cout<<"Out of bounds read : 0x" << std::hex << address << "\n"; return 0; }
+	if(address >= 0x10000000) { std::cout<<"Out of bounds read : 0x" << std::hex << address << "\n"; return 0; }
 
 	return memory_map[address];
 }
@@ -76,7 +76,7 @@ u32 NTR_MMU::read_u32_fast(u32 address) const
 void NTR_MMU::write_u8(u32 address, u8 value)
 {
 	//Check for unused memory first
-	if(address >= 0x10000000) { std::cout<<"Out of bounds write : 0x" << std::hex << address << "\n"; return; }
+	if(address >= 0x10000000) { std::cout<<"Out of bounds write : 0x" << std::hex << address << "\n"; SDL_Delay(3000); return; }
 
 	switch(address)
 	{
