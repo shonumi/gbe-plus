@@ -541,7 +541,7 @@ std::string DMG_core::debug_get_mnemonic(u32 addr)
 	switch(opcode)
 	{
 		case 0x0: return "NOP";
-		case 0x1: return "LD BC, " + util::to_hex_str(op1);
+		case 0x1: return "LD BC, " + util::to_hex_str(op2);
 		case 0x2: return "LD (BC), A";
 		case 0x3: return "INC BC";
 		case 0x4: return "INC B";
