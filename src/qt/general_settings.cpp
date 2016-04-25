@@ -64,10 +64,22 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	bios_layout->addWidget(bios_label);
 	bios_set->setLayout(bios_layout);
 
+	//General settings - Emulate multicarts
+	QWidget* multicart_set = new QWidget(general);
+	QLabel* multicart_label = new QLabel("Emulate multicart ROMs (MBC1M)", multicart_set);
+	multicart = new QCheckBox(multicart_set);
+
+	QHBoxLayout* multicart_layout = new QHBoxLayout;
+	multicart_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	multicart_layout->addWidget(multicart);
+	multicart_layout->addWidget(multicart_label);
+	multicart_set->setLayout(multicart_layout);
+
 	QVBoxLayout* gen_layout = new QVBoxLayout;
 	gen_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	gen_layout->addWidget(sys_type_set);
 	gen_layout->addWidget(bios_set);
+	gen_layout->addWidget(multicart_set);
 	general->setLayout(gen_layout);
 
 	//Display settings - Screen scale

@@ -368,6 +368,10 @@ void main_menu::boot_game()
 		hw_screen->hide();
 	}
 
+	//Check multicart status
+	if(settings->multicart->isChecked()) { config::use_multicart = true; }
+	else { config::use_multicart = false; }
+
 	findChild<QAction*>("pause_action")->setChecked(false);
 
 	menu_height = menu_bar->height();
