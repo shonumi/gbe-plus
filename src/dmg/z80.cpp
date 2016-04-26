@@ -262,6 +262,19 @@ bool Z80::handle_interrupts()
 			return true;
 		}
 
+		//Perform Serial Input-Output Interrupt
+		if((mem->memory_map[IE_FLAG] & 0x08) && (mem->memory_map[IF_FLAG] & 0x08))
+		{
+			interrupt = false;
+			halt = false;
+			mem->memory_map[IF_FLAG] &= ~0x08;
+			reg.sp -= 2;
+			mem->write_u16(reg.sp, reg.pc);
+			reg.pc = 0x58;
+			cycles += 36;
+			return true;
+		}
+
 		else { return false; }
 	}
 

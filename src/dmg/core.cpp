@@ -33,6 +33,10 @@ DMG_core::DMG_core()
 	core_cpu.controllers.audio.mem = &core_mmu;
 	core_mmu.set_apu_data(&core_cpu.controllers.audio.apu_stat);
 
+	//Link SIO and MMU
+	core_cpu.controllers.serial_io.mem = &core_mmu;
+	core_mmu.set_sio_data(&core_cpu.controllers.serial_io.sio_stat);
+
 	//Link MMU and GamePad
 	core_cpu.mem->g_pad = &core_pad;
 
@@ -100,6 +104,9 @@ void DMG_core::reset()
 
 	//Link APU and MMU
 	core_cpu.controllers.audio.mem = &core_mmu;
+
+	//Link SIO and MMU
+	core_cpu.controllers.serial_io.mem = &core_mmu;
 
 	//Link MMU and GamePad
 	core_cpu.mem->g_pad = &core_pad;
@@ -261,6 +268,29 @@ void DMG_core::run_core()
 				}
 			}
 
+			//Update serial input-output operations
+			if(core_cpu.controllers.serial_io.sio_stat.shifts_left != 0)
+			{
+				core_cpu.controllers.serial_io.sio_stat.shift_counter += core_cpu.cycles;
+
+				if(core_cpu.controllers.serial_io.sio_stat.shift_counter >= 512)
+				{
+					//Shift bit out from SB, transfer it
+					core_mmu.memory_map[REG_SB] <<= 1;
+					
+					core_cpu.controllers.serial_io.sio_stat.shift_counter -= 512;
+					core_cpu.controllers.serial_io.sio_stat.shifts_left--;
+
+					//Trigger SIO interrupt
+					if(core_cpu.controllers.serial_io.sio_stat.shifts_left == 0)
+					{
+						core_mmu.memory_map[IF_FLAG] |= 0x08;
+
+						//For now, always emulate disconnected link cable (on an internal clock)	
+						core_mmu.memory_map[REG_SB] = 0xFF;
+					}
+				}
+			}
 		}
 
 		//Stop emulation

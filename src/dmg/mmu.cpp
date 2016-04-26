@@ -1016,6 +1016,26 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		memory_map[address] = value;
 	}
 
+	//SB - Serial transfer data
+	else if(address == REG_SB)
+	{
+		memory_map[address] = value;
+	}
+
+	//SC - Serial tranfer control
+	else if(address == REG_SC)
+	{
+		memory_map[address] = value;
+		sio_stat->internal_clock = (value & 0x2) ? true : false;
+
+		//Start serial transfer
+		if(value & 0x80)
+		{
+			sio_stat->shifts_left = 8;
+			sio_stat->shift_counter = 0;
+		}
+	}
+
 	else if(address > 0x7FFF) { memory_map[address] = value; }
 
 	//CGFX processing - Check for BG updates
@@ -1617,3 +1637,7 @@ void DMG_MMU::set_cgfx_data(dmg_cgfx_data* ex_cgfx_stat) { cgfx_stat = ex_cgfx_s
 
 /****** Points the MMU to an apu_data structure (FROM THE APU ITSELF) ******/
 void DMG_MMU::set_apu_data(dmg_apu_data* ex_apu_stat) { apu_stat = ex_apu_stat; }
+
+/****** Points the MMU to an sio_data structure (FROM SIO ITSELF) ******/
+void DMG_MMU::set_sio_data(dmg_sio_data* ex_sio_stat) { sio_stat = ex_sio_stat; }
+

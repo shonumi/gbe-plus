@@ -18,6 +18,7 @@
 #include "mmu.h"
 #include "lcd.h"
 #include "apu.h"
+#include "sio.h"
 
 class Z80
 {
@@ -105,6 +106,7 @@ class Z80
 	{
 		DMG_LCD video;
 		DMG_APU audio;
+		DMG_SIO serial_io;
 	} controllers;
 
 	//Core Functions
