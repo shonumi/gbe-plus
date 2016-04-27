@@ -273,6 +273,7 @@ void DMG_core::run_core()
 			{
 				core_cpu.controllers.serial_io.sio_stat.shift_counter += core_cpu.cycles;
 
+				//After SIO clocks, perform SIO operations now
 				if(core_cpu.controllers.serial_io.sio_stat.shift_counter >= 512)
 				{
 					//Shift bit out from SB, transfer it
@@ -281,13 +282,18 @@ void DMG_core::run_core()
 					core_cpu.controllers.serial_io.sio_stat.shift_counter -= 512;
 					core_cpu.controllers.serial_io.sio_stat.shifts_left--;
 
-					//Trigger SIO interrupt
+					//Complete the transfer
 					if(core_cpu.controllers.serial_io.sio_stat.shifts_left == 0)
 					{
+						//Reset Bit 7 in SC
+						core_mmu.memory_map[REG_SC] &= ~0x80;
+						core_cpu.controllers.serial_io.sio_stat.active_transfer = false;
+
+						//Trigger SIO interrupt after sending data
 						core_mmu.memory_map[IF_FLAG] |= 0x08;
 
 						//For now, always emulate disconnected link cable (on an internal clock)	
-						core_mmu.memory_map[REG_SB] = 0xFF;
+						if(core_cpu.controllers.serial_io.sio_stat.internal_clock) { core_mmu.memory_map[REG_SB] = 0xFF; }
 					}
 				}
 			}

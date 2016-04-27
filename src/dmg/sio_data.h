@@ -17,6 +17,7 @@
 struct dmg_sio_data
 {
 	bool connected;
+	bool active_transfer;
 	bool double_speed;
 	bool internal_clock;
 	u8 shifts_left;

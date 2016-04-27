@@ -1025,15 +1025,30 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	//SC - Serial tranfer control
 	else if(address == REG_SC)
 	{
-		memory_map[address] = value;
-		sio_stat->internal_clock = (value & 0x2) ? true : false;
+		value &= 0x83;
+		sio_stat->internal_clock = (value & 0x1) ? true : false;
 
 		//Start serial transfer
 		if(value & 0x80)
 		{
-			sio_stat->shifts_left = 8;
-			sio_stat->shift_counter = 0;
+			//If using internal clock, start the transfer immediately
+			if(sio_stat->internal_clock)
+			{
+				sio_stat->active_transfer = true;
+				sio_stat->shifts_left = 8;
+				sio_stat->shift_counter = 0;
+			}
+
+			//If using external clock, wait for input from outside clock source
+			//If an outside clock source has already been supplied, start the transfer
+			else
+			{
+				sio_stat->active_transfer = true;
+				std::cout<<"Waiting\n";
+			}
 		}
+
+		memory_map[address] = value;
 	}
 
 	else if(address > 0x7FFF) { memory_map[address] = value; }

@@ -26,9 +26,10 @@ DMG_SIO::~DMG_SIO()
 /****** Reset SIO ******/
 void DMG_SIO::reset()
 {
+	sio_stat.connected = false;
+	sio_stat.active_transfer = false;
 	sio_stat.double_speed = false;
 	sio_stat.internal_clock = false;
-	sio_stat.connected = false;
 	sio_stat.shifts_left = 0;
 	sio_stat.shift_counter = 0;
 }
