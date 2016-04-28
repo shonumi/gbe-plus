@@ -179,7 +179,10 @@ void DMG_APU::generate_channel_1_samples(s16* stream, int length)
 					//Increase frequency
 					if(apu_stat.channel[0].sweep_direction == 0)
 					{
-						pre_calc = (apu_stat.channel[0].raw_frequency >> apu_stat.channel[0].sweep_shift);
+						if((apu_stat.channel[0].sweep_shift >= 1) || (apu_stat.channel[0].raw_frequency >= 0x400))
+						{
+							pre_calc = (apu_stat.channel[0].raw_frequency >> apu_stat.channel[0].sweep_shift);
+						}
 
 						//When frequency is greater than 131KHz, stop sound
 						if((apu_stat.channel[0].raw_frequency + pre_calc) >= 0x800) 
@@ -201,7 +204,7 @@ void DMG_APU::generate_channel_1_samples(s16* stream, int length)
 					//Decrease frequency
 					else if(apu_stat.channel[0].sweep_direction == 1)
 					{
-						pre_calc = (apu_stat.channel[0].raw_frequency >> apu_stat.channel[0].sweep_shift);
+						if(apu_stat.channel[0].sweep_shift >= 1) { pre_calc = (apu_stat.channel[0].raw_frequency >> apu_stat.channel[0].sweep_shift); }
 
 						//Only sweep down when result of frequency change is greater than zero
 						if((apu_stat.channel[0].raw_frequency - pre_calc) >= 0) 

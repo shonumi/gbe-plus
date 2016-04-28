@@ -1053,7 +1053,6 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 			else
 			{
 				sio_stat->active_transfer = true;
-				std::cout<<"Waiting\n";
 			}
 		}
 
