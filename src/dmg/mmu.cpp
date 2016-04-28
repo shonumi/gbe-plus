@@ -455,7 +455,8 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 			apu_stat->channel[0].envelope_direction = (memory_map[NR12] & 0x08) ? 1 : 0;
 			apu_stat->channel[0].envelope_step = (memory_map[NR12] & 0x07);
 
-			if(apu_stat->channel[0].envelope_step == 0) { apu_stat->channel[0].volume = 0; }
+			//Turn off sound channel if envelope volume is 0 and mode is subtraction
+			if((apu_stat->channel[0].envelope_direction == 0) && (apu_stat->channel[0].volume == 0)) { apu_stat->channel[0].playing = false; }
 
 			//Sweep
 			apu_stat->channel[0].sweep_direction = (memory_map[NR10] & 0x08) ? 1 : 0;
@@ -591,7 +592,8 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 			apu_stat->channel[1].envelope_direction = (memory_map[NR22] & 0x08) ? 1 : 0;
 			apu_stat->channel[1].envelope_step = (memory_map[NR22] & 0x07);
 
-			if(apu_stat->channel[1].envelope_step == 0) { apu_stat->channel[1].volume = 0; }
+			//Turn off sound channel if envelope volume is 0 and mode is subtraction
+			if((apu_stat->channel[1].envelope_direction == 0) && (apu_stat->channel[1].volume == 0)) { apu_stat->channel[1].playing = false; }
 
 			//Internal APU time-keeping
 			apu_stat->channel[1].frequency_distance = 0;
@@ -749,7 +751,8 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 			apu_stat->channel[3].envelope_direction = (memory_map[NR42] & 0x08) ? 1 : 0;
 			apu_stat->channel[3].envelope_step = (memory_map[NR42] & 0x07);
 
-			if(apu_stat->channel[3].envelope_step == 0) { apu_stat->channel[3].volume = 0; }
+			//Turn off sound channel if envelope volume is 0 and mode is subtraction
+			if((apu_stat->channel[3].envelope_direction == 0) && (apu_stat->channel[3].volume == 0)) { apu_stat->channel[3].playing = false; }
 
 			//Internal APU time-keeping
 			apu_stat->channel[3].frequency_distance = 0;
