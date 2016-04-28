@@ -455,6 +455,8 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 			apu_stat->channel[0].envelope_direction = (memory_map[NR12] & 0x08) ? 1 : 0;
 			apu_stat->channel[0].envelope_step = (memory_map[NR12] & 0x07);
 
+			if(apu_stat->channel[0].envelope_step == 0) { apu_stat->channel[0].volume = 0; }
+
 			//Sweep
 			apu_stat->channel[0].sweep_direction = (memory_map[NR10] & 0x08) ? 1 : 0;
 			apu_stat->channel[0].sweep_time = ((memory_map[NR10] >> 4) & 0x7);
@@ -588,6 +590,8 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 			apu_stat->channel[1].volume = (memory_map[NR22] >> 4);
 			apu_stat->channel[1].envelope_direction = (memory_map[NR22] & 0x08) ? 1 : 0;
 			apu_stat->channel[1].envelope_step = (memory_map[NR22] & 0x07);
+
+			if(apu_stat->channel[1].envelope_step == 0) { apu_stat->channel[1].volume = 0; }
 
 			//Internal APU time-keeping
 			apu_stat->channel[1].frequency_distance = 0;
@@ -744,6 +748,8 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 			apu_stat->channel[3].volume = (memory_map[NR42] >> 4);
 			apu_stat->channel[3].envelope_direction = (memory_map[NR42] & 0x08) ? 1 : 0;
 			apu_stat->channel[3].envelope_step = (memory_map[NR42] & 0x07);
+
+			if(apu_stat->channel[3].envelope_step == 0) { apu_stat->channel[3].volume = 0; }
 
 			//Internal APU time-keeping
 			apu_stat->channel[3].frequency_distance = 0;
