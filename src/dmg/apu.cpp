@@ -544,12 +544,12 @@ void dmg_audio_callback(void* _apu, u8 *_stream, int _length)
 
 	DMG_APU* apu_link = (DMG_APU*) _apu;
 	apu_link->generate_channel_1_samples(channel_1_stream, length);
-	apu_link->generate_channel_2_samples(channel_2_stream, length);
-	apu_link->generate_channel_3_samples(channel_3_stream, length);
-	apu_link->generate_channel_4_samples(channel_4_stream, length);
+	//apu_link->generate_channel_2_samples(channel_2_stream, length);
+	//apu_link->generate_channel_3_samples(channel_3_stream, length);
+	//apu_link->generate_channel_4_samples(channel_4_stream, length);
 
 	SDL_MixAudio((u8*)stream, (u8*)channel_1_stream, length*2, apu_link->apu_stat.channel_master_volume);
-	SDL_MixAudio((u8*)stream, (u8*)channel_2_stream, length*2, apu_link->apu_stat.channel_master_volume);
-	SDL_MixAudio((u8*)stream, (u8*)channel_3_stream, length*2, apu_link->apu_stat.channel_master_volume);
-	SDL_MixAudio((u8*)stream, (u8*)channel_4_stream, length*2, apu_link->apu_stat.channel_master_volume);
+	//SDL_MixAudio((u8*)stream, (u8*)channel_2_stream, length*2, apu_link->apu_stat.channel_master_volume);
+	//SDL_MixAudio((u8*)stream, (u8*)channel_3_stream, length*2, apu_link->apu_stat.channel_master_volume);
+	//SDL_MixAudio((u8*)stream, (u8*)channel_4_stream, length*2, apu_link->apu_stat.channel_master_volume);
 }
