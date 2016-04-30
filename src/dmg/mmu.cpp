@@ -792,6 +792,27 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		{
 			memory_map[address] &= ~0x80;
 			apu_stat->sound_on = false;
+
+			//Destroy NR register values when turning sound off
+			//TODO - Return 0x00 when reading while this is disabled?
+			write_u8(NR10, 0x0);
+			write_u8(NR11, 0x0);
+			write_u8(NR12, 0x0);
+			write_u8(NR13, 0x0);
+			write_u8(NR14, 0x0);
+			write_u8(NR21, 0x0);
+			write_u8(NR22, 0x0);
+			write_u8(NR23, 0x0);
+			write_u8(NR24, 0x0);
+			write_u8(NR30, 0x0);
+			write_u8(NR31, 0x0);
+			write_u8(NR32, 0x0);
+			write_u8(NR33, 0x0);
+			write_u8(NR34, 0x0);
+			write_u8(NR41, 0x0);
+			write_u8(NR42, 0x0);
+			write_u8(NR43, 0x0);
+			write_u8(NR44, 0x0);
 		}
 	}
 
