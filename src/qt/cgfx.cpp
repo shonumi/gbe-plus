@@ -2766,6 +2766,18 @@ void gbe_cgfx::reject_folder()
 /****** Updates the dumping selection for multiple tiles in the layer tab ******/
 void gbe_cgfx::update_selection()
 {
+	//Make sure no more than 20 tiles can be selected horizontally
+	if((rect_x->value() + rect_w->value()) > 21)
+	{
+		rect_w->setValue(21 - rect_x->value());
+	}
+
+	//Make sure no more than 18 tiles can be selected horizontally
+	if((rect_y->value() + rect_h->value()) > 19)
+	{
+		rect_h->setValue(19 - rect_y->value());
+	}
+
 	if((rect_x->value() == 0) || (rect_y->value() == 0) || (rect_w->value() == 0) || (rect_h->value() == 0))
 	{
 		min_x_rect = max_x_rect = min_y_rect = max_y_rect = 255;
