@@ -35,6 +35,7 @@ namespace cgfx
 	extern std::string dump_bg_path;
 	extern std::string dump_obj_path;
 	extern std::string dump_name;
+	extern std::string meta_dump_name;
 
 	extern std::string last_hash;
 	extern u32 last_vram_addr;

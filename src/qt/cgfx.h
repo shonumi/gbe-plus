@@ -78,6 +78,8 @@ class gbe_cgfx : public QDialog
 	QSpinBox* rect_y;
 	QSpinBox* rect_h;
 
+	QLineEdit* meta_name;
+
 	//OBJ tab widgets
 	std::vector<QImage> cgfx_obj;
 	std::vector<QPushButton*> obj_button;

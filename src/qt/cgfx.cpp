@@ -129,6 +129,10 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	rect_w = new QSpinBox(section_x_set);
 	rect_w->setRange(0, 31);
 
+	QWidget* meta_name_set = new QWidget;
+	meta_name = new QLineEdit;
+	QLabel* meta_name_label = new QLabel("Meta Tile Name : ");
+
 	QHBoxLayout* section_x_layout = new QHBoxLayout;
 	section_x_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	section_x_layout->addWidget(section_x_label);
@@ -156,6 +160,12 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	section_y_layout->addWidget(rect_h);
 	section_y_set->setLayout(section_y_layout);
 
+	QHBoxLayout* meta_name_layout = new QHBoxLayout;
+	meta_name_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	meta_name_layout->addWidget(meta_name_label);
+	meta_name_layout->addWidget(meta_name);
+	meta_name_set->setLayout(meta_name_layout);
+
 	//Layer GroupBox for section
 	QGroupBox* section_set = new QGroupBox(tr("Dump Selection"));
 	QPushButton* dump_section_button = new QPushButton("Dump Current Selection");
@@ -163,6 +173,7 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	section_final_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	section_final_layout->addWidget(section_x_set);
 	section_final_layout->addWidget(section_y_set);
+	section_final_layout->addWidget(meta_name_set);
 	section_final_layout->addWidget(dump_section_button);
 	section_set->setLayout(section_final_layout);
 
@@ -2805,7 +2816,11 @@ void gbe_cgfx::dump_selection()
 	if(main_menu::gbe_plus == NULL) { return; }
 	if((rect_x->value() == 0) || (rect_y->value() == 0) || (rect_w->value() == 0) || (rect_h->value() == 0)) { return; }
 	if(layer_select->currentIndex() == 2) { return; }
-	
+
+	//Grab metatile name
+	cgfx::meta_dump_name = meta_name->text().toStdString();
+	if(cgfx::meta_dump_name.empty()) { cgfx::meta_dump_name = "META"; }
+
 	//Temporarily revert highlighting to extract image
 	u8 temp_x1 = min_x_rect;
 	u8 temp_x2 = max_x_rect;
@@ -2838,7 +2853,7 @@ void gbe_cgfx::dump_selection()
 
 	QImage raw_screen = current_layer->pixmap()->toImage().scaled(160, 144);
 	QRect rect(min_x_rect, min_y_rect, max_x_rect, max_y_rect);
-	QString file_path(QString::fromStdString(config::data_path + cgfx::dump_bg_path + "test.bmp"));
+	QString file_path(QString::fromStdString(config::data_path + cgfx::dump_bg_path + cgfx::meta_dump_name + ".bmp"));
 
 	raw_screen = raw_screen.copy(rect);
 	raw_screen.save(file_path);
@@ -2859,7 +2874,7 @@ void gbe_cgfx::dump_selection()
 
 	//Write main entry
 	//TODO - Fill this in QLineEdit values
-	entry = "[" + cgfx::dump_bg_path + "test.bmp" + ":" + "TEST" + "]";
+	entry = "[" + cgfx::dump_bg_path + cgfx::meta_dump_name + ".bmp" + ":" + cgfx::meta_dump_name + "]";
 	file << "\n" << entry;
 
 	u8 entry_count = 0;
@@ -2869,7 +2884,7 @@ void gbe_cgfx::dump_selection()
 	{
 		for(int x = min_x_rect; x < (max_x_rect + 1); x++)
 		{
-			std::string gfx_name = "TEST_" + util::to_str(entry_count++);
+			std::string gfx_name = cgfx::meta_dump_name + "_" + util::to_str(entry_count++);
 			std::string gfx_type = (config::gb_type == 2) ? "20" : "10";
 			
 			entry = "[" + hash_tile((x * 8), (y * 8)) + ":" + gfx_name + ":" + gfx_type + ":0:0]";
