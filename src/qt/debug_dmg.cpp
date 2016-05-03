@@ -1212,7 +1212,12 @@ void dmg_debug::close_debug()
 		main_menu::dmg_debugger->pause = false;
 		config::pause_emu = main_menu::dmg_debugger->old_pause;
 		qt_gui::draw_surface->pause_emu();
-	}	
+	}
+
+	//Clear existing breakpoints on close
+	main_menu::dmg_debugger->dasm->setText(main_menu::dmg_debugger->dasm_text);
+	main_menu::gbe_plus->db_unit.breakpoints.clear();
+	main_menu::dmg_debugger->clear_format();
 }
 
 /****** Refresh the display data ******/
@@ -1815,10 +1820,7 @@ void dmg_debug::clear_format()
 }
 
 /****** Moves the debugger one instruction in disassembly ******/
-void dmg_debug::db_next() 
-{
-	if(main_menu::gbe_plus->db_unit.last_command != "c") { main_menu::gbe_plus->db_unit.last_command = "n"; }
-}
+void dmg_debug::db_next() { main_menu::gbe_plus->db_unit.last_command = "n"; }
 
 /****** Continues emulation until debugger hits breakpoint ******/
 void dmg_debug::db_continue() { main_menu::gbe_plus->db_unit.last_command = "c"; }
