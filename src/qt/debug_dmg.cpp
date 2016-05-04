@@ -1217,7 +1217,11 @@ void dmg_debug::close_debug()
 	//Clear existing breakpoints on close
 	main_menu::dmg_debugger->dasm->setText(main_menu::dmg_debugger->dasm_text);
 	main_menu::gbe_plus->db_unit.breakpoints.clear();
-	main_menu::dmg_debugger->clear_format();
+
+	//Clear format manually
+	QTextCursor cursor(dasm->textCursor());
+	cursor.setPosition(QTextCursor::Start, QTextCursor::MoveAnchor);
+	cursor.setBlockFormat(original_format);
 }
 
 /****** Refresh the display data ******/
