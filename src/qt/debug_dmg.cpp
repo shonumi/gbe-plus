@@ -599,6 +599,30 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	p1_layout->addWidget(mmio_p1, 0, Qt::AlignRight);
 	p1_set->setLayout(p1_layout);
 
+	//SB
+	QWidget* sb_set = new QWidget(io_regs);
+	QLabel* sb_label = new QLabel("0xFF01 - SB:", sb_set);
+	mmio_sb = new QLineEdit(sb_set);
+	mmio_sb->setMaximumWidth(64);
+	mmio_sb->setReadOnly(true);
+
+	QHBoxLayout* sb_layout = new QHBoxLayout;
+	sb_layout->addWidget(sb_label, 0, Qt::AlignLeft);
+	sb_layout->addWidget(mmio_sb, 0, Qt::AlignRight);
+	sb_set->setLayout(sb_layout);
+
+	//SC
+	QWidget* sc_set = new QWidget(io_regs);
+	QLabel* sc_label = new QLabel("0xFF02 - SC:", sc_set);
+	mmio_sc = new QLineEdit(sc_set);
+	mmio_sc->setMaximumWidth(64);
+	mmio_sc->setReadOnly(true);
+
+	QHBoxLayout* sc_layout = new QHBoxLayout;
+	sc_layout->addWidget(sc_label, 0, Qt::AlignLeft);
+	sc_layout->addWidget(mmio_sc, 0, Qt::AlignRight);
+	sc_set->setLayout(sc_layout);
+
 	//DIV
 	QWidget* div_set = new QWidget(io_regs);
 	QLabel* div_label = new QLabel("0xFF04 - DIV:", div_set);
@@ -726,12 +750,14 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	io_layout->addWidget(ocpd_set, 2, 3, 1, 1);
 	io_layout->addWidget(svbk_set, 3, 3, 1, 1);
 	io_layout->addWidget(p1_set, 4, 3, 1, 1);
-	io_layout->addWidget(div_set, 5, 3, 1, 1);
-	io_layout->addWidget(tima_set, 6, 3, 1, 1);
-	io_layout->addWidget(tma_set, 7, 3, 1, 1);
-	io_layout->addWidget(tac_set, 8, 3, 1, 1);
-	io_layout->addWidget(ie_set, 9, 3, 1, 1);
-	io_layout->addWidget(if_set, 10, 3, 1, 1);
+	io_layout->addWidget(sb_set, 5, 3, 1, 1);
+	io_layout->addWidget(sc_set, 6, 3, 1, 1);
+	io_layout->addWidget(div_set, 7, 3, 1, 1);
+	io_layout->addWidget(tima_set, 8, 3, 1, 1);
+	io_layout->addWidget(tma_set, 9, 3, 1, 1);
+	io_layout->addWidget(tac_set, 10, 3, 1, 1);
+	io_layout->addWidget(ie_set, 11, 3, 1, 1);
+	io_layout->addWidget(if_set, 12, 3, 1, 1);
 
 	io_regs->setLayout(io_layout);
 
@@ -1383,6 +1409,12 @@ void dmg_debug::refresh()
 
 	temp = main_menu::gbe_plus->ex_read_u8(REG_P1);
 	mmio_p1->setText(QString("%1").arg(temp, 2, 16, QChar('0')).toUpper().prepend("0x"));
+
+	temp = main_menu::gbe_plus->ex_read_u8(REG_SB);
+	mmio_sb->setText(QString("%1").arg(temp, 2, 16, QChar('0')).toUpper().prepend("0x"));
+
+	temp = main_menu::gbe_plus->ex_read_u8(REG_SC);
+	mmio_sc->setText(QString("%1").arg(temp, 2, 16, QChar('0')).toUpper().prepend("0x"));
 
 	temp = main_menu::gbe_plus->ex_read_u8(IE_FLAG);
 	mmio_ie->setText(QString("%1").arg(temp, 2, 16, QChar('0')).toUpper().prepend("0x"));
