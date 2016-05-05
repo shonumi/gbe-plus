@@ -70,6 +70,7 @@ void DMG_LCD::reset()
 	lcd_stat.bg_scroll_y = 0;
 	lcd_stat.window_x = 0;
 	lcd_stat.window_y = 0;
+	lcd_stat.last_y = 0;
 
 	lcd_stat.oam_update = true;
 	for(int x = 0; x < 40; x++) { lcd_stat.oam_update_list[x] = true; }
@@ -1768,6 +1769,10 @@ void DMG_LCD::step(int cpu_clock)
 			if(lcd_stat.lcd_mode != 1)
 			{
 				lcd_stat.lcd_mode = 1;
+
+				//Restore Window parameters
+				lcd_stat.last_y = 0;
+				lcd_stat.window_y = mem->memory_map[REG_WY];
 
 				//Check for screen resize - DMG/GBC stretch
 				if((config::request_resize) && (config::resize_mode > 0))

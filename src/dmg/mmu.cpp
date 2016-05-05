@@ -878,6 +878,20 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		lcd_stat->on_off = lcd_stat->lcd_enable;
 		u8 old_size = lcd_stat->obj_size;
 
+		//Check to see if the Window was turned off while the screen was still active
+		//Record the current rendered line of the Window, start rendering on this line if turned on again before VBlank
+		if((lcd_stat->window_enable) && ((value & 0x20) == 0) && (lcd_stat->lcd_mode != 1))
+		{
+			lcd_stat->last_y = (lcd_stat->current_scanline - lcd_stat->window_y);
+		}
+
+		//Check to see if the Window was turned on while the screen was still active
+		//Use the last recorded Window render line if the Window was previously turned on
+		if((!lcd_stat->window_enable) && (value & 0x20) && (lcd_stat->lcd_mode != 1) && (lcd_stat->last_y))
+		{
+			lcd_stat->window_y = lcd_stat->current_scanline - lcd_stat->last_y;
+		}
+
 		lcd_stat->lcd_control = value;
 		lcd_stat->lcd_enable = (value & 0x80) ? true : false;
 		lcd_stat->window_map_addr = (value & 0x40) ? 0x9C00 : 0x9800;
