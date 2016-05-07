@@ -44,6 +44,7 @@ class main_menu : public QWidget
 	u32 screen_width;
 
 	void pause_emu();
+	void open_first_file();
 
 	protected:
 	void paintEvent(QPaintEvent* event);

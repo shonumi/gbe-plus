@@ -20,6 +20,13 @@ int main(int argc, char* args[])
 	//Initialize SDL subsystems
 	SDL_Init(SDL_INIT_EVERYTHING);
 
+	//Grab command-line arguments
+	for(int x = 0; x++ < argc - 1;) 
+	{ 
+		std::string temp_arg = args[x]; 
+		config::cli_args.push_back(temp_arg);
+	}
+
 	main_menu window;
 	qt_gui::draw_surface = &window;
 
@@ -29,6 +36,7 @@ int main(int argc, char* args[])
 	window.setWindowTitle("GBE+");
 	window.setWindowIcon(icon);
 	window.show();
+	window.open_first_file();
  
 	return app.exec();
 } 

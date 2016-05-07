@@ -141,6 +141,13 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	//Parse .ini options
 	parse_ini_file();
 
+	//Parse command-line arguments
+	//These will override .ini options!
+	if(!parse_cli_args()) { exit(0); }
+
+	//Some command-line arguments are invalid for the Qt version
+	config::use_debugger = false;
+
 	//Setup Recent Files
 	QSignalMapper* list_mapper = new QSignalMapper(this);
 
@@ -264,13 +271,32 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	about_box->hide();
 }
 
+/****** Opens a file from the CLI arguments ******/
+void main_menu::open_first_file()
+{
+	//If command-line arguments are used and they are valid, try opening a ROM right away
+	if(!config::cli_args.empty()) { open_file(); }
+}
+
 /****** Open game file ******/
 void main_menu::open_file()
 {
 	SDL_PauseAudio(1);
 
-	QString filename = QFileDialog::getOpenFileName(this, tr("Open"), "", tr("GBx files (*.gb *.gbc *.gba)"));
-	if(filename.isNull()) { SDL_PauseAudio(0); return; }
+	if(config::cli_args.empty())
+	{
+		QString filename = QFileDialog::getOpenFileName(this, tr("Open"), "", tr("GBx files (*.gb *.gbc *.gba)"));
+		if(filename.isNull()) { SDL_PauseAudio(0); return; }
+
+		config::rom_file = filename.toStdString();
+		config::save_file = config::rom_file + ".sav";
+	}
+
+	else
+	{
+		parse_filenames();
+		config::cli_args.clear();
+	}
 
 	SDL_PauseAudio(0);
 
@@ -280,9 +306,6 @@ void main_menu::open_file()
 		main_menu::gbe_plus->shutdown();
 		main_menu::gbe_plus->core_emu::~core_emu();
 	}
-
-	config::rom_file = filename.toStdString();
-	config::save_file = config::rom_file + ".sav";
 
 	config::sdl_render = false;
 	config::render_external_sw = render_screen_sw;

@@ -459,7 +459,8 @@ void validate_system_type()
 bool parse_cli_args()
 {
 	//If no arguments were passed, cannot run without ROM file
-	if(config::cli_args.size() < 1) 
+	//If using external interfaces (e.g. the GUI), a ROM file is not necessary
+	if((config::cli_args.size() < 1) && (!config::use_external_interfaces))
 	{
 		std::cout<<"GBE::Error - No ROM file in arguments \n";
 		return false;
