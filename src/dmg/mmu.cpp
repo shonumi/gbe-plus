@@ -918,6 +918,10 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	//STAT
 	else if(address == REG_STAT)
 	{
+		//Trigger STAT IRQ when writing to STAT register
+		//This only happens on DMG models (and SGBs???) during HBLANK or VBLANK periods
+		if((lcd_stat->lcd_mode < 2) && (lcd_stat->lcd_enable) && (config::gb_type < 2)) { memory_map[IF_FLAG] |= 0x2; }
+
 		u8 read_only_bits = (memory_map[REG_STAT] & 0x7);
 
 		memory_map[address] = (value & ~0x7);
