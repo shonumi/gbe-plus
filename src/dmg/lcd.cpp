@@ -1627,23 +1627,22 @@ void DMG_LCD::step(int cpu_clock)
 	{
 		lcd_stat.on_off = false;
 		lcd_stat.lcd_mode = 2;
+		lcd_stat.lcd_clock = 0;
+
+		lcd_stat.current_scanline = mem->memory_map[REG_LY] = 0;
+		scanline_compare();
 	}
 
 	//Disable the LCD (VBlank only?)
 	else if((lcd_stat.on_off) && (!lcd_stat.lcd_enable))
 	{
 		lcd_stat.on_off = false;
-	
+
 		//This should only happen in VBlank, but it's possible to do it in other modes
 		//On real DMG HW, it creates a black line on the scanline the LCD turns off
 		//Nintendo did NOT like this, as it could damage the LCD over repeated uses
 		//Note: this is the same effect you see when hitting the power switch OFF
 		if(lcd_stat.lcd_mode != 1) { std::cout<<"LCD::Warning - Disabling LCD outside of VBlank\n"; }
-
-		lcd_stat.current_scanline = mem->memory_map[REG_LY] = 0;
-		scanline_compare();
-		lcd_stat.lcd_clock = 0;
-		lcd_stat.lcd_mode = 0;
 	}
 
 	//Update background color palettes on the GBC
