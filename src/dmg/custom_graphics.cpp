@@ -39,6 +39,7 @@ bool DMG_LCD::load_manifest(std::string filename)
 
 	cgfx_stat.m_meta_files.clear();
 	cgfx_stat.m_meta_names.clear();
+	cgfx_stat.m_meta_forms.clear();
 
 	if(!file.is_open())
 	{
@@ -81,8 +82,8 @@ bool DMG_LCD::load_manifest(std::string filename)
 
 		//Determine if manifest is properly formed (roughly)
 		//Each manifest normal entry should have 5 parameters
-		//Each metatile entry should have 2 parameters
-		if((item_count != 5) && (item_count != 2) && (item_count != 0))
+		//Each metatile entry should have 3 parameters
+		if((item_count != 5) && (item_count != 3) && (item_count != 0))
 		{
 			std::cout<<"CGFX::Manifest file " << filename << " has some missing parameters for some entries. \n";
 			file.close();
@@ -165,6 +166,13 @@ bool DMG_LCD::load_manifest(std::string filename)
 
 			//Grab base pattern name
 			cgfx_stat.m_meta_names.push_back(cgfx_stat.manifest[x++]);
+
+			//Grab metatile form
+			u32 form_value = 0;
+			util::from_str(cgfx_stat.manifest[x++], form_value);
+			cgfx_stat.m_meta_forms.push_back(form_value);
+
+			std::cout<<"FORM  VALUE -> " << form_value << "\n";
 		}
 	}
 
@@ -364,7 +372,18 @@ bool DMG_LCD::find_meta_data()
 		pos += width;
 	}
 
-	cgfx_stat.bg_pixel_data.push_back(cgfx_pixels);
+	//Try to push the meta pixel data to the BG pixel data set
+	if(cgfx_stat.m_meta_forms[meta_id] == 0) { cgfx_stat.bg_pixel_data.push_back(cgfx_pixels); }
+
+	//Try to push the meta pixel data to the OBJ pixel data set
+	else if(cgfx_stat.m_meta_forms[meta_id] == 1) { cgfx_stat.obj_pixel_data.push_back(cgfx_pixels); }
+
+	//Abort if invalid metatile form
+	else
+	{
+		std::cout<<"GBE::CGFX - Invalid metatile form : " << (u32)cgfx_stat.m_meta_forms[meta_id] << "\n";
+		return false;
+	}
 
 	return true;
 } 

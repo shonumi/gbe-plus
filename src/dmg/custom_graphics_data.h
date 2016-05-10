@@ -39,9 +39,11 @@ struct dmg_cgfx_data
 	//Data pulled from manifest file - Metatile entries
 	//Files - Location of the metatile image file
 	//Names - Base name for parsing entries
+	//Forms - 1 byte number to identify base type and size
 	//ID - Keeps track of where to look for pixel data when generating corresponding normal entries
 	std::vector <std::string> m_meta_files;
 	std::vector <std::string> m_meta_names;
+	std::vector <u8> m_meta_forms;
 	std::vector <u32> m_meta_width;
 	std::vector <u32> m_meta_height;
 
