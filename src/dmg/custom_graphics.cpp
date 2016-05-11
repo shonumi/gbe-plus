@@ -307,7 +307,9 @@ bool DMG_LCD::find_meta_data()
 	bool is_meta_tile = false;
 	u32 meta_tile_number = 0;
 
-	for(int x = 0; x < original_name.size(); x++)
+	//Parse the entry in reverse.
+	//1st underscore indicates metatile number, any others are part of the base name
+	for(int x = original_name.size() - 1; x >= 0; x--)
 	{
 		std::string temp = "";
 		temp += original_name[x];
@@ -317,11 +319,12 @@ bool DMG_LCD::find_meta_data()
 			is_meta_tile = true;
 		}
 
-		if(!is_meta_tile) { base_name += temp; }
-		else { base_number += temp; }
+		if(is_meta_tile) { base_name = temp + base_name; }
+		else { base_number = temp + base_number; }
 	}
 
-	base_number = base_number.substr(1);
+	//Chop off last underscore separating base name and meta tile number
+	base_name = base_name.substr(0, base_name.size() - 1);
 
 	//Return false if original name does not contain a base name for a metatile
 	if(!is_meta_tile) { return false; }
