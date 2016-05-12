@@ -67,6 +67,7 @@ const u32 NDS_BLDY = 0x4000054;
 
 const u32 NDS_VRAMCNT_A = 0x4000240;
 
+const u32 NDS_IME = 0x4000208;
 const u32 NDS_IE = 0x4000210;
 const u32 NDS_IF = 0x4000214;
 

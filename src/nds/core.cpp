@@ -179,6 +179,8 @@ void NTR_core::run_core()
 		else { stop(); }
 	}
 
+	debug_display();
+
 	//Shutdown core
 	shutdown();
 }

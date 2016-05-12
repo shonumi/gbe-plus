@@ -23,5 +23,9 @@ CP15::~CP15() { }
 /****** Reset CP15 ******/
 void CP15::reset()
 {
+	//Zero out CP15 registers
 	for(int x = 0; x < 33; x++) { regs[x] = 0; }
+
+	//For NDS9 also set C0,C0,0 to 0x41059461
+	regs[C0_C0_0] = 0x41059461; 
 }		
