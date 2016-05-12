@@ -968,6 +968,9 @@ void DMG_LCD::update_dmg_obj_hash(u8 obj_index)
 	}
 
 	cgfx_stat.obj_hash_list.push_back(final_hash);
+
+	//Limit OBJ hash list size, delete oldest entry
+	if(cgfx_stat.obj_hash_list.size() > 128) { cgfx_stat.obj_hash_list.erase(cgfx_stat.obj_hash_list.begin()); }
 }
 
 /****** Updates the current hash for the selected GBC OBJ ******/
@@ -1019,6 +1022,9 @@ void DMG_LCD::update_gbc_obj_hash(u8 obj_index)
 	//Optionally auto-dump GBC OBJ
 	if(cgfx::auto_dump_obj) { dump_gbc_obj(obj_index); }
 
+	//Limit OBJ hash list size, delete oldest entry
+	if(cgfx_stat.obj_hash_list.size() > 128) { cgfx_stat.obj_hash_list.erase(cgfx_stat.obj_hash_list.begin()); }
+
 	//Reset VRAM bank
 	mem->vram_bank = old_vram_bank;
 
@@ -1069,6 +1075,9 @@ void DMG_LCD::update_dmg_bg_hash(u16 bg_index)
 	}
 
 	cgfx_stat.bg_hash_list.push_back(final_hash);
+
+	//Limit BG hash list size, delete oldest entry
+	if(cgfx_stat.bg_hash_list.size() > 512) { cgfx_stat.bg_hash_list.erase(cgfx_stat.bg_hash_list.begin()); }
 }
 
 /****** Updates the current hash for the selected GBC BG tile ******/
@@ -1134,6 +1143,10 @@ void DMG_LCD::update_gbc_bg_hash(u16 map_addr)
 
 	//Optionally auto-dump GBC BG
 	if(cgfx::auto_dump_bg) { dump_gbc_bg(final_hash, bg_tile_addr, palette); }
+
+	//Limit BG hash list size, delete oldest entry
+	//To be on the safe side, allow 2x as much as the DMG
+	if(cgfx_stat.bg_hash_list.size() > 1024) { cgfx_stat.bg_hash_list.erase(cgfx_stat.bg_hash_list.begin()); }
 
 	//Reset VRAM bank
 	mem->vram_bank = old_vram_bank;
