@@ -1212,6 +1212,7 @@ void ARM9::coprocessor_register_transfer(u32 current_instruction)
 	if(arm_opcode)
 	{
 		//C0,C0,0 - 2 are Read-Only
+		std::cout<<"MRC -> C" << (int)cop_reg << ",C" << (int)cop_opr << "," << (int)cop_info << "\n";
 
 		//Move from C1,C0,0 to ARM register
 		if((cop_reg == 1) && (cop_opr == 0) && (cop_info == 0)) { set_reg(arm_reg, co_proc.regs[CP15::C1_C0_0]); }
@@ -1307,8 +1308,10 @@ void ARM9::coprocessor_register_transfer(u32 current_instruction)
 	//Execute MCR
 	else
 	{
+		std::cout<<"MCR -> C" << (int)cop_reg << ",C" << (int)cop_opr << "," << (int)cop_info << "\n";
+
 		//Move ARM register to C0,C0,0 - 2
-		else if((cop_reg == 0) && (cop_opr == 0))
+		if((cop_reg == 0) && (cop_opr == 0))
 		{
 			switch(cop_info)
 			{
@@ -1348,7 +1351,7 @@ void ARM9::coprocessor_register_transfer(u32 current_instruction)
 		}
 
 		//Move ARM register to C6,C0-C7,0
-		else if((cop_reg == 0) && (cop_info == 0))
+		else if((cop_reg == 6) && (cop_info == 0))
 		{
 			switch(cop_opr)
 			{
@@ -1365,7 +1368,7 @@ void ARM9::coprocessor_register_transfer(u32 current_instruction)
 		}
 
 		//Move ARM register to C6,C0-C7,1
-		else if((cop_reg == 0) && (cop_info == 1))
+		else if((cop_reg == 6) && (cop_info == 1))
 		{
 			switch(cop_opr)
 			{
@@ -1407,5 +1410,6 @@ void ARM9::coprocessor_register_transfer(u32 current_instruction)
 		else
 		{
 			std::cout<<"COP::Warning - MCR accessed unknown C15 register : C" << (int)cop_reg << ",C" << (int)cop_opr << "," << (int)cop_info << "\n";
-		} 
+		}
+	}
 }

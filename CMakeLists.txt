@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.11)
 
 project(gbe_plus)
 
-add_definitions(-O3 -funroll-loops -g)
+add_definitions(-O3 -funroll-loops)
 
 find_package(SDL REQUIRED)
 if (SDL_FOUND)
