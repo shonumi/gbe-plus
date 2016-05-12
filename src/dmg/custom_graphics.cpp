@@ -171,8 +171,6 @@ bool DMG_LCD::load_manifest(std::string filename)
 			u32 form_value = 0;
 			util::from_str(cgfx_stat.manifest[x++], form_value);
 			cgfx_stat.m_meta_forms.push_back(form_value);
-
-			std::cout<<"FORM  VALUE -> " << form_value << "\n";
 		}
 	}
 
@@ -349,6 +347,13 @@ bool DMG_LCD::find_meta_data()
 	//Return false if no meta tile base name exists
 	if(!found_match) { return false; }
 
+	//Abort if invalid metatile form
+	if(cgfx_stat.m_meta_forms[meta_id] > 3)
+	{
+		std::cout<<"GBE::CGFX - Invalid metatile form : " << (u32)cgfx_stat.m_meta_forms[meta_id] << "\n";
+		return false;
+	}
+
 	//Grab meta pixel data
 	std::vector<u32> cgfx_pixels;
 
@@ -357,7 +362,7 @@ bool DMG_LCD::find_meta_data()
 	u32 height = cgfx_stat.m_meta_height[meta_id];
 	
 	u32 tile_w = width / (8 * cgfx::scaling_factor);
-	u32 tile_h = height / (8 * cgfx::scaling_factor);
+	u32 tile_h = (cgfx_stat.m_meta_forms[meta_id] != 2) ? height / (8 * cgfx::scaling_factor) : height / (16 * cgfx::scaling_factor);
 	u32 tile_size = width / tile_w;
 
 	u32 pos = (width * tile_size) * (meta_tile_number / tile_w);
@@ -379,14 +384,7 @@ bool DMG_LCD::find_meta_data()
 	if(cgfx_stat.m_meta_forms[meta_id] == 0) { cgfx_stat.bg_pixel_data.push_back(cgfx_pixels); }
 
 	//Try to push the meta pixel data to the OBJ pixel data set
-	else if(cgfx_stat.m_meta_forms[meta_id] == 1) { cgfx_stat.obj_pixel_data.push_back(cgfx_pixels); }
-
-	//Abort if invalid metatile form
-	else
-	{
-		std::cout<<"GBE::CGFX - Invalid metatile form : " << (u32)cgfx_stat.m_meta_forms[meta_id] << "\n";
-		return false;
-	}
+	else { cgfx_stat.obj_pixel_data.push_back(cgfx_pixels); }
 
 	return true;
 } 
