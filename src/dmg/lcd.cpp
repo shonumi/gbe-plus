@@ -1149,9 +1149,6 @@ void DMG_LCD::render_cgfx_dmg_obj_scanline(u8 sprite_id)
 	u8 tile_line = (lcd_stat.current_scanline - obj[sprite_id].y);
 	if(obj[sprite_id].v_flip) { tile_line = (lcd_stat.obj_size == 8) ? lcd_stat.flip_8[tile_line] : lcd_stat.flip_16[tile_line]; }
 
-	//If sprite is below BG and BG raw color is non-zero, abort rendering this pixel
-	if((obj[sprite_id].bg_priority == 1) && (scanline_raw[lcd_stat.scanline_pixel_counter] != 0)) { return; }
-
 	//Grab the ID of this hash to pull custom pixel data
 	u16 obj_id = cgfx_stat.m_id[cgfx_stat.last_id];
 
@@ -1312,9 +1309,6 @@ void DMG_LCD::render_cgfx_gbc_obj_scanline(u8 sprite_id)
 	//Determine which line of the tiles to generate pixels for this scanline		
 	u8 tile_line = (lcd_stat.current_scanline - obj[sprite_id].y);
 	if(obj[sprite_id].v_flip) { tile_line = (lcd_stat.obj_size == 8) ? lcd_stat.flip_8[tile_line] : lcd_stat.flip_16[tile_line]; }
-
-	//If sprite is below BG and BG raw color is non-zero, abort rendering this pixel
-	if((obj[sprite_id].bg_priority == 1) && (scanline_raw[lcd_stat.scanline_pixel_counter] != 0)) { return; }
 
 	//Grab the ID of this hash to pull custom pixel data
 	u16 obj_id = cgfx_stat.m_id[cgfx_stat.last_id];
