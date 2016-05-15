@@ -6,13 +6,23 @@
 // Date : April 25, 2015
 // Description : Serial I/O data
 //
-// Defines the SIO data structures that the MMU will update whenever values are written in memory
+// Defines the SIO data structures and enums that the MMU will update whenever values are written in memory
 // Only the SIO should read values from this namespace. Only the MMU should write values to this namespace.
 
 #ifndef GB_SIO_DATA
 #define GB_SIO_DATA
 
 #include "common.h"
+
+//Serial Input-Output device-type enumeration
+enum sio_types
+{ 
+	NO_GB_DEVICE,
+	DMG_LINK,
+	DMG_07_LINK,
+	GBC_LINK,
+	GB_PRINTER,
+};
 
 struct dmg_sio_data
 {
@@ -22,6 +32,7 @@ struct dmg_sio_data
 	bool internal_clock;
 	u8 shifts_left;
 	u32 shift_counter;
+	sio_types sio_type;
 };
 
 #endif // GB_SIO_DATA 

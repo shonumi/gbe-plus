@@ -18,7 +18,7 @@
 class DMG_SIO
 {
 	public:
-	
+
 	//Link to memory map
 	DMG_MMU* mem;
 
