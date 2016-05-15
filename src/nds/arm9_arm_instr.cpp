@@ -1308,7 +1308,7 @@ void ARM9::coprocessor_register_transfer(u32 current_instruction)
 	//Execute MCR
 	else
 	{
-		std::cout<<"MCR -> C" << (int)cop_reg << ",C" << (int)cop_opr << "," << (int)cop_info << "\n";
+		std::cout<<"MCR -> C" << std::dec << (int)cop_reg << ",C" << (int)cop_opr << "," << (int)cop_info << " --> 0x" << std::hex << get_reg(arm_reg) <<"\n";
 
 		//Move ARM register to C0,C0,0 - 2
 		if((cop_reg == 0) && (cop_opr == 0))
@@ -1323,7 +1323,26 @@ void ARM9::coprocessor_register_transfer(u32 current_instruction)
 
 
 		//Move ARM register to C1,C0,0
-		if((cop_reg == 1) && (cop_opr == 0) && (cop_info == 0)) { co_proc.regs[CP15::C1_C0_0] = get_reg(arm_reg); }
+		if((cop_reg == 1) && (cop_opr == 0) && (cop_info == 0))
+		{
+			//Mask C1,C0,0
+			//Bits 0, 2, 7, and 12-19 are RW
+			//Bits 3-6 are always set
+			co_proc.regs[CP15::C1_C0_0] = (get_reg(arm_reg) & 0xFF0FD);
+			co_proc.regs[CP15::C1_C0_0] |= 0x78;
+
+			co_proc.pu_enable = (co_proc.regs[CP15::C1_C0_0] & 0x1) ? true : false;
+			co_proc.unified_cache = (co_proc.regs[CP15::C1_C0_0] & 0x4) ? true : false;
+			co_proc.instr_cache = ((co_proc.regs[CP15::C1_C0_0] & 0x1000) && (!co_proc.unified_cache)) ? true : false;
+			co_proc.exception_vector = (co_proc.regs[CP15::C1_C0_0] & 0x2000) ? 0xFFFF0000 : 0x0;
+			co_proc.cache_replacement = (co_proc.regs[CP15::C1_C0_0] & 0x4000) ? true : false;
+			co_proc.pre_armv5 = (co_proc.regs[CP15::C1_C0_0] & 0x8000) ? true : false;
+			co_proc.dtcm_enable = (co_proc.regs[CP15::C1_C0_0] & 0x10000) ? true : false;
+			co_proc.dtcm_read_mode = (co_proc.regs[CP15::C1_C0_0] & 0x20000) ? true : false;
+			co_proc.itcm_enable = (co_proc.regs[CP15::C1_C0_0] & 0x40000) ? true : false;
+			co_proc.itcm_read_mode = (co_proc.regs[CP15::C1_C0_0] & 0x80000) ? true : false;
+			
+		}
 
 		//Move ARM register to C2,C0,0
 		else if((cop_reg == 2) && (cop_opr == 0))

@@ -63,6 +63,18 @@ class CP15
 	CP15();
 	~CP15();
 
+	//Control Register parameters
+	bool pu_enable;
+	bool unified_cache;
+	bool instr_cache;
+	u32 exception_vector;
+	bool cache_replacement;
+	bool pre_armv5;
+	bool dtcm_enable;
+	bool dtcm_read_mode;
+	bool itcm_enable;
+	bool itcm_read_mode;
+
 	void reset();
 };
 
