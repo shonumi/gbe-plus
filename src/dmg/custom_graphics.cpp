@@ -86,6 +86,7 @@ bool DMG_LCD::load_manifest(std::string filename)
 		if((item_count != 5) && (item_count != 3) && (item_count != 0))
 		{
 			std::cout<<"CGFX::Manifest file " << filename << " has some missing parameters for some entries. \n";
+			std::cout<<"CGFX::Entry -> " << input_line << "\n";
 			file.close();
 			return false;
 		}
@@ -108,9 +109,8 @@ bool DMG_LCD::load_manifest(std::string filename)
 			cgfx_stat.m_files.push_back(cgfx_stat.manifest[x++]);
 
 			//Grab the type
-			std::stringstream type_stream(cgfx_stat.manifest[x++]);
-			int type_byte = 0;
-			type_stream >> type_byte;
+			u32 type_byte = 0;
+			util::from_str(cgfx_stat.manifest[x++], type_byte);
 			cgfx_stat.m_types.push_back(type_byte);
 
 			switch(type_byte)
@@ -143,15 +143,13 @@ bool DMG_LCD::load_manifest(std::string filename)
 			if(!load_image_data()) { return false; }
 
 			//EXT_VRAM_ADDR
-			std::stringstream vram_stream(cgfx_stat.manifest[x++]);
 			u32 vram_address = 0;
-			util::from_hex_str(vram_stream.str(), vram_address);
+			util::from_hex_str(cgfx_stat.manifest[x++], vram_address);
 			cgfx_stat.m_vram_addr.push_back(vram_address);	
 
 			//EXT_AUTO_BRIGHT
-			std::stringstream bright_stream(cgfx_stat.manifest[x++]);
 			u32 bright_value = 0;
-			bright_stream >> bright_value;
+			util::from_str(cgfx_stat.manifest[x++], bright_value);
 			cgfx_stat.m_auto_bright.push_back(bright_value);
 		}
 
