@@ -78,6 +78,8 @@ class main_menu : public QWidget
 	QMenu* state_save_list;
 	QMenu* state_load_list;
 
+	QSignalMapper* list_mapper;
+
 	int menu_height;
 	u32 base_width;
 	u32 base_height;

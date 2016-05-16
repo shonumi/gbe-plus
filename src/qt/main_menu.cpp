@@ -149,7 +149,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	config::use_debugger = false;
 
 	//Setup Recent Files
-	QSignalMapper* list_mapper = new QSignalMapper(this);
+	list_mapper = new QSignalMapper(this);
 
 	for(int x = (config::recent_files.size() - 1); x >= 0; x--)
 	{
@@ -329,6 +329,25 @@ void main_menu::open_file()
 
 		//Delete the earliest element
 		if(config::recent_files.size() > 10) { config::recent_files.erase(config::recent_files.begin()); }
+
+
+		//Update the recent list
+		recent_list->clear();
+
+		for(int x = (config::recent_files.size() - 1); x >= 0; x--)
+		{
+			QString path = QString::fromStdString(config::recent_files[x]);
+			QFileInfo file(path);
+			path = file.fileName();
+
+			QAction* temp = new QAction(path, this);
+			recent_list->addAction(temp);
+
+			connect(temp, SIGNAL(triggered()), list_mapper, SLOT(map()));
+			list_mapper->setMapping(temp, x);
+		}
+
+		connect(list_mapper, SIGNAL(mapped(int)), this, SLOT(load_recent(int)));
 	}
 
 	boot_game();
