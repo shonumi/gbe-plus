@@ -1542,6 +1542,8 @@ void dmg_debug::refresh()
 
 	if(debug_reset)
 	{
+		dasm_text.clear();
+
 		//Populate initial disassembly text
 		for(u32 x = 0; x < 0x10000; x++)
 		{

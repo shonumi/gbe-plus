@@ -28,6 +28,7 @@ class dmg_debug : public QDialog
 	u32 highlighted_dasm_line;
 	bool pause;
 	bool old_pause;
+	bool debug_reset;
 
 	QTextEdit* dasm;
 	QString dasm_text;
@@ -171,8 +172,6 @@ class dmg_debug : public QDialog
 	std::vector<QPushButton*> db_bg_label;
 	QImage bg_large_preview;
 	QLabel* bg_large_label;
-
-	bool debug_reset;
 
 	protected:
 	void closeEvent(QCloseEvent* event);

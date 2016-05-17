@@ -480,6 +480,9 @@ void main_menu::boot_game()
 		if(!main_menu::gbe_plus->read_bios(config::bios_file)) { return; } 
 	}
 
+	//Reset GUI debugger
+	dmg_debugger->debug_reset = true;
+
 	//Engage the core
 	main_menu::gbe_plus->start();
 	main_menu::gbe_plus->db_unit.debug_mode = config::use_debugger;
