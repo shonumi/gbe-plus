@@ -76,6 +76,12 @@ class CP15
 	bool itcm_read_mode;
 
 	void reset();
+
+	void invalidate_instr_cache();
+	void invalidate_instr_cache_line(u32 virtual_address);
+	void invalidate_data_cache();
+	void invalidate_data_cache_line(u32 virtual_address);
+	void drain_write_buffer();
 };
 
 #endif // NDS9_CP15

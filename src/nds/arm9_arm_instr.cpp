@@ -1208,14 +1208,24 @@ void ARM9::coprocessor_register_transfer(u32 current_instruction)
 	//Grab coprocessor info
 	u8 cop_info = (current_instruction >> 5) & 0x7;
 
-	//Execute MRC
+	//Execute MRC - Read from CP15 registers
 	if(arm_opcode)
 	{
-		//C0,C0,0 - 2 are Read-Only
 		std::cout<<"MRC -> C" << (int)cop_reg << ",C" << (int)cop_opr << "," << (int)cop_info << "\n";
 
+		//Move from C0,C0,0 - 2 to ARM register
+		if((cop_reg == 0) && (cop_opr == 0))
+		{
+			switch(cop_info)
+			{
+				case 0x0: set_reg(arm_reg, co_proc.regs[CP15::C0_C0_0]); break;
+				case 0x1: set_reg(arm_reg, co_proc.regs[CP15::C0_C0_1]); break;
+				case 0x2: set_reg(arm_reg, co_proc.regs[CP15::C0_C0_2]); break;
+			}
+		}
+
 		//Move from C1,C0,0 to ARM register
-		if((cop_reg == 1) && (cop_opr == 0) && (cop_info == 0)) { set_reg(arm_reg, co_proc.regs[CP15::C1_C0_0]); }
+		else if((cop_reg == 1) && (cop_opr == 0) && (cop_info == 0)) { set_reg(arm_reg, co_proc.regs[CP15::C1_C0_0]); }
 
 		//Move from C2,C0,0 - 1 to ARM register
 		else if((cop_reg == 2) && (cop_opr == 0))
@@ -1276,8 +1286,7 @@ void ARM9::coprocessor_register_transfer(u32 current_instruction)
 			}
 		}
 
-		//Move from C7,Cm,OP to ARM register
-		else if(cop_reg == 7) { set_reg(arm_reg, co_proc.regs[CP15::C7_CM_XX]); }
+		//C7,Cm,OP are write-only
 
 		//Move from C9,C0,0-1 to ARM register
 		else if((cop_reg == 9) && (cop_opr == 0))
@@ -1305,22 +1314,12 @@ void ARM9::coprocessor_register_transfer(u32 current_instruction)
 		} 
 	}
 
-	//Execute MCR
+	//Execute MCR - Write to CP15 registers
 	else
 	{
 		std::cout<<"MCR -> C" << std::dec << (int)cop_reg << ",C" << (int)cop_opr << "," << (int)cop_info << " --> 0x" << std::hex << get_reg(arm_reg) <<"\n";
 
-		//Move ARM register to C0,C0,0 - 2
-		if((cop_reg == 0) && (cop_opr == 0))
-		{
-			switch(cop_info)
-			{
-				case 0x0: co_proc.regs[CP15::C0_C0_0] = get_reg(arm_reg); break;
-				case 0x1: co_proc.regs[CP15::C0_C0_1] = get_reg(arm_reg); break;
-				case 0x2: co_proc.regs[CP15::C0_C0_2] = get_reg(arm_reg); break;
-			}
-		}
-
+		//C0,C0,0 - 2 are read-only
 
 		//Move ARM register to C1,C0,0
 		if((cop_reg == 1) && (cop_opr == 0) && (cop_info == 0))
@@ -1404,7 +1403,25 @@ void ARM9::coprocessor_register_transfer(u32 current_instruction)
 		}
 
 		//Move ARM register to C7,Cm,OP
-		else if(cop_reg == 7) { co_proc.regs[CP15::C7_CM_XX] = get_reg(arm_reg); }
+		else if(cop_reg == 7)
+		{
+			co_proc.regs[CP15::C7_CM_XX] = get_reg(arm_reg);
+
+			//C7,C5,0
+			if((cop_opr == 5) && (cop_info == 0)) { co_proc.invalidate_instr_cache(); }
+
+			//C7,C5,1
+			else if((cop_opr == 5) && (cop_info == 1)) { co_proc.invalidate_instr_cache_line(co_proc.regs[CP15::C7_CM_XX]); }
+
+			//C7,C6,0
+			else if((cop_opr == 6) && (cop_info == 0)) { co_proc.invalidate_data_cache(); }
+
+			//C7,C6,1
+			else if((cop_opr == 6) && (cop_info == 1)) { co_proc.invalidate_data_cache_line(co_proc.regs[CP15::C7_CM_XX]); }
+
+			//C7,C10,4
+			else if((cop_opr == 10) && (cop_info == 4)) { co_proc.drain_write_buffer(); }
+		}
 
 		//Move ARM register to C9,C0,0-1
 		else if((cop_reg == 9) && (cop_opr == 0))
