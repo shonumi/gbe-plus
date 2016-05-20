@@ -14,12 +14,18 @@
 #include <QtGui>
 #include <QGLWidget>
 
+#include "common/common.h"
+
 class soft_screen : public QWidget
 {
 	Q_OBJECT
 	
 	public:
 	soft_screen(QWidget *parent = 0);
+
+	u32 resize_wait;
+	u32 last_width;
+	u32 last_height;
 
 	protected:
 	void paintEvent(QPaintEvent* event);
@@ -32,6 +38,10 @@ class hard_screen : public QGLWidget
 	public:
 	hard_screen(QWidget *parent = 0);
 	GLuint lcd_texture;
+
+	u32 resize_wait;
+	u32 last_width;
+	u32 last_height;
 
 	protected:
 	void initializeGL();

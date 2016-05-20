@@ -689,6 +689,19 @@ void main_menu::fullscreen()
 		//Set fullscreen
 		if(findChild<QAction*>("fullscreen_action")->isChecked())
 		{
+			//Save previous screen size
+			if(config::use_opengl)
+			{
+				hw_screen->last_width = hw_screen->width();
+				hw_screen->last_height = hw_screen->height();
+			}
+
+			else
+			{
+				sw_screen->last_width = sw_screen->width();
+				sw_screen->last_height = sw_screen->height();
+			}
+
 			setWindowState(Qt::WindowFullScreen);
 			menu_bar->hide();
 			showFullScreen();
@@ -699,6 +712,10 @@ void main_menu::fullscreen()
 			setWindowState(Qt::WindowNoState);
 			menu_bar->show();
 			showNormal();
+
+			//Restore previous screen size after 5 frames
+			if(config::use_opengl) { hw_screen->resize_wait = 5; }
+			else { sw_screen->resize_wait = 5; }
 		}
 	}
 
