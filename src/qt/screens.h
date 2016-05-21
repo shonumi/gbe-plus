@@ -23,12 +23,9 @@ class soft_screen : public QWidget
 	public:
 	soft_screen(QWidget *parent = 0);
 
-	u32 resize_wait;
-	u32 last_width;
-	u32 last_height;
-
 	protected:
 	void paintEvent(QPaintEvent* event);
+	void resizeEvent(QResizeEvent* event);
 };
 
 class hard_screen : public QGLWidget
@@ -39,13 +36,10 @@ class hard_screen : public QGLWidget
 	hard_screen(QWidget *parent = 0);
 	GLuint lcd_texture;
 
-	u32 resize_wait;
-	u32 last_width;
-	u32 last_height;
-
 	protected:
 	void initializeGL();
 	void paintGL();
+	void resizeEvent(QResizeEvent* event);
 };
 
 #endif //SCREENS_GBE_QT 

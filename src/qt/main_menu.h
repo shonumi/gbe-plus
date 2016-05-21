@@ -42,6 +42,7 @@ class main_menu : public QWidget
 	
 	u32 screen_height;
 	u32 screen_width;
+	int menu_height;
 
 	void pause_emu();
 	void open_first_file();
@@ -80,7 +81,6 @@ class main_menu : public QWidget
 
 	QSignalMapper* list_mapper;
 
-	int menu_height;
 	u32 base_width;
 	u32 base_height;
 

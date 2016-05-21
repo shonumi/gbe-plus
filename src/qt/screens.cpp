@@ -12,12 +12,7 @@
 #include "render.h"
 
 /****** Software screen constructor ******/
-soft_screen::soft_screen(QWidget *parent) : QWidget(parent)
-{
-	u32 resize_wait = 0;
-	u32 last_width = 0;
-	u32 last_height = 0;
-}
+soft_screen::soft_screen(QWidget *parent) : QWidget(parent) { }
 
 /****** Software screen paint event ******/
 void soft_screen::paintEvent(QPaintEvent* event)
@@ -50,23 +45,25 @@ void soft_screen::paintEvent(QPaintEvent* event)
 			QPainter painter(this);
 			painter.drawImage(0, 0, final_screen);
 		}
+	}
+}
 
-		//Resize screen after exiting fullscreen after a certain amount of frames
-		if(resize_wait > 0)
-		{
-			resize_wait--;
-			if(!resize_wait) { resize(last_width, last_height); }
-		}
+/****** Software screen resize event ******/
+void soft_screen::resizeEvent(QResizeEvent* event)
+{
+	if(width() != qt_gui::draw_surface->width())
+	{
+		resize(qt_gui::draw_surface->width(), qt_gui::draw_surface->height() - qt_gui::draw_surface->menu_height);
+	}
+
+	else if(height() != (qt_gui::draw_surface->height() - qt_gui::draw_surface->menu_height))
+	{
+		resize(qt_gui::draw_surface->width(), qt_gui::draw_surface->height() - qt_gui::draw_surface->menu_height);
 	}
 }
 
 /****** Hardware screen constructor ******/
-hard_screen::hard_screen(QWidget *parent) : QGLWidget(parent)
-{
-	u32 resize_wait = 0;
-	u32 last_width = 0;
-	u32 last_height = 0;
-}
+hard_screen::hard_screen(QWidget *parent) : QGLWidget(parent) { }
 
 /****** Initializes OpenGL on the hardware screen ******/
 void hard_screen::initializeGL()
@@ -149,12 +146,19 @@ void hard_screen::paintGL()
 			glTexCoord2f(0.0f, 1.0f); glVertex2f(-0.5f, -1.5f);
 			glEnd();
 		}
-
-		//Resize screen after exiting fullscreen after a certain amount of frames
-		if(resize_wait > 0)
-		{
-			resize_wait--;
-			if(!resize_wait) { resize(last_width, last_height); }
-		}
 	}
-}  
+}
+
+/****** Hardware screen resize event ******/
+void hard_screen::resizeEvent(QResizeEvent* event)
+{
+	if(width() != qt_gui::draw_surface->width())
+	{
+		resize(qt_gui::draw_surface->width(), qt_gui::draw_surface->height() - qt_gui::draw_surface->menu_height);
+	}
+
+	else if(height() != (qt_gui::draw_surface->height() - qt_gui::draw_surface->menu_height))
+	{
+		resize(qt_gui::draw_surface->width(), qt_gui::draw_surface->height() - qt_gui::draw_surface->menu_height);
+	}
+}
