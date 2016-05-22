@@ -269,6 +269,11 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	about_box->setWindowIcon(QIcon(QString::fromStdString(config::cfg_path + "data/icons/gbe_plus.png")));
 	
 	about_box->hide();
+
+	display_width = QApplication::desktop()->screenGeometry().width();
+	display_height = QApplication::desktop()->screenGeometry().height();
+
+	fullscreen_mode = false;
 }
 
 /****** Opens a file from the CLI arguments ******/
@@ -689,6 +694,7 @@ void main_menu::fullscreen()
 		//Set fullscreen
 		if(findChild<QAction*>("fullscreen_action")->isChecked())
 		{
+			fullscreen_mode = true;
 			setWindowState(Qt::WindowFullScreen);
 			menu_bar->hide();
 			showFullScreen();
@@ -696,6 +702,7 @@ void main_menu::fullscreen()
 
 		else
 		{
+			fullscreen_mode = false;
 			setWindowState(Qt::WindowNoState);
 			menu_bar->show();
 			showNormal();

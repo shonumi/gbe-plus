@@ -51,14 +51,14 @@ void soft_screen::paintEvent(QPaintEvent* event)
 /****** Software screen resize event ******/
 void soft_screen::resizeEvent(QResizeEvent* event)
 {
-	if(width() != qt_gui::draw_surface->width())
-	{
-		resize(qt_gui::draw_surface->width(), qt_gui::draw_surface->height() - qt_gui::draw_surface->menu_height);
-	}
+	//Grab test dimensions, look at max resolution for fullscreen dimensions
+	u32 test_width = qt_gui::draw_surface->fullscreen_mode ? qt_gui::draw_surface->display_width : qt_gui::draw_surface->width();
+	u32 test_height = qt_gui::draw_surface->fullscreen_mode ? qt_gui::draw_surface->display_height : (qt_gui::draw_surface->height() - qt_gui::draw_surface->menu_height);
 
-	else if(height() != (qt_gui::draw_surface->height() - qt_gui::draw_surface->menu_height))
+	//Adjust screen to fit expected dimensions no matter what
+	if((width() != test_width) || (height() != test_height))
 	{
-		resize(qt_gui::draw_surface->width(), qt_gui::draw_surface->height() - qt_gui::draw_surface->menu_height);
+		resize(test_width, test_height);
 	}
 }
 
@@ -152,13 +152,13 @@ void hard_screen::paintGL()
 /****** Hardware screen resize event ******/
 void hard_screen::resizeEvent(QResizeEvent* event)
 {
-	if(width() != qt_gui::draw_surface->width())
-	{
-		resize(qt_gui::draw_surface->width(), qt_gui::draw_surface->height() - qt_gui::draw_surface->menu_height);
-	}
+	//Grab test dimensions, look at max resolution for fullscreen dimensions
+	u32 test_width = qt_gui::draw_surface->fullscreen_mode ? qt_gui::draw_surface->display_width : qt_gui::draw_surface->width();
+	u32 test_height = qt_gui::draw_surface->fullscreen_mode ? qt_gui::draw_surface->display_height : (qt_gui::draw_surface->height() - qt_gui::draw_surface->menu_height);
 
-	else if(height() != (qt_gui::draw_surface->height() - qt_gui::draw_surface->menu_height))
+	//Adjust screen to fit expected dimensions no matter what
+	if((width() != test_width) || (height() != test_height))
 	{
-		resize(qt_gui::draw_surface->width(), qt_gui::draw_surface->height() - qt_gui::draw_surface->menu_height);
+		resize(test_width, test_height);
 	}
 }

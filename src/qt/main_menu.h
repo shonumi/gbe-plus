@@ -42,7 +42,11 @@ class main_menu : public QWidget
 	
 	u32 screen_height;
 	u32 screen_width;
+	u32 display_height;
+	u32 display_width;
 	int menu_height;
+
+	bool fullscreen_mode;
 
 	void pause_emu();
 	void open_first_file();
