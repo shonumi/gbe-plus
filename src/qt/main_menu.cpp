@@ -21,11 +21,11 @@
 main_menu::main_menu(QWidget *parent) : QWidget(parent)
 {
 	//Setup actions
-	QAction* open = new QAction("&Open", this);
-	QAction* quit = new QAction ("&Quit", this);
+	QAction* open = new QAction("Open", this);
+	QAction* quit = new QAction ("Quit", this);
 
-	QAction* pause = new QAction("&Pause", this);
-	QAction* reset = new QAction("&Reset", this);
+	QAction* pause = new QAction("Pause", this);
+	QAction* reset = new QAction("Reset", this);
 	QAction* fullscreen = new QAction("Fullscreen", this);
 	QAction* screenshot = new QAction("Screenshot", this);
 
@@ -59,7 +59,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	//Setup File menu
 	QMenu* file;
 
-	file = new QMenu(tr("&File"), this);
+	file = new QMenu(tr("File"), this);
 	file->addAction(open);
 	recent_list = file->addMenu(tr("Recent Files"));
 	file->addSeparator();
@@ -72,7 +72,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	//Setup Emulation menu
 	QMenu* emulation;
 
-	emulation = new QMenu(tr("&Emulation"), this);
+	emulation = new QMenu(tr("Emulation"), this);
 	emulation->addAction(pause);
 	emulation->addAction(reset);
 	emulation->addSeparator();
@@ -83,7 +83,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	//Setup Options menu
 	QMenu* options;
 	
-	options = new QMenu(tr("&Options"), this);
+	options = new QMenu(tr("Options"), this);
 	options->addAction(general);
 	options->addSeparator();
 	options->addAction(display);
@@ -95,7 +95,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	//Advanced menu
 	QMenu* advanced;
 
-	advanced = new QMenu(tr("&Advanced"), this);
+	advanced = new QMenu(tr("Advanced"), this);
 	advanced->addAction(custom_gfx);
 	advanced->addAction(debugging);
 	menu_bar->addMenu(advanced);
@@ -103,7 +103,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	//Setup Help menu
 	QMenu* help;
 
-	help = new QMenu(tr("&Help"), this);
+	help = new QMenu(tr("Help"), this);
 	help->addAction(about);
 	menu_bar->addMenu(help);
 
