@@ -254,6 +254,8 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	QLabel* emu_copyright = new QLabel("Copyright D.S. Baxter 2014-2016");
 	QLabel* emu_proj_copyright = new QLabel("Copyright GBE+ Team 2014-2016");
 	QLabel* emu_license = new QLabel("This program is licensed under the GNU GPLv2");
+	QLabel* emu_site = new QLabel("<a href=\"https://github.com/shonumi/gbe-plus/\">GBE+ on GitHub</a>");
+	emu_site->setOpenExternalLinks(true);
 	QLabel* emu_logo = new QLabel;
 	emu_logo->setPixmap(QPixmap::fromImage(logo));
 
@@ -263,6 +265,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	about_layout->addWidget(emu_copyright, 0, Qt::AlignCenter | Qt::AlignTop);
 	about_layout->addWidget(emu_proj_copyright, 0, Qt::AlignCenter | Qt::AlignTop);
 	about_layout->addWidget(emu_license, 0, Qt::AlignCenter | Qt::AlignTop);
+	about_layout->addWidget(emu_site, 0, Qt::AlignCenter | Qt::AlignTop);
 	about_layout->addWidget(emu_logo, 0, Qt::AlignCenter | Qt::AlignTop);
 	about_layout->addWidget(about_button);
 	about_box->setLayout(about_layout);
