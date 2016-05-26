@@ -51,6 +51,8 @@ void soft_screen::paintEvent(QPaintEvent* event)
 /****** Software screen resize event ******/
 void soft_screen::resizeEvent(QResizeEvent* event)
 {
+	if(main_menu::gbe_plus == NULL) { return; }
+
 	//Grab test dimensions, look at max resolution for fullscreen dimensions
 	u32 test_width = qt_gui::draw_surface->fullscreen_mode ? qt_gui::draw_surface->display_width : qt_gui::draw_surface->width();
 	u32 test_height = qt_gui::draw_surface->fullscreen_mode ? qt_gui::draw_surface->display_height : (qt_gui::draw_surface->height() - qt_gui::draw_surface->menu_height);
@@ -152,6 +154,8 @@ void hard_screen::paintGL()
 /****** Hardware screen resize event ******/
 void hard_screen::resizeEvent(QResizeEvent* event)
 {
+	if(main_menu::gbe_plus == NULL) { return; }
+
 	//Grab test dimensions, look at max resolution for fullscreen dimensions
 	u32 test_width = qt_gui::draw_surface->fullscreen_mode ? qt_gui::draw_surface->display_width : qt_gui::draw_surface->width();
 	u32 test_height = qt_gui::draw_surface->fullscreen_mode ? qt_gui::draw_surface->display_height : (qt_gui::draw_surface->height() - qt_gui::draw_surface->menu_height);
