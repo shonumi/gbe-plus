@@ -129,6 +129,17 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	rect_w = new QSpinBox(section_x_set);
 	rect_w->setRange(0, 31);
 
+	//VRAM address section
+	QWidget* vram_addr_set = new QWidget;
+	vram_text = new QLabel("EXT_VRAM_ADDR");
+	use_vram_addr = new QCheckBox;
+
+	QHBoxLayout* vram_addr_layout = new QHBoxLayout;
+	vram_addr_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	vram_addr_layout->addWidget(vram_text);
+	vram_addr_layout->addWidget(use_vram_addr);
+	vram_addr_set->setLayout(vram_addr_layout);
+
 	QWidget* meta_name_set = new QWidget;
 	meta_name = new QLineEdit;
 	QLabel* meta_name_label = new QLabel("Meta Tile Name : ");
@@ -139,6 +150,7 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	section_x_layout->addWidget(rect_x);
 	section_x_layout->addWidget(section_w_label);
 	section_x_layout->addWidget(rect_w);
+	section_x_layout->addWidget(vram_addr_set);
 	section_x_set->setLayout(section_x_layout);
 
 	//Layer section selector - Y
@@ -171,6 +183,7 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	QPushButton* dump_section_button = new QPushButton("Dump Current Selection");
 	QVBoxLayout* section_final_layout = new QVBoxLayout;
 	section_final_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	section_final_layout->setSpacing(0);
 	section_final_layout->addWidget(section_x_set);
 	section_final_layout->addWidget(section_y_set);
 	section_final_layout->addWidget(meta_name_set);
@@ -2817,6 +2830,9 @@ void gbe_cgfx::dump_selection()
 	if((rect_x->value() == 0) || (rect_y->value() == 0) || (rect_w->value() == 0) || (rect_h->value() == 0)) { return; }
 	if(layer_select->currentIndex() == 2) { return; }
 
+	//Grab EXT_VRAM_ADDR status
+	bool vram_addr_checked = use_vram_addr->isChecked();
+
 	//Grab metatile name
 	cgfx::meta_dump_name = meta_name->text().toStdString();
 	if(cgfx::meta_dump_name.empty()) { cgfx::meta_dump_name = "META"; }
@@ -2873,7 +2889,6 @@ void gbe_cgfx::dump_selection()
 	if(!file.is_open()) { return; }
 
 	//Write main entry
-	//TODO - Fill this in QLineEdit values
 	entry = "[" + cgfx::dump_bg_path + cgfx::meta_dump_name + ".bmp" + ":" + cgfx::meta_dump_name + ":0]";
 	file << "\n" << entry;
 
@@ -2886,8 +2901,10 @@ void gbe_cgfx::dump_selection()
 		{
 			std::string gfx_name = cgfx::meta_dump_name + "_" + util::to_str(entry_count++);
 			std::string gfx_type = (config::gb_type == 2) ? "20" : "10";
-			
-			entry = "[" + hash_tile((x * 8), (y * 8)) + ":" + gfx_name + ":" + gfx_type + ":0:0]";
+			std::string gfx_hash = hash_tile((x * 8), (y * 8));			
+
+
+			entry = "[" + gfx_hash + ":" + gfx_name + ":" + gfx_type + ":" + util::to_hex_str(cgfx::last_vram_addr) + ":0]";
 			file << "\n" << entry;
 		}
 	}
@@ -2920,6 +2937,7 @@ std::string gbe_cgfx::hash_tile(u8 x, u8 y)
 		}
 
 		bg_tile_addr += (map_value * 16);
+		cgfx::last_vram_addr = bg_tile_addr;
 
 		return main_menu::gbe_plus->get_hash(bg_tile_addr, 10);
 	}
@@ -2956,6 +2974,7 @@ std::string gbe_cgfx::hash_tile(u8 x, u8 y)
 		}
 
 		bg_tile_addr += (map_value * 16);
+		cgfx::last_vram_addr = bg_tile_addr;
 
 		main_menu::gbe_plus->ex_write_u8(REG_VBK, old_vram_bank);
 
@@ -2990,6 +3009,7 @@ std::string gbe_cgfx::hash_tile(u8 x, u8 y)
 		}
 
 		bg_tile_addr += (map_value * 16);
+		cgfx::last_vram_addr = bg_tile_addr;
 
 		return main_menu::gbe_plus->get_hash(bg_tile_addr, 10);
 	}
@@ -3028,6 +3048,7 @@ std::string gbe_cgfx::hash_tile(u8 x, u8 y)
 		}
 
 		bg_tile_addr += (map_value * 16);
+		cgfx::last_vram_addr = bg_tile_addr;
 
 		main_menu::gbe_plus->ex_write_u8(REG_VBK, old_vram_bank);
 
@@ -3064,6 +3085,7 @@ std::string gbe_cgfx::hash_tile(u8 x, u8 y)
 				u8 tile_number = main_menu::gbe_plus->ex_read_u8(OAM + (obj_index * 4) + 2);
 				if(obj_height == 16) { tile_number &= ~0x1; }
 				u16 obj_tile_addr = 0x8000 + (tile_number * 16);
+				cgfx::last_vram_addr = obj_tile_addr;
 
 				return main_menu::gbe_plus->get_hash(obj_tile_addr, 1);
 			}
@@ -3097,6 +3119,7 @@ std::string gbe_cgfx::hash_tile(u8 x, u8 y)
 				u8 tile_number = main_menu::gbe_plus->ex_read_u8(OAM + (obj_index * 4) + 2);
 				if(obj_height == 16) { tile_number &= ~0x1; }
 				u16 obj_tile_addr = 0x8000 + (tile_number * 16);
+				cgfx::last_vram_addr = obj_tile_addr;
 
 				//Grab attributes
 				u8 attributes = main_menu::gbe_plus->ex_read_u8(OAM + (obj_index * 4) + 3);

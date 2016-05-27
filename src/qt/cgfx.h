@@ -72,12 +72,14 @@ class gbe_cgfx : public QDialog
 	QLabel* h_v_flip;
 	QLabel* tile_palette;
 	QLabel* hash_text;
+	QLabel* vram_text;
 
 	QSpinBox* rect_x;
 	QSpinBox* rect_w;
 	QSpinBox* rect_y;
 	QSpinBox* rect_h;
 
+	QCheckBox* use_vram_addr;
 	QLineEdit* meta_name;
 
 	//OBJ tab widgets
