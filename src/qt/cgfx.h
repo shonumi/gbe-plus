@@ -73,6 +73,7 @@ class gbe_cgfx : public QDialog
 	QLabel* tile_palette;
 	QLabel* hash_text;
 	QLabel* vram_text;
+	QLabel* bright_text;
 
 	QSpinBox* rect_x;
 	QSpinBox* rect_w;
@@ -80,6 +81,7 @@ class gbe_cgfx : public QDialog
 	QSpinBox* rect_h;
 
 	QCheckBox* use_vram_addr;
+	QCheckBox* use_auto_bright;
 	QLineEdit* meta_name;
 
 	//OBJ tab widgets

@@ -136,8 +136,8 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 
 	QHBoxLayout* vram_addr_layout = new QHBoxLayout;
 	vram_addr_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-	vram_addr_layout->addWidget(vram_text);
 	vram_addr_layout->addWidget(use_vram_addr);
+	vram_addr_layout->addWidget(vram_text);
 	vram_addr_set->setLayout(vram_addr_layout);
 
 	QWidget* meta_name_set = new QWidget;
@@ -152,6 +152,17 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	section_x_layout->addWidget(rect_w);
 	section_x_layout->addWidget(vram_addr_set);
 	section_x_set->setLayout(section_x_layout);
+
+	//Auto-bright section
+	QWidget* auto_bright_set = new QWidget;
+	bright_text = new QLabel("EXT_AUTO_BRIGHT");
+	use_auto_bright = new QCheckBox;
+
+	QHBoxLayout* auto_bright_layout = new QHBoxLayout;
+	auto_bright_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	auto_bright_layout->addWidget(use_auto_bright);
+	auto_bright_layout->addWidget(bright_text);
+	auto_bright_set->setLayout(auto_bright_layout);
 
 	//Layer section selector - Y
 	QWidget* section_y_set = new QWidget(layers_tab);
@@ -170,6 +181,7 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	section_y_layout->addWidget(rect_y);
 	section_y_layout->addWidget(section_h_label);
 	section_y_layout->addWidget(rect_h);
+	section_y_layout->addWidget(auto_bright_set);
 	section_y_set->setLayout(section_y_layout);
 
 	QHBoxLayout* meta_name_layout = new QHBoxLayout;
@@ -2901,10 +2913,11 @@ void gbe_cgfx::dump_selection()
 		{
 			std::string gfx_name = cgfx::meta_dump_name + "_" + util::to_str(entry_count++);
 			std::string gfx_type = (config::gb_type == 2) ? "20" : "10";
-			std::string gfx_hash = hash_tile((x * 8), (y * 8));			
+			std::string gfx_hash = hash_tile((x * 8), (y * 8));
+			std::string gfx_addr = (use_vram_addr->isChecked()) ? util::to_hex_str(cgfx::last_vram_addr) : "0";
+			std::string gfx_bright = (use_auto_bright->isChecked()) ? "1" : "0";		
 
-
-			entry = "[" + gfx_hash + ":" + gfx_name + ":" + gfx_type + ":" + util::to_hex_str(cgfx::last_vram_addr) + ":0]";
+			entry = "[" + gfx_hash + ":" + gfx_name + ":" + gfx_type + ":" + gfx_addr + ":" + gfx_bright + "]";
 			file << "\n" << entry;
 		}
 	}
