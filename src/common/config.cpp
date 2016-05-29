@@ -486,6 +486,9 @@ bool parse_cli_args()
 				}
 			}
 
+			//Enable fullscreen mode
+			else if((config::cli_args[x] == "-f") || (config::cli_args[x] == "--fullscreen")) { config::flags = 0x80000000; } 
+
 			//Use multicart mode if applicable for a given ROM
 			else if(config::cli_args[x] == "--multicart") { config::use_multicart = true; }
 

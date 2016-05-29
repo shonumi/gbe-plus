@@ -138,7 +138,7 @@ bool AGB_LCD::init()
 		}
 
 		if(config::use_opengl) { opengl_init(); }
-		else { final_screen = SDL_SetVideoMode(240, 160, 32, SDL_SWSURFACE); }
+		else { final_screen = SDL_SetVideoMode(240, 160, 32, SDL_SWSURFACE | config::flags); }
 
 		if(final_screen == NULL) { return false; }
 	}
