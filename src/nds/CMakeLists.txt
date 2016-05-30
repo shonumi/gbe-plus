@@ -7,6 +7,7 @@ set(SRCS
 	lcd.cpp
 	swi.cpp
 	cp15.cpp
+	dma.cpp
 	)
 
 set(HEADERS

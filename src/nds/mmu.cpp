@@ -36,6 +36,23 @@ void NTR_MMU::reset()
 	n_clock = 4;
 	s_clock = 2;
 
+	//Setup NDS_DMA info
+	for(int x = 0; x < 8; x++)
+	{
+		dma[x].enable = false;
+		dma[x].started = false;
+		dma[x].start_address = 0;
+		dma[x].original_start_address = 0;
+		dma[x].destination_address = 0;
+		dma[x].current_dma_position = 0;
+		dma[x].word_count = 0;
+		dma[x].word_type = 0;
+		dma[x].control = 0;
+		dma[x].dest_addr_ctrl = 0;
+		dma[x].src_addr_ctrl = 0;
+		dma[x].delay = 0;
+	}
+
 	std::cout<<"MMU::Initialized\n";
 }
 
@@ -334,6 +351,156 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 				}
 			}
 
+			break;
+
+		//DMA0 Start Address
+		case NDS_DMA0SAD:
+		case NDS_DMA0SAD+1:
+		case NDS_DMA0SAD+2:
+		case NDS_DMA0SAD+3:
+			memory_map[address] = value;
+			dma[0].start_address = ((memory_map[NDS_DMA0SAD+3] << 24) | (memory_map[NDS_DMA0SAD+2] << 16) | (memory_map[NDS_DMA0SAD+1] << 8) | memory_map[NDS_DMA0SAD]) & 0xFFFFFFF;
+			break;
+
+		//DMA0 Destination Address
+		case NDS_DMA0DAD:
+		case NDS_DMA0DAD+1:
+		case NDS_DMA0DAD+2:
+		case NDS_DMA0DAD+3:
+			memory_map[address] = value;
+			dma[0].destination_address = ((memory_map[NDS_DMA0DAD+3] << 24) | (memory_map[NDS_DMA0DAD+2] << 16) | (memory_map[NDS_DMA0DAD+1] << 8) | memory_map[NDS_DMA0DAD]) & 0xFFFFFFF;
+			break;
+
+		//DMA0 Control
+		case NDS_DMA0CNT:
+		case NDS_DMA0CNT+1:
+		case NDS_DMA0CNT+2:
+		case NDS_DMA0CNT+3:
+			memory_map[address] = value;
+			dma[0].control = ((memory_map[NDS_DMA0CNT+3] << 24) | (memory_map[NDS_DMA0CNT+2] << 16) | (memory_map[NDS_DMA0CNT+1] << 8) | memory_map[NDS_DMA0CNT]);
+			dma[0].word_count = dma[0].control & 0x1FFFFF;
+			dma[0].dest_addr_ctrl = (dma[0].control >> 21) & 0x3;
+			dma[0].src_addr_ctrl = (dma[0].control >> 23) & 0x3;
+			dma[0].word_type = (dma[0].control & 0x4000000) ? 1 : 0;
+			
+			dma[0].enable = true;
+			dma[0].started = false;
+			dma[0].delay = 2;
+			break;
+
+		//DMA1 Start Address
+		case NDS_DMA1SAD:
+		case NDS_DMA1SAD+1:
+		case NDS_DMA1SAD+2:
+		case NDS_DMA1SAD+3:
+			memory_map[address] = value;
+			dma[1].start_address = ((memory_map[NDS_DMA1SAD+3] << 24) | (memory_map[NDS_DMA1SAD+2] << 16) | (memory_map[NDS_DMA1SAD+1] << 8) | memory_map[NDS_DMA1SAD]) & 0xFFFFFFF;
+			break;
+
+		//DMA1 Destination Address
+		case NDS_DMA1DAD:
+		case NDS_DMA1DAD+1:
+		case NDS_DMA1DAD+2:
+		case NDS_DMA1DAD+3:
+			memory_map[address] = value;
+			dma[1].destination_address = ((memory_map[NDS_DMA1DAD+3] << 24) | (memory_map[NDS_DMA1DAD+2] << 16) | (memory_map[NDS_DMA1DAD+1] << 8) | memory_map[NDS_DMA1DAD]) & 0xFFFFFFF;
+			break;
+
+		//DMA1 Control
+		case NDS_DMA1CNT:
+		case NDS_DMA1CNT+1:
+		case NDS_DMA1CNT+2:
+		case NDS_DMA1CNT+3:
+			memory_map[address] = value;
+			dma[1].control = ((memory_map[NDS_DMA1CNT+3] << 24) | (memory_map[NDS_DMA1CNT+2] << 16) | (memory_map[NDS_DMA1CNT+1] << 8) | memory_map[NDS_DMA1CNT]);
+			dma[1].word_count = dma[1].control & 0x1FFFFF;
+			dma[1].dest_addr_ctrl = (dma[1].control >> 21) & 0x3;
+			dma[1].src_addr_ctrl = (dma[1].control >> 23) & 0x3;
+			dma[1].word_type = (dma[1].control & 0x4000000) ? 1 : 0;
+			
+			dma[1].enable = true;
+			dma[1].started = false;
+			dma[1].delay = 2;
+			break;
+
+		//DMA2 Start Address
+		case NDS_DMA2SAD:
+		case NDS_DMA2SAD+1:
+		case NDS_DMA2SAD+2:
+		case NDS_DMA2SAD+3:
+			memory_map[address] = value;
+			dma[2].start_address = ((memory_map[NDS_DMA2SAD+3] << 24) | (memory_map[NDS_DMA2SAD+2] << 16) | (memory_map[NDS_DMA2SAD+1] << 8) | memory_map[NDS_DMA2SAD]) & 0xFFFFFFF;
+			break;
+
+		//DMA2 Destination Address
+		case NDS_DMA2DAD:
+		case NDS_DMA2DAD+1:
+		case NDS_DMA2DAD+2:
+		case NDS_DMA2DAD+3:
+			memory_map[address] = value;
+			dma[2].destination_address = ((memory_map[NDS_DMA2DAD+3] << 24) | (memory_map[NDS_DMA2DAD+2] << 16) | (memory_map[NDS_DMA2DAD+1] << 8) | memory_map[NDS_DMA2DAD]) & 0xFFFFFFF;
+			break;
+
+		//DMA2 Control
+		case NDS_DMA2CNT:
+		case NDS_DMA2CNT+1:
+		case NDS_DMA2CNT+2:
+		case NDS_DMA2CNT+3:
+			memory_map[address] = value;
+			dma[2].control = ((memory_map[NDS_DMA2CNT+3] << 24) | (memory_map[NDS_DMA2CNT+2] << 16) | (memory_map[NDS_DMA2CNT+1] << 8) | memory_map[NDS_DMA2CNT]);
+			dma[2].word_count = dma[2].control & 0x1FFFFF;
+			dma[2].dest_addr_ctrl = (dma[2].control >> 21) & 0x3;
+			dma[2].src_addr_ctrl = (dma[2].control >> 23) & 0x3;
+			dma[2].word_type = (dma[2].control & 0x4000000) ? 1 : 0;
+			
+			dma[2].enable = true;
+			dma[2].started = false;
+			dma[2].delay = 2;
+			break;
+
+		//DMA3 Start Address
+		case NDS_DMA3SAD:
+		case NDS_DMA3SAD+1:
+		case NDS_DMA3SAD+2:
+		case NDS_DMA3SAD+3:
+			memory_map[address] = value;
+			dma[3].start_address = ((memory_map[NDS_DMA3SAD+3] << 24) | (memory_map[NDS_DMA3SAD+2] << 16) | (memory_map[NDS_DMA3SAD+1] << 8) | memory_map[NDS_DMA3SAD]) & 0xFFFFFFF;
+			break;
+
+		//DMA3 Destination Address
+		case NDS_DMA3DAD:
+		case NDS_DMA3DAD+1:
+		case NDS_DMA3DAD+2:
+		case NDS_DMA3DAD+3:
+			memory_map[address] = value;
+			dma[3].destination_address = ((memory_map[NDS_DMA3DAD+3] << 24) | (memory_map[NDS_DMA3DAD+2] << 16) | (memory_map[NDS_DMA3DAD+1] << 8) | memory_map[NDS_DMA3DAD]) & 0xFFFFFFF;
+			break;
+
+		//DMA3 Control
+		case NDS_DMA3CNT:
+		case NDS_DMA3CNT+1:
+		case NDS_DMA3CNT+2:
+		case NDS_DMA3CNT+3:
+			memory_map[address] = value;
+			dma[3].control = ((memory_map[NDS_DMA3CNT+3] << 24) | (memory_map[NDS_DMA3CNT+2] << 16) | (memory_map[NDS_DMA3CNT+1] << 8) | memory_map[NDS_DMA3CNT]);
+			dma[3].word_count = dma[3].control & 0x1FFFFF;
+			dma[3].dest_addr_ctrl = (dma[3].control >> 21) & 0x3;
+			dma[3].src_addr_ctrl = (dma[3].control >> 23) & 0x3;
+			dma[3].word_type = (dma[3].control & 0x4000000) ? 1 : 0;
+			
+			dma[3].enable = true;
+			dma[3].started = false;
+			dma[3].delay = 2;
+			break;
+
+		case NDS_IME:
+		case NDS_IME+1:
+			memory_map[address] = value;
+			break;
+
+		case NDS_IE:
+		case NDS_IE+1:
+			memory_map[address] = value;
 			break;
 				
 		default:

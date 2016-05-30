@@ -1091,19 +1091,22 @@ void ARM9::rotate_right_special(u32& input, u8 offset)
 /****** Checks address before 32-bit reading/writing for special case scenarios ******/
 void ARM9::mem_check_32(u32 addr, u32& value, bool load_store)
 {
-
+	if(load_store) { value = mem->read_u32(addr); }
+	else { mem->write_u32(addr, value); }
 }
 
 /****** Checks address before 16-bit reading/writing for special case scenarios ******/
 void ARM9::mem_check_16(u32 addr, u32& value, bool load_store)
 {
-
+	if(load_store) { value = mem->read_u16(addr); }
+	else { mem->write_u16(addr, value); }
 }
 
 /****** Checks address before 8-bit reading/writing for special case scenarios ******/
 void ARM9::mem_check_8(u32 addr, u32& value, bool load_store)
 {
-
+	if(load_store) { value = mem->read_u8(addr); }
+	else { mem->write_u8(addr, value); }
 }
 
 
@@ -1111,7 +1114,7 @@ void ARM9::mem_check_8(u32 addr, u32& value, bool load_store)
 void ARM9::clock(u32 access_addr, bool first_access)
 {
 	//TODO - Everything here
-	return;
+	controllers.video.step();
 
 	//Determine cycles with Wait States + access timing
 	u8 access_cycles = 1;
@@ -1120,10 +1123,10 @@ void ARM9::clock(u32 access_addr, bool first_access)
 	for(int x = 0; x < access_cycles; x++)
 	{
 		controllers.video.step();
-		
+		clock_dma();
+
 		/*
 		clock_timers();
-		clock_dma();
 		debug_cycles++;
 		*/
 	}
@@ -1133,18 +1136,16 @@ void ARM9::clock(u32 access_addr, bool first_access)
 void ARM9::clock()
 {
 	controllers.video.step();
+	clock_dma();
 
 	/*
 	clock_timers();
-	clock_dma();
 	*/
 }
 
 /****** Runs DMA controllers every clock cycle ******/
 void ARM9::clock_dma()
 {
-	/*
-
 	//DMA0
 	if(mem->dma[0].enable) { dma0(); }
 
@@ -1156,8 +1157,6 @@ void ARM9::clock_dma()
 
 	//DMA3
 	if(mem->dma[3].enable) { dma3(); }
-
-	*/
 }
 
 /****** Runs Timer controllers every clock cycle ******/

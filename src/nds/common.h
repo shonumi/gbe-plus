@@ -67,8 +67,27 @@ const u32 NDS_BLDY = 0x4000054;
 
 const u32 NDS_VRAMCNT_A = 0x4000240;
 
+//Interrupt registers
 const u32 NDS_IME = 0x4000208;
 const u32 NDS_IE = 0x4000210;
 const u32 NDS_IF = 0x4000214;
+
+//DMA registers
+const u32 NDS_DMA0SAD = 0x40000B0;
+const u32 NDS_DMA0DAD = 0x40000B4;
+const u32 NDS_DMA0CNT = 0x40000B8;
+
+const u32 NDS_DMA1SAD = 0x40000BC;
+const u32 NDS_DMA1DAD = 0x40000C0;
+const u32 NDS_DMA1CNT = 0x40000C4;
+
+const u32 NDS_DMA2SAD = 0x40000C8;
+const u32 NDS_DMA2DAD = 0x40000CC;
+const u32 NDS_DMA2CNT = 0x40000D0;
+
+const u32 NDS_DMA3SAD = 0x40000D4;
+const u32 NDS_DMA3DAD = 0x40000D8;
+const u32 NDS_DMA3CNT = 0x40000DC;
+
 
 #endif // NDS_COMMON 

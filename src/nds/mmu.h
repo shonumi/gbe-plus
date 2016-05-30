@@ -31,6 +31,7 @@ class NTR_MMU
 	u8 n_clock;
 	u8 s_clock;
 
+	//Structure for handling DS cart headers
 	struct cart_header
 	{
 		std::string title;
@@ -48,6 +49,25 @@ class NTR_MMU
 		u32 arm7_ram_addr;
 		u32 arm7_size;
 	} header;
+
+	//Structure to handle DMA transfers
+	//0-3 are for NDS9
+	//4-7 are for NDS7
+	struct dma_controllers
+	{
+		bool enable;
+		bool started;
+		u32 start_address;
+		u32 original_start_address;
+		u32 destination_address;
+		u32 current_dma_position;
+		u32 word_count;
+		u8 word_type;
+		u32 control;
+		u8 dest_addr_ctrl;
+		u8 src_addr_ctrl;
+		u8 delay;
+	} dma[8];
 
 	NTR_MMU();
 	~NTR_MMU();
