@@ -491,6 +491,14 @@ void main_menu::boot_game()
 	//Reset GUI debugger
 	dmg_debugger->debug_reset = true;
 
+	//If the fullscreen command-line argument was passed, be sure to boot into fullscreen mode
+	if(config::flags & 0x80000000)
+	{
+		findChild<QAction*>("fullscreen_action")->setChecked(true);
+		config::flags &= ~0x80000000;
+		fullscreen();
+	}
+
 	//Engage the core
 	main_menu::gbe_plus->start();
 	main_menu::gbe_plus->db_unit.debug_mode = config::use_debugger;
