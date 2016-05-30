@@ -88,11 +88,11 @@ void AGB_MMU::reset()
 		dma[x].destination_address = 0;
 		dma[x].current_dma_position = 0;
 		dma[x].word_count = 0;
-		u8 word_type = 0;
-		u16 control = 0;
-		u8 dest_addr_ctrl = 0;
-		u8 src_addr_ctrl = 0;
-		u8 delay = 0;
+		dma[x].word_type = 0;
+		dma[x].control = 0;
+		dma[x].dest_addr_ctrl = 0;
+		dma[x].src_addr_ctrl = 0;
+		dma[x].delay = 0;
 	}
 
 	current_save_type = NONE;
