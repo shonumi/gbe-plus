@@ -121,7 +121,75 @@ void ARM9::dma3()
 		//Check DMA Start Timings
 		switch(((mem->dma[3].control >> 28) & 0x3))
 		{
-			case 0x0: std::cout<<"NDS9 DMA3 - Immediate\n"; break;
+			case 0x0:
+			{
+				std::cout<<"NDS9 DMA3 - Immediate\n";
+				std::cout<<"START ADDR -> 0x" << std::hex << mem->dma[3].start_address << "\n";
+				std::cout<<"DEST  ADDR -> 0x" << std::hex << mem->dma[3].destination_address << "\n";
+				std::cout<<"WORD COUNT -> 0x" << std::hex << mem->dma[3].word_count << "\n";
+
+				//DMA fill operation
+				if(mem->dma[3].start_address == NDS_DMA3FILL)
+				{
+					mem->dma[3].start_address = mem->read_u32(NDS_DMA3FILL);
+					mem->dma[3].src_addr_ctrl = 4;
+				}
+
+				//16-bit transfer
+				if(mem->dma[3].word_type == 0)
+				{
+					//Align addresses to half-word
+					mem->dma[3].start_address &= ~0x1;
+					mem->dma[3].destination_address	&= ~0x1;
+
+					while(mem->dma[3].word_count != 0)
+					{
+						temp_value = mem->read_u16(mem->dma[3].start_address);
+						mem->write_u16(mem->dma[3].destination_address, temp_value);
+
+						//Update DMA3 Start Address
+						if(mem->dma[3].src_addr_ctrl == 0) { mem->dma[3].start_address += 2; }
+						else if(mem->dma[3].src_addr_ctrl == 1) { mem->dma[3].start_address -= 2; }
+						else if(mem->dma[3].src_addr_ctrl == 3) { mem->dma[3].start_address += 2; }
+
+						//Update DMA3 Destination Address
+						if(mem->dma[3].dest_addr_ctrl == 0) { mem->dma[3].destination_address += 2; }
+						else if(mem->dma[3].dest_addr_ctrl == 1) { mem->dma[3].destination_address -= 2; }
+						else if(mem->dma[3].dest_addr_ctrl == 3) { mem->dma[3].destination_address += 2; }
+
+						mem->dma[3].word_count--;
+					}
+				}
+
+				//32-bit transfer
+				else
+				{
+					//Align addresses to word
+					mem->dma[3].start_address &= ~0x3;
+					mem->dma[3].destination_address	&= ~0x3;
+
+					while(mem->dma[3].word_count != 0)
+					{
+						temp_value = mem->read_u32(mem->dma[3].start_address);
+						mem->write_u32(mem->dma[3].destination_address, temp_value);
+
+						//Update DMA3 Start Address
+						if(mem->dma[3].src_addr_ctrl == 0) { mem->dma[3].start_address += 4; }
+						else if(mem->dma[3].src_addr_ctrl == 1) { mem->dma[3].start_address -= 4; }
+						else if(mem->dma[3].src_addr_ctrl == 3) { mem->dma[3].start_address += 4; }
+
+						//Update DMA3 Destination Address
+						if(mem->dma[3].dest_addr_ctrl == 0) { mem->dma[3].destination_address += 4; }
+						else if(mem->dma[3].dest_addr_ctrl == 1) { mem->dma[3].destination_address -= 4; }
+						else if(mem->dma[3].dest_addr_ctrl == 3) { mem->dma[3].destination_address += 4; }
+
+						mem->dma[3].word_count--;
+					}
+				}
+			}
+
+			break;
+
 			case 0x1: std::cout<<"NDS9 DMA3 - VBlank\n"; break;
 			case 0x2: std::cout<<"NDS9 DMA3 - HBlank\n"; break;
 			case 0x3: std::cout<<"NDS9 DMA3 - Display Sync\n"; break;
