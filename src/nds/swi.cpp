@@ -15,6 +15,11 @@ void ARM9::process_swi(u32 comment)
 {
 	switch(comment)
 	{
+		//IntrWait
+		case 0x4:
+			std::cout<<"ARM9::SWI::IntrWait (STUBBED) \n";
+			break;
+
 		//IsDebugger
 		case 0xF:
 			std::cout<<"ARM9::SWI::IsDebugger \n";

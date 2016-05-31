@@ -73,3 +73,27 @@ void CP15::drain_write_buffer()
 {
 	std::cout<<"CP15::C7,C10,4 - Drain Write Buffer (STUBBED)\n";
 }
+
+/****** C9,C0,0 - Lockdown data cache ******/
+void CP15::data_cache_lockdown()
+{
+	std::cout<<"CP15::C9,C0,0 - Data Cache Lockdown (STUBBED)\n";
+}
+
+/****** C9,C0,1 - Lockdown instruction cache ******/
+void CP15::instr_cache_lockdown()
+{
+	std::cout<<"CP15::C9,C0,1 - Instruction Cache Lockdown (STUBBED)\n";
+}
+
+/****** C9,C1,0 - Sets the Data TCM size and base address ******/
+void CP15::set_dtcm_size_base()
+{
+	std::cout<<"CP15::C9,C1,0 - Set Data TCM Size and Base (STUBBED)\n";
+}
+
+/****** C9,C1,1 - Sets the Instruction TCM size and base address ******/
+void CP15::set_itcm_size_base()
+{
+	std::cout<<"CP15::C9,C1,1 - Set Instruction TCM Size and Base (STUBBED)\n";
+}

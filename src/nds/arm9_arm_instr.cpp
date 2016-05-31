@@ -1428,8 +1428,15 @@ void ARM9::coprocessor_register_transfer(u32 current_instruction)
 		{
 			switch(cop_info)
 			{
-				case 0x0: co_proc.regs[CP15::C9_C0_0] = get_reg(arm_reg); break;
-				case 0x1: co_proc.regs[CP15::C9_C0_1] = get_reg(arm_reg); break;
+				case 0x0:
+					co_proc.regs[CP15::C9_C0_0] = get_reg(arm_reg);
+					co_proc.data_cache_lockdown();
+					break;
+
+				case 0x1:
+					co_proc.regs[CP15::C9_C0_1] = get_reg(arm_reg);
+					co_proc.instr_cache_lockdown();
+					break;
 			}
 		}
 
@@ -1438,8 +1445,15 @@ void ARM9::coprocessor_register_transfer(u32 current_instruction)
 		{
 			switch(cop_info)
 			{
-				case 0x0: co_proc.regs[CP15::C9_C1_0] = get_reg(arm_reg); break;
-				case 0x1: co_proc.regs[CP15::C9_C1_1] = get_reg(arm_reg); break;
+				case 0x0:
+					co_proc.regs[CP15::C9_C1_0] = get_reg(arm_reg);
+					co_proc.set_dtcm_size_base();
+					break;
+
+				case 0x1:
+					co_proc.regs[CP15::C9_C1_1] = get_reg(arm_reg);
+					co_proc.set_itcm_size_base();
+					break;
 			}
 		}
 

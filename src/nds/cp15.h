@@ -82,6 +82,10 @@ class CP15
 	void invalidate_data_cache();
 	void invalidate_data_cache_line(u32 virtual_address);
 	void drain_write_buffer();
+	void data_cache_lockdown();
+	void instr_cache_lockdown();
+	void set_dtcm_size_base();
+	void set_itcm_size_base();
 };
 
 #endif // NDS9_CP15
