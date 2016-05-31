@@ -361,20 +361,22 @@ bool DMG_LCD::find_meta_data()
 	
 	u32 tile_w = width / (8 * cgfx::scaling_factor);
 	u32 tile_h = (cgfx_stat.m_meta_forms[meta_id] != 2) ? height / (8 * cgfx::scaling_factor) : height / (16 * cgfx::scaling_factor);
-	u32 tile_size = width / tile_w;
 
-	u32 pos = (width * tile_size) * (meta_tile_number / tile_w);
-	pos += (meta_tile_number % tile_w) * tile_size;
+	u32 pixel_w = width / tile_w;
+	u32 pixel_h = height / tile_h;
+
+	u32 pos = (width * pixel_w) * (meta_tile_number / tile_w);
+	pos += (meta_tile_number % tile_w) * pixel_w;
 	
-	for(int y = 0; y < tile_size; y++)
+	for(int y = 0; y < pixel_h; y++)
 	{
-		for(int x = 0; x < tile_size; x++)
+		for(int x = 0; x < pixel_w; x++)
 		{
 			u32 meta_pixel = cgfx_stat.meta_pixel_data[meta_id][pos++];
 			cgfx_pixels.push_back(meta_pixel);
 		}
 
-		pos -= tile_size;
+		pos -= pixel_w;
 		pos += width;
 	}
 
