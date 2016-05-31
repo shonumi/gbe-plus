@@ -500,6 +500,8 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 		case NDS_IE:
 		case NDS_IE+1:
+		case NDS_IE+2:
+		case NDS_IE+3:
 			memory_map[address] = value;
 			break;
 				

@@ -188,6 +188,9 @@ void ARM9::dma3()
 				}
 			}
 
+			mem->dma[3].control &= ~0x80000000;
+			mem->write_u32(NDS_DMA3CNT, mem->dma[3].control);
+
 			break;
 
 			case 0x1: std::cout<<"NDS9 DMA3 - VBlank\n"; break;
