@@ -1149,8 +1149,8 @@ void ARM7::swi_bgaffineset()
 		u16 theta = mem->read_u16(src_addr); src_addr += 4;
 		theta >>= 8;
 
-  		s32 cos_angle = sine_lut[(theta+0x40)&255];
-    		s32 sin_angle = sine_lut[theta];
+  		s32 cos_angle = (s16)sine_lut[(theta+0x40)&255];
+    		s32 sin_angle = (s16)sine_lut[theta];
 
 		//Calculate differences in X-Y coordinates for this line and the next
 		s16 diff_x1 = (scale_x * cos_angle) >> 14;
@@ -1201,8 +1201,8 @@ void ARM7::swi_objaffineset()
 		u16 theta = mem->read_u16(src_addr); src_addr += 4;
 		theta >>= 8;
 
-  		s32 cos_angle = sine_lut[(theta+0x40)&255];
-    		s32 sin_angle = sine_lut[theta];
+  		s32 cos_angle = (s16)sine_lut[(theta+0x40)&255];
+    		s32 sin_angle = (s16)sine_lut[theta];
 
 		//Calculate differences in X-Y coordinates for this line and the next
 		s16 diff_x1 = (scale_x * cos_angle) >> 14;
