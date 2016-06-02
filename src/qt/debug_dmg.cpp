@@ -1160,7 +1160,7 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	connect(db_set_bp_button, SIGNAL(clicked()), this, SLOT(db_set_bp()));
 	connect(db_reset_button, SIGNAL(clicked()), this, SLOT(db_reset()));
 	connect(db_reset_run_button, SIGNAL(clicked()), this, SLOT(db_reset_run()));
-	connect(refresh_button, SIGNAL(clicked()), this, SLOT(refresh()));
+	connect(refresh_button, SIGNAL(clicked()), this, SLOT(click_refresh()));
 	connect(tabs_button->button(QDialogButtonBox::Close), SIGNAL(clicked()), this, SLOT(close_debug()));
 
 	//Signal mapper for memory scrollbars
@@ -1251,7 +1251,7 @@ void dmg_debug::close_debug()
 }
 
 /****** Refresh the display data ******/
-void dmg_debug::refresh() 
+void dmg_debug::refresh()
 {
 	u16 temp = 0;
 	std::string temp_str = "";
@@ -1614,8 +1614,26 @@ void dmg_debug::refresh()
 	}
 }
 
-/****** Updates certain parts of the disassembly text (RAM) ******/
-void dmg_debug::refresh_dasm() { }
+/****** Updates the debugger when clicking the Refresh button ******/
+void dmg_debug::click_refresh()
+{
+	if(tabs->currentIndex() == 3) { debug_reset = true; }
+	refresh();
+
+	//Restore highlighting in the disassembly if necessary
+	if(tabs->currentIndex() == 3)
+	{
+		for(int x = 0; x < main_menu::gbe_plus->db_unit.breakpoints.size(); x++)
+		{
+			u32 breakpoint = main_menu::gbe_plus->db_unit.breakpoints[x];
+			QTextCursor cursor(dasm->document()->findBlockByLineNumber(breakpoint));
+			QTextBlockFormat format = cursor.blockFormat();
+
+			format.setBackground(QColor(Qt::yellow));
+			cursor.setBlockFormat(format);
+		}
+	}	
+}
 
 /****** Updates a preview of the selected BG Color ******/
 void dmg_debug::preview_bg_color(int y, int x)

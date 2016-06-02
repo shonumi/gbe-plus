@@ -187,7 +187,7 @@ class dmg_debug : public QDialog
 	void show_obj(int obj_id);
 	void show_bg(int bg_id);
 	void refresh();
-	void refresh_dasm();
+	void click_refresh();
 	void close_debug();
 
 	void db_next();
