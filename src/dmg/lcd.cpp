@@ -1704,7 +1704,11 @@ void DMG_LCD::step(int cpu_clock)
 						{
 							for(int x = 0; x < 384; x++)
 							{
-								if(cgfx_stat.bg_update_list[x]) { update_dmg_bg_hash(x); }
+								if(cgfx_stat.bg_update_list[x])
+								{
+									update_dmg_bg_hash(x);
+									cgfx_stat.bg_update_list[x] = false;
+								}
 							}
 						}
 
