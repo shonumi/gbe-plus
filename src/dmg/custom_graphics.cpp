@@ -1182,8 +1182,6 @@ bool DMG_LCD::has_hash(u16 addr, std::string hash)
 /****** Adjusts pixel brightness according to a given GBC palette ******/
 u32 DMG_LCD::adjust_pixel_brightness(u32 color, u8 palette_id, u8 gfx_type)
 {
-	std::cout<<"PAL ID -> " << (int)palette_id << "\n";
-
 	//Compare average palette brightness with input brightness
 	u8 palette_brightness = (gfx_type) ? cgfx_stat.obj_pal_brightness[palette_id] : cgfx_stat.bg_pal_brightness[palette_id];
 

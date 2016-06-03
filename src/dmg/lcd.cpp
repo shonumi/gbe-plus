@@ -1425,6 +1425,8 @@ void DMG_LCD::update_bg_colors()
 
 	u8 blue = ((color_bytes & 0x1F) * 8);
 
+	u32 old_color = lcd_stat.bg_colors_final[color][palette];
+
 	lcd_stat.bg_colors_final[color][palette] = 0xFF000000 | (red << 16) | (green << 8) | (blue);
 	lcd_stat.bg_colors_raw[color][palette] = lcd_stat.bg_colors_raw[color][palette];
 
@@ -1440,7 +1442,7 @@ void DMG_LCD::update_bg_colors()
 	lcd_stat.update_bg_colors = false;
 
 	//CGFX - Update BG hashes
-	if((cgfx::load_cgfx) || (cgfx::auto_dump_bg)) 
+	if(((cgfx::load_cgfx) || (cgfx::auto_dump_bg)) && (old_color != lcd_stat.bg_colors_final[color][palette]))
 	{
 		u8 temp_vram_bank = mem->vram_bank;
 		mem->vram_bank = 1;
@@ -1511,6 +1513,8 @@ void DMG_LCD::update_obj_colors()
 
 	u8 blue = ((color_bytes & 0x1F) * 8);
 
+	u32 old_color = lcd_stat.obj_colors_final[color][palette];
+
 	lcd_stat.obj_colors_final[color][palette] = 0xFF000000 | (red << 16) | (green << 8) | (blue);
 	lcd_stat.obj_colors_raw[color][palette] = lcd_stat.obj_colors_raw[color][palette];
 
@@ -1531,7 +1535,7 @@ void DMG_LCD::update_obj_colors()
 	lcd_stat.update_obj_colors = false;
 
 	//CGFX - Update OBJ hashes
-	if((cgfx::load_cgfx) || (cgfx::auto_dump_obj)) 
+	if(((cgfx::load_cgfx) || (cgfx::auto_dump_obj)) && (old_color != lcd_stat.obj_colors_final[color][palette])) 
 	{
 		for(int x = 0; x < 40; x++)
 		{
