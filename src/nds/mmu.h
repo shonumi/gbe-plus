@@ -26,6 +26,8 @@ class NTR_MMU
 
 	std::vector <u8> memory_map;
 	std::vector <u8> cart_data;
+	std::vector <u8> nds7_bios;
+	std::vector <u8> nds9_bios;
 
 	//Memory access timings (Nonsequential and Sequential)
 	u8 n_clock;
@@ -89,7 +91,8 @@ class NTR_MMU
 	void write_u32_fast(u32 address, u32 value);
 
 	bool read_file(std::string filename);
-	bool read_bios(std::string filename);
+	bool read_bios_nds7(std::string filename);
+	bool read_bios_nds9(std::string filename);
 	bool save_backup(std::string filename);
 	bool load_backup(std::string filename);
 

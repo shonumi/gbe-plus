@@ -763,7 +763,14 @@ u32 NTR_core::ex_get_reg(u8 reg_index) { }
 bool NTR_core::read_file(std::string filename) { return core_mmu.read_file(filename); }
 
 /****** Read BIOS file into memory ******/
-bool NTR_core::read_bios(std::string filename) { }
+bool NTR_core::read_bios(std::string filename)
+{
+	//Note, the string given into NTR_core::read_bios is a dummy
+	if(!core_mmu.read_bios_nds7(config::nds7_bios_path) || !core_mmu.read_bios_nds9(config::nds9_bios_path))
+	{
+		return false;
+	}
+}
 
 /****** Returns a byte from core memory ******/
 u8 NTR_core::ex_read_u8(u16 address) { return core_mmu.read_u8(address); }

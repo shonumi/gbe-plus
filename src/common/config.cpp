@@ -23,6 +23,8 @@ namespace config
 	std::string dmg_bios_path = "";
 	std::string gbc_bios_path = "";
 	std::string agb_bios_path = "";
+	std::string nds7_bios_path = "";
+	std::string nds9_bios_path = "";
 	std::string ss_path = "";
 	std::vector <std::string> recent_files;
 	std::vector <std::string> cli_args;
@@ -450,9 +452,25 @@ bool parse_cli_args()
 				if((++x) == config::cli_args.size()) { std::cout<<"GBE::Error - No BIOS file in arguments\n"; }
 
 				else 
-				{ 
+				{
 					config::use_bios = true; 
 					config::bios_file = config::cli_args[x];
+
+					//For the NDS, read 1st argument as NDS7 BIOS, 2nd as NDS9 BIOS
+					if(config::gb_type == 4)
+					{
+						if((++x) == config::cli_args.size())
+						{
+							std::cout<<"GBE::Error - No NDS9 BIOS file in arguments\n";
+							config::use_bios = false;
+						}
+
+						else
+						{
+							config::nds7_bios_path = config::bios_file;
+							config::nds9_bios_path = config::cli_args[x];
+						} 
+					}
 				}
 			}
 

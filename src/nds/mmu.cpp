@@ -20,6 +20,9 @@ NTR_MMU::NTR_MMU()
 NTR_MMU::~NTR_MMU() 
 { 
 	memory_map.clear();
+	cart_data.clear();
+	nds7_bios.clear();
+	nds9_bios.clear();
 	std::cout<<"MMU::Shutdown\n"; 
 }
 
@@ -28,6 +31,14 @@ void NTR_MMU::reset()
 {
 	memory_map.clear();
 	memory_map.resize(0x10000000, 0);
+
+	cart_data.clear();
+
+	nds7_bios.clear();
+	nds7_bios.resize(0x4000, 0);
+
+	nds9_bios.clear();
+	nds9_bios.resize(0xC00, 0);
 
 	//HLE stuff
 	memory_map[NDS_DISPCNT_A] = 0x80;
@@ -596,8 +607,77 @@ bool NTR_MMU::read_file(std::string filename)
 	return true;
 }
 
-/****** Read BIOS file into memory ******/
-bool NTR_MMU::read_bios(std::string filename) { return true; }
+/****** Read NDS7 BIOS file into memory ******/
+bool NTR_MMU::read_bios_nds7(std::string filename)
+{
+	std::ifstream file(filename.c_str(), std::ios::binary);
+
+	if(!file.is_open()) 
+	{
+		std::cout<<"MMU::NDS7 BIOS file " << filename << " could not be opened. Check file path or permissions. \n";
+		return false;
+	}
+
+	//Get the file size
+	file.seekg(0, file.end);
+	u32 file_size = file.tellg();
+	file.seekg(0, file.beg);
+
+	if(file_size > 0x4000) { std::cout<<"MMU::Warning - Irregular NDS7 BIOS size\n"; }
+	
+	if(file_size < 0x4000)
+	{
+		std::cout<<"MMU::Error - NDS7 BIOS size too small\n";
+		file.close();
+		return false;
+	}
+	
+	u8* ex_mem = &nds7_bios[0];
+
+	//Read data from the ROM file
+	file.read((char*)ex_mem, 0x4000);
+
+	file.close();
+	std::cout<<"MMU::NDS7 BIOS file " << filename << " loaded successfully. \n";
+
+	return true;
+}
+
+/****** Read NDS9 BIOS file into memory ******/
+bool NTR_MMU::read_bios_nds9(std::string filename)
+{
+	std::ifstream file(filename.c_str(), std::ios::binary);
+
+	if(!file.is_open()) 
+	{
+		std::cout<<"MMU::NDS9 BIOS file " << filename << " could not be opened. Check file path or permissions. \n";
+		return false;
+	}
+
+	//Get the file size
+	file.seekg(0, file.end);
+	u32 file_size = file.tellg();
+	file.seekg(0, file.beg);
+
+	if(file_size > 0x1000) { std::cout<<"MMU::Warning - Irregular NDS9 BIOS size\n"; }
+	
+	if(file_size < 0x1000)
+	{
+		std::cout<<"MMU::Error - NDS9 BIOS size too small\n";
+		file.close();
+		return false;
+	}
+	
+	u8* ex_mem = &nds9_bios[0];
+
+	//Read data from the ROM file
+	file.read((char*)ex_mem, 0xC00);
+
+	file.close();
+	std::cout<<"MMU::NDS9 BIOS file " << filename << " loaded successfully. \n";
+
+	return true;
+}
 
 /****** Load backup save data ******/
 bool NTR_MMU::load_backup(std::string filename) { return true; }
