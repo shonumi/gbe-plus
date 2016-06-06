@@ -1211,9 +1211,6 @@ std::string DMG_LCD::get_hash(u16 addr, u8 gfx_type)
 		//Determine if in 8x8 or 8x16 mode
 		u8 obj_height = (mem->memory_map[REG_LCDC] & 0x04) ? 16 : 8;
 
-		//Grab OBJ tile addr from index
-		u16 obj_tile_addr = addr;
-
 		//Create a hash for this OBJ tile
 		for(int x = 0; x < obj_height/2; x++)
 		{

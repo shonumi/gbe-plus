@@ -447,7 +447,6 @@ void validate_system_type()
 	if(ext == ".gba") { config::gb_type = 3; }
 
 	//Force GBC mode if system type is set to GBA, but a GB/GBC game is loaded
-	//TODO - Emulate the GBA's GBC functionality (stretching with L/R)
 	else if((ext != ".gba") && (config::gb_type == 3)) 
 	{
 		config::gb_type = 2;

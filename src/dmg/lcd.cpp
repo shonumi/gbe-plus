@@ -427,9 +427,8 @@ void DMG_LCD::render_dmg_scanline()
 	else if((config::resize_mode == 2) && (!config::request_resize))
 	{
 		u16 offset = 1920 + (lcd_stat.current_scanline * 240);
-		u8 pixel_counter = (0x100 - lcd_stat.bg_scroll_x);
 		u16 stretched_pos = 0;
-		u8 old_pos, blend_pos = 0;
+		u8 old_pos = 0;
 
 		for(u8 x = 0; x < 160; x++)
 		{
@@ -489,9 +488,8 @@ void DMG_LCD::render_gbc_scanline()
 	else if((config::resize_mode == 2) && (!config::request_resize))
 	{
 		u16 offset = 1920 + (lcd_stat.current_scanline * 240);
-		u8 pixel_counter = (0x100 - lcd_stat.bg_scroll_x);
 		u16 stretched_pos = 0;
-		u8 old_pos, blend_pos = 0;
+		u8 old_pos = 0;
 
 		for(u8 x = 0; x < 160; x++)
 		{

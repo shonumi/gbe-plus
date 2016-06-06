@@ -2574,7 +2574,6 @@ void gbe_cgfx::dump_layer_tile(u32 x, u32 y)
 		u16 map_entry = (tile_x / 8) + ((tile_y / 8) * 32);
 
 		u8 current_vram_bank, original_vram_bank = main_menu::gbe_plus->ex_read_u8(REG_VBK);
-		u8 original_pal = cgfx::gbc_bg_color_pal;
 			
 		//Read the BG attributes
 		main_menu::gbe_plus->ex_write_u8(REG_VBK, 1);
@@ -2621,7 +2620,6 @@ void gbe_cgfx::dump_layer_tile(u32 x, u32 y)
 		u16 map_entry = (tile_x / 8) + ((tile_y / 8) * 32);
 
 		u8 current_vram_bank, original_vram_bank = main_menu::gbe_plus->ex_read_u8(REG_VBK);
-		u8 original_pal = cgfx::gbc_bg_color_pal;
 			
 		//Read the BG attributes
 		main_menu::gbe_plus->ex_write_u8(REG_VBK, 1);
@@ -2841,9 +2839,6 @@ void gbe_cgfx::dump_selection()
 	if(main_menu::gbe_plus == NULL) { return; }
 	if((rect_x->value() == 0) || (rect_y->value() == 0) || (rect_w->value() == 0) || (rect_h->value() == 0)) { return; }
 	if(layer_select->currentIndex() == 2) { return; }
-
-	//Grab EXT_VRAM_ADDR status
-	bool vram_addr_checked = use_vram_addr->isChecked();
 
 	//Grab metatile name
 	cgfx::meta_dump_name = meta_name->text().toStdString();
