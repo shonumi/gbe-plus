@@ -2573,7 +2573,7 @@ void gbe_cgfx::dump_layer_tile(u32 x, u32 y)
 		u8 tile_y = main_menu::gbe_plus->ex_read_u8(REG_SY) + y;
 		u16 map_entry = (tile_x / 8) + ((tile_y / 8) * 32);
 
-		u8 current_vram_bank, original_vram_bank = main_menu::gbe_plus->ex_read_u8(REG_VBK);
+		u8 original_vram_bank = main_menu::gbe_plus->ex_read_u8(REG_VBK);
 			
 		//Read the BG attributes
 		main_menu::gbe_plus->ex_write_u8(REG_VBK, 1);
@@ -2593,7 +2593,6 @@ void gbe_cgfx::dump_layer_tile(u32 x, u32 y)
 
 		u16 bg_index = (((bg_tile_addr + (map_value << 4)) & ~0x8000) >> 4);
 
-		current_vram_bank = cgfx::gbc_bg_vram_bank;
 		cgfx::gbc_bg_vram_bank = vram_bank;
 		cgfx::gbc_bg_color_pal = pal_num;
 		main_menu::gbe_plus->ex_write_u8(REG_VBK, original_vram_bank);
@@ -2619,7 +2618,7 @@ void gbe_cgfx::dump_layer_tile(u32 x, u32 y)
 		u8 tile_y = y - main_menu::gbe_plus->ex_read_u8(REG_WY);
 		u16 map_entry = (tile_x / 8) + ((tile_y / 8) * 32);
 
-		u8 current_vram_bank, original_vram_bank = main_menu::gbe_plus->ex_read_u8(REG_VBK);
+		u8 original_vram_bank = main_menu::gbe_plus->ex_read_u8(REG_VBK);
 			
 		//Read the BG attributes
 		main_menu::gbe_plus->ex_write_u8(REG_VBK, 1);
@@ -2639,7 +2638,6 @@ void gbe_cgfx::dump_layer_tile(u32 x, u32 y)
 
 		u16 bg_index = (((win_tile_addr + (map_value << 4)) & ~0x8000) >> 4);
 
-		current_vram_bank = cgfx::gbc_bg_vram_bank;
 		cgfx::gbc_bg_vram_bank = vram_bank;
 		cgfx::gbc_bg_color_pal = pal_num;
 		main_menu::gbe_plus->ex_write_u8(REG_VBK, original_vram_bank);

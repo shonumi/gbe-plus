@@ -153,6 +153,11 @@ u32 ARM7::get_reg(u8 g_reg) const
 			break;
 
 		case 15: return reg.r15; break;
+
+		//This should not happen
+		default:
+			std::cout<<"CPU::Error - Tried to access invalid general purpose register: " << (int)g_reg << "\n";
+			return 0;
 	}
 }
 
@@ -237,6 +242,10 @@ void ARM7::set_reg(u8 s_reg, u32 value)
 			break;
 
 		case 15: reg.r15 = value; break;
+
+		//This should not happen
+		default:
+			std::cout<<"CPU::Error - Tried to access invalid general purpose register: " << (int)s_reg << "\n";
 	}
 }
 
