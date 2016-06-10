@@ -53,10 +53,6 @@ namespace util
 	void init_crc32_table();
 	u32 get_crc32(u8* data, u32 length);
 
-	u8 xbit(u8 a, u8 b);
-	u16 xbit(u16 a, u16 b);
-	u32 xbit(u32 a, u32 b);
-
 	std::string to_hex_str(u32 input);
 	bool from_hex_str(std::string input, u32 &result);
 
