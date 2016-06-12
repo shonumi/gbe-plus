@@ -449,8 +449,8 @@ void DMG_core::debug_process_command()
 			}
 		}
 
-		//Show memory
-		else if((command.substr(0, 2) == "sm") && (command.substr(3, 2) == "0x"))
+		//Show memory - 1 byte
+		else if((command.substr(0, 2) == "u8") && (command.substr(3, 2) == "0x"))
 		{
 			valid_command = true;
 			u32 mem_location = 0;
@@ -469,8 +469,34 @@ void DMG_core::debug_process_command()
 
 			else
 			{
-				db_unit.last_command = "sm";
+				db_unit.last_command = "u8";
 				std::cout<<"Memory @ " << hex_string << " : 0x" << std::hex << (int)core_mmu.read_u8(mem_location) << "\n";
+				debug_process_command();
+			}
+		}
+
+		//Show memory - 2 bytes
+		else if((command.substr(0, 3) == "u16") && (command.substr(4, 2) == "0x"))
+		{
+			valid_command = true;
+			u32 mem_location = 0;
+			std::string hex_string = command.substr(6);
+
+			//Convert hex string into usable u32
+			valid_command = util::from_hex_str(hex_string, mem_location);
+
+			//Request valid input again
+			if(!valid_command)
+			{
+				std::cout<<"\nInvalid memory address : " << command << "\n";
+				std::cout<<": ";
+				std::getline(std::cin, command);
+			}
+
+			else
+			{
+				db_unit.last_command = "u16";
+				std::cout<<"Memory @ " << hex_string << " : 0x" << std::hex << (int)core_mmu.read_u16(mem_location) << "\n";
 				debug_process_command();
 			}
 		}
@@ -543,7 +569,8 @@ void DMG_core::debug_process_command()
 			std::cout<<"n \t\t Run next Fetch-Decode-Execute stage\n";
 			std::cout<<"c \t\t Continue until next breakpoint\n";
 			std::cout<<"bp \t\t Set breakpoint, format 0x1234ABCD\n";
-			std::cout<<"sm \t\t Show memory, format 0x1234ABCD\n";
+			std::cout<<"u8 \t\t Show BYTE @ memory, format 0x1234ABCD\n";
+			std::cout<<"u16 \t\t Show WORD @ memory, format 0x1234ABCD\n";
 			std::cout<<"dq \t\t Quit the debugger\n";
 			std::cout<<"dc \t\t Toggle CPU cycle display\n";
 			std::cout<<"cr \t\t Reset CPU cycle counter\n";
