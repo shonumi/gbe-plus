@@ -14,6 +14,8 @@
 
 int main(int argc, char* args[]) 
 {
+	std::cout<<"GBE+ 1.0 [SDL]\n";
+
 	core_emu* gbe_plus = NULL;
 
 	//Start SDL from the main thread now, report specific init errors later in the core

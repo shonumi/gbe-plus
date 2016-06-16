@@ -12,6 +12,8 @@
  
 int main(int argc, char* args[]) 
 {
+	std::cout<<"GBE+ 1.0 [Qt]\n";
+
 	config::use_external_interfaces = true;
 
 	QApplication::setAttribute(Qt::AA_X11InitThreads);

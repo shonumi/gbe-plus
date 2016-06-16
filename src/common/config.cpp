@@ -524,6 +524,9 @@ bool parse_cli_args()
 			//Print Help
 			else if((config::cli_args[x] == "-h") || (config::cli_args[x] == "--help")) 
 			{
+				if(!config::use_external_interfaces) { std::cout<<"\ngbe_plus file [options ...]\n\n"; }
+				else { std::cout<<"\ngbe_plus_qt file [options ...]\n\n"; }
+
 				std::cout<<"GBE+ Command Line Options:\n";
 				std::cout<<"-b [FILE], --bios [FILE] \t\t Load and use BIOS file\n";
 				std::cout<<"-d, --debug \t\t\t\t Start the command-line debugger\n";
