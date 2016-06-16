@@ -36,9 +36,9 @@ namespace config
 	//Arrow Z = A button, X = B button, START = Return, Select = Space
 	//UP, LEFT, DOWN, RIGHT = Arrow keys
 	//A key = Left Shoulder, S key = Right Shoulder
-	int agb_key_a = 122; int agb_key_b = 120; int agb_key_start = 13; int agb_key_select = 32;
-	int agb_key_r_trigger = 115; int agb_key_l_trigger = 97;
-	int agb_key_left = 276; int agb_key_right = 275; int agb_key_down = 274; int agb_key_up = 273;
+	int agb_key_a = SDLK_z; int agb_key_b = SDLK_x; int agb_key_start = SDLK_RETURN; int agb_key_select = SDLK_SPACE;
+	int agb_key_r_trigger = SDLK_a; int agb_key_l_trigger = SDLK_s;
+	int agb_key_left = SDLK_LEFT; int agb_key_right = SDLK_RIGHT; int agb_key_down = SDLK_DOWN; int agb_key_up = SDLK_UP;
 
 	//Default joystick bindings - GBA
 	int agb_joy_a = 100; int agb_joy_b = 101; int agb_joy_start = 107; int agb_joy_select = 106;
@@ -48,8 +48,8 @@ namespace config
 	//Default keyboard bindings - DMG
 	//Arrow Z = A button, X = B button, START = Return, Select = Space
 	//UP, LEFT, DOWN, RIGHT = Arrow keys
-	int dmg_key_a = 122; int dmg_key_b = 120; int dmg_key_start = 13; int dmg_key_select = 32; 
-	int dmg_key_left = 276; int dmg_key_right = 275; int dmg_key_down = 274; int dmg_key_up = 273;
+	int dmg_key_a = SDLK_z; int dmg_key_b = SDLK_x; int dmg_key_start = SDLK_RETURN; int dmg_key_select = SDLK_SPACE; 
+	int dmg_key_left = SDLK_LEFT; int dmg_key_right = SDLK_RIGHT; int dmg_key_down = SDLK_DOWN; int dmg_key_up = SDLK_UP;
 
 	//Default joystick bindings - DMG
 	int dmg_joy_a = 100; int dmg_joy_b = 101; int dmg_joy_start = 107; int dmg_joy_select = 106;
@@ -64,7 +64,7 @@ namespace config
 
 	//Hotkey bindings
 	//Turbo = TAB
-	int hotkey_turbo = 9;
+	int hotkey_turbo = SDLK_TAB;
 
 	//Default joystick dead-zone
 	int dead_zone = 16000;
@@ -102,7 +102,7 @@ namespace config
 
 	//Sound parameters
 	u8 volume = 128;
-	double sample_rate = 44100;
+	double sample_rate = 44100.0;
 	bool mute = false;
 
 	//System screen sizes
