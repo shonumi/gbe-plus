@@ -14,7 +14,7 @@
 /****** Initialize OpenGL through SDL ******/
 void AGB_LCD::opengl_init()
 {
-	SDL_SetVideoMode((240 * config::scaling_factor), (160 * config::scaling_factor), 32, SDL_OPENGL | config::flags);
+	window = SDL_CreateWindow("GBE+", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, (240 * config::scaling_factor), (160 * config::scaling_factor), SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
 		
 	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_BLEND);
@@ -70,5 +70,5 @@ void AGB_LCD::opengl_blit()
 
 	glLoadIdentity();
 
-	SDL_GL_SwapBuffers();
+	SDL_GL_SwapWindow(window);
 }

@@ -12,7 +12,7 @@
 #ifndef SETTINGS_GBE_QT
 #define SETTINGS_GBE_QT
 
-#include <SDL/SDL.h>
+#include <SDL2/SDL.h>
 
 #include <QtGui>
 

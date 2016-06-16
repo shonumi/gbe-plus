@@ -12,8 +12,8 @@
 #ifndef GB_LCD
 #define GB_LCD
 
-#include "SDL/SDL.h"
-#include "SDL/SDL_opengl.h"
+#include "SDL2/SDL.h"
+#include "SDL2/SDL_opengl.h"
 #include "mmu.h"
 #include "custom_graphics_data.h"
 
@@ -63,6 +63,8 @@ class DMG_LCD
 	//Screen data
 	SDL_Surface* final_screen;
 	GLuint lcd_texture;
+
+	SDL_Window *window;
 
 	dmg_lcd_data lcd_stat;
 	dmg_cgfx_data cgfx_stat;

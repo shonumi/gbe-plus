@@ -690,7 +690,8 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	
 	for(int x = 0; x < SDL_NumJoysticks(); x++)
 	{
-		std::string joy_name = SDL_JoystickName(x);
+		SDL_Joystick* jstick = SDL_JoystickOpen(x);
+		std::string joy_name = SDL_JoystickName(jstick);
 		input_device->addItem(QString::fromStdString(joy_name));
 	}
 

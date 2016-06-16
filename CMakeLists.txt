@@ -4,11 +4,14 @@ project(gbe_plus)
 
 add_definitions(-O3 -funroll-loops)
 
-find_package(SDL REQUIRED)
-if (SDL_FOUND)
-    include_directories(${SDL_INCLUDE_DIRS})
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeTests)
+include(FindSDL2 REQUIRED)
+
+find_package(SDL2 REQUIRED)
+if (SDL2_FOUND)
+    include_directories(${SDL2_INCLUDE_DIRS})
 else()
-    message(STATUS "SDL not found.")
+    message(STATUS "SDL2 not found.")
 endif()
 
 find_package(OpenGL REQUIRED)

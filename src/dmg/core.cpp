@@ -167,6 +167,8 @@ void DMG_core::run_core()
 {
 	if(config::gb_type == 2) { core_cpu.reg.a = 0x11; }
 
+SDL_Init(SDL_INIT_EVENTS);
+
 	//Begin running the core
 	while(running)
 	{
@@ -174,7 +176,7 @@ void DMG_core::run_core()
 		if((core_cpu.controllers.video.lcd_stat.current_scanline == 144) && SDL_PollEvent(&event))
 		{
 			//X out of a window
-			if(event.type == SDL_QUIT) { stop(); SDL_Quit(); }
+			if(event.type == SDL_QUIT) { stop(); SDL_DestroyWindow(core_cpu.controllers.video.window); SDL_Quit(); }
 
 			//Process gamepad or hotkey
 			else if((event.type == SDL_KEYDOWN) || (event.type == SDL_KEYUP) 
@@ -1158,6 +1160,7 @@ void DMG_core::handle_hotkey(SDL_Event& event)
 	//Toggle Fullscreen on F12
 	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F12))
 	{
+		/*
 		//Switch flags
 		if(config::flags == 0x80000000) { config::flags = 0; }
 		else { config::flags = 0x80000000; }
@@ -1172,6 +1175,7 @@ void DMG_core::handle_hotkey(SDL_Event& event)
 		{
 			core_cpu.controllers.video.opengl_init();
 		}
+		*/
 	}
 
 	//Pause emulation

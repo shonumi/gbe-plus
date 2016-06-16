@@ -74,9 +74,6 @@ int main(int argc, char* args[])
 	//Disbale mouse cursor in SDL, it's annoying
 	SDL_ShowCursor(SDL_DISABLE);
 
-	//Set program window caption
-	SDL_WM_SetCaption("GBE+", NULL);
-
 	//Actually run the core
 	gbe_plus->run_core();
 

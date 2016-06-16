@@ -31,6 +31,7 @@ AGB_LCD::~AGB_LCD()
 void AGB_LCD::reset()
 {
 	final_screen = NULL;
+	window = NULL;
 	mem = NULL;
 
 	scanline_buffer.clear();
@@ -129,20 +130,30 @@ void AGB_LCD::reset()
 /****** Initialize LCD with SDL ******/
 bool AGB_LCD::init()
 {
+	//Initialize with SDL rendering software or hardware
 	if(config::sdl_render)
 	{
+		//Initialize all of SDL
 		if(SDL_Init(SDL_INIT_EVERYTHING) == -1)
 		{
 			std::cout<<"LCD::Error - Could not initialize SDL\n";
 			return false;
 		}
 
-		if(config::use_opengl) { opengl_init(); }
-		else { final_screen = SDL_SetVideoMode(240, 160, 32, SDL_SWSURFACE | config::flags); }
+		//Setup OpenGL rendering
+		if(config::use_opengl) {opengl_init(); }
+
+		//Set up software rendering
+		else
+		{
+			window = SDL_CreateWindow("GBE+", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, config::sys_width, config::sys_height, SDL_WINDOW_SHOWN);
+			final_screen = SDL_GetWindowSurface(window);
+		}
 
 		if(final_screen == NULL) { return false; }
 	}
 
+	//Initialize with only a buffer for OpenGL (for external rendering)
 	else if((!config::sdl_render) && (config::use_opengl))
 	{
 		final_screen = SDL_CreateRGBSurface(SDL_SWSURFACE, config::sys_width, config::sys_height, 32, 0, 0, 0, 0);
@@ -1092,7 +1103,7 @@ void AGB_LCD::update()
 		//Display final screen buffer - SDL
 		else 
 		{
-			if(SDL_Flip(final_screen) == -1) { std::cout<<"LCD::Error - Could not blit\n"; }
+			if(SDL_UpdateWindowSurface(window) != 0) { std::cout<<"LCD::Error - Could not blit\n"; }
 		}
 	}
 
@@ -1255,7 +1266,7 @@ void AGB_LCD::step()
 					//Display final screen buffer - SDL
 					else 
 					{
-						if(SDL_Flip(final_screen) == -1) { std::cout<<"LCD::Error - Could not blit\n"; }
+						if(SDL_UpdateWindowSurface(window) != 0) { std::cout<<"LCD::Error - Could not blit\n"; }
 					}
 				}
 
@@ -1295,7 +1306,7 @@ void AGB_LCD::step()
 				fps_time = SDL_GetTicks(); 
 				config::title.str("");
 				config::title << "GBE+ " << fps_count << "FPS";
-				SDL_WM_SetCaption(config::title.str().c_str(), NULL);
+				SDL_SetWindowTitle(window, config::title.str().c_str());
 				fps_count = 0; 
 			}
 		}

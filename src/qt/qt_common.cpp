@@ -6,7 +6,7 @@
 // Date : July 15, 2015
 // Description : Common functions and definitions for Qt
 
-#include <SDL/SDL.h>
+#include <SDL2/SDL.h>
 
 #include <QtGui>
 
@@ -37,12 +37,12 @@ int qtkey_to_sdlkey(int key)
 		case Qt::Key_PageDown: return SDLK_PAGEDOWN; break;
 		case Qt::Key_Shift: return SDLK_LSHIFT; break;
 		case Qt::Key_Control: return SDLK_LCTRL; break;
-		case Qt::Key_Meta: return SDLK_LSUPER; break;
+		//case Qt::Key_Meta: return SDLK_LSUPER; break;
 		case Qt::Key_Alt: return SDLK_LALT; break;
 		case Qt::Key_AltGr: return SDLK_MODE; break;
 		case Qt::Key_CapsLock: return SDLK_CAPSLOCK; break;
-		case Qt::Key_NumLock: return SDLK_NUMLOCK; break;
-		case Qt::Key_ScrollLock: return SDLK_SCROLLOCK; break;
+		//case Qt::Key_NumLock: return SDLK_NUMLOCK; break;
+		//case Qt::Key_ScrollLock: return SDLK_SCROLLOCK; break;
 
 		case Qt::Key_F1: return SDLK_F1; break;
 		case Qt::Key_F2: return SDLK_F2; break;

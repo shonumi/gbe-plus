@@ -12,8 +12,8 @@
 #ifndef GB_APU
 #define GB_APU
 
-#include <SDL/SDL.h>
-#include <SDL/SDL_audio.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_audio.h>
 #include "mmu.h"
 
 class DMG_APU
