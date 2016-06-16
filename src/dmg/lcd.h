@@ -61,10 +61,11 @@ class DMG_LCD
 	bool lcd_write(std::string filename);
 
 	//Screen data
-	SDL_Surface* final_screen;
-	GLuint lcd_texture;
-
 	SDL_Window *window;
+	SDL_Surface* final_screen;
+
+	SDL_GLContext gl_context;
+	GLuint lcd_texture;
 
 	dmg_lcd_data lcd_stat;
 	dmg_cgfx_data cgfx_stat;

@@ -38,10 +38,11 @@ class AGB_LCD
 	void clear_screen_buffer(u32 color);
 
 	//Screen data
-	SDL_Surface* final_screen;
-	GLuint lcd_texture;
-
 	SDL_Window* window;
+	SDL_Surface* final_screen;
+
+	SDL_GLContext gl_context;
+	GLuint lcd_texture;
 
 	agb_lcd_data lcd_stat;
 

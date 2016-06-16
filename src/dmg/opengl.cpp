@@ -14,7 +14,12 @@
 /****** Initialize OpenGL through SDL ******/
 void DMG_LCD::opengl_init()
 {
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+
 	window = SDL_CreateWindow("GBE+", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, (config::sys_width * config::scaling_factor), (config::sys_height * config::scaling_factor), SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
+
+	gl_context = SDL_GL_CreateContext(window);
 		
 	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_BLEND);
