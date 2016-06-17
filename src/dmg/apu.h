@@ -45,7 +45,10 @@ class DMG_APU
 	void generate_channel_4_samples(s16* stream, int length);
 };
 
+/****** Custom software mixer ******/
+void dmg_mix_stream(s16* input_stream, s16* output_stream, int length); 
+
 /****** SDL Audio Callback ******/ 
-void dmg_audio_callback(void* _apu, u8 *_stream, int _length);
+void dmg_audio_callback(void* _apu, u8* _stream, int _length);
 
 #endif // GB_APU 
