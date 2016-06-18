@@ -32,7 +32,7 @@ void DMG_LCD::reset()
 	final_screen = NULL;
 	mem = NULL;
 
-	if(window != NULL) { SDL_DestroyWindow(window); }
+	if((window != NULL) && (config::sdl_render)) { SDL_DestroyWindow(window); }
 	window = NULL;
 
 	screen_buffer.clear();
