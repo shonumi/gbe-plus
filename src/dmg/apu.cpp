@@ -534,25 +534,6 @@ void DMG_APU::generate_channel_4_samples(s16* stream, int length)
 	}
 }
 
-/****** Custom software mixer ******/
-void dmg_mix_stream(s16* input_stream, s16* output_stream, int length)
-{
-	for(u32 x = 0; x < length; x++)
-	{
-		//Grab initial sample from input stream
-		s16 in_sample = input_stream[x] / 2;
-		s16 out_sample = output_stream[x] / 2;
-
-		//Clip if wave addition is greater or lower than maximum
-		//This is quick and dirty, but it works
-		if(in_sample + out_sample > 32767) { out_sample = 32767; }
-		else if(in_sample + out_sample < -32768) { out_sample = -32768; }
-		else { out_sample += in_sample; }
-
-		output_stream[x] = out_sample;
-	}
-}
-
 /****** SDL Audio Callback ******/ 
 void dmg_audio_callback(void* _apu, u8 *_stream, int _length)
 {
@@ -570,8 +551,15 @@ void dmg_audio_callback(void* _apu, u8 *_stream, int _length)
 	apu_link->generate_channel_3_samples(channel_3_stream, length);
 	apu_link->generate_channel_4_samples(channel_4_stream, length);
 
-	dmg_mix_stream(channel_1_stream, stream, length);
-	dmg_mix_stream(channel_2_stream, stream, length);
-	dmg_mix_stream(channel_3_stream, stream, length);
-	dmg_mix_stream(channel_4_stream, stream, length);
+	double volume_ratio = apu_link->apu_stat.channel_master_volume / 128.0;
+
+	//Custom software mixing
+	for(u32 x = 0; x < length; x++)
+	{
+		s32 out_sample = channel_1_stream[x] + channel_2_stream[x] + channel_3_stream[x] + channel_4_stream[x];
+		out_sample *= volume_ratio;
+		out_sample /= 4;
+
+		stream[x] = out_sample;
+	} 
 }
