@@ -24,6 +24,7 @@ AGB_LCD::~AGB_LCD()
 {
 	screen_buffer.clear();
 	scanline_buffer.clear();
+	SDL_DestroyWindow(window);
 	std::cout<<"LCD::Shutdown\n";
 }
 
@@ -31,8 +32,10 @@ AGB_LCD::~AGB_LCD()
 void AGB_LCD::reset()
 {
 	final_screen = NULL;
-	window = NULL;
 	mem = NULL;
+
+	if(window != NULL) { SDL_DestroyWindow(window); }
+	window = NULL;
 
 	scanline_buffer.clear();
 	screen_buffer.clear();

@@ -174,12 +174,7 @@ void DMG_core::run_core()
 		if((core_cpu.controllers.video.lcd_stat.current_scanline == 144) && SDL_PollEvent(&event))
 		{
 			//X out of a window
-			if(event.type == SDL_QUIT)
-			{
-				stop();
-				SDL_DestroyWindow(core_cpu.controllers.video.window);
-				SDL_Quit();
-			}
+			if(event.type == SDL_QUIT) { stop(); SDL_Quit(); }
 
 			//Process gamepad or hotkey
 			else if((event.type == SDL_KEYDOWN) || (event.type == SDL_KEYUP) 

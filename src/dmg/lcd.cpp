@@ -22,6 +22,7 @@ DMG_LCD::DMG_LCD()
 /****** LCD Destructor ******/
 DMG_LCD::~DMG_LCD()
 {
+	SDL_DestroyWindow(window);
 	std::cout<<"LCD::Shutdown\n";
 }
 
@@ -29,8 +30,10 @@ DMG_LCD::~DMG_LCD()
 void DMG_LCD::reset()
 {
 	final_screen = NULL;
-	window = NULL;
 	mem = NULL;
+
+	if(window != NULL) { SDL_DestroyWindow(window); }
+	window = NULL;
 
 	screen_buffer.clear();
 	scanline_buffer.clear();
