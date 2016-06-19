@@ -1133,7 +1133,7 @@ void gen_settings::process_joystick_event()
 		//Generate pad id
 		switch(joy_event.type)
 		{
-			case SDL_JOYBUTTONDOWN: 
+			case SDL_JOYBUTTONDOWN:
 				pad = 100 + joy_event.jbutton.button; 
 				grab_input = false;
 				break;
@@ -1278,6 +1278,7 @@ void gen_settings::process_joystick_event()
 
 	input_index = -1;
 	QApplication::processEvents();
+	grab_input = false;
 }
 
 /****** Close all pending input configuration ******/
