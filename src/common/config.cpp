@@ -72,7 +72,7 @@ namespace config
 	//Default joystick ID
 	int joy_id = 0;
 
-	u32 flags = 0;
+	u32 flags = 0x4;
 	bool pause_emu = false;
 	bool use_bios = false;
 	bool use_multicart = false;
@@ -80,6 +80,7 @@ namespace config
 	bool turbo = false;
 
 	u8 scaling_factor = 1;
+	u8 old_scaling_factor = 1;
 
 	std::stringstream title;
 
@@ -108,6 +109,10 @@ namespace config
 	//System screen sizes
 	u32 sys_width = 0;
 	u32 sys_height = 0;
+
+	//Window screen sizes
+	s32 win_width = 0;
+	s32 win_height = 0;
 
 	bool sdl_render = true;
 

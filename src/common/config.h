@@ -59,6 +59,7 @@ namespace config
 	extern bool use_debugger;
 	extern bool turbo;
 	extern u8 scaling_factor;
+	extern u8 old_scaling_factor;
 	extern std::stringstream title;
 	extern u8 gb_type;
 	extern bool gba_enhance;
@@ -71,6 +72,8 @@ namespace config
 
 	extern u32 sys_width;
 	extern u32 sys_height;
+	extern s32 win_width;
+	extern s32 win_height;
 
 	extern bool request_resize;
 	extern s8 resize_mode;

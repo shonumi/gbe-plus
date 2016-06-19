@@ -209,6 +209,7 @@ bool DMG_LCD::init()
 		else
 		{
 			window = SDL_CreateWindow("GBE+", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, config::sys_width, config::sys_height, SDL_WINDOW_SHOWN);
+			SDL_GetWindowSize(window, &config::win_width, &config::win_height);
 			final_screen = SDL_GetWindowSurface(window);
 		}
 
