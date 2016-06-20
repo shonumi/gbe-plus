@@ -1798,7 +1798,10 @@ void DMG_LCD::step(int cpu_clock)
 					config::sys_height = 160;
 					screen_buffer.clear();
 					screen_buffer.resize(0x9600, 0xFFFFFFFF);
+					
+					if((window != NULL) && (config::sdl_render)) { SDL_DestroyWindow(window); }
 					init();
+					
 					if(config::sdl_render) { config::request_resize = false; }
 				}
 
@@ -1809,7 +1812,10 @@ void DMG_LCD::step(int cpu_clock)
 					config::sys_height = 144;
 					screen_buffer.clear();
 					screen_buffer.resize(0x5A00, 0xFFFFFFFF);
+
+					if((window != NULL) && (config::sdl_render)) { SDL_DestroyWindow(window); }
 					init();
+					
 					if(config::sdl_render) { config::request_resize = false; }
 				}
 
