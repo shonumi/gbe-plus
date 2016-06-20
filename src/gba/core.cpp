@@ -643,6 +643,7 @@ void AGB_core::handle_hotkey(SDL_Event& event)
 		{
 			core_cpu.controllers.video.window = SDL_CreateWindow("GBE+", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, config::sys_width, config::sys_height, config::flags);
 			core_cpu.controllers.video.final_screen = SDL_GetWindowSurface(core_cpu.controllers.video.window);
+			SDL_GetWindowSize(core_cpu.controllers.video.window, &config::win_width, &config::win_height);
 		}
 
 		//Initialize new window - OpenGL

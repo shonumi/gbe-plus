@@ -21,9 +21,6 @@ int main(int argc, char* args[])
 	//Start SDL from the main thread now, report specific init errors later in the core
 	SDL_Init(SDL_INIT_VIDEO);
 
-	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");  // make the scaled rendering look smoother.
-
-
 	//Grab command-line arguments
 	for(int x = 0; x++ < argc - 1;) 
 	{ 

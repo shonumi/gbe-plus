@@ -491,7 +491,7 @@ bool parse_cli_args()
 			}
 
 			//Enable fullscreen mode
-			else if((config::cli_args[x] == "-f") || (config::cli_args[x] == "--fullscreen")) { config::flags = 0x80000000; } 
+			else if((config::cli_args[x] == "-f") || (config::cli_args[x] == "--fullscreen")) { config::flags |= SDL_WINDOW_FULLSCREEN_DESKTOP; } 
 
 			//Use multicart mode if applicable for a given ROM
 			else if(config::cli_args[x] == "--multicart") { config::use_multicart = true; }
@@ -500,19 +500,19 @@ bool parse_cli_args()
 			else if(config::cli_args[x] == "--opengl") { config::use_opengl = true; }
 
 			//Scale screen by 2x
-			else if(config::cli_args[x] == "--2x") { config::scaling_factor = 2; }
+			else if(config::cli_args[x] == "--2x") { config::scaling_factor = config::old_scaling_factor = 2; }
 
 			//Scale screen by 3x
-			else if(config::cli_args[x] == "--3x") { config::scaling_factor = 3; }
+			else if(config::cli_args[x] == "--3x") { config::scaling_factor = config::old_scaling_factor = 3; }
 
 			//Scale screen by 4x
-			else if(config::cli_args[x] == "--4x") { config::scaling_factor = 4; }
+			else if(config::cli_args[x] == "--4x") { config::scaling_factor = config::old_scaling_factor = 4; }
 
 			//Scale screen by 5x
-			else if(config::cli_args[x] == "--5x") { config::scaling_factor = 5; }
+			else if(config::cli_args[x] == "--5x") { config::scaling_factor = config::old_scaling_factor = 5; }
 
 			//Scale screen by 6x
-			else if(config::cli_args[x] == "--6x") { config::scaling_factor = 6; }
+			else if(config::cli_args[x] == "--6x") { config::scaling_factor = config::old_scaling_factor = 6; }
 
 			//Set system type - Auto
 			else if(config::cli_args[x] == "--sys-auto") { config::gb_type = 0; }
@@ -869,7 +869,7 @@ bool parse_ini_file()
 				std::stringstream temp_stream(ini_item);
 				temp_stream >> output;
 
-				if((output >= 1) && (output <= 10)) { config::scaling_factor = output; }
+				if((output >= 1) && (output <= 10)) { config::scaling_factor = config::old_scaling_factor = output; }
 				else { config::scaling_factor = 1; }
 			}
 

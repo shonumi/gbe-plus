@@ -63,6 +63,7 @@ class DMG_LCD
 	//Screen data
 	SDL_Window *window;
 	SDL_Surface* final_screen;
+	SDL_Surface* original_screen;
 
 	SDL_GLContext gl_context;
 	GLuint lcd_texture;
