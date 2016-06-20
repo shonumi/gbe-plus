@@ -36,9 +36,9 @@ namespace config
 	//Arrow Z = A button, X = B button, START = Return, Select = Space
 	//UP, LEFT, DOWN, RIGHT = Arrow keys
 	//A key = Left Shoulder, S key = Right Shoulder
-	int agb_key_a = 122; int agb_key_b = 120; int agb_key_start = 13; int agb_key_select = 32;
-	int agb_key_r_trigger = 115; int agb_key_l_trigger = 97;
-	int agb_key_left = 276; int agb_key_right = 275; int agb_key_down = 274; int agb_key_up = 273;
+	int agb_key_a = SDLK_z; int agb_key_b = SDLK_x; int agb_key_start = SDLK_RETURN; int agb_key_select = SDLK_SPACE;
+	int agb_key_r_trigger = SDLK_a; int agb_key_l_trigger = SDLK_s;
+	int agb_key_left = SDLK_LEFT; int agb_key_right = SDLK_RIGHT; int agb_key_down = SDLK_DOWN; int agb_key_up = SDLK_UP;
 
 	//Default joystick bindings - GBA
 	int agb_joy_a = 100; int agb_joy_b = 101; int agb_joy_start = 107; int agb_joy_select = 106;
@@ -48,8 +48,8 @@ namespace config
 	//Default keyboard bindings - DMG
 	//Arrow Z = A button, X = B button, START = Return, Select = Space
 	//UP, LEFT, DOWN, RIGHT = Arrow keys
-	int dmg_key_a = 122; int dmg_key_b = 120; int dmg_key_start = 13; int dmg_key_select = 32; 
-	int dmg_key_left = 276; int dmg_key_right = 275; int dmg_key_down = 274; int dmg_key_up = 273;
+	int dmg_key_a = SDLK_z; int dmg_key_b = SDLK_x; int dmg_key_start = SDLK_RETURN; int dmg_key_select = SDLK_SPACE; 
+	int dmg_key_left = SDLK_LEFT; int dmg_key_right = SDLK_RIGHT; int dmg_key_down = SDLK_DOWN; int dmg_key_up = SDLK_UP;
 
 	//Default joystick bindings - DMG
 	int dmg_joy_a = 100; int dmg_joy_b = 101; int dmg_joy_start = 107; int dmg_joy_select = 106;
@@ -64,7 +64,7 @@ namespace config
 
 	//Hotkey bindings
 	//Turbo = TAB
-	int hotkey_turbo = 9;
+	int hotkey_turbo = SDLK_TAB;
 
 	//Default joystick dead-zone
 	int dead_zone = 16000;
@@ -72,7 +72,7 @@ namespace config
 	//Default joystick ID
 	int joy_id = 0;
 
-	u32 flags = 0;
+	u32 flags = 0x4;
 	bool pause_emu = false;
 	bool use_bios = false;
 	bool use_multicart = false;
@@ -80,6 +80,7 @@ namespace config
 	bool turbo = false;
 
 	u8 scaling_factor = 1;
+	u8 old_scaling_factor = 1;
 
 	std::stringstream title;
 
@@ -102,12 +103,16 @@ namespace config
 
 	//Sound parameters
 	u8 volume = 128;
-	double sample_rate = 44100;
+	double sample_rate = 44100.0;
 	bool mute = false;
 
 	//System screen sizes
 	u32 sys_width = 0;
 	u32 sys_height = 0;
+
+	//Window screen sizes
+	s32 win_width = 0;
+	s32 win_height = 0;
 
 	bool sdl_render = true;
 
@@ -486,7 +491,7 @@ bool parse_cli_args()
 			}
 
 			//Enable fullscreen mode
-			else if((config::cli_args[x] == "-f") || (config::cli_args[x] == "--fullscreen")) { config::flags = 0x80000000; } 
+			else if((config::cli_args[x] == "-f") || (config::cli_args[x] == "--fullscreen")) { config::flags |= SDL_WINDOW_FULLSCREEN_DESKTOP; } 
 
 			//Use multicart mode if applicable for a given ROM
 			else if(config::cli_args[x] == "--multicart") { config::use_multicart = true; }
@@ -495,19 +500,19 @@ bool parse_cli_args()
 			else if(config::cli_args[x] == "--opengl") { config::use_opengl = true; }
 
 			//Scale screen by 2x
-			else if(config::cli_args[x] == "--2x") { config::scaling_factor = 2; }
+			else if(config::cli_args[x] == "--2x") { config::scaling_factor = config::old_scaling_factor = 2; }
 
 			//Scale screen by 3x
-			else if(config::cli_args[x] == "--3x") { config::scaling_factor = 3; }
+			else if(config::cli_args[x] == "--3x") { config::scaling_factor = config::old_scaling_factor = 3; }
 
 			//Scale screen by 4x
-			else if(config::cli_args[x] == "--4x") { config::scaling_factor = 4; }
+			else if(config::cli_args[x] == "--4x") { config::scaling_factor = config::old_scaling_factor = 4; }
 
 			//Scale screen by 5x
-			else if(config::cli_args[x] == "--5x") { config::scaling_factor = 5; }
+			else if(config::cli_args[x] == "--5x") { config::scaling_factor = config::old_scaling_factor = 5; }
 
 			//Scale screen by 6x
-			else if(config::cli_args[x] == "--6x") { config::scaling_factor = 6; }
+			else if(config::cli_args[x] == "--6x") { config::scaling_factor = config::old_scaling_factor = 6; }
 
 			//Set system type - Auto
 			else if(config::cli_args[x] == "--sys-auto") { config::gb_type = 0; }
@@ -864,7 +869,7 @@ bool parse_ini_file()
 				std::stringstream temp_stream(ini_item);
 				temp_stream >> output;
 
-				if((output >= 1) && (output <= 10)) { config::scaling_factor = output; }
+				if((output >= 1) && (output <= 10)) { config::scaling_factor = config::old_scaling_factor = output; }
 				else { config::scaling_factor = 1; }
 			}
 

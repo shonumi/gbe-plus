@@ -14,25 +14,43 @@
 /****** Initialize OpenGL through SDL ******/
 void AGB_LCD::opengl_init()
 {
-	SDL_SetVideoMode((240 * config::scaling_factor), (160 * config::scaling_factor), 32, SDL_OPENGL | config::flags);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+
+	window = SDL_CreateWindow("GBE+", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, (config::sys_width * config::scaling_factor), (config::sys_height * config::scaling_factor), config::flags | SDL_WINDOW_OPENGL);
+	SDL_GetWindowSize(window, &config::win_width, &config::win_height);
+
+	gl_context = SDL_GL_CreateContext(window);
 		
+	//Calculate new temporary scaling factor
+	u32 max_width = config::win_width / config::sys_width;
+	u32 max_height = config::win_height / config::sys_height;
+
+	//Find the maximum dimensions that maintain the original aspect ratio
+	if(max_width <= max_height) { config::scaling_factor = max_width; }
+	else { config::scaling_factor = max_height; }
+
+	//Calculate shifting X-Y if entering fullscreen mode
+	u32 shift_x = (config::win_width / 2) - ((config::sys_width * config::scaling_factor) / 2);
+	u32 shift_y = (config::win_height / 2) - ((config::sys_height * config::scaling_factor) / 2);
+	
 	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glClearColor(0, 0, 0, 0);
 
-	glViewport(0, 0, (240 * config::scaling_factor), (160 * config::scaling_factor));
+	glViewport(shift_x, -shift_y, config::win_width, config::win_height);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
-	glOrtho(0, (240 * config::scaling_factor), (160 * config::scaling_factor), 0, -1, 1);
+	glOrtho(0, config::win_width, config::win_height, 0, -1, 1);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
 	glGenTextures(1, &lcd_texture);
 	glBindTexture(GL_TEXTURE_2D, lcd_texture);
 
-	final_screen = SDL_CreateRGBSurface(SDL_SWSURFACE, 240, 160, 32, 0, 0, 0, 0);
+	final_screen = SDL_CreateRGBSurface(SDL_SWSURFACE, config::sys_width, config::sys_height, 32, 0, 0, 0, 0);
 }
 
 /****** Blit using OpenGL ******/
@@ -70,5 +88,5 @@ void AGB_LCD::opengl_blit()
 
 	glLoadIdentity();
 
-	SDL_GL_SwapBuffers();
+	SDL_GL_SwapWindow(window);
 }

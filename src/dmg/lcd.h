@@ -12,8 +12,8 @@
 #ifndef GB_LCD
 #define GB_LCD
 
-#include "SDL/SDL.h"
-#include "SDL/SDL_opengl.h"
+#include "SDL2/SDL.h"
+#include "SDL2/SDL_opengl.h"
 #include "mmu.h"
 #include "custom_graphics_data.h"
 
@@ -61,7 +61,11 @@ class DMG_LCD
 	bool lcd_write(std::string filename);
 
 	//Screen data
+	SDL_Window *window;
 	SDL_Surface* final_screen;
+	SDL_Surface* original_screen;
+
+	SDL_GLContext gl_context;
 	GLuint lcd_texture;
 
 	dmg_lcd_data lcd_stat;

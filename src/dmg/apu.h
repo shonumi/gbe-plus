@@ -12,8 +12,8 @@
 #ifndef GB_APU
 #define GB_APU
 
-#include <SDL/SDL.h>
-#include <SDL/SDL_audio.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_audio.h>
 #include "mmu.h"
 
 class DMG_APU
@@ -43,9 +43,9 @@ class DMG_APU
 	void generate_channel_2_samples(s16* stream, int length);
 	void generate_channel_3_samples(s16* stream, int length);
 	void generate_channel_4_samples(s16* stream, int length);
-};
+}; 
 
 /****** SDL Audio Callback ******/ 
-void dmg_audio_callback(void* _apu, u8 *_stream, int _length);
+void dmg_audio_callback(void* _apu, u8* _stream, int _length);
 
 #endif // GB_APU 

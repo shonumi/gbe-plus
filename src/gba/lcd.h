@@ -9,8 +9,8 @@
 // Draws background, window, and sprites to screen
 // Responsible for blitting pixel data and limiting frame rate
 
-#include "SDL/SDL.h"
-#include "SDL/SDL_opengl.h"
+#include "SDL2/SDL.h"
+#include "SDL2/SDL_opengl.h"
 #include "mmu.h"
 
 #ifndef GBA_LCD
@@ -38,7 +38,11 @@ class AGB_LCD
 	void clear_screen_buffer(u32 color);
 
 	//Screen data
+	SDL_Window* window;
 	SDL_Surface* final_screen;
+	SDL_Surface* original_screen;
+
+	SDL_GLContext gl_context;
 	GLuint lcd_texture;
 
 	agb_lcd_data lcd_stat;

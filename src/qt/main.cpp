@@ -19,8 +19,9 @@ int main(int argc, char* args[])
 	QApplication::setAttribute(Qt::AA_X11InitThreads);
 	QApplication app(argc, args);
 
-	//Initialize SDL subsystems
+	//Initialize SDL subsystems and hints
 	SDL_Init(SDL_INIT_EVERYTHING);
+	SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS,"1");
 
 	//Grab command-line arguments
 	for(int x = 0; x++ < argc - 1;) 

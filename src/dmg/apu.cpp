@@ -551,8 +551,15 @@ void dmg_audio_callback(void* _apu, u8 *_stream, int _length)
 	apu_link->generate_channel_3_samples(channel_3_stream, length);
 	apu_link->generate_channel_4_samples(channel_4_stream, length);
 
-	SDL_MixAudio((u8*)stream, (u8*)channel_1_stream, length*2, apu_link->apu_stat.channel_master_volume);
-	SDL_MixAudio((u8*)stream, (u8*)channel_2_stream, length*2, apu_link->apu_stat.channel_master_volume);
-	SDL_MixAudio((u8*)stream, (u8*)channel_3_stream, length*2, apu_link->apu_stat.channel_master_volume);
-	SDL_MixAudio((u8*)stream, (u8*)channel_4_stream, length*2, apu_link->apu_stat.channel_master_volume);
+	double volume_ratio = apu_link->apu_stat.channel_master_volume / 128.0;
+
+	//Custom software mixing
+	for(u32 x = 0; x < length; x++)
+	{
+		s32 out_sample = channel_1_stream[x] + channel_2_stream[x] + channel_3_stream[x] + channel_4_stream[x];
+		out_sample *= volume_ratio;
+		out_sample /= 4;
+
+		stream[x] = out_sample;
+	} 
 }

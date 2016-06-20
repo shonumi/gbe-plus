@@ -15,7 +15,7 @@ SET(USER $ENV{USER} CACHE STRING "Target User")
 
 add_executable(gbe_plus ${SRCS})
 target_link_libraries(gbe_plus common gba dmg)
-target_link_libraries(gbe_plus ${SDL_LIBRARY} ${OPENGL_gl_LIBRARY})
+target_link_libraries(gbe_plus ${SDL2_LIBRARY} ${OPENGL_gl_LIBRARY})
 
 if(UNIX AND NOT APPLE)
 	install(TARGETS gbe_plus DESTINATION /usr/local/bin)

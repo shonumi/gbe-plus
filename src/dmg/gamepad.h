@@ -12,7 +12,7 @@
 #ifndef GB_GAMEPAD
 #define GB_GAMEPAD
 
-#include "SDL/SDL.h"
+#include "SDL2/SDL.h"
 #include <string>
 #include <iostream>
 

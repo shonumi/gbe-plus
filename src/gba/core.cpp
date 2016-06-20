@@ -621,16 +621,32 @@ void AGB_core::handle_hotkey(SDL_Event& event)
 	//Toggle Fullscreen on F12
 	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F12))
 	{
-		//Switch flags
-		if(config::flags == 0x80000000) { config::flags = 0; }
-		else { config::flags = 0x80000000; }
-
-		//Initialize the screen
-		if(!config::use_opengl)
+		//Unset fullscreen
+		if(config::flags & SDL_WINDOW_FULLSCREEN_DESKTOP)
 		{
-			core_cpu.controllers.video.final_screen = SDL_SetVideoMode(240, 160, 32, SDL_SWSURFACE | config::flags);
+			config::flags &= ~SDL_WINDOW_FULLSCREEN_DESKTOP;
+			config::scaling_factor = config::old_scaling_factor;
 		}
 
+		//Set fullscreen
+		else
+		{
+			config::flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+			config::old_scaling_factor = config::scaling_factor;
+		}
+
+		//Destroy old window
+		SDL_DestroyWindow(core_cpu.controllers.video.window);
+
+		//Initialize new window - SDL
+		if(!config::use_opengl)
+		{
+			core_cpu.controllers.video.window = SDL_CreateWindow("GBE+", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, config::sys_width, config::sys_height, config::flags);
+			core_cpu.controllers.video.final_screen = SDL_GetWindowSurface(core_cpu.controllers.video.window);
+			SDL_GetWindowSize(core_cpu.controllers.video.window, &config::win_width, &config::win_height);
+		}
+
+		//Initialize new window - OpenGL
 		else
 		{
 			core_cpu.controllers.video.opengl_init();

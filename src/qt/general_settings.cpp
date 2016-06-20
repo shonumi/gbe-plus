@@ -690,7 +690,8 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	
 	for(int x = 0; x < SDL_NumJoysticks(); x++)
 	{
-		std::string joy_name = SDL_JoystickName(x);
+		SDL_Joystick* jstick = SDL_JoystickOpen(x);
+		std::string joy_name = SDL_JoystickName(jstick);
 		input_device->addItem(QString::fromStdString(joy_name));
 	}
 
@@ -1132,7 +1133,7 @@ void gen_settings::process_joystick_event()
 		//Generate pad id
 		switch(joy_event.type)
 		{
-			case SDL_JOYBUTTONDOWN: 
+			case SDL_JOYBUTTONDOWN:
 				pad = 100 + joy_event.jbutton.button; 
 				grab_input = false;
 				break;
@@ -1277,6 +1278,7 @@ void gen_settings::process_joystick_event()
 
 	input_index = -1;
 	QApplication::processEvents();
+	grab_input = false;
 }
 
 /****** Close all pending input configuration ******/

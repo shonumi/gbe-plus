@@ -27,4 +27,4 @@ set(HEADERS
 
 add_library(gba STATIC ${SRCS} ${HEADERS})
 
-target_link_libraries(gba ${SDL_LIBRARY} ${OPENGL_gl_LIBRARY}) 
+target_link_libraries(gba ${SDL2_LIBRARY} ${OPENGL_gl_LIBRARY}) 

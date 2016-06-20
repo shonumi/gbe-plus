@@ -22,6 +22,7 @@ DMG_LCD::DMG_LCD()
 /****** LCD Destructor ******/
 DMG_LCD::~DMG_LCD()
 {
+	SDL_DestroyWindow(window);
 	std::cout<<"LCD::Shutdown\n";
 }
 
@@ -30,6 +31,9 @@ void DMG_LCD::reset()
 {
 	final_screen = NULL;
 	mem = NULL;
+
+	if((window != NULL) && (config::sdl_render)) { SDL_DestroyWindow(window); }
+	window = NULL;
 
 	screen_buffer.clear();
 	scanline_buffer.clear();
@@ -188,20 +192,34 @@ void DMG_LCD::reset()
 /****** Initialize LCD with SDL ******/
 bool DMG_LCD::init()
 {
+	//Initialize with SDL rendering software or hardware
 	if(config::sdl_render)
 	{
+		//Initialize all of SDL
 		if(SDL_Init(SDL_INIT_EVERYTHING) == -1)
 		{
 			std::cout<<"LCD::Error - Could not initialize SDL\n";
 			return false;
 		}
 
-		if(config::use_opengl) {opengl_init(); }
-		else { final_screen = SDL_SetVideoMode(config::sys_width, config::sys_height, 32, SDL_SWSURFACE | config::flags); }
+		//Setup OpenGL rendering
+		if(config::use_opengl) { opengl_init(); }
+
+		//Set up software rendering
+		else
+		{
+			window = SDL_CreateWindow("GBE+", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, config::sys_width, config::sys_height, config::flags);
+			SDL_GetWindowSize(window, &config::win_width, &config::win_height);
+			config::scaling_factor = 1;
+
+			final_screen = SDL_GetWindowSurface(window);
+			original_screen = SDL_CreateRGBSurface(SDL_SWSURFACE, config::sys_width, config::sys_height, 32, 0, 0, 0, 0);
+		}
 
 		if(final_screen == NULL) { return false; }
 	}
 
+	//Initialize with only a buffer for OpenGL (for external rendering)
 	else if((!config::sdl_render) && (config::use_opengl))
 	{
 		final_screen = SDL_CreateRGBSurface(SDL_SWSURFACE, config::sys_width, config::sys_height, 32, 0, 0, 0, 0);
@@ -1780,7 +1798,10 @@ void DMG_LCD::step(int cpu_clock)
 					config::sys_height = 160;
 					screen_buffer.clear();
 					screen_buffer.resize(0x9600, 0xFFFFFFFF);
+					
+					if((window != NULL) && (config::sdl_render)) { SDL_DestroyWindow(window); }
 					init();
+					
 					if(config::sdl_render) { config::request_resize = false; }
 				}
 
@@ -1791,7 +1812,10 @@ void DMG_LCD::step(int cpu_clock)
 					config::sys_height = 144;
 					screen_buffer.clear();
 					screen_buffer.resize(0x5A00, 0xFFFFFFFF);
+
+					if((window != NULL) && (config::sdl_render)) { SDL_DestroyWindow(window); }
 					init();
+					
 					if(config::sdl_render) { config::request_resize = false; }
 				}
 
@@ -1818,32 +1842,69 @@ void DMG_LCD::step(int cpu_clock)
 					//Use SDL
 					if(config::sdl_render)
 					{
-						//Lock source surface
-						if(SDL_MUSTLOCK(final_screen)){ SDL_LockSurface(final_screen); }
-						u32* out_pixel_data = (u32*)final_screen->pixels;
-
-						//Regular 1:1 framebuffer rendering
-						if((!cgfx::load_cgfx) || (cgfx::scaling_factor <= 1))
+						//If using SDL and no OpenGL, manually stretch for fullscreen via SDL
+						if((config::flags & SDL_WINDOW_FULLSCREEN_DESKTOP) && (!config::use_opengl))
 						{
-							for(int a = 0; a < screen_buffer.size(); a++) { out_pixel_data[a] = screen_buffer[a]; }
+							//Lock source surface
+							if(SDL_MUSTLOCK(original_screen)){ SDL_LockSurface(original_screen); }
+							u32* out_pixel_data = (u32*)original_screen->pixels;
+
+							//Regular 1:1 framebuffer rendering
+							if((!cgfx::load_cgfx) || (cgfx::scaling_factor <= 1))
+							{
+								for(int a = 0; a < screen_buffer.size(); a++) { out_pixel_data[a] = screen_buffer[a]; }
+							}
+
+							//HD CGFX framebuffer rendering
+							else if((cgfx::load_cgfx) && (cgfx::scaling_factor > 1))
+							{
+								for(int a = 0; a < hd_screen_buffer.size(); a++) { out_pixel_data[a] = hd_screen_buffer[a]; }
+							}
+
+							//Unlock source surface
+							if(SDL_MUSTLOCK(original_screen)){ SDL_UnlockSurface(original_screen); }
+
+							//Blit the original surface to the final stretched one
+							SDL_Rect dest_rect;
+							dest_rect.x = (config::win_width / 2) - config::sys_width;
+							dest_rect.y = (config::win_height / 2) - config::sys_height;
+							dest_rect.w = config::sys_width << 1;
+							dest_rect.h = config::sys_height << 1;
+							SDL_BlitScaled(original_screen, NULL, final_screen, &dest_rect);
+
+							if(SDL_UpdateWindowSurface(window) != 0) { std::cout<<"LCD::Error - Could not blit\n"; }
 						}
 
-						//HD CGFX framebuffer rendering
-						else if((cgfx::load_cgfx) && (cgfx::scaling_factor > 1))
+						//Otherwise, render normally (SDL 1:1, OpenGL handles its own stretching)
+						else
 						{
-							for(int a = 0; a < hd_screen_buffer.size(); a++) { out_pixel_data[a] = hd_screen_buffer[a]; }
-						}
+							//Lock source surface
+							if(SDL_MUSTLOCK(final_screen)){ SDL_LockSurface(final_screen); }
+							u32* out_pixel_data = (u32*)final_screen->pixels;
 
-						//Unlock source surface
-						if(SDL_MUSTLOCK(final_screen)){ SDL_UnlockSurface(final_screen); }
+							//Regular 1:1 framebuffer rendering
+							if((!cgfx::load_cgfx) || (cgfx::scaling_factor <= 1))
+							{
+								for(int a = 0; a < screen_buffer.size(); a++) { out_pixel_data[a] = screen_buffer[a]; }
+							}
+
+							//HD CGFX framebuffer rendering
+							else if((cgfx::load_cgfx) && (cgfx::scaling_factor > 1))
+							{
+								for(int a = 0; a < hd_screen_buffer.size(); a++) { out_pixel_data[a] = hd_screen_buffer[a]; }
+							}
+
+							//Unlock source surface
+							if(SDL_MUSTLOCK(final_screen)){ SDL_UnlockSurface(final_screen); }
 		
-						//Display final screen buffer - OpenGL
-						if(config::use_opengl) { opengl_blit(); }
+							//Display final screen buffer - OpenGL
+							if(config::use_opengl) { opengl_blit(); }
 				
-						//Display final screen buffer - SDL
-						else 
-						{
-							if(SDL_Flip(final_screen) == -1) { std::cout<<"LCD::Error - Could not blit\n"; }
+							//Display final screen buffer - SDL
+							else 
+							{
+								if(SDL_UpdateWindowSurface(window) != 0) { std::cout<<"LCD::Error - Could not blit\n"; }
+							}
 						}
 					}
 
@@ -1900,7 +1961,7 @@ void DMG_LCD::step(int cpu_clock)
 					fps_time = SDL_GetTicks();
 					config::title.str("");
 					config::title << "GBE+ " << fps_count << "FPS";
-					SDL_WM_SetCaption(config::title.str().c_str(), NULL);
+					SDL_SetWindowTitle(window, config::title.str().c_str());
 					fps_count = 0; 
 				}
 
