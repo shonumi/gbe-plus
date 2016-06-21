@@ -50,10 +50,20 @@ void DMG_MMU::mbc5_write(u16 address, u8 value)
 		}
 	}
 
-	//MBC register - Select RAM bank
+	//MBC register - Select RAM bank or Enable/Disable rumbling
 	if((address >= 0x4000) && (address <= 0x5FFF)) 
-	{ 
-		bank_bits = (value & 0xF);
+	{
+		//Rumble - RAM bank is bits 0-2, rumble is Bit 3
+		if(cart.rumble)
+		{
+			bank_bits = (value & 0x7);
+			
+			if(value & 0x8) { g_pad->start_rumble(); }
+			else { g_pad->stop_rumble(); }
+		}
+
+		//RAM Bank is bits 0-3 on non-rumble carts 
+		else { bank_bits = (value & 0xF); }
 
 		//Mirror RAM R-W to Bank 0 when using only 1 Bank
 		//Most MBC5 games don't rely on mirroring, but DWI&II does

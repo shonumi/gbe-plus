@@ -36,6 +36,8 @@ class DMG_GamePad
 	bool up_shadow, down_shadow, left_shadow, right_shadow;
 
 	SDL_Joystick* jstick;
+    	SDL_Haptic* rumble;
+	bool is_rumbling;
 
 	DMG_GamePad();
 	~DMG_GamePad();
@@ -46,6 +48,8 @@ class DMG_GamePad
 	void process_keyboard(int pad, bool pressed);
 	void process_joystick(int pad, bool pressed);
 	void process_gyroscope();
+	void start_rumble();
+	void stop_rumble();
 	u8 read();
 };
 

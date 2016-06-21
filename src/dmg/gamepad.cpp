@@ -29,7 +29,19 @@ void DMG_GamePad::init()
 	jstick = SDL_JoystickOpen(config::joy_id);
 
 	if((jstick == NULL) && (SDL_NumJoysticks() >= 1)) { std::cout<<"JOY::Could not initialize joystick \n"; }
-	else if((jstick == NULL) && (SDL_NumJoysticks() == 0)) { std::cout<<"JOY::No joysticks detected \n"; }
+	else if((jstick == NULL) && (SDL_NumJoysticks() == 0)) { std::cout<<"JOY::No joysticks detected \n"; return; }
+
+	//Open haptics for rumbling
+	SDL_InitSubSystem(SDL_INIT_HAPTIC);
+	rumble = SDL_HapticOpenFromJoystick(jstick);
+
+	if(rumble == NULL) { std::cout<<"JOY::Could not init rumble \n"; }
+	
+	else
+	{
+		SDL_HapticRumbleInit(rumble);
+		std::cout<<"JOY::Rumble initialized\n";
+	}
 }
 
 /****** GamePad Destructor *******/
@@ -474,6 +486,26 @@ void DMG_GamePad::process_gyroscope()
     		sensor_y += 2;
     		if(sensor_y > 2047) { sensor_y = 2047; }
   	}
+}
+
+/****** Start haptic force-feedback on joypad ******/
+void DMG_GamePad::start_rumble()
+{
+	if((jstick != NULL) && (rumble != NULL) && (is_rumbling == false))
+	{
+		SDL_HapticRumblePlay(rumble, 1, -1);
+		is_rumbling = true;
+	}
+}
+
+/****** Stop haptic force-feedback on joypad ******/
+void DMG_GamePad::stop_rumble()
+{
+	if((jstick != NULL) && (rumble != NULL) && (is_rumbling == true))
+	{
+		SDL_HapticRumbleStop(rumble);
+       		is_rumbling = false;
+	}
 }
 
 /****** Update P1 ******/

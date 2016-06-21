@@ -74,6 +74,7 @@ class DMG_MMU
 		bool battery;
 		bool ram;
 		bool multicart;
+		bool rumble;
 
 		//MBC3 RTC
 		bool rtc;

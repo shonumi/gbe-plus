@@ -51,6 +51,7 @@ void DMG_MMU::reset()
 	cart.battery = false;
 	cart.ram = false;
 	cart.multicart = config::use_multicart;
+	cart.rumble = false;
 
 	cart.rtc = false;
 	cart.rtc_enabled = false;
@@ -1374,6 +1375,7 @@ bool DMG_MMU::read_file(std::string filename)
 
 		case 0x1C:
 			cart.mbc_type = MBC5;
+			cart.rumble = true;
 
 			std::cout<<"MMU::Cartridge Type - MBC5 + Rumble\n";
 			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
@@ -1383,6 +1385,7 @@ bool DMG_MMU::read_file(std::string filename)
 		case 0x1D:
 			cart.mbc_type = MBC5;
 			cart.ram = true;
+			cart.rumble = true;
 
 			std::cout<<"MMU::Cartridge Type - MBC5 + RAM + Rumble\n";
 			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
@@ -1393,6 +1396,7 @@ bool DMG_MMU::read_file(std::string filename)
 			cart.mbc_type = MBC5;
 			cart.ram = true;
 			cart.battery = true;
+			cart.rumble = true;
 
 			std::cout<<"MMU::Cartridge Type - MBC5 + RAM + Battery + Rumble\n";
 			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
