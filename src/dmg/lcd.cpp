@@ -1641,9 +1641,7 @@ void DMG_LCD::step(int cpu_clock)
 	{
 		lcd_stat.on_off = false;
 		lcd_stat.lcd_mode = 2;
-		lcd_stat.lcd_clock = 0;
 
-		lcd_stat.current_scanline = mem->memory_map[REG_LY] = 0;
 		scanline_compare();
 	}
 
@@ -1657,6 +1655,12 @@ void DMG_LCD::step(int cpu_clock)
 		//Nintendo did NOT like this, as it could damage the LCD over repeated uses
 		//Note: this is the same effect you see when hitting the power switch OFF
 		if(lcd_stat.lcd_mode != 1) { std::cout<<"LCD::Warning - Disabling LCD outside of VBlank\n"; }
+
+		//Set LY to zero here, but DO NOT do a LYC test until LCD is turned back on
+		//Mr. Do! requires the test to occur only when the LCD is turned on
+		lcd_stat.current_scanline = mem->memory_map[REG_LY] = 0;
+		lcd_stat.lcd_clock = 0;
+		lcd_stat.lcd_mode = 0;
 	}
 
 	//Update background color palettes on the GBC
