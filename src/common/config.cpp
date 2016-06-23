@@ -72,6 +72,9 @@ namespace config
 	//Default joystick ID
 	int joy_id = 0;
 
+	//Default Haptic setting
+	bool use_haptics = false;
+
 	u32 flags = 0x4;
 	bool pause_emu = false;
 	bool use_bios = false;
@@ -799,6 +802,26 @@ bool parse_ini_file()
 			else 
 			{
 				std::cout<<"GBE::Error - Could not parse gbe.ini (#dead_zone) \n";
+				return false;
+			}
+		}
+
+		//Use haptics
+		else if(ini_item == "#use_haptics")
+		{
+			if((x + 1) < size) 
+			{
+				ini_item = ini_opts[++x];
+				std::stringstream temp_stream(ini_item);
+				temp_stream >> output;
+
+				if(output == 1) { config::use_haptics = true; }
+				else { config::use_haptics = false; }
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#use_haptics) \n";
 				return false;
 			}
 		}
@@ -1598,6 +1621,15 @@ bool save_ini_file()
 			line_pos = output_count[x];
 
 			output_lines[line_pos] = "[#dead_zone:" + util::to_str(config::dead_zone) + "]";
+		}
+
+		//Use haptics
+		else if(ini_item == "#use_haptics")
+		{
+			line_pos = output_count[x];
+			std::string val = (config::use_haptics) ? "1" : "0";
+
+			output_lines[line_pos] = "[#use_haptics:" + val + "]";
 		}
 
 		//Volume settings

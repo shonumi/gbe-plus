@@ -31,16 +31,21 @@ void DMG_GamePad::init()
 	if((jstick == NULL) && (SDL_NumJoysticks() >= 1)) { std::cout<<"JOY::Could not initialize joystick \n"; }
 	else if((jstick == NULL) && (SDL_NumJoysticks() == 0)) { std::cout<<"JOY::No joysticks detected \n"; return; }
 
-	//Open haptics for rumbling
-	SDL_InitSubSystem(SDL_INIT_HAPTIC);
-	rumble = SDL_HapticOpenFromJoystick(jstick);
+	rumble = NULL;
 
-	if(rumble == NULL) { std::cout<<"JOY::Could not init rumble \n"; }
-	
-	else
+	//Open haptics for rumbling
+	if(config::use_haptics)
 	{
-		SDL_HapticRumbleInit(rumble);
-		std::cout<<"JOY::Rumble initialized\n";
+		SDL_InitSubSystem(SDL_INIT_HAPTIC);
+		rumble = SDL_HapticOpenFromJoystick(jstick);
+
+		if(rumble == NULL) { std::cout<<"JOY::Could not init rumble \n"; }
+	
+		else
+		{
+			SDL_HapticRumbleInit(rumble);
+			std::cout<<"JOY::Rumble initialized\n";
+		}
 	}
 }
 

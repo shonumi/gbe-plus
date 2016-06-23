@@ -50,6 +50,7 @@ namespace config
 	extern int hotkey_turbo;
 	extern int dead_zone;
 	extern int joy_id;
+	extern bool use_haptics;
 
 	extern u32 flags;
 	extern bool pause_emu;
