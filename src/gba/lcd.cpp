@@ -16,6 +16,7 @@
 /****** LCD Constructor ******/
 AGB_LCD::AGB_LCD()
 {
+	window = NULL;
 	reset();
 }
 

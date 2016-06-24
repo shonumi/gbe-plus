@@ -16,6 +16,7 @@
 /****** LCD Constructor ******/
 DMG_LCD::DMG_LCD()
 {
+	window = NULL;
 	reset();
 }
 
