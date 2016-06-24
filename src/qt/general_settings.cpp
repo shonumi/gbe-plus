@@ -24,11 +24,11 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	//Set up tabs
 	tabs = new QTabWidget(this);
 	
-	QDialog* general = new QDialog;
-	QDialog* display = new QDialog;
-	QDialog* sound = new QDialog;
-	QDialog* controls = new QDialog;
-	QDialog* paths = new QDialog;
+	general = new QDialog;
+	display = new QDialog;
+	sound = new QDialog;
+	controls = new QDialog;
+	paths = new QDialog;
 
 	tabs->addTab(general, tr("General"));
 	tabs->addTab(display, tr("Display"));
@@ -37,6 +37,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	tabs->addTab(paths, tr("Paths"));
 
 	tabs_button = new QDialogButtonBox(QDialogButtonBox::Close);
+	advanced_button = tabs_button->addButton("Advanced Controls", QDialogButtonBox::ActionRole);
 
 	//General settings - Emulated system type
 	QWidget* sys_type_set = new QWidget(general);
@@ -244,7 +245,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	sound->setLayout(audio_layout);
 
 	//Control settings - Device
-	QWidget* input_device_set = new QWidget(controls);
+	input_device_set = new QWidget(controls);
 	QLabel* input_device_label = new QLabel("Input Device : ");
 	input_device = new QComboBox(input_device_set);
 	input_device->addItem("Keyboard");
@@ -256,7 +257,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	input_device_set->setLayout(input_device_layout);
 
 	//Control settings- Dead-zone
-	QWidget* dead_zone_set = new QWidget(controls);
+	dead_zone_set = new QWidget(controls);
 	QLabel* dead_zone_label = new QLabel("Dead Zone : ");
 	dead_zone = new QSlider(sound);
 	dead_zone->setMaximum(32767);
@@ -272,7 +273,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	dead_zone_set->setLayout(dead_zone_layout);
 
 	//Control settings - A button
-	QWidget* input_a_set = new QWidget(controls);
+	input_a_set = new QWidget(controls);
 	QLabel* input_a_label = new QLabel("Button A : ");
 	input_a = new QLineEdit(controls);
 	config_a = new QPushButton("Configure");
@@ -287,7 +288,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	input_a_set->setLayout(input_a_layout);
 
 	//Control settings - B button
-	QWidget* input_b_set = new QWidget(controls);
+	input_b_set = new QWidget(controls);
 	QLabel* input_b_label = new QLabel("Button B : ");
 	input_b = new QLineEdit(controls);
 	config_b = new QPushButton("Configure");
@@ -302,7 +303,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	input_b_set->setLayout(input_b_layout);
 
 	//Control settings - START button
-	QWidget* input_start_set = new QWidget(controls);
+	input_start_set = new QWidget(controls);
 	QLabel* input_start_label = new QLabel("START : ");
 	input_start = new QLineEdit(controls);
 	config_start = new QPushButton("Configure");
@@ -317,7 +318,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	input_start_set->setLayout(input_start_layout);
 
 	//Control settings - SELECT button
-	QWidget* input_select_set = new QWidget(controls);
+	input_select_set = new QWidget(controls);
 	QLabel* input_select_label = new QLabel("SELECT : ");
 	input_select = new QLineEdit(controls);
 	config_select = new QPushButton("Configure");
@@ -332,7 +333,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	input_select_set->setLayout(input_select_layout);
 
 	//Control settings - Left
-	QWidget* input_left_set = new QWidget(controls);
+	input_left_set = new QWidget(controls);
 	QLabel* input_left_label = new QLabel("LEFT : ");
 	input_left = new QLineEdit(controls);
 	config_left = new QPushButton("Configure");
@@ -347,7 +348,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	input_left_set->setLayout(input_left_layout);
 
 	//Control settings - Right
-	QWidget* input_right_set = new QWidget(controls);
+	input_right_set = new QWidget(controls);
 	QLabel* input_right_label = new QLabel("RIGHT : ");
 	input_right = new QLineEdit(controls);
 	config_right = new QPushButton("Configure");
@@ -362,7 +363,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	input_right_set->setLayout(input_right_layout);
 
 	//Control settings - Up
-	QWidget* input_up_set = new QWidget(controls);
+	input_up_set = new QWidget(controls);
 	QLabel* input_up_label = new QLabel("UP : ");
 	input_up = new QLineEdit(controls);
 	config_up = new QPushButton("Configure");
@@ -377,7 +378,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	input_up_set->setLayout(input_up_layout);
 
 	//Control settings - Down
-	QWidget* input_down_set = new QWidget(controls);
+	input_down_set = new QWidget(controls);
 	QLabel* input_down_label = new QLabel("DOWN : ");
 	input_down = new QLineEdit(controls);
 	config_down = new QPushButton("Configure");
@@ -392,7 +393,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	input_down_set->setLayout(input_down_layout);
 
 	//Control settings - Right Trigger
-	QWidget* input_r_set = new QWidget(controls);
+	input_r_set = new QWidget(controls);
 	QLabel* input_r_label = new QLabel("Trigger R : ");
 	input_r = new QLineEdit(controls);
 	config_r = new QPushButton("Configure");
@@ -407,7 +408,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	input_r_set->setLayout(input_r_layout);
 
 	//Control settings - Left Trigger
-	QWidget* input_l_set = new QWidget(controls);
+	input_l_set = new QWidget(controls);
 	QLabel* input_l_label = new QLabel("Trigger L : ");
 	input_l = new QLineEdit(controls);
 	config_l = new QPushButton("Configure");
@@ -421,7 +422,18 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	input_l_layout->setContentsMargins(6, 0, 0, 0);
 	input_l_set->setLayout(input_l_layout);
 
-	QVBoxLayout* controls_layout = new QVBoxLayout;
+	//Advanced control settings - Enable rumble
+	rumble_set = new QWidget(controls);
+	QLabel* rumble_label = new QLabel("Enable rumble", rumble_set);
+	rumble_on = new QCheckBox(rumble_set);
+
+	QHBoxLayout* rumble_layout = new QHBoxLayout;
+	rumble_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	rumble_layout->addWidget(rumble_on);
+	rumble_layout->addWidget(rumble_label);
+	rumble_set->setLayout(rumble_layout);
+
+	controls_layout = new QVBoxLayout;
 	controls_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	controls_layout->addWidget(input_device_set);
 	controls_layout->addWidget(input_a_set);
@@ -436,6 +448,12 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	controls_layout->addWidget(input_r_set);
 	controls_layout->addWidget(dead_zone_set);
 	controls->setLayout(controls_layout);
+
+	advanced_controls_layout = new QVBoxLayout;
+	advanced_controls_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	advanced_controls_layout->addWidget(rumble_set);
+	
+	rumble_set->setVisible(false);
 
 	//Path settings - DMG BIOS
 	QWidget* dmg_bios_set = new QWidget(paths);
@@ -565,6 +583,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(sound_on, SIGNAL(stateChanged(int)), this, SLOT(mute()));
 	connect(dead_zone, SIGNAL(valueChanged(int)), this, SLOT(dead_zone_change()));
 	connect(input_device, SIGNAL(currentIndexChanged(int)), this, SLOT(input_device_change()));
+	connect(advanced_button, SIGNAL(clicked()), this, SLOT(switch_control_layout()));
 	connect(data_folder, SIGNAL(accepted()), this, SLOT(select_folder()));
 	connect(data_folder, SIGNAL(rejected()), this, SLOT(reject_folder()));
 
@@ -698,6 +717,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	sample_rate = config::sample_rate;
 	resize_screen = false;
 	grab_input = false;
+	config_advanced_controls = false;
 	input_type = 0;
 
 	resize(450, 450);
@@ -734,8 +754,8 @@ void gen_settings::set_ini_options()
 	//Sample rate option
 	switch((int)config::sample_rate)
 	{
-		case 11250: freq->setCurrentIndex(3); break;
-		case 22500: freq->setCurrentIndex(2); break;
+		case 11025: freq->setCurrentIndex(3); break;
+		case 22050: freq->setCurrentIndex(2); break;
 		case 44100: freq->setCurrentIndex(1); break;
 		case 48000: freq->setCurrentIndex(0); break;
 	}
@@ -1297,6 +1317,77 @@ void gen_settings::close_input()
 
 	input_index = -1;
 	grab_input = false;
+
+	//Additionally, set the Advanced Controls button visible or invisible when switching tabs
+	if(tabs->currentIndex() == 3) { advanced_button->setVisible(true); }
+	else { advanced_button->setVisible(false); }
+}
+
+/****** Changes Qt widget layout - Switches between advanced control configuration mode ******/
+void gen_settings::switch_control_layout()
+{
+	//Switch from standard control layout to advanced control layout
+	if(!config_advanced_controls)
+	{
+		//Set all advanced control widgets to visible
+		for(int x = 0; x < advanced_controls_layout->count(); x++)
+		{
+			advanced_controls_layout->itemAt(x)->widget()->setVisible(true);
+		}
+
+		//Set all standard control widgets to invisible
+		for(int x = 0; x < controls_layout->count(); x++)
+		{
+			controls_layout->itemAt(x)->widget()->setVisible(false);
+		}
+
+		config_advanced_controls = true;
+
+		delete controls->layout();
+		controls->setLayout(advanced_controls_layout);
+
+		//Rebuild old layout (was deleted above)
+		controls_layout = new QVBoxLayout;
+		controls_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+		controls_layout->addWidget(input_device_set);
+		controls_layout->addWidget(input_a_set);
+		controls_layout->addWidget(input_b_set);
+		controls_layout->addWidget(input_start_set);
+		controls_layout->addWidget(input_select_set);
+		controls_layout->addWidget(input_left_set);
+		controls_layout->addWidget(input_right_set);
+		controls_layout->addWidget(input_up_set);
+		controls_layout->addWidget(input_down_set);
+		controls_layout->addWidget(input_l_set);
+		controls_layout->addWidget(input_r_set);
+		controls_layout->addWidget(dead_zone_set);
+	}
+
+	//Switch from advanced control layout to standard control layout
+	else
+	{
+		//Set all advanced control widgets to invisible
+		for(int x = 0; x < advanced_controls_layout->count(); x++)
+		{
+			advanced_controls_layout->itemAt(x)->widget()->setVisible(false);
+		}
+
+		//Set all standard control widgets to invisible
+		for(int x = 0; x < controls_layout->count(); x++)
+		{
+			controls_layout->itemAt(x)->widget()->setVisible(true);
+		}
+
+		config_advanced_controls = false;
+
+		delete controls->layout();
+		controls->setLayout(controls_layout);
+
+		//Rebuild old layout (was deleted above)
+		advanced_controls_layout = new QVBoxLayout;
+		advanced_controls_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+		advanced_controls_layout->addWidget(rumble_set);
+	}
 }
 
 /****** Updates the settings window ******/

@@ -29,6 +29,7 @@ class gen_settings : public QDialog
 
 	QTabWidget* tabs;
 	QDialogButtonBox* tabs_button;
+	QPushButton* advanced_button;
 
 	//General tab widgets
 	QComboBox* sys_type;
@@ -56,6 +57,10 @@ class gen_settings : public QDialog
 	bool grab_input;
 	int last_key;
 	int input_index;
+
+	QVBoxLayout* controls_layout;
+	QVBoxLayout* advanced_controls_layout;
+	bool config_advanced_controls;
 
 	QSlider* dead_zone;
 
@@ -101,6 +106,9 @@ class gen_settings : public QDialog
 	QPushButton* config_l;
 	QPushButton* config_r;
 
+	//Advanced controls tab widget
+	QCheckBox* rumble_on;
+
 	void update_volume();
 
 	protected:
@@ -123,10 +131,32 @@ class gen_settings : public QDialog
 	void dead_zone_change();
 	void configure_button(int button);
 	void close_input();
+	void switch_control_layout();
 	void select_folder();
 	void reject_folder();
 
 	private:
+	QDialog* general;
+	QDialog* display;
+	QDialog* sound;
+	QDialog* controls;
+	QDialog* paths;
+
+	QWidget* input_device_set;
+	QWidget* input_a_set;
+	QWidget* input_b_set;
+	QWidget* input_start_set;
+	QWidget* input_select_set;
+	QWidget* input_left_set;
+	QWidget* input_right_set;
+	QWidget* input_up_set;
+	QWidget* input_down_set;
+	QWidget* input_l_set;
+	QWidget* input_r_set;
+	QWidget* dead_zone_set;
+
+	QWidget* rumble_set;
+
 	void process_joystick_event();
 	void input_delay(QPushButton* input_button); 
 
