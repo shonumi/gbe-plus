@@ -197,9 +197,9 @@ bool DMG_LCD::init()
 	if(config::sdl_render)
 	{
 		//Initialize all of SDL
-		if(SDL_Init(SDL_INIT_EVERYTHING) == -1)
+		if(SDL_Init(SDL_INIT_VIDEO) == -1)
 		{
-			std::cout<<"LCD::Error - Could not initialize SDL\n";
+			std::cout<<"LCD::Error - Could not initialize SDL video\n";
 			return false;
 		}
 

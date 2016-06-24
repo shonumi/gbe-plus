@@ -117,7 +117,11 @@ void AGB_APU::reset()
 bool AGB_APU::init()
 {
 	//Initialize audio subsystem
-	SDL_InitSubSystem(SDL_INIT_AUDIO);
+	if(SDL_InitSubSystem(SDL_INIT_AUDIO) == -1)
+	{
+		std::cout<<"APU::Error - Could not initialize SDL audio\n";
+		return false;
+	}
 
 	//Setup the desired audio specifications
     	desired_spec.freq = apu_stat.sample_rate;

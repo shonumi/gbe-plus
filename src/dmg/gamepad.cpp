@@ -25,6 +25,13 @@ DMG_GamePad::DMG_GamePad()
 /****** Initialize GamePad ******/
 void DMG_GamePad::init()
 {
+	//Initialize joystick subsystem
+	if(SDL_InitSubSystem(SDL_INIT_JOYSTICK) == -1)
+	{
+		std::cout<<"JOY::Could not initialize SDL joysticks\n";
+		return;
+	}
+
 	jstick = NULL;
 	jstick = SDL_JoystickOpen(config::joy_id);
 
@@ -36,7 +43,12 @@ void DMG_GamePad::init()
 	//Open haptics for rumbling
 	if(config::use_haptics)
 	{
-		SDL_InitSubSystem(SDL_INIT_HAPTIC);
+		if(SDL_InitSubSystem(SDL_INIT_HAPTIC) == -1)
+		{
+			std::cout<<"JOY::Could not initialize SDL haptics\n";
+			return;
+		}
+
 		rumble = SDL_HapticOpenFromJoystick(jstick);
 
 		if(rumble == NULL) { std::cout<<"JOY::Could not init rumble \n"; }
