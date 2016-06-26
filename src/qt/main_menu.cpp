@@ -375,6 +375,7 @@ void main_menu::quit()
 	config::gb_type = settings->sys_type->currentIndex();
 	config::mute = (settings->sound_on->isChecked()) ? false : true;
 	config::volume = settings->volume->value();
+	config::use_haptics = (settings->rumble_on->isChecked()) ? true : false;
 
 	switch(settings->freq->currentIndex())
 	{
@@ -421,6 +422,10 @@ void main_menu::boot_game()
 	//Check multicart status
 	if(settings->multicart->isChecked()) { config::use_multicart = true; }
 	else { config::use_multicart = false; }
+
+	//Check rumble status
+	if(settings->rumble_on->isChecked()) { config::use_haptics = true; }
+	else { config::use_haptics = false; }
 
 	findChild<QAction*>("pause_action")->setChecked(false);
 
@@ -567,13 +572,14 @@ void main_menu::closeEvent(QCloseEvent* event)
 	config::mute = (settings->sound_on->isChecked()) ? false : true;
 	config::volume = settings->volume->value();
 	config::use_opengl = (settings->ogl->isChecked()) ? true : false;
+	config::use_haptics = (settings->rumble_on->isChecked()) ? true : false;
 	
 	switch(settings->freq->currentIndex())
 	{
 		case 0: config::sample_rate = 48000.0; break;
-		case 1: config::sample_rate = 44000.0; break;
-		case 2: config::sample_rate = 20500.0; break;
-		case 3: config::sample_rate = 10250.0; break;
+		case 1: config::sample_rate = 44100.0; break;
+		case 2: config::sample_rate = 22050.0; break;
+		case 3: config::sample_rate = 11025.0; break;
 	}
 
 	save_ini_file();

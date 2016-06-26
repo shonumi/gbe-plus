@@ -801,6 +801,9 @@ void gen_settings::set_ini_options()
 	QString path_6(QString::fromStdString(cgfx::dump_bg_path));
 	QString path_7(QString::fromStdString(cgfx::dump_obj_path));
 
+	//Rumble
+	if(config::use_haptics) { rumble_on->setChecked(true); }
+
 	dmg_bios->setText(path_1);
 	gbc_bios->setText(path_2);
 	gba_bios->setText(path_3);
