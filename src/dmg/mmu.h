@@ -138,6 +138,8 @@ class DMG_MMU
 	void mbc7_write_ram(u8 value);
 	u8 mbc7_read(u16 address);
 
+	void set_gs_cheats();
+
 	void set_lcd_data(dmg_lcd_data* ex_lcd_stat);
 	void set_cgfx_data(dmg_cgfx_data* ex_cgfx_stat);
 	void set_apu_data(dmg_apu_data* ex_apu_stat);

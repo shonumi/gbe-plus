@@ -1695,6 +1695,38 @@ bool DMG_MMU::save_backup(std::string filename)
 	return true;
 }
 
+/****** Writes values to RAM as specified by the Gameshark code - Called by LCD during VBlank ******/
+void DMG_MMU::set_gs_cheats()
+{
+	//Cycle through all listed cheats, parse the 32-bit cheat format
+	for(int x = 0; x < config::gs_cheats.size(); x++)
+	{
+		//Grab and verify memory address (Bytes 0 and 1 in that order)
+		u16 dest_addr = (config::gs_cheats[x] & 0xFF) << 8;
+		dest_addr |= ((config::gs_cheats[x] & 0xFF00) >> 8);
+
+		if((dest_addr >= 0xA000) && (dest_addr <= 0xDFFF))
+		{
+			//Grab byte from cheat code format (Byte 2)
+			u8 dest_byte = (config::gs_cheats[x] >> 16) & 0xFF;
+
+			//Grab RAM bank number to write byte into (Byte 3)
+			u8 dest_ram_bank = (config::gs_cheats[x] >> 24);
+
+			//Make sure RAM bank does not exceed certain MBC's maximum number of allowable banks
+			if((cart.mbc_type == MBC1) || (cart.mbc_type == MBC3)) { dest_ram_bank &= 0x3; }
+			else if(cart.mbc_type == MBC5) { dest_ram_bank &= 0xF; }
+
+			//Write value into RAM
+			u8 current_ram_bank = bank_bits;
+			bank_bits = dest_ram_bank;
+
+			write_u8(dest_addr, dest_byte);
+			bank_bits = current_ram_bank;
+		}
+	}
+}
+
 /****** Points the MMU to an lcd_data structure (FROM THE LCD ITSELF) ******/
 void DMG_MMU::set_lcd_data(dmg_lcd_data* ex_lcd_stat) { lcd_stat = ex_lcd_stat; }
 

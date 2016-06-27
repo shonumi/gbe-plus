@@ -67,6 +67,9 @@ namespace config
 	extern bool sdl_render;
 	extern u8 dmg_gbc_pal;
 
+	extern bool use_cheats;
+	extern std::vector <u32> gs_cheats;
+
 	extern u8 volume;
 	extern double sample_rate;
 	extern bool mute;
