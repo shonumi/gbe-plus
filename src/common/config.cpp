@@ -87,8 +87,10 @@ namespace config
 
 	std::stringstream title;
 
+	//Cheats - Gameshark and Game Genie
 	bool use_cheats = false;
 	std::vector <u32> gs_cheats;
+	std::vector <std::string> gg_cheats;
 
 	u8 dmg_gbc_pal = 0;
 

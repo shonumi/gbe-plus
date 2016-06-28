@@ -69,6 +69,7 @@ namespace config
 
 	extern bool use_cheats;
 	extern std::vector <u32> gs_cheats;
+	extern std::vector <std::string> gg_cheats;
 
 	extern u8 volume;
 	extern double sample_rate;

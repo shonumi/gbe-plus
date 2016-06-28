@@ -430,7 +430,6 @@ u8 get_brightness_fast(u32 color)
 /****** Blends the RGB channels of 2 colors ******/
 u32 rgb_blend(u32 color_1, u32 color_2)
 {
-
 	if(color_1 == color_2) { return color_1; }
 
 	u16 r = ((color_1 >> 16) & 0xFF) + ((color_2 >> 16) & 0xFF);

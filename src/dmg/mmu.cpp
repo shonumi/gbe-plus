@@ -12,6 +12,7 @@
 
 #include "mmu.h"
 #include "common/cgfx_common.h"
+#include "common/util.h"
 
 /****** MMU Constructor ******/
 DMG_MMU::DMG_MMU() 
@@ -1475,6 +1476,9 @@ bool DMG_MMU::read_file(std::string filename)
 	file.close();
 	std::cout<<"MMU::" << filename << " loaded successfully. \n";
 
+	//Apply Game Genie codes to ROM data
+	if(config::use_cheats) { set_gg_cheats(); }
+
 	//Determine if cart is DMG or GBC and which system GBE will try to emulate
 	//Only necessary for Auto system detection.
 	//For now, even if forcing GBC, when encountering DMG carts, revert to DMG mode, dunno how the palettes work yet
@@ -1723,6 +1727,61 @@ void DMG_MMU::set_gs_cheats()
 
 			write_u8(dest_addr, dest_byte);
 			bank_bits = current_ram_bank;
+		}
+	}
+}
+
+/****** Overwrites values to ROM as specified by the Game Genie code - Called by MMU after loading ROM ******/
+void DMG_MMU::set_gg_cheats()
+{
+	//Cycle through all listed cheats, parse 40-bit cheat format
+	for(int x = 0; x < config::gg_cheats.size(); x++)
+	{
+		//The string represents the 9 byte code, format ABCDEFGHI
+		//First, grab AB, the byte from the cheat code		
+		u32 temp_value = 0;
+		util::from_hex_str(config::gg_cheats[x].substr(0, 2), temp_value);
+
+		u8 dest_byte = (temp_value & 0xFF);
+
+		//Memory address of cheat code is FCDE
+		std::string cheat_addr = "";
+		cheat_addr += config::gg_cheats[x][5];
+		cheat_addr += config::gg_cheats[x][2];
+		cheat_addr += config::gg_cheats[x][3];
+		cheat_addr += config::gg_cheats[x][4];
+
+		util::from_hex_str(cheat_addr, temp_value);
+		temp_value ^= 0xF000;
+
+		u16 dest_addr = (temp_value & 0xFFFF);
+
+		//Old value to compare and replace, GI
+		std::string cheat_compare = "";
+		cheat_compare += config::gg_cheats[x][6];
+		cheat_compare += config::gg_cheats[x][8];
+
+		util::from_hex_str(cheat_compare, temp_value);
+		temp_value ^= 0xBA;
+		temp_value <<= 2;
+
+		u8 cmp_byte = (temp_value & 0xFF);
+
+		//If value is in Bank 0, replace it now, no need to worry about the compare byte
+		if(dest_addr < 0x4000) { memory_map[dest_addr] = dest_byte; }
+
+		//Otherwise, search Banks 1+ until a value matches
+		else
+		{
+			dest_addr -= 0x4000;
+
+			for(int y = 0; y < read_only_bank.size(); y++)
+			{
+				if(read_only_bank[y][dest_addr] == cmp_byte)
+				{
+					read_only_bank[y][dest_addr] = dest_byte;
+				}
+			}
 		}
 	}
 }
