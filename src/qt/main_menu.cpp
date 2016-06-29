@@ -141,6 +141,9 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	//Parse .ini options
 	parse_ini_file();
 
+	//Parse cheats file
+	if(config::use_cheats) { parse_cheats_file(); }
+
 	//Parse command-line arguments
 	//These will override .ini options!
 	if(!parse_cli_args()) { exit(0); }

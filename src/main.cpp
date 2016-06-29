@@ -32,6 +32,9 @@ int main(int argc, char* args[])
 	//Parse .ini options
 	parse_ini_file();
 
+	//Parse cheat file
+	if(config::use_cheats) { parse_cheats_file(); }
+
 	if(config::mute) { config::volume = 0; }
 
 	//Parse command-line arguments

@@ -25,6 +25,7 @@ void validate_system_type();
 bool parse_cli_args();
 void parse_filenames();
 bool parse_ini_file();
+bool parse_cheats_file();
 bool save_ini_file();
 
 namespace config
@@ -38,6 +39,7 @@ namespace config
 	extern std::string ss_path;
 	extern std::string cfg_path;
 	extern std::string data_path;
+	extern std::string cheats_path;
 	extern std::vector <std::string> recent_files;
 	extern std::vector <std::string> cli_args;
 

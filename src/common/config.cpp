@@ -28,6 +28,7 @@ namespace config
 	std::string ss_path = "";
 	std::string cfg_path = "";
 	std::string data_path = "";
+	std::string cheats_path = "";
 	std::vector <std::string> recent_files;
 	std::vector <std::string> cli_args;
 	bool use_debugger = false;
@@ -794,6 +795,24 @@ bool parse_ini_file()
 			}
 
 			else { config::ss_path = ""; }
+		}
+
+		//Cheats path
+		else if(ini_item == "#cheats_path")
+		{
+			if((x + 1) < size) 
+			{
+				ini_item = ini_opts[++x];
+				std::string first_char = "";
+				first_char = ini_item[0];
+				
+				//When left blank, don't parse the next line item
+				if(first_char != "#") { config::cheats_path = ini_item; }
+				else { config::cheats_path = ""; x--;}
+ 
+			}
+
+			else { config::cheats_path = ""; }
 		}
 
 		//Use OpenGL
@@ -1644,6 +1663,15 @@ bool save_ini_file()
 			output_lines[line_pos] = "[#screenshot_path" + val + "]";
 		}
 
+		//Cheats path
+		else if(ini_item == "#cheats_path")
+		{
+			line_pos = output_count[x];
+			std::string val = (config::cheats_path == "") ? "" : (":'" + config::cheats_path + "'");
+
+			output_lines[line_pos] = "[#cheats_path" + val + "]";
+		}
+
 		//Use OpenGL
 		else if(ini_item == "#use_opengl")
 		{
@@ -1911,5 +1939,95 @@ bool save_ini_file()
 	}
 
 	out_file.close();
+	return true;
+}
+
+/****** Parse the cheats file ******/
+bool parse_cheats_file()
+{
+	std::ifstream file(config::cheats_path.c_str(), std::ios::in); 
+	std::string input_line = "";
+	std::string line_char = "";
+
+	std::vector<std::string> cheat_entry;
+	std::string code_type;
+	std::string cheat_code;
+
+	//Clear cheat codes
+	config::gs_cheats.clear();
+	config::gg_cheats.clear();
+
+	if(!file.is_open())
+	{
+		std::cout<<"GBE::Could not open cheats file " << config::cheats_path << ". Check file path or permissions. \n";
+		return false; 
+	}
+
+	//Cycle through whole file, line-by-line
+	while(getline(file, input_line))
+	{
+		line_char = input_line[0];
+		bool ignore = false;	
+		u8 item_count = 0;	
+
+		//Check if line starts with [ - if not, skip line
+		if(line_char == "[")
+		{
+			std::string line_item = "";
+
+			//Cycle through line, character-by-character
+			for(int x = 0; ++x < input_line.length();)
+			{
+				line_char = input_line[x];
+
+				//Check for single-quotes, don't parse ":" or "]" within them
+				if((line_char == "'") && (!ignore)) { ignore = true; }
+				else if((line_char == "'") && (ignore)) { ignore = false; }
+
+				//Check the character for item limiter : or ] - Push to Vector
+				else if(((line_char == ":") || (line_char == "]")) && (!ignore)) 
+				{
+					cheat_entry.push_back(line_item);
+					line_item = "";
+					item_count++;
+				}
+
+				else { line_item += line_char; }
+			}
+		}
+
+		if((item_count != 2) && (item_count != 0))
+		{
+			std::cout<<"GBE::Cheat file has incorrect entry: " << input_line << "\n";
+			file.close();
+			return false;
+		}
+	}
+	
+	file.close();
+
+	//Parse entries
+	for(int x = 0; x < cheat_entry.size();)
+	{
+		code_type = cheat_entry[x++];
+		cheat_code = cheat_entry[x++];
+
+		//Add Gameshark codes 
+		if(code_type == "GS")
+		{
+			//Verify length
+			if(cheat_code.length() == 8)
+			{
+				//Convert code into u32
+				u32 converted_cheat = 0;
+				util::from_hex_str(cheat_code, converted_cheat);
+				config::gs_cheats.push_back(converted_cheat);
+			}
+		}
+
+		//Add Game Genie codes
+		else if((code_type == "GG") && (cheat_code.length() == 9)) { config::gg_cheats.push_back(cheat_code); }
+	}
+
 	return true;
 }
