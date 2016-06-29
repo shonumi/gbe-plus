@@ -76,10 +76,22 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	multicart_layout->addWidget(multicart_label);
 	multicart_set->setLayout(multicart_layout);
 
+	//General settings - Use cheats
+	QWidget* cheats_set = new QWidget(general);
+	QLabel* cheats_label = new QLabel("Use cheats", cheats_set);
+	cheats = new QCheckBox(cheats_set);
+
+	QHBoxLayout* cheats_layout = new QHBoxLayout;
+	cheats_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	cheats_layout->addWidget(cheats);
+	cheats_layout->addWidget(cheats_label);
+	cheats_set->setLayout(cheats_layout);
+
 	QVBoxLayout* gen_layout = new QVBoxLayout;
 	gen_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	gen_layout->addWidget(sys_type_set);
 	gen_layout->addWidget(bios_set);
+	gen_layout->addWidget(cheats_set);
 	gen_layout->addWidget(multicart_set);
 	general->setLayout(gen_layout);
 
@@ -732,6 +744,9 @@ void gen_settings::set_ini_options()
 
 	//BIOS or Boot ROM option
 	if(config::use_bios) { bios->setChecked(true); }
+
+	//Use cheats
+	if(config::use_cheats) { cheats->setChecked(true); }
 
 	//Screen scale options
 	screen_scale->setCurrentIndex(config::scaling_factor - 1);

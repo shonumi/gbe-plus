@@ -376,6 +376,7 @@ void main_menu::quit()
 
 	//Save .ini options
 	config::gb_type = settings->sys_type->currentIndex();
+	config::use_cheats = (settings->cheats->isChecked()) ? true : false;
 	config::mute = (settings->sound_on->isChecked()) ? false : true;
 	config::volume = settings->volume->value();
 	config::use_haptics = (settings->rumble_on->isChecked()) ? true : false;
@@ -421,6 +422,15 @@ void main_menu::boot_game()
 		hw_screen->setEnabled(false);
 		hw_screen->hide();
 	}
+
+	//Check cheats status
+	if(settings->cheats->isChecked())
+	{
+		config::use_cheats = true;
+		parse_cheats_file();
+	}
+
+	else { config::use_cheats = false; }
 
 	//Check multicart status
 	if(settings->multicart->isChecked()) { config::use_multicart = true; }
@@ -572,6 +582,7 @@ void main_menu::closeEvent(QCloseEvent* event)
 
 	//Save .ini options
 	config::gb_type = settings->sys_type->currentIndex();
+	config::use_cheats = (settings->cheats->isChecked()) ? true : false;
 	config::mute = (settings->sound_on->isChecked()) ? false : true;
 	config::volume = settings->volume->value();
 	config::use_opengl = (settings->ogl->isChecked()) ? true : false;
@@ -761,19 +772,44 @@ void main_menu::screenshot()
 }
 
 /****** Shows the General settings dialog ******/
-void main_menu::show_settings() { settings->show(); settings->tabs->setCurrentIndex(0); }
+void main_menu::show_settings()
+{
+	settings->show();
+	settings->tabs->setCurrentIndex(0);
+	settings->advanced_button->setVisible(false);
+}
 
 /****** Shows the Display settings dialog ******/
-void main_menu::show_display_settings() { settings->show(); settings->tabs->setCurrentIndex(1); }
+void main_menu::show_display_settings()
+{
+	settings->show();
+	settings->tabs->setCurrentIndex(1);
+	settings->advanced_button->setVisible(false);
+}
 
 /****** Shows the Sound settings dialog ******/
-void main_menu::show_sound_settings() { settings->show(); settings->tabs->setCurrentIndex(2); }
+void main_menu::show_sound_settings()
+{
+	settings->show();
+	settings->tabs->setCurrentIndex(2);
+	settings->advanced_button->setVisible(false);
+}
 
 /****** Shows the Control settings dialog ******/
-void main_menu::show_control_settings() { settings->show(); settings->tabs->setCurrentIndex(3); }
+void main_menu::show_control_settings()
+{
+	settings->show();
+	settings->tabs->setCurrentIndex(3);
+	settings->advanced_button->setVisible(true);
+}
 
 /****** Shows the Paths settings dialog ******/
-void main_menu::show_paths_settings() { settings->show(); settings->tabs->setCurrentIndex(4); }
+void main_menu::show_paths_settings()
+{
+	settings->show();
+	settings->tabs->setCurrentIndex(4);
+	settings->advanced_button->setVisible(false);
+}
 
 /****** Shows the Custom Graphics dialog ******/
 void main_menu::show_cgfx() 

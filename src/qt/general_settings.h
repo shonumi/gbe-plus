@@ -35,6 +35,7 @@ class gen_settings : public QDialog
 	QComboBox* sys_type;
 	QCheckBox* bios;
 	QCheckBox* multicart;
+	QCheckBox* cheats;
 
 	//Display tab widgets
 	QComboBox* screen_scale;
