@@ -264,7 +264,7 @@ void ARM9::fetch()
 	if(arm_mode == THUMB)
 	{
 		//Read 16-bit THUMB instruction
-		instruction_pipeline[pipeline_pointer] = mem->read_u16_fast(reg.r15);
+		instruction_pipeline[pipeline_pointer] = mem->read_u16(reg.r15);
 
 		//Set the operation to perform as UNDEFINED until decoded
 		instruction_operation[pipeline_pointer] = UNDEFINED;
@@ -274,7 +274,7 @@ void ARM9::fetch()
 	else if(arm_mode == ARM)
 	{
 		//Read 32-bit ARM instruction
-		instruction_pipeline[pipeline_pointer] = mem->read_u32_fast(reg.r15);
+		instruction_pipeline[pipeline_pointer] = mem->read_u32(reg.r15);
 
 		//Set the operation to perform as UNDEFINED until decoded
 		instruction_operation[pipeline_pointer] = UNDEFINED;
@@ -1168,6 +1168,76 @@ void ARM9::clock_timers()
 /****** Jumps to or exits an interrupt ******/
 void ARM9::handle_interrupt()
 {
+	//TODO - Implement a better way of exiting interrupts other than recognizing the SUB PC, #4 instruction
 
+	//Exit interrupt
+	if((in_interrupt) && (debug_code == 0xE25EF004))
+	{
+		//Set CPSR from SPSR, turn on IRQ flag
+		reg.cpsr = get_spsr();
+		reg.cpsr &= ~CPSR_IRQ;
+		reg.cpsr &= ~0x1F;
+		reg.cpsr |= CPSR_MODE_SYS;
+
+		//Request pipeline flush, signal end of interrupt handling, switch to appropiate ARM/THUMB mode
+		needs_flush = true;
+		in_interrupt = false;
+		arm_mode = (reg.cpsr & 0x20) ? THUMB : ARM;
+
+		current_cpu_mode = SYS;
+		debug_code = 0xFEEDBACC;
+	}
+
+	//Jump into an interrupt, check if the master flag is enabled
+	if((mem->memory_map[NDS_IME] & 0x1) && ((reg.cpsr & CPSR_IRQ) == 0) && (!in_interrupt))
+	{
+		u16 if_check = mem->read_u16_fast(NDS_IF);
+		u16 ie_check = mem->read_u16_fast(NDS_IE);
+
+		//Match up bits in IE and IF
+		for(int x = 0; x < 21; x++)
+		{
+			//When there is a match, jump to interrupt vector
+			if((ie_check & (1 << x)) && (if_check & (1 << x)))
+			{
+				//If an HLE SWI is waiting for the next VBlank interrupt, advance the PC to complete the SWI call
+				if((swi_vblank_wait) && (x == 0)) 
+				{  
+					reg.r15 += (arm_mode == ARM) ? 4 : 2;
+					swi_vblank_wait = false; 
+				}
+
+				current_cpu_mode = IRQ;
+
+				//If a Branch instruction has just executed, the PC is changed before jumping into the interrupt
+				//When returning from an interrupt, the NDS calls SUBS R15, R14, 0x4 to return where it left off
+				//As a result, LR needs to hold the value of the PC + 4 (really, PC+nn+4, where nn is 2 instruction sizes)
+				if(needs_flush) { set_reg(14, (reg.r15 + 4)); }
+
+				//When there is no Branch, THUMB's LR has to be set to PC+nn+2 (nn is 4, two instruction sizes)
+				//In GBE+, the branch instruction executes, but interrupts happens before PC updates at the new location (so we move the PC along here instead).
+				//SUBS R15, R14, 0x4 would jump back to the current instruction, thus executing the THUMB opcode twice!
+				else if((!needs_flush) && (arm_mode == THUMB)) { set_reg(14, (reg.r15 + 2)); }
+				else if((!needs_flush) && (arm_mode == ARM)) { set_reg(14, reg.r15); }
+
+				//Set PC and SPSR
+				reg.r15 = mem->nds9_bios_vector + 0x18;
+				set_spsr(reg.cpsr);
+
+				//Request pipeline flush, signal interrupt handling, and go to ARM mode
+				needs_flush = true;
+				in_interrupt = true;
+				arm_mode = ARM;
+
+				//Alter CPSR bits, turn off THUMB and IRQ flags, set mode bits
+				reg.cpsr &= ~0x20;
+				reg.cpsr |= CPSR_IRQ;
+				reg.cpsr &= ~0x1F;
+				reg.cpsr |= CPSR_MODE_IRQ;
+
+				return;
+			}
+		}
+	}
 }
 				

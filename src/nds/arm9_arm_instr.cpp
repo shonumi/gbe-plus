@@ -498,7 +498,7 @@ void ARM9::psr_transfer(u32 current_arm_instruction)
 						case 0x17: current_cpu_mode = ABT; break;
 						case 0x1B: current_cpu_mode = UND; break;
 						case 0x1F: current_cpu_mode = SYS; break;
-						default: std::cout<<"CPU::Warning - ARM.6 CPSR setting unknown CPU mode\n";
+						default: std::cout<<"CPU::Warning - ARM.6 CPSR setting unknown CPU mode -> 0x" << std::hex << (reg.cpsr & 0x1F) << "\n";
 					}
 				}
 	
@@ -1448,6 +1448,7 @@ void ARM9::coprocessor_register_transfer(u32 current_instruction)
 				case 0x0:
 					co_proc.regs[CP15::C9_C1_0] = get_reg(arm_reg);
 					co_proc.set_dtcm_size_base();
+					mem->nds9_irq_handler = co_proc.regs[CP15::CP15_TEMP] + 0x3FFC;
 					break;
 
 				case 0x1:

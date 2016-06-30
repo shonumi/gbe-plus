@@ -39,6 +39,8 @@ void NTR_MMU::reset()
 
 	nds9_bios.clear();
 	nds9_bios.resize(0xC00, 0);
+	nds9_bios_vector = 0xFFFF0000;
+	nds9_irq_handler = 0x0;
 
 	//HLE stuff
 	memory_map[NDS_DISPCNT_A] = 0x80;
@@ -70,8 +72,11 @@ void NTR_MMU::reset()
 /****** Read byte from memory ******/
 u8 NTR_MMU::read_u8(u32 address) const
 {
+	//Read from NDS9 BIOS
+	if((address >= nds9_bios_vector) && (address <= (nds9_bios_vector + 0xC00))) { return nds9_bios[address - nds9_bios_vector]; }
+
 	//Check for unused memory first
-	if(address >= 0x10000000) { std::cout<<"Out of bounds read : 0x" << std::hex << address << "\n"; return 0; }
+	else if(address >= 0x10000000) { std::cout<<"Out of bounds read : 0x" << std::hex << address << "\n"; return 0; }
 
 	return memory_map[address];
 }
@@ -514,6 +519,13 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		case NDS_IE+2:
 		case NDS_IE+3:
 			memory_map[address] = value;
+			break;
+
+		case NDS_IF:
+		case NDS_IF+1:
+		case NDS_IF+2:
+		case NDS_IF+3:
+			memory_map[address] &= ~value;
 			break;
 				
 		default:

@@ -33,6 +33,9 @@ class NTR_MMU
 	u8 n_clock;
 	u8 s_clock;
 
+	u32 nds9_bios_vector;
+	u32 nds9_irq_handler;
+
 	//Structure for handling DS cart headers
 	struct cart_header
 	{

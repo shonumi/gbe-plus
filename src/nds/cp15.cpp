@@ -26,7 +26,7 @@ CP15::~CP15() { }
 void CP15::reset()
 {
 	//Zero out CP15 registers
-	for(int x = 0; x < 33; x++) { regs[x] = 0; }
+	for(int x = 0; x < 34; x++) { regs[x] = 0; }
 
 	//For NDS9 also set C0,C0,0 to 0x41059461
 	regs[C0_C0_0] = 0x41059461;
@@ -89,7 +89,11 @@ void CP15::instr_cache_lockdown()
 /****** C9,C1,0 - Sets the Data TCM size and base address ******/
 void CP15::set_dtcm_size_base()
 {
-	std::cout<<"CP15::C9,C1,0 - Set Data TCM Size and Base (STUBBED)\n";
+	std::cout<<"CP15::C9,C1,0\n";
+
+	regs[CP15_TEMP] = regs[C9_C1_0] &= ~0xFFF;
+
+	std::cout<<"DTCM BASE -> 0x" << std::hex << regs[CP15_TEMP] << "\n";
 }
 
 /****** C9,C1,1 - Sets the Instruction TCM size and base address ******/

@@ -56,9 +56,10 @@ class CP15
 		C9_C0_1,
 		C9_C1_0,
 		C9_C1_1,
+		CP15_TEMP,
 	};
 
-	u32 regs[33];
+	u32 regs[34];
 
 	CP15();
 	~CP15();
