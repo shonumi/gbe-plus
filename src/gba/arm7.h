@@ -275,6 +275,7 @@ class ARM7
 	void swi_cpuset();
 	void swi_halt();
 	void swi_sleep();
+	void swi_intrwait();
 	void swi_vblankintrwait();
 	void swi_lz77uncompvram();
 	void swi_rluncompvram();
