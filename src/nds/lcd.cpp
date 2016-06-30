@@ -302,6 +302,9 @@ void NTR_LCD::step()
 		{
 			lcd_mode = 2;
 
+			//Trigger VBlank IRQ
+			if(lcd_stat.vblank_irq_enable) { mem->memory_map[NDS_IF] |= 0x1; }
+
 			//Increment scanline count
 			current_scanline++;
 

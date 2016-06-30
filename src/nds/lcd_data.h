@@ -45,6 +45,10 @@ struct ntr_lcd_data
 	u16 bg_pal_a[256];
 	u16 raw_bg_pal_a[256];
 
+	bool vblank_irq_enable;
+	bool hblank_irq_enable;
+	bool vcount_irq_enable;
+
 	bool bg_pal_update_a;
 	std::vector<bool> bg_pal_update_list_a;
 

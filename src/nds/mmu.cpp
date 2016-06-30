@@ -109,7 +109,7 @@ u32 NTR_MMU::read_u32_fast(u32 address) const
 void NTR_MMU::write_u8(u32 address, u8 value)
 {
 	//Check for unused memory first
-	if(address >= 0x10000000) { std::cout<<"Out of bounds write : 0x" << std::hex << address << "\n"; SDL_Delay(3000); return; }
+	if(address >= 0x10000000) { std::cout<<"Out of bounds write : 0x" << std::hex << address << "\n"; return; }
 
 	switch(address)
 	{
@@ -131,6 +131,10 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 				
 				memory_map[address] = (value & ~0x7);
 				memory_map[address] |= read_only_bits;
+
+				lcd_stat->vblank_irq_enable = (value & 0x8) ? true : false;
+				lcd_stat->hblank_irq_enable = (value & 0x10) ? true : false;
+				lcd_stat->vcount_irq_enable = (value & 0x20) ? true : false;
 			}
  
 			break;
