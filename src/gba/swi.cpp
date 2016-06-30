@@ -745,7 +745,7 @@ void ARM7::swi_intrwait()
 	if_check = reg.r1;
 
 	//If R0 == 0, exit the SWI immediately if one of the IF flags to check is already set
-	if(old_if & if_check) { fire_interrupt = true; }
+	if((reg.r0 == 0) && (old_if & if_check)) { fire_interrupt = true; }
 
 	//Run controllers until an interrupt is generated
 	while(!fire_interrupt)
