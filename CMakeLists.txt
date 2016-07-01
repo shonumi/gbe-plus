@@ -14,6 +14,17 @@ else()
     message(STATUS "SDL2 not found.")
 endif()
 
+option(LINK_CABLE "Enable link cable emulation (requires SDL2_net)" ON)
+
+if (LINK_CABLE)
+    find_package(SDL2NET REQUIRED)
+    if (SDL2NET_FOUND)
+        include_directories(${SDL2NET_INCLUDE_DIR})
+    else()
+        message(STATUS "SDL2_net not found.")
+    endif()
+endif()
+
 find_package(OpenGL REQUIRED)
 if (OPENGL_FOUND)
     include_directories(${OPENGL_INCLUDE_DIRS})
