@@ -68,6 +68,10 @@ void DMG_core::start()
 		core_cpu.running = false;
 	}
 
+	//Initialize SIO
+	//Note, failure to initialize is non-fatal as it only affects netplay
+	core_cpu.controllers.serial_io.sio_stat.connected = core_cpu.controllers.serial_io.init();
+
 	//Initialize the GamePad
 	core_pad.init();
 }
@@ -94,6 +98,7 @@ void DMG_core::reset()
 	core_cpu.reset();
 	core_cpu.controllers.video.reset();
 	core_cpu.controllers.audio.reset();
+	core_cpu.controllers.serial_io.reset();
 	core_mmu.reset();
 
 	//Link CPU and MMU

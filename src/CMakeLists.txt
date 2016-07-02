@@ -17,6 +17,10 @@ add_executable(gbe_plus ${SRCS})
 target_link_libraries(gbe_plus common gba dmg)
 target_link_libraries(gbe_plus ${SDL2_LIBRARY} ${OPENGL_gl_LIBRARY})
 
+if (LINK_CABLE)
+    target_link_libraries(gbe_plus ${SDL2NET_LIBRARY})
+endif()
+
 if(UNIX AND NOT APPLE)
 	install(TARGETS gbe_plus DESTINATION /usr/local/bin)
 	install(FILES gbe.ini DESTINATION ${USER_HOME}/.gbe_plus/)

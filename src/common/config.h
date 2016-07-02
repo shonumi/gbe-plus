@@ -73,6 +73,11 @@ namespace config
 	extern std::vector <u32> gs_cheats;
 	extern std::vector <std::string> gg_cheats;
 
+	extern bool use_netplay;
+	extern bool is_host;
+	extern u16 netplay_port;
+	extern u32 netplay_ip;
+
 	extern u8 volume;
 	extern double sample_rate;
 	extern bool mute;

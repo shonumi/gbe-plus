@@ -1072,7 +1072,7 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		memory_map[address] = value;
 	}
 
-	//SC - Serial tranfer control
+	//SC - Serial transfer control
 	else if(address == REG_SC)
 	{
 		value &= 0x83;
@@ -1087,6 +1087,7 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 				sio_stat->active_transfer = true;
 				sio_stat->shifts_left = 8;
 				sio_stat->shift_counter = 0;
+				sio_stat->transfer_byte = memory_map[REG_SB];
 			}
 
 			//If using external clock, wait for input from outside clock source

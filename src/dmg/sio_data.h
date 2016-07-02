@@ -31,6 +31,7 @@ struct dmg_sio_data
 	bool double_speed;
 	bool internal_clock;
 	u8 shifts_left;
+	u8 transfer_byte;
 	u32 shift_counter;
 	sio_types sio_type;
 };

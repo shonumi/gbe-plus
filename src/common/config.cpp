@@ -93,6 +93,12 @@ namespace config
 	std::vector <u32> gs_cheats;
 	std::vector <std::string> gg_cheats;
 
+	//Netplay settings
+	bool use_netplay = true;
+	bool is_host = true;
+	u16 netplay_port = 2000;
+	u32 netplay_ip = 0;
+
 	u8 dmg_gbc_pal = 0;
 
 	//Emulated Gameboy type

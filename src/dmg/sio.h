@@ -12,6 +12,10 @@
 #ifndef GB_SIO
 #define GB_SIO
 
+#ifdef GBE_NETPLAY
+#include <SDL2/SDL_net.h>
+#endif
+
 #include "mmu.h"
 #include "sio_data.h"
 
@@ -24,14 +28,23 @@ class DMG_SIO
 
 	dmg_sio_data sio_stat;
 
+	#ifdef GBE_NETPLAY
+
+	//SDL2_net sockets, IPs, and info
+	TCPsocket host_socket, remote_socket;
+	IPaddress host_ip;
+	IPaddress* remote_ip;
+
+	#endif
+
 	DMG_SIO();
 	~DMG_SIO();
 
 	bool init();
 	void reset();
 
-	bool send_bit();
-	bool receive_bit();
+	bool send_byte();
+	bool receive_byte();
 };
 
 #endif // GB_SIO
