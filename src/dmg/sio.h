@@ -32,10 +32,14 @@ class DMG_SIO
 
 	//SDL2_net sockets, IPs, and info
 	TCPsocket host_socket, remote_socket;
+	SDLNet_SocketSet tcp_sockets;
 	IPaddress host_ip;
 	IPaddress* remote_ip;
 
 	#endif
+
+	bool tcp_accepted;
+	u8 comms_mode;
 
 	DMG_SIO();
 	~DMG_SIO();
@@ -45,6 +49,7 @@ class DMG_SIO
 
 	bool send_byte();
 	bool receive_byte();
+	void process_network_communication();
 };
 
 #endif // GB_SIO

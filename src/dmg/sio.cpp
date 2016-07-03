@@ -26,10 +26,18 @@ DMG_SIO::~DMG_SIO()
 	if(sio_stat.connected)
 	{
 		//Kill remote socket
-		if((config::is_host) && (remote_socket != NULL)) { SDLNet_TCP_Close(remote_socket); }
+		if((config::is_host) && (remote_socket != NULL))
+		{
+			SDLNet_TCP_DelSocket(tcp_sockets, remote_socket);
+			SDLNet_TCP_Close(remote_socket);
+		}
 
 		//Kill host socket
-		if(host_socket != NULL) { SDLNet_TCP_Close(host_socket); }
+		if(host_socket != NULL)
+		{
+			SDLNet_TCP_DelSocket(tcp_sockets, host_socket);
+			SDLNet_TCP_Close(host_socket);
+		}
 	}
 
 	SDLNet_Quit();
@@ -57,6 +65,9 @@ bool DMG_SIO::init()
 		std::cout<<"SIO::Error - Could not initialize SDL_net\n";
 		return false;
 	}
+
+	//Setup socket set
+	tcp_sockets = SDLNet_AllocSocketSet(2);
 
 	//Resolve the host - Host version
 	if(config::is_host)
@@ -112,10 +123,138 @@ void DMG_SIO::reset()
 	remote_socket = NULL;
 
 	#endif
+
+	tcp_accepted = false;
+	comms_mode = (config::is_host) ? 1 : 0;
 }
 
 /****** Tranfers one byte to another system ******/
-bool DMG_SIO::send_byte() { return true; }
+bool DMG_SIO::send_byte()
+{
+	#ifdef GBE_NETPLAY
+
+	u8 temp_buffer[1];
+	temp_buffer[0] = sio_stat.transfer_byte;
+
+	//Host - Send transfer byte
+	if(config::is_host)
+	{
+		if(SDLNet_TCP_Send(remote_socket, (void*)temp_buffer, 1) < 1)
+		{
+			std::cout<<"SIO::Error - Host failed to send data to client\n";
+			return false;
+		}
+
+		//Raise SIO IRQ after sending byte
+		mem->memory_map[IF_FLAG] |= 0x08;
+
+		//Flip comms mode
+		comms_mode = 0;
+
+		std::cout<<"Sending byte 0x" << std::hex << (u32)sio_stat.transfer_byte << "\n";
+	}
+
+	//Client - Send transfer byte
+	else
+	{
+		if(SDLNet_TCP_Send(host_socket, (void*)temp_buffer, 1) < 1)
+		{
+			std::cout<<"SIO::Error - Client failed to send data to host\n";
+			return false;
+		}
+
+		//Raise SIO IRQ after sending byte
+		mem->memory_map[IF_FLAG] |= 0x08;
+
+		//Flip comms mode
+		comms_mode = 0;
+
+		std::cout<<"Sending byte 0x" << std::hex << (u32)sio_stat.transfer_byte << "\n";
+	}
+
+	#endif
+
+	return true;
+}
 
 /****** Receives one byte from another system ******/
-bool DMG_SIO::receive_byte() { return true; }
+bool DMG_SIO::receive_byte()
+{
+	#ifdef GBE_NETPLAY
+
+	//Check sockets so SDLNet_TCP_Recv() can be called non-blocking
+	SDLNet_CheckSockets(tcp_sockets, 0);
+
+	u8 temp_buffer[1];
+
+	//Host - Receive transfer byte
+	if((config::is_host) && (SDLNet_SocketReady(remote_socket)))
+	{
+		if(SDLNet_TCP_Recv(remote_socket, temp_buffer, 1) > 0)
+		{
+			//Raise SIO IRQ after receiving byte
+			mem->memory_map[IF_FLAG] |= 0x08;
+
+			//Store byte from transfer into SB
+			mem->memory_map[REG_SB] = sio_stat.transfer_byte = temp_buffer[0];
+
+			//Flip comms mode
+			comms_mode = 1;
+
+			std::cout<<"Receiving byte 0x" << std::hex << (u32)sio_stat.transfer_byte << "\n";
+
+			return true;
+		}
+	}
+
+	//Client - Receive transfer byte
+	else if((!config::is_host) && (SDLNet_SocketReady(host_socket)))
+	{
+		if(SDLNet_TCP_Recv(host_socket, temp_buffer, 1) > 0)
+		{
+			//Raise SIO IRQ after receiving byte
+			mem->memory_map[IF_FLAG] |= 0x08;
+
+			//Store byte from transfer into SB
+			mem->memory_map[REG_SB] = sio_stat.transfer_byte = temp_buffer[0];
+
+			//Flip comms mode
+			comms_mode = 1;
+
+			std::cout<<"Receiving byte 0x" << std::hex << (u32)sio_stat.transfer_byte << "\n";
+
+			return true;
+		}
+	}
+
+	#endif
+
+	return true;
+}
+
+/****** Manages network communication via SDL_net ******/
+void DMG_SIO::process_network_communication()
+{
+	#ifdef GBE_NETPLAY
+
+	//If no communication with another GBE+ instance has been established yet, see if a connection can be made
+	if(!tcp_accepted)
+	{
+		//Host - Accept a pending connection on the remote socket
+		if((config::is_host) && (remote_socket = SDLNet_TCP_Accept(host_socket)))
+		{
+			tcp_accepted = true;
+			SDLNet_TCP_AddSocket(tcp_sockets, host_socket);
+			SDLNet_TCP_AddSocket(tcp_sockets, remote_socket);
+		}
+
+		//Client - Create a connection 
+		else if((!config::is_host) && (host_socket = SDLNet_TCP_Open(&host_ip)))
+		{
+			tcp_accepted = true;
+			SDLNet_TCP_AddSocket(tcp_sockets, host_socket);
+		}
+	}
+
+	#endif
+}

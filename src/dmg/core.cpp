@@ -244,6 +244,9 @@ void DMG_core::run_core()
 			{
 				core_cpu.div_counter -= 256;
 				core_mmu.memory_map[REG_DIV]++;
+
+				//Receive byte from another instance of GBE+ via netplay
+				if(core_cpu.controllers.serial_io.tcp_accepted) { core_cpu.controllers.serial_io.receive_byte(); }
 			}
 
 			//Update TIMA timer
@@ -297,8 +300,11 @@ void DMG_core::run_core()
 						//Trigger SIO interrupt after sending data
 						core_mmu.memory_map[IF_FLAG] |= 0x08;
 
-						//For now, always emulate disconnected link cable (on an internal clock)	
-						if(core_cpu.controllers.serial_io.sio_stat.internal_clock) { core_mmu.memory_map[REG_SB] = 0xFF; }
+						//Emulate disconnected link cable (on an internal clock) with no netplay	
+						if((!config::use_netplay) && (core_cpu.controllers.serial_io.sio_stat.internal_clock)) { core_mmu.memory_map[REG_SB] = 0xFF; }
+
+						//Send byte to another instance of GBE+ via netplay
+						if(core_cpu.controllers.serial_io.tcp_accepted) { core_cpu.controllers.serial_io.send_byte(); }
 					}
 				}
 			}
@@ -1139,6 +1145,36 @@ void DMG_core::handle_hotkey(SDL_Event& event)
 	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F2)) 
 	{
 		load_state(0);
+	}
+
+	//Pause and wait for netplay connection on F5
+	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F5))
+	{
+		//Do nothing if netplay is not enabled
+		if(!config::use_netplay) { return; }
+
+		//Wait 10 seconds before timing out
+		u32 time_out = 0;
+
+		while(time_out < 10000)
+		{
+			time_out += 100;
+			if(((time_out % 1000) == 0) && (config::is_host)) { std::cout<<"SIO::Netplay host is waiting for connection from client...\n"; }
+			else if(((time_out % 1000) == 0) && (!config::is_host)) { std::cout<<"SIO::Netplay client is waiting for connection from host...\n"; }
+
+			SDL_Delay(100);
+
+			//Process network connections
+			if((core_cpu.controllers.serial_io.sio_stat.connected) && (!core_cpu.controllers.serial_io.tcp_accepted))
+			{
+				core_cpu.controllers.serial_io.process_network_communication();
+			}
+
+			if(core_cpu.controllers.serial_io.tcp_accepted) { break; }
+		}
+
+		if(!core_cpu.controllers.serial_io.tcp_accepted) { std::cout<<"SIO::No netplay connection established\n"; }
+		else { std::cout<<"SIO::Netplay connection established\n"; }
 	}
 
 	//Screenshot on F9
