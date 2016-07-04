@@ -95,9 +95,8 @@ namespace config
 
 	//Netplay settings
 	bool use_netplay = true;
-	bool is_host = true;
-	u16 netplay_port = 2000;
-	u32 netplay_ip = 0;
+	u16 netplay_server_port = 2000;
+	u16 netplay_client_port = 2001;
 
 	u8 dmg_gbc_pal = 0;
 
@@ -1527,8 +1526,8 @@ bool parse_ini_file()
 			}
 		}
 
-		//Set netplay host-client mode
-		else if(ini_item == "#netplay_is_host")
+		//Netplay server port
+		else if(ini_item == "#netplay_server_port")
 		{
 			if((x + 1) < size) 
 			{
@@ -1536,19 +1535,19 @@ bool parse_ini_file()
 				std::stringstream temp_stream(ini_item);
 				temp_stream >> output;
 
-				if(output == 1) { config::is_host = true; }
-				else { config::is_host = false; }
+				if(output <= 65535) { config::netplay_server_port = output; }
+				else { config::netplay_server_port = 2000; }
 			}
 
 			else 
 			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#netplay_is_host) \n";
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#netplay_server_port) \n";
 				return false;
 			}
 		}
 
-		//Netplay port
-		else if(ini_item == "#netplay_port")
+		//Netplay client port
+		else if(ini_item == "#netplay_client_port")
 		{
 			if((x + 1) < size) 
 			{
@@ -1556,13 +1555,13 @@ bool parse_ini_file()
 				std::stringstream temp_stream(ini_item);
 				temp_stream >> output;
 
-				if(output <= 65535) { config::netplay_port = output; }
-				else { config::netplay_port = 2000; }
+				if(output <= 65535) { config::netplay_client_port = output; }
+				else { config::netplay_client_port = 2001; }
 			}
 
 			else 
 			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#netplay_port) \n";
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#netplay_client_port) \n";
 				return false;
 			}
 		}
@@ -1979,22 +1978,22 @@ bool save_ini_file()
 			output_lines[line_pos] = "[#use_netplay:" + val + "]";
 		}
 
-		//Netplay host-client mode
-		else if(ini_item == "#netplay_is_host")
+		//Netplay server port
+		else if(ini_item == "#netplay_server_port")
 		{
 			line_pos = output_count[x];
-			std::string val = (config::is_host) ? "1" : "0";
+			std::string val = util::to_str(config::netplay_server_port);
 
-			output_lines[line_pos] = "[#netplay_is_host:" + val + "]";
+			output_lines[line_pos] = "[#netplay_server_port:" + val + "]";
 		}
 
-		//Netplay port
-		else if(ini_item == "#netplay_port")
+		//Netplay client port
+		else if(ini_item == "#netplay_client_port")
 		{
 			line_pos = output_count[x];
-			std::string val = util::to_str(config::netplay_port);
+			std::string val = util::to_str(config::netplay_client_port);
 
-			output_lines[line_pos] = "[#netplay_port:" + val + "]";
+			output_lines[line_pos] = "[#netplay_client_port:" + val + "]";
 		}
 
 		else if(ini_item == "#recent_files")

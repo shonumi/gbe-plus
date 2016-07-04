@@ -69,8 +69,7 @@ void DMG_core::start()
 	}
 
 	//Initialize SIO
-	//Note, failure to initialize is non-fatal as it only affects netplay
-	core_cpu.controllers.serial_io.sio_stat.connected = core_cpu.controllers.serial_io.init();
+	core_cpu.controllers.serial_io.init();
 
 	//Initialize the GamePad
 	core_pad.init();
@@ -246,7 +245,7 @@ void DMG_core::run_core()
 				core_mmu.memory_map[REG_DIV]++;
 
 				//Receive byte from another instance of GBE+ via netplay
-				if(core_cpu.controllers.serial_io.tcp_accepted) { core_cpu.controllers.serial_io.receive_byte(); }
+				if(core_cpu.controllers.serial_io.sio_stat.connected) { core_cpu.controllers.serial_io.receive_byte(); }
 			}
 
 			//Update TIMA timer
@@ -304,7 +303,7 @@ void DMG_core::run_core()
 						if((!config::use_netplay) && (core_cpu.controllers.serial_io.sio_stat.internal_clock)) { core_mmu.memory_map[REG_SB] = 0xFF; }
 
 						//Send byte to another instance of GBE+ via netplay
-						if(core_cpu.controllers.serial_io.tcp_accepted) { core_cpu.controllers.serial_io.send_byte(); }
+						if(core_cpu.controllers.serial_io.sio_stat.connected) { core_cpu.controllers.serial_io.send_byte(); }
 					}
 				}
 			}
@@ -1159,21 +1158,18 @@ void DMG_core::handle_hotkey(SDL_Event& event)
 		while(time_out < 10000)
 		{
 			time_out += 100;
-			if(((time_out % 1000) == 0) && (config::is_host)) { std::cout<<"SIO::Netplay host is waiting for connection from client...\n"; }
-			else if(((time_out % 1000) == 0) && (!config::is_host)) { std::cout<<"SIO::Netplay client is waiting for connection from host...\n"; }
+			if((time_out % 1000) == 0) { std::cout<<"SIO::Netplay is waiting to establish remote connection...\n"; }
 
 			SDL_Delay(100);
 
 			//Process network connections
-			if((core_cpu.controllers.serial_io.sio_stat.connected) && (!core_cpu.controllers.serial_io.tcp_accepted))
-			{
-				core_cpu.controllers.serial_io.process_network_communication();
-			}
+			core_cpu.controllers.serial_io.process_network_communication();
 
-			if(core_cpu.controllers.serial_io.tcp_accepted) { break; }
+			//Check again if the GBE+ instances connected, exit waiting if so
+			if(core_cpu.controllers.serial_io.sio_stat.connected) { break; }
 		}
 
-		if(!core_cpu.controllers.serial_io.tcp_accepted) { std::cout<<"SIO::No netplay connection established\n"; }
+		if(!core_cpu.controllers.serial_io.sio_stat.connected) { std::cout<<"SIO::No netplay connection established\n"; }
 		else { std::cout<<"SIO::Netplay connection established\n"; }
 	}
 

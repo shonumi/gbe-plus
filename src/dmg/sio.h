@@ -30,16 +30,27 @@ class DMG_SIO
 
 	#ifdef GBE_NETPLAY
 
-	//SDL2_net sockets, IPs, and info
-	TCPsocket host_socket, remote_socket;
+	//Receiving server
+	struct tcp_server
+	{
+		TCPsocket host_socket, remote_socket;
+		IPaddress host_ip;
+		bool connected;
+		u16 port;
+	} server;
+
+	//Sending client
+	struct tcp_sender
+	{
+		TCPsocket host_socket;
+		IPaddress host_ip;
+		bool connected;
+		u16 port;
+	} sender;
+
 	SDLNet_SocketSet tcp_sockets;
-	IPaddress host_ip;
-	IPaddress* remote_ip;
 
 	#endif
-
-	bool tcp_accepted;
-	u8 comms_mode;
 
 	DMG_SIO();
 	~DMG_SIO();

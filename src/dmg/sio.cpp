@@ -23,21 +23,22 @@ DMG_SIO::~DMG_SIO()
 	#ifdef GBE_NETPLAY
 
 	//Close SDL_net and any current connections
-	if(sio_stat.connected)
+	if(server.host_socket != NULL)
 	{
-		//Kill remote socket
-		if((config::is_host) && (remote_socket != NULL))
-		{
-			SDLNet_TCP_DelSocket(tcp_sockets, remote_socket);
-			SDLNet_TCP_Close(remote_socket);
-		}
+		SDLNet_TCP_DelSocket(tcp_sockets, server.host_socket);
+		SDLNet_TCP_Close(server.host_socket);
+	}
 
-		//Kill host socket
-		if(host_socket != NULL)
-		{
-			SDLNet_TCP_DelSocket(tcp_sockets, host_socket);
-			SDLNet_TCP_Close(host_socket);
-		}
+	if(server.remote_socket != NULL)
+	{
+		SDLNet_TCP_DelSocket(tcp_sockets, server.remote_socket);
+		SDLNet_TCP_Close(server.remote_socket);
+	}
+
+	if(sender.host_socket != NULL)
+	{
+		SDLNet_TCP_DelSocket(tcp_sockets, sender.host_socket);
+		SDLNet_TCP_Close(sender.host_socket);
 	}
 
 	SDLNet_Quit();
@@ -66,38 +67,40 @@ bool DMG_SIO::init()
 		return false;
 	}
 
-	//Setup socket set
-	tcp_sockets = SDLNet_AllocSocketSet(2);
+	//Server info
+	server.host_socket = NULL;
+	server.remote_socket = NULL;
+	server.connected = false;
+	server.port = config::netplay_server_port;
 
-	//Resolve the host - Host version
-	if(config::is_host)
-	{
-		//When this instance of GBE+ is the host, listen on the port (hostname parameter is set to NULL)
-		if(SDLNet_ResolveHost(&host_ip, NULL, config::netplay_port) < 0)
-		{
-			std::cout<<"SIO::Error - Host could not resolve hostname\n";
-			return false;
-		}
-	}
+	//Client info
+	sender.host_socket = NULL;
+	sender.connected = false;
+	sender.port = config::netplay_client_port;
 
-	//Resolve the host - Client version
-	else
+	//Setup server, resolve the server with NULL as the hostname, the server will now listen for connections
+	if(SDLNet_ResolveHost(&server.host_ip, NULL, server.port) < 0)
 	{
-		//Listen to host on the specified port
-		//Not sure if hostname string has to be valid or just any random string
-		if(SDLNet_ResolveHost(&host_ip, "darkstar", config::netplay_port) < 0)
-		{
-			std::cout<<"SIO::Error - Client could not resolve hostname\n";
-			return false;
-		}
+		std::cout<<"SIO::Error - Server could not resolve hostname\n";
+		return -1;
 	}
 
 	//Open a connection to listen on host's port
-	if(!(host_socket = SDLNet_TCP_Open(&host_ip)))
+	if(!(server.host_socket = SDLNet_TCP_Open(&server.host_ip)))
 	{
-		std::cout<<"SIO::Error - Could not open a connection on Port " << config::netplay_port << "\n";
-		return false;
+		std::cout<<"SIO::Error - Server could not open a connection on Port " << server.port << "\n";
+		return -1;
 	}
+
+	//Setup client, listen on another port
+	if(SDLNet_ResolveHost(&sender.host_ip, "darkstar", sender.port) < 0)
+	{
+		std::cout<<"SIO::Error - Client could not resolve hostname\n";
+		return -1;
+	}
+
+	//Create sockets sets
+	tcp_sockets = SDLNet_AllocSocketSet(3);
 
 	#endif
 
@@ -119,13 +122,18 @@ void DMG_SIO::reset()
 
 	#ifdef GBE_NETPLAY
 
-	host_socket = NULL;
-	remote_socket = NULL;
+	//Server info
+	server.host_socket = NULL;
+	server.remote_socket = NULL;
+	server.connected = false;
+	server.port = config::netplay_server_port;
+
+	//Client info
+	sender.host_socket = NULL;
+	sender.connected = false;
+	sender.port = config::netplay_client_port;
 
 	#endif
-
-	tcp_accepted = false;
-	comms_mode = (config::is_host) ? 1 : 0;
 }
 
 /****** Tranfers one byte to another system ******/
@@ -136,41 +144,19 @@ bool DMG_SIO::send_byte()
 	u8 temp_buffer[1];
 	temp_buffer[0] = sio_stat.transfer_byte;
 
-	//Host - Send transfer byte
-	if(config::is_host)
+	if(SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 1) < 1)
 	{
-		if(SDLNet_TCP_Send(remote_socket, (void*)temp_buffer, 1) < 1)
-		{
-			std::cout<<"SIO::Error - Host failed to send data to client\n";
-			return false;
-		}
-
-		//Raise SIO IRQ after sending byte
-		mem->memory_map[IF_FLAG] |= 0x08;
-
-		//Flip comms mode
-		comms_mode = 0;
-
-		std::cout<<"Sending byte 0x" << std::hex << (u32)sio_stat.transfer_byte << "\n";
+		std::cout<<"SIO::Error - Host failed to send data to client\n";
+		return false;
 	}
 
-	//Client - Send transfer byte
-	else
-	{
-		if(SDLNet_TCP_Send(host_socket, (void*)temp_buffer, 1) < 1)
-		{
-			std::cout<<"SIO::Error - Client failed to send data to host\n";
-			return false;
-		}
+	//Raise SIO IRQ after sending byte
+	mem->memory_map[IF_FLAG] |= 0x08;
 
-		//Raise SIO IRQ after sending byte
-		mem->memory_map[IF_FLAG] |= 0x08;
+	//Reset SB
+	mem->memory_map[REG_SB] = 0x0;
 
-		//Flip comms mode
-		comms_mode = 0;
-
-		std::cout<<"Sending byte 0x" << std::hex << (u32)sio_stat.transfer_byte << "\n";
-	}
+	std::cout<<"Sending byte 0x" << std::hex << (u32)sio_stat.transfer_byte << "\n";
 
 	#endif
 
@@ -182,15 +168,15 @@ bool DMG_SIO::receive_byte()
 {
 	#ifdef GBE_NETPLAY
 
-	//Check sockets so SDLNet_TCP_Recv() can be called non-blocking
-	SDLNet_CheckSockets(tcp_sockets, 0);
-
 	u8 temp_buffer[1];
 
-	//Host - Receive transfer byte
-	if((config::is_host) && (SDLNet_SocketReady(remote_socket)))
+	//Check the status of connection
+	SDLNet_CheckSockets(tcp_sockets, 0);
+
+	//If this socket is active, receive the transfer
+	if(SDLNet_SocketReady(server.remote_socket))
 	{
-		if(SDLNet_TCP_Recv(remote_socket, temp_buffer, 1) > 0)
+		if(SDLNet_TCP_Recv(server.remote_socket, temp_buffer, 1) > 0)
 		{
 			//Raise SIO IRQ after receiving byte
 			mem->memory_map[IF_FLAG] |= 0x08;
@@ -198,32 +184,7 @@ bool DMG_SIO::receive_byte()
 			//Store byte from transfer into SB
 			mem->memory_map[REG_SB] = sio_stat.transfer_byte = temp_buffer[0];
 
-			//Flip comms mode
-			comms_mode = 1;
-
 			std::cout<<"Receiving byte 0x" << std::hex << (u32)sio_stat.transfer_byte << "\n";
-
-			return true;
-		}
-	}
-
-	//Client - Receive transfer byte
-	else if((!config::is_host) && (SDLNet_SocketReady(host_socket)))
-	{
-		if(SDLNet_TCP_Recv(host_socket, temp_buffer, 1) > 0)
-		{
-			//Raise SIO IRQ after receiving byte
-			mem->memory_map[IF_FLAG] |= 0x08;
-
-			//Store byte from transfer into SB
-			mem->memory_map[REG_SB] = sio_stat.transfer_byte = temp_buffer[0];
-
-			//Flip comms mode
-			comms_mode = 1;
-
-			std::cout<<"Receiving byte 0x" << std::hex << (u32)sio_stat.transfer_byte << "\n";
-
-			return true;
 		}
 	}
 
@@ -238,22 +199,33 @@ void DMG_SIO::process_network_communication()
 	#ifdef GBE_NETPLAY
 
 	//If no communication with another GBE+ instance has been established yet, see if a connection can be made
-	if(!tcp_accepted)
+	if(!sio_stat.connected)
 	{
-		//Host - Accept a pending connection on the remote socket
-		if((config::is_host) && (remote_socket = SDLNet_TCP_Accept(host_socket)))
+		//Try to accept incoming connections to the server
+		if(!server.connected)
 		{
-			tcp_accepted = true;
-			SDLNet_TCP_AddSocket(tcp_sockets, host_socket);
-			SDLNet_TCP_AddSocket(tcp_sockets, remote_socket);
+			if(server.remote_socket = SDLNet_TCP_Accept(server.host_socket))
+			{
+				std::cout<<"SIO::Client connected\n";
+				SDLNet_TCP_AddSocket(tcp_sockets, server.host_socket);
+				SDLNet_TCP_AddSocket(tcp_sockets, server.remote_socket);
+				server.connected = true;
+			}
 		}
 
-		//Client - Create a connection 
-		else if((!config::is_host) && (host_socket = SDLNet_TCP_Open(&host_ip)))
+		//Try to establish an outgoing connection to the server
+		if(!sender.connected)
 		{
-			tcp_accepted = true;
-			SDLNet_TCP_AddSocket(tcp_sockets, host_socket);
+			//Open a connection to listen on host's port
+			if(sender.host_socket = SDLNet_TCP_Open(&sender.host_ip))
+			{
+				std::cout<<"SIO::Connected to server\n";
+				SDLNet_TCP_AddSocket(tcp_sockets, sender.host_socket);
+				sender.connected = true;
+			}
 		}
+
+		if((server.connected) && (sender.connected)) { sio_stat.connected = true; }
 	}
 
 	#endif
