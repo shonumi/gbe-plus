@@ -1088,13 +1088,22 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 				sio_stat->shifts_left = 8;
 				sio_stat->shift_counter = 0;
 				sio_stat->transfer_byte = memory_map[REG_SB];
+
+				//For internal clock transfers, unlock netplay communications
+				sio_stat->locked = false;
 			}
 
 			//If using external clock, wait for input from outside clock source
-			//If an outside clock source has already been supplied, start the transfer
 			else
 			{
-				sio_stat->active_transfer = true;
+				//For external clock transfers, wait until receiving a byte unlocks netplay communication
+				if(!sio_stat->locked)
+				{
+					sio_stat->active_transfer = true;
+					sio_stat->shifts_left = 8;
+					sio_stat->shift_counter = 0;
+					sio_stat->transfer_byte = memory_map[REG_SB];
+				}
 			}
 		}
 
