@@ -112,7 +112,6 @@ bool DMG_SIO::init()
 void DMG_SIO::reset()
 {
 	sio_stat.connected = false;
-	sio_stat.locked = true;
 	sio_stat.active_transfer = false;
 	sio_stat.double_speed = false;
 	sio_stat.internal_clock = false;
@@ -142,9 +141,6 @@ bool DMG_SIO::send_byte()
 {
 	#ifdef GBE_NETPLAY
 
-	//If this instance of GBE+ is the slave Game Boy (using external clock) don't send a byte until the master Game Boy sends something
-	if(sio_stat.locked) { return true; }
-
 	u8 temp_buffer[1];
 	temp_buffer[0] = sio_stat.transfer_byte;
 
@@ -154,16 +150,19 @@ bool DMG_SIO::send_byte()
 		return false;
 	}
 
+	//std::cout<<"Sending byte 0x" << std::hex << (u32)sio_stat.transfer_byte << "\n";
+
+	//Wait for other Game Boy to send this one its SB
+	//This is blocking, will effectively pause GBE+ until it gets something
+	if(SDLNet_TCP_Recv(server.remote_socket, temp_buffer, 1) > 0)
+	{
+		mem->memory_map[REG_SB] = sio_stat.transfer_byte = temp_buffer[0];
+	}
+
+	//std::cout<<"Receiving echo byte 0x" << std::hex << (u32)sio_stat.transfer_byte << "\n";
+
 	//Raise SIO IRQ after sending byte
 	mem->memory_map[IF_FLAG] |= 0x08;
-
-	//Reset SB
-	mem->memory_map[REG_SB] = 0x0;
-
-	//For external clock, lock down netplay communications
-	if(!sio_stat.internal_clock) { sio_stat.locked = true; } 
-
-	std::cout<<"Sending byte 0x" << std::hex << (u32)sio_stat.transfer_byte << "\n";
 
 	#endif
 
@@ -176,6 +175,7 @@ bool DMG_SIO::receive_byte()
 	#ifdef GBE_NETPLAY
 
 	u8 temp_buffer[1];
+	temp_buffer[0] = 0;
 
 	//Check the status of connection
 	SDLNet_CheckSockets(tcp_sockets, 0);
@@ -185,16 +185,21 @@ bool DMG_SIO::receive_byte()
 	{
 		if(SDLNet_TCP_Recv(server.remote_socket, temp_buffer, 1) > 0)
 		{
-			//Raise SIO IRQ after receiving byte
+			//Raise SIO IRQ after sending byte
 			mem->memory_map[IF_FLAG] |= 0x08;
 
 			//Store byte from transfer into SB
-			mem->memory_map[REG_SB] = sio_stat.transfer_byte = temp_buffer[0];
+			sio_stat.transfer_byte = mem->memory_map[REG_SB];
+			mem->memory_map[REG_SB] = temp_buffer[0];
 
-			//For external clock, lock down netplay communications
-			if(!sio_stat.internal_clock) { sio_stat.locked = false; } 
+			//std::cout<<"Receiving byte 0x" << std::hex << (u32)mem->memory_map[REG_SB] << "\n";
 
-			std::cout<<"Receiving byte 0x" << std::hex << (u32)sio_stat.transfer_byte << "\n";
+			//Send other Game Boy the old SB value
+			temp_buffer[0] = sio_stat.transfer_byte;
+			sio_stat.transfer_byte = mem->memory_map[REG_SB];
+			SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 1);
+
+			//std::cout<<"Sending echo byte 0x" << std::hex << (u32)temp_buffer[0] << "\n";
 		}
 	}
 

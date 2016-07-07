@@ -285,7 +285,7 @@ void DMG_core::run_core()
 				{
 					//Shift bit out from SB, transfer it
 					core_mmu.memory_map[REG_SB] <<= 1;
-					
+
 					core_cpu.controllers.serial_io.sio_stat.shift_counter -= 512;
 					core_cpu.controllers.serial_io.sio_stat.shifts_left--;
 
@@ -294,13 +294,15 @@ void DMG_core::run_core()
 					{
 						//Reset Bit 7 in SC
 						core_mmu.memory_map[REG_SC] &= ~0x80;
+
 						core_cpu.controllers.serial_io.sio_stat.active_transfer = false;
 
-						//Trigger SIO interrupt after sending data
-						core_mmu.memory_map[IF_FLAG] |= 0x08;
-
 						//Emulate disconnected link cable (on an internal clock) with no netplay	
-						if((!config::use_netplay) && (core_cpu.controllers.serial_io.sio_stat.internal_clock)) { core_mmu.memory_map[REG_SB] = 0xFF; }
+						if((!config::use_netplay) && (core_cpu.controllers.serial_io.sio_stat.internal_clock))
+						{
+							core_mmu.memory_map[REG_SB] = 0xFF;
+							core_mmu.memory_map[IF_FLAG] |= 0x08;
+						}
 
 						//Send byte to another instance of GBE+ via netplay
 						if(core_cpu.controllers.serial_io.sio_stat.connected) { core_cpu.controllers.serial_io.send_byte(); }

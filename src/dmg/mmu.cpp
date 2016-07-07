@@ -1081,29 +1081,12 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		//Start serial transfer
 		if(value & 0x80)
 		{
-			//If using internal clock, start the transfer immediately
 			if(sio_stat->internal_clock)
 			{
 				sio_stat->active_transfer = true;
 				sio_stat->shifts_left = 8;
 				sio_stat->shift_counter = 0;
 				sio_stat->transfer_byte = memory_map[REG_SB];
-
-				//For internal clock transfers, unlock netplay communications
-				sio_stat->locked = false;
-			}
-
-			//If using external clock, wait for input from outside clock source
-			else
-			{
-				//For external clock transfers, wait until receiving a byte unlocks netplay communication
-				if(!sio_stat->locked)
-				{
-					sio_stat->active_transfer = true;
-					sio_stat->shifts_left = 8;
-					sio_stat->shift_counter = 0;
-					sio_stat->transfer_byte = memory_map[REG_SB];
-				}
 			}
 		}
 
