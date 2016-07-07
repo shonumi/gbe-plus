@@ -1090,6 +1090,25 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 			}
 		}
 
+		//DMG uses 8192Hz clock only (512 cycles)
+		if(config::gb_type != 2) { sio_stat->shift_clock = 512; }
+
+		//GBC has 4 selectable speeds
+		else
+		{
+			//8192Hz - Bit 1 cleared, Normal Speed
+			if(((value & 0x2) == 0) && ((memory_map[REG_KEY1]) & 0x80 == 0)) { sio_stat->shift_clock = 512; }
+
+			//16384Hz - Bit 1 cleared, Double Speed
+			else if(((value & 0x2) == 0) && (memory_map[REG_KEY1] & 0x80)) { sio_stat->shift_clock = 256; }
+
+			//262144Hz - Bit 1 set, Normal Speed
+			else if((value & 0x2) && ((memory_map[REG_KEY1]) & 0x80 == 0)) { sio_stat->shift_clock = 16; }
+
+			//524288Hz - Bit 1 set, Double Speed
+			else { sio_stat->shift_clock = 8; }
+		}
+
 		memory_map[address] = value;
 	}
 

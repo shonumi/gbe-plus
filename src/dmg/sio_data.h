@@ -33,6 +33,7 @@ struct dmg_sio_data
 	u8 shifts_left;
 	u8 transfer_byte;
 	u32 shift_counter;
+	u32 shift_clock;
 	sio_types sio_type;
 };
 

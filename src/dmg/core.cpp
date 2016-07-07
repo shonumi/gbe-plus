@@ -281,12 +281,12 @@ void DMG_core::run_core()
 				core_cpu.controllers.serial_io.sio_stat.shift_counter += core_cpu.cycles;
 
 				//After SIO clocks, perform SIO operations now
-				if(core_cpu.controllers.serial_io.sio_stat.shift_counter >= 512)
+				if(core_cpu.controllers.serial_io.sio_stat.shift_counter >= core_cpu.controllers.serial_io.sio_stat.shift_clock)
 				{
 					//Shift bit out from SB, transfer it
 					core_mmu.memory_map[REG_SB] <<= 1;
 
-					core_cpu.controllers.serial_io.sio_stat.shift_counter -= 512;
+					core_cpu.controllers.serial_io.sio_stat.shift_counter -= core_cpu.controllers.serial_io.sio_stat.shift_clock;
 					core_cpu.controllers.serial_io.sio_stat.shifts_left--;
 
 					//Complete the transfer

@@ -117,6 +117,7 @@ void DMG_SIO::reset()
 	sio_stat.internal_clock = false;
 	sio_stat.shifts_left = 0;
 	sio_stat.shift_counter = 0;
+	sio_stat.shift_clock = 512;
 	sio_stat.transfer_byte = 0;
 	sio_stat.sio_type = NO_GB_DEVICE;
 
