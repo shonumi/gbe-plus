@@ -191,6 +191,9 @@ void DMG_core::run_core()
 		{	
 			core_cpu.cycles = 0;
 
+			//Receive byte from another instance of GBE+ via netplay
+			if(core_cpu.controllers.serial_io.sio_stat.connected) { core_cpu.controllers.serial_io.receive_byte(); }
+
 			//Handle Interrupts
 			core_cpu.handle_interrupts();
 
@@ -243,9 +246,6 @@ void DMG_core::run_core()
 			{
 				core_cpu.div_counter -= 256;
 				core_mmu.memory_map[REG_DIV]++;
-
-				//Receive byte from another instance of GBE+ via netplay
-				if(core_cpu.controllers.serial_io.sio_stat.connected) { core_cpu.controllers.serial_io.receive_byte(); }
 			}
 
 			//Update TIMA timer

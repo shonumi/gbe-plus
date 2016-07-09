@@ -193,6 +193,9 @@ bool DMG_SIO::receive_byte()
 			sio_stat.transfer_byte = mem->memory_map[REG_SB];
 			mem->memory_map[REG_SB] = temp_buffer[0];
 
+			//Reset Bit 7 of SC
+			mem->memory_map[REG_SC] &= ~0x80;
+
 			//std::cout<<"Receiving byte 0x" << std::hex << (u32)mem->memory_map[REG_SB] << "\n";
 
 			//Send other Game Boy the old SB value
