@@ -1379,6 +1379,10 @@ void gen_settings::switch_control_layout()
 		controls_layout->addWidget(input_l_set);
 		controls_layout->addWidget(input_r_set);
 		controls_layout->addWidget(dead_zone_set);
+
+		//Set the text for the button
+		std::string button_text = "Standard Controls";
+		advanced_button->setText(QString::fromStdString(button_text));
 	}
 
 	//Switch from advanced control layout to standard control layout
@@ -1405,6 +1409,10 @@ void gen_settings::switch_control_layout()
 		advanced_controls_layout = new QVBoxLayout;
 		advanced_controls_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 		advanced_controls_layout->addWidget(rumble_set);
+
+		//Set the text for the button
+		std::string button_text = "Advanced Controls";
+		advanced_button->setText(QString::fromStdString(button_text));
 	}
 }
 
