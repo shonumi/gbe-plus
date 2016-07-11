@@ -95,6 +95,10 @@ class gen_settings : public QDialog
 	QLineEdit* input_down;
 	QLineEdit* input_l;
 	QLineEdit* input_r;
+	QLineEdit* input_gyro_left;
+	QLineEdit* input_gyro_right;
+	QLineEdit* input_gyro_up;
+	QLineEdit* input_gyro_down;
 
 	QPushButton* config_a;
 	QPushButton* config_b;
@@ -106,6 +110,10 @@ class gen_settings : public QDialog
 	QPushButton* config_down;
 	QPushButton* config_l;
 	QPushButton* config_r;
+	QPushButton* config_gyro_left;
+	QPushButton* config_gyro_right;
+	QPushButton* config_gyro_up;
+	QPushButton* config_gyro_down;
 
 	//Advanced controls tab widget
 	QCheckBox* rumble_on;
@@ -157,6 +165,10 @@ class gen_settings : public QDialog
 	QWidget* dead_zone_set;
 
 	QWidget* rumble_set;
+	QWidget* gyro_up_set;
+	QWidget* gyro_down_set;
+	QWidget* gyro_left_set;
+	QWidget* gyro_right_set;
 
 	void process_joystick_event();
 	void input_delay(QPushButton* input_button); 
