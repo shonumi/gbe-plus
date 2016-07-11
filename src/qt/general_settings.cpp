@@ -454,9 +454,9 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	config_gyro_left->setMaximumWidth(100);
 
 	QHBoxLayout* gyro_left_layout = new QHBoxLayout;
-	gyro_left_layout->addWidget(gyro_left_label, 0, Qt::AlignLeft);
-	gyro_left_layout->addWidget(input_gyro_left, 0, Qt::AlignLeft);
-	gyro_left_layout->addWidget(config_gyro_left, 0, Qt::AlignLeft);
+	gyro_left_layout->addWidget(gyro_left_label, 1, Qt::AlignLeft);
+	gyro_left_layout->addWidget(input_gyro_left, 1, Qt::AlignLeft);
+	gyro_left_layout->addWidget(config_gyro_left, 1, Qt::AlignLeft);
 	gyro_left_layout->setContentsMargins(6, 0, 0, 0);
 	gyro_left_set->setLayout(gyro_left_layout);
 
@@ -469,9 +469,9 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	config_gyro_right->setMaximumWidth(100);
 
 	QHBoxLayout* gyro_right_layout = new QHBoxLayout;
-	gyro_right_layout->addWidget(gyro_right_label, 0, Qt::AlignLeft);
-	gyro_right_layout->addWidget(input_gyro_right, 0, Qt::AlignLeft);
-	gyro_right_layout->addWidget(config_gyro_right, 0, Qt::AlignLeft);
+	gyro_right_layout->addWidget(gyro_right_label, 1, Qt::AlignLeft);
+	gyro_right_layout->addWidget(input_gyro_right, 1, Qt::AlignLeft);
+	gyro_right_layout->addWidget(config_gyro_right, 1, Qt::AlignLeft);
 	gyro_right_layout->setContentsMargins(6, 0, 0, 0);
 	gyro_right_set->setLayout(gyro_right_layout);
 
@@ -484,9 +484,9 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	config_gyro_up->setMaximumWidth(100);
 
 	QHBoxLayout* gyro_up_layout = new QHBoxLayout;
-	gyro_up_layout->addWidget(gyro_up_label, 0, Qt::AlignLeft);
-	gyro_up_layout->addWidget(input_gyro_up, 0, Qt::AlignLeft);
-	gyro_up_layout->addWidget(config_gyro_up, 0, Qt::AlignLeft);
+	gyro_up_layout->addWidget(gyro_up_label, 1, Qt::AlignLeft);
+	gyro_up_layout->addWidget(input_gyro_up, 1, Qt::AlignLeft);
+	gyro_up_layout->addWidget(config_gyro_up, 1, Qt::AlignLeft);
 	gyro_up_layout->setContentsMargins(6, 0, 0, 0);
 	gyro_up_set->setLayout(gyro_up_layout);
 
@@ -499,9 +499,9 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	config_gyro_down->setMaximumWidth(100);
 
 	QHBoxLayout* gyro_down_layout = new QHBoxLayout;
-	gyro_down_layout->addWidget(gyro_down_label, 0, Qt::AlignLeft);
-	gyro_down_layout->addWidget(input_gyro_down, 0, Qt::AlignLeft);
-	gyro_down_layout->addWidget(config_gyro_down, 0, Qt::AlignLeft);
+	gyro_down_layout->addWidget(gyro_down_label, 1, Qt::AlignLeft);
+	gyro_down_layout->addWidget(input_gyro_down, 1, Qt::AlignLeft);
+	gyro_down_layout->addWidget(config_gyro_down, 1, Qt::AlignLeft);
 	gyro_down_layout->setContentsMargins(6, 0, 0, 0);
 	gyro_down_set->setLayout(gyro_down_layout);
 
@@ -1151,7 +1151,7 @@ void gen_settings::input_device_change()
 		input_down->setText(QString::number(config::agb_joy_down));
 		input_l->setText(QString::number(config::agb_joy_l_trigger));
 		input_r->setText(QString::number(config::agb_joy_r_trigger));
-		input_gyro_up->setText(QString::number(config::gyro_key_up));
+		input_gyro_up->setText(QString::number(config::gyro_joy_up));
 		input_gyro_down->setText(QString::number(config::gyro_joy_down));
 		input_gyro_left->setText(QString::number(config::gyro_joy_left));
 		input_gyro_right->setText(QString::number(config::gyro_joy_right));
@@ -1546,12 +1546,12 @@ void gen_settings::switch_control_layout()
 		config_advanced_controls = true;
 
 		delete controls->layout();
+		advanced_controls_layout->insertWidget(0, input_device_set);
 		controls->setLayout(advanced_controls_layout);
 
 		//Rebuild old layout (was deleted above)
 		controls_layout = new QVBoxLayout;
 		controls_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-		controls_layout->addWidget(input_device_set);
 		controls_layout->addWidget(input_a_set);
 		controls_layout->addWidget(input_b_set);
 		controls_layout->addWidget(input_start_set);
@@ -1563,6 +1563,8 @@ void gen_settings::switch_control_layout()
 		controls_layout->addWidget(input_l_set);
 		controls_layout->addWidget(input_r_set);
 		controls_layout->addWidget(dead_zone_set);
+
+		input_device_set->setVisible(true);
 
 		//Set the text for the button
 		std::string button_text = "Standard Controls";
@@ -1587,6 +1589,7 @@ void gen_settings::switch_control_layout()
 		config_advanced_controls = false;
 
 		delete controls->layout();
+		controls_layout->insertWidget(0, input_device_set);
 		controls->setLayout(controls_layout);
 
 		//Rebuild old layout (was deleted above)
@@ -1597,6 +1600,8 @@ void gen_settings::switch_control_layout()
 		advanced_controls_layout->addWidget(gyro_down_set);
 		advanced_controls_layout->addWidget(gyro_left_set);
 		advanced_controls_layout->addWidget(gyro_right_set);
+
+		input_device_set->setVisible(true);
 
 		//Set the text for the button
 		std::string button_text = "Advanced Controls";
