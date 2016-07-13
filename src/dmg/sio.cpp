@@ -148,6 +148,9 @@ bool DMG_SIO::send_byte()
 	if(SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 1) < 1)
 	{
 		std::cout<<"SIO::Error - Host failed to send data to client\n";
+		sio_stat.connected = false;
+		server.connected = false;
+		sender.connected = false;
 		return false;
 	}
 
@@ -201,7 +204,15 @@ bool DMG_SIO::receive_byte()
 			//Send other Game Boy the old SB value
 			temp_buffer[0] = sio_stat.transfer_byte;
 			sio_stat.transfer_byte = mem->memory_map[REG_SB];
-			SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 1);
+
+			if(SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 1) < 1)
+			{
+				std::cout<<"SIO::Error - Host failed to send data to client\n";
+				sio_stat.connected = false;
+				server.connected = false;
+				sender.connected = false;
+				return false;
+			}
 
 			//std::cout<<"Sending echo byte 0x" << std::hex << (u32)temp_buffer[0] << "\n";
 		}
