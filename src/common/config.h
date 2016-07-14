@@ -74,6 +74,7 @@ namespace config
 	extern std::vector <std::string> gg_cheats;
 
 	extern bool use_netplay;
+	extern bool netplay_hard_sync;
 	extern u16 netplay_server_port;
 	extern u16 netplay_client_port;
 

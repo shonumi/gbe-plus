@@ -60,6 +60,7 @@ class DMG_SIO
 
 	bool send_byte();
 	bool receive_byte();
+	bool request_sync();
 	void process_network_communication();
 };
 

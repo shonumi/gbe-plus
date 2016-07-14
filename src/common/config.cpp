@@ -95,6 +95,7 @@ namespace config
 
 	//Netplay settings
 	bool use_netplay = true;
+	bool netplay_hard_sync = true;
 	u16 netplay_server_port = 2000;
 	u16 netplay_client_port = 2001;
 

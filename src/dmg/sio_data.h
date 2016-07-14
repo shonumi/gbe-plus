@@ -30,10 +30,13 @@ struct dmg_sio_data
 	bool active_transfer;
 	bool double_speed;
 	bool internal_clock;
+	bool sync;
 	u8 shifts_left;
 	u8 transfer_byte;
 	u32 shift_counter;
 	u32 shift_clock;
+	u32 sync_counter;
+	u32 sync_clock;
 	sio_types sio_type;
 };
 

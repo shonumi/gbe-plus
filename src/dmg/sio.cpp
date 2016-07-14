@@ -102,6 +102,12 @@ bool DMG_SIO::init()
 	//Create sockets sets
 	tcp_sockets = SDLNet_AllocSocketSet(3);
 
+	//Initialize hard syncing
+	if(config::netplay_hard_sync)
+	{
+		sio_stat.sync_counter = (config::netplay_server_port & 0x1) ? 64 : 0;
+	}
+
 	#endif
 
 	std::cout<<"SIO::Initialized\n";
@@ -118,6 +124,8 @@ void DMG_SIO::reset()
 	sio_stat.shifts_left = 0;
 	sio_stat.shift_counter = 0;
 	sio_stat.shift_clock = 512;
+	sio_stat.sync_counter = 0;
+	sio_stat.sync_clock = 64;
 	sio_stat.transfer_byte = 0;
 	sio_stat.sio_type = NO_GB_DEVICE;
 
@@ -142,10 +150,11 @@ bool DMG_SIO::send_byte()
 {
 	#ifdef GBE_NETPLAY
 
-	u8 temp_buffer[1];
+	u8 temp_buffer[2];
 	temp_buffer[0] = sio_stat.transfer_byte;
+	temp_buffer[1] = 0;
 
-	if(SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 1) < 1)
+	if(SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2) < 2)
 	{
 		std::cout<<"SIO::Error - Host failed to send data to client\n";
 		sio_stat.connected = false;
@@ -158,7 +167,7 @@ bool DMG_SIO::send_byte()
 
 	//Wait for other Game Boy to send this one its SB
 	//This is blocking, will effectively pause GBE+ until it gets something
-	if(SDLNet_TCP_Recv(server.remote_socket, temp_buffer, 1) > 0)
+	if(SDLNet_TCP_Recv(server.remote_socket, temp_buffer, 2) > 0)
 	{
 		mem->memory_map[REG_SB] = sio_stat.transfer_byte = temp_buffer[0];
 	}
@@ -179,7 +188,7 @@ bool DMG_SIO::receive_byte()
 	#ifdef GBE_NETPLAY
 
 	u8 temp_buffer[1];
-	temp_buffer[0] = 0;
+	temp_buffer[0] = temp_buffer[1] = 0;
 
 	//Check the status of connection
 	SDLNet_CheckSockets(tcp_sockets, 0);
@@ -187,8 +196,16 @@ bool DMG_SIO::receive_byte()
 	//If this socket is active, receive the transfer
 	if(SDLNet_SocketReady(server.remote_socket))
 	{
-		if(SDLNet_TCP_Recv(server.remote_socket, temp_buffer, 1) > 0)
+		if(SDLNet_TCP_Recv(server.remote_socket, temp_buffer, 2) > 0)
 		{
+			//Stop sync
+			if(temp_buffer[1] == 0xFF)
+			{
+				sio_stat.sync = false;
+				sio_stat.sync_counter = 0;
+				return true;
+			}
+
 			//Raise SIO IRQ after sending byte
 			mem->memory_map[IF_FLAG] |= 0x08;
 
@@ -205,7 +222,7 @@ bool DMG_SIO::receive_byte()
 			temp_buffer[0] = sio_stat.transfer_byte;
 			sio_stat.transfer_byte = mem->memory_map[REG_SB];
 
-			if(SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 1) < 1)
+			if(SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2) < 2)
 			{
 				std::cout<<"SIO::Error - Host failed to send data to client\n";
 				sio_stat.connected = false;
@@ -217,6 +234,32 @@ bool DMG_SIO::receive_byte()
 			//std::cout<<"Sending echo byte 0x" << std::hex << (u32)temp_buffer[0] << "\n";
 		}
 	}
+
+	#endif
+
+	return true;
+}
+
+/****** Requests syncronization with another system ******/
+bool DMG_SIO::request_sync()
+{
+	#ifdef GBE_NETPLAY
+
+	u8 temp_buffer[2];
+	temp_buffer[0] = 0;
+	temp_buffer[1] = 0xFF;
+
+	//Send the sync code 0xFF
+	if(SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2) < 2)
+	{
+		std::cout<<"SIO::Error - Host failed to send data to client\n";
+		sio_stat.connected = false;
+		server.connected = false;
+		sender.connected = false;
+		return false;
+	}
+
+	sio_stat.sync = true;
 
 	#endif
 

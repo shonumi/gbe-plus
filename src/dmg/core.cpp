@@ -188,11 +188,28 @@ void DMG_core::run_core()
 
 		//Run the CPU
 		if(core_cpu.running)
-		{	
-			core_cpu.cycles = 0;
-
+		{
 			//Receive byte from another instance of GBE+ via netplay
-			if(core_cpu.controllers.serial_io.sio_stat.connected) { core_cpu.controllers.serial_io.receive_byte(); }
+			if(core_cpu.controllers.serial_io.sio_stat.connected)
+			{
+				//Perform syncing operations when hard sync is enabled
+				if(config::netplay_hard_sync)
+				{
+					core_cpu.controllers.serial_io.sio_stat.sync_counter += core_cpu.cycles;
+
+					//Once this Game Boy has reached a specified amount of cycles, freeze until the other Game Boy finished that many cycles
+					if(core_cpu.controllers.serial_io.sio_stat.sync_counter >= core_cpu.controllers.serial_io.sio_stat.sync_clock)
+					{
+						core_cpu.controllers.serial_io.request_sync();
+						while(core_cpu.controllers.serial_io.sio_stat.sync) { core_cpu.controllers.serial_io.receive_byte(); }
+					}
+				}
+
+				//Receive bytes normally
+				core_cpu.controllers.serial_io.receive_byte();
+			}
+
+			core_cpu.cycles = 0;
 
 			//Handle Interrupts
 			core_cpu.handle_interrupts();
