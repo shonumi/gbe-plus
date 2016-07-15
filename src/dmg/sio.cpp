@@ -37,6 +37,13 @@ DMG_SIO::~DMG_SIO()
 
 	if(sender.host_socket != NULL)
 	{
+		//Send disconnect byte to another system first
+		u8 temp_buffer[2];
+		temp_buffer[0] = 0;
+		temp_buffer[1] = 0x80;
+		
+		SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2);
+
 		SDLNet_TCP_DelSocket(tcp_sockets, sender.host_socket);
 		SDLNet_TCP_Close(sender.host_socket);
 	}
@@ -125,7 +132,7 @@ void DMG_SIO::reset()
 	sio_stat.shift_counter = 0;
 	sio_stat.shift_clock = 512;
 	sio_stat.sync_counter = 0;
-	sio_stat.sync_clock = 64;
+	sio_stat.sync_clock = 32;
 	sio_stat.transfer_byte = 0;
 	sio_stat.sio_type = NO_GB_DEVICE;
 
@@ -203,6 +210,15 @@ bool DMG_SIO::receive_byte()
 			{
 				sio_stat.sync = false;
 				sio_stat.sync_counter = 0;
+				return true;
+			}
+
+			//Disconnect netplay
+			else if(temp_buffer[1] == 0x80)
+			{
+				std::cout<<"SIO::Netplay connection terminated. Restart to reconnect.\n";
+				sio_stat.connected = false;
+				sio_stat.sync = false;
 				return true;
 			}
 
