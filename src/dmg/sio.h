@@ -28,6 +28,8 @@ class DMG_SIO
 
 	dmg_sio_data sio_stat;
 
+	bool network_init;
+
 	#ifdef GBE_NETPLAY
 
 	//Receiving server

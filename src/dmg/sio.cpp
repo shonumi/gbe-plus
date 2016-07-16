@@ -14,6 +14,8 @@
 /****** SIO Constructor ******/
 DMG_SIO::DMG_SIO()
 {
+	network_init = false;
+
 	reset();
 }
 
@@ -50,6 +52,8 @@ DMG_SIO::~DMG_SIO()
 
 	SDLNet_Quit();
 
+	network_init = false;
+
 	#endif
 
 	std::cout<<"SIO::Shutdown\n";
@@ -73,6 +77,8 @@ bool DMG_SIO::init()
 		std::cout<<"SIO::Error - Could not initialize SDL_net\n";
 		return false;
 	}
+
+	network_init = true;
 
 	//Server info
 	server.host_socket = NULL;
@@ -137,6 +143,32 @@ void DMG_SIO::reset()
 	sio_stat.sio_type = NO_GB_DEVICE;
 
 	#ifdef GBE_NETPLAY
+
+	//Close any current connections
+	if(network_init)
+	{
+		if(server.host_socket != NULL)
+		{
+			SDLNet_TCP_Close(server.host_socket);
+		}
+
+		if(server.remote_socket != NULL)
+		{
+			SDLNet_TCP_Close(server.remote_socket);
+		}
+
+		if(sender.host_socket != NULL)
+		{
+			//Send disconnect byte to another system first
+			u8 temp_buffer[2];
+			temp_buffer[0] = 0;
+			temp_buffer[1] = 0x80;
+		
+			SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2);
+
+			SDLNet_TCP_Close(sender.host_socket);
+		}
+	}
 
 	//Server info
 	server.host_socket = NULL;
