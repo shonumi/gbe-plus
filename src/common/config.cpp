@@ -1527,6 +1527,26 @@ bool parse_ini_file()
 			}
 		}
 
+		//Use netplay hard sync
+		if(ini_item == "#use_netplay_hard_sync")
+		{
+			if((x + 1) < size) 
+			{
+				ini_item = ini_opts[++x];
+				std::stringstream temp_stream(ini_item);
+				temp_stream >> output;
+
+				if(output == 1) { config::netplay_hard_sync = true; }
+				else { config::netplay_hard_sync = false; }
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#use_netplay_hard_sync) \n";
+				return false;
+			}
+		}
+
 		//Netplay server port
 		else if(ini_item == "#netplay_server_port")
 		{
@@ -1977,6 +1997,15 @@ bool save_ini_file()
 			std::string val = (config::use_netplay) ? "1" : "0";
 
 			output_lines[line_pos] = "[#use_netplay:" + val + "]";
+		}
+
+		//Use netplay hard sync
+		else if(ini_item == "#use_netplay_hard_sync")
+		{
+			line_pos = output_count[x];
+			std::string val = (config::netplay_hard_sync) ? "1" : "0";
+
+			output_lines[line_pos] = "[#use_netplay_hard_sync:" + val + "]";
 		}
 
 		//Netplay server port
