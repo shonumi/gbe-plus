@@ -1192,6 +1192,17 @@ void DMG_core::handle_hotkey(SDL_Event& event)
 		else { std::cout<<"SIO::Netplay connection established\n"; }
 	}
 
+	//Disconnect netplay connection on F6
+	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F6))
+	{
+		//Only attempt to disconnect if connected at all
+		if(core_cpu.controllers.serial_io.sio_stat.connected)
+		{
+			core_cpu.controllers.serial_io.reset();
+			std::cout<<"SIO::Netplay connection terminated. Restart to reconnect.\n";
+		}
+	}
+
 	//Screenshot on F9
 	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F9)) 
 	{
