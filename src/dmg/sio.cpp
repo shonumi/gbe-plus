@@ -346,7 +346,13 @@ void DMG_SIO::process_network_communication()
 			}
 		}
 
-		if((server.connected) && (sender.connected)) { sio_stat.connected = true; }
+		if((server.connected) && (sender.connected))
+		{
+			sio_stat.connected = true;
+
+			//Set the emulated SIO device type
+			sio_type = (config::gb_type < 2) ? DMG_LINK : GBC_LINK;
+		}
 	}
 
 	#endif
