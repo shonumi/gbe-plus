@@ -201,7 +201,21 @@ void DMG_core::run_core()
 					if(core_cpu.controllers.serial_io.sio_stat.sync_counter >= core_cpu.controllers.serial_io.sio_stat.sync_clock)
 					{
 						core_cpu.controllers.serial_io.request_sync();
-						while(core_cpu.controllers.serial_io.sio_stat.sync) { core_cpu.controllers.serial_io.receive_byte(); }
+						u32 current_time, timeout = SDL_GetTicks();
+
+						while(core_cpu.controllers.serial_io.sio_stat.sync)
+						{
+							core_cpu.controllers.serial_io.receive_byte();
+
+							//Timeout if 10 seconds passes
+							timeout = SDL_GetTicks();
+							
+							if(timeout - current_time >= 10000)
+							{
+								std::cout<<"SIO::Error - Netplay timed out. Restart to reconnect\n";
+								core_cpu.controllers.serial_io.reset();
+							}						
+						}
 					}
 				}
 

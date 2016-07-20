@@ -351,7 +351,7 @@ void DMG_SIO::process_network_communication()
 			sio_stat.connected = true;
 
 			//Set the emulated SIO device type
-			sio_type = (config::gb_type < 2) ? DMG_LINK : GBC_LINK;
+			sio_stat.sio_type = (config::gb_type < 2) ? DMG_LINK : GBC_LINK;
 		}
 	}
 
