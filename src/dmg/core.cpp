@@ -1182,39 +1182,13 @@ void DMG_core::handle_hotkey(SDL_Event& event)
 	//Pause and wait for netplay connection on F5
 	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F5))
 	{
-		//Do nothing if netplay is not enabled
-		if(!config::use_netplay) { return; }
-
-		//Wait 10 seconds before timing out
-		u32 time_out = 0;
-
-		while(time_out < 10000)
-		{
-			time_out += 100;
-			if((time_out % 1000) == 0) { std::cout<<"SIO::Netplay is waiting to establish remote connection...\n"; }
-
-			SDL_Delay(100);
-
-			//Process network connections
-			core_cpu.controllers.serial_io.process_network_communication();
-
-			//Check again if the GBE+ instances connected, exit waiting if so
-			if(core_cpu.controllers.serial_io.sio_stat.connected) { break; }
-		}
-
-		if(!core_cpu.controllers.serial_io.sio_stat.connected) { std::cout<<"SIO::No netplay connection established\n"; }
-		else { std::cout<<"SIO::Netplay connection established\n"; }
+		start_netplay();	
 	}
 
 	//Disconnect netplay connection on F6
 	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F6))
 	{
-		//Only attempt to disconnect if connected at all
-		if(core_cpu.controllers.serial_io.sio_stat.connected)
-		{
-			core_cpu.controllers.serial_io.reset();
-			std::cout<<"SIO::Netplay connection terminated. Restart to reconnect.\n";
-		}
+		stop_netplay();
 	}
 
 	//Screenshot on F9
@@ -1394,3 +1368,40 @@ std::string DMG_core::get_hash(u32 addr, u8 gfx_type)
 	return core_cpu.controllers.video.get_hash(addr, gfx_type);
 }
 
+/****** Starts netplay connection ******/
+void DMG_core::start_netplay()
+{
+	//Do nothing if netplay is not enabled
+	if(!config::use_netplay) { return; }
+
+	//Wait 10 seconds before timing out
+	u32 time_out = 0;
+
+	while(time_out < 10000)
+	{
+		time_out += 100;
+		if((time_out % 1000) == 0) { std::cout<<"SIO::Netplay is waiting to establish remote connection...\n"; }
+
+		SDL_Delay(100);
+
+		//Process network connections
+		core_cpu.controllers.serial_io.process_network_communication();
+
+		//Check again if the GBE+ instances connected, exit waiting if so
+		if(core_cpu.controllers.serial_io.sio_stat.connected) { break; }
+	}
+
+	if(!core_cpu.controllers.serial_io.sio_stat.connected) { std::cout<<"SIO::No netplay connection established\n"; }
+	else { std::cout<<"SIO::Netplay connection established\n"; }
+}
+
+/****** Stops netplay connection ******/
+void DMG_core::stop_netplay()
+{
+	//Only attempt to disconnect if connected at all
+	if(core_cpu.controllers.serial_io.sio_stat.connected)
+	{
+		core_cpu.controllers.serial_io.reset();
+		std::cout<<"SIO::Netplay connection terminated. Restart to reconnect.\n";
+	}
+}

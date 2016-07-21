@@ -60,6 +60,10 @@ class core_emu
 	virtual u32* get_bg_palette(int pal_index) = 0;
 	virtual std::string get_hash(u32 addr, u8 gfx_type) = 0;
 
+	//Netplay interface
+	virtual void start_netplay() = 0;
+	virtual void stop_netplay() = 0;
+
 	bool running;
 	SDL_Event event;
 	

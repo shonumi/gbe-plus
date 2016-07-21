@@ -799,3 +799,9 @@ u32* AGB_core::get_bg_palette(int pal_index)
 
 /****** Grabs the hash for a specific tile ******/
 std::string AGB_core::get_hash(u32 addr, u8 gfx_type) { }
+
+/****** Starts netplay connection ******/
+void AGB_core::start_netplay() { }
+
+/****** Stops netplay connection ******/
+void AGB_core::stop_netplay() { }

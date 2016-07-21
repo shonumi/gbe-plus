@@ -60,6 +60,10 @@ class DMG_core : virtual public core_emu
 		u8 ex_read_u8(u16 address);
 		void ex_write_u8(u16 address, u8 value);
 
+		//Netplay interface
+		void start_netplay();
+		void stop_netplay();
+
 		DMG_MMU core_mmu;
 		Z80 core_cpu;
 		DMG_GamePad core_pad;

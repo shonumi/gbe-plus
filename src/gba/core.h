@@ -61,6 +61,10 @@ class AGB_core : virtual public core_emu
 		u8 ex_read_u8(u16 address);
 		void ex_write_u8(u16 address, u8 value);
 
+		//Netplay interface
+		void start_netplay();
+		void stop_netplay();
+
 		AGB_MMU core_mmu;
 		ARM7 core_cpu;
 		AGB_GamePad core_pad;
