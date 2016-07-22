@@ -28,6 +28,8 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	QAction* reset = new QAction("Reset", this);
 	QAction* fullscreen = new QAction("Fullscreen", this);
 	QAction* screenshot = new QAction("Screenshot", this);
+	QAction* nplay_start = new QAction("Start Netplay", this);
+	QAction* nplay_stop = new QAction("Stop Netplay", this);
 
 	QAction* general = new QAction("General Settings...", this);
 	QAction* display = new QAction("Display", this);
@@ -48,6 +50,8 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	reset->setShortcut(tr("F8"));
 	fullscreen->setShortcut(tr("F12"));
 	screenshot->setShortcut(tr("F9"));
+	nplay_start->setShortcut(tr("F5"));
+	nplay_stop->setShortcut(tr("F6"));
 
 	pause->setCheckable(true);
 	pause->setObjectName("pause_action");
@@ -78,6 +82,9 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	emulation->addSeparator();
 	emulation->addAction(fullscreen);
 	emulation->addAction(screenshot);
+	emulation->addSeparator();
+	emulation->addAction(nplay_start);
+	emulation->addAction(nplay_stop);
 	menu_bar->addMenu(emulation);
 
 	//Setup Options menu
@@ -113,6 +120,8 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	connect(pause, SIGNAL(triggered()), this, SLOT(pause()));
 	connect(fullscreen, SIGNAL(triggered()), this, SLOT(fullscreen()));
 	connect(screenshot, SIGNAL(triggered()), this, SLOT(screenshot()));
+	connect(nplay_start, SIGNAL(triggered()), this, SLOT(start_netplay()));
+	connect(nplay_stop, SIGNAL(triggered()), this, SLOT(stop_netplay()));
 	connect(reset, SIGNAL(triggered()), this, SLOT(reset()));
 	connect(general, SIGNAL(triggered()), this, SLOT(show_settings()));
 	connect(display, SIGNAL(triggered()), this, SLOT(show_display_settings()));
@@ -625,6 +634,16 @@ void main_menu::keyPressEvent(QKeyEvent* event)
 					save_state(0);
 					break;
 
+				//Netplay start
+				case SDLK_F5:
+					start_netplay();
+					break;
+
+				//Netplay stop
+				case SDLK_F6:
+					stop_netplay();
+					break;
+
 				//Reset
 				case SDLK_F8:
 					reset();
@@ -923,6 +942,24 @@ void main_menu::load_state(int slot)
 
 		//Apply current volume settings
 		settings->update_volume();
+	}
+}
+
+/****** Starts the core's netplay features ******/
+void main_menu::start_netplay()
+{
+	if(main_menu::gbe_plus != NULL)
+	{
+		main_menu::gbe_plus->start_netplay();
+	}
+}
+
+/****** Stops the core's netplay features ******/
+void main_menu::stop_netplay()
+{
+	if(main_menu::gbe_plus != NULL)
+	{
+		main_menu::gbe_plus->stop_netplay();
 	}
 }
 
