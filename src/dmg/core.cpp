@@ -219,6 +219,9 @@ void DMG_core::run_core()
 					}
 				}
 
+				//Send IR signal for GBC games
+				if(core_mmu.ir_send) { core_cpu.controllers.serial_io.send_ir_signal(); }
+
 				//Receive bytes normally
 				core_cpu.controllers.serial_io.receive_byte();
 			}

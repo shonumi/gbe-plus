@@ -61,6 +61,9 @@ void DMG_MMU::reset()
 	cart.idle = false;
 	cart.internal_value = cart.internal_state = cart.cs = cart.sk = cart.buffer_length = cart.command_code = cart.addr = cart.buffer = 0;
 
+	ir_signal = 0;
+	ir_send = false;
+
 	//Resize various banks
 	read_only_bank.resize(0x200);
 	for(int x = 0; x < 0x200; x++) { read_only_bank[x].resize(0x4000, 0); }
@@ -276,6 +279,19 @@ u8 DMG_MMU::read_u8(u16 address)
 		{
 			return (lcd_stat->obj_colors_raw[color][palette] >> 8);
 		}
+	}
+
+	//Read from RP
+	else if(address == REG_RP)
+	{
+		//GBC only
+		if(config::gb_type < 2) { return 0x0; }
+
+		//Bits 6 and 7 must be set to read bits 0 and 1
+		else if(memory_map[address] & 0xC0) { return (memory_map[address] & 0xC3); }
+
+		//Otherwise, return Bits 6 and 7 only
+		else { return (memory_map[address] & 0xC0); }
 	}
 
 	//Read from P1
@@ -1110,6 +1126,22 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		}
 
 		memory_map[address] = value;
+	}
+
+	//RP - IR port
+	else if(address == REG_RP)
+	{
+		//This register does nothing on the DMG, GBC only
+		if(config::gb_type == 2)
+		{
+			value &= 0xC1;
+			memory_map[address] = value;
+
+			//Send IR signal to another GBC
+			ir_signal = (value & 0x1) ? 1 : 0;
+			ir_send = true;
+
+		}
 	}
 
 	else if(address > 0x7FFF) { memory_map[address] = value; }

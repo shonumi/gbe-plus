@@ -194,6 +194,14 @@ bool DMG_SIO::send_byte()
 	temp_buffer[0] = sio_stat.transfer_byte;
 	temp_buffer[1] = 0;
 
+	//For IR signals, flag it properly
+	//1st byte is IR signal data, second byte GBE+'s marker, 0x40
+	if(mem->ir_send)
+	{
+		temp_buffer[0] = mem->ir_signal;
+		temp_buffer[1] = 0x40;
+	}
+
 	if(SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2) < 2)
 	{
 		std::cout<<"SIO::Error - Host failed to send data to client\n";
@@ -216,6 +224,39 @@ bool DMG_SIO::send_byte()
 
 	//Raise SIO IRQ after sending byte
 	mem->memory_map[IF_FLAG] |= 0x08;
+
+	#endif
+
+	return true;
+}
+
+/****** Tranfers one bit to another system's IR port ******/
+bool DMG_SIO::send_ir_signal()
+{
+	#ifdef GBE_NETPLAY
+
+	u8 temp_buffer[2];
+
+	//For IR signals, flag it properly
+	//1st byte is IR signal data, second byte GBE+'s marker, 0x40
+	temp_buffer[0] = mem->ir_signal;
+	temp_buffer[1] = 0x40;
+
+	if(SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2) < 2)
+	{
+		std::cout<<"SIO::Error - Host failed to send data to client\n";
+		sio_stat.connected = false;
+		server.connected = false;
+		sender.connected = false;
+		return false;
+	}
+
+	//Wait for other instance of GBE+ to send an acknowledgement
+	//This is blocking, will effectively pause GBE+ until it gets something
+	if(SDLNet_TCP_Recv(server.remote_socket, temp_buffer, 2) > 0)
+	{
+		mem->ir_send = false;
+	}
 
 	#endif
 
@@ -252,6 +293,21 @@ bool DMG_SIO::receive_byte()
 				std::cout<<"SIO::Netplay connection terminated. Restart to reconnect.\n";
 				sio_stat.connected = false;
 				sio_stat.sync = false;
+				return true;
+			}
+
+			//Receive IR signal
+			else if(temp_buffer[1] == 0x40)
+			{
+				//Clear out Bit 0 of RP if receiving signal
+				if(temp_buffer[0] == 1) { mem->memory_map[REG_RP] &= ~0x2; }
+
+				//Set Bit 1 of RP if IR signal is normal
+				else { mem->memory_map[REG_RP] |= 0x2; }
+
+				//Send acknowlegdement
+				SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2);
+
 				return true;
 			}
 

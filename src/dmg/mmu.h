@@ -95,6 +95,9 @@ class DMG_MMU
 		u16 buffer;
 	} cart;
 
+	u8 ir_signal;
+	bool ir_send;
+
 	DMG_GamePad* g_pad;
 
 	DMG_MMU();
