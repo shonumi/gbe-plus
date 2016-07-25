@@ -585,6 +585,44 @@ bool from_str(std::string input, u32 &result)
 	return true;
 }
 
+/****** Converts a string IP address to an integer value ******/
+bool ip_to_u32(std::string ip_addr, u32 &result)
+{
+	u8 digits[4] = { 0, 0, 0, 0 };
+	u8 dot_count = 0;
+	std::string temp = "";
+	std::string current_char = "";
+	u32 str_end = ip_addr.length() - 1;
+
+	//IP address comes in the form 123.456.678.ABC
+	//Grab each character between the dots and convert them into integer
+	for(u32 x = 0; x < ip_addr.length(); x++)
+	{
+		current_char = ip_addr[x];
+
+		//Convert characters into u32 when a "." is encountered
+		if((current_char == ".") || (x == str_end))
+		{
+			if(x == str_end) { temp += current_char; }
+
+			//If somehow parsing more than 3 dots, string is malformed
+			if(dot_count == 4) { return false; }
+
+			u32 digit = 0;
+
+			if(!from_str(temp, digit)) { return false; }
+
+			digits[dot_count++] = digit & 0xFF;
+			temp = "";
+		}
+
+		else { temp += current_char; }
+	}
+
+	//Encode result in network byte order aka big endian
+	result = (digits[0] << 24) | (digits[1] << 16) | (digits[2] << 8) | digits[3];
+}	
+
 /****** Loads icon into SDL Surface ******/
 SDL_Surface* load_icon(std::string filename)
 {
