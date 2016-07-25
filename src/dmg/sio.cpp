@@ -194,14 +194,6 @@ bool DMG_SIO::send_byte()
 	temp_buffer[0] = sio_stat.transfer_byte;
 	temp_buffer[1] = 0;
 
-	//For IR signals, flag it properly
-	//1st byte is IR signal data, second byte GBE+'s marker, 0x40
-	if(mem->ir_send)
-	{
-		temp_buffer[0] = mem->ir_signal;
-		temp_buffer[1] = 0x40;
-	}
-
 	if(SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2) < 2)
 	{
 		std::cout<<"SIO::Error - Host failed to send data to client\n";

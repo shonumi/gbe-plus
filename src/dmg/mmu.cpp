@@ -288,7 +288,7 @@ u8 DMG_MMU::read_u8(u16 address)
 		if(config::gb_type < 2) { return 0x0; }
 
 		//Bits 6 and 7 must be set to read bits 0 and 1
-		else if(memory_map[address] & 0xC0) { return (memory_map[address] & 0xC3); }
+		else if((memory_map[address] & 0x80) && (memory_map[address] & 0x40)) { return (memory_map[address] & 0xC3); }
 
 		//Otherwise, return Bits 6 and 7 only
 		else { return (memory_map[address] & 0xC0); }
@@ -1134,13 +1134,16 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		//This register does nothing on the DMG, GBC only
 		if(config::gb_type == 2)
 		{
+			//Bit 1 is read-only, preserve this bit when writing to RP
+			u8 old_ir_signal = (memory_map[address] & 0x2) ? 0x2 : 0;
+
 			value &= 0xC1;
+			value |= old_ir_signal;
 			memory_map[address] = value;
 
 			//Send IR signal to another GBC
-			ir_signal = (value & 0x1) ? 1 : 0;
+			ir_signal = (value & 0x1);
 			ir_send = true;
-
 		}
 	}
 
