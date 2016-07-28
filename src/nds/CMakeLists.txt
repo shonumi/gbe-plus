@@ -21,4 +21,4 @@ set(HEADERS
 
 add_library(nds STATIC ${SRCS} ${HEADERS})
 
-target_link_libraries(nds ${SDL_LIBRARY} ${OPENGL_gl_LIBRARY}) 
+target_link_libraries(nds ${SDL2_LIBRARY} ${OPENGL_gl_LIBRARY}) 

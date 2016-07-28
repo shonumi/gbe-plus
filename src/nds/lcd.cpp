@@ -25,6 +25,7 @@ NTR_LCD::~NTR_LCD()
 	screen_buffer.clear();
 	scanline_buffer_a.clear();
 	scanline_buffer_b.clear();
+	SDL_DestroyWindow(window);
 	std::cout<<"LCD::Shutdown\n";
 }
 
@@ -32,7 +33,11 @@ NTR_LCD::~NTR_LCD()
 void NTR_LCD::reset()
 {
 	final_screen = NULL;
+	original_screen = NULL;
 	mem = NULL;
+
+	if((window != NULL) && (config::sdl_render)) { SDL_DestroyWindow(window); }
+	window = NULL;
 
 	scanline_buffer_a.clear();
 	scanline_buffer_b.clear();
@@ -72,20 +77,37 @@ void NTR_LCD::reset()
 	}
 
 	for(int x = 0; x < 9; x++) { lcd_stat.vram_bank_addr[x] = 0x0; }
+
+	//Initialize system screen dimensions
+	config::sys_width = 256;
+	config::sys_height = 384;
 }
 
 /****** Initialize LCD with SDL ******/
 bool NTR_LCD::init()
 {
+	//Initialize with SDL rendering software or hardware
 	if(config::sdl_render)
 	{
-		if(SDL_Init(SDL_INIT_EVERYTHING) == -1)
+		//Initialize all of SDL
+		if(SDL_Init(SDL_INIT_VIDEO) == -1)
 		{
-			std::cout<<"LCD::Error - Could not initialize SDL\n";
+			std::cout<<"LCD::Error - Could not initialize SDL video\n";
 			return false;
 		}
 
-		final_screen = SDL_SetVideoMode(256, 384, 32, SDL_SWSURFACE);
+		//Setup OpenGL rendering
+		//if(config::use_opengl) { opengl_init(); }
+
+		//Set up software rendering
+		else
+		{
+			window = SDL_CreateWindow("GBE+", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, config::sys_width, config::sys_height, config::flags);
+			SDL_GetWindowSize(window, &config::win_width, &config::win_height);
+			final_screen = SDL_GetWindowSurface(window);
+			original_screen = SDL_CreateRGBSurface(SDL_SWSURFACE, config::sys_width, config::sys_height, 32, 0, 0, 0, 0);
+			config::scaling_factor = 1;
+		}
 
 		if(final_screen == NULL) { return false; }
 	}
@@ -226,7 +248,8 @@ void NTR_LCD::update()
 		//Unlock source surface
 		if(SDL_MUSTLOCK(final_screen)){ SDL_UnlockSurface(final_screen); }
 		
-		if(SDL_Flip(final_screen) == -1) { std::cout<<"LCD::Error - Could not blit\n"; }
+		//Display final screen buffer - SDL
+		if(SDL_UpdateWindowSurface(window) != 0) { std::cout<<"LCD::Error - Could not blit\n"; }
 	}
 
 	//Use external rendering method (GUI)
@@ -320,7 +343,7 @@ void NTR_LCD::step()
 				//Unlock source surface
 				if(SDL_MUSTLOCK(final_screen)){ SDL_UnlockSurface(final_screen); }
 				
-				if(SDL_Flip(final_screen) == -1) { std::cout<<"LCD::Error - Could not blit\n"; }
+				if(SDL_UpdateWindowSurface(window) != 0) { std::cout<<"LCD::Error - Could not blit\n"; }
 			}
 
 			//Use external rendering method (GUI)
@@ -358,7 +381,7 @@ void NTR_LCD::step()
 				fps_time = SDL_GetTicks(); 
 				config::title.str("");
 				config::title << "GBE+ " << fps_count << "FPS";
-				SDL_WM_SetCaption(config::title.str().c_str(), NULL);
+				SDL_SetWindowTitle(window, config::title.str().c_str());
 				fps_count = 0; 
 			}
 		}

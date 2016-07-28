@@ -789,3 +789,12 @@ u32* NTR_core::get_obj_palette(int pal_index) { }
 
 /****** Grabs the BG palette ******/
 u32* NTR_core::get_bg_palette(int pal_index) { }
+
+/****** Grabs the hash for a specific tile ******/
+std::string NTR_core::get_hash(u32 addr, u8 gfx_type) { }
+
+/****** Starts netplay connection ******/
+void NTR_core::start_netplay() { }
+
+/****** Stops netplay connection ******/
+void NTR_core::stop_netplay() { }
