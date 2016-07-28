@@ -291,6 +291,8 @@ bool DMG_SIO::receive_byte()
 			//Receive IR signal
 			else if(temp_buffer[1] == 0x40)
 			{
+				temp_buffer[1] = 0x41;
+				
 				//Clear out Bit 0 of RP if receiving signal
 				if(temp_buffer[0] == 1) { mem->memory_map[REG_RP] &= ~0x2; }
 
@@ -302,6 +304,8 @@ bool DMG_SIO::receive_byte()
 
 				return true;
 			}
+
+			else if(temp_buffer[1] != 0) { return true; }
 
 			//Raise SIO IRQ after sending byte
 			mem->memory_map[IF_FLAG] |= 0x08;
