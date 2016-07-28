@@ -12,6 +12,7 @@
 
 #include "mmu.h"
 #include "common/cgfx_common.h"
+#include "common/util.h"
 
 /****** MMU Constructor ******/
 DMG_MMU::DMG_MMU() 
@@ -50,6 +51,8 @@ void DMG_MMU::reset()
 	cart.mbc_type = ROM_ONLY;
 	cart.battery = false;
 	cart.ram = false;
+	cart.multicart = config::use_multicart;
+	cart.rumble = false;
 
 	cart.rtc = false;
 	cart.rtc_enabled = false;
@@ -57,6 +60,9 @@ void DMG_MMU::reset()
 
 	cart.idle = false;
 	cart.internal_value = cart.internal_state = cart.cs = cart.sk = cart.buffer_length = cart.command_code = cart.addr = cart.buffer = 0;
+
+	ir_signal = 0;
+	ir_send = false;
 
 	//Resize various banks
 	read_only_bank.resize(0x200);
@@ -156,6 +162,29 @@ bool DMG_MMU::mmu_write(std::string filename)
 	file.close();
 	return true;
 }
+
+/****** Gets the size of MMU data for serialization ******/
+u32 DMG_MMU::size()
+{
+	u32 mmu_size = 0;
+	
+	mmu_size += 0x34000;
+
+	mmu_size += sizeof(rom_bank);
+	mmu_size += sizeof(ram_bank);
+	mmu_size += sizeof(wram_bank);
+	mmu_size += sizeof(vram_bank);
+	mmu_size += sizeof(bank_bits);
+	mmu_size += sizeof(bank_mode);
+	mmu_size += sizeof(ram_banking_enabled);
+	mmu_size += sizeof(in_bios);
+	mmu_size += sizeof(bios_type);
+	mmu_size += sizeof(bios_size);
+	mmu_size += sizeof(cart);
+	mmu_size += sizeof(previous_value);
+
+	return mmu_size;
+}
 	
 /****** Read byte from memory ******/
 u8 DMG_MMU::read_u8(u16 address) 
@@ -179,6 +208,9 @@ u8 DMG_MMU::read_u8(u16 address)
 
 		else if(address < bios_size) { return bios[address]; }
 	}
+
+	//Read using ROM Banking
+	if((cart.multicart) && (address <= 0x3FFF)) { return mbc_read(address); }
 
 	//Read using ROM Banking
 	if((address >= 0x4000) && (address <= 0x7FFF) && (cart.mbc_type != ROM_ONLY)) { return mbc_read(address); }
@@ -249,6 +281,19 @@ u8 DMG_MMU::read_u8(u16 address)
 		}
 	}
 
+	//Read from RP
+	else if(address == REG_RP)
+	{
+		//GBC only
+		if(config::gb_type < 2) { return 0x0; }
+
+		//Bits 6 and 7 must be set to read bits 0 and 1
+		else if((memory_map[address] & 0x80) && (memory_map[address] & 0x40)) { return (memory_map[address] & 0xC3); }
+
+		//Otherwise, return Bits 6 and 7 only
+		else { return (memory_map[address] & 0xC0); }
+	}
+
 	//Read from P1
 	else if(address == 0xFF00) { return g_pad->read(); }
 
@@ -297,6 +342,9 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 			video_ram[0][address - 0x8000] = value;
 		}
 	}
+
+	//DIV - Reset register to zero
+	else if(address == REG_DIV) { memory_map[address] = 0; }
 
 	//NR11 - Duty Cycle
 	else if(address == NR11)
@@ -424,6 +472,9 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 			apu_stat->channel[0].volume = (memory_map[NR12] >> 4);
 			apu_stat->channel[0].envelope_direction = (memory_map[NR12] & 0x08) ? 1 : 0;
 			apu_stat->channel[0].envelope_step = (memory_map[NR12] & 0x07);
+
+			//Turn off sound channel if envelope volume is 0 and mode is subtraction
+			if((apu_stat->channel[0].envelope_direction == 0) && (apu_stat->channel[0].volume == 0)) { apu_stat->channel[0].playing = false; }
 
 			//Sweep
 			apu_stat->channel[0].sweep_direction = (memory_map[NR10] & 0x08) ? 1 : 0;
@@ -558,6 +609,9 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 			apu_stat->channel[1].volume = (memory_map[NR22] >> 4);
 			apu_stat->channel[1].envelope_direction = (memory_map[NR22] & 0x08) ? 1 : 0;
 			apu_stat->channel[1].envelope_step = (memory_map[NR22] & 0x07);
+
+			//Turn off sound channel if envelope volume is 0 and mode is subtraction
+			if((apu_stat->channel[1].envelope_direction == 0) && (apu_stat->channel[1].volume == 0)) { apu_stat->channel[1].playing = false; }
 
 			//Internal APU time-keeping
 			apu_stat->channel[1].frequency_distance = 0;
@@ -715,6 +769,9 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 			apu_stat->channel[3].envelope_direction = (memory_map[NR42] & 0x08) ? 1 : 0;
 			apu_stat->channel[3].envelope_step = (memory_map[NR42] & 0x07);
 
+			//Turn off sound channel if envelope volume is 0 and mode is subtraction
+			if((apu_stat->channel[3].envelope_direction == 0) && (apu_stat->channel[3].volume == 0)) { apu_stat->channel[3].playing = false; }
+
 			//Internal APU time-keeping
 			apu_stat->channel[3].frequency_distance = 0;
 			apu_stat->channel[3].envelope_counter = 0;
@@ -753,6 +810,27 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		{
 			memory_map[address] &= ~0x80;
 			apu_stat->sound_on = false;
+
+			//Destroy NR register values when turning sound off
+			//TODO - Return 0x00 when reading while this is disabled?
+			write_u8(NR10, 0x0);
+			write_u8(NR11, 0x0);
+			write_u8(NR12, 0x0);
+			write_u8(NR13, 0x0);
+			write_u8(NR14, 0x0);
+			write_u8(NR21, 0x0);
+			write_u8(NR22, 0x0);
+			write_u8(NR23, 0x0);
+			write_u8(NR24, 0x0);
+			write_u8(NR30, 0x0);
+			write_u8(NR31, 0x0);
+			write_u8(NR32, 0x0);
+			write_u8(NR33, 0x0);
+			write_u8(NR34, 0x0);
+			write_u8(NR41, 0x0);
+			write_u8(NR42, 0x0);
+			write_u8(NR43, 0x0);
+			write_u8(NR44, 0x0);
 		}
 	}
 
@@ -818,6 +896,20 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		lcd_stat->on_off = lcd_stat->lcd_enable;
 		u8 old_size = lcd_stat->obj_size;
 
+		//Check to see if the Window was turned off while the screen was still active
+		//Record the current rendered line of the Window, start rendering on this line if turned on again before VBlank
+		if((lcd_stat->window_enable) && ((value & 0x20) == 0) && (lcd_stat->lcd_mode != 1))
+		{
+			lcd_stat->last_y = (lcd_stat->current_scanline - lcd_stat->window_y);
+		}
+
+		//Check to see if the Window was turned on while the screen was still active
+		//Use the last recorded Window render line if the Window was previously turned on
+		if((!lcd_stat->window_enable) && (value & 0x20) && (lcd_stat->lcd_mode != 1) && (lcd_stat->last_y))
+		{
+			lcd_stat->window_y = lcd_stat->current_scanline - lcd_stat->last_y;
+		}
+
 		lcd_stat->lcd_control = value;
 		lcd_stat->lcd_enable = (value & 0x80) ? true : false;
 		lcd_stat->window_map_addr = (value & 0x40) ? 0x9C00 : 0x9800;
@@ -844,6 +936,10 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	//STAT
 	else if(address == REG_STAT)
 	{
+		//Trigger STAT IRQ when writing to STAT register
+		//This only happens on DMG models (and SGBs???) during HBLANK or VBLANK periods
+		if((lcd_stat->lcd_mode < 2) && (lcd_stat->lcd_enable) && (config::gb_type < 2)) { memory_map[IF_FLAG] |= 0x2; }
+
 		u8 read_only_bits = (memory_map[REG_STAT] & 0x7);
 
 		memory_map[address] = (value & ~0x7);
@@ -986,6 +1082,71 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		memory_map[address] = value;
 	}
 
+	//SB - Serial transfer data
+	else if(address == REG_SB)
+	{
+		memory_map[address] = value;
+	}
+
+	//SC - Serial transfer control
+	else if(address == REG_SC)
+	{
+		value &= 0x83;
+		sio_stat->internal_clock = (value & 0x1) ? true : false;
+
+		//Start serial transfer
+		if(value & 0x80)
+		{
+			if(sio_stat->internal_clock)
+			{
+				sio_stat->active_transfer = true;
+				sio_stat->shifts_left = 8;
+				sio_stat->shift_counter = 0;
+				sio_stat->transfer_byte = memory_map[REG_SB];
+			}
+		}
+
+		//DMG uses 8192Hz clock only (512 cycles)
+		if(config::gb_type != 2) { sio_stat->shift_clock = 512; }
+
+		//GBC has 4 selectable speeds
+		else
+		{
+			//8192Hz - Bit 1 cleared, Normal Speed
+			if(((value & 0x2) == 0) && ((memory_map[REG_KEY1]) & 0x80 == 0)) { sio_stat->shift_clock = 512; }
+
+			//16384Hz - Bit 1 cleared, Double Speed
+			else if(((value & 0x2) == 0) && (memory_map[REG_KEY1] & 0x80)) { sio_stat->shift_clock = 256; }
+
+			//262144Hz - Bit 1 set, Normal Speed
+			else if((value & 0x2) && ((memory_map[REG_KEY1]) & 0x80 == 0)) { sio_stat->shift_clock = 16; }
+
+			//524288Hz - Bit 1 set, Double Speed
+			else { sio_stat->shift_clock = 8; }
+		}
+
+		memory_map[address] = value;
+	}
+
+	//RP - IR port
+	else if(address == REG_RP)
+	{
+		//This register does nothing on the DMG, GBC only
+		if(config::gb_type == 2)
+		{
+			//Bit 1 is read-only, preserve this bit when writing to RP
+			u8 old_ir_signal = (memory_map[address] & 0x2) ? 0x2 : 0;
+
+			value &= 0xC1;
+			value |= old_ir_signal;
+			memory_map[address] = value;
+
+			//Send IR signal to another GBC
+			ir_signal = (value & 0x1);
+			ir_send = true;
+		}
+	}
+
 	else if(address > 0x7FFF) { memory_map[address] = value; }
 
 	//CGFX processing - Check for BG updates
@@ -1036,7 +1197,7 @@ u8 DMG_MMU::mbc_read(u16 address)
 	switch(cart.mbc_type)
 	{
 		case MBC1:
-			return mbc1_read(address);
+			return cart.multicart ? mbc1_multicart_read(address) : mbc1_read(address);
 			break;
 
 		case MBC2:
@@ -1063,7 +1224,7 @@ void DMG_MMU::mbc_write(u16 address, u8 value)
 	switch(cart.mbc_type)
 	{
 		case MBC1:
-			mbc1_write(address, value);
+			cart.multicart ? mbc1_multicart_write(address, value) : mbc1_write(address, value);
 			break;
 
 		case MBC2:
@@ -1262,6 +1423,7 @@ bool DMG_MMU::read_file(std::string filename)
 
 		case 0x1C:
 			cart.mbc_type = MBC5;
+			cart.rumble = true;
 
 			std::cout<<"MMU::Cartridge Type - MBC5 + Rumble\n";
 			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
@@ -1271,6 +1433,7 @@ bool DMG_MMU::read_file(std::string filename)
 		case 0x1D:
 			cart.mbc_type = MBC5;
 			cart.ram = true;
+			cart.rumble = true;
 
 			std::cout<<"MMU::Cartridge Type - MBC5 + RAM + Rumble\n";
 			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
@@ -1281,6 +1444,7 @@ bool DMG_MMU::read_file(std::string filename)
 			cart.mbc_type = MBC5;
 			cart.ram = true;
 			cart.battery = true;
+			cart.rumble = true;
 
 			std::cout<<"MMU::Cartridge Type - MBC5 + RAM + Battery + Rumble\n";
 			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
@@ -1359,6 +1523,9 @@ bool DMG_MMU::read_file(std::string filename)
 	file.close();
 	std::cout<<"MMU::" << filename << " loaded successfully. \n";
 
+	//Apply Game Genie codes to ROM data
+	if(config::use_cheats) { set_gg_cheats(); }
+
 	//Determine if cart is DMG or GBC and which system GBE will try to emulate
 	//Only necessary for Auto system detection.
 	//For now, even if forcing GBC, when encountering DMG carts, revert to DMG mode, dunno how the palettes work yet
@@ -1380,10 +1547,10 @@ bool DMG_MMU::read_file(std::string filename)
 	//Manually HLE MMIO
 	if(!in_bios) 
 	{
+		memory_map[REG_DIV] = 0xAF;
 		write_u8(REG_LCDC, 0x91);
 		write_u8(REG_BGP, 0xFC);
 		write_u8(REG_P1, 0xFF);
-		write_u8(REG_DIV, 0xAF);
 		write_u8(REG_TAC, 0xF8);
 		write_u8(0xFF10, 0x80);
 		write_u8(0xFF11, 0xBF);
@@ -1579,6 +1746,93 @@ bool DMG_MMU::save_backup(std::string filename)
 	return true;
 }
 
+/****** Writes values to RAM as specified by the Gameshark code - Called by LCD during VBlank ******/
+void DMG_MMU::set_gs_cheats()
+{
+	//Cycle through all listed cheats, parse the 32-bit cheat format
+	for(int x = 0; x < config::gs_cheats.size(); x++)
+	{
+		//Grab and verify memory address (Bytes 0 and 1 in that order)
+		u16 dest_addr = (config::gs_cheats[x] & 0xFF) << 8;
+		dest_addr |= ((config::gs_cheats[x] & 0xFF00) >> 8);
+
+		if((dest_addr >= 0xA000) && (dest_addr <= 0xDFFF))
+		{
+			//Grab byte from cheat code format (Byte 2)
+			u8 dest_byte = (config::gs_cheats[x] >> 16) & 0xFF;
+
+			//Grab RAM bank number to write byte into (Byte 3)
+			u8 dest_ram_bank = (config::gs_cheats[x] >> 24);
+
+			//Make sure RAM bank does not exceed certain MBC's maximum number of allowable banks
+			if((cart.mbc_type == MBC1) || (cart.mbc_type == MBC3)) { dest_ram_bank &= 0x3; }
+			else if(cart.mbc_type == MBC5) { dest_ram_bank &= 0xF; }
+
+			//Write value into RAM
+			u8 current_ram_bank = bank_bits;
+			bank_bits = dest_ram_bank;
+
+			write_u8(dest_addr, dest_byte);
+			bank_bits = current_ram_bank;
+		}
+	}
+}
+
+/****** Overwrites values to ROM as specified by the Game Genie code - Called by MMU after loading ROM ******/
+void DMG_MMU::set_gg_cheats()
+{
+	//Cycle through all listed cheats, parse 40-bit cheat format
+	for(int x = 0; x < config::gg_cheats.size(); x++)
+	{
+		//The string represents the 9 byte code, format ABCDEFGHI
+		//First, grab AB, the byte from the cheat code		
+		u32 temp_value = 0;
+		util::from_hex_str(config::gg_cheats[x].substr(0, 2), temp_value);
+
+		u8 dest_byte = (temp_value & 0xFF);
+
+		//Memory address of cheat code is FCDE
+		std::string cheat_addr = "";
+		cheat_addr += config::gg_cheats[x][5];
+		cheat_addr += config::gg_cheats[x][2];
+		cheat_addr += config::gg_cheats[x][3];
+		cheat_addr += config::gg_cheats[x][4];
+
+		util::from_hex_str(cheat_addr, temp_value);
+		temp_value ^= 0xF000;
+
+		u16 dest_addr = (temp_value & 0xFFFF);
+
+		//Old value to compare and replace, GI
+		std::string cheat_compare = "";
+		cheat_compare += config::gg_cheats[x][6];
+		cheat_compare += config::gg_cheats[x][8];
+
+		util::from_hex_str(cheat_compare, temp_value);
+		temp_value ^= 0xBA;
+		temp_value <<= 2;
+
+		u8 cmp_byte = (temp_value & 0xFF);
+
+		//If value is in Bank 0, replace it now, no need to worry about the compare byte
+		if(dest_addr < 0x4000) { memory_map[dest_addr] = dest_byte; }
+
+		//Otherwise, search Banks 1+ until a value matches
+		else
+		{
+			dest_addr -= 0x4000;
+
+			for(int y = 0; y < read_only_bank.size(); y++)
+			{
+				if(read_only_bank[y][dest_addr] == cmp_byte)
+				{
+					read_only_bank[y][dest_addr] = dest_byte;
+				}
+			}
+		}
+	}
+}
+
 /****** Points the MMU to an lcd_data structure (FROM THE LCD ITSELF) ******/
 void DMG_MMU::set_lcd_data(dmg_lcd_data* ex_lcd_stat) { lcd_stat = ex_lcd_stat; }
 
@@ -1587,3 +1841,7 @@ void DMG_MMU::set_cgfx_data(dmg_cgfx_data* ex_cgfx_stat) { cgfx_stat = ex_cgfx_s
 
 /****** Points the MMU to an apu_data structure (FROM THE APU ITSELF) ******/
 void DMG_MMU::set_apu_data(dmg_apu_data* ex_apu_stat) { apu_stat = ex_apu_stat; }
+
+/****** Points the MMU to an sio_data structure (FROM SIO ITSELF) ******/
+void DMG_MMU::set_sio_data(dmg_sio_data* ex_sio_stat) { sio_stat = ex_sio_stat; }
+

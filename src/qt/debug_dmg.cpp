@@ -32,8 +32,8 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	tabs->addTab(palettes, tr("Palettes"));
 	tabs->addTab(memory, tr("Memory"));
 	tabs->addTab(cpu_instr, tr("Disassembly"));
-	tabs->addTab(vram_obj, tr("OBJ"));
-	tabs->addTab(vram_bg, tr("BG"));
+	tabs->addTab(vram_obj, tr("OBJ Tiles"));
+	tabs->addTab(vram_bg, tr("BG Tiles"));
 
 	//LCDC
 	QWidget* lcdc_set = new QWidget(io_regs);
@@ -599,6 +599,30 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	p1_layout->addWidget(mmio_p1, 0, Qt::AlignRight);
 	p1_set->setLayout(p1_layout);
 
+	//SB
+	QWidget* sb_set = new QWidget(io_regs);
+	QLabel* sb_label = new QLabel("0xFF01 - SB:", sb_set);
+	mmio_sb = new QLineEdit(sb_set);
+	mmio_sb->setMaximumWidth(64);
+	mmio_sb->setReadOnly(true);
+
+	QHBoxLayout* sb_layout = new QHBoxLayout;
+	sb_layout->addWidget(sb_label, 0, Qt::AlignLeft);
+	sb_layout->addWidget(mmio_sb, 0, Qt::AlignRight);
+	sb_set->setLayout(sb_layout);
+
+	//SC
+	QWidget* sc_set = new QWidget(io_regs);
+	QLabel* sc_label = new QLabel("0xFF02 - SC:", sc_set);
+	mmio_sc = new QLineEdit(sc_set);
+	mmio_sc->setMaximumWidth(64);
+	mmio_sc->setReadOnly(true);
+
+	QHBoxLayout* sc_layout = new QHBoxLayout;
+	sc_layout->addWidget(sc_label, 0, Qt::AlignLeft);
+	sc_layout->addWidget(mmio_sc, 0, Qt::AlignRight);
+	sc_set->setLayout(sc_layout);
+
 	//DIV
 	QWidget* div_set = new QWidget(io_regs);
 	QLabel* div_label = new QLabel("0xFF04 - DIV:", div_set);
@@ -726,12 +750,14 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	io_layout->addWidget(ocpd_set, 2, 3, 1, 1);
 	io_layout->addWidget(svbk_set, 3, 3, 1, 1);
 	io_layout->addWidget(p1_set, 4, 3, 1, 1);
-	io_layout->addWidget(div_set, 5, 3, 1, 1);
-	io_layout->addWidget(tima_set, 6, 3, 1, 1);
-	io_layout->addWidget(tma_set, 7, 3, 1, 1);
-	io_layout->addWidget(tac_set, 8, 3, 1, 1);
-	io_layout->addWidget(ie_set, 9, 3, 1, 1);
-	io_layout->addWidget(if_set, 10, 3, 1, 1);
+	io_layout->addWidget(sb_set, 5, 3, 1, 1);
+	io_layout->addWidget(sc_set, 6, 3, 1, 1);
+	io_layout->addWidget(div_set, 7, 3, 1, 1);
+	io_layout->addWidget(tima_set, 8, 3, 1, 1);
+	io_layout->addWidget(tma_set, 9, 3, 1, 1);
+	io_layout->addWidget(tac_set, 10, 3, 1, 1);
+	io_layout->addWidget(ie_set, 11, 3, 1, 1);
+	io_layout->addWidget(if_set, 12, 3, 1, 1);
 
 	io_regs->setLayout(io_layout);
 
@@ -1075,6 +1101,42 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	obj_layout->addWidget(obj_info, 2, 9, -1, 2, Qt::AlignTop);
 	vram_obj->setLayout(obj_layout);
 
+	//Graphics - BG
+	db_bg.clear();
+	db_bg_label.clear();
+
+	bg_large_preview = QImage(128, 128, QImage::Format_ARGB32);
+	bg_large_label = new QLabel;
+	bg_large_label->setPixmap(QPixmap::fromImage(bg_large_preview));
+
+	for(int x = 0; x < 256; x++)
+	{
+		db_bg.push_back(QImage(64, 64, QImage::Format_ARGB32));
+
+		QPushButton* temp_label = new QPushButton;
+		temp_label->setIcon(QPixmap::fromImage(db_bg[x]));
+		temp_label->setIconSize(QSize(16, 16));
+		temp_label->setFlat(true);
+
+		db_bg_label.push_back(temp_label);
+	}
+
+	//Graphics - BG layout
+	QGridLayout* bg_layout = new QGridLayout;
+	bg_layout->setVerticalSpacing(0);
+	bg_layout->setHorizontalSpacing(0);
+
+	for(int y = 0; y < 16; y++)
+	{
+		for(int x = 0; x < 16; x++)
+		{
+			bg_layout->addWidget(db_bg_label[(y*16) + x], y, x, 1, 1);
+		}
+	}
+
+	bg_layout->addWidget(bg_large_label, 0, 17, -1, 2, Qt::AlignTop);
+	vram_bg->setLayout(bg_layout);
+
 	refresh_button = new QPushButton("Refresh");
 	tabs_button = new QDialogButtonBox(QDialogButtonBox::Close);
 	tabs_button->addButton(refresh_button, QDialogButtonBox::ActionRole);
@@ -1098,9 +1160,10 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	connect(db_set_bp_button, SIGNAL(clicked()), this, SLOT(db_set_bp()));
 	connect(db_reset_button, SIGNAL(clicked()), this, SLOT(db_reset()));
 	connect(db_reset_run_button, SIGNAL(clicked()), this, SLOT(db_reset_run()));
-	connect(refresh_button, SIGNAL(clicked()), this, SLOT(refresh()));
+	connect(refresh_button, SIGNAL(clicked()), this, SLOT(click_refresh()));
 	connect(tabs_button->button(QDialogButtonBox::Close), SIGNAL(clicked()), this, SLOT(close_debug()));
 
+	//Signal mapper for memory scrollbars
 	QSignalMapper* text_mapper = new QSignalMapper(this);
 	connect(mem_addr->verticalScrollBar(), SIGNAL(valueChanged(int)), text_mapper, SLOT(map()));
 	connect(mem_values->verticalScrollBar(), SIGNAL(valueChanged(int)), text_mapper, SLOT(map()));
@@ -1111,6 +1174,7 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	text_mapper->setMapping(mem_ascii->verticalScrollBar(), 2);
 	connect(text_mapper, SIGNAL(mapped(int)), this, SLOT(scroll_text(int)));
 
+	//Signal mapper for disassembly scrollbars
 	QSignalMapper* dasm_mapper = new QSignalMapper(this);
 	connect(counter->verticalScrollBar(), SIGNAL(valueChanged(int)), dasm_mapper, SLOT(map()));
 	connect(dasm->verticalScrollBar(), SIGNAL(valueChanged(int)), dasm_mapper, SLOT(map()));
@@ -1119,6 +1183,7 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	dasm_mapper->setMapping(dasm->verticalScrollBar(), 1);
 	connect(dasm_mapper, SIGNAL(mapped(int)), this, SLOT(scroll_count(int)));
 
+	//Signal mapper for OBJ tiles
 	QSignalMapper* obj_mapper = new QSignalMapper(this);
 	
 	for(int x = 0; x < 40; x++)
@@ -1128,6 +1193,17 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	}
 
 	connect(obj_mapper, SIGNAL(mapped(int)), this, SLOT(show_obj(int)));
+
+	//Signal mapper for BG tiles
+	QSignalMapper* bg_mapper = new QSignalMapper(this);
+	
+	for(int x = 0; x < 256; x++)
+	{
+		connect(db_bg_label[x], SIGNAL(clicked()), bg_mapper, SLOT(map()));
+		bg_mapper->setMapping(db_bg_label[x], x);
+	}
+
+	connect(bg_mapper, SIGNAL(mapped(int)), this, SLOT(show_bg(int)));
 
 	resize(800, 500);
 	setWindowTitle(tr("DMG-GBC Debugger"));
@@ -1162,11 +1238,20 @@ void dmg_debug::close_debug()
 		main_menu::dmg_debugger->pause = false;
 		config::pause_emu = main_menu::dmg_debugger->old_pause;
 		qt_gui::draw_surface->pause_emu();
-	}	
+	}
+
+	//Clear existing breakpoints on close
+	main_menu::dmg_debugger->dasm->setText(main_menu::dmg_debugger->dasm_text);
+	main_menu::gbe_plus->db_unit.breakpoints.clear();
+
+	//Clear format manually
+	QTextCursor cursor(dasm->textCursor());
+	cursor.setPosition(QTextCursor::Start, QTextCursor::MoveAnchor);
+	cursor.setBlockFormat(original_format);
 }
 
 /****** Refresh the display data ******/
-void dmg_debug::refresh() 
+void dmg_debug::refresh()
 {
 	u16 temp = 0;
 	std::string temp_str = "";
@@ -1325,6 +1410,12 @@ void dmg_debug::refresh()
 	temp = main_menu::gbe_plus->ex_read_u8(REG_P1);
 	mmio_p1->setText(QString("%1").arg(temp, 2, 16, QChar('0')).toUpper().prepend("0x"));
 
+	temp = main_menu::gbe_plus->ex_read_u8(REG_SB);
+	mmio_sb->setText(QString("%1").arg(temp, 2, 16, QChar('0')).toUpper().prepend("0x"));
+
+	temp = main_menu::gbe_plus->ex_read_u8(REG_SC);
+	mmio_sc->setText(QString("%1").arg(temp, 2, 16, QChar('0')).toUpper().prepend("0x"));
+
 	temp = main_menu::gbe_plus->ex_read_u8(IE_FLAG);
 	mmio_ie->setText(QString("%1").arg(temp, 2, 16, QChar('0')).toUpper().prepend("0x"));
 
@@ -1451,6 +1542,8 @@ void dmg_debug::refresh()
 
 	if(debug_reset)
 	{
+		dasm_text.clear();
+
 		//Populate initial disassembly text
 		for(u32 x = 0; x < 0x10000; x++)
 		{
@@ -1512,10 +1605,35 @@ void dmg_debug::refresh()
 		db_obj[x] = qt_gui::draw_surface->cgfx->grab_obj_data(x);
 		db_obj_label[x]->setIcon(QPixmap::fromImage(db_obj[x]));
 	}
+
+	//Update BG
+	for(int x = 0; x < 256; x++)
+	{
+		db_bg[x] = qt_gui::draw_surface->cgfx->grab_bg_data(x);
+		db_bg_label[x]->setIcon(QPixmap::fromImage(db_bg[x]));
+	}
 }
 
-/****** Updates certain parts of the disassembly text (RAM) ******/
-void dmg_debug::refresh_dasm() { }
+/****** Updates the debugger when clicking the Refresh button ******/
+void dmg_debug::click_refresh()
+{
+	if(tabs->currentIndex() == 3) { debug_reset = true; }
+	refresh();
+
+	//Restore highlighting in the disassembly if necessary
+	if(tabs->currentIndex() == 3)
+	{
+		for(int x = 0; x < main_menu::gbe_plus->db_unit.breakpoints.size(); x++)
+		{
+			u32 breakpoint = main_menu::gbe_plus->db_unit.breakpoints[x];
+			QTextCursor cursor(dasm->document()->findBlockByLineNumber(breakpoint));
+			QTextBlockFormat format = cursor.blockFormat();
+
+			format.setBackground(QColor(Qt::yellow));
+			cursor.setBlockFormat(format);
+		}
+	}	
+}
 
 /****** Updates a preview of the selected BG Color ******/
 void dmg_debug::preview_bg_color(int y, int x)
@@ -1737,6 +1855,13 @@ void dmg_debug::show_obj(int obj_id)
 	obj_pal->setText(QString::fromStdString(obj_text));
 }
 
+/****** Updates the BG preview ******/
+void dmg_debug::show_bg(int bg_id)
+{
+	bg_large_preview = qt_gui::draw_surface->cgfx->grab_bg_data(bg_id).scaled(128, 128);
+	bg_large_label->setPixmap(QPixmap::fromImage(bg_large_preview));
+}
+
 /****** Automatically refresh display data - Call this publically ******/
 void dmg_debug::auto_refresh() { refresh(); }
 
@@ -1751,10 +1876,7 @@ void dmg_debug::clear_format()
 }
 
 /****** Moves the debugger one instruction in disassembly ******/
-void dmg_debug::db_next() 
-{
-	if(main_menu::gbe_plus->db_unit.last_command != "c") { main_menu::gbe_plus->db_unit.last_command = "n"; }
-}
+void dmg_debug::db_next() { main_menu::gbe_plus->db_unit.last_command = "n"; }
 
 /****** Continues emulation until debugger hits breakpoint ******/
 void dmg_debug::db_continue() { main_menu::gbe_plus->db_unit.last_command = "c"; }

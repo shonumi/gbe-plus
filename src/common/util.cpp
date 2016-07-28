@@ -430,7 +430,6 @@ u8 get_brightness_fast(u32 color)
 /****** Blends the RGB channels of 2 colors ******/
 u32 rgb_blend(u32 color_1, u32 color_2)
 {
-
 	if(color_1 == color_2) { return color_1; }
 
 	u16 r = ((color_1 >> 16) & 0xFF) + ((color_2 >> 16) & 0xFF);
@@ -488,27 +487,6 @@ u32 get_crc32(u8* data, u32 length)
 	}
 
 	return (crc32 ^ 0xFFFFFFFF);
-}
-
-/****** Determine the unique bits of an between two 8-bit variables ******/
-u8 xbit(u8 a, u8 b)
-{
-	u8 x = (a ^ b) & a;
-	return x;
-}
-
-/****** Determine the unique bits of an between two 16-bit variables ******/
-u16 xbit(u16 a, u16 b)
-{
-	u16 x = (a ^ b) & a;
-	return x;
-}
-
-/****** Determine the unique bits of an between two 32-bit variables ******/
-u32 xbit(u32 a, u32 b)
-{
-	u32 x = (a ^ b) & a;
-	return x;
 }
 
 /****** Convert a number into hex as a C++ string ******/
@@ -586,7 +564,7 @@ bool from_str(std::string input, u32 &result)
 	std::string value_char = "";
 
 	//Convert string into usable u32
-	for(int x = size, y = 0; x >= 0; x--, y *= 10)
+	for(int x = size, y = 1; x >= 0; x--, y *= 10)
 	{
 		value_char = input[x];
 
@@ -605,6 +583,94 @@ bool from_str(std::string input, u32 &result)
 	}
 
 	return true;
+}
+
+/****** Converts a string IP address to an integer value ******/
+bool ip_to_u32(std::string ip_addr, u32 &result)
+{
+	u8 digits[4] = { 0, 0, 0, 0 };
+	u8 dot_count = 0;
+	std::string temp = "";
+	std::string current_char = "";
+	u32 str_end = ip_addr.length() - 1;
+
+	//IP address comes in the form 123.456.678.901
+	//Grab each character between the dots and convert them into integer
+	for(u32 x = 0; x < ip_addr.length(); x++)
+	{
+		current_char = ip_addr[x];
+
+		//Convert characters into u32 when a "." is encountered
+		if((current_char == ".") || (x == str_end))
+		{
+			if(x == str_end) { temp += current_char; }
+
+			//If somehow parsing more than 3 dots, string is malformed
+			if(dot_count == 4) { return false; }
+
+			u32 digit = 0;
+
+			if(!from_str(temp, digit)) { return false; }
+
+			digits[dot_count++] = digit & 0xFF;
+			temp = "";
+		}
+
+		else { temp += current_char; }
+	}
+
+	//Encode result in network byte order aka big endian
+	result = (digits[0] << 24) | (digits[1] << 16) | (digits[2] << 8) | digits[3];
+
+	return true;
+}
+
+/****** Converts an integers IP address to a string value ******/
+std::string ip_to_str(u32 ip_addr)
+{
+	u32 mask = 0xFF000000;
+	u32 shift = 24;
+	std::string temp = "";
+
+	for(u32 x = 0; x < 4; x++)
+	{
+		u32 digit = (ip_addr & mask) >> shift;
+		temp += to_str(digit);
+		
+		if(x != 3) { temp += "."; }
+
+		shift -= 8;
+		mask >>= 8;
+	}
+
+	return temp;
+}
+
+/****** Loads icon into SDL Surface ******/
+SDL_Surface* load_icon(std::string filename)
+{
+	SDL_Surface* source = SDL_LoadBMP(filename.c_str());
+
+	if(source == NULL)
+	{
+		std::cout<<"GBE::Error - Could not load icon file " << filename << ". Check file path or permissions. \n";
+		return NULL;
+	}
+
+	SDL_Surface* output = SDL_CreateRGBSurface(SDL_SWSURFACE, source->w, source->h, 32, 0, 0, 0, 0);
+
+	//Cycle through all pixels, then set the alpha of all green pixels to zero
+	u8* in_pixel_data = (u8*)source->pixels;
+	u32* out_pixel_data = (u32*)output->pixels;
+
+	for(int a = 0, b = 0; a < (source->w * source->h); a++, b+=3)
+	{
+		out_pixel_data[a] = (0xFF000000 | (in_pixel_data[b+2] << 16) | (in_pixel_data[b+1] << 8) | (in_pixel_data[b]));
+
+		if(out_pixel_data[a] == 0xFF00FF00) { out_pixel_data[a] = 0; }
+	}
+
+	return output;
 }
 
 } //Namespace

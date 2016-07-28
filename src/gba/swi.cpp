@@ -79,7 +79,7 @@ void ARM7::process_swi(u32 comment)
 
 		//IntrWait
 		case 0x4:
-			std::cout<<"SWI::Interrupt Wait (not implemented yet) \n";
+			std::cout<<"SWI::Interrupt Wait \n";
 			break;
 
 		//VBlankIntrWait
@@ -725,6 +725,54 @@ void ARM7::swi_cpuset()
 	//Write-back R0, R1
 	set_reg(0, src_addr);
 	set_reg(1, dest_addr);
+}
+
+/****** HLE implementation of IntrWait ******/
+void ARM7::swi_intrwait()
+{
+	//Force IME on, Force IRQ bit in CPSR
+	mem->write_u16(REG_IME, 0x1);
+	reg.cpsr &= ~CPSR_IRQ;
+
+	u16 if_check, ie_check, old_if, current_if = 0;
+	bool fire_interrupt = false;
+
+	//Grab old IF, set current one to zero
+	old_if = mem->read_u16_fast(REG_IF);
+	mem->write_u16_fast(REG_IF, 0x0);
+
+	//Grab the interrupts to check from R1
+	if_check = reg.r1;
+
+	//If R0 == 0, exit the SWI immediately if one of the IF flags to check is already set
+	if((reg.r0 == 0) && (old_if & if_check)) { fire_interrupt = true; }
+
+	//Run controllers until an interrupt is generated
+	while(!fire_interrupt)
+	{
+		clock();
+
+		current_if = mem->read_u16_fast(REG_IF);
+		ie_check = mem->read_u16_fast(REG_IE);
+		
+		//Match up bits in IE and IF
+		for(int x = 0; x < 14; x++)
+		{
+			//When there is a match check to see if IntrWait can quit
+			if((ie_check & (1 << x)) && (if_check & (1 << x)))
+			{	
+				//If R0 == 1, quit when the IF flags match the ones specified in R1
+				if(current_if & if_check) { fire_interrupt = true; }
+			}
+		}
+	}
+
+	//Restore old IF, also OR in any new flags that were set
+	mem->write_u16_fast(REG_IF, old_if | current_if);
+
+	//Artificially hold PC at current location
+	//This SWI will be fetched, decoded, and executed again until it hits VBlank 
+	reg.r15 -= (arm_mode == ARM) ? 4 : 2;
 }
 
 /****** HLE implementation of VBlankIntrWait ******/

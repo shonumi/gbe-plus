@@ -52,12 +52,17 @@ class DMG_core : virtual public core_emu
 		void dump_bg(int bg_index);
 		u32* get_obj_palette(int pal_index);
 		u32* get_bg_palette(int pal_index);
+		std::string get_hash(u32 addr, u8 gfx_type);
 
 		//MMU related functions
 		bool read_file(std::string filename);
 		bool read_bios(std::string filename);
 		u8 ex_read_u8(u16 address);
 		void ex_write_u8(u16 address, u8 value);
+
+		//Netplay interface
+		void start_netplay();
+		void stop_netplay();
 
 		DMG_MMU core_mmu;
 		Z80 core_cpu;

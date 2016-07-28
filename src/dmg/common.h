@@ -93,6 +93,10 @@ const u16 REG_VBK = 0xFF4F;
 //GBC IR Port
 const u16 REG_RP = 0xFF56;
 
+//Serial Input-Output
+const u16 REG_SB = 0xFF01;
+const u16 REG_SC = 0xFF02;
+
 //GBC palettes
 const u16 REG_BCPS = 0xFF68;
 const u16 REG_BCPD = 0xFF69;

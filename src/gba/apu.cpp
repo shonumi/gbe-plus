@@ -117,7 +117,11 @@ void AGB_APU::reset()
 bool AGB_APU::init()
 {
 	//Initialize audio subsystem
-	SDL_InitSubSystem(SDL_INIT_AUDIO);
+	if(SDL_InitSubSystem(SDL_INIT_AUDIO) == -1)
+	{
+		std::cout<<"APU::Error - Could not initialize SDL audio\n";
+		return false;
+	}
 
 	//Setup the desired audio specifications
     	desired_spec.freq = apu_stat.sample_rate;
@@ -656,10 +660,22 @@ void agb_audio_callback(void* _apu, u8 *_stream, int _length)
 	apu_link->generate_dma_a_samples(dma_a_stream, length);
 	apu_link->generate_dma_b_samples(dma_b_stream, length);
 
-	SDL_MixAudio((u8*)stream, (u8*)channel_1_stream, length*2, apu_link->apu_stat.channel_master_volume / apu_link->apu_stat.main_volume);
-	SDL_MixAudio((u8*)stream, (u8*)channel_2_stream, length*2, apu_link->apu_stat.channel_master_volume / apu_link->apu_stat.main_volume);
-	SDL_MixAudio((u8*)stream, (u8*)channel_3_stream, length*2, apu_link->apu_stat.channel_master_volume / apu_link->apu_stat.main_volume);
-	SDL_MixAudio((u8*)stream, (u8*)channel_4_stream, length*2, apu_link->apu_stat.channel_master_volume / apu_link->apu_stat.main_volume);
-	SDL_MixAudio((u8*)stream, (u8*)dma_a_stream, length*2, apu_link->apu_stat.dma[0].master_volume / apu_link->apu_stat.main_volume);
-	SDL_MixAudio((u8*)stream, (u8*)dma_b_stream, length*2, apu_link->apu_stat.dma[1].master_volume / apu_link->apu_stat.main_volume);
+	double channel_ratio = apu_link->apu_stat.channel_master_volume / 128.0;
+	double dma_a_ratio = apu_link->apu_stat.dma[0].master_volume / 128.0;
+	double dma_b_ratio = apu_link->apu_stat.dma[1].master_volume / 128.0;
+
+	//Custom software mixing
+	for(u32 x = 0; x < length; x++)
+	{
+		//Add Sound Channels 1-4 and multiply by volume ratio
+		s32 out_sample = (channel_1_stream[x] + channel_2_stream[x] + channel_3_stream[x] + channel_4_stream[x]) * channel_ratio;
+
+		//Add DMA Channels A and B and multiply by volume ratio
+		out_sample += (dma_a_stream[x] * dma_a_ratio) + (dma_b_stream[x] * dma_b_ratio);
+
+		//Divide final wave by total amount of channels
+		out_sample /= 6;
+
+		stream[x] = out_sample;
+	} 
 }

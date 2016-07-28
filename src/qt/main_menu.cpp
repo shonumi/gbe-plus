@@ -21,13 +21,15 @@
 main_menu::main_menu(QWidget *parent) : QWidget(parent)
 {
 	//Setup actions
-	QAction* open = new QAction("&Open", this);
-	QAction* quit = new QAction ("&Quit", this);
+	QAction* open = new QAction("Open", this);
+	QAction* quit = new QAction ("Quit", this);
 
-	QAction* pause = new QAction("&Pause", this);
-	QAction* reset = new QAction("&Reset", this);
+	QAction* pause = new QAction("Pause", this);
+	QAction* reset = new QAction("Reset", this);
 	QAction* fullscreen = new QAction("Fullscreen", this);
 	QAction* screenshot = new QAction("Screenshot", this);
+	QAction* nplay_start = new QAction("Start Netplay", this);
+	QAction* nplay_stop = new QAction("Stop Netplay", this);
 
 	QAction* general = new QAction("General Settings...", this);
 	QAction* display = new QAction("Display", this);
@@ -48,17 +50,20 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	reset->setShortcut(tr("F8"));
 	fullscreen->setShortcut(tr("F12"));
 	screenshot->setShortcut(tr("F9"));
+	nplay_start->setShortcut(tr("F5"));
+	nplay_stop->setShortcut(tr("F6"));
 
 	pause->setCheckable(true);
 	pause->setObjectName("pause_action");
 	fullscreen->setCheckable(true);
+	fullscreen->setObjectName("fullscreen_action");
 
 	menu_bar = new QMenuBar(this);
 
 	//Setup File menu
 	QMenu* file;
 
-	file = new QMenu(tr("&File"), this);
+	file = new QMenu(tr("File"), this);
 	file->addAction(open);
 	recent_list = file->addMenu(tr("Recent Files"));
 	file->addSeparator();
@@ -71,18 +76,21 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	//Setup Emulation menu
 	QMenu* emulation;
 
-	emulation = new QMenu(tr("&Emulation"), this);
+	emulation = new QMenu(tr("Emulation"), this);
 	emulation->addAction(pause);
 	emulation->addAction(reset);
 	emulation->addSeparator();
 	emulation->addAction(fullscreen);
 	emulation->addAction(screenshot);
+	emulation->addSeparator();
+	emulation->addAction(nplay_start);
+	emulation->addAction(nplay_stop);
 	menu_bar->addMenu(emulation);
 
 	//Setup Options menu
 	QMenu* options;
 	
-	options = new QMenu(tr("&Options"), this);
+	options = new QMenu(tr("Options"), this);
 	options->addAction(general);
 	options->addSeparator();
 	options->addAction(display);
@@ -94,7 +102,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	//Advanced menu
 	QMenu* advanced;
 
-	advanced = new QMenu(tr("&Advanced"), this);
+	advanced = new QMenu(tr("Advanced"), this);
 	advanced->addAction(custom_gfx);
 	advanced->addAction(debugging);
 	menu_bar->addMenu(advanced);
@@ -102,7 +110,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	//Setup Help menu
 	QMenu* help;
 
-	help = new QMenu(tr("&Help"), this);
+	help = new QMenu(tr("Help"), this);
 	help->addAction(about);
 	menu_bar->addMenu(help);
 
@@ -110,7 +118,10 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	connect(quit, SIGNAL(triggered()), this, SLOT(quit()));
 	connect(open, SIGNAL(triggered()), this, SLOT(open_file()));
 	connect(pause, SIGNAL(triggered()), this, SLOT(pause()));
+	connect(fullscreen, SIGNAL(triggered()), this, SLOT(fullscreen()));
 	connect(screenshot, SIGNAL(triggered()), this, SLOT(screenshot()));
+	connect(nplay_start, SIGNAL(triggered()), this, SLOT(start_netplay()));
+	connect(nplay_stop, SIGNAL(triggered()), this, SLOT(stop_netplay()));
 	connect(reset, SIGNAL(triggered()), this, SLOT(reset()));
 	connect(general, SIGNAL(triggered()), this, SLOT(show_settings()));
 	connect(display, SIGNAL(triggered()), this, SLOT(show_display_settings()));
@@ -139,8 +150,18 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	//Parse .ini options
 	parse_ini_file();
 
+	//Parse cheats file
+	if(config::use_cheats) { parse_cheats_file(); }
+
+	//Parse command-line arguments
+	//These will override .ini options!
+	if(!parse_cli_args()) { exit(0); }
+
+	//Some command-line arguments are invalid for the Qt version
+	config::use_debugger = false;
+
 	//Setup Recent Files
-	QSignalMapper* list_mapper = new QSignalMapper(this);
+	list_mapper = new QSignalMapper(this);
 
 	for(int x = (config::recent_files.size() - 1); x >= 0; x--)
 	{
@@ -239,10 +260,16 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	font.setBold(true);
 	emu_title->setFont(font);
 
+	QImage logo(QString::fromStdString(config::cfg_path + "data/icons/gbe_plus.png"));
+	logo = logo.scaled(128, 128);
 	QLabel* emu_desc = new QLabel("A GB/GBC/GBA emulator with enhancements");
 	QLabel* emu_copyright = new QLabel("Copyright D.S. Baxter 2014-2016");
 	QLabel* emu_proj_copyright = new QLabel("Copyright GBE+ Team 2014-2016");
 	QLabel* emu_license = new QLabel("This program is licensed under the GNU GPLv2");
+	QLabel* emu_site = new QLabel("<a href=\"https://github.com/shonumi/gbe-plus/\">GBE+ on GitHub</a>");
+	emu_site->setOpenExternalLinks(true);
+	QLabel* emu_logo = new QLabel;
+	emu_logo->setPixmap(QPixmap::fromImage(logo));
 
 	QVBoxLayout* about_layout = new QVBoxLayout;
 	about_layout->addWidget(emu_title, 0, Qt::AlignCenter | Qt::AlignTop);
@@ -250,10 +277,25 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	about_layout->addWidget(emu_copyright, 0, Qt::AlignCenter | Qt::AlignTop);
 	about_layout->addWidget(emu_proj_copyright, 0, Qt::AlignCenter | Qt::AlignTop);
 	about_layout->addWidget(emu_license, 0, Qt::AlignCenter | Qt::AlignTop);
+	about_layout->addWidget(emu_site, 0, Qt::AlignCenter | Qt::AlignTop);
+	about_layout->addWidget(emu_logo, 0, Qt::AlignCenter | Qt::AlignTop);
 	about_layout->addWidget(about_button);
 	about_box->setLayout(about_layout);
+	about_box->setWindowIcon(QIcon(QString::fromStdString(config::cfg_path + "data/icons/gbe_plus.png")));
 	
 	about_box->hide();
+
+	display_width = QApplication::desktop()->screenGeometry().width();
+	display_height = QApplication::desktop()->screenGeometry().height();
+
+	fullscreen_mode = false;
+}
+
+/****** Opens a file from the CLI arguments ******/
+void main_menu::open_first_file()
+{
+	//If command-line arguments are used and they are valid, try opening a ROM right away
+	if(!config::cli_args.empty()) { open_file(); }
 }
 
 /****** Open game file ******/
@@ -261,8 +303,20 @@ void main_menu::open_file()
 {
 	SDL_PauseAudio(1);
 
-	QString filename = QFileDialog::getOpenFileName(this, tr("Open"), "", tr("GBx files (*.gb *.gbc *.gba)"));
-	if(filename.isNull()) { SDL_PauseAudio(0); return; }
+	if(config::cli_args.empty())
+	{
+		QString filename = QFileDialog::getOpenFileName(this, tr("Open"), "", tr("GBx files (*.gb *.gbc *.gba)"));
+		if(filename.isNull()) { SDL_PauseAudio(0); return; }
+
+		config::rom_file = filename.toStdString();
+		config::save_file = config::rom_file + ".sav";
+	}
+
+	else
+	{
+		parse_filenames();
+		config::cli_args.clear();
+	}
 
 	SDL_PauseAudio(0);
 
@@ -272,9 +326,6 @@ void main_menu::open_file()
 		main_menu::gbe_plus->shutdown();
 		main_menu::gbe_plus->core_emu::~core_emu();
 	}
-
-	config::rom_file = filename.toStdString();
-	config::save_file = config::rom_file + ".sav";
 
 	config::sdl_render = false;
 	config::render_external_sw = render_screen_sw;
@@ -298,6 +349,25 @@ void main_menu::open_file()
 
 		//Delete the earliest element
 		if(config::recent_files.size() > 10) { config::recent_files.erase(config::recent_files.begin()); }
+
+
+		//Update the recent list
+		recent_list->clear();
+
+		for(int x = (config::recent_files.size() - 1); x >= 0; x--)
+		{
+			QString path = QString::fromStdString(config::recent_files[x]);
+			QFileInfo file(path);
+			path = file.fileName();
+
+			QAction* temp = new QAction(path, this);
+			recent_list->addAction(temp);
+
+			connect(temp, SIGNAL(triggered()), list_mapper, SLOT(map()));
+			list_mapper->setMapping(temp, x);
+		}
+
+		connect(list_mapper, SIGNAL(mapped(int)), this, SLOT(load_recent(int)));
 	}
 
 	boot_game();
@@ -315,15 +385,17 @@ void main_menu::quit()
 
 	//Save .ini options
 	config::gb_type = settings->sys_type->currentIndex();
+	config::use_cheats = (settings->cheats->isChecked()) ? true : false;
 	config::mute = (settings->sound_on->isChecked()) ? false : true;
 	config::volume = settings->volume->value();
+	config::use_haptics = (settings->rumble_on->isChecked()) ? true : false;
 
 	switch(settings->freq->currentIndex())
 	{
 		case 0: config::sample_rate = 48000.0; break;
-		case 1: config::sample_rate = 44000.0; break;
-		case 2: config::sample_rate = 20500.0; break;
-		case 3: config::sample_rate = 10250.0; break;
+		case 1: config::sample_rate = 44100.0; break;
+		case 2: config::sample_rate = 22050.0; break;
+		case 3: config::sample_rate = 11025.0; break;
 	}
 
 	save_ini_file();
@@ -359,6 +431,23 @@ void main_menu::boot_game()
 		hw_screen->setEnabled(false);
 		hw_screen->hide();
 	}
+
+	//Check cheats status
+	if(settings->cheats->isChecked())
+	{
+		config::use_cheats = true;
+		parse_cheats_file();
+	}
+
+	else { config::use_cheats = false; }
+
+	//Check multicart status
+	if(settings->multicart->isChecked()) { config::use_multicart = true; }
+	else { config::use_multicart = false; }
+
+	//Check rumble status
+	if(settings->rumble_on->isChecked()) { config::use_haptics = true; }
+	else { config::use_haptics = false; }
 
 	findChild<QAction*>("pause_action")->setChecked(false);
 
@@ -438,6 +527,17 @@ void main_menu::boot_game()
 		if(!main_menu::gbe_plus->read_bios(config::bios_file)) { return; } 
 	}
 
+	//Reset GUI debugger
+	dmg_debugger->debug_reset = true;
+
+	//If the fullscreen command-line argument was passed, be sure to boot into fullscreen mode
+	if(config::flags & 0x80000000)
+	{
+		findChild<QAction*>("fullscreen_action")->setChecked(true);
+		config::flags &= ~0x80000000;
+		fullscreen();
+	}
+
 	//Engage the core
 	main_menu::gbe_plus->start();
 	main_menu::gbe_plus->db_unit.debug_mode = config::use_debugger;
@@ -503,15 +603,18 @@ void main_menu::closeEvent(QCloseEvent* event)
 
 	//Save .ini options
 	config::gb_type = settings->sys_type->currentIndex();
+	config::use_cheats = (settings->cheats->isChecked()) ? true : false;
 	config::mute = (settings->sound_on->isChecked()) ? false : true;
 	config::volume = settings->volume->value();
+	config::use_opengl = (settings->ogl->isChecked()) ? true : false;
+	config::use_haptics = (settings->rumble_on->isChecked()) ? true : false;
 	
 	switch(settings->freq->currentIndex())
 	{
 		case 0: config::sample_rate = 48000.0; break;
-		case 1: config::sample_rate = 44000.0; break;
-		case 2: config::sample_rate = 20500.0; break;
-		case 3: config::sample_rate = 10250.0; break;
+		case 1: config::sample_rate = 44100.0; break;
+		case 2: config::sample_rate = 22050.0; break;
+		case 3: config::sample_rate = 11025.0; break;
 	}
 
 	save_ini_file();
@@ -532,6 +635,49 @@ void main_menu::keyPressEvent(QKeyEvent* event)
 	if(main_menu::gbe_plus != NULL)
 	{
 		gbe_plus->feed_key_input(sdl_key, true);
+
+		//Handle fullscreen hotkeys if necessary
+		if(findChild<QAction*>("fullscreen_action")->isChecked())
+		{
+			switch(sdl_key)
+			{
+				//Quick Save State
+				case SDLK_F1:
+					save_state(0);
+					break;
+
+				//Netplay start
+				case SDLK_F5:
+					start_netplay();
+					break;
+
+				//Netplay stop
+				case SDLK_F6:
+					stop_netplay();
+					break;
+
+				//Reset
+				case SDLK_F8:
+					reset();
+					break;
+				
+				//Screenshot
+				case SDLK_F9:
+					screenshot();
+					break;
+
+				//Quick Load State
+				case SDLK_F2:
+					load_state(0);
+					break;
+
+				//Fullscreen
+				case SDLK_F12:
+					findChild<QAction*>("fullscreen_action")->setChecked(false);
+					fullscreen();
+					break;
+			}
+		}
 	}
 }
 
@@ -602,6 +748,32 @@ void main_menu::reset()
 	}
 }	
 
+/****** Switches to fullscreen mode ******/
+void main_menu::fullscreen()
+{
+	if(main_menu::gbe_plus != NULL)
+	{
+		//Set fullscreen
+		if(findChild<QAction*>("fullscreen_action")->isChecked())
+		{
+			fullscreen_mode = true;
+			setWindowState(Qt::WindowFullScreen);
+			menu_bar->hide();
+			showFullScreen();
+		}
+
+		else
+		{
+			fullscreen_mode = false;
+			setWindowState(Qt::WindowNoState);
+			menu_bar->show();
+			showNormal();
+		}
+	}
+
+	else { findChild<QAction*>("fullscreen_action")->setChecked(false); }
+}
+
 /****** Takes screenshot ******/
 void main_menu::screenshot()
 {
@@ -621,34 +793,70 @@ void main_menu::screenshot()
 		save_name += save_stream.str() + ".png";
 
 		QString qt_save_name = QString::fromStdString(save_name);
-	
-		qt_gui::screen->save(qt_save_name, "PNG");
+
+		//Save OpenGL screen
+		if(config::use_opengl) { hw_screen->grabFrameBuffer().save(qt_save_name, "PNG"); }
+
+		//Save software screen
+		else { qt_gui::screen->save(qt_save_name, "PNG"); }
 	}
 }
 
 /****** Shows the General settings dialog ******/
-void main_menu::show_settings() { settings->show(); settings->tabs->setCurrentIndex(0); }
+void main_menu::show_settings()
+{
+	settings->show();
+	settings->tabs->setCurrentIndex(0);
+	settings->advanced_button->setVisible(false);
+}
 
 /****** Shows the Display settings dialog ******/
-void main_menu::show_display_settings() { settings->show(); settings->tabs->setCurrentIndex(1); }
+void main_menu::show_display_settings()
+{
+	settings->show();
+	settings->tabs->setCurrentIndex(1);
+	settings->advanced_button->setVisible(false);
+}
 
 /****** Shows the Sound settings dialog ******/
-void main_menu::show_sound_settings() { settings->show(); settings->tabs->setCurrentIndex(2); }
+void main_menu::show_sound_settings()
+{
+	settings->show();
+	settings->tabs->setCurrentIndex(2);
+	settings->advanced_button->setVisible(false);
+}
 
 /****** Shows the Control settings dialog ******/
-void main_menu::show_control_settings() { settings->show(); settings->tabs->setCurrentIndex(3); }
+void main_menu::show_control_settings()
+{
+	settings->show();
+	settings->tabs->setCurrentIndex(3);
+	settings->advanced_button->setVisible(true);
+}
 
 /****** Shows the Paths settings dialog ******/
-void main_menu::show_paths_settings() { settings->show(); settings->tabs->setCurrentIndex(4); }
+void main_menu::show_paths_settings()
+{
+	settings->show();
+	settings->tabs->setCurrentIndex(4);
+	settings->advanced_button->setVisible(false);
+}
 
 /****** Shows the Custom Graphics dialog ******/
 void main_menu::show_cgfx() 
 {
+	//Draw GBA layers
+	if(config::gb_type == 3)
+	{
+		//Do nothing for now
+		return;
+	}
+
 	findChild<QAction*>("pause_action")->setEnabled(false);
 
 	cgfx->update_obj_window(8, 40);
 	cgfx->update_bg_window(8, 384);
-	
+
 	//Draw DMG layers
 	if(config::gb_type < 2)
 	{
@@ -746,6 +954,24 @@ void main_menu::load_state(int slot)
 
 		//Apply current volume settings
 		settings->update_volume();
+	}
+}
+
+/****** Starts the core's netplay features ******/
+void main_menu::start_netplay()
+{
+	if(main_menu::gbe_plus != NULL)
+	{
+		main_menu::gbe_plus->start_netplay();
+	}
+}
+
+/****** Stops the core's netplay features ******/
+void main_menu::stop_netplay()
+{
+	if(main_menu::gbe_plus != NULL)
+	{
+		main_menu::gbe_plus->stop_netplay();
 	}
 }
 

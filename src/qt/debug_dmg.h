@@ -28,6 +28,7 @@ class dmg_debug : public QDialog
 	u32 highlighted_dasm_line;
 	bool pause;
 	bool old_pause;
+	bool debug_reset;
 
 	QTextEdit* dasm;
 	QString dasm_text;
@@ -94,6 +95,8 @@ class dmg_debug : public QDialog
 	QLineEdit* mmio_tac;
 	QLineEdit* mmio_ie;
 	QLineEdit* mmio_if;
+	QLineEdit* mmio_sb;
+	QLineEdit* mmio_sc;
 
 	//Palette widgets
 	QTableWidget* bg_pal_table;
@@ -170,8 +173,6 @@ class dmg_debug : public QDialog
 	QImage bg_large_preview;
 	QLabel* bg_large_label;
 
-	bool debug_reset;
-
 	protected:
 	void closeEvent(QCloseEvent* event);
 
@@ -184,8 +185,9 @@ class dmg_debug : public QDialog
 	void scroll_count(int type);
 	void highlight();
 	void show_obj(int obj_id);
+	void show_bg(int bg_id);
 	void refresh();
-	void refresh_dasm();
+	void click_refresh();
 	void close_debug();
 
 	void db_next();

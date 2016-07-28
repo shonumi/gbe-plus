@@ -29,9 +29,12 @@ class main_menu : public QWidget
 	
 	public:
 	main_menu(QWidget *parent = 0);
+
 	static core_emu* gbe_plus;
 	static dmg_debug* dmg_debugger;
+
 	gbe_cgfx* cgfx;
+	gen_settings* settings;
 
 	QMenuBar* menu_bar;
 
@@ -40,8 +43,14 @@ class main_menu : public QWidget
 	
 	u32 screen_height;
 	u32 screen_width;
+	u32 display_height;
+	u32 display_width;
+	int menu_height;
+
+	bool fullscreen_mode;
 
 	void pause_emu();
+	void open_first_file();
 
 	protected:
 	void paintEvent(QPaintEvent* event);
@@ -51,6 +60,7 @@ class main_menu : public QWidget
 
 	private slots:
 	void open_file();
+	void fullscreen();
 	void screenshot();
 	void pause();
 	void reset();
@@ -66,16 +76,18 @@ class main_menu : public QWidget
 	void load_recent(int file_id);
 	void save_state(int slot);
 	void load_state(int slot);
+	void start_netplay();
+	void stop_netplay();
 
 	private:
-	gen_settings* settings;
 	QWidget* about_box;
 
 	QMenu* recent_list;
 	QMenu* state_save_list;
 	QMenu* state_load_list;
 
-	int menu_height;
+	QSignalMapper* list_mapper;
+
 	u32 base_width;
 	u32 base_height;
 

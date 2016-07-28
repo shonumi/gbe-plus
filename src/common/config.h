@@ -12,7 +12,7 @@
 #define EMU_CONFIG
 
 
-#include <SDL/SDL.h>
+#include <SDL2/SDL.h>
 #include <vector>
 #include <string>
 #include <sstream>
@@ -25,6 +25,7 @@ void validate_system_type();
 bool parse_cli_args();
 void parse_filenames();
 bool parse_ini_file();
+bool parse_cheats_file();
 bool save_ini_file();
 
 namespace config
@@ -38,6 +39,9 @@ namespace config
 	extern std::string nds7_bios_path;
 	extern std::string nds9_bios_path;
 	extern std::string ss_path;
+	extern std::string cfg_path;
+	extern std::string data_path;
+	extern std::string cheats_path;
 	extern std::vector <std::string> recent_files;
 	extern std::vector <std::string> cli_args;
 
@@ -49,19 +53,32 @@ namespace config
 	extern int gyro_joy_up, gyro_joy_down, gyro_joy_left, gyro_joy_right;
 	extern int hotkey_turbo;
 	extern int dead_zone;
+	extern int joy_id;
+	extern bool use_haptics;
 
 	extern u32 flags;
 	extern bool pause_emu;
 	extern bool use_bios;
+	extern bool use_multicart;
 	extern bool use_opengl;
 	extern bool use_debugger;
 	extern bool turbo;
 	extern u8 scaling_factor;
+	extern u8 old_scaling_factor;
 	extern std::stringstream title;
 	extern u8 gb_type;
 	extern bool gba_enhance;
 	extern bool sdl_render;
 	extern u8 dmg_gbc_pal;
+
+	extern bool use_cheats;
+	extern std::vector <u32> gs_cheats;
+	extern std::vector <std::string> gg_cheats;
+
+	extern bool use_netplay;
+	extern bool netplay_hard_sync;
+	extern u16 netplay_server_port;
+	extern u16 netplay_client_port;
 
 	extern u8 volume;
 	extern double sample_rate;
@@ -69,9 +86,12 @@ namespace config
 
 	extern u32 sys_width;
 	extern u32 sys_height;
+	extern s32 win_width;
+	extern s32 win_height;
 
 	extern bool request_resize;
 	extern s8 resize_mode;
+	extern bool maintain_aspect_ratio;
 
 	extern u32 DMG_BG_PAL[4];
 	extern u32 DMG_OBJ_PAL[4][2];

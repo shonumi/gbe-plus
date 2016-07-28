@@ -18,7 +18,9 @@
 namespace cgfx
 { 
 	extern u8 gbc_bg_color_pal;
+	extern u8 gbc_obj_color_pal;
 	extern u8 gbc_bg_vram_bank;
+	extern u8 gbc_obj_vram_bank;
 
 	extern bool load_cgfx;
 	extern bool auto_dump_obj;
@@ -27,11 +29,13 @@ namespace cgfx
 
 	extern u32 transparency_color;
 	extern u8 scaling_factor;
+	extern u8 scale_squared;
 
 	extern std::string manifest_file;
 	extern std::string dump_bg_path;
 	extern std::string dump_obj_path;
 	extern std::string dump_name;
+	extern std::string meta_dump_name;
 
 	extern std::string last_hash;
 	extern u32 last_vram_addr;

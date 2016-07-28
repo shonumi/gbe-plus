@@ -26,9 +26,41 @@ void soft_screen::paintEvent(QPaintEvent* event)
 
 	else
 	{
-		QImage final_screen = qt_gui::screen->scaled(width(), height());
-		QPainter painter(this);
-		painter.drawImage(0, 0, final_screen);
+		//Maintain aspect ratio
+		if(config::maintain_aspect_ratio)
+		{
+			QImage final_screen = qt_gui::screen->scaled(width(), height(), Qt::KeepAspectRatio);
+			QPainter painter(this);
+
+			int x_offset = (width() - final_screen.width()) / 2;
+			int y_offset = (height() - final_screen.height()) / 2;
+
+			painter.drawImage(x_offset, y_offset, final_screen);	
+		}
+
+		//Ignore aspect ratio
+		else
+		{
+			QImage final_screen = qt_gui::screen->scaled(width(), height());
+			QPainter painter(this);
+			painter.drawImage(0, 0, final_screen);
+		}
+	}
+}
+
+/****** Software screen resize event ******/
+void soft_screen::resizeEvent(QResizeEvent* event)
+{
+	if(main_menu::gbe_plus == NULL) { return; }
+
+	//Grab test dimensions, look at max resolution for fullscreen dimensions
+	u32 test_width = qt_gui::draw_surface->fullscreen_mode ? qt_gui::draw_surface->display_width : qt_gui::draw_surface->width();
+	u32 test_height = qt_gui::draw_surface->fullscreen_mode ? qt_gui::draw_surface->display_height : (qt_gui::draw_surface->height() - qt_gui::draw_surface->menu_height);
+
+	//Adjust screen to fit expected dimensions no matter what
+	if((width() != test_width) || (height() != test_height))
+	{
+		resize(test_width, test_height);
 	}
 }
 
@@ -73,11 +105,64 @@ void hard_screen::paintGL()
 		
 		glTranslatef(-0.5, 0.5, 0);
 
-		glBegin(GL_QUADS);
-		glTexCoord2f(0.0f, 0.0f); glVertex2f(-0.5f, 0.5f);
-		glTexCoord2f(1.0f, 0.0f); glVertex2f(1.5f, 0.5f);
-		glTexCoord2f(1.0f, 1.0f); glVertex2f(1.5f, -1.5f);
-		glTexCoord2f(0.0f, 1.0f); glVertex2f(-0.5f, -1.5f);
-		glEnd();
+		//Maintain aspect ratio
+		if(config::maintain_aspect_ratio)
+		{
+			double max_width, max_height, ratio = 0.0;
+
+			max_width = (double)width() / config::sys_width;
+			max_height = (double)height() / config::sys_height;
+
+			//Find the maximum dimensions that maintain the original aspect ratio
+			if(max_width <= max_height) { ratio = max_width; }
+			else { ratio = max_height; }
+
+			max_width = config::sys_width * ratio;
+			max_height = config::sys_height * ratio;
+
+			max_width = max_width / width();
+			max_height = max_height / height();
+
+			//Convert those dimensions to OpenGL coordinates
+			double left, right, top, bottom = 0.0;			
+			left = .5 - max_width;
+			right = .5 + max_width;
+			top = -.5 + max_height;
+			bottom = -.5 - max_height;
+
+			glBegin(GL_QUADS);
+			glTexCoord2f(0.0f, 0.0f); glVertex2f(left, top);
+			glTexCoord2f(1.0f, 0.0f); glVertex2f(right, top);
+			glTexCoord2f(1.0f, 1.0f); glVertex2f(right, bottom);
+			glTexCoord2f(0.0f, 1.0f); glVertex2f(left, bottom);
+			glEnd();
+		}
+
+		//Ignore aspect ratio
+		else
+		{
+			glBegin(GL_QUADS);
+			glTexCoord2f(0.0f, 0.0f); glVertex2f(-0.5f, 0.5f);
+			glTexCoord2f(1.0f, 0.0f); glVertex2f(1.5f, 0.5f);
+			glTexCoord2f(1.0f, 1.0f); glVertex2f(1.5f, -1.5f);
+			glTexCoord2f(0.0f, 1.0f); glVertex2f(-0.5f, -1.5f);
+			glEnd();
+		}
 	}
-}  
+}
+
+/****** Hardware screen resize event ******/
+void hard_screen::resizeEvent(QResizeEvent* event)
+{
+	if(main_menu::gbe_plus == NULL) { return; }
+
+	//Grab test dimensions, look at max resolution for fullscreen dimensions
+	u32 test_width = qt_gui::draw_surface->fullscreen_mode ? qt_gui::draw_surface->display_width : qt_gui::draw_surface->width();
+	u32 test_height = qt_gui::draw_surface->fullscreen_mode ? qt_gui::draw_surface->display_height : (qt_gui::draw_surface->height() - qt_gui::draw_surface->menu_height);
+
+	//Adjust screen to fit expected dimensions no matter what
+	if((width() != test_width) || (height() != test_height))
+	{
+		resize(test_width, test_height);
+	}
+}

@@ -14,6 +14,8 @@
 #include <ctime>
 #include <sstream>
 
+#include "common/util.h"
+
 #include "core.h"
 
 /****** Core Constructor ******/
@@ -392,38 +394,9 @@ void AGB_core::debug_process_command()
 			valid_command = true;
 			u32 bp = 0;
 			std::string hex_string = command.substr(5);
-			std::string hex_char = "";
-			u32 hex_size = (hex_string.size() - 1);
 
 			//Convert hex string into usable u32
-			for(int x = hex_size, y = 0; x >= 0; x--, y+=4)
-			{
-				hex_char = hex_string[x];
-
-				if(hex_char == "0") { bp += (0 << y); }
-				else if(hex_char == "1") { bp += (1 << y); }
-				else if(hex_char == "2") { bp += (2 << y); }
-				else if(hex_char == "3") { bp += (3 << y); }
-				else if(hex_char == "4") { bp += (4 << y); }
-				else if(hex_char == "5") { bp += (5 << y); }
-				else if(hex_char == "6") { bp += (6 << y); }
-				else if(hex_char == "7") { bp += (7 << y); }
-				else if(hex_char == "8") { bp += (8 << y); }
-				else if(hex_char == "9") { bp += (9 << y); }
-				else if(hex_char == "A") { bp += (10 << y); }
-				else if(hex_char == "a") { bp += (10 << y); }
-				else if(hex_char == "B") { bp += (11 << y); }
-				else if(hex_char == "b") { bp += (11 << y); }
-				else if(hex_char == "C") { bp += (12 << y); }
-				else if(hex_char == "c") { bp += (12 << y); }
-				else if(hex_char == "D") { bp += (13 << y); }
-				else if(hex_char == "d") { bp += (13 << y); }
-				else if(hex_char == "E") { bp += (14 << y); }
-				else if(hex_char == "e") { bp += (14 << y); }
-				else if(hex_char == "F") { bp += (15 << y); }
-				else if(hex_char == "f") { bp += (15 << y); }
-				else { valid_command = false; }
-			}
+			valid_command = util::from_hex_str(hex_string, bp);
 		
 			//Request valid input again
 			if(!valid_command)
@@ -442,44 +415,15 @@ void AGB_core::debug_process_command()
 			}
 		}
 
-		//Show memory
-		else if((command.substr(0, 2) == "sm") && (command.substr(3, 2) == "0x"))
+		//Show memory - 1 byte
+		else if((command.substr(0, 2) == "u8") && (command.substr(3, 2) == "0x"))
 		{
 			valid_command = true;
 			u32 mem_location = 0;
 			std::string hex_string = command.substr(5);
-			std::string hex_char = "";
-			u32 hex_size = (hex_string.size() - 1);
 
 			//Convert hex string into usable u32
-			for(int x = hex_size, y = 0; x >= 0; x--, y+=4)
-			{
-				hex_char = hex_string[x];
-
-				if(hex_char == "0") { mem_location += (0 << y); }
-				else if(hex_char == "1") { mem_location += (1 << y); }
-				else if(hex_char == "2") { mem_location += (2 << y); }
-				else if(hex_char == "3") { mem_location += (3 << y); }
-				else if(hex_char == "4") { mem_location += (4 << y); }
-				else if(hex_char == "5") { mem_location += (5 << y); }
-				else if(hex_char == "6") { mem_location += (6 << y); }
-				else if(hex_char == "7") { mem_location += (7 << y); }
-				else if(hex_char == "8") { mem_location += (8 << y); }
-				else if(hex_char == "9") { mem_location += (9 << y); }
-				else if(hex_char == "A") { mem_location += (10 << y); }
-				else if(hex_char == "a") { mem_location += (10 << y); }
-				else if(hex_char == "B") { mem_location += (11 << y); }
-				else if(hex_char == "b") { mem_location += (11 << y); }
-				else if(hex_char == "C") { mem_location += (12 << y); }
-				else if(hex_char == "c") { mem_location += (12 << y); }
-				else if(hex_char == "D") { mem_location += (13 << y); }
-				else if(hex_char == "d") { mem_location += (13 << y); }
-				else if(hex_char == "E") { mem_location += (14 << y); }
-				else if(hex_char == "e") { mem_location += (14 << y); }
-				else if(hex_char == "F") { mem_location += (15 << y); }
-				else if(hex_char == "f") { mem_location += (15 << y); }
-				else { valid_command = false; }
-			}
+			valid_command = util::from_hex_str(hex_string, mem_location);
 
 			//Request valid input again
 			if(!valid_command)
@@ -491,8 +435,60 @@ void AGB_core::debug_process_command()
 
 			else
 			{
-				db_unit.last_command = "sm";
+				db_unit.last_command = "u8";
 				std::cout<<"Memory @ " << hex_string << " : 0x" << std::hex << (int)core_mmu.read_u8(mem_location) << "\n";
+				debug_process_command();
+			}
+		}
+
+		//Show memory - 2 bytes
+		else if((command.substr(0, 3) == "u16") && (command.substr(4, 2) == "0x"))
+		{
+			valid_command = true;
+			u32 mem_location = 0;
+			std::string hex_string = command.substr(6);
+
+			//Convert hex string into usable u32
+			valid_command = util::from_hex_str(hex_string, mem_location);
+
+			//Request valid input again
+			if(!valid_command)
+			{
+				std::cout<<"\nInvalid memory address : " << command << "\n";
+				std::cout<<": ";
+				std::getline(std::cin, command);
+			}
+
+			else
+			{
+				db_unit.last_command = "u16";
+				std::cout<<"Memory @ " << hex_string << " : 0x" << std::hex << (int)core_mmu.read_u16(mem_location) << "\n";
+				debug_process_command();
+			}
+		}
+
+		//Show memory - 4 bytes
+		else if((command.substr(0, 3) == "u32") && (command.substr(4, 2) == "0x"))
+		{
+			valid_command = true;
+			u32 mem_location = 0;
+			std::string hex_string = command.substr(6);
+
+			//Convert hex string into usable u32
+			valid_command = util::from_hex_str(hex_string, mem_location);
+
+			//Request valid input again
+			if(!valid_command)
+			{
+				std::cout<<"\nInvalid memory address : " << command << "\n";
+				std::cout<<": ";
+				std::getline(std::cin, command);
+			}
+
+			else
+			{
+				db_unit.last_command = "u32";
+				std::cout<<"Memory @ " << hex_string << " : 0x" << std::hex << (int)core_mmu.read_u32(mem_location) << "\n";
 				debug_process_command();
 			}
 		}
@@ -565,7 +561,9 @@ void AGB_core::debug_process_command()
 			std::cout<<"n \t\t Run next Fetch-Decode-Execute stage\n";
 			std::cout<<"c \t\t Continue until next breakpoint\n";
 			std::cout<<"bp \t\t Set breakpoint, format 0x1234ABCD\n";
-			std::cout<<"sm \t\t Show memory, format 0x1234ABCD\n";
+			std::cout<<"u8 \t\t Show BYTE @ memory, format 0x1234ABCD\n";
+			std::cout<<"u16 \t\t Show HALFWORD @ memory, format 0x1234ABCD\n";
+			std::cout<<"u32 \t\t Show WORD @ memory, format 0x1234ABCD\n";
 			std::cout<<"dq \t\t Quit the debugger\n";
 			std::cout<<"dc \t\t Toggle CPU cycle display\n";
 			std::cout<<"cr \t\t Reset CPU cycle counter\n";
@@ -623,16 +621,32 @@ void AGB_core::handle_hotkey(SDL_Event& event)
 	//Toggle Fullscreen on F12
 	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F12))
 	{
-		//Switch flags
-		if(config::flags == 0x80000000) { config::flags = 0; }
-		else { config::flags = 0x80000000; }
-
-		//Initialize the screen
-		if(!config::use_opengl)
+		//Unset fullscreen
+		if(config::flags & SDL_WINDOW_FULLSCREEN_DESKTOP)
 		{
-			core_cpu.controllers.video.final_screen = SDL_SetVideoMode(240, 160, 32, SDL_SWSURFACE | config::flags);
+			config::flags &= ~SDL_WINDOW_FULLSCREEN_DESKTOP;
+			config::scaling_factor = config::old_scaling_factor;
 		}
 
+		//Set fullscreen
+		else
+		{
+			config::flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+			config::old_scaling_factor = config::scaling_factor;
+		}
+
+		//Destroy old window
+		SDL_DestroyWindow(core_cpu.controllers.video.window);
+
+		//Initialize new window - SDL
+		if(!config::use_opengl)
+		{
+			core_cpu.controllers.video.window = SDL_CreateWindow("GBE+", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, config::sys_width, config::sys_height, config::flags);
+			core_cpu.controllers.video.final_screen = SDL_GetWindowSurface(core_cpu.controllers.video.window);
+			SDL_GetWindowSize(core_cpu.controllers.video.window, &config::win_width, &config::win_height);
+		}
+
+		//Initialize new window - OpenGL
 		else
 		{
 			core_cpu.controllers.video.opengl_init();
@@ -782,3 +796,12 @@ u32* AGB_core::get_bg_palette(int pal_index)
 {
 	return NULL;
 }
+
+/****** Grabs the hash for a specific tile ******/
+std::string AGB_core::get_hash(u32 addr, u8 gfx_type) { }
+
+/****** Starts netplay connection ******/
+void AGB_core::start_netplay() { }
+
+/****** Stops netplay connection ******/
+void AGB_core::stop_netplay() { }

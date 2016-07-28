@@ -14,6 +14,8 @@
 #include <QtGui>
 #include <QGLWidget>
 
+#include "common/common.h"
+
 class soft_screen : public QWidget
 {
 	Q_OBJECT
@@ -23,6 +25,7 @@ class soft_screen : public QWidget
 
 	protected:
 	void paintEvent(QPaintEvent* event);
+	void resizeEvent(QResizeEvent* event);
 };
 
 class hard_screen : public QGLWidget
@@ -36,6 +39,7 @@ class hard_screen : public QGLWidget
 	protected:
 	void initializeGL();
 	void paintGL();
+	void resizeEvent(QResizeEvent* event);
 };
 
 #endif //SCREENS_GBE_QT 

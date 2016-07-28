@@ -23,8 +23,15 @@ AGB_GamePad::AGB_GamePad()
 /****** Initialize GamePad ******/
 void AGB_GamePad::init()
 {
+	//Initialize joystick subsystem
+	if(SDL_InitSubSystem(SDL_INIT_JOYSTICK) == -1)
+	{
+		std::cout<<"JOY::Could not initialize SDL joysticks\n";
+		return;
+	}
+
 	jstick = NULL;
-	jstick = SDL_JoystickOpen(0);
+	jstick = SDL_JoystickOpen(config::joy_id);
 
 	if((jstick == NULL) && (SDL_NumJoysticks() >= 1)) { std::cout<<"JOY::Could not initialize joystick \n"; }
 	else if((jstick == NULL) && (SDL_NumJoysticks() == 0)) { std::cout<<"JOY::No joysticks detected \n"; }

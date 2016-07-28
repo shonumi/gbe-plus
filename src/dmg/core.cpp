@@ -33,6 +33,10 @@ DMG_core::DMG_core()
 	core_cpu.controllers.audio.mem = &core_mmu;
 	core_mmu.set_apu_data(&core_cpu.controllers.audio.apu_stat);
 
+	//Link SIO and MMU
+	core_cpu.controllers.serial_io.mem = &core_mmu;
+	core_mmu.set_sio_data(&core_cpu.controllers.serial_io.sio_stat);
+
 	//Link MMU and GamePad
 	core_cpu.mem->g_pad = &core_pad;
 
@@ -64,6 +68,9 @@ void DMG_core::start()
 		core_cpu.running = false;
 	}
 
+	//Initialize SIO
+	core_cpu.controllers.serial_io.init();
+
 	//Initialize the GamePad
 	core_pad.init();
 }
@@ -90,6 +97,7 @@ void DMG_core::reset()
 	core_cpu.reset();
 	core_cpu.controllers.video.reset();
 	core_cpu.controllers.audio.reset();
+	core_cpu.controllers.serial_io.reset();
 	core_mmu.reset();
 
 	//Link CPU and MMU
@@ -100,6 +108,9 @@ void DMG_core::reset()
 
 	//Link APU and MMU
 	core_cpu.controllers.audio.mem = &core_mmu;
+
+	//Link SIO and MMU
+	core_cpu.controllers.serial_io.mem = &core_mmu;
 
 	//Link MMU and GamePad
 	core_cpu.mem->g_pad = &core_pad;
@@ -119,17 +130,22 @@ void DMG_core::load_state(u8 slot)
 	std::string state_file = config::rom_file + ".ss";
 	state_file += id;
 
-	//Offset 0, size 41
-	if(!core_cpu.cpu_read(0, state_file)) { return; }
-	
-	//Offset 41, size 213047
-	if(!core_mmu.mmu_read(41, state_file)) { return; }
+	u32 offset = 0;
 
-	//Offset 213088, size 320
-	if(!core_cpu.controllers.audio.apu_read(213088, state_file)) { return; }
+	//Offset 0, size 43
+	if(!core_cpu.cpu_read(offset, state_file)) { return; }
+	offset += core_cpu.size();	
 
-	//Offset 213408
-	if(!core_cpu.controllers.video.lcd_read(213408, state_file)) { return; }
+	//Offset 43, size 213047
+	if(!core_mmu.mmu_read(offset, state_file)) { return; }
+	offset += core_mmu.size();
+
+	//Offset 213090, size 320
+	if(!core_cpu.controllers.audio.apu_read(offset, state_file)) { return; }
+	offset += core_cpu.controllers.audio.size();
+
+	//Offset 213410
+	if(!core_cpu.controllers.video.lcd_read(offset, state_file)) { return; }
 
 	std::cout<<"GBE::Loaded state " << state_file << "\n";
 }
@@ -172,7 +188,44 @@ void DMG_core::run_core()
 
 		//Run the CPU
 		if(core_cpu.running)
-		{	
+		{
+			//Receive byte from another instance of GBE+ via netplay
+			if(core_cpu.controllers.serial_io.sio_stat.connected)
+			{
+				//Perform syncing operations when hard sync is enabled
+				if(config::netplay_hard_sync)
+				{
+					core_cpu.controllers.serial_io.sio_stat.sync_counter += core_cpu.cycles;
+
+					//Once this Game Boy has reached a specified amount of cycles, freeze until the other Game Boy finished that many cycles
+					if(core_cpu.controllers.serial_io.sio_stat.sync_counter >= core_cpu.controllers.serial_io.sio_stat.sync_clock)
+					{
+						core_cpu.controllers.serial_io.request_sync();
+						u32 current_time = SDL_GetTicks();
+						u32 timeout = 0;
+
+						while(core_cpu.controllers.serial_io.sio_stat.sync)
+						{
+							core_cpu.controllers.serial_io.receive_byte();
+
+							//Timeout if 10 seconds passes
+							timeout = SDL_GetTicks();
+							
+							if((timeout - current_time) >= 10000)
+							{
+								core_cpu.controllers.serial_io.reset();
+							}						
+						}
+					}
+				}
+
+				//Send IR signal for GBC games
+				if(core_mmu.ir_send) { core_cpu.controllers.serial_io.send_ir_signal(); }
+
+				//Receive bytes normally
+				core_cpu.controllers.serial_io.receive_byte();
+			}
+
 			core_cpu.cycles = 0;
 
 			//Handle Interrupts
@@ -181,7 +234,33 @@ void DMG_core::run_core()
 			if(db_unit.debug_mode) { debug_step(); }
 	
 			//Halt CPU if necessary
-			if(core_cpu.halt == true) { core_cpu.cycles += 4; }
+			if(core_cpu.halt == true)
+			{
+				//Normal HALT mode with interrupts enabled
+				if(!core_cpu.skip_instruction) { core_cpu.cycles += 4; }
+
+				//HALT mode with interrupts disabled (DMG, MBP, and SGB models)
+				else if((core_cpu.skip_instruction) && (config::gb_type == 1))
+				{
+					core_cpu.halt = false;
+					core_cpu.skip_instruction = false;
+
+					//Execute next opcode, but do not increment PC
+					core_cpu.opcode = core_mmu.read_u8(core_cpu.reg.pc);
+					core_cpu.exec_op(core_cpu.opcode);
+				}
+
+				//HALT mode with interrupts disabled (GBC models)
+				else
+				{
+					core_cpu.halt = false;
+					core_cpu.skip_instruction = false;
+
+					//Continue normally
+					core_cpu.opcode = core_mmu.read_u8(core_cpu.reg.pc++);
+					core_cpu.exec_op(core_cpu.opcode);
+				}
+			}
 
 			//Process Opcodes
 			else 
@@ -230,6 +309,40 @@ void DMG_core::run_core()
 				}
 			}
 
+			//Update serial input-output operations
+			if(core_cpu.controllers.serial_io.sio_stat.shifts_left != 0)
+			{
+				core_cpu.controllers.serial_io.sio_stat.shift_counter += core_cpu.cycles;
+
+				//After SIO clocks, perform SIO operations now
+				if(core_cpu.controllers.serial_io.sio_stat.shift_counter >= core_cpu.controllers.serial_io.sio_stat.shift_clock)
+				{
+					//Shift bit out from SB, transfer it
+					core_mmu.memory_map[REG_SB] <<= 1;
+
+					core_cpu.controllers.serial_io.sio_stat.shift_counter -= core_cpu.controllers.serial_io.sio_stat.shift_clock;
+					core_cpu.controllers.serial_io.sio_stat.shifts_left--;
+
+					//Complete the transfer
+					if(core_cpu.controllers.serial_io.sio_stat.shifts_left == 0)
+					{
+						//Reset Bit 7 in SC
+						core_mmu.memory_map[REG_SC] &= ~0x80;
+
+						core_cpu.controllers.serial_io.sio_stat.active_transfer = false;
+
+						//Emulate disconnected link cable (on an internal clock) with no netplay	
+						if((!config::use_netplay) && (core_cpu.controllers.serial_io.sio_stat.internal_clock))
+						{
+							core_mmu.memory_map[REG_SB] = 0xFF;
+							core_mmu.memory_map[IF_FLAG] |= 0x08;
+						}
+
+						//Send byte to another instance of GBE+ via netplay
+						if(core_cpu.controllers.serial_io.sio_stat.connected) { core_cpu.controllers.serial_io.send_byte(); }
+					}
+				}
+			}
 		}
 
 		//Stop emulation
@@ -361,38 +474,9 @@ void DMG_core::debug_process_command()
 			valid_command = true;
 			u32 bp = 0;
 			std::string hex_string = command.substr(5);
-			std::string hex_char = "";
-			u32 hex_size = (hex_string.size() - 1);
 
 			//Convert hex string into usable u32
-			for(int x = hex_size, y = 0; x >= 0; x--, y+=4)
-			{
-				hex_char = hex_string[x];
-
-				if(hex_char == "0") { bp += (0 << y); }
-				else if(hex_char == "1") { bp += (1 << y); }
-				else if(hex_char == "2") { bp += (2 << y); }
-				else if(hex_char == "3") { bp += (3 << y); }
-				else if(hex_char == "4") { bp += (4 << y); }
-				else if(hex_char == "5") { bp += (5 << y); }
-				else if(hex_char == "6") { bp += (6 << y); }
-				else if(hex_char == "7") { bp += (7 << y); }
-				else if(hex_char == "8") { bp += (8 << y); }
-				else if(hex_char == "9") { bp += (9 << y); }
-				else if(hex_char == "A") { bp += (10 << y); }
-				else if(hex_char == "a") { bp += (10 << y); }
-				else if(hex_char == "B") { bp += (11 << y); }
-				else if(hex_char == "b") { bp += (11 << y); }
-				else if(hex_char == "C") { bp += (12 << y); }
-				else if(hex_char == "c") { bp += (12 << y); }
-				else if(hex_char == "D") { bp += (13 << y); }
-				else if(hex_char == "d") { bp += (13 << y); }
-				else if(hex_char == "E") { bp += (14 << y); }
-				else if(hex_char == "e") { bp += (14 << y); }
-				else if(hex_char == "F") { bp += (15 << y); }
-				else if(hex_char == "f") { bp += (15 << y); }
-				else { valid_command = false; }
-			}
+			valid_command = util::from_hex_str(hex_string, bp);
 		
 			//Request valid input again
 			if(!valid_command)
@@ -411,44 +495,15 @@ void DMG_core::debug_process_command()
 			}
 		}
 
-		//Show memory
-		else if((command.substr(0, 2) == "sm") && (command.substr(3, 2) == "0x"))
+		//Show memory - 1 byte
+		else if((command.substr(0, 2) == "u8") && (command.substr(3, 2) == "0x"))
 		{
 			valid_command = true;
 			u32 mem_location = 0;
 			std::string hex_string = command.substr(5);
-			std::string hex_char = "";
-			u32 hex_size = (hex_string.size() - 1);
 
 			//Convert hex string into usable u32
-			for(int x = hex_size, y = 0; x >= 0; x--, y+=4)
-			{
-				hex_char = hex_string[x];
-
-				if(hex_char == "0") { mem_location += (0 << y); }
-				else if(hex_char == "1") { mem_location += (1 << y); }
-				else if(hex_char == "2") { mem_location += (2 << y); }
-				else if(hex_char == "3") { mem_location += (3 << y); }
-				else if(hex_char == "4") { mem_location += (4 << y); }
-				else if(hex_char == "5") { mem_location += (5 << y); }
-				else if(hex_char == "6") { mem_location += (6 << y); }
-				else if(hex_char == "7") { mem_location += (7 << y); }
-				else if(hex_char == "8") { mem_location += (8 << y); }
-				else if(hex_char == "9") { mem_location += (9 << y); }
-				else if(hex_char == "A") { mem_location += (10 << y); }
-				else if(hex_char == "a") { mem_location += (10 << y); }
-				else if(hex_char == "B") { mem_location += (11 << y); }
-				else if(hex_char == "b") { mem_location += (11 << y); }
-				else if(hex_char == "C") { mem_location += (12 << y); }
-				else if(hex_char == "c") { mem_location += (12 << y); }
-				else if(hex_char == "D") { mem_location += (13 << y); }
-				else if(hex_char == "d") { mem_location += (13 << y); }
-				else if(hex_char == "E") { mem_location += (14 << y); }
-				else if(hex_char == "e") { mem_location += (14 << y); }
-				else if(hex_char == "F") { mem_location += (15 << y); }
-				else if(hex_char == "f") { mem_location += (15 << y); }
-				else { valid_command = false; }
-			}
+			valid_command = util::from_hex_str(hex_string, mem_location);
 
 			//Request valid input again
 			if(!valid_command)
@@ -460,8 +515,34 @@ void DMG_core::debug_process_command()
 
 			else
 			{
-				db_unit.last_command = "sm";
+				db_unit.last_command = "u8";
 				std::cout<<"Memory @ " << hex_string << " : 0x" << std::hex << (int)core_mmu.read_u8(mem_location) << "\n";
+				debug_process_command();
+			}
+		}
+
+		//Show memory - 2 bytes
+		else if((command.substr(0, 3) == "u16") && (command.substr(4, 2) == "0x"))
+		{
+			valid_command = true;
+			u32 mem_location = 0;
+			std::string hex_string = command.substr(6);
+
+			//Convert hex string into usable u32
+			valid_command = util::from_hex_str(hex_string, mem_location);
+
+			//Request valid input again
+			if(!valid_command)
+			{
+				std::cout<<"\nInvalid memory address : " << command << "\n";
+				std::cout<<": ";
+				std::getline(std::cin, command);
+			}
+
+			else
+			{
+				db_unit.last_command = "u16";
+				std::cout<<"Memory @ " << hex_string << " : 0x" << std::hex << (int)core_mmu.read_u16(mem_location) << "\n";
 				debug_process_command();
 			}
 		}
@@ -534,7 +615,8 @@ void DMG_core::debug_process_command()
 			std::cout<<"n \t\t Run next Fetch-Decode-Execute stage\n";
 			std::cout<<"c \t\t Continue until next breakpoint\n";
 			std::cout<<"bp \t\t Set breakpoint, format 0x1234ABCD\n";
-			std::cout<<"sm \t\t Show memory, format 0x1234ABCD\n";
+			std::cout<<"u8 \t\t Show BYTE @ memory, format 0x1234ABCD\n";
+			std::cout<<"u16 \t\t Show WORD @ memory, format 0x1234ABCD\n";
 			std::cout<<"dq \t\t Quit the debugger\n";
 			std::cout<<"dc \t\t Toggle CPU cycle display\n";
 			std::cout<<"cr \t\t Reset CPU cycle counter\n";
@@ -568,7 +650,7 @@ std::string DMG_core::debug_get_mnemonic(u32 addr)
 	switch(opcode)
 	{
 		case 0x0: return "NOP";
-		case 0x1: return "LD BC, " + util::to_hex_str(op1);
+		case 0x1: return "LD BC, " + util::to_hex_str(op2);
 		case 0x2: return "LD (BC), A";
 		case 0x3: return "INC BC";
 		case 0x4: return "INC B";
@@ -1100,6 +1182,18 @@ void DMG_core::handle_hotkey(SDL_Event& event)
 		load_state(0);
 	}
 
+	//Pause and wait for netplay connection on F5
+	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F5))
+	{
+		start_netplay();	
+	}
+
+	//Disconnect netplay connection on F6
+	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F6))
+	{
+		stop_netplay();
+	}
+
 	//Screenshot on F9
 	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F9)) 
 	{
@@ -1122,16 +1216,32 @@ void DMG_core::handle_hotkey(SDL_Event& event)
 	//Toggle Fullscreen on F12
 	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F12))
 	{
-		//Switch flags
-		if(config::flags == 0x80000000) { config::flags = 0; }
-		else { config::flags = 0x80000000; }
-
-		//Initialize the screen
-		if(!config::use_opengl)
+		//Unset fullscreen
+		if(config::flags & SDL_WINDOW_FULLSCREEN_DESKTOP)
 		{
-			core_cpu.controllers.video.final_screen = SDL_SetVideoMode(config::sys_width, config::sys_height, 32, SDL_SWSURFACE | config::flags);
+			config::flags &= ~SDL_WINDOW_FULLSCREEN_DESKTOP;
+			config::scaling_factor = config::old_scaling_factor;
 		}
 
+		//Set fullscreen
+		else
+		{
+			config::flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+			config::old_scaling_factor = config::scaling_factor;
+		}
+
+		//Destroy old window
+		SDL_DestroyWindow(core_cpu.controllers.video.window);
+
+		//Initialize new window - SDL
+		if(!config::use_opengl)
+		{
+			core_cpu.controllers.video.window = SDL_CreateWindow("GBE+", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, config::sys_width, config::sys_height, config::flags);
+			core_cpu.controllers.video.final_screen = SDL_GetWindowSurface(core_cpu.controllers.video.window);
+			SDL_GetWindowSize(core_cpu.controllers.video.window, &config::win_width, &config::win_height);
+		}
+
+		//Initialize new window - OpenGL
 		else
 		{
 			core_cpu.controllers.video.opengl_init();
@@ -1253,4 +1363,48 @@ u32* DMG_core::get_obj_palette(int pal_index)
 u32* DMG_core::get_bg_palette(int pal_index)
 {
 	return &core_cpu.controllers.video.lcd_stat.bg_colors_final[0][pal_index];
+}
+
+/****** Grabs the hash for a specific tile ******/
+std::string DMG_core::get_hash(u32 addr, u8 gfx_type)
+{
+	return core_cpu.controllers.video.get_hash(addr, gfx_type);
+}
+
+/****** Starts netplay connection ******/
+void DMG_core::start_netplay()
+{
+	//Do nothing if netplay is not enabled
+	if(!config::use_netplay) { return; }
+
+	//Wait 10 seconds before timing out
+	u32 time_out = 0;
+
+	while(time_out < 10000)
+	{
+		time_out += 100;
+		if((time_out % 1000) == 0) { std::cout<<"SIO::Netplay is waiting to establish remote connection...\n"; }
+
+		SDL_Delay(100);
+
+		//Process network connections
+		core_cpu.controllers.serial_io.process_network_communication();
+
+		//Check again if the GBE+ instances connected, exit waiting if so
+		if(core_cpu.controllers.serial_io.sio_stat.connected) { break; }
+	}
+
+	if(!core_cpu.controllers.serial_io.sio_stat.connected) { std::cout<<"SIO::No netplay connection established\n"; }
+	else { std::cout<<"SIO::Netplay connection established\n"; }
+}
+
+/****** Stops netplay connection ******/
+void DMG_core::stop_netplay()
+{
+	//Only attempt to disconnect if connected at all
+	if(core_cpu.controllers.serial_io.sio_stat.connected)
+	{
+		core_cpu.controllers.serial_io.reset();
+		std::cout<<"SIO::Netplay connection terminated. Restart to reconnect.\n";
+	}
 }

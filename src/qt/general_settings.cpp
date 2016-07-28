@@ -24,11 +24,11 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	//Set up tabs
 	tabs = new QTabWidget(this);
 	
-	QDialog* general = new QDialog;
-	QDialog* display = new QDialog;
-	QDialog* sound = new QDialog;
-	QDialog* controls = new QDialog;
-	QDialog* paths = new QDialog;
+	general = new QDialog;
+	display = new QDialog;
+	sound = new QDialog;
+	controls = new QDialog;
+	paths = new QDialog;
 
 	tabs->addTab(general, tr("General"));
 	tabs->addTab(display, tr("Display"));
@@ -37,6 +37,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	tabs->addTab(paths, tr("Paths"));
 
 	tabs_button = new QDialogButtonBox(QDialogButtonBox::Close);
+	advanced_button = tabs_button->addButton("Advanced Controls", QDialogButtonBox::ActionRole);
 
 	//General settings - Emulated system type
 	QWidget* sys_type_set = new QWidget(general);
@@ -64,10 +65,34 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	bios_layout->addWidget(bios_label);
 	bios_set->setLayout(bios_layout);
 
+	//General settings - Emulate multicarts
+	QWidget* multicart_set = new QWidget(general);
+	QLabel* multicart_label = new QLabel("Emulate multicart ROMs (MBC1M)", multicart_set);
+	multicart = new QCheckBox(multicart_set);
+
+	QHBoxLayout* multicart_layout = new QHBoxLayout;
+	multicart_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	multicart_layout->addWidget(multicart);
+	multicart_layout->addWidget(multicart_label);
+	multicart_set->setLayout(multicart_layout);
+
+	//General settings - Use cheats
+	QWidget* cheats_set = new QWidget(general);
+	QLabel* cheats_label = new QLabel("Use cheats", cheats_set);
+	cheats = new QCheckBox(cheats_set);
+
+	QHBoxLayout* cheats_layout = new QHBoxLayout;
+	cheats_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	cheats_layout->addWidget(cheats);
+	cheats_layout->addWidget(cheats_label);
+	cheats_set->setLayout(cheats_layout);
+
 	QVBoxLayout* gen_layout = new QVBoxLayout;
 	gen_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	gen_layout->addWidget(sys_type_set);
 	gen_layout->addWidget(bios_set);
+	gen_layout->addWidget(cheats_set);
+	gen_layout->addWidget(multicart_set);
 	general->setLayout(gen_layout);
 
 	//Display settings - Screen scale
@@ -114,22 +139,23 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 
 	//Display settings - DMG on GBC palette
 	QWidget* dmg_gbc_pal_set = new QWidget(display);
-	QLabel* dmg_gbc_pal_label = new QLabel("DMG-on-GBC Color Palette : ");
+	QLabel* dmg_gbc_pal_label = new QLabel("DMG Color Palette : ");
 	dmg_gbc_pal = new QComboBox(dmg_gbc_pal_set);
 	dmg_gbc_pal->addItem("OFF");
-	dmg_gbc_pal->addItem("NO INPUT");
-	dmg_gbc_pal->addItem("UP");
-	dmg_gbc_pal->addItem("DOWN");
-	dmg_gbc_pal->addItem("LEFT");
-	dmg_gbc_pal->addItem("RIGHT");
-	dmg_gbc_pal->addItem("UP+A");
-	dmg_gbc_pal->addItem("DOWN+A");
-	dmg_gbc_pal->addItem("LEFT+A");
-	dmg_gbc_pal->addItem("RIGHT+A");
-	dmg_gbc_pal->addItem("UP+B");
-	dmg_gbc_pal->addItem("DOWN+B");
-	dmg_gbc_pal->addItem("LEFT+B");
-	dmg_gbc_pal->addItem("RIGHT+B");
+	dmg_gbc_pal->addItem("GBC BOOTROM - NO INPUT");
+	dmg_gbc_pal->addItem("GBC BOOTROM - UP");
+	dmg_gbc_pal->addItem("GBC BOOTROM - DOWN");
+	dmg_gbc_pal->addItem("GBC BOOTROM - LEFT");
+	dmg_gbc_pal->addItem("GBC BOOTROM - RIGHT");
+	dmg_gbc_pal->addItem("GBC BOOTROM - UP+A");
+	dmg_gbc_pal->addItem("GBC BOOTROM - DOWN+A");
+	dmg_gbc_pal->addItem("GBC BOOTROM - LEFT+A");
+	dmg_gbc_pal->addItem("GBC BOOTROM - RIGHT+A");
+	dmg_gbc_pal->addItem("GBC BOOTROM - UP+B");
+	dmg_gbc_pal->addItem("GBC BOOTROM - DOWN+B");
+	dmg_gbc_pal->addItem("GBC BOOTROM - LEFT+B");
+	dmg_gbc_pal->addItem("GBC BOOTROM - RIGHT+B");
+	dmg_gbc_pal->addItem("DMG - Classic Green");
 
 	QHBoxLayout* dmg_gbc_pal_layout = new QHBoxLayout;
 	dmg_gbc_pal_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -148,7 +174,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	ogl_layout->addWidget(ogl_label);
 	ogl_set->setLayout(ogl_layout);
 
-	//Display settings - Use OpenGL
+	//Display settings - Use CGFX
 	QWidget* load_cgfx_set = new QWidget(display);
 	QLabel* load_cgfx_label = new QLabel("Load Custom Graphics (CGFX)");
 	load_cgfx = new QCheckBox(load_cgfx_set);
@@ -159,6 +185,17 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	load_cgfx_layout->addWidget(load_cgfx_label);
 	load_cgfx_set->setLayout(load_cgfx_layout);
 
+	//Display settings - Aspect Ratio
+	QWidget* aspect_set = new QWidget(display);
+	QLabel* aspect_label = new QLabel("Maintain Aspect Ratio");
+	aspect_ratio = new QCheckBox(aspect_set);
+
+	QHBoxLayout* aspect_layout = new QHBoxLayout;
+	aspect_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	aspect_layout->addWidget(aspect_ratio);
+	aspect_layout->addWidget(aspect_label);
+	aspect_set->setLayout(aspect_layout);
+
 	QVBoxLayout* disp_layout = new QVBoxLayout;
 	disp_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	disp_layout->addWidget(screen_scale_set);
@@ -166,6 +203,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	disp_layout->addWidget(dmg_gbc_pal_set);
 	disp_layout->addWidget(ogl_set);
 	disp_layout->addWidget(load_cgfx_set);
+	disp_layout->addWidget(aspect_set);
 	display->setLayout(disp_layout);
 
 	//Sound settings - Output frequency
@@ -174,8 +212,8 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	freq = new QComboBox(freq_set);
 	freq->addItem("48000Hz");
 	freq->addItem("44100Hz");
-	freq->addItem("20500Hz");
-	freq->addItem("10250Hz");
+	freq->addItem("22050Hz");
+	freq->addItem("11025Hz");
 	freq->setCurrentIndex(1);
 
 	QHBoxLayout* freq_layout = new QHBoxLayout;
@@ -219,7 +257,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	sound->setLayout(audio_layout);
 
 	//Control settings - Device
-	QWidget* input_device_set = new QWidget(controls);
+	input_device_set = new QWidget(controls);
 	QLabel* input_device_label = new QLabel("Input Device : ");
 	input_device = new QComboBox(input_device_set);
 	input_device->addItem("Keyboard");
@@ -231,7 +269,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	input_device_set->setLayout(input_device_layout);
 
 	//Control settings- Dead-zone
-	QWidget* dead_zone_set = new QWidget(controls);
+	dead_zone_set = new QWidget(controls);
 	QLabel* dead_zone_label = new QLabel("Dead Zone : ");
 	dead_zone = new QSlider(sound);
 	dead_zone->setMaximum(32767);
@@ -247,7 +285,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	dead_zone_set->setLayout(dead_zone_layout);
 
 	//Control settings - A button
-	QWidget* input_a_set = new QWidget(controls);
+	input_a_set = new QWidget(controls);
 	QLabel* input_a_label = new QLabel("Button A : ");
 	input_a = new QLineEdit(controls);
 	config_a = new QPushButton("Configure");
@@ -262,7 +300,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	input_a_set->setLayout(input_a_layout);
 
 	//Control settings - B button
-	QWidget* input_b_set = new QWidget(controls);
+	input_b_set = new QWidget(controls);
 	QLabel* input_b_label = new QLabel("Button B : ");
 	input_b = new QLineEdit(controls);
 	config_b = new QPushButton("Configure");
@@ -277,7 +315,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	input_b_set->setLayout(input_b_layout);
 
 	//Control settings - START button
-	QWidget* input_start_set = new QWidget(controls);
+	input_start_set = new QWidget(controls);
 	QLabel* input_start_label = new QLabel("START : ");
 	input_start = new QLineEdit(controls);
 	config_start = new QPushButton("Configure");
@@ -292,7 +330,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	input_start_set->setLayout(input_start_layout);
 
 	//Control settings - SELECT button
-	QWidget* input_select_set = new QWidget(controls);
+	input_select_set = new QWidget(controls);
 	QLabel* input_select_label = new QLabel("SELECT : ");
 	input_select = new QLineEdit(controls);
 	config_select = new QPushButton("Configure");
@@ -307,7 +345,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	input_select_set->setLayout(input_select_layout);
 
 	//Control settings - Left
-	QWidget* input_left_set = new QWidget(controls);
+	input_left_set = new QWidget(controls);
 	QLabel* input_left_label = new QLabel("LEFT : ");
 	input_left = new QLineEdit(controls);
 	config_left = new QPushButton("Configure");
@@ -322,7 +360,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	input_left_set->setLayout(input_left_layout);
 
 	//Control settings - Right
-	QWidget* input_right_set = new QWidget(controls);
+	input_right_set = new QWidget(controls);
 	QLabel* input_right_label = new QLabel("RIGHT : ");
 	input_right = new QLineEdit(controls);
 	config_right = new QPushButton("Configure");
@@ -337,7 +375,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	input_right_set->setLayout(input_right_layout);
 
 	//Control settings - Up
-	QWidget* input_up_set = new QWidget(controls);
+	input_up_set = new QWidget(controls);
 	QLabel* input_up_label = new QLabel("UP : ");
 	input_up = new QLineEdit(controls);
 	config_up = new QPushButton("Configure");
@@ -352,7 +390,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	input_up_set->setLayout(input_up_layout);
 
 	//Control settings - Down
-	QWidget* input_down_set = new QWidget(controls);
+	input_down_set = new QWidget(controls);
 	QLabel* input_down_label = new QLabel("DOWN : ");
 	input_down = new QLineEdit(controls);
 	config_down = new QPushButton("Configure");
@@ -367,7 +405,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	input_down_set->setLayout(input_down_layout);
 
 	//Control settings - Right Trigger
-	QWidget* input_r_set = new QWidget(controls);
+	input_r_set = new QWidget(controls);
 	QLabel* input_r_label = new QLabel("Trigger R : ");
 	input_r = new QLineEdit(controls);
 	config_r = new QPushButton("Configure");
@@ -382,7 +420,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	input_r_set->setLayout(input_r_layout);
 
 	//Control settings - Left Trigger
-	QWidget* input_l_set = new QWidget(controls);
+	input_l_set = new QWidget(controls);
 	QLabel* input_l_label = new QLabel("Trigger L : ");
 	input_l = new QLineEdit(controls);
 	config_l = new QPushButton("Configure");
@@ -396,7 +434,78 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	input_l_layout->setContentsMargins(6, 0, 0, 0);
 	input_l_set->setLayout(input_l_layout);
 
-	QVBoxLayout* controls_layout = new QVBoxLayout;
+	//Advanced control settings - Enable rumble
+	rumble_set = new QWidget(controls);
+	QLabel* rumble_label = new QLabel("Enable rumble", rumble_set);
+	rumble_on = new QCheckBox(rumble_set);
+
+	QHBoxLayout* rumble_layout = new QHBoxLayout;
+	rumble_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	rumble_layout->addWidget(rumble_on);
+	rumble_layout->addWidget(rumble_label);
+	rumble_set->setLayout(rumble_layout);
+
+	//Advanced control settings - Gyro left
+	gyro_left_set = new QWidget(controls);
+	QLabel* gyro_left_label = new QLabel("Gyro Left : ");
+	input_gyro_left = new QLineEdit(controls);
+	config_gyro_left = new QPushButton("Configure");
+	input_gyro_left->setMaximumWidth(100);
+	config_gyro_left->setMaximumWidth(100);
+
+	QHBoxLayout* gyro_left_layout = new QHBoxLayout;
+	gyro_left_layout->addWidget(gyro_left_label, 1, Qt::AlignLeft);
+	gyro_left_layout->addWidget(input_gyro_left, 1, Qt::AlignLeft);
+	gyro_left_layout->addWidget(config_gyro_left, 1, Qt::AlignLeft);
+	gyro_left_layout->setContentsMargins(6, 0, 0, 0);
+	gyro_left_set->setLayout(gyro_left_layout);
+
+	//Advanced control settings - Gyro right
+	gyro_right_set = new QWidget(controls);
+	QLabel* gyro_right_label = new QLabel("Gyro Right : ");
+	input_gyro_right = new QLineEdit(controls);
+	config_gyro_right = new QPushButton("Configure");
+	input_gyro_right->setMaximumWidth(100);
+	config_gyro_right->setMaximumWidth(100);
+
+	QHBoxLayout* gyro_right_layout = new QHBoxLayout;
+	gyro_right_layout->addWidget(gyro_right_label, 1, Qt::AlignLeft);
+	gyro_right_layout->addWidget(input_gyro_right, 1, Qt::AlignLeft);
+	gyro_right_layout->addWidget(config_gyro_right, 1, Qt::AlignLeft);
+	gyro_right_layout->setContentsMargins(6, 0, 0, 0);
+	gyro_right_set->setLayout(gyro_right_layout);
+
+	//Advanced control settings - Gyro up
+	gyro_up_set = new QWidget(controls);
+	QLabel* gyro_up_label = new QLabel("Gyro Up : ");
+	input_gyro_up = new QLineEdit(controls);
+	config_gyro_up = new QPushButton("Configure");
+	input_gyro_up->setMaximumWidth(100);
+	config_gyro_up->setMaximumWidth(100);
+
+	QHBoxLayout* gyro_up_layout = new QHBoxLayout;
+	gyro_up_layout->addWidget(gyro_up_label, 1, Qt::AlignLeft);
+	gyro_up_layout->addWidget(input_gyro_up, 1, Qt::AlignLeft);
+	gyro_up_layout->addWidget(config_gyro_up, 1, Qt::AlignLeft);
+	gyro_up_layout->setContentsMargins(6, 0, 0, 0);
+	gyro_up_set->setLayout(gyro_up_layout);
+
+	//Advanced control settings - Gyro down
+	gyro_down_set = new QWidget(controls);
+	QLabel* gyro_down_label = new QLabel("Gyro Down : ");
+	input_gyro_down = new QLineEdit(controls);
+	config_gyro_down = new QPushButton("Configure");
+	input_gyro_down->setMaximumWidth(100);
+	config_gyro_down->setMaximumWidth(100);
+
+	QHBoxLayout* gyro_down_layout = new QHBoxLayout;
+	gyro_down_layout->addWidget(gyro_down_label, 1, Qt::AlignLeft);
+	gyro_down_layout->addWidget(input_gyro_down, 1, Qt::AlignLeft);
+	gyro_down_layout->addWidget(config_gyro_down, 1, Qt::AlignLeft);
+	gyro_down_layout->setContentsMargins(6, 0, 0, 0);
+	gyro_down_set->setLayout(gyro_down_layout);
+
+	controls_layout = new QVBoxLayout;
 	controls_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	controls_layout->addWidget(input_device_set);
 	controls_layout->addWidget(input_a_set);
@@ -411,6 +520,20 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	controls_layout->addWidget(input_r_set);
 	controls_layout->addWidget(dead_zone_set);
 	controls->setLayout(controls_layout);
+
+	advanced_controls_layout = new QVBoxLayout;
+	advanced_controls_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	advanced_controls_layout->addWidget(rumble_set);
+	advanced_controls_layout->addWidget(gyro_up_set);
+	advanced_controls_layout->addWidget(gyro_down_set);
+	advanced_controls_layout->addWidget(gyro_left_set);
+	advanced_controls_layout->addWidget(gyro_right_set);
+	
+	rumble_set->setVisible(false);
+	gyro_up_set->setVisible(false);
+	gyro_down_set->setVisible(false);
+	gyro_left_set->setVisible(false);
+	gyro_right_set->setVisible(false);
 
 	//Path settings - DMG BIOS
 	QWidget* dmg_bios_set = new QWidget(paths);
@@ -524,12 +647,15 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	paths_layout->addWidget(screenshot_set);
 	paths->setLayout(paths_layout);
 
+	data_folder = new data_dialog;
+
 	connect(tabs, SIGNAL(currentChanged(int)), this, SLOT(close_input()));
 	connect(tabs_button, SIGNAL(accepted()), this, SLOT(accept()));
 	connect(tabs_button, SIGNAL(rejected()), this, SLOT(reject()));
 	connect(tabs_button->button(QDialogButtonBox::Close), SIGNAL(clicked()), this, SLOT(close_input()));
 	connect(bios, SIGNAL(stateChanged(int)), this, SLOT(set_bios()));
 	connect(screen_scale, SIGNAL(currentIndexChanged(int)), this, SLOT(screen_scale_change()));
+	connect(aspect_ratio, SIGNAL(stateChanged(int)), this, SLOT(aspect_ratio_change()));
 	connect(dmg_gbc_pal, SIGNAL(currentIndexChanged(int)), this, SLOT(dmg_gbc_pal_change()));
 	connect(load_cgfx, SIGNAL(stateChanged(int)), this, SLOT(set_cgfx()));
 	connect(volume, SIGNAL(valueChanged(int)), this, SLOT(volume_change()));
@@ -537,6 +663,9 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(sound_on, SIGNAL(stateChanged(int)), this, SLOT(mute()));
 	connect(dead_zone, SIGNAL(valueChanged(int)), this, SLOT(dead_zone_change()));
 	connect(input_device, SIGNAL(currentIndexChanged(int)), this, SLOT(input_device_change()));
+	connect(advanced_button, SIGNAL(clicked()), this, SLOT(switch_control_layout()));
+	connect(data_folder, SIGNAL(accepted()), this, SLOT(select_folder()));
+	connect(data_folder, SIGNAL(rejected()), this, SLOT(reject_folder()));
 
 	QSignalMapper* paths_mapper = new QSignalMapper(this);
 	connect(dmg_bios_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
@@ -567,6 +696,10 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(config_down, SIGNAL(clicked()), button_config, SLOT(map()));
 	connect(config_l, SIGNAL(clicked()), button_config, SLOT(map()));
 	connect(config_r, SIGNAL(clicked()), button_config, SLOT(map()));
+	connect(config_gyro_up, SIGNAL(clicked()), button_config, SLOT(map()));
+	connect(config_gyro_down, SIGNAL(clicked()), button_config, SLOT(map()));
+	connect(config_gyro_left, SIGNAL(clicked()), button_config, SLOT(map()));
+	connect(config_gyro_right, SIGNAL(clicked()), button_config, SLOT(map()));
 
 	button_config->setMapping(config_a, 0);
 	button_config->setMapping(config_b, 1);
@@ -578,6 +711,10 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	button_config->setMapping(config_down, 7);
 	button_config->setMapping(config_l, 8);
 	button_config->setMapping(config_r, 9);
+	button_config->setMapping(config_gyro_up, 10);
+	button_config->setMapping(config_gyro_down, 11);
+	button_config->setMapping(config_gyro_left, 12);
+	button_config->setMapping(config_gyro_right, 13);
 	connect(button_config, SIGNAL(mapped(int)), this, SLOT(configure_button(int))) ;
 
 	//Final tab layout
@@ -597,6 +734,10 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	config_down->setMinimumWidth(150);
 	config_l->setMinimumWidth(150);
 	config_r->setMinimumWidth(150);
+	config_gyro_up->setMinimumWidth(150);
+	config_gyro_down->setMinimumWidth(150);
+	config_gyro_left->setMinimumWidth(150);
+	config_gyro_right->setMinimumWidth(150);
 
 	input_a->setReadOnly(true);
 	input_b->setReadOnly(true);
@@ -608,6 +749,10 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	input_down->setReadOnly(true);
 	input_l->setReadOnly(true);
 	input_r->setReadOnly(true);
+	input_gyro_up->setReadOnly(true);
+	input_gyro_down->setReadOnly(true);
+	input_gyro_left->setReadOnly(true);
+	input_gyro_right->setReadOnly(true);
 
 	//Install event filters
 	config_a->installEventFilter(this);
@@ -620,6 +765,10 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	config_down->installEventFilter(this);
 	config_l->installEventFilter(this);
 	config_r->installEventFilter(this);
+	config_gyro_up->installEventFilter(this);
+	config_gyro_down->installEventFilter(this);
+	config_gyro_left->installEventFilter(this);
+	config_gyro_right->installEventFilter(this);
 
 	input_a->installEventFilter(this);
 	input_b->installEventFilter(this);
@@ -631,6 +780,10 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	input_down->installEventFilter(this);
 	input_l->installEventFilter(this);
 	input_r->installEventFilter(this);
+	input_gyro_up->installEventFilter(this);
+	input_gyro_down->installEventFilter(this);
+	input_gyro_left->installEventFilter(this);
+	input_gyro_right->installEventFilter(this);
 
 	//Set focus policies
 	config_a->setFocusPolicy(Qt::NoFocus);
@@ -643,6 +796,10 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	config_down->setFocusPolicy(Qt::NoFocus);
 	config_l->setFocusPolicy(Qt::NoFocus);
 	config_r->setFocusPolicy(Qt::NoFocus);
+	config_gyro_up->setFocusPolicy(Qt::NoFocus);
+	config_gyro_down->setFocusPolicy(Qt::NoFocus);
+	config_gyro_left->setFocusPolicy(Qt::NoFocus);
+	config_gyro_right->setFocusPolicy(Qt::NoFocus);
 
 	input_a->setFocusPolicy(Qt::NoFocus);
 	input_b->setFocusPolicy(Qt::NoFocus);
@@ -654,19 +811,25 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	input_down->setFocusPolicy(Qt::NoFocus);
 	input_l->setFocusPolicy(Qt::NoFocus);
 	input_r->setFocusPolicy(Qt::NoFocus);
+	input_gyro_up->setFocusPolicy(Qt::NoFocus);
+	input_gyro_down->setFocusPolicy(Qt::NoFocus);
+	input_gyro_left->setFocusPolicy(Qt::NoFocus);
+	input_gyro_right->setFocusPolicy(Qt::NoFocus);
 
 	//Joystick handling
 	jstick = SDL_JoystickOpen(0);
 	
-	if(jstick != NULL)
+	for(int x = 0; x < SDL_NumJoysticks(); x++)
 	{
-		std::string joy_name = SDL_JoystickName(0);
+		SDL_Joystick* jstick = SDL_JoystickOpen(x);
+		std::string joy_name = SDL_JoystickName(jstick);
 		input_device->addItem(QString::fromStdString(joy_name));
 	}
 
 	sample_rate = config::sample_rate;
 	resize_screen = false;
 	grab_input = false;
+	config_advanced_controls = false;
 	input_type = 0;
 
 	resize(450, 450);
@@ -681,6 +844,9 @@ void gen_settings::set_ini_options()
 
 	//BIOS or Boot ROM option
 	if(config::use_bios) { bios->setChecked(true); }
+
+	//Use cheats
+	if(config::use_cheats) { cheats->setChecked(true); }
 
 	//Screen scale options
 	screen_scale->setCurrentIndex(config::scaling_factor - 1);
@@ -697,12 +863,15 @@ void gen_settings::set_ini_options()
 	//CGFX option
 	if(cgfx::load_cgfx) { load_cgfx->setChecked(true); }
 
+	//Maintain aspect ratio option
+	if(config::maintain_aspect_ratio) { aspect_ratio->setChecked(true); }
+
 	//Sample rate option
 	switch((int)config::sample_rate)
 	{
-		case 10250: freq->setCurrentIndex(3); break;
-		case 20500: freq->setCurrentIndex(2); break;
-		case 41000: freq->setCurrentIndex(1); break;
+		case 11025: freq->setCurrentIndex(3); break;
+		case 22050: freq->setCurrentIndex(2); break;
+		case 44100: freq->setCurrentIndex(1); break;
 		case 48000: freq->setCurrentIndex(0); break;
 	}
 
@@ -737,6 +906,10 @@ void gen_settings::set_ini_options()
 	input_down->setText(QString::number(config::agb_key_down));
 	input_l->setText(QString::number(config::agb_key_l_trigger));
 	input_r->setText(QString::number(config::agb_key_r_trigger));
+	input_gyro_up->setText(QString::number(config::gyro_key_up));
+	input_gyro_down->setText(QString::number(config::gyro_key_down));
+	input_gyro_left->setText(QString::number(config::gyro_key_left));
+	input_gyro_right->setText(QString::number(config::gyro_key_right));
 
 	//BIOS, Boot ROM and Manifest paths
 	QString path_1(QString::fromStdString(config::dmg_bios_path));
@@ -746,6 +919,9 @@ void gen_settings::set_ini_options()
 	QString path_5(QString::fromStdString(config::ss_path));
 	QString path_6(QString::fromStdString(cgfx::dump_bg_path));
 	QString path_7(QString::fromStdString(cgfx::dump_obj_path));
+
+	//Rumble
+	if(config::use_haptics) { rumble_on->setChecked(true); }
 
 	dmg_bios->setText(path_1);
 	gbc_bios->setText(path_2);
@@ -768,6 +944,13 @@ void gen_settings::screen_scale_change()
 {
 	config::scaling_factor = (screen_scale->currentIndex() + 1);
 	resize_screen = true;
+}
+
+/****** Sets whether to maintain the aspect ratio or not ******/
+void gen_settings::aspect_ratio_change()
+{
+	if(aspect_ratio->isChecked()) { config::maintain_aspect_ratio = true; }
+	else { config::maintain_aspect_ratio = false; }
 }
 
 /****** Changes the emulated DMG-on-GBC palette ******/
@@ -846,9 +1029,9 @@ void gen_settings::sample_rate_change()
 	switch(freq->currentIndex())
 	{
 		case 0: sample_rate = 48000.0; break;
-		case 1: sample_rate = 41000.0; break;
-		case 2: sample_rate = 20500.0; break;
-		case 3: sample_rate = 10250.0; break;
+		case 1: sample_rate = 44100.0; break;
+		case 2: sample_rate = 22050.0; break;
+		case 3: sample_rate = 11025.0; break;
 	}
 }
 
@@ -867,7 +1050,20 @@ void gen_settings::set_paths(int index)
 	//Open folder browser for screenshots, CGFX dumps
 	else
 	{
-		path = QFileDialog::getExistingDirectory(this, tr("Open"), "", QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+		//Open the data folder for CGFX dumps
+		//On Linux or Unix, this is supposed to be a hidden folder, so we need a custom dialog
+		if(index >= 5)
+		{
+			data_folder->open_data_folder();			
+
+			while(!data_folder->finish) { QApplication::processEvents(); }
+	
+			path = data_folder->directory().path();
+			path = data_folder->path.relativeFilePath(path);
+		}
+
+		else { path = QFileDialog::getExistingDirectory(this, tr("Open"), "", QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks); }
+		
 		if(path.isNull()) { return; }	
 
 		//Make sure path is complete, e.g. has the correct separator at the end
@@ -937,6 +1133,10 @@ void gen_settings::input_device_change()
 		input_down->setText(QString::number(config::agb_key_down));
 		input_l->setText(QString::number(config::agb_key_l_trigger));
 		input_r->setText(QString::number(config::agb_key_r_trigger));
+		input_gyro_up->setText(QString::number(config::gyro_key_up));
+		input_gyro_down->setText(QString::number(config::gyro_key_down));
+		input_gyro_left->setText(QString::number(config::gyro_key_left));
+		input_gyro_right->setText(QString::number(config::gyro_key_right));
 	}
 
 	else
@@ -951,6 +1151,14 @@ void gen_settings::input_device_change()
 		input_down->setText(QString::number(config::agb_joy_down));
 		input_l->setText(QString::number(config::agb_joy_l_trigger));
 		input_r->setText(QString::number(config::agb_joy_r_trigger));
+		input_gyro_up->setText(QString::number(config::gyro_joy_up));
+		input_gyro_down->setText(QString::number(config::gyro_joy_down));
+		input_gyro_left->setText(QString::number(config::gyro_joy_left));
+		input_gyro_right->setText(QString::number(config::gyro_joy_right));
+
+		//Use new joystick id
+		config::joy_id = input_device->currentIndex() - 1;
+		jstick = SDL_JoystickOpen(config::joy_id);
 	}
 
 	close_input();
@@ -1027,6 +1235,30 @@ void gen_settings::configure_button(int button)
 			input_r->setFocus();
 			input_index = 9;
 			break;
+
+		case 10: 
+			input_delay(config_gyro_up);
+			input_gyro_up->setFocus();
+			input_index = 10;
+			break;
+
+		case 11: 
+			input_delay(config_gyro_down);
+			input_gyro_down->setFocus();
+			input_index = 11;
+			break;
+
+		case 12: 
+			input_delay(config_gyro_left);
+			input_gyro_left->setFocus();
+			input_index = 12;
+			break;
+
+		case 13: 
+			input_delay(config_gyro_right);
+			input_gyro_right->setFocus();
+			input_index = 13;
+			break;
 	}
 
 	if(input_type != 0) { process_joystick_event(); }
@@ -1075,7 +1307,7 @@ void gen_settings::process_joystick_event()
 		//Generate pad id
 		switch(joy_event.type)
 		{
-			case SDL_JOYBUTTONDOWN: 
+			case SDL_JOYBUTTONDOWN:
 				pad = 100 + joy_event.jbutton.button; 
 				grab_input = false;
 				break;
@@ -1216,10 +1448,55 @@ void gen_settings::process_joystick_event()
 			config_r->setText("Configure");
 			input_r->clearFocus();
 			break;
+
+		case 10:
+			if(pad != 0)
+			{
+				config::gyro_joy_up = pad;
+				input_gyro_up->setText(QString::number(pad));
+			}
+
+			config_gyro_up->setText("Configure");
+			input_gyro_up->clearFocus();
+			break;
+
+		case 11:
+			if(pad != 0)
+			{
+				config::gyro_joy_down = pad;
+				input_gyro_down->setText(QString::number(pad));
+			}
+
+			config_gyro_down->setText("Configure");
+			input_gyro_down->clearFocus();
+			break;
+
+		case 12:
+			if(pad != 0)
+			{
+				config::gyro_joy_left = pad;
+				input_gyro_left->setText(QString::number(pad));
+			}
+
+			config_gyro_left->setText("Configure");
+			input_gyro_left->clearFocus();
+			break;
+
+		case 13:
+			if(pad != 0)
+			{
+				config::gyro_joy_right = pad;
+				input_gyro_right->setText(QString::number(pad));
+			}
+
+			config_gyro_right->setText("Configure");
+			input_gyro_right->clearFocus();
+			break;
 	}
 
 	input_index = -1;
 	QApplication::processEvents();
+	grab_input = false;
 }
 
 /****** Close all pending input configuration ******/
@@ -1235,9 +1512,101 @@ void gen_settings::close_input()
 	config_down->setText("Configure");
 	config_l->setText("Configure");
 	config_r->setText("Configure");
+	config_gyro_up->setText("Configure");
+	config_gyro_down->setText("Configure");
+	config_gyro_left->setText("Configure");
+	config_gyro_right->setText("Configure");
 
 	input_index = -1;
 	grab_input = false;
+
+	//Additionally, set the Advanced Controls button visible or invisible when switching tabs
+	if(tabs->currentIndex() == 3) { advanced_button->setVisible(true); }
+	else { advanced_button->setVisible(false); }
+}
+
+/****** Changes Qt widget layout - Switches between advanced control configuration mode ******/
+void gen_settings::switch_control_layout()
+{
+	//Switch from standard control layout to advanced control layout
+	if(!config_advanced_controls)
+	{
+		//Set all advanced control widgets to visible
+		for(int x = 0; x < advanced_controls_layout->count(); x++)
+		{
+			advanced_controls_layout->itemAt(x)->widget()->setVisible(true);
+		}
+
+		//Set all standard control widgets to invisible
+		for(int x = 0; x < controls_layout->count(); x++)
+		{
+			controls_layout->itemAt(x)->widget()->setVisible(false);
+		}
+
+		config_advanced_controls = true;
+
+		delete controls->layout();
+		advanced_controls_layout->insertWidget(0, input_device_set);
+		controls->setLayout(advanced_controls_layout);
+
+		//Rebuild old layout (was deleted above)
+		controls_layout = new QVBoxLayout;
+		controls_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+		controls_layout->addWidget(input_a_set);
+		controls_layout->addWidget(input_b_set);
+		controls_layout->addWidget(input_start_set);
+		controls_layout->addWidget(input_select_set);
+		controls_layout->addWidget(input_left_set);
+		controls_layout->addWidget(input_right_set);
+		controls_layout->addWidget(input_up_set);
+		controls_layout->addWidget(input_down_set);
+		controls_layout->addWidget(input_l_set);
+		controls_layout->addWidget(input_r_set);
+		controls_layout->addWidget(dead_zone_set);
+
+		input_device_set->setVisible(true);
+
+		//Set the text for the button
+		std::string button_text = "Standard Controls";
+		advanced_button->setText(QString::fromStdString(button_text));
+	}
+
+	//Switch from advanced control layout to standard control layout
+	else
+	{
+		//Set all advanced control widgets to invisible
+		for(int x = 0; x < advanced_controls_layout->count(); x++)
+		{
+			advanced_controls_layout->itemAt(x)->widget()->setVisible(false);
+		}
+
+		//Set all standard control widgets to invisible
+		for(int x = 0; x < controls_layout->count(); x++)
+		{
+			controls_layout->itemAt(x)->widget()->setVisible(true);
+		}
+
+		config_advanced_controls = false;
+
+		delete controls->layout();
+		controls_layout->insertWidget(0, input_device_set);
+		controls->setLayout(controls_layout);
+
+		//Rebuild old layout (was deleted above)
+		advanced_controls_layout = new QVBoxLayout;
+		advanced_controls_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+		advanced_controls_layout->addWidget(rumble_set);
+		advanced_controls_layout->addWidget(gyro_up_set);
+		advanced_controls_layout->addWidget(gyro_down_set);
+		advanced_controls_layout->addWidget(gyro_left_set);
+		advanced_controls_layout->addWidget(gyro_right_set);
+
+		input_device_set->setVisible(true);
+
+		//Set the text for the button
+		std::string button_text = "Advanced Controls";
+		advanced_button->setText(QString::fromStdString(button_text));
+	}
 }
 
 /****** Updates the settings window ******/
@@ -1376,6 +1745,50 @@ void gen_settings::keyPressEvent(QKeyEvent* event)
 				config_r->setText("Configure");
 				input_r->clearFocus();
 				break;
+
+			case 10:
+				if(last_key != -1)
+				{
+					config::gyro_key_up = last_key;
+					input_gyro_up->setText(QString::number(last_key));
+				}
+
+				config_gyro_up->setText("Configure");
+				input_gyro_up->clearFocus();
+				break;
+
+			case 11:
+				if(last_key != -1)
+				{
+					config::gyro_key_down = last_key;
+					input_gyro_down->setText(QString::number(last_key));
+				}
+
+				config_gyro_down->setText("Configure");
+				input_gyro_down->clearFocus();
+				break;
+
+			case 12:
+				if(last_key != -1)
+				{
+					config::gyro_key_left = last_key;
+					input_gyro_left->setText(QString::number(last_key));
+				}
+
+				config_gyro_left->setText("Configure");
+				input_gyro_left->clearFocus();
+				break;
+
+			case 13:
+				if(last_key != -1)
+				{
+					config::gyro_key_right = last_key;
+					input_gyro_right->setText(QString::number(last_key));
+				}
+
+				config_gyro_right->setText("Configure");
+				input_gyro_right->clearFocus();
+				break;
 		}
 
 		grab_input = false;
@@ -1394,4 +1807,14 @@ bool gen_settings::eventFilter(QObject* target, QEvent* event)
 	}
 
 	return QDialog::eventFilter(target, event);
+}
+
+/****** Selects folder ******/
+void gen_settings::select_folder() { data_folder->finish = true; }
+
+/****** Rejectss folder ******/
+void gen_settings::reject_folder()
+{
+	data_folder->finish = true;
+	data_folder->setDirectory(data_folder->last_path);
 }

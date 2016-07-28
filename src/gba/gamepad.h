@@ -12,7 +12,7 @@
 #ifndef GBA_GAMEPAD
 #define GBA_GAMEPAD
 
-#include "SDL/SDL.h"
+#include "SDL2/SDL.h"
 #include <string>
 #include <iostream>
 

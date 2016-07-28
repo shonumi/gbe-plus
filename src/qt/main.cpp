@@ -12,20 +12,34 @@
  
 int main(int argc, char* args[]) 
 {
+	std::cout<<"GBE+ 1.0 [Qt]\n";
+
 	config::use_external_interfaces = true;
 
 	QApplication::setAttribute(Qt::AA_X11InitThreads);
 	QApplication app(argc, args);
 
-	//Initialize SDL subsystems
+	//Initialize SDL subsystems and hints, report specific init errors later in the core
 	SDL_Init(SDL_INIT_EVERYTHING);
+	SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS,"1");
+
+	//Grab command-line arguments
+	for(int x = 0; x++ < argc - 1;) 
+	{ 
+		std::string temp_arg = args[x]; 
+		config::cli_args.push_back(temp_arg);
+	}
 
 	main_menu window;
 	qt_gui::draw_surface = &window;
 
+	QIcon icon(QString::fromStdString(config::cfg_path + "data/icons/gbe_plus.png")); 
+
 	window.resize(450, 300);
 	window.setWindowTitle("GBE+");
+	window.setWindowIcon(icon);
 	window.show();
+	window.open_first_file();
  
 	return app.exec();
 } 

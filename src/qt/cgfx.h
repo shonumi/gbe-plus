@@ -13,11 +13,12 @@
 
 #include <vector>
 
-#include <SDL/SDL.h>
+#include <SDL2/SDL.h>
 
 #include <QtGui>
 
 #include "common/common.h"
+#include "data_dialog.h"
 
 class gbe_cgfx : public QDialog
 {
@@ -70,6 +71,18 @@ class gbe_cgfx : public QDialog
 	QLabel* tile_size;
 	QLabel* h_v_flip;
 	QLabel* tile_palette;
+	QLabel* hash_text;
+	QLabel* vram_text;
+	QLabel* bright_text;
+
+	QSpinBox* rect_x;
+	QSpinBox* rect_w;
+	QSpinBox* rect_y;
+	QSpinBox* rect_h;
+
+	QCheckBox* use_vram_addr;
+	QCheckBox* use_auto_bright;
+	QLineEdit* meta_name;
 
 	//OBJ tab widgets
 	std::vector<QImage> cgfx_obj;
@@ -78,6 +91,8 @@ class gbe_cgfx : public QDialog
 	//BG tab widgets
 	std::vector<QImage> cgfx_bg;
 	std::vector<QPushButton*> bg_button;
+
+	data_dialog* data_folder;
 
 	bool pause;
 
@@ -115,17 +130,24 @@ class gbe_cgfx : public QDialog
 	void setup_obj_window(int rows, int count);
 	void update_preview(u32 x, u32 y);
 	void dump_layer_tile(u32 x, u32 y);
+	std::string hash_tile(u8 x, u8 y);
 
 	void setup_bg_window(int rows, int count);
 
 	u8 dump_type;
 	int advanced_index;
 
+	std::string last_custom_path;
+
+	u8 min_x_rect, max_x_rect;
+	u8 min_y_rect, max_y_rect;
+
 	private slots:
 	void close_cgfx();
 	void close_advanced();
 	void dump_obj(int obj_index);
 	void dump_bg(int bg_index);
+	void dump_selection();
 	void write_manifest_entry();
 	void show_advanced_obj(int index);
 	void show_advanced_bg(int index);
@@ -135,6 +157,9 @@ class gbe_cgfx : public QDialog
 	void set_auto_bg();
 	void set_blanks();
 	void layer_change();
+	void select_folder();
+	void reject_folder();
+	void update_selection();
 };
 
 #endif //CGFX_GBE_QT 

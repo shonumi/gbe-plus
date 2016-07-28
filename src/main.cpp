@@ -15,6 +15,8 @@
 
 int main(int argc, char* args[]) 
 {
+	std::cout<<"GBE+ 1.0 [SDL]\n";
+
 	core_emu* gbe_plus = NULL;
 
 	//Start SDL from the main thread now, report specific init errors later in the core
@@ -30,6 +32,9 @@ int main(int argc, char* args[])
 
 	//Parse .ini options
 	parse_ini_file();
+
+	//Parse cheat file
+	if(config::use_cheats) { parse_cheats_file(); }
 
 	if(config::mute) { config::volume = 0; }
 
@@ -73,9 +78,6 @@ int main(int argc, char* args[])
 
 	//Disbale mouse cursor in SDL, it's annoying
 	SDL_ShowCursor(SDL_DISABLE);
-
-	//Set program window caption
-	SDL_WM_SetCaption("GBE+", NULL);
 
 	//Actually run the core
 	gbe_plus->run_core();

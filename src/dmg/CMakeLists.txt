@@ -12,6 +12,7 @@ set(SRCS
 	opengl.cpp
 	z80.cpp
 	custom_graphics.cpp
+	sio.cpp
 	)
 
 set(HEADERS
@@ -25,8 +26,14 @@ set(HEADERS
 	mmu.h
 	z80.h
 	custom_graphics_data.h
+	sio.h
+	sio_data.h
 	)
 
 add_library(dmg STATIC ${SRCS} ${HEADERS})
 
-target_link_libraries(dmg common ${SDL_LIBRARY} ${OPENGL_gl_LIBRARY}) 
+target_link_libraries(dmg common ${SDL2_LIBRARY} ${OPENGL_gl_LIBRARY})
+
+if (LINK_CABLE)
+    target_link_libraries(dmg ${SDL2NET_LIBRARY})
+endif()

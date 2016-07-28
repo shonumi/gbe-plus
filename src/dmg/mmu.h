@@ -22,6 +22,7 @@
 #include "lcd_data.h"
 #include "custom_graphics_data.h"
 #include "apu_data.h"
+#include "sio_data.h"
 
 class DMG_MMU
 {
@@ -72,6 +73,8 @@ class DMG_MMU
 		mbc_types mbc_type;
 		bool battery;
 		bool ram;
+		bool multicart;
+		bool rumble;
 
 		//MBC3 RTC
 		bool rtc;
@@ -91,6 +94,9 @@ class DMG_MMU
 		u16 addr;
 		u16 buffer;
 	} cart;
+
+	u8 ir_signal;
+	bool ir_send;
 
 	DMG_GamePad* g_pad;
 
@@ -119,6 +125,9 @@ class DMG_MMU
 	void mbc1_write(u16 address, u8 value);
 	u8 mbc1_read(u16 address);
 
+	void mbc1_multicart_write(u16 address, u8 value);
+	u8 mbc1_multicart_read(u16 address);
+
 	void mbc2_write(u16 address, u8 value);
 	u8 mbc2_read(u16 address);
 
@@ -132,13 +141,18 @@ class DMG_MMU
 	void mbc7_write_ram(u8 value);
 	u8 mbc7_read(u16 address);
 
+	void set_gs_cheats();
+	void set_gg_cheats();
+
 	void set_lcd_data(dmg_lcd_data* ex_lcd_stat);
 	void set_cgfx_data(dmg_cgfx_data* ex_cgfx_stat);
 	void set_apu_data(dmg_apu_data* ex_apu_stat);
+	void set_sio_data(dmg_sio_data* ex_sio_stat);
 
 	//Serialize data for save state loading/saving
 	bool mmu_read(u32 offset, std::string filename);
 	bool mmu_write(std::string filename);
+	u32 size();
 
 	private:
 
@@ -152,6 +166,9 @@ class DMG_MMU
 
 	//Only the MMU and APU should communicate through this structure
 	dmg_apu_data* apu_stat;
+
+	//Only the MMU and SIO should communicate through this structure
+	dmg_sio_data* sio_stat;
 };
 
 #endif // GB_MMU

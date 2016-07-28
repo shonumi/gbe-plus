@@ -16,12 +16,14 @@
 /****** LCD Constructor ******/
 DMG_LCD::DMG_LCD()
 {
+	window = NULL;
 	reset();
 }
 
 /****** LCD Destructor ******/
 DMG_LCD::~DMG_LCD()
 {
+	SDL_DestroyWindow(window);
 	std::cout<<"LCD::Shutdown\n";
 }
 
@@ -30,6 +32,9 @@ void DMG_LCD::reset()
 {
 	final_screen = NULL;
 	mem = NULL;
+
+	if((window != NULL) && (config::sdl_render)) { SDL_DestroyWindow(window); }
+	window = NULL;
 
 	screen_buffer.clear();
 	scanline_buffer.clear();
@@ -70,6 +75,7 @@ void DMG_LCD::reset()
 	lcd_stat.bg_scroll_y = 0;
 	lcd_stat.window_x = 0;
 	lcd_stat.window_y = 0;
+	lcd_stat.last_y = 0;
 
 	lcd_stat.oam_update = true;
 	for(int x = 0; x < 40; x++) { lcd_stat.oam_update_list[x] = true; }
@@ -138,22 +144,22 @@ void DMG_LCD::reset()
 
 	//CGFX setup
 	cgfx_stat.current_obj_hash.clear();
-	cgfx_stat.current_obj_hash.resize(40);
+	cgfx_stat.current_obj_hash.resize(40, "");
 
 	cgfx_stat.current_bg_hash.clear();
-	cgfx_stat.current_bg_hash.resize(384);
+	cgfx_stat.current_bg_hash.resize(384, "");
 
 	cgfx_stat.current_gbc_bg_hash.clear();
-	cgfx_stat.current_gbc_bg_hash.resize(2048);
+	cgfx_stat.current_gbc_bg_hash.resize(2048, "");
 
 	cgfx_stat.bg_update_list.clear();
-	cgfx_stat.bg_update_list.resize(384);
+	cgfx_stat.bg_update_list.resize(384, false);
 
 	cgfx_stat.bg_tile_update_list.clear();
-	cgfx_stat.bg_tile_update_list.resize(256);
+	cgfx_stat.bg_tile_update_list.resize(256, false);
 
 	cgfx_stat.bg_map_update_list.clear();
-	cgfx_stat.bg_map_update_list.resize(2048);
+	cgfx_stat.bg_map_update_list.resize(2048, false);
 
 	cgfx_stat.update_bg = false;
 	cgfx_stat.update_map = false;
@@ -176,6 +182,7 @@ void DMG_LCD::reset()
 		{
 			config::sys_width *= cgfx::scaling_factor;
 			config::sys_height *= cgfx::scaling_factor;
+			cgfx::scale_squared = cgfx::scaling_factor * cgfx::scaling_factor;
 
 			hd_screen_buffer.clear();
 			hd_screen_buffer.resize((config::sys_width * config::sys_height), 0);
@@ -186,20 +193,34 @@ void DMG_LCD::reset()
 /****** Initialize LCD with SDL ******/
 bool DMG_LCD::init()
 {
+	//Initialize with SDL rendering software or hardware
 	if(config::sdl_render)
 	{
-		if(SDL_Init(SDL_INIT_EVERYTHING) == -1)
+		//Initialize all of SDL
+		if(SDL_Init(SDL_INIT_VIDEO) == -1)
 		{
-			std::cout<<"LCD::Error - Could not initialize SDL\n";
+			std::cout<<"LCD::Error - Could not initialize SDL video\n";
 			return false;
 		}
 
-		if(config::use_opengl) {opengl_init(); }
-		else { final_screen = SDL_SetVideoMode(config::sys_width, config::sys_height, 32, SDL_SWSURFACE); }
+		//Setup OpenGL rendering
+		if(config::use_opengl) { opengl_init(); }
+
+		//Set up software rendering
+		else
+		{
+			window = SDL_CreateWindow("GBE+", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, config::sys_width, config::sys_height, config::flags);
+			SDL_GetWindowSize(window, &config::win_width, &config::win_height);
+			config::scaling_factor = 1;
+
+			final_screen = SDL_GetWindowSurface(window);
+			original_screen = SDL_CreateRGBSurface(SDL_SWSURFACE, config::sys_width, config::sys_height, 32, 0, 0, 0, 0);
+		}
 
 		if(final_screen == NULL) { return false; }
 	}
 
+	//Initialize with only a buffer for OpenGL (for external rendering)
 	else if((!config::sdl_render) && (config::use_opengl))
 	{
 		final_screen = SDL_CreateRGBSurface(SDL_SWSURFACE, config::sys_width, config::sys_height, 32, 0, 0, 0, 0);
@@ -396,8 +417,11 @@ void DMG_LCD::render_dmg_scanline()
 	//Draw sprite pixel data
 	if(lcd_stat.obj_enable) { render_dmg_obj_scanline(); }
 
+	//Ignore CGFX when greater than 1:1
+	if((cgfx::load_cgfx) && (cgfx::scaling_factor > 1)) { return; }
+
 	//Push scanline buffer to screen buffer - Normal version
-	if((config::resize_mode == 0) && (!config::request_resize))
+	else if((config::resize_mode == 0) && (!config::request_resize))
 	{
 		for(int x = 0; x < 160; x++)
 		{
@@ -422,9 +446,8 @@ void DMG_LCD::render_dmg_scanline()
 	else if((config::resize_mode == 2) && (!config::request_resize))
 	{
 		u16 offset = 1920 + (lcd_stat.current_scanline * 240);
-		u8 pixel_counter = (0x100 - lcd_stat.bg_scroll_x);
 		u16 stretched_pos = 0;
-		u8 old_pos, blend_pos = 0;
+		u8 old_pos = 0;
 
 		for(u8 x = 0; x < 160; x++)
 		{
@@ -455,8 +478,11 @@ void DMG_LCD::render_gbc_scanline()
 	//Draw sprite pixel data
 	if(lcd_stat.obj_enable) { render_gbc_obj_scanline(); }
 
+	//Ignore CGFX when greater than 1:1
+	if((cgfx::load_cgfx) && (cgfx::scaling_factor > 1)) { return; }
+
 	//Push scanline buffer to screen buffer - Normal version
-	if((config::resize_mode == 0) && (!config::request_resize))
+	else if((config::resize_mode == 0) && (!config::request_resize))
 	{
 		for(int x = 0; x < 160; x++)
 		{
@@ -481,9 +507,8 @@ void DMG_LCD::render_gbc_scanline()
 	else if((config::resize_mode == 2) && (!config::request_resize))
 	{
 		u16 offset = 1920 + (lcd_stat.current_scanline * 240);
-		u8 pixel_counter = (0x100 - lcd_stat.bg_scroll_x);
 		u16 stretched_pos = 0;
-		u8 old_pos, blend_pos = 0;
+		u8 old_pos = 0;
 
 		for(u8 x = 0; x < 160; x++)
 		{
@@ -598,6 +623,7 @@ void DMG_LCD::render_cgfx_dmg_bg_scanline(u16 bg_id)
 
 	//Determine which line of the tiles to generate pixels for this scanline
 	u8 tile_line = rendered_scanline % 8;
+	u8 tile_start = tile_line * 8;
 
 	//Grab the ID of this hash to pull custom pixel data
 	u16 bg_tile_id = cgfx_stat.m_id[cgfx_stat.last_id];
@@ -606,7 +632,7 @@ void DMG_LCD::render_cgfx_dmg_bg_scanline(u16 bg_id)
 	u16 tile_data = mem->read_u16(0x8000 + (bg_id << 4) + (tile_line << 1));
 	u8 tile_pixel = 0;
 
-	for(int x = (tile_line * 8), y = 7; x < ((tile_line * 8) + 8); x++, y--)
+	for(int x = tile_start, y = 7; x < (tile_start + 8); x++, y--)
 	{
 		//Calculate raw value of the tile's pixel
 		tile_pixel = ((tile_data >> 8) & (1 << y)) ? 2 : 0;
@@ -625,7 +651,7 @@ void DMG_LCD::render_cgfx_dmg_bg_scanline(u16 bg_id)
 		else
 		{
 			u32 pos = (lcd_stat.scanline_pixel_counter * cgfx::scaling_factor) + (lcd_stat.current_scanline * cgfx::scaling_factor * config::sys_width);
-			u32 bg_pos = (x * cgfx::scaling_factor) + (tile_line * cgfx::scaling_factor * 8);
+			u32 bg_pos = ((x - tile_start) * cgfx::scaling_factor) + (tile_line * cgfx::scale_squared * 8);
 			
 			if(lcd_stat.scanline_pixel_counter < 160)
 			{
@@ -751,6 +777,7 @@ void DMG_LCD::render_cgfx_gbc_bg_scanline(u16 tile_data, u8 bg_map_attribute)
 
 	//Determine which line of the tiles to generate pixels for this scanline
 	u8 tile_line = rendered_scanline % 8;
+	u8 tile_start = tile_line * 8;
 
 	//Grab the ID of this hash to pull custom pixel data
 	u16 bg_tile_id = cgfx_stat.m_id[cgfx_stat.last_id];
@@ -761,7 +788,7 @@ void DMG_LCD::render_cgfx_gbc_bg_scanline(u16 tile_data, u8 bg_map_attribute)
 	u8 tile_pixel = 0;
 	u8 bg_priority = (bg_map_attribute & 0x80) ? 1 : 0;
 
-	for(int x = (tile_line * 8), y = 7; x < ((tile_line * 8) + 8); x++, y--)
+	for(int x = tile_start, y = 7; x < (tile_start + 8); x++, y--)
 	{
 		//Calculate raw value of the tile's pixel
 		if(bg_map_attribute & 0x20) 
@@ -799,7 +826,7 @@ void DMG_LCD::render_cgfx_gbc_bg_scanline(u16 tile_data, u8 bg_map_attribute)
 		else
 		{
 			u32 pos = (lcd_stat.scanline_pixel_counter * cgfx::scaling_factor) + (lcd_stat.current_scanline * cgfx::scaling_factor * config::sys_width);
-			u32 bg_pos = (x * cgfx::scaling_factor) + (tile_line * cgfx::scaling_factor * 8);
+			u32 bg_pos = ((x - tile_start) * cgfx::scaling_factor) + (tile_line * cgfx::scale_squared * 8);
 			
 			if(lcd_stat.scanline_pixel_counter < 160)
 			{
@@ -1139,9 +1166,6 @@ void DMG_LCD::render_cgfx_dmg_obj_scanline(u8 sprite_id)
 	u8 tile_line = (lcd_stat.current_scanline - obj[sprite_id].y);
 	if(obj[sprite_id].v_flip) { tile_line = (lcd_stat.obj_size == 8) ? lcd_stat.flip_8[tile_line] : lcd_stat.flip_16[tile_line]; }
 
-	//If sprite is below BG and BG raw color is non-zero, abort rendering this pixel
-	if((obj[sprite_id].bg_priority == 1) && (scanline_raw[lcd_stat.scanline_pixel_counter] != 0)) { return; }
-
 	//Grab the ID of this hash to pull custom pixel data
 	u16 obj_id = cgfx_stat.m_id[cgfx_stat.last_id];
 
@@ -1169,9 +1193,9 @@ void DMG_LCD::render_cgfx_dmg_obj_scanline(u8 sprite_id)
 		else
 		{
 			u32 pos = (lcd_stat.scanline_pixel_counter * cgfx::scaling_factor) + (lcd_stat.current_scanline * cgfx::scaling_factor * config::sys_width);
-			u32 obj_pos = (x * cgfx::scaling_factor) + (tile_line * cgfx::scaling_factor * 8);
+			u32 obj_pos = ((x - tile_pixel) * cgfx::scaling_factor) + (tile_line * cgfx::scale_squared * 8);
 			u32 c = 0;
-			
+
 			if(lcd_stat.scanline_pixel_counter < 160)
 			{
 				for(int a = 0; a < cgfx::scaling_factor; a++)
@@ -1303,9 +1327,6 @@ void DMG_LCD::render_cgfx_gbc_obj_scanline(u8 sprite_id)
 	u8 tile_line = (lcd_stat.current_scanline - obj[sprite_id].y);
 	if(obj[sprite_id].v_flip) { tile_line = (lcd_stat.obj_size == 8) ? lcd_stat.flip_8[tile_line] : lcd_stat.flip_16[tile_line]; }
 
-	//If sprite is below BG and BG raw color is non-zero, abort rendering this pixel
-	if((obj[sprite_id].bg_priority == 1) && (scanline_raw[lcd_stat.scanline_pixel_counter] != 0)) { return; }
-
 	//Grab the ID of this hash to pull custom pixel data
 	u16 obj_id = cgfx_stat.m_id[cgfx_stat.last_id];
 
@@ -1346,7 +1367,7 @@ void DMG_LCD::render_cgfx_gbc_obj_scanline(u8 sprite_id)
 		else
 		{
 			u32 pos = (lcd_stat.scanline_pixel_counter * cgfx::scaling_factor) + (lcd_stat.current_scanline * cgfx::scaling_factor * config::sys_width);
-			u32 obj_pos = (x * cgfx::scaling_factor) + (tile_line * cgfx::scaling_factor * 8);
+			u32 obj_pos = ((x - tile_pixel) * cgfx::scaling_factor) + (tile_line * cgfx::scale_squared * 8);
 			u32 c = 0;
 			
 			if(lcd_stat.scanline_pixel_counter < 160)
@@ -1421,6 +1442,8 @@ void DMG_LCD::update_bg_colors()
 
 	u8 blue = ((color_bytes & 0x1F) * 8);
 
+	u32 old_color = lcd_stat.bg_colors_final[color][palette];
+
 	lcd_stat.bg_colors_final[color][palette] = 0xFF000000 | (red << 16) | (green << 8) | (blue);
 	lcd_stat.bg_colors_raw[color][palette] = lcd_stat.bg_colors_raw[color][palette];
 
@@ -1436,7 +1459,7 @@ void DMG_LCD::update_bg_colors()
 	lcd_stat.update_bg_colors = false;
 
 	//CGFX - Update BG hashes
-	if((cgfx::load_cgfx) || (cgfx::auto_dump_bg)) 
+	if(((cgfx::load_cgfx) || (cgfx::auto_dump_bg)) && (old_color != lcd_stat.bg_colors_final[color][palette]))
 	{
 		u8 temp_vram_bank = mem->vram_bank;
 		mem->vram_bank = 1;
@@ -1507,6 +1530,8 @@ void DMG_LCD::update_obj_colors()
 
 	u8 blue = ((color_bytes & 0x1F) * 8);
 
+	u32 old_color = lcd_stat.obj_colors_final[color][palette];
+
 	lcd_stat.obj_colors_final[color][palette] = 0xFF000000 | (red << 16) | (green << 8) | (blue);
 	lcd_stat.obj_colors_raw[color][palette] = lcd_stat.obj_colors_raw[color][palette];
 
@@ -1527,7 +1552,7 @@ void DMG_LCD::update_obj_colors()
 	lcd_stat.update_obj_colors = false;
 
 	//CGFX - Update OBJ hashes
-	if((cgfx::load_cgfx) || (cgfx::auto_dump_obj)) 
+	if(((cgfx::load_cgfx) || (cgfx::auto_dump_obj)) && (old_color != lcd_stat.obj_colors_final[color][palette])) 
 	{
 		for(int x = 0; x < 40; x++)
 		{
@@ -1617,21 +1642,24 @@ void DMG_LCD::step(int cpu_clock)
 	{
 		lcd_stat.on_off = false;
 		lcd_stat.lcd_mode = 2;
+
+		scanline_compare();
 	}
 
 	//Disable the LCD (VBlank only?)
 	else if((lcd_stat.on_off) && (!lcd_stat.lcd_enable))
 	{
 		lcd_stat.on_off = false;
-	
+
 		//This should only happen in VBlank, but it's possible to do it in other modes
 		//On real DMG HW, it creates a black line on the scanline the LCD turns off
 		//Nintendo did NOT like this, as it could damage the LCD over repeated uses
 		//Note: this is the same effect you see when hitting the power switch OFF
 		if(lcd_stat.lcd_mode != 1) { std::cout<<"LCD::Warning - Disabling LCD outside of VBlank\n"; }
 
+		//Set LY to zero here, but DO NOT do a LYC test until LCD is turned back on
+		//Mr. Do! requires the test to occur only when the LCD is turned on
 		lcd_stat.current_scanline = mem->memory_map[REG_LY] = 0;
-		scanline_compare();
 		lcd_stat.lcd_clock = 0;
 		lcd_stat.lcd_mode = 0;
 	}
@@ -1701,7 +1729,11 @@ void DMG_LCD::step(int cpu_clock)
 						{
 							for(int x = 0; x < 384; x++)
 							{
-								if(cgfx_stat.bg_update_list[x]) { update_dmg_bg_hash(x); }
+								if(cgfx_stat.bg_update_list[x])
+								{
+									update_dmg_bg_hash(x);
+									cgfx_stat.bg_update_list[x] = false;
+								}
 							}
 						}
 
@@ -1760,6 +1792,10 @@ void DMG_LCD::step(int cpu_clock)
 			{
 				lcd_stat.lcd_mode = 1;
 
+				//Restore Window parameters
+				lcd_stat.last_y = 0;
+				lcd_stat.window_y = mem->memory_map[REG_WY];
+
 				//Check for screen resize - DMG/GBC stretch
 				if((config::request_resize) && (config::resize_mode > 0))
 				{
@@ -1767,7 +1803,10 @@ void DMG_LCD::step(int cpu_clock)
 					config::sys_height = 160;
 					screen_buffer.clear();
 					screen_buffer.resize(0x9600, 0xFFFFFFFF);
+					
+					if((window != NULL) && (config::sdl_render)) { SDL_DestroyWindow(window); }
 					init();
+					
 					if(config::sdl_render) { config::request_resize = false; }
 				}
 
@@ -1778,7 +1817,10 @@ void DMG_LCD::step(int cpu_clock)
 					config::sys_height = 144;
 					screen_buffer.clear();
 					screen_buffer.resize(0x5A00, 0xFFFFFFFF);
+
+					if((window != NULL) && (config::sdl_render)) { SDL_DestroyWindow(window); }
 					init();
+					
 					if(config::sdl_render) { config::request_resize = false; }
 				}
 
@@ -1805,32 +1847,69 @@ void DMG_LCD::step(int cpu_clock)
 					//Use SDL
 					if(config::sdl_render)
 					{
-						//Lock source surface
-						if(SDL_MUSTLOCK(final_screen)){ SDL_LockSurface(final_screen); }
-						u32* out_pixel_data = (u32*)final_screen->pixels;
-
-						//Regular 1:1 framebuffer rendering
-						if((!cgfx::load_cgfx) || (cgfx::scaling_factor <= 1))
+						//If using SDL and no OpenGL, manually stretch for fullscreen via SDL
+						if((config::flags & SDL_WINDOW_FULLSCREEN_DESKTOP) && (!config::use_opengl))
 						{
-							for(int a = 0; a < screen_buffer.size(); a++) { out_pixel_data[a] = screen_buffer[a]; }
+							//Lock source surface
+							if(SDL_MUSTLOCK(original_screen)){ SDL_LockSurface(original_screen); }
+							u32* out_pixel_data = (u32*)original_screen->pixels;
+
+							//Regular 1:1 framebuffer rendering
+							if((!cgfx::load_cgfx) || (cgfx::scaling_factor <= 1))
+							{
+								for(int a = 0; a < screen_buffer.size(); a++) { out_pixel_data[a] = screen_buffer[a]; }
+							}
+
+							//HD CGFX framebuffer rendering
+							else if((cgfx::load_cgfx) && (cgfx::scaling_factor > 1))
+							{
+								for(int a = 0; a < hd_screen_buffer.size(); a++) { out_pixel_data[a] = hd_screen_buffer[a]; }
+							}
+
+							//Unlock source surface
+							if(SDL_MUSTLOCK(original_screen)){ SDL_UnlockSurface(original_screen); }
+
+							//Blit the original surface to the final stretched one
+							SDL_Rect dest_rect;
+							dest_rect.x = (config::win_width / 2) - config::sys_width;
+							dest_rect.y = (config::win_height / 2) - config::sys_height;
+							dest_rect.w = config::sys_width << 1;
+							dest_rect.h = config::sys_height << 1;
+							SDL_BlitScaled(original_screen, NULL, final_screen, &dest_rect);
+
+							if(SDL_UpdateWindowSurface(window) != 0) { std::cout<<"LCD::Error - Could not blit\n"; }
 						}
 
-						//HD CGFX framebuffer rendering
-						else if((cgfx::load_cgfx) && (cgfx::scaling_factor > 1))
+						//Otherwise, render normally (SDL 1:1, OpenGL handles its own stretching)
+						else
 						{
-							for(int a = 0; a < hd_screen_buffer.size(); a++) { out_pixel_data[a] = hd_screen_buffer[a]; }
-						}
+							//Lock source surface
+							if(SDL_MUSTLOCK(final_screen)){ SDL_LockSurface(final_screen); }
+							u32* out_pixel_data = (u32*)final_screen->pixels;
 
-						//Unlock source surface
-						if(SDL_MUSTLOCK(final_screen)){ SDL_UnlockSurface(final_screen); }
+							//Regular 1:1 framebuffer rendering
+							if((!cgfx::load_cgfx) || (cgfx::scaling_factor <= 1))
+							{
+								for(int a = 0; a < screen_buffer.size(); a++) { out_pixel_data[a] = screen_buffer[a]; }
+							}
+
+							//HD CGFX framebuffer rendering
+							else if((cgfx::load_cgfx) && (cgfx::scaling_factor > 1))
+							{
+								for(int a = 0; a < hd_screen_buffer.size(); a++) { out_pixel_data[a] = hd_screen_buffer[a]; }
+							}
+
+							//Unlock source surface
+							if(SDL_MUSTLOCK(final_screen)){ SDL_UnlockSurface(final_screen); }
 		
-						//Display final screen buffer - OpenGL
-						if(config::use_opengl) { opengl_blit(); }
+							//Display final screen buffer - OpenGL
+							if(config::use_opengl) { opengl_blit(); }
 				
-						//Display final screen buffer - SDL
-						else 
-						{
-							if(SDL_Flip(final_screen) == -1) { std::cout<<"LCD::Error - Could not blit\n"; }
+							//Display final screen buffer - SDL
+							else 
+							{
+								if(SDL_UpdateWindowSurface(window) != 0) { std::cout<<"LCD::Error - Could not blit\n"; }
+							}
 						}
 					}
 
@@ -1887,12 +1966,15 @@ void DMG_LCD::step(int cpu_clock)
 					fps_time = SDL_GetTicks();
 					config::title.str("");
 					config::title << "GBE+ " << fps_count << "FPS";
-					SDL_WM_SetCaption(config::title.str().c_str(), NULL);
+					SDL_SetWindowTitle(window, config::title.str().c_str());
 					fps_count = 0; 
 				}
 
 				//Process gyroscope
 				if(mem->cart.mbc_type == DMG_MMU::MBC7) { mem->g_pad->process_gyroscope(); }
+
+				//Process Gameshark cheats
+				if(config::use_cheats) { mem->set_gs_cheats(); }
 			}
 
 			//Processing VBlank

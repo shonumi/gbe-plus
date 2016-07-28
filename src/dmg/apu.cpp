@@ -88,7 +88,11 @@ void DMG_APU::reset()
 bool DMG_APU::init()
 {
 	//Initialize audio subsystem
-	SDL_InitSubSystem(SDL_INIT_AUDIO);
+	if(SDL_InitSubSystem(SDL_INIT_AUDIO) == -1)
+	{
+		std::cout<<"APU::Error - Could not initialize SDL audio\n";
+		return false;
+	}
 
 	//Setup the desired audio specifications
     	desired_spec.freq = apu_stat.sample_rate;
@@ -151,6 +155,9 @@ bool DMG_APU::apu_write(std::string filename)
 	return true;
 }
 
+/****** Gets the size of APU data for serialization ******/
+u32 DMG_APU::size() { return sizeof(apu_stat); }
+
 /******* Generate samples for GB sound channel 1 ******/
 void DMG_APU::generate_channel_1_samples(s16* stream, int length)
 {
@@ -176,7 +183,10 @@ void DMG_APU::generate_channel_1_samples(s16* stream, int length)
 					//Increase frequency
 					if(apu_stat.channel[0].sweep_direction == 0)
 					{
-						if(apu_stat.channel[0].sweep_shift >= 1) { pre_calc = (apu_stat.channel[0].raw_frequency >> apu_stat.channel[0].sweep_shift); }
+						if((apu_stat.channel[0].sweep_shift >= 1) || (apu_stat.channel[0].raw_frequency >= 0x400))
+						{
+							pre_calc = (apu_stat.channel[0].raw_frequency >> apu_stat.channel[0].sweep_shift);
+						}
 
 						//When frequency is greater than 131KHz, stop sound
 						if((apu_stat.channel[0].raw_frequency + pre_calc) >= 0x800) 
@@ -545,8 +555,15 @@ void dmg_audio_callback(void* _apu, u8 *_stream, int _length)
 	apu_link->generate_channel_3_samples(channel_3_stream, length);
 	apu_link->generate_channel_4_samples(channel_4_stream, length);
 
-	SDL_MixAudio((u8*)stream, (u8*)channel_1_stream, length*2, apu_link->apu_stat.channel_master_volume);
-	SDL_MixAudio((u8*)stream, (u8*)channel_2_stream, length*2, apu_link->apu_stat.channel_master_volume);
-	SDL_MixAudio((u8*)stream, (u8*)channel_3_stream, length*2, apu_link->apu_stat.channel_master_volume);
-	SDL_MixAudio((u8*)stream, (u8*)channel_4_stream, length*2, apu_link->apu_stat.channel_master_volume);
+	double volume_ratio = apu_link->apu_stat.channel_master_volume / 128.0;
+
+	//Custom software mixing
+	for(u32 x = 0; x < length; x++)
+	{
+		s32 out_sample = channel_1_stream[x] + channel_2_stream[x] + channel_3_stream[x] + channel_4_stream[x];
+		out_sample *= volume_ratio;
+		out_sample /= 4;
+
+		stream[x] = out_sample;
+	} 
 }

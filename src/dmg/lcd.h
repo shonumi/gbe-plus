@@ -12,8 +12,8 @@
 #ifndef GB_LCD
 #define GB_LCD
 
-#include "SDL/SDL.h"
-#include "SDL/SDL_opengl.h"
+#include "SDL2/SDL.h"
+#include "SDL2/SDL_opengl.h"
 #include "mmu.h"
 #include "custom_graphics_data.h"
 
@@ -36,6 +36,8 @@ class DMG_LCD
 	//Custom GFX functions
 	bool load_manifest(std::string filename);
 	bool load_image_data();
+	bool load_meta_data();
+	bool find_meta_data();
 
 	void dump_dmg_obj(u8 obj_index);
 	void dump_dmg_bg(u16 bg_index);
@@ -51,6 +53,7 @@ class DMG_LCD
 	void update_gbc_bg_hash(u16 map_addr);
 
 	bool has_hash(u16 addr, std::string hash);
+	std::string get_hash(u16 addr, u8 gfx_type);
 	u32 adjust_pixel_brightness(u32 color, u8 palette_id, u8 gfx_type);
 
 	//Serialize data for save state loading/saving
@@ -58,7 +61,11 @@ class DMG_LCD
 	bool lcd_write(std::string filename);
 
 	//Screen data
+	SDL_Window *window;
 	SDL_Surface* final_screen;
+	SDL_Surface* original_screen;
+
+	SDL_GLContext gl_context;
 	GLuint lcd_texture;
 
 	dmg_lcd_data lcd_stat;

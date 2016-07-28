@@ -42,6 +42,7 @@ struct dmg_lcd_data
 	u8 bg_scroll_y;
 	u8 window_x;
 	u8 window_y;
+	u8 last_y;
 
 	u8 signed_tile_lut[256];
 	u8 unsigned_tile_lut[256];

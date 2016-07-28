@@ -18,6 +18,7 @@
 #include "mmu.h"
 #include "lcd.h"
 #include "apu.h"
+#include "sio.h"
 
 class Z80
 {
@@ -94,15 +95,18 @@ class Z80
 	//Interrupt flag
 	bool interrupt;
 
+	bool interrupt_delay;
 	bool halt;
 	bool pause;
 	bool double_speed;
+	bool skip_instruction;
 
 	//Audio-Video and other controllers
 	struct io_controllers
 	{
 		DMG_LCD video;
 		DMG_APU audio;
+		DMG_SIO serial_io;
 	} controllers;
 
 	//Core Functions
@@ -116,6 +120,7 @@ class Z80
 	//Serialize data for save state loading/saving
 	bool cpu_read(u32 offset, std::string filename);
 	bool cpu_write(std::string filename);
+	u32 size();
 
 	//Interrupt handling
 	bool handle_interrupts();

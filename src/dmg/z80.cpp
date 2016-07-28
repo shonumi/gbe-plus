@@ -49,7 +49,9 @@ void Z80::reset()
 	halt = false;
 	pause = false;
 	interrupt = false;
+	interrupt_delay = false;
 	double_speed = false;
+	skip_instruction = false;
 
 	mem = NULL;
 
@@ -81,7 +83,9 @@ void Z80::reset_bios()
 	halt = false;
 	pause = false;
 	interrupt = false;
+	interrupt_delay = false;
 	double_speed = false;
+	skip_instruction = false;
 
 	mem = NULL;
 
@@ -124,6 +128,8 @@ bool Z80::cpu_read(u32 offset, std::string filename)
 	file.read((char*)&pause, sizeof(pause));
 	file.read((char*)&interrupt, sizeof(interrupt));
 	file.read((char*)&double_speed, sizeof(double_speed));
+	file.read((char*)&interrupt_delay, sizeof(interrupt_delay));
+	file.read((char*)&skip_instruction, sizeof(skip_instruction));
 
 	file.close();
 	return true;
@@ -162,16 +168,60 @@ bool Z80::cpu_write(std::string filename)
 	file.write((char*)&pause, sizeof(pause));
 	file.write((char*)&interrupt, sizeof(interrupt));
 	file.write((char*)&double_speed, sizeof(double_speed));
+	file.write((char*)&interrupt_delay, sizeof(interrupt_delay));
+	file.write((char*)&skip_instruction, sizeof(skip_instruction));
 
 	file.close();
 	return true;
 }
 
+/****** Gets the size of CPU data for serialization ******/
+u32 Z80::size()
+{
+	u32 cpu_size = 0; 
+
+	cpu_size += sizeof(reg.a);
+	cpu_size += sizeof(reg.b);
+	cpu_size += sizeof(reg.c);
+	cpu_size += sizeof(reg.d);
+	cpu_size += sizeof(reg.e);
+	cpu_size += sizeof(reg.h);
+	cpu_size += sizeof(reg.l);
+	cpu_size += sizeof(reg.f);
+	cpu_size += sizeof(reg.pc);
+	cpu_size += sizeof(reg.sp);
+
+	cpu_size += sizeof(cpu_clock_m);
+	cpu_size += sizeof(cpu_clock_t);
+	cpu_size += sizeof(div_counter);
+	cpu_size += sizeof(tima_counter);
+	cpu_size += sizeof(tima_speed);
+	cpu_size += sizeof(cycles);
+	
+	cpu_size += sizeof(running);
+	cpu_size += sizeof(halt);
+	cpu_size += sizeof(pause);
+	cpu_size += sizeof(interrupt);
+	cpu_size += sizeof(double_speed);
+	cpu_size += sizeof(interrupt_delay);
+	cpu_size += sizeof(skip_instruction);
+
+	return cpu_size;
+}
+
 /****** Handle Interrupts to Z80 ******/
 bool Z80::handle_interrupts()
 {
+	//Delay interrupts when EI is called
+	if(interrupt_delay)
+	{
+		interrupt_delay = false;
+		interrupt = true;
+		return true;
+	}
+
 	//Only perform interrupts when the IME is enabled
-	if(interrupt)
+	else if(interrupt)
 	{
 		//Perform VBlank Interrupt
 		if((mem->memory_map[IE_FLAG] & 0x01) && (mem->memory_map[IF_FLAG] & 0x01))
@@ -212,11 +262,24 @@ bool Z80::handle_interrupts()
 			return true;
 		}
 
+		//Perform Serial Input-Output Interrupt
+		if((mem->memory_map[IE_FLAG] & 0x08) && (mem->memory_map[IF_FLAG] & 0x08))
+		{
+			interrupt = false;
+			halt = false;
+			mem->memory_map[IF_FLAG] &= ~0x08;
+			reg.sp -= 2;
+			mem->write_u16(reg.sp, reg.pc);
+			reg.pc = 0x58;
+			cycles += 36;
+			return true;
+		}
+
 		else { return false; }
 	}
 
 	//When IME is disabled, pending interrupts will exit the Halt state
-	else if(mem->memory_map[IF_FLAG] && mem->memory_map[IE_FLAG]) { halt = false; return false; }
+	else if(mem->memory_map[IF_FLAG] & mem->memory_map[IE_FLAG]) { halt = false; return false; }
 
 	else { return false; }
 }	
@@ -760,6 +823,12 @@ void Z80::exec_op(u8 opcode)
 			{
 				double_speed = true;
 				mem->memory_map[REG_KEY1] = 0x80;
+
+				//Set SIO clock - 16384Hz - Bit 1 cleared, Double Speed
+				if((mem->memory_map[REG_SC] & 0x2) == 0) { controllers.serial_io.sio_stat.shift_clock = 256; }
+
+				//Set SIO clock - 524288Hz - Bit 1 set, Double Speed
+				else { controllers.serial_io.sio_stat.shift_clock = 8; }
 			}
 
 			//GBC - Double to normal speed mode
@@ -767,6 +836,12 @@ void Z80::exec_op(u8 opcode)
 			{
 				double_speed = false;
 				mem->memory_map[REG_KEY1] = 0;
+
+				//Set SIO clock - 8192Hz - Bit 1 cleared, Normal Speed
+				if((mem->memory_map[REG_SC] & 0x2) == 0) { controllers.serial_io.sio_stat.shift_clock = 512; }
+
+				//Set SIO clock - 262144Hz - Bit 1 set, Normal Speed
+				else { controllers.serial_io.sio_stat.shift_clock = 16; }
 			}
 			break;	
 
@@ -1423,6 +1498,7 @@ void Z80::exec_op(u8 opcode)
 		//HALT
 		case 0x76 :
 			halt = true;
+			skip_instruction = (interrupt) ? false : true;
 			cycles += 4;
 			break; 
 
@@ -2271,7 +2347,7 @@ void Z80::exec_op(u8 opcode)
 
 		//EI
 		case 0xFB :
-			interrupt = true;
+			interrupt_delay = true;
 			cycles += 4;
 			break;
 
@@ -2300,7 +2376,6 @@ void Z80::exec_op(u16 opcode)
 {
 	switch (opcode)
 	{
-
 		//RLC B
 		case 0xCB00 :
 			reg.b = rotate_left_carry(reg.b);
