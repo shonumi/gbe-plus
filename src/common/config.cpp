@@ -98,6 +98,7 @@ namespace config
 	bool netplay_hard_sync = true;
 	u16 netplay_server_port = 2000;
 	u16 netplay_client_port = 2001;
+	std::string netplay_client_ip = "127.0.0.1";
 
 	u8 dmg_gbc_pal = 0;
 
@@ -1587,6 +1588,22 @@ bool parse_ini_file()
 			}
 		}
 
+		//Netplay client IP address
+		else if(ini_item == "#netplay_client_ip")
+		{
+			if((x + 1) < size) 
+			{
+				ini_item = ini_opts[++x];
+				config::netplay_client_ip = ini_item;
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#netplay_client_ip) \n";
+				return false;
+			}
+		}
+
 		//Recent files
 		else if(ini_item == "#recent_files")
 		{
@@ -2024,6 +2041,13 @@ bool save_ini_file()
 			std::string val = util::to_str(config::netplay_client_port);
 
 			output_lines[line_pos] = "[#netplay_client_port:" + val + "]";
+		}
+
+		//Netplay client IP address
+		else if(ini_item == "#netplay_client_ip")
+		{
+			line_pos = output_count[x];
+			output_lines[line_pos] = "[#netplay_client_ip:" + config::netplay_client_ip + "]";
 		}
 
 		else if(ini_item == "#recent_files")

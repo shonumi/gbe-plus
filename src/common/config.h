@@ -77,6 +77,7 @@ namespace config
 	extern bool netplay_hard_sync;
 	extern u16 netplay_server_port;
 	extern u16 netplay_client_port;
+	extern std::string netplay_client_ip;
 
 	extern u8 volume;
 	extern double sample_rate;

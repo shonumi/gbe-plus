@@ -10,6 +10,7 @@
 // Emulates Gameboy-to-Gameboy data transfers
 
 #include "sio.h"
+#include "common/util.h"
 
 /****** SIO Constructor ******/
 DMG_SIO::DMG_SIO()
@@ -106,7 +107,7 @@ bool DMG_SIO::init()
 	}
 
 	//Setup client, listen on another port
-	if(SDLNet_ResolveHost(&sender.host_ip, "darkstar", sender.port) < 0)
+	if(SDLNet_ResolveHost(&sender.host_ip, config::netplay_client_ip.c_str(), sender.port) < 0)
 	{
 		std::cout<<"SIO::Error - Client could not resolve hostname\n";
 		return -1;
