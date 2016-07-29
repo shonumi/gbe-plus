@@ -620,7 +620,7 @@ bool ip_to_u32(std::string ip_addr, u32 &result)
 	}
 
 	//Encode result in network byte order aka big endian
-	result = (digits[0] << 24) | (digits[1] << 16) | (digits[2] << 8) | digits[3];
+	result = (digits[3] << 24) | (digits[2] << 16) | (digits[1] << 8) | digits[0];
 
 	return true;
 }
@@ -628,8 +628,8 @@ bool ip_to_u32(std::string ip_addr, u32 &result)
 /****** Converts an integers IP address to a string value ******/
 std::string ip_to_str(u32 ip_addr)
 {
-	u32 mask = 0xFF000000;
-	u32 shift = 24;
+	u32 mask = 0x000000FF;
+	u32 shift = 0;
 	std::string temp = "";
 
 	for(u32 x = 0; x < 4; x++)
@@ -639,8 +639,8 @@ std::string ip_to_str(u32 ip_addr)
 		
 		if(x != 3) { temp += "."; }
 
-		shift -= 8;
-		mask >>= 8;
+		shift += 8;
+		mask <<= 8;
 	}
 
 	return temp;
