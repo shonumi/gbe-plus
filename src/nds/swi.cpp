@@ -12,7 +12,7 @@
 #include "arm7.h"
 
 /****** Process Software Interrupts - NDS9 ******/
-void ARM9::process_swi(u32 comment)
+void NTR_ARM9::process_swi(u32 comment)
 {
 	switch(comment)
 	{
@@ -35,7 +35,7 @@ void ARM9::process_swi(u32 comment)
 }
 
 /****** HLE implementation of IntrWait ******/
-void ARM9::swi_intrwait()
+void NTR_ARM9::swi_intrwait()
 {
 	//NDS9 version is slightly bugged. When R0 == 0, it simply waits for any new interrupt, then leaves
 	//Normally, it should return immediately if the flags in R1 are already set in IF
@@ -87,7 +87,7 @@ void ARM9::swi_intrwait()
 }
 
 /****** HLE implementation of IsDebugger ******/
-void ARM9::swi_isdebugger()
+void NTR_ARM9::swi_isdebugger()
 {
 	//Always act as if a retail NDS, set RO to zero
 	set_reg(0, 0);

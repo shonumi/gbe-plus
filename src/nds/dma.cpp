@@ -13,7 +13,7 @@
 #include "arm7.h" 
 
 /****** Performs DMA0 transfers - NDS9 ******/
-void ARM9::dma0()
+void NTR_ARM9::dma0()
 {
 	//Wait 2 cycles after DMA is triggered before actual transfer
 	if(mem->dma[0].delay != 0) { mem->dma[0].delay--; }
@@ -44,7 +44,7 @@ void ARM9::dma0()
 }
 
 /****** Performs DMA1 transfers - NDS9 ******/
-void ARM9::dma1()
+void NTR_ARM9::dma1()
 {
 	//Wait 2 cycles after DMA is triggered before actual transfer
 	if(mem->dma[1].delay != 0) { mem->dma[1].delay--; }
@@ -75,7 +75,7 @@ void ARM9::dma1()
 }
 
 /****** Performs DMA2 transfers - NDS9 ******/
-void ARM9::dma2()
+void NTR_ARM9::dma2()
 {
 	//Wait 2 cycles after DMA is triggered before actual transfer
 	if(mem->dma[2].delay != 0) { mem->dma[2].delay--; }
@@ -106,7 +106,7 @@ void ARM9::dma2()
 }
 
 /****** Performs DMA3 transfers - NDS9 ******/
-void ARM9::dma3()
+void NTR_ARM9::dma3()
 {
 	//Wait 2 cycles after DMA is triggered before actual transfer
 	if(mem->dma[3].delay != 0) { mem->dma[3].delay--; }

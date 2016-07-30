@@ -12,19 +12,19 @@
 #include "arm9.h"
 
 /****** CPU Constructor ******/
-ARM9::ARM9()
+NTR_ARM9::NTR_ARM9()
 {
 	reset();
 }
 
 /****** CPU Destructor ******/
-ARM9::~ARM9()
+NTR_ARM9::~NTR_ARM9()
 {
 	std::cout<<"CPU::ARM9 - Shutdown\n";
 }
 
 /****** CPU Reset ******/
-void ARM9::reset()
+void NTR_ARM9::reset()
 {
 	reg.r0 = reg.r1 = reg.r2 = reg.r3 = reg.r4 = reg.r5 = reg.r6 = reg.r7 = reg.r8 = reg.r9 = reg.r10 = reg.r11 = reg.r12 = reg.r14 = 0;
 	reg.r13 = reg.r13_fiq = reg.r13_abt = reg.r13_und = 0x803EC0;
@@ -60,7 +60,7 @@ void ARM9::reset()
 }
 
 /****** CPU register getter - Returns value from the CURRENT pipeline stage ******/
-u32 ARM9::get_reg(u8 g_reg) const
+u32 NTR_ARM9::get_reg(u8 g_reg) const
 {
 	switch(g_reg)
 	{
@@ -144,7 +144,7 @@ u32 ARM9::get_reg(u8 g_reg) const
 }
 
 /****** CPU register setter ******/
-void ARM9::set_reg(u8 s_reg, u32 value)
+void NTR_ARM9::set_reg(u8 s_reg, u32 value)
 {
 	switch(s_reg)
 	{
@@ -228,7 +228,7 @@ void ARM9::set_reg(u8 s_reg, u32 value)
 }
 
 /****** Saved Program Status Register getter ******/
-u32 ARM9::get_spsr() const
+u32 NTR_ARM9::get_spsr() const
 {
 	switch(current_cpu_mode)
 	{
@@ -243,7 +243,7 @@ u32 ARM9::get_spsr() const
 }
 
 /****** Saved Program Status Register setter ******/
-void ARM9::set_spsr(u32 value)
+void NTR_ARM9::set_spsr(u32 value)
 {
 	switch(current_cpu_mode)
 	{
@@ -258,7 +258,7 @@ void ARM9::set_spsr(u32 value)
 }
 
 /****** Fetch ARM instruction ******/
-void ARM9::fetch()
+void NTR_ARM9::fetch()
 {
 	//Fetch THUMB instructions
 	if(arm_mode == THUMB)
@@ -282,7 +282,7 @@ void ARM9::fetch()
 }
 
 /****** Decode ARM instruction ******/
-void ARM9::decode()
+void NTR_ARM9::decode()
 {
 	u8 pipeline_id = (pipeline_pointer + 2) % 3;
 
@@ -556,7 +556,7 @@ void ARM9::decode()
 }
 
 /****** Execute ARM instruction ******/
-void ARM9::execute()
+void NTR_ARM9::execute()
 {
 	u8 pipeline_id = (pipeline_pointer + 1) % 3;
 
@@ -663,7 +663,7 @@ void ARM9::execute()
 
 			default:
 				debug_message = 0x13; debug_code = instruction_pipeline[pipeline_id];
-				std::cout<<"CPU::ARM9::Error - Unknown THUMB instruction -> 0x" << std::hex << debug_code << "\n";
+				std::cout<<"CPU::NTR_ARM9::Error - Unknown THUMB instruction -> 0x" << std::hex << debug_code << "\n";
 				running = false;
 				break;
 		}
@@ -765,7 +765,7 @@ void ARM9::execute()
 }	
 
 /****** Flush the pipeline - Called when branching or resetting ******/
-void ARM9::flush_pipeline()
+void NTR_ARM9::flush_pipeline()
 {
 	needs_flush = false;
 	pipeline_pointer = 0;
@@ -774,13 +774,13 @@ void ARM9::flush_pipeline()
 }
 
 /****** Updates the PC after each fetch-decode-execute ******/
-void ARM9::update_pc()
+void NTR_ARM9::update_pc()
 {
 	reg.r15 += (arm_mode == ARM) ? 4 : 2;
 }
 
 /****** Check conditional code ******/
-bool ARM9::check_condition(u32 current_arm_instruction) const
+bool NTR_ARM9::check_condition(u32 current_arm_instruction) const
 {
 	switch(current_arm_instruction >> 28)
 	{
@@ -899,7 +899,7 @@ bool ARM9::check_condition(u32 current_arm_instruction) const
 }
 
 /****** Updates the condition codes in the CPSR register after logical operations ******/
-void ARM9::update_condition_logical(u32 result, u8 shift_out)
+void NTR_ARM9::update_condition_logical(u32 result, u8 shift_out)
 {
 	//Negative flag
 	if(result & 0x80000000) { reg.cpsr |= CPSR_N_FLAG; }
@@ -915,7 +915,7 @@ void ARM9::update_condition_logical(u32 result, u8 shift_out)
 }
 
 /****** Updates the condition codes in the CPSR register after arithmetic operations ******/
-void ARM9::update_condition_arithmetic(u32 input, u32 operand, u32 result, bool addition)
+void NTR_ARM9::update_condition_arithmetic(u32 input, u32 operand, u32 result, bool addition)
 {
 	//Negative flag
 	if(result & 0x80000000) { reg.cpsr |= CPSR_N_FLAG; }
@@ -962,7 +962,7 @@ void ARM9::update_condition_arithmetic(u32 input, u32 operand, u32 result, bool 
 }
 
 /****** Performs 32-bit logical shift left - Returns Carry Out ******/
-u8 ARM9::logical_shift_left(u32& input, u8 offset)
+u8 NTR_ARM9::logical_shift_left(u32& input, u8 offset)
 {
 	u8 carry_out = 0;
 
@@ -985,7 +985,7 @@ u8 ARM9::logical_shift_left(u32& input, u8 offset)
 }
 
 /****** Performs 32-bit logical shift right - Returns Carry Out ******/
-u8 ARM9::logical_shift_right(u32& input, u8 offset)
+u8 NTR_ARM9::logical_shift_right(u32& input, u8 offset)
 {
 	u8 carry_out = 0;
 
@@ -1012,7 +1012,7 @@ u8 ARM9::logical_shift_right(u32& input, u8 offset)
 }
 
 /****** Performs 32-bit arithmetic shift right - Returns Carry Out ******/
-u8 ARM9::arithmetic_shift_right(u32& input, u8 offset)
+u8 NTR_ARM9::arithmetic_shift_right(u32& input, u8 offset)
 {
 	u8 carry_out = 0;
 
@@ -1042,7 +1042,7 @@ u8 ARM9::arithmetic_shift_right(u32& input, u8 offset)
 }
 
 /****** Performs 32-bit rotate right ******/
-u8 ARM9::rotate_right(u32& input, u8 offset)
+u8 NTR_ARM9::rotate_right(u32& input, u8 offset)
 {
 	u8 carry_out = 0;
 
@@ -1073,7 +1073,7 @@ u8 ARM9::rotate_right(u32& input, u8 offset)
 }
 
 /****** Performs 32-bit rotate right - For ARM.5 Data Processing when Bit 25 is 1 ******/
-void ARM9::rotate_right_special(u32& input, u8 offset)
+void NTR_ARM9::rotate_right_special(u32& input, u8 offset)
 {
 	if(offset > 0)
 	{
@@ -1089,21 +1089,21 @@ void ARM9::rotate_right_special(u32& input, u8 offset)
 }			
 
 /****** Checks address before 32-bit reading/writing for special case scenarios ******/
-void ARM9::mem_check_32(u32 addr, u32& value, bool load_store)
+void NTR_ARM9::mem_check_32(u32 addr, u32& value, bool load_store)
 {
 	if(load_store) { value = mem->read_u32(addr); }
 	else { mem->write_u32(addr, value); }
 }
 
 /****** Checks address before 16-bit reading/writing for special case scenarios ******/
-void ARM9::mem_check_16(u32 addr, u32& value, bool load_store)
+void NTR_ARM9::mem_check_16(u32 addr, u32& value, bool load_store)
 {
 	if(load_store) { value = mem->read_u16(addr); }
 	else { mem->write_u16(addr, value); }
 }
 
 /****** Checks address before 8-bit reading/writing for special case scenarios ******/
-void ARM9::mem_check_8(u32 addr, u32& value, bool load_store)
+void NTR_ARM9::mem_check_8(u32 addr, u32& value, bool load_store)
 {
 	if(load_store) { value = mem->read_u8(addr); }
 	else { mem->write_u8(addr, value); }
@@ -1111,7 +1111,7 @@ void ARM9::mem_check_8(u32 addr, u32& value, bool load_store)
 
 
 /****** Runs audio and video controllers every clock cycle ******/
-void ARM9::clock(u32 access_addr, bool first_access)
+void NTR_ARM9::clock(u32 access_addr, bool first_access)
 {
 	//TODO - Everything here
 	controllers.video.step();
@@ -1133,7 +1133,7 @@ void ARM9::clock(u32 access_addr, bool first_access)
 }
 
 /****** Runs audio and video controllers every clock cycle ******/
-void ARM9::clock()
+void NTR_ARM9::clock()
 {
 	controllers.video.step();
 	clock_dma();
@@ -1144,7 +1144,7 @@ void ARM9::clock()
 }
 
 /****** Runs DMA controllers every clock cycle ******/
-void ARM9::clock_dma()
+void NTR_ARM9::clock_dma()
 {
 	//DMA0
 	if(mem->dma[0].enable) { dma0(); }
@@ -1160,13 +1160,13 @@ void ARM9::clock_dma()
 }
 
 /****** Runs Timer controllers every clock cycle ******/
-void ARM9::clock_timers()
+void NTR_ARM9::clock_timers()
 {
 
 }
 
 /****** Jumps to or exits an interrupt ******/
-void ARM9::handle_interrupt()
+void NTR_ARM9::handle_interrupt()
 {
 	//TODO - Implement a better way of exiting interrupts other than recognizing the SUB PC, #4 instruction
 

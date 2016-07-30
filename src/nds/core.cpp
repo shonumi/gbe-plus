@@ -86,7 +86,7 @@ void NTR_core::stop()
 void NTR_core::shutdown() 
 { 
 	core_mmu.NTR_MMU::~NTR_MMU();
-	core_cpu_nds9.ARM9::~ARM9();
+	core_cpu_nds9.NTR_ARM9::~NTR_ARM9();
 	core_cpu_nds7.NTR_ARM7::~NTR_ARM7();
 }
 

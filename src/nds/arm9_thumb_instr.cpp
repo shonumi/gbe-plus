@@ -11,7 +11,7 @@
 #include "arm9.h"
 
 /****** THUMB.1 - Move Shifted Register ******/
-void ARM9::move_shifted_register(u16 current_thumb_instruction)
+void NTR_ARM9::move_shifted_register(u16 current_thumb_instruction)
 {
 	//Grab destination register - Bits 0-2
 	u8 dest_reg = (current_thumb_instruction & 0x7);
@@ -68,7 +68,7 @@ void ARM9::move_shifted_register(u16 current_thumb_instruction)
 } 
 
 /****** THUMB.2 - Add-Sub Immediate ******/
-void ARM9::add_sub_immediate(u16 current_thumb_instruction)
+void NTR_ARM9::add_sub_immediate(u16 current_thumb_instruction)
 {
 	//Grab destination register - Bits 0-2
 	u8 dest_reg = (current_thumb_instruction & 0x7);
@@ -123,7 +123,7 @@ void ARM9::add_sub_immediate(u16 current_thumb_instruction)
 }
 
 /****** THUMB.3 Move-Compare-Add-Subtract Immediate ******/
-void ARM9::mcas_immediate(u16 current_thumb_instruction)
+void NTR_ARM9::mcas_immediate(u16 current_thumb_instruction)
 {
 	//Grab destination register - Bits 8-10
 	u8 dest_reg = ((current_thumb_instruction >> 8) & 0x7);
@@ -176,7 +176,7 @@ void ARM9::mcas_immediate(u16 current_thumb_instruction)
 }
 			
 /****** THUMB.4 ALU Operations ******/
-void ARM9::alu_ops(u16 current_thumb_instruction)
+void NTR_ARM9::alu_ops(u16 current_thumb_instruction)
 {
 	//Grab destination register - Bits 0-2
 	u8 dest_reg = (current_thumb_instruction & 0x7);
@@ -514,7 +514,7 @@ void ARM9::alu_ops(u16 current_thumb_instruction)
 }
 
 /****** THUMB.5 High Register Operations + Branch Exchange ******/
-void ARM9::hireg_bx(u16 current_thumb_instruction)
+void NTR_ARM9::hireg_bx(u16 current_thumb_instruction)
 {
 	//Grab destination register - Bits 0-2
 	u8 dest_reg = (current_thumb_instruction & 0x7);
@@ -656,7 +656,7 @@ void ARM9::hireg_bx(u16 current_thumb_instruction)
 }
 
 /****** THUMB.6 Load PC Relative ******/
-void ARM9::load_pc_relative(u16 current_thumb_instruction)
+void NTR_ARM9::load_pc_relative(u16 current_thumb_instruction)
 {
 	//Grab 8-bit offset - Bits 0-7
 	u16 offset = (current_thumb_instruction & 0xFF);
@@ -681,7 +681,7 @@ void ARM9::load_pc_relative(u16 current_thumb_instruction)
 }
 
 /****** THUMB.7 Load-Store with Register Offset ******/
-void ARM9::load_store_reg_offset(u16 current_thumb_instruction)
+void NTR_ARM9::load_store_reg_offset(u16 current_thumb_instruction)
 {
 	//Grab source-destination register - Bits 0-2
 	u8 src_dest_reg = (current_thumb_instruction & 0x7);
@@ -759,7 +759,7 @@ void ARM9::load_store_reg_offset(u16 current_thumb_instruction)
 }
 
 /****** THUMB.8 Load-Store Sign-Extended ******/
-void ARM9::load_store_sign_ex(u16 current_thumb_instruction)
+void NTR_ARM9::load_store_sign_ex(u16 current_thumb_instruction)
 {
 	//Grab source-destination register - Bits 0-2
 	u8 src_dest_reg = (current_thumb_instruction & 0x7);
@@ -848,7 +848,7 @@ void ARM9::load_store_sign_ex(u16 current_thumb_instruction)
 }
 
 /****** THUMB.9 Load-Store with Immediate Offset ******/
-void ARM9::load_store_imm_offset(u16 current_thumb_instruction)
+void NTR_ARM9::load_store_imm_offset(u16 current_thumb_instruction)
 {
 	//Grab source-destination register - Bits 0-2
 	u8 src_dest_reg = (current_thumb_instruction & 0x7);
@@ -931,7 +931,7 @@ void ARM9::load_store_imm_offset(u16 current_thumb_instruction)
 }
 			
 /****** THUMB.10 Load-Store Halfword ******/
-void ARM9::load_store_halfword(u16 current_thumb_instruction)
+void NTR_ARM9::load_store_halfword(u16 current_thumb_instruction)
 {
 	//Grab source-destination register - Bits 0-2
 	u8 src_dest_reg = (current_thumb_instruction & 0x7);
@@ -984,7 +984,7 @@ void ARM9::load_store_halfword(u16 current_thumb_instruction)
 }
 
 /****** THUMB.11 Load-Store SP-Relative ******/
-void ARM9::load_store_sp_relative(u16 current_thumb_instruction)
+void NTR_ARM9::load_store_sp_relative(u16 current_thumb_instruction)
 {
 	//Grab 8-bit offset - Bits 0-7
 	u16 offset = (current_thumb_instruction & 0xFF);
@@ -1034,7 +1034,7 @@ void ARM9::load_store_sp_relative(u16 current_thumb_instruction)
 }
 
 /****** THUMB.12 Get Relative Address ******/
-void ARM9::get_relative_address(u16 current_thumb_instruction)
+void NTR_ARM9::get_relative_address(u16 current_thumb_instruction)
 {
 	//Grab 8-bit offset - Bits 0-7
 	u16 offset = (current_thumb_instruction & 0xFF);
@@ -1069,7 +1069,7 @@ void ARM9::get_relative_address(u16 current_thumb_instruction)
 }
 
 /****** THUMB.13 Add Offset to Stack Pointer ******/
-void ARM9::add_offset_sp(u16 current_thumb_instruction)
+void NTR_ARM9::add_offset_sp(u16 current_thumb_instruction)
 {
 	//Grab 7-bit offset - Bits 0-6
 	u16 offset = (current_thumb_instruction & 0x7F);
@@ -1104,7 +1104,7 @@ void ARM9::add_offset_sp(u16 current_thumb_instruction)
 }
 		
 /****** THUMB.14 Push-Pop Registers ******/
-void ARM9::push_pop(u16 current_thumb_instruction)
+void NTR_ARM9::push_pop(u16 current_thumb_instruction)
 {
 	//Grab stack pointer from current CPU mode
 	u32 r13 = get_reg(13);
@@ -1226,7 +1226,7 @@ void ARM9::push_pop(u16 current_thumb_instruction)
 }
 
 /****** THUMB.15 Multiple Load-Store ******/
-void ARM9::multiple_load_store(u16 current_thumb_instruction)
+void NTR_ARM9::multiple_load_store(u16 current_thumb_instruction)
 {
 	//Grab register list - Bits 0-7
 	u8 r_list = (current_thumb_instruction & 0xFF);
@@ -1366,7 +1366,7 @@ void ARM9::multiple_load_store(u16 current_thumb_instruction)
 }
 						
 /****** THUMB.16 Conditional Branch ******/
-void ARM9::conditional_branch(u16 current_thumb_instruction)
+void NTR_ARM9::conditional_branch(u16 current_thumb_instruction)
 {
 	//Grab 8-bit offset - Bits 0-7
 	u8 offset = (current_thumb_instruction & 0xFF);
@@ -1489,7 +1489,7 @@ void ARM9::conditional_branch(u16 current_thumb_instruction)
 
 		//Undefined
 		case 0xE:
-			std::cout<<"CPU::ARM9::Error - THUMB.16 Undefined opcode 0xE \n";
+			std::cout<<"CPU::NTR_ARM9::Error - THUMB.16 Undefined opcode 0xE \n";
 			running = false;
 			break;
 
@@ -1520,7 +1520,7 @@ void ARM9::conditional_branch(u16 current_thumb_instruction)
 }
 
 /****** THUMB.18 Unconditional Branch ******/
-void ARM9::unconditional_branch(u16 current_thumb_instruction)
+void NTR_ARM9::unconditional_branch(u16 current_thumb_instruction)
 {
 	//Grab 11-bit offset - Bits 0-10
 	u16 offset = (current_thumb_instruction & 0x7FF);
@@ -1552,7 +1552,7 @@ void ARM9::unconditional_branch(u16 current_thumb_instruction)
 }
 
 /****** THUMB.19 Long Branch with Link ******/
-void ARM9::long_branch_link(u16 current_thumb_instruction)
+void NTR_ARM9::long_branch_link(u16 current_thumb_instruction)
 {
 	//Determine if this is the first or second instruction executed
 	bool first_op = (((current_thumb_instruction >> 11) & 0x1F) == 0x1F) ? false : true;

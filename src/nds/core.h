@@ -69,8 +69,8 @@ class NTR_core : virtual public core_emu
 
 
 		NTR_MMU core_mmu;
-		ARM9 core_cpu_nds9;
 		NTR_ARM7 core_cpu_nds7;
+		NTR_ARM9 core_cpu_nds9;
 
 
 		/*

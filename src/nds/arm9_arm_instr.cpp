@@ -11,7 +11,7 @@
 #include "arm9.h"
 
 /****** ARM.3 - Branch and Exchange ******/
-void ARM9::branch_exchange(u32 current_arm_instruction)
+void NTR_ARM9::branch_exchange(u32 current_arm_instruction)
 {
 	//Grab source register - Bits 0-2
 	u8 src_reg = (current_arm_instruction & 0xF);
@@ -72,7 +72,7 @@ void ARM9::branch_exchange(u32 current_arm_instruction)
 }  
 
 /****** ARM.4 - Branch and Branch with Link ******/
-void ARM9::branch_link(u32 current_arm_instruction)
+void NTR_ARM9::branch_link(u32 current_arm_instruction)
 {
 	//Grab offset
 	u32 offset = (current_arm_instruction & 0xFFFFFF);
@@ -133,7 +133,7 @@ void ARM9::branch_link(u32 current_arm_instruction)
 }
 
 /****** ARM.5 Data Processing ******/
-void ARM9::data_processing(u32 current_arm_instruction)
+void NTR_ARM9::data_processing(u32 current_arm_instruction)
 {
 	//Determine if an immediate value or a register should be used as the operand
 	bool use_immediate = (current_arm_instruction & 0x2000000) ? true : false;
@@ -401,7 +401,7 @@ void ARM9::data_processing(u32 current_arm_instruction)
 }
 
 /****** ARM.6 PSR Transfer ******/
-void ARM9::psr_transfer(u32 current_arm_instruction)
+void NTR_ARM9::psr_transfer(u32 current_arm_instruction)
 {
 	//Determine if an immediate or a register will be used as input (MSR only) - Bit 25
 	bool use_immediate = (current_arm_instruction & 0x2000000) ? true : false;
@@ -519,7 +519,7 @@ void ARM9::psr_transfer(u32 current_arm_instruction)
 } 
 
 /****** ARM.7 Multiply and Multiply-Accumulate ******/
-void ARM9::multiply(u32 current_arm_instruction)
+void NTR_ARM9::multiply(u32 current_arm_instruction)
 {
 	//TODO - Timings
 	//TODO - The rest of the opcodes
@@ -719,7 +719,7 @@ void ARM9::multiply(u32 current_arm_instruction)
 }
 			
 /****** ARM.9 Single Data Transfer ******/
-void ARM9::single_data_transfer(u32 current_arm_instruction)
+void NTR_ARM9::single_data_transfer(u32 current_arm_instruction)
 {
 	//Grab Immediate-Offset flag - Bit 25
 	u8 offset_is_register = (current_arm_instruction & 0x2000000) ? 1 : 0;
@@ -881,7 +881,7 @@ void ARM9::single_data_transfer(u32 current_arm_instruction)
 }
 
 /****** ARM.10 Halfword-Signed Transfer ******/
-void ARM9::halfword_signed_transfer(u32 current_arm_instruction)
+void NTR_ARM9::halfword_signed_transfer(u32 current_arm_instruction)
 {
 	//TODO - Timings
 
@@ -1005,7 +1005,7 @@ void ARM9::halfword_signed_transfer(u32 current_arm_instruction)
 }
 
 /****** ARM.11 Block Data Transfer ******/
-void ARM9::block_data_transfer(u32 current_arm_instruction)
+void NTR_ARM9::block_data_transfer(u32 current_arm_instruction)
 {
 	//TODO - Clock cycles
 	//TODO - Handle PSR bit
@@ -1124,7 +1124,7 @@ void ARM9::block_data_transfer(u32 current_arm_instruction)
 }
 		
 /****** ARM.12 - Single Data Swap ******/
-void ARM9::single_data_swap(u32 current_arm_instruction)
+void NTR_ARM9::single_data_swap(u32 current_arm_instruction)
 {
 	//TODO - Timings
 
@@ -1170,7 +1170,7 @@ void ARM9::single_data_swap(u32 current_arm_instruction)
 }
 
 /****** ARM.13 - Software Interrupt ******/
-void ARM9::software_interrupt_breakpoint(u32 current_arm_instruction)
+void NTR_ARM9::software_interrupt_breakpoint(u32 current_arm_instruction)
 {
 	//TODO - Timings
 	//TODO - LLE version of SWIs
@@ -1183,7 +1183,7 @@ void ARM9::software_interrupt_breakpoint(u32 current_arm_instruction)
 }
 
 /****** Coprocessor Register Transfer ******/
-void ARM9::coprocessor_register_transfer(u32 current_instruction)
+void NTR_ARM9::coprocessor_register_transfer(u32 current_instruction)
 {
 	//Grab opcode
 	u8 cop_opcode_1 = (current_instruction >> 21) & 0x7;

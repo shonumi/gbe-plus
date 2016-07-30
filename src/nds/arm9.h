@@ -21,7 +21,7 @@
 #include "lcd.h"
 #include "cp15.h"
 
-class ARM9
+class NTR_ARM9
 {
 	public:
 
@@ -179,8 +179,8 @@ class ARM9
 	//CP15 coprocessor
 	CP15 co_proc;
 
-	ARM9();
-	~ARM9();
+	NTR_ARM9();
+	~NTR_ARM9();
 
 	//ARM pipelining functions
 	void fetch();
