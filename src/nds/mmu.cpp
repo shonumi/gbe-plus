@@ -36,6 +36,8 @@ void NTR_MMU::reset()
 
 	nds7_bios.clear();
 	nds7_bios.resize(0x4000, 0);
+	nds7_bios_vector = 0x0;
+	nds7_irq_handler = 0x380FFFC;
 
 	nds9_bios.clear();
 	nds9_bios.resize(0xC00, 0);

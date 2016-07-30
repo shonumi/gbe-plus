@@ -20,6 +20,7 @@
 #include "mmu.h"
 #include "lcd.h"
 #include "arm9.h"
+#include "arm7.h"
 
 class NTR_core : virtual public core_emu
 {
@@ -69,9 +70,10 @@ class NTR_core : virtual public core_emu
 
 		NTR_MMU core_mmu;
 		ARM9 core_cpu_nds9;
-		
+		NTR_ARM7 core_cpu_nds7;
+
+
 		/*
-		ARM7 core_cpu;
 		NDS_GamePad core_pad;
 		*/
 };

@@ -1,6 +1,10 @@
 set(SRCS
 	core.cpp
 	mmu.cpp
+	arm7.cpp
+	arm7_arm_instr.cpp
+	arm7_thumb_instr.cpp
+	arm7.cpp
 	arm9.cpp
 	arm9_arm_instr.cpp
 	arm9_thumb_instr.cpp
@@ -14,6 +18,7 @@ set(HEADERS
 	common.h
 	core.h
 	mmu.h
+	arm7.h
 	arm9.h
 	lcd.h
 	cp15.h

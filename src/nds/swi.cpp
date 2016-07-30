@@ -4,13 +4,14 @@
 
 // File : swi.cpp
 // Date : November 05, 2015
-// Description : NDS ARM9 Software Interrupts
+// Description : NDS ARM7-ARM9 Software Interrupts
 //
 // Emulates the NDS's Software Interrupts via High Level Emulation
 
 #include "arm9.h"
+#include "arm7.h"
 
-/****** Process Software Interrupts ******/
+/****** Process Software Interrupts - NDS9 ******/
 void ARM9::process_swi(u32 comment)
 {
 	switch(comment)
@@ -93,4 +94,15 @@ void ARM9::swi_isdebugger()
 
 	//Destroy value at 0x27FFFF8 (halfword)
 	mem->write_u16(0x27FFFF8, 0x0);
+}
+
+/****** Process Software Interrupts ******/
+void NTR_ARM7::process_swi(u32 comment)
+{
+	switch(comment)
+	{
+		default:
+			std::cout<<"SWI::Error - Unknown BIOS function 0x" << std::hex << comment << "\n";
+			break;
+	}
 }

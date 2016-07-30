@@ -9,9 +9,10 @@
 // Emulates the NDS9 and NDS7's 4 DMA channels
 // Transfers memory to different locations
 
-#include "arm9.h" 
+#include "arm9.h"
+#include "arm7.h" 
 
-/****** Performs DMA0 transfers ******/
+/****** Performs DMA0 transfers - NDS9 ******/
 void ARM9::dma0()
 {
 	//Wait 2 cycles after DMA is triggered before actual transfer
@@ -42,7 +43,7 @@ void ARM9::dma0()
 	}
 }
 
-/****** Performs DMA1 transfers ******/
+/****** Performs DMA1 transfers - NDS9 ******/
 void ARM9::dma1()
 {
 	//Wait 2 cycles after DMA is triggered before actual transfer
@@ -73,7 +74,7 @@ void ARM9::dma1()
 	}
 }
 
-/****** Performs DMA2 transfers ******/
+/****** Performs DMA2 transfers - NDS9 ******/
 void ARM9::dma2()
 {
 	//Wait 2 cycles after DMA is triggered before actual transfer
@@ -104,7 +105,7 @@ void ARM9::dma2()
 	}
 }
 
-/****** Performs DMA3 transfers ******/
+/****** Performs DMA3 transfers - NDS9 ******/
 void ARM9::dma3()
 {
 	//Wait 2 cycles after DMA is triggered before actual transfer
@@ -205,3 +206,15 @@ void ARM9::dma3()
 		mem->dma[3].enable = false;
 	}
 }
+
+/****** Performs DMA0 transfers - NDS7 ******/
+void NTR_ARM7::dma0() { }
+
+/****** Performs DMA1 transfers - NDS7 ******/
+void NTR_ARM7::dma1() { }
+
+/****** Performs DMA2 transfers - NDS7 ******/
+void NTR_ARM7::dma2() { }
+
+/****** Performs DMA3 transfers - NDS7 ******/
+void NTR_ARM7::dma3() { }

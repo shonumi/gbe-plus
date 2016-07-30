@@ -19,8 +19,9 @@
 /****** Core Constructor ******/
 NTR_core::NTR_core()
 {
-	//Link CPU and MMU
+	//Link CPUs and MMU
 	core_cpu_nds9.mem = &core_mmu;
+	core_cpu_nds7.mem = &core_mmu;
 
 	//Link LCD and MMU
 	core_cpu_nds9.controllers.video.mem = &core_mmu;
@@ -50,6 +51,7 @@ void NTR_core::start()
 {
 	running = true;
 	core_cpu_nds9.running = true;
+	core_cpu_nds7.running = true;
 
 	//Initialize video output
 	if(!core_cpu_nds9.controllers.video.init())
@@ -76,6 +78,7 @@ void NTR_core::stop()
 {
 	running = false;
 	core_cpu_nds9.running = false;
+	core_cpu_nds7.running = false;
 	db_unit.debug_mode = false;
 }
 
@@ -84,6 +87,7 @@ void NTR_core::shutdown()
 { 
 	core_mmu.NTR_MMU::~NTR_MMU();
 	core_cpu_nds9.ARM9::~ARM9();
+	core_cpu_nds7.NTR_ARM7::~NTR_ARM7();
 }
 
 /****** Reset the core ******/
@@ -96,14 +100,18 @@ void NTR_core::reset()
 	*/
 
 	core_cpu_nds9.reset();
+	core_cpu_nds7.reset();
 	core_mmu.reset();
 	
 	//Re-read specified ROM file
 	core_mmu.read_file(config::rom_file);
 
-	//Link CPU and MMU
+	//Link CPUs and MMU
 	core_cpu_nds9.mem = &core_mmu;
+	core_cpu_nds7.mem = &core_mmu;
+
 	core_cpu_nds9.reg.r15 = core_mmu.header.arm9_entry_addr;
+	core_cpu_nds7.reg.r15 = core_mmu.header.arm7_entry_addr;
 
 	//Link LCD and MMU
 	core_cpu_nds9.controllers.video.mem = &core_mmu;
@@ -136,6 +144,9 @@ void NTR_core::run_core()
 	//Point ARM9 PC to entry address
 	core_cpu_nds9.reg.r15 = core_mmu.header.arm9_entry_addr;
 
+	//Point ARM7 PC to entry address
+	core_cpu_nds7.reg.r15 = core_mmu.header.arm7_entry_addr;
+
 	//Begin running the core
 	while(running)
 	{
@@ -147,7 +158,7 @@ void NTR_core::run_core()
 		}
 
 		//Run the CPU
-		if(core_cpu_nds9.running)
+		if((core_cpu_nds9.running) && (core_cpu_nds7.running))
 		{	
 			if(db_unit.debug_mode) { debug_step(); }
 

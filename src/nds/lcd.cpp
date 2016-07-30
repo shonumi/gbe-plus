@@ -16,6 +16,7 @@
 /****** LCD Constructor ******/
 NTR_LCD::NTR_LCD()
 {
+	window = NULL;
 	reset();
 }
 
