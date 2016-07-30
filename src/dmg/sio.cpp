@@ -131,6 +131,7 @@ bool DMG_SIO::init()
 /****** Reset SIO ******/
 void DMG_SIO::reset()
 {
+	//General SIO
 	sio_stat.connected = false;
 	sio_stat.active_transfer = false;
 	sio_stat.double_speed = false;
@@ -143,6 +144,19 @@ void DMG_SIO::reset()
 	sio_stat.sync = false;
 	sio_stat.transfer_byte = 0;
 	sio_stat.sio_type = NO_GB_DEVICE;
+
+	//GB Printer
+	printer.ram.clear();
+	printer.packet_buffer.clear();
+	printer.packet_size = 0;
+	printer.palette = 0;
+	printer.current_state = GBP_AWAITING_PACKET;
+
+	printer.command = 0;
+	printer.compression_flag = 0;
+	printer.data_length = 0;
+	printer.checksum = 0;
+	printer.status = 0;
 
 	#ifdef GBE_NETPLAY
 
@@ -410,4 +424,250 @@ void DMG_SIO::process_network_communication()
 	}
 
 	#endif
+}
+
+/****** Processes data sent to the GB Printer ******/
+void DMG_SIO::printer_process()
+{
+	switch(printer.current_state)
+	{
+		//Receive packet data
+		case GBP_AWAITING_PACKET:
+
+			//Push data to packet buffer	
+			printer.packet_buffer.push_back(sio_stat.transfer_byte);
+			printer.packet_size++;
+
+			//Check for magic number 0x88 0x33
+			if((printer.packet_size == 2) && (printer.packet_buffer[0] == 0x88) && (printer.packet_buffer[1] == 0x33))
+			{
+				std::cout<<"PACKET START\n";
+
+				//Move to the next state
+				printer.current_state = GBP_RECEIVE_COMMAND;
+			}
+
+			//If magic number not found, reset
+			else if(printer.packet_size == 2)
+			{
+				printer.packet_size = 1;
+				u8 temp = printer.packet_buffer[1];
+				printer.packet_buffer.clear();
+				printer.packet_buffer.push_back(temp);
+			}
+
+			//Send data back to GB + IRQ
+			mem->memory_map[REG_SB] = 0x0;
+			mem->memory_map[IF_FLAG] |= 0x08;
+			
+			break;
+
+		//Receive command
+		case GBP_RECEIVE_COMMAND:
+
+			//Push data to packet buffer
+			printer.packet_buffer.push_back(sio_stat.transfer_byte);
+			printer.packet_size++;
+
+			//Grab command. Check to see if the value is a valid command
+			printer.command = printer.packet_buffer.back();
+
+			//Abort if invalid command, wait for a new packet
+			if((printer.command != 0x1) && (printer.command != 0x2) && (printer.command != 0x4) && (printer.command != 0xF))
+			{
+				std::cout<<"SIO::Warning - Invalid command sent to GB Printer -> 0x" << std::hex << (u32)printer.command << "\n";
+				printer.current_state = GBP_AWAITING_PACKET;
+			}
+
+			else
+			{
+				//Move to the next state
+				printer.current_state = GBP_RECEIVE_COMPRESSION_FLAG;
+			}
+
+			//Send data back to GB + IRQ
+			mem->memory_map[REG_SB] = 0x0;
+			mem->memory_map[IF_FLAG] |= 0x08;
+
+			break;
+
+		//Receive compression flag
+		case GBP_RECEIVE_COMPRESSION_FLAG:
+
+			//Push data to packet buffer
+			printer.packet_buffer.push_back(sio_stat.transfer_byte);
+			printer.packet_size++;
+
+			//Grab compression flag
+			printer.compression_flag = printer.packet_buffer.back();
+
+			//Move to the next state
+			printer.current_state = GBP_RECEIVE_LENGTH;
+
+			//Send data back to GB + IRQ
+			mem->memory_map[REG_SB] = 0x0;
+			mem->memory_map[IF_FLAG] |= 0x08;
+
+			break;
+
+		//Receive data length
+		case GBP_RECEIVE_LENGTH:
+
+			//Push data to packet buffer
+			printer.packet_buffer.push_back(sio_stat.transfer_byte);
+			printer.packet_size++;
+
+			//Grab LSB of data length
+			if(printer.packet_size == 5)
+			{
+				printer.data_length = 0;
+				printer.data_length |= printer.packet_buffer.back();
+			}
+
+			//Grab MSB of the data length, move to the next state
+			else if(printer.packet_size == 6)
+			{
+				printer.packet_size = 0;
+				printer.data_length |= (printer.packet_buffer.back() << 8);
+				
+				//Receive data only if the length is non-zero
+				if(printer.data_length > 0) { printer.current_state = GBP_RECEIVE_DATA; }
+
+				//Otherwise, move on to grab the checksum
+				else { printer.current_state = GBP_RECEIVE_CHECKSUM; }
+			}
+
+			//Send data back to GB + IRQ
+			mem->memory_map[REG_SB] = 0x0;
+			mem->memory_map[IF_FLAG] |= 0x08;
+
+			break;
+
+		//Receive data
+		case GBP_RECEIVE_DATA:
+
+			//Push data to packet buffer
+			printer.packet_buffer.push_back(sio_stat.transfer_byte);
+			printer.packet_size++;
+
+			//Once the specified amount of data is transferred, move to the next stage
+			if(printer.packet_size == printer.data_length)
+			{
+				printer.packet_size = 0;
+				printer.current_state = GBP_RECEIVE_CHECKSUM;
+			}
+
+			//Send data back to GB + IRQ
+			mem->memory_map[REG_SB] = 0x0;
+			mem->memory_map[IF_FLAG] |= 0x08;
+
+			break;
+
+		//Receive checksum
+		case GBP_RECEIVE_CHECKSUM:
+
+			//Push data to packet buffer
+			printer.packet_buffer.push_back(sio_stat.transfer_byte);
+			printer.packet_size++;
+			
+			//Grab LSB of checksum
+			if(printer.packet_size == 1)
+			{
+				printer.checksum = 0;
+				printer.checksum |= printer.packet_buffer.back();
+			}
+
+			//Grab MSB of the checksum, move to the next state
+			else if(printer.packet_size == 2)
+			{
+				printer.packet_size = 0;
+				printer.checksum |= (printer.packet_buffer.back() << 8);
+				printer.current_state = GBP_ACKNOWLEDGE_PACKET;
+			}
+
+			//Send data back to GB + IRQ
+			mem->memory_map[REG_SB] = 0x0;
+			mem->memory_map[IF_FLAG] |= 0x08;
+
+			break;
+
+		//Acknowledge packet and process command
+		case GBP_ACKNOWLEDGE_PACKET:
+		
+			//GB Printer expects 2 0x0s, only continue if given them
+			if(sio_stat.transfer_byte == 0)
+			{
+				//Push data to packet buffer
+				printer.packet_buffer.push_back(sio_stat.transfer_byte);
+				printer.packet_size++;
+
+				//Send back 0x81 to GB + IRQ on 1st 0x0
+				if(printer.packet_size == 1)
+				{
+					mem->memory_map[REG_SB] = 0x81;
+					mem->memory_map[IF_FLAG] |= 0x08;
+				}
+
+				//Send back current status to GB + IRQ on 2nd 0x0, begin processing command
+				else if(printer.packet_size == 2)
+				{
+					mem->memory_map[REG_SB] = printer.status;
+					mem->memory_map[IF_FLAG] |= 0x08;
+					printer_execute_command();
+
+					printer.packet_buffer.clear();
+					printer.packet_size = 0;
+				}
+			}
+
+			break;
+	}
+}
+
+/****** Executes commands send to the GB Printer ******/
+void DMG_SIO::printer_execute_command()
+{
+	switch(printer.command)
+	{
+		//Initialize command
+		case 0x1:
+			
+			std::cout<<"PRINTER INIT\n";
+			printer.status = 0x0;
+
+			//Clear 8KB of internal RAM
+			printer.ram.clear();
+			
+			break;
+
+		//Print command
+		case 0x2:
+
+			std::cout<<"PRINTER PRINT\n";
+			printer.status = 0x4;
+
+			break;
+
+		//Data process command
+		case 0x4:
+
+			std::cout<<"PRINTER DATA PROCESS\n";
+			printer.status = 0x8;
+
+			break;
+
+
+		//Status command
+		case 0xF:
+
+			std::cout<<"PRINTER STATUS\n";
+
+			break;
+
+		default:
+			std::cout<<"SIO::Warning - Invalid command sent to GB Printer -> 0x" << std::hex << (u32)printer.command << "\n";
+			break;
+	}
+
+	printer.current_state = GBP_AWAITING_PACKET;
 }

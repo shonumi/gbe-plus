@@ -8,6 +8,8 @@
 //
 // Sets up SDL networking
 // Emulates Gameboy-to-Gameboy data transfers
+// Emulates GBC IR port (not exactly SIO, but the RP register is related to pin 4 of the link port)
+// Emulates the GB Printer
 
 #ifndef GB_SIO
 #define GB_SIO
@@ -54,6 +56,22 @@ class DMG_SIO
 
 	#endif
 
+	//GB Printer
+	struct gb_printer
+	{
+		std::vector <u8> ram;
+		std::vector <u8> packet_buffer;
+		u32 packet_size;
+		u8 palette;
+		printer_state current_state;
+
+		u8 command;
+		u8 compression_flag;
+		u16 data_length;
+		u16 checksum;
+		u8 status;
+	} printer;
+
 	DMG_SIO();
 	~DMG_SIO();
 
@@ -65,6 +83,9 @@ class DMG_SIO
 	bool receive_byte();
 	bool request_sync();
 	void process_network_communication();
+
+	void printer_process();
+	void printer_execute_command();
 };
 
 #endif // GB_SIO

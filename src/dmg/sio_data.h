@@ -24,6 +24,17 @@ enum sio_types
 	GB_PRINTER,
 };
 
+enum printer_state
+{
+	GBP_AWAITING_PACKET,
+	GBP_RECEIVE_COMMAND,
+	GBP_RECEIVE_COMPRESSION_FLAG,
+	GBP_RECEIVE_LENGTH,
+	GBP_RECEIVE_DATA,
+	GBP_RECEIVE_CHECKSUM,
+	GBP_ACKNOWLEDGE_PACKET,
+};
+
 struct dmg_sio_data
 {
 	bool connected;
