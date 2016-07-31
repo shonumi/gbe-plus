@@ -59,7 +59,7 @@ class DMG_SIO
 	//GB Printer
 	struct gb_printer
 	{
-		std::vector <u8> ram;
+		std::vector <u32> scanline_buffer;
 		std::vector <u8> packet_buffer;
 		u32 packet_size;
 		u8 palette;
@@ -67,6 +67,7 @@ class DMG_SIO
 
 		u8 command;
 		u8 compression_flag;
+		u8 strip_count;
 		u16 data_length;
 		u16 checksum;
 		u8 status;
@@ -86,6 +87,7 @@ class DMG_SIO
 
 	void printer_process();
 	void printer_execute_command();
+	void printer_data_process();
 };
 
 #endif // GB_SIO
