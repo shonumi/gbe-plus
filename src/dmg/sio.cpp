@@ -9,6 +9,8 @@
 // Sets up SDL networking
 // Emulates Gameboy-to-Gameboy data transfers
 
+#include <ctime>
+
 #include "sio.h"
 #include "common/util.h"
 
@@ -143,7 +145,7 @@ void DMG_SIO::reset()
 	sio_stat.sync_clock = 32;
 	sio_stat.sync = false;
 	sio_stat.transfer_byte = 0;
-	sio_stat.sio_type = NO_GB_DEVICE;
+	sio_stat.sio_type = GB_PRINTER;
 
 	//GB Printer
 	printer.scanline_buffer.clear();
@@ -443,8 +445,6 @@ void DMG_SIO::printer_process()
 			//Check for magic number 0x88 0x33
 			if((printer.packet_size == 2) && (printer.packet_buffer[0] == 0x88) && (printer.packet_buffer[1] == 0x33))
 			{
-				std::cout<<"PACKET START\n";
-
 				//Move to the next state
 				printer.current_state = GBP_RECEIVE_COMMAND;
 			}
@@ -648,7 +648,9 @@ void DMG_SIO::printer_execute_command()
 		case 0x2:
 
 			std::cout<<"PRINTER PRINT\n";
+			print_image();
 			printer.status = 0x4;
+
 
 			break;
 
@@ -683,6 +685,8 @@ void DMG_SIO::printer_data_process()
 	u32 data_pointer = 6;
 	u32 pixel_counter = printer.strip_count * 2560;
 	u8 tile_pixel = 0;
+
+	if(printer.strip_count >= 9) { return; }
 
 	//Process uncompressed dot data
 	if(!printer.compression_flag)
@@ -732,25 +736,42 @@ void DMG_SIO::printer_data_process()
 	}
 
 	printer.strip_count++;
+}
 
-	//Print page if 9 strips are sent
-	if(printer.strip_count == 9)
-	{
-		//Create a 160x144 image from the buffer, save as BMP
-		SDL_Surface *print_screen = SDL_CreateRGBSurface(SDL_SWSURFACE, 160, 144, 32, 0, 0, 0, 0);
+/****** Save GB Printer image to a BMP ******/
+void DMG_SIO::print_image()
+{
+	u8 high_margin = (printer.packet_buffer[7] >> 4);
+	u8 low_margin = (printer.packet_buffer[7] & 0xF);
 
-		//Lock source surface
-		if(SDL_MUSTLOCK(print_screen)){ SDL_LockSurface(print_screen); }
-		u32* out_pixel_data = (u32*)print_screen->pixels;
+	u32 height = (16 * printer.strip_count) - (low_margin * 8);
+	u32 img_size = 160 * height;
 
-		for(u32 x = 0; x < 0x5A00; x++) { out_pixel_data[x] = printer.scanline_buffer[x]; }
+	srand(SDL_GetTicks());
 
-		//Unlock source surface
-		if(SDL_MUSTLOCK(print_screen)){ SDL_UnlockSurface(print_screen); }
+	std::string filename = "gb_print_";
+	filename += util::to_str(rand() % 1024);
+	filename += util::to_str(rand() % 1024);
+	filename += util::to_str(rand() % 1024);
 
-		SDL_SaveBMP(print_screen, "gb_print.bmp");
-		SDL_FreeSurface(print_screen);
+	u32 print_start = (high_margin * 1280);
+	u32 print_end = img_size;
 
-		printer.strip_count = 0;
-	}
+	//Create a 160x144 image from the buffer, save as BMP
+	SDL_Surface *print_screen = SDL_CreateRGBSurface(SDL_SWSURFACE, 160, height, 32, 0, 0, 0, 0);
+
+	//Lock source surface
+	if(SDL_MUSTLOCK(print_screen)){ SDL_LockSurface(print_screen); }
+	u32* out_pixel_data = (u32*)print_screen->pixels;
+
+	for(u32 x = 0; x < img_size; x++) { out_pixel_data[x] = 0xFFFFFFFF; }
+	for(u32 x = print_start; x < print_end; x++) { out_pixel_data[x] = printer.scanline_buffer[x - print_start]; }
+
+	//Unlock source surface
+	if(SDL_MUSTLOCK(print_screen)){ SDL_UnlockSurface(print_screen); }
+
+	SDL_SaveBMP(print_screen, filename.c_str());
+	SDL_FreeSurface(print_screen);
+
+	printer.strip_count = 0;
 }

@@ -88,6 +88,7 @@ class DMG_SIO
 	void printer_process();
 	void printer_execute_command();
 	void printer_data_process();
+	void print_image();
 };
 
 #endif // GB_SIO
