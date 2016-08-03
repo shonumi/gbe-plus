@@ -145,7 +145,7 @@ void DMG_SIO::reset()
 	sio_stat.sync_clock = 32;
 	sio_stat.sync = false;
 	sio_stat.transfer_byte = 0;
-	sio_stat.sio_type = GB_PRINTER;
+	sio_stat.sio_type = NO_GB_DEVICE;
 
 	//GB Printer
 	printer.scanline_buffer.clear();
@@ -613,9 +613,10 @@ void DMG_SIO::printer_process()
 				//Send back current status to GB + IRQ on 2nd 0x0, begin processing command
 				else if(printer.packet_size == 2)
 				{
+					printer_execute_command();
+
 					mem->memory_map[REG_SB] = printer.status;
 					mem->memory_map[IF_FLAG] |= 0x08;
-					printer_execute_command();
 
 					printer.packet_buffer.clear();
 					printer.packet_size = 0;
