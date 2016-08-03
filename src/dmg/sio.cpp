@@ -145,7 +145,7 @@ void DMG_SIO::reset()
 	sio_stat.sync_clock = 32;
 	sio_stat.sync = false;
 	sio_stat.transfer_byte = 0;
-	sio_stat.sio_type = NO_GB_DEVICE;
+	sio_stat.sio_type = GB_PRINTER;
 
 	//GB Printer
 	printer.scanline_buffer.clear();
@@ -687,7 +687,10 @@ void DMG_SIO::printer_data_process()
 	u32 pixel_counter = printer.strip_count * 2560;
 	u8 tile_pixel = 0;
 
-	if(printer.strip_count >= 9) { return; }
+	if(printer.strip_count >= 9)
+	{
+		for(u32 x = 0; x < 2560; x++) { printer.scanline_buffer.push_back(0x0); }	
+	}
 
 	//Process uncompressed dot data
 	if(!printer.compression_flag)
@@ -742,10 +745,7 @@ void DMG_SIO::printer_data_process()
 /****** Save GB Printer image to a BMP ******/
 void DMG_SIO::print_image()
 {
-	u8 high_margin = (printer.packet_buffer[7] >> 4);
-	u8 low_margin = (printer.packet_buffer[7] & 0xF);
-
-	u32 height = (16 * printer.strip_count) - (low_margin * 8);
+	u32 height = (16 * (printer.strip_count - 1));
 	u32 img_size = 160 * height;
 
 	srand(SDL_GetTicks());
@@ -755,9 +755,6 @@ void DMG_SIO::print_image()
 	filename += util::to_str(rand() % 1024);
 	filename += util::to_str(rand() % 1024);
 
-	u32 print_start = (high_margin * 1280);
-	u32 print_end = img_size;
-
 	//Create a 160x144 image from the buffer, save as BMP
 	SDL_Surface *print_screen = SDL_CreateRGBSurface(SDL_SWSURFACE, 160, height, 32, 0, 0, 0, 0);
 
@@ -765,8 +762,7 @@ void DMG_SIO::print_image()
 	if(SDL_MUSTLOCK(print_screen)){ SDL_LockSurface(print_screen); }
 	u32* out_pixel_data = (u32*)print_screen->pixels;
 
-	for(u32 x = 0; x < img_size; x++) { out_pixel_data[x] = 0xFFFFFFFF; }
-	for(u32 x = print_start; x < print_end; x++) { out_pixel_data[x] = printer.scanline_buffer[x - print_start]; }
+	for(u32 x = 0; x < img_size; x++) { out_pixel_data[x] = printer.scanline_buffer[x]; }
 
 	//Unlock source surface
 	if(SDL_MUSTLOCK(print_screen)){ SDL_UnlockSurface(print_screen); }
