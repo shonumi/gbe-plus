@@ -585,6 +585,17 @@ void DMG_SIO::printer_process()
 				printer.packet_size = 0;
 				printer.checksum |= (printer.packet_buffer.back() << 8);
 				printer.current_state = GBP_ACKNOWLEDGE_PACKET;
+
+				u16 checksum_match = 0;
+
+				//Calculate checksum
+				for(u32 x = 2; x < (printer.packet_buffer.size() - 2); x++)
+				{
+					checksum_match += printer.packet_buffer[x];
+				}
+
+				if(checksum_match != printer.checksum) { printer.status |= 0x1; }
+				else { printer.status &= ~0x1; }
 			}
 
 			//Send data back to GB + IRQ
@@ -652,7 +663,6 @@ void DMG_SIO::printer_execute_command()
 			print_image();
 			printer.status = 0x4;
 
-
 			break;
 
 		//Data process command
@@ -669,6 +679,7 @@ void DMG_SIO::printer_execute_command()
 		case 0xF:
 
 			std::cout<<"PRINTER STATUS\n";
+			printer.status |= 0;
 
 			break;
 
