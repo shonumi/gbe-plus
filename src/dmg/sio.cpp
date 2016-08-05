@@ -145,7 +145,7 @@ void DMG_SIO::reset()
 	sio_stat.sync_clock = 32;
 	sio_stat.sync = false;
 	sio_stat.transfer_byte = 0;
-	sio_stat.sio_type = NO_GB_DEVICE;
+	sio_stat.sio_type = GB_PRINTER;
 
 	//GB Printer
 	printer.scanline_buffer.clear();
@@ -751,6 +751,86 @@ void DMG_SIO::printer_data_process()
 		}
 	}
 
+	//Process compressed dot data
+	else
+	{
+		std::vector<u8> dot_data;
+		u8 data = 0;
+
+		//Cycle through all the compressed data and calculate the RLE
+		while(data_pointer < (printer.data_length + 6))
+		{
+			//Grab MSB of 1st byte in the run, if 1 the run is compressed, otherwise it is an uncompressed run
+			u8 data = printer.packet_buffer[data_pointer++];
+
+			//Compressed run
+			if(data & 0x80)
+			{
+				u8 length = (data & 0x7F) + 2;
+				data = printer.packet_buffer[data_pointer++];
+
+				for(u32 x = 0; x < length; x++) { dot_data.push_back(data); }
+			}
+
+			//Uncompressed run
+			else
+			{
+				u8 length = (data & 0x7F) + 1;
+				
+				for(u32 x = 0; x < length; x++)
+				{
+					data = printer.packet_buffer[data_pointer++];
+					dot_data.push_back(data);
+				}
+			}
+		}
+
+		data_pointer = 0;
+
+		//Cycle through all tiles given in the data, 40 in all
+		for(u32 x = 0; x < 40; x++)
+		{
+			//Grab 16-bytes representing each tile, 2 bytes at a time
+			for(u32 y = 0; y < 8; y++)
+			{
+				//Move pixel counter down one row in the tile
+				pixel_counter = (printer.strip_count * 2560) + ((x % 20) * 8) + (160 * y);
+				if(x >= 20) { pixel_counter += 1280; }
+
+				//Grab 2-bytes representing 8x1 section
+				u16 tile_data = (dot_data[data_pointer + 1] << 8) | dot_data[data_pointer];
+				data_pointer += 2;
+
+				//Determine color of each pixel in that 8x1 section
+				for(int z = 7; z >= 0; z--)
+				{
+					//Calculate raw value of the tile's pixel
+					tile_pixel = ((tile_data >> 8) & (1 << z)) ? 2 : 0;
+					tile_pixel |= (tile_data & (1 << z)) ? 1 : 0;
+
+					switch(tile_pixel)
+					{
+						case 0: 
+							printer.scanline_buffer[pixel_counter++] = config::DMG_BG_PAL[0];
+							break;
+
+						case 1: 
+							printer.scanline_buffer[pixel_counter++] = config::DMG_BG_PAL[1];
+							break;
+
+						case 2:
+							printer.scanline_buffer[pixel_counter++] = config::DMG_BG_PAL[2];
+							break;
+
+						case 3: 
+							printer.scanline_buffer[pixel_counter++] = config::DMG_BG_PAL[3];
+							break;
+					}
+				}
+			}
+		}
+	}
+
 	//Only increment strip count if we actually received data
 	if(printer.data_length != 0) { printer.strip_count++; }
 }
@@ -758,7 +838,7 @@ void DMG_SIO::printer_data_process()
 /****** Save GB Printer image to a BMP ******/
 void DMG_SIO::print_image()
 {
-	u32 height = (16 * (printer.strip_count - 1));
+	u32 height = (16 * printer.strip_count);
 	u32 img_size = 160 * height;
 
 	srand(SDL_GetTicks());
