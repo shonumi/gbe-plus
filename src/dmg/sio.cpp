@@ -145,7 +145,7 @@ void DMG_SIO::reset()
 	sio_stat.sync_clock = 32;
 	sio_stat.sync = false;
 	sio_stat.transfer_byte = 0;
-	sio_stat.sio_type = GB_PRINTER;
+	sio_stat.sio_type = NO_GB_DEVICE;
 
 	//GB Printer
 	printer.scanline_buffer.clear();
@@ -670,10 +670,11 @@ void DMG_SIO::printer_execute_command()
 
 			std::cout<<"PRINTER DATA PROCESS\n";
 			printer_data_process();
-			printer.status = 0x8;
+			
+			//Only set Ready-To-Print status if some actual data was received
+			if(printer.strip_count != 0) { printer.status = 0x8; }
 
 			break;
-
 
 		//Status command
 		case 0xF:
@@ -750,7 +751,8 @@ void DMG_SIO::printer_data_process()
 		}
 	}
 
-	printer.strip_count++;
+	//Only increment strip count if we actually received data
+	if(printer.data_length != 0) { printer.strip_count++; }
 }
 
 /****** Save GB Printer image to a BMP ******/
