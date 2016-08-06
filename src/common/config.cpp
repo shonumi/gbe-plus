@@ -80,6 +80,7 @@ namespace config
 	bool pause_emu = false;
 	bool use_bios = false;
 	bool use_multicart = false;
+	bool use_gb_printer = false;
 	bool use_opengl = false;
 	bool turbo = false;
 
@@ -685,6 +686,26 @@ bool parse_ini_file()
 			else 
 			{ 
 				std::cout<<"GBE::Error - Could not parse gbe.ini (#use_bios) \n";
+				return false;
+			}
+		}
+
+		//Use the GB Printer
+		if(ini_item == "#use_gb_printer")
+		{
+			if((x + 1) < size) 
+			{
+				ini_item = ini_opts[++x];
+				std::stringstream temp_stream(ini_item);
+				temp_stream >> output;
+
+				if(output == 1) { config::use_gb_printer = true; }
+				else { config::use_gb_printer = false; }
+			}
+
+			else 
+			{ 
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#use_gb_printer) \n";
 				return false;
 			}
 		}
@@ -1711,6 +1732,15 @@ bool save_ini_file()
 			std::string val = (config::use_bios) ? "1" : "0";
 
 			output_lines[line_pos] = "[#use_bios:" + val + "]";
+		}
+
+		//Use GB Printer
+		if(ini_item == "#use_gb_printer")
+		{
+			line_pos = output_count[x];
+			std::string val = (config::use_gb_printer) ? "1" : "0";
+
+			output_lines[line_pos] = "[#use_gb_printer:" + val + "]";
 		}
 
 		//Set emulated system type

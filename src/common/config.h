@@ -58,6 +58,7 @@ namespace config
 	extern bool pause_emu;
 	extern bool use_bios;
 	extern bool use_multicart;
+	extern bool use_gb_printer;	
 	extern bool use_opengl;
 	extern bool use_debugger;
 	extern bool turbo;
