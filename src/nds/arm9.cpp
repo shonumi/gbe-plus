@@ -51,6 +51,9 @@ void NTR_ARM9::reset()
 	debug_code = 0;
 	debug_cycles = 0;
 
+	sync_cycles = 0;
+	re_sync = false;
+
 	flush_pipeline();
 	mem = NULL;
 
@@ -1114,10 +1117,11 @@ void NTR_ARM9::mem_check_8(u32 addr, u32& value, bool load_store)
 void NTR_ARM9::clock(u32 access_addr, bool first_access)
 {
 	//TODO - Everything here
-	controllers.video.step();
-
 	//Determine cycles with Wait States + access timing
 	u8 access_cycles = 1;
+
+	//ARM9 CPU sync cycles
+	sync_cycles += access_cycles;
 
 	//Run controllers for each cycle		 
 	for(int x = 0; x < access_cycles; x++)
@@ -1135,6 +1139,11 @@ void NTR_ARM9::clock(u32 access_addr, bool first_access)
 /****** Runs audio and video controllers every clock cycle ******/
 void NTR_ARM9::clock()
 {
+	u8 access_cycles = 1;
+
+	//ARM9 CPU sync cycles
+	sync_cycles += access_cycles;
+
 	controllers.video.step();
 	clock_dma();
 

@@ -72,6 +72,7 @@ class NTR_core : virtual public core_emu
 		NTR_ARM7 core_cpu_nds7;
 		NTR_ARM9 core_cpu_nds9;
 
+		double cpu_sync_cycles;
 
 		/*
 		NDS_GamePad core_pad;

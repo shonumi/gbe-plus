@@ -43,6 +43,11 @@ NTR_core::NTR_core()
 	//db_unit.display_cycles = false;
 	db_unit.last_command = "n";
 
+	//Reset CPU sync
+	cpu_sync_cycles = 0.0;
+	core_cpu_nds9.re_sync = true;
+	core_cpu_nds7.re_sync = false;
+
 	std::cout<<"GBE::Launching NDS core\n";
 }
 
@@ -128,6 +133,11 @@ void NTR_core::reset()
 	core_mmu.timer = &core_cpu.controllers.timer;
 	*/
 
+	//Reset CPU sync
+	cpu_sync_cycles = 0.0;
+	core_cpu_nds9.re_sync = true;
+	core_cpu_nds7.re_sync = false;
+
 	//Start everything all over again
 	start();
 }
@@ -162,28 +172,81 @@ void NTR_core::run_core()
 		{	
 			if(db_unit.debug_mode) { debug_step(); }
 
-			//TODO - This is temporary
-			core_cpu_nds9.clock();
-			core_cpu_nds9.clock();
-			core_cpu_nds9.clock();
-			core_cpu_nds9.clock();
+			//Run NDS9
+			if(core_cpu_nds9.re_sync)
+			{
+				core_cpu_nds9.sync_cycles = 0;
 
-			core_cpu_nds9.fetch();
-			core_cpu_nds9.decode();
-			core_cpu_nds9.execute();
+				//TODO - This is temporary
+				core_cpu_nds9.clock();
+				core_cpu_nds9.clock();
+				core_cpu_nds9.clock();
+				core_cpu_nds9.clock();
 
-			core_cpu_nds9.handle_interrupt();
+				core_cpu_nds9.fetch();
+				core_cpu_nds9.decode();
+				core_cpu_nds9.execute();
+
+				core_cpu_nds9.handle_interrupt();
 		
-			//Flush pipeline if necessary
-			if(core_cpu_nds9.needs_flush) { core_cpu_nds9.flush_pipeline(); }
+				//Flush pipeline if necessary
+				if(core_cpu_nds9.needs_flush) { core_cpu_nds9.flush_pipeline(); }
 
-			//Else update the pipeline and PC
-			else 
-			{ 
-				core_cpu_nds9.pipeline_pointer = (core_cpu_nds9.pipeline_pointer + 1) % 3;
-				core_cpu_nds9.update_pc(); 
+				//Else update the pipeline and PC
+				else 
+				{ 
+					core_cpu_nds9.pipeline_pointer = (core_cpu_nds9.pipeline_pointer + 1) % 3;
+					core_cpu_nds9.update_pc();
+				}
+
+				//Determine if NDS7 needs to run in order to sync
+				cpu_sync_cycles -= core_cpu_nds9.sync_cycles;	
+
+				if(cpu_sync_cycles <= 0)
+				{
+					core_cpu_nds9.re_sync = false;
+					core_cpu_nds7.re_sync = true;
+					cpu_sync_cycles *= -2.0;
+				}
 			}
 
+			//Run NDS7
+			if(core_cpu_nds7.re_sync)
+			{
+				core_cpu_nds7.sync_cycles = 0;
+
+				//TODO - This is temporary
+				core_cpu_nds7.clock();
+				core_cpu_nds7.clock();
+				core_cpu_nds7.clock();
+				core_cpu_nds7.clock();
+
+				core_cpu_nds7.fetch();
+				core_cpu_nds7.decode();
+				core_cpu_nds7.execute();
+
+				core_cpu_nds7.handle_interrupt();
+		
+				//Flush pipeline if necessary
+				if(core_cpu_nds7.needs_flush) { core_cpu_nds7.flush_pipeline(); }
+
+				//Else update the pipeline and PC
+				else 
+				{ 
+					core_cpu_nds7.pipeline_pointer = (core_cpu_nds7.pipeline_pointer + 1) % 3;
+					core_cpu_nds7.update_pc();
+				}
+
+				//Determine if NDS9 needs to run in order to sync
+				cpu_sync_cycles -= core_cpu_nds7.sync_cycles;
+
+				if(cpu_sync_cycles <= 0)
+				{
+					core_cpu_nds7.re_sync = false;
+					core_cpu_nds9.re_sync = true;
+					cpu_sync_cycles *= -0.5;
+				}
+			}
 		}
 
 		//Stop emulation

@@ -168,6 +168,9 @@ class NTR_ARM9
 	u32 debug_code;
 	u32 debug_cycles;
 
+	u32 sync_cycles;
+	bool re_sync;
+
 	NTR_MMU* mem;
 
 	//Audio-Video and other controllers
