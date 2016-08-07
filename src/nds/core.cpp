@@ -48,6 +48,8 @@ NTR_core::NTR_core()
 	core_cpu_nds9.re_sync = true;
 	core_cpu_nds7.re_sync = false;
 
+	nds9_debug = true;
+
 	std::cout<<"GBE::Launching NDS core\n";
 }
 
@@ -262,13 +264,16 @@ void NTR_core::run_core()
 /****** Debugger - Allow core to run until a breaking condition occurs ******/
 void NTR_core::debug_step()
 {
+	//Select NDS9 or NDS7 PC when looking for a break condition
+	u32 pc = nds9_debug ? core_cpu_nds9.reg.r15 : core_cpu_nds7.reg.r15;
+
 	//In continue mode, if breakpoints exist, try to stop on one
 	if((db_unit.breakpoints.size() > 0) && (db_unit.last_command == "c"))
 	{
 		for(int x = 0; x < db_unit.breakpoints.size(); x++)
 		{
 			//When a BP is matched, display info, wait for next input command
-			if(core_cpu_nds9.reg.r15 == db_unit.breakpoints[x])
+			if(pc == db_unit.breakpoints[x])
 			{
 				debug_display();
 				debug_process_command();
@@ -288,131 +293,142 @@ void NTR_core::debug_step()
 /****** Debugger - Display relevant info to the screen ******/
 void NTR_core::debug_display() const
 {
+	//Select NDS9 or NDS7 debugging info
+	u32 debug_code = nds9_debug ? core_cpu_nds9.debug_code : core_cpu_nds7.debug_code;
+	u8 debug_message = nds9_debug ? core_cpu_nds9.debug_message : core_cpu_nds7.debug_message;
+	u32 cpu_regs[16];
+	u32 cpsr = nds9_debug ? core_cpu_nds9.reg.cpsr : core_cpu_nds7.reg.cpsr;
+
+	for(u32 x = 0; x < 16; x++)
+	{
+		cpu_regs[x] = nds9_debug ? core_cpu_nds9.get_reg(x) : core_cpu_nds7.get_reg(x);
+	}
+
 	//Display current CPU action
-	switch(core_cpu_nds9.debug_message)
+	switch(debug_message)
 	{
 		case 0xFF:
 			std::cout << "Filling pipeline\n"; break;
 		case 0x0: 
-			std::cout << std::hex << "CPU::Executing THUMB_1 : 0x" << core_cpu_nds9.debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing THUMB_1 : 0x" << debug_code << "\n\n"; break;
 		case 0x1:
-			std::cout << std::hex << "CPU::Executing THUMB_2 : 0x" << core_cpu_nds9.debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing THUMB_2 : 0x" << debug_code << "\n\n"; break;
 		case 0x2:
-			std::cout << std::hex << "CPU::Executing THUMB_3 : 0x" << core_cpu_nds9.debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing THUMB_3 : 0x" << debug_code << "\n\n"; break;
 		case 0x3:
-			std::cout << std::hex << "CPU::Executing THUMB_4 : 0x" << core_cpu_nds9.debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing THUMB_4 : 0x" << debug_code << "\n\n"; break;
 		case 0x4:
-			std::cout << std::hex << "CPU::Executing THUMB_5 : 0x" << core_cpu_nds9.debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing THUMB_5 : 0x" << debug_code << "\n\n"; break;
 		case 0x5:
-			std::cout << std::hex << "CPU::Executing THUMB_6 : 0x" << core_cpu_nds9.debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing THUMB_6 : 0x" << debug_code << "\n\n"; break;
 		case 0x6:
-			std::cout << std::hex << "CPU::Executing THUMB_7 : 0x" << core_cpu_nds9.debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing THUMB_7 : 0x" << debug_code << "\n\n"; break;
 		case 0x7:
-			std::cout << std::hex << "CPU::Executing THUMB_8 : 0x" << core_cpu_nds9.debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing THUMB_8 : 0x" << debug_code << "\n\n"; break;
 		case 0x8:
-			std::cout << std::hex << "CPU::Executing THUMB_9 : 0x" << core_cpu_nds9.debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing THUMB_9 : 0x" << debug_code << "\n\n"; break;
 		case 0x9:
-			std::cout << std::hex << "CPU::Executing THUMB_10 : 0x" << core_cpu_nds9.debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing THUMB_10 : 0x" << debug_code << "\n\n"; break;
 		case 0xA:
-			std::cout << std::hex << "CPU::Executing THUMB_11 : 0x" << core_cpu_nds9.debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing THUMB_11 : 0x" << debug_code << "\n\n"; break;
 		case 0xB:
-			std::cout << std::hex << "CPU::Executing THUMB_12 : 0x" << core_cpu_nds9.debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing THUMB_12 : 0x" << debug_code << "\n\n"; break;
 		case 0xC:
-			std::cout << std::hex << "CPU::Executing THUMB_13 : 0x" << core_cpu_nds9.debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing THUMB_13 : 0x" << debug_code << "\n\n"; break;
 		case 0xD:
-			std::cout << std::hex << "CPU::Executing THUMB_14 : 0x" << core_cpu_nds9.debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing THUMB_14 : 0x" << debug_code << "\n\n"; break;
 		case 0xE:
-			std::cout << std::hex << "CPU::Executing THUMB_15 : 0x" << core_cpu_nds9.debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing THUMB_15 : 0x" << debug_code << "\n\n"; break;
 		case 0xF:
-			std::cout << std::hex << "CPU::Executing THUMB_16 : 0x" << core_cpu_nds9.debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing THUMB_16 : 0x" << debug_code << "\n\n"; break;
 		case 0x10:
-			std::cout << std::hex << "CPU::Executing THUMB_17 : 0x" << core_cpu_nds9.debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing THUMB_17 : 0x" << debug_code << "\n\n"; break;
 		case 0x11:
-			std::cout << std::hex << "CPU::Executing THUMB_18 : 0x" << core_cpu_nds9.debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing THUMB_18 : 0x" << debug_code << "\n\n"; break;
 		case 0x12:
-			std::cout << std::hex << "CPU::Executing THUMB_19 : 0x" << core_cpu_nds9.debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing THUMB_19 : 0x" << debug_code << "\n\n"; break;
 		case 0x13:
-			std::cout << std::hex << "Unknown THUMB Instruction : 0x" << core_cpu_nds9.debug_code << "\n\n"; break;
+			std::cout << std::hex << "Unknown THUMB Instruction : 0x" << debug_code << "\n\n"; break;
 		case 0x14:
-			std::cout << std::hex << "CPU::Executing ARM_3 : 0x" << core_cpu_nds9.debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing ARM_3 : 0x" << debug_code << "\n\n"; break;
 		case 0x15:
-			std::cout << std::hex << "CPU::Executing ARM_4 : 0x" << core_cpu_nds9.debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing ARM_4 : 0x" << debug_code << "\n\n"; break;
 		case 0x16:
-			std::cout << std::hex << "CPU::Executing ARM_5 : 0x" << core_cpu_nds9.debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing ARM_5 : 0x" << debug_code << "\n\n"; break;
 		case 0x17:
-			std::cout << std::hex << "CPU::Executing ARM_6 : 0x" << core_cpu_nds9.debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing ARM_6 : 0x" << debug_code << "\n\n"; break;
 		case 0x18:
-			std::cout << std::hex << "CPU::Executing ARM_7 : 0x" << core_cpu_nds9.debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing ARM_7 : 0x" << debug_code << "\n\n"; break;
 		case 0x19:
-			std::cout << std::hex << "CPU::Executing ARM_9 : 0x" << core_cpu_nds9.debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing ARM_9 : 0x" << debug_code << "\n\n"; break;
 		case 0x1A:
-			std::cout << std::hex << "CPU::Executing ARM_10 : 0x" << core_cpu_nds9.debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing ARM_10 : 0x" << debug_code << "\n\n"; break;
 		case 0x1B:
-			std::cout << std::hex << "CPU::Executing ARM_11 : 0x" << core_cpu_nds9.debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing ARM_11 : 0x" << debug_code << "\n\n"; break;
 		case 0x1C:
-			std::cout << std::hex << "CPU::Executing ARM_12 : 0x" << core_cpu_nds9.debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing ARM_12 : 0x" << debug_code << "\n\n"; break;
 		case 0x1D:
-			std::cout << std::hex << "CPU::Executing ARM_13 : 0x" << core_cpu_nds9.debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing ARM_13 : 0x" << debug_code << "\n\n"; break;
 		case 0x1E:
-			std::cout << std::hex << "CPU::Executing ARM Coprocessor Register Transfer : 0x" << core_cpu_nds9.debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing ARM Coprocessor Register Transfer : 0x" << debug_code << "\n\n"; break;
 		case 0x1F:
-			std::cout << std::hex << "CPU::Executing ARM Coprocessor Data Transfer : 0x" << core_cpu_nds9.debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing ARM Coprocessor Data Transfer : 0x" << debug_code << "\n\n"; break;
 		case 0x20:
-			std::cout << std::hex << "CPU::Executing ARM Coprocessor Data Operation : 0x" << core_cpu_nds9.debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing ARM Coprocessor Data Operation : 0x" << debug_code << "\n\n"; break;
 		case 0x21:
-			std::cout << std::hex << "Unknown ARM Instruction : 0x" << core_cpu_nds9.debug_code << "\n\n"; break;
+			std::cout << std::hex << "Unknown ARM Instruction : 0x" << debug_code << "\n\n"; break;
 		case 0x22:
-			std::cout << std::hex << "CPU::Skipping ARM Instruction : 0x" << core_cpu_nds9.debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Skipping ARM Instruction : 0x" << debug_code << "\n\n"; break;
 	}
 
 	//Display CPU registers
-	std::cout<< std::hex <<"R0 : 0x" << std::setw(8) << std::setfill('0') << core_cpu_nds9.get_reg(0) << 
-		" -- R4  : 0x" << std::setw(8) << std::setfill('0') << core_cpu_nds9.get_reg(4) << 
-		" -- R8  : 0x" << std::setw(8) << std::setfill('0') << core_cpu_nds9.get_reg(8) << 
-		" -- R12 : 0x" << std::setw(8) << std::setfill('0') << core_cpu_nds9.get_reg(12) << "\n";
+	std::cout<< std::hex <<"R0 : 0x" << std::setw(8) << std::setfill('0') << cpu_regs[0] << 
+		" -- R4  : 0x" << std::setw(8) << std::setfill('0') << cpu_regs[4] << 
+		" -- R8  : 0x" << std::setw(8) << std::setfill('0') << cpu_regs[8] << 
+		" -- R12 : 0x" << std::setw(8) << std::setfill('0') << cpu_regs[12] << "\n";
 
-	std::cout<< std::hex <<"R1 : 0x" << std::setw(8) << std::setfill('0') << core_cpu_nds9.get_reg(1) << 
-		" -- R5  : 0x" << std::setw(8) << std::setfill('0') << core_cpu_nds9.get_reg(5) << 
-		" -- R9  : 0x" << std::setw(8) << std::setfill('0') << core_cpu_nds9.get_reg(9) << 
-		" -- R13 : 0x" << std::setw(8) << std::setfill('0') << core_cpu_nds9.get_reg(13) << "\n";
+	std::cout<< std::hex <<"R1 : 0x" << std::setw(8) << std::setfill('0') << cpu_regs[1] << 
+		" -- R5  : 0x" << std::setw(8) << std::setfill('0') << cpu_regs[5] << 
+		" -- R9  : 0x" << std::setw(8) << std::setfill('0') << cpu_regs[9] << 
+		" -- R13 : 0x" << std::setw(8) << std::setfill('0') << cpu_regs[13] << "\n";
 
-	std::cout<< std::hex <<"R2 : 0x" << std::setw(8) << std::setfill('0') << core_cpu_nds9.get_reg(2) << 
-		" -- R6  : 0x" << std::setw(8) << std::setfill('0') << core_cpu_nds9.get_reg(6) << 
-		" -- R10 : 0x" << std::setw(8) << std::setfill('0') << core_cpu_nds9.get_reg(10) << 
-		" -- R14 : 0x" << std::setw(8) << std::setfill('0') << core_cpu_nds9.get_reg(14) << "\n";
+	std::cout<< std::hex <<"R2 : 0x" << std::setw(8) << std::setfill('0') << cpu_regs[2] << 
+		" -- R6  : 0x" << std::setw(8) << std::setfill('0') << cpu_regs[6] << 
+		" -- R10 : 0x" << std::setw(8) << std::setfill('0') << cpu_regs[10] << 
+		" -- R14 : 0x" << std::setw(8) << std::setfill('0') << cpu_regs[14] << "\n";
 
-	std::cout<< std::hex <<"R3 : 0x" << std::setw(8) << std::setfill('0') << core_cpu_nds9.get_reg(3) << 
-		" -- R7  : 0x" << std::setw(8) << std::setfill('0') << core_cpu_nds9.get_reg(7) << 
-		" -- R11 : 0x" << std::setw(8) << std::setfill('0') << core_cpu_nds9.get_reg(11) << 
-		" -- R15 : 0x" << std::setw(8) << std::setfill('0') << core_cpu_nds9.get_reg(15) << "\n";
+	std::cout<< std::hex <<"R3 : 0x" << std::setw(8) << std::setfill('0') << cpu_regs[3] << 
+		" -- R7  : 0x" << std::setw(8) << std::setfill('0') << cpu_regs[7] << 
+		" -- R11 : 0x" << std::setw(8) << std::setfill('0') << cpu_regs[11] << 
+		" -- R15 : 0x" << std::setw(8) << std::setfill('0') << cpu_regs[15] << "\n";
 
 	//Grab CPSR Flags and status
 	std::string cpsr_stats = "(";
 
-	if(core_cpu_nds9.reg.cpsr & CPSR_N_FLAG) { cpsr_stats += "N"; }
+	if(cpsr & CPSR_N_FLAG) { cpsr_stats += "N"; }
 	else { cpsr_stats += "."; }
 
-	if(core_cpu_nds9.reg.cpsr & CPSR_Z_FLAG) { cpsr_stats += "Z"; }
+	if(cpsr & CPSR_Z_FLAG) { cpsr_stats += "Z"; }
 	else { cpsr_stats += "."; }
 
-	if(core_cpu_nds9.reg.cpsr & CPSR_C_FLAG) { cpsr_stats += "C"; }
+	if(cpsr & CPSR_C_FLAG) { cpsr_stats += "C"; }
 	else { cpsr_stats += "."; }
 
-	if(core_cpu_nds9.reg.cpsr & CPSR_V_FLAG) { cpsr_stats += "V"; }
+	if(cpsr & CPSR_V_FLAG) { cpsr_stats += "V"; }
 	else { cpsr_stats += "."; }
 
 	cpsr_stats += "  ";
 
-	if(core_cpu_nds9.reg.cpsr & CPSR_IRQ) { cpsr_stats += "I"; }
+	if(cpsr & CPSR_IRQ) { cpsr_stats += "I"; }
 	else { cpsr_stats += "."; }
 
-	if(core_cpu_nds9.reg.cpsr & CPSR_FIQ) { cpsr_stats += "F"; }
+	if(cpsr & CPSR_FIQ) { cpsr_stats += "F"; }
 	else { cpsr_stats += "."; }
 
-	if(core_cpu_nds9.reg.cpsr & CPSR_STATE) { cpsr_stats += "T)"; }
+	if(cpsr & CPSR_STATE) { cpsr_stats += "T)"; }
 	else { cpsr_stats += ".)"; }
 
-	std::cout<< std::hex <<"CPSR : 0x" << std::setw(8) << std::setfill('0') << core_cpu_nds9.reg.cpsr << "\t" << cpsr_stats << "\n";
+	std::cout<< std::hex <<"CPSR : 0x" << std::setw(8) << std::setfill('0') << cpsr << "\t" << cpsr_stats << "\n";
 
 	/*
 	//Display current CPU cycles
@@ -446,6 +462,28 @@ void NTR_core::debug_process_command()
 
 		//Quit the debugger
 		else if(command == "dq") { valid_command = true; db_unit.debug_mode = false; std::cout<<"\n"; }
+
+		//Switch between NDS9 and NDS7 debugging
+		else if(command == "sc")
+		{
+			valid_command = true;
+			db_unit.last_command = "sc";
+
+			if(nds9_debug)
+			{
+				nds9_debug = false;
+				std::cout<<"Switching to NDS7...\n";
+			}
+
+			else
+			{
+				nds9_debug = true;
+				std::cout<<"Switching to NDS9...\n";
+			}
+
+			debug_display();
+			debug_process_command();
+		}
 
 		//Add breakpoint
 		else if((command.substr(0, 2) == "bp") && (command.substr(3, 2) == "0x"))
@@ -717,6 +755,7 @@ void NTR_core::debug_process_command()
 		{
 			std::cout<<"n \t\t Run next Fetch-Decode-Execute stage\n";
 			std::cout<<"c \t\t Continue until next breakpoint\n";
+			std::cout<<"sc \t\t Switch CPU (NDS9 or NDS7)\n";
 			std::cout<<"bp \t\t Set breakpoint, format 0x1234ABCD\n";
 			std::cout<<"u8 \t\t Show BYTE @ memory, format 0x1234ABCD\n";
 			std::cout<<"u16 \t\t Show HALFWORD @ memory, format 0x1234ABCD\n";

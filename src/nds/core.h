@@ -67,12 +67,12 @@ class NTR_core : virtual public core_emu
 		void start_netplay();
 		void stop_netplay();
 
-
 		NTR_MMU core_mmu;
 		NTR_ARM7 core_cpu_nds7;
 		NTR_ARM9 core_cpu_nds9;
 
 		double cpu_sync_cycles;
+		bool nds9_debug;
 
 		/*
 		NDS_GamePad core_pad;
