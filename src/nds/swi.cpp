@@ -49,8 +49,8 @@ void NTR_ARM9::swi_intrwait()
 	bool fire_interrupt = false;
 
 	//Grab old IF, set current one to zero
-	old_if = mem->read_u32_fast(NDS_IF);
-	mem->write_u32_fast(NDS_IF, 0x0);
+	old_if = mem->nds9_if;
+	mem->nds9_if = 0;
 
 	//Grab the interrupts to check from R1
 	if_check = reg.r1;
@@ -60,8 +60,8 @@ void NTR_ARM9::swi_intrwait()
 	{
 		clock();
 
-		current_if = mem->read_u32_fast(NDS_IF);
-		ie_check = mem->read_u32_fast(NDS_IE);
+		current_if = mem->nds9_if;
+		ie_check = mem->nds9_ie;
 		
 		//Match up bits in IE and IF
 		for(int x = 0; x < 21; x++)
@@ -79,7 +79,7 @@ void NTR_ARM9::swi_intrwait()
 	}
 
 	//Restore old IF, also OR in any new flags that were set
-	mem->write_u32_fast(NDS_IF, old_if | current_if);
+	mem->nds9_if = (old_if | current_if);
 
 	//Artificially hold PC at current location
 	//This SWI will be fetched, decoded, and executed again until it hits VBlank 

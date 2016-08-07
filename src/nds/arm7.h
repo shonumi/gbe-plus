@@ -171,7 +171,7 @@ class NTR_ARM7
 	u32 debug_code;
 	u32 debug_cycles;
 
-	u32 sync_cycles;
+	s16 sync_cycles;
 	bool re_sync;
 
 	NTR_MMU* mem;

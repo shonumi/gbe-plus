@@ -39,6 +39,9 @@ class NTR_MMU
 	u32 nds7_bios_vector;
 	u32 nds7_irq_handler;
 
+	//Determines whether memory access comes from NDS9/NDS7
+	u8 access_mode;
+
 	//Structure for handling DS cart headers
 	struct cart_header
 	{
@@ -76,6 +79,13 @@ class NTR_MMU
 		u8 src_addr_ctrl;
 		u8 delay;
 	} dma[8];
+
+	//NDS9 and NDS7 have separate IE and IF registers (accessed at the same address)
+	u32 nds9_ie;
+	u32 nds9_if;
+
+	u32 nds7_ie;
+	u32 nds7_if;
 
 	NTR_MMU();
 	~NTR_MMU();

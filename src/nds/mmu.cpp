@@ -34,15 +34,22 @@ void NTR_MMU::reset()
 
 	cart_data.clear();
 
+	//Default access mode starts off with NDS9
+	access_mode = 0;
+
 	nds7_bios.clear();
 	nds7_bios.resize(0x4000, 0);
 	nds7_bios_vector = 0x0;
 	nds7_irq_handler = 0x380FFFC;
+	nds7_ie = 0x0;
+	nds7_if = 0x0;
 
 	nds9_bios.clear();
 	nds9_bios.resize(0xC00, 0);
 	nds9_bios_vector = 0xFFFF0000;
 	nds9_irq_handler = 0x0;
+	nds9_ie = 0x0;
+	nds9_if = 0x0;
 
 	//HLE stuff
 	memory_map[NDS_DISPCNT_A] = 0x80;
@@ -78,7 +85,27 @@ u8 NTR_MMU::read_u8(u32 address) const
 	if((address >= nds9_bios_vector) && (address <= (nds9_bios_vector + 0xC00))) { return nds9_bios[address - nds9_bios_vector]; }
 
 	//Check for unused memory first
-	else if(address >= 0x10000000) { std::cout<<"Out of bounds read : 0x" << std::hex << address << "\n"; return 0; }
+	else if(address >= 0x10000000) { return 0; std::cout<<"Out of bounds read : 0x" << std::hex << address << "\n"; return 0; }
+
+	//Check for reading IE
+	else if((address & ~0x3) == NDS_IE)
+	{
+		//Return NDS9 IE
+		if(access_mode) { return nds9_ie & (0xFF << ((address & 0x3) << 3)); }
+		
+		//Return NDS7 IE
+		else { return nds7_ie & (0xFF << ((address & 0x3) << 3)); }
+	}
+
+	//Check for reading IF
+	else if((address & ~0x3) == NDS_IF)
+	{
+		//Return NDS9 IF
+		if(access_mode) { return nds9_if & (0xFF << ((address & 0x3) << 3)); }
+		
+		//Return NDS7 IF
+		else { return nds7_if & (0xFF << ((address & 0x3) << 3)); }
+	}
 
 	return memory_map[address];
 }
@@ -111,7 +138,7 @@ u32 NTR_MMU::read_u32_fast(u32 address) const
 void NTR_MMU::write_u8(u32 address, u8 value)
 {
 	//Check for unused memory first
-	if(address >= 0x10000000) { std::cout<<"Out of bounds write : 0x" << std::hex << address << "\n"; return; }
+	if(address >= 0x10000000) { return; std::cout<<"Out of bounds write : 0x" << std::hex << address << "\n"; return; }
 
 	switch(address)
 	{
@@ -524,7 +551,23 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		case NDS_IE+1:
 		case NDS_IE+2:
 		case NDS_IE+3:
-			memory_map[address] = value;
+			
+			//Write to NDS9 IE
+			if(access_mode)
+			{
+				nds9_ie &= ~(0xFF << ((address & 0x3) << 3));
+				nds9_ie |= (value << ((address & 0x3) << 3));
+				std::cout<<"NDS9 IE -> 0x" << std::hex << nds9_ie << "\n";
+			}
+
+			//Write to NDS7 IE
+			else
+			{
+				nds7_ie &= ~(0xFF << ((address & 0x3) << 3));
+				nds7_ie |= (value << ((address & 0x3) << 3));
+				std::cout<<"NDS7 IE -> 0x" << std::hex << nds7_ie << "\n";
+			}
+				
 			break;
 
 		case NDS_IF:
@@ -532,8 +575,62 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		case NDS_IF+2:
 		case NDS_IF+3:
 			memory_map[address] &= ~value;
+
+			//Write to NDS9 IF
+			if(access_mode) { nds9_if &= ~(value << ((address & 0x3) << 3)); }
+
+			//Write to NDS7 IF
+			else { nds7_ie &= ~(0xFF << ((address & 0x3) << 3)); }
+
 			break;
+
+		case NDS_IPCSYNC+1:
+			memory_map[address] = value;
+
+			//Copy Bits 8-11 to Bits 0-3
+			memory_map[NDS_IPCSYNC] &= ~0xF;
+			memory_map[NDS_IPCSYNC] |= (value & 0xF);
+
+			//Trigger IPC IRQ
+			if((value & 0x20) && (value & 0x40))
+			{
+				if(access_mode)
+				{
+					nds9_if |= 0x10000;
+					std::cout<<"NDS7 to NDS9 IRQ\n";
+				}
 				
+				else
+				{
+					nds7_if |= 0x10000;
+					std::cout<<"NDS9 to NDS7 IRQ\n";
+				}
+			}
+
+
+			std::cout<<"NDS IPCSYNC -> 0x" << std::hex << read_u16(NDS_IPCSYNC) << "\n";
+			break;
+
+		case NDS_IPCFIFOCNT:
+		case NDS_IPCFIFOCNT+1:
+			memory_map[address] = value;
+			std::cout<<"NDS IPCFIFOCNT -> 0x" << std::hex << read_u16(NDS_IPCFIFOCNT) << "\n";
+			break;
+
+		case NDS_IPCFIFOSND:
+		case NDS_IPCFIFOSND+1:
+		case NDS_IPCFIFOSND+2:
+		case NDS_IPCFIFOSND+3:
+			memory_map[address] = value;
+			std::cout<<"NDS IPCFIFOSND\n";
+			break;
+
+		case NDS_IPCFIFORECV:
+		case NDS_IPCFIFORECV+1:
+		case NDS_IPCFIFORECV+2:
+		case NDS_IPCFIFORECV+3:
+			break;
+
 		default:
 			memory_map[address] = value;
 			break;

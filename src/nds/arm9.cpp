@@ -1118,7 +1118,7 @@ void NTR_ARM9::clock(u32 access_addr, bool first_access)
 {
 	//TODO - Everything here
 	//Determine cycles with Wait States + access timing
-	u8 access_cycles = 1;
+	u8 access_cycles = 8;
 
 	//ARM9 CPU sync cycles
 	sync_cycles += access_cycles;
@@ -1139,7 +1139,7 @@ void NTR_ARM9::clock(u32 access_addr, bool first_access)
 /****** Runs audio and video controllers every clock cycle ******/
 void NTR_ARM9::clock()
 {
-	u8 access_cycles = 1;
+	u8 access_cycles = 8;
 
 	//ARM9 CPU sync cycles
 	sync_cycles += access_cycles;
@@ -1200,8 +1200,8 @@ void NTR_ARM9::handle_interrupt()
 	//Jump into an interrupt, check if the master flag is enabled
 	if((mem->memory_map[NDS_IME] & 0x1) && ((reg.cpsr & CPSR_IRQ) == 0) && (!in_interrupt))
 	{
-		u16 if_check = mem->read_u16_fast(NDS_IF);
-		u16 ie_check = mem->read_u16_fast(NDS_IE);
+		u32 if_check = mem->nds9_if;
+		u32 ie_check = mem->nds9_ie;
 
 		//Match up bits in IE and IF
 		for(int x = 0; x < 21; x++)
