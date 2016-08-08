@@ -35,7 +35,7 @@ void NTR_MMU::reset()
 	cart_data.clear();
 
 	//Default access mode starts off with NDS9
-	access_mode = 0;
+	access_mode = 1;
 
 	nds7_bios.clear();
 	nds7_bios.resize(0x4000, 0);
@@ -82,7 +82,10 @@ void NTR_MMU::reset()
 u8 NTR_MMU::read_u8(u32 address) const
 {
 	//Read from NDS9 BIOS
-	if((address >= nds9_bios_vector) && (address <= (nds9_bios_vector + 0xC00))) { return nds9_bios[address - nds9_bios_vector]; }
+	if((address >= nds9_bios_vector) && (address <= (nds9_bios_vector + 0xC00)) && (access_mode)) { return nds9_bios[address - nds9_bios_vector]; }
+
+	//Read from NDS7 BIOS
+	if((address >= nds7_bios_vector) && (address <= (nds7_bios_vector + 0x4000)) && (!access_mode)) { return nds7_bios[address - nds7_bios_vector]; }
 
 	//Check for unused memory first
 	else if(address >= 0x10000000) { return 0; std::cout<<"Out of bounds read : 0x" << std::hex << address << "\n"; return 0; }
@@ -583,6 +586,8 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			else { nds7_ie &= ~(0xFF << ((address & 0x3) << 3)); }
 
 			break;
+
+		case NDS_IPCSYNC: break;
 
 		case NDS_IPCSYNC+1:
 			memory_map[address] = value;
