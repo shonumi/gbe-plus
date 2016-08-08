@@ -87,12 +87,24 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	cheats_layout->addWidget(cheats_label);
 	cheats_set->setLayout(cheats_layout);
 
+	//General settings - Use GB Printer
+	QWidget* printer_set = new QWidget(general);
+	QLabel* printer_label = new QLabel("Enable GB Printer", printer_set);
+	printer = new QCheckBox(printer_set);
+
+	QHBoxLayout* printer_layout = new QHBoxLayout;
+	printer_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	printer_layout->addWidget(printer);
+	printer_layout->addWidget(printer_label);
+	printer_set->setLayout(printer_layout);
+
 	QVBoxLayout* gen_layout = new QVBoxLayout;
 	gen_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	gen_layout->addWidget(sys_type_set);
 	gen_layout->addWidget(bios_set);
 	gen_layout->addWidget(cheats_set);
 	gen_layout->addWidget(multicart_set);
+	gen_layout->addWidget(printer_set);
 	general->setLayout(gen_layout);
 
 	//Display settings - Screen scale
@@ -654,6 +666,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(tabs_button, SIGNAL(rejected()), this, SLOT(reject()));
 	connect(tabs_button->button(QDialogButtonBox::Close), SIGNAL(clicked()), this, SLOT(close_input()));
 	connect(bios, SIGNAL(stateChanged(int)), this, SLOT(set_bios()));
+	connect(printer, SIGNAL(stateChanged(int)), this, SLOT(set_printer()));
 	connect(screen_scale, SIGNAL(currentIndexChanged(int)), this, SLOT(screen_scale_change()));
 	connect(aspect_ratio, SIGNAL(stateChanged(int)), this, SLOT(aspect_ratio_change()));
 	connect(dmg_gbc_pal, SIGNAL(currentIndexChanged(int)), this, SLOT(dmg_gbc_pal_change()));
@@ -845,6 +858,9 @@ void gen_settings::set_ini_options()
 	//BIOS or Boot ROM option
 	if(config::use_bios) { bios->setChecked(true); }
 
+	//Emulate GB Printer
+	if(config::use_gb_printer) { printer->setChecked(true); }
+
 	//Use cheats
 	if(config::use_cheats) { cheats->setChecked(true); }
 
@@ -937,6 +953,13 @@ void gen_settings::set_bios()
 {
 	if(bios->isChecked()) { config::use_bios = true; }
 	else { config::use_bios = false; }
+}
+
+/****** Toggles whether to emulate the GB Printer ******/
+void gen_settings::set_printer()
+{
+	if(printer->isChecked()) { config::use_gb_printer = true; }
+	else { config::use_gb_printer = false; }
 }
 
 /****** Changes the display scale ******/
