@@ -335,7 +335,7 @@ void DMG_core::run_core()
 						if(core_cpu.controllers.serial_io.sio_stat.sio_type != GB_PRINTER)
 						{
 							//Emulate disconnected link cable (on an internal clock) with no netplay	
-							if((!config::use_netplay) && (core_cpu.controllers.serial_io.sio_stat.internal_clock))
+							if(((!config::use_netplay) && (core_cpu.controllers.serial_io.sio_stat.internal_clock)) || (!core_cpu.controllers.serial_io.sio_stat.connected))
 							{
 								core_mmu.memory_map[REG_SB] = 0xFF;
 								core_mmu.memory_map[IF_FLAG] |= 0x08;
@@ -346,7 +346,7 @@ void DMG_core::run_core()
 						}
 
 						//Process GB Printer communications
-						else { core_cpu.controllers.serial_io.printer_process(); }
+						else {core_cpu.controllers.serial_io.printer_process(); }
 					}
 				}
 			}

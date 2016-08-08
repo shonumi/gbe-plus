@@ -645,8 +645,6 @@ void DMG_SIO::printer_execute_command()
 	{
 		//Initialize command
 		case 0x1:
-			
-			std::cout<<"PRINTER INIT\n";
 			printer.status = 0x0;
 			printer.strip_count = 0;
 
@@ -658,8 +656,6 @@ void DMG_SIO::printer_execute_command()
 
 		//Print command
 		case 0x2:
-
-			std::cout<<"PRINTER PRINT\n";
 			print_image();
 			printer.status = 0x4;
 
@@ -667,8 +663,6 @@ void DMG_SIO::printer_execute_command()
 
 		//Data process command
 		case 0x4:
-
-			std::cout<<"PRINTER DATA PROCESS\n";
 			printer_data_process();
 			
 			//Only set Ready-To-Print status if some actual data was received
@@ -678,8 +672,6 @@ void DMG_SIO::printer_execute_command()
 
 		//Status command
 		case 0xF:
-
-			std::cout<<"PRINTER STATUS\n";
 			printer.status |= 0;
 
 			break;
