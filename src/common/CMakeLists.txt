@@ -2,6 +2,7 @@ set(SRCS
 	config.cpp
 	hash.cpp
 	util.cpp
+	ogl_util.cpp
 	cgfx_common.cpp
 	)
 
@@ -11,6 +12,7 @@ set(HEADERS
 	config.h
 	hash.h
 	util.h
+	ogl_util.h
 	cgfx_common.h
 	)
 
