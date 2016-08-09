@@ -25,7 +25,10 @@ class ogl_matrix
 	ogl_matrix(u32 input_columns, u32 input_rows);
 	~ogl_matrix();
 
+	//Matrix-Matrix multiplication
 	ogl_matrix operator* (const ogl_matrix &input_matrix);
+	
+	//Access matrix data
 	std::vector<double> operator[](u32 index) const;
 	std::vector<double> &operator[](u32 index);
 
@@ -35,5 +38,9 @@ class ogl_matrix
 	//Matrix data
 	std::vector< std::vector<double> > data;
 };
+
+//Scalar multiplication - Non-member binary operators
+ogl_matrix operator*(double scalar, const ogl_matrix &input_matrix);
+ogl_matrix operator*(const ogl_matrix &input_matrix, double scalar);
 
 #endif // GBE_OGL_UTIL

@@ -11,6 +11,8 @@
 
 #include "ogl_util.h"
 
+#include <iostream>
+
 /****** OpenGL Matrix Constructor ******/
 ogl_matrix::ogl_matrix()
 {
@@ -53,7 +55,7 @@ ogl_matrix::~ogl_matrix()
 	data.clear();
 }
 
-/****** OpenGL Matrix multiplication operator ******/
+/****** OpenGL Matrix multiplication operator - Matrix-Matrix ******/
 ogl_matrix ogl_matrix::operator*(const ogl_matrix &input_matrix)
 {
 	//Determine if matrix can be multiplied
@@ -92,13 +94,47 @@ ogl_matrix ogl_matrix::operator*(const ogl_matrix &input_matrix)
 	}
 }
 
-/****** OpenGL Matrix bracket operator ******/
+/****** OpenGL Matrix multiplication operator - Scalar ******/
+ogl_matrix operator*(double scalar, const ogl_matrix &input_matrix)
+{
+	ogl_matrix output_matrix(input_matrix.rows, input_matrix.columns);
+
+	for(u32 y = 0; y < output_matrix.rows; y++)
+	{
+		for(u32 x = 0; x < output_matrix.columns; x++)
+		{
+			output_matrix.data[x][y] = input_matrix.data[x][y];
+			output_matrix.data[x][y] *= scalar;
+		}
+	}
+
+	return output_matrix;
+}
+
+/****** OpenGL Matrix multiplication operator - Scalar ******/
+ogl_matrix operator*(const ogl_matrix &input_matrix, double scalar)
+{
+	ogl_matrix output_matrix(input_matrix.rows, input_matrix.columns);
+
+	for(u32 y = 0; y < output_matrix.rows; y++)
+	{
+		for(u32 x = 0; x < output_matrix.columns; x++)
+		{
+			output_matrix.data[x][y] = input_matrix.data[x][y];
+			output_matrix.data[x][y] *= scalar;
+		}
+	}
+
+	return output_matrix;
+}
+
+/****** OpenGL Matrix bracket operator - Getter ******/
 std::vector<double> ogl_matrix::operator[](u32 index) const
 {
 	return data[index];
 }
 
-/****** OpenGL Matrix bracket operator ******/
+/****** OpenGL Matrix bracket operator - Setter ******/
 std::vector<double> &ogl_matrix::operator[](u32 index)
 {
 	return data[index];
