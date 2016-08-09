@@ -91,3 +91,15 @@ ogl_matrix ogl_matrix::operator*(const ogl_matrix &input_matrix)
 		return output_matrix;
 	}
 }
+
+/****** OpenGL Matrix bracket operator ******/
+std::vector<double> ogl_matrix::operator[](u32 index) const
+{
+	return data[index];
+}
+
+/****** OpenGL Matrix bracket operator ******/
+std::vector<double> &ogl_matrix::operator[](u32 index)
+{
+	return data[index];
+}

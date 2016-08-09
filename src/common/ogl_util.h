@@ -26,6 +26,8 @@ class ogl_matrix
 	~ogl_matrix();
 
 	ogl_matrix operator* (const ogl_matrix &input_matrix);
+	std::vector<double> operator[](u32 index) const;
+	std::vector<double> &operator[](u32 index);
 
 	u32 rows;
 	u32 columns;
