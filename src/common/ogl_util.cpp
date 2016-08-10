@@ -210,7 +210,6 @@ ogl_vector operator* (const ogl_matrix &input_matrix, const ogl_vector &input_ve
 	//IMPORTANT - Matrix * Vector = VECTOR
 	ogl_vector output_vector(input_vector.size);
 
-	
 	//Determine if matrix can be multiplied
 	if(input_matrix.columns == input_vector.size)
 	{
@@ -219,7 +218,7 @@ ogl_vector operator* (const ogl_matrix &input_matrix, const ogl_vector &input_ve
 		{
 			double dot_product = 0.0;
 
-			for(u32 x = 0; x < input_vector.size; x++)
+			for(u32 x = 0; x < input_matrix.columns; x++)
 			{
 				dot_product += (input_matrix.data[x][y] * input_vector.data[x]);
 			}
@@ -232,7 +231,9 @@ ogl_vector operator* (const ogl_matrix &input_matrix, const ogl_vector &input_ve
 	else
 	{
 		for(u32 x = 0; x < input_vector.size; x++) { output_vector.data[x] = input_vector.data[x]; }
-	}	
+	}
+
+	return output_vector;	
 }
 
 /****** OpenGL Matrix multiplication operator - Scalar ******/
