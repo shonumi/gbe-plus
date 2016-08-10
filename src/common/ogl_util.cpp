@@ -6,12 +6,122 @@
 // Date : August 08, 2016
 // Description : OpenGL math utilities
 //
-// Provides OpenGL math utilities such as matrix handling and transformations
+// Provides OpenGL math utilities such as matrix handling and transformations, vector stuff
 // Handles loading shaders
 
 #include "ogl_util.h"
 
-#include <iostream>
+/****** OpenGL Vector Constructor ******/
+ogl_vector::ogl_vector()
+{
+	//When no arguments are given, generate a vector with 4 elements
+	data.resize(4, 0.0);
+
+	size = 4;
+}
+
+/****** OpenGL Vector Constructor ******/
+ogl_vector::ogl_vector(u32 input_size)
+{
+	data.resize(input_size, 0.0);
+
+	size = input_size;
+}
+
+/****** OpenGL Vector Destructor ******/
+ogl_vector::~ogl_vector()
+{
+	data.clear();
+}
+
+/****** OpenGL Vector addition operator ******/
+ogl_vector ogl_vector::operator+ (const ogl_vector &input_vector)
+{
+	ogl_vector output_vector(size);
+
+	if(size == input_vector.size)
+	{
+		for(u32 x = 0; x < size; x++) { output_vector.data[x] = data[x] + input_vector.data[x]; }
+	}
+
+	//If the vectors are different sizes, just return the 1st one
+	else
+	{
+		for(u32 x = 0; x < size; x++) { output_vector.data[x] = data[x]; }
+	}
+
+	return output_vector;
+}
+
+/****** OpenGL Vector subtraction operator ******/
+ogl_vector ogl_vector::operator- (const ogl_vector &input_vector)
+{
+	ogl_vector output_vector(size);
+
+	if(size == input_vector.size)
+	{
+		for(u32 x = 0; x < size; x++) { output_vector.data[x] = data[x] - input_vector.data[x]; }
+	}
+
+	//If the vectors are different sizes, just return the 1st one
+	else
+	{
+		for(u32 x = 0; x < size; x++) { output_vector.data[x] = data[x]; }
+	}
+
+	return output_vector;
+}
+
+/****** OpenGL Vector multiplication operator - Vector-Vector ******/
+ogl_vector ogl_vector::operator* (const ogl_vector &input_vector)
+{
+	ogl_vector output_vector(size);
+
+	if(size == input_vector.size)
+	{
+		for(u32 x = 0; x < size; x++) { output_vector.data[x] = data[x] * input_vector.data[x]; }
+	}
+
+	//If the vectors are different sizes, just return the 1st one
+	else
+	{
+		for(u32 x = 0; x < size; x++) { output_vector.data[x] = data[x]; }
+	}
+
+	return output_vector;
+}
+
+/****** OpenGL Vector multiplication operator - Scalar ******/
+ogl_vector operator* (double scalar, const ogl_vector &input_vector)
+{
+	ogl_vector output_vector(input_vector.size);
+
+	for(u32 x = 0; x < output_vector.size; x++) { output_vector.data[x] = input_vector.data[x] * scalar; }
+
+	return output_vector;
+}
+
+/****** OpenGL Vector multiplication operator - Scalar ******/
+ogl_vector operator* (const ogl_vector &input_vector, double scalar)
+{
+	ogl_vector output_vector(input_vector.size);
+
+	for(u32 x = 0; x < output_vector.size; x++) { output_vector.data[x] = input_vector.data[x] * scalar; }
+
+	return output_vector;
+}
+
+/****** OpenGL Vector bracket operator - Getter ******/
+double ogl_vector::operator[](u32 index) const
+{
+	return data[index];
+}
+
+/****** OpenGL Vector bracket operator - Setter ******/
+double &ogl_vector::operator[](u32 index)
+{
+	return data[index];
+}
 
 /****** OpenGL Matrix Constructor ******/
 ogl_matrix::ogl_matrix()
@@ -92,6 +202,37 @@ ogl_matrix ogl_matrix::operator*(const ogl_matrix &input_matrix)
 		ogl_matrix output_matrix;
 		return output_matrix;
 	}
+}
+
+/****** OpenGL Matrix multiplication operator - Matrix-Vector ******/
+ogl_vector operator* (const ogl_matrix &input_matrix, const ogl_vector &input_vector)
+{
+	//IMPORTANT - Matrix * Vector = VECTOR
+	ogl_vector output_vector(input_vector.size);
+
+	
+	//Determine if matrix can be multiplied
+	if(input_matrix.columns == input_vector.size)
+	{
+		//This is essentially multiplying the input matrix by a 1-column matrix
+		for(u32 y = 0; y < input_matrix.rows; y++)
+		{
+			double dot_product = 0.0;
+
+			for(u32 x = 0; x < input_vector.size; x++)
+			{
+				dot_product += (input_matrix.data[x][y] * input_vector.data[x]);
+			}
+
+			output_vector.data[y] = dot_product;
+		}
+	}
+
+	//Otherwise, return original vector
+	else
+	{
+		for(u32 x = 0; x < input_vector.size; x++) { output_vector.data[x] = input_vector.data[x]; }
+	}	
 }
 
 /****** OpenGL Matrix multiplication operator - Scalar ******/
