@@ -92,7 +92,7 @@ ogl_vector ogl_vector::operator* (const ogl_vector &input_vector)
 }
 
 /****** OpenGL Vector multiplication operator - Scalar ******/
-ogl_vector operator* (double scalar, const ogl_vector &input_vector)
+ogl_vector operator* (float scalar, const ogl_vector &input_vector)
 {
 	ogl_vector output_vector(input_vector.size);
 
@@ -102,7 +102,7 @@ ogl_vector operator* (double scalar, const ogl_vector &input_vector)
 }
 
 /****** OpenGL Vector multiplication operator - Scalar ******/
-ogl_vector operator* (const ogl_vector &input_vector, double scalar)
+ogl_vector operator* (const ogl_vector &input_vector, float scalar)
 {
 	ogl_vector output_vector(input_vector.size);
 
@@ -112,13 +112,13 @@ ogl_vector operator* (const ogl_vector &input_vector, double scalar)
 }
 
 /****** OpenGL Vector bracket operator - Getter ******/
-double ogl_vector::operator[](u32 index) const
+float ogl_vector::operator[](u32 index) const
 {
 	return data[index];
 }
 
 /****** OpenGL Vector bracket operator - Setter ******/
-double &ogl_vector::operator[](u32 index)
+float &ogl_vector::operator[](u32 index)
 {
 	return data[index];
 }
@@ -182,7 +182,7 @@ ogl_matrix ogl_matrix::operator*(const ogl_matrix &input_matrix)
 		{
 			for(u32 dot_product_count = 0; dot_product_count < output_columns; dot_product_count++)
 			{
-				double dot_product = 0.0;
+				float dot_product = 0.0;
 
 				for(u32 x = 0; x < columns; x++)
 				{
@@ -216,7 +216,7 @@ ogl_vector operator* (const ogl_matrix &input_matrix, const ogl_vector &input_ve
 		//This is essentially multiplying the input matrix by a 1-column matrix
 		for(u32 y = 0; y < input_matrix.rows; y++)
 		{
-			double dot_product = 0.0;
+			float dot_product = 0.0;
 
 			for(u32 x = 0; x < input_matrix.columns; x++)
 			{
@@ -237,7 +237,7 @@ ogl_vector operator* (const ogl_matrix &input_matrix, const ogl_vector &input_ve
 }
 
 /****** OpenGL Matrix multiplication operator - Scalar ******/
-ogl_matrix operator*(double scalar, const ogl_matrix &input_matrix)
+ogl_matrix operator*(float scalar, const ogl_matrix &input_matrix)
 {
 	ogl_matrix output_matrix(input_matrix.rows, input_matrix.columns);
 
@@ -254,7 +254,7 @@ ogl_matrix operator*(double scalar, const ogl_matrix &input_matrix)
 }
 
 /****** OpenGL Matrix multiplication operator - Scalar ******/
-ogl_matrix operator*(const ogl_matrix &input_matrix, double scalar)
+ogl_matrix operator*(const ogl_matrix &input_matrix, float scalar)
 {
 	ogl_matrix output_matrix(input_matrix.rows, input_matrix.columns);
 
@@ -271,13 +271,32 @@ ogl_matrix operator*(const ogl_matrix &input_matrix, double scalar)
 }
 
 /****** OpenGL Matrix bracket operator - Getter ******/
-std::vector<double> ogl_matrix::operator[](u32 index) const
+std::vector<float> ogl_matrix::operator[](u32 index) const
 {
 	return data[index];
 }
 
 /****** OpenGL Matrix bracket operator - Setter ******/
-std::vector<double> &ogl_matrix::operator[](u32 index)
+std::vector<float> &ogl_matrix::operator[](u32 index)
 {
 	return data[index];
+}
+
+/****** Generates an orthogonal projection matrix ******/
+ogl_matrix ortho_matrix(float width, float height, float z_far, float z_near)
+{
+	ogl_matrix output_matrix(4, 4);
+
+	output_matrix[0][0] = 2.0 / width;
+	output_matrix[3][0] = -1.0;
+
+	output_matrix[1][1] = 2.0 / height;
+	output_matrix[3][1] = 1.0;
+
+	output_matrix[2][2] = -2.0 /(z_far - z_near);
+	output_matrix[2][3] = -1.0 * ((z_far + z_near)/(z_far - z_near));
+
+	output_matrix[3][3] = 1.0; 
+
+	return output_matrix;
 }
