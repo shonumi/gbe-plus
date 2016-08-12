@@ -9,6 +9,9 @@
 // Provides OpenGL math utilities such as matrix handling and transformations, vector stuff
 // Handles loading shaders
 
+#include <iostream>
+#include <fstream>
+
 #include "ogl_util.h"
 
 /****** OpenGL Vector Constructor ******/
@@ -299,4 +302,104 @@ ogl_matrix ortho_matrix(float width, float height, float z_far, float z_near)
 	output_matrix[3][3] = 1.0; 
 
 	return output_matrix;
+}
+
+/****** Loads and compiles GLSL vertex and fragment shaders ******/
+GLuint load_shader(std::string vertex_shader_file, std::string fragment_shader_file)
+{
+	GLuint vertex_shader_id = glCreateShader(GL_VERTEX_SHADER);
+	GLuint fragment_shader_id = glCreateShader(GL_FRAGMENT_SHADER);
+
+	std::string vs_code = "";
+	std::string fs_code = "";
+	std::string temp = "";
+
+	std::ifstream vs_data;
+	std::ifstream fs_data;
+
+	vs_data.open(vertex_shader_file.c_str());
+
+	//Try to open vertex shader file
+	if(!vs_data.is_open()) 
+	{
+		std::cout<<"OGL::Could not open vertex shader file  " << vertex_shader_file << "\n"; 
+		return -1;
+	}
+
+	//Grab vertex shader source code
+	while(getline(vs_data, temp)) { vs_code += "\n" + temp; }
+
+	temp = "";
+	vs_data.close();
+
+	fs_data.open(fragment_shader_file.c_str());
+
+	//Try to open vertex shader file
+	if(!fs_data.is_open()) 
+	{
+		std::cout<<"OGL::Could not open fragment shader file  " << fragment_shader_file << "\n"; 
+		return -1;
+	}
+
+	//Grab fragment shader source code
+	while(getline(fs_data, temp)) { fs_code += "\n" + temp; }
+
+	temp = "";
+	fs_data.close();
+
+	GLint result = GL_FALSE;
+	int log_length;
+
+	//Compile vertex shader
+	std::cout<<"Compiling vertex shader : " << vertex_shader_file << "\n"; 
+
+	char const *vs_code_pointer = vs_code.c_str();
+	glShaderSource(vertex_shader_id, 1, &vs_code_pointer, NULL);
+	glCompileShader(vertex_shader_id);
+
+	//Check vertex shader
+	glGetShaderiv(vertex_shader_id, GL_COMPILE_STATUS, &result);
+	glGetShaderiv(vertex_shader_id, GL_INFO_LOG_LENGTH, &log_length);
+	std::vector<char> vs_error(log_length);
+	glGetShaderInfoLog(vertex_shader_id, log_length, NULL, &vs_error[0]);
+
+	//Print any error messages from compiling vertex shader
+	std::cout<<"OGL::Vertex Shader Error Message Log: " << &vs_error[0] << "\n";
+ 
+	//Compile fragment shader
+	std::cout<<"Compiling fragment shader : " << fragment_shader_file << "\n"; 
+    	char const * fs_code_pointer = fs_code.c_str();
+    	glShaderSource(fragment_shader_id, 1, &fs_code_pointer, NULL);
+    	glCompileShader(fragment_shader_id);
+ 
+	//Check fragment Shader
+	glGetShaderiv(fragment_shader_id, GL_COMPILE_STATUS, &result);
+	glGetShaderiv(fragment_shader_id, GL_INFO_LOG_LENGTH, &log_length);
+	std::vector<char> fs_error(log_length);
+	glGetShaderInfoLog(fragment_shader_id, log_length, NULL, &fs_error[0]);
+
+	//Print any error messages from compiling fragment shader
+	std::cout<<"OGL::Fragment Shadder Error Message Log: " << &fs_error[0] << "\n";
+ 
+	//Link the program
+	std::cout<<"OGL::Linking shaders...\n";
+
+	GLuint program_id = glCreateProgram();
+	glAttachShader(program_id, vertex_shader_id);
+	glAttachShader(program_id, fragment_shader_id);
+	glLinkProgram(program_id);
+ 
+	//Check the program
+	glGetProgramiv(program_id, GL_LINK_STATUS, &result);
+	glGetProgramiv(program_id, GL_INFO_LOG_LENGTH, &log_length);
+	std::vector<char> program_error(log_length);
+	glGetProgramInfoLog(program_id, log_length, NULL, &program_error[0]);
+
+	//Print any error messages from the linking process
+	std::cout<<"OGL::Linking Error Message Log: " << &program_error[0] << "\n";
+	
+	glDeleteShader(vertex_shader_id);
+	glDeleteShader(fragment_shader_id);
+ 
+	return program_id;
 }

@@ -12,7 +12,13 @@
 #ifndef GBE_OGL_UTIL
 #define GBE_OGL_UTIL
 
+#define GL3_PROTOTYPES 1
+#define GL_GLEXT_PROTOTYPES 1
+
 #include <vector>
+#include <string>
+
+#include <SDL2/SDL_opengl.h>
 
 #include "common.h"
 
@@ -31,18 +37,18 @@ class ogl_vector
 	ogl_vector operator* (const ogl_vector &input_vector);
 
 	//Access vector data
-	double operator[](u32 index) const;
-	double &operator[](u32 index);
+	float operator[](u32 index) const;
+	float &operator[](u32 index);
 
 	u32 size;
 
 	//Vector data
-	std::vector<double> data;
+	std::vector<float> data;
 };
 
 //Scalar multiplication - Non-member binary operators
-ogl_vector operator*(double scalar, const ogl_vector &input_vector);
-ogl_vector operator*(const ogl_vector &input_vector, double scalar);
+ogl_vector operator*(float scalar, const ogl_vector &input_vector);
+ogl_vector operator*(const ogl_vector &input_vector, float scalar);
 
 //Matrix class
 class ogl_matrix
@@ -57,21 +63,27 @@ class ogl_matrix
 	ogl_matrix operator* (const ogl_matrix &input_matrix);
 	
 	//Access matrix data
-	std::vector<double> operator[](u32 index) const;
-	std::vector<double> &operator[](u32 index);
+	std::vector<float> operator[](u32 index) const;
+	std::vector<float> &operator[](u32 index);
 
 	u32 rows;
 	u32 columns;
 
 	//Matrix data
-	std::vector< std::vector<double> > data;
+	std::vector< std::vector<float> > data;
 };
 
 //Scalar multiplication - Non-member binary operators
-ogl_matrix operator*(double scalar, const ogl_matrix &input_matrix);
-ogl_matrix operator*(const ogl_matrix &input_matrix, double scalar);
+ogl_matrix operator*(float scalar, const ogl_matrix &input_matrix);
+ogl_matrix operator*(const ogl_matrix &input_matrix, float scalar);
 
 //Matrix-Vector multiplication - Non-member binary operators
 ogl_vector operator* (const ogl_matrix &input_matrix, const ogl_vector &input_vector);
+
+//Projection matrix
+ogl_matrix ortho_matrix(float width, float height, float z_far, float z_near);
+
+//GLSL vertex and fragment shader loader
+GLuint ogl_load_shader(std::string vertex_shader_file, std::string fragment_shader_file);
 
 #endif // GBE_OGL_UTIL
