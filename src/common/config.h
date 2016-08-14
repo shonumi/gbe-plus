@@ -83,11 +83,14 @@ namespace config
 	extern u8 volume;
 	extern double sample_rate;
 	extern bool mute;
-
+	
 	extern u32 sys_width;
 	extern u32 sys_height;
 	extern s32 win_width;
 	extern s32 win_height;
+
+	extern std::string vertex_shader;
+	extern std::string fragment_shader;
 
 	extern bool request_resize;
 	extern s8 resize_mode;

@@ -123,7 +123,9 @@ void DMG_LCD::opengl_init()
 	final_screen = SDL_CreateRGBSurface(SDL_SWSURFACE, config::sys_width, config::sys_height, 32, 0, 0, 0, 0);
 
 	//Load the shader
-	program_id = ogl_load_shader("vertex.vs", "fragment.fs");
+	program_id = ogl_load_shader(config::vertex_shader, config::fragment_shader);
+
+	if(program_id == -1) { std::cout<<"LCD::Error - Could not generate shaders\n"; }
 }
 
 /****** Blit using OpenGL ******/

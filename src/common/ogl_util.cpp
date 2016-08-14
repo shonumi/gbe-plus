@@ -359,7 +359,7 @@ GLuint ogl_load_shader(std::string vertex_shader_file, std::string fragment_shad
 	int log_length;
 
 	//Compile vertex shader
-	std::cout<<"Compiling vertex shader : " << vertex_shader_file << "\n"; 
+	std::cout<<"OGL::Compiling vertex shader : " << vertex_shader_file << "\n"; 
 
 	char const *vs_code_pointer = vs_code.c_str();
 	glShaderSource(vertex_shader_id, 1, &vs_code_pointer, NULL);
@@ -375,7 +375,7 @@ GLuint ogl_load_shader(std::string vertex_shader_file, std::string fragment_shad
 	std::cout<<"OGL::Vertex Shader Error Message Log: " << &vs_error[0] << "\n";
  
 	//Compile fragment shader
-	std::cout<<"Compiling fragment shader : " << fragment_shader_file << "\n"; 
+	std::cout<<"OGL::Compiling fragment shader : " << fragment_shader_file << "\n"; 
     	char const * fs_code_pointer = fs_code.c_str();
     	glShaderSource(fragment_shader_id, 1, &fs_code_pointer, NULL);
     	glCompileShader(fragment_shader_id);
