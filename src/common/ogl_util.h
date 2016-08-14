@@ -12,9 +12,6 @@
 #ifndef GBE_OGL_UTIL
 #define GBE_OGL_UTIL
 
-#define GL3_PROTOTYPES 1
-#define GL_GLEXT_PROTOTYPES 1
-
 #include <vector>
 #include <string>
 

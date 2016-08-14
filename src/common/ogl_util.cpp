@@ -12,6 +12,14 @@
 #include <iostream>
 #include <fstream>
 
+#ifndef GL3_PROTOTYPES
+#define GL3_PROTOTYPES 1
+#endif
+
+#ifndef GL_GLEXT_PROTOTYPES
+#define GL_GLEXT_PROTOTYPES 1
+#endif
+
 #include "ogl_util.h"
 
 /****** OpenGL Vector Constructor ******/
@@ -305,7 +313,7 @@ ogl_matrix ortho_matrix(float width, float height, float z_far, float z_near)
 }
 
 /****** Loads and compiles GLSL vertex and fragment shaders ******/
-GLuint load_shader(std::string vertex_shader_file, std::string fragment_shader_file)
+GLuint ogl_load_shader(std::string vertex_shader_file, std::string fragment_shader_file)
 {
 	GLuint vertex_shader_id = glCreateShader(GL_VERTEX_SHADER);
 	GLuint fragment_shader_id = glCreateShader(GL_FRAGMENT_SHADER);
