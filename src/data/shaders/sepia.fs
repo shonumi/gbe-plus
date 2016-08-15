@@ -14,6 +14,8 @@ in vec2 texture_coordinates;
 out vec4 color;
 
 uniform sampler2D screen_texture;
+uniform int screen_x_size;
+uniform int screen_y_size;
 
 void main()
 {

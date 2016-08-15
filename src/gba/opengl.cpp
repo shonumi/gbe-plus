@@ -153,6 +153,8 @@ void AGB_LCD::opengl_blit()
 	glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, lcd_texture);
         glUniform1i(glGetUniformLocation(program_id, "screen_texture"), 0);
+        glUniform1i(glGetUniformLocation(program_id, "screen_x_size"), config::sys_width);
+        glUniform1i(glGetUniformLocation(program_id, "screen_y_size"), config::sys_height);
         
         //Draw vertex array object
         glBindVertexArray(vertex_array_object);
