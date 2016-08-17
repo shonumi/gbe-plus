@@ -45,163 +45,145 @@ void main()
 	float chrono_minute = ext_data_2;
 
 	//00:00 - 03:59 - Dark Blue to Blue
-	if(chrono_hour >= 0)
+	if((chrono_hour >= 0) && (chrono_hour < 4))
 	{
-		if(chrono_hour < 4)
-		{
-			chrono_minute += (chrono_hour * 60);
+		chrono_minute += (chrono_hour * 60);
 
-			blend_color = vec4(0.0, 0.14, 0.89, 1.0);
-			next_color = vec4(0.09, 0.24, 0.75, 1.0);
+		blend_color = vec4(0.0, 0.14, 0.89, 1.0);
+		next_color = vec4(0.09, 0.24, 0.75, 1.0);
 
-			r_dist = (next_color.r - blend_color.r)/240.0;
-			r_dist *= chrono_minute;
-			blend_color.r += r_dist;
+		r_dist = (next_color.r - blend_color.r)/240.0;
+		r_dist *= chrono_minute;
+		blend_color.r += r_dist;
 
-			g_dist = (next_color.g - blend_color.g)/240.0;
-			g_dist *= chrono_minute;
-			blend_color.g += g_dist;
+		g_dist = (next_color.g - blend_color.g)/240.0;
+		g_dist *= chrono_minute;
+		blend_color.g += g_dist;
 
-			b_dist = (next_color.b - blend_color.b)/240.0;
-			b_dist *= chrono_minute;
-			blend_color.b += b_dist;
+		b_dist = (next_color.b - blend_color.b)/240.0;
+		b_dist *= chrono_minute;
+		blend_color.b += b_dist;
 
-			rgb_blend(current_color, blend_color, current_color);
-		}
+		rgb_blend(current_color, blend_color, current_color);
 	}
 
 	//04:00 - 06:59 Blue to Red
-	if(chrono_hour >= 4)
+	else if((chrono_hour >= 4) && (chrono_hour < 7))
 	{
-		if(chrono_hour < 7)
-		{
-			chrono_minute += ((chrono_hour - 4) * 60);
+		chrono_minute += ((chrono_hour - 4) * 60);
 
-			blend_color = vec4(0.09, 0.24, 0.75, 1.0);
-			next_color = vec4(0.75, 0.16, 0.09, 1.0);
+		blend_color = vec4(0.09, 0.24, 0.75, 1.0);
+		next_color = vec4(0.75, 0.16, 0.09, 1.0);
 
-			r_dist = (next_color.r - blend_color.r)/180.0;
-			r_dist *= chrono_minute;
-			blend_color.r += r_dist;
+		r_dist = (next_color.r - blend_color.r)/180.0;
+		r_dist *= chrono_minute;
+		blend_color.r += r_dist;
 
-			g_dist = (next_color.g - blend_color.g)/180.0;
-			g_dist *= chrono_minute;
-			blend_color.g += g_dist;
+		g_dist = (next_color.g - blend_color.g)/180.0;
+		g_dist *= chrono_minute;
+		blend_color.g += g_dist;
 
-			b_dist = (next_color.b - blend_color.b)/180.0;
-			b_dist *= chrono_minute;
-			blend_color.b += b_dist;
+		b_dist = (next_color.b - blend_color.b)/180.0;
+		b_dist *= chrono_minute;
+		blend_color.b += b_dist;
 
-			rgb_blend(current_color, blend_color, current_color);
-		}
+		rgb_blend(current_color, blend_color, current_color);
 	}
 
 	//07:00 - 9:59 Red to Yellow
-	if(chrono_hour >= 7)
+	else if((chrono_hour >= 7) && (chrono_hour < 10))
 	{
-		if(chrono_hour < 10)
-		{
-			chrono_minute += ((chrono_hour - 7) * 60);
+		chrono_minute += ((chrono_hour - 7) * 60);
 
-			blend_color = vec4(0.75, 0.16, 0.09, 1.0);
-			next_color = vec4(0.88, 0.88, 0.05, 1.0);
+		blend_color = vec4(0.75, 0.16, 0.09, 1.0);
+		next_color = vec4(0.88, 0.88, 0.05, 1.0);
 
-			r_dist = (next_color.r - blend_color.r)/180.0;
-			r_dist *= chrono_minute;
-			blend_color.r += r_dist;
+		r_dist = (next_color.r - blend_color.r)/180.0;
+		r_dist *= chrono_minute;
+		blend_color.r += r_dist;
 
-			g_dist = (next_color.g - blend_color.g)/180.0;
-			g_dist *= chrono_minute;
-			blend_color.g += g_dist;
+		g_dist = (next_color.g - blend_color.g)/180.0;
+		g_dist *= chrono_minute;
+		blend_color.g += g_dist;
 
-			b_dist = (next_color.b - blend_color.b)/180.0;
-			b_dist *= chrono_minute;
-			blend_color.b += b_dist;
+		b_dist = (next_color.b - blend_color.b)/180.0;
+		b_dist *= chrono_minute;
+		blend_color.b += b_dist;
 
-			rgb_blend(current_color, blend_color, current_color);
-		}
+		rgb_blend(current_color, blend_color, current_color);
 	}
 
 	//10:00 - 12:59 Yellow to White-Yellow
-	if(chrono_hour >= 10)
+	else if((chrono_hour >= 10) && (chrono_hour < 13))
 	{
-		if(chrono_hour < 13)
-		{
-			chrono_minute += ((chrono_hour - 10) * 60);
+		chrono_minute += ((chrono_hour - 10) * 60);
 
-			blend_color = vec4(0.88, 0.88, 0.05, 1.0);
-			next_color = vec4(0.88, 0.88, 0.74, 1.0);
+		blend_color = vec4(0.88, 0.88, 0.05, 1.0);
+		next_color = vec4(0.88, 0.88, 0.74, 1.0);
 
-			r_dist = (next_color.r - blend_color.r)/180.0;
-			r_dist *= chrono_minute;
-			blend_color.r += r_dist;
+		r_dist = (next_color.r - blend_color.r)/180.0;
+		r_dist *= chrono_minute;
+		blend_color.r += r_dist;
 
-			g_dist = (next_color.g - blend_color.g)/180.0;
-			g_dist *= chrono_minute;
-			blend_color.g += g_dist;
+		g_dist = (next_color.g - blend_color.g)/180.0;
+		g_dist *= chrono_minute;
+		blend_color.g += g_dist;
 
-			b_dist = (next_color.b - blend_color.b)/180.0;
-			b_dist *= chrono_minute;
-			blend_color.b += b_dist;
+		b_dist = (next_color.b - blend_color.b)/180.0;
+		b_dist *= chrono_minute;
+		blend_color.b += b_dist;
 
-			rgb_blend(current_color, blend_color, current_color);
-		}
+		rgb_blend(current_color, blend_color, current_color);
 	}
 
 	//13:00 - 16:59 White-Yellow to Red
-	if(chrono_hour >= 13)
+	else if((chrono_hour >= 13) && (chrono_hour < 17))
 	{
-		if(chrono_hour < 17)
-		{
-			chrono_minute += ((chrono_hour - 13) * 60);
+		chrono_minute += ((chrono_hour - 13) * 60);
 
-			blend_color = vec4(0.88, 0.88, 0.74, 1.0);
-			next_color = vec4(0.75, 0.16, 0.09, 1.0);
+		blend_color = vec4(0.88, 0.88, 0.74, 1.0);
+		next_color = vec4(0.75, 0.16, 0.09, 1.0);
 
-			r_dist = (next_color.r - blend_color.r)/240.0;
-			r_dist *= chrono_minute;
-			blend_color.r += r_dist;
+		r_dist = (next_color.r - blend_color.r)/240.0;
+		r_dist *= chrono_minute;
+		blend_color.r += r_dist;
 
-			g_dist = (next_color.g - blend_color.g)/240.0;
-			g_dist *= chrono_minute;
-			blend_color.g += g_dist;
+		g_dist = (next_color.g - blend_color.g)/240.0;
+		g_dist *= chrono_minute;
+		blend_color.g += g_dist;
 
-			b_dist = (next_color.b - blend_color.b)/240.0;
-			b_dist *= chrono_minute;
-			blend_color.b += b_dist;
+		b_dist = (next_color.b - blend_color.b)/240.0;
+		b_dist *= chrono_minute;
+		blend_color.b += b_dist;
 
-			rgb_blend(current_color, blend_color, current_color);
-		}
+		rgb_blend(current_color, blend_color, current_color);
 	}
 
 	//17:00 - 19:59 Red to Light Blue
-	if(chrono_hour >= 17)
+	else if((chrono_hour >= 17) && (chrono_hour < 20))
 	{
-		if(chrono_hour < 20)
-		{
-			chrono_minute += ((chrono_hour - 17) * 60);
+		chrono_minute += ((chrono_hour - 17) * 60);
 
-			blend_color = vec4(0.75, 0.16, 0.09, 1.0);
-			next_color = vec4(0.03, 0.54, 1.0, 1.0);
+		blend_color = vec4(0.75, 0.16, 0.09, 1.0);
+		next_color = vec4(0.03, 0.54, 1.0, 1.0);
 
-			r_dist = (next_color.r - blend_color.r)/180.0;
-			r_dist *= chrono_minute;
-			blend_color.r += r_dist;
+		r_dist = (next_color.r - blend_color.r)/180.0;
+		r_dist *= chrono_minute;
+		blend_color.r += r_dist;
 
-			g_dist = (next_color.g - blend_color.g)/180.0;
-			g_dist *= chrono_minute;
-			blend_color.g += g_dist;
+		g_dist = (next_color.g - blend_color.g)/180.0;
+		g_dist *= chrono_minute;
+		blend_color.g += g_dist;
 
-			b_dist = (next_color.b - blend_color.b)/180.0;
-			b_dist *= chrono_minute;
-			blend_color.b += b_dist;
+		b_dist = (next_color.b - blend_color.b)/180.0;
+		b_dist *= chrono_minute;
+		blend_color.b += b_dist;
 
-			rgb_blend(current_color, blend_color, current_color);
-		}
+		rgb_blend(current_color, blend_color, current_color);
 	}
 
 	//20:00 - 23:00 Light Blue to Dark Blue
-	if(chrono_hour >= 20)
+	else
 	{
 		chrono_minute += ((chrono_hour - 20) * 60);
 
@@ -221,6 +203,11 @@ void main()
 		blend_color.b += b_dist;
 
 		rgb_blend(current_color, blend_color, current_color);
+	}
+
+	if((texture(screen_texture, texture_coordinates).r == 0) && (texture(screen_texture, texture_coordinates).g == 0) && (texture(screen_texture, texture_coordinates).b == 0))
+	{
+		current_color = texture(screen_texture, texture_coordinates);
 	}
 
 	color = current_color;
