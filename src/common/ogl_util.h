@@ -81,6 +81,6 @@ ogl_vector operator* (const ogl_matrix &input_matrix, const ogl_vector &input_ve
 ogl_matrix ortho_matrix(float width, float height, float z_far, float z_near);
 
 //GLSL vertex and fragment shader loader
-GLuint ogl_load_shader(std::string vertex_shader_file, std::string fragment_shader_file);
+GLuint ogl_load_shader(std::string vertex_shader_file, std::string fragment_shader_file, u32 &external_data_usage);
 
 #endif // GBE_OGL_UTIL

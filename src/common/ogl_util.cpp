@@ -313,7 +313,7 @@ ogl_matrix ortho_matrix(float width, float height, float z_far, float z_near)
 }
 
 /****** Loads and compiles GLSL vertex and fragment shaders ******/
-GLuint ogl_load_shader(std::string vertex_shader_file, std::string fragment_shader_file)
+GLuint ogl_load_shader(std::string vertex_shader_file, std::string fragment_shader_file, u32 &ext_data_usage)
 {
 	GLuint vertex_shader_id = glCreateShader(GL_VERTEX_SHADER);
 	GLuint fragment_shader_id = glCreateShader(GL_FRAGMENT_SHADER);
@@ -326,6 +326,8 @@ GLuint ogl_load_shader(std::string vertex_shader_file, std::string fragment_shad
 	std::ifstream fs_data;
 
 	vs_data.open(vertex_shader_file.c_str());
+
+	std::size_t match;
 
 	//Try to open vertex shader file
 	if(!vs_data.is_open()) 
@@ -350,7 +352,20 @@ GLuint ogl_load_shader(std::string vertex_shader_file, std::string fragment_shad
 	}
 
 	//Grab fragment shader source code
-	while(getline(fs_data, temp)) { fs_code += "\n" + temp; }
+	while(getline(fs_data, temp))
+	{
+		fs_code += "\n" + temp;
+
+		//Search for external data usage comment, if any
+		match = temp.find("// EXT_DATA_USAGE_0");
+		if(match != std::string::npos) { ext_data_usage = 0; }
+
+		match = temp.find("EXT_DATA_USAGE_1");
+		if(match != std::string::npos) { ext_data_usage = 1; }
+
+		match = temp.find("EXT_DATA_USAGE_2");
+		if(match != std::string::npos) { ext_data_usage = 2; }
+	}
 
 	temp = "";
 	fs_data.close();

@@ -1,3 +1,4 @@
+// EXT_DATA_USAGE_0 
 // GB Enhanced+ Copyright Daniel Baxter 2016
 // Licensed under the GPLv2
 // See LICENSE.txt for full license text
@@ -16,6 +17,9 @@ out vec4 color;
 uniform sampler2D screen_texture;
 uniform int screen_x_size;
 uniform int screen_y_size;
+
+uniform float ext_data_1;
+uniform float ext_data_2;
 
 float luma_threshold = 0.60;
 float dark_threshold = 0.9;

@@ -17,6 +17,8 @@
 #define GL_GLEXT_PROTOTYPES 1
 #endif
 
+#include <ctime>
+
 #include "lcd.h"
 #include "common/ogl_util.h"
 
@@ -68,6 +70,8 @@ void AGB_LCD::opengl_init()
 	}
 
 	else { ogl_x_scale = ogl_y_scale = 1.0; }
+
+	ext_data_1 = ext_data_2 = 1.0;
 
 	gl_context = SDL_GL_CreateContext(window);
 
@@ -121,9 +125,10 @@ void AGB_LCD::opengl_init()
 	glGenTextures(1, &lcd_texture);
 
 	final_screen = SDL_CreateRGBSurface(SDL_SWSURFACE, config::sys_width, config::sys_height, 32, 0, 0, 0, 0);
+	external_data_usage = 0;
 
 	//Load the shader
-	program_id = ogl_load_shader(config::vertex_shader, config::fragment_shader);
+	program_id = ogl_load_shader(config::vertex_shader, config::fragment_shader, external_data_usage);
 
 	if(program_id == -1) { std::cout<<"LCD::Error - Could not generate shaders\n"; }
 }
@@ -131,6 +136,33 @@ void AGB_LCD::opengl_init()
 /****** Blit using OpenGL ******/
 void AGB_LCD::opengl_blit()
 {
+	//Determine what the shader's external data usage is
+	switch(external_data_usage)
+	{
+		//Shader requires no external data
+		case 0: break;
+
+		//Shader requires current window dimensions
+		case 1:
+			ext_data_1 = config::win_width;
+			ext_data_2 = config::win_height;
+			break;
+
+		//Shader requires current time
+		case 2:
+			{
+				time_t system_time = time(0);
+				tm* current_time = localtime(&system_time);
+
+				ext_data_1 = current_time->tm_hour;
+				ext_data_2 = current_time->tm_min;
+			}
+
+			break;
+
+		default: break;
+	}
+
 	//Bind screen texture, then generate texture from lcd pixels
 	glBindTexture(GL_TEXTURE_2D, lcd_texture);
 
@@ -155,6 +187,8 @@ void AGB_LCD::opengl_blit()
         glUniform1i(glGetUniformLocation(program_id, "screen_texture"), 0);
         glUniform1i(glGetUniformLocation(program_id, "screen_x_size"), config::sys_width);
         glUniform1i(glGetUniformLocation(program_id, "screen_y_size"), config::sys_height);
+        glUniform1f(glGetUniformLocation(program_id, "ext_data_1"), ext_data_1);
+        glUniform1f(glGetUniformLocation(program_id, "ext_data_2"), ext_data_2);
         
         //Draw vertex array object
         glBindVertexArray(vertex_array_object);

@@ -48,6 +48,8 @@ class AGB_LCD
 	GLuint program_id;
 	GLuint vertex_buffer_object, vertex_array_object, element_buffer_object;
 	GLfloat ogl_x_scale, ogl_y_scale;
+	GLfloat ext_data_1, ext_data_2;
+	u32 external_data_usage;
 
 	agb_lcd_data lcd_stat;
 
