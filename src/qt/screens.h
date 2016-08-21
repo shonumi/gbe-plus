@@ -44,6 +44,8 @@ class hard_screen : public QGLWidget
 	GLfloat ext_data_1, ext_data_2;
 	u32 external_data_usage;
 
+	void reload_shaders();
+
 	protected:
 	void initializeGL();
 	void paintGL();

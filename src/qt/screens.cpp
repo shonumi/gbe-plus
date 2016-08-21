@@ -275,3 +275,9 @@ void hard_screen::resizeEvent(QResizeEvent* event)
 	config::win_width = width();
 	config::win_height = height();
 }
+
+/****** Reloads fragment and vertex shaders ******/
+void hard_screen::reload_shaders()
+{
+	program_id = ogl_load_shader(config::vertex_shader, config::fragment_shader, external_data_usage);
+}
