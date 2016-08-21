@@ -14,6 +14,9 @@ in vec2 texture_coordinates;
 
 out vec4 color;
 
+//Control variables - Adjust these to change how the shader's effects work
+
+//Scanline effect size in pixels, divided by two
 float scanline_size = 8;
 
 uniform sampler2D screen_texture;

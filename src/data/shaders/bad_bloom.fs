@@ -21,8 +21,18 @@ uniform int screen_y_size;
 uniform float ext_data_1;
 uniform float ext_data_2;
 
+//Control variables - Adjust these to change how the shader's effects work
+
+//Luma Threshold - Brightness range for the bloom effect. Should be between 0.01 and 0.99
+//Decreasing this lets the bloom affect operate on more colors.
 float luma_threshold = 0.60;
+
+//Dark Threshold - Factor to make colors below Luma Threshold darker. Should be between 0.01 and 0.99
+//Decreasing this makes dark colors even darker. Helps with contrast. Go too far, and it will just be black.
 float dark_threshold = 0.9;
+
+//Light Threshold - Factor to make colors above Luma Threshold brighter. Should be greater or equal to 1.0
+//Increasing this makes bright colors even brighter. Helps with contrast. Go too far, and it will just be white.
 float light_threshold = 1.4;
 
 //Get perceived brightness, aka luma

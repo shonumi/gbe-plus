@@ -14,6 +14,11 @@ in vec2 texture_coordinates;
 
 out vec4 color;
 
+//Control variables - Adjust these to change how the shader's effects work
+
+//R Factor - Decrease saturation of all predominantly red colors by this amount. 0.0 to 0.99
+//G Factor - Decrease saturation of all predominantly green colors by this amount. 0.0 to 0.99
+//B Factor - Decrease saturation of all predominantly blue colors by this amount. 0.0 to 0.99
 float r_factor = 0.25;
 float g_factor = 0.25;
 float b_factor = 0.25;

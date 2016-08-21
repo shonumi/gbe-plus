@@ -22,7 +22,13 @@ uniform int screen_y_size;
 uniform float ext_data_1;
 uniform float ext_data_2;
 
+//Control variables - Adjust these to change how the shader's effects work
+
+//Lightness Delta - Factor to make all colors brighter. Should be 1.0 or greater. Go too far and it will just be white
 float lightness_delta = 1.2;
+
+//Saturation Delta - Factor by which all colors are desaturated. Should be between 0.01 and 0.99.
+//Go too far and it will just grayscale
 float saturation_delta = 0.6;
 
 //Returns the maximum RGB component
