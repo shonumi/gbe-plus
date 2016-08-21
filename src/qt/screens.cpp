@@ -8,8 +8,19 @@
 //
 // Widgets for rendering via software, or OpenGL for HW acceleration
 
+#ifndef GL3_PROTOTYPES
+#define GL3_PROTOTYPES 1
+#endif
+
+#ifndef GL_GLEXT_PROTOTYPES
+#define GL_GLEXT_PROTOTYPES 1
+#endif
+
+#include <ctime>
+
 #include "screens.h"
 #include "render.h"
+#include "common/ogl_util.h"
 
 /****** Software screen constructor ******/
 soft_screen::soft_screen(QWidget *parent) : QWidget(parent) { }
@@ -65,18 +76,109 @@ void soft_screen::resizeEvent(QResizeEvent* event)
 }
 
 /****** Hardware screen constructor ******/
-hard_screen::hard_screen(QWidget *parent) : QGLWidget(parent) { }
+hard_screen::hard_screen(QWidget *parent) : QGLWidget(parent)
+{
+	//Set up Qt to use OpenGL 3.3
+	screen_format.setVersion(3, 3);
+	screen_format.setProfile(QGLFormat::CoreProfile);
+	setFormat(screen_format);
+}
 
 /****** Initializes OpenGL on the hardware screen ******/
 void hard_screen::initializeGL()
 {
-	glEnable(GL_TEXTURE_2D);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glClearColor(0, 0, 0, 0);
+	config::win_width = width();
+	config::win_height = height();
 
+	//Calculate new temporary scaling factor
+	float max_width = (float)config::win_width / config::sys_width;
+	float max_height = (float)config::win_height / config::sys_height;
+
+	//Find the maximum dimensions that maintain the original aspect ratio
+	if(config::flags & SDL_WINDOW_FULLSCREEN)
+	{
+		if(max_width <= max_height)
+		{
+			float max_x_size = (max_width * config::sys_width);
+			float max_y_size = (max_width * config::sys_height);
+
+			ogl_x_scale =  max_x_size / config::win_width;
+			ogl_y_scale =  max_y_size / config::win_height;
+		}
+
+		else
+		{
+			float max_x_size = (max_height * config::sys_width);
+			float max_y_size = (max_height * config::sys_height);
+
+			ogl_x_scale =  max_x_size / config::win_width;
+			ogl_y_scale =  max_y_size / config::win_height;
+		}
+	}
+
+	else
+	{
+		ogl_x_scale = (float)config::win_width / (config::sys_width * config::scaling_factor);
+		ogl_y_scale = (float)config::win_height / (config::sys_height * config::scaling_factor);
+	}
+
+	ext_data_1 = ext_data_2 = 1.0;
+
+	glDeleteVertexArrays(1, &vertex_array_object);
+	glDeleteBuffers(1, &vertex_buffer_object);
+	glDeleteBuffers(1, &element_buffer_object);
+
+	//Define vertices and texture coordinates for the screen texture
+    	GLfloat vertices[] =
+	{
+		//Vertices		//Texture Coordinates
+		1.0f, 1.0f, 0.0f,	1.0f, 0.0f,
+		1.0f, -1.0f, 0.0f,	1.0f, 1.0f,
+		-1.0f, -1.0f, 0.0f,	0.0f, 1.0f,
+		-1.0f,  1.0f, 0.0f, 	0.0f, 0.0f
+	};
+
+	//Define indices for the screen texture's triangles
+	GLuint indices[] =
+	{
+        	0, 1, 3,
+		1, 2, 3
+    	};
+
+	//Generate a vertex array object for the screen texture + generate vertex and element buffer
+	glGenVertexArrays(1, &vertex_array_object);
+	glGenBuffers(1, &vertex_buffer_object);
+	glGenBuffers(1, &element_buffer_object);
+
+	//Bind the vertex array object
+	glBindVertexArray(vertex_array_object);
+
+	//Bind vertices to vertex buffer object
+	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_object);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+	//Bind element buffer
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer_object);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, (5 * sizeof(GLfloat)), (void*)0);
+	glEnableVertexAttribArray(0);
+
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, (5 * sizeof(GLfloat)), (GLvoid*)(3 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(1);
+
+	//Unbind vertex array object
+	glBindVertexArray(0);
+
+	//Generate the screen texture
 	glGenTextures(1, &lcd_texture);
-	glBindTexture(GL_TEXTURE_2D, lcd_texture);
+
+	external_data_usage = 0;
+
+	//Load the shader
+	program_id = ogl_load_shader(config::vertex_shader, config::fragment_shader, external_data_usage);
+
+	if(program_id == -1) { std::cout<<"LCD::Error - Could not generate shaders\n"; }
 }
 
 /****** Hardware screen paint event ******/
@@ -91,63 +193,67 @@ void hard_screen::paintGL()
 
 	else
 	{
-		glViewport(0, 0, width(), height());
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
+		//Determine what the shader's external data usage is
+		switch(external_data_usage)
+		{
+			//Shader requires no external data
+			case 0: break;
 
-		glTexImage2D(GL_TEXTURE_2D, 0, 4, config::sys_width, config::sys_height, 0, GL_BGRA, GL_UNSIGNED_BYTE, qt_gui::final_screen->pixels);
+			//Shader requires current window dimensions
+			case 1:
+				ext_data_1 = config::win_width;
+				ext_data_2 = config::win_height;
+				break;
 
+			//Shader requires current time
+			case 2:
+				{
+					time_t system_time = time(0);
+					tm* current_time = localtime(&system_time);
+
+					ext_data_1 = current_time->tm_hour;
+					ext_data_2 = current_time->tm_min;
+				}
+
+				break;
+
+			default: break;
+		}
+
+		//Bind screen texture, then generate texture from lcd pixels
+		glBindTexture(GL_TEXTURE_2D, lcd_texture);
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, config::sys_width, config::sys_height, 0, GL_BGRA, GL_UNSIGNED_BYTE, qt_gui::final_screen->pixels);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
-		
-		glTranslatef(-0.5, 0.5, 0);
+		glBindTexture(GL_TEXTURE_2D, 0);
 
-		//Maintain aspect ratio
-		if(config::maintain_aspect_ratio)
-		{
-			double max_width, max_height, ratio = 0.0;
+    		glClearColor(0,0,0,0);
+    		glClear(GL_COLOR_BUFFER_BIT);
 
-			max_width = (double)width() / config::sys_width;
-			max_height = (double)height() / config::sys_height;
+		//Use shader
+		glUseProgram(program_id);
 
-			//Find the maximum dimensions that maintain the original aspect ratio
-			if(max_width <= max_height) { ratio = max_width; }
-			else { ratio = max_height; }
+		//Set vertex scaling
+		glUniform1f(glGetUniformLocation(program_id, "x_scale"), ogl_x_scale);
+		glUniform1f(glGetUniformLocation(program_id, "y_scale"), ogl_y_scale);
 
-			max_width = config::sys_width * ratio;
-			max_height = config::sys_height * ratio;
+		glActiveTexture(GL_TEXTURE0);
+        	glBindTexture(GL_TEXTURE_2D, lcd_texture);
+        	glUniform1i(glGetUniformLocation(program_id, "screen_texture"), 0);
+       		glUniform1i(glGetUniformLocation(program_id, "screen_x_size"), config::sys_width);
+        	glUniform1i(glGetUniformLocation(program_id, "screen_y_size"), config::sys_height);
+        	glUniform1f(glGetUniformLocation(program_id, "ext_data_1"), ext_data_1);
+        	glUniform1f(glGetUniformLocation(program_id, "ext_data_2"), ext_data_2);
+	
+        
+        	//Draw vertex array object
+        	glBindVertexArray(vertex_array_object);
+        	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        	glBindVertexArray(0);	
 
-			max_width = max_width / width();
-			max_height = max_height / height();
-
-			//Convert those dimensions to OpenGL coordinates
-			double left, right, top, bottom = 0.0;			
-			left = .5 - max_width;
-			right = .5 + max_width;
-			top = -.5 + max_height;
-			bottom = -.5 - max_height;
-
-			glBegin(GL_QUADS);
-			glTexCoord2f(0.0f, 0.0f); glVertex2f(left, top);
-			glTexCoord2f(1.0f, 0.0f); glVertex2f(right, top);
-			glTexCoord2f(1.0f, 1.0f); glVertex2f(right, bottom);
-			glTexCoord2f(0.0f, 1.0f); glVertex2f(left, bottom);
-			glEnd();
-		}
-
-		//Ignore aspect ratio
-		else
-		{
-			glBegin(GL_QUADS);
-			glTexCoord2f(0.0f, 0.0f); glVertex2f(-0.5f, 0.5f);
-			glTexCoord2f(1.0f, 0.0f); glVertex2f(1.5f, 0.5f);
-			glTexCoord2f(1.0f, 1.0f); glVertex2f(1.5f, -1.5f);
-			glTexCoord2f(0.0f, 1.0f); glVertex2f(-0.5f, -1.5f);
-			glEnd();
-		}
+		glUseProgram(0);
 	}
 }
 
@@ -165,4 +271,7 @@ void hard_screen::resizeEvent(QResizeEvent* event)
 	{
 		resize(test_width, test_height);
 	}
+
+	config::win_width = width();
+	config::win_height = height();
 }
