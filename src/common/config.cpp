@@ -1921,6 +1921,23 @@ bool save_ini_file()
 			output_lines[line_pos] = "[#dmg_on_gbc_pal:" + util::to_str(config::dmg_gbc_pal) + "]";
 		}
 
+		//OpenGL Fragment Shader
+		else if(ini_item == "#fragment_shader")
+		{
+			line_pos = output_count[x];
+
+			if(config::fragment_shader == (config::data_path + "shaders/fragment.fs")) { config::fragment_shader = "fragment.fs"; }
+			else if(config::fragment_shader == (config::data_path + "shaders/bad_bloom.fs")) { config::fragment_shader = "bad_bloom.fs"; }
+			else if(config::fragment_shader == (config::data_path + "shaders/chrono.fs")) { config::fragment_shader = "chrono.fs"; }
+			else if(config::fragment_shader == (config::data_path + "shaders/grayscale.fs")) { config::fragment_shader= "grayscale.fs"; }
+			else if(config::fragment_shader == (config::data_path + "shaders/pastel.fs")) { config::fragment_shader = "pastel.fs"; }
+			else if(config::fragment_shader == (config::data_path + "shaders/sepia.fs")) { config::fragment_shader = "sepia.fs"; }
+			else if(config::fragment_shader == (config::data_path + "shaders/tv_mode.fs")) { config::fragment_shader = "tv_mode.fs"; }
+			else if(config::fragment_shader == (config::data_path + "shaders/washout.fs")) { config::fragment_shader = "washout.fs"; }
+
+			output_lines[line_pos] = "[#fragment_shader:'" + config::fragment_shader + "']";
+		}
+
 		//DMG-GBC keyboard controls
 		else if(ini_item == "#dmg_key_controls")
 		{
