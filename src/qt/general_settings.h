@@ -131,6 +131,7 @@ class gen_settings : public QDialog
 	private slots:
 	void set_bios();
 	void set_printer();
+	void set_ogl();
 	void screen_scale_change();
 	void aspect_ratio_change();
 	void dmg_gbc_pal_change();

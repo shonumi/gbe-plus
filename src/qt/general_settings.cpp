@@ -687,6 +687,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(tabs_button->button(QDialogButtonBox::Close), SIGNAL(clicked()), this, SLOT(close_input()));
 	connect(bios, SIGNAL(stateChanged(int)), this, SLOT(set_bios()));
 	connect(printer, SIGNAL(stateChanged(int)), this, SLOT(set_printer()));
+	connect(ogl, SIGNAL(stateChanged(int)), this, SLOT(set_ogl()));
 	connect(screen_scale, SIGNAL(currentIndexChanged(int)), this, SLOT(screen_scale_change()));
 	connect(aspect_ratio, SIGNAL(stateChanged(int)), this, SLOT(aspect_ratio_change()));
 	connect(dmg_gbc_pal, SIGNAL(currentIndexChanged(int)), this, SLOT(dmg_gbc_pal_change()));
@@ -905,7 +906,13 @@ void gen_settings::set_ini_options()
 	else if(config::fragment_shader == (config::data_path + "shaders/washout.fs")) { ogl_frag_shader->setCurrentIndex(7); }
 
 	//OpenGL option
-	if(config::use_opengl) { ogl->setChecked(true); }
+	if(config::use_opengl)
+	{
+		ogl->setChecked(true);
+		ogl_frag_shader->setEnabled(true);
+	}
+
+	else { ogl_frag_shader->setEnabled(false); }
 
 	//CGFX option
 	if(cgfx::load_cgfx) { load_cgfx->setChecked(true); }
@@ -991,6 +998,13 @@ void gen_settings::set_printer()
 {
 	if(printer->isChecked()) { config::use_gb_printer = true; }
 	else { config::use_gb_printer = false; }
+}
+
+/****** Toggles enabling or disabling the fragment shader widget when setting OpenGL ******/
+void gen_settings::set_ogl()
+{
+	if(ogl->isChecked()) { ogl_frag_shader->setEnabled(true); }
+	else { ogl_frag_shader->setEnabled(false); }
 }
 
 /****** Changes the display scale ******/
