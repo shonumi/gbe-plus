@@ -44,7 +44,10 @@ class hard_screen : public QGLWidget
 	GLfloat ext_data_1, ext_data_2;
 	u32 external_data_usage;
 
+	bool old_aspect_flag;
+
 	void reload_shaders();
+	void calculate_screen_size();
 
 	protected:
 	void initializeGL();

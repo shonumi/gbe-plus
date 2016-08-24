@@ -82,6 +82,8 @@ hard_screen::hard_screen(QWidget *parent) : QGLWidget(parent)
 	screen_format.setVersion(3, 3);
 	screen_format.setProfile(QGLFormat::CoreProfile);
 	setFormat(screen_format);
+
+	old_aspect_flag = config::maintain_aspect_ratio;
 }
 
 /****** Initializes OpenGL on the hardware screen ******/
@@ -193,6 +195,12 @@ void hard_screen::paintGL()
 
 	else
 	{
+		if(old_aspect_flag != config::maintain_aspect_ratio)
+		{
+			old_aspect_flag = config::maintain_aspect_ratio;
+			calculate_screen_size();
+		}
+
 		//Determine what the shader's external data usage is
 		switch(external_data_usage)
 		{
@@ -274,10 +282,44 @@ void hard_screen::resizeEvent(QResizeEvent* event)
 
 	config::win_width = width();
 	config::win_height = height();
+
+	glViewport(0, 0, width(), height());
+	calculate_screen_size();
+	
 }
 
 /****** Reloads fragment and vertex shaders ******/
 void hard_screen::reload_shaders()
 {
 	program_id = ogl_load_shader(config::vertex_shader, config::fragment_shader, external_data_usage);
+}
+
+/****** Calculates aspect ratio or stretched ******/
+void hard_screen::calculate_screen_size()
+{
+	if(config::maintain_aspect_ratio)
+	{
+		float max_width = (float)config::win_width / config::sys_width;
+		float max_height = (float)config::win_height / config::sys_height;
+
+		if(max_width <= max_height)
+		{
+			float max_x_size = (max_width * config::sys_width);
+			float max_y_size = (max_width * config::sys_height);
+
+			ogl_x_scale =  max_x_size / config::win_width;
+			ogl_y_scale =  max_y_size / config::win_height;
+		}
+
+		else
+		{
+			float max_x_size = (max_height * config::sys_width);
+			float max_y_size = (max_height * config::sys_height);
+
+			ogl_x_scale =  max_x_size / config::win_width;
+			ogl_y_scale =  max_y_size / config::win_height;
+		}
+	}
+
+	else { ogl_x_scale = ogl_y_scale = 1.0; }
 }
