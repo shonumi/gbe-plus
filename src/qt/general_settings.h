@@ -42,6 +42,7 @@ class gen_settings : public QDialog
 	QComboBox* screen_scale;
 	QComboBox* cgfx_scale;
 	QComboBox* dmg_gbc_pal;
+	QComboBox* ogl_frag_shader;
 	QCheckBox* ogl;
 	QCheckBox* load_cgfx;
 	QCheckBox* aspect_ratio;
@@ -130,9 +131,11 @@ class gen_settings : public QDialog
 	private slots:
 	void set_bios();
 	void set_printer();
+	void set_ogl();
 	void screen_scale_change();
 	void aspect_ratio_change();
 	void dmg_gbc_pal_change();
+	void ogl_frag_change();
 	void set_cgfx();
 	void volume_change();
 	void sample_rate_change();

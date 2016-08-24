@@ -84,6 +84,9 @@ namespace config
 	bool use_opengl = false;
 	bool turbo = false;
 
+	std::string vertex_shader = "vertex.vs";
+	std::string fragment_shader = "fragment.fs";
+
 	u8 scaling_factor = 1;
 	u8 old_scaling_factor = 1;
 
@@ -861,6 +864,42 @@ bool parse_ini_file()
 				std::cout<<"GBE::Error - Could not parse gbe.ini (#use_opengl) \n";
 				return false;
 			}
+		}
+
+		//Fragment shader
+		else if(ini_item == "#fragment_shader")
+		{
+			if((x + 1) < size) 
+			{
+				ini_item = ini_opts[++x];
+				std::string first_char = "";
+				first_char = ini_item[0];
+				
+				//When left blank, don't parse the next line item
+				if(first_char != "#") { config::fragment_shader = config::data_path + "shaders/" + ini_item; }
+				else { config::fragment_shader = config::data_path + "shaders/fragment.fs"; x--;}
+ 
+			}
+
+			else { config::fragment_shader = config::data_path + "shaders/fragment.fs"; }
+		}
+
+		//Vertex shader
+		else if(ini_item == "#vertex_shader")
+		{
+			if((x + 1) < size) 
+			{
+				ini_item = ini_opts[++x];
+				std::string first_char = "";
+				first_char = ini_item[0];
+				
+				//When left blank, don't parse the next line item
+				if(first_char != "#") { config::vertex_shader = config::data_path + "shaders/" + ini_item; }
+				else { config::vertex_shader = config::data_path + "shaders/vertex.vs"; x--;}
+ 
+			}
+
+			else { config::vertex_shader = config::data_path + "shaders/vertex.vs"; }
 		}
 
 		//Use gamepad dead zone
@@ -1880,6 +1919,23 @@ bool save_ini_file()
 			line_pos = output_count[x];
 
 			output_lines[line_pos] = "[#dmg_on_gbc_pal:" + util::to_str(config::dmg_gbc_pal) + "]";
+		}
+
+		//OpenGL Fragment Shader
+		else if(ini_item == "#fragment_shader")
+		{
+			line_pos = output_count[x];
+
+			if(config::fragment_shader == (config::data_path + "shaders/fragment.fs")) { config::fragment_shader = "fragment.fs"; }
+			else if(config::fragment_shader == (config::data_path + "shaders/bad_bloom.fs")) { config::fragment_shader = "bad_bloom.fs"; }
+			else if(config::fragment_shader == (config::data_path + "shaders/chrono.fs")) { config::fragment_shader = "chrono.fs"; }
+			else if(config::fragment_shader == (config::data_path + "shaders/grayscale.fs")) { config::fragment_shader= "grayscale.fs"; }
+			else if(config::fragment_shader == (config::data_path + "shaders/pastel.fs")) { config::fragment_shader = "pastel.fs"; }
+			else if(config::fragment_shader == (config::data_path + "shaders/sepia.fs")) { config::fragment_shader = "sepia.fs"; }
+			else if(config::fragment_shader == (config::data_path + "shaders/tv_mode.fs")) { config::fragment_shader = "tv_mode.fs"; }
+			else if(config::fragment_shader == (config::data_path + "shaders/washout.fs")) { config::fragment_shader = "washout.fs"; }
+
+			output_lines[line_pos] = "[#fragment_shader:'" + config::fragment_shader + "']";
 		}
 
 		//DMG-GBC keyboard controls

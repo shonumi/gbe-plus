@@ -12,7 +12,7 @@
 #include <iostream>
 
 #include "general_settings.h"
-#include "main_menu.h"
+#include "render.h"
 #include "qt_common.h"
 
 #include "common/config.h"
@@ -174,7 +174,26 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	dmg_gbc_pal_layout->addWidget(dmg_gbc_pal_label);
 	dmg_gbc_pal_layout->addWidget(dmg_gbc_pal);
 	dmg_gbc_pal_set->setLayout(dmg_gbc_pal_layout);
-	
+
+	//Display settings - OpenGL Fragment Shader
+	QWidget* ogl_frag_shader_set = new QWidget(display);
+	QLabel* ogl_frag_shader_label = new QLabel("Post-Processing Shader : ");
+	ogl_frag_shader = new QComboBox(ogl_frag_shader_set);
+	ogl_frag_shader->addItem("OFF");
+	ogl_frag_shader->addItem("Bad Bloom");
+	ogl_frag_shader->addItem("Chrono");
+	ogl_frag_shader->addItem("Grayscale");
+	ogl_frag_shader->addItem("Pastel");
+	ogl_frag_shader->addItem("Sepia");
+	ogl_frag_shader->addItem("TV Mode");
+	ogl_frag_shader->addItem("Washout");
+
+	QHBoxLayout* ogl_frag_shader_layout = new QHBoxLayout;
+	ogl_frag_shader_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	ogl_frag_shader_layout->addWidget(ogl_frag_shader_label);
+	ogl_frag_shader_layout->addWidget(ogl_frag_shader);
+	ogl_frag_shader_set->setLayout(ogl_frag_shader_layout);
+
 	//Display settings - Use OpenGL
 	QWidget* ogl_set = new QWidget(display);
 	QLabel* ogl_label = new QLabel("Use OpenGL");
@@ -213,6 +232,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	disp_layout->addWidget(screen_scale_set);
 	disp_layout->addWidget(cgfx_scale_set);
 	disp_layout->addWidget(dmg_gbc_pal_set);
+	disp_layout->addWidget(ogl_frag_shader_set);
 	disp_layout->addWidget(ogl_set);
 	disp_layout->addWidget(load_cgfx_set);
 	disp_layout->addWidget(aspect_set);
@@ -667,9 +687,11 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(tabs_button->button(QDialogButtonBox::Close), SIGNAL(clicked()), this, SLOT(close_input()));
 	connect(bios, SIGNAL(stateChanged(int)), this, SLOT(set_bios()));
 	connect(printer, SIGNAL(stateChanged(int)), this, SLOT(set_printer()));
+	connect(ogl, SIGNAL(stateChanged(int)), this, SLOT(set_ogl()));
 	connect(screen_scale, SIGNAL(currentIndexChanged(int)), this, SLOT(screen_scale_change()));
 	connect(aspect_ratio, SIGNAL(stateChanged(int)), this, SLOT(aspect_ratio_change()));
 	connect(dmg_gbc_pal, SIGNAL(currentIndexChanged(int)), this, SLOT(dmg_gbc_pal_change()));
+	connect(ogl_frag_shader, SIGNAL(currentIndexChanged(int)), this, SLOT(ogl_frag_change()));
 	connect(load_cgfx, SIGNAL(stateChanged(int)), this, SLOT(set_cgfx()));
 	connect(volume, SIGNAL(valueChanged(int)), this, SLOT(volume_change()));
 	connect(freq, SIGNAL(currentIndexChanged(int)), this, SLOT(sample_rate_change()));
@@ -873,8 +895,24 @@ void gen_settings::set_ini_options()
 	//DMG-on-GBC palette options
 	dmg_gbc_pal->setCurrentIndex(config::dmg_gbc_pal);
 
+	//OpenGL Fragment Shader
+	if(config::fragment_shader == (config::data_path + "shaders/fragment.fs")) { ogl_frag_shader->setCurrentIndex(0); }
+	else if(config::fragment_shader == (config::data_path + "shaders/bad_bloom.fs")) { ogl_frag_shader->setCurrentIndex(1); }
+	else if(config::fragment_shader == (config::data_path + "shaders/chrono.fs")) { ogl_frag_shader->setCurrentIndex(2); }
+	else if(config::fragment_shader == (config::data_path + "shaders/grayscale.fs")) { ogl_frag_shader->setCurrentIndex(3); }
+	else if(config::fragment_shader == (config::data_path + "shaders/pastel.fs")) { ogl_frag_shader->setCurrentIndex(4); }
+	else if(config::fragment_shader == (config::data_path + "shaders/sepia.fs")) { ogl_frag_shader->setCurrentIndex(5); }
+	else if(config::fragment_shader == (config::data_path + "shaders/tv_mode.fs")) { ogl_frag_shader->setCurrentIndex(6); }
+	else if(config::fragment_shader == (config::data_path + "shaders/washout.fs")) { ogl_frag_shader->setCurrentIndex(7); }
+
 	//OpenGL option
-	if(config::use_opengl) { ogl->setChecked(true); }
+	if(config::use_opengl)
+	{
+		ogl->setChecked(true);
+		ogl_frag_shader->setEnabled(true);
+	}
+
+	else { ogl_frag_shader->setEnabled(false); }
 
 	//CGFX option
 	if(cgfx::load_cgfx) { load_cgfx->setChecked(true); }
@@ -962,6 +1000,13 @@ void gen_settings::set_printer()
 	else { config::use_gb_printer = false; }
 }
 
+/****** Toggles enabling or disabling the fragment shader widget when setting OpenGL ******/
+void gen_settings::set_ogl()
+{
+	if(ogl->isChecked()) { ogl_frag_shader->setEnabled(true); }
+	else { ogl_frag_shader->setEnabled(false); }
+}
+
 /****** Changes the display scale ******/
 void gen_settings::screen_scale_change()
 {
@@ -981,6 +1026,27 @@ void gen_settings::dmg_gbc_pal_change()
 {
 	config::dmg_gbc_pal = (dmg_gbc_pal->currentIndex());
 	set_dmg_colors(config::dmg_gbc_pal);
+}
+
+/****** Changes the current OpenGL fragment shader ******/
+void gen_settings::ogl_frag_change()
+{
+	switch(ogl_frag_shader->currentIndex())
+	{
+		case 0: config::fragment_shader = config::data_path + "shaders/fragment.fs"; break;
+		case 1: config::fragment_shader = config::data_path + "shaders/bad_bloom.fs"; break;
+		case 2: config::fragment_shader = config::data_path + "shaders/chrono.fs"; break;
+		case 3: config::fragment_shader = config::data_path + "shaders/grayscale.fs"; break;
+		case 4: config::fragment_shader = config::data_path + "shaders/pastel.fs"; break;
+		case 5: config::fragment_shader = config::data_path + "shaders/sepia.fs"; break;
+		case 6: config::fragment_shader = config::data_path + "shaders/tv_mode.fs"; break;
+		case 7: config::fragment_shader = config::data_path + "shaders/washout.fs"; break;
+	}
+
+	if((main_menu::gbe_plus != NULL) && (config::use_opengl))
+	{
+		qt_gui::draw_surface->hw_screen->reload_shaders();
+	}
 }
 
 /****** Toggles activation of custom graphics ******/

@@ -65,8 +65,14 @@ class DMG_LCD
 	SDL_Surface* final_screen;
 	SDL_Surface* original_screen;
 
+	//OpenGL data
 	SDL_GLContext gl_context;
 	GLuint lcd_texture;
+	GLuint program_id;
+	GLuint vertex_buffer_object, vertex_array_object, element_buffer_object;
+	GLfloat ogl_x_scale, ogl_y_scale;
+	GLfloat ext_data_1, ext_data_2;
+	u32 external_data_usage;
 
 	dmg_lcd_data lcd_stat;
 	dmg_cgfx_data cgfx_stat;
