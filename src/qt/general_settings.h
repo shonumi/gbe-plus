@@ -120,6 +120,13 @@ class gen_settings : public QDialog
 	//Advanced controls tab widget
 	QCheckBox* rumble_on;
 
+	//Netplay tab widgets
+	QCheckBox* enable_netplay;
+	QCheckBox* hard_sync;
+	QSpinBox* server_port;
+	QSpinBox* client_port;
+	QLineEdit* ip_address;
+
 	void update_volume();
 
 	protected:
@@ -154,6 +161,7 @@ class gen_settings : public QDialog
 	QDialog* display;
 	QDialog* sound;
 	QDialog* controls;
+	QDialog* netplay;
 	QDialog* paths;
 
 	QWidget* input_device_set;

@@ -28,12 +28,14 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	display = new QDialog;
 	sound = new QDialog;
 	controls = new QDialog;
+	netplay = new QDialog;
 	paths = new QDialog;
 
 	tabs->addTab(general, tr("General"));
 	tabs->addTab(display, tr("Display"));
 	tabs->addTab(sound, tr("Sound"));
 	tabs->addTab(controls, tr("Controls"));
+	tabs->addTab(netplay, tr("Netplay"));
 	tabs->addTab(paths, tr("Paths"));
 
 	tabs_button = new QDialogButtonBox(QDialogButtonBox::Close);
@@ -566,6 +568,74 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	gyro_down_set->setVisible(false);
 	gyro_left_set->setVisible(false);
 	gyro_right_set->setVisible(false);
+
+	//Netplay - Enable Netplay
+	QWidget* enable_netplay_set = new QWidget(netplay);
+	QLabel* enable_netplay_label = new QLabel("Enable netplay");
+	enable_netplay = new QCheckBox(netplay);
+
+	QHBoxLayout* enable_netplay_layout = new QHBoxLayout;
+	enable_netplay_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	enable_netplay_layout->addWidget(enable_netplay);
+	enable_netplay_layout->addWidget(enable_netplay_label);
+	enable_netplay_set->setLayout(enable_netplay_layout);
+
+	//Netplay - Enable hard syncing
+	QWidget* hard_sync_set = new QWidget(netplay);
+	QLabel* hard_sync_label = new QLabel("Use hard syncing");
+	hard_sync = new QCheckBox(netplay);
+
+	QHBoxLayout* hard_sync_layout = new QHBoxLayout;
+	hard_sync_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	hard_sync_layout->addWidget(hard_sync);
+	hard_sync_layout->addWidget(hard_sync_label);
+	hard_sync_set->setLayout(hard_sync_layout);
+
+	//Netplay - Server port
+	QWidget* server_port_set = new QWidget(netplay);
+	QLabel* server_port_label = new QLabel("Server Port : ");
+	server_port = new QSpinBox(netplay);
+	server_port->setMinimum(0);
+	server_port->setMaximum(0xFFFF);
+
+	QHBoxLayout* server_port_layout = new QHBoxLayout;
+	server_port_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	server_port_layout->addWidget(server_port_label);
+	server_port_layout->addWidget(server_port);
+	server_port_set->setLayout(server_port_layout);
+
+	//Netplay - Client port
+	QWidget* client_port_set = new QWidget(netplay);
+	QLabel* client_port_label = new QLabel("Client Port : ");
+	client_port = new QSpinBox(netplay);
+	client_port->setMinimum(0);
+	client_port->setMaximum(0xFFFF);
+
+	QHBoxLayout* client_port_layout = new QHBoxLayout;
+	client_port_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	client_port_layout->addWidget(client_port_label);
+	client_port_layout->addWidget(client_port);
+	client_port_set->setLayout(client_port_layout);
+
+	//Netplay - IP address
+	QWidget* ip_address_set = new QWidget(netplay);
+	QLabel* ip_address_label = new QLabel("Client IP Address : ");
+	ip_address = new QLineEdit(netplay);
+
+	QHBoxLayout* ip_address_layout = new QHBoxLayout;
+	ip_address_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	ip_address_layout->addWidget(ip_address_label);
+	ip_address_layout->addWidget(ip_address);
+	ip_address_set->setLayout(ip_address_layout);
+
+	QVBoxLayout* netplay_layout = new QVBoxLayout;
+	netplay_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	netplay_layout->addWidget(enable_netplay_set);
+	netplay_layout->addWidget(hard_sync_set);
+	netplay_layout->addWidget(server_port_set);
+	netplay_layout->addWidget(client_port_set);
+	netplay_layout->addWidget(ip_address_set);
+	netplay->setLayout(netplay_layout);
 
 	//Path settings - DMG BIOS
 	QWidget* dmg_bios_set = new QWidget(paths);

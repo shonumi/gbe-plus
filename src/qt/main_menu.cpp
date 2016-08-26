@@ -35,6 +35,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	QAction* display = new QAction("Display", this);
 	QAction* sound = new QAction("Sound", this);
 	QAction* controls = new QAction("Controls", this);
+	QAction* netplay = new QAction("Netplay", this);
 	QAction* paths = new QAction("Paths", this);
 
 	QAction* custom_gfx = new QAction("Custom Graphics...", this);
@@ -96,6 +97,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	options->addAction(display);
 	options->addAction(sound);
 	options->addAction(controls);
+	options->addAction(netplay);
 	options->addAction(paths);
 	menu_bar->addMenu(options);
 
@@ -127,6 +129,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	connect(display, SIGNAL(triggered()), this, SLOT(show_display_settings()));
 	connect(sound, SIGNAL(triggered()), this, SLOT(show_sound_settings()));
 	connect(controls, SIGNAL(triggered()), this, SLOT(show_control_settings()));
+	connect(netplay, SIGNAL(triggered()), this, SLOT(show_netplay_settings()));
 	connect(paths, SIGNAL(triggered()), this, SLOT(show_paths_settings()));
 	connect(custom_gfx, SIGNAL(triggered()), this, SLOT(show_cgfx()));
 	connect(debugging, SIGNAL(triggered()), this, SLOT(show_debugger()));
@@ -822,11 +825,19 @@ void main_menu::show_control_settings()
 	settings->advanced_button->setVisible(true);
 }
 
+/****** Shows the Netplay settings dialog ******/
+void main_menu::show_netplay_settings()
+{
+	settings->show();
+	settings->tabs->setCurrentIndex(4);
+	settings->advanced_button->setVisible(false);
+}
+
 /****** Shows the Paths settings dialog ******/
 void main_menu::show_paths_settings()
 {
 	settings->show();
-	settings->tabs->setCurrentIndex(4);
+	settings->tabs->setCurrentIndex(5);
 	settings->advanced_button->setVisible(false);
 }
 

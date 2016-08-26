@@ -68,6 +68,7 @@ class main_menu : public QWidget
 	void show_display_settings();
 	void show_sound_settings();
 	void show_control_settings();
+	void show_netplay_settings();
 	void show_paths_settings();
 	void show_cgfx();
 	void show_debugger();
