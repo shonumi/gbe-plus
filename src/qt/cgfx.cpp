@@ -1060,7 +1060,7 @@ void gbe_cgfx::draw_dmg_bg()
 			bool highlight = false;
 
 			if(((scanline_pixel_counter / 8) >= min_x_rect) && ((scanline_pixel_counter / 8) <= max_x_rect)
-			&& ((current_scanline / 8) >= min_y_rect) && ((current_scanline / 8) <= max_y_rect))
+			&& ((rendered_scanline / 8) >= min_y_rect) && ((rendered_scanline / 8) <= max_y_rect))
 			{
 				highlight = true;
 			}
@@ -1169,7 +1169,7 @@ void gbe_cgfx::draw_gbc_bg()
 			bool highlight = false;
 
 			if(((scanline_pixel_counter / 8) >= min_x_rect) && ((scanline_pixel_counter / 8) <= max_x_rect)
-			&& ((current_scanline / 8) >= min_y_rect) && ((current_scanline / 8) <= max_y_rect))
+			&& ((rendered_scanline / 8) >= min_y_rect) && ((rendered_scanline / 8) <= max_y_rect))
 			{
 				highlight = true;
 			}
@@ -1313,7 +1313,7 @@ void gbe_cgfx::draw_dmg_win()
 			bool highlight = false;
 
 			if(((scanline_pixel_counter / 8) >= min_x_rect) && ((scanline_pixel_counter / 8) <= max_x_rect)
-			&& ((current_scanline / 8) >= min_y_rect) && ((current_scanline / 8) <= max_y_rect))
+			&& ((rendered_scanline / 8) >= min_y_rect) && ((rendered_scanline / 8) <= max_y_rect))
 			{
 				highlight = true;
 			}
@@ -1443,7 +1443,7 @@ void gbe_cgfx::draw_gbc_win()
 			bool highlight = false;
 
 			if(((scanline_pixel_counter / 8) >= min_x_rect) && ((scanline_pixel_counter / 8) <= max_x_rect)
-			&& ((current_scanline / 8) >= min_y_rect) && ((current_scanline / 8) <= max_y_rect))
+			&& ((rendered_scanline / 8) >= min_y_rect) && ((rendered_scanline / 8) <= max_y_rect))
 			{
 				highlight = true;
 			}
@@ -2854,9 +2854,9 @@ void gbe_cgfx::dump_selection()
 	//Temporarily convert dimensions to X,Y and WxH format for Qt - DMG/GBC BG version
 	if(layer_select->currentIndex() == 0)
 	{
-		min_x_rect = ((rect_x->value() - 1) * 8) + (main_menu::gbe_plus->ex_read_u8(REG_SX) % 8);
+		min_x_rect = ((rect_x->value() - 1) * 8) - (main_menu::gbe_plus->ex_read_u8(REG_SX) % 8);
 		max_x_rect = rect_w->value() * 8;
-		min_y_rect = (rect_y->value() - 1) * 8 + (main_menu::gbe_plus->ex_read_u8(REG_SY) % 8);
+		min_y_rect = (rect_y->value() - 1) * 8 - (main_menu::gbe_plus->ex_read_u8(REG_SY) % 8);
 		max_y_rect = rect_h->value() * 8;
 	}
 
@@ -2866,9 +2866,9 @@ void gbe_cgfx::dump_selection()
 		u8 wx = main_menu::gbe_plus->ex_read_u8(REG_WX);
 		wx = (wx < 7) ? 0 : (wx - 7); 
 
-		min_x_rect = ((rect_x->value() - 1) * 8) + (wx % 8);
+		min_x_rect = ((rect_x->value() - 1) * 8) - (wx % 8);
 		max_x_rect = rect_w->value() * 8;
-		min_y_rect = (rect_y->value() - 1) * 8 + (main_menu::gbe_plus->ex_read_u8(REG_WY) % 8);
+		min_y_rect = (rect_y->value() - 1) * 8 - (main_menu::gbe_plus->ex_read_u8(REG_WY) % 8);
 		max_y_rect = rect_h->value() * 8;
 	}
 
