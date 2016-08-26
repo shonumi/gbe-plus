@@ -134,7 +134,7 @@ class DMG_LCD
 
 	//Per-scanline rendering - DMG (CGFX)
 	void render_cgfx_dmg_obj_scanline(u8 sprite_id);
-	void render_cgfx_dmg_bg_scanline(u16 bg_id);
+	void render_cgfx_dmg_bg_scanline(u16 bg_id, bool is_bg);
 
 	//Per-scanline rendering - GBC
 	void render_gbc_scanline();
@@ -144,7 +144,7 @@ class DMG_LCD
 
 	//Per-scanline rendering - GBC (CGFX)
 	void render_cgfx_gbc_obj_scanline(u8 sprite_id);
-	void render_cgfx_gbc_bg_scanline(u16 tile_data, u8 bg_map_attribute);
+	void render_cgfx_gbc_bg_scanline(u16 tile_data, u8 bg_map_attribute, bool is_bg);
 
 	//Per-pixel rendering - DMG (B/W)
 	bool render_dmg_obj_pixel();

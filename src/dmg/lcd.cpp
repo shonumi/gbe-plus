@@ -557,7 +557,7 @@ void DMG_LCD::render_dmg_bg_scanline()
 		
 		//Render CGFX
 		u16 hash_addr = lcd_stat.bg_tile_addr + (map_entry << 4);
-		if((cgfx::load_cgfx) && (has_hash(hash_addr, cgfx_stat.current_bg_hash[bg_id]))) { render_cgfx_dmg_bg_scanline(bg_id); }
+		if((cgfx::load_cgfx) && (has_hash(hash_addr, cgfx_stat.current_bg_hash[bg_id]))) { render_cgfx_dmg_bg_scanline(bg_id, true); }
 
 		//Render original pixel data
 		else 
@@ -616,10 +616,10 @@ void DMG_LCD::render_dmg_bg_scanline()
 }
 
 /****** Renders pixels for the BG (per-scanline) - DMG CGFX version ******/
-void DMG_LCD::render_cgfx_dmg_bg_scanline(u16 bg_id)
+void DMG_LCD::render_cgfx_dmg_bg_scanline(u16 bg_id, bool is_bg)
 {
 	//Determine where to start drawing
-	u8 rendered_scanline = lcd_stat.current_scanline + lcd_stat.bg_scroll_y;
+	u8 rendered_scanline = is_bg ? (lcd_stat.current_scanline + lcd_stat.bg_scroll_y) : (lcd_stat.current_scanline - lcd_stat.window_y);
 
 	//Determine which line of the tiles to generate pixels for this scanline
 	u8 tile_line = rendered_scanline % 8;
@@ -718,7 +718,7 @@ void DMG_LCD::render_gbc_bg_scanline()
 		//Render CGFX
 		u16 map_id = (lcd_stat.bg_map_addr + x) - 0x9800;
 		u16 hash_addr = lcd_stat.bg_tile_addr + (map_entry << 4);
-		if((cgfx::load_cgfx) && (has_hash(hash_addr, cgfx_stat.current_gbc_bg_hash[map_id]))) { render_cgfx_gbc_bg_scanline(tile_data, bg_map_attribute); }
+		if((cgfx::load_cgfx) && (has_hash(hash_addr, cgfx_stat.current_gbc_bg_hash[map_id]))) { render_cgfx_gbc_bg_scanline(tile_data, bg_map_attribute, true); }
 
 		//Render original pixel data
 		else
@@ -770,10 +770,10 @@ void DMG_LCD::render_gbc_bg_scanline()
 }
 
 /****** Renders pixels for the BG (per-scanline) - GBC CGFX version ******/
-void DMG_LCD::render_cgfx_gbc_bg_scanline(u16 tile_data, u8 bg_map_attribute)
+void DMG_LCD::render_cgfx_gbc_bg_scanline(u16 tile_data, u8 bg_map_attribute, bool is_bg)
 {
 	//Determine where to start drawing
-	u8 rendered_scanline = lcd_stat.current_scanline + lcd_stat.bg_scroll_y;
+	u8 rendered_scanline = is_bg ? (lcd_stat.current_scanline + lcd_stat.bg_scroll_y) : (lcd_stat.current_scanline - lcd_stat.window_y);
 
 	//Determine which line of the tiles to generate pixels for this scanline
 	u8 tile_line = rendered_scanline % 8;
@@ -889,7 +889,7 @@ void DMG_LCD::render_dmg_win_scanline()
 		
 		//Render CGFX
 		u16 hash_addr = lcd_stat.bg_tile_addr + (map_entry << 4);
-		if((cgfx::load_cgfx) && (has_hash(hash_addr, cgfx_stat.current_bg_hash[bg_id]))) { render_cgfx_dmg_bg_scanline(bg_id); }
+		if((cgfx::load_cgfx) && (has_hash(hash_addr, cgfx_stat.current_bg_hash[bg_id]))) { render_cgfx_dmg_bg_scanline(bg_id, false); }
 
 		//Render original pixel data
 		else
@@ -998,7 +998,7 @@ void DMG_LCD::render_gbc_win_scanline()
 		//Render CGFX
 		u16 map_id = (lcd_stat.window_map_addr + x) - 0x9800;
 		u16 hash_addr = lcd_stat.bg_tile_addr + (map_entry << 4);
-		if((cgfx::load_cgfx) && (has_hash(hash_addr, cgfx_stat.current_gbc_bg_hash[map_id]))) { render_cgfx_gbc_bg_scanline(tile_data, bg_map_attribute); }
+		if((cgfx::load_cgfx) && (has_hash(hash_addr, cgfx_stat.current_gbc_bg_hash[map_id]))) { render_cgfx_gbc_bg_scanline(tile_data, bg_map_attribute, false); }
 
 		//Render original pixel data
 		else
