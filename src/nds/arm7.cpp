@@ -1072,13 +1072,25 @@ void NTR_ARM7::rotate_right_special(u32& input, u8 offset)
 }			
 
 /****** Checks address before 32-bit reading/writing for special case scenarios ******/
-void NTR_ARM7::mem_check_32(u32 addr, u32& value, bool load_store) { }
+void NTR_ARM7::mem_check_32(u32 addr, u32& value, bool load_store)
+{
+	if(load_store) { value = mem->read_u32(addr); }
+	else { mem->write_u32(addr, value); }
+}
 
 /****** Checks address before 16-bit reading/writing for special case scenarios ******/
-void NTR_ARM7::mem_check_16(u32 addr, u32& value, bool load_store) { }
+void NTR_ARM7::mem_check_16(u32 addr, u32& value, bool load_store)
+{
+	if(load_store) { value = mem->read_u16(addr); }
+	else { mem->write_u16(addr, value); }
+}
 
 /****** Checks address before 8-bit reading/writing for special case scenarios ******/
-void NTR_ARM7::mem_check_8(u32 addr, u32& value, bool load_store) { }
+void NTR_ARM7::mem_check_8(u32 addr, u32& value, bool load_store)
+{
+	if(load_store) { value = mem->read_u8(addr); }
+	else { mem->write_u8(addr, value); }
+}
 
 /****** Runs audio and video controllers every clock cycle ******/
 void NTR_ARM7::clock(u32 access_addr, bool first_access)
