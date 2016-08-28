@@ -1211,7 +1211,7 @@ void NTR_ARM9::coprocessor_register_transfer(u32 current_instruction)
 	//Execute MRC - Read from CP15 registers
 	if(arm_opcode)
 	{
-		std::cout<<"MRC -> C" << (int)cop_reg << ",C" << (int)cop_opr << "," << (int)cop_info << "\n";
+		//std::cout<<"MRC -> C" << (int)cop_reg << ",C" << (int)cop_opr << "," << (int)cop_info << "\n";
 
 		//Move from C0,C0,0 - 2 to ARM register
 		if((cop_reg == 0) && (cop_opr == 0))

@@ -29,7 +29,8 @@ void NTR_ARM9::process_swi(u32 comment)
 			break;
 
 		default:
-			std::cout<<"SWI::Error - Unknown BIOS function 0x" << std::hex << comment << "\n";
+			std::cout<<"SWI::Error - Unknown NDS9 BIOS function 0x" << std::hex << comment << "\n";
+			running = false;
 			break;
 	}
 }
@@ -102,7 +103,8 @@ void NTR_ARM7::process_swi(u32 comment)
 	switch(comment)
 	{
 		default:
-			std::cout<<"SWI::Error - Unknown BIOS function 0x" << std::hex << comment << "\n";
+			std::cout<<"SWI::Error - Unknown NDS7 BIOS function 0x" << std::hex << comment << "\n";
+			running = false;
 			break;
 	}
 }

@@ -258,7 +258,10 @@ void NTR_core::run_core()
 	}
 
 	debug_display();
-	std::cout<<"\nIE -> 0x" << std::hex << core_mmu.read_u32(NDS_IE) << "\n";
+	nds9_debug = false;
+	debug_display();
+	std::cout<<"\nIE NDS9 -> 0x" << std::hex << core_mmu.nds9_ie << "\n";
+	std::cout<<"\nIE NDS7 -> 0x" << std::hex << core_mmu.nds7_ie << "\n";
 
 	//Shutdown core
 	shutdown();

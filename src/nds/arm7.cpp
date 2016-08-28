@@ -38,6 +38,9 @@ void NTR_ARM7::reset()
 	reg.r14_irq = reg.spsr_irq = 0;
 	reg.r14_und = reg.spsr_und = 0;
 
+	lbl_addr = 0;
+	first_branch = false;
+
 	running = false;
 	in_interrupt = false;
 	sleep = false;
