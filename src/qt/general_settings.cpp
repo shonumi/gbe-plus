@@ -769,6 +769,8 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(dead_zone, SIGNAL(valueChanged(int)), this, SLOT(dead_zone_change()));
 	connect(input_device, SIGNAL(currentIndexChanged(int)), this, SLOT(input_device_change()));
 	connect(advanced_button, SIGNAL(clicked()), this, SLOT(switch_control_layout()));
+	connect(enable_netplay, SIGNAL(stateChanged(int)), this, SLOT(set_netplay()));
+	connect(hard_sync, SIGNAL(stateChanged(int)), this, SLOT(set_hard_sync()));
 	connect(data_folder, SIGNAL(accepted()), this, SLOT(select_folder()));
 	connect(data_folder, SIGNAL(rejected()), this, SLOT(reject_folder()));
 
@@ -1047,6 +1049,13 @@ void gen_settings::set_ini_options()
 	//Rumble
 	if(config::use_haptics) { rumble_on->setChecked(true); }
 
+	//Netplay
+	if(config::use_netplay) { enable_netplay->setChecked(true); }
+	if(config::netplay_hard_sync) { hard_sync->setChecked(true); }
+	server_port->setValue(config::netplay_server_port);
+	client_port->setValue(config::netplay_client_port);
+	ip_address->setText(QString::fromStdString(config::netplay_client_ip));
+
 	dmg_bios->setText(path_1);
 	gbc_bios->setText(path_2);
 	gba_bios->setText(path_3);
@@ -1324,7 +1333,21 @@ void gen_settings::input_device_change()
 }
 
 /****** Dynamically changes the core pad's dead-zone ******/
-void gen_settings::dead_zone_change() { config::dead_zone = dead_zone->value(); }	
+void gen_settings::dead_zone_change() { config::dead_zone = dead_zone->value(); }
+
+/****** Sets the netplay enable option ******/
+void gen_settings::set_netplay()
+{
+	if(enable_netplay->isChecked()) { config::use_netplay = true; }
+	else { config::use_netplay = false; }
+}
+
+/****** Sets the netplay hard sync option ******/
+void gen_settings::set_hard_sync()
+{
+	if(hard_sync->isChecked()) { config::netplay_hard_sync = true; }
+	else { config::netplay_hard_sync = false; }
+}
 
 /****** Prepares GUI to receive input for controller configuration ******/
 void gen_settings::configure_button(int button)

@@ -150,11 +150,14 @@ class gen_settings : public QDialog
 	void set_paths(int index);
 	void input_device_change();
 	void dead_zone_change();
+	void set_netplay();
+	void set_hard_sync();
 	void configure_button(int button);
 	void close_input();
 	void switch_control_layout();
 	void select_folder();
 	void reject_folder();
+
 
 	private:
 	QDialog* general;
