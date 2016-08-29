@@ -46,6 +46,7 @@ void NTR_ARM9::reset()
 	in_interrupt = false;
 
 	swi_vblank_wait = false;
+	swi_waitbyloop_count = 0;
 
 	arm_mode = ARM;
 	current_cpu_mode = SYS;

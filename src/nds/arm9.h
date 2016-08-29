@@ -162,6 +162,7 @@ class NTR_ARM9
 	u8 flush_counter;
 
 	bool swi_vblank_wait;
+	u32 swi_waitbyloop_count;
 
 	u32 instruction_pipeline[3];
 	arm_instructions instruction_operation[3];
@@ -276,7 +277,9 @@ class NTR_ARM9
 	void swi_lz77uncompvram();
 	void swi_rluncompvram();
 	void swi_huffuncomp();
+
 	void swi_isdebugger();
+	void swi_waitbyloop();
 };
 		
 #endif // NDS9_CPU 

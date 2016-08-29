@@ -16,6 +16,12 @@ void NTR_ARM9::process_swi(u32 comment)
 {
 	switch(comment)
 	{
+		//WaitByLoop
+		case 0x3:
+			std::cout<<"ARM7::SWI::WaitByLoop \n";
+			swi_waitbyloop();
+			break;
+
 		//IntrWait
 		case 0x4:
 			std::cout<<"ARM9::SWI::IntrWait \n";
@@ -33,6 +39,14 @@ void NTR_ARM9::process_swi(u32 comment)
 			running = false;
 			break;
 	}
+}
+
+/****** HLE implementation of WaitByLoop - NDS9 ******/
+void NTR_ARM9::swi_waitbyloop()
+{
+	//Setup the initial value for swi_waitbyloop_count - R0
+	swi_waitbyloop_count = get_reg(0) & 0x7FFFFFFF;
+	swi_waitbyloop_count >>= 2;
 }
 
 /****** HLE implementation of IntrWait - NDS9 ******/
