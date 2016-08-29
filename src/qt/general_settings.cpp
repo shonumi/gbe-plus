@@ -771,6 +771,8 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(advanced_button, SIGNAL(clicked()), this, SLOT(switch_control_layout()));
 	connect(enable_netplay, SIGNAL(stateChanged(int)), this, SLOT(set_netplay()));
 	connect(hard_sync, SIGNAL(stateChanged(int)), this, SLOT(set_hard_sync()));
+	connect(server_port, SIGNAL(valueChanged(int)), this, SLOT(update_server_port()));
+	connect(client_port, SIGNAL(valueChanged(int)), this, SLOT(update_client_port()));
 	connect(data_folder, SIGNAL(accepted()), this, SLOT(select_folder()));
 	connect(data_folder, SIGNAL(rejected()), this, SLOT(reject_folder()));
 
@@ -1347,6 +1349,18 @@ void gen_settings::set_hard_sync()
 {
 	if(hard_sync->isChecked()) { config::netplay_hard_sync = true; }
 	else { config::netplay_hard_sync = false; }
+}
+
+/****** Sets the netplay server port ******/
+void gen_settings::update_server_port()
+{
+	config::netplay_server_port = server_port->value();
+}
+
+/****** Sets the netplay client port ******/
+void gen_settings::update_client_port()
+{
+	config::netplay_client_port = client_port->value();
 }
 
 /****** Prepares GUI to receive input for controller configuration ******/

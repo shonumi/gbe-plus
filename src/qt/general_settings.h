@@ -152,6 +152,8 @@ class gen_settings : public QDialog
 	void dead_zone_change();
 	void set_netplay();
 	void set_hard_sync();
+	void update_server_port();
+	void update_client_port();
 	void configure_button(int button);
 	void close_input();
 	void switch_control_layout();
