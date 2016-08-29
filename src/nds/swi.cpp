@@ -35,7 +35,7 @@ void NTR_ARM9::process_swi(u32 comment)
 	}
 }
 
-/****** HLE implementation of IntrWait ******/
+/****** HLE implementation of IntrWait - NDS9 ******/
 void NTR_ARM9::swi_intrwait()
 {
 	//NDS9 version is slightly bugged. When R0 == 0, it simply waits for any new interrupt, then leaves
@@ -87,7 +87,7 @@ void NTR_ARM9::swi_intrwait()
 	reg.r15 -= (arm_mode == ARM) ? 4 : 2;
 }
 
-/****** HLE implementation of IsDebugger ******/
+/****** HLE implementation of IsDebugger - NDS9 ******/
 void NTR_ARM9::swi_isdebugger()
 {
 	//Always act as if a retail NDS, set RO to zero
@@ -97,14 +97,68 @@ void NTR_ARM9::swi_isdebugger()
 	mem->write_u16(0x27FFFF8, 0x0);
 }
 
-/****** Process Software Interrupts ******/
+/****** Process Software Interrupts - NDS7 ******/
 void NTR_ARM7::process_swi(u32 comment)
 {
 	switch(comment)
 	{
+		//WaitByLoop
+		case 0x3:
+			std::cout<<"ARM7::SWI::WaitByLoop \n";
+			swi_waitbyloop();
+			break;
+
+		//GetCRC16
+		case 0xE:
+			std::cout<<"ARM7::SWI::GetCRC16 \n";
+			swi_getcrc16();
+			break;
+			
 		default:
 			std::cout<<"SWI::Error - Unknown NDS7 BIOS function 0x" << std::hex << comment << "\n";
 			running = false;
 			break;
 	}
+}
+
+/****** HLE implementation of GetCRC16 - NDS7 ******/
+void NTR_ARM7::swi_getcrc16()
+{
+	//R0 = Initial CRC value
+	//R1 = Start address of data to look at
+	//R2 = Length of data to look at in bytes
+	u16 crc = get_reg(0);
+	u32 data_addr = get_reg(1) & ~0x1;
+	u32 length = get_reg(2) & ~0x1;
+
+	//LUT for CRC
+	u16 table[] = { 0xC0C1, 0xC181, 0xC301, 0xC601, 0xCC01, 0xD801, 0xF001, 0xA001 };
+
+	//Cycle through all the data to get the CRC16
+	for(u32 x = 0; x < length; x++)
+	{
+		u16 data_byte = mem->memory_map[data_addr++];
+		crc = crc ^ data_byte;
+
+		for(u32 y = 0; y < 8; y++)
+		{
+			
+			if(crc & 0x1)
+			{
+				crc >>= 1;
+				crc = crc ^ (table[y] << (7 - y));
+			}
+
+			else { crc >>= 1; }
+		}
+	}
+
+	set_reg(0, crc);
+}
+
+/****** HLE implementation of WaitByLoop - NDS7 ******/
+void NTR_ARM7::swi_waitbyloop()
+{
+	//Setup the initial value for swi_waitbyloop_count - R0
+	swi_waitbyloop_count = get_reg(0) & 0x7FFFFFFF;
 }

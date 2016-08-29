@@ -224,20 +224,30 @@ void NTR_core::run_core()
 				core_cpu_nds7.clock();
 				core_cpu_nds7.clock();
 
-				core_cpu_nds7.fetch();
-				core_cpu_nds7.decode();
-				core_cpu_nds7.execute();
+				//Check to see if CPU is paused or idle for any reason
+				if(core_cpu_nds7.swi_waitbyloop_count)
+				{
+					core_cpu_nds7.swi_waitbyloop_count--;
+				}
 
-				core_cpu_nds7.handle_interrupt();
+				//Otherwise, handle normal CPU operations
+				else
+				{
+					core_cpu_nds7.fetch();
+					core_cpu_nds7.decode();
+					core_cpu_nds7.execute();
+
+					core_cpu_nds7.handle_interrupt();
 		
-				//Flush pipeline if necessary
-				if(core_cpu_nds7.needs_flush) { core_cpu_nds7.flush_pipeline(); }
+					//Flush pipeline if necessary
+					if(core_cpu_nds7.needs_flush) { core_cpu_nds7.flush_pipeline(); }
 
-				//Else update the pipeline and PC
-				else 
-				{ 
-					core_cpu_nds7.pipeline_pointer = (core_cpu_nds7.pipeline_pointer + 1) % 3;
-					core_cpu_nds7.update_pc();
+					//Else update the pipeline and PC
+					else 
+					{ 
+						core_cpu_nds7.pipeline_pointer = (core_cpu_nds7.pipeline_pointer + 1) % 3;
+						core_cpu_nds7.update_pc();
+					}
 				}
 
 				//Determine if NDS9 needs to run in order to sync

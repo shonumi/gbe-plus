@@ -165,6 +165,7 @@ class NTR_ARM7
 	bool sleep;
 
 	bool swi_vblank_wait;
+	u32 swi_waitbyloop_count;
 
 	u32 instruction_pipeline[3];
 	arm_instructions instruction_operation[3];
@@ -286,6 +287,9 @@ class NTR_ARM7
 	void swi_objaffineset();
 	void swi_bitunpack();
 	void swi_midikey2freq();
+
+	void swi_getcrc16();
+	void swi_waitbyloop();
 };
 		
 #endif // NDS7_CPU
