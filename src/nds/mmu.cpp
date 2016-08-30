@@ -583,7 +583,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			if(access_mode) { nds9_if &= ~(value << ((address & 0x3) << 3)); }
 
 			//Write to NDS7 IF
-			else { nds7_ie &= ~(0xFF << ((address & 0x3) << 3)); }
+			else { nds7_if &= ~(0xFF << ((address & 0x3) << 3)); }
 
 			break;
 

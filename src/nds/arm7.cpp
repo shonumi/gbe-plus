@@ -43,7 +43,8 @@ void NTR_ARM7::reset()
 
 	running = false;
 	in_interrupt = false;
-	sleep = false;
+
+	idle_state = 0;
 
 	swi_vblank_wait = false;
 	swi_waitbyloop_count = 0;

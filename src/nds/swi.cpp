@@ -28,6 +28,12 @@ void NTR_ARM9::process_swi(u32 comment)
 			swi_intrwait();
 			break;
 
+		//Halt
+		case 0x6:
+			std::cout<<"ARM9::SWI::Halt \n";
+			swi_halt();
+			break;
+
 		//IsDebugger
 		case 0xF:
 			std::cout<<"ARM9::SWI::IsDebugger \n";
@@ -47,6 +53,19 @@ void NTR_ARM9::swi_waitbyloop()
 	//Setup the initial value for swi_waitbyloop_count - R0
 	swi_waitbyloop_count = get_reg(0) & 0x7FFFFFFF;
 	swi_waitbyloop_count >>= 2;
+
+	//Set CPU idle state to 2
+	idle_state = 2;
+}
+
+/****** HLE implementation of Halt - NDS9 ******/
+void NTR_ARM9::swi_halt()
+{
+	//Set CPU idle state to 1
+	idle_state = 1;
+
+	//Destroy R0
+	set_reg(0, 0);
 }
 
 /****** HLE implementation of IntrWait - NDS9 ******/
@@ -122,6 +141,12 @@ void NTR_ARM7::process_swi(u32 comment)
 			swi_waitbyloop();
 			break;
 
+		//Halt
+		case 0x6:
+			std::cout<<"ARM7::SWI::Halt \n";
+			swi_halt();
+			break;
+
 		//GetCRC16
 		case 0xE:
 			std::cout<<"ARM7::SWI::GetCRC16 \n";
@@ -175,4 +200,14 @@ void NTR_ARM7::swi_waitbyloop()
 {
 	//Setup the initial value for swi_waitbyloop_count - R0
 	swi_waitbyloop_count = get_reg(0) & 0x7FFFFFFF;
+
+	//Set CPU idle state to 2
+	idle_state = 2;
+}
+
+/****** HLE implementation of Halt - NDS7 ******/
+void NTR_ARM7::swi_halt()
+{
+	//Set CPU idle state to 1
+	idle_state = 1;
 }

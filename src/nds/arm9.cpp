@@ -45,6 +45,8 @@ void NTR_ARM9::reset()
 	running = false;
 	in_interrupt = false;
 
+	idle_state = 0;
+
 	swi_vblank_wait = false;
 	swi_waitbyloop_count = 0;
 

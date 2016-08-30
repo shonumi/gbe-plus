@@ -186,9 +186,29 @@ void NTR_core::run_core()
 				core_cpu_nds9.clock();
 
 				//Check to see if CPU is paused or idle for any reason
-				if(core_cpu_nds9.swi_waitbyloop_count)
+				if(core_cpu_nds9.idle_state)
 				{
-					core_cpu_nds9.swi_waitbyloop_count--;
+					switch(core_cpu_nds9.idle_state)
+					{
+						//Halt SWI
+						case 0x1:
+							//Check IE and IF, if there is a match, exit halt state
+							{
+								//Match up bits in IE and IF
+								for(u32 x = 0; x < 21; x++)
+								{
+									if((core_mmu.nds9_ie & (1 << x)) && (core_mmu.nds9_if & (1 << x))) { core_cpu_nds9.idle_state = 0; }
+								}
+							}
+
+							break;
+
+						//WaitByLoop SWI
+						case 0x2:
+							core_cpu_nds9.swi_waitbyloop_count--;
+							if(!core_cpu_nds9.swi_waitbyloop_count) { core_cpu_nds9.idle_state = 0; }
+							break;
+					}
 				}
 
 				//Otherwise, handle normal CPU operations
@@ -235,9 +255,27 @@ void NTR_core::run_core()
 				core_cpu_nds7.clock();
 
 				//Check to see if CPU is paused or idle for any reason
-				if(core_cpu_nds7.swi_waitbyloop_count)
+				if(core_cpu_nds7.idle_state)
 				{
-					core_cpu_nds7.swi_waitbyloop_count--;
+					switch(core_cpu_nds7.idle_state)
+					{
+						//Halt SWI
+						case 0x1:
+							//Check IE and IF, if there is a match, exit halt state
+							{
+								//Match up bits in IE and IF
+								for(u32 x = 0; x < 24; x++)
+								{
+									if((core_mmu.nds7_ie & (1 << x)) && (core_mmu.nds7_if & (1 << x))) { core_cpu_nds7.idle_state = 0; }
+								}
+							}
+
+						//WaitByLoop SWI
+						case 0x2:
+							core_cpu_nds7.swi_waitbyloop_count--;
+							if(!core_cpu_nds7.swi_waitbyloop_count) { core_cpu_nds7.idle_state = 0; }
+							break;
+					}
 				}
 
 				//Otherwise, handle normal CPU operations

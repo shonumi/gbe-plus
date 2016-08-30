@@ -158,8 +158,9 @@ class NTR_ARM9
 	bool running;
 	bool needs_flush;
 	bool in_interrupt;
-	bool sleep;
 	u8 flush_counter;
+
+	u8 idle_state;
 
 	bool swi_vblank_wait;
 	u32 swi_waitbyloop_count;
