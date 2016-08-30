@@ -272,6 +272,11 @@ void AGB_MMU::write_u8(u32 address, u8 value)
  
 			break;
 
+		//Vertical-Line Count (Read-Only)
+		case VCOUNT:
+		case VCOUNT+1:
+			break;
+
 		//BG0 Control
 		case BG0CNT:
 		case BG0CNT+1:
