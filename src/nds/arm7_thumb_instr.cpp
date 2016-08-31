@@ -46,7 +46,7 @@ void NTR_ARM7::move_shifted_register(u16 current_thumb_instruction)
 			shift_out = arithmetic_shift_right(result, offset);
 			break;
 
-		default: std::cout<<"CPU::Warning: This should not happen in THUMB.1 ... \n"; break;
+		default: std::cout<<"CPU::ARM7::Warning: This should not happen in THUMB.1 ... \n"; break;
 	}
 
 	set_reg(dest_reg, result);
@@ -541,7 +541,7 @@ void NTR_ARM7::hireg_bx(u16 current_thumb_instruction)
 
 	if((op == 3) && (dr_msb != 0)) 
 	{ 
-		std::cout<<"CPU::Error - THUMB.5 Using BX but MSBd is set \n";
+		std::cout<<"CPU::ARM7::Error - THUMB.5 Using BX but MSBd is set \n";
 		running = false;
 		return;
 	}
@@ -1489,7 +1489,7 @@ void NTR_ARM7::conditional_branch(u16 current_thumb_instruction)
 
 		//Undefined
 		case 0xE:
-			std::cout<<"CPU::Error - THUMB.16 Undefined opcode 0xE \n";
+			std::cout<<"CPU::ARM7::Error - THUMB.16 Undefined opcode 0xE \n";
 			running = false;
 			break;
 

@@ -62,13 +62,13 @@ void NTR_ARM9::branch_exchange(u32 current_arm_instruction)
 				break;
 
 			default:
-				std::cout<<"CPU::Error - ARM.3 invalid Branch and Exchange opcode : 0x" << std::hex << op << "\n";
+				std::cout<<"CPU::ARM9::Error - ARM.3 invalid Branch and Exchange opcode : 0x" << std::hex << op << "\n";
 				running = false;
 				break;
 		}
 	}
 
-	else { std::cout<<"CPU::Error - ARM.3 Branch and Exchange - Invalid operand : R15\n"; running = false; }
+	else { std::cout<<"CPU::ARM9::Error - ARM.3 Branch and Exchange - Invalid operand : R15\n"; running = false; }
 }  
 
 /****** ARM.4 - Branch and Branch with Link ******/
@@ -189,7 +189,7 @@ void NTR_ARM9::data_processing(u32 current_arm_instruction)
 			if((current_arm_instruction & 0xF) == 15) { operand += 4; }
 			
 			//Valid registers to shift by are R0-R14
-			if(((current_arm_instruction >> 8) & 0xF) == 0xF) { std::cout<< "CPU::Error - ARM.5 Data Processing - Shifting Register-Operand by PC \n"; running = false; }
+			if(((current_arm_instruction >> 8) & 0xF) == 0xF) { std::cout<< "CPU::ARM9::Error - ARM.5 Data Processing - Shifting Register-Operand by PC \n"; running = false; }
 		}
 
 		//Shift the register
@@ -420,7 +420,7 @@ void NTR_ARM9::psr_transfer(u32 current_arm_instruction)
 				//Grab destination register - Bits 12-15
 				u8 dest_reg = ((current_arm_instruction >> 12) & 0xF);
 
-				if(dest_reg == 15) { std::cout<<"CPU::Warning - ARM.6 R15 used as Destination Register \n"; }
+				if(dest_reg == 15) { std::cout<<"CPU::ARM9::Warning - ARM.6 R15 used as Destination Register \n"; }
 
 				//Store CPSR into destination register
 				if(psr == 0) { set_reg(dest_reg, reg.cpsr); }
@@ -445,14 +445,14 @@ void NTR_ARM9::psr_transfer(u32 current_arm_instruction)
 				if(current_arm_instruction & 0x40000) 
 				{ 
 					op_field_mask |= 0x00FF0000;
-					std::cout<<"CPU::Warning - ARM.6 MSR enabled access to Status Field \n";
+					std::cout<<"CPU::ARM9::Warning - ARM.6 MSR enabled access to Status Field \n";
 				}
 
 				//Extension field - Bit 17
 				if(current_arm_instruction & 0x20000) 
 				{ 
 					op_field_mask |= 0x0000FF00;
-					std::cout<<"CPU::Warning - ARM.6 MSR enabled access to Extension Field \n";
+					std::cout<<"CPU::ARM9::Warning - ARM.6 MSR enabled access to Extension Field \n";
 				}
 
 				//Control field - Bit 15
@@ -476,7 +476,7 @@ void NTR_ARM9::psr_transfer(u32 current_arm_instruction)
 					//Grab source register - Bits 0-3
 					u8 src_reg = (current_arm_instruction & 0xF);
 
-					if(src_reg == 15) { std::cout<<"CPU::Warning - ARM.6 R15 used as Source Register \n"; }
+					if(src_reg == 15) { std::cout<<"CPU::ARM9::Warning - ARM.6 R15 used as Source Register \n"; }
 
 					input = get_reg(src_reg);
 					input &= op_field_mask;
@@ -498,7 +498,7 @@ void NTR_ARM9::psr_transfer(u32 current_arm_instruction)
 						case 0x17: current_cpu_mode = ABT; break;
 						case 0x1B: current_cpu_mode = UND; break;
 						case 0x1F: current_cpu_mode = SYS; break;
-						default: std::cout<<"CPU::Warning - ARM.6 CPSR setting unknown CPU mode -> 0x" << std::hex << (reg.cpsr & 0x1F) << "\n";
+						default: std::cout<<"CPU::ARM9::Warning - ARM.6 CPSR setting unknown CPU mode -> 0x" << std::hex << (reg.cpsr & 0x1F) << "\n";
 					}
 				}
 	
@@ -922,7 +922,7 @@ void NTR_ARM9::halfword_signed_transfer(u32 current_arm_instruction)
 		//Register is Bits 0-3
 		base_offset = get_reg((current_arm_instruction & 0xF));
 
-		if((current_arm_instruction & 0xF) == 15) { std::cout<<"CPU::Warning - ARM.10 Offset Register is PC\n"; }
+		if((current_arm_instruction & 0xF) == 15) { std::cout<<"CPU::ARM9::Warning - ARM.10 Offset Register is PC\n"; }
 	}
 
 	//Determine offset if offset is immediate

@@ -46,7 +46,7 @@ void NTR_ARM9::move_shifted_register(u16 current_thumb_instruction)
 			shift_out = arithmetic_shift_right(result, offset);
 			break;
 
-		default: std::cout<<"CPU::Warning: This should not happen in THUMB.1 ... \n"; break;
+		default: std::cout<<"CPU::ARM9::Warning: This should not happen in THUMB.1 ... \n"; break;
 	}
 
 	set_reg(dest_reg, result);
@@ -1489,7 +1489,7 @@ void NTR_ARM9::conditional_branch(u16 current_thumb_instruction)
 
 		//Undefined
 		case 0xE:
-			std::cout<<"CPU::NTR_ARM9::Error - THUMB.16 Undefined opcode 0xE \n";
+			std::cout<<"CPU::ARM9::Error - THUMB.16 Undefined opcode 0xE \n";
 			running = false;
 			break;
 
