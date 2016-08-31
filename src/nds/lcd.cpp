@@ -52,7 +52,8 @@ void NTR_LCD::reset()
 	fps_count = 0;
 	fps_time = 0;
 
-	current_scanline = 0;
+	lcd_stat.current_scanline = 0;
+	lcd_stat.lyc = 0;
 	scanline_pixel_counter = 0;
 
 	screen_buffer.resize(0x18000, 0);
@@ -207,7 +208,7 @@ void NTR_LCD::render_scanline()
 		case 0x2:
 			{
 				u8 vram_block = ((lcd_stat.display_control_a >> 18) & 0x3);
-				u32 vram_addr = lcd_stat.vram_bank_addr[vram_block] + (current_scanline * 256);
+				u32 vram_addr = lcd_stat.vram_bank_addr[vram_block] + (lcd_stat.current_scanline * 256);
 
 				for(u16 x = 0; x < 256; x++)
 				{
@@ -287,9 +288,14 @@ void NTR_LCD::step()
 		if(lcd_mode != 0) 
 		{
 			lcd_mode = 0;
+
+			//Reset VBlank flag in DISPSTAT
+			mem->memory_map[NDS_DISPSTAT] &= ~0x1;
 			
-			current_scanline++;
-			if(current_scanline == 263) { current_scanline = 0; }
+			lcd_stat.current_scanline++;
+			if(lcd_stat.current_scanline == 263) { lcd_stat.current_scanline = 0; }
+
+			scanline_compare();
 		}
 	}
 
@@ -305,7 +311,7 @@ void NTR_LCD::step()
 			//Render scanline data
 			render_scanline();
 
-			u32 render_position = (current_scanline * 256);
+			u32 render_position = (lcd_stat.current_scanline * 256);
 
 			//Push scanline pixel data to screen buffer
 			for(u16 x = 0; x < 256; x++)
@@ -326,6 +332,9 @@ void NTR_LCD::step()
 		{
 			lcd_mode = 2;
 
+			//Set VBlank flag in DISPSTAT
+			mem->memory_map[NDS_DISPSTAT] |= 0x1;
+
 			//Trigger VBlank IRQ
 			if(lcd_stat.vblank_irq_enable)
 			{
@@ -334,7 +343,7 @@ void NTR_LCD::step()
 			}
 
 			//Increment scanline count
-			current_scanline++;
+			lcd_stat.current_scanline++;
 
 			//Use SDL
 			if(config::sdl_render)
@@ -400,7 +409,32 @@ void NTR_LCD::step()
 		//Increment Scanline after HBlank
 		else if((lcd_clock % 2130) == 1536)
 		{
-			current_scanline++;
+			lcd_stat.current_scanline++;
+			scanline_compare();
 		}
+	}
+}
+
+/****** Compare VCOUNT to LYC ******/
+void NTR_LCD::scanline_compare()
+{	
+	//Raise VCOUNT interrupt
+	if(lcd_stat.current_scanline == lcd_stat.lyc)
+	{
+		//Check to see if the VCOUNT IRQ is enabled in DISPSTAT
+		if(lcd_stat.vcount_irq_enable) 
+		{ 
+				mem->nds9_if |= 0x4;
+				mem->nds7_if |= 0x4;
+		}
+
+		//Toggle VCOUNT flag ON
+		mem->memory_map[NDS_DISPSTAT] |= 0x4;
+	}
+
+	else
+	{
+		//Toggle VCOUNT flag OFF
+		mem->memory_map[NDS_DISPSTAT] &= ~0x4;
 	}
 }

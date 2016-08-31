@@ -163,7 +163,7 @@ void NTR_core::run_core()
 	while(running)
 	{
 		//Handle SDL Events
-		if((core_cpu_nds9.controllers.video.current_scanline == 192) && SDL_PollEvent(&event))
+		if((core_cpu_nds9.controllers.video.lcd_stat.current_scanline == 192) && SDL_PollEvent(&event))
 		{
 			//X out of a window
 			if(event.type == SDL_QUIT) { stop(); SDL_Quit(); }

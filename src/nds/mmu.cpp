@@ -167,8 +167,28 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 				lcd_stat->vblank_irq_enable = (value & 0x8) ? true : false;
 				lcd_stat->hblank_irq_enable = (value & 0x10) ? true : false;
 				lcd_stat->vcount_irq_enable = (value & 0x20) ? true : false;
+
+				//MSB of LYC is Bit 7 of DISPSTAT
+				lcd_stat->lyc = (value & 0x80) ? (memory_map[NDS_DISPSTAT+1] | 0x100) : memory_map[NDS_DISPSTAT+1];
 			}
  
+			break;
+
+		//Display Status - Lower 8 bits of LYC
+		case NDS_DISPSTAT+1:
+			memory_map[address] = value;
+			lcd_stat->lyc = (memory_map[NDS_DISPSTAT] & 0x80) ? (memory_map[NDS_DISPSTAT+1] | 0x100) : memory_map[NDS_DISPSTAT+1];
+			break;
+
+		//Vertical-Line Count (Writable, unlike the GBA)
+		case NDS_VCOUNT:
+			memory_map[address] = value;
+			lcd_stat->current_scanline = (memory_map[NDS_VCOUNT+1] << 8) | memory_map[NDS_VCOUNT];
+			break;
+
+		case NDS_VCOUNT+1:
+			memory_map[address] = value & 0x1;
+			lcd_stat->current_scanline = (memory_map[NDS_VCOUNT+1] << 8) | memory_map[NDS_VCOUNT];
 			break;
 
 		//BG0 Control
