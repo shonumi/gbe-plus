@@ -1557,72 +1557,49 @@ void ARM7::long_branch_link(u16 current_thumb_instruction)
 	//Determine if this is the first or second instruction executed
 	bool first_op = (((current_thumb_instruction >> 11) & 0x1F) == 0x1F) ? false : true;
 
+	u32 lbl_addr = 0;
+
 	//Perform 1st 16-bit operation
 	if(first_op)
 	{
-		//Grab upper 11-bits of destination address, set PC to LR
+		u8 pre_bit = (reg.r15 & 0x800000) ? 1 : 0;
+
+		//Grab upper 11-bits of destination address
 		lbl_addr = ((current_thumb_instruction & 0x7FF) << 12);
-		set_reg(14, reg.r15);
+	
+		//Add as a 2's complement to PC
+		if(lbl_addr & 0x400000) { lbl_addr |= 0xFF800000; }
+		lbl_addr += reg.r15;
+
+		//Save label to LR
+		set_reg(14, lbl_addr);
 
 		//Clock CPU and controllers - 1S
 		clock(reg.r15, false);
-
-		first_branch = true;
 	}
 
 	//Perform 2nd 16-bit operation
 	else
 	{
-		//If the 1st 16-bit operation was already called, set the PC the address of the 
-		if(first_branch)
-		{
-			reg.r15 -= 2;
-			first_branch = false;
+		//Grab address of the "next" instruction to place in LR, set Bit 0 to 1
+		u32 next_instr_addr = (reg.r15 - 2);
+		next_instr_addr |= 1;
 
-			//Grab lower 11-bits of destination address
-			lbl_addr += ((current_thumb_instruction & 0x7FF) << 1);
-
-			//Add the 2's complement 23-bit address to the PC
-			if(lbl_addr & 0x400000)
-			{
-				lbl_addr--;
-				lbl_addr = ~lbl_addr;
-				lbl_addr &= 0x7FFFFF;
-				reg.r15 -= lbl_addr;
-			}
-		
-			else { reg.r15 += lbl_addr; }
-
-			first_branch = false;
-		}
-
-		//Otherwise use this current PC, but be sure to properly set LR
-		else
-		{
-			//Grab lower 11-bits of destination address
-			lbl_addr = get_reg(14);
-			lbl_addr += ((current_thumb_instruction & 0x7FF) << 1);
-	
-			set_reg(14, reg.r15 - 2);
-			reg.r15 = lbl_addr;
-		}
-
-		//Align PC to half-word
-		reg.r15 &= ~0x1;
+		//Grab lower 11-bits of destination address
+		lbl_addr = get_reg(14);
+		lbl_addr += ((current_thumb_instruction & 0x7FF) << 1);
 
 		//Clock CPU and controllers - 1N
 		clock(reg.r15, true);
 
-		needs_flush = true;
+		reg.r15 = lbl_addr;
+		reg.r15 &= ~0x1;
 
-		//Set Bit 0 of LR
-		u32 lr = get_reg(14) | 0x1;
-		set_reg(14, lr);
+		needs_flush = true;
+		set_reg(14, next_instr_addr);
 
 		//Clock CPU and controllers - 2S
 		clock(reg.r15, false);
 		clock((reg.r15 + 2), false);
-
-		lbl_addr = 0;
 	}
 }

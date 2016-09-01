@@ -161,9 +161,6 @@ class ARM7
 
 	} reg;
 
-	u32 lbl_addr;
-	bool first_branch;
-
 	bool running;
 	bool needs_flush;
 	bool in_interrupt;
