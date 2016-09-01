@@ -66,6 +66,7 @@ namespace config
 	//Hotkey bindings
 	//Turbo = TAB
 	int hotkey_turbo = SDLK_TAB;
+	int hotkey_mute = SDLK_m;
 
 	//Default joystick dead-zone
 	int dead_zone = 16000;
@@ -123,6 +124,7 @@ namespace config
 
 	//Sound parameters
 	u8 volume = 128;
+	u8 old_volume = 0;
 	double sample_rate = 44100.0;
 	bool mute = false;
 
@@ -1420,13 +1422,19 @@ bool parse_ini_file()
 		//Hotkeys
 		else if(ini_item == "#hotkeys")
 		{
-			if((x + 1) < size)
+			if((x + 2) < size)
 			{
 				std::stringstream temp_stream;
 
 				//Turbo
 				temp_stream << ini_opts[++x];
 				temp_stream >> config::hotkey_turbo;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//Mute
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::hotkey_mute;
 				temp_stream.clear();
 				temp_stream.str(std::string());
 			}
@@ -2034,9 +2042,10 @@ bool save_ini_file()
 		else if(ini_item == "#hotkeys")
 		{
 			line_pos = output_count[x];
-			std::string val = util::to_str(config::hotkey_turbo);
+			std::string val_1 = util::to_str(config::hotkey_turbo);
+			std::string val_2 = util::to_str(config::hotkey_mute);
 
-			output_lines[line_pos] = "[#hotkeys:" + val + "]";
+			output_lines[line_pos] = "[#hotkeys:" + val_1 + ":" + val_2 + "]";
 		}
 
 		//Use CGFX

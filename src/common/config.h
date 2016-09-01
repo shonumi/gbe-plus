@@ -50,6 +50,7 @@ namespace config
 	extern int gyro_key_up, gyro_key_down, gyro_key_left, gyro_key_right;
 	extern int gyro_joy_up, gyro_joy_down, gyro_joy_left, gyro_joy_right;
 	extern int hotkey_turbo;
+	extern int hotkey_mute;
 	extern int dead_zone;
 	extern int joy_id;
 	extern bool use_haptics;
@@ -81,6 +82,7 @@ namespace config
 	extern std::string netplay_client_ip;
 
 	extern u8 volume;
+	extern u8 old_volume;
 	extern double sample_rate;
 	extern bool mute;
 	
