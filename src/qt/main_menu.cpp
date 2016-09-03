@@ -669,6 +669,15 @@ void main_menu::keyPressEvent(QKeyEvent* event)
 					break;
 			}
 		}
+
+		//Mute audio
+		if(sdl_key == config::hotkey_mute)
+		{
+			if(settings->sound_on->isChecked()) { settings->sound_on->setChecked(false); }
+			else { settings->sound_on->setChecked(true); }
+
+			settings->update_volume();
+		}
 	}
 }
 
