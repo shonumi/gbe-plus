@@ -443,10 +443,10 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 					u16 p = ((raw_value >> 8) - 1);
 					p = ~p;
 					p &= 0xFF;
-					lcd_stat->bg_params[0].a = -1.0 * p;
+					lcd_stat->bg_params[0].dx = -1.0 * p;
 				}
-				else { lcd_stat->bg_params[0].a = (raw_value >> 8); }
-				if((raw_value & 0xFF) != 0) { lcd_stat->bg_params[0].a += (raw_value & 0xFF) / 256.0; }
+				else { lcd_stat->bg_params[0].dx = (raw_value >> 8); }
+				if((raw_value & 0xFF) != 0) { lcd_stat->bg_params[0].dx += (raw_value & 0xFF) / 256.0; }
 			}
 
 			break;
@@ -465,10 +465,10 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 					u16 p = ((raw_value >> 8) - 1);
 					p = ~p;
 					p &= 0xFF;
-					lcd_stat->bg_params[0].b = -1.0 * p;
+					lcd_stat->bg_params[0].dmx = -1.0 * p;
 				}
-				else { lcd_stat->bg_params[0].b = (raw_value >> 8); }
-				if((raw_value & 0xFF) != 0) { lcd_stat->bg_params[0].b += (raw_value & 0xFF) / 256.0; }
+				else { lcd_stat->bg_params[0].dmx = (raw_value >> 8); }
+				if((raw_value & 0xFF) != 0) { lcd_stat->bg_params[0].dmx += (raw_value & 0xFF) / 256.0; }
 			}
 
 			break;
@@ -487,10 +487,10 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 					u16 p = ((raw_value >> 8) - 1);
 					p = ~p;
 					p &= 0xFF;
-					lcd_stat->bg_params[0].c = -1.0 * p;
+					lcd_stat->bg_params[0].dy = -1.0 * p;
 				}
-				else { lcd_stat->bg_params[0].c = (raw_value >> 8); }
-				if((raw_value & 0xFF) != 0) { lcd_stat->bg_params[0].c += (raw_value & 0xFF) / 256.0; }
+				else { lcd_stat->bg_params[0].dy = (raw_value >> 8); }
+				if((raw_value & 0xFF) != 0) { lcd_stat->bg_params[0].dy += (raw_value & 0xFF) / 256.0; }
 			}
 
 			break;
@@ -509,10 +509,10 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 					u16 p = ((raw_value >> 8) - 1);
 					p = ~p;
 					p &= 0xFF;
-					lcd_stat->bg_params[0].d = -1.0 * p;
+					lcd_stat->bg_params[0].dmy = -1.0 * p;
 				}
-				else { lcd_stat->bg_params[0].d = (raw_value >> 8); }
-				if((raw_value & 0xFF) != 0) { lcd_stat->bg_params[0].d += (raw_value & 0xFF) / 256.0; }
+				else { lcd_stat->bg_params[0].dmy = (raw_value >> 8); }
+				if((raw_value & 0xFF) != 0) { lcd_stat->bg_params[0].dmy += (raw_value & 0xFF) / 256.0; }
 			}
 
 			break;
@@ -579,10 +579,10 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 					u16 p = ((raw_value >> 8) - 1);
 					p = ~p;
 					p &= 0xFF;
-					lcd_stat->bg_params[1].a = -1.0 * p;
+					lcd_stat->bg_params[1].dx = -1.0 * p;
 				}
-				else { lcd_stat->bg_params[1].a = (raw_value >> 8); }
-				if((raw_value & 0xFF) != 0) { lcd_stat->bg_params[1].a += (raw_value & 0xFF) / 256.0; }
+				else { lcd_stat->bg_params[1].dx = (raw_value >> 8); }
+				if((raw_value & 0xFF) != 0) { lcd_stat->bg_params[1].dx += (raw_value & 0xFF) / 256.0; }
 			}
 
 			break;
@@ -601,10 +601,10 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 					u16 p = ((raw_value >> 8) - 1);
 					p = ~p;
 					p &= 0xFF;
-					lcd_stat->bg_params[1].b = -1.0 * p;
+					lcd_stat->bg_params[1].dmx = -1.0 * p;
 				}
-				else { lcd_stat->bg_params[1].b = (raw_value >> 8); }
-				if((raw_value & 0xFF) != 0) { lcd_stat->bg_params[1].b += (raw_value & 0xFF) / 256.0; }
+				else { lcd_stat->bg_params[1].dmx = (raw_value >> 8); }
+				if((raw_value & 0xFF) != 0) { lcd_stat->bg_params[1].dmx += (raw_value & 0xFF) / 256.0; }
 			}
 
 			break;
@@ -623,10 +623,10 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 					u16 p = ((raw_value >> 8) - 1);
 					p = ~p;
 					p &= 0xFF;
-					lcd_stat->bg_params[1].c = -1.0 * p;
+					lcd_stat->bg_params[1].dy = -1.0 * p;
 				}
-				else { lcd_stat->bg_params[1].c = (raw_value >> 8); }
-				if((raw_value & 0xFF) != 0) { lcd_stat->bg_params[1].c += (raw_value & 0xFF) / 256.0; }
+				else { lcd_stat->bg_params[1].dy = (raw_value >> 8); }
+				if((raw_value & 0xFF) != 0) { lcd_stat->bg_params[1].dy += (raw_value & 0xFF) / 256.0; }
 			}
 
 			break;
@@ -645,10 +645,10 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 					u16 p = ((raw_value >> 8) - 1);
 					p = ~p;
 					p &= 0xFF;
-					lcd_stat->bg_params[1].d = -1.0 * p;
+					lcd_stat->bg_params[1].dmy = -1.0 * p;
 				}
-				else { lcd_stat->bg_params[1].d = (raw_value >> 8); }
-				if((raw_value & 0xFF) != 0) { lcd_stat->bg_params[1].d += (raw_value & 0xFF) / 256.0; }
+				else { lcd_stat->bg_params[1].dmy = (raw_value >> 8); }
+				if((raw_value & 0xFF) != 0) { lcd_stat->bg_params[1].dmy += (raw_value & 0xFF) / 256.0; }
 			}
 
 			break;
