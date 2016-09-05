@@ -36,7 +36,8 @@ class DMG_MMU
 		MBC2, 
 		MBC3, 
 		MBC5,
-		MBC7
+		MBC7,
+		HUC1,
 	};
 
 	std::vector <u8> memory_map;
@@ -140,6 +141,9 @@ class DMG_MMU
 	void mbc7_write(u16 address, u8 value);
 	void mbc7_write_ram(u8 value);
 	u8 mbc7_read(u16 address);
+
+	void huc1_write(u16 address, u8 value);
+	u8 huc1_read(u16 address);
 
 	void set_gs_cheats();
 	void set_gg_cheats();

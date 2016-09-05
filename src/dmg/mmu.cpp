@@ -1215,6 +1215,10 @@ u8 DMG_MMU::mbc_read(u16 address)
 		case MBC7:
 			return mbc7_read(address);
 			break;
+
+		case HUC1:
+			return huc1_read(address);
+			break;
 	}
 }
 
@@ -1241,6 +1245,10 @@ void DMG_MMU::mbc_write(u16 address, u8 value)
 
 		case MBC7:
 			mbc7_write(address, value);
+			break;
+
+		case HUC1:
+			huc1_write(address, value);
 			break;
 	}
 }
@@ -1480,9 +1488,13 @@ bool DMG_MMU::read_file(std::string filename)
 			break;
 
 		case 0xFF:
-			std::cout<<"MMU::Cartridge Type - Hudson HuC-1\n";
-			std::cout<<"MMU::MBC type currently unsupported \n";
-			return false;
+			cart.mbc_type = HUC1;
+			cart.ram = true;
+			cart.battery = true;
+
+			std::cout<<"MMU::Cartridge Type - Hudson HuC-1 + RAM + Battery\n";
+			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
+			std::cout<<"MMU::ROM Size - " << cart.rom_size << "KB\n";
 			break;
 
 		default:
