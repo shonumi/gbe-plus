@@ -80,6 +80,7 @@ void ARM7::process_swi(u32 comment)
 		//IntrWait
 		case 0x4:
 			std::cout<<"SWI::Interrupt Wait \n";
+			swi_intrwait();
 			break;
 
 		//VBlankIntrWait
