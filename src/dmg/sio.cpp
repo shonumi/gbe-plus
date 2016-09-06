@@ -121,7 +121,8 @@ bool DMG_SIO::init()
 	//Initialize hard syncing
 	if(config::netplay_hard_sync)
 	{
-		sio_stat.sync_counter = (config::netplay_server_port & 0x1) ? 64 : 0;
+		//The instance with the highest server port will start off waiting in sync mode
+		sio_stat.sync_counter = (config::netplay_server_port > config::netplay_client_port) ? 64 : 0;
 	}
 
 	#endif
@@ -222,16 +223,12 @@ bool DMG_SIO::send_byte()
 		return false;
 	}
 
-	//std::cout<<"Sending byte 0x" << std::hex << (u32)sio_stat.transfer_byte << "\n";
-
 	//Wait for other Game Boy to send this one its SB
 	//This is blocking, will effectively pause GBE+ until it gets something
 	if(SDLNet_TCP_Recv(server.remote_socket, temp_buffer, 2) > 0)
 	{
 		mem->memory_map[REG_SB] = sio_stat.transfer_byte = temp_buffer[0];
 	}
-
-	//std::cout<<"Receiving echo byte 0x" << std::hex << (u32)sio_stat.transfer_byte << "\n";
 
 	//Raise SIO IRQ after sending byte
 	mem->memory_map[IF_FLAG] |= 0x08;
@@ -336,8 +333,6 @@ bool DMG_SIO::receive_byte()
 			//Reset Bit 7 of SC
 			mem->memory_map[REG_SC] &= ~0x80;
 
-			//std::cout<<"Receiving byte 0x" << std::hex << (u32)mem->memory_map[REG_SB] << "\n";
-
 			//Send other Game Boy the old SB value
 			temp_buffer[0] = sio_stat.transfer_byte;
 			sio_stat.transfer_byte = mem->memory_map[REG_SB];
@@ -350,8 +345,6 @@ bool DMG_SIO::receive_byte()
 				sender.connected = false;
 				return false;
 			}
-
-			//std::cout<<"Sending echo byte 0x" << std::hex << (u32)temp_buffer[0] << "\n";
 		}
 	}
 
