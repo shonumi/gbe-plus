@@ -126,6 +126,7 @@ class gen_settings : public QDialog
 	QSpinBox* server_port;
 	QSpinBox* client_port;
 	QLineEdit* ip_address;
+	QPushButton* ip_update;
 
 	void update_volume();
 
@@ -154,6 +155,7 @@ class gen_settings : public QDialog
 	void set_hard_sync();
 	void update_server_port();
 	void update_client_port();
+	void update_ip_addr();
 	void configure_button(int button);
 	void close_input();
 	void switch_control_layout();

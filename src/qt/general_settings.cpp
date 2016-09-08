@@ -17,6 +17,7 @@
 
 #include "common/config.h"
 #include "common/cgfx_common.h"
+#include "common/util.h"
 
 /****** General settings constructor ******/
 gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
@@ -621,11 +622,13 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	QWidget* ip_address_set = new QWidget(netplay);
 	QLabel* ip_address_label = new QLabel("Client IP Address : ");
 	ip_address = new QLineEdit(netplay);
+	ip_update = new QPushButton("Update IP");
 
 	QHBoxLayout* ip_address_layout = new QHBoxLayout;
 	ip_address_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	ip_address_layout->addWidget(ip_address_label);
 	ip_address_layout->addWidget(ip_address);
+	ip_address_layout->addWidget(ip_update);
 	ip_address_set->setLayout(ip_address_layout);
 
 	QVBoxLayout* netplay_layout = new QVBoxLayout;
@@ -773,6 +776,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(hard_sync, SIGNAL(stateChanged(int)), this, SLOT(set_hard_sync()));
 	connect(server_port, SIGNAL(valueChanged(int)), this, SLOT(update_server_port()));
 	connect(client_port, SIGNAL(valueChanged(int)), this, SLOT(update_client_port()));
+	connect(ip_update, SIGNAL(clicked()), this, SLOT(update_ip_addr()));
 	connect(data_folder, SIGNAL(accepted()), this, SLOT(select_folder()));
 	connect(data_folder, SIGNAL(rejected()), this, SLOT(reject_folder()));
 
@@ -1361,6 +1365,23 @@ void gen_settings::update_server_port()
 void gen_settings::update_client_port()
 {
 	config::netplay_client_port = client_port->value();
+}
+
+/****** Sets the client IP address ******/
+void gen_settings::update_ip_addr()
+{
+	std::string temp = ip_address->text().toStdString();
+	u32 check = 0;
+
+	if(!util::ip_to_u32(temp, check))
+	{
+		ip_address->setText(QString::fromStdString(config::netplay_client_ip));
+	}
+
+	else
+	{
+		config::netplay_client_ip = temp;
+	}
 }
 
 /****** Prepares GUI to receive input for controller configuration ******/
