@@ -158,6 +158,7 @@ class gen_settings : public QDialog
 	void update_ip_addr();
 	void configure_button(int button);
 	void close_input();
+	void close_settings();
 	void switch_control_layout();
 	void select_folder();
 	void reject_folder();

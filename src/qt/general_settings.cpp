@@ -757,7 +757,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(tabs, SIGNAL(currentChanged(int)), this, SLOT(close_input()));
 	connect(tabs_button, SIGNAL(accepted()), this, SLOT(accept()));
 	connect(tabs_button, SIGNAL(rejected()), this, SLOT(reject()));
-	connect(tabs_button->button(QDialogButtonBox::Close), SIGNAL(clicked()), this, SLOT(close_input()));
+	connect(tabs_button->button(QDialogButtonBox::Close), SIGNAL(clicked()), this, SLOT(close_settings()));
 	connect(bios, SIGNAL(stateChanged(int)), this, SLOT(set_bios()));
 	connect(printer, SIGNAL(stateChanged(int)), this, SLOT(set_printer()));
 	connect(ogl, SIGNAL(stateChanged(int)), this, SLOT(set_ogl()));
@@ -1842,6 +1842,19 @@ void gen_settings::closeEvent(QCloseEvent* event)
 {
 	//Close any on-going input configuration
 	close_input();
+
+	//Restore old text for netplay IP address if it hasn't been updated
+	ip_address->setText(QString::fromStdString(config::netplay_client_ip));
+}
+
+/****** Closes the settings window - Used for the Close tab button ******/
+void gen_settings::close_settings()
+{
+	//Close any on-going input configuration
+	close_input();
+
+	//Restore old text for netplay IP address if it hasn't been updated
+	ip_address->setText(QString::fromStdString(config::netplay_client_ip));
 }
 
 /****** Handle keypress input ******/

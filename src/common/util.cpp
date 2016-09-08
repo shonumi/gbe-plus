@@ -600,23 +600,69 @@ bool ip_to_u32(std::string ip_addr, u32 &result)
 	{
 		current_char = ip_addr[x];
 
+		//Check to make sure the character is valid for an IP address
+		bool check_char = false;
+
+		if(current_char == "0") { check_char = true; }
+		else if(current_char == "1") { check_char = true; }
+		else if(current_char == "2") { check_char = true; }
+		else if(current_char == "3") { check_char = true; }
+		else if(current_char == "4") { check_char = true; }
+		else if(current_char == "5") { check_char = true; }
+		else if(current_char == "6") { check_char = true; }
+		else if(current_char == "7") { check_char = true; }
+		else if(current_char == "8") { check_char = true; }
+		else if(current_char == "9") { check_char = true; }
+		else if(current_char == ".") { check_char = true; }
+
+		//Quit now if invalid character
+		if(!check_char)
+		{
+			result = 0;
+			return false;
+		}
+
 		//Convert characters into u32 when a "." is encountered
 		if((current_char == ".") || (x == str_end))
 		{
 			if(x == str_end) { temp += current_char; }
 
 			//If somehow parsing more than 3 dots, string is malformed
-			if(dot_count == 4) { return false; }
+			if(dot_count == 4)
+			{
+				result = 0;
+				return false;
+			}
 
 			u32 digit = 0;
 
-			if(!from_str(temp, digit)) { return false; }
+			//If the string can't be converted into a digit, quit now
+			if(!from_str(temp, digit))
+			{
+				result = 0;
+				return false;
+			}
+
+			//If the string is longer than 3 characters or zero, quit now
+			if((temp.size() > 3) || (temp.size() == 0))
+			{
+				result = 0;
+				return false;
+			}
+
 
 			digits[dot_count++] = digit & 0xFF;
 			temp = "";
 		}
 
 		else { temp += current_char; }
+	}
+
+	//If the dot count is less than three, something is wrong with the IP address
+	if(dot_count != 4)
+	{
+		result = 0;
+		return false;
 	}
 
 	//Encode result in network byte order aka big endian
