@@ -654,6 +654,114 @@ void DMG_core::debug_process_command()
 			}
 		}
 
+		//Write to register
+		else if(command.substr(0, 3) == "reg")
+		{
+			valid_command = true;
+			bool valid_value = false;
+			u32 reg_index = 0;
+			u32 reg_value = 0;
+			std::string reg_string = command.substr(4);
+
+			//Convert string into a usable u32
+			valid_command = util::from_str(reg_string, reg_index);
+
+			//Request valid input again
+			if((!valid_command) || (reg_index > 0x9))
+			{
+				std::cout<<"\nInvalid register : " << command << "\n";
+				std::cout<<": ";
+				std::getline(std::cin, command);
+			}
+
+			else
+			{
+				//Request value
+				while(!valid_value)
+				{
+					std::cout<<"\nInput value: ";
+					std::getline(std::cin, command);
+				
+					valid_value = util::from_hex_str(command.substr(2), reg_value);
+				
+					if(!valid_value)
+					{
+						std::cout<<"\nInvalid value : " << command << "\n";
+					}
+
+					else if((reg_index < 8) && (valid_value) && (reg_value > 0xFF))
+					{
+						std::cout<<"\nValue is too large (greater than 0xFF) : 0x" << std::hex << reg_value;
+						valid_value = false;
+					}
+
+					else if((reg_index >= 8) && (valid_value) && (reg_value > 0xFFFF))
+					{
+						std::cout<<"\nValue is too large (greater than 0xFFFF) : 0x" << std::hex << reg_value;
+						valid_value = false;
+					}
+				}
+
+				switch(reg_index)
+				{
+					case 0x0:
+						std::cout<<"\nSetting Register A to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.a = reg_value;
+						break;
+
+					case 0x1:
+						std::cout<<"\nSetting Register B to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.b = reg_value;
+						break;
+
+					case 0x2:
+						std::cout<<"\nSetting Register C to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.c = reg_value;
+						break;
+
+					case 0x3:
+						std::cout<<"\nSetting Register D to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.d = reg_value;
+						break;
+
+					case 0x4:
+						std::cout<<"\nSetting Register E to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.e = reg_value;
+						break;
+
+					case 0x5:
+						std::cout<<"\nSetting Register H to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.h = reg_value;
+						break;
+
+					case 0x6:
+						std::cout<<"\nSetting Register L to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.l = reg_value;
+						break;
+
+					case 0x7:
+						std::cout<<"\nSetting Register F to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.f = reg_value;
+						break;
+
+					case 0x8:
+						std::cout<<"\nSetting Register SP to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.sp = reg_value;
+						break;
+
+					case 0x9:
+						std::cout<<"\nSetting Register SP to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.pc = reg_value;
+						break;
+				}
+				
+
+				db_unit.last_command = "reg";
+				debug_display();
+				debug_process_command();
+			}
+		}
+
 		//Toggle display of CPU cycles
 		else if(command == "dc")
 		{
