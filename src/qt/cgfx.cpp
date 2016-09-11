@@ -2897,7 +2897,7 @@ void gbe_cgfx::dump_selection()
 	entry = "['" + cgfx::dump_bg_path + cgfx::meta_dump_name + ".bmp" + "':" + cgfx::meta_dump_name + ":0]";
 	file << "\n" << entry;
 
-	u8 entry_count = 0;
+	u32 entry_count = 0;
 
 	//Generate manifest entries for selected tiles
 	for(int y = min_y_rect; y < (max_y_rect + 1); y++)
