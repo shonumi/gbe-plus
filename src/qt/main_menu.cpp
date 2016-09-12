@@ -888,6 +888,7 @@ void main_menu::show_cgfx()
 	}
 
 	cgfx->show();
+	cgfx->parse_manifest_items();
 	cgfx->pause = true;
 	
 	if(!dmg_debugger->pause) { pause(); }

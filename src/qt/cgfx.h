@@ -30,6 +30,8 @@ class gbe_cgfx : public QDialog
 	void update_obj_window(int rows, int count);
 	void update_bg_window(int rows, int count);
 
+	bool parse_manifest_items();
+
 	void draw_dmg_bg();
 	void draw_dmg_win();
 	void draw_dmg_obj();
@@ -91,6 +93,9 @@ class gbe_cgfx : public QDialog
 	//BG tab widgets
 	std::vector<QImage> cgfx_bg;
 	std::vector<QPushButton*> bg_button;
+
+	//Manifest tab widgets
+	QScrollArea* manifest_display;
 
 	data_dialog* data_folder;
 

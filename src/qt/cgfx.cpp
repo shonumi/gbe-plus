@@ -26,11 +26,13 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	QDialog* obj_tab = new QDialog;
 	QDialog* bg_tab = new QDialog;
 	QDialog* layers_tab = new QDialog;
+	QDialog* manifest_tab = new QDialog;
 
 	tabs->addTab(config_tab, tr("Configure"));
 	tabs->addTab(obj_tab, tr("OBJ Tiles"));
 	tabs->addTab(bg_tab, tr("BG Tiles"));
 	tabs->addTab(layers_tab, tr("Layers"));
+	tabs->addTab(manifest_tab, tr("Manifest"));
 
 	tabs_button = new QDialogButtonBox(QDialogButtonBox::Close);
 
@@ -202,6 +204,9 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	section_final_layout->addWidget(dump_section_button);
 	section_set->setLayout(section_final_layout);
 
+	//Manifest widgets
+	manifest_display = new QScrollArea(manifest_tab);
+
 	//Configure Tab layout
 	QHBoxLayout* advanced_layout = new QHBoxLayout;
 	advanced_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -254,6 +259,12 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	layers_tab_layout->addWidget(layer_info, 0, 1, 1, 1);
 	layers_tab_layout->addWidget(section_set, 2, 1, 1, 1);
 	layers_tab->setLayout(layers_tab_layout);
+
+	//Manifest tab layout
+	QHBoxLayout* manifest_layout = new QHBoxLayout;
+	manifest_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	manifest_layout->addWidget(manifest_display);
+	manifest_tab->setLayout(manifest_layout);
 	
 	//Final tab layout
 	QVBoxLayout* main_layout = new QVBoxLayout;
@@ -3139,4 +3150,224 @@ std::string gbe_cgfx::hash_tile(u8 x, u8 y)
 	}
 
 	else { return ""; }
+}
+
+/****** Parses manifest entries to be viewed in the GUI ******/
+bool gbe_cgfx::parse_manifest_items()
+{
+	std::vector <std::string> manifest;
+	std::vector <u8> manifest_entry_size;
+
+	std::ifstream file(cgfx::manifest_file.c_str(), std::ios::in); 
+	std::string input_line = "";
+	std::string line_char = "";
+
+	if(!file.is_open())
+	{
+		std::cout<<"CGFX::Could not open manifest file " << cgfx::manifest_file << ". Check file path or permissions. \n";
+		return false; 
+	}
+
+	//Cycle through whole file, line-by-line
+	while(getline(file, input_line))
+	{
+		line_char = input_line[0];
+		bool ignore = false;	
+		u8 item_count = 0;	
+
+		//Check if line starts with [ - if not, skip line
+		if(line_char == "[")
+		{
+			std::string line_item = "";
+
+			//Cycle through line, character-by-character
+			for(int x = 0; ++x < input_line.length();)
+			{
+				line_char = input_line[x];
+
+				//Check for single-quotes, don't parse ":" or "]" within them
+				if((line_char == "'") && (!ignore)) { ignore = true; }
+				else if((line_char == "'") && (ignore)) { ignore = false; }
+
+				//Check the character for item limiter : or ] - Push to Vector
+				else if(((line_char == ":") || (line_char == "]")) && (!ignore)) 
+				{
+					manifest.push_back(line_item);
+					line_item = "";
+					item_count++;
+				}
+
+				else { line_item += line_char; }
+			}
+		}
+
+		//Determine if manifest is properly formed (roughly)
+		//Each manifest normal entry should have 5 parameters
+		//Each metatile entry should have 3 parameters
+		if((item_count != 5) && (item_count != 3) && (item_count != 0))
+		{
+			std::cout<<"CGFX::Manifest file " << cgfx::manifest_file << " has some missing parameters for some entries. \n";
+			std::cout<<"CGFX::Entry -> " << input_line << "\n";
+			file.close();
+			return false;
+		}
+
+		else if(item_count != 0) { manifest_entry_size.push_back(item_count); }
+	}
+	
+	file.close();
+
+	//If manifest is empty, quit now
+	if(manifest.empty()) { return false; }
+
+	int spacer = 0;
+
+	QGridLayout* temp_layout = new QGridLayout;
+	temp_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	QWidget* manifest_regular_set = new QWidget;
+
+	//Parse entries
+	for(int x = 0, y = 0; y < manifest_entry_size.size(); y++)
+	{
+		//Parse regular entries
+		if(manifest_entry_size[y] == 5)
+		{
+			std::string temp = "";
+			bool is_meta = false;
+			
+			//Grab hash
+			temp = "Hash : " + manifest[x++];
+			QLabel* hash_label = new QLabel(QString::fromStdString(temp));
+
+			//Grab file associated with hash
+			temp = "File Name : " + manifest[x++];
+			QLabel* file_label = new QLabel(QString::fromStdString(temp));
+			temp = config::data_path + manifest[x - 1];
+
+			//Determine if this belongs to a meta-tile entry
+			u32 match_number = 0;
+			std::string meta_file = temp;
+
+			std::size_t match = meta_file.find_last_of("_") + 1;
+			if(match != std::string::npos) { meta_file = meta_file.substr(match); }
+			if(util::from_str(meta_file, match_number)) { is_meta = true; }
+
+			//Try to load into QImage
+			QImage temp_img(64, 64, QImage::Format_ARGB32);
+			temp_img.fill(qRgb(0, 0, 0));
+
+			if(temp_img.load(QString::fromStdString(temp)))
+			{
+				temp_img = temp_img.scaled(128, 128, Qt::KeepAspectRatio);
+			}
+
+			QLabel* preview = new QLabel;
+			preview->setPixmap(QPixmap::fromImage(temp_img));
+
+			//Grab the type
+			u32 type_byte = 0;
+			util::from_str(manifest[x++], type_byte);
+
+			switch(type_byte)
+			{
+				//DMG, GBC
+				case 1: temp = "Type : DMG OBJ"; break;
+				case 2: temp = "Type : GBC OBJ"; break;
+
+				//DMG, GBC
+				case 10: temp = "Type : DMG BG"; break;
+				case 20: temp = "Type : GBC BG"; break;
+		
+				//Undefined type
+				default:
+					std::cout<<"CGFX::Undefined hash type " << (int)type_byte << "\n";
+					return false;
+			}
+
+			QLabel* type_label = new QLabel(QString::fromStdString(temp));
+
+			//EXT_VRAM_ADDR
+			u32 vram_address = 0;
+			util::from_hex_str(manifest[x++], vram_address);
+			temp = vram_address ? "EXT_VRAM_ADDR - YES" : "EXT_VRAM_ADDR - NO";
+			QLabel* vram_label = new QLabel(QString::fromStdString(temp));
+
+			//EXT_AUTO_BRIGHT
+			u32 bright_value = 0;
+			util::from_str(manifest[x++], bright_value);
+			temp = bright_value ? "EXT_AUTO_BRIGHT - YES" : "EXT_AUTO_BRIGHT - NO";
+			QLabel* bright_label = new QLabel(QString::fromStdString(temp));
+
+			//Spacer label
+			if(!is_meta)
+			{
+				QLabel* spacer_label = new QLabel(" ");
+
+				temp_layout->addWidget(hash_label, spacer++, 1, 1, 1);
+				temp_layout->addWidget(file_label, spacer++, 1, 1, 1);
+				temp_layout->addWidget(type_label, spacer++, 1, 1, 1);
+				temp_layout->addWidget(vram_label, spacer++, 1, 1, 1);
+				temp_layout->addWidget(bright_label, spacer++, 1, 1, 1);
+				temp_layout->addWidget(spacer_label, spacer++, 1, 1, 1);
+				temp_layout->addWidget(spacer_label, spacer++, 1, 1, 1);
+
+				temp_layout->addWidget(preview, (spacer - 7), 0, 6, 1);
+			}
+		}
+
+		//Parse metatile entries
+		else
+		{
+			std::string temp = "";
+
+			//Grab file associated with hash
+			temp = "File Name : " + manifest[x++];
+			QLabel* file_label = new QLabel(QString::fromStdString(temp));
+			temp = config::data_path + manifest[x - 1];
+			x++;
+
+			//Try to load into QImage
+			QImage temp_img(64, 64, QImage::Format_ARGB32);
+			temp_img.fill(qRgb(0, 0, 0));
+
+			if(temp_img.load(QString::fromStdString(temp)))
+			{
+				temp_img = temp_img.scaled(128, 128, Qt::KeepAspectRatio);
+			}
+
+			QLabel* preview = new QLabel;
+			preview->setPixmap(QPixmap::fromImage(temp_img));
+
+			//Grab metatile form
+			u32 form_value = 0;
+			util::from_str(manifest[x++], form_value);
+
+			switch(form_value)
+			{
+				case 0: temp = "Type : BG Metatile"; break;
+				case 1: temp = "Type : 8x8 OBJ Metatile"; break;
+				case 2: temp = "Type : 8x16 OBJ Metatile"; break;
+				
+				default: return false;
+			}
+
+			QLabel* type_label = new QLabel(QString::fromStdString(temp));
+
+			//Spacer label
+			QLabel* spacer_label = new QLabel(" ");
+
+			temp_layout->addWidget(file_label, spacer++, 1, 1, 1);
+			temp_layout->addWidget(type_label, spacer++, 1, 1, 1);
+			temp_layout->addWidget(spacer_label, spacer++, 1, 1, 1);
+			temp_layout->addWidget(spacer_label, spacer++, 1, 1, 1);
+			temp_layout->addWidget(spacer_label, spacer++, 1, 1, 1);
+			temp_layout->addWidget(spacer_label, spacer++, 1, 1, 1);
+			temp_layout->addWidget(spacer_label, spacer++, 1, 1, 1);
+
+			temp_layout->addWidget(preview, (spacer - 7), 0, 6, 1);
+		}
+	}
+
+	manifest_regular_set->setLayout(temp_layout);	
+	manifest_display->setWidget(manifest_regular_set);
 }

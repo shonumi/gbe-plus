@@ -563,6 +563,8 @@ bool from_str(std::string input, u32 &result)
 	u32 size = (input.size() - 1);
 	std::string value_char = "";
 
+	if(input.size() == 0) { return false; }
+
 	//Convert string into usable u32
 	for(int x = size, y = 1; x >= 0; x--, y *= 10)
 	{
