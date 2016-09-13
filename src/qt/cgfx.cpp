@@ -978,10 +978,22 @@ void gbe_cgfx::close_advanced()
 }
 
 /****** Dumps the selected OBJ ******/
-void gbe_cgfx::dump_obj(int obj_index) { main_menu::gbe_plus->dump_obj(obj_index); }
+void gbe_cgfx::dump_obj(int obj_index)
+{
+	main_menu::gbe_plus->dump_obj(obj_index);
+
+	//Update manifest tab if necessary
+	parse_manifest_items();
+}
 
 /****** Dumps the selected BG ******/
-void gbe_cgfx::dump_bg(int bg_index) { main_menu::gbe_plus->dump_bg(bg_index); }
+void gbe_cgfx::dump_bg(int bg_index)
+{
+	main_menu::gbe_plus->dump_bg(bg_index);
+
+	//Update manifest tab if necessary
+	parse_manifest_items();
+}
 
 /****** Toggles automatic dumping of OBJ tiles ******/
 void gbe_cgfx::set_auto_obj()
@@ -2927,6 +2939,9 @@ void gbe_cgfx::dump_selection()
 	}
 
 	file.close();
+
+	//Update manifest tab if necessary
+	parse_manifest_items();
 }
 
 /****** Hashes the tile from a given layer ******/
