@@ -138,6 +138,26 @@ bool DMG_APU::apu_read(u32 offset, std::string filename)
 	file.read((char*)&apu_stat, sizeof(apu_stat));
 
 	file.close();
+
+	//Sanitize APU data
+	if(apu_stat.noise_prescalar == 0) { apu_stat.noise_prescalar = 1; }
+	if(apu_stat.noise_dividing_ratio == 0) { apu_stat.noise_dividing_ratio = 0.5; }
+
+	if(apu_stat.channel[0].output_frequency == 0) { apu_stat.channel[0].output_frequency = 1.0; }
+	if(apu_stat.channel[1].output_frequency == 0) { apu_stat.channel[1].output_frequency = 1.0; }
+	if(apu_stat.channel[2].output_frequency == 0) { apu_stat.channel[2].output_frequency = 1.0; }
+	if(apu_stat.channel[3].output_frequency == 0) { apu_stat.channel[3].output_frequency = 1.0; }
+
+	if(apu_stat.channel[0].sample_length < 0) { apu_stat.channel[0].sample_length = 0; }
+	if(apu_stat.channel[1].sample_length < 0) { apu_stat.channel[1].sample_length = 0; }
+	if(apu_stat.channel[2].sample_length < 0) { apu_stat.channel[2].sample_length = 0; }
+	if(apu_stat.channel[3].sample_length < 0) { apu_stat.channel[3].sample_length = 0; }
+
+	apu_stat.channel[0].raw_frequency &= 0x7FF;
+	apu_stat.channel[1].raw_frequency &= 0x7FF;
+	apu_stat.channel[2].raw_frequency &= 0x7FF;
+	apu_stat.channel[3].raw_frequency &= 0x7FF;
+
 	return true;
 }
 
