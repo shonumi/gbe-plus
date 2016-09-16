@@ -250,6 +250,14 @@ bool DMG_LCD::lcd_read(u32 offset, std::string filename)
 		file.read((char*)&obj[x], sizeof(obj[x]));
 	}
 
+	//Sanitize LCD data
+	if(lcd_stat.current_scanline > 153) { lcd_stat.current_scanline = 0;  }
+	if(lcd_stat.last_y > 153) { lcd_stat.last_y = 0; }
+	if(lcd_stat.lcd_clock > 70224) { lcd_stat.lcd_clock = 0; }
+
+	lcd_stat.lcd_mode &= 0x3;
+	lcd_stat.hdma_type &= 0x1;
+	
 	file.close();
 	return true;
 }
