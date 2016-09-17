@@ -128,6 +128,16 @@ bool DMG_MMU::mmu_read(u32 offset, std::string filename)
 	file.read((char*)&cart, sizeof(cart));
 	file.read((char*)&previous_value, sizeof(previous_value));
 
+	//Sanitize MMU data from save state
+	if((bios_size != 0x100) && (bios_size != 0x900)) { bios_size = 0x100; }
+	
+	rom_bank &= 0x1FF;
+	ram_bank &= 0xF;
+	wram_bank &= 0x3;
+	vram_bank &= 0x1;
+	bank_mode &= 0x1;
+	bank_bits &= 0xF;
+
 	file.close();
 	return true;
 }
