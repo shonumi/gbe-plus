@@ -75,6 +75,11 @@ void NTR_MMU::reset()
 		dma[x].delay = 0;
 	}
 
+	//Clear IPC FIFO if necessary
+	while(!ipc_fifo.empty()) { ipc_fifo.pop(); }
+	
+	ipc_fifo_latest = 0;
+		
 	std::cout<<"MMU::Initialized\n";
 }
 
@@ -108,6 +113,14 @@ u8 NTR_MMU::read_u8(u32 address) const
 		
 		//Return NDS7 IF
 		else { return nds7_if & (0xFF << ((address & 0x3) << 3)); }
+	}
+
+	//Check for reading IPCFIFORECV
+	else if((address & ~0x3) == NDS_IPCFIFORECV)
+	{
+		//Return last FIFO entry if empty, or zero if no data was ever put there
+		if(ipc_fifo.empty()) { return ipc_fifo_latest; }
+		else { return ipc_fifo.front() & (0xFF << ((address & 0x3) << 3)); }
 	}
 
 	return memory_map[address];
@@ -643,11 +656,14 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			break;
 
 		case NDS_IPCFIFOSND:
-		case NDS_IPCFIFOSND+1:
-		case NDS_IPCFIFOSND+2:
-		case NDS_IPCFIFOSND+3:
-			memory_map[address] = value;
-			std::cout<<"NDS IPCFIFOSND\n";
+			//FIFO can only hold a maximum of 16 words
+			if(ipc_fifo.size() == 16) { ipc_fifo.pop(); }
+
+			//Push new word to back of FIFO, also save that value in case FIFO is emptied
+			ipc_fifo.push(((memory_map[NDS_IPCFIFOSND+3] << 24) | (memory_map[NDS_IPCFIFOSND+2] << 16) | (memory_map[NDS_IPCFIFOSND+1] << 8) | value));
+			ipc_fifo_latest = ipc_fifo.back();	
+
+			std::cout<<"NDS IPCFIFOSND -> 0x" << std::hex << ipc_fifo.front() << "\n";
 			break;
 
 		case NDS_IPCFIFORECV:

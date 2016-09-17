@@ -14,6 +14,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <queue>
 #include <iostream>
 
 #include "common.h"
@@ -28,6 +29,9 @@ class NTR_MMU
 	std::vector <u8> cart_data;
 	std::vector <u8> nds7_bios;
 	std::vector <u8> nds9_bios;
+
+	std::queue <u32> ipc_fifo;
+	u32 ipc_fifo_latest;
 
 	//Memory access timings (Nonsequential and Sequential)
 	u8 n_clock;
