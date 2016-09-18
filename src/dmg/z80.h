@@ -79,12 +79,12 @@ class Z80
 	u8 opcode;
 
 	//Internal CPU clock
-	int cpu_clock_m, cpu_clock_t;
-	int cycles;
+	u32 cpu_clock_m, cpu_clock_t;
+	u32 cycles;
 
 	//DIV and TIMA timer counters
-	int div_counter, tima_counter;
-	int tima_speed;
+	u32 div_counter, tima_counter;
+	u32 tima_speed;
 
 	//Memory management unit
 	DMG_MMU* mem;
