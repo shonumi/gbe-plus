@@ -153,8 +153,8 @@ void DMG_SIO::reset()
 	printer.scanline_buffer.resize(0x5A00, 0x0);
 	printer.packet_buffer.clear();
 	printer.packet_size = 0;
-	printer.palette = 0;
 	printer.current_state = GBP_AWAITING_PACKET;
+	printer.pal[0] = printer.pal[1] = printer.pal[2] = printer.pal[3] = 0;
 
 	printer.command = 0;
 	printer.compression_flag = 0;
@@ -826,6 +826,14 @@ void DMG_SIO::print_image()
 	u32 height = (16 * printer.strip_count);
 	u32 img_size = 160 * height;
 
+	//Set up printing palette
+	u8 data_pal = printer.packet_buffer[8];
+
+	printer.pal[0] = data_pal & 0x3;
+	printer.pal[1] = (data_pal >> 2) & 0x3;
+	printer.pal[2] = (data_pal >> 4) & 0x3;
+	printer.pal[3] = (data_pal >> 6) & 0x3;
+
 	srand(SDL_GetTicks());
 
 	std::string filename = "gb_print_";
@@ -840,7 +848,37 @@ void DMG_SIO::print_image()
 	if(SDL_MUSTLOCK(print_screen)){ SDL_LockSurface(print_screen); }
 	u32* out_pixel_data = (u32*)print_screen->pixels;
 
-	for(u32 x = 0; x < img_size; x++) { out_pixel_data[x] = printer.scanline_buffer[x]; }
+	for(u32 x = 0; x < img_size; x++)
+	{
+		//Convert pixels to printer palette if necessary
+		u8 tile_pixel = 0;
+		
+		if(printer.scanline_buffer[x] == config::DMG_BG_PAL[0]) { tile_pixel = 0; }
+		else if(printer.scanline_buffer[x] == config::DMG_BG_PAL[1]) { tile_pixel = 1; }
+		else if(printer.scanline_buffer[x] == config::DMG_BG_PAL[2]) { tile_pixel = 2; }
+		else if(printer.scanline_buffer[x] == config::DMG_BG_PAL[3]) { tile_pixel = 3; }
+
+		switch(printer.pal[tile_pixel])
+		{
+			case 0: 
+				printer.scanline_buffer[x] = config::DMG_BG_PAL[0];
+				break;
+
+			case 1: 
+				printer.scanline_buffer[x] = config::DMG_BG_PAL[1];
+				break;
+
+			case 2:
+				printer.scanline_buffer[x] = config::DMG_BG_PAL[2];
+				break;
+
+			case 3: 
+				printer.scanline_buffer[x] = config::DMG_BG_PAL[3];
+				break;
+		}
+			
+		out_pixel_data[x] = printer.scanline_buffer[x];
+	}
 
 	//Unlock source surface
 	if(SDL_MUSTLOCK(print_screen)){ SDL_UnlockSurface(print_screen); }

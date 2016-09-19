@@ -62,7 +62,6 @@ class DMG_SIO
 		std::vector <u32> scanline_buffer;
 		std::vector <u8> packet_buffer;
 		u32 packet_size;
-		u8 palette;
 		printer_state current_state;
 
 		u8 command;
@@ -71,6 +70,7 @@ class DMG_SIO
 		u16 data_length;
 		u16 checksum;
 		u8 status;
+		u8 pal[4];
 	} printer;
 
 	DMG_SIO();
