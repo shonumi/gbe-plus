@@ -694,6 +694,15 @@ std::string ip_to_str(u32 ip_addr)
 	return temp;
 }
 
+/****** Gets the filename from a full or partial path ******/
+std::string get_filename_from_path(std::string path)
+{
+	std::size_t match = path.find_last_of("/\\");
+
+	if(match != std::string::npos) { return path.substr(match + 1); }
+	else { return path; }
+}
+
 /****** Loads icon into SDL Surface ******/
 SDL_Surface* load_icon(std::string filename)
 {
