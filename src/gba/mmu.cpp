@@ -9,6 +9,7 @@
 // Handles reading and writing bytes to memory locations
 
 #include "mmu.h"
+#include "common/util.h"
 
 /****** MMU Constructor ******/
 AGB_MMU::AGB_MMU() 
@@ -1888,6 +1889,12 @@ bool AGB_MMU::read_bios(std::string filename)
 /****** Load backup save data ******/
 bool AGB_MMU::load_backup(std::string filename)
 {
+	//Use config save path if applicable
+	if(!config::save_path.empty())
+	{
+		 filename = config::save_path + util::get_filename_from_path(filename);
+	}
+
 	std::ifstream file(filename.c_str(), std::ios::binary);
 	std::vector<u8> save_data;
 
@@ -2007,6 +2014,12 @@ bool AGB_MMU::load_backup(std::string filename)
 /****** Save backup save data ******/
 bool AGB_MMU::save_backup(std::string filename)
 {
+	//Use config save path if applicable
+	if(!config::save_path.empty())
+	{
+		 filename = config::save_path + util::get_filename_from_path(filename);
+	}
+
 	//Save SRAM
 	if(current_save_type == SRAM)
 	{

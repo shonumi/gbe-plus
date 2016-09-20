@@ -25,6 +25,7 @@ namespace config
 	std::string dmg_bios_path = "";
 	std::string gbc_bios_path = "";
 	std::string agb_bios_path = "";
+	std::string save_path = "";
 	std::string ss_path = "";
 	std::string cfg_path = "";
 	std::string data_path = "";
@@ -810,6 +811,24 @@ bool parse_ini_file()
 			}
 
 			else { config::agb_bios_path = ""; }
+		}
+
+		//Game save path
+		else if(ini_item == "#save_path")
+		{
+			if((x + 1) < size) 
+			{
+				ini_item = ini_opts[++x];
+				std::string first_char = "";
+				first_char = ini_item[0];
+				
+				//When left blank, don't parse the next line item
+				if(first_char != "#") { config::save_path = ini_item; }
+				else { config::save_path = ""; x--;}
+ 
+			}
+
+			else { config::save_path = ""; }
 		}
 
 		//Screenshots path
@@ -1832,6 +1851,15 @@ bool save_ini_file()
 			std::string val = (config::agb_bios_path == "") ? "" : (":'" + config::agb_bios_path + "'");
 
 			output_lines[line_pos] = "[#agb_bios_path" + val + "]";
+		}
+
+		//Game save path
+		else if(ini_item == "#save_path")
+		{
+			line_pos = output_count[x];
+			std::string val = (config::save_path == "") ? "" : (":'" + config::save_path + "'");
+
+			output_lines[line_pos] = "[#save_path" + val + "]";
 		}
 
 		//Screenshots path

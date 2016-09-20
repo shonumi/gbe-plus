@@ -1658,6 +1658,12 @@ bool DMG_MMU::read_bios(std::string filename)
 /****** Load backup save data ******/
 bool DMG_MMU::load_backup(std::string filename)
 {
+	//Use config save path if applicable
+	if(!config::save_path.empty())
+	{
+		 filename = config::save_path + util::get_filename_from_path(filename);
+	}
+
 	//Load Saved RAM if available
 	if(cart.battery)
 	{
@@ -1714,6 +1720,12 @@ bool DMG_MMU::load_backup(std::string filename)
 /****** Save backup save data ******/
 bool DMG_MMU::save_backup(std::string filename)
 {
+	//Use config save path if applicable
+	if(!config::save_path.empty())
+	{
+		 filename = config::save_path + util::get_filename_from_path(filename);
+	}
+
 	if(cart.battery)
 	{
 		std::ofstream sram(filename.c_str(), std::ios::binary);
