@@ -741,6 +741,20 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	screenshot_layout->addWidget(screenshot_button);
 	screenshot_set->setLayout(screenshot_layout);
 
+	//Path settings - Game saves
+	QWidget* game_saves_set = new QWidget(paths);
+	game_saves_label = new QLabel("Game Saves :  ");
+	QPushButton* game_saves_button = new QPushButton("Browse");
+	game_saves = new QLineEdit(paths);
+	game_saves->setReadOnly(true);
+
+	QHBoxLayout* game_saves_layout = new QHBoxLayout;
+	game_saves_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	game_saves_layout->addWidget(game_saves_label);
+	game_saves_layout->addWidget(game_saves);
+	game_saves_layout->addWidget(game_saves_button);
+	game_saves_set->setLayout(game_saves_layout);
+
 	QVBoxLayout* paths_layout = new QVBoxLayout;
 	paths_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	paths_layout->addWidget(dmg_bios_set);
@@ -750,6 +764,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	paths_layout->addWidget(dump_bg_set);
 	paths_layout->addWidget(dump_obj_set);
 	paths_layout->addWidget(screenshot_set);
+	paths_layout->addWidget(game_saves_set);
 	paths->setLayout(paths_layout);
 
 	data_folder = new data_dialog;
@@ -788,6 +803,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(dump_bg_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
 	connect(dump_obj_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
 	connect(screenshot_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
+	connect(game_saves_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
 
 	paths_mapper->setMapping(dmg_bios_button, 0);
 	paths_mapper->setMapping(gbc_bios_button, 1);
@@ -796,6 +812,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	paths_mapper->setMapping(screenshot_button, 4);
 	paths_mapper->setMapping(dump_bg_button, 5);
 	paths_mapper->setMapping(dump_obj_button, 6);
+	paths_mapper->setMapping(game_saves_button, 7);
 	connect(paths_mapper, SIGNAL(mapped(int)), this, SLOT(set_paths(int)));
 
 	QSignalMapper* button_config = new QSignalMapper(this);
@@ -1051,6 +1068,7 @@ void gen_settings::set_ini_options()
 	QString path_5(QString::fromStdString(config::ss_path));
 	QString path_6(QString::fromStdString(cgfx::dump_bg_path));
 	QString path_7(QString::fromStdString(cgfx::dump_obj_path));
+	QString path_8(QString::fromStdString(config::save_path));
 
 	//Rumble
 	if(config::use_haptics) { rumble_on->setChecked(true); }
@@ -1069,6 +1087,7 @@ void gen_settings::set_ini_options()
 	screenshot->setText(path_5);
 	dump_bg->setText(path_6);
 	dump_obj->setText(path_7);
+	game_saves->setText(path_8);
 }
 
 /****** Toggles whether to use the Boot ROM or BIOS ******/
@@ -1221,12 +1240,13 @@ void gen_settings::set_paths(int index)
 		if(path.isNull()) { return; }
 	}
 
-	//Open folder browser for screenshots, CGFX dumps
+	//Open folder browser for screenshots, CGFX dumps, game saves
 	else
 	{
 		//Open the data folder for CGFX dumps
 		//On Linux or Unix, this is supposed to be a hidden folder, so we need a custom dialog
-		if(index >= 5)
+		//This uses relative paths, but for game saves we need full path, so ignore if index is 7
+		if((index >= 5) && (index != 7))
 		{
 			data_folder->open_data_folder();			
 
@@ -1285,6 +1305,11 @@ void gen_settings::set_paths(int index)
 		case 6:
 			cgfx::dump_obj_path = path.toStdString();
 			dump_obj->setText(path);
+			break;
+
+		case 7:
+			config::save_path = path.toStdString();
+			game_saves->setText(path);
 			break;
 	}
 }
@@ -1835,6 +1860,7 @@ void gen_settings::paintEvent(QPaintEvent* event)
 	dump_bg_label->setMinimumWidth(dmg_bios_label->width());
 	dump_obj_label->setMinimumWidth(dmg_bios_label->width());
 	screenshot_label->setMinimumWidth(dmg_bios_label->width());
+	game_saves_label->setMinimumWidth(dmg_bios_label->width());
 }
 
 /****** Closes the settings window ******/

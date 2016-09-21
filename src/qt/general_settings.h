@@ -75,6 +75,7 @@ class gen_settings : public QDialog
 	QLineEdit* dump_bg;
 	QLineEdit* dump_obj;
 	QLineEdit* screenshot;
+	QLineEdit* game_saves;
 
 	QLabel* dmg_bios_label;
 	QLabel* gbc_bios_label;
@@ -83,6 +84,7 @@ class gen_settings : public QDialog
 	QLabel* dump_bg_label;
 	QLabel* dump_obj_label;
 	QLabel* screenshot_label;
+	QLabel* game_saves_label;
 
 	//Controls tab widget
 	QComboBox* input_device;
