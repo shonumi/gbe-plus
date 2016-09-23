@@ -942,6 +942,7 @@ void AGB_core::debug_process_command()
 			std::cout<<"w8 \t\t Write BYTE @ memory, format 0x1234ABCD for addr, 0x12 for value\n";
 			std::cout<<"w16 \t\t Write HALFWORD @ memory, format 0x1234ABCD for addr, 0x1234 for value\n";
 			std::cout<<"w32 \t\t Write WORD @ memory, format 0x1234ABCD for addr, 0x1234ABCD for value\n";
+			std::cout<<"reg \t\t Change register value (0-36) \n";
 			std::cout<<"dq \t\t Quit the debugger\n";
 			std::cout<<"dc \t\t Toggle CPU cycle display\n";
 			std::cout<<"cr \t\t Reset CPU cycle counter\n";

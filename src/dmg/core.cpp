@@ -834,6 +834,7 @@ void DMG_core::debug_process_command()
 			std::cout<<"u16 \t\t Show WORD @ memory, format 0x1234ABCD\n";
 			std::cout<<"w8 \t\t Write BYTE @ memory, format 0x1234ABCD for addr, 0x12 for value\n";
 			std::cout<<"w16 \t\t Write WORD @ memory, format 0x1234ABCD for addr, 0x1234 for value\n";
+			std::cout<<"reg \t\t Change register value (0-9) \n";
 			std::cout<<"dq \t\t Quit the debugger\n";
 			std::cout<<"dc \t\t Toggle CPU cycle display\n";
 			std::cout<<"cr \t\t Reset CPU cycle counter\n";
