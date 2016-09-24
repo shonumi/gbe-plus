@@ -160,11 +160,8 @@ void main()
 	vec2 adj_coords = current_pos;
 	adj_coords.x += (1.0 / screen_x_size);
 
-	if(adj_coords.x <= 1.0)
-	{
-		vec4 adjacent_color = texture(screen_texture, adj_coords);
-		if(adjacent_color != current_color) { rgb_blend(current_color, adjacent_color, current_color); }
-	}	
+	vec4 adjacent_color = texture(screen_texture, adj_coords);
+	if(adjacent_color != current_color) { rgb_blend(current_color, adjacent_color, current_color); }
 
 	color = current_color;
 }
