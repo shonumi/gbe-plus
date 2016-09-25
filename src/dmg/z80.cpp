@@ -275,6 +275,19 @@ bool Z80::handle_interrupts()
 			return true;
 		}
 
+		//Perform Joypad Interrupt
+		if((mem->memory_map[IE_FLAG] & 0x10) && (mem->memory_map[IF_FLAG] & 0x10))
+		{
+			interrupt = false;
+			halt = false;
+			mem->memory_map[IF_FLAG] &= ~0x10;
+			reg.sp -= 2;
+			mem->write_u16(reg.sp, reg.pc);
+			reg.pc = 0x60;
+			cycles += 36;
+			return true;
+		}
+
 		else { return false; }
 	}
 
