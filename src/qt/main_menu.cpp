@@ -244,6 +244,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	//Set up custom graphics dialog
 	cgfx = new gbe_cgfx();
 	cgfx->hide();
+	cgfx->advanced->setChecked(true);
 
 	//Set up DMG-GBC debugger
 	main_menu::dmg_debugger = new dmg_debug();

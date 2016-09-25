@@ -50,7 +50,7 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	blank = new QCheckBox(blank_set);
 
 	QWidget* advanced_set = new QWidget(config_tab);
-	QLabel* advanced_label = new QLabel("Use advanced menu", blank_set);
+	QLabel* advanced_label = new QLabel("Use advanced menu", advanced_set);
 	advanced = new QCheckBox(advanced_set);
 
 	obj_set = new QWidget(obj_tab);
