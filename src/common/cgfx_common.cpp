@@ -36,4 +36,5 @@ namespace cgfx
 	u32 last_vram_addr = 0;
 	u8 last_type = 0;
 	u8 last_palette = 0;
+	bool last_added = false;
 }

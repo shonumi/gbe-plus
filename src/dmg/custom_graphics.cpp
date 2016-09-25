@@ -432,7 +432,11 @@ void DMG_LCD::dump_dmg_obj(u8 obj_index)
 	//Update the OBJ hash list
 	for(int x = 0; x < cgfx_stat.obj_hash_list.size(); x++)
 	{
-		if(final_hash == cgfx_stat.obj_hash_list[x]) { add_hash = false; return; }
+		if(final_hash == cgfx_stat.obj_hash_list[x])
+		{
+			cgfx::last_added = false;
+			return;
+		}
 	}
 
 	//For new OBJs, dump BMP file
@@ -498,7 +502,11 @@ void DMG_LCD::dump_dmg_obj(u8 obj_index)
 				if(dump_pixel_data[0] != dump_pixel_data[x]) { blank = false; break; }
 			}
 
-			if(blank) { return; }
+			if(blank)
+			{
+				cgfx::last_added = false;
+				return;
+			}
 		}
 
 		//Save to BMP
@@ -511,6 +519,7 @@ void DMG_LCD::dump_dmg_obj(u8 obj_index)
 	cgfx::last_vram_addr = 0x8000 + (obj[obj_index].tile_number << 4);
 	cgfx::last_type = 1;
 	cgfx::last_palette = 0;
+	cgfx::last_added = true;
 }
 
 /****** Dumps GBC OBJ tile from selected memory address ******/
@@ -564,7 +573,12 @@ void DMG_LCD::dump_gbc_obj(u8 obj_index)
 	//Update the OBJ hash list
 	for(int x = 0; x < cgfx_stat.obj_hash_list.size(); x++)
 	{
-		if(final_hash == cgfx_stat.obj_hash_list[x]) { mem->vram_bank = old_vram_bank; return; }
+		if(final_hash == cgfx_stat.obj_hash_list[x])
+		{
+			mem->vram_bank = old_vram_bank;
+			cgfx::last_added = false;
+			return;
+		}
 	}
 
 	//For new OBJs, dump BMP file
@@ -613,7 +627,11 @@ void DMG_LCD::dump_gbc_obj(u8 obj_index)
 				if(dump_pixel_data[0] != dump_pixel_data[x]) { blank = false; break; }
 			}
 
-			if(blank) { return; }
+			if(blank)
+			{
+				cgfx::last_added = false;
+				return;
+			}
 		}
 
 		//Save to BMP
@@ -629,6 +647,7 @@ void DMG_LCD::dump_gbc_obj(u8 obj_index)
 	cgfx::last_vram_addr = 0x8000 + (obj[obj_index].tile_number << 4);
 	cgfx::last_type = 2;
 	cgfx::last_palette = obj[obj_index].color_palette_number + 1;
+	cgfx::last_added = true;
 }
 
 /****** Dumps DMG BG tile from selected memory address ******/
@@ -667,7 +686,11 @@ void DMG_LCD::dump_dmg_bg(u16 bg_index)
 	//Update the OBJ hash list
 	for(int x = 0; x < cgfx_stat.bg_hash_list.size(); x++)
 	{
-		if(final_hash == cgfx_stat.bg_hash_list[x]) { add_hash = false; return; }
+		if(final_hash == cgfx_stat.bg_hash_list[x])
+		{
+			cgfx::last_added = false;
+			return;
+		}
 	}
 
 	//For new OBJs, dump BMP file
@@ -733,7 +756,11 @@ void DMG_LCD::dump_dmg_bg(u16 bg_index)
 				if(dump_pixel_data[0] != dump_pixel_data[x]) { blank = false; break; }
 			}
 
-			if(blank) { return; }
+			if(blank)
+			{
+				cgfx::last_added = false;
+				return;
+			}
 		}
 
 		//Save to BMP
@@ -746,6 +773,7 @@ void DMG_LCD::dump_dmg_bg(u16 bg_index)
 	cgfx::last_vram_addr = (bg_index << 4) + 0x8000;
 	cgfx::last_type = 10;
 	cgfx::last_palette = 0;
+	cgfx::last_added = true;
 }
 
 /****** Dumps GBC BG tile from selected memory address (GUI version) ******/
@@ -795,7 +823,12 @@ void DMG_LCD::dump_gbc_bg(u16 bg_index)
 	//Update the BG hash list
 	for(int x = 0; x < cgfx_stat.bg_hash_list.size(); x++)
 	{
-		if(final_hash == cgfx_stat.bg_hash_list[x]) { mem->vram_bank = old_vram_bank; return; }
+		if(final_hash == cgfx_stat.bg_hash_list[x])
+		{
+			mem->vram_bank = old_vram_bank;
+			cgfx::last_added = false;
+			return;
+		}
 	}
 
 	//For new BGs, dump BMP file
@@ -844,7 +877,11 @@ void DMG_LCD::dump_gbc_bg(u16 bg_index)
 				if(dump_pixel_data[0] != dump_pixel_data[x]) { blank = false; break; }
 			}
 
-			if(blank) { return; }
+			if(blank)
+			{
+				cgfx::last_added = false;
+				return;
+			}
 		}
 
 		//Save to BMP
@@ -860,6 +897,7 @@ void DMG_LCD::dump_gbc_bg(u16 bg_index)
 	cgfx::last_vram_addr = (bg_index << 4) + 0x8000;
 	cgfx::last_type = 20;
 	cgfx::last_palette = cgfx::gbc_bg_color_pal + 1;
+	cgfx::last_added = true;
 }
 
 /****** Dumps GBC BG tile from selected memory address (Auto-dump version) ******/
@@ -906,7 +944,11 @@ void DMG_LCD::dump_gbc_bg(std::string final_hash, u16 bg_tile_addr, u8 palette)
 			if(dump_pixel_data[0] != dump_pixel_data[x]) { blank = false; break; }
 		}
 
-		if(blank) { return; }
+		if(blank)
+		{
+			cgfx::last_added = false;
+			return;
+		}
 	}
 
 	//Save to BMP
@@ -918,6 +960,7 @@ void DMG_LCD::dump_gbc_bg(std::string final_hash, u16 bg_tile_addr, u8 palette)
 	cgfx::last_vram_addr = bg_tile_addr - 16;
 	cgfx::last_type = 20;
 	cgfx::last_palette = palette + 1;
+	cgfx::last_added = true;
 }
 
 /****** Updates the current hash for the selected DMG OBJ ******/
