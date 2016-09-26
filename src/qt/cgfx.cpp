@@ -2769,8 +2769,9 @@ void gbe_cgfx::write_manifest_entry()
 	//Process File Name
 	QString path = dest_name->text();
 
-	if(!path.isNull()) { cgfx::dump_name = path.toStdString(); }
-	else { cgfx::dump_name = ""; }
+	if(path.toStdString().empty()) { cgfx::dump_name.clear(); }
+	else if(!path.isNull()) { cgfx::dump_name = path.toStdString() + ".bmp"; }
+	else { cgfx::dump_name.clear(); }
 
 	//Dump BG
 	if(dump_type == 0) 
@@ -2797,7 +2798,7 @@ void gbe_cgfx::write_manifest_entry()
 	std::string gfx_name = "";
 	
 	if(dest_folder->text().isNull()) { gfx_name = cgfx::last_hash + ".bmp"; }
-	else { gfx_name = dest_folder->text().toStdString() + dest_name->text().toStdString(); }
+	else { gfx_name = dest_folder->text().toStdString() + dest_name->text().toStdString() + ".bmp"; }
 	
 	std::string gfx_type = util::to_str(cgfx::last_type);
 	std::string gfx_addr = (ext_vram->isChecked()) ? util::to_hex_str(cgfx::last_vram_addr).substr(2) : "0";
