@@ -204,6 +204,30 @@ void AGB_core::run_core()
 	shutdown();
 }
 
+/****** Run core for 1 instruction ******/
+void AGB_core::step()
+{
+	//Run the CPU
+	if(core_cpu.running)
+	{	
+		core_cpu.fetch();
+		core_cpu.decode();
+		core_cpu.execute();
+
+		core_cpu.handle_interrupt();
+		
+		//Flush pipeline if necessary
+		if(core_cpu.needs_flush) { core_cpu.flush_pipeline(); }
+
+		//Else update the pipeline and PC
+		else 
+		{ 
+			core_cpu.pipeline_pointer = (core_cpu.pipeline_pointer + 1) % 3;
+			core_cpu.update_pc(); 
+		}
+	}
+}
+
 /****** Debugger - Allow core to run until a breaking condition occurs ******/
 void AGB_core::debug_step()
 {

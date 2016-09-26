@@ -30,6 +30,7 @@ class DMG_core : virtual public core_emu
 		void stop();
 		void reset();
 		void shutdown();
+		void step();
 		void handle_hotkey(SDL_Event& event);
 		void handle_hotkey(int input, bool pressed);
 		void update_volume(u8 volume);

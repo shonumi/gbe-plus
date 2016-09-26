@@ -360,6 +360,174 @@ void DMG_core::run_core()
 	shutdown();
 }
 
+/****** Manually run core for 1 instruction ******/
+void DMG_core::step()
+{
+	//Run the CPU
+	if(core_cpu.running)
+	{
+		//Receive byte from another instance of GBE+ via netplay
+		if(core_cpu.controllers.serial_io.sio_stat.connected)
+		{
+			//Perform syncing operations when hard sync is enabled
+			if(config::netplay_hard_sync)
+			{
+				core_cpu.controllers.serial_io.sio_stat.sync_counter += core_cpu.cycles;
+
+				//Once this Game Boy has reached a specified amount of cycles, freeze until the other Game Boy finished that many cycles
+				if(core_cpu.controllers.serial_io.sio_stat.sync_counter >= core_cpu.controllers.serial_io.sio_stat.sync_clock)
+				{
+					core_cpu.controllers.serial_io.request_sync();
+					u32 current_time = SDL_GetTicks();
+					u32 timeout = 0;
+
+					while(core_cpu.controllers.serial_io.sio_stat.sync)
+					{
+						core_cpu.controllers.serial_io.receive_byte();
+
+						//Timeout if 10 seconds passes
+						timeout = SDL_GetTicks();
+							
+						if((timeout - current_time) >= 10000)
+						{
+							core_cpu.controllers.serial_io.reset();
+						}						
+					}
+				}
+			}
+
+			//Send IR signal for GBC games
+			if(core_mmu.ir_send) { core_cpu.controllers.serial_io.send_ir_signal(); }
+
+			//Receive bytes normally
+			core_cpu.controllers.serial_io.receive_byte();
+		}
+
+		core_cpu.cycles = 0;
+
+		//Handle Interrupts
+		core_cpu.handle_interrupts();
+	
+		//Halt CPU if necessary
+		if(core_cpu.halt == true)
+		{
+			//Normal HALT mode with interrupts enabled
+			if(!core_cpu.skip_instruction) { core_cpu.cycles += 4; }
+
+			//HALT mode with interrupts disabled (DMG, MBP, and SGB models)
+			else if((core_cpu.skip_instruction) && (config::gb_type == 1))
+			{
+				core_cpu.halt = false;
+				core_cpu.skip_instruction = false;
+
+				//Execute next opcode, but do not increment PC
+				core_cpu.opcode = core_mmu.read_u8(core_cpu.reg.pc);
+				core_cpu.exec_op(core_cpu.opcode);
+			}
+
+			//HALT mode with interrupts disabled (GBC models)
+			else
+			{
+				core_cpu.halt = false;
+				core_cpu.skip_instruction = false;
+
+				//Continue normally
+				core_cpu.opcode = core_mmu.read_u8(core_cpu.reg.pc++);
+				core_cpu.exec_op(core_cpu.opcode);
+			}
+		}
+
+		//Process Opcodes
+		else 
+		{
+			core_cpu.opcode = core_mmu.read_u8(core_cpu.reg.pc++);
+			core_cpu.exec_op(core_cpu.opcode);
+		}
+
+		//Update LCD
+		if(core_cpu.double_speed) { core_cpu.controllers.video.step(core_cpu.cycles >> 1); }
+		else { core_cpu.controllers.video.step(core_cpu.cycles); }
+
+		//Update DIV timer - Every 4 M clocks
+		core_cpu.div_counter += core_cpu.cycles;
+		
+		if(core_cpu.div_counter >= 256) 
+		{
+			core_cpu.div_counter -= 256;
+			core_mmu.memory_map[REG_DIV]++;
+		}
+
+		//Update TIMA timer
+		if(core_mmu.memory_map[REG_TAC] & 0x4) 
+		{	
+			core_cpu.tima_counter += core_cpu.cycles;
+
+			switch(core_mmu.memory_map[REG_TAC] & 0x3)
+			{
+				case 0x00: core_cpu.tima_speed = 1024; break;
+				case 0x01: core_cpu.tima_speed = 16; break;
+				case 0x02: core_cpu.tima_speed = 64; break;
+				case 0x03: core_cpu.tima_speed = 256; break;
+			}
+	
+			if(core_cpu.tima_counter >= core_cpu.tima_speed)
+			{
+				core_mmu.memory_map[REG_TIMA]++;
+				core_cpu.tima_counter -= core_cpu.tima_speed;
+
+				if(core_mmu.memory_map[REG_TIMA] == 0)
+				{
+					core_mmu.memory_map[IF_FLAG] |= 0x04;
+					core_mmu.memory_map[REG_TIMA] = core_mmu.memory_map[REG_TMA];
+				}	
+
+			}
+		}
+
+		//Update serial input-output operations
+		if(core_cpu.controllers.serial_io.sio_stat.shifts_left != 0)
+		{
+			core_cpu.controllers.serial_io.sio_stat.shift_counter += core_cpu.cycles;
+
+			//After SIO clocks, perform SIO operations now
+			if(core_cpu.controllers.serial_io.sio_stat.shift_counter >= core_cpu.controllers.serial_io.sio_stat.shift_clock)
+			{
+				//Shift bit out from SB, transfer it
+				core_mmu.memory_map[REG_SB] <<= 1;
+
+				core_cpu.controllers.serial_io.sio_stat.shift_counter -= core_cpu.controllers.serial_io.sio_stat.shift_clock;
+				core_cpu.controllers.serial_io.sio_stat.shifts_left--;
+
+				//Complete the transfer
+				if(core_cpu.controllers.serial_io.sio_stat.shifts_left == 0)
+				{
+					//Reset Bit 7 in SC
+					core_mmu.memory_map[REG_SC] &= ~0x80;
+
+					core_cpu.controllers.serial_io.sio_stat.active_transfer = false;
+
+					//Process normal SIO communications
+					if(core_cpu.controllers.serial_io.sio_stat.sio_type != GB_PRINTER)
+					{
+						//Emulate disconnected link cable (on an internal clock) with no netplay	
+						if(((!config::use_netplay) && (core_cpu.controllers.serial_io.sio_stat.internal_clock)) || (!core_cpu.controllers.serial_io.sio_stat.connected))
+						{
+							core_mmu.memory_map[REG_SB] = 0xFF;
+							core_mmu.memory_map[IF_FLAG] |= 0x08;
+						}
+
+						//Send byte to another instance of GBE+ via netplay
+						if(core_cpu.controllers.serial_io.sio_stat.connected) { core_cpu.controllers.serial_io.send_byte(); }
+					}
+
+					//Process GB Printer communications
+					else { core_cpu.controllers.serial_io.printer_process(); }
+				}
+			}
+		}
+	}
+}
+
 /****** Debugger - Allow core to run until a breaking condition occurs ******/
 void DMG_core::debug_step()
 {
