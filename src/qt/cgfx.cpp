@@ -371,6 +371,13 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	manifest_warning->setIcon(QMessageBox::Warning);
 	manifest_warning->hide();
 
+	//Manifest write entry failure pop-up
+	manifest_write_fail = new QMessageBox;
+	manifest_write_fail->addButton("OK", QMessageBox::AcceptRole);
+	manifest_write_fail->setText("Could not access the manifest file! Manifest entry was not written, please check file path and permissions");
+	manifest_write_fail->setIcon(QMessageBox::Critical);
+	manifest_write_fail->hide();
+	
 	connect(dump_button, SIGNAL(clicked()), this, SLOT(write_manifest_entry()));
 	connect(cancel_button, SIGNAL(clicked()), this, SLOT(close_advanced()));
 	connect(dest_browse, SIGNAL(clicked()), this, SLOT(browse_advanced_dir()));
@@ -2801,8 +2808,14 @@ void gbe_cgfx::write_manifest_entry()
 	//Open manifest file, then write to it
 	std::ofstream file(cgfx::manifest_file.c_str(), std::ios::out | std::ios::app);
 
-	//TODO - Add a Qt warning here
-	if(!file.is_open()) { advanced_box->hide(); return; }
+	//Show warning if manifest file cannot be accessed
+	if(!file.is_open())
+	{
+		advanced_box->hide();
+		manifest_write_fail->show();
+		manifest_write_fail->raise();
+		return;
+	}
 
 	file << "\n" << entry;
 	file.close();
