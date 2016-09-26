@@ -99,7 +99,11 @@ class gbe_cgfx : public QDialog
 
 	data_dialog* data_folder;
 
+	//Pop-ups
+	QMessageBox* manifest_warning;
+
 	bool pause;
+	bool enable_manifest_warning;
 
 	QImage grab_obj_data(int obj_index);
 	QImage grab_dmg_obj_data(int obj_index);
@@ -165,6 +169,7 @@ class gbe_cgfx : public QDialog
 	void select_folder();
 	void reject_folder();
 	void update_selection();
+	void ignore_manifest_warnings();
 };
 
 #endif //CGFX_GBE_QT 

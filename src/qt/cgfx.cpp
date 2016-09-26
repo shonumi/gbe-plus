@@ -363,10 +363,19 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	advanced_box_layout->addWidget(advanced_buttons);
 	advanced_box->setLayout(advanced_box_layout);
 
+	//No manifest warning pop-up
+	manifest_warning = new QMessageBox;
+	QPushButton* manifest_warning_ok = manifest_warning->addButton("OK", QMessageBox::AcceptRole);
+	QPushButton* manifest_warning_ignore = manifest_warning->addButton("Do not show this message again", QMessageBox::AcceptRole);
+	manifest_warning->setText("No manifest file was specified. Tiles will be dumped without writing manifest entries.");
+	manifest_warning->setIcon(QMessageBox::Warning);
+	manifest_warning->hide();
+
 	connect(dump_button, SIGNAL(clicked()), this, SLOT(write_manifest_entry()));
 	connect(cancel_button, SIGNAL(clicked()), this, SLOT(close_advanced()));
 	connect(dest_browse, SIGNAL(clicked()), this, SLOT(browse_advanced_dir()));
 	connect(name_browse, SIGNAL(clicked()), this, SLOT(browse_advanced_file()));
+	connect(manifest_warning_ignore, SIGNAL(clicked()), this, SLOT(ignore_manifest_warnings()));
 
 	estimated_palette.resize(384, 0);
 	estimated_vram_bank.resize(384, 0);
@@ -382,6 +391,8 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 
 	pause = false;
 	hash_text->setScaledContents(true);
+
+	enable_manifest_warning = true;
 }
 
 /****** Sets up the OBJ dumping window ******/
@@ -492,6 +503,7 @@ void gbe_cgfx::show_advanced_obj(int index)
 		dump_type = 1;
 		advanced_index = index;
 		advanced_box->show();
+		advanced_box->raise();
 	}
 
 	else { dump_obj(index); }
@@ -541,6 +553,7 @@ void gbe_cgfx::show_advanced_bg(int index)
 		dump_type = 0;
 		advanced_index = index;
 		advanced_box->show();
+		advanced_box->raise();
 	}
 
 	else { dump_bg(index); }
@@ -980,6 +993,13 @@ void gbe_cgfx::close_advanced()
 /****** Dumps the selected OBJ ******/
 void gbe_cgfx::dump_obj(int obj_index)
 {
+	//Show warning dialog
+	if((cgfx::manifest_file.empty()) && (enable_manifest_warning))
+	{
+		manifest_warning->show();
+		manifest_warning->raise();
+	}
+
 	main_menu::gbe_plus->dump_obj(obj_index);
 
 	//Update manifest tab if necessary
@@ -989,6 +1009,13 @@ void gbe_cgfx::dump_obj(int obj_index)
 /****** Dumps the selected BG ******/
 void gbe_cgfx::dump_bg(int bg_index)
 {
+	//Show warning dialog
+	if((cgfx::manifest_file.empty()) && (enable_manifest_warning))
+	{
+		manifest_warning->show();
+		manifest_warning->raise();
+	}
+
 	main_menu::gbe_plus->dump_bg(bg_index);
 
 	//Update manifest tab if necessary
@@ -998,14 +1025,36 @@ void gbe_cgfx::dump_bg(int bg_index)
 /****** Toggles automatic dumping of OBJ tiles ******/
 void gbe_cgfx::set_auto_obj()
 {
-	if(auto_dump_obj->isChecked()) { cgfx::auto_dump_obj = true; }
+	if(auto_dump_obj->isChecked())
+	{
+		//Show warning dialog
+		if((cgfx::manifest_file.empty()) && (enable_manifest_warning))
+		{
+			manifest_warning->show();
+			manifest_warning->raise();
+		}
+
+		cgfx::auto_dump_obj = true;
+	}
+
 	else { cgfx::auto_dump_obj = false; }
 }
 
 /****** Toggles automatic dumping of BG tiles ******/
 void gbe_cgfx::set_auto_bg()
 {
-	if(auto_dump_bg->isChecked()) { cgfx::auto_dump_bg = true; }
+	if(auto_dump_bg->isChecked())
+	{
+		//Show warning dialog
+		if((cgfx::manifest_file.empty()) && (enable_manifest_warning))
+		{
+			manifest_warning->show();
+			manifest_warning->raise();
+		}
+	
+		cgfx::auto_dump_bg = true;
+	}
+	
 	else { cgfx::auto_dump_bg = false; }
 }
 
@@ -2861,6 +2910,13 @@ void gbe_cgfx::dump_selection()
 	if((rect_x->value() == 0) || (rect_y->value() == 0) || (rect_w->value() == 0) || (rect_h->value() == 0)) { return; }
 	if(layer_select->currentIndex() == 2) { return; }
 
+	//Show warning dialog
+	if((cgfx::manifest_file.empty()) && (enable_manifest_warning))
+	{
+		manifest_warning->show();
+		manifest_warning->raise();
+	}
+
 	//Grab metatile name
 	cgfx::meta_dump_name = meta_name->text().toStdString();
 	if(cgfx::meta_dump_name.empty()) { cgfx::meta_dump_name = "META"; }
@@ -3386,3 +3442,6 @@ bool gbe_cgfx::parse_manifest_items()
 	manifest_regular_set->setLayout(temp_layout);	
 	manifest_display->setWidget(manifest_regular_set);
 }
+
+/****** Ignores manifest warnings until program quits ******/
+void gbe_cgfx::ignore_manifest_warnings() { enable_manifest_warning = false; }
