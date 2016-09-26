@@ -28,11 +28,11 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	QDialog* layers_tab = new QDialog;
 	QDialog* manifest_tab = new QDialog;
 
-	tabs->addTab(config_tab, tr("Configure"));
+	tabs->addTab(layers_tab, tr("Layers"));
 	tabs->addTab(obj_tab, tr("OBJ Tiles"));
 	tabs->addTab(bg_tab, tr("BG Tiles"));
-	tabs->addTab(layers_tab, tr("Layers"));
 	tabs->addTab(manifest_tab, tr("Manifest"));
+	tabs->addTab(config_tab, tr("Configure"));
 
 	tabs_button = new QDialogButtonBox(QDialogButtonBox::Close);
 
