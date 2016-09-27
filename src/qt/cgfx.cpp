@@ -3101,9 +3101,9 @@ std::string gbe_cgfx::hash_tile(u8 x, u8 y)
 		u16 bg_tile_addr = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x10) ? 0x8000 : 0x8800;
 
 		//Determine the map entry from on-screen coordinates
-		u8 tile_x = (x + main_menu::gbe_plus->ex_read_u8(REG_SX)) / 8;
-		u8 tile_y = (y + main_menu::gbe_plus->ex_read_u8(REG_SY)) / 8;
-		u16 map_entry = tile_x + (tile_y * 32);
+		u8 tile_x = (x + main_menu::gbe_plus->ex_read_u8(REG_SX));
+		u8 tile_y = (y + main_menu::gbe_plus->ex_read_u8(REG_SY));
+		u16 map_entry = (tile_x / 8) + ((tile_y / 8) * 32);
 
 		u8 map_value = main_menu::gbe_plus->ex_read_u8(bg_map_addr + map_entry);
 
@@ -3128,10 +3128,10 @@ std::string gbe_cgfx::hash_tile(u8 x, u8 y)
 		u16 bg_tile_addr = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x10) ? 0x8000 : 0x8800;
 
 		//Determine the map entry from on-screen coordinates
-		u8 tile_x = (x + main_menu::gbe_plus->ex_read_u8(REG_SX)) / 8;
-		u8 tile_y = (y + main_menu::gbe_plus->ex_read_u8(REG_SY)) / 8;
+		u8 tile_x = (x + main_menu::gbe_plus->ex_read_u8(REG_SX));
+		u8 tile_y = (y + main_menu::gbe_plus->ex_read_u8(REG_SY));
 
-		u16 map_entry = tile_x + (tile_y * 32);
+		u16 map_entry = (tile_x / 8) + ((tile_y / 8) * 32);
 
 		u8 old_vram_bank = main_menu::gbe_plus->ex_read_u8(REG_VBK);
 			
