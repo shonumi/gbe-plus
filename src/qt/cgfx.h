@@ -152,6 +152,9 @@ class gbe_cgfx : public QDialog
 	u8 min_x_rect, max_x_rect;
 	u8 min_y_rect, max_y_rect;
 
+	u32 mouse_start_x, mouse_start_y;
+	bool mouse_drag;
+
 	private slots:
 	void close_cgfx();
 	void close_advanced();

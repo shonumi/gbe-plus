@@ -400,6 +400,9 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	hash_text->setScaledContents(true);
 
 	enable_manifest_warning = true;
+
+	mouse_start_x = mouse_start_y = 0;
+	mouse_drag = false;
 }
 
 /****** Sets up the OBJ dumping window ******/
@@ -2740,10 +2743,66 @@ bool gbe_cgfx::eventFilter(QObject* target, QEvent* event)
 
 		//Update the preview
 		if((mouse_event->x() <= 320) && (mouse_event->y() <= 288)) { update_preview(x, y); }
+
+		//Update highlighting when dragging the mouse
+		if(mouse_drag)
+		{
+			x >>= 1;
+			y >>= 1;
+
+			//Determine highlighted BG tiles
+			if(layer_select->currentIndex() == 0)
+			{
+				u8 sx = main_menu::gbe_plus->ex_read_u8(REG_SX) % 8;
+				u8 sy = main_menu::gbe_plus->ex_read_u8(REG_SY) % 8;
+
+				u8 tile_start_x = ((mouse_start_x >> 1) - sx) / 8;
+				u8 tile_start_y = ((mouse_start_y >> 1) - sy) / 8;
+
+				u8 tile_x = ((x - sx) / 8);
+				u8 tile_y = ((y - sy) / 8);
+
+				//Set X and Y
+				rect_x->setValue(tile_start_x + 1);
+				rect_y->setValue(tile_start_y + 1);
+
+				//Set W and H
+				rect_w->setValue(tile_x - tile_start_x + 1);
+				rect_h->setValue(tile_y - tile_start_y + 1);
+
+				//Update highlighting
+				update_selection();
+			}
+
+			//Determine highlighted Window tiles
+			else if(layer_select->currentIndex() == 1)
+			{
+				u8 wx = main_menu::gbe_plus->ex_read_u8(REG_WX) % 8;
+				u8 wy = main_menu::gbe_plus->ex_read_u8(REG_WY);
+				wx = (wx < 7) ? 0 : (wx - 7);
+
+				u8 tile_start_x = ((mouse_start_x >> 1) - wx) / 8;
+				u8 tile_start_y = ((mouse_start_y >> 1) - wy) / 8;
+
+				u8 tile_x = ((x - wx) / 8);
+				u8 tile_y = ((y - wy) / 8);
+
+				//Set X and Y
+				rect_x->setValue(tile_start_x + 1);
+				rect_y->setValue(tile_start_y + 1);
+
+				//Set W and H
+				rect_w->setValue(tile_x - tile_start_x + 1);
+				rect_h->setValue(tile_y - tile_start_y + 1);
+
+				//Update highlighting
+				update_selection();
+			}
+		}
 	}
 
-	//Check to see if mouse is clicked over current layer
-	else if(event->type() == QEvent::MouseButtonPress)
+	//Check to see if mouse is double-clicked over current layer
+	else if(event->type() == QEvent::MouseButtonDblClick)
 	{
 		QMouseEvent* mouse_event = static_cast<QMouseEvent*>(event);
 		u32 x = mouse_event->x();
@@ -2752,6 +2811,23 @@ bool gbe_cgfx::eventFilter(QObject* target, QEvent* event)
 		//Update the preview
 		if((mouse_event->x() <= 320) && (mouse_event->y() <= 288)) { dump_layer_tile(x, y); }
 	}
+
+	//Check to see if mouse is single-clicked over current layer
+	else if(event->type() == QEvent::MouseButtonPress)
+	{
+		QMouseEvent* mouse_event = static_cast<QMouseEvent*>(event);
+
+		mouse_drag = true;
+		mouse_start_x = mouse_event->x();
+		mouse_start_y = mouse_event->y();
+	}
+
+	//Check to see if mouse is released from single-click over current layer
+	else if((event->type() == QEvent::MouseButtonRelease) && (mouse_drag))
+	{
+		mouse_drag = false;
+	}
+
 
 	return QDialog::eventFilter(target, event);
 }
@@ -2949,7 +3025,7 @@ void gbe_cgfx::dump_selection()
 	{
 		min_x_rect = ((rect_x->value() - 1) * 8) - (main_menu::gbe_plus->ex_read_u8(REG_SX) % 8);
 		max_x_rect = rect_w->value() * 8;
-		min_y_rect = (rect_y->value() - 1) * 8 - (main_menu::gbe_plus->ex_read_u8(REG_SY) % 8);
+		min_y_rect = ((rect_y->value() - 1) * 8) - (main_menu::gbe_plus->ex_read_u8(REG_SY) % 8);
 		max_y_rect = rect_h->value() * 8;
 	}
 
@@ -2959,9 +3035,9 @@ void gbe_cgfx::dump_selection()
 		u8 wx = main_menu::gbe_plus->ex_read_u8(REG_WX);
 		wx = (wx < 7) ? 0 : (wx - 7); 
 
-		min_x_rect = ((rect_x->value() - 1) * 8) - (wx % 8);
+		min_x_rect = ((rect_x->value() - 1) * 8) + (wx % 8);
 		max_x_rect = rect_w->value() * 8;
-		min_y_rect = (rect_y->value() - 1) * 8 - (main_menu::gbe_plus->ex_read_u8(REG_WY) % 8);
+		min_y_rect = (rect_y->value() - 1) * 8 + main_menu::gbe_plus->ex_read_u8(REG_WY);
 		max_y_rect = rect_h->value() * 8;
 	}
 
