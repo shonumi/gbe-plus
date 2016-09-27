@@ -2756,11 +2756,11 @@ bool gbe_cgfx::eventFilter(QObject* target, QEvent* event)
 				u8 sx = main_menu::gbe_plus->ex_read_u8(REG_SX) % 8;
 				u8 sy = main_menu::gbe_plus->ex_read_u8(REG_SY) % 8;
 
-				u8 tile_start_x = ((mouse_start_x >> 1) - sx) / 8;
-				u8 tile_start_y = ((mouse_start_y >> 1) - sy) / 8;
+				u8 tile_start_x = (mouse_start_x >> 1) / 8;
+				u8 tile_start_y = (mouse_start_y >> 1) / 8;
 
-				u8 tile_x = ((x - sx) / 8);
-				u8 tile_y = ((y - sy) / 8);
+				u8 tile_x = (x / 8);
+				u8 tile_y = (y / 8);
 
 				//Set X and Y
 				rect_x->setValue(tile_start_x + 1);
@@ -3023,9 +3023,9 @@ void gbe_cgfx::dump_selection()
 	//Temporarily convert dimensions to X,Y and WxH format for Qt - DMG/GBC BG version
 	if(layer_select->currentIndex() == 0)
 	{
-		min_x_rect = ((rect_x->value() - 1) * 8) - (main_menu::gbe_plus->ex_read_u8(REG_SX) % 8);
+		min_x_rect = ((rect_x->value() - 1) * 8) + ((-(main_menu::gbe_plus->ex_read_u8(REG_SX) % 8) + 8) % 8);
 		max_x_rect = rect_w->value() * 8;
-		min_y_rect = ((rect_y->value() - 1) * 8) - (main_menu::gbe_plus->ex_read_u8(REG_SY) % 8);
+		min_y_rect = ((rect_y->value() - 1) * 8) + ((-(main_menu::gbe_plus->ex_read_u8(REG_SY) % 8) + 8) % 8);
 		max_y_rect = rect_h->value() * 8;
 	}
 
@@ -3037,7 +3037,7 @@ void gbe_cgfx::dump_selection()
 
 		min_x_rect = ((rect_x->value() - 1) * 8) + (wx % 8);
 		max_x_rect = rect_w->value() * 8;
-		min_y_rect = (rect_y->value() - 1) * 8 + main_menu::gbe_plus->ex_read_u8(REG_WY);
+		min_y_rect = ((rect_y->value() - 1) * 8) + main_menu::gbe_plus->ex_read_u8(REG_WY);
 		max_y_rect = rect_h->value() * 8;
 	}
 
@@ -3075,7 +3075,26 @@ void gbe_cgfx::dump_selection()
 		{
 			std::string gfx_name = cgfx::meta_dump_name + "_" + util::to_str(entry_count++);
 			std::string gfx_type = (config::gb_type == 2) ? "20" : "10";
-			std::string gfx_hash = hash_tile((x * 8), (y * 8));
+			std::string gfx_hash = "";
+
+			//Convert selection parameters (X,Y and W,H) into 160x144 screen coordinates to get the tile hash - DMG/GBC BG version
+			if(layer_select->currentIndex() == 0) { gfx_hash = hash_tile((x * 8), (y * 8)); }
+
+			//Convert selection parameters (X,Y and W,H) into 160x144 screen coordinates to get the tile hash - DMG/GBC Window version
+			else if(layer_select->currentIndex() == 1)
+			{
+				//This looks like magic...
+				//It's really just a PITA to properly convert the selection parameters due to how the Window is setup
+				u8 wx = main_menu::gbe_plus->ex_read_u8(REG_WX);
+				u8 wy = main_menu::gbe_plus->ex_read_u8(REG_WY);
+				wx = (wx < 7) ? 0 : (wx - 7); 
+
+				u32 real_x = ((rect_x->value() - 1) * 8) + (wx % 8) + ((x - min_x_rect) * 8);
+				u32 real_y = ((rect_y->value() - 1) * 8) + wy + ((y - min_y_rect) * 8);
+
+				gfx_hash = hash_tile(real_x, real_y);
+			}
+		
 			std::string gfx_addr = (use_vram_addr->isChecked()) ? util::to_hex_str(cgfx::last_vram_addr) : "0";
 			std::string gfx_bright = (use_auto_bright->isChecked()) ? "1" : "0";		
 
