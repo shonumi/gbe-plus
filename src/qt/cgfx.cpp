@@ -1192,7 +1192,7 @@ void gbe_cgfx::draw_dmg_bg()
 				if(highlight)
 				{
 					u8 temp = scanline_pixel_counter - 1;
-					scanline_pixel_buffer[temp] += 0x00700000;
+					scanline_pixel_buffer[temp] += 0x00808080;
 				}
 			}
 		}
@@ -1319,7 +1319,7 @@ void gbe_cgfx::draw_gbc_bg()
 				if(highlight)
 				{
 					u8 temp = scanline_pixel_counter - 1;
-					scanline_pixel_buffer[temp] += 0x00700000;
+					scanline_pixel_buffer[temp] += 0x00808080;
 				}
 			}
 
@@ -1450,7 +1450,7 @@ void gbe_cgfx::draw_dmg_win()
 				if(highlight)
 				{
 					u8 temp = scanline_pixel_counter - 1;
-					scanline_pixel_buffer[temp] += 0x00700000;
+					scanline_pixel_buffer[temp] += 0x00808080;
 				}
 			}
 		}
@@ -1594,7 +1594,7 @@ void gbe_cgfx::draw_gbc_win()
 				if(highlight)
 				{
 					u8 temp = scanline_pixel_counter - 1;
-					scanline_pixel_buffer[temp] += 0x00700000;
+					scanline_pixel_buffer[temp] += 0x00808080;
 				}
 			}
 
