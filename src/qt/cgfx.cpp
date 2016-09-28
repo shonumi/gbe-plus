@@ -2756,11 +2756,34 @@ bool gbe_cgfx::eventFilter(QObject* target, QEvent* event)
 				u8 sx = main_menu::gbe_plus->ex_read_u8(REG_SX) % 8;
 				u8 sy = main_menu::gbe_plus->ex_read_u8(REG_SY) % 8;
 
-				u8 tile_start_x = (mouse_start_x >> 1) / 8;
-				u8 tile_start_y = (mouse_start_y >> 1) / 8;
+				u8 tile_start_x, tile_start_y = 0;
+				u8 tile_x, tile_y = 0;
 
-				u8 tile_x = (x / 8);
-				u8 tile_y = (y / 8);
+				//Make sure selections work no matter which direction mouse drags in
+				//Set the start and end points according to where the newest position is in relation to the original mouse click
+				if(mouse_event->x() > mouse_start_x)
+				{
+					tile_start_x = (mouse_start_x >> 1) / 8;
+					tile_x = (x / 8);
+				}
+
+				else
+				{
+					tile_start_x = (x / 8);
+					tile_x = (mouse_start_x >> 1) / 8;
+				}
+
+				if(mouse_event->y() > mouse_start_y)
+				{
+					tile_start_y = (mouse_start_y >> 1) / 8;
+					tile_y = (y / 8);
+				}
+
+				else
+				{
+					tile_start_y = (y / 8);
+					tile_y = (mouse_start_y >> 1) / 8;
+				}
 
 				//Set X and Y
 				rect_x->setValue(tile_start_x + 1);
@@ -2781,11 +2804,34 @@ bool gbe_cgfx::eventFilter(QObject* target, QEvent* event)
 				u8 wy = main_menu::gbe_plus->ex_read_u8(REG_WY);
 				wx = (wx < 7) ? 0 : (wx - 7);
 
-				u8 tile_start_x = ((mouse_start_x >> 1) - wx) / 8;
-				u8 tile_start_y = ((mouse_start_y >> 1) - wy) / 8;
+				u8 tile_start_x, tile_start_y = 0;
+				u8 tile_x, tile_y = 0;
 
-				u8 tile_x = ((x - wx) / 8);
-				u8 tile_y = ((y - wy) / 8);
+				//Make sure selections work no matter which direction mouse drags in
+				//Set the start and end points according to where the newest position is in relation to the original mouse click
+				if(mouse_event->x() > mouse_start_x)
+				{
+					tile_start_x = ((mouse_start_x >> 1) - wx) / 8;
+					tile_x = ((x - wx) / 8);
+				}
+
+				else
+				{
+					tile_start_x = ((x - wx) / 8);
+					tile_x = ((mouse_start_x >> 1) - wx) / 8;
+				}
+
+				if(mouse_event->y() > mouse_start_y)
+				{
+					tile_start_y = ((mouse_start_y >> 1) - wy) / 8;
+					tile_y = ((y - wy) / 8);
+				}
+
+				else
+				{
+					tile_start_y = ((y - wy) / 8);
+					tile_y = ((mouse_start_y >> 1) - wy) / 8;
+				}
 
 				//Set X and Y
 				rect_x->setValue(tile_start_x + 1);
