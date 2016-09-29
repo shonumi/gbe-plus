@@ -174,6 +174,7 @@ class gbe_cgfx : public QDialog
 	void reject_folder();
 	void update_selection();
 	void ignore_manifest_warnings();
+	void advance_next_frame();
 };
 
 #endif //CGFX_GBE_QT 

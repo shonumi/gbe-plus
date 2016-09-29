@@ -120,6 +120,15 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	layer_select_layout->addWidget(layer_select);
 	select_set->setLayout(layer_select_layout);
 
+	//Frame control
+	QWidget* frame_control_set = new QWidget(layers_tab);
+	QPushButton* next_frame = new QPushButton("Advance Next Frame");
+
+	QHBoxLayout* frame_control_layout = new QHBoxLayout;
+	frame_control_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	frame_control_layout->addWidget(next_frame);
+	frame_control_set->setLayout(frame_control_layout);
+
 	//Layer section selector - X
 	QWidget* section_x_set = new QWidget(layers_tab);
 	QLabel* section_x_label = new QLabel("Tile X :\t");
@@ -254,6 +263,7 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	QGridLayout* layers_tab_layout = new QGridLayout;
 	layers_tab_layout->addWidget(select_set, 0, 0, 1, 1);
 	layers_tab_layout->addWidget(current_layer, 1, 0, 1, 1);
+	layers_tab_layout->addWidget(frame_control_set, 2, 0, 1, 1);
 
 	layers_tab_layout->addWidget(current_tile, 1, 1, 1, 1);
 	layers_tab_layout->addWidget(layer_info, 0, 1, 1, 1);
@@ -291,6 +301,7 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	connect(rect_w, SIGNAL(valueChanged(int)), this, SLOT(update_selection()));
 	connect(rect_h, SIGNAL(valueChanged(int)), this, SLOT(update_selection()));
 	connect(dump_section_button, SIGNAL(clicked()), this, SLOT(dump_selection()));
+	connect(next_frame, SIGNAL(clicked()), this, SLOT(advance_next_frame()));
 
 	//CGFX advanced dumping pop-up box
 	advanced_box = new QDialog();
@@ -3600,3 +3611,44 @@ bool gbe_cgfx::parse_manifest_items()
 
 /****** Ignores manifest warnings until program quits ******/
 void gbe_cgfx::ignore_manifest_warnings() { enable_manifest_warning = false; }
+
+/****** Advances to the next frame from within the CGFX screen ******/
+void gbe_cgfx::advance_next_frame()
+{
+	if(main_menu::gbe_plus == NULL) { return; }
+
+	u8 on_status = 0;
+	u8 next_ly = main_menu::gbe_plus->ex_read_u8(REG_LY);
+	next_ly += 1;
+	next_ly = next_ly % 0x90;
+
+	//Run until next LY or LCD disabled
+	while(main_menu::gbe_plus->ex_read_u8(REG_LY) != next_ly)
+	{
+		on_status = main_menu::gbe_plus->ex_read_u8(REG_LCDC);
+		
+		if((on_status & 0x80) == 0)
+		{
+			layer_change();
+			return;
+		}
+
+		main_menu::gbe_plus->step();
+	}
+
+	//Run until emulator hits old LY value or LCD disabled
+	while(main_menu::gbe_plus->ex_read_u8(REG_LY) != 0x90)
+	{
+		on_status = main_menu::gbe_plus->ex_read_u8(REG_LCDC);
+
+		if((on_status & 0x80) == 0)
+		{
+			layer_change();
+			return;
+		}
+
+		main_menu::gbe_plus->step();
+	}
+
+	layer_change();
+}
