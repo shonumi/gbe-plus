@@ -863,6 +863,21 @@ void main_menu::show_cgfx()
 
 	findChild<QAction*>("pause_action")->setEnabled(false);
 
+	//Wait until LY equals the selected line to stop on, or LCD is turned off
+	bool spin_emu = (main_menu::gbe_plus == NULL) ? false : true;
+	u8 target_ly = 0;
+	u8 on_status = 0;
+
+	while(spin_emu)
+	{
+		on_status = main_menu::gbe_plus->ex_read_u8(REG_LCDC);
+		target_ly = main_menu::gbe_plus->ex_read_u8(REG_LY);
+
+		if((on_status & 0x80) == 0) { spin_emu = false; }
+		else if(target_ly == cgfx->render_stop_line->value()) { spin_emu = false; }
+		else { main_menu::gbe_plus->step(); }
+	}
+
 	cgfx->update_obj_window(8, 40);
 	cgfx->update_bg_window(8, 384);
 

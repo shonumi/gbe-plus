@@ -68,6 +68,7 @@ class gbe_cgfx : public QDialog
 
 	//Layers tab widgets
 	QComboBox* layer_select;
+	QSpinBox* render_stop_line;
 	QLabel* tile_id;
 	QLabel* tile_addr;
 	QLabel* tile_size;

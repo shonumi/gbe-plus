@@ -121,11 +121,23 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	select_set->setLayout(layer_select_layout);
 
 	//Frame control
-	QWidget* frame_control_set = new QWidget(layers_tab);
+	QGroupBox* frame_control_set = new QGroupBox(tr("Frame Control"));
 	QPushButton* next_frame = new QPushButton("Advance Next Frame");
 
-	QHBoxLayout* frame_control_layout = new QHBoxLayout;
+	QWidget* render_stop_set = new QWidget(layers_tab);
+	QLabel* render_stop_label = new QLabel("Stop LCD rendering on line: ");
+	render_stop_line = new QSpinBox(render_stop_set);
+	render_stop_line->setRange(0, 0x90);
+
+	QHBoxLayout* render_stop_layout = new QHBoxLayout;
+	render_stop_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	render_stop_layout->addWidget(render_stop_label);
+	render_stop_layout->addWidget(render_stop_line);
+	render_stop_set->setLayout(render_stop_layout);
+
+	QVBoxLayout* frame_control_layout = new QVBoxLayout;
 	frame_control_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	frame_control_layout->addWidget(render_stop_set);
 	frame_control_layout->addWidget(next_frame);
 	frame_control_set->setLayout(frame_control_layout);
 
@@ -406,6 +418,7 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	last_custom_path = "";
 
 	min_x_rect = min_y_rect = max_x_rect = max_y_rect = 255;
+	render_stop_line->setValue(0x90);
 
 	pause = false;
 	hash_text->setScaledContents(true);
@@ -3620,7 +3633,7 @@ void gbe_cgfx::advance_next_frame()
 	u8 on_status = 0;
 	u8 next_ly = main_menu::gbe_plus->ex_read_u8(REG_LY);
 	next_ly += 1;
-	next_ly = next_ly % 0x90;
+	if(next_ly >= 0x90) { next_ly = 0; }
 
 	//Run until next LY or LCD disabled
 	while(main_menu::gbe_plus->ex_read_u8(REG_LY) != next_ly)
@@ -3637,7 +3650,7 @@ void gbe_cgfx::advance_next_frame()
 	}
 
 	//Run until emulator hits old LY value or LCD disabled
-	while(main_menu::gbe_plus->ex_read_u8(REG_LY) != 0x90)
+	while(main_menu::gbe_plus->ex_read_u8(REG_LY) != render_stop_line->value())
 	{
 		on_status = main_menu::gbe_plus->ex_read_u8(REG_LCDC);
 
