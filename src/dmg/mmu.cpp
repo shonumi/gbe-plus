@@ -1608,6 +1608,8 @@ bool DMG_MMU::read_file(std::string filename)
 	//Load backup save data if applicable
         load_backup(config::save_file);
 
+	patch_ips("/home/shonumi/PKCRYSTAL.ips");
+
 	return true;
 }
 
@@ -1938,7 +1940,7 @@ bool DMG_MMU::patch_ips(std::string filename)
 				//Patch for Banks 2 and above
 				if(offset > 0x7FFF)
 				{
-					u8 patch_bank = 2 - (offset >> 14);	
+					u16 patch_bank = (offset >> 14) - 2;	
 					u16 patch_addr = offset & 0x3FFF;
 
 					read_only_bank[patch_bank][patch_addr] = patch_byte;
@@ -1964,12 +1966,18 @@ bool DMG_MMU::patch_ips(std::string filename)
 			u16 rle_size = (patch_data[patch_pos++] << 8) | patch_data[patch_pos++];
 			u8 patch_byte = patch_data[patch_pos++];
 
+			if((patch_pos + rle_size) > file_size)
+			{
+				std::cout<<"MMU::" << filename << " file ends unexpectedly (RLE DATA). Aborting further patching.\n";
+				return false;
+			}
+
 			for(u32 x = 0; x < rle_size; x++)
 			{
 				//Patch for Banks 2 and above
 				if(offset > 0x7FFF)
 				{
-					u8 patch_bank = 2 - (offset >> 14);	
+					u16 patch_bank = (offset >> 14) - 2;	
 					u16 patch_addr = offset & 0x3FFF;
 
 					read_only_bank[patch_bank][patch_addr] = patch_byte;
