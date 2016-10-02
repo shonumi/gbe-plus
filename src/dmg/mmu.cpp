@@ -1867,6 +1867,128 @@ void DMG_MMU::set_gg_cheats()
 	}
 }
 
+/****** Applies an IPS patch to a ROM loaded in memory ******/
+bool DMG_MMU::patch_ips(std::string filename)
+{
+	std::ifstream patch_file(filename.c_str(), std::ios::binary);
+
+	if(!patch_file.is_open()) 
+	{ 
+		std::cout<<"MMU::" << filename << " IPS patch file could not be opened. Check file path or permissions. \n";
+		return false;
+	}
+
+	//Get the file size
+	patch_file.seekg(0, patch_file.end);
+	u32 file_size = patch_file.tellg();
+	patch_file.seekg(0, patch_file.beg);
+
+	std::vector<u8> patch_data;
+	patch_data.resize(file_size, 0);
+
+	//Read patch file into buffer
+	u8* ex_patch = &patch_data[0];
+	patch_file.read((char*)ex_patch, file_size);
+
+	//Check header for PATCH string
+	if((patch_data[0] != 0x50) || (patch_data[1] != 0x41) || (patch_data[2] != 0x54) || (patch_data[3] != 0x43) || (patch_data[4] != 0x48))
+	{
+		std::cout<<"MMU::" << filename << " IPS patch file has invalid header\n";
+		return false;
+	}
+
+	bool end_of_file = false;
+	u32 patch_pos = 5;
+
+	while((patch_pos < file_size) && (!end_of_file))
+	{
+		//Grab a record offset - 3 bytes
+		if((patch_pos + 3) > file_size)
+		{
+			std::cout<<"MMU::" << filename << " file ends unexpectedly (OFFSET). Aborting further patching.\n";
+		}
+
+		u32 offset = (patch_data[patch_pos++] << 16) | (patch_data[patch_pos++] << 8) | patch_data[patch_pos++];
+
+		//Quit if EOF marker is reached
+		if(offset == 0x454F46) { end_of_file = true; break; }
+
+		//Grab record size - 2 bytes
+		if((patch_pos + 2) > file_size)
+		{
+			std::cout<<"MMU::" << filename << " file ends unexpectedly (DATA_SIZE). Aborting further patching.\n";
+			return false;
+		}
+
+		u16 data_size = (patch_data[patch_pos++] << 8) | patch_data[patch_pos++];
+
+		//Perform regular patching if size is non-zero
+		if(data_size)
+		{
+			if((patch_pos + data_size) > file_size)
+			{
+				std::cout<<"MMU::" << filename << " file ends unexpectedly (DATA). Aborting further patching.\n";
+				return false;
+			}
+
+			for(u32 x = 0; x < data_size; x++)
+			{
+				u8 patch_byte = patch_data[patch_pos++];
+
+				//Patch for Banks 2 and above
+				if(offset > 0x7FFF)
+				{
+					u8 patch_bank = 2 - (offset >> 14);	
+					u16 patch_addr = offset & 0x3FFF;
+
+					read_only_bank[patch_bank][patch_addr] = patch_byte;
+				}
+
+				//Patch for Banks 0-1
+				else { memory_map[offset] = patch_byte; }
+
+				offset++;
+			}
+		}
+
+		//Patch with RLE
+		else
+		{
+			//Grab Run-length size - 2 bytes
+			if((patch_pos + 3) > file_size)
+			{
+				std::cout<<"MMU::" << filename << " file ends unexpectedly (RLE). Aborting further patching.\n";
+				return false;
+			}
+
+			u16 rle_size = (patch_data[patch_pos++] << 8) | patch_data[patch_pos++];
+			u8 patch_byte = patch_data[patch_pos++];
+
+			for(u32 x = 0; x < rle_size; x++)
+			{
+				//Patch for Banks 2 and above
+				if(offset > 0x7FFF)
+				{
+					u8 patch_bank = 2 - (offset >> 14);	
+					u16 patch_addr = offset & 0x3FFF;
+
+					read_only_bank[patch_bank][patch_addr] = patch_byte;
+				}
+
+				//Patch for Banks 0-1
+				else { memory_map[offset] = patch_byte; }
+
+				offset++;
+			}
+		}
+	}
+
+	patch_file.close();
+	patch_data.clear();
+
+	return true;
+}
+
 /****** Points the MMU to an lcd_data structure (FROM THE LCD ITSELF) ******/
 void DMG_MMU::set_lcd_data(dmg_lcd_data* ex_lcd_stat) { lcd_stat = ex_lcd_stat; }
 
