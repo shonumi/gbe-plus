@@ -99,6 +99,9 @@ namespace config
 	std::vector <u32> gs_cheats;
 	std::vector <std::string> gg_cheats;
 
+	//Patches
+	bool use_patches = false;
+
 	//Netplay settings
 	bool use_netplay = true;
 	bool netplay_hard_sync = true;
@@ -522,8 +525,10 @@ bool parse_cli_args()
 			//Use OpenGL for screen drawing
 			else if(config::cli_args[x] == "--opengl") { config::use_opengl = true; }
 
-			//Use Gameshark cheats
+			//Use Gameshark or Game Genie cheats
 			else if(config::cli_args[x] == "--cheats") { config::use_cheats = true; }
+
+			else if(config::cli_args[x] == "--patch") { config::use_patches = true; }
 
 			//Scale screen by 2x
 			else if(config::cli_args[x] == "--2x") { config::scaling_factor = config::old_scaling_factor = 2; }
@@ -563,7 +568,8 @@ bool parse_cli_args()
 				std::cout<<"-d, --debug \t\t\t\t Start the command-line debugger\n";
 				std::cout<<"--multicart \t\t\t\t Use multicart mode if applicable\n";
 				std::cout<<"--opengl \t\t\t\t Use OpenGL for screen drawing and scaling\n";
-				std::cout<<"--cheats \t\t\t\t Use Gameshark cheats\n";
+				std::cout<<"--cheats \t\t\t\t Use Gameshark or Game Genie cheats\n";
+				std::cout<<"--patch \t\t\t\t Use a patch file for the ROM\n";
 				std::cout<<"--2x, --3x, --4x, --5x, --6x \t\t Scale screen by a given factor (OpenGL only)\n";
 				std::cout<<"--sys-auto \t\t\t\t Set the emulated system type to AUTO\n";
 				std::cout<<"--sys-dmg \t\t\t\t Set the emulated system type to DMG (old Gameboy)\n";
@@ -755,6 +761,26 @@ bool parse_ini_file()
 			else 
 			{
 				std::cout<<"GBE::Error - Could not parse gbe.ini (#use_cheats) \n";
+				return false;
+			}
+		}
+
+		//Use patches
+		if(ini_item == "#use_patches")
+		{
+			if((x + 1) < size) 
+			{
+				ini_item = ini_opts[++x];
+				std::stringstream temp_stream(ini_item);
+				temp_stream >> output;
+
+				if(output == 1) { config::use_patches = true; }
+				else { config::use_patches = false; }
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#use_patches) \n";
 				return false;
 			}
 		}
@@ -1824,6 +1850,15 @@ bool save_ini_file()
 			std::string val = (config::use_cheats) ? "1" : "0";
 
 			output_lines[line_pos] = "[#use_cheats:" + val + "]";
+		}
+
+		//Use patches
+		else if(ini_item == "#use_patches")
+		{
+			line_pos = output_count[x];
+			std::string val = (config::use_patches) ? "1" : "0";
+
+			output_lines[line_pos] = "[#use_patches:" + val + "]";
 		}
 
 		//DMG BIOS path

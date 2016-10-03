@@ -1545,6 +1545,17 @@ bool DMG_MMU::read_file(std::string filename)
 	file.close();
 	std::cout<<"MMU::" << filename << " loaded successfully. \n";
 
+	//Apply patches to the ROM data
+	if(config::use_patches)
+	{
+		std::size_t dot = filename.find_last_of(".");
+		if(dot == std::string::npos) { dot = filename.size(); }
+
+		std::string patch_file = filename.substr(0, dot);
+
+		patch_ips(patch_file + ".ips");
+	}
+
 	//Apply Game Genie codes to ROM data
 	if(config::use_cheats) { set_gg_cheats(); }
 
@@ -1607,8 +1618,6 @@ bool DMG_MMU::read_file(std::string filename)
 
 	//Load backup save data if applicable
         load_backup(config::save_file);
-
-	patch_ips("/home/shonumi/PKCRYSTAL.ips");
 
 	return true;
 }
@@ -1943,6 +1952,12 @@ bool DMG_MMU::patch_ips(std::string filename)
 					u16 patch_bank = (offset >> 14) - 2;	
 					u16 patch_addr = offset & 0x3FFF;
 
+					if(patch_bank > 0x1FF)
+					{
+						std::cout<<"MMU::" << filename << " patches beyond max ROM size (DATA). Aborting further patching.\n";
+						return false;
+					}
+
 					read_only_bank[patch_bank][patch_addr] = patch_byte;
 				}
 
@@ -1956,7 +1971,7 @@ bool DMG_MMU::patch_ips(std::string filename)
 		//Patch with RLE
 		else
 		{
-			//Grab Run-length size - 2 bytes
+			//Grab Run-length size and value - 3 bytes
 			if((patch_pos + 3) > file_size)
 			{
 				std::cout<<"MMU::" << filename << " file ends unexpectedly (RLE). Aborting further patching.\n";
@@ -1966,12 +1981,6 @@ bool DMG_MMU::patch_ips(std::string filename)
 			u16 rle_size = (patch_data[patch_pos++] << 8) | patch_data[patch_pos++];
 			u8 patch_byte = patch_data[patch_pos++];
 
-			if((patch_pos + rle_size) > file_size)
-			{
-				std::cout<<"MMU::" << filename << " file ends unexpectedly (RLE DATA). Aborting further patching.\n";
-				return false;
-			}
-
 			for(u32 x = 0; x < rle_size; x++)
 			{
 				//Patch for Banks 2 and above
@@ -1979,6 +1988,12 @@ bool DMG_MMU::patch_ips(std::string filename)
 				{
 					u16 patch_bank = (offset >> 14) - 2;	
 					u16 patch_addr = offset & 0x3FFF;
+
+					if(patch_bank > 0x1FF)
+					{
+						std::cout<<"MMU::" << filename << " patches beyond max ROM size (RLE DATA). Aborting further patching.\n";
+						return false;
+					}
 
 					read_only_bank[patch_bank][patch_addr] = patch_byte;
 				}

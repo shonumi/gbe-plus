@@ -75,6 +75,7 @@ namespace config
 	extern bool use_cheats;
 	extern std::vector <u32> gs_cheats;
 	extern std::vector <std::string> gg_cheats;
+	extern bool use_patches;
 
 	extern bool use_netplay;
 	extern bool netplay_hard_sync;
