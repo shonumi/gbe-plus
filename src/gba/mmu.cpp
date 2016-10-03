@@ -1769,6 +1769,12 @@ bool AGB_MMU::read_file(std::string filename)
 	file.close();
 	std::cout<<"MMU::" << filename << " loaded successfully. \n";
 
+	//Mirror ROM to different parts of the GBA memory map (Wait States 1 and 2)
+	for(u32 x = 0x8000000; x < 0x9FFFFFF; x++)
+	{
+		memory_map[0xA000000 + (x - 0x8000000)] = memory_map[0xC000000 + (x - 0x8000000)] = memory_map[x];
+	}
+
 	//Calculate 8-bit checksum
 	u8 checksum = 0;
 
