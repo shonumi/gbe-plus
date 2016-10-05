@@ -28,7 +28,6 @@ void ARM7::branch_exchange(u32 current_arm_instruction)
 			arm_mode = THUMB;
 			reg.cpsr |= 0x20;
 			result &= ~0x1;
-			//std::cout<<"\n\n ** Switching to THUMB Mode ** \n\n";
 		}
 
 		switch(op)
@@ -75,7 +74,7 @@ void ARM7::branch_link(u32 current_arm_instruction)
 		offset--;
 		offset = ~offset;
 
-	jump_addr = (offset * -4);
+		jump_addr = (offset * -4);
 	}
 
 	else { jump_addr = offset * 4; }
@@ -502,8 +501,7 @@ void ARM7::psr_transfer(u32 current_arm_instruction)
 
 	//Clock CPU and controllers - 1S
 	clock((reg.r15 + 4), false);
-} 
-
+}
 
 /****** ARM.7 Multiply and Multiply-Accumulate ******/
 void ARM7::multiply(u32 current_arm_instruction)
@@ -776,7 +774,6 @@ void ARM7::single_data_transfer(u32 current_arm_instruction)
 				break;
 		}
 	}
-
 
 	//Increment or decrement before transfer if pre-indexing
 	if(pre_post == 1) 

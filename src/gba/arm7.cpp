@@ -1576,6 +1576,4 @@ void ARM7::handle_interrupt()
 		}
 	}
 }
-	
-				
-				
+			

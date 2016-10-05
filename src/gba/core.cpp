@@ -200,6 +200,8 @@ void AGB_core::run_core()
 		else { stop(); }
 	}
 
+	std::cout<<"IE -> 0x" << std::hex << core_mmu.read_u32(REG_IE) << "\n";
+
 	//Shutdown core
 	shutdown();
 }
