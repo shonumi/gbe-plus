@@ -22,6 +22,7 @@ enum sio_types
 	DMG_07_LINK,
 	GBC_LINK,
 	GB_PRINTER,
+	GB_MOBILE_ADAPTER,
 };
 
 enum printer_state
@@ -33,6 +34,15 @@ enum printer_state
 	GBP_RECEIVE_DATA,
 	GBP_RECEIVE_CHECKSUM,
 	GBP_ACKNOWLEDGE_PACKET,
+};
+
+enum mobile_state
+{
+	GBMA_AWAITING_PACKET,
+	GBMA_RECEIVE_HEADER,
+	GBMA_RECEIVE_DATA,
+	GBMA_RECEIVE_CHECKSUM,
+	GBMA_ACKNOWLEDGE_PACKET,
 };
 
 struct dmg_sio_data

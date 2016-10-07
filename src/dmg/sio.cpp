@@ -163,6 +163,17 @@ void DMG_SIO::reset()
 	printer.checksum = 0;
 	printer.status = 0;
 
+	//GB Mobile Adapter
+	mobile_adapter.data.clear();
+	mobile_adapter.data.resize(0xC0, 0x0);
+	mobile_adapter.packet_buffer.clear();
+	mobile_adapter.packet_size = 0;
+	mobile_adapter.current_state = GBMA_AWAITING_PACKET;
+
+	mobile_adapter.command = 0;
+	mobile_adapter.data_length = 0;
+	mobile_adapter.checksum = 0;
+
 	#ifdef GBE_NETPLAY
 
 	//Close any current connections
@@ -887,4 +898,189 @@ void DMG_SIO::print_image()
 	SDL_FreeSurface(print_screen);
 
 	printer.strip_count = 0;
+}
+
+/****** Processes data sent to the GB Mobile Adapter ******/
+void DMG_SIO::mobile_adapter_process()
+{
+	switch(mobile_adapter.current_state)
+	{
+		//Receive packet data
+		case GBMA_AWAITING_PACKET:
+			
+			//Push data to packet buffer	
+			mobile_adapter.packet_buffer.push_back(sio_stat.transfer_byte);
+			mobile_adapter.packet_size++;
+
+			std::cout<<"THIS\n";
+
+			//Check for magic number 0x99 0x66
+			if((mobile_adapter.packet_size == 2) && (mobile_adapter.packet_buffer[0] == 0x99) && (mobile_adapter.packet_buffer[1] == 0x66))
+			{
+				//Move to the next state
+				mobile_adapter.packet_size = 0;
+				mobile_adapter.current_state = GBMA_RECEIVE_HEADER;
+
+				std::cout<<"SIO::Mobile Adapter - Magic Bytes Detected\n";
+			}
+
+			//If magic number not found, reset
+			else if(mobile_adapter.packet_size == 2)
+			{
+				mobile_adapter.packet_size = 1;
+				u8 temp = mobile_adapter.packet_buffer[1];
+				mobile_adapter.packet_buffer.clear();
+				mobile_adapter.packet_buffer.push_back(temp);
+			}
+
+			//Send data back to GB + IRQ
+			mem->memory_map[REG_SB] = 0x4B;
+			mem->memory_map[IF_FLAG] |= 0x08;
+			
+			break;
+
+		//Receive header data
+		case GBMA_RECEIVE_HEADER:
+
+			//Push data to packet buffer
+			mobile_adapter.packet_buffer.push_back(sio_stat.transfer_byte);
+			mobile_adapter.packet_size++;
+
+			//Process header data
+			if(mobile_adapter.packet_size == 4)
+			{
+				mobile_adapter.command = mobile_adapter.packet_buffer[2];
+				mobile_adapter.data_length = mobile_adapter.packet_buffer[5];
+
+				//Move to the next state
+				mobile_adapter.packet_size = 0;
+				mobile_adapter.current_state = GBMA_RECEIVE_DATA;
+
+				std::cout<<"SIO::Mobile Adapter - Command ID 0x" << std::hex << (u32)mobile_adapter.command << "\n";
+				std::cout<<"SIO::Mobile Adapter - Data Length 0x" << std::hex << (u32)mobile_adapter.data_length << "\n";
+			}
+			
+			//Send data back to GB + IRQ
+			mem->memory_map[REG_SB] = 0x4B;
+			mem->memory_map[IF_FLAG] |= 0x08;
+			
+			break;
+
+		//Receive tranferred data
+		case GBMA_RECEIVE_DATA:
+
+			//Push data to packet buffer
+			mobile_adapter.packet_buffer.push_back(sio_stat.transfer_byte);
+			mobile_adapter.packet_size++;
+
+			//Move onto the next state once all data has been received
+			if(mobile_adapter.packet_size == mobile_adapter.data_length)
+			{
+				mobile_adapter.packet_size = 0;
+				mobile_adapter.current_state = GBMA_RECEIVE_CHECKSUM;
+			}
+
+			//Send data back to GB + IRQ
+			mem->memory_map[REG_SB] = 0x4B;
+			mem->memory_map[IF_FLAG] |= 0x08;
+
+			break;
+
+		//Receive packet checksum
+		case GBMA_RECEIVE_CHECKSUM:
+
+			//Push data to packet buffer
+			mobile_adapter.packet_buffer.push_back(sio_stat.transfer_byte);
+			mobile_adapter.packet_size++;
+
+			//Grab MSB of the checksum
+			if(mobile_adapter.packet_size == 1)
+			{
+				mobile_adapter.checksum = (sio_stat.transfer_byte << 8);
+
+				//Send data back to GB + IRQ
+				mem->memory_map[REG_SB] = 0x4B;
+				mem->memory_map[IF_FLAG] |= 0x08;
+			}
+
+			//Grab LSB of the checksum, move on to next state
+			else if(mobile_adapter.packet_size == 2)
+			{
+				mobile_adapter.checksum |= sio_stat.transfer_byte;
+
+				//Verify the checksum data
+				u16 real_checksum = 0;
+
+				for(u32 x = 2; x < (mobile_adapter.data_length + 6); x++)
+				{
+					real_checksum += mobile_adapter.packet_buffer[x];
+				}
+
+				//Move on to packet acknowledgement
+				if(mobile_adapter.checksum == real_checksum)
+				{
+					mobile_adapter.packet_size = 0;
+					mobile_adapter.current_state = GBMA_ACKNOWLEDGE_PACKET;
+
+					//Send data back to GB + IRQ
+					mem->memory_map[REG_SB] = 0x4B;
+					mem->memory_map[IF_FLAG] |= 0x08;
+
+					std::cout<<"SIO::Mobile Adapter - Checksum Clear \n";
+				}
+
+				//Send and error and wait for the packet to restart
+				else
+				{
+					mobile_adapter.packet_size = 0;
+					mobile_adapter.current_state = GBMA_AWAITING_PACKET;
+
+					//Send data back to GB + IRQ
+					mem->memory_map[REG_SB] = 0xF1;
+					mem->memory_map[IF_FLAG] |= 0x08;
+
+					std::cout<<"SIO::Mobile Adapter - Checksum Fail \n";
+				}
+			}
+
+			break;
+
+		//Acknowledge packet
+		case GBP_ACKNOWLEDGE_PACKET:
+		
+			//Push data to packet buffer
+			mobile_adapter.packet_buffer.push_back(sio_stat.transfer_byte);
+			mobile_adapter.packet_size++;
+
+			//Mobile Adapter expects 0x80 from GBC, sends back 0x8C through 0x8F (does not matter which)
+			if(mobile_adapter.packet_size == 1)
+			{
+				if(sio_stat.transfer_byte == 0x80)
+				{
+					mem->memory_map[REG_SB] = 0x8C;
+					mem->memory_map[IF_FLAG] |= 0x08;
+				}
+
+				else
+				{
+					mobile_adapter.packet_size = 0;
+					mem->memory_map[REG_SB] = 0x4B;
+					mem->memory_map[IF_FLAG] |= 0x08;
+				}	
+			}
+
+			//Send back 0x80 XOR current command + IRQ on 2nd byte, begin processing command
+			else if(mobile_adapter.packet_size == 2)
+			{
+
+				mem->memory_map[REG_SB] = 0x80 ^ mobile_adapter.command;
+				mem->memory_map[IF_FLAG] |= 0x08;
+
+				mobile_adapter.packet_buffer.clear();
+				mobile_adapter.packet_size = 0;
+				mobile_adapter.current_state = GBMA_AWAITING_PACKET;
+			}
+
+			break;
+	}
 }

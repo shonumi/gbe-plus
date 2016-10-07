@@ -73,6 +73,19 @@ class DMG_SIO
 		u8 pal[4];
 	} printer;
 
+	//GB Mobile Adapter
+	struct gb_mobile_adapter
+	{
+		std::vector <u8> data;
+		std::vector <u8> packet_buffer;
+		u32 packet_size;	
+		mobile_state current_state;
+
+		u8 command;
+		u16 checksum;
+		u8 data_length;
+	} mobile_adapter;
+
 	DMG_SIO();
 	~DMG_SIO();
 
@@ -89,6 +102,8 @@ class DMG_SIO
 	void printer_execute_command();
 	void printer_data_process();
 	void print_image();
+
+	void mobile_adapter_process();
 };
 
 #endif // GB_SIO
