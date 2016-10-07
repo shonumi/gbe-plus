@@ -37,6 +37,7 @@ class gen_settings : public QDialog
 	QCheckBox* multicart;
 	QCheckBox* cheats;
 	QCheckBox* printer;
+	QCheckBox* auto_patch;
 
 	//Display tab widgets
 	QComboBox* screen_scale;
@@ -141,6 +142,7 @@ class gen_settings : public QDialog
 	private slots:
 	void set_bios();
 	void set_printer();
+	void set_patches();
 	void set_ogl();
 	void screen_scale_change();
 	void aspect_ratio_change();

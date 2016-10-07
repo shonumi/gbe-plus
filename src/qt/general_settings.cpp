@@ -101,6 +101,17 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	printer_layout->addWidget(printer_label);
 	printer_set->setLayout(printer_layout);
 
+	//General settings - Enable patches
+	QWidget* patch_set = new QWidget(general);
+	QLabel* patch_label = new QLabel("Enable ROM patches", patch_set);
+	auto_patch = new QCheckBox(patch_set);
+
+	QHBoxLayout* patch_layout = new QHBoxLayout;
+	patch_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	patch_layout->addWidget(auto_patch);
+	patch_layout->addWidget(patch_label);
+	patch_set->setLayout(patch_layout);
+
 	QVBoxLayout* gen_layout = new QVBoxLayout;
 	gen_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	gen_layout->addWidget(sys_type_set);
@@ -108,6 +119,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	gen_layout->addWidget(cheats_set);
 	gen_layout->addWidget(multicart_set);
 	gen_layout->addWidget(printer_set);
+	gen_layout->addWidget(patch_set);
 	general->setLayout(gen_layout);
 
 	//Display settings - Screen scale
@@ -775,6 +787,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(tabs_button->button(QDialogButtonBox::Close), SIGNAL(clicked()), this, SLOT(close_settings()));
 	connect(bios, SIGNAL(stateChanged(int)), this, SLOT(set_bios()));
 	connect(printer, SIGNAL(stateChanged(int)), this, SLOT(set_printer()));
+	connect(auto_patch, SIGNAL(stateChanged(int)), this, SLOT(set_patches()));
 	connect(ogl, SIGNAL(stateChanged(int)), this, SLOT(set_ogl()));
 	connect(screen_scale, SIGNAL(currentIndexChanged(int)), this, SLOT(screen_scale_change()));
 	connect(aspect_ratio, SIGNAL(stateChanged(int)), this, SLOT(aspect_ratio_change()));
@@ -978,6 +991,9 @@ void gen_settings::set_ini_options()
 	//Emulate GB Printer
 	if(config::use_gb_printer) { printer->setChecked(true); }
 
+	//Enable patches
+	if(config::use_patches) { auto_patch->setChecked(true); }
+
 	//Use cheats
 	if(config::use_cheats) { cheats->setChecked(true); }
 
@@ -1102,6 +1118,13 @@ void gen_settings::set_printer()
 {
 	if(printer->isChecked()) { config::use_gb_printer = true; }
 	else { config::use_gb_printer = false; }
+}
+
+/****** Toggles whether to enable auto-patching ******/
+void gen_settings::set_patches()
+{
+	if(auto_patch->isChecked()) { config::use_patches = true; }
+	else { config::use_patches = false; }
 }
 
 /****** Toggles enabling or disabling the fragment shader widget when setting OpenGL ******/
