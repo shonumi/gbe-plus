@@ -903,6 +903,8 @@ void DMG_SIO::print_image()
 /****** Processes data sent to the GB Mobile Adapter ******/
 void DMG_SIO::mobile_adapter_process()
 {
+	std::cout<<"CURRENT BYTE -> 0x" << std::hex << (u32)sio_stat.transfer_byte << "\n";
+
 	switch(mobile_adapter.current_state)
 	{
 		//Receive packet data
@@ -911,8 +913,6 @@ void DMG_SIO::mobile_adapter_process()
 			//Push data to packet buffer	
 			mobile_adapter.packet_buffer.push_back(sio_stat.transfer_byte);
 			mobile_adapter.packet_size++;
-
-			std::cout<<"THIS\n";
 
 			//Check for magic number 0x99 0x66
 			if((mobile_adapter.packet_size == 2) && (mobile_adapter.packet_buffer[0] == 0x99) && (mobile_adapter.packet_buffer[1] == 0x66))
@@ -954,7 +954,7 @@ void DMG_SIO::mobile_adapter_process()
 
 				//Move to the next state
 				mobile_adapter.packet_size = 0;
-				mobile_adapter.current_state = GBMA_RECEIVE_DATA;
+				mobile_adapter.current_state = (mobile_adapter.data_length == 0) ? GBMA_RECEIVE_CHECKSUM : GBMA_RECEIVE_DATA;
 
 				std::cout<<"SIO::Mobile Adapter - Command ID 0x" << std::hex << (u32)mobile_adapter.command << "\n";
 				std::cout<<"SIO::Mobile Adapter - Data Length 0x" << std::hex << (u32)mobile_adapter.data_length << "\n";
@@ -1046,7 +1046,7 @@ void DMG_SIO::mobile_adapter_process()
 			break;
 
 		//Acknowledge packet
-		case GBP_ACKNOWLEDGE_PACKET:
+		case GBMA_ACKNOWLEDGE_PACKET:
 		
 			//Push data to packet buffer
 			mobile_adapter.packet_buffer.push_back(sio_stat.transfer_byte);
@@ -1073,12 +1073,110 @@ void DMG_SIO::mobile_adapter_process()
 			else if(mobile_adapter.packet_size == 2)
 			{
 
+				std::cout<<"SIO::Mobile Adapter - Packet Size -> " << mobile_adapter.packet_buffer.size() << "\n";
+
 				mem->memory_map[REG_SB] = 0x80 ^ mobile_adapter.command;
 				mem->memory_map[IF_FLAG] |= 0x08;
 
-				mobile_adapter.packet_buffer.clear();
-				mobile_adapter.packet_size = 0;
-				mobile_adapter.current_state = GBMA_AWAITING_PACKET;
+				//Process commands sent to the mobile adapter
+				switch(mobile_adapter.command)
+				{
+
+					//For certain commands, the mobile adapter echoes the packet it received
+					case 0x10:
+					case 0x11:
+						mobile_adapter.packet_size = 0;
+						mobile_adapter.current_state = GBMA_ECHO_PACKET;
+
+						//Echo packet needs to have the proper handshake with the adapter ID and command
+						mobile_adapter.packet_buffer[mobile_adapter.packet_buffer.size() - 2] = 0x8C;
+						mobile_adapter.packet_buffer[mobile_adapter.packet_buffer.size() - 1] = 0x8C ^ mobile_adapter.command;
+						
+						break;
+
+					//Read configuration data
+					case 0x19:
+						//Grab the offset and length to read. Two bytes of data
+						if(mobile_adapter.data_length >= 2)
+						{
+							u8 config_offset = mobile_adapter.packet_buffer[6];
+							u8 config_length = mobile_adapter.packet_buffer[7];
+
+							std::cout<<"SIO::Mobile Adapter Config Offset 0x" << std::hex << (u32)config_offset << "\n";
+							std::cout<<"SIO::Mobile Adapter Config Length 0x" << std::hex << (u32)config_length << "\n";
+
+							//Start building the reply packet
+							mobile_adapter.packet_buffer.clear();
+
+							//Magic bytes
+							mobile_adapter.packet_buffer.push_back(0x99);
+							mobile_adapter.packet_buffer.push_back(0x66);
+
+							//Header
+							mobile_adapter.packet_buffer.push_back(0x19);
+							mobile_adapter.packet_buffer.push_back(0x00);
+							mobile_adapter.packet_buffer.push_back(0x00);
+							mobile_adapter.packet_buffer.push_back(config_length);
+
+							//Data from 192-byte configuration memory
+							for(u32 x = config_offset; x < (config_offset + config_length); x++)
+							{
+								if(x < 0xC0) { mobile_adapter.packet_buffer.push_back(mobile_adapter.data[x]); }
+								else { std::cout<<"SIO::Error - Mobile Adapter trying to read out-of-bounds memory\n"; return; }
+							}
+
+							//Checksum
+							u16 checksum = 0;
+							for(u32 x = 2; x < mobile_adapter.packet_buffer.size(); x++) { checksum += mobile_adapter.packet_buffer[x]; }
+
+							mobile_adapter.packet_buffer.push_back((checksum >> 8) & 0xFF);
+							mobile_adapter.packet_buffer.push_back(checksum & 0xFF);
+
+							//Acknowledgement handshake
+							mobile_adapter.packet_buffer.push_back(0x8C);
+							mobile_adapter.packet_buffer.push_back(0x95);
+
+							//Send packet back
+							mobile_adapter.packet_size = 0;
+							mobile_adapter.current_state = GBMA_ECHO_PACKET;
+						}
+
+						else { std::cout<<"SIO::Error - Mobile Adapter requested unspecified configuration data\n"; return; }
+
+						break;
+
+
+					default:
+						std::cout<<"SIO::Mobile Adapter - Unknown Command ID 0x" << std::hex << (u32)mobile_adapter.command << "\n";
+						mobile_adapter.packet_buffer.clear();
+						mobile_adapter.packet_size = 0;
+						mobile_adapter.current_state = GBMA_AWAITING_PACKET;
+
+						break;
+				}
+
+				std::cout<<"SIO::Mobile Adapter - Receive Done\n";
+			}
+
+			break;
+
+		//Echo packet back to Game Boy
+		case GBMA_ECHO_PACKET:
+		
+			//Send back the packet bytes
+			if(mobile_adapter.packet_size < mobile_adapter.packet_buffer.size())
+			{
+				mem->memory_map[REG_SB] = mobile_adapter.packet_buffer[mobile_adapter.packet_size++];
+				mem->memory_map[IF_FLAG] |= 0x08;
+
+				if(mobile_adapter.packet_size == mobile_adapter.packet_buffer.size())
+				{
+					std::cout<<"SIO::Mobile Adapter - Echo Done\n";
+			
+					mobile_adapter.packet_buffer.clear();
+					mobile_adapter.packet_size = 0;
+					mobile_adapter.current_state = GBMA_AWAITING_PACKET;
+				}
 			}
 
 			break;

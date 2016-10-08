@@ -43,6 +43,7 @@ enum mobile_state
 	GBMA_RECEIVE_DATA,
 	GBMA_RECEIVE_CHECKSUM,
 	GBMA_ACKNOWLEDGE_PACKET,
+	GBMA_ECHO_PACKET,
 };
 
 struct dmg_sio_data
