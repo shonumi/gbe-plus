@@ -903,7 +903,7 @@ void DMG_SIO::print_image()
 /****** Processes data sent to the GB Mobile Adapter ******/
 void DMG_SIO::mobile_adapter_process()
 {
-	std::cout<<"CURRENT BYTE -> 0x" << std::hex << (u32)sio_stat.transfer_byte << "\n";
+	//std::cout<<"CURRENT BYTE -> 0x" << std::hex << (u32)sio_stat.transfer_byte << "\n";
 
 	switch(mobile_adapter.current_state)
 	{
@@ -1072,7 +1072,6 @@ void DMG_SIO::mobile_adapter_process()
 			//Send back 0x80 XOR current command + IRQ on 2nd byte, begin processing command
 			else if(mobile_adapter.packet_size == 2)
 			{
-
 				std::cout<<"SIO::Mobile Adapter - Packet Size -> " << mobile_adapter.packet_buffer.size() << "\n";
 
 				mem->memory_map[REG_SB] = 0x80 ^ mobile_adapter.command;
@@ -1101,9 +1100,6 @@ void DMG_SIO::mobile_adapter_process()
 						{
 							u8 config_offset = mobile_adapter.packet_buffer[6];
 							u8 config_length = mobile_adapter.packet_buffer[7];
-
-							std::cout<<"SIO::Mobile Adapter Config Offset 0x" << std::hex << (u32)config_offset << "\n";
-							std::cout<<"SIO::Mobile Adapter Config Length 0x" << std::hex << (u32)config_length << "\n";
 
 							//Start building the reply packet
 							mobile_adapter.packet_buffer.clear();
@@ -1145,9 +1141,53 @@ void DMG_SIO::mobile_adapter_process()
 
 						break;
 
+					//Write configuration data
+					case 0x1A:
+						{
+							//Grab the offset and length to write. Two bytes of data
+							u8 config_offset = mobile_adapter.packet_buffer[6];
+
+							//Write data from the packet into memory configuration
+							for(u32 x = 7; x < (mobile_adapter.data_length + 6); x++)
+							{
+								if(config_offset < 0xC0) { mobile_adapter.data[config_offset++] = mobile_adapter.packet_buffer[x]; }
+								else { std::cout<<"SIO::Error - Mobile Adapter trying to write out-of-bounds memory\n"; return; }
+							}
+
+							//Start building the reply packet - Empty body
+							mobile_adapter.packet_buffer.clear();
+
+							//Magic bytes
+							mobile_adapter.packet_buffer.push_back(0x99);
+							mobile_adapter.packet_buffer.push_back(0x66);
+
+							//Header
+							mobile_adapter.packet_buffer.push_back(0x1A);
+							mobile_adapter.packet_buffer.push_back(0x00);
+							mobile_adapter.packet_buffer.push_back(0x00);
+							mobile_adapter.packet_buffer.push_back(0x00);
+
+							//Checksum
+							u16 checksum = 0;
+							for(u32 x = 2; x < mobile_adapter.packet_buffer.size(); x++) { checksum += mobile_adapter.packet_buffer[x]; }
+
+							mobile_adapter.packet_buffer.push_back((checksum >> 8) & 0xFF);
+							mobile_adapter.packet_buffer.push_back(checksum & 0xFF);
+
+							//Acknowledgement handshake
+							mobile_adapter.packet_buffer.push_back(0x8C);
+							mobile_adapter.packet_buffer.push_back(0x96);
+
+							//Send packet back
+							mobile_adapter.packet_size = 0;
+							mobile_adapter.current_state = GBMA_ECHO_PACKET;
+						}
+						
+						break;
 
 					default:
 						std::cout<<"SIO::Mobile Adapter - Unknown Command ID 0x" << std::hex << (u32)mobile_adapter.command << "\n";
+						SDL_Delay(3000);
 						mobile_adapter.packet_buffer.clear();
 						mobile_adapter.packet_size = 0;
 						mobile_adapter.current_state = GBMA_AWAITING_PACKET;
