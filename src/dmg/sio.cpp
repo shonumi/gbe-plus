@@ -59,6 +59,22 @@ DMG_SIO::~DMG_SIO()
 
 	#endif
 
+	//Save GB Mobile Adapter data
+	std::string mobile_conf_file = config::data_path + "gbma_conf.bin";
+
+	std::ofstream mobile_conf(mobile_conf_file.c_str(), std::ios::binary);
+
+	if(!mobile_conf.is_open()) 
+	{ 
+		std::cout<<"SIO::GB Mobile Adapter configuration data could not be written. Check file path or permissions. \n";
+		std::cout<<"SIO::Shutdown\n";
+		return;
+	}
+
+	mobile_conf.write(reinterpret_cast<char*> (&mobile_adapter.data[0]), 0xC0); 
+	mobile_conf.close();
+
+	std::cout<<"SIO::Wrote GB Mobile Adapter configuration data.\n";
 	std::cout<<"SIO::Shutdown\n";
 }
 
@@ -903,8 +919,6 @@ void DMG_SIO::print_image()
 /****** Processes data sent to the GB Mobile Adapter ******/
 void DMG_SIO::mobile_adapter_process()
 {
-	//std::cout<<"CURRENT BYTE -> 0x" << std::hex << (u32)sio_stat.transfer_byte << "\n";
-
 	switch(mobile_adapter.current_state)
 	{
 		//Receive packet data
@@ -920,8 +934,6 @@ void DMG_SIO::mobile_adapter_process()
 				//Move to the next state
 				mobile_adapter.packet_size = 0;
 				mobile_adapter.current_state = GBMA_RECEIVE_HEADER;
-
-				std::cout<<"SIO::Mobile Adapter - Magic Bytes Detected\n";
 			}
 
 			//If magic number not found, reset
@@ -957,7 +969,6 @@ void DMG_SIO::mobile_adapter_process()
 				mobile_adapter.current_state = (mobile_adapter.data_length == 0) ? GBMA_RECEIVE_CHECKSUM : GBMA_RECEIVE_DATA;
 
 				std::cout<<"SIO::Mobile Adapter - Command ID 0x" << std::hex << (u32)mobile_adapter.command << "\n";
-				std::cout<<"SIO::Mobile Adapter - Data Length 0x" << std::hex << (u32)mobile_adapter.data_length << "\n";
 			}
 			
 			//Send data back to GB + IRQ
@@ -1025,8 +1036,6 @@ void DMG_SIO::mobile_adapter_process()
 					//Send data back to GB + IRQ
 					mem->memory_map[REG_SB] = 0x4B;
 					mem->memory_map[IF_FLAG] |= 0x08;
-
-					std::cout<<"SIO::Mobile Adapter - Checksum Clear \n";
 				}
 
 				//Send and error and wait for the packet to restart
@@ -1052,12 +1061,12 @@ void DMG_SIO::mobile_adapter_process()
 			mobile_adapter.packet_buffer.push_back(sio_stat.transfer_byte);
 			mobile_adapter.packet_size++;
 
-			//Mobile Adapter expects 0x80 from GBC, sends back 0x8C through 0x8F (does not matter which)
+			//Mobile Adapter expects 0x80 from GBC, sends back 0x88 through 0x8F (does not matter which)
 			if(mobile_adapter.packet_size == 1)
 			{
 				if(sio_stat.transfer_byte == 0x80)
 				{
-					mem->memory_map[REG_SB] = 0x8C;
+					mem->memory_map[REG_SB] = 0x88;
 					mem->memory_map[IF_FLAG] |= 0x08;
 				}
 
@@ -1072,8 +1081,6 @@ void DMG_SIO::mobile_adapter_process()
 			//Send back 0x80 XOR current command + IRQ on 2nd byte, begin processing command
 			else if(mobile_adapter.packet_size == 2)
 			{
-				std::cout<<"SIO::Mobile Adapter - Packet Size -> " << mobile_adapter.packet_buffer.size() << "\n";
-
 				mem->memory_map[REG_SB] = 0x80 ^ mobile_adapter.command;
 				mem->memory_map[IF_FLAG] |= 0x08;
 
@@ -1088,8 +1095,8 @@ void DMG_SIO::mobile_adapter_process()
 						mobile_adapter.current_state = GBMA_ECHO_PACKET;
 
 						//Echo packet needs to have the proper handshake with the adapter ID and command
-						mobile_adapter.packet_buffer[mobile_adapter.packet_buffer.size() - 2] = 0x8C;
-						mobile_adapter.packet_buffer[mobile_adapter.packet_buffer.size() - 1] = 0x8C ^ mobile_adapter.command;
+						mobile_adapter.packet_buffer[mobile_adapter.packet_buffer.size() - 2] = 0x88;
+						mobile_adapter.packet_buffer[mobile_adapter.packet_buffer.size() - 1] = 0x00;
 						
 						break;
 
@@ -1112,6 +1119,10 @@ void DMG_SIO::mobile_adapter_process()
 							mobile_adapter.packet_buffer.push_back(0x19);
 							mobile_adapter.packet_buffer.push_back(0x00);
 							mobile_adapter.packet_buffer.push_back(0x00);
+							mobile_adapter.packet_buffer.push_back(config_length + 1);
+
+							//One byte of unknown significance
+							//For now, simply returning the data length, as it doesn't seem to really matter
 							mobile_adapter.packet_buffer.push_back(config_length);
 
 							//Data from 192-byte configuration memory
@@ -1129,8 +1140,8 @@ void DMG_SIO::mobile_adapter_process()
 							mobile_adapter.packet_buffer.push_back(checksum & 0xFF);
 
 							//Acknowledgement handshake
-							mobile_adapter.packet_buffer.push_back(0x8C);
-							mobile_adapter.packet_buffer.push_back(0x95);
+							mobile_adapter.packet_buffer.push_back(0x88);
+							mobile_adapter.packet_buffer.push_back(0x00);
 
 							//Send packet back
 							mobile_adapter.packet_size = 0;
@@ -1175,8 +1186,8 @@ void DMG_SIO::mobile_adapter_process()
 							mobile_adapter.packet_buffer.push_back(checksum & 0xFF);
 
 							//Acknowledgement handshake
-							mobile_adapter.packet_buffer.push_back(0x8C);
-							mobile_adapter.packet_buffer.push_back(0x96);
+							mobile_adapter.packet_buffer.push_back(0x88);
+							mobile_adapter.packet_buffer.push_back(0x00);
 
 							//Send packet back
 							mobile_adapter.packet_size = 0;
@@ -1187,22 +1198,19 @@ void DMG_SIO::mobile_adapter_process()
 
 					default:
 						std::cout<<"SIO::Mobile Adapter - Unknown Command ID 0x" << std::hex << (u32)mobile_adapter.command << "\n";
-						SDL_Delay(3000);
 						mobile_adapter.packet_buffer.clear();
 						mobile_adapter.packet_size = 0;
 						mobile_adapter.current_state = GBMA_AWAITING_PACKET;
 
 						break;
 				}
-
-				std::cout<<"SIO::Mobile Adapter - Receive Done\n";
 			}
 
 			break;
 
 		//Echo packet back to Game Boy
 		case GBMA_ECHO_PACKET:
-		
+
 			//Send back the packet bytes
 			if(mobile_adapter.packet_size < mobile_adapter.packet_buffer.size())
 			{
@@ -1211,8 +1219,6 @@ void DMG_SIO::mobile_adapter_process()
 
 				if(mobile_adapter.packet_size == mobile_adapter.packet_buffer.size())
 				{
-					std::cout<<"SIO::Mobile Adapter - Echo Done\n";
-			
 					mobile_adapter.packet_buffer.clear();
 					mobile_adapter.packet_size = 0;
 					mobile_adapter.current_state = GBMA_AWAITING_PACKET;
