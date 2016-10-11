@@ -1100,6 +1100,71 @@ void DMG_SIO::mobile_adapter_process()
 						
 						break;
 
+					//Dial telephone
+					case 0x12:
+						//Just send back and empty body
+
+						//Start building the reply packet
+						mobile_adapter.packet_buffer.clear();
+
+						//Magic bytes
+						mobile_adapter.packet_buffer.push_back(0x99);
+						mobile_adapter.packet_buffer.push_back(0x66);
+
+						//Header
+						mobile_adapter.packet_buffer.push_back(0x12);
+						mobile_adapter.packet_buffer.push_back(0x00);
+						mobile_adapter.packet_buffer.push_back(0x00);
+						mobile_adapter.packet_buffer.push_back(0x00);
+
+						//Checksum
+						mobile_adapter.packet_buffer.push_back(0x00);
+						mobile_adapter.packet_buffer.push_back(0x12);
+
+						//Acknowledgement handshake
+						mobile_adapter.packet_buffer.push_back(0x88);
+						mobile_adapter.packet_buffer.push_back(0x00);
+
+						//Send packet back
+						mobile_adapter.packet_size = 0;
+						mobile_adapter.current_state = GBMA_ECHO_PACKET;
+
+						break;
+
+					//Telephone status
+					case 0x17:
+						//Just send back the byte 0x0 in the packet body
+						
+						//Start building the reply packet
+						mobile_adapter.packet_buffer.clear();
+
+						//Magic bytes
+						mobile_adapter.packet_buffer.push_back(0x99);
+						mobile_adapter.packet_buffer.push_back(0x66);
+
+						//Header
+						mobile_adapter.packet_buffer.push_back(0x17);
+						mobile_adapter.packet_buffer.push_back(0x00);
+						mobile_adapter.packet_buffer.push_back(0x00);
+						mobile_adapter.packet_buffer.push_back(0x01);
+
+						//Body
+						mobile_adapter.packet_buffer.push_back(0x00);
+
+						//Checksum
+						mobile_adapter.packet_buffer.push_back(0x00);
+						mobile_adapter.packet_buffer.push_back(0x18);
+
+						//Acknowledgement handshake
+						mobile_adapter.packet_buffer.push_back(0x88);
+						mobile_adapter.packet_buffer.push_back(0x00);
+
+						//Send packet back
+						mobile_adapter.packet_size = 0;
+						mobile_adapter.current_state = GBMA_ECHO_PACKET;
+
+						break;
+
 					//Read configuration data
 					case 0x19:
 						//Grab the offset and length to read. Two bytes of data
@@ -1210,6 +1275,8 @@ void DMG_SIO::mobile_adapter_process()
 
 		//Echo packet back to Game Boy
 		case GBMA_ECHO_PACKET:
+
+			if(sio_stat.transfer_byte != 0x4B) { std::cout<<"INSPECT -> 0x" << std::hex << (u32)sio_stat.transfer_byte << "\n"; }
 
 			//Send back the packet bytes
 			if(mobile_adapter.packet_size < mobile_adapter.packet_buffer.size())
