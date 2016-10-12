@@ -1261,6 +1261,118 @@ void DMG_SIO::mobile_adapter_process()
 						
 						break;
 
+					//ISP Login
+					case 0x21:
+						//GBE+ doesn't care about the data sent to the emulated Mobile Adapter (not yet anyway)
+						//Just return any random IP address as a response, e.g. localhost
+
+						//Start building the reply packet - Empty body
+						mobile_adapter.packet_buffer.clear();
+
+						//Magic bytes
+						mobile_adapter.packet_buffer.push_back(0x99);
+						mobile_adapter.packet_buffer.push_back(0x66);
+
+						//Header
+						mobile_adapter.packet_buffer.push_back(0x21);
+						mobile_adapter.packet_buffer.push_back(0x00);
+						mobile_adapter.packet_buffer.push_back(0x00);
+						mobile_adapter.packet_buffer.push_back(0x04);
+
+						//Body - 127.0.0.1
+						mobile_adapter.packet_buffer.push_back(0x7F);
+						mobile_adapter.packet_buffer.push_back(0x00);
+						mobile_adapter.packet_buffer.push_back(0x00);
+						mobile_adapter.packet_buffer.push_back(0x01);
+
+						//Checksum
+						mobile_adapter.packet_buffer.push_back(0x00);
+						mobile_adapter.packet_buffer.push_back(0xA5);
+
+						//Acknowledgement handshake
+						mobile_adapter.packet_buffer.push_back(0x88);
+						mobile_adapter.packet_buffer.push_back(0x00);
+
+						//Send packet back
+						mobile_adapter.packet_size = 0;
+						mobile_adapter.current_state = GBMA_ECHO_PACKET;
+
+						break;
+
+					//TCP Open
+					case 0x23:
+						//GBE+ doesn't care about the data sent to the emulated Mobile Adapter (not yet anyway)
+						//Reply body has one byte of unknown significance, can probably be something random
+						//Command ID Bit 7 is set
+
+						//Start building the reply packet - Empty body
+						mobile_adapter.packet_buffer.clear();
+
+						//Magic bytes
+						mobile_adapter.packet_buffer.push_back(0x99);
+						mobile_adapter.packet_buffer.push_back(0x66);
+
+						//Header
+						mobile_adapter.packet_buffer.push_back(0xA3);
+						mobile_adapter.packet_buffer.push_back(0x00);
+						mobile_adapter.packet_buffer.push_back(0x00);
+						mobile_adapter.packet_buffer.push_back(0x01);
+
+						//Body - Random byte
+						mobile_adapter.packet_buffer.push_back(0x77);
+
+						//Checksum
+						mobile_adapter.packet_buffer.push_back(0x01);
+						mobile_adapter.packet_buffer.push_back(0x1B);
+
+						//Acknowledgement handshake
+						mobile_adapter.packet_buffer.push_back(0x88);
+						mobile_adapter.packet_buffer.push_back(0x00);
+
+						//Send packet back
+						mobile_adapter.packet_size = 0;
+						mobile_adapter.current_state = GBMA_ECHO_PACKET;
+
+						break;
+
+					//DNS Query
+					case 0x28:
+						//GBE+ doesn't care about the data sent to the emulated Mobile Adapter (not yet anyway)
+						//Just return any random IP address as a response, e.g. 8.8.8.8
+
+						//Start building the reply packet - Empty body
+						mobile_adapter.packet_buffer.clear();
+
+						//Magic bytes
+						mobile_adapter.packet_buffer.push_back(0x99);
+						mobile_adapter.packet_buffer.push_back(0x66);
+
+						//Header
+						mobile_adapter.packet_buffer.push_back(0x28);
+						mobile_adapter.packet_buffer.push_back(0x00);
+						mobile_adapter.packet_buffer.push_back(0x00);
+						mobile_adapter.packet_buffer.push_back(0x04);
+
+						//Body - 8.8.8.8
+						mobile_adapter.packet_buffer.push_back(0x08);
+						mobile_adapter.packet_buffer.push_back(0x08);
+						mobile_adapter.packet_buffer.push_back(0x08);
+						mobile_adapter.packet_buffer.push_back(0x08);
+
+						//Checksum
+						mobile_adapter.packet_buffer.push_back(0x00);
+						mobile_adapter.packet_buffer.push_back(0x4C);
+
+						//Acknowledgement handshake
+						mobile_adapter.packet_buffer.push_back(0x88);
+						mobile_adapter.packet_buffer.push_back(0x00);
+
+						//Send packet back
+						mobile_adapter.packet_size = 0;
+						mobile_adapter.current_state = GBMA_ECHO_PACKET;
+
+						break;
+
 					default:
 						std::cout<<"SIO::Mobile Adapter - Unknown Command ID 0x" << std::hex << (u32)mobile_adapter.command << "\n";
 						mobile_adapter.packet_buffer.clear();
