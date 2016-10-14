@@ -20,6 +20,38 @@ DMG_SIO::DMG_SIO()
 	network_init = false;
 
 	reset();
+
+	//Load Mobile Adapter data
+	if(sio_stat.sio_type == GB_MOBILE_ADAPTER)
+	{
+		std::string mobile_conf_file = config::data_path + "gbma_conf.bin";
+		std::ifstream mobile_conf(mobile_conf_file.c_str(), std::ios::binary);
+
+		if(!mobile_conf.is_open()) 
+		{ 
+			std::cout<<"SIO::GB Mobile Adapter configuration data could not be read. Check file path or permissions. \n";
+			return;
+		}
+
+		//Get file size
+		mobile_conf.seekg(0, mobile_conf.end);
+		u32 conf_size = mobile_conf.tellg();
+		mobile_conf.seekg(0, mobile_conf.beg);
+
+		if(conf_size != 0xC0)
+		{
+			std::cout<<"SIO::GB Mobile Adapter configuration data size was incorrect. Aborting attempt to read it. \n";
+			mobile_conf.close();
+			return;
+		}
+
+		u8* ex_data = &mobile_adapter.data[0];
+
+		mobile_conf.read((char*)ex_data, 0xC0); 
+		mobile_conf.close();
+
+		std::cout<<"SIO::Loaded GB Mobile Adapter configuration data.\n";
+	}
 }
 
 /****** SIO Destructor ******/
@@ -60,21 +92,24 @@ DMG_SIO::~DMG_SIO()
 	#endif
 
 	//Save GB Mobile Adapter data
-	std::string mobile_conf_file = config::data_path + "gbma_conf.bin";
+	if(sio_stat.sio_type == GB_MOBILE_ADAPTER)
+	{
+		std::string mobile_conf_file = config::data_path + "gbma_conf.bin";
+		std::ofstream mobile_conf(mobile_conf_file.c_str(), std::ios::binary);
 
-	std::ofstream mobile_conf(mobile_conf_file.c_str(), std::ios::binary);
+		if(!mobile_conf.is_open()) 
+		{ 
+			std::cout<<"SIO::GB Mobile Adapter configuration data could not be written. Check file path or permissions. \n";
+			std::cout<<"SIO::Shutdown\n";
+			return;
+		}
 
-	if(!mobile_conf.is_open()) 
-	{ 
-		std::cout<<"SIO::GB Mobile Adapter configuration data could not be written. Check file path or permissions. \n";
-		std::cout<<"SIO::Shutdown\n";
-		return;
+		mobile_conf.write(reinterpret_cast<char*> (&mobile_adapter.data[0]), 0xC0); 
+		mobile_conf.close();
+
+		std::cout<<"SIO::Wrote GB Mobile Adapter configuration data.\n";
 	}
 
-	mobile_conf.write(reinterpret_cast<char*> (&mobile_adapter.data[0]), 0xC0); 
-	mobile_conf.close();
-
-	std::cout<<"SIO::Wrote GB Mobile Adapter configuration data.\n";
 	std::cout<<"SIO::Shutdown\n";
 }
 
