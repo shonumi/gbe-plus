@@ -84,6 +84,9 @@ class DMG_SIO
 		u8 command;
 		u16 checksum;
 		u8 data_length;
+
+		u16 port;
+		u32 ip_addr;
 	} mobile_adapter;
 
 	DMG_SIO();

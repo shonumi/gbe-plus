@@ -587,6 +587,21 @@ bool from_str(std::string input, u32 &result)
 	return true;
 }
 
+/****** Converts a series of bytes to ASCII ******/
+std::string data_to_str(u8* data, u32 length)
+{
+	std::string temp = "";
+
+	for(u32 x = 0; x < length; x++)
+	{
+		char ascii = *data;
+		temp += ascii;
+		data++;
+	}
+
+	return temp;
+}
+
 /****** Converts a string IP address to an integer value ******/
 bool ip_to_u32(std::string ip_addr, u32 &result)
 {

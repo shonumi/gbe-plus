@@ -225,6 +225,9 @@ void DMG_SIO::reset()
 	mobile_adapter.data_length = 0;
 	mobile_adapter.checksum = 0;
 
+	mobile_adapter.port = 0;
+	mobile_adapter.ip_addr = 0;
+
 	#ifdef GBE_NETPLAY
 
 	//Close any current connections
@@ -1166,6 +1169,49 @@ void DMG_SIO::mobile_adapter_process()
 
 						break;
 
+					//TCP transfer data
+					case 0x15:
+
+						//Zero data transfer. Basically pinging a server?
+						if(mobile_adapter.data_length == 0)
+						{
+							//Start building the reply packet
+							mobile_adapter.packet_buffer.clear();
+
+							//Magic bytes
+							mobile_adapter.packet_buffer.push_back(0x99);
+							mobile_adapter.packet_buffer.push_back(0x66);
+
+							//Header
+							mobile_adapter.packet_buffer.push_back(0x95);
+							mobile_adapter.packet_buffer.push_back(0x00);
+							mobile_adapter.packet_buffer.push_back(0x00);
+							mobile_adapter.packet_buffer.push_back(0x01);
+
+							//Body
+							mobile_adapter.packet_buffer.push_back(0x00);
+
+							//Checksum
+							mobile_adapter.packet_buffer.push_back(0x00);
+							mobile_adapter.packet_buffer.push_back(0x96);
+
+							//Acknowledgement handshake
+							mobile_adapter.packet_buffer.push_back(0x88);
+							mobile_adapter.packet_buffer.push_back(0x00);
+
+							//Send packet back
+							mobile_adapter.packet_size = 0;
+							mobile_adapter.current_state = GBMA_ECHO_PACKET;
+						}
+
+						//POP data transfer
+						else if(mobile_adapter.port == 110) { }
+
+						//HTTP data transfer
+						else if(mobile_adapter.port == 80) { }
+
+						break;
+
 					//Telephone status
 					case 0x17:
 						//Just send back the byte 0x0 in the packet body
@@ -1339,6 +1385,26 @@ void DMG_SIO::mobile_adapter_process()
 						//GBE+ doesn't care about the data sent to the emulated Mobile Adapter (not yet anyway)
 						//Reply body has one byte of unknown significance, can probably be something random
 						//Command ID Bit 7 is set
+
+						//Grab the IP address (4 bytes) and the port (2 bytes)
+						if(mobile_adapter.data_length >= 6)
+						{
+							mobile_adapter.ip_addr = 0;
+							mobile_adapter.ip_addr |= (mobile_adapter.packet_buffer[6] << 24);
+							mobile_adapter.ip_addr |= (mobile_adapter.packet_buffer[7] << 16);
+							mobile_adapter.ip_addr |= (mobile_adapter.packet_buffer[8] << 8);
+							mobile_adapter.ip_addr |= mobile_adapter.packet_buffer[9];
+
+							mobile_adapter.port = 0;
+							mobile_adapter.port |= (mobile_adapter.packet_buffer[10] << 8);
+							mobile_adapter.port |= mobile_adapter.packet_buffer[11];
+						}
+
+						else
+						{
+							std::cout<<"SIO::Error - GB Mobile Adapter tried opening a TCP connection without a server address or port\n";
+							return;
+						}
 
 						//Start building the reply packet - Empty body
 						mobile_adapter.packet_buffer.clear();
