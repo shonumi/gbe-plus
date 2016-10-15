@@ -63,6 +63,7 @@ namespace util
 	bool ip_to_u32(std::string ip_addr, u32 &result);
 
 	std::string data_to_str(u8* data, u32 length);
+	void str_to_data(u8* data, std::string input);
 
 	std::string get_filename_from_path(std::string path);
 

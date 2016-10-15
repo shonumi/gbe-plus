@@ -227,6 +227,8 @@ void DMG_SIO::reset()
 
 	mobile_adapter.port = 0;
 	mobile_adapter.ip_addr = 0;
+	mobile_adapter.pop_session_started = false;
+	mobile_adapter.http_session_started = false;
 
 	#ifdef GBE_NETPLAY
 
@@ -1138,11 +1140,10 @@ void DMG_SIO::mobile_adapter_process()
 						
 						break;
 
-					//Dial telephone
+					//Dial or close telephone 
 					case 0x12:
-						//Just send back and empty body
-
-						//Start building the reply packet
+					case 0x13:
+						//Start building the reply packet - Just send back and empty body
 						mobile_adapter.packet_buffer.clear();
 
 						//Magic bytes
@@ -1150,14 +1151,18 @@ void DMG_SIO::mobile_adapter_process()
 						mobile_adapter.packet_buffer.push_back(0x66);
 
 						//Header
-						mobile_adapter.packet_buffer.push_back(0x12);
+						if(mobile_adapter.command == 0x12) { mobile_adapter.packet_buffer.push_back(0x12); }
+						else { mobile_adapter.packet_buffer.push_back(0x13); }
+
 						mobile_adapter.packet_buffer.push_back(0x00);
 						mobile_adapter.packet_buffer.push_back(0x00);
 						mobile_adapter.packet_buffer.push_back(0x00);
 
 						//Checksum
 						mobile_adapter.packet_buffer.push_back(0x00);
-						mobile_adapter.packet_buffer.push_back(0x12);
+
+						if(mobile_adapter.command == 0x12) { mobile_adapter.packet_buffer.push_back(0x12); }
+						else { mobile_adapter.packet_buffer.push_back(0x13); }
 
 						//Acknowledgement handshake
 						mobile_adapter.packet_buffer.push_back(0x88);
@@ -1171,44 +1176,11 @@ void DMG_SIO::mobile_adapter_process()
 
 					//TCP transfer data
 					case 0x15:
-
-						//Zero data transfer. Basically pinging a server?
-						if(mobile_adapter.data_length == 0)
-						{
-							//Start building the reply packet
-							mobile_adapter.packet_buffer.clear();
-
-							//Magic bytes
-							mobile_adapter.packet_buffer.push_back(0x99);
-							mobile_adapter.packet_buffer.push_back(0x66);
-
-							//Header
-							mobile_adapter.packet_buffer.push_back(0x95);
-							mobile_adapter.packet_buffer.push_back(0x00);
-							mobile_adapter.packet_buffer.push_back(0x00);
-							mobile_adapter.packet_buffer.push_back(0x01);
-
-							//Body
-							mobile_adapter.packet_buffer.push_back(0x00);
-
-							//Checksum
-							mobile_adapter.packet_buffer.push_back(0x00);
-							mobile_adapter.packet_buffer.push_back(0x96);
-
-							//Acknowledgement handshake
-							mobile_adapter.packet_buffer.push_back(0x88);
-							mobile_adapter.packet_buffer.push_back(0x00);
-
-							//Send packet back
-							mobile_adapter.packet_size = 0;
-							mobile_adapter.current_state = GBMA_ECHO_PACKET;
-						}
-
 						//POP data transfer
-						else if(mobile_adapter.port == 110) { }
+						if(mobile_adapter.port == 110) { mobile_adapter_process_pop(); }
 
 						//HTTP data transfer
-						else if(mobile_adapter.port == 80) { }
+						else if(mobile_adapter.port == 80) { mobile_adapter_process_http(); }
 
 						break;
 
@@ -1347,7 +1319,7 @@ void DMG_SIO::mobile_adapter_process()
 						//GBE+ doesn't care about the data sent to the emulated Mobile Adapter (not yet anyway)
 						//Just return any random IP address as a response, e.g. localhost
 
-						//Start building the reply packet - Empty body
+						//Start building the reply packet
 						mobile_adapter.packet_buffer.clear();
 
 						//Magic bytes
@@ -1369,6 +1341,35 @@ void DMG_SIO::mobile_adapter_process()
 						//Checksum
 						mobile_adapter.packet_buffer.push_back(0x00);
 						mobile_adapter.packet_buffer.push_back(0xA5);
+
+						//Acknowledgement handshake
+						mobile_adapter.packet_buffer.push_back(0x88);
+						mobile_adapter.packet_buffer.push_back(0x00);
+
+						//Send packet back
+						mobile_adapter.packet_size = 0;
+						mobile_adapter.current_state = GBMA_ECHO_PACKET;
+
+						break;
+
+					//ISP Logout
+					case 0x22:
+						//Start building the reply packet - Empty body
+						mobile_adapter.packet_buffer.clear();
+
+						//Magic bytes
+						mobile_adapter.packet_buffer.push_back(0x99);
+						mobile_adapter.packet_buffer.push_back(0x66);
+
+						//Header
+						mobile_adapter.packet_buffer.push_back(0x22);
+						mobile_adapter.packet_buffer.push_back(0x00);
+						mobile_adapter.packet_buffer.push_back(0x00);
+						mobile_adapter.packet_buffer.push_back(0x00);
+
+						//Checksum
+						mobile_adapter.packet_buffer.push_back(0x00);
+						mobile_adapter.packet_buffer.push_back(0x22);
 
 						//Acknowledgement handshake
 						mobile_adapter.packet_buffer.push_back(0x88);
@@ -1406,7 +1407,7 @@ void DMG_SIO::mobile_adapter_process()
 							return;
 						}
 
-						//Start building the reply packet - Empty body
+						//Start building the reply packet
 						mobile_adapter.packet_buffer.clear();
 
 						//Magic bytes
@@ -1425,6 +1426,41 @@ void DMG_SIO::mobile_adapter_process()
 						//Checksum
 						mobile_adapter.packet_buffer.push_back(0x01);
 						mobile_adapter.packet_buffer.push_back(0x1B);
+
+						//Acknowledgement handshake
+						mobile_adapter.packet_buffer.push_back(0x88);
+						mobile_adapter.packet_buffer.push_back(0x00);
+
+						//Send packet back
+						mobile_adapter.packet_size = 0;
+						mobile_adapter.current_state = GBMA_ECHO_PACKET;
+
+						break;
+
+					//TCP Close
+					case 0x24:
+						//GBE+ doesn't care about the data sent to the emulated Mobile Adapter (not yet anyway)
+						//Reply body has one byte of unknown significance, can probably be something random
+
+						//Start building the reply packet
+						mobile_adapter.packet_buffer.clear();
+
+						//Magic bytes
+						mobile_adapter.packet_buffer.push_back(0x99);
+						mobile_adapter.packet_buffer.push_back(0x66);
+
+						//Header
+						mobile_adapter.packet_buffer.push_back(0x24);
+						mobile_adapter.packet_buffer.push_back(0x00);
+						mobile_adapter.packet_buffer.push_back(0x00);
+						mobile_adapter.packet_buffer.push_back(0x01);
+
+						//Body - Random byte
+						mobile_adapter.packet_buffer.push_back(0x77);
+
+						//Checksum
+						mobile_adapter.packet_buffer.push_back(0x00);
+						mobile_adapter.packet_buffer.push_back(0x9C);
 
 						//Acknowledgement handshake
 						mobile_adapter.packet_buffer.push_back(0x88);
@@ -1508,3 +1544,58 @@ void DMG_SIO::mobile_adapter_process()
 			break;
 	}
 }
+
+/****** Processes POP transfers from the emulated GB Mobile Adapter ******/
+void DMG_SIO::mobile_adapter_process_pop()
+{
+	//For now, just initiate a POP session, but return errors for everything after that
+	std::string pop_response = "";
+
+	//Check for POP initiation
+	if((mobile_adapter.data_length == 1) && (!mobile_adapter.pop_session_started))
+	{
+		mobile_adapter.pop_session_started = true;
+		pop_response = "+OK\r\n";
+	}
+
+	//Check for other commands, just say everything is OK
+	else
+	{
+		pop_response = "+OK\r\n";
+	}
+
+	//Start building the reply packet
+	mobile_adapter.packet_buffer.clear();
+	mobile_adapter.packet_buffer.resize(7 + pop_response.size(), 0x00);
+
+	//Magic bytes
+	mobile_adapter.packet_buffer[0] = (0x99);
+	mobile_adapter.packet_buffer[1] = (0x66);
+
+	//Header
+	mobile_adapter.packet_buffer[2] = (0x95);
+	mobile_adapter.packet_buffer[3] = (0x00);
+	mobile_adapter.packet_buffer[4] = (0x00);
+	mobile_adapter.packet_buffer[5] = pop_response.size() + 1;
+
+	//Body
+	util::str_to_data(mobile_adapter.packet_buffer.data() + 7, pop_response);
+
+	//Checksum
+	u16 checksum = 0;
+	for(u32 x = 2; x < mobile_adapter.packet_buffer.size(); x++) { checksum += mobile_adapter.packet_buffer[x]; }
+
+	mobile_adapter.packet_buffer.push_back((checksum >> 8) & 0xFF);
+	mobile_adapter.packet_buffer.push_back(checksum & 0xFF);
+
+	//Acknowledgement handshake
+	mobile_adapter.packet_buffer.push_back(0x88);
+	mobile_adapter.packet_buffer.push_back(0x00);
+
+	//Send packet back
+	mobile_adapter.packet_size = 0;
+	mobile_adapter.current_state = GBMA_ECHO_PACKET;	
+}
+
+/****** Processes HTTP transfers from the emulated GB Mobile Adapter ******/
+void DMG_SIO::mobile_adapter_process_http() { }

@@ -87,6 +87,8 @@ class DMG_SIO
 
 		u16 port;
 		u32 ip_addr;
+		bool pop_session_started;
+		bool http_session_started;
 	} mobile_adapter;
 
 	DMG_SIO();
@@ -107,6 +109,8 @@ class DMG_SIO
 	void print_image();
 
 	void mobile_adapter_process();
+	void mobile_adapter_process_pop();
+	void mobile_adapter_process_http();
 };
 
 #endif // GB_SIO
