@@ -1470,6 +1470,10 @@ void DMG_SIO::mobile_adapter_process()
 						mobile_adapter.packet_size = 0;
 						mobile_adapter.current_state = GBMA_ECHO_PACKET;
 
+						//Reset all sessions
+						mobile_adapter.pop_session_started = false;
+						mobile_adapter.http_session_started = false;
+
 						break;
 
 					//DNS Query
@@ -1550,6 +1554,11 @@ void DMG_SIO::mobile_adapter_process_pop()
 {
 	//For now, just initiate a POP session, but return errors for everything after that
 	std::string pop_response = "";
+	std::string pop_data = util::data_to_str(mobile_adapter.packet_buffer.data(), mobile_adapter.packet_buffer.size());
+
+	std::size_t user_match = pop_data.find("USER");
+	std::size_t pass_match = pop_data.find("PASS");
+	std::size_t quit_match = pop_data.find("QUIT");
 
 	//Check for POP initiation
 	if((mobile_adapter.data_length == 1) && (!mobile_adapter.pop_session_started))
@@ -1559,9 +1568,15 @@ void DMG_SIO::mobile_adapter_process_pop()
 	}
 
 	//Check for other commands, just say everything is OK
-	else
+	else if((user_match != std::string::npos) || (pass_match != std::string::npos) || (quit_match != std::string::npos))
 	{
 		pop_response = "+OK\r\n";
+	}
+
+	//For everything else, return an error
+	else
+	{
+		pop_response = "-ERR\r\n";
 	}
 
 	//Start building the reply packet
