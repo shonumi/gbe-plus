@@ -18,19 +18,19 @@ void NTR_ARM9::process_swi(u32 comment)
 	{
 		//WaitByLoop
 		case 0x3:
-			std::cout<<"ARM7::SWI::WaitByLoop \n";
+			//std::cout<<"ARM9::SWI::WaitByLoop \n";
 			swi_waitbyloop();
 			break;
 
 		//IntrWait
 		case 0x4:
-			std::cout<<"ARM9::SWI::IntrWait \n";
+			//std::cout<<"ARM9::SWI::IntrWait \n";
 			swi_intrwait();
 			break;
 
 		//Halt
 		case 0x6:
-			std::cout<<"ARM9::SWI::Halt \n";
+			//std::cout<<"ARM9::SWI::Halt \n";
 			swi_halt();
 			break;
 
@@ -137,13 +137,13 @@ void NTR_ARM7::process_swi(u32 comment)
 	{
 		//WaitByLoop
 		case 0x3:
-			std::cout<<"ARM7::SWI::WaitByLoop \n";
+			//std::cout<<"ARM7::SWI::WaitByLoop \n";
 			swi_waitbyloop();
 			break;
 
 		//Halt
 		case 0x6:
-			std::cout<<"ARM7::SWI::Halt \n";
+			//std::cout<<"ARM7::SWI::Halt \n";
 			swi_halt();
 			break;
 

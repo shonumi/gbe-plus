@@ -315,6 +315,7 @@ void NTR_core::run_core()
 		else { stop(); }
 	}
 
+	nds9_debug = true;
 	debug_display();
 	nds9_debug = false;
 	debug_display();

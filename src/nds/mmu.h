@@ -29,9 +29,32 @@ class NTR_MMU
 	std::vector <u8> cart_data;
 	std::vector <u8> nds7_bios;
 	std::vector <u8> nds9_bios;
+	
+	//NDS7 IPC FIFO
+	struct nds7_interprocess
+	{
+		//MMIO registers
+		u16 sync;
+		u16 cnt;
 
-	std::queue <u32> ipc_fifo;
-	u32 ipc_fifo_latest;
+		//IPC FIFO data
+		std::queue <u32> fifo;
+		u32 fifo_latest;
+		u32 fifo_incoming;
+	} nds7_ipc;
+
+	//NDS9 IPC FIFO
+	struct nds9_interprocess
+	{
+		//MMIO registers
+		u16 sync;
+		u16 cnt;
+
+		//IPC FIFO data
+		std::queue <u32> fifo;
+		u32 fifo_latest;
+		u32 fifo_incoming;
+	} nds9_ipc;
 
 	//Memory access timings (Nonsequential and Sequential)
 	u8 n_clock;
@@ -96,9 +119,9 @@ class NTR_MMU
 
 	void reset();
 
-	u8 read_u8(u32 address) const;
-	u16 read_u16(u32 address) const;
-	u32 read_u32(u32 address) const;
+	u8 read_u8(u32 address);
+	u16 read_u16(u32 address);
+	u32 read_u32(u32 address);
 
 	u16 read_u16_fast(u32 address) const;
 	u32 read_u32_fast(u32 address) const;

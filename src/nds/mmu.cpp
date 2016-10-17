@@ -76,15 +76,24 @@ void NTR_MMU::reset()
 	}
 
 	//Clear IPC FIFO if necessary
-	while(!ipc_fifo.empty()) { ipc_fifo.pop(); }
+	while(!nds7_ipc.fifo.empty()) { nds7_ipc.fifo.pop(); }
+	while(!nds9_ipc.fifo.empty()) { nds9_ipc.fifo.pop(); }
+
+	nds7_ipc.sync = 0;
+	nds7_ipc.cnt = 0;
+	nds7_ipc.fifo_latest = 0;
+	nds7_ipc.fifo_incoming = 0;
+
+	nds9_ipc.sync = 0;
+	nds9_ipc.cnt = 0;
+	nds9_ipc.fifo_latest = 0;
+	nds9_ipc.fifo_incoming = 0;
 	
-	ipc_fifo_latest = 0;
-		
 	std::cout<<"MMU::Initialized\n";
 }
 
 /****** Read byte from memory ******/
-u8 NTR_MMU::read_u8(u32 address) const
+u8 NTR_MMU::read_u8(u32 address)
 {
 	//Read from NDS9 BIOS
 	if((address >= nds9_bios_vector) && (address <= (nds9_bios_vector + 0xC00)) && (access_mode)) { return nds9_bios[address - nds9_bios_vector]; }
@@ -98,42 +107,106 @@ u8 NTR_MMU::read_u8(u32 address) const
 	//Check for reading IE
 	else if((address & ~0x3) == NDS_IE)
 	{
+		u8 addr_shift = (address & 0x3) << 3;
+
 		//Return NDS9 IE
-		if(access_mode) { return nds9_ie & (0xFF << ((address & 0x3) << 3)); }
+		if(access_mode) { return ((nds9_ie >> addr_shift) & 0xFF); }
 		
 		//Return NDS7 IE
-		else { return nds7_ie & (0xFF << ((address & 0x3) << 3)); }
+		else { return ((nds7_ie >> addr_shift) & 0xFF);  }
 	}
 
 	//Check for reading IF
 	else if((address & ~0x3) == NDS_IF)
 	{
+		u8 addr_shift = (address & 0x3) << 3;
+
 		//Return NDS9 IF
-		if(access_mode) { return nds9_if & (0xFF << ((address & 0x3) << 3)); }
+		if(access_mode) { return ((nds9_if >> addr_shift) & 0xFF); }
 		
 		//Return NDS7 IF
-		else { return nds7_if & (0xFF << ((address & 0x3) << 3)); }
+		else { return ((nds7_if >> addr_shift) & 0xFF); }
+	}
+
+	//Check for IPCSYNC
+	else if((address & ~0x1) == NDS_IPCSYNC)
+	{
+		u8 addr_shift = (address & 0x1) << 1;
+
+		//Return NDS9 IPCSYNC
+		if(access_mode) { return ((nds9_ipc.sync >> addr_shift) & 0xFF); }
+		
+		//Return NDS7 IPCSYNC
+		else { return ((nds7_ipc.sync >> addr_shift) & 0xFF); }
+	}
+
+	//Check for IPCFIFOCNT
+	else if((address & ~0x1) == NDS_IPCFIFOCNT)
+	{
+		u8 addr_shift = (address & 0x1) << 1;
+
+		//Return NDS9 IPCFIFOCNT
+		if(access_mode) { return ((nds9_ipc.cnt >> addr_shift) & 0xFF); }
+		
+		//Return NDS7 IPCFIFOCNT
+		else { return ((nds7_ipc.cnt >> addr_shift) & 0xFF); }
 	}
 
 	//Check for reading IPCFIFORECV
 	else if((address & ~0x3) == NDS_IPCFIFORECV)
 	{
-		//Return last FIFO entry if empty, or zero if no data was ever put there
-		if(ipc_fifo.empty()) { return ipc_fifo_latest; }
-		else { return ipc_fifo.front() & (0xFF << ((address & 0x3) << 3)); }
+		u8 addr_shift = (address & 0x3) << 3;
+
+		//Read from NDS9 IPC FIFO
+		if(access_mode)
+		{
+			//Return last FIFO entry if empty, or zero if no data was ever put there
+			if(nds9_ipc.fifo.empty()) { return ((nds9_ipc.fifo_latest >> addr_shift) & 0xFF); }
+		
+			//Otherwise, read FIFO normally
+			else
+			{
+				u8 fifo_entry = ((nds9_ipc.fifo.front() >> addr_shift) & 0xFF);
+		
+				//If Bit 15 of IPCFIFOCNT is 0, read back oldest entry but do not pop it
+				//If Bit 15 is set, get rid of the oldest entry now
+				if((nds9_ipc.cnt) && (address == NDS_IPCFIFORECV)) { nds9_ipc.fifo.pop(); }
+
+				return fifo_entry;
+			}
+		}
+
+		//Read from NDS7 IPC FIFO
+		else
+		{
+			//Return last FIFO entry if empty, or zero if no data was ever put there
+			if(nds7_ipc.fifo.empty()) { return ((nds7_ipc.fifo_latest >> addr_shift) & 0xFF); }
+		
+			//Otherwise, read FIFO normally
+			else
+			{
+				u8 fifo_entry = ((nds7_ipc.fifo.front() >> addr_shift) & 0xFF);
+		
+				//If Bit 15 of IPCFIFOCNT is 0, read back oldest entry but do not pop it
+				//If Bit 15 is set, get rid of the oldest entry now
+				if((nds7_ipc.cnt) && (address == NDS_IPCFIFORECV)) { nds7_ipc.fifo.pop(); }
+
+				return fifo_entry;
+			}
+		}
 	}
 
 	return memory_map[address];
 }
 
 /****** Read 2 bytes from memory ******/
-u16 NTR_MMU::read_u16(u32 address) const
+u16 NTR_MMU::read_u16(u32 address)
 {
 	return ((read_u8(address+1) << 8) | read_u8(address)); 
 }
 
 /****** Read 4 bytes from memory ******/
-u32 NTR_MMU::read_u32(u32 address) const
+u32 NTR_MMU::read_u32(u32 address)
 {
 	return ((read_u8(address+3) << 24) | (read_u8(address+2) << 16) | (read_u8(address+1) << 8) | read_u8(address));
 }
@@ -616,54 +689,136 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			if(access_mode) { nds9_if &= ~(value << ((address & 0x3) << 3)); }
 
 			//Write to NDS7 IF
-			else { nds7_if &= ~(0xFF << ((address & 0x3) << 3)); }
+			else { nds7_if &= ~(value << ((address & 0x3) << 3)); }
 
 			break;
 
 		case NDS_IPCSYNC: break;
 
 		case NDS_IPCSYNC+1:
-			memory_map[address] = value;
 
-			//Copy Bits 8-11 to Bits 0-3
-			memory_map[NDS_IPCSYNC] &= ~0xF;
-			memory_map[NDS_IPCSYNC] |= (value & 0xF);
-
-			//Trigger IPC IRQ
-			if((value & 0x20) && (value & 0x40))
+			//NDS9 -> NDS7
+			if(access_mode)
 			{
-				if(access_mode)
-				{
-					nds9_if |= 0x10000;
-					std::cout<<"NDS7 to NDS9 IRQ\n";
-				}
+				//Set new Bits 8-15
+				nds9_ipc.sync &= 0xFF;
+				nds9_ipc.sync |= ((value & 0x6F) << 8);
 				
-				else
+				//Copy Bits 8-11 from NDS9 to Bits 0-3 on the NDS7
+				nds7_ipc.sync &= 0xFFF0;
+				nds7_ipc.sync |= (value & 0xF);
+
+				//Trigger IPC IRQ on NDS7 if enabled
+				if((nds9_ipc.sync & 0x2000) && (nds7_ipc.sync & 0x4000))
 				{
 					nds7_if |= 0x10000;
 					std::cout<<"NDS9 to NDS7 IRQ\n";
 				}
+
+				std::cout<<"NDS9 IPCSYNC -> 0x" << std::hex << nds9_ipc.sync << "\n";z
 			}
 
+			//NDS7 -> NDS9
+			else
+			{
+				//Set new Bits 8-15
+				nds7_ipc.sync &= 0xFF;
+				nds7_ipc.sync |= ((value & 0x6F) << 8);
+				
+				//Copy Bits 8-11 from NDS7 to Bits 0-3 on the NDS9
+				nds9_ipc.sync &= 0xFFF0;
+				nds9_ipc.sync |= (value & 0xF);
 
-			std::cout<<"NDS IPCSYNC -> 0x" << std::hex << read_u16(NDS_IPCSYNC) << "\n";
+				//Trigger IPC IRQ on NDS7 if enabled
+				if((nds7_ipc.sync & 0x2000) && (nds9_ipc.sync & 0x4000))
+				{
+					nds9_if |= 0x10000;
+					std::cout<<"NDS7 to NDS9 IRQ\n";
+				}
+
+				std::cout<<"NDS7 IPCSYNC -> 0x" << std::hex << nds7_ipc.sync << "\n";
+			}
+
 			break;
 
-		case NDS_IPCFIFOCNT:
+		case NDS_IPCFIFOCNT:		
+			if(access_mode)
+			{
+				nds9_ipc.cnt &= 0xFFF3;
+				nds9_ipc.cnt |= (value & 0xC);
+			}
+
+			else
+			{
+				nds7_ipc.cnt &= 0xFFF3;
+				nds7_ipc.cnt |= (value & 0xC);
+			}
+
+			break;
+
 		case NDS_IPCFIFOCNT+1:
-			memory_map[address] = value;
-			std::cout<<"NDS IPCFIFOCNT -> 0x" << std::hex << read_u16(NDS_IPCFIFOCNT) << "\n";
+			if(access_mode)
+			{
+				nds9_ipc.cnt &= 0x3FF;
+				nds9_ipc.cnt |= ((value & 0xC4) << 8);
+			}
+
+			else
+			{
+				nds7_ipc.cnt &= 0x3FF;
+				nds7_ipc.cnt |= ((value & 0xC4) << 8);
+			}
+
 			break;
 
 		case NDS_IPCFIFOSND:
-			//FIFO can only hold a maximum of 16 words
-			if(ipc_fifo.size() == 16) { ipc_fifo.pop(); }
+			if((access_mode) && (nds9_ipc.cnt & 0x8000))
+			{
+				nds9_ipc.fifo_incoming &= ~0xFF;
+				nds9_ipc.fifo_incoming |= value;
 
-			//Push new word to back of FIFO, also save that value in case FIFO is emptied
-			ipc_fifo.push(((memory_map[NDS_IPCFIFOSND+3] << 24) | (memory_map[NDS_IPCFIFOSND+2] << 16) | (memory_map[NDS_IPCFIFOSND+1] << 8) | value));
-			ipc_fifo_latest = ipc_fifo.back();	
+				//FIFO can only hold a maximum of 16 words
+				if(nds9_ipc.fifo.size() == 16) { nds9_ipc.fifo.pop(); }
 
-			std::cout<<"NDS IPCFIFOSND -> 0x" << std::hex << ipc_fifo.front() << "\n";
+				//Push new word to back of FIFO, also save that value in case FIFO is emptied
+				nds9_ipc.fifo.push(nds9_ipc.fifo_incoming);
+				nds9_ipc.fifo_latest = nds9_ipc.fifo_incoming;
+				nds9_ipc.fifo_incoming = 0;
+
+				std::cout<<"NDS9 IPCFIFOSND -> 0x" << std::hex << nds9_ipc.fifo_latest << "\n";
+			}
+
+			else if((!access_mode) && (nds7_ipc.cnt & 0x8000))
+			{
+				nds7_ipc.fifo_incoming &= ~0xFF;
+				nds7_ipc.fifo_incoming |= value;
+
+				//FIFO can only hold a maximum of 16 words
+				if(nds7_ipc.fifo.size() == 16) { nds7_ipc.fifo.pop(); }
+
+				//Push new word to back of FIFO, also save that value in case FIFO is emptied
+				nds7_ipc.fifo.push(nds7_ipc.fifo_incoming);
+				nds7_ipc.fifo_latest = nds7_ipc.fifo_incoming;
+				nds7_ipc.fifo_incoming = 0;
+
+				std::cout<<"NDS7 IPCFIFOSND -> 0x" << std::hex << nds7_ipc.fifo_latest << "\n";
+			}	
+
+			break;
+
+		case NDS_IPCFIFOSND+1:
+			if(access_mode) { nds9_ipc.fifo_incoming &= ~0xFF00; nds9_ipc.fifo_incoming |= (value << 8); }
+			else { nds7_ipc.fifo_incoming &= ~0xFF00; nds7_ipc.fifo_incoming |= (value << 8); }
+			break;
+
+		case NDS_IPCFIFOSND+2:
+			if(access_mode) { nds9_ipc.fifo_incoming &= ~0xFF0000; nds9_ipc.fifo_incoming |= (value << 16); }
+			else { nds7_ipc.fifo_incoming &= ~0xFF0000; nds7_ipc.fifo_incoming |= (value << 16); }
+			break;
+
+		case NDS_IPCFIFOSND+3:
+			if(access_mode) { nds9_ipc.fifo_incoming &= ~0xFF000000; nds9_ipc.fifo_incoming |= (value << 24); }
+			else { nds7_ipc.fifo_incoming &= ~0xFF00; nds7_ipc.fifo_incoming |= (value << 24); }
 			break;
 
 		case NDS_IPCFIFORECV:
