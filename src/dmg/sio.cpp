@@ -1140,9 +1140,10 @@ void DMG_SIO::mobile_adapter_process()
 						
 						break;
 
-					//Dial or close telephone 
+					//Dial telephone, close telephone, or wait for telephone call 
 					case 0x12:
 					case 0x13:
+					case 0x14:
 						//Start building the reply packet - Just send back and empty body
 						mobile_adapter.packet_buffer.clear();
 
@@ -1152,7 +1153,8 @@ void DMG_SIO::mobile_adapter_process()
 
 						//Header
 						if(mobile_adapter.command == 0x12) { mobile_adapter.packet_buffer.push_back(0x12); }
-						else { mobile_adapter.packet_buffer.push_back(0x13); }
+						else if(mobile_adapter.command == 0x13) { mobile_adapter.packet_buffer.push_back(0x13); }
+						else { mobile_adapter.packet_buffer.push_back(0x14); }
 
 						mobile_adapter.packet_buffer.push_back(0x00);
 						mobile_adapter.packet_buffer.push_back(0x00);
@@ -1162,7 +1164,8 @@ void DMG_SIO::mobile_adapter_process()
 						mobile_adapter.packet_buffer.push_back(0x00);
 
 						if(mobile_adapter.command == 0x12) { mobile_adapter.packet_buffer.push_back(0x12); }
-						else { mobile_adapter.packet_buffer.push_back(0x13); }
+						else if(mobile_adapter.command == 0x13) { mobile_adapter.packet_buffer.push_back(0x13); }
+						else { mobile_adapter.packet_buffer.push_back(0x14); }
 
 						//Acknowledgement handshake
 						mobile_adapter.packet_buffer.push_back(0x88);
@@ -1529,7 +1532,16 @@ void DMG_SIO::mobile_adapter_process()
 		//Echo packet back to Game Boy
 		case GBMA_ECHO_PACKET:
 
-			if(sio_stat.transfer_byte != 0x4B) { std::cout<<"INSPECT -> 0x" << std::hex << (u32)sio_stat.transfer_byte << "\n"; }
+			//Check for communication errors
+			switch(sio_stat.transfer_byte)
+			{
+				case 0xEE:
+				case 0xF0:
+				case 0xF1:
+				case 0xF2:
+					std::cout<<"SIO::Error - GB Mobile Adapter communication failure code 0x" << std::hex << (u32)sio_stat.transfer_byte << "\n";
+					break;
+			}
 
 			//Send back the packet bytes
 			if(mobile_adapter.packet_size < mobile_adapter.packet_buffer.size())
