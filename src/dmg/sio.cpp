@@ -229,6 +229,7 @@ void DMG_SIO::reset()
 	mobile_adapter.ip_addr = 0;
 	mobile_adapter.pop_session_started = false;
 	mobile_adapter.http_session_started = false;
+	mobile_adapter.http_data = "";
 
 	#ifdef GBE_NETPLAY
 
@@ -1472,6 +1473,7 @@ void DMG_SIO::mobile_adapter_process()
 						//Send packet back
 						mobile_adapter.packet_size = 0;
 						mobile_adapter.current_state = GBMA_ECHO_PACKET;
+						mobile_adapter.web_state = GBMA_HTTP_INITIAL;
 
 						//Reset all sessions
 						mobile_adapter.pop_session_started = false;
@@ -1531,6 +1533,8 @@ void DMG_SIO::mobile_adapter_process()
 
 		//Echo packet back to Game Boy
 		case GBMA_ECHO_PACKET:
+
+			if(sio_stat.transfer_byte != 0x4B) { std::cout<<"INSPECT -> 0x" << std::hex << (u32)sio_stat.transfer_byte << "\n"; }
 
 			//Check for communication errors
 			switch(sio_stat.transfer_byte)
@@ -1625,4 +1629,59 @@ void DMG_SIO::mobile_adapter_process_pop()
 }
 
 /****** Processes HTTP transfers from the emulated GB Mobile Adapter ******/
-void DMG_SIO::mobile_adapter_process_http() { }
+void DMG_SIO::mobile_adapter_process_http()
+{
+	std::string http_response = "";
+	u8 response_id = 0;
+
+	//Send empty body until HTTP request is finished transmitting
+	if(mobile_adapter.data_length != 1)
+	{
+		mobile_adapter.http_data += util::data_to_str(mobile_adapter.packet_buffer.data(), mobile_adapter.packet_buffer.size());
+		http_response = " ";
+		response_id = 0x95;
+	}
+
+	//Process HTTP request once initial line + headers + message body have been received.
+	else
+	{
+		//For now, just return 404
+		http_response = "HTTP/1.0 404 Not Found";
+		mobile_adapter.http_data = "";
+
+		//Be sure to change command ID to 0x9F at the end of an HTTP response
+		response_id = 0x9F;
+	}
+
+	//Start building the reply packet
+	mobile_adapter.packet_buffer.clear();
+	mobile_adapter.packet_buffer.resize(7 + http_response.size(), 0x00);
+
+	//Magic bytes
+	mobile_adapter.packet_buffer[0] = 0x99;
+	mobile_adapter.packet_buffer[1] = 0x66;
+
+	//Header
+	mobile_adapter.packet_buffer[2] = response_id;
+	mobile_adapter.packet_buffer[3] = 0x00;
+	mobile_adapter.packet_buffer[4] = 0x00;
+	mobile_adapter.packet_buffer[5] = http_response.size() + 1;
+
+	//Body
+	util::str_to_data(mobile_adapter.packet_buffer.data() + 7, http_response);
+
+	//Checksum
+	u16 checksum = 0;
+	for(u32 x = 2; x < mobile_adapter.packet_buffer.size(); x++) { checksum += mobile_adapter.packet_buffer[x]; }
+
+	mobile_adapter.packet_buffer.push_back((checksum >> 8) & 0xFF);
+	mobile_adapter.packet_buffer.push_back(checksum & 0xFF);
+
+	//Acknowledgement handshake
+	mobile_adapter.packet_buffer.push_back(0x88);
+	mobile_adapter.packet_buffer.push_back(0x00);
+
+	//Send packet back
+	mobile_adapter.packet_size = 0;
+	mobile_adapter.current_state = GBMA_ECHO_PACKET;
+}

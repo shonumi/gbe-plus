@@ -80,6 +80,7 @@ class DMG_SIO
 		std::vector <u8> packet_buffer;
 		u32 packet_size;	
 		mobile_state current_state;
+		std::string http_data;
 
 		u8 command;
 		u16 checksum;
