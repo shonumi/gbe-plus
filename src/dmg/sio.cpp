@@ -227,6 +227,7 @@ void DMG_SIO::reset()
 
 	mobile_adapter.port = 0;
 	mobile_adapter.ip_addr = 0;
+	mobile_adapter.line_busy = false;
 	mobile_adapter.pop_session_started = false;
 	mobile_adapter.http_session_started = false;
 	mobile_adapter.http_data = "";
@@ -1138,6 +1139,9 @@ void DMG_SIO::mobile_adapter_process()
 						//Echo packet needs to have the proper handshake with the adapter ID and command
 						mobile_adapter.packet_buffer[mobile_adapter.packet_buffer.size() - 2] = 0x88;
 						mobile_adapter.packet_buffer[mobile_adapter.packet_buffer.size() - 1] = 0x00;
+
+						//Line busy status
+						mobile_adapter.line_busy = false;
 						
 						break;
 
@@ -1176,6 +1180,10 @@ void DMG_SIO::mobile_adapter_process()
 						mobile_adapter.packet_size = 0;
 						mobile_adapter.current_state = GBMA_ECHO_PACKET;
 
+						//Line busy status
+						if(mobile_adapter.command == 0x12) { mobile_adapter.line_busy = true; }
+						else if(mobile_adapter.command == 0x13) { mobile_adapter.line_busy = false; }
+
 						break;
 
 					//TCP transfer data
@@ -1190,8 +1198,6 @@ void DMG_SIO::mobile_adapter_process()
 
 					//Telephone status
 					case 0x17:
-						//Just send back the byte 0x0 in the packet body
-						
 						//Start building the reply packet
 						mobile_adapter.packet_buffer.clear();
 
@@ -1206,11 +1212,14 @@ void DMG_SIO::mobile_adapter_process()
 						mobile_adapter.packet_buffer.push_back(0x01);
 
 						//Body
-						mobile_adapter.packet_buffer.push_back(0x00);
+						if(mobile_adapter.line_busy) { mobile_adapter.packet_buffer.push_back(0x05); }
+						else { mobile_adapter.packet_buffer.push_back(0x00); }
 
 						//Checksum
 						mobile_adapter.packet_buffer.push_back(0x00);
-						mobile_adapter.packet_buffer.push_back(0x18);
+
+						if(mobile_adapter.line_busy) { mobile_adapter.packet_buffer.push_back(0x1D); }
+						else { mobile_adapter.packet_buffer.push_back(0x18); }
 
 						//Acknowledgement handshake
 						mobile_adapter.packet_buffer.push_back(0x88);
@@ -1473,7 +1482,7 @@ void DMG_SIO::mobile_adapter_process()
 						//Send packet back
 						mobile_adapter.packet_size = 0;
 						mobile_adapter.current_state = GBMA_ECHO_PACKET;
-						mobile_adapter.web_state = GBMA_HTTP_INITIAL;
+						mobile_adapter.http_data = "";
 
 						//Reset all sessions
 						mobile_adapter.pop_session_started = false;
@@ -1533,8 +1542,6 @@ void DMG_SIO::mobile_adapter_process()
 
 		//Echo packet back to Game Boy
 		case GBMA_ECHO_PACKET:
-
-			if(sio_stat.transfer_byte != 0x4B) { std::cout<<"INSPECT -> 0x" << std::hex << (u32)sio_stat.transfer_byte << "\n"; }
 
 			//Check for communication errors
 			switch(sio_stat.transfer_byte)
@@ -1637,7 +1644,7 @@ void DMG_SIO::mobile_adapter_process_http()
 	//Send empty body until HTTP request is finished transmitting
 	if(mobile_adapter.data_length != 1)
 	{
-		mobile_adapter.http_data += util::data_to_str(mobile_adapter.packet_buffer.data(), mobile_adapter.packet_buffer.size());
+		mobile_adapter.http_data += util::data_to_str(mobile_adapter.packet_buffer.data() + 7, mobile_adapter.packet_buffer.size() - 7);
 		http_response = " ";
 		response_id = 0x95;
 	}
@@ -1645,8 +1652,23 @@ void DMG_SIO::mobile_adapter_process_http()
 	//Process HTTP request once initial line + headers + message body have been received.
 	else
 	{
-		//For now, just return 404
+		//For now, just return 404 as the default
 		http_response = "HTTP/1.0 404 Not Found";
+
+		//Determine if this request is GET or POST
+		std::size_t get_match = mobile_adapter.http_data.find("GET");
+		std::size_t post_match = mobile_adapter.http_data.find("POST");
+
+		//Process GET requests
+		if(get_match != std::string::npos)
+		{
+			//See if this is the homepage for Mobile Trainer
+			if(mobile_adapter.http_data.find("/01/CGB-B9AJ/index.html") != std::string::npos)
+			{
+				http_response = "HTTP/1.0 200 OK\nContent-Type: text/html\nContent-Length: 31\n<html><body>HELLO</body></html>";
+			}
+		}
+
 		mobile_adapter.http_data = "";
 
 		//Be sure to change command ID to 0x9F at the end of an HTTP response

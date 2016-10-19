@@ -90,6 +90,7 @@ class DMG_SIO
 		u32 ip_addr;
 		bool pop_session_started;
 		bool http_session_started;
+		bool line_busy;
 	} mobile_adapter;
 
 	DMG_SIO();
