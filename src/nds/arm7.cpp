@@ -49,6 +49,8 @@ void NTR_ARM7::reset()
 	arm_mode = ARM;
 	current_cpu_mode = SYS;
 
+	irq_pc = 0;
+
 	debug_message = 0xFF;
 	debug_code = 0;
 	debug_cycles = 0;
@@ -1162,6 +1164,9 @@ void NTR_ARM7::handle_interrupt()
 	//Jump into an interrupt, check if the master flag is enabled
 	if((mem->memory_map[NDS_IME] & 0x1) && ((reg.cpsr & CPSR_IRQ) == 0) && (!in_interrupt))
 	{
+		//Wait until pipeline is finished filling
+		if(debug_message == 0xFF) { return; }
+
 		u32 if_check = mem->nds7_if;
 		u32 ie_check = mem->nds7_ie;
 

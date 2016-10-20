@@ -36,7 +36,7 @@ void NTR_ARM9::process_swi(u32 comment)
 
 		//IsDebugger
 		case 0xF:
-			std::cout<<"ARM9::SWI::IsDebugger \n";
+			//std::cout<<"ARM9::SWI::IsDebugger \n";
 			swi_isdebugger();
 			break;
 
@@ -79,45 +79,16 @@ void NTR_ARM9::swi_intrwait()
 	mem->write_u32(NDS_IME, 0x1);
 	reg.cpsr &= ~CPSR_IRQ;
 
-	u32 if_check, ie_check, old_if, current_if = 0;
-	bool fire_interrupt = false;
-
 	//Grab old IF, set current one to zero
-	old_if = mem->nds9_if;
+	mem->nds9_old_if = mem->nds9_if;
 	mem->nds9_if = 0;
 
-	//Grab the interrupts to check from R1
-	if_check = reg.r1;
+	//Grab old IE, set current one to R1
+	mem->nds9_old_ie = mem->nds9_ie;
+	mem->nds9_ie = reg.r1;
 
-	//Run controllers until an interrupt is generated
-	while(!fire_interrupt)
-	{
-		clock();
-
-		current_if = mem->nds9_if;
-		ie_check = mem->nds9_ie;
-		
-		//Match up bits in IE and IF
-		for(int x = 0; x < 21; x++)
-		{
-			//When there is a match check to see if IntrWait can quit
-			if((ie_check & (1 << x)) && (if_check & (1 << x)))
-			{
-				//If R0 == 0, quit on any IRQ
-				if(reg.r0 == 0) { fire_interrupt = true; }
-				
-				//If R0 == 1, quit when the IF flags match the ones specified in R1
-				else if(current_if & if_check) { fire_interrupt = true; }
-			}
-		}
-	}
-
-	//Restore old IF, also OR in any new flags that were set
-	mem->nds9_if = (old_if | current_if);
-
-	//Artificially hold PC at current location
-	//This SWI will be fetched, decoded, and executed again until it hits VBlank 
-	reg.r15 -= (arm_mode == ARM) ? 4 : 2;
+	//Set CPU idle state to 3
+	idle_state = 3;
 }
 
 /****** HLE implementation of IsDebugger - NDS9 ******/
@@ -149,7 +120,7 @@ void NTR_ARM7::process_swi(u32 comment)
 
 		//GetCRC16
 		case 0xE:
-			std::cout<<"ARM7::SWI::GetCRC16 \n";
+			//std::cout<<"ARM7::SWI::GetCRC16 \n";
 			swi_getcrc16();
 			break;
 			

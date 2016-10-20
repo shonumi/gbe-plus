@@ -168,6 +168,7 @@ class NTR_ARM7
 	u32 instruction_pipeline[3];
 	arm_instructions instruction_operation[3];
 	u8 pipeline_pointer;
+	u32 irq_pc;
 
 	u8 debug_message;
 	u32 debug_code;

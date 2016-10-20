@@ -279,6 +279,11 @@ void NTR_LCD::update()
 /****** Run LCD for one cycle ******/
 void NTR_LCD::step()
 {
+	//TODO - Not sure if disabling the display acts like the DMG/GBC where everything shuts down (nothing is clocked, no IRQs)
+	//For now, just going to assume that is the case.
+	//TODO - Test this on real HW.
+	if(lcd_stat.display_mode_a == 0) { return; }
+
 	lcd_clock++;
 
 	//Mode 0 - Scanline rendering
@@ -294,6 +299,9 @@ void NTR_LCD::step()
 			
 			lcd_stat.current_scanline++;
 			if(lcd_stat.current_scanline == 263) { lcd_stat.current_scanline = 0; }
+
+			//Update VCOUNT
+			mem->write_u16_fast(NDS_VCOUNT, lcd_stat.current_scanline);
 
 			scanline_compare();
 		}
@@ -344,6 +352,9 @@ void NTR_LCD::step()
 
 			//Increment scanline count
 			lcd_stat.current_scanline++;
+
+			//Update VCOUNT
+			mem->write_u16_fast(NDS_VCOUNT, lcd_stat.current_scanline);
 
 			//Use SDL
 			if(config::sdl_render)
@@ -411,21 +422,24 @@ void NTR_LCD::step()
 		{
 			lcd_stat.current_scanline++;
 			scanline_compare();
+
+			//Update VCOUNT
+			mem->write_u16_fast(NDS_VCOUNT, lcd_stat.current_scanline);
 		}
 	}
 }
 
 /****** Compare VCOUNT to LYC ******/
 void NTR_LCD::scanline_compare()
-{	
+{
 	//Raise VCOUNT interrupt
 	if(lcd_stat.current_scanline == lcd_stat.lyc)
 	{
 		//Check to see if the VCOUNT IRQ is enabled in DISPSTAT
 		if(lcd_stat.vcount_irq_enable) 
-		{ 
-				mem->nds9_if |= 0x4;
-				mem->nds7_if |= 0x4;
+		{
+			mem->nds9_if |= 0x4;
+			mem->nds7_if |= 0x4;
 		}
 
 		//Toggle VCOUNT flag ON

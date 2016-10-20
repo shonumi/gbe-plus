@@ -43,6 +43,7 @@ void NTR_MMU::reset()
 	nds7_irq_handler = 0x380FFFC;
 	nds7_ie = 0x0;
 	nds7_if = 0x0;
+	nds7_old_ie = 0x0;
 
 	nds9_bios.clear();
 	nds9_bios.resize(0xC00, 0);
@@ -50,9 +51,12 @@ void NTR_MMU::reset()
 	nds9_irq_handler = 0x0;
 	nds9_ie = 0x0;
 	nds9_if = 0x0;
+	nds9_old_ie = 0x0;
 
 	//HLE stuff
 	memory_map[NDS_DISPCNT_A] = 0x80;
+	write_u16_fast(NDS_EXTKEYIN, 0x7F);
+	write_u16_fast(NDS_KEYINPUT, 0x3FF);
 
 	//Default memory access timings (4, 2)
 	n_clock = 4;
@@ -88,7 +92,7 @@ void NTR_MMU::reset()
 	nds9_ipc.cnt = 0;
 	nds9_ipc.fifo_latest = 0;
 	nds9_ipc.fifo_incoming = 0;
-	
+
 	std::cout<<"MMU::Initialized\n";
 }
 
@@ -131,7 +135,7 @@ u8 NTR_MMU::read_u8(u32 address)
 	//Check for IPCSYNC
 	else if((address & ~0x1) == NDS_IPCSYNC)
 	{
-		u8 addr_shift = (address & 0x1) << 1;
+		u8 addr_shift = (address & 0x1) << 3;
 
 		//Return NDS9 IPCSYNC
 		if(access_mode) { return ((nds9_ipc.sync >> addr_shift) & 0xFF); }
@@ -143,7 +147,7 @@ u8 NTR_MMU::read_u8(u32 address)
 	//Check for IPCFIFOCNT
 	else if((address & ~0x1) == NDS_IPCFIFOCNT)
 	{
-		u8 addr_shift = (address & 0x1) << 1;
+		u8 addr_shift = (address & 0x1) << 3;
 
 		//Return NDS9 IPCFIFOCNT
 		if(access_mode) { return ((nds9_ipc.cnt >> addr_shift) & 0xFF); }
@@ -195,6 +199,12 @@ u8 NTR_MMU::read_u8(u32 address)
 			}
 		}
 	}
+
+	//if((address >= 0x4000000) && (address <= 0x4000304))
+	//{
+	//	u32 final_addr = address & ~0x3;
+	//	if((final_addr != NDS_IME) && (final_addr != NDS_KEYINPUT)) { std::cout<<"ADDR -> 0x" << std::hex << address << "\n"; }
+	//}
 
 	return memory_map[address];
 }
@@ -708,14 +718,14 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 				nds7_ipc.sync &= 0xFFF0;
 				nds7_ipc.sync |= (value & 0xF);
 
-				//Trigger IPC IRQ on NDS7 if enabled
+				//Trigger IPC IRQ on NDS7 if sending IRQ is enabled
 				if((nds9_ipc.sync & 0x2000) && (nds7_ipc.sync & 0x4000))
 				{
 					nds7_if |= 0x10000;
 					std::cout<<"NDS9 to NDS7 IRQ\n";
 				}
 
-				std::cout<<"NDS9 IPCSYNC -> 0x" << std::hex << nds9_ipc.sync << "\n";z
+				std::cout<<"NDS9 IPCSYNC -> 0x" << std::hex << nds9_ipc.sync << "\n";
 			}
 
 			//NDS7 -> NDS9
@@ -729,7 +739,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 				nds9_ipc.sync &= 0xFFF0;
 				nds9_ipc.sync |= (value & 0xF);
 
-				//Trigger IPC IRQ on NDS7 if enabled
+				//Trigger IPC IRQ on NDS9 if sending IRQ is enabled
 				if((nds7_ipc.sync & 0x2000) && (nds9_ipc.sync & 0x4000))
 				{
 					nds9_if |= 0x10000;
@@ -825,6 +835,26 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		case NDS_IPCFIFORECV+1:
 		case NDS_IPCFIFORECV+2:
 		case NDS_IPCFIFORECV+3:
+			break;
+
+		case NDS_KEYINPUT:
+		case NDS_KEYINPUT+1:
+		case NDS_EXTKEYIN:
+		case NDS_EXTKEYIN+1:
+			break;
+
+		case NDS_DIVCNT:
+		case NDS_DIVCNT+1:
+			memory_map[address] = value;
+			std::cout<<"MMU::NDS_DIVCNT Write\n";
+
+			break;
+
+		case NDS_SQRTCNT:
+		case NDS_SQRTCNT+1:
+			memory_map[address] = value;
+			std::cout<<"MMU::NDS_SQRTCNT Write\n";
+
 			break;
 
 		default:
