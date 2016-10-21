@@ -3506,10 +3506,21 @@ bool gbe_cgfx::parse_manifest_items()
 			QImage temp_img(64, 64, QImage::Format_ARGB32);
 			temp_img.fill(qRgb(0, 0, 0));
 
+			u32 meta_width, meta_height = 0;
+
 			if(temp_img.load(QString::fromStdString(temp)))
 			{
+				//Grab source dimensions
+				meta_width = temp_img.width();
+				meta_height = temp_img.height();
+
+				//Scale to 128x128
 				temp_img = temp_img.scaled(128, 128, Qt::KeepAspectRatio);
+
+				temp = "Size : " + util::to_str(meta_width) + "x" + util::to_str(meta_height);
 			}
+
+			QLabel* size_label = new QLabel(QString::fromStdString(temp));
 
 			QLabel* preview = new QLabel;
 			preview->setPixmap(QPixmap::fromImage(temp_img));
@@ -3556,12 +3567,13 @@ bool gbe_cgfx::parse_manifest_items()
 				temp_layout->addWidget(hash_label, spacer++, 1, 1, 1);
 				temp_layout->addWidget(file_label, spacer++, 1, 1, 1);
 				temp_layout->addWidget(type_label, spacer++, 1, 1, 1);
+				temp_layout->addWidget(size_label, spacer++, 1, 1, 1);
 				temp_layout->addWidget(vram_label, spacer++, 1, 1, 1);
 				temp_layout->addWidget(bright_label, spacer++, 1, 1, 1);
 				temp_layout->addWidget(spacer_label, spacer++, 1, 1, 1);
 				temp_layout->addWidget(spacer_label, spacer++, 1, 1, 1);
 
-				temp_layout->addWidget(preview, (spacer - 7), 0, 6, 1);
+				temp_layout->addWidget(preview, (spacer - 8), 0, 6, 1);
 			}
 		}
 
@@ -3580,10 +3592,21 @@ bool gbe_cgfx::parse_manifest_items()
 			QImage temp_img(64, 64, QImage::Format_ARGB32);
 			temp_img.fill(qRgb(0, 0, 0));
 
+			u32 meta_width, meta_height = 0;
+
 			if(temp_img.load(QString::fromStdString(temp)))
 			{
+				//Grab source dimensions
+				meta_width = temp_img.width();
+				meta_height = temp_img.height();
+
+				//Scale to 128x128
 				temp_img = temp_img.scaled(128, 128, Qt::KeepAspectRatio);
+
+				temp = "Size : " + util::to_str(meta_width) + "x" + util::to_str(meta_height);
 			}
+			
+			QLabel* size_label = new QLabel(QString::fromStdString(temp));
 
 			QLabel* preview = new QLabel;
 			preview->setPixmap(QPixmap::fromImage(temp_img));
@@ -3608,13 +3631,14 @@ bool gbe_cgfx::parse_manifest_items()
 
 			temp_layout->addWidget(file_label, spacer++, 1, 1, 1);
 			temp_layout->addWidget(type_label, spacer++, 1, 1, 1);
+			temp_layout->addWidget(size_label, spacer++, 1, 1, 1);
 			temp_layout->addWidget(spacer_label, spacer++, 1, 1, 1);
 			temp_layout->addWidget(spacer_label, spacer++, 1, 1, 1);
 			temp_layout->addWidget(spacer_label, spacer++, 1, 1, 1);
 			temp_layout->addWidget(spacer_label, spacer++, 1, 1, 1);
 			temp_layout->addWidget(spacer_label, spacer++, 1, 1, 1);
 
-			temp_layout->addWidget(preview, (spacer - 7), 0, 6, 1);
+			temp_layout->addWidget(preview, (spacer - 8), 0, 6, 1);
 		}
 	}
 
