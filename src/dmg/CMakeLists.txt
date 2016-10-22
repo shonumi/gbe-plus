@@ -9,6 +9,7 @@ set(SRCS
 	mbc5.cpp
 	mbc7.cpp
 	huc1.cpp
+	camera.cpp
 	mmu.cpp
 	opengl.cpp
 	z80.cpp

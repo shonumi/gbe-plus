@@ -1229,6 +1229,10 @@ u8 DMG_MMU::mbc_read(u16 address)
 		case HUC1:
 			return huc1_read(address);
 			break;
+
+		case GB_CAMERA:
+			return cam_read(address);
+			break;
 	}
 }
 
@@ -1259,6 +1263,10 @@ void DMG_MMU::mbc_write(u16 address, u8 value)
 
 		case HUC1:
 			huc1_write(address, value);
+			break;
+
+		case GB_CAMERA:
+			cam_write(address, value);
 			break;
 	}
 }
@@ -1469,18 +1477,22 @@ bool DMG_MMU::read_file(std::string filename)
 			std::cout<<"MMU::ROM Size - " << cart.rom_size << "KB\n";
 			break;
 
-		case 0x1F:
-			std::cout<<"MMU::Cartridge Type - Gameboy Camera\n";
-			std::cout<<"MMU::MBC type currently unsupported \n";
-			return false;
-			break;
-
 		case 0x22:
 			cart.mbc_type = MBC7;
 			cart.ram = false;
 			cart.battery = true;
 
 			std::cout<<"MMU::Cartridge Type - MBC7\n";
+			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
+			std::cout<<"MMU::ROM Size - " << cart.rom_size << "KB\n";
+			break;
+
+		case 0xFC:
+			cart.mbc_type = GB_CAMERA;
+			cart.ram = true;
+			cart.battery = true;
+
+			std::cout<<"MMU::Cartridge Type - Gameboy Camera\n";
 			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
 			std::cout<<"MMU::ROM Size - " << cart.rom_size << "KB\n";
 			break;
