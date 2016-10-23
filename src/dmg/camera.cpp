@@ -23,13 +23,13 @@ void DMG_MMU::cam_write(u16 address, u8 value)
 	}
 
 	//MBC register - Select ROM bank - Bits 0 to 5
-	if((address >= 0x2000) && (address <= 0x3FFF)) 
+	else if((address >= 0x2000) && (address <= 0x3FFF)) 
 	{ 
 		rom_bank = (value & 0x3F);
 	}
 
 	//MBC register - Select RAM bank or camera registers
-	if((address >= 0x4000) && (address <= 0x5FFF)) 
+	else if((address >= 0x4000) && (address <= 0x5FFF)) 
 	{ 
 		bank_bits = value;
 
@@ -38,6 +38,22 @@ void DMG_MMU::cam_write(u16 address, u8 value)
 
 		//Otherwise, access RAM banks 0x0 - 0xF;
 		else { bank_bits &= 0xF; }
+	}
+
+	//Write to External RAM or camera register
+	else if((address >= 0xA000) && (address <= 0xBFFF))
+	{
+		//Write to RAM bank normally
+		if((ram_banking_enabled) && (bank_bits != 0x10)) { random_access_bank[bank_bits][address - 0xA000] = value; }
+
+		//Write to camera registers
+		else if((ram_banking_enabled) && (bank_bits == 0x10))
+		{
+			//Camera registers repeat every 0x80 bytes
+			u8 reg_id = (address - 0xA000) % 0x80;
+
+			if(reg_id <= 53) { cart.cam_reg[reg_id] = value; }
+		}
 	}
 }
 
@@ -63,8 +79,8 @@ u8 DMG_MMU::cam_read(u16 address)
 		//Read RAM bank if RAM enabled
 		if((ram_banking_enabled) && (bank_bits != 0x10)) { return random_access_bank[bank_bits][address - 0xA000]; }
 
-		//Read camera registers
-		else if(bank_bits == 0x10) { 0x0; std::cout<<"CAM REG READ\n"; }
+		//Read camera registers - Only 0xA000 can be read, all others are write-only
+		else if((bank_bits == 0x10) && (address == 0xA000)) { return cart.cam_reg[0]; }
 
 		else { return 0x00; }
 	}

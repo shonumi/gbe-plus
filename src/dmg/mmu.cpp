@@ -61,6 +61,8 @@ void DMG_MMU::reset()
 	cart.idle = false;
 	cart.internal_value = cart.internal_state = cart.cs = cart.sk = cart.buffer_length = cart.command_code = cart.addr = cart.buffer = 0;
 
+	for(u32 x = 0; x < 54; x++) { cart.cam_reg[x] = 0; }
+
 	ir_signal = 0;
 	ir_send = false;
 
@@ -76,6 +78,8 @@ void DMG_MMU::reset()
 
 	video_ram.resize(0x2);
 	for(int x = 0; x < 0x2; x++) { video_ram[x].resize(0x2000, 0); }
+
+
 
 	g_pad = NULL;
 

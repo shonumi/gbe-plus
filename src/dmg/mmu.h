@@ -95,6 +95,9 @@ class DMG_MMU
 		u8 command_code;
 		u16 addr;
 		u16 buffer;
+
+		//Camera
+		u8 cam_reg[54];
 	} cart;
 
 	u8 ir_signal;
