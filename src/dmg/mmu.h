@@ -153,6 +153,7 @@ class DMG_MMU
 
 	void cam_write(u16 address, u8 value);
 	u8 cam_read(u16 address);
+	bool cam_load_snapshot(std::string filename);
 
 	void set_gs_cheats();
 	void set_gg_cheats();

@@ -22,7 +22,7 @@ DMG_MMU::DMG_MMU()
 
 /****** MMU Deconstructor ******/
 DMG_MMU::~DMG_MMU() 
-{ 
+{
 	save_backup(config::save_file);
 	memory_map.clear();
 	std::cout<<"MMU::Shutdown\n"; 
@@ -78,8 +78,6 @@ void DMG_MMU::reset()
 
 	video_ram.resize(0x2);
 	for(int x = 0; x < 0x2; x++) { video_ram[x].resize(0x2000, 0); }
-
-
 
 	g_pad = NULL;
 
