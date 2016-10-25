@@ -141,19 +141,69 @@ bool DMG_MMU::cam_load_snapshot(std::string filename)
 			switch(brightness)
 			{
 				//Darkest color
-				case 0x0: pixel_buffer.push_back(config::DMG_BG_PAL[3]); break;
+				case 0x0: pixel_buffer.push_back(0xFF000000); break;
 				
 				//Semi-darkest color
-				case 0x1: pixel_buffer.push_back(config::DMG_BG_PAL[2]); break;
+				case 0x1: pixel_buffer.push_back(0xFF606060); break;
 
 				//Semi-lightest color
-				case 0x2: pixel_buffer.push_back(config::DMG_BG_PAL[1]); break;
+				case 0x2: pixel_buffer.push_back(0xFFC0C0C0); break;
 
 				//Lightest color
-				case 0x3: pixel_buffer.push_back(config::DMG_BG_PAL[0]); break;
+				case 0x3: pixel_buffer.push_back(0xFFFFFFFF); break;
 			}
 		}
 	}
+
+	std::vector <u8> vram_buffer;
+
+	//Convert 32-bit pixel buffer to 2bpp GB tiles - 128x112 translates to 16x14 tiles or 224 tiles
+	for(u32 tile = 0; tile < 224; tile++)
+	{
+		u8 tile_data[16];
+
+		//Convert each row of the tile
+		for(u32 x = 0; x < 8; x++)
+		{
+			u8 result_byte_1 = 0;
+			u8 result_byte_2 = 0;
+
+			//Convert each column of the tile
+			for(u32 y = 0; y < 8; y++)
+			{
+				result_byte_1 <<= 1;
+				result_byte_2 <<= 1;
+
+				u32 current_pixel = ((tile * 8) % 128) + (x * 128) + (1024 * (tile / 16)) + y;
+				u32 final_color = pixel_buffer[current_pixel];
+
+				switch(final_color)
+				{
+					case 0xFFFFFFFF: result_byte_1 |= 0; result_byte_2 |= 0; break;
+					case 0xFFC0C0C0: result_byte_1 |= 1; result_byte_2 |= 0; break;
+					case 0xFF606060: result_byte_1 |= 0; result_byte_2 |= 1; break;
+					case 0xFF000000: result_byte_1 |= 1; result_byte_2 |= 1; break;
+				}
+			}
+
+			vram_buffer.push_back(result_byte_1);
+			vram_buffer.push_back(result_byte_2);
+		}
+	}
+
+	u32 vram_count = 0;
+
+	//Push data to VRAM - 0x9000 to 0x9800
+	for(u32 x = 0x9000; x < 0x9800; x++) { write_u8(x, vram_buffer[vram_count++]); }
+
+	//Push data to VRAM - 0x8800 to 0x8900
+	for(u32 x = 0x8800; x < 0x8900; x++) { write_u8(x, vram_buffer[vram_count++]); }
+
+	//Push data to VRAM - 0x8000 to 0x8500
+	for(u32 x = 0x8000; x < 0x8500; x++) { write_u8(x, vram_buffer[vram_count++]); }
+
+	//Copy buffer to VRAM
+	for(u32 x = 0; x < vram_buffer.size(); x++) { random_access_bank[0][0x100 + x] = vram_buffer[x]; }
 
 	return true;
 }
