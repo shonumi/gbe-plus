@@ -49,12 +49,13 @@ void DMG_MMU::cam_write(u16 address, u8 value)
 		if((ram_banking_enabled) && (bank_bits != 0x10)) { random_access_bank[bank_bits][address - 0xA000] = value; }
 
 		//Write to camera registers
-		else if((ram_banking_enabled) && (bank_bits == 0x10))
+		else if(bank_bits == 0x10)
 		{
 			//Camera registers repeat every 0x80 bytes
 			u8 reg_id = (address - 0xA000) % 0x80;
 
 			if(reg_id <= 53) { cart.cam_reg[reg_id] = value; }
+			if(reg_id == 0) { cart.cam_reg[0] &= ~0x1; }
 		}
 	}
 }
@@ -78,8 +79,8 @@ u8 DMG_MMU::cam_read(u16 address)
 	//Read using RAM Banking or camera register
 	else if((address >= 0xA000) && (address <= 0xBFFF))
 	{
-		//Read RAM bank if RAM enabled
-		if((ram_banking_enabled) && (bank_bits != 0x10)) { return random_access_bank[bank_bits][address - 0xA000]; }
+		//Read RAM bank
+		if(bank_bits != 0x10) { return random_access_bank[bank_bits][address - 0xA000]; }
 
 		//Read camera registers - Only 0xA000 can be read, all others are write-only
 		else if((bank_bits == 0x10) && (address == 0xA000)) { return cart.cam_reg[0]; }
@@ -155,7 +156,7 @@ bool DMG_MMU::cam_load_snapshot(std::string filename)
 		}
 	}
 
-	std::vector <u8> vram_buffer;
+	cart.cam_buffer.clear();
 
 	//Convert 32-bit pixel buffer to 2bpp GB tiles - 128x112 translates to 16x14 tiles or 224 tiles
 	for(u32 tile = 0; tile < 224; tile++)
@@ -186,24 +187,24 @@ bool DMG_MMU::cam_load_snapshot(std::string filename)
 				}
 			}
 
-			vram_buffer.push_back(result_byte_1);
-			vram_buffer.push_back(result_byte_2);
+			cart.cam_buffer.push_back(result_byte_1);
+			cart.cam_buffer.push_back(result_byte_2);
 		}
 	}
 
 	u32 vram_count = 0;
 
 	//Push data to VRAM - 0x9000 to 0x9800
-	for(u32 x = 0x9000; x < 0x9800; x++) { write_u8(x, vram_buffer[vram_count++]); }
+	for(u32 x = 0x9000; x < 0x9800; x++) { write_u8(x, cart.cam_buffer[vram_count++]); }
 
 	//Push data to VRAM - 0x8800 to 0x8900
-	for(u32 x = 0x8800; x < 0x8900; x++) { write_u8(x, vram_buffer[vram_count++]); }
+	for(u32 x = 0x8800; x < 0x8900; x++) { write_u8(x, cart.cam_buffer[vram_count++]); }
 
 	//Push data to VRAM - 0x8000 to 0x8500
-	for(u32 x = 0x8000; x < 0x8500; x++) { write_u8(x, vram_buffer[vram_count++]); }
+	for(u32 x = 0x8000; x < 0x8500; x++) { write_u8(x, cart.cam_buffer[vram_count++]); }
 
-	//Copy buffer to VRAM
-	for(u32 x = 0; x < vram_buffer.size(); x++) { random_access_bank[0][0x100 + x] = vram_buffer[x]; }
+	//Copy buffer to SRAM
+	for(u32 x = 0; x < cart.cam_buffer.size(); x++) { random_access_bank[0][0x1000 + x] = cart.cam_buffer[x]; }
 
 	return true;
 }

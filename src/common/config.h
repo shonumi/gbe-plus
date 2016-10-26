@@ -41,6 +41,7 @@ namespace config
 	extern std::string cfg_path;
 	extern std::string data_path;
 	extern std::string cheats_path;
+	extern std::string external_camera_file;
 	extern std::vector <std::string> recent_files;
 	extern std::vector <std::string> cli_args;
 
@@ -52,6 +53,7 @@ namespace config
 	extern int gyro_joy_up, gyro_joy_down, gyro_joy_left, gyro_joy_right;
 	extern int hotkey_turbo;
 	extern int hotkey_mute;
+	extern int hotkey_camera;
 	extern int dead_zone;
 	extern int joy_id;
 	extern bool use_haptics;

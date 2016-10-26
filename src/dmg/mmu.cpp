@@ -62,6 +62,8 @@ void DMG_MMU::reset()
 	cart.internal_value = cart.internal_state = cart.cs = cart.sk = cart.buffer_length = cart.command_code = cart.addr = cart.buffer = 0;
 
 	for(u32 x = 0; x < 54; x++) { cart.cam_reg[x] = 0; }
+	cart.cam_buffer.clear();
+	cart.cam_lock = false;
 
 	ir_signal = 0;
 	ir_send = false;

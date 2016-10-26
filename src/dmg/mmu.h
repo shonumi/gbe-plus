@@ -98,6 +98,8 @@ class DMG_MMU
 
 		//Camera
 		u8 cam_reg[54];
+		std::vector <u8> cam_buffer;
+		bool cam_lock;
 	} cart;
 
 	u8 ir_signal;
@@ -154,6 +156,7 @@ class DMG_MMU
 	void cam_write(u16 address, u8 value);
 	u8 cam_read(u16 address);
 	bool cam_load_snapshot(std::string filename);
+	void cam_save_snapshot();
 
 	void set_gs_cheats();
 	void set_gg_cheats();

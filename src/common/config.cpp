@@ -30,6 +30,7 @@ namespace config
 	std::string cfg_path = "";
 	std::string data_path = "";
 	std::string cheats_path = "";
+	std::string external_camera_file = "";
 	std::vector <std::string> recent_files;
 	std::vector <std::string> cli_args;
 	bool use_debugger = false;
@@ -68,6 +69,7 @@ namespace config
 	//Turbo = TAB
 	int hotkey_turbo = SDLK_TAB;
 	int hotkey_mute = SDLK_m;
+	int hotkey_camera = SDLK_p;
 
 	//Default joystick dead-zone
 	int dead_zone = 16000;
@@ -893,6 +895,24 @@ bool parse_ini_file()
 			else { config::cheats_path = ""; }
 		}
 
+		//External camera file
+		else if(ini_item == "#camera_file")
+		{
+			if((x + 1) < size) 
+			{
+				ini_item = ini_opts[++x];
+				std::string first_char = "";
+				first_char = ini_item[0];
+				
+				//When left blank, don't parse the next line item
+				if(first_char != "#") { config::external_camera_file = ini_item; }
+				else { config::external_camera_file = ""; x--;}
+ 
+			}
+
+			else { config::external_camera_file = ""; }
+		}
+
 		//Use OpenGL
 		else if(ini_item == "#use_opengl")
 		{
@@ -1467,7 +1487,7 @@ bool parse_ini_file()
 		//Hotkeys
 		else if(ini_item == "#hotkeys")
 		{
-			if((x + 2) < size)
+			if((x + 3) < size)
 			{
 				std::stringstream temp_stream;
 
@@ -1480,6 +1500,12 @@ bool parse_ini_file()
 				//Mute
 				temp_stream << ini_opts[++x];
 				temp_stream >> config::hotkey_mute;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//GB Camera
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::hotkey_camera;
 				temp_stream.clear();
 				temp_stream.str(std::string());
 			}
@@ -1914,6 +1940,16 @@ bool save_ini_file()
 
 			output_lines[line_pos] = "[#cheats_path" + val + "]";
 		}
+
+		//External camera file
+		else if(ini_item == "#camera_file")
+		{
+			line_pos = output_count[x];
+			std::string val = (config::external_camera_file == "") ? "" : (":'" + config::external_camera_file + "'");
+
+			output_lines[line_pos] = "[#camera_file" + val + "]";
+		}
+
 
 		//Use OpenGL
 		else if(ini_item == "#use_opengl")

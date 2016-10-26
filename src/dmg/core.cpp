@@ -346,7 +346,7 @@ void DMG_core::run_core()
 						}
 
 						//Process GB Printer communications
-						else {core_cpu.controllers.serial_io.printer_process(); }
+						else { core_cpu.controllers.serial_io.printer_process(); }
 					}
 				}
 			}
@@ -1677,6 +1677,34 @@ void DMG_core::handle_hotkey(SDL_Event& event)
 		
 	//Reset emulation on F8
 	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F8)) { reset(); }
+
+	//GB Camera load/unload external picture into VRAM
+	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == config::hotkey_camera))
+	{
+		//Set data into VRAM
+		if((core_mmu.cart.mbc_type == DMG_MMU::GB_CAMERA) && (!core_mmu.cart.cam_lock))
+		{
+			if(core_mmu.cam_load_snapshot(config::external_camera_file)) { std::cout<<"GBE::Loaded external camera file\n"; }
+			core_mmu.cart.cam_lock = true;
+		}
+
+		//Clear data from VRAM
+		else if((core_mmu.cart.mbc_type == DMG_MMU::GB_CAMERA) && (core_mmu.cart.cam_lock))
+		{
+			//Clear VRAM - 0x9000 to 0x9800
+			for(u32 x = 0x9000; x < 0x9800; x++) { core_mmu.write_u8(x, 0x0); }
+
+			//Clear VRAM - 0x8800 to 0x8900
+			for(u32 x = 0x8800; x < 0x8900; x++) { core_mmu.write_u8(x, 0x0); }
+
+			//Clear VRAM - 0x8000 to 0x8500
+			for(u32 x = 0x8000; x < 0x8500; x++) { core_mmu.write_u8(x, 0x0); }
+			
+			std::cout<<"GBE::Erased external camera file from VRAM\n";
+
+			core_mmu.cart.cam_lock = false;
+		}
+	}
 }
 
 /****** Process hotkey input - Use exsternally when not using SDL ******/
