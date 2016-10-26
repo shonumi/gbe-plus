@@ -1699,6 +1699,9 @@ void DMG_core::handle_hotkey(SDL_Event& event)
 
 			//Clear VRAM - 0x8000 to 0x8500
 			for(u32 x = 0x8000; x < 0x8500; x++) { core_mmu.write_u8(x, 0x0); }
+
+			//Clear SRAM
+			for(u32 x = 0; x < core_mmu.cart.cam_buffer.size(); x++) { core_mmu.random_access_bank[0][0x100 + x] = 0x0; }
 			
 			std::cout<<"GBE::Erased external camera file from VRAM\n";
 

@@ -204,7 +204,7 @@ bool DMG_MMU::cam_load_snapshot(std::string filename)
 	for(u32 x = 0x8000; x < 0x8500; x++) { write_u8(x, cart.cam_buffer[vram_count++]); }
 
 	//Copy buffer to SRAM
-	for(u32 x = 0; x < cart.cam_buffer.size(); x++) { random_access_bank[0][0x1000 + x] = cart.cam_buffer[x]; }
+	for(u32 x = 0; x < cart.cam_buffer.size(); x++) { random_access_bank[0][0x100 + x] = cart.cam_buffer[x]; }
 
 	return true;
 }

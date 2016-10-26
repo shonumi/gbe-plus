@@ -23,6 +23,12 @@ DMG_MMU::DMG_MMU()
 /****** MMU Deconstructor ******/
 DMG_MMU::~DMG_MMU() 
 {
+	//Always clean up external camera pic from SRAM before saving
+	if(cart.mbc_type == GB_CAMERA)
+	{
+		for(u32 x = 0; x < cart.cam_buffer.size(); x++) { random_access_bank[0][0x100 + x] = 0x0; }
+	}
+
 	save_backup(config::save_file);
 	memory_map.clear();
 	std::cout<<"MMU::Shutdown\n"; 
