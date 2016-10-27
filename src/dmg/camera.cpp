@@ -142,16 +142,16 @@ bool DMG_MMU::cam_load_snapshot(std::string filename)
 			switch(brightness)
 			{
 				//Darkest color
-				case 0x0: pixel_buffer.push_back(0xFF000000); break;
+				case 0x0: pixel_buffer.push_back(config::DMG_BG_PAL[3]); break;
 				
 				//Semi-darkest color
-				case 0x1: pixel_buffer.push_back(0xFF606060); break;
+				case 0x1: pixel_buffer.push_back(config::DMG_BG_PAL[2]); break;
 
 				//Semi-lightest color
-				case 0x2: pixel_buffer.push_back(0xFFC0C0C0); break;
+				case 0x2: pixel_buffer.push_back(config::DMG_BG_PAL[1]); break;
 
 				//Lightest color
-				case 0x3: pixel_buffer.push_back(0xFFFFFFFF); break;
+				case 0x3: pixel_buffer.push_back(config::DMG_BG_PAL[0]); break;
 			}
 		}
 	}
@@ -178,13 +178,10 @@ bool DMG_MMU::cam_load_snapshot(std::string filename)
 				u32 current_pixel = ((tile * 8) % 128) + (x * 128) + (1024 * (tile / 16)) + y;
 				u32 final_color = pixel_buffer[current_pixel];
 
-				switch(final_color)
-				{
-					case 0xFFFFFFFF: result_byte_1 |= 0; result_byte_2 |= 0; break;
-					case 0xFFC0C0C0: result_byte_1 |= 1; result_byte_2 |= 0; break;
-					case 0xFF606060: result_byte_1 |= 0; result_byte_2 |= 1; break;
-					case 0xFF000000: result_byte_1 |= 1; result_byte_2 |= 1; break;
-				}
+				if(final_color == config::DMG_BG_PAL[0]) { result_byte_1 |= 0; result_byte_2 |= 0; }
+				else if(final_color == config::DMG_BG_PAL[1]) { result_byte_1 |= 1; result_byte_2 |= 0; }
+				else if(final_color == config::DMG_BG_PAL[2]) { result_byte_1 |= 0; result_byte_2 |= 1; }
+				else if(final_color == config::DMG_BG_PAL[3]) { result_byte_1 |= 1; result_byte_2 |= 1; }
 			}
 
 			cart.cam_buffer.push_back(result_byte_1);
