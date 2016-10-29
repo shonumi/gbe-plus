@@ -136,23 +136,31 @@ bool DMG_MMU::cam_load_snapshot(std::string filename)
 
 			u32 final_color = src_buffer[final_pos];
 
-			//Convert to GB grayscale
-			u8 brightness = util::get_brightness_fast(final_color) / 64;
+			//Convert to GB grayscale via dithering/contrast matrix stored in camera registers
+			u8 brightness = util::get_brightness_fast(final_color);
 
-			switch(brightness)
-			{
-				//Darkest color
-				case 0x0: pixel_buffer.push_back(config::DMG_BG_PAL[3]); break;
-				
-				//Semi-darkest color
-				case 0x1: pixel_buffer.push_back(config::DMG_BG_PAL[2]); break;
+			//Find position in matrix
+			u32 x_matrix = x % 4;
+			u32 y_matrix = y % 4;
+			u32 matrix_id = (y_matrix * 4) + x_matrix;
 
-				//Semi-lightest color
-				case 0x2: pixel_buffer.push_back(config::DMG_BG_PAL[1]); break;
+			matrix_id = (matrix_id * 3) + 6;
 
-				//Lightest color
-				case 0x3: pixel_buffer.push_back(config::DMG_BG_PAL[0]); break;
-			}
+			u8 matrix_low = cart.cam_reg[matrix_id++];
+			u8 matrix_mid = cart.cam_reg[matrix_id++];
+			u8 matrix_high = cart.cam_reg[matrix_id++];
+
+			//Darkest color
+			if(brightness < matrix_low) { pixel_buffer.push_back(config::DMG_BG_PAL[3]); }
+			
+			//Semi-darkest color
+			else if(brightness < matrix_mid) { pixel_buffer.push_back(config::DMG_BG_PAL[2]); }
+
+			//Semi-lightest color
+			else if(brightness < matrix_high) { pixel_buffer.push_back(config::DMG_BG_PAL[1]); }
+
+			//Lightest color
+			else { pixel_buffer.push_back(config::DMG_BG_PAL[0]); }
 		}
 	}
 
