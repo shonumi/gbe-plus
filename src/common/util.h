@@ -33,6 +33,19 @@ namespace util
 		double lightness;
 	};
 
+	union col32
+	{
+		struct 
+		{
+			u8 b;
+			u8 g;
+			u8 r;
+			u8 a;
+		};
+
+		u32 color;
+	};
+
 	bool save_png(SDL_Surface* source, std::string filename);
 
 	u8 rgb_min(u32 color);
@@ -48,6 +61,10 @@ namespace util
 
 	u8 get_brightness_fast(u32 color);
 	u32 rgb_blend(u32 color_1, u32 color_2);
+
+	u32 add_color_factor(u32 color, u32 factor);
+	u32 sub_color_factor(u32 color, u32 factor);
+	u32 multiply_color_factor(u32 color, double factor);
 
 	u32 reflect(u32 src, u8 bit);
 	void init_crc32_table();

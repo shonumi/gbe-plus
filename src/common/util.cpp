@@ -443,6 +443,75 @@ u32 rgb_blend(u32 color_1, u32 color_2)
 	return 0xFF000000 | (r << 16) | (g << 8) | b;
 }
 
+/****** Adds a value to all RGB channels of a color ******/
+u32 add_color_factor(u32 color, u32 factor)
+{
+	util::col32 output;
+	output.color = color;
+
+	s32 r_factor = output.r + factor;
+	s32 g_factor = output.g + factor;
+	s32 b_factor = output.b + factor;
+
+	if(r_factor > 255) { output.r = 255; }
+	else { output.r = r_factor; }
+
+	if(g_factor > 255) { output.g = 255; }
+	else { output.g = g_factor; }
+
+	if(b_factor > 255) { output.b = 255; }
+	else { output.b = b_factor; }
+
+	return output.color;
+}
+
+/****** Subtracts a value from all RGB channels of a color ******/
+u32 sub_color_factor(u32 color, u32 factor)
+{
+	util::col32 output;
+	output.color = color;
+
+	s32 r_factor = output.r - factor;
+	s32 g_factor = output.g - factor;
+	s32 b_factor = output.b - factor;
+
+	if(r_factor < 0) { output.r = 0; }
+	else { output.r = r_factor; }
+
+	if(g_factor < 0) { output.g = 0; }
+	else { output.g = g_factor; }
+
+	if(b_factor < 0) { output.b = 0; }
+	else { output.b = b_factor; }
+
+	return output.color;
+}
+
+/****** Multiplies all RGB channels by a value ******/
+u32 multiply_color_factor(u32 color, double factor)
+{
+	util::col32 output;
+	output.color = color;
+
+	s32 r_factor = output.r * factor;
+	s32 g_factor = output.g * factor;
+	s32 b_factor = output.b * factor;
+
+	if(r_factor < 0) { output.r = 0; }
+	else if(r_factor > 255) { output.r = 255; }
+	else { output.r = r_factor; }
+
+	if(g_factor < 0) { output.g = 0; }
+	else if(g_factor > 255) { output.g = 255; }
+	else { output.g = g_factor; }
+
+	if(b_factor < 0) { output.b = 0; }
+	else if(b_factor > 255) { output.b = 255; }
+	else { output.b = b_factor; }
+
+	return output.color;
+}
+
 /****** Mirrors bits ******/
 u32 reflect(u32 src, u8 bit)
 {
