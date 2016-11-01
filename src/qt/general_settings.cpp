@@ -90,16 +90,20 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	cheats_layout->addWidget(cheats_label);
 	cheats_set->setLayout(cheats_layout);
 
-	//General settings - Use GB Printer
-	QWidget* printer_set = new QWidget(general);
-	QLabel* printer_label = new QLabel("Enable GB Printer", printer_set);
-	printer = new QCheckBox(printer_set);
+	//General settings - Emulated SIO device
+	QWidget* sio_set = new QWidget(general);
+	QLabel* sio_label = new QLabel("Serial IO Device (Link Cable)", sio_set);
+	sio_dev = new QComboBox(sio_set);
+	sio_dev->addItem("None");
+	sio_dev->addItem("GB Link Cable");
+	sio_dev->addItem("GB Printer");
+	sio_dev->addItem("GB Mobile Adapter");
 
-	QHBoxLayout* printer_layout = new QHBoxLayout;
-	printer_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-	printer_layout->addWidget(printer);
-	printer_layout->addWidget(printer_label);
-	printer_set->setLayout(printer_layout);
+	QHBoxLayout* sio_layout = new QHBoxLayout;
+	sio_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	sio_layout->addWidget(sio_label);
+	sio_layout->addWidget(sio_dev);
+	sio_set->setLayout(sio_layout);
 
 	//General settings - Enable patches
 	QWidget* patch_set = new QWidget(general);
@@ -115,10 +119,10 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	QVBoxLayout* gen_layout = new QVBoxLayout;
 	gen_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	gen_layout->addWidget(sys_type_set);
+	gen_layout->addWidget(sio_set);
 	gen_layout->addWidget(bios_set);
 	gen_layout->addWidget(cheats_set);
 	gen_layout->addWidget(multicart_set);
-	gen_layout->addWidget(printer_set);
 	gen_layout->addWidget(patch_set);
 	general->setLayout(gen_layout);
 
@@ -786,7 +790,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(tabs_button, SIGNAL(rejected()), this, SLOT(reject()));
 	connect(tabs_button->button(QDialogButtonBox::Close), SIGNAL(clicked()), this, SLOT(close_settings()));
 	connect(bios, SIGNAL(stateChanged(int)), this, SLOT(set_bios()));
-	connect(printer, SIGNAL(stateChanged(int)), this, SLOT(set_printer()));
+	connect(sio_dev, SIGNAL(currentIndexChanged(int)), this, SLOT(sio_dev_change()));
 	connect(auto_patch, SIGNAL(stateChanged(int)), this, SLOT(set_patches()));
 	connect(ogl, SIGNAL(stateChanged(int)), this, SLOT(set_ogl()));
 	connect(screen_scale, SIGNAL(currentIndexChanged(int)), this, SLOT(screen_scale_change()));
@@ -985,11 +989,11 @@ void gen_settings::set_ini_options()
 	//Emulated system type
 	sys_type->setCurrentIndex(config::gb_type);
 
+	//Emulated SIO device
+	sio_dev->setCurrentIndex(config::sio_device);
+
 	//BIOS or Boot ROM option
 	if(config::use_bios) { bios->setChecked(true); }
-
-	//Emulate GB Printer
-	if(config::use_gb_printer) { printer->setChecked(true); }
 
 	//Enable patches
 	if(config::use_patches) { auto_patch->setChecked(true); }
@@ -1113,11 +1117,10 @@ void gen_settings::set_bios()
 	else { config::use_bios = false; }
 }
 
-/****** Toggles whether to emulate the GB Printer ******/
-void gen_settings::set_printer()
+/****** Changes the emulated Serial IO device ******/
+void gen_settings::sio_dev_change()
 {
-	if(printer->isChecked()) { config::use_gb_printer = true; }
-	else { config::use_gb_printer = false; }
+	config::sio_device = sio_dev->currentIndex();
 }
 
 /****** Toggles whether to enable auto-patching ******/

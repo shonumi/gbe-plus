@@ -197,7 +197,25 @@ void DMG_SIO::reset()
 	sio_stat.sync_clock = 32;
 	sio_stat.sync = false;
 	sio_stat.transfer_byte = 0;
-	sio_stat.sio_type = config::use_gb_printer ? GB_PRINTER : NO_GB_DEVICE;
+	
+	switch(config::sio_device)
+	{
+		//GB Printer
+		case 2:
+			sio_stat.sio_type = GB_PRINTER;
+			break;
+
+		//GB Mobile Adapter
+		case 3: 
+			sio_stat.sio_type = GB_MOBILE_ADAPTER;
+			break;
+
+		//Always wait until netplay connection is established to change to GB_LINK
+		//Also, any invalid types are ignored
+		default:
+			sio_stat.sio_type = NO_GB_DEVICE;
+			break;
+	}
 
 	//GB Printer
 	printer.scanline_buffer.clear();

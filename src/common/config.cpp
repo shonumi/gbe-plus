@@ -84,7 +84,7 @@ namespace config
 	bool pause_emu = false;
 	bool use_bios = false;
 	bool use_multicart = false;
-	bool use_gb_printer = false;
+	u32 sio_device = 0;
 	bool use_opengl = false;
 	bool turbo = false;
 
@@ -704,8 +704,8 @@ bool parse_ini_file()
 			}
 		}
 
-		//Use the GB Printer
-		if(ini_item == "#use_gb_printer")
+		//Emulated SIO device
+		if(ini_item == "#sio_device")
 		{
 			if((x + 1) < size) 
 			{
@@ -713,13 +713,12 @@ bool parse_ini_file()
 				std::stringstream temp_stream(ini_item);
 				temp_stream >> output;
 
-				if(output == 1) { config::use_gb_printer = true; }
-				else { config::use_gb_printer = false; }
+				if((output >= 0) && (output <= 3)) { config::sio_device = output; }
 			}
 
 			else 
 			{ 
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#use_gb_printer) \n";
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#sio_device) \n";
 				return false;
 			}
 		}
@@ -1853,12 +1852,11 @@ bool save_ini_file()
 		}
 
 		//Use GB Printer
-		if(ini_item == "#use_gb_printer")
+		if(ini_item == "#sio_device")
 		{
 			line_pos = output_count[x];
-			std::string val = (config::use_gb_printer) ? "1" : "0";
 
-			output_lines[line_pos] = "[#use_gb_printer:" + val + "]";
+			output_lines[line_pos] = "[#sio_device:" + util::to_str(config::sio_device) + "]";
 		}
 
 		//Set emulated system type

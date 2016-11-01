@@ -36,7 +36,7 @@ class gen_settings : public QDialog
 	QCheckBox* bios;
 	QCheckBox* multicart;
 	QCheckBox* cheats;
-	QCheckBox* printer;
+	QComboBox* sio_dev;
 	QCheckBox* auto_patch;
 
 	//Display tab widgets
@@ -141,7 +141,7 @@ class gen_settings : public QDialog
 
 	private slots:
 	void set_bios();
-	void set_printer();
+	void sio_dev_change();
 	void set_patches();
 	void set_ogl();
 	void screen_scale_change();
