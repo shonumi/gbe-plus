@@ -46,8 +46,6 @@ class main_menu : public QWidget
 	u32 display_width;
 	int menu_height;
 
-	int last_key;
-
 	bool fullscreen_mode;
 
 	void pause_emu();

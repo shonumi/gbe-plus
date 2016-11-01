@@ -331,22 +331,34 @@ void DMG_core::run_core()
 
 						core_cpu.controllers.serial_io.sio_stat.active_transfer = false;
 
-						//Process normal SIO communications
-						if(core_cpu.controllers.serial_io.sio_stat.sio_type != GB_PRINTER)
+						switch(core_cpu.controllers.serial_io.sio_stat.sio_type )
 						{
-							//Emulate disconnected link cable (on an internal clock) with no netplay	
-							if(((!config::use_netplay) && (core_cpu.controllers.serial_io.sio_stat.internal_clock)) || (!core_cpu.controllers.serial_io.sio_stat.connected))
-							{
-								core_mmu.memory_map[REG_SB] = 0xFF;
-								core_mmu.memory_map[IF_FLAG] |= 0x08;
-							}
+							//Process normal SIO communications
+							case NO_GB_DEVICE:
+							case GB_LINK:
+								//Emulate disconnected link cable (on an internal clock) with no netplay	
+								if(((!config::use_netplay) && (core_cpu.controllers.serial_io.sio_stat.internal_clock))
+								|| (!core_cpu.controllers.serial_io.sio_stat.connected))
+								{
+									core_mmu.memory_map[REG_SB] = 0xFF;
+									core_mmu.memory_map[IF_FLAG] |= 0x08;
+								}
 
-							//Send byte to another instance of GBE+ via netplay
-							if(core_cpu.controllers.serial_io.sio_stat.connected) { core_cpu.controllers.serial_io.send_byte(); }
+								//Send byte to another instance of GBE+ via netplay
+								if(core_cpu.controllers.serial_io.sio_stat.connected) { core_cpu.controllers.serial_io.send_byte(); }
+						
+								break;
+
+							//Process GB Printer communications
+							case GB_PRINTER:
+								core_cpu.controllers.serial_io.printer_process();
+								break;
+
+							//Process GB Mobile Adapter communications
+							case GB_MOBILE_ADAPTER:
+								core_cpu.controllers.serial_io.mobile_adapter_process();
+								break;
 						}
-
-						//Process GB Printer communications
-						else { core_cpu.controllers.serial_io.printer_process(); }
 					}
 				}
 			}
@@ -506,22 +518,34 @@ void DMG_core::step()
 
 					core_cpu.controllers.serial_io.sio_stat.active_transfer = false;
 
-					//Process normal SIO communications
-					if(core_cpu.controllers.serial_io.sio_stat.sio_type != GB_PRINTER)
+					switch(core_cpu.controllers.serial_io.sio_stat.sio_type )
 					{
-						//Emulate disconnected link cable (on an internal clock) with no netplay	
-						if(((!config::use_netplay) && (core_cpu.controllers.serial_io.sio_stat.internal_clock)) || (!core_cpu.controllers.serial_io.sio_stat.connected))
-						{
-							core_mmu.memory_map[REG_SB] = 0xFF;
-							core_mmu.memory_map[IF_FLAG] |= 0x08;
-						}
+						//Process normal SIO communications
+						case NO_GB_DEVICE:
+						case GB_LINK:
+							//Emulate disconnected link cable (on an internal clock) with no netplay	
+							if(((!config::use_netplay) && (core_cpu.controllers.serial_io.sio_stat.internal_clock))
+							|| (!core_cpu.controllers.serial_io.sio_stat.connected))
+							{
+								core_mmu.memory_map[REG_SB] = 0xFF;
+								core_mmu.memory_map[IF_FLAG] |= 0x08;
+							}
 
-						//Send byte to another instance of GBE+ via netplay
-						if(core_cpu.controllers.serial_io.sio_stat.connected) { core_cpu.controllers.serial_io.send_byte(); }
+							//Send byte to another instance of GBE+ via netplay
+							if(core_cpu.controllers.serial_io.sio_stat.connected) { core_cpu.controllers.serial_io.send_byte(); }
+						
+							break;
+
+						//Process GB Printer communications
+						case GB_PRINTER:
+							core_cpu.controllers.serial_io.printer_process();
+							break;
+
+						//Process GB Mobile Adapter communications
+						case GB_MOBILE_ADAPTER:
+							core_cpu.controllers.serial_io.mobile_adapter_process();
+							break;
 					}
-
-					//Process GB Printer communications
-					else { core_cpu.controllers.serial_io.printer_process(); }
 				}
 			}
 		}

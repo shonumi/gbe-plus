@@ -2143,8 +2143,9 @@ bool save_ini_file()
 			line_pos = output_count[x];
 			std::string val_1 = util::to_str(config::hotkey_turbo);
 			std::string val_2 = util::to_str(config::hotkey_mute);
+			std::string val_3 = util::to_str(config::hotkey_camera);
 
-			output_lines[line_pos] = "[#hotkeys:" + val_1 + ":" + val_2 + "]";
+			output_lines[line_pos] = "[#hotkeys:" + val_1 + ":" + val_2 + ":" + val_3 + "]";
 		}
 
 		//Use CGFX

@@ -293,8 +293,6 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	display_height = QApplication::desktop()->screenGeometry().height();
 
 	fullscreen_mode = false;
-
-	last_key = 0;
 }
 
 /****** Opens a file from the CLI arguments ******/
@@ -681,13 +679,6 @@ void main_menu::keyPressEvent(QKeyEvent* event)
 
 			settings->update_volume();
 		}
-
-		//Upload picture into GB Camera
-		else if((sdl_key == config::hotkey_camera) && (last_key != sdl_key))
-		{
-			//Pass input into hotkey handling code of the core
-			gbe_plus->handle_hotkey(sdl_key, true);
-		}
 	}
 }
 
@@ -699,10 +690,10 @@ void main_menu::keyReleaseEvent(QKeyEvent* event)
 	//Force input processing in the core
 	if(main_menu::gbe_plus != NULL)
 	{
+
+
 		gbe_plus->feed_key_input(sdl_key, false);
 	}
-
-	last_key = 0;
 }
 
 /****** Qt SLOT to pause the emulator ******/

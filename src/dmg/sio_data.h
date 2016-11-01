@@ -18,9 +18,7 @@
 enum sio_types
 { 
 	NO_GB_DEVICE,
-	DMG_LINK,
-	DMG_07_LINK,
-	GBC_LINK,
+	GB_LINK,
 	GB_PRINTER,
 	GB_MOBILE_ADAPTER,
 };
