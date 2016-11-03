@@ -14,17 +14,17 @@ in vec2 texture_coordinates;
 
 out vec4 color;
 
-//Control variables - Adjust these to change how the shader's effects work
-
-//Scanline effect size in pixels, divided by two
-float scanline_size = 8;
-
 uniform sampler2D screen_texture;
 uniform int screen_x_size;
 uniform int screen_y_size;
 
 uniform float ext_data_1;
 uniform float ext_data_2;
+
+//Control variables - Adjust these to change how the shader's effects work
+
+//Scanline effect size in pixels, divided by two
+float scanline_size = (ext_data_2 / screen_y_size) * 2.0;
 
 //Returns the maximum RGB component
 void rgb_max(in vec4 rgb_color, out float maximum)
