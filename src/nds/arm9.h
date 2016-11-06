@@ -217,7 +217,9 @@ class NTR_ARM9
 	void block_data_transfer(u32 current_arm_instruction);
 	void single_data_swap(u32 current_arm_instruction);
 	void software_interrupt_breakpoint(u32 current_arm_instruction);
+
 	void coprocessor_register_transfer(u32 current_arm_instruction);
+	void coprocessor_data_transfer(u32 current_arm_instruction);
 
 	//THUMB instructions
 	void move_shifted_register(u16 current_thumb_instruction);

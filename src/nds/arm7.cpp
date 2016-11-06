@@ -741,7 +741,7 @@ void NTR_ARM7::execute()
 		//Skip ARM instruction
 		else 
 		{ 
-			debug_message = 0x1F; 
+			debug_message = 0x22; 
 			debug_code = instruction_pipeline[pipeline_id];
 
 			//Clock CPU and controllers - 1S
@@ -1182,6 +1182,8 @@ void NTR_ARM7::handle_interrupt()
 					reg.r15 += (arm_mode == ARM) ? 4 : 2;
 					swi_vblank_wait = false; 
 				}
+
+				//std::cout<<"ARM7 IRQ NUMBER -> " << std::dec << x << "\n";
 
 				current_cpu_mode = IRQ;
 

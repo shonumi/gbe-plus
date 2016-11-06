@@ -84,12 +84,12 @@ void NTR_MMU::reset()
 	while(!nds9_ipc.fifo.empty()) { nds9_ipc.fifo.pop(); }
 
 	nds7_ipc.sync = 0;
-	nds7_ipc.cnt = 0;
+	nds7_ipc.cnt = 0x101;
 	nds7_ipc.fifo_latest = 0;
 	nds7_ipc.fifo_incoming = 0;
 
 	nds9_ipc.sync = 0;
-	nds9_ipc.cnt = 0;
+	nds9_ipc.cnt = 0x101;
 	nds9_ipc.fifo_latest = 0;
 	nds9_ipc.fifo_incoming = 0;
 
@@ -161,39 +161,109 @@ u8 NTR_MMU::read_u8(u32 address)
 	{
 		u8 addr_shift = (address & 0x3) << 3;
 
-		//Read from NDS9 IPC FIFO
+		//SDL_Delay(500);
+
+		//NDS9 - Read from NDS7 IPC FIFOSND
 		if(access_mode)
 		{
 			//Return last FIFO entry if empty, or zero if no data was ever put there
-			if(nds9_ipc.fifo.empty()) { return ((nds9_ipc.fifo_latest >> addr_shift) & 0xFF); }
+			if(nds7_ipc.fifo.empty())
+			{
+				std::cout<<"NDS9 FIFO RECV READ EMPTY\n";
+
+				//Set Bit 14 of NDS9 IPCFIFOCNT to indicate error
+				nds9_ipc.cnt |= 0x4000;
+
+				return ((nds7_ipc.fifo_latest >> addr_shift) & 0xFF);
+			}
 		
 			//Otherwise, read FIFO normally
 			else
 			{
-				u8 fifo_entry = ((nds9_ipc.fifo.front() >> addr_shift) & 0xFF);
+				//Unset Bit 14 of NDS9 IPCFIFOCNT to indicate no errors
+				nds9_ipc.cnt &= ~0x4000;
+
+				u8 fifo_entry = ((nds7_ipc.fifo.front() >> addr_shift) & 0xFF);
 		
 				//If Bit 15 of IPCFIFOCNT is 0, read back oldest entry but do not pop it
 				//If Bit 15 is set, get rid of the oldest entry now
-				if((nds9_ipc.cnt) && (address == NDS_IPCFIFORECV)) { nds9_ipc.fifo.pop(); }
+				if((nds9_ipc.cnt & 0x8000) && (address == NDS_IPCFIFORECV))
+				{
+					std::cout<<"NDS9 FIFO RECV READ\n";
+
+					nds7_ipc.fifo.pop();
+
+					//Unset NDS7 SNDFIFO FULL Status
+					nds7_ipc.cnt &= ~0x2;
+
+					//Unset NDS9 RECVFIFO FULL Status
+					nds9_ipc.cnt &= ~0x200;
+
+					if(nds7_ipc.fifo.empty())
+					{
+						//Set SNDFIFO EMPTY Status on NDS7
+						nds7_ipc.cnt |= 0x1;
+
+						//Set RECVFIFO EMPTY Status on NDS9
+						nds9_ipc.cnt |= 0x100;
+
+						//Raise Send FIFO EMPTY IRQ if necessary
+						if(nds7_ipc.cnt & 0x4) { nds7_if |= 0x20000; }
+					}
+				}
 
 				return fifo_entry;
 			}
 		}
 
-		//Read from NDS7 IPC FIFO
+		//NDS7 - Read from NDS9 IPC FIFOSND
 		else
 		{
 			//Return last FIFO entry if empty, or zero if no data was ever put there
-			if(nds7_ipc.fifo.empty()) { return ((nds7_ipc.fifo_latest >> addr_shift) & 0xFF); }
+			if(nds9_ipc.fifo.empty())
+			{
+				std::cout<<"NDS7 FIFO RECV READ EMPTY\n";
+
+				//Set Bit 14 of NDS7 IPCFIFOCNT to indicate error
+				nds7_ipc.cnt |= 0x4000;
+
+				return ((nds9_ipc.fifo_latest >> addr_shift) & 0xFF);
+			}
 		
 			//Otherwise, read FIFO normally
 			else
 			{
-				u8 fifo_entry = ((nds7_ipc.fifo.front() >> addr_shift) & 0xFF);
+				//Unset Bit 14 of NDS7 IPCFIFOCNT to indicate no errors
+				nds7_ipc.cnt &= ~0x4000;
+
+				u8 fifo_entry = ((nds9_ipc.fifo.front() >> addr_shift) & 0xFF);
 		
 				//If Bit 15 of IPCFIFOCNT is 0, read back oldest entry but do not pop it
 				//If Bit 15 is set, get rid of the oldest entry now
-				if((nds7_ipc.cnt) && (address == NDS_IPCFIFORECV)) { nds7_ipc.fifo.pop(); }
+				if((nds7_ipc.cnt & 0x8000) && (address == NDS_IPCFIFORECV))
+				{
+					std::cout<<"NDS7 FIFO RECV READ\n";
+
+					nds9_ipc.fifo.pop();
+
+					//Unset NDS9 SNDFIFO FULL Status
+					nds9_ipc.cnt &= ~0x2;
+
+					//Unset NDS7 RECVFIFO FULL Status
+					nds7_ipc.cnt &= ~0x200;
+
+					if(nds9_ipc.fifo.empty())
+					{
+						//Set SNDFIFO EMPTY Status on NDS9
+						nds9_ipc.cnt |= 0x1;
+
+						//Set RECVFIFO EMPTY Status on NDS7
+						nds7_ipc.cnt |= 0x100;
+
+						//Raise Send FIFO EMPTY IRQ if necessary
+						if(nds9_ipc.cnt & 0x4) { nds9_if |= 0x20000; }
+					}
+				}
 
 				return fifo_entry;
 			}
@@ -250,6 +320,8 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			lcd_stat->display_control_a = ((memory_map[NDS_DISPCNT_A+3] << 24) | (memory_map[NDS_DISPCNT_A+2] << 16) | (memory_map[NDS_DISPCNT_A+1] << 8) | memory_map[NDS_DISPCNT_A]);
 			lcd_stat->bg_mode_a = (lcd_stat->display_control_a & 0x7);
 			lcd_stat->display_mode_a = (lcd_stat->display_control_a >> 16) & 0x3;
+
+			std::cout<<"WRITE ME -> 0x" << std::hex << u32(value) << "\n";
 			break;
 
 		//Display Status
@@ -677,6 +749,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 				nds9_ie &= ~(0xFF << ((address & 0x3) << 3));
 				nds9_ie |= (value << ((address & 0x3) << 3));
 				std::cout<<"NDS9 IE -> 0x" << std::hex << nds9_ie << "\n";
+				std::cout<<"NDS9 IF -> 0x" << std::hex << nds9_if << "\n";
 			}
 
 			//Write to NDS7 IE
@@ -685,6 +758,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 				nds7_ie &= ~(0xFF << ((address & 0x3) << 3));
 				nds7_ie |= (value << ((address & 0x3) << 3));
 				std::cout<<"NDS7 IE -> 0x" << std::hex << nds7_ie << "\n";
+				std::cout<<"NDS7 IF -> 0x" << std::hex << nds7_if << "\n\n";
 			}
 				
 			break;
@@ -754,14 +828,28 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		case NDS_IPCFIFOCNT:		
 			if(access_mode)
 			{
+				u16 irq_trigger = nds9_ipc.cnt & 0x4;
+
 				nds9_ipc.cnt &= 0xFFF3;
 				nds9_ipc.cnt |= (value & 0xC);
+
+				//Raise Send FIFO Empty IRQ when Bit 2 goes from 0 to 1
+				if((irq_trigger == 0) && (nds9_ipc.cnt & 0x4) && (nds9_ipc.cnt & 0x1)) { nds9_if |= 0x20000; std::cout<<"RAISED 1\n"; }
+
+				std::cout<<"NDS9 IPC CNT -> 0x" << std::hex << nds9_ipc.cnt << "\n";
 			}
 
 			else
 			{
+				u16 irq_trigger = nds7_ipc.cnt & 0x4;
+
 				nds7_ipc.cnt &= 0xFFF3;
 				nds7_ipc.cnt |= (value & 0xC);
+
+				//Raise Send FIFO Empty IRQ when Bit 2 goes from 0 to 1
+				if((irq_trigger == 0) && (nds7_ipc.cnt & 0x4) && (nds7_ipc.cnt & 0x1)) { nds7_if |= 0x20000; std::cout<<"RAISED 2\n"; }
+
+				std::cout<<"NDS7 IPC CNT -> 0x" << std::hex << nds7_ipc.cnt << "\n";
 			}
 
 			break;
@@ -769,31 +857,78 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		case NDS_IPCFIFOCNT+1:
 			if(access_mode)
 			{
+				u16 irq_trigger = nds9_ipc.cnt & 0x400;
+
 				nds9_ipc.cnt &= 0x3FF;
 				nds9_ipc.cnt |= ((value & 0xC4) << 8);
+
+				//Raise Receive FIFO Not Empty IRQ when Bit 10 goes from 0 to 1
+				if((irq_trigger == 0) && (nds9_ipc.cnt & 0x400) && ((nds9_ipc.cnt & 0x100) == 0)) { nds9_if |= 0x40000; std::cout<<"RAISED 3\n"; }
+
+				std::cout<<"NDS9 IPC CNT -> 0x" << std::hex << nds9_ipc.cnt << "\n";
 			}
 
 			else
 			{
+				u16 irq_trigger = nds7_ipc.cnt & 0x400;
+
 				nds7_ipc.cnt &= 0x3FF;
 				nds7_ipc.cnt |= ((value & 0xC4) << 8);
+
+				//Raise Receive FIFO Not Empty IRQ when Bit 10 goes from 0 to 1
+				if((irq_trigger == 0) && (nds7_ipc.cnt & 0x400) && ((nds7_ipc.cnt & 0x100) == 0)) { nds7_if |= 0x40000; std::cout<<"RAISED 4\n"; }
+
+				std::cout<<"NDS7 IPC CNT -> 0x" << std::hex << nds7_ipc.cnt << "\n";
 			}
 
 			break;
 
 		case NDS_IPCFIFOSND:
+			//SDL_Delay(2000);
+
 			if((access_mode) && (nds9_ipc.cnt & 0x8000))
 			{
 				nds9_ipc.fifo_incoming &= ~0xFF;
 				nds9_ipc.fifo_incoming |= value;
 
 				//FIFO can only hold a maximum of 16 words
-				if(nds9_ipc.fifo.size() == 16) { nds9_ipc.fifo.pop(); }
+				if(nds9_ipc.fifo.size() == 16)
+				{
+					nds9_ipc.fifo.pop();
+
+					//Set Bit 14 of IPCFIFOCNT to indicate error
+					nds9_ipc.cnt |= 0x4000;
+				}
+
+				else
+				{
+					//Unset Bit 14 of IPCFIFOCNT to indicate no errors
+					nds9_ipc.cnt &= ~0x4000;
+				}
+
+				//Unset SNDFIFO Empty Status on NDS9
+				nds9_ipc.cnt &= ~0x1;
+
+				//Unset RECVFIFO Empty Status on NDS7
+				nds7_ipc.cnt &= ~0x100;
+
+				//Set RECVFIFO Not Empty IRQ on NDS7
+				if((nds7_ipc.cnt & 0x400) && (nds9_ipc.fifo.empty())) { nds7_if |= 0x40000; }
 
 				//Push new word to back of FIFO, also save that value in case FIFO is emptied
 				nds9_ipc.fifo.push(nds9_ipc.fifo_incoming);
 				nds9_ipc.fifo_latest = nds9_ipc.fifo_incoming;
 				nds9_ipc.fifo_incoming = 0;
+
+				//Set Send FIFO Full Status
+				if(nds9_ipc.fifo.size() == 16)
+				{
+					//Set SNDFIFO FULL Status on NDS9
+					nds9_ipc.cnt |= 0x2;
+
+					//Set RECVFIFO FULL Status on NDS7
+					nds7_ipc.cnt |= 0x200;
+				}
 
 				std::cout<<"NDS9 IPCFIFOSND -> 0x" << std::hex << nds9_ipc.fifo_latest << "\n";
 			}
@@ -804,12 +939,43 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 				nds7_ipc.fifo_incoming |= value;
 
 				//FIFO can only hold a maximum of 16 words
-				if(nds7_ipc.fifo.size() == 16) { nds7_ipc.fifo.pop(); }
+				if(nds7_ipc.fifo.size() == 16)
+				{
+					nds7_ipc.fifo.pop();
+
+					//Set Bit 14 of IPCFIFOCNT to indicate error
+					nds7_ipc.cnt |= 0x4000;
+				}
+
+				else
+				{
+					//Unset Bit 14 of IPCFIFOCNT to indicate no errors
+					nds7_ipc.cnt &= ~0x4000;
+				}
+
+				//Unset SNDFIFO Empty Status on NDS7
+				nds7_ipc.cnt &= ~0x1;
+
+				//Unset RECVFIFO Empty Status on NDS9
+				nds9_ipc.cnt &= ~0x100;
+
+				//Set RECVFIFO Not Empty IRQ on NDS9
+				if((nds9_ipc.cnt & 0x400) && (nds7_ipc.fifo.empty())) { nds9_if |= 0x40000; std::cout<<"SENDING RECVFIFO <> EMPTY IRQ\n"; }
 
 				//Push new word to back of FIFO, also save that value in case FIFO is emptied
 				nds7_ipc.fifo.push(nds7_ipc.fifo_incoming);
 				nds7_ipc.fifo_latest = nds7_ipc.fifo_incoming;
 				nds7_ipc.fifo_incoming = 0;
+
+				//Set Send FIFO Full Status
+				if(nds7_ipc.fifo.size() == 16)
+				{
+					//Set SNDFIFO FULL Status on NDS7
+					nds7_ipc.cnt |= 0x2;
+
+					//Set RECVFIFO FULL Status on NDS9
+					nds9_ipc.cnt |= 0x200;
+				}
 
 				std::cout<<"NDS7 IPCFIFOSND -> 0x" << std::hex << nds7_ipc.fifo_latest << "\n";
 			}	
@@ -817,18 +983,18 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			break;
 
 		case NDS_IPCFIFOSND+1:
-			if(access_mode) { nds9_ipc.fifo_incoming &= ~0xFF00; nds9_ipc.fifo_incoming |= (value << 8); }
-			else { nds7_ipc.fifo_incoming &= ~0xFF00; nds7_ipc.fifo_incoming |= (value << 8); }
+			if((access_mode) && (nds9_ipc.cnt & 0x8000)) { nds9_ipc.fifo_incoming &= ~0xFF00; nds9_ipc.fifo_incoming |= (value << 8); }
+			else if((!access_mode) && (nds7_ipc.cnt & 0x8000)) { nds7_ipc.fifo_incoming &= ~0xFF00; nds7_ipc.fifo_incoming |= (value << 8); }
 			break;
 
 		case NDS_IPCFIFOSND+2:
-			if(access_mode) { nds9_ipc.fifo_incoming &= ~0xFF0000; nds9_ipc.fifo_incoming |= (value << 16); }
-			else { nds7_ipc.fifo_incoming &= ~0xFF0000; nds7_ipc.fifo_incoming |= (value << 16); }
+			if((access_mode) && (nds9_ipc.cnt & 0x8000)) { nds9_ipc.fifo_incoming &= ~0xFF0000; nds9_ipc.fifo_incoming |= (value << 16); }
+			else if((!access_mode) && (nds7_ipc.cnt & 0x8000)) { nds7_ipc.fifo_incoming &= ~0xFF0000; nds7_ipc.fifo_incoming |= (value << 16); }
 			break;
 
 		case NDS_IPCFIFOSND+3:
-			if(access_mode) { nds9_ipc.fifo_incoming &= ~0xFF000000; nds9_ipc.fifo_incoming |= (value << 24); }
-			else { nds7_ipc.fifo_incoming &= ~0xFF00; nds7_ipc.fifo_incoming |= (value << 24); }
+			if((access_mode) && (nds9_ipc.cnt & 0x8000)) { nds9_ipc.fifo_incoming &= ~0xFF000000; nds9_ipc.fifo_incoming |= (value << 24); }
+			else if((!access_mode) && (nds7_ipc.cnt & 0x8000)) { nds7_ipc.fifo_incoming &= ~0xFF00; nds7_ipc.fifo_incoming |= (value << 24); }
 			break;
 
 		case NDS_IPCFIFORECV:

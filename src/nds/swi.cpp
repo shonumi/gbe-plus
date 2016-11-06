@@ -114,7 +114,7 @@ void NTR_ARM7::process_swi(u32 comment)
 
 		//Halt
 		case 0x6:
-			//std::cout<<"ARM7::SWI::Halt \n";
+			////std::cout<<"ARM7::SWI::Halt \n";
 			swi_halt();
 			break;
 
