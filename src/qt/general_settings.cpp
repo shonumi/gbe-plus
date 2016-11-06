@@ -203,6 +203,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	ogl_frag_shader->addItem("Chrono");
 	ogl_frag_shader->addItem("Grayscale");
 	ogl_frag_shader->addItem("Pastel");
+	ogl_frag_shader->addItem("Scale2x");
 	ogl_frag_shader->addItem("Sepia");
 	ogl_frag_shader->addItem("Spotlight");
 	ogl_frag_shader->addItem("TV Mode");
@@ -1017,10 +1018,11 @@ void gen_settings::set_ini_options()
 	else if(config::fragment_shader == (config::data_path + "shaders/chrono.fs")) { ogl_frag_shader->setCurrentIndex(2); }
 	else if(config::fragment_shader == (config::data_path + "shaders/grayscale.fs")) { ogl_frag_shader->setCurrentIndex(3); }
 	else if(config::fragment_shader == (config::data_path + "shaders/pastel.fs")) { ogl_frag_shader->setCurrentIndex(4); }
-	else if(config::fragment_shader == (config::data_path + "shaders/sepia.fs")) { ogl_frag_shader->setCurrentIndex(5); }
-	else if(config::fragment_shader == (config::data_path + "shaders/spotlight.fs")) { ogl_frag_shader->setCurrentIndex(6); }
-	else if(config::fragment_shader == (config::data_path + "shaders/tv_mode.fs")) { ogl_frag_shader->setCurrentIndex(7); }
-	else if(config::fragment_shader == (config::data_path + "shaders/washout.fs")) { ogl_frag_shader->setCurrentIndex(8); }
+	else if(config::fragment_shader == (config::data_path + "shaders/scale2x.fs")) { ogl_frag_shader->setCurrentIndex(5); }
+	else if(config::fragment_shader == (config::data_path + "shaders/sepia.fs")) { ogl_frag_shader->setCurrentIndex(6); }
+	else if(config::fragment_shader == (config::data_path + "shaders/spotlight.fs")) { ogl_frag_shader->setCurrentIndex(7); }
+	else if(config::fragment_shader == (config::data_path + "shaders/tv_mode.fs")) { ogl_frag_shader->setCurrentIndex(8); }
+	else if(config::fragment_shader == (config::data_path + "shaders/washout.fs")) { ogl_frag_shader->setCurrentIndex(9); }
 
 	//OpenGL option
 	if(config::use_opengl)
@@ -1170,10 +1172,11 @@ void gen_settings::ogl_frag_change()
 		case 2: config::fragment_shader = config::data_path + "shaders/chrono.fs"; break;
 		case 3: config::fragment_shader = config::data_path + "shaders/grayscale.fs"; break;
 		case 4: config::fragment_shader = config::data_path + "shaders/pastel.fs"; break;
-		case 5: config::fragment_shader = config::data_path + "shaders/sepia.fs"; break;
-		case 6: config::fragment_shader = config::data_path + "shaders/spotlight.fs"; break;
-		case 7: config::fragment_shader = config::data_path + "shaders/tv_mode.fs"; break;
-		case 8: config::fragment_shader = config::data_path + "shaders/washout.fs"; break;
+		case 5: config::fragment_shader = config::data_path + "shaders/scale2x.fs"; break;
+		case 6: config::fragment_shader = config::data_path + "shaders/sepia.fs"; break;
+		case 7: config::fragment_shader = config::data_path + "shaders/spotlight.fs"; break;
+		case 8: config::fragment_shader = config::data_path + "shaders/tv_mode.fs"; break;
+		case 9: config::fragment_shader = config::data_path + "shaders/washout.fs"; break;
 	}
 
 	if((main_menu::gbe_plus != NULL) && (config::use_opengl))
