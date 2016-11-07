@@ -21,21 +21,42 @@ uniform int screen_y_size;
 uniform float ext_data_1;
 uniform float ext_data_2;
 
-//Blend two colors
-void rgb_blend(in vec4 color_1, in vec4 color_2, out vec4 final_color)
+//Grabs surrounding texel from current position
+bool get_texel(in float x_shift, in float y_shift, out vec4 texel_color, in bool c_pass)
 {
+	bool pass = c_pass;
+
+	float tex_x = 1.0 / screen_x_size;
+	float tex_y = 1.0 / screen_y_size;
+
+	vec2 src_pos = texture_coordinates;
+
+	//Shift texel position in X direction
+	src_pos.x += (tex_x * x_shift);
+	if((src_pos.x > 1.0) || (src_pos.x < 0.0)) { pass = false; }
+
+	//Shift texel position in Y direction
+	src_pos.y += (tex_y * -y_shift);
+	if((src_pos.y > 1.0) || (src_pos.y < 0.0)) { pass = false; }
+
+	texel_color = texture(screen_texture, src_pos);
+
+	return pass;
+}
+
+//Blend two colors
+vec4 rgb_blend(in vec4 color_1, in vec4 color_2)
+{
+	vec4 final_color = vec4(1.0, 1.0, 1.0, 1.0);
 	final_color.r = (color_1.r + color_2.r) / 2.0;
 	final_color.g = (color_1.g + color_2.g) / 2.0;
 	final_color.b = (color_1.b + color_2.b) / 2.0;
+	return final_color;
 }
 
 void main()
 {
-	float tex_x = 1.0 / screen_x_size;
-	float tex_y = 1.0 / screen_y_size;
-
 	vec2 current_pos = texture_coordinates;
-	vec2 next_color_pos;
 	vec4 current_color = texture(screen_texture, texture_coordinates);
 
 	bool color_pass = true;
@@ -46,38 +67,22 @@ void main()
 	vec4 right_color = current_color;
 
 	//Grab texel above
-	next_color_pos = current_pos;
-	next_color_pos.y += tex_y;
-
-	if(next_color_pos.y <= 1.0) { bottom_color = texture(screen_texture, next_color_pos); }
-	else { color_pass = false; }
+	color_pass = get_texel(0.0, 1.0, top_color, color_pass);
 
 	//Grab texel below
-	next_color_pos = current_pos;
-	next_color_pos.y -= tex_y;
-
-	if(next_color_pos.y >= 0.0) { top_color = texture(screen_texture, next_color_pos); }
-	else { color_pass = false; }
+	color_pass = get_texel(0.0, -1.0, bottom_color, color_pass);
 
 	//Grab texel left
-	next_color_pos = current_pos;
-	next_color_pos.x -= tex_x;
-
-	if(next_color_pos.x >= 0.0) { left_color = texture(screen_texture, next_color_pos); }
-	else { color_pass = false; }
+	color_pass = get_texel(-1.0, 0.0, left_color, color_pass);
 
 	//Grab texel right
-	next_color_pos = current_pos;
-	next_color_pos.x += tex_x;
-
-	if(next_color_pos.x <= 1.0) { right_color = texture(screen_texture, next_color_pos); }
-	else { color_pass = false; }
+	color_pass = get_texel(1.0, 0.0, right_color, color_pass);
 
 	if((color_pass == true) && (top_color != bottom_color) && (left_color != right_color))
 	{
 		//Determine which quadrant this is, E0, E1, E2, or E3
-		float quad_x = tex_x / 2.0;
-		float quad_y = tex_y / 2.0;
+		float quad_x = (1.0 / screen_x_size) / 2.0;
+		float quad_y = (1.0 / screen_y_size) / 2.0;
 
 		float texel_x = (current_pos.x / quad_x);
 		texel_x = mod(texel_x, 2.0);
