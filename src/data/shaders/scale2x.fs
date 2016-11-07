@@ -21,6 +21,11 @@ uniform int screen_y_size;
 uniform float ext_data_1;
 uniform float ext_data_2;
 
+//Control variables - Adjust these to change how the shader's effects work
+
+//Turns on anti-aliasing to enhance the original Scale2x algorithm
+bool enable_anti_aliasing = false;
+
 //Grabs surrounding texel from current position
 bool get_texel(in float x_shift, in float y_shift, out vec4 texel_color, in bool c_pass)
 {
@@ -89,29 +94,62 @@ void main()
 
 		float texel_y = (current_pos.y / quad_y);
 		texel_y = mod(texel_y, 2.0);
+		
+		int quadrant = -1;
 
 		//E0
 		if((texel_x <= 1.0) && (texel_y <= 1.0))
 		{
 			if(left_color == top_color) { current_color = left_color; }
+			quadrant = 0;
 		}
 
 		//E1
 		else if((texel_x > 1.0) && (texel_y <= 1.0))
 		{
 			if(right_color == top_color) { current_color = right_color; }
+			quadrant = 1;
 		}
 
 		//E2
 		else if((texel_x <= 1.0) && (texel_y > 1.0))
 		{
 			if(left_color == bottom_color) { current_color = left_color; }
+			quadrant = 2;
 		}
 
 		//E3
 		else if((texel_x > 1.0) && (texel_y > 1.0))
 		{
 			if(right_color == bottom_color) { current_color = right_color; }
+			quadrant = 3;
+		}
+
+		//Calculate anti-aliasing if applicable
+		if(enable_anti_aliasing)
+		{
+			//Regardless of what quadrant this is, calculate E0 - E3
+			vec4 e0 = texture(screen_texture, texture_coordinates);
+			vec4 e1 = e0;
+			vec4 e2 = e0;
+			vec4 e3 = e0;
+
+			if(left_color == top_color) { e0 = left_color; }
+			if(right_color == top_color) { e1 = right_color; }
+			if(left_color == bottom_color) { e2 = left_color; }
+			if(right_color == bottom_color) { e3 = right_color; }
+
+			//Blend E0 if E1 and E2 are equal
+			if((quadrant == 0) && (e1 == e2)) { current_color = rgb_blend(e0, e1); }
+
+			//Blend E1 if E0 and E3 are equal
+			else if((quadrant == 1) && (e0 == e3)) { current_color = rgb_blend(e1, e0); }
+
+			//Blend E2 if E0 and E3 are equal
+			else if((quadrant == 2) && (e0 == e3)) { current_color = rgb_blend(e2, e0); }
+
+			//Blend E3 if E1 and E2 are equal
+			else if((quadrant == 3) && (e1 == e2)) { current_color = rgb_blend(e3, e1); }
 		}
 	}
 
