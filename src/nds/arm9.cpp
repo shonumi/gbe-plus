@@ -1187,8 +1187,6 @@ void NTR_ARM9::handle_interrupt()
 {
 	//TODO - Implement a better way of exiting interrupts other than recognizing the SUB PC, #4 instruction
 
-	//if(reg.r15 < 0x2000000) { running = false; }
-
 	//Exit interrupt
 	if((in_interrupt) && (debug_code == 0xE25EF004))
 	{
@@ -1228,8 +1226,6 @@ void NTR_ARM9::handle_interrupt()
 					reg.r15 += (arm_mode == ARM) ? 4 : 2;
 					swi_vblank_wait = false; 
 				}
-
-				std::cout<<"ARM9 IRQ NUMBER -> " << std::dec << x << "\n";
 
 				current_cpu_mode = IRQ;
 

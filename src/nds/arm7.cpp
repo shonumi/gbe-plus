@@ -1183,8 +1183,6 @@ void NTR_ARM7::handle_interrupt()
 					swi_vblank_wait = false; 
 				}
 
-				//std::cout<<"ARM7 IRQ NUMBER -> " << std::dec << x << "\n";
-
 				current_cpu_mode = IRQ;
 
 				//If a Branch instruction has just executed, the PC is changed before jumping into the interrupt

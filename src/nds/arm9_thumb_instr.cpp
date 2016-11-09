@@ -1200,12 +1200,22 @@ void NTR_ARM9::push_pop(u16 current_thumb_instruction)
 
 				//Clock CPU and controllers - 2S
 				mem_check_32(r13, reg.r15, true);
+
+				//ARMv5 - Switch to ARM when Bit 0 of the new PC is unset
+				if((reg.r15 & 0x1) == 0)
+				{
+					arm_mode = ARM;
+					reg.cpsr &= ~0x20;
+				}
+
 				reg.r15 &= ~0x1;
 				r13 += 4;
 				needs_flush = true;
 
 				clock(reg.r15, false);
-				clock((reg.r15 + 2), false); 
+				clock((reg.r15 + 2), false);
+
+				
 			}
 
 			//If PC not loaded, last cycles are Internal then Sequential
