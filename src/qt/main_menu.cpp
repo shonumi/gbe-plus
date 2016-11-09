@@ -504,7 +504,12 @@ void main_menu::boot_game()
 	}
 
 	//Read specified ROM file
-	if(!main_menu::gbe_plus->read_file(config::rom_file)) { return; }
+	if(!main_menu::gbe_plus->read_file(config::rom_file))
+	{
+		main_menu::gbe_plus->shutdown();
+		main_menu::gbe_plus->core_emu::~core_emu();
+		return;
+	}
 	
 	//Read BIOS file optionally
 	if(config::use_bios) 
