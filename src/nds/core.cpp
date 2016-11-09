@@ -270,7 +270,7 @@ void NTR_core::run_core()
 				{
 					core_cpu_nds9.re_sync = false;
 					core_cpu_nds7.re_sync = true;
-					cpu_sync_cycles *= -2.0;
+					cpu_sync_cycles *= -0.5;
 					core_mmu.access_mode = 0;
 				}
 			}
@@ -337,7 +337,7 @@ void NTR_core::run_core()
 				{
 					core_cpu_nds7.re_sync = false;
 					core_cpu_nds9.re_sync = true;
-					cpu_sync_cycles *= -0.5;
+					cpu_sync_cycles *= -2.0;
 					core_mmu.access_mode = 1;
 				}
 			}
@@ -346,13 +346,6 @@ void NTR_core::run_core()
 		//Stop emulation
 		else { stop(); }
 	}
-
-	nds9_debug = true;
-	debug_display();
-	nds9_debug = false;
-	debug_display();
-	std::cout<<"\nIE NDS9 -> 0x" << std::hex << core_mmu.nds9_ie << "\n";
-	std::cout<<"\nIE NDS7 -> 0x" << std::hex << core_mmu.nds7_ie << "\n";
 
 	//Shutdown core
 	shutdown();
