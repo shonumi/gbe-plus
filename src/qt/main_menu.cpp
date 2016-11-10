@@ -289,6 +289,12 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	
 	about_box->hide();
 
+	//Setup warning message box
+	warning_box = new QMessageBox;
+	QPushButton* warning_box_ok = warning_box->addButton("OK", QMessageBox::AcceptRole);
+	warning_box->setIcon(QMessageBox::Warning);
+	warning_box->hide();
+
 	display_width = QApplication::desktop()->screenGeometry().width();
 	display_height = QApplication::desktop()->screenGeometry().height();
 
@@ -414,6 +420,17 @@ void main_menu::quit()
 /****** Boots and starts emulation ******/
 void main_menu::boot_game()
 {
+	//Check to see if the file actually exists
+	QFile test_file(QString::fromStdString(config::rom_file));
+	
+	if(!test_file.exists())
+	{
+		std::string mesg_text = "The specified file: '" + config::rom_file + "' could not be loaded"; 
+		warning_box->setText(QString::fromStdString(mesg_text));
+		warning_box->show();
+		return;
+	}
+
 	config::sample_rate = settings->sample_rate;
 	config::pause_emu = false;
 
@@ -504,12 +521,7 @@ void main_menu::boot_game()
 	}
 
 	//Read specified ROM file
-	if(!main_menu::gbe_plus->read_file(config::rom_file))
-	{
-		main_menu::gbe_plus->shutdown();
-		main_menu::gbe_plus->core_emu::~core_emu();
-		return;
-	}
+	main_menu::gbe_plus->read_file(config::rom_file);
 	
 	//Read BIOS file optionally
 	if(config::use_bios) 
@@ -950,6 +962,17 @@ void main_menu::show_about()
 /****** Loads recent file from list ******/
 void main_menu::load_recent(int file_id)
 {
+	//Check to see if the file actually exists
+	QFile test_file(QString::fromStdString(config::recent_files[file_id]));
+
+	if(!test_file.exists())
+	{
+		std::string mesg_text = "The specified file: '" + config::recent_files[file_id] + "' could not be loaded"; 
+		warning_box->setText(QString::fromStdString(mesg_text));
+		warning_box->show();
+		return;
+	}
+
 	//Close the core
 	if(main_menu::gbe_plus != NULL) 
 	{

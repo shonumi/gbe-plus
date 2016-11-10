@@ -88,6 +88,8 @@ class main_menu : public QWidget
 
 	QSignalMapper* list_mapper;
 
+	QMessageBox* warning_box;
+
 	u32 base_width;
 	u32 base_height;
 
