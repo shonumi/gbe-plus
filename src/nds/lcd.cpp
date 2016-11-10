@@ -208,7 +208,7 @@ void NTR_LCD::render_scanline()
 		case 0x2:
 			{
 				u8 vram_block = ((lcd_stat.display_control_a >> 18) & 0x3);
-				u32 vram_addr = lcd_stat.vram_bank_addr[vram_block] + (lcd_stat.current_scanline * 256);
+				u32 vram_addr = lcd_stat.vram_bank_addr[vram_block] + (lcd_stat.current_scanline * 256 * 2);
 
 				for(u16 x = 0; x < 256; x++)
 				{

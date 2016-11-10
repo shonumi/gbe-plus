@@ -347,7 +347,30 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		//BG0 Control
 		case NDS_BG0CNT:
 		case NDS_BG0CNT+1:
-			memory_map[address] = value;
+			{
+				memory_map[address] = value;
+				lcd_stat->bg_control[0] = (memory_map[NDS_BG0CNT+1] << 8) | memory_map[NDS_BG0CNT];
+
+				//Determine BG Priority
+				lcd_stat->bg_priority[0] = lcd_stat->bg_control[0] & 0x3;
+			
+				//Calculate tile data and tile map addresses
+				u32 char_base = ((lcd_stat->display_control_a >> 24) & 0x7);
+				u32 screen_base = ((lcd_stat->display_control_a >> 27) & 0x7);
+
+				u32 char_block = ((lcd_stat->bg_control[0] >> 2) & 0x3);
+				u32 screen_block = ((lcd_stat->bg_control[0] >> 8) & 0x1F);
+
+				lcd_stat->bg_base_tile_addr[0] = (char_base * 0x10000) + (char_block * 0x4000);
+				lcd_stat->bg_base_map_addr[0] = (screen_base * 0x10000) + (screen_block * 800);
+
+				//Bit-depth
+				lcd_stat->bg_depth[0] = (lcd_stat->bg_control[0] & 0x40) ? 1 : 0;
+
+				//Screen size
+				lcd_stat->bg_size[0] = (lcd_stat->bg_control[0] >> 14) & 0x3;
+			}
+
 			break;
 
 		//BG1 Control
