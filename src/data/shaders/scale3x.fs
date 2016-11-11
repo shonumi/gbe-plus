@@ -23,7 +23,7 @@ uniform float ext_data_2;
 
 //Control variables - Adjust these to change how the shader's effects work
 
-//Turns on anti-aliasing to enhance the original Scale2x algorithm
+//Turns on anti-aliasing to enhance the original Scale3x algorithm
 bool enable_anti_aliasing = false;
 
 //Grabs surrounding texel from current position
@@ -106,6 +106,7 @@ void main()
 			if(texel_y <= 1.0)
 			{
 				if(d == b) { current_color = d; }
+				section = 0;
 			}
 
 			//E3
@@ -113,13 +114,14 @@ void main()
 			{
 				if((d == b) && (e != g)) { current_color = d; }
 				else if((d == h) && (e != a)) { current_color = d; }
-
+				section = 3;
 			}
 
 			//E6
 			else
 			{
 				if(d == h) { current_color = d; }
+				section = 6;
 			}
 		}
 
@@ -131,6 +133,7 @@ void main()
 			{
 				if((d == b) && (e != c)) { current_color = b; }
 				else if((b == f) && (e != a)) { current_color = b; }
+				section = 1;
 			}
 
 			//E4 - nothing to do here
@@ -141,6 +144,7 @@ void main()
 			{
 				if((d == h) && (e != i)) { current_color = h; }
 				else if((h == f) && (e != g)) { current_color = h; }
+				section = 7;
 			}
 		}
 
@@ -151,6 +155,7 @@ void main()
 			if(texel_y <= 1.0)
 			{
 				if(b == f) { current_color = b; }
+				section = 2;
 			}
 
 			//E5
@@ -158,14 +163,96 @@ void main()
 			{
 				if((b == f) && (e == i)) { current_color = f; }
 				else if((h == f) && (e != c)) { current_color = f; }
+				section = 5;
 			}
 
 			//E8
 			else
 			{
 				if(h == f) { current_color = f; }
+				section = 8;
 			}
 		}
+
+		//Calculate anti-aliasing if applicable
+		if(enable_anti_aliasing)
+		{
+			//Regardless of what section this is, calculate E0 - E8
+			vec4 e0 = texture(screen_texture, texture_coordinates);
+			vec4 e1 = e0;
+			vec4 e2 = e0;
+			vec4 e3 = e0;
+			vec4 e4 = e0;
+			vec4 e5 = e0;
+			vec4 e6 = e0;
+			vec4 e7 = e0;
+			vec4 e8 = e0;
+
+			//E0
+			if(d == b) { e0 = d; }
+
+			//E1
+			if((d == b) && (e != c)) { e1 = b; }
+			else if((b == f) && (e != a)) { e1 = b; }
+
+			//E2
+			if(b == f) { e2 = b; }
+
+			//E3
+			if((d == b) && (e != g)) { e3 = d; }
+			else if((d == h) && (e != a)) { e3 = d; }
+
+			//E5
+			if((b == f) && (e == i)) { e5 = f; }
+			else if((h == f) && (e != c)) { e5 = f; }
+
+			//E6
+			if(d == h) { e6 = d; }
+
+			//E7
+			if((d == h) && (e != i)) { e7 = h; }
+			else if((h == f) && (e != g)) { e7 = h; }
+
+			//E8
+			if(h == f) { e8 = f; }
+
+			//Blend E0 with E1, E3
+			if((section == 0) && (e1 == e3)) { current_color = rgb_blend(e0, e1); }
+
+			//Blend E1 with E0, E4
+			else if((section == 1) && (e0 == e4)) { current_color = rgb_blend(e1, e0); }
+
+			//Blend E1 with E2, E4
+			else if((section == 1) && (e2 == e4)) { current_color = rgb_blend(e1, e2); }
+
+			//Blend E2 with E1, E5
+			else if((section == 2) && (e1 == e5)) { current_color = rgb_blend(e2, e1); }
+
+			//Blend E3 with E0, E4
+			else if((section == 3) && (e0 == e4)) { current_color = rgb_blend(e3, e0); }
+
+			//Blend E3 with E4, E6
+			else if((section == 3) && (e4 == e6)) { current_color = rgb_blend(e3, e4); }
+
+			//Blend E5 with E2, E4
+			else if((section == 5) && (e2 == e4)) { current_color = rgb_blend(e5, e2); }
+
+			//Blend E5 with E4, E8
+			else if((section == 5) && (e4 == e8)) { current_color = rgb_blend(e5, e4); }
+
+			//Blend E6 with E3, E7
+			else if((section == 6) && (e3 == e7)) { current_color = rgb_blend(e6, e3); }
+
+			//Blend E7 with E4, E6
+			else if((section == 7) && (e4 == e6)) { current_color = rgb_blend(e7, e4); }
+
+			//Blend E7 with E4, E8
+			else if((section == 7) && (e4 == e8)) { current_color = rgb_blend(e7, e4); }
+
+			//Blend E8 with E5, E7
+			else if((section == 8) && (e5 == e7)) { current_color = rgb_blend(e8, e5); }
+		}
+			
 	}
 
 	color = current_color;
