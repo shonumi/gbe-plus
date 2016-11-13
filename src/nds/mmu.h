@@ -18,6 +18,7 @@
 #include <iostream>
 
 #include "common.h"
+#include "gamepad.h"
 #include "common/config.h"
 #include "lcd_data.h"
 
@@ -147,6 +148,8 @@ class NTR_MMU
 
 	void parse_header();
 
+	NTR_GamePad* g_pad;
+
 	private:
 
 	//Only the MMU and LCD should communicate through this structure
@@ -154,5 +157,3 @@ class NTR_MMU
 };
 
 #endif // NDS_MMU
-
-

@@ -74,9 +74,7 @@ class NTR_core : virtual public core_emu
 		double cpu_sync_cycles;
 		bool nds9_debug;
 
-		/*
-		NDS_GamePad core_pad;
-		*/
+		NTR_GamePad core_pad;
 };
 		
 #endif // NDS_CORE

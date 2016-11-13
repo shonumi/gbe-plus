@@ -12,6 +12,7 @@ set(SRCS
 	swi.cpp
 	cp15.cpp
 	dma.cpp
+	gamepad.cpp
 	)
 
 set(HEADERS
@@ -22,6 +23,7 @@ set(HEADERS
 	arm9.h
 	lcd.h
 	cp15.h
+	gamepad.h
 	)
 
 add_library(nds STATIC ${SRCS} ${HEADERS})

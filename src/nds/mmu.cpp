@@ -93,12 +93,25 @@ void NTR_MMU::reset()
 	nds9_ipc.fifo_latest = 0;
 	nds9_ipc.fifo_incoming = 0;
 
+	g_pad = NULL;
+
 	std::cout<<"MMU::Initialized\n";
 }
 
 /****** Read byte from memory ******/
 u8 NTR_MMU::read_u8(u32 address)
 {
+	switch(address)
+	{
+		case NDS_KEYINPUT:
+			return (g_pad->key_input & 0xFF);
+			break;
+
+		case NDS_KEYINPUT+1:
+			return (g_pad->key_input >> 8);
+			break;
+	}
+
 	//Read from NDS9 BIOS
 	if((address >= nds9_bios_vector) && (address <= (nds9_bios_vector + 0xC00)) && (access_mode)) { return nds9_bios[address - nds9_bios_vector]; }
 

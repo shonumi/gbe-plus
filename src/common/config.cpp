@@ -35,12 +35,25 @@ namespace config
 	std::vector <std::string> cli_args;
 	bool use_debugger = false;
 
+	//Default keyboard bindings - NDS
+	//Arrow Z = A button, X = B button, START = Return, Select = Space
+	//UP, LEFT, DOWN, RIGHT = Arrow keys
+	//A key = Left Shoulder, S key = Right Shoulder
+	int ntr_key_a = SDLK_z; int ntr_key_b = SDLK_x; int ntr_key_start = SDLK_RETURN; int ntr_key_select = SDLK_SPACE;
+	int ntr_key_l_trigger = SDLK_a; int ntr_key_r_trigger = SDLK_s;
+	int ntr_key_left = SDLK_LEFT; int ntr_key_right = SDLK_RIGHT; int ntr_key_down = SDLK_DOWN; int ntr_key_up = SDLK_UP;
+
+	//Default joystick bindings - NDS
+	int ntr_joy_a = 100; int ntr_joy_b = 101; int ntr_joy_start = 107; int ntr_joy_select = 106;
+	int ntr_joy_r_trigger = 105; int ntr_joy_l_trigger = 104;
+	int ntr_joy_left = 200; int ntr_joy_right = 201; int ntr_joy_up = 202; int ntr_joy_down = 203;
+
 	//Default keyboard bindings - GBA
 	//Arrow Z = A button, X = B button, START = Return, Select = Space
 	//UP, LEFT, DOWN, RIGHT = Arrow keys
 	//A key = Left Shoulder, S key = Right Shoulder
 	int agb_key_a = SDLK_z; int agb_key_b = SDLK_x; int agb_key_start = SDLK_RETURN; int agb_key_select = SDLK_SPACE;
-	int agb_key_r_trigger = SDLK_a; int agb_key_l_trigger = SDLK_s;
+	int agb_key_l_trigger = SDLK_a; int agb_key_r_trigger = SDLK_s;
 	int agb_key_left = SDLK_LEFT; int agb_key_right = SDLK_RIGHT; int agb_key_down = SDLK_DOWN; int agb_key_up = SDLK_UP;
 
 	//Default joystick bindings - GBA
