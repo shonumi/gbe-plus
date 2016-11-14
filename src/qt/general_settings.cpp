@@ -199,6 +199,8 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	QLabel* ogl_frag_shader_label = new QLabel("Post-Processing Shader : ");
 	ogl_frag_shader = new QComboBox(ogl_frag_shader_set);
 	ogl_frag_shader->addItem("OFF");
+	ogl_frag_shader->addItem("2xBR");
+	ogl_frag_shader->addItem("4xBR");
 	ogl_frag_shader->addItem("Bad Bloom");
 	ogl_frag_shader->addItem("Chrono");
 	ogl_frag_shader->addItem("Grayscale");
@@ -1015,16 +1017,18 @@ void gen_settings::set_ini_options()
 
 	//OpenGL Fragment Shader
 	if(config::fragment_shader == (config::data_path + "shaders/fragment.fs")) { ogl_frag_shader->setCurrentIndex(0); }
-	else if(config::fragment_shader == (config::data_path + "shaders/bad_bloom.fs")) { ogl_frag_shader->setCurrentIndex(1); }
-	else if(config::fragment_shader == (config::data_path + "shaders/chrono.fs")) { ogl_frag_shader->setCurrentIndex(2); }
-	else if(config::fragment_shader == (config::data_path + "shaders/grayscale.fs")) { ogl_frag_shader->setCurrentIndex(3); }
-	else if(config::fragment_shader == (config::data_path + "shaders/pastel.fs")) { ogl_frag_shader->setCurrentIndex(4); }
-	else if(config::fragment_shader == (config::data_path + "shaders/scale2x.fs")) { ogl_frag_shader->setCurrentIndex(5); }
-	else if(config::fragment_shader == (config::data_path + "shaders/scale3x.fs")) { ogl_frag_shader->setCurrentIndex(6); }
-	else if(config::fragment_shader == (config::data_path + "shaders/sepia.fs")) { ogl_frag_shader->setCurrentIndex(7); }
-	else if(config::fragment_shader == (config::data_path + "shaders/spotlight.fs")) { ogl_frag_shader->setCurrentIndex(8); }
-	else if(config::fragment_shader == (config::data_path + "shaders/tv_mode.fs")) { ogl_frag_shader->setCurrentIndex(9); }
-	else if(config::fragment_shader == (config::data_path + "shaders/washout.fs")) { ogl_frag_shader->setCurrentIndex(10); }
+	else if(config::fragment_shader == (config::data_path + "shaders/2xBR.fs")) { ogl_frag_shader->setCurrentIndex(1); }
+	else if(config::fragment_shader == (config::data_path + "shaders/4xBR.fs")) { ogl_frag_shader->setCurrentIndex(2); }
+	else if(config::fragment_shader == (config::data_path + "shaders/bad_bloom.fs")) { ogl_frag_shader->setCurrentIndex(3); }
+	else if(config::fragment_shader == (config::data_path + "shaders/chrono.fs")) { ogl_frag_shader->setCurrentIndex(4); }
+	else if(config::fragment_shader == (config::data_path + "shaders/grayscale.fs")) { ogl_frag_shader->setCurrentIndex(5); }
+	else if(config::fragment_shader == (config::data_path + "shaders/pastel.fs")) { ogl_frag_shader->setCurrentIndex(6); }
+	else if(config::fragment_shader == (config::data_path + "shaders/scale2x.fs")) { ogl_frag_shader->setCurrentIndex(7); }
+	else if(config::fragment_shader == (config::data_path + "shaders/scale3x.fs")) { ogl_frag_shader->setCurrentIndex(8); }
+	else if(config::fragment_shader == (config::data_path + "shaders/sepia.fs")) { ogl_frag_shader->setCurrentIndex(9); }
+	else if(config::fragment_shader == (config::data_path + "shaders/spotlight.fs")) { ogl_frag_shader->setCurrentIndex(10); }
+	else if(config::fragment_shader == (config::data_path + "shaders/tv_mode.fs")) { ogl_frag_shader->setCurrentIndex(11); }
+	else if(config::fragment_shader == (config::data_path + "shaders/washout.fs")) { ogl_frag_shader->setCurrentIndex(12); }
 
 	//OpenGL option
 	if(config::use_opengl)
@@ -1170,16 +1174,18 @@ void gen_settings::ogl_frag_change()
 	switch(ogl_frag_shader->currentIndex())
 	{
 		case 0: config::fragment_shader = config::data_path + "shaders/fragment.fs"; break;
-		case 1: config::fragment_shader = config::data_path + "shaders/bad_bloom.fs"; break;
-		case 2: config::fragment_shader = config::data_path + "shaders/chrono.fs"; break;
-		case 3: config::fragment_shader = config::data_path + "shaders/grayscale.fs"; break;
-		case 4: config::fragment_shader = config::data_path + "shaders/pastel.fs"; break;
-		case 5: config::fragment_shader = config::data_path + "shaders/scale2x.fs"; break;
-		case 6: config::fragment_shader = config::data_path + "shaders/scale3x.fs"; break;
-		case 7: config::fragment_shader = config::data_path + "shaders/sepia.fs"; break;
-		case 8: config::fragment_shader = config::data_path + "shaders/spotlight.fs"; break;
-		case 9: config::fragment_shader = config::data_path + "shaders/tv_mode.fs"; break;
-		case 10: config::fragment_shader = config::data_path + "shaders/washout.fs"; break;
+		case 1: config::fragment_shader = config::data_path + "shaders/2xBR.fs"; break;
+		case 2: config::fragment_shader = config::data_path + "shaders/4xBR.fs"; break;
+		case 3: config::fragment_shader = config::data_path + "shaders/bad_bloom.fs"; break;
+		case 4: config::fragment_shader = config::data_path + "shaders/chrono.fs"; break;
+		case 5: config::fragment_shader = config::data_path + "shaders/grayscale.fs"; break;
+		case 6: config::fragment_shader = config::data_path + "shaders/pastel.fs"; break;
+		case 7: config::fragment_shader = config::data_path + "shaders/scale2x.fs"; break;
+		case 8: config::fragment_shader = config::data_path + "shaders/scale3x.fs"; break;
+		case 9: config::fragment_shader = config::data_path + "shaders/sepia.fs"; break;
+		case 10: config::fragment_shader = config::data_path + "shaders/spotlight.fs"; break;
+		case 11: config::fragment_shader = config::data_path + "shaders/tv_mode.fs"; break;
+		case 12: config::fragment_shader = config::data_path + "shaders/washout.fs"; break;
 	}
 
 	if((main_menu::gbe_plus != NULL) && (config::use_opengl))
