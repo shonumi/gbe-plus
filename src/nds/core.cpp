@@ -218,7 +218,7 @@ void NTR_core::run_core()
 							if(!core_cpu_nds9.swi_waitbyloop_count) { core_cpu_nds9.idle_state = 0; }
 							break;
 
-						//IntrWait
+						//IntrWait, VBlankIntrWait
 						case 0x3:
 							//If R0 == 0, quit on any IRQ
 							if((core_cpu_nds9.reg.r0 == 0) && (core_mmu.nds9_if))

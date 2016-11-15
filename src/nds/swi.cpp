@@ -28,6 +28,12 @@ void NTR_ARM9::process_swi(u32 comment)
 			swi_intrwait();
 			break;
 
+		//VBlankIntrWait
+		case 0x5:
+			std::cout<<"ARM9::SWI::VBlankIntrWait \n";
+			swi_vblankintrwait();
+			break;
+
 		//Halt
 		case 0x6:
 			//std::cout<<"ARM9::SWI::Halt \n";
@@ -74,6 +80,29 @@ void NTR_ARM9::swi_intrwait()
 	//NDS9 version is slightly bugged. When R0 == 0, it simply waits for any new interrupt, then leaves
 	//Normally, it should return immediately if the flags in R1 are already set in IF
 	//R0 == 1 will wait for the specified flags in R1
+
+	//Force IME on, Force IRQ bit in CPSR
+	mem->write_u32(NDS_IME, 0x1);
+	reg.cpsr &= ~CPSR_IRQ;
+
+	//Grab old IF, set current one to zero
+	mem->nds9_old_if = mem->nds9_if;
+	mem->nds9_if = 0;
+
+	//Grab old IE, set current one to R1
+	mem->nds9_old_ie = mem->nds9_ie;
+	mem->nds9_ie = reg.r1;
+
+	//Set CPU idle state to 3
+	idle_state = 3;
+}
+
+/****** HLE implementation of VBlankIntrWait - NDS9 ******/
+void NTR_ARM9::swi_vblankintrwait()
+{
+	//This is basically the IntrWait SWI, but R0 and R1 are both set to 1
+	reg.r0 = 1;
+	reg.r1 = 1;
 
 	//Force IME on, Force IRQ bit in CPSR
 	mem->write_u32(NDS_IME, 0x1);
