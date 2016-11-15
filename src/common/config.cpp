@@ -39,12 +39,12 @@ namespace config
 	//Arrow Z = A button, X = B button, START = Return, Select = Space
 	//UP, LEFT, DOWN, RIGHT = Arrow keys
 	//A key = Left Shoulder, S key = Right Shoulder
-	int ntr_key_a = SDLK_z; int ntr_key_b = SDLK_x; int ntr_key_start = SDLK_RETURN; int ntr_key_select = SDLK_SPACE;
+	int ntr_key_a = SDLK_z; int ntr_key_b = SDLK_x; int ntr_key_x = SDLK_d; int ntr_key_y = SDLK_c; int ntr_key_start = SDLK_RETURN; int ntr_key_select = SDLK_SPACE;
 	int ntr_key_l_trigger = SDLK_a; int ntr_key_r_trigger = SDLK_s;
 	int ntr_key_left = SDLK_LEFT; int ntr_key_right = SDLK_RIGHT; int ntr_key_down = SDLK_DOWN; int ntr_key_up = SDLK_UP;
 
 	//Default joystick bindings - NDS
-	int ntr_joy_a = 100; int ntr_joy_b = 101; int ntr_joy_start = 107; int ntr_joy_select = 106;
+	int ntr_joy_a = 100; int ntr_joy_b = 101; int ntr_joy_x = 102; int ntr_joy_y = 103; int ntr_joy_start = 107; int ntr_joy_select = 106;
 	int ntr_joy_r_trigger = 105; int ntr_joy_l_trigger = 104;
 	int ntr_joy_left = 200; int ntr_joy_right = 201; int ntr_joy_up = 202; int ntr_joy_down = 203;
 
@@ -1310,6 +1310,181 @@ bool parse_ini_file()
 			}
 		}
 
+		//NDS keyboard controls
+		else if(ini_item == "#ntr_key_controls")
+		{
+			if((x + 12) < size)
+			{
+				std::stringstream temp_stream;
+
+				//A
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::ntr_key_a;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//B
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::ntr_key_b;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//X
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::ntr_key_x;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//Y
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::ntr_key_y;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//START
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::ntr_key_start;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//SELECT
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::ntr_key_select;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//LEFT
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::ntr_key_left;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//RIGHT
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::ntr_key_right;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//UP
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::ntr_key_up;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//DOWN
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::ntr_key_down;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//LEFT TRIGGER
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::ntr_key_l_trigger;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//RIGHT TRIGGER
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::ntr_key_r_trigger;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#ntr_key_controls) \n";
+				return false;
+			}
+		}
+
+		//NDS gamepad controls
+		else if(ini_item == "#ntr_joy_controls")
+		{
+			if((x + 12) < size)
+			{
+				std::stringstream temp_stream;
+
+				//A
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::ntr_joy_a;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//B
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::ntr_joy_b;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//X
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::ntr_joy_x;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//Y
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::ntr_joy_y;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//START
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::ntr_joy_start;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//SELECT
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::ntr_joy_select;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//LEFT
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::ntr_joy_left;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//RIGHT
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::ntr_joy_right;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//UP
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::ntr_joy_up;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//DOWN
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::ntr_joy_down;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//LEFT TRIGGER
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::ntr_joy_l_trigger;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//RIGHT TRIGGER
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::ntr_joy_r_trigger;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+			}
+
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#ntr_joy_controls) \n";
+				return false;
+			}
+		}
+
 		//Gyroscope keyboard controls
 		else if(ini_item == "#gyro_key_controls")
 		{
@@ -1933,6 +2108,46 @@ bool save_ini_file()
 			val += util::to_str(config::agb_joy_r_trigger);
 
 			output_lines[line_pos] = "[#agb_joy_controls:" + val + "]";
+		}
+
+		//NDS keyboard controls
+		else if(ini_item == "#ntr_key_controls")
+		{
+			line_pos = output_count[x];
+			std::string val = util::to_str(config::ntr_key_a) + ":";
+			val += util::to_str(config::ntr_key_b) + ":";
+			val += util::to_str(config::ntr_key_x) + ":";
+			val += util::to_str(config::ntr_key_y) + ":";
+			val += util::to_str(config::ntr_key_start) + ":";
+			val += util::to_str(config::ntr_key_select) + ":";
+			val += util::to_str(config::ntr_key_left) + ":";
+			val += util::to_str(config::ntr_key_right) + ":";
+			val += util::to_str(config::ntr_key_up) + ":";
+			val += util::to_str(config::ntr_key_down) + ":";
+			val += util::to_str(config::ntr_key_l_trigger) + ":";
+			val += util::to_str(config::ntr_key_r_trigger);
+
+			output_lines[line_pos] = "[#ntr_key_controls:" + val + "]";
+		}
+
+		//NDS gamepad controls
+		else if(ini_item == "#ntr_joy_controls")
+		{
+			line_pos = output_count[x];
+			std::string val = util::to_str(config::ntr_joy_a) + ":";
+			val += util::to_str(config::ntr_joy_b) + ":";
+			val += util::to_str(config::ntr_joy_x) + ":";
+			val += util::to_str(config::ntr_joy_y) + ":";
+			val += util::to_str(config::ntr_joy_start) + ":";
+			val += util::to_str(config::ntr_joy_select) + ":";
+			val += util::to_str(config::ntr_joy_left) + ":";
+			val += util::to_str(config::ntr_joy_right) + ":";
+			val += util::to_str(config::ntr_joy_up) + ":";
+			val += util::to_str(config::ntr_joy_down) + ":";
+			val += util::to_str(config::ntr_joy_l_trigger) + ":";
+			val += util::to_str(config::ntr_joy_r_trigger);
+
+			output_lines[line_pos] = "[#ntr_joy_controls:" + val + "]";
 		}
 
 		//Gyroscope keyboard controls

@@ -45,8 +45,8 @@ namespace config
 	extern std::vector <std::string> recent_files;
 	extern std::vector <std::string> cli_args;
 
-	extern int ntr_key_a, ntr_key_b, ntr_key_start, ntr_key_select, ntr_key_up, ntr_key_down, ntr_key_left, ntr_key_right, ntr_key_r_trigger, ntr_key_l_trigger;
-	extern int ntr_joy_a, ntr_joy_b, ntr_joy_start, ntr_joy_select, ntr_joy_up, ntr_joy_down, ntr_joy_left, ntr_joy_right, ntr_joy_r_trigger, ntr_joy_l_trigger;
+	extern int ntr_key_a, ntr_key_b, ntr_key_x, ntr_key_y, ntr_key_start, ntr_key_select, ntr_key_up, ntr_key_down, ntr_key_left, ntr_key_right, ntr_key_r_trigger, ntr_key_l_trigger;
+	extern int ntr_joy_a, ntr_joy_b, ntr_joy_x, ntr_joy_y, ntr_joy_start, ntr_joy_select, ntr_joy_up, ntr_joy_down, ntr_joy_left, ntr_joy_right, ntr_joy_r_trigger, ntr_joy_l_trigger;
 
 	extern int agb_key_a, agb_key_b, agb_key_start, agb_key_select, agb_key_up, agb_key_down, agb_key_left, agb_key_right, agb_key_r_trigger, agb_key_l_trigger;
 	extern int agb_joy_a, agb_joy_b, agb_joy_start, agb_joy_select, agb_joy_up, agb_joy_down, agb_joy_left, agb_joy_right, agb_joy_r_trigger, agb_joy_l_trigger;
