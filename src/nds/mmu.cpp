@@ -310,7 +310,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 	switch(address)
 	{
-		//Display Control
+		//Display Control A
 		case NDS_DISPCNT_A:
 		case NDS_DISPCNT_A+1:
 		case NDS_DISPCNT_A+2:
@@ -319,6 +319,18 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			lcd_stat->display_control_a = ((memory_map[NDS_DISPCNT_A+3] << 24) | (memory_map[NDS_DISPCNT_A+2] << 16) | (memory_map[NDS_DISPCNT_A+1] << 8) | memory_map[NDS_DISPCNT_A]);
 			lcd_stat->bg_mode_a = (lcd_stat->display_control_a & 0x7);
 			lcd_stat->display_mode_a = (lcd_stat->display_control_a >> 16) & 0x3;
+
+			break;
+
+		//Display Control B
+		case NDS_DISPCNT_B:
+		case NDS_DISPCNT_B+1:
+		case NDS_DISPCNT_B+2:
+		case NDS_DISPCNT_B+3:
+			memory_map[address] = value;
+			lcd_stat->display_control_b = ((memory_map[NDS_DISPCNT_B+3] << 24) | (memory_map[NDS_DISPCNT_B+2] << 16) | (memory_map[NDS_DISPCNT_B+1] << 8) | memory_map[NDS_DISPCNT_B]);
+			lcd_stat->bg_mode_b = (lcd_stat->display_control_b & 0x7);
+			lcd_stat->display_mode_b = (lcd_stat->display_control_b >> 16) & 0x3;
 
 			break;
 

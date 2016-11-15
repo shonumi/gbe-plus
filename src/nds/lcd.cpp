@@ -282,7 +282,7 @@ void NTR_LCD::step()
 	//TODO - Not sure if disabling the display acts like the DMG/GBC where everything shuts down (nothing is clocked, no IRQs)
 	//For now, just going to assume that is the case.
 	//TODO - Test this on real HW.
-	if(lcd_stat.display_mode_a == 0) { return; }
+	//if((lcd_stat.display_mode_a == 0) && (lcd_stat.display_mode_b == 0)) { return; }
 
 	lcd_clock++;
 
