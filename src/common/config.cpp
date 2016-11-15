@@ -40,7 +40,7 @@ namespace config
 	//UP, LEFT, DOWN, RIGHT = Arrow keys
 	//A key = Left Shoulder, S key = Right Shoulder
 	int agb_key_a = SDLK_z; int agb_key_b = SDLK_x; int agb_key_start = SDLK_RETURN; int agb_key_select = SDLK_SPACE;
-	int agb_key_r_trigger = SDLK_a; int agb_key_l_trigger = SDLK_s;
+	int agb_key_l_trigger = SDLK_a; int agb_key_r_trigger = SDLK_s;
 	int agb_key_left = SDLK_LEFT; int agb_key_right = SDLK_RIGHT; int agb_key_down = SDLK_DOWN; int agb_key_up = SDLK_UP;
 
 	//Default joystick bindings - GBA
