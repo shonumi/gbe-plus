@@ -100,6 +100,7 @@ namespace config
 	bool use_cheats = false;
 	std::vector <u32> gs_cheats;
 	std::vector <std::string> gg_cheats;
+	std::vector <std::string> cheats_info;
 
 	//Patches
 	bool use_patches = false;
@@ -2296,10 +2297,12 @@ bool parse_cheats_file()
 	std::vector<std::string> cheat_entry;
 	std::string code_type;
 	std::string cheat_code;
+	std::string info;
 
 	//Clear cheat codes
 	config::gs_cheats.clear();
 	config::gg_cheats.clear();
+	config::cheats_info.clear();
 
 	if(!file.is_open())
 	{
@@ -2340,7 +2343,7 @@ bool parse_cheats_file()
 			}
 		}
 
-		if((item_count != 2) && (item_count != 0))
+		if((item_count != 3) && (item_count != 0))
 		{
 			std::cout<<"GBE::Cheat file has incorrect entry: " << input_line << "\n";
 			file.close();
@@ -2355,6 +2358,7 @@ bool parse_cheats_file()
 	{
 		code_type = cheat_entry[x++];
 		cheat_code = cheat_entry[x++];
+		info = cheat_entry[x++];
 
 		//Add Gameshark codes 
 		if(code_type == "GS")
@@ -2366,11 +2370,42 @@ bool parse_cheats_file()
 				u32 converted_cheat = 0;
 				util::from_hex_str(cheat_code, converted_cheat);
 				config::gs_cheats.push_back(converted_cheat);
+				config::cheats_info.push_back(info);
+			}
+
+			else
+			{
+				std::cout<<"GBE::Error - Could not parse Gameshark cheat code " << cheat_code << "\n";
+
+				config::gs_cheats.clear();
+				config::gg_cheats.clear();
+				config::cheats_info.clear();
+
+				return false;
 			}
 		}
 
 		//Add Game Genie codes
-		else if((code_type == "GG") && (cheat_code.length() == 9)) { config::gg_cheats.push_back(cheat_code); }
+		else if(code_type == "GG")
+		{
+			//Verify length
+			if (cheat_code.length() == 9)
+			{
+				config::gg_cheats.push_back(cheat_code);
+				config::cheats_info.push_back(info);
+			}
+
+			else
+			{
+				std::cout<<"GBE::Error - Could not parse Game Genie cheat code " << cheat_code << "\n";
+
+				config::gs_cheats.clear();
+				config::gg_cheats.clear();
+				config::cheats_info.clear();
+
+				return false;
+			}
+		}	
 	}
 
 	return true;
