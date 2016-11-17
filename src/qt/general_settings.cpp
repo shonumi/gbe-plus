@@ -82,12 +82,13 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	//General settings - Use cheats
 	QWidget* cheats_set = new QWidget(general);
 	QLabel* cheats_label = new QLabel("Use cheats", cheats_set);
+	QPushButton* edit_cheats = new QPushButton("Edit Cheats");
 	cheats = new QCheckBox(cheats_set);
 
 	QHBoxLayout* cheats_layout = new QHBoxLayout;
-	cheats_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-	cheats_layout->addWidget(cheats);
-	cheats_layout->addWidget(cheats_label);
+	cheats_layout->addWidget(cheats, 0, Qt::AlignLeft);
+	cheats_layout->addWidget(cheats_label, 1, Qt::AlignLeft);
+	cheats_layout->addWidget(edit_cheats, 0, Qt::AlignRight);
 	cheats_set->setLayout(cheats_layout);
 
 	//General settings - Emulated SIO device
@@ -797,6 +798,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(bios, SIGNAL(stateChanged(int)), this, SLOT(set_bios()));
 	connect(sio_dev, SIGNAL(currentIndexChanged(int)), this, SLOT(sio_dev_change()));
 	connect(auto_patch, SIGNAL(stateChanged(int)), this, SLOT(set_patches()));
+	connect(edit_cheats, SIGNAL(clicked()), this, SLOT(show_cheats()));
 	connect(ogl, SIGNAL(stateChanged(int)), this, SLOT(set_ogl()));
 	connect(screen_scale, SIGNAL(currentIndexChanged(int)), this, SLOT(screen_scale_change()));
 	connect(aspect_ratio, SIGNAL(stateChanged(int)), this, SLOT(aspect_ratio_change()));
@@ -984,6 +986,8 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	config_advanced_controls = false;
 	input_type = 0;
 
+	dmg_cheat_menu = new cheat_menu;
+
 	resize(450, 450);
 	setWindowTitle(tr("GBE+ Settings"));
 }
@@ -1138,6 +1142,13 @@ void gen_settings::set_patches()
 {
 	if(auto_patch->isChecked()) { config::use_patches = true; }
 	else { config::use_patches = false; }
+}
+
+/****** Displays the cheats window ******/
+void gen_settings::show_cheats()
+{
+	dmg_cheat_menu->fetch_cheats();
+	dmg_cheat_menu->show();
 }
 
 /****** Toggles enabling or disabling the fragment shader widget when setting OpenGL ******/

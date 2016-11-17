@@ -2370,6 +2370,8 @@ bool parse_cheats_file()
 				u32 converted_cheat = 0;
 				util::from_hex_str(cheat_code, converted_cheat);
 				config::gs_cheats.push_back(converted_cheat);
+				
+				info += "*";
 				config::cheats_info.push_back(info);
 			}
 
@@ -2392,6 +2394,8 @@ bool parse_cheats_file()
 			if (cheat_code.length() == 9)
 			{
 				config::gg_cheats.push_back(cheat_code);
+
+				info += "^";
 				config::cheats_info.push_back(info);
 			}
 

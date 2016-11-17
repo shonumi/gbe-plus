@@ -17,6 +17,7 @@
 #include <QtGui>
 
 #include "data_dialog.h"
+#include "cheat_menu.h"
 
 class gen_settings : public QDialog
 {
@@ -36,6 +37,7 @@ class gen_settings : public QDialog
 	QCheckBox* bios;
 	QCheckBox* multicart;
 	QCheckBox* cheats;
+	QPushButton* edit_cheats;
 	QComboBox* sio_dev;
 	QCheckBox* auto_patch;
 
@@ -131,6 +133,9 @@ class gen_settings : public QDialog
 	QLineEdit* ip_address;
 	QPushButton* ip_update;
 
+	//Misc widgets
+	cheat_menu* dmg_cheat_menu;
+
 	void update_volume();
 
 	protected:
@@ -143,6 +148,7 @@ class gen_settings : public QDialog
 	void set_bios();
 	void sio_dev_change();
 	void set_patches();
+	void show_cheats();
 	void set_ogl();
 	void screen_scale_change();
 	void aspect_ratio_change();
@@ -166,7 +172,6 @@ class gen_settings : public QDialog
 	void switch_control_layout();
 	void select_folder();
 	void reject_folder();
-
 
 	private:
 	QDialog* general;
