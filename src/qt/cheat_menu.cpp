@@ -55,6 +55,7 @@ void cheat_menu::fetch_cheats()
 			current_cheat.resize(current_cheat.size() - 1);
 			code_type = "Gameshark Code: ";
 			code_data = util::to_hex_str(config::gs_cheats[gs_count++]);
+			code_data = code_data.substr(2);
 		}
 
 		else if(last_char == "^")
@@ -69,10 +70,17 @@ void cheat_menu::fetch_cheats()
 		QLabel* type_label = new QLabel(QString::fromStdString(code_type));
 		QLabel* data_label = new QLabel(QString::fromStdString(code_data));
 		QLabel* info_label = new QLabel(QString::fromStdString(current_cheat));
+		QPushButton* edit_button = new QPushButton("Edit Cheat");
 
-		temp_layout->addWidget(type_label, x, 0, 1, 1);
-		temp_layout->addWidget(data_label, x, 1, 1, 1);
-		temp_layout->addWidget(info_label, x, 2, 1, 1);
+		//Spacer label
+		QLabel* spacer_label = new QLabel(" ");
+
+		temp_layout->addWidget(type_label, (x * 2), 0, 1, 1);
+		temp_layout->addWidget(data_label, (x * 2), 1, 1, 1);
+		temp_layout->addWidget(info_label, (x * 2), 2, 1, 1);
+		temp_layout->addWidget(edit_button, (x * 2), 3, 1, 1);
+
+		temp_layout->addWidget(spacer_label, (x * 2) + 1, 0, 4, 1);
 	}
 
 	temp_layout->setHorizontalSpacing(25);
