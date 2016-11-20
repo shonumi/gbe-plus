@@ -11,6 +11,8 @@
 #ifndef CHEATMENU_GBE_QT
 #define CHEATMENU_GBE_QT
 
+#include <vector>
+
 #include <QtGui>
 
 class cheat_menu : public QWidget
@@ -21,8 +23,13 @@ class cheat_menu : public QWidget
 	cheat_menu(QWidget *parent = 0);
 
 	QScrollArea* cheats_display;
+	QSignalMapper* edit_signal;
+	std::vector<QPushButton*> button_list;
 
 	void fetch_cheats();
+
+	private slots:
+	void edit_cheat_data(int cheat_code_index);
 }; 
 
 #endif //CHEATMENU_GBE_QT 
