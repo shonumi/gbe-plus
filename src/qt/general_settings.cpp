@@ -1044,7 +1044,13 @@ void gen_settings::set_ini_options()
 	else { ogl_frag_shader->setEnabled(false); }
 
 	//CGFX option
-	if(cgfx::load_cgfx) { load_cgfx->setChecked(true); }
+	if(cgfx::load_cgfx)
+	{
+		load_cgfx->setChecked(true);
+		cgfx_scale->setEnabled(true);
+	}
+
+	else { cgfx_scale->setEnabled(false); }
 
 	//Maintain aspect ratio option
 	if(config::maintain_aspect_ratio) { aspect_ratio->setChecked(true); }
@@ -1208,8 +1214,17 @@ void gen_settings::ogl_frag_change()
 /****** Toggles activation of custom graphics ******/
 void gen_settings::set_cgfx()
 {
-	if(load_cgfx->isChecked()) { cgfx::load_cgfx = true; }
-	else { cgfx::load_cgfx = false; }
+	if(load_cgfx->isChecked())
+	{
+		cgfx::load_cgfx = true;
+		cgfx_scale->setEnabled(true);
+	}
+
+	else
+	{
+		cgfx::load_cgfx = false;
+		cgfx_scale->setEnabled(false);
+	}
 }
 
 /****** Dynamically changes the core's volume ******/
