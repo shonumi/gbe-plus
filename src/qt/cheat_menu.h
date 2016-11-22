@@ -15,21 +15,32 @@
 
 #include <QtGui>
 
-class cheat_menu : public QWidget
+class cheat_menu : public QDialog
 {
 	Q_OBJECT
 	
 	public:
 	cheat_menu(QWidget *parent = 0);
 
-	QScrollArea* cheats_display;
+	QListWidget* cheats_display;
 	QSignalMapper* edit_signal;
-	std::vector<QPushButton*> button_list;
+
+	QDialogButtonBox* close_button;
+	QPushButton* edit_button;
+
+	QWidget* data_set;
+	QLabel* data_label;
+	QLineEdit* data_line;
+
+	QWidget* info_set;
+	QLabel* info_label;
+	QLineEdit* info_line;
 
 	void fetch_cheats();
 
 	private slots:
-	void edit_cheat_data(int cheat_code_index);
+	void rebuild_cheats();
+	void edit_cheat_data();
 }; 
 
 #endif //CHEATMENU_GBE_QT 

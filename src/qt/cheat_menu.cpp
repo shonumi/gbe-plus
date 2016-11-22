@@ -16,34 +16,76 @@
 #include "common/util.h"
 
 /****** Cheat menu constructor ******/
-cheat_menu::cheat_menu(QWidget *parent) : QWidget(parent)
+cheat_menu::cheat_menu(QWidget *parent) : QDialog(parent)
 {
-	cheats_display = new QScrollArea;
+	cheats_display = new QListWidget;
 	edit_signal = NULL;
 
+	close_button = new QDialogButtonBox(QDialogButtonBox::Close);
+	edit_button = close_button->addButton("Edit Cheat", QDialogButtonBox::ActionRole);
+
 	//Cheat menu layout
-	QHBoxLayout* cheat_menu_layout = new QHBoxLayout;
+	QVBoxLayout* cheat_menu_layout = new QVBoxLayout;
 	cheat_menu_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	cheat_menu_layout->addWidget(cheats_display);
+	cheat_menu_layout->addWidget(close_button);
 	setLayout(cheat_menu_layout);
+
+	connect(close_button, SIGNAL(accepted()), this, SLOT(accept()));
+	connect(close_button, SIGNAL(rejected()), this, SLOT(reject()));
+	connect(close_button->button(QDialogButtonBox::Close), SIGNAL(clicked()), this, SLOT(rebuild_cheats()));
+	connect(edit_button, SIGNAL(clicked()), this, SLOT(edit_cheat_data()));
 
 	resize(600, 400);
 	hide();
+
+	data_set = new QWidget;
+	data_label = new QLabel;
+	data_line = new QLineEdit;
+
+	data_set->hide();
+	data_label->hide();
+	data_line->hide();
+	
+	info_set = new QWidget;
+	info_label = new QLabel;
+	info_line = new QLineEdit;
+
+	info_set->hide();
+	info_label->hide();
+	info_line->hide();
 }
 
 /****** Grab cheats from config data ******/
 void cheat_menu::fetch_cheats()
 {
-	parse_cheats_file();
+	//Rebuild cheat list layout
+	if(data_set->layout() != NULL) { delete data_set->layout(); }
+	if(info_set->layout() != NULL) { delete info_set->layout(); }
+	if(layout() != NULL) { delete layout(); }
 
-	QGridLayout* temp_layout = new QGridLayout;
-	temp_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-	QWidget* fetched_cheat_set = new QWidget;
+	//Cheat menu layout
+	QVBoxLayout* cheat_menu_layout = new QVBoxLayout;
+	cheat_menu_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	cheat_menu_layout->addWidget(cheats_display);
+	cheat_menu_layout->addWidget(close_button);
+	setLayout(cheat_menu_layout);
+
+	cheats_display->show();
+	edit_button->show();
+
+	data_set->hide();
+	data_label->hide();
+	data_line->hide();
+
+	info_set->hide();
+	info_label->hide();
+	info_line->hide();
+
+	parse_cheats_file();
 
 	u32 gs_count = 0;
 	u32 gg_count = 0;
-
-	button_list.clear();
 
 	//Setup signal mapper
 	if(edit_signal != NULL) { delete edit_signal; }
@@ -70,56 +112,31 @@ void cheat_menu::fetch_cheats()
 		else if(last_char == "^")
 		{
 			current_cheat.resize(current_cheat.size() - 1);
-			code_type = "Game Genie: ";
+			code_type = "Game Genie Code: ";
 			code_data = config::gg_cheats[gg_count++];
 		}
 
 		else { return; }
 
-		QLabel* type_label = new QLabel(QString::fromStdString(code_type));
-		QLabel* data_label = new QLabel(QString::fromStdString(code_data));
-		QLabel* info_label = new QLabel(QString::fromStdString(current_cheat));
-
-		QPushButton* edit_button = new QPushButton("Edit Cheat");
-		button_list.push_back(edit_button);
-
-		//Spacer label
-		QLabel* spacer_label = new QLabel(" ");
-
-		temp_layout->addWidget(type_label, (x * 2), 0, 1, 1);
-		temp_layout->addWidget(data_label, (x * 2), 1, 1, 1);
-		temp_layout->addWidget(info_label, (x * 2), 2, 1, 1);
-		temp_layout->addWidget(button_list.back(), (x * 2), 3, 1, 1);
-
-		temp_layout->addWidget(spacer_label, (x * 2) + 1, 0, 4, 1);
-
-		//Map signals
-		connect(button_list[x], SIGNAL(clicked()), edit_signal, SLOT(map()));
-		edit_signal->setMapping(button_list[x], x+1);
+		std::string final_str = code_type + "\t" + code_data + "\n" + "Code Description: \t" + current_cheat + "\n";
+		cheats_display->addItem(QString::fromStdString(final_str));
 	}
-
-	temp_layout->setHorizontalSpacing(25);
-
-	fetched_cheat_set->setLayout(temp_layout);	
-	cheats_display->setWidget(fetched_cheat_set);
-
-	connect(edit_signal, SIGNAL(mapped(int)), this, SLOT(edit_cheat_data(int))) ;
 }
 
 /****** Edits a specific cheat code ******/
-void cheat_menu::edit_cheat_data(int cheat_code_index)
+void cheat_menu::edit_cheat_data()
 {
+	int cheat_code_index = cheats_display->currentRow();
 	std::string current_cheat = "";
 	std::string code_data = "";
 
-	int cheat_info_index = 0;
 	int gs_count = 0;
 	int gg_count = 0;
 
-	QLabel* data_label = new QLabel(" ");	
+	std::string data_str;
 
 	//Search for specific cheat info
-	for(int x = 0; x < cheat_code_index; x++)
+	for(int x = 0; x <= cheat_code_index; x++)
 	{
 		current_cheat = config::cheats_info[x];
 
@@ -129,13 +146,13 @@ void cheat_menu::edit_cheat_data(int cheat_code_index)
 		//GS code
 		if(last_char == "*")
 		{
-			if((x + 1) == cheat_code_index)
+			if(x == cheat_code_index)
 			{
 				current_cheat.resize(current_cheat.size() - 1);
 				code_data = util::to_hex_str(config::gs_cheats[gs_count]);
 				code_data = code_data.substr(2);
 
-				data_label->setText("Gameshark Code: ");
+				data_str = "Gameshark Code: \t";
 			}
 
 			gs_count++;
@@ -143,47 +160,59 @@ void cheat_menu::edit_cheat_data(int cheat_code_index)
 
 		else if(last_char == "^")
 		{
-			if((x + 1) == cheat_code_index)
+			if(x == cheat_code_index)
 			{
 				current_cheat.resize(current_cheat.size() - 1);
 				code_data = config::gg_cheats[gg_count];
 
-				data_label->setText("Game Genie Code: ");
+				data_str = "Game Genie Code: \t";
 			}
 
 			gg_count++;
 		}
 	}
 
-	//Change main layout
-	QGridLayout* temp_layout = new QGridLayout;
-	temp_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-	QWidget* edited_cheat_set = new QWidget;
+	//Code data
+	if(data_set->layout() != NULL) { delete data_set->layout(); }
+	data_label->setText(QString::fromStdString(data_str));	
+	data_line->setText(QString::fromStdString(code_data));
 
-	//Rest of the widgets
-	QLabel* info_label = new QLabel("Cheat Comments: ");
-	QLineEdit* data_line = new QLineEdit(QString::fromStdString(code_data));
-	QLineEdit* info_line = new QLineEdit(QString::fromStdString(current_cheat));
-
-	//Data layout
-	QWidget* data_set = new QWidget;
 	QHBoxLayout* data_layout = new QHBoxLayout;
-	data_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	data_layout->addWidget(data_label);
 	data_layout->addWidget(data_line);
 	data_set->setLayout(data_layout);
 
-	//Info layout
-	QWidget* info_set = new QWidget;
+	data_set->show();
+	data_label->show();
+	data_line->show();
+
+	//Code info
+	if(info_set->layout() != NULL) { delete info_set->layout();}
+	info_label->setText(QString::fromUtf8("Cheat Comments: \t"));
+	info_line->setText(QString::fromStdString(current_cheat));
+
 	QHBoxLayout* info_layout = new QHBoxLayout;
-	info_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	info_layout->addWidget(info_label);
 	info_layout->addWidget(info_line);
 	info_set->setLayout(info_layout);
 
-	temp_layout->addWidget(data_set, 0, 0, 1, 1);
-	temp_layout->addWidget(info_set, 1, 0, 1, 1);
+	info_set->show();
+	info_label->show();
+	info_line->show();
 
-	edited_cheat_set->setLayout(temp_layout);	
-	cheats_display->setWidget(edited_cheat_set);
+	//Change main layout
+	delete layout();
+
+	QVBoxLayout* cheat_menu_layout = new QVBoxLayout;
+	cheat_menu_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	cheat_menu_layout->addWidget(data_set);
+	cheat_menu_layout->addWidget(info_set);
+	cheat_menu_layout->addWidget(close_button);
+	setLayout(cheat_menu_layout);
+
+	cheats_display->hide();
+	edit_button->hide();
 }
+
+/****** Rebuilds the cheat list if the dialog is closed or edit button is pressed ******/
+void cheat_menu::rebuild_cheats() { fetch_cheats(); }
