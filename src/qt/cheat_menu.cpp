@@ -24,6 +24,9 @@ cheat_menu::cheat_menu(QWidget *parent) : QDialog(parent)
 	close_button = new QDialogButtonBox(QDialogButtonBox::Close);
 	edit_button = close_button->addButton("Edit Cheat", QDialogButtonBox::ActionRole);
 
+	apply_button = close_button->addButton("Apply Changes", QDialogButtonBox::ActionRole);
+	cancel_button = close_button->addButton("Cancel", QDialogButtonBox::ActionRole);
+
 	//Cheat menu layout
 	QVBoxLayout* cheat_menu_layout = new QVBoxLayout;
 	cheat_menu_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -35,6 +38,8 @@ cheat_menu::cheat_menu(QWidget *parent) : QDialog(parent)
 	connect(close_button, SIGNAL(rejected()), this, SLOT(reject()));
 	connect(close_button->button(QDialogButtonBox::Close), SIGNAL(clicked()), this, SLOT(rebuild_cheats()));
 	connect(edit_button, SIGNAL(clicked()), this, SLOT(edit_cheat_data()));
+	connect(cancel_button, SIGNAL(clicked()), this, SLOT(rebuild_cheats()));
+	connect(apply_button, SIGNAL(clicked()), this, SLOT(update_cheats()));
 
 	resize(600, 400);
 	hide();
@@ -54,6 +59,13 @@ cheat_menu::cheat_menu(QWidget *parent) : QDialog(parent)
 	info_set->hide();
 	info_label->hide();
 	info_line->hide();
+
+	cancel_button->hide();
+	apply_button->hide();
+
+	current_cheat_index = 0;
+
+	parse_cheats_file();
 }
 
 /****** Grab cheats from config data ******/
@@ -72,7 +84,11 @@ void cheat_menu::fetch_cheats()
 	setLayout(cheat_menu_layout);
 
 	cheats_display->show();
+	cheats_display->clear();
 	edit_button->show();
+
+	cancel_button->hide();
+	apply_button->hide();
 
 	data_set->hide();
 	data_label->hide();
@@ -81,8 +97,6 @@ void cheat_menu::fetch_cheats()
 	info_set->hide();
 	info_label->hide();
 	info_line->hide();
-
-	parse_cheats_file();
 
 	u32 gs_count = 0;
 	u32 gg_count = 0;
@@ -127,6 +141,8 @@ void cheat_menu::fetch_cheats()
 void cheat_menu::edit_cheat_data()
 {
 	int cheat_code_index = cheats_display->currentRow();
+	current_cheat_index = cheat_code_index;
+
 	std::string current_cheat = "";
 	std::string code_data = "";
 
@@ -211,8 +227,79 @@ void cheat_menu::edit_cheat_data()
 	setLayout(cheat_menu_layout);
 
 	cheats_display->hide();
+
 	edit_button->hide();
+
+	cancel_button->show();
+	apply_button->show();
 }
 
 /****** Rebuilds the cheat list if the dialog is closed or edit button is pressed ******/
 void cheat_menu::rebuild_cheats() { fetch_cheats(); }
+
+/****** Updates the cheat data ******/
+void cheat_menu::update_cheats()
+{
+	int code_type = -1;
+
+	int gs_count = -1;
+	int gg_count = -1;
+
+	for(int x = 0; x <= current_cheat_index; x++)
+	{
+		std::string current_cheat = config::cheats_info[x];
+
+		std::string last_char = "";
+		last_char += current_cheat[current_cheat.size() - 1];
+
+		//GS code
+		if(last_char == "*")
+		{
+			if(x == current_cheat_index) { code_type = 0; }
+
+			gs_count++;
+		}
+
+		else if(last_char == "^")
+		{
+			if(x == current_cheat_index) { code_type = 1; }
+
+			gg_count++;
+		}
+	}
+
+	//Process GS code editing
+	if(code_type == 0)
+	{
+		//Parse code format
+		std::string code_data = data_line->text().toStdString();
+		std::string code_info = info_line->text().toStdString();
+
+		//Cut down data if it larger than 8 characters
+		if(code_data.length() > 8) { code_data = code_data.substr(0, 8); }
+
+		u32 converted_cheat = 0;
+		util::from_hex_str(code_data, converted_cheat);
+	
+		config::gs_cheats[gs_count] = converted_cheat;
+		config::cheats_info[current_cheat_index] = code_info + "*";
+		
+		fetch_cheats();
+	}
+
+	//Process GG code editing
+	else if(code_type == 1)
+	{
+		//Parse code format
+		std::string code_data = data_line->text().toStdString();
+		std::string code_info = info_line->text().toStdString();
+
+		//Cut down data if it larger than 9 characters
+		if(code_data.length() > 9) { code_data = code_data.substr(0, 8); }
+	
+		config::gg_cheats[gg_count] = code_data;
+		config::cheats_info[current_cheat_index] = code_info + "^";
+
+		fetch_cheats();
+	}
+}

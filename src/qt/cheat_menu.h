@@ -28,6 +28,9 @@ class cheat_menu : public QDialog
 	QDialogButtonBox* close_button;
 	QPushButton* edit_button;
 
+	QPushButton* cancel_button;
+	QPushButton* apply_button;
+
 	QWidget* data_set;
 	QLabel* data_label;
 	QLineEdit* data_line;
@@ -36,11 +39,14 @@ class cheat_menu : public QDialog
 	QLabel* info_label;
 	QLineEdit* info_line;
 
+	int current_cheat_index;
+
 	void fetch_cheats();
 
 	private slots:
 	void rebuild_cheats();
 	void edit_cheat_data();
+	void update_cheats();
 }; 
 
 #endif //CHEATMENU_GBE_QT 
