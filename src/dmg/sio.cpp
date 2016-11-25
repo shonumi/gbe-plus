@@ -1212,6 +1212,9 @@ void DMG_SIO::mobile_adapter_process()
 						//HTTP data transfer
 						else if(mobile_adapter.port == 80) { mobile_adapter_process_http(); }
 
+						//Unknown port
+						else { std::cout<<"SIO::Warning - Mobile Adapter accessing TCP transfer on unknown port " << mobile_adapter.port << "\n"; }
+
 						break;
 
 					//Telephone status
@@ -1671,7 +1674,7 @@ void DMG_SIO::mobile_adapter_process_http()
 	else
 	{
 		//For now, just return 404 as the default
-		http_response = "HTTP/1.0 404 Not Found";
+		http_response = "HTTP/1.0 404 Not Found\r\n";
 
 		//Determine if this request is GET or POST
 		std::size_t get_match = mobile_adapter.http_data.find("GET");
@@ -1683,7 +1686,7 @@ void DMG_SIO::mobile_adapter_process_http()
 			//See if this is the homepage for Mobile Trainer
 			if(mobile_adapter.http_data.find("/01/CGB-B9AJ/index.html") != std::string::npos)
 			{
-				http_response = "HTTP/1.0 200 OK\nContent-Type: text/html\nContent-Length: 31\n<html><body>HELLO</body></html>";
+				http_response = "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\nContent-Length: 31\r\n<html><body>HELLO</body></html>";
 			}
 		}
 
