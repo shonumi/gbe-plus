@@ -52,6 +52,7 @@ class AGB_LCD
 	u32 external_data_usage;
 
 	agb_lcd_data lcd_stat;
+	u32 lcd_clock;
 
 	private:
 
@@ -119,7 +120,6 @@ class AGB_LCD
 	std::vector<u32> scanline_buffer;
 	std::vector<u32> screen_buffer;
 
-	u32 lcd_clock;
 	u32 scanline_pixel_counter;
 
 	int frame_start_time;

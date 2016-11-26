@@ -47,6 +47,11 @@ struct agb_apu_data
 
 		u32 frequency_distance;
 		int sample_length;
+
+		s16 buffer[0x10000];
+		u16 buffer_size;
+		u16 current_index;
+		u16 last_index;
 	} channel[4];
 
 	//Digital channels, new to the GBA
@@ -66,6 +71,9 @@ struct agb_apu_data
 
 		s8 buffer[0x10000];
 	} dma[2];
+
+	bool psg_needs_fill;
+	u32 psg_fill_rate;
 
 	bool sound_on;
 	bool stereo;

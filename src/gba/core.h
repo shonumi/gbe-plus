@@ -39,6 +39,7 @@ class AGB_core : virtual public core_emu
 		void save_state(u8 slot);
 		void load_state(u8 slot);
 		void run_core();
+		void buffer_audio_data();
 
 		//Core debugging
 		void debug_step();
