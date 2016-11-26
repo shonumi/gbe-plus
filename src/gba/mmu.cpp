@@ -918,7 +918,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 		case SND1CNT_H+1:
 			memory_map[address] = value;
 			apu_stat->channel[0].duration = (memory_map[SND1CNT_H] & 0x3F);
-			apu_stat->channel[0].duration = ((64 - apu_stat->channel[0].duration) / 256.0) * 1000.0;
+			apu_stat->channel[0].duration = ((64 - apu_stat->channel[0].duration) / 256.0);
 			apu_stat->channel[0].duty_cycle = (memory_map[SND1CNT_H] >> 6) & 0x3;
 
 			switch(apu_stat->channel[0].duty_cycle)
@@ -987,7 +987,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			if((address == SND1CNT_X+1) && (apu_stat->channel[0].playing)) 
 			{
 				apu_stat->channel[0].frequency_distance = 0;
-				apu_stat->channel[0].sample_length = (apu_stat->channel[0].duration * apu_stat->sample_rate)/1000;
+				apu_stat->channel[0].sample_length = (apu_stat->channel[0].duration * apu_stat->sample_rate);
 				apu_stat->channel[0].envelope_counter = 0;
 				apu_stat->channel[0].sweep_counter = 0;
 			}
@@ -999,7 +999,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 		case SND2CNT_L+1:
 			memory_map[address] = value;
 			apu_stat->channel[1].duration = (memory_map[SND2CNT_L] & 0x3F);
-			apu_stat->channel[1].duration = ((64 - apu_stat->channel[1].duration) / 256.0) * 1000.0;
+			apu_stat->channel[1].duration = ((64 - apu_stat->channel[1].duration) / 256.0);
 			apu_stat->channel[1].duty_cycle = (memory_map[SND2CNT_L] >> 6) & 0x3;
 
 			switch(apu_stat->channel[1].duty_cycle)
@@ -1068,7 +1068,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			if((address == SND2CNT_H+1) && (apu_stat->channel[1].playing)) 
 			{
 				apu_stat->channel[1].frequency_distance = 0;
-				apu_stat->channel[1].sample_length = (apu_stat->channel[1].duration * apu_stat->sample_rate)/1000;
+				apu_stat->channel[1].sample_length = (apu_stat->channel[1].duration * apu_stat->sample_rate);
 				apu_stat->channel[1].envelope_counter = 0;
 			}
 
@@ -1087,7 +1087,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 		case SND3CNT_H:
 			memory_map[address] = value;
 			apu_stat->channel[2].duration = memory_map[SND3CNT_H];
-			apu_stat->channel[2].duration = ((256 - apu_stat->channel[2].duration) / 256.0) * 1000.0;
+			apu_stat->channel[2].duration = ((256 - apu_stat->channel[2].duration) / 256.0);
 			break;
 
 		//Sound Channel 3 Control - Volume
@@ -1110,7 +1110,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			if((address == SND3CNT_X+1) && (apu_stat->channel[2].playing)) 
 			{
 				apu_stat->channel[2].frequency_distance = 0;
-				apu_stat->channel[2].sample_length = (apu_stat->channel[2].duration * apu_stat->sample_rate)/1000;
+				apu_stat->channel[2].sample_length = (apu_stat->channel[2].duration * apu_stat->sample_rate);
 			}
 
 			break;
@@ -1120,7 +1120,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 		case SND4CNT_L+1:
 			memory_map[address] = value;
 			apu_stat->channel[3].duration = (memory_map[SND4CNT_L] & 0x3F);
-			apu_stat->channel[3].duration = ((64 - apu_stat->channel[3].duration) / 256.0) * 1000.0;
+			apu_stat->channel[3].duration = ((64 - apu_stat->channel[3].duration) / 256.0);
 
 			apu_stat->channel[3].envelope_step = (memory_map[SND4CNT_L+1] & 0x7);
 			apu_stat->channel[3].envelope_direction = (memory_map[SND4CNT_L+1] & 0x8) ? 1 : 0;
@@ -1159,7 +1159,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			if((address == SND4CNT_H+1) && (apu_stat->channel[3].playing)) 
 			{
 				apu_stat->channel[3].frequency_distance = 0;
-				apu_stat->channel[3].sample_length = (apu_stat->channel[3].duration * apu_stat->sample_rate)/1000;
+				apu_stat->channel[3].sample_length = (apu_stat->channel[3].duration * apu_stat->sample_rate);
 				apu_stat->channel[3].envelope_counter = 0;
 			}
 

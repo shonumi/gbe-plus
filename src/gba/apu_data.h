@@ -22,7 +22,7 @@ struct agb_apu_data
 		u16 raw_frequency;
 		double output_frequency;
 
-		u32 duration;
+		double duration;
 		u32 volume;
 
 		bool playing;

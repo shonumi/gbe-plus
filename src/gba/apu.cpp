@@ -53,7 +53,7 @@ void AGB_APU::reset()
 		apu_stat.channel[x].raw_frequency = 0;
 		apu_stat.channel[x].output_frequency = 0.0;
 
-		apu_stat.channel[x].duration = 5000;
+		apu_stat.channel[x].duration = apu_stat.sample_rate;
 		apu_stat.channel[x].volume = 0;
 
 		apu_stat.channel[x].playing = false;
@@ -484,7 +484,7 @@ void AGB_APU::buffer_channel_1()
 			}
 
 			//Continuously generate sound if necessary
-			else if((apu_stat.channel[0].sample_length == 0) && (!apu_stat.channel[0].length_flag)) { apu_stat.channel[0].sample_length = (apu_stat.channel[0].duration * apu_stat.sample_rate)/1000; }
+			else if((apu_stat.channel[0].sample_length == 0) && (!apu_stat.channel[0].length_flag)) { apu_stat.channel[0].sample_length = apu_stat.sample_rate; }
 
 			//Or stop sound after duration has been met, reset Sound 1 On Flag
 			else if((apu_stat.channel[0].sample_length == 0) && (apu_stat.channel[0].length_flag)) 
@@ -554,7 +554,7 @@ void AGB_APU::buffer_channel_2()
 			}
 
 			//Continuously generate sound if necessary
-			else if((apu_stat.channel[1].sample_length == 0) && (!apu_stat.channel[1].length_flag)) { apu_stat.channel[1].sample_length = (apu_stat.channel[1].duration * apu_stat.sample_rate)/1000; }
+			else if((apu_stat.channel[1].sample_length == 0) && (!apu_stat.channel[1].length_flag)) { apu_stat.channel[1].sample_length = apu_stat.sample_rate; }
 
 			//Or stop sound after duration has been met, reset Sound 1 On Flag
 			else if((apu_stat.channel[1].sample_length == 0) && (apu_stat.channel[1].length_flag)) 
@@ -700,7 +700,7 @@ void AGB_APU::buffer_channel_3()
 			}
 
 			//Continuously generate sound if necessary
-			else if((apu_stat.channel[2].sample_length == 0) && (!apu_stat.channel[2].length_flag)) { apu_stat.channel[2].sample_length = (apu_stat.channel[2].duration * apu_stat.sample_rate)/1000; }
+			else if((apu_stat.channel[2].sample_length == 0) && (!apu_stat.channel[2].length_flag)) { apu_stat.channel[2].sample_length = apu_stat.sample_rate; }
 
 			//Or stop sound after duration has been met, reset Sound 1 On Flag
 			else if((apu_stat.channel[2].sample_length == 0) && (apu_stat.channel[2].length_flag)) 
@@ -810,7 +810,7 @@ void AGB_APU::buffer_channel_4()
 			}
 
 			//Continuously generate sound if necessary
-			else if(apu_stat.channel[3].sample_length == 0) { apu_stat.channel[3].sample_length = (apu_stat.channel[3].duration * apu_stat.sample_rate)/1000; }
+			else if(apu_stat.channel[3].sample_length == 0) { apu_stat.channel[3].sample_length = apu_stat.sample_rate; }
 
 			//Or stop sound after duration has been met, reset Sound 4 On Flag
 			else
