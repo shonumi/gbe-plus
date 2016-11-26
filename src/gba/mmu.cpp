@@ -1397,8 +1397,8 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 		case TM0CNT_L+1:
 			memory_map[address] = value;
 			timer->at(0).reload_value = ((memory_map[TM0CNT_L+1] << 8) | memory_map[TM0CNT_L]);
-			if((apu_stat->dma[0].timer == 0) && (timer->at(0).reload_value != 0xFFFF)) { apu_stat->dma[0].output_frequency = (1 << 24) / (0xFFFF - timer->at(0).reload_value); }
-			if((apu_stat->dma[1].timer == 0) && (timer->at(0).reload_value != 0xFFFF)) { apu_stat->dma[1].output_frequency = (1 << 24) / (0xFFFF - timer->at(0).reload_value); }
+			if((apu_stat->dma[0].timer == 0) && (timer->at(0).reload_value != 0xFFFF)) { apu_stat->dma[0].output_frequency = (1 << 24) / (0x10000 - timer->at(0).reload_value); }
+			if((apu_stat->dma[1].timer == 0) && (timer->at(0).reload_value != 0xFFFF)) { apu_stat->dma[1].output_frequency = (1 << 24) / (0x10000 - timer->at(0).reload_value); }
 			break;
 
 		//Timer 1 Reload Value
@@ -1406,8 +1406,8 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 		case TM1CNT_L+1:
 			memory_map[address] = value;
 			timer->at(1).reload_value = ((memory_map[TM1CNT_L+1] << 8) | memory_map[TM1CNT_L]);
-			if((apu_stat->dma[0].timer == 1) && (timer->at(1).reload_value != 0xFFFF)) { apu_stat->dma[0].output_frequency = (1 << 24) / (0xFFFF - timer->at(1).reload_value); }
-			if((apu_stat->dma[1].timer == 1) && (timer->at(1).reload_value != 0xFFFF)) { apu_stat->dma[1].output_frequency = (1 << 24) / (0xFFFF - timer->at(1).reload_value); }
+			if((apu_stat->dma[0].timer == 1) && (timer->at(1).reload_value != 0xFFFF)) { apu_stat->dma[0].output_frequency = (1 << 24) / (0x10000 - timer->at(1).reload_value); }
+			if((apu_stat->dma[1].timer == 1) && (timer->at(1).reload_value != 0xFFFF)) { apu_stat->dma[1].output_frequency = (1 << 24) / (0x10000 - timer->at(1).reload_value); }
 			break;
 
 		//Timer 2 Reload Value
