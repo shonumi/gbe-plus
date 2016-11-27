@@ -62,13 +62,13 @@ class NTR_LCD
 	int fps_time;
 
 	void render_scanline();
-	bool render_bg_scanline(u32 bg_control);
-	bool render_bg_mode_0(u32 bg_control);
-	bool render_bg_mode_1(u32 bg_control);
-	bool render_bg_mode_3(u32 bg_control);
-	bool render_bg_mode_4(u32 bg_control);
-	bool render_bg_mode_5(u32 bg_control);
-	bool render_bg_mode_6(u32 bg_control);
+	void render_bg_scanline(u32 bg_control);
+	void render_bg_mode_0(u32 bg_control);
+	void render_bg_mode_1(u32 bg_control);
+	void render_bg_mode_3(u32 bg_control);
+	void render_bg_mode_4(u32 bg_control);
+	void render_bg_mode_5(u32 bg_control);
+	void render_bg_mode_6(u32 bg_control);
 	void scanline_compare();
 };
 

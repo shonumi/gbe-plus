@@ -68,7 +68,6 @@ void NTR_LCD::reset()
 	for(int x = 0; x < 4; x++)
 	{
 		lcd_stat.bg_control[x] = 0;
-		lcd_stat.bg_enable[x] = false;
 		lcd_stat.bg_offset_x[x] = 0;
 		lcd_stat.bg_offset_y[x] = 0;
 		lcd_stat.bg_priority[x] = 0;
@@ -76,6 +75,9 @@ void NTR_LCD::reset()
 		lcd_stat.bg_size[x] = 0;
 		lcd_stat.bg_base_tile_addr[x] = 0x6000000;
 		lcd_stat.bg_base_map_addr[x] = 0x6000000;
+
+		lcd_stat.bg_enable_a[x] = false;
+		lcd_stat.bg_enable_b[x] = false;
 	}
 
 	for(int x = 0; x < 9; x++) { lcd_stat.vram_bank_addr[x] = 0x0; }
@@ -153,12 +155,12 @@ void NTR_LCD::update_palettes()
 }
 
 /****** Render the line for a BG ******/
-bool NTR_LCD::render_bg_scanline(u32 bg_control)
+void NTR_LCD::render_bg_scanline(u32 bg_control)
 {
-	if(!lcd_stat.bg_enable[(bg_control - 0x4000008) >> 1]) { return false; }
+	u8 bg_mode = (bg_control & 0x1000) ? lcd_stat.bg_mode_b : lcd_stat.bg_mode_a;
 
-	//Render BG pixel according to current BG Mode
-	switch(lcd_stat.bg_mode_a)
+	//Render BG pixels according to current BG Mode
+	switch(bg_mode)
 	{
 		//BG Mode 0
 		case 0:
@@ -166,32 +168,44 @@ bool NTR_LCD::render_bg_scanline(u32 bg_control)
 
 		default:
 			std::cout<<"LCD::invalid or unsupported BG Mode : " << std::dec << lcd_stat.bg_mode_a;
-			return false;
 	}
 }
 
 /****** Render BG Mode 0 scanline ******/
-bool NTR_LCD::render_bg_mode_0(u32 bg_control) { }
+void NTR_LCD::render_bg_mode_0(u32 bg_control)
+{
+	//Render Engine A
+	if(!bg_control & 0x1000)
+	{
+
+	}
+
+	//Render Engine B
+	else
+	{
+		
+	}
+}
 
 /****** Render BG Mode 1 scanline ******/
-bool NTR_LCD::render_bg_mode_1(u32 bg_control) { }
+void NTR_LCD::render_bg_mode_1(u32 bg_control) { }
 
 /****** Render BG Mode 3 scanline ******/
-bool NTR_LCD::render_bg_mode_3(u32 bg_control) { }
+void NTR_LCD::render_bg_mode_3(u32 bg_control) { }
 
 /****** Render BG Mode 4 scanline ******/
-bool NTR_LCD::render_bg_mode_4(u32 bg_control) { }
+void NTR_LCD::render_bg_mode_4(u32 bg_control) { }
 
 /****** Render BG Mode 5 scanline ******/
-bool NTR_LCD::render_bg_mode_5(u32 bg_control) { }
+void NTR_LCD::render_bg_mode_5(u32 bg_control) { }
 
 /****** Render BG Mode 6 ******/
-bool NTR_LCD::render_bg_mode_6(u32 bg_control) { }
+void NTR_LCD::render_bg_mode_6(u32 bg_control) { }
 
 /****** Render pixels for a given scanline (per-pixel) ******/
 void NTR_LCD::render_scanline()
 {
-	//Render based on display modes
+	//Engine A - Render based on display modes
 	switch(lcd_stat.display_mode_a)
 	{
 		//Display Mode 0 - Blank screen
@@ -201,7 +215,7 @@ void NTR_LCD::render_scanline()
 
 		//Display Mode 1 - Tiled BG and OBJ
 		case 0x1:
-			std::cout<<"LCD::Warning - Unsupported Display Mode 1 \n";
+			std::cout<<"LCD::Warning - Engine A - Unsupported Display Mode 1 \n";
 			break;
 
 		//Display Mode 2 - VRAM
@@ -229,8 +243,27 @@ void NTR_LCD::render_scanline()
 			break;
 
 		//Display Mode 3 - Main Memory
-		case 0x3:
-			std::cout<<"LCD::Warning - Unsupported Display Mode 1 \n";
+		default:
+			std::cout<<"LCD::Warning - Engine A - Unsupported Display Mode 3 \n";
+			break;
+	}
+
+	//Engine B - Render based on display modes
+	switch(lcd_stat.display_mode_b)
+	{
+		//Display Mode 0 - Blank screen
+		case 0x0:
+			for(u16 x = 0; x < 256; x++) { scanline_buffer_b[x] = 0xFFFFFFFF; }
+			break;
+
+		//Display Mode 1 - Tiled BG and OBJ
+		case 0x1:
+			std::cout<<"LCD::Warning - Engine B - Unsupported Display Mode 1 \n";
+			break;
+
+		//Modes 2 and 3 unsupported by Engine B
+		default:
+			std::cout<<"LCD::Warning - Engine B - Unsupported Display Mode " << std::dec << lcd_stat.display_mode_b << "\n";
 			break;
 	}		
 }
