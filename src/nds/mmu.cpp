@@ -1083,6 +1083,13 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			lcd_stat->bg_pal_update_a = true;
 			lcd_stat->bg_pal_update_list_a[(address & 0x1FF) >> 1] = true;
 		}
+
+		//Trigger BG palette update in LCD - Engine B
+		if((address >= 0x5000200) && (address <= 0x50003FF))
+		{
+			lcd_stat->bg_pal_update_b = true;
+			lcd_stat->bg_pal_update_list_b[(address & 0x1FF) >> 1] = true;
+		}
 	}
 }
 

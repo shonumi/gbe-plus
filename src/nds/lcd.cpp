@@ -60,7 +60,11 @@ void NTR_LCD::reset()
 	scanline_buffer_a.resize(0x100, 0);
 	scanline_buffer_b.resize(0x100, 0);
 
+	lcd_stat.bg_pal_update_a = true;
 	lcd_stat.bg_pal_update_list_a.resize(0x100, 0);
+
+	lcd_stat.bg_pal_update_b = true;
+	lcd_stat.bg_pal_update_list_b.resize(0x100, 0);
 
 	lcd_stat.bg_mode_a = 0;
 	lcd_stat.bg_mode_b = 0;
@@ -165,6 +169,35 @@ void NTR_LCD::update_palettes()
 				u8 blue = ((color_bytes & 0x1F) << 3);
 
 				lcd_stat.bg_pal_a[x] =  0xFF000000 | (red << 16) | (green << 8) | (blue);
+			}
+		}
+	}
+
+	//Update BG palettes - Engine B
+	if(lcd_stat.bg_pal_update_b)
+	{
+		lcd_stat.bg_pal_update_b = false;
+
+		//Cycle through all updates to BG palettes
+		for(int x = 0; x < 256; x++)
+		{
+			//If this palette has been updated, convert to ARGB
+			if(lcd_stat.bg_pal_update_list_b[x])
+			{
+				lcd_stat.bg_pal_update_list_b[x] = false;
+
+				u16 color_bytes = mem->read_u16_fast(0x5000200 + (x << 1));
+				lcd_stat.raw_bg_pal_b[x] = color_bytes;
+
+				u8 red = ((color_bytes & 0x1F) << 3);
+				color_bytes >>= 5;
+
+				u8 green = ((color_bytes & 0x1F) << 3);
+				color_bytes >>= 5;
+
+				u8 blue = ((color_bytes & 0x1F) << 3);
+
+				lcd_stat.bg_pal_b[x] =  0xFF000000 | (red << 16) | (green << 8) | (blue);
 			}
 		}
 	}
