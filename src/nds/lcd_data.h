@@ -30,19 +30,34 @@ struct ntr_lcd_data
 	u8 display_mode_a;
 	u8 display_mode_b;
 
-	u16 bg_control[4];
+	u16 bg_control_a[4];
+	u16 bg_control_b[4];
+
 	bool hblank_interval_free;
 
 	u32 vram_bank_addr[9];
 	bool vram_bank_enable[9];
 
-	u16 bg_offset_x[4];
-	u16 bg_offset_y[4];
-	u8 bg_priority[4];
-	u8 bg_depth[4];
-	u8 bg_size[4];
-	u32 bg_base_map_addr[4];
-	u32 bg_base_tile_addr[4];
+	u16 bg_offset_x_a[4];
+	u16 bg_offset_x_b[4];
+
+	u16 bg_offset_y_a[4];
+	u16 bg_offset_y_b[4];
+
+	u8 bg_depth_a[4];
+	u8 bg_depth_b[4];
+
+	u8 bg_size_a[4];
+	u8 bg_size_b[4];
+
+	u32 bg_base_map_addr_a[4];
+	u32 bg_base_map_addr_b[4];
+
+	u32 bg_base_tile_addr_a[4];
+	u32 bg_base_tile_addr_b[4];
+
+	u8 bg_priority_a[4];
+	u8 bg_priority_b[4];
 
 	bool bg_enable_a[4];
 	bool bg_enable_b[4];

@@ -63,18 +63,34 @@ void NTR_LCD::reset()
 	lcd_stat.bg_pal_update_list_a.resize(0x100, 0);
 
 	lcd_stat.bg_mode_a = 0;
+	lcd_stat.bg_mode_b = 0;
 	lcd_stat.hblank_interval_free = false;
 
 	for(int x = 0; x < 4; x++)
 	{
-		lcd_stat.bg_control[x] = 0;
-		lcd_stat.bg_offset_x[x] = 0;
-		lcd_stat.bg_offset_y[x] = 0;
-		lcd_stat.bg_priority[x] = 0;
-		lcd_stat.bg_depth[x] = 4;
-		lcd_stat.bg_size[x] = 0;
-		lcd_stat.bg_base_tile_addr[x] = 0x6000000;
-		lcd_stat.bg_base_map_addr[x] = 0x6000000;
+		lcd_stat.bg_control_a[x] = 0;
+		lcd_stat.bg_control_b[x] = 0;
+
+		lcd_stat.bg_priority_a[x] = 0;
+		lcd_stat.bg_priority_b[x] = 0;
+
+		lcd_stat.bg_offset_x_a[x] = 0;
+		lcd_stat.bg_offset_x_b[x] = 0;
+
+		lcd_stat.bg_offset_y_a[x] = 0;
+		lcd_stat.bg_offset_y_b[x] = 0;
+
+		lcd_stat.bg_depth_a[x] = 4;
+		lcd_stat.bg_depth_b[x] = 4;
+
+		lcd_stat.bg_size_a[x] = 0;
+		lcd_stat.bg_size_b[x] = 0;
+
+		lcd_stat.bg_base_tile_addr_a[x] = 0x6000000;
+		lcd_stat.bg_base_tile_addr_b[x] = 0x6000000;
+
+		lcd_stat.bg_base_map_addr_a[x] = 0x6000000;
+		lcd_stat.bg_base_map_addr_b[x] = 0x6000000;
 
 		lcd_stat.bg_enable_a[x] = false;
 		lcd_stat.bg_enable_b[x] = false;
