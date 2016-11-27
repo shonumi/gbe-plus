@@ -1401,7 +1401,7 @@ void ARM7::clock(u32 access_addr, bool first_access)
 		debug_cycles++;
 
 		//Generate audio buffers for PSG channels on VBlank
-		if(controllers.video.lcd_clock == 197120)
+		if(controllers.video.lcd_clock == 0)
 		{
 			if(controllers.audio.apu_stat.psg_needs_fill) { controllers.audio.buffer_channels(); }
 			controllers.audio.apu_stat.psg_needs_fill = true;
@@ -1417,7 +1417,7 @@ void ARM7::clock()
 	clock_dma();
 
 	//Generate audio buffers for PSG channels on VBlank
-	if(controllers.video.lcd_clock == 197120)
+	if(controllers.video.lcd_clock == 0)
 	{
 		if(controllers.audio.apu_stat.psg_needs_fill) { controllers.audio.buffer_channels(); }
 		controllers.audio.apu_stat.psg_needs_fill = true;

@@ -183,6 +183,14 @@ void AGB_APU::generate_channel_1_samples(s16* stream, int length)
 	}
 
 	apu_stat.channel[0].buffer_size -= length;
+
+	//Drain buffer if it gets too large
+	if(apu_stat.channel[0].buffer_size >= 512)
+	{
+		apu_stat.channel[0].buffer_size = 0;
+		apu_stat.channel[0].last_index = 0;
+		apu_stat.channel[0].current_index = 0;
+	}
 }
 
 /******* Generate samples for GBA sound channel 2 ******/
@@ -202,6 +210,14 @@ void AGB_APU::generate_channel_2_samples(s16* stream, int length)
 	}
 
 	apu_stat.channel[1].buffer_size -= length;
+
+	//Drain buffer if it gets too large
+	if(apu_stat.channel[1].buffer_size >= 512)
+	{
+		apu_stat.channel[1].buffer_size = 0;
+		apu_stat.channel[1].last_index = 0;
+		apu_stat.channel[1].current_index = 0;
+	}
 }
 
 /******* Generate samples for GBA sound channel 3 ******/
@@ -221,6 +237,14 @@ void AGB_APU::generate_channel_3_samples(s16* stream, int length)
 	}
 
 	apu_stat.channel[2].buffer_size -= length;
+
+	//Drain buffer if it gets too large
+	if(apu_stat.channel[2].buffer_size >= 512)
+	{
+		apu_stat.channel[2].buffer_size = 0;
+		apu_stat.channel[2].last_index = 0;
+		apu_stat.channel[2].current_index = 0;
+	}
 }
 
 /******* Generate samples for GBA sound channel 4 ******/
@@ -240,6 +264,14 @@ void AGB_APU::generate_channel_4_samples(s16* stream, int length)
 	}
 
 	apu_stat.channel[3].buffer_size -= length;
+
+	//Drain buffer if it gets too large
+	if(apu_stat.channel[3].buffer_size >= 512)
+	{
+		apu_stat.channel[3].buffer_size = 0;
+		apu_stat.channel[3].last_index = 0;
+		apu_stat.channel[3].current_index = 0;
+	}
 }
 
 /******* Generate samples for GBA DMA channel A ******/
