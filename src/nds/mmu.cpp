@@ -399,7 +399,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 				u32 screen_block = ((lcd_stat->bg_control_a[0] >> 8) & 0x1F);
 
 				lcd_stat->bg_base_tile_addr_a[0] = (char_base * 0x10000) + (char_block * 0x4000);
-				lcd_stat->bg_base_map_addr_a[0] = (screen_base * 0x10000) + (screen_block * 800);
+				lcd_stat->bg_base_map_addr_a[0] = (screen_base * 0x10000) + (screen_block * 0x800);
 
 				//Bit-depth
 				lcd_stat->bg_depth_a[0] = (lcd_stat->bg_control_a[0] & 0x40) ? 1 : 0;
@@ -427,8 +427,8 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 				u32 char_block = ((lcd_stat->bg_control_b[0] >> 2) & 0x3);
 				u32 screen_block = ((lcd_stat->bg_control_b[0] >> 8) & 0x1F);
 
-				lcd_stat->bg_base_tile_addr_b[0] = (char_base * 0x10000) + (char_block * 0x4000);
-				lcd_stat->bg_base_map_addr_b[0] = (screen_base * 0x10000) + (screen_block * 800);
+				lcd_stat->bg_base_tile_addr_b[0] = (char_block * 0x4000);
+				lcd_stat->bg_base_map_addr_b[0] = (screen_block * 0x800);
 
 				//Bit-depth
 				lcd_stat->bg_depth_b[0] = (lcd_stat->bg_control_b[0] & 0x40) ? 1 : 0;
@@ -439,22 +439,178 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 			break;
 
-		//BG1 Control
+		//BG1 Control A
 		case NDS_BG1CNT_A:
 		case NDS_BG1CNT_A+1:
-			memory_map[address] = value;
+			{
+				memory_map[address] = value;
+				lcd_stat->bg_control_a[1] = (memory_map[NDS_BG1CNT_A+1] << 8) | memory_map[NDS_BG1CNT_A];
+
+				//Determine BG Priority
+				lcd_stat->bg_priority_a[1] = lcd_stat->bg_control_a[1] & 0x3;
+			
+				//Calculate tile data and tile map addresses
+				u32 char_base = ((lcd_stat->display_control_a >> 24) & 0x7);
+				u32 screen_base = ((lcd_stat->display_control_a >> 27) & 0x7);
+
+				u32 char_block = ((lcd_stat->bg_control_a[1] >> 2) & 0x3);
+				u32 screen_block = ((lcd_stat->bg_control_a[1] >> 8) & 0x1F);
+
+				lcd_stat->bg_base_tile_addr_a[1] = (char_base * 0x10000) + (char_block * 0x4000);
+				lcd_stat->bg_base_map_addr_a[1] = (screen_base * 0x10000) + (screen_block * 0x800);
+
+				//Bit-depth
+				lcd_stat->bg_depth_a[1] = (lcd_stat->bg_control_a[1] & 0x40) ? 1 : 0;
+
+				//Screen size
+				lcd_stat->bg_size_a[1] = (lcd_stat->bg_control_a[1] >> 14) & 0x3;
+			}
+
 			break;
 
-		//BG2 Control
+		//BG1 Control B
+		case NDS_BG1CNT_B:
+		case NDS_BG1CNT_B+1:
+			{
+				memory_map[address] = value;
+				lcd_stat->bg_control_b[1] = (memory_map[NDS_BG1CNT_B+1] << 8) | memory_map[NDS_BG1CNT_B];
+
+				//Determine BG Priority
+				lcd_stat->bg_priority_b[1] = lcd_stat->bg_control_b[1] & 0x3;
+			
+				//Calculate tile data and tile map addresses
+				u32 char_base = ((lcd_stat->display_control_b >> 24) & 0x7);
+				u32 screen_base = ((lcd_stat->display_control_b >> 27) & 0x7);
+
+				u32 char_block = ((lcd_stat->bg_control_b[1] >> 2) & 0x3);
+				u32 screen_block = ((lcd_stat->bg_control_b[1] >> 8) & 0x1F);
+
+				lcd_stat->bg_base_tile_addr_b[1] = (char_block * 0x4000);
+				lcd_stat->bg_base_map_addr_b[1] = (screen_block * 0x800);
+
+				//Bit-depth
+				lcd_stat->bg_depth_b[1] = (lcd_stat->bg_control_b[1] & 0x40) ? 1 : 0;
+
+				//Screen size
+				lcd_stat->bg_size_b[1] = (lcd_stat->bg_control_b[1] >> 14) & 0x3;
+			}
+
+			break;
+
+		//BG2 Control A
 		case NDS_BG2CNT_A:
 		case NDS_BG2CNT_A+1:
-			memory_map[address] = value;
+			{
+				memory_map[address] = value;
+				lcd_stat->bg_control_a[2] = (memory_map[NDS_BG2CNT_A+1] << 8) | memory_map[NDS_BG2CNT_A];
+
+				//Determine BG Priority
+				lcd_stat->bg_priority_a[2] = lcd_stat->bg_control_a[2] & 0x3;
+			
+				//Calculate tile data and tile map addresses
+				u32 char_base = ((lcd_stat->display_control_a >> 24) & 0x7);
+				u32 screen_base = ((lcd_stat->display_control_a >> 27) & 0x7);
+
+				u32 char_block = ((lcd_stat->bg_control_a[2] >> 2) & 0x3);
+				u32 screen_block = ((lcd_stat->bg_control_a[2] >> 8) & 0x1F);
+
+				lcd_stat->bg_base_tile_addr_a[2] = (char_base * 0x10000) + (char_block * 0x4000);
+				lcd_stat->bg_base_map_addr_a[2] = (screen_base * 0x10000) + (screen_block * 0x800);
+
+				//Bit-depth
+				lcd_stat->bg_depth_a[2] = (lcd_stat->bg_control_a[2] & 0x40) ? 1 : 0;
+
+				//Screen size
+				lcd_stat->bg_size_a[2] = (lcd_stat->bg_control_a[2] >> 14) & 0x3;
+			}
+
 			break;
 
-		//BG3 Control
+		//BG2 Control B
+		case NDS_BG2CNT_B:
+		case NDS_BG2CNT_B+1:
+			{
+				memory_map[address] = value;
+				lcd_stat->bg_control_b[2] = (memory_map[NDS_BG2CNT_B+1] << 8) | memory_map[NDS_BG2CNT_B];
+
+				//Determine BG Priority
+				lcd_stat->bg_priority_b[2] = lcd_stat->bg_control_b[2] & 0x3;
+			
+				//Calculate tile data and tile map addresses
+				u32 char_base = ((lcd_stat->display_control_b >> 24) & 0x7);
+				u32 screen_base = ((lcd_stat->display_control_b >> 27) & 0x7);
+
+				u32 char_block = ((lcd_stat->bg_control_b[2] >> 2) & 0x3);
+				u32 screen_block = ((lcd_stat->bg_control_b[2] >> 8) & 0x1F);
+
+				lcd_stat->bg_base_tile_addr_b[2] = (char_block * 0x4000);
+				lcd_stat->bg_base_map_addr_b[2] = (screen_block * 0x800);
+
+				//Bit-depth
+				lcd_stat->bg_depth_b[2] = (lcd_stat->bg_control_b[2] & 0x40) ? 1 : 0;
+
+				//Screen size
+				lcd_stat->bg_size_b[2] = (lcd_stat->bg_control_b[2] >> 14) & 0x3;
+			}
+
+			break;
+
+		//BG3 Control A
 		case NDS_BG3CNT_A:
 		case NDS_BG3CNT_A+1:
-			memory_map[address] = value;
+			{
+				memory_map[address] = value;
+				lcd_stat->bg_control_a[3] = (memory_map[NDS_BG3CNT_A+1] << 8) | memory_map[NDS_BG3CNT_A];
+
+				//Determine BG Priority
+				lcd_stat->bg_priority_a[3] = lcd_stat->bg_control_a[3] & 0x3;
+			
+				//Calculate tile data and tile map addresses
+				u32 char_base = ((lcd_stat->display_control_a >> 24) & 0x7);
+				u32 screen_base = ((lcd_stat->display_control_a >> 27) & 0x7);
+
+				u32 char_block = ((lcd_stat->bg_control_a[3] >> 2) & 0x3);
+				u32 screen_block = ((lcd_stat->bg_control_a[3] >> 8) & 0x1F);
+
+				lcd_stat->bg_base_tile_addr_a[3] = (char_base * 0x10000) + (char_block * 0x4000);
+				lcd_stat->bg_base_map_addr_a[3] = (screen_base * 0x10000) + (screen_block * 0x800);
+
+				//Bit-depth
+				lcd_stat->bg_depth_a[3] = (lcd_stat->bg_control_a[3] & 0x40) ? 1 : 0;
+
+				//Screen size
+				lcd_stat->bg_size_a[3] = (lcd_stat->bg_control_a[3] >> 14) & 0x3;
+			}
+
+			break;
+
+		//BG3 Control B
+		case NDS_BG3CNT_B:
+		case NDS_BG3CNT_B+1:
+			{
+				memory_map[address] = value;
+				lcd_stat->bg_control_b[3] = (memory_map[NDS_BG3CNT_B+1] << 8) | memory_map[NDS_BG3CNT_B];
+
+				//Determine BG Priority
+				lcd_stat->bg_priority_b[3] = lcd_stat->bg_control_b[3] & 0x3;
+			
+				//Calculate tile data and tile map addresses
+				u32 char_base = ((lcd_stat->display_control_b >> 24) & 0x7);
+				u32 screen_base = ((lcd_stat->display_control_b >> 27) & 0x7);
+
+				u32 char_block = ((lcd_stat->bg_control_b[3] >> 2) & 0x3);
+				u32 screen_block = ((lcd_stat->bg_control_b[3] >> 8) & 0x1F);
+
+				lcd_stat->bg_base_tile_addr_b[3] = (char_block * 0x4000);
+				lcd_stat->bg_base_map_addr_b[3] = (screen_block * 0x800);
+
+				//Bit-depth
+				lcd_stat->bg_depth_b[3] = (lcd_stat->bg_control_b[3] & 0x40) ? 1 : 0;
+
+				//Screen size
+				lcd_stat->bg_size_b[3] = (lcd_stat->bg_control_b[3] >> 14) & 0x3;
+			}
+
 			break;
 
 		//BG0 Horizontal Offset
