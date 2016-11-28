@@ -30,7 +30,7 @@ void NTR_ARM9::process_swi(u32 comment)
 
 		//VBlankIntrWait
 		case 0x5:
-			std::cout<<"ARM9::SWI::VBlankIntrWait \n";
+			//std::cout<<"ARM9::SWI::VBlankIntrWait \n";
 			swi_vblankintrwait();
 			break;
 

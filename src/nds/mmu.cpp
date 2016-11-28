@@ -321,10 +321,10 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			lcd_stat->display_mode_a = (lcd_stat->display_control_a >> 16) & 0x3;
 
 			//Enable or disable BGs
-			lcd_stat->bg_enable_a[0] = (lcd_stat->display_mode_a & 0x100) ? true : false;
-			lcd_stat->bg_enable_a[1] = (lcd_stat->display_mode_a & 0x200) ? true : false;
-			lcd_stat->bg_enable_a[2] = (lcd_stat->display_mode_a & 0x400) ? true : false;
-			lcd_stat->bg_enable_a[3] = (lcd_stat->display_mode_a & 0x800) ? true : false;
+			lcd_stat->bg_enable_a[0] = (lcd_stat->display_control_a & 0x100) ? true : false;
+			lcd_stat->bg_enable_a[1] = (lcd_stat->display_control_a & 0x200) ? true : false;
+			lcd_stat->bg_enable_a[2] = (lcd_stat->display_control_a & 0x400) ? true : false;
+			lcd_stat->bg_enable_a[3] = (lcd_stat->display_control_a & 0x800) ? true : false;
 
 			break;
 
@@ -339,10 +339,10 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			lcd_stat->display_mode_b = (lcd_stat->display_control_b >> 16) & 0x3;
 
 			//Enable or disable BGs
-			lcd_stat->bg_enable_b[0] = (lcd_stat->display_mode_b & 0x100) ? true : false;
-			lcd_stat->bg_enable_b[1] = (lcd_stat->display_mode_b & 0x200) ? true : false;
-			lcd_stat->bg_enable_b[2] = (lcd_stat->display_mode_b & 0x400) ? true : false;
-			lcd_stat->bg_enable_b[3] = (lcd_stat->display_mode_b & 0x800) ? true : false;
+			lcd_stat->bg_enable_b[0] = (lcd_stat->display_control_b & 0x100) ? true : false;
+			lcd_stat->bg_enable_b[1] = (lcd_stat->display_control_b & 0x200) ? true : false;
+			lcd_stat->bg_enable_b[2] = (lcd_stat->display_control_b & 0x400) ? true : false;
+			lcd_stat->bg_enable_b[3] = (lcd_stat->display_control_b & 0x800) ? true : false;
 
 			break;
 
@@ -1241,7 +1241,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		}
 
 		//Trigger BG palette update in LCD - Engine B
-		if((address >= 0x5000200) && (address <= 0x50003FF))
+		else if((address >= 0x5000400) && (address <= 0x50005FF))
 		{
 			lcd_stat->bg_pal_update_b = true;
 			lcd_stat->bg_pal_update_list_b[(address & 0x1FF) >> 1] = true;
