@@ -27,6 +27,7 @@ class cheat_menu : public QDialog
 
 	QDialogButtonBox* close_button;
 	QPushButton* edit_button;
+	QPushButton* delete_button;
 	QPushButton* add_button;
 
 	QPushButton* cancel_button;
@@ -53,6 +54,7 @@ class cheat_menu : public QDialog
 	void edit_cheat_data();
 	void update_cheats();
 	void add_cheats();
+	void delete_cheats();
 }; 
 
 #endif //CHEATMENU_GBE_QT 

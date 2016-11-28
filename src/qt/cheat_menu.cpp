@@ -23,6 +23,7 @@ cheat_menu::cheat_menu(QWidget *parent) : QDialog(parent)
 
 	close_button = new QDialogButtonBox(QDialogButtonBox::Close);
 	edit_button = close_button->addButton("Edit Cheat", QDialogButtonBox::ActionRole);
+	delete_button = close_button->addButton("Delete Cheat", QDialogButtonBox::ActionRole);
 	add_button = close_button->addButton("Add Cheat", QDialogButtonBox::ActionRole);
 
 	apply_button = close_button->addButton("Apply Changes", QDialogButtonBox::ActionRole);
@@ -42,6 +43,7 @@ cheat_menu::cheat_menu(QWidget *parent) : QDialog(parent)
 	connect(cancel_button, SIGNAL(clicked()), this, SLOT(rebuild_cheats()));
 	connect(apply_button, SIGNAL(clicked()), this, SLOT(update_cheats()));
 	connect(add_button, SIGNAL(clicked()), this, SLOT(add_cheats()));
+	connect(delete_button, SIGNAL(clicked()), this, SLOT(delete_cheats()));
 
 	resize(600, 400);
 	hide();
@@ -100,6 +102,7 @@ void cheat_menu::fetch_cheats()
 	cheats_display->show();
 	cheats_display->clear();
 	edit_button->show();
+	delete_button->show();
 	add_button->show();
 
 	cancel_button->hide();
@@ -248,6 +251,7 @@ void cheat_menu::edit_cheat_data()
 	cheats_display->hide();
 
 	edit_button->hide();
+	delete_button->hide();
 	add_button->hide();
 
 	cancel_button->show();
@@ -423,10 +427,68 @@ void cheat_menu::add_cheats()
 	cheats_display->hide();
 
 	edit_button->hide();
+	delete_button->hide();
 	add_button->hide();
 
 	cancel_button->show();
 	apply_button->show();
 
 	current_cheat_index = -1;
+}
+
+/****** Delete cheat data ******/
+void cheat_menu::delete_cheats()
+{
+	int cheat_code_index = cheats_display->currentRow();
+	current_cheat_index = cheat_code_index;
+
+	int gs_count = 0;
+	int gg_count = 0;
+	int code_type = -1;
+
+	//Search for specific cheat info
+	for(int x = 0; x <= cheat_code_index; x++)
+	{
+		std::string current_cheat = config::cheats_info[x];
+
+		std::string last_char = "";
+		last_char += current_cheat[current_cheat.size() - 1];
+
+		//GS code
+		if(last_char == "*")
+		{
+			if(x == cheat_code_index) { code_type = 0; }
+
+			gs_count++;
+		}
+
+		else if(last_char == "^")
+		{
+			if(x == cheat_code_index) { code_type = 1; }
+
+			gg_count++;
+		}
+	}
+
+	
+
+	//Delete GS code
+	if(code_type == 0)
+	{
+		if(gs_count > 0) { gs_count--; }
+
+		config::gs_cheats.erase(config::gs_cheats.begin() + gs_count);
+		config::cheats_info.erase(config::cheats_info.begin() + cheat_code_index);
+	}
+
+	//Delete GG code
+	else if(code_type == 1)
+	{
+		if(gg_count > 0) { gg_count--; }
+
+		config::gg_cheats.erase(config::gg_cheats.begin() + gg_count);
+		config::cheats_info.erase(config::cheats_info.begin() + cheat_code_index);
+	}
+
+	fetch_cheats();
 }
