@@ -777,6 +777,20 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	game_saves_layout->addWidget(game_saves_button);
 	game_saves_set->setLayout(game_saves_layout);
 
+	//Path settings - Cheats file
+	QWidget* cheats_path_set = new QWidget(paths);
+	cheats_path_label = new QLabel("Cheats File :  ");
+	QPushButton* cheats_path_button = new QPushButton("Browse");
+	cheats_path = new QLineEdit(paths);
+	cheats_path->setReadOnly(true);
+
+	QHBoxLayout* cheats_path_layout = new QHBoxLayout;
+	cheats_path_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	cheats_path_layout->addWidget(cheats_path_label);
+	cheats_path_layout->addWidget(cheats_path);
+	cheats_path_layout->addWidget(cheats_path_button);
+	cheats_path_set->setLayout(cheats_path_layout);
+
 	QVBoxLayout* paths_layout = new QVBoxLayout;
 	paths_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	paths_layout->addWidget(dmg_bios_set);
@@ -787,6 +801,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	paths_layout->addWidget(dump_obj_set);
 	paths_layout->addWidget(screenshot_set);
 	paths_layout->addWidget(game_saves_set);
+	paths_layout->addWidget(cheats_path_set);
 	paths->setLayout(paths_layout);
 
 	data_folder = new data_dialog;
@@ -828,6 +843,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(dump_obj_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
 	connect(screenshot_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
 	connect(game_saves_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
+	connect(cheats_path_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
 
 	paths_mapper->setMapping(dmg_bios_button, 0);
 	paths_mapper->setMapping(gbc_bios_button, 1);
@@ -837,6 +853,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	paths_mapper->setMapping(dump_bg_button, 5);
 	paths_mapper->setMapping(dump_obj_button, 6);
 	paths_mapper->setMapping(game_saves_button, 7);
+	paths_mapper->setMapping(cheats_path_button, 8);
 	connect(paths_mapper, SIGNAL(mapped(int)), this, SLOT(set_paths(int)));
 
 	QSignalMapper* button_config = new QSignalMapper(this);
@@ -1109,6 +1126,7 @@ void gen_settings::set_ini_options()
 	QString path_6(QString::fromStdString(cgfx::dump_bg_path));
 	QString path_7(QString::fromStdString(cgfx::dump_obj_path));
 	QString path_8(QString::fromStdString(config::save_path));
+	QString path_9(QString::fromStdString(config::cheats_path));
 
 	//Rumble
 	if(config::use_haptics) { rumble_on->setChecked(true); }
@@ -1128,6 +1146,7 @@ void gen_settings::set_ini_options()
 	dump_bg->setText(path_6);
 	dump_obj->setText(path_7);
 	game_saves->setText(path_8);
+	cheats_path->setText(path_9);
 }
 
 /****** Toggles whether to use the Boot ROM or BIOS ******/
@@ -1300,8 +1319,8 @@ void gen_settings::set_paths(int index)
 {
 	QString path;
 
-	//Open file browser for Boot ROMs, BIOS, and manifests
-	if(index < 4) 
+	//Open file browser for Boot ROMs, BIOS, cheats, and manifests
+	if((index < 4) || (index == 8))
 	{
 		path = QFileDialog::getOpenFileName(this, tr("Open"), "", tr("All files (*)"));
 		if(path.isNull()) { return; }
@@ -1377,6 +1396,11 @@ void gen_settings::set_paths(int index)
 		case 7:
 			config::save_path = path.toStdString();
 			game_saves->setText(path);
+			break;
+
+		case 8:
+			config::cheats_path = path.toStdString();
+			cheats_path->setText(path);
 			break;
 	}
 }
@@ -1928,6 +1952,7 @@ void gen_settings::paintEvent(QPaintEvent* event)
 	dump_obj_label->setMinimumWidth(dmg_bios_label->width());
 	screenshot_label->setMinimumWidth(dmg_bios_label->width());
 	game_saves_label->setMinimumWidth(dmg_bios_label->width());
+	cheats_path_label->setMinimumWidth(dmg_bios_label->width());
 }
 
 /****** Closes the settings window ******/
