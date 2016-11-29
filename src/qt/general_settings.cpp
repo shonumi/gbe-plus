@@ -1401,6 +1401,10 @@ void gen_settings::set_paths(int index)
 		case 8:
 			config::cheats_path = path.toStdString();
 			cheats_path->setText(path);
+
+			//Make sure to update cheats from new file
+			parse_cheats_file();
+
 			break;
 	}
 }
