@@ -409,6 +409,7 @@ void main_menu::quit()
 	}
 
 	save_ini_file();
+	save_cheats_file();
 
 	//Close SDL
 	SDL_Quit();
@@ -627,6 +628,7 @@ void main_menu::closeEvent(QCloseEvent* event)
 	}
 
 	save_ini_file();
+	save_cheats_file();
 
 	//Close SDL
 	SDL_Quit();

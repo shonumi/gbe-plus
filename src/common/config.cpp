@@ -2414,3 +2414,67 @@ bool parse_cheats_file()
 
 	return true;
 }
+
+/****** Saves the cheat file ******/
+bool save_cheats_file()
+{
+	std::ofstream file(config::cheats_path.c_str(), std::ios::out);
+
+	if(!file.is_open())
+	{
+		std::cout<<"GBE::Could not open cheats file " << config::cheats_path << ". Check file path or permissions. \n";
+		return false; 
+	}
+
+	int gs_count = 0;
+	int gg_count = 0;
+
+	//Cycle through cheats
+	for(u32 x = 0; x < config::cheats_info.size(); x++)
+	{
+		std::string info_str = config::cheats_info[x];
+		std::string code_str = "";
+		std::string data_str = "";
+
+		//Determine code type based on info string
+		std::string last_char = "";
+		last_char += info_str[info_str.size() - 1];
+
+		//GS code
+		if(last_char == "*")
+		{
+			info_str.resize(info_str.size() - 1);
+			code_str = "GS";
+			data_str = util::to_hex_str(config::gs_cheats[gs_count++]).substr(2);
+
+			//Make sure code data length is 8
+			while(data_str.size() != 8)
+			{
+				data_str = "0" + data_str;
+			}
+
+			std::string output_line = "[" + code_str + ":" + data_str + ":" + info_str + "]\n";
+			file << output_line;
+		}
+
+		//GG code
+		else if(last_char == "^")
+		{
+			info_str.resize(info_str.size() - 1);
+			code_str = "GG";
+			data_str = config::gg_cheats[gg_count++];
+
+			//Make sure code data length is 9
+			while(data_str.size() != 9)
+			{
+				data_str = "0" + data_str;
+			}
+
+			std::string output_line = "[" + code_str + ":" + data_str + ":" + info_str + "]\n";
+			file << output_line;
+		}
+	}
+
+	file.close();
+	return true;
+}
