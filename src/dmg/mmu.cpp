@@ -2072,7 +2072,36 @@ bool DMG_MMU::patch_ups(std::string filename)
 
 	u32 patch_pos = 4;
 	u32 patch_size = file_size - 12;
+	u32 file_pos = 0;
 
+	//Grab file sizes
+	for(u32 x = 0; x < 2; x++)
+	{
+		//Grab variable width integer
+		u32 var_int = 0;
+		bool var_end = false;
+		u8 var_shift = 0;
+
+		while(!var_end)
+		{
+			//Grab byte from patch file
+			u8 var_byte = patch_data[patch_pos++];
+			
+			if(var_byte & 0x80)
+			{
+				var_int += ((var_byte & 0x7F) << var_shift);
+				var_end = true;
+			}
+
+			else
+			{
+				var_int += ((var_byte | 0x80) << var_shift);
+				var_shift += 7;
+			}
+		}
+	}
+
+	//Begin patching the source file
 	while(patch_pos < patch_size)
 	{
 		//Grab variable width integer
@@ -2100,6 +2129,7 @@ bool DMG_MMU::patch_ups(std::string filename)
 
 		//XOR data at offset with patch
 		var_end = false;
+		file_pos += var_int;
 
 		while(!var_end)
 		{
@@ -2111,10 +2141,31 @@ bool DMG_MMU::patch_ups(std::string filename)
 			//Otherwise, use the byte to patch
 			else
 			{
-				
+				//Patch for Banks 2 and above
+				if(file_pos > 0x7FFF)
+				{
+					u16 patch_bank = (file_pos >> 14) - 2;	
+					u16 patch_addr = file_pos & 0x3FFF;
+
+					if(patch_bank > 0x1FF)
+					{
+						std::cout<<"MMU::" << filename << " patches beyond max ROM size. Aborting further patching.\n";
+						return false;
+					}
+
+					read_only_bank[patch_bank][patch_addr] ^= patch_byte;
+				}
+
+				//Patch for Banks 0-1
+				else { memory_map[file_pos] ^= patch_byte; }
 			}
+
+			file_pos++;
 		}
 	}
+
+	patch_file.close();
+	patch_data.clear();
 
 	return true;
 }

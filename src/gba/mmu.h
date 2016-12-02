@@ -133,6 +133,7 @@ class AGB_MMU
 	bool load_backup(std::string filename);
 
 	bool patch_ips(std::string filename);
+	bool patch_ups(std::string filename);
 
 	void eeprom_set_addr();
 	void eeprom_read_data();

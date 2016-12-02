@@ -1777,7 +1777,11 @@ bool AGB_MMU::read_file(std::string filename)
 
 		std::string patch_file = filename.substr(0, dot);
 
-		patch_ips(patch_file + ".ips");
+		//Attempt a IPS patch
+		bool patch_pass = patch_ips(patch_file + ".ips");
+
+		//Attempt a UPS patch
+		if(!patch_pass) { patch_pass = patch_ups(patch_file + ".ups"); }
 	}
 
 	//Mirror ROM to different parts of the GBA memory map (Wait States 1 and 2)
@@ -2400,6 +2404,120 @@ bool AGB_MMU::patch_ips(std::string filename)
 
 				offset++;
 			}
+		}
+	}
+
+	patch_file.close();
+	patch_data.clear();
+
+	return true;
+}
+
+/****** Applies an UPS patch to a ROM loaded in memory ******/
+bool AGB_MMU::patch_ups(std::string filename)
+{
+	std::ifstream patch_file(filename.c_str(), std::ios::binary);
+
+	if(!patch_file.is_open()) 
+	{ 
+		std::cout<<"MMU::" << filename << " UPS patch file could not be opened. Check file path or permissions. \n";
+		return false;
+	}
+
+	//Get the file size
+	patch_file.seekg(0, patch_file.end);
+	u32 file_size = patch_file.tellg();
+	patch_file.seekg(0, patch_file.beg);
+
+	std::vector<u8> patch_data;
+	patch_data.resize(file_size, 0);
+
+	//Read patch file into buffer
+	u8* ex_patch = &patch_data[0];
+	patch_file.read((char*)ex_patch, file_size);
+
+	//Check header for UPS1 string
+	if((patch_data[0] != 0x55) || (patch_data[1] != 0x50) || (patch_data[2] != 0x53) || (patch_data[3] != 0x31))
+	{
+		std::cout<<"MMU::" << filename << " UPS patch file has invalid header\n";
+		return false;
+	}
+
+	u32 patch_pos = 4;
+	u32 patch_size = file_size - 12;
+	u32 file_pos = 0;
+
+	//Grab file sizes
+	for(u32 x = 0; x < 2; x++)
+	{
+		//Grab variable width integer
+		u32 var_int = 0;
+		bool var_end = false;
+		u8 var_shift = 0;
+
+		while(!var_end)
+		{
+			//Grab byte from patch file
+			u8 var_byte = patch_data[patch_pos++];
+			
+			if(var_byte & 0x80)
+			{
+				var_int += ((var_byte & 0x7F) << var_shift);
+				var_end = true;
+			}
+
+			else
+			{
+				var_int += ((var_byte | 0x80) << var_shift);
+				var_shift += 7;
+			}
+		}
+	}
+
+	//Begin patching the source file
+	while(patch_pos < patch_size)
+	{
+		//Grab variable width integer
+		u32 var_int = 0;
+		bool var_end = false;
+		u8 var_shift = 0;
+
+		while(!var_end)
+		{
+			//Grab byte from patch file
+			u8 var_byte = patch_data[patch_pos++];
+			
+			if(var_byte & 0x80)
+			{
+				var_int += ((var_byte & 0x7F) << var_shift);
+				var_end = true;
+			}
+
+			else
+			{
+				var_int += ((var_byte | 0x80) << var_shift);
+				var_shift += 7;
+			}
+		}
+
+		//XOR data at offset with patch
+		var_end = false;
+		file_pos += var_int;
+
+		while(!var_end)
+		{
+			u8 patch_byte = patch_data[patch_pos++];
+
+			//Terminate patching for this chunk if encountering a zero byte
+			if(patch_byte == 0) { var_end = true; }
+
+			//Otherwise, use the byte to patch
+			else
+			{
+				memory_map[0x8000000 + file_pos] ^= patch_byte;
+			}
+
+			file_pos++;
 		}
 	}
 
