@@ -93,6 +93,12 @@ void NTR_MMU::reset()
 	nds9_ipc.fifo_latest = 0;
 	nds9_ipc.fifo_incoming = 0;
 
+	nds7_spi.cnt = 0;
+	nds7_spi.data = 0;
+	nds7_spi.baud_rate = 64;
+	nds7_spi.transfer_clock = 0;
+	nds7_spi.active_transfer = false;
+
 	g_pad = NULL;
 
 	std::cout<<"MMU::Initialized\n";
@@ -173,8 +179,6 @@ u8 NTR_MMU::read_u8(u32 address)
 	else if((address & ~0x3) == NDS_IPCFIFORECV)
 	{
 		u8 addr_shift = (address & 0x3) << 3;
-
-		//SDL_Delay(500);
 
 		//NDS9 - Read from NDS7 IPC FIFOSND
 		if(access_mode)
@@ -273,6 +277,34 @@ u8 NTR_MMU::read_u8(u32 address)
 				return fifo_entry;
 			}
 		}
+	}
+
+	//Check for SPICNT
+	else if((address & 0x1) == NDS_SPICNT)
+	{
+		//Only NDS7 can access this register, return 0 for NDS9
+		//TODO - This really probably return the same as other unused IO
+		if(access_mode) { return 0; }
+
+		//Return SPICNT
+		u8 addr_shift = (address & 0x1) << 3;
+		return ((nds7_spi.cnt >> addr_shift) & 0xFF);
+	}
+
+	//Check for SPIDATA
+	else if((address & 0x1) == NDS_SPIDATA)
+	{
+		//Only NDS7 can access this register, return 0 for NDS9
+		//TODO - This really probably return the same as other unused IO
+		if(access_mode) { return 0; }
+
+		//NDS7 should only access SPI bus if it is enabled
+		//TODO - This really probably return the same as other unused IO
+		if((nds7_spi.cnt & 0x8000) == 0) { return 0; }
+
+		//Return SPIDATA
+		u8 addr_shift = (address & 0x1) << 3;
+		return ((nds7_spi.data >> addr_shift) & 0xFF);
 	}
 
 	return memory_map[address];
@@ -1229,6 +1261,48 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 			break;
 
+		case NDS_SPICNT:
+			if(access_mode) { return; }
+
+			nds7_spi.cnt &= ~0x7F;
+			nds7_spi.cnt |= (value & 0x3);
+
+			//Set transfer baud rate
+			switch(value & 0x3)
+			{
+				case 0: nds7_spi.baud_rate = 64; break;
+				case 1: nds7_spi.baud_rate = 128; break;
+				case 2: nds7_spi.baud_rate = 256; break;
+				case 3: nds7_spi.baud_rate = 512; break;
+			}
+
+			break;
+
+		case NDS_SPICNT+1:
+			if(access_mode) { return; }
+
+			nds7_spi.cnt &= 0xFF;
+			nds7_spi.cnt |= ((value & 0xCF) << 8);
+
+			std::cout<<"NDS7 SPI -> 0x" << std::hex << nds7_spi.cnt << "\n";
+
+			break;
+
+		case NDS_SPIDATA:
+		case NDS_SPIDATA+1:
+			if(access_mode) { return; }
+
+			//Only initialize transfer if SPI bus is enabled, and there is no active transfer
+			if((nds7_spi.cnt & 0x8000) && ((nds7_spi.cnt & 0x80) == 0))
+			{
+				nds7_spi.active_transfer = true;
+				nds7_spi.transfer_clock = nds7_spi.baud_rate;
+				nds7_spi.cnt |= 0x80;
+				nds7_spi.data = value;
+			}
+
+			break;
+
 		default:
 			memory_map[address] = value;
 			break;
@@ -1487,6 +1561,45 @@ void NTR_MMU::parse_header()
 		header.arm7_size <<= 8;
 		header.arm7_size |= cart_data[0x3F - x];
 	}
+}
+
+/****** Handles various SPI Bus interactions ******/
+void NTR_MMU::process_spi_bus()
+{
+	//Send data across SPI bus for each component
+	//Process that byte and return data in SPIDATA
+	switch(nds7_spi.cnt & 0x3)
+	{
+		//Firmware
+		case 0:
+			std::cout<<"MMU::Firmware write -> 0x" << nds7_spi.data << "\n";
+			break;
+
+		//Touchscreen
+		case 1:
+			std::cout<<"MMU::Touchscreen write -> 0x" << nds7_spi.data << "\n";
+			break;
+
+		//Power Management
+		case 2:
+			std::cout<<"MMU::Power Management write -> 0x" << nds7_spi.data << "\n";
+			break;
+
+		//Reserved
+		case 3:
+			std::cout<<"MMU::Warning - Writing to reserved device via SPI\n";
+			break;
+	}
+
+	nds7_spi.data = 0;
+
+	//Reset SPI for next transfer
+	nds7_spi.active_transfer = false;
+	nds7_spi.transfer_clock = 0;
+	nds7_spi.cnt &= ~0x80;
+
+	//Raise IRQ on ARM7 if necessary
+	if(nds7_spi.cnt & 0x4000) { nds7_if |= 0x800000; }
 }
 
 /****** Points the MMU to an lcd_data structure (FROM THE LCD ITSELF) ******/

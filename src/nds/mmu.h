@@ -57,6 +57,19 @@ class NTR_MMU
 		u32 fifo_incoming;
 	} nds9_ipc;
 
+	//NDS7 SPI Bus
+	struct nds7_spi_bus
+	{
+		//MMIO registers
+		u16 cnt;
+		u16 data;
+
+		//SPI data
+		u32 baud_rate;
+		s32 transfer_clock;
+		bool active_transfer;
+	} nds7_spi;
+
 	//Memory access timings (Nonsequential and Sequential)
 	u8 n_clock;
 	u8 s_clock;
@@ -143,6 +156,8 @@ class NTR_MMU
 	bool read_bios_nds9(std::string filename);
 	bool save_backup(std::string filename);
 	bool load_backup(std::string filename);
+
+	void process_spi_bus();
 
 	void set_lcd_data(ntr_lcd_data* ex_lcd_stat);
 

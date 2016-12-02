@@ -1115,6 +1115,13 @@ void NTR_ARM7::clock(u32 access_addr, bool first_access)
 		debug_cycles++;
 		*/
 	}
+
+	//Run SPI Bus
+	if(mem->nds7_spi.active_transfer)
+	{
+		mem->nds7_spi.transfer_clock -= access_cycles;
+		if(mem->nds7_spi.transfer_clock <= 0) { mem->process_spi_bus(); }
+	}
 }
 
 /****** Runs audio and video controllers every clock cycle ******/
@@ -1130,6 +1137,13 @@ void NTR_ARM7::clock()
 	/*
 	clock_timers();
 	*/
+
+	//Run SPI Bus
+	if(mem->nds7_spi.active_transfer)
+	{
+		mem->nds7_spi.transfer_clock -= access_cycles;
+		if(mem->nds7_spi.transfer_clock <= 0) { mem->process_spi_bus(); }
+	}
 }
 
 /****** Runs DMA controllers every clock cycle ******/
