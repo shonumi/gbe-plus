@@ -30,6 +30,7 @@ class NTR_MMU
 	std::vector <u8> cart_data;
 	std::vector <u8> nds7_bios;
 	std::vector <u8> nds9_bios;
+	std::vector <u8> firmware;
 	
 	//NDS7 IPC FIFO
 	struct nds7_interprocess
@@ -132,6 +133,9 @@ class NTR_MMU
 	u32 nds7_old_ie;
 	u32 nds7_old_if;
 
+	u16 firmware_state;
+	u32 firmware_index;
+
 	NTR_MMU();
 	~NTR_MMU();
 
@@ -158,6 +162,8 @@ class NTR_MMU
 	bool load_backup(std::string filename);
 
 	void process_spi_bus();
+	void process_firmware();
+	void setup_default_firmware();
 
 	void set_lcd_data(ntr_lcd_data* ex_lcd_stat);
 

@@ -34,6 +34,9 @@ void NTR_MMU::reset()
 
 	cart_data.clear();
 
+	firmware.clear();
+	firmware.resize(0x40000, 0);
+
 	//Default access mode starts off with NDS9
 	access_mode = 1;
 
@@ -53,10 +56,16 @@ void NTR_MMU::reset()
 	nds9_if = 0x0;
 	nds9_old_ie = 0x0;
 
-	//HLE stuff
+	//HLE MMIO stuff
 	memory_map[NDS_DISPCNT_A] = 0x80;
 	write_u16_fast(NDS_EXTKEYIN, 0x7F);
 	write_u16_fast(NDS_KEYINPUT, 0x3FF);
+
+	//HLE firmware stuff
+	setup_default_firmware();
+
+	firmware_state = 0;
+	firmware_index = 0;
 
 	//Default memory access timings (4, 2)
 	n_clock = 4;
@@ -306,6 +315,8 @@ u8 NTR_MMU::read_u8(u32 address)
 		u8 addr_shift = (address & 0x1) << 3;
 		return ((nds7_spi.data >> addr_shift) & 0xFF);
 	}
+
+	else if((address & 0x3) == 4000138) { return 0xFF; }
 
 	return memory_map[address];
 }
@@ -1284,8 +1295,6 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			nds7_spi.cnt &= 0xFF;
 			nds7_spi.cnt |= ((value & 0xCF) << 8);
 
-			std::cout<<"NDS7 SPI -> 0x" << std::hex << nds7_spi.cnt << "\n";
-
 			break;
 
 		case NDS_SPIDATA:
@@ -1572,22 +1581,23 @@ void NTR_MMU::process_spi_bus()
 	{
 		//Firmware
 		case 0:
-			std::cout<<"MMU::Firmware write -> 0x" << nds7_spi.data << "\n";
+			//std::cout<<"MMU::Firmware write -> 0x" << nds7_spi.data << "\n";
+			process_firmware();
 			break;
 
 		//Touchscreen
 		case 1:
-			std::cout<<"MMU::Touchscreen write -> 0x" << nds7_spi.data << "\n";
+			//std::cout<<"MMU::Touchscreen write -> 0x" << nds7_spi.data << "\n";
 			break;
 
 		//Power Management
 		case 2:
-			std::cout<<"MMU::Power Management write -> 0x" << nds7_spi.data << "\n";
+			//std::cout<<"MMU::Power Management write -> 0x" << nds7_spi.data << "\n";
 			break;
 
 		//Reserved
 		case 3:
-			std::cout<<"MMU::Warning - Writing to reserved device via SPI\n";
+			//std::cout<<"MMU::Warning - Writing to reserved device via SPI\n";
 			break;
 	}
 
@@ -1602,5 +1612,86 @@ void NTR_MMU::process_spi_bus()
 	if(nds7_spi.cnt & 0x4000) { nds7_if |= 0x800000; }
 }
 
+/****** Handles read and write data operations to the firmware ******/
+void NTR_MMU::process_firmware()
+{
+	//Check to see if a new command has been sent
+	switch(nds7_spi.data)
+	{
+		//Read Data
+		case 0x3:
+			firmware_state = 0x0300;
+			firmware_index = 0;
+			return;
+
+	}
+
+	//Process various firmware states
+	switch(firmware_state)
+	{
+		//Set read address byte 1
+		case 0x0300:
+			firmware_index |= ((nds7_spi.data & 0xFF) << 16);
+			firmware_state++;
+			break;
+
+		//Set read address byte 2
+		case 0x0301:
+			firmware_index |= ((nds7_spi.data & 0xFF) << 8);
+			firmware_state++;
+			break;
+
+		//Set read address byte 3
+		case 0x0302:
+			firmware_index |= (nds7_spi.data & 0xFF);
+			firmware_state++;
+			std::cout<<"FIRMWARE_INDEX -> 0x" << firmware_index << "\n";
+			break;
+
+		//Read byte from firmware index
+		case 0x0303:
+			if(firmware_index < 0x40000) { nds7_spi.data = firmware[firmware_index++]; }
+			break;
+	}
+}
+
+/****** Sets up a default firmware via HLE ******/
+void NTR_MMU::setup_default_firmware()
+{
+	//Header - Console Type - Original NDS
+	firmware[0x1D] = 0xFF;
+	firmware[0x1E] = 0xFF;
+	firmware[0x1F] = 0xFF;
+
+	//Header - User settings offset - 0x3FE00 aka User Settings Area 1
+	firmware[0x20] = 0x7F;
+	firmware[0x21] = 0xC0;
+
+	//User Settings Area 1 - Version - Always 0x5
+	firmware[0x3FE00] = 0x5;
+
+	//User Settings Area 1 - Favorite Color - We like blue
+	firmware[0x3FE02] = 0xB;
+
+	//User Settings Area 1 - Our bday is April 1st
+	firmware[0x3FE03] = 0x4;
+	firmware[0x3FE04] = 0x1;
+
+	//User Settings Area 1 - Nickname - GBE+
+	firmware[0x3FE06] = 0x47;
+	firmware[0x3FE08] = 0x42;
+	firmware[0x3FE0A] = 0x45;
+	firmware[0x3FE0C] = 0x2B;
+
+	//User Settings Area 1 - Nickname length
+	firmware[0x3FE1A] = 0x4;
+
+	//Copy firmware user settings to RAM
+	for(u32 x = 0; x < 0x6C; x++)
+	{
+		memory_map[0x27FFC80 + x] = firmware[0x3FE00 + x];
+	} 
+}
+	
 /****** Points the MMU to an lcd_data structure (FROM THE LCD ITSELF) ******/
 void NTR_MMU::set_lcd_data(ntr_lcd_data* ex_lcd_stat) { lcd_stat = ex_lcd_stat; }

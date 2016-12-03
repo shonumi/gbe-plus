@@ -490,8 +490,8 @@ void NTR_LCD::step()
 		{
 			lcd_mode = 0;
 
-			//Reset VBlank flag in DISPSTAT
-			mem->memory_map[NDS_DISPSTAT] &= ~0x1;
+			//Reset VBlank, HBlank flag in DISPSTAT
+			mem->memory_map[NDS_DISPSTAT] &= ~0x3;
 			
 			lcd_stat.current_scanline++;
 			if(lcd_stat.current_scanline == 263) { lcd_stat.current_scanline = 0; }
@@ -509,6 +509,11 @@ void NTR_LCD::step()
 		//Change mode
 		if(lcd_mode != 1) 
 		{
+			lcd_mode = 1;
+
+			//Set HBlank flag in DISPSTAT
+			mem->memory_map[NDS_DISPSTAT] |= 0x2;
+
 			//Update 2D engine palettes
 			if((lcd_stat.bg_pal_update_a || lcd_stat.bg_pal_update_b)) { update_palettes(); }
 
@@ -523,8 +528,6 @@ void NTR_LCD::step()
 				screen_buffer[render_position + x] = scanline_buffer_a[x];
 				screen_buffer[render_position + x + 0xC000] = scanline_buffer_b[x];
 			}
-
-			lcd_mode = 1;
 		}
 	}
 
@@ -538,6 +541,9 @@ void NTR_LCD::step()
 
 			//Set VBlank flag in DISPSTAT
 			mem->memory_map[NDS_DISPSTAT] |= 0x1;
+
+			//Reset HBlank flag in DISPSTAT
+			mem->memory_map[NDS_DISPSTAT] &= ~0x2;
 
 			//Trigger VBlank IRQ
 			if(lcd_stat.vblank_irq_enable)
