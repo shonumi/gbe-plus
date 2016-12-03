@@ -62,10 +62,10 @@ struct ntr_lcd_data
 	bool bg_enable_a[4];
 	bool bg_enable_b[4];
 	
-	u16 bg_pal_a[256];
+	u32 bg_pal_a[256];
 	u16 raw_bg_pal_a[256];
 
-	u16 bg_pal_b[256];
+	u32 bg_pal_b[256];
 	u16 raw_bg_pal_b[256];
 
 	bool vblank_irq_enable;

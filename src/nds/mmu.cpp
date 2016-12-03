@@ -305,7 +305,7 @@ u8 NTR_MMU::read_u8(u32 address)
 	{
 		//Only NDS7 can access this register, return 0 for NDS9
 		//TODO - This really probably return the same as other unused IO
-		if(access_mode) { return 0; }
+		if(access_mode) { std::cout<<"WTF\n"; return 0; }
 
 		//NDS7 should only access SPI bus if it is enabled
 		//TODO - This really probably return the same as other unused IO
@@ -315,8 +315,6 @@ u8 NTR_MMU::read_u8(u32 address)
 		u8 addr_shift = (address & 0x1) << 3;
 		return ((nds7_spi.data >> addr_shift) & 0xFF);
 	}
-
-	else if((address & 0x3) == 4000138) { return 0xFF; }
 
 	return memory_map[address];
 }
@@ -1315,20 +1313,20 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		default:
 			memory_map[address] = value;
 			break;
+	}
 
-		//Trigger BG palette update in LCD - Engine A
-		if((address >= 0x5000000) && (address <= 0x50001FF))
-		{
-			lcd_stat->bg_pal_update_a = true;
-			lcd_stat->bg_pal_update_list_a[(address & 0x1FF) >> 1] = true;
-		}
+	//Trigger BG palette update in LCD - Engine A
+	if((address >= 0x5000000) && (address <= 0x50001FF))
+	{
+		lcd_stat->bg_pal_update_a = true;
+		lcd_stat->bg_pal_update_list_a[(address & 0x1FF) >> 1] = true;
+	}
 
-		//Trigger BG palette update in LCD - Engine B
-		else if((address >= 0x5000400) && (address <= 0x50005FF))
-		{
-			lcd_stat->bg_pal_update_b = true;
-			lcd_stat->bg_pal_update_list_b[(address & 0x1FF) >> 1] = true;
-		}
+	//Trigger BG palette update in LCD - Engine B
+	else if((address >= 0x5000400) && (address <= 0x50005FF))
+	{
+		lcd_stat->bg_pal_update_b = true;
+		lcd_stat->bg_pal_update_list_b[(address & 0x1FF) >> 1] = true;
 	}
 }
 
