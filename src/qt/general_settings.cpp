@@ -804,6 +804,12 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	paths_layout->addWidget(cheats_path_set);
 	paths->setLayout(paths_layout);
 
+	//Setup warning message box
+	warning_box = new QMessageBox;
+	QPushButton* warning_box_ok = warning_box->addButton("OK", QMessageBox::AcceptRole);
+	warning_box->setIcon(QMessageBox::Warning);
+	warning_box->hide();
+
 	data_folder = new data_dialog;
 
 	connect(tabs, SIGNAL(currentChanged(int)), this, SLOT(close_input()));
@@ -1235,6 +1241,21 @@ void gen_settings::set_cgfx()
 {
 	if(load_cgfx->isChecked())
 	{
+		//Test that the manifest file exists before enabling anything
+		QFile test_file(QString::fromStdString(cgfx::manifest_file));
+
+		//Display warning if the file is not there
+		if(!test_file.exists())
+		{
+			load_cgfx->setChecked(false);
+			load_cgfx->setCheckState(Qt::Unchecked);
+
+			std::string mesg_text = "The manifest file: '" + cgfx::manifest_file + "' could not be loaded. Check paths and file permissions. CGFX will not load without a manifest file!"; 
+			warning_box->setText(QString::fromStdString(mesg_text));
+			warning_box->show();
+			return;
+		}
+		
 		cgfx::load_cgfx = true;
 		cgfx_scale->setEnabled(true);
 	}

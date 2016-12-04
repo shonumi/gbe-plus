@@ -137,6 +137,7 @@ class gen_settings : public QDialog
 
 	//Misc widgets
 	cheat_menu* dmg_cheat_menu;
+	QMessageBox* warning_box;
 
 	void update_volume();
 
