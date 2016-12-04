@@ -58,7 +58,6 @@ void NTR_MMU::reset()
 
 	//HLE MMIO stuff
 	memory_map[NDS_DISPCNT_A] = 0x80;
-	write_u16_fast(NDS_EXTKEYIN, 0x7F);
 	write_u16_fast(NDS_KEYINPUT, 0x3FF);
 
 	//HLE firmware stuff
@@ -115,7 +114,7 @@ void NTR_MMU::reset()
 
 /****** Read byte from memory ******/
 u8 NTR_MMU::read_u8(u32 address)
-{
+{	
 	switch(address)
 	{
 		case NDS_KEYINPUT:
@@ -124,6 +123,14 @@ u8 NTR_MMU::read_u8(u32 address)
 
 		case NDS_KEYINPUT+1:
 			return (g_pad->key_input >> 8);
+			break;
+
+		case NDS_EXTKEYIN:
+			return (g_pad->ext_key_input & 0xFF);
+			break;
+
+		case NDS_EXTKEYIN+1:
+			return (g_pad->ext_key_input >> 8);
 			break;
 	}
 
@@ -289,7 +296,7 @@ u8 NTR_MMU::read_u8(u32 address)
 	}
 
 	//Check for SPICNT
-	else if((address & 0x1) == NDS_SPICNT)
+	else if((address & ~0x1) == NDS_SPICNT)
 	{
 		//Only NDS7 can access this register, return 0 for NDS9
 		//TODO - This really probably return the same as other unused IO
@@ -301,15 +308,17 @@ u8 NTR_MMU::read_u8(u32 address)
 	}
 
 	//Check for SPIDATA
-	else if((address & 0x1) == NDS_SPIDATA)
+	else if((address & ~0x1) == NDS_SPIDATA)
 	{
 		//Only NDS7 can access this register, return 0 for NDS9
 		//TODO - This really probably return the same as other unused IO
-		if(access_mode) { std::cout<<"WTF\n"; return 0; }
+		if(access_mode) { return 0; }
 
 		//NDS7 should only access SPI bus if it is enabled
 		//TODO - This really probably return the same as other unused IO
 		if((nds7_spi.cnt & 0x8000) == 0) { return 0; }
+
+		std::cout<<"SPIDATA READ\n";
 
 		//Return SPIDATA
 		u8 addr_shift = (address & 0x1) << 3;
@@ -1577,20 +1586,21 @@ void NTR_MMU::process_spi_bus()
 	//Process that byte and return data in SPIDATA
 	switch(nds7_spi.cnt & 0x3)
 	{
-		//Firmware
+		//Power Management
 		case 0:
-			//std::cout<<"MMU::Firmware write -> 0x" << nds7_spi.data << "\n";
+			std::cout<<"MMU::Power Management write -> 0x" << nds7_spi.data << "\n";
+			break;
+
+		//Firmware
+		case 1:
+			std::cout<<"MMU::Firmware write -> 0x" << nds7_spi.data << "\n";
 			process_firmware();
 			break;
 
 		//Touchscreen
-		case 1:
-			//std::cout<<"MMU::Touchscreen write -> 0x" << nds7_spi.data << "\n";
-			break;
-
-		//Power Management
 		case 2:
-			//std::cout<<"MMU::Power Management write -> 0x" << nds7_spi.data << "\n";
+			std::cout<<"MMU::Touchscreen write -> 0x" << nds7_spi.data << "\n";
+			nds7_spi.data = 0xFF;
 			break;
 
 		//Reserved
@@ -1643,7 +1653,6 @@ void NTR_MMU::process_firmware()
 		case 0x0302:
 			firmware_index |= (nds7_spi.data & 0xFF);
 			firmware_state++;
-			std::cout<<"FIRMWARE_INDEX -> 0x" << firmware_index << "\n";
 			break;
 
 		//Read byte from firmware index

@@ -172,10 +172,11 @@ void NTR_core::run_core()
 			//X out of a window
 			if(event.type == SDL_QUIT) { stop(); SDL_Quit(); }
 
-			//Process gamepad or hotkey
+			//Process gamepad, mouse, or hotkey
 			else if((event.type == SDL_KEYDOWN) || (event.type == SDL_KEYUP) 
 			|| (event.type == SDL_JOYBUTTONDOWN) || (event.type == SDL_JOYBUTTONUP)
-			|| (event.type == SDL_JOYAXISMOTION) || (event.type == SDL_JOYHATMOTION)) { core_pad.handle_input(event); handle_hotkey(event); }
+			|| (event.type == SDL_JOYAXISMOTION) || (event.type == SDL_JOYHATMOTION)
+			|| (event.type == SDL_MOUSEBUTTONDOWN) || (event.type == SDL_MOUSEBUTTONUP)) { core_pad.handle_input(event); handle_hotkey(event); }
 		}
 
 		//Run the CPU

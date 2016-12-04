@@ -32,10 +32,12 @@ class NTR_GamePad
 
 	void process_keyboard(int pad, bool pressed);
 	void process_joystick(int pad, bool pressed);
+	void process_mouse(int pad, bool pressed);
 
 	int pad;
 	u16 key_input;
 	u16 ext_key_input;
+	u32 mouse_x, mouse_y;
 
 	private:
 

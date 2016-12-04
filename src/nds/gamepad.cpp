@@ -18,6 +18,8 @@ NTR_GamePad::NTR_GamePad()
 	key_input = 0x3FF;
 	ext_key_input = 0x7F;
 	jstick = NULL;
+	mouse_x = 0;
+	mouse_y = 0;
 	up_shadow = down_shadow = left_shadow = right_shadow = false;
 }
 
@@ -135,6 +137,52 @@ void NTR_GamePad::handle_input(SDL_Event &event)
 			case SDL_HAT_CENTERED:
 				process_joystick(pad, false);
 				process_joystick(pad+2, false);
+				break;
+		}
+	}
+
+	//Mouse button press
+	else if(event.type == SDL_MOUSEBUTTONDOWN)
+	{
+		pad = 400;
+		mouse_x = event.button.x;
+		mouse_y = event.button.y;
+
+		switch(event.button.button)
+		{
+			case SDL_BUTTON_LEFT:
+				process_mouse(pad, true);
+				break;
+
+			case SDL_BUTTON_MIDDLE:
+				process_mouse(pad+1, true);
+				break;
+
+			case SDL_BUTTON_RIGHT:
+				process_mouse(pad+2, true);
+				break;
+		}
+	}
+
+	//Mouse button release
+	else if(event.type == SDL_MOUSEBUTTONUP)
+	{
+		pad = 400;
+		mouse_x = event.button.x;
+		mouse_y = event.button.y;
+
+		switch(event.button.button)
+		{
+			case SDL_BUTTON_LEFT:
+				process_mouse(pad, false);
+				break;
+
+			case SDL_BUTTON_MIDDLE:
+				process_mouse(pad+1, false);
+				break;
+
+			case SDL_BUTTON_RIGHT:
+				process_mouse(pad+2, false);
 				break;
 		}
 	}
@@ -294,6 +342,24 @@ void NTR_GamePad::process_joystick(int pad, bool pressed)
 
 	//Emulate L Trigger release
 	else if((pad == config::ntr_joy_l_trigger) && (!pressed)) { key_input |= 0x200; }
+}
+
+/****** Processes input based on the mouse ******/
+void NTR_GamePad::process_mouse(int pad, bool pressed)
+{
+	//Emulate touchscreen press (NDS mode only, DSi does not use this)
+	if((pad == 400) && (pressed))
+	{
+		ext_key_input &= ~0x60;
+		std::cout<<"DOWN\n";
+	}
+
+	//Emulate touchscreen release (NDS mode only, DSi does not use this)
+	else if((pad == 400) && (!pressed))
+	{
+		ext_key_input |= 0x60;
+		std::cout<<"UP\n";
+	}
 }
 
 /****** Clears any existing input - Primarily used for the SoftReset SWI ******/
