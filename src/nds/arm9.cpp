@@ -1215,7 +1215,7 @@ void NTR_ARM9::handle_interrupt()
 		u32 ie_check = mem->nds9_ie;
 
 		//Match up bits in IE and IF
-		for(int x = 0; x < 21; x++)
+		for(int x = 0; x <= 21; x++)
 		{
 			//When there is a match, jump to interrupt vector
 			if((ie_check & (1 << x)) && (if_check & (1 << x)))

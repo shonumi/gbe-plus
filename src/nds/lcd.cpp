@@ -66,6 +66,9 @@ void NTR_LCD::reset()
 	lcd_stat.bg_pal_update_b = true;
 	lcd_stat.bg_pal_update_list_b.resize(0x100, 0);
 
+	lcd_stat.display_mode_a = 0;
+	lcd_stat.display_mode_b = 0;
+
 	lcd_stat.bg_mode_a = 0;
 	lcd_stat.bg_mode_b = 0;
 	lcd_stat.hblank_interval_free = false;
@@ -426,7 +429,7 @@ void NTR_LCD::render_scanline()
 
 		//Modes 2 and 3 unsupported by Engine B
 		default:
-			std::cout<<"LCD::Warning - Engine B - Unsupported Display Mode " << std::dec << lcd_stat.display_mode_b << "\n";
+			std::cout<<"LCD::Warning - Engine B - Unsupported Display Mode " << std::dec << (int)lcd_stat.display_mode_b << "\n";
 			break;
 	}		
 }

@@ -350,15 +350,13 @@ void NTR_GamePad::process_mouse(int pad, bool pressed)
 	//Emulate touchscreen press (NDS mode only, DSi does not use this)
 	if((pad == 400) && (pressed))
 	{
-		ext_key_input &= ~0x60;
-		std::cout<<"DOWN\n";
+		ext_key_input &= ~0x40;
 	}
 
 	//Emulate touchscreen release (NDS mode only, DSi does not use this)
 	else if((pad == 400) && (!pressed))
 	{
-		ext_key_input |= 0x60;
-		std::cout<<"UP\n";
+		ext_key_input |= 0x40;
 	}
 }
 

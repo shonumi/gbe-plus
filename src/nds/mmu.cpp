@@ -1269,7 +1269,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 		case NDS_IPCFIFOSND+3:
 			if((access_mode) && (nds9_ipc.cnt & 0x8000)) { nds9_ipc.fifo_incoming &= ~0xFF000000; nds9_ipc.fifo_incoming |= (value << 24); }
-			else if((!access_mode) && (nds7_ipc.cnt & 0x8000)) { nds7_ipc.fifo_incoming &= ~0xFF00; nds7_ipc.fifo_incoming |= (value << 24); }
+			else if((!access_mode) && (nds7_ipc.cnt & 0x8000)) { nds7_ipc.fifo_incoming &= ~0xFF000000; nds7_ipc.fifo_incoming |= (value << 24); }
 			break;
 
 		case NDS_IPCFIFORECV:
@@ -1627,8 +1627,6 @@ void NTR_MMU::process_spi_bus()
 			//std::cout<<"MMU::Warning - Writing to reserved device via SPI\n";
 			break;
 	}
-
-	nds7_spi.data = 0;
 
 	//Reset SPI for next transfer
 	nds7_spi.active_transfer = false;
