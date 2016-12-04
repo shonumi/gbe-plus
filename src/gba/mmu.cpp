@@ -1255,6 +1255,15 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 		case WAVERAM3_H: apu_stat->waveram_data[(apu_stat->waveram_bank_rw << 4) + 14] = value; break;
 		case WAVERAM3_H+1: apu_stat->waveram_data[(apu_stat->waveram_bank_rw << 4) + 15] = value; break;
 
+		case REG_IME:
+			memory_map[address] = (value & 0x1);
+			break;
+
+		case REG_IME+1:
+		case REG_IME+2:
+		case REG_IME+3:
+			break;
+
 		case REG_IF:
 		case REG_IF+1:
 			memory_map[address] &= ~value;
