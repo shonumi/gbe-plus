@@ -1176,7 +1176,7 @@ void NTR_ARM7::handle_interrupt()
 	}
 
 	//Jump into an interrupt, check if the master flag is enabled
-	if((mem->memory_map[NDS_IME] & 0x1) && ((reg.cpsr & CPSR_IRQ) == 0) && (!in_interrupt))
+	if((mem->nds7_ime & 0x1) && ((reg.cpsr & CPSR_IRQ) == 0) && (!in_interrupt))
 	{
 		//Wait until pipeline is finished filling
 		if(debug_message == 0xFF) { return; }

@@ -127,11 +127,13 @@ class NTR_MMU
 	u32 nds9_if;
 	u32 nds9_old_ie;
 	u32 nds9_old_if;
+	u32 nds9_ime;
 
 	u32 nds7_ie;
 	u32 nds7_if;
 	u32 nds7_old_ie;
 	u32 nds7_old_if;
+	u32 nds7_ime;
 
 	u16 firmware_state;
 	u32 firmware_index;

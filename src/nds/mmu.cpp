@@ -47,6 +47,7 @@ void NTR_MMU::reset()
 	nds7_ie = 0x0;
 	nds7_if = 0x0;
 	nds7_old_ie = 0x0;
+	nds7_ime = 0;
 
 	nds9_bios.clear();
 	nds9_bios.resize(0xC00, 0);
@@ -55,6 +56,7 @@ void NTR_MMU::reset()
 	nds9_ie = 0x0;
 	nds9_if = 0x0;
 	nds9_old_ie = 0x0;
+	nds9_ime = 0;
 
 	//HLE MMIO stuff
 	memory_map[NDS_DISPCNT_A] = 0x80;
@@ -142,6 +144,18 @@ u8 NTR_MMU::read_u8(u32 address)
 
 	//Check for unused memory first
 	else if(address >= 0x10000000) { return 0; std::cout<<"Out of bounds read : 0x" << std::hex << address << "\n"; return 0; }
+
+	//Check for reading IME
+	else if((address & ~0x3) == NDS_IME)
+	{
+		u8 addr_shift = (address & 0x3) << 3;
+
+		//Return NDS9 IME
+		if(access_mode) { return ((nds9_ime >> addr_shift) & 0xFF); }
+		
+		//Return NDS7 IME
+		else { return ((nds7_ime >> addr_shift) & 0xFF);  }
+	}
 
 	//Check for reading IE
 	else if((address & ~0x3) == NDS_IE)
@@ -1014,8 +1028,13 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			break;
 
 		case NDS_IME:
+			if(access_mode) { nds9_ime = (value & 0x1); }
+			else { nds7_ime = (value & 0x1); }
+			break;
+
 		case NDS_IME+1:
-			memory_map[address] = value;
+		case NDS_IME+2:
+		case NDS_IME+3:
 			break;
 
 		case NDS_IE:
