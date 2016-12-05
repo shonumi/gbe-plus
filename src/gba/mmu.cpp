@@ -2385,8 +2385,6 @@ bool AGB_MMU::patch_ips(std::string filename)
 				u8 patch_byte = patch_data[patch_pos++];
 
 				memory_map[0x8000000 + offset] = patch_byte;
-				memory_map[0xA000000 + offset] = patch_byte;
-				memory_map[0xC000000 + offset] = patch_byte;
 
 				offset++;
 			}
@@ -2408,8 +2406,6 @@ bool AGB_MMU::patch_ips(std::string filename)
 			for(u32 x = 0; x < rle_size; x++)
 			{
 				memory_map[0x8000000 + offset] = patch_byte;
-				memory_map[0xA000000 + offset] = patch_byte;
-				memory_map[0xC000000 + offset] = patch_byte;
 
 				offset++;
 			}
@@ -2515,6 +2511,13 @@ bool AGB_MMU::patch_ups(std::string filename)
 
 		while(!var_end)
 		{
+			//Abort if patching greater than 32MB
+			if(file_pos > 0x2000000)
+			{
+				std::cout<<"MMU::" << filename << "patches beyond max ROM size. Aborting further patching.\n";
+				return false;
+			}
+
 			u8 patch_byte = patch_data[patch_pos++];
 
 			//Terminate patching for this chunk if encountering a zero byte
