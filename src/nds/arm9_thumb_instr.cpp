@@ -540,10 +540,15 @@ void NTR_ARM9::hireg_bx(u16 current_thumb_instruction)
 	u32 operand = get_reg(src_reg);
 
 	if((op == 3) && (dr_msb != 0)) 
-	{ 
-		std::cout<<"CPU::ARM9::Error - THUMB.5 Using BX but MSBd is set \n";
-		running = false;
-		return;
+	{
+		op = 4;
+		
+		if(src_reg == 15)
+		{
+			std::cout<<"CPU::ARM9::Error - THUMB.5 BLX using R15 as operand \n";
+			running = false;
+			return;
+		}
 	}
 
 	//Perform ops or branch - Only CMP affects flags!
@@ -645,6 +650,32 @@ void NTR_ARM9::hireg_bx(u16 current_thumb_instruction)
 			}
 
 			else { reg.r15 = operand; }
+
+			//Clock CPU and controllers - 2S
+			clock(reg.r15, false);
+			clock((reg.r15 + 2), false);
+
+			needs_flush = true;
+			break;
+
+		//BLX
+		case 0x4:
+			//Switch to ARM mode if necessary
+			if((operand & 0x1) == 0)
+			{
+				arm_mode = ARM;
+				reg.cpsr &= ~0x20;
+			}
+
+			//Align operand to half-word
+			else { operand &= ~0x1; }
+
+			//Clock CPU and controllers - 1N
+			clock(reg.r15, true);
+
+			//LR is PC+3, but GBE+'s PC is always 4 ahead in THUMB mode anyway, so set to PC - 1.
+			set_reg(14, (reg.r15 - 1));
+			reg.r15 = operand;
 
 			//Clock CPU and controllers - 2S
 			clock(reg.r15, false);

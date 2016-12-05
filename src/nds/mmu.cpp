@@ -1324,7 +1324,6 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			break;
 
 		case NDS_SPIDATA:
-		case NDS_SPIDATA+1:
 			if(access_mode) { return; }
 
 			//Only initialize transfer if SPI bus is enabled, and there is no active transfer
@@ -1361,17 +1360,17 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 /****** Write 2 bytes into memory ******/
 void NTR_MMU::write_u16(u32 address, u16 value)
 {
-	write_u8(address, (value & 0xFF));
 	write_u8((address+1), ((value >> 8) & 0xFF));
+	write_u8(address, (value & 0xFF));
 }
 
 /****** Write 4 bytes into memory ******/
 void NTR_MMU::write_u32(u32 address, u32 value)
 {
-	write_u8(address, (value & 0xFF));
-	write_u8((address+1), ((value >> 8) & 0xFF));
-	write_u8((address+2), ((value >> 16) & 0xFF));
 	write_u8((address+3), ((value >> 24) & 0xFF));
+	write_u8((address+2), ((value >> 16) & 0xFF));
+	write_u8((address+1), ((value >> 8) & 0xFF));
+	write_u8(address, (value & 0xFF));
 }
 
 /****** Writes 2 bytes into memory - No checks done on the read, used for known memory locations such as registers ******/
@@ -1603,7 +1602,7 @@ void NTR_MMU::process_spi_bus()
 {
 	//Send data across SPI bus for each component
 	//Process that byte and return data in SPIDATA
-	switch(nds7_spi.cnt & 0x3)
+	switch((nds7_spi.cnt >> 8) & 0x3)
 	{
 		//Power Management
 		case 0:
