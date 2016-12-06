@@ -1776,6 +1776,9 @@ bool AGB_MMU::read_file(std::string filename)
 	file.read((char*)ex_mem, file_size);
 
 	file.close();
+
+	std::cout<<"MMU::ROM Size: " << std::dec << (file_size / 1024) << "KB\n";
+	std::cout<<"MMU::ROM CRC32: " << std::hex << util::get_crc32(&memory_map[0x8000000], file_size) << "\n";
 	std::cout<<"MMU::" << filename << " loaded successfully. \n";
 
 	//Apply patches to the ROM data

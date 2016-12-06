@@ -547,6 +547,8 @@ void init_crc32_table()
 /****** Return CRC for given data ******/
 u32 get_crc32(u8* data, u32 length)
 {
+	init_crc32_table();
+
 	u32 crc32 = 0xFFFFFFFF;
 
 	for(int x = 0; x < length; x++)

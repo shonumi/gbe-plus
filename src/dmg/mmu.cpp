@@ -1292,7 +1292,25 @@ bool DMG_MMU::read_file(std::string filename)
 		return false;
 	}
 
-	u8* ex_mem = &memory_map[0];
+	//Get the file size
+	file.seekg(0, file.end);
+	u32 file_size = file.tellg();
+	file.seekg(0, file.beg);
+
+	//Read ROM file into temporary buffer
+	std::vector <u8> rom_file;
+	rom_file.resize(file_size, 0x0);
+
+	u8* ex_mem = &rom_file[0];
+
+	//Read entire ROM file
+	file.read((char*)ex_mem, file_size);
+	file.seekg(0, file.beg);
+
+	//Grab CRC32
+	u32 crc32 = util::get_crc32(&rom_file[0], file_size);
+
+	ex_mem = &memory_map[0];
 
 	//Read 32KB worth of data from ROM file
 	file.read((char*)ex_mem, 0x8000);
@@ -1565,6 +1583,7 @@ bool DMG_MMU::read_file(std::string filename)
 	}
 
 	file.close();
+	std::cout<<"MMU::ROM CRC32: " << std::hex << crc32 << "\n";
 	std::cout<<"MMU::" << filename << " loaded successfully. \n";
 
 	//Apply patches to the ROM data
