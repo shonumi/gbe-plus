@@ -544,7 +544,7 @@ void init_crc32_table()
 	}
 }
 
-/****** Return CRC for given data ******/
+/****** Return CRC32 for given data ******/
 u32 get_crc32(u8* data, u32 length)
 {
 	init_crc32_table();
@@ -559,6 +559,25 @@ u32 get_crc32(u8* data, u32 length)
 
 	return (crc32 ^ 0xFFFFFFFF);
 }
+
+/****** Return Addler32 for given data ******/
+u32 get_addler32(u8* data, u32 length)
+{
+	u16 a = 1;
+	u16 b = 0;
+
+	for(int x = 0; x < length; x++)
+	{
+		a += (*data);
+		b += a;
+	}
+
+	a = a % 65521;
+	b = b % 65521;
+
+	u32 result = (b *= 65536) + a;
+	return result;
+} 
 
 /****** Convert a number into hex as a C++ string ******/
 std::string to_hex_str(u32 input)
