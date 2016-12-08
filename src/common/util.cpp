@@ -27,8 +27,6 @@ u32 crc32_table[256];
 /****** Saves an SDL Surface to a PNG file ******/
 bool save_png(SDL_Surface* source, std::string filename)
 {
-	//TODO - Everything for this function
-
 	if(source == NULL) 
 	{
 		std::cout<<"GBE::Error - Source data for " << filename << " is null\n";
@@ -37,7 +35,7 @@ bool save_png(SDL_Surface* source, std::string filename)
 	
 	//Lock SDL_Surface
 	if(SDL_MUSTLOCK(source)){ SDL_LockSurface(source); }
-	u8* src_pixels = (u8*)source->pixels;
+	u32* src_pixels = (u32*)source->pixels;
 
 	std::vector<u8> png_bytes;
 
@@ -102,11 +100,14 @@ bool save_png(SDL_Surface* source, std::string filename)
 
 	//IDAT byte length - 4 bytes
 	u32 dat_length = (source->w * source->h) * 3;
+	dat_length = switch_endian32(dat_length);
 
 	for(int x = 24; x >= 0; x-= 8)
 	{
 		png_bytes.push_back((dat_length >> x) & 0xFF);
 	}
+
+	dat_length = switch_endian32(dat_length);
 
 	//"IDAT" ASCII string - 4 bytes
 	png_bytes.push_back(0x49);
@@ -114,26 +115,20 @@ bool save_png(SDL_Surface* source, std::string filename)
 	png_bytes.push_back(0x41);
 	png_bytes.push_back(0x54);
 
-	//ZLib header - 4 bytes
-	png_bytes.push_back(0x78);
-	png_bytes.push_back(0x00);
-	//TODO Addler32 checksum of data
-
-	//IDAT Chunk header - TODO
-	//Final chunk flag - 1 Byte
-	//Chunk size byte length - 2 Bytes
-	//Chunk size complement - 2 Bytes
-	png_bytes.push_back(0x01);
-
 	//Grab RGB values, then store them
-	for(int x = 0; x < (source->w * source->h) * 4;)
+	for(int x = 0; x < (source->w * source->h); x++)
 	{
-		//Skip Alpha values
-		x++;
+		//TODO - DEFLATE algo
 
-		png_bytes.push_back(src_pixels[x++]);
-		png_bytes.push_back(src_pixels[x++]);
-		png_bytes.push_back(src_pixels[x++]);
+		u32 color = src_pixels[x];
+
+		u8 red = (color >> 16) & 0xFF;
+		u8 green = (color >> 8) & 0xFF;
+		u8 blue = (color & 0xFF);
+
+		png_bytes.push_back(red);
+		png_bytes.push_back(blue);
+		png_bytes.push_back(green);
 	}
 
 	//CRC32 of IDAT chunk - 4 bytes
@@ -577,7 +572,18 @@ u32 get_addler32(u8* data, u32 length)
 
 	u32 result = (b *= 65536) + a;
 	return result;
-} 
+}
+
+/****** Switches endianness of a 32-bit integer ******/
+u32 switch_endian32(u32 input)
+{	
+	u8 byte_1 = ((input >> 24) & 0xFF);
+	u8 byte_2 = ((input >> 16) & 0xFF);
+	u8 byte_3 = ((input >> 8) & 0xFF);
+	u8 byte_4 = (input & 0xFF);
+
+	return ((byte_4 << 24) | (byte_3 << 16) | (byte_2 << 8) | byte_1);
+}
 
 /****** Convert a number into hex as a C++ string ******/
 std::string to_hex_str(u32 input)

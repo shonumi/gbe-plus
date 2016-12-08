@@ -70,7 +70,9 @@ namespace util
 	void init_crc32_table();
 	u32 get_crc32(u8* data, u32 length);
 
-	u32 get_addler32(u8* data, u32 length;
+	u32 get_addler32(u8* data, u32 length);
+
+	u32 switch_endian32(u32 input);
 
 	std::string to_hex_str(u32 input);
 	bool from_hex_str(std::string input, u32 &result);
