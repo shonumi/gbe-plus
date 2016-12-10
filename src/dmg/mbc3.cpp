@@ -24,15 +24,25 @@ void DMG_MMU::grab_time()
 	//Seconds - Disregard tm_sec's 60 or 61 seconds
 	cart.rtc_reg[0] = current_time->tm_sec;
 	if(cart.rtc_reg[0] > 59) { cart.rtc_reg[0] = 59; }
+
+	cart.rtc_reg[0] += config::rtc_offset[0];
+	cart.rtc_reg[0] = (cart.rtc_reg[0] % 60);
 		
 	//Minutes
 	cart.rtc_reg[1] = current_time->tm_min;
+	cart.rtc_reg[1] += config::rtc_offset[1];
+	cart.rtc_reg[1] = (cart.rtc_reg[1] % 60);
 
 	//Hours
 	cart.rtc_reg[2] = current_time->tm_hour;
+	cart.rtc_reg[2] += config::rtc_offset[2];
+	cart.rtc_reg[2] = (cart.rtc_reg[2] % 24);
 				
 	//Days
 	u16 temp_day = current_time->tm_yday;
+	temp_day += config::rtc_offset[3];
+	temp_day = (temp_day % 366);
+
 	cart.rtc_reg[3] = temp_day & 0xFF;
 	temp_day >>= 8;
 	if(temp_day == 1) { cart.rtc_reg[4] |= 0x1; }

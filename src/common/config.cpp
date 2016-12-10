@@ -161,6 +161,9 @@ namespace config
 		{ 0xFF606060, 0xFF606060 },
 		{ 0xFF000000, 0xFF000000 }
 	};
+
+	//Real-time clock offsets
+	u16 rtc_offset[4] = { 0, 0, 0, 0 };
 }
 
 /****** Reset DMG default colors ******/
@@ -1105,6 +1108,52 @@ bool parse_ini_file()
 			}
 		}
 
+		//Real-time clock offsets
+		else if(ini_item == "#rtc_offset")
+		{
+			if((x + 4) < size)
+			{
+				std::stringstream temp_stream;
+
+				//Seconds offset
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::rtc_offset[0];
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				if(config::rtc_offset[0] > 59) { config::rtc_offset[0] = 59; }
+
+				//Minutes offset
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::rtc_offset[1];
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				if(config::rtc_offset[1] > 59) { config::rtc_offset[1] = 59; }
+
+				//Hours offset
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::rtc_offset[2];
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				if(config::rtc_offset[2] > 23) { config::rtc_offset[2] = 23; }
+
+				//Days offset
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::rtc_offset[3];
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				if(config::rtc_offset[3] > 366) { config::rtc_offset[3] = 366; }
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#rtc_offset) \n";
+				return false;
+			}
+		}
 
 		//Emulated DMG-on-GBC palette
 		else if(ini_item == "#dmg_on_gbc_pal")
