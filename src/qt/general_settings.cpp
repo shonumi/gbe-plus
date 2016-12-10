@@ -91,6 +91,16 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	cheats_layout->addWidget(edit_cheats, 0, Qt::AlignRight);
 	cheats_set->setLayout(cheats_layout);
 
+	//General settings - RTC offsets
+	QWidget* rtc_set = new QWidget(general);
+	QLabel* rtc_label = new QLabel(" ", rtc_set);
+	QPushButton* edit_rtc = new QPushButton("Edit RTC Offsets");
+
+	QHBoxLayout* rtc_layout = new QHBoxLayout;
+	rtc_layout->addWidget(edit_rtc, 0, Qt::AlignLeft);
+	rtc_layout->addWidget(rtc_label, 1, Qt::AlignRight);
+	rtc_set->setLayout(rtc_layout);
+
 	//General settings - Emulated SIO device
 	QWidget* sio_set = new QWidget(general);
 	QLabel* sio_label = new QLabel("Serial IO Device (Link Cable)", sio_set);
@@ -125,6 +135,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	gen_layout->addWidget(cheats_set);
 	gen_layout->addWidget(multicart_set);
 	gen_layout->addWidget(patch_set);
+	gen_layout->addWidget(rtc_set);
 	general->setLayout(gen_layout);
 
 	//Display settings - Screen scale
@@ -820,6 +831,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(sio_dev, SIGNAL(currentIndexChanged(int)), this, SLOT(sio_dev_change()));
 	connect(auto_patch, SIGNAL(stateChanged(int)), this, SLOT(set_patches()));
 	connect(edit_cheats, SIGNAL(clicked()), this, SLOT(show_cheats()));
+	connect(edit_rtc, SIGNAL(clicked()), this, SLOT(show_rtc()));
 	connect(ogl, SIGNAL(stateChanged(int)), this, SLOT(set_ogl()));
 	connect(screen_scale, SIGNAL(currentIndexChanged(int)), this, SLOT(screen_scale_change()));
 	connect(aspect_ratio, SIGNAL(stateChanged(int)), this, SLOT(aspect_ratio_change()));
@@ -1010,6 +1022,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	input_type = 0;
 
 	dmg_cheat_menu = new cheat_menu;
+	real_time_clock_menu = new rtc_menu;
 
 	resize(450, 450);
 	setWindowTitle(tr("GBE+ Settings"));
@@ -1032,6 +1045,12 @@ void gen_settings::set_ini_options()
 
 	//Use cheats
 	if(config::use_cheats) { cheats->setChecked(true); }
+
+	//RTC offsets
+	real_time_clock_menu->secs_offset->setValue(config::rtc_offset[0]);
+	real_time_clock_menu->mins_offset->setValue(config::rtc_offset[1]);
+	real_time_clock_menu->hours_offset->setValue(config::rtc_offset[2]);
+	real_time_clock_menu->days_offset->setValue(config::rtc_offset[3]);
 
 	//Screen scale options
 	screen_scale->setCurrentIndex(config::scaling_factor - 1);
@@ -1180,6 +1199,12 @@ void gen_settings::show_cheats()
 {
 	dmg_cheat_menu->fetch_cheats();
 	dmg_cheat_menu->show();
+}
+
+/****** Displays the cheats window ******/
+void gen_settings::show_rtc()
+{
+	real_time_clock_menu->show();
 }
 
 /****** Toggles enabling or disabling the fragment shader widget when setting OpenGL ******/

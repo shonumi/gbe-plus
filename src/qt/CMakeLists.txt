@@ -11,6 +11,7 @@ set(SRCS
 	screens.cpp
 	data_dialog.cpp
 	cheat_menu.cpp
+	rtc_menu.cpp
 	)
 
 set(HEADERS
@@ -23,6 +24,7 @@ set(HEADERS
 	screens.h
 	data_dialog.h
 	cheat_menu.h
+	rtc_menu.h
 	)
 
 add_executable(gbe_plus_qt ${SRCS} ${HEADERS})

@@ -18,6 +18,7 @@
 
 #include "data_dialog.h"
 #include "cheat_menu.h"
+#include "rtc_menu.h"
 
 class gen_settings : public QDialog
 {
@@ -137,6 +138,7 @@ class gen_settings : public QDialog
 
 	//Misc widgets
 	cheat_menu* dmg_cheat_menu;
+	rtc_menu* real_time_clock_menu;
 	QMessageBox* warning_box;
 
 	void update_volume();
@@ -152,6 +154,7 @@ class gen_settings : public QDialog
 	void sio_dev_change();
 	void set_patches();
 	void show_cheats();
+	void show_rtc();
 	void set_ogl();
 	void screen_scale_change();
 	void aspect_ratio_change();
