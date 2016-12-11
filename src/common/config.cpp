@@ -1145,7 +1145,7 @@ bool parse_ini_file()
 				temp_stream.clear();
 				temp_stream.str(std::string());
 
-				if(config::rtc_offset[3] > 366) { config::rtc_offset[3] = 366; }
+				if(config::rtc_offset[3] > 365) { config::rtc_offset[3] = 365; }
 			}
 
 			else 
@@ -2067,6 +2067,17 @@ bool save_ini_file()
 			output_lines[line_pos] = "[#maintain_aspect_ratio:" + val + "]";
 		}
 
+		//Real-time clock offsets
+		else if(ini_item == "#rtc_offset")
+		{
+			line_pos = output_count[x];
+			std::string val = util::to_str(config::rtc_offset[0]) + ":";
+			val += util::to_str(config::rtc_offset[1]) + ":";
+			val += util::to_str(config::rtc_offset[2]) + ":";
+			val += util::to_str(config::rtc_offset[3]);
+
+			output_lines[line_pos] = "[#rtc_offset:" + val + "]";
+		}
 
 		//Emulated DMG-on-GBC palette
 		else if(ini_item == "#dmg_on_gbc_pal")
