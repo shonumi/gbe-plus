@@ -28,7 +28,10 @@ class rtc_menu : public QDialog
 	QSpinBox* days_offset;
 
 	private slots:
-	void update_offsets();
+	void update_secs();
+	void update_mins();
+	void update_hours();
+	void update_days();
 };
 
 #endif //RTCMENU_GBE_QT

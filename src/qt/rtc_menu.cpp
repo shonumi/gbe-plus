@@ -85,14 +85,21 @@ rtc_menu::rtc_menu(QWidget *parent) : QDialog(parent)
 
 	connect(close_button, SIGNAL(accepted()), this, SLOT(accept()));
 	connect(close_button, SIGNAL(rejected()), this, SLOT(reject()));
-	connect(close_button->button(QDialogButtonBox::Close), SIGNAL(clicked()), this, SLOT(update_offsets()));
+	connect(secs_offset, SIGNAL(valueChanged(int)), this, SLOT(update_secs()));
+	connect(mins_offset, SIGNAL(valueChanged(int)), this, SLOT(update_mins()));
+	connect(hours_offset, SIGNAL(valueChanged(int)), this, SLOT(update_hours()));
+	connect(days_offset, SIGNAL(valueChanged(int)), this, SLOT(update_days()));
 }
 
-/****** Updates the RTC offsets ******/
-void rtc_menu::update_offsets()
-{
-	config::rtc_offset[0] = secs_offset->value();
-	config::rtc_offset[1] = mins_offset->value();
-	config::rtc_offset[2] = hours_offset->value();
-	config::rtc_offset[3] = days_offset->value();
-}
+/****** Updates the RTC offsets - Seconds ******/
+void rtc_menu::update_secs() { config::rtc_offset[0] = secs_offset->value(); }
+
+
+/****** Updates the RTC offsets - Minutes ******/
+void rtc_menu::update_mins() { config::rtc_offset[1] = mins_offset->value(); }
+
+/****** Updates the RTC offsets - Hours ******/
+void rtc_menu::update_hours() { config::rtc_offset[2] = hours_offset->value(); }
+
+/****** Updates the RTC offsets - Days ******/
+void rtc_menu::update_days() { config::rtc_offset[3] = days_offset->value(); }
