@@ -46,6 +46,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	QWidget* sys_type_set = new QWidget(general);
 	QLabel* sys_type_label = new QLabel("Emulated System Type : ", sys_type_set);
 	sys_type = new QComboBox(sys_type_set);
+	sys_type->setToolTip("Forces GBE+ to emulate a certain system");
 	sys_type->addItem("Auto");
 	sys_type->addItem("Game Boy [DMG]");
 	sys_type->addItem("Game Boy Color [GBC]");
@@ -61,6 +62,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	QWidget* bios_set = new QWidget(general);
 	QLabel* bios_label = new QLabel("Use BIOS/Boot ROM", bios_set);
 	bios = new QCheckBox(bios_set);
+	bios->setToolTip("Instructs GBE+ to boot a system's BIOS or Boot ROM");
 
 	QHBoxLayout* bios_layout = new QHBoxLayout;
 	bios_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -72,6 +74,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	QWidget* multicart_set = new QWidget(general);
 	QLabel* multicart_label = new QLabel("Emulate multicart ROMs (MBC1M)", multicart_set);
 	multicart = new QCheckBox(multicart_set);
+	multicart->setToolTip("Forcibly emulates MBC1 games as MBC1M variants. \nUse this option for games like Mortal Kombat I & II, or Bomberman Collection.");
 
 	QHBoxLayout* multicart_layout = new QHBoxLayout;
 	multicart_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -84,6 +87,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	QLabel* cheats_label = new QLabel("Use cheats", cheats_set);
 	QPushButton* edit_cheats = new QPushButton("Edit Cheats");
 	cheats = new QCheckBox(cheats_set);
+	cheats->setToolTip("Enables Game Genie and GameShark cheat codes");
 
 	QHBoxLayout* cheats_layout = new QHBoxLayout;
 	cheats_layout->addWidget(cheats, 0, Qt::AlignLeft);
@@ -95,6 +99,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	QWidget* rtc_set = new QWidget(general);
 	QLabel* rtc_label = new QLabel(" ", rtc_set);
 	QPushButton* edit_rtc = new QPushButton("Edit RTC Offsets");
+	edit_rtc->setToolTip("Adjusts the emulated real-time clock by adding specific offset values.");
 
 	QHBoxLayout* rtc_layout = new QHBoxLayout;
 	rtc_layout->addWidget(edit_rtc, 0, Qt::AlignLeft);
@@ -105,6 +110,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	QWidget* sio_set = new QWidget(general);
 	QLabel* sio_label = new QLabel("Serial IO Device (Link Cable)", sio_set);
 	sio_dev = new QComboBox(sio_set);
+	sio_dev->setToolTip("Changes the emulated Serial Input-Output device connected to the emulated Game Boy");
 	sio_dev->addItem("None");
 	sio_dev->addItem("GB Link Cable");
 	sio_dev->addItem("GB Printer");
@@ -120,6 +126,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	QWidget* patch_set = new QWidget(general);
 	QLabel* patch_label = new QLabel("Enable ROM patches", patch_set);
 	auto_patch = new QCheckBox(patch_set);
+	auto_patch->setToolTip("Enables automatically patching a ROM when booting");
 
 	QHBoxLayout* patch_layout = new QHBoxLayout;
 	patch_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -142,6 +149,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	QWidget* screen_scale_set = new QWidget(display);
 	QLabel* screen_scale_label = new QLabel("Screen Scale : ");
 	screen_scale = new QComboBox(screen_scale_set);
+	screen_scale->setToolTip("Scaling factor for the system's original screen size");
 	screen_scale->addItem("1x");
 	screen_scale->addItem("2x");
 	screen_scale->addItem("3x");
@@ -163,6 +171,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	QWidget* cgfx_scale_set = new QWidget(display);
 	QLabel* cgfx_scale_label = new QLabel("Custom Graphics (CGFX) Scale : ");
 	cgfx_scale = new QComboBox(cgfx_scale_set);
+	cgfx_scale->setToolTip("Scaling factor for all custom graphics.\nOnly applies when CGFX are loaded.");
 	cgfx_scale->addItem("1x");
 	cgfx_scale->addItem("2x");
 	cgfx_scale->addItem("3x");
@@ -184,6 +193,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	QWidget* dmg_gbc_pal_set = new QWidget(display);
 	QLabel* dmg_gbc_pal_label = new QLabel("DMG Color Palette : ");
 	dmg_gbc_pal = new QComboBox(dmg_gbc_pal_set);
+	dmg_gbc_pal->setToolTip("Selects the original Game Boy palette");
 	dmg_gbc_pal->addItem("OFF");
 	dmg_gbc_pal->addItem("GBC BOOTROM - NO INPUT");
 	dmg_gbc_pal->addItem("GBC BOOTROM - UP");
@@ -210,6 +220,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	QWidget* ogl_frag_shader_set = new QWidget(display);
 	QLabel* ogl_frag_shader_label = new QLabel("Post-Processing Shader : ");
 	ogl_frag_shader = new QComboBox(ogl_frag_shader_set);
+	ogl_frag_shader->setToolTip("Applies an OpenGL GLSL post-processing shader for graphical effects.");
 	ogl_frag_shader->addItem("OFF");
 	ogl_frag_shader->addItem("2xBR");
 	ogl_frag_shader->addItem("4xBR");
@@ -234,6 +245,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	QWidget* ogl_set = new QWidget(display);
 	QLabel* ogl_label = new QLabel("Use OpenGL");
 	ogl = new QCheckBox(ogl_set);
+	ogl->setToolTip("Draw the screen using OpenGL.\n Allows for faster drawing operations and shader support.");
 
 	QHBoxLayout* ogl_layout = new QHBoxLayout;
 	ogl_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -245,6 +257,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	QWidget* load_cgfx_set = new QWidget(display);
 	QLabel* load_cgfx_label = new QLabel("Load Custom Graphics (CGFX)");
 	load_cgfx = new QCheckBox(load_cgfx_set);
+	load_cgfx->setToolTip("Enables custom graphics and loads them when booting a game");
 
 	QHBoxLayout* load_cgfx_layout = new QHBoxLayout;
 	load_cgfx_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -256,6 +269,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	QWidget* aspect_set = new QWidget(display);
 	QLabel* aspect_label = new QLabel("Maintain Aspect Ratio");
 	aspect_ratio = new QCheckBox(aspect_set);
+	aspect_ratio->setToolTip("Forces GBE+ to maintain the original system's aspect ratio");
 
 	QHBoxLayout* aspect_layout = new QHBoxLayout;
 	aspect_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -278,6 +292,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	QWidget* freq_set = new QWidget(sound);
 	QLabel* freq_label = new QLabel("Output Frequency : ");
 	freq = new QComboBox(freq_set);
+	freq->setToolTip("Selects the final output frequency of all sound.");
 	freq->addItem("48000Hz");
 	freq->addItem("44100Hz");
 	freq->addItem("22050Hz");
@@ -294,6 +309,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	QWidget* sound_on_set = new QWidget(sound);
 	QLabel* sound_on_label = new QLabel("Enable Sound");
 	sound_on = new QCheckBox(sound_on_set);
+	sound_on->setToolTip("Enables all sounds output.");
 	sound_on->setChecked(true);
 
 	QHBoxLayout* sound_on_layout = new QHBoxLayout;
@@ -306,6 +322,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	QWidget* volume_set = new QWidget(sound);
 	QLabel* volume_label = new QLabel("Volume : ");
 	volume = new QSlider(sound);
+	volume->setToolTip("Master volume for GBE+");
 	volume->setMaximum(128);
 	volume->setMinimum(0);
 	volume->setValue(128);
@@ -328,6 +345,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	input_device_set = new QWidget(controls);
 	QLabel* input_device_label = new QLabel("Input Device : ");
 	input_device = new QComboBox(input_device_set);
+	input_device->setToolTip("Selects the current input device to configure");
 	input_device->addItem("Keyboard");
 
 	QHBoxLayout* input_device_layout = new QHBoxLayout;
@@ -339,7 +357,8 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	//Control settings- Dead-zone
 	dead_zone_set = new QWidget(controls);
 	QLabel* dead_zone_label = new QLabel("Dead Zone : ");
-	dead_zone = new QSlider(sound);
+	dead_zone = new QSlider(controls);
+	dead_zone->setToolTip("Sets the dead-zone for joystick axes.");
 	dead_zone->setMaximum(32767);
 	dead_zone->setMinimum(0);
 	dead_zone->setValue(16000);
@@ -607,6 +626,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	QWidget* enable_netplay_set = new QWidget(netplay);
 	QLabel* enable_netplay_label = new QLabel("Enable netplay");
 	enable_netplay = new QCheckBox(netplay);
+	enable_netplay->setToolTip("Enables network communications for playing online.");
 
 	QHBoxLayout* enable_netplay_layout = new QHBoxLayout;
 	enable_netplay_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -618,6 +638,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	QWidget* hard_sync_set = new QWidget(netplay);
 	QLabel* hard_sync_label = new QLabel("Use hard syncing");
 	hard_sync = new QCheckBox(netplay);
+	hard_sync->setToolTip("Forces GBE+ to pause during netplay to wait for other players.\nCauses slowdowns but necessary to avoid desyncing in some cases.");
 
 	QHBoxLayout* hard_sync_layout = new QHBoxLayout;
 	hard_sync_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
