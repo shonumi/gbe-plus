@@ -280,7 +280,70 @@ void NTR_LCD::render_bg_mode_0(u32 bg_control)
 	//Render Engine A
 	if((bg_control & 0x1000) == 0)
 	{
+		//Grab BG ID
+		u8 bg_id = (bg_control - 0x4001008) >> 1;
 
+		//Abort rendering if this bg is disabled
+		if(!lcd_stat.bg_enable_a[bg_id]) { return; }
+
+		u16 tile_id;
+		u8 pal_id;
+
+		u8 scanline_pixel_counter = 0;
+		u8 current_tile_line = (lcd_stat.current_scanline % 8);
+
+		//Grab BG bit-depth and offset for the current tile line
+		u8 bit_depth = lcd_stat.bg_depth_a[bg_id] ? 64 : 32;
+		u8 line_offset = (bit_depth >> 3) * current_tile_line;
+
+		//Get VRAM bank + tile and map addresses
+		u8 bank_id = (lcd_stat.bg_control_a[bg_id] >> 18) & 0x3;
+		u32 base_addr = lcd_stat.vram_bank_addr[bank_id] + 0x200000;
+
+		u32 tile_addr = base_addr + lcd_stat.bg_base_tile_addr_a[bg_id];
+		u32 map_addr = base_addr + lcd_stat.bg_base_map_addr_a[bg_id];
+
+		//Cycle through all tiles on this scanline
+		for(u32 x = 0; x < 32; x++)
+		{
+			//Determine which map entry to start looking up tiles
+			u16 map_entry = ((lcd_stat.current_scanline >> 3) << 5);
+			map_entry += (scanline_pixel_counter >> 3);
+
+			//Pull map data from current map entry
+			u16 map_data = mem->read_u16(map_addr + (map_entry << 1));
+
+			//Get tile and palette number
+			tile_id = (map_data & 0x1FF);
+			pal_id = (map_data >> 12) & 0xF;
+
+			//Calculate VRAM address to start pulling up tile data
+			u32 tile_data_addr = tile_addr + (tile_id * bit_depth) + line_offset;
+
+			//Read 8 pixels from VRAM and put them in the scanline buffer
+			for(u32 y = 0; y < 8; y++)
+			{
+				//Process 8-bit depth
+				if(bit_depth == 64)
+				{
+					u8 raw_color = mem->read_u8(tile_data_addr++);
+					scanline_buffer_a[scanline_pixel_counter++] = lcd_stat.bg_pal_a[raw_color];
+				}
+
+				//Process 4-bit depth
+				else
+				{
+					u8 raw_color = mem->read_u8(tile_data_addr++);
+					u8 pal_1 = (pal_id * 16) + (raw_color & 0xF);
+					u8 pal_2 = (pal_id * 16) + (raw_color >> 4);
+
+					scanline_buffer_a[scanline_pixel_counter++] = lcd_stat.bg_pal_a[pal_1];
+					scanline_buffer_a[scanline_pixel_counter++] = lcd_stat.bg_pal_a[pal_2];
+
+					y++;
+				}
+			}
+		}
 	}
 
 	//Render Engine B
