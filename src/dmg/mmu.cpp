@@ -1315,13 +1315,30 @@ bool DMG_MMU::read_file(std::string filename)
 	//Read 32KB worth of data from ROM file
 	file.read((char*)ex_mem, 0x8000);
 
+	//Grab MBC type byte
+	u8 mbc_type_byte = memory_map[ROM_MBC];
+	
+	//Grab data from header at last 32KB bank if reading an MMM01 cart
+	if(config::use_mmm01)
+	{
+		s32 pos = (file_size - 0x8000) + ROM_MBC;
+		
+		if (pos > 0)
+		{
+			file.seekg(pos);
+			file.read((char*)(&mbc_type_byte), 1);
+			file.seekg(0x8000);
+		}
+	}	
+
 	//Determine MBC type
-	switch(memory_map[ROM_MBC])
+	switch(mbc_type_byte)
 	{
 		case 0x0: 
 			cart.mbc_type = ROM_ONLY;
 
 			std::cout<<"MMU::Cartridge Type - ROM Only \n";
+			std::cout<<"MMU::ROM Size - " << std::dec << cart.rom_size << "KB\n";
 			break;
 
 		case 0x1:
@@ -1329,7 +1346,7 @@ bool DMG_MMU::read_file(std::string filename)
 
 			std::cout<<"MMU::Cartridge Type - MBC1 \n";
 			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
-			std::cout<<"MMU::ROM Size - " << cart.rom_size << "KB\n";
+			std::cout<<"MMU::ROM Size - " << std::dec << cart.rom_size << "KB\n";
 			break;
 
 		case 0x2: 
@@ -1338,7 +1355,7 @@ bool DMG_MMU::read_file(std::string filename)
 
 			std::cout<<"MMU::Cartridge Type - MBC1 + RAM \n";
 			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
-			std::cout<<"MMU::ROM Size - " << cart.rom_size << "KB\n";
+			std::cout<<"MMU::ROM Size - " << std::dec << cart.rom_size << "KB\n";
 			break;
 
 		case 0x3:
@@ -1348,7 +1365,7 @@ bool DMG_MMU::read_file(std::string filename)
 
 			std::cout<<"MMU::Cartridge Type - MBC1 + RAM + Battery \n";
 			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
-			std::cout<<"MMU::ROM Size - " << cart.rom_size << "KB\n";
+			std::cout<<"MMU::ROM Size - " << std::dec << cart.rom_size << "KB\n";
 			break;
 
 		case 0x5:
@@ -1357,7 +1374,7 @@ bool DMG_MMU::read_file(std::string filename)
 
 			std::cout<<"MMU::Cartridge Type - MBC2 \n";
 			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
-			std::cout<<"MMU::ROM Size - " << cart.rom_size << "KB\n";
+			std::cout<<"MMU::ROM Size - " << std::dec << cart.rom_size << "KB\n";
 			break;
 
 		case 0x6:
@@ -1367,7 +1384,7 @@ bool DMG_MMU::read_file(std::string filename)
 
 			std::cout<<"MMU::Cartridge Type - MBC2 + Battery\n";
 			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
-			std::cout<<"MMU::ROM Size - " << cart.rom_size << "KB\n";
+			std::cout<<"MMU::ROM Size - " << std::dec << cart.rom_size << "KB\n";
 			break;
 
 		case 0x8:
@@ -1376,7 +1393,7 @@ bool DMG_MMU::read_file(std::string filename)
 
 			std::cout<<"MMU::Cartridge Type - ROM + RAM\n";
 			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
-			std::cout<<"MMU::ROM Size - " << cart.rom_size << "KB\n";
+			std::cout<<"MMU::ROM Size - " << std::dec << cart.rom_size << "KB\n";
 			break;
 
 		case 0x9:
@@ -1386,7 +1403,7 @@ bool DMG_MMU::read_file(std::string filename)
 
 			std::cout<<"MMU::Cartridge Type - ROM + RAM + Battery\n";
 			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
-			std::cout<<"MMU::ROM Size - " << cart.rom_size << "KB\n";
+			std::cout<<"MMU::ROM Size - " << std::dec << cart.rom_size << "KB\n";
 			break;
 
 		case 0xB:
@@ -1415,7 +1432,7 @@ bool DMG_MMU::read_file(std::string filename)
 
 			std::cout<<"MMU::Cartridge Type - MBC3 + RAM + Battery + Timer\n";
 			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
-			std::cout<<"MMU::ROM Size - " << cart.rom_size << "KB\n";
+			std::cout<<"MMU::ROM Size - " << std::dec << cart.rom_size << "KB\n";
 
 			grab_time();
 
@@ -1426,7 +1443,7 @@ bool DMG_MMU::read_file(std::string filename)
 
 			std::cout<<"MMU::Cartridge Type - MBC3\n";
 			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
-			std::cout<<"MMU::ROM Size - " << cart.rom_size << "KB\n";
+			std::cout<<"MMU::ROM Size - " << std::dec << cart.rom_size << "KB\n";
 			break;
 
 		case 0x12:
@@ -1435,7 +1452,7 @@ bool DMG_MMU::read_file(std::string filename)
 
 			std::cout<<"MMU::Cartridge Type - MBC3 + RAM\n";
 			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
-			std::cout<<"MMU::ROM Size - " << cart.rom_size << "KB\n";
+			std::cout<<"MMU::ROM Size - " << std::dec << cart.rom_size << "KB\n";
 			break;
 
 		case 0x13:
@@ -1445,7 +1462,7 @@ bool DMG_MMU::read_file(std::string filename)
 
 			std::cout<<"MMU::Cartridge Type - MBC3 + RAM + Battery\n";
 			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
-			std::cout<<"MMU::ROM Size - " << cart.rom_size << "KB\n";
+			std::cout<<"MMU::ROM Size - " << std::dec << cart.rom_size << "KB\n";
 			break;
 
 		case 0x19:
@@ -1453,7 +1470,7 @@ bool DMG_MMU::read_file(std::string filename)
 
 			std::cout<<"MMU::Cartridge Type - MBC5\n";
 			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
-			std::cout<<"MMU::ROM Size - " << cart.rom_size << "KB\n";
+			std::cout<<"MMU::ROM Size - " << std::dec << cart.rom_size << "KB\n";
 			break;
 
 		case 0x1A:
@@ -1462,7 +1479,7 @@ bool DMG_MMU::read_file(std::string filename)
 
 			std::cout<<"MMU::Cartridge Type - MBC5 + RAM\n";
 			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
-			std::cout<<"MMU::ROM Size - " << cart.rom_size << "KB\n";
+			std::cout<<"MMU::ROM Size - " << std::dec << cart.rom_size << "KB\n";
 			break;
 
 		case 0x1B:
@@ -1472,7 +1489,7 @@ bool DMG_MMU::read_file(std::string filename)
 
 			std::cout<<"MMU::Cartridge Type - MBC5 + RAM + Battery\n";
 			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
-			std::cout<<"MMU::ROM Size - " << cart.rom_size << "KB\n";
+			std::cout<<"MMU::ROM Size - " << std::dec << cart.rom_size << "KB\n";
 			break;
 
 		case 0x1C:
@@ -1481,7 +1498,7 @@ bool DMG_MMU::read_file(std::string filename)
 
 			std::cout<<"MMU::Cartridge Type - MBC5 + Rumble\n";
 			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
-			std::cout<<"MMU::ROM Size - " << cart.rom_size << "KB\n";
+			std::cout<<"MMU::ROM Size - " << std::dec << cart.rom_size << "KB\n";
 			break;
 			
 		case 0x1D:
@@ -1491,7 +1508,7 @@ bool DMG_MMU::read_file(std::string filename)
 
 			std::cout<<"MMU::Cartridge Type - MBC5 + RAM + Rumble\n";
 			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
-			std::cout<<"MMU::ROM Size - " << cart.rom_size << "KB\n";
+			std::cout<<"MMU::ROM Size - " << std::dec << cart.rom_size << "KB\n";
 			break;
 
 		case 0x1E:
@@ -1502,7 +1519,7 @@ bool DMG_MMU::read_file(std::string filename)
 
 			std::cout<<"MMU::Cartridge Type - MBC5 + RAM + Battery + Rumble\n";
 			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
-			std::cout<<"MMU::ROM Size - " << cart.rom_size << "KB\n";
+			std::cout<<"MMU::ROM Size - " << std::dec << cart.rom_size << "KB\n";
 			break;
 
 		case 0x22:
@@ -1512,7 +1529,7 @@ bool DMG_MMU::read_file(std::string filename)
 
 			std::cout<<"MMU::Cartridge Type - MBC7\n";
 			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
-			std::cout<<"MMU::ROM Size - " << cart.rom_size << "KB\n";
+			std::cout<<"MMU::ROM Size - " << std::dec << cart.rom_size << "KB\n";
 			break;
 
 		case 0xFC:
@@ -1522,7 +1539,7 @@ bool DMG_MMU::read_file(std::string filename)
 
 			std::cout<<"MMU::Cartridge Type - Gameboy Camera\n";
 			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
-			std::cout<<"MMU::ROM Size - " << cart.rom_size << "KB\n";
+			std::cout<<"MMU::ROM Size - " << std::dec << cart.rom_size << "KB\n";
 			break;
 
 		case 0xFD:
@@ -1544,7 +1561,7 @@ bool DMG_MMU::read_file(std::string filename)
 
 			std::cout<<"MMU::Cartridge Type - Hudson HuC-1 + RAM + Battery\n";
 			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
-			std::cout<<"MMU::ROM Size - " << cart.rom_size << "KB\n";
+			std::cout<<"MMU::ROM Size - " << std::dec << cart.rom_size << "KB\n";
 			break;
 
 		default:

@@ -84,6 +84,7 @@ namespace config
 	bool pause_emu = false;
 	bool use_bios = false;
 	bool use_multicart = false;
+	bool use_mmm01 = false;
 	u32 sio_device = 0;
 	bool use_opengl = false;
 	bool turbo = false;

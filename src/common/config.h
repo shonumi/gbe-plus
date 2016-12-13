@@ -63,6 +63,7 @@ namespace config
 	extern bool pause_emu;
 	extern bool use_bios;
 	extern bool use_multicart;
+	extern bool use_mmm01;
 	extern u32 sio_device;	
 	extern bool use_opengl;
 	extern bool use_debugger;
