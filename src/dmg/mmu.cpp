@@ -1240,6 +1240,10 @@ u8 DMG_MMU::mbc_read(u16 address)
 			return huc1_read(address);
 			break;
 
+		case MMM01:
+			return mmm01_read(address);
+			break;
+
 		case GB_CAMERA:
 			return cam_read(address);
 			break;
@@ -1273,6 +1277,10 @@ void DMG_MMU::mbc_write(u16 address, u8 value)
 
 		case HUC1:
 			huc1_write(address, value);
+			break;
+
+		case MMM01:
+			mmm01_write(address, value);
 			break;
 
 		case GB_CAMERA:
@@ -1407,20 +1415,24 @@ bool DMG_MMU::read_file(std::string filename)
 			break;
 
 		case 0xB:
+			cart.mbc_type = MMM01;
+
 			std::cout<<"MMU::Cartridge Type - ROM + MMM01\n";
-			std::cout<<"MMU::MBC type currently unsupported \n";
-			return false;
 			break;
 
 		case 0xC:
+			cart.mbc_type = MMM01;
+			cart.ram = true;
+
 			std::cout<<"MMU::Cartridge Type - ROM + MMM01 + SRAM\n";
-			std::cout<<"MMU::MBC type currently unsupported \n";
-			return false;
 			break;
 
 		case 0xD:
+			cart.mbc_type = MMM01;
+			cart.ram = true;
+			cart.battery = true;
+
 			std::cout<<"MMU::Cartridge Type - ROM + MMM01 + SRAM + Battery\n";
-			std::cout<<"MMU::MBC type currently unsupported \n";
 			return false;
 			break;
 

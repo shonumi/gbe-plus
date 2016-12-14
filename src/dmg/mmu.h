@@ -38,6 +38,7 @@ class DMG_MMU
 		MBC5,
 		MBC7,
 		HUC1,
+		MMM01,
 		GB_CAMERA,
 	};
 
@@ -154,6 +155,9 @@ class DMG_MMU
 	void huc1_write(u16 address, u8 value);
 	u8 huc1_read(u16 address);
 
+	void mmm01_write(u16 address, u8 value);
+	u8 mmm01_read(u16 address);
+
 	void cam_write(u16 address, u8 value);
 	u8 cam_read(u16 address);
 	bool cam_load_snapshot(std::string filename);
@@ -189,6 +193,3 @@ class DMG_MMU
 };
 
 #endif // GB_MMU
-	
-
-
