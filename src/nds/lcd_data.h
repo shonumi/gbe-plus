@@ -19,10 +19,15 @@
 struct ntr_lcd_data
 {
 	u16 current_scanline;
-	u16 lyc;
+
+	u16 lyc_a;
+	u16 lyc_b;
 
 	u32 display_control_a;
 	u32 display_control_b;
+
+	u16 display_stat_a;
+	u16 display_stat_b;
 	
 	u8 bg_mode_a;
 	u8 bg_mode_b;
@@ -68,9 +73,13 @@ struct ntr_lcd_data
 	u32 bg_pal_b[256];
 	u16 raw_bg_pal_b[256];
 
-	bool vblank_irq_enable;
-	bool hblank_irq_enable;
-	bool vcount_irq_enable;
+	bool vblank_irq_enable_a;
+	bool hblank_irq_enable_a;
+	bool vcount_irq_enable_a;
+
+	bool vblank_irq_enable_b;
+	bool hblank_irq_enable_b;
+	bool vcount_irq_enable_b;
 
 	bool bg_pal_update_a;
 	std::vector<bool> bg_pal_update_list_a;

@@ -116,7 +116,7 @@ void NTR_MMU::reset()
 
 /****** Read byte from memory ******/
 u8 NTR_MMU::read_u8(u32 address)
-{	
+{
 	switch(address)
 	{
 		case NDS_KEYINPUT:
@@ -144,6 +144,18 @@ u8 NTR_MMU::read_u8(u32 address)
 
 	//Check for unused memory first
 	else if(address >= 0x10000000) { return 0; std::cout<<"Out of bounds read : 0x" << std::hex << address << "\n"; return 0; }
+
+	//Check for reading DISPSTAT
+	else if((address & ~0x1) == NDS_DISPSTAT)
+	{
+		u8 addr_shift = (address & 0x1) << 3;
+
+		//Return NDS9 DISPSTAT
+		if(access_mode) { return ((lcd_stat->display_stat_a >> addr_shift) & 0xFF); }
+		
+		//Return NDS7 DISPSTAT
+		else { return ((lcd_stat->display_stat_b >> addr_shift) & 0xFF); }
+	}
 
 	//Check for reading IME
 	else if((address & ~0x3) == NDS_IME)
@@ -412,26 +424,52 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 		//Display Status
 		case NDS_DISPSTAT:
-			{
-				u8 read_only_bits = (memory_map[NDS_DISPSTAT] & 0x7);
-				
-				memory_map[address] = (value & ~0x7);
-				memory_map[address] |= read_only_bits;
+			if(access_mode)
+			{	
+				lcd_stat->display_stat_a &= ~0xF8;
+				lcd_stat->display_stat_a |= (value & ~0x7);
 
-				lcd_stat->vblank_irq_enable = (value & 0x8) ? true : false;
-				lcd_stat->hblank_irq_enable = (value & 0x10) ? true : false;
-				lcd_stat->vcount_irq_enable = (value & 0x20) ? true : false;
+				lcd_stat->vblank_irq_enable_a = (value & 0x8) ? true : false;
+				lcd_stat->hblank_irq_enable_a = (value & 0x10) ? true : false;
+				lcd_stat->vcount_irq_enable_a = (value & 0x20) ? true : false;
 
 				//MSB of LYC is Bit 7 of DISPSTAT
-				lcd_stat->lyc = (value & 0x80) ? (memory_map[NDS_DISPSTAT+1] | 0x100) : memory_map[NDS_DISPSTAT+1];
+				lcd_stat->lyc_a = (lcd_stat->display_stat_a >> 7) & 0x1FF;
+			}
+
+			else
+			{	
+				lcd_stat->display_stat_b &= ~0xF8;
+				lcd_stat->display_stat_b |= (value & ~0x7);
+
+				lcd_stat->vblank_irq_enable_b = (value & 0x8) ? true : false;
+				lcd_stat->hblank_irq_enable_b = (value & 0x10) ? true : false;
+				lcd_stat->vcount_irq_enable_b = (value & 0x20) ? true : false;
+
+				//MSB of LYC is Bit 7 of DISPSTAT
+				lcd_stat->lyc_b = (lcd_stat->display_stat_b >> 7) & 0x1FF;
 			}
  
 			break;
 
 		//Display Status - Lower 8 bits of LYC
 		case NDS_DISPSTAT+1:
-			memory_map[address] = value;
-			lcd_stat->lyc = (memory_map[NDS_DISPSTAT] & 0x80) ? (memory_map[NDS_DISPSTAT+1] | 0x100) : memory_map[NDS_DISPSTAT+1];
+			if(access_mode)
+			{
+				lcd_stat->display_stat_a &= 0xFF;
+				lcd_stat->display_stat_a |= (value << 8);
+
+				lcd_stat->lyc_a = (lcd_stat->display_stat_a >> 7) & 0x1FF;
+			}
+
+			else
+			{
+				lcd_stat->display_stat_b &= 0xFF;
+				lcd_stat->display_stat_b |= (value << 8);
+
+				lcd_stat->lyc_b = (lcd_stat->display_stat_b >> 7) & 0x1FF;
+			}
+
 			break;
 
 		//Vertical-Line Count (Writable, unlike the GBA)

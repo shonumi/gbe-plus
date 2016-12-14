@@ -53,8 +53,10 @@ void NTR_LCD::reset()
 	fps_time = 0;
 
 	lcd_stat.current_scanline = 0;
-	lcd_stat.lyc = 0;
 	scanline_pixel_counter = 0;
+
+	lcd_stat.lyc_a = 0;
+	lcd_stat.lyc_b = 0;
 
 	screen_buffer.resize(0x18000, 0);
 	scanline_buffer_a.resize(0x100, 0);
@@ -69,9 +71,19 @@ void NTR_LCD::reset()
 	lcd_stat.display_mode_a = 0;
 	lcd_stat.display_mode_b = 0;
 
+	lcd_stat.display_stat_a = 0;
+
 	lcd_stat.bg_mode_a = 0;
 	lcd_stat.bg_mode_b = 0;
 	lcd_stat.hblank_interval_free = false;
+
+	lcd_stat.vblank_irq_enable_a = false;
+	lcd_stat.hblank_irq_enable_a = false;
+	lcd_stat.vcount_irq_enable_a = false;
+
+	lcd_stat.vblank_irq_enable_b = false;
+	lcd_stat.hblank_irq_enable_b = false;
+	lcd_stat.vcount_irq_enable_b = false;
 
 	for(int x = 0; x < 4; x++)
 	{
@@ -541,11 +553,6 @@ void NTR_LCD::update()
 /****** Run LCD for one cycle ******/
 void NTR_LCD::step()
 {
-	//TODO - Not sure if disabling the display acts like the DMG/GBC where everything shuts down (nothing is clocked, no IRQs)
-	//For now, just going to assume that is the case.
-	//TODO - Test this on real HW.
-	//if((lcd_stat.display_mode_a == 0) && (lcd_stat.display_mode_b == 0)) { return; }
-
 	lcd_clock++;
 
 	//Mode 0 - Scanline rendering
@@ -557,7 +564,8 @@ void NTR_LCD::step()
 			lcd_mode = 0;
 
 			//Reset VBlank, HBlank flag in DISPSTAT
-			mem->memory_map[NDS_DISPSTAT] &= ~0x3;
+			lcd_stat.display_stat_a &= ~0x3;
+			lcd_stat.display_stat_b &= ~0x3;
 			
 			lcd_stat.current_scanline++;
 			if(lcd_stat.current_scanline == 263) { lcd_stat.current_scanline = 0; }
@@ -578,7 +586,8 @@ void NTR_LCD::step()
 			lcd_mode = 1;
 
 			//Set HBlank flag in DISPSTAT
-			mem->memory_map[NDS_DISPSTAT] |= 0x2;
+			lcd_stat.display_stat_a |= 0x2;
+			lcd_stat.display_stat_b |= 0x2;
 
 			//Update 2D engine palettes
 			if((lcd_stat.bg_pal_update_a || lcd_stat.bg_pal_update_b)) { update_palettes(); }
@@ -606,17 +615,16 @@ void NTR_LCD::step()
 			lcd_mode = 2;
 
 			//Set VBlank flag in DISPSTAT
-			mem->memory_map[NDS_DISPSTAT] |= 0x1;
+			lcd_stat.display_stat_a |= 0x1;
+			lcd_stat.display_stat_b |= 0x1;
 
 			//Reset HBlank flag in DISPSTAT
-			mem->memory_map[NDS_DISPSTAT] &= ~0x2;
+			lcd_stat.display_stat_a &= ~0x2;
+			lcd_stat.display_stat_b &= ~0x2;
 
 			//Trigger VBlank IRQ
-			if(lcd_stat.vblank_irq_enable)
-			{
-				mem->nds9_if |= 0x1;
-				mem->nds7_if |= 0x1;
-			}
+			if(lcd_stat.vblank_irq_enable_a) { mem->nds9_if |= 0x1; }
+			if(lcd_stat.vblank_irq_enable_b) { mem->nds7_if |= 0x1; }
 
 			//Increment scanline count
 			lcd_stat.current_scanline++;
@@ -701,23 +709,35 @@ void NTR_LCD::step()
 /****** Compare VCOUNT to LYC ******/
 void NTR_LCD::scanline_compare()
 {
-	//Raise VCOUNT interrupt
-	if(lcd_stat.current_scanline == lcd_stat.lyc)
+	//Raise VCOUNT interrupt - Engine A
+	if(lcd_stat.current_scanline == lcd_stat.lyc_a)
 	{
 		//Check to see if the VCOUNT IRQ is enabled in DISPSTAT
-		if(lcd_stat.vcount_irq_enable) 
-		{
-			mem->nds9_if |= 0x4;
-			mem->nds7_if |= 0x4;
-		}
+		if(lcd_stat.vcount_irq_enable_a) { mem->nds9_if |= 0x4; }
 
 		//Toggle VCOUNT flag ON
-		mem->memory_map[NDS_DISPSTAT] |= 0x4;
+		lcd_stat.display_stat_a |= 0x4;
 	}
 
 	else
 	{
 		//Toggle VCOUNT flag OFF
-		mem->memory_map[NDS_DISPSTAT] &= ~0x4;
+		lcd_stat.display_stat_a &= ~0x4;
+	}
+
+	//Raise VCOUNT interrupt - Engine B
+	if(lcd_stat.current_scanline == lcd_stat.lyc_b)
+	{
+		//Check to see if the VCOUNT IRQ is enabled in DISPSTAT
+		if(lcd_stat.vcount_irq_enable_b) { mem->nds7_if |= 0x4; }
+
+		//Toggle VCOUNT flag ON
+		lcd_stat.display_stat_b |= 0x4;
+	}
+
+	else
+	{
+		//Toggle VCOUNT flag OFF
+		lcd_stat.display_stat_b &= ~0x4;
 	}
 }
