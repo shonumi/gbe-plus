@@ -1320,24 +1320,35 @@ bool DMG_MMU::read_file(std::string filename)
 
 	ex_mem = &memory_map[0];
 
-	//Read 32KB worth of data from ROM file
-	file.read((char*)ex_mem, 0x8000);
-
-	//Grab MBC type byte
-	u8 mbc_type_byte = memory_map[ROM_MBC];
-	
-	//Grab data from header at last 32KB bank if reading an MMM01 cart
+	//Read MMM01 cart - Bank 0 is last 32KB of ROM
 	if(config::use_mmm01)
 	{
-		s32 pos = (file_size - 0x8000) + ROM_MBC;
+		s32 pos = (file_size - 0x8000);
 		
 		if (pos > 0)
 		{
+			//Read the last 32KB and put it as Bank 0
 			file.seekg(pos);
-			file.read((char*)(&mbc_type_byte), 1);
-			file.seekg(0x8000);
+			file.read((char*)ex_mem, 0x8000);
+			file.seekg(0, file.beg);
 		}
-	}	
+
+		else
+		{
+			std::cout<<"MMU::Error - MMM01 cart file size is too small (less than < 32KB)\n";
+			return false;
+		}
+	}
+
+	//Read every other MBC - Bank 0 is 1st 32KB of ROM
+	else
+	{
+		//Read 32KB worth of data from ROM file
+		file.read((char*)ex_mem, 0x8000);
+	}
+
+	//Grab MBC type byte
+	u8 mbc_type_byte = memory_map[ROM_MBC];
 
 	//Determine MBC type
 	switch(mbc_type_byte)
@@ -1418,6 +1429,8 @@ bool DMG_MMU::read_file(std::string filename)
 			cart.mbc_type = MMM01;
 
 			std::cout<<"MMU::Cartridge Type - ROM + MMM01\n";
+			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
+			std::cout<<"MMU::ROM Size - " << std::dec << cart.rom_size << "KB\n";
 			break;
 
 		case 0xC:
@@ -1425,6 +1438,8 @@ bool DMG_MMU::read_file(std::string filename)
 			cart.ram = true;
 
 			std::cout<<"MMU::Cartridge Type - ROM + MMM01 + SRAM\n";
+			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
+			std::cout<<"MMU::ROM Size - " << std::dec << cart.rom_size << "KB\n";
 			break;
 
 		case 0xD:
@@ -1433,7 +1448,8 @@ bool DMG_MMU::read_file(std::string filename)
 			cart.battery = true;
 
 			std::cout<<"MMU::Cartridge Type - ROM + MMM01 + SRAM + Battery\n";
-			return false;
+			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
+			std::cout<<"MMU::ROM Size - " << std::dec << cart.rom_size << "KB\n";
 			break;
 
 		case 0x10:
@@ -1599,7 +1615,7 @@ bool DMG_MMU::read_file(std::string filename)
 	if(cart.mbc_type != ROM_ONLY)
 	{
 		//Use a file positioner
-		u32 file_pos = 0x8000;
+		u32 file_pos = (config::use_mmm01) ? 0x0 : 0x8000;
 		u8 bank_count = 0;
 
 		while(file_pos < (cart.rom_size * 1024))
