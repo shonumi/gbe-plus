@@ -527,7 +527,18 @@ bool parse_cli_args()
 			else if((config::cli_args[x] == "-f") || (config::cli_args[x] == "--fullscreen")) { config::flags |= SDL_WINDOW_FULLSCREEN_DESKTOP; } 
 
 			//Use multicart mode if applicable for a given ROM
-			else if(config::cli_args[x] == "--multicart") { config::use_multicart = true; }
+			else if(config::cli_args[x] == "--multicart")
+			{
+				config::use_multicart = true;
+				config::use_mmm01 = false;
+			}
+
+			//Use MMM01 mode if applicable for a given ROM
+			else if(config::cli_args[x] == "--mmm01")
+			{
+				config::use_multicart = false;
+				config::use_mmm01 = true;
+			}
 
 			//Use OpenGL for screen drawing
 			else if(config::cli_args[x] == "--opengl") { config::use_opengl = true; }
@@ -573,7 +584,8 @@ bool parse_cli_args()
 				std::cout<<"GBE+ Command Line Options:\n";
 				std::cout<<"-b [FILE], --bios [FILE] \t\t Load and use BIOS file\n";
 				std::cout<<"-d, --debug \t\t\t\t Start the command-line debugger\n";
-				std::cout<<"--multicart \t\t\t\t Use multicart mode if applicable\n";
+				std::cout<<"--multicart \t\t\t\t Use MBC1M multicart mode if applicable\n";
+				std::cout<<"--mmm01 \t\t\t\t Use MMM01 multicart mode if applicable\n";
 				std::cout<<"--opengl \t\t\t\t Use OpenGL for screen drawing and scaling\n";
 				std::cout<<"--cheats \t\t\t\t Use Gameshark or Game Genie cheats\n";
 				std::cout<<"--patch \t\t\t\t Use a patch file for the ROM\n";

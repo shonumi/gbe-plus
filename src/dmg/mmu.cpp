@@ -57,7 +57,7 @@ void DMG_MMU::reset()
 	cart.mbc_type = ROM_ONLY;
 	cart.battery = false;
 	cart.ram = false;
-	cart.multicart = config::use_multicart;
+	cart.multicart = config::use_multicart | config::use_mmm01;
 	cart.rumble = false;
 
 	cart.rtc = false;
@@ -1615,7 +1615,7 @@ bool DMG_MMU::read_file(std::string filename)
 	if(cart.mbc_type != ROM_ONLY)
 	{
 		//Use a file positioner
-		u32 file_pos = (config::use_mmm01) ? 0x0 : 0x8000;
+		u32 file_pos = 0x8000;
 		u8 bank_count = 0;
 
 		while(file_pos < (cart.rom_size * 1024))
@@ -2245,4 +2245,3 @@ void DMG_MMU::set_apu_data(dmg_apu_data* ex_apu_stat) { apu_stat = ex_apu_stat; 
 
 /****** Points the MMU to an sio_data structure (FROM SIO ITSELF) ******/
 void DMG_MMU::set_sio_data(dmg_sio_data* ex_sio_stat) { sio_stat = ex_sio_stat; }
-

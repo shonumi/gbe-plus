@@ -38,7 +38,7 @@ void DMG_MMU::mmm01_write(u16 address, u8 value)
 		if(bank_mode == 0)
 		{
 			rom_bank &= 0xFF;
-			rom_bank |= (value << 8);
+			rom_bank |= ((value & 0x1F) << 8);
 		}
 
 		//For convenience (save state compatibility) lower 8-bits is ROM bank
@@ -74,7 +74,7 @@ u8 DMG_MMU::mmm01_read(u16 address)
 	}
 
 	//Read using ROM Banking - Bank 1
-	if((address >= 0x4000) && (address <= 0x7FFF))
+	else if((address >= 0x4000) && (address <= 0x7FFF))
 	{
 		//Read normally if ROM mode has not been set
 		if(bank_mode == 0) { return memory_map[address]; }
