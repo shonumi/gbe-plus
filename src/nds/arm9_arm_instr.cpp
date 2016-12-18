@@ -1008,7 +1008,6 @@ void NTR_ARM9::halfword_signed_transfer(u32 current_arm_instruction)
 void NTR_ARM9::block_data_transfer(u32 current_arm_instruction)
 {
 	//TODO - Clock cycles
-	//TODO - Handle PSR bit
 	//TODO - Handle empty RList
 
 	//Grab Pre-Post bit - Bit 24
@@ -1035,9 +1034,16 @@ void NTR_ARM9::block_data_transfer(u32 current_arm_instruction)
 	//Warnings
 	if(base_reg == 15) { std::cout<<"CPU::ARM9::Warning - ARM.11 R15 used as Base Register \n"; }
 
+	//Force USR mode if PSR bit is set
+	cpu_modes temp_mode = current_cpu_mode;
+	if(psr) { current_cpu_mode = USR; }
+
 	u32 base_addr = get_reg(base_reg);
 	u32 old_base = base_addr;
+
 	u8 transfer_reg = 0xFF;
+	u8 last_reg = 0xFF;
+	u8 list_size = 0xFF;
 
 	//Find out the first register in the Register List
 	for(int x = 0; x < 16; x++)
@@ -1050,6 +1056,17 @@ void NTR_ARM9::block_data_transfer(u32 current_arm_instruction)
 		}
 	}
 
+	//Find out last register in Register List + Register List size
+	for(int x = 0; x < 16; x++)
+	{
+		if(r_list & (1 << x))
+		{
+			transfer_reg = x;
+			x = 0xFF;
+			break;
+		}
+	}
+	
 	//Load-Store with an ascending stack order, Up-Down = 1
 	if((up_down == 1) && (r_list != 0))
 	{
@@ -1063,14 +1080,22 @@ void NTR_ARM9::block_data_transfer(u32 current_arm_instruction)
 				//Store registers
 				if(load_store == 0) 
 				{
-					if((x == transfer_reg) && (base_reg == transfer_reg)) { mem->write_u32(base_addr, old_base); }
+					//If Base Register is included in the Register List, store the old base address
+					if((x == base_reg) && (write_back == 1)) { mem->write_u32(base_addr, old_base); }
+
+					//Otherwise store the register normally
 					else { mem->write_u32(base_addr, get_reg(x)); }
 				}
 			
 				//Load registers
 				else 
 				{
-					if((x == transfer_reg) && (base_reg == transfer_reg)) { write_back = 0; }
+					//If Base Register is included in the Register List, writeback only if it's the only item OR not the last item
+					if((x == base_reg) && (write_back == 1))
+					{
+						if((list_size != 1) && (x == last_reg)) { write_back = 0; }
+					}
+
 					set_reg(x, mem->read_u32(base_addr));
 					if(x == 15) { needs_flush = true; } 
 				}
@@ -1096,15 +1121,23 @@ void NTR_ARM9::block_data_transfer(u32 current_arm_instruction)
 
 				//Store registers
 				if(load_store == 0) 
-				{ 
-					if((x == transfer_reg) && (base_reg == transfer_reg)) { mem->write_u32(base_addr, old_base); }
+				{
+					//If Base Register is included in the Register List, store the old base address
+					if((x == base_reg) && (write_back == 1)) { mem->write_u32(base_addr, old_base); }
+
+					//Otherwise store the register normally
 					else { mem->write_u32(base_addr, get_reg(x)); }
 				}
 			
 				//Load registers
 				else 
 				{
-					if((x == transfer_reg) && (base_reg == transfer_reg)) { write_back = 0; }
+					//If Base Register is included in the Register List, writeback only if it's the only item OR not the last item
+					if((x == base_reg) && (write_back == 1))
+					{
+						if((list_size != 1) && (x == last_reg)) { write_back = 0; }
+					}
+					
 					set_reg(x, mem->read_u32(base_addr));
 					if(x == 15) { needs_flush = true; } 
 				}
@@ -1121,6 +1154,9 @@ void NTR_ARM9::block_data_transfer(u32 current_arm_instruction)
 	//Special case, empty RList
 	//Store PC, add or sub 0x40 to base address
 	else { std::cout<<"Empty RList not implemented, too lazy atm :p\n"; }
+
+	//Restore CPU mode if PSR bit is set
+	if(psr) { current_cpu_mode = temp_mode; }
 }
 		
 /****** ARM.12 - Single Data Swap ******/
