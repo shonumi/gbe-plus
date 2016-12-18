@@ -1997,16 +1997,22 @@ void DMG_LCD::step(int cpu_clock)
 					lcd_stat.current_scanline++;
 
 					//By line 153, LCD has actually reached the top of the screen again
-					//It will sit at Line 0 for 456 before entering Mode 2 properly
-					//Line 0 STAT-LYC IRQs should be triggered here
+					//LY will read 153 for only a few cycles, then go to 0 for the rest of the scanline
+					//Line 153 and Line 0 STAT-LYC IRQs should be triggered here
 					if(lcd_stat.current_scanline == 153)
 					{
+						//Do a scanline compare for Line 153 now
+						mem->memory_map[REG_LY] = lcd_stat.current_scanline;
+						scanline_compare();
+
+						//Set LY to 0, also trigger Line 0 STAT-LYC IRQ if necessary
+						//Technically this should fire 8 cycles into the scanline
 						lcd_stat.current_scanline = 0;
 						mem->memory_map[REG_LY] = lcd_stat.current_scanline;
 						scanline_compare();
 					}
 
-					//After sitting on Line 0 for 456 cycles, reset LCD clock, scanline count
+					//After Line 153 reset LCD clock, scanline count
 					else if(lcd_stat.current_scanline == 1) 
 					{
 						lcd_stat.lcd_clock -= 70224;

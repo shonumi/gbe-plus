@@ -908,6 +908,21 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		lcd_stat->current_scanline = 0;
 	}
 
+	//LYC
+	else if(address == REG_LYC)
+	{
+		memory_map[REG_LYC] = value;
+
+		//Perform LY-LYC compare immediately
+		if(memory_map[REG_LY] == memory_map[REG_LYC]) 
+		{
+			memory_map[REG_STAT] |= 0x4; 
+			if(memory_map[REG_STAT] & 0x40) { memory_map[IF_FLAG] |= 2; }
+		}
+
+		else { memory_map[REG_STAT] &= ~0x4; }
+	}
+
 	//LCDC
 	else if(address == REG_LCDC)
 	{
