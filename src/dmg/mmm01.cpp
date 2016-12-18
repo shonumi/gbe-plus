@@ -56,7 +56,7 @@ void DMG_MMU::mmm01_write(u16 address, u8 value)
 	}
 }
 
-/****** Performs read operations specific to the MBC1 ******/
+/****** Performs read operations specific to the MMM01 ******/
 u8 DMG_MMU::mmm01_read(u16 address)
 {
 	//Read using ROM Banking - Bank 0

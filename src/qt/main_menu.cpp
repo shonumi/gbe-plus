@@ -463,9 +463,13 @@ void main_menu::boot_game()
 
 	else { config::use_cheats = false; }
 
-	//Check multicart status
-	if(settings->multicart->isChecked()) { config::use_multicart = true; }
+	//Check multicart status - MBC1M
+	if(settings->multicart->currentIndex() == 1) { config::use_multicart = true; }
 	else { config::use_multicart = false; }
+
+	//Check multicart status - MMM01
+	if(settings->multicart->currentIndex() == 2) { config::use_mmm01 = true; }
+	else { config::use_mmm01 = false; }
 
 	//Check rumble status
 	if(settings->rumble_on->isChecked()) { config::use_haptics = true; }

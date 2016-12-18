@@ -70,16 +70,19 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	bios_layout->addWidget(bios_label);
 	bios_set->setLayout(bios_layout);
 
-	//General settings - Emulate multicarts
+	//General settings - Emulate multicarts (MBC1M)
 	QWidget* multicart_set = new QWidget(general);
-	QLabel* multicart_label = new QLabel("Emulate multicart ROMs (MBC1M)", multicart_set);
-	multicart = new QCheckBox(multicart_set);
-	multicart->setToolTip("Forcibly emulates MBC1 games as MBC1M variants. \nUse this option for games like Mortal Kombat I & II, or Bomberman Collection.");
+	QLabel* multicart_label = new QLabel("Multicart ROM Type : ", multicart_set);
+	multicart = new QComboBox(multicart_set);
+	multicart->setToolTip("Emulates various multicart setups");
+	multicart->addItem("None");
+	multicart->addItem("MBC1M");
+	multicart->addItem("MMM01");
 
 	QHBoxLayout* multicart_layout = new QHBoxLayout;
 	multicart_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-	multicart_layout->addWidget(multicart);
 	multicart_layout->addWidget(multicart_label);
+	multicart_layout->addWidget(multicart);
 	multicart_set->setLayout(multicart_layout);
 
 	//General settings - Use cheats
@@ -138,9 +141,9 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	gen_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	gen_layout->addWidget(sys_type_set);
 	gen_layout->addWidget(sio_set);
+	gen_layout->addWidget(multicart_set);
 	gen_layout->addWidget(bios_set);
 	gen_layout->addWidget(cheats_set);
-	gen_layout->addWidget(multicart_set);
 	gen_layout->addWidget(patch_set);
 	gen_layout->addWidget(rtc_set);
 	general->setLayout(gen_layout);

@@ -36,7 +36,7 @@ class gen_settings : public QDialog
 	//General tab widgets
 	QComboBox* sys_type;
 	QCheckBox* bios;
-	QCheckBox* multicart;
+	QComboBox* multicart;
 	QCheckBox* cheats;
 	QPushButton* edit_cheats;
 	QComboBox* sio_dev;
