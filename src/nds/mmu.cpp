@@ -128,6 +128,7 @@ u8 NTR_MMU::read_u8(u32 address)
 			break;
 
 		case NDS_EXTKEYIN:
+			//std::cout<<"KEY READ\n";
 			return (g_pad->ext_key_input & 0xFF);
 			break;
 
@@ -344,8 +345,6 @@ u8 NTR_MMU::read_u8(u32 address)
 		//TODO - This really probably return the same as other unused IO
 		if((nds7_spi.cnt & 0x8000) == 0) { return 0; }
 
-		std::cout<<"SPIDATA READ\n";
-
 		//Return SPIDATA
 		u8 addr_shift = (address & 0x1) << 3;
 		return ((nds7_spi.data >> addr_shift) & 0xFF);
@@ -363,6 +362,32 @@ u16 NTR_MMU::read_u16(u32 address)
 /****** Read 4 bytes from memory ******/
 u32 NTR_MMU::read_u32(u32 address)
 {
+	//Misaligned word read
+	if(address & 0x3)
+	{
+		//Align by word, ROR value by offset
+		u8 offset = (address & 0x3);
+		address &= ~0x3;
+
+		switch(offset)
+		{
+			//ROR 8
+			case 0x1:
+				return ((read_u8(address+2) << 24) | (read_u8(address+1) << 16) | (read_u8(address) << 8) | read_u8(address+3));
+				break;
+
+			//ROR 16
+			case 0x2:
+				return ((read_u8(address+1) << 24) | (read_u8(address) << 16) | (read_u8(address+3) << 8) | read_u8(address+2));
+				break;
+
+			//ROR 24
+			case 0x3:
+				return ((read_u8(address) << 24) | (read_u8(address+3) << 16) | (read_u8(address+2) << 8) | read_u8(address+1));
+				break;
+		}
+	}
+
 	return ((read_u8(address+3) << 24) | (read_u8(address+2) << 16) | (read_u8(address+1) << 8) | read_u8(address));
 }
 
@@ -1398,6 +1423,9 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 /****** Write 2 bytes into memory ******/
 void NTR_MMU::write_u16(u32 address, u16 value)
 {
+	//Always force half-word alignment
+	address &= ~0x1;
+
 	write_u8((address+1), ((value >> 8) & 0xFF));
 	write_u8(address, (value & 0xFF));
 }
@@ -1405,6 +1433,9 @@ void NTR_MMU::write_u16(u32 address, u16 value)
 /****** Write 4 bytes into memory ******/
 void NTR_MMU::write_u32(u32 address, u32 value)
 {
+	//Always force word alignment
+	address &= ~0x3;
+
 	write_u8((address+3), ((value >> 24) & 0xFF));
 	write_u8((address+2), ((value >> 16) & 0xFF));
 	write_u8((address+1), ((value >> 8) & 0xFF));
@@ -1644,18 +1675,18 @@ void NTR_MMU::process_spi_bus()
 	{
 		//Power Management
 		case 0:
-			std::cout<<"MMU::Power Management write -> 0x" << nds7_spi.data << "\n";
+			//std::cout<<"MMU::Power Management write -> 0x" << nds7_spi.data << "\n";
 			break;
 
 		//Firmware
 		case 1:
-			std::cout<<"MMU::Firmware write -> 0x" << nds7_spi.data << "\n";
+			//std::cout<<"MMU::Firmware write -> 0x" << nds7_spi.data << "\n";
 			process_firmware();
 			break;
 
 		//Touchscreen
 		case 2:
-			std::cout<<"MMU::Touchscreen write -> 0x" << nds7_spi.data << "\n";
+			//std::cout<<"MMU::Touchscreen write -> 0x" << nds7_spi.data << "\n";
 			nds7_spi.data = 0xFF;
 			break;
 
