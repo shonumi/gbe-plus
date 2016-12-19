@@ -992,7 +992,6 @@ void ARM7::halfword_signed_transfer(u32 current_arm_instruction)
 void ARM7::block_data_transfer(u32 current_arm_instruction)
 {
 	//TODO - Clock cycles
-	//TODO - Handle PSR bit
 	//TODO - Handle empty RList
 
 	//Grab Pre-Post bit - Bit 24
@@ -1018,6 +1017,10 @@ void ARM7::block_data_transfer(u32 current_arm_instruction)
 
 	//Warnings
 	if(base_reg == 15) { std::cout<<"CPU::Warning - ARM.11 R15 used as Base Register \n"; }
+
+	//Force USR mode if PSR bit is set
+	cpu_modes temp_mode = current_cpu_mode;
+	if(psr) { current_cpu_mode = USR; }
 
 	u32 base_addr = get_reg(base_reg);
 	u32 old_base = base_addr;
@@ -1105,6 +1108,10 @@ void ARM7::block_data_transfer(u32 current_arm_instruction)
 	//Special case, empty RList
 	//Store PC, add or sub 0x40 to base address
 	else { std::cout<<"Empty RList not implemented, too lazy atm :p\n"; }
+
+
+	//Restore CPU mode if PSR bit is set
+	if(psr) { current_cpu_mode = temp_mode; }
 }
 		
 /****** ARM.12 - Single Data Swap ******/
