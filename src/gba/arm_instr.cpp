@@ -1106,8 +1106,26 @@ void ARM7::block_data_transfer(u32 current_arm_instruction)
 	}
 
 	//Special case, empty RList
-	//Store PC, add or sub 0x40 to base address
-	else { std::cout<<"Empty RList not implemented, too lazy atm :p\n"; }
+	else
+	{
+		//Load R15
+		if(load_store == 0){ mem->write_u32(base_addr, reg.r15); }
+		
+		//Store R15
+		else
+		{
+			reg.r15 = mem->read_u32(base_addr);
+			needs_flush = true;
+		}
+
+		//Add 0x40 to base address if ascending stack, writeback into base register
+		if(up_down == 1) { set_reg(base_reg, (base_addr + 0x40)); }
+
+		//Subtract 0x40 from base address if descending stack, writeback into base register
+		else { set_reg(base_reg, (base_addr - 0x40)); }
+
+		std::cout<<"CPU::Warning - ARM.11 Instruction uses empty register list \n";
+	}
 
 
 	//Restore CPU mode if PSR bit is set
