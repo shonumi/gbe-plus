@@ -163,6 +163,7 @@ class ARM7
 
 	bool running;
 	bool needs_flush;
+	bool needs_reset;
 	bool in_interrupt;
 	bool sleep;
 
@@ -285,6 +286,7 @@ class ARM7
 	void swi_objaffineset();
 	void swi_bitunpack();
 	void swi_midikey2freq();
+	void swi_hardreset();
 };
 		
 #endif // GBA_CPU

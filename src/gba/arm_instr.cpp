@@ -992,7 +992,6 @@ void ARM7::halfword_signed_transfer(u32 current_arm_instruction)
 void ARM7::block_data_transfer(u32 current_arm_instruction)
 {
 	//TODO - Clock cycles
-	//TODO - Handle empty RList
 
 	//Grab Pre-Post bit - Bit 24
 	u8 pre_post = (current_arm_instruction & 0x1000000) ? 1 : 0;

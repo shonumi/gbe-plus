@@ -268,7 +268,8 @@ void ARM7::process_swi(u32 comment)
 
 		//HardReset
 		case 0x26:
-			std::cout<<"SWI::Hard Reset (not implemented yet) \n";
+			std::cout<<"SWI::Hard Reset \n";
+			swi_hardreset();
 			break;
 
 		//CustomHalt
@@ -1284,3 +1285,7 @@ void ARM7::swi_midikey2freq()
 	temp_frequency = pow(2.0, temp_frequency/12.0);
 	set_reg(0, frequency/temp_frequency);
 }
+
+/****** HLE implementation of HardReset ******/
+void ARM7::swi_hardreset() { needs_reset = true; }
+	

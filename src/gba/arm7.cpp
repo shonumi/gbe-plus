@@ -42,6 +42,7 @@ void ARM7::reset()
 	running = false;
 	in_interrupt = false;
 	sleep = false;
+	needs_reset = false;
 
 	swi_vblank_wait = false;
 

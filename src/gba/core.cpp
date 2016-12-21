@@ -76,6 +76,9 @@ void AGB_core::stop()
 	//Handle CPU Sleep mode
 	if(core_cpu.sleep) { sleep(); }
 
+	//Handle Hard Reset
+	else if(core_cpu.needs_reset) { reset(); }
+
 	//Or stop completely
 	else
 	{
