@@ -12,7 +12,7 @@
 
 #include "arm7.h"
 
-s16 sine_lut[256] = 
+u16 sine_lut[256] = 
 {
   0x0000, 0x0192, 0x0323, 0x04B5, 0x0645, 0x07D5, 0x0964, 0x0AF1,
   0x0C7C, 0x0E05, 0x0F8C, 0x1111, 0x1294, 0x1413, 0x158F, 0x1708,
@@ -1198,8 +1198,8 @@ void ARM7::swi_bgaffineset()
 		u16 theta = mem->read_u16(src_addr); src_addr += 4;
 		theta >>= 8;
 
-  		s32 cos_angle = sine_lut[(theta+0x40)&255];
-    		s32 sin_angle = sine_lut[theta];
+  		s32 cos_angle = (s16)sine_lut[(theta+0x40)&255];
+    		s32 sin_angle = (s16)sine_lut[theta];
 
 		//Calculate differences in X-Y coordinates for this line and the next
 		s16 diff_x1 = (scale_x * cos_angle) >> 14;
@@ -1250,8 +1250,8 @@ void ARM7::swi_objaffineset()
 		u16 theta = mem->read_u16(src_addr); src_addr += 4;
 		theta >>= 8;
 
-  		s32 cos_angle = sine_lut[(theta+0x40)&255];
-    		s32 sin_angle = sine_lut[theta];
+  		s32 cos_angle = (s16)sine_lut[(theta+0x40)&255];
+    		s32 sin_angle = (s16)sine_lut[theta];
 
 		//Calculate differences in X-Y coordinates for this line and the next
 		s16 diff_x1 = (scale_x * cos_angle) >> 14;
