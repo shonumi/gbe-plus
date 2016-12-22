@@ -2363,6 +2363,8 @@ bool save_ini_file()
 /****** Parse the cheats file ******/
 bool parse_cheats_file()
 {
+	if(config::cheats_path.empty()) { return false; }
+
 	std::ifstream file(config::cheats_path.c_str(), std::ios::in); 
 	std::string input_line = "";
 	std::string line_char = "";
@@ -2491,6 +2493,8 @@ bool parse_cheats_file()
 /****** Saves the cheat file ******/
 bool save_cheats_file()
 {
+	if(config::cheats_path.empty()) { return false; }
+
 	std::ofstream file(config::cheats_path.c_str(), std::ios::out);
 
 	if(!file.is_open())
