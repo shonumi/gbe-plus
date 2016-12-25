@@ -312,6 +312,35 @@ ogl_matrix ortho_matrix(float width, float height, float z_far, float z_near)
 	return output_matrix;
 }
 
+/****** Inverts a 2x2 matrix if applicable ******/
+void ogl_matrix::invert_2x2()
+{
+	//Check matrix size first - Do nothing if this is not a 2x2 matrix
+	if((rows != 2) || (columns != 2)) { return; }
+
+	//Check determinant (AD - BC) - Do nothing if zero
+	float determinant = (data[0][0] * data[1][1]) - (data[1][0] * data[0][1]);
+	determinant = 1.0 / determinant;
+
+	if(determinant == 0) { return; }
+
+	float a = data[0][0];
+	float b = data[1][0];
+	float c = data[0][1];
+	float d = data[1][1];
+
+	data[0][0] = d;
+	data[1][0] = -b;
+	data[0][1] = -c;
+	data[1][0] = a;
+
+	//Multiply matrix values
+	data[0][0] *= determinant;
+	data[1][0] *= determinant;
+	data[0][1] *= determinant;
+	data[1][0] *= determinant;
+}
+
 /****** Loads and compiles GLSL vertex and fragment shaders ******/
 GLuint ogl_load_shader(std::string vertex_shader_file, std::string fragment_shader_file, u32 &ext_data_usage)
 {
