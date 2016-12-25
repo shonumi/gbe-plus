@@ -316,13 +316,13 @@ ogl_matrix ortho_matrix(float width, float height, float z_far, float z_near)
 void ogl_matrix::invert_2x2()
 {
 	//Check matrix size first - Do nothing if this is not a 2x2 matrix
-	if((rows != 2) || (columns != 2)) { return; }
+	if((rows != 2) || (columns != 2)) { return false; }
 
 	//Check determinant (AD - BC) - Do nothing if zero
 	float determinant = (data[0][0] * data[1][1]) - (data[1][0] * data[0][1]);
 	determinant = 1.0 / determinant;
 
-	if(determinant == 0) { return; }
+	if(determinant == 0) { return false; }
 
 	float a = data[0][0];
 	float b = data[1][0];
@@ -332,13 +332,26 @@ void ogl_matrix::invert_2x2()
 	data[0][0] = d;
 	data[1][0] = -b;
 	data[0][1] = -c;
-	data[1][0] = a;
+	data[1][1] = a;
 
 	//Multiply matrix values
 	data[0][0] *= determinant;
 	data[1][0] *= determinant;
 	data[0][1] *= determinant;
-	data[1][0] *= determinant;
+	data[1][1] *= determinant;
+}
+
+/****** Clears all of the matrix data (sets everything to zero) ******/
+void ogl_matrix::clear()
+{
+	//This does not delete the matrix, just the data inside
+	for(u32 y = 0; y < rows; y++)
+	{
+		for(u32 x = 0; x < columns; x++)
+		{
+			data[x][y] = 0;
+		}
+	}
 }
 
 /****** Loads and compiles GLSL vertex and fragment shaders ******/

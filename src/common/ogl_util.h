@@ -58,10 +58,15 @@ class ogl_matrix
 
 	//Matrix-Matrix multiplication
 	ogl_matrix operator* (const ogl_matrix &input_matrix);
-	
+
+	//Matrix 2x2 Inversion
+	bool invert_2x2();	
+
 	//Access matrix data
 	std::vector<float> operator[](u32 index) const;
 	std::vector<float> &operator[](u32 index);
+
+	void clear();
 
 	u32 rows;
 	u32 columns;
