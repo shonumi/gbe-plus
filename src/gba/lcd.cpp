@@ -688,8 +688,8 @@ bool AGB_LCD::render_bg_mode_1(u32 bg_control)
 	u16 bg_pixel_size = bg_tile_size << 3;
 
 	//Calculate new X-Y coordinates from scaling+rotation
-	double new_x = lcd_stat.bg_params[0].x_ref + (lcd_stat.bg_params[0].dx * scanline_pixel_counter) + (lcd_stat.bg_params[0].dmx * current_scanline);
-	double new_y = lcd_stat.bg_params[0].y_ref + (lcd_stat.bg_params[0].dy * scanline_pixel_counter) + (lcd_stat.bg_params[0].dmy * current_scanline);
+	double new_x = lcd_stat.bg_params[scale_rot_id].x_ref + (lcd_stat.bg_params[scale_rot_id].dx * scanline_pixel_counter) + (lcd_stat.bg_params[scale_rot_id].dmx * current_scanline);
+	double new_y = lcd_stat.bg_params[scale_rot_id].y_ref + (lcd_stat.bg_params[scale_rot_id].dy * scanline_pixel_counter) + (lcd_stat.bg_params[scale_rot_id].dmy * current_scanline);
 
 	//Clip BG if coordinates overflow and overflow flag is not set
 	if(!lcd_stat.bg_params[0].overflow)
