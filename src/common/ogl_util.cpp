@@ -313,16 +313,16 @@ ogl_matrix ortho_matrix(float width, float height, float z_far, float z_near)
 }
 
 /****** Inverts a 2x2 matrix if applicable ******/
-void ogl_matrix::invert_2x2()
+bool ogl_matrix::invert_2x2()
 {
 	//Check matrix size first - Do nothing if this is not a 2x2 matrix
 	if((rows != 2) || (columns != 2)) { return false; }
 
 	//Check determinant (AD - BC) - Do nothing if zero
 	float determinant = (data[0][0] * data[1][1]) - (data[1][0] * data[0][1]);
-	determinant = 1.0 / determinant;
-
 	if(determinant == 0) { return false; }
+
+	determinant = 1.0 / determinant;
 
 	float a = data[0][0];
 	float b = data[1][0];
@@ -339,6 +339,8 @@ void ogl_matrix::invert_2x2()
 	data[1][0] *= determinant;
 	data[0][1] *= determinant;
 	data[1][1] *= determinant;
+
+	return true;
 }
 
 /****** Clears all of the matrix data (sets everything to zero) ******/
