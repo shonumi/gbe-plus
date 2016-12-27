@@ -715,7 +715,7 @@ bool AGB_LCD::render_bg_mode_1(u32 bg_control)
 	u16 tile_number = ((src_y / 8) * bg_tile_size) + (src_x / 8);
 
 	//Look at the Tile Map #(tile_number), see what Tile # it points to
-	u16 map_entry = mem->read_u16_fast(lcd_stat.bg_base_map_addr[bg_id] + tile_number) & 0xFF;
+	u8 map_entry = mem->memory_map[lcd_stat.bg_base_map_addr[bg_id] + tile_number];
 
 	//Get address of Tile #(map_entry)
 	u32 tile_addr = lcd_stat.bg_base_tile_addr[bg_id] + (map_entry * 64);
