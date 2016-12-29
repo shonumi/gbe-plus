@@ -79,8 +79,14 @@ void AGB_LCD::reset()
 	lcd_stat.obj_win_enable = false;
 	lcd_stat.current_sfx_type = NORMAL;
 
-	lcd_stat.bg_params[0].overflow = false;
-	lcd_stat.bg_params[1].overflow = false;
+	//BG2/3 affine parameters
+	for(int x = 0; x < 2; x++)
+	{
+		lcd_stat.bg_params[x].overflow = false;
+		lcd_stat.bg_params[x].dx = lcd_stat.bg_params[x].dmx = lcd_stat.bg_params[x].dy = lcd_stat.bg_params[x].dmy = 0.0;
+		lcd_stat.bg_params[x].x_ref = lcd_stat.bg_params[x].y_ref = 0.0;
+		lcd_stat.bg_params[x].x_pos = lcd_stat.bg_params[x].y_pos = 0.0;
+	}
 
 	//BG Flip LUT generation
 	for(int x = 0, y = 255; x < 255; x++, y--)
@@ -682,14 +688,38 @@ bool AGB_LCD::render_bg_mode_1(u32 bg_control)
 	u8 bg_id = (bg_control - 0x4000008) >> 1;
 	u8 scale_rot_id = (bg_id == 2) ? 0 : 1;
 
+	//If Line 0, reset X and Y positions
+	if((scanline_pixel_counter == 0) && (current_scanline == 0))
+	{
+		lcd_stat.bg_params[scale_rot_id].x_pos = lcd_stat.bg_params[scale_rot_id].x_ref;
+		lcd_stat.bg_params[scale_rot_id].y_pos = lcd_stat.bg_params[scale_rot_id].y_ref;
+	}
+
+	//If starting any other line, add DMX and DMY to X and Y positions
+	else if((scanline_pixel_counter == 0) && (current_scanline != 0))
+	{
+		lcd_stat.bg_params[scale_rot_id].x_ref += lcd_stat.bg_params[scale_rot_id].dmx;
+		lcd_stat.bg_params[scale_rot_id].y_ref += lcd_stat.bg_params[scale_rot_id].dmy;
+
+		lcd_stat.bg_params[scale_rot_id].x_pos = lcd_stat.bg_params[scale_rot_id].x_ref;
+		lcd_stat.bg_params[scale_rot_id].y_pos = lcd_stat.bg_params[scale_rot_id].y_ref;
+	}
+
+	//If rendering pixels along a given line, add DX and DY
+	else
+	{
+		lcd_stat.bg_params[scale_rot_id].x_pos = lcd_stat.bg_params[scale_rot_id].x_ref + (lcd_stat.bg_params[scale_rot_id].dx * scanline_pixel_counter);
+		lcd_stat.bg_params[scale_rot_id].y_pos = lcd_stat.bg_params[scale_rot_id].y_ref + (lcd_stat.bg_params[scale_rot_id].dy * scanline_pixel_counter);
+	}
+
 	//Get BG size in tiles, pixels
 	//0 - 128x128, 1 - 256x256, 2 - 512x512, 3 - 1024x1024
 	u16 bg_tile_size = (16 << (lcd_stat.bg_control[bg_id] >> 14));
 	u16 bg_pixel_size = bg_tile_size << 3;
 
 	//Calculate new X-Y coordinates from scaling+rotation
-	double new_x = lcd_stat.bg_params[scale_rot_id].x_ref + (lcd_stat.bg_params[scale_rot_id].dx * scanline_pixel_counter) + (lcd_stat.bg_params[scale_rot_id].dmx * current_scanline);
-	double new_y = lcd_stat.bg_params[scale_rot_id].y_ref + (lcd_stat.bg_params[scale_rot_id].dy * scanline_pixel_counter) + (lcd_stat.bg_params[scale_rot_id].dmy * current_scanline);
+	double new_x = lcd_stat.bg_params[scale_rot_id].x_pos;
+	double new_y = lcd_stat.bg_params[scale_rot_id].y_pos;
 
 	//Clip BG if coordinates overflow and overflow flag is not set
 	if(!lcd_stat.bg_params[0].overflow)

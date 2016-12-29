@@ -538,6 +538,9 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 				}
 				else { lcd_stat->bg_params[0].x_ref = (x_raw >> 8) & 0x7FFFF; }
 				if((x_raw & 0xFF) != 0) { lcd_stat->bg_params[0].x_ref += (x_raw & 0xFF) / 256.0; }
+
+				//Set current X position as the new reference point
+				lcd_stat->bg_params[0].x_pos = lcd_stat->bg_params[0].x_ref;
 			}
 
 			break;
@@ -562,6 +565,9 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 				}
 				else { lcd_stat->bg_params[0].y_ref = (y_raw >> 8) & 0x7FFFF; }
 				if((y_raw & 0xFF) != 0) { lcd_stat->bg_params[0].y_ref += (y_raw & 0xFF) / 256.0; }
+
+				//Set current Y position as the new reference point
+				lcd_stat->bg_params[0].y_pos = lcd_stat->bg_params[0].y_ref;
 			}
 
 			break;

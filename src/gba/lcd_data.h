@@ -74,6 +74,7 @@ struct agb_lcd_data
 		//Parameters, X-Y reference
 		double dx, dmx, dy, dmy;
 		double x_ref, y_ref;
+		double x_pos, y_pos;
 
 		bool overflow;
 	} bg_params[2];
