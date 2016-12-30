@@ -688,29 +688,9 @@ bool AGB_LCD::render_bg_mode_1(u32 bg_control)
 	u8 bg_id = (bg_control - 0x4000008) >> 1;
 	u8 scale_rot_id = (bg_id == 2) ? 0 : 1;
 
-	//If Line 0, reset X and Y positions
-	if((scanline_pixel_counter == 0) && (current_scanline == 0))
-	{
-		lcd_stat.bg_params[scale_rot_id].x_pos = lcd_stat.bg_params[scale_rot_id].x_ref;
-		lcd_stat.bg_params[scale_rot_id].y_pos = lcd_stat.bg_params[scale_rot_id].y_ref;
-	}
-
-	//If starting any other line, add DMX and DMY to X and Y positions
-	else if((scanline_pixel_counter == 0) && (current_scanline != 0))
-	{
-		lcd_stat.bg_params[scale_rot_id].x_ref += lcd_stat.bg_params[scale_rot_id].dmx;
-		lcd_stat.bg_params[scale_rot_id].y_ref += lcd_stat.bg_params[scale_rot_id].dmy;
-
-		lcd_stat.bg_params[scale_rot_id].x_pos = lcd_stat.bg_params[scale_rot_id].x_ref;
-		lcd_stat.bg_params[scale_rot_id].y_pos = lcd_stat.bg_params[scale_rot_id].y_ref;
-	}
-
 	//If rendering pixels along a given line, add DX and DY
-	else
-	{
-		lcd_stat.bg_params[scale_rot_id].x_pos = lcd_stat.bg_params[scale_rot_id].x_ref + (lcd_stat.bg_params[scale_rot_id].dx * scanline_pixel_counter);
-		lcd_stat.bg_params[scale_rot_id].y_pos = lcd_stat.bg_params[scale_rot_id].y_ref + (lcd_stat.bg_params[scale_rot_id].dy * scanline_pixel_counter);
-	}
+	lcd_stat.bg_params[scale_rot_id].x_pos = lcd_stat.bg_params[scale_rot_id].x_ref + (lcd_stat.bg_params[scale_rot_id].dx * scanline_pixel_counter);
+	lcd_stat.bg_params[scale_rot_id].y_pos = lcd_stat.bg_params[scale_rot_id].y_ref + (lcd_stat.bg_params[scale_rot_id].dy * scanline_pixel_counter);
 
 	//Get BG size in tiles, pixels
 	//0 - 128x128, 1 - 256x256, 2 - 512x512, 3 - 1024x1024
@@ -1197,6 +1177,31 @@ void AGB_LCD::step()
 
 			lcd_mode = 0; 
 			update_obj_render_list();
+
+			//Update BG affine parameters
+			//If Line 0, reset X and Y positions
+			if(((lcd_stat.bg_mode == 1) ||(lcd_stat.bg_mode == 2)) && (current_scanline == 0))
+			{
+				lcd_stat.bg_params[0].x_pos = lcd_stat.bg_params[0].x_ref;
+				lcd_stat.bg_params[0].y_pos = lcd_stat.bg_params[0].y_ref;
+
+				lcd_stat.bg_params[1].x_pos = lcd_stat.bg_params[1].x_ref;
+				lcd_stat.bg_params[1].y_pos = lcd_stat.bg_params[1].y_ref;
+			}
+
+			//If starting any other line, add DMX and DMY to X and Y positions
+			else if(((lcd_stat.bg_mode == 1) ||(lcd_stat.bg_mode == 2)) && (current_scanline != 0))
+			{
+				lcd_stat.bg_params[0].x_ref += lcd_stat.bg_params[0].dmx;
+				lcd_stat.bg_params[0].y_ref += lcd_stat.bg_params[0].dmy;
+				lcd_stat.bg_params[0].x_pos = lcd_stat.bg_params[0].x_ref;
+				lcd_stat.bg_params[0].y_pos = lcd_stat.bg_params[0].y_ref;
+
+				lcd_stat.bg_params[1].x_ref += lcd_stat.bg_params[1].dmx;
+				lcd_stat.bg_params[1].y_ref += lcd_stat.bg_params[1].dmy;
+				lcd_stat.bg_params[1].x_pos = lcd_stat.bg_params[1].x_ref;
+				lcd_stat.bg_params[1].y_pos = lcd_stat.bg_params[1].y_ref;
+			}
 		}
 
 		//Render scanline data (per-pixel every 4 cycles)
