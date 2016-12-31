@@ -72,9 +72,9 @@ struct agb_lcd_data
 	struct bg_scale_rotate_parameters
 	{
 		//Parameters, X-Y reference
-		double dx, dmx, dy, dmy;
-		double x_ref, y_ref;
-		double x_pos, y_pos;
+		float dx, dmx, dy, dmy;
+		float x_ref, y_ref;
+		float x_pos, y_pos;
 
 		bool overflow;
 	} bg_params[2];

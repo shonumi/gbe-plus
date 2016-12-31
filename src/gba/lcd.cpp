@@ -702,7 +702,7 @@ bool AGB_LCD::render_bg_mode_1(u32 bg_control)
 	double new_y = lcd_stat.bg_params[scale_rot_id].y_pos;
 
 	//Clip BG if coordinates overflow and overflow flag is not set
-	if(!lcd_stat.bg_params[0].overflow)
+	if(!lcd_stat.bg_params[scale_rot_id].overflow)
 	{
 		if((new_x >= bg_pixel_size) || (new_x < 0)) { return false; }
 		if((new_y >= bg_pixel_size) || (new_y < 0)) { return false; }
@@ -1180,17 +1180,27 @@ void AGB_LCD::step()
 
 			//Update BG affine parameters
 			//If Line 0, reset X and Y positions
-			if(((lcd_stat.bg_mode == 1) ||(lcd_stat.bg_mode == 2)) && (current_scanline == 0))
+			if(((lcd_stat.bg_mode == 1) || (lcd_stat.bg_mode == 2)) && (current_scanline == 0))
 			{
+				u32 x_ref = mem->read_u32_fast(BG2X_L);
+				u32 y_ref = mem->read_u32_fast(BG2Y_L);
+				mem->write_u32(BG2X_L, x_ref);
+				mem->write_u32(BG2Y_L, y_ref);
+
 				lcd_stat.bg_params[0].x_pos = lcd_stat.bg_params[0].x_ref;
 				lcd_stat.bg_params[0].y_pos = lcd_stat.bg_params[0].y_ref;
+
+				x_ref = mem->read_u32_fast(BG3X_L);
+				y_ref = mem->read_u32_fast(BG3Y_L);
+				mem->write_u32(BG3X_L, x_ref);
+				mem->write_u32(BG3Y_L, y_ref);
 
 				lcd_stat.bg_params[1].x_pos = lcd_stat.bg_params[1].x_ref;
 				lcd_stat.bg_params[1].y_pos = lcd_stat.bg_params[1].y_ref;
 			}
 
 			//If starting any other line, add DMX and DMY to X and Y positions
-			else if(((lcd_stat.bg_mode == 1) ||(lcd_stat.bg_mode == 2)) && (current_scanline != 0))
+			else if(((lcd_stat.bg_mode == 1) || (lcd_stat.bg_mode == 2)) && (current_scanline != 0))
 			{
 				lcd_stat.bg_params[0].x_ref += lcd_stat.bg_params[0].dmx;
 				lcd_stat.bg_params[0].y_ref += lcd_stat.bg_params[0].dmy;
