@@ -82,10 +82,16 @@ void AGB_LCD::reset()
 	//BG2/3 affine parameters
 	for(int x = 0; x < 2; x++)
 	{
-		lcd_stat.bg_params[x].overflow = false;
-		lcd_stat.bg_params[x].dx = lcd_stat.bg_params[x].dmx = lcd_stat.bg_params[x].dy = lcd_stat.bg_params[x].dmy = 0.0;
-		lcd_stat.bg_params[x].x_ref = lcd_stat.bg_params[x].y_ref = 0.0;
-		lcd_stat.bg_params[x].x_pos = lcd_stat.bg_params[x].y_pos = 0.0;
+		lcd_stat.bg_affine[x].overflow = false;
+		lcd_stat.bg_affine[x].dx = lcd_stat.bg_affine[x].dmx = lcd_stat.bg_affine[x].dy = lcd_stat.bg_affine[x].dmy = 0.0;
+		lcd_stat.bg_affine[x].x_ref = lcd_stat.bg_affine[x].y_ref = 0.0;
+		lcd_stat.bg_affine[x].x_pos = lcd_stat.bg_affine[x].y_pos = 0.0;
+	}
+
+	//OBJ affine parameters
+	for(int x = 0; x < 128; x++)
+	{
+		lcd_stat.obj_affine[x] = 0.0;
 	}
 
 	//BG Flip LUT generation
@@ -198,14 +204,14 @@ void AGB_LCD::update_oam()
 			oam_ptr += 2;
 
 			obj[x].y = (attribute & 0xFF);
-			obj[x].rotate_scale = (attribute & 0x100) ? 1 : 0;
+			obj[x].affine_enable = (attribute & 0x100) ? 1 : 0;
 			obj[x].type = (attribute & 0x200) ? 1 : 0;
 			obj[x].mode = (attribute >> 10) & 0x3;
 			obj[x].mosiac = (attribute >> 12) & 0x1;
 			obj[x].bit_depth = (attribute & 0x2000) ? 8 : 4;
 			obj[x].shape = (attribute >> 14);
 
-			if((obj[x].rotate_scale == 0) && (obj[x].type == 1)) { obj[x].visible = false; }
+			if((obj[x].affine_enable == 0) && (obj[x].type == 1)) { obj[x].visible = false; }
 			else { obj[x].visible = true; }
 
 			//Read and parse Attribute 1
@@ -216,6 +222,8 @@ void AGB_LCD::update_oam()
 			obj[x].h_flip = (attribute & 0x1000) ? true : false;
 			obj[x].v_flip = (attribute & 0x2000) ? true : false;
 			obj[x].size = (attribute >> 14);
+
+			if(obj[x].affine_enable) { obj[x].affine_group = (attribute >> 9) & 0x1F; }
 
 			//Read and parse Attribute 2
 			attribute = mem->read_u16_fast(oam_ptr);
@@ -258,7 +266,7 @@ void AGB_LCD::update_oam()
 			}
 
 			//Set double-size
-			if((obj[x].rotate_scale == 1) && (obj[x].type == 1)) { obj[x].x += (obj[x].width >> 1); obj[x].y += (obj[x].height >> 1); }
+			if((obj[x].affine_enable) && (obj[x].type)) { obj[x].x += (obj[x].width >> 1); obj[x].y += (obj[x].height >> 1); }
 
 			//Precalulate OBJ boundaries
 			obj[x].left = obj[x].x;
@@ -286,13 +294,71 @@ void AGB_LCD::update_oam()
 
 			//Precalculate OBJ base address
 			obj[x].addr = 0x6010000 + (obj[x].tile_number << 5);
+
+			//Read and parse OAM affine attribute
+			attribute = mem->read_u16_fast(oam_ptr - 2);
+			
+			//Only update if this attribute is non-zero
+			if(attribute)
+			{	
+				if(attribute & 0x8000) 
+				{ 
+					u16 temp = ((attribute >> 8) - 1);
+					temp = (~temp & 0xFF);
+					lcd_stat.obj_affine[x] = -1.0 * temp;
+				}
+
+				else { lcd_stat.obj_affine[x] = (attribute >> 8); }
+
+				if((attribute & 0xFF) != 0) { lcd_stat.obj_affine[x] += (attribute & 0xFF) / 256.0; }
+			}
 		}
 
 		else { oam_ptr += 8; }
 	}
 
+	//Update OBJ for affine transformations
+	update_obj_affine_transformation();
+
 	//Update render list for the current scanline
 	update_obj_render_list();
+}
+
+/****** Updates the size and position of OBJs from affine transformation ******/
+void AGB_LCD::update_obj_affine_transformation()
+{
+	s32 a[2];
+	s32 b[2];
+	s32 c[2];
+	s32 d[2];
+	u8 index;
+
+	//Cycle through all OAM entries
+	for(int x = 0; x < 128; x++)
+	{
+		//Determine if affine transformations occur on this OBJ
+		if(obj[x].affine_enable)
+		{
+			index = (obj[x].affine_group << 2);
+
+			//Set up points
+			a[0] = obj[x].x;
+			a[1] = obj[x].y;
+
+			b[0] = obj[x].x + (obj[x].width * lcd_stat.obj_affine[index]);
+			b[1] = obj[x].y + (obj[x].width * lcd_stat.obj_affine[index+2]);
+
+			c[0] = obj[x].x + (obj[x].height * lcd_stat.obj_affine[index+1]);
+			c[1] = obj[x].y + (obj[x].height * lcd_stat.obj_affine[index+3]);
+
+			d[0] = c[0] + (obj[x].width * lcd_stat.obj_affine[index]);
+			d[1] = c[1] + (obj[x].width * lcd_stat.obj_affine[index+2]);
+
+			//Grab width and height
+			obj[x].affine_width = abs(a[0] - b[0]) + abs(a[0] - c[0]);
+			obj[x].affine_height = abs(a[1] - b[1]) + abs(a[1] - d[1]);
+		}
+	}
 }
 
 /****** Updates a list of OBJs to render on the current scanline ******/
@@ -689,8 +755,8 @@ bool AGB_LCD::render_bg_mode_1(u32 bg_control)
 	u8 scale_rot_id = (bg_id == 2) ? 0 : 1;
 
 	//If rendering pixels along a given line, add DX and DY
-	lcd_stat.bg_params[scale_rot_id].x_pos = lcd_stat.bg_params[scale_rot_id].x_ref + (lcd_stat.bg_params[scale_rot_id].dx * scanline_pixel_counter);
-	lcd_stat.bg_params[scale_rot_id].y_pos = lcd_stat.bg_params[scale_rot_id].y_ref + (lcd_stat.bg_params[scale_rot_id].dy * scanline_pixel_counter);
+	lcd_stat.bg_affine[scale_rot_id].x_pos = lcd_stat.bg_affine[scale_rot_id].x_ref + (lcd_stat.bg_affine[scale_rot_id].dx * scanline_pixel_counter);
+	lcd_stat.bg_affine[scale_rot_id].y_pos = lcd_stat.bg_affine[scale_rot_id].y_ref + (lcd_stat.bg_affine[scale_rot_id].dy * scanline_pixel_counter);
 
 	//Get BG size in tiles, pixels
 	//0 - 128x128, 1 - 256x256, 2 - 512x512, 3 - 1024x1024
@@ -698,11 +764,11 @@ bool AGB_LCD::render_bg_mode_1(u32 bg_control)
 	u16 bg_pixel_size = bg_tile_size << 3;
 
 	//Calculate new X-Y coordinates from scaling+rotation
-	double new_x = lcd_stat.bg_params[scale_rot_id].x_pos;
-	double new_y = lcd_stat.bg_params[scale_rot_id].y_pos;
+	double new_x = lcd_stat.bg_affine[scale_rot_id].x_pos;
+	double new_y = lcd_stat.bg_affine[scale_rot_id].y_pos;
 
 	//Clip BG if coordinates overflow and overflow flag is not set
-	if(!lcd_stat.bg_params[scale_rot_id].overflow)
+	if(!lcd_stat.bg_affine[scale_rot_id].overflow)
 	{
 		if((new_x >= bg_pixel_size) || (new_x < 0)) { return false; }
 		if((new_y >= bg_pixel_size) || (new_y < 0)) { return false; }
@@ -1187,30 +1253,30 @@ void AGB_LCD::step()
 				mem->write_u32(BG2X_L, x_ref);
 				mem->write_u32(BG2Y_L, y_ref);
 
-				lcd_stat.bg_params[0].x_pos = lcd_stat.bg_params[0].x_ref;
-				lcd_stat.bg_params[0].y_pos = lcd_stat.bg_params[0].y_ref;
+				lcd_stat.bg_affine[0].x_pos = lcd_stat.bg_affine[0].x_ref;
+				lcd_stat.bg_affine[0].y_pos = lcd_stat.bg_affine[0].y_ref;
 
 				x_ref = mem->read_u32_fast(BG3X_L);
 				y_ref = mem->read_u32_fast(BG3Y_L);
 				mem->write_u32(BG3X_L, x_ref);
 				mem->write_u32(BG3Y_L, y_ref);
 
-				lcd_stat.bg_params[1].x_pos = lcd_stat.bg_params[1].x_ref;
-				lcd_stat.bg_params[1].y_pos = lcd_stat.bg_params[1].y_ref;
+				lcd_stat.bg_affine[1].x_pos = lcd_stat.bg_affine[1].x_ref;
+				lcd_stat.bg_affine[1].y_pos = lcd_stat.bg_affine[1].y_ref;
 			}
 
 			//If starting any other line, add DMX and DMY to X and Y positions
 			else if(((lcd_stat.bg_mode == 1) || (lcd_stat.bg_mode == 2)) && (current_scanline != 0))
 			{
-				lcd_stat.bg_params[0].x_ref += lcd_stat.bg_params[0].dmx;
-				lcd_stat.bg_params[0].y_ref += lcd_stat.bg_params[0].dmy;
-				lcd_stat.bg_params[0].x_pos = lcd_stat.bg_params[0].x_ref;
-				lcd_stat.bg_params[0].y_pos = lcd_stat.bg_params[0].y_ref;
+				lcd_stat.bg_affine[0].x_ref += lcd_stat.bg_affine[0].dmx;
+				lcd_stat.bg_affine[0].y_ref += lcd_stat.bg_affine[0].dmy;
+				lcd_stat.bg_affine[0].x_pos = lcd_stat.bg_affine[0].x_ref;
+				lcd_stat.bg_affine[0].y_pos = lcd_stat.bg_affine[0].y_ref;
 
-				lcd_stat.bg_params[1].x_ref += lcd_stat.bg_params[1].dmx;
-				lcd_stat.bg_params[1].y_ref += lcd_stat.bg_params[1].dmy;
-				lcd_stat.bg_params[1].x_pos = lcd_stat.bg_params[1].x_ref;
-				lcd_stat.bg_params[1].y_pos = lcd_stat.bg_params[1].y_ref;
+				lcd_stat.bg_affine[1].x_ref += lcd_stat.bg_affine[1].dmx;
+				lcd_stat.bg_affine[1].y_ref += lcd_stat.bg_affine[1].dmy;
+				lcd_stat.bg_affine[1].x_pos = lcd_stat.bg_affine[1].x_ref;
+				lcd_stat.bg_affine[1].y_pos = lcd_stat.bg_affine[1].y_ref;
 			}
 		}
 

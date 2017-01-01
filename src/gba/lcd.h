@@ -58,6 +58,7 @@ class AGB_LCD
 
 	void update_oam();
 	void update_palettes();
+	void update_obj_affine_transformation();
 	void update_obj_render_list();
 
 	void opengl_blit();
@@ -90,6 +91,10 @@ class AGB_LCD
 		u8 width;
 		u8 height;
 
+		//Transformed dimensions via affine
+		s32 affine_width;
+		s32 affine_height;
+
 		//Misc properties
 		u32 addr;
 		u16 tile_number;
@@ -98,7 +103,8 @@ class AGB_LCD
 		u8 palette_number;
 		u8 type;
 		u8 mode;
-		u8 rotate_scale;
+		u8 affine_enable;
+		u8 affine_group;
 		bool visible;
 		bool mosiac;
 	} obj[128];

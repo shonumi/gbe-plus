@@ -69,7 +69,7 @@ struct agb_lcd_data
 	u16 bg_num_lut[256][256];
 	u16 screen_offset_lut[512];
 
-	struct bg_scale_rotate_parameters
+	struct bg_affine_parameters
 	{
 		//Parameters, X-Y reference
 		float dx, dmx, dy, dmy;
@@ -77,7 +77,9 @@ struct agb_lcd_data
 		float x_pos, y_pos;
 
 		bool overflow;
-	} bg_params[2];
+	} bg_affine[2];
+
+	float obj_affine[128];
 
 	bool oam_update;
 	std::vector<bool> oam_update_list;
