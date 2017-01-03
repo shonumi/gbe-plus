@@ -331,6 +331,10 @@ void AGB_LCD::update_obj_affine_transformation()
 	s32 b[2];
 	s32 c[2];
 	s32 d[2];
+
+	s32 cx, cy;
+	s32 cw, ch;
+
 	u8 index;
 
 	//Cycle through all OAM entries
@@ -341,22 +345,46 @@ void AGB_LCD::update_obj_affine_transformation()
 		{
 			index = (obj[x].affine_group << 2);
 
+			//Find half width and half height
+			cw = obj[x].width >> 1;
+			ch = obj[x].height >> 1;
+
+			//Find OBJ center
+			cx = obj[x].x + cw;
+			cy = obj[x].y + ch;
+
 			//Set up points
-			a[0] = obj[x].x;
-			a[1] = obj[x].y;
+			a[0] = cx - (cw * lcd_stat.obj_affine[index]) + (ch * lcd_stat.obj_affine[index+1]);
+			a[1] = cy - (ch * lcd_stat.obj_affine[index+3]) + (cw * lcd_stat.obj_affine[index+2]);
 
-			b[0] = obj[x].x + (obj[x].width * lcd_stat.obj_affine[index]);
-			b[1] = obj[x].y + (obj[x].width * lcd_stat.obj_affine[index+2]);
+			b[0] = cx + (cw * lcd_stat.obj_affine[index]) + (ch * lcd_stat.obj_affine[index+1]);
+			b[1] = cy - (ch * lcd_stat.obj_affine[index+3]) + (cw * lcd_stat.obj_affine[index+2]);
 
-			c[0] = obj[x].x + (obj[x].height * lcd_stat.obj_affine[index+1]);
-			c[1] = obj[x].y + (obj[x].height * lcd_stat.obj_affine[index+3]);
+			c[0] = cx - (cw * lcd_stat.obj_affine[index]) - (ch * lcd_stat.obj_affine[index+1]);
+			c[1] = cy + (ch * lcd_stat.obj_affine[index+3]) + (cw * lcd_stat.obj_affine[index+2]);
 
-			d[0] = c[0] + (obj[x].width * lcd_stat.obj_affine[index]);
-			d[1] = c[1] + (obj[x].width * lcd_stat.obj_affine[index+2]);
+			d[0] = cx + (cw * lcd_stat.obj_affine[index]) - (ch * lcd_stat.obj_affine[index+1]);
+			d[1] = cy + (ch * lcd_stat.obj_affine[index+3]) + (cw * lcd_stat.obj_affine[index+2]);
 
 			//Grab width and height
 			obj[x].affine_width = abs(a[0] - b[0]) + abs(a[0] - c[0]);
 			obj[x].affine_height = abs(a[1] - b[1]) + abs(a[1] - d[1]);
+
+			//Find smallest X coordinate
+			obj[x].left = a[0];
+			if(b[0] < obj[x].left) { obj[x].left = b[0]; }
+			if(c[0] < obj[x].left) { obj[x].left = c[0]; }
+			if(d[0] < obj[x].left) { obj[x].left = d[0]; }
+
+			//Find smallest Y coordinate
+			obj[x].top = a[1];
+			if(b[1] < obj[x].top) { obj[x].top = b[1]; }
+			if(c[1] < obj[x].top) { obj[x].top = c[1]; }
+			if(d[1] < obj[x].top) { obj[x].top = d[1]; }
+
+			//Calculate OBJ boundaries
+			obj[x].right = obj[x].left + obj[x].affine_width;
+			obj[x].bottom = obj[x].top + obj[x].affine_height;
 		}
 	}
 }
@@ -473,30 +501,51 @@ bool AGB_LCD::render_sprite_pixel()
 		if((!obj[sprite_id].x_wrap) && ((scanline_pixel_counter < obj[sprite_id].left) || (scanline_pixel_counter > obj[sprite_id].right))) { continue; }
 		else if((obj[sprite_id].x_wrap) && ((scanline_pixel_counter > obj[sprite_id].right) && (scanline_pixel_counter < obj[sprite_id].left))) { continue; }
 
-		//Determine the internal X-Y coordinates of the sprite's pixel
-		sprite_tile_pixel_x = obj[sprite_id].x_wrap ? (scanline_pixel_counter + obj[sprite_id].x_wrap_val) : (scanline_pixel_counter - obj[sprite_id].x);
-		sprite_tile_pixel_y = obj[sprite_id].y_wrap ? (current_scanline + obj[sprite_id].y_wrap_val) : (current_scanline - obj[sprite_id].y);
-
-		//Horizontal flip the internal X coordinate
-		if(obj[sprite_id].h_flip)
+		//Normal sprite rendering
+		if(!obj[sprite_id].affine_enable)
 		{
-			s16 h_flip = sprite_tile_pixel_x;
-			h_flip -= (obj[sprite_id].width - 1);
+			//Determine the internal X-Y coordinates of the sprite's pixel
+			sprite_tile_pixel_x = obj[sprite_id].x_wrap ? (scanline_pixel_counter + obj[sprite_id].x_wrap_val) : (scanline_pixel_counter - obj[sprite_id].x);
+			sprite_tile_pixel_y = obj[sprite_id].y_wrap ? (current_scanline + obj[sprite_id].y_wrap_val) : (current_scanline - obj[sprite_id].y);
 
-			if(h_flip < 0) { h_flip *= -1; }
+			//Horizontal flip the internal X coordinate
+			if(obj[sprite_id].h_flip)
+			{
+				s16 h_flip = sprite_tile_pixel_x;
+				h_flip -= (obj[sprite_id].width - 1);
 
-			sprite_tile_pixel_x = h_flip;
+				if(h_flip < 0) { h_flip *= -1; }
+
+				sprite_tile_pixel_x = h_flip;
+			}
+
+			//Vertical flip the internal Y coordinate
+			if(obj[sprite_id].v_flip)
+			{
+				s16 v_flip = sprite_tile_pixel_y;
+				v_flip -= (obj[sprite_id].height - 1);
+
+				if(v_flip < 0) { v_flip *= -1; }
+
+				sprite_tile_pixel_y = v_flip;
+			}
 		}
 
-		//Vertical flip the internal Y coordinate
-		if(obj[sprite_id].v_flip)
+		//Affine transformation sprite rendering
+		else
 		{
-			s16 v_flip = sprite_tile_pixel_y;
-			v_flip -= (obj[sprite_id].height - 1);
+			u8 index = (obj[sprite_id].affine_group << 2);
+			s16 current_x = scanline_pixel_counter - obj[sprite_id].x;
+			s16 current_y = current_scanline - obj[sprite_id].y;
 
-			if(v_flip < 0) { v_flip *= -1; }
+			s16 new_x = 32 + (lcd_stat.obj_affine[index] * current_x) + (lcd_stat.obj_affine[index+1] * current_y);
+			s16 new_y = 32 + (lcd_stat.obj_affine[index+2] * current_x) + (lcd_stat.obj_affine[index+3] * current_y);
 
-			sprite_tile_pixel_y = v_flip;
+			//If out of bounds for the transformed sprite, abort rendering
+			if((new_x < 0) || (new_y < 0) || (new_x > obj[sprite_id].width) || (new_y > obj[sprite_id].height)) { return false; }
+		
+			sprite_tile_pixel_x = new_x;
+			sprite_tile_pixel_y = new_y;
 		}
 
 		//Handle the mosiac function

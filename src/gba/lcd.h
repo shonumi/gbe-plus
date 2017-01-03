@@ -69,11 +69,11 @@ class AGB_LCD
 		u16 x;
 		u8 y;
 
-		u16 right;
-		u16 left;
+		s16 right;
+		s16 left;
 
-		u8 top;
-		u8 bottom;
+		s16 top;
+		s16 bottom;
 	
 		//Horizonal and vertical flipping options
 		bool h_flip;
