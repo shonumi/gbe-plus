@@ -358,17 +358,17 @@ void AGB_LCD::update_obj_affine_transformation()
 			a[1] = cy - (ch * lcd_stat.obj_affine[index+3]) + (cw * lcd_stat.obj_affine[index+2]);
 
 			b[0] = cx + (cw * lcd_stat.obj_affine[index]) + (ch * lcd_stat.obj_affine[index+1]);
-			b[1] = cy - (ch * lcd_stat.obj_affine[index+3]) + (cw * lcd_stat.obj_affine[index+2]);
+			b[1] = cy - (ch * lcd_stat.obj_affine[index+3]) - (cw * lcd_stat.obj_affine[index+2]);
 
 			c[0] = cx - (cw * lcd_stat.obj_affine[index]) - (ch * lcd_stat.obj_affine[index+1]);
 			c[1] = cy + (ch * lcd_stat.obj_affine[index+3]) + (cw * lcd_stat.obj_affine[index+2]);
 
 			d[0] = cx + (cw * lcd_stat.obj_affine[index]) - (ch * lcd_stat.obj_affine[index+1]);
-			d[1] = cy + (ch * lcd_stat.obj_affine[index+3]) + (cw * lcd_stat.obj_affine[index+2]);
+			d[1] = cy + (ch * lcd_stat.obj_affine[index+3]) - (cw * lcd_stat.obj_affine[index+2]);
 
 			//Grab width and height
 			obj[x].affine_width = abs(a[0] - b[0]) + abs(a[0] - c[0]);
-			obj[x].affine_height = abs(a[1] - b[1]) + abs(a[1] - d[1]);
+			obj[x].affine_height = abs(a[1] - b[1]) + abs(a[1] - c[1]);
 
 			//Find smallest X coordinate
 			obj[x].left = a[0];
@@ -535,11 +535,17 @@ bool AGB_LCD::render_sprite_pixel()
 		else
 		{
 			u8 index = (obj[sprite_id].affine_group << 2);
-			s16 current_x = scanline_pixel_counter - obj[sprite_id].x;
-			s16 current_y = current_scanline - obj[sprite_id].y;
+		
+			s16 cw = obj[sprite_id].width >> 1;
+			s16 ch = obj[sprite_id].height >> 1;
+			s16 cx = (obj[sprite_id].x + (obj[sprite_id].width >> 1));
+			s16 cy = (obj[sprite_id].y + (obj[sprite_id].height >> 1));
 
-			s16 new_x = 32 + (lcd_stat.obj_affine[index] * current_x) + (lcd_stat.obj_affine[index+1] * current_y);
-			s16 new_y = 32 + (lcd_stat.obj_affine[index+2] * current_x) + (lcd_stat.obj_affine[index+3] * current_y);
+			s16 current_x = scanline_pixel_counter - cx;
+			s16 current_y = current_scanline - cy;
+
+			s16 new_x = cw + (lcd_stat.obj_affine[index] * current_x) + (lcd_stat.obj_affine[index+1] * current_y);
+			s16 new_y = ch + (lcd_stat.obj_affine[index+2] * current_x) + (lcd_stat.obj_affine[index+3] * current_y);
 
 			//If out of bounds for the transformed sprite, abort rendering
 			if((new_x < 0) || (new_y < 0) || (new_x > obj[sprite_id].width) || (new_y > obj[sprite_id].height)) { return false; }
