@@ -12,6 +12,7 @@
 #include <cmath>
 
 #include "lcd.h"
+#include "common/ogl_util.h"
 
 /****** LCD Constructor ******/
 AGB_LCD::AGB_LCD()
@@ -337,6 +338,8 @@ void AGB_LCD::update_obj_affine_transformation()
 
 	u8 index;
 
+	ogl_matrix inv_mat(2, 2);
+
 	//Cycle through all OAM entries
 	for(int x = 0; x < 128; x++)
 	{
@@ -344,6 +347,15 @@ void AGB_LCD::update_obj_affine_transformation()
 		if(obj[x].affine_enable)
 		{
 			index = (obj[x].affine_group << 2);
+
+			//Find the inverse transformation matrix
+			inv_mat[0][0] = lcd_stat.obj_affine[index];
+			inv_mat[1][0] = lcd_stat.obj_affine[index+1];
+			inv_mat[0][1] = lcd_stat.obj_affine[index+2];
+			inv_mat[1][1] = lcd_stat.obj_affine[index+3];
+
+			//If the inverse does not exist, clear matrix data, use zeroes
+			if(!inv_mat.invert_2x2()) { inv_mat.clear(); }
 
 			//Find half width and half height
 			cw = obj[x].width >> 1;
@@ -354,17 +366,17 @@ void AGB_LCD::update_obj_affine_transformation()
 			cy = obj[x].y + ch;
 
 			//Set up points
-			a[0] = cx - (cw * lcd_stat.obj_affine[index]) + (ch * lcd_stat.obj_affine[index+1]);
-			a[1] = cy - (ch * lcd_stat.obj_affine[index+3]) + (cw * lcd_stat.obj_affine[index+2]);
+			a[0] = cx + (-cw * inv_mat[0][0]) + (-ch * inv_mat[1][0]);
+			a[1] = cy + (-cw * inv_mat[0][1]) + (-ch * inv_mat[1][1]);
 
-			b[0] = cx + (cw * lcd_stat.obj_affine[index]) + (ch * lcd_stat.obj_affine[index+1]);
-			b[1] = cy - (ch * lcd_stat.obj_affine[index+3]) - (cw * lcd_stat.obj_affine[index+2]);
+			b[0] = cx + (cw * inv_mat[0][0]) + (-ch * inv_mat[1][0]);
+			b[1] = cy + (cw * inv_mat[0][1]) + (-ch * inv_mat[1][1]);
 
-			c[0] = cx - (cw * lcd_stat.obj_affine[index]) - (ch * lcd_stat.obj_affine[index+1]);
-			c[1] = cy + (ch * lcd_stat.obj_affine[index+3]) + (cw * lcd_stat.obj_affine[index+2]);
+			c[0] = cx + (-cw * inv_mat[0][0]) + (ch * inv_mat[1][0]);
+			c[1] = cy + (-cw * inv_mat[0][1]) + (ch * inv_mat[1][1]);
 
-			d[0] = cx + (cw * lcd_stat.obj_affine[index]) - (ch * lcd_stat.obj_affine[index+1]);
-			d[1] = cy + (ch * lcd_stat.obj_affine[index+3]) - (cw * lcd_stat.obj_affine[index+2]);
+			d[0] = cx + (cw * inv_mat[0][0]) + (ch * inv_mat[1][0]);
+			d[1] = cy + (cw * inv_mat[0][1]) + (ch * inv_mat[1][1]);
 
 			//Grab width and height
 			obj[x].affine_width = abs(a[0] - b[0]) + abs(a[0] - c[0]);
@@ -548,7 +560,7 @@ bool AGB_LCD::render_sprite_pixel()
 			s16 new_y = ch + (lcd_stat.obj_affine[index+2] * current_x) + (lcd_stat.obj_affine[index+3] * current_y);
 
 			//If out of bounds for the transformed sprite, abort rendering
-			if((new_x < 0) || (new_y < 0) || (new_x > obj[sprite_id].width) || (new_y > obj[sprite_id].height)) { return false; }
+			if((new_x < 0) || (new_y < 0) || (new_x > obj[sprite_id].width) || (new_y > obj[sprite_id].height)) { break; }
 		
 			sprite_tile_pixel_x = new_x;
 			sprite_tile_pixel_y = new_y;
