@@ -313,6 +313,8 @@ void AGB_LCD::update_oam()
 
 				if((attribute & 0xFF) != 0) { lcd_stat.obj_affine[x] += (attribute & 0xFF) / 256.0; }
 			}
+
+			else { lcd_stat.obj_affine[x] = 0.0; }
 		}
 
 		else { oam_ptr += 8; }
@@ -553,8 +555,8 @@ bool AGB_LCD::render_sprite_pixel()
 		
 			s16 cw = obj[sprite_id].width >> 1;
 			s16 ch = obj[sprite_id].height >> 1;
-			s16 cx = (obj[sprite_id].x + (obj[sprite_id].width >> 1));
-			s16 cy = (obj[sprite_id].y + (obj[sprite_id].height >> 1));
+			s16 cx = obj[sprite_id].x + cw;
+			s16 cy = obj[sprite_id].y + ch;
 
 			s16 current_x = scanline_pixel_counter - cx;
 			s16 current_y = current_scanline - cy;
@@ -563,7 +565,7 @@ bool AGB_LCD::render_sprite_pixel()
 			s16 new_y = ch + (lcd_stat.obj_affine[index+2] * current_x) + (lcd_stat.obj_affine[index+3] * current_y);
 
 			//If out of bounds for the transformed sprite, abort rendering
-			if((new_x < 0) || (new_y < 0) || (new_x > obj[sprite_id].width) || (new_y > obj[sprite_id].height)) { render_obj = false; }
+			if((new_x < 0) || (new_y < 0) || (new_x >= obj[sprite_id].width) || (new_y >= obj[sprite_id].height)) { render_obj = false; }
 		
 			sprite_tile_pixel_x = new_x;
 			sprite_tile_pixel_y = new_y;
