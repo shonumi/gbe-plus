@@ -203,6 +203,18 @@ void NTR_GamePad::process_keyboard(int pad, bool pressed)
 	//Emulate B button release
 	else if((pad == config::ntr_key_b) && (!pressed)) { key_input |= 0x2; }
 
+	//Emulate X button press
+	else if((pad == config::ntr_key_x) && (pressed)) { ext_key_input &= 0x1; }
+
+	//Emulate X button release
+	else if((pad == config::ntr_key_x) && (!pressed)) { ext_key_input |= 0x1; }
+
+	//Emulate Y button press
+	else if((pad == config::ntr_key_y) && (pressed)) { ext_key_input &= 0x2; }
+
+	//Emulate Y button release
+	else if((pad == config::ntr_key_y) && (!pressed)) { ext_key_input |= 0x2; }
+
 	//Emulate Select button press
 	else if((pad == config::ntr_key_select) && (pressed)) { key_input &= ~0x4; }
 
@@ -294,6 +306,18 @@ void NTR_GamePad::process_joystick(int pad, bool pressed)
 
 	//Emulate B button release
 	else if((pad == config::ntr_joy_b) && (!pressed)) { key_input |= 0x2; }
+
+	//Emulate X button press
+	else if((pad == config::ntr_joy_x) && (pressed)) { ext_key_input &= ~0x1; }
+
+	//Emulate X button release
+	else if((pad == config::ntr_joy_x) && (!pressed)) { ext_key_input |= 0x1; }
+
+	//Emulate Y button press
+	else if((pad == config::ntr_joy_y) && (pressed)) { ext_key_input &= ~0x2; }
+
+	//Emulate Y button release
+	else if((pad == config::ntr_joy_y) && (!pressed)) { ext_key_input |= 0x2; }
 
 	//Emulate Select button press
 	else if((pad == config::ntr_joy_select) && (pressed)) { key_input &= ~0x4; }
