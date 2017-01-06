@@ -373,18 +373,15 @@ u32 NTR_MMU::read_u32(u32 address)
 		{
 			//ROR 8
 			case 0x1:
-				return ((read_u8(address+2) << 24) | (read_u8(address+1) << 16) | (read_u8(address) << 8) | read_u8(address+3));
-				break;
+				return ((read_u8(address) << 24) | (read_u8(address+3) << 16) | (read_u8(address+2) << 8) | read_u8(address+1));
 
 			//ROR 16
 			case 0x2:
 				return ((read_u8(address+1) << 24) | (read_u8(address) << 16) | (read_u8(address+3) << 8) | read_u8(address+2));
-				break;
 
 			//ROR 24
 			case 0x3:
-				return ((read_u8(address) << 24) | (read_u8(address+3) << 16) | (read_u8(address+2) << 8) | read_u8(address+1));
-				break;
+				return ((read_u8(address+2) << 24) | (read_u8(address+1) << 16) | (read_u8(address) << 8) | read_u8(address+3));
 		}
 	}
 
