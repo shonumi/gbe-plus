@@ -972,7 +972,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		
 						break;
 
-					//MST 1 - 2D Graphics Engine A and B
+					//MST 1 - 2D Graphics Engine A and B (BG VRAM)
 					case 0x1:
 						switch(bank_id)
 						{
@@ -1001,6 +1001,51 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 								break;
 						}
 							
+						break;
+
+					//MST 2 - 2D Graphics Engine A and B (OBJ VRAM)
+					case 0x2:
+						switch(bank_id)
+						{
+							case 0x0:
+							case 0x1:
+								lcd_stat->vram_bank_addr[bank_id] = 0x6400000 + (0x20000 * (offset & 0x1));
+								break;
+
+							case 0x2:
+							case 0x3:
+								lcd_stat->vram_bank_addr[bank_id] = 0x6000000 + (0x20000 * (offset & 0x1));
+								break;
+
+							case 0x4:
+								lcd_stat->vram_bank_addr[4] = 0x6400000;
+								break;
+
+							case 0x5:
+							case 0x6:
+								lcd_stat->vram_bank_addr[bank_id] = 0x6400000 + (0x4000 * (offset & 0x1)) + (0x10000 * (offset & 0x2));
+								break;
+
+							case 0x8:
+								lcd_stat->vram_bank_addr[8] = 0x6600000;
+								break;
+						}
+
+						break;
+
+					//MST 4
+					case 0x4:
+						switch(bank_id)
+						{
+							case 0x2:
+								lcd_stat->vram_bank_addr[2] = 0x6200000;
+								break;
+
+							case 0x3:
+								lcd_stat->vram_bank_addr[3] = 0x6600000;
+								break;
+						}
+
 						break;
 				}
 			}
