@@ -1346,15 +1346,21 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 		case NDS_DIVCNT:
 		case NDS_DIVCNT+1:
-			memory_map[address] = value;
-			std::cout<<"MMU::NDS_DIVCNT Write\n";
+			if(access_mode)
+			{
+				memory_map[address] = value;
+				std::cout<<"MMU::NDS_DIVCNT Write\n";
+			}
 
 			break;
 
 		case NDS_SQRTCNT:
 		case NDS_SQRTCNT+1:
-			memory_map[address] = value;
-			std::cout<<"MMU::NDS_SQRTCNT Write\n";
+			if(access_mode)
+			{
+				memory_map[address] = value;
+				std::cout<<"MMU::NDS_SQRTCNT Write\n";
+			}
 
 			break;
 
