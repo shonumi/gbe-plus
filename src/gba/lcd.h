@@ -95,6 +95,9 @@ class AGB_LCD
 		s32 affine_width;
 		s32 affine_height;
 
+		s16 cx, cy;
+		s16 cw, ch;
+
 		//Misc properties
 		u32 addr;
 		u16 tile_number;

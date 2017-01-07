@@ -335,9 +335,6 @@ void AGB_LCD::update_obj_affine_transformation()
 	s32 c[2];
 	s32 d[2];
 
-	s32 cx, cy;
-	s32 cw, ch;
-
 	u8 index;
 
 	ogl_matrix inv_mat(2, 2);
@@ -360,25 +357,25 @@ void AGB_LCD::update_obj_affine_transformation()
 			if(!inv_mat.invert_2x2()) { inv_mat.clear(); }
 
 			//Find half width and half height
-			cw = obj[x].width >> 1;
-			ch = obj[x].height >> 1;
+			obj[x].cw = obj[x].width >> 1;
+			obj[x].ch = obj[x].height >> 1;
 
 			//Find OBJ center
-			cx = obj[x].x + cw;
-			cy = obj[x].y + ch;
+			obj[x].cx = obj[x].x + obj[x].cw;
+			obj[x].cy = obj[x].y + obj[x].ch;
 
 			//Set up points
-			a[0] = cx + (-cw * inv_mat[0][0]) + (-ch * inv_mat[1][0]);
-			a[1] = cy + (-cw * inv_mat[0][1]) + (-ch * inv_mat[1][1]);
+			a[0] = obj[x].cx + (-obj[x].cw * inv_mat[0][0]) + (-obj[x].ch * inv_mat[1][0]);
+			a[1] = obj[x].cy + (-obj[x].cw * inv_mat[0][1]) + (-obj[x].ch * inv_mat[1][1]);
 
-			b[0] = cx + (cw * inv_mat[0][0]) + (-ch * inv_mat[1][0]);
-			b[1] = cy + (cw * inv_mat[0][1]) + (-ch * inv_mat[1][1]);
+			b[0] = obj[x].cx + (obj[x].cw * inv_mat[0][0]) + (-obj[x].ch * inv_mat[1][0]);
+			b[1] = obj[x].cy + (obj[x].cw * inv_mat[0][1]) + (-obj[x].ch * inv_mat[1][1]);
 
-			c[0] = cx + (-cw * inv_mat[0][0]) + (ch * inv_mat[1][0]);
-			c[1] = cy + (-cw * inv_mat[0][1]) + (ch * inv_mat[1][1]);
+			c[0] = obj[x].cx + (-obj[x].cw * inv_mat[0][0]) + (obj[x].ch * inv_mat[1][0]);
+			c[1] = obj[x].cy + (-obj[x].cw * inv_mat[0][1]) + (obj[x].ch * inv_mat[1][1]);
 
-			d[0] = cx + (cw * inv_mat[0][0]) + (ch * inv_mat[1][0]);
-			d[1] = cy + (cw * inv_mat[0][1]) + (ch * inv_mat[1][1]);
+			d[0] = obj[x].cx + (obj[x].cw * inv_mat[0][0]) + (obj[x].ch * inv_mat[1][0]);
+			d[1] = obj[x].cy + (obj[x].cw * inv_mat[0][1]) + (obj[x].ch * inv_mat[1][1]);
 
 			//Grab width and height
 			obj[x].affine_width = abs(a[0] - b[0]) + abs(a[0] - c[0]);
@@ -552,17 +549,12 @@ bool AGB_LCD::render_sprite_pixel()
 		else
 		{
 			u8 index = (obj[sprite_id].affine_group << 2);
-		
-			s16 cw = obj[sprite_id].width >> 1;
-			s16 ch = obj[sprite_id].height >> 1;
-			s16 cx = obj[sprite_id].x + cw;
-			s16 cy = obj[sprite_id].y + ch;
 
-			s16 current_x = scanline_pixel_counter - cx;
-			s16 current_y = current_scanline - cy;
+			s16 current_x = scanline_pixel_counter - obj[sprite_id].cx;
+			s16 current_y = current_scanline - obj[sprite_id].cy;
 
-			s16 new_x = cw + (lcd_stat.obj_affine[index] * current_x) + (lcd_stat.obj_affine[index+1] * current_y);
-			s16 new_y = ch + (lcd_stat.obj_affine[index+2] * current_x) + (lcd_stat.obj_affine[index+3] * current_y);
+			s16 new_x = obj[sprite_id].cw + (lcd_stat.obj_affine[index] * current_x) + (lcd_stat.obj_affine[index+1] * current_y);
+			s16 new_y = obj[sprite_id].ch + (lcd_stat.obj_affine[index+2] * current_x) + (lcd_stat.obj_affine[index+3] * current_y);
 
 			//If out of bounds for the transformed sprite, abort rendering
 			if((new_x < 0) || (new_y < 0) || (new_x >= obj[sprite_id].width) || (new_y >= obj[sprite_id].height)) { render_obj = false; }
