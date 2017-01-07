@@ -932,16 +932,76 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			memory_map[address] = value;
 			break;
 
-		//VRAM Bank A Control
+		//VRAM Bank Control A-G
 		case NDS_VRAMCNT_A:
-			memory_map[address] = value;
+		case NDS_VRAMCNT_B:
+		case NDS_VRAMCNT_C:
+		case NDS_VRAMCNT_D:
+		case NDS_VRAMCNT_E:
+		case NDS_VRAMCNT_F:
+		case NDS_VRAMCNT_G:
+		case NDS_VRAMCNT_H:
+		case NDS_VRAMCNT_I:
+			if(access_mode)
 			{
-				u8 offset = (value >> 3) & 0x3;
+				memory_map[address] = value;
 
-				switch(value & 0x3)
+				u8 mst = value & 0x7;
+				u8 offset = (value >> 3) & 0x3;
+				u32 bank_id = (address - 0x4000240); 
+
+				//Bit 2 of MST is unused by banks A, B, H, and I
+				if((bank_id < 2) || (bank_id > 6)) { mst &= 0x3; }
+
+				switch(mst)
 				{
-					case 0x0: lcd_stat->vram_bank_addr[0] = 0x6800000; break;
-					case 0x1: lcd_stat->vram_bank_addr[0] = (0x6000000 + (0x20000 * offset)); break;
+					//MST 0 - LCDC Mode
+					case 0x0:
+						switch(bank_id)
+						{
+							case 0x0: lcd_stat->vram_bank_addr[0] = 0x6800000; break;
+							case 0x1: lcd_stat->vram_bank_addr[1] = 0x6820000; break;
+							case 0x2: lcd_stat->vram_bank_addr[2] = 0x6840000; break;
+							case 0x3: lcd_stat->vram_bank_addr[3] = 0x6860000; break;
+							case 0x4: lcd_stat->vram_bank_addr[4] = 0x6880000; break;
+							case 0x5: lcd_stat->vram_bank_addr[5] = 0x6890000; break;
+							case 0x6: lcd_stat->vram_bank_addr[6] = 0x6894000; break;
+							case 0x7: lcd_stat->vram_bank_addr[7] = 0x6898000; break;
+							case 0x8: lcd_stat->vram_bank_addr[8] = 0x68A0000; break;
+						}
+		
+						break;
+
+					//MST 1 - 2D Graphics Engine A and B
+					case 0x1:
+						switch(bank_id)
+						{
+							case 0x0:
+							case 0x1:
+							case 0x2:
+							case 0x3:
+								lcd_stat->vram_bank_addr[bank_id] = (0x6000000 + (0x20000 * offset));
+								break;
+
+							case 0x4:
+								lcd_stat->vram_bank_addr[4] = 0x6000000;
+								break;
+
+							case 0x5:
+							case 0x6:
+								lcd_stat->vram_bank_addr[bank_id] = 0x6000000 + (0x4000 * (offset & 0x1)) + (0x10000 * (offset & 0x2));
+								break;
+
+							case 0x7:
+								lcd_stat->vram_bank_addr[7] = 0x6200000;
+								break;
+
+							case 0x8:
+								lcd_stat->vram_bank_addr[8] = 0x6208000;
+								break;
+						}
+							
+						break;
 				}
 			}
 

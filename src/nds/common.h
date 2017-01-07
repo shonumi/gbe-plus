@@ -74,6 +74,14 @@ const u32 NDS_BG3CNT_B = 0x400100E;
 
 //Misc Display registers
 const u32 NDS_VRAMCNT_A = 0x4000240;
+const u32 NDS_VRAMCNT_B = 0x4000241;
+const u32 NDS_VRAMCNT_C = 0x4000242;
+const u32 NDS_VRAMCNT_D = 0x4000243;
+const u32 NDS_VRAMCNT_E = 0x4000244;
+const u32 NDS_VRAMCNT_F = 0x4000245;
+const u32 NDS_VRAMCNT_G = 0x4000246;
+const u32 NDS_VRAMCNT_H = 0x4000248;
+const u32 NDS_VRAMCNT_I = 0x4000249;
 
 //Interrupt registers
 const u32 NDS_IME = 0x4000208;
