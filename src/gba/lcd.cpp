@@ -347,15 +347,6 @@ void AGB_LCD::update_obj_affine_transformation()
 		{
 			index = (obj[x].affine_group << 2);
 
-			//Find the inverse transformation matrix
-			inv_mat[0][0] = lcd_stat.obj_affine[index];
-			inv_mat[1][0] = lcd_stat.obj_affine[index+1];
-			inv_mat[0][1] = lcd_stat.obj_affine[index+2];
-			inv_mat[1][1] = lcd_stat.obj_affine[index+3];
-
-			//If the inverse does not exist, clear matrix data, use zeroes
-			if(!inv_mat.invert_2x2()) { inv_mat.clear(); }
-
 			//Find half width and half height
 			obj[x].cw = obj[x].width >> 1;
 			obj[x].ch = obj[x].height >> 1;
@@ -364,38 +355,42 @@ void AGB_LCD::update_obj_affine_transformation()
 			obj[x].cx = obj[x].x + obj[x].cw;
 			obj[x].cy = obj[x].y + obj[x].ch;
 
-			//Set up points
-			a[0] = obj[x].cx + (-obj[x].cw * inv_mat[0][0]) + (-obj[x].ch * inv_mat[1][0]);
-			a[1] = obj[x].cy + (-obj[x].cw * inv_mat[0][1]) + (-obj[x].ch * inv_mat[1][1]);
+			//If double size bit is use previous boundary calculations, otherwise calculate new ones
+			if(obj[x].type)
+			{
+				//Set up points
+				a[0] = obj[x].cx + (-obj[x].cw * inv_mat[0][0]) + (-obj[x].ch * inv_mat[1][0]);
+				a[1] = obj[x].cy + (-obj[x].cw * inv_mat[0][1]) + (-obj[x].ch * inv_mat[1][1]);
 
-			b[0] = obj[x].cx + (obj[x].cw * inv_mat[0][0]) + (-obj[x].ch * inv_mat[1][0]);
-			b[1] = obj[x].cy + (obj[x].cw * inv_mat[0][1]) + (-obj[x].ch * inv_mat[1][1]);
+				b[0] = obj[x].cx + (obj[x].cw * inv_mat[0][0]) + (-obj[x].ch * inv_mat[1][0]);
+				b[1] = obj[x].cy + (obj[x].cw * inv_mat[0][1]) + (-obj[x].ch * inv_mat[1][1]);
 
-			c[0] = obj[x].cx + (-obj[x].cw * inv_mat[0][0]) + (obj[x].ch * inv_mat[1][0]);
-			c[1] = obj[x].cy + (-obj[x].cw * inv_mat[0][1]) + (obj[x].ch * inv_mat[1][1]);
+				c[0] = obj[x].cx + (-obj[x].cw * inv_mat[0][0]) + (obj[x].ch * inv_mat[1][0]);
+				c[1] = obj[x].cy + (-obj[x].cw * inv_mat[0][1]) + (obj[x].ch * inv_mat[1][1]);
 
-			d[0] = obj[x].cx + (obj[x].cw * inv_mat[0][0]) + (obj[x].ch * inv_mat[1][0]);
-			d[1] = obj[x].cy + (obj[x].cw * inv_mat[0][1]) + (obj[x].ch * inv_mat[1][1]);
+				d[0] = obj[x].cx + (obj[x].cw * inv_mat[0][0]) + (obj[x].ch * inv_mat[1][0]);
+				d[1] = obj[x].cy + (obj[x].cw * inv_mat[0][1]) + (obj[x].ch * inv_mat[1][1]);
 
-			//Grab width and height
-			obj[x].affine_width = abs(a[0] - b[0]) + abs(a[0] - c[0]);
-			obj[x].affine_height = abs(a[1] - b[1]) + abs(a[1] - c[1]);
+				//Grab width and height
+				obj[x].affine_width = abs(a[0] - b[0]) + abs(a[0] - c[0]);
+				obj[x].affine_height = abs(a[1] - b[1]) + abs(a[1] - c[1]);
 
-			//Find smallest X coordinate
-			obj[x].left = a[0];
-			if(b[0] < obj[x].left) { obj[x].left = b[0]; }
-			if(c[0] < obj[x].left) { obj[x].left = c[0]; }
-			if(d[0] < obj[x].left) { obj[x].left = d[0]; }
+				//Find smallest X coordinate
+				obj[x].left = a[0];
+				if(b[0] < obj[x].left) { obj[x].left = b[0]; }
+				if(c[0] < obj[x].left) { obj[x].left = c[0]; }
+				if(d[0] < obj[x].left) { obj[x].left = d[0]; }
 
-			//Find smallest Y coordinate
-			obj[x].top = a[1];
-			if(b[1] < obj[x].top) { obj[x].top = b[1]; }
-			if(c[1] < obj[x].top) { obj[x].top = c[1]; }
-			if(d[1] < obj[x].top) { obj[x].top = d[1]; }
+				//Find smallest Y coordinate
+				obj[x].top = a[1];
+				if(b[1] < obj[x].top) { obj[x].top = b[1]; }
+				if(c[1] < obj[x].top) { obj[x].top = c[1]; }
+				if(d[1] < obj[x].top) { obj[x].top = d[1]; }
 
-			//Calculate OBJ boundaries
-			obj[x].right = obj[x].left + obj[x].affine_width;
-			obj[x].bottom = obj[x].top + obj[x].affine_height;
+				//Calculate OBJ boundaries
+				obj[x].right = obj[x].left + obj[x].affine_width;
+				obj[x].bottom = obj[x].top + obj[x].affine_height;
+			}
 		}
 	}
 }
