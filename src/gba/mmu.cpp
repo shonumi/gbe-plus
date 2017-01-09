@@ -974,7 +974,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			}
 
 			apu_stat->channel[0].length_flag = (memory_map[SND1CNT_X+1] & 0x40) ? true : false;
-			apu_stat->channel[0].playing = (memory_map[SND1CNT_X+1] & 0x80) ? true : false;
+			if(memory_map[SND1CNT_X+1] & 0x80) { apu_stat->channel[0].playing = true; }
 
 			if(apu_stat->channel[0].volume == 0) { apu_stat->channel[0].playing = false; }
 
@@ -1055,7 +1055,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			}
 
 			apu_stat->channel[1].length_flag = (memory_map[SND2CNT_H+1] & 0x40) ? true : false;
-			apu_stat->channel[1].playing = (memory_map[SND2CNT_H+1] & 0x80) ? true : false;
+			if(memory_map[SND2CNT_H+1] & 0x80) { apu_stat->channel[1].playing = true; }
 
 			if(apu_stat->channel[1].volume == 0) { apu_stat->channel[1].playing = false; }
 
@@ -1146,7 +1146,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 		case SND4CNT_H+1:
 			memory_map[address] = value;
 			apu_stat->channel[3].length_flag = (memory_map[SND4CNT_H+1] & 0x40) ? true : false;
-			apu_stat->channel[3].playing = (memory_map[SND4CNT_H+1] & 0x80) ? true : false;
+			if(memory_map[SND4CNT_H+1] & 0x80) { apu_stat->channel[3].playing = true; }
 
 			if(apu_stat->channel[3].volume == 0) { apu_stat->channel[3].playing = false; }
 
