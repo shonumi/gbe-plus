@@ -1061,9 +1061,7 @@ void NTR_ARM9::block_data_transfer(u32 current_arm_instruction)
 	{
 		if(r_list & (1 << x))
 		{
-			transfer_reg = x;
-			x = 0xFF;
-			break;
+			last_reg = x;
 		}
 	}
 	
