@@ -12,7 +12,6 @@
 #include <cmath>
 
 #include "lcd.h"
-#include "common/ogl_util.h"
 
 /****** LCD Constructor ******/
 AGB_LCD::AGB_LCD()
@@ -274,7 +273,7 @@ void AGB_LCD::update_oam()
 			obj[x].right = (obj[x].x + obj[x].width - 1) & 0x1FF;
 
 			obj[x].top = obj[x].y;
-			obj[x].bottom = (obj[x].y + obj[x].height - 1);
+			obj[x].bottom = (obj[x].y + obj[x].height - 1) & 0xFF;
 
 			//Precalculate OBJ wrapping
 			if(obj[x].left > obj[x].right) 
@@ -330,66 +329,38 @@ void AGB_LCD::update_oam()
 /****** Updates the size and position of OBJs from affine transformation ******/
 void AGB_LCD::update_obj_affine_transformation()
 {
-	s32 a[2];
-	s32 b[2];
-	s32 c[2];
-	s32 d[2];
-
-	u8 index;
-
-	ogl_matrix inv_mat(2, 2);
-
 	//Cycle through all OAM entries
 	for(int x = 0; x < 128; x++)
 	{
 		//Determine if affine transformations occur on this OBJ
 		if(obj[x].affine_enable)
 		{
-			index = (obj[x].affine_group << 2);
-
 			//Find half width and half height
 			obj[x].cw = obj[x].width >> 1;
 			obj[x].ch = obj[x].height >> 1;
 
 			//Find OBJ center
-			obj[x].cx = obj[x].x + obj[x].cw;
-			obj[x].cy = obj[x].y + obj[x].ch;
+			obj[x].cx = obj[x].x + obj[x].cw - 1;
+			obj[x].cy = obj[x].y + obj[x].ch - 1;
 
-			//If double size bit is use previous boundary calculations, otherwise calculate new ones
+			//If double size bit is unset use previous boundary calculations, otherwise calculate new ones
 			if(obj[x].type)
 			{
-				//Set up points
-				a[0] = obj[x].cx + (-obj[x].cw * inv_mat[0][0]) + (-obj[x].ch * inv_mat[1][0]);
-				a[1] = obj[x].cy + (-obj[x].cw * inv_mat[0][1]) + (-obj[x].ch * inv_mat[1][1]);
+				obj[x].left = obj[x].x - obj[x].cw;
+				obj[x].top = obj[x].y - obj[x].ch;
 
-				b[0] = obj[x].cx + (obj[x].cw * inv_mat[0][0]) + (-obj[x].ch * inv_mat[1][0]);
-				b[1] = obj[x].cy + (obj[x].cw * inv_mat[0][1]) + (-obj[x].ch * inv_mat[1][1]);
+				if(obj[x].left < 0) { obj[x].left += 511; }
+				if(obj[x].top < 0) { obj[x].top += 255; }
 
-				c[0] = obj[x].cx + (-obj[x].cw * inv_mat[0][0]) + (obj[x].ch * inv_mat[1][0]);
-				c[1] = obj[x].cy + (-obj[x].cw * inv_mat[0][1]) + (obj[x].ch * inv_mat[1][1]);
+				obj[x].right = (obj[x].left + (obj[x].width << 1) - 1) & 0x1FF;
+				obj[x].bottom = (obj[x].top + (obj[x].height << 1) - 1) & 0xFF;
 
-				d[0] = obj[x].cx + (obj[x].cw * inv_mat[0][0]) + (obj[x].ch * inv_mat[1][0]);
-				d[1] = obj[x].cy + (obj[x].cw * inv_mat[0][1]) + (obj[x].ch * inv_mat[1][1]);
+				//Precalculate OBJ wrapping
+				if(obj[x].left > obj[x].right) { obj[x].x_wrap = true; }
+				else { obj[x].x_wrap = false; }
 
-				//Grab width and height
-				obj[x].affine_width = abs(a[0] - b[0]) + abs(a[0] - c[0]);
-				obj[x].affine_height = abs(a[1] - b[1]) + abs(a[1] - c[1]);
-
-				//Find smallest X coordinate
-				obj[x].left = a[0];
-				if(b[0] < obj[x].left) { obj[x].left = b[0]; }
-				if(c[0] < obj[x].left) { obj[x].left = c[0]; }
-				if(d[0] < obj[x].left) { obj[x].left = d[0]; }
-
-				//Find smallest Y coordinate
-				obj[x].top = a[1];
-				if(b[1] < obj[x].top) { obj[x].top = b[1]; }
-				if(c[1] < obj[x].top) { obj[x].top = c[1]; }
-				if(d[1] < obj[x].top) { obj[x].top = d[1]; }
-
-				//Calculate OBJ boundaries
-				obj[x].right = obj[x].left + obj[x].affine_width;
-				obj[x].bottom = obj[x].top + obj[x].affine_height;
+				if(obj[x].top > obj[x].bottom) { obj[x].y_wrap = true; }
+				else { obj[x].y_wrap = false; }
 			}
 		}
 	}
@@ -544,9 +515,15 @@ bool AGB_LCD::render_sprite_pixel()
 		else
 		{
 			u8 index = (obj[sprite_id].affine_group << 2);
+			s16 current_x, current_y;
 
-			s16 current_x = scanline_pixel_counter - obj[sprite_id].cx;
-			s16 current_y = current_scanline - obj[sprite_id].cy;
+			//Determine current X position relative to the OBJ center X, account for screen wrapping
+			if((obj[sprite_id].x_wrap) && (scanline_pixel_counter < obj[sprite_id].right)) { current_x = scanline_pixel_counter - (obj[sprite_id].cx - 511); }
+			else { current_x = scanline_pixel_counter - obj[sprite_id].cx; }
+
+			//Determine current Y position relative to the OBJ center Y, account for screen wrapping
+			if((obj[sprite_id].y_wrap) && (current_scanline < obj[sprite_id].bottom)) { current_y = current_scanline - (obj[sprite_id].cy - 255); }
+			else { current_y = current_scanline - obj[sprite_id].cy; }
 
 			s16 new_x = obj[sprite_id].cw + (lcd_stat.obj_affine[index] * current_x) + (lcd_stat.obj_affine[index+1] * current_y);
 			s16 new_y = obj[sprite_id].ch + (lcd_stat.obj_affine[index+2] * current_x) + (lcd_stat.obj_affine[index+3] * current_y);
