@@ -1274,6 +1274,12 @@ void AGB_LCD::step()
 		//Change mode
 		if(lcd_mode != 0) 
 		{
+			//Update OAM
+			if(lcd_stat.oam_update) { update_oam(); }
+
+			//Update palettes
+			if((lcd_stat.bg_pal_update) || (lcd_stat.obj_pal_update)) { update_palettes(); }
+
 			//Toggle HBlank flag OFF
 			mem->memory_map[DISPSTAT] &= ~0x2;
 
@@ -1319,12 +1325,6 @@ void AGB_LCD::step()
 		//Render scanline data (per-pixel every 4 cycles)
 		if((lcd_clock % 4) == 0) 
 		{
-			//Update OAM
-			if(lcd_stat.oam_update) { update_oam(); }
-
-			//Update palettes
-			if((lcd_stat.bg_pal_update) || (lcd_stat.obj_pal_update)) { update_palettes(); }
-
 			render_scanline();
 			if(lcd_stat.current_sfx_type != NORMAL) { apply_sfx(); }
 			scanline_pixel_counter++;
