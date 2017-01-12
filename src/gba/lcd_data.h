@@ -31,7 +31,6 @@ struct agb_lcd_data
 	u32 frame_base;
 	u8 bg_mode;
 	bool hblank_interval_free;
-	bool oam_access;
 
 	u16 bg_offset_x[4];
 	u16 bg_offset_y[4];

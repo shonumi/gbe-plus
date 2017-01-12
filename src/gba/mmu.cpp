@@ -1696,7 +1696,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 	}
 
 	//Trigger OAM update in LCD
-	else if((address >= 0x7000000) && (address <= 0x70003FF) && (lcd_stat->oam_access))
+	else if((address >= 0x7000000) && (address <= 0x70003FF))
 	{
 		lcd_stat->oam_update = true;
 		lcd_stat->oam_update_list[(address & 0x3FF) >> 3] = true;

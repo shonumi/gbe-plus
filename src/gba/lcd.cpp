@@ -69,7 +69,6 @@ void AGB_LCD::reset()
 	lcd_stat.frame_base = 0x6000000;
 	lcd_stat.bg_mode = 0;
 	lcd_stat.hblank_interval_free = false;
-	lcd_stat.oam_access = false;
 
 	lcd_stat.window_x1[0] = lcd_stat.window_x1[1] = 0xFF;
 	lcd_stat.window_y1[0] = lcd_stat.window_y1[1] = 0xFF;
@@ -1272,9 +1271,6 @@ void AGB_LCD::step()
 			scanline_compare();
 		}
 
-		//Disable OAM access
-		lcd_stat.oam_access = false;
-
 		//Change mode
 		if(lcd_mode != 0) 
 		{
@@ -1338,9 +1334,6 @@ void AGB_LCD::step()
 	//Mode 1 - H-Blank
 	else if(((lcd_clock % 1232) > 960) && (lcd_clock < 197120))
 	{
-		//Permit OAM access if HBlank Interval Free flag is set
-		if(lcd_stat.hblank_interval_free) { lcd_stat.oam_access = true; }
-
 		//Change mode
 		if(lcd_mode != 1) 
 		{
@@ -1382,9 +1375,6 @@ void AGB_LCD::step()
 		//Toggle VBlank flag
 		if(current_scanline < 227 ) { mem->memory_map[DISPSTAT] |= 0x1; }
 		else { mem->memory_map[DISPSTAT] &= ~0x1; }
-
-		//Permit OAM write access
-		lcd_stat.oam_access = true;
 
 		//Change mode
 		if(lcd_mode != 2) 
@@ -1532,8 +1522,6 @@ void AGB_LCD::step()
 			scanline_compare();
 		}
 	}
-
-	if(mem->memory_map[DISPCNT] & 0x80) { lcd_stat.oam_access = true; }
 }
 
 /****** Compare VCOUNT to LYC ******/
