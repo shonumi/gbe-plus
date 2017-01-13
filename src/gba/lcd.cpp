@@ -991,8 +991,8 @@ void AGB_LCD::render_scanline()
 		else if(render_bg_pixel(BG0CNT + (bg_id << 1))) { last_bg_priority = bg_id; return; }
 	}
 
-	//Use BG Palette #0, Color #0 as the backdrop
-	scanline_buffer[scanline_pixel_counter] = pal[0][0];
+	//Use BG Palette #0, Color #0 as the backdrop if no BG or OBJ was rendered
+	if(!obj_render) { scanline_buffer[scanline_pixel_counter] = pal[0][0]; }
 }
 
 /****** Applies the GBA's SFX to a pixel ******/
