@@ -853,8 +853,19 @@ bool AGB_LCD::render_bg_mode_1(u32 bg_control)
 /****** Render BG Mode 3 ******/
 bool AGB_LCD::render_bg_mode_3()
 {
+	//If rendering pixels along a given line, add DX and DY
+	lcd_stat.bg_affine[0].x_pos = lcd_stat.bg_affine[0].x_ref + (lcd_stat.bg_affine[0].dx * scanline_pixel_counter);
+	lcd_stat.bg_affine[0].y_pos = lcd_stat.bg_affine[0].y_ref + (lcd_stat.bg_affine[0].dy * scanline_pixel_counter);
+
+	//Clip affine coordinates if out-of-bounds
+	if((lcd_stat.bg_affine[0].x_pos >= 240) || (lcd_stat.bg_affine[0].x_pos < 0)) { return false; }
+	if((lcd_stat.bg_affine[0].y_pos >= 160) || (lcd_stat.bg_affine[0].y_pos < 0)) { return false; }
+
+	u16 src_x = lcd_stat.bg_affine[0].x_pos; 
+	u16 src_y = lcd_stat.bg_affine[0].y_pos;
+
 	//Determine which byte in VRAM to read for color data
-	u16 color_bytes = mem->read_u16_fast(0x6000000 + (current_scanline * 480) + (scanline_pixel_counter * 2));
+	u16 color_bytes = mem->read_u16_fast(0x6000000 + (src_y * 480) + (src_x * 2));
 	last_raw_color = color_bytes;
 
 	//ARGB conversion
@@ -874,8 +885,19 @@ bool AGB_LCD::render_bg_mode_3()
 /****** Render BG Mode 4 ******/
 bool AGB_LCD::render_bg_mode_4()
 {
+	//If rendering pixels along a given line, add DX and DY
+	lcd_stat.bg_affine[0].x_pos = lcd_stat.bg_affine[0].x_ref + (lcd_stat.bg_affine[0].dx * scanline_pixel_counter);
+	lcd_stat.bg_affine[0].y_pos = lcd_stat.bg_affine[0].y_ref + (lcd_stat.bg_affine[0].dy * scanline_pixel_counter);
+
+	//Clip affine coordinates if out-of-bounds
+	if((lcd_stat.bg_affine[0].x_pos >= 240) || (lcd_stat.bg_affine[0].x_pos < 0)) { return false; }
+	if((lcd_stat.bg_affine[0].y_pos >= 160) || (lcd_stat.bg_affine[0].y_pos < 0)) { return false; }
+
+	u16 src_x = lcd_stat.bg_affine[0].x_pos; 
+	u16 src_y = lcd_stat.bg_affine[0].y_pos;
+
 	//Determine which byte in VRAM to read for color data
-	u32 bitmap_entry = (lcd_stat.frame_base + (current_scanline * 240) + scanline_pixel_counter);
+	u32 bitmap_entry = (lcd_stat.frame_base + (src_y * 240) + src_x);
 
 	u8 raw_color = mem->memory_map[bitmap_entry];
 	if(raw_color == 0) { return false; }
@@ -889,9 +911,16 @@ bool AGB_LCD::render_bg_mode_4()
 /****** Render BG Mode 5 ******/
 bool AGB_LCD::render_bg_mode_5()
 {
-	//Restrict rendering to 160x128
-	if(scanline_pixel_counter >= 160) { return false; }
-	if(current_scanline >= 128) { return false; }
+	//If rendering pixels along a given line, add DX and DY
+	lcd_stat.bg_affine[0].x_pos = lcd_stat.bg_affine[0].x_ref + (lcd_stat.bg_affine[0].dx * scanline_pixel_counter);
+	lcd_stat.bg_affine[0].y_pos = lcd_stat.bg_affine[0].y_ref + (lcd_stat.bg_affine[0].dy * scanline_pixel_counter);
+
+	//Clip affine coordinates if out-of-bounds
+	if((lcd_stat.bg_affine[0].x_pos >= 160) || (lcd_stat.bg_affine[0].x_pos < 0)) { return false; }
+	if((lcd_stat.bg_affine[0].y_pos >= 128) || (lcd_stat.bg_affine[0].y_pos < 0)) { return false; }
+
+	u16 src_x = lcd_stat.bg_affine[0].x_pos; 
+	u16 src_y = lcd_stat.bg_affine[0].y_pos;
 
 	//Determine which byte in VRAM to read for color data
 	u16 color_bytes = mem->read_u16_fast(lcd_stat.frame_base + (current_scanline * 320) + (scanline_pixel_counter * 2));
@@ -1288,7 +1317,7 @@ void AGB_LCD::step()
 
 			//Update BG affine parameters
 			//If Line 0, reset X and Y positions
-			if(((lcd_stat.bg_mode == 1) || (lcd_stat.bg_mode == 2)) && (current_scanline == 0))
+			if((lcd_stat.bg_mode != 0) && (current_scanline == 0))
 			{
 				u32 x_ref = mem->read_u32_fast(BG2X_L);
 				u32 y_ref = mem->read_u32_fast(BG2Y_L);
@@ -1308,7 +1337,7 @@ void AGB_LCD::step()
 			}
 
 			//If starting any other line, add DMX and DMY to X and Y positions
-			else if(((lcd_stat.bg_mode == 1) || (lcd_stat.bg_mode == 2)) && (current_scanline != 0))
+			else if((lcd_stat.bg_mode != 0) && (current_scanline != 0))
 			{
 				lcd_stat.bg_affine[0].x_ref += lcd_stat.bg_affine[0].dmx;
 				lcd_stat.bg_affine[0].y_ref += lcd_stat.bg_affine[0].dmy;
