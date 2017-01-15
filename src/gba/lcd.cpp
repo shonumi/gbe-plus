@@ -555,7 +555,7 @@ bool AGB_LCD::render_sprite_pixel()
 
 			else
 			{
-				meta_sprite_tile = (meta_y * 32) + meta_x;
+				meta_sprite_tile = (obj[sprite_id].bit_depth == 8) ? ((meta_y * 16) + meta_x) : ((meta_y * 32) + meta_x);
 			}
 
 			sprite_tile_addr = obj[sprite_id].addr + (meta_sprite_tile * (obj[sprite_id].bit_depth << 3));
