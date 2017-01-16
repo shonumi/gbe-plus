@@ -42,6 +42,7 @@ DMG_core::DMG_core()
 
 	db_unit.debug_mode = false;
 	db_unit.display_cycles = false;
+	db_unit.print_all = false;
 	db_unit.last_command = "n";
 	db_unit.last_mnemonic = "";
 
@@ -1617,6 +1618,18 @@ void DMG_core::handle_hotkey(SDL_Event& event)
 	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F6))
 	{
 		stop_netplay();
+	}
+
+	//Start CLI debugger on F7
+	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F7) && (!config::use_external_interfaces))
+	{
+		//Start a new CLI debugger session or interrupt an existing one in Continue Mode 
+		if((!db_unit.debug_mode) || ((db_unit.debug_mode) && (db_unit.last_command == "c")))
+		{
+			db_unit.debug_mode = true;
+			db_unit.last_command = "n";
+			db_unit.last_mnemonic = "";
+		}
 	}
 
 	//Screenshot on F9
