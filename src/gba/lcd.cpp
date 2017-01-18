@@ -1055,6 +1055,9 @@ void AGB_LCD::apply_sfx()
 	//Apply SFX if in OBJ Window
 	else if((lcd_stat.obj_win_enable) && (obj_win_pixel) && (lcd_stat.window_out_enable[5][1])) { do_sfx = true; }
 
+	//Apply SFX if out of OBJ Window
+	else if((!lcd_stat.in_window) && (!obj_win_pixel) && (lcd_stat.obj_win_enable) && (lcd_stat.window_out_enable[5][0])) { do_sfx = true; }
+
 	//Apply SFX to whole screen
 	else if((!lcd_stat.window_enable[0]) && (!lcd_stat.window_enable[1]) && (!lcd_stat.obj_win_enable)) { do_sfx = true; }
 
@@ -1147,7 +1150,7 @@ u32 AGB_LCD::alpha_blend()
 		for(int x = 0; x < 4; x++)
 		{
 			//OBJ is 1st target
-			if((last_obj_priority == x) && (lcd_stat.sfx_target[4][0]) && (!do_blending)) { do_blending = render_sprite_pixel(); last_bg_priority = 4;  }
+			if((last_obj_priority == x) && (lcd_stat.sfx_target[4][0] || (last_obj_mode == 1)) && (!do_blending)) { do_blending = render_sprite_pixel(); last_bg_priority = 4;  }
 	
 			//BG0 is 1st target
 			if((lcd_stat.bg_priority[0] == x) && (lcd_stat.sfx_target[0][0]) && (!do_blending)) { do_blending = render_bg_pixel(BG0CNT); last_bg_priority = 0; }
