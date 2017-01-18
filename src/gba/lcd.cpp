@@ -469,12 +469,15 @@ bool AGB_LCD::render_sprite_pixel()
 	u16 sprite_tile_pixel_y = 0;
 
 	bool render_obj;
+	bool final_render = false;
 
 	//Cycle through all sprites that are rendering on this pixel, draw them according to their priority
 	for(int x = 0; x < obj_render_length; x++)
 	{
 		sprite_id = obj_render_list[x];
 		render_obj = true;
+
+		if((final_render) && (obj[sprite_id].mode != 2)) { continue; }
 
 		//Check to see if current_scanline_pixel is within sprite
 		if((!obj[sprite_id].x_wrap) && ((scanline_pixel_counter < obj[sprite_id].left) || (scanline_pixel_counter > obj[sprite_id].right))) { continue; }
@@ -585,7 +588,7 @@ bool AGB_LCD::render_sprite_pixel()
 						last_raw_color = raw_pal[((obj[sprite_id].palette_number * 32) + (raw_color * 2)) >> 1][1];
 						last_obj_priority = obj[sprite_id].bg_priority;
 						last_obj_mode = obj[sprite_id].mode;
-						return true;
+						final_render = true;
 					}
 				}
 			}
@@ -607,7 +610,7 @@ bool AGB_LCD::render_sprite_pixel()
 						last_raw_color = raw_pal[raw_color][1];
 						last_obj_priority = obj[sprite_id].bg_priority;
 						last_obj_mode = obj[sprite_id].mode;
-						return true;
+						final_render = true;
 					}
 				}
 			}
@@ -615,7 +618,7 @@ bool AGB_LCD::render_sprite_pixel()
 	}
 
 	//Return false if nothing was drawn
-	return false;
+	return final_render;
 }
 
 /****** Determines if a background pixel should be rendered, and if so draws it to the current scanline pixel ******/
@@ -986,6 +989,9 @@ void AGB_LCD::render_scanline()
 	//Turn off OBJ rendering if in/out of a window where OBJ rendering is disabled
 	if((lcd_stat.window_enable[lcd_stat.current_window]) && (!lcd_stat.in_window) && (!lcd_stat.window_out_enable[4][0])) { obj_render = false; }
 	else if((lcd_stat.window_enable[lcd_stat.current_window]) && (lcd_stat.in_window) && (!lcd_stat.window_in_enable[4][lcd_stat.current_window])) { obj_render = false; }
+
+	//Also turn off OBJ rendering if OBJ Window is enabled, but rendered pixel is outside any OBJ Window
+	else if((!lcd_stat.in_window) && (lcd_stat.obj_win_enable) && (!obj_win_pixel) && (!lcd_stat.window_out_enable[4][0])) { obj_render = false; }
 
 	//Determine WINOUT status
 	winout = (lcd_stat.obj_win_enable || lcd_stat.window_enable[0] || lcd_stat.window_enable[1]);
