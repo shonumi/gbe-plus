@@ -34,6 +34,7 @@ void AGB_LCD::reset()
 {
 	final_screen = NULL;
 	original_screen = NULL;
+	display_data = NULL;
 	mem = NULL;
 
 	if((window != NULL) && (config::sdl_render)) { SDL_DestroyWindow(window); }
@@ -141,6 +142,8 @@ void AGB_LCD::reset()
 	//Initialize system screen dimensions
 	config::sys_width = 240;
 	config::sys_height = 160;
+
+	max_fullscreen_ratio = 2;
 }
 
 /****** Initialize LCD with SDL ******/
@@ -176,6 +179,21 @@ bool AGB_LCD::init()
 	else if((!config::sdl_render) && (config::use_opengl))
 	{
 		final_screen = SDL_CreateRGBSurface(SDL_SWSURFACE, config::sys_width, config::sys_height, 32, 0, 0, 0, 0);
+	}
+
+	//Try to find the maximum fullscreen resolution
+	if(SDL_GetDesktopDisplayMode(0, display_data) != 0)
+	{
+		double max_width, max_height, ratio = 0.0;
+
+		max_width = (double)display_data->w / config::sys_width;
+		max_height = (double)display_data->h / config::sys_height;
+
+		//Find the maximum dimensions that maintain the original aspect ratio
+		if(max_width <= max_height) { ratio = max_width; }
+		else { ratio = max_height; }
+
+		max_fullscreen_ratio = ratio;
 	}
 
 	std::cout<<"LCD::Initialized\n";
@@ -1450,10 +1468,10 @@ void AGB_LCD::step()
 		
 						//Blit the original surface to the final stretched one
 						SDL_Rect dest_rect;
-						dest_rect.x = (config::win_width / 2) - config::sys_width;
-						dest_rect.y = (config::win_height / 2) - config::sys_height;
-						dest_rect.w = config::sys_width << 1;
-						dest_rect.h = config::sys_height << 1;
+						dest_rect.x = (config::win_width / max_fullscreen_ratio) - config::sys_width;
+						dest_rect.y = (config::win_height / max_fullscreen_ratio) - config::sys_height;
+						dest_rect.w = config::sys_width * max_fullscreen_ratio;
+						dest_rect.h = config::sys_height * max_fullscreen_ratio;
 						SDL_BlitScaled(original_screen, NULL, final_screen, &dest_rect);
 
 						if(SDL_UpdateWindowSurface(window) != 0) { std::cout<<"LCD::Error - Could not blit\n"; }

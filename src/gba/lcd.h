@@ -41,6 +41,7 @@ class AGB_LCD
 	SDL_Window* window;
 	SDL_Surface* final_screen;
 	SDL_Surface* original_screen;
+	SDL_DisplayMode* display_data;
 
 	//OpenGL data
 	SDL_GLContext gl_context;
@@ -135,6 +136,8 @@ class AGB_LCD
 	int frame_current_time;
 	int fps_count;
 	int fps_time;
+
+	int max_fullscreen_ratio;
 
 	void render_scanline();
 	bool render_sprite_pixel();

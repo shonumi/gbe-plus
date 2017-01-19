@@ -64,6 +64,7 @@ class DMG_LCD
 	SDL_Window *window;
 	SDL_Surface* final_screen;
 	SDL_Surface* original_screen;
+	SDL_DisplayMode* display_data;
 
 	//OpenGL data
 	SDL_GLContext gl_context;
@@ -117,6 +118,8 @@ class DMG_LCD
 	int frame_current_time;
 	int fps_count;
 	int fps_time;
+
+	int max_fullscreen_ratio;
 
 	//OAM updates
 	void update_oam();
