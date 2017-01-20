@@ -287,6 +287,11 @@ class ARM7
 	void swi_bitunpack();
 	void swi_midikey2freq();
 	void swi_hardreset();
+
+	//Serialize data for save state loading/saving
+	bool cpu_read(u32 offset, std::string filename);
+	bool cpu_write(std::string filename);
+	u32 size();
 };
 		
 #endif // GBA_CPU

@@ -154,10 +154,33 @@ void AGB_core::reset()
 }
 
 /****** Loads a save state ******/
-void AGB_core::load_state(u8 slot) { }
+void AGB_core::load_state(u8 slot)
+{
+	std::string id = (slot > 0) ? util::to_str(slot) : "";
+
+	std::string state_file = config::rom_file + ".ss";
+	state_file += id;
+
+	u32 offset = 0;
+
+	if(!core_cpu.cpu_read(offset, state_file)) { return; }
+	offset += core_cpu.size();
+
+	std::cout<<"GBE::Loaded state " << state_file << "\n";
+}
 
 /****** Saves a save state ******/
-void AGB_core::save_state(u8 slot) { }
+void AGB_core::save_state(u8 slot)
+{
+	std::string id = (slot > 0) ? util::to_str(slot) : "";
+
+	std::string state_file = config::rom_file + ".ss";
+	state_file += id;
+
+	if(!core_cpu.cpu_write(state_file)) { return; }
+
+	std::cout<<"GBE::Saved state " << state_file << "\n";
+}
 
 /****** Run the core in a loop until exit ******/
 void AGB_core::run_core()
