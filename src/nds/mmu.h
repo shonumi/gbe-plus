@@ -120,6 +120,10 @@ class NTR_MMU
 		u8 dest_addr_ctrl;
 		u8 src_addr_ctrl;
 		u8 delay;
+
+		u8 raw_sad[4];
+		u8 raw_dad[4];
+		u8 raw_cnt[4];
 	} dma[8];
 
 	//NDS9 and NDS7 have separate IE and IF registers (accessed at the same address)
