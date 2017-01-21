@@ -208,13 +208,176 @@ void NTR_ARM9::dma3()
 }
 
 /****** Performs DMA0 transfers - NDS7 ******/
-void NTR_ARM7::dma0() { }
+void NTR_ARM7::dma0()
+{
+	//Wait 2 cycles after DMA is triggered before actual transfer
+	if(mem->dma[4].delay != 0) { mem->dma[4].delay--; }
+
+	//See if DMA Start Timing conditions dictate a transfer
+	else
+	{
+		u32 temp_value = 0;
+		u32 original_dest_addr = mem->dma[4].destination_address;
+
+		if((mem->dma[4].control & 0x80000000) == 0) { mem->dma[4].enable = false; return; }
+
+		//Check DMA Start Timings
+		switch(((mem->dma[4].control >> 28) & 0x3))
+		{
+			case 0x0: std::cout<<"NDS7 DMA0 - Immediate\n"; break;
+			case 0x1: std::cout<<"NDS7 DMA0 - VBlank\n"; break;
+			case 0x2: std::cout<<"NDS7 DMA0 - DS Cart\n"; break;
+			case 0x3: std::cout<<"NDS7 DMA0 - Wifi/GBA Cart\n"; break;
+
+		}
+
+		mem->dma[4].enable = false;
+	}
+}
 
 /****** Performs DMA1 transfers - NDS7 ******/
-void NTR_ARM7::dma1() { }
+void NTR_ARM7::dma1()
+{
+	//Wait 2 cycles after DMA is triggered before actual transfer
+	if(mem->dma[5].delay != 0) { mem->dma[5].delay--; }
+
+	//See if DMA Start Timing conditions dictate a transfer
+	else
+	{
+		u32 temp_value = 0;
+		u32 original_dest_addr = mem->dma[5].destination_address;
+
+		if((mem->dma[5].control & 0x80000000) == 0) { mem->dma[5].enable = false; return; }
+
+		//Check DMA Start Timings
+		switch(((mem->dma[5].control >> 28) & 0x3))
+		{
+			case 0x0: std::cout<<"NDS7 DMA1 - Immediate\n"; break;
+			case 0x1: std::cout<<"NDS7 DMA1 - VBlank\n"; break;
+			case 0x2: std::cout<<"NDS7 DMA1 - DS Cart\n"; break;
+			case 0x3: std::cout<<"NDS7 DMA1 - Wifi/GBA Cart\n"; break;
+
+		}
+
+		mem->dma[5].enable = false;
+	}
+}
 
 /****** Performs DMA2 transfers - NDS7 ******/
-void NTR_ARM7::dma2() { }
+void NTR_ARM7::dma2()
+{
+	//Wait 2 cycles after DMA is triggered before actual transfer
+	if(mem->dma[6].delay != 0) { mem->dma[6].delay--; }
+
+	//See if DMA Start Timing conditions dictate a transfer
+	else
+	{
+		u32 temp_value = 0;
+		u32 original_dest_addr = mem->dma[6].destination_address;
+
+		if((mem->dma[6].control & 0x80000000) == 0) { mem->dma[6].enable = false; return; }
+
+		//Check DMA Start Timings
+		switch(((mem->dma[6].control >> 28) & 0x3))
+		{
+			case 0x0: std::cout<<"NDS7 DMA0 - Immediate\n"; break;
+			case 0x1: std::cout<<"NDS7 DMA0 - VBlank\n"; break;
+			case 0x2: std::cout<<"NDS7 DMA0 - DS Cart\n"; break;
+			case 0x3: std::cout<<"NDS7 DMA0 - Wifi/GBA Cart\n"; break;
+
+		}
+
+		mem->dma[6].enable = false;
+	}
+}
 
 /****** Performs DMA3 transfers - NDS7 ******/
-void NTR_ARM7::dma3() { }
+void NTR_ARM7::dma3()
+{
+	//Wait 2 cycles after DMA is triggered before actual transfer
+	if(mem->dma[7].delay != 0) { mem->dma[7].delay--; }
+
+	//See if DMA Start Timing conditions dictate a transfer
+	else
+	{
+		u32 temp_value = 0;
+		u32 original_dest_addr = mem->dma[7].destination_address;
+
+		if((mem->dma[7].control & 0x80000000) == 0) { mem->dma[7].enable = false; return; }
+
+		//Check DMA Start Timings
+		switch(((mem->dma[7].control >> 28) & 0x3))
+		{
+			case 0x0:
+			{
+				std::cout<<"NDS7 DMA3 - Immediate\n";
+				std::cout<<"START ADDR -> 0x" << std::hex << mem->dma[7].start_address << "\n";
+				std::cout<<"DEST  ADDR -> 0x" << std::hex << mem->dma[7].destination_address << "\n";
+				std::cout<<"WORD COUNT -> 0x" << std::hex << mem->dma[7].word_count << "\n";
+
+				//16-bit transfer
+				if(mem->dma[7].word_type == 0)
+				{
+					//Align addresses to half-word
+					mem->dma[7].start_address &= ~0x1;
+					mem->dma[7].destination_address	&= ~0x1;
+
+					while(mem->dma[7].word_count != 0)
+					{
+						temp_value = mem->read_u16(mem->dma[7].start_address);
+						mem->write_u16(mem->dma[7].destination_address, temp_value);
+
+						//Update DMA3 Start Address
+						if(mem->dma[7].src_addr_ctrl == 0) { mem->dma[7].start_address += 2; }
+						else if(mem->dma[7].src_addr_ctrl == 1) { mem->dma[7].start_address -= 2; }
+						else if(mem->dma[7].src_addr_ctrl == 3) { mem->dma[7].start_address += 2; }
+
+						//Update DMA3 Destination Address
+						if(mem->dma[7].dest_addr_ctrl == 0) { mem->dma[7].destination_address += 2; }
+						else if(mem->dma[7].dest_addr_ctrl == 1) { mem->dma[7].destination_address -= 2; }
+						else if(mem->dma[7].dest_addr_ctrl == 3) { mem->dma[7].destination_address += 2; }
+
+						mem->dma[7].word_count--;
+					}
+				}
+
+				//32-bit transfer
+				else
+				{
+					//Align addresses to word
+					mem->dma[7].start_address &= ~0x3;
+					mem->dma[7].destination_address	&= ~0x3;
+
+					while(mem->dma[7].word_count != 0)
+					{
+						temp_value = mem->read_u32(mem->dma[7].start_address);
+						mem->write_u32(mem->dma[7].destination_address, temp_value);
+
+						//Update DMA3 Start Address
+						if(mem->dma[7].src_addr_ctrl == 0) { mem->dma[7].start_address += 4; }
+						else if(mem->dma[7].src_addr_ctrl == 1) { mem->dma[7].start_address -= 4; }
+						else if(mem->dma[7].src_addr_ctrl == 3) { mem->dma[7].start_address += 4; }
+
+						//Update DMA3 Destination Address
+						if(mem->dma[7].dest_addr_ctrl == 0) { mem->dma[7].destination_address += 4; }
+						else if(mem->dma[7].dest_addr_ctrl == 1) { mem->dma[7].destination_address -= 4; }
+						else if(mem->dma[7].dest_addr_ctrl == 3) { mem->dma[7].destination_address += 4; }
+
+						mem->dma[7].word_count--;
+					}
+				}
+			}
+
+			mem->dma[7].control &= ~0x80000000;
+			mem->write_u32(NDS_DMA3CNT, mem->dma[7].control);
+
+			break;
+
+			case 0x1: std::cout<<"NDS7 DMA1 - VBlank\n"; break;
+			case 0x2: std::cout<<"NDS7 DMA1 - DS Cart\n"; break;
+			case 0x3: std::cout<<"NDS7 DMA1 - Wifi/GBA Cart\n"; break;
+		}
+
+		mem->dma[7].enable = false;
+	}
+}
