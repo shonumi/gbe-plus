@@ -1068,7 +1068,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			else
 			{
 				dma[4].raw_sad[address & 0x3] = value;
-				dma[4].start_address = ((dma[4].raw_sad[3] << 24) | (dma[4].raw_sad[2] << 16) | (dma[4].raw_sad[1] << 8) | dma[4].raw_sad[0]) & 0xFFFFFFF;
+				dma[4].start_address = ((dma[4].raw_sad[3] << 24) | (dma[4].raw_sad[2] << 16) | (dma[4].raw_sad[1] << 8) | dma[4].raw_sad[0]) & 0x7FFFFFF;
 			}
 
 			break;
@@ -1090,7 +1090,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			else
 			{
 				dma[4].raw_dad[address & 0x3] = value;
-				dma[4].destination_address = ((dma[4].raw_dad[3] << 24) | (dma[4].raw_dad[2] << 16) | (dma[4].raw_dad[1] << 8) | dma[4].raw_dad[0]) & 0xFFFFFFF;
+				dma[4].destination_address = ((dma[4].raw_dad[3] << 24) | (dma[4].raw_dad[2] << 16) | (dma[4].raw_dad[1] << 8) | dma[4].raw_dad[0]) & 0x7FFFFFF;
 			}
 
 			break;
@@ -1121,7 +1121,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			{
 				dma[4].raw_cnt[address & 0x3] = value;
 				dma[4].control = ((dma[4].raw_cnt[3] << 24) | (dma[4].raw_cnt[2] << 16) | (dma[4].raw_cnt[1] << 8) | dma[4].raw_cnt[0]);
-				dma[4].word_count = dma[4].control & 0x1FFFFF;
+				dma[4].word_count = dma[4].control & 0x3FFF;
 				dma[4].dest_addr_ctrl = (dma[4].control >> 21) & 0x3;
 				dma[4].src_addr_ctrl = (dma[4].control >> 23) & 0x3;
 				dma[4].word_type = (dma[4].control & 0x4000000) ? 1 : 0;
@@ -1172,7 +1172,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			else
 			{
 				dma[5].raw_dad[address & 0x3] = value;
-				dma[5].destination_address = ((dma[5].raw_dad[3] << 24) | (dma[5].raw_dad[2] << 16) | (dma[5].raw_dad[1] << 8) | dma[5].raw_dad[0]) & 0xFFFFFFF;
+				dma[5].destination_address = ((dma[5].raw_dad[3] << 24) | (dma[5].raw_dad[2] << 16) | (dma[5].raw_dad[1] << 8) | dma[5].raw_dad[0]) & 0x7FFFFFF;
 			}
 
 			break;
@@ -1203,7 +1203,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			{
 				dma[5].raw_cnt[address & 0x3] = value;
 				dma[5].control = ((dma[5].raw_cnt[3] << 24) | (dma[5].raw_cnt[2] << 16) | (dma[5].raw_cnt[1] << 8) | dma[5].raw_cnt[0]);
-				dma[5].word_count = dma[5].control & 0x1FFFFF;
+				dma[5].word_count = dma[5].control & 0x3FFF;
 				dma[5].dest_addr_ctrl = (dma[5].control >> 21) & 0x3;
 				dma[5].src_addr_ctrl = (dma[5].control >> 23) & 0x3;
 				dma[5].word_type = (dma[5].control & 0x4000000) ? 1 : 0;
@@ -1254,7 +1254,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			else
 			{
 				dma[6].raw_dad[address & 0x3] = value;
-				dma[6].destination_address = ((dma[6].raw_dad[3] << 24) | (dma[6].raw_dad[2] << 16) | (dma[6].raw_dad[1] << 8) | dma[6].raw_dad[0]) & 0xFFFFFFF;
+				dma[6].destination_address = ((dma[6].raw_dad[3] << 24) | (dma[6].raw_dad[2] << 16) | (dma[6].raw_dad[1] << 8) | dma[6].raw_dad[0]) & 0x7FFFFFF;
 			}
 
 			break;
@@ -1285,7 +1285,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			{
 				dma[6].raw_cnt[address & 0x3] = value;
 				dma[6].control = ((dma[6].raw_cnt[3] << 24) | (dma[6].raw_cnt[2] << 16) | (dma[6].raw_cnt[1] << 8) | dma[6].raw_cnt[0]);
-				dma[6].word_count = dma[6].control & 0x1FFFFF;
+				dma[6].word_count = dma[6].control & 0x3FFF;
 				dma[6].dest_addr_ctrl = (dma[6].control >> 21) & 0x3;
 				dma[6].src_addr_ctrl = (dma[6].control >> 23) & 0x3;
 				dma[6].word_type = (dma[6].control & 0x4000000) ? 1 : 0;
@@ -1367,7 +1367,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			{
 				dma[7].raw_cnt[address & 0x3] = value;
 				dma[7].control = ((dma[7].raw_cnt[3] << 24) | (dma[7].raw_cnt[2] << 16) | (dma[7].raw_cnt[1] << 8) | dma[7].raw_cnt[0]);
-				dma[7].word_count = dma[7].control & 0x1FFFFF;
+				dma[7].word_count = dma[7].control & 0xFFFF;
 				dma[7].dest_addr_ctrl = (dma[7].control >> 21) & 0x3;
 				dma[7].src_addr_ctrl = (dma[7].control >> 23) & 0x3;
 				dma[7].word_type = (dma[7].control & 0x4000000) ? 1 : 0;
