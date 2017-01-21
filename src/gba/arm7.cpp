@@ -1615,8 +1615,12 @@ bool ARM7::cpu_read(u32 offset, std::string filename)
 	file.read((char*)&in_interrupt, sizeof(in_interrupt));
 	file.read((char*)&sleep, sizeof(sleep));
 	file.read((char*)&swi_vblank_wait, sizeof(swi_vblank_wait));
-	file.read((char*)&instruction_pipeline[0], sizeof(instruction_pipeline));
-	file.read((char*)&instruction_operation[0], sizeof(instruction_operation));
+	file.read((char*)&instruction_pipeline[0], sizeof(instruction_pipeline[0]));
+	file.read((char*)&instruction_pipeline[1], sizeof(instruction_pipeline[1]));
+	file.read((char*)&instruction_pipeline[2], sizeof(instruction_pipeline[2]));
+	file.read((char*)&instruction_operation[0], sizeof(instruction_operation[0]));
+	file.read((char*)&instruction_operation[1], sizeof(instruction_operation[1]));
+	file.read((char*)&instruction_operation[2], sizeof(instruction_operation[2]));
 	file.read((char*)&pipeline_pointer, sizeof(pipeline_pointer));
 	file.read((char*)&debug_message, sizeof(debug_message));
 	file.read((char*)&debug_code, sizeof(debug_code));
@@ -1633,10 +1637,10 @@ bool ARM7::cpu_write(std::string filename)
 	
 	if(!file.is_open()) { return false; }
 
-	//Serialize CPU registers data to file stream
+	//Serialize CPU registers data to save state
 	file.write((char*)&reg, sizeof(reg));
 
-	//Serialize misc CPU data to file stream
+	//Serialize misc CPU data to save state
 	file.write((char*)&current_cpu_mode, sizeof(current_cpu_mode));
 	file.write((char*)&arm_mode, sizeof(arm_mode));
 	file.write((char*)&bios_read_state, sizeof(bios_read_state));
@@ -1646,12 +1650,22 @@ bool ARM7::cpu_write(std::string filename)
 	file.write((char*)&in_interrupt, sizeof(in_interrupt));
 	file.write((char*)&sleep, sizeof(sleep));
 	file.write((char*)&swi_vblank_wait, sizeof(swi_vblank_wait));
-	file.write((char*)&instruction_pipeline[0], sizeof(instruction_pipeline));
-	file.write((char*)&instruction_operation[0], sizeof(instruction_operation));
+	file.write((char*)&instruction_pipeline[0], sizeof(instruction_pipeline[0]));
+	file.write((char*)&instruction_pipeline[1], sizeof(instruction_pipeline[1]));
+	file.write((char*)&instruction_pipeline[2], sizeof(instruction_pipeline[2]));
+	file.write((char*)&instruction_operation[0], sizeof(instruction_operation[0]));
+	file.write((char*)&instruction_operation[1], sizeof(instruction_operation[1]));
+	file.write((char*)&instruction_operation[2], sizeof(instruction_operation[2]));
 	file.write((char*)&pipeline_pointer, sizeof(pipeline_pointer));
 	file.write((char*)&debug_message, sizeof(debug_message));
 	file.write((char*)&debug_code, sizeof(debug_code));
 	file.write((char*)&debug_cycles, sizeof(debug_cycles));
+
+	//Serialize timers to save state
+	file.write((char*)&controllers.timer[0], sizeof(controllers.timer[0]));
+	file.write((char*)&controllers.timer[1], sizeof(controllers.timer[1]));
+	file.write((char*)&controllers.timer[2], sizeof(controllers.timer[2]));
+	file.write((char*)&controllers.timer[3], sizeof(controllers.timer[3]));
 
 	file.close();
 	return true;
@@ -1672,12 +1686,21 @@ u32 ARM7::size()
 	cpu_size += sizeof(in_interrupt);
 	cpu_size += sizeof(sleep);
 	cpu_size += sizeof(swi_vblank_wait);
-	cpu_size += sizeof(instruction_pipeline);
-	cpu_size += sizeof(instruction_operation);
+	cpu_size += sizeof(instruction_pipeline[0]);
+	cpu_size += sizeof(instruction_pipeline[1]);
+	cpu_size += sizeof(instruction_pipeline[2]);
+	cpu_size += sizeof(instruction_operation[0]);
+	cpu_size += sizeof(instruction_operation[1]);
+	cpu_size += sizeof(instruction_operation[2]);
 	cpu_size += sizeof(pipeline_pointer);
 	cpu_size += sizeof(debug_message);
 	cpu_size += sizeof(debug_code);
 	cpu_size += sizeof(debug_cycles);
+
+	cpu_size += sizeof(controllers.timer[0]);
+	cpu_size += sizeof(controllers.timer[1]);
+	cpu_size += sizeof(controllers.timer[2]);
+	cpu_size += sizeof(controllers.timer[3]);
 
 	return cpu_size;
 }

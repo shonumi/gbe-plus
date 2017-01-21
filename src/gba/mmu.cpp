@@ -2585,7 +2585,10 @@ bool AGB_MMU::mmu_read(u32 offset, std::string filename)
 	file.read((char*)&n_clock, sizeof(n_clock));
 	file.read((char*)&s_clock, sizeof(s_clock));
 	file.read((char*)&bios_lock, sizeof(bios_lock));
-	file.read((char*)&dma[0], sizeof(dma));
+	file.read((char*)&dma[0], sizeof(dma[0]));
+	file.read((char*)&dma[1], sizeof(dma[1]));
+	file.read((char*)&dma[2], sizeof(dma[2]));
+	file.read((char*)&dma[3], sizeof(dma[3]));
 	file.read((char*)&gpio, sizeof(gpio));
 
 	//Serialize EEPROM from save state
@@ -2613,7 +2616,7 @@ bool AGB_MMU::mmu_read(u32 offset, std::string filename)
 /****** Write MMU data to save state ******/
 bool AGB_MMU::mmu_write(std::string filename)
 {
-	std::ofstream file(filename.c_str(), std::ios::binary | std::ios::trunc);
+	std::ofstream file(filename.c_str(), std::ios::binary | std::ios::app);
 	
 	if(!file.is_open()) { return false; }
 
@@ -2650,7 +2653,10 @@ bool AGB_MMU::mmu_write(std::string filename)
 	file.write((char*)&n_clock, sizeof(n_clock));
 	file.write((char*)&s_clock, sizeof(s_clock));
 	file.write((char*)&bios_lock, sizeof(bios_lock));
-	file.write((char*)&dma[0], sizeof(dma));
+	file.write((char*)&dma[0], sizeof(dma[0]));
+	file.write((char*)&dma[1], sizeof(dma[1]));
+	file.write((char*)&dma[2], sizeof(dma[2]));
+	file.write((char*)&dma[3], sizeof(dma[3]));
 	file.write((char*)&gpio, sizeof(gpio));
 
 	//Serialize EEPROM to save state
@@ -2684,7 +2690,10 @@ u32 AGB_MMU::size()
 	mmu_size += sizeof(n_clock);
 	mmu_size += sizeof(s_clock);
 	mmu_size += sizeof(bios_lock);
-	mmu_size += sizeof(dma);
+	mmu_size += sizeof(dma[0]);
+	mmu_size += sizeof(dma[1]);
+	mmu_size += sizeof(dma[2]);
+	mmu_size += sizeof(dma[3]);
 	mmu_size += sizeof(gpio);
 
 	mmu_size += sizeof(eeprom.bitstream_byte);
