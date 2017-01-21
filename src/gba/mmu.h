@@ -149,6 +149,11 @@ class AGB_MMU
 	AGB_GamePad* g_pad;
 	std::vector<gba_timer>* timer;
 
+	//Serialize data for save state loading/saving
+	bool mmu_read(u32 offset, std::string filename);
+	bool mmu_write(std::string filename);
+	u32 size();
+
 	private:
 
 	//Only the MMU and LCD should communicate through this structure

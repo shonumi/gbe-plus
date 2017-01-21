@@ -2541,3 +2541,167 @@ void AGB_MMU::set_lcd_data(agb_lcd_data* ex_lcd_stat) { lcd_stat = ex_lcd_stat; 
 
 /****** Points the MMU to an apu_data structure (FROM THE APU ITSELF) ******/
 void AGB_MMU::set_apu_data(agb_apu_data* ex_apu_stat) { apu_stat = ex_apu_stat; }
+
+/****** Read MMU data from save state ******/
+bool AGB_MMU::mmu_read(u32 offset, std::string filename)
+{
+	std::ifstream file(filename.c_str(), std::ios::binary);
+	
+	if(!file.is_open()) { return false; }
+
+	//Go to offset
+	file.seekg(offset);
+
+	//Serialize WRAM from save state
+	u8* ex_mem = &memory_map[0x2000000];
+	file.read((char*)ex_mem, 0x40000);
+
+	//Serialize WRAM from save state
+	ex_mem = &memory_map[0x3000000];
+	file.read((char*)ex_mem, 0x8000);
+
+	//Serialize IO registers from save state
+	ex_mem = &memory_map[0x4000000];
+	file.read((char*)ex_mem, 0x400);
+
+	//Serialize BG and OBJ palettes from save state
+	ex_mem = &memory_map[0x5000000];
+	file.read((char*)ex_mem, 0x400);
+
+	//Serialize VRAM from save state
+	ex_mem = &memory_map[0x6000000];
+	file.read((char*)ex_mem, 0x18000);
+
+	//Serialize OAM from save state
+	ex_mem = &memory_map[0x7000000];
+	file.read((char*)ex_mem, 0x400);
+
+	//Serialize SRAM from save state
+	ex_mem = &memory_map[0xE000000];
+	file.read((char*)ex_mem, 0x10000);
+
+	//Serialize misc data from MMU from save state
+	file.read((char*)&current_save_type, sizeof(current_save_type));
+	file.read((char*)&n_clock, sizeof(n_clock));
+	file.read((char*)&s_clock, sizeof(s_clock));
+	file.read((char*)&bios_lock, sizeof(bios_lock));
+	file.read((char*)&dma[0], sizeof(dma));
+	file.read((char*)&gpio, sizeof(gpio));
+
+	//Serialize EEPROM from save state
+	file.read((char*)&eeprom.bitstream_byte, sizeof(eeprom.bitstream_byte));
+	file.read((char*)&eeprom.address, sizeof(eeprom.address));
+	file.read((char*)&eeprom.dma_ptr, sizeof(eeprom.dma_ptr));
+	file.read((char*)&eeprom.size, sizeof(eeprom.size));
+	file.read((char*)&eeprom.size_lock, sizeof(eeprom.size_lock));
+	file.read((char*)&eeprom.data[0], eeprom.size);
+
+	//Serialize FLASH RAM from save state
+	file.read((char*)&flash_ram.current_command, sizeof(flash_ram.current_command));
+	file.read((char*)&flash_ram.bank, sizeof(flash_ram.bank));
+	file.read((char*)&flash_ram.write_single_byte, sizeof(flash_ram.write_single_byte));
+	file.read((char*)&flash_ram.switch_bank, sizeof(flash_ram.switch_bank));
+	file.read((char*)&flash_ram.grab_ids, sizeof(flash_ram.grab_ids));
+	file.read((char*)&flash_ram.next_write, sizeof(flash_ram.next_write));
+	file.read((char*)&flash_ram.data[0][0], 0x10000);
+	file.read((char*)&flash_ram.data[1][0], 0x10000);
+
+	file.close();
+	return true;
+}
+
+/****** Write MMU data to save state ******/
+bool AGB_MMU::mmu_write(std::string filename)
+{
+	std::ofstream file(filename.c_str(), std::ios::binary | std::ios::trunc);
+	
+	if(!file.is_open()) { return false; }
+
+	//Serialize WRAM to save state
+	u8* ex_mem = &memory_map[0x2000000];
+	file.write((char*)ex_mem, 0x40000);
+
+	//Serialize WRAM to save state
+	ex_mem = &memory_map[0x3000000];
+	file.write((char*)ex_mem, 0x8000);
+
+	//Serialize IO registers to save state
+	ex_mem = &memory_map[0x4000000];
+	file.write((char*)ex_mem, 0x400);
+
+	//Serialize BG and OBJ palettes to save state
+	ex_mem = &memory_map[0x5000000];
+	file.write((char*)ex_mem, 0x400);
+
+	//Serialize VRAM to save state
+	ex_mem = &memory_map[0x6000000];
+	file.write((char*)ex_mem, 0x18000);
+
+	//Serialize OAM to save state
+	ex_mem = &memory_map[0x7000000];
+	file.write((char*)ex_mem, 0x400);
+
+	//Serialize SRAM to save state
+	ex_mem = &memory_map[0xE000000];
+	file.write((char*)ex_mem, 0x10000);
+
+	//Serialize misc data from MMU to save state
+	file.write((char*)&current_save_type, sizeof(current_save_type));
+	file.write((char*)&n_clock, sizeof(n_clock));
+	file.write((char*)&s_clock, sizeof(s_clock));
+	file.write((char*)&bios_lock, sizeof(bios_lock));
+	file.write((char*)&dma[0], sizeof(dma));
+	file.write((char*)&gpio, sizeof(gpio));
+
+	//Serialize EEPROM to save state
+	file.write((char*)&eeprom.bitstream_byte, sizeof(eeprom.bitstream_byte));
+	file.write((char*)&eeprom.address, sizeof(eeprom.address));
+	file.write((char*)&eeprom.dma_ptr, sizeof(eeprom.dma_ptr));
+	file.write((char*)&eeprom.size, sizeof(eeprom.size));
+	file.write((char*)&eeprom.size_lock, sizeof(eeprom.size_lock));
+	file.write((char*)&eeprom.data[0], eeprom.size);
+
+	//Serialize FLASH RAM to save state
+	file.write((char*)&flash_ram.current_command, sizeof(flash_ram.current_command));
+	file.write((char*)&flash_ram.bank, sizeof(flash_ram.bank));
+	file.write((char*)&flash_ram.write_single_byte, sizeof(flash_ram.write_single_byte));
+	file.write((char*)&flash_ram.switch_bank, sizeof(flash_ram.switch_bank));
+	file.write((char*)&flash_ram.grab_ids, sizeof(flash_ram.grab_ids));
+	file.write((char*)&flash_ram.next_write, sizeof(flash_ram.next_write));
+	file.write((char*)&flash_ram.data[0][0], 0x10000);
+	file.write((char*)&flash_ram.data[1][0], 0x10000);
+
+	file.close();
+	return true;
+}
+
+/****** Gets the size of MMU data for serialization ******/
+u32 AGB_MMU::size()
+{
+	u32 mmu_size = 0x70C00;
+
+	mmu_size += sizeof(current_save_type);
+	mmu_size += sizeof(n_clock);
+	mmu_size += sizeof(s_clock);
+	mmu_size += sizeof(bios_lock);
+	mmu_size += sizeof(dma);
+	mmu_size += sizeof(gpio);
+
+	mmu_size += sizeof(eeprom.bitstream_byte);
+	mmu_size += sizeof(eeprom.address);
+	mmu_size += sizeof(eeprom.dma_ptr);
+	mmu_size += sizeof(eeprom.size);
+	mmu_size += sizeof(eeprom.size_lock);
+	mmu_size += eeprom.size;
+
+	mmu_size += sizeof(flash_ram.current_command);
+	mmu_size += sizeof(flash_ram.bank);
+	mmu_size += sizeof(flash_ram.write_single_byte);
+	mmu_size += sizeof(flash_ram.switch_bank);
+	mmu_size += sizeof(flash_ram.grab_ids);
+	mmu_size += sizeof(flash_ram.next_write);
+	mmu_size += 0x20000;
+
+	return mmu_size;
+}
+	

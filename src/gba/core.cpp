@@ -166,6 +166,9 @@ void AGB_core::load_state(u8 slot)
 	if(!core_cpu.cpu_read(offset, state_file)) { return; }
 	offset += core_cpu.size();
 
+	if(!core_mmu.mmu_read(offset, state_file)) { return; }
+	offset += core_mmu.size();
+
 	std::cout<<"GBE::Loaded state " << state_file << "\n";
 }
 
@@ -178,6 +181,7 @@ void AGB_core::save_state(u8 slot)
 	state_file += id;
 
 	if(!core_cpu.cpu_write(state_file)) { return; }
+	if(!core_mmu.mmu_write(state_file)) { return; }
 
 	std::cout<<"GBE::Saved state " << state_file << "\n";
 }
