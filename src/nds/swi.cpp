@@ -40,6 +40,12 @@ void NTR_ARM9::process_swi(u32 comment)
 			swi_halt();
 			break;
 
+		//CPUSet
+		case 0xB:
+			std::cout<<"ARM9::SWI::CPUSet \n";
+			swi_cpuset();
+			break;
+
 		//IsDebugger
 		case 0xF:
 			//std::cout<<"ARM9::SWI::IsDebugger \n";
@@ -120,6 +126,91 @@ void NTR_ARM9::swi_vblankintrwait()
 	idle_state = 3;
 }
 
+/****** HLE implementation of CPUSet - NDS9 ******/
+void NTR_ARM9::swi_cpuset()
+{
+	//Grab source address - R0
+	u32 src_addr = get_reg(0);
+
+	//Grab destination address - R1
+	u32 dest_addr = get_reg(1);
+
+	//Grab transfer control options - R2
+	u32 transfer_control = get_reg(2);
+
+	//Transfer size - Bits 0-20 of R2
+	u32 transfer_size = (transfer_control & 0x1FFFFF);
+
+	//Determine if the transfer operation is copy or fill - Bit 24 of R2
+	u8 copy_fill = (transfer_control & 0x1000000) ? 1 : 0;
+
+	//Determine if the transfer operation is 16 or 32-bit - Bit 26 of R2
+	u8 transfer_type = (transfer_control & 0x4000000) ? 1 : 0;
+
+	src_addr &= (transfer_type == 0) ? ~0x1 : ~0x3;
+	dest_addr &= (transfer_type == 0) ? ~0x1 : ~0x3; 
+
+	u32 temp_32 = 0;
+	u16 temp_16 = 0;
+
+	while(transfer_size != 0)
+	{
+		//Copy from source to destination
+		if(copy_fill == 0)
+		{
+			//16-bit transfer
+			if(transfer_type == 0)
+			{
+				temp_16 = mem->read_u16(src_addr);
+				mem->write_u16(dest_addr, temp_16);
+			
+				src_addr += 2;
+				dest_addr += 2;
+			}
+
+			//32-bit transfer
+			else
+			{
+				temp_32 = mem->read_u32(src_addr);
+				mem->write_u32(dest_addr, temp_32);
+			
+				src_addr += 4;
+				dest_addr += 4;
+			}
+
+			transfer_size--;
+		}
+
+		//Fill first entry from source with destination
+		else
+		{
+			//16-bit transfer
+			if(transfer_type == 0)
+			{
+				temp_16 = mem->read_u16(src_addr);
+				mem->write_u16(dest_addr, temp_16);
+			
+				dest_addr += 2;
+			}
+
+			//32-bit transfer
+			else
+			{
+				temp_32 = mem->read_u32(src_addr);
+				mem->write_u32(dest_addr, temp_32);
+			
+				dest_addr += 4;
+			}
+			
+			transfer_size--;
+		}
+	}
+
+	//Write-back R0, R1
+	set_reg(0, src_addr);
+	set_reg(1, dest_addr);
+}
+
 /****** HLE implementation of IsDebugger - NDS9 ******/
 void NTR_ARM9::swi_isdebugger()
 {
@@ -151,6 +242,12 @@ void NTR_ARM7::process_swi(u32 comment)
 		case 0x6:
 			////std::cout<<"ARM7::SWI::Halt \n";
 			swi_halt();
+			break;
+
+		//CPUSet
+		case 0xB:
+			std::cout<<"ARM7::SWI::CPUSet \n";
+			swi_cpuset();
 			break;
 
 		//GetCRC16
@@ -211,7 +308,7 @@ void NTR_ARM7::swi_waitbyloop()
 	idle_state = 2;
 }
 
-/****** HLE implementation of VBlankIntrWait - NDS9 ******/
+/****** HLE implementation of VBlankIntrWait - NDS7 ******/
 void NTR_ARM7::swi_vblankintrwait()
 {
 	//This is basically the IntrWait SWI, but R0 and R1 are both set to 1
@@ -239,4 +336,93 @@ void NTR_ARM7::swi_halt()
 {
 	//Set CPU idle state to 1
 	idle_state = 1;
+}
+
+/****** HLE implementation of CPUSet - NDS7 ******/
+void NTR_ARM7::swi_cpuset()
+{
+	//Grab source address - R0
+	u32 src_addr = get_reg(0);
+
+	//Grab destination address - R1
+	u32 dest_addr = get_reg(1);
+
+	//Abort read/writes to the BIOS
+	if(src_addr <= 0x3FFF) { return; }
+	if(dest_addr <= 0x3FFF) { return; }
+
+	//Grab transfer control options - R2
+	u32 transfer_control = get_reg(2);
+
+	//Transfer size - Bits 0-20 of R2
+	u32 transfer_size = (transfer_control & 0x1FFFFF);
+
+	//Determine if the transfer operation is copy or fill - Bit 24 of R2
+	u8 copy_fill = (transfer_control & 0x1000000) ? 1 : 0;
+
+	//Determine if the transfer operation is 16 or 32-bit - Bit 26 of R2
+	u8 transfer_type = (transfer_control & 0x4000000) ? 1 : 0;
+
+	src_addr &= (transfer_type == 0) ? ~0x1 : ~0x3;
+	dest_addr &= (transfer_type == 0) ? ~0x1 : ~0x3; 
+
+	u32 temp_32 = 0;
+	u16 temp_16 = 0;
+
+	while(transfer_size != 0)
+	{
+		//Copy from source to destination
+		if(copy_fill == 0)
+		{
+			//16-bit transfer
+			if(transfer_type == 0)
+			{
+				temp_16 = mem->read_u16(src_addr);
+				mem->write_u16(dest_addr, temp_16);
+			
+				src_addr += 2;
+				dest_addr += 2;
+			}
+
+			//32-bit transfer
+			else
+			{
+				temp_32 = mem->read_u32(src_addr);
+				mem->write_u32(dest_addr, temp_32);
+			
+				src_addr += 4;
+				dest_addr += 4;
+			}
+
+			transfer_size--;
+		}
+
+		//Fill first entry from source with destination
+		else
+		{
+			//16-bit transfer
+			if(transfer_type == 0)
+			{
+				temp_16 = mem->read_u16(src_addr);
+				mem->write_u16(dest_addr, temp_16);
+			
+				dest_addr += 2;
+			}
+
+			//32-bit transfer
+			else
+			{
+				temp_32 = mem->read_u32(src_addr);
+				mem->write_u32(dest_addr, temp_32);
+			
+				dest_addr += 4;
+			}
+			
+			transfer_size--;
+		}
+	}
+
+	//Write-back R0, R1
+	set_reg(0, src_addr);
+	set_reg(1, dest_addr);
 }
