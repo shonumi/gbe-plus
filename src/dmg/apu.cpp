@@ -168,7 +168,7 @@ bool DMG_APU::apu_write(std::string filename)
 	
 	if(!file.is_open()) { return false; }
 
-	//Serialize CPU registers data to file stream
+	//Serialize APU data to file stream
 	file.write((char*)&apu_stat, sizeof(apu_stat));
 
 	file.close();

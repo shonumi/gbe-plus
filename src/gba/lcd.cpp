@@ -1606,3 +1606,102 @@ void AGB_LCD::scanline_compare()
 		mem->write_u16_fast(DISPSTAT, disp_stat);
 	}
 }
+
+/****** Read LCD data from save state ******/
+bool AGB_LCD::lcd_read(u32 offset, std::string filename)
+{
+	std::ifstream file(filename.c_str(), std::ios::binary);
+	
+	if(!file.is_open()) { return false; }
+
+	//Go to offset
+	file.seekg(offset);
+
+	//Serialize LCD data from save state
+	file.read((char*)&lcd_stat, sizeof(lcd_stat));
+
+	//Serialize OBJ data from save state
+	for(int x = 0; x < 128; x++)
+	{
+		file.read((char*)&obj[x], sizeof(obj[x]));
+		file.read((char*)&obj_render_list[x], sizeof(obj_render_list[x]));
+	}
+
+	//Serialize Misc LCD data from save state
+	file.read((char*)&lcd_mode, sizeof(lcd_mode));
+	file.read((char*)&current_scanline, sizeof(current_scanline));
+	file.read((char*)&lcd_clock, sizeof(lcd_clock));
+	file.read((char*)&obj_render_length, sizeof(obj_render_length));
+	file.read((char*)&last_obj_priority, sizeof(last_obj_priority));
+	file.read((char*)&last_obj_mode, sizeof(last_obj_mode));
+	file.read((char*)&last_bg_priority, sizeof(last_bg_priority));
+	file.read((char*)&last_raw_color, sizeof(last_raw_color));
+	file.read((char*)&obj_win_pixel, sizeof(obj_win_pixel));
+	file.read((char*)&scanline_pixel_counter, sizeof(scanline_pixel_counter));
+
+	for(int x = 0; x < 256; x++)
+	{
+		for(int y = 0; y < 2; y++)
+		{
+			file.read((char*)&pal[x][y], sizeof(pal[x][y]));
+			file.read((char*)&raw_pal[x][y], sizeof(raw_pal[x][y]));
+		}
+	}
+
+	for(int x = 0; x < 4; x++)
+	{
+		file.read((char*)&bg_offset_x[x], sizeof(bg_offset_x[x]));
+		file.read((char*)&bg_offset_y[x], sizeof(bg_offset_y[x]));
+	}
+
+	file.close();
+	return true;
+}
+
+/****** Read LCD data from save state ******/
+bool AGB_LCD::lcd_write(std::string filename)
+{
+	std::ofstream file(filename.c_str(), std::ios::binary | std::ios::app);
+	
+	if(!file.is_open()) { return false; }
+
+	//Serialize LCD data to save state
+	file.write((char*)&lcd_stat, sizeof(lcd_stat));
+
+	//Serialize OBJ data to save state
+	for(int x = 0; x < 128; x++)
+	{
+		file.write((char*)&obj[x], sizeof(obj[x]));
+		file.write((char*)&obj_render_list[x], sizeof(obj_render_list[x]));
+	}
+
+	//Serialize Misc LCD data to save state
+	file.write((char*)&lcd_mode, sizeof(lcd_mode));
+	file.write((char*)&current_scanline, sizeof(current_scanline));
+	file.write((char*)&lcd_clock, sizeof(lcd_clock));
+	file.write((char*)&obj_render_length, sizeof(obj_render_length));
+	file.write((char*)&last_obj_priority, sizeof(last_obj_priority));
+	file.write((char*)&last_obj_mode, sizeof(last_obj_mode));
+	file.write((char*)&last_bg_priority, sizeof(last_bg_priority));
+	file.write((char*)&last_raw_color, sizeof(last_raw_color));
+	file.write((char*)&obj_win_pixel, sizeof(obj_win_pixel));
+	file.write((char*)&scanline_pixel_counter, sizeof(scanline_pixel_counter));
+
+	for(int x = 0; x < 256; x++)
+	{
+		for(int y = 0; y < 2; y++)
+		{
+			file.write((char*)&pal[x][y], sizeof(pal[x][y]));
+			file.write((char*)&raw_pal[x][y], sizeof(raw_pal[x][y]));
+		}
+	}
+
+	for(int x = 0; x < 4; x++)
+	{
+		file.write((char*)&bg_offset_x[x], sizeof(bg_offset_x[x]));
+		file.write((char*)&bg_offset_y[x], sizeof(bg_offset_y[x]));
+	}
+
+	file.close();
+	return true;
+}

@@ -860,3 +860,37 @@ void AGB_APU::buffer_channel_4()
 		for(int x = 0; x < length; x++) { apu_stat.channel[3].buffer[apu_stat.channel[3].current_index++] = -32768; }
 	}
 }
+
+/****** Read APU data from save state ******/
+bool AGB_APU::apu_read(u32 offset, std::string filename)
+{
+	std::ifstream file(filename.c_str(), std::ios::binary);
+	
+	if(!file.is_open()) { return false; }
+
+	//Go to offset
+	file.seekg(offset);
+
+	//Serialize APU data from save state
+	file.read((char*)&apu_stat, sizeof(apu_stat));
+
+	file.close();
+	return true;
+}
+
+/****** Write APU data to save state ******/
+bool AGB_APU::apu_write(std::string filename)
+{
+	std::ofstream file(filename.c_str(), std::ios::binary | std::ios::app);
+	
+	if(!file.is_open()) { return false; }
+
+	//Serialize APU data to save state
+	file.write((char*)&apu_stat, sizeof(apu_stat));
+
+	file.close();
+	return true;
+}
+
+/****** Gets the size of APU data for serialization ******/
+u32 AGB_APU::size() { return sizeof(apu_stat); }

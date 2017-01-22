@@ -46,6 +46,11 @@ class AGB_APU
 	void generate_channel_4_samples(s16* stream, int length);
 	void generate_dma_a_samples(s16* stream, int length);
 	void generate_dma_b_samples(s16* stream, int length);
+
+	//Serialize data for save state loading/saving
+	bool apu_read(u32 offset, std::string filename);
+	bool apu_write(std::string filename);
+	u32 size();
 };
 
 /****** SDL Audio Callback ******/ 

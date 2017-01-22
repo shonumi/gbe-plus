@@ -37,6 +37,10 @@ class AGB_LCD
 	void update();
 	void clear_screen_buffer(u32 color);
 
+	//Serialize data for save state loading/saving
+	bool lcd_read(u32 offset, std::string filename);
+	bool lcd_write(std::string filename);
+
 	//Screen data
 	SDL_Window* window;
 	SDL_Surface* final_screen;
