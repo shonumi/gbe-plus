@@ -141,6 +141,12 @@ void NTR_ARM7::process_swi(u32 comment)
 			swi_waitbyloop();
 			break;
 
+		//VBlankIntrWait
+		case 0x5:
+			//std::cout<<"ARM7::SWI::VBlankIntrWait \n";
+			swi_vblankintrwait();
+			break;
+
 		//Halt
 		case 0x6:
 			////std::cout<<"ARM7::SWI::Halt \n";
@@ -203,6 +209,29 @@ void NTR_ARM7::swi_waitbyloop()
 
 	//Set CPU idle state to 2
 	idle_state = 2;
+}
+
+/****** HLE implementation of VBlankIntrWait - NDS9 ******/
+void NTR_ARM7::swi_vblankintrwait()
+{
+	//This is basically the IntrWait SWI, but R0 and R1 are both set to 1
+	reg.r0 = 1;
+	reg.r1 = 1;
+
+	//Force IME on, Force IRQ bit in CPSR
+	mem->write_u32(NDS_IME, 0x1);
+	reg.cpsr &= ~CPSR_IRQ;
+
+	//Grab old IF, set current one to zero
+	mem->nds7_old_if = mem->nds7_if;
+	mem->nds7_if = 0;
+
+	//Grab old IE, set current one to R1
+	mem->nds7_old_ie = mem->nds7_ie;
+	mem->nds7_ie = reg.r1;
+
+	//Set CPU idle state to 3
+	idle_state = 3;
 }
 
 /****** HLE implementation of Halt - NDS7 ******/
