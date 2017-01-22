@@ -271,6 +271,39 @@ void NTR_LCD::render_bg_scanline(u32 bg_control)
 
 					break;
 
+				//BG Mode 3
+				case 0x3:
+					//BG0-2 Text
+					if(bg_id != 3) { render_bg_mode_text(bg_control); }
+
+					//BG3 Extended
+					else { std::cout<<"LCD::Engine A - BG Mode 3 unsupported Extended Mode\n"; }
+
+					break;
+
+				//BG Mode 4
+				case 0x4:
+					//BG0-1 Text
+					if(bg_id < 2) { render_bg_mode_text(bg_control); }
+
+					//BG2 Affine
+					else if(bg_id == 2) { render_bg_mode_affine(bg_control); }
+
+					//BG3 Extended
+					else { std::cout<<"LCD::Engine A - BG Mode 4 unsupported Extended Mode\n"; }
+
+					break;
+
+				//BG Mode 5
+				case 0x5:
+					//BG0-1 Text
+					if(bg_id < 2) { render_bg_mode_text(bg_control); }
+
+					//BG2-3 Extended
+					else { std::cout<<"LCD::Engine A - BG Mode 5 unsupported Extended Mode\n"; }
+
+					break;
+
 				default:
 					std::cout<<"LCD::Engine A - invalid or unsupported BG Mode : " << std::dec << (u16)lcd_stat.bg_mode_a << "\n";
 			}
@@ -319,6 +352,39 @@ void NTR_LCD::render_bg_scanline(u32 bg_control)
 
 					//BG2-3 Affine
 					else { render_bg_mode_affine(bg_control); }
+
+					break;
+
+				//BG Mode 3
+				case 0x3:
+					//BG0-2 Text
+					if(bg_id != 3) { render_bg_mode_text(bg_control); }
+
+					//BG3 Extended
+					else { std::cout<<"LCD::Engine A - BG Mode 3 unsupported Extended Mode\n"; }
+
+					break;
+
+				//BG Mode 4
+				case 0x4:
+					//BG0-1 Text
+					if(bg_id < 2) { render_bg_mode_text(bg_control); }
+
+					//BG2 Affine
+					else if(bg_id == 2) { render_bg_mode_affine(bg_control); }
+
+					//BG3 Extended
+					else { std::cout<<"LCD::Engine A - BG Mode 4 unsupported Extended Mode\n"; }
+
+					break;
+
+				//BG Mode 5
+				case 0x5:
+					//BG0-1 Text
+					if(bg_id < 2) { render_bg_mode_text(bg_control); }
+
+					//BG2-3 Extended
+					else { std::cout<<"LCD::Engine A - BG Mode 5 unsupported Extended Mode\n"; }
 
 					break;
 
