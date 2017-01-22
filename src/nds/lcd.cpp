@@ -246,11 +246,33 @@ void NTR_LCD::render_bg_scanline(u32 bg_control)
 			switch(lcd_stat.bg_mode_a)
 			{
 				//BG Mode 0
-				case 0:
-					return render_bg_mode_0(bg_control); break;
+				case 0x0:
+					render_bg_mode_text(bg_control);
+					break;
+
+				//BG Mode 1
+				case 0x1:
+					
+					//BG0-2 Text
+					if(bg_id != 3) { render_bg_mode_text(bg_control); }
+					
+					//BG3 Affine
+					else { render_bg_mode_affine(bg_control); }
+
+					break;
+
+				//BG Mode 2
+				case 0x2:
+					//BG0-1 Text
+					if(bg_id < 2) { render_bg_mode_text(bg_control); }
+
+					//BG2-3 Affine
+					else { render_bg_mode_affine(bg_control); }
+
+					break;
 
 				default:
-					std::cout<<"LCD::Engine A - invalid or unsupported BG Mode : " << std::dec << lcd_stat.bg_mode_a;
+					std::cout<<"LCD::Engine A - invalid or unsupported BG Mode : " << std::dec << (u16)lcd_stat.bg_mode_a << "\n";
 			}
 		}
 	}
@@ -276,18 +298,39 @@ void NTR_LCD::render_bg_scanline(u32 bg_control)
 			switch(lcd_stat.bg_mode_b)
 			{
 				//BG Mode 0
-				case 0:
-					return render_bg_mode_0(bg_control); break;
+				case 0x0:
+					render_bg_mode_text(bg_control);
+					break;
+
+				//BG Mode 1
+				case 0x1:
+					//BG0-2 Text
+					if(bg_id != 3) { render_bg_mode_text(bg_control); }
+					
+					//BG3 Affine
+					else { render_bg_mode_affine(bg_control); }
+
+					break;
+
+				//BG Mode 2
+				case 0x2:
+					//BG0-1 Text
+					if(bg_id < 2) { render_bg_mode_text(bg_control); }
+
+					//BG2-3 Affine
+					else { render_bg_mode_affine(bg_control); }
+
+					break;
 
 				default:
-					std::cout<<"LCD::Engine B - invalid or unsupported BG Mode : " << std::dec << lcd_stat.bg_mode_b;
+					std::cout<<"LCD::Engine B - invalid or unsupported BG Mode : " << std::dec << (u16)lcd_stat.bg_mode_b << "\n";
 			}
 		}
 	}
 }
 
-/****** Render BG Mode 0 scanline ******/
-void NTR_LCD::render_bg_mode_0(u32 bg_control)
+/****** Render BG Mode Text scanline ******/
+void NTR_LCD::render_bg_mode_text(u32 bg_control)
 {
 	//Render Engine A
 	if((bg_control & 0x1000) == 0)
@@ -428,20 +471,8 @@ void NTR_LCD::render_bg_mode_0(u32 bg_control)
 	}
 }
 
-/****** Render BG Mode 1 scanline ******/
-void NTR_LCD::render_bg_mode_1(u32 bg_control) { }
-
-/****** Render BG Mode 3 scanline ******/
-void NTR_LCD::render_bg_mode_3(u32 bg_control) { }
-
-/****** Render BG Mode 4 scanline ******/
-void NTR_LCD::render_bg_mode_4(u32 bg_control) { }
-
-/****** Render BG Mode 5 scanline ******/
-void NTR_LCD::render_bg_mode_5(u32 bg_control) { }
-
-/****** Render BG Mode 6 ******/
-void NTR_LCD::render_bg_mode_6(u32 bg_control) { }
+/****** Render BG Mode Affine scanline ******/
+void NTR_LCD::render_bg_mode_affine(u32 bg_control) { }
 
 /****** Render pixels for a given scanline (per-pixel) ******/
 void NTR_LCD::render_scanline()
