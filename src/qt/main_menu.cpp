@@ -53,6 +53,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	screenshot->setShortcut(tr("F9"));
 	nplay_start->setShortcut(tr("F5"));
 	nplay_stop->setShortcut(tr("F6"));
+	debugging->setShortcut(tr("F7"));
 
 	pause->setCheckable(true);
 	pause->setObjectName("pause_action");
