@@ -228,6 +228,9 @@ void NTR_LCD::render_bg_scanline(u32 bg_control)
 	//Render Engine A
 	if((bg_control & 0x1000) == 0)
 	{
+		//Clear scanline with backdrop
+		for(u16 x = 0; x < 256; x++) { scanline_buffer_a[x] = lcd_stat.bg_pal_a[0]; }
+
 		//Determine BG priority
 		for(int x = 0, list_length = 0; x < 4; x++)
 		{
@@ -313,6 +316,9 @@ void NTR_LCD::render_bg_scanline(u32 bg_control)
 	//Render Engine B
 	else
 	{
+		//Clear scanline with backdrop
+		for(u16 x = 0; x < 256; x++) { scanline_buffer_b[x] = lcd_stat.bg_pal_b[0]; }
+
 		//Determine BG priority
 		for(int x = 0, list_length = 0; x < 4; x++)
 		{
@@ -448,7 +454,9 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 				if(bit_depth == 64)
 				{
 					u8 raw_color = mem->read_u8(tile_data_addr++);
-					scanline_buffer_a[scanline_pixel_counter++] = lcd_stat.bg_pal_a[raw_color];
+
+					//Only draw color if it's not transparent
+					if(raw_color) { scanline_buffer_a[scanline_pixel_counter++] = lcd_stat.bg_pal_a[raw_color]; }
 				}
 
 				//Process 4-bit depth
@@ -458,8 +466,12 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 					u8 pal_1 = (pal_id * 16) + (raw_color & 0xF);
 					u8 pal_2 = (pal_id * 16) + (raw_color >> 4);
 
-					scanline_buffer_a[scanline_pixel_counter++] = lcd_stat.bg_pal_a[pal_1];
-					scanline_buffer_a[scanline_pixel_counter++] = lcd_stat.bg_pal_a[pal_2];
+					//Only draw colors if not transparent
+					if(raw_color & 0xF) { scanline_buffer_a[scanline_pixel_counter] = lcd_stat.bg_pal_a[pal_1]; }
+					scanline_pixel_counter++;
+					
+					if(raw_color >> 4) { scanline_buffer_a[scanline_pixel_counter] = lcd_stat.bg_pal_a[pal_2]; }
+					scanline_pixel_counter++;
 
 					y++;
 				}
