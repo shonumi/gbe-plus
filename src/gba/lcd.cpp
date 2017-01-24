@@ -83,7 +83,8 @@ void AGB_LCD::reset()
 	for(int x = 0; x < 2; x++)
 	{
 		lcd_stat.bg_affine[x].overflow = false;
-		lcd_stat.bg_affine[x].dx = lcd_stat.bg_affine[x].dmx = lcd_stat.bg_affine[x].dy = lcd_stat.bg_affine[x].dmy = 0.0;
+		lcd_stat.bg_affine[x].dmx = lcd_stat.bg_affine[x].dy = 0.0;
+		lcd_stat.bg_affine[x].dx = lcd_stat.bg_affine[x].dmy = 1.0;
 		lcd_stat.bg_affine[x].x_ref = lcd_stat.bg_affine[x].y_ref = 0.0;
 		lcd_stat.bg_affine[x].x_pos = lcd_stat.bg_affine[x].y_pos = 0.0;
 	}
