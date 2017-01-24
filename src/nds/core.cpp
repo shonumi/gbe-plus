@@ -918,7 +918,6 @@ void NTR_core::debug_process_command()
 /****** Process hotkey input ******/
 void NTR_core::handle_hotkey(SDL_Event& event)
 {
-	/*
 	//Quit on Q or ESC
 	if((event.type == SDL_KEYDOWN) && ((event.key.keysym.sym == SDLK_q) || (event.key.keysym.sym == SDLK_ESCAPE)))
 	{
@@ -942,9 +941,22 @@ void NTR_core::handle_hotkey(SDL_Event& event)
 		save_stream << rand() % 1024 << rand() % 1024 << rand() % 1024;
 		save_name += save_stream.str() + ".bmp";
 	
-		SDL_SaveBMP(core_cpu.controllers.video.final_screen, save_name.c_str());
+		SDL_SaveBMP(core_cpu_nds9.controllers.video.final_screen, save_name.c_str());
 	}
 
+	//Start CLI debugger on F7
+	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F7) && (!config::use_external_interfaces))
+	{
+		//Start a new CLI debugger session or interrupt an existing one in Continue Mode 
+		if((!db_unit.debug_mode) || ((db_unit.debug_mode) && (db_unit.last_command == "c")))
+		{
+			db_unit.debug_mode = true;
+			db_unit.last_command = "n";
+			db_unit.last_mnemonic = "";
+		}
+	}
+
+	/*
 	//Toggle Fullscreen on F12
 	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F12))
 	{
@@ -955,7 +967,7 @@ void NTR_core::handle_hotkey(SDL_Event& event)
 		//Initialize the screen
 		if(!config::use_opengl)
 		{
-			core_cpu.controllers.video.final_screen = SDL_SetVideoMode(240, 160, 32, SDL_SWSURFACE | config::flags);
+			ccore_cpu_nds9.controllers.video.final_screen = SDL_SetVideoMode(256, 384, 32, SDL_SWSURFACE | config::flags);
 		}
 
 		else
@@ -963,6 +975,7 @@ void NTR_core::handle_hotkey(SDL_Event& event)
 			core_cpu.controllers.video.opengl_init();
 		}
 	}
+	*/
 
 	//Pause emulation
 	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_PAUSE))
@@ -992,7 +1005,6 @@ void NTR_core::handle_hotkey(SDL_Event& event)
 		
 	//Reset emulation on F8
 	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F8)) { reset(); }
-	*/
 }
 
 void NTR_core::handle_hotkey(int input, bool pressed) { }

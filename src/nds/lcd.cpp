@@ -428,7 +428,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 
 		u32 tile_addr = base_addr + lcd_stat.bg_base_tile_addr_a[bg_id];
 		u32 map_addr = base_addr + lcd_stat.bg_base_map_addr_a[bg_id];
-
+ 
 		//Cycle through all tiles on this scanline
 		for(u32 x = 0; x < 32; x++)
 		{
@@ -455,7 +455,8 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 					u8 raw_color = mem->read_u8(tile_data_addr++);
 
 					//Only draw color if it's not transparent
-					if(raw_color) { scanline_buffer_a[scanline_pixel_counter++] = lcd_stat.bg_pal_a[raw_color]; }
+					if(raw_color) { scanline_buffer_a[scanline_pixel_counter] = lcd_stat.bg_pal_a[raw_color]; }
+					scanline_pixel_counter++;
 				}
 
 				//Process 4-bit depth
@@ -527,7 +528,8 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 				if(bit_depth == 64)
 				{
 					u8 raw_color = mem->read_u8(tile_data_addr++);
-					scanline_buffer_b[scanline_pixel_counter++] = lcd_stat.bg_pal_b[raw_color];
+					if(raw_color) { scanline_buffer_b[scanline_pixel_counter] = lcd_stat.bg_pal_b[raw_color]; }
+					scanline_pixel_counter++;
 				}
 
 				//Process 4-bit depth
