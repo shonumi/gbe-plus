@@ -59,13 +59,16 @@ void AGB_LCD::reset()
 
 	//Initialize various LCD status variables
 	lcd_stat.oam_update = true;
-	lcd_stat.oam_update_list.resize(128, true);
+	for(int x = 0; x < 128; x++) { lcd_stat.oam_update_list[x] = true; }
 
 	lcd_stat.bg_pal_update = true;
-	lcd_stat.bg_pal_update_list.resize(256, true);
-
 	lcd_stat.obj_pal_update = true;
-	lcd_stat.obj_pal_update_list.resize(256, true);
+
+	for(int x = 0; x < 256; x++)
+	{
+		lcd_stat.bg_pal_update_list[x] = true;
+		lcd_stat.obj_pal_update_list[x] = true;
+	}
 
 	lcd_stat.frame_base = 0x6000000;
 	lcd_stat.bg_mode = 0;

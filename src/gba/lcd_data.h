@@ -81,13 +81,13 @@ struct agb_lcd_data
 	float obj_affine[128];
 
 	bool oam_update;
-	std::vector<bool> oam_update_list;
+	bool oam_update_list[128];
 
 	bool bg_pal_update;
-	std::vector<bool> bg_pal_update_list;
+	bool bg_pal_update_list[256];
 
 	bool obj_pal_update;
-	std::vector<bool> obj_pal_update_list;
+	bool obj_pal_update_list[256];
 
 	u8 bg_mos_hsize;
 	u8 bg_mos_vsize;
