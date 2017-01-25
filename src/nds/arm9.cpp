@@ -412,6 +412,12 @@ void NTR_ARM9::decode()
 			//THUMB_19
 			instruction_operation[pipeline_id] = THUMB_19;
 		}
+
+		else if((current_instruction & 0xF800) == 0xE800)
+		{
+			//THUMB_5 BLX
+			instruction_operation[pipeline_id] = THUMB_5;
+		}
 	}
 
 	//Decode ARM instructions
