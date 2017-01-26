@@ -1677,6 +1677,20 @@ void DMG_core::handle_hotkey(SDL_Event& event)
 			core_cpu.controllers.video.window = SDL_CreateWindow("GBE+", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, config::sys_width, config::sys_height, config::flags);
 			core_cpu.controllers.video.final_screen = SDL_GetWindowSurface(core_cpu.controllers.video.window);
 			SDL_GetWindowSize(core_cpu.controllers.video.window, &config::win_width, &config::win_height);
+
+			//Find the maximum fullscreen dimensions that maintain the original aspect ratio
+			if(config::flags & SDL_WINDOW_FULLSCREEN_DESKTOP)
+			{
+				double max_width, max_height, ratio = 0.0;
+
+				max_width = (double)config::win_width / config::sys_width;
+				max_height = (double)config::win_height / config::sys_height;
+
+				if(max_width <= max_height) { ratio = max_width; }
+				else { ratio = max_height; }
+
+				core_cpu.controllers.video.max_fullscreen_ratio = ratio;
+			}
 		}
 
 		//Initialize new window - OpenGL

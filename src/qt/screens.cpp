@@ -285,7 +285,6 @@ void hard_screen::resizeEvent(QResizeEvent* event)
 
 	glViewport(0, 0, width(), height());
 	calculate_screen_size();
-	
 }
 
 /****** Reloads fragment and vertex shaders ******/
