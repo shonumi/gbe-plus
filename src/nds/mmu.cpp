@@ -117,6 +117,14 @@ void NTR_MMU::reset()
 /****** Read byte from memory ******/
 u8 NTR_MMU::read_u8(u32 address)
 {
+	//Mirror memory address if applicable
+	switch(address >> 24)
+	{
+		case 0x2:
+			address &= 0x23FFFFF;
+			break;
+	}
+
 	switch(address)
 	{
 		case NDS_KEYINPUT:
@@ -402,6 +410,14 @@ u32 NTR_MMU::read_u32_fast(u32 address) const
 /****** Write byte into memory ******/
 void NTR_MMU::write_u8(u32 address, u8 value)
 {
+	//Mirror memory address if applicable
+	switch(address >> 24)
+	{
+		case 0x2:
+			address &= 0x23FFFFF;
+			break;
+	}
+
 	//Check for unused memory first
 	if(address >= 0x10000000) { return; std::cout<<"Out of bounds write : 0x" << std::hex << address << "\n"; return; }
 
@@ -1771,7 +1787,7 @@ bool NTR_MMU::read_file(std::string filename)
 	file.read(reinterpret_cast<char*> (&cart_data[0]), file_size);
 
 	//Copy 512 byte header to Main RAM on boot
-	for(u32 x = 0; x < 0x200; x++) { memory_map[0x27FFE00 + x] = cart_data[x]; }
+	for(u32 x = 0; x < 0x200; x++) { write_u8((0x27FFE00 + x), cart_data[x]); }
 
 	file.close();
 	std::cout<<"MMU::" << filename << " loaded successfully. \n";
@@ -1782,14 +1798,14 @@ bool NTR_MMU::read_file(std::string filename)
 	for(u32 x = 0; x < header.arm9_size; x++)
 	{
 		if((header.arm9_rom_offset + x) >= file_size) { break; }
-		memory_map[header.arm9_entry_addr + x] = cart_data[header.arm9_rom_offset + x];
+		write_u8((header.arm9_entry_addr + x), cart_data[header.arm9_rom_offset + x]);
 	}
 
 	//Copy ARM7 binary from offset to entry address
 	for(u32 x = 0; x < header.arm7_size; x++)
 	{
 		if((header.arm7_rom_offset + x) >= file_size) { break; }
-		memory_map[header.arm7_entry_addr + x] = cart_data[header.arm7_rom_offset + x];
+		write_u8((header.arm7_entry_addr + x), cart_data[header.arm7_rom_offset + x]);
 	}
 
 	return true;
@@ -2072,7 +2088,7 @@ void NTR_MMU::setup_default_firmware()
 	//Copy firmware user settings to RAM
 	for(u32 x = 0; x < 0x6C; x++)
 	{
-		memory_map[0x27FFC80 + x] = firmware[0x3FE00 + x];
+		write_u8((0x27FFC80 + x), firmware[0x3FE00 + x]);
 	} 
 }
 	
