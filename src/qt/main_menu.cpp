@@ -59,6 +59,11 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	pause->setObjectName("pause_action");
 	fullscreen->setCheckable(true);
 	fullscreen->setObjectName("fullscreen_action");
+	custom_gfx->setObjectName("custom_gfx_action");
+	debugging->setObjectName("debugging_action");
+
+	custom_gfx->setEnabled(false);
+	debugging->setEnabled(false);
 
 	menu_bar = new QMenuBar(this);
 
@@ -508,6 +513,12 @@ void main_menu::boot_game()
 		//Resize drawing screens
 		if(config::use_opengl) { hw_screen->resize((base_width * config::scaling_factor), (base_height * config::scaling_factor)); }
 		else { sw_screen->resize((base_width * config::scaling_factor), (base_height * config::scaling_factor)); }
+
+		//Disable CGFX menu
+		findChild<QAction*>("custom_gfx_action")->setEnabled(false);
+
+		//Disable debugging menu
+		findChild<QAction*>("debugging_action")->setEnabled(false);
 	}
 
 	else 
@@ -524,6 +535,12 @@ void main_menu::boot_game()
 
 		if(qt_gui::screen != NULL) { delete qt_gui::screen; }
 		qt_gui::screen = new QImage(base_width, base_height, QImage::Format_ARGB32);
+
+		//Enable CGFX menu
+		findChild<QAction*>("custom_gfx_action")->setEnabled(true);
+
+		//Enable debugging menu
+		findChild<QAction*>("debugging_action")->setEnabled(true);
 	}
 
 	//Read specified ROM file
@@ -714,8 +731,6 @@ void main_menu::keyReleaseEvent(QKeyEvent* event)
 	//Force input processing in the core
 	if(main_menu::gbe_plus != NULL)
 	{
-
-
 		gbe_plus->feed_key_input(sdl_key, false);
 	}
 }
