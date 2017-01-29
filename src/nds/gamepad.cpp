@@ -198,7 +198,23 @@ void NTR_GamePad::handle_input(SDL_Event &event)
 				break;
 		}
 	}
-}
+
+	//Mouse motion
+	else if(event.type == SDL_MOUSEMOTION)
+	{
+		//Only process mouse motion if the emulated stylus is down
+		if(ext_key_input & 0x40) { return; }
+
+		//Top screen cannot be touched
+		if(event.button.y < 192) { return; }
+
+		mouse_x = event.button.x;
+		mouse_y = event.button.y;
+
+		//Adjust mouse Y coordinate to NDS coordinate
+		mouse_y -= 192;
+	}
+}	
 
 /****** Processes input based on unique pad # for keyboards ******/
 void NTR_GamePad::process_keyboard(int pad, bool pressed)

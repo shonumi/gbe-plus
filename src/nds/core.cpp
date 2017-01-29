@@ -179,7 +179,8 @@ void NTR_core::run_core()
 			else if((event.type == SDL_KEYDOWN) || (event.type == SDL_KEYUP) 
 			|| (event.type == SDL_JOYBUTTONDOWN) || (event.type == SDL_JOYBUTTONUP)
 			|| (event.type == SDL_JOYAXISMOTION) || (event.type == SDL_JOYHATMOTION)
-			|| (event.type == SDL_MOUSEBUTTONDOWN) || (event.type == SDL_MOUSEBUTTONUP)) { core_pad.handle_input(event); handle_hotkey(event); }
+			|| (event.type == SDL_MOUSEBUTTONDOWN) || (event.type == SDL_MOUSEBUTTONUP)
+			|| (event.type == SDL_MOUSEMOTION)) { core_pad.handle_input(event); handle_hotkey(event); }
 		}
 
 		//Run the CPU
