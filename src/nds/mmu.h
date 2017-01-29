@@ -71,6 +71,15 @@ class NTR_MMU
 		bool active_transfer;
 	} nds7_spi;
 
+	//Touchscreen controller
+	struct nds_touchscreen_controller
+	{
+		u16 adc_x1, adc_x2;
+		u16 adc_y1, adc_y2;
+		u8 scr_x1, scr_x2;
+		u8 scr_y1, scr_y2;
+	} touchscreen;
+
 	//Memory access timings (Nonsequential and Sequential)
 	u8 n_clock;
 	u8 s_clock;
@@ -142,6 +151,8 @@ class NTR_MMU
 	u16 firmware_state;
 	u32 firmware_index;
 
+	u16 touchscreen_state;
+
 	NTR_MMU();
 	~NTR_MMU();
 
@@ -169,6 +180,7 @@ class NTR_MMU
 
 	void process_spi_bus();
 	void process_firmware();
+	void process_touchscreen();
 	void setup_default_firmware();
 
 	void set_lcd_data(ntr_lcd_data* ex_lcd_stat);

@@ -148,6 +148,12 @@ void NTR_GamePad::handle_input(SDL_Event &event)
 		mouse_x = event.button.x;
 		mouse_y = event.button.y;
 
+		//Top screen cannot be touched
+		if(mouse_y < 192) { return; }
+
+		//Adjust mouse Y coordinate to NDS coordinate
+		mouse_y -= 192;
+
 		switch(event.button.button)
 		{
 			case SDL_BUTTON_LEFT:
@@ -170,6 +176,12 @@ void NTR_GamePad::handle_input(SDL_Event &event)
 		pad = 400;
 		mouse_x = event.button.x;
 		mouse_y = event.button.y;
+
+		//Top screen cannot be touched
+		if(mouse_y < 192) { return; }
+
+		//Adjust mouse Y coordinate to NDS coordinate
+		mouse_y -= 192;
 
 		switch(event.button.button)
 		{
@@ -381,6 +393,9 @@ void NTR_GamePad::process_mouse(int pad, bool pressed)
 	else if((pad == 400) && (!pressed))
 	{
 		ext_key_input |= 0x40;
+
+		mouse_x = 0;
+		mouse_y = 0xFFF;
 	}
 }
 

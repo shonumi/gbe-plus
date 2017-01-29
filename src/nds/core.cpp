@@ -157,6 +157,9 @@ void NTR_core::save_state(u8 slot) { }
 /****** Run the core in a loop until exit ******/
 void NTR_core::run_core()
 {
+	//Reaneble cursor for this core since it's actually useful for the touchscreen
+	SDL_ShowCursor(SDL_ENABLE);
+
 	//Point ARM9 PC to entry address
 	core_cpu_nds9.reg.r15 = core_mmu.header.arm9_entry_addr;
 

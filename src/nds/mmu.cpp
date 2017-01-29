@@ -109,6 +109,18 @@ void NTR_MMU::reset()
 	nds7_spi.transfer_clock = 0;
 	nds7_spi.active_transfer = false;
 
+	touchscreen.adc_x1 = read_u16(0x27FFCD8) & 0x1FFF;
+	touchscreen.adc_y1 = read_u16(0x27FFCDA) & 0x1FFF;
+	touchscreen.scr_x1 = read_u8(0x27FFCDC);
+	touchscreen.scr_x2 = read_u8(0x27FFCDD);
+
+	touchscreen.adc_x2 = read_u16(0x27FFCDE) & 0x1FFF;
+	touchscreen.adc_y2 = read_u16(0x27FFCE0) & 0x1FFF;
+	touchscreen.scr_x2 = read_u8(0x27FFCE2);
+	touchscreen.scr_y2 = read_u8(0x27FFCE3);
+
+	touchscreen_state = 0;
+
 	g_pad = NULL;
 
 	std::cout<<"MMU::Initialized\n";
@@ -1993,13 +2005,13 @@ void NTR_MMU::process_spi_bus()
 
 		//Touchscreen
 		case 2:
-			std::cout<<"MMU::Touchscreen write -> 0x" << nds7_spi.data << "\n";
-			nds7_spi.data = 0xFF;
+			//std::cout<<"MMU::Touchscreen write -> 0x" << nds7_spi.data << "\n";
+			process_touchscreen();
 			break;
 
 		//Reserved
 		case 3:
-			//std::cout<<"MMU::Warning - Writing to reserved device via SPI\n";
+			std::cout<<"MMU::Warning - Writing to reserved device via SPI\n";
 			break;
 	}
 
@@ -2051,6 +2063,60 @@ void NTR_MMU::process_firmware()
 		case 0x0303:
 			if(firmware_index < 0x40000) { nds7_spi.data = firmware[firmware_index++]; }
 			break;
+	}
+}
+
+/****** Handles read and write data operations to the touchscreen controller ******/
+void NTR_MMU::process_touchscreen()
+{
+	//Check to see if the control byte was accessed
+	if(nds7_spi.data & 0x80)
+	{
+		//Read data from the touchscreen's channels
+		u8 channel = (nds7_spi.data >> 4) & 0x7;
+		touchscreen_state = (channel << 1);
+
+		return;
+	}
+
+	u16 touch_x = g_pad->mouse_x;
+	u16 touch_y = g_pad->mouse_y;
+
+	//Convert touch screen coordinate via ADC
+	touch_x = (((touch_x - touchscreen.scr_x1 + 1) * (touchscreen.adc_x2 - touchscreen.adc_x1)) / (touchscreen.scr_x2 - touchscreen.scr_x1)) + touchscreen.adc_x1;
+	touch_y = (((touch_y - touchscreen.scr_y1 + 1) * (touchscreen.adc_y2 - touchscreen.adc_y1)) / (touchscreen.scr_y2 - touchscreen.scr_y1)) + touchscreen.adc_y1;
+
+	touch_x &= 0xFFF;
+	touch_y &= 0xFFF;
+
+	//Process various touchscreen states
+	switch(touchscreen_state)
+	{
+		//Read Touch Y Byte 1
+		case 0x2:
+			nds7_spi.data = (touch_y >> 5);
+			touchscreen_state++;
+			break;
+
+		//Read Touch Y Byte 2
+		case 0x3:
+			nds7_spi.data = ((touch_y & 0x1F) << 3);
+			touchscreen_state++;
+			break;
+
+		//Read Touch X Byte 1
+		case 0xA:
+			nds7_spi.data = (touch_x >> 5);
+			touchscreen_state++;
+			break;
+
+		//Read Touch X Byte 2
+		case 0xB:
+			nds7_spi.data = ((touch_x & 0x1F) << 3);
+			touchscreen_state++;
+			break;
+
+		default: nds7_spi.data = 0;
 	}
 }
 
