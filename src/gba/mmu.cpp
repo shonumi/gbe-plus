@@ -1398,7 +1398,9 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			dma[3].delay = 2;
 			break;
 
-		case KEYINPUT: break;
+		case KEYINPUT:
+		case KEYINPUT+1:
+			break;
 
 		//Timer 0 Reload Value
 		case TM0CNT_L:
