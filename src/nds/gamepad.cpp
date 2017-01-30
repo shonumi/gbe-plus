@@ -7,7 +7,7 @@
 // Description : NDS joypad emulation and input handling
 //
 // Reads and writes to the KEYINPUT, EXTKEYIN and KEYCNT registers
-// Handles input from keyboard using SDL events
+// Handles inputfrom controllers, keyboard, and mouse using SDL events
 
 #include "gamepad.h"
 
@@ -21,6 +21,7 @@ NTR_GamePad::NTR_GamePad()
 	mouse_x = 0;
 	mouse_y = 0;
 	up_shadow = down_shadow = left_shadow = right_shadow = false;
+	touch_hold = false;
 }
 
 /****** Initialize GamePad ******/
@@ -399,15 +400,42 @@ void NTR_GamePad::process_joystick(int pad, bool pressed)
 /****** Processes input based on the mouse ******/
 void NTR_GamePad::process_mouse(int pad, bool pressed)
 {
-	//Emulate touchscreen press (NDS mode only, DSi does not use this)
-	if((pad == 400) && (pressed))
+	//Emulate touchscreen press (NDS mode only, DSi does not use this) - Manual Hold Mode
+	if((pad == 400) && (pressed) && (!touch_hold))
 	{
 		ext_key_input &= ~0x40;
 	}
 
-	//Emulate touchscreen release (NDS mode only, DSi does not use this)
-	else if((pad == 400) && (!pressed))
+	//Emulate touchscreen release (NDS mode only, DSi does not use this) - Manual Hold Mode
+	else if((pad == 400) && (!pressed) && (!touch_hold))
 	{
+		ext_key_input |= 0x40;
+
+		mouse_x = 0;
+		mouse_y = 0xFFF;
+	}
+
+	//End Auto Hold Mode if left-click happens
+	else if((pad == 400) && (touch_hold))
+	{
+		touch_hold = false;
+		ext_key_input |= 0x40;
+
+		mouse_x = 0;
+		mouse_y = 0xFFF;
+	}
+
+	//Emulate touchscreen press (NDS mode only, DSi does not use this) - Auto Hold Mode
+	else if((pad == 402) && (pressed) && (!touch_hold))
+	{
+		touch_hold = true;
+		ext_key_input &= ~0x40;
+	}
+
+	//Emulate touchscreen release (NDS mode only, DSi does not use this) - Auto Hold Mode
+	else if((pad == 402) && (pressed) && (touch_hold))
+	{
+		touch_hold = false;
 		ext_key_input |= 0x40;
 
 		mouse_x = 0;

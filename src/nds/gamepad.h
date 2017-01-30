@@ -38,6 +38,7 @@ class NTR_GamePad
 	u16 key_input;
 	u16 ext_key_input;
 	u32 mouse_x, mouse_y;
+	bool touch_hold;
 
 	private:
 
