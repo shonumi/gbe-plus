@@ -1536,7 +1536,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 		case WAITCNT+1:
 			{
 				memory_map[address] = value;
-				u16 wait_control = read_u16(WAITCNT);
+				u16 wait_control = ((memory_map[WAITCNT+1] << 8) | memory_map[WAITCNT]);
 
 				//Determine first access cycles (Non-Sequential)
 				switch((wait_control >> 2) & 0x3)
