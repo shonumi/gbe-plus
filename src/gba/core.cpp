@@ -126,6 +126,8 @@ void AGB_core::sleep()
 /****** Reset the core ******/
 void AGB_core::reset()
 {
+	bool can_reset = true;
+
 	core_cpu.reset();
 	core_cpu.controllers.video.reset();
 	core_cpu.controllers.audio.reset();
@@ -147,10 +149,14 @@ void AGB_core::reset()
 	core_mmu.timer = &core_cpu.controllers.timer;
 
 	//Re-read specified ROM file
-	core_mmu.read_file(config::rom_file);
+	if(!core_mmu.read_file(config::rom_file)) { can_reset = false; }
+
+	//Re-read BIOS file
+	if((config::use_bios) && (!read_bios(config::bios_file))) { can_reset = false; }
 
 	//Start everything all over again
-	start();
+	if(can_reset) { start(); }
+	else { running = false; }
 }
 
 /****** Loads a save state ******/

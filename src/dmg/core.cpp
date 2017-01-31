@@ -95,6 +95,8 @@ void DMG_core::shutdown()
 /****** Reset the core ******/
 void DMG_core::reset()
 {
+	bool can_reset = true;
+
 	core_cpu.reset();
 	core_cpu.controllers.video.reset();
 	core_cpu.controllers.audio.reset();
@@ -117,10 +119,14 @@ void DMG_core::reset()
 	core_cpu.mem->g_pad = &core_pad;
 
 	//Re-read specified ROM file
-	core_mmu.read_file(config::rom_file);
+	if(!core_mmu.read_file(config::rom_file)) { can_reset = false; }
+
+	//Re-read BIOS file
+	if((config::use_bios) && (!read_bios(config::bios_file))) { can_reset = false; }
 
 	//Start everything all over again
-	start();
+	if(can_reset) { start(); }
+	else { running = false; }
 }
 
 /****** Loads a save state ******/
