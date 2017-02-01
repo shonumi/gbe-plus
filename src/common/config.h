@@ -57,6 +57,10 @@ namespace config
 	extern int gyro_key_up, gyro_key_down, gyro_key_left, gyro_key_right;
 	extern int gyro_joy_up, gyro_joy_down, gyro_joy_left, gyro_joy_right;
 
+	extern int touch_zone_x[10];
+	extern int touch_zone_y[10];
+	extern int touch_zone_pad[10];
+
 	extern int hotkey_turbo;
 	extern int dead_zone;
 	extern int joy_id;

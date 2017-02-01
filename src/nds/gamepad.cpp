@@ -319,6 +319,29 @@ void NTR_GamePad::process_keyboard(int pad, bool pressed)
 
 	//Emulate L Trigger release
 	else if((pad == config::ntr_key_l_trigger) && (!pressed)) { key_input |= 0x200; }
+
+	//Map keyboard input to touchscreen coordinates
+	for(int x = 0; x < 10; x++)
+	{
+		if((config::touch_zone_pad[x]) && (pad == config::touch_zone_pad[x]))
+		{
+			//Emulate stylus down
+			if(pressed)
+			{
+				ext_key_input &= ~0x40;
+				mouse_x = config::touch_zone_x[x];
+				mouse_y = config::touch_zone_y[x];
+			}
+
+			//Emulate stylus up
+			else
+			{
+				ext_key_input |= 0x40;
+				mouse_x = 0;
+				mouse_y = 0xFFF;
+			}
+		}
+	}
 }
 
 /****** Processes input based on unique pad # for joysticks ******/

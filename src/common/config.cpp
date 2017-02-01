@@ -78,6 +78,11 @@ namespace config
 	//Default joystick bindings - Gyroscope
 	int gyro_joy_left = 204; int gyro_joy_right = 205; int gyro_joy_up = 206; int gyro_joy_down = 207;
 
+	//Default NDS touch zone mappings
+	int touch_zone_x[10] = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
+	int touch_zone_y[10] = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
+	int touch_zone_pad[10] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
 	//Hotkey bindings
 	//Turbo = TAB
 	int hotkey_turbo = SDLK_TAB;
@@ -655,6 +660,8 @@ bool parse_ini_file()
 			return false;
 		} 
 	}
+
+	int touch_zone_counter = 0;
 
 	//Cycle through whole file, line-by-line
 	while(getline(file, input_line))
@@ -1581,6 +1588,45 @@ bool parse_ini_file()
 			{
 				std::cout<<"GBE::Error - Could not parse gbe.ini (#hotkeys) \n";
 				return false;
+			}
+		}
+
+		//NDS touch zone mappings
+		else if(ini_item == "#nds_touch_zone")
+		{
+			if(touch_zone_counter < 10)
+			{
+				if((x + 3) < size)
+				{
+
+					std::stringstream temp_stream;
+
+					//Pad mapping
+					temp_stream << ini_opts[++x];
+					temp_stream >> config::touch_zone_pad[touch_zone_counter];
+					temp_stream.clear();
+					temp_stream.str(std::string());
+
+					//X coordinate
+					temp_stream << ini_opts[++x];
+					temp_stream >> config::touch_zone_x[touch_zone_counter];
+					temp_stream.clear();
+					temp_stream.str(std::string());
+
+					//Y coordinate
+					temp_stream << ini_opts[++x];
+					temp_stream >> config::touch_zone_y[touch_zone_counter];
+					temp_stream.clear();
+					temp_stream.str(std::string());
+
+					touch_zone_counter++;
+				}
+
+				else 
+				{
+					std::cout<<"GBE::Error - Could not parse gbe.ini (#nds_touch_zone) \n";
+					return false;
+				}
 			}
 		}
 
