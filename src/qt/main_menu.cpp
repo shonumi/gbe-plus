@@ -438,39 +438,14 @@ void main_menu::boot_game()
 		return;
 	}
 
-	//Determine Gameboy type based on file name
-	//Note, DMG and GBC games are automatically detected in the Gameboy MMU, so only check for GBA types here
-	std::size_t dot = config::rom_file.find_last_of(".");
-	std::string ext = config::rom_file.substr(dot);
-
-	config::gb_type = settings->sys_type->currentIndex();
-	
-	if(ext == ".gba") { config::gb_type = 3; }
-	else if((ext != ".gba") && (config::gb_type == 3)) { config::gb_type = 2; config::gba_enhance = true; }
-	else { config::gba_enhance = false; }
-
 	std::string test_bios_path = "";
 
-	//Check to see if BIOS file actually exists
-	if(((config::gb_type == 0) || (config::gb_type == 2)) && (config::use_bios))
+	switch(get_system_type_from_file(config::rom_file))
 	{
-		std::ifstream test_stream(config::rom_file.c_str(), std::ios::binary);
-		
-		if(test_stream.is_open())
-		{
-			u8 color_byte;
-
-			test_stream.seekg(0x143);
-			test_stream.read((char*)&color_byte, 1);
-
-			if((color_byte == 0xC0) || (color_byte == 0x80)) { test_bios_path = config::gbc_bios_path; }
-			else { test_bios_path = config::dmg_bios_path; }
-
-			test_stream.close();
-		}
+		case 0x1: test_bios_path = config::dmg_bios_path; break;
+		case 0x2: test_bios_path = config::gbc_bios_path; break;
+		case 0x3: test_bios_path = config::agb_bios_path; break;
 	}
-
-	else if((config::gb_type == 3) && (config::use_bios)) { test_bios_path = config::agb_bios_path; }
 
 	test_file.setFileName(QString::fromStdString(test_bios_path));
 
@@ -532,6 +507,17 @@ void main_menu::boot_game()
 	findChild<QAction*>("pause_action")->setChecked(false);
 
 	menu_height = menu_bar->height();
+
+	//Determine Gameboy type based on file name
+	//Note, DMG and GBC games are automatically detected in the Gameboy MMU, so only check for GBA types here
+	std::size_t dot = config::rom_file.find_last_of(".");
+	std::string ext = config::rom_file.substr(dot);
+
+	config::gb_type = settings->sys_type->currentIndex();
+	
+	if(ext == ".gba") { config::gb_type = 3; }
+	else if((ext != ".gba") && (config::gb_type == 3)) { config::gb_type = 2; config::gba_enhance = true; }
+	else { config::gba_enhance = false; }
 
 	//Determine CGFX scaling factor
 	cgfx::scaling_factor = (settings->cgfx_scale->currentIndex() + 1);
@@ -824,40 +810,16 @@ void main_menu::reset()
 		main_menu::gbe_plus->shutdown();
 		main_menu::gbe_plus->core_emu::~core_emu();
 
-		//Determine Gameboy type based on file name
-		std::size_t dot = config::rom_file.find_last_of(".");
-		std::string ext = config::rom_file.substr(dot);
-
-		u8 gb_type = settings->sys_type->currentIndex();
-	
-		if(ext == ".gba") { gb_type = 3; }
-		else if((ext != ".gba") && (gb_type == 3)) { gb_type = 2; }
-
 		std::string test_bios_path = "";
 
-		//Check to see if BIOS file actually exists
-		if(((gb_type == 0) || (gb_type == 2)) && (config::use_bios))
+		switch(get_system_type_from_file(config::rom_file))
 		{
-			std::ifstream test_stream(config::rom_file.c_str(), std::ios::binary);
-		
-			if(test_stream.is_open())
-			{
-				u8 color_byte;
-
-				test_stream.seekg(0x143);
-				test_stream.read((char*)&color_byte, 1);
-
-				if((color_byte == 0xC0) || (color_byte == 0x80)) { test_bios_path = config::gbc_bios_path; }
-				else { test_bios_path = config::dmg_bios_path; }
-
-				test_stream.close();
-			}
+			case 0x1: test_bios_path = config::dmg_bios_path; break;
+			case 0x2: test_bios_path = config::gbc_bios_path; break;
+			case 0x3: test_bios_path = config::agb_bios_path; break;
 		}
 
-		else if((gb_type == 3) && (config::use_bios)) { test_bios_path = config::agb_bios_path; }
-
-		QFile test_file;
-		test_file.setFileName(QString::fromStdString(test_bios_path));
+		QFile test_file(QString::fromStdString(test_bios_path));
 
 		if(!test_file.exists() && (config::use_bios))
 		{
@@ -1081,37 +1043,14 @@ void main_menu::load_recent(int file_id)
 		return;
 	}
 
-	//Determine Gameboy type based on file name
-	std::size_t dot = config::recent_files[file_id].find_last_of(".");
-	std::string ext = config::recent_files[file_id].substr(dot);
-
-	u8 gb_type = settings->sys_type->currentIndex();
-	
-	if(ext == ".gba") { gb_type = 3; }
-	else if((ext != ".gba") && (gb_type == 3)) { gb_type = 2; }
-
 	std::string test_bios_path = "";
 
-	//Check to see if BIOS file actually exists
-	if(((gb_type == 0) || (gb_type == 2)) && (config::use_bios))
+	switch(get_system_type_from_file(config::recent_files[file_id]))
 	{
-		std::ifstream test_stream(config::recent_files[file_id].c_str(), std::ios::binary);
-		
-		if(test_stream.is_open())
-		{
-			u8 color_byte;
-
-			test_stream.seekg(0x143);
-			test_stream.read((char*)&color_byte, 1);
-
-			if((color_byte == 0xC0) || (color_byte == 0x80)) { test_bios_path = config::gbc_bios_path; }
-			else { test_bios_path = config::dmg_bios_path; }
-
-			test_stream.close();
-		}
+		case 0x1: test_bios_path = config::dmg_bios_path; break;
+		case 0x2: test_bios_path = config::gbc_bios_path; break;
+		case 0x3: test_bios_path = config::agb_bios_path; break;
 	}
-
-	else if((gb_type == 3) && (config::use_bios)) { test_bios_path = config::agb_bios_path; }
 
 	test_file.setFileName(QString::fromStdString(test_bios_path));
 

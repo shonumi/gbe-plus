@@ -22,6 +22,7 @@
 void reset_dmg_colors();
 void set_dmg_colors(u8 color_type);
 void validate_system_type();
+u8 get_system_type_from_file(std::string filename);
 bool parse_cli_args();
 void parse_filenames();
 bool parse_ini_file();

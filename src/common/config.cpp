@@ -492,6 +492,44 @@ void validate_system_type()
 	}
 }
 
+/****** Returns the emulated system type from a given filename ******/
+u8 get_system_type_from_file(std::string filename)
+{
+	//Determine Gameboy type based on file name
+	std::size_t dot = filename.find_last_of(".");
+
+	if(dot == std::string::npos) { return 0; }
+
+	std::string ext = filename.substr(dot);
+	
+	u8 gb_type = config::gb_type;
+
+	if(ext == ".gba") { gb_type = 3; }
+	else if((ext != ".gba") && (gb_type == 3)) { gb_type = 2; }
+
+	//For Auto or GBC mode, determine what the CGB Flag is
+	if((gb_type == 0) || (gb_type == 2))
+	{
+		std::ifstream test_stream(filename.c_str(), std::ios::binary);
+		
+		if(test_stream.is_open())
+		{
+			u8 color_byte;
+
+			test_stream.seekg(0x143);
+			test_stream.read((char*)&color_byte, 1);
+
+			//If GBC compatible, use GBC mode. Otherwise, use DMG mode
+			if((color_byte == 0xC0) || (color_byte == 0x80)) { gb_type = 2; }
+			else { gb_type = 1; }
+
+			test_stream.close();
+		}
+	}
+
+	return gb_type;
+}
+
 /****** Parse arguments passed from the command-line ******/
 bool parse_cli_args()
 {
