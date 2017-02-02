@@ -760,60 +760,116 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 			break;
 
-		//BG0 Horizontal Offset
+		//BG0 Horizontal Offset A
 		case NDS_BG0HOFS_A:
 		case NDS_BG0HOFS_A+1:
 			memory_map[address] = value;
 			lcd_stat->bg_offset_x_a[0] = ((memory_map[NDS_BG0HOFS_A+1] << 8) | memory_map[NDS_BG0HOFS_A]) & 0x1FF;
 			break;
 
-		//BG0 Vertical Offset
+		//BG0 Horizontal Offset B
+		case NDS_BG0HOFS_B:
+		case NDS_BG0HOFS_B+1:
+			memory_map[address] = value;
+			lcd_stat->bg_offset_x_b[0] = ((memory_map[NDS_BG0HOFS_B+1] << 8) | memory_map[NDS_BG0HOFS_B]) & 0x1FF;
+			break;
+
+		//BG0 Vertical Offset A
 		case NDS_BG0VOFS_A:
 		case NDS_BG0VOFS_A+1:
 			memory_map[address] = value;
 			lcd_stat->bg_offset_y_a[0] = ((memory_map[NDS_BG0VOFS_A+1] << 8) | memory_map[NDS_BG0VOFS_A]) & 0x1FF;
 			break;
 
-		//BG1 Horizontal Offset
+		//BG0 Vertical Offset B
+		case NDS_BG0VOFS_B:
+		case NDS_BG0VOFS_B+1:
+			memory_map[address] = value;
+			lcd_stat->bg_offset_y_b[0] = ((memory_map[NDS_BG0VOFS_B+1] << 8) | memory_map[NDS_BG0VOFS_B]) & 0x1FF;
+			break;
+
+		//BG1 Horizontal Offset A
 		case NDS_BG1HOFS_A:
 		case NDS_BG1HOFS_A+1:
 			memory_map[address] = value;
 			lcd_stat->bg_offset_x_a[1] = ((memory_map[NDS_BG1HOFS_A+1] << 8) | memory_map[NDS_BG1HOFS_A]) & 0x1FF;
 			break;
 
-		//BG1 Vertical Offset
+		//BG1 Horizontal Offset B
+		case NDS_BG1HOFS_B:
+		case NDS_BG1HOFS_B+1:
+			memory_map[address] = value;
+			lcd_stat->bg_offset_x_b[1] = ((memory_map[NDS_BG1HOFS_B+1] << 8) | memory_map[NDS_BG1HOFS_B]) & 0x1FF;
+			break;
+
+		//BG1 Vertical Offset A
 		case NDS_BG1VOFS_A:
 		case NDS_BG1VOFS_A+1:
 			memory_map[address] = value;
 			lcd_stat->bg_offset_y_a[1] = ((memory_map[NDS_BG1VOFS_A+1] << 8) | memory_map[NDS_BG1VOFS_A]) & 0x1FF;
 			break;
 
-		//BG2 Horizontal Offset
+		//BG1 Vertical Offset B
+		case NDS_BG1VOFS_B:
+		case NDS_BG1VOFS_B+1:
+			memory_map[address] = value;
+			lcd_stat->bg_offset_y_b[1] = ((memory_map[NDS_BG1VOFS_B+1] << 8) | memory_map[NDS_BG1VOFS_B]) & 0x1FF;
+			break;
+
+		//BG2 Horizontal Offset A
 		case NDS_BG2HOFS_A:
 		case NDS_BG2HOFS_A+1:
 			memory_map[address] = value;
 			lcd_stat->bg_offset_x_a[2] = ((memory_map[NDS_BG2HOFS_A+1] << 8) | memory_map[NDS_BG2HOFS_A]) & 0x1FF;
 			break;
 
-		//BG2 Vertical Offset
+		//BG2 Horizontal Offset B
+		case NDS_BG2HOFS_B:
+		case NDS_BG2HOFS_B+1:
+			memory_map[address] = value;
+			lcd_stat->bg_offset_x_b[2] = ((memory_map[NDS_BG2HOFS_B+1] << 8) | memory_map[NDS_BG2HOFS_B]) & 0x1FF;
+			break;
+
+		//BG2 Vertical Offset A
 		case NDS_BG2VOFS_A:
 		case NDS_BG2VOFS_A+1:
 			memory_map[address] = value;
 			lcd_stat->bg_offset_y_a[2] = ((memory_map[NDS_BG2VOFS_A+1] << 8) | memory_map[NDS_BG2VOFS_A]) & 0x1FF;
 			break;
 
-		//BG3 Horizontal Offset
+		//BG2 Vertical Offset B
+		case NDS_BG2VOFS_B:
+		case NDS_BG2VOFS_B+1:
+			memory_map[address] = value;
+			lcd_stat->bg_offset_y_b[2] = ((memory_map[NDS_BG2VOFS_B+1] << 8) | memory_map[NDS_BG2VOFS_B]) & 0x1FF;
+			break;
+
+		//BG3 Horizontal Offset A
 		case NDS_BG3HOFS_A:
 		case NDS_BG3HOFS_A+1:
 			memory_map[address] = value;
 			lcd_stat->bg_offset_x_a[3] = ((memory_map[NDS_BG3HOFS_A+1] << 8) | memory_map[NDS_BG3HOFS_A]) & 0x1FF;
 			break;
 
-		//BG3 Vertical Offset
+		//BG3 Horizontal Offset B
+		case NDS_BG3HOFS_B:
+		case NDS_BG3HOFS_B+1:
+			memory_map[address] = value;
+			lcd_stat->bg_offset_x_b[3] = ((memory_map[NDS_BG3HOFS_B+1] << 8) | memory_map[NDS_BG3HOFS_B]) & 0x1FF;
+			break;
+
+		//BG3 Vertical Offset A
 		case NDS_BG3VOFS_A:
 		case NDS_BG3VOFS_A+1:
 			memory_map[address] = value;
-			lcd_stat->bg_offset_y_a[0] = ((memory_map[NDS_BG3VOFS_A+1] << 8) | memory_map[NDS_BG3VOFS_A]) & 0x1FF;
+			lcd_stat->bg_offset_y_a[3] = ((memory_map[NDS_BG3VOFS_A+1] << 8) | memory_map[NDS_BG3VOFS_A]) & 0x1FF;
+			break;
+
+		//BG3 Vertical Offset B
+		case NDS_BG3VOFS_B:
+		case NDS_BG3VOFS_B+1:
+			memory_map[address] = value;
+			lcd_stat->bg_offset_y_b[3] = ((memory_map[NDS_BG3VOFS_B+1] << 8) | memory_map[NDS_BG3VOFS_B]) & 0x1FF;
 			break;
 
 		//BG2 Scale/Rotation Parameter A
