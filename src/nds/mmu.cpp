@@ -761,51 +761,59 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			break;
 
 		//BG0 Horizontal Offset
-		case NDS_BG0HOFS:
-		case NDS_BG0HOFS+1:
+		case NDS_BG0HOFS_A:
+		case NDS_BG0HOFS_A+1:
 			memory_map[address] = value;
+			lcd_stat->bg_offset_x_a[0] = ((memory_map[NDS_BG0HOFS_A+1] << 8) | memory_map[NDS_BG0HOFS_A]) & 0x1FF;
 			break;
 
 		//BG0 Vertical Offset
-		case NDS_BG0VOFS:
-		case NDS_BG0VOFS+1:
+		case NDS_BG0VOFS_A:
+		case NDS_BG0VOFS_A+1:
 			memory_map[address] = value;
+			lcd_stat->bg_offset_y_a[0] = ((memory_map[NDS_BG0VOFS_A+1] << 8) | memory_map[NDS_BG0VOFS_A]) & 0x1FF;
 			break;
 
 		//BG1 Horizontal Offset
-		case NDS_BG1HOFS:
-		case NDS_BG1HOFS+1:
+		case NDS_BG1HOFS_A:
+		case NDS_BG1HOFS_A+1:
 			memory_map[address] = value;
+			lcd_stat->bg_offset_x_a[1] = ((memory_map[NDS_BG1HOFS_A+1] << 8) | memory_map[NDS_BG1HOFS_A]) & 0x1FF;
 			break;
 
 		//BG1 Vertical Offset
-		case NDS_BG1VOFS:
-		case NDS_BG1VOFS+1:
+		case NDS_BG1VOFS_A:
+		case NDS_BG1VOFS_A+1:
 			memory_map[address] = value;
+			lcd_stat->bg_offset_y_a[1] = ((memory_map[NDS_BG1VOFS_A+1] << 8) | memory_map[NDS_BG1VOFS_A]) & 0x1FF;
 			break;
 
 		//BG2 Horizontal Offset
-		case NDS_BG2HOFS:
-		case NDS_BG2HOFS+1:
+		case NDS_BG2HOFS_A:
+		case NDS_BG2HOFS_A+1:
 			memory_map[address] = value;
+			lcd_stat->bg_offset_x_a[2] = ((memory_map[NDS_BG2HOFS_A+1] << 8) | memory_map[NDS_BG2HOFS_A]) & 0x1FF;
 			break;
 
 		//BG2 Vertical Offset
-		case NDS_BG2VOFS:
-		case NDS_BG2VOFS+1:
+		case NDS_BG2VOFS_A:
+		case NDS_BG2VOFS_A+1:
 			memory_map[address] = value;
+			lcd_stat->bg_offset_y_a[2] = ((memory_map[NDS_BG2VOFS_A+1] << 8) | memory_map[NDS_BG2VOFS_A]) & 0x1FF;
 			break;
 
 		//BG3 Horizontal Offset
-		case NDS_BG3HOFS:
-		case NDS_BG3HOFS+1:
+		case NDS_BG3HOFS_A:
+		case NDS_BG3HOFS_A+1:
 			memory_map[address] = value;
+			lcd_stat->bg_offset_x_a[3] = ((memory_map[NDS_BG3HOFS_A+1] << 8) | memory_map[NDS_BG3HOFS_A]) & 0x1FF;
 			break;
 
 		//BG3 Vertical Offset
-		case NDS_BG3VOFS:
-		case NDS_BG3VOFS+1:
+		case NDS_BG3VOFS_A:
+		case NDS_BG3VOFS_A+1:
 			memory_map[address] = value;
+			lcd_stat->bg_offset_y_a[0] = ((memory_map[NDS_BG3VOFS_A+1] << 8) | memory_map[NDS_BG3VOFS_A]) & 0x1FF;
 			break;
 
 		//BG2 Scale/Rotation Parameter A
