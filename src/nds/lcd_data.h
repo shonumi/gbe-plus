@@ -19,6 +19,8 @@
 struct ntr_lcd_data
 {
 	u16 current_scanline;
+	u32 lcd_clock;
+	u8 lcd_mode;
 
 	u16 lyc_a;
 	u16 lyc_b;

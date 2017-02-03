@@ -44,8 +44,8 @@ void NTR_LCD::reset()
 	scanline_buffer_b.clear();
 	screen_buffer.clear();
 
-	lcd_clock = 0;
-	lcd_mode = 0;
+	lcd_stat.lcd_clock = 0;
+	lcd_stat.lcd_mode = 0;
 
 	frame_start_time = 0;
 	frame_current_time = 0;
@@ -521,6 +521,14 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 			//Calculate VRAM address to start pulling up tile data
 			u32 tile_data_addr = tile_addr + (tile_id * bit_depth) + line_offset;
 
+			if((lcd_stat.current_scanline == 0) && (x == 0))
+			{
+				//std::cout<<"TILE ADDR -> 0x" << std::hex << tile_data_addr << "\n";
+				//std::cout<<"TILE ID -> 0x" << tile_id << "\n";
+				//std::cout<<"MAP ADDR -> 0x" << (map_addr + (map_entry << 1)) << "\n";
+				//std::cout<<"MAP DATA -> 0x" << map_data<< "\n\n";
+			}
+
 			//Read 8 pixels from VRAM and put them in the scanline buffer
 			for(u32 y = 0; y < 8; y++)
 			{
@@ -666,15 +674,15 @@ void NTR_LCD::update()
 /****** Run LCD for one cycle ******/
 void NTR_LCD::step()
 {
-	lcd_clock++;
+	lcd_stat.lcd_clock++;
 
 	//Mode 0 - Scanline rendering
-	if(((lcd_clock % 2130) <= 1536) && (lcd_clock < 408960)) 
+	if(((lcd_stat.lcd_clock % 2130) <= 1536) && (lcd_stat.lcd_clock < 408960)) 
 	{
 		//Change mode
-		if(lcd_mode != 0) 
+		if(lcd_stat.lcd_mode != 0) 
 		{
-			lcd_mode = 0;
+			lcd_stat.lcd_mode = 0;
 
 			//Reset VBlank, HBlank flag in DISPSTAT
 			lcd_stat.display_stat_a &= ~0x3;
@@ -691,12 +699,12 @@ void NTR_LCD::step()
 	}
 
 	//Mode 1 - H-Blank
-	else if(((lcd_clock % 2130) > 1536) && (lcd_clock < 408960))
+	else if(((lcd_stat.lcd_clock % 2130) > 1536) && (lcd_stat.lcd_clock < 408960))
 	{
 		//Change mode
-		if(lcd_mode != 1) 
+		if(lcd_stat.lcd_mode != 1) 
 		{
-			lcd_mode = 1;
+			lcd_stat.lcd_mode = 1;
 
 			//Set HBlank flag in DISPSTAT
 			lcd_stat.display_stat_a |= 0x2;
@@ -723,9 +731,9 @@ void NTR_LCD::step()
 	else
 	{
 		//Change mode
-		if(lcd_mode != 2) 
+		if(lcd_stat.lcd_mode != 2) 
 		{
-			lcd_mode = 2;
+			lcd_stat.lcd_mode = 2;
 
 			//Set VBlank flag in DISPSTAT
 			lcd_stat.display_stat_a |= 0x1;
@@ -801,14 +809,14 @@ void NTR_LCD::step()
 		}
 
 		//Reset LCD clock
-		else if(lcd_clock >= 558060) 
+		else if(lcd_stat.lcd_clock >= 558060) 
 		{
-			lcd_clock -= 558060;
+			lcd_stat.lcd_clock -= 558060;
 			lcd_stat.current_scanline = 0xFFFF;
 		}
 
 		//Increment Scanline after HBlank
-		else if((lcd_clock % 2130) == 1536)
+		else if((lcd_stat.lcd_clock % 2130) == 1536)
 		{
 			lcd_stat.current_scanline++;
 			scanline_compare();

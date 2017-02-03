@@ -23,8 +23,6 @@ class NTR_LCD
 	//Link to memory map
 	NTR_MMU* mem;
 
-	u8 lcd_mode;
-
 	//Core Functions
 	NTR_LCD();
 	~NTR_LCD();
@@ -53,7 +51,6 @@ class NTR_LCD
 	std::vector<u32> scanline_buffer_b;
 	std::vector<u32> screen_buffer;
 
-	u32 lcd_clock;
 	u32 scanline_pixel_counter;
 
 	int frame_start_time;

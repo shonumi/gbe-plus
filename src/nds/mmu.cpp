@@ -461,7 +461,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			memory_map[address] = value;
 			lcd_stat->display_control_b = ((memory_map[NDS_DISPCNT_B+3] << 24) | (memory_map[NDS_DISPCNT_B+2] << 16) | (memory_map[NDS_DISPCNT_B+1] << 8) | memory_map[NDS_DISPCNT_B]);
 			lcd_stat->bg_mode_b = (lcd_stat->display_control_b & 0x7);
-			lcd_stat->display_mode_b = (lcd_stat->display_control_b >> 16) & 0x3;
+			lcd_stat->display_mode_b = (lcd_stat->display_control_b >> 16) & 0x1;
 
 			//Enable or disable BGs
 			lcd_stat->bg_enable_b[0] = (lcd_stat->display_control_b & 0x100) ? true : false;
@@ -525,11 +525,15 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		case NDS_VCOUNT:
 			memory_map[address] = value;
 			lcd_stat->current_scanline = (memory_map[NDS_VCOUNT+1] << 8) | memory_map[NDS_VCOUNT];
+			lcd_stat->lcd_clock = (2130 * lcd_stat->current_scanline);
+			lcd_stat->lcd_mode = (lcd_stat->lcd_clock < 4089600) ? 0 : 2;
 			break;
 
 		case NDS_VCOUNT+1:
 			memory_map[address] = value & 0x1;
 			lcd_stat->current_scanline = (memory_map[NDS_VCOUNT+1] << 8) | memory_map[NDS_VCOUNT];
+			lcd_stat->lcd_clock = (2130 * lcd_stat->current_scanline);
+			lcd_stat->lcd_mode = (lcd_stat->lcd_clock < 4089600) ? 0 : 2;
 			break;
 
 		//BG0 Control A
