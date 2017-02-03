@@ -99,11 +99,10 @@ class AGB_MMU
 	//Structure to handle GPIO reading and writing
 	struct gpio_controller
 	{
-		bool readable;
-		bool in_out;
-		u8 input;
-		u8 output;
-		gpio_types current_type;
+		u8 data;
+		u8 direction;
+		u8 control;
+		gpio_types type;
 	} gpio;
 
 	AGB_MMU();

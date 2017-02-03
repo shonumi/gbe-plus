@@ -48,10 +48,10 @@ void AGB_MMU::reset()
 	flash_ram.data[0].resize(0x10000, 0xFF);
 	flash_ram.data[1].resize(0x10000, 0xFF);
 
-	gpio.in_out = false;
-	gpio.readable = false;
-	gpio.input = gpio.output = 0;
-	gpio.current_type = DISABLED;
+	gpio.data = 0;
+	gpio.direction = 0;
+	gpio.control = 0;
+	gpio.type = DISABLED;
 
 	//HLE some post-boot registers
 	if(!config::use_bios)
@@ -190,23 +190,23 @@ u8 AGB_MMU::read_u8(u32 address) const
 		case WAVERAM3_H+1: return apu_stat->waveram_data[(apu_stat->waveram_bank_rw << 4) + 15]; break;
 
 		//General Purpose I/O Data
-		/*
 		case GPIO_DATA:
-			if((gpio.in_out) && (gpio.readable)) { return gpio.output; }
-			else if((!gpio.in_out) && (gpio.readable)) { return gpio.input; }
+			if((gpio.type != DISABLED) && (gpio.control)) { return gpio.data; }
+			else { return memory_map[GPIO_DATA]; }
 			break;
 
 		//General Purpose I/O Direction
 		case GPIO_DIRECTION:
-			if(gpio.readable) { return gpio.in_out; }
+			if((gpio.type != DISABLED) && (gpio.control)) { return gpio.direction; }
+			else { return memory_map[GPIO_DIRECTION]; }
 			break;
 
 		//General Purpose I/O Control
 		case GPIO_CNT:
-			if(gpio.readable) { return gpio.readable; }
+			if((gpio.type != DISABLED) && (gpio.control)) { return gpio.control; }
+			else { return memory_map[GPIO_CNT]; }
 			break;
-		*/
-		
+
 		default:
 			return memory_map[address];
 	}
@@ -1558,26 +1558,29 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			break;
 
 		//General Purpose I/O Data
-		/*
 		case GPIO_DATA:
-			memory_map[address] = (value & 0x7);
+			if(gpio.type != DISABLED)
+			{
+				gpio.data = (value & 0x7);
 
-			if(gpio.in_out) { gpio.output = (value & 0x7); }
-			else { gpio.input = (value & 0x7); }
+				//Send data to device if input mode
+				if(!gpio.direction)
+				{
+				
+				}
+			}
+
 			break;
 
 		//General Purpose I/O Direction
 		case GPIO_DIRECTION:
-			memory_map[address] = value & 0x1;
-			gpio.in_out = (memory_map[address] & 0x1) ? true : false;
+			if(gpio.type != DISABLED) { gpio.direction = value & 0x1; }
 			break;
 
 		//General Purpose I/O Control
 		case GPIO_CNT:
-			memory_map[address] = value & 0x1;
-			gpio.readable = (memory_map[address] & 0x1) ? true : false;
+			if(gpio.type != DISABLED) { gpio.control = value & 0x1; }
 			break;
-		*/
 
 		case FLASH_RAM_CMD0:
 			memory_map[address] = value;
