@@ -52,6 +52,12 @@ void NTR_ARM9::process_swi(u32 comment)
 			swi_isdebugger();
 			break;
 
+		//LZ77UnCompReadByCallback
+		case 0x12:
+			std::cout<<"ARM9::SWI::LZ77UnCompReadByCallback \n";
+			swi_lz77uncompvram();
+			break;
+
 		default:
 			std::cout<<"SWI::Error - Unknown NDS9 BIOS function 0x" << std::hex << comment << "\n";
 			running = false;
@@ -221,6 +227,75 @@ void NTR_ARM9::swi_isdebugger()
 	mem->write_u16(0x27FFFF8, 0x0);
 }
 
+/****** HLE implementation of LZ77UnCompReadByCallback ******/
+void NTR_ARM9::swi_lz77uncompvram()
+{
+	//Grab source address - R0
+	u32 src_addr = get_reg(0);
+
+	//Grab destination address - R1
+	u32 dest_addr = get_reg(1);
+
+	//Grab data header
+	u32 data_header = mem->read_u32(src_addr);
+
+	//Grab compressed data size in bytes
+	u32 data_size = (data_header >> 8);
+
+	//Pointer to current address of compressed data that needs to be processed
+	//When uncompression starts, move 5 bytes from source address (header + flag)
+	u32 data_ptr = (src_addr + 4);
+
+	u8 temp = 0;
+
+	//Uncompress data
+	while(data_size > 0)
+	{
+		//Grab flag data
+		u8 flag_data = mem->read_u8(data_ptr++);
+
+		//Process 8 blocks
+		for(int x = 7; x >= 0; x--)
+		{
+			u8 block_type = (flag_data & (1 << x)) ? 1 : 0;
+
+			//Block Type 0 - Uncompressed
+			if(block_type == 0)
+			{
+				temp = mem->read_u8(data_ptr++);
+				mem->write_u8(dest_addr++, temp);
+				
+				data_size--;
+				if(data_size == 0) { return; }
+			}
+
+
+			//Block Type 1 - Compressed
+			else
+			{
+				u16 compressed_block = mem->read_u16(data_ptr);
+				data_ptr += 2;
+
+				u16 distance = ((compressed_block & 0xF) << 8);
+				distance |= (compressed_block >> 8);
+
+				u8 length = ((compressed_block >> 4) & 0xF) + 3;
+
+				//Copy length+3 Bytes from dest_addr-length-1 to dest_addr
+				for(int y = 0; y < length; y++)
+				{
+					temp = mem->read_u8(dest_addr - distance - 1);
+					mem->write_u8(dest_addr, temp);
+					
+					dest_addr++;
+					data_size--;
+					if(data_size == 0) { return; }
+				}
+			}
+		}
+	}
+}
+
 /****** Process Software Interrupts - NDS7 ******/
 void NTR_ARM7::process_swi(u32 comment)
 {
@@ -254,6 +329,12 @@ void NTR_ARM7::process_swi(u32 comment)
 		case 0xE:
 			//std::cout<<"ARM7::SWI::GetCRC16 \n";
 			swi_getcrc16();
+			break;
+
+		//LZ77UnCompReadByCallback
+		case 0x12:
+			std::cout<<"ARM7::SWI::LZ77UnCompReadByCallback \n";
+			swi_lz77uncompvram();
 			break;
 			
 		default:
@@ -425,4 +506,73 @@ void NTR_ARM7::swi_cpuset()
 	//Write-back R0, R1
 	set_reg(0, src_addr);
 	set_reg(1, dest_addr);
+}
+
+/****** HLE implementation of LZ77UnCompReadByCallback ******/
+void NTR_ARM7::swi_lz77uncompvram()
+{
+	//Grab source address - R0
+	u32 src_addr = get_reg(0);
+
+	//Grab destination address - R1
+	u32 dest_addr = get_reg(1);
+
+	//Grab data header
+	u32 data_header = mem->read_u32(src_addr);
+
+	//Grab compressed data size in bytes
+	u32 data_size = (data_header >> 8);
+
+	//Pointer to current address of compressed data that needs to be processed
+	//When uncompression starts, move 5 bytes from source address (header + flag)
+	u32 data_ptr = (src_addr + 4);
+
+	u8 temp = 0;
+
+	//Uncompress data
+	while(data_size > 0)
+	{
+		//Grab flag data
+		u8 flag_data = mem->read_u8(data_ptr++);
+
+		//Process 8 blocks
+		for(int x = 7; x >= 0; x--)
+		{
+			u8 block_type = (flag_data & (1 << x)) ? 1 : 0;
+
+			//Block Type 0 - Uncompressed
+			if(block_type == 0)
+			{
+				temp = mem->read_u8(data_ptr++);
+				mem->write_u8(dest_addr++, temp);
+				
+				data_size--;
+				if(data_size == 0) { return; }
+			}
+
+
+			//Block Type 1 - Compressed
+			else
+			{
+				u16 compressed_block = mem->read_u16(data_ptr);
+				data_ptr += 2;
+
+				u16 distance = ((compressed_block & 0xF) << 8);
+				distance |= (compressed_block >> 8);
+
+				u8 length = ((compressed_block >> 4) & 0xF) + 3;
+
+				//Copy length+3 Bytes from dest_addr-length-1 to dest_addr
+				for(int y = 0; y < length; y++)
+				{
+					temp = mem->read_u8(dest_addr - distance - 1);
+					mem->write_u8(dest_addr, temp);
+					
+					dest_addr++;
+					data_size--;
+					if(data_size == 0) { return; }
+				}
+			}
+		}
+	}
 }
