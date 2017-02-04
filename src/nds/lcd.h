@@ -62,6 +62,8 @@ class NTR_LCD
 	void render_bg_scanline(u32 bg_control);
 	void render_bg_mode_text(u32 bg_control);
 	void render_bg_mode_affine(u32 bg_control);
+	void render_bg_mode_bitmap(u32 bg_control);
+	void render_bg_mode_direct(u32 bg_control);
 	void scanline_compare();
 };
 

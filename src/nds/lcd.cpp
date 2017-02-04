@@ -303,7 +303,27 @@ void NTR_LCD::render_bg_scanline(u32 bg_control)
 					if(bg_id < 2) { render_bg_mode_text(bg_control); }
 
 					//BG2-3 Extended
-					else { std::cout<<"LCD::Engine A - BG Mode 5 unsupported Extended Mode\n"; }
+					else
+					{
+						u8 ext_mode = (lcd_stat.bg_control_a[bg_id] & 0x80) | (lcd_stat.bg_control_a[bg_id] & 0x2);
+						switch(ext_mode)
+						{
+							//16-bit Affine
+							case 0x0:
+								render_bg_mode_affine(bg_control);
+								break;
+
+							//256 color Affine
+							case 0x80:
+								render_bg_mode_bitmap(bg_control);
+								break;
+
+							//Direct color Affine
+							case 0x82:
+								render_bg_mode_direct(bg_control);
+								break;
+						}
+					}
 
 					break;
 
@@ -521,14 +541,6 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 			//Calculate VRAM address to start pulling up tile data
 			u32 tile_data_addr = tile_addr + (tile_id * bit_depth) + line_offset;
 
-			if((lcd_stat.current_scanline == 0) && (x == 0))
-			{
-				//std::cout<<"TILE ADDR -> 0x" << std::hex << tile_data_addr << "\n";
-				//std::cout<<"TILE ID -> 0x" << tile_id << "\n";
-				//std::cout<<"MAP ADDR -> 0x" << (map_addr + (map_entry << 1)) << "\n";
-				//std::cout<<"MAP DATA -> 0x" << map_data<< "\n\n";
-			}
-
 			//Read 8 pixels from VRAM and put them in the scanline buffer
 			for(u32 y = 0; y < 8; y++)
 			{
@@ -563,6 +575,35 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 
 /****** Render BG Mode Affine scanline ******/
 void NTR_LCD::render_bg_mode_affine(u32 bg_control) { }
+
+/****** Render BG Mode 256-color scanline ******/
+void NTR_LCD::render_bg_mode_bitmap(u32 bg_control)
+{
+	//Render Engine A
+	if((bg_control & 0x1000) == 0)
+	{
+		//Grab BG ID
+		u8 bg_id = (bg_control - 0x4000008) >> 1;
+
+		//Abort rendering if this bg is disabled
+		if(!lcd_stat.bg_enable_a[bg_id]) { return; }
+
+		u8 raw_color = 0;
+		u8 scanline_pixel_counter = 0;
+		
+		for(int x = 0; x < 256; x++)
+		{
+			raw_color = mem->memory_map[0x6000000 + (lcd_stat.current_scanline * 256) + scanline_pixel_counter];
+			
+			if(raw_color != 0) { scanline_buffer_a[scanline_pixel_counter] = lcd_stat.bg_pal_a[raw_color]; }
+			
+			scanline_pixel_counter++;
+		}
+	}
+}
+
+/****** Render BG Mode direct color scanline ******/
+void NTR_LCD::render_bg_mode_direct(u32 bg_control) { }
 
 /****** Render pixels for a given scanline (per-pixel) ******/
 void NTR_LCD::render_scanline()
