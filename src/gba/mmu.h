@@ -39,11 +39,11 @@ class AGB_MMU
 	//Cartridge GPIO-type enumerations
 	enum gpio_types
 	{
-		DISABLED,
-		RTC,
-		SOLAR_SENSOR,
-		RUMBLE,
-		GYRO_SENSOR,
+		GPIO_DISABLED,
+		GPIO_RTC,
+		GPIO_SOLAR_SENSOR,
+		GPIO_RUMBLE,
+		GPIO_GYRO_SENSOR,
 	};
 
 	backup_types current_save_type;
@@ -102,6 +102,9 @@ class AGB_MMU
 		u8 data;
 		u8 direction;
 		u8 control;
+		u16 state;
+		u8 serial_counter;
+		u8 serial_byte;
 		gpio_types type;
 	} gpio;
 
@@ -141,6 +144,12 @@ class AGB_MMU
 	void flash_erase_chip();
 	void flash_erase_sector(u32 sector);
 	void flash_switch_bank();
+
+	//GPIO handling functions
+	void process_rtc();
+	void process_solar_sensor();
+	void process_rumble();
+	void process_gyro_sensor();
 
 	void set_lcd_data(agb_lcd_data* ex_lcd_stat);
 	void set_apu_data(agb_apu_data* ex_apu_stat);

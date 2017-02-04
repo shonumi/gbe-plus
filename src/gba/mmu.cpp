@@ -51,7 +51,10 @@ void AGB_MMU::reset()
 	gpio.data = 0;
 	gpio.direction = 0;
 	gpio.control = 0;
-	gpio.type = DISABLED;
+	gpio.state = 0x100;
+	gpio.serial_counter = 0;
+	gpio.serial_byte = 0;
+	gpio.type = GPIO_RTC;
 
 	//HLE some post-boot registers
 	if(!config::use_bios)
@@ -191,19 +194,19 @@ u8 AGB_MMU::read_u8(u32 address) const
 
 		//General Purpose I/O Data
 		case GPIO_DATA:
-			if((gpio.type != DISABLED) && (gpio.control)) { return gpio.data; }
+			if((gpio.type != GPIO_DISABLED) && (gpio.control)) { return gpio.data; }
 			else { return memory_map[GPIO_DATA]; }
 			break;
 
 		//General Purpose I/O Direction
 		case GPIO_DIRECTION:
-			if((gpio.type != DISABLED) && (gpio.control)) { return gpio.direction; }
+			if((gpio.type != GPIO_DISABLED) && (gpio.control)) { return gpio.direction; }
 			else { return memory_map[GPIO_DIRECTION]; }
 			break;
 
 		//General Purpose I/O Control
 		case GPIO_CNT:
-			if((gpio.type != DISABLED) && (gpio.control)) { return gpio.control; }
+			if((gpio.type != GPIO_DISABLED) && (gpio.control)) { return gpio.control; }
 			else { return memory_map[GPIO_CNT]; }
 			break;
 
@@ -1559,14 +1562,27 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 
 		//General Purpose I/O Data
 		case GPIO_DATA:
-			if(gpio.type != DISABLED)
+			if(gpio.type != GPIO_DISABLED)
 			{
-				gpio.data = (value & 0x7);
+				gpio.data = (value & 0xF);
 
-				//Send data to device if input mode
-				if(!gpio.direction)
+				switch(gpio.type)
 				{
-				
+					case GPIO_RTC:
+						process_rtc();
+						break;
+
+					case GPIO_SOLAR_SENSOR:
+						process_solar_sensor();
+						break;
+
+					case GPIO_RUMBLE:
+						process_rumble();
+						break;
+
+					case GPIO_GYRO_SENSOR:
+						process_gyro_sensor();
+						break;
 				}
 			}
 
@@ -1574,12 +1590,12 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 
 		//General Purpose I/O Direction
 		case GPIO_DIRECTION:
-			if(gpio.type != DISABLED) { gpio.direction = value & 0x1; }
+			if(gpio.type != GPIO_DISABLED) { gpio.direction = value & 0x1; }
 			break;
 
 		//General Purpose I/O Control
 		case GPIO_CNT:
-			if(gpio.type != DISABLED) { gpio.control = value & 0x1; }
+			if(gpio.type != GPIO_DISABLED) { gpio.control = value & 0x1; }
 			break;
 
 		case FLASH_RAM_CMD0:

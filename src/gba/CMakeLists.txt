@@ -10,6 +10,7 @@ set(SRCS
 	opengl.cpp
 	swi.cpp
 	thumb_instr.cpp
+	gpio.cpp
 	)
 
 set(HEADERS
