@@ -399,6 +399,218 @@ void NTR_core::run_core()
 	shutdown();
 }
 
+/****** Run core for 1 instruction ******/
+void NTR_core::step()
+{
+	//Run the CPU
+	if((core_cpu_nds9.running) && (core_cpu_nds7.running))
+	{	
+		if(db_unit.debug_mode) { debug_step(); }
+
+		//Run NDS9
+		if(core_cpu_nds9.re_sync)
+		{
+			core_cpu_nds9.sync_cycles = 0;
+
+			//TODO - This is temporary
+			core_cpu_nds9.clock();
+			core_cpu_nds9.clock();
+			core_cpu_nds9.clock();
+			core_cpu_nds9.clock();
+
+			//Check to see if CPU is paused or idle for any reason
+			if(core_cpu_nds9.idle_state)
+			{
+				switch(core_cpu_nds9.idle_state)
+				{
+					//Halt SWI
+					case 0x1:
+						//Check IE and IF, if there is a match, exit halt state
+						{
+							//Match up bits in IE and IF
+							for(u32 x = 0; x < 21; x++)
+							{
+								if((core_mmu.nds9_ie & (1 << x)) && (core_mmu.nds9_if & (1 << x))) { core_cpu_nds9.idle_state = 0; }
+							}
+						}
+
+						break;
+
+					//WaitByLoop SWI
+					case 0x2:
+						core_cpu_nds9.swi_waitbyloop_count--;
+						if(!core_cpu_nds9.swi_waitbyloop_count) { core_cpu_nds9.idle_state = 0; }
+						break;
+
+					//IntrWait, VBlankIntrWait
+					case 0x3:
+						//If R0 == 0, quit on any IRQ
+						if((core_cpu_nds9.reg.r0 == 0) && (core_mmu.nds9_if))
+						{
+							//Restore old IF, also OR in any new flags that were set
+							core_mmu.nds9_if = (core_mmu.nds9_old_if | core_mmu.nds9_if);
+
+							//Restore old IE
+							core_mmu.nds9_ie = core_mmu.nds9_old_ie;
+
+							core_cpu_nds9.idle_state = 0;
+						}
+
+						//Otherwise, match up bits in IE and IF
+						for(int x = 0; x < 21; x++)
+						{
+							//When there is a match check to see if IntrWait can quit
+							if((core_mmu.nds9_ie & (1 << x)) && (core_mmu.nds9_if & (1 << x)))
+							{
+								//Restore old IF, also OR in any new flags that were set
+								core_mmu.nds9_if = (core_mmu.nds9_old_if | core_mmu.nds9_if);
+
+								//Restore old IE
+								core_mmu.nds9_ie = core_mmu.nds9_old_ie;
+
+								core_cpu_nds9.idle_state = 0;
+							}
+						}
+
+						break;
+				}
+			}
+
+			//Otherwise, handle normal CPU operations
+			else
+			{
+				core_cpu_nds9.fetch();
+				core_cpu_nds9.decode();
+				core_cpu_nds9.execute();
+
+				core_cpu_nds9.handle_interrupt();
+		
+				//Flush pipeline if necessary
+				if(core_cpu_nds9.needs_flush) { core_cpu_nds9.flush_pipeline(); }
+
+				//Else update the pipeline and PC
+				else 
+				{ 
+					core_cpu_nds9.pipeline_pointer = (core_cpu_nds9.pipeline_pointer + 1) % 3;
+					core_cpu_nds9.update_pc();
+				}
+			}
+
+			//Determine if NDS7 needs to run in order to sync
+			cpu_sync_cycles -= core_cpu_nds9.sync_cycles;	
+
+			if(cpu_sync_cycles <= 0)
+			{
+				core_cpu_nds9.re_sync = false;
+				core_cpu_nds7.re_sync = true;
+				cpu_sync_cycles *= -0.5;
+				core_mmu.access_mode = 0;
+			}
+		}
+
+		//Run NDS7
+		if(core_cpu_nds7.re_sync)
+		{
+			core_cpu_nds7.sync_cycles = 0;
+
+			//TODO - This is temporary
+			core_cpu_nds7.clock();
+			core_cpu_nds7.clock();
+			core_cpu_nds7.clock();
+			core_cpu_nds7.clock();
+
+			//Check to see if CPU is paused or idle for any reason
+			if(core_cpu_nds7.idle_state)
+			{
+				switch(core_cpu_nds7.idle_state)
+				{
+					//Halt SWI
+					case 0x1:
+						//Check IE and IF, if there is a match, exit halt state
+						{
+							//Match up bits in IE and IF
+							for(u32 x = 0; x < 24; x++)
+							{
+								if((core_mmu.nds7_ie & (1 << x)) && (core_mmu.nds7_if & (1 << x))) { core_cpu_nds7.idle_state = 0; }
+							}
+						}
+
+						break;
+
+					//WaitByLoop SWI
+					case 0x2:
+						core_cpu_nds7.swi_waitbyloop_count--;
+						if(!core_cpu_nds7.swi_waitbyloop_count) { core_cpu_nds7.idle_state = 0; }
+						break;
+
+					//IntrWait, VBlankIntrWait
+					case 0x3:
+						//If R0 == 0, quit on any IRQ
+						if((core_cpu_nds7.reg.r0 == 0) && (core_mmu.nds7_if))
+						{
+							//Restore old IF, also OR in any new flags that were set
+							core_mmu.nds7_if = (core_mmu.nds7_old_if | core_mmu.nds7_if);
+
+							//Restore old IE
+							core_mmu.nds7_ie = core_mmu.nds7_old_ie;
+
+							core_cpu_nds7.idle_state = 0;
+						}
+
+						//Otherwise, match up bits in IE and IF
+						for(int x = 0; x < 21; x++)
+						{
+							//When there is a match check to see if IntrWait can quit
+							if((core_mmu.nds7_ie & (1 << x)) && (core_mmu.nds7_if & (1 << x)))
+							{
+								//Restore old IF, also OR in any new flags that were set
+								core_mmu.nds7_if = (core_mmu.nds7_old_if | core_mmu.nds7_if);
+
+								//Restore old IE
+								core_mmu.nds7_ie = core_mmu.nds7_old_ie;
+
+								core_cpu_nds7.idle_state = 0;
+							}
+						}
+
+						break;
+				}
+			}
+
+			//Otherwise, handle normal CPU operations
+			else
+			{
+				core_cpu_nds7.fetch();
+				core_cpu_nds7.decode();
+				core_cpu_nds7.execute();
+
+				core_cpu_nds7.handle_interrupt();
+		
+				//Flush pipeline if necessary
+				if(core_cpu_nds7.needs_flush) { core_cpu_nds7.flush_pipeline(); }
+
+				//Else update the pipeline and PC
+				else 
+				{ 
+					core_cpu_nds7.pipeline_pointer = (core_cpu_nds7.pipeline_pointer + 1) % 3;
+					core_cpu_nds7.update_pc();
+				}
+			}
+
+			//Determine if NDS9 needs to run in order to sync
+			cpu_sync_cycles -= core_cpu_nds7.sync_cycles;
+
+			if(cpu_sync_cycles <= 0)
+			{
+				core_cpu_nds7.re_sync = false;
+				core_cpu_nds9.re_sync = true;
+				cpu_sync_cycles *= -2.0;
+				core_mmu.access_mode = 1;
+			}
+		}
+	}
+}
+
 /****** Debugger - Allow core to run until a breaking condition occurs ******/
 void NTR_core::debug_step()
 {

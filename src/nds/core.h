@@ -40,6 +40,7 @@ class NTR_core : virtual public core_emu
 		void save_state(u8 slot);
 		void load_state(u8 slot);
 		void run_core();
+		void step();
 
 		//Core debugging
 		void debug_step();
