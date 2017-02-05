@@ -853,4 +853,16 @@ SDL_Surface* load_icon(std::string filename)
 	return output;
 }
 
+/****** Converts an integer into a BCD ******/
+u32 get_bcd(u32 input)
+{
+	//Convert to a string
+	std::string temp = to_str(input);
+
+	//Convert string back into an int
+	from_hex_str(temp, input);
+
+	return input;
+}
+
 } //Namespace

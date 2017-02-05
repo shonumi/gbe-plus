@@ -88,6 +88,8 @@ namespace util
 
 	std::string get_filename_from_path(std::string path);
 
+	u32 get_bcd(u32 input);
+
 	SDL_Surface* load_icon(std::string filename);
 
 	extern u32 crc32_table[256];
