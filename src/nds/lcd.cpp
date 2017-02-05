@@ -600,6 +600,28 @@ void NTR_LCD::render_bg_mode_bitmap(u32 bg_control)
 			scanline_pixel_counter++;
 		}
 	}
+
+	//Render Engine B
+	else
+	{
+		//Grab BG ID
+		u8 bg_id = (bg_control - 0x4001008) >> 1;
+
+		//Abort rendering if this bg is disabled
+		if(!lcd_stat.bg_enable_b[bg_id]) { return; }
+
+		u8 raw_color = 0;
+		u8 scanline_pixel_counter = 0;
+		
+		for(int x = 0; x < 256; x++)
+		{
+			raw_color = mem->memory_map[0x6200000 + (lcd_stat.current_scanline * 256) + scanline_pixel_counter];
+			
+			if(raw_color != 0) { scanline_buffer_b[scanline_pixel_counter] = lcd_stat.bg_pal_b[raw_color]; }
+			
+			scanline_pixel_counter++;
+		}
+	}
 }
 
 /****** Render BG Mode direct color scanline ******/
