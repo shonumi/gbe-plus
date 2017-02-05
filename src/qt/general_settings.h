@@ -17,6 +17,8 @@
 #include <QtGui>
 
 #include "data_dialog.h"
+#include "cheat_menu.h"
+#include "rtc_menu.h"
 
 class gen_settings : public QDialog
 {
@@ -34,13 +36,17 @@ class gen_settings : public QDialog
 	//General tab widgets
 	QComboBox* sys_type;
 	QCheckBox* bios;
-	QCheckBox* multicart;
+	QComboBox* multicart;
 	QCheckBox* cheats;
+	QPushButton* edit_cheats;
+	QComboBox* sio_dev;
+	QCheckBox* auto_patch;
 
 	//Display tab widgets
 	QComboBox* screen_scale;
 	QComboBox* cgfx_scale;
 	QComboBox* dmg_gbc_pal;
+	QComboBox* ogl_frag_shader;
 	QCheckBox* ogl;
 	QCheckBox* load_cgfx;
 	QCheckBox* aspect_ratio;
@@ -73,6 +79,8 @@ class gen_settings : public QDialog
 	QLineEdit* dump_bg;
 	QLineEdit* dump_obj;
 	QLineEdit* screenshot;
+	QLineEdit* game_saves;
+	QLineEdit* cheats_path;
 
 	QLabel* dmg_bios_label;
 	QLabel* gbc_bios_label;
@@ -81,6 +89,8 @@ class gen_settings : public QDialog
 	QLabel* dump_bg_label;
 	QLabel* dump_obj_label;
 	QLabel* screenshot_label;
+	QLabel* game_saves_label;
+	QLabel* cheats_path_label;
 
 	//Controls tab widget
 	QComboBox* input_device;
@@ -118,6 +128,19 @@ class gen_settings : public QDialog
 	//Advanced controls tab widget
 	QCheckBox* rumble_on;
 
+	//Netplay tab widgets
+	QCheckBox* enable_netplay;
+	QCheckBox* hard_sync;
+	QSpinBox* server_port;
+	QSpinBox* client_port;
+	QLineEdit* ip_address;
+	QPushButton* ip_update;
+
+	//Misc widgets
+	cheat_menu* dmg_cheat_menu;
+	rtc_menu* real_time_clock_menu;
+	QMessageBox* warning_box;
+
 	void update_volume();
 
 	protected:
@@ -128,9 +151,15 @@ class gen_settings : public QDialog
 
 	private slots:
 	void set_bios();
+	void sio_dev_change();
+	void set_patches();
+	void show_cheats();
+	void show_rtc();
+	void set_ogl();
 	void screen_scale_change();
 	void aspect_ratio_change();
 	void dmg_gbc_pal_change();
+	void ogl_frag_change();
 	void set_cgfx();
 	void volume_change();
 	void sample_rate_change();
@@ -138,8 +167,14 @@ class gen_settings : public QDialog
 	void set_paths(int index);
 	void input_device_change();
 	void dead_zone_change();
+	void set_netplay();
+	void set_hard_sync();
+	void update_server_port();
+	void update_client_port();
+	void update_ip_addr();
 	void configure_button(int button);
 	void close_input();
+	void close_settings();
 	void switch_control_layout();
 	void select_folder();
 	void reject_folder();
@@ -149,6 +184,7 @@ class gen_settings : public QDialog
 	QDialog* display;
 	QDialog* sound;
 	QDialog* controls;
+	QDialog* netplay;
 	QDialog* paths;
 
 	QWidget* input_device_set;

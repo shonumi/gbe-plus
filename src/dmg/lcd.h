@@ -65,11 +65,19 @@ class DMG_LCD
 	SDL_Surface* final_screen;
 	SDL_Surface* original_screen;
 
+	//OpenGL data
 	SDL_GLContext gl_context;
 	GLuint lcd_texture;
+	GLuint program_id;
+	GLuint vertex_buffer_object, vertex_array_object, element_buffer_object;
+	GLfloat ogl_x_scale, ogl_y_scale;
+	GLfloat ext_data_1, ext_data_2;
+	u32 external_data_usage;
 
 	dmg_lcd_data lcd_stat;
 	dmg_cgfx_data cgfx_stat;
+
+	int max_fullscreen_ratio;
 
 	private:
 
@@ -128,7 +136,7 @@ class DMG_LCD
 
 	//Per-scanline rendering - DMG (CGFX)
 	void render_cgfx_dmg_obj_scanline(u8 sprite_id);
-	void render_cgfx_dmg_bg_scanline(u16 bg_id);
+	void render_cgfx_dmg_bg_scanline(u16 bg_id, bool is_bg);
 
 	//Per-scanline rendering - GBC
 	void render_gbc_scanline();
@@ -138,7 +146,7 @@ class DMG_LCD
 
 	//Per-scanline rendering - GBC (CGFX)
 	void render_cgfx_gbc_obj_scanline(u8 sprite_id);
-	void render_cgfx_gbc_bg_scanline(u16 tile_data, u8 bg_map_attribute);
+	void render_cgfx_gbc_bg_scanline(u16 tile_data, u8 bg_map_attribute, bool is_bg);
 
 	//Per-pixel rendering - DMG (B/W)
 	bool render_dmg_obj_pixel();

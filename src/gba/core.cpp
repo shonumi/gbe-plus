@@ -76,6 +76,9 @@ void AGB_core::stop()
 	//Handle CPU Sleep mode
 	if(core_cpu.sleep) { sleep(); }
 
+	//Handle Hard Reset
+	else if(core_cpu.needs_reset) { reset(); }
+
 	//Or stop completely
 	else
 	{
@@ -123,6 +126,8 @@ void AGB_core::sleep()
 /****** Reset the core ******/
 void AGB_core::reset()
 {
+	bool can_reset = true;
+
 	core_cpu.reset();
 	core_cpu.controllers.video.reset();
 	core_cpu.controllers.audio.reset();
@@ -144,17 +149,55 @@ void AGB_core::reset()
 	core_mmu.timer = &core_cpu.controllers.timer;
 
 	//Re-read specified ROM file
-	core_mmu.read_file(config::rom_file);
+	if(!core_mmu.read_file(config::rom_file)) { can_reset = false; }
+
+	//Re-read BIOS file
+	if((config::use_bios) && (!read_bios(config::bios_file))) { can_reset = false; }
 
 	//Start everything all over again
-	start();
+	if(can_reset) { start(); }
+	else { running = false; }
 }
 
 /****** Loads a save state ******/
-void AGB_core::load_state(u8 slot) { }
+void AGB_core::load_state(u8 slot)
+{
+	std::string id = (slot > 0) ? util::to_str(slot) : "";
+
+	std::string state_file = config::rom_file + ".ss";
+	state_file += id;
+
+	u32 offset = 0;
+
+	if(!core_cpu.cpu_read(offset, state_file)) { return; }
+	offset += core_cpu.size();
+
+	if(!core_mmu.mmu_read(offset, state_file)) { return; }
+	offset += core_mmu.size();
+
+	if(!core_cpu.controllers.audio.apu_read(offset, state_file)) { return; }
+	offset += core_cpu.controllers.audio.size();
+
+	if(!core_cpu.controllers.video.lcd_read(offset, state_file)) { return; }
+
+	std::cout<<"GBE::Loaded state " << state_file << "\n";
+}
 
 /****** Saves a save state ******/
-void AGB_core::save_state(u8 slot) { }
+void AGB_core::save_state(u8 slot)
+{
+	std::string id = (slot > 0) ? util::to_str(slot) : "";
+
+	std::string state_file = config::rom_file + ".ss";
+	state_file += id;
+
+	if(!core_cpu.cpu_write(state_file)) { return; }
+	if(!core_mmu.mmu_write(state_file)) { return; }
+	if(!core_cpu.controllers.audio.apu_write(state_file)) { return; }
+	if(!core_cpu.controllers.video.lcd_write(state_file)) { return; }
+
+	std::cout<<"GBE::Saved state " << state_file << "\n";
+}
 
 /****** Run the core in a loop until exit ******/
 void AGB_core::run_core()
@@ -202,6 +245,30 @@ void AGB_core::run_core()
 
 	//Shutdown core
 	shutdown();
+}
+
+/****** Run core for 1 instruction ******/
+void AGB_core::step()
+{
+	//Run the CPU
+	if(core_cpu.running)
+	{	
+		core_cpu.fetch();
+		core_cpu.decode();
+		core_cpu.execute();
+
+		core_cpu.handle_interrupt();
+		
+		//Flush pipeline if necessary
+		if(core_cpu.needs_flush) { core_cpu.flush_pipeline(); }
+
+		//Else update the pipeline and PC
+		else 
+		{ 
+			core_cpu.pipeline_pointer = (core_cpu.pipeline_pointer + 1) % 3;
+			core_cpu.update_pc(); 
+		}
+	}
 }
 
 /****** Debugger - Allow core to run until a breaking condition occurs ******/
@@ -493,6 +560,381 @@ void AGB_core::debug_process_command()
 			}
 		}
 
+		//Write memory - 1 byte
+		else if((command.substr(0, 2) == "w8") && (command.substr(3, 2) == "0x"))
+		{
+			valid_command = true;
+			bool valid_value = false;
+			u32 mem_location = 0;
+			u32 mem_value = 0;
+			std::string hex_string = command.substr(5);
+
+			//Convert hex string into usable u32
+			valid_command = util::from_hex_str(hex_string, mem_location);
+
+			//Request valid input again
+			if(!valid_command)
+			{
+				std::cout<<"\nInvalid memory address : " << command << "\n";
+				std::cout<<": ";
+				std::getline(std::cin, command);
+			}
+
+			else
+			{
+				//Request value
+				while(!valid_value)
+				{
+					std::cout<<"\nInput value: ";
+					std::getline(std::cin, command);
+				
+					valid_value = util::from_hex_str(command.substr(2), mem_value);
+				
+					if(!valid_value)
+					{
+						std::cout<<"\nInvalid value : " << command << "\n";
+					}
+
+					else if((valid_value) && (mem_value > 0xFF))
+					{
+						std::cout<<"\nValue is too large (greater than 0xFF) : 0x" << std::hex << mem_value;
+						valid_value = false;
+					}
+				}
+
+				std::cout<<"\n";
+
+				db_unit.last_command = "w8";
+				core_mmu.write_u8(mem_location, mem_value);
+				debug_process_command();
+			}
+		}
+
+		//Write memory - 2 bytes
+		else if((command.substr(0, 3) == "w16") && (command.substr(4, 2) == "0x"))
+		{
+			valid_command = true;
+			bool valid_value = false;
+			u32 mem_location = 0;
+			u32 mem_value = 0;
+			std::string hex_string = command.substr(6);
+
+			//Convert hex string into usable u32
+			valid_command = util::from_hex_str(hex_string, mem_location);
+
+			//Request valid input again
+			if(!valid_command)
+			{
+				std::cout<<"\nInvalid memory address : " << command << "\n";
+				std::cout<<": ";
+				std::getline(std::cin, command);
+			}
+
+			else
+			{
+				//Request value
+				while(!valid_value)
+				{
+					std::cout<<"\nInput value: ";
+					std::getline(std::cin, command);
+				
+					valid_value = util::from_hex_str(command.substr(2), mem_value);
+				
+					if(!valid_value)
+					{
+						std::cout<<"\nInvalid value : " << command << "\n";
+					}
+
+					else if((valid_value) && (mem_value > 0xFFFF))
+					{
+						std::cout<<"\nValue is too large (greater than 0xFFFF) : 0x" << std::hex << mem_value;
+						valid_value = false;
+					}
+				}
+
+				std::cout<<"\n";
+
+				db_unit.last_command = "w16";
+				core_mmu.write_u16(mem_location, mem_value);
+				debug_process_command();
+			}
+		}
+
+		//Write memory - 4 bytes
+		else if((command.substr(0, 3) == "w32") && (command.substr(4, 2) == "0x"))
+		{
+			valid_command = true;
+			bool valid_value = false;
+			u32 mem_location = 0;
+			u32 mem_value = 0;
+			std::string hex_string = command.substr(6);
+
+			//Convert hex string into usable u32
+			valid_command = util::from_hex_str(hex_string, mem_location);
+
+			//Request valid input again
+			if(!valid_command)
+			{
+				std::cout<<"\nInvalid memory address : " << command << "\n";
+				std::cout<<": ";
+				std::getline(std::cin, command);
+			}
+
+			else
+			{
+				//Request value
+				while(!valid_value)
+				{
+					std::cout<<"\nInput value: ";
+					std::getline(std::cin, command);
+				
+					valid_value = util::from_hex_str(command.substr(2), mem_value);
+				
+					if(!valid_value)
+					{
+						std::cout<<"\nInvalid value : " << command << "\n";
+					}
+				}
+
+				std::cout<<"\n";
+
+				db_unit.last_command = "w32";
+				core_mmu.write_u32(mem_location, mem_value);
+				debug_process_command();
+			}
+		}
+
+		//Write to register
+		else if(command.substr(0, 3) == "reg")
+		{
+			valid_command = true;
+			bool valid_value = false;
+			u32 reg_index = 0;
+			u32 reg_value = 0;
+			std::string reg_string = command.substr(4);
+
+			//Convert string into a usable u32
+			valid_command = util::from_str(reg_string, reg_index);
+
+			//Request valid input again
+			if((!valid_command) || (reg_index > 0x24))
+			{
+				std::cout<<"\nInvalid register : " << command << "\n";
+				std::cout<<": ";
+				std::getline(std::cin, command);
+			}
+
+			else
+			{
+				//Request value
+				while(!valid_value)
+				{
+					std::cout<<"\nInput value: ";
+					std::getline(std::cin, command);
+				
+					valid_value = util::from_hex_str(command.substr(2), reg_value);
+				
+					if(!valid_value)
+					{
+						std::cout<<"\nInvalid value : " << command << "\n";
+					}
+				}
+
+				switch(reg_index)
+				{
+					case 0x0:
+						std::cout<<"\nSetting Register R0 to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.r0 = reg_value;
+						break;
+
+					case 0x1:
+						std::cout<<"\nSetting Register R1 to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.r1 = reg_value;
+						break;
+
+					case 0x2:
+						std::cout<<"\nSetting Register R2 to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.r2 = reg_value;
+						break;
+
+					case 0x3:
+						std::cout<<"\nSetting Register R3 to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.r3 = reg_value;
+						break;
+
+					case 0x4:
+						std::cout<<"\nSetting Register R4 to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.r4 = reg_value;
+						break;
+
+					case 0x5:
+						std::cout<<"\nSetting Register R5 to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.r5 = reg_value;
+						break;
+
+					case 0x6:
+						std::cout<<"\nSetting Register R6 to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.r6 = reg_value;
+						break;
+
+					case 0x7:
+						std::cout<<"\nSetting Register R7 to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.r7 = reg_value;
+						break;
+
+					case 0x8:
+						std::cout<<"\nSetting Register R8 to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.r8 = reg_value;
+						break;
+
+					case 0x9:
+						std::cout<<"\nSetting Register R9 to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.r9 = reg_value;
+						break;
+
+					case 0xA:
+						std::cout<<"\nSetting Register R10 to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.r10 = reg_value;
+						break;
+
+					case 0xB:
+						std::cout<<"\nSetting Register R11 to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.r11 = reg_value;
+						break;
+
+					case 0xC:
+						std::cout<<"\nSetting Register R12 to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.r12 = reg_value;
+						break;
+
+					case 0xD:
+						std::cout<<"\nSetting Register R13 to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.r13 = reg_value;
+						break;
+
+					case 0xE:
+						std::cout<<"\nSetting Register R14 to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.r14 = reg_value;
+						break;
+
+					case 0xF:
+						std::cout<<"\nSetting Register R15 to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.r15 = reg_value;
+						break;
+
+					case 0x10:
+						std::cout<<"\nSetting Register CPSR to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.cpsr = reg_value;
+						break;
+
+					case 0x11:
+						std::cout<<"\nSetting Register R8 (FIQ) to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.r8_fiq = reg_value;
+						break;
+
+					case 0x12:
+						std::cout<<"\nSetting Register R9 (FIQ) to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.r9_fiq = reg_value;
+						break;
+
+					case 0x13:
+						std::cout<<"\nSetting Register R10 (FIQ) to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.r10_fiq = reg_value;
+						break;
+
+					case 0x14:
+						std::cout<<"\nSetting Register R11 (FIQ) to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.r11_fiq = reg_value;
+						break;
+
+					case 0x15:
+						std::cout<<"\nSetting Register R12 (FIQ) to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.r12_fiq = reg_value;
+						break;
+
+					case 0x16:
+						std::cout<<"\nSetting Register R13 (FIQ) to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.r13_fiq = reg_value;
+						break;
+
+					case 0x17:
+						std::cout<<"\nSetting Register R14 (FIQ) to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.r14_fiq = reg_value;
+						break;
+
+					case 0x18:
+						std::cout<<"\nSetting Register SPSR (FIQ) to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.spsr_fiq = reg_value;
+						break;
+
+					case 0x19:
+						std::cout<<"\nSetting Register R13 (SVC) to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.r13_svc = reg_value;
+						break;
+
+					case 0x1A:
+						std::cout<<"\nSetting Register R14 (SVC) to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.r14_svc = reg_value;
+						break;
+
+					case 0x1B:
+						std::cout<<"\nSetting Register SPSR (SVC) to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.spsr_svc = reg_value;
+						break;
+
+					case 0x1C:
+						std::cout<<"\nSetting Register R13 (ABT) to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.r13_abt = reg_value;
+						break;
+
+					case 0x1D:
+						std::cout<<"\nSetting Register R14 (ABT) to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.r14_abt = reg_value;
+						break;
+
+					case 0x1E:
+						std::cout<<"\nSetting Register SPSR (ABT) to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.spsr_abt = reg_value;
+						break;
+
+					case 0x1F:
+						std::cout<<"\nSetting Register R13 (IRQ) to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.r13_irq = reg_value;
+						break;
+
+					case 0x20:
+						std::cout<<"\nSetting Register R14 (IRQ) to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.r14_irq = reg_value;
+						break;
+
+					case 0x21:
+						std::cout<<"\nSetting Register SPSR (IRQ) to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.spsr_irq = reg_value;
+						break;
+
+					case 0x22:
+						std::cout<<"\nSetting Register R13 (UND) to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.r13_und = reg_value;
+						break;
+
+					case 0x23:
+						std::cout<<"\nSetting Register R14 (UND) to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.r14_und = reg_value;
+						break;
+
+					case 0x24:
+						std::cout<<"\nSetting Register SPSR (UND) to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.spsr_und = reg_value;
+						break;
+				}
+				
+
+				db_unit.last_command = "reg";
+				debug_display();
+				debug_process_command();
+			}
+		}
+
 		//Toggle display of CPU cycles
 		else if(command == "dc")
 		{
@@ -564,6 +1006,10 @@ void AGB_core::debug_process_command()
 			std::cout<<"u8 \t\t Show BYTE @ memory, format 0x1234ABCD\n";
 			std::cout<<"u16 \t\t Show HALFWORD @ memory, format 0x1234ABCD\n";
 			std::cout<<"u32 \t\t Show WORD @ memory, format 0x1234ABCD\n";
+			std::cout<<"w8 \t\t Write BYTE @ memory, format 0x1234ABCD for addr, 0x12 for value\n";
+			std::cout<<"w16 \t\t Write HALFWORD @ memory, format 0x1234ABCD for addr, 0x1234 for value\n";
+			std::cout<<"w32 \t\t Write WORD @ memory, format 0x1234ABCD for addr, 0x1234ABCD for value\n";
+			std::cout<<"reg \t\t Change register value (0-36) \n";
 			std::cout<<"dq \t\t Quit the debugger\n";
 			std::cout<<"dc \t\t Toggle CPU cycle display\n";
 			std::cout<<"cr \t\t Reset CPU cycle counter\n";
@@ -597,6 +1043,33 @@ void AGB_core::handle_hotkey(SDL_Event& event)
 	{
 		running = false; 
 		SDL_Quit();
+	}
+
+	//Mute or unmute sound on M
+	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == config::hotkey_mute) && (!config::use_external_interfaces))
+	{
+		if(config::volume == 0)
+		{
+			update_volume(config::old_volume);
+		}
+
+		else
+		{
+			config::old_volume = config::volume;
+			update_volume(0);
+		}
+	}
+
+	//Start CLI debugger on F7
+	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F7) && (!config::use_external_interfaces))
+	{
+		//Start a new CLI debugger session or interrupt an existing one in Continue Mode 
+		if((!db_unit.debug_mode) || ((db_unit.debug_mode) && (db_unit.last_command == "c")))
+		{
+			db_unit.debug_mode = true;
+			db_unit.last_command = "n";
+			db_unit.last_mnemonic = "";
+		}
 	}
 
 	//Screenshot on F9
@@ -644,6 +1117,20 @@ void AGB_core::handle_hotkey(SDL_Event& event)
 			core_cpu.controllers.video.window = SDL_CreateWindow("GBE+", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, config::sys_width, config::sys_height, config::flags);
 			core_cpu.controllers.video.final_screen = SDL_GetWindowSurface(core_cpu.controllers.video.window);
 			SDL_GetWindowSize(core_cpu.controllers.video.window, &config::win_width, &config::win_height);
+
+			//Find the maximum fullscreen dimensions that maintain the original aspect ratio
+			if(config::flags & SDL_WINDOW_FULLSCREEN_DESKTOP)
+			{
+				double max_width, max_height, ratio = 0.0;
+
+				max_width = (double)config::win_width / config::sys_width;
+				max_height = (double)config::win_height / config::sys_height;
+
+				if(max_width <= max_height) { ratio = max_width; }
+				else { ratio = max_height; }
+
+				core_cpu.controllers.video.max_fullscreen_ratio = ratio;
+			}
 		}
 
 		//Initialize new window - OpenGL

@@ -31,7 +31,6 @@ struct agb_lcd_data
 	u32 frame_base;
 	u8 bg_mode;
 	bool hblank_interval_free;
-	bool oam_access;
 
 	u16 bg_offset_x[4];
 	u16 bg_offset_y[4];
@@ -69,23 +68,26 @@ struct agb_lcd_data
 	u16 bg_num_lut[256][256];
 	u16 screen_offset_lut[512];
 
-	struct bg_scale_rotate_parameters
+	struct bg_affine_parameters
 	{
 		//Parameters, X-Y reference
-		double a, b, c, d;
-		double x_ref, y_ref;
+		float dx, dmx, dy, dmy;
+		float x_ref, y_ref;
+		float x_pos, y_pos;
 
 		bool overflow;
-	} bg_params[2];
+	} bg_affine[2];
+
+	float obj_affine[128];
 
 	bool oam_update;
-	std::vector<bool> oam_update_list;
+	bool oam_update_list[128];
 
 	bool bg_pal_update;
-	std::vector<bool> bg_pal_update_list;
+	bool bg_pal_update_list[256];
 
 	bool obj_pal_update;
-	std::vector<bool> obj_pal_update_list;
+	bool obj_pal_update_list[256];
 
 	u8 bg_mos_hsize;
 	u8 bg_mos_vsize;

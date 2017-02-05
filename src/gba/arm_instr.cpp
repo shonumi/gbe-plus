@@ -28,7 +28,6 @@ void ARM7::branch_exchange(u32 current_arm_instruction)
 			arm_mode = THUMB;
 			reg.cpsr |= 0x20;
 			result &= ~0x1;
-			//std::cout<<"\n\n ** Switching to THUMB Mode ** \n\n";
 		}
 
 		switch(op)
@@ -75,7 +74,7 @@ void ARM7::branch_link(u32 current_arm_instruction)
 		offset--;
 		offset = ~offset;
 
-	jump_addr = (offset * -4);
+		jump_addr = (offset * -4);
 	}
 
 	else { jump_addr = offset * 4; }
@@ -502,8 +501,7 @@ void ARM7::psr_transfer(u32 current_arm_instruction)
 
 	//Clock CPU and controllers - 1S
 	clock((reg.r15 + 4), false);
-} 
-
+}
 
 /****** ARM.7 Multiply and Multiply-Accumulate ******/
 void ARM7::multiply(u32 current_arm_instruction)
@@ -777,7 +775,6 @@ void ARM7::single_data_transfer(u32 current_arm_instruction)
 		}
 	}
 
-
 	//Increment or decrement before transfer if pre-indexing
 	if(pre_post == 1) 
 	{ 
@@ -995,8 +992,6 @@ void ARM7::halfword_signed_transfer(u32 current_arm_instruction)
 void ARM7::block_data_transfer(u32 current_arm_instruction)
 {
 	//TODO - Clock cycles
-	//TODO - Handle PSR bit
-	//TODO - Handle empty RList
 
 	//Grab Pre-Post bit - Bit 24
 	u8 pre_post = (current_arm_instruction & 0x1000000) ? 1 : 0;
@@ -1021,6 +1016,10 @@ void ARM7::block_data_transfer(u32 current_arm_instruction)
 
 	//Warnings
 	if(base_reg == 15) { std::cout<<"CPU::Warning - ARM.11 R15 used as Base Register \n"; }
+
+	//Force USR mode if PSR bit is set
+	cpu_modes temp_mode = current_cpu_mode;
+	if(psr) { current_cpu_mode = USR; }
 
 	u32 base_addr = get_reg(base_reg);
 	u32 old_base = base_addr;
@@ -1106,8 +1105,30 @@ void ARM7::block_data_transfer(u32 current_arm_instruction)
 	}
 
 	//Special case, empty RList
-	//Store PC, add or sub 0x40 to base address
-	else { std::cout<<"Empty RList not implemented, too lazy atm :p\n"; }
+	else
+	{
+		//Load R15
+		if(load_store == 0){ mem->write_u32(base_addr, reg.r15); }
+		
+		//Store R15
+		else
+		{
+			reg.r15 = mem->read_u32(base_addr);
+			needs_flush = true;
+		}
+
+		//Add 0x40 to base address if ascending stack, writeback into base register
+		if(up_down == 1) { set_reg(base_reg, (base_addr + 0x40)); }
+
+		//Subtract 0x40 from base address if descending stack, writeback into base register
+		else { set_reg(base_reg, (base_addr - 0x40)); }
+
+		std::cout<<"CPU::Warning - ARM.11 Instruction uses empty register list \n";
+	}
+
+
+	//Restore CPU mode if PSR bit is set
+	if(psr) { current_cpu_mode = temp_mode; }
 }
 		
 /****** ARM.12 - Single Data Swap ******/

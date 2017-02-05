@@ -188,6 +188,8 @@ void DMG_LCD::reset()
 			hd_screen_buffer.resize((config::sys_width * config::sys_height), 0);
 		}
 	}
+
+	max_fullscreen_ratio = 2;
 }
 
 /****** Initialize LCD with SDL ******/
@@ -250,6 +252,14 @@ bool DMG_LCD::lcd_read(u32 offset, std::string filename)
 		file.read((char*)&obj[x], sizeof(obj[x]));
 	}
 
+	//Sanitize LCD data
+	if(lcd_stat.current_scanline > 153) { lcd_stat.current_scanline = 0;  }
+	if(lcd_stat.last_y > 153) { lcd_stat.last_y = 0; }
+	if(lcd_stat.lcd_clock > 70224) { lcd_stat.lcd_clock = 0; }
+
+	lcd_stat.lcd_mode &= 0x3;
+	lcd_stat.hdma_type &= 0x1;
+	
 	file.close();
 	return true;
 }
@@ -557,7 +567,7 @@ void DMG_LCD::render_dmg_bg_scanline()
 		
 		//Render CGFX
 		u16 hash_addr = lcd_stat.bg_tile_addr + (map_entry << 4);
-		if((cgfx::load_cgfx) && (has_hash(hash_addr, cgfx_stat.current_bg_hash[bg_id]))) { render_cgfx_dmg_bg_scanline(bg_id); }
+		if((cgfx::load_cgfx) && (has_hash(hash_addr, cgfx_stat.current_bg_hash[bg_id]))) { render_cgfx_dmg_bg_scanline(bg_id, true); }
 
 		//Render original pixel data
 		else 
@@ -616,10 +626,10 @@ void DMG_LCD::render_dmg_bg_scanline()
 }
 
 /****** Renders pixels for the BG (per-scanline) - DMG CGFX version ******/
-void DMG_LCD::render_cgfx_dmg_bg_scanline(u16 bg_id)
+void DMG_LCD::render_cgfx_dmg_bg_scanline(u16 bg_id, bool is_bg)
 {
 	//Determine where to start drawing
-	u8 rendered_scanline = lcd_stat.current_scanline + lcd_stat.bg_scroll_y;
+	u8 rendered_scanline = is_bg ? (lcd_stat.current_scanline + lcd_stat.bg_scroll_y) : (lcd_stat.current_scanline - lcd_stat.window_y);
 
 	//Determine which line of the tiles to generate pixels for this scanline
 	u8 tile_line = rendered_scanline % 8;
@@ -718,7 +728,7 @@ void DMG_LCD::render_gbc_bg_scanline()
 		//Render CGFX
 		u16 map_id = (lcd_stat.bg_map_addr + x) - 0x9800;
 		u16 hash_addr = lcd_stat.bg_tile_addr + (map_entry << 4);
-		if((cgfx::load_cgfx) && (has_hash(hash_addr, cgfx_stat.current_gbc_bg_hash[map_id]))) { render_cgfx_gbc_bg_scanline(tile_data, bg_map_attribute); }
+		if((cgfx::load_cgfx) && (has_hash(hash_addr, cgfx_stat.current_gbc_bg_hash[map_id]))) { render_cgfx_gbc_bg_scanline(tile_data, bg_map_attribute, true); }
 
 		//Render original pixel data
 		else
@@ -770,10 +780,10 @@ void DMG_LCD::render_gbc_bg_scanline()
 }
 
 /****** Renders pixels for the BG (per-scanline) - GBC CGFX version ******/
-void DMG_LCD::render_cgfx_gbc_bg_scanline(u16 tile_data, u8 bg_map_attribute)
+void DMG_LCD::render_cgfx_gbc_bg_scanline(u16 tile_data, u8 bg_map_attribute, bool is_bg)
 {
 	//Determine where to start drawing
-	u8 rendered_scanline = lcd_stat.current_scanline + lcd_stat.bg_scroll_y;
+	u8 rendered_scanline = is_bg ? (lcd_stat.current_scanline + lcd_stat.bg_scroll_y) : (lcd_stat.current_scanline - lcd_stat.window_y);
 
 	//Determine which line of the tiles to generate pixels for this scanline
 	u8 tile_line = rendered_scanline % 8;
@@ -889,7 +899,7 @@ void DMG_LCD::render_dmg_win_scanline()
 		
 		//Render CGFX
 		u16 hash_addr = lcd_stat.bg_tile_addr + (map_entry << 4);
-		if((cgfx::load_cgfx) && (has_hash(hash_addr, cgfx_stat.current_bg_hash[bg_id]))) { render_cgfx_dmg_bg_scanline(bg_id); }
+		if((cgfx::load_cgfx) && (has_hash(hash_addr, cgfx_stat.current_bg_hash[bg_id]))) { render_cgfx_dmg_bg_scanline(bg_id, false); }
 
 		//Render original pixel data
 		else
@@ -998,7 +1008,7 @@ void DMG_LCD::render_gbc_win_scanline()
 		//Render CGFX
 		u16 map_id = (lcd_stat.window_map_addr + x) - 0x9800;
 		u16 hash_addr = lcd_stat.bg_tile_addr + (map_entry << 4);
-		if((cgfx::load_cgfx) && (has_hash(hash_addr, cgfx_stat.current_gbc_bg_hash[map_id]))) { render_cgfx_gbc_bg_scanline(tile_data, bg_map_attribute); }
+		if((cgfx::load_cgfx) && (has_hash(hash_addr, cgfx_stat.current_gbc_bg_hash[map_id]))) { render_cgfx_gbc_bg_scanline(tile_data, bg_map_attribute, false); }
 
 		//Render original pixel data
 		else
@@ -1871,10 +1881,10 @@ void DMG_LCD::step(int cpu_clock)
 
 							//Blit the original surface to the final stretched one
 							SDL_Rect dest_rect;
-							dest_rect.x = (config::win_width / 2) - config::sys_width;
-							dest_rect.y = (config::win_height / 2) - config::sys_height;
-							dest_rect.w = config::sys_width << 1;
-							dest_rect.h = config::sys_height << 1;
+							dest_rect.w = config::sys_width * max_fullscreen_ratio;
+							dest_rect.h = config::sys_height * max_fullscreen_ratio;
+							dest_rect.x = ((config::win_width - dest_rect.w) >> 1);
+							dest_rect.y = ((config::win_height - dest_rect.h) >> 1);
 							SDL_BlitScaled(original_screen, NULL, final_screen, &dest_rect);
 
 							if(SDL_UpdateWindowSurface(window) != 0) { std::cout<<"LCD::Error - Could not blit\n"; }
@@ -1989,16 +1999,22 @@ void DMG_LCD::step(int cpu_clock)
 					lcd_stat.current_scanline++;
 
 					//By line 153, LCD has actually reached the top of the screen again
-					//It will sit at Line 0 for 456 before entering Mode 2 properly
-					//Line 0 STAT-LYC IRQs should be triggered here
+					//LY will read 153 for only a few cycles, then go to 0 for the rest of the scanline
+					//Line 153 and Line 0 STAT-LYC IRQs should be triggered here
 					if(lcd_stat.current_scanline == 153)
 					{
+						//Do a scanline compare for Line 153 now
+						mem->memory_map[REG_LY] = lcd_stat.current_scanline;
+						scanline_compare();
+
+						//Set LY to 0, also trigger Line 0 STAT-LYC IRQ if necessary
+						//Technically this should fire 8 cycles into the scanline
 						lcd_stat.current_scanline = 0;
 						mem->memory_map[REG_LY] = lcd_stat.current_scanline;
 						scanline_compare();
 					}
 
-					//After sitting on Line 0 for 456 cycles, reset LCD clock, scanline count
+					//After Line 153 reset LCD clock, scanline count
 					else if(lcd_stat.current_scanline == 1) 
 					{
 						lcd_stat.lcd_clock -= 70224;

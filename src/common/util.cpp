@@ -27,8 +27,6 @@ u32 crc32_table[256];
 /****** Saves an SDL Surface to a PNG file ******/
 bool save_png(SDL_Surface* source, std::string filename)
 {
-	//TODO - Everything for this function
-
 	if(source == NULL) 
 	{
 		std::cout<<"GBE::Error - Source data for " << filename << " is null\n";
@@ -37,7 +35,7 @@ bool save_png(SDL_Surface* source, std::string filename)
 	
 	//Lock SDL_Surface
 	if(SDL_MUSTLOCK(source)){ SDL_LockSurface(source); }
-	u8* src_pixels = (u8*)source->pixels;
+	u32* src_pixels = (u32*)source->pixels;
 
 	std::vector<u8> png_bytes;
 
@@ -102,11 +100,14 @@ bool save_png(SDL_Surface* source, std::string filename)
 
 	//IDAT byte length - 4 bytes
 	u32 dat_length = (source->w * source->h) * 3;
+	dat_length = switch_endian32(dat_length);
 
 	for(int x = 24; x >= 0; x-= 8)
 	{
 		png_bytes.push_back((dat_length >> x) & 0xFF);
 	}
+
+	dat_length = switch_endian32(dat_length);
 
 	//"IDAT" ASCII string - 4 bytes
 	png_bytes.push_back(0x49);
@@ -114,26 +115,20 @@ bool save_png(SDL_Surface* source, std::string filename)
 	png_bytes.push_back(0x41);
 	png_bytes.push_back(0x54);
 
-	//ZLib header - 4 bytes
-	png_bytes.push_back(0x78);
-	png_bytes.push_back(0x00);
-	//TODO Addler32 checksum of data
-
-	//IDAT Chunk header - TODO
-	//Final chunk flag - 1 Byte
-	//Chunk size byte length - 2 Bytes
-	//Chunk size complement - 2 Bytes
-	png_bytes.push_back(0x01);
-
 	//Grab RGB values, then store them
-	for(int x = 0; x < (source->w * source->h) * 4;)
+	for(int x = 0; x < (source->w * source->h); x++)
 	{
-		//Skip Alpha values
-		x++;
+		//TODO - DEFLATE algo
 
-		png_bytes.push_back(src_pixels[x++]);
-		png_bytes.push_back(src_pixels[x++]);
-		png_bytes.push_back(src_pixels[x++]);
+		u32 color = src_pixels[x];
+
+		u8 red = (color >> 16) & 0xFF;
+		u8 green = (color >> 8) & 0xFF;
+		u8 blue = (color & 0xFF);
+
+		png_bytes.push_back(red);
+		png_bytes.push_back(blue);
+		png_bytes.push_back(green);
 	}
 
 	//CRC32 of IDAT chunk - 4 bytes
@@ -443,6 +438,75 @@ u32 rgb_blend(u32 color_1, u32 color_2)
 	return 0xFF000000 | (r << 16) | (g << 8) | b;
 }
 
+/****** Adds a value to all RGB channels of a color ******/
+u32 add_color_factor(u32 color, u32 factor)
+{
+	util::col32 output;
+	output.color = color;
+
+	s32 r_factor = output.r + factor;
+	s32 g_factor = output.g + factor;
+	s32 b_factor = output.b + factor;
+
+	if(r_factor > 255) { output.r = 255; }
+	else { output.r = r_factor; }
+
+	if(g_factor > 255) { output.g = 255; }
+	else { output.g = g_factor; }
+
+	if(b_factor > 255) { output.b = 255; }
+	else { output.b = b_factor; }
+
+	return output.color;
+}
+
+/****** Subtracts a value from all RGB channels of a color ******/
+u32 sub_color_factor(u32 color, u32 factor)
+{
+	util::col32 output;
+	output.color = color;
+
+	s32 r_factor = output.r - factor;
+	s32 g_factor = output.g - factor;
+	s32 b_factor = output.b - factor;
+
+	if(r_factor < 0) { output.r = 0; }
+	else { output.r = r_factor; }
+
+	if(g_factor < 0) { output.g = 0; }
+	else { output.g = g_factor; }
+
+	if(b_factor < 0) { output.b = 0; }
+	else { output.b = b_factor; }
+
+	return output.color;
+}
+
+/****** Multiplies all RGB channels by a value ******/
+u32 multiply_color_factor(u32 color, double factor)
+{
+	util::col32 output;
+	output.color = color;
+
+	s32 r_factor = output.r * factor;
+	s32 g_factor = output.g * factor;
+	s32 b_factor = output.b * factor;
+
+	if(r_factor < 0) { output.r = 0; }
+	else if(r_factor > 255) { output.r = 255; }
+	else { output.r = r_factor; }
+
+	if(g_factor < 0) { output.g = 0; }
+	else if(g_factor > 255) { output.g = 255; }
+	else { output.g = g_factor; }
+
+	if(b_factor < 0) { output.b = 0; }
+	else if(b_factor > 255) { output.b = 255; }
+	else { output.b = b_factor; }
+
+	return output.color;
+}
+
 /****** Mirrors bits ******/
 u32 reflect(u32 src, u8 bit)
 {
@@ -475,9 +539,11 @@ void init_crc32_table()
 	}
 }
 
-/****** Return CRC for given data ******/
+/****** Return CRC32 for given data ******/
 u32 get_crc32(u8* data, u32 length)
 {
+	init_crc32_table();
+
 	u32 crc32 = 0xFFFFFFFF;
 
 	for(int x = 0; x < length; x++)
@@ -487,6 +553,36 @@ u32 get_crc32(u8* data, u32 length)
 	}
 
 	return (crc32 ^ 0xFFFFFFFF);
+}
+
+/****** Return Addler32 for given data ******/
+u32 get_addler32(u8* data, u32 length)
+{
+	u16 a = 1;
+	u16 b = 0;
+
+	for(int x = 0; x < length; x++)
+	{
+		a += (*data);
+		b += a;
+	}
+
+	a = a % 65521;
+	b = b % 65521;
+
+	u32 result = (b *= 65536) + a;
+	return result;
+}
+
+/****** Switches endianness of a 32-bit integer ******/
+u32 switch_endian32(u32 input)
+{	
+	u8 byte_1 = ((input >> 24) & 0xFF);
+	u8 byte_2 = ((input >> 16) & 0xFF);
+	u8 byte_3 = ((input >> 8) & 0xFF);
+	u8 byte_4 = (input & 0xFF);
+
+	return ((byte_4 << 24) | (byte_3 << 16) | (byte_2 << 8) | byte_1);
 }
 
 /****** Convert a number into hex as a C++ string ******/
@@ -563,6 +659,8 @@ bool from_str(std::string input, u32 &result)
 	u32 size = (input.size() - 1);
 	std::string value_char = "";
 
+	if(input.size() == 0) { return false; }
+
 	//Convert string into usable u32
 	for(int x = size, y = 1; x >= 0; x--, y *= 10)
 	{
@@ -585,6 +683,33 @@ bool from_str(std::string input, u32 &result)
 	return true;
 }
 
+/****** Converts a series of bytes to ASCII ******/
+std::string data_to_str(u8* data, u32 length)
+{
+	std::string temp = "";
+
+	for(u32 x = 0; x < length; x++)
+	{
+		char ascii = *data;
+		temp += ascii;
+		data++;
+	}
+
+	return temp;
+}
+
+/****** Converts an ASCII string to a series of bytes ******/
+void str_to_data(u8* data, std::string input)
+{
+	for(u32 x = 0; x < input.size(); x++)
+	{
+		char ascii = input[x];
+		*data = ascii;
+		data++;
+	}
+}
+	
+
 /****** Converts a string IP address to an integer value ******/
 bool ip_to_u32(std::string ip_addr, u32 &result)
 {
@@ -600,17 +725,56 @@ bool ip_to_u32(std::string ip_addr, u32 &result)
 	{
 		current_char = ip_addr[x];
 
+		//Check to make sure the character is valid for an IP address
+		bool check_char = false;
+
+		if(current_char == "0") { check_char = true; }
+		else if(current_char == "1") { check_char = true; }
+		else if(current_char == "2") { check_char = true; }
+		else if(current_char == "3") { check_char = true; }
+		else if(current_char == "4") { check_char = true; }
+		else if(current_char == "5") { check_char = true; }
+		else if(current_char == "6") { check_char = true; }
+		else if(current_char == "7") { check_char = true; }
+		else if(current_char == "8") { check_char = true; }
+		else if(current_char == "9") { check_char = true; }
+		else if(current_char == ".") { check_char = true; }
+
+		//Quit now if invalid character
+		if(!check_char)
+		{
+			result = 0;
+			return false;
+		}
+
 		//Convert characters into u32 when a "." is encountered
 		if((current_char == ".") || (x == str_end))
 		{
 			if(x == str_end) { temp += current_char; }
 
 			//If somehow parsing more than 3 dots, string is malformed
-			if(dot_count == 4) { return false; }
+			if(dot_count == 4)
+			{
+				result = 0;
+				return false;
+			}
 
 			u32 digit = 0;
 
-			if(!from_str(temp, digit)) { return false; }
+			//If the string can't be converted into a digit, quit now
+			if(!from_str(temp, digit))
+			{
+				result = 0;
+				return false;
+			}
+
+			//If the string is longer than 3 characters or zero, quit now
+			if((temp.size() > 3) || (temp.size() == 0))
+			{
+				result = 0;
+				return false;
+			}
+
 
 			digits[dot_count++] = digit & 0xFF;
 			temp = "";
@@ -619,8 +783,15 @@ bool ip_to_u32(std::string ip_addr, u32 &result)
 		else { temp += current_char; }
 	}
 
+	//If the dot count is less than three, something is wrong with the IP address
+	if(dot_count != 4)
+	{
+		result = 0;
+		return false;
+	}
+
 	//Encode result in network byte order aka big endian
-	result = (digits[0] << 24) | (digits[1] << 16) | (digits[2] << 8) | digits[3];
+	result = (digits[3] << 24) | (digits[2] << 16) | (digits[1] << 8) | digits[0];
 
 	return true;
 }
@@ -628,8 +799,8 @@ bool ip_to_u32(std::string ip_addr, u32 &result)
 /****** Converts an integers IP address to a string value ******/
 std::string ip_to_str(u32 ip_addr)
 {
-	u32 mask = 0xFF000000;
-	u32 shift = 24;
+	u32 mask = 0x000000FF;
+	u32 shift = 0;
 	std::string temp = "";
 
 	for(u32 x = 0; x < 4; x++)
@@ -639,11 +810,20 @@ std::string ip_to_str(u32 ip_addr)
 		
 		if(x != 3) { temp += "."; }
 
-		shift -= 8;
-		mask >>= 8;
+		shift += 8;
+		mask <<= 8;
 	}
 
 	return temp;
+}
+
+/****** Gets the filename from a full or partial path ******/
+std::string get_filename_from_path(std::string path)
+{
+	std::size_t match = path.find_last_of("/\\");
+
+	if(match != std::string::npos) { return path.substr(match + 1); }
+	else { return path; }
 }
 
 /****** Loads icon into SDL Surface ******/
@@ -671,6 +851,18 @@ SDL_Surface* load_icon(std::string filename)
 	}
 
 	return output;
+}
+
+/****** Converts an integer into a BCD ******/
+u32 get_bcd(u32 input)
+{
+	//Convert to a string
+	std::string temp = to_str(input);
+
+	//Convert string back into an int
+	from_hex_str(temp, input);
+
+	return input;
 }
 
 } //Namespace

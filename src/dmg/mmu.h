@@ -36,7 +36,10 @@ class DMG_MMU
 		MBC2, 
 		MBC3, 
 		MBC5,
-		MBC7
+		MBC7,
+		HUC1,
+		MMM01,
+		GB_CAMERA,
 	};
 
 	std::vector <u8> memory_map;
@@ -93,6 +96,11 @@ class DMG_MMU
 		u8 command_code;
 		u16 addr;
 		u16 buffer;
+
+		//Camera
+		u8 cam_reg[54];
+		std::vector <u8> cam_buffer;
+		bool cam_lock;
 	} cart;
 
 	u8 ir_signal;
@@ -118,6 +126,9 @@ class DMG_MMU
 	bool save_backup(std::string filename);
 	bool load_backup(std::string filename);
 
+	bool patch_ips(std::string filename);
+	bool patch_ups(std::string filename);
+
 	//Memory Bank Controller dedicated read/write operations
 	void mbc_write(u16 address, u8 value);
 	u8 mbc_read(u16 address);
@@ -140,6 +151,16 @@ class DMG_MMU
 	void mbc7_write(u16 address, u8 value);
 	void mbc7_write_ram(u8 value);
 	u8 mbc7_read(u16 address);
+
+	void huc1_write(u16 address, u8 value);
+	u8 huc1_read(u16 address);
+
+	void mmm01_write(u16 address, u8 value);
+	u8 mmm01_read(u16 address);
+
+	void cam_write(u16 address, u8 value);
+	u8 cam_read(u16 address);
+	bool cam_load_snapshot(std::string filename);
 
 	void set_gs_cheats();
 	void set_gg_cheats();
@@ -172,6 +193,3 @@ class DMG_MMU
 };
 
 #endif // GB_MMU
-	
-
-

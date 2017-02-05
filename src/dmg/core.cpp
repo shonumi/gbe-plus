@@ -42,6 +42,7 @@ DMG_core::DMG_core()
 
 	db_unit.debug_mode = false;
 	db_unit.display_cycles = false;
+	db_unit.print_all = false;
 	db_unit.last_command = "n";
 	db_unit.last_mnemonic = "";
 
@@ -94,6 +95,8 @@ void DMG_core::shutdown()
 /****** Reset the core ******/
 void DMG_core::reset()
 {
+	bool can_reset = true;
+
 	core_cpu.reset();
 	core_cpu.controllers.video.reset();
 	core_cpu.controllers.audio.reset();
@@ -116,10 +119,14 @@ void DMG_core::reset()
 	core_cpu.mem->g_pad = &core_pad;
 
 	//Re-read specified ROM file
-	core_mmu.read_file(config::rom_file);
+	if(!core_mmu.read_file(config::rom_file)) { can_reset = false; }
+
+	//Re-read BIOS file
+	if((config::use_bios) && (!read_bios(config::bios_file))) { can_reset = false; }
 
 	//Start everything all over again
-	start();
+	if(can_reset) { start(); }
+	else { running = false; }
 }
 
 /****** Loads a save state ******/
@@ -331,15 +338,34 @@ void DMG_core::run_core()
 
 						core_cpu.controllers.serial_io.sio_stat.active_transfer = false;
 
-						//Emulate disconnected link cable (on an internal clock) with no netplay	
-						if((!config::use_netplay) && (core_cpu.controllers.serial_io.sio_stat.internal_clock))
+						switch(core_cpu.controllers.serial_io.sio_stat.sio_type )
 						{
-							core_mmu.memory_map[REG_SB] = 0xFF;
-							core_mmu.memory_map[IF_FLAG] |= 0x08;
-						}
+							//Process normal SIO communications
+							case NO_GB_DEVICE:
+							case GB_LINK:
+								//Emulate disconnected link cable (on an internal clock) with no netplay	
+								if(((!config::use_netplay) && (core_cpu.controllers.serial_io.sio_stat.internal_clock))
+								|| (!core_cpu.controllers.serial_io.sio_stat.connected))
+								{
+									core_mmu.memory_map[REG_SB] = 0xFF;
+									core_mmu.memory_map[IF_FLAG] |= 0x08;
+								}
 
-						//Send byte to another instance of GBE+ via netplay
-						if(core_cpu.controllers.serial_io.sio_stat.connected) { core_cpu.controllers.serial_io.send_byte(); }
+								//Send byte to another instance of GBE+ via netplay
+								if(core_cpu.controllers.serial_io.sio_stat.connected) { core_cpu.controllers.serial_io.send_byte(); }
+						
+								break;
+
+							//Process GB Printer communications
+							case GB_PRINTER:
+								core_cpu.controllers.serial_io.printer_process();
+								break;
+
+							//Process GB Mobile Adapter communications
+							case GB_MOBILE_ADAPTER:
+								core_cpu.controllers.serial_io.mobile_adapter_process();
+								break;
+						}
 					}
 				}
 			}
@@ -351,6 +377,186 @@ void DMG_core::run_core()
 	
 	//Shutdown core
 	shutdown();
+}
+
+/****** Manually run core for 1 instruction ******/
+void DMG_core::step()
+{
+	//Run the CPU
+	if(core_cpu.running)
+	{
+		//Receive byte from another instance of GBE+ via netplay
+		if(core_cpu.controllers.serial_io.sio_stat.connected)
+		{
+			//Perform syncing operations when hard sync is enabled
+			if(config::netplay_hard_sync)
+			{
+				core_cpu.controllers.serial_io.sio_stat.sync_counter += core_cpu.cycles;
+
+				//Once this Game Boy has reached a specified amount of cycles, freeze until the other Game Boy finished that many cycles
+				if(core_cpu.controllers.serial_io.sio_stat.sync_counter >= core_cpu.controllers.serial_io.sio_stat.sync_clock)
+				{
+					core_cpu.controllers.serial_io.request_sync();
+					u32 current_time = SDL_GetTicks();
+					u32 timeout = 0;
+
+					while(core_cpu.controllers.serial_io.sio_stat.sync)
+					{
+						core_cpu.controllers.serial_io.receive_byte();
+
+						//Timeout if 10 seconds passes
+						timeout = SDL_GetTicks();
+							
+						if((timeout - current_time) >= 10000)
+						{
+							core_cpu.controllers.serial_io.reset();
+						}						
+					}
+				}
+			}
+
+			//Send IR signal for GBC games
+			if(core_mmu.ir_send) { core_cpu.controllers.serial_io.send_ir_signal(); }
+
+			//Receive bytes normally
+			core_cpu.controllers.serial_io.receive_byte();
+		}
+
+		core_cpu.cycles = 0;
+
+		//Handle Interrupts
+		core_cpu.handle_interrupts();
+	
+		//Halt CPU if necessary
+		if(core_cpu.halt == true)
+		{
+			//Normal HALT mode with interrupts enabled
+			if(!core_cpu.skip_instruction) { core_cpu.cycles += 4; }
+
+			//HALT mode with interrupts disabled (DMG, MBP, and SGB models)
+			else if((core_cpu.skip_instruction) && (config::gb_type == 1))
+			{
+				core_cpu.halt = false;
+				core_cpu.skip_instruction = false;
+
+				//Execute next opcode, but do not increment PC
+				core_cpu.opcode = core_mmu.read_u8(core_cpu.reg.pc);
+				core_cpu.exec_op(core_cpu.opcode);
+			}
+
+			//HALT mode with interrupts disabled (GBC models)
+			else
+			{
+				core_cpu.halt = false;
+				core_cpu.skip_instruction = false;
+
+				//Continue normally
+				core_cpu.opcode = core_mmu.read_u8(core_cpu.reg.pc++);
+				core_cpu.exec_op(core_cpu.opcode);
+			}
+		}
+
+		//Process Opcodes
+		else 
+		{
+			core_cpu.opcode = core_mmu.read_u8(core_cpu.reg.pc++);
+			core_cpu.exec_op(core_cpu.opcode);
+		}
+
+		//Update LCD
+		if(core_cpu.double_speed) { core_cpu.controllers.video.step(core_cpu.cycles >> 1); }
+		else { core_cpu.controllers.video.step(core_cpu.cycles); }
+
+		//Update DIV timer - Every 4 M clocks
+		core_cpu.div_counter += core_cpu.cycles;
+		
+		if(core_cpu.div_counter >= 256) 
+		{
+			core_cpu.div_counter -= 256;
+			core_mmu.memory_map[REG_DIV]++;
+		}
+
+		//Update TIMA timer
+		if(core_mmu.memory_map[REG_TAC] & 0x4) 
+		{	
+			core_cpu.tima_counter += core_cpu.cycles;
+
+			switch(core_mmu.memory_map[REG_TAC] & 0x3)
+			{
+				case 0x00: core_cpu.tima_speed = 1024; break;
+				case 0x01: core_cpu.tima_speed = 16; break;
+				case 0x02: core_cpu.tima_speed = 64; break;
+				case 0x03: core_cpu.tima_speed = 256; break;
+			}
+	
+			if(core_cpu.tima_counter >= core_cpu.tima_speed)
+			{
+				core_mmu.memory_map[REG_TIMA]++;
+				core_cpu.tima_counter -= core_cpu.tima_speed;
+
+				if(core_mmu.memory_map[REG_TIMA] == 0)
+				{
+					core_mmu.memory_map[IF_FLAG] |= 0x04;
+					core_mmu.memory_map[REG_TIMA] = core_mmu.memory_map[REG_TMA];
+				}	
+
+			}
+		}
+
+		//Update serial input-output operations
+		if(core_cpu.controllers.serial_io.sio_stat.shifts_left != 0)
+		{
+			core_cpu.controllers.serial_io.sio_stat.shift_counter += core_cpu.cycles;
+
+			//After SIO clocks, perform SIO operations now
+			if(core_cpu.controllers.serial_io.sio_stat.shift_counter >= core_cpu.controllers.serial_io.sio_stat.shift_clock)
+			{
+				//Shift bit out from SB, transfer it
+				core_mmu.memory_map[REG_SB] <<= 1;
+
+				core_cpu.controllers.serial_io.sio_stat.shift_counter -= core_cpu.controllers.serial_io.sio_stat.shift_clock;
+				core_cpu.controllers.serial_io.sio_stat.shifts_left--;
+
+				//Complete the transfer
+				if(core_cpu.controllers.serial_io.sio_stat.shifts_left == 0)
+				{
+					//Reset Bit 7 in SC
+					core_mmu.memory_map[REG_SC] &= ~0x80;
+
+					core_cpu.controllers.serial_io.sio_stat.active_transfer = false;
+
+					switch(core_cpu.controllers.serial_io.sio_stat.sio_type )
+					{
+						//Process normal SIO communications
+						case NO_GB_DEVICE:
+						case GB_LINK:
+							//Emulate disconnected link cable (on an internal clock) with no netplay	
+							if(((!config::use_netplay) && (core_cpu.controllers.serial_io.sio_stat.internal_clock))
+							|| (!core_cpu.controllers.serial_io.sio_stat.connected))
+							{
+								core_mmu.memory_map[REG_SB] = 0xFF;
+								core_mmu.memory_map[IF_FLAG] |= 0x08;
+							}
+
+							//Send byte to another instance of GBE+ via netplay
+							if(core_cpu.controllers.serial_io.sio_stat.connected) { core_cpu.controllers.serial_io.send_byte(); }
+						
+							break;
+
+						//Process GB Printer communications
+						case GB_PRINTER:
+							core_cpu.controllers.serial_io.printer_process();
+							break;
+
+						//Process GB Mobile Adapter communications
+						case GB_MOBILE_ADAPTER:
+							core_cpu.controllers.serial_io.mobile_adapter_process();
+							break;
+					}
+				}
+			}
+		}
+	}
 }
 
 /****** Debugger - Allow core to run until a breaking condition occurs ******/
@@ -547,6 +753,214 @@ void DMG_core::debug_process_command()
 			}
 		}
 
+		//Write memory - 1 byte
+		else if((command.substr(0, 2) == "w8") && (command.substr(3, 2) == "0x"))
+		{
+			valid_command = true;
+			bool valid_value = false;
+			u32 mem_location = 0;
+			u32 mem_value = 0;
+			std::string hex_string = command.substr(5);
+
+			//Convert hex string into usable u32
+			valid_command = util::from_hex_str(hex_string, mem_location);
+
+			//Request valid input again
+			if(!valid_command)
+			{
+				std::cout<<"\nInvalid memory address : " << command << "\n";
+				std::cout<<": ";
+				std::getline(std::cin, command);
+			}
+
+			else
+			{
+				//Request value
+				while(!valid_value)
+				{
+					std::cout<<"\nInput value: ";
+					std::getline(std::cin, command);
+				
+					valid_value = util::from_hex_str(command.substr(2), mem_value);
+				
+					if(!valid_value)
+					{
+						std::cout<<"\nInvalid value : " << command << "\n";
+					}
+
+					else if((valid_value) && (mem_value > 0xFF))
+					{
+						std::cout<<"\nValue is too large (greater than 0xFF) : 0x" << std::hex << mem_value;
+						valid_value = false;
+					}
+				}
+
+				std::cout<<"\n";
+
+				db_unit.last_command = "w8";
+				core_mmu.write_u8(mem_location, mem_value);
+				debug_process_command();
+			}
+		}
+
+		//Write memory - 2 bytes
+		else if((command.substr(0, 3) == "w16") && (command.substr(4, 2) == "0x"))
+		{
+			valid_command = true;
+			bool valid_value = false;
+			u32 mem_location = 0;
+			u32 mem_value = 0;
+			std::string hex_string = command.substr(6);
+
+			//Convert hex string into usable u32
+			valid_command = util::from_hex_str(hex_string, mem_location);
+
+			//Request valid input again
+			if(!valid_command)
+			{
+				std::cout<<"\nInvalid memory address : " << command << "\n";
+				std::cout<<": ";
+				std::getline(std::cin, command);
+			}
+
+			else
+			{
+				//Request value
+				while(!valid_value)
+				{
+					std::cout<<"\nInput value: ";
+					std::getline(std::cin, command);
+				
+					valid_value = util::from_hex_str(command.substr(2), mem_value);
+				
+					if(!valid_value)
+					{
+						std::cout<<"\nInvalid value : " << command << "\n";
+					}
+
+					else if((valid_value) && (mem_value > 0xFFFF))
+					{
+						std::cout<<"\nValue is too large (greater than 0xFFFF) : 0x" << std::hex << mem_value;
+						valid_value = false;
+					}
+				}
+
+				std::cout<<"\n";
+
+				db_unit.last_command = "w16";
+				core_mmu.write_u16(mem_location, mem_value);
+				debug_process_command();
+			}
+		}
+
+		//Write to register
+		else if(command.substr(0, 3) == "reg")
+		{
+			valid_command = true;
+			bool valid_value = false;
+			u32 reg_index = 0;
+			u32 reg_value = 0;
+			std::string reg_string = command.substr(4);
+
+			//Convert string into a usable u32
+			valid_command = util::from_str(reg_string, reg_index);
+
+			//Request valid input again
+			if((!valid_command) || (reg_index > 0x9))
+			{
+				std::cout<<"\nInvalid register : " << command << "\n";
+				std::cout<<": ";
+				std::getline(std::cin, command);
+			}
+
+			else
+			{
+				//Request value
+				while(!valid_value)
+				{
+					std::cout<<"\nInput value: ";
+					std::getline(std::cin, command);
+				
+					valid_value = util::from_hex_str(command.substr(2), reg_value);
+				
+					if(!valid_value)
+					{
+						std::cout<<"\nInvalid value : " << command << "\n";
+					}
+
+					else if((reg_index < 8) && (valid_value) && (reg_value > 0xFF))
+					{
+						std::cout<<"\nValue is too large (greater than 0xFF) : 0x" << std::hex << reg_value;
+						valid_value = false;
+					}
+
+					else if((reg_index >= 8) && (valid_value) && (reg_value > 0xFFFF))
+					{
+						std::cout<<"\nValue is too large (greater than 0xFFFF) : 0x" << std::hex << reg_value;
+						valid_value = false;
+					}
+				}
+
+				switch(reg_index)
+				{
+					case 0x0:
+						std::cout<<"\nSetting Register A to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.a = reg_value;
+						break;
+
+					case 0x1:
+						std::cout<<"\nSetting Register B to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.b = reg_value;
+						break;
+
+					case 0x2:
+						std::cout<<"\nSetting Register C to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.c = reg_value;
+						break;
+
+					case 0x3:
+						std::cout<<"\nSetting Register D to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.d = reg_value;
+						break;
+
+					case 0x4:
+						std::cout<<"\nSetting Register E to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.e = reg_value;
+						break;
+
+					case 0x5:
+						std::cout<<"\nSetting Register H to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.h = reg_value;
+						break;
+
+					case 0x6:
+						std::cout<<"\nSetting Register L to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.l = reg_value;
+						break;
+
+					case 0x7:
+						std::cout<<"\nSetting Register F to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.f = reg_value;
+						break;
+
+					case 0x8:
+						std::cout<<"\nSetting Register SP to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.sp = reg_value;
+						break;
+
+					case 0x9:
+						std::cout<<"\nSetting Register SP to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.pc = reg_value;
+						break;
+				}
+				
+
+				db_unit.last_command = "reg";
+				debug_display();
+				debug_process_command();
+			}
+		}
+
 		//Toggle display of CPU cycles
 		else if(command == "dc")
 		{
@@ -617,6 +1031,9 @@ void DMG_core::debug_process_command()
 			std::cout<<"bp \t\t Set breakpoint, format 0x1234ABCD\n";
 			std::cout<<"u8 \t\t Show BYTE @ memory, format 0x1234ABCD\n";
 			std::cout<<"u16 \t\t Show WORD @ memory, format 0x1234ABCD\n";
+			std::cout<<"w8 \t\t Write BYTE @ memory, format 0x1234ABCD for addr, 0x12 for value\n";
+			std::cout<<"w16 \t\t Write WORD @ memory, format 0x1234ABCD for addr, 0x1234 for value\n";
+			std::cout<<"reg \t\t Change register value (0-9) \n";
 			std::cout<<"dq \t\t Quit the debugger\n";
 			std::cout<<"dc \t\t Toggle CPU cycle display\n";
 			std::cout<<"cr \t\t Reset CPU cycle counter\n";
@@ -1170,6 +1587,21 @@ void DMG_core::handle_hotkey(SDL_Event& event)
 		SDL_Quit();
 	}
 
+	//Mute or unmute sound on M
+	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == config::hotkey_mute) && (!config::use_external_interfaces))
+	{
+		if(config::volume == 0)
+		{
+			update_volume(config::old_volume);
+		}
+
+		else
+		{
+			config::old_volume = config::volume;
+			update_volume(0);
+		}
+	}
+
 	//Quick save state on F1
 	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F1)) 
 	{
@@ -1192,6 +1624,18 @@ void DMG_core::handle_hotkey(SDL_Event& event)
 	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F6))
 	{
 		stop_netplay();
+	}
+
+	//Start CLI debugger on F7
+	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F7) && (!config::use_external_interfaces))
+	{
+		//Start a new CLI debugger session or interrupt an existing one in Continue Mode 
+		if((!db_unit.debug_mode) || ((db_unit.debug_mode) && (db_unit.last_command == "c")))
+		{
+			db_unit.debug_mode = true;
+			db_unit.last_command = "n";
+			db_unit.last_mnemonic = "";
+		}
 	}
 
 	//Screenshot on F9
@@ -1239,6 +1683,20 @@ void DMG_core::handle_hotkey(SDL_Event& event)
 			core_cpu.controllers.video.window = SDL_CreateWindow("GBE+", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, config::sys_width, config::sys_height, config::flags);
 			core_cpu.controllers.video.final_screen = SDL_GetWindowSurface(core_cpu.controllers.video.window);
 			SDL_GetWindowSize(core_cpu.controllers.video.window, &config::win_width, &config::win_height);
+
+			//Find the maximum fullscreen dimensions that maintain the original aspect ratio
+			if(config::flags & SDL_WINDOW_FULLSCREEN_DESKTOP)
+			{
+				double max_width, max_height, ratio = 0.0;
+
+				max_width = (double)config::win_width / config::sys_width;
+				max_height = (double)config::win_height / config::sys_height;
+
+				if(max_width <= max_height) { ratio = max_width; }
+				else { ratio = max_height; }
+
+				core_cpu.controllers.video.max_fullscreen_ratio = ratio;
+			}
 		}
 
 		//Initialize new window - OpenGL
@@ -1276,6 +1734,37 @@ void DMG_core::handle_hotkey(SDL_Event& event)
 		
 	//Reset emulation on F8
 	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F8)) { reset(); }
+
+	//GB Camera load/unload external picture into VRAM
+	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == config::hotkey_camera))
+	{
+		//Set data into VRAM
+		if((core_mmu.cart.mbc_type == DMG_MMU::GB_CAMERA) && (!core_mmu.cart.cam_lock))
+		{
+			if(core_mmu.cam_load_snapshot(config::external_camera_file)) { std::cout<<"GBE::Loaded external camera file\n"; }
+			core_mmu.cart.cam_lock = true;
+		}
+
+		//Clear data from VRAM
+		else if((core_mmu.cart.mbc_type == DMG_MMU::GB_CAMERA) && (core_mmu.cart.cam_lock))
+		{
+			//Clear VRAM - 0x9000 to 0x9800
+			for(u32 x = 0x9000; x < 0x9800; x++) { core_mmu.write_u8(x, 0x0); }
+
+			//Clear VRAM - 0x8800 to 0x8900
+			for(u32 x = 0x8800; x < 0x8900; x++) { core_mmu.write_u8(x, 0x0); }
+
+			//Clear VRAM - 0x8000 to 0x8500
+			for(u32 x = 0x8000; x < 0x8500; x++) { core_mmu.write_u8(x, 0x0); }
+
+			//Clear SRAM
+			for(u32 x = 0; x < core_mmu.cart.cam_buffer.size(); x++) { core_mmu.random_access_bank[0][0x100 + x] = 0x0; }
+			
+			std::cout<<"GBE::Erased external camera file from VRAM\n";
+
+			core_mmu.cart.cam_lock = false;
+		}
+	}
 }
 
 /****** Process hotkey input - Use exsternally when not using SDL ******/
@@ -1286,6 +1775,37 @@ void DMG_core::handle_hotkey(int input, bool pressed)
 
 	//Toggle turbo off
 	else if((input == config::hotkey_turbo) && (!pressed)) { config::turbo = false; }
+
+	//GB Camera load/unload external picture into VRAM
+	else if((input == config::hotkey_camera) && (pressed))
+	{
+		//Set data into VRAM
+		if((core_mmu.cart.mbc_type == DMG_MMU::GB_CAMERA) && (!core_mmu.cart.cam_lock))
+		{
+			if(core_mmu.cam_load_snapshot(config::external_camera_file)) { std::cout<<"GBE::Loaded external camera file\n"; }
+			core_mmu.cart.cam_lock = true;
+		}
+
+		//Clear data from VRAM
+		else if((core_mmu.cart.mbc_type == DMG_MMU::GB_CAMERA) && (core_mmu.cart.cam_lock))
+		{
+			//Clear VRAM - 0x9000 to 0x9800
+			for(u32 x = 0x9000; x < 0x9800; x++) { core_mmu.write_u8(x, 0x0); }
+
+			//Clear VRAM - 0x8800 to 0x8900
+			for(u32 x = 0x8800; x < 0x8900; x++) { core_mmu.write_u8(x, 0x0); }
+
+			//Clear VRAM - 0x8000 to 0x8500
+			for(u32 x = 0x8000; x < 0x8500; x++) { core_mmu.write_u8(x, 0x0); }
+
+			//Clear SRAM
+			for(u32 x = 0; x < core_mmu.cart.cam_buffer.size(); x++) { core_mmu.random_access_bank[0][0x100 + x] = 0x0; }
+			
+			std::cout<<"GBE::Erased external camera file from VRAM\n";
+
+			core_mmu.cart.cam_lock = false;
+		}
+	}
 }
 
 /****** Updates the core's volume ******/

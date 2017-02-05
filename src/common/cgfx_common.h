@@ -41,6 +41,7 @@ namespace cgfx
 	extern u32 last_vram_addr;
 	extern u8 last_type;
 	extern u8 last_palette;
+	extern bool last_added;
 }
 
 #endif // GBE_CGFX 

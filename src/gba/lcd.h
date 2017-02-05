@@ -37,20 +37,34 @@ class AGB_LCD
 	void update();
 	void clear_screen_buffer(u32 color);
 
+	//Serialize data for save state loading/saving
+	bool lcd_read(u32 offset, std::string filename);
+	bool lcd_write(std::string filename);
+
 	//Screen data
 	SDL_Window* window;
 	SDL_Surface* final_screen;
 	SDL_Surface* original_screen;
 
+	//OpenGL data
 	SDL_GLContext gl_context;
 	GLuint lcd_texture;
+	GLuint program_id;
+	GLuint vertex_buffer_object, vertex_array_object, element_buffer_object;
+	GLfloat ogl_x_scale, ogl_y_scale;
+	GLfloat ext_data_1, ext_data_2;
+	u32 external_data_usage;
 
 	agb_lcd_data lcd_stat;
+	u32 lcd_clock;
+
+	int max_fullscreen_ratio;
 
 	private:
 
 	void update_oam();
 	void update_palettes();
+	void update_obj_affine_transformation();
 	void update_obj_render_list();
 
 	void opengl_blit();
@@ -61,11 +75,11 @@ class AGB_LCD
 		u16 x;
 		u8 y;
 
-		u16 right;
-		u16 left;
+		s16 right;
+		s16 left;
 
-		u8 top;
-		u8 bottom;
+		s16 top;
+		s16 bottom;
 	
 		//Horizonal and vertical flipping options
 		bool h_flip;
@@ -83,6 +97,13 @@ class AGB_LCD
 		u8 width;
 		u8 height;
 
+		//Transformed dimensions via affine
+		s32 affine_width;
+		s32 affine_height;
+
+		s16 cx, cy;
+		s16 cw, ch;
+
 		//Misc properties
 		u32 addr;
 		u16 tile_number;
@@ -91,7 +112,8 @@ class AGB_LCD
 		u8 palette_number;
 		u8 type;
 		u8 mode;
-		u8 rotate_scale;
+		u8 affine_enable;
+		u8 affine_group;
 		bool visible;
 		bool mosiac;
 	} obj[128];
@@ -113,7 +135,6 @@ class AGB_LCD
 	std::vector<u32> scanline_buffer;
 	std::vector<u32> screen_buffer;
 
-	u32 lcd_clock;
 	u32 scanline_pixel_counter;
 
 	int frame_start_time;

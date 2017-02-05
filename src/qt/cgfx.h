@@ -30,6 +30,8 @@ class gbe_cgfx : public QDialog
 	void update_obj_window(int rows, int count);
 	void update_bg_window(int rows, int count);
 
+	bool parse_manifest_items();
+
 	void draw_dmg_bg();
 	void draw_dmg_win();
 	void draw_dmg_obj();
@@ -66,6 +68,7 @@ class gbe_cgfx : public QDialog
 
 	//Layers tab widgets
 	QComboBox* layer_select;
+	QSpinBox* render_stop_line;
 	QLabel* tile_id;
 	QLabel* tile_addr;
 	QLabel* tile_size;
@@ -92,9 +95,17 @@ class gbe_cgfx : public QDialog
 	std::vector<QImage> cgfx_bg;
 	std::vector<QPushButton*> bg_button;
 
+	//Manifest tab widgets
+	QScrollArea* manifest_display;
+
 	data_dialog* data_folder;
 
+	//Pop-ups
+	QMessageBox* manifest_warning;
+	QMessageBox* manifest_write_fail;
+
 	bool pause;
+	bool enable_manifest_warning;
 
 	QImage grab_obj_data(int obj_index);
 	QImage grab_dmg_obj_data(int obj_index);
@@ -142,6 +153,9 @@ class gbe_cgfx : public QDialog
 	u8 min_x_rect, max_x_rect;
 	u8 min_y_rect, max_y_rect;
 
+	u32 mouse_start_x, mouse_start_y;
+	bool mouse_drag;
+
 	private slots:
 	void close_cgfx();
 	void close_advanced();
@@ -160,6 +174,8 @@ class gbe_cgfx : public QDialog
 	void select_folder();
 	void reject_folder();
 	void update_selection();
+	void ignore_manifest_warnings();
+	void advance_next_frame();
 };
 
 #endif //CGFX_GBE_QT 

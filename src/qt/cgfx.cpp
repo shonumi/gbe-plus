@@ -26,11 +26,13 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	QDialog* obj_tab = new QDialog;
 	QDialog* bg_tab = new QDialog;
 	QDialog* layers_tab = new QDialog;
+	QDialog* manifest_tab = new QDialog;
 
-	tabs->addTab(config_tab, tr("Configure"));
+	tabs->addTab(layers_tab, tr("Layers"));
 	tabs->addTab(obj_tab, tr("OBJ Tiles"));
 	tabs->addTab(bg_tab, tr("BG Tiles"));
-	tabs->addTab(layers_tab, tr("Layers"));
+	tabs->addTab(manifest_tab, tr("Manifest"));
+	tabs->addTab(config_tab, tr("Configure"));
 
 	tabs_button = new QDialogButtonBox(QDialogButtonBox::Close);
 
@@ -48,7 +50,7 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	blank = new QCheckBox(blank_set);
 
 	QWidget* advanced_set = new QWidget(config_tab);
-	QLabel* advanced_label = new QLabel("Use advanced menu", blank_set);
+	QLabel* advanced_label = new QLabel("Use advanced menu", advanced_set);
 	advanced = new QCheckBox(advanced_set);
 
 	obj_set = new QWidget(obj_tab);
@@ -117,6 +119,27 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	layer_select_layout->addWidget(select_set_label);
 	layer_select_layout->addWidget(layer_select);
 	select_set->setLayout(layer_select_layout);
+
+	//Frame control
+	QGroupBox* frame_control_set = new QGroupBox(tr("Frame Control"));
+	QPushButton* next_frame = new QPushButton("Advance Next Frame");
+
+	QWidget* render_stop_set = new QWidget(layers_tab);
+	QLabel* render_stop_label = new QLabel("Stop LCD rendering on line: ");
+	render_stop_line = new QSpinBox(render_stop_set);
+	render_stop_line->setRange(0, 0x90);
+
+	QHBoxLayout* render_stop_layout = new QHBoxLayout;
+	render_stop_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	render_stop_layout->addWidget(render_stop_label);
+	render_stop_layout->addWidget(render_stop_line);
+	render_stop_set->setLayout(render_stop_layout);
+
+	QVBoxLayout* frame_control_layout = new QVBoxLayout;
+	frame_control_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	frame_control_layout->addWidget(render_stop_set);
+	frame_control_layout->addWidget(next_frame);
+	frame_control_set->setLayout(frame_control_layout);
 
 	//Layer section selector - X
 	QWidget* section_x_set = new QWidget(layers_tab);
@@ -202,6 +225,9 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	section_final_layout->addWidget(dump_section_button);
 	section_set->setLayout(section_final_layout);
 
+	//Manifest widgets
+	manifest_display = new QScrollArea(manifest_tab);
+
 	//Configure Tab layout
 	QHBoxLayout* advanced_layout = new QHBoxLayout;
 	advanced_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -249,11 +275,18 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	QGridLayout* layers_tab_layout = new QGridLayout;
 	layers_tab_layout->addWidget(select_set, 0, 0, 1, 1);
 	layers_tab_layout->addWidget(current_layer, 1, 0, 1, 1);
+	layers_tab_layout->addWidget(frame_control_set, 2, 0, 1, 1);
 
 	layers_tab_layout->addWidget(current_tile, 1, 1, 1, 1);
 	layers_tab_layout->addWidget(layer_info, 0, 1, 1, 1);
 	layers_tab_layout->addWidget(section_set, 2, 1, 1, 1);
 	layers_tab->setLayout(layers_tab_layout);
+
+	//Manifest tab layout
+	QHBoxLayout* manifest_layout = new QHBoxLayout;
+	manifest_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	manifest_layout->addWidget(manifest_display);
+	manifest_tab->setLayout(manifest_layout);
 	
 	//Final tab layout
 	QVBoxLayout* main_layout = new QVBoxLayout;
@@ -280,6 +313,7 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	connect(rect_w, SIGNAL(valueChanged(int)), this, SLOT(update_selection()));
 	connect(rect_h, SIGNAL(valueChanged(int)), this, SLOT(update_selection()));
 	connect(dump_section_button, SIGNAL(clicked()), this, SLOT(dump_selection()));
+	connect(next_frame, SIGNAL(clicked()), this, SLOT(advance_next_frame()));
 
 	//CGFX advanced dumping pop-up box
 	advanced_box = new QDialog();
@@ -352,10 +386,26 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	advanced_box_layout->addWidget(advanced_buttons);
 	advanced_box->setLayout(advanced_box_layout);
 
+	//No manifest warning pop-up
+	manifest_warning = new QMessageBox;
+	QPushButton* manifest_warning_ok = manifest_warning->addButton("OK", QMessageBox::AcceptRole);
+	QPushButton* manifest_warning_ignore = manifest_warning->addButton("Do not show this message again", QMessageBox::AcceptRole);
+	manifest_warning->setText("No manifest file was specified. Tiles will be dumped without writing manifest entries.");
+	manifest_warning->setIcon(QMessageBox::Warning);
+	manifest_warning->hide();
+
+	//Manifest write entry failure pop-up
+	manifest_write_fail = new QMessageBox;
+	manifest_write_fail->addButton("OK", QMessageBox::AcceptRole);
+	manifest_write_fail->setText("Could not access the manifest file! Manifest entry was not written, please check file path and permissions");
+	manifest_write_fail->setIcon(QMessageBox::Critical);
+	manifest_write_fail->hide();
+	
 	connect(dump_button, SIGNAL(clicked()), this, SLOT(write_manifest_entry()));
 	connect(cancel_button, SIGNAL(clicked()), this, SLOT(close_advanced()));
 	connect(dest_browse, SIGNAL(clicked()), this, SLOT(browse_advanced_dir()));
 	connect(name_browse, SIGNAL(clicked()), this, SLOT(browse_advanced_file()));
+	connect(manifest_warning_ignore, SIGNAL(clicked()), this, SLOT(ignore_manifest_warnings()));
 
 	estimated_palette.resize(384, 0);
 	estimated_vram_bank.resize(384, 0);
@@ -368,9 +418,15 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	last_custom_path = "";
 
 	min_x_rect = min_y_rect = max_x_rect = max_y_rect = 255;
+	render_stop_line->setValue(0x90);
 
 	pause = false;
 	hash_text->setScaledContents(true);
+
+	enable_manifest_warning = true;
+
+	mouse_start_x = mouse_start_y = 0;
+	mouse_drag = false;
 }
 
 /****** Sets up the OBJ dumping window ******/
@@ -481,6 +537,7 @@ void gbe_cgfx::show_advanced_obj(int index)
 		dump_type = 1;
 		advanced_index = index;
 		advanced_box->show();
+		advanced_box->raise();
 	}
 
 	else { dump_obj(index); }
@@ -530,6 +587,7 @@ void gbe_cgfx::show_advanced_bg(int index)
 		dump_type = 0;
 		advanced_index = index;
 		advanced_box->show();
+		advanced_box->raise();
 	}
 
 	else { dump_bg(index); }
@@ -967,22 +1025,70 @@ void gbe_cgfx::close_advanced()
 }
 
 /****** Dumps the selected OBJ ******/
-void gbe_cgfx::dump_obj(int obj_index) { main_menu::gbe_plus->dump_obj(obj_index); }
+void gbe_cgfx::dump_obj(int obj_index)
+{
+	//Show warning dialog
+	if((cgfx::manifest_file.empty()) && (enable_manifest_warning))
+	{
+		manifest_warning->show();
+		manifest_warning->raise();
+	}
+
+	main_menu::gbe_plus->dump_obj(obj_index);
+
+	//Update manifest tab if necessary
+	parse_manifest_items();
+}
 
 /****** Dumps the selected BG ******/
-void gbe_cgfx::dump_bg(int bg_index) { main_menu::gbe_plus->dump_bg(bg_index); }
+void gbe_cgfx::dump_bg(int bg_index)
+{
+	//Show warning dialog
+	if((cgfx::manifest_file.empty()) && (enable_manifest_warning))
+	{
+		manifest_warning->show();
+		manifest_warning->raise();
+	}
+
+	main_menu::gbe_plus->dump_bg(bg_index);
+
+	//Update manifest tab if necessary
+	parse_manifest_items();
+}
 
 /****** Toggles automatic dumping of OBJ tiles ******/
 void gbe_cgfx::set_auto_obj()
 {
-	if(auto_dump_obj->isChecked()) { cgfx::auto_dump_obj = true; }
+	if(auto_dump_obj->isChecked())
+	{
+		//Show warning dialog
+		if((cgfx::manifest_file.empty()) && (enable_manifest_warning))
+		{
+			manifest_warning->show();
+			manifest_warning->raise();
+		}
+
+		cgfx::auto_dump_obj = true;
+	}
+
 	else { cgfx::auto_dump_obj = false; }
 }
 
 /****** Toggles automatic dumping of BG tiles ******/
 void gbe_cgfx::set_auto_bg()
 {
-	if(auto_dump_bg->isChecked()) { cgfx::auto_dump_bg = true; }
+	if(auto_dump_bg->isChecked())
+	{
+		//Show warning dialog
+		if((cgfx::manifest_file.empty()) && (enable_manifest_warning))
+		{
+			manifest_warning->show();
+			manifest_warning->raise();
+		}
+	
+		cgfx::auto_dump_bg = true;
+	}
+	
 	else { cgfx::auto_dump_bg = false; }
 }
 
@@ -1060,7 +1166,7 @@ void gbe_cgfx::draw_dmg_bg()
 			bool highlight = false;
 
 			if(((scanline_pixel_counter / 8) >= min_x_rect) && ((scanline_pixel_counter / 8) <= max_x_rect)
-			&& ((current_scanline / 8) >= min_y_rect) && ((current_scanline / 8) <= max_y_rect))
+			&& ((rendered_scanline / 8) >= min_y_rect) && ((rendered_scanline / 8) <= max_y_rect))
 			{
 				highlight = true;
 			}
@@ -1110,7 +1216,7 @@ void gbe_cgfx::draw_dmg_bg()
 				if(highlight)
 				{
 					u8 temp = scanline_pixel_counter - 1;
-					scanline_pixel_buffer[temp] += 0x00700000;
+					scanline_pixel_buffer[temp] += 0x00808080;
 				}
 			}
 		}
@@ -1169,7 +1275,7 @@ void gbe_cgfx::draw_gbc_bg()
 			bool highlight = false;
 
 			if(((scanline_pixel_counter / 8) >= min_x_rect) && ((scanline_pixel_counter / 8) <= max_x_rect)
-			&& ((current_scanline / 8) >= min_y_rect) && ((current_scanline / 8) <= max_y_rect))
+			&& ((rendered_scanline / 8) >= min_y_rect) && ((rendered_scanline / 8) <= max_y_rect))
 			{
 				highlight = true;
 			}
@@ -1237,7 +1343,7 @@ void gbe_cgfx::draw_gbc_bg()
 				if(highlight)
 				{
 					u8 temp = scanline_pixel_counter - 1;
-					scanline_pixel_buffer[temp] += 0x00700000;
+					scanline_pixel_buffer[temp] += 0x00808080;
 				}
 			}
 
@@ -1313,7 +1419,7 @@ void gbe_cgfx::draw_dmg_win()
 			bool highlight = false;
 
 			if(((scanline_pixel_counter / 8) >= min_x_rect) && ((scanline_pixel_counter / 8) <= max_x_rect)
-			&& ((current_scanline / 8) >= min_y_rect) && ((current_scanline / 8) <= max_y_rect))
+			&& ((rendered_scanline / 8) >= min_y_rect) && ((rendered_scanline / 8) <= max_y_rect))
 			{
 				highlight = true;
 			}
@@ -1368,7 +1474,7 @@ void gbe_cgfx::draw_dmg_win()
 				if(highlight)
 				{
 					u8 temp = scanline_pixel_counter - 1;
-					scanline_pixel_buffer[temp] += 0x00700000;
+					scanline_pixel_buffer[temp] += 0x00808080;
 				}
 			}
 		}
@@ -1443,7 +1549,7 @@ void gbe_cgfx::draw_gbc_win()
 			bool highlight = false;
 
 			if(((scanline_pixel_counter / 8) >= min_x_rect) && ((scanline_pixel_counter / 8) <= max_x_rect)
-			&& ((current_scanline / 8) >= min_y_rect) && ((current_scanline / 8) <= max_y_rect))
+			&& ((rendered_scanline / 8) >= min_y_rect) && ((rendered_scanline / 8) <= max_y_rect))
 			{
 				highlight = true;
 			}
@@ -1512,7 +1618,7 @@ void gbe_cgfx::draw_gbc_win()
 				if(highlight)
 				{
 					u8 temp = scanline_pixel_counter - 1;
-					scanline_pixel_buffer[temp] += 0x00700000;
+					scanline_pixel_buffer[temp] += 0x00808080;
 				}
 			}
 
@@ -2661,10 +2767,112 @@ bool gbe_cgfx::eventFilter(QObject* target, QEvent* event)
 
 		//Update the preview
 		if((mouse_event->x() <= 320) && (mouse_event->y() <= 288)) { update_preview(x, y); }
+
+		//Update highlighting when dragging the mouse
+		if(mouse_drag)
+		{
+			x >>= 1;
+			y >>= 1;
+
+			//Determine highlighted BG tiles
+			if(layer_select->currentIndex() == 0)
+			{
+				u8 sx = main_menu::gbe_plus->ex_read_u8(REG_SX) % 8;
+				u8 sy = main_menu::gbe_plus->ex_read_u8(REG_SY) % 8;
+
+				u8 tile_start_x, tile_start_y = 0;
+				u8 tile_x, tile_y = 0;
+
+				//Make sure selections work no matter which direction mouse drags in
+				//Set the start and end points according to where the newest position is in relation to the original mouse click
+				if(mouse_event->x() > mouse_start_x)
+				{
+					tile_start_x = (mouse_start_x >> 1) / 8;
+					tile_x = (x / 8);
+				}
+
+				else
+				{
+					tile_start_x = (x / 8);
+					tile_x = (mouse_start_x >> 1) / 8;
+				}
+
+				if(mouse_event->y() > mouse_start_y)
+				{
+					tile_start_y = (mouse_start_y >> 1) / 8;
+					tile_y = (y / 8);
+				}
+
+				else
+				{
+					tile_start_y = (y / 8);
+					tile_y = (mouse_start_y >> 1) / 8;
+				}
+
+				//Set X and Y
+				rect_x->setValue(tile_start_x + 1);
+				rect_y->setValue(tile_start_y + 1);
+
+				//Set W and H
+				rect_w->setValue(tile_x - tile_start_x + 1);
+				rect_h->setValue(tile_y - tile_start_y + 1);
+
+				//Update highlighting
+				update_selection();
+			}
+
+			//Determine highlighted Window tiles
+			else if(layer_select->currentIndex() == 1)
+			{
+				u8 wx = main_menu::gbe_plus->ex_read_u8(REG_WX) % 8;
+				u8 wy = main_menu::gbe_plus->ex_read_u8(REG_WY);
+				wx = (wx < 7) ? 0 : (wx - 7);
+
+				u8 tile_start_x, tile_start_y = 0;
+				u8 tile_x, tile_y = 0;
+
+				//Make sure selections work no matter which direction mouse drags in
+				//Set the start and end points according to where the newest position is in relation to the original mouse click
+				if(mouse_event->x() > mouse_start_x)
+				{
+					tile_start_x = ((mouse_start_x >> 1) - wx) / 8;
+					tile_x = ((x - wx) / 8);
+				}
+
+				else
+				{
+					tile_start_x = ((x - wx) / 8);
+					tile_x = ((mouse_start_x >> 1) - wx) / 8;
+				}
+
+				if(mouse_event->y() > mouse_start_y)
+				{
+					tile_start_y = ((mouse_start_y >> 1) - wy) / 8;
+					tile_y = ((y - wy) / 8);
+				}
+
+				else
+				{
+					tile_start_y = ((y - wy) / 8);
+					tile_y = ((mouse_start_y >> 1) - wy) / 8;
+				}
+
+				//Set X and Y
+				rect_x->setValue(tile_start_x + 1);
+				rect_y->setValue(tile_start_y + 1);
+
+				//Set W and H
+				rect_w->setValue(tile_x - tile_start_x + 1);
+				rect_h->setValue(tile_y - tile_start_y + 1);
+
+				//Update highlighting
+				update_selection();
+			}
+		}
 	}
 
-	//Check to see if mouse is clicked over current layer
-	else if(event->type() == QEvent::MouseButtonPress)
+	//Check to see if mouse is double-clicked over current layer
+	else if(event->type() == QEvent::MouseButtonDblClick)
 	{
 		QMouseEvent* mouse_event = static_cast<QMouseEvent*>(event);
 		u32 x = mouse_event->x();
@@ -2673,6 +2881,23 @@ bool gbe_cgfx::eventFilter(QObject* target, QEvent* event)
 		//Update the preview
 		if((mouse_event->x() <= 320) && (mouse_event->y() <= 288)) { dump_layer_tile(x, y); }
 	}
+
+	//Check to see if mouse is single-clicked over current layer
+	else if(event->type() == QEvent::MouseButtonPress)
+	{
+		QMouseEvent* mouse_event = static_cast<QMouseEvent*>(event);
+
+		mouse_drag = true;
+		mouse_start_x = mouse_event->x();
+		mouse_start_y = mouse_event->y();
+	}
+
+	//Check to see if mouse is released from single-click over current layer
+	else if((event->type() == QEvent::MouseButtonRelease) && (mouse_drag))
+	{
+		mouse_drag = false;
+	}
+
 
 	return QDialog::eventFilter(target, event);
 }
@@ -2690,8 +2915,9 @@ void gbe_cgfx::write_manifest_entry()
 	//Process File Name
 	QString path = dest_name->text();
 
-	if(!path.isNull()) { cgfx::dump_name = path.toStdString(); }
-	else { cgfx::dump_name = ""; }
+	if(path.toStdString().empty()) { cgfx::dump_name.clear(); }
+	else if(!path.isNull()) { cgfx::dump_name = path.toStdString() + ".bmp"; }
+	else { cgfx::dump_name.clear(); }
 
 	//Dump BG
 	if(dump_type == 0) 
@@ -2718,7 +2944,7 @@ void gbe_cgfx::write_manifest_entry()
 	std::string gfx_name = "";
 	
 	if(dest_folder->text().isNull()) { gfx_name = cgfx::last_hash + ".bmp"; }
-	else { gfx_name = dest_folder->text().toStdString() + dest_name->text().toStdString(); }
+	else { gfx_name = dest_folder->text().toStdString() + dest_name->text().toStdString() + ".bmp"; }
 	
 	std::string gfx_type = util::to_str(cgfx::last_type);
 	std::string gfx_addr = (ext_vram->isChecked()) ? util::to_hex_str(cgfx::last_vram_addr).substr(2) : "0";
@@ -2729,8 +2955,14 @@ void gbe_cgfx::write_manifest_entry()
 	//Open manifest file, then write to it
 	std::ofstream file(cgfx::manifest_file.c_str(), std::ios::out | std::ios::app);
 
-	//TODO - Add a Qt warning here
-	if(!file.is_open()) { advanced_box->hide(); return; }
+	//Show warning if manifest file cannot be accessed
+	if(!file.is_open())
+	{
+		advanced_box->hide();
+		manifest_write_fail->show();
+		manifest_write_fail->raise();
+		return;
+	}
 
 	file << "\n" << entry;
 	file.close();
@@ -2838,6 +3070,13 @@ void gbe_cgfx::dump_selection()
 	if((rect_x->value() == 0) || (rect_y->value() == 0) || (rect_w->value() == 0) || (rect_h->value() == 0)) { return; }
 	if(layer_select->currentIndex() == 2) { return; }
 
+	//Show warning dialog
+	if((cgfx::manifest_file.empty()) && (enable_manifest_warning))
+	{
+		manifest_warning->show();
+		manifest_warning->raise();
+	}
+
 	//Grab metatile name
 	cgfx::meta_dump_name = meta_name->text().toStdString();
 	if(cgfx::meta_dump_name.empty()) { cgfx::meta_dump_name = "META"; }
@@ -2854,9 +3093,9 @@ void gbe_cgfx::dump_selection()
 	//Temporarily convert dimensions to X,Y and WxH format for Qt - DMG/GBC BG version
 	if(layer_select->currentIndex() == 0)
 	{
-		min_x_rect = ((rect_x->value() - 1) * 8) + (main_menu::gbe_plus->ex_read_u8(REG_SX) % 8);
+		min_x_rect = ((rect_x->value() - 1) * 8) + ((-(main_menu::gbe_plus->ex_read_u8(REG_SX) % 8) + 8) % 8);
 		max_x_rect = rect_w->value() * 8;
-		min_y_rect = (rect_y->value() - 1) * 8 + (main_menu::gbe_plus->ex_read_u8(REG_SY) % 8);
+		min_y_rect = ((rect_y->value() - 1) * 8) + ((-(main_menu::gbe_plus->ex_read_u8(REG_SY) % 8) + 8) % 8);
 		max_y_rect = rect_h->value() * 8;
 	}
 
@@ -2868,7 +3107,7 @@ void gbe_cgfx::dump_selection()
 
 		min_x_rect = ((rect_x->value() - 1) * 8) + (wx % 8);
 		max_x_rect = rect_w->value() * 8;
-		min_y_rect = (rect_y->value() - 1) * 8 + (main_menu::gbe_plus->ex_read_u8(REG_WY) % 8);
+		min_y_rect = ((rect_y->value() - 1) * 8) + main_menu::gbe_plus->ex_read_u8(REG_WY);
 		max_y_rect = rect_h->value() * 8;
 	}
 
@@ -2897,7 +3136,7 @@ void gbe_cgfx::dump_selection()
 	entry = "['" + cgfx::dump_bg_path + cgfx::meta_dump_name + ".bmp" + "':" + cgfx::meta_dump_name + ":0]";
 	file << "\n" << entry;
 
-	u8 entry_count = 0;
+	u32 entry_count = 0;
 
 	//Generate manifest entries for selected tiles
 	for(int y = min_y_rect; y < (max_y_rect + 1); y++)
@@ -2906,7 +3145,26 @@ void gbe_cgfx::dump_selection()
 		{
 			std::string gfx_name = cgfx::meta_dump_name + "_" + util::to_str(entry_count++);
 			std::string gfx_type = (config::gb_type == 2) ? "20" : "10";
-			std::string gfx_hash = hash_tile((x * 8), (y * 8));
+			std::string gfx_hash = "";
+
+			//Convert selection parameters (X,Y and W,H) into 160x144 screen coordinates to get the tile hash - DMG/GBC BG version
+			if(layer_select->currentIndex() == 0) { gfx_hash = hash_tile((x * 8), (y * 8)); }
+
+			//Convert selection parameters (X,Y and W,H) into 160x144 screen coordinates to get the tile hash - DMG/GBC Window version
+			else if(layer_select->currentIndex() == 1)
+			{
+				//This looks like magic...
+				//It's really just a PITA to properly convert the selection parameters due to how the Window is setup
+				u8 wx = main_menu::gbe_plus->ex_read_u8(REG_WX);
+				u8 wy = main_menu::gbe_plus->ex_read_u8(REG_WY);
+				wx = (wx < 7) ? 0 : (wx - 7); 
+
+				u32 real_x = ((rect_x->value() - 1) * 8) + (wx % 8) + ((x - min_x_rect) * 8);
+				u32 real_y = ((rect_y->value() - 1) * 8) + wy + ((y - min_y_rect) * 8);
+
+				gfx_hash = hash_tile(real_x, real_y);
+			}
+		
 			std::string gfx_addr = (use_vram_addr->isChecked()) ? util::to_hex_str(cgfx::last_vram_addr) : "0";
 			std::string gfx_bright = (use_auto_bright->isChecked()) ? "1" : "0";		
 
@@ -2916,6 +3174,9 @@ void gbe_cgfx::dump_selection()
 	}
 
 	file.close();
+
+	//Update manifest tab if necessary
+	parse_manifest_items();
 }
 
 /****** Hashes the tile from a given layer ******/
@@ -2929,9 +3190,9 @@ std::string gbe_cgfx::hash_tile(u8 x, u8 y)
 		u16 bg_tile_addr = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x10) ? 0x8000 : 0x8800;
 
 		//Determine the map entry from on-screen coordinates
-		u8 tile_x = (x + main_menu::gbe_plus->ex_read_u8(REG_SX)) / 8;
-		u8 tile_y = (y + main_menu::gbe_plus->ex_read_u8(REG_SY)) / 8;
-		u16 map_entry = tile_x + (tile_y * 32);
+		u8 tile_x = (x + main_menu::gbe_plus->ex_read_u8(REG_SX));
+		u8 tile_y = (y + main_menu::gbe_plus->ex_read_u8(REG_SY));
+		u16 map_entry = (tile_x / 8) + ((tile_y / 8) * 32);
 
 		u8 map_value = main_menu::gbe_plus->ex_read_u8(bg_map_addr + map_entry);
 
@@ -2956,10 +3217,10 @@ std::string gbe_cgfx::hash_tile(u8 x, u8 y)
 		u16 bg_tile_addr = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x10) ? 0x8000 : 0x8800;
 
 		//Determine the map entry from on-screen coordinates
-		u8 tile_x = (x + main_menu::gbe_plus->ex_read_u8(REG_SX)) / 8;
-		u8 tile_y = (y + main_menu::gbe_plus->ex_read_u8(REG_SY)) / 8;
+		u8 tile_x = (x + main_menu::gbe_plus->ex_read_u8(REG_SX));
+		u8 tile_y = (y + main_menu::gbe_plus->ex_read_u8(REG_SY));
 
-		u16 map_entry = tile_x + (tile_y * 32);
+		u16 map_entry = (tile_x / 8) + ((tile_y / 8) * 32);
 
 		u8 old_vram_bank = main_menu::gbe_plus->ex_read_u8(REG_VBK);
 			
@@ -3139,4 +3400,292 @@ std::string gbe_cgfx::hash_tile(u8 x, u8 y)
 	}
 
 	else { return ""; }
+}
+
+/****** Parses manifest entries to be viewed in the GUI ******/
+bool gbe_cgfx::parse_manifest_items()
+{
+	std::vector <std::string> manifest;
+	std::vector <u8> manifest_entry_size;
+
+	std::ifstream file(cgfx::manifest_file.c_str(), std::ios::in); 
+	std::string input_line = "";
+	std::string line_char = "";
+
+	if(!file.is_open())
+	{
+		std::cout<<"CGFX::Could not open manifest file " << cgfx::manifest_file << ". Check file path or permissions. \n";
+		return false; 
+	}
+
+	//Cycle through whole file, line-by-line
+	while(getline(file, input_line))
+	{
+		line_char = input_line[0];
+		bool ignore = false;	
+		u8 item_count = 0;	
+
+		//Check if line starts with [ - if not, skip line
+		if(line_char == "[")
+		{
+			std::string line_item = "";
+
+			//Cycle through line, character-by-character
+			for(int x = 0; ++x < input_line.length();)
+			{
+				line_char = input_line[x];
+
+				//Check for single-quotes, don't parse ":" or "]" within them
+				if((line_char == "'") && (!ignore)) { ignore = true; }
+				else if((line_char == "'") && (ignore)) { ignore = false; }
+
+				//Check the character for item limiter : or ] - Push to Vector
+				else if(((line_char == ":") || (line_char == "]")) && (!ignore)) 
+				{
+					manifest.push_back(line_item);
+					line_item = "";
+					item_count++;
+				}
+
+				else { line_item += line_char; }
+			}
+		}
+
+		//Determine if manifest is properly formed (roughly)
+		//Each manifest normal entry should have 5 parameters
+		//Each metatile entry should have 3 parameters
+		if((item_count != 5) && (item_count != 3) && (item_count != 0))
+		{
+			std::cout<<"CGFX::Manifest file " << cgfx::manifest_file << " has some missing parameters for some entries. \n";
+			std::cout<<"CGFX::Entry -> " << input_line << "\n";
+			file.close();
+			return false;
+		}
+
+		else if(item_count != 0) { manifest_entry_size.push_back(item_count); }
+	}
+	
+	file.close();
+
+	//If manifest is empty, quit now
+	if(manifest.empty()) { return false; }
+
+	int spacer = 0;
+
+	QGridLayout* temp_layout = new QGridLayout;
+	temp_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	QWidget* manifest_regular_set = new QWidget;
+
+	//Parse entries
+	for(int x = 0, y = 0; y < manifest_entry_size.size(); y++)
+	{
+		//Parse regular entries
+		if(manifest_entry_size[y] == 5)
+		{
+			std::string temp = "";
+			bool is_meta = false;
+			
+			//Grab hash
+			temp = "Hash : " + manifest[x++];
+			QLabel* hash_label = new QLabel(QString::fromStdString(temp));
+
+			//Grab file associated with hash
+			temp = "File Name : " + manifest[x++];
+			QLabel* file_label = new QLabel(QString::fromStdString(temp));
+			temp = config::data_path + manifest[x - 1];
+
+			//Determine if this belongs to a meta-tile entry
+			u32 match_number = 0;
+			std::string meta_file = temp;
+
+			std::size_t match = meta_file.find_last_of("_") + 1;
+			if(match != std::string::npos) { meta_file = meta_file.substr(match); }
+			if(util::from_str(meta_file, match_number)) { is_meta = true; }
+
+			//Try to load into QImage
+			QImage temp_img(64, 64, QImage::Format_ARGB32);
+			temp_img.fill(qRgb(0, 0, 0));
+
+			u32 meta_width, meta_height = 0;
+
+			if(temp_img.load(QString::fromStdString(temp)))
+			{
+				//Grab source dimensions
+				meta_width = temp_img.width();
+				meta_height = temp_img.height();
+
+				//Scale to 128x128
+				temp_img = temp_img.scaled(128, 128, Qt::KeepAspectRatio);
+
+				temp = "Size : " + util::to_str(meta_width) + "x" + util::to_str(meta_height);
+			}
+
+			QLabel* size_label = new QLabel(QString::fromStdString(temp));
+
+			QLabel* preview = new QLabel;
+			preview->setPixmap(QPixmap::fromImage(temp_img));
+
+			//Grab the type
+			u32 type_byte = 0;
+			util::from_str(manifest[x++], type_byte);
+
+			switch(type_byte)
+			{
+				//DMG, GBC
+				case 1: temp = "Type : DMG OBJ"; break;
+				case 2: temp = "Type : GBC OBJ"; break;
+
+				//DMG, GBC
+				case 10: temp = "Type : DMG BG"; break;
+				case 20: temp = "Type : GBC BG"; break;
+		
+				//Undefined type
+				default:
+					std::cout<<"CGFX::Undefined hash type " << (int)type_byte << "\n";
+					return false;
+			}
+
+			QLabel* type_label = new QLabel(QString::fromStdString(temp));
+
+			//EXT_VRAM_ADDR
+			u32 vram_address = 0;
+			util::from_hex_str(manifest[x++], vram_address);
+			temp = vram_address ? "EXT_VRAM_ADDR - YES" : "EXT_VRAM_ADDR - NO";
+			QLabel* vram_label = new QLabel(QString::fromStdString(temp));
+
+			//EXT_AUTO_BRIGHT
+			u32 bright_value = 0;
+			util::from_str(manifest[x++], bright_value);
+			temp = bright_value ? "EXT_AUTO_BRIGHT - YES" : "EXT_AUTO_BRIGHT - NO";
+			QLabel* bright_label = new QLabel(QString::fromStdString(temp));
+
+			//Spacer label
+			if(!is_meta)
+			{
+				QLabel* spacer_label = new QLabel(" ");
+
+				temp_layout->addWidget(hash_label, spacer++, 1, 1, 1);
+				temp_layout->addWidget(file_label, spacer++, 1, 1, 1);
+				temp_layout->addWidget(type_label, spacer++, 1, 1, 1);
+				temp_layout->addWidget(size_label, spacer++, 1, 1, 1);
+				temp_layout->addWidget(vram_label, spacer++, 1, 1, 1);
+				temp_layout->addWidget(bright_label, spacer++, 1, 1, 1);
+				temp_layout->addWidget(spacer_label, spacer++, 1, 1, 1);
+				temp_layout->addWidget(spacer_label, spacer++, 1, 1, 1);
+
+				temp_layout->addWidget(preview, (spacer - 8), 0, 6, 1);
+			}
+		}
+
+		//Parse metatile entries
+		else
+		{
+			std::string temp = "";
+
+			//Grab file associated with hash
+			temp = "File Name : " + manifest[x++];
+			QLabel* file_label = new QLabel(QString::fromStdString(temp));
+			temp = config::data_path + manifest[x - 1];
+			x++;
+
+			//Try to load into QImage
+			QImage temp_img(64, 64, QImage::Format_ARGB32);
+			temp_img.fill(qRgb(0, 0, 0));
+
+			u32 meta_width, meta_height = 0;
+
+			if(temp_img.load(QString::fromStdString(temp)))
+			{
+				//Grab source dimensions
+				meta_width = temp_img.width();
+				meta_height = temp_img.height();
+
+				//Scale to 128x128
+				temp_img = temp_img.scaled(128, 128, Qt::KeepAspectRatio);
+
+				temp = "Size : " + util::to_str(meta_width) + "x" + util::to_str(meta_height);
+			}
+			
+			QLabel* size_label = new QLabel(QString::fromStdString(temp));
+
+			QLabel* preview = new QLabel;
+			preview->setPixmap(QPixmap::fromImage(temp_img));
+
+			//Grab metatile form
+			u32 form_value = 0;
+			util::from_str(manifest[x++], form_value);
+
+			switch(form_value)
+			{
+				case 0: temp = "Type : BG Metatile"; break;
+				case 1: temp = "Type : 8x8 OBJ Metatile"; break;
+				case 2: temp = "Type : 8x16 OBJ Metatile"; break;
+				
+				default: return false;
+			}
+
+			QLabel* type_label = new QLabel(QString::fromStdString(temp));
+
+			//Spacer label
+			QLabel* spacer_label = new QLabel(" ");
+
+			temp_layout->addWidget(file_label, spacer++, 1, 1, 1);
+			temp_layout->addWidget(type_label, spacer++, 1, 1, 1);
+			temp_layout->addWidget(size_label, spacer++, 1, 1, 1);
+			temp_layout->addWidget(spacer_label, spacer++, 1, 1, 1);
+			temp_layout->addWidget(spacer_label, spacer++, 1, 1, 1);
+			temp_layout->addWidget(spacer_label, spacer++, 1, 1, 1);
+			temp_layout->addWidget(spacer_label, spacer++, 1, 1, 1);
+			temp_layout->addWidget(spacer_label, spacer++, 1, 1, 1);
+
+			temp_layout->addWidget(preview, (spacer - 8), 0, 6, 1);
+		}
+	}
+
+	manifest_regular_set->setLayout(temp_layout);	
+	manifest_display->setWidget(manifest_regular_set);
+}
+
+/****** Ignores manifest warnings until program quits ******/
+void gbe_cgfx::ignore_manifest_warnings() { enable_manifest_warning = false; }
+
+/****** Advances to the next frame from within the CGFX screen ******/
+void gbe_cgfx::advance_next_frame()
+{
+	if(main_menu::gbe_plus == NULL) { return; }
+
+	u8 on_status = 0;
+	u8 next_ly = main_menu::gbe_plus->ex_read_u8(REG_LY);
+	next_ly += 1;
+	if(next_ly >= 0x90) { next_ly = 0; }
+
+	//Run until next LY or LCD disabled
+	while(main_menu::gbe_plus->ex_read_u8(REG_LY) != next_ly)
+	{
+		on_status = main_menu::gbe_plus->ex_read_u8(REG_LCDC);
+		
+		if((on_status & 0x80) == 0)
+		{
+			layer_change();
+			return;
+		}
+
+		main_menu::gbe_plus->step();
+	}
+
+	//Run until emulator hits old LY value or LCD disabled
+	while(main_menu::gbe_plus->ex_read_u8(REG_LY) != render_stop_line->value())
+	{
+		on_status = main_menu::gbe_plus->ex_read_u8(REG_LCDC);
+
+		if((on_status & 0x80) == 0)
+		{
+			layer_change();
+			return;
+		}
+
+		main_menu::gbe_plus->step();
+	}
+
+	layer_change();
 }

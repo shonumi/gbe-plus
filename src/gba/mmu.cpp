@@ -9,6 +9,7 @@
 // Handles reading and writing bytes to memory locations
 
 #include "mmu.h"
+#include "common/util.h"
 
 /****** MMU Constructor ******/
 AGB_MMU::AGB_MMU() 
@@ -47,10 +48,13 @@ void AGB_MMU::reset()
 	flash_ram.data[0].resize(0x10000, 0xFF);
 	flash_ram.data[1].resize(0x10000, 0xFF);
 
-	gpio.in_out = false;
-	gpio.readable = false;
-	gpio.input = gpio.output = 0;
-	gpio.current_type = DISABLED;
+	gpio.data = 0;
+	gpio.direction = 0;
+	gpio.control = 0;
+	gpio.state = 0x100;
+	gpio.serial_counter = 0;
+	gpio.serial_byte = 0;
+	gpio.type = GPIO_RTC;
 
 	//HLE some post-boot registers
 	if(!config::use_bios)
@@ -60,6 +64,11 @@ void AGB_MMU::reset()
 		write_u8(0x4000300, 0x1);
 		write_u8(0x4000410, 0xFF);
 		write_u32(0x4000800, 0xD000020);
+
+		write_u16_fast(BG2PA, 0x100);
+		write_u16_fast(BG2PD, 0x100);
+		write_u16_fast(BG3PA, 0x100);
+		write_u16_fast(BG3PD, 0x100);
 	}
 
 	bios_lock = false;
@@ -184,23 +193,23 @@ u8 AGB_MMU::read_u8(u32 address) const
 		case WAVERAM3_H+1: return apu_stat->waveram_data[(apu_stat->waveram_bank_rw << 4) + 15]; break;
 
 		//General Purpose I/O Data
-		/*
 		case GPIO_DATA:
-			if((gpio.in_out) && (gpio.readable)) { return gpio.output; }
-			else if((!gpio.in_out) && (gpio.readable)) { return gpio.input; }
+			if((gpio.type != GPIO_DISABLED) && (gpio.control)) { return gpio.data; }
+			else { return memory_map[GPIO_DATA]; }
 			break;
 
 		//General Purpose I/O Direction
 		case GPIO_DIRECTION:
-			if(gpio.readable) { return gpio.in_out; }
+			if((gpio.type != GPIO_DISABLED) && (gpio.control)) { return gpio.direction; }
+			else { return memory_map[GPIO_DIRECTION]; }
 			break;
 
 		//General Purpose I/O Control
 		case GPIO_CNT:
-			if(gpio.readable) { return gpio.readable; }
+			if((gpio.type != GPIO_DISABLED) && (gpio.control)) { return gpio.control; }
+			else { return memory_map[GPIO_CNT]; }
 			break;
-		*/
-		
+
 		default:
 			return memory_map[address];
 	}
@@ -272,6 +281,11 @@ void AGB_MMU::write_u8(u32 address, u8 value)
  
 			break;
 
+		//Vertical-Line Count (Read-Only)
+		case VCOUNT:
+		case VCOUNT+1:
+			break;
+
 		//BG0 Control
 		case BG0CNT:
 		case BG0CNT+1:
@@ -332,7 +346,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			lcd_stat->bg_base_map_addr[2] = 0x6000000 + (0x800 * ((lcd_stat->bg_control[2] >> 8) & 0x1F));
 			lcd_stat->bg_base_tile_addr[2] = 0x6000000 + (0x4000 * ((lcd_stat->bg_control[2] >> 2) & 0x3));
 
-			lcd_stat->bg_params[0].overflow = (lcd_stat->bg_control[2] & 0x2000) ? true : false;
+			lcd_stat->bg_affine[0].overflow = (lcd_stat->bg_control[2] & 0x2000) ? true : false;
 
 			switch(lcd_stat->bg_control[2] >> 14)
 			{
@@ -356,7 +370,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			lcd_stat->bg_base_map_addr[3] = 0x6000000 + (0x800 * ((lcd_stat->bg_control[3] >> 8) & 0x1F));
 			lcd_stat->bg_base_tile_addr[3] = 0x6000000 + (0x4000 * ((lcd_stat->bg_control[3] >> 2) & 0x3));
 
-			lcd_stat->bg_params[1].overflow = (lcd_stat->bg_control[3] & 0x2000) ? true : false;
+			lcd_stat->bg_affine[1].overflow = (lcd_stat->bg_control[3] & 0x2000) ? true : false;
 
 			switch(lcd_stat->bg_control[3] >> 14)
 			{
@@ -436,12 +450,11 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 				if(raw_value & 0x8000) 
 				{ 
 					u16 p = ((raw_value >> 8) - 1);
-					p = ~p;
-					p &= 0xFF;
-					lcd_stat->bg_params[0].a = -1.0 * p;
+					p = (~p & 0xFF);
+					lcd_stat->bg_affine[0].dx = -1.0 * p;
 				}
-				else { lcd_stat->bg_params[0].a = (raw_value >> 8); }
-				if((raw_value & 0xFF) != 0) { lcd_stat->bg_params[0].a += (raw_value & 0xFF) / 256.0; }
+				else { lcd_stat->bg_affine[0].dx = (raw_value >> 8); }
+				if((raw_value & 0xFF) != 0) { lcd_stat->bg_affine[0].dx += (raw_value & 0xFF) / 256.0; }
 			}
 
 			break;
@@ -458,12 +471,11 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 				if(raw_value & 0x8000) 
 				{ 
 					u16 p = ((raw_value >> 8) - 1);
-					p = ~p;
-					p &= 0xFF;
-					lcd_stat->bg_params[0].b = -1.0 * p;
+					p = (~p & 0xFF);
+					lcd_stat->bg_affine[0].dmx = -1.0 * p;
 				}
-				else { lcd_stat->bg_params[0].b = (raw_value >> 8); }
-				if((raw_value & 0xFF) != 0) { lcd_stat->bg_params[0].b += (raw_value & 0xFF) / 256.0; }
+				else { lcd_stat->bg_affine[0].dmx = (raw_value >> 8); }
+				if((raw_value & 0xFF) != 0) { lcd_stat->bg_affine[0].dmx += (raw_value & 0xFF) / 256.0; }
 			}
 
 			break;
@@ -480,12 +492,11 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 				if(raw_value & 0x8000) 
 				{ 
 					u16 p = ((raw_value >> 8) - 1);
-					p = ~p;
-					p &= 0xFF;
-					lcd_stat->bg_params[0].c = -1.0 * p;
+					p = (~p & 0xFF);
+					lcd_stat->bg_affine[0].dy = -1.0 * p;
 				}
-				else { lcd_stat->bg_params[0].c = (raw_value >> 8); }
-				if((raw_value & 0xFF) != 0) { lcd_stat->bg_params[0].c += (raw_value & 0xFF) / 256.0; }
+				else { lcd_stat->bg_affine[0].dy = (raw_value >> 8); }
+				if((raw_value & 0xFF) != 0) { lcd_stat->bg_affine[0].dy += (raw_value & 0xFF) / 256.0; }
 			}
 
 			break;
@@ -502,12 +513,11 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 				if(raw_value & 0x8000) 
 				{ 
 					u16 p = ((raw_value >> 8) - 1);
-					p = ~p;
-					p &= 0xFF;
-					lcd_stat->bg_params[0].d = -1.0 * p;
+					p = (~p & 0xFF);
+					lcd_stat->bg_affine[0].dmy = -1.0 * p;
 				}
-				else { lcd_stat->bg_params[0].d = (raw_value >> 8); }
-				if((raw_value & 0xFF) != 0) { lcd_stat->bg_params[0].d += (raw_value & 0xFF) / 256.0; }
+				else { lcd_stat->bg_affine[0].dmy = (raw_value >> 8); }
+				if((raw_value & 0xFF) != 0) { lcd_stat->bg_affine[0].dmy += (raw_value & 0xFF) / 256.0; }
 			}
 
 			break;
@@ -526,12 +536,14 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 				if(x_raw & 0x8000000) 
 				{ 
 					u32 x = ((x_raw >> 8) - 1);
-					x = ~x;
-					x &= 0x7FFFF;
-					lcd_stat->bg_params[0].x_ref = -1.0 * x;
+					x = (~x & 0x7FFFF);
+					lcd_stat->bg_affine[0].x_ref = -1.0 * x;
 				}
-				else { lcd_stat->bg_params[0].x_ref = (x_raw >> 8) & 0x7FFFF; }
-				if((x_raw & 0xFF) != 0) { lcd_stat->bg_params[0].x_ref += (x_raw & 0xFF) / 256.0; }
+				else { lcd_stat->bg_affine[0].x_ref = (x_raw >> 8) & 0x7FFFF; }
+				if((x_raw & 0xFF) != 0) { lcd_stat->bg_affine[0].x_ref += (x_raw & 0xFF) / 256.0; }
+
+				//Set current X position as the new reference point
+				lcd_stat->bg_affine[0].x_pos = lcd_stat->bg_affine[0].x_ref;
 			}
 
 			break;
@@ -550,12 +562,14 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 				if(y_raw & 0x8000000) 
 				{ 
 					u32 y = ((y_raw >> 8) - 1);
-					y = ~y;
-					y &= 0x7FFFF;
-					lcd_stat->bg_params[0].y_ref = -1.0 * y;
+					y = (~y & 0x7FFFF);
+					lcd_stat->bg_affine[0].y_ref = -1.0 * y;
 				}
-				else { lcd_stat->bg_params[0].y_ref = (y_raw >> 8) & 0x7FFFF; }
-				if((y_raw & 0xFF) != 0) { lcd_stat->bg_params[0].y_ref += (y_raw & 0xFF) / 256.0; }
+				else { lcd_stat->bg_affine[0].y_ref = (y_raw >> 8) & 0x7FFFF; }
+				if((y_raw & 0xFF) != 0) { lcd_stat->bg_affine[0].y_ref += (y_raw & 0xFF) / 256.0; }
+
+				//Set current Y position as the new reference point
+				lcd_stat->bg_affine[0].y_pos = lcd_stat->bg_affine[0].y_ref;
 			}
 
 			break;
@@ -572,12 +586,11 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 				if(raw_value & 0x8000) 
 				{ 
 					u16 p = ((raw_value >> 8) - 1);
-					p = ~p;
-					p &= 0xFF;
-					lcd_stat->bg_params[1].a = -1.0 * p;
+					p = (~p & 0xFF);
+					lcd_stat->bg_affine[1].dx = -1.0 * p;
 				}
-				else { lcd_stat->bg_params[1].a = (raw_value >> 8); }
-				if((raw_value & 0xFF) != 0) { lcd_stat->bg_params[1].a += (raw_value & 0xFF) / 256.0; }
+				else { lcd_stat->bg_affine[1].dx = (raw_value >> 8); }
+				if((raw_value & 0xFF) != 0) { lcd_stat->bg_affine[1].dx += (raw_value & 0xFF) / 256.0; }
 			}
 
 			break;
@@ -594,12 +607,11 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 				if(raw_value & 0x8000) 
 				{ 
 					u16 p = ((raw_value >> 8) - 1);
-					p = ~p;
-					p &= 0xFF;
-					lcd_stat->bg_params[1].b = -1.0 * p;
+					p = (~p & 0xFF);
+					lcd_stat->bg_affine[1].dmx = -1.0 * p;
 				}
-				else { lcd_stat->bg_params[1].b = (raw_value >> 8); }
-				if((raw_value & 0xFF) != 0) { lcd_stat->bg_params[1].b += (raw_value & 0xFF) / 256.0; }
+				else { lcd_stat->bg_affine[1].dmx = (raw_value >> 8); }
+				if((raw_value & 0xFF) != 0) { lcd_stat->bg_affine[1].dmx += (raw_value & 0xFF) / 256.0; }
 			}
 
 			break;
@@ -616,12 +628,11 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 				if(raw_value & 0x8000) 
 				{ 
 					u16 p = ((raw_value >> 8) - 1);
-					p = ~p;
-					p &= 0xFF;
-					lcd_stat->bg_params[1].c = -1.0 * p;
+					p = (~p & 0xFF);
+					lcd_stat->bg_affine[1].dy = -1.0 * p;
 				}
-				else { lcd_stat->bg_params[1].c = (raw_value >> 8); }
-				if((raw_value & 0xFF) != 0) { lcd_stat->bg_params[1].c += (raw_value & 0xFF) / 256.0; }
+				else { lcd_stat->bg_affine[1].dy = (raw_value >> 8); }
+				if((raw_value & 0xFF) != 0) { lcd_stat->bg_affine[1].dy += (raw_value & 0xFF) / 256.0; }
 			}
 
 			break;
@@ -638,12 +649,11 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 				if(raw_value & 0x8000) 
 				{ 
 					u16 p = ((raw_value >> 8) - 1);
-					p = ~p;
-					p &= 0xFF;
-					lcd_stat->bg_params[1].d = -1.0 * p;
+					p = (~p & 0xFF);
+					lcd_stat->bg_affine[1].dmy = -1.0 * p;
 				}
-				else { lcd_stat->bg_params[1].d = (raw_value >> 8); }
-				if((raw_value & 0xFF) != 0) { lcd_stat->bg_params[1].d += (raw_value & 0xFF) / 256.0; }
+				else { lcd_stat->bg_affine[1].dmy = (raw_value >> 8); }
+				if((raw_value & 0xFF) != 0) { lcd_stat->bg_affine[1].dmy += (raw_value & 0xFF) / 256.0; }
 			}
 
 			break;
@@ -662,12 +672,11 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 				if(x_raw & 0x8000000) 
 				{ 
 					u32 x = ((x_raw >> 8) - 1);
-					x = ~x;
-					x &= 0x7FFFF;
-					lcd_stat->bg_params[1].x_ref = -1.0 * x;
+					x = (~x & 0x7FFFF);
+					lcd_stat->bg_affine[1].x_ref = -1.0 * x;
 				}
-				else { lcd_stat->bg_params[1].x_ref = (x_raw >> 8) & 0x7FFFF; }
-				if((x_raw & 0xFF) != 0) { lcd_stat->bg_params[1].x_ref += (x_raw & 0xFF) / 256.0; }
+				else { lcd_stat->bg_affine[1].x_ref = (x_raw >> 8) & 0x7FFFF; }
+				if((x_raw & 0xFF) != 0) { lcd_stat->bg_affine[1].x_ref += (x_raw & 0xFF) / 256.0; }
 			}
 
 			break;
@@ -686,12 +695,11 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 				if(y_raw & 0x8000000) 
 				{ 
 					u32 y = ((y_raw >> 8) - 1);
-					y = ~y;
-					y &= 0x7FFFF;
-					lcd_stat->bg_params[1].y_ref = -1.0 * y;
+					y = (~y & 0x7FFFF);
+					lcd_stat->bg_affine[1].y_ref = -1.0 * y;
 				}
-				else { lcd_stat->bg_params[1].y_ref = (y_raw >> 8) & 0x7FFFF; }
-				if((y_raw & 0xFF) != 0) { lcd_stat->bg_params[1].y_ref += (y_raw & 0xFF) / 256.0; }
+				else { lcd_stat->bg_affine[1].y_ref = (y_raw >> 8) & 0x7FFFF; }
+				if((y_raw & 0xFF) != 0) { lcd_stat->bg_affine[1].y_ref += (y_raw & 0xFF) / 256.0; }
 			}
 
 			break;
@@ -912,7 +920,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 		case SND1CNT_H+1:
 			memory_map[address] = value;
 			apu_stat->channel[0].duration = (memory_map[SND1CNT_H] & 0x3F);
-			apu_stat->channel[0].duration = ((64 - apu_stat->channel[0].duration) / 256.0) * 1000.0;
+			apu_stat->channel[0].duration = ((64 - apu_stat->channel[0].duration) / 256.0);
 			apu_stat->channel[0].duty_cycle = (memory_map[SND1CNT_H] >> 6) & 0x3;
 
 			switch(apu_stat->channel[0].duty_cycle)
@@ -974,14 +982,14 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			}
 
 			apu_stat->channel[0].length_flag = (memory_map[SND1CNT_X+1] & 0x40) ? true : false;
-			apu_stat->channel[0].playing = (memory_map[SND1CNT_X+1] & 0x80) ? true : false;
+			if(memory_map[SND1CNT_X+1] & 0x80) { apu_stat->channel[0].playing = true; }
 
 			if(apu_stat->channel[0].volume == 0) { apu_stat->channel[0].playing = false; }
 
 			if((address == SND1CNT_X+1) && (apu_stat->channel[0].playing)) 
 			{
 				apu_stat->channel[0].frequency_distance = 0;
-				apu_stat->channel[0].sample_length = (apu_stat->channel[0].duration * apu_stat->sample_rate)/1000;
+				apu_stat->channel[0].sample_length = (apu_stat->channel[0].duration * apu_stat->sample_rate);
 				apu_stat->channel[0].envelope_counter = 0;
 				apu_stat->channel[0].sweep_counter = 0;
 			}
@@ -993,7 +1001,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 		case SND2CNT_L+1:
 			memory_map[address] = value;
 			apu_stat->channel[1].duration = (memory_map[SND2CNT_L] & 0x3F);
-			apu_stat->channel[1].duration = ((64 - apu_stat->channel[1].duration) / 256.0) * 1000.0;
+			apu_stat->channel[1].duration = ((64 - apu_stat->channel[1].duration) / 256.0);
 			apu_stat->channel[1].duty_cycle = (memory_map[SND2CNT_L] >> 6) & 0x3;
 
 			switch(apu_stat->channel[1].duty_cycle)
@@ -1055,14 +1063,14 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			}
 
 			apu_stat->channel[1].length_flag = (memory_map[SND2CNT_H+1] & 0x40) ? true : false;
-			apu_stat->channel[1].playing = (memory_map[SND2CNT_H+1] & 0x80) ? true : false;
+			if(memory_map[SND2CNT_H+1] & 0x80) { apu_stat->channel[1].playing = true; }
 
 			if(apu_stat->channel[1].volume == 0) { apu_stat->channel[1].playing = false; }
 
 			if((address == SND2CNT_H+1) && (apu_stat->channel[1].playing)) 
 			{
 				apu_stat->channel[1].frequency_distance = 0;
-				apu_stat->channel[1].sample_length = (apu_stat->channel[1].duration * apu_stat->sample_rate)/1000;
+				apu_stat->channel[1].sample_length = (apu_stat->channel[1].duration * apu_stat->sample_rate);
 				apu_stat->channel[1].envelope_counter = 0;
 			}
 
@@ -1081,7 +1089,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 		case SND3CNT_H:
 			memory_map[address] = value;
 			apu_stat->channel[2].duration = memory_map[SND3CNT_H];
-			apu_stat->channel[2].duration = ((256 - apu_stat->channel[2].duration) / 256.0) * 1000.0;
+			apu_stat->channel[2].duration = ((256 - apu_stat->channel[2].duration) / 256.0);
 			break;
 
 		//Sound Channel 3 Control - Volume
@@ -1104,7 +1112,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			if((address == SND3CNT_X+1) && (apu_stat->channel[2].playing)) 
 			{
 				apu_stat->channel[2].frequency_distance = 0;
-				apu_stat->channel[2].sample_length = (apu_stat->channel[2].duration * apu_stat->sample_rate)/1000;
+				apu_stat->channel[2].sample_length = (apu_stat->channel[2].duration * apu_stat->sample_rate);
 			}
 
 			break;
@@ -1114,7 +1122,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 		case SND4CNT_L+1:
 			memory_map[address] = value;
 			apu_stat->channel[3].duration = (memory_map[SND4CNT_L] & 0x3F);
-			apu_stat->channel[3].duration = ((64 - apu_stat->channel[3].duration) / 256.0) * 1000.0;
+			apu_stat->channel[3].duration = ((64 - apu_stat->channel[3].duration) / 256.0);
 
 			apu_stat->channel[3].envelope_step = (memory_map[SND4CNT_L+1] & 0x7);
 			apu_stat->channel[3].envelope_direction = (memory_map[SND4CNT_L+1] & 0x8) ? 1 : 0;
@@ -1146,14 +1154,14 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 		case SND4CNT_H+1:
 			memory_map[address] = value;
 			apu_stat->channel[3].length_flag = (memory_map[SND4CNT_H+1] & 0x40) ? true : false;
-			apu_stat->channel[3].playing = (memory_map[SND4CNT_H+1] & 0x80) ? true : false;
+			if(memory_map[SND4CNT_H+1] & 0x80) { apu_stat->channel[3].playing = true; }
 
 			if(apu_stat->channel[3].volume == 0) { apu_stat->channel[3].playing = false; }
 
 			if((address == SND4CNT_H+1) && (apu_stat->channel[3].playing)) 
 			{
 				apu_stat->channel[3].frequency_distance = 0;
-				apu_stat->channel[3].sample_length = (apu_stat->channel[3].duration * apu_stat->sample_rate)/1000;
+				apu_stat->channel[3].sample_length = (apu_stat->channel[3].duration * apu_stat->sample_rate);
 				apu_stat->channel[3].envelope_counter = 0;
 			}
 
@@ -1248,6 +1256,15 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 		case WAVERAM3_L+1: apu_stat->waveram_data[(apu_stat->waveram_bank_rw << 4) + 13] = value; break;
 		case WAVERAM3_H: apu_stat->waveram_data[(apu_stat->waveram_bank_rw << 4) + 14] = value; break;
 		case WAVERAM3_H+1: apu_stat->waveram_data[(apu_stat->waveram_bank_rw << 4) + 15] = value; break;
+
+		case REG_IME:
+			memory_map[address] = (value & 0x1);
+			break;
+
+		case REG_IME+1:
+		case REG_IME+2:
+		case REG_IME+3:
+			break;
 
 		case REG_IF:
 		case REG_IF+1:
@@ -1384,15 +1401,17 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			dma[3].delay = 2;
 			break;
 
-		case KEYINPUT: break;
+		case KEYINPUT:
+		case KEYINPUT+1:
+			break;
 
 		//Timer 0 Reload Value
 		case TM0CNT_L:
 		case TM0CNT_L+1:
 			memory_map[address] = value;
 			timer->at(0).reload_value = ((memory_map[TM0CNT_L+1] << 8) | memory_map[TM0CNT_L]);
-			if((apu_stat->dma[0].timer == 0) && (timer->at(0).reload_value != 0xFFFF)) { apu_stat->dma[0].output_frequency = (1 << 24) / (0xFFFF - timer->at(0).reload_value); }
-			if((apu_stat->dma[1].timer == 0) && (timer->at(0).reload_value != 0xFFFF)) { apu_stat->dma[1].output_frequency = (1 << 24) / (0xFFFF - timer->at(0).reload_value); }
+			if((apu_stat->dma[0].timer == 0) && (timer->at(0).reload_value != 0xFFFF)) { apu_stat->dma[0].output_frequency = (1 << 24) / (0x10000 - timer->at(0).reload_value); }
+			if((apu_stat->dma[1].timer == 0) && (timer->at(0).reload_value != 0xFFFF)) { apu_stat->dma[1].output_frequency = (1 << 24) / (0x10000 - timer->at(0).reload_value); }
 			break;
 
 		//Timer 1 Reload Value
@@ -1400,8 +1419,8 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 		case TM1CNT_L+1:
 			memory_map[address] = value;
 			timer->at(1).reload_value = ((memory_map[TM1CNT_L+1] << 8) | memory_map[TM1CNT_L]);
-			if((apu_stat->dma[0].timer == 1) && (timer->at(1).reload_value != 0xFFFF)) { apu_stat->dma[0].output_frequency = (1 << 24) / (0xFFFF - timer->at(1).reload_value); }
-			if((apu_stat->dma[1].timer == 1) && (timer->at(1).reload_value != 0xFFFF)) { apu_stat->dma[1].output_frequency = (1 << 24) / (0xFFFF - timer->at(1).reload_value); }
+			if((apu_stat->dma[0].timer == 1) && (timer->at(1).reload_value != 0xFFFF)) { apu_stat->dma[0].output_frequency = (1 << 24) / (0x10000 - timer->at(1).reload_value); }
+			if((apu_stat->dma[1].timer == 1) && (timer->at(1).reload_value != 0xFFFF)) { apu_stat->dma[1].output_frequency = (1 << 24) / (0x10000 - timer->at(1).reload_value); }
 			break;
 
 		//Timer 2 Reload Value
@@ -1520,7 +1539,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 		case WAITCNT+1:
 			{
 				memory_map[address] = value;
-				u16 wait_control = read_u16(WAITCNT);
+				u16 wait_control = ((memory_map[WAITCNT+1] << 8) | memory_map[WAITCNT]);
 
 				//Determine first access cycles (Non-Sequential)
 				switch((wait_control >> 2) & 0x3)
@@ -1542,26 +1561,42 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			break;
 
 		//General Purpose I/O Data
-		/*
 		case GPIO_DATA:
-			memory_map[address] = (value & 0x7);
+			if(gpio.type != GPIO_DISABLED)
+			{
+				gpio.data = (value & 0xF);
 
-			if(gpio.in_out) { gpio.output = (value & 0x7); }
-			else { gpio.input = (value & 0x7); }
+				switch(gpio.type)
+				{
+					case GPIO_RTC:
+						process_rtc();
+						break;
+
+					case GPIO_SOLAR_SENSOR:
+						process_solar_sensor();
+						break;
+
+					case GPIO_RUMBLE:
+						process_rumble();
+						break;
+
+					case GPIO_GYRO_SENSOR:
+						process_gyro_sensor();
+						break;
+				}
+			}
+
 			break;
 
 		//General Purpose I/O Direction
 		case GPIO_DIRECTION:
-			memory_map[address] = value & 0x1;
-			gpio.in_out = (memory_map[address] & 0x1) ? true : false;
+			if(gpio.type != GPIO_DISABLED) { gpio.direction = value & 0x1; }
 			break;
 
 		//General Purpose I/O Control
 		case GPIO_CNT:
-			memory_map[address] = value & 0x1;
-			gpio.readable = (memory_map[address] & 0x1) ? true : false;
+			if(gpio.type != GPIO_DISABLED) { gpio.control = value & 0x1; }
 			break;
-		*/
 
 		case FLASH_RAM_CMD0:
 			memory_map[address] = value;
@@ -1687,7 +1722,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 	}
 
 	//Trigger OAM update in LCD
-	else if((address >= 0x7000000) && (address <= 0x70003FF) && (lcd_stat->oam_access))
+	else if((address >= 0x7000000) && (address <= 0x70003FF))
 	{
 		lcd_stat->oam_update = true;
 		lcd_stat->oam_update_list[(address & 0x3FF) >> 3] = true;
@@ -1761,7 +1796,31 @@ bool AGB_MMU::read_file(std::string filename)
 	file.read((char*)ex_mem, file_size);
 
 	file.close();
+
+	std::cout<<"MMU::ROM Size: " << std::dec << (file_size / 1024) << "KB\n";
+	std::cout<<"MMU::ROM CRC32: " << std::hex << util::get_crc32(&memory_map[0x8000000], file_size) << "\n";
 	std::cout<<"MMU::" << filename << " loaded successfully. \n";
+
+	//Apply patches to the ROM data
+	if(config::use_patches)
+	{
+		std::size_t dot = filename.find_last_of(".");
+		if(dot == std::string::npos) { dot = filename.size(); }
+
+		std::string patch_file = filename.substr(0, dot);
+
+		//Attempt a IPS patch
+		bool patch_pass = patch_ips(patch_file + ".ips");
+
+		//Attempt a UPS patch
+		if(!patch_pass) { patch_pass = patch_ups(patch_file + ".ups"); }
+	}
+
+	//Mirror ROM to different parts of the GBA memory map (Wait States 1 and 2)
+	for(u32 x = 0x8000000; x < 0x9FFFFFF; x++)
+	{
+		memory_map[0xA000000 + (x - 0x8000000)] = memory_map[0xC000000 + (x - 0x8000000)] = memory_map[x];
+	}
 
 	//Calculate 8-bit checksum
 	u8 checksum = 0;
@@ -1883,6 +1942,12 @@ bool AGB_MMU::read_bios(std::string filename)
 /****** Load backup save data ******/
 bool AGB_MMU::load_backup(std::string filename)
 {
+	//Use config save path if applicable
+	if(!config::save_path.empty())
+	{
+		 filename = config::save_path + util::get_filename_from_path(filename);
+	}
+
 	std::ifstream file(filename.c_str(), std::ios::binary);
 	std::vector<u8> save_data;
 
@@ -2002,6 +2067,12 @@ bool AGB_MMU::load_backup(std::string filename)
 /****** Save backup save data ******/
 bool AGB_MMU::save_backup(std::string filename)
 {
+	//Use config save path if applicable
+	if(!config::save_path.empty())
+	{
+		 filename = config::save_path + util::get_filename_from_path(filename);
+	}
+
 	//Save SRAM
 	if(current_save_type == SRAM)
 	{
@@ -2266,10 +2337,406 @@ void AGB_MMU::flash_erase_sector(u32 sector)
 	{ 
 		flash_ram.data[flash_ram.bank][(x & 0xFFFF)] = 0xFF; 
 	}
-}	
+}
+
+/****** Applies an IPS patch to a ROM loaded in memory ******/
+bool AGB_MMU::patch_ips(std::string filename)
+{
+	std::ifstream patch_file(filename.c_str(), std::ios::binary);
+
+	if(!patch_file.is_open()) 
+	{ 
+		std::cout<<"MMU::" << filename << " IPS patch file could not be opened. Check file path or permissions. \n";
+		return false;
+	}
+
+	//Get the file size
+	patch_file.seekg(0, patch_file.end);
+	u32 file_size = patch_file.tellg();
+	patch_file.seekg(0, patch_file.beg);
+
+	std::vector<u8> patch_data;
+	patch_data.resize(file_size, 0);
+
+	//Read patch file into buffer
+	u8* ex_patch = &patch_data[0];
+	patch_file.read((char*)ex_patch, file_size);
+
+	//Check header for PATCH string
+	if((patch_data[0] != 0x50) || (patch_data[1] != 0x41) || (patch_data[2] != 0x54) || (patch_data[3] != 0x43) || (patch_data[4] != 0x48))
+	{
+		std::cout<<"MMU::" << filename << " IPS patch file has invalid header\n";
+		return false;
+	}
+
+	bool end_of_file = false;
+	u32 patch_pos = 5;
+
+	while((patch_pos < file_size) && (!end_of_file))
+	{
+		//Grab a record offset - 3 bytes
+		if((patch_pos + 3) > file_size)
+		{
+			std::cout<<"MMU::" << filename << " file ends unexpectedly (OFFSET). Aborting further patching.\n";
+		}
+
+		u32 offset = (patch_data[patch_pos++] << 16) | (patch_data[patch_pos++] << 8) | patch_data[patch_pos++];
+
+		//Quit if EOF marker is reached
+		if(offset == 0x454F46) { end_of_file = true; break; }
+
+		//Grab record size - 2 bytes
+		if((patch_pos + 2) > file_size)
+		{
+			std::cout<<"MMU::" << filename << " file ends unexpectedly (DATA_SIZE). Aborting further patching.\n";
+			return false;
+		}
+
+		u16 data_size = (patch_data[patch_pos++] << 8) | patch_data[patch_pos++];
+
+		//Perform regular patching if size is non-zero
+		if(data_size)
+		{
+			if((patch_pos + data_size) > file_size)
+			{
+				std::cout<<"MMU::" << filename << " file ends unexpectedly (DATA). Aborting further patching.\n";
+				return false;
+			}
+
+			for(u32 x = 0; x < data_size; x++)
+			{
+				u8 patch_byte = patch_data[patch_pos++];
+
+				memory_map[0x8000000 + offset] = patch_byte;
+
+				offset++;
+			}
+		}
+
+		//Patch with RLE
+		else
+		{
+			//Grab Run-length size and value - 3 bytes
+			if((patch_pos + 3) > file_size)
+			{
+				std::cout<<"MMU::" << filename << " file ends unexpectedly (RLE). Aborting further patching.\n";
+				return false;
+			}
+
+			u16 rle_size = (patch_data[patch_pos++] << 8) | patch_data[patch_pos++];
+			u8 patch_byte = patch_data[patch_pos++];
+
+			for(u32 x = 0; x < rle_size; x++)
+			{
+				memory_map[0x8000000 + offset] = patch_byte;
+
+				offset++;
+			}
+		}
+	}
+
+	patch_file.close();
+	patch_data.clear();
+
+	return true;
+}
+
+/****** Applies an UPS patch to a ROM loaded in memory ******/
+bool AGB_MMU::patch_ups(std::string filename)
+{
+	std::ifstream patch_file(filename.c_str(), std::ios::binary);
+
+	if(!patch_file.is_open()) 
+	{ 
+		std::cout<<"MMU::" << filename << " UPS patch file could not be opened. Check file path or permissions. \n";
+		return false;
+	}
+
+	//Get the file size
+	patch_file.seekg(0, patch_file.end);
+	u32 file_size = patch_file.tellg();
+	patch_file.seekg(0, patch_file.beg);
+
+	std::vector<u8> patch_data;
+	patch_data.resize(file_size, 0);
+
+	//Read patch file into buffer
+	u8* ex_patch = &patch_data[0];
+	patch_file.read((char*)ex_patch, file_size);
+
+	//Check header for UPS1 string
+	if((patch_data[0] != 0x55) || (patch_data[1] != 0x50) || (patch_data[2] != 0x53) || (patch_data[3] != 0x31))
+	{
+		std::cout<<"MMU::" << filename << " UPS patch file has invalid header\n";
+		return false;
+	}
+
+	u32 patch_pos = 4;
+	u32 patch_size = file_size - 12;
+	u32 file_pos = 0;
+
+	//Grab file sizes
+	for(u32 x = 0; x < 2; x++)
+	{
+		//Grab variable width integer
+		u32 var_int = 0;
+		bool var_end = false;
+		u8 var_shift = 0;
+
+		while(!var_end)
+		{
+			//Grab byte from patch file
+			u8 var_byte = patch_data[patch_pos++];
+			
+			if(var_byte & 0x80)
+			{
+				var_int += ((var_byte & 0x7F) << var_shift);
+				var_end = true;
+			}
+
+			else
+			{
+				var_int += ((var_byte | 0x80) << var_shift);
+				var_shift += 7;
+			}
+		}
+	}
+
+	//Begin patching the source file
+	while(patch_pos < patch_size)
+	{
+		//Grab variable width integer
+		u32 var_int = 0;
+		bool var_end = false;
+		u8 var_shift = 0;
+
+		while(!var_end)
+		{
+			//Grab byte from patch file
+			u8 var_byte = patch_data[patch_pos++];
+			
+			if(var_byte & 0x80)
+			{
+				var_int += ((var_byte & 0x7F) << var_shift);
+				var_end = true;
+			}
+
+			else
+			{
+				var_int += ((var_byte | 0x80) << var_shift);
+				var_shift += 7;
+			}
+		}
+
+		//XOR data at offset with patch
+		var_end = false;
+		file_pos += var_int;
+
+		while(!var_end)
+		{
+			//Abort if patching greater than 32MB
+			if(file_pos > 0x2000000)
+			{
+				std::cout<<"MMU::" << filename << "patches beyond max ROM size. Aborting further patching.\n";
+				return false;
+			}
+
+			u8 patch_byte = patch_data[patch_pos++];
+
+			//Terminate patching for this chunk if encountering a zero byte
+			if(patch_byte == 0) { var_end = true; }
+
+			//Otherwise, use the byte to patch
+			else
+			{
+				memory_map[0x8000000 + file_pos] ^= patch_byte;
+			}
+
+			file_pos++;
+		}
+	}
+
+	patch_file.close();
+	patch_data.clear();
+
+	return true;
+}
 
 /****** Points the MMU to an lcd_data structure (FROM THE LCD ITSELF) ******/
 void AGB_MMU::set_lcd_data(agb_lcd_data* ex_lcd_stat) { lcd_stat = ex_lcd_stat; }
 
 /****** Points the MMU to an apu_data structure (FROM THE APU ITSELF) ******/
 void AGB_MMU::set_apu_data(agb_apu_data* ex_apu_stat) { apu_stat = ex_apu_stat; }
+
+/****** Read MMU data from save state ******/
+bool AGB_MMU::mmu_read(u32 offset, std::string filename)
+{
+	std::ifstream file(filename.c_str(), std::ios::binary);
+	
+	if(!file.is_open()) { return false; }
+
+	//Go to offset
+	file.seekg(offset);
+
+	//Serialize WRAM from save state
+	u8* ex_mem = &memory_map[0x2000000];
+	file.read((char*)ex_mem, 0x40000);
+
+	//Serialize WRAM from save state
+	ex_mem = &memory_map[0x3000000];
+	file.read((char*)ex_mem, 0x8000);
+
+	//Serialize IO registers from save state
+	ex_mem = &memory_map[0x4000000];
+	file.read((char*)ex_mem, 0x400);
+
+	//Serialize BG and OBJ palettes from save state
+	ex_mem = &memory_map[0x5000000];
+	file.read((char*)ex_mem, 0x400);
+
+	//Serialize VRAM from save state
+	ex_mem = &memory_map[0x6000000];
+	file.read((char*)ex_mem, 0x18000);
+
+	//Serialize OAM from save state
+	ex_mem = &memory_map[0x7000000];
+	file.read((char*)ex_mem, 0x400);
+
+	//Serialize SRAM from save state
+	ex_mem = &memory_map[0xE000000];
+	file.read((char*)ex_mem, 0x10000);
+
+	//Serialize misc data from MMU from save state
+	file.read((char*)&current_save_type, sizeof(current_save_type));
+	file.read((char*)&n_clock, sizeof(n_clock));
+	file.read((char*)&s_clock, sizeof(s_clock));
+	file.read((char*)&bios_lock, sizeof(bios_lock));
+	file.read((char*)&dma[0], sizeof(dma[0]));
+	file.read((char*)&dma[1], sizeof(dma[1]));
+	file.read((char*)&dma[2], sizeof(dma[2]));
+	file.read((char*)&dma[3], sizeof(dma[3]));
+	file.read((char*)&gpio, sizeof(gpio));
+
+	//Serialize EEPROM from save state
+	file.read((char*)&eeprom.bitstream_byte, sizeof(eeprom.bitstream_byte));
+	file.read((char*)&eeprom.address, sizeof(eeprom.address));
+	file.read((char*)&eeprom.dma_ptr, sizeof(eeprom.dma_ptr));
+	file.read((char*)&eeprom.size, sizeof(eeprom.size));
+	file.read((char*)&eeprom.size_lock, sizeof(eeprom.size_lock));
+	file.read((char*)&eeprom.data[0], eeprom.size);
+
+	//Serialize FLASH RAM from save state
+	file.read((char*)&flash_ram.current_command, sizeof(flash_ram.current_command));
+	file.read((char*)&flash_ram.bank, sizeof(flash_ram.bank));
+	file.read((char*)&flash_ram.write_single_byte, sizeof(flash_ram.write_single_byte));
+	file.read((char*)&flash_ram.switch_bank, sizeof(flash_ram.switch_bank));
+	file.read((char*)&flash_ram.grab_ids, sizeof(flash_ram.grab_ids));
+	file.read((char*)&flash_ram.next_write, sizeof(flash_ram.next_write));
+	file.read((char*)&flash_ram.data[0][0], 0x10000);
+	file.read((char*)&flash_ram.data[1][0], 0x10000);
+
+	file.close();
+	return true;
+}
+
+/****** Write MMU data to save state ******/
+bool AGB_MMU::mmu_write(std::string filename)
+{
+	std::ofstream file(filename.c_str(), std::ios::binary | std::ios::app);
+	
+	if(!file.is_open()) { return false; }
+
+	//Serialize WRAM to save state
+	u8* ex_mem = &memory_map[0x2000000];
+	file.write((char*)ex_mem, 0x40000);
+
+	//Serialize WRAM to save state
+	ex_mem = &memory_map[0x3000000];
+	file.write((char*)ex_mem, 0x8000);
+
+	//Serialize IO registers to save state
+	ex_mem = &memory_map[0x4000000];
+	file.write((char*)ex_mem, 0x400);
+
+	//Serialize BG and OBJ palettes to save state
+	ex_mem = &memory_map[0x5000000];
+	file.write((char*)ex_mem, 0x400);
+
+	//Serialize VRAM to save state
+	ex_mem = &memory_map[0x6000000];
+	file.write((char*)ex_mem, 0x18000);
+
+	//Serialize OAM to save state
+	ex_mem = &memory_map[0x7000000];
+	file.write((char*)ex_mem, 0x400);
+
+	//Serialize SRAM to save state
+	ex_mem = &memory_map[0xE000000];
+	file.write((char*)ex_mem, 0x10000);
+
+	//Serialize misc data from MMU to save state
+	file.write((char*)&current_save_type, sizeof(current_save_type));
+	file.write((char*)&n_clock, sizeof(n_clock));
+	file.write((char*)&s_clock, sizeof(s_clock));
+	file.write((char*)&bios_lock, sizeof(bios_lock));
+	file.write((char*)&dma[0], sizeof(dma[0]));
+	file.write((char*)&dma[1], sizeof(dma[1]));
+	file.write((char*)&dma[2], sizeof(dma[2]));
+	file.write((char*)&dma[3], sizeof(dma[3]));
+	file.write((char*)&gpio, sizeof(gpio));
+
+	//Serialize EEPROM to save state
+	file.write((char*)&eeprom.bitstream_byte, sizeof(eeprom.bitstream_byte));
+	file.write((char*)&eeprom.address, sizeof(eeprom.address));
+	file.write((char*)&eeprom.dma_ptr, sizeof(eeprom.dma_ptr));
+	file.write((char*)&eeprom.size, sizeof(eeprom.size));
+	file.write((char*)&eeprom.size_lock, sizeof(eeprom.size_lock));
+	file.write((char*)&eeprom.data[0], eeprom.size);
+
+	//Serialize FLASH RAM to save state
+	file.write((char*)&flash_ram.current_command, sizeof(flash_ram.current_command));
+	file.write((char*)&flash_ram.bank, sizeof(flash_ram.bank));
+	file.write((char*)&flash_ram.write_single_byte, sizeof(flash_ram.write_single_byte));
+	file.write((char*)&flash_ram.switch_bank, sizeof(flash_ram.switch_bank));
+	file.write((char*)&flash_ram.grab_ids, sizeof(flash_ram.grab_ids));
+	file.write((char*)&flash_ram.next_write, sizeof(flash_ram.next_write));
+	file.write((char*)&flash_ram.data[0][0], 0x10000);
+	file.write((char*)&flash_ram.data[1][0], 0x10000);
+
+	file.close();
+	return true;
+}
+
+/****** Gets the size of MMU data for serialization ******/
+u32 AGB_MMU::size()
+{
+	u32 mmu_size = 0x70C00;
+
+	mmu_size += sizeof(current_save_type);
+	mmu_size += sizeof(n_clock);
+	mmu_size += sizeof(s_clock);
+	mmu_size += sizeof(bios_lock);
+	mmu_size += sizeof(dma[0]);
+	mmu_size += sizeof(dma[1]);
+	mmu_size += sizeof(dma[2]);
+	mmu_size += sizeof(dma[3]);
+	mmu_size += sizeof(gpio);
+
+	mmu_size += sizeof(eeprom.bitstream_byte);
+	mmu_size += sizeof(eeprom.address);
+	mmu_size += sizeof(eeprom.dma_ptr);
+	mmu_size += sizeof(eeprom.size);
+	mmu_size += sizeof(eeprom.size_lock);
+	mmu_size += eeprom.size;
+
+	mmu_size += sizeof(flash_ram.current_command);
+	mmu_size += sizeof(flash_ram.bank);
+	mmu_size += sizeof(flash_ram.write_single_byte);
+	mmu_size += sizeof(flash_ram.switch_bank);
+	mmu_size += sizeof(flash_ram.grab_ids);
+	mmu_size += sizeof(flash_ram.next_write);
+	mmu_size += 0x20000;
+
+	return mmu_size;
+}
+	

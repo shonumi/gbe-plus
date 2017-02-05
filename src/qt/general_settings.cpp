@@ -12,11 +12,12 @@
 #include <iostream>
 
 #include "general_settings.h"
-#include "main_menu.h"
+#include "render.h"
 #include "qt_common.h"
 
 #include "common/config.h"
 #include "common/cgfx_common.h"
+#include "common/util.h"
 
 /****** General settings constructor ******/
 gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
@@ -28,12 +29,14 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	display = new QDialog;
 	sound = new QDialog;
 	controls = new QDialog;
+	netplay = new QDialog;
 	paths = new QDialog;
 
 	tabs->addTab(general, tr("General"));
 	tabs->addTab(display, tr("Display"));
 	tabs->addTab(sound, tr("Sound"));
 	tabs->addTab(controls, tr("Controls"));
+	tabs->addTab(netplay, tr("Netplay"));
 	tabs->addTab(paths, tr("Paths"));
 
 	tabs_button = new QDialogButtonBox(QDialogButtonBox::Close);
@@ -43,6 +46,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	QWidget* sys_type_set = new QWidget(general);
 	QLabel* sys_type_label = new QLabel("Emulated System Type : ", sys_type_set);
 	sys_type = new QComboBox(sys_type_set);
+	sys_type->setToolTip("Forces GBE+ to emulate a certain system");
 	sys_type->addItem("Auto");
 	sys_type->addItem("Game Boy [DMG]");
 	sys_type->addItem("Game Boy Color [GBC]");
@@ -58,6 +62,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	QWidget* bios_set = new QWidget(general);
 	QLabel* bios_label = new QLabel("Use BIOS/Boot ROM", bios_set);
 	bios = new QCheckBox(bios_set);
+	bios->setToolTip("Instructs GBE+ to boot a system's BIOS or Boot ROM");
 
 	QHBoxLayout* bios_layout = new QHBoxLayout;
 	bios_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -65,40 +70,89 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	bios_layout->addWidget(bios_label);
 	bios_set->setLayout(bios_layout);
 
-	//General settings - Emulate multicarts
+	//General settings - Emulate multicarts (MBC1M)
 	QWidget* multicart_set = new QWidget(general);
-	QLabel* multicart_label = new QLabel("Emulate multicart ROMs (MBC1M)", multicart_set);
-	multicart = new QCheckBox(multicart_set);
+	QLabel* multicart_label = new QLabel("Multicart ROM Type : ", multicart_set);
+	multicart = new QComboBox(multicart_set);
+	multicart->setToolTip("Emulates various multicart setups");
+	multicart->addItem("None");
+	multicart->addItem("MBC1M");
+	multicart->addItem("MMM01");
 
 	QHBoxLayout* multicart_layout = new QHBoxLayout;
 	multicart_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-	multicart_layout->addWidget(multicart);
 	multicart_layout->addWidget(multicart_label);
+	multicart_layout->addWidget(multicart);
 	multicart_set->setLayout(multicart_layout);
 
 	//General settings - Use cheats
 	QWidget* cheats_set = new QWidget(general);
 	QLabel* cheats_label = new QLabel("Use cheats", cheats_set);
+	QPushButton* edit_cheats = new QPushButton("Edit Cheats");
 	cheats = new QCheckBox(cheats_set);
+	cheats->setToolTip("Enables Game Genie and GameShark cheat codes");
 
 	QHBoxLayout* cheats_layout = new QHBoxLayout;
-	cheats_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-	cheats_layout->addWidget(cheats);
-	cheats_layout->addWidget(cheats_label);
+	cheats_layout->addWidget(cheats, 0, Qt::AlignLeft);
+	cheats_layout->addWidget(cheats_label, 1, Qt::AlignLeft);
+	cheats_layout->addWidget(edit_cheats, 0, Qt::AlignRight);
 	cheats_set->setLayout(cheats_layout);
+
+	//General settings - RTC offsets
+	QWidget* rtc_set = new QWidget(general);
+	QLabel* rtc_label = new QLabel(" ", rtc_set);
+	QPushButton* edit_rtc = new QPushButton("Edit RTC Offsets");
+	edit_rtc->setToolTip("Adjusts the emulated real-time clock by adding specific offset values.");
+
+	QHBoxLayout* rtc_layout = new QHBoxLayout;
+	rtc_layout->addWidget(edit_rtc, 0, Qt::AlignLeft);
+	rtc_layout->addWidget(rtc_label, 1, Qt::AlignRight);
+	rtc_set->setLayout(rtc_layout);
+
+	//General settings - Emulated SIO device
+	QWidget* sio_set = new QWidget(general);
+	QLabel* sio_label = new QLabel("Serial IO Device (Link Cable)", sio_set);
+	sio_dev = new QComboBox(sio_set);
+	sio_dev->setToolTip("Changes the emulated Serial Input-Output device connected to the emulated Game Boy");
+	sio_dev->addItem("None");
+	sio_dev->addItem("GB Link Cable");
+	sio_dev->addItem("GB Printer");
+	sio_dev->addItem("GB Mobile Adapter");
+
+	QHBoxLayout* sio_layout = new QHBoxLayout;
+	sio_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	sio_layout->addWidget(sio_label);
+	sio_layout->addWidget(sio_dev);
+	sio_set->setLayout(sio_layout);
+
+	//General settings - Enable patches
+	QWidget* patch_set = new QWidget(general);
+	QLabel* patch_label = new QLabel("Enable ROM patches", patch_set);
+	auto_patch = new QCheckBox(patch_set);
+	auto_patch->setToolTip("Enables automatically patching a ROM when booting");
+
+	QHBoxLayout* patch_layout = new QHBoxLayout;
+	patch_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	patch_layout->addWidget(auto_patch);
+	patch_layout->addWidget(patch_label);
+	patch_set->setLayout(patch_layout);
 
 	QVBoxLayout* gen_layout = new QVBoxLayout;
 	gen_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	gen_layout->addWidget(sys_type_set);
+	gen_layout->addWidget(sio_set);
+	gen_layout->addWidget(multicart_set);
 	gen_layout->addWidget(bios_set);
 	gen_layout->addWidget(cheats_set);
-	gen_layout->addWidget(multicart_set);
+	gen_layout->addWidget(patch_set);
+	gen_layout->addWidget(rtc_set);
 	general->setLayout(gen_layout);
 
 	//Display settings - Screen scale
 	QWidget* screen_scale_set = new QWidget(display);
 	QLabel* screen_scale_label = new QLabel("Screen Scale : ");
 	screen_scale = new QComboBox(screen_scale_set);
+	screen_scale->setToolTip("Scaling factor for the system's original screen size");
 	screen_scale->addItem("1x");
 	screen_scale->addItem("2x");
 	screen_scale->addItem("3x");
@@ -120,6 +174,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	QWidget* cgfx_scale_set = new QWidget(display);
 	QLabel* cgfx_scale_label = new QLabel("Custom Graphics (CGFX) Scale : ");
 	cgfx_scale = new QComboBox(cgfx_scale_set);
+	cgfx_scale->setToolTip("Scaling factor for all custom graphics.\nOnly applies when CGFX are loaded.");
 	cgfx_scale->addItem("1x");
 	cgfx_scale->addItem("2x");
 	cgfx_scale->addItem("3x");
@@ -141,6 +196,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	QWidget* dmg_gbc_pal_set = new QWidget(display);
 	QLabel* dmg_gbc_pal_label = new QLabel("DMG Color Palette : ");
 	dmg_gbc_pal = new QComboBox(dmg_gbc_pal_set);
+	dmg_gbc_pal->setToolTip("Selects the original Game Boy palette");
 	dmg_gbc_pal->addItem("OFF");
 	dmg_gbc_pal->addItem("GBC BOOTROM - NO INPUT");
 	dmg_gbc_pal->addItem("GBC BOOTROM - UP");
@@ -162,11 +218,37 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	dmg_gbc_pal_layout->addWidget(dmg_gbc_pal_label);
 	dmg_gbc_pal_layout->addWidget(dmg_gbc_pal);
 	dmg_gbc_pal_set->setLayout(dmg_gbc_pal_layout);
-	
+
+	//Display settings - OpenGL Fragment Shader
+	QWidget* ogl_frag_shader_set = new QWidget(display);
+	QLabel* ogl_frag_shader_label = new QLabel("Post-Processing Shader : ");
+	ogl_frag_shader = new QComboBox(ogl_frag_shader_set);
+	ogl_frag_shader->setToolTip("Applies an OpenGL GLSL post-processing shader for graphical effects.");
+	ogl_frag_shader->addItem("OFF");
+	ogl_frag_shader->addItem("2xBR");
+	ogl_frag_shader->addItem("4xBR");
+	ogl_frag_shader->addItem("Bad Bloom");
+	ogl_frag_shader->addItem("Chrono");
+	ogl_frag_shader->addItem("Grayscale");
+	ogl_frag_shader->addItem("Pastel");
+	ogl_frag_shader->addItem("Scale2x");
+	ogl_frag_shader->addItem("Scale3x");
+	ogl_frag_shader->addItem("Sepia");
+	ogl_frag_shader->addItem("Spotlight");
+	ogl_frag_shader->addItem("TV Mode");
+	ogl_frag_shader->addItem("Washout");
+
+	QHBoxLayout* ogl_frag_shader_layout = new QHBoxLayout;
+	ogl_frag_shader_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	ogl_frag_shader_layout->addWidget(ogl_frag_shader_label);
+	ogl_frag_shader_layout->addWidget(ogl_frag_shader);
+	ogl_frag_shader_set->setLayout(ogl_frag_shader_layout);
+
 	//Display settings - Use OpenGL
 	QWidget* ogl_set = new QWidget(display);
 	QLabel* ogl_label = new QLabel("Use OpenGL");
 	ogl = new QCheckBox(ogl_set);
+	ogl->setToolTip("Draw the screen using OpenGL.\n Allows for faster drawing operations and shader support.");
 
 	QHBoxLayout* ogl_layout = new QHBoxLayout;
 	ogl_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -178,6 +260,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	QWidget* load_cgfx_set = new QWidget(display);
 	QLabel* load_cgfx_label = new QLabel("Load Custom Graphics (CGFX)");
 	load_cgfx = new QCheckBox(load_cgfx_set);
+	load_cgfx->setToolTip("Enables custom graphics and loads them when booting a game");
 
 	QHBoxLayout* load_cgfx_layout = new QHBoxLayout;
 	load_cgfx_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -189,6 +272,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	QWidget* aspect_set = new QWidget(display);
 	QLabel* aspect_label = new QLabel("Maintain Aspect Ratio");
 	aspect_ratio = new QCheckBox(aspect_set);
+	aspect_ratio->setToolTip("Forces GBE+ to maintain the original system's aspect ratio");
 
 	QHBoxLayout* aspect_layout = new QHBoxLayout;
 	aspect_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -201,6 +285,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	disp_layout->addWidget(screen_scale_set);
 	disp_layout->addWidget(cgfx_scale_set);
 	disp_layout->addWidget(dmg_gbc_pal_set);
+	disp_layout->addWidget(ogl_frag_shader_set);
 	disp_layout->addWidget(ogl_set);
 	disp_layout->addWidget(load_cgfx_set);
 	disp_layout->addWidget(aspect_set);
@@ -210,6 +295,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	QWidget* freq_set = new QWidget(sound);
 	QLabel* freq_label = new QLabel("Output Frequency : ");
 	freq = new QComboBox(freq_set);
+	freq->setToolTip("Selects the final output frequency of all sound.");
 	freq->addItem("48000Hz");
 	freq->addItem("44100Hz");
 	freq->addItem("22050Hz");
@@ -226,6 +312,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	QWidget* sound_on_set = new QWidget(sound);
 	QLabel* sound_on_label = new QLabel("Enable Sound");
 	sound_on = new QCheckBox(sound_on_set);
+	sound_on->setToolTip("Enables all sounds output.");
 	sound_on->setChecked(true);
 
 	QHBoxLayout* sound_on_layout = new QHBoxLayout;
@@ -238,6 +325,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	QWidget* volume_set = new QWidget(sound);
 	QLabel* volume_label = new QLabel("Volume : ");
 	volume = new QSlider(sound);
+	volume->setToolTip("Master volume for GBE+");
 	volume->setMaximum(128);
 	volume->setMinimum(0);
 	volume->setValue(128);
@@ -260,6 +348,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	input_device_set = new QWidget(controls);
 	QLabel* input_device_label = new QLabel("Input Device : ");
 	input_device = new QComboBox(input_device_set);
+	input_device->setToolTip("Selects the current input device to configure");
 	input_device->addItem("Keyboard");
 
 	QHBoxLayout* input_device_layout = new QHBoxLayout;
@@ -271,7 +360,8 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	//Control settings- Dead-zone
 	dead_zone_set = new QWidget(controls);
 	QLabel* dead_zone_label = new QLabel("Dead Zone : ");
-	dead_zone = new QSlider(sound);
+	dead_zone = new QSlider(controls);
+	dead_zone->setToolTip("Sets the dead-zone for joystick axes.");
 	dead_zone->setMaximum(32767);
 	dead_zone->setMinimum(0);
 	dead_zone->setValue(16000);
@@ -535,6 +625,78 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	gyro_left_set->setVisible(false);
 	gyro_right_set->setVisible(false);
 
+	//Netplay - Enable Netplay
+	QWidget* enable_netplay_set = new QWidget(netplay);
+	QLabel* enable_netplay_label = new QLabel("Enable netplay");
+	enable_netplay = new QCheckBox(netplay);
+	enable_netplay->setToolTip("Enables network communications for playing online.");
+
+	QHBoxLayout* enable_netplay_layout = new QHBoxLayout;
+	enable_netplay_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	enable_netplay_layout->addWidget(enable_netplay);
+	enable_netplay_layout->addWidget(enable_netplay_label);
+	enable_netplay_set->setLayout(enable_netplay_layout);
+
+	//Netplay - Enable hard syncing
+	QWidget* hard_sync_set = new QWidget(netplay);
+	QLabel* hard_sync_label = new QLabel("Use hard syncing");
+	hard_sync = new QCheckBox(netplay);
+	hard_sync->setToolTip("Forces GBE+ to pause during netplay to wait for other players.\nCauses slowdowns but necessary to avoid desyncing in some cases.");
+
+	QHBoxLayout* hard_sync_layout = new QHBoxLayout;
+	hard_sync_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	hard_sync_layout->addWidget(hard_sync);
+	hard_sync_layout->addWidget(hard_sync_label);
+	hard_sync_set->setLayout(hard_sync_layout);
+
+	//Netplay - Server port
+	QWidget* server_port_set = new QWidget(netplay);
+	QLabel* server_port_label = new QLabel("Server Port : ");
+	server_port = new QSpinBox(netplay);
+	server_port->setMinimum(0);
+	server_port->setMaximum(0xFFFF);
+
+	QHBoxLayout* server_port_layout = new QHBoxLayout;
+	server_port_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	server_port_layout->addWidget(server_port_label);
+	server_port_layout->addWidget(server_port);
+	server_port_set->setLayout(server_port_layout);
+
+	//Netplay - Client port
+	QWidget* client_port_set = new QWidget(netplay);
+	QLabel* client_port_label = new QLabel("Client Port : ");
+	client_port = new QSpinBox(netplay);
+	client_port->setMinimum(0);
+	client_port->setMaximum(0xFFFF);
+
+	QHBoxLayout* client_port_layout = new QHBoxLayout;
+	client_port_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	client_port_layout->addWidget(client_port_label);
+	client_port_layout->addWidget(client_port);
+	client_port_set->setLayout(client_port_layout);
+
+	//Netplay - IP address
+	QWidget* ip_address_set = new QWidget(netplay);
+	QLabel* ip_address_label = new QLabel("Client IP Address : ");
+	ip_address = new QLineEdit(netplay);
+	ip_update = new QPushButton("Update IP");
+
+	QHBoxLayout* ip_address_layout = new QHBoxLayout;
+	ip_address_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	ip_address_layout->addWidget(ip_address_label);
+	ip_address_layout->addWidget(ip_address);
+	ip_address_layout->addWidget(ip_update);
+	ip_address_set->setLayout(ip_address_layout);
+
+	QVBoxLayout* netplay_layout = new QVBoxLayout;
+	netplay_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	netplay_layout->addWidget(enable_netplay_set);
+	netplay_layout->addWidget(hard_sync_set);
+	netplay_layout->addWidget(server_port_set);
+	netplay_layout->addWidget(client_port_set);
+	netplay_layout->addWidget(ip_address_set);
+	netplay->setLayout(netplay_layout);
+
 	//Path settings - DMG BIOS
 	QWidget* dmg_bios_set = new QWidget(paths);
 	dmg_bios_label = new QLabel("DMG Boot ROM :  ");
@@ -636,6 +798,34 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	screenshot_layout->addWidget(screenshot_button);
 	screenshot_set->setLayout(screenshot_layout);
 
+	//Path settings - Game saves
+	QWidget* game_saves_set = new QWidget(paths);
+	game_saves_label = new QLabel("Game Saves :  ");
+	QPushButton* game_saves_button = new QPushButton("Browse");
+	game_saves = new QLineEdit(paths);
+	game_saves->setReadOnly(true);
+
+	QHBoxLayout* game_saves_layout = new QHBoxLayout;
+	game_saves_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	game_saves_layout->addWidget(game_saves_label);
+	game_saves_layout->addWidget(game_saves);
+	game_saves_layout->addWidget(game_saves_button);
+	game_saves_set->setLayout(game_saves_layout);
+
+	//Path settings - Cheats file
+	QWidget* cheats_path_set = new QWidget(paths);
+	cheats_path_label = new QLabel("Cheats File :  ");
+	QPushButton* cheats_path_button = new QPushButton("Browse");
+	cheats_path = new QLineEdit(paths);
+	cheats_path->setReadOnly(true);
+
+	QHBoxLayout* cheats_path_layout = new QHBoxLayout;
+	cheats_path_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	cheats_path_layout->addWidget(cheats_path_label);
+	cheats_path_layout->addWidget(cheats_path);
+	cheats_path_layout->addWidget(cheats_path_button);
+	cheats_path_set->setLayout(cheats_path_layout);
+
 	QVBoxLayout* paths_layout = new QVBoxLayout;
 	paths_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	paths_layout->addWidget(dmg_bios_set);
@@ -645,18 +835,32 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	paths_layout->addWidget(dump_bg_set);
 	paths_layout->addWidget(dump_obj_set);
 	paths_layout->addWidget(screenshot_set);
+	paths_layout->addWidget(game_saves_set);
+	paths_layout->addWidget(cheats_path_set);
 	paths->setLayout(paths_layout);
+
+	//Setup warning message box
+	warning_box = new QMessageBox;
+	QPushButton* warning_box_ok = warning_box->addButton("OK", QMessageBox::AcceptRole);
+	warning_box->setIcon(QMessageBox::Warning);
+	warning_box->hide();
 
 	data_folder = new data_dialog;
 
 	connect(tabs, SIGNAL(currentChanged(int)), this, SLOT(close_input()));
 	connect(tabs_button, SIGNAL(accepted()), this, SLOT(accept()));
 	connect(tabs_button, SIGNAL(rejected()), this, SLOT(reject()));
-	connect(tabs_button->button(QDialogButtonBox::Close), SIGNAL(clicked()), this, SLOT(close_input()));
+	connect(tabs_button->button(QDialogButtonBox::Close), SIGNAL(clicked()), this, SLOT(close_settings()));
 	connect(bios, SIGNAL(stateChanged(int)), this, SLOT(set_bios()));
+	connect(sio_dev, SIGNAL(currentIndexChanged(int)), this, SLOT(sio_dev_change()));
+	connect(auto_patch, SIGNAL(stateChanged(int)), this, SLOT(set_patches()));
+	connect(edit_cheats, SIGNAL(clicked()), this, SLOT(show_cheats()));
+	connect(edit_rtc, SIGNAL(clicked()), this, SLOT(show_rtc()));
+	connect(ogl, SIGNAL(stateChanged(int)), this, SLOT(set_ogl()));
 	connect(screen_scale, SIGNAL(currentIndexChanged(int)), this, SLOT(screen_scale_change()));
 	connect(aspect_ratio, SIGNAL(stateChanged(int)), this, SLOT(aspect_ratio_change()));
 	connect(dmg_gbc_pal, SIGNAL(currentIndexChanged(int)), this, SLOT(dmg_gbc_pal_change()));
+	connect(ogl_frag_shader, SIGNAL(currentIndexChanged(int)), this, SLOT(ogl_frag_change()));
 	connect(load_cgfx, SIGNAL(stateChanged(int)), this, SLOT(set_cgfx()));
 	connect(volume, SIGNAL(valueChanged(int)), this, SLOT(volume_change()));
 	connect(freq, SIGNAL(currentIndexChanged(int)), this, SLOT(sample_rate_change()));
@@ -664,6 +868,11 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(dead_zone, SIGNAL(valueChanged(int)), this, SLOT(dead_zone_change()));
 	connect(input_device, SIGNAL(currentIndexChanged(int)), this, SLOT(input_device_change()));
 	connect(advanced_button, SIGNAL(clicked()), this, SLOT(switch_control_layout()));
+	connect(enable_netplay, SIGNAL(stateChanged(int)), this, SLOT(set_netplay()));
+	connect(hard_sync, SIGNAL(stateChanged(int)), this, SLOT(set_hard_sync()));
+	connect(server_port, SIGNAL(valueChanged(int)), this, SLOT(update_server_port()));
+	connect(client_port, SIGNAL(valueChanged(int)), this, SLOT(update_client_port()));
+	connect(ip_update, SIGNAL(clicked()), this, SLOT(update_ip_addr()));
 	connect(data_folder, SIGNAL(accepted()), this, SLOT(select_folder()));
 	connect(data_folder, SIGNAL(rejected()), this, SLOT(reject_folder()));
 
@@ -675,6 +884,8 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(dump_bg_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
 	connect(dump_obj_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
 	connect(screenshot_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
+	connect(game_saves_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
+	connect(cheats_path_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
 
 	paths_mapper->setMapping(dmg_bios_button, 0);
 	paths_mapper->setMapping(gbc_bios_button, 1);
@@ -683,6 +894,8 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	paths_mapper->setMapping(screenshot_button, 4);
 	paths_mapper->setMapping(dump_bg_button, 5);
 	paths_mapper->setMapping(dump_obj_button, 6);
+	paths_mapper->setMapping(game_saves_button, 7);
+	paths_mapper->setMapping(cheats_path_button, 8);
 	connect(paths_mapper, SIGNAL(mapped(int)), this, SLOT(set_paths(int)));
 
 	QSignalMapper* button_config = new QSignalMapper(this);
@@ -832,6 +1045,9 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	config_advanced_controls = false;
 	input_type = 0;
 
+	dmg_cheat_menu = new cheat_menu;
+	real_time_clock_menu = new rtc_menu;
+
 	resize(450, 450);
 	setWindowTitle(tr("GBE+ Settings"));
 }
@@ -842,11 +1058,23 @@ void gen_settings::set_ini_options()
 	//Emulated system type
 	sys_type->setCurrentIndex(config::gb_type);
 
+	//Emulated SIO device
+	sio_dev->setCurrentIndex(config::sio_device);
+
 	//BIOS or Boot ROM option
 	if(config::use_bios) { bios->setChecked(true); }
 
+	//Enable patches
+	if(config::use_patches) { auto_patch->setChecked(true); }
+
 	//Use cheats
 	if(config::use_cheats) { cheats->setChecked(true); }
+
+	//RTC offsets
+	real_time_clock_menu->secs_offset->setValue(config::rtc_offset[0]);
+	real_time_clock_menu->mins_offset->setValue(config::rtc_offset[1]);
+	real_time_clock_menu->hours_offset->setValue(config::rtc_offset[2]);
+	real_time_clock_menu->days_offset->setValue(config::rtc_offset[3]);
 
 	//Screen scale options
 	screen_scale->setCurrentIndex(config::scaling_factor - 1);
@@ -857,11 +1085,38 @@ void gen_settings::set_ini_options()
 	//DMG-on-GBC palette options
 	dmg_gbc_pal->setCurrentIndex(config::dmg_gbc_pal);
 
+	//OpenGL Fragment Shader
+	if(config::fragment_shader == (config::data_path + "shaders/fragment.fs")) { ogl_frag_shader->setCurrentIndex(0); }
+	else if(config::fragment_shader == (config::data_path + "shaders/2xBR.fs")) { ogl_frag_shader->setCurrentIndex(1); }
+	else if(config::fragment_shader == (config::data_path + "shaders/4xBR.fs")) { ogl_frag_shader->setCurrentIndex(2); }
+	else if(config::fragment_shader == (config::data_path + "shaders/bad_bloom.fs")) { ogl_frag_shader->setCurrentIndex(3); }
+	else if(config::fragment_shader == (config::data_path + "shaders/chrono.fs")) { ogl_frag_shader->setCurrentIndex(4); }
+	else if(config::fragment_shader == (config::data_path + "shaders/grayscale.fs")) { ogl_frag_shader->setCurrentIndex(5); }
+	else if(config::fragment_shader == (config::data_path + "shaders/pastel.fs")) { ogl_frag_shader->setCurrentIndex(6); }
+	else if(config::fragment_shader == (config::data_path + "shaders/scale2x.fs")) { ogl_frag_shader->setCurrentIndex(7); }
+	else if(config::fragment_shader == (config::data_path + "shaders/scale3x.fs")) { ogl_frag_shader->setCurrentIndex(8); }
+	else if(config::fragment_shader == (config::data_path + "shaders/sepia.fs")) { ogl_frag_shader->setCurrentIndex(9); }
+	else if(config::fragment_shader == (config::data_path + "shaders/spotlight.fs")) { ogl_frag_shader->setCurrentIndex(10); }
+	else if(config::fragment_shader == (config::data_path + "shaders/tv_mode.fs")) { ogl_frag_shader->setCurrentIndex(11); }
+	else if(config::fragment_shader == (config::data_path + "shaders/washout.fs")) { ogl_frag_shader->setCurrentIndex(12); }
+
 	//OpenGL option
-	if(config::use_opengl) { ogl->setChecked(true); }
+	if(config::use_opengl)
+	{
+		ogl->setChecked(true);
+		ogl_frag_shader->setEnabled(true);
+	}
+
+	else { ogl_frag_shader->setEnabled(false); }
 
 	//CGFX option
-	if(cgfx::load_cgfx) { load_cgfx->setChecked(true); }
+	if(cgfx::load_cgfx)
+	{
+		load_cgfx->setChecked(true);
+		cgfx_scale->setEnabled(true);
+	}
+
+	else { cgfx_scale->setEnabled(false); }
 
 	//Maintain aspect ratio option
 	if(config::maintain_aspect_ratio) { aspect_ratio->setChecked(true); }
@@ -919,9 +1174,18 @@ void gen_settings::set_ini_options()
 	QString path_5(QString::fromStdString(config::ss_path));
 	QString path_6(QString::fromStdString(cgfx::dump_bg_path));
 	QString path_7(QString::fromStdString(cgfx::dump_obj_path));
+	QString path_8(QString::fromStdString(config::save_path));
+	QString path_9(QString::fromStdString(config::cheats_path));
 
 	//Rumble
 	if(config::use_haptics) { rumble_on->setChecked(true); }
+
+	//Netplay
+	if(config::use_netplay) { enable_netplay->setChecked(true); }
+	if(config::netplay_hard_sync) { hard_sync->setChecked(true); }
+	server_port->setValue(config::netplay_server_port);
+	client_port->setValue(config::netplay_client_port);
+	ip_address->setText(QString::fromStdString(config::netplay_client_ip));
 
 	dmg_bios->setText(path_1);
 	gbc_bios->setText(path_2);
@@ -930,6 +1194,8 @@ void gen_settings::set_ini_options()
 	screenshot->setText(path_5);
 	dump_bg->setText(path_6);
 	dump_obj->setText(path_7);
+	game_saves->setText(path_8);
+	cheats_path->setText(path_9);
 }
 
 /****** Toggles whether to use the Boot ROM or BIOS ******/
@@ -937,6 +1203,39 @@ void gen_settings::set_bios()
 {
 	if(bios->isChecked()) { config::use_bios = true; }
 	else { config::use_bios = false; }
+}
+
+/****** Changes the emulated Serial IO device ******/
+void gen_settings::sio_dev_change()
+{
+	config::sio_device = sio_dev->currentIndex();
+}
+
+/****** Toggles whether to enable auto-patching ******/
+void gen_settings::set_patches()
+{
+	if(auto_patch->isChecked()) { config::use_patches = true; }
+	else { config::use_patches = false; }
+}
+
+/****** Displays the cheats window ******/
+void gen_settings::show_cheats()
+{
+	dmg_cheat_menu->fetch_cheats();
+	dmg_cheat_menu->show();
+}
+
+/****** Displays the cheats window ******/
+void gen_settings::show_rtc()
+{
+	real_time_clock_menu->show();
+}
+
+/****** Toggles enabling or disabling the fragment shader widget when setting OpenGL ******/
+void gen_settings::set_ogl()
+{
+	if(ogl->isChecked()) { ogl_frag_shader->setEnabled(true); }
+	else { ogl_frag_shader->setEnabled(false); }
 }
 
 /****** Changes the display scale ******/
@@ -960,11 +1259,61 @@ void gen_settings::dmg_gbc_pal_change()
 	set_dmg_colors(config::dmg_gbc_pal);
 }
 
+/****** Changes the current OpenGL fragment shader ******/
+void gen_settings::ogl_frag_change()
+{
+	switch(ogl_frag_shader->currentIndex())
+	{
+		case 0: config::fragment_shader = config::data_path + "shaders/fragment.fs"; break;
+		case 1: config::fragment_shader = config::data_path + "shaders/2xBR.fs"; break;
+		case 2: config::fragment_shader = config::data_path + "shaders/4xBR.fs"; break;
+		case 3: config::fragment_shader = config::data_path + "shaders/bad_bloom.fs"; break;
+		case 4: config::fragment_shader = config::data_path + "shaders/chrono.fs"; break;
+		case 5: config::fragment_shader = config::data_path + "shaders/grayscale.fs"; break;
+		case 6: config::fragment_shader = config::data_path + "shaders/pastel.fs"; break;
+		case 7: config::fragment_shader = config::data_path + "shaders/scale2x.fs"; break;
+		case 8: config::fragment_shader = config::data_path + "shaders/scale3x.fs"; break;
+		case 9: config::fragment_shader = config::data_path + "shaders/sepia.fs"; break;
+		case 10: config::fragment_shader = config::data_path + "shaders/spotlight.fs"; break;
+		case 11: config::fragment_shader = config::data_path + "shaders/tv_mode.fs"; break;
+		case 12: config::fragment_shader = config::data_path + "shaders/washout.fs"; break;
+	}
+
+	if((main_menu::gbe_plus != NULL) && (config::use_opengl))
+	{
+		qt_gui::draw_surface->hw_screen->reload_shaders();
+	}
+}
+
 /****** Toggles activation of custom graphics ******/
 void gen_settings::set_cgfx()
 {
-	if(load_cgfx->isChecked()) { cgfx::load_cgfx = true; }
-	else { cgfx::load_cgfx = false; }
+	if(load_cgfx->isChecked())
+	{
+		//Test that the manifest file exists before enabling anything
+		QFile test_file(QString::fromStdString(cgfx::manifest_file));
+
+		//Display warning if the file is not there
+		if(!test_file.exists())
+		{
+			load_cgfx->setChecked(false);
+			load_cgfx->setCheckState(Qt::Unchecked);
+
+			std::string mesg_text = "The manifest file: '" + cgfx::manifest_file + "' could not be loaded. Check paths and file permissions. CGFX will not load without a manifest file!"; 
+			warning_box->setText(QString::fromStdString(mesg_text));
+			warning_box->show();
+			return;
+		}
+		
+		cgfx::load_cgfx = true;
+		cgfx_scale->setEnabled(true);
+	}
+
+	else
+	{
+		cgfx::load_cgfx = false;
+		cgfx_scale->setEnabled(false);
+	}
 }
 
 /****** Dynamically changes the core's volume ******/
@@ -1040,19 +1389,20 @@ void gen_settings::set_paths(int index)
 {
 	QString path;
 
-	//Open file browser for Boot ROMs, BIOS, and manifests
-	if(index < 4) 
+	//Open file browser for Boot ROMs, BIOS, cheats, and manifests
+	if((index < 4) || (index == 8))
 	{
 		path = QFileDialog::getOpenFileName(this, tr("Open"), "", tr("All files (*)"));
 		if(path.isNull()) { return; }
 	}
 
-	//Open folder browser for screenshots, CGFX dumps
+	//Open folder browser for screenshots, CGFX dumps, game saves
 	else
 	{
 		//Open the data folder for CGFX dumps
 		//On Linux or Unix, this is supposed to be a hidden folder, so we need a custom dialog
-		if(index >= 5)
+		//This uses relative paths, but for game saves we need full path, so ignore if index is 7
+		if((index >= 5) && (index != 7))
 		{
 			data_folder->open_data_folder();			
 
@@ -1112,6 +1462,20 @@ void gen_settings::set_paths(int index)
 			cgfx::dump_obj_path = path.toStdString();
 			dump_obj->setText(path);
 			break;
+
+		case 7:
+			config::save_path = path.toStdString();
+			game_saves->setText(path);
+			break;
+
+		case 8:
+			config::cheats_path = path.toStdString();
+			cheats_path->setText(path);
+
+			//Make sure to update cheats from new file
+			parse_cheats_file();
+
+			break;
 	}
 }
 
@@ -1165,7 +1529,50 @@ void gen_settings::input_device_change()
 }
 
 /****** Dynamically changes the core pad's dead-zone ******/
-void gen_settings::dead_zone_change() { config::dead_zone = dead_zone->value(); }	
+void gen_settings::dead_zone_change() { config::dead_zone = dead_zone->value(); }
+
+/****** Sets the netplay enable option ******/
+void gen_settings::set_netplay()
+{
+	if(enable_netplay->isChecked()) { config::use_netplay = true; }
+	else { config::use_netplay = false; }
+}
+
+/****** Sets the netplay hard sync option ******/
+void gen_settings::set_hard_sync()
+{
+	if(hard_sync->isChecked()) { config::netplay_hard_sync = true; }
+	else { config::netplay_hard_sync = false; }
+}
+
+/****** Sets the netplay server port ******/
+void gen_settings::update_server_port()
+{
+	config::netplay_server_port = server_port->value();
+}
+
+/****** Sets the netplay client port ******/
+void gen_settings::update_client_port()
+{
+	config::netplay_client_port = client_port->value();
+}
+
+/****** Sets the client IP address ******/
+void gen_settings::update_ip_addr()
+{
+	std::string temp = ip_address->text().toStdString();
+	u32 check = 0;
+
+	if(!util::ip_to_u32(temp, check))
+	{
+		ip_address->setText(QString::fromStdString(config::netplay_client_ip));
+	}
+
+	else
+	{
+		config::netplay_client_ip = temp;
+	}
+}
 
 /****** Prepares GUI to receive input for controller configuration ******/
 void gen_settings::configure_button(int button)
@@ -1618,6 +2025,8 @@ void gen_settings::paintEvent(QPaintEvent* event)
 	dump_bg_label->setMinimumWidth(dmg_bios_label->width());
 	dump_obj_label->setMinimumWidth(dmg_bios_label->width());
 	screenshot_label->setMinimumWidth(dmg_bios_label->width());
+	game_saves_label->setMinimumWidth(dmg_bios_label->width());
+	cheats_path_label->setMinimumWidth(dmg_bios_label->width());
 }
 
 /****** Closes the settings window ******/
@@ -1625,6 +2034,19 @@ void gen_settings::closeEvent(QCloseEvent* event)
 {
 	//Close any on-going input configuration
 	close_input();
+
+	//Restore old text for netplay IP address if it hasn't been updated
+	ip_address->setText(QString::fromStdString(config::netplay_client_ip));
+}
+
+/****** Closes the settings window - Used for the Close tab button ******/
+void gen_settings::close_settings()
+{
+	//Close any on-going input configuration
+	close_input();
+
+	//Restore old text for netplay IP address if it hasn't been updated
+	ip_address->setText(QString::fromStdString(config::netplay_client_ip));
 }
 
 /****** Handle keypress input ******/

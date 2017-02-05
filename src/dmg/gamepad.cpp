@@ -530,15 +530,16 @@ u8 DMG_GamePad::read()
 {
 	switch(column_id)
 	{
-		case 0x20 :
-			return p15;
-			break;
-		
-		case 0x10 :
-			return p14;
-			break;
+		case 0x30:
+			return (p14 | p15);
 
-		default :
+		case 0x20:
+			return p15;
+		
+		case 0x10:
+			return p14;
+
+		default:
 			return 0xFF;
 	}
 } 

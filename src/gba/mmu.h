@@ -39,11 +39,11 @@ class AGB_MMU
 	//Cartridge GPIO-type enumerations
 	enum gpio_types
 	{
-		DISABLED,
-		RTC,
-		SOLAR_SENSOR,
-		RUMBLE,
-		GYRO_SENSOR,
+		GPIO_DISABLED,
+		GPIO_RTC,
+		GPIO_SOLAR_SENSOR,
+		GPIO_RUMBLE,
+		GPIO_GYRO_SENSOR,
 	};
 
 	backup_types current_save_type;
@@ -99,11 +99,13 @@ class AGB_MMU
 	//Structure to handle GPIO reading and writing
 	struct gpio_controller
 	{
-		bool readable;
-		bool in_out;
-		u8 input;
-		u8 output;
-		gpio_types current_type;
+		u8 data;
+		u8 direction;
+		u8 control;
+		u16 state;
+		u8 serial_counter;
+		u8 serial_byte;
+		gpio_types type;
 	} gpio;
 
 	AGB_MMU();
@@ -132,6 +134,9 @@ class AGB_MMU
 	bool save_backup(std::string filename);
 	bool load_backup(std::string filename);
 
+	bool patch_ips(std::string filename);
+	bool patch_ups(std::string filename);
+
 	void eeprom_set_addr();
 	void eeprom_read_data();
 	void eeprom_write_data();
@@ -140,11 +145,22 @@ class AGB_MMU
 	void flash_erase_sector(u32 sector);
 	void flash_switch_bank();
 
+	//GPIO handling functions
+	void process_rtc();
+	void process_solar_sensor();
+	void process_rumble();
+	void process_gyro_sensor();
+
 	void set_lcd_data(agb_lcd_data* ex_lcd_stat);
 	void set_apu_data(agb_apu_data* ex_apu_stat);
 
 	AGB_GamePad* g_pad;
 	std::vector<gba_timer>* timer;
+
+	//Serialize data for save state loading/saving
+	bool mmu_read(u32 offset, std::string filename);
+	bool mmu_write(std::string filename);
+	u32 size();
 
 	private:
 

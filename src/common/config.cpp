@@ -27,10 +27,12 @@ namespace config
 	std::string agb_bios_path = "";
 	std::string nds7_bios_path = "";
 	std::string nds9_bios_path = "";
+	std::string save_path = "";
 	std::string ss_path = "";
 	std::string cfg_path = "";
 	std::string data_path = "";
 	std::string cheats_path = "";
+	std::string external_camera_file = "";
 	std::vector <std::string> recent_files;
 	std::vector <std::string> cli_args;
 	bool use_debugger = false;
@@ -86,6 +88,8 @@ namespace config
 	//Hotkey bindings
 	//Turbo = TAB
 	int hotkey_turbo = SDLK_TAB;
+	int hotkey_mute = SDLK_m;
+	int hotkey_camera = SDLK_p;
 
 	//Default joystick dead-zone
 	int dead_zone = 16000;
@@ -100,8 +104,13 @@ namespace config
 	bool pause_emu = false;
 	bool use_bios = false;
 	bool use_multicart = false;
+	bool use_mmm01 = false;
+	u32 sio_device = 0;
 	bool use_opengl = false;
 	bool turbo = false;
+
+	std::string vertex_shader = "vertex.vs";
+	std::string fragment_shader = "fragment.fs";
 
 	u8 scaling_factor = 1;
 	u8 old_scaling_factor = 1;
@@ -112,12 +121,17 @@ namespace config
 	bool use_cheats = false;
 	std::vector <u32> gs_cheats;
 	std::vector <std::string> gg_cheats;
+	std::vector <std::string> cheats_info;
+
+	//Patches
+	bool use_patches = false;
 
 	//Netplay settings
 	bool use_netplay = true;
 	bool netplay_hard_sync = true;
 	u16 netplay_server_port = 2000;
 	u16 netplay_client_port = 2001;
+	std::string netplay_client_ip = "127.0.0.1";
 
 	u8 dmg_gbc_pal = 0;
 
@@ -138,6 +152,7 @@ namespace config
 
 	//Sound parameters
 	u8 volume = 128;
+	u8 old_volume = 0;
 	double sample_rate = 44100.0;
 	bool mute = false;
 
@@ -167,6 +182,9 @@ namespace config
 		{ 0xFF606060, 0xFF606060 },
 		{ 0xFF000000, 0xFF000000 }
 	};
+
+	//Real-time clock offsets
+	u16 rtc_offset[4] = { 0, 0, 0, 0 };
 }
 
 /****** Reset DMG default colors ******/
@@ -495,6 +513,44 @@ void validate_system_type()
 	}
 }
 
+/****** Returns the emulated system type from a given filename ******/
+u8 get_system_type_from_file(std::string filename)
+{
+	//Determine Gameboy type based on file name
+	std::size_t dot = filename.find_last_of(".");
+
+	if(dot == std::string::npos) { return 0; }
+
+	std::string ext = filename.substr(dot);
+	
+	u8 gb_type = config::gb_type;
+
+	if(ext == ".gba") { gb_type = 3; }
+	else if((ext != ".gba") && (gb_type == 3)) { gb_type = 2; }
+
+	//For Auto or GBC mode, determine what the CGB Flag is
+	if((gb_type == 0) || (gb_type == 2))
+	{
+		std::ifstream test_stream(filename.c_str(), std::ios::binary);
+		
+		if(test_stream.is_open())
+		{
+			u8 color_byte;
+
+			test_stream.seekg(0x143);
+			test_stream.read((char*)&color_byte, 1);
+
+			//If GBC compatible, use GBC mode. Otherwise, use DMG mode
+			if((color_byte == 0xC0) || (color_byte == 0x80)) { gb_type = 2; }
+			else { gb_type = 1; }
+
+			test_stream.close();
+		}
+	}
+
+	return gb_type;
+}
+
 /****** Parse arguments passed from the command-line ******/
 bool parse_cli_args()
 {
@@ -546,13 +602,26 @@ bool parse_cli_args()
 			else if((config::cli_args[x] == "-f") || (config::cli_args[x] == "--fullscreen")) { config::flags |= SDL_WINDOW_FULLSCREEN_DESKTOP; } 
 
 			//Use multicart mode if applicable for a given ROM
-			else if(config::cli_args[x] == "--multicart") { config::use_multicart = true; }
+			else if(config::cli_args[x] == "--multicart")
+			{
+				config::use_multicart = true;
+				config::use_mmm01 = false;
+			}
+
+			//Use MMM01 mode if applicable for a given ROM
+			else if(config::cli_args[x] == "--mmm01")
+			{
+				config::use_multicart = false;
+				config::use_mmm01 = true;
+			}
 
 			//Use OpenGL for screen drawing
 			else if(config::cli_args[x] == "--opengl") { config::use_opengl = true; }
 
-			//Use Gameshark cheats
+			//Use Gameshark or Game Genie cheats
 			else if(config::cli_args[x] == "--cheats") { config::use_cheats = true; }
+
+			else if(config::cli_args[x] == "--patch") { config::use_patches = true; }
 
 			//Scale screen by 2x
 			else if(config::cli_args[x] == "--2x") { config::scaling_factor = config::old_scaling_factor = 2; }
@@ -590,9 +659,11 @@ bool parse_cli_args()
 				std::cout<<"GBE+ Command Line Options:\n";
 				std::cout<<"-b [FILE], --bios [FILE] \t\t Load and use BIOS file\n";
 				std::cout<<"-d, --debug \t\t\t\t Start the command-line debugger\n";
-				std::cout<<"--multicart \t\t\t\t Use multicart mode if applicable\n";
+				std::cout<<"--multicart \t\t\t\t Use MBC1M multicart mode if applicable\n";
+				std::cout<<"--mmm01 \t\t\t\t Use MMM01 multicart mode if applicable\n";
 				std::cout<<"--opengl \t\t\t\t Use OpenGL for screen drawing and scaling\n";
-				std::cout<<"--cheats \t\t\t\t Use Gameshark cheats\n";
+				std::cout<<"--cheats \t\t\t\t Use Gameshark or Game Genie cheats\n";
+				std::cout<<"--patch \t\t\t\t Use a patch file for the ROM\n";
 				std::cout<<"--2x, --3x, --4x, --5x, --6x \t\t Scale screen by a given factor (OpenGL only)\n";
 				std::cout<<"--sys-auto \t\t\t\t Set the emulated system type to AUTO\n";
 				std::cout<<"--sys-dmg \t\t\t\t Set the emulated system type to DMG (old Gameboy)\n";
@@ -727,6 +798,25 @@ bool parse_ini_file()
 			}
 		}
 
+		//Emulated SIO device
+		if(ini_item == "#sio_device")
+		{
+			if((x + 1) < size) 
+			{
+				ini_item = ini_opts[++x];
+				std::stringstream temp_stream(ini_item);
+				temp_stream >> output;
+
+				if((output >= 0) && (output <= 3)) { config::sio_device = output; }
+			}
+
+			else 
+			{ 
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#sio_device) \n";
+				return false;
+			}
+		}
+
 		//Set emulated system type
 		else if(ini_item == "#system_type")
 		{
@@ -766,6 +856,26 @@ bool parse_ini_file()
 			else 
 			{
 				std::cout<<"GBE::Error - Could not parse gbe.ini (#use_cheats) \n";
+				return false;
+			}
+		}
+
+		//Use patches
+		if(ini_item == "#use_patches")
+		{
+			if((x + 1) < size) 
+			{
+				ini_item = ini_opts[++x];
+				std::stringstream temp_stream(ini_item);
+				temp_stream >> output;
+
+				if(output == 1) { config::use_patches = true; }
+				else { config::use_patches = false; }
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#use_patches) \n";
 				return false;
 			}
 		}
@@ -824,6 +934,24 @@ bool parse_ini_file()
 			else { config::agb_bios_path = ""; }
 		}
 
+		//Game save path
+		else if(ini_item == "#save_path")
+		{
+			if((x + 1) < size) 
+			{
+				ini_item = ini_opts[++x];
+				std::string first_char = "";
+				first_char = ini_item[0];
+				
+				//When left blank, don't parse the next line item
+				if(first_char != "#") { config::save_path = ini_item; }
+				else { config::save_path = ""; x--;}
+ 
+			}
+
+			else { config::save_path = ""; }
+		}
+
 		//Screenshots path
 		else if(ini_item == "#screenshot_path")
 		{
@@ -860,6 +988,24 @@ bool parse_ini_file()
 			else { config::cheats_path = ""; }
 		}
 
+		//External camera file
+		else if(ini_item == "#camera_file")
+		{
+			if((x + 1) < size) 
+			{
+				ini_item = ini_opts[++x];
+				std::string first_char = "";
+				first_char = ini_item[0];
+				
+				//When left blank, don't parse the next line item
+				if(first_char != "#") { config::external_camera_file = ini_item; }
+				else { config::external_camera_file = ""; x--;}
+ 
+			}
+
+			else { config::external_camera_file = ""; }
+		}
+
 		//Use OpenGL
 		else if(ini_item == "#use_opengl")
 		{
@@ -878,6 +1024,42 @@ bool parse_ini_file()
 				std::cout<<"GBE::Error - Could not parse gbe.ini (#use_opengl) \n";
 				return false;
 			}
+		}
+
+		//Fragment shader
+		else if(ini_item == "#fragment_shader")
+		{
+			if((x + 1) < size) 
+			{
+				ini_item = ini_opts[++x];
+				std::string first_char = "";
+				first_char = ini_item[0];
+				
+				//When left blank, don't parse the next line item
+				if(first_char != "#") { config::fragment_shader = config::data_path + "shaders/" + ini_item; }
+				else { config::fragment_shader = config::data_path + "shaders/fragment.fs"; x--;}
+ 
+			}
+
+			else { config::fragment_shader = config::data_path + "shaders/fragment.fs"; }
+		}
+
+		//Vertex shader
+		else if(ini_item == "#vertex_shader")
+		{
+			if((x + 1) < size) 
+			{
+				ini_item = ini_opts[++x];
+				std::string first_char = "";
+				first_char = ini_item[0];
+				
+				//When left blank, don't parse the next line item
+				if(first_char != "#") { config::vertex_shader = config::data_path + "shaders/" + ini_item; }
+				else { config::vertex_shader = config::data_path + "shaders/vertex.vs"; x--;}
+ 
+			}
+
+			else { config::vertex_shader = config::data_path + "shaders/vertex.vs"; }
 		}
 
 		//Use gamepad dead zone
@@ -1016,6 +1198,52 @@ bool parse_ini_file()
 			}
 		}
 
+		//Real-time clock offsets
+		else if(ini_item == "#rtc_offset")
+		{
+			if((x + 4) < size)
+			{
+				std::stringstream temp_stream;
+
+				//Seconds offset
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::rtc_offset[0];
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				if(config::rtc_offset[0] > 59) { config::rtc_offset[0] = 59; }
+
+				//Minutes offset
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::rtc_offset[1];
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				if(config::rtc_offset[1] > 59) { config::rtc_offset[1] = 59; }
+
+				//Hours offset
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::rtc_offset[2];
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				if(config::rtc_offset[2] > 23) { config::rtc_offset[2] = 23; }
+
+				//Days offset
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::rtc_offset[3];
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				if(config::rtc_offset[3] > 365) { config::rtc_offset[3] = 365; }
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#rtc_offset) \n";
+				return false;
+			}
+		}
 
 		//Emulated DMG-on-GBC palette
 		else if(ini_item == "#dmg_on_gbc_pal")
@@ -1573,13 +1801,25 @@ bool parse_ini_file()
 		//Hotkeys
 		else if(ini_item == "#hotkeys")
 		{
-			if((x + 1) < size)
+			if((x + 3) < size)
 			{
 				std::stringstream temp_stream;
 
 				//Turbo
 				temp_stream << ini_opts[++x];
 				temp_stream >> config::hotkey_turbo;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//Mute
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::hotkey_mute;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//GB Camera
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::hotkey_camera;
 				temp_stream.clear();
 				temp_stream.str(std::string());
 			}
@@ -1840,6 +2080,22 @@ bool parse_ini_file()
 			}
 		}
 
+		//Netplay client IP address
+		else if(ini_item == "#netplay_client_ip")
+		{
+			if((x + 1) < size) 
+			{
+				ini_item = ini_opts[++x];
+				config::netplay_client_ip = ini_item;
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#netplay_client_ip) \n";
+				return false;
+			}
+		}
+
 		//Recent files
 		else if(ini_item == "#recent_files")
 		{
@@ -1949,6 +2205,14 @@ bool save_ini_file()
 			output_lines[line_pos] = "[#use_bios:" + val + "]";
 		}
 
+		//Use GB Printer
+		if(ini_item == "#sio_device")
+		{
+			line_pos = output_count[x];
+
+			output_lines[line_pos] = "[#sio_device:" + util::to_str(config::sio_device) + "]";
+		}
+
 		//Set emulated system type
 		else if(ini_item == "#system_type")
 		{
@@ -1964,6 +2228,15 @@ bool save_ini_file()
 			std::string val = (config::use_cheats) ? "1" : "0";
 
 			output_lines[line_pos] = "[#use_cheats:" + val + "]";
+		}
+
+		//Use patches
+		else if(ini_item == "#use_patches")
+		{
+			line_pos = output_count[x];
+			std::string val = (config::use_patches) ? "1" : "0";
+
+			output_lines[line_pos] = "[#use_patches:" + val + "]";
 		}
 
 		//DMG BIOS path
@@ -1993,6 +2266,15 @@ bool save_ini_file()
 			output_lines[line_pos] = "[#agb_bios_path" + val + "]";
 		}
 
+		//Game save path
+		else if(ini_item == "#save_path")
+		{
+			line_pos = output_count[x];
+			std::string val = (config::save_path == "") ? "" : (":'" + config::save_path + "'");
+
+			output_lines[line_pos] = "[#save_path" + val + "]";
+		}
+
 		//Screenshots path
 		else if(ini_item == "#screenshot_path")
 		{
@@ -2010,6 +2292,16 @@ bool save_ini_file()
 
 			output_lines[line_pos] = "[#cheats_path" + val + "]";
 		}
+
+		//External camera file
+		else if(ini_item == "#camera_file")
+		{
+			line_pos = output_count[x];
+			std::string val = (config::external_camera_file == "") ? "" : (":'" + config::external_camera_file + "'");
+
+			output_lines[line_pos] = "[#camera_file" + val + "]";
+		}
+
 
 		//Use OpenGL
 		else if(ini_item == "#use_opengl")
@@ -2079,6 +2371,17 @@ bool save_ini_file()
 			output_lines[line_pos] = "[#maintain_aspect_ratio:" + val + "]";
 		}
 
+		//Real-time clock offsets
+		else if(ini_item == "#rtc_offset")
+		{
+			line_pos = output_count[x];
+			std::string val = util::to_str(config::rtc_offset[0]) + ":";
+			val += util::to_str(config::rtc_offset[1]) + ":";
+			val += util::to_str(config::rtc_offset[2]) + ":";
+			val += util::to_str(config::rtc_offset[3]);
+
+			output_lines[line_pos] = "[#rtc_offset:" + val + "]";
+		}
 
 		//Emulated DMG-on-GBC palette
 		else if(ini_item == "#dmg_on_gbc_pal")
@@ -2086,6 +2389,28 @@ bool save_ini_file()
 			line_pos = output_count[x];
 
 			output_lines[line_pos] = "[#dmg_on_gbc_pal:" + util::to_str(config::dmg_gbc_pal) + "]";
+		}
+
+		//OpenGL Fragment Shader
+		else if(ini_item == "#fragment_shader")
+		{
+			line_pos = output_count[x];
+
+			if(config::fragment_shader == (config::data_path + "shaders/fragment.fs")) { config::fragment_shader = "fragment.fs"; }
+			else if(config::fragment_shader == (config::data_path + "shaders/2xBR.fs")) { config::fragment_shader = "2xBR.fs"; }
+			else if(config::fragment_shader == (config::data_path + "shaders/4xBR.fs")) { config::fragment_shader = "4xBR.fs"; }
+			else if(config::fragment_shader == (config::data_path + "shaders/bad_bloom.fs")) { config::fragment_shader = "bad_bloom.fs"; }
+			else if(config::fragment_shader == (config::data_path + "shaders/chrono.fs")) { config::fragment_shader = "chrono.fs"; }
+			else if(config::fragment_shader == (config::data_path + "shaders/grayscale.fs")) { config::fragment_shader= "grayscale.fs"; }
+			else if(config::fragment_shader == (config::data_path + "shaders/pastel.fs")) { config::fragment_shader = "pastel.fs"; }
+			else if(config::fragment_shader == (config::data_path + "shaders/scale2x.fs")) { config::fragment_shader = "scale2x.fs"; }
+			else if(config::fragment_shader == (config::data_path + "shaders/scale3x.fs")) { config::fragment_shader = "scale3x.fs"; }
+			else if(config::fragment_shader == (config::data_path + "shaders/sepia.fs")) { config::fragment_shader = "sepia.fs"; }
+			else if(config::fragment_shader == (config::data_path + "shaders/spotlight.fs")) { config::fragment_shader = "spotlight.fs"; }
+			else if(config::fragment_shader == (config::data_path + "shaders/tv_mode.fs")) { config::fragment_shader = "tv_mode.fs"; }
+			else if(config::fragment_shader == (config::data_path + "shaders/washout.fs")) { config::fragment_shader = "washout.fs"; }
+
+			output_lines[line_pos] = "[#fragment_shader:'" + config::fragment_shader + "']";
 		}
 
 		//DMG-GBC keyboard controls
@@ -2224,9 +2549,11 @@ bool save_ini_file()
 		else if(ini_item == "#hotkeys")
 		{
 			line_pos = output_count[x];
-			std::string val = util::to_str(config::hotkey_turbo);
+			std::string val_1 = util::to_str(config::hotkey_turbo);
+			std::string val_2 = util::to_str(config::hotkey_mute);
+			std::string val_3 = util::to_str(config::hotkey_camera);
 
-			output_lines[line_pos] = "[#hotkeys:" + val + "]";
+			output_lines[line_pos] = "[#hotkeys:" + val_1 + ":" + val_2 + ":" + val_3 + "]";
 		}
 
 		//Use CGFX
@@ -2319,6 +2646,13 @@ bool save_ini_file()
 			output_lines[line_pos] = "[#netplay_client_port:" + val + "]";
 		}
 
+		//Netplay client IP address
+		else if(ini_item == "#netplay_client_ip")
+		{
+			line_pos = output_count[x];
+			output_lines[line_pos] = "[#netplay_client_ip:" + config::netplay_client_ip + "]";
+		}
+
 		else if(ini_item == "#recent_files")
 		{
 			line_pos = output_count[x];
@@ -2360,6 +2694,8 @@ bool save_ini_file()
 /****** Parse the cheats file ******/
 bool parse_cheats_file()
 {
+	if(config::cheats_path.empty()) { return false; }
+
 	std::ifstream file(config::cheats_path.c_str(), std::ios::in); 
 	std::string input_line = "";
 	std::string line_char = "";
@@ -2367,10 +2703,12 @@ bool parse_cheats_file()
 	std::vector<std::string> cheat_entry;
 	std::string code_type;
 	std::string cheat_code;
+	std::string info;
 
 	//Clear cheat codes
 	config::gs_cheats.clear();
 	config::gg_cheats.clear();
+	config::cheats_info.clear();
 
 	if(!file.is_open())
 	{
@@ -2411,7 +2749,7 @@ bool parse_cheats_file()
 			}
 		}
 
-		if((item_count != 2) && (item_count != 0))
+		if((item_count != 3) && (item_count != 0))
 		{
 			std::cout<<"GBE::Cheat file has incorrect entry: " << input_line << "\n";
 			file.close();
@@ -2426,6 +2764,7 @@ bool parse_cheats_file()
 	{
 		code_type = cheat_entry[x++];
 		cheat_code = cheat_entry[x++];
+		info = cheat_entry[x++];
 
 		//Add Gameshark codes 
 		if(code_type == "GS")
@@ -2437,12 +2776,113 @@ bool parse_cheats_file()
 				u32 converted_cheat = 0;
 				util::from_hex_str(cheat_code, converted_cheat);
 				config::gs_cheats.push_back(converted_cheat);
+				
+				info += "*";
+				config::cheats_info.push_back(info);
+			}
+
+			else
+			{
+				std::cout<<"GBE::Error - Could not parse Gameshark cheat code " << cheat_code << "\n";
+
+				config::gs_cheats.clear();
+				config::gg_cheats.clear();
+				config::cheats_info.clear();
+
+				return false;
 			}
 		}
 
 		//Add Game Genie codes
-		else if((code_type == "GG") && (cheat_code.length() == 9)) { config::gg_cheats.push_back(cheat_code); }
+		else if(code_type == "GG")
+		{
+			//Verify length
+			if (cheat_code.length() == 9)
+			{
+				config::gg_cheats.push_back(cheat_code);
+
+				info += "^";
+				config::cheats_info.push_back(info);
+			}
+
+			else
+			{
+				std::cout<<"GBE::Error - Could not parse Game Genie cheat code " << cheat_code << "\n";
+
+				config::gs_cheats.clear();
+				config::gg_cheats.clear();
+				config::cheats_info.clear();
+
+				return false;
+			}
+		}	
 	}
 
+	return true;
+}
+
+/****** Saves the cheat file ******/
+bool save_cheats_file()
+{
+	if(config::cheats_path.empty()) { return false; }
+
+	std::ofstream file(config::cheats_path.c_str(), std::ios::out);
+
+	if(!file.is_open())
+	{
+		std::cout<<"GBE::Could not open cheats file " << config::cheats_path << ". Check file path or permissions. \n";
+		return false; 
+	}
+
+	int gs_count = 0;
+	int gg_count = 0;
+
+	//Cycle through cheats
+	for(u32 x = 0; x < config::cheats_info.size(); x++)
+	{
+		std::string info_str = config::cheats_info[x];
+		std::string code_str = "";
+		std::string data_str = "";
+
+		//Determine code type based on info string
+		std::string last_char = "";
+		last_char += info_str[info_str.size() - 1];
+
+		//GS code
+		if(last_char == "*")
+		{
+			info_str.resize(info_str.size() - 1);
+			code_str = "GS";
+			data_str = util::to_hex_str(config::gs_cheats[gs_count++]).substr(2);
+
+			//Make sure code data length is 8
+			while(data_str.size() != 8)
+			{
+				data_str = "0" + data_str;
+			}
+
+			std::string output_line = "[" + code_str + ":" + data_str + ":" + info_str + "]\n";
+			file << output_line;
+		}
+
+		//GG code
+		else if(last_char == "^")
+		{
+			info_str.resize(info_str.size() - 1);
+			code_str = "GG";
+			data_str = config::gg_cheats[gg_count++];
+
+			//Make sure code data length is 9
+			while(data_str.size() != 9)
+			{
+				data_str = "0" + data_str;
+			}
+
+			std::string output_line = "[" + code_str + ":" + data_str + ":" + info_str + "]\n";
+			file << output_line;
+		}
+	}
+
+	file.close();
 	return true;
 }

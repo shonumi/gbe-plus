@@ -22,7 +22,13 @@ DMG_MMU::DMG_MMU()
 
 /****** MMU Deconstructor ******/
 DMG_MMU::~DMG_MMU() 
-{ 
+{
+	//Always clean up external camera pic from SRAM before saving
+	if(cart.mbc_type == GB_CAMERA)
+	{
+		for(u32 x = 0; x < cart.cam_buffer.size(); x++) { random_access_bank[0][0x100 + x] = 0x0; }
+	}
+
 	save_backup(config::save_file);
 	memory_map.clear();
 	std::cout<<"MMU::Shutdown\n"; 
@@ -51,7 +57,7 @@ void DMG_MMU::reset()
 	cart.mbc_type = ROM_ONLY;
 	cart.battery = false;
 	cart.ram = false;
-	cart.multicart = config::use_multicart;
+	cart.multicart = config::use_multicart | config::use_mmm01;
 	cart.rumble = false;
 
 	cart.rtc = false;
@@ -60,6 +66,10 @@ void DMG_MMU::reset()
 
 	cart.idle = false;
 	cart.internal_value = cart.internal_state = cart.cs = cart.sk = cart.buffer_length = cart.command_code = cart.addr = cart.buffer = 0;
+
+	for(u32 x = 0; x < 54; x++) { cart.cam_reg[x] = 0; }
+	cart.cam_buffer.clear();
+	cart.cam_lock = false;
 
 	ir_signal = 0;
 	ir_send = false;
@@ -127,6 +137,16 @@ bool DMG_MMU::mmu_read(u32 offset, std::string filename)
 	file.read((char*)&bios_size, sizeof(bios_size));
 	file.read((char*)&cart, sizeof(cart));
 	file.read((char*)&previous_value, sizeof(previous_value));
+
+	//Sanitize MMU data from save state
+	if((bios_size != 0x100) && (bios_size != 0x900)) { bios_size = 0x100; }
+	
+	rom_bank &= 0x1FF;
+	ram_bank &= 0xF;
+	wram_bank &= 0x3;
+	vram_bank &= 0x1;
+	bank_mode &= 0x1;
+	bank_bits &= 0xF;
 
 	file.close();
 	return true;
@@ -886,6 +906,24 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	{ 
 		memory_map[REG_LY] = 0;
 		lcd_stat->current_scanline = 0;
+		lcd_stat->lcd_mode = 2;
+		lcd_stat->lcd_clock = 0;
+		lcd_stat->vblank_clock = 0;
+	}
+
+	//LYC
+	else if(address == REG_LYC)
+	{
+		memory_map[REG_LYC] = value;
+
+		//Perform LY-LYC compare immediately
+		if(memory_map[REG_LY] == memory_map[REG_LYC]) 
+		{
+			memory_map[REG_STAT] |= 0x4; 
+			if(memory_map[REG_STAT] & 0x40) { memory_map[IF_FLAG] |= 2; }
+		}
+
+		else { memory_map[REG_STAT] &= ~0x4; }
 	}
 
 	//LCDC
@@ -1215,6 +1253,18 @@ u8 DMG_MMU::mbc_read(u16 address)
 		case MBC7:
 			return mbc7_read(address);
 			break;
+
+		case HUC1:
+			return huc1_read(address);
+			break;
+
+		case MMM01:
+			return mmm01_read(address);
+			break;
+
+		case GB_CAMERA:
+			return cam_read(address);
+			break;
 	}
 }
 
@@ -1242,6 +1292,18 @@ void DMG_MMU::mbc_write(u16 address, u8 value)
 		case MBC7:
 			mbc7_write(address, value);
 			break;
+
+		case HUC1:
+			huc1_write(address, value);
+			break;
+
+		case MMM01:
+			mmm01_write(address, value);
+			break;
+
+		case GB_CAMERA:
+			cam_write(address, value);
+			break;
 	}
 }
 
@@ -1256,18 +1318,64 @@ bool DMG_MMU::read_file(std::string filename)
 		return false;
 	}
 
-	u8* ex_mem = &memory_map[0];
+	//Get the file size
+	file.seekg(0, file.end);
+	u32 file_size = file.tellg();
+	file.seekg(0, file.beg);
 
-	//Read 32KB worth of data from ROM file
-	file.read((char*)ex_mem, 0x8000);
+	//Read ROM file into temporary buffer
+	std::vector <u8> rom_file;
+	rom_file.resize(file_size, 0x0);
+
+	u8* ex_mem = &rom_file[0];
+
+	//Read entire ROM file
+	file.read((char*)ex_mem, file_size);
+	file.seekg(0, file.beg);
+
+	//Grab CRC32
+	u32 crc32 = util::get_crc32(&rom_file[0], file_size);
+
+	ex_mem = &memory_map[0];
+
+	//Read MMM01 cart - Bank 0 is last 32KB of ROM
+	if(config::use_mmm01)
+	{
+		s32 pos = (file_size - 0x8000);
+		
+		if (pos > 0)
+		{
+			//Read the last 32KB and put it as Bank 0
+			file.seekg(pos);
+			file.read((char*)ex_mem, 0x8000);
+			file.seekg(0, file.beg);
+		}
+
+		else
+		{
+			std::cout<<"MMU::Error - MMM01 cart file size is too small (less than < 32KB)\n";
+			return false;
+		}
+	}
+
+	//Read every other MBC - Bank 0 is 1st 32KB of ROM
+	else
+	{
+		//Read 32KB worth of data from ROM file
+		file.read((char*)ex_mem, 0x8000);
+	}
+
+	//Grab MBC type byte
+	u8 mbc_type_byte = memory_map[ROM_MBC];
 
 	//Determine MBC type
-	switch(memory_map[ROM_MBC])
+	switch(mbc_type_byte)
 	{
 		case 0x0: 
 			cart.mbc_type = ROM_ONLY;
 
 			std::cout<<"MMU::Cartridge Type - ROM Only \n";
+			std::cout<<"MMU::ROM Size - " << std::dec << cart.rom_size << "KB\n";
 			break;
 
 		case 0x1:
@@ -1275,7 +1383,7 @@ bool DMG_MMU::read_file(std::string filename)
 
 			std::cout<<"MMU::Cartridge Type - MBC1 \n";
 			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
-			std::cout<<"MMU::ROM Size - " << cart.rom_size << "KB\n";
+			std::cout<<"MMU::ROM Size - " << std::dec << cart.rom_size << "KB\n";
 			break;
 
 		case 0x2: 
@@ -1284,7 +1392,7 @@ bool DMG_MMU::read_file(std::string filename)
 
 			std::cout<<"MMU::Cartridge Type - MBC1 + RAM \n";
 			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
-			std::cout<<"MMU::ROM Size - " << cart.rom_size << "KB\n";
+			std::cout<<"MMU::ROM Size - " << std::dec << cart.rom_size << "KB\n";
 			break;
 
 		case 0x3:
@@ -1294,7 +1402,7 @@ bool DMG_MMU::read_file(std::string filename)
 
 			std::cout<<"MMU::Cartridge Type - MBC1 + RAM + Battery \n";
 			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
-			std::cout<<"MMU::ROM Size - " << cart.rom_size << "KB\n";
+			std::cout<<"MMU::ROM Size - " << std::dec << cart.rom_size << "KB\n";
 			break;
 
 		case 0x5:
@@ -1303,7 +1411,7 @@ bool DMG_MMU::read_file(std::string filename)
 
 			std::cout<<"MMU::Cartridge Type - MBC2 \n";
 			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
-			std::cout<<"MMU::ROM Size - " << cart.rom_size << "KB\n";
+			std::cout<<"MMU::ROM Size - " << std::dec << cart.rom_size << "KB\n";
 			break;
 
 		case 0x6:
@@ -1313,7 +1421,7 @@ bool DMG_MMU::read_file(std::string filename)
 
 			std::cout<<"MMU::Cartridge Type - MBC2 + Battery\n";
 			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
-			std::cout<<"MMU::ROM Size - " << cart.rom_size << "KB\n";
+			std::cout<<"MMU::ROM Size - " << std::dec << cart.rom_size << "KB\n";
 			break;
 
 		case 0x8:
@@ -1322,7 +1430,7 @@ bool DMG_MMU::read_file(std::string filename)
 
 			std::cout<<"MMU::Cartridge Type - ROM + RAM\n";
 			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
-			std::cout<<"MMU::ROM Size - " << cart.rom_size << "KB\n";
+			std::cout<<"MMU::ROM Size - " << std::dec << cart.rom_size << "KB\n";
 			break;
 
 		case 0x9:
@@ -1332,25 +1440,34 @@ bool DMG_MMU::read_file(std::string filename)
 
 			std::cout<<"MMU::Cartridge Type - ROM + RAM + Battery\n";
 			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
-			std::cout<<"MMU::ROM Size - " << cart.rom_size << "KB\n";
+			std::cout<<"MMU::ROM Size - " << std::dec << cart.rom_size << "KB\n";
 			break;
 
 		case 0xB:
+			cart.mbc_type = MMM01;
+
 			std::cout<<"MMU::Cartridge Type - ROM + MMM01\n";
-			std::cout<<"MMU::MBC type currently unsupported \n";
-			return false;
+			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
+			std::cout<<"MMU::ROM Size - " << std::dec << cart.rom_size << "KB\n";
 			break;
 
 		case 0xC:
+			cart.mbc_type = MMM01;
+			cart.ram = true;
+
 			std::cout<<"MMU::Cartridge Type - ROM + MMM01 + SRAM\n";
-			std::cout<<"MMU::MBC type currently unsupported \n";
-			return false;
+			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
+			std::cout<<"MMU::ROM Size - " << std::dec << cart.rom_size << "KB\n";
 			break;
 
 		case 0xD:
+			cart.mbc_type = MMM01;
+			cart.ram = true;
+			cart.battery = true;
+
 			std::cout<<"MMU::Cartridge Type - ROM + MMM01 + SRAM + Battery\n";
-			std::cout<<"MMU::MBC type currently unsupported \n";
-			return false;
+			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
+			std::cout<<"MMU::ROM Size - " << std::dec << cart.rom_size << "KB\n";
 			break;
 
 		case 0x10:
@@ -1361,7 +1478,7 @@ bool DMG_MMU::read_file(std::string filename)
 
 			std::cout<<"MMU::Cartridge Type - MBC3 + RAM + Battery + Timer\n";
 			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
-			std::cout<<"MMU::ROM Size - " << cart.rom_size << "KB\n";
+			std::cout<<"MMU::ROM Size - " << std::dec << cart.rom_size << "KB\n";
 
 			grab_time();
 
@@ -1372,7 +1489,7 @@ bool DMG_MMU::read_file(std::string filename)
 
 			std::cout<<"MMU::Cartridge Type - MBC3\n";
 			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
-			std::cout<<"MMU::ROM Size - " << cart.rom_size << "KB\n";
+			std::cout<<"MMU::ROM Size - " << std::dec << cart.rom_size << "KB\n";
 			break;
 
 		case 0x12:
@@ -1381,7 +1498,7 @@ bool DMG_MMU::read_file(std::string filename)
 
 			std::cout<<"MMU::Cartridge Type - MBC3 + RAM\n";
 			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
-			std::cout<<"MMU::ROM Size - " << cart.rom_size << "KB\n";
+			std::cout<<"MMU::ROM Size - " << std::dec << cart.rom_size << "KB\n";
 			break;
 
 		case 0x13:
@@ -1391,7 +1508,7 @@ bool DMG_MMU::read_file(std::string filename)
 
 			std::cout<<"MMU::Cartridge Type - MBC3 + RAM + Battery\n";
 			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
-			std::cout<<"MMU::ROM Size - " << cart.rom_size << "KB\n";
+			std::cout<<"MMU::ROM Size - " << std::dec << cart.rom_size << "KB\n";
 			break;
 
 		case 0x19:
@@ -1399,7 +1516,7 @@ bool DMG_MMU::read_file(std::string filename)
 
 			std::cout<<"MMU::Cartridge Type - MBC5\n";
 			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
-			std::cout<<"MMU::ROM Size - " << cart.rom_size << "KB\n";
+			std::cout<<"MMU::ROM Size - " << std::dec << cart.rom_size << "KB\n";
 			break;
 
 		case 0x1A:
@@ -1408,7 +1525,7 @@ bool DMG_MMU::read_file(std::string filename)
 
 			std::cout<<"MMU::Cartridge Type - MBC5 + RAM\n";
 			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
-			std::cout<<"MMU::ROM Size - " << cart.rom_size << "KB\n";
+			std::cout<<"MMU::ROM Size - " << std::dec << cart.rom_size << "KB\n";
 			break;
 
 		case 0x1B:
@@ -1418,7 +1535,7 @@ bool DMG_MMU::read_file(std::string filename)
 
 			std::cout<<"MMU::Cartridge Type - MBC5 + RAM + Battery\n";
 			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
-			std::cout<<"MMU::ROM Size - " << cart.rom_size << "KB\n";
+			std::cout<<"MMU::ROM Size - " << std::dec << cart.rom_size << "KB\n";
 			break;
 
 		case 0x1C:
@@ -1427,7 +1544,7 @@ bool DMG_MMU::read_file(std::string filename)
 
 			std::cout<<"MMU::Cartridge Type - MBC5 + Rumble\n";
 			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
-			std::cout<<"MMU::ROM Size - " << cart.rom_size << "KB\n";
+			std::cout<<"MMU::ROM Size - " << std::dec << cart.rom_size << "KB\n";
 			break;
 			
 		case 0x1D:
@@ -1437,7 +1554,7 @@ bool DMG_MMU::read_file(std::string filename)
 
 			std::cout<<"MMU::Cartridge Type - MBC5 + RAM + Rumble\n";
 			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
-			std::cout<<"MMU::ROM Size - " << cart.rom_size << "KB\n";
+			std::cout<<"MMU::ROM Size - " << std::dec << cart.rom_size << "KB\n";
 			break;
 
 		case 0x1E:
@@ -1448,13 +1565,7 @@ bool DMG_MMU::read_file(std::string filename)
 
 			std::cout<<"MMU::Cartridge Type - MBC5 + RAM + Battery + Rumble\n";
 			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
-			std::cout<<"MMU::ROM Size - " << cart.rom_size << "KB\n";
-			break;
-
-		case 0x1F:
-			std::cout<<"MMU::Cartridge Type - Gameboy Camera\n";
-			std::cout<<"MMU::MBC type currently unsupported \n";
-			return false;
+			std::cout<<"MMU::ROM Size - " << std::dec << cart.rom_size << "KB\n";
 			break;
 
 		case 0x22:
@@ -1464,7 +1575,17 @@ bool DMG_MMU::read_file(std::string filename)
 
 			std::cout<<"MMU::Cartridge Type - MBC7\n";
 			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
-			std::cout<<"MMU::ROM Size - " << cart.rom_size << "KB\n";
+			std::cout<<"MMU::ROM Size - " << std::dec << cart.rom_size << "KB\n";
+			break;
+
+		case 0xFC:
+			cart.mbc_type = GB_CAMERA;
+			cart.ram = true;
+			cart.battery = true;
+
+			std::cout<<"MMU::Cartridge Type - Gameboy Camera\n";
+			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
+			std::cout<<"MMU::ROM Size - " << std::dec << cart.rom_size << "KB\n";
 			break;
 
 		case 0xFD:
@@ -1480,9 +1601,13 @@ bool DMG_MMU::read_file(std::string filename)
 			break;
 
 		case 0xFF:
-			std::cout<<"MMU::Cartridge Type - Hudson HuC-1\n";
-			std::cout<<"MMU::MBC type currently unsupported \n";
-			return false;
+			cart.mbc_type = HUC1;
+			cart.ram = true;
+			cart.battery = true;
+
+			std::cout<<"MMU::Cartridge Type - Hudson HuC-1 + RAM + Battery\n";
+			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
+			std::cout<<"MMU::ROM Size - " << std::dec << cart.rom_size << "KB\n";
 			break;
 
 		default:
@@ -1521,7 +1646,25 @@ bool DMG_MMU::read_file(std::string filename)
 	}
 
 	file.close();
+	std::cout<<"MMU::ROM CRC32: " << std::hex << crc32 << "\n";
 	std::cout<<"MMU::" << filename << " loaded successfully. \n";
+
+	//Apply patches to the ROM data
+	if(config::use_patches)
+	{
+		bool patch_pass = false;
+
+		std::size_t dot = filename.find_last_of(".");
+		if(dot == std::string::npos) { dot = filename.size(); }
+
+		std::string patch_file = filename.substr(0, dot);
+
+		//Attempt a IPS patch
+		patch_pass = patch_ips(patch_file + ".ips");
+
+		//Attempt a UPS patch
+		if(!patch_pass) { patch_pass = patch_ups(patch_file + ".ups"); }
+	}
 
 	//Apply Game Genie codes to ROM data
 	if(config::use_cheats) { set_gg_cheats(); }
@@ -1636,6 +1779,12 @@ bool DMG_MMU::read_bios(std::string filename)
 /****** Load backup save data ******/
 bool DMG_MMU::load_backup(std::string filename)
 {
+	//Use config save path if applicable
+	if(!config::save_path.empty())
+	{
+		 filename = config::save_path + util::get_filename_from_path(filename);
+	}
+
 	//Load Saved RAM if available
 	if(cart.battery)
 	{
@@ -1692,6 +1841,12 @@ bool DMG_MMU::load_backup(std::string filename)
 /****** Save backup save data ******/
 bool DMG_MMU::save_backup(std::string filename)
 {
+	//Use config save path if applicable
+	if(!config::save_path.empty())
+	{
+		 filename = config::save_path + util::get_filename_from_path(filename);
+	}
+
 	if(cart.battery)
 	{
 		std::ofstream sram(filename.c_str(), std::ios::binary);
@@ -1833,6 +1988,270 @@ void DMG_MMU::set_gg_cheats()
 	}
 }
 
+/****** Applies an IPS patch to a ROM loaded in memory ******/
+bool DMG_MMU::patch_ips(std::string filename)
+{
+	std::ifstream patch_file(filename.c_str(), std::ios::binary);
+
+	if(!patch_file.is_open()) 
+	{ 
+		std::cout<<"MMU::" << filename << " IPS patch file could not be opened. Check file path or permissions. \n";
+		return false;
+	}
+
+	//Get the file size
+	patch_file.seekg(0, patch_file.end);
+	u32 file_size = patch_file.tellg();
+	patch_file.seekg(0, patch_file.beg);
+
+	std::vector<u8> patch_data;
+	patch_data.resize(file_size, 0);
+
+	//Read patch file into buffer
+	u8* ex_patch = &patch_data[0];
+	patch_file.read((char*)ex_patch, file_size);
+
+	//Check header for PATCH string
+	if((patch_data[0] != 0x50) || (patch_data[1] != 0x41) || (patch_data[2] != 0x54) || (patch_data[3] != 0x43) || (patch_data[4] != 0x48))
+	{
+		std::cout<<"MMU::" << filename << " IPS patch file has invalid header\n";
+		return false;
+	}
+
+	bool end_of_file = false;
+	u32 patch_pos = 5;
+
+	while((patch_pos < file_size) && (!end_of_file))
+	{
+		//Grab a record offset - 3 bytes
+		if((patch_pos + 3) > file_size)
+		{
+			std::cout<<"MMU::" << filename << " file ends unexpectedly (OFFSET). Aborting further patching.\n";
+		}
+
+		u32 offset = (patch_data[patch_pos++] << 16) | (patch_data[patch_pos++] << 8) | patch_data[patch_pos++];
+
+		//Quit if EOF marker is reached
+		if(offset == 0x454F46) { end_of_file = true; break; }
+
+		//Grab record size - 2 bytes
+		if((patch_pos + 2) > file_size)
+		{
+			std::cout<<"MMU::" << filename << " file ends unexpectedly (DATA_SIZE). Aborting further patching.\n";
+			return false;
+		}
+
+		u16 data_size = (patch_data[patch_pos++] << 8) | patch_data[patch_pos++];
+
+		//Perform regular patching if size is non-zero
+		if(data_size)
+		{
+			if((patch_pos + data_size) > file_size)
+			{
+				std::cout<<"MMU::" << filename << " file ends unexpectedly (DATA). Aborting further patching.\n";
+				return false;
+			}
+
+			for(u32 x = 0; x < data_size; x++)
+			{
+				u8 patch_byte = patch_data[patch_pos++];
+
+				//Patch for Banks 2 and above
+				if(offset > 0x7FFF)
+				{
+					u16 patch_bank = (offset >> 14) - 2;	
+					u16 patch_addr = offset & 0x3FFF;
+
+					if(patch_bank > 0x1FF)
+					{
+						std::cout<<"MMU::" << filename << " patches beyond max ROM size (DATA). Aborting further patching.\n";
+						return false;
+					}
+
+					read_only_bank[patch_bank][patch_addr] = patch_byte;
+				}
+
+				//Patch for Banks 0-1
+				else { memory_map[offset] = patch_byte; }
+
+				offset++;
+			}
+		}
+
+		//Patch with RLE
+		else
+		{
+			//Grab Run-length size and value - 3 bytes
+			if((patch_pos + 3) > file_size)
+			{
+				std::cout<<"MMU::" << filename << " file ends unexpectedly (RLE). Aborting further patching.\n";
+				return false;
+			}
+
+			u16 rle_size = (patch_data[patch_pos++] << 8) | patch_data[patch_pos++];
+			u8 patch_byte = patch_data[patch_pos++];
+
+			for(u32 x = 0; x < rle_size; x++)
+			{
+				//Patch for Banks 2 and above
+				if(offset > 0x7FFF)
+				{
+					u16 patch_bank = (offset >> 14) - 2;	
+					u16 patch_addr = offset & 0x3FFF;
+
+					if(patch_bank > 0x1FF)
+					{
+						std::cout<<"MMU::" << filename << " patches beyond max ROM size (RLE DATA). Aborting further patching.\n";
+						return false;
+					}
+
+					read_only_bank[patch_bank][patch_addr] = patch_byte;
+				}
+
+				//Patch for Banks 0-1
+				else { memory_map[offset] = patch_byte; }
+
+				offset++;
+			}
+		}
+	}
+
+	patch_file.close();
+	patch_data.clear();
+
+	return true;
+}
+
+/****** Applies an UPS patch to a ROM loaded in memory ******/
+bool DMG_MMU::patch_ups(std::string filename)
+{
+	std::ifstream patch_file(filename.c_str(), std::ios::binary);
+
+	if(!patch_file.is_open()) 
+	{ 
+		std::cout<<"MMU::" << filename << " UPS patch file could not be opened. Check file path or permissions. \n";
+		return false;
+	}
+
+	//Get the file size
+	patch_file.seekg(0, patch_file.end);
+	u32 file_size = patch_file.tellg();
+	patch_file.seekg(0, patch_file.beg);
+
+	std::vector<u8> patch_data;
+	patch_data.resize(file_size, 0);
+
+	//Read patch file into buffer
+	u8* ex_patch = &patch_data[0];
+	patch_file.read((char*)ex_patch, file_size);
+
+	//Check header for UPS1 string
+	if((patch_data[0] != 0x55) || (patch_data[1] != 0x50) || (patch_data[2] != 0x53) || (patch_data[3] != 0x31))
+	{
+		std::cout<<"MMU::" << filename << " UPS patch file has invalid header\n";
+		return false;
+	}
+
+	u32 patch_pos = 4;
+	u32 patch_size = file_size - 12;
+	u32 file_pos = 0;
+
+	//Grab file sizes
+	for(u32 x = 0; x < 2; x++)
+	{
+		//Grab variable width integer
+		u32 var_int = 0;
+		bool var_end = false;
+		u8 var_shift = 0;
+
+		while(!var_end)
+		{
+			//Grab byte from patch file
+			u8 var_byte = patch_data[patch_pos++];
+			
+			if(var_byte & 0x80)
+			{
+				var_int += ((var_byte & 0x7F) << var_shift);
+				var_end = true;
+			}
+
+			else
+			{
+				var_int += ((var_byte | 0x80) << var_shift);
+				var_shift += 7;
+			}
+		}
+	}
+
+	//Begin patching the source file
+	while(patch_pos < patch_size)
+	{
+		//Grab variable width integer
+		u32 var_int = 0;
+		bool var_end = false;
+		u8 var_shift = 0;
+
+		while(!var_end)
+		{
+			//Grab byte from patch file
+			u8 var_byte = patch_data[patch_pos++];
+			
+			if(var_byte & 0x80)
+			{
+				var_int += ((var_byte & 0x7F) << var_shift);
+				var_end = true;
+			}
+
+			else
+			{
+				var_int += ((var_byte | 0x80) << var_shift);
+				var_shift += 7;
+			}
+		}
+
+		//XOR data at offset with patch
+		var_end = false;
+		file_pos += var_int;
+
+		while(!var_end)
+		{
+			u8 patch_byte = patch_data[patch_pos++];
+
+			//Terminate patching for this chunk if encountering a zero byte
+			if(patch_byte == 0) { var_end = true; }
+
+			//Otherwise, use the byte to patch
+			else
+			{
+				//Patch for Banks 2 and above
+				if(file_pos > 0x7FFF)
+				{
+					u16 patch_bank = (file_pos >> 14) - 2;	
+					u16 patch_addr = file_pos & 0x3FFF;
+
+					if(patch_bank > 0x1FF)
+					{
+						std::cout<<"MMU::" << filename << " patches beyond max ROM size. Aborting further patching.\n";
+						return false;
+					}
+
+					read_only_bank[patch_bank][patch_addr] ^= patch_byte;
+				}
+
+				//Patch for Banks 0-1
+				else { memory_map[file_pos] ^= patch_byte; }
+			}
+
+			file_pos++;
+		}
+	}
+
+	patch_file.close();
+	patch_data.clear();
+
+	return true;
+}
+
 /****** Points the MMU to an lcd_data structure (FROM THE LCD ITSELF) ******/
 void DMG_MMU::set_lcd_data(dmg_lcd_data* ex_lcd_stat) { lcd_stat = ex_lcd_stat; }
 
@@ -1844,4 +2263,3 @@ void DMG_MMU::set_apu_data(dmg_apu_data* ex_apu_stat) { apu_stat = ex_apu_stat; 
 
 /****** Points the MMU to an sio_data structure (FROM SIO ITSELF) ******/
 void DMG_MMU::set_sio_data(dmg_sio_data* ex_sio_stat) { sio_stat = ex_sio_stat; }
-

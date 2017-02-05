@@ -69,6 +69,7 @@ class main_menu : public QWidget
 	void show_display_settings();
 	void show_sound_settings();
 	void show_control_settings();
+	void show_netplay_settings();
 	void show_paths_settings();
 	void show_cgfx();
 	void show_debugger();
@@ -87,6 +88,8 @@ class main_menu : public QWidget
 	QMenu* state_load_list;
 
 	QSignalMapper* list_mapper;
+
+	QMessageBox* warning_box;
 
 	u32 base_width;
 	u32 base_height;

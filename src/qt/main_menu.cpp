@@ -35,6 +35,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	QAction* display = new QAction("Display", this);
 	QAction* sound = new QAction("Sound", this);
 	QAction* controls = new QAction("Controls", this);
+	QAction* netplay = new QAction("Netplay", this);
 	QAction* paths = new QAction("Paths", this);
 
 	QAction* custom_gfx = new QAction("Custom Graphics...", this);
@@ -52,11 +53,17 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	screenshot->setShortcut(tr("F9"));
 	nplay_start->setShortcut(tr("F5"));
 	nplay_stop->setShortcut(tr("F6"));
+	debugging->setShortcut(tr("F7"));
 
 	pause->setCheckable(true);
 	pause->setObjectName("pause_action");
 	fullscreen->setCheckable(true);
 	fullscreen->setObjectName("fullscreen_action");
+	custom_gfx->setObjectName("custom_gfx_action");
+	debugging->setObjectName("debugging_action");
+
+	custom_gfx->setEnabled(false);
+	debugging->setEnabled(false);
 
 	menu_bar = new QMenuBar(this);
 
@@ -96,6 +103,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	options->addAction(display);
 	options->addAction(sound);
 	options->addAction(controls);
+	options->addAction(netplay);
 	options->addAction(paths);
 	menu_bar->addMenu(options);
 
@@ -127,6 +135,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	connect(display, SIGNAL(triggered()), this, SLOT(show_display_settings()));
 	connect(sound, SIGNAL(triggered()), this, SLOT(show_sound_settings()));
 	connect(controls, SIGNAL(triggered()), this, SLOT(show_control_settings()));
+	connect(netplay, SIGNAL(triggered()), this, SLOT(show_netplay_settings()));
 	connect(paths, SIGNAL(triggered()), this, SLOT(show_paths_settings()));
 	connect(custom_gfx, SIGNAL(triggered()), this, SLOT(show_cgfx()));
 	connect(debugging, SIGNAL(triggered()), this, SLOT(show_debugger()));
@@ -241,6 +250,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	//Set up custom graphics dialog
 	cgfx = new gbe_cgfx();
 	cgfx->hide();
+	cgfx->advanced->setChecked(true);
 
 	//Set up DMG-GBC debugger
 	main_menu::dmg_debugger = new dmg_debug();
@@ -284,6 +294,12 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	about_box->setWindowIcon(QIcon(QString::fromStdString(config::cfg_path + "data/icons/gbe_plus.png")));
 	
 	about_box->hide();
+
+	//Setup warning message box
+	warning_box = new QMessageBox;
+	QPushButton* warning_box_ok = warning_box->addButton("OK", QMessageBox::AcceptRole);
+	warning_box->setIcon(QMessageBox::Warning);
+	warning_box->hide();
 
 	display_width = QApplication::desktop()->screenGeometry().width();
 	display_height = QApplication::desktop()->screenGeometry().height();
@@ -399,6 +415,7 @@ void main_menu::quit()
 	}
 
 	save_ini_file();
+	save_cheats_file();
 
 	//Close SDL
 	SDL_Quit();
@@ -410,6 +427,40 @@ void main_menu::quit()
 /****** Boots and starts emulation ******/
 void main_menu::boot_game()
 {
+	//Check to see if the ROM file actually exists
+	QFile test_file(QString::fromStdString(config::rom_file));
+	
+	if(!test_file.exists())
+	{
+		std::string mesg_text = "The specified file: '" + config::rom_file + "' could not be loaded"; 
+		warning_box->setText(QString::fromStdString(mesg_text));
+		warning_box->show();
+		return;
+	}
+
+	std::string test_bios_path = "";
+
+	switch(get_system_type_from_file(config::rom_file))
+	{
+		case 0x1: test_bios_path = config::dmg_bios_path; break;
+		case 0x2: test_bios_path = config::gbc_bios_path; break;
+		case 0x3: test_bios_path = config::agb_bios_path; break;
+	}
+
+	test_file.setFileName(QString::fromStdString(test_bios_path));
+
+	if(!test_file.exists() && config::use_bios)
+	{
+		std::string mesg_text;
+
+		if(!test_bios_path.empty()) { mesg_text = "The BIOS file: '" + test_bios_path + "' could not be loaded"; }
+		else { mesg_text = "No BIOS file specified for this system.\nPlease check your Paths settings or disable the 'Use BIOS/Boot ROM' option"; } 
+
+		warning_box->setText(QString::fromStdString(mesg_text));
+		warning_box->show();
+		return;
+	}
+
 	config::sample_rate = settings->sample_rate;
 	config::pause_emu = false;
 
@@ -441,9 +492,13 @@ void main_menu::boot_game()
 
 	else { config::use_cheats = false; }
 
-	//Check multicart status
-	if(settings->multicart->isChecked()) { config::use_multicart = true; }
+	//Check multicart status - MBC1M
+	if(settings->multicart->currentIndex() == 1) { config::use_multicart = true; }
 	else { config::use_multicart = false; }
+
+	//Check multicart status - MMM01
+	if(settings->multicart->currentIndex() == 2) { config::use_mmm01 = true; }
+	else { config::use_mmm01 = false; }
 
 	//Check rumble status
 	if(settings->rumble_on->isChecked()) { config::use_haptics = true; }
@@ -482,6 +537,12 @@ void main_menu::boot_game()
 		//Resize drawing screens
 		if(config::use_opengl) { hw_screen->resize((base_width * config::scaling_factor), (base_height * config::scaling_factor)); }
 		else { sw_screen->resize((base_width * config::scaling_factor), (base_height * config::scaling_factor)); }
+
+		//Disable CGFX menu
+		findChild<QAction*>("custom_gfx_action")->setEnabled(false);
+
+		//Disable debugging menu
+		findChild<QAction*>("debugging_action")->setEnabled(false);
 	}
 
 	//TODO - Use real DS screen dimensions
@@ -509,10 +570,16 @@ void main_menu::boot_game()
 
 		if(qt_gui::screen != NULL) { delete qt_gui::screen; }
 		qt_gui::screen = new QImage(base_width, base_height, QImage::Format_ARGB32);
+
+		//Enable CGFX menu
+		findChild<QAction*>("custom_gfx_action")->setEnabled(true);
+
+		//Enable debugging menu
+		findChild<QAction*>("debugging_action")->setEnabled(true);
 	}
 
 	//Read specified ROM file
-	if(!main_menu::gbe_plus->read_file(config::rom_file)) { return; }
+	main_menu::gbe_plus->read_file(config::rom_file);
 	
 	//Read BIOS file optionally
 	if(config::use_bios) 
@@ -618,6 +685,7 @@ void main_menu::closeEvent(QCloseEvent* event)
 	}
 
 	save_ini_file();
+	save_cheats_file();
 
 	//Close SDL
 	SDL_Quit();
@@ -677,6 +745,15 @@ void main_menu::keyPressEvent(QKeyEvent* event)
 					fullscreen();
 					break;
 			}
+		}
+
+		//Mute audio
+		if(sdl_key == config::hotkey_mute)
+		{
+			if(settings->sound_on->isChecked()) { settings->sound_on->setChecked(false); }
+			else { settings->sound_on->setChecked(true); }
+
+			settings->update_volume();
 		}
 	}
 }
@@ -744,6 +821,31 @@ void main_menu::reset()
 	{
 		main_menu::gbe_plus->shutdown();
 		main_menu::gbe_plus->core_emu::~core_emu();
+
+		std::string test_bios_path = "";
+
+		switch(get_system_type_from_file(config::rom_file))
+		{
+			case 0x1: test_bios_path = config::dmg_bios_path; break;
+			case 0x2: test_bios_path = config::gbc_bios_path; break;
+			case 0x3: test_bios_path = config::agb_bios_path; break;
+		}
+
+		QFile test_file(QString::fromStdString(test_bios_path));
+
+		if(!test_file.exists() && (config::use_bios))
+		{
+			std::string mesg_text;
+
+			if(!test_bios_path.empty()) { mesg_text = "The BIOS file: '" + test_bios_path + "' could not be loaded.\nBIOS disabled for system reset."; }
+			else { mesg_text = "No BIOS file specified for this system.\nPlease check your Paths settings or disable the 'Use BIOS/Boot ROM' option\n\nBIOS disabled for system reset"; } 
+
+			warning_box->setText(QString::fromStdString(mesg_text));
+			warning_box->show();
+
+			settings->bios->setChecked(false);
+		}
+
 		boot_game();
 	}
 }	
@@ -834,11 +936,19 @@ void main_menu::show_control_settings()
 	settings->advanced_button->setVisible(true);
 }
 
+/****** Shows the Netplay settings dialog ******/
+void main_menu::show_netplay_settings()
+{
+	settings->show();
+	settings->tabs->setCurrentIndex(4);
+	settings->advanced_button->setVisible(false);
+}
+
 /****** Shows the Paths settings dialog ******/
 void main_menu::show_paths_settings()
 {
 	settings->show();
-	settings->tabs->setCurrentIndex(4);
+	settings->tabs->setCurrentIndex(5);
 	settings->advanced_button->setVisible(false);
 }
 
@@ -853,6 +963,21 @@ void main_menu::show_cgfx()
 	}
 
 	findChild<QAction*>("pause_action")->setEnabled(false);
+
+	//Wait until LY equals the selected line to stop on, or LCD is turned off
+	bool spin_emu = (main_menu::gbe_plus == NULL) ? false : true;
+	u8 target_ly = 0;
+	u8 on_status = 0;
+
+	while(spin_emu)
+	{
+		on_status = main_menu::gbe_plus->ex_read_u8(REG_LCDC);
+		target_ly = main_menu::gbe_plus->ex_read_u8(REG_LY);
+
+		if((on_status & 0x80) == 0) { spin_emu = false; }
+		else if(target_ly == cgfx->render_stop_line->value()) { spin_emu = false; }
+		else { main_menu::gbe_plus->step(); }
+	}
 
 	cgfx->update_obj_window(8, 40);
 	cgfx->update_bg_window(8, 384);
@@ -880,6 +1005,7 @@ void main_menu::show_cgfx()
 	}
 
 	cgfx->show();
+	cgfx->parse_manifest_items();
 	cgfx->pause = true;
 	
 	if(!dmg_debugger->pause) { pause(); }
@@ -918,6 +1044,40 @@ void main_menu::show_about()
 /****** Loads recent file from list ******/
 void main_menu::load_recent(int file_id)
 {
+	//Check to see if the file actually exists
+	QFile test_file(QString::fromStdString(config::recent_files[file_id]));
+
+	if(!test_file.exists())
+	{
+		std::string mesg_text = "The specified file: '" + config::recent_files[file_id] + "' could not be loaded"; 
+		warning_box->setText(QString::fromStdString(mesg_text));
+		warning_box->show();
+		return;
+	}
+
+	std::string test_bios_path = "";
+
+	switch(get_system_type_from_file(config::recent_files[file_id]))
+	{
+		case 0x1: test_bios_path = config::dmg_bios_path; break;
+		case 0x2: test_bios_path = config::gbc_bios_path; break;
+		case 0x3: test_bios_path = config::agb_bios_path; break;
+	}
+
+	test_file.setFileName(QString::fromStdString(test_bios_path));
+
+	if(!test_file.exists() && (config::use_bios))
+	{
+		std::string mesg_text;
+
+		if(!test_bios_path.empty()) { mesg_text = "The BIOS file: '" + test_bios_path + "' could not be loaded"; }
+		else { mesg_text = "No BIOS file specified for this system.\nPlease check your Paths settings or disable the 'Use BIOS/Boot ROM' option"; } 
+
+		warning_box->setText(QString::fromStdString(mesg_text));
+		warning_box->show();
+		return;
+	}
+
 	//Close the core
 	if(main_menu::gbe_plus != NULL) 
 	{

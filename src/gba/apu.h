@@ -34,12 +34,23 @@ class AGB_APU
 	bool init();
 	void reset();
 
+	void buffer_channels();
+	void buffer_channel_1();
+	void buffer_channel_2();
+	void buffer_channel_3();
+	void buffer_channel_4();
+
 	void generate_channel_1_samples(s16* stream, int length);
 	void generate_channel_2_samples(s16* stream, int length);
 	void generate_channel_3_samples(s16* stream, int length);
 	void generate_channel_4_samples(s16* stream, int length);
 	void generate_dma_a_samples(s16* stream, int length);
 	void generate_dma_b_samples(s16* stream, int length);
+
+	//Serialize data for save state loading/saving
+	bool apu_read(u32 offset, std::string filename);
+	bool apu_write(std::string filename);
+	u32 size();
 };
 
 /****** SDL Audio Callback ******/ 

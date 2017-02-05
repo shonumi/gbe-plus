@@ -22,11 +22,13 @@
 void reset_dmg_colors();
 void set_dmg_colors(u8 color_type);
 void validate_system_type();
+u8 get_system_type_from_file(std::string filename);
 bool parse_cli_args();
 void parse_filenames();
 bool parse_ini_file();
 bool parse_cheats_file();
 bool save_ini_file();
+bool save_cheats_file();
 
 namespace config
 { 
@@ -38,10 +40,12 @@ namespace config
 	extern std::string agb_bios_path;
 	extern std::string nds7_bios_path;
 	extern std::string nds9_bios_path;
+	extern std::string save_path;
 	extern std::string ss_path;
 	extern std::string cfg_path;
 	extern std::string data_path;
 	extern std::string cheats_path;
+	extern std::string external_camera_file;
 	extern std::vector <std::string> recent_files;
 	extern std::vector <std::string> cli_args;
 
@@ -62,6 +66,8 @@ namespace config
 	extern int touch_zone_pad[10];
 
 	extern int hotkey_turbo;
+	extern int hotkey_mute;
+	extern int hotkey_camera;
 	extern int dead_zone;
 	extern int joy_id;
 	extern bool use_haptics;
@@ -70,6 +76,8 @@ namespace config
 	extern bool pause_emu;
 	extern bool use_bios;
 	extern bool use_multicart;
+	extern bool use_mmm01;
+	extern u32 sio_device;	
 	extern bool use_opengl;
 	extern bool use_debugger;
 	extern bool turbo;
@@ -84,20 +92,27 @@ namespace config
 	extern bool use_cheats;
 	extern std::vector <u32> gs_cheats;
 	extern std::vector <std::string> gg_cheats;
+	extern std::vector <std::string> cheats_info;
+	extern bool use_patches;
 
 	extern bool use_netplay;
 	extern bool netplay_hard_sync;
 	extern u16 netplay_server_port;
 	extern u16 netplay_client_port;
+	extern std::string netplay_client_ip;
 
 	extern u8 volume;
+	extern u8 old_volume;
 	extern double sample_rate;
 	extern bool mute;
-
+	
 	extern u32 sys_width;
 	extern u32 sys_height;
 	extern s32 win_width;
 	extern s32 win_height;
+
+	extern std::string vertex_shader;
+	extern std::string fragment_shader;
 
 	extern bool request_resize;
 	extern s8 resize_mode;
@@ -105,6 +120,8 @@ namespace config
 
 	extern u32 DMG_BG_PAL[4];
 	extern u32 DMG_OBJ_PAL[4][2];
+
+	extern u16 rtc_offset[4];
 
 	extern bool use_external_interfaces;
 

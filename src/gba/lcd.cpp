@@ -58,18 +58,20 @@ void AGB_LCD::reset()
 
 	//Initialize various LCD status variables
 	lcd_stat.oam_update = true;
-	lcd_stat.oam_update_list.resize(128, true);
+	for(int x = 0; x < 128; x++) { lcd_stat.oam_update_list[x] = true; }
 
 	lcd_stat.bg_pal_update = true;
-	lcd_stat.bg_pal_update_list.resize(256, true);
-
 	lcd_stat.obj_pal_update = true;
-	lcd_stat.obj_pal_update_list.resize(256, true);
+
+	for(int x = 0; x < 256; x++)
+	{
+		lcd_stat.bg_pal_update_list[x] = true;
+		lcd_stat.obj_pal_update_list[x] = true;
+	}
 
 	lcd_stat.frame_base = 0x6000000;
 	lcd_stat.bg_mode = 0;
 	lcd_stat.hblank_interval_free = false;
-	lcd_stat.oam_access = false;
 
 	lcd_stat.window_x1[0] = lcd_stat.window_x1[1] = 0xFF;
 	lcd_stat.window_y1[0] = lcd_stat.window_y1[1] = 0xFF;
@@ -79,8 +81,21 @@ void AGB_LCD::reset()
 	lcd_stat.obj_win_enable = false;
 	lcd_stat.current_sfx_type = NORMAL;
 
-	lcd_stat.bg_params[0].overflow = false;
-	lcd_stat.bg_params[1].overflow = false;
+	//BG2/3 affine parameters
+	for(int x = 0; x < 2; x++)
+	{
+		lcd_stat.bg_affine[x].overflow = false;
+		lcd_stat.bg_affine[x].dmx = lcd_stat.bg_affine[x].dy = 0.0;
+		lcd_stat.bg_affine[x].dx = lcd_stat.bg_affine[x].dmy = 1.0;
+		lcd_stat.bg_affine[x].x_ref = lcd_stat.bg_affine[x].y_ref = 0.0;
+		lcd_stat.bg_affine[x].x_pos = lcd_stat.bg_affine[x].y_pos = 0.0;
+	}
+
+	//OBJ affine parameters
+	for(int x = 0; x < 128; x++)
+	{
+		lcd_stat.obj_affine[x] = 0.0;
+	}
 
 	//BG Flip LUT generation
 	for(int x = 0, y = 255; x < 255; x++, y--)
@@ -130,6 +145,8 @@ void AGB_LCD::reset()
 	//Initialize system screen dimensions
 	config::sys_width = 240;
 	config::sys_height = 160;
+
+	max_fullscreen_ratio = 2;
 }
 
 /****** Initialize LCD with SDL ******/
@@ -192,14 +209,14 @@ void AGB_LCD::update_oam()
 			oam_ptr += 2;
 
 			obj[x].y = (attribute & 0xFF);
-			obj[x].rotate_scale = (attribute & 0x100) ? 1 : 0;
+			obj[x].affine_enable = (attribute & 0x100) ? 1 : 0;
 			obj[x].type = (attribute & 0x200) ? 1 : 0;
 			obj[x].mode = (attribute >> 10) & 0x3;
 			obj[x].mosiac = (attribute >> 12) & 0x1;
 			obj[x].bit_depth = (attribute & 0x2000) ? 8 : 4;
 			obj[x].shape = (attribute >> 14);
 
-			if((obj[x].rotate_scale == 0) && (obj[x].type == 1)) { obj[x].visible = false; }
+			if((obj[x].affine_enable == 0) && (obj[x].type == 1)) { obj[x].visible = false; }
 			else { obj[x].visible = true; }
 
 			//Read and parse Attribute 1
@@ -210,6 +227,8 @@ void AGB_LCD::update_oam()
 			obj[x].h_flip = (attribute & 0x1000) ? true : false;
 			obj[x].v_flip = (attribute & 0x2000) ? true : false;
 			obj[x].size = (attribute >> 14);
+
+			if(obj[x].affine_enable) { obj[x].affine_group = (attribute >> 9) & 0x1F; }
 
 			//Read and parse Attribute 2
 			attribute = mem->read_u16_fast(oam_ptr);
@@ -252,14 +271,14 @@ void AGB_LCD::update_oam()
 			}
 
 			//Set double-size
-			if((obj[x].rotate_scale == 1) && (obj[x].type == 1)) { obj[x].x += (obj[x].width >> 1); obj[x].y += (obj[x].height >> 1); }
+			if((obj[x].affine_enable) && (obj[x].type)) { obj[x].x += (obj[x].width >> 1); obj[x].y += (obj[x].height >> 1); }
 
 			//Precalulate OBJ boundaries
 			obj[x].left = obj[x].x;
 			obj[x].right = (obj[x].x + obj[x].width - 1) & 0x1FF;
 
 			obj[x].top = obj[x].y;
-			obj[x].bottom = (obj[x].y + obj[x].height - 1);
+			obj[x].bottom = (obj[x].y + obj[x].height - 1) & 0xFF;
 
 			//Precalculate OBJ wrapping
 			if(obj[x].left > obj[x].right) 
@@ -280,13 +299,76 @@ void AGB_LCD::update_oam()
 
 			//Precalculate OBJ base address
 			obj[x].addr = 0x6010000 + (obj[x].tile_number << 5);
+
+			//Read and parse OAM affine attribute
+			attribute = mem->read_u16_fast(oam_ptr - 2);
+			
+			//Only update if this attribute is non-zero
+			if(attribute)
+			{	
+				if(attribute & 0x8000) 
+				{ 
+					u16 temp = ((attribute >> 8) - 1);
+					temp = (~temp & 0xFF);
+					lcd_stat.obj_affine[x] = -1.0 * temp;
+				}
+
+				else { lcd_stat.obj_affine[x] = (attribute >> 8); }
+
+				if((attribute & 0xFF) != 0) { lcd_stat.obj_affine[x] += (attribute & 0xFF) / 256.0; }
+			}
+
+			else { lcd_stat.obj_affine[x] = 0.0; }
 		}
 
 		else { oam_ptr += 8; }
 	}
 
+	//Update OBJ for affine transformations
+	update_obj_affine_transformation();
+
 	//Update render list for the current scanline
 	update_obj_render_list();
+}
+
+/****** Updates the size and position of OBJs from affine transformation ******/
+void AGB_LCD::update_obj_affine_transformation()
+{
+	//Cycle through all OAM entries
+	for(int x = 0; x < 128; x++)
+	{
+		//Determine if affine transformations occur on this OBJ
+		if(obj[x].affine_enable)
+		{
+			//Find half width and half height
+			obj[x].cw = obj[x].width >> 1;
+			obj[x].ch = obj[x].height >> 1;
+
+			//Find OBJ center
+			obj[x].cx = obj[x].x + obj[x].cw - 1;
+			obj[x].cy = obj[x].y + obj[x].ch - 1;
+
+			//If double size bit is unset use previous boundary calculations, otherwise calculate new ones
+			if(obj[x].type)
+			{
+				obj[x].left = obj[x].x - obj[x].cw;
+				obj[x].top = obj[x].y - obj[x].ch;
+
+				if(obj[x].left < 0) { obj[x].left += 511; }
+				if(obj[x].top < 0) { obj[x].top += 255; }
+
+				obj[x].right = (obj[x].left + (obj[x].width << 1) - 1) & 0x1FF;
+				obj[x].bottom = (obj[x].top + (obj[x].height << 1) - 1) & 0xFF;
+
+				//Precalculate OBJ wrapping
+				if(obj[x].left > obj[x].right) { obj[x].x_wrap = true; }
+				else { obj[x].x_wrap = false; }
+
+				if(obj[x].top > obj[x].bottom) { obj[x].y_wrap = true; }
+				else { obj[x].y_wrap = false; }
+			}
+		}
+	}
 }
 
 /****** Updates a list of OBJs to render on the current scanline ******/
@@ -392,119 +474,157 @@ bool AGB_LCD::render_sprite_pixel()
 	u16 sprite_tile_pixel_x = 0;
 	u16 sprite_tile_pixel_y = 0;
 
+	bool render_obj;
+	bool final_render = false;
+
 	//Cycle through all sprites that are rendering on this pixel, draw them according to their priority
 	for(int x = 0; x < obj_render_length; x++)
 	{
 		sprite_id = obj_render_list[x];
+		render_obj = true;
+
+		if((final_render) && (obj[sprite_id].mode != 2)) { continue; }
 
 		//Check to see if current_scanline_pixel is within sprite
 		if((!obj[sprite_id].x_wrap) && ((scanline_pixel_counter < obj[sprite_id].left) || (scanline_pixel_counter > obj[sprite_id].right))) { continue; }
 		else if((obj[sprite_id].x_wrap) && ((scanline_pixel_counter > obj[sprite_id].right) && (scanline_pixel_counter < obj[sprite_id].left))) { continue; }
 
-		//Determine the internal X-Y coordinates of the sprite's pixel
-		sprite_tile_pixel_x = obj[sprite_id].x_wrap ? (scanline_pixel_counter + obj[sprite_id].x_wrap_val) : (scanline_pixel_counter - obj[sprite_id].x);
-		sprite_tile_pixel_y = obj[sprite_id].y_wrap ? (current_scanline + obj[sprite_id].y_wrap_val) : (current_scanline - obj[sprite_id].y);
-
-		//Horizontal flip the internal X coordinate
-		if(obj[sprite_id].h_flip)
+		//Normal sprite rendering
+		if(!obj[sprite_id].affine_enable)
 		{
-			s16 h_flip = sprite_tile_pixel_x;
-			h_flip -= (obj[sprite_id].width - 1);
+			//Determine the internal X-Y coordinates of the sprite's pixel
+			sprite_tile_pixel_x = obj[sprite_id].x_wrap ? (scanline_pixel_counter + obj[sprite_id].x_wrap_val) : (scanline_pixel_counter - obj[sprite_id].x);
+			sprite_tile_pixel_y = obj[sprite_id].y_wrap ? (current_scanline + obj[sprite_id].y_wrap_val) : (current_scanline - obj[sprite_id].y);
 
-			if(h_flip < 0) { h_flip *= -1; }
-
-			sprite_tile_pixel_x = h_flip;
-		}
-
-		//Vertical flip the internal Y coordinate
-		if(obj[sprite_id].v_flip)
-		{
-			s16 v_flip = sprite_tile_pixel_y;
-			v_flip -= (obj[sprite_id].height - 1);
-
-			if(v_flip < 0) { v_flip *= -1; }
-
-			sprite_tile_pixel_y = v_flip;
-		}
-
-		//Handle the mosiac function
-		if(obj[sprite_id].mosiac && lcd_stat.obj_mos_hsize) { sprite_tile_pixel_x = ((sprite_tile_pixel_x / lcd_stat.obj_mos_hsize) * lcd_stat.obj_mos_hsize); }
-		if(obj[sprite_id].mosiac && lcd_stat.obj_mos_vsize) { sprite_tile_pixel_y = ((sprite_tile_pixel_y / lcd_stat.obj_mos_vsize) * lcd_stat.obj_mos_vsize); }
-
-		//Determine meta x-coordinate of rendered sprite pixel
-		u8 meta_x = (sprite_tile_pixel_x / 8);
-
-		//Determine meta Y-coordinate of rendered sprite pixel
-		u8 meta_y = (sprite_tile_pixel_y / 8);
-
-		//Determine which 8x8 section to draw pixel from, and what tile that actually represents in VRAM
-		if(lcd_stat.display_control & 0x40)
-		{
-			meta_sprite_tile = (meta_y * (obj[sprite_id].width/8)) + meta_x;	
-		}
-
-		else
-		{
-				meta_sprite_tile = (meta_y * 32) + meta_x;
-		}
-
-		sprite_tile_addr = obj[sprite_id].addr + (meta_sprite_tile * (obj[sprite_id].bit_depth << 3));
-
-		meta_x = (sprite_tile_pixel_x % 8);
-		meta_y = (sprite_tile_pixel_y % 8);
-
-		u8 sprite_tile_pixel = (meta_y * 8) + meta_x;
-
-		//Grab the byte corresponding to (sprite_tile_pixel), render it as ARGB - 4-bit version
-		if(obj[sprite_id].bit_depth == 4)
-		{
-			sprite_tile_addr += (sprite_tile_pixel >> 1);
-			raw_color = mem->memory_map[sprite_tile_addr];
-
-			if((sprite_tile_pixel % 2) == 0) { raw_color &= 0xF; }
-			else { raw_color >>= 4; }
-
-			if(raw_color != 0) 
+			//Horizontal flip the internal X coordinate
+			if(obj[sprite_id].h_flip)
 			{
-				//If this sprite is in OBJ Window mode, do not render it, but set a flag indicating the LCD passed over its pixel
-				if(obj[sprite_id].mode == 2) { obj_win_pixel = true; }
+				s16 h_flip = sprite_tile_pixel_x;
+				h_flip -= (obj[sprite_id].width - 1);
 
-				else 
-				{
-					scanline_buffer[scanline_pixel_counter] = pal[((obj[sprite_id].palette_number * 32) + (raw_color * 2)) >> 1][1];
-					last_raw_color = raw_pal[((obj[sprite_id].palette_number * 32) + (raw_color * 2)) >> 1][1];
-					last_obj_priority = obj[sprite_id].bg_priority;
-					last_obj_mode = obj[sprite_id].mode;
-					return true;
-				}
+				if(h_flip < 0) { h_flip *= -1; }
+
+				sprite_tile_pixel_x = h_flip;
+			}
+
+			//Vertical flip the internal Y coordinate
+			if(obj[sprite_id].v_flip)
+			{
+				s16 v_flip = sprite_tile_pixel_y;
+				v_flip -= (obj[sprite_id].height - 1);
+
+				if(v_flip < 0) { v_flip *= -1; }
+
+				sprite_tile_pixel_y = v_flip;
 			}
 		}
 
-		//Grab the byte corresponding to (sprite_tile_pixel), render it as ARGB - 8-bit version
+		//Affine transformation sprite rendering
 		else
 		{
-			sprite_tile_addr += sprite_tile_pixel;
-			raw_color = mem->memory_map[sprite_tile_addr];
+			u8 index = (obj[sprite_id].affine_group << 2);
+			s16 current_x, current_y;
 
-			if(raw_color != 0) 
+			//Determine current X position relative to the OBJ center X, account for screen wrapping
+			if((obj[sprite_id].x_wrap) && (scanline_pixel_counter < obj[sprite_id].right)) { current_x = scanline_pixel_counter - (obj[sprite_id].cx - 511); }
+			else { current_x = scanline_pixel_counter - obj[sprite_id].cx; }
+
+			//Determine current Y position relative to the OBJ center Y, account for screen wrapping
+			if((obj[sprite_id].y_wrap) && (current_scanline < obj[sprite_id].bottom)) { current_y = current_scanline - (obj[sprite_id].cy - 255); }
+			else { current_y = current_scanline - obj[sprite_id].cy; }
+
+			s16 new_x = obj[sprite_id].cw + (lcd_stat.obj_affine[index] * current_x) + (lcd_stat.obj_affine[index+1] * current_y);
+			s16 new_y = obj[sprite_id].ch + (lcd_stat.obj_affine[index+2] * current_x) + (lcd_stat.obj_affine[index+3] * current_y);
+
+			//If out of bounds for the transformed sprite, abort rendering
+			if((new_x < 0) || (new_y < 0) || (new_x >= obj[sprite_id].width) || (new_y >= obj[sprite_id].height)) { render_obj = false; }
+		
+			sprite_tile_pixel_x = new_x;
+			sprite_tile_pixel_y = new_y;
+		}
+
+		//This check is mainly for affine OBJs
+		if(render_obj)
+		{
+			//Handle the mosiac function
+			if(obj[sprite_id].mosiac && lcd_stat.obj_mos_hsize) { sprite_tile_pixel_x = ((sprite_tile_pixel_x / lcd_stat.obj_mos_hsize) * lcd_stat.obj_mos_hsize); }
+			if(obj[sprite_id].mosiac && lcd_stat.obj_mos_vsize) { sprite_tile_pixel_y = ((sprite_tile_pixel_y / lcd_stat.obj_mos_vsize) * lcd_stat.obj_mos_vsize); }
+
+			//Determine meta x-coordinate of rendered sprite pixel
+			u8 meta_x = (sprite_tile_pixel_x / 8);
+
+			//Determine meta Y-coordinate of rendered sprite pixel
+			u8 meta_y = (sprite_tile_pixel_y / 8);
+
+			//Determine which 8x8 section to draw pixel from, and what tile that actually represents in VRAM
+			if(lcd_stat.display_control & 0x40)
 			{
-				//If this sprite is in OBJ Window mode, do not render it, but set a flag indicating the LCD passed over its pixel
-				if(obj[sprite_id].mode == 2) { obj_win_pixel = true; }
+				meta_sprite_tile = (meta_y * (obj[sprite_id].width/8)) + meta_x;	
+			}
 
-				else
+			else
+			{
+				meta_sprite_tile = (obj[sprite_id].bit_depth == 8) ? ((meta_y * 16) + meta_x) : ((meta_y * 32) + meta_x);
+			}
+
+			sprite_tile_addr = obj[sprite_id].addr + (meta_sprite_tile * (obj[sprite_id].bit_depth << 3));
+
+			meta_x = (sprite_tile_pixel_x % 8);
+			meta_y = (sprite_tile_pixel_y % 8);
+
+			u8 sprite_tile_pixel = (meta_y * 8) + meta_x;
+
+			//Grab the byte corresponding to (sprite_tile_pixel), render it as ARGB - 4-bit version
+			if(obj[sprite_id].bit_depth == 4)
+			{
+				sprite_tile_addr += (sprite_tile_pixel >> 1);
+				raw_color = mem->memory_map[sprite_tile_addr];
+
+				if((sprite_tile_pixel % 2) == 0) { raw_color &= 0xF; }
+				else { raw_color >>= 4; }
+
+				if(raw_color != 0) 
 				{
-					scanline_buffer[scanline_pixel_counter] = pal[raw_color][1];
-					last_raw_color = raw_pal[raw_color][1];
-					last_obj_priority = obj[sprite_id].bg_priority;
-					last_obj_mode = obj[sprite_id].mode;
-					return true;
+					//If this sprite is in OBJ Window mode, do not render it, but set a flag indicating the LCD passed over its pixel
+					if(obj[sprite_id].mode == 2) { obj_win_pixel = true; }
+
+					else 
+					{
+						scanline_buffer[scanline_pixel_counter] = pal[((obj[sprite_id].palette_number * 32) + (raw_color * 2)) >> 1][1];
+						last_raw_color = raw_pal[((obj[sprite_id].palette_number * 32) + (raw_color * 2)) >> 1][1];
+						last_obj_priority = obj[sprite_id].bg_priority;
+						last_obj_mode = obj[sprite_id].mode;
+						final_render = true;
+					}
+				}
+			}
+
+			//Grab the byte corresponding to (sprite_tile_pixel), render it as ARGB - 8-bit version
+			else
+			{
+				sprite_tile_addr += sprite_tile_pixel;
+				raw_color = mem->memory_map[sprite_tile_addr];
+
+				if(raw_color != 0) 
+				{
+					//If this sprite is in OBJ Window mode, do not render it, but set a flag indicating the LCD passed over its pixel
+					if(obj[sprite_id].mode == 2) { obj_win_pixel = true; }
+
+					else
+					{
+						scanline_buffer[scanline_pixel_counter] = pal[raw_color][1];
+						last_raw_color = raw_pal[raw_color][1];
+						last_obj_priority = obj[sprite_id].bg_priority;
+						last_obj_mode = obj[sprite_id].mode;
+						final_render = true;
+					}
 				}
 			}
 		}
 	}
 
 	//Return false if nothing was drawn
-	return false;
+	return final_render;
 }
 
 /****** Determines if a background pixel should be rendered, and if so draws it to the current scanline pixel ******/
@@ -682,17 +802,21 @@ bool AGB_LCD::render_bg_mode_1(u32 bg_control)
 	u8 bg_id = (bg_control - 0x4000008) >> 1;
 	u8 scale_rot_id = (bg_id == 2) ? 0 : 1;
 
+	//If rendering pixels along a given line, add DX and DY
+	lcd_stat.bg_affine[scale_rot_id].x_pos = lcd_stat.bg_affine[scale_rot_id].x_ref + (lcd_stat.bg_affine[scale_rot_id].dx * scanline_pixel_counter);
+	lcd_stat.bg_affine[scale_rot_id].y_pos = lcd_stat.bg_affine[scale_rot_id].y_ref + (lcd_stat.bg_affine[scale_rot_id].dy * scanline_pixel_counter);
+
 	//Get BG size in tiles, pixels
 	//0 - 128x128, 1 - 256x256, 2 - 512x512, 3 - 1024x1024
 	u16 bg_tile_size = (16 << (lcd_stat.bg_control[bg_id] >> 14));
 	u16 bg_pixel_size = bg_tile_size << 3;
 
 	//Calculate new X-Y coordinates from scaling+rotation
-	double new_x = lcd_stat.bg_params[scale_rot_id].x_ref + (lcd_stat.bg_params[scale_rot_id].a * scanline_pixel_counter) + (lcd_stat.bg_params[scale_rot_id].b * current_scanline);
-	double new_y = lcd_stat.bg_params[scale_rot_id].y_ref + (lcd_stat.bg_params[scale_rot_id].c * scanline_pixel_counter) + (lcd_stat.bg_params[scale_rot_id].d * current_scanline);
+	double new_x = lcd_stat.bg_affine[scale_rot_id].x_pos;
+	double new_y = lcd_stat.bg_affine[scale_rot_id].y_pos;
 
 	//Clip BG if coordinates overflow and overflow flag is not set
-	if(!lcd_stat.bg_params[scale_rot_id].overflow)
+	if(!lcd_stat.bg_affine[scale_rot_id].overflow)
 	{
 		if((new_x >= bg_pixel_size) || (new_x < 0)) { return false; }
 		if((new_y >= bg_pixel_size) || (new_y < 0)) { return false; }
@@ -701,13 +825,11 @@ bool AGB_LCD::render_bg_mode_1(u32 bg_control)
 	//Wrap BG if coordinates overflow and overflow flag is set
 	else 
 	{
-		new_x = fmod(new_x, bg_pixel_size);
-		new_y = fmod(new_y, bg_pixel_size);
+		while(new_x >= bg_pixel_size) { new_x -= bg_pixel_size; }
+		while(new_y >= bg_pixel_size) { new_y -= bg_pixel_size; }
+		while(new_x < 0) { new_x += bg_pixel_size; }
+		while(new_y < 0) { new_y += bg_pixel_size; } 
 	}
-
-	//Round results to nearest integer
-	new_x = (new_x > 0) ? floor(new_x + 0.5) : ceil(new_x - 0.5);
-	new_y = (new_y > 0) ? floor(new_y + 0.5) : ceil(new_y - 0.5);
 
 	//Determine source pixel X-Y coordinates
 	u16 src_x = new_x; 
@@ -717,7 +839,7 @@ bool AGB_LCD::render_bg_mode_1(u32 bg_control)
 	u16 tile_number = ((src_y / 8) * bg_tile_size) + (src_x / 8);
 
 	//Look at the Tile Map #(tile_number), see what Tile # it points to
-	u16 map_entry = mem->read_u16_fast(lcd_stat.bg_base_map_addr[bg_id] + tile_number) & 0xFF;
+	u8 map_entry = mem->memory_map[lcd_stat.bg_base_map_addr[bg_id] + tile_number];
 
 	//Get address of Tile #(map_entry)
 	u32 tile_addr = lcd_stat.bg_base_tile_addr[bg_id] + (map_entry * 64);
@@ -740,8 +862,19 @@ bool AGB_LCD::render_bg_mode_1(u32 bg_control)
 /****** Render BG Mode 3 ******/
 bool AGB_LCD::render_bg_mode_3()
 {
+	//If rendering pixels along a given line, add DX and DY
+	lcd_stat.bg_affine[0].x_pos = lcd_stat.bg_affine[0].x_ref + (lcd_stat.bg_affine[0].dx * scanline_pixel_counter);
+	lcd_stat.bg_affine[0].y_pos = lcd_stat.bg_affine[0].y_ref + (lcd_stat.bg_affine[0].dy * scanline_pixel_counter);
+
+	//Clip affine coordinates if out-of-bounds
+	if((lcd_stat.bg_affine[0].x_pos >= 240) || (lcd_stat.bg_affine[0].x_pos < 0)) { return false; }
+	if((lcd_stat.bg_affine[0].y_pos >= 160) || (lcd_stat.bg_affine[0].y_pos < 0)) { return false; }
+
+	u16 src_x = lcd_stat.bg_affine[0].x_pos; 
+	u16 src_y = lcd_stat.bg_affine[0].y_pos;
+
 	//Determine which byte in VRAM to read for color data
-	u16 color_bytes = mem->read_u16_fast(0x6000000 + (current_scanline * 480) + (scanline_pixel_counter * 2));
+	u16 color_bytes = mem->read_u16_fast(0x6000000 + (src_y * 480) + (src_x * 2));
 	last_raw_color = color_bytes;
 
 	//ARGB conversion
@@ -761,8 +894,19 @@ bool AGB_LCD::render_bg_mode_3()
 /****** Render BG Mode 4 ******/
 bool AGB_LCD::render_bg_mode_4()
 {
+	//If rendering pixels along a given line, add DX and DY
+	lcd_stat.bg_affine[0].x_pos = lcd_stat.bg_affine[0].x_ref + (lcd_stat.bg_affine[0].dx * scanline_pixel_counter);
+	lcd_stat.bg_affine[0].y_pos = lcd_stat.bg_affine[0].y_ref + (lcd_stat.bg_affine[0].dy * scanline_pixel_counter);
+
+	//Clip affine coordinates if out-of-bounds
+	if((lcd_stat.bg_affine[0].x_pos >= 240) || (lcd_stat.bg_affine[0].x_pos < 0)) { return false; }
+	if((lcd_stat.bg_affine[0].y_pos >= 160) || (lcd_stat.bg_affine[0].y_pos < 0)) { return false; }
+
+	u16 src_x = lcd_stat.bg_affine[0].x_pos; 
+	u16 src_y = lcd_stat.bg_affine[0].y_pos;
+
 	//Determine which byte in VRAM to read for color data
-	u32 bitmap_entry = (lcd_stat.frame_base + (current_scanline * 240) + scanline_pixel_counter);
+	u32 bitmap_entry = (lcd_stat.frame_base + (src_y * 240) + src_x);
 
 	u8 raw_color = mem->memory_map[bitmap_entry];
 	if(raw_color == 0) { return false; }
@@ -776,9 +920,16 @@ bool AGB_LCD::render_bg_mode_4()
 /****** Render BG Mode 5 ******/
 bool AGB_LCD::render_bg_mode_5()
 {
-	//Restrict rendering to 160x128
-	if(scanline_pixel_counter >= 160) { return false; }
-	if(current_scanline >= 128) { return false; }
+	//If rendering pixels along a given line, add DX and DY
+	lcd_stat.bg_affine[0].x_pos = lcd_stat.bg_affine[0].x_ref + (lcd_stat.bg_affine[0].dx * scanline_pixel_counter);
+	lcd_stat.bg_affine[0].y_pos = lcd_stat.bg_affine[0].y_ref + (lcd_stat.bg_affine[0].dy * scanline_pixel_counter);
+
+	//Clip affine coordinates if out-of-bounds
+	if((lcd_stat.bg_affine[0].x_pos >= 160) || (lcd_stat.bg_affine[0].x_pos < 0)) { return false; }
+	if((lcd_stat.bg_affine[0].y_pos >= 128) || (lcd_stat.bg_affine[0].y_pos < 0)) { return false; }
+
+	u16 src_x = lcd_stat.bg_affine[0].x_pos; 
+	u16 src_y = lcd_stat.bg_affine[0].y_pos;
 
 	//Determine which byte in VRAM to read for color data
 	u16 color_bytes = mem->read_u16_fast(lcd_stat.frame_base + (current_scanline * 320) + (scanline_pixel_counter * 2));
@@ -845,6 +996,9 @@ void AGB_LCD::render_scanline()
 	if((lcd_stat.window_enable[lcd_stat.current_window]) && (!lcd_stat.in_window) && (!lcd_stat.window_out_enable[4][0])) { obj_render = false; }
 	else if((lcd_stat.window_enable[lcd_stat.current_window]) && (lcd_stat.in_window) && (!lcd_stat.window_in_enable[4][lcd_stat.current_window])) { obj_render = false; }
 
+	//Also turn off OBJ rendering if OBJ Window is enabled, but rendered pixel is outside any OBJ Window
+	else if((!lcd_stat.in_window) && (lcd_stat.obj_win_enable) && (!obj_win_pixel) && (!lcd_stat.window_out_enable[4][0])) { obj_render = false; }
+
 	//Determine WINOUT status
 	winout = (lcd_stat.obj_win_enable || lcd_stat.window_enable[0] || lcd_stat.window_enable[1]);
 
@@ -878,8 +1032,8 @@ void AGB_LCD::render_scanline()
 		else if(render_bg_pixel(BG0CNT + (bg_id << 1))) { last_bg_priority = bg_id; return; }
 	}
 
-	//Use BG Palette #0, Color #0 as the backdrop
-	scanline_buffer[scanline_pixel_counter] = pal[0][0];
+	//Use BG Palette #0, Color #0 as the backdrop if no BG or OBJ was rendered
+	if(!obj_render) { scanline_buffer[scanline_pixel_counter] = pal[0][0]; }
 }
 
 /****** Applies the GBA's SFX to a pixel ******/
@@ -906,6 +1060,9 @@ void AGB_LCD::apply_sfx()
 
 	//Apply SFX if in OBJ Window
 	else if((lcd_stat.obj_win_enable) && (obj_win_pixel) && (lcd_stat.window_out_enable[5][1])) { do_sfx = true; }
+
+	//Apply SFX if out of OBJ Window
+	else if((!lcd_stat.in_window) && (!obj_win_pixel) && (lcd_stat.obj_win_enable) && (lcd_stat.window_out_enable[5][0])) { do_sfx = true; }
 
 	//Apply SFX to whole screen
 	else if((!lcd_stat.window_enable[0]) && (!lcd_stat.window_enable[1]) && (!lcd_stat.obj_win_enable)) { do_sfx = true; }
@@ -999,7 +1156,7 @@ u32 AGB_LCD::alpha_blend()
 		for(int x = 0; x < 4; x++)
 		{
 			//OBJ is 1st target
-			if((last_obj_priority == x) && (lcd_stat.sfx_target[4][0]) && (!do_blending)) { do_blending = render_sprite_pixel(); last_bg_priority = 4;  }
+			if((last_obj_priority == x) && (lcd_stat.sfx_target[4][0] || (last_obj_mode == 1)) && (!do_blending)) { do_blending = render_sprite_pixel(); last_bg_priority = 4;  }
 	
 			//BG0 is 1st target
 			if((lcd_stat.bg_priority[0] == x) && (lcd_stat.sfx_target[0][0]) && (!do_blending)) { do_blending = render_bg_pixel(BG0CNT); last_bg_priority = 0; }
@@ -1158,21 +1315,8 @@ void AGB_LCD::step()
 			scanline_compare();
 		}
 
-		//Disable OAM access
-		lcd_stat.oam_access = false;
-
 		//Change mode
 		if(lcd_mode != 0) 
-		{
-			//Toggle HBlank flag OFF
-			mem->memory_map[DISPSTAT] &= ~0x2;
-
-			lcd_mode = 0; 
-			update_obj_render_list();
-		}
-
-		//Render scanline data (per-pixel every 4 cycles)
-		if((lcd_clock % 4) == 0) 
 		{
 			//Update OAM
 			if(lcd_stat.oam_update) { update_oam(); }
@@ -1180,6 +1324,51 @@ void AGB_LCD::step()
 			//Update palettes
 			if((lcd_stat.bg_pal_update) || (lcd_stat.obj_pal_update)) { update_palettes(); }
 
+			//Toggle HBlank flag OFF
+			mem->memory_map[DISPSTAT] &= ~0x2;
+
+			lcd_mode = 0; 
+			update_obj_render_list();
+
+			//Update BG affine parameters
+			//If Line 0, reset X and Y positions
+			if((lcd_stat.bg_mode != 0) && (current_scanline == 0))
+			{
+				u32 x_ref = mem->read_u32_fast(BG2X_L);
+				u32 y_ref = mem->read_u32_fast(BG2Y_L);
+				mem->write_u32(BG2X_L, x_ref);
+				mem->write_u32(BG2Y_L, y_ref);
+
+				lcd_stat.bg_affine[0].x_pos = lcd_stat.bg_affine[0].x_ref;
+				lcd_stat.bg_affine[0].y_pos = lcd_stat.bg_affine[0].y_ref;
+
+				x_ref = mem->read_u32_fast(BG3X_L);
+				y_ref = mem->read_u32_fast(BG3Y_L);
+				mem->write_u32(BG3X_L, x_ref);
+				mem->write_u32(BG3Y_L, y_ref);
+
+				lcd_stat.bg_affine[1].x_pos = lcd_stat.bg_affine[1].x_ref;
+				lcd_stat.bg_affine[1].y_pos = lcd_stat.bg_affine[1].y_ref;
+			}
+
+			//If starting any other line, add DMX and DMY to X and Y positions
+			else if((lcd_stat.bg_mode != 0) && (current_scanline != 0))
+			{
+				lcd_stat.bg_affine[0].x_ref += lcd_stat.bg_affine[0].dmx;
+				lcd_stat.bg_affine[0].y_ref += lcd_stat.bg_affine[0].dmy;
+				lcd_stat.bg_affine[0].x_pos = lcd_stat.bg_affine[0].x_ref;
+				lcd_stat.bg_affine[0].y_pos = lcd_stat.bg_affine[0].y_ref;
+
+				lcd_stat.bg_affine[1].x_ref += lcd_stat.bg_affine[1].dmx;
+				lcd_stat.bg_affine[1].y_ref += lcd_stat.bg_affine[1].dmy;
+				lcd_stat.bg_affine[1].x_pos = lcd_stat.bg_affine[1].x_ref;
+				lcd_stat.bg_affine[1].y_pos = lcd_stat.bg_affine[1].y_ref;
+			}
+		}
+
+		//Render scanline data (per-pixel every 4 cycles)
+		if((lcd_clock % 4) == 0) 
+		{
 			render_scanline();
 			if(lcd_stat.current_sfx_type != NORMAL) { apply_sfx(); }
 			scanline_pixel_counter++;
@@ -1189,9 +1378,6 @@ void AGB_LCD::step()
 	//Mode 1 - H-Blank
 	else if(((lcd_clock % 1232) > 960) && (lcd_clock < 197120))
 	{
-		//Permit OAM access if HBlank Interval Free flag is set
-		if(lcd_stat.hblank_interval_free) { lcd_stat.oam_access = true; }
-
 		//Change mode
 		if(lcd_mode != 1) 
 		{
@@ -1234,9 +1420,6 @@ void AGB_LCD::step()
 		if(current_scanline < 227 ) { mem->memory_map[DISPSTAT] |= 0x1; }
 		else { mem->memory_map[DISPSTAT] &= ~0x1; }
 
-		//Permit OAM write access
-		lcd_stat.oam_access = true;
-
 		//Change mode
 		if(lcd_mode != 2) 
 		{
@@ -1273,10 +1456,10 @@ void AGB_LCD::step()
 		
 						//Blit the original surface to the final stretched one
 						SDL_Rect dest_rect;
-						dest_rect.x = (config::win_width / 2) - config::sys_width;
-						dest_rect.y = (config::win_height / 2) - config::sys_height;
-						dest_rect.w = config::sys_width << 1;
-						dest_rect.h = config::sys_height << 1;
+						dest_rect.w = config::sys_width * max_fullscreen_ratio;
+						dest_rect.h = config::sys_height * max_fullscreen_ratio;
+						dest_rect.x = ((config::win_width - dest_rect.w) >> 1);
+						dest_rect.y = ((config::win_height - dest_rect.h) >> 1);
 						SDL_BlitScaled(original_screen, NULL, final_screen, &dest_rect);
 
 						if(SDL_UpdateWindowSurface(window) != 0) { std::cout<<"LCD::Error - Could not blit\n"; }
@@ -1383,8 +1566,6 @@ void AGB_LCD::step()
 			scanline_compare();
 		}
 	}
-
-	if(mem->memory_map[DISPCNT] & 0x80) { lcd_stat.oam_access = true; }
 }
 
 /****** Compare VCOUNT to LYC ******/
@@ -1412,4 +1593,103 @@ void AGB_LCD::scanline_compare()
 		disp_stat &= ~0x4;
 		mem->write_u16_fast(DISPSTAT, disp_stat);
 	}
+}
+
+/****** Read LCD data from save state ******/
+bool AGB_LCD::lcd_read(u32 offset, std::string filename)
+{
+	std::ifstream file(filename.c_str(), std::ios::binary);
+	
+	if(!file.is_open()) { return false; }
+
+	//Go to offset
+	file.seekg(offset);
+
+	//Serialize LCD data from save state
+	file.read((char*)&lcd_stat, sizeof(lcd_stat));
+
+	//Serialize OBJ data from save state
+	for(int x = 0; x < 128; x++)
+	{
+		file.read((char*)&obj[x], sizeof(obj[x]));
+		file.read((char*)&obj_render_list[x], sizeof(obj_render_list[x]));
+	}
+
+	//Serialize Misc LCD data from save state
+	file.read((char*)&lcd_mode, sizeof(lcd_mode));
+	file.read((char*)&current_scanline, sizeof(current_scanline));
+	file.read((char*)&lcd_clock, sizeof(lcd_clock));
+	file.read((char*)&obj_render_length, sizeof(obj_render_length));
+	file.read((char*)&last_obj_priority, sizeof(last_obj_priority));
+	file.read((char*)&last_obj_mode, sizeof(last_obj_mode));
+	file.read((char*)&last_bg_priority, sizeof(last_bg_priority));
+	file.read((char*)&last_raw_color, sizeof(last_raw_color));
+	file.read((char*)&obj_win_pixel, sizeof(obj_win_pixel));
+	file.read((char*)&scanline_pixel_counter, sizeof(scanline_pixel_counter));
+
+	for(int x = 0; x < 256; x++)
+	{
+		for(int y = 0; y < 2; y++)
+		{
+			file.read((char*)&pal[x][y], sizeof(pal[x][y]));
+			file.read((char*)&raw_pal[x][y], sizeof(raw_pal[x][y]));
+		}
+	}
+
+	for(int x = 0; x < 4; x++)
+	{
+		file.read((char*)&bg_offset_x[x], sizeof(bg_offset_x[x]));
+		file.read((char*)&bg_offset_y[x], sizeof(bg_offset_y[x]));
+	}
+
+	file.close();
+	return true;
+}
+
+/****** Read LCD data from save state ******/
+bool AGB_LCD::lcd_write(std::string filename)
+{
+	std::ofstream file(filename.c_str(), std::ios::binary | std::ios::app);
+	
+	if(!file.is_open()) { return false; }
+
+	//Serialize LCD data to save state
+	file.write((char*)&lcd_stat, sizeof(lcd_stat));
+
+	//Serialize OBJ data to save state
+	for(int x = 0; x < 128; x++)
+	{
+		file.write((char*)&obj[x], sizeof(obj[x]));
+		file.write((char*)&obj_render_list[x], sizeof(obj_render_list[x]));
+	}
+
+	//Serialize Misc LCD data to save state
+	file.write((char*)&lcd_mode, sizeof(lcd_mode));
+	file.write((char*)&current_scanline, sizeof(current_scanline));
+	file.write((char*)&lcd_clock, sizeof(lcd_clock));
+	file.write((char*)&obj_render_length, sizeof(obj_render_length));
+	file.write((char*)&last_obj_priority, sizeof(last_obj_priority));
+	file.write((char*)&last_obj_mode, sizeof(last_obj_mode));
+	file.write((char*)&last_bg_priority, sizeof(last_bg_priority));
+	file.write((char*)&last_raw_color, sizeof(last_raw_color));
+	file.write((char*)&obj_win_pixel, sizeof(obj_win_pixel));
+	file.write((char*)&scanline_pixel_counter, sizeof(scanline_pixel_counter));
+
+	for(int x = 0; x < 256; x++)
+	{
+		for(int y = 0; y < 2; y++)
+		{
+			file.write((char*)&pal[x][y], sizeof(pal[x][y]));
+			file.write((char*)&raw_pal[x][y], sizeof(raw_pal[x][y]));
+		}
+	}
+
+	for(int x = 0; x < 4; x++)
+	{
+		file.write((char*)&bg_offset_x[x], sizeof(bg_offset_x[x]));
+		file.write((char*)&bg_offset_y[x], sizeof(bg_offset_y[x]));
+	}
+
+	file.close();
+	return true;
 }

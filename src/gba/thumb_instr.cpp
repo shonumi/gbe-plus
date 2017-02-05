@@ -1564,26 +1564,23 @@ void ARM7::long_branch_link(u16 current_thumb_instruction)
 	{
 		u8 pre_bit = (reg.r15 & 0x800000) ? 1 : 0;
 
-		//Grab upper 11-bits of destination address, add to PC
+		//Grab upper 11-bits of destination address
 		lbl_addr = ((current_thumb_instruction & 0x7FF) << 12);
+	
+		//Add as a 2's complement to PC
+		if(lbl_addr & 0x400000) { lbl_addr |= 0xFF800000; }
 		lbl_addr += reg.r15;
+
+		//Save label to LR
 		set_reg(14, lbl_addr);
 
 		//Clock CPU and controllers - 1S
 		clock(reg.r15, false);
-
-		u8 post_bit = (reg.r15 & 0x800000) ? 1 : 0;
-
-		//Check for overflows
-		if((pre_bit != post_bit) && (pre_bit == 0)) { reg.r15 &= ~0x800000; }
-		if((pre_bit != post_bit) && (pre_bit == 1)) { reg.r15 |= 0x800000; }
 	}
 
 	//Perform 2nd 16-bit operation
 	else
 	{
-		u8 pre_bit = (reg.r15 & 0x800000) ? 1 : 0;
-
 		//Grab address of the "next" instruction to place in LR, set Bit 0 to 1
 		u32 next_instr_addr = (reg.r15 - 2);
 		next_instr_addr |= 1;
@@ -1597,12 +1594,6 @@ void ARM7::long_branch_link(u16 current_thumb_instruction)
 
 		reg.r15 = lbl_addr;
 		reg.r15 &= ~0x1;
-
-		u8 post_bit = (reg.r15 & 0x800000) ? 1 : 0;
-
-		//Check for overflows
-		if((pre_bit != post_bit) && (pre_bit == 0)) { reg.r15 &= ~0x800000; }
-		if((pre_bit != post_bit) && (pre_bit == 1)) { reg.r15 |= 0x800000; }
 
 		needs_flush = true;
 		set_reg(14, next_instr_addr);

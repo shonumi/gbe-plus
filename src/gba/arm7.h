@@ -163,6 +163,7 @@ class ARM7
 
 	bool running;
 	bool needs_flush;
+	bool needs_reset;
 	bool in_interrupt;
 	bool sleep;
 
@@ -285,6 +286,12 @@ class ARM7
 	void swi_objaffineset();
 	void swi_bitunpack();
 	void swi_midikey2freq();
+	void swi_hardreset();
+
+	//Serialize data for save state loading/saving
+	bool cpu_read(u32 offset, std::string filename);
+	bool cpu_write(std::string filename);
+	u32 size();
 };
 		
 #endif // GBA_CPU
