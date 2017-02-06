@@ -105,7 +105,12 @@ class AGB_MMU
 		u16 state;
 		u8 serial_counter;
 		u8 serial_byte;
+		u8 serial_data[8];
+		u8 data_index;
+		u8 serial_len;
 		gpio_types type;
+
+		u8 rtc_control;
 	} gpio;
 
 	AGB_MMU();
