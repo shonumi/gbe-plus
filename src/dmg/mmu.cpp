@@ -1634,7 +1634,7 @@ bool DMG_MMU::read_file(std::string filename)
 	{
 		//Use a file positioner
 		u32 file_pos = 0x8000;
-		u8 bank_count = 0;
+		u16 bank_count = 0;
 
 		while(file_pos < (cart.rom_size * 1024))
 		{
