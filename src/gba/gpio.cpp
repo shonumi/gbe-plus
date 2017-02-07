@@ -39,17 +39,19 @@ void AGB_MMU::process_rtc()
 			if(gpio.data & 0x1)
 			{
 				//Use SIO (GPIO data Bit 1)
-				if(gpio.data & 0x2) { gpio.serial_byte |= (1 << gpio.serial_counter); }
+				if(gpio.data & 0x2) { gpio.serial_byte |= (1 << (7 - gpio.serial_counter)); }
+				else { gpio.serial_byte &= ~(1 << (7 - gpio.serial_counter)); }
+
 				gpio.serial_counter++;
 
 				//Stop after 8 bits are received
 				if(gpio.serial_counter == 8)
 				{
 					//Validate command
-					if((gpio.serial_byte & 0xF) == 6)
+					if((gpio.serial_byte & 0xF0) == 0x60)
 					{
-						u8 param = ((gpio.serial_byte >> 4) & 0x7);
-						bool read_data = gpio.serial_byte & 0x80;
+						u8 param = ((gpio.serial_byte >> 1) & 0x7);
+						bool read_data = gpio.serial_byte & 0x1;
 						
 						if(read_data) { std::cout<<"READ COMMAND 0x" << std::hex << u16(param) << "\n"; }
 						else { std::cout<<"WRITE COMMAND 0x" << std::hex << u16(param) << "\n"; }
@@ -59,19 +61,28 @@ void AGB_MMU::process_rtc()
 						{
 							//Force Reset
 							case 0x0:
-								if(!read_data) { gpio.state = 0x100; }
+								gpio.state = 0x100;
 								break;
 
-							//Alarm Time 1 - does nothing on the GBA
-							case 0x1:
-								//Reply with 0xFF
+							//Control Register
+							case 0x1: 
+								//Reply with 1 byte for control register
 								if(read_data)
 								{
-									gpio.serial_data[0] = 0xFF;
+									gpio.serial_data[0] = gpio.rtc_control;
 									gpio.serial_len = 1;
 									gpio.serial_counter = 0;
 									gpio.data_index = 0;
 									gpio.state = 0x103;
+								}
+
+								//Write 1 byte for control register
+								else
+								{
+									gpio.serial_len = 1;
+									gpio.serial_counter = 0;
+									gpio.data_index = 0;
+									gpio.state = 0x104;
 								}
 
 								break;
@@ -131,48 +142,8 @@ void AGB_MMU::process_rtc()
 								else { }
 								break;
 
-							//Clock Adjust Register-Force IRQ
-							case 0x3: break;
-
-							//Control Register
-							case 0x4: 
-								//Reply with 1 byte for control register
-								if(read_data)
-								{
-									gpio.serial_data[0] = gpio.rtc_control;
-									gpio.serial_len = 1;
-									gpio.serial_counter = 0;
-									gpio.data_index = 0;
-									gpio.state = 0x103;
-								}
-
-								//Write 1 byte for control register
-								else
-								{
-									gpio.serial_len = 1;
-									gpio.serial_counter = 0;
-									gpio.data_index = 0;
-									gpio.state = 0x104;
-								}
-
-								break;
-
-							//Alarm Time 2 - does nothing on the GBA
-							case 0x5:
-								//Reply with 0xFF
-								if(read_data)
-								{
-									gpio.serial_data[0] = 0xFF;
-									gpio.serial_len = 1;
-									gpio.serial_counter = 0;
-									gpio.data_index = 0;
-									gpio.state = 0x103;
-								}
-
-								break;
-
 							//Time
-							case 0x6: 
+							case 0x3: 
 								//Reply with 3 bytes for time
 								if(read_data)
 								{
@@ -209,6 +180,37 @@ void AGB_MMU::process_rtc()
 								//Write 3 bytes for time
 								else { }
 								break;
+
+							//Alarm Time 1 - does nothing on the GBA
+							case 0x4:
+								//Reply with 0xFF
+								if(read_data)
+								{
+									gpio.serial_data[0] = 0xFF;
+									gpio.serial_len = 1;
+									gpio.serial_counter = 0;
+									gpio.data_index = 0;
+									gpio.state = 0x103;
+								}
+
+								break;
+
+							//Alarm Time 2 - does nothing on the GBA
+							case 0x5:
+								//Reply with 0xFF
+								if(read_data)
+								{
+									gpio.serial_data[0] = 0xFF;
+									gpio.serial_len = 1;
+									gpio.serial_counter = 0;
+									gpio.data_index = 0;
+									gpio.state = 0x103;
+								}
+
+								break;
+
+							//Clock Adjust Register-Force IRQ
+							case 0x6: break;
 
 							//Free register - does nothing on the GBA
 							case 0x7:
