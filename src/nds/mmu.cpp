@@ -2018,6 +2018,7 @@ void NTR_MMU::parse_header()
 	{
 		header.arm9_size <<= 8;
 		header.arm9_size |= cart_data[0x2F - x];
+		header.arm9_size &= 0x3BFE00;
 	}
 
 	//ARM7 ROM Offset
@@ -2034,6 +2035,7 @@ void NTR_MMU::parse_header()
 	{
 		header.arm7_entry_addr <<= 8;
 		header.arm7_entry_addr |= cart_data[0x37 - x];
+		header.arm7_size &= 0x3BFE00;
 	}
 
 	//ARM7 RAM Address
