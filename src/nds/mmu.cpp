@@ -1874,18 +1874,18 @@ bool NTR_MMU::read_file(std::string filename)
 
 	parse_header();
 
-	//Copy ARM9 binary from offset to entry address
+	//Copy ARM9 binary from offset to RAM address
 	for(u32 x = 0; x < header.arm9_size; x++)
 	{
 		if((header.arm9_rom_offset + x) >= file_size) { break; }
-		write_u8((header.arm9_entry_addr + x), cart_data[header.arm9_rom_offset + x]);
+		write_u8((header.arm9_ram_addr + x), cart_data[header.arm9_rom_offset + x]);
 	}
 
-	//Copy ARM7 binary from offset to entry address
+	//Copy ARM7 binary from offset to RAM address
 	for(u32 x = 0; x < header.arm7_size; x++)
 	{
 		if((header.arm7_rom_offset + x) >= file_size) { break; }
-		write_u8((header.arm7_entry_addr + x), cart_data[header.arm7_rom_offset + x]);
+		write_u8((header.arm7_ram_addr + x), cart_data[header.arm7_rom_offset + x]);
 	}
 
 	return true;
@@ -2018,7 +2018,7 @@ void NTR_MMU::parse_header()
 	{
 		header.arm9_size <<= 8;
 		header.arm9_size |= cart_data[0x2F - x];
-		header.arm9_size &= 0x3BFE00;
+		if(header.arm9_size > 0x3BFE00) { header.arm9_size = 0x3BFE00; }
 	}
 
 	//ARM7 ROM Offset
@@ -2035,7 +2035,7 @@ void NTR_MMU::parse_header()
 	{
 		header.arm7_entry_addr <<= 8;
 		header.arm7_entry_addr |= cart_data[0x37 - x];
-		header.arm7_size &= 0x3BFE00;
+		if(header.arm7_size > 0x3BFE00) { header.arm7_size = 0x3BFE00; }
 	}
 
 	//ARM7 RAM Address
