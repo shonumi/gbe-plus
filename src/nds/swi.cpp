@@ -40,6 +40,12 @@ void NTR_ARM9::process_swi(u32 comment)
 			swi_halt();
 			break;
 
+		//Div
+		case 0x9:
+			std::cout<<"ARM9::SWI::Div \n";
+			swi_div();
+			break;
+
 		//CPUSet
 		case 0xB:
 			std::cout<<"ARM9::SWI::CPUSet \n";
@@ -130,6 +136,34 @@ void NTR_ARM9::swi_vblankintrwait()
 
 	//Set CPU idle state to 3
 	idle_state = 3;
+}
+
+/****** HLE implementation of Div ******/
+void NTR_ARM9::swi_div()
+{
+	//Grab the numerator - R0
+	s32 num = get_reg(0);
+	
+	//Grab the denominator - R1
+	s32 den = get_reg(1);
+
+	s32 result = 0;
+	s32 modulo = 0;
+
+	//Do NOT divide by 0
+	if(den == 0) { std::cout<<"ARM9::SWI::Warning - Div tried to divide by zero (ignoring operation) \n"; return; }
+
+	//R0 = result of division
+	result = num/den;
+	set_reg(0, result);
+
+	//R1 = mod of inputs
+	modulo = num % den;
+	set_reg(1, modulo);
+
+	//R3 = absolute value of division
+	if(result < 0) { result *= -1; }
+	set_reg(3, result);
 }
 
 /****** HLE implementation of CPUSet - NDS9 ******/
@@ -319,6 +353,12 @@ void NTR_ARM7::process_swi(u32 comment)
 			swi_halt();
 			break;
 
+		//Div
+		case 0x9:
+			std::cout<<"ARM7::SWI::Div \n";
+			swi_div();
+			break;
+
 		//CPUSet
 		case 0xB:
 			std::cout<<"ARM7::SWI::CPUSet \n";
@@ -417,6 +457,34 @@ void NTR_ARM7::swi_halt()
 {
 	//Set CPU idle state to 1
 	idle_state = 1;
+}
+
+/****** HLE implementation of Div ******/
+void NTR_ARM7::swi_div()
+{
+	//Grab the numerator - R0
+	s32 num = get_reg(0);
+	
+	//Grab the denominator - R1
+	s32 den = get_reg(1);
+
+	s32 result = 0;
+	s32 modulo = 0;
+
+	//Do NOT divide by 0
+	if(den == 0) { std::cout<<"ARM7::SWI::Warning - Div tried to divide by zero (ignoring operation) \n"; return; }
+
+	//R0 = result of division
+	result = num/den;
+	set_reg(0, result);
+
+	//R1 = mod of inputs
+	modulo = num % den;
+	set_reg(1, modulo);
+
+	//R3 = absolute value of division
+	if(result < 0) { result *= -1; }
+	set_reg(3, result);
 }
 
 /****** HLE implementation of CPUSet - NDS7 ******/
