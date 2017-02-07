@@ -56,7 +56,7 @@ void AGB_MMU::reset()
 	gpio.serial_byte = 0;
 	gpio.type = GPIO_RTC;
 
-	gpio.rtc_control = 0;
+	gpio.rtc_control = 0x40;
 
 	//HLE some post-boot registers
 	if(!config::use_bios)
