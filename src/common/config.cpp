@@ -164,7 +164,7 @@ namespace config
 	};
 
 	//Real-time clock offsets
-	u16 rtc_offset[4] = { 0, 0, 0, 0 };
+	u16 rtc_offset[6] = { 0, 0, 0, 0, 0, 0 };
 }
 
 /****** Reset DMG default colors ******/
@@ -1162,7 +1162,7 @@ bool parse_ini_file()
 		//Real-time clock offsets
 		else if(ini_item == "#rtc_offset")
 		{
-			if((x + 4) < size)
+			if((x + 6) < size)
 			{
 				std::stringstream temp_stream;
 
@@ -1197,6 +1197,20 @@ bool parse_ini_file()
 				temp_stream.str(std::string());
 
 				if(config::rtc_offset[3] > 365) { config::rtc_offset[3] = 365; }
+
+				//Months offset
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::rtc_offset[4];
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				if(config::rtc_offset[4] > 11) { config::rtc_offset[4] = 11; }
+
+				//Years offset
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::rtc_offset[5];
+				temp_stream.clear();
+				temp_stream.str(std::string());
 			}
 
 			else 
@@ -2125,7 +2139,9 @@ bool save_ini_file()
 			std::string val = util::to_str(config::rtc_offset[0]) + ":";
 			val += util::to_str(config::rtc_offset[1]) + ":";
 			val += util::to_str(config::rtc_offset[2]) + ":";
-			val += util::to_str(config::rtc_offset[3]);
+			val += util::to_str(config::rtc_offset[3]) + ":";
+			val += util::to_str(config::rtc_offset[4]) + ":";
+			val += util::to_str(config::rtc_offset[5]);
 
 			output_lines[line_pos] = "[#rtc_offset:" + val + "]";
 		}
