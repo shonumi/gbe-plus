@@ -68,6 +68,9 @@ void NTR_LCD::reset()
 	lcd_stat.bg_pal_update_b = true;
 	lcd_stat.bg_pal_update_list_b.resize(0x100, 0);
 
+	lcd_stat.update_bg_control_a = false;
+	lcd_stat.update_bg_control_b = false;
+
 	lcd_stat.display_mode_a = 0;
 	lcd_stat.display_mode_b = 0;
 
@@ -444,10 +447,8 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 		u8 line_offset = (bit_depth >> 3) * current_tile_line;
 
 		//Get tile and map addresses
-		u32 base_addr = 0x6000000;
-
-		u32 tile_addr = base_addr + lcd_stat.bg_base_tile_addr_a[bg_id];
-		u32 map_addr = base_addr + lcd_stat.bg_base_map_addr_a[bg_id];
+		u32 tile_addr = 0x6000000 + lcd_stat.bg_base_tile_addr_a[bg_id];
+		u32 map_addr = 0x6000000 + lcd_stat.bg_base_map_addr_a[bg_id];
  
 		//Cycle through all tiles on this scanline
 		for(u32 x = 0; x < 32; x++)
@@ -519,10 +520,8 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 		u8 line_offset = (bit_depth >> 3) * current_tile_line;
 
 		//Get tile and map addresses
-		u32 base_addr = 0x6200000;
-
-		u32 tile_addr = base_addr + lcd_stat.bg_base_tile_addr_b[bg_id];
-		u32 map_addr = base_addr + lcd_stat.bg_base_map_addr_b[bg_id];
+		u32 tile_addr = 0x6200000 + lcd_stat.bg_base_tile_addr_b[bg_id];
+		u32 map_addr = 0x6200000 + lcd_stat.bg_base_map_addr_b[bg_id];
 
 		//Cycle through all tiles on this scanline
 		for(u32 x = 0; x < 32; x++)
@@ -775,6 +774,26 @@ void NTR_LCD::step()
 
 			//Update 2D engine palettes
 			if((lcd_stat.bg_pal_update_a || lcd_stat.bg_pal_update_b)) { update_palettes(); }
+
+			//Update BG control registers - Engine A
+			if(lcd_stat.update_bg_control_a)
+			{
+				mem->write_u8(NDS_BG0CNT_A, mem->memory_map[NDS_BG0CNT_A]);
+				mem->write_u8(NDS_BG1CNT_A, mem->memory_map[NDS_BG1CNT_A]);
+				mem->write_u8(NDS_BG2CNT_A, mem->memory_map[NDS_BG2CNT_A]);
+				mem->write_u8(NDS_BG3CNT_A, mem->memory_map[NDS_BG3CNT_A]);
+				lcd_stat.update_bg_control_a = false;
+			}
+
+			//Update BG control registers - Engine B
+			if(lcd_stat.update_bg_control_b)
+			{
+				mem->write_u8(NDS_BG0CNT_B, mem->memory_map[NDS_BG0CNT_B]);
+				mem->write_u8(NDS_BG1CNT_B, mem->memory_map[NDS_BG1CNT_B]);
+				mem->write_u8(NDS_BG2CNT_B, mem->memory_map[NDS_BG2CNT_B]);
+				mem->write_u8(NDS_BG3CNT_B, mem->memory_map[NDS_BG3CNT_B]);
+				lcd_stat.update_bg_control_b = false;
+			}
 
 			//Render scanline data
 			render_scanline();

@@ -91,6 +91,9 @@ struct ntr_lcd_data
 
 	bool obj_pal_update_a;
 	std::vector<bool> obj_pal_update_list_a;
+
+	bool update_bg_control_a;
+	bool update_bg_control_b;
 };
 
 #endif // NDS_LCD_DATA

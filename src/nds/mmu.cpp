@@ -462,6 +462,9 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			lcd_stat->bg_enable_a[2] = (lcd_stat->display_control_a & 0x400) ? true : false;
 			lcd_stat->bg_enable_a[3] = (lcd_stat->display_control_a & 0x800) ? true : false;
 
+			//Update all BG controls
+			lcd_stat->update_bg_control_a = true;
+
 			break;
 
 		//Display Control B
@@ -479,6 +482,9 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			lcd_stat->bg_enable_b[1] = (lcd_stat->display_control_b & 0x200) ? true : false;
 			lcd_stat->bg_enable_b[2] = (lcd_stat->display_control_b & 0x400) ? true : false;
 			lcd_stat->bg_enable_b[3] = (lcd_stat->display_control_b & 0x800) ? true : false;
+
+			//Update all BG controls
+			lcd_stat->update_bg_control_b = true;
 
 			break;
 
