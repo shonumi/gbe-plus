@@ -800,11 +800,15 @@ void NTR_LCD::step()
 
 			u32 render_position = (lcd_stat.current_scanline * 256);
 
+			//Swap top and bottom if POWERCNT1 Bit 15 is not set, otherwise A is top, B is bottom
+			u16 disp_a_offset = (mem->power_cnt1 & 0x8000) ? 0 : 0xC000;
+			u16 disp_b_offset = (mem->power_cnt1 & 0x8000) ? 0xC000 : 0;
+
 			//Push scanline pixel data to screen buffer
 			for(u16 x = 0; x < 256; x++)
 			{
-				screen_buffer[render_position + x] = scanline_buffer_a[x];
-				screen_buffer[render_position + x + 0xC000] = scanline_buffer_b[x];
+				screen_buffer[render_position + x + disp_a_offset] = scanline_buffer_a[x];
+				screen_buffer[render_position + x + disp_b_offset] = scanline_buffer_b[x];
 			}
 		}
 	}
