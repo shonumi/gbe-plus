@@ -940,9 +940,14 @@ void NTR_core::debug_process_command()
 
 			else
 			{
+				u8 last_access = core_mmu.access_mode;
+				core_mmu.access_mode = nds9_debug;
+
 				db_unit.last_command = "u8";
 				std::cout<<"Memory @ " << hex_string << " : 0x" << std::hex << (int)core_mmu.read_u8(mem_location) << "\n";
 				debug_process_command();
+
+				core_mmu.access_mode = last_access;
 			}
 		}
 
@@ -995,9 +1000,14 @@ void NTR_core::debug_process_command()
 
 			else
 			{
+				u8 last_access = core_mmu.access_mode;
+				core_mmu.access_mode = nds9_debug;
+
 				db_unit.last_command = "u16";
 				std::cout<<"Memory @ " << hex_string << " : 0x" << std::hex << (int)core_mmu.read_u16(mem_location) << "\n";
 				debug_process_command();
+
+				core_mmu.access_mode = last_access;
 			}
 		}
 
@@ -1050,9 +1060,14 @@ void NTR_core::debug_process_command()
 
 			else
 			{
+				u8 last_access = core_mmu.access_mode;
+				core_mmu.access_mode = nds9_debug;
+
 				db_unit.last_command = "u32";
 				std::cout<<"Memory @ " << hex_string << " : 0x" << std::hex << (int)core_mmu.read_u32(mem_location) << "\n";
 				debug_process_command();
+
+				core_mmu.access_mode = last_access;
 			}
 		}
 
