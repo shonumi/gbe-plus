@@ -145,4 +145,7 @@ const u32 NDS_SQRTPARAM = 0x40002B8;
 const u32 NDS_SPICNT = 0x40001C0;
 const u32 NDS_SPIDATA = 0x40001C2;
 
+//Misc
+const u32 NDS_POWERCNT = 0x4000304;
+
 #endif // NDS_COMMON 

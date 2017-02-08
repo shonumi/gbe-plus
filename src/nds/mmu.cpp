@@ -48,6 +48,7 @@ void NTR_MMU::reset()
 	nds7_if = 0x0;
 	nds7_old_ie = 0x0;
 	nds7_ime = 0;
+	power_cnt2 = 0;
 
 	nds9_bios.clear();
 	nds9_bios.resize(0xC00, 0);
@@ -57,6 +58,7 @@ void NTR_MMU::reset()
 	nds9_if = 0x0;
 	nds9_old_ie = 0x0;
 	nds9_ime = 0;
+	power_cnt1 = 0;
 
 	//HLE MMIO stuff
 	memory_map[NDS_DISPCNT_A] = 0x80;
@@ -367,6 +369,15 @@ u8 NTR_MMU::read_u8(u32 address)
 		//Return SPIDATA
 		u8 addr_shift = (address & 0x1) << 3;
 		return ((nds7_spi.data >> addr_shift) & 0xFF);
+	}
+
+	//Check for POWERCNT
+	else if((address & ~0x1) == NDS_POWERCNT)
+	{
+		u8 addr_shift = (address & 0x1) << 3;
+
+		if(access_mode) { return ((power_cnt1 >> addr_shift) & 0xFF); }
+		else { return ((power_cnt2 >> addr_shift) & 0xFF); }
 	}
 
 	return memory_map[address];
@@ -1783,6 +1794,36 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 				nds7_spi.transfer_clock = nds7_spi.baud_rate;
 				nds7_spi.cnt |= 0x80;
 				nds7_spi.data = value;
+			}
+
+			break;
+
+		case NDS_POWERCNT:
+			if(access_mode)
+			{
+				power_cnt1 &= 0xFF00;
+				power_cnt1 |= value;
+			}
+
+			else
+			{
+				power_cnt2 &= 0xFF00;
+				power_cnt2 |= value;
+			}
+
+			break;
+
+		case NDS_POWERCNT+1:
+			if(access_mode)
+			{
+				power_cnt1 &= 0xFF;
+				power_cnt1 |= (value << 8);
+			}
+
+			else
+			{
+				power_cnt2 &= 0xFF;
+				power_cnt2 |= (value << 8);
 			}
 
 			break;
