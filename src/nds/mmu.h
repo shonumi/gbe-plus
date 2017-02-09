@@ -177,6 +177,7 @@ class NTR_MMU
 	bool read_file(std::string filename);
 	bool read_bios_nds7(std::string filename);
 	bool read_bios_nds9(std::string filename);
+	bool read_firmware(std::string filename);
 	bool save_backup(std::string filename);
 	bool load_backup(std::string filename);
 

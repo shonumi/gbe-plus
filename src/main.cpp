@@ -67,6 +67,12 @@ int main(int argc, char* args[])
 		if(!gbe_plus->read_bios(config::bios_file)) { return 0; } 
 	}
 
+	//Read firmware optionally (NDS)
+	if((config::use_firmware) && (config::gb_type == 4))
+	{
+		if(!gbe_plus->read_firmware(config::nds_firmware_path)) { return 0; }
+	}
+
 	//Read specified ROM file
 	if(!gbe_plus->read_file(config::rom_file)) { return 0; }
 

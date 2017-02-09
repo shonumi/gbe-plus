@@ -58,6 +58,7 @@ class DMG_core : virtual public core_emu
 		//MMU related functions
 		bool read_file(std::string filename);
 		bool read_bios(std::string filename);
+		bool read_firmware(std::string filename);
 		u8 ex_read_u8(u16 address);
 		void ex_write_u8(u16 address, u8 value);
 

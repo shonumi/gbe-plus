@@ -1262,6 +1262,12 @@ bool NTR_core::read_bios(std::string filename)
 	}
 }
 
+/****** Read firmware file into memory ******/
+bool NTR_core::read_firmware(std::string filename)
+{
+	return core_mmu.read_firmware(filename);
+}
+
 /****** Returns a byte from core memory ******/
 u8 NTR_core::ex_read_u8(u16 address) { return core_mmu.read_u8(address); }
 

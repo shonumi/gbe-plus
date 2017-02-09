@@ -2010,6 +2010,45 @@ bool NTR_MMU::read_bios_nds9(std::string filename)
 	return true;
 }
 
+/****** Read firmware file into memory ******/
+bool NTR_MMU::read_firmware(std::string filename)
+{
+	std::ifstream file(filename.c_str(), std::ios::binary);
+
+	if(!file.is_open()) 
+	{
+		std::cout<<"MMU::Firmware file " << filename << " could not be opened. Check file path or permissions. \n";
+		return false;
+	}
+
+	//Get the file size
+	file.seekg(0, file.end);
+	u32 file_size = file.tellg();
+	file.seekg(0, file.beg);
+
+	if(file_size > 0x40000) { std::cout<<"MMU::Warning - Irregular NDS firmware size\n"; }
+
+	if(file_size < 0x40000)
+	{
+		std::cout<<"MMU::Error - NDS firmware size too small\n";
+		file.close();
+		return false;
+	}
+	
+	u8* ex_mem = &firmware[0];
+
+	//Read data from the ROM file
+	file.read((char*)ex_mem, 0x40000);
+
+	//Copy current settings from firmware to RAM
+	for(u8 x = 0; x < 0x70; x++) { write_u8(0x27FFC80, firmware[0x3FE00 + x]); }
+
+	file.close();
+	std::cout<<"MMU::NDS firmware file " << filename << " loaded successfully. \n";
+
+	return true;
+}
+
 /****** Load backup save data ******/
 bool NTR_MMU::load_backup(std::string filename) { return true; }
 

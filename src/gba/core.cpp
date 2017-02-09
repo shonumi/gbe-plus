@@ -1260,6 +1260,9 @@ bool AGB_core::read_bios(std::string filename)
 	return core_mmu.read_bios(config::bios_file);
 }
 
+/****** Read firmware file into memory (not applicable) ******/
+bool AGB_core::read_firmware(std::string filename) { return true; }
+
 /****** Returns a byte from core memory ******/
 u8 AGB_core::ex_read_u8(u16 address) { return core_mmu.read_u8(address); }
 
