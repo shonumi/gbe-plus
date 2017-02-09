@@ -27,6 +27,7 @@ namespace config
 	std::string agb_bios_path = "";
 	std::string nds7_bios_path = "";
 	std::string nds9_bios_path = "";
+	std::string nds_firmware_path = "";
 	std::string save_path = "";
 	std::string ss_path = "";
 	std::string cfg_path = "";
@@ -103,6 +104,7 @@ namespace config
 	u32 flags = 0x4;
 	bool pause_emu = false;
 	bool use_bios = false;
+	bool use_firmware = false;
 	bool use_multicart = false;
 	bool use_mmm01 = false;
 	u32 sio_device = 0;
@@ -527,6 +529,7 @@ u8 get_system_type_from_file(std::string filename)
 
 	if(ext == ".gba") { gb_type = 3; }
 	else if((ext != ".gba") && (gb_type == 3)) { gb_type = 2; }
+	else if(ext == ".nds") { config::gb_type = 4; }
 
 	//For Auto or GBC mode, determine what the CGB Flag is
 	if((gb_type == 0) || (gb_type == 2))
@@ -598,6 +601,18 @@ bool parse_cli_args()
 				}
 			}
 
+			//Load Firmware (NDS)
+			else if((config::cli_args[x] == "-fw") || (config::cli_args[x] == "--firmware"))
+			{
+				if((++x) == config::cli_args.size()) { std::cout<<"GBE::Error - No firmware file in arguments\n"; }
+
+				else
+				{
+					config::use_firmware = true;
+					config::nds_firmware_path = config::cli_args[x];
+				}
+			}
+
 			//Enable fullscreen mode
 			else if((config::cli_args[x] == "-f") || (config::cli_args[x] == "--fullscreen")) { config::flags |= SDL_WINDOW_FULLSCREEN_DESKTOP; } 
 
@@ -650,6 +665,9 @@ bool parse_cli_args()
 			//Set system type - GBA
 			else if(config::cli_args[x] == "--sys-gba") { config::gb_type = 3; }
 
+			//Set system type - NDS
+			else if(config::cli_args[x] == "--sys-nds") { config::gb_type = 4; }
+
 			//Print Help
 			else if((config::cli_args[x] == "-h") || (config::cli_args[x] == "--help")) 
 			{
@@ -658,6 +676,7 @@ bool parse_cli_args()
 
 				std::cout<<"GBE+ Command Line Options:\n";
 				std::cout<<"-b [FILE], --bios [FILE] \t\t Load and use BIOS file\n";
+				std::cout<<"-fw [FILE], --firmware [FILE] \t\t Load and use firmware file (NDS)\n";
 				std::cout<<"-d, --debug \t\t\t\t Start the command-line debugger\n";
 				std::cout<<"--multicart \t\t\t\t Use MBC1M multicart mode if applicable\n";
 				std::cout<<"--mmm01 \t\t\t\t Use MMM01 multicart mode if applicable\n";
@@ -669,6 +688,7 @@ bool parse_cli_args()
 				std::cout<<"--sys-dmg \t\t\t\t Set the emulated system type to DMG (old Gameboy)\n";
 				std::cout<<"--sys-gbc \t\t\t\t Set the emulated system type to GBC\n";
 				std::cout<<"--sys-gba \t\t\t\t Set the emulated system type to GBA\n";
+				std::cout<<"--sys-nds \t\t\t\t Set the emulated system type to NDS\n";
 				std::cout<<"-h, --help \t\t\t\t Print these help messages\n";
 				return false;
 			}
@@ -794,6 +814,26 @@ bool parse_ini_file()
 			else 
 			{ 
 				std::cout<<"GBE::Error - Could not parse gbe.ini (#use_bios) \n";
+				return false;
+			}
+		}
+
+		//Use firmware
+		if(ini_item == "#use_firmware")
+		{
+			if((x + 1) < size) 
+			{
+				ini_item = ini_opts[++x];
+				std::stringstream temp_stream(ini_item);
+				temp_stream >> output;
+
+				if(output == 1) { config::use_firmware = true; }
+				else { config::use_firmware = false; }
+			}
+
+			else 
+			{ 
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#use_firmware) \n";
 				return false;
 			}
 		}
@@ -932,6 +972,60 @@ bool parse_ini_file()
 			}
 
 			else { config::agb_bios_path = ""; }
+		}
+
+		//NDS9 BIOS path
+		else if(ini_item == "#nds9_bios_path")
+		{
+			if((x + 1) < size) 
+			{
+				ini_item = ini_opts[++x];
+				std::string first_char = "";
+				first_char = ini_item[0];
+				
+				//When left blank, don't parse the next line item
+				if(first_char != "#") { config::nds9_bios_path = ini_item; }
+				else { config::nds9_bios_path = ""; x--;}
+ 
+			}
+
+			else { config::nds9_bios_path = ""; }
+		}
+
+		//NDS7 BIOS path
+		else if(ini_item == "#nds7_bios_path")
+		{
+			if((x + 1) < size) 
+			{
+				ini_item = ini_opts[++x];
+				std::string first_char = "";
+				first_char = ini_item[0];
+				
+				//When left blank, don't parse the next line item
+				if(first_char != "#") { config::nds7_bios_path = ini_item; }
+				else { config::nds7_bios_path = ""; x--;}
+ 
+			}
+
+			else { config::nds7_bios_path = ""; }
+		}
+
+		//NDS firmware path
+		else if(ini_item == "#nds_firmware_path")
+		{
+			if((x + 1) < size) 
+			{
+				ini_item = ini_opts[++x];
+				std::string first_char = "";
+				first_char = ini_item[0];
+				
+				//When left blank, don't parse the next line item
+				if(first_char != "#") { config::nds_firmware_path = ini_item; }
+				else { config::nds_firmware_path = ""; x--;}
+ 
+			}
+
+			else { config::nds_firmware_path = ""; }
 		}
 
 		//Game save path
@@ -2205,6 +2299,15 @@ bool save_ini_file()
 			output_lines[line_pos] = "[#use_bios:" + val + "]";
 		}
 
+		//Use firmware
+		if(ini_item == "#use_firmware")
+		{
+			line_pos = output_count[x];
+			std::string val = (config::use_firmware) ? "1" : "0";
+
+			output_lines[line_pos] = "[#use_firmware:" + val + "]";
+		}
+
 		//Use GB Printer
 		if(ini_item == "#sio_device")
 		{
@@ -2264,6 +2367,33 @@ bool save_ini_file()
 			std::string val = (config::agb_bios_path == "") ? "" : (":'" + config::agb_bios_path + "'");
 
 			output_lines[line_pos] = "[#agb_bios_path" + val + "]";
+		}
+
+		//NDS9 BIOS path
+		else if(ini_item == "#nds9_bios_path")
+		{
+			line_pos = output_count[x];
+			std::string val = (config::nds9_bios_path == "") ? "" : (":'" + config::nds9_bios_path + "'");
+
+			output_lines[line_pos] = "[#nds9_bios_path" + val + "]";
+		}
+
+		//NDS7 BIOS path
+		else if(ini_item == "#nds7_bios_path")
+		{
+			line_pos = output_count[x];
+			std::string val = (config::nds7_bios_path == "") ? "" : (":'" + config::nds7_bios_path + "'");
+
+			output_lines[line_pos] = "[#nds7_bios_path" + val + "]";
+		}
+
+		//NDS9 firmware path
+		else if(ini_item == "#nds_firmware_path")
+		{
+			line_pos = output_count[x];
+			std::string val = (config::nds_firmware_path == "") ? "" : (":'" + config::nds_firmware_path + "'");
+
+			output_lines[line_pos] = "[#nds_firmware_path" + val + "]";
 		}
 
 		//Game save path

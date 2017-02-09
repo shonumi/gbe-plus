@@ -40,6 +40,7 @@ namespace config
 	extern std::string agb_bios_path;
 	extern std::string nds7_bios_path;
 	extern std::string nds9_bios_path;
+	extern std::string nds_firmware_path;
 	extern std::string save_path;
 	extern std::string ss_path;
 	extern std::string cfg_path;
@@ -75,6 +76,7 @@ namespace config
 	extern u32 flags;
 	extern bool pause_emu;
 	extern bool use_bios;
+	extern bool use_firmware;
 	extern bool use_multicart;
 	extern bool use_mmm01;
 	extern u32 sio_device;	
