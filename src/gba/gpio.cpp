@@ -96,6 +96,7 @@ void AGB_MMU::process_rtc()
 									gpio.serial_counter = 0;
 									gpio.data_index = 0;
 									gpio.state = 0x103;
+									u8 raw_hours = 0;
 
 									//Grab local time
 									time_t system_time = time(0);
@@ -120,8 +121,12 @@ void AGB_MMU::process_rtc()
 									//Hours
 									gpio.serial_data[4] = current_time->tm_hour;
 									gpio.serial_data[4] += config::rtc_offset[2];
-									gpio.serial_data[4] = (gpio.rtc_control & 0x20) ? (gpio.serial_data[4] % 24) : (gpio.serial_data[4] % 12);
+									gpio.serial_data[4] = (gpio.rtc_control & 0x40) ? (gpio.serial_data[4] % 24) : (gpio.serial_data[4] % 12);
+									raw_hours = gpio.serial_data[4];
 									gpio.serial_data[4] = util::get_bcd(gpio.serial_data[4]);
+
+									//AM-PM flag
+									if((gpio.rtc_control & 0x40) && (raw_hours >= 12)) { gpio.serial_data[4] |= 0x40; }
 									
 									//Minutes
 									gpio.serial_data[5] = current_time->tm_min;
@@ -151,6 +156,7 @@ void AGB_MMU::process_rtc()
 									gpio.serial_counter = 0;
 									gpio.data_index = 0;
 									gpio.state = 0x103;
+									u8 raw_hours = 0;
 
 									//Grab local time
 									time_t system_time = time(0);
@@ -159,8 +165,12 @@ void AGB_MMU::process_rtc()
 									//Hours
 									gpio.serial_data[0] = current_time->tm_hour;
 									gpio.serial_data[0] += config::rtc_offset[2];
-									gpio.serial_data[0] = (gpio.rtc_control & 0x20) ? (gpio.serial_data[0] % 24) : (gpio.serial_data[0] % 12);
+									gpio.serial_data[0] = (gpio.rtc_control & 0x40) ? (gpio.serial_data[0] % 24) : (gpio.serial_data[0] % 12);
+									raw_hours = gpio.serial_data[0];
 									gpio.serial_data[0] = util::get_bcd(gpio.serial_data[0]);
+
+									//AM-PM flag
+									if((gpio.rtc_control & 0x40) && (raw_hours >= 12)) { gpio.serial_data[0] |= 0x40; }
 									
 									//Minutes
 									gpio.serial_data[1] = current_time->tm_min;
