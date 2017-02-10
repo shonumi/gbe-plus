@@ -16,6 +16,12 @@ void NTR_ARM9::process_swi(u32 comment)
 {
 	switch(comment)
 	{
+		//SoftReset
+		case 0x0:
+			std::cout<<"ARM9::SWI::SoftReset \n";
+			swi_softreset();
+			break;
+
 		//WaitByLoop
 		case 0x3:
 			//std::cout<<"ARM9::SWI::WaitByLoop \n";
@@ -69,6 +75,49 @@ void NTR_ARM9::process_swi(u32 comment)
 			running = false;
 			break;
 	}
+}
+
+/****** HLE implementation of SoftReset ******/
+void NTR_ARM9::swi_softreset()
+{
+	//Reset IRQ, SVC, and SYS stack pointers
+	reg.r13_svc = 0x0803FC0;
+	reg.r13_irq = 0x0803FA0;
+	reg.r13 = 0x0803EC0;
+
+	//Set PC to return address at 0x27FFE24
+	reg.r15 = mem->read_u32(0x27FFE24);
+
+	//Switch to ARM or THUMB mode as necessary
+	if(reg.r15 & 0x1) { arm_mode = THUMB; }
+	else { arm_mode = ARM; }	
+
+	needs_flush = true;
+	in_interrupt = false;
+
+	//Set registers R0-R12 to zero
+	for(int x = 0; x <= 12; x++) { set_reg(x, 0); }
+
+	//Set R14_svc, R14_irq to zero, R14 to the return address
+	reg.r14_svc = 0;
+	reg.r14_irq = 0;
+
+	//Set SPSR_svc and SPSR_irq to zero
+	reg.spsr_svc = 0;
+	reg.spsr_irq = 0;
+
+	//Set mode to SYS
+	current_cpu_mode = SYS;
+	reg.cpsr &= ~0x1F;
+	reg.cpsr |= 0x1F;
+
+	//Clear top 0x200 bytes of the DTCM
+	for(u16 x = 0; x < 0x200; x++) { mem->memory_map[mem->nds9_irq_handler + 0x3E00 + x] = 0; }
+
+	//Clear internal input
+	mem->g_pad->clear_input();
+
+	//TODO - Flush caches + write buffer, setup CP15
 }
 
 /****** HLE implementation of WaitByLoop - NDS9 ******/
@@ -335,6 +384,12 @@ void NTR_ARM7::process_swi(u32 comment)
 {
 	switch(comment)
 	{
+		//SoftReset
+		case 0x0:
+			std::cout<<"ARM7::SWI::SoftReset \n";
+			swi_softreset();
+			break;
+
 		//WaitByLoop
 		case 0x3:
 			//std::cout<<"ARM7::SWI::WaitByLoop \n";
@@ -382,6 +437,47 @@ void NTR_ARM7::process_swi(u32 comment)
 			running = false;
 			break;
 	}
+}
+
+/****** HLE implementation of SoftReset ******/
+void NTR_ARM7::swi_softreset()
+{
+	//Reset IRQ, SVC, and SYS stack pointers
+	reg.r13_svc = 0x380FFDC;
+	reg.r13_irq = 0x380FFB0;
+	reg.r13 = 0x380FF00;
+
+	//Set PC to return address at 0x27FFE34
+	reg.r15 = mem->read_u32(0x27FFE34);
+
+	//Switch to ARM or THUMB mode as necessary
+	if(reg.r15 & 0x1) { arm_mode = THUMB; }
+	else { arm_mode = ARM; }	
+
+	needs_flush = true;
+	in_interrupt = false;
+
+	//Set registers R0-R12 to zero
+	for(int x = 0; x <= 12; x++) { set_reg(x, 0); }
+
+	//Set R14_svc, R14_irq to zero, R14 to the return address
+	reg.r14_svc = 0;
+	reg.r14_irq = 0;
+
+	//Set SPSR_svc and SPSR_irq to zero
+	reg.spsr_svc = 0;
+	reg.spsr_irq = 0;
+
+	//Set mode to SYS
+	current_cpu_mode = SYS;
+	reg.cpsr &= ~0x1F;
+	reg.cpsr |= 0x1F;
+
+	//Clear top 0x200 bytes of some RAM
+	for(int x = 0x380FE00; x < 3810000; x++) { mem->memory_map[x] = 0; }
+
+	//Clear internal input
+	mem->g_pad->clear_input();
 }
 
 /****** HLE implementation of GetCRC16 - NDS7 ******/
