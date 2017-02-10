@@ -102,6 +102,8 @@ void NTR_core::shutdown()
 /****** Reset the core ******/
 void NTR_core::reset()
 {
+	bool can_reset = true;
+
 	core_cpu_nds9.controllers.video.reset();
 
 	/*
@@ -113,7 +115,10 @@ void NTR_core::reset()
 	core_mmu.reset();
 	
 	//Re-read specified ROM file
-	core_mmu.read_file(config::rom_file);
+	if(!core_mmu.read_file(config::rom_file)) { can_reset = false; }
+
+	//Re-read BIOS file
+	if((config::use_bios) && (!read_bios(""))) { can_reset = false; }
 
 	//Link CPUs and MMU
 	core_cpu_nds9.mem = &core_mmu;
@@ -145,7 +150,8 @@ void NTR_core::reset()
 	core_cpu_nds7.re_sync = false;
 
 	//Start everything all over again
-	start();
+	if(can_reset) { start(); }
+	else { running = false; }
 }
 
 /****** Loads a save state ******/
