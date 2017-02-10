@@ -295,7 +295,11 @@ void AGB_MMU::process_rtc()
 void AGB_MMU::process_solar_sensor() { }
 
 //Handles GPIO for Rumble
-void AGB_MMU::process_rumble() { }
+void AGB_MMU::process_rumble()
+{
+	if(gpio.data & 0x8) { g_pad->start_rumble(); }
+	else { g_pad->stop_rumble(); }
+}
 
 //Handles GPIO for the Gyro Sensor
 void AGB_MMU::process_gyro_sensor() { }

@@ -54,7 +54,7 @@ void AGB_MMU::reset()
 	gpio.state = 0x100;
 	gpio.serial_counter = 0;
 	gpio.serial_byte = 0;
-	gpio.type = GPIO_RTC;
+	gpio.type = GPIO_RUMBLE;
 
 	gpio.rtc_control = 0x40;
 

@@ -33,8 +33,12 @@ class AGB_GamePad
 	void process_keyboard(int pad, bool pressed);
 	void process_joystick(int pad, bool pressed);
 
+	void start_rumble();
+	void stop_rumble();
+
 	int pad;
 	u16 key_input;
+	bool is_rumbling;
 
 	private:
 
@@ -42,6 +46,7 @@ class AGB_GamePad
 	bool up_shadow, down_shadow, left_shadow, right_shadow;
 
 	SDL_Joystick* jstick;
+    	SDL_Haptic* rumble;
 };
 
 #endif // GBA_GAMEPAD

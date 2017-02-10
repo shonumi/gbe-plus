@@ -152,8 +152,8 @@ class AGB_MMU
 
 	//GPIO handling functions
 	void process_rtc();
-	void process_solar_sensor();
 	void process_rumble();
+	void process_solar_sensor();
 	void process_gyro_sensor();
 
 	void set_lcd_data(agb_lcd_data* ex_lcd_stat);

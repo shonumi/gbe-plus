@@ -18,6 +18,7 @@ AGB_GamePad::AGB_GamePad()
 	key_input = 0x3FF;
 	jstick = NULL;
 	up_shadow = down_shadow = left_shadow = right_shadow = false;
+	is_rumbling = false;
 }
 
 /****** Initialize GamePad ******/
@@ -35,6 +36,28 @@ void AGB_GamePad::init()
 
 	if((jstick == NULL) && (SDL_NumJoysticks() >= 1)) { std::cout<<"JOY::Could not initialize joystick \n"; }
 	else if((jstick == NULL) && (SDL_NumJoysticks() == 0)) { std::cout<<"JOY::No joysticks detected \n"; }
+
+	rumble = NULL;
+
+	//Open haptics for rumbling
+	if(config::use_haptics)
+	{
+		if(SDL_InitSubSystem(SDL_INIT_HAPTIC) == -1)
+		{
+			std::cout<<"JOY::Could not initialize SDL haptics\n";
+			return;
+		}
+
+		rumble = SDL_HapticOpenFromJoystick(jstick);
+
+		if(rumble == NULL) { std::cout<<"JOY::Could not init rumble \n"; }
+	
+		else
+		{
+			SDL_HapticRumbleInit(rumble);
+			std::cout<<"JOY::Rumble initialized\n";
+		}
+	}
 }
 
 /****** GamePad Destructor ******/
@@ -300,4 +323,24 @@ void AGB_GamePad::clear_input()
 {
 	key_input = 0x3FF;
 	up_shadow = down_shadow = left_shadow = right_shadow = false;
+}
+
+/****** Start haptic force-feedback on joypad ******/
+void AGB_GamePad::start_rumble()
+{
+	if((jstick != NULL) && (rumble != NULL) && (is_rumbling == false))
+	{
+		SDL_HapticRumblePlay(rumble, 1, -1);
+		is_rumbling = true;
+	}
+}
+
+/****** Stop haptic force-feedback on joypad ******/
+void AGB_GamePad::stop_rumble()
+{
+	if((jstick != NULL) && (rumble != NULL) && (is_rumbling == true))
+	{
+		SDL_HapticRumbleStop(rumble);
+       		is_rumbling = false;
+	}
 }
