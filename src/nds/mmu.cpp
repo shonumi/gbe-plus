@@ -2043,6 +2043,48 @@ bool NTR_MMU::read_firmware(std::string filename)
 	//Copy current settings from firmware to RAM
 	for(u8 x = 0; x < 0x70; x++) { write_u8(0x27FFC80, firmware[0x3FE00 + x]); }
 
+	in_firmware = true;
+	u16 arm9_entry, arm7_entry;
+	u16 shifts = (firmware[0x15] << 8) | firmware[0x14];
+	u8 current_shift = (shifts & 0x7);
+
+	//Setup ARM9 firmware offset
+	u16 boot_code = (firmware[0xD] << 8) | firmware[0xC];
+	header.arm9_rom_offset = boot_code * (1 << (2 + current_shift));
+
+	//Setup ARM9 RAM address
+	boot_code = (firmware[0xF] << 8) | firmware[0xE];
+	current_shift = ((shifts >> 3) & 0x7);
+	header.arm9_ram_addr = 0x2800000 + (boot_code * (1 << (2 + current_shift)));
+
+	//Setup ARM9 entry point
+	header.arm9_entry_addr = header.arm9_ram_addr;
+
+	//Setup ARM7 firmware offset
+	boot_code = (firmware[0x11] << 8) | firmware[0x10];
+	current_shift = ((shifts >> 6) & 0x7);
+	header.arm7_rom_offset = boot_code * (1 << (2 + current_shift));
+
+	//Setup ARM7 RAM address
+	boot_code = (firmware[0x13] << 8) | firmware[0x12];
+	current_shift = ((shifts >> 9) & 0x7);
+	header.arm7_ram_addr = 0x3810000 + (boot_code * (1 << (2 + current_shift)));
+
+	//Setup ARM7 entry point
+	header.arm7_entry_addr = header.arm7_ram_addr;
+
+	//Copy firmware to RAM address (ARM9 code)
+	for(u32 x = 0; x < firmware.size(); x++)
+	{
+		write_u8((header.arm9_ram_addr + x), firmware[header.arm9_rom_offset + x]);
+	}
+
+	//Copy firmware to RAM address (ARM7 code)
+	for(u32 x = 0; x < firmware.size(); x++)
+	{
+		write_u8((header.arm7_ram_addr + x), firmware[header.arm7_rom_offset + x]);
+	}
+
 	file.close();
 	std::cout<<"MMU::NDS firmware file " << filename << " loaded successfully. \n";
 

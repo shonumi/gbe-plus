@@ -152,6 +152,7 @@ class NTR_MMU
 
 	u16 firmware_state;
 	u32 firmware_index;
+	bool in_firmware;
 
 	u16 touchscreen_state;
 
