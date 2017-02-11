@@ -108,6 +108,11 @@ void NTR_LCD::reset()
 		lcd_stat.bg_size_a[x] = 0;
 		lcd_stat.bg_size_b[x] = 0;
 
+		lcd_stat.text_width_a[x] = 0;
+		lcd_stat.text_width_b[x] = 0;
+		lcd_stat.text_height_a[x] = 0;
+		lcd_stat.text_height_b[x] = 0;
+
 		lcd_stat.bg_base_tile_addr_a[x] = 0x6000000;
 		lcd_stat.bg_base_tile_addr_b[x] = 0x6000000;
 

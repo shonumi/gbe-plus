@@ -578,6 +578,14 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 				//Screen size
 				lcd_stat->bg_size_a[0] = (lcd_stat->bg_control_a[0] >> 14) & 0x3;
+
+				switch(lcd_stat->bg_size_a[0])
+				{
+					case 0x0: lcd_stat->text_width_a[0] = 256; lcd_stat->text_height_a[0] = 256; break;
+					case 0x1: lcd_stat->text_width_a[0] = 512; lcd_stat->text_height_a[0] = 256; break;
+					case 0x2: lcd_stat->text_width_a[0] = 256; lcd_stat->text_height_a[0] = 512; break;
+					case 0x3: lcd_stat->text_width_a[0] = 512; lcd_stat->text_height_a[0] = 512; break;
+				}
 			}
 
 			break;
@@ -603,6 +611,14 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 				//Screen size
 				lcd_stat->bg_size_b[0] = (lcd_stat->bg_control_b[0] >> 14) & 0x3;
+
+				switch(lcd_stat->bg_size_b[0])
+				{
+					case 0x0: lcd_stat->text_width_b[0] = 256; lcd_stat->text_height_b[0] = 256; break;
+					case 0x1: lcd_stat->text_width_b[0] = 512; lcd_stat->text_height_b[0] = 256; break;
+					case 0x2: lcd_stat->text_width_b[0] = 256; lcd_stat->text_height_b[0] = 512; break;
+					case 0x3: lcd_stat->text_width_b[0] = 512; lcd_stat->text_height_b[0] = 512; break;
+				}
 			}
 
 			break;
@@ -632,6 +648,14 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 				//Screen size
 				lcd_stat->bg_size_a[1] = (lcd_stat->bg_control_a[1] >> 14) & 0x3;
+
+				switch(lcd_stat->bg_size_a[1])
+				{
+					case 0x0: lcd_stat->text_width_a[1] = 256; lcd_stat->text_height_a[1] = 256; break;
+					case 0x1: lcd_stat->text_width_a[1] = 512; lcd_stat->text_height_a[1] = 256; break;
+					case 0x2: lcd_stat->text_width_a[1] = 256; lcd_stat->text_height_a[1] = 512; break;
+					case 0x3: lcd_stat->text_width_a[1] = 512; lcd_stat->text_height_a[1] = 512; break;
+				}
 			}
 
 			break;
@@ -661,6 +685,14 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 				//Screen size
 				lcd_stat->bg_size_b[1] = (lcd_stat->bg_control_b[1] >> 14) & 0x3;
+
+				switch(lcd_stat->bg_size_b[1])
+				{
+					case 0x0: lcd_stat->text_width_b[1] = 256; lcd_stat->text_height_b[1] = 256; break;
+					case 0x1: lcd_stat->text_width_b[1] = 512; lcd_stat->text_height_b[1] = 256; break;
+					case 0x2: lcd_stat->text_width_b[1] = 256; lcd_stat->text_height_b[1] = 512; break;
+					case 0x3: lcd_stat->text_width_b[1] = 512; lcd_stat->text_height_b[1] = 512; break;
+				}
 			}
 
 			break;
@@ -690,6 +722,14 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 				//Screen size
 				lcd_stat->bg_size_a[2] = (lcd_stat->bg_control_a[2] >> 14) & 0x3;
+
+				switch(lcd_stat->bg_size_a[2])
+				{
+					case 0x0: lcd_stat->text_width_a[2] = 256; lcd_stat->text_height_a[2] = 256; break;
+					case 0x1: lcd_stat->text_width_a[2] = 512; lcd_stat->text_height_a[2] = 256; break;
+					case 0x2: lcd_stat->text_width_a[2] = 256; lcd_stat->text_height_a[2] = 512; break;
+					case 0x3: lcd_stat->text_width_a[2] = 512; lcd_stat->text_height_a[2] = 512; break;
+				}
 			}
 
 			break;
@@ -719,6 +759,14 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 				//Screen size
 				lcd_stat->bg_size_b[2] = (lcd_stat->bg_control_b[2] >> 14) & 0x3;
+
+				switch(lcd_stat->bg_size_b[2])
+				{
+					case 0x0: lcd_stat->text_width_b[2] = 256; lcd_stat->text_height_b[2] = 256; break;
+					case 0x1: lcd_stat->text_width_b[2] = 512; lcd_stat->text_height_b[2] = 256; break;
+					case 0x2: lcd_stat->text_width_b[2] = 256; lcd_stat->text_height_b[2] = 512; break;
+					case 0x3: lcd_stat->text_width_b[2] = 512; lcd_stat->text_height_b[2] = 512; break;
+				}
 			}
 
 			break;
@@ -748,6 +796,14 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 				//Screen size
 				lcd_stat->bg_size_a[3] = (lcd_stat->bg_control_a[3] >> 14) & 0x3;
+
+				switch(lcd_stat->bg_size_a[3])
+				{
+					case 0x0: lcd_stat->text_width_a[3] = 256; lcd_stat->text_height_a[3] = 256; break;
+					case 0x1: lcd_stat->text_width_a[3] = 512; lcd_stat->text_height_a[3] = 256; break;
+					case 0x2: lcd_stat->text_width_a[3] = 256; lcd_stat->text_height_a[3] = 512; break;
+					case 0x3: lcd_stat->text_width_a[3] = 512; lcd_stat->text_height_a[3] = 512; break;
+				}
 			}
 
 			break;
@@ -777,6 +833,14 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 				//Screen size
 				lcd_stat->bg_size_b[3] = (lcd_stat->bg_control_b[3] >> 14) & 0x3;
+
+				switch(lcd_stat->bg_size_b[3])
+				{
+					case 0x0: lcd_stat->text_width_b[3] = 256; lcd_stat->text_height_b[3] = 256; break;
+					case 0x1: lcd_stat->text_width_b[3] = 512; lcd_stat->text_height_b[3] = 256; break;
+					case 0x2: lcd_stat->text_width_b[3] = 256; lcd_stat->text_height_b[3] = 512; break;
+					case 0x3: lcd_stat->text_width_b[3] = 512; lcd_stat->text_height_b[3] = 512; break;
+				}
 			}
 
 			break;

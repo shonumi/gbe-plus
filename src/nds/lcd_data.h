@@ -57,6 +57,11 @@ struct ntr_lcd_data
 	u8 bg_size_a[4];
 	u8 bg_size_b[4];
 
+	u16 text_width_a[4];
+	u16 text_width_b[4];
+	u16 text_height_a[4];
+	u16 text_height_b[4];
+
 	u32 bg_base_map_addr_a[4];
 	u32 bg_base_map_addr_b[4];
 
