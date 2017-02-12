@@ -22,6 +22,7 @@ NTR_GamePad::NTR_GamePad()
 	mouse_y = 0;
 	up_shadow = down_shadow = left_shadow = right_shadow = false;
 	touch_hold = false;
+	touch_by_mouse = false;
 }
 
 /****** Initialize GamePad ******/
@@ -204,7 +205,7 @@ void NTR_GamePad::handle_input(SDL_Event &event)
 	else if(event.type == SDL_MOUSEMOTION)
 	{
 		//Only process mouse motion if the emulated stylus is down
-		if(ext_key_input & 0x40) { return; }
+		if(!touch_by_mouse) { return; }
 
 		//Top screen cannot be touched
 		if(event.button.y < 192) { return; }
@@ -426,12 +427,14 @@ void NTR_GamePad::process_mouse(int pad, bool pressed)
 	//Emulate touchscreen press (NDS mode only, DSi does not use this) - Manual Hold Mode
 	if((pad == 400) && (pressed) && (!touch_hold))
 	{
+		touch_by_mouse = true;
 		ext_key_input &= ~0x40;
 	}
 
 	//Emulate touchscreen release (NDS mode only, DSi does not use this) - Manual Hold Mode
 	else if((pad == 400) && (!pressed) && (!touch_hold))
 	{
+		touch_by_mouse = false;
 		ext_key_input |= 0x40;
 
 		mouse_x = 0;
@@ -452,6 +455,7 @@ void NTR_GamePad::process_mouse(int pad, bool pressed)
 	else if((pad == 402) && (pressed) && (!touch_hold))
 	{
 		touch_hold = true;
+		touch_by_mouse = true;
 		ext_key_input &= ~0x40;
 	}
 
@@ -459,6 +463,7 @@ void NTR_GamePad::process_mouse(int pad, bool pressed)
 	else if((pad == 402) && (pressed) && (touch_hold))
 	{
 		touch_hold = false;
+		touch_by_mouse = false;
 		ext_key_input |= 0x40;
 
 		mouse_x = 0;
