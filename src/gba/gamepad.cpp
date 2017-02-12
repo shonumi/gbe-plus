@@ -19,6 +19,7 @@ AGB_GamePad::AGB_GamePad()
 	jstick = NULL;
 	up_shadow = down_shadow = left_shadow = right_shadow = false;
 	is_rumbling = false;
+	gyro_value = 0x6C0;
 }
 
 /****** Initialize GamePad ******/
@@ -212,7 +213,9 @@ void AGB_GamePad::process_keyboard(int pad, bool pressed)
 		key_input |= 0x20;
 		
 		if(right_shadow) { key_input &= ~0x10; }
-		else { key_input |= 0x10; } 
+		else { key_input |= 0x10; }
+
+		gyro_value = 0x6C0;
 	}
 
 	//Emulate Up DPad press
@@ -252,6 +255,27 @@ void AGB_GamePad::process_keyboard(int pad, bool pressed)
 
 	//Emulate L Trigger release
 	else if((pad == config::agb_key_l_trigger) && (!pressed)) { key_input |= 0x200; }
+
+	//Emulate Gyroscope Left tilt
+	else if((pad == config::gyro_key_left) && (pressed))
+	{
+		if(gyro_value < 0x9E3) { gyro_value += 32; }
+	}
+
+	else if((pad == config::gyro_key_left) && (!pressed))
+	{
+		if(gyro_value > 0x6C0) { gyro_value -= 32; }
+	}
+
+	else if((pad == config::gyro_key_right) && (pressed))
+	{
+		if(gyro_value > 0x354) { gyro_value -= 32; }
+	}
+
+	else if((pad == config::gyro_key_right) && (!pressed))
+	{
+		if(gyro_value < 0x6C0) { gyro_value += 32; }
+	}
 }
 
 /****** Processes input based on unique pad # for joysticks ******/

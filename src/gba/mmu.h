@@ -111,6 +111,8 @@ class AGB_MMU
 		gpio_types type;
 
 		u8 rtc_control;
+
+		u16 gyro_value;
 	} gpio;
 
 	AGB_MMU();
