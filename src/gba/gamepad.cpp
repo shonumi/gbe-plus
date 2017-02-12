@@ -19,7 +19,9 @@ AGB_GamePad::AGB_GamePad()
 	jstick = NULL;
 	up_shadow = down_shadow = left_shadow = right_shadow = false;
 	is_rumbling = false;
+
 	gyro_value = 0x6C0;
+	gyro_flags = 0;
 }
 
 /****** Initialize GamePad ******/
@@ -256,25 +258,46 @@ void AGB_GamePad::process_keyboard(int pad, bool pressed)
 	//Emulate L Trigger release
 	else if((pad == config::agb_key_l_trigger) && (!pressed)) { key_input |= 0x200; }
 
-	//Emulate Gyroscope Left tilt
+	//Emulate Gyroscope Left tilt press
 	else if((pad == config::gyro_key_left) && (pressed))
 	{
-		if(gyro_value < 0x9E3) { gyro_value += 32; }
+		gyro_flags |= 0x1;
+		gyro_flags |= 0x10;
+
+		gyro_flags &= ~0x2;
+
+		gyro_value = 0x6C0;
 	}
 
+	//Emulate Gyroscope Left tilt release
 	else if((pad == config::gyro_key_left) && (!pressed))
 	{
-		if(gyro_value > 0x6C0) { gyro_value -= 32; }
+		gyro_flags &= ~0x1;
+		gyro_flags &= ~0x10;
+
+		if(gyro_flags & 0x20) { gyro_flags |= 0x2; }
+		else { gyro_flags &= ~0x2; }
 	}
 
+	//Emulate Gyroscope Right tilt press
 	else if((pad == config::gyro_key_right) && (pressed))
 	{
-		if(gyro_value > 0x354) { gyro_value -= 32; }
+		gyro_flags |= 0x2;
+		gyro_flags |= 0x20;
+
+		gyro_flags &= ~0x1;
+
+		gyro_value = 0x6C0;
 	}
 
+	//Emulate Gyroscope Right tilt release
 	else if((pad == config::gyro_key_right) && (!pressed))
 	{
-		if(gyro_value < 0x6C0) { gyro_value += 32; }
+		gyro_flags &= ~0x2;
+		gyro_flags &= ~0x20;
+
+		if(gyro_flags & 0x10) { gyro_flags |= 0x1; }
+		else { gyro_flags &= ~0x1; }
 	}
 }
 
@@ -340,6 +363,48 @@ void AGB_GamePad::process_joystick(int pad, bool pressed)
 
 	//Emulate L Trigger release
 	else if((pad == config::agb_joy_l_trigger) && (!pressed)) { key_input |= 0x200; }
+
+	//Emulate Gyroscope Left tilt press
+	else if((pad == config::gyro_joy_left) && (pressed))
+	{
+		gyro_flags |= 0x1;
+		gyro_flags |= 0x10;
+
+		gyro_flags &= ~0x2;
+
+		gyro_value = 0x6C0;
+	}
+
+	//Emulate Gyroscope Left tilt release
+	else if((pad == config::gyro_joy_left) && (!pressed))
+	{
+		gyro_flags &= ~0x1;
+		gyro_flags &= ~0x10;
+
+		if(gyro_flags & 0x20) { gyro_flags |= 0x2; }
+		else { gyro_flags &= ~0x2; }
+	}
+
+	//Emulate Gyroscope Right tilt press
+	else if((pad == config::gyro_joy_right) && (pressed))
+	{
+		gyro_flags |= 0x2;
+		gyro_flags |= 0x20;
+
+		gyro_flags &= ~0x1;
+
+		gyro_value = 0x6C0;
+	}
+
+	//Emulate Gyroscope Right tilt release
+	else if((pad == config::gyro_joy_right) && (!pressed))
+	{
+		gyro_flags &= ~0x2;
+		gyro_flags &= ~0x20;
+
+		if(gyro_flags & 0x10) { gyro_flags |= 0x1; }
+		else { gyro_flags &= ~0x1; }
+	}
 }
 
 /****** Clears any existing input - Primarily used for the SoftReset SWI ******/
@@ -367,4 +432,35 @@ void AGB_GamePad::stop_rumble()
 		SDL_HapticRumbleStop(rumble);
        		is_rumbling = false;
 	}
+}
+
+/******* Processes gryoscope sensors ******/
+void AGB_GamePad::process_gyroscope()
+{
+	//Wario Ware: Twisted - Increase gyroscope value for clockwise motion
+	if(gyro_flags & 0x2)
+	{
+		gyro_value += 32;
+		if(gyro_value > 0x9E3) { gyro_value = 0x9E3; }
+	}
+
+	//Wario Ware: Twisted - Decrease gyroscope value for counter-clockwise motion
+	else if(gyro_flags & 0x1)
+	{
+		gyro_value -= 32;
+		if(gyro_value < 0x354) { gyro_value = 0x354; }
+	}
+
+	//When neither left or right is pressed, put the sensor in neutral
+	else if(gyro_value > 0x6C0) 
+	{
+    		gyro_value -= 64;
+    		if(gyro_value < 0x6C0) { gyro_value = 0x6C0; } 
+	}
+	
+	else if(gyro_value < 0x6C0)
+	{
+    		gyro_value += 64;
+    		if(gyro_value > 0x6C0) { gyro_value = 0x6C0; }
+  	}
 }

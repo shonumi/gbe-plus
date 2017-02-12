@@ -1527,6 +1527,9 @@ void AGB_LCD::step()
 				SDL_SetWindowTitle(window, config::title.str().c_str());
 				fps_count = 0; 
 			}
+
+			//Process gyroscope
+			if(mem->gpio.type == AGB_MMU::GPIO_GYRO_SENSOR) { mem->g_pad->process_gyroscope(); }
 		}
 
 		//Setup HBlank
