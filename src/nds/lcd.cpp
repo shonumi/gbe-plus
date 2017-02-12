@@ -441,11 +441,17 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 		//Abort rendering if this bg is disabled
 		if(!lcd_stat.bg_enable_a[bg_id]) { return; }
 
+		//Grab tile offsets
+		u8 tile_offset_x = lcd_stat.bg_offset_x_a[bg_id] & 0x7;
+
 		u16 tile_id;
 		u8 pal_id;
 
-		u8 scanline_pixel_counter = 0;
-		u8 current_tile_line = (lcd_stat.current_scanline % 8);
+		u16 scanline_pixel_counter = 0;
+		u8 current_screen_line = (lcd_stat.current_scanline + lcd_stat.bg_offset_y_a[bg_id]);
+
+		u8 current_screen_pixel = lcd_stat.bg_offset_x_a[bg_id];
+		u16 current_tile_line = (lcd_stat.current_scanline + lcd_stat.bg_offset_y_a[bg_id]) % 8;
 
 		//Grab BG bit-depth and offset for the current tile line
 		u8 bit_depth = lcd_stat.bg_depth_a[bg_id] ? 64 : 32;
@@ -456,11 +462,11 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 		u32 map_addr = 0x6000000 + lcd_stat.bg_base_map_addr_a[bg_id];
  
 		//Cycle through all tiles on this scanline
-		for(u32 x = 0; x < 32; x++)
+		for(u32 x = 0; x < 256;)
 		{
 			//Determine which map entry to start looking up tiles
-			u16 map_entry = ((lcd_stat.current_scanline >> 3) << 5);
-			map_entry += (scanline_pixel_counter >> 3);
+			u16 map_entry = ((current_screen_line >> 3) << 5);
+			map_entry += (current_screen_pixel >> 3);
 
 			//Pull map data from current map entry
 			u16 map_data = mem->read_u16(map_addr + (map_entry << 1));
@@ -473,7 +479,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 			u32 tile_data_addr = tile_addr + (tile_id * bit_depth) + line_offset;
 
 			//Read 8 pixels from VRAM and put them in the scanline buffer
-			for(u32 y = 0; y < 8; y++)
+			for(u32 y = tile_offset_x; y < 8; y++, x++)
 			{
 				//Process 8-bit depth
 				if(bit_depth == 64)
@@ -482,7 +488,10 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 
 					//Only draw color if it's not transparent
 					if(raw_color) { scanline_buffer_a[scanline_pixel_counter] = lcd_stat.bg_pal_a[raw_color]; }
+
 					scanline_pixel_counter++;
+					current_screen_pixel++;
+					if(scanline_pixel_counter & 0x100) { return; }
 				}
 
 				//Process 4-bit depth
@@ -494,14 +503,21 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 
 					//Only draw colors if not transparent
 					if(raw_color & 0xF) { scanline_buffer_a[scanline_pixel_counter] = lcd_stat.bg_pal_a[pal_1]; }
+
 					scanline_pixel_counter++;
+					if(scanline_pixel_counter & 0x100) { return; }
 					
 					if(raw_color >> 4) { scanline_buffer_a[scanline_pixel_counter] = lcd_stat.bg_pal_a[pal_2]; }
-					scanline_pixel_counter++;
 
+					scanline_pixel_counter++;
+					if(scanline_pixel_counter & 0x100) { return; }
+
+					current_screen_pixel += 2;
 					y++;
 				}
 			}
+
+			tile_offset_x = 0;
 		}
 	}
 
@@ -514,11 +530,17 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 		//Abort rendering if this bg is disabled
 		if(!lcd_stat.bg_enable_b[bg_id]) { return; }
 
+		//Grab tile offsets
+		u8 tile_offset_x = lcd_stat.bg_offset_x_b[bg_id] & 0x7;
+
 		u16 tile_id;
 		u8 pal_id;
 
-		u8 scanline_pixel_counter = 0;
-		u8 current_tile_line = (lcd_stat.current_scanline % 8);
+		u16 scanline_pixel_counter = 0;
+		u8 current_screen_line = (lcd_stat.current_scanline + lcd_stat.bg_offset_y_b[bg_id]);
+
+		u8 current_screen_pixel = lcd_stat.bg_offset_x_b[bg_id];
+		u16 current_tile_line = (lcd_stat.current_scanline + lcd_stat.bg_offset_y_b[bg_id]) % 8;
 
 		//Grab BG bit-depth and offset for the current tile line
 		u8 bit_depth = lcd_stat.bg_depth_b[bg_id] ? 64 : 32;
@@ -529,11 +551,11 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 		u32 map_addr = 0x6200000 + lcd_stat.bg_base_map_addr_b[bg_id];
 
 		//Cycle through all tiles on this scanline
-		for(u32 x = 0; x < 32; x++)
+		for(u32 x = 0; x < 256;)
 		{
 			//Determine which map entry to start looking up tiles
-			u16 map_entry = ((lcd_stat.current_scanline >> 3) << 5);
-			map_entry += (scanline_pixel_counter >> 3);
+			u16 map_entry = ((current_screen_line >> 3) << 5);
+			map_entry += (current_screen_pixel >> 3);
 
 			//Pull map data from current map entry
 			u16 map_data = mem->read_u16(map_addr + (map_entry << 1));
@@ -546,14 +568,19 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 			u32 tile_data_addr = tile_addr + (tile_id * bit_depth) + line_offset;
 
 			//Read 8 pixels from VRAM and put them in the scanline buffer
-			for(u32 y = 0; y < 8; y++)
+			for(u32 y = tile_offset_x; y < 8; y++, x++)
 			{
 				//Process 8-bit depth
 				if(bit_depth == 64)
 				{
 					u8 raw_color = mem->read_u8(tile_data_addr++);
+
+					//Only draw colors if not transparent
 					if(raw_color) { scanline_buffer_b[scanline_pixel_counter] = lcd_stat.bg_pal_b[raw_color]; }
+					
 					scanline_pixel_counter++;
+					current_screen_pixel++;
+					if(scanline_pixel_counter & 0x100) { return; }
 				}
 
 				//Process 4-bit depth
@@ -565,14 +592,21 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 
 					//Only draw colors if not transparent
 					if(raw_color & 0xF) { scanline_buffer_b[scanline_pixel_counter] = lcd_stat.bg_pal_b[pal_1]; }
+
 					scanline_pixel_counter++;
+					if(scanline_pixel_counter & 0x100) { return; }
 					
 					if(raw_color >> 4) { scanline_buffer_b[scanline_pixel_counter] = lcd_stat.bg_pal_b[pal_2]; }
-					scanline_pixel_counter++;
 
+					scanline_pixel_counter++;
+					if(scanline_pixel_counter & 0x100) { return; }
+
+					current_screen_pixel += 2;
 					y++;
 				}
 			}
+
+			tile_offset_x = 0;
 		}		
 	}
 }
