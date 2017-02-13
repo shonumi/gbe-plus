@@ -322,7 +322,7 @@ void AGB_MMU::process_gyro_sensor()
 	else { g_pad->stop_rumble(); }
 
 	//Transfer ADC gyro value via serial data when SCK is high
-	if(gpio.data & 0x1)
+	if(gpio.data & 0x2)
 	{
 		//Transfer is MSB first
 		u8 transfer_bit = (g_pad->gyro_value >> gpio.serial_counter) & 0x1;
@@ -335,5 +335,5 @@ void AGB_MMU::process_gyro_sensor()
 	}
 
 	//Start new ADC transfer
-	if(gpio.data & 0x2) { gpio.serial_counter = 15; }
+	if(gpio.data & 0x1) { gpio.serial_counter = 15; }
 }
