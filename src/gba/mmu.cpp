@@ -54,9 +54,12 @@ void AGB_MMU::reset()
 	gpio.state = 0x100;
 	gpio.serial_counter = 0;
 	gpio.serial_byte = 0;
-	gpio.type = GPIO_GYRO_SENSOR;
+	gpio.type = GPIO_SOLAR_SENSOR;
 
 	gpio.rtc_control = 0x40;
+
+	gpio.solar_counter = 0;
+	gpio.solar_value = 0xE8;
 
 	//HLE some post-boot registers
 	if(!config::use_bios)
