@@ -1595,7 +1595,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 
 		//General Purpose I/O Direction
 		case GPIO_DIRECTION:
-			if(gpio.type != GPIO_DISABLED) { gpio.direction = value & 0xF; if(!(gpio.direction & 0x2)) { g_pad->stop_rumble(); }  }
+			if(gpio.type != GPIO_DISABLED) { gpio.direction = value & 0xF; }
 			break;
 
 		//General Purpose I/O Control
