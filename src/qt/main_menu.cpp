@@ -492,13 +492,18 @@ void main_menu::boot_game()
 
 	else { config::use_cheats = false; }
 
-	//Check multicart status - MBC1M
-	if(settings->multicart->currentIndex() == 1) { config::use_multicart = true; }
-	else { config::use_multicart = false; }
-
-	//Check multicart status - MMM01
-	if(settings->multicart->currentIndex() == 2) { config::use_mmm01 = true; }
-	else { config::use_mmm01 = false; }
+	//Check special cart status
+	switch(settings->special_cart->currentIndex())
+	{
+		case 0x0: config::cart_type = NORMAL_CART; break;
+		case 0x1: config::cart_type = DMG_MBC1M; break;
+		case 0x2: config::cart_type = DMG_MMM01; break;
+		case 0x3: config::cart_type = AGB_RTC; break;
+		case 0x4: config::cart_type = AGB_SOLAR_SENSOR; break;
+		case 0x5: config::cart_type = AGB_RUMBLE; break;
+		case 0x6: config::cart_type = AGB_GYRO_SENSOR; break;
+		case 0x7: config::cart_type = AGB_TILT_SENSOR; break;
+	}
 
 	//Check rumble status
 	if(settings->rumble_on->isChecked()) { config::use_haptics = true; }

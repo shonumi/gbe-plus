@@ -54,7 +54,7 @@ void AGB_MMU::reset()
 	gpio.state = 0x100;
 	gpio.serial_counter = 0;
 	gpio.serial_byte = 0;
-	gpio.type = GPIO_SOLAR_SENSOR;
+	gpio.type = GPIO_GYRO_SENSOR;
 
 	gpio.rtc_control = 0x40;
 
@@ -1595,7 +1595,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 
 		//General Purpose I/O Direction
 		case GPIO_DIRECTION:
-			if(gpio.type != GPIO_DISABLED) { gpio.direction = value & 0xF; }
+			if(gpio.type != GPIO_DISABLED) { gpio.direction = value & 0xF; if(!(gpio.direction & 0x2)) { g_pad->stop_rumble(); }  }
 			break;
 
 		//General Purpose I/O Control

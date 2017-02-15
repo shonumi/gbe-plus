@@ -83,8 +83,7 @@ namespace config
 	u32 flags = 0x4;
 	bool pause_emu = false;
 	bool use_bios = false;
-	bool use_multicart = false;
-	bool use_mmm01 = false;
+	special_cart_types cart_type = NORMAL_CART;
 	u32 sio_device = 0;
 	bool use_opengl = false;
 	bool turbo = false;
@@ -567,15 +566,13 @@ bool parse_cli_args()
 			//Use multicart mode if applicable for a given ROM
 			else if(config::cli_args[x] == "--multicart")
 			{
-				config::use_multicart = true;
-				config::use_mmm01 = false;
+				config::cart_type = DMG_MBC1M;
 			}
 
 			//Use MMM01 mode if applicable for a given ROM
 			else if(config::cli_args[x] == "--mmm01")
 			{
-				config::use_multicart = false;
-				config::use_mmm01 = true;
+				config::cart_type = DMG_MMM01;
 			}
 
 			//Use OpenGL for screen drawing

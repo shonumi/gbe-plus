@@ -318,7 +318,7 @@ void AGB_MMU::process_rumble()
 void AGB_MMU::process_gyro_sensor()
 {
 	//Handle rumble feature
-	if(gpio.data & 0x8) { g_pad->start_rumble(); }
+	if((gpio.data & 0x8) && (gpio.direction & 0x2)) { g_pad->start_rumble(); }
 	else { g_pad->stop_rumble(); }
 
 	//Transfer ADC gyro value via serial data when SCK is high

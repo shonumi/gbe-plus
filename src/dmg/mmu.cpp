@@ -57,7 +57,7 @@ void DMG_MMU::reset()
 	cart.mbc_type = ROM_ONLY;
 	cart.battery = false;
 	cart.ram = false;
-	cart.multicart = config::use_multicart | config::use_mmm01;
+	cart.multicart = ((config::cart_type == DMG_MBC1M) || (config::cart_type == DMG_MMM01));
 	cart.rumble = false;
 
 	cart.rtc = false;
@@ -1339,7 +1339,7 @@ bool DMG_MMU::read_file(std::string filename)
 	ex_mem = &memory_map[0];
 
 	//Read MMM01 cart - Bank 0 is last 32KB of ROM
-	if(config::use_mmm01)
+	if(config::cart_type == DMG_MMM01)
 	{
 		s32 pos = (file_size - 0x8000);
 		

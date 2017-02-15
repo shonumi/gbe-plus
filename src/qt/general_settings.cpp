@@ -70,20 +70,25 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	bios_layout->addWidget(bios_label);
 	bios_set->setLayout(bios_layout);
 
-	//General settings - Emulate multicarts (MBC1M)
-	QWidget* multicart_set = new QWidget(general);
-	QLabel* multicart_label = new QLabel("Multicart ROM Type : ", multicart_set);
-	multicart = new QComboBox(multicart_set);
-	multicart->setToolTip("Emulates various multicart setups");
-	multicart->addItem("None");
-	multicart->addItem("MBC1M");
-	multicart->addItem("MMM01");
+	//General settings - Emulate specialty game carts
+	QWidget* special_cart_set = new QWidget(general);
+	QLabel* special_cart_label = new QLabel("Special ROM Type : ", special_cart_set);
+	special_cart = new QComboBox(special_cart_set);
+	special_cart->setToolTip("Emulates various special_cart setups");
+	special_cart->addItem("None");
+	special_cart->addItem("DMG - MBC1M");
+	special_cart->addItem("DMG - MMM01");
+	special_cart->addItem("AGB - RTC");
+	special_cart->addItem("AGB - Solar Sensor");
+	special_cart->addItem("AGB - Rumble");
+	special_cart->addItem("AGB - Gyro Sensor");
+	special_cart->addItem("AGB - Tilt Sensor");
 
-	QHBoxLayout* multicart_layout = new QHBoxLayout;
-	multicart_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-	multicart_layout->addWidget(multicart_label);
-	multicart_layout->addWidget(multicart);
-	multicart_set->setLayout(multicart_layout);
+	QHBoxLayout* special_cart_layout = new QHBoxLayout;
+	special_cart_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	special_cart_layout->addWidget(special_cart_label);
+	special_cart_layout->addWidget(special_cart);
+	special_cart_set->setLayout(special_cart_layout);
 
 	//General settings - Use cheats
 	QWidget* cheats_set = new QWidget(general);
@@ -141,7 +146,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	gen_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	gen_layout->addWidget(sys_type_set);
 	gen_layout->addWidget(sio_set);
-	gen_layout->addWidget(multicart_set);
+	gen_layout->addWidget(special_cart_set);
 	gen_layout->addWidget(bios_set);
 	gen_layout->addWidget(cheats_set);
 	gen_layout->addWidget(patch_set);

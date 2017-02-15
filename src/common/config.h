@@ -30,6 +30,18 @@ bool parse_cheats_file();
 bool save_ini_file();
 bool save_cheats_file();
 
+enum special_cart_types
+{
+	NORMAL_CART,
+	DMG_MBC1M,
+	DMG_MMM01,
+	AGB_RTC,
+	AGB_SOLAR_SENSOR,
+	AGB_RUMBLE,
+	AGB_GYRO_SENSOR,
+	AGB_TILT_SENSOR,
+};
+
 namespace config
 { 
 	extern std::string rom_file;
@@ -63,8 +75,7 @@ namespace config
 	extern u32 flags;
 	extern bool pause_emu;
 	extern bool use_bios;
-	extern bool use_multicart;
-	extern bool use_mmm01;
+	extern special_cart_types cart_type; 
 	extern u32 sio_device;	
 	extern bool use_opengl;
 	extern bool use_debugger;
