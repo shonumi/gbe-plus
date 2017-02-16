@@ -80,6 +80,26 @@ struct ntr_lcd_data
 	u32 bg_pal_b[256];
 	u16 raw_bg_pal_b[256];
 
+	struct bg_affine_parameters_a
+	{
+		//Parameters, X-Y reference
+		float dx, dmx, dy, dmy;
+		float x_ref, y_ref;
+		float x_pos, y_pos;
+
+		bool overflow;
+	} bg_affine_a[2];
+
+	struct bg_affine_parameters_b
+	{
+		//Parameters, X-Y reference
+		float dx, dmx, dy, dmy;
+		float x_ref, y_ref;
+		float x_pos, y_pos;
+
+		bool overflow;
+	} bg_affine_b[2];
+
 	bool vblank_irq_enable_a;
 	bool hblank_irq_enable_a;
 	bool vcount_irq_enable_a;

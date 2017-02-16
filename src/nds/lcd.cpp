@@ -125,6 +125,22 @@ void NTR_LCD::reset()
 
 	for(int x = 0; x < 9; x++) { lcd_stat.vram_bank_addr[x] = 0x0; }
 
+	//BG2/3 affine parameters
+	for(int x = 0; x < 2; x++)
+	{
+		lcd_stat.bg_affine_a[x].overflow = false;
+		lcd_stat.bg_affine_a[x].dmx = lcd_stat.bg_affine_a[x].dy = 0.0;
+		lcd_stat.bg_affine_a[x].dx = lcd_stat.bg_affine_a[x].dmy = 1.0;
+		lcd_stat.bg_affine_a[x].x_ref = lcd_stat.bg_affine_a[x].y_ref = 0.0;
+		lcd_stat.bg_affine_a[x].x_pos = lcd_stat.bg_affine_a[x].y_pos = 0.0;
+
+		lcd_stat.bg_affine_b[x].overflow = false;
+		lcd_stat.bg_affine_b[x].dmx = lcd_stat.bg_affine_b[x].dy = 0.0;
+		lcd_stat.bg_affine_b[x].dx = lcd_stat.bg_affine_b[x].dmy = 1.0;
+		lcd_stat.bg_affine_a[x].x_ref = lcd_stat.bg_affine_b[x].y_ref = 0.0;
+		lcd_stat.bg_affine_b[x].x_pos = lcd_stat.bg_affine_b[x].y_pos = 0.0;
+	}
+
 	//Initialize system screen dimensions
 	config::sys_width = 256;
 	config::sys_height = 384;
