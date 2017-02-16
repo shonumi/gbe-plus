@@ -54,7 +54,29 @@ void AGB_MMU::reset()
 	gpio.state = 0x100;
 	gpio.serial_counter = 0;
 	gpio.serial_byte = 0;
-	gpio.type = GPIO_GYRO_SENSOR;
+
+	switch(config::cart_type)
+	{
+		case AGB_RTC:
+			gpio.type = GPIO_RTC;
+			break;
+
+		case AGB_SOLAR_SENSOR:
+			gpio.type = GPIO_SOLAR_SENSOR;
+			break;
+
+		case AGB_RUMBLE:
+			gpio.type = GPIO_RUMBLE;
+			break;
+
+		case AGB_GYRO_SENSOR:
+			gpio.type = GPIO_GYRO_SENSOR;
+			break;
+
+		default:
+			gpio.type = GPIO_DISABLED;
+			break;
+	}
 
 	gpio.rtc_control = 0x40;
 
