@@ -243,7 +243,7 @@ void DMG_GamePad::process_keyboard(int pad, bool pressed)
 	}
 
 	//Emulate Gyroscope Left tilt press
-	else if((pad == config::gyro_key_left) && (pressed))
+	else if((pad == config::con_key_left) && (pressed))
 	{
 		gyro_flags |= 0x1;
 		gyro_flags |= 0x10;
@@ -252,7 +252,7 @@ void DMG_GamePad::process_keyboard(int pad, bool pressed)
 	}
 
 	//Emulate Gyroscope Left tilt release
-	else if((pad == config::gyro_key_left) && (!pressed))
+	else if((pad == config::con_key_left) && (!pressed))
 	{
 		gyro_flags &= ~0x1;
 		gyro_flags &= ~0x10;
@@ -262,7 +262,7 @@ void DMG_GamePad::process_keyboard(int pad, bool pressed)
 	}
 
 	//Emulate Gyroscope Right tilt press
-	else if((pad == config::gyro_key_right) && (pressed))
+	else if((pad == config::con_key_right) && (pressed))
 	{
 		gyro_flags |= 0x2;
 		gyro_flags |= 0x20;
@@ -271,7 +271,7 @@ void DMG_GamePad::process_keyboard(int pad, bool pressed)
 	}
 
 	//Emulate Gyroscope Right tilt release
-	else if((pad == config::gyro_key_right) && (!pressed))
+	else if((pad == config::con_key_right) && (!pressed))
 	{
 		gyro_flags &= ~0x2;
 		gyro_flags &= ~0x20;
@@ -281,7 +281,7 @@ void DMG_GamePad::process_keyboard(int pad, bool pressed)
 	}
 
 	//Emulate Gyroscope Up tilt press
-	else if((pad == config::gyro_key_up) && (pressed))
+	else if((pad == config::con_key_up) && (pressed))
 	{
 		gyro_flags |= 0x4;
 		gyro_flags |= 0x40;
@@ -290,7 +290,7 @@ void DMG_GamePad::process_keyboard(int pad, bool pressed)
 	}
 
 	//Emulate Gyroscope Up tilt release
-	else if((pad == config::gyro_key_up) && (!pressed))
+	else if((pad == config::con_key_up) && (!pressed))
 	{
 		gyro_flags &= ~0x4;
 		gyro_flags &= ~0x40;
@@ -300,7 +300,7 @@ void DMG_GamePad::process_keyboard(int pad, bool pressed)
 	}
 
 	//Emulate Gyroscope Down tilt press
-	else if((pad == config::gyro_key_down) && (pressed))
+	else if((pad == config::con_key_down) && (pressed))
 	{
 		gyro_flags |= 0x8;
 		gyro_flags |= 0x80;
@@ -309,7 +309,7 @@ void DMG_GamePad::process_keyboard(int pad, bool pressed)
 	}
 
 	//Emulate Gyroscope Down tilt release
-	else if((pad == config::gyro_key_down) && (!pressed))
+	else if((pad == config::con_key_down) && (!pressed))
 	{
 		gyro_flags &= ~0x8;
 		gyro_flags &= ~0x80;
@@ -389,28 +389,28 @@ void DMG_GamePad::process_joystick(int pad, bool pressed)
 	else if((pad == config::dmg_joy_down) && (!pressed)) { p15 |= 0x8; p15 |= 0x4; }
 
 	//Emulate Gyroscope Left tilt press
-	else if((pad == config::gyro_joy_left) && (pressed)) { gyro_flags |= 0x1; gyro_flags &= ~0x2; }
+	else if((pad == config::con_joy_left) && (pressed)) { gyro_flags |= 0x1; gyro_flags &= ~0x2; }
 
 	//Emulate Gyroscope Left tilt release
-	else if((pad == config::gyro_joy_left) && (!pressed)) { gyro_flags &= ~0x1; }
+	else if((pad == config::con_joy_left) && (!pressed)) { gyro_flags &= ~0x1; }
 
 	//Emulate Gyroscope Right tilt press
-	else if((pad == config::gyro_joy_right) && (pressed)) { gyro_flags |= 0x2; gyro_flags &= ~0x1; }
+	else if((pad == config::con_joy_right) && (pressed)) { gyro_flags |= 0x2; gyro_flags &= ~0x1; }
 
 	//Emulate Gyroscope Right tilt release
-	else if((pad == config::gyro_joy_right) && (!pressed)) { gyro_flags &= ~0x2; }
+	else if((pad == config::con_joy_right) && (!pressed)) { gyro_flags &= ~0x2; }
 
 	//Emulate Gyroscope Up tilt press
-	else if((pad == config::gyro_joy_up) && (pressed)) { gyro_flags |= 0x4; gyro_flags &= ~0x8; }
+	else if((pad == config::con_joy_up) && (pressed)) { gyro_flags |= 0x4; gyro_flags &= ~0x8; }
 
 	//Emulate Gyroscope Up tilt release
-	else if((pad == config::gyro_joy_up) && (!pressed)) { gyro_flags &= ~0x4; }
+	else if((pad == config::con_joy_up) && (!pressed)) { gyro_flags &= ~0x4; }
 
 	//Emulate Gyroscope Down tilt press
-	else if((pad == config::gyro_joy_down) && (pressed)) { gyro_flags |= 0x8; gyro_flags &= ~0x4; }
+	else if((pad == config::con_joy_down) && (pressed)) { gyro_flags |= 0x8; gyro_flags &= ~0x4; }
 
 	//Emulate Gyroscope Down tilt release
-	else if((pad == config::gyro_joy_down) && (!pressed)) { gyro_flags &= ~0x8; }
+	else if((pad == config::con_joy_down) && (!pressed)) { gyro_flags &= ~0x8; }
 
 	//Emulate R Trigger press - DMG/GBC on GBA ONLY
 	else if((pad == config::agb_joy_r_trigger) && (pressed) && (config::gba_enhance))

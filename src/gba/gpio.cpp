@@ -303,7 +303,7 @@ void AGB_MMU::process_solar_sensor()
 		gpio.solar_counter++;
 		
 		//Set Bit 3 to high if internal counter and internal value match
-		if(gpio.solar_counter == gpio.solar_value) { gpio.data |= 0x8; }
+		if(gpio.solar_counter == g_pad->solar_value) { gpio.data |= 0x8; }
 	}
 }
 

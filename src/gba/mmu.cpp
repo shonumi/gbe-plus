@@ -79,9 +79,7 @@ void AGB_MMU::reset()
 	}
 
 	gpio.rtc_control = 0x40;
-
 	gpio.solar_counter = 0;
-	gpio.solar_value = 0xE8;
 
 	//HLE some post-boot registers
 	if(!config::use_bios)

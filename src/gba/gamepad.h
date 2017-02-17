@@ -44,6 +44,8 @@ class AGB_GamePad
 	u16 gyro_value;
 	u8 gyro_flags;
 
+	u8 solar_value;
+
 	private:
 
 	//Shadow status for keyboard input

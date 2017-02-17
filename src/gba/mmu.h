@@ -113,7 +113,6 @@ class AGB_MMU
 		u8 rtc_control;
 
 		u8 solar_counter;
-		u8 solar_value;
 	} gpio;
 
 	AGB_MMU();
