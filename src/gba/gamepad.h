@@ -46,6 +46,9 @@ class AGB_GamePad
 
 	u8 solar_value;
 
+	u16 sensor_x;
+	u16 sensor_y;
+
 	private:
 
 	//Shadow status for keyboard input

@@ -1528,8 +1528,8 @@ void AGB_LCD::step()
 				fps_count = 0; 
 			}
 
-			//Process gyroscope
-			if(mem->gpio.type == AGB_MMU::GPIO_GYRO_SENSOR) { mem->g_pad->process_gyroscope(); }
+			//Process motion controls
+			if((config::cart_type == AGB_GYRO_SENSOR) || (config::cart_type == AGB_TILT_SENSOR)) { mem->process_motion(); }
 		}
 
 		//Setup HBlank

@@ -157,6 +157,8 @@ class AGB_MMU
 	void process_rumble();
 	void process_solar_sensor();
 	void process_gyro_sensor();
+	
+	void process_motion();
 
 	void set_lcd_data(agb_lcd_data* ex_lcd_stat);
 	void set_apu_data(agb_apu_data* ex_apu_stat);

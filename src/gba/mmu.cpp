@@ -2364,6 +2364,25 @@ void AGB_MMU::flash_erase_sector(u32 sector)
 	}
 }
 
+/****** Continually processes motion in specialty carts (for use by other components outside MMU like LCD) ******/
+void AGB_MMU::process_motion()
+{
+	g_pad->process_gyroscope();
+	
+	//Write to SRAM registers for tilt sensor
+	if(config::cart_type == AGB_TILT_SENSOR)
+	{
+		//X Sensor
+		memory_map[0xE008200] = (g_pad->sensor_x & 0xFF);
+		memory_map[0xE008300] = (g_pad->sensor_x >> 8);
+		memory_map[0xE008300] |= 0x80;
+
+		//Y Sensor
+		memory_map[0xE008400] = (g_pad->sensor_y & 0xFF);
+		memory_map[0xE008500] = (g_pad->sensor_y >> 8);
+	}
+}
+
 /****** Applies an IPS patch to a ROM loaded in memory ******/
 bool AGB_MMU::patch_ips(std::string filename)
 {
