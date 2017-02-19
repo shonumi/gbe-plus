@@ -637,6 +637,9 @@ void NTR_LCD::render_bg_mode_affine(u32 bg_control)
 		u8 bg_id = (bg_control - 0x4000008) >> 1;
 		u8 affine_id = (bg_id & 0x1);
 
+		//Reload X-Y references at start of frame
+		if(lcd_stat.current_scanline == 0) { reload_affine_references(bg_control); }
+
 		//Abort rendering if this bg is disabled
 		if(!lcd_stat.bg_enable_a[bg_id]) { return; }
 
@@ -722,6 +725,9 @@ void NTR_LCD::render_bg_mode_affine(u32 bg_control)
 		//Grab BG ID and affine ID
 		u8 bg_id = (bg_control - 0x4000008) >> 1;
 		u8 affine_id = (bg_id & 0x1);
+
+		//Reload X-Y references at start of frame
+		if(lcd_stat.current_scanline == 0) { reload_affine_references(bg_control); }
 
 		//Abort rendering if this bg is disabled
 		if(!lcd_stat.bg_enable_b[bg_id]) { return; }
@@ -1127,17 +1133,6 @@ void NTR_LCD::step()
 		{
 			lcd_stat.lcd_clock -= 558060;
 			lcd_stat.current_scanline = 0xFFFF;
-
-			//Reset XREF and YREF for next line
-			u32 x_reset = mem->read_u32(NDS_BG2X_A);
-			u32 y_reset = mem->read_u32(NDS_BG2Y_A);
-			mem->write_u32(NDS_BG2X_A, x_reset);
-			mem->write_u32(NDS_BG2Y_A, y_reset);
-
-			x_reset = mem->read_u32(NDS_BG3X_A);
-			y_reset = mem->read_u32(NDS_BG3Y_A);
-			mem->write_u32(NDS_BG3X_A, x_reset);
-			mem->write_u32(NDS_BG3Y_A, y_reset);
 		}
 
 		//Increment Scanline after HBlank
@@ -1187,3 +1182,97 @@ void NTR_LCD::scanline_compare()
 		lcd_stat.display_stat_b &= ~0x4;
 	}
 }
+
+/****** Grabs the most current X-Y references for affine backgrounds ******/
+void NTR_LCD::reload_affine_references(u32 bg_control)
+{
+	u32 x_raw, y_raw;
+	bool engine_a;
+	u8 aff_id;
+
+	//Read X-Y references from memory, determine which engine it belongs to
+	switch(bg_control)
+	{
+		case NDS_BG2CNT_A:
+			x_raw = mem->read_u32_fast(NDS_BG2X_A);
+			y_raw = mem->read_u32_fast(NDS_BG2Y_A);
+			engine_a = true;
+			aff_id = 0;
+			break;
+
+		case NDS_BG3CNT_A:
+			x_raw = mem->read_u32_fast(NDS_BG3X_A);
+			y_raw = mem->read_u32_fast(NDS_BG3Y_A);
+			engine_a = true;
+			aff_id = 1;
+			break;
+
+		case NDS_BG2CNT_B:
+			x_raw = mem->read_u32_fast(NDS_BG2X_B);
+			y_raw = mem->read_u32_fast(NDS_BG2Y_B);
+			engine_a = false;
+			aff_id = 0;
+			break;
+
+		case NDS_BG3CNT_B:
+			x_raw = mem->read_u32_fast(NDS_BG3X_B);
+			y_raw = mem->read_u32_fast(NDS_BG3Y_B);
+			aff_id = 1;
+			break;
+
+		default: return;
+	}
+			
+	//Get X reference point
+	if(x_raw & 0x8000000) 
+	{ 
+		u32 x = ((x_raw >> 8) - 1);
+		x = (~x & 0x7FFFF);
+		
+		if(engine_a) { lcd_stat.bg_affine_a[aff_id].x_ref = -1.0 * x; }
+		else { lcd_stat.bg_affine_b[aff_id].x_ref = -1.0 * x; }
+	}
+	
+	else
+	{
+		if(engine_a) { lcd_stat.bg_affine_a[aff_id].x_ref = (x_raw >> 8) & 0x7FFFF; }
+		else { lcd_stat.bg_affine_b[aff_id].x_ref = (x_raw >> 8) & 0x7FFFF; }
+	}
+	
+	if((x_raw & 0xFF) != 0)
+	{
+		if(engine_a) { lcd_stat.bg_affine_a[aff_id].x_ref += (x_raw & 0xFF) / 256.0; }
+		else { lcd_stat.bg_affine_b[aff_id].x_ref += (x_raw & 0xFF) / 256.0; }
+	}
+
+	//Set current X position as the new reference point
+	if(engine_a) { lcd_stat.bg_affine_a[aff_id].x_pos = lcd_stat.bg_affine_a[aff_id].x_ref; }
+	else { lcd_stat.bg_affine_b[aff_id].x_pos = lcd_stat.bg_affine_b[aff_id].x_ref; }
+
+	//Get Y reference point
+	if(y_raw & 0x8000000) 
+	{ 
+		u32 y = ((y_raw >> 8) - 1);
+		y = (~y & 0x7FFFF);
+		
+		if(engine_a) { lcd_stat.bg_affine_a[aff_id].y_ref = -1.0 * y; }
+		else { lcd_stat.bg_affine_b[aff_id].y_ref = -1.0 * y; }
+	}
+	
+	else
+	{
+		if(engine_a) { lcd_stat.bg_affine_a[aff_id].y_ref = (y_raw >> 8) & 0x7FFFF; }
+		else { lcd_stat.bg_affine_b[aff_id].y_ref = (y_raw >> 8) & 0x7FFFF; }
+	}
+	
+	if((y_raw & 0xFF) != 0)
+	{
+		if(engine_a) { lcd_stat.bg_affine_a[aff_id].y_ref += (y_raw & 0xFF) / 256.0; }
+		else { lcd_stat.bg_affine_b[aff_id].y_ref += (y_raw & 0xFF) / 256.0; }
+	}
+
+	//Set current Y position as the new reference point
+	if(engine_a) { lcd_stat.bg_affine_a[aff_id].y_pos = lcd_stat.bg_affine_a[aff_id].y_ref; }
+	else { lcd_stat.bg_affine_b[aff_id].y_pos = lcd_stat.bg_affine_b[aff_id].y_ref; }
+}
+	
