@@ -1132,7 +1132,6 @@ void NTR_LCD::step()
 		else if(lcd_stat.lcd_clock >= 558060) 
 		{
 			lcd_stat.lcd_clock -= 558060;
-			lcd_stat.current_scanline = 0xFFFF;
 		}
 
 		//Increment Scanline after HBlank
