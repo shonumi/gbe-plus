@@ -1234,6 +1234,283 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 			break;
 
+		//BG2 Scale/Rotation Parameter A - Engine B
+		case NDS_BG2PA_B:
+		case NDS_BG2PA_B+1:
+			memory_map[address] = value;
+			
+			{
+				u16 raw_value = ((memory_map[NDS_BG2PA_B+1] << 8) | memory_map[NDS_BG2PA_B]);
+				
+				//Note: The reference points are 8-bit signed 2's complement
+				if(raw_value & 0x8000) 
+				{ 
+					u16 p = ((raw_value >> 8) - 1);
+					p = (~p & 0xFF);
+					lcd_stat->bg_affine_b[0].dx = -1.0 * p;
+				}
+
+				else { lcd_stat->bg_affine_b[0].dx = (raw_value >> 8); }
+				if((raw_value & 0xFF) != 0) { lcd_stat->bg_affine_b[0].dx += (raw_value & 0xFF) / 256.0; }
+			}
+
+			break;
+
+		//BG2 Scale/Rotation Parameter B - Engine B
+		case NDS_BG2PB_B:
+		case NDS_BG2PB_B+1:
+			memory_map[address] = value;
+
+			{
+				u16 raw_value = ((memory_map[NDS_BG2PB_B+1] << 8) | memory_map[NDS_BG2PB_B]);
+				
+				//Note: The reference points are 8-bit signed 2's complement
+				if(raw_value & 0x8000) 
+				{ 
+					u16 p = ((raw_value >> 8) - 1);
+					p = (~p & 0xFF);
+					lcd_stat->bg_affine_b[0].dmx = -1.0 * p;
+				}
+
+				else { lcd_stat->bg_affine_b[0].dmx = (raw_value >> 8); }
+				if((raw_value & 0xFF) != 0) { lcd_stat->bg_affine_b[0].dmx += (raw_value & 0xFF) / 256.0; }
+			}
+
+			break;
+
+		//BG2 Scale/Rotation Parameter C - Engine B
+		case NDS_BG2PC_B:
+		case NDS_BG2PC_B+1:
+			memory_map[address] = value;
+
+			{
+				u16 raw_value = ((memory_map[NDS_BG2PC_B+1] << 8) | memory_map[NDS_BG2PC_B]);
+				
+				//Note: The reference points are 8-bit signed 2's complement
+				if(raw_value & 0x8000) 
+				{ 
+					u16 p = ((raw_value >> 8) - 1);
+					p = (~p & 0xFF);
+					lcd_stat->bg_affine_b[0].dy = -1.0 * p;
+				}
+
+				else { lcd_stat->bg_affine_b[0].dy = (raw_value >> 8); }
+				if((raw_value & 0xFF) != 0) { lcd_stat->bg_affine_b[0].dy += (raw_value & 0xFF) / 256.0; }
+			}
+
+			break;
+
+		//BG2 Scale/Rotation Parameter D - Engine B
+		case NDS_BG2PD_B:
+		case NDS_BG2PD_B+1:
+			memory_map[address] = value;
+
+			{
+				u16 raw_value = ((memory_map[NDS_BG2PD_B+1] << 8) | memory_map[NDS_BG2PD_B]);
+				
+				//Note: The reference points are 8-bit signed 2's complement
+				if(raw_value & 0x8000) 
+				{ 
+					u16 p = ((raw_value >> 8) - 1);
+					p = (~p & 0xFF);
+					lcd_stat->bg_affine_b[0].dmy = -1.0 * p;
+				}
+
+				else { lcd_stat->bg_affine_b[0].dmy = (raw_value >> 8); }
+				if((raw_value & 0xFF) != 0) { lcd_stat->bg_affine_b[0].dmy += (raw_value & 0xFF) / 256.0; }
+			}
+
+			break;
+
+		//BG2 Scale/Rotation X Reference - Engine B
+		case NDS_BG2X_B:
+		case NDS_BG2X_B+1:
+		case NDS_BG2X_B+2:
+		case NDS_BG2X_B+3:
+			memory_map[address] = value;
+
+			{
+				u32 x_raw = ((memory_map[NDS_BG2X_B+3] << 24) | (memory_map[NDS_BG2X_B+2] << 16) | (memory_map[NDS_BG2X_B+1] << 8) | (memory_map[NDS_BG2X_B]));
+
+				//Note: The reference points are 19-bit signed 2's complement
+				if(x_raw & 0x8000000) 
+				{ 
+					u32 x = ((x_raw >> 8) - 1);
+					x = (~x & 0x7FFFF);
+					lcd_stat->bg_affine_b[0].x_ref = -1.0 * x;
+				}
+				else { lcd_stat->bg_affine_b[0].x_ref = (x_raw >> 8) & 0x7FFFF; }
+				if((x_raw & 0xFF) != 0) { lcd_stat->bg_affine_b[0].x_ref += (x_raw & 0xFF) / 256.0; }
+
+				//Set current X position as the new reference point
+				lcd_stat->bg_affine_b[0].x_pos = lcd_stat->bg_affine_b[0].x_ref;
+			}
+
+			break;
+
+		//BG2 Scale/Rotation Y Reference - Engine B
+		case NDS_BG2Y_B:
+		case NDS_BG2Y_B+1:
+		case NDS_BG2Y_B+2:
+		case NDS_BG2Y_B+3:
+			memory_map[address] = value;
+
+			{
+				u32 y_raw = ((memory_map[NDS_BG2Y_B+3] << 24) | (memory_map[NDS_BG2Y_B+2] << 16) | (memory_map[NDS_BG2Y_B+1] << 8) | (memory_map[NDS_BG2Y_B]));
+
+				//Note: The reference points are 19-bit signed 2's complement
+				if(y_raw & 0x8000000) 
+				{ 
+					u32 y = ((y_raw >> 8) - 1);
+					y = (~y & 0x7FFFF);
+					lcd_stat->bg_affine_b[0].y_ref = -1.0 * y;
+				}
+				else { lcd_stat->bg_affine_b[0].y_ref = (y_raw >> 8) & 0x7FFFF; }
+				if((y_raw & 0xFF) != 0) { lcd_stat->bg_affine_b[0].y_ref += (y_raw & 0xFF) / 256.0; }
+
+				//Set current Y position as the new reference point
+				lcd_stat->bg_affine_b[0].y_pos = lcd_stat->bg_affine_b[0].y_ref;
+			}
+
+			break;
+
+		//BG3 Scale/Rotation Parameter A - Engine B
+		case NDS_BG3PA_B:
+		case NDS_BG3PA_B+1:
+			memory_map[address] = value;
+			{
+				u16 raw_value = ((memory_map[NDS_BG3PA_B+1] << 8) | memory_map[NDS_BG3PA_B]);
+				
+				//Note: The reference points are 8-bit signed 2's complement
+				if(raw_value & 0x8000) 
+				{ 
+					u16 p = ((raw_value >> 8) - 1);
+					p = (~p & 0xFF);
+					lcd_stat->bg_affine_b[1].dx = -1.0 * p;
+				}
+				else { lcd_stat->bg_affine_b[1].dx = (raw_value >> 8); }
+				if((raw_value & 0xFF) != 0) { lcd_stat->bg_affine_b[1].dx += (raw_value & 0xFF) / 256.0; }
+			}
+
+			break;
+
+		//BG3 Scale/Rotation Parameter B - Engine B
+		case NDS_BG3PB_B:
+		case NDS_BG3PB_B+1:
+			memory_map[address] = value;
+
+			{
+				u16 raw_value = ((memory_map[NDS_BG3PB_B+1] << 8) | memory_map[NDS_BG3PB_B]);
+				
+				//Note: The reference points are 8-bit signed 2's complement
+				if(raw_value & 0x8000) 
+				{ 
+					u16 p = ((raw_value >> 8) - 1);
+					p = (~p & 0xFF);
+					lcd_stat->bg_affine_b[1].dmx = -1.0 * p;
+				}
+				else { lcd_stat->bg_affine_b[1].dmx = (raw_value >> 8); }
+				if((raw_value & 0xFF) != 0) { lcd_stat->bg_affine_b[1].dmx += (raw_value & 0xFF) / 256.0; }
+			}
+
+			break;
+
+		//BG3 Scale/Rotation Parameter C - Engine B
+		case NDS_BG3PC_B:
+		case NDS_BG3PC_B+1:
+			memory_map[address] = value;
+
+			{
+				u16 raw_value = ((memory_map[NDS_BG3PC_B+1] << 8) | memory_map[NDS_BG3PC_B]);
+				
+				//Note: The reference points are 8-bit signed 2's complement
+				if(raw_value & 0x8000) 
+				{ 
+					u16 p = ((raw_value >> 8) - 1);
+					p = (~p & 0xFF);
+					lcd_stat->bg_affine_b[1].dy = -1.0 * p;
+				}
+
+				else { lcd_stat->bg_affine_b[1].dy = (raw_value >> 8); }
+				if((raw_value & 0xFF) != 0) { lcd_stat->bg_affine_b[1].dy += (raw_value & 0xFF) / 256.0; }
+			}
+
+			break;
+
+		//BG3 Scale/Rotation Parameter D - Engine B
+		case NDS_BG3PD_B:
+		case NDS_BG3PD_B+1:
+			memory_map[address] = value;
+
+			{
+				u16 raw_value = ((memory_map[NDS_BG3PD_B+1] << 8) | memory_map[NDS_BG3PD_B]);
+				
+				//Note: The reference points are 8-bit signed 2's complement
+				if(raw_value & 0x8000) 
+				{ 
+					u16 p = ((raw_value >> 8) - 1);
+					p = (~p & 0xFF);
+					lcd_stat->bg_affine_b[1].dmy = -1.0 * p;
+				}
+
+				else { lcd_stat->bg_affine_b[1].dmy = (raw_value >> 8); }
+				if((raw_value & 0xFF) != 0) { lcd_stat->bg_affine_b[1].dmy += (raw_value & 0xFF) / 256.0; }
+			}
+
+			break;
+
+		//BG3 Scale/Rotation X Reference - Engine B
+		case NDS_BG3X_B:
+		case NDS_BG3X_B+1:
+		case NDS_BG3X_B+2:
+		case NDS_BG3X_B+3:
+			memory_map[address] = value;
+
+			{
+				u32 x_raw = ((memory_map[NDS_BG3X_B+3] << 24) | (memory_map[NDS_BG3X_B+2] << 16) | (memory_map[NDS_BG3X_B+1] << 8) | (memory_map[NDS_BG3X_B]));
+
+				//Note: The reference points are 19-bit signed 2's complement
+				if(x_raw & 0x8000000) 
+				{ 
+					u32 x = ((x_raw >> 8) - 1);
+					x = (~x & 0x7FFFF);
+					lcd_stat->bg_affine_b[1].x_ref = -1.0 * x;
+				}
+				else { lcd_stat->bg_affine_b[1].x_ref = (x_raw >> 8) & 0x7FFFF; }
+				if((x_raw & 0xFF) != 0) { lcd_stat->bg_affine_b[1].x_ref += (x_raw & 0xFF) / 256.0; }
+
+				//Set current X position as the new reference point
+				lcd_stat->bg_affine_b[1].x_pos = lcd_stat->bg_affine_b[1].x_ref;
+			}
+
+			break;
+
+		//BG3 Scale/Rotation Y Reference - Engine B
+		case NDS_BG3Y_B:
+		case NDS_BG3Y_B+1:
+		case NDS_BG3Y_B+2:
+		case NDS_BG3Y_B+3:
+			memory_map[address] = value;
+
+			{
+				u32 y_raw = ((memory_map[NDS_BG3Y_B+3] << 24) | (memory_map[NDS_BG3Y_B+2] << 16) | (memory_map[NDS_BG3Y_B+1] << 8) | (memory_map[NDS_BG3Y_B]));
+
+				//Note: The reference points are 19-bit signed 2's complement
+				if(y_raw & 0x8000000) 
+				{ 
+					u32 y = ((y_raw >> 8) - 1);
+					y = (~y & 0x7FFFF);
+					lcd_stat->bg_affine_b[1].y_ref = -1.0 * y;
+				}
+				else { lcd_stat->bg_affine_b[1].y_ref = (y_raw >> 8) & 0x7FFFF; }
+				if((y_raw & 0xFF) != 0) { lcd_stat->bg_affine_b[1].y_ref += (y_raw & 0xFF) / 256.0; }
+
+				//Set current Y position as the new reference point
+				lcd_stat->bg_affine_b[1].y_pos = lcd_stat->bg_affine_b[1].y_ref;
+			}
+
+			break;
+
 		//Window 0 Horizontal Coordinates
 		case NDS_WIN0H:
 		case NDS_WIN0H+1:
