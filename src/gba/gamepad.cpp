@@ -266,7 +266,6 @@ void AGB_GamePad::process_keyboard(int pad, bool pressed)
 	//Context Left press
 	else if((pad == config::con_key_left) && (pressed))
 	{
-
 		//Emulate Gyroscope Left tilt press
 		if((config::cart_type == AGB_GYRO_SENSOR) || (config::cart_type == AGB_TILT_SENSOR))
 		{
@@ -522,6 +521,29 @@ void AGB_GamePad::process_joystick(int pad, bool pressed)
 			solar_value -= 0x8;
 			if(solar_value < 0x50) { solar_value = 0x50; }
 		}
+
+		//Emulate upwards tilt press
+		else if(config::cart_type == AGB_TILT_SENSOR)
+		{
+			gyro_flags |= 0x4;
+			gyro_flags |= 0x40;
+
+			gyro_flags &= ~0x8;
+		}
+	}
+
+	//Context Up release
+	else if((pad == config::con_joy_up) && (!pressed))
+	{
+		//Emulate upwards tilt release
+		if(config::cart_type == AGB_TILT_SENSOR)
+		{
+			gyro_flags &= ~0x4;
+			gyro_flags &= ~0x40;
+
+			if(gyro_flags & 0x80) { gyro_flags |= 0x8; }
+			else { gyro_flags &= ~0x8; }
+		}
 	}
 
 	//Context Down press
@@ -532,6 +554,29 @@ void AGB_GamePad::process_joystick(int pad, bool pressed)
 		{
 			solar_value += 0x8;
 			if(solar_value > 0xE8) { solar_value = 0xE8; }
+		}
+
+		//Emulate downwards tilt press
+		else if(config::cart_type == AGB_TILT_SENSOR)
+		{
+			gyro_flags |= 0x8;
+			gyro_flags |= 0x80;
+
+			gyro_flags &= ~0x4;
+		}
+	}
+
+	//Context Down release
+	else if((pad == config::con_joy_down) && (!pressed))
+	{
+		//Emulate downwards tilt release
+		if(config::cart_type == AGB_TILT_SENSOR)
+		{
+			gyro_flags &= ~0x8;
+			gyro_flags &= ~0x80;
+
+			if(gyro_flags & 0x40) { gyro_flags |= 0x4; }
+			else { gyro_flags &= ~0x4; }
 		}
 	}
 }
