@@ -1334,21 +1334,8 @@ void AGB_LCD::step()
 			//If Line 0, reset X and Y positions
 			if((lcd_stat.bg_mode != 0) && (current_scanline == 0))
 			{
-				u32 x_ref = mem->read_u32_fast(BG2X_L);
-				u32 y_ref = mem->read_u32_fast(BG2Y_L);
-				mem->write_u32(BG2X_L, x_ref);
-				mem->write_u32(BG2Y_L, y_ref);
-
-				lcd_stat.bg_affine[0].x_pos = lcd_stat.bg_affine[0].x_ref;
-				lcd_stat.bg_affine[0].y_pos = lcd_stat.bg_affine[0].y_ref;
-
-				x_ref = mem->read_u32_fast(BG3X_L);
-				y_ref = mem->read_u32_fast(BG3Y_L);
-				mem->write_u32(BG3X_L, x_ref);
-				mem->write_u32(BG3Y_L, y_ref);
-
-				lcd_stat.bg_affine[1].x_pos = lcd_stat.bg_affine[1].x_ref;
-				lcd_stat.bg_affine[1].y_pos = lcd_stat.bg_affine[1].y_ref;
+				reload_affine_references(BG2CNT);
+				reload_affine_references(BG3CNT);
 			}
 
 			//If starting any other line, add DMX and DMY to X and Y positions
@@ -1596,6 +1583,63 @@ void AGB_LCD::scanline_compare()
 		disp_stat &= ~0x4;
 		mem->write_u16_fast(DISPSTAT, disp_stat);
 	}
+}
+
+/****** Grabs the most current X-Y references for affine backgrounds ******/
+void AGB_LCD::reload_affine_references(u32 bg_control)
+{
+	u32 x_raw, y_raw;
+	u8 aff_id;
+
+	//Read X-Y references from memory, determine which engine it belongs to
+	switch(bg_control)
+	{
+		case BG2CNT:
+			x_raw = mem->read_u32_fast(BG2X_L);
+			y_raw = mem->read_u32_fast(BG2Y_L);
+			aff_id = 0;
+			break;
+
+		case BG3CNT:
+			x_raw = mem->read_u32_fast(BG3X_L);
+			y_raw = mem->read_u32_fast(BG3Y_L);
+			aff_id = 1;
+			break;
+
+		default: return;
+	}
+			
+	//Get X reference point
+	if(x_raw & 0x8000000) 
+	{ 
+		u32 x = ((x_raw >> 8) - 1);
+		x = (~x & 0x7FFFF);
+		
+		lcd_stat.bg_affine[aff_id].x_ref = -1.0 * x;
+	}
+	
+	else { lcd_stat.bg_affine[aff_id].x_ref = (x_raw >> 8) & 0x7FFFF; }
+	
+	if((x_raw & 0xFF) != 0) { lcd_stat.bg_affine[aff_id].x_ref += (x_raw & 0xFF) / 256.0; }
+
+	//Set current X position as the new reference point
+	lcd_stat.bg_affine[aff_id].x_pos = lcd_stat.bg_affine[aff_id].x_ref;
+
+	//Get X reference point
+	if(y_raw & 0x8000000) 
+	{ 
+		u32 y = ((y_raw >> 8) - 1);
+		y = (~y & 0x7FFFF);
+		
+		lcd_stat.bg_affine[aff_id].y_ref = -1.0 * y;
+	}
+	
+	else { lcd_stat.bg_affine[aff_id].y_ref = (y_raw >> 8) & 0x7FFFF; }
+	
+	if((y_raw & 0xFF) != 0) { lcd_stat.bg_affine[aff_id].y_ref += (y_raw & 0xFF) / 256.0; }
+
+	//Set current Y position as the new reference point
+	lcd_stat.bg_affine[aff_id].y_pos = lcd_stat.bg_affine[aff_id].y_ref;
 }
 
 /****** Read LCD data from save state ******/
