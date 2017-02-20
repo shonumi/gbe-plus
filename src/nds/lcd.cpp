@@ -334,7 +334,7 @@ void NTR_LCD::render_bg_scanline(u32 bg_control)
 						{
 							//16-bit Affine
 							case 0x0:
-								render_bg_mode_affine(bg_control);
+								render_bg_mode_affine_ext(bg_control);
 								break;
 
 							//256 color Affine
@@ -723,7 +723,7 @@ void NTR_LCD::render_bg_mode_affine(u32 bg_control)
 	else
 	{
 		//Grab BG ID and affine ID
-		u8 bg_id = (bg_control - 0x4000008) >> 1;
+		u8 bg_id = (bg_control - 0x4001008) >> 1;
 		u8 affine_id = (bg_id & 0x1);
 
 		//Reload X-Y references at start of frame
@@ -800,6 +800,192 @@ void NTR_LCD::render_bg_mode_affine(u32 bg_control)
 
 				//Only draw BG color if not transparent
 				if(raw_color != 0) { scanline_buffer_b[scanline_pixel_counter] = lcd_stat.bg_pal_b[raw_color]; }
+			}
+		}
+
+		//Update XREF and YREF for next line
+		lcd_stat.bg_affine_b[affine_id].x_ref += lcd_stat.bg_affine_b[affine_id].dmx;
+		lcd_stat.bg_affine_b[affine_id].y_ref += lcd_stat.bg_affine_b[affine_id].dmy;
+	}
+}
+
+/****** Render BG Mode Affine-Extended scanline ******/
+void NTR_LCD::render_bg_mode_affine_ext(u32 bg_control)
+{
+	//Render Engine A
+	if((bg_control & 0x1000) == 0)
+	{
+		//Grab BG ID and affine ID
+		u8 bg_id = (bg_control - 0x4000008) >> 1;
+		u8 affine_id = (bg_id & 0x1);
+
+		//Reload X-Y references at start of frame
+		if(lcd_stat.current_scanline == 0) { reload_affine_references(bg_control); }
+
+		//Abort rendering if this bg is disabled
+		if(!lcd_stat.bg_enable_a[bg_id]) { return; }
+
+		//Get BG size in tiles, pixels
+		//0 - 128x128, 1 - 256x256, 2 - 512x512, 3 - 1024x1024
+		u16 bg_tile_size = (16 << (lcd_stat.bg_control_a[bg_id] >> 14));
+		u16 bg_pixel_size = bg_tile_size << 3;
+
+		u8 scanline_pixel_counter = 0;
+		u16 src_x, src_y = 0;
+		double new_x, new_y = 0.0;
+
+		//Set current texture position at X and Y references
+		lcd_stat.bg_affine_a[affine_id].x_pos = lcd_stat.bg_affine_a[affine_id].x_ref - lcd_stat.bg_affine_a[affine_id].dx;
+		lcd_stat.bg_affine_a[affine_id].y_pos = lcd_stat.bg_affine_a[affine_id].y_ref - lcd_stat.bg_affine_a[affine_id].dy;
+
+		//Get tile and map addresses
+		u32 tile_base = 0x6000000 + lcd_stat.bg_base_tile_addr_a[bg_id];
+		u32 map_base = 0x6000000 + lcd_stat.bg_base_map_addr_a[bg_id];
+
+		//Cycle through all tiles on this scanline
+		for(u32 x = 0; x < 256; x++, scanline_pixel_counter++)
+		{
+			bool render_pixel = true;
+
+			//Update texture position with DX and DY
+			lcd_stat.bg_affine_a[affine_id].x_pos += lcd_stat.bg_affine_a[affine_id].dx;
+			lcd_stat.bg_affine_a[affine_id].y_pos += lcd_stat.bg_affine_a[affine_id].dy;
+
+			new_x = lcd_stat.bg_affine_a[affine_id].x_pos;
+			new_y = lcd_stat.bg_affine_a[affine_id].y_pos;
+
+			//Clip BG if coordinates overflow and overflow flag is not set
+			if(!lcd_stat.bg_affine_a[affine_id].overflow)
+			{
+				if((new_x >= bg_pixel_size) || (new_x < 0)) { render_pixel = false; }
+				if((new_y >= bg_pixel_size) || (new_y < 0)) { render_pixel = false; }
+			}
+
+			//Wrap BG if coordinates overflow and overflow flag is set
+			else 
+			{
+				while(new_x >= bg_pixel_size) { new_x -= bg_pixel_size; }
+				while(new_y >= bg_pixel_size) { new_y -= bg_pixel_size; }
+				while(new_x < 0) { new_x += bg_pixel_size; }
+				while(new_y < 0) { new_y += bg_pixel_size; } 
+			}
+
+			if(render_pixel)
+			{
+				//Determine source pixel X-Y coordinates
+				src_x = new_x; 
+				src_y = new_y;
+
+				//Get current map entry for rendered pixel
+				u16 tile_number = ((src_y / 8) * bg_tile_size) + (src_x / 8);
+
+				//Look at the Tile Map #(tile_number), see what Tile # it points to
+				u16 map_entry = mem->read_u16(map_base + (tile_number << 1));
+
+				//Get address of Tile #(map_entry)
+				u32 tile_addr = tile_base + ((map_entry & 0x3FF) * 64);
+
+				u8 current_tile_pixel = ((src_y % 8) * 8) + (src_x % 8);
+
+				//Grab the byte corresponding to (current_tile_pixel), render it as ARGB - 8-bit version
+				{
+					tile_addr += current_tile_pixel;
+					u8 raw_color = mem->memory_map[tile_addr];
+
+					//Only draw BG color if not transparent
+					if(raw_color != 0) { scanline_buffer_a[scanline_pixel_counter] = lcd_stat.bg_pal_a[raw_color]; }
+				}
+			}
+		}
+
+		//Update XREF and YREF for next line
+		lcd_stat.bg_affine_a[affine_id].x_ref += lcd_stat.bg_affine_a[affine_id].dmx;
+		lcd_stat.bg_affine_a[affine_id].y_ref += lcd_stat.bg_affine_a[affine_id].dmy;
+	}
+
+	//Render Engine B
+	else
+	{
+		//Grab BG ID and affine ID
+		u8 bg_id = (bg_control - 0x4001008) >> 1;
+		u8 affine_id = (bg_id & 0x1);
+
+		//Reload X-Y references at start of frame
+		if(lcd_stat.current_scanline == 0) { reload_affine_references(bg_control); }
+
+		//Abort rendering if this bg is disabled
+		if(!lcd_stat.bg_enable_b[bg_id]) { return; }
+
+		//Get BG size in tiles, pixels
+		//0 - 128x128, 1 - 256x256, 2 - 512x512, 3 - 1024x1024
+		u16 bg_tile_size = (16 << (lcd_stat.bg_control_b[bg_id] >> 14));
+		u16 bg_pixel_size = bg_tile_size << 3;
+
+		u8 scanline_pixel_counter = 0;
+		u16 src_x, src_y = 0;
+		double new_x, new_y = 0.0;
+
+		//Set current texture position at X and Y references
+		lcd_stat.bg_affine_b[affine_id].x_pos = lcd_stat.bg_affine_b[affine_id].x_ref - lcd_stat.bg_affine_b[affine_id].dx;
+		lcd_stat.bg_affine_b[affine_id].y_pos = lcd_stat.bg_affine_b[affine_id].y_ref - lcd_stat.bg_affine_b[affine_id].dy;
+
+		//Get tile and map addresses
+		u32 tile_base = 0x6200000 + lcd_stat.bg_base_tile_addr_b[bg_id];
+		u32 map_base = 0x6200000 + lcd_stat.bg_base_map_addr_b[bg_id];
+
+		//Cycle through all tiles on this scanline
+		for(u32 x = 0; x < 256; x++, scanline_pixel_counter++)
+		{
+			bool render_pixel = true;
+
+			//Update texture position with DX and DY
+			lcd_stat.bg_affine_b[affine_id].x_pos += lcd_stat.bg_affine_b[affine_id].dx;
+			lcd_stat.bg_affine_b[affine_id].y_pos += lcd_stat.bg_affine_b[affine_id].dy;
+
+			new_x = lcd_stat.bg_affine_b[affine_id].x_pos;
+			new_y = lcd_stat.bg_affine_b[affine_id].y_pos;
+
+			//Clip BG if coordinates overflow and overflow flag is not set
+			if(!lcd_stat.bg_affine_b[affine_id].overflow)
+			{
+				if((new_x >= bg_pixel_size) || (new_x < 0)) { render_pixel = false; }
+				if((new_y >= bg_pixel_size) || (new_y < 0)) { render_pixel = false; }
+			}
+
+			//Wrap BG if coordinates overflow and overflow flag is set
+			else 
+			{
+				while(new_x >= bg_pixel_size) { new_x -= bg_pixel_size; }
+				while(new_y >= bg_pixel_size) { new_y -= bg_pixel_size; }
+				while(new_x < 0) { new_x += bg_pixel_size; }
+				while(new_y < 0) { new_y += bg_pixel_size; } 
+			}
+
+			if(render_pixel)
+			{
+				//Determine source pixel X-Y coordinates
+				src_x = new_x; 
+				src_y = new_y;
+
+				//Get current map entry for rendered pixel
+				u16 tile_number = ((src_y / 8) * bg_tile_size) + (src_x / 8);
+
+				//Look at the Tile Map #(tile_number), see what Tile # it points to
+				u16 map_entry = mem->read_u16(map_base + (tile_number << 1));
+
+				//Get address of Tile #(map_entry)
+				u32 tile_bddr = tile_base + ((map_entry & 0x3FF) * 64);
+
+				u8 current_tile_pixel = ((src_y % 8) * 8) + (src_x % 8);
+
+				//Grab the byte corresponding to (current_tile_pixel), render it as ARGB - 8-bit version
+				{
+					tile_bddr += current_tile_pixel;
+					u8 raw_color = mem->memory_map[tile_bddr];
+
+					//Only draw BG color if not transparent
+					if(raw_color != 0) { scanline_buffer_b[scanline_pixel_counter] = lcd_stat.bg_pal_b[raw_color]; }
+				}
 			}
 		}
 
