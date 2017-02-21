@@ -645,14 +645,14 @@ void AGB_GamePad::process_gyroscope()
 	//Tilt sensor
 	else if(config::cart_type == AGB_TILT_SENSOR)
 	{
-		//Decrease Y value for left motion
+		//Decrease X value for left motion
 		if(gyro_flags & 0x1) 
 		{
 			sensor_x -= 16;
 			if(sensor_x < 0x2AF) { sensor_x = 0x2AF; }
 		}
 
-		//Increase Y value for left motion
+		//Increase X value for left motion
 		else if(gyro_flags & 0x2)
 		{
 			sensor_x += 16;
@@ -670,6 +670,34 @@ void AGB_GamePad::process_gyroscope()
 		{
 			sensor_x += 32;
 			if(sensor_x > 0x392) { sensor_x = 0x392; }
+
+		}
+
+		//Decrease Y value for down motion
+		if(gyro_flags & 0x8) 
+		{
+			sensor_y -= 16;
+			if(sensor_y < 0x2C3) { sensor_y = 0x2C3; }
+		}
+
+		//Increase Y value for up motion
+		else if(gyro_flags & 0x4)
+		{
+			sensor_y += 16;
+			if(sensor_y > 0x480) { sensor_y = 0x480; }
+		}
+
+		//When neither up or down is pressed, put sensor in neutral
+		else if(sensor_y > 0x3A0)
+		{
+			sensor_y -= 32;
+			if(sensor_y < 0x3A0) { sensor_y = 0x3A0; }
+		}
+
+		else if(sensor_y < 0x3A0)
+		{
+			sensor_y += 32;
+			if(sensor_y > 0x3A0) { sensor_y = 0x3A0; }
 
 		}
 	}
