@@ -690,6 +690,9 @@ void main_menu::closeEvent(QCloseEvent* event)
 /****** Handle keypress input ******/
 void main_menu::keyPressEvent(QKeyEvent* event)
 {
+	//Disallow key repeats
+	if(event->isAutoRepeat()) { return; }
+
 	int sdl_key = qtkey_to_sdlkey(event->key());
 
 	//Force input processing in the core
@@ -754,6 +757,9 @@ void main_menu::keyPressEvent(QKeyEvent* event)
 /****** Handle key release input ******/
 void main_menu::keyReleaseEvent(QKeyEvent* event)
 {
+	//Disallow key repeats
+	if(event->isAutoRepeat()) { return; }
+
 	int sdl_key = qtkey_to_sdlkey(event->key());
 	
 	//Force input processing in the core
