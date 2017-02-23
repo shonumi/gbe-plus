@@ -1038,6 +1038,9 @@ std::string AGB_core::debug_get_mnemonic(u32 addr) { return " "; }
 /****** Process hotkey input ******/
 void AGB_core::handle_hotkey(SDL_Event& event)
 {
+	//Disallow key repeats
+	if(event.key.repeat) { return; }
+
 	//Quit on Q or ESC
 	if((event.type == SDL_KEYDOWN) && ((event.key.keysym.sym == SDLK_q) || (event.key.keysym.sym == SDLK_ESCAPE)))
 	{
