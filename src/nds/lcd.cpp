@@ -355,7 +355,7 @@ void NTR_LCD::render_bg_scanline(u32 bg_control)
 								break;
 
 							//Direct color Affine
-							case 0x82:
+							case 0x84:
 								render_bg_mode_direct(bg_control);
 								break;
 						}
@@ -386,7 +386,7 @@ void NTR_LCD::render_bg_scanline(u32 bg_control)
 								break;
 
 							//Direct color Affine
-							case 0x82:
+							case 0x84:
 								render_bg_mode_direct(bg_control);
 								break;
 						}
@@ -1294,7 +1294,220 @@ void NTR_LCD::render_bg_mode_bitmap(u32 bg_control)
 }
 
 /****** Render BG Mode direct color scanline ******/
-void NTR_LCD::render_bg_mode_direct(u32 bg_control) { }
+void NTR_LCD::render_bg_mode_direct(u32 bg_control)
+{
+	//Render Engine A
+	if((bg_control & 0x1000) == 0)
+	{
+		//Grab BG ID
+		u8 bg_id = (bg_control - 0x4000008) >> 1;
+		u8 affine_id = (bg_id & 0x1);
+
+		//Reload X-Y references at start of frame
+		if(lcd_stat.current_scanline == 0) { reload_affine_references(bg_control); }
+
+		//Abort rendering if this bg is disabled
+		if(!lcd_stat.bg_enable_a[bg_id]) { return; }
+
+		u16 raw_color = 0;
+		u8 scanline_pixel_counter = 0;
+
+		u16 src_x, src_y = 0;
+		double new_x, new_y = 0.0;
+		u16 bg_pixel_width, bg_pixel_height = 0;
+
+		//Determine bitmap dimensions
+		switch(lcd_stat.bg_size_a[bg_id])
+		{
+			case 0x0:
+				bg_pixel_width = 128;
+				bg_pixel_height = 128;
+				break;
+
+			case 0x1:
+				bg_pixel_width = 256;
+				bg_pixel_height = 256;
+				break;
+
+			case 0x2:
+				bg_pixel_width = 512;
+				bg_pixel_height = 256;
+				break;
+
+			case 0x3:
+				bg_pixel_width = 512;
+				bg_pixel_height = 512;
+				break;
+		}
+
+		//Set current texture position at X and Y references
+		lcd_stat.bg_affine_a[affine_id].x_pos = lcd_stat.bg_affine_a[affine_id].x_ref;
+		lcd_stat.bg_affine_a[affine_id].y_pos = lcd_stat.bg_affine_a[affine_id].y_ref;
+		
+		for(int x = 0; x < 256; x++)
+		{
+			bool render_pixel = true;
+
+			new_x = lcd_stat.bg_affine_a[affine_id].x_pos;
+			new_y = lcd_stat.bg_affine_a[affine_id].y_pos;
+
+			//Clip BG if coordinates overflow and overflow flag is not set
+			if(!lcd_stat.bg_affine_a[affine_id].overflow)
+			{
+				if((new_x >= bg_pixel_width) || (new_x < 0)) { render_pixel = false; }
+				if((new_y >= bg_pixel_height) || (new_y < 0)) { render_pixel = false; }
+			}
+
+			//Wrap BG if coordinates overflow and overflow flag is set
+			else 
+			{
+				while(new_x >= bg_pixel_width) { new_x -= bg_pixel_width; }
+				while(new_y >= bg_pixel_height) { new_y -= bg_pixel_height; }
+				while(new_x < 0) { new_x += bg_pixel_width; }
+				while(new_y < 0) { new_y += bg_pixel_height; } 
+			}
+
+			if(render_pixel)
+			{
+				//Determine source pixel X-Y coordinates
+				src_x = new_x;
+				src_y = new_y;
+
+				raw_color = mem->read_u16(0x6000000 + (((src_y * bg_pixel_width) + src_x) * 2));
+			
+				//Convert 16-bit ARGB to 32-bit ARGB - Bit 15 is alpha transparency
+				if(raw_color & 0x8000)
+				{
+					u8 red = ((raw_color & 0x1F) << 3);
+					raw_color >>= 5;
+
+					u8 green = ((raw_color & 0x1F) << 3);
+					raw_color >>= 5;
+
+					u8 blue = ((raw_color & 0x1F) << 3);
+
+					scanline_buffer_a[scanline_pixel_counter] = 0xFF000000 | (red << 16) | (green << 8) | (blue);
+				}
+			}
+
+			scanline_pixel_counter++;
+
+			//Update texture position with DX and DY
+			lcd_stat.bg_affine_a[affine_id].x_pos += lcd_stat.bg_affine_a[affine_id].dx;
+			lcd_stat.bg_affine_a[affine_id].y_pos += lcd_stat.bg_affine_a[affine_id].dy;
+		}
+
+		//Update XREF and YREF for next line
+		lcd_stat.bg_affine_a[affine_id].x_ref += lcd_stat.bg_affine_a[affine_id].dmx;
+		lcd_stat.bg_affine_a[affine_id].y_ref += lcd_stat.bg_affine_a[affine_id].dmy;
+	}
+
+	//Render Engine B
+	else
+	{
+		//Grab BG ID
+		u8 bg_id = (bg_control - 0x4001008) >> 1;
+		u8 affine_id = (bg_id & 0x1);
+
+		//Reload X-Y references at start of frame
+		if(lcd_stat.current_scanline == 0) { reload_affine_references(bg_control); }
+
+		//Abort rendering if this bg is disabled
+		if(!lcd_stat.bg_enable_b[bg_id]) { return; }
+
+		u16 raw_color = 0;
+		u8 scanline_pixel_counter = 0;
+
+		u16 src_x, src_y = 0;
+		double new_x, new_y = 0.0;
+		u16 bg_pixel_width, bg_pixel_height = 0;
+
+		//Determine bitmap dimensions
+		switch(lcd_stat.bg_size_b[bg_id])
+		{
+			case 0x0:
+				bg_pixel_width = 128;
+				bg_pixel_height = 128;
+				break;
+
+			case 0x1:
+				bg_pixel_width = 256;
+				bg_pixel_height = 256;
+				break;
+
+			case 0x2:
+				bg_pixel_width = 512;
+				bg_pixel_height = 256;
+				break;
+
+			case 0x3:
+				bg_pixel_width = 512;
+				bg_pixel_height = 512;
+				break;
+		}
+
+		//Set current texture position at X and Y references
+		lcd_stat.bg_affine_b[affine_id].x_pos = lcd_stat.bg_affine_b[affine_id].x_ref;
+		lcd_stat.bg_affine_b[affine_id].y_pos = lcd_stat.bg_affine_b[affine_id].y_ref;
+		
+		for(int x = 0; x < 256; x++)
+		{
+			bool render_pixel = true;
+
+			new_x = lcd_stat.bg_affine_b[affine_id].x_pos;
+			new_y = lcd_stat.bg_affine_b[affine_id].y_pos;
+
+			//Clip BG if coordinates overflow and overflow flag is not set
+			if(!lcd_stat.bg_affine_b[affine_id].overflow)
+			{
+				if((new_x >= bg_pixel_width) || (new_x < 0)) { render_pixel = false; }
+				if((new_y >= bg_pixel_height) || (new_y < 0)) { render_pixel = false; }
+			}
+
+			//Wrap BG if coordinates overflow and overflow flag is set
+			else 
+			{
+				while(new_x >= bg_pixel_width) { new_x -= bg_pixel_width; }
+				while(new_y >= bg_pixel_height) { new_y -= bg_pixel_height; }
+				while(new_x < 0) { new_x += bg_pixel_width; }
+				while(new_y < 0) { new_y += bg_pixel_height; } 
+			}
+
+			if(render_pixel)
+			{
+				//Determine source pixel X-Y coordinates
+				src_x = new_x;
+				src_y = new_y;
+
+				raw_color = mem->read_u16(0x6200000 + (((src_y * bg_pixel_width) + src_x) * 2));
+			
+				//Convert 16-bit ARGB to 32-bit ARGB - Bit 15 is alpha transparency
+				if(raw_color & 0x8000)
+				{
+					u8 red = ((raw_color & 0x1F) << 3);
+					raw_color >>= 5;
+
+					u8 green = ((raw_color & 0x1F) << 3);
+					raw_color >>= 5;
+
+					u8 blue = ((raw_color & 0x1F) << 3);
+
+					scanline_buffer_b[scanline_pixel_counter] = 0xFF000000 | (red << 16) | (green << 8) | (blue);
+				}
+			}
+
+			scanline_pixel_counter++;
+
+			//Update texture position with DX and DY
+			lcd_stat.bg_affine_b[affine_id].x_pos += lcd_stat.bg_affine_b[affine_id].dx;
+			lcd_stat.bg_affine_b[affine_id].y_pos += lcd_stat.bg_affine_b[affine_id].dy;
+		}
+
+		//Update XREF and YREF for next line
+		lcd_stat.bg_affine_b[affine_id].x_ref += lcd_stat.bg_affine_b[affine_id].dmx;
+		lcd_stat.bg_affine_b[affine_id].y_ref += lcd_stat.bg_affine_b[affine_id].dmy;
+	}
+}
 
 /****** Render pixels for a given scanline (per-pixel) ******/
 void NTR_LCD::render_scanline()
