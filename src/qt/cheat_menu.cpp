@@ -46,6 +46,7 @@ cheat_menu::cheat_menu(QWidget *parent) : QDialog(parent)
 	connect(delete_button, SIGNAL(clicked()), this, SLOT(delete_cheats()));
 
 	resize(600, 400);
+	setWindowTitle(QString("Edit Cheat Codes"));
 	hide();
 
 	data_set = new QWidget;

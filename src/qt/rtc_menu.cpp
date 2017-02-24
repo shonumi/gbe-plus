@@ -108,6 +108,8 @@ rtc_menu::rtc_menu(QWidget *parent) : QDialog(parent)
 	final_layout->addWidget(close_button);
 	setLayout(final_layout);
 
+	setMinimumWidth(300);
+	setWindowTitle(QString("RTC Offsets"));
 	hide();
 
 	connect(close_button, SIGNAL(accepted()), this, SLOT(accept()));
