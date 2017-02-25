@@ -8,6 +8,8 @@
 //
 // Emulates the NDS's Software Interrupts via High Level Emulation
 
+#include <cmath>
+
 #include "arm9.h"
 #include "arm7.h"
 
@@ -58,6 +60,12 @@ void NTR_ARM9::process_swi(u32 comment)
 			swi_cpuset();
 			break;
 
+		//Sqrt
+		case 0xD:
+			std::cout<<"ARM9::SWI::Sqrt \n";
+			swi_sqrt();
+			break;
+
 		//IsDebugger
 		case 0xF:
 			//std::cout<<"ARM9::SWI::IsDebugger \n";
@@ -77,7 +85,7 @@ void NTR_ARM9::process_swi(u32 comment)
 	}
 }
 
-/****** HLE implementation of SoftReset ******/
+/****** HLE implementation of SoftReset - NDS9 ******/
 void NTR_ARM9::swi_softreset()
 {
 	//Reset IRQ, SVC, and SYS stack pointers
@@ -187,7 +195,7 @@ void NTR_ARM9::swi_vblankintrwait()
 	idle_state = 3;
 }
 
-/****** HLE implementation of Div ******/
+/****** HLE implementation of Div - NDS9 ******/
 void NTR_ARM9::swi_div()
 {
 	//Grab the numerator - R0
@@ -300,6 +308,17 @@ void NTR_ARM9::swi_cpuset()
 	set_reg(1, dest_addr);
 }
 
+/****** HLE implementation of Sqrt - NDS9 ******/
+void NTR_ARM9::swi_sqrt()
+{
+	//Grab input
+	u32 input = get_reg(0);
+
+	//Set result of operation
+	u16 result = sqrt(input);
+	set_reg(0, result);
+}
+
 /****** HLE implementation of IsDebugger - NDS9 ******/
 void NTR_ARM9::swi_isdebugger()
 {
@@ -310,7 +329,7 @@ void NTR_ARM9::swi_isdebugger()
 	mem->write_u16(0x27FFFF8, 0x0);
 }
 
-/****** HLE implementation of LZ77UnCompReadByCallback ******/
+/****** HLE implementation of LZ77UnCompReadByCallback - NDS9 ******/
 void NTR_ARM9::swi_lz77uncompvram()
 {
 	//Grab source address - R0
@@ -420,6 +439,12 @@ void NTR_ARM7::process_swi(u32 comment)
 			swi_cpuset();
 			break;
 
+		//Sqrt
+		case 0xD:
+			std::cout<<"ARM7::SWI::Sqrt \n";
+			swi_sqrt();
+			break;
+
 		//GetCRC16
 		case 0xE:
 			//std::cout<<"ARM7::SWI::GetCRC16 \n";
@@ -439,7 +464,7 @@ void NTR_ARM7::process_swi(u32 comment)
 	}
 }
 
-/****** HLE implementation of SoftReset ******/
+/****** HLE implementation of SoftReset - NDS7 ******/
 void NTR_ARM7::swi_softreset()
 {
 	//Reset IRQ, SVC, and SYS stack pointers
@@ -555,7 +580,7 @@ void NTR_ARM7::swi_halt()
 	idle_state = 1;
 }
 
-/****** HLE implementation of Div ******/
+/****** HLE implementation of Div - NDS7 ******/
 void NTR_ARM7::swi_div()
 {
 	//Grab the numerator - R0
@@ -672,7 +697,18 @@ void NTR_ARM7::swi_cpuset()
 	set_reg(1, dest_addr);
 }
 
-/****** HLE implementation of LZ77UnCompReadByCallback ******/
+/****** HLE implementation of Sqrt - NDS7 ******/
+void NTR_ARM7::swi_sqrt()
+{
+	//Grab input
+	u32 input = get_reg(0);
+
+	//Set result of operation
+	u16 result = sqrt(input);
+	set_reg(0, result);
+}
+
+/****** HLE implementation of LZ77UnCompReadByCallback - NDS7 ******/
 void NTR_ARM7::swi_lz77uncompvram()
 {
 	//Grab source address - R0
