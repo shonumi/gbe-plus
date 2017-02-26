@@ -22,14 +22,6 @@ uniform int screen_y_size;
 uniform float ext_data_1;
 uniform float ext_data_2;
 
-//Blend two colors
-void rgb_blend(in vec4 color_1, in vec4 color_2, out vec4 final_color)
-{
-	final_color.r = (color_1.r + color_2.r + color_2.r) / 3.0;
-	final_color.g = (color_1.g + color_2.g + color_2.g) / 3.0;
-	final_color.b = (color_1.b + color_2.b + color_2.b) / 3.0;
-}
-
 void main()
 {
 	vec4 current_color = texture(screen_texture, texture_coordinates);
@@ -64,7 +56,7 @@ void main()
 		b_dist *= chrono_minute;
 		blend_color.b += b_dist;
 
-		rgb_blend(current_color, blend_color, current_color);
+		current_color = mix(blend_color, current_color, 0.33);
 	}
 
 	//04:00 - 06:59 Blue to Red
@@ -87,7 +79,7 @@ void main()
 		b_dist *= chrono_minute;
 		blend_color.b += b_dist;
 
-		rgb_blend(current_color, blend_color, current_color);
+		current_color = mix(blend_color, current_color, 0.33);
 	}
 
 	//07:00 - 9:59 Red to Yellow
@@ -110,7 +102,7 @@ void main()
 		b_dist *= chrono_minute;
 		blend_color.b += b_dist;
 
-		rgb_blend(current_color, blend_color, current_color);
+		current_color = mix(blend_color, current_color, 0.33);
 	}
 
 	//10:00 - 12:59 Yellow to White-Yellow
@@ -133,7 +125,7 @@ void main()
 		b_dist *= chrono_minute;
 		blend_color.b += b_dist;
 
-		rgb_blend(current_color, blend_color, current_color);
+		current_color = mix(blend_color, current_color, 0.33);
 	}
 
 	//13:00 - 16:59 White-Yellow to Red
@@ -156,7 +148,7 @@ void main()
 		b_dist *= chrono_minute;
 		blend_color.b += b_dist;
 
-		rgb_blend(current_color, blend_color, current_color);
+		current_color = mix(blend_color, current_color, 0.33);
 	}
 
 	//17:00 - 19:59 Red to Light Blue
@@ -179,7 +171,7 @@ void main()
 		b_dist *= chrono_minute;
 		blend_color.b += b_dist;
 
-		rgb_blend(current_color, blend_color, current_color);
+		current_color = mix(blend_color, current_color, 0.33);
 	}
 
 	//20:00 - 23:00 Light Blue to Dark Blue
@@ -202,7 +194,7 @@ void main()
 		b_dist *= chrono_minute;
 		blend_color.b += b_dist;
 
-		rgb_blend(current_color, blend_color, current_color);
+		current_color = mix(blend_color, current_color, 0.33);
 	}
 
 	if((texture(screen_texture, texture_coordinates).r == 0) && (texture(screen_texture, texture_coordinates).g == 0) && (texture(screen_texture, texture_coordinates).b == 0))

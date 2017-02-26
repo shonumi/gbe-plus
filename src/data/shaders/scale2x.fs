@@ -49,16 +49,6 @@ bool get_texel(in float x_shift, in float y_shift, out vec4 texel_color, in bool
 	return pass;
 }
 
-//Blend two colors
-vec4 rgb_blend(in vec4 color_1, in vec4 color_2)
-{
-	vec4 final_color = vec4(1.0, 1.0, 1.0, 1.0);
-	final_color.r = (color_1.r + color_2.r) / 2.0;
-	final_color.g = (color_1.g + color_2.g) / 2.0;
-	final_color.b = (color_1.b + color_2.b) / 2.0;
-	return final_color;
-}
-
 void main()
 {
 	vec2 current_pos = texture_coordinates;
@@ -140,16 +130,16 @@ void main()
 			if(right_color == bottom_color) { e3 = right_color; }
 
 			//Blend E0 if E1 and E2 are equal
-			if((quadrant == 0) && (e1 == e2)) { current_color = rgb_blend(e0, e1); }
+			if((quadrant == 0) && (e1 == e2)) { current_color = mix(e0, e1, 0.5); }
 
 			//Blend E1 if E0 and E3 are equal
-			else if((quadrant == 1) && (e0 == e3)) { current_color = rgb_blend(e1, e0); }
+			else if((quadrant == 1) && (e0 == e3)) { current_color = mix(e1, e0, 0.5); }
 
 			//Blend E2 if E0 and E3 are equal
-			else if((quadrant == 2) && (e0 == e3)) { current_color = rgb_blend(e2, e0); }
+			else if((quadrant == 2) && (e0 == e3)) { current_color = mix(e2, e0, 0.5); }
 
 			//Blend E3 if E1 and E2 are equal
-			else if((quadrant == 3) && (e1 == e2)) { current_color = rgb_blend(e3, e1); }
+			else if((quadrant == 3) && (e1 == e2)) { current_color = mix(e3, e1, 0.5); }
 		}
 	}
 
