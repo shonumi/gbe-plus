@@ -143,16 +143,32 @@ u8 AGB_MMU::read_u8(u32 address) const
 	//Check for unused memory first
 	if(address >= 0x10000000) { std::cout<<"Out of bounds read : 0x" << std::hex << address << "\n"; return 0; }
 
-	//Read from FLASH RAM
-	if(((current_save_type == FLASH_64) || (current_save_type == FLASH_128)) && (address >= 0xE000000) && (address <= 0xE00FFFF))
+	//Read from game save data
+	if((address >= 0xE000000) && (address <= 0xE00FFFF))
 	{
-		if((address == 0xE000000) && (current_save_type == FLASH_64) && (flash_ram.grab_ids)) { return 0x32; }
-		else if((address == 0xE000000) && (current_save_type == FLASH_128) && (flash_ram.grab_ids)) { return 0xC2; }
+		switch(current_save_type)
+		{
+			//FLASH RAM read
+			case FLASH_64:
+				if((address == 0xE000000) && (flash_ram.grab_ids)) { return 0x32; }
+				else if((address == 0xE000001) && (flash_ram.grab_ids)) { return 0x1B; }
+				return flash_ram.data[flash_ram.bank][(address & 0xFFFF)];
 
-		else if((address == 0xE000001) && (current_save_type == FLASH_64) && (flash_ram.grab_ids)) { return 0x1B; }
-		else if((address == 0xE000001) && (current_save_type == FLASH_128) && (flash_ram.grab_ids)) { return 0x09; }
+			//FLASH RAM read
+			case FLASH_128:
+				if((address == 0xE000000) && (flash_ram.grab_ids)) { return 0xC2; }
+				else if((address == 0xE000001) && (flash_ram.grab_ids)) { return 0x09; }
+				return flash_ram.data[flash_ram.bank][(address & 0xFFFF)];
 
-		return flash_ram.data[flash_ram.bank][(address & 0xFFFF)];
+			//SRAM read
+			case SRAM:
+				return memory_map[address];
+
+			//Disable this memory region if not using SRAM or FLASH RAM.
+			//Used in some game protection schemes (NES Classics and Top Gun: Combat Zones)
+			default:
+				return 0;
+		}
 	}
 
 	switch(address)
