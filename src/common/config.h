@@ -42,6 +42,16 @@ enum special_cart_types
 	AGB_TILT_SENSOR,
 };
 
+enum gba_save_types
+{
+	AGB_AUTO_DETECT,
+	AGB_NO_SAVE,
+	AGB_SRAM,
+	AGB_EEPROM,
+	AGB_FLASH64,
+	AGB_FLASH128,
+};
+
 namespace config
 { 
 	extern std::string rom_file;
@@ -75,7 +85,8 @@ namespace config
 	extern u32 flags;
 	extern bool pause_emu;
 	extern bool use_bios;
-	extern special_cart_types cart_type; 
+	extern special_cart_types cart_type;
+	extern gba_save_types agb_save_type;
 	extern u32 sio_device;	
 	extern bool use_opengl;
 	extern bool use_debugger;

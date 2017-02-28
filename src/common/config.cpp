@@ -84,6 +84,7 @@ namespace config
 	bool pause_emu = false;
 	bool use_bios = false;
 	special_cart_types cart_type = NORMAL_CART;
+	gba_save_types agb_save_type = AGB_AUTO_DETECT;
 	u32 sio_device = 0;
 	bool use_opengl = false;
 	bool turbo = false;
@@ -563,17 +564,29 @@ bool parse_cli_args()
 			//Enable fullscreen mode
 			else if((config::cli_args[x] == "-f") || (config::cli_args[x] == "--fullscreen")) { config::flags |= SDL_WINDOW_FULLSCREEN_DESKTOP; } 
 
-			//Use multicart mode if applicable for a given ROM
-			else if(config::cli_args[x] == "--multicart")
-			{
-				config::cart_type = DMG_MBC1M;
-			}
+			//Use MBC1M multicart mode if applicable for a given ROM
+			else if(config::cli_args[x] == "--mbc1m") { config::cart_type = DMG_MBC1M; }
 
-			//Use MMM01 mode if applicable for a given ROM
-			else if(config::cli_args[x] == "--mmm01")
-			{
-				config::cart_type = DMG_MMM01;
-			}
+			//Use MMM01 multicart mode if applicable for a given ROM
+			else if(config::cli_args[x] == "--mmm01") { config::cart_type = DMG_MMM01; }
+
+			//Use Auto-Detect for GBA saves
+			else if(config::cli_args[x] == "--save-auto") { config::agb_save_type = AGB_AUTO_DETECT; }
+
+			//Disable all GBA saves
+			else if(config::cli_args[x] == "--save-none") { config::agb_save_type = AGB_NO_SAVE; }
+
+			//Force SRAM GBA saves
+			else if(config::cli_args[x] == "--save-sram") { config::agb_save_type = AGB_SRAM; }
+
+			//Force EEPROM GBA saves
+			else if(config::cli_args[x] == "--save-eeprom") { config::agb_save_type = AGB_EEPROM; }
+
+			//Force FLASH 64KB GBA saves
+			else if(config::cli_args[x] == "--save-flash64") { config::agb_save_type = AGB_FLASH64; }
+
+			//Force FLASH 128KB GBA saves
+			else if(config::cli_args[x] == "--save-auto") { config::agb_save_type = AGB_FLASH128; }
 
 			//Use OpenGL for screen drawing
 			else if(config::cli_args[x] == "--opengl") { config::use_opengl = true; }
@@ -619,7 +632,7 @@ bool parse_cli_args()
 				std::cout<<"GBE+ Command Line Options:\n";
 				std::cout<<"-b [FILE], --bios [FILE] \t\t Load and use BIOS file\n";
 				std::cout<<"-d, --debug \t\t\t\t Start the command-line debugger\n";
-				std::cout<<"--multicart \t\t\t\t Use MBC1M multicart mode if applicable\n";
+				std::cout<<"--mbc1m \t\t\t\t Use MBC1M multicart mode if applicable\n";
 				std::cout<<"--mmm01 \t\t\t\t Use MMM01 multicart mode if applicable\n";
 				std::cout<<"--opengl \t\t\t\t Use OpenGL for screen drawing and scaling\n";
 				std::cout<<"--cheats \t\t\t\t Use Gameshark or Game Genie cheats\n";
@@ -629,6 +642,12 @@ bool parse_cli_args()
 				std::cout<<"--sys-dmg \t\t\t\t Set the emulated system type to DMG (old Gameboy)\n";
 				std::cout<<"--sys-gbc \t\t\t\t Set the emulated system type to GBC\n";
 				std::cout<<"--sys-gba \t\t\t\t Set the emulated system type to GBA\n";
+				std::cout<<"--save-auto \t\t\t\t Set the GBA save type to Auto Detect\n";
+				std::cout<<"--save-none \t\t\t\t Disables all GBA saves\n";
+				std::cout<<"--save-sram \t\t\t\t Force the GBA save type to SRAM\n";
+				std::cout<<"--save-eeprom \t\t\t\t Force the GBA save type to EEPROM\n";
+				std::cout<<"--save-flash64 \t\t\t\t Force the GBA save type to FLASH 64KB\n";
+				std::cout<<"--save-flash128 \t\t\t Force the GBA save type to FLASH 128KB\n";
 				std::cout<<"-h, --help \t\t\t\t Print these help messages\n";
 				return false;
 			}
