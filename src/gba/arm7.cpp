@@ -1324,6 +1324,20 @@ void ARM7::mem_check_8(u32 addr, u32& value, bool load_store)
 			value = mem->read_u8(reg.r15);
 		}
 
+		//Return specific values when trying to read BIOS when PC is not within the BIOS
+		else if((addr <= 0x3FFF) && (reg.r15 > 0x3FFF))
+		{
+			normal_operation = false;
+
+			switch(bios_read_state)
+			{
+				case BIOS_STARTUP: value = 0x00; break;
+				case BIOS_IRQ_EXECUTE : value = 0x04; break;
+				case BIOS_IRQ_FINISH : value = 0x02; break;
+				case BIOS_SWI_FINISH : value = 0x04; break;
+			}
+		}
+
 		//Normal operation
 		if(normal_operation) { value = mem->read_u8(addr); }
 	}
