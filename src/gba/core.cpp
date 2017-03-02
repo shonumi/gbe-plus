@@ -1063,6 +1063,18 @@ void AGB_core::handle_hotkey(SDL_Event& event)
 		}
 	}
 
+	//Quick save state on F1
+	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F1)) 
+	{
+		save_state(0);
+	}
+
+	//Quick load save state on F2
+	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F2)) 
+	{
+		load_state(0);
+	}
+
 	//Start CLI debugger on F7
 	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F7) && (!config::use_external_interfaces))
 	{
