@@ -1375,7 +1375,7 @@ bool DMG_MMU::read_file(std::string filename)
 			cart.mbc_type = ROM_ONLY;
 
 			std::cout<<"MMU::Cartridge Type - ROM Only \n";
-			std::cout<<"MMU::ROM Size - " << std::dec << cart.rom_size << "KB\n";
+			std::cout<<"MMU::ROM Size - 32KB\n";
 			break;
 
 		case 0x1:
