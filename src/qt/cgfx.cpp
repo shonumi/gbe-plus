@@ -120,6 +120,36 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	layer_select_layout->addWidget(layer_select);
 	select_set->setLayout(layer_select_layout);
 
+	//Input control 1
+	QWidget* input_set_1 = new QWidget(layers_tab);
+	a_input = new QPushButton("A");
+	b_input = new QPushButton("B");
+	select_input = new QPushButton("SELECT");
+	start_input = new QPushButton("START");
+
+	QHBoxLayout* input_set_1_layout = new QHBoxLayout;
+	input_set_1_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	input_set_1_layout->addWidget(a_input);
+	input_set_1_layout->addWidget(b_input);
+	input_set_1_layout->addWidget(select_input);
+	input_set_1_layout->addWidget(start_input);
+	input_set_1->setLayout(input_set_1_layout);
+
+	//Input control 2
+	QWidget* input_set_2 = new QWidget(layers_tab);
+	left_input = new QPushButton("LEFT");
+	right_input = new QPushButton("RIGHT");
+	up_input = new QPushButton("UP");
+	down_input = new QPushButton("DOWN");
+
+	QHBoxLayout* input_set_2_layout = new QHBoxLayout;
+	input_set_2_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	input_set_2_layout->addWidget(left_input);
+	input_set_2_layout->addWidget(right_input);
+	input_set_2_layout->addWidget(up_input);
+	input_set_2_layout->addWidget(down_input);
+	input_set_2->setLayout(input_set_2_layout);
+
 	//Frame control
 	QGroupBox* frame_control_set = new QGroupBox(tr("Frame Control"));
 	QPushButton* next_frame = new QPushButton("Advance Next Frame");
@@ -139,6 +169,8 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	frame_control_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	frame_control_layout->addWidget(render_stop_set);
 	frame_control_layout->addWidget(next_frame);
+	frame_control_layout->addWidget(input_set_1);
+	frame_control_layout->addWidget(input_set_2);
 	frame_control_set->setLayout(frame_control_layout);
 
 	//Layer section selector - X
@@ -314,6 +346,26 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	connect(rect_h, SIGNAL(valueChanged(int)), this, SLOT(update_selection()));
 	connect(dump_section_button, SIGNAL(clicked()), this, SLOT(dump_selection()));
 	connect(next_frame, SIGNAL(clicked()), this, SLOT(advance_next_frame()));
+
+	QSignalMapper* input_signal = new QSignalMapper(this);
+	connect(a_input, SIGNAL(clicked()), input_signal, SLOT(map()));
+	connect(b_input, SIGNAL(clicked()), input_signal, SLOT(map()));
+	connect(select_input, SIGNAL(clicked()), input_signal, SLOT(map()));
+	connect(start_input, SIGNAL(clicked()), input_signal, SLOT(map()));
+	connect(left_input, SIGNAL(clicked()), input_signal, SLOT(map()));
+	connect(right_input, SIGNAL(clicked()), input_signal, SLOT(map()));
+	connect(up_input, SIGNAL(clicked()), input_signal, SLOT(map()));
+	connect(down_input, SIGNAL(clicked()), input_signal, SLOT(map()));
+
+	input_signal->setMapping(a_input, 0);
+	input_signal->setMapping(b_input, 1);
+	input_signal->setMapping(select_input, 2);
+	input_signal->setMapping(start_input, 3);
+	input_signal->setMapping(left_input, 4);
+	input_signal->setMapping(right_input, 5);
+	input_signal->setMapping(up_input, 6);
+	input_signal->setMapping(down_input, 7);
+	connect(input_signal, SIGNAL(mapped(int)), this, SLOT(update_input_control(int))) ;
 
 	//CGFX advanced dumping pop-up box
 	advanced_box = new QDialog();
@@ -1009,6 +1061,8 @@ void gbe_cgfx::closeEvent(QCloseEvent* event) { close_cgfx(); }
 /****** Closes the CGFX window ******/
 void gbe_cgfx::close_cgfx()
 {
+	reset_inputs();
+
 	if(!qt_gui::draw_surface->dmg_debugger->pause) { qt_gui::draw_surface->findChild<QAction*>("pause_action")->setEnabled(true); }
 
 	pause = false;
@@ -3689,3 +3743,119 @@ void gbe_cgfx::advance_next_frame()
 
 	layer_change();
 }
+
+/****** Updates input control when advancing frames ******/
+void gbe_cgfx::update_input_control(int index)
+{
+	//Set QPushButtons to flat or raise them
+	switch(index)
+	{
+		case 0x0:
+			a_input->isFlat() ? a_input->setFlat(false) : a_input->setFlat(true);
+			break;
+	
+		case 0x1:
+			b_input->isFlat() ? b_input->setFlat(false) : b_input->setFlat(true);
+			break;
+
+		case 0x2:
+			select_input->isFlat() ? select_input->setFlat(false) : select_input->setFlat(true);
+			break;
+
+		case 0x3:
+			start_input->isFlat() ? start_input->setFlat(false) : start_input->setFlat(true);
+			break;
+
+		case 0x4:
+			left_input->isFlat() ? left_input->setFlat(false) : left_input->setFlat(true);
+			if(!left_input->isFlat()) { right_input->setFlat(true); }
+			break;
+
+		case 0x5:
+			right_input->isFlat() ? right_input->setFlat(false) : right_input->setFlat(true);
+			if(!right_input->isFlat()) { left_input->setFlat(true); }
+			break;
+
+		case 0x6:
+			up_input->isFlat() ? up_input->setFlat(false) : up_input->setFlat(true);
+			if(!up_input->isFlat()) { down_input->setFlat(true); }
+			break;
+
+		case 0x7:
+			down_input->isFlat() ? down_input->setFlat(false) : down_input->setFlat(true);
+			if(!down_input->isFlat()) { up_input->setFlat(true); }
+			break;
+	}
+
+	if(main_menu::gbe_plus == NULL) { return; }
+
+	//Send input state to core
+	if(a_input->isFlat()) { main_menu::gbe_plus->feed_key_input(config::dmg_key_a, false); }
+	else { main_menu::gbe_plus->feed_key_input(config::dmg_key_a, true); }
+
+	if(b_input->isFlat()) { main_menu::gbe_plus->feed_key_input(config::dmg_key_b, false); }
+	else { main_menu::gbe_plus->feed_key_input(config::dmg_key_b, true); }
+
+	if(select_input->isFlat()) { main_menu::gbe_plus->feed_key_input(config::dmg_key_select, false); }
+	else { main_menu::gbe_plus->feed_key_input(config::dmg_key_select, true); }
+
+	if(start_input->isFlat()) { main_menu::gbe_plus->feed_key_input(config::dmg_key_start, false); }
+	else { main_menu::gbe_plus->feed_key_input(config::dmg_key_start, true); }
+
+	if(left_input->isFlat()) { main_menu::gbe_plus->feed_key_input(config::dmg_key_left, false); }
+
+	else
+	{ 
+		main_menu::gbe_plus->feed_key_input(config::dmg_key_left, true);
+		right_input->setFlat(true);
+	}
+
+	if(right_input->isFlat()) { main_menu::gbe_plus->feed_key_input(config::dmg_key_right, false); }
+
+	else
+	{
+		main_menu::gbe_plus->feed_key_input(config::dmg_key_right, true);
+		left_input->setFlat(true);
+	}
+
+	if(up_input->isFlat()) { main_menu::gbe_plus->feed_key_input(config::dmg_key_up, false); }
+
+	else
+	{ 
+		main_menu::gbe_plus->feed_key_input(config::dmg_key_up, true);
+		down_input->setFlat(true);
+	}
+
+	if(down_input->isFlat()) { main_menu::gbe_plus->feed_key_input(config::dmg_key_down, false); }
+
+	else
+	{
+		main_menu::gbe_plus->feed_key_input(config::dmg_key_down, true);
+		up_input->setFlat(true);
+	}
+}
+
+/****** Resets input control when opening or closing the CGFX menu ******/
+void gbe_cgfx::reset_inputs()
+{
+	a_input->setFlat(true);
+	b_input->setFlat(true);
+	select_input->setFlat(true);
+	start_input->setFlat(true);
+	left_input->setFlat(true);
+	right_input->setFlat(true);
+	up_input->setFlat(true);
+	down_input->setFlat(true);
+
+	if(main_menu::gbe_plus == NULL) { return; }
+
+	main_menu::gbe_plus->feed_key_input(config::dmg_key_a, false);
+	main_menu::gbe_plus->feed_key_input(config::dmg_key_b, false);
+	main_menu::gbe_plus->feed_key_input(config::dmg_key_select, false);
+	main_menu::gbe_plus->feed_key_input(config::dmg_key_start, false);
+	main_menu::gbe_plus->feed_key_input(config::dmg_key_up, false);
+	main_menu::gbe_plus->feed_key_input(config::dmg_key_down, false);
+	main_menu::gbe_plus->feed_key_input(config::dmg_key_left, false);
+	main_menu::gbe_plus->feed_key_input(config::dmg_key_right, false);
+}
+	

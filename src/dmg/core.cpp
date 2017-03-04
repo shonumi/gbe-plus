@@ -1931,3 +1931,20 @@ void DMG_core::stop_netplay()
 		std::cout<<"SIO::Netplay connection terminated. Restart to reconnect.\n";
 	}
 }
+
+/****** Returns miscellaneous data from the core ******/
+u32 DMG_core::get_core_data(u32 core_index)
+{
+	u32 result = 0;
+
+	switch(core_index)
+	{
+		//Joypad state
+		case 0x0:
+			result = ~((core_pad.p15 << 4) | core_pad.p14);
+			result &= 0xFF;
+			break;
+	}
+
+	return result;
+}

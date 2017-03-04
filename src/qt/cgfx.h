@@ -40,6 +40,8 @@ class gbe_cgfx : public QDialog
 	void draw_gbc_win();
 	void draw_gbc_obj();
 
+	void reset_inputs();
+
 	QTabWidget* tabs;
 	QDialogButtonBox* tabs_button;
 
@@ -132,6 +134,15 @@ class gbe_cgfx : public QDialog
 	QSignalMapper* obj_signal;
 	QSignalMapper* bg_signal;
 
+	QPushButton* a_input;
+	QPushButton* b_input;
+	QPushButton* select_input;
+	QPushButton* start_input;
+	QPushButton* left_input;
+	QPushButton* right_input;
+	QPushButton* up_input;
+	QPushButton* down_input;
+
 	std::vector<u8> estimated_palette;
 	std::vector<u8> estimated_vram_bank;
 
@@ -176,6 +187,7 @@ class gbe_cgfx : public QDialog
 	void update_selection();
 	void ignore_manifest_warnings();
 	void advance_next_frame();
+	void update_input_control(int index);
 };
 
 #endif //CGFX_GBE_QT 

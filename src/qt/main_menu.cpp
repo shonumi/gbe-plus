@@ -1003,6 +1003,7 @@ void main_menu::show_cgfx()
 		}
 	}
 
+	cgfx->reset_inputs();
 	cgfx->show();
 	cgfx->parse_manifest_items();
 	cgfx->pause = true;
