@@ -448,7 +448,8 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 
 	//Manifest write entry failure pop-up
 	manifest_write_fail = new QMessageBox;
-	manifest_write_fail->addButton("OK", QMessageBox::AcceptRole);
+	QPushButton* manifest_write_fail_ok = manifest_write_fail->addButton("OK", QMessageBox::AcceptRole);
+	QPushButton* manifest_write_fail_ignore = manifest_write_fail->addButton("Do not show this message again", QMessageBox::AcceptRole);
 	manifest_write_fail->setText("Could not access the manifest file! Manifest entry was not written, please check file path and permissions");
 	manifest_write_fail->setIcon(QMessageBox::Critical);
 	manifest_write_fail->hide();
@@ -458,6 +459,7 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	connect(dest_browse, SIGNAL(clicked()), this, SLOT(browse_advanced_dir()));
 	connect(name_browse, SIGNAL(clicked()), this, SLOT(browse_advanced_file()));
 	connect(manifest_warning_ignore, SIGNAL(clicked()), this, SLOT(ignore_manifest_warnings()));
+	connect(manifest_write_fail_ignore, SIGNAL(clicked()), this, SLOT(ignore_manifest_criticals()));
 
 	estimated_palette.resize(384, 0);
 	estimated_vram_bank.resize(384, 0);
@@ -476,6 +478,7 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	hash_text->setScaledContents(true);
 
 	enable_manifest_warning = true;
+	enable_manifest_critical = true;
 
 	mouse_start_x = mouse_start_y = 0;
 	mouse_drag = false;
@@ -2966,6 +2969,23 @@ void gbe_cgfx::paintEvent(QPaintEvent* event)
 /****** Dumps tiles and writes a manifest entry  ******/
 void gbe_cgfx::write_manifest_entry()
 {
+	//Open manifest file, then write to it
+	std::ofstream file(cgfx::manifest_file.c_str(), std::ios::out | std::ios::app);
+
+	//Show warning if manifest file cannot be accessed
+	if((!file.is_open()) && (enable_manifest_critical))
+	{
+		advanced_box->hide();
+		manifest_write_fail->show();
+		manifest_write_fail->raise();
+	}
+
+	while(manifest_write_fail->isVisible())
+	{
+		SDL_Delay(16);
+		QApplication::processEvents();
+	}
+
 	//Process File Name
 	QString path = dest_name->text();
 
@@ -3006,20 +3026,12 @@ void gbe_cgfx::write_manifest_entry()
 
 	entry = "[" + cgfx::last_hash + ":'" + gfx_name + "':" + gfx_type + ":" + gfx_addr + ":" + gfx_bright + "]";
 
-	//Open manifest file, then write to it
-	std::ofstream file(cgfx::manifest_file.c_str(), std::ios::out | std::ios::app);
-
-	//Show warning if manifest file cannot be accessed
-	if(!file.is_open())
+	//Write manifest entry only if file can be accessed
+	if(file.is_open())
 	{
-		advanced_box->hide();
-		manifest_write_fail->show();
-		manifest_write_fail->raise();
-		return;
+		file << "\n" << entry;
+		file.close();
 	}
-
-	file << "\n" << entry;
-	file.close();
 	
 	advanced_box->hide();
 }
@@ -3702,6 +3714,9 @@ bool gbe_cgfx::parse_manifest_items()
 
 /****** Ignores manifest warnings until program quits ******/
 void gbe_cgfx::ignore_manifest_warnings() { enable_manifest_warning = false; }
+
+/****** Ignores manifest criticals until program quits ******/
+void gbe_cgfx::ignore_manifest_criticals() { enable_manifest_critical = false; }
 
 /****** Advances to the next frame from within the CGFX screen ******/
 void gbe_cgfx::advance_next_frame()

@@ -108,6 +108,7 @@ class gbe_cgfx : public QDialog
 
 	bool pause;
 	bool enable_manifest_warning;
+	bool enable_manifest_critical;
 
 	QImage grab_obj_data(int obj_index);
 	QImage grab_dmg_obj_data(int obj_index);
@@ -186,6 +187,7 @@ class gbe_cgfx : public QDialog
 	void reject_folder();
 	void update_selection();
 	void ignore_manifest_warnings();
+	void ignore_manifest_criticals();
 	void advance_next_frame();
 	void update_input_control(int index);
 };
