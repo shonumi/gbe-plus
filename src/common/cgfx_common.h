@@ -42,6 +42,7 @@ namespace cgfx
 	extern u8 last_type;
 	extern u8 last_palette;
 	extern bool last_added;
+	extern bool last_saved;
 }
 
 #endif // GBE_CGFX 

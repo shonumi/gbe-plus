@@ -37,4 +37,5 @@ namespace cgfx
 	u8 last_type = 0;
 	u8 last_palette = 0;
 	bool last_added = false;
+	bool last_saved = false;
 }

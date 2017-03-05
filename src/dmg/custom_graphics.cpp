@@ -510,8 +510,17 @@ void DMG_LCD::dump_dmg_obj(u8 obj_index)
 		}
 
 		//Save to BMP
-		std::cout<<"LCD::Saving Sprite - " << dump_file << "\n";
-		SDL_SaveBMP(obj_dump, dump_file.c_str());
+		if(SDL_SaveBMP(obj_dump, dump_file.c_str()) == 0)
+		{
+			cgfx::last_saved = true;
+			std::cout<<"LCD::Saving Sprite - " << dump_file << "\n";
+		}
+
+		else
+		{
+			cgfx::last_saved = false;
+			std::cout<<"LCD::Error - Could not save sprite to " << dump_file << ". Please check file path and permissions \n";
+		}
 	}
 
 	//Save CGFX data
@@ -635,8 +644,17 @@ void DMG_LCD::dump_gbc_obj(u8 obj_index)
 		}
 
 		//Save to BMP
-		std::cout<<"LCD::Saving Sprite - " << dump_file << "\n";
-		SDL_SaveBMP(obj_dump, dump_file.c_str());
+		if(SDL_SaveBMP(obj_dump, dump_file.c_str()) == 0)
+		{
+			cgfx::last_saved = true;
+			std::cout<<"LCD::Saving Sprite - " << dump_file << "\n";
+		}
+
+		else
+		{
+			cgfx::last_saved = false;
+			std::cout<<"LCD::Error - Could not save sprite to " << dump_file << ". Please check file path and permissions \n";
+		}
 	}
 
 	//Reset VRAM bank
@@ -764,8 +782,17 @@ void DMG_LCD::dump_dmg_bg(u16 bg_index)
 		}
 
 		//Save to BMP
-		std::cout<<"LCD::Saving Background Tile - " << dump_file << "\n";
-		SDL_SaveBMP(bg_dump, dump_file.c_str());
+		if(SDL_SaveBMP(bg_dump, dump_file.c_str()) == 0)
+		{
+			cgfx::last_saved = true;
+			std::cout<<"LCD::Background Tile - " << dump_file << "\n";
+		}
+
+		else
+		{
+			cgfx::last_saved = false;
+			std::cout<<"LCD::Error - Could not save background tile to " << dump_file << ". Please check file path and permissions \n";
+		}
 	}
 
 	//Save CGFX data
@@ -885,8 +912,17 @@ void DMG_LCD::dump_gbc_bg(u16 bg_index)
 		}
 
 		//Save to BMP
-		std::cout<<"LCD::Saving Background Tile - " << dump_file << "\n";
-		SDL_SaveBMP(bg_dump, dump_file.c_str());
+		if(SDL_SaveBMP(bg_dump, dump_file.c_str()) == 0)
+		{
+			cgfx::last_saved = true;
+			std::cout<<"LCD::Background Tile - " << dump_file << "\n";
+		}
+
+		else
+		{
+			cgfx::last_saved = false;
+			std::cout<<"LCD::Error - Could not save background tile to " << dump_file << ". Please check file path and permissions \n";
+		}
 	}
 
 	//Reset VRAM bank
@@ -952,8 +988,17 @@ void DMG_LCD::dump_gbc_bg(std::string final_hash, u16 bg_tile_addr, u8 palette)
 	}
 
 	//Save to BMP
-	std::cout<<"LCD::Saving Background Tile - " << dump_file << "\n";
-	SDL_SaveBMP(bg_dump, dump_file.c_str());
+	if(SDL_SaveBMP(bg_dump, dump_file.c_str()) == 0)
+	{
+		cgfx::last_saved = true;
+		std::cout<<"LCD::Background Tile - " << dump_file << "\n";
+	}
+
+	else
+	{
+		cgfx::last_saved = false;
+		std::cout<<"LCD::Error - Could not save background tile to " << dump_file << ". Please check file path and permissions \n";
+	}
 
 	//Save CGFX data
 	cgfx::last_hash = final_hash;
