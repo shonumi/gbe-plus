@@ -1655,6 +1655,10 @@ void NTR_LCD::step()
 			lcd_stat.display_stat_a |= 0x2;
 			lcd_stat.display_stat_b |= 0x2;
 
+			//Trigger HBlank IRQ
+			if(lcd_stat.hblank_irq_enable_a) { mem->nds9_if |= 0x2; }
+			if(lcd_stat.hblank_irq_enable_b) { mem->nds7_if |= 0x2; }
+
 			//Update 2D engine palettes
 			if((lcd_stat.bg_pal_update_a || lcd_stat.bg_pal_update_b)) { update_palettes(); }
 
@@ -1783,7 +1787,7 @@ void NTR_LCD::step()
 			lcd_stat.lcd_clock -= 558060;
 		}
 
-		//Increment Scanline after HBlank
+		//Increment scanline after HBlank starts
 		else if((lcd_stat.lcd_clock % 2130) == 1536)
 		{
 			lcd_stat.current_scanline++;
@@ -1798,6 +1802,14 @@ void NTR_LCD::step()
 				lcd_stat.display_stat_a &= ~0x2;
 				lcd_stat.display_stat_b &= ~0x2;
 			}
+
+			//Set HBlank flag in DISPSTAT
+			lcd_stat.display_stat_a |= 0x2;
+			lcd_stat.display_stat_b |= 0x2;
+
+			//Trigger HBlank IRQ
+			if(lcd_stat.hblank_irq_enable_a) { mem->nds9_if |= 0x2; }
+			if(lcd_stat.hblank_irq_enable_b) { mem->nds7_if |= 0x2; }
 		}
 	}
 }
