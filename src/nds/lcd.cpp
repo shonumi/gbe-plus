@@ -1629,9 +1629,9 @@ void NTR_LCD::step()
 		{
 			lcd_stat.lcd_mode = 0;
 
-			//Reset VBlank, HBlank flag in DISPSTAT
-			lcd_stat.display_stat_a &= ~0x3;
-			lcd_stat.display_stat_b &= ~0x3;
+			//Reset HBlank flag in DISPSTAT
+			lcd_stat.display_stat_a &= ~0x2;
+			lcd_stat.display_stat_b &= ~0x2;
 			
 			lcd_stat.current_scanline++;
 			if(lcd_stat.current_scanline == 263) { lcd_stat.current_scanline = 0; }
@@ -1791,6 +1791,13 @@ void NTR_LCD::step()
 
 			//Update VCOUNT
 			mem->write_u16_fast(NDS_VCOUNT, lcd_stat.current_scanline);
+
+			//Reset VBlank flag in DISPSTAT on line 261
+			if(lcd_stat.current_scanline == 261)
+			{
+				lcd_stat.display_stat_a &= ~0x2;
+				lcd_stat.display_stat_b &= ~0x2;
+			}
 		}
 	}
 }
