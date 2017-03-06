@@ -105,6 +105,7 @@ class gbe_cgfx : public QDialog
 	//Pop-ups
 	QMessageBox* manifest_warning;
 	QMessageBox* manifest_write_fail;
+	QMessageBox* save_fail;
 
 	bool pause;
 	bool enable_manifest_warning;

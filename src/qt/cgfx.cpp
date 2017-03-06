@@ -453,6 +453,13 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	manifest_write_fail->setText("Could not access the manifest file! Manifest entry was not written, please check file path and permissions");
 	manifest_write_fail->setIcon(QMessageBox::Critical);
 	manifest_write_fail->hide();
+
+	//Graphics dump failure pop-up
+	save_fail = new QMessageBox;
+	QPushButton* save_fail_ok = save_fail->addButton("OK", QMessageBox::AcceptRole);
+	save_fail->setText("Error - Could not write BMP to destination file. Check file path and permissions");
+	save_fail->setIcon(QMessageBox::Warning);
+	save_fail->hide();
 	
 	connect(dump_button, SIGNAL(clicked()), this, SLOT(write_manifest_entry()));
 	connect(cancel_button, SIGNAL(clicked()), this, SLOT(close_advanced()));
@@ -1091,7 +1098,26 @@ void gbe_cgfx::dump_obj(int obj_index)
 		manifest_warning->raise();
 	}
 
+	while(manifest_warning->isVisible())
+	{
+		SDL_Delay(16);
+		QApplication::processEvents();
+	}
+
 	main_menu::gbe_plus->dump_obj(obj_index);
+
+	//Show save failure warning
+	if((!cgfx::last_saved) && (cgfx::last_added))
+	{
+		save_fail->show();
+		save_fail->raise();
+	}
+
+	while(save_fail->isVisible())
+	{
+		SDL_Delay(16);
+		QApplication::processEvents();
+	}
 
 	//Update manifest tab if necessary
 	parse_manifest_items();
@@ -1107,7 +1133,26 @@ void gbe_cgfx::dump_bg(int bg_index)
 		manifest_warning->raise();
 	}
 
+	while(manifest_warning->isVisible())
+	{
+		SDL_Delay(16);
+		QApplication::processEvents();
+	}
+
 	main_menu::gbe_plus->dump_bg(bg_index);
+
+	//Show save failure warning
+	if((!cgfx::last_saved) && (cgfx::last_added))
+	{
+		save_fail->show();
+		save_fail->raise();
+	}
+
+	while(save_fail->isVisible())
+	{
+		SDL_Delay(16);
+		QApplication::processEvents();
+	}
 
 	//Update manifest tab if necessary
 	parse_manifest_items();
