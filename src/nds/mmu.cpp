@@ -170,6 +170,8 @@ u8 NTR_MMU::read_u8(u32 address)
 	//Check for reading DISPSTAT
 	else if((address & ~0x1) == NDS_DISPSTAT)
 	{
+		std::cout<<"READ READ\n";
+
 		u8 addr_shift = (address & 0x1) << 3;
 
 		//Return NDS9 DISPSTAT
@@ -500,7 +502,8 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 				lcd_stat->vcount_irq_enable_a = (value & 0x20) ? true : false;
 
 				//MSB of LYC is Bit 7 of DISPSTAT
-				lcd_stat->lyc_a = (lcd_stat->display_stat_a >> 7) & 0x1FF;
+				lcd_stat->lyc_a &= ~0x100;
+				if(value & 0x80) { lcd_stat->lyc_a |= 0x100; }
 			}
 
 			else
@@ -513,7 +516,8 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 				lcd_stat->vcount_irq_enable_b = (value & 0x20) ? true : false;
 
 				//MSB of LYC is Bit 7 of DISPSTAT
-				lcd_stat->lyc_b = (lcd_stat->display_stat_b >> 7) & 0x1FF;
+				lcd_stat->lyc_b &= ~0x100;
+				if(value & 0x80) { lcd_stat->lyc_b |= 0x100; }
 			}
  
 			break;
@@ -525,7 +529,8 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 				lcd_stat->display_stat_a &= 0xFF;
 				lcd_stat->display_stat_a |= (value << 8);
 
-				lcd_stat->lyc_a = (lcd_stat->display_stat_a >> 7) & 0x1FF;
+				lcd_stat->lyc_a &= ~0xFF;
+				lcd_stat->lyc_a |= value;
 			}
 
 			else
@@ -533,7 +538,8 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 				lcd_stat->display_stat_b &= 0xFF;
 				lcd_stat->display_stat_b |= (value << 8);
 
-				lcd_stat->lyc_b = (lcd_stat->display_stat_b >> 7) & 0x1FF;
+				lcd_stat->lyc_b &= ~0xFF;
+				lcd_stat->lyc_b |= value;
 			}
 
 			break;
