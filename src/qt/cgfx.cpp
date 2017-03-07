@@ -3188,6 +3188,12 @@ void gbe_cgfx::dump_selection()
 		manifest_warning->raise();
 	}
 
+	while(manifest_warning->isVisible())
+	{
+		SDL_Delay(16);
+		QApplication::processEvents();
+	}
+
 	//Grab metatile name
 	cgfx::meta_dump_name = meta_name->text().toStdString();
 	if(cgfx::meta_dump_name.empty()) { cgfx::meta_dump_name = "META"; }
@@ -3227,7 +3233,18 @@ void gbe_cgfx::dump_selection()
 	QString file_path(QString::fromStdString(config::data_path + cgfx::dump_bg_path + cgfx::meta_dump_name + ".bmp"));
 
 	raw_screen = raw_screen.copy(rect);
-	raw_screen.save(file_path);
+
+	if(!raw_screen.save(file_path))
+	{
+		save_fail->show();
+		save_fail->raise();
+	}
+
+	while(save_fail->isVisible())
+	{
+		SDL_Delay(16);
+		QApplication::processEvents();
+	}
 
 	//Restore original highlighting
 	min_x_rect = temp_x1;
