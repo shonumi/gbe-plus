@@ -394,7 +394,6 @@ void DMG_LCD::dump_dmg_obj(u8 obj_index)
 {
 	SDL_Surface* obj_dump = NULL;
 	u8 obj_height = 0;
-	bool add_hash = true;
 
 	cgfx_stat.current_obj_hash[obj_index] = "";
 	std::string final_hash = "";
@@ -440,87 +439,84 @@ void DMG_LCD::dump_dmg_obj(u8 obj_index)
 	}
 
 	//For new OBJs, dump BMP file
-	if(add_hash) 
-	{ 
-		cgfx_stat.obj_hash_list.push_back(final_hash);
+	cgfx_stat.obj_hash_list.push_back(final_hash);
 
-		obj_dump = SDL_CreateRGBSurface(SDL_SWSURFACE, 8, obj_height, 32, 0, 0, 0, 0);
+	obj_dump = SDL_CreateRGBSurface(SDL_SWSURFACE, 8, obj_height, 32, 0, 0, 0, 0);
 		
-		std::string dump_file =  "";
-		if(cgfx::dump_name.empty()) { dump_file = config::data_path + cgfx::dump_obj_path + final_hash + ".bmp"; }
-		else { dump_file = config::data_path + cgfx::dump_obj_path + cgfx::dump_name; }
+	std::string dump_file =  "";
+	if(cgfx::dump_name.empty()) { dump_file = config::data_path + cgfx::dump_obj_path + final_hash + ".bmp"; }
+	else { dump_file = config::data_path + cgfx::dump_obj_path + cgfx::dump_name; }
 
-		if(SDL_MUSTLOCK(obj_dump)) { SDL_LockSurface(obj_dump); }
+	if(SDL_MUSTLOCK(obj_dump)) { SDL_LockSurface(obj_dump); }
 
-		u32* dump_pixel_data = (u32*)obj_dump->pixels;
-		u8 pixel_counter = 0;
+	u32* dump_pixel_data = (u32*)obj_dump->pixels;
+	u8 pixel_counter = 0;
 
-		//Generate RGBA values of the sprite for the dump file
-		for(int x = 0; x < obj_height; x++)
+	//Generate RGBA values of the sprite for the dump file
+	for(int x = 0; x < obj_height; x++)
+	{
+		//Grab bytes from VRAM representing 8x1 pixel data
+		u16 raw_data = mem->read_u16(obj_tile_addr);
+
+		//Grab individual pixels
+		for(int y = 7; y >= 0; y--)
 		{
-			//Grab bytes from VRAM representing 8x1 pixel data
-			u16 raw_data = mem->read_u16(obj_tile_addr);
+			u8 raw_pixel = ((raw_data >> 8) & (1 << y)) ? 2 : 0;
+			raw_pixel |= (raw_data & (1 << y)) ? 1 : 0;
 
-			//Grab individual pixels
-			for(int y = 7; y >= 0; y--)
+			switch(lcd_stat.obp[raw_pixel][obj[obj_index].palette_number])
 			{
-				u8 raw_pixel = ((raw_data >> 8) & (1 << y)) ? 2 : 0;
-				raw_pixel |= (raw_data & (1 << y)) ? 1 : 0;
+				case 0: 
+					dump_pixel_data[pixel_counter++] = 0xFFFFFFFF;
+					break;
 
-				switch(lcd_stat.obp[raw_pixel][obj[obj_index].palette_number])
-				{
-					case 0: 
-						dump_pixel_data[pixel_counter++] = 0xFFFFFFFF;
-						break;
+				case 1: 
+					dump_pixel_data[pixel_counter++] = 0xFFC0C0C0;
+					break;
 
-					case 1: 
-						dump_pixel_data[pixel_counter++] = 0xFFC0C0C0;
-						break;
+				case 2: 
+					dump_pixel_data[pixel_counter++] = 0xFF606060;
+					break;
 
-					case 2: 
-						dump_pixel_data[pixel_counter++] = 0xFF606060;
-						break;
-
-					case 3: 
-						dump_pixel_data[pixel_counter++] = 0xFF000000;
-						break;
-				}
-			}
-
-			obj_tile_addr += 2;
-		}
-
-		if(SDL_MUSTLOCK(obj_dump)) { SDL_UnlockSurface(obj_dump); }
-
-		//Ignore blank or empty dumps
-		if(cgfx::ignore_blank_dumps)
-		{
-			bool blank = true;
-
-			for(int x = 1; x < pixel_counter; x++)
-			{
-				if(dump_pixel_data[0] != dump_pixel_data[x]) { blank = false; break; }
-			}
-
-			if(blank)
-			{
-				cgfx::last_added = false;
-				return;
+				case 3: 
+					dump_pixel_data[pixel_counter++] = 0xFF000000;
+					break;
 			}
 		}
 
-		//Save to BMP
-		if(SDL_SaveBMP(obj_dump, dump_file.c_str()) == 0)
+		obj_tile_addr += 2;
+	}
+
+	if(SDL_MUSTLOCK(obj_dump)) { SDL_UnlockSurface(obj_dump); }
+
+	//Ignore blank or empty dumps
+	if(cgfx::ignore_blank_dumps)
+	{
+		bool blank = true;
+
+		for(int x = 1; x < pixel_counter; x++)
 		{
-			cgfx::last_saved = true;
-			std::cout<<"LCD::Saving Sprite - " << dump_file << "\n";
+			if(dump_pixel_data[0] != dump_pixel_data[x]) { blank = false; break; }
 		}
 
-		else
+		if(blank)
 		{
-			cgfx::last_saved = false;
-			std::cout<<"LCD::Error - Could not save sprite to " << dump_file << ". Please check file path and permissions \n";
+			cgfx::last_added = false;
+			return;
 		}
+	}
+
+	//Save to BMP
+	if(SDL_SaveBMP(obj_dump, dump_file.c_str()) == 0)
+	{
+		cgfx::last_saved = true;
+		std::cout<<"LCD::Saving Sprite - " << dump_file << "\n";
+	}
+
+	else
+	{
+		cgfx::last_saved = false;
+		std::cout<<"LCD::Error - Could not save sprite to " << dump_file << ". Please check file path and permissions \n";
 	}
 
 	//Save CGFX data
@@ -536,7 +532,6 @@ void DMG_LCD::dump_gbc_obj(u8 obj_index)
 {
 	SDL_Surface* obj_dump = NULL;
 	u8 obj_height = 0;
-	bool add_hash = true;
 
 	cgfx_stat.current_obj_hash[obj_index] = "";
 	std::string final_hash = "";
@@ -591,70 +586,67 @@ void DMG_LCD::dump_gbc_obj(u8 obj_index)
 	}
 
 	//For new OBJs, dump BMP file
-	if(add_hash) 
-	{ 
-		cgfx_stat.obj_hash_list.push_back(final_hash);
+	cgfx_stat.obj_hash_list.push_back(final_hash);
 
-		obj_dump = SDL_CreateRGBSurface(SDL_SWSURFACE, 8, obj_height, 32, 0, 0, 0, 0);
+	obj_dump = SDL_CreateRGBSurface(SDL_SWSURFACE, 8, obj_height, 32, 0, 0, 0, 0);
 
-		std::string dump_file =  "";
-		if(cgfx::dump_name.empty()) { dump_file = config::data_path + cgfx::dump_obj_path + final_hash + ".bmp"; }
-		else { dump_file = config::data_path + cgfx::dump_obj_path + cgfx::dump_name; }
+	std::string dump_file =  "";
+	if(cgfx::dump_name.empty()) { dump_file = config::data_path + cgfx::dump_obj_path + final_hash + ".bmp"; }
+	else { dump_file = config::data_path + cgfx::dump_obj_path + cgfx::dump_name; }
 
-		if(SDL_MUSTLOCK(obj_dump)) { SDL_LockSurface(obj_dump); }
+	if(SDL_MUSTLOCK(obj_dump)) { SDL_LockSurface(obj_dump); }
 
-		u32* dump_pixel_data = (u32*)obj_dump->pixels;
-		u8 pixel_counter = 0;
+	u32* dump_pixel_data = (u32*)obj_dump->pixels;
+	u8 pixel_counter = 0;
 
-		//Generate RGBA values of the sprite for the dump file
-		for(int x = 0; x < obj_height; x++)
+	//Generate RGBA values of the sprite for the dump file
+	for(int x = 0; x < obj_height; x++)
+	{
+		//Grab bytes from VRAM representing 8x1 pixel data
+		u16 raw_data = mem->read_u16(obj_tile_addr);
+
+		//Grab individual pixels
+		for(int y = 7; y >= 0; y--)
 		{
-			//Grab bytes from VRAM representing 8x1 pixel data
-			u16 raw_data = mem->read_u16(obj_tile_addr);
+			u8 raw_pixel = ((raw_data >> 8) & (1 << y)) ? 2 : 0;
+			raw_pixel |= (raw_data & (1 << y)) ? 1 : 0;
 
-			//Grab individual pixels
-			for(int y = 7; y >= 0; y--)
-			{
-				u8 raw_pixel = ((raw_data >> 8) & (1 << y)) ? 2 : 0;
-				raw_pixel |= (raw_data & (1 << y)) ? 1 : 0;
-
-				dump_pixel_data[pixel_counter++] = lcd_stat.obj_colors_final[raw_pixel][obj[obj_index].color_palette_number];
-			}
-
-			obj_tile_addr += 2;
+			dump_pixel_data[pixel_counter++] = lcd_stat.obj_colors_final[raw_pixel][obj[obj_index].color_palette_number];
 		}
 
-		if(SDL_MUSTLOCK(obj_dump)) { SDL_UnlockSurface(obj_dump); }
+		obj_tile_addr += 2;
+	}
 
-		//Ignore blank or empty dumps
-		if(cgfx::ignore_blank_dumps)
+	if(SDL_MUSTLOCK(obj_dump)) { SDL_UnlockSurface(obj_dump); }
+
+	//Ignore blank or empty dumps
+	if(cgfx::ignore_blank_dumps)
+	{
+		bool blank = true;
+
+		for(int x = 1; x < pixel_counter; x++)
 		{
-			bool blank = true;
-
-			for(int x = 1; x < pixel_counter; x++)
-			{
-				if(dump_pixel_data[0] != dump_pixel_data[x]) { blank = false; break; }
-			}
-
-			if(blank)
-			{
-				cgfx::last_added = false;
-				return;
-			}
+			if(dump_pixel_data[0] != dump_pixel_data[x]) { blank = false; break; }
 		}
 
-		//Save to BMP
-		if(SDL_SaveBMP(obj_dump, dump_file.c_str()) == 0)
+		if(blank)
 		{
-			cgfx::last_saved = true;
-			std::cout<<"LCD::Saving Sprite - " << dump_file << "\n";
+			cgfx::last_added = false;
+			return;
 		}
+	}
 
-		else
-		{
-			cgfx::last_saved = false;
-			std::cout<<"LCD::Error - Could not save sprite to " << dump_file << ". Please check file path and permissions \n";
-		}
+	//Save to BMP
+	if(SDL_SaveBMP(obj_dump, dump_file.c_str()) == 0)
+	{
+		cgfx::last_saved = true;
+		std::cout<<"LCD::Saving Sprite - " << dump_file << "\n";
+	}
+
+	else
+	{
+		cgfx::last_saved = false;
+		std::cout<<"LCD::Error - Could not save sprite to " << dump_file << ". Please check file path and permissions \n";
 	}
 
 	//Reset VRAM bank
@@ -672,7 +664,6 @@ void DMG_LCD::dump_gbc_obj(u8 obj_index)
 void DMG_LCD::dump_dmg_bg(u16 bg_index) 
 {
 	SDL_Surface* bg_dump = NULL;
-	bool add_hash = true;
 
 	cgfx_stat.current_bg_hash[bg_index] = "";
 	std::string final_hash = "";
@@ -712,87 +703,84 @@ void DMG_LCD::dump_dmg_bg(u16 bg_index)
 	}
 
 	//For new OBJs, dump BMP file
-	if(add_hash) 
-	{ 
-		cgfx_stat.bg_hash_list.push_back(final_hash);
+	cgfx_stat.bg_hash_list.push_back(final_hash);
 
-		bg_dump = SDL_CreateRGBSurface(SDL_SWSURFACE, 8, 8, 32, 0, 0, 0, 0);
+	bg_dump = SDL_CreateRGBSurface(SDL_SWSURFACE, 8, 8, 32, 0, 0, 0, 0);
 
-		std::string dump_file =  "";
-		if(cgfx::dump_name.empty()) { dump_file = config::data_path + cgfx::dump_bg_path + final_hash + ".bmp"; }
-		else { dump_file = config::data_path + cgfx::dump_bg_path + cgfx::dump_name; }
+	std::string dump_file =  "";
+	if(cgfx::dump_name.empty()) { dump_file = config::data_path + cgfx::dump_bg_path + final_hash + ".bmp"; }
+	else { dump_file = config::data_path + cgfx::dump_bg_path + cgfx::dump_name; }
 
-		if(SDL_MUSTLOCK(bg_dump)) { SDL_LockSurface(bg_dump); }
+	if(SDL_MUSTLOCK(bg_dump)) { SDL_LockSurface(bg_dump); }
 
-		u32* dump_pixel_data = (u32*)bg_dump->pixels;
-		u8 pixel_counter = 0;
+	u32* dump_pixel_data = (u32*)bg_dump->pixels;
+	u8 pixel_counter = 0;
 
-		//Generate RGBA values of the sprite for the dump file
-		for(int x = 0; x < 8; x++)
+	//Generate RGBA values of the sprite for the dump file
+	for(int x = 0; x < 8; x++)
+	{
+		//Grab bytes from VRAM representing 8x1 pixel data
+		u16 raw_data = mem->read_u16(bg_tile_addr);
+
+		//Grab individual pixels
+		for(int y = 7; y >= 0; y--)
 		{
-			//Grab bytes from VRAM representing 8x1 pixel data
-			u16 raw_data = mem->read_u16(bg_tile_addr);
+			u8 raw_pixel = ((raw_data >> 8) & (1 << y)) ? 2 : 0;
+			raw_pixel |= (raw_data & (1 << y)) ? 1 : 0;
 
-			//Grab individual pixels
-			for(int y = 7; y >= 0; y--)
+			switch(lcd_stat.bgp[raw_pixel])
 			{
-				u8 raw_pixel = ((raw_data >> 8) & (1 << y)) ? 2 : 0;
-				raw_pixel |= (raw_data & (1 << y)) ? 1 : 0;
+				case 0: 
+					dump_pixel_data[pixel_counter++] = 0xFFFFFFFF;
+					break;
 
-				switch(lcd_stat.bgp[raw_pixel])
-				{
-					case 0: 
-						dump_pixel_data[pixel_counter++] = 0xFFFFFFFF;
-						break;
+				case 1: 
+					dump_pixel_data[pixel_counter++] = 0xFFC0C0C0;
+					break;
 
-					case 1: 
-						dump_pixel_data[pixel_counter++] = 0xFFC0C0C0;
-						break;
+				case 2: 
+					dump_pixel_data[pixel_counter++] = 0xFF606060;
+					break;
 
-					case 2: 
-						dump_pixel_data[pixel_counter++] = 0xFF606060;
-						break;
-
-					case 3: 
-						dump_pixel_data[pixel_counter++] = 0xFF000000;
-						break;
-				}
-			}
-
-			bg_tile_addr += 2;
-		}
-
-		if(SDL_MUSTLOCK(bg_dump)) { SDL_UnlockSurface(bg_dump); }
-
-		//Ignore blank or empty dumps
-		if(cgfx::ignore_blank_dumps)
-		{
-			bool blank = true;
-
-			for(int x = 1; x < pixel_counter; x++)
-			{
-				if(dump_pixel_data[0] != dump_pixel_data[x]) { blank = false; break; }
-			}
-
-			if(blank)
-			{
-				cgfx::last_added = false;
-				return;
+				case 3: 
+					dump_pixel_data[pixel_counter++] = 0xFF000000;
+					break;
 			}
 		}
 
-		//Save to BMP
-		if(SDL_SaveBMP(bg_dump, dump_file.c_str()) == 0)
+		bg_tile_addr += 2;
+	}
+
+	if(SDL_MUSTLOCK(bg_dump)) { SDL_UnlockSurface(bg_dump); }
+
+	//Ignore blank or empty dumps
+	if(cgfx::ignore_blank_dumps)
+	{
+		bool blank = true;
+
+		for(int x = 1; x < pixel_counter; x++)
 		{
-			cgfx::last_saved = true;
-			std::cout<<"LCD::Background Tile - " << dump_file << "\n";
+			if(dump_pixel_data[0] != dump_pixel_data[x]) { blank = false; break; }
 		}
 
-		else
+		if(blank)
 		{
-			cgfx::last_saved = false;
-			std::cout<<"LCD::Error - Could not save background tile to " << dump_file << ". Please check file path and permissions \n";
+			cgfx::last_added = false;
+			return;
 		}
+	}
+
+	//Save to BMP
+	if(SDL_SaveBMP(bg_dump, dump_file.c_str()) == 0)
+	{
+		cgfx::last_saved = true;
+		std::cout<<"LCD::Background Tile - " << dump_file << "\n";
+	}
+
+	else
+	{
+		cgfx::last_saved = false;
+		std::cout<<"LCD::Error - Could not save background tile to " << dump_file << ". Please check file path and permissions \n";
 	}
 
 	//Save CGFX data
@@ -807,7 +795,6 @@ void DMG_LCD::dump_dmg_bg(u16 bg_index)
 void DMG_LCD::dump_gbc_bg(u16 bg_index) 
 {
 	SDL_Surface* bg_dump = NULL;
-	bool add_hash = true;
 
 	cgfx_stat.current_bg_hash[bg_index] = "";
 	std::string final_hash = "";
@@ -859,70 +846,67 @@ void DMG_LCD::dump_gbc_bg(u16 bg_index)
 	}
 
 	//For new BGs, dump BMP file
-	if(add_hash) 
-	{ 
-		cgfx_stat.bg_hash_list.push_back(final_hash);
+	cgfx_stat.bg_hash_list.push_back(final_hash);
 
-		bg_dump = SDL_CreateRGBSurface(SDL_SWSURFACE, 8, 8, 32, 0, 0, 0, 0);
+	bg_dump = SDL_CreateRGBSurface(SDL_SWSURFACE, 8, 8, 32, 0, 0, 0, 0);
 
-		std::string dump_file =  "";
-		if(cgfx::dump_name.empty()) { dump_file = config::data_path + cgfx::dump_bg_path + final_hash + ".bmp"; }
-		else { dump_file = config::data_path + cgfx::dump_bg_path + cgfx::dump_name; }
+	std::string dump_file =  "";
+	if(cgfx::dump_name.empty()) { dump_file = config::data_path + cgfx::dump_bg_path + final_hash + ".bmp"; }
+	else { dump_file = config::data_path + cgfx::dump_bg_path + cgfx::dump_name; }
 
-		if(SDL_MUSTLOCK(bg_dump)) { SDL_LockSurface(bg_dump); }
+	if(SDL_MUSTLOCK(bg_dump)) { SDL_LockSurface(bg_dump); }
 
-		u32* dump_pixel_data = (u32*)bg_dump->pixels;
-		u8 pixel_counter = 0;
+	u32* dump_pixel_data = (u32*)bg_dump->pixels;
+	u8 pixel_counter = 0;
 
-		//Generate RGBA values of the sprite for the dump file
-		for(int x = 0; x < 8; x++)
+	//Generate RGBA values of the sprite for the dump file
+	for(int x = 0; x < 8; x++)
+	{
+		//Grab bytes from VRAM representing 8x1 pixel data
+		u16 raw_data = mem->read_u16(bg_tile_addr);
+
+		//Grab individual pixels
+		for(int y = 7; y >= 0; y--)
 		{
-			//Grab bytes from VRAM representing 8x1 pixel data
-			u16 raw_data = mem->read_u16(bg_tile_addr);
+			u8 raw_pixel = ((raw_data >> 8) & (1 << y)) ? 2 : 0;
+			raw_pixel |= (raw_data & (1 << y)) ? 1 : 0;
 
-			//Grab individual pixels
-			for(int y = 7; y >= 0; y--)
-			{
-				u8 raw_pixel = ((raw_data >> 8) & (1 << y)) ? 2 : 0;
-				raw_pixel |= (raw_data & (1 << y)) ? 1 : 0;
-
-				dump_pixel_data[pixel_counter++] = lcd_stat.bg_colors_final[raw_pixel][cgfx::gbc_bg_color_pal];
-			}
-
-			bg_tile_addr += 2;
+			dump_pixel_data[pixel_counter++] = lcd_stat.bg_colors_final[raw_pixel][cgfx::gbc_bg_color_pal];
 		}
 
-		if(SDL_MUSTLOCK(bg_dump)) { SDL_UnlockSurface(bg_dump); }
+		bg_tile_addr += 2;
+	}
 
-		//Ignore blank or empty dumps
-		if(cgfx::ignore_blank_dumps)
+	if(SDL_MUSTLOCK(bg_dump)) { SDL_UnlockSurface(bg_dump); }
+
+	//Ignore blank or empty dumps
+	if(cgfx::ignore_blank_dumps)
+	{
+		bool blank = true;
+
+		for(int x = 1; x < pixel_counter; x++)
 		{
-			bool blank = true;
-
-			for(int x = 1; x < pixel_counter; x++)
-			{
-				if(dump_pixel_data[0] != dump_pixel_data[x]) { blank = false; break; }
-			}
-
-			if(blank)
-			{
-				cgfx::last_added = false;
-				return;
-			}
+			if(dump_pixel_data[0] != dump_pixel_data[x]) { blank = false; break; }
 		}
 
-		//Save to BMP
-		if(SDL_SaveBMP(bg_dump, dump_file.c_str()) == 0)
+		if(blank)
 		{
-			cgfx::last_saved = true;
-			std::cout<<"LCD::Background Tile - " << dump_file << "\n";
+			cgfx::last_added = false;
+			return;
 		}
+	}
 
-		else
-		{
-			cgfx::last_saved = false;
-			std::cout<<"LCD::Error - Could not save background tile to " << dump_file << ". Please check file path and permissions \n";
-		}
+	//Save to BMP
+	if(SDL_SaveBMP(bg_dump, dump_file.c_str()) == 0)
+	{
+		cgfx::last_saved = true;
+		std::cout<<"LCD::Background Tile - " << dump_file << "\n";
+	}
+
+	else
+	{
+		cgfx::last_saved = false;
+		std::cout<<"LCD::Error - Could not save background tile to " << dump_file << ". Please check file path and permissions \n";
 	}
 
 	//Reset VRAM bank
