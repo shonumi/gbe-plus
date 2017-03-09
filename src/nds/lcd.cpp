@@ -141,6 +141,17 @@ void NTR_LCD::reset()
 		lcd_stat.bg_affine_b[x].x_pos = lcd_stat.bg_affine_b[x].y_pos = 0.0;
 	}
 
+	//VRAM blocks
+	lcd_stat.vram_bank_addr[0] = 0x6800000;
+	lcd_stat.vram_bank_addr[1] = 0x6820000;
+	lcd_stat.vram_bank_addr[2] = 0x6840000;
+	lcd_stat.vram_bank_addr[3] = 0x6860000;
+	lcd_stat.vram_bank_addr[4] = 0x6880000;
+	lcd_stat.vram_bank_addr[5] = 0x6890000;
+	lcd_stat.vram_bank_addr[6] = 0x6894000;
+	lcd_stat.vram_bank_addr[7] = 0x6898000;
+	lcd_stat.vram_bank_addr[8] = 0x68A0000;
+
 	//Initialize system screen dimensions
 	config::sys_width = 256;
 	config::sys_height = 384;
