@@ -62,7 +62,16 @@ void NTR_MMU::reset()
 
 	//HLE MMIO stuff
 	memory_map[NDS_DISPCNT_A] = 0x80;
-	write_u16_fast(NDS_KEYINPUT, 0x3FF);
+
+	write_u16_fast(NDS_BG2PA_A, 0x100);
+	write_u16_fast(NDS_BG2PD_A, 0x100);
+	write_u16_fast(NDS_BG3PA_A, 0x100);
+	write_u16_fast(NDS_BG3PD_A, 0x100);
+
+	write_u16_fast(NDS_BG2PA_B, 0x100);
+	write_u16_fast(NDS_BG2PD_B, 0x100);
+	write_u16_fast(NDS_BG3PA_B, 0x100);
+	write_u16_fast(NDS_BG3PD_B, 0x100);
 
 	//HLE firmware stuff
 	setup_default_firmware();
