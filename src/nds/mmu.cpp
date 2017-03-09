@@ -2494,6 +2494,8 @@ bool NTR_MMU::read_file(std::string filename)
 
 	parse_header();
 
+	access_mode = 1;
+
 	//Copy ARM9 binary from offset to RAM address
 	for(u32 x = 0; x < header.arm9_size; x++)
 	{
@@ -2501,12 +2503,16 @@ bool NTR_MMU::read_file(std::string filename)
 		write_u8((header.arm9_ram_addr + x), cart_data[header.arm9_rom_offset + x]);
 	}
 
+	access_mode = 0;
+
 	//Copy ARM7 binary from offset to RAM address
 	for(u32 x = 0; x < header.arm7_size; x++)
 	{
 		if((header.arm7_rom_offset + x) >= file_size) { break; }
 		write_u8((header.arm7_ram_addr + x), cart_data[header.arm7_rom_offset + x]);
 	}
+
+	access_mode = 1;
 
 	return true;
 }
