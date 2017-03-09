@@ -106,10 +106,12 @@ class gbe_cgfx : public QDialog
 	QMessageBox* manifest_warning;
 	QMessageBox* manifest_write_fail;
 	QMessageBox* save_fail;
+	QMessageBox* redump_hash;
 
 	bool pause;
 	bool enable_manifest_warning;
 	bool enable_manifest_critical;
+	bool redump;
 
 	QImage grab_obj_data(int obj_index);
 	QImage grab_dmg_obj_data(int obj_index);
@@ -174,6 +176,7 @@ class gbe_cgfx : public QDialog
 	void close_advanced();
 	void dump_obj(int obj_index);
 	void dump_bg(int bg_index);
+	void redump_tile();
 	void dump_selection();
 	void write_manifest_entry();
 	void show_advanced_obj(int index);

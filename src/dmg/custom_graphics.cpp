@@ -429,12 +429,15 @@ void DMG_LCD::dump_dmg_obj(u8 obj_index)
 	final_hash = cgfx_stat.current_obj_hash[obj_index];
 
 	//Update the OBJ hash list
-	for(int x = 0; x < cgfx_stat.obj_hash_list.size(); x++)
+	if(!cgfx::ignore_existing_hash)
 	{
-		if(final_hash == cgfx_stat.obj_hash_list[x])
+		for(int x = 0; x < cgfx_stat.obj_hash_list.size(); x++)
 		{
-			cgfx::last_added = false;
-			return;
+			if(final_hash == cgfx_stat.obj_hash_list[x])
+			{
+				cgfx::last_added = false;
+				return;
+			}
 		}
 	}
 
@@ -575,13 +578,16 @@ void DMG_LCD::dump_gbc_obj(u8 obj_index)
 	final_hash = cgfx_stat.current_obj_hash[obj_index];
 
 	//Update the OBJ hash list
-	for(int x = 0; x < cgfx_stat.obj_hash_list.size(); x++)
+	if(!cgfx::ignore_existing_hash)
 	{
-		if(final_hash == cgfx_stat.obj_hash_list[x])
+		for(int x = 0; x < cgfx_stat.obj_hash_list.size(); x++)
 		{
-			mem->vram_bank = old_vram_bank;
-			cgfx::last_added = false;
-			return;
+			if(final_hash == cgfx_stat.obj_hash_list[x])
+			{
+				mem->vram_bank = old_vram_bank;
+				cgfx::last_added = false;
+				return;
+			}
 		}
 	}
 
@@ -693,12 +699,15 @@ void DMG_LCD::dump_dmg_bg(u16 bg_index)
 	final_hash = cgfx_stat.current_bg_hash[bg_index];
 
 	//Update the OBJ hash list
-	for(int x = 0; x < cgfx_stat.bg_hash_list.size(); x++)
+	if(!cgfx::ignore_existing_hash)
 	{
-		if(final_hash == cgfx_stat.bg_hash_list[x])
+		for(int x = 0; x < cgfx_stat.bg_hash_list.size(); x++)
 		{
-			cgfx::last_added = false;
-			return;
+			if(final_hash == cgfx_stat.bg_hash_list[x])
+			{
+				cgfx::last_added = false;
+				return;
+			}
 		}
 	}
 
@@ -835,13 +844,16 @@ void DMG_LCD::dump_gbc_bg(u16 bg_index)
 	final_hash = cgfx_stat.current_bg_hash[bg_index];
 
 	//Update the BG hash list
-	for(int x = 0; x < cgfx_stat.bg_hash_list.size(); x++)
+	if(!cgfx::ignore_existing_hash)
 	{
-		if(final_hash == cgfx_stat.bg_hash_list[x])
+		for(int x = 0; x < cgfx_stat.bg_hash_list.size(); x++)
 		{
-			mem->vram_bank = old_vram_bank;
-			cgfx::last_added = false;
-			return;
+			if(final_hash == cgfx_stat.bg_hash_list[x])
+			{
+				mem->vram_bank = old_vram_bank;
+				cgfx::last_added = false;
+				return;
+			}
 		}
 	}
 

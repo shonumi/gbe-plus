@@ -460,6 +460,14 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	save_fail->setText("Error - Could not write BMP to destination file. Check file path and permissions");
 	save_fail->setIcon(QMessageBox::Warning);
 	save_fail->hide();
+
+	//Redump existing hash
+	redump_hash = new QMessageBox;
+	QPushButton* redump_hash_ok = redump_hash->addButton("Redump Tile", QMessageBox::AcceptRole);
+	QPushButton* redump_hash_cancel = redump_hash->addButton("Cancel", QMessageBox::RejectRole);
+	redump_hash->setText("You are attempting to dump a tile that you have already dumped recently.\nWould you like to dump this tile again?");
+	redump_hash->setIcon(QMessageBox::Warning);
+	redump_hash->hide();
 	
 	connect(dump_button, SIGNAL(clicked()), this, SLOT(write_manifest_entry()));
 	connect(cancel_button, SIGNAL(clicked()), this, SLOT(close_advanced()));
@@ -467,6 +475,7 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	connect(name_browse, SIGNAL(clicked()), this, SLOT(browse_advanced_file()));
 	connect(manifest_warning_ignore, SIGNAL(clicked()), this, SLOT(ignore_manifest_warnings()));
 	connect(manifest_write_fail_ignore, SIGNAL(clicked()), this, SLOT(ignore_manifest_criticals()));
+	connect(redump_hash_ok, SIGNAL(clicked()), this, SLOT(redump_tile()));
 
 	estimated_palette.resize(384, 0);
 	estimated_vram_bank.resize(384, 0);
@@ -486,6 +495,7 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 
 	enable_manifest_warning = true;
 	enable_manifest_critical = true;
+	redump = false;
 
 	mouse_start_x = mouse_start_y = 0;
 	mouse_drag = false;
@@ -1106,6 +1116,28 @@ void gbe_cgfx::dump_obj(int obj_index)
 
 	main_menu::gbe_plus->dump_obj(obj_index);
 
+	//Show redump warning
+	if(!cgfx::last_added)
+	{
+		redump_hash->show();
+		redump_hash->raise();
+	}
+
+	while(redump_hash->isVisible())
+	{
+		SDL_Delay(16);
+		QApplication::processEvents();
+	}
+
+	//Redump if necessary
+	if(redump)
+	{
+		cgfx::ignore_existing_hash = true;
+		main_menu::gbe_plus->dump_obj(obj_index);
+		cgfx::ignore_existing_hash = false;
+		redump = false;
+	}
+
 	//Show save failure warning
 	if((!cgfx::last_saved) && (cgfx::last_added))
 	{
@@ -1141,6 +1173,28 @@ void gbe_cgfx::dump_bg(int bg_index)
 
 	main_menu::gbe_plus->dump_bg(bg_index);
 
+	//Show redump warning
+	if(!cgfx::last_added)
+	{
+		redump_hash->show();
+		redump_hash->raise();
+	}
+
+	while(redump_hash->isVisible())
+	{
+		SDL_Delay(16);
+		QApplication::processEvents();
+	}
+
+	//Redump if necessary
+	if(redump)
+	{
+		cgfx::ignore_existing_hash = true;
+		main_menu::gbe_plus->dump_bg(bg_index);
+		cgfx::ignore_existing_hash = false;
+		redump = false;
+	}
+
 	//Show save failure warning
 	if((!cgfx::last_saved) && (cgfx::last_added))
 	{
@@ -1157,6 +1211,9 @@ void gbe_cgfx::dump_bg(int bg_index)
 	//Update manifest tab if necessary
 	parse_manifest_items();
 }
+
+/****** Sets flag to redump a tile ******/
+void gbe_cgfx::redump_tile() { redump = true; }
 
 /****** Toggles automatic dumping of OBJ tiles ******/
 void gbe_cgfx::set_auto_obj()
