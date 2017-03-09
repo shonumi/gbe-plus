@@ -137,6 +137,11 @@ u8 NTR_MMU::read_u8(u32 address)
 		case 0x2:
 			address &= 0x23FFFFF;
 			break;
+
+		case 0x3:
+			if((access_mode) || (address <= 0x37FFFFF)) { address &= 0x3007FFF; }
+			else { address &= 0x380FFFF; }
+			break;
 	}
 
 	switch(address)
@@ -170,8 +175,6 @@ u8 NTR_MMU::read_u8(u32 address)
 	//Check for reading DISPSTAT
 	else if((address & ~0x1) == NDS_DISPSTAT)
 	{
-		std::cout<<"READ READ\n";
-
 		u8 addr_shift = (address & 0x1) << 3;
 
 		//Return NDS9 DISPSTAT
@@ -440,6 +443,11 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 	{
 		case 0x2:
 			address &= 0x23FFFFF;
+			break;
+
+		case 0x3:
+			if((access_mode) || (address <= 0x37FFFFF)) { address &= 0x3007FFF; }
+			else { address &= 0x380FFFF; }
 			break;
 	}
 
