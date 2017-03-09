@@ -1810,8 +1810,8 @@ void NTR_LCD::step()
 			//Reset VBlank flag in DISPSTAT on line 261
 			if(lcd_stat.current_scanline == 261)
 			{
-				lcd_stat.display_stat_a &= ~0x2;
-				lcd_stat.display_stat_b &= ~0x2;
+				lcd_stat.display_stat_a &= ~0x1;
+				lcd_stat.display_stat_b &= ~0x1;
 			}
 
 			//Set HBlank flag in DISPSTAT
