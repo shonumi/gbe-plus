@@ -2869,6 +2869,22 @@ void NTR_MMU::process_touchscreen()
 	//Process various touchscreen states
 	switch(touchscreen_state)
 	{
+		//Read Temp 0 Byte 1
+		case 0x0:
+			if(nds7_spi.data & 0x4) { }
+			else { nds7_spi.data = 0x0; }
+
+			touchscreen_state++;
+			break;
+
+		//Read Temp 0 Byte 2
+		case 0x1:
+			if(nds7_spi.data & 0x4) { }
+			else { nds7_spi.data = 0x0; }
+
+			touchscreen_state++;
+			break;
+
 		//Read Touch Y Byte 1
 		case 0x2:
 			nds7_spi.data = (touch_y >> 5);
@@ -2890,6 +2906,38 @@ void NTR_MMU::process_touchscreen()
 		//Read Touch X Byte 2
 		case 0xB:
 			nds7_spi.data = ((touch_x & 0x1F) << 3);
+			touchscreen_state++;
+			break;
+
+		//Read AUX Input Byte 1
+		case 0xC:
+			if(nds7_spi.data & 0x4) { }
+			else { nds7_spi.data = 0x0; }
+
+			touchscreen_state++;
+			break;
+
+		//Read AUX Input Byte 2
+		case 0xD:
+			if(nds7_spi.data & 0x4) { }
+			else { nds7_spi.data = 0x0; }
+
+			touchscreen_state++;
+			break;
+
+		//Read Temp 1 Byte 1
+		case 0xE:
+			if(nds7_spi.data & 0x4) { }
+			else { nds7_spi.data = 0x0; }
+
+			touchscreen_state++;
+			break;
+
+		//Read Temp 1 Byte 2
+		case 0xF:
+			if(nds7_spi.data & 0x4) { }
+			else { nds7_spi.data = 0x0; }
+
 			touchscreen_state++;
 			break;
 
