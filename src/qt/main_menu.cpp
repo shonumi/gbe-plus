@@ -406,6 +406,16 @@ void main_menu::quit()
 	config::volume = settings->volume->value();
 	config::use_haptics = (settings->rumble_on->isChecked()) ? true : false;
 
+	config::dmg_bios_path = settings->dmg_bios->text().toStdString();
+	config::gbc_bios_path = settings->gbc_bios->text().toStdString();
+	config::agb_bios_path = settings->gba_bios->text().toStdString();
+	cgfx::manifest_file = settings->manifest->text().toStdString();
+	config::ss_path = settings->screenshot->text().toStdString();
+	cgfx::dump_bg_path = settings->dump_bg->text().toStdString();
+	cgfx::dump_obj_path = settings->dump_obj->text().toStdString();
+	config::save_path = settings->game_saves->text().toStdString();
+	config::cheats_path = settings->cheats_path->text().toStdString();
+
 	switch(settings->freq->currentIndex())
 	{
 		case 0: config::sample_rate = 48000.0; break;
@@ -669,6 +679,16 @@ void main_menu::closeEvent(QCloseEvent* event)
 	config::use_opengl = (settings->ogl->isChecked()) ? true : false;
 	config::use_haptics = (settings->rumble_on->isChecked()) ? true : false;
 	
+	config::dmg_bios_path = settings->dmg_bios->text().toStdString();
+	config::gbc_bios_path = settings->gbc_bios->text().toStdString();
+	config::agb_bios_path = settings->gba_bios->text().toStdString();
+	cgfx::manifest_file = settings->manifest->text().toStdString();
+	config::ss_path = settings->screenshot->text().toStdString();
+	cgfx::dump_bg_path = settings->dump_bg->text().toStdString();
+	cgfx::dump_obj_path = settings->dump_obj->text().toStdString();
+	config::save_path = settings->game_saves->text().toStdString();
+	config::cheats_path = settings->cheats_path->text().toStdString();
+
 	switch(settings->freq->currentIndex())
 	{
 		case 0: config::sample_rate = 48000.0; break;

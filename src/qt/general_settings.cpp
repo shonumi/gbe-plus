@@ -707,7 +707,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	dmg_bios_label = new QLabel("DMG Boot ROM :  ");
 	QPushButton* dmg_bios_button = new QPushButton("Browse");
 	dmg_bios = new QLineEdit(paths);
-	dmg_bios->setReadOnly(true);
+	
 
 	QHBoxLayout* dmg_bios_layout = new QHBoxLayout;
 	dmg_bios_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -722,7 +722,6 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	gbc_bios_label = new QLabel("GBC Boot ROM :  ");
 	QPushButton* gbc_bios_button = new QPushButton("Browse");
 	gbc_bios = new QLineEdit(paths);
-	gbc_bios->setReadOnly(true);
 
 	QHBoxLayout* gbc_bios_layout = new QHBoxLayout;
 	gbc_bios_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -736,7 +735,6 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	gba_bios_label = new QLabel("GBA BIOS :  ");
 	QPushButton* gba_bios_button = new QPushButton("Browse");
 	gba_bios = new QLineEdit(paths);
-	gba_bios->setReadOnly(true);
 
 	QHBoxLayout* gba_bios_layout = new QHBoxLayout;
 	gba_bios_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -750,7 +748,6 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	manifest_label = new QLabel("CGFX Manifest :  ");
 	QPushButton* manifest_button = new QPushButton("Browse");
 	manifest = new QLineEdit(paths);
-	manifest->setReadOnly(true);
 
 	QHBoxLayout* manifest_layout = new QHBoxLayout;
 	manifest_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -764,7 +761,6 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	dump_bg_label = new QLabel("BG Dump :  ");
 	QPushButton* dump_bg_button = new QPushButton("Browse");
 	dump_bg = new QLineEdit(paths);
-	dump_bg->setReadOnly(true);
 
 	QHBoxLayout* dump_bg_layout = new QHBoxLayout;
 	dump_bg_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -779,7 +775,6 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	dump_obj_label = new QLabel("OBJ Dump :  ");
 	QPushButton* dump_obj_button = new QPushButton("Browse");
 	dump_obj = new QLineEdit(paths);
-	dump_obj->setReadOnly(true);
 
 	QHBoxLayout* dump_obj_layout = new QHBoxLayout;
 	dump_obj_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -794,7 +789,6 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	screenshot_label = new QLabel("Screenshots :  ");
 	QPushButton* screenshot_button = new QPushButton("Browse");
 	screenshot = new QLineEdit(paths);
-	screenshot->setReadOnly(true);
 
 	QHBoxLayout* screenshot_layout = new QHBoxLayout;
 	screenshot_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -808,7 +802,6 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	game_saves_label = new QLabel("Game Saves :  ");
 	QPushButton* game_saves_button = new QPushButton("Browse");
 	game_saves = new QLineEdit(paths);
-	game_saves->setReadOnly(true);
 
 	QHBoxLayout* game_saves_layout = new QHBoxLayout;
 	game_saves_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -822,7 +815,6 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	cheats_path_label = new QLabel("Cheats File :  ");
 	QPushButton* cheats_path_button = new QPushButton("Browse");
 	cheats_path = new QLineEdit(paths);
-	cheats_path->setReadOnly(true);
 
 	QHBoxLayout* cheats_path_layout = new QHBoxLayout;
 	cheats_path_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
