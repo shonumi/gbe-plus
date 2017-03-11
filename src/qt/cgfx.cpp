@@ -3112,9 +3112,10 @@ void gbe_cgfx::write_manifest_entry()
 	std::string entry = "";
 
 	std::string gfx_name = "";
-	
+	std::string dest_file = (dest_name->text().toStdString().empty()) ? cgfx::last_hash : dest_name->text().toStdString();
+
 	if(dest_folder->text().isNull()) { gfx_name = cgfx::last_hash + ".bmp"; }
-	else { gfx_name = dest_folder->text().toStdString() + dest_name->text().toStdString() + ".bmp"; }
+	else { gfx_name = dest_folder->text().toStdString() + dest_file + ".bmp"; }
 	
 	std::string gfx_type = util::to_str(cgfx::last_type);
 	std::string gfx_addr = (ext_vram->isChecked()) ? util::to_hex_str(cgfx::last_vram_addr).substr(2) : "0";
