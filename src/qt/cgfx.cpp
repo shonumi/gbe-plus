@@ -1150,9 +1150,6 @@ void gbe_cgfx::dump_obj(int obj_index)
 		SDL_Delay(16);
 		QApplication::processEvents();
 	}
-
-	//Update manifest tab if necessary
-	parse_manifest_items();
 }
 
 /****** Dumps the selected BG ******/
@@ -1207,9 +1204,6 @@ void gbe_cgfx::dump_bg(int bg_index)
 		SDL_Delay(16);
 		QApplication::processEvents();
 	}
-
-	//Update manifest tab if necessary
-	parse_manifest_items();
 }
 
 /****** Sets flag to redump a tile ******/
@@ -3136,6 +3130,9 @@ void gbe_cgfx::write_manifest_entry()
 	}
 	
 	advanced_box->hide();
+
+	//Update manifest tab if necessary
+	parse_manifest_items();
 }
 
 /****** Browse for a directory to use in the advanced menu ******/
