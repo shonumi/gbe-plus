@@ -166,6 +166,9 @@ void cheat_menu::edit_cheat_data()
 	int cheat_code_index = cheats_display->currentRow();
 	current_cheat_index = cheat_code_index;
 
+	if(cheats_display->count() == 0) { return; }
+	if(cheat_code_index < 0) { return; }
+
 	std::string current_cheat = "";
 	std::string code_data = "";
 
@@ -442,6 +445,9 @@ void cheat_menu::delete_cheats()
 {
 	int cheat_code_index = cheats_display->currentRow();
 	current_cheat_index = cheat_code_index;
+
+	if(cheats_display->count() == 0) { return; }
+	if(cheat_code_index < 0) { return; }
 
 	int gs_count = 0;
 	int gg_count = 0;
