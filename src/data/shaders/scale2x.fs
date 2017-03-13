@@ -76,8 +76,8 @@ void main()
 	if((color_pass == true) && (top_color != bottom_color) && (left_color != right_color))
 	{
 		//Determine which quadrant this is, E0, E1, E2, or E3
-		float quad_x = (1.0 / screen_x_size) / 2.0;
-		float quad_y = (1.0 / screen_y_size) / 2.0;
+		float quad_x = (0.5 / screen_x_size);
+		float quad_y = (0.5 / screen_y_size);
 
 		float texel_x = (current_pos.x / quad_x);
 		texel_x = mod(texel_x, 2.0);
