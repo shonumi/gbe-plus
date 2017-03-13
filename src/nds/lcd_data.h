@@ -37,6 +37,9 @@ struct ntr_lcd_data
 	u8 display_mode_a;
 	u8 display_mode_b;
 
+	u8 ext_pal_a;
+	u8 ext_pal_b;
+
 	u16 bg_control_a[4];
 	u16 bg_control_b[4];
 
@@ -80,6 +83,9 @@ struct ntr_lcd_data
 	u32 bg_pal_b[256];
 	u16 raw_bg_pal_b[256];
 
+	u32 bg_ext_pal_a[1024];
+	u16 raw_bg_ext_pal_a[1024];
+
 	struct bg_affine_parameters_a
 	{
 		//Parameters, X-Y reference
@@ -116,6 +122,9 @@ struct ntr_lcd_data
 
 	bool obj_pal_update_a;
 	std::vector<bool> obj_pal_update_list_a;
+
+	bool bg_ext_pal_update_a;
+	std::vector<bool> bg_ext_pal_update_list_a;
 
 	bool update_bg_control_a;
 	bool update_bg_control_b;

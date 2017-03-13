@@ -481,6 +481,9 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			lcd_stat->bg_enable_a[2] = (lcd_stat->display_control_a & 0x400) ? true : false;
 			lcd_stat->bg_enable_a[3] = (lcd_stat->display_control_a & 0x800) ? true : false;
 
+			//Extended palettes
+			lcd_stat->ext_pal_a = lcd_stat->display_control_a >> 30;
+
 			//Update all BG controls
 			lcd_stat->update_bg_control_a = true;
 
@@ -501,6 +504,9 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			lcd_stat->bg_enable_b[1] = (lcd_stat->display_control_b & 0x200) ? true : false;
 			lcd_stat->bg_enable_b[2] = (lcd_stat->display_control_b & 0x400) ? true : false;
 			lcd_stat->bg_enable_b[3] = (lcd_stat->display_control_b & 0x800) ? true : false;
+
+			//Extended palettes
+			lcd_stat->ext_pal_b = lcd_stat->display_control_b >> 30;
 
 			//Update all BG controls
 			lcd_stat->update_bg_control_b = true;
@@ -2424,6 +2430,16 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 	{
 		lcd_stat->bg_pal_update_b = true;
 		lcd_stat->bg_pal_update_list_b[(address & 0x1FF) >> 1] = true;
+	}
+
+	//Trigger Extended BG palette update in LCD - Engine A
+	else if((address >= 0x6880000) && (address <= 0x6887FFF))
+	{
+		u32 block = ((address & 0x7FFF) >> 13) << 8;
+		block += ((address & 0x1FF) >> 1);
+ 
+		lcd_stat->bg_ext_pal_update_a = true;
+		lcd_stat->bg_ext_pal_update_list_a[block] = true;
 	}
 }
 

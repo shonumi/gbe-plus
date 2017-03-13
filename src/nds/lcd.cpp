@@ -68,11 +68,17 @@ void NTR_LCD::reset()
 	lcd_stat.bg_pal_update_b = true;
 	lcd_stat.bg_pal_update_list_b.resize(0x100, 0);
 
+	lcd_stat.bg_ext_pal_update_a = true;
+	lcd_stat.bg_ext_pal_update_list_a.resize(0x400, 0);
+
 	lcd_stat.update_bg_control_a = false;
 	lcd_stat.update_bg_control_b = false;
 
 	lcd_stat.display_mode_a = 0;
 	lcd_stat.display_mode_b = 0;
+
+	lcd_stat.ext_pal_a = 0;
+	lcd_stat.ext_pal_b = 0;
 
 	lcd_stat.display_stat_a = 0;
 
@@ -223,6 +229,38 @@ void NTR_LCD::update_palettes()
 		}
 	}
 
+	//Update Extended BG palettes - Enginge A
+	if(lcd_stat.bg_ext_pal_update_a)
+	{
+		lcd_stat.bg_ext_pal_update_a = false;
+
+		//Cycle through all updates to Extended BG palettes
+		for(int x = 0; x < 1024; x++)
+		{
+			//If this palette has been updated, convert to ARGB
+			if(lcd_stat.bg_ext_pal_update_list_a[x])
+			{
+				lcd_stat.bg_ext_pal_update_list_a[x] = false;
+
+				u32 block = (x / 256) * 0x2000;
+				block += ((x & 0xFF) << 1);
+
+				u16 color_bytes = mem->read_u16_fast(0x6880000 + block);
+				lcd_stat.raw_bg_ext_pal_a[x] = color_bytes;
+
+				u8 red = ((color_bytes & 0x1F) << 3);
+				color_bytes >>= 5;
+
+				u8 green = ((color_bytes & 0x1F) << 3);
+				color_bytes >>= 5;
+
+				u8 blue = ((color_bytes & 0x1F) << 3);
+
+				lcd_stat.bg_ext_pal_a[x] =  0xFF000000 | (red << 16) | (green << 8) | (blue);
+			}
+		}
+	}
+
 	//Update BG palettes - Engine B
 	if(lcd_stat.bg_pal_update_b)
 	{
@@ -264,7 +302,7 @@ void NTR_LCD::render_bg_scanline(u32 bg_control)
 	if((bg_control & 0x1000) == 0)
 	{
 		//Clear scanline with backdrop
-		for(u16 x = 0; x < 256; x++) { scanline_buffer_a[x] = lcd_stat.bg_pal_a[0]; }
+		for(u16 x = 0; x < 256; x++) { scanline_buffer_a[x] = (lcd_stat.ext_pal_a) ? lcd_stat.bg_ext_pal_a[0] : lcd_stat.bg_pal_a[0]; }
 
 		//Determine BG priority
 		for(int x = 0, list_length = 0; x < 4; x++)
@@ -620,7 +658,10 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 					u8 raw_color = mem->read_u8(tile_data_addr++);
 
 					//Only draw color if it's not transparent
-					if(raw_color) { scanline_buffer_a[scanline_pixel_counter] = lcd_stat.bg_pal_a[raw_color]; }
+					if(raw_color)
+					{
+						scanline_buffer_a[scanline_pixel_counter] = (lcd_stat.ext_pal_a) ? lcd_stat.bg_ext_pal_a[(bg_id << 8) + raw_color]  : lcd_stat.bg_pal_a[raw_color];
+					}
 
 					scanline_pixel_counter++;
 					current_screen_pixel++;
@@ -1671,7 +1712,7 @@ void NTR_LCD::step()
 			if(lcd_stat.hblank_irq_enable_b) { mem->nds7_if |= 0x2; }
 
 			//Update 2D engine palettes
-			if((lcd_stat.bg_pal_update_a || lcd_stat.bg_pal_update_b)) { update_palettes(); }
+			if(lcd_stat.bg_pal_update_a || lcd_stat.bg_pal_update_b || lcd_stat.bg_ext_pal_update_a) { update_palettes(); }
 
 			//Update BG control registers - Engine A
 			if(lcd_stat.update_bg_control_a)
