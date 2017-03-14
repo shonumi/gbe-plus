@@ -601,10 +601,10 @@ void main_menu::boot_game()
 	dmg_debugger->debug_reset = true;
 
 	//If the fullscreen command-line argument was passed, be sure to boot into fullscreen mode
-	if(config::flags & 0x80000000)
+	if(config::flags & SDL_WINDOW_FULLSCREEN_DESKTOP)
 	{
 		findChild<QAction*>("fullscreen_action")->setChecked(true);
-		config::flags &= ~0x80000000;
+		config::flags &= ~SDL_WINDOW_FULLSCREEN_DESKTOP;
 		fullscreen();
 	}
 
