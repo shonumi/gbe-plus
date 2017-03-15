@@ -270,9 +270,6 @@ void AGB_LCD::update_oam()
 					break;
 			}
 
-			//Set double-size
-			if((obj[x].affine_enable) && (obj[x].type)) { obj[x].x += (obj[x].width >> 1); obj[x].y += (obj[x].height >> 1); }
-
 			//Precalulate OBJ boundaries
 			obj[x].left = obj[x].x;
 			obj[x].right = (obj[x].x + obj[x].width - 1) & 0x1FF;
@@ -340,31 +337,57 @@ void AGB_LCD::update_obj_affine_transformation()
 		//Determine if affine transformations occur on this OBJ
 		if(obj[x].affine_enable)
 		{
-			//Find half width and half height
-			obj[x].cw = obj[x].width >> 1;
-			obj[x].ch = obj[x].height >> 1;
-
-			//Find OBJ center
-			obj[x].cx = obj[x].x + obj[x].cw - 1;
-			obj[x].cy = obj[x].y + obj[x].ch - 1;
-
-			//If double size bit is unset use previous boundary calculations, otherwise calculate new ones
-			if(obj[x].type)
+			//Process regular-sized OBJs
+			if(!obj[x].type)
 			{
-				obj[x].left = obj[x].x - obj[x].cw;
-				obj[x].top = obj[x].y - obj[x].ch;
+				//Find half width and half height
+				obj[x].cw = obj[x].width >> 1;
+				obj[x].ch = obj[x].height >> 1;
 
-				if(obj[x].left < 0) { obj[x].left += 511; }
-				if(obj[x].top < 0) { obj[x].top += 255; }
+				//Find OBJ center
+				obj[x].cx = obj[x].x + obj[x].cw - 1;
+				obj[x].cy = obj[x].y + obj[x].ch - 1;
+
+				if(obj[x].cx > 0xFF) { obj[x].cx -= 0x1FF; }
+				if(obj[x].cy > 0xFF) { obj[x].cy -= 0xFF; }
+
+			}
+
+			//Process double-sized OBJs
+			else
+			{
+				//Find half width and half height
+				obj[x].cw = obj[x].width >> 1;
+				obj[x].ch = obj[x].height >> 1;
+
+				//Find OBJ center
+				obj[x].cx = (obj[x].x + obj[x].width - 1);
+				obj[x].cy = (obj[x].y + obj[x].height - 1);
+
+				if(obj[x].cx > 0xFF) { obj[x].cx -= 0x1FF; }
+				if(obj[x].cy > 0xFF) { obj[x].cy -= 0xFF; }
+
+				obj[x].left = obj[x].x;
+				obj[x].top = obj[x].y;
 
 				obj[x].right = (obj[x].left + (obj[x].width << 1) - 1) & 0x1FF;
 				obj[x].bottom = (obj[x].top + (obj[x].height << 1) - 1) & 0xFF;
 
 				//Precalculate OBJ wrapping
-				if(obj[x].left > obj[x].right) { obj[x].x_wrap = true; }
+				if(obj[x].left > obj[x].right)
+				{
+					obj[x].x_wrap = true;
+					obj[x].x_wrap_val = ((obj[x].width << 1) - obj[x].right - 1);
+				}
+
 				else { obj[x].x_wrap = false; }
 
-				if(obj[x].top > obj[x].bottom) { obj[x].y_wrap = true; }
+				if(obj[x].top > obj[x].bottom)
+				{
+					obj[x].y_wrap = true;
+					obj[x].y_wrap_val = ((obj[x].height << 1) - obj[x].bottom - 1);
+				}
+
 				else { obj[x].y_wrap = false; }
 			}
 		}
@@ -526,11 +549,11 @@ bool AGB_LCD::render_sprite_pixel()
 			s16 current_x, current_y;
 
 			//Determine current X position relative to the OBJ center X, account for screen wrapping
-			if((obj[sprite_id].x_wrap) && (scanline_pixel_counter < obj[sprite_id].right)) { current_x = scanline_pixel_counter - (obj[sprite_id].cx - 511); }
+			if((obj[sprite_id].x_wrap) && (scanline_pixel_counter < obj[sprite_id].right)) { current_x = scanline_pixel_counter - (obj[sprite_id].cx - obj[sprite_id].x_wrap); }
 			else { current_x = scanline_pixel_counter - obj[sprite_id].cx; }
 
 			//Determine current Y position relative to the OBJ center Y, account for screen wrapping
-			if((obj[sprite_id].y_wrap) && (current_scanline < obj[sprite_id].bottom)) { current_y = current_scanline - (obj[sprite_id].cy - 255); }
+			if((obj[sprite_id].y_wrap) && (current_scanline < obj[sprite_id].bottom)) { current_y = current_scanline - (obj[sprite_id].cy - obj[sprite_id].y_wrap); }
 			else { current_y = current_scanline - obj[sprite_id].cy; }
 
 			s16 new_x = obj[sprite_id].cw + (lcd_stat.obj_affine[index] * current_x) + (lcd_stat.obj_affine[index+1] * current_y);
