@@ -243,28 +243,18 @@ void DMG_core::run_core()
 			//Halt CPU if necessary
 			if(core_cpu.halt == true)
 			{
-				//Normal HALT mode with interrupts enabled
-				if(!core_cpu.skip_instruction) { core_cpu.cycles += 4; }
+				//Normal HALT mode
+				if(core_cpu.interrupt || !core_cpu.skip_instruction) { core_cpu.cycles += 4; }
 
-				//HALT mode with interrupts disabled (DMG, MBP, and SGB models)
-				else if((core_cpu.skip_instruction) && (config::gb_type == 1))
+				//HALT bug
+				else if(core_cpu.skip_instruction)
 				{
+					//Exit HALT mode
 					core_cpu.halt = false;
 					core_cpu.skip_instruction = false;
 
 					//Execute next opcode, but do not increment PC
 					core_cpu.opcode = core_mmu.read_u8(core_cpu.reg.pc);
-					core_cpu.exec_op(core_cpu.opcode);
-				}
-
-				//HALT mode with interrupts disabled (GBC models)
-				else
-				{
-					core_cpu.halt = false;
-					core_cpu.skip_instruction = false;
-
-					//Continue normally
-					core_cpu.opcode = core_mmu.read_u8(core_cpu.reg.pc++);
 					core_cpu.exec_op(core_cpu.opcode);
 				}
 			}
@@ -430,28 +420,18 @@ void DMG_core::step()
 		//Halt CPU if necessary
 		if(core_cpu.halt == true)
 		{
-			//Normal HALT mode with interrupts enabled
-			if(!core_cpu.skip_instruction) { core_cpu.cycles += 4; }
+			//Normal HALT mode
+			if(core_cpu.interrupt || !core_cpu.skip_instruction) { core_cpu.cycles += 4; }
 
-			//HALT mode with interrupts disabled (DMG, MBP, and SGB models)
-			else if((core_cpu.skip_instruction) && (config::gb_type == 1))
+			//HALT bug
+			else if(core_cpu.skip_instruction)
 			{
+				//Exit HALT mode
 				core_cpu.halt = false;
 				core_cpu.skip_instruction = false;
 
 				//Execute next opcode, but do not increment PC
 				core_cpu.opcode = core_mmu.read_u8(core_cpu.reg.pc);
-				core_cpu.exec_op(core_cpu.opcode);
-			}
-
-			//HALT mode with interrupts disabled (GBC models)
-			else
-			{
-				core_cpu.halt = false;
-				core_cpu.skip_instruction = false;
-
-				//Continue normally
-				core_cpu.opcode = core_mmu.read_u8(core_cpu.reg.pc++);
 				core_cpu.exec_op(core_cpu.opcode);
 			}
 		}

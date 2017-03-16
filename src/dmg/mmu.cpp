@@ -1185,6 +1185,12 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		}
 	}
 
+	else if(address == IF_FLAG)
+	{
+		value |= 0xE0;
+		memory_map[address] = value;
+	}
+
 	else if(address > 0x7FFF) { memory_map[address] = value; }
 
 	//CGFX processing - Check for BG updates
@@ -1713,6 +1719,7 @@ bool DMG_MMU::read_file(std::string filename)
    		write_u8(0xFF24, 0x77); 
    		write_u8(0xFF25, 0xF3);
 		write_u8(0xFF26, 0xF1);
+		write_u8(IF_FLAG, 0xE0);
 
 		//Some sound registers are set, however, don't actually play sound
 		for(int x = 0; x < 4; x++) { apu_stat->channel[x].playing = false; }
