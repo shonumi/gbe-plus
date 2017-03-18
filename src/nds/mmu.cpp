@@ -666,7 +666,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 				u32 char_base = ((lcd_stat->display_control_a >> 24) & 0x7);
 				u32 screen_base = ((lcd_stat->display_control_a >> 27) & 0x7);
 
-				u32 char_block = ((lcd_stat->bg_control_a[1] >> 2) & 0x3);
+				u32 char_block = ((lcd_stat->bg_control_a[1] >> 2) & 0xF);
 				u32 screen_block = ((lcd_stat->bg_control_a[1] >> 8) & 0x1F);
 
 				lcd_stat->bg_base_tile_addr_a[1] = (char_base * 0x10000) + (char_block * 0x4000);
@@ -703,7 +703,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 				u32 char_base = ((lcd_stat->display_control_b >> 24) & 0x7);
 				u32 screen_base = ((lcd_stat->display_control_b >> 27) & 0x7);
 
-				u32 char_block = ((lcd_stat->bg_control_b[1] >> 2) & 0x3);
+				u32 char_block = ((lcd_stat->bg_control_b[1] >> 2) & 0xF);
 				u32 screen_block = ((lcd_stat->bg_control_b[1] >> 8) & 0x1F);
 
 				lcd_stat->bg_base_tile_addr_b[1] = (char_block * 0x4000);
@@ -740,7 +740,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 				u32 char_base = ((lcd_stat->display_control_a >> 24) & 0x7);
 				u32 screen_base = ((lcd_stat->display_control_a >> 27) & 0x7);
 
-				u32 char_block = ((lcd_stat->bg_control_a[2] >> 2) & 0x3);
+				u32 char_block = ((lcd_stat->bg_control_a[2] >> 2) & 0xF);
 				u32 screen_block = ((lcd_stat->bg_control_a[2] >> 8) & 0x1F);
 
 				lcd_stat->bg_base_tile_addr_a[2] = (char_base * 0x10000) + (char_block * 0x4000);
@@ -780,7 +780,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 				u32 char_base = ((lcd_stat->display_control_b >> 24) & 0x7);
 				u32 screen_base = ((lcd_stat->display_control_b >> 27) & 0x7);
 
-				u32 char_block = ((lcd_stat->bg_control_b[2] >> 2) & 0x3);
+				u32 char_block = ((lcd_stat->bg_control_b[2] >> 2) & 0xF);
 				u32 screen_block = ((lcd_stat->bg_control_b[2] >> 8) & 0x1F);
 
 				lcd_stat->bg_base_tile_addr_b[2] = (char_block * 0x4000);
@@ -820,7 +820,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 				u32 char_base = ((lcd_stat->display_control_a >> 24) & 0x7);
 				u32 screen_base = ((lcd_stat->display_control_a >> 27) & 0x7);
 
-				u32 char_block = ((lcd_stat->bg_control_a[3] >> 2) & 0x3);
+				u32 char_block = ((lcd_stat->bg_control_a[3] >> 2) & 0xF);
 				u32 screen_block = ((lcd_stat->bg_control_a[3] >> 8) & 0x1F);
 
 				lcd_stat->bg_base_tile_addr_a[3] = (char_base * 0x10000) + (char_block * 0x4000);
@@ -860,7 +860,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 				u32 char_base = ((lcd_stat->display_control_b >> 24) & 0x7);
 				u32 screen_base = ((lcd_stat->display_control_b >> 27) & 0x7);
 
-				u32 char_block = ((lcd_stat->bg_control_b[3] >> 2) & 0x3);
+				u32 char_block = ((lcd_stat->bg_control_b[3] >> 2) & 0xF);
 				u32 screen_block = ((lcd_stat->bg_control_b[3] >> 8) & 0x1F);
 
 				lcd_stat->bg_base_tile_addr_b[3] = (char_block * 0x4000);
