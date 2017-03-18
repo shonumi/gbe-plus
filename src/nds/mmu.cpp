@@ -2441,6 +2441,16 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		lcd_stat->bg_ext_pal_update_a = true;
 		lcd_stat->bg_ext_pal_update_list_a[block] = true;
 	}
+
+	//Trigger Extended BG palette update in LCD - Engine B
+	else if((address >= 0x6898000) && (address <= 0x689FFFF))
+	{
+		u32 block = ((address & 0x7FFF) >> 13) << 8;
+		block += ((address & 0x1FF) >> 1);
+ 
+		lcd_stat->bg_ext_pal_update_b = true;
+		lcd_stat->bg_ext_pal_update_list_b[block] = true;
+	}
 }
 
 /****** Write 2 bytes into memory ******/

@@ -71,6 +71,9 @@ void NTR_LCD::reset()
 	lcd_stat.bg_ext_pal_update_a = true;
 	lcd_stat.bg_ext_pal_update_list_a.resize(0x400, 0);
 
+	lcd_stat.bg_ext_pal_update_b = true;
+	lcd_stat.bg_ext_pal_update_list_b.resize(0x400, 0);
+
 	lcd_stat.update_bg_control_a = false;
 	lcd_stat.update_bg_control_b = false;
 
@@ -257,6 +260,38 @@ void NTR_LCD::update_palettes()
 				u8 blue = ((color_bytes & 0x1F) << 3);
 
 				lcd_stat.bg_ext_pal_a[x] =  0xFF000000 | (red << 16) | (green << 8) | (blue);
+			}
+		}
+	}
+
+	//Update Extended BG palettes - Engine B
+	if(lcd_stat.bg_ext_pal_update_b)
+	{
+		lcd_stat.bg_ext_pal_update_b = false;
+
+		//Cycle through all updates to Extended BG palettes
+		for(int x = 0; x < 1024; x++)
+		{
+			//If this palette has been updated, convert to ARGB
+			if(lcd_stat.bg_ext_pal_update_list_b[x])
+			{
+				lcd_stat.bg_ext_pal_update_list_b[x] = false;
+
+				u32 block = (x / 256) * 0x2000;
+				block += ((x & 0xFF) << 1);
+
+				u16 color_bytes = mem->read_u16_fast(0x6898000 + block);
+				lcd_stat.raw_bg_ext_pal_b[x] = color_bytes;
+
+				u8 red = ((color_bytes & 0x1F) << 3);
+				color_bytes >>= 5;
+
+				u8 green = ((color_bytes & 0x1F) << 3);
+				color_bytes >>= 5;
+
+				u8 blue = ((color_bytes & 0x1F) << 3);
+
+				lcd_stat.bg_ext_pal_b[x] =  0xFF000000 | (red << 16) | (green << 8) | (blue);
 			}
 		}
 	}
@@ -749,9 +784,12 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 				{
 					u8 raw_color = mem->read_u8(tile_data_addr++);
 
-					//Only draw colors if not transparent
-					if(raw_color) { scanline_buffer_b[scanline_pixel_counter] = lcd_stat.bg_pal_b[raw_color]; }
-					
+					//Only draw color if it's not transparent
+					if(raw_color)
+					{
+						scanline_buffer_b[scanline_pixel_counter] = (lcd_stat.ext_pal_b) ? lcd_stat.bg_ext_pal_b[(bg_id << 8) + raw_color]  : lcd_stat.bg_pal_b[raw_color];
+					}
+
 					scanline_pixel_counter++;
 					current_screen_pixel++;
 					if(scanline_pixel_counter & 0x100) { return; }
@@ -1712,7 +1750,7 @@ void NTR_LCD::step()
 			if(lcd_stat.hblank_irq_enable_b) { mem->nds7_if |= 0x2; }
 
 			//Update 2D engine palettes
-			if(lcd_stat.bg_pal_update_a || lcd_stat.bg_pal_update_b || lcd_stat.bg_ext_pal_update_a) { update_palettes(); }
+			if(lcd_stat.bg_pal_update_a || lcd_stat.bg_pal_update_b || lcd_stat.bg_ext_pal_update_a || lcd_stat.bg_ext_pal_update_b) { update_palettes(); }
 
 			//Update BG control registers - Engine A
 			if(lcd_stat.update_bg_control_a)
