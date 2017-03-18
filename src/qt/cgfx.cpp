@@ -27,8 +27,10 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	QDialog* bg_tab = new QDialog;
 	QDialog* layers_tab = new QDialog;
 	QDialog* manifest_tab = new QDialog;
+	QDialog* obj_meta_tab = new QDialog;
 
-	tabs->addTab(layers_tab, tr("Layers"));
+	tabs->addTab(layers_tab, tr("Layers - BG Meta Tile"));
+	tabs->addTab(obj_meta_tab, tr("OBJ Meta Tile"));
 	tabs->addTab(obj_tab, tr("OBJ Tiles"));
 	tabs->addTab(bg_tab, tr("BG Tiles"));
 	tabs->addTab(manifest_tab, tr("Manifest"));
@@ -257,6 +259,47 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	section_final_layout->addWidget(dump_section_button);
 	section_set->setLayout(section_final_layout);
 
+	//OBJ Meta Tile widgets
+	QWidget* obj_meta_preview_set = new QWidget(obj_meta_tab);
+
+	QWidget* obj_size_set = new QWidget(obj_meta_tab);
+	QLabel* obj_meta_width_label = new QLabel("Tile Width :\t");
+	QLabel* obj_meta_height_label = new QLabel("Tile Height :\t");
+	
+	obj_meta_width = new QSpinBox(obj_size_set);
+	obj_meta_width->setRange(0, 20);
+	
+	obj_meta_height = new QSpinBox(obj_size_set);
+	obj_meta_height->setRange(0, 20);
+
+	QImage temp_obj(320, 320, QImage::Format_ARGB32);
+	temp_obj.fill(qRgb(0, 0, 0));
+	obj_meta_pixel_data = temp_obj;
+
+	obj_meta_img = new QLabel;
+	obj_meta_img->setPixmap(QPixmap::fromImage(temp_obj));
+	obj_meta_img->installEventFilter(this);
+	obj_meta_img->setMouseTracking(true);
+
+	QHBoxLayout* obj_size_layout = new QHBoxLayout;
+	obj_size_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	obj_size_layout->addWidget(obj_meta_width_label);
+	obj_size_layout->addWidget(obj_meta_width);
+	obj_size_layout->addWidget(obj_meta_height_label);
+	obj_size_layout->addWidget(obj_meta_height);
+	obj_size_set->setLayout(obj_size_layout);
+
+	QVBoxLayout* obj_meta_preview_layout = new QVBoxLayout;
+	obj_meta_preview_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	obj_meta_preview_layout->addWidget(obj_size_set);
+	obj_meta_preview_layout->addWidget(obj_meta_img);
+	obj_meta_preview_set->setLayout(obj_meta_preview_layout);
+
+	//OBJ Meta Tile layout
+	QGridLayout* obj_meta_layout = new QGridLayout;
+	obj_meta_layout->addWidget(obj_meta_preview_set, 0, 0, 1, 1);
+	obj_meta_tab->setLayout(obj_meta_layout);
+
 	//Manifest widgets
 	manifest_display = new QScrollArea(manifest_tab);
 
@@ -346,6 +389,8 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	connect(rect_h, SIGNAL(valueChanged(int)), this, SLOT(update_selection()));
 	connect(dump_section_button, SIGNAL(clicked()), this, SLOT(dump_selection()));
 	connect(next_frame, SIGNAL(clicked()), this, SLOT(advance_next_frame()));
+	connect(obj_meta_width, SIGNAL(valueChanged(int)), this, SLOT(update_obj_meta_size()));
+	connect(obj_meta_height, SIGNAL(valueChanged(int)), this, SLOT(update_obj_meta_size()));
 
 	QSignalMapper* input_signal = new QSignalMapper(this);
 	connect(a_input, SIGNAL(clicked()), input_signal, SLOT(map()));
@@ -499,6 +544,9 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 
 	mouse_start_x = mouse_start_y = 0;
 	mouse_drag = false;
+
+	obj_meta_width->setValue(20);
+	obj_meta_height->setValue(20);
 }
 
 /****** Sets up the OBJ dumping window ******/
@@ -2911,138 +2959,190 @@ void gbe_cgfx::dump_layer_tile(u32 x, u32 y)
 /****** Event filter for settings window ******/
 bool gbe_cgfx::eventFilter(QObject* target, QEvent* event)
 {
-	//Check to see if mouse is hovered over current layer
+	//Mouse motion
 	if(event->type() == QEvent::MouseMove)
 	{
 		QMouseEvent* mouse_event = static_cast<QMouseEvent*>(event);
 		u32 x = mouse_event->x();
-		u32 y = mouse_event->y();		
+		u32 y = mouse_event->y();	
 
-		//Update the preview
-		if((mouse_event->x() <= 320) && (mouse_event->y() <= 288)) { update_preview(x, y); }
+		//Layers tab - Check to see if mouse is hovered over current layer
+		if(target == current_layer)
+		{	
+			//Update the preview
+			if((mouse_event->x() <= 320) && (mouse_event->y() <= 288)) { update_preview(x, y); }
 
-		//Update highlighting when dragging the mouse
-		if(mouse_drag)
-		{
-			x >>= 1;
-			y >>= 1;
-
-			//Determine highlighted BG tiles
-			if(layer_select->currentIndex() == 0)
+			//Update highlighting when dragging the mouse
+			if(mouse_drag)
 			{
-				u8 sx = main_menu::gbe_plus->ex_read_u8(REG_SX) % 8;
-				u8 sy = main_menu::gbe_plus->ex_read_u8(REG_SY) % 8;
+				x >>= 1;
+				y >>= 1;
 
-				u8 tile_start_x, tile_start_y = 0;
-				u8 tile_x, tile_y = 0;
-
-				//Make sure selections work no matter which direction mouse drags in
-				//Set the start and end points according to where the newest position is in relation to the original mouse click
-				if(mouse_event->x() > mouse_start_x)
+				//Determine highlighted BG tiles
+				if(layer_select->currentIndex() == 0)
 				{
-					tile_start_x = (mouse_start_x >> 1) / 8;
-					tile_x = (x / 8);
+					u8 sx = main_menu::gbe_plus->ex_read_u8(REG_SX) % 8;
+					u8 sy = main_menu::gbe_plus->ex_read_u8(REG_SY) % 8;
+
+					u8 tile_start_x, tile_start_y = 0;
+					u8 tile_x, tile_y = 0;
+
+					//Make sure selections work no matter which direction mouse drags in
+					//Set the start and end points according to where the newest position is in relation to the original mouse click
+					if(mouse_event->x() > mouse_start_x)
+					{
+						tile_start_x = (mouse_start_x >> 1) / 8;
+						tile_x = (x / 8);
+					}
+
+					else
+					{
+						tile_start_x = (x / 8);
+						tile_x = (mouse_start_x >> 1) / 8;
+					}
+
+					if(mouse_event->y() > mouse_start_y)
+					{
+						tile_start_y = (mouse_start_y >> 1) / 8;
+						tile_y = (y / 8);
+					}
+
+					else
+					{
+						tile_start_y = (y / 8);
+						tile_y = (mouse_start_y >> 1) / 8;
+					}
+
+					//Set X and Y
+					rect_x->setValue(tile_start_x + 1);
+					rect_y->setValue(tile_start_y + 1);
+
+					//Set W and H
+					rect_w->setValue(tile_x - tile_start_x + 1);
+					rect_h->setValue(tile_y - tile_start_y + 1);
+
+					//Update highlighting
+					update_selection();
 				}
 
-				else
+				//Determine highlighted Window tiles
+				else if(layer_select->currentIndex() == 1)
 				{
-					tile_start_x = (x / 8);
-					tile_x = (mouse_start_x >> 1) / 8;
+					u8 wx = main_menu::gbe_plus->ex_read_u8(REG_WX) % 8;
+					u8 wy = main_menu::gbe_plus->ex_read_u8(REG_WY);
+					wx = (wx < 7) ? 0 : (wx - 7);
+
+					u8 tile_start_x, tile_start_y = 0;
+					u8 tile_x, tile_y = 0;
+
+					//Make sure selections work no matter which direction mouse drags in
+					//Set the start and end points according to where the newest position is in relation to the original mouse click
+					if(mouse_event->x() > mouse_start_x)
+					{
+						tile_start_x = ((mouse_start_x >> 1) - wx) / 8;
+						tile_x = ((x - wx) / 8);
+					}
+
+					else
+					{
+						tile_start_x = ((x - wx) / 8);
+						tile_x = ((mouse_start_x >> 1) - wx) / 8;
+					}
+
+					if(mouse_event->y() > mouse_start_y)
+					{
+						tile_start_y = ((mouse_start_y >> 1) - wy) / 8;
+						tile_y = ((y - wy) / 8);
+					}
+
+					else
+					{
+						tile_start_y = ((y - wy) / 8);
+						tile_y = ((mouse_start_y >> 1) - wy) / 8;
+					}
+
+					//Set X and Y
+					rect_x->setValue(tile_start_x + 1);
+					rect_y->setValue(tile_start_y + 1);
+
+					//Set W and H
+					rect_w->setValue(tile_x - tile_start_x + 1);
+					rect_h->setValue(tile_y - tile_start_y + 1);
+
+					//Update highlighting
+					update_selection();
+				}
+			}
+		}
+
+		//OBJ Meta Tile tab
+		else if(target == obj_meta_img)
+		{
+			//Highlight selected OBJ tile
+			if((x < 320) && (y < 320))
+			{
+				//Make sure X and Y coordinates are within proper range
+				if(x >= (obj_meta_width->value() * 16)) { return QDialog::eventFilter(target, event); }
+				if(y >= (obj_meta_height->value() * 16)) { return QDialog::eventFilter(target, event); }
+
+				//Grab affected X and Y coordinates
+				x &= ~0xF;
+				y &= ~0xF;
+
+				QImage highlight = obj_meta_pixel_data;
+
+				//Cycle scanline by scanline
+				for(int sy = y; sy < (y + 16); sy++)
+				{
+					u32* pixel_data = (u32*)highlight.scanLine(sy);
+
+					//Highlight affected parts of the scanline
+					for(int sx = x; sx < (x + 16); sx++)
+					{	
+						pixel_data[sx] += 0x00808080;
+					}
 				}
 
-				if(mouse_event->y() > mouse_start_y)
-				{
-					tile_start_y = (mouse_start_y >> 1) / 8;
-					tile_y = (y / 8);
-				}
+				obj_meta_img->setPixmap(QPixmap::fromImage(highlight));
 
-				else
-				{
-					tile_start_y = (y / 8);
-					tile_y = (mouse_start_y >> 1) / 8;
-				}
-
-				//Set X and Y
-				rect_x->setValue(tile_start_x + 1);
-				rect_y->setValue(tile_start_y + 1);
-
-				//Set W and H
-				rect_w->setValue(tile_x - tile_start_x + 1);
-				rect_h->setValue(tile_y - tile_start_y + 1);
-
-				//Update highlighting
-				update_selection();
+				meta_highlight = true;
 			}
 
-			//Determine highlighted Window tiles
-			else if(layer_select->currentIndex() == 1)
+			//Return image to original state
+			else if(meta_highlight)
 			{
-				u8 wx = main_menu::gbe_plus->ex_read_u8(REG_WX) % 8;
-				u8 wy = main_menu::gbe_plus->ex_read_u8(REG_WY);
-				wx = (wx < 7) ? 0 : (wx - 7);
-
-				u8 tile_start_x, tile_start_y = 0;
-				u8 tile_x, tile_y = 0;
-
-				//Make sure selections work no matter which direction mouse drags in
-				//Set the start and end points according to where the newest position is in relation to the original mouse click
-				if(mouse_event->x() > mouse_start_x)
-				{
-					tile_start_x = ((mouse_start_x >> 1) - wx) / 8;
-					tile_x = ((x - wx) / 8);
-				}
-
-				else
-				{
-					tile_start_x = ((x - wx) / 8);
-					tile_x = ((mouse_start_x >> 1) - wx) / 8;
-				}
-
-				if(mouse_event->y() > mouse_start_y)
-				{
-					tile_start_y = ((mouse_start_y >> 1) - wy) / 8;
-					tile_y = ((y - wy) / 8);
-				}
-
-				else
-				{
-					tile_start_y = ((y - wy) / 8);
-					tile_y = ((mouse_start_y >> 1) - wy) / 8;
-				}
-
-				//Set X and Y
-				rect_x->setValue(tile_start_x + 1);
-				rect_y->setValue(tile_start_y + 1);
-
-				//Set W and H
-				rect_w->setValue(tile_x - tile_start_x + 1);
-				rect_h->setValue(tile_y - tile_start_y + 1);
-
-				//Update highlighting
-				update_selection();
+				obj_meta_img->setPixmap(QPixmap::fromImage(obj_meta_pixel_data));
 			}
 		}
 	}
-
-	//Check to see if mouse is double-clicked over current layer
+	
+	//Double-Click
 	else if(event->type() == QEvent::MouseButtonDblClick)
 	{
 		QMouseEvent* mouse_event = static_cast<QMouseEvent*>(event);
 		u32 x = mouse_event->x();
 		u32 y = mouse_event->y();		
 
-		//Update the preview
-		if((mouse_event->x() <= 320) && (mouse_event->y() <= 288)) { dump_layer_tile(x, y); }
+		//Layers tab - Check to see if mouse is double-clicked over current layer
+		if(target == current_layer)
+		{
+			//Update the preview
+			if((mouse_event->x() <= 320) && (mouse_event->y() <= 288)) { dump_layer_tile(x, y); }
+		}
 	}
 
-	//Check to see if mouse is single-clicked over current layer
+	//Single clock
 	else if(event->type() == QEvent::MouseButtonPress)
 	{
 		QMouseEvent* mouse_event = static_cast<QMouseEvent*>(event);
 
-		mouse_drag = true;
-		mouse_start_x = mouse_event->x();
-		mouse_start_y = mouse_event->y();
+		//Layers tab
+		if(target == current_layer)
+		{
+			mouse_drag = true;
+			mouse_start_x = mouse_event->x();
+			mouse_start_y = mouse_event->y();
+		}
 	}
 
 	//Check to see if mouse is released from single-click over current layer
@@ -3990,4 +4090,16 @@ void gbe_cgfx::reset_inputs()
 	main_menu::gbe_plus->feed_key_input(config::dmg_key_left, false);
 	main_menu::gbe_plus->feed_key_input(config::dmg_key_right, false);
 }
-	
+
+/****** Updates the OBJ Meta Tile preview size ******/
+void gbe_cgfx::update_obj_meta_size()
+{
+	int w = obj_meta_width->value() * 16;
+	int h = obj_meta_height->value() * 16;
+
+	QImage temp_img(w, h, QImage::Format_ARGB32);
+	temp_img.fill(qRgb(255, 255, 255));
+
+	obj_meta_img->setPixmap(QPixmap::fromImage(temp_img));
+	obj_meta_pixel_data = temp_img;
+}

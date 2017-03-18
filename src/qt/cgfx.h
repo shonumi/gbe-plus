@@ -89,6 +89,10 @@ class gbe_cgfx : public QDialog
 	QCheckBox* use_auto_bright;
 	QLineEdit* meta_name;
 
+	//OBJ Meta tile tab widgets
+	QSpinBox* obj_meta_width;
+	QSpinBox* obj_meta_height;
+
 	//OBJ tab widgets
 	std::vector<QImage> cgfx_obj;
 	std::vector<QPushButton*> obj_button;
@@ -152,6 +156,9 @@ class gbe_cgfx : public QDialog
 
 	QLabel* current_layer;
 	QLabel* current_tile;
+	QLabel* obj_meta_img;
+
+	QImage obj_meta_pixel_data;
 
 	void setup_obj_window(int rows, int count);
 	void update_preview(u32 x, u32 y);
@@ -170,6 +177,7 @@ class gbe_cgfx : public QDialog
 
 	u32 mouse_start_x, mouse_start_y;
 	bool mouse_drag;
+	bool meta_highlight;
 
 	private slots:
 	void close_cgfx();
@@ -194,6 +202,7 @@ class gbe_cgfx : public QDialog
 	void ignore_manifest_criticals();
 	void advance_next_frame();
 	void update_input_control(int index);
+	void update_obj_meta_size();
 };
 
 #endif //CGFX_GBE_QT 
