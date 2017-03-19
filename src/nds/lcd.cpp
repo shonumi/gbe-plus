@@ -80,16 +80,16 @@ void NTR_LCD::reset()
 	full_scanline_render_b = false;
 
 	lcd_stat.bg_pal_update_a = true;
-	lcd_stat.bg_pal_update_list_a.resize(0x100, 0);
+	lcd_stat.bg_pal_update_list_a.resize(0x100, true);
 
 	lcd_stat.bg_pal_update_b = true;
-	lcd_stat.bg_pal_update_list_b.resize(0x100, 0);
+	lcd_stat.bg_pal_update_list_b.resize(0x100, true);
 
 	lcd_stat.bg_ext_pal_update_a = true;
-	lcd_stat.bg_ext_pal_update_list_a.resize(0x400, 0);
+	lcd_stat.bg_ext_pal_update_list_a.resize(0x400, true);
 
 	lcd_stat.bg_ext_pal_update_b = true;
-	lcd_stat.bg_ext_pal_update_list_b.resize(0x400, 0);
+	lcd_stat.bg_ext_pal_update_list_b.resize(0x400, true);
 
 	lcd_stat.update_bg_control_a = false;
 	lcd_stat.update_bg_control_b = false;
@@ -361,7 +361,7 @@ void NTR_LCD::render_bg_scanline(u32 bg_control)
 		render_buffer_a.assign(0x100, false);
 
 		//Clear scanline with backdrop
-		for(u16 x = 0; x < 256; x++) { scanline_buffer_a[x] = (lcd_stat.ext_pal_a) ? lcd_stat.bg_ext_pal_a[0] : lcd_stat.bg_pal_a[0]; }
+		for(u16 x = 0; x < 256; x++) { scanline_buffer_a[x] = lcd_stat.bg_pal_a[0]; }
 
 		//Determine BG priority
 		for(int x = 0, list_length = 0; x < 4; x++)
@@ -516,7 +516,7 @@ void NTR_LCD::render_bg_scanline(u32 bg_control)
 		render_buffer_b.assign(0x100, false);
 
 		//Clear scanline with backdrop
-		for(u16 x = 0; x < 256; x++) { scanline_buffer_b[x] = (lcd_stat.ext_pal_b) ? lcd_stat.bg_ext_pal_b[0] : lcd_stat.bg_pal_b[0]; }
+		for(u16 x = 0; x < 256; x++) { scanline_buffer_b[x] = lcd_stat.bg_pal_b[0]; }
 
 		//Determine BG priority
 		for(int x = 0, list_length = 0; x < 4; x++)
