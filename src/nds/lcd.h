@@ -51,6 +51,13 @@ class NTR_LCD
 	std::vector<u32> scanline_buffer_b;
 	std::vector<u32> screen_buffer;
 
+	//Render buffer
+	std::vector<bool> render_buffer_a;
+	std::vector<bool> render_buffer_b;
+
+	bool full_scanline_render_a;
+	bool full_scanline_render_b;
+
 	u32 scanline_pixel_counter;
 
 	int frame_start_time;

@@ -24,9 +24,15 @@ NTR_LCD::NTR_LCD()
 NTR_LCD::~NTR_LCD()
 {
 	screen_buffer.clear();
+
 	scanline_buffer_a.clear();
 	scanline_buffer_b.clear();
+
+	render_buffer_a.clear();
+	render_buffer_b.clear();
+
 	SDL_DestroyWindow(window);
+
 	std::cout<<"LCD::Shutdown\n";
 }
 
@@ -40,9 +46,13 @@ void NTR_LCD::reset()
 	if((window != NULL) && (config::sdl_render)) { SDL_DestroyWindow(window); }
 	window = NULL;
 
+	screen_buffer.clear();
+
 	scanline_buffer_a.clear();
 	scanline_buffer_b.clear();
-	screen_buffer.clear();
+
+	render_buffer_a.clear();
+	render_buffer_b.clear();
 
 	lcd_stat.lcd_clock = 0;
 	lcd_stat.lcd_mode = 0;
@@ -59,8 +69,15 @@ void NTR_LCD::reset()
 	lcd_stat.lyc_b = 0;
 
 	screen_buffer.resize(0x18000, 0);
+
 	scanline_buffer_a.resize(0x100, 0);
 	scanline_buffer_b.resize(0x100, 0);
+
+	render_buffer_a.resize(0x100, false);
+	render_buffer_b.resize(0x100, false);
+
+	full_scanline_render_a = false;
+	full_scanline_render_b = false;
 
 	lcd_stat.bg_pal_update_a = true;
 	lcd_stat.bg_pal_update_list_a.resize(0x100, 0);
@@ -336,6 +353,10 @@ void NTR_LCD::render_bg_scanline(u32 bg_control)
 	//Render Engine A
 	if((bg_control & 0x1000) == 0)
 	{
+		//Reset render buffer
+		full_scanline_render_a = false;
+		render_buffer_a.assign(0x100, false);
+
 		//Clear scanline with backdrop
 		for(u16 x = 0; x < 256; x++) { scanline_buffer_a[x] = (lcd_stat.ext_pal_a) ? lcd_stat.bg_ext_pal_a[0] : lcd_stat.bg_pal_a[0]; }
 
@@ -487,6 +508,10 @@ void NTR_LCD::render_bg_scanline(u32 bg_control)
 	//Render Engine B
 	else
 	{
+		//Reset render buffer
+		full_scanline_render_b = false;
+		render_buffer_b.assign(0x100, false);
+
 		//Clear scanline with backdrop
 		for(u16 x = 0; x < 256; x++) { scanline_buffer_b[x] = lcd_stat.bg_pal_b[0]; }
 
@@ -644,8 +669,13 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 		//Grab BG ID
 		u8 bg_id = (bg_control - 0x4000008) >> 1;
 
-		//Abort rendering if this bg is disabled
+		//Abort rendering if this BG is disabled
 		if(!lcd_stat.bg_enable_a[bg_id]) { return; }
+
+		//Abort rendering if BGs with high priority have already completely rendered a scanline
+		if(full_scanline_render_a) { return; }
+
+		bool full_render = true;
 
 		//Grab tile offsets
 		u8 tile_offset_x = lcd_stat.bg_offset_x_a[bg_id] & 0x7;
@@ -692,12 +722,24 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 				{
 					u8 raw_color = mem->read_u8(tile_data_addr++);
 
-					//Only draw color if it's not transparent
-					if(raw_color)
+					//Only draw if no previous pixel was rendered
+					if(!render_buffer_a[scanline_pixel_counter])
 					{
-						scanline_buffer_a[scanline_pixel_counter] = (lcd_stat.ext_pal_a) ? lcd_stat.bg_ext_pal_a[(bg_id << 8) + raw_color]  : lcd_stat.bg_pal_a[raw_color];
+						//Only draw colors if not transparent
+						if(raw_color)
+						{
+							scanline_buffer_a[scanline_pixel_counter] = (lcd_stat.ext_pal_a) ? lcd_stat.bg_ext_pal_a[(bg_id << 8) + raw_color]  : lcd_stat.bg_pal_a[raw_color];
+							render_buffer_a[scanline_pixel_counter] = true;
+						}
+
+						else
+						{
+							full_render = false;
+							render_buffer_a[scanline_pixel_counter] = false;
+						}
 					}
 
+					//Draw 256 pixels max
 					scanline_pixel_counter++;
 					current_screen_pixel++;
 					if(scanline_pixel_counter & 0x100) { return; }
@@ -710,14 +752,45 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 					u8 pal_1 = (pal_id * 16) + (raw_color & 0xF);
 					u8 pal_2 = (pal_id * 16) + (raw_color >> 4);
 
-					//Only draw colors if not transparent
-					if(raw_color & 0xF) { scanline_buffer_a[scanline_pixel_counter] = lcd_stat.bg_pal_a[pal_1]; }
+					//Only draw if no previous pixel was rendered
+					if(!render_buffer_a[scanline_pixel_counter])
+					{
+						//Only draw colors if not transparent
+						if(raw_color & 0xF)
+						{
+							scanline_buffer_a[scanline_pixel_counter] = lcd_stat.bg_pal_a[pal_1];
+							render_buffer_a[scanline_pixel_counter] = true;
+						}
 
+						else
+						{
+							full_render = false;
+							render_buffer_a[scanline_pixel_counter] = false;
+						}
+					}
+
+					//Draw 256 pixels max
 					scanline_pixel_counter++;
 					if(scanline_pixel_counter & 0x100) { return; }
-					
-					if(raw_color >> 4) { scanline_buffer_a[scanline_pixel_counter] = lcd_stat.bg_pal_a[pal_2]; }
 
+					//Only draw if no previous pixel was rendered
+					if(!render_buffer_a[scanline_pixel_counter])
+					{
+						//Only draw colors if not transparent
+						if(raw_color >> 4)
+						{
+							scanline_buffer_a[scanline_pixel_counter] = lcd_stat.bg_pal_a[pal_2];
+							render_buffer_a[scanline_pixel_counter] = true;
+						}
+
+						else
+						{
+							full_render = false;
+							render_buffer_a[scanline_pixel_counter] = false;
+						}
+					}
+
+					//Draw 256 pixels max
 					scanline_pixel_counter++;
 					if(scanline_pixel_counter & 0x100) { return; }
 
@@ -728,6 +801,8 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 
 			tile_offset_x = 0;
 		}
+
+		full_scanline_render_a = full_render;
 	}
 
 	//Render Engine B
@@ -738,6 +813,11 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 
 		//Abort rendering if this bg is disabled
 		if(!lcd_stat.bg_enable_b[bg_id]) { return; }
+
+		//Abort rendering if BGs with high priority have already completely rendered a scanline
+		if(full_scanline_render_b) { return; }
+
+		bool full_render = true;
 
 		//Grab tile offsets
 		u8 tile_offset_x = lcd_stat.bg_offset_x_b[bg_id] & 0x7;
@@ -784,12 +864,24 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 				{
 					u8 raw_color = mem->read_u8(tile_data_addr++);
 
-					//Only draw color if it's not transparent
-					if(raw_color)
+					//Only draw if no previous pixel was rendered
+					if(!render_buffer_b[scanline_pixel_counter])
 					{
-						scanline_buffer_b[scanline_pixel_counter] = (lcd_stat.ext_pal_b) ? lcd_stat.bg_ext_pal_b[(bg_id << 8) + raw_color]  : lcd_stat.bg_pal_b[raw_color];
+						//Only draw colors if not transparent
+						if(raw_color)
+						{
+							scanline_buffer_b[scanline_pixel_counter] = (lcd_stat.ext_pal_b) ? lcd_stat.bg_ext_pal_b[(bg_id << 8) + raw_color]  : lcd_stat.bg_pal_b[raw_color];
+							render_buffer_b[scanline_pixel_counter] = true;
+						}
+
+						else
+						{
+							full_render = false;
+							render_buffer_b[scanline_pixel_counter] = false;
+						}
 					}
 
+					//Draw 256 pixels max
 					scanline_pixel_counter++;
 					current_screen_pixel++;
 					if(scanline_pixel_counter & 0x100) { return; }
@@ -802,14 +894,45 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 					u8 pal_1 = (pal_id * 16) + (raw_color & 0xF);
 					u8 pal_2 = (pal_id * 16) + (raw_color >> 4);
 
-					//Only draw colors if not transparent
-					if(raw_color & 0xF) { scanline_buffer_b[scanline_pixel_counter] = lcd_stat.bg_pal_b[pal_1]; }
+					//Only draw if no previous pixel was rendered
+					if(!render_buffer_b[scanline_pixel_counter])
+					{
+						//Only draw colors if not transparent
+						if(raw_color & 0xF)
+						{
+							scanline_buffer_b[scanline_pixel_counter] = lcd_stat.bg_pal_b[pal_1];
+							render_buffer_b[scanline_pixel_counter] = true;
+						}
 
+						else
+						{
+							full_render = false;
+							render_buffer_b[scanline_pixel_counter] = false;
+						}
+					}
+
+					//Draw 256 pixels max
 					scanline_pixel_counter++;
 					if(scanline_pixel_counter & 0x100) { return; }
-					
-					if(raw_color >> 4) { scanline_buffer_b[scanline_pixel_counter] = lcd_stat.bg_pal_b[pal_2]; }
 
+					//Only draw if no previous pixel was rendered
+					if(!render_buffer_b[scanline_pixel_counter])
+					{
+						//Only draw colors if not transparent
+						if(raw_color >> 4)
+						{
+							scanline_buffer_b[scanline_pixel_counter] = lcd_stat.bg_pal_b[pal_2];
+							render_buffer_b[scanline_pixel_counter] = true;
+						}
+
+						else
+						{
+							full_render = false;
+							render_buffer_b[scanline_pixel_counter] = false;
+						}
+					}
+
+					//Draw 256 pixels max
 					scanline_pixel_counter++;
 					if(scanline_pixel_counter & 0x100) { return; }
 
@@ -838,6 +961,9 @@ void NTR_LCD::render_bg_mode_affine(u32 bg_control)
 
 		//Abort rendering if this bg is disabled
 		if(!lcd_stat.bg_enable_a[bg_id]) { return; }
+
+		//Abort rendering if BGs with high priority have already completely rendered a scanline
+		if(full_scanline_render_a) { return; }
 
 		//Get BG size in tiles, pixels
 		//0 - 128x128, 1 - 256x256, 2 - 512x512, 3 - 1024x1024
@@ -927,6 +1053,9 @@ void NTR_LCD::render_bg_mode_affine(u32 bg_control)
 
 		//Abort rendering if this bg is disabled
 		if(!lcd_stat.bg_enable_b[bg_id]) { return; }
+
+		//Abort rendering if BGs with high priority have already completely rendered a scanline
+		if(full_scanline_render_b) { return; }
 
 		//Get BG size in tiles, pixels
 		//0 - 128x128, 1 - 256x256, 2 - 512x512, 3 - 1024x1024
@@ -1021,6 +1150,9 @@ void NTR_LCD::render_bg_mode_affine_ext(u32 bg_control)
 		//Abort rendering if this bg is disabled
 		if(!lcd_stat.bg_enable_a[bg_id]) { return; }
 
+		//Abort rendering if BGs with high priority have already completely rendered a scanline
+		if(full_scanline_render_a) { return; }
+
 		//Get BG size in tiles, pixels
 		//0 - 128x128, 1 - 256x256, 2 - 512x512, 3 - 1024x1024
 		u16 bg_tile_size = (16 << (lcd_stat.bg_control_a[bg_id] >> 14));
@@ -1111,6 +1243,9 @@ void NTR_LCD::render_bg_mode_affine_ext(u32 bg_control)
 
 		//Abort rendering if this bg is disabled
 		if(!lcd_stat.bg_enable_b[bg_id]) { return; }
+
+		//Abort rendering if BGs with high priority have already completely rendered a scanline
+		if(full_scanline_render_b) { return; }
 
 		//Get BG size in tiles, pixels
 		//0 - 128x128, 1 - 256x256, 2 - 512x512, 3 - 1024x1024
@@ -1207,6 +1342,9 @@ void NTR_LCD::render_bg_mode_bitmap(u32 bg_control)
 		//Abort rendering if this bg is disabled
 		if(!lcd_stat.bg_enable_a[bg_id]) { return; }
 
+		//Abort rendering if BGs with high priority have already completely rendered a scanline
+		if(full_scanline_render_a) { return; }
+
 		u8 raw_color = 0;
 		u8 scanline_pixel_counter = 0;
 
@@ -1300,6 +1438,9 @@ void NTR_LCD::render_bg_mode_bitmap(u32 bg_control)
 
 		//Abort rendering if this bg is disabled
 		if(!lcd_stat.bg_enable_b[bg_id]) { return; }
+
+		//Abort rendering if BGs with high priority have already completely rendered a scanline
+		if(full_scanline_render_b) { return; }
 
 		u8 raw_color = 0;
 		u8 scanline_pixel_counter = 0;
@@ -1398,6 +1539,9 @@ void NTR_LCD::render_bg_mode_direct(u32 bg_control)
 
 		//Abort rendering if this bg is disabled
 		if(!lcd_stat.bg_enable_a[bg_id]) { return; }
+
+		//Abort rendering if BGs with high priority have already completely rendered a scanline
+		if(full_scanline_render_a) { return; }
 
 		u16 raw_color = 0;
 		u8 scanline_pixel_counter = 0;
@@ -1504,6 +1648,9 @@ void NTR_LCD::render_bg_mode_direct(u32 bg_control)
 
 		//Abort rendering if this bg is disabled
 		if(!lcd_stat.bg_enable_b[bg_id]) { return; }
+
+		//Abort rendering if BGs with high priority have already completely rendered a scanline
+		if(full_scanline_render_b) { return; }
 
 		u16 raw_color = 0;
 		u8 scanline_pixel_counter = 0;
