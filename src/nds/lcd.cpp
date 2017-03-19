@@ -151,7 +151,7 @@ void NTR_LCD::reset()
 
 	for(int x = 0; x < 9; x++) { lcd_stat.vram_bank_addr[x] = 0x0; }
 
-	//BG2/3 affine parameters
+	//BG2/3 affine parameters + bitmap base addrs
 	for(int x = 0; x < 2; x++)
 	{
 		lcd_stat.bg_affine_a[x].overflow = false;
@@ -165,6 +165,9 @@ void NTR_LCD::reset()
 		lcd_stat.bg_affine_b[x].dx = lcd_stat.bg_affine_b[x].dmy = 1.0;
 		lcd_stat.bg_affine_a[x].x_ref = lcd_stat.bg_affine_b[x].y_ref = 0.0;
 		lcd_stat.bg_affine_b[x].x_pos = lcd_stat.bg_affine_b[x].y_pos = 0.0;
+
+		lcd_stat.bg_bitmap_base_addr_a[x] = 0x6000000;
+		lcd_stat.bg_bitmap_base_addr_b[x] = 0x6000000;
 	}
 
 	//VRAM blocks
@@ -513,7 +516,7 @@ void NTR_LCD::render_bg_scanline(u32 bg_control)
 		render_buffer_b.assign(0x100, false);
 
 		//Clear scanline with backdrop
-		for(u16 x = 0; x < 256; x++) { scanline_buffer_b[x] = lcd_stat.bg_pal_b[0]; }
+		for(u16 x = 0; x < 256; x++) { scanline_buffer_b[x] = (lcd_stat.ext_pal_b) ? lcd_stat.bg_ext_pal_b[0] : lcd_stat.bg_pal_b[0]; }
 
 		//Determine BG priority
 		for(int x = 0, list_length = 0; x < 4; x++)
@@ -732,11 +735,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 							render_buffer_a[scanline_pixel_counter] = true;
 						}
 
-						else
-						{
-							full_render = false;
-							render_buffer_a[scanline_pixel_counter] = false;
-						}
+						else { full_render = false; }
 					}
 
 					//Draw 256 pixels max
@@ -762,11 +761,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 							render_buffer_a[scanline_pixel_counter] = true;
 						}
 
-						else
-						{
-							full_render = false;
-							render_buffer_a[scanline_pixel_counter] = false;
-						}
+						else { full_render = false; }
 					}
 
 					//Draw 256 pixels max
@@ -783,11 +778,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 							render_buffer_a[scanline_pixel_counter] = true;
 						}
 
-						else
-						{
-							full_render = false;
-							render_buffer_a[scanline_pixel_counter] = false;
-						}
+						else { full_render = false; }
 					}
 
 					//Draw 256 pixels max
@@ -874,11 +865,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 							render_buffer_b[scanline_pixel_counter] = true;
 						}
 
-						else
-						{
-							full_render = false;
-							render_buffer_b[scanline_pixel_counter] = false;
-						}
+						else { full_render = false; }
 					}
 
 					//Draw 256 pixels max
@@ -904,11 +891,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 							render_buffer_b[scanline_pixel_counter] = true;
 						}
 
-						else
-						{
-							full_render = false;
-							render_buffer_b[scanline_pixel_counter] = false;
-						}
+						else { full_render = false; }
 					}
 
 					//Draw 256 pixels max
@@ -925,11 +908,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 							render_buffer_b[scanline_pixel_counter] = true;
 						}
 
-						else
-						{
-							full_render = false;
-							render_buffer_b[scanline_pixel_counter] = false;
-						}
+						else { full_render = false; }
 					}
 
 					//Draw 256 pixels max
@@ -1345,12 +1324,16 @@ void NTR_LCD::render_bg_mode_bitmap(u32 bg_control)
 		//Abort rendering if BGs with high priority have already completely rendered a scanline
 		if(full_scanline_render_a) { return; }
 
+		bool full_render = true;
+
 		u8 raw_color = 0;
 		u8 scanline_pixel_counter = 0;
 
 		u16 src_x, src_y = 0;
 		double new_x, new_y = 0.0;
 		u16 bg_pixel_width, bg_pixel_height = 0;
+
+		u32 bitmap_addr = lcd_stat.bg_bitmap_base_addr_a[bg_id & 0x1];
 
 		//Determine bitmap dimensions
 		switch(lcd_stat.bg_size_a[bg_id])
@@ -1403,15 +1386,27 @@ void NTR_LCD::render_bg_mode_bitmap(u32 bg_control)
 				while(new_y < 0) { new_y += bg_pixel_height; } 
 			}
 
-			if(render_pixel)
+			//Only draw if no previous pixel was rendered
+			if(!render_buffer_a[scanline_pixel_counter])
 			{
-				//Determine source pixel X-Y coordinates
-				src_x = new_x;
-				src_y = new_y;
+				if(render_pixel)
+				{
+					//Determine source pixel X-Y coordinates
+					src_x = new_x;
+					src_y = new_y;
 
-				raw_color = mem->memory_map[0x6000000 + (src_y * bg_pixel_width) + src_x];
+					raw_color = mem->memory_map[bitmap_addr + (src_y * bg_pixel_width) + src_x];
 			
-				if(raw_color) { scanline_buffer_a[scanline_pixel_counter] = lcd_stat.bg_pal_a[raw_color]; }
+					if(raw_color)
+					{
+						scanline_buffer_a[scanline_pixel_counter] = (lcd_stat.ext_pal_a) ? lcd_stat.bg_ext_pal_a[(bg_id << 8) + raw_color] : lcd_stat.bg_pal_a[raw_color];
+						render_buffer_a[scanline_pixel_counter] = true;
+					}
+
+					else { full_render = false; }
+				}
+
+				else { full_render = false; }
 			}
 
 			scanline_pixel_counter++;
@@ -1420,6 +1415,8 @@ void NTR_LCD::render_bg_mode_bitmap(u32 bg_control)
 			lcd_stat.bg_affine_a[affine_id].x_pos += lcd_stat.bg_affine_a[affine_id].dx;
 			lcd_stat.bg_affine_a[affine_id].y_pos += lcd_stat.bg_affine_a[affine_id].dy;
 		}
+
+		full_scanline_render_a = full_render;
 
 		//Update XREF and YREF for next line
 		lcd_stat.bg_affine_a[affine_id].x_ref += lcd_stat.bg_affine_a[affine_id].dmx;
@@ -1442,12 +1439,16 @@ void NTR_LCD::render_bg_mode_bitmap(u32 bg_control)
 		//Abort rendering if BGs with high priority have already completely rendered a scanline
 		if(full_scanline_render_b) { return; }
 
+		bool full_render = true;
+
 		u8 raw_color = 0;
 		u8 scanline_pixel_counter = 0;
 
 		u16 src_x, src_y = 0;
 		double new_x, new_y = 0.0;
 		u16 bg_pixel_width, bg_pixel_height = 0;
+
+		u32 bitmap_addr = lcd_stat.bg_bitmap_base_addr_b[bg_id & 0x1];
 
 		//Determine bitmap dimensions
 		switch(lcd_stat.bg_size_b[bg_id])
@@ -1500,23 +1501,37 @@ void NTR_LCD::render_bg_mode_bitmap(u32 bg_control)
 				while(new_y < 0) { new_y += bg_pixel_height; } 
 			}
 
-			if(render_pixel)
+			//Only draw if no previous pixel was rendered
+			if(!render_buffer_b[scanline_pixel_counter])
 			{
-				//Determine source pixel X-Y coordinates
-				src_x = new_x;
-				src_y = new_y;
+				if(render_pixel)
+				{
+					//Determine source pixel X-Y coordinates
+					src_x = new_x;
+					src_y = new_y;
 
-				raw_color = mem->memory_map[0x6200000 + (src_y * bg_pixel_width) + src_x];
+					raw_color = mem->memory_map[bitmap_addr + (src_y * bg_pixel_width) + src_x];
 			
-				if(raw_color) { scanline_buffer_b[scanline_pixel_counter] = lcd_stat.bg_pal_b[raw_color]; }
-			}
+					if(raw_color)
+					{
+						scanline_buffer_b[scanline_pixel_counter] = (lcd_stat.ext_pal_b) ? lcd_stat.bg_ext_pal_b[(bg_id << 8) + raw_color] : lcd_stat.bg_pal_b[raw_color];
+						render_buffer_b[scanline_pixel_counter] = true;
+					}
 
+					else { full_render = false; }
+				}
+
+				else { full_render = false; }
+			}
+				
 			scanline_pixel_counter++;
 
 			//Update texture position with DX and DY
 			lcd_stat.bg_affine_b[affine_id].x_pos += lcd_stat.bg_affine_b[affine_id].dx;
 			lcd_stat.bg_affine_b[affine_id].y_pos += lcd_stat.bg_affine_b[affine_id].dy;
 		}
+
+		full_scanline_render_b = full_render;
 
 		//Update XREF and YREF for next line
 		lcd_stat.bg_affine_b[affine_id].x_ref += lcd_stat.bg_affine_b[affine_id].dmx;

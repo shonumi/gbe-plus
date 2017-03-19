@@ -71,6 +71,9 @@ struct ntr_lcd_data
 	u32 bg_base_tile_addr_a[4];
 	u32 bg_base_tile_addr_b[4];
 
+	u32 bg_bitmap_base_addr_a[2];
+	u32 bg_bitmap_base_addr_b[2];
+	
 	u8 bg_priority_a[4];
 	u8 bg_priority_b[4];
 

@@ -745,6 +745,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 				lcd_stat->bg_base_tile_addr_a[2] = (char_base * 0x10000) + (char_block * 0x4000);
 				lcd_stat->bg_base_map_addr_a[2] = (screen_base * 0x10000) + (screen_block * 0x800);
+				lcd_stat->bg_bitmap_base_addr_a[0] = 0x6000000 + (screen_block * 0x4000);
 
 				//Bit-depth
 				lcd_stat->bg_depth_a[2] = (lcd_stat->bg_control_a[2] & 0x80) ? 1 : 0;
@@ -785,6 +786,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 				lcd_stat->bg_base_tile_addr_b[2] = (char_block * 0x4000);
 				lcd_stat->bg_base_map_addr_b[2] = (screen_block * 0x800);
+				lcd_stat->bg_bitmap_base_addr_b[0] = 0x6200000 + (screen_block * 0x4000);
 
 				//Bit-depth
 				lcd_stat->bg_depth_b[2] = (lcd_stat->bg_control_b[2] & 0x80) ? 1 : 0;
@@ -825,6 +827,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 				lcd_stat->bg_base_tile_addr_a[3] = (char_base * 0x10000) + (char_block * 0x4000);
 				lcd_stat->bg_base_map_addr_a[3] = (screen_base * 0x10000) + (screen_block * 0x800);
+				lcd_stat->bg_bitmap_base_addr_a[1] = 0x6000000 + (screen_block * 0x4000);
 
 				//Bit-depth
 				lcd_stat->bg_depth_a[3] = (lcd_stat->bg_control_a[3] & 0x80) ? 1 : 0;
@@ -865,6 +868,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 				lcd_stat->bg_base_tile_addr_b[3] = (char_block * 0x4000);
 				lcd_stat->bg_base_map_addr_b[3] = (screen_block * 0x800);
+				lcd_stat->bg_bitmap_base_addr_b[1] = 0x6200000 + (screen_block * 0x4000);
 
 				//Bit-depth
 				lcd_stat->bg_depth_b[3] = (lcd_stat->bg_control_b[3] & 0x80) ? 1 : 0;
