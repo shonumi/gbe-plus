@@ -678,7 +678,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 			u16 map_data = mem->read_u16(map_addr + (map_entry << 1));
 
 			//Get tile and palette number
-			tile_id = (map_data & 0x1FF);
+			tile_id = (map_data & 0x3FF);
 			pal_id = (map_data >> 12) & 0xF;
 
 			//Calculate VRAM address to start pulling up tile data
@@ -770,7 +770,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 			u16 map_data = mem->read_u16(map_addr + (map_entry << 1));
 
 			//Get tile and palette number
-			tile_id = (map_data & 0x1FF);
+			tile_id = (map_data & 0x3FF);
 			pal_id = (map_data >> 12) & 0xF;
 
 			//Calculate VRAM address to start pulling up tile data
