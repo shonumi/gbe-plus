@@ -262,14 +262,15 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	//OBJ Meta Tile widgets
 	QWidget* obj_meta_preview_set = new QWidget(obj_meta_tab);
 
-	QWidget* obj_size_set = new QWidget(obj_meta_tab);
+	QWidget* obj_size_set_1 = new QWidget(obj_meta_tab);
+	QWidget* obj_size_set_2 = new QWidget(obj_meta_tab);
 	QLabel* obj_meta_width_label = new QLabel("Tile Width :\t");
 	QLabel* obj_meta_height_label = new QLabel("Tile Height :\t");
 	
-	obj_meta_width = new QSpinBox(obj_size_set);
+	obj_meta_width = new QSpinBox;
 	obj_meta_width->setRange(0, 20);
 	
-	obj_meta_height = new QSpinBox(obj_size_set);
+	obj_meta_height = new QSpinBox;
 	obj_meta_height->setRange(0, 20);
 
 	QImage temp_obj(320, 320, QImage::Format_ARGB32);
@@ -281,23 +282,50 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	obj_meta_img->installEventFilter(this);
 	obj_meta_img->setMouseTracking(true);
 
-	QHBoxLayout* obj_size_layout = new QHBoxLayout;
-	obj_size_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-	obj_size_layout->addWidget(obj_meta_width_label);
-	obj_size_layout->addWidget(obj_meta_width);
-	obj_size_layout->addWidget(obj_meta_height_label);
-	obj_size_layout->addWidget(obj_meta_height);
-	obj_size_set->setLayout(obj_size_layout);
+	QHBoxLayout* obj_size_layout_1 = new QHBoxLayout;
+	obj_size_layout_1->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	obj_size_layout_1->addWidget(obj_meta_width_label);
+	obj_size_layout_1->addWidget(obj_meta_width);
+	obj_size_set_1->setLayout(obj_size_layout_1);
+
+	QHBoxLayout* obj_size_layout_2 = new QHBoxLayout;
+	obj_size_layout_2->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	obj_size_layout_2->addWidget(obj_meta_height_label);
+	obj_size_layout_2->addWidget(obj_meta_height);
+	obj_size_set_2->setLayout(obj_size_layout_2);
 
 	QVBoxLayout* obj_meta_preview_layout = new QVBoxLayout;
 	obj_meta_preview_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-	obj_meta_preview_layout->addWidget(obj_size_set);
+	obj_meta_preview_layout->addWidget(obj_size_set_1);
+	obj_meta_preview_layout->addWidget(obj_size_set_2);
 	obj_meta_preview_layout->addWidget(obj_meta_img);
 	obj_meta_preview_set->setLayout(obj_meta_preview_layout);
+
+	QWidget* obj_resource_set = new QWidget(obj_meta_tab);
+	obj_meta_index = new QSpinBox(obj_resource_set);
+	obj_meta_index->setRange(0, 39);
+	QLabel* obj_meta_index_label = new QLabel("OBJ Index :\t");
+
+	QHBoxLayout* obj_resource_layout = new QHBoxLayout;
+	obj_resource_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	obj_resource_layout->addWidget(obj_meta_index_label);
+	obj_resource_layout->addWidget(obj_meta_index);
+	obj_resource_set->setLayout(obj_resource_layout);
+
+	QWidget* obj_data_set = new QWidget(obj_meta_tab);
+	obj_select_img = new QLabel;
+	obj_select_img->setPixmap(QPixmap::fromImage(temp_obj.scaled(256, 256)));
+
+	QVBoxLayout* obj_data_layout = new QVBoxLayout;
+	obj_data_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	obj_data_layout->addWidget(obj_resource_set);
+	obj_data_layout->addWidget(obj_select_img);
+	obj_data_set->setLayout(obj_data_layout);
 
 	//OBJ Meta Tile layout
 	QGridLayout* obj_meta_layout = new QGridLayout;
 	obj_meta_layout->addWidget(obj_meta_preview_set, 0, 0, 1, 1);
+	obj_meta_layout->addWidget(obj_data_set, 0, 1, 1, 1);
 	obj_meta_tab->setLayout(obj_meta_layout);
 
 	//Manifest widgets
@@ -391,6 +419,7 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	connect(next_frame, SIGNAL(clicked()), this, SLOT(advance_next_frame()));
 	connect(obj_meta_width, SIGNAL(valueChanged(int)), this, SLOT(update_obj_meta_size()));
 	connect(obj_meta_height, SIGNAL(valueChanged(int)), this, SLOT(update_obj_meta_size()));
+	connect(obj_meta_index, SIGNAL(valueChanged(int)), this, SLOT(select_obj()));
 
 	QSignalMapper* input_signal = new QSignalMapper(this);
 	connect(a_input, SIGNAL(clicked()), input_signal, SLOT(map()));
@@ -3128,13 +3157,15 @@ bool gbe_cgfx::eventFilter(QObject* target, QEvent* event)
 		{
 			//Update the preview
 			if((mouse_event->x() <= 320) && (mouse_event->y() <= 288)) { dump_layer_tile(x, y); }
-		}
+		}	
 	}
 
 	//Single clock
 	else if(event->type() == QEvent::MouseButtonPress)
 	{
 		QMouseEvent* mouse_event = static_cast<QMouseEvent*>(event);
+		u32 x = mouse_event->x();
+		u32 y = mouse_event->y();
 
 		//Layers tab
 		if(target == current_layer)
@@ -3142,6 +3173,34 @@ bool gbe_cgfx::eventFilter(QObject* target, QEvent* event)
 			mouse_drag = true;
 			mouse_start_x = mouse_event->x();
 			mouse_start_y = mouse_event->y();
+		}
+
+		//OBJ Meta Tile tab
+		else if(target == obj_meta_img)
+		{
+			if((x < 320) && (y < 320))
+			{
+				//Copy data from OBJ index to preview
+				int obj_index = obj_meta_index->value();
+				QImage selected_img = grab_obj_data(obj_index).scaled(16, 16);
+
+				x &= ~0xF;
+				y &= ~0xF;
+
+				for(int sy = y, ty = 0; sy < (y + 16); sy++, ty++)
+				{
+					u32* out_pixel_data = (u32*)obj_meta_pixel_data.scanLine(sy);
+					u32* in_pixel_data = (u32*)selected_img.scanLine(ty);
+
+					//Highlight affected parts of the scanline
+					for(int sx = x, tx = 0; sx < (x + 16); sx++, tx++)
+					{	
+						out_pixel_data[sx] = in_pixel_data[tx];
+					}
+				}
+
+				obj_meta_img->setPixmap(QPixmap::fromImage(obj_meta_pixel_data));
+			}
 		}
 	}
 
@@ -4102,4 +4161,15 @@ void gbe_cgfx::update_obj_meta_size()
 
 	obj_meta_img->setPixmap(QPixmap::fromImage(temp_img));
 	obj_meta_pixel_data = temp_img;
+}
+
+/****** Selects the current OBJ for the meta tile ******/
+void gbe_cgfx::select_obj()
+{
+	//Grab OBJ data from core as QImage
+	int obj_index = obj_meta_index->value();
+	QImage selected_img = grab_obj_data(obj_index).scaled(256, 256);
+	
+	//Replace pixmap
+	obj_select_img->setPixmap(QPixmap::fromImage(selected_img));
 }

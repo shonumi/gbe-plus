@@ -92,6 +92,11 @@ class gbe_cgfx : public QDialog
 	//OBJ Meta tile tab widgets
 	QSpinBox* obj_meta_width;
 	QSpinBox* obj_meta_height;
+	QSpinBox* obj_meta_index;
+
+	QLabel* obj_meta_img;
+	QLabel* obj_select_img;
+	QImage obj_meta_pixel_data;
 
 	//OBJ tab widgets
 	std::vector<QImage> cgfx_obj;
@@ -156,9 +161,6 @@ class gbe_cgfx : public QDialog
 
 	QLabel* current_layer;
 	QLabel* current_tile;
-	QLabel* obj_meta_img;
-
-	QImage obj_meta_pixel_data;
 
 	void setup_obj_window(int rows, int count);
 	void update_preview(u32 x, u32 y);
@@ -203,6 +205,7 @@ class gbe_cgfx : public QDialog
 	void advance_next_frame();
 	void update_input_control(int index);
 	void update_obj_meta_size();
+	void select_obj();
 };
 
 #endif //CGFX_GBE_QT 
