@@ -3114,14 +3114,18 @@ bool gbe_cgfx::eventFilter(QObject* target, QEvent* event)
 				if(x >= (obj_meta_width->value() * 16)) { return QDialog::eventFilter(target, event); }
 				if(y >= (obj_meta_height->value() * 16)) { return QDialog::eventFilter(target, event); }
 
+				u8 obj_height = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x04) ? 16 : 8;
+
 				//Grab affected X and Y coordinates
 				x &= ~0xF;
-				y &= ~0xF;
+				y &= (obj_height == 16) ? ~0x1F : ~0xF;
+
+				obj_height *= 2;
 
 				QImage highlight = obj_meta_pixel_data;
 
 				//Cycle scanline by scanline
-				for(int sy = y; sy < (y + 16); sy++)
+				for(int sy = y; sy < (y + obj_height); sy++)
 				{
 					u32* pixel_data = (u32*)highlight.scanLine(sy);
 
@@ -3180,14 +3184,18 @@ bool gbe_cgfx::eventFilter(QObject* target, QEvent* event)
 		{
 			if((x < 320) && (y < 320))
 			{
+				u8 obj_height = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x04) ? 16 : 8;
+
 				//Copy data from OBJ index to preview
 				int obj_index = obj_meta_index->value();
-				QImage selected_img = grab_obj_data(obj_index).scaled(16, 16);
+				QImage selected_img = (obj_height == 16) ? grab_obj_data(obj_index).scaled(16, 32) : grab_obj_data(obj_index).scaled(16, 16);
 
 				x &= ~0xF;
-				y &= ~0xF;
+				y &= (obj_height == 16) ? ~0x1F : ~0xF;
 
-				for(int sy = y, ty = 0; sy < (y + 16); sy++, ty++)
+				obj_height *= 2;
+
+				for(int sy = y, ty = 0; sy < (y + obj_height); sy++, ty++)
 				{
 					u32* out_pixel_data = (u32*)obj_meta_pixel_data.scanLine(sy);
 					u32* in_pixel_data = (u32*)selected_img.scanLine(ty);
@@ -4166,9 +4174,12 @@ void gbe_cgfx::update_obj_meta_size()
 /****** Selects the current OBJ for the meta tile ******/
 void gbe_cgfx::select_obj()
 {
+
+	u8 obj_height = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x04) ? 16 : 8;
+
 	//Grab OBJ data from core as QImage
 	int obj_index = obj_meta_index->value();
-	QImage selected_img = grab_obj_data(obj_index).scaled(256, 256);
+	QImage selected_img = (obj_height == 16) ? grab_obj_data(obj_index).scaled(128, 256) : grab_obj_data(obj_index).scaled(256, 256);
 	
 	//Replace pixmap
 	obj_select_img->setPixmap(QPixmap::fromImage(selected_img));
