@@ -576,6 +576,8 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 
 	obj_meta_width->setValue(20);
 	obj_meta_height->setValue(20);
+
+	obj_meta_str.resize(400, "");
 }
 
 /****** Sets up the OBJ dumping window ******/
@@ -3208,6 +3210,20 @@ bool gbe_cgfx::eventFilter(QObject* target, QEvent* event)
 				}
 
 				obj_meta_img->setPixmap(QPixmap::fromImage(obj_meta_pixel_data));
+
+				//Generate meta_tile manifest data
+				u32 obj_addr = 0x8000 + (obj_index << 4);
+				u8 obj_type = (config::gb_type < 2) ? 1 : 2;
+				u32 obj_id = (x / 16) + ((y / obj_height) * 20);
+
+
+				std::string entry = "";
+				std::string hash = main_menu::gbe_plus->get_hash(obj_addr, obj_type);
+				std::string type = (obj_height == 16) ? "1" : "2";
+				std::string name = "TEST_" + util::to_str(obj_id);
+				
+				entry = "[" + hash + ":" + name + ":" + type + ":0:0]";
+				obj_meta_str[obj_id] = entry;
 			}
 		}
 	}

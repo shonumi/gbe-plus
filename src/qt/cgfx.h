@@ -98,6 +98,8 @@ class gbe_cgfx : public QDialog
 	QLabel* obj_select_img;
 	QImage obj_meta_pixel_data;
 
+	std::vector<std::string> obj_meta_str;
+
 	//OBJ tab widgets
 	std::vector<QImage> cgfx_obj;
 	std::vector<QPushButton*> obj_button;
