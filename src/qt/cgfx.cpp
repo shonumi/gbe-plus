@@ -294,11 +294,14 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	obj_size_layout_2->addWidget(obj_meta_height);
 	obj_size_set_2->setLayout(obj_size_layout_2);
 
+	QPushButton* dump_obj_meta_button = new QPushButton("Dump OBJ Meta Tile");
+
 	QVBoxLayout* obj_meta_preview_layout = new QVBoxLayout;
 	obj_meta_preview_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	obj_meta_preview_layout->addWidget(obj_size_set_1);
 	obj_meta_preview_layout->addWidget(obj_size_set_2);
 	obj_meta_preview_layout->addWidget(obj_meta_img);
+	obj_meta_preview_layout->addWidget(dump_obj_meta_button);
 	obj_meta_preview_set->setLayout(obj_meta_preview_layout);
 
 	QWidget* obj_resource_set = new QWidget(obj_meta_tab);
@@ -420,6 +423,7 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	connect(obj_meta_width, SIGNAL(valueChanged(int)), this, SLOT(update_obj_meta_size()));
 	connect(obj_meta_height, SIGNAL(valueChanged(int)), this, SLOT(update_obj_meta_size()));
 	connect(obj_meta_index, SIGNAL(valueChanged(int)), this, SLOT(select_obj()));
+	connect(dump_obj_meta_button, SIGNAL(clicked()), this, SLOT(dump_obj_meta_tile()));
 
 	QSignalMapper* input_signal = new QSignalMapper(this);
 	connect(a_input, SIGNAL(clicked()), input_signal, SLOT(map()));
@@ -3212,15 +3216,18 @@ bool gbe_cgfx::eventFilter(QObject* target, QEvent* event)
 				obj_meta_img->setPixmap(QPixmap::fromImage(obj_meta_pixel_data));
 
 				//Generate meta_tile manifest data
-				u32 obj_addr = 0x8000 + (obj_index << 4);
+				u8 tile_number = main_menu::gbe_plus->ex_read_u8(OAM + (obj_index * 4) + 2);
+				if(obj_height == 32) { tile_number &= ~0x1; }
+				u32 obj_addr = 0x8000 + (tile_number * 16);
+
 				u8 obj_type = (config::gb_type < 2) ? 1 : 2;
-				u32 obj_id = (x / 16) + ((y / obj_height) * 20);
+				u32 obj_id = (x / 16) + ((y / obj_height) * obj_meta_width->value());
 
 
 				std::string entry = "";
 				std::string hash = main_menu::gbe_plus->get_hash(obj_addr, obj_type);
 				std::string type = (obj_height == 16) ? "1" : "2";
-				std::string name = "TEST_" + util::to_str(obj_id);
+				std::string name = "OBJ_META_" + util::to_str(obj_id);
 				
 				entry = "[" + hash + ":" + name + ":" + type + ":0:0]";
 				obj_meta_str[obj_id] = entry;
@@ -3544,6 +3551,68 @@ void gbe_cgfx::dump_selection()
 	//Update manifest tab if necessary
 	parse_manifest_items();
 }
+
+/****** Dumps OBJ Meta Tile to file ******/
+void gbe_cgfx::dump_obj_meta_tile()
+{
+	//Show warning dialog
+	if((cgfx::manifest_file.empty()) && (enable_manifest_warning))
+	{
+		manifest_warning->show();
+		manifest_warning->raise();
+	}
+
+	while(manifest_warning->isVisible())
+	{
+		SDL_Delay(16);
+		QApplication::processEvents();
+	}
+
+	//Save OBJ meta tile to image
+	QString file_path(QString::fromStdString(config::data_path + cgfx::dump_obj_path + "OBJ_META" + ".bmp"));
+	u32 s_width = obj_meta_pixel_data.width() / 2;
+	u32 s_height = obj_meta_pixel_data.height() / 2;
+
+	if(!obj_meta_pixel_data.scaled(s_width, s_height).save(file_path))
+	{
+		save_fail->show();
+		save_fail->raise();
+	}
+
+	while(save_fail->isVisible())
+	{
+		SDL_Delay(16);
+		QApplication::processEvents();
+	}
+
+	//Open manifest file, then write to it
+	std::ofstream file(cgfx::manifest_file.c_str(), std::ios::out | std::ios::app);
+	std::string entry = "";
+
+	//TODO - Add a Qt warning here
+	if(!file.is_open()) { return; }
+
+	u8 obj_height = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x04) ? 16 : 8;
+	std::string type = (obj_height == 8) ? ":1]" : ":2]";
+
+	//Write main entry
+	entry = "['" + cgfx::dump_obj_path + "OBJ_META.bmp'" + ":OBJ_META" + type;
+	file << "\n" << entry;
+
+	u32 entry_count = 0;
+
+	//Generate manifest entries for selected tiles
+	for(int x = 0; x < (obj_meta_width->value() * obj_meta_height->value()); x++) 
+	{
+		entry = obj_meta_str[x];
+		if(entry != "") { file << "\n" << entry; }
+	}
+
+	file.close();
+
+	//Update manifest tab if necessary
+	parse_manifest_items();
+}	
 
 /****** Hashes the tile from a given layer ******/
 std::string gbe_cgfx::hash_tile(u8 x, u8 y)
