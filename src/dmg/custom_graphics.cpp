@@ -1284,7 +1284,11 @@ std::string DMG_LCD::get_hash(u16 addr, u8 gfx_type)
 	//Get DMG OBJ hash
 	if(gfx_type == 1)
 	{
-		u8 obj_index = (addr - 0x8000) >> 4;
+		//0-7 index, 8-15 tile number from OAM
+		u8 obj_index = addr & 0xFF;
+		
+		addr >>= 8;
+		addr = 0x8000 + (addr << 4);
 
 		//Generate salt for hash - Use OBJ palettes
 		u16 hash_salt = 0;
@@ -1315,6 +1319,12 @@ std::string DMG_LCD::get_hash(u16 addr, u8 gfx_type)
 	//Get GBC OBJ hash
 	else if(gfx_type == 2)
 	{
+		//0-7 index, 8-15 tile number from OAM
+		u8 obj_index = addr & 0xFF;
+		
+		addr >>= 8;
+		addr = 0x8000 + (addr << 4);
+
 		//Determine if in 8x8 or 8x16 mode
 		u8 obj_height = (mem->memory_map[REG_LCDC] & 0x04) ? 16 : 8;
 

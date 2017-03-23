@@ -296,11 +296,23 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 
 	QPushButton* dump_obj_meta_button = new QPushButton("Dump OBJ Meta Tile");
 
+	QWidget* obj_name_set = new QWidget(obj_meta_tab);
+	obj_name_set->setMaximumWidth(320);
+	QLabel* obj_name_label = new QLabel("Meta Tile Name: ");
+	obj_meta_name = new QLineEdit;
+
+	QHBoxLayout* obj_name_layout = new QHBoxLayout;
+	obj_name_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	obj_name_layout->addWidget(obj_name_label);
+	obj_name_layout->addWidget(obj_meta_name);
+	obj_name_set->setLayout(obj_name_layout);
+
 	QVBoxLayout* obj_meta_preview_layout = new QVBoxLayout;
 	obj_meta_preview_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	obj_meta_preview_layout->addWidget(obj_size_set_1);
 	obj_meta_preview_layout->addWidget(obj_size_set_2);
 	obj_meta_preview_layout->addWidget(obj_meta_img);
+	obj_meta_preview_layout->addWidget(obj_name_set);
 	obj_meta_preview_layout->addWidget(dump_obj_meta_button);
 	obj_meta_preview_set->setLayout(obj_meta_preview_layout);
 
@@ -3193,7 +3205,7 @@ bool gbe_cgfx::eventFilter(QObject* target, QEvent* event)
 				u8 obj_height = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x04) ? 16 : 8;
 
 				//Copy data from OBJ index to preview
-				int obj_index = obj_meta_index->value();
+				u16 obj_index = obj_meta_index->value();
 				QImage selected_img = (obj_height == 16) ? grab_obj_data(obj_index).scaled(16, 32) : grab_obj_data(obj_index).scaled(16, 16);
 
 				x &= ~0xF;
@@ -3216,18 +3228,22 @@ bool gbe_cgfx::eventFilter(QObject* target, QEvent* event)
 				obj_meta_img->setPixmap(QPixmap::fromImage(obj_meta_pixel_data));
 
 				//Generate meta_tile manifest data
-				u8 tile_number = main_menu::gbe_plus->ex_read_u8(OAM + (obj_index * 4) + 2);
+				u16 tile_number = main_menu::gbe_plus->ex_read_u8(OAM + (obj_index * 4) + 2);
 				if(obj_height == 32) { tile_number &= ~0x1; }
 				u32 obj_addr = 0x8000 + (tile_number * 16);
+				obj_index |= (tile_number << 8); 
 
 				u8 obj_type = (config::gb_type < 2) ? 1 : 2;
 				u32 obj_id = (x / 16) + ((y / obj_height) * obj_meta_width->value());
 
+				//Grab metatile name
+				cgfx::meta_dump_name = obj_meta_name->text().toStdString();
+				if(cgfx::meta_dump_name.empty()) { cgfx::meta_dump_name = "OBJ_META"; }
 
 				std::string entry = "";
-				std::string hash = main_menu::gbe_plus->get_hash(obj_addr, obj_type);
+				std::string hash = main_menu::gbe_plus->get_hash(obj_index, obj_type);
 				std::string type = (obj_height == 16) ? "1" : "2";
-				std::string name = "OBJ_META_" + util::to_str(obj_id);
+				std::string name = cgfx::meta_dump_name + "_" + util::to_str(obj_id);
 				
 				entry = "[" + hash + ":" + name + ":" + type + ":0:0]";
 				obj_meta_str[obj_id] = entry;
@@ -3568,8 +3584,12 @@ void gbe_cgfx::dump_obj_meta_tile()
 		QApplication::processEvents();
 	}
 
+	//Grab metatile name
+	cgfx::meta_dump_name = obj_meta_name->text().toStdString();
+	if(cgfx::meta_dump_name.empty()) { cgfx::meta_dump_name = "OBJ_META"; }
+
 	//Save OBJ meta tile to image
-	QString file_path(QString::fromStdString(config::data_path + cgfx::dump_obj_path + "OBJ_META" + ".bmp"));
+	QString file_path(QString::fromStdString(config::data_path + cgfx::dump_obj_path + cgfx::meta_dump_name + ".bmp"));
 	u32 s_width = obj_meta_pixel_data.width() / 2;
 	u32 s_height = obj_meta_pixel_data.height() / 2;
 
@@ -3596,7 +3616,7 @@ void gbe_cgfx::dump_obj_meta_tile()
 	std::string type = (obj_height == 8) ? ":1]" : ":2]";
 
 	//Write main entry
-	entry = "['" + cgfx::dump_obj_path + "OBJ_META.bmp'" + ":OBJ_META" + type;
+	entry = "['" + cgfx::dump_obj_path + cgfx::meta_dump_name + ".bmp" + "':" + cgfx::meta_dump_name + type;
 	file << "\n" << entry;
 
 	u32 entry_count = 0;
@@ -3766,7 +3786,7 @@ std::string gbe_cgfx::hash_tile(u8 x, u8 y)
 		//Determine if in 8x8 or 8x16 mode
 		u8 obj_height = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x04) ? 16 : 8;
 
-		for(int obj_index = 0; obj_index < 40; obj_index++)
+		for(u16 obj_index = 0; obj_index < 40; obj_index++)
 		{
 			//Grab X-Y OBJ coordinates
 			u8 obj_x = main_menu::gbe_plus->ex_read_u8(OAM + (obj_index * 4) + 1);
@@ -3784,12 +3804,13 @@ std::string gbe_cgfx::hash_tile(u8 x, u8 y)
 			if((x >= test_left) && (x <= test_right) && (y >= test_top) && (y <= test_bottom))
 			{
 				//Grab address from OAM
-				u8 tile_number = main_menu::gbe_plus->ex_read_u8(OAM + (obj_index * 4) + 2);
+				u16 tile_number = main_menu::gbe_plus->ex_read_u8(OAM + (obj_index * 4) + 2);
 				if(obj_height == 16) { tile_number &= ~0x1; }
 				u16 obj_tile_addr = 0x8000 + (tile_number * 16);
 				cgfx::last_vram_addr = obj_tile_addr;
+				obj_index |= (tile_number << 8);
 
-				return main_menu::gbe_plus->get_hash(obj_tile_addr, 1);
+				return main_menu::gbe_plus->get_hash(obj_index, 1);
 			}
 		}
 	}
@@ -3800,7 +3821,7 @@ std::string gbe_cgfx::hash_tile(u8 x, u8 y)
 		//Determine if in 8x8 or 8x16 mode
 		u8 obj_height = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x04) ? 16 : 8;
 
-		for(int obj_index = 0; obj_index < 40; obj_index++)
+		for(u16 obj_index = 0; obj_index < 40; obj_index++)
 		{
 			//Grab X-Y OBJ coordinates
 			u8 obj_x = main_menu::gbe_plus->ex_read_u8(OAM + (obj_index * 4) + 1);
@@ -3818,10 +3839,11 @@ std::string gbe_cgfx::hash_tile(u8 x, u8 y)
 			if((x >= test_left) && (x <= test_right) && (y >= test_top) && (y <= test_bottom))
 			{
 				//Grab address from OAM
-				u8 tile_number = main_menu::gbe_plus->ex_read_u8(OAM + (obj_index * 4) + 2);
+				u16 tile_number = main_menu::gbe_plus->ex_read_u8(OAM + (obj_index * 4) + 2);
 				if(obj_height == 16) { tile_number &= ~0x1; }
 				u16 obj_tile_addr = 0x8000 + (tile_number * 16);
 				cgfx::last_vram_addr = obj_tile_addr;
+				obj_index |= (tile_number << 8);
 
 				//Grab attributes
 				u8 attributes = main_menu::gbe_plus->ex_read_u8(OAM + (obj_index * 4) + 3);
@@ -3829,7 +3851,7 @@ std::string gbe_cgfx::hash_tile(u8 x, u8 y)
 				cgfx::gbc_obj_color_pal = attributes & 0x7;
 				cgfx::gbc_obj_vram_bank = (attributes & 0x8) ? 1 : 0;
 
-				return main_menu::gbe_plus->get_hash(obj_tile_addr, 2);
+				return main_menu::gbe_plus->get_hash(obj_index, 2);
 			}
 		}
 	}
