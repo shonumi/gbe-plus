@@ -1023,6 +1023,15 @@ void main_menu::show_cgfx()
 		}
 	}
 
+	//Setup 8x8 or 8x16 mode
+	if(main_menu::gbe_plus != NULL)
+	{
+		u8 obj_height = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x04) ? 16 : 8;
+
+		if(obj_height == 16) { cgfx->obj_meta_height->setSingleStep(2); }
+		else { cgfx->obj_meta_height->setSingleStep(1); }
+	}
+
 	cgfx->reset_inputs();
 	cgfx->show();
 	cgfx->parse_manifest_items();

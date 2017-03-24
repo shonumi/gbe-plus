@@ -4148,6 +4148,10 @@ void gbe_cgfx::advance_next_frame()
 	}
 
 	layer_change();
+
+	//Update OBJ and BG tabs as well
+	update_obj_window(8, 40);
+	update_bg_window(8, 384);
 }
 
 /****** Updates input control when advancing frames ******/
@@ -4268,6 +4272,15 @@ void gbe_cgfx::reset_inputs()
 /****** Updates the OBJ Meta Tile preview size ******/
 void gbe_cgfx::update_obj_meta_size()
 {
+	//Limit height to even numbers only when in 8x16 mode
+	if(main_menu::gbe_plus != NULL)
+	{
+		u8 obj_height = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x04) ? 16 : 8;
+
+		if(obj_height == 16) { obj_meta_height->setSingleStep(2); }
+		else { obj_meta_height->setSingleStep(1); }
+	}
+	
 	int w = obj_meta_width->value() * 16;
 	int h = obj_meta_height->value() * 16;
 
