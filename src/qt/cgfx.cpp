@@ -268,13 +268,13 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	QLabel* obj_meta_height_label = new QLabel("Tile Height :\t");
 	
 	obj_meta_width = new QSpinBox;
-	obj_meta_width->setRange(0, 20);
+	obj_meta_width->setRange(1, 20);
 	
 	obj_meta_height = new QSpinBox;
-	obj_meta_height->setRange(0, 20);
+	obj_meta_height->setRange(1, 20);
 
 	QImage temp_obj(320, 320, QImage::Format_ARGB32);
-	temp_obj.fill(qRgb(0, 0, 0));
+	temp_obj.fill(qRgb(255, 255, 255));
 	obj_meta_pixel_data = temp_obj;
 
 	obj_meta_img = new QLabel;
@@ -3154,7 +3154,10 @@ bool gbe_cgfx::eventFilter(QObject* target, QEvent* event)
 					}
 				}
 
-				obj_meta_img->setPixmap(QPixmap::fromImage(highlight));
+				int w = obj_meta_width->value() * 16;
+				int h = obj_meta_height->value() * 16;
+
+				obj_meta_img->setPixmap(QPixmap::fromImage(highlight).copy(0, 0, w, h));
 
 				meta_highlight = true;
 			}
@@ -3162,7 +3165,10 @@ bool gbe_cgfx::eventFilter(QObject* target, QEvent* event)
 			//Return image to original state
 			else if(meta_highlight)
 			{
-				obj_meta_img->setPixmap(QPixmap::fromImage(obj_meta_pixel_data));
+				int w = obj_meta_width->value() * 16;
+				int h = obj_meta_height->value() * 16;
+
+				obj_meta_img->setPixmap(QPixmap::fromImage(obj_meta_pixel_data).copy(0, 0, w, h));
 			}
 		}
 	}
@@ -3225,7 +3231,10 @@ bool gbe_cgfx::eventFilter(QObject* target, QEvent* event)
 					}
 				}
 
-				obj_meta_img->setPixmap(QPixmap::fromImage(obj_meta_pixel_data));
+				int w = obj_meta_width->value() * 16;
+				int h = obj_meta_height->value() * 16;
+
+				obj_meta_img->setPixmap(QPixmap::fromImage(obj_meta_pixel_data).copy(0, 0, w, h));
 
 				//Generate meta_tile manifest data
 				u16 tile_number = main_menu::gbe_plus->ex_read_u8(OAM + (obj_index * 4) + 2);
@@ -3590,10 +3599,14 @@ void gbe_cgfx::dump_obj_meta_tile()
 
 	//Save OBJ meta tile to image
 	QString file_path(QString::fromStdString(config::data_path + cgfx::dump_obj_path + cgfx::meta_dump_name + ".bmp"));
-	u32 s_width = obj_meta_pixel_data.width() / 2;
-	u32 s_height = obj_meta_pixel_data.height() / 2;
 
-	if(!obj_meta_pixel_data.scaled(s_width, s_height).save(file_path))
+	u32 w = obj_meta_width->value() * 16;
+	u32 h = obj_meta_height->value() * 16;
+
+	u32 s_width = w / 2;
+	u32 s_height = h / 2;
+
+	if(!obj_meta_pixel_data.copy(0, 0, w, h).scaled(s_width, s_height).save(file_path))
 	{
 		save_fail->show();
 		save_fail->raise();
@@ -4272,29 +4285,35 @@ void gbe_cgfx::reset_inputs()
 /****** Updates the OBJ Meta Tile preview size ******/
 void gbe_cgfx::update_obj_meta_size()
 {
+	std::cout<<"W -> " << obj_meta_pixel_data.width() << "\n";
+
 	//Limit height to even numbers only when in 8x16 mode
 	if(main_menu::gbe_plus != NULL)
 	{
 		u8 obj_height = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x04) ? 16 : 8;
 
-		if(obj_height == 16) { obj_meta_height->setSingleStep(2); }
-		else { obj_meta_height->setSingleStep(1); }
+		if(obj_height == 16)
+		{
+			obj_meta_height->setSingleStep(2);
+			obj_meta_height->setRange(2, 20);
+		}
+
+		else
+		{
+			obj_meta_height->setSingleStep(1);
+			obj_meta_height->setRange(1, 20);
+		}
 	}
 	
 	int w = obj_meta_width->value() * 16;
 	int h = obj_meta_height->value() * 16;
 
-	QImage temp_img(w, h, QImage::Format_ARGB32);
-	temp_img.fill(qRgb(255, 255, 255));
-
-	obj_meta_img->setPixmap(QPixmap::fromImage(temp_img));
-	obj_meta_pixel_data = temp_img;
+	obj_meta_img->setPixmap(QPixmap::fromImage(obj_meta_pixel_data).copy(0, 0, w, h));
 }
 
 /****** Selects the current OBJ for the meta tile ******/
 void gbe_cgfx::select_obj()
 {
-
 	u8 obj_height = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x04) ? 16 : 8;
 
 	//Grab OBJ data from core as QImage

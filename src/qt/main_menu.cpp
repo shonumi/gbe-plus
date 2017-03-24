@@ -1023,13 +1023,19 @@ void main_menu::show_cgfx()
 		}
 	}
 
-	//Setup 8x8 or 8x16 mode
+	//Setup OBJ meta tile tab
 	if(main_menu::gbe_plus != NULL)
 	{
+		//Setup 8x8 or 8x16 mode
 		u8 obj_height = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x04) ? 16 : 8;
 
 		if(obj_height == 16) { cgfx->obj_meta_height->setSingleStep(2); }
 		else { cgfx->obj_meta_height->setSingleStep(1); }
+
+		//Also update OBJ meta tile resource
+		int obj_index = cgfx->obj_meta_index->value();
+		QImage selected_img = (obj_height == 16) ? cgfx->grab_obj_data(obj_index).scaled(128, 256) : cgfx->grab_obj_data(obj_index).scaled(256, 256);
+		cgfx->obj_select_img->setPixmap(QPixmap::fromImage(selected_img));
 	}
 
 	cgfx->reset_inputs();
