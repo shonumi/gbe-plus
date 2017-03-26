@@ -3185,7 +3185,7 @@ bool gbe_cgfx::eventFilter(QObject* target, QEvent* event)
 		{
 			//Update the preview
 			if((mouse_event->x() <= 320) && (mouse_event->y() <= 288)) { dump_layer_tile(x, y); }
-		}	
+		}		
 	}
 
 	//Single clock
@@ -3206,56 +3206,95 @@ bool gbe_cgfx::eventFilter(QObject* target, QEvent* event)
 		//OBJ Meta Tile tab
 		else if(target == obj_meta_img)
 		{
-			if((x < 320) && (y < 320))
+			//Add to the meta-tile
+			if(mouse_event->buttons() == Qt::LeftButton)
 			{
-				u8 obj_height = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x04) ? 16 : 8;
-
-				//Copy data from OBJ index to preview
-				u16 obj_index = obj_meta_index->value();
-				QImage selected_img = (obj_height == 16) ? grab_obj_data(obj_index).scaled(16, 32) : grab_obj_data(obj_index).scaled(16, 16);
-
-				x &= ~0xF;
-				y &= (obj_height == 16) ? ~0x1F : ~0xF;
-
-				obj_height *= 2;
-
-				for(int sy = y, ty = 0; sy < (y + obj_height); sy++, ty++)
+				if((x < 320) && (y < 320))
 				{
-					u32* out_pixel_data = (u32*)obj_meta_pixel_data.scanLine(sy);
-					u32* in_pixel_data = (u32*)selected_img.scanLine(ty);
+					u8 obj_height = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x04) ? 16 : 8;
 
-					//Highlight affected parts of the scanline
-					for(int sx = x, tx = 0; sx < (x + 16); sx++, tx++)
-					{	
-						out_pixel_data[sx] = in_pixel_data[tx];
+					//Copy data from OBJ index to preview
+					u16 obj_index = obj_meta_index->value();
+					QImage selected_img = (obj_height == 16) ? grab_obj_data(obj_index).scaled(16, 32) : grab_obj_data(obj_index).scaled(16, 16);
+
+					x &= ~0xF;
+					y &= (obj_height == 16) ? ~0x1F : ~0xF;
+
+					obj_height *= 2;
+
+					for(int sy = y, ty = 0; sy < (y + obj_height); sy++, ty++)
+					{
+						u32* out_pixel_data = (u32*)obj_meta_pixel_data.scanLine(sy);
+						u32* in_pixel_data = (u32*)selected_img.scanLine(ty);
+
+						//Highlight affected parts of the scanline
+						for(int sx = x, tx = 0; sx < (x + 16); sx++, tx++)
+						{	
+							out_pixel_data[sx] = in_pixel_data[tx];
+						}
 					}
-				}
 
-				int w = obj_meta_width->value() * 16;
-				int h = obj_meta_height->value() * 16;
+					int w = obj_meta_width->value() * 16;
+					int h = obj_meta_height->value() * 16;
 
-				obj_meta_img->setPixmap(QPixmap::fromImage(obj_meta_pixel_data).copy(0, 0, w, h));
+					obj_meta_img->setPixmap(QPixmap::fromImage(obj_meta_pixel_data).copy(0, 0, w, h));
 
-				//Generate meta_tile manifest data
-				u16 tile_number = main_menu::gbe_plus->ex_read_u8(OAM + (obj_index * 4) + 2);
-				if(obj_height == 32) { tile_number &= ~0x1; }
-				u32 obj_addr = 0x8000 + (tile_number * 16);
-				obj_index |= (tile_number << 8); 
+					//Generate meta_tile manifest data
+					u16 tile_number = main_menu::gbe_plus->ex_read_u8(OAM + (obj_index * 4) + 2);
+					if(obj_height == 32) { tile_number &= ~0x1; }
+					u32 obj_addr = 0x8000 + (tile_number * 16);
+					obj_index |= (tile_number << 8); 
 
-				u8 obj_type = (config::gb_type < 2) ? 1 : 2;
-				u32 obj_id = (x / 16) + ((y / obj_height) * obj_meta_width->value());
+					u8 obj_type = (config::gb_type < 2) ? 1 : 2;
+					u32 obj_id = (x / 16) + ((y / obj_height) * obj_meta_width->value());
 
-				//Grab metatile name
-				cgfx::meta_dump_name = obj_meta_name->text().toStdString();
-				if(cgfx::meta_dump_name.empty()) { cgfx::meta_dump_name = "OBJ_META"; }
+					//Grab metatile name
+					cgfx::meta_dump_name = obj_meta_name->text().toStdString();
+					if(cgfx::meta_dump_name.empty()) { cgfx::meta_dump_name = "OBJ_META"; }
 
-				std::string entry = "";
-				std::string hash = main_menu::gbe_plus->get_hash(obj_index, obj_type);
-				std::string type = (obj_height == 16) ? "1" : "2";
-				std::string name = cgfx::meta_dump_name + "_" + util::to_str(obj_id);
+					std::string entry = "";
+					std::string hash = main_menu::gbe_plus->get_hash(obj_index, obj_type);
+					std::string type = (obj_height == 16) ? "1" : "2";
+					std::string name = cgfx::meta_dump_name + "_" + util::to_str(obj_id);
 				
-				entry = "[" + hash + ":" + name + ":" + type + ":0:0]";
-				obj_meta_str[obj_id] = entry;
+					entry = "[" + hash + ":" + name + ":" + type + ":0:0]";
+					obj_meta_str[obj_id] = entry;
+				}
+			}
+
+			//Delete from the meta tile
+			else if(mouse_event->buttons() == Qt::RightButton)
+			{
+				if((x < 320) && (y < 320))
+				{
+					u8 obj_height = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x04) ? 16 : 8;
+
+					x &= ~0xF;
+					y &= (obj_height == 16) ? ~0x1F : ~0xF;
+
+					obj_height *= 2;
+
+					//Erase pixel data from OBJ meta tile
+					for(int sy = y, ty = 0; sy < (y + obj_height); sy++, ty++)
+					{
+						u32* out_pixel_data = (u32*)obj_meta_pixel_data.scanLine(sy);
+
+						//Highlight affected parts of the scanline
+						for(int sx = x, tx = 0; sx < (x + 16); sx++, tx++)
+						{	
+							out_pixel_data[sx] = 0xFFFFFFFF;
+						}
+					}
+
+					int w = obj_meta_width->value() * 16;
+					int h = obj_meta_height->value() * 16;
+
+					obj_meta_img->setPixmap(QPixmap::fromImage(obj_meta_pixel_data).copy(0, 0, w, h));
+
+					//Erase manifest entry
+					u32 obj_id = (x / 16) + ((y / obj_height) * obj_meta_width->value());
+					obj_meta_str[obj_id] = "";
+				}
 			}
 		}
 	}
@@ -4285,8 +4324,6 @@ void gbe_cgfx::reset_inputs()
 /****** Updates the OBJ Meta Tile preview size ******/
 void gbe_cgfx::update_obj_meta_size()
 {
-	std::cout<<"W -> " << obj_meta_pixel_data.width() << "\n";
-
 	//Limit height to even numbers only when in 8x16 mode
 	if(main_menu::gbe_plus != NULL)
 	{
