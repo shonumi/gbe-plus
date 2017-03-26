@@ -1131,6 +1131,8 @@ void ARM7::mem_check_32(u32 addr, u32& value, bool load_store)
 		//Special reads to I/O with some bits being unreadable
 		switch(addr)
 		{
+			/*
+			//TODO - See what happens with misaligned 32-bit reads to these addresses
 			//Return zero for the lower halfword of the following addresses (only top halfword is readable)
 
 			//DMAxCNT_H
@@ -1138,15 +1140,19 @@ void ARM7::mem_check_32(u32 addr, u32& value, bool load_store)
 			case 0x40000C6: value = (mem->read_u16(0x40000C6) << 16); normal_operation = false; break;
 			case 0x40000D2: value = (mem->read_u16(0x40000D2) << 16); normal_operation = false; break;
 			case 0x40000DE: value = (mem->read_u16(0x40000DE) << 16); normal_operation = false; break;
+				value = 0;
+				normal_operation = false;
+				break;
+			*/
 
-			//Return 0 for the following addresses (only bottom halfword is readable)
+			//Return only the readable halfword for the following addresses
 
 			//DMAxCNT_L
 			case 0x40000B8:
  			case 0x40000C4:
 			case 0x40000D0:
 			case 0x40000DC:
-				value = 0;
+				value = (mem->read_u16_fast(addr + 2) << 16);
 				normal_operation = false;
 				break;
 		}
