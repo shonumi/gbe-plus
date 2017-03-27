@@ -98,6 +98,9 @@ class gbe_cgfx : public QDialog
 	QLabel* obj_select_img;
 	QImage obj_meta_pixel_data;
 
+	QCheckBox* obj_meta_vram_addr;
+	QCheckBox* obj_meta_auto_bright;
+
 	QLineEdit* obj_meta_name;
 
 	std::vector<std::string> obj_meta_str;

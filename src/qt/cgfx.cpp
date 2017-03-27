@@ -307,12 +307,25 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	obj_name_layout->addWidget(obj_meta_name);
 	obj_name_set->setLayout(obj_name_layout);
 
+	QWidget* obj_option_set = new QWidget(obj_meta_tab);
+	obj_meta_vram_addr = new QCheckBox;
+	obj_meta_auto_bright = new QCheckBox;
+
+	QHBoxLayout* obj_option_layout = new QHBoxLayout;
+	obj_option_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	obj_option_layout->addWidget(vram_text);
+	obj_option_layout->addWidget(obj_meta_vram_addr);
+	obj_option_layout->addWidget(bright_text);
+	obj_option_layout->addWidget(obj_meta_auto_bright);
+	obj_option_set->setLayout(obj_option_layout);
+
 	QVBoxLayout* obj_meta_preview_layout = new QVBoxLayout;
 	obj_meta_preview_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	obj_meta_preview_layout->addWidget(obj_size_set_1);
 	obj_meta_preview_layout->addWidget(obj_size_set_2);
 	obj_meta_preview_layout->addWidget(obj_meta_img);
 	obj_meta_preview_layout->addWidget(obj_name_set);
+	obj_meta_preview_layout->addWidget(obj_option_set);
 	obj_meta_preview_layout->addWidget(dump_obj_meta_button);
 	obj_meta_preview_set->setLayout(obj_meta_preview_layout);
 
@@ -3252,12 +3265,15 @@ bool gbe_cgfx::eventFilter(QObject* target, QEvent* event)
 					cgfx::meta_dump_name = obj_meta_name->text().toStdString();
 					if(cgfx::meta_dump_name.empty()) { cgfx::meta_dump_name = "OBJ_META"; }
 
+					//Generate metatile manifest entry
 					std::string entry = "";
 					std::string hash = main_menu::gbe_plus->get_hash(obj_index, obj_type);
 					std::string type = (obj_height == 16) ? "1" : "2";
 					std::string name = cgfx::meta_dump_name + "_" + util::to_str(obj_id);
+					std::string vram = obj_meta_vram_addr->isChecked() ? util::to_hex_str(obj_addr) : "0";
+					std::string bright = obj_meta_auto_bright->isChecked() ? "1" : "0";
 				
-					entry = "[" + hash + ":" + name + ":" + type + ":0:0]";
+					entry = "[" + hash + ":" + name + ":" + type + ":" + vram + ":" + bright + "]";
 					obj_meta_str[obj_id] = entry;
 				}
 			}
