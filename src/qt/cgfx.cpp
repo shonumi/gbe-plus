@@ -607,6 +607,7 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	obj_meta_height->setValue(20);
 
 	obj_meta_str.resize(400, "");
+	obj_meta_addr.resize(400, 0);
 }
 
 /****** Sets up the OBJ dumping window ******/
@@ -3259,22 +3260,11 @@ bool gbe_cgfx::eventFilter(QObject* target, QEvent* event)
 					obj_index |= (tile_number << 8); 
 
 					u8 obj_type = (config::gb_type < 2) ? 1 : 2;
-					u32 obj_id = (x / 16) + ((y / obj_height) * obj_meta_width->value());
+					u32 obj_id = (x / 16) + ((y / obj_height) * 20);
 
-					//Grab metatile name
-					cgfx::meta_dump_name = obj_meta_name->text().toStdString();
-					if(cgfx::meta_dump_name.empty()) { cgfx::meta_dump_name = "OBJ_META"; }
-
-					//Generate metatile manifest entry
-					std::string entry = "";
-					std::string hash = main_menu::gbe_plus->get_hash(obj_index, obj_type);
-					std::string type = (obj_height == 16) ? "1" : "2";
-					std::string name = cgfx::meta_dump_name + "_" + util::to_str(obj_id);
-					std::string vram = obj_meta_vram_addr->isChecked() ? util::to_hex_str(obj_addr) : "0";
-					std::string bright = obj_meta_auto_bright->isChecked() ? "1" : "0";
-				
-					entry = "[" + hash + ":" + name + ":" + type + ":" + vram + ":" + bright + "]";
-					obj_meta_str[obj_id] = entry;
+					//Generate base metatile data (hash + VRAM address)
+					obj_meta_str[obj_id] = main_menu::gbe_plus->get_hash(obj_index, obj_type);
+					obj_meta_addr[obj_id] = obj_addr;
 				}
 			}
 
@@ -3687,13 +3677,32 @@ void gbe_cgfx::dump_obj_meta_tile()
 	entry = "['" + cgfx::dump_obj_path + cgfx::meta_dump_name + ".bmp" + "':" + cgfx::meta_dump_name + type;
 	file << "\n" << entry;
 
-	u32 entry_count = 0;
-
 	//Generate manifest entries for selected tiles
-	for(int x = 0; x < (obj_meta_width->value() * obj_meta_height->value()); x++) 
+	for(int y = 0; y < obj_meta_height->value(); y++) 
 	{
-		entry = obj_meta_str[x];
-		if(entry != "") { file << "\n" << entry; }
+		for(int x = 0; x < obj_meta_width->value(); x++)
+		{
+			u16 obj_id = (y * 20) + x;
+			u16 meta_id = (y * obj_meta_width->value()) + x;
+
+			if(obj_meta_str[obj_id] != "")
+			{
+				//Grab metatile name
+				cgfx::meta_dump_name = obj_meta_name->text().toStdString();
+				if(cgfx::meta_dump_name.empty()) { cgfx::meta_dump_name = "OBJ_META"; }
+
+				std::string entry = "";
+				std::string hash = obj_meta_str[obj_id];
+				std::string type = (obj_height == 8) ? "1" : "2";
+				std::string name = cgfx::meta_dump_name + "_" + util::to_str(meta_id);
+				std::string vram = obj_meta_vram_addr->isChecked() ? util::to_hex_str(obj_meta_addr[obj_id]) : "0";
+				std::string bright = obj_meta_auto_bright->isChecked() ? "1" : "0";
+				
+				entry = "[" + hash + ":" + name + ":" + type + ":" + vram + ":" + bright + "]";
+
+				file << "\n" << entry;
+			}
+		}
 	}
 
 	file.close();

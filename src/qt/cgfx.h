@@ -104,6 +104,7 @@ class gbe_cgfx : public QDialog
 	QLineEdit* obj_meta_name;
 
 	std::vector<std::string> obj_meta_str;
+	std::vector<u16> obj_meta_addr;
 
 	//OBJ tab widgets
 	std::vector<QImage> cgfx_obj;
