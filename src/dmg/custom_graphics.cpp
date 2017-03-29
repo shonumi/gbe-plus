@@ -1332,6 +1332,9 @@ std::string DMG_LCD::get_hash(u16 addr, u8 gfx_type)
 		u8 old_vram_bank = mem->vram_bank;
 		mem->vram_bank = cgfx::gbc_obj_vram_bank;
 
+		//Get color palette from OAM
+		u8 color_pal = obj[obj_index].color_palette_number;
+
 		//Create a hash for this OBJ tile
 		for(int x = 0; x < obj_height/2; x++)
 		{
@@ -1351,7 +1354,7 @@ std::string DMG_LCD::get_hash(u16 addr, u8 gfx_type)
 	
 		for(int x = 0; x < 4; x++)
 		{
-			util::hsv color = util::rgb_to_hsv(lcd_stat.obj_colors_final[x][cgfx::gbc_obj_color_pal]);
+			util::hsv color = util::rgb_to_hsv(lcd_stat.obj_colors_final[x][color_pal]);
 			u8 hue = (color.hue / 10);
 			hue_data += hash::base_64_index[hue];
 		}
