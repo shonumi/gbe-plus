@@ -1540,8 +1540,21 @@ void ARM7::handle_interrupt()
 	//TODO - Implement a better way of exiting interrupts other than recognizing the SUB PC, #4 instruction
 
 	//Exit interrupt
-	if((in_interrupt) && (debug_code == 0xE25EF004))
+	if((in_interrupt) && (reg.r15 == 0x144))
 	{
+		//Restore registers from SP
+		u32 sp_addr = get_reg(13);
+		reg.r0 = mem->read_u32(sp_addr); sp_addr += 4;
+		reg.r1 = mem->read_u32(sp_addr); sp_addr += 4;
+		reg.r2 = mem->read_u32(sp_addr); sp_addr += 4;
+		reg.r3 = mem->read_u32(sp_addr); sp_addr += 4;
+		set_reg(12, mem->read_u32(sp_addr)); sp_addr += 4;
+		set_reg(14, mem->read_u32(sp_addr)); sp_addr += 4;
+		set_reg(13, sp_addr);
+
+		//Set PC to LR - 4;
+		reg.r15 = get_reg(14) - 4;
+
 		//Set CPSR from SPSR, turn on IRQ flag
 		reg.cpsr = get_spsr();
 		reg.cpsr &= ~CPSR_IRQ;
@@ -1590,20 +1603,38 @@ void ARM7::handle_interrupt()
 				else if((!needs_flush) && (arm_mode == THUMB)) { set_reg(14, (reg.r15 + 2)); }
 				else if((!needs_flush) && (arm_mode == ARM)) { set_reg(14, reg.r15); }
 
-				//Set PC and SPSR
-				reg.r15 = 0x18;
+				//Set SPSR
 				set_spsr(reg.cpsr);
-
-				//Request pipeline flush, signal interrupt handling, and go to ARM mode
-				needs_flush = true;
-				in_interrupt = true;
-				arm_mode = ARM;
 
 				//Alter CPSR bits, turn off THUMB and IRQ flags, set mode bits
 				reg.cpsr &= ~0x20;
 				reg.cpsr |= CPSR_IRQ;
 				reg.cpsr &= ~0x1F;
 				reg.cpsr |= CPSR_MODE_IRQ;
+
+				//Save registers to SP
+				u32 sp_addr = get_reg(13);
+				sp_addr -= 4; mem->write_u32(sp_addr, get_reg(14));
+				sp_addr -= 4; mem->write_u32(sp_addr, get_reg(12));
+				sp_addr -= 4; mem->write_u32(sp_addr, reg.r3);
+				sp_addr -= 4; mem->write_u32(sp_addr, reg.r2);
+				sp_addr -= 4; mem->write_u32(sp_addr, reg.r1);
+				sp_addr -= 4; mem->write_u32(sp_addr, reg.r0);
+				set_reg(13, sp_addr);
+
+				//Set LR to 0x138
+				set_reg(14, 0x138);
+
+				//Set R0 to 0x4000000
+				reg.r0 = 0x4000000;
+
+				//Set PC to value held in 0x3FFFFFC
+				reg.r15 = mem->read_u32(0x3FFFFFC) & ~0x3;
+
+				//Request pipeline flush, signal interrupt handling, and go to ARM mode
+				needs_flush = true;
+				in_interrupt = true;
+				arm_mode = ARM;
 
 				bios_read_state = BIOS_IRQ_EXECUTE;
 				return;

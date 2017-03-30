@@ -96,16 +96,6 @@ void AGB_MMU::reset()
 		write_u16_fast(BG3PD, 0x100);
 	}
 
-	bios_lock = false;
-
-	write_u32(0x18, 0xEA000042);
-	write_u32(0x128, 0xE92D500F);
-	write_u32(0x12C, 0xE3A00301);
-	write_u32(0x130, 0xE28FE000);
-	write_u32(0x134, 0xE510F004);
-	write_u32(0x138, 0xE8BD500F);
-	write_u32(0x13C, 0xE25EF004);
-
 	bios_lock = true;
 
 	//Default memory access timings (4, 2)
