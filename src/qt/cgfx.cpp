@@ -311,11 +311,14 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	obj_meta_vram_addr = new QCheckBox;
 	obj_meta_auto_bright = new QCheckBox;
 
+	QLabel* obj_vram_text = new QLabel("EXT_VRAM_ADDR");
+	QLabel* obj_bright_text = new QLabel("EXT_AUTO_BRIGHT");
+
 	QHBoxLayout* obj_option_layout = new QHBoxLayout;
 	obj_option_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-	obj_option_layout->addWidget(vram_text);
+	obj_option_layout->addWidget(obj_vram_text);
 	obj_option_layout->addWidget(obj_meta_vram_addr);
-	obj_option_layout->addWidget(bright_text);
+	obj_option_layout->addWidget(obj_bright_text);
 	obj_option_layout->addWidget(obj_meta_auto_bright);
 	obj_option_set->setLayout(obj_option_layout);
 
@@ -1428,7 +1431,7 @@ void gbe_cgfx::draw_dmg_bg()
 			bool highlight = false;
 
 			if(((scanline_pixel_counter / 8) >= min_x_rect) && ((scanline_pixel_counter / 8) <= max_x_rect)
-			&& ((rendered_scanline / 8) >= min_y_rect) && ((rendered_scanline / 8) <= max_y_rect))
+			&& ((current_scanline / 8) >= min_y_rect) && ((current_scanline / 8) <= max_y_rect))
 			{
 				highlight = true;
 			}
@@ -1537,7 +1540,7 @@ void gbe_cgfx::draw_gbc_bg()
 			bool highlight = false;
 
 			if(((scanline_pixel_counter / 8) >= min_x_rect) && ((scanline_pixel_counter / 8) <= max_x_rect)
-			&& ((rendered_scanline / 8) >= min_y_rect) && ((rendered_scanline / 8) <= max_y_rect))
+			&& ((current_scanline / 8) >= min_y_rect) && ((current_scanline / 8) <= max_y_rect))
 			{
 				highlight = true;
 			}
@@ -1681,7 +1684,7 @@ void gbe_cgfx::draw_dmg_win()
 			bool highlight = false;
 
 			if(((scanline_pixel_counter / 8) >= min_x_rect) && ((scanline_pixel_counter / 8) <= max_x_rect)
-			&& ((rendered_scanline / 8) >= min_y_rect) && ((rendered_scanline / 8) <= max_y_rect))
+			&& ((current_scanline / 8) >= min_y_rect) && ((current_scanline / 8) <= max_y_rect))
 			{
 				highlight = true;
 			}
@@ -1811,7 +1814,7 @@ void gbe_cgfx::draw_gbc_win()
 			bool highlight = false;
 
 			if(((scanline_pixel_counter / 8) >= min_x_rect) && ((scanline_pixel_counter / 8) <= max_x_rect)
-			&& ((rendered_scanline / 8) >= min_y_rect) && ((rendered_scanline / 8) <= max_y_rect))
+			&& ((current_scanline / 8) >= min_y_rect) && ((current_scanline / 8) <= max_y_rect))
 			{
 				highlight = true;
 			}
