@@ -3489,6 +3489,9 @@ void gbe_cgfx::update_selection()
 	min_y_rect -= 1;
 	max_y_rect -= 1;
 
+	std::cout<<"X MIN -> " << std::dec << (int)min_x_rect << " :: X MAX -> " << (int)(max_x_rect + 1) << "\n";
+	std::cout<<"Y MIN -> " << std::dec << (int)min_y_rect << " :: Y MAX -> " << (int)(max_y_rect + 1) << "\n";
+
 	layer_change();
 }
 
@@ -3594,7 +3597,16 @@ void gbe_cgfx::dump_selection()
 			std::string gfx_hash = "";
 
 			//Convert selection parameters (X,Y and W,H) into 160x144 screen coordinates to get the tile hash - DMG/GBC BG version
-			if(layer_select->currentIndex() == 0) { gfx_hash = hash_tile((x * 8), (y * 8)); }
+			if(layer_select->currentIndex() == 0)
+			{
+				u8 x_coord = (x * 8);
+				if(main_menu::gbe_plus->ex_read_u8(REG_SX) % 8) { x_coord += (8 - (main_menu::gbe_plus->ex_read_u8(REG_SX) % 8)); }
+
+				u8 y_coord = (y * 8);
+				if(main_menu::gbe_plus->ex_read_u8(REG_SY) % 8) { y_coord += (8 - (main_menu::gbe_plus->ex_read_u8(REG_SY) % 8)); }
+
+				gfx_hash = hash_tile(x_coord, y_coord);
+			}
 
 			//Convert selection parameters (X,Y and W,H) into 160x144 screen coordinates to get the tile hash - DMG/GBC Window version
 			else if(layer_select->currentIndex() == 1)
