@@ -1430,8 +1430,11 @@ void gbe_cgfx::draw_dmg_bg()
 			//Determine if this tile needs to be highlighted for selection dumping
 			bool highlight = false;
 
-			if(((scanline_pixel_counter / 8) >= min_x_rect) && ((scanline_pixel_counter / 8) <= max_x_rect)
-			&& ((current_scanline / 8) >= min_y_rect) && ((current_scanline / 8) <= max_y_rect))
+			u8 target_scanline = current_scanline + (main_menu::gbe_plus->ex_read_u8(REG_SY) % 8);
+			u8 target_pixel = scanline_pixel_counter + (main_menu::gbe_plus->ex_read_u8(REG_SX) % 8);
+
+			if(((target_pixel / 8) >= min_x_rect) && ((target_pixel / 8) <= max_x_rect)
+			&& ((target_scanline / 8) >= min_y_rect) && ((target_scanline / 8) <= max_y_rect))
 			{
 				highlight = true;
 			}
@@ -1539,8 +1542,11 @@ void gbe_cgfx::draw_gbc_bg()
 			//Determine if this tile needs to be highlighted for selection dumping
 			bool highlight = false;
 
-			if(((scanline_pixel_counter / 8) >= min_x_rect) && ((scanline_pixel_counter / 8) <= max_x_rect)
-			&& ((current_scanline / 8) >= min_y_rect) && ((current_scanline / 8) <= max_y_rect))
+			u8 target_scanline = current_scanline + (main_menu::gbe_plus->ex_read_u8(REG_SY) % 8);
+			u8 target_pixel = scanline_pixel_counter + (main_menu::gbe_plus->ex_read_u8(REG_SX) % 8);
+
+			if(((target_pixel / 8) >= min_x_rect) && ((target_pixel / 8) <= max_x_rect)
+			&& ((target_scanline / 8) >= min_y_rect) && ((target_scanline / 8) <= max_y_rect))
 			{
 				highlight = true;
 			}
@@ -1684,7 +1690,7 @@ void gbe_cgfx::draw_dmg_win()
 			bool highlight = false;
 
 			if(((scanline_pixel_counter / 8) >= min_x_rect) && ((scanline_pixel_counter / 8) <= max_x_rect)
-			&& ((current_scanline / 8) >= min_y_rect) && ((current_scanline / 8) <= max_y_rect))
+			&& ((rendered_scanline / 8) >= min_y_rect) && ((rendered_scanline / 8) <= max_y_rect))
 			{
 				highlight = true;
 			}
@@ -1814,7 +1820,7 @@ void gbe_cgfx::draw_gbc_win()
 			bool highlight = false;
 
 			if(((scanline_pixel_counter / 8) >= min_x_rect) && ((scanline_pixel_counter / 8) <= max_x_rect)
-			&& ((current_scanline / 8) >= min_y_rect) && ((current_scanline / 8) <= max_y_rect))
+			&& ((rendered_scanline / 8) >= min_y_rect) && ((rendered_scanline / 8) <= max_y_rect))
 			{
 				highlight = true;
 			}
@@ -3055,26 +3061,26 @@ bool gbe_cgfx::eventFilter(QObject* target, QEvent* event)
 					//Set the start and end points according to where the newest position is in relation to the original mouse click
 					if(mouse_event->x() > mouse_start_x)
 					{
-						tile_start_x = (mouse_start_x >> 1) / 8;
+						tile_start_x = ((mouse_start_x + sx) >> 1) / 8;
 						tile_x = (x / 8);
 					}
 
 					else
 					{
 						tile_start_x = (x / 8);
-						tile_x = (mouse_start_x >> 1) / 8;
+						tile_x = ((mouse_start_x + sx) >> 1) / 8;
 					}
 
 					if(mouse_event->y() > mouse_start_y)
 					{
-						tile_start_y = (mouse_start_y >> 1) / 8;
+						tile_start_y = ((mouse_start_y + sy) >> 1) / 8;
 						tile_y = (y / 8);
 					}
 
 					else
 					{
 						tile_start_y = (y / 8);
-						tile_y = (mouse_start_y >> 1) / 8;
+						tile_y = ((mouse_start_y + sy) >> 1) / 8;
 					}
 
 					//Set X and Y
@@ -3489,9 +3495,6 @@ void gbe_cgfx::update_selection()
 	min_y_rect -= 1;
 	max_y_rect -= 1;
 
-	std::cout<<"X MIN -> " << std::dec << (int)min_x_rect << " :: X MAX -> " << (int)(max_x_rect + 1) << "\n";
-	std::cout<<"Y MIN -> " << std::dec << (int)min_y_rect << " :: Y MAX -> " << (int)(max_y_rect + 1) << "\n";
-
 	layer_change();
 }
 
@@ -3531,9 +3534,9 @@ void gbe_cgfx::dump_selection()
 	//Temporarily convert dimensions to X,Y and WxH format for Qt - DMG/GBC BG version
 	if(layer_select->currentIndex() == 0)
 	{
-		min_x_rect = ((rect_x->value() - 1) * 8) + ((-(main_menu::gbe_plus->ex_read_u8(REG_SX) % 8) + 8) % 8);
+		min_x_rect = ((rect_x->value() - 1) * 8) - (main_menu::gbe_plus->ex_read_u8(REG_SX) % 8);
 		max_x_rect = rect_w->value() * 8;
-		min_y_rect = ((rect_y->value() - 1) * 8) + ((-(main_menu::gbe_plus->ex_read_u8(REG_SY) % 8) + 8) % 8);
+		min_y_rect = ((rect_y->value() - 1) * 8) - (main_menu::gbe_plus->ex_read_u8(REG_SY) % 8);
 		max_y_rect = rect_h->value() * 8;
 	}
 
@@ -3599,11 +3602,13 @@ void gbe_cgfx::dump_selection()
 			//Convert selection parameters (X,Y and W,H) into 160x144 screen coordinates to get the tile hash - DMG/GBC BG version
 			if(layer_select->currentIndex() == 0)
 			{
-				u8 x_coord = (x * 8);
-				if(main_menu::gbe_plus->ex_read_u8(REG_SX) % 8) { x_coord += (8 - (main_menu::gbe_plus->ex_read_u8(REG_SX) % 8)); }
+				u8 x_coord, y_coord;
+				
+				if(main_menu::gbe_plus->ex_read_u8(REG_SX) % 8) { x_coord = ((x - 1) * 8) + (main_menu::gbe_plus->ex_read_u8(REG_SX) % 8); }
+				else { x_coord = (x * 8); }
 
-				u8 y_coord = (y * 8);
-				if(main_menu::gbe_plus->ex_read_u8(REG_SY) % 8) { y_coord += (8 - (main_menu::gbe_plus->ex_read_u8(REG_SY) % 8)); }
+				if(main_menu::gbe_plus->ex_read_u8(REG_SY) % 8) { y_coord = ((y - 1) * 8) + (main_menu::gbe_plus->ex_read_u8(REG_SY) % 8); }
+				else { y_coord = (y * 8); }
 
 				gfx_hash = hash_tile(x_coord, y_coord);
 			}
