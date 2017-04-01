@@ -9,6 +9,8 @@
 // Handles reading and writing GPIO for various specialty carts
 // Deals with the RTC (Pokemon games), solar sensor, rumble, gyro sensor, etc
 
+#include <ctime>
+
 #include "mmu.h"
 #include "common/util.h"
 

@@ -17,4 +17,9 @@ Game Boy Enhanced (GBE for short) aims to be a fully functional Game Boy emulato
 Compiling GBE+
 ===============
 
-The only requirements at this moment are SDL 1.2, a C++ compiler, and CMake. Currently, building on Windows is fairly rough but still possible. The Qt build currently has only been tested with Qt4, but should compile and run with Qt5 with only minor alterations.
+The only requirements at this moment are SDL 2.0, OpenGL 3.3 or greater, a C++ compiler, and CMake. Qt (for the GUI) and SDL2_net (for netplay) are optional dependencies. Currently, building on Windows is fairly rough but still possible.
+
+READ THE MANUAL
+===============
+
+GBE+ comes with very nice PDF and ODT manuals explaining everything about its operation, and devotes extensive time to covering complex topic such as Custom Graphics (CGFX). PLEASE READ THE MANUAL if you have any questions regarding this emulator.

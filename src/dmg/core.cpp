@@ -929,7 +929,7 @@ void DMG_core::debug_process_command()
 						break;
 
 					case 0x9:
-						std::cout<<"\nSetting Register SP to 0x" << std::hex << reg_value << "\n";
+						std::cout<<"\nSetting Register PC to 0x" << std::hex << reg_value << "\n";
 						core_cpu.reg.pc = reg_value;
 						break;
 				}

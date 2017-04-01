@@ -264,7 +264,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	QDialogButtonBox* about_button = new QDialogButtonBox(QDialogButtonBox::Close);
 	connect(about_button->button(QDialogButtonBox::Close), SIGNAL(clicked()), about_box, SLOT(close()));
 
-	QLabel* emu_title = new QLabel("GBE+ 1.0");
+	QLabel* emu_title = new QLabel("GBE+ 1.1");
 	QFont font = emu_title->font();
 	font.setPointSize(18);
 	font.setBold(true);
@@ -273,8 +273,8 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	QImage logo(QString::fromStdString(config::cfg_path + "data/icons/gbe_plus.png"));
 	logo = logo.scaled(128, 128);
 	QLabel* emu_desc = new QLabel("A GB/GBC/GBA emulator with enhancements");
-	QLabel* emu_copyright = new QLabel("Copyright D.S. Baxter 2014-2016");
-	QLabel* emu_proj_copyright = new QLabel("Copyright GBE+ Team 2014-2016");
+	QLabel* emu_copyright = new QLabel("Copyright D.S. Baxter 2014-2017");
+	QLabel* emu_proj_copyright = new QLabel("Copyright GBE+ Team 2014-2017");
 	QLabel* emu_license = new QLabel("This program is licensed under the GNU GPLv2");
 	QLabel* emu_site = new QLabel("<a href=\"https://github.com/shonumi/gbe-plus/\">GBE+ on GitHub</a>");
 	emu_site->setOpenExternalLinks(true);
