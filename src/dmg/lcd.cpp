@@ -1758,7 +1758,7 @@ void DMG_LCD::step(int cpu_clock)
 									//Scan BG map for all tiles that use this tile number
 									for(int x = 0; x < 2048; x++)
 									{
-										if(mem->video_ram[0][x] == tile_number) { update_gbc_bg_hash(0x9800 + x); }
+										if(mem->video_ram[0][0x1800 + x] == tile_number) { update_gbc_bg_hash(0x9800 + x); }
 									}
 
 									cgfx_stat.bg_tile_update_list[tile_number] = false;
