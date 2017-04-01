@@ -3713,7 +3713,7 @@ void gbe_cgfx::dump_obj_meta_tile()
 
 				std::string entry = "";
 				std::string hash = obj_meta_str[obj_id];
-				std::string type = (obj_height == 8) ? "1" : "2";
+				std::string type = (config::gb_type == 1) ? "1" : "2";
 				std::string name = cgfx::meta_dump_name + "_" + util::to_str(meta_id);
 				std::string vram = obj_meta_vram_addr->isChecked() ? util::to_hex_str(obj_meta_addr[obj_id]) : "0";
 				std::string bright = obj_meta_auto_bright->isChecked() ? "1" : "0";

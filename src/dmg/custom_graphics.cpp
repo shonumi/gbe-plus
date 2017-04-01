@@ -105,52 +105,69 @@ bool DMG_LCD::load_manifest(std::string filename)
 			//Grab hash
 			std::string hash = cgfx_stat.manifest[x++];
 
-			//Grab file associated with hash
-			cgfx_stat.m_files.push_back(cgfx_stat.manifest[x++]);
+			bool add_entry = true;
 
-			//Grab the type
-			u32 type_byte = 0;
-			util::from_str(cgfx_stat.manifest[x++], type_byte);
-			cgfx_stat.m_types.push_back(type_byte);
-
-			switch(type_byte)
+			//Only add hash from manifest if it is new. Otherwise, ignore duplicate entries
+			for(int count = 0; count < cgfx_stat.m_hashes.size(); count++)
 			{
-				//DMG, GBC, or GBA OBJ
-				case 1:
-				case 2:
-				case 3:
-					cgfx_stat.m_id.push_back(cgfx_stat.obj_hash_list.size());
-					cgfx_stat.obj_hash_list.push_back(hash);
-					cgfx_stat.m_hashes.push_back(hash);
-					break;
-
-				//DMG, GBC, or GBA BG
-				case 10:
-				case 20:
-				case 30:
-					cgfx_stat.m_id.push_back(cgfx_stat.bg_hash_list.size());
-					cgfx_stat.bg_hash_list.push_back(hash);
-					cgfx_stat.m_hashes.push_back(hash);
-					break;
-		
-				//Undefined type
-				default:
-					std::cout<<"CGFX::Undefined hash type " << (int)type_byte << "\n";
-					return false;
+				if(hash == cgfx_stat.m_hashes[count]) { add_entry = false; }
 			}
 
-			//Load image based on filename and hash type
-			if(!load_image_data()) { return false; }
+			if(add_entry)
+			{
+				//Grab file associated with hash
+				cgfx_stat.m_files.push_back(cgfx_stat.manifest[x++]);
 
-			//EXT_VRAM_ADDR
-			u32 vram_address = 0;
-			util::from_hex_str(cgfx_stat.manifest[x++], vram_address);
-			cgfx_stat.m_vram_addr.push_back(vram_address);	
+				//Grab the type
+				u32 type_byte = 0;
+				util::from_str(cgfx_stat.manifest[x++], type_byte);
+				cgfx_stat.m_types.push_back(type_byte);
 
-			//EXT_AUTO_BRIGHT
-			u32 bright_value = 0;
-			util::from_str(cgfx_stat.manifest[x++], bright_value);
-			cgfx_stat.m_auto_bright.push_back(bright_value);
+				switch(type_byte)
+				{
+					//DMG, GBC, or GBA OBJ
+					case 1:
+					case 2:
+					case 3:
+						cgfx_stat.m_id.push_back(cgfx_stat.obj_hash_list.size());
+						cgfx_stat.obj_hash_list.push_back(hash);
+						cgfx_stat.m_hashes.push_back(hash);
+						break;
+
+					//DMG, GBC, or GBA BG
+					case 10:
+					case 20:
+					case 30:
+						cgfx_stat.m_id.push_back(cgfx_stat.bg_hash_list.size());
+						cgfx_stat.bg_hash_list.push_back(hash);
+						cgfx_stat.m_hashes.push_back(hash);
+						break;
+		
+					//Undefined type
+					default:
+						std::cout<<"CGFX::Undefined hash type " << (int)type_byte << "\n";
+						return false;
+				}
+
+				//Load image based on filename and hash type
+				if(!load_image_data()) { return false; }
+
+				//EXT_VRAM_ADDR
+				u32 vram_address = 0;
+				util::from_hex_str(cgfx_stat.manifest[x++], vram_address);
+				cgfx_stat.m_vram_addr.push_back(vram_address);	
+
+				//EXT_AUTO_BRIGHT
+				u32 bright_value = 0;
+				util::from_str(cgfx_stat.manifest[x++], bright_value);
+				cgfx_stat.m_auto_bright.push_back(bright_value);
+			}
+
+			else
+			{
+				std::cout<<"CGFX::Warning - Duplicate hash detected. Only the 1st entry that uses this hash will properly render \n";
+				x += 4;
+			}
 		}
 
 		//Parse metatile entries
@@ -365,9 +382,9 @@ bool DMG_LCD::find_meta_data()
 	u32 pixel_w = width / tile_w;
 	u32 pixel_h = height / tile_h;
 
-	u32 pos = (width * pixel_w) * (meta_tile_number / tile_w);
+	u32 pos = (width * pixel_h) * (meta_tile_number / tile_w);
 	pos += (meta_tile_number % tile_w) * pixel_w;
-	
+
 	for(int y = 0; y < pixel_h; y++)
 	{
 		for(int x = 0; x < pixel_w; x++)
@@ -1330,7 +1347,7 @@ std::string DMG_LCD::get_hash(u16 addr, u8 gfx_type)
 
 		//Grab VRAM bank
 		u8 old_vram_bank = mem->vram_bank;
-		mem->vram_bank = cgfx::gbc_obj_vram_bank;
+		mem->vram_bank = obj[obj_index].vram_bank;
 
 		//Get color palette from OAM
 		u8 color_pal = obj[obj_index].color_palette_number;
