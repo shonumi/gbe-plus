@@ -69,6 +69,9 @@ class NTR_core : virtual public core_emu
 		void start_netplay();
 		void stop_netplay();
 
+		//Misc
+		u32 get_core_data(u32 core_index);
+
 		NTR_MMU core_mmu;
 		NTR_ARM7 core_cpu_nds7;
 		NTR_ARM9 core_cpu_nds9;

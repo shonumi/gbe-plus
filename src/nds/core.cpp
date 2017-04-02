@@ -1300,3 +1300,21 @@ void NTR_core::start_netplay() { }
 
 /****** Stops netplay connection ******/
 void NTR_core::stop_netplay() { }
+
+/****** Returns miscellaneous data from the core ******/
+u32 NTR_core::get_core_data(u32 core_index)
+{
+	u32 result = 0;
+
+	switch(core_index)
+	{
+		//Joypad state
+		case 0x0:
+			result = ~(core_pad.key_input);
+			result &= 0x3FF;
+			break;
+	}
+
+	return result;
+}
+
