@@ -1313,6 +1313,12 @@ u32 NTR_core::get_core_data(u32 core_index)
 			result = ~(core_pad.key_input);
 			result &= 0x3FF;
 			break;
+
+		//Ext Input state
+		case 0x1:
+			result = ~(core_pad.ext_key_input);
+			result &= 0x7F;
+			break;
 	}
 
 	return result;
