@@ -291,8 +291,8 @@ bool Z80::handle_interrupts()
 		else { return false; }
 	}
 
-	//When IME is disabled, pending interrupts will exit the Halt state
-	else if(mem->memory_map[IF_FLAG] & mem->memory_map[IE_FLAG]) { halt = false; return false; }
+	//When IME is disabled, pending interrupts will exit the HALT state
+	else if((mem->memory_map[IF_FLAG] & mem->memory_map[IE_FLAG] & 0x1F) && (!skip_instruction)) { halt = false; return false; }
 
 	else { return false; }
 }	
@@ -1511,7 +1511,7 @@ void Z80::exec_op(u8 opcode)
 		//HALT
 		case 0x76 :
 			halt = true;
-			skip_instruction = (interrupt) ? false : true;
+			skip_instruction = ((mem->memory_map[IE_FLAG] & mem->memory_map[IF_FLAG] & 0x1F) && (!interrupt)) ? true : false;
 			cycles += 4;
 			break; 
 

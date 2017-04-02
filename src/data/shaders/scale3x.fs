@@ -49,16 +49,6 @@ bool get_texel(in float x_shift, in float y_shift, out vec4 texel_color, in bool
 	return pass;
 }
 
-//Blend two colors
-vec4 rgb_blend(in vec4 color_1, in vec4 color_2)
-{
-	vec4 final_color = vec4(1.0, 1.0, 1.0, 1.0);
-	final_color.r = (color_1.r + color_2.r) / 2.0;
-	final_color.g = (color_1.g + color_2.g) / 2.0;
-	final_color.b = (color_1.b + color_2.b) / 2.0;
-	return final_color;
-}
-
 void main()
 {
 	vec2 current_pos = texture_coordinates;
@@ -217,40 +207,40 @@ void main()
 			if(h == f) { e8 = f; }
 
 			//Blend E0 with E1, E3
-			if((section == 0) && (e1 == e3)) { current_color = rgb_blend(e0, e1); }
+			if((section == 0) && (e1 == e3)) { current_color = mix(e0, e1, 0.5); }
 
 			//Blend E1 with E0, E4
-			else if((section == 1) && (e0 == e4)) { current_color = rgb_blend(e1, e0); }
+			else if((section == 1) && (e0 == e4)) { current_color = mix(e1, e0, 0.5); }
 
 			//Blend E1 with E2, E4
-			else if((section == 1) && (e2 == e4)) { current_color = rgb_blend(e1, e2); }
+			else if((section == 1) && (e2 == e4)) { current_color = mix(e1, e2, 0.5); }
 
 			//Blend E2 with E1, E5
-			else if((section == 2) && (e1 == e5)) { current_color = rgb_blend(e2, e1); }
+			else if((section == 2) && (e1 == e5)) { current_color = mix(e2, e1, 0.5); }
 
 			//Blend E3 with E0, E4
-			else if((section == 3) && (e0 == e4)) { current_color = rgb_blend(e3, e0); }
+			else if((section == 3) && (e0 == e4)) { current_color = mix(e3, e0, 0.5); }
 
 			//Blend E3 with E4, E6
-			else if((section == 3) && (e4 == e6)) { current_color = rgb_blend(e3, e4); }
+			else if((section == 3) && (e4 == e6)) { current_color = mix(e3, e4, 0.5); }
 
 			//Blend E5 with E2, E4
-			else if((section == 5) && (e2 == e4)) { current_color = rgb_blend(e5, e2); }
+			else if((section == 5) && (e2 == e4)) { current_color = mix(e5, e2, 0.5); }
 
 			//Blend E5 with E4, E8
-			else if((section == 5) && (e4 == e8)) { current_color = rgb_blend(e5, e4); }
+			else if((section == 5) && (e4 == e8)) { current_color = mix(e5, e4, 0.5); }
 
 			//Blend E6 with E3, E7
-			else if((section == 6) && (e3 == e7)) { current_color = rgb_blend(e6, e3); }
+			else if((section == 6) && (e3 == e7)) { current_color = mix(e6, e3, 0.5); }
 
 			//Blend E7 with E4, E6
-			else if((section == 7) && (e4 == e6)) { current_color = rgb_blend(e7, e4); }
+			else if((section == 7) && (e4 == e6)) { current_color = mix(e7, e4, 0.5); }
 
 			//Blend E7 with E4, E8
-			else if((section == 7) && (e4 == e8)) { current_color = rgb_blend(e7, e4); }
+			else if((section == 7) && (e4 == e8)) { current_color = mix(e7, e4, 0.5); }
 
 			//Blend E8 with E5, E7
-			else if((section == 8) && (e5 == e7)) { current_color = rgb_blend(e8, e5); }
+			else if((section == 8) && (e5 == e7)) { current_color = mix(e8, e5, 0.5); }
 		}
 			
 	}

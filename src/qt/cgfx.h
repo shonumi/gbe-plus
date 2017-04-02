@@ -40,6 +40,8 @@ class gbe_cgfx : public QDialog
 	void draw_gbc_win();
 	void draw_gbc_obj();
 
+	void reset_inputs();
+
 	QTabWidget* tabs;
 	QDialogButtonBox* tabs_button;
 
@@ -87,6 +89,23 @@ class gbe_cgfx : public QDialog
 	QCheckBox* use_auto_bright;
 	QLineEdit* meta_name;
 
+	//OBJ Meta tile tab widgets
+	QSpinBox* obj_meta_width;
+	QSpinBox* obj_meta_height;
+	QSpinBox* obj_meta_index;
+
+	QLabel* obj_meta_img;
+	QLabel* obj_select_img;
+	QImage obj_meta_pixel_data;
+
+	QCheckBox* obj_meta_vram_addr;
+	QCheckBox* obj_meta_auto_bright;
+
+	QLineEdit* obj_meta_name;
+
+	std::vector<std::string> obj_meta_str;
+	std::vector<u16> obj_meta_addr;
+
 	//OBJ tab widgets
 	std::vector<QImage> cgfx_obj;
 	std::vector<QPushButton*> obj_button;
@@ -103,9 +122,13 @@ class gbe_cgfx : public QDialog
 	//Pop-ups
 	QMessageBox* manifest_warning;
 	QMessageBox* manifest_write_fail;
+	QMessageBox* save_fail;
+	QMessageBox* redump_hash;
 
 	bool pause;
 	bool enable_manifest_warning;
+	bool enable_manifest_critical;
+	bool redump;
 
 	QImage grab_obj_data(int obj_index);
 	QImage grab_dmg_obj_data(int obj_index);
@@ -132,6 +155,15 @@ class gbe_cgfx : public QDialog
 	QSignalMapper* obj_signal;
 	QSignalMapper* bg_signal;
 
+	QPushButton* a_input;
+	QPushButton* b_input;
+	QPushButton* select_input;
+	QPushButton* start_input;
+	QPushButton* left_input;
+	QPushButton* right_input;
+	QPushButton* up_input;
+	QPushButton* down_input;
+
 	std::vector<u8> estimated_palette;
 	std::vector<u8> estimated_vram_bank;
 
@@ -155,13 +187,16 @@ class gbe_cgfx : public QDialog
 
 	u32 mouse_start_x, mouse_start_y;
 	bool mouse_drag;
+	bool meta_highlight;
 
 	private slots:
 	void close_cgfx();
 	void close_advanced();
 	void dump_obj(int obj_index);
 	void dump_bg(int bg_index);
+	void redump_tile();
 	void dump_selection();
+	void dump_obj_meta_tile();
 	void write_manifest_entry();
 	void show_advanced_obj(int index);
 	void show_advanced_bg(int index);
@@ -175,7 +210,11 @@ class gbe_cgfx : public QDialog
 	void reject_folder();
 	void update_selection();
 	void ignore_manifest_warnings();
+	void ignore_manifest_criticals();
 	void advance_next_frame();
+	void update_input_control(int index);
+	void update_obj_meta_size();
+	void select_obj();
 };
 
 #endif //CGFX_GBE_QT 

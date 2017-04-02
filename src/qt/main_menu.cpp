@@ -264,7 +264,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	QDialogButtonBox* about_button = new QDialogButtonBox(QDialogButtonBox::Close);
 	connect(about_button->button(QDialogButtonBox::Close), SIGNAL(clicked()), about_box, SLOT(close()));
 
-	QLabel* emu_title = new QLabel("GBE+ 1.0");
+	QLabel* emu_title = new QLabel("GBE+ 1.1");
 	QFont font = emu_title->font();
 	font.setPointSize(18);
 	font.setBold(true);
@@ -273,8 +273,8 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	QImage logo(QString::fromStdString(config::cfg_path + "data/icons/gbe_plus.png"));
 	logo = logo.scaled(128, 128);
 	QLabel* emu_desc = new QLabel("A GB/GBC/GBA emulator with enhancements");
-	QLabel* emu_copyright = new QLabel("Copyright D.S. Baxter 2014-2016");
-	QLabel* emu_proj_copyright = new QLabel("Copyright GBE+ Team 2014-2016");
+	QLabel* emu_copyright = new QLabel("Copyright D.S. Baxter 2014-2017");
+	QLabel* emu_proj_copyright = new QLabel("Copyright GBE+ Team 2014-2017");
 	QLabel* emu_license = new QLabel("This program is licensed under the GNU GPLv2");
 	QLabel* emu_site = new QLabel("<a href=\"https://github.com/shonumi/gbe-plus/\">GBE+ on GitHub</a>");
 	emu_site->setOpenExternalLinks(true);
@@ -406,6 +406,16 @@ void main_menu::quit()
 	config::volume = settings->volume->value();
 	config::use_haptics = (settings->rumble_on->isChecked()) ? true : false;
 
+	config::dmg_bios_path = settings->dmg_bios->text().toStdString();
+	config::gbc_bios_path = settings->gbc_bios->text().toStdString();
+	config::agb_bios_path = settings->gba_bios->text().toStdString();
+	cgfx::manifest_file = settings->manifest->text().toStdString();
+	config::ss_path = settings->screenshot->text().toStdString();
+	cgfx::dump_bg_path = settings->dump_bg->text().toStdString();
+	cgfx::dump_obj_path = settings->dump_obj->text().toStdString();
+	config::save_path = settings->game_saves->text().toStdString();
+	config::cheats_path = settings->cheats_path->text().toStdString();
+
 	switch(settings->freq->currentIndex())
 	{
 		case 0: config::sample_rate = 48000.0; break;
@@ -492,13 +502,18 @@ void main_menu::boot_game()
 
 	else { config::use_cheats = false; }
 
-	//Check multicart status - MBC1M
-	if(settings->multicart->currentIndex() == 1) { config::use_multicart = true; }
-	else { config::use_multicart = false; }
-
-	//Check multicart status - MMM01
-	if(settings->multicart->currentIndex() == 2) { config::use_mmm01 = true; }
-	else { config::use_mmm01 = false; }
+	//Check special cart status
+	switch(settings->special_cart->currentIndex())
+	{
+		case 0x0: config::cart_type = NORMAL_CART; break;
+		case 0x1: config::cart_type = DMG_MBC1M; break;
+		case 0x2: config::cart_type = DMG_MMM01; break;
+		case 0x3: config::cart_type = AGB_RTC; break;
+		case 0x4: config::cart_type = AGB_SOLAR_SENSOR; break;
+		case 0x5: config::cart_type = AGB_RUMBLE; break;
+		case 0x6: config::cart_type = AGB_GYRO_SENSOR; break;
+		case 0x7: config::cart_type = AGB_TILT_SENSOR; break;
+	}
 
 	//Check rumble status
 	if(settings->rumble_on->isChecked()) { config::use_haptics = true; }
@@ -598,10 +613,10 @@ void main_menu::boot_game()
 	dmg_debugger->debug_reset = true;
 
 	//If the fullscreen command-line argument was passed, be sure to boot into fullscreen mode
-	if(config::flags & 0x80000000)
+	if(config::flags & SDL_WINDOW_FULLSCREEN_DESKTOP)
 	{
 		findChild<QAction*>("fullscreen_action")->setChecked(true);
-		config::flags &= ~0x80000000;
+		config::flags &= ~SDL_WINDOW_FULLSCREEN_DESKTOP;
 		fullscreen();
 	}
 
@@ -676,6 +691,16 @@ void main_menu::closeEvent(QCloseEvent* event)
 	config::use_opengl = (settings->ogl->isChecked()) ? true : false;
 	config::use_haptics = (settings->rumble_on->isChecked()) ? true : false;
 	
+	config::dmg_bios_path = settings->dmg_bios->text().toStdString();
+	config::gbc_bios_path = settings->gbc_bios->text().toStdString();
+	config::agb_bios_path = settings->gba_bios->text().toStdString();
+	cgfx::manifest_file = settings->manifest->text().toStdString();
+	config::ss_path = settings->screenshot->text().toStdString();
+	cgfx::dump_bg_path = settings->dump_bg->text().toStdString();
+	cgfx::dump_obj_path = settings->dump_obj->text().toStdString();
+	config::save_path = settings->game_saves->text().toStdString();
+	config::cheats_path = settings->cheats_path->text().toStdString();
+
 	switch(settings->freq->currentIndex())
 	{
 		case 0: config::sample_rate = 48000.0; break;
@@ -697,6 +722,9 @@ void main_menu::closeEvent(QCloseEvent* event)
 /****** Handle keypress input ******/
 void main_menu::keyPressEvent(QKeyEvent* event)
 {
+	//Disallow key repeats
+	if(event->isAutoRepeat()) { return; }
+
 	int sdl_key = qtkey_to_sdlkey(event->key());
 
 	//Force input processing in the core
@@ -761,6 +789,9 @@ void main_menu::keyPressEvent(QKeyEvent* event)
 /****** Handle key release input ******/
 void main_menu::keyReleaseEvent(QKeyEvent* event)
 {
+	//Disallow key repeats
+	if(event->isAutoRepeat()) { return; }
+
 	int sdl_key = qtkey_to_sdlkey(event->key());
 	
 	//Force input processing in the core
@@ -1004,6 +1035,22 @@ void main_menu::show_cgfx()
 		}
 	}
 
+	//Setup OBJ meta tile tab
+	if(main_menu::gbe_plus != NULL)
+	{
+		//Setup 8x8 or 8x16 mode
+		u8 obj_height = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x04) ? 16 : 8;
+
+		if(obj_height == 16) { cgfx->obj_meta_height->setSingleStep(2); }
+		else { cgfx->obj_meta_height->setSingleStep(1); }
+
+		//Also update OBJ meta tile resource
+		int obj_index = cgfx->obj_meta_index->value();
+		QImage selected_img = (obj_height == 16) ? cgfx->grab_obj_data(obj_index).scaled(128, 256) : cgfx->grab_obj_data(obj_index).scaled(256, 256);
+		cgfx->obj_select_img->setPixmap(QPixmap::fromImage(selected_img));
+	}
+
+	cgfx->reset_inputs();
 	cgfx->show();
 	cgfx->parse_manifest_items();
 	cgfx->pause = true;

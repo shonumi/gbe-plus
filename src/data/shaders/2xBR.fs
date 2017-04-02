@@ -39,16 +39,6 @@ float color_dist(in vec4 color_1, in vec4 color_2)
 	return color_distance;
 }
 
-//Blend two colors
-vec4 rgb_blend(in vec4 color_1, in vec4 color_2)
-{
-	vec4 final_color = vec4(1.0, 1.0, 1.0, 1.0);
-	final_color.r = (color_1.r + color_2.r) / 2.0;
-	final_color.g = (color_1.g + color_2.g) / 2.0;
-	final_color.b = (color_1.b + color_2.b) / 2.0;
-	return final_color;
-}
-
 //Grabs surrounding texel from current position
 bool get_texel(in float x_shift, in float y_shift, out vec4 texel_color, in bool c_pass)
 {
@@ -135,8 +125,8 @@ void main()
 	if(color_pass == true)
 	{
 		//Determine which quadrant this is, E0, E1, E2, or E3
-		float quad_x = (1.0 / screen_x_size) / 2.0;
-		float quad_y = (1.0 / screen_y_size) / 2.0;
+		float quad_x = (0.5 / screen_x_size);
+		float quad_y = (0.5 / screen_y_size);
 
 		float texel_x = (current_pos.x / quad_x);
 		texel_x = mod(texel_x, 2.0);
@@ -154,8 +144,8 @@ void main()
 
 			if(red_weight < blue_weight)
 			{
-				if(color_dist(e, d) <= color_dist(e, b)) { current_color = rgb_blend(e, d); }
-				else { current_color = rgb_blend(e, b); }
+				if(color_dist(e, d) <= color_dist(e, b)) { current_color = mix(e, d, 0.5); }
+				else { current_color = mix(e, b, 0.5); }
 			}
 		}
 
@@ -167,8 +157,8 @@ void main()
 
 			if(red_weight < blue_weight)
 			{
-				if(color_dist(e, b) <= color_dist(e, f)) { current_color = rgb_blend(e, b); }
-				else { current_color = rgb_blend(e, f); }
+				if(color_dist(e, b) <= color_dist(e, f)) { current_color = mix(e, b, 0.5); }
+				else { current_color = mix(e, f, 0.5); }
 			}
 		}
 
@@ -180,8 +170,8 @@ void main()
 
 			if(red_weight < blue_weight)
 			{
-				if(color_dist(e, d) <= color_dist(e, h)) { current_color = rgb_blend(e, d); }
-				else { current_color = rgb_blend(e, h); }
+				if(color_dist(e, d) <= color_dist(e, h)) { current_color = mix(e, d, 0.5); }
+				else { current_color = mix(e, h, 0.5); }
 			}
 		}
 
@@ -193,8 +183,8 @@ void main()
 
 			if(red_weight < blue_weight)
 			{
-				if(color_dist(e, f) <= color_dist(e, h)) { current_color = rgb_blend(e, f); }
-				else { current_color = rgb_blend(e, h); }
+				if(color_dist(e, f) <= color_dist(e, h)) { current_color = mix(e, f, 0.5); }
+				else { current_color = mix(e, h, 0.5); }
 			}
 		}
 	}

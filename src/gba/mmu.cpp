@@ -54,7 +54,32 @@ void AGB_MMU::reset()
 	gpio.state = 0x100;
 	gpio.serial_counter = 0;
 	gpio.serial_byte = 0;
-	gpio.type = GPIO_RTC;
+
+	switch(config::cart_type)
+	{
+		case AGB_RTC:
+			gpio.type = GPIO_RTC;
+			break;
+
+		case AGB_SOLAR_SENSOR:
+			gpio.type = GPIO_SOLAR_SENSOR;
+			break;
+
+		case AGB_RUMBLE:
+			gpio.type = GPIO_RUMBLE;
+			break;
+
+		case AGB_GYRO_SENSOR:
+			gpio.type = GPIO_GYRO_SENSOR;
+			break;
+
+		default:
+			gpio.type = GPIO_DISABLED;
+			break;
+	}
+
+	gpio.rtc_control = 0x40;
+	gpio.solar_counter = 0;
 
 	//HLE some post-boot registers
 	if(!config::use_bios)
@@ -70,16 +95,6 @@ void AGB_MMU::reset()
 		write_u16_fast(BG3PA, 0x100);
 		write_u16_fast(BG3PD, 0x100);
 	}
-
-	bios_lock = false;
-
-	write_u32(0x18, 0xEA000042);
-	write_u32(0x128, 0xE92D500F);
-	write_u32(0x12C, 0xE3A00301);
-	write_u32(0x130, 0xE28FE000);
-	write_u32(0x134, 0xE510F004);
-	write_u32(0x138, 0xE8BD500F);
-	write_u32(0x13C, 0xE25EF004);
 
 	bios_lock = true;
 
@@ -118,16 +133,32 @@ u8 AGB_MMU::read_u8(u32 address) const
 	//Check for unused memory first
 	if(address >= 0x10000000) { std::cout<<"Out of bounds read : 0x" << std::hex << address << "\n"; return 0; }
 
-	//Read from FLASH RAM
-	if(((current_save_type == FLASH_64) || (current_save_type == FLASH_128)) && (address >= 0xE000000) && (address <= 0xE00FFFF))
+	//Read from game save data
+	if((address >= 0xE000000) && (address <= 0xE00FFFF))
 	{
-		if((address == 0xE000000) && (current_save_type == FLASH_64) && (flash_ram.grab_ids)) { return 0x32; }
-		else if((address == 0xE000000) && (current_save_type == FLASH_128) && (flash_ram.grab_ids)) { return 0xC2; }
+		switch(current_save_type)
+		{
+			//FLASH RAM read
+			case FLASH_64:
+				if((address == 0xE000000) && (flash_ram.grab_ids)) { return 0x32; }
+				else if((address == 0xE000001) && (flash_ram.grab_ids)) { return 0x1B; }
+				return flash_ram.data[flash_ram.bank][(address & 0xFFFF)];
 
-		else if((address == 0xE000001) && (current_save_type == FLASH_64) && (flash_ram.grab_ids)) { return 0x1B; }
-		else if((address == 0xE000001) && (current_save_type == FLASH_128) && (flash_ram.grab_ids)) { return 0x09; }
+			//FLASH RAM read
+			case FLASH_128:
+				if((address == 0xE000000) && (flash_ram.grab_ids)) { return 0xC2; }
+				else if((address == 0xE000001) && (flash_ram.grab_ids)) { return 0x09; }
+				return flash_ram.data[flash_ram.bank][(address & 0xFFFF)];
 
-		return flash_ram.data[flash_ram.bank][(address & 0xFFFF)];
+			//SRAM read
+			case SRAM:
+				return memory_map[address];
+
+			//Disable this memory region if not using SRAM or FLASH RAM.
+			//Used in some game protection schemes (NES Classics and Top Gun: Combat Zones)
+			default:
+				return 0;
+		}
 	}
 
 	switch(address)
@@ -1590,7 +1621,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 
 		//General Purpose I/O Direction
 		case GPIO_DIRECTION:
-			if(gpio.type != GPIO_DISABLED) { gpio.direction = value & 0x1; }
+			if(gpio.type != GPIO_DISABLED) { gpio.direction = value & 0xF; }
 			break;
 
 		//General Purpose I/O Control
@@ -1837,67 +1868,98 @@ bool AGB_MMU::read_file(std::string filename)
 	std::string backup_file = filename + ".sav";
 
 	//Try to auto-detect save-type, if any
-	for(u32 x = 0x8000000; x < (0x8000000 + file_size); x+=4)
+	if(config::agb_save_type == AGB_AUTO_DETECT)
 	{
-		switch(memory_map[x])
+		for(u32 x = 0x8000000; x < (0x8000000 + file_size); x+=4)
 		{
-			//EEPROM
-			case 0x45:
-				if((memory_map[x+1] == 0x45) && (memory_map[x+2] == 0x50) && (memory_map[x+3] == 0x52) && (memory_map[x+4] == 0x4F) && (memory_map[x+5] == 0x4D))
-				{
-					std::cout<<"MMU::EEPROM save type detected\n";
-					current_save_type = EEPROM;
-					load_backup(backup_file);
-					return true;
-				}
+			switch(memory_map[x])
+			{
+				//EEPROM
+				case 0x45:
+					if((memory_map[x+1] == 0x45) && (memory_map[x+2] == 0x50) && (memory_map[x+3] == 0x52) && (memory_map[x+4] == 0x4F) && (memory_map[x+5] == 0x4D))
+					{
+						std::cout<<"MMU::EEPROM save type detected\n";
+						current_save_type = EEPROM;
+						load_backup(backup_file);
+						return true;
+					}
 				
-				break;
+					break;
 
-			//FLASH RAM
-			case 0x46:
-				//64KB "FLASH_Vnnn"
-				if((memory_map[x+1] == 0x4C) && (memory_map[x+2] == 0x41) && (memory_map[x+3] == 0x53) && (memory_map[x+4] == 0x48) && (memory_map[x+5] == 0x5F))
-				{
-					std::cout<<"MMU::FLASH RAM (64KB) save type detected\n";
-					current_save_type = FLASH_64;
-					load_backup(backup_file);
-					return true;
-				}
+				//FLASH RAM
+				case 0x46:
+					//64KB "FLASH_Vnnn"
+					if((memory_map[x+1] == 0x4C) && (memory_map[x+2] == 0x41) && (memory_map[x+3] == 0x53) && (memory_map[x+4] == 0x48) && (memory_map[x+5] == 0x5F))
+					{
+						std::cout<<"MMU::FLASH RAM (64KB) save type detected\n";
+						current_save_type = FLASH_64;
+						load_backup(backup_file);
+						return true;
+					}
 
-				//64KB "FLASH512_Vnnn"
-				else if((memory_map[x+1] == 0x4C) && (memory_map[x+2] == 0x41) && (memory_map[x+3] == 0x53) && (memory_map[x+4] == 0x48) && (memory_map[x+5] == 0x35)
-				&& (memory_map[x+6] == 0x31) && (memory_map[x+7] == 0x32)) 
-				{
-					std::cout<<"MMU::FLASH RAM (64KB) save type detected\n";
-					current_save_type = FLASH_64;
-					load_backup(backup_file);
-					return true;
-				}
+					//64KB "FLASH512_Vnnn"
+					else if((memory_map[x+1] == 0x4C) && (memory_map[x+2] == 0x41) && (memory_map[x+3] == 0x53) && (memory_map[x+4] == 0x48) && (memory_map[x+5] == 0x35)
+					&& (memory_map[x+6] == 0x31) && (memory_map[x+7] == 0x32)) 
+					{
+						std::cout<<"MMU::FLASH RAM (64KB) save type detected\n";
+						current_save_type = FLASH_64;
+						load_backup(backup_file);
+						return true;
+					}
 
-				//128KB "FLASH1M_V"
-				else if((memory_map[x+1] == 0x4C) && (memory_map[x+2] == 0x41) && (memory_map[x+3] == 0x53) && (memory_map[x+4] == 0x48) && (memory_map[x+5] == 0x31)
-				&& (memory_map[x+6] == 0x4D))
-				{
-					std::cout<<"MMU::FLASH RAM (128KB) save type detected\n";
-					current_save_type = FLASH_128;
-					load_backup(backup_file);
-					return true;
-				}
+					//128KB "FLASH1M_V"
+					else if((memory_map[x+1] == 0x4C) && (memory_map[x+2] == 0x41) && (memory_map[x+3] == 0x53) && (memory_map[x+4] == 0x48) && (memory_map[x+5] == 0x31)
+					&& (memory_map[x+6] == 0x4D))
+					{
+						std::cout<<"MMU::FLASH RAM (128KB) save type detected\n";
+						current_save_type = FLASH_128;
+						load_backup(backup_file);
+						return true;
+					}
 
-				break;
+					break;
 
-			//SRAM
-			case 0x53:
-				if((memory_map[x+1] == 0x52) && (memory_map[x+2] == 0x41) && (memory_map[x+3] == 0x4D))
-				{
-					std::cout<<"MMU::SRAM save type detected\n";
-					current_save_type = SRAM;
-					load_backup(backup_file);
-					return true;
-				}
+				//SRAM
+				case 0x53:
+					if((memory_map[x+1] == 0x52) && (memory_map[x+2] == 0x41) && (memory_map[x+3] == 0x4D))
+					{
+						std::cout<<"MMU::SRAM save type detected\n";
+						current_save_type = SRAM;
+						load_backup(backup_file);
+						return true;
+					}
 
-				break;
+					break;
+			}
 		}
+	}
+
+	//Otherwise, use specified save type
+	switch(config::agb_save_type)
+	{
+		case AGB_SRAM:
+			std::cout<<"MMU::Forcing SRAM save type\n";
+			current_save_type = SRAM;
+			load_backup(backup_file);
+			return true;
+
+		case AGB_EEPROM:
+			std::cout<<"MMU::Forcing EEPROM save type\n";
+			current_save_type = EEPROM;
+			load_backup(backup_file);
+			return true;
+
+		case AGB_FLASH64:
+			std::cout<<"MMU::Forcing FLASH RAM (64KB) save type\n";
+			current_save_type = FLASH_64;
+			load_backup(backup_file);
+			return true;
+
+		case AGB_FLASH128:
+			std::cout<<"MMU::Forcing FLASH RAM (128KB) save type\n";
+			current_save_type = FLASH_128;
+			load_backup(backup_file);
+			return true;
 	}
 		
 	return true;
@@ -2336,6 +2398,25 @@ void AGB_MMU::flash_erase_sector(u32 sector)
 	for(u32 x = sector; x < (sector + 0x1000); x++) 
 	{ 
 		flash_ram.data[flash_ram.bank][(x & 0xFFFF)] = 0xFF; 
+	}
+}
+
+/****** Continually processes motion in specialty carts (for use by other components outside MMU like LCD) ******/
+void AGB_MMU::process_motion()
+{
+	g_pad->process_gyroscope();
+	
+	//Write to SRAM registers for tilt sensor
+	if(config::cart_type == AGB_TILT_SENSOR)
+	{
+		//X Sensor
+		memory_map[0xE008200] = (g_pad->sensor_x & 0xFF);
+		memory_map[0xE008300] = (g_pad->sensor_x >> 8);
+		memory_map[0xE008300] |= 0x80;
+
+		//Y Sensor
+		memory_map[0xE008400] = (g_pad->sensor_y & 0xFF);
+		memory_map[0xE008500] = (g_pad->sensor_y >> 8);
 	}
 }
 

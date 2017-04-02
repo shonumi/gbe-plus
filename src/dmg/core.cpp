@@ -243,28 +243,18 @@ void DMG_core::run_core()
 			//Halt CPU if necessary
 			if(core_cpu.halt == true)
 			{
-				//Normal HALT mode with interrupts enabled
-				if(!core_cpu.skip_instruction) { core_cpu.cycles += 4; }
+				//Normal HALT mode
+				if(core_cpu.interrupt || !core_cpu.skip_instruction) { core_cpu.cycles += 4; }
 
-				//HALT mode with interrupts disabled (DMG, MBP, and SGB models)
-				else if((core_cpu.skip_instruction) && (config::gb_type == 1))
+				//HALT bug
+				else if(core_cpu.skip_instruction)
 				{
+					//Exit HALT mode
 					core_cpu.halt = false;
 					core_cpu.skip_instruction = false;
 
 					//Execute next opcode, but do not increment PC
 					core_cpu.opcode = core_mmu.read_u8(core_cpu.reg.pc);
-					core_cpu.exec_op(core_cpu.opcode);
-				}
-
-				//HALT mode with interrupts disabled (GBC models)
-				else
-				{
-					core_cpu.halt = false;
-					core_cpu.skip_instruction = false;
-
-					//Continue normally
-					core_cpu.opcode = core_mmu.read_u8(core_cpu.reg.pc++);
 					core_cpu.exec_op(core_cpu.opcode);
 				}
 			}
@@ -430,28 +420,18 @@ void DMG_core::step()
 		//Halt CPU if necessary
 		if(core_cpu.halt == true)
 		{
-			//Normal HALT mode with interrupts enabled
-			if(!core_cpu.skip_instruction) { core_cpu.cycles += 4; }
+			//Normal HALT mode
+			if(core_cpu.interrupt || !core_cpu.skip_instruction) { core_cpu.cycles += 4; }
 
-			//HALT mode with interrupts disabled (DMG, MBP, and SGB models)
-			else if((core_cpu.skip_instruction) && (config::gb_type == 1))
+			//HALT bug
+			else if(core_cpu.skip_instruction)
 			{
+				//Exit HALT mode
 				core_cpu.halt = false;
 				core_cpu.skip_instruction = false;
 
 				//Execute next opcode, but do not increment PC
 				core_cpu.opcode = core_mmu.read_u8(core_cpu.reg.pc);
-				core_cpu.exec_op(core_cpu.opcode);
-			}
-
-			//HALT mode with interrupts disabled (GBC models)
-			else
-			{
-				core_cpu.halt = false;
-				core_cpu.skip_instruction = false;
-
-				//Continue normally
-				core_cpu.opcode = core_mmu.read_u8(core_cpu.reg.pc++);
 				core_cpu.exec_op(core_cpu.opcode);
 			}
 		}
@@ -949,7 +929,7 @@ void DMG_core::debug_process_command()
 						break;
 
 					case 0x9:
-						std::cout<<"\nSetting Register SP to 0x" << std::hex << reg_value << "\n";
+						std::cout<<"\nSetting Register PC to 0x" << std::hex << reg_value << "\n";
 						core_cpu.reg.pc = reg_value;
 						break;
 				}
@@ -1074,7 +1054,7 @@ std::string DMG_core::debug_get_mnemonic(u32 addr)
 		case 0x5: return "DEC B";
 		case 0x6: return "LD B, " + util::to_hex_str(op1);
 		case 0x7: return "RLC A";
-		case 0x8: return "LD " + util::to_hex_str(op1) + ", SP";
+		case 0x8: return "LD (" + util::to_hex_str(op2) + "), SP";
 		case 0x9: return "ADD HL, BC";
 		case 0xA: return "LD A, (BC)";
 		case 0xB: return "DEC BC";
@@ -1258,7 +1238,7 @@ std::string DMG_core::debug_get_mnemonic(u32 addr)
 		case 0xBD: return "CP L";
 		case 0xBE: return "CP (HL)";
 		case 0xBF: return "CP A";
-		case 0xC0: return "RET NZ, " + util::to_hex_str(op1);
+		case 0xC0: return "RET NZ";
 		case 0xC1: return "POP BC";
 		case 0xC2: return "JP NZ, " + util::to_hex_str(op2);
 		case 0xC3: return "JP " + util::to_hex_str(op2);
@@ -1288,18 +1268,18 @@ std::string DMG_core::debug_get_mnemonic(u32 addr)
 		case 0xDF: return "RST 18";
 		case 0xE0: return "LDH (" + util::to_hex_str(0xFF00 | op1) + "), A";
 		case 0xE1: return "POP HL";
-		case 0xE2: return "LDH (" + util::to_hex_str(0xFF00 | core_cpu.reg.c) + "), A";
+		case 0xE2: return (config::use_external_interfaces) ? "LDH (0xFF00 + C), A" : "LDH (" + util::to_hex_str(0xFF00 | core_cpu.reg.c) + "), A";
 		case 0xE5: return "PUSH HL";
 		case 0xE6: return "AND " + util::to_hex_str(op1);
 		case 0xE7: return "RST 20";
 		case 0xE8: return "ADD SP, " + util::to_hex_str(op1);
 		case 0xE9: return "JP HL";
-		case 0xEA: return "LD " + util::to_hex_str(op2) + ", A";
+		case 0xEA: return "LD (" + util::to_hex_str(op2) + "), A";
 		case 0xEE: return "XOR " + util::to_hex_str(op1);
 		case 0xEF: return "RST 28";
-		case 0xF0: return "LDH A, " + util::to_hex_str(0xFF00 | op1);
+		case 0xF0: return "LDH A, (" + util::to_hex_str(0xFF00 | op1) + ")";
 		case 0xF1: return "POP AF";
-		case 0xF2: return "LDH A, " + util::to_hex_str(0xFF00 | core_cpu.reg.c);
+		case 0xF2: return (config::use_external_interfaces) ? "LDH A, (0xFF00 + C)" : "LDH A, (" + util::to_hex_str(0xFF00 | core_cpu.reg.c) + ")";
 		case 0xF3: return "DI";
 		case 0xF5: return "PUSH AF";
 		case 0xF6: return "OR " + util::to_hex_str(op1);
@@ -1580,6 +1560,9 @@ std::string DMG_core::debug_get_mnemonic(u32 addr)
 /****** Process hotkey input ******/
 void DMG_core::handle_hotkey(SDL_Event& event)
 {
+	//Disallow key repeats
+	if(event.key.repeat) { return; }
+
 	//Quit on Q or ESC
 	if((event.type == SDL_KEYDOWN) && ((event.key.keysym.sym == SDLK_q) || (event.key.keysym.sym == SDLK_ESCAPE)))
 	{
@@ -1930,4 +1913,21 @@ void DMG_core::stop_netplay()
 		core_cpu.controllers.serial_io.reset();
 		std::cout<<"SIO::Netplay connection terminated. Restart to reconnect.\n";
 	}
+}
+
+/****** Returns miscellaneous data from the core ******/
+u32 DMG_core::get_core_data(u32 core_index)
+{
+	u32 result = 0;
+
+	switch(core_index)
+	{
+		//Joypad state
+		case 0x0:
+			result = ~((core_pad.p15 << 4) | core_pad.p14);
+			result &= 0xFF;
+			break;
+	}
+
+	return result;
 }

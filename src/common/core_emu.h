@@ -66,6 +66,9 @@ class core_emu
 	virtual void start_netplay() = 0;
 	virtual void stop_netplay() = 0;
 
+	//Misc
+	virtual u32 get_core_data(u32 core_index) = 0;
+
 	bool running;
 	SDL_Event event;
 	

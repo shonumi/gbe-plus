@@ -68,6 +68,9 @@ class AGB_core : virtual public core_emu
 		void start_netplay();
 		void stop_netplay();
 
+		//Misc
+		u32 get_core_data(u32 core_index);
+
 		AGB_MMU core_mmu;
 		ARM7 core_cpu;
 		AGB_GamePad core_pad;

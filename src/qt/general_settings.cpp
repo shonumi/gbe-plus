@@ -70,20 +70,25 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	bios_layout->addWidget(bios_label);
 	bios_set->setLayout(bios_layout);
 
-	//General settings - Emulate multicarts (MBC1M)
-	QWidget* multicart_set = new QWidget(general);
-	QLabel* multicart_label = new QLabel("Multicart ROM Type : ", multicart_set);
-	multicart = new QComboBox(multicart_set);
-	multicart->setToolTip("Emulates various multicart setups");
-	multicart->addItem("None");
-	multicart->addItem("MBC1M");
-	multicart->addItem("MMM01");
+	//General settings - Emulate specialty game carts
+	QWidget* special_cart_set = new QWidget(general);
+	QLabel* special_cart_label = new QLabel("Special ROM Type : ", special_cart_set);
+	special_cart = new QComboBox(special_cart_set);
+	special_cart->setToolTip("Emulates various special_cart setups");
+	special_cart->addItem("None");
+	special_cart->addItem("DMG - MBC1M");
+	special_cart->addItem("DMG - MMM01");
+	special_cart->addItem("AGB - RTC");
+	special_cart->addItem("AGB - Solar Sensor");
+	special_cart->addItem("AGB - Rumble");
+	special_cart->addItem("AGB - Gyro Sensor");
+	special_cart->addItem("AGB - Tilt Sensor");
 
-	QHBoxLayout* multicart_layout = new QHBoxLayout;
-	multicart_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-	multicart_layout->addWidget(multicart_label);
-	multicart_layout->addWidget(multicart);
-	multicart_set->setLayout(multicart_layout);
+	QHBoxLayout* special_cart_layout = new QHBoxLayout;
+	special_cart_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	special_cart_layout->addWidget(special_cart_label);
+	special_cart_layout->addWidget(special_cart);
+	special_cart_set->setLayout(special_cart_layout);
 
 	//General settings - Use cheats
 	QWidget* cheats_set = new QWidget(general);
@@ -141,7 +146,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	gen_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	gen_layout->addWidget(sys_type_set);
 	gen_layout->addWidget(sio_set);
-	gen_layout->addWidget(multicart_set);
+	gen_layout->addWidget(special_cart_set);
 	gen_layout->addWidget(bios_set);
 	gen_layout->addWidget(cheats_set);
 	gen_layout->addWidget(patch_set);
@@ -535,65 +540,65 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	rumble_layout->addWidget(rumble_label);
 	rumble_set->setLayout(rumble_layout);
 
-	//Advanced control settings - Gyro left
-	gyro_left_set = new QWidget(controls);
-	QLabel* gyro_left_label = new QLabel("Gyro Left : ");
-	input_gyro_left = new QLineEdit(controls);
-	config_gyro_left = new QPushButton("Configure");
-	input_gyro_left->setMaximumWidth(100);
-	config_gyro_left->setMaximumWidth(100);
+	//Advanced control settings - Context left
+	con_left_set = new QWidget(controls);
+	QLabel* con_left_label = new QLabel("Context Left : ");
+	input_con_left = new QLineEdit(controls);
+	config_con_left = new QPushButton("Configure");
+	input_con_left->setMaximumWidth(100);
+	config_con_left->setMaximumWidth(100);
 
-	QHBoxLayout* gyro_left_layout = new QHBoxLayout;
-	gyro_left_layout->addWidget(gyro_left_label, 1, Qt::AlignLeft);
-	gyro_left_layout->addWidget(input_gyro_left, 1, Qt::AlignLeft);
-	gyro_left_layout->addWidget(config_gyro_left, 1, Qt::AlignLeft);
-	gyro_left_layout->setContentsMargins(6, 0, 0, 0);
-	gyro_left_set->setLayout(gyro_left_layout);
+	QHBoxLayout* con_left_layout = new QHBoxLayout;
+	con_left_layout->addWidget(con_left_label, 1, Qt::AlignLeft);
+	con_left_layout->addWidget(input_con_left, 1, Qt::AlignLeft);
+	con_left_layout->addWidget(config_con_left, 1, Qt::AlignLeft);
+	con_left_layout->setContentsMargins(6, 0, 0, 0);
+	con_left_set->setLayout(con_left_layout);
 
-	//Advanced control settings - Gyro right
-	gyro_right_set = new QWidget(controls);
-	QLabel* gyro_right_label = new QLabel("Gyro Right : ");
-	input_gyro_right = new QLineEdit(controls);
-	config_gyro_right = new QPushButton("Configure");
-	input_gyro_right->setMaximumWidth(100);
-	config_gyro_right->setMaximumWidth(100);
+	//Advanced control settings - Context right
+	con_right_set = new QWidget(controls);
+	QLabel* con_right_label = new QLabel("Context Right : ");
+	input_con_right = new QLineEdit(controls);
+	config_con_right = new QPushButton("Configure");
+	input_con_right->setMaximumWidth(100);
+	config_con_right->setMaximumWidth(100);
 
-	QHBoxLayout* gyro_right_layout = new QHBoxLayout;
-	gyro_right_layout->addWidget(gyro_right_label, 1, Qt::AlignLeft);
-	gyro_right_layout->addWidget(input_gyro_right, 1, Qt::AlignLeft);
-	gyro_right_layout->addWidget(config_gyro_right, 1, Qt::AlignLeft);
-	gyro_right_layout->setContentsMargins(6, 0, 0, 0);
-	gyro_right_set->setLayout(gyro_right_layout);
+	QHBoxLayout* con_right_layout = new QHBoxLayout;
+	con_right_layout->addWidget(con_right_label, 1, Qt::AlignLeft);
+	con_right_layout->addWidget(input_con_right, 1, Qt::AlignLeft);
+	con_right_layout->addWidget(config_con_right, 1, Qt::AlignLeft);
+	con_right_layout->setContentsMargins(6, 0, 0, 0);
+	con_right_set->setLayout(con_right_layout);
 
-	//Advanced control settings - Gyro up
-	gyro_up_set = new QWidget(controls);
-	QLabel* gyro_up_label = new QLabel("Gyro Up : ");
-	input_gyro_up = new QLineEdit(controls);
-	config_gyro_up = new QPushButton("Configure");
-	input_gyro_up->setMaximumWidth(100);
-	config_gyro_up->setMaximumWidth(100);
+	//Advanced control settings - Context up
+	con_up_set = new QWidget(controls);
+	QLabel* con_up_label = new QLabel("Context Up : ");
+	input_con_up = new QLineEdit(controls);
+	config_con_up = new QPushButton("Configure");
+	input_con_up->setMaximumWidth(100);
+	config_con_up->setMaximumWidth(100);
 
-	QHBoxLayout* gyro_up_layout = new QHBoxLayout;
-	gyro_up_layout->addWidget(gyro_up_label, 1, Qt::AlignLeft);
-	gyro_up_layout->addWidget(input_gyro_up, 1, Qt::AlignLeft);
-	gyro_up_layout->addWidget(config_gyro_up, 1, Qt::AlignLeft);
-	gyro_up_layout->setContentsMargins(6, 0, 0, 0);
-	gyro_up_set->setLayout(gyro_up_layout);
+	QHBoxLayout* con_up_layout = new QHBoxLayout;
+	con_up_layout->addWidget(con_up_label, 1, Qt::AlignLeft);
+	con_up_layout->addWidget(input_con_up, 1, Qt::AlignLeft);
+	con_up_layout->addWidget(config_con_up, 1, Qt::AlignLeft);
+	con_up_layout->setContentsMargins(6, 0, 0, 0);
+	con_up_set->setLayout(con_up_layout);
 
-	//Advanced control settings - Gyro down
-	gyro_down_set = new QWidget(controls);
-	QLabel* gyro_down_label = new QLabel("Gyro Down : ");
-	input_gyro_down = new QLineEdit(controls);
-	config_gyro_down = new QPushButton("Configure");
-	input_gyro_down->setMaximumWidth(100);
-	config_gyro_down->setMaximumWidth(100);
+	//Advanced control settings - Context down
+	con_down_set = new QWidget(controls);
+	QLabel* con_down_label = new QLabel("Context Down : ");
+	input_con_down = new QLineEdit(controls);
+	config_con_down = new QPushButton("Configure");
+	input_con_down->setMaximumWidth(100);
+	config_con_down->setMaximumWidth(100);
 
-	QHBoxLayout* gyro_down_layout = new QHBoxLayout;
-	gyro_down_layout->addWidget(gyro_down_label, 1, Qt::AlignLeft);
-	gyro_down_layout->addWidget(input_gyro_down, 1, Qt::AlignLeft);
-	gyro_down_layout->addWidget(config_gyro_down, 1, Qt::AlignLeft);
-	gyro_down_layout->setContentsMargins(6, 0, 0, 0);
-	gyro_down_set->setLayout(gyro_down_layout);
+	QHBoxLayout* con_down_layout = new QHBoxLayout;
+	con_down_layout->addWidget(con_down_label, 1, Qt::AlignLeft);
+	con_down_layout->addWidget(input_con_down, 1, Qt::AlignLeft);
+	con_down_layout->addWidget(config_con_down, 1, Qt::AlignLeft);
+	con_down_layout->setContentsMargins(6, 0, 0, 0);
+	con_down_set->setLayout(con_down_layout);
 
 	controls_layout = new QVBoxLayout;
 	controls_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -614,16 +619,16 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	advanced_controls_layout = new QVBoxLayout;
 	advanced_controls_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	advanced_controls_layout->addWidget(rumble_set);
-	advanced_controls_layout->addWidget(gyro_up_set);
-	advanced_controls_layout->addWidget(gyro_down_set);
-	advanced_controls_layout->addWidget(gyro_left_set);
-	advanced_controls_layout->addWidget(gyro_right_set);
+	advanced_controls_layout->addWidget(con_up_set);
+	advanced_controls_layout->addWidget(con_down_set);
+	advanced_controls_layout->addWidget(con_left_set);
+	advanced_controls_layout->addWidget(con_right_set);
 	
 	rumble_set->setVisible(false);
-	gyro_up_set->setVisible(false);
-	gyro_down_set->setVisible(false);
-	gyro_left_set->setVisible(false);
-	gyro_right_set->setVisible(false);
+	con_up_set->setVisible(false);
+	con_down_set->setVisible(false);
+	con_left_set->setVisible(false);
+	con_right_set->setVisible(false);
 
 	//Netplay - Enable Netplay
 	QWidget* enable_netplay_set = new QWidget(netplay);
@@ -702,7 +707,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	dmg_bios_label = new QLabel("DMG Boot ROM :  ");
 	QPushButton* dmg_bios_button = new QPushButton("Browse");
 	dmg_bios = new QLineEdit(paths);
-	dmg_bios->setReadOnly(true);
+	
 
 	QHBoxLayout* dmg_bios_layout = new QHBoxLayout;
 	dmg_bios_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -717,7 +722,6 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	gbc_bios_label = new QLabel("GBC Boot ROM :  ");
 	QPushButton* gbc_bios_button = new QPushButton("Browse");
 	gbc_bios = new QLineEdit(paths);
-	gbc_bios->setReadOnly(true);
 
 	QHBoxLayout* gbc_bios_layout = new QHBoxLayout;
 	gbc_bios_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -731,7 +735,6 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	gba_bios_label = new QLabel("GBA BIOS :  ");
 	QPushButton* gba_bios_button = new QPushButton("Browse");
 	gba_bios = new QLineEdit(paths);
-	gba_bios->setReadOnly(true);
 
 	QHBoxLayout* gba_bios_layout = new QHBoxLayout;
 	gba_bios_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -745,7 +748,6 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	manifest_label = new QLabel("CGFX Manifest :  ");
 	QPushButton* manifest_button = new QPushButton("Browse");
 	manifest = new QLineEdit(paths);
-	manifest->setReadOnly(true);
 
 	QHBoxLayout* manifest_layout = new QHBoxLayout;
 	manifest_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -759,7 +761,6 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	dump_bg_label = new QLabel("BG Dump :  ");
 	QPushButton* dump_bg_button = new QPushButton("Browse");
 	dump_bg = new QLineEdit(paths);
-	dump_bg->setReadOnly(true);
 
 	QHBoxLayout* dump_bg_layout = new QHBoxLayout;
 	dump_bg_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -774,7 +775,6 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	dump_obj_label = new QLabel("OBJ Dump :  ");
 	QPushButton* dump_obj_button = new QPushButton("Browse");
 	dump_obj = new QLineEdit(paths);
-	dump_obj->setReadOnly(true);
 
 	QHBoxLayout* dump_obj_layout = new QHBoxLayout;
 	dump_obj_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -789,7 +789,6 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	screenshot_label = new QLabel("Screenshots :  ");
 	QPushButton* screenshot_button = new QPushButton("Browse");
 	screenshot = new QLineEdit(paths);
-	screenshot->setReadOnly(true);
 
 	QHBoxLayout* screenshot_layout = new QHBoxLayout;
 	screenshot_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -803,7 +802,6 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	game_saves_label = new QLabel("Game Saves :  ");
 	QPushButton* game_saves_button = new QPushButton("Browse");
 	game_saves = new QLineEdit(paths);
-	game_saves->setReadOnly(true);
 
 	QHBoxLayout* game_saves_layout = new QHBoxLayout;
 	game_saves_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -817,7 +815,6 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	cheats_path_label = new QLabel("Cheats File :  ");
 	QPushButton* cheats_path_button = new QPushButton("Browse");
 	cheats_path = new QLineEdit(paths);
-	cheats_path->setReadOnly(true);
 
 	QHBoxLayout* cheats_path_layout = new QHBoxLayout;
 	cheats_path_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -909,10 +906,10 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(config_down, SIGNAL(clicked()), button_config, SLOT(map()));
 	connect(config_l, SIGNAL(clicked()), button_config, SLOT(map()));
 	connect(config_r, SIGNAL(clicked()), button_config, SLOT(map()));
-	connect(config_gyro_up, SIGNAL(clicked()), button_config, SLOT(map()));
-	connect(config_gyro_down, SIGNAL(clicked()), button_config, SLOT(map()));
-	connect(config_gyro_left, SIGNAL(clicked()), button_config, SLOT(map()));
-	connect(config_gyro_right, SIGNAL(clicked()), button_config, SLOT(map()));
+	connect(config_con_up, SIGNAL(clicked()), button_config, SLOT(map()));
+	connect(config_con_down, SIGNAL(clicked()), button_config, SLOT(map()));
+	connect(config_con_left, SIGNAL(clicked()), button_config, SLOT(map()));
+	connect(config_con_right, SIGNAL(clicked()), button_config, SLOT(map()));
 
 	button_config->setMapping(config_a, 0);
 	button_config->setMapping(config_b, 1);
@@ -924,10 +921,10 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	button_config->setMapping(config_down, 7);
 	button_config->setMapping(config_l, 8);
 	button_config->setMapping(config_r, 9);
-	button_config->setMapping(config_gyro_up, 10);
-	button_config->setMapping(config_gyro_down, 11);
-	button_config->setMapping(config_gyro_left, 12);
-	button_config->setMapping(config_gyro_right, 13);
+	button_config->setMapping(config_con_up, 10);
+	button_config->setMapping(config_con_down, 11);
+	button_config->setMapping(config_con_left, 12);
+	button_config->setMapping(config_con_right, 13);
 	connect(button_config, SIGNAL(mapped(int)), this, SLOT(configure_button(int))) ;
 
 	//Final tab layout
@@ -947,10 +944,10 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	config_down->setMinimumWidth(150);
 	config_l->setMinimumWidth(150);
 	config_r->setMinimumWidth(150);
-	config_gyro_up->setMinimumWidth(150);
-	config_gyro_down->setMinimumWidth(150);
-	config_gyro_left->setMinimumWidth(150);
-	config_gyro_right->setMinimumWidth(150);
+	config_con_up->setMinimumWidth(150);
+	config_con_down->setMinimumWidth(150);
+	config_con_left->setMinimumWidth(150);
+	config_con_right->setMinimumWidth(150);
 
 	input_a->setReadOnly(true);
 	input_b->setReadOnly(true);
@@ -962,10 +959,10 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	input_down->setReadOnly(true);
 	input_l->setReadOnly(true);
 	input_r->setReadOnly(true);
-	input_gyro_up->setReadOnly(true);
-	input_gyro_down->setReadOnly(true);
-	input_gyro_left->setReadOnly(true);
-	input_gyro_right->setReadOnly(true);
+	input_con_up->setReadOnly(true);
+	input_con_down->setReadOnly(true);
+	input_con_left->setReadOnly(true);
+	input_con_right->setReadOnly(true);
 
 	//Install event filters
 	config_a->installEventFilter(this);
@@ -978,10 +975,10 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	config_down->installEventFilter(this);
 	config_l->installEventFilter(this);
 	config_r->installEventFilter(this);
-	config_gyro_up->installEventFilter(this);
-	config_gyro_down->installEventFilter(this);
-	config_gyro_left->installEventFilter(this);
-	config_gyro_right->installEventFilter(this);
+	config_con_up->installEventFilter(this);
+	config_con_down->installEventFilter(this);
+	config_con_left->installEventFilter(this);
+	config_con_right->installEventFilter(this);
 
 	input_a->installEventFilter(this);
 	input_b->installEventFilter(this);
@@ -993,10 +990,10 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	input_down->installEventFilter(this);
 	input_l->installEventFilter(this);
 	input_r->installEventFilter(this);
-	input_gyro_up->installEventFilter(this);
-	input_gyro_down->installEventFilter(this);
-	input_gyro_left->installEventFilter(this);
-	input_gyro_right->installEventFilter(this);
+	input_con_up->installEventFilter(this);
+	input_con_down->installEventFilter(this);
+	input_con_left->installEventFilter(this);
+	input_con_right->installEventFilter(this);
 
 	//Set focus policies
 	config_a->setFocusPolicy(Qt::NoFocus);
@@ -1009,10 +1006,10 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	config_down->setFocusPolicy(Qt::NoFocus);
 	config_l->setFocusPolicy(Qt::NoFocus);
 	config_r->setFocusPolicy(Qt::NoFocus);
-	config_gyro_up->setFocusPolicy(Qt::NoFocus);
-	config_gyro_down->setFocusPolicy(Qt::NoFocus);
-	config_gyro_left->setFocusPolicy(Qt::NoFocus);
-	config_gyro_right->setFocusPolicy(Qt::NoFocus);
+	config_con_up->setFocusPolicy(Qt::NoFocus);
+	config_con_down->setFocusPolicy(Qt::NoFocus);
+	config_con_left->setFocusPolicy(Qt::NoFocus);
+	config_con_right->setFocusPolicy(Qt::NoFocus);
 
 	input_a->setFocusPolicy(Qt::NoFocus);
 	input_b->setFocusPolicy(Qt::NoFocus);
@@ -1024,10 +1021,10 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	input_down->setFocusPolicy(Qt::NoFocus);
 	input_l->setFocusPolicy(Qt::NoFocus);
 	input_r->setFocusPolicy(Qt::NoFocus);
-	input_gyro_up->setFocusPolicy(Qt::NoFocus);
-	input_gyro_down->setFocusPolicy(Qt::NoFocus);
-	input_gyro_left->setFocusPolicy(Qt::NoFocus);
-	input_gyro_right->setFocusPolicy(Qt::NoFocus);
+	input_con_up->setFocusPolicy(Qt::NoFocus);
+	input_con_down->setFocusPolicy(Qt::NoFocus);
+	input_con_left->setFocusPolicy(Qt::NoFocus);
+	input_con_right->setFocusPolicy(Qt::NoFocus);
 
 	//Joystick handling
 	jstick = SDL_JoystickOpen(0);
@@ -1161,10 +1158,10 @@ void gen_settings::set_ini_options()
 	input_down->setText(QString::number(config::agb_key_down));
 	input_l->setText(QString::number(config::agb_key_l_trigger));
 	input_r->setText(QString::number(config::agb_key_r_trigger));
-	input_gyro_up->setText(QString::number(config::gyro_key_up));
-	input_gyro_down->setText(QString::number(config::gyro_key_down));
-	input_gyro_left->setText(QString::number(config::gyro_key_left));
-	input_gyro_right->setText(QString::number(config::gyro_key_right));
+	input_con_up->setText(QString::number(config::con_key_up));
+	input_con_down->setText(QString::number(config::con_key_down));
+	input_con_left->setText(QString::number(config::con_key_left));
+	input_con_right->setText(QString::number(config::con_key_right));
 
 	//BIOS, Boot ROM and Manifest paths
 	QString path_1(QString::fromStdString(config::dmg_bios_path));
@@ -1497,10 +1494,10 @@ void gen_settings::input_device_change()
 		input_down->setText(QString::number(config::agb_key_down));
 		input_l->setText(QString::number(config::agb_key_l_trigger));
 		input_r->setText(QString::number(config::agb_key_r_trigger));
-		input_gyro_up->setText(QString::number(config::gyro_key_up));
-		input_gyro_down->setText(QString::number(config::gyro_key_down));
-		input_gyro_left->setText(QString::number(config::gyro_key_left));
-		input_gyro_right->setText(QString::number(config::gyro_key_right));
+		input_con_up->setText(QString::number(config::con_key_up));
+		input_con_down->setText(QString::number(config::con_key_down));
+		input_con_left->setText(QString::number(config::con_key_left));
+		input_con_right->setText(QString::number(config::con_key_right));
 	}
 
 	else
@@ -1515,10 +1512,10 @@ void gen_settings::input_device_change()
 		input_down->setText(QString::number(config::agb_joy_down));
 		input_l->setText(QString::number(config::agb_joy_l_trigger));
 		input_r->setText(QString::number(config::agb_joy_r_trigger));
-		input_gyro_up->setText(QString::number(config::gyro_joy_up));
-		input_gyro_down->setText(QString::number(config::gyro_joy_down));
-		input_gyro_left->setText(QString::number(config::gyro_joy_left));
-		input_gyro_right->setText(QString::number(config::gyro_joy_right));
+		input_con_up->setText(QString::number(config::con_joy_up));
+		input_con_down->setText(QString::number(config::con_joy_down));
+		input_con_left->setText(QString::number(config::con_joy_left));
+		input_con_right->setText(QString::number(config::con_joy_right));
 
 		//Use new joystick id
 		config::joy_id = input_device->currentIndex() - 1;
@@ -1644,26 +1641,26 @@ void gen_settings::configure_button(int button)
 			break;
 
 		case 10: 
-			input_delay(config_gyro_up);
-			input_gyro_up->setFocus();
+			input_delay(config_con_up);
+			input_con_up->setFocus();
 			input_index = 10;
 			break;
 
 		case 11: 
-			input_delay(config_gyro_down);
-			input_gyro_down->setFocus();
+			input_delay(config_con_down);
+			input_con_down->setFocus();
 			input_index = 11;
 			break;
 
 		case 12: 
-			input_delay(config_gyro_left);
-			input_gyro_left->setFocus();
+			input_delay(config_con_left);
+			input_con_left->setFocus();
 			input_index = 12;
 			break;
 
 		case 13: 
-			input_delay(config_gyro_right);
-			input_gyro_right->setFocus();
+			input_delay(config_con_right);
+			input_con_right->setFocus();
 			input_index = 13;
 			break;
 	}
@@ -1859,45 +1856,45 @@ void gen_settings::process_joystick_event()
 		case 10:
 			if(pad != 0)
 			{
-				config::gyro_joy_up = pad;
-				input_gyro_up->setText(QString::number(pad));
+				config::con_joy_up = pad;
+				input_con_up->setText(QString::number(pad));
 			}
 
-			config_gyro_up->setText("Configure");
-			input_gyro_up->clearFocus();
+			config_con_up->setText("Configure");
+			input_con_up->clearFocus();
 			break;
 
 		case 11:
 			if(pad != 0)
 			{
-				config::gyro_joy_down = pad;
-				input_gyro_down->setText(QString::number(pad));
+				config::con_joy_down = pad;
+				input_con_down->setText(QString::number(pad));
 			}
 
-			config_gyro_down->setText("Configure");
-			input_gyro_down->clearFocus();
+			config_con_down->setText("Configure");
+			input_con_down->clearFocus();
 			break;
 
 		case 12:
 			if(pad != 0)
 			{
-				config::gyro_joy_left = pad;
-				input_gyro_left->setText(QString::number(pad));
+				config::con_joy_left = pad;
+				input_con_left->setText(QString::number(pad));
 			}
 
-			config_gyro_left->setText("Configure");
-			input_gyro_left->clearFocus();
+			config_con_left->setText("Configure");
+			input_con_left->clearFocus();
 			break;
 
 		case 13:
 			if(pad != 0)
 			{
-				config::gyro_joy_right = pad;
-				input_gyro_right->setText(QString::number(pad));
+				config::con_joy_right = pad;
+				input_con_right->setText(QString::number(pad));
 			}
 
-			config_gyro_right->setText("Configure");
-			input_gyro_right->clearFocus();
+			config_con_right->setText("Configure");
+			input_con_right->clearFocus();
 			break;
 	}
 
@@ -1919,10 +1916,10 @@ void gen_settings::close_input()
 	config_down->setText("Configure");
 	config_l->setText("Configure");
 	config_r->setText("Configure");
-	config_gyro_up->setText("Configure");
-	config_gyro_down->setText("Configure");
-	config_gyro_left->setText("Configure");
-	config_gyro_right->setText("Configure");
+	config_con_up->setText("Configure");
+	config_con_down->setText("Configure");
+	config_con_left->setText("Configure");
+	config_con_right->setText("Configure");
 
 	input_index = -1;
 	grab_input = false;
@@ -2003,10 +2000,10 @@ void gen_settings::switch_control_layout()
 		advanced_controls_layout = new QVBoxLayout;
 		advanced_controls_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 		advanced_controls_layout->addWidget(rumble_set);
-		advanced_controls_layout->addWidget(gyro_up_set);
-		advanced_controls_layout->addWidget(gyro_down_set);
-		advanced_controls_layout->addWidget(gyro_left_set);
-		advanced_controls_layout->addWidget(gyro_right_set);
+		advanced_controls_layout->addWidget(con_up_set);
+		advanced_controls_layout->addWidget(con_down_set);
+		advanced_controls_layout->addWidget(con_left_set);
+		advanced_controls_layout->addWidget(con_right_set);
 
 		input_device_set->setVisible(true);
 
@@ -2171,45 +2168,45 @@ void gen_settings::keyPressEvent(QKeyEvent* event)
 			case 10:
 				if(last_key != -1)
 				{
-					config::gyro_key_up = last_key;
-					input_gyro_up->setText(QString::number(last_key));
+					config::con_key_up = last_key;
+					input_con_up->setText(QString::number(last_key));
 				}
 
-				config_gyro_up->setText("Configure");
-				input_gyro_up->clearFocus();
+				config_con_up->setText("Configure");
+				input_con_up->clearFocus();
 				break;
 
 			case 11:
 				if(last_key != -1)
 				{
-					config::gyro_key_down = last_key;
-					input_gyro_down->setText(QString::number(last_key));
+					config::con_key_down = last_key;
+					input_con_down->setText(QString::number(last_key));
 				}
 
-				config_gyro_down->setText("Configure");
-				input_gyro_down->clearFocus();
+				config_con_down->setText("Configure");
+				input_con_down->clearFocus();
 				break;
 
 			case 12:
 				if(last_key != -1)
 				{
-					config::gyro_key_left = last_key;
-					input_gyro_left->setText(QString::number(last_key));
+					config::con_key_left = last_key;
+					input_con_left->setText(QString::number(last_key));
 				}
 
-				config_gyro_left->setText("Configure");
-				input_gyro_left->clearFocus();
+				config_con_left->setText("Configure");
+				input_con_left->clearFocus();
 				break;
 
 			case 13:
 				if(last_key != -1)
 				{
-					config::gyro_key_right = last_key;
-					input_gyro_right->setText(QString::number(last_key));
+					config::con_key_right = last_key;
+					input_con_right->setText(QString::number(last_key));
 				}
 
-				config_gyro_right->setText("Configure");
-				input_gyro_right->clearFocus();
+				config_con_right->setText("Configure");
+				input_con_right->clearFocus();
 				break;
 		}
 

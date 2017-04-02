@@ -270,9 +270,6 @@ void AGB_LCD::update_oam()
 					break;
 			}
 
-			//Set double-size
-			if((obj[x].affine_enable) && (obj[x].type)) { obj[x].x += (obj[x].width >> 1); obj[x].y += (obj[x].height >> 1); }
-
 			//Precalulate OBJ boundaries
 			obj[x].left = obj[x].x;
 			obj[x].right = (obj[x].x + obj[x].width - 1) & 0x1FF;
@@ -340,31 +337,57 @@ void AGB_LCD::update_obj_affine_transformation()
 		//Determine if affine transformations occur on this OBJ
 		if(obj[x].affine_enable)
 		{
-			//Find half width and half height
-			obj[x].cw = obj[x].width >> 1;
-			obj[x].ch = obj[x].height >> 1;
-
-			//Find OBJ center
-			obj[x].cx = obj[x].x + obj[x].cw - 1;
-			obj[x].cy = obj[x].y + obj[x].ch - 1;
-
-			//If double size bit is unset use previous boundary calculations, otherwise calculate new ones
-			if(obj[x].type)
+			//Process regular-sized OBJs
+			if(!obj[x].type)
 			{
-				obj[x].left = obj[x].x - obj[x].cw;
-				obj[x].top = obj[x].y - obj[x].ch;
+				//Find half width and half height
+				obj[x].cw = obj[x].width >> 1;
+				obj[x].ch = obj[x].height >> 1;
 
-				if(obj[x].left < 0) { obj[x].left += 511; }
-				if(obj[x].top < 0) { obj[x].top += 255; }
+				//Find OBJ center
+				obj[x].cx = obj[x].x + obj[x].cw - 1;
+				obj[x].cy = obj[x].y + obj[x].ch - 1;
+
+				if(obj[x].cx > 0xFF) { obj[x].cx -= 0x1FF; }
+				if(obj[x].cy > 0xFF) { obj[x].cy -= 0xFF; }
+
+			}
+
+			//Process double-sized OBJs
+			else
+			{
+				//Find half width and half height
+				obj[x].cw = obj[x].width >> 1;
+				obj[x].ch = obj[x].height >> 1;
+
+				//Find OBJ center
+				obj[x].cx = (obj[x].x + obj[x].width - 1);
+				obj[x].cy = (obj[x].y + obj[x].height - 1);
+
+				if(obj[x].cx > 0xFF) { obj[x].cx -= 0x1FF; }
+				if(obj[x].cy > 0xFF) { obj[x].cy -= 0xFF; }
+
+				obj[x].left = obj[x].x;
+				obj[x].top = obj[x].y;
 
 				obj[x].right = (obj[x].left + (obj[x].width << 1) - 1) & 0x1FF;
 				obj[x].bottom = (obj[x].top + (obj[x].height << 1) - 1) & 0xFF;
 
 				//Precalculate OBJ wrapping
-				if(obj[x].left > obj[x].right) { obj[x].x_wrap = true; }
+				if(obj[x].left > obj[x].right)
+				{
+					obj[x].x_wrap = true;
+					obj[x].x_wrap_val = ((obj[x].width << 1) - obj[x].right - 1);
+				}
+
 				else { obj[x].x_wrap = false; }
 
-				if(obj[x].top > obj[x].bottom) { obj[x].y_wrap = true; }
+				if(obj[x].top > obj[x].bottom)
+				{
+					obj[x].y_wrap = true;
+					obj[x].y_wrap_val = ((obj[x].height << 1) - obj[x].bottom - 1);
+				}
+
 				else { obj[x].y_wrap = false; }
 			}
 		}
@@ -526,11 +549,11 @@ bool AGB_LCD::render_sprite_pixel()
 			s16 current_x, current_y;
 
 			//Determine current X position relative to the OBJ center X, account for screen wrapping
-			if((obj[sprite_id].x_wrap) && (scanline_pixel_counter < obj[sprite_id].right)) { current_x = scanline_pixel_counter - (obj[sprite_id].cx - 511); }
+			if((obj[sprite_id].x_wrap) && (scanline_pixel_counter < obj[sprite_id].right)) { current_x = scanline_pixel_counter - (obj[sprite_id].cx - obj[sprite_id].x_wrap); }
 			else { current_x = scanline_pixel_counter - obj[sprite_id].cx; }
 
 			//Determine current Y position relative to the OBJ center Y, account for screen wrapping
-			if((obj[sprite_id].y_wrap) && (current_scanline < obj[sprite_id].bottom)) { current_y = current_scanline - (obj[sprite_id].cy - 255); }
+			if((obj[sprite_id].y_wrap) && (current_scanline < obj[sprite_id].bottom)) { current_y = current_scanline - (obj[sprite_id].cy - obj[sprite_id].y_wrap); }
 			else { current_y = current_scanline - obj[sprite_id].cy; }
 
 			s16 new_x = obj[sprite_id].cw + (lcd_stat.obj_affine[index] * current_x) + (lcd_stat.obj_affine[index+1] * current_y);
@@ -1334,21 +1357,8 @@ void AGB_LCD::step()
 			//If Line 0, reset X and Y positions
 			if((lcd_stat.bg_mode != 0) && (current_scanline == 0))
 			{
-				u32 x_ref = mem->read_u32_fast(BG2X_L);
-				u32 y_ref = mem->read_u32_fast(BG2Y_L);
-				mem->write_u32(BG2X_L, x_ref);
-				mem->write_u32(BG2Y_L, y_ref);
-
-				lcd_stat.bg_affine[0].x_pos = lcd_stat.bg_affine[0].x_ref;
-				lcd_stat.bg_affine[0].y_pos = lcd_stat.bg_affine[0].y_ref;
-
-				x_ref = mem->read_u32_fast(BG3X_L);
-				y_ref = mem->read_u32_fast(BG3Y_L);
-				mem->write_u32(BG3X_L, x_ref);
-				mem->write_u32(BG3Y_L, y_ref);
-
-				lcd_stat.bg_affine[1].x_pos = lcd_stat.bg_affine[1].x_ref;
-				lcd_stat.bg_affine[1].y_pos = lcd_stat.bg_affine[1].y_ref;
+				reload_affine_references(BG2CNT);
+				reload_affine_references(BG3CNT);
 			}
 
 			//If starting any other line, add DMX and DMY to X and Y positions
@@ -1527,6 +1537,9 @@ void AGB_LCD::step()
 				SDL_SetWindowTitle(window, config::title.str().c_str());
 				fps_count = 0; 
 			}
+
+			//Process motion controls
+			if((config::cart_type == AGB_GYRO_SENSOR) || (config::cart_type == AGB_TILT_SENSOR)) { mem->process_motion(); }
 		}
 
 		//Setup HBlank
@@ -1593,6 +1606,63 @@ void AGB_LCD::scanline_compare()
 		disp_stat &= ~0x4;
 		mem->write_u16_fast(DISPSTAT, disp_stat);
 	}
+}
+
+/****** Grabs the most current X-Y references for affine backgrounds ******/
+void AGB_LCD::reload_affine_references(u32 bg_control)
+{
+	u32 x_raw, y_raw;
+	u8 aff_id;
+
+	//Read X-Y references from memory, determine which engine it belongs to
+	switch(bg_control)
+	{
+		case BG2CNT:
+			x_raw = mem->read_u32_fast(BG2X_L);
+			y_raw = mem->read_u32_fast(BG2Y_L);
+			aff_id = 0;
+			break;
+
+		case BG3CNT:
+			x_raw = mem->read_u32_fast(BG3X_L);
+			y_raw = mem->read_u32_fast(BG3Y_L);
+			aff_id = 1;
+			break;
+
+		default: return;
+	}
+			
+	//Get X reference point
+	if(x_raw & 0x8000000) 
+	{ 
+		u32 x = ((x_raw >> 8) - 1);
+		x = (~x & 0x7FFFF);
+		
+		lcd_stat.bg_affine[aff_id].x_ref = -1.0 * x;
+	}
+	
+	else { lcd_stat.bg_affine[aff_id].x_ref = (x_raw >> 8) & 0x7FFFF; }
+	
+	if((x_raw & 0xFF) != 0) { lcd_stat.bg_affine[aff_id].x_ref += (x_raw & 0xFF) / 256.0; }
+
+	//Set current X position as the new reference point
+	lcd_stat.bg_affine[aff_id].x_pos = lcd_stat.bg_affine[aff_id].x_ref;
+
+	//Get X reference point
+	if(y_raw & 0x8000000) 
+	{ 
+		u32 y = ((y_raw >> 8) - 1);
+		y = (~y & 0x7FFFF);
+		
+		lcd_stat.bg_affine[aff_id].y_ref = -1.0 * y;
+	}
+	
+	else { lcd_stat.bg_affine[aff_id].y_ref = (y_raw >> 8) & 0x7FFFF; }
+	
+	if((y_raw & 0xFF) != 0) { lcd_stat.bg_affine[aff_id].y_ref += (y_raw & 0xFF) / 256.0; }
+
+	//Set current Y position as the new reference point
+	lcd_stat.bg_affine[aff_id].y_pos = lcd_stat.bg_affine[aff_id].y_ref;
 }
 
 /****** Read LCD data from save state ******/

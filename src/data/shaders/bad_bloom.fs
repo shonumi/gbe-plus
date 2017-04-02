@@ -41,15 +41,6 @@ void get_brightness(in vec4 input_color, out float luma)
 	luma = (input_color.r * 0.2126) + (input_color.g * 0.7152) + (input_color.b * 0.0722);
 }
 
-//Blend two colors
-void rgb_blend(in vec4 color_1, in vec4 color_2, out vec4 final_color)
-{
-	final_color.r = (color_1.r + color_2.r) / 2.0;
-	final_color.g = (color_1.g + color_2.g) / 2.0;
-	final_color.b = (color_1.b + color_2.b) / 2.0;
-}
-
-
 void main()
 {
 	float tex_x = 1.0 / screen_x_size;
@@ -85,7 +76,7 @@ void main()
 		{
 			if(input_luma >= luma_threshold)
 			{
-				rgb_blend(current_color, temp_color, current_color);
+				current_color = mix(temp_color, current_color, 0.5);
 			}
 		}
 	}
@@ -104,7 +95,7 @@ void main()
 		{
 			if(input_luma >= luma_threshold)
 			{
-				rgb_blend(current_color, temp_color, current_color);
+				current_color = mix(temp_color, current_color, 0.5);
 			}
 		}
 	}
@@ -123,7 +114,7 @@ void main()
 		{
 			if(input_luma >= luma_threshold)
 			{
-				rgb_blend(current_color, temp_color, current_color);
+				current_color = mix(temp_color, current_color, 0.5);
 			}
 		}
 	}
@@ -142,7 +133,7 @@ void main()
 		{
 			if(input_luma >= luma_threshold)
 			{
-				rgb_blend(current_color, temp_color, current_color);
+				current_color = mix(temp_color, current_color, 0.5);
 			}
 		}
 	}
@@ -162,7 +153,7 @@ void main()
 		{
 			if(input_luma >= luma_threshold)
 			{
-				rgb_blend(current_color, temp_color, current_color);
+				current_color = mix(temp_color, current_color, 0.5);
 			}
 		}
 	}
@@ -181,7 +172,7 @@ void main()
 		{
 			if(input_luma >= luma_threshold)
 			{
-				rgb_blend(current_color, temp_color, current_color);
+				current_color = mix(temp_color, current_color, 0.5);
 			}
 		}
 	}
@@ -200,7 +191,7 @@ void main()
 		{
 			if(input_luma >= luma_threshold)
 			{
-				rgb_blend(current_color, temp_color, current_color);
+				current_color = mix(temp_color, current_color, 0.5);
 			}
 		}
 	}
@@ -219,7 +210,7 @@ void main()
 		{
 			if(input_luma >= luma_threshold)
 			{
-				rgb_blend(current_color, temp_color, current_color);
+				current_color = mix(temp_color, current_color, 0.5);
 			}
 		}
 	}
@@ -244,5 +235,3 @@ void main()
 
 	color = current_color;
 }
-
-

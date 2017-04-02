@@ -74,12 +74,12 @@ namespace config
 	int dmg_joy_a = 100; int dmg_joy_b = 101; int dmg_joy_start = 107; int dmg_joy_select = 106;
 	int dmg_joy_left = 200; int dmg_joy_right = 201; int dmg_joy_up = 202; int dmg_joy_down = 203;
 
-	//Default keyboard bindings - Gyroscope
+	//Default keyboard bindings - Context
 	//Left = 4 (numpad), Right = 6 (numpad), Up = 8 (numpad), Down = 2 (numpad)
-	int gyro_key_left = 260; int gyro_key_right = 262; int gyro_key_up = 264; int gyro_key_down = 258;
+	int con_key_left = 260; int con_key_right = 262; int con_key_up = 264; int con_key_down = 258;
 
-	//Default joystick bindings - Gyroscope
-	int gyro_joy_left = 204; int gyro_joy_right = 205; int gyro_joy_up = 206; int gyro_joy_down = 207;
+	//Default joystick bindings - Context
+	int con_joy_left = 204; int con_joy_right = 205; int con_joy_up = 206; int con_joy_down = 207;
 
 	//Default NDS touch zone mappings
 	int touch_zone_x[10] = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
@@ -105,8 +105,10 @@ namespace config
 	bool pause_emu = false;
 	bool use_bios = false;
 	bool use_firmware = false;
-	bool use_multicart = false;
-	bool use_mmm01 = false;
+
+	special_cart_types cart_type = NORMAL_CART;
+	gba_save_types agb_save_type = AGB_AUTO_DETECT;
+
 	u32 sio_device = 0;
 	bool use_opengl = false;
 	bool turbo = false;
@@ -186,7 +188,7 @@ namespace config
 	};
 
 	//Real-time clock offsets
-	u16 rtc_offset[4] = { 0, 0, 0, 0 };
+	u16 rtc_offset[6] = { 0, 0, 0, 0, 0, 0 };
 }
 
 /****** Reset DMG default colors ******/
@@ -616,19 +618,29 @@ bool parse_cli_args()
 			//Enable fullscreen mode
 			else if((config::cli_args[x] == "-f") || (config::cli_args[x] == "--fullscreen")) { config::flags |= SDL_WINDOW_FULLSCREEN_DESKTOP; } 
 
-			//Use multicart mode if applicable for a given ROM
-			else if(config::cli_args[x] == "--multicart")
-			{
-				config::use_multicart = true;
-				config::use_mmm01 = false;
-			}
+			//Use MBC1M multicart mode if applicable for a given ROM
+			else if(config::cli_args[x] == "--mbc1m") { config::cart_type = DMG_MBC1M; }
 
-			//Use MMM01 mode if applicable for a given ROM
-			else if(config::cli_args[x] == "--mmm01")
-			{
-				config::use_multicart = false;
-				config::use_mmm01 = true;
-			}
+			//Use MMM01 multicart mode if applicable for a given ROM
+			else if(config::cli_args[x] == "--mmm01") { config::cart_type = DMG_MMM01; }
+
+			//Use Auto-Detect for GBA saves
+			else if(config::cli_args[x] == "--save-auto") { config::agb_save_type = AGB_AUTO_DETECT; }
+
+			//Disable all GBA saves
+			else if(config::cli_args[x] == "--save-none") { config::agb_save_type = AGB_NO_SAVE; }
+
+			//Force SRAM GBA saves
+			else if(config::cli_args[x] == "--save-sram") { config::agb_save_type = AGB_SRAM; }
+
+			//Force EEPROM GBA saves
+			else if(config::cli_args[x] == "--save-eeprom") { config::agb_save_type = AGB_EEPROM; }
+
+			//Force FLASH 64KB GBA saves
+			else if(config::cli_args[x] == "--save-flash64") { config::agb_save_type = AGB_FLASH64; }
+
+			//Force FLASH 128KB GBA saves
+			else if(config::cli_args[x] == "--save-auto") { config::agb_save_type = AGB_FLASH128; }
 
 			//Use OpenGL for screen drawing
 			else if(config::cli_args[x] == "--opengl") { config::use_opengl = true; }
@@ -678,7 +690,7 @@ bool parse_cli_args()
 				std::cout<<"-b [FILE], --bios [FILE] \t\t Load and use BIOS file\n";
 				std::cout<<"-fw [FILE], --firmware [FILE] \t\t Load and use firmware file (NDS)\n";
 				std::cout<<"-d, --debug \t\t\t\t Start the command-line debugger\n";
-				std::cout<<"--multicart \t\t\t\t Use MBC1M multicart mode if applicable\n";
+				std::cout<<"--mbc1m \t\t\t\t Use MBC1M multicart mode if applicable\n";
 				std::cout<<"--mmm01 \t\t\t\t Use MMM01 multicart mode if applicable\n";
 				std::cout<<"--opengl \t\t\t\t Use OpenGL for screen drawing and scaling\n";
 				std::cout<<"--cheats \t\t\t\t Use Gameshark or Game Genie cheats\n";
@@ -689,6 +701,12 @@ bool parse_cli_args()
 				std::cout<<"--sys-gbc \t\t\t\t Set the emulated system type to GBC\n";
 				std::cout<<"--sys-gba \t\t\t\t Set the emulated system type to GBA\n";
 				std::cout<<"--sys-nds \t\t\t\t Set the emulated system type to NDS\n";
+				std::cout<<"--save-auto \t\t\t\t Set the GBA save type to Auto Detect\n";
+				std::cout<<"--save-none \t\t\t\t Disables all GBA saves\n";
+				std::cout<<"--save-sram \t\t\t\t Force the GBA save type to SRAM\n";
+				std::cout<<"--save-eeprom \t\t\t\t Force the GBA save type to EEPROM\n";
+				std::cout<<"--save-flash64 \t\t\t\t Force the GBA save type to FLASH 64KB\n";
+				std::cout<<"--save-flash128 \t\t\t Force the GBA save type to FLASH 128KB\n";
 				std::cout<<"-h, --help \t\t\t\t Print these help messages\n";
 				return false;
 			}
@@ -1295,7 +1313,7 @@ bool parse_ini_file()
 		//Real-time clock offsets
 		else if(ini_item == "#rtc_offset")
 		{
-			if((x + 4) < size)
+			if((x + 6) < size)
 			{
 				std::stringstream temp_stream;
 
@@ -1330,6 +1348,20 @@ bool parse_ini_file()
 				temp_stream.str(std::string());
 
 				if(config::rtc_offset[3] > 365) { config::rtc_offset[3] = 365; }
+
+				//Months offset
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::rtc_offset[4];
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				if(config::rtc_offset[4] > 11) { config::rtc_offset[4] = 11; }
+
+				//Years offset
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::rtc_offset[5];
+				temp_stream.clear();
+				temp_stream.str(std::string());
 			}
 
 			else 
@@ -1814,8 +1846,8 @@ bool parse_ini_file()
 			}
 		}
 
-		//Gyroscope keyboard controls
-		else if(ini_item == "#gyro_key_controls")
+		//Context keyboard controls
+		else if(ini_item == "#con_key_controls")
 		{
 			if((x + 4) < size)
 			{
@@ -1823,38 +1855,38 @@ bool parse_ini_file()
 
 				//LEFT
 				temp_stream << ini_opts[++x];
-				temp_stream >> config::gyro_key_left;
+				temp_stream >> config::con_key_left;
 				temp_stream.clear();
 				temp_stream.str(std::string());
 
 				//RIGHT
 				temp_stream << ini_opts[++x];
-				temp_stream >> config::gyro_key_right;
+				temp_stream >> config::con_key_right;
 				temp_stream.clear();
 				temp_stream.str(std::string());
 
 				//UP
 				temp_stream << ini_opts[++x];
-				temp_stream >> config::gyro_key_up;
+				temp_stream >> config::con_key_up;
 				temp_stream.clear();
 				temp_stream.str(std::string());
 
 				//DOWN
 				temp_stream << ini_opts[++x];
-				temp_stream >> config::gyro_key_down;
+				temp_stream >> config::con_key_down;
 				temp_stream.clear();
 				temp_stream.str(std::string());
 			}
 
 			else 
 			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#gyro_key_controls) \n";
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#con_key_controls) \n";
 				return false;
 			}
 		}
 
-		//Gyroscope joystick controls
-		else if(ini_item == "#gyro_joy_controls")
+		//Context joystick controls
+		else if(ini_item == "#con_joy_controls")
 		{
 			if((x + 4) < size)
 			{
@@ -1862,32 +1894,32 @@ bool parse_ini_file()
 
 				//LEFT
 				temp_stream << ini_opts[++x];
-				temp_stream >> config::gyro_joy_left;
+				temp_stream >> config::con_joy_left;
 				temp_stream.clear();
 				temp_stream.str(std::string());
 
 				//RIGHT
 				temp_stream << ini_opts[++x];
-				temp_stream >> config::gyro_joy_right;
+				temp_stream >> config::con_joy_right;
 				temp_stream.clear();
 				temp_stream.str(std::string());
 
 				//UP
 				temp_stream << ini_opts[++x];
-				temp_stream >> config::gyro_joy_up;
+				temp_stream >> config::con_joy_up;
 				temp_stream.clear();
 				temp_stream.str(std::string());
 
 				//DOWN
 				temp_stream << ini_opts[++x];
-				temp_stream >> config::gyro_joy_down;
+				temp_stream >> config::con_joy_down;
 				temp_stream.clear();
 				temp_stream.str(std::string());
 			}
 
 			else 
 			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#gyro_joy_controls) \n";
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#con_joy_controls) \n";
 				return false;
 			}
 		}
@@ -2508,7 +2540,9 @@ bool save_ini_file()
 			std::string val = util::to_str(config::rtc_offset[0]) + ":";
 			val += util::to_str(config::rtc_offset[1]) + ":";
 			val += util::to_str(config::rtc_offset[2]) + ":";
-			val += util::to_str(config::rtc_offset[3]);
+			val += util::to_str(config::rtc_offset[3]) + ":";
+			val += util::to_str(config::rtc_offset[4]) + ":";
+			val += util::to_str(config::rtc_offset[5]);
 
 			output_lines[line_pos] = "[#rtc_offset:" + val + "]";
 		}
@@ -2651,28 +2685,28 @@ bool save_ini_file()
 			output_lines[line_pos] = "[#ntr_joy_controls:" + val + "]";
 		}
 
-		//Gyroscope keyboard controls
-		else if(ini_item == "#gyro_key_controls")
+		//Context keyboard controls
+		else if(ini_item == "#con_key_controls")
 		{
 			line_pos = output_count[x];
-			std::string val = util::to_str(config::gyro_key_left) + ":";
-			val += util::to_str(config::gyro_key_right) + ":";
-			val += util::to_str(config::gyro_key_up) + ":";
-			val += util::to_str(config::gyro_key_down);
+			std::string val = util::to_str(config::con_key_left) + ":";
+			val += util::to_str(config::con_key_right) + ":";
+			val += util::to_str(config::con_key_up) + ":";
+			val += util::to_str(config::con_key_down);
 
-			output_lines[line_pos] = "[#gyro_key_controls:" + val + "]";
+			output_lines[line_pos] = "[#con_key_controls:" + val + "]";
 		}
 
-		//Gyroscope joystick controls
-		else if(ini_item == "#gyro_joy_controls")
+		//Context joystick controls
+		else if(ini_item == "#con_joy_controls")
 		{
 			line_pos = output_count[x];
-			std::string val = util::to_str(config::gyro_joy_left) + ":";
-			val += util::to_str(config::gyro_joy_right) + ":";
-			val += util::to_str(config::gyro_joy_up) + ":";
-			val += util::to_str(config::gyro_joy_down);
+			std::string val = util::to_str(config::con_joy_left) + ":";
+			val += util::to_str(config::con_joy_right) + ":";
+			val += util::to_str(config::con_joy_up) + ":";
+			val += util::to_str(config::con_joy_down);
 
-			output_lines[line_pos] = "[#gyro_joy_controls:" + val + "]";
+			output_lines[line_pos] = "[#con_joy_controls:" + val + "]";
 		}
 
 		//Hotkeys

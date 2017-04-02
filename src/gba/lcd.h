@@ -151,6 +151,7 @@ class AGB_LCD
 	bool render_bg_mode_4();
 	bool render_bg_mode_5();
 	void scanline_compare();
+	void reload_affine_references(u32 bg_control);
 
 	void apply_sfx();
 	u32 brightness_up();

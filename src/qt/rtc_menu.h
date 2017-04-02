@@ -26,12 +26,16 @@ class rtc_menu : public QDialog
 	QSpinBox* mins_offset;
 	QSpinBox* hours_offset;
 	QSpinBox* days_offset;
+	QSpinBox* months_offset;
+	QSpinBox* years_offset;
 
 	private slots:
 	void update_secs();
 	void update_mins();
 	void update_hours();
 	void update_days();
+	void update_months();
+	void update_years();
 };
 
 #endif //RTCMENU_GBE_QT

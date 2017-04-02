@@ -135,14 +135,6 @@ void hsl_to_rgb(in vec4 hsl_values, out vec4 output_color)
 	output_color.b = b;
 }
 
-//Blend two colors
-void rgb_blend(in vec4 color_1, in vec4 color_2, out vec4 final_color)
-{
-	final_color.r = (color_1.r + color_2.r) / 2.0;
-	final_color.g = (color_1.g + color_2.g) / 2.0;
-	final_color.b = (color_1.b + color_2.b) / 2.0;
-}
-
 //Find the distance between two points
 void dist(in vec2 pos_1, in vec2 pos_2, out float distance)
 {

@@ -70,6 +70,32 @@ rtc_menu::rtc_menu(QWidget *parent) : QDialog(parent)
 	days_layout->addWidget(days_offset, 0, Qt::AlignRight);
 	days_set->setLayout(days_layout);
 
+	//Set up months
+	QWidget* months_set = new QWidget;
+	QLabel* months_label = new QLabel("Months Offset:");
+	months_offset = new QSpinBox;
+	months_offset->setMinimum(0);
+	months_offset->setMaximum(11);
+
+	QHBoxLayout* months_layout = new QHBoxLayout;
+	months_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	months_layout->addWidget(months_label, 1, Qt::AlignLeft);
+	months_layout->addWidget(months_offset, 0, Qt::AlignRight);
+	months_set->setLayout(months_layout);
+
+	//Set up years
+	QWidget* years_set = new QWidget;
+	QLabel* years_label = new QLabel("Years Offset:");
+	years_offset = new QSpinBox;
+	years_offset->setMinimum(0);
+	years_offset->setMaximum(100);
+
+	QHBoxLayout* years_layout = new QHBoxLayout;
+	years_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	years_layout->addWidget(years_label, 1, Qt::AlignLeft);
+	years_layout->addWidget(years_offset, 0, Qt::AlignRight);
+	years_set->setLayout(years_layout);
+
 	//Final layout
 	QVBoxLayout* final_layout = new QVBoxLayout;
 	final_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -77,10 +103,13 @@ rtc_menu::rtc_menu(QWidget *parent) : QDialog(parent)
 	final_layout->addWidget(mins_set);
 	final_layout->addWidget(hours_set);
 	final_layout->addWidget(days_set);
+	final_layout->addWidget(months_set);
+	final_layout->addWidget(years_set);
 	final_layout->addWidget(close_button);
 	setLayout(final_layout);
 
-	resize(300, 200);
+	setMinimumWidth(300);
+	setWindowTitle(QString("RTC Offsets"));
 	hide();
 
 	connect(close_button, SIGNAL(accepted()), this, SLOT(accept()));
@@ -89,11 +118,12 @@ rtc_menu::rtc_menu(QWidget *parent) : QDialog(parent)
 	connect(mins_offset, SIGNAL(valueChanged(int)), this, SLOT(update_mins()));
 	connect(hours_offset, SIGNAL(valueChanged(int)), this, SLOT(update_hours()));
 	connect(days_offset, SIGNAL(valueChanged(int)), this, SLOT(update_days()));
+	connect(months_offset, SIGNAL(valueChanged(int)), this, SLOT(update_months()));
+	connect(years_offset, SIGNAL(valueChanged(int)), this, SLOT(update_years()));
 }
 
 /****** Updates the RTC offsets - Seconds ******/
 void rtc_menu::update_secs() { config::rtc_offset[0] = secs_offset->value(); }
-
 
 /****** Updates the RTC offsets - Minutes ******/
 void rtc_menu::update_mins() { config::rtc_offset[1] = mins_offset->value(); }
@@ -103,3 +133,9 @@ void rtc_menu::update_hours() { config::rtc_offset[2] = hours_offset->value(); }
 
 /****** Updates the RTC offsets - Days ******/
 void rtc_menu::update_days() { config::rtc_offset[3] = days_offset->value(); }
+
+/****** Updates the RTC offsets - Months ******/
+void rtc_menu::update_months() { config::rtc_offset[4] = months_offset->value(); }
+
+/****** Updates the RTC offsets - Years ******/
+void rtc_menu::update_years() { config::rtc_offset[5] = years_offset->value(); }

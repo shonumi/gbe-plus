@@ -105,7 +105,14 @@ class AGB_MMU
 		u16 state;
 		u8 serial_counter;
 		u8 serial_byte;
+		u8 serial_data[8];
+		u8 data_index;
+		u8 serial_len;
 		gpio_types type;
+
+		u8 rtc_control;
+
+		u8 solar_counter;
 	} gpio;
 
 	AGB_MMU();
@@ -147,9 +154,11 @@ class AGB_MMU
 
 	//GPIO handling functions
 	void process_rtc();
-	void process_solar_sensor();
 	void process_rumble();
+	void process_solar_sensor();
 	void process_gyro_sensor();
+	
+	void process_motion();
 
 	void set_lcd_data(agb_lcd_data* ex_lcd_stat);
 	void set_apu_data(agb_apu_data* ex_apu_stat);

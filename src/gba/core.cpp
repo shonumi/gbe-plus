@@ -1038,6 +1038,9 @@ std::string AGB_core::debug_get_mnemonic(u32 addr) { return " "; }
 /****** Process hotkey input ******/
 void AGB_core::handle_hotkey(SDL_Event& event)
 {
+	//Disallow key repeats
+	if(event.key.repeat) { return; }
+
 	//Quit on Q or ESC
 	if((event.type == SDL_KEYDOWN) && ((event.key.keysym.sym == SDLK_q) || (event.key.keysym.sym == SDLK_ESCAPE)))
 	{
@@ -1058,6 +1061,18 @@ void AGB_core::handle_hotkey(SDL_Event& event)
 			config::old_volume = config::volume;
 			update_volume(0);
 		}
+	}
+
+	//Quick save state on F1
+	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F1)) 
+	{
+		save_state(0);
+	}
+
+	//Quick load save state on F2
+	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F2)) 
+	{
+		load_state(0);
 	}
 
 	//Start CLI debugger on F7
@@ -1295,3 +1310,20 @@ void AGB_core::start_netplay() { }
 
 /****** Stops netplay connection ******/
 void AGB_core::stop_netplay() { }
+
+/****** Returns miscellaneous data from the core ******/
+u32 AGB_core::get_core_data(u32 core_index)
+{
+	u32 result = 0;
+
+	switch(core_index)
+	{
+		//Joypad state
+		case 0x0:
+			result = ~(core_pad.key_input);
+			result &= 0x3FF;
+			break;
+	}
+
+	return result;
+}

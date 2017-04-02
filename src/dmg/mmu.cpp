@@ -57,7 +57,7 @@ void DMG_MMU::reset()
 	cart.mbc_type = ROM_ONLY;
 	cart.battery = false;
 	cart.ram = false;
-	cart.multicart = config::use_multicart | config::use_mmm01;
+	cart.multicart = ((config::cart_type == DMG_MBC1M) || (config::cart_type == DMG_MMM01));
 	cart.rumble = false;
 
 	cart.rtc = false;
@@ -922,8 +922,6 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 			memory_map[REG_STAT] |= 0x4; 
 			if(memory_map[REG_STAT] & 0x40) { memory_map[IF_FLAG] |= 2; }
 		}
-
-		else { memory_map[REG_STAT] &= ~0x4; }
 	}
 
 	//LCDC
@@ -1185,6 +1183,12 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		}
 	}
 
+	else if(address == IF_FLAG)
+	{
+		value |= 0xE0;
+		memory_map[address] = value;
+	}
+
 	else if(address > 0x7FFF) { memory_map[address] = value; }
 
 	//CGFX processing - Check for BG updates
@@ -1208,6 +1212,9 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 			cgfx_stat->update_bg = true;
 
 			u8 tile_number = (address - lcd_stat->bg_tile_addr) >> 4;
+				
+			//Convert tile number to signed if necessary
+			if(lcd_stat->bg_tile_addr == 0x8800) { tile_number = lcd_stat->signed_tile_lut[tile_number]; }
 			cgfx_stat->bg_tile_update_list[tile_number] = true;
 		}
 
@@ -1339,7 +1346,7 @@ bool DMG_MMU::read_file(std::string filename)
 	ex_mem = &memory_map[0];
 
 	//Read MMM01 cart - Bank 0 is last 32KB of ROM
-	if(config::use_mmm01)
+	if(config::cart_type == DMG_MMM01)
 	{
 		s32 pos = (file_size - 0x8000);
 		
@@ -1375,7 +1382,7 @@ bool DMG_MMU::read_file(std::string filename)
 			cart.mbc_type = ROM_ONLY;
 
 			std::cout<<"MMU::Cartridge Type - ROM Only \n";
-			std::cout<<"MMU::ROM Size - " << std::dec << cart.rom_size << "KB\n";
+			std::cout<<"MMU::ROM Size - 32KB\n";
 			break;
 
 		case 0x1:
@@ -1634,7 +1641,7 @@ bool DMG_MMU::read_file(std::string filename)
 	{
 		//Use a file positioner
 		u32 file_pos = 0x8000;
-		u8 bank_count = 0;
+		u16 bank_count = 0;
 
 		while(file_pos < (cart.rom_size * 1024))
 		{
@@ -1713,6 +1720,7 @@ bool DMG_MMU::read_file(std::string filename)
    		write_u8(0xFF24, 0x77); 
    		write_u8(0xFF25, 0xF3);
 		write_u8(0xFF26, 0xF1);
+		write_u8(IF_FLAG, 0xE0);
 
 		//Some sound registers are set, however, don't actually play sound
 		for(int x = 0; x < 4; x++) { apu_stat->channel[x].playing = false; }

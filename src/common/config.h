@@ -30,6 +30,28 @@ bool parse_cheats_file();
 bool save_ini_file();
 bool save_cheats_file();
 
+enum special_cart_types
+{
+	NORMAL_CART,
+	DMG_MBC1M,
+	DMG_MMM01,
+	AGB_RTC,
+	AGB_SOLAR_SENSOR,
+	AGB_RUMBLE,
+	AGB_GYRO_SENSOR,
+	AGB_TILT_SENSOR,
+};
+
+enum gba_save_types
+{
+	AGB_AUTO_DETECT,
+	AGB_NO_SAVE,
+	AGB_SRAM,
+	AGB_EEPROM,
+	AGB_FLASH64,
+	AGB_FLASH128,
+};
+
 namespace config
 { 
 	extern std::string rom_file;
@@ -59,8 +81,8 @@ namespace config
 	extern int dmg_key_a, dmg_key_b, dmg_key_start, dmg_key_select, dmg_key_up, dmg_key_down, dmg_key_left, dmg_key_right;
 	extern int dmg_joy_a, dmg_joy_b, dmg_joy_start, dmg_joy_select, dmg_joy_up, dmg_joy_down, dmg_joy_left, dmg_joy_right;
 
-	extern int gyro_key_up, gyro_key_down, gyro_key_left, gyro_key_right;
-	extern int gyro_joy_up, gyro_joy_down, gyro_joy_left, gyro_joy_right;
+	extern int con_key_up, con_key_down, con_key_left, con_key_right;
+	extern int con_joy_up, con_joy_down, con_joy_left, con_joy_right;
 
 	extern int touch_zone_x[10];
 	extern int touch_zone_y[10];
@@ -77,8 +99,10 @@ namespace config
 	extern bool pause_emu;
 	extern bool use_bios;
 	extern bool use_firmware;
-	extern bool use_multicart;
-	extern bool use_mmm01;
+
+	extern special_cart_types cart_type;
+	extern gba_save_types agb_save_type;
+
 	extern u32 sio_device;	
 	extern bool use_opengl;
 	extern bool use_debugger;
@@ -123,7 +147,7 @@ namespace config
 	extern u32 DMG_BG_PAL[4];
 	extern u32 DMG_OBJ_PAL[4][2];
 
-	extern u16 rtc_offset[4];
+	extern u16 rtc_offset[6];
 
 	extern bool use_external_interfaces;
 

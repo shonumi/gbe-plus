@@ -771,10 +771,6 @@ void ARM7::swi_intrwait()
 
 	//Restore old IF, also OR in any new flags that were set
 	mem->write_u16_fast(REG_IF, old_if | current_if);
-
-	//Artificially hold PC at current location
-	//This SWI will be fetched, decoded, and executed again until it hits VBlank 
-	reg.r15 -= (arm_mode == ARM) ? 4 : 2;
 }
 
 /****** HLE implementation of VBlankIntrWait ******/

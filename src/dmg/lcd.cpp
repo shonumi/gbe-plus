@@ -567,7 +567,11 @@ void DMG_LCD::render_dmg_bg_scanline()
 		
 		//Render CGFX
 		u16 hash_addr = lcd_stat.bg_tile_addr + (map_entry << 4);
-		if((cgfx::load_cgfx) && (has_hash(hash_addr, cgfx_stat.current_bg_hash[bg_id]))) { render_cgfx_dmg_bg_scanline(bg_id, true); }
+		
+		if((cgfx::load_cgfx) && (has_hash(hash_addr, cgfx_stat.current_bg_hash[bg_id])) && (cgfx_stat.m_types[cgfx_stat.last_id] == 10))
+		{
+			render_cgfx_dmg_bg_scanline(bg_id, true);
+		}
 
 		//Render original pixel data
 		else 
@@ -728,7 +732,11 @@ void DMG_LCD::render_gbc_bg_scanline()
 		//Render CGFX
 		u16 map_id = (lcd_stat.bg_map_addr + x) - 0x9800;
 		u16 hash_addr = lcd_stat.bg_tile_addr + (map_entry << 4);
-		if((cgfx::load_cgfx) && (has_hash(hash_addr, cgfx_stat.current_gbc_bg_hash[map_id]))) { render_cgfx_gbc_bg_scanline(tile_data, bg_map_attribute, true); }
+		
+		if((cgfx::load_cgfx) && (has_hash(hash_addr, cgfx_stat.current_gbc_bg_hash[map_id])) && (cgfx_stat.m_types[cgfx_stat.last_id] == 20))
+		{
+			render_cgfx_gbc_bg_scanline(tile_data, bg_map_attribute, true);
+		}
 
 		//Render original pixel data
 		else
@@ -899,7 +907,11 @@ void DMG_LCD::render_dmg_win_scanline()
 		
 		//Render CGFX
 		u16 hash_addr = lcd_stat.bg_tile_addr + (map_entry << 4);
-		if((cgfx::load_cgfx) && (has_hash(hash_addr, cgfx_stat.current_bg_hash[bg_id]))) { render_cgfx_dmg_bg_scanline(bg_id, false); }
+		
+		if((cgfx::load_cgfx) && (has_hash(hash_addr, cgfx_stat.current_bg_hash[bg_id])) && (cgfx_stat.m_types[cgfx_stat.last_id] == 10))
+		{
+			render_cgfx_dmg_bg_scanline(bg_id, false);
+		}
 
 		//Render original pixel data
 		else
@@ -1008,7 +1020,11 @@ void DMG_LCD::render_gbc_win_scanline()
 		//Render CGFX
 		u16 map_id = (lcd_stat.window_map_addr + x) - 0x9800;
 		u16 hash_addr = lcd_stat.bg_tile_addr + (map_entry << 4);
-		if((cgfx::load_cgfx) && (has_hash(hash_addr, cgfx_stat.current_gbc_bg_hash[map_id]))) { render_cgfx_gbc_bg_scanline(tile_data, bg_map_attribute, false); }
+		
+		if((cgfx::load_cgfx) && (has_hash(hash_addr, cgfx_stat.current_gbc_bg_hash[map_id])) && (cgfx_stat.m_types[cgfx_stat.last_id] == 20))
+		{
+			render_cgfx_gbc_bg_scanline(tile_data, bg_map_attribute, false);
+		}
 
 		//Render original pixel data
 		else
@@ -1075,7 +1091,11 @@ void DMG_LCD::render_dmg_obj_scanline()
 
 		//Render CGFX
 		u16 hash_addr = 0x8000 + (obj[sprite_id].tile_number << 4);
-		if((cgfx::load_cgfx) && (has_hash(hash_addr, cgfx_stat.current_obj_hash[sprite_id]))) { render_cgfx_dmg_obj_scanline(sprite_id); }
+		
+		if((cgfx::load_cgfx) && (has_hash(hash_addr, cgfx_stat.current_obj_hash[sprite_id])) && (cgfx_stat.m_types[cgfx_stat.last_id] == 1))
+		{
+			render_cgfx_dmg_obj_scanline(sprite_id);
+		}
 
 		//Render original pixel data
 		else 
@@ -1243,7 +1263,11 @@ void DMG_LCD::render_gbc_obj_scanline()
 
 		//Render CGFX
 		u16 hash_addr = 0x8000 + (obj[sprite_id].tile_number << 4);
-		if((cgfx::load_cgfx) && (has_hash(hash_addr, cgfx_stat.current_obj_hash[sprite_id]))) { render_cgfx_gbc_obj_scanline(sprite_id); }
+		
+		if((cgfx::load_cgfx) && (has_hash(hash_addr, cgfx_stat.current_obj_hash[sprite_id])) && (cgfx_stat.m_types[cgfx_stat.last_id] == 2))
+		{
+			render_cgfx_gbc_obj_scanline(sprite_id);
+		}
 
 		//Render original pixel data
 		else
@@ -1758,7 +1782,7 @@ void DMG_LCD::step(int cpu_clock)
 									//Scan BG map for all tiles that use this tile number
 									for(int x = 0; x < 2048; x++)
 									{
-										if(mem->video_ram[0][x] == tile_number) { update_gbc_bg_hash(0x9800 + x); }
+										if(mem->video_ram[0][0x1800 + x] == tile_number) { update_gbc_bg_hash(0x9800 + x); }
 									}
 
 									cgfx_stat.bg_tile_update_list[tile_number] = false;

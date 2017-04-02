@@ -66,6 +66,9 @@ class DMG_core : virtual public core_emu
 		void start_netplay();
 		void stop_netplay();
 
+		//Misc
+		u32 get_core_data(u32 core_index);
+
 		DMG_MMU core_mmu;
 		Z80 core_cpu;
 		DMG_GamePad core_pad;
