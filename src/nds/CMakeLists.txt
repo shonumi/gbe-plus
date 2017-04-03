@@ -13,6 +13,7 @@ set(SRCS
 	cp15.cpp
 	dma.cpp
 	gamepad.cpp
+	opengl.cpp
 	)
 
 set(HEADERS

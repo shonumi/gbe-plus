@@ -200,7 +200,7 @@ bool NTR_LCD::init()
 		}
 
 		//Setup OpenGL rendering
-		//if(config::use_opengl) { opengl_init(); }
+		if(config::use_opengl) { opengl_init(); }
 
 		//Set up software rendering
 		else
@@ -1842,8 +1842,14 @@ void NTR_LCD::update()
 		//Unlock source surface
 		if(SDL_MUSTLOCK(final_screen)){ SDL_UnlockSurface(final_screen); }
 		
+		//Display final screen buffer - OpenGL
+		if(config::use_opengl) { opengl_blit(); }
+
 		//Display final screen buffer - SDL
-		if(SDL_UpdateWindowSurface(window) != 0) { std::cout<<"LCD::Error - Could not blit\n"; }
+		else
+		{
+			if(SDL_UpdateWindowSurface(window) != 0) { std::cout<<"LCD::Error - Could not blit\n"; }
+		}
 	}
 
 	//Use external rendering method (GUI)
@@ -1990,7 +1996,14 @@ void NTR_LCD::step()
 				//Unlock source surface
 				if(SDL_MUSTLOCK(final_screen)){ SDL_UnlockSurface(final_screen); }
 				
-				if(SDL_UpdateWindowSurface(window) != 0) { std::cout<<"LCD::Error - Could not blit\n"; }
+				//Display final screen buffer - OpenGL
+				if(config::use_opengl) { opengl_blit(); }
+				
+				//Display final screen buffer - SDL
+				else 
+				{
+					if(SDL_UpdateWindowSurface(window) != 0) { std::cout<<"LCD::Error - Could not blit\n"; }
+				}
 			}
 
 			//Use external rendering method (GUI)
