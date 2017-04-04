@@ -123,7 +123,7 @@ void NTR_MMU::reset()
 	touchscreen.adc_x1 = read_u16(0x27FFCD8) & 0x1FFF;
 	touchscreen.adc_y1 = read_u16(0x27FFCDA) & 0x1FFF;
 	touchscreen.scr_x1 = read_u8(0x27FFCDC);
-	touchscreen.scr_x2 = read_u8(0x27FFCDD);
+	touchscreen.scr_y1 = read_u8(0x27FFCDD);
 
 	touchscreen.adc_x2 = read_u16(0x27FFCDE) & 0x1FFF;
 	touchscreen.adc_y2 = read_u16(0x27FFCE0) & 0x1FFF;
