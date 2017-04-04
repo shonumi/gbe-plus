@@ -19,7 +19,7 @@ NTR_GamePad::NTR_GamePad()
 	ext_key_input = 0x7F;
 	jstick = NULL;
 	mouse_x = 0;
-	mouse_y = 0;
+	mouse_y = 0xFFF;
 	up_shadow = down_shadow = left_shadow = right_shadow = false;
 	touch_hold = false;
 	touch_by_mouse = false;
@@ -147,11 +147,12 @@ void NTR_GamePad::handle_input(SDL_Event &event)
 	else if(event.type == SDL_MOUSEBUTTONDOWN)
 	{
 		pad = 400;
-		mouse_x = event.button.x;
-		mouse_y = event.button.y;
 
 		//Top screen cannot be touched
-		if(mouse_y < 192) { return; }
+		if((event.button.y / config::scaling_factor) < 192) { return; }
+
+		mouse_x = (event.button.x / config::scaling_factor);
+		mouse_y = (event.button.y / config::scaling_factor);
 
 		//Adjust mouse Y coordinate to NDS coordinate
 		mouse_y -= 192;
@@ -176,11 +177,17 @@ void NTR_GamePad::handle_input(SDL_Event &event)
 	else if(event.type == SDL_MOUSEBUTTONUP)
 	{
 		pad = 400;
-		mouse_x = event.button.x;
-		mouse_y = event.button.y;
 
 		//Top screen cannot be touched
-		if(mouse_y < 192) { return; }
+		if((event.button.y / config::scaling_factor) < 192)
+		{
+			mouse_x = 0;
+			mouse_y = 0xFFF;
+			return;
+		}
+
+		mouse_x = (event.button.x / config::scaling_factor);
+		mouse_y = (event.button.y / config::scaling_factor);
 
 		//Adjust mouse Y coordinate to NDS coordinate
 		mouse_y -= 192;
@@ -208,10 +215,10 @@ void NTR_GamePad::handle_input(SDL_Event &event)
 		if(!touch_by_mouse) { return; }
 
 		//Top screen cannot be touched
-		if(event.button.y < 192) { return; }
+		if((event.button.y / config::scaling_factor) < 192) { return; }
 
-		mouse_x = event.button.x;
-		mouse_y = event.button.y;
+		mouse_x = (event.button.x / config::scaling_factor);
+		mouse_y = (event.button.y / config::scaling_factor);
 
 		//Adjust mouse Y coordinate to NDS coordinate
 		mouse_y -= 192;
