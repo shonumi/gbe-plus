@@ -1,7 +1,7 @@
 gbe-plus
 ===============
 
-GB Enhanced+ is a DMG/GBC emulator focused on enhancements. It also serves as an experimental GBA emulator and is the successor to the original GB Enhanced project.
+GB Enhanced+ is a DMG/GBC/GBA emulator focused on enhancements. It also serves as an experimental NDS emulator and is the successor to the original GB Enhanced project.
 
 License
 ===============
