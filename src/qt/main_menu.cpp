@@ -449,12 +449,14 @@ void main_menu::boot_game()
 	}
 
 	std::string test_bios_path = "";
+	u8 system_type = get_system_type_from_file(config::rom_file);
 
-	switch(get_system_type_from_file(config::rom_file))
+	switch(system_type)
 	{
 		case 0x1: test_bios_path = config::dmg_bios_path; break;
 		case 0x2: test_bios_path = config::gbc_bios_path; break;
 		case 0x3: test_bios_path = config::agb_bios_path; break;
+		case 0x4: test_bios_path = config::nds7_bios_path; break;
 	}
 
 	test_file.setFileName(QString::fromStdString(test_bios_path));
@@ -464,11 +466,41 @@ void main_menu::boot_game()
 		std::string mesg_text;
 
 		if(!test_bios_path.empty()) { mesg_text = "The BIOS file: '" + test_bios_path + "' could not be loaded"; }
-		else { mesg_text = "No BIOS file specified for this system.\nPlease check your Paths settings or disable the 'Use BIOS/Boot ROM' option"; } 
+		
+		else
+		{
+			if(system_type == 4)
+			{
+				mesg_text = "ARM7 BIOS file not specified.\nPlease check your Paths settings or disable the 'Use BIOS/Boot ROM' option";
+			} 
+				
+			else 
+			{
+				mesg_text = "No BIOS file specified for this system.\nPlease check your Paths settings or disable the 'Use BIOS/Boot ROM' option";
+			}
+		} 
 
 		warning_box->setText(QString::fromStdString(mesg_text));
 		warning_box->show();
 		return;
+	}
+
+	//Perform a second test for NDS9 BIOS
+	if(system_type == 4)
+	{
+		test_file.setFileName(QString::fromStdString(config::nds9_bios_path));
+
+		if(!test_file.exists() && config::use_bios)
+		{
+			std::string mesg_text;
+
+			if(!test_bios_path.empty()) { mesg_text = "The BIOS file: '" + test_bios_path + "' could not be loaded"; }
+			else { mesg_text = "ARM9 BIOS file not specified.\nPlease check your Paths settings or disable the 'Use BIOS/Boot ROM' option"; } 
+
+			warning_box->setText(QString::fromStdString(mesg_text));
+			warning_box->show();
+			return;
+		}
 	}
 
 	config::sample_rate = settings->sample_rate;
@@ -1102,26 +1134,58 @@ void main_menu::load_recent(int file_id)
 	}
 
 	std::string test_bios_path = "";
+	u8 system_type = get_system_type_from_file(config::recent_files[file_id]);
 
-	switch(get_system_type_from_file(config::recent_files[file_id]))
+	switch(system_type)
 	{
 		case 0x1: test_bios_path = config::dmg_bios_path; break;
 		case 0x2: test_bios_path = config::gbc_bios_path; break;
 		case 0x3: test_bios_path = config::agb_bios_path; break;
+		case 0x4: test_bios_path = config::nds7_bios_path; break;
 	}
 
 	test_file.setFileName(QString::fromStdString(test_bios_path));
 
-	if(!test_file.exists() && (config::use_bios))
+	if(!test_file.exists() && config::use_bios)
 	{
 		std::string mesg_text;
 
 		if(!test_bios_path.empty()) { mesg_text = "The BIOS file: '" + test_bios_path + "' could not be loaded"; }
-		else { mesg_text = "No BIOS file specified for this system.\nPlease check your Paths settings or disable the 'Use BIOS/Boot ROM' option"; } 
+		
+		else
+		{
+			if(system_type == 4)
+			{
+				mesg_text = "ARM7 BIOS file not specified.\nPlease check your Paths settings or disable the 'Use BIOS/Boot ROM' option";
+			} 
+				
+			else 
+			{
+				mesg_text = "No BIOS file specified for this system.\nPlease check your Paths settings or disable the 'Use BIOS/Boot ROM' option";
+			}
+		} 
 
 		warning_box->setText(QString::fromStdString(mesg_text));
 		warning_box->show();
 		return;
+	}
+
+	//Perform a second test for NDS9 BIOS
+	if(system_type == 4)
+	{
+		test_file.setFileName(QString::fromStdString(config::nds9_bios_path));
+
+		if(!test_file.exists() && config::use_bios)
+		{
+			std::string mesg_text;
+
+			if(!test_bios_path.empty()) { mesg_text = "The BIOS file: '" + test_bios_path + "' could not be loaded"; }
+			else { mesg_text = "ARM9 BIOS file not specified.\nPlease check your Paths settings or disable the 'Use BIOS/Boot ROM' option"; } 
+
+			warning_box->setText(QString::fromStdString(mesg_text));
+			warning_box->show();
+			return;
+		}
 	}
 
 	//Close the core

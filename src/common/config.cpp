@@ -530,8 +530,8 @@ u8 get_system_type_from_file(std::string filename)
 	u8 gb_type = config::gb_type;
 
 	if(ext == ".gba") { gb_type = 3; }
+	else if(ext == ".nds") { gb_type = 4; }
 	else if((ext != ".gba") && (gb_type == 3)) { gb_type = 2; }
-	else if(ext == ".nds") { config::gb_type = 4; }
 
 	//For Auto or GBC mode, determine what the CGB Flag is
 	if((gb_type == 0) || (gb_type == 2))
