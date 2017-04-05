@@ -321,7 +321,7 @@ void main_menu::open_file()
 
 	if(config::cli_args.empty())
 	{
-		QString filename = QFileDialog::getOpenFileName(this, tr("Open"), "", tr("GBx files (*.gb *.gbc *.gba)"));
+		QString filename = QFileDialog::getOpenFileName(this, tr("Open"), "", tr("GBx/NDS files (*.gb *.gbc *.gba *.nds)"));
 		if(filename.isNull()) { SDL_PauseAudio(0); return; }
 
 		config::rom_file = filename.toStdString();
@@ -524,7 +524,7 @@ void main_menu::boot_game()
 	menu_height = menu_bar->height();
 
 	//Determine Gameboy type based on file name
-	//Note, DMG and GBC games are automatically detected in the Gameboy MMU, so only check for GBA types here
+	//Note, DMG and GBC games are automatically detected in the Gameboy MMU, so only check for GBA and NDS types here
 	std::size_t dot = config::rom_file.find_last_of(".");
 	std::string ext = config::rom_file.substr(dot);
 
@@ -560,15 +560,14 @@ void main_menu::boot_game()
 		findChild<QAction*>("debugging_action")->setEnabled(false);
 	}
 
-	//TODO - Use real DS screen dimensions
 	else if(config::gb_type == 4)
 	{
-		base_width = 240;
-		base_height = 160;
+		base_width = 256;
+		base_height = 384;
 
 		main_menu::gbe_plus = new NTR_core();
 		resize((base_width * config::scaling_factor), (base_height * config::scaling_factor) + menu_height);
-		qt_gui::screen = new QImage(240, 160, QImage::Format_ARGB32);
+		qt_gui::screen = new QImage(256, 384, QImage::Format_ARGB32);
 	}	
 
 	else 

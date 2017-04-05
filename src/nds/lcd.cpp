@@ -215,6 +215,12 @@ bool NTR_LCD::init()
 		if(final_screen == NULL) { return false; }
 	}
 
+	//Initialize with only a buffer for OpenGL (for external rendering)
+	else if((!config::sdl_render) && (config::use_opengl))
+	{
+		final_screen = SDL_CreateRGBSurface(SDL_SWSURFACE, config::sys_width, config::sys_height, 32, 0, 0, 0, 0);
+	}
+
 	std::cout<<"LCD::Initialized\n";
 
 	return true;
