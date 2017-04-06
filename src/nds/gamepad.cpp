@@ -431,6 +431,14 @@ void NTR_GamePad::process_joystick(int pad, bool pressed)
 /****** Processes input based on the mouse ******/
 void NTR_GamePad::process_mouse(int pad, bool pressed)
 {
+	//Unpack special pad data when receiving input from an external source (see NTR core feed_key_input())
+	if((pad != 400) && (pad != 402))
+	{
+		mouse_x = pad & 0xFF;
+		mouse_y = ((pad >> 8) & 0xFF);
+		pad = 400 + ((pad & 0x30000) >> 17);
+	}
+
 	//Emulate touchscreen press (NDS mode only, DSi does not use this) - Manual Hold Mode
 	if((pad == 400) && (pressed) && (!touch_hold))
 	{

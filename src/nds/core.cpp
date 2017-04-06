@@ -1250,7 +1250,18 @@ void NTR_core::handle_hotkey(int input, bool pressed) { }
 void NTR_core::update_volume(u8 volume) { }
 
 /****** Feeds key input from an external source (useful for TAS) ******/
-void NTR_core::feed_key_input(int sdl_key, bool pressed) { }
+void NTR_core::feed_key_input(int sdl_key, bool pressed)
+{
+	//Process normal events
+	if((sdl_key & 0x30000) == 0)
+	{ 
+		core_pad.process_keyboard(sdl_key, pressed);
+		handle_hotkey(sdl_key, pressed);
+	}
+
+	//Process mouse events
+	else { core_pad.process_mouse(sdl_key, pressed); }
+}
 
 /****** Return a CPU register ******/
 u32 NTR_core::ex_get_reg(u8 reg_index) { }
@@ -1323,4 +1334,3 @@ u32 NTR_core::get_core_data(u32 core_index)
 
 	return result;
 }
-

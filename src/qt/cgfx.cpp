@@ -3026,7 +3026,7 @@ void gbe_cgfx::dump_layer_tile(u32 x, u32 y)
 	}
 }
 
-/****** Event filter for settings window ******/
+/****** Event filter for meta tile tabs ******/
 bool gbe_cgfx::eventFilter(QObject* target, QEvent* event)
 {
 	//Mouse motion
@@ -3211,7 +3211,7 @@ bool gbe_cgfx::eventFilter(QObject* target, QEvent* event)
 		}		
 	}
 
-	//Single clock
+	//Single click
 	else if(event->type() == QEvent::MouseButtonPress)
 	{
 		QMouseEvent* mouse_event = static_cast<QMouseEvent*>(event);

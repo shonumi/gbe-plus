@@ -144,6 +144,13 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	sw_screen = new soft_screen();
 	hw_screen = new hard_screen();
 
+	//Setup mouse tracking on the screens, for NDS touch support
+	sw_screen->setMouseTracking(true);
+	sw_screen->installEventFilter(this);
+
+	hw_screen->setMouseTracking(true);
+	hw_screen->installEventFilter(this);
+
 	QVBoxLayout* layout = new QVBoxLayout;
 	layout->setContentsMargins(0, 0, 0, -1);
 	layout->addWidget(sw_screen);
@@ -600,6 +607,16 @@ void main_menu::boot_game()
 		main_menu::gbe_plus = new NTR_core();
 		resize((base_width * config::scaling_factor), (base_height * config::scaling_factor) + menu_height);
 		qt_gui::screen = new QImage(256, 384, QImage::Format_ARGB32);
+
+		//Resize drawing screens
+		if(config::use_opengl) { hw_screen->resize((base_width * config::scaling_factor), (base_height * config::scaling_factor)); }
+		else { sw_screen->resize((base_width * config::scaling_factor), (base_height * config::scaling_factor)); }
+
+		//Disable CGFX menu
+		findChild<QAction*>("custom_gfx_action")->setEnabled(false);
+
+		//Disable debugging menu
+		findChild<QAction*>("debugging_action")->setEnabled(false);
 	}	
 
 	else 
@@ -830,6 +847,46 @@ void main_menu::keyReleaseEvent(QKeyEvent* event)
 	{
 		gbe_plus->feed_key_input(sdl_key, false);
 	}
+}
+
+/****** Event SW or HW screen ******/
+bool main_menu::eventFilter(QObject* target, QEvent* event)
+{
+	//Only process NDS touchscreen events
+	if((config::gb_type != 4) || (main_menu::gbe_plus == NULL)) { return QWidget::eventFilter(target, event); }
+
+	//Single click
+	else if(event->type() == QEvent::MouseButtonPress)
+	{
+		if((target == sw_screen) || (target == hw_screen))
+		{
+			QMouseEvent* mouse_event = static_cast<QMouseEvent*>(event);
+			u32 x = (mouse_event->x() / config::scaling_factor);
+			u32 y = (mouse_event->y() / config::scaling_factor);
+
+			//Adjust Y for bottom touchscreen
+			if(y > 192)
+			{
+				y -= 192;
+
+				//Pack Pad, X, Y into a 24-bit number to send to the NDS core
+				x &= 0xFF;
+				y &= 0xFF;
+
+				u8 pad = 1;
+				u32 pack = (pad << 16) | (y << 8) | (x);
+
+				main_menu::gbe_plus->feed_key_input(pack, true);
+			}
+		}
+	}
+
+	else if(event->type() == QEvent::MouseButtonRelease)
+	{
+		main_menu::gbe_plus->feed_key_input(0x10000, false);
+	}
+
+	return QWidget::eventFilter(target, event);
 }
 
 /****** Qt SLOT to pause the emulator ******/

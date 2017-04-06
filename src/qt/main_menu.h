@@ -57,6 +57,7 @@ class main_menu : public QWidget
 	void closeEvent(QCloseEvent* event);
 	void keyPressEvent(QKeyEvent* event);
 	void keyReleaseEvent(QKeyEvent* event);
+	bool eventFilter(QObject* target, QEvent* event);
 
 	private slots:
 	void open_file();
