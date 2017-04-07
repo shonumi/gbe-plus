@@ -877,6 +877,7 @@ bool main_menu::eventFilter(QObject* target, QEvent* event)
 
 				if(mouse_event->buttons() == Qt::LeftButton) { pad = 1; }
 				else if(mouse_event->buttons() == Qt::RightButton) { pad = 2; }
+				else { return QWidget::eventFilter(target, event); }
 
 				u32 pack = (pad << 16) | (y << 8) | (x);
 
@@ -891,12 +892,28 @@ bool main_menu::eventFilter(QObject* target, QEvent* event)
 		if((target == sw_screen) || (target == hw_screen))
 		{
 			QMouseEvent* mouse_event = static_cast<QMouseEvent*>(event);
-			u32 pad = 0;
+			u32 x = (mouse_event->x() / config::scaling_factor);
+			u32 y = (mouse_event->y() / config::scaling_factor);
 
-			if(mouse_event->button() == Qt::LeftButton) { pad = 0x10000; }
-			else if(mouse_event->button() == Qt::RightButton) { pad = 0x20000; }
+			//Adjust Y for bottom touchscreen
+			if(y > 192)
+			{
+				y -= 192;
 
-			main_menu::gbe_plus->feed_key_input(pad, false);
+				//Pack Pad, X, Y into a 24-bit number to send to the NDS core
+				x &= 0xFF;
+				y &= 0xFF;
+
+				u8 pad = 0;
+
+				if(mouse_event->button() == Qt::LeftButton) { pad = 1; }
+				else if(mouse_event->button() == Qt::RightButton) { pad = 2; }
+				else { return QWidget::eventFilter(target, event); }
+
+				u32 pack = (pad << 16) | (y << 8) | (x);
+
+				main_menu::gbe_plus->feed_key_input(pack, false);
+			}
 		}
 	}
 
