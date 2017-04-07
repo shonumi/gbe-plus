@@ -855,7 +855,7 @@ bool main_menu::eventFilter(QObject* target, QEvent* event)
 	//Only process NDS touchscreen events
 	if((config::gb_type != 4) || (main_menu::gbe_plus == NULL)) { return QWidget::eventFilter(target, event); }
 
-	//Single click
+	//Single click - Press
 	else if(event->type() == QEvent::MouseButtonPress)
 	{
 		if((target == sw_screen) || (target == hw_screen))
@@ -873,7 +873,11 @@ bool main_menu::eventFilter(QObject* target, QEvent* event)
 				x &= 0xFF;
 				y &= 0xFF;
 
-				u8 pad = 1;
+				u8 pad = 0;
+
+				if(mouse_event->buttons() == Qt::LeftButton) { pad = 1; }
+				else if(mouse_event->buttons() == Qt::RightButton) { pad = 2; }
+
 				u32 pack = (pad << 16) | (y << 8) | (x);
 
 				main_menu::gbe_plus->feed_key_input(pack, true);
@@ -881,9 +885,48 @@ bool main_menu::eventFilter(QObject* target, QEvent* event)
 		}
 	}
 
+	//Single click - Release
 	else if(event->type() == QEvent::MouseButtonRelease)
 	{
-		main_menu::gbe_plus->feed_key_input(0x10000, false);
+		if((target == sw_screen) || (target == hw_screen))
+		{
+			QMouseEvent* mouse_event = static_cast<QMouseEvent*>(event);
+			u32 pad = 0;
+
+			if(mouse_event->button() == Qt::LeftButton) { pad = 0x10000; }
+			else if(mouse_event->button() == Qt::RightButton) { pad = 0x20000; }
+
+			main_menu::gbe_plus->feed_key_input(pad, false);
+		}
+	}
+
+	//Mouse motion
+	else if(event->type() == QEvent::MouseMove)
+	{
+		if((target == sw_screen) || (target == hw_screen))
+		{
+			//Only process mouse motion if touch_by_mouse has been set in NDS core
+			if(main_menu::gbe_plus->get_core_data(2) == 0) { return QWidget::eventFilter(target, event); }
+
+			QMouseEvent* mouse_event = static_cast<QMouseEvent*>(event);
+			u32 x = (mouse_event->x() / config::scaling_factor);
+			u32 y = (mouse_event->y() / config::scaling_factor);
+
+			//Adjust Y for bottom touchscreen
+			if(y > 192)
+			{
+				y -= 192;
+
+				//Pack Pad, X, Y into a 24-bit number to send to the NDS core
+				x &= 0xFF;
+				y &= 0xFF;
+
+				u8 pad = 4;
+				u32 pack = (pad << 16) | (y << 8) | (x);
+
+				main_menu::gbe_plus->feed_key_input(pack, true);
+			}
+		}
 	}
 
 	return QWidget::eventFilter(target, event);

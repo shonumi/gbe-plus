@@ -1253,7 +1253,7 @@ void NTR_core::update_volume(u8 volume) { }
 void NTR_core::feed_key_input(int sdl_key, bool pressed)
 {
 	//Process normal events
-	if((sdl_key & 0x30000) == 0)
+	if((sdl_key & 0x70000) == 0)
 	{ 
 		core_pad.process_keyboard(sdl_key, pressed);
 		handle_hotkey(sdl_key, pressed);
@@ -1329,6 +1329,11 @@ u32 NTR_core::get_core_data(u32 core_index)
 		case 0x1:
 			result = ~(core_pad.ext_key_input);
 			result &= 0x7F;
+			break;
+
+		//Touch by mouse
+		case 0x2:
+			result = (core_pad.touch_by_mouse) ? 1 : 0;
 			break;
 	}
 

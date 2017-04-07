@@ -436,7 +436,10 @@ void NTR_GamePad::process_mouse(int pad, bool pressed)
 	{
 		mouse_x = pad & 0xFF;
 		mouse_y = ((pad >> 8) & 0xFF);
-		pad = 400 + ((pad & 0x30000) >> 17);
+		
+		//Only unpack X and Y coordinates if mouse motion flag is set
+		if(pad & 0x40000) { pad = 0; }
+		else { pad = 400 + (((pad & 0x30000) >> 17) << 1); }
 	}
 
 	//Emulate touchscreen press (NDS mode only, DSi does not use this) - Manual Hold Mode
