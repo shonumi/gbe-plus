@@ -73,8 +73,8 @@ void NTR_LCD::reset()
 	scanline_buffer_a.resize(0x100, 0);
 	scanline_buffer_b.resize(0x100, 0);
 
-	render_buffer_a.resize(0x100, false);
-	render_buffer_b.resize(0x100, false);
+	render_buffer_a.resize(0x100, 0);
+	render_buffer_b.resize(0x100, 0);
 
 	full_scanline_render_a = false;
 	full_scanline_render_b = false;
@@ -364,7 +364,7 @@ void NTR_LCD::render_bg_scanline(u32 bg_control)
 	{
 		//Reset render buffer
 		full_scanline_render_a = false;
-		render_buffer_a.assign(0x100, false);
+		render_buffer_a.assign(0x100, 0);
 
 		//Clear scanline with backdrop
 		for(u16 x = 0; x < 256; x++) { scanline_buffer_a[x] = lcd_stat.bg_pal_a[0]; }
@@ -519,7 +519,7 @@ void NTR_LCD::render_bg_scanline(u32 bg_control)
 	{
 		//Reset render buffer
 		full_scanline_render_b = false;
-		render_buffer_b.assign(0x100, false);
+		render_buffer_b.assign(0x100, 0);
 
 		//Clear scanline with backdrop
 		for(u16 x = 0; x < 256; x++) { scanline_buffer_b[x] = lcd_stat.bg_pal_b[0]; }
@@ -738,7 +738,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 						if(raw_color)
 						{
 							scanline_buffer_a[scanline_pixel_counter] = (lcd_stat.ext_pal_a) ? lcd_stat.bg_ext_pal_a[(bg_id << 8) + raw_color]  : lcd_stat.bg_pal_a[raw_color];
-							render_buffer_a[scanline_pixel_counter] = true;
+							render_buffer_a[scanline_pixel_counter] = (bg_id + 1);
 						}
 
 						else { full_render = false; }
@@ -764,7 +764,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 						if(raw_color & 0xF)
 						{
 							scanline_buffer_a[scanline_pixel_counter] = lcd_stat.bg_pal_a[pal_1];
-							render_buffer_a[scanline_pixel_counter] = true;
+							render_buffer_a[scanline_pixel_counter] = (bg_id + 1);
 						}
 
 						else { full_render = false; }
@@ -781,7 +781,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 						if(raw_color >> 4)
 						{
 							scanline_buffer_a[scanline_pixel_counter] = lcd_stat.bg_pal_a[pal_2];
-							render_buffer_a[scanline_pixel_counter] = true;
+							render_buffer_a[scanline_pixel_counter] = (bg_id + 1);
 						}
 
 						else { full_render = false; }
@@ -868,7 +868,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 						if(raw_color)
 						{
 							scanline_buffer_b[scanline_pixel_counter] = (lcd_stat.ext_pal_b) ? lcd_stat.bg_ext_pal_b[(bg_id << 8) + raw_color]  : lcd_stat.bg_pal_b[raw_color];
-							render_buffer_b[scanline_pixel_counter] = true;
+							render_buffer_b[scanline_pixel_counter] = (bg_id + 1);
 						}
 
 						else { full_render = false; }
@@ -894,7 +894,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 						if(raw_color & 0xF)
 						{
 							scanline_buffer_b[scanline_pixel_counter] = lcd_stat.bg_pal_b[pal_1];
-							render_buffer_b[scanline_pixel_counter] = true;
+							render_buffer_b[scanline_pixel_counter] = (bg_id + 1);
 						}
 
 						else { full_render = false; }
@@ -911,7 +911,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 						if(raw_color >> 4)
 						{
 							scanline_buffer_b[scanline_pixel_counter] = lcd_stat.bg_pal_b[pal_2];
-							render_buffer_b[scanline_pixel_counter] = true;
+							render_buffer_b[scanline_pixel_counter] = (bg_id + 1);
 						}
 
 						else { full_render = false; }
@@ -1406,7 +1406,7 @@ void NTR_LCD::render_bg_mode_bitmap(u32 bg_control)
 					if(raw_color)
 					{
 						scanline_buffer_a[scanline_pixel_counter] = lcd_stat.bg_pal_a[raw_color];
-						render_buffer_a[scanline_pixel_counter] = true;
+						render_buffer_a[scanline_pixel_counter] = (bg_id + 1);
 					}
 
 					else { full_render = false; }
@@ -1521,7 +1521,7 @@ void NTR_LCD::render_bg_mode_bitmap(u32 bg_control)
 					if(raw_color)
 					{
 						scanline_buffer_b[scanline_pixel_counter] = lcd_stat.bg_pal_b[raw_color];
-						render_buffer_b[scanline_pixel_counter] = true;
+						render_buffer_b[scanline_pixel_counter] = (bg_id + 1);
 					}
 
 					else { full_render = false; }
