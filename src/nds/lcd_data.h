@@ -112,6 +112,8 @@ struct ntr_lcd_data
 		bool overflow;
 	} bg_affine_b[2];
 
+	float obj_affine[256];
+
 	bool vblank_irq_enable_a;
 	bool hblank_irq_enable_a;
 	bool vcount_irq_enable_a;
@@ -126,9 +128,6 @@ struct ntr_lcd_data
 	bool bg_pal_update_b;
 	std::vector<bool> bg_pal_update_list_b;
 
-	bool obj_pal_update_a;
-	std::vector<bool> obj_pal_update_list_a;
-
 	bool bg_ext_pal_update_a;
 	std::vector<bool> bg_ext_pal_update_list_a;
 
@@ -138,11 +137,8 @@ struct ntr_lcd_data
 	bool update_bg_control_a;
 	bool update_bg_control_b;
 
-	bool oam_update_a;
-	std::vector<bool> oam_update_list_a;
-
-	bool oam_update_b;
-	std::vector<bool> oam_update_list_b;
+	bool oam_update;
+	std::vector<bool> oam_update_list;
 };
 
 #endif // NDS_LCD_DATA

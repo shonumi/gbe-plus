@@ -68,6 +68,7 @@ void NTR_LCD::reset()
 	lcd_stat.lyc_a = 0;
 	lcd_stat.lyc_b = 0;
 
+	//Screen + render buffer initialization
 	screen_buffer.resize(0x18000, 0);
 
 	scanline_buffer_a.resize(0x100, 0);
@@ -79,6 +80,7 @@ void NTR_LCD::reset()
 	full_scanline_render_a = false;
 	full_scanline_render_b = false;
 
+	//BG palette initialization
 	lcd_stat.bg_pal_update_a = true;
 	lcd_stat.bg_pal_update_list_a.resize(0x100, true);
 
@@ -91,11 +93,9 @@ void NTR_LCD::reset()
 	lcd_stat.bg_ext_pal_update_b = true;
 	lcd_stat.bg_ext_pal_update_list_b.resize(0x400, true);
 
-	lcd_stat.oam_update_a = true;
-	lcd_stat.oam_update_list_a.resize(0x80, true);
-
-	lcd_stat.oam_update_b = true;
-	lcd_stat.oam_update_list_b.resize(0x80, true);
+	//OAM initialization
+	lcd_stat.oam_update = true;
+	lcd_stat.oam_update_list.resize(0x100, true);
 
 	lcd_stat.update_bg_control_a = false;
 	lcd_stat.update_bg_control_b = false;
@@ -120,6 +120,7 @@ void NTR_LCD::reset()
 	lcd_stat.hblank_irq_enable_b = false;
 	lcd_stat.vcount_irq_enable_b = false;
 
+	//Misc BG initialization
 	for(int x = 0; x < 4; x++)
 	{
 		lcd_stat.bg_control_a[x] = 0;
@@ -154,8 +155,6 @@ void NTR_LCD::reset()
 		lcd_stat.bg_enable_a[x] = false;
 		lcd_stat.bg_enable_b[x] = false;
 	}
-
-	for(int x = 0; x < 9; x++) { lcd_stat.vram_bank_addr[x] = 0x0; }
 
 	//BG2/3 affine parameters + bitmap base addrs
 	for(int x = 0; x < 2; x++)
@@ -235,36 +234,163 @@ bool NTR_LCD::init()
 /****** Updates OAM entries when values in memory change ******/
 void NTR_LCD::update_oam()
 {
-	//Update OAM - Engine A
-	if(lcd_stat.oam_update_a)
+	lcd_stat.oam_update = false;
+	
+	u32 oam_ptr = 0x7000000;
+	u16 attribute = 0;
+
+	for(int x = 0; x < 256; x++)
 	{
-		lcd_stat.oam_update_a = false;
-
-		//Cycle through all OAM entries
-		for(int x = 0; x < 128; x++)
+		//Update if OAM entry has changed
+		if(lcd_stat.oam_update_list[x])
 		{
+			lcd_stat.oam_update_list[x] = false;
 
-			//Update if OAM entry has changed
-			if(lcd_stat.oam_update_list_a[x])
+			//Read and parse Attribute 0
+			attribute = mem->read_u16_fast(oam_ptr);
+			oam_ptr += 2;
+
+			obj[x].y = (attribute & 0xFF);
+			obj[x].affine_enable = (attribute & 0x100) ? 1 : 0;
+			obj[x].type = (attribute & 0x200) ? 1 : 0;
+			obj[x].mode = (attribute >> 10) & 0x3;
+			obj[x].mosiac = (attribute >> 12) & 0x1;
+			obj[x].bit_depth = (attribute & 0x2000) ? 8 : 4;
+			obj[x].shape = (attribute >> 14);
+
+			if((obj[x].affine_enable == 0) && (obj[x].type == 1)) { obj[x].visible = false; }
+			else { obj[x].visible = true; }
+
+			//Read and parse Attribute 1
+			attribute = mem->read_u16_fast(oam_ptr);
+			oam_ptr += 2;
+
+			obj[x].x = (attribute & 0x1FF);
+			obj[x].h_flip = (attribute & 0x1000) ? true : false;
+			obj[x].v_flip = (attribute & 0x2000) ? true : false;
+			obj[x].size = (attribute >> 14);
+
+			if(obj[x].affine_enable) { obj[x].affine_group = (attribute >> 9) & 0x1F; }
+
+			//Read and parse Attribute 2
+			attribute = mem->read_u16_fast(oam_ptr);
+			oam_ptr += 4;
+
+			obj[x].tile_number = (attribute & 0x3FF);
+			obj[x].bg_priority = ((attribute >> 10) & 0x3);
+			obj[x].palette_number = ((attribute >> 12) & 0xF); 
+
+			//Determine dimensions of the sprite
+			switch(obj[x].size)
 			{
-				lcd_stat.oam_update_list_a[x] = false;
+				//Size 0 - 8x8, 16x8, 8x16
+				case 0x0:
+					if(obj[x].shape == 0) { obj[x].width = 8; obj[x].height = 8; }
+					else if(obj[x].shape == 1) { obj[x].width = 16; obj[x].height = 8; }
+					else if(obj[x].shape == 2) { obj[x].width = 8; obj[x].height = 16; }
+					break;
+
+				//Size 1 - 16x16, 32x8, 8x32
+				case 0x1:
+					if(obj[x].shape == 0) { obj[x].width = 16; obj[x].height = 16; }
+					else if(obj[x].shape == 1) { obj[x].width = 32; obj[x].height = 8; }
+					else if(obj[x].shape == 2) { obj[x].width = 8; obj[x].height = 32; }
+					break;
+
+				//Size 2 - 32x32, 32x16, 16x32
+				case 0x2:
+					if(obj[x].shape == 0) { obj[x].width = 32; obj[x].height = 32; }
+					else if(obj[x].shape == 1) { obj[x].width = 32; obj[x].height = 16; }
+					else if(obj[x].shape == 2) { obj[x].width = 16; obj[x].height = 32; }
+					break;
+
+				//Size 3 - 64x64, 64x32, 32x64
+				case 0x3:
+					if(obj[x].shape == 0) { obj[x].width = 64; obj[x].height = 64; }
+					else if(obj[x].shape == 1) { obj[x].width = 64; obj[x].height = 32; }
+					else if(obj[x].shape == 2) { obj[x].width = 32; obj[x].height = 64; }
+					break;
 			}
+
+			//Precalulate OBJ boundaries
+			obj[x].left = obj[x].x;
+			obj[x].right = (obj[x].x + obj[x].width - 1) & 0x1FF;
+
+			obj[x].top = obj[x].y;
+			obj[x].bottom = (obj[x].y + obj[x].height - 1) & 0xFF;
+
+			//Precalculate OBJ wrapping
+			if(obj[x].left > obj[x].right) 
+			{
+				obj[x].x_wrap = true;
+				obj[x].x_wrap_val = (obj[x].width - obj[x].right - 1);
+			}
+
+			else { obj[x].x_wrap = false; }
+
+			if(obj[x].top > obj[x].bottom)
+			{
+				obj[x].y_wrap = true;
+				obj[x].y_wrap_val = (obj[x].height - obj[x].bottom - 1);
+			}
+
+			else { obj[x].y_wrap = false; }
+
+			//Precalculate OBJ base address
+			obj[x].addr = (obj[x].tile_number << 5) + (x < 128) ? 0x6400000 : 0x6600000;
+
+			//Read and parse OAM affine attribute
+			attribute = mem->read_u16_fast(oam_ptr - 2);
+			
+			//Only update if this attribute is non-zero
+			if(attribute)
+			{	
+				if(attribute & 0x8000) 
+				{ 
+					u16 temp = ((attribute >> 8) - 1);
+					temp = (~temp & 0xFF);
+					lcd_stat.obj_affine[x] = -1.0 * temp;
+				}
+
+				else { lcd_stat.obj_affine[x] = (attribute >> 8); }
+
+				if((attribute & 0xFF) != 0) { lcd_stat.obj_affine[x] += (attribute & 0xFF) / 256.0; }
+			}
+
+			else { lcd_stat.obj_affine[x] = 0.0; }
 		}
+
+		else { oam_ptr += 8; }
 	}
 
-	//Update OAM - Engine B
-	if(lcd_stat.oam_update_b)
+	//Update OBJ for affine transformations
+	//update_obj_affine_transformation();
+
+	//Update render list for the current scanline
+	update_obj_render_list();
+}
+
+/****** Updates a list of OBJs to render on the current scanline ******/
+void NTR_LCD::update_obj_render_list()
+{
+	obj_render_length_a = 0;
+	obj_render_length_b = 0;
+
+	//Sort them based on BG priorities
+	for(int bg = 0; bg < 4; bg++)
 	{
-		lcd_stat.oam_update_b = false;
+		//Cycle through all of the OBJs
+		for(int x = 0; x < 256; x++)
+		{	
+			//Check to see if sprite is rendered on the current scanline
+			if(!obj[x].visible) { continue; }
+			else if((!obj[x].y_wrap) && ((lcd_stat.current_scanline < obj[x].top) || (lcd_stat.current_scanline > obj[x].bottom))) { continue; }
+			else if((obj[x].y_wrap) && ((lcd_stat.current_scanline > obj[x].bottom) && (lcd_stat.current_scanline < obj[x].top))) { continue; }
 
-		//Cycle through all OAM entries
-		for(int x = 0; x < 128; x++)
-		{
-
-			//Update if OAM entry has changed
-			if(lcd_stat.oam_update_list_b[x])
+			else if(obj[x].bg_priority == bg)
 			{
-				lcd_stat.oam_update_list_b[x] = false;
+				if(x < 128) { obj_render_list_a[obj_render_length_a++] = x; }
+				else { obj_render_list_b[obj_render_length_b++] = x; } 
 			}
 		}
 	}
@@ -1968,7 +2094,10 @@ void NTR_LCD::step()
 			if(lcd_stat.hblank_irq_enable_b) { mem->nds7_if |= 0x2; }
 
 			//Update 2D engine OAM
-			if(lcd_stat.oam_update_a || lcd_stat.oam_update_b) { update_oam(); }
+			if(lcd_stat.oam_update) { update_oam(); }
+
+			//Update OBJ render list
+			update_obj_render_list();
 
 			//Update 2D engine palettes
 			if(lcd_stat.bg_pal_update_a || lcd_stat.bg_pal_update_b || lcd_stat.bg_ext_pal_update_a || lcd_stat.bg_ext_pal_update_b) { update_palettes(); }

@@ -51,10 +51,67 @@ class NTR_LCD
 
 	private:
 
+	struct oam_entries
+	{
+		//X-Y Coordinates - X (0-511), Y(0-255)
+		u16 x;
+		u8 y;
+
+		s16 right;
+		s16 left;
+
+		s16 top;
+		s16 bottom;
+	
+		//Horizonal and vertical flipping options
+		bool h_flip;
+		bool v_flip;
+
+		bool x_wrap;
+		bool y_wrap;
+
+		u8 x_wrap_val;
+		u8 y_wrap_val;
+
+		//Shape and size, dimensions
+		u8 shape;
+		u8 size;
+		u8 width;
+		u8 height;
+
+		//Transformed dimensions via affine
+		s32 affine_width;
+		s32 affine_height;
+
+		s16 cx, cy;
+		s16 cw, ch;
+
+		//Misc properties
+		u32 addr;
+		u16 tile_number;
+		u8 bg_priority;
+		u8 bit_depth;
+		u8 palette_number;
+		u8 type;
+		u8 mode;
+		u8 affine_enable;
+		u8 affine_group;
+		bool visible;
+		bool mosiac;
+	} obj[256];
+
 	void update_palettes();
 	void update_oam();
+	void update_obj_render_list();
 
 	void opengl_blit();
+
+	//OBJ rendering
+	u8 obj_render_list_a[128];
+	u8 obj_render_length_a;
+
+	u8 obj_render_list_b[128];
+	u8 obj_render_length_b;
 
 	//Screen pixel buffer
 	std::vector<u32> scanline_buffer_a;

@@ -2422,14 +2422,14 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			break;
 	}
 
-	//Trigger BG palette update in LCD - Engine A
+	//Trigger BG-OBJ palette update in LCD - Engine A
 	if((address >= 0x5000000) && (address <= 0x50001FF))
 	{
 		lcd_stat->bg_pal_update_a = true;
 		lcd_stat->bg_pal_update_list_a[(address & 0x1FF) >> 1] = true;
 	}
 
-	//Trigger BG palette update in LCD - Engine B
+	//Trigger BG-OBJ palette update in LCD - Engine B
 	else if((address >= 0x5000400) && (address <= 0x50005FF))
 	{
 		lcd_stat->bg_pal_update_b = true;
@@ -2456,18 +2456,11 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		lcd_stat->bg_ext_pal_update_list_b[block] = true;
 	}
 
-	//Trigger OAM update in LCD - Engine A
-	else if((address >= 0x7000000) && (address <= 0x70003FF))
+	//Trigger OAM update in LCD - Engine A & B
+	else if((address >= 0x7000000) && (address <= 0x70007FF))
 	{
-		lcd_stat->oam_update_a = true;
-		lcd_stat->oam_update_list_a[(address & 0x3FF) >> 3] = true;
-	}
-
-	//Trigger OAM update in LCD - Engine B
-	else if((address >= 0x7000400) && (address <= 0x70007FF))
-	{
-		lcd_stat->oam_update_b = true;
-		lcd_stat->oam_update_list_b[(address & 0x3FF) >> 3] = true;
+		lcd_stat->oam_update = true;
+		lcd_stat->oam_update_list[(address & 0x7FF) >> 3] = true;
 	}
 }
 
