@@ -137,6 +137,12 @@ struct ntr_lcd_data
 
 	bool update_bg_control_a;
 	bool update_bg_control_b;
+
+	bool oam_update_a;
+	std::vector<bool> oam_update_list_a;
+
+	bool oam_update_b;
+	std::vector<bool> oam_update_list_b;
 };
 
 #endif // NDS_LCD_DATA

@@ -2455,6 +2455,20 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		lcd_stat->bg_ext_pal_update_b = true;
 		lcd_stat->bg_ext_pal_update_list_b[block] = true;
 	}
+
+	//Trigger OAM update in LCD - Engine A
+	else if((address >= 0x7000000) && (address <= 0x70003FF))
+	{
+		lcd_stat->oam_update_a = true;
+		lcd_stat->oam_update_list_a[(address & 0x3FF) >> 3] = true;
+	}
+
+	//Trigger OAM update in LCD - Engine B
+	else if((address >= 0x7000400) && (address <= 0x70007FF))
+	{
+		lcd_stat->oam_update_b = true;
+		lcd_stat->oam_update_list_b[(address & 0x3FF) >> 3] = true;
+	}
 }
 
 /****** Write 2 bytes into memory ******/

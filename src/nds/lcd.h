@@ -52,6 +52,7 @@ class NTR_LCD
 	private:
 
 	void update_palettes();
+	void update_oam();
 
 	void opengl_blit();
 

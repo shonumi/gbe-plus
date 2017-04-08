@@ -91,6 +91,12 @@ void NTR_LCD::reset()
 	lcd_stat.bg_ext_pal_update_b = true;
 	lcd_stat.bg_ext_pal_update_list_b.resize(0x400, true);
 
+	lcd_stat.oam_update_a = true;
+	lcd_stat.oam_update_list_a.resize(0x80, true);
+
+	lcd_stat.oam_update_b = true;
+	lcd_stat.oam_update_list_b.resize(0x80, true);
+
 	lcd_stat.update_bg_control_a = false;
 	lcd_stat.update_bg_control_b = false;
 
@@ -224,6 +230,44 @@ bool NTR_LCD::init()
 	std::cout<<"LCD::Initialized\n";
 
 	return true;
+}
+
+/****** Updates OAM entries when values in memory change ******/
+void NTR_LCD::update_oam()
+{
+	//Update OAM - Engine A
+	if(lcd_stat.oam_update_a)
+	{
+		lcd_stat.oam_update_a = false;
+
+		//Cycle through all OAM entries
+		for(int x = 0; x < 128; x++)
+		{
+
+			//Update if OAM entry has changed
+			if(lcd_stat.oam_update_list_a[x])
+			{
+				lcd_stat.oam_update_list_a[x] = false;
+			}
+		}
+	}
+
+	//Update OAM - Engine B
+	if(lcd_stat.oam_update_b)
+	{
+		lcd_stat.oam_update_b = false;
+
+		//Cycle through all OAM entries
+		for(int x = 0; x < 128; x++)
+		{
+
+			//Update if OAM entry has changed
+			if(lcd_stat.oam_update_list_b[x])
+			{
+				lcd_stat.oam_update_list_b[x] = false;
+			}
+		}
+	}
 }
 
 /****** Updates palette entries when values in memory change ******/
@@ -1922,6 +1966,9 @@ void NTR_LCD::step()
 			//Trigger HBlank IRQ
 			if(lcd_stat.hblank_irq_enable_a) { mem->nds9_if |= 0x2; }
 			if(lcd_stat.hblank_irq_enable_b) { mem->nds7_if |= 0x2; }
+
+			//Update 2D engine OAM
+			if(lcd_stat.oam_update_a || lcd_stat.oam_update_b) { update_oam(); }
 
 			//Update 2D engine palettes
 			if(lcd_stat.bg_pal_update_a || lcd_stat.bg_pal_update_b || lcd_stat.bg_ext_pal_update_a || lcd_stat.bg_ext_pal_update_b) { update_palettes(); }
