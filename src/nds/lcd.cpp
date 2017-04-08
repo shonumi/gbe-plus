@@ -1405,7 +1405,7 @@ void NTR_LCD::render_bg_mode_bitmap(u32 bg_control)
 			
 					if(raw_color)
 					{
-						scanline_buffer_a[scanline_pixel_counter] = (lcd_stat.ext_pal_a) ? lcd_stat.bg_ext_pal_a[(bg_id << 8) + raw_color] : lcd_stat.bg_pal_a[raw_color];
+						scanline_buffer_a[scanline_pixel_counter] = lcd_stat.bg_pal_a[raw_color];
 						render_buffer_a[scanline_pixel_counter] = true;
 					}
 
@@ -1520,7 +1520,7 @@ void NTR_LCD::render_bg_mode_bitmap(u32 bg_control)
 			
 					if(raw_color)
 					{
-						scanline_buffer_b[scanline_pixel_counter] = (lcd_stat.ext_pal_b) ? lcd_stat.bg_ext_pal_b[(bg_id << 8) + raw_color] : lcd_stat.bg_pal_b[raw_color];
+						scanline_buffer_b[scanline_pixel_counter] = lcd_stat.bg_pal_b[raw_color];
 						render_buffer_b[scanline_pixel_counter] = true;
 					}
 
