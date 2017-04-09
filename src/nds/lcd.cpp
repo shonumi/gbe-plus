@@ -116,6 +116,9 @@ void NTR_LCD::reset()
 	lcd_stat.display_mode_a = 0;
 	lcd_stat.display_mode_b = 0;
 
+	lcd_stat.obj_boundary_a = 32;
+	lcd_stat.obj_boundary_b = 32;
+
 	lcd_stat.ext_pal_a = 0;
 	lcd_stat.ext_pal_b = 0;
 
@@ -360,7 +363,9 @@ void NTR_LCD::update_oam()
 			else { obj[x].y_wrap = false; }
 
 			//Precalculate OBJ base address
-			obj[x].addr = (obj[x].tile_number << 5) + (x < 128) ? 0x6400000 : 0x6600000;
+			u8 boundary = (x < 128) ? lcd_stat.obj_boundary_a : lcd_stat.obj_boundary_b;
+			u32 base = (x < 128) ? 0x6400000 : 0x6600000;
+			obj[x].addr = (obj[x].tile_number * boundary) + base;
 
 			//Read and parse OAM affine attribute
 			attribute = mem->read_u16_fast(oam_ptr - 2);

@@ -487,6 +487,10 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			//Update all BG controls
 			lcd_stat->update_bg_control_a = true;
 
+			//Calculate OBJ VRAM boundaries
+			if(lcd_stat->display_control_a & 0x10) { lcd_stat->obj_boundary_a = 32 << ((lcd_stat->display_control_a >> 20) & 0x3); }
+			else { lcd_stat->obj_boundary_a = 32; }
+
 			break;
 
 		//Display Control B
@@ -510,6 +514,10 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 			//Update all BG controls
 			lcd_stat->update_bg_control_b = true;
+
+			//Calculate OBJ VRAM boundaries
+			if(lcd_stat->display_control_b & 0x10) { lcd_stat->obj_boundary_b = 32 << ((lcd_stat->display_control_b >> 20) & 0x3); }
+			else { lcd_stat->obj_boundary_b = 32; }
 
 			break;
 
