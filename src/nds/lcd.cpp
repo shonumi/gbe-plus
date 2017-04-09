@@ -960,7 +960,11 @@ void NTR_LCD::render_obj_scanline(u32 bg_control)
 					raw_color = mem->read_u8(obj_addr);
 
 					//Process 4-bit depth if necessary
-					if(bit_depth == 32) { raw_color = (obj_x & 0x1) ? (raw_color >> 4) : (raw_color & 0xF); }
+					if(bit_depth == 32)
+					{
+						raw_color = (obj_x & 0x1) ? (raw_color >> 4) : (raw_color & 0xF);
+						raw_color += (obj[obj_id].palette_number * 16);
+					}
 
 					//Draw for Engine A
 					if(!engine_id && raw_color)
