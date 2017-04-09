@@ -100,6 +100,12 @@ void NTR_LCD::reset()
 	lcd_stat.obj_pal_update_b = true;
 	lcd_stat.obj_pal_update_list_b.resize(0x100, true);
 
+	lcd_stat.obj_ext_pal_update_a = true;
+	lcd_stat.obj_ext_pal_update_list_a.resize(0x1000, true);
+
+	lcd_stat.obj_ext_pal_update_b = true;
+	lcd_stat.obj_ext_pal_update_list_b.resize(0x1000, true);
+
 	//OAM initialization
 	lcd_stat.oam_update = true;
 	lcd_stat.oam_update_list.resize(0x100, true);
@@ -192,6 +198,16 @@ void NTR_LCD::reset()
 	lcd_stat.vram_bank_addr[6] = 0x6894000;
 	lcd_stat.vram_bank_addr[7] = 0x6898000;
 	lcd_stat.vram_bank_addr[8] = 0x68A0000;
+
+	lcd_stat.vram_bank_enable[0] = false;
+	lcd_stat.vram_bank_enable[1] = false;
+	lcd_stat.vram_bank_enable[2] = false;
+	lcd_stat.vram_bank_enable[3] = false;
+	lcd_stat.vram_bank_enable[4] = false;
+	lcd_stat.vram_bank_enable[5] = false;
+	lcd_stat.vram_bank_enable[6] = false;
+	lcd_stat.vram_bank_enable[7] = false;
+	lcd_stat.vram_bank_enable[8] = false;
 
 	//Initialize system screen dimensions
 	config::sys_width = 256;
@@ -557,6 +573,35 @@ void NTR_LCD::update_palettes()
 		}
 	}
 
+	//Update Extended OBJ palettes - Engine A
+	if(lcd_stat.obj_ext_pal_update_a)
+	{
+		lcd_stat.obj_ext_pal_update_a = false;
+
+		//Cycle through all updates to Extended OBJ palettes
+		for(u16 x = 0; x < 4096; x++)
+		{
+			//If this palette has been updated, convert to ARGB
+			if(lcd_stat.obj_ext_pal_update_list_a[x])
+			{
+				lcd_stat.obj_ext_pal_update_list_a[x] = false;
+
+				u16 color_bytes = (lcd_stat.vram_bank_enable[5]) ? mem->read_u16_fast(0x6890000 + (x << 1)) : mem->read_u16_fast(0x6894000 + (x << 1));
+				lcd_stat.raw_obj_ext_pal_a[x] = color_bytes;
+
+				u8 red = ((color_bytes & 0x1F) << 3);
+				color_bytes >>= 5;
+
+				u8 green = ((color_bytes & 0x1F) << 3);
+				color_bytes >>= 5;
+
+				u8 blue = ((color_bytes & 0x1F) << 3);
+
+				lcd_stat.obj_ext_pal_a[x] =  0xFF000000 | (red << 16) | (green << 8) | (blue);
+			}
+		}
+	}
+
 	//Update OBJ palettes - Engine B
 	if(lcd_stat.obj_pal_update_b)
 	{
@@ -582,6 +627,35 @@ void NTR_LCD::update_palettes()
 				u8 blue = ((color_bytes & 0x1F) << 3);
 
 				lcd_stat.obj_pal_b[x] =  0xFF000000 | (red << 16) | (green << 8) | (blue);
+			}
+		}
+	}
+
+	//Update Extended OBJ palettes - Engine B
+	if(lcd_stat.obj_ext_pal_update_b)
+	{
+		lcd_stat.obj_ext_pal_update_b = false;
+
+		//Cycle through all updates to Extended OBJ palettes
+		for(u16 x = 0; x < 4096; x++)
+		{
+			//If this palette has been updated, convert to ARGB
+			if(lcd_stat.obj_ext_pal_update_list_b[x])
+			{
+				lcd_stat.obj_ext_pal_update_list_b[x] = false;
+
+				u16 color_bytes = mem->read_u16_fast(0x68A0000 + (x << 1));
+				lcd_stat.raw_obj_ext_pal_b[x] = color_bytes;
+
+				u8 red = ((color_bytes & 0x1F) << 3);
+				color_bytes >>= 5;
+
+				u8 green = ((color_bytes & 0x1F) << 3);
+				color_bytes >>= 5;
+
+				u8 blue = ((color_bytes & 0x1F) << 3);
+
+				lcd_stat.obj_ext_pal_b[x] =  0xFF000000 | (red << 16) | (green << 8) | (blue);
 			}
 		}
 	}
@@ -921,15 +995,21 @@ void NTR_LCD::render_obj_scanline(u32 bg_control)
 	else if(engine_id && !obj_render_length_b) { return; }
 
 	u8 obj_id = 0;
+	u8 pal_id = 0;
 	u8 obj_render_length = engine_id ? obj_render_length_b : obj_render_length_a;
 	u16 scanline_pixel_counter = 0;
 	u8 render_width = 0;
 	u8 raw_color = 0;
+	bool ext_pal = false;	
+
+	if((!engine_id) && (lcd_stat.ext_pal_a & 0x2)) { ext_pal = true; }
+	else if((engine_id) && (lcd_stat.ext_pal_b & 0x2)) { ext_pal = true; }
 
 	//Cycle through all current OBJ and render them based on their priority
 	for(int x = 0; x < obj_render_length; x++)
 	{
 		obj_id = engine_id ? obj_render_list_b[x] : obj_render_list_a[x];
+		pal_id = obj[obj_id].palette_number;
 		
 		//Check to see if OBJ is even onscreen
 		if((obj[obj_id].left < 256) || (obj[obj_id].right < 256))
@@ -960,23 +1040,23 @@ void NTR_LCD::render_obj_scanline(u32 bg_control)
 					raw_color = mem->read_u8(obj_addr);
 
 					//Process 4-bit depth if necessary
-					if(bit_depth == 32)
+					if((bit_depth == 32) && (!ext_pal))
 					{
 						raw_color = (obj_x & 0x1) ? (raw_color >> 4) : (raw_color & 0xF);
-						raw_color += (obj[obj_id].palette_number * 16);
+						raw_color += (pal_id * 16);
 					}
 
 					//Draw for Engine A
 					if(!engine_id && raw_color)
 					{
-						scanline_buffer_a[scanline_pixel_counter] = lcd_stat.obj_pal_a[raw_color];
+						scanline_buffer_a[scanline_pixel_counter] = (ext_pal) ? lcd_stat.obj_ext_pal_a[(pal_id * 256) + raw_color] : lcd_stat.obj_pal_a[raw_color];
 						render_buffer_a[scanline_pixel_counter] = (obj[obj_id].bg_priority + 1);
 					}
 
 					//Draw for Engine B
 					else if(engine_id && raw_color)
 					{
-						scanline_buffer_b[scanline_pixel_counter] = lcd_stat.obj_pal_b[raw_color];
+						scanline_buffer_b[scanline_pixel_counter] = (ext_pal) ? lcd_stat.obj_ext_pal_b[(pal_id * 256) + raw_color] : lcd_stat.obj_pal_b[raw_color];
 						render_buffer_b[scanline_pixel_counter] = (obj[obj_id].bg_priority + 1);
 					}
 						
@@ -2253,7 +2333,7 @@ void NTR_LCD::step()
 
 			//Update 2D engine palettes
 			if(lcd_stat.bg_pal_update_a || lcd_stat.bg_pal_update_b || lcd_stat.bg_ext_pal_update_a || lcd_stat.bg_ext_pal_update_b
-			|| lcd_stat.obj_pal_update_a || lcd_stat.obj_pal_update_b) { update_palettes(); }
+			|| lcd_stat.obj_pal_update_a || lcd_stat.obj_pal_update_b || lcd_stat.obj_ext_pal_update_a || lcd_stat.obj_ext_pal_update_b) { update_palettes(); }
 
 			//Update BG control registers - Engine A
 			if(lcd_stat.update_bg_control_a)

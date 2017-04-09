@@ -1644,6 +1644,27 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 				//Bit 2 of MST is unused by banks A, B, H, and I
 				if((bank_id < 2) || (bank_id > 6)) { mst &= 0x3; }
 
+				//Set enable flag
+				if(value & 0x80)
+				{
+					lcd_stat->vram_bank_enable[bank_id] = true;
+
+					//Generate new OBJ Extended Palettes if necessary
+					if((bank_id == 5) || (bank_id == 6))
+					{
+						lcd_stat->obj_ext_pal_update_a = true;
+						lcd_stat->obj_ext_pal_update_list_a.resize(0x1000, true);
+					}
+
+					else if(bank_id == 8)
+					{
+						lcd_stat->obj_ext_pal_update_b = true;
+						lcd_stat->obj_ext_pal_update_list_b.resize(0x1000, true);
+					}
+				}
+
+				else { lcd_stat->vram_bank_enable[bank_id] = false; }
+
 				switch(mst)
 				{
 					//MST 0 - LCDC Mode
@@ -2469,6 +2490,27 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		lcd_stat->bg_ext_pal_update_b = true;
 		lcd_stat->bg_ext_pal_update_list_b[block] = true;
 	}
+
+	//Trigger Extended OBJ palette update in LCD - Engine A, VRAM Bank F
+	else if((address >= 0x6890000) && (address <= 0x6891FFF) && (lcd_stat->vram_bank_enable[5]))
+	{
+		lcd_stat->obj_ext_pal_update_a = true;
+		lcd_stat->obj_ext_pal_update_list_a[(address & 0x1FFF) >> 1] = true;
+	}
+
+	//Trigger Extended OBJ palette update in LCD - Engine A, VRAM Bank G
+	else if((address >= 0x6894000) && (address <= 0x6895FFF) && (lcd_stat->vram_bank_enable[6]))
+	{
+		lcd_stat->obj_ext_pal_update_a = true;
+		lcd_stat->obj_ext_pal_update_list_a[(address & 0x1FFF) >> 1] = true;
+	}
+
+	//Trigger Extended OBJ palette update in LCD - Engine B, VRAM Bank I
+	else if((address >= 0x68A0000) && (address <= 0x68A1FFF) && (lcd_stat->vram_bank_enable[8]))
+	{
+		lcd_stat->obj_ext_pal_update_b = true;
+		lcd_stat->obj_ext_pal_update_list_b[(address & 0x1FFF) >> 1] = true;
+	}	
 
 	//Trigger OAM update in LCD - Engine A & B
 	else if((address >= 0x7000000) && (address <= 0x70007FF))

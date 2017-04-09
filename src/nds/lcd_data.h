@@ -98,6 +98,12 @@ struct ntr_lcd_data
 	u32 obj_pal_b[256];
 	u16 raw_obj_pal_b[256];
 
+	u32 obj_ext_pal_a[4096];
+	u16 raw_obj_ext_pal_a[4096];
+
+	u32 obj_ext_pal_b[4096];
+	u16 raw_obj_ext_pal_b[4096];
+
 	struct bg_affine_parameters_a
 	{
 		//Parameters, X-Y reference
@@ -145,6 +151,12 @@ struct ntr_lcd_data
 
 	bool bg_ext_pal_update_b;
 	std::vector<bool> bg_ext_pal_update_list_b;
+
+	bool obj_ext_pal_update_a;
+	std::vector<bool> obj_ext_pal_update_list_a;
+
+	bool obj_ext_pal_update_b;
+	std::vector<bool> obj_ext_pal_update_list_b;
 
 	bool update_bg_control_a;
 	bool update_bg_control_b;
