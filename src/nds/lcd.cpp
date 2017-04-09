@@ -93,6 +93,13 @@ void NTR_LCD::reset()
 	lcd_stat.bg_ext_pal_update_b = true;
 	lcd_stat.bg_ext_pal_update_list_b.resize(0x400, true);
 
+	//OBJ palette initialization
+	lcd_stat.obj_pal_update_a = true;
+	lcd_stat.obj_pal_update_list_a.resize(0x100, true);
+
+	lcd_stat.obj_pal_update_b = true;
+	lcd_stat.obj_pal_update_list_b.resize(0x100, true);
+
 	//OAM initialization
 	lcd_stat.oam_update = true;
 	lcd_stat.oam_update_list.resize(0x100, true);
@@ -428,7 +435,7 @@ void NTR_LCD::update_palettes()
 		}
 	}
 
-	//Update Extended BG palettes - Enginge A
+	//Update Extended BG palettes - Engine A
 	if(lcd_stat.bg_ext_pal_update_a)
 	{
 		lcd_stat.bg_ext_pal_update_a = false;
@@ -520,6 +527,64 @@ void NTR_LCD::update_palettes()
 			}
 		}
 	}
+
+	//Update OBJ palettes - Engine A
+	if(lcd_stat.obj_pal_update_a)
+	{
+		lcd_stat.obj_pal_update_a = false;
+
+		//Cycle through all updates to BG palettes
+		for(int x = 0; x < 256; x++)
+		{
+			//If this palette has been updated, convert to ARGB
+			if(lcd_stat.obj_pal_update_list_a[x])
+			{
+				lcd_stat.obj_pal_update_list_a[x] = false;
+
+				u16 color_bytes = mem->read_u16_fast(0x5000200 + (x << 1));
+				lcd_stat.raw_obj_pal_a[x] = color_bytes;
+
+				u8 red = ((color_bytes & 0x1F) << 3);
+				color_bytes >>= 5;
+
+				u8 green = ((color_bytes & 0x1F) << 3);
+				color_bytes >>= 5;
+
+				u8 blue = ((color_bytes & 0x1F) << 3);
+
+				lcd_stat.obj_pal_a[x] =  0xFF000000 | (red << 16) | (green << 8) | (blue);
+			}
+		}
+	}
+
+	//Update OBJ palettes - Engine B
+	if(lcd_stat.obj_pal_update_b)
+	{
+		lcd_stat.obj_pal_update_b = false;
+
+		//Cycle through all updates to BG palettes
+		for(int x = 0; x < 256; x++)
+		{
+			//If this palette has been updated, convert to ARGB
+			if(lcd_stat.obj_pal_update_list_b[x])
+			{
+				lcd_stat.obj_pal_update_list_b[x] = false;
+
+				u16 color_bytes = mem->read_u16_fast(0x5000600 + (x << 1));
+				lcd_stat.raw_obj_pal_b[x] = color_bytes;
+
+				u8 red = ((color_bytes & 0x1F) << 3);
+				color_bytes >>= 5;
+
+				u8 green = ((color_bytes & 0x1F) << 3);
+				color_bytes >>= 5;
+
+				u8 blue = ((color_bytes & 0x1F) << 3);
+
+				lcd_stat.obj_pal_b[x] =  0xFF000000 | (red << 16) | (green << 8) | (blue);
+			}
+		}
+	}
 }
 
 /****** Render the line for a BG ******/
@@ -538,6 +603,9 @@ void NTR_LCD::render_bg_scanline(u32 bg_control)
 
 		//Clear scanline with backdrop
 		for(u16 x = 0; x < 256; x++) { scanline_buffer_a[x] = lcd_stat.bg_pal_a[0]; }
+
+		//Render OBJs if possible
+		if(lcd_stat.display_control_a & 0x1000) { render_obj_scanline(bg_control); }
 
 		//Determine BG priority
 		for(int x = 0, list_length = 0; x < 4; x++)
@@ -694,6 +762,9 @@ void NTR_LCD::render_bg_scanline(u32 bg_control)
 		//Clear scanline with backdrop
 		for(u16 x = 0; x < 256; x++) { scanline_buffer_b[x] = lcd_stat.bg_pal_b[0]; }
 
+		//Render OBJs if possible
+		if(lcd_stat.display_control_b & 0x1000) { render_obj_scanline(bg_control); }
+
 		//Determine BG priority
 		for(int x = 0, list_length = 0; x < 4; x++)
 		{
@@ -838,6 +909,83 @@ void NTR_LCD::render_bg_scanline(u32 bg_control)
 		}
 	}
 }
+
+/****** Renders a scanline for OBJs ******/
+void NTR_LCD::render_obj_scanline(u32 bg_control)
+{
+	//Detemine if Engine A or B
+	u8 engine_id = (bg_control & 0x1000) ? 1 : 0;
+
+	//Abort if no OBJs are rendered on this line
+	if(!engine_id && !obj_render_length_a) { return; }
+	else if(engine_id && !obj_render_length_b) { return; }
+
+	u8 obj_id = 0;
+	u8 obj_render_length = engine_id ? obj_render_length_b : obj_render_length_a;
+	u16 scanline_pixel_counter = 0;
+	u8 render_width = 0;
+	u8 raw_color = 0;
+
+	//Cycle through all current OBJ and render them based on their priority
+	for(int x = 0; x < obj_render_length; x++)
+	{
+		obj_id = engine_id ? obj_render_list_b[x] : obj_render_list_a[x];
+		
+		//Check to see if OBJ is even onscreen
+		if((obj[obj_id].left < 256) || (obj[obj_id].right < 256))
+		{
+			//Start rendering from X coordinate
+			scanline_pixel_counter = obj[obj_id].left;
+			render_width = 0;
+
+			u8 meta_width = obj[obj_id].width / 8;
+			u8 bit_depth = obj[obj_id].bit_depth * 8;
+			u8 pixel_shift = (bit_depth == 32) ? 1 : 0;
+
+			while(render_width < obj[obj_id].width)
+			{
+				if(scanline_pixel_counter < 256)
+				{
+					//Determine X and Y meta-tiles
+					u16 obj_x = render_width;
+					u16 obj_y = obj[obj_id].y_wrap ? (lcd_stat.current_scanline + obj[obj_id].y_wrap_val) : (lcd_stat.current_scanline - obj[obj_id].y);
+
+					u8 meta_x = obj_x / 8;
+					u8 meta_y = obj_y / 8;
+
+					//Determine address of this pixel
+					u32 obj_addr = obj[obj_id].addr + (((meta_y * meta_width) + meta_x) * bit_depth);
+					obj_addr += (((obj_y % 8) * 8) + (obj_x % 8)) >> pixel_shift;
+
+					raw_color = mem->read_u8(obj_addr);
+
+					//Process 4-bit depth if necessary
+					if(bit_depth == 32) { raw_color = (obj_x & 0x1) ? (raw_color >> 4) : (raw_color & 0xF); }
+
+					//Draw for Engine A
+					if(!engine_id && raw_color)
+					{
+						scanline_buffer_a[scanline_pixel_counter] = lcd_stat.obj_pal_a[raw_color];
+						render_buffer_a[scanline_pixel_counter] = (obj[obj_id].bg_priority + 1);
+					}
+
+					//Draw for Engine B
+					else if(engine_id && raw_color)
+					{
+						scanline_buffer_b[scanline_pixel_counter] = lcd_stat.obj_pal_b[raw_color];
+						render_buffer_b[scanline_pixel_counter] = (obj[obj_id].bg_priority + 1);
+					}
+						
+				}
+
+				scanline_pixel_counter++;
+				scanline_pixel_counter &= 0x1FF;
+
+				render_width++;
+			}
+		}
+	}
+}			
 
 /****** Render BG Mode Text scanline ******/
 void NTR_LCD::render_bg_mode_text(u32 bg_control)
@@ -2100,7 +2248,8 @@ void NTR_LCD::step()
 			update_obj_render_list();
 
 			//Update 2D engine palettes
-			if(lcd_stat.bg_pal_update_a || lcd_stat.bg_pal_update_b || lcd_stat.bg_ext_pal_update_a || lcd_stat.bg_ext_pal_update_b) { update_palettes(); }
+			if(lcd_stat.bg_pal_update_a || lcd_stat.bg_pal_update_b || lcd_stat.bg_ext_pal_update_a || lcd_stat.bg_ext_pal_update_b
+			|| lcd_stat.obj_pal_update_a || lcd_stat.obj_pal_update_b) { update_palettes(); }
 
 			//Update BG control registers - Engine A
 			if(lcd_stat.update_bg_control_a)
