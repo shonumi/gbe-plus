@@ -1052,14 +1052,14 @@ void NTR_LCD::render_obj_scanline(u32 bg_control)
 					}
 
 					//Draw for Engine A
-					if(!engine_id && raw_color)
+					if(!engine_id && raw_color && !render_buffer_a[scanline_pixel_counter])
 					{
 						scanline_buffer_a[scanline_pixel_counter] = (ext_pal) ? lcd_stat.obj_ext_pal_a[(pal_id * 256) + raw_color] : lcd_stat.obj_pal_a[raw_color];
 						render_buffer_a[scanline_pixel_counter] = (obj[obj_id].bg_priority + 1);
 					}
 
 					//Draw for Engine B
-					else if(engine_id && raw_color)
+					else if(engine_id && raw_color && !render_buffer_b[scanline_pixel_counter])
 					{
 						scanline_buffer_b[scanline_pixel_counter] = (ext_pal) ? lcd_stat.obj_ext_pal_b[(pal_id * 256) + raw_color] : lcd_stat.obj_pal_b[raw_color];
 						render_buffer_b[scanline_pixel_counter] = (obj[obj_id].bg_priority + 1);
