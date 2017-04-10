@@ -41,6 +41,9 @@ class NTR_GamePad
 	bool touch_hold;
 	bool touch_by_mouse;
 
+	u32* nds7_input_irq;
+	u32* nds9_input_irq;
+
 	private:
 
 	//Shadow status for keyboard input

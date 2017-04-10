@@ -35,6 +35,8 @@ NTR_core::NTR_core()
 
 	//Link MMU and GamePad
 	core_mmu.g_pad = &core_pad;
+	core_pad.nds7_input_irq = &core_mmu.nds7_if;
+	core_pad.nds9_input_irq = &core_mmu.nds9_if;
 
 	/*
 	//Link MMU and CPU's timers
@@ -138,6 +140,8 @@ void NTR_core::reset()
 
 	//Link MMU and GamePad
 	core_mmu.g_pad = &core_pad;
+	core_pad.nds7_input_irq = &core_mmu.nds7_if;
+	core_pad.nds9_input_irq = &core_mmu.nds9_if;
 
 	/*
 	//Link MMU and CPU's timers

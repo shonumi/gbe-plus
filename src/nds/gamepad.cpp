@@ -23,6 +23,9 @@ NTR_GamePad::NTR_GamePad()
 	up_shadow = down_shadow = left_shadow = right_shadow = false;
 	touch_hold = false;
 	touch_by_mouse = false;
+
+	nds7_input_irq = NULL;
+	nds9_input_irq = NULL;
 }
 
 /****** Initialize GamePad ******/
@@ -327,6 +330,24 @@ void NTR_GamePad::process_keyboard(int pad, bool pressed)
 
 	//Emulate L Trigger release
 	else if((pad == config::ntr_key_l_trigger) && (!pressed)) { key_input |= 0x200; }
+
+	//Emulate Lid Close
+	else if((pad == config::con_key_down) && (pressed))
+	{
+		ext_key_input |= 0x80;
+		
+		//Trigger Lid hardware IRQ
+		if(nds7_input_irq != NULL) { *nds7_input_irq |= 0x400000; }
+	}
+	
+	//Emulate Lid Open
+	else if((pad == config::con_key_down) && (!pressed))
+	{
+		ext_key_input &= ~0x80;
+
+		//Trigger Lid hardware IRQ
+		if(nds7_input_irq != NULL) { *nds7_input_irq |= 0x400000; }
+	}
 
 	//Map keyboard input to touchscreen coordinates
 	for(int x = 0; x < 10; x++)
