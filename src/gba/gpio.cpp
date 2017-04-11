@@ -54,9 +54,6 @@ void AGB_MMU::process_rtc()
 					{
 						u8 param = ((gpio.serial_byte >> 1) & 0x7);
 						bool read_data = gpio.serial_byte & 0x1;
-						
-						//if(read_data) { std::cout<<"READ COMMAND 0x" << std::hex << u16(param) << "\n"; }
-						//else { std::cout<<"WRITE COMMAND 0x" << std::hex << u16(param) << "\n"; }
 
 						//Change state based on the received parameter
 						switch(param)
