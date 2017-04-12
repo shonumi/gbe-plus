@@ -159,5 +159,6 @@ const u32 NDS_SPIDATA = 0x40001C2;
 
 //Misc
 const u32 NDS_POWERCNT = 0x4000304;
+const u32 NDS_RTC = 0x4000138;
 
 #endif // NDS_COMMON 

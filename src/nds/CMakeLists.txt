@@ -14,6 +14,7 @@ set(SRCS
 	dma.cpp
 	gamepad.cpp
 	opengl.cpp
+	rtc.cpp
 	)
 
 set(HEADERS

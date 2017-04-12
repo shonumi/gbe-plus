@@ -71,6 +71,24 @@ class NTR_MMU
 		bool active_transfer;
 	} nds7_spi;
 
+	//NDS7 RTC
+	struct nds7_real_time_clock
+	{
+		//MMIO registers
+		u8 cnt;
+		u8 data;
+		u8 io_direction;
+
+		//RTC data and status
+		u16 state;
+		u8 serial_counter;
+		u8 serial_byte;
+		u8 serial_data[8];
+		u8 data_index;
+		u8 serial_len;
+		u8 regs[4];
+	} nds7_rtc;
+
 	//Touchscreen controller
 	struct nds_touchscreen_controller
 	{
@@ -185,6 +203,7 @@ class NTR_MMU
 	void process_spi_bus();
 	void process_firmware();
 	void process_touchscreen();
+	void process_rtc();
 	void setup_default_firmware();
 
 	void set_lcd_data(ntr_lcd_data* ex_lcd_stat);

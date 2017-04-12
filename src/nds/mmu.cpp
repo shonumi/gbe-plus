@@ -120,6 +120,15 @@ void NTR_MMU::reset()
 	nds7_spi.transfer_clock = 0;
 	nds7_spi.active_transfer = false;
 
+	nds7_rtc.cnt = 0;
+	nds7_rtc.data = 0;
+	nds7_rtc.io_direction = 0;
+	nds7_rtc.state = 0x100;
+	nds7_rtc.serial_counter = 0;
+	nds7_rtc.serial_byte = 0;
+	nds7_rtc.data_index = 0;
+	nds7_rtc.serial_len = 0;
+
 	touchscreen.adc_x1 = read_u16(0x27FFCD8) & 0x1FFF;
 	touchscreen.adc_y1 = read_u16(0x27FFCDA) & 0x1FFF;
 	touchscreen.scr_x1 = read_u8(0x27FFCDC);
@@ -2355,6 +2364,39 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		case NDS_KEYINPUT+1:
 		case NDS_EXTKEYIN:
 		case NDS_EXTKEYIN+1:
+			break;
+
+		case NDS_RTC:
+			if(!access_mode)
+			{
+				memory_map[address] = (value & 0x77);
+
+				nds7_rtc.cnt = (value & 0x77);
+				nds7_rtc.io_direction = ((value >> 4) & 0x7);
+
+				//Only change SIO, SCK, and CS when data direction is write
+				if(nds7_rtc.io_direction & 0x1)
+				{
+					if(value & 0x1) { nds7_rtc.data |= 0x1; }
+					else { nds7_rtc.data &= ~0x1; }
+				}
+
+				if(nds7_rtc.io_direction & 0x2)
+				{
+					if(value & 0x2) { nds7_rtc.data |= 0x2; }
+					else { nds7_rtc.data &= ~0x2; }
+				}
+
+				if(nds7_rtc.io_direction & 0x4)
+				{
+					if(value & 0x4) { nds7_rtc.data |= 0x4; }
+					else { nds7_rtc.data &= ~0x4; }
+				}
+
+				//Communicate with the RTC
+				process_rtc();
+			}
+
 			break;
 
 		case NDS_DIVCNT:
