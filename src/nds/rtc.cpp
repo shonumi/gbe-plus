@@ -24,14 +24,11 @@ void NTR_MMU::process_rtc()
 		//Write data to RTC if necessary
 		switch(nds7_rtc.serial_byte)
 		{
-			//Status 1 Register
-			case 0x6: nds7_rtc.regs[0] = nds7_rtc.serial_data[0]; break;
-
-			//Status 2 Register
-			case 0x46: nds7_rtc.regs[1] = nds7_rtc.serial_data[1]; break;
-
-			//Alarm Time 1 or Frequency Duty Setting
-			case 0x16: break;
+			case 0x6:
+			case 0x16:
+			case 0x46:
+				nds7_rtc.regs[nds7_rtc.reg_index++] = nds7_rtc.serial_data[nds7_rtc.data_index - 1];
+				break;
 		}
 
 		return;
@@ -91,7 +88,7 @@ void NTR_MMU::process_rtc()
 								//Reply with 1 byte for register
 								if(read_data)
 								{
-									nds7_rtc.serial_data[0] = nds7_rtc.regs[1];
+									nds7_rtc.serial_data[0] = nds7_rtc.regs[0];
 									nds7_rtc.serial_len = 1;
 									nds7_rtc.serial_counter = 0;
 									nds7_rtc.data_index = 0;
@@ -101,6 +98,7 @@ void NTR_MMU::process_rtc()
 								//Write 1 byte for control register
 								else
 								{
+									nds7_rtc.reg_index = 0;
 									nds7_rtc.serial_len = 1;
 									nds7_rtc.serial_counter = 0;
 									nds7_rtc.data_index = 0;
@@ -124,6 +122,7 @@ void NTR_MMU::process_rtc()
 								//Write 1 byte for control register
 								else
 								{
+									nds7_rtc.reg_index = 1;
 									nds7_rtc.serial_len = 1;
 									nds7_rtc.serial_counter = 0;
 									nds7_rtc.data_index = 0;
@@ -242,8 +241,12 @@ void NTR_MMU::process_rtc()
 							case 0x1:
 								if(read_data)
 								{
-									nds7_rtc.serial_data[0] = 0x0;
-									nds7_rtc.serial_len = 1;
+									nds7_rtc.serial_data[0] = nds7_rtc.regs[2];
+									nds7_rtc.serial_data[1] = nds7_rtc.regs[3];
+									nds7_rtc.serial_data[2] = nds7_rtc.regs[4];
+
+									
+									nds7_rtc.serial_len = 3;
 									nds7_rtc.serial_counter = 0;
 									nds7_rtc.data_index = 0;
 									nds7_rtc.state = 0x103;
@@ -251,6 +254,7 @@ void NTR_MMU::process_rtc()
 
 								else
 								{
+									nds7_rtc.reg_index = 2;
 									nds7_rtc.serial_len = 3;
 									nds7_rtc.serial_counter = 0;
 									nds7_rtc.data_index = 0;
@@ -263,8 +267,11 @@ void NTR_MMU::process_rtc()
 							case 0x5:
 								if(read_data)
 								{
-									nds7_rtc.serial_data[0] = 0x0;
-									nds7_rtc.serial_len = 1;
+									nds7_rtc.serial_data[0] = nds7_rtc.regs[5];
+									nds7_rtc.serial_data[1] = nds7_rtc.regs[6];
+									nds7_rtc.serial_data[2] = nds7_rtc.regs[7];
+
+									nds7_rtc.serial_len = 3;
 									nds7_rtc.serial_counter = 0;
 									nds7_rtc.data_index = 0;
 									nds7_rtc.state = 0x103;
@@ -272,6 +279,7 @@ void NTR_MMU::process_rtc()
 
 								else
 								{
+									nds7_rtc.reg_index = 5;
 									nds7_rtc.serial_len = 3;
 									nds7_rtc.serial_counter = 0;
 									nds7_rtc.data_index = 0;
@@ -284,7 +292,7 @@ void NTR_MMU::process_rtc()
 							case 0x3:
 								if(read_data)
 								{
-									nds7_rtc.serial_data[0] = 0x0;
+									nds7_rtc.serial_data[0] = nds7_rtc.regs[8];
 									nds7_rtc.serial_len = 1;
 									nds7_rtc.serial_counter = 0;
 									nds7_rtc.data_index = 0;
@@ -293,6 +301,7 @@ void NTR_MMU::process_rtc()
 
 								else
 								{
+									nds7_rtc.reg_index = 8;
 									nds7_rtc.serial_len = 1;
 									nds7_rtc.serial_counter = 0;
 									nds7_rtc.data_index = 0;
@@ -305,7 +314,7 @@ void NTR_MMU::process_rtc()
 							case 0x7:
 								if(read_data)
 								{
-									nds7_rtc.serial_data[0] = nds7_rtc.regs[3];
+									nds7_rtc.serial_data[0] = nds7_rtc.regs[9];
 									nds7_rtc.serial_len = 1;
 									nds7_rtc.serial_counter = 0;
 									nds7_rtc.data_index = 0;
@@ -314,6 +323,7 @@ void NTR_MMU::process_rtc()
 
 								else
 								{
+									nds7_rtc.reg_index = 9;
 									nds7_rtc.serial_len = 1;
 									nds7_rtc.serial_counter = 0;
 									nds7_rtc.data_index = 0;
@@ -330,7 +340,7 @@ void NTR_MMU::process_rtc()
 
 		//Reply to NDS with data (SCK=hi)
 		case 0x103:
-			if(nds7_rtc.data & 0x1)
+			if(nds7_rtc.data & 0x2)
 			{
 				//Set or unset Bit 1 of SIO data depending on the serial data being sent back
 				if(nds7_rtc.serial_data[nds7_rtc.data_index] & 0x1) { memory_map[NDS_RTC] |= 0x1; }
@@ -357,7 +367,7 @@ void NTR_MMU::process_rtc()
 			if((nds7_rtc.data & 0x2) == 0)
 			{
 				//Set serial data from Bit 1 of SIO
-				if(nds7_rtc.data & 0x2) { nds7_rtc.serial_data[nds7_rtc.data_index] |= (1 << nds7_rtc.serial_counter); }
+				if(nds7_rtc.data & 0x1) { nds7_rtc.serial_data[nds7_rtc.data_index] |= (1 << nds7_rtc.serial_counter); }
 				else { nds7_rtc.serial_data[nds7_rtc.data_index] &= ~(1 << nds7_rtc.serial_counter); }
 
 				nds7_rtc.serial_counter++;
@@ -376,14 +386,11 @@ void NTR_MMU::process_rtc()
 						//Write data to RTC
 						switch(nds7_rtc.serial_byte)
 						{
-							//Status 1 Register
-							case 0x6: nds7_rtc.regs[0] = nds7_rtc.serial_data[0]; break;
-
-							//Status 2 Register
-							case 0x46: nds7_rtc.regs[1] = nds7_rtc.serial_data[1]; break;
-
-							//Alarm Time 1 or Frequency Duty Setting
-							case 0x16: break;
+							case 0x6:
+							case 0x46:
+							case 0x16:
+								nds7_rtc.regs[nds7_rtc.reg_index++] = nds7_rtc.serial_data[nds7_rtc.data_index - 1];
+								break;
 						}
 					}
 				}

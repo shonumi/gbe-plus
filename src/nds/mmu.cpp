@@ -18,7 +18,7 @@ NTR_MMU::NTR_MMU()
 
 /****** MMU Deconstructor ******/
 NTR_MMU::~NTR_MMU() 
-{ 
+{
 	memory_map.clear();
 	cart_data.clear();
 	nds7_bios.clear();
@@ -128,7 +128,11 @@ void NTR_MMU::reset()
 	nds7_rtc.serial_byte = 0;
 	nds7_rtc.data_index = 0;
 	nds7_rtc.serial_len = 0;
-
+	nds7_rtc.reg_index = 0;
+	nds7_rtc.regs[0] = 0x2;
+	
+	for(int x = 1; x < 10; x++) { nds7_rtc.regs[x] = 0; }
+	
 	touchscreen.adc_x1 = read_u16(0x27FFCD8) & 0x1FFF;
 	touchscreen.adc_y1 = read_u16(0x27FFCDA) & 0x1FFF;
 	touchscreen.scr_x1 = read_u8(0x27FFCDC);

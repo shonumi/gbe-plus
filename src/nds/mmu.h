@@ -86,7 +86,10 @@ class NTR_MMU
 		u8 serial_data[8];
 		u8 data_index;
 		u8 serial_len;
-		u8 regs[4];
+		
+		//0 = STAT1, 1 = STAT2, 2,3,4 = Alarm1-INT1, 5,6,7 = Alarm2-INT2, 8 = Clock adjust, 9 = Free
+		u8 regs[10];
+		u8 reg_index;
 	} nds7_rtc;
 
 	//Touchscreen controller
