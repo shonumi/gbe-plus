@@ -16,23 +16,8 @@
 /****** Handles various RTC interactions ******/
 void NTR_MMU::process_rtc()
 {
-	//Trigger command transfer even if in the middle of another operation
-	if(((nds7_rtc.data & 0x6) == 0x2) && (nds7_rtc.io_direction & 0x1) && (nds7_rtc.state != 0x100))
-	{
-		nds7_rtc.state = 0x101;
-
-		//Write data to RTC if necessary
-		switch(nds7_rtc.serial_byte)
-		{
-			case 0x6:
-			case 0x16:
-			case 0x46:
-				nds7_rtc.regs[nds7_rtc.reg_index++] = nds7_rtc.serial_data[nds7_rtc.data_index - 1];
-				break;
-		}
-
-		return;
-	}
+	//Stop transfer when CS goes low
+	if(((nds7_rtc.data & 0x4) == 0x0) && (nds7_rtc.state != 0x100)) { nds7_rtc.state = 0x100; return; }
 
 	//Perform actions based on current internal state of serial communications with RTC
 	switch(nds7_rtc.state)
@@ -390,6 +375,23 @@ void NTR_MMU::process_rtc()
 							case 0x46:
 							case 0x16:
 								nds7_rtc.regs[nds7_rtc.reg_index++] = nds7_rtc.serial_data[nds7_rtc.data_index - 1];
+								break;
+						}
+
+						//Set INT1
+						switch(nds7_rtc.reg_index - 1)
+						{
+							case 1:
+							case 2:
+								if((nds7_rtc.regs[1] & 0xF) == 0x1)
+								{
+									nds7_rtc.int1_freq = 256 >> (nds7_rtc.regs[2] & 0xF);
+									nds7_rtc.int1_enable = true;
+									nds7_rtc.int1_clock = nds7_rtc.int1_freq;
+								}
+
+								else { nds7_rtc.int1_enable = false; }
+
 								break;
 						}
 					}

@@ -132,6 +132,11 @@ void NTR_MMU::reset()
 	nds7_rtc.regs[0] = 0x2;
 	
 	for(int x = 1; x < 10; x++) { nds7_rtc.regs[x] = 0; }
+
+	nds7_rtc.int1_clock = 0;
+	nds7_rtc.int1_freq = 0;
+	nds7_rtc.int1_enable = false;
+	nds7_rtc.int2_enable = false;
 	
 	touchscreen.adc_x1 = read_u16(0x27FFCD8) & 0x1FFF;
 	touchscreen.adc_y1 = read_u16(0x27FFCDA) & 0x1FFF;

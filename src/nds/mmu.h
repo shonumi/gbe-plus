@@ -90,6 +90,12 @@ class NTR_MMU
 		//0 = STAT1, 1 = STAT2, 2,3,4 = Alarm1-INT1, 5,6,7 = Alarm2-INT2, 8 = Clock adjust, 9 = Free
 		u8 regs[10];
 		u8 reg_index;
+
+		//INT1 and INT2 data
+		s32 int1_clock;
+		u32 int1_freq;
+		bool int1_enable;
+		bool int2_enable;
 	} nds7_rtc;
 
 	//Touchscreen controller
