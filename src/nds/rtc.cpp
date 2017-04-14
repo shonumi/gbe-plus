@@ -385,7 +385,7 @@ void NTR_MMU::process_rtc()
 							case 2:
 								if((nds7_rtc.regs[1] & 0xF) == 0x1)
 								{
-									nds7_rtc.int1_freq = 256 >> (nds7_rtc.regs[2] & 0xF);
+									nds7_rtc.int1_freq = (1 << 25) >> (nds7_rtc.regs[2] & 0xF);
 									nds7_rtc.int1_enable = true;
 									nds7_rtc.int1_clock = nds7_rtc.int1_freq;
 								}
