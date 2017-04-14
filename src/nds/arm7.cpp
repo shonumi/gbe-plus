@@ -1124,7 +1124,7 @@ void NTR_ARM7::clock(u32 access_addr, bool first_access)
 	}
 
 	//Run RTC
-	if((mem->nds7_ie & 0x80) && (mem->nds7_rtc.int1_enable))
+	if((mem->nds7_ie & 0x80) && (mem->nds7_rtc.int1_enable) && (mem->memory_map[NDS_RCNT+1] & 0x1))
 	{
 		mem->nds7_rtc.int1_clock -= access_cycles;
 
@@ -1156,6 +1156,19 @@ void NTR_ARM7::clock()
 	{
 		mem->nds7_spi.transfer_clock -= access_cycles;
 		if(mem->nds7_spi.transfer_clock <= 0) { mem->process_spi_bus(); }
+	}
+
+	//Run RTC
+	if((mem->nds7_ie & 0x80) && (mem->nds7_rtc.int1_enable) && (mem->memory_map[NDS_RCNT+1] & 0x1))
+	{
+		mem->nds7_rtc.int1_clock -= access_cycles;
+
+		//Raise INT1 IRQ for Selected Frequency
+		if(mem->nds7_rtc.int1_clock <= 0)
+		{
+			mem->nds7_if |= 0x80;
+			mem->nds7_rtc.int1_clock = mem->nds7_rtc.int1_freq;
+		}
 	}
 }
 
