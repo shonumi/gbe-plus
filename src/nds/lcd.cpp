@@ -1005,7 +1005,8 @@ void NTR_LCD::render_obj_scanline(u32 bg_control)
 	u16 scanline_pixel_counter = 0;
 	u8 render_width = 0;
 	u8 raw_color = 0;
-	bool ext_pal = false;	
+	bool ext_pal = false;
+	s16 h_flip, v_flip = 0;
 
 	if((!engine_id) && (lcd_stat.ext_pal_a & 0x2)) { ext_pal = true; }
 	else if((engine_id) && (lcd_stat.ext_pal_b & 0x2)) { ext_pal = true; }
@@ -1034,6 +1035,28 @@ void NTR_LCD::render_obj_scanline(u32 bg_control)
 					//Determine X and Y meta-tiles
 					u16 obj_x = render_width;
 					u16 obj_y = obj[obj_id].y_wrap ? (lcd_stat.current_scanline + obj[obj_id].y_wrap_val) : (lcd_stat.current_scanline - obj[obj_id].y);
+
+					//Horizontal flip the internal X coordinate
+					if(obj[obj_id].h_flip)
+					{
+						h_flip = obj_x;
+						h_flip -= (obj[obj_id].width - 1);
+
+						if(h_flip < 0) { h_flip *= -1; }
+
+						obj_x = h_flip;
+					}
+
+					//Vertical flip the internal Y coordinate
+					if(obj[obj_id].v_flip)
+					{
+						v_flip = obj_y;
+						v_flip -= (obj[obj_id].height - 1);
+
+						if(v_flip < 0) { v_flip *= -1; }
+
+						obj_y = v_flip;
+					}
 
 					u8 meta_x = obj_x / 8;
 					u8 meta_y = obj_y / 8;
