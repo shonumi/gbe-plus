@@ -132,6 +132,8 @@ class NTR_LCD
 	int fps_count;
 	int fps_time;
 
+	u8 inv_lut[8];
+
 	void render_scanline();
 	void render_bg_scanline(u32 bg_control);
 	void render_bg_mode_text(u32 bg_control);

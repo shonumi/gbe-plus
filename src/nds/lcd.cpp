@@ -212,6 +212,9 @@ void NTR_LCD::reset()
 	lcd_stat.vram_bank_enable[7] = false;
 	lcd_stat.vram_bank_enable[8] = false;
 
+	//Inverse LUT
+	for(int x = 0, y = 7; x < 8; x++, y--) { inv_lut[x] = y; }
+
 	//Initialize system screen dimensions
 	config::sys_width = 256;
 	config::sys_height = 384;
@@ -1131,7 +1134,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 
 		//Grab BG bit-depth and offset for the current tile line
 		u8 bit_depth = lcd_stat.bg_depth_a[bg_id] ? 64 : 32;
-		u8 line_offset = (bit_depth >> 3) * current_tile_line;
+		u8 line_offset;
 
 		//Get tile and map addresses
 		u32 tile_addr = 0x6000000 + lcd_stat.bg_base_tile_addr_a[bg_id];
@@ -1153,6 +1156,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 			flip = (map_data >> 10) & 0x3;
 
 			//Calculate VRAM address to start pulling up tile data
+			line_offset = (flip & 0x2) ? ((bit_depth >> 3) * inv_lut[current_tile_line]) : ((bit_depth >> 3) * current_tile_line);
 			u32 tile_data_addr = tile_addr + (tile_id * bit_depth) + line_offset;
 			if(flip & 0x1) { tile_data_addr += ((bit_depth >> 3) - 1); }
 
@@ -1267,7 +1271,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 
 		//Grab BG bit-depth and offset for the current tile line
 		u8 bit_depth = lcd_stat.bg_depth_b[bg_id] ? 64 : 32;
-		u8 line_offset = (bit_depth >> 3) * current_tile_line;
+		u8 line_offset;
 
 		//Get tile and map addresses
 		u32 tile_addr = 0x6200000 + lcd_stat.bg_base_tile_addr_b[bg_id];
@@ -1288,6 +1292,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 			pal_id = (map_data >> 12) & 0xF;
 
 			//Calculate VRAM address to start pulling up tile data
+			line_offset = (flip & 0x2) ? ((bit_depth >> 3) * inv_lut[current_tile_line]) : ((bit_depth >> 3) * current_tile_line);
 			u32 tile_data_addr = tile_addr + (tile_id * bit_depth) + line_offset;
 			if(flip & 0x1) { tile_data_addr += ((bit_depth >> 3) - 1); }
 
