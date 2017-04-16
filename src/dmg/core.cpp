@@ -328,14 +328,14 @@ void DMG_core::run_core()
 
 						core_cpu.controllers.serial_io.sio_stat.active_transfer = false;
 
-						switch(core_cpu.controllers.serial_io.sio_stat.sio_type )
+						switch(core_cpu.controllers.serial_io.sio_stat.sio_type)
 						{
 							//Process normal SIO communications
 							case NO_GB_DEVICE:
 							case GB_LINK:
-								//Emulate disconnected link cable (on an internal clock) with no netplay	
-								if(((!config::use_netplay) && (core_cpu.controllers.serial_io.sio_stat.internal_clock))
-								|| (!core_cpu.controllers.serial_io.sio_stat.connected))
+								//Emulate disconnected link cable (on an internal clock) with no netplay
+								if((core_cpu.controllers.serial_io.sio_stat.internal_clock)
+								&& (!config::use_netplay || !core_cpu.controllers.serial_io.sio_stat.connected))
 								{
 									core_mmu.memory_map[REG_SB] = 0xFF;
 									core_mmu.memory_map[IF_FLAG] |= 0x08;
@@ -505,14 +505,14 @@ void DMG_core::step()
 
 					core_cpu.controllers.serial_io.sio_stat.active_transfer = false;
 
-					switch(core_cpu.controllers.serial_io.sio_stat.sio_type )
+					switch(core_cpu.controllers.serial_io.sio_stat.sio_type)
 					{
 						//Process normal SIO communications
 						case NO_GB_DEVICE:
 						case GB_LINK:
-							//Emulate disconnected link cable (on an internal clock) with no netplay	
-							if(((!config::use_netplay) && (core_cpu.controllers.serial_io.sio_stat.internal_clock))
-							|| (!core_cpu.controllers.serial_io.sio_stat.connected))
+							//Emulate disconnected link cable (on an internal clock) with no netplay
+							if((core_cpu.controllers.serial_io.sio_stat.internal_clock)
+							&& (!config::use_netplay || !core_cpu.controllers.serial_io.sio_stat.connected))
 							{
 								core_mmu.memory_map[REG_SB] = 0xFF;
 								core_mmu.memory_map[IF_FLAG] |= 0x08;
