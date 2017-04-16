@@ -1121,6 +1121,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 
 		u16 tile_id;
 		u8 pal_id;
+		u8 flip;
 
 		u16 scanline_pixel_counter = 0;
 		u8 current_screen_line = (lcd_stat.current_scanline + lcd_stat.bg_offset_y_a[bg_id]);
@@ -1146,12 +1147,14 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 			//Pull map data from current map entry
 			u16 map_data = mem->read_u16(map_addr + (map_entry << 1));
 
-			//Get tile and palette number
+			//Get tile, palette number, and flipping parameters
 			tile_id = (map_data & 0x3FF);
 			pal_id = (map_data >> 12) & 0xF;
+			flip = (map_data >> 10) & 0x3;
 
 			//Calculate VRAM address to start pulling up tile data
 			u32 tile_data_addr = tile_addr + (tile_id * bit_depth) + line_offset;
+			if(flip & 0x1) { tile_data_addr += ((bit_depth >> 3) - 1); }
 
 			//Read 8 pixels from VRAM and put them in the scanline buffer
 			for(u32 y = tile_offset_x; y < 8; y++, x++)
@@ -1159,7 +1162,8 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 				//Process 8-bit depth
 				if(bit_depth == 64)
 				{
-					u8 raw_color = mem->read_u8(tile_data_addr++);
+					//Grab dot-data, account for horizontal flipping 
+					u8 raw_color = (flip & 0x1) ? mem->read_u8(tile_data_addr--) : mem->read_u8(tile_data_addr++);
 
 					//Only draw if no previous pixel was rendered
 					if(!render_buffer_a[scanline_pixel_counter])
@@ -1183,7 +1187,9 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 				//Process 4-bit depth
 				else
 				{
-					u8 raw_color = mem->read_u8(tile_data_addr++);
+					//Grab dot-data, account for horizontal flipping 
+					u8 raw_color = (flip & 0x1) ? mem->read_u8(tile_data_addr--) : mem->read_u8(tile_data_addr++);
+
 					u8 pal_1 = (pal_id * 16) + (raw_color & 0xF);
 					u8 pal_2 = (pal_id * 16) + (raw_color >> 4);
 
@@ -1251,6 +1257,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 
 		u16 tile_id;
 		u8 pal_id;
+		u8 flip;
 
 		u16 scanline_pixel_counter = 0;
 		u8 current_screen_line = (lcd_stat.current_scanline + lcd_stat.bg_offset_y_b[bg_id]);
@@ -1282,6 +1289,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 
 			//Calculate VRAM address to start pulling up tile data
 			u32 tile_data_addr = tile_addr + (tile_id * bit_depth) + line_offset;
+			if(flip & 0x1) { tile_data_addr += ((bit_depth >> 3) - 1); }
 
 			//Read 8 pixels from VRAM and put them in the scanline buffer
 			for(u32 y = tile_offset_x; y < 8; y++, x++)
@@ -1289,7 +1297,8 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 				//Process 8-bit depth
 				if(bit_depth == 64)
 				{
-					u8 raw_color = mem->read_u8(tile_data_addr++);
+					//Grab dot-data, account for horizontal flipping 
+					u8 raw_color = (flip & 0x1) ? mem->read_u8(tile_data_addr--) : mem->read_u8(tile_data_addr++);
 
 					//Only draw if no previous pixel was rendered
 					if(!render_buffer_b[scanline_pixel_counter])
@@ -1313,7 +1322,9 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 				//Process 4-bit depth
 				else
 				{
-					u8 raw_color = mem->read_u8(tile_data_addr++);
+					//Grab dot-data, account for horizontal flipping 
+					u8 raw_color = (flip & 0x1) ? mem->read_u8(tile_data_addr--) : mem->read_u8(tile_data_addr++);
+
 					u8 pal_1 = (pal_id * 16) + (raw_color & 0xF);
 					u8 pal_2 = (pal_id * 16) + (raw_color >> 4);
 
