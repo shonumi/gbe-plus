@@ -1592,6 +1592,7 @@ void NTR_LCD::render_bg_mode_affine_ext(u32 bg_control)
 		u8 scanline_pixel_counter = 0;
 		u16 src_x, src_y = 0;
 		double new_x, new_y = 0.0;
+		u8 flip = 0;
 
 		//Set current texture position at X and Y references
 		lcd_stat.bg_affine_a[affine_id].x_pos = lcd_stat.bg_affine_a[affine_id].x_ref - lcd_stat.bg_affine_a[affine_id].dx;
@@ -1641,10 +1642,15 @@ void NTR_LCD::render_bg_mode_affine_ext(u32 bg_control)
 				//Look at the Tile Map #(tile_number), see what Tile # it points to
 				u16 map_entry = mem->read_u16(map_base + (tile_number << 1));
 
+				//Grab flipping attributes
+				flip = (map_entry >> 10) & 0x3;
+				src_x = (flip & 0x1) ? inv_lut[src_x % 8] : (src_x % 8);
+				src_y = (flip & 0x2) ? inv_lut[src_y % 8] : (src_y % 8);
+
 				//Get address of Tile #(map_entry)
 				u32 tile_addr = tile_base + ((map_entry & 0x3FF) * 64);
 
-				u8 current_tile_pixel = ((src_y % 8) * 8) + (src_x % 8);
+				u8 current_tile_pixel = (src_y * 8) + src_x;
 
 				//Grab the byte corresponding to (current_tile_pixel), render it as ARGB - 8-bit version
 				{
@@ -1686,6 +1692,7 @@ void NTR_LCD::render_bg_mode_affine_ext(u32 bg_control)
 		u8 scanline_pixel_counter = 0;
 		u16 src_x, src_y = 0;
 		double new_x, new_y = 0.0;
+		u8 flip = 0;
 
 		//Set current texture position at X and Y references
 		lcd_stat.bg_affine_b[affine_id].x_pos = lcd_stat.bg_affine_b[affine_id].x_ref - lcd_stat.bg_affine_b[affine_id].dx;
@@ -1735,15 +1742,20 @@ void NTR_LCD::render_bg_mode_affine_ext(u32 bg_control)
 				//Look at the Tile Map #(tile_number), see what Tile # it points to
 				u16 map_entry = mem->read_u16(map_base + (tile_number << 1));
 
-				//Get address of Tile #(map_entry)
-				u32 tile_bddr = tile_base + ((map_entry & 0x3FF) * 64);
+				//Grab flipping attributes
+				flip = (map_entry >> 10) & 0x3;
+				src_x = (flip & 0x1) ? inv_lut[src_x % 8] : (src_x % 8);
+				src_y = (flip & 0x2) ? inv_lut[src_y % 8] : (src_y % 8);
 
-				u8 current_tile_pixel = ((src_y % 8) * 8) + (src_x % 8);
+				//Get address of Tile #(map_entry)
+				u32 tile_addr = tile_base + ((map_entry & 0x3FF) * 64);
+
+				u8 current_tile_pixel = (src_y * 8) + src_x;
 
 				//Grab the byte corresponding to (current_tile_pixel), render it as ARGB - 8-bit version
 				{
-					tile_bddr += current_tile_pixel;
-					u8 raw_color = mem->memory_map[tile_bddr];
+					tile_addr += current_tile_pixel;
+					u8 raw_color = mem->memory_map[tile_addr];
 
 					//Only draw BG color if not transparent
 					if(raw_color != 0) { scanline_buffer_b[scanline_pixel_counter] = lcd_stat.bg_pal_b[raw_color]; }
