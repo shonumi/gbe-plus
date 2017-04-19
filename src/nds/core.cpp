@@ -216,13 +216,10 @@ void NTR_core::run_core()
 					{
 						//Halt SWI
 						case 0x1:
-							//Check IE and IF, if there is a match, exit halt state
+							//Match up bits in IE and IF to exit halt
+							for(u32 x = 0; x < 21; x++)
 							{
-								//Match up bits in IE and IF
-								for(u32 x = 0; x < 21; x++)
-								{
-									if((core_mmu.nds9_ie & (1 << x)) && (core_mmu.nds9_if & (1 << x))) { core_cpu_nds9.idle_state = 0; }
-								}
+								if((core_mmu.nds9_ie & (1 << x)) && (core_mmu.nds9_if & (1 << x))) { core_cpu_nds9.idle_state = 0; }
 							}
 
 							break;
@@ -317,13 +314,10 @@ void NTR_core::run_core()
 					{
 						//Halt SWI
 						case 0x1:
-							//Check IE and IF, if there is a match, exit halt state
+							//Match up bits in IE and IF to exit halt
+							for(u32 x = 0; x < 24; x++)
 							{
-								//Match up bits in IE and IF
-								for(u32 x = 0; x < 24; x++)
-								{
-									if((core_mmu.nds7_ie & (1 << x)) && (core_mmu.nds7_if & (1 << x))) { core_cpu_nds7.idle_state = 0; }
-								}
+								if((core_mmu.nds7_ie & (1 << x)) && (core_mmu.nds7_if & (1 << x))) { core_cpu_nds7.idle_state = 0; }
 							}
 
 							break;
