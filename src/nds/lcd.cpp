@@ -88,10 +88,10 @@ void NTR_LCD::reset()
 	lcd_stat.bg_pal_update_list_b.resize(0x100, true);
 
 	lcd_stat.bg_ext_pal_update_a = true;
-	lcd_stat.bg_ext_pal_update_list_a.resize(0x400, true);
+	lcd_stat.bg_ext_pal_update_list_a.resize(0x4000, true);
 
 	lcd_stat.bg_ext_pal_update_b = true;
-	lcd_stat.bg_ext_pal_update_list_b.resize(0x400, true);
+	lcd_stat.bg_ext_pal_update_list_b.resize(0x4000, true);
 
 	//OBJ palette initialization
 	lcd_stat.obj_pal_update_a = true;
@@ -465,17 +465,14 @@ void NTR_LCD::update_palettes()
 		lcd_stat.bg_ext_pal_update_a = false;
 
 		//Cycle through all updates to Extended BG palettes
-		for(int x = 0; x < 1024; x++)
+		for(int x = 0; x < 0x4000; x++)
 		{
 			//If this palette has been updated, convert to ARGB
 			if(lcd_stat.bg_ext_pal_update_list_a[x])
 			{
 				lcd_stat.bg_ext_pal_update_list_a[x] = false;
 
-				u32 block = (x / 256) * 0x2000;
-				block += ((x & 0xFF) << 1);
-
-				u16 color_bytes = mem->read_u16_fast(0x6880000 + block);
+				u16 color_bytes = mem->read_u16_fast(0x6880000 + (x << 1));
 				lcd_stat.raw_bg_ext_pal_a[x] = color_bytes;
 
 				u8 red = ((color_bytes & 0x1F) << 3);
@@ -497,17 +494,14 @@ void NTR_LCD::update_palettes()
 		lcd_stat.bg_ext_pal_update_b = false;
 
 		//Cycle through all updates to Extended BG palettes
-		for(int x = 0; x < 1024; x++)
+		for(int x = 0; x < 0x4000; x++)
 		{
 			//If this palette has been updated, convert to ARGB
 			if(lcd_stat.bg_ext_pal_update_list_b[x])
 			{
 				lcd_stat.bg_ext_pal_update_list_b[x] = false;
 
-				u32 block = (x / 256) * 0x2000;
-				block += ((x & 0xFF) << 1);
-
-				u16 color_bytes = mem->read_u16_fast(0x6898000 + block);
+				u16 color_bytes = mem->read_u16_fast(0x6898000 + (x << 1));
 				lcd_stat.raw_bg_ext_pal_b[x] = color_bytes;
 
 				u8 red = ((color_bytes & 0x1F) << 3);
@@ -1123,6 +1117,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 		u8 tile_offset_x = lcd_stat.bg_offset_x_a[bg_id] & 0x7;
 
 		u16 tile_id;
+		u16 ext_pal_id;
 		u8 pal_id;
 		u8 flip;
 
@@ -1153,6 +1148,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 			//Get tile, palette number, and flipping parameters
 			tile_id = (map_data & 0x3FF);
 			pal_id = (map_data >> 12) & 0xF;
+			ext_pal_id = (bg_id << 12) + (pal_id << 8);
 			flip = (map_data >> 10) & 0x3;
 
 			//Calculate VRAM address to start pulling up tile data
@@ -1175,7 +1171,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 						//Only draw colors if not transparent
 						if(raw_color)
 						{
-							scanline_buffer_a[scanline_pixel_counter] = (lcd_stat.ext_pal_a) ? lcd_stat.bg_ext_pal_a[(bg_id << 8) + raw_color]  : lcd_stat.bg_pal_a[raw_color];
+							scanline_buffer_a[scanline_pixel_counter] = (lcd_stat.ext_pal_a) ? lcd_stat.bg_ext_pal_a[ext_pal_id + raw_color]  : lcd_stat.bg_pal_a[raw_color];
 							render_buffer_a[scanline_pixel_counter] = (bg_id + 1);
 						}
 
@@ -1260,6 +1256,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 		u8 tile_offset_x = lcd_stat.bg_offset_x_b[bg_id] & 0x7;
 
 		u16 tile_id;
+		u16 ext_pal_id;
 		u8 pal_id;
 		u8 flip;
 
@@ -1287,9 +1284,11 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 			//Pull map data from current map entry
 			u16 map_data = mem->read_u16(map_addr + (map_entry << 1));
 
-			//Get tile and palette number
+			//Get tile, palette number, and flipping parameters
 			tile_id = (map_data & 0x3FF);
 			pal_id = (map_data >> 12) & 0xF;
+			ext_pal_id = (bg_id << 12) + (pal_id << 8);
+			flip = (map_data >> 10) & 0x3;
 
 			//Calculate VRAM address to start pulling up tile data
 			line_offset = (flip & 0x2) ? ((bit_depth >> 3) * inv_lut[current_tile_line]) : ((bit_depth >> 3) * current_tile_line);
@@ -1311,7 +1310,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 						//Only draw colors if not transparent
 						if(raw_color)
 						{
-							scanline_buffer_b[scanline_pixel_counter] = (lcd_stat.ext_pal_b) ? lcd_stat.bg_ext_pal_b[(bg_id << 8) + raw_color]  : lcd_stat.bg_pal_b[raw_color];
+							scanline_buffer_b[scanline_pixel_counter] = (lcd_stat.ext_pal_b) ? lcd_stat.bg_ext_pal_b[ext_pal_id + raw_color]  : lcd_stat.bg_pal_b[raw_color];
 							render_buffer_b[scanline_pixel_counter] = (bg_id + 1);
 						}
 

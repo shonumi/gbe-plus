@@ -89,11 +89,11 @@ struct ntr_lcd_data
 	u32 bg_pal_b[256];
 	u16 raw_bg_pal_b[256];
 
-	u32 bg_ext_pal_a[1024];
-	u16 raw_bg_ext_pal_a[1024];
+	u32 bg_ext_pal_a[0x4000];
+	u16 raw_bg_ext_pal_a[0x4000];
 
-	u32 bg_ext_pal_b[1024];
-	u16 raw_bg_ext_pal_b[1024];
+	u32 bg_ext_pal_b[0x4000];
+	u16 raw_bg_ext_pal_b[0x4000];
 
 	u32 obj_pal_a[256];
 	u16 raw_obj_pal_a[256];
