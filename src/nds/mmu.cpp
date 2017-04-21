@@ -48,6 +48,7 @@ void NTR_MMU::reset()
 	nds7_if = 0x0;
 	nds7_old_ie = 0x0;
 	nds7_ime = 0;
+	nds7_exmem = 0;
 	power_cnt2 = 0;
 
 	nds9_bios.clear();
@@ -58,6 +59,7 @@ void NTR_MMU::reset()
 	nds9_if = 0x0;
 	nds9_old_ie = 0x0;
 	nds9_ime = 0;
+	nds9_exmem = 0;
 	power_cnt1 = 0;
 
 	//HLE MMIO stuff
@@ -401,6 +403,15 @@ u8 NTR_MMU::read_u8(u32 address)
 		//Return SPIDATA
 		u8 addr_shift = (address & 0x1) << 3;
 		return ((nds7_spi.data >> addr_shift) & 0xFF);
+	}
+
+	//Check for EXMEMCNT - EXMEMSTAT
+	else if((address & ~0x1) == NDS_EXMEM)
+	{
+		u8 addr_shift = (address & 0x1) << 3;
+
+		if(access_mode) { return ((nds9_exmem >> addr_shift) & 0xFF); }
+		else { return ((nds7_exmem >> addr_shift) & 0xFF); }
 	}
 
 	//Check for POWERCNT
@@ -2463,6 +2474,34 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 				nds7_spi.transfer_clock = nds7_spi.baud_rate;
 				nds7_spi.cnt |= 0x80;
 				nds7_spi.data = value;
+			}
+
+			break;
+
+		case NDS_EXMEM:
+			if(access_mode)
+			{
+				nds9_exmem &= 0xFF00;
+				nds9_exmem |= value;
+				
+				//Change Bit 7 of NDS EXMEMSTAT
+				if(value & 0x80) { nds7_exmem |= 0x80; }
+				else { nds7_exmem &= ~0x80; }
+			}
+
+			else { nds7_exmem = (value & 0x7F); }
+
+			break;
+
+		case NDS_EXMEM+1:
+			if(access_mode)
+			{
+				nds9_exmem &= 0xFF;
+				nds9_exmem |= ((value & 0xBF) << 8);
+
+				//Change Bits 8-15 of NDS EXMEMSTAT
+				nds7_exmem &= 0xFF;
+				nds7_exmem |= ((value & 0xBF) << 8);
 			}
 
 			break;

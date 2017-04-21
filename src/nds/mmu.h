@@ -162,13 +162,14 @@ class NTR_MMU
 		u8 raw_cnt[4];
 	} dma[8];
 
-	//NDS9 and NDS7 have separate IE and IF registers (accessed at the same address)
+	//NDS9 and NDS7 have separate IE, IF, and other registers (accessed at the same address)
 	u32 nds9_ie;
 	u32 nds9_if;
 	u32 nds9_old_ie;
 	u32 nds9_old_if;
 	u32 nds9_ime;
 	u16 power_cnt1;
+	u16 nds9_exmem;
 
 	u32 nds7_ie;
 	u32 nds7_if;
@@ -176,6 +177,7 @@ class NTR_MMU
 	u32 nds7_old_if;
 	u32 nds7_ime;
 	u16 power_cnt2;
+	u16 nds7_exmem;
 
 	u16 firmware_state;
 	u32 firmware_index;
