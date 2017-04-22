@@ -71,6 +71,23 @@ class NTR_MMU
 		bool active_transfer;
 	} nds7_spi;
 
+	//NDS Auxillary SPI Bus
+	struct nds_aux_spi_bus
+	{
+		//MMIO registers
+		u16 cnt;
+		u16 data;
+	
+		//SPI data
+		u32 baud_rate;
+		s32 transfer_clock;
+		bool active_transfer;
+
+		//ROM data
+		u32 cmd_lo;
+		u32 cmd_hi;
+	} nds_aux_spi;
+
 	//NDS7 RTC
 	struct nds7_real_time_clock
 	{

@@ -122,6 +122,14 @@ void NTR_MMU::reset()
 	nds7_spi.transfer_clock = 0;
 	nds7_spi.active_transfer = false;
 
+	nds_aux_spi.cnt = 0;
+	nds_aux_spi.data = 0;
+	nds_aux_spi.baud_rate = 64;
+	nds_aux_spi.transfer_clock = 0;
+	nds_aux_spi.active_transfer = false;
+	nds_aux_spi.cmd_lo = 0;
+	nds_aux_spi.cmd_hi = 0;
+
 	nds7_rtc.cnt = 0;
 	nds7_rtc.data = 0;
 	nds7_rtc.io_direction = 0;
@@ -374,6 +382,28 @@ u8 NTR_MMU::read_u8(u32 address)
 
 				return fifo_entry;
 			}
+		}
+	}
+
+	//Check for AUXSPICNT
+	else if((address & ~0x1) == NDS_AUXSPICNT)
+	{
+		if((access_mode & ((nds9_exmem & 0x800) == 0)) || (access_mode & (nds7_exmem & 0x800)))
+		{
+			u8 addr_shift = (address & 0x1) << 3;
+			return ((nds_aux_spi.cnt >> addr_shift) & 0xFF);
+		}
+
+		else { return 0; }
+	}
+
+	//Check for AUXSPIDATA
+	else if((address & ~0x1) == NDS_AUXSPIDATA)
+	{
+		if((access_mode & ((nds9_exmem & 0x800) == 0)) || (access_mode & (nds7_exmem & 0x800)))
+		{
+			u8 addr_shift = (address & 0x1) << 3;
+			return ((nds_aux_spi.data >> addr_shift) & 0xFF);
 		}
 	}
 
@@ -2438,6 +2468,55 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			}
 
 			break;
+
+		case NDS_AUXSPICNT:
+			if((access_mode & ((nds9_exmem & 0x800) == 0)) || (!access_mode & (nds7_exmem & 0x800)))
+			{
+				nds_aux_spi.cnt &= 0xFF;
+				nds_aux_spi.cnt |= (value & 0xC3);
+			}
+
+			break;
+
+		case NDS_AUXSPICNT+1:
+			if((access_mode & ((nds9_exmem & 0x800) == 0)) || (!access_mode & (nds7_exmem & 0x800)))
+			{
+				nds_aux_spi.cnt &= 0xFF00;
+				nds_aux_spi.cnt |= (value & 0xE0);
+			}
+
+			break;
+
+		case NDS_AUXSPIDATA:
+			if((access_mode & ((nds9_exmem & 0x800) == 0)) || (!access_mode & (nds7_exmem & 0x800)))
+			{
+				nds_aux_spi.data = value;
+			}
+
+			break;
+
+		case NDS_CARDCMD_LO:
+		case NDS_CARDCMD_LO+1:
+		case NDS_CARDCMD_LO+2:
+		case NDS_CARDCMD_LO+3:
+			if((access_mode & ((nds9_exmem & 0x800) == 0)) || (!access_mode & (nds7_exmem & 0x800)))
+			{
+				nds_aux_spi.cmd_lo = ((memory_map[NDS_CARDCMD_LO+3] << 24) | (memory_map[NDS_CARDCMD_LO+2] << 16) | (memory_map[NDS_CARDCMD_LO+1] << 8) | memory_map[NDS_CARDCMD_LO]);
+			}
+
+			break;
+
+		case NDS_CARDCMD_HI:
+		case NDS_CARDCMD_HI+1:
+		case NDS_CARDCMD_HI+2:
+		case NDS_CARDCMD_HI+3:
+			if((access_mode & ((nds9_exmem & 0x800) == 0)) || (!access_mode & (nds7_exmem & 0x800)))
+			{
+				nds_aux_spi.cmd_hi = ((memory_map[NDS_CARDCMD_HI+3] << 24) | (memory_map[NDS_CARDCMD_HI+2] << 16) | (memory_map[NDS_CARDCMD_HI+1] << 8) | memory_map[NDS_CARDCMD_HI]);
+			}
+
+			break;
+
 
 		case NDS_SPICNT:
 			if(access_mode) { return; }
