@@ -82,11 +82,24 @@ class NTR_MMU
 		u32 baud_rate;
 		s32 transfer_clock;
 		bool active_transfer;
+	} nds_aux_spi;
+
+	//NDS Cart Bus
+	struct nds_card_bus
+	{
+		//MMIO registers
+		u32 cnt;
+	
+		u32 baud_rate;
+		s32 transfer_clock;
+		u16 transfer_size;
+		bool active_transfer;
 
 		//ROM data
 		u32 cmd_lo;
 		u32 cmd_hi;
-	} nds_aux_spi;
+		u32 data;
+	} nds_card;
 
 	//NDS7 RTC
 	struct nds7_real_time_clock

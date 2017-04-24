@@ -127,8 +127,14 @@ void NTR_MMU::reset()
 	nds_aux_spi.baud_rate = 64;
 	nds_aux_spi.transfer_clock = 0;
 	nds_aux_spi.active_transfer = false;
-	nds_aux_spi.cmd_lo = 0;
-	nds_aux_spi.cmd_hi = 0;
+
+	nds_card.cnt = 0x800000;
+	nds_card.data = 0;
+	nds_card.baud_rate = 0;
+	nds_card.transfer_clock = 0;
+	nds_card.active_transfer = false;
+	nds_card.cmd_lo = 0;
+	nds_card.cmd_hi = 0;
 
 	nds7_rtc.cnt = 0;
 	nds7_rtc.data = 0;
@@ -404,6 +410,16 @@ u8 NTR_MMU::read_u8(u32 address)
 		{
 			u8 addr_shift = (address & 0x1) << 3;
 			return ((nds_aux_spi.data >> addr_shift) & 0xFF);
+		}
+	}
+
+	//Check for ROMCNT
+	else if((address & ~0x3) == NDS_ROMCNT)
+	{
+		if((access_mode && ((nds9_exmem & 0x800) == 0)) || (access_mode && (nds7_exmem & 0x800)))
+		{
+			u8 addr_shift = (address & 0x3) << 3;
+			return ((nds_card.cnt >> addr_shift) & 0xFF);
 		}
 	}
 
@@ -2495,13 +2511,39 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 			break;
 
+		case NDS_ROMCNT:
+		case NDS_ROMCNT+1:
+		case NDS_ROMCNT+2:
+		case NDS_ROMCNT+3:
+			if((access_mode && ((nds9_exmem & 0x800) == 0)) || (!access_mode && (nds7_exmem & 0x800)))
+			{
+				u8 transfer_bit = nds_card.cnt & 0x80000000;
+				nds_card.cnt = ((memory_map[NDS_ROMCNT+3] << 24) | (memory_map[NDS_ROMCNT+2] << 16) | (memory_map[NDS_ROMCNT+1] << 8) | memory_map[NDS_ROMCNT]);
+
+				//Start cartridge transfer if Bit 31 goes from low to high
+				if((transfer_bit == 0) && (nds_card.cnt & 0x80000000))
+				{
+					//Transfer rate is 6.7MHz or 4.2MHz
+					nds_card.baud_rate = (nds_card.cnt & 0x8000000) ? 4 : 5;
+					nds_card.transfer_clock = nds_card.baud_rate;
+					
+					nds_card.transfer_size = (0x100 << ((nds_card.cnt << 24) & 0x7));
+					nds_card.active_transfer = true;
+				}
+
+				if(!nds_card.active_transfer) { nds_card.cnt |= 0x800000; }
+				else { nds_card.cnt &= ~0x800000; }
+			}
+
+			break;
+
 		case NDS_CARDCMD_LO:
 		case NDS_CARDCMD_LO+1:
 		case NDS_CARDCMD_LO+2:
 		case NDS_CARDCMD_LO+3:
 			if((access_mode && ((nds9_exmem & 0x800) == 0)) || (!access_mode && (nds7_exmem & 0x800)))
 			{
-				nds_aux_spi.cmd_lo = ((memory_map[NDS_CARDCMD_LO+3] << 24) | (memory_map[NDS_CARDCMD_LO+2] << 16) | (memory_map[NDS_CARDCMD_LO+1] << 8) | memory_map[NDS_CARDCMD_LO]);
+				nds_card.cmd_lo = ((memory_map[NDS_CARDCMD_LO+3] << 24) | (memory_map[NDS_CARDCMD_LO+2] << 16) | (memory_map[NDS_CARDCMD_LO+1] << 8) | memory_map[NDS_CARDCMD_LO]);
 			}
 
 			break;
@@ -2512,7 +2554,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		case NDS_CARDCMD_HI+3:
 			if((access_mode && ((nds9_exmem & 0x800) == 0)) || (!access_mode && (nds7_exmem & 0x800)))
 			{
-				nds_aux_spi.cmd_hi = ((memory_map[NDS_CARDCMD_HI+3] << 24) | (memory_map[NDS_CARDCMD_HI+2] << 16) | (memory_map[NDS_CARDCMD_HI+1] << 8) | memory_map[NDS_CARDCMD_HI]);
+				nds_card.cmd_hi = ((memory_map[NDS_CARDCMD_HI+3] << 24) | (memory_map[NDS_CARDCMD_HI+2] << 16) | (memory_map[NDS_CARDCMD_HI+1] << 8) | memory_map[NDS_CARDCMD_HI]);
 			}
 
 			break;
