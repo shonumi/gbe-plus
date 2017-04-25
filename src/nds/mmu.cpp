@@ -132,6 +132,8 @@ void NTR_MMU::reset()
 	nds_card.data = 0;
 	nds_card.baud_rate = 0;
 	nds_card.transfer_clock = 0;
+	nds_card.transfer_src = 0;
+	nds_card.state = 0;
 	nds_card.active_transfer = false;
 	nds_card.cmd_lo = 0;
 	nds_card.cmd_hi = 0;
@@ -2517,7 +2519,9 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		case NDS_ROMCNT+3:
 			if((access_mode && ((nds9_exmem & 0x800) == 0)) || (!access_mode && (nds7_exmem & 0x800)))
 			{
-				u8 transfer_bit = nds_card.cnt & 0x80000000;
+				memory_map[address] = value;
+
+				u8 transfer_bit = (nds_card.cnt & 0x80000000) ? 1 : 0;
 				nds_card.cnt = ((memory_map[NDS_ROMCNT+3] << 24) | (memory_map[NDS_ROMCNT+2] << 16) | (memory_map[NDS_ROMCNT+1] << 8) | memory_map[NDS_ROMCNT]);
 
 				//Start cartridge transfer if Bit 31 goes from low to high
@@ -2527,8 +2531,11 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 					nds_card.baud_rate = (nds_card.cnt & 0x8000000) ? 4 : 5;
 					nds_card.transfer_clock = nds_card.baud_rate;
 					
-					nds_card.transfer_size = (0x100 << ((nds_card.cnt << 24) & 0x7));
+					nds_card.transfer_size = (0x100 << ((nds_card.cnt >> 24) & 0x7));
 					nds_card.active_transfer = true;
+					nds_card.state = 0;
+
+					std::cout<<"CART TRANSFER -> 0x" << nds_card.cnt << " -- SIZE -> 0x" << nds_card.transfer_size << " -- CMD -> 0x" << nds_card.cmd_lo << nds_card.cmd_hi << "\n";
 				}
 
 				if(!nds_card.active_transfer) { nds_card.cnt |= 0x800000; }
@@ -3106,6 +3113,42 @@ void NTR_MMU::process_spi_bus()
 
 	//Raise IRQ on ARM7 if necessary
 	if(nds7_spi.cnt & 0x4000) { nds7_if |= 0x800000; }
+}
+
+/****** Handles various cartridge bus interactions ******/
+void NTR_MMU::process_card_bus()
+{
+	//Process various card bus state
+	switch(nds_card.state)
+	{
+		//Grab command
+		case 0:
+			//Read Header -> 0x00000000000000000000000000000000
+			if(!nds_card.cmd_lo && !nds_card.cmd_hi)
+			{
+				nds_card.state = 0x10;
+				nds_card.transfer_src = 0;
+				
+			}
+
+			break;
+
+	}
+
+	//Perform transfer
+	for(u32 x = 0; x < 4; x++) { memory_map[NDS_CARD_DATA + x] = cart_data[nds_card.transfer_src++]; }
+
+	//Prepare for next transfer, if any
+	nds_card.transfer_size -= 4;
+
+	if(!nds_card.transfer_size)
+	{
+		nds_card.active_transfer = false;
+		nds_card.cnt |= 0x800000;
+		nds_card.cnt &= ~0x80000000;
+	}
+	
+	else { nds_card.transfer_clock = nds_card.baud_rate; }
 }
 
 /****** Handles read and write data operations to the firmware ******/

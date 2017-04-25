@@ -94,6 +94,8 @@ class NTR_MMU
 		s32 transfer_clock;
 		u16 transfer_size;
 		bool active_transfer;
+		u8 state;
+		u32 transfer_src;
 
 		//ROM data
 		u32 cmd_lo;
@@ -242,6 +244,7 @@ class NTR_MMU
 	bool load_backup(std::string filename);
 
 	void process_spi_bus();
+	void process_card_bus();
 	void process_firmware();
 	void process_touchscreen();
 	void process_rtc();
