@@ -244,6 +244,7 @@ class NTR_MMU
 	bool load_backup(std::string filename);
 
 	void process_spi_bus();
+	void process_aux_spi_bus();
 	void process_card_bus();
 	void process_firmware();
 	void process_touchscreen();

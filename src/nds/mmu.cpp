@@ -2490,8 +2490,8 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		case NDS_AUXSPICNT:
 			if((access_mode && ((nds9_exmem & 0x800) == 0)) || (!access_mode && (nds7_exmem & 0x800)))
 			{
-				nds_aux_spi.cnt &= 0xFF;
-				nds_aux_spi.cnt |= (value & 0xC3);
+				nds_aux_spi.cnt &= 0xFF80;
+				nds_aux_spi.cnt |= (value & 0x43);
 			}
 
 			break;
@@ -2499,8 +2499,8 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		case NDS_AUXSPICNT+1:
 			if((access_mode && ((nds9_exmem & 0x800) == 0)) || (!access_mode && (nds7_exmem & 0x800)))
 			{
-				nds_aux_spi.cnt &= 0xFF00;
-				nds_aux_spi.cnt |= (value & 0xE0);
+				nds_aux_spi.cnt &= 0xFF;
+				nds_aux_spi.cnt |= ((value & 0xE0) << 8);
 			}
 
 			break;
@@ -2509,6 +2509,14 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			if((access_mode && ((nds9_exmem & 0x800) == 0)) || (!access_mode && (nds7_exmem & 0x800)))
 			{
 				nds_aux_spi.data = value;
+
+				//Start AUXSPI transfer
+				if(nds_aux_spi.cnt & 0xA000)
+				{
+					nds_aux_spi.active_transfer = true;
+					nds_aux_spi.baud_rate = (8192 << (nds_aux_spi.cnt & 0x3));
+					nds_aux_spi.transfer_clock = nds_aux_spi.baud_rate;
+				}		
 			}
 
 			break;
@@ -3113,6 +3121,12 @@ void NTR_MMU::process_spi_bus()
 
 	//Raise IRQ on ARM7 if necessary
 	if(nds7_spi.cnt & 0x4000) { nds7_if |= 0x800000; }
+}
+
+/****** Handles various AUXSPI Bus interactions ******/
+void NTR_MMU::process_aux_spi_bus()
+{
+
 }
 
 /****** Handles various cartridge bus interactions ******/

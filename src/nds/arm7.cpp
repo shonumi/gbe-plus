@@ -1123,6 +1123,13 @@ void NTR_ARM7::clock(u32 access_addr, bool first_access)
 		if(mem->nds7_spi.transfer_clock <= 0) { mem->process_spi_bus(); }
 	}
 
+	//Run AUXSPI Bus
+	if((mem->nds_aux_spi.active_transfer) && (mem->nds7_exmem & 0x800))
+	{
+		mem->nds_aux_spi.transfer_clock -= access_cycles;
+		if(mem->nds_aux_spi.transfer_clock <= 0) { mem->process_aux_spi_bus(); }
+	}
+
 	//Run Cartridge Bus
 	if((mem->nds_card.active_transfer) && (mem->nds7_exmem & 0x800))
 	{
@@ -1163,6 +1170,13 @@ void NTR_ARM7::clock()
 	{
 		mem->nds7_spi.transfer_clock -= access_cycles;
 		if(mem->nds7_spi.transfer_clock <= 0) { mem->process_spi_bus(); }
+	}
+
+	//Run AUXSPI Bus
+	if((mem->nds_aux_spi.active_transfer) && (mem->nds7_exmem & 0x800))
+	{
+		mem->nds_aux_spi.transfer_clock -= access_cycles;
+		if(mem->nds_aux_spi.transfer_clock <= 0) { mem->process_aux_spi_bus(); }
 	}
 
 	//Run Cartridge Bus

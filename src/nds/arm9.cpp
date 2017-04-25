@@ -1149,8 +1149,15 @@ void NTR_ARM9::clock(u32 access_addr, bool first_access)
 		*/
 	}
 
+	//Run AUXSPI Bus
+	if((mem->nds_aux_spi.active_transfer) && ((mem->nds9_exmem & 0x800) == 0))
+	{
+		mem->nds_aux_spi.transfer_clock -= access_cycles;
+		if(mem->nds_aux_spi.transfer_clock <= 0) { mem->process_aux_spi_bus(); }
+	}
+
 	//Run Cartridge Bus
-	if((mem->nds_card.active_transfer) && ((mem->nds7_exmem & 0x800) == 0))
+	if((mem->nds_card.active_transfer) && ((mem->nds9_exmem & 0x800) == 0))
 	{
 		mem->nds_card.transfer_clock -= access_cycles;
 		if(mem->nds_card.transfer_clock <= 0) { mem->process_card_bus(); }
@@ -1171,6 +1178,20 @@ void NTR_ARM9::clock()
 	/*
 	clock_timers();
 	*/
+
+	//Run AUXSPI Bus
+	if((mem->nds_aux_spi.active_transfer) && ((mem->nds9_exmem & 0x800) == 0))
+	{
+		mem->nds_aux_spi.transfer_clock -= access_cycles;
+		if(mem->nds_aux_spi.transfer_clock <= 0) { mem->process_aux_spi_bus(); }
+	}
+
+	//Run Cartridge Bus
+	if((mem->nds_card.active_transfer) && ((mem->nds9_exmem & 0x800) == 0))
+	{
+		mem->nds_card.transfer_clock -= access_cycles;
+		if(mem->nds_card.transfer_clock <= 0) { mem->process_card_bus(); }
+	}
 }
 
 /****** Runs DMA controllers every clock cycle ******/
