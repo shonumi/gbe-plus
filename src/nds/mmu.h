@@ -26,6 +26,18 @@ class NTR_MMU
 {
 	public:
 
+	//Cartridge save-type enumerations
+	enum backup_types
+	{
+		AUTO,
+		NONE,
+		EEPROM,
+		FLASH,
+		FRAM
+	};
+
+	backup_types current_save_type;
+
 	std::vector <u8> memory_map;
 	std::vector <u8> cart_data;
 	std::vector <u8> nds7_bios;
@@ -77,11 +89,16 @@ class NTR_MMU
 		//MMIO registers
 		u16 cnt;
 		u16 data;
-	
+
 		//SPI data
 		u32 baud_rate;
 		s32 transfer_clock;
 		bool active_transfer;
+
+		//EEPROM
+		u8 eeprom_stat;
+		u8 backup_cmd;
+		bool backup_cmd_ready;
 	} nds_aux_spi;
 
 	//NDS Cart Bus
