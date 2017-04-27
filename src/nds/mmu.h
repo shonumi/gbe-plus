@@ -31,6 +31,7 @@ class NTR_MMU
 	{
 		AUTO,
 		NONE,
+		EEPROM_512,
 		EEPROM,
 		FLASH,
 		FRAM

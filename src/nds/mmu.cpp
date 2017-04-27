@@ -3144,10 +3144,13 @@ void NTR_MMU::process_aux_spi_bus()
 			case 0x4:
 			case 0x5:
 			case 0x6:
+			case 0x9F:
+				current_save_type = EEPROM;				
+				break;
+				
 			case 0xA:
 			case 0xB:
-			case 0x9F:
-				current_save_type = EEPROM;
+				current_save_type = EEPROM_512;
 				break;
 		}
 	}
@@ -3156,7 +3159,7 @@ void NTR_MMU::process_aux_spi_bus()
 
 	//Detect if this byte is an EEPROM command byte
 	if(((nds_aux_spi.data <= 0x6) || (nds_aux_spi.data == 0xA) || (nds_aux_spi.data == 0xB) || (nds_aux_spi.data == 0x9F)) && (nds_aux_spi.backup_cmd_ready)
-	&& (current_save_type == EEPROM))
+	&& ((current_save_type == EEPROM) || (current_save_type == EEPROM_512)) && (nds_aux_spi.data != 0))
 	{
 		detect_command = true;
 		nds_aux_spi.backup_cmd_ready = false;
@@ -3185,13 +3188,18 @@ void NTR_MMU::process_aux_spi_bus()
 
 			//Read from status register
 			case 0x5:
-				nds_aux_spi.data = nds_aux_spi.eeprom_stat;
+				if(current_save_type == EEPROM) { nds_aux_spi.data = nds_aux_spi.eeprom_stat; }
+				else if(current_save_type == EEPROM_512) { nds_aux_spi.data = (nds_aux_spi.eeprom_stat | 0xF0); }
 				break;
 
 			//Read JEDEC ID
 			case 0x9F:
 				nds_aux_spi.data = 0xFF;
 				break;
+
+			//Read from EEPROM
+			case 0x3:
+				nds_aux_spi.data = 0x0;
 		}
 
 		nds_aux_spi.backup_cmd_ready = true;
