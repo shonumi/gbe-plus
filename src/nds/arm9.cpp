@@ -1142,11 +1142,6 @@ void NTR_ARM9::clock(u32 access_addr, bool first_access)
 	{
 		controllers.video.step();
 		clock_dma();
-
-		/*
-		clock_timers();
-		debug_cycles++;
-		*/
 	}
 
 	//Run AUXSPI Bus
@@ -1172,12 +1167,12 @@ void NTR_ARM9::clock()
 	//ARM9 CPU sync cycles
 	sync_cycles += access_cycles;
 
-	controllers.video.step();
-	clock_dma();
-
-	/*
-	clock_timers();
-	*/
+	//Run controllers for each cycle		 
+	for(int x = 0; x < access_cycles; x++)
+	{
+		controllers.video.step();
+		clock_dma();
+	}
 
 	//Run AUXSPI Bus
 	if((mem->nds_aux_spi.active_transfer) && ((mem->nds9_exmem & 0x800) == 0))

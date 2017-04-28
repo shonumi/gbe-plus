@@ -2474,6 +2474,7 @@ void NTR_LCD::step()
 
 			//Increment scanline count
 			lcd_stat.current_scanline++;
+			scanline_compare();
 
 			//Update VCOUNT
 			mem->write_u16_fast(NDS_VCOUNT, lcd_stat.current_scanline);

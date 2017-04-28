@@ -291,7 +291,7 @@ void NTR_core::run_core()
 				{
 					core_cpu_nds9.re_sync = false;
 					core_cpu_nds7.re_sync = true;
-					cpu_sync_cycles *= -0.5;
+					cpu_sync_cycles *= -1.0;
 					core_mmu.access_mode = 0;
 				}
 			}
@@ -343,7 +343,7 @@ void NTR_core::run_core()
 							}
 
 							//Otherwise, match up bits in IE and IF
-							for(int x = 0; x < 21; x++)
+							for(int x = 0; x < 24; x++)
 							{
 								//When there is a match check to see if IntrWait can quit
 								if((core_mmu.nds7_ie & (1 << x)) && (core_mmu.nds7_if & (1 << x)))
@@ -389,7 +389,7 @@ void NTR_core::run_core()
 				{
 					core_cpu_nds7.re_sync = false;
 					core_cpu_nds9.re_sync = true;
-					cpu_sync_cycles *= -2.0;
+					cpu_sync_cycles *= -1.0;
 					core_mmu.access_mode = 1;
 				}
 			}
@@ -507,7 +507,7 @@ void NTR_core::step()
 			{
 				core_cpu_nds9.re_sync = false;
 				core_cpu_nds7.re_sync = true;
-				cpu_sync_cycles *= -0.5;
+				cpu_sync_cycles *= -1.0;
 				core_mmu.access_mode = 0;
 			}
 		}
@@ -562,7 +562,7 @@ void NTR_core::step()
 						}
 
 						//Otherwise, match up bits in IE and IF
-						for(int x = 0; x < 21; x++)
+						for(int x = 0; x < 24; x++)
 						{
 							//When there is a match check to see if IntrWait can quit
 							if((core_mmu.nds7_ie & (1 << x)) && (core_mmu.nds7_if & (1 << x)))
@@ -608,7 +608,7 @@ void NTR_core::step()
 			{
 				core_cpu_nds7.re_sync = false;
 				core_cpu_nds9.re_sync = true;
-				cpu_sync_cycles *= -2.0;
+				cpu_sync_cycles *= -1.0;
 				core_mmu.access_mode = 1;
 			}
 		}
