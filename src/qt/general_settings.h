@@ -97,6 +97,8 @@ class gen_settings : public QDialog
 
 	QLineEdit* input_a;
 	QLineEdit* input_b;
+	QLineEdit* input_x;
+	QLineEdit* input_y;
 	QLineEdit* input_start;
 	QLineEdit* input_select;
 	QLineEdit* input_left;
@@ -112,6 +114,8 @@ class gen_settings : public QDialog
 
 	QPushButton* config_a;
 	QPushButton* config_b;
+	QPushButton* config_x;
+	QPushButton* config_y;
 	QPushButton* config_start;
 	QPushButton* config_select;
 	QPushButton* config_left;
@@ -190,6 +194,8 @@ class gen_settings : public QDialog
 	QWidget* input_device_set;
 	QWidget* input_a_set;
 	QWidget* input_b_set;
+	QWidget* input_x_set;
+	QWidget* input_y_set;
 	QWidget* input_start_set;
 	QWidget* input_select_set;
 	QWidget* input_left_set;

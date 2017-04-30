@@ -409,6 +409,36 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	input_b_layout->setContentsMargins(6, 0, 0, 0);
 	input_b_set->setLayout(input_b_layout);
 
+	//Control settings - X button
+	input_x_set = new QWidget(controls);
+	QLabel* input_x_label = new QLabel("Button X : ");
+	input_x = new QLineEdit(controls);
+	config_x = new QPushButton("Configure");
+	input_x->setMaximumWidth(100);
+	config_x->setMaximumWidth(100);
+
+	QHBoxLayout* input_x_layout = new QHBoxLayout;
+	input_x_layout->addWidget(input_x_label, 0, Qt::AlignLeft);
+	input_x_layout->addWidget(input_x, 0, Qt::AlignLeft);
+	input_x_layout->addWidget(config_x, 0, Qt::AlignLeft);
+	input_x_layout->setContentsMargins(6, 0, 0, 0);
+	input_x_set->setLayout(input_x_layout);
+
+	//Control settings - Y button
+	input_y_set = new QWidget(controls);
+	QLabel* input_y_label = new QLabel("Button Y : ");
+	input_y = new QLineEdit(controls);
+	config_y = new QPushButton("Configure");
+	input_y->setMaximumWidth(100);
+	config_y->setMaximumWidth(100);
+
+	QHBoxLayout* input_y_layout = new QHBoxLayout;
+	input_y_layout->addWidget(input_y_label, 0, Qt::AlignLeft);
+	input_y_layout->addWidget(input_y, 0, Qt::AlignLeft);
+	input_y_layout->addWidget(config_y, 0, Qt::AlignLeft);
+	input_y_layout->setContentsMargins(6, 0, 0, 0);
+	input_y_set->setLayout(input_y_layout);
+
 	//Control settings - START button
 	input_start_set = new QWidget(controls);
 	QLabel* input_start_label = new QLabel("START : ");
@@ -605,6 +635,8 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	controls_layout->addWidget(input_device_set);
 	controls_layout->addWidget(input_a_set);
 	controls_layout->addWidget(input_b_set);
+	controls_layout->addWidget(input_x_set);
+	controls_layout->addWidget(input_y_set);
 	controls_layout->addWidget(input_start_set);
 	controls_layout->addWidget(input_select_set);
 	controls_layout->addWidget(input_left_set);
@@ -708,7 +740,6 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	QPushButton* dmg_bios_button = new QPushButton("Browse");
 	dmg_bios = new QLineEdit(paths);
 	
-
 	QHBoxLayout* dmg_bios_layout = new QHBoxLayout;
 	dmg_bios_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	dmg_bios_layout->addWidget(dmg_bios_label);
@@ -898,6 +929,8 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	QSignalMapper* button_config = new QSignalMapper(this);
 	connect(config_a, SIGNAL(clicked()), button_config, SLOT(map()));
 	connect(config_b, SIGNAL(clicked()), button_config, SLOT(map()));
+	connect(config_x, SIGNAL(clicked()), button_config, SLOT(map()));
+	connect(config_y, SIGNAL(clicked()), button_config, SLOT(map()));
 	connect(config_start, SIGNAL(clicked()), button_config, SLOT(map()));
 	connect(config_select, SIGNAL(clicked()), button_config, SLOT(map()));
 	connect(config_left, SIGNAL(clicked()), button_config, SLOT(map()));
@@ -913,18 +946,20 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 
 	button_config->setMapping(config_a, 0);
 	button_config->setMapping(config_b, 1);
-	button_config->setMapping(config_start, 2);
-	button_config->setMapping(config_select, 3);
-	button_config->setMapping(config_left, 4);
-	button_config->setMapping(config_right, 5);
-	button_config->setMapping(config_up, 6);
-	button_config->setMapping(config_down, 7);
-	button_config->setMapping(config_l, 8);
-	button_config->setMapping(config_r, 9);
-	button_config->setMapping(config_con_up, 10);
-	button_config->setMapping(config_con_down, 11);
-	button_config->setMapping(config_con_left, 12);
-	button_config->setMapping(config_con_right, 13);
+	button_config->setMapping(config_x, 2);
+	button_config->setMapping(config_y, 3);
+	button_config->setMapping(config_start, 4);
+	button_config->setMapping(config_select, 5);
+	button_config->setMapping(config_left, 6);
+	button_config->setMapping(config_right, 7);
+	button_config->setMapping(config_up, 8);
+	button_config->setMapping(config_down, 9);
+	button_config->setMapping(config_l, 10);
+	button_config->setMapping(config_r, 11);
+	button_config->setMapping(config_con_up, 12);
+	button_config->setMapping(config_con_down, 13);
+	button_config->setMapping(config_con_left, 14);
+	button_config->setMapping(config_con_right, 15);
 	connect(button_config, SIGNAL(mapped(int)), this, SLOT(configure_button(int))) ;
 
 	//Final tab layout
@@ -936,6 +971,8 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	//Config button formatting
 	config_a->setMinimumWidth(150);
 	config_b->setMinimumWidth(150);
+	config_x->setMinimumWidth(150);
+	config_y->setMinimumWidth(150);
 	config_start->setMinimumWidth(150);
 	config_select->setMinimumWidth(150);
 	config_left->setMinimumWidth(150);
@@ -951,6 +988,8 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 
 	input_a->setReadOnly(true);
 	input_b->setReadOnly(true);
+	input_x->setReadOnly(true);
+	input_y->setReadOnly(true);
 	input_start->setReadOnly(true);
 	input_select->setReadOnly(true);
 	input_left->setReadOnly(true);
@@ -967,6 +1006,8 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	//Install event filters
 	config_a->installEventFilter(this);
 	config_b->installEventFilter(this);
+	config_x->installEventFilter(this);
+	config_y->installEventFilter(this);
 	config_start->installEventFilter(this);
 	config_select->installEventFilter(this);
 	config_left->installEventFilter(this);
@@ -982,6 +1023,8 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 
 	input_a->installEventFilter(this);
 	input_b->installEventFilter(this);
+	input_x->installEventFilter(this);
+	input_y->installEventFilter(this);
 	input_start->installEventFilter(this);
 	input_select->installEventFilter(this);
 	input_left->installEventFilter(this);
@@ -998,6 +1041,8 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	//Set focus policies
 	config_a->setFocusPolicy(Qt::NoFocus);
 	config_b->setFocusPolicy(Qt::NoFocus);
+	config_x->setFocusPolicy(Qt::NoFocus);
+	config_y->setFocusPolicy(Qt::NoFocus);
 	config_start->setFocusPolicy(Qt::NoFocus);
 	config_select->setFocusPolicy(Qt::NoFocus);
 	config_left->setFocusPolicy(Qt::NoFocus);
@@ -1013,6 +1058,8 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 
 	input_a->setFocusPolicy(Qt::NoFocus);
 	input_b->setFocusPolicy(Qt::NoFocus);
+	input_x->setFocusPolicy(Qt::NoFocus);
+	input_y->setFocusPolicy(Qt::NoFocus);
 	input_start->setFocusPolicy(Qt::NoFocus);
 	input_select->setFocusPolicy(Qt::NoFocus);
 	input_left->setFocusPolicy(Qt::NoFocus);
@@ -1148,16 +1195,18 @@ void gen_settings::set_ini_options()
 	dead_zone->setValue(config::dead_zone);
 
 	//Keyboard controls
-	input_a->setText(QString::number(config::agb_key_a));
-	input_b->setText(QString::number(config::agb_key_b));
-	input_start->setText(QString::number(config::agb_key_start));
-	input_select->setText(QString::number(config::agb_key_select));
-	input_left->setText(QString::number(config::agb_key_left));
-	input_right->setText(QString::number(config::agb_key_right));
-	input_up->setText(QString::number(config::agb_key_up));
-	input_down->setText(QString::number(config::agb_key_down));
-	input_l->setText(QString::number(config::agb_key_l_trigger));
-	input_r->setText(QString::number(config::agb_key_r_trigger));
+	input_a->setText(QString::number(config::ntr_key_a));
+	input_b->setText(QString::number(config::ntr_key_b));
+	input_x->setText(QString::number(config::ntr_key_x));
+	input_y->setText(QString::number(config::ntr_key_y));
+	input_start->setText(QString::number(config::ntr_key_start));
+	input_select->setText(QString::number(config::ntr_key_select));
+	input_left->setText(QString::number(config::ntr_key_left));
+	input_right->setText(QString::number(config::ntr_key_right));
+	input_up->setText(QString::number(config::ntr_key_up));
+	input_down->setText(QString::number(config::ntr_key_down));
+	input_l->setText(QString::number(config::ntr_key_l_trigger));
+	input_r->setText(QString::number(config::ntr_key_r_trigger));
 	input_con_up->setText(QString::number(config::con_key_up));
 	input_con_down->setText(QString::number(config::con_key_down));
 	input_con_left->setText(QString::number(config::con_key_left));
@@ -1484,16 +1533,18 @@ void gen_settings::input_device_change()
 	//Switch to keyboard input configuration
 	if(input_type == 0)
 	{
-		input_a->setText(QString::number(config::agb_key_a));
-		input_b->setText(QString::number(config::agb_key_b));
-		input_start->setText(QString::number(config::agb_key_start));
-		input_select->setText(QString::number(config::agb_key_select));
-		input_left->setText(QString::number(config::agb_key_left));
-		input_right->setText(QString::number(config::agb_key_right));
-		input_up->setText(QString::number(config::agb_key_up));
-		input_down->setText(QString::number(config::agb_key_down));
-		input_l->setText(QString::number(config::agb_key_l_trigger));
-		input_r->setText(QString::number(config::agb_key_r_trigger));
+		input_a->setText(QString::number(config::ntr_key_a));
+		input_b->setText(QString::number(config::ntr_key_b));
+		input_x->setText(QString::number(config::ntr_key_x));
+		input_y->setText(QString::number(config::ntr_key_y));
+		input_start->setText(QString::number(config::ntr_key_start));
+		input_select->setText(QString::number(config::ntr_key_select));
+		input_left->setText(QString::number(config::ntr_key_left));
+		input_right->setText(QString::number(config::ntr_key_right));
+		input_up->setText(QString::number(config::ntr_key_up));
+		input_down->setText(QString::number(config::ntr_key_down));
+		input_l->setText(QString::number(config::ntr_key_l_trigger));
+		input_r->setText(QString::number(config::ntr_key_r_trigger));
 		input_con_up->setText(QString::number(config::con_key_up));
 		input_con_down->setText(QString::number(config::con_key_down));
 		input_con_left->setText(QString::number(config::con_key_left));
@@ -1502,16 +1553,18 @@ void gen_settings::input_device_change()
 
 	else
 	{
-		input_a->setText(QString::number(config::agb_joy_a));
-		input_b->setText(QString::number(config::agb_joy_b));
-		input_start->setText(QString::number(config::agb_joy_start));
-		input_select->setText(QString::number(config::agb_joy_select));
-		input_left->setText(QString::number(config::agb_joy_left));
-		input_right->setText(QString::number(config::agb_joy_right));
-		input_up->setText(QString::number(config::agb_joy_up));
-		input_down->setText(QString::number(config::agb_joy_down));
-		input_l->setText(QString::number(config::agb_joy_l_trigger));
-		input_r->setText(QString::number(config::agb_joy_r_trigger));
+		input_a->setText(QString::number(config::ntr_joy_a));
+		input_b->setText(QString::number(config::ntr_joy_b));
+		input_x->setText(QString::number(config::ntr_joy_x));
+		input_y->setText(QString::number(config::ntr_joy_y));
+		input_start->setText(QString::number(config::ntr_joy_start));
+		input_select->setText(QString::number(config::ntr_joy_select));
+		input_left->setText(QString::number(config::ntr_joy_left));
+		input_right->setText(QString::number(config::ntr_joy_right));
+		input_up->setText(QString::number(config::ntr_joy_up));
+		input_down->setText(QString::number(config::ntr_joy_down));
+		input_l->setText(QString::number(config::ntr_joy_l_trigger));
+		input_r->setText(QString::number(config::ntr_joy_r_trigger));
 		input_con_up->setText(QString::number(config::con_joy_up));
 		input_con_down->setText(QString::number(config::con_joy_down));
 		input_con_left->setText(QString::number(config::con_joy_left));
@@ -1593,75 +1646,87 @@ void gen_settings::configure_button(int button)
 			break;
 
 		case 2: 
-			input_delay(config_start);
-			input_start->setFocus();
+			input_delay(config_x);
+			input_x->setFocus();
 			input_index = 2;
 			break;
 
 		case 3: 
-			input_delay(config_select);
-			input_select->setFocus();
+			input_delay(config_y);
+			input_y->setFocus();
 			input_index = 3;
 			break;
 
 		case 4: 
-			input_delay(config_left);
-			input_left->setFocus();
+			input_delay(config_start);
+			input_start->setFocus();
 			input_index = 4;
 			break;
 
 		case 5: 
-			input_delay(config_right);
-			input_right->setFocus();
+			input_delay(config_select);
+			input_select->setFocus();
 			input_index = 5;
 			break;
 
 		case 6: 
-			input_delay(config_up);
-			input_up->setFocus();
+			input_delay(config_left);
+			input_left->setFocus();
 			input_index = 6;
 			break;
 
 		case 7: 
-			input_delay(config_down);
-			input_down->setFocus();
+			input_delay(config_right);
+			input_right->setFocus();
 			input_index = 7;
 			break;
 
 		case 8: 
-			input_delay(config_l);
-			input_l->setFocus();
+			input_delay(config_up);
+			input_up->setFocus();
 			input_index = 8;
 			break;
 
 		case 9: 
-			input_delay(config_r);
-			input_r->setFocus();
+			input_delay(config_down);
+			input_down->setFocus();
 			input_index = 9;
 			break;
 
 		case 10: 
-			input_delay(config_con_up);
-			input_con_up->setFocus();
+			input_delay(config_l);
+			input_l->setFocus();
 			input_index = 10;
 			break;
 
 		case 11: 
-			input_delay(config_con_down);
-			input_con_down->setFocus();
+			input_delay(config_r);
+			input_r->setFocus();
 			input_index = 11;
 			break;
 
 		case 12: 
-			input_delay(config_con_left);
-			input_con_left->setFocus();
+			input_delay(config_con_up);
+			input_con_up->setFocus();
 			input_index = 12;
 			break;
 
 		case 13: 
+			input_delay(config_con_down);
+			input_con_down->setFocus();
+			input_index = 13;
+			break;
+
+		case 14: 
+			input_delay(config_con_left);
+			input_con_left->setFocus();
+			input_index = 14;
+			break;
+
+		case 15: 
 			input_delay(config_con_right);
 			input_con_right->setFocus();
-			input_index = 13;
+			input_index = 15;
 			break;
 	}
 
@@ -1746,7 +1811,7 @@ void gen_settings::process_joystick_event()
 		case 0:
 			if(pad != 0)
 			{
-				config::agb_joy_a = config::dmg_joy_a = pad;
+				config::ntr_joy_a = config::agb_joy_a = config::dmg_joy_a = pad;
 				input_a->setText(QString::number(pad));
 			}
 
@@ -1757,7 +1822,7 @@ void gen_settings::process_joystick_event()
 		case 1:
 			if(pad != 0)
 			{
-				config::agb_joy_b = config::dmg_joy_b = pad;
+				config::ntr_joy_b = config::agb_joy_b = config::dmg_joy_b = pad;
 				input_b->setText(QString::number(pad));
 			}
 
@@ -1768,7 +1833,29 @@ void gen_settings::process_joystick_event()
 		case 2:
 			if(pad != 0)
 			{
-				config::agb_joy_start = config::dmg_joy_start = pad;
+				config::ntr_joy_x = pad;
+				input_x->setText(QString::number(pad));
+			}
+
+			config_x->setText("Configure");
+			input_x->clearFocus();
+			break;
+
+		case 3:
+			if(pad != 0)
+			{
+				config::ntr_joy_y = pad;
+				input_y->setText(QString::number(pad));
+			}
+
+			config_y->setText("Configure");
+			input_y->clearFocus();
+			break;
+
+		case 4:
+			if(pad != 0)
+			{
+				config::ntr_joy_start = config::agb_joy_start = config::dmg_joy_start = pad;
 				input_start->setText(QString::number(pad));
 			}
 
@@ -1776,10 +1863,10 @@ void gen_settings::process_joystick_event()
 			input_start->clearFocus();
 			break;
 
-		case 3:
+		case 5:
 			if(pad != 0)
 			{
-				config::agb_joy_select = config::dmg_joy_select = pad;
+				config::ntr_joy_select = config::agb_joy_select = config::dmg_joy_select = pad;
 				input_select->setText(QString::number(pad));
 			}
 
@@ -1787,10 +1874,10 @@ void gen_settings::process_joystick_event()
 			input_select->clearFocus();
 			break;
 
-		case 4:
+		case 6:
 			if(pad != 0)
 			{
-				config::agb_joy_left = config::dmg_joy_left = pad;
+				config::ntr_joy_left = config::agb_joy_left = config::dmg_joy_left = pad;
 				input_left->setText(QString::number(pad));
 			}
 
@@ -1798,10 +1885,10 @@ void gen_settings::process_joystick_event()
 			input_left->clearFocus();
 			break;
 
-		case 5:
+		case 7:
 			if(pad != 0)
 			{
-				config::agb_joy_right = config::dmg_joy_right = pad;
+				config::ntr_joy_right = config::agb_joy_right = config::dmg_joy_right = pad;
 				input_right->setText(QString::number(pad));
 			}
 
@@ -1809,10 +1896,10 @@ void gen_settings::process_joystick_event()
 			input_right->clearFocus();
 			break;
 
-		case 6:
+		case 8:
 			if(pad != 0)
 			{
-				config::agb_joy_up = config::dmg_joy_up = pad;
+				config::ntr_joy_up = config::agb_joy_up = config::dmg_joy_up = pad;
 				input_up->setText(QString::number(pad));
 			}
 
@@ -1820,10 +1907,10 @@ void gen_settings::process_joystick_event()
 			input_up->clearFocus();
 			break;
 
-		case 7:
+		case 9:
 			if(pad != 0)
 			{
-				config::agb_joy_down = config::dmg_joy_down = pad;
+				config::ntr_joy_down = config::agb_joy_down = config::dmg_joy_down = pad;
 				input_down->setText(QString::number(pad));
 			}
 
@@ -1831,10 +1918,10 @@ void gen_settings::process_joystick_event()
 			input_down->clearFocus();
 			break;
 
-		case 8: 
+		case 10: 
 			if(pad != 0)
 			{
-				config::agb_joy_l_trigger = pad;
+				config::ntr_joy_l_trigger = config::agb_joy_l_trigger = pad;
 				input_l->setText(QString::number(pad));
 			}
 
@@ -1842,10 +1929,10 @@ void gen_settings::process_joystick_event()
 			input_l->clearFocus();
 			break;
 
-		case 9:
+		case 11:
 			if(pad != 0)
 			{
-				config::agb_joy_r_trigger = pad;
+				config::ntr_joy_r_trigger = config::agb_joy_r_trigger = pad;
 				input_r->setText(QString::number(pad));
 			}
 
@@ -1853,7 +1940,7 @@ void gen_settings::process_joystick_event()
 			input_r->clearFocus();
 			break;
 
-		case 10:
+		case 12:
 			if(pad != 0)
 			{
 				config::con_joy_up = pad;
@@ -1864,7 +1951,7 @@ void gen_settings::process_joystick_event()
 			input_con_up->clearFocus();
 			break;
 
-		case 11:
+		case 13:
 			if(pad != 0)
 			{
 				config::con_joy_down = pad;
@@ -1875,7 +1962,7 @@ void gen_settings::process_joystick_event()
 			input_con_down->clearFocus();
 			break;
 
-		case 12:
+		case 14:
 			if(pad != 0)
 			{
 				config::con_joy_left = pad;
@@ -1886,7 +1973,7 @@ void gen_settings::process_joystick_event()
 			input_con_left->clearFocus();
 			break;
 
-		case 13:
+		case 15:
 			if(pad != 0)
 			{
 				config::con_joy_right = pad;
@@ -1908,6 +1995,8 @@ void gen_settings::close_input()
 {
 	config_a->setText("Configure");
 	config_b->setText("Configure");
+	config_x->setText("Configure");
+	config_y->setText("Configure");
 	config_start->setText("Configure");
 	config_select->setText("Configure");
 	config_left->setText("Configure");
@@ -1958,6 +2047,8 @@ void gen_settings::switch_control_layout()
 		controls_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 		controls_layout->addWidget(input_a_set);
 		controls_layout->addWidget(input_b_set);
+		controls_layout->addWidget(input_x_set);
+		controls_layout->addWidget(input_y_set);
 		controls_layout->addWidget(input_start_set);
 		controls_layout->addWidget(input_select_set);
 		controls_layout->addWidget(input_left_set);
@@ -2058,7 +2149,7 @@ void gen_settings::keyPressEvent(QKeyEvent* event)
 			case 0:
 				if(last_key != -1)
 				{
-					config::agb_key_a = config::dmg_key_a = last_key;
+					config::ntr_key_a = config::agb_key_a = config::dmg_key_a = last_key;
 					input_a->setText(QString::number(last_key));
 				}
 
@@ -2069,7 +2160,7 @@ void gen_settings::keyPressEvent(QKeyEvent* event)
 			case 1:
 				if(last_key != -1)
 				{
-					config::agb_key_b = config::dmg_key_b = last_key;
+					config::ntr_key_b = config::agb_key_b = config::dmg_key_b = last_key;
 					input_b->setText(QString::number(last_key));
 				}
 
@@ -2080,7 +2171,29 @@ void gen_settings::keyPressEvent(QKeyEvent* event)
 			case 2:
 				if(last_key != -1)
 				{
-					config::agb_key_start = config::dmg_key_start = last_key;
+					config::ntr_key_x = last_key;
+					input_x->setText(QString::number(last_key));
+				}
+
+				config_x->setText("Configure");
+				input_x->clearFocus();
+				break;
+
+			case 3:
+				if(last_key != -1)
+				{
+					config::ntr_key_y = last_key;
+					input_y->setText(QString::number(last_key));
+				}
+
+				config_y->setText("Configure");
+				input_y->clearFocus();
+				break;
+
+			case 4:
+				if(last_key != -1)
+				{
+					config::ntr_key_start = config::agb_key_start = config::dmg_key_start = last_key;
 					input_start->setText(QString::number(last_key));
 				}
 
@@ -2088,10 +2201,10 @@ void gen_settings::keyPressEvent(QKeyEvent* event)
 				input_start->clearFocus();
 				break;
 
-			case 3:
+			case 5:
 				if(last_key != -1)
 				{
-					config::agb_key_select = config::dmg_key_select = last_key;
+					config::ntr_key_select = config::agb_key_select = config::dmg_key_select = last_key;
 					input_select->setText(QString::number(last_key));
 				}
 
@@ -2099,10 +2212,10 @@ void gen_settings::keyPressEvent(QKeyEvent* event)
 				input_select->clearFocus();
 				break;
 
-			case 4:
+			case 6:
 				if(last_key != -1)
 				{
-					config::agb_key_left = config::dmg_key_left = last_key;
+					config::ntr_key_left = config::agb_key_left = config::dmg_key_left = last_key;
 					input_left->setText(QString::number(last_key));
 				}
 
@@ -2110,10 +2223,10 @@ void gen_settings::keyPressEvent(QKeyEvent* event)
 				input_left->clearFocus();
 				break;
 
-			case 5:
+			case 7:
 				if(last_key != -1)
 				{
-					config::agb_key_right = config::dmg_key_right = last_key;
+					config::ntr_key_right = config::agb_key_right = config::dmg_key_right = last_key;
 					input_right->setText(QString::number(last_key));
 				}
 
@@ -2121,10 +2234,10 @@ void gen_settings::keyPressEvent(QKeyEvent* event)
 				input_right->clearFocus();
 				break;
 
-			case 6:
+			case 8:
 				if(last_key != -1)
 				{
-					config::agb_key_up = config::dmg_key_up = last_key;
+					config::ntr_key_up = config::agb_key_up = config::dmg_key_up = last_key;
 					input_up->setText(QString::number(last_key));
 				}
 
@@ -2132,10 +2245,10 @@ void gen_settings::keyPressEvent(QKeyEvent* event)
 				input_up->clearFocus();
 				break;
 
-			case 7:
+			case 9:
 				if(last_key != -1)
 				{
-					config::agb_key_down = config::dmg_key_down = last_key;
+					config::ntr_key_down = config::agb_key_down = config::dmg_key_down = last_key;
 					input_down->setText(QString::number(last_key));
 				}
 
@@ -2143,10 +2256,10 @@ void gen_settings::keyPressEvent(QKeyEvent* event)
 				input_down->clearFocus();
 				break;
 
-			case 8: 
+			case 10: 
 				if(last_key != -1)
 				{
-					config::agb_key_l_trigger = last_key;
+					config::ntr_key_l_trigger = config::agb_key_l_trigger = last_key;
 					input_l->setText(QString::number(last_key));
 				}
 
@@ -2154,10 +2267,10 @@ void gen_settings::keyPressEvent(QKeyEvent* event)
 				input_l->clearFocus();
 				break;
 
-			case 9:
+			case 11:
 				if(last_key != -1)
 				{
-					config::agb_key_r_trigger = last_key;
+					config::ntr_key_r_trigger = config::agb_key_r_trigger = last_key;
 					input_r->setText(QString::number(last_key));
 				}
 
@@ -2165,7 +2278,7 @@ void gen_settings::keyPressEvent(QKeyEvent* event)
 				input_r->clearFocus();
 				break;
 
-			case 10:
+			case 12:
 				if(last_key != -1)
 				{
 					config::con_key_up = last_key;
@@ -2176,7 +2289,7 @@ void gen_settings::keyPressEvent(QKeyEvent* event)
 				input_con_up->clearFocus();
 				break;
 
-			case 11:
+			case 13:
 				if(last_key != -1)
 				{
 					config::con_key_down = last_key;
@@ -2187,7 +2300,7 @@ void gen_settings::keyPressEvent(QKeyEvent* event)
 				input_con_down->clearFocus();
 				break;
 
-			case 12:
+			case 14:
 				if(last_key != -1)
 				{
 					config::con_key_left = last_key;
@@ -2198,7 +2311,7 @@ void gen_settings::keyPressEvent(QKeyEvent* event)
 				input_con_left->clearFocus();
 				break;
 
-			case 13:
+			case 15:
 				if(last_key != -1)
 				{
 					config::con_key_right = last_key;
