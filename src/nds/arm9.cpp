@@ -911,7 +911,13 @@ bool NTR_ARM9::check_condition(u32 current_arm_instruction) const
 		case 0xE: return true; break;
 
 		//NV
-		default: std::cout<<"CPU::ARM9::Warning: ARM instruction uses reserved conditional code NV \n"; return true;
+		default:
+			if(instruction_pipeline[((pipeline_pointer + 1) % 3)] != ARM_4)
+			{
+				std::cout<<"CPU::ARM9::Warning: ARM instruction uses reserved conditional code NV \n";
+			}
+
+			return true;
 	}
 }
 

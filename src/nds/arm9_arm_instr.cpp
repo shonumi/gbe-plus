@@ -71,14 +71,15 @@ void NTR_ARM9::branch_exchange(u32 current_arm_instruction)
 	else { std::cout<<"CPU::ARM9::Error - ARM.3 Branch and Exchange - Invalid operand : R15\n"; running = false; }
 }  
 
-/****** ARM.4 - Branch and Branch with Link ******/
+/****** ARM.4 - Branch, Branch with Link, and Branch with Link and Exchange ******/
 void NTR_ARM9::branch_link(u32 current_arm_instruction)
 {
 	//Grab offset
 	u32 offset = (current_arm_instruction & 0xFFFFFF);
 
-	//Grab opcode
+	//Grab opcode - Check for BLX as well
 	u8 op = (current_arm_instruction >> 24) & 0x1;
+	if((current_arm_instruction >> 28) == 0xF) { op = 2; }
 
 	s32 jump_addr = 0;
 	u32 final_addr = 0;
@@ -127,6 +128,27 @@ void NTR_ARM9::branch_link(u32 current_arm_instruction)
 			//Clock CPU and controllers - 2S
 			clock(reg.r15, false);
 			clock((reg.r15 + 4), false);
+
+			break;
+
+		//Branch and Link and Exchange
+		case 0x2:
+			//Clock CPU and controllers - 1N
+			clock(reg.r15, true);
+
+			set_reg(14, (reg.r15 - 4));
+			reg.r15 &= ~0xFFFFFF;
+			reg.r15 |= final_addr;
+			if(current_arm_instruction & 0x1000000) { reg.r15 += 2; }
+			needs_flush = true;
+
+			//Clock CPU and controllers - 2S
+			clock(reg.r15, false);
+			clock((reg.r15 + 4), false);
+
+			//Switch to THUMB mode
+			arm_mode = THUMB;
+			reg.cpsr |= 0x20;
 
 			break;
 	}
