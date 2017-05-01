@@ -53,6 +53,19 @@ void NTR_ARM9::reset()
 	arm_mode = ARM;
 	current_cpu_mode = SYS;
 
+	controllers.timer.clear();
+	controllers.timer.resize(4);
+
+	for(int x = 0; x < 4; x++)
+	{
+		controllers.timer[x].counter = 0;
+		controllers.timer[x].reload_value = 0;
+		controllers.timer[x].prescalar = 0;
+		controllers.timer[x].cycles = 0;
+		controllers.timer[x].count_up = false;
+		controllers.timer[x].enable = false;
+	}
+
 	debug_message = 0xFF;
 	debug_code = 0;
 	debug_cycles = 0;
@@ -1243,6 +1256,8 @@ void NTR_ARM9::handle_interrupt()
 	//Jump into an interrupt, check if the master flag is enabled
 	if((mem->nds9_ime & 0x1) && ((reg.cpsr & CPSR_IRQ) == 0) && (!in_interrupt))
 	{
+		std::cout<<"SHOUT\n";
+
 		//Wait until pipeline is finished filling
 		if(debug_message == 0xFF) { return; }
 

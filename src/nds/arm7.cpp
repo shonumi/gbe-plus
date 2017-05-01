@@ -49,7 +49,18 @@ void NTR_ARM7::reset()
 	arm_mode = ARM;
 	current_cpu_mode = SYS;
 
-	irq_pc = 0;
+	controllers.timer.clear();
+	controllers.timer.resize(4);
+
+	for(int x = 0; x < 4; x++)
+	{
+		controllers.timer[x].counter = 0;
+		controllers.timer[x].reload_value = 0;
+		controllers.timer[x].prescalar = 0;
+		controllers.timer[x].cycles = 0;
+		controllers.timer[x].count_up = false;
+		controllers.timer[x].enable = false;
+	}
 
 	debug_message = 0xFF;
 	debug_code = 0;
@@ -1219,6 +1230,7 @@ void NTR_ARM7::clock_timers() { }
 void NTR_ARM7::handle_interrupt()
 {
 	//TODO - Implement a better way of exiting interrupts other than recognizing the SUB PC, #4 instruction
+	std::cout<<"ARM7 IE -> 0x" << mem->nds7_ie << "\n";
 
 	//Exit interrupt
 	if((in_interrupt) && (debug_code == 0xE25EF004))

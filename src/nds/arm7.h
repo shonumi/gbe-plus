@@ -16,6 +16,7 @@
 #include <vector>
 
 #include "common.h"
+#include "timer.h"
 #include "mmu.h"
 #include "lcd.h"
 
@@ -168,7 +169,6 @@ class NTR_ARM7
 	u32 instruction_pipeline[3];
 	arm_instructions instruction_operation[3];
 	u8 pipeline_pointer;
-	u32 irq_pc;
 
 	u8 debug_message;
 	u32 debug_code;
@@ -181,11 +181,10 @@ class NTR_ARM7
 
 	//Audio-Video and other controllers
 	//TODO - NDS7 will handle audio
-	/*
 	struct io_controllers
 	{
+		std::vector<nds_timer> timer;
 	} controllers;
-	*/
 
 	NTR_ARM7();
 	~NTR_ARM7();

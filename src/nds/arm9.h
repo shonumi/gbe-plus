@@ -17,6 +17,7 @@
 #include <vector>
 
 #include "common.h"
+#include "timer.h"
 #include "mmu.h"
 #include "lcd.h"
 #include "cp15.h"
@@ -182,6 +183,7 @@ class NTR_ARM9
 	struct io_controllers
 	{
 		NTR_LCD video;
+		std::vector<nds_timer> timer;
 	} controllers;
 
 	//CP15 coprocessor
