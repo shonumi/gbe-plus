@@ -1230,7 +1230,6 @@ void NTR_ARM7::clock_timers() { }
 void NTR_ARM7::handle_interrupt()
 {
 	//TODO - Implement a better way of exiting interrupts other than recognizing the SUB PC, #4 instruction
-	std::cout<<"ARM7 IE -> 0x" << mem->nds7_ie << "\n";
 
 	//Exit interrupt
 	if((in_interrupt) && (debug_code == 0xE25EF004))

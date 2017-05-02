@@ -251,7 +251,30 @@ void NTR_ARM9::data_processing(u32 current_arm_instruction)
 	//TODO - See GBATEK - S=1, with unused Rd bits=1111b
 
 	//Clock CPU and controllers - 1N
-	if(dest_reg == 15) { clock(reg.r15, true); set_condition = false; reg.cpsr = get_spsr(); }
+	if(dest_reg == 15)
+	{
+		clock(reg.r15, true);
+		
+		//When the set condition parameter is 1 and destination register is R15, change CPSR to SPSR
+		if(set_condition)
+		{
+			reg.cpsr = get_spsr();
+			set_condition = false;
+
+			//Set the CPU mode accordingly
+			switch((reg.cpsr & 0x1F))
+			{
+				case 0x10: current_cpu_mode = USR; break;
+				case 0x11: current_cpu_mode = FIQ; break;
+				case 0x12: current_cpu_mode = IRQ; break;
+				case 0x13: current_cpu_mode = SVC; break;
+				case 0x17: current_cpu_mode = ABT; break;
+				case 0x1B: current_cpu_mode = UND; break;
+				case 0x1F: current_cpu_mode = SYS; break;
+				default: std::cout<<"CPU::ARM9::Warning - ARM.6 CPSR setting unknown CPU mode -> 0x" << std::hex << (reg.cpsr & 0x1F) << "\n";
+			}
+		}
+	}
 
 	switch(op)
 	{
