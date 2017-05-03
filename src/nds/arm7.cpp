@@ -54,6 +54,7 @@ void NTR_ARM7::reset()
 
 	for(int x = 0; x < 4; x++)
 	{
+		controllers.timer[x].cnt = 0;
 		controllers.timer[x].counter = 0;
 		controllers.timer[x].reload_value = 0;
 		controllers.timer[x].prescalar = 0;

@@ -58,6 +58,7 @@ void NTR_ARM9::reset()
 
 	for(int x = 0; x < 4; x++)
 	{
+		controllers.timer[x].cnt = 0;
 		controllers.timer[x].counter = 0;
 		controllers.timer[x].reload_value = 0;
 		controllers.timer[x].prescalar = 0;
@@ -1256,8 +1257,6 @@ void NTR_ARM9::handle_interrupt()
 	//Jump into an interrupt, check if the master flag is enabled
 	if((mem->nds9_ime & 0x1) && ((reg.cpsr & CPSR_IRQ) == 0) && (!in_interrupt))
 	{
-		std::cout<<"SHOUT\n";
-
 		//Wait until pipeline is finished filling
 		if(debug_message == 0xFF) { return; }
 

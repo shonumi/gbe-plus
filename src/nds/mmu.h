@@ -19,6 +19,7 @@
 
 #include "common.h"
 #include "gamepad.h"
+#include "timer.h"
 #include "common/config.h"
 #include "lcd_data.h"
 
@@ -274,6 +275,8 @@ class NTR_MMU
 	void parse_header();
 
 	NTR_GamePad* g_pad;
+	std::vector<nds_timer>* nds7_timer;
+	std::vector<nds_timer>* nds9_timer;
 
 	private:
 

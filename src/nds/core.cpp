@@ -38,10 +38,9 @@ NTR_core::NTR_core()
 	core_pad.nds7_input_irq = &core_mmu.nds7_if;
 	core_pad.nds9_input_irq = &core_mmu.nds9_if;
 
-	/*
-	//Link MMU and CPU's timers
-	core_mmu.timer = &core_cpu.controllers.timer;
-	*/
+	//Link MMU and CPU timers
+	core_mmu.nds9_timer = &core_cpu_nds9.controllers.timer;
+	core_mmu.nds7_timer = &core_cpu_nds7.controllers.timer;
 
 	db_unit.debug_mode = false;
 	//db_unit.display_cycles = false;
@@ -143,10 +142,9 @@ void NTR_core::reset()
 	core_pad.nds7_input_irq = &core_mmu.nds7_if;
 	core_pad.nds9_input_irq = &core_mmu.nds9_if;
 
-	/*
 	//Link MMU and CPU's timers
-	core_mmu.timer = &core_cpu.controllers.timer;
-	*/
+	core_mmu.nds9_timer = &core_cpu_nds9.controllers.timer;
+	core_mmu.nds7_timer = &core_cpu_nds7.controllers.timer;
 
 	//Reset CPU sync
 	cpu_sync_cycles = 0.0;

@@ -16,6 +16,7 @@
 
 struct nds_timer
 {
+	u16 cnt;
 	u16 counter;
 	u16 cycles;
 	u16 reload_value;

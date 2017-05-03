@@ -174,6 +174,8 @@ void NTR_MMU::reset()
 	touchscreen_state = 0;
 
 	g_pad = NULL;
+	nds9_timer = NULL;
+	nds7_timer = NULL;
 
 	std::cout<<"MMU::Initialized\n";
 }
@@ -268,6 +270,22 @@ u8 NTR_MMU::read_u8(u32 address)
 		
 		//Return NDS7 IF
 		else { return ((nds7_if >> addr_shift) & 0xFF); }
+	}
+
+	//Check for Timer registers
+	else if((address & ~0xF) == NDS_TM0CNT_L)
+	{
+		u8 timer_id = ((address & 0xF) >> 2);
+		u8 addr_shift = (address & 0x1) << 3;
+		bool timer_cnt = (address & 0x2) ? true : false;
+
+		//NDS9 and NDS7 timer control
+		if(access_mode && timer_cnt) { return ((nds9_timer->at(timer_id).cnt >> addr_shift) & 0xFF); }
+		else if(!access_mode && timer_cnt) { return ((nds7_timer->at(timer_id).cnt >> addr_shift) & 0xFF); }
+
+		//NDS9 and NDS7 timer counter
+		else if(access_mode && !timer_cnt) { return ((nds9_timer->at(timer_id).counter >> addr_shift) & 0xFF); }
+		else { return ((nds7_timer->at(timer_id).counter >> addr_shift) & 0xFF); }
 	}
 
 	//Check for IPCSYNC
@@ -2217,13 +2235,195 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		case NDS_IF+1:
 		case NDS_IF+2:
 		case NDS_IF+3:
-			memory_map[address] &= ~value;
-
 			//Write to NDS9 IF
 			if(access_mode) { nds9_if &= ~(value << ((address & 0x3) << 3)); }
 
 			//Write to NDS7 IF
 			else { nds7_if &= ~(value << ((address & 0x3) << 3)); }
+
+			break;
+
+		//Timer 0 Reload Value
+		case NDS_TM0CNT_L:
+		case NDS_TM0CNT_L+1:
+			if(access_mode)
+			{
+				nds9_timer->at(0).reload_value &= (address & 0x1) ? 0xFF : 0xFF00;
+				nds9_timer->at(0).reload_value |= (address & 0x1) ? (value << 8) : value;
+			}
+
+			else
+			{
+				nds7_timer->at(0).reload_value &= (address & 0x1) ? 0xFF : 0xFF00;
+				nds7_timer->at(0).reload_value |= (address & 0x1) ? (value << 8) : value;
+			}
+
+			break;
+
+		//Timer 1 Reload Value
+		case NDS_TM1CNT_L:
+		case NDS_TM1CNT_L+1:
+			if(access_mode)
+			{
+				nds9_timer->at(1).reload_value &= (address & 0x1) ? 0xFF : 0xFF00;
+				nds9_timer->at(1).reload_value |= (address & 0x1) ? (value << 8) : value;
+			}
+
+			else
+			{
+				nds7_timer->at(1).reload_value &= (address & 0x1) ? 0xFF : 0xFF00;
+				nds7_timer->at(1).reload_value |= (address & 0x1) ? (value << 8) : value;
+			}
+
+			break;
+
+		//Timer 2 Reload Value
+		case NDS_TM2CNT_L:
+		case NDS_TM2CNT_L+1:
+			if(access_mode)
+			{
+				nds9_timer->at(2).reload_value &= (address & 0x1) ? 0xFF : 0xFF00;
+				nds9_timer->at(2).reload_value |= (address & 0x1) ? (value << 8) : value;
+			}
+
+			else
+			{
+				nds7_timer->at(2).reload_value &= (address & 0x1) ? 0xFF : 0xFF00;
+				nds7_timer->at(2).reload_value |= (address & 0x1) ? (value << 8) : value;
+			}
+
+			break;
+
+		//Timer 3 Reload Value
+		case NDS_TM3CNT_L:
+		case NDS_TM3CNT_L+1:
+			if(access_mode)
+			{
+				nds9_timer->at(3).reload_value &= (address & 0x1) ? 0xFF : 0xFF00;
+				nds9_timer->at(3).reload_value |= (address & 0x1) ? (value << 8) : value;
+			}
+
+			else
+			{
+				nds7_timer->at(3).reload_value &= (address & 0x1) ? 0xFF : 0xFF00;
+				nds7_timer->at(3).reload_value |= (address & 0x1) ? (value << 8) : value;
+			}
+
+			break;
+
+		//Timer 0 Control
+		case NDS_TM0CNT_H:
+		case NDS_TM0CNT_H+1:
+			{
+				//Grab pointer to NDS9 or NDS7 Timer 0
+				nds_timer* timer = (access_mode) ? &nds9_timer->at(0) : &nds7_timer->at(0);
+
+				bool prev_enable = (timer->cnt & 0x80) ?  true : false;
+				timer->cnt &= (address & 0x1) ? 0xFF : 0xFF00;
+				timer->cnt |= (address & 0x1) ? (value << 8) : value;
+
+				timer->count_up = (timer->cnt & 0x4) ? true : false;
+				timer->enable = (timer->cnt & 0x80) ?  true : false;
+				timer->interrupt = (timer->cnt & 0x40) ? true : false;
+				if(timer->enable && !prev_enable) { timer->counter = timer->reload_value; }
+
+				switch(timer->cnt & 0x3)
+				{
+					case 0x0: timer->prescalar = 1; break;
+					case 0x1: timer->prescalar = 64; break;
+					case 0x2: timer->prescalar = 256; break;
+					case 0x3: timer->prescalar = 1024; break;
+				}
+
+				if(timer->count_up) { timer->prescalar = 1; }
+			}
+
+			break;
+
+		//Timer 1 Control
+		case NDS_TM1CNT_H:
+		case NDS_TM1CNT_H+1:
+			{
+				//Grab pointer to NDS9 or NDS7 Timer 1
+				nds_timer* timer = (access_mode) ? &nds9_timer->at(1) : &nds7_timer->at(1);
+
+				bool prev_enable = (timer->cnt & 0x80) ?  true : false;
+				timer->cnt &= (address & 0x1) ? 0xFF : 0xFF00;
+				timer->cnt |= (address & 0x1) ? (value << 8) : value;
+
+				timer->count_up = (timer->cnt & 0x4) ? true : false;
+				timer->enable = (timer->cnt & 0x80) ?  true : false;
+				timer->interrupt = (timer->cnt & 0x40) ? true : false;
+				if(timer->enable && !prev_enable) { timer->counter = timer->reload_value; }
+
+				switch(timer->cnt & 0x3)
+				{
+					case 0x0: timer->prescalar = 1; break;
+					case 0x1: timer->prescalar = 64; break;
+					case 0x2: timer->prescalar = 256; break;
+					case 0x3: timer->prescalar = 1024; break;
+				}
+
+				if(timer->count_up) { timer->prescalar = 1; }
+			}
+
+			break;
+
+		//Timer 2 Control
+		case NDS_TM2CNT_H:
+		case NDS_TM2CNT_H+1:
+			{
+				//Grab pointer to NDS9 or NDS7 Timer 2
+				nds_timer* timer = (access_mode) ? &nds9_timer->at(2) : &nds7_timer->at(2);
+
+				bool prev_enable = (timer->cnt & 0x80) ?  true : false;
+				timer->cnt &= (address & 0x1) ? 0xFF : 0xFF00;
+				timer->cnt |= (address & 0x1) ? (value << 8) : value;
+
+				timer->count_up = (timer->cnt & 0x4) ? true : false;
+				timer->enable = (timer->cnt & 0x80) ?  true : false;
+				timer->interrupt = (timer->cnt & 0x40) ? true : false;
+				if(timer->enable && !prev_enable) { timer->counter = timer->reload_value; }
+
+				switch(timer->cnt & 0x3)
+				{
+					case 0x0: timer->prescalar = 1; break;
+					case 0x1: timer->prescalar = 64; break;
+					case 0x2: timer->prescalar = 256; break;
+					case 0x3: timer->prescalar = 1024; break;
+				}
+
+				if(timer->count_up) { timer->prescalar = 1; }
+			}
+
+			break;
+
+		//Timer 3 Control
+		case NDS_TM3CNT_H:
+		case NDS_TM3CNT_H+1:
+			{
+				//Grab pointer to NDS9 or NDS7 Timer 3
+				nds_timer* timer = (access_mode) ? &nds9_timer->at(3) : &nds7_timer->at(3);
+
+				bool prev_enable = (timer->cnt & 0x80) ?  true : false;
+				timer->cnt &= (address & 0x1) ? 0xFF : 0xFF00;
+				timer->cnt |= (address & 0x1) ? (value << 8) : value;
+
+				timer->count_up = (timer->cnt & 0x4) ? true : false;
+				timer->enable = (timer->cnt & 0x80) ?  true : false;
+				timer->interrupt = (timer->cnt & 0x40) ? true : false;
+				if(timer->enable && !prev_enable) { timer->counter = timer->reload_value; }
+
+				switch(timer->cnt & 0x3)
+				{
+					case 0x0: timer->prescalar = 1; break;
+					case 0x1: timer->prescalar = 64; break;
+					case 0x2: timer->prescalar = 256; break;
+					case 0x3: timer->prescalar = 1024; break;
+				}
+
+				if(timer->count_up) { timer->prescalar = 1; }
+			}
 
 			break;
 
