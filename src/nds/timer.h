@@ -16,11 +16,11 @@
 
 struct nds_timer
 {
+	u32 clock;
+	u32 prescalar;
 	u16 cnt;
 	u16 counter;
-	u16 cycles;
 	u16 reload_value;
-	u16 prescalar;
 	bool count_up;
 	bool enable;
 	bool interrupt;

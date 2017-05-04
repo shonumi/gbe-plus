@@ -58,7 +58,7 @@ void NTR_ARM7::reset()
 		controllers.timer[x].counter = 0;
 		controllers.timer[x].reload_value = 0;
 		controllers.timer[x].prescalar = 0;
-		controllers.timer[x].cycles = 0;
+		controllers.timer[x].clock = 0;
 		controllers.timer[x].count_up = false;
 		controllers.timer[x].enable = false;
 	}
@@ -1121,12 +1121,10 @@ void NTR_ARM7::clock(u32 access_addr, bool first_access)
 	for(int x = 0; x < access_cycles; x++)
 	{
 		clock_dma();
-
-		/*
-		clock_timers();
-		debug_cycles++;
-		*/
 	}
+
+	//Run timers
+	clock_timers(access_cycles);
 
 	//Run SPI Bus
 	if(mem->nds7_spi.active_transfer)
@@ -1172,6 +1170,9 @@ void NTR_ARM7::clock()
 	sync_cycles += access_cycles;
 
 	clock_dma();
+
+	//Run timers
+	clock_timers(access_cycles);
 
 	//Run SPI Bus
 	if(mem->nds7_spi.active_transfer)
@@ -1224,8 +1225,38 @@ void NTR_ARM7::clock_dma()
 	if(mem->dma[7].enable) { dma3(); }
 }
 
-/****** Runs Timer controllers every clock cycle ******/
-void NTR_ARM7::clock_timers() { }
+/****** Runs timer controllers ******/
+void NTR_ARM7::clock_timers(u8 access_cycles)
+{
+	for(int x = 0; x < 4; x++)
+	{
+		//See if this timer is enabled first
+		if(controllers.timer[x].enable)
+		{
+			controllers.timer[x].clock -= access_cycles;
+
+			//If internal clock goes past 0, increment counter
+			if(controllers.timer[x].clock & 0x80000000)
+			{
+				controllers.timer[x].clock = controllers.timer[x].prescalar;
+
+				if(!controllers.timer[x].count_up) { controllers.timer[x].counter++; }
+
+				//If counter overflows, reload value, trigger interrupt if necessary
+				if(controllers.timer[x].counter == 0) 
+				{
+					controllers.timer[x].counter = controllers.timer[x].reload_value;
+
+					//Increment next timer if in count-up mode
+					if((x < 4) && (controllers.timer[x+1].count_up)) { controllers.timer[x+1].counter++; }
+
+					//Interrupt
+					if(controllers.timer[x].interrupt) { mem->nds7_if |= (8 << x); }
+				}
+			}
+		}
+	}
+}
 
 /****** Jumps to or exits an interrupt ******/
 void NTR_ARM7::handle_interrupt()

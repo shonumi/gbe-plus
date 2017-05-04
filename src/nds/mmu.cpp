@@ -2322,20 +2322,22 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 				timer->cnt &= (address & 0x1) ? 0xFF : 0xFF00;
 				timer->cnt |= (address & 0x1) ? (value << 8) : value;
 
-				timer->count_up = (timer->cnt & 0x4) ? true : false;
 				timer->enable = (timer->cnt & 0x80) ?  true : false;
 				timer->interrupt = (timer->cnt & 0x40) ? true : false;
 				if(timer->enable && !prev_enable) { timer->counter = timer->reload_value; }
 
 				switch(timer->cnt & 0x3)
 				{
-					case 0x0: timer->prescalar = 1; break;
-					case 0x1: timer->prescalar = 64; break;
-					case 0x2: timer->prescalar = 256; break;
-					case 0x3: timer->prescalar = 1024; break;
+					case 0x0: timer->prescalar = (1 << 25); break;
+					case 0x1: timer->prescalar = (1 << 19); break;
+					case 0x2: timer->prescalar = (1 << 17); break;
+					case 0x3: timer->prescalar = (1 << 16); break;
 				}
 
-				if(timer->count_up) { timer->prescalar = 1; }
+				if(timer->count_up) { timer->prescalar = (1 << 25); }
+
+				timer->prescalar--;
+				timer->clock = timer->prescalar;
 			}
 
 			break;
@@ -2358,13 +2360,16 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 				switch(timer->cnt & 0x3)
 				{
-					case 0x0: timer->prescalar = 1; break;
-					case 0x1: timer->prescalar = 64; break;
-					case 0x2: timer->prescalar = 256; break;
-					case 0x3: timer->prescalar = 1024; break;
+					case 0x0: timer->prescalar = (1 << 25); break;
+					case 0x1: timer->prescalar = (1 << 19); break;
+					case 0x2: timer->prescalar = (1 << 17); break;
+					case 0x3: timer->prescalar = (1 << 16); break;
 				}
 
-				if(timer->count_up) { timer->prescalar = 1; }
+				if(timer->count_up) { timer->prescalar = (1 << 25); }
+
+				timer->prescalar--;
+				timer->clock = timer->prescalar; 
 			}
 
 			break;
@@ -2387,13 +2392,16 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 				switch(timer->cnt & 0x3)
 				{
-					case 0x0: timer->prescalar = 1; break;
-					case 0x1: timer->prescalar = 64; break;
-					case 0x2: timer->prescalar = 256; break;
-					case 0x3: timer->prescalar = 1024; break;
+					case 0x0: timer->prescalar = (1 << 25); break;
+					case 0x1: timer->prescalar = (1 << 19); break;
+					case 0x2: timer->prescalar = (1 << 17); break;
+					case 0x3: timer->prescalar = (1 << 16); break;
 				}
 
-				if(timer->count_up) { timer->prescalar = 1; }
+				if(timer->count_up) { timer->prescalar = (1 << 25); }
+
+				timer->prescalar--;
+				timer->clock = timer->prescalar; 
 			}
 
 			break;
@@ -2416,13 +2424,16 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 				switch(timer->cnt & 0x3)
 				{
-					case 0x0: timer->prescalar = 1; break;
-					case 0x1: timer->prescalar = 64; break;
-					case 0x2: timer->prescalar = 256; break;
-					case 0x3: timer->prescalar = 1024; break;
+					case 0x0: timer->prescalar = (1 << 25); break;
+					case 0x1: timer->prescalar = (1 << 19); break;
+					case 0x2: timer->prescalar = (1 << 17); break;
+					case 0x3: timer->prescalar = (1 << 16); break;
 				}
 
-				if(timer->count_up) { timer->prescalar = 1; }
+				if(timer->count_up) { timer->prescalar = (1 << 25); }
+
+				timer->prescalar--;
+				timer->clock = timer->prescalar; 
 			}
 
 			break;
