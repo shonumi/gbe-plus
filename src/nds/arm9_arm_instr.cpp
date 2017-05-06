@@ -325,8 +325,8 @@ void NTR_ARM9::data_processing(u32 current_arm_instruction)
 
 		//ADC
 		case 0x5:
-			//If no shift was performed, use the current Carry Flag for this math op
-			if(shift_out == 2) { shift_out = (reg.cpsr & CPSR_C_FLAG) ? 1 : 0; }
+			//use the current Carry Flag for this math op
+			shift_out = (reg.cpsr & CPSR_C_FLAG) ? 1 : 0;
 
 			result = (input + operand + shift_out);
 			set_reg(dest_reg, result);
@@ -337,8 +337,8 @@ void NTR_ARM9::data_processing(u32 current_arm_instruction)
 
 		//SBC
 		case 0x6:
-			//If no shift was performed, use the current Carry Flag for this math op
-			if(shift_out == 2) { shift_out = (reg.cpsr & CPSR_C_FLAG) ? 1 : 0; }
+			//Use the current Carry Flag for this math op
+			shift_out = (reg.cpsr & CPSR_C_FLAG) ? 1 : 0;
 
 			result = (input - operand + shift_out - 1);
 			set_reg(dest_reg, result);
@@ -349,8 +349,8 @@ void NTR_ARM9::data_processing(u32 current_arm_instruction)
 
 		//RSC
 		case 0x7:
-			//If no shift was performed, use the current Carry Flag for this math op
-			if(shift_out == 2) { shift_out = (reg.cpsr & CPSR_C_FLAG) ? 1 : 0; }
+			//use the current Carry Flag for this math op
+			shift_out = (reg.cpsr & CPSR_C_FLAG) ? 1 : 0;
 
 			result = (operand - input + shift_out - 1);
 			set_reg(dest_reg, result);
