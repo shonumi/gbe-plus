@@ -76,27 +76,18 @@ void NTR_ARM9::branch_link(u32 current_arm_instruction)
 {
 	//Grab offset
 	u32 offset = (current_arm_instruction & 0xFFFFFF);
+	offset <<= 2;
 
-	//Grab opcode - Check for BLX as well
+	//Grab opcode
 	u8 op = (current_arm_instruction >> 24) & 0x1;
 	if((current_arm_instruction >> 28) == 0xF) { op = 2; }
 
-	s32 jump_addr = 0;
-	u32 final_addr = 0;
+	u32 final_addr = reg.r15;
 
-	//Convert 2's complement
-	if(offset & 0x800000) 
-	{
-		offset--;
-		offset = ~offset;
+	//Add offset as 2s complement if necessary
+	if(offset & 0x2000000) { final_addr |= 0xFC000000; }
 
-	jump_addr = (offset * -4);
-	}
-
-	else { jump_addr = offset * 4; }
-
-	final_addr = reg.r15 + jump_addr;
-	final_addr &= 0xFFFFFF;
+	final_addr += offset;
 
 	switch(op)
 	{
@@ -105,8 +96,7 @@ void NTR_ARM9::branch_link(u32 current_arm_instruction)
 			//Clock CPU and controllers - 1N
 			clock(reg.r15, true);
 
-			reg.r15 &= ~0xFFFFFF;
-			reg.r15 |= final_addr;
+			reg.r15 = final_addr;
 			needs_flush = true;
 
 			//Clock CPU and controllers - 2S
@@ -121,8 +111,7 @@ void NTR_ARM9::branch_link(u32 current_arm_instruction)
 			clock(reg.r15, true);
 
 			set_reg(14, (reg.r15 - 4));
-			reg.r15 &= ~0xFFFFFF;
-			reg.r15 |= final_addr;
+			reg.r15 = final_addr;
 			needs_flush = true;
 
 			//Clock CPU and controllers - 2S
@@ -137,8 +126,7 @@ void NTR_ARM9::branch_link(u32 current_arm_instruction)
 			clock(reg.r15, true);
 
 			set_reg(14, (reg.r15 - 4));
-			reg.r15 &= ~0xFFFFFF;
-			reg.r15 |= final_addr;
+			reg.r15 = final_addr;
 			if(current_arm_instruction & 0x1000000) { reg.r15 += 2; }
 			needs_flush = true;
 
