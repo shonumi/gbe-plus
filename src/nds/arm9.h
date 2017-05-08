@@ -48,6 +48,8 @@ class NTR_ARM9
 		ARM_COP_REG_TRANSFER,
 		ARM_COP_DATA_TRANSFER,
 		ARM_COP_DATA_OP,
+		ARM_CLZ,
+		ARM_QADD_QSUB,
 		THUMB_1,
 		THUMB_2,
 		THUMB_3,
@@ -222,6 +224,8 @@ class NTR_ARM9
 
 	void coprocessor_register_transfer(u32 current_arm_instruction);
 	void coprocessor_data_transfer(u32 current_arm_instruction);
+
+	void count_leading_zeroes(u32 current_arm_instruction);
 
 	//THUMB instructions
 	void move_shifted_register(u16 current_thumb_instruction);

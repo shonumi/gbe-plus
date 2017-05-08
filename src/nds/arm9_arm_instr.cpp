@@ -259,7 +259,7 @@ void NTR_ARM9::data_processing(u32 current_arm_instruction)
 				case 0x17: current_cpu_mode = ABT; break;
 				case 0x1B: current_cpu_mode = UND; break;
 				case 0x1F: current_cpu_mode = SYS; break;
-				default: std::cout<<"CPU::ARM9::Warning - ARM.6 CPSR setting unknown CPU mode -> 0x" << std::hex << (reg.cpsr & 0x1F) << "\n";
+				default: std::cout<<"CPU::ARM9::Warning - ARM.5 CPSR setting unknown CPU mode -> 0x" << std::hex << (reg.cpsr & 0x1F) << "\n";
 			}
 		}
 	}
@@ -478,14 +478,14 @@ void NTR_ARM9::psr_transfer(u32 current_arm_instruction)
 				if(current_arm_instruction & 0x40000) 
 				{ 
 					op_field_mask |= 0x00FF0000;
-					std::cout<<"CPU::ARM9::Warning - ARM.6 MSR enabled access to Status Field \n";
+					//std::cout<<"CPU::ARM9::Warning - ARM.6 MSR enabled access to Status Field \n";
 				}
 
 				//Extension field - Bit 17
 				if(current_arm_instruction & 0x20000) 
 				{ 
 					op_field_mask |= 0x0000FF00;
-					std::cout<<"CPU::ARM9::Warning - ARM.6 MSR enabled access to Extension Field \n";
+					//std::cout<<"CPU::ARM9::Warning - ARM.6 MSR enabled access to Extension Field \n";
 				}
 
 				//Control field - Bit 15
@@ -1533,4 +1533,38 @@ void NTR_ARM9::coprocessor_register_transfer(u32 current_instruction)
 			std::cout<<"COP::Warning - MCR accessed unknown C15 register : C" << (int)cop_reg << ",C" << (int)cop_opr << "," << (int)cop_info << "\n";
 		}
 	}
+}
+
+/****** Count Leading Zeroes ******/
+void NTR_ARM9::count_leading_zeroes(u32 current_arm_instruction)
+{
+	//Grab source register - Bits 0-3
+	u8 src_reg = (current_arm_instruction & 0xF);
+
+	//Grab destination register - Bits 12-15
+	u8 dest_reg = ((current_arm_instruction >> 12) & 0xF);
+	
+	u32 zeroes = 0;
+	u32 counting_reg = get_reg(src_reg);
+
+	//Count zeroes until MSB is detected
+	for(u32 mask = 0x80000000; mask > 0; mask >>= 1)
+	{
+		//MSB detected
+		if(mask & counting_reg)
+		{
+			//If Bit 31 is set, CLZ returns 32
+			if(mask == 0x80000000) { zeroes = 32; }
+			mask = 0;
+		}
+
+		//Add to zero count
+		else { zeroes++; }
+	}
+
+	//Set destination register to result of CLZ
+	set_reg(dest_reg, zeroes);
+		
+	//Clock CPU and controllers - 1S
+	clock((reg.r15 + 4), false);
 }

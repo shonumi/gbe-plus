@@ -449,15 +449,18 @@ void NTR_ARM9::decode()
 		{
 			//ARM_4
 			instruction_operation[pipeline_id] = ARM_4;
-		}
-
-		//TODO - Move ARM_6 decoding to final stage of ARM_5 decoding
-		//TODO - Move ARM_12 deconding to final stage of ARM_10 decoding		
+		}		
 
 		else if((current_instruction & 0xD900000) == 0x1000000) 
 		{
 
-			if((current_instruction & 0x80) && (current_instruction & 0x10) && ((current_instruction & 0x2000000) == 0))
+			if((((current_instruction >> 16) & 0xFFF) == 0x16F) && (((current_instruction >> 4) & 0xFF) == 0xF1))
+			{
+				//ARM CLZ
+				instruction_operation[pipeline_id] = ARM_CLZ;
+			}
+
+			else if((current_instruction & 0x80) && (current_instruction & 0x10) && ((current_instruction & 0x2000000) == 0))
 			{
 				if(((current_instruction >> 5) & 0x3) == 0) 
 				{ 
@@ -774,8 +777,13 @@ void NTR_ARM9::execute()
 					running = false;
 					break;
 
-				default:
+				case ARM_CLZ:
+					count_leading_zeroes(instruction_pipeline[pipeline_id]);
 					debug_message = 0x21; debug_code = instruction_pipeline[pipeline_id];
+					break;
+
+				default:
+					debug_message = 0x22; debug_code = instruction_pipeline[pipeline_id];
 					std::cout<<"CPU::ARM9::Error - Unknown ARM instruction -> 0x" << std::hex << debug_code << "\n";
 					running = false;
 					break;
@@ -785,7 +793,7 @@ void NTR_ARM9::execute()
 		//Skip ARM instruction
 		else 
 		{ 
-			debug_message = 0x22; 
+			debug_message = 0x23; 
 			debug_code = instruction_pipeline[pipeline_id];
 
 			//Clock CPU and controllers - 1S
