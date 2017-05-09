@@ -2338,6 +2338,8 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 				timer->prescalar--;
 				timer->clock = timer->prescalar;
+
+
 			}
 
 			break;
@@ -2483,24 +2485,54 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		case NDS_IPCFIFOCNT:		
 			if(access_mode)
 			{
-				u16 irq_trigger = nds9_ipc.cnt & 0x4;
+				u16 irq_trigger = (nds9_ipc.cnt & 0x5);
 
 				nds9_ipc.cnt &= 0xFFF3;
 				nds9_ipc.cnt |= (value & 0xC);
 
 				//Raise Send FIFO Empty IRQ when Bit 2 goes from 0 to 1
-				if((irq_trigger == 0) && (nds9_ipc.cnt & 0x4) && (nds9_ipc.cnt & 0x1)) { nds9_if |= 0x20000; }
+				if((irq_trigger != 0x5) && ((nds9_ipc.cnt & 0x5) == 0x5)) { nds9_if |= 0x20000; }
+
+				//Clear Send FIFO
+				if(nds9_ipc.cnt & 0x8)
+				{
+					while(!nds9_ipc.fifo.empty()) { nds9_ipc.fifo.pop(); }
+					
+					//Set SNDFIFO EMPTY Status on NDS9
+					nds9_ipc.cnt |= 0x1;
+
+					//Set RECVFIFO EMPTY Status on NDS7
+					nds7_ipc.cnt |= 0x100;
+
+					//Raise Send FIFO EMPTY IRQ if necessary
+					if(nds9_ipc.cnt & 0x4) { nds9_if |= 0x20000; }
+				}
 			}
 
 			else
 			{
-				u16 irq_trigger = nds7_ipc.cnt & 0x4;
+				u16 irq_trigger = (nds7_ipc.cnt & 0x5);
 
 				nds7_ipc.cnt &= 0xFFF3;
 				nds7_ipc.cnt |= (value & 0xC);
 
 				//Raise Send FIFO Empty IRQ when Bit 2 goes from 0 to 1
-				if((irq_trigger == 0) && (nds7_ipc.cnt & 0x4) && (nds7_ipc.cnt & 0x1)) { nds7_if |= 0x20000; }
+				if((irq_trigger != 0x5) && ((nds7_ipc.cnt & 0x5) == 0x5)) { nds7_if |= 0x20000; }
+
+				//Clear Send FIFO
+				if(nds7_ipc.cnt & 0x8)
+				{
+					while(!nds7_ipc.fifo.empty()) { nds7_ipc.fifo.pop(); }
+					
+					//Set SNDFIFO EMPTY Status on NDS7
+					nds7_ipc.cnt |= 0x1;
+
+					//Set RECVFIFO EMPTY Status on NDS9
+					nds9_ipc.cnt |= 0x100;
+
+					//Raise Send FIFO EMPTY IRQ if necessary
+					if(nds7_ipc.cnt & 0x4) { nds7_if |= 0x20000; }
+				}
 			}
 
 			break;
@@ -2508,24 +2540,24 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		case NDS_IPCFIFOCNT+1:
 			if(access_mode)
 			{
-				u16 irq_trigger = nds9_ipc.cnt & 0x400;
+				u16 irq_trigger = (nds9_ipc.cnt & 0x500);
 
 				nds9_ipc.cnt &= 0x3FF;
 				nds9_ipc.cnt |= ((value & 0xC4) << 8);
 
 				//Raise Receive FIFO Not Empty IRQ when Bit 10 goes from 0 to 1
-				if((irq_trigger == 0) && (nds9_ipc.cnt & 0x400) && ((nds9_ipc.cnt & 0x100) == 0)) { nds9_if |= 0x40000; }
+				if((irq_trigger != 0x500) && ((nds9_ipc.cnt & 0x500) == 0x500)) { nds9_if |= 0x40000; }
 			}
 
 			else
 			{
-				u16 irq_trigger = nds7_ipc.cnt & 0x400;
+				u16 irq_trigger = (nds7_ipc.cnt & 0x500);
 
 				nds7_ipc.cnt &= 0x3FF;
 				nds7_ipc.cnt |= ((value & 0xC4) << 8);
 
 				//Raise Receive FIFO Not Empty IRQ when Bit 10 goes from 0 to 1
-				if((irq_trigger == 0) && (nds7_ipc.cnt & 0x400) && ((nds7_ipc.cnt & 0x100) == 0)) { nds7_if |= 0x40000; }
+				if((irq_trigger != 0x500) && ((nds7_ipc.cnt & 0x500) == 0x500)) { nds7_if |= 0x40000; }
 			}
 
 			break;
