@@ -2546,7 +2546,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 				nds9_ipc.cnt |= ((value & 0xC4) << 8);
 
 				//Raise Receive FIFO Not Empty IRQ when Bit 10 goes from 0 to 1
-				if((irq_trigger != 0x500) && ((nds9_ipc.cnt & 0x500) == 0x500)) { nds9_if |= 0x40000; }
+				if((irq_trigger != 0x400) && ((nds9_ipc.cnt & 0x500) == 0x400)) { nds9_if |= 0x40000; }
 			}
 
 			else
@@ -2557,7 +2557,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 				nds7_ipc.cnt |= ((value & 0xC4) << 8);
 
 				//Raise Receive FIFO Not Empty IRQ when Bit 10 goes from 0 to 1
-				if((irq_trigger != 0x500) && ((nds7_ipc.cnt & 0x500) == 0x500)) { nds7_if |= 0x40000; }
+				if((irq_trigger != 0x400) && ((nds7_ipc.cnt & 0x500) == 0x400)) { nds7_if |= 0x40000; }
 			}
 
 			break;
