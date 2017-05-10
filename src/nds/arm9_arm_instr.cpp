@@ -1547,19 +1547,20 @@ void NTR_ARM9::count_leading_zeroes(u32 current_arm_instruction)
 	u32 zeroes = 0;
 	u32 counting_reg = get_reg(src_reg);
 
-	//Count zeroes until MSB is detected
-	for(u32 mask = 0x80000000; mask > 0; mask >>= 1)
-	{
-		//MSB detected
-		if(mask & counting_reg)
-		{
-			//If Bit 31 is set, CLZ returns 32
-			if(mask == 0x80000000) { zeroes = 32; }
-			mask = 0;
-		}
+	//If source register is zero, CLZ returns 32
+	if(!counting_reg) { zeroes = 32; }
 
-		//Add to zero count
-		else { zeroes++; }
+	//Otherwise, count zeroes until MSB is detected
+	else
+	{
+		for(u32 mask = 0x80000000; mask > 0; mask >>= 1)
+		{
+			//MSB detected
+			if(mask & counting_reg) { mask = 0; }
+
+			//Add to zero count
+			else { zeroes++; }
+		}
 	}
 
 	//Set destination register to result of CLZ
