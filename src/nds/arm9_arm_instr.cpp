@@ -1002,21 +1002,55 @@ void NTR_ARM9::halfword_signed_transfer(u32 current_arm_instruction)
 
 			break;
 
-		//Load signed byte (sign extended)
+		//Load signed byte (sign extended) or Load Double Word
 		case 0x2:
-			value = mem->read_u8(base_addr);
+			//Load Double Word
+			if(load_store == 0)
+			{
+				//Source register should be even, and not R14
+				if((dest_reg & 0x1) || (dest_reg == 14)) { std::cout<<"CPU::ARM9::Warning - ARM.10 LDRD uses bad source register\n"; }
 
-			if(value & 0x80) { value |= 0xFFFFFF00; }
-			set_reg(dest_reg, value);
+				value = mem->read_u32(base_addr);
+				set_reg(dest_reg, value);
+
+				value = mem->read_u32(base_addr + 4);
+				set_reg(dest_reg + 1, value);
+			}
+			
+			//Load signed byte
+			else
+			{
+				value = mem->read_u8(base_addr);
+
+				if(value & 0x80) { value |= 0xFFFFFF00; }
+				set_reg(dest_reg, value);
+			}
 
 			break;
 
-		//Load signed halfword (sign extended)
+		//Load signed halfword (sign extended) or Store Double Word
 		case 0x3:
-			value = mem->read_u16(base_addr);
+			//Store Double Word
+			if(load_store == 0)
+			{
+				//Source register should be even, and not R14
+				if((dest_reg & 0x1) || (dest_reg == 14)) { std::cout<<"CPU::ARM9::Warning - ARM.10 STRD uses bad source register\n"; }
 
-			if(value & 0x8000) { value |= 0xFFFF0000; }
-			set_reg(dest_reg, value);
+				value = get_reg(dest_reg);
+				mem->write_u32(base_addr, value);
+
+				value = get_reg(dest_reg + 1);
+				mem->write_u32(base_addr + 4, value);
+			}
+
+			//Load signed halfword
+			else
+			{	
+				value = mem->read_u16(base_addr);
+
+				if(value & 0x8000) { value |= 0xFFFF0000; }
+				set_reg(dest_reg, value);
+			}
 
 			break;
 
