@@ -31,6 +31,9 @@ void CP15::reset()
 	//For NDS9 also set C0,C0,0 to 0x41059461
 	regs[C0_C0_0] = 0x41059461;
 
+	//Set cache type
+	regs[C0_C0_1] = 0x0F0D2112;
+
 	pu_enable = false;
 	unified_cache = false;
 	instr_cache = false;
