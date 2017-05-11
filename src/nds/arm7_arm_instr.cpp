@@ -521,7 +521,6 @@ void NTR_ARM7::multiply(u32 current_arm_instruction)
 {
 	//TODO - Timings
 	//TODO - The rest of the opcodes
-	//TODO - Find out what GBATEK means when it says the carry flag is 'destroyed'.
 	//TODO - Set conditions
 
 	//Grab operand register Rm - Bits 0-3
@@ -714,6 +713,9 @@ void NTR_ARM7::multiply(u32 current_arm_instruction)
 		default: std::cout<<"CPU::ARM7::Warning:: - ARM.7 Invalid or unimplemented opcode : " << std::hex << (int)op_code << "\n"; std::cout<<"OP -> 0x" << current_arm_instruction << "\n";
 			 std::cout<<"PC -> 0x" << std::hex << reg.r15 << "\n";
 	}
+
+	//ARMv4 destorys Carry Flag after all supported multiply operations
+	reg.cpsr &= ~CPSR_C_FLAG;
 }
 			
 /****** ARM.9 Single Data Transfer ******/
