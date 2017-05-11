@@ -730,8 +730,10 @@ void NTR_core::debug_display() const
 		case 0x21:
 			std::cout << std::hex << "CPU::Executing ARM CLZ : 0x" << debug_code << "\n\n"; break;
 		case 0x22:
-			std::cout << std::hex << "Unknown ARM Instruction : 0x" << debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing ARM QADD-QSUB : 0x" << debug_code << "\n\n"; break;
 		case 0x23:
+			std::cout << std::hex << "Unknown ARM Instruction : 0x" << debug_code << "\n\n"; break;
+		case 0x24:
 			std::cout << std::hex << "CPU::Skipping ARM Instruction : 0x" << debug_code << "\n\n"; break;
 	}
 

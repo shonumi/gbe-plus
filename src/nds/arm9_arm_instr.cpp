@@ -1603,3 +1603,43 @@ void NTR_ARM9::count_leading_zeroes(u32 current_arm_instruction)
 	//Clock CPU and controllers - 1S
 	clock((reg.r15 + 4), false);
 }
+
+/****** QADD and QSUB ******/
+void NTR_ARM9::sticky_math(u32 current_arm_instruction)
+{
+	//Grab 1st source register - Bits 0-3
+	u8 src1_reg = (current_arm_instruction & 0xF);
+
+	//Grab 2nd source register - Bits 16-19
+	u8 src2_reg = ((current_arm_instruction >> 16) & 0xF);
+
+	//Grab destination register - Bits 12-15
+	u8 dest_reg = ((current_arm_instruction >> 12) & 0xF);
+
+	//Grab opcode - Bits 20-23
+	u8 op = ((current_arm_instruction >> 20) & 0xF);
+
+	u8 sat_code = 0;
+
+	switch(op)
+	{
+
+		//QADD
+		case 0x0:
+			u32 input_1 = get_reg(src1_reg);
+			u32 input_2 = get_reg(src2_reg);
+			u32 result = input_1 + input_2;
+			
+			//Saturate result if necessary
+			sat_code = update_sticky_overflow(input_1, input_2, result, true);
+			if(sat_code == 1) { result = 0x7FFFFFFF; }
+			else if(sat_code == 2) { result = 0x80000000; }
+
+			set_reg(dest_reg, result);
+
+			break;
+	}
+
+	//Clock CPU and controllers - 1S
+	clock((reg.r15 + 4), false);
+}

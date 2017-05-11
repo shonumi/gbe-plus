@@ -460,6 +460,12 @@ void NTR_ARM9::decode()
 				instruction_operation[pipeline_id] = ARM_CLZ;
 			}
 
+			else if((((current_instruction >> 24) & 0xF) == 0x1) && (((current_instruction >> 4) & 0xFF) == 0x5))
+			{
+				//ARM QADD-QSUB
+				instruction_operation[pipeline_id] = ARM_QADD_QSUB;
+			}
+
 			else if((current_instruction & 0x80) && (current_instruction & 0x10) && ((current_instruction & 0x2000000) == 0))
 			{
 				if(((current_instruction >> 5) & 0x3) == 0) 
@@ -782,8 +788,13 @@ void NTR_ARM9::execute()
 					debug_message = 0x21; debug_code = instruction_pipeline[pipeline_id];
 					break;
 
-				default:
+				case ARM_QADD_QSUB:
+					sticky_math(instruction_pipeline[pipeline_id]);
 					debug_message = 0x22; debug_code = instruction_pipeline[pipeline_id];
+					break;
+
+				default:
+					debug_message = 0x23; debug_code = instruction_pipeline[pipeline_id];
 					std::cout<<"CPU::ARM9::Error - Unknown ARM instruction -> 0x" << std::hex << debug_code << "\n";
 					running = false;
 					break;
@@ -793,7 +804,7 @@ void NTR_ARM9::execute()
 		//Skip ARM instruction
 		else 
 		{ 
-			debug_message = 0x23; 
+			debug_message = 0x24; 
 			debug_code = instruction_pipeline[pipeline_id];
 
 			//Clock CPU and controllers - 1S
@@ -1004,6 +1015,23 @@ void NTR_ARM9::update_condition_arithmetic(u32 input, u32 operand, u32 result, b
 			else { reg.cpsr &= ~CPSR_V_FLAG; }
 		}
 	}
+}
+
+/****** Updates the condition code in CPSR for Stick Overflow after QADD or QSUB operations ******/
+u8 NTR_ARM9::update_sticky_overflow(u32 input, u32 operand, u32 result, bool addition)
+{
+	u8 input_msb = (input & 0x80000000) ? 1 : 0;
+	u8 operand_msb = (operand & 0x80000000) ? 1 : 0;
+	u8 result_msb = (result & 0x80000000) ? 1 : 0;
+	u8 saturation_code = 0;
+
+	if(addition)
+	{
+		if(!input_msb && !operand_msb && result_msb) { reg.cpsr |= CPSR_Q_FLAG; saturation_code = 1; }
+		else if(input_msb && operand_msb && !result_msb) { reg.cpsr |= CPSR_Q_FLAG; saturation_code = 2; }
+	}
+
+	return saturation_code;
 }
 
 /****** Performs 32-bit logical shift left - Returns Carry Out ******/

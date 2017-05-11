@@ -753,7 +753,7 @@ void NTR_ARM7::execute()
 		//Skip ARM instruction
 		else 
 		{ 
-			debug_message = 0x23; 
+			debug_message = 0x24; 
 			debug_code = instruction_pipeline[pipeline_id];
 
 			//Clock CPU and controllers - 1S
