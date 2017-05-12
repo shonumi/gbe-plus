@@ -1620,15 +1620,18 @@ void NTR_ARM9::sticky_math(u32 current_arm_instruction)
 	u8 op = ((current_arm_instruction >> 20) & 0xF);
 
 	u8 sat_code = 0;
+	u32 input_1 = 0;
+	u32 input_2 = 0;
+	u32 result = 0;
 
 	switch(op)
 	{
 
 		//QADD
 		case 0x0:
-			u32 input_1 = get_reg(src1_reg);
-			u32 input_2 = get_reg(src2_reg);
-			u32 result = input_1 + input_2;
+			input_1 = get_reg(src1_reg);
+			input_2 = get_reg(src2_reg);
+			result = input_1 + input_2;
 			
 			//Saturate result if necessary
 			sat_code = update_sticky_overflow(input_1, input_2, result, true);
@@ -1638,6 +1641,25 @@ void NTR_ARM9::sticky_math(u32 current_arm_instruction)
 			set_reg(dest_reg, result);
 
 			break;
+
+		//QSUB
+		case 0x2:
+			input_1 = get_reg(src1_reg);
+			input_2 = get_reg(src2_reg);
+			result = input_1 - input_2;
+			
+			//Saturate result if necessary
+			sat_code = update_sticky_overflow(input_1, input_2, result, false);
+			if(sat_code == 1) { result = 0x7FFFFFFF; }
+			else if(sat_code == 2) { result = 0x80000000; }
+
+			set_reg(dest_reg, result);
+
+			break;
+
+		//Unknown opcode
+		default:
+			std::cout<<"CPU::ARM9::Warning - Unknown QADD-QSUB opcode 0x" << std::hex << (u16)op << "\n";
 	}
 
 	//Clock CPU and controllers - 1S

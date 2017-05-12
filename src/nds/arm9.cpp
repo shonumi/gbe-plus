@@ -1031,6 +1031,12 @@ u8 NTR_ARM9::update_sticky_overflow(u32 input, u32 operand, u32 result, bool add
 		else if(input_msb && operand_msb && !result_msb) { reg.cpsr |= CPSR_Q_FLAG; saturation_code = 2; }
 	}
 
+	else
+	{
+		if(!input_msb && operand_msb && result_msb) { reg.cpsr |= CPSR_Q_FLAG; saturation_code = 1; }
+		else if(input_msb && !operand_msb && !result_msb) { reg.cpsr |= CPSR_Q_FLAG; saturation_code = 2; }
+	} 
+
 	return saturation_code;
 }
 
