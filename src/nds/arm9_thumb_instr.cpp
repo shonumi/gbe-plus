@@ -1410,24 +1410,14 @@ void NTR_ARM9::multiple_load_store(u16 current_thumb_instruction)
 void NTR_ARM9::conditional_branch(u16 current_thumb_instruction)
 {
 	//Grab 8-bit offset - Bits 0-7
-	u8 offset = (current_thumb_instruction & 0xFF);
+	u32 offset = (current_thumb_instruction & 0xFF);
+	offset <<= 1;
 
 	//Grab opcode - Bits 8-11
 	u8 op = ((current_thumb_instruction >> 8) & 0xF);
 
-	s16 jump_addr = 0;
-
-	//Calculate jump address
 	//Convert Two's Complement
-	if(offset & 0x80)
-	{
-		offset--;
-		offset = ~offset;
-
-		jump_addr = (offset * -2);
-	}
-
-	else { jump_addr = (offset * 2); }
+	if(offset & 0x100) { offset |= 0xFFFFFE00; }
 
 	//Jump based on condition codes
 	switch(op)
@@ -1548,7 +1538,7 @@ void NTR_ARM9::conditional_branch(u16 current_thumb_instruction)
 		clock(reg.r15, true);
 
 		//Clock CPU and controllers - 2S 
-		reg.r15 += jump_addr;  
+		reg.r15 += offset;  
 		clock(reg.r15, false);
 		clock((reg.r15 + 2), false);
 	}
@@ -1564,22 +1554,11 @@ void NTR_ARM9::conditional_branch(u16 current_thumb_instruction)
 void NTR_ARM9::unconditional_branch(u16 current_thumb_instruction)
 {
 	//Grab 11-bit offset - Bits 0-10
-	u16 offset = (current_thumb_instruction & 0x7FF);
+	u32 offset = (current_thumb_instruction & 0x7FF);
+	offset <<= 1;
 
-	s16 jump_addr = 0;
-
-	//Calculate jump address
-	//Convert Two's Complement
-	if(offset & 0x400)
-	{
-		offset--;
-		offset = ~offset;
-		offset &= 0x7FF;
-
-		jump_addr = (offset * -2);
-	}
-
-	else { jump_addr = (offset * 2); }
+	//Convert Twos Complement
+	if(offset & 0x800) { offset |= 0xFFFFF000; }
 
 	needs_flush = true;
 
@@ -1587,7 +1566,7 @@ void NTR_ARM9::unconditional_branch(u16 current_thumb_instruction)
 	clock(reg.r15, true);
 
 	//Clock CPU and controllers - 2S 
-	reg.r15 += jump_addr;  
+	reg.r15 += offset;  
 	clock(reg.r15, false);
 	clock((reg.r15 + 2), false);
 }
