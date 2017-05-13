@@ -1221,7 +1221,29 @@ void NTR_ARM9::block_data_transfer(u32 current_arm_instruction)
 	else { std::cout<<"Empty RList not implemented, too lazy atm :p\n"; }
 
 	//Restore CPU mode if PSR bit is set
-	if(psr) { current_cpu_mode = temp_mode; }
+	if(psr)
+	{
+		current_cpu_mode = temp_mode;
+
+		//Also set CPSR to current SPSR if loading R15
+		if(needs_flush)
+		{
+			reg.cpsr = get_spsr();
+
+			//Set the CPU mode accordingly
+			switch((reg.cpsr & 0x1F))
+			{
+				case 0x10: current_cpu_mode = USR; break;
+				case 0x11: current_cpu_mode = FIQ; break;
+				case 0x12: current_cpu_mode = IRQ; break;
+				case 0x13: current_cpu_mode = SVC; break;
+				case 0x17: current_cpu_mode = ABT; break;
+				case 0x1B: current_cpu_mode = UND; break;
+				case 0x1F: current_cpu_mode = SYS; break;
+				default: std::cout<<"CPU::ARM9::Warning - ARM.11 CPSR setting unknown CPU mode -> 0x" << std::hex << (reg.cpsr & 0x1F) << "\n";
+			}
+		}
+	}
 }
 		
 /****** ARM.12 - Single Data Swap ******/
