@@ -467,7 +467,9 @@ void NTR_ARM7::alu_ops(u16 current_thumb_instruction)
 			if(result & 0x80000000) { reg.cpsr |= CPSR_N_FLAG; }
 			else { reg.cpsr &= ~CPSR_N_FLAG; }
 
-			//TODO - Figure out what the carry flag should be for this opcode.
+			//Destroy Carry flag
+			reg.cpsr &= ~CPSR_C_FLAG;
+
 			//TODO - Figure out the timing for this opcode
 
 			set_reg(dest_reg, result);
