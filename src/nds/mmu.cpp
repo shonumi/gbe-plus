@@ -66,6 +66,7 @@ void NTR_MMU::reset()
 
 	//HLE MMIO stuff
 	memory_map[NDS_DISPCNT_A] = 0x80;
+	memory_map[NDS_POSTFLG] = 0x1;
 
 	write_u16_fast(NDS_BG2PA_A, 0x100);
 	write_u16_fast(NDS_BG2PD_A, 0x100);
@@ -494,6 +495,9 @@ u8 NTR_MMU::read_u8(u32 address)
 		else { return ((power_cnt2 >> addr_shift) & 0xFF); }
 	}
 
+	//Check POSTFLG - NDS7
+	else if((address == NDS_POSTFLG) && (!access_mode)) { return memory_map[address] & 0x1; }
+		
 	return memory_map[address];
 }
 
@@ -2917,6 +2921,24 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			{
 				power_cnt2 &= 0xFF;
 				power_cnt2 |= (value << 8);
+			}
+
+			break;
+
+		case NDS_POSTFLG:
+			if(access_mode)
+			{
+				memory_map[address] &= ~0x2;
+				memory_map[address] |= (value & 0x2);
+			}
+
+			break;
+
+		case NDS_HALTCNT:
+			if(!access_mode)
+			{
+				std::cout<<"MMU::Warning - NDS7 wrote to HALTCNT (unhandled) \n";
+				memory_map[address] = (value & 0xC0);
 			}
 
 			break;
