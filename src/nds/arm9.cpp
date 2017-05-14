@@ -481,8 +481,17 @@ void NTR_ARM9::decode()
 
 			else 
 			{
+				//ARM7
+				if((current_instruction & 0x80) && ((current_instruction & 0x2000000) == 0))
+				{
+					instruction_operation[pipeline_id] = ARM_7;
+				}
+
 				//ARM_6
-				instruction_operation[pipeline_id] = ARM_6;
+				else
+				{
+					instruction_operation[pipeline_id] = ARM_6;
+				}
 			}
 		}
 
