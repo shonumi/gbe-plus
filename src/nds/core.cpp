@@ -225,7 +225,7 @@ void NTR_core::run_core()
 						//WaitByLoop SWI
 						case 0x2:
 							core_cpu_nds9.swi_waitbyloop_count--;
-							if(!core_cpu_nds9.swi_waitbyloop_count) { core_cpu_nds9.idle_state = 0; }
+							if(core_cpu_nds9.swi_waitbyloop_count & 0x80000000) { core_cpu_nds9.idle_state = 0; }
 							break;
 
 						//IntrWait, VBlankIntrWait
@@ -323,7 +323,7 @@ void NTR_core::run_core()
 						//WaitByLoop SWI
 						case 0x2:
 							core_cpu_nds7.swi_waitbyloop_count--;
-							if(!core_cpu_nds7.swi_waitbyloop_count) { core_cpu_nds7.idle_state = 0; }
+							if(core_cpu_nds7.swi_waitbyloop_count & 0x80000000) { core_cpu_nds7.idle_state = 0; }
 							break;
 
 						//IntrWait, VBlankIntrWait
