@@ -39,9 +39,6 @@ void NTR_MMU::reset()
 	firmware.clear();
 	firmware.resize(0x40000, 0);
 
-	//Default access mode starts off with NDS9
-	access_mode = 1;
-
 	nds7_bios.clear();
 	nds7_bios.resize(0x4000, 0);
 	nds7_bios_vector = 0x0;
@@ -77,6 +74,12 @@ void NTR_MMU::reset()
 	write_u16_fast(NDS_BG2PD_B, 0x100);
 	write_u16_fast(NDS_BG3PA_B, 0x100);
 	write_u16_fast(NDS_BG3PD_B, 0x100);
+
+	//Setup EXMEM + default access mode to NDS9
+	access_mode = 0;
+	write_u16(NDS_EXMEM, 0xE880);
+	access_mode = 1;
+	write_u16(NDS_EXMEM, 0xE880);
 
 	//HLE firmware stuff
 	setup_default_firmware();
@@ -2486,9 +2489,11 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 			break;
 
-		case NDS_IPCFIFOCNT:		
+		case NDS_IPCFIFOCNT:
 			if(access_mode)
 			{
+				std::cout<<"ARM9 FIFOCNT0 -> 0x" << (u16)value << "\n";	
+
 				u16 irq_trigger = (nds9_ipc.cnt & 0x5);
 
 				nds9_ipc.cnt &= 0xFFF3;
@@ -2515,6 +2520,8 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 			else
 			{
+				std::cout<<"ARM7 FIFOCNT0 -> 0x" << (u16)value << "\n";	
+
 				u16 irq_trigger = (nds7_ipc.cnt & 0x5);
 
 				nds7_ipc.cnt &= 0xFFF3;
@@ -2544,6 +2551,8 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		case NDS_IPCFIFOCNT+1:
 			if(access_mode)
 			{
+				std::cout<<"ARM9 FIFOCNT1 -> 0x" << (u16)value << "\n";	
+
 				u16 irq_trigger = (nds9_ipc.cnt & 0x500);
 
 				nds9_ipc.cnt &= 0x3FF;
@@ -2555,6 +2564,8 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 			else
 			{
+				std::cout<<"ARM7 FIFOCNT1 -> 0x" << (u16)value << "\n";
+	
 				u16 irq_trigger = (nds7_ipc.cnt & 0x500);
 
 				nds7_ipc.cnt &= 0x3FF;
@@ -2878,7 +2889,11 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 				else { nds7_exmem &= ~0x80; }
 			}
 
-			else { nds7_exmem = (value & 0x7F); }
+			else
+			{
+				nds7_exmem &= 0xFF00;
+				nds7_exmem |= (value & 0x7F);
+			}
 
 			break;
 
@@ -2886,11 +2901,11 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			if(access_mode)
 			{
 				nds9_exmem &= 0xFF;
-				nds9_exmem |= ((value & 0xBF) << 8);
+				nds9_exmem |= ((value & 0xE8) << 8);
 
 				//Change Bits 8-15 of NDS EXMEMSTAT
 				nds7_exmem &= 0xFF;
-				nds7_exmem |= ((value & 0xBF) << 8);
+				nds7_exmem |= ((value & 0xE8) << 8);
 			}
 
 			break;
