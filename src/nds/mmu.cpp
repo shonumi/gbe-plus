@@ -2345,8 +2345,6 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 				timer->prescalar--;
 				timer->clock = timer->prescalar;
-
-
 			}
 
 			break;
@@ -2492,8 +2490,6 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		case NDS_IPCFIFOCNT:
 			if(access_mode)
 			{
-				std::cout<<"ARM9 FIFOCNT0 -> 0x" << (u16)value << "\n";	
-
 				u16 irq_trigger = (nds9_ipc.cnt & 0x5);
 
 				nds9_ipc.cnt &= 0xFFF3;
@@ -2520,8 +2516,6 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 			else
 			{
-				std::cout<<"ARM7 FIFOCNT0 -> 0x" << (u16)value << "\n";	
-
 				u16 irq_trigger = (nds7_ipc.cnt & 0x5);
 
 				nds7_ipc.cnt &= 0xFFF3;
@@ -2551,7 +2545,8 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		case NDS_IPCFIFOCNT+1:
 			if(access_mode)
 			{
-				std::cout<<"ARM9 FIFOCNT1 -> 0x" << (u16)value << "\n";	
+				//Acknowledge IPCFIFO error bit
+				if((value & 0x40) && (nds9_ipc.cnt & 0x4000)) { value &= ~0x40; }
 
 				u16 irq_trigger = (nds9_ipc.cnt & 0x500);
 
@@ -2564,7 +2559,8 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 			else
 			{
-				std::cout<<"ARM7 FIFOCNT1 -> 0x" << (u16)value << "\n";
+				//Acknowledge IPCFIFO error bit
+				if((value & 0x40) && (nds7_ipc.cnt & 0x4000)) { value &= ~0x40; }
 	
 				u16 irq_trigger = (nds7_ipc.cnt & 0x500);
 
