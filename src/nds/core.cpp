@@ -616,6 +616,8 @@ void NTR_core::step()
 /****** Debugger - Allow core to run until a breaking condition occurs ******/
 void NTR_core::debug_step()
 {
+	bool printed = false;
+
 	//Select NDS9 or NDS7 PC when looking for a break condition
 	u32 pc = nds9_debug ? core_cpu_nds9.reg.r15 : core_cpu_nds7.reg.r15;
 
@@ -629,6 +631,7 @@ void NTR_core::debug_step()
 			{
 				debug_display();
 				debug_process_command();
+				printed = true;
 			}
 		}
 
@@ -639,7 +642,11 @@ void NTR_core::debug_step()
 	{
 		debug_display();
 		debug_process_command();
+		printed = true;
 	}
+
+	//Display every instruction when print all is enabled
+	if((!printed) && (db_unit.print_all)) { debug_display(); } 
 }
 
 /****** Debugger - Display relevant info to the screen ******/
@@ -1118,6 +1125,26 @@ void NTR_core::debug_process_command()
 
 			valid_command = true;
 			db_unit.last_command = "rs";
+			debug_process_command();
+		}
+
+		//Print all instructions to the screen
+		else if(command == "pa")
+		{
+			if(db_unit.print_all)
+			{
+				std::cout<<"\nPrint-All turned off\n";
+				db_unit.print_all = false;
+			}
+
+			else
+			{
+				std::cout<<"\nPrint-All turned on\n";
+				db_unit.print_all = true;
+			}
+
+			valid_command = true;
+			db_unit.last_command = "pa";
 			debug_process_command();
 		}
 
