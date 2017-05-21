@@ -143,6 +143,7 @@ void NTR_MMU::reset()
 	nds_card.transfer_clock = 0;
 	nds_card.transfer_src = 0;
 	nds_card.state = 0;
+	nds_card.last_state = 0;
 	nds_card.active_transfer = false;
 	nds_card.cmd_lo = 0;
 	nds_card.cmd_hi = 0;
@@ -3499,8 +3500,18 @@ void NTR_MMU::process_card_bus()
 			if(!nds_card.cmd_lo && !nds_card.cmd_hi)
 			{
 				nds_card.state = 0x10;
-				nds_card.transfer_src = 0;
-				
+
+				if(nds_card.last_state != 0x10)
+				{
+					nds_card.transfer_src = 0;
+					nds_card.last_state = 0x10;
+				}
+
+				else
+				{
+					nds_card.transfer_src += 0x200;
+					nds_card.transfer_src &= 0xFFF;
+				}
 			}
 
 			//Dummy
@@ -3510,7 +3521,7 @@ void NTR_MMU::process_card_bus()
 			}
 
 			//Get ROM chip ID 1
-			else if((!nds_card.cmd_lo) && (nds_card.cmd_hi == 0x9F000000))
+			else if((!nds_card.cmd_lo) && (nds_card.cmd_hi == 0x90000000))
 			{
 				std::cout<<"MMU::Game Card Bus Chip ID 1 Command (STUBBED)\n";
 			}
