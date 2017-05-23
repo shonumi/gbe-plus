@@ -114,6 +114,7 @@ class NTR_MMU
 		u16 transfer_size;
 		bool active_transfer;
 		u8 state;
+		u8 last_state;
 		u32 transfer_src;
 
 		//ROM data

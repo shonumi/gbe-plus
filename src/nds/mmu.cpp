@@ -74,6 +74,25 @@ void NTR_MMU::reset()
 	write_u16_fast(NDS_BG2PD_B, 0x100);
 	write_u16_fast(NDS_BG3PA_B, 0x100);
 	write_u16_fast(NDS_BG3PD_B, 0x100);
+	
+	//NDS7 BIOS CRC
+	write_u16_fast(0x23FF850, 0x5835);
+	write_u16_fast(0x23FFC10, 0x5835);
+
+	//NDS9 to NDS7 message
+	write_u32_fast(0x23FF880, 0x7);
+
+	//NDS7 Boot Task
+	write_u32_fast(0x23FF884, 0x6);
+
+	//Misc Boot Flags
+	write_u32_fast(0x23FF890, 0xB0002A22);
+
+	//Frame Counter
+	write_u32_fast(0x23FFC3C, 0x332);
+
+	//Boot Status
+	write_u16_fast(0x23FFC40, 0x1);
 
 	//Setup EXMEM + default access mode to NDS9
 	access_mode = 0;
