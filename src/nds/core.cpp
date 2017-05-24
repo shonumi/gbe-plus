@@ -328,19 +328,7 @@ void NTR_core::run_core()
 
 						//IntrWait, VBlankIntrWait
 						case 0x3:
-							//If R0 == 0, quit on any IRQ
-							if((core_cpu_nds7.reg.r0 == 0) && (core_mmu.nds7_if))
-							{
-								//Restore old IF, also OR in any new flags that were set
-								core_mmu.nds7_if = (core_mmu.nds7_old_if | core_mmu.nds7_if);
-
-								//Restore old IE
-								core_mmu.nds7_ie = core_mmu.nds7_old_ie;
-
-								core_cpu_nds7.idle_state = 0;
-							}
-
-							//Otherwise, match up bits in IE and IF
+							//Match up bits in IE and IF
 							for(int x = 0; x < 24; x++)
 							{
 								//When there is a match check to see if IntrWait can quit
