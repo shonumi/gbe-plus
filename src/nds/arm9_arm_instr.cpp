@@ -744,8 +744,20 @@ void NTR_ARM9::multiply(u32 current_arm_instruction)
 			}
 
 			break;
-			
 
+		//SMULxy
+		case 0xB:
+			if(current_arm_instruction & 0x40) { Rs >>= 16; }
+			else { Rs &= 0xFFFF; }
+
+			if(current_arm_instruction & 0x20) { Rm >>= 16; }
+			else { Rm &= 0xFFFF; }
+
+			value_32 = (Rm * Rs);
+			set_reg(dest_reg, value_32);
+
+			break;
+			
 		default: std::cout<<"CPU::ARM9::Warning:: - ARM.7 Invalid or unimplemented opcode : " << std::hex << (int)op_code << "\n"; std::cout<<"OP -> 0x" << current_arm_instruction << "\n";
 			 std::cout<<"PC -> 0x" << std::hex << reg.r15 << "\n";
 	}
