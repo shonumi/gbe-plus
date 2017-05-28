@@ -210,6 +210,11 @@ void DMG_SIO::reset()
 			sio_stat.sio_type = GB_MOBILE_ADAPTER;
 			break;
 
+		//Bardigun barcode scanner
+		case 4:
+			sio_stat.sio_type = GB_BARDIGUN_SCANNER;
+			break;
+
 		//Always wait until netplay connection is established to change to GB_LINK
 		//Also, any invalid types are ignored
 		default:
@@ -249,6 +254,12 @@ void DMG_SIO::reset()
 	mobile_adapter.pop_session_started = false;
 	mobile_adapter.http_session_started = false;
 	mobile_adapter.http_data = "";
+
+	//Bardigun barcode scanner
+	bardigun_scanner.data.clear();
+	bardigun_scanner.current_state = BARDIGUN_INACTIVE;
+	bardigun_scanner.inactive_counter = 0x500;
+	bardigun_scanner.barcode_pointer = 0;
 
 	#ifdef GBE_NETPLAY
 
@@ -1727,4 +1738,67 @@ void DMG_SIO::mobile_adapter_process_http()
 	//Send packet back
 	mobile_adapter.packet_size = 0;
 	mobile_adapter.current_state = GBMA_ECHO_PACKET;
+}
+
+/****** Processes Bardigun barcode data sent to the Game Boy ******/
+void DMG_SIO::bardigun_process()
+{
+	switch(bardigun_scanner.current_state)
+	{
+		//Send 0x0 while scanner is inactive
+		case BARDIGUN_INACTIVE:
+			mem->memory_map[REG_SB] = 0x0;
+			mem->memory_map[IF_FLAG] |= 0x08;
+			bardigun_scanner.inactive_counter--;
+
+			//Send barcode data after waiting a bit
+			if(!bardigun_scanner.inactive_counter)
+			{
+				bardigun_scanner.inactive_counter = 0x500;
+
+				if(bardigun_scanner.data.size() != 0)
+				{
+					bardigun_scanner.current_state = BARDIGUN_SEND_BARCODE;
+					bardigun_scanner.barcode_pointer = 0;
+				}
+			}
+			
+			break;
+
+		//Send barcode data
+		case BARDIGUN_SEND_BARCODE:
+			mem->memory_map[REG_SB] = bardigun_scanner.data[bardigun_scanner.barcode_pointer++];
+			mem->memory_map[IF_FLAG] |= 0x08;
+
+			if(bardigun_scanner.barcode_pointer == bardigun_scanner.data.size()) { bardigun_scanner.current_state = BARDIGUN_INACTIVE; }
+
+			break;
+	}
+}
+
+/****** Loads a Bardigun barcode file ******/
+bool DMG_SIO::bardigun_load_barcode(std::string filename)
+{
+	std::ifstream barcode(filename.c_str(), std::ios::binary);
+
+	if(!barcode.is_open()) 
+	{ 
+		std::cout<<"SIO::Bardigun barcode data could not be read. Check file path or permissions. \n";
+		return false;
+	}
+
+	//Get file size
+	barcode.seekg(0, barcode.end);
+	u32 barcode_size = barcode.tellg();
+	barcode.seekg(0, barcode.beg);
+
+	bardigun_scanner.data.resize(barcode_size, 0x0);
+
+	u8* ex_data = &bardigun_scanner.data[0];
+
+	barcode.read((char*)ex_data, barcode_size); 
+	barcode.close();
+
+	std::cout<<"SIO::Loaded Bardigun barcode data.\n";
+	return true;
 }

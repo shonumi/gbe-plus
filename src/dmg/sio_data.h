@@ -21,6 +21,7 @@ enum sio_types
 	GB_LINK,
 	GB_PRINTER,
 	GB_MOBILE_ADAPTER,
+	GB_BARDIGUN_SCANNER,
 };
 
 enum printer_state
@@ -42,6 +43,12 @@ enum mobile_state
 	GBMA_RECEIVE_CHECKSUM,
 	GBMA_ACKNOWLEDGE_PACKET,
 	GBMA_ECHO_PACKET,
+};
+
+enum bardigun_state
+{
+	BARDIGUN_INACTIVE,
+	BARDIGUN_SEND_BARCODE,
 };
 
 struct dmg_sio_data

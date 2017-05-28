@@ -93,6 +93,15 @@ class DMG_SIO
 		bool line_busy;
 	} mobile_adapter;
 
+	//Bardigun barcode scanner
+	struct gb_bardigun_barcode_scanner
+	{
+		std::vector <u8> data;
+		bardigun_state current_state;
+		u16 inactive_counter;
+		u32 barcode_pointer;
+	} bardigun_scanner;
+
 	DMG_SIO();
 	~DMG_SIO();
 
@@ -113,6 +122,9 @@ class DMG_SIO
 	void mobile_adapter_process();
 	void mobile_adapter_process_pop();
 	void mobile_adapter_process_http();
+
+	void bardigun_process();
+	bool bardigun_load_barcode(std::string filename);
 };
 
 #endif // GB_SIO
