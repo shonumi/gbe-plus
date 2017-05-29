@@ -260,6 +260,7 @@ void DMG_SIO::reset()
 	bardigun_scanner.current_state = BARDIGUN_INACTIVE;
 	bardigun_scanner.inactive_counter = 0x500;
 	bardigun_scanner.barcode_pointer = 0;
+	if(config::sio_device == 4) { bardigun_load_barcode(config::external_card_file); }
 
 	#ifdef GBE_NETPLAY
 

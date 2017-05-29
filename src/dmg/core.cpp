@@ -355,6 +355,11 @@ void DMG_core::run_core()
 							case GB_MOBILE_ADAPTER:
 								core_cpu.controllers.serial_io.mobile_adapter_process();
 								break;
+
+							//Process Bardigun card scanner communications
+							case GB_BARDIGUN_SCANNER:
+								core_cpu.controllers.serial_io.bardigun_process();
+								break;
 						}
 					}
 				}
@@ -531,6 +536,11 @@ void DMG_core::step()
 						//Process GB Mobile Adapter communications
 						case GB_MOBILE_ADAPTER:
 							core_cpu.controllers.serial_io.mobile_adapter_process();
+							break;
+
+						//Process Bardigun card scanner communications
+						case GB_BARDIGUN_SCANNER:
+							core_cpu.controllers.serial_io.bardigun_process();
 							break;
 					}
 				}
