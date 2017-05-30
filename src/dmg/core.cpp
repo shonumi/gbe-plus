@@ -1758,6 +1758,14 @@ void DMG_core::handle_hotkey(SDL_Event& event)
 			core_mmu.cart.cam_lock = false;
 		}
 	}
+
+	//Bardigun + Barcode Boy - Reswipe card
+	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F3))
+	{
+		core_cpu.controllers.serial_io.bardigun_scanner.current_state = BARDIGUN_INACTIVE;
+		core_cpu.controllers.serial_io.bardigun_scanner.inactive_counter = 0x500;
+		core_cpu.controllers.serial_io.bardigun_scanner.barcode_pointer = 0;
+	}
 }
 
 /****** Process hotkey input - Use exsternally when not using SDL ******/
@@ -1798,6 +1806,14 @@ void DMG_core::handle_hotkey(int input, bool pressed)
 
 			core_mmu.cart.cam_lock = false;
 		}
+	}
+
+	//Bardigun + Barcode Boy - Reswipe card
+	else if((input == SDLK_F3) && (pressed))
+	{
+		core_cpu.controllers.serial_io.bardigun_scanner.current_state = BARDIGUN_INACTIVE;
+		core_cpu.controllers.serial_io.bardigun_scanner.inactive_counter = 0x500;
+		core_cpu.controllers.serial_io.bardigun_scanner.barcode_pointer = 0;
 	}
 }
 
