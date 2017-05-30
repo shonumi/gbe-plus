@@ -1570,6 +1570,10 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 		case WAITCNT+1:
 			{
 				memory_map[address] = value;
+
+				//Always make sure Bit 15 is 0 and Read-Only in GBA mode
+				memory_map[WAITCNT+1] &= ~0x80;
+				
 				u16 wait_control = ((memory_map[WAITCNT+1] << 8) | memory_map[WAITCNT]);
 
 				//Determine first access cycles (Non-Sequential)
