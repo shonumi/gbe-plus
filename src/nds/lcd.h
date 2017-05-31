@@ -133,6 +133,7 @@ class NTR_LCD
 	int fps_time;
 
 	u8 inv_lut[8];
+	u16 screen_offset_lut[512];
 
 	void render_scanline();
 	void render_bg_scanline(u32 bg_control);

@@ -215,6 +215,12 @@ void NTR_LCD::reset()
 	//Inverse LUT
 	for(int x = 0, y = 7; x < 8; x++, y--) { inv_lut[x] = y; }
 
+	//Screen offset LUT
+	for(int x = 0; x < 512; x++)
+	{
+		screen_offset_lut[x] = (x > 255) ? 0x800 : 0x0;
+	}
+
 	//Initialize system screen dimensions
 	config::sys_width = 256;
 	config::sys_height = 384;
@@ -1133,11 +1139,42 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 
 		//Get tile and map addresses
 		u32 tile_addr = 0x6000000 + lcd_stat.bg_base_tile_addr_a[bg_id];
-		u32 map_addr = 0x6000000 + lcd_stat.bg_base_map_addr_a[bg_id];
+		u32 map_addr_base = 0x6000000 + lcd_stat.bg_base_map_addr_a[bg_id];
+		u32 map_addr = 0;
  
 		//Cycle through all tiles on this scanline
 		for(u32 x = 0; x < 256;)
 		{
+			//Determine meta x-coordinate of rendered BG pixel
+			u16 meta_x = ((scanline_pixel_counter + lcd_stat.bg_offset_x_a[bg_id]) & lcd_stat.text_width_a[bg_id]);
+
+			//Determine meta Y-coordinate of rendered BG pixel
+			u16 meta_y = ((lcd_stat.current_scanline + lcd_stat.bg_offset_y_a[bg_id]) & lcd_stat.text_height_a[bg_id]);
+
+			//Determine the address offset for the screen
+			switch(lcd_stat.bg_size_a[bg_id])
+			{
+				//Size 0 - 256x256
+				case 0x0:
+					map_addr = map_addr_base;
+					break;
+
+				//Size 1 - 512x256
+				case 0x1: 
+					map_addr = map_addr_base + screen_offset_lut[meta_x];
+					break;
+
+				//Size 2 - 256x512
+				case 0x2:
+					map_addr = map_addr_base + screen_offset_lut[meta_y];
+					break;
+
+				//Size 3 - 512x512
+				case 0x3:
+					map_addr = map_addr_base + (meta_y > 255) ? (screen_offset_lut[meta_x] | 0x1000) : screen_offset_lut[meta_x];
+					break;
+			}
+				
 			//Determine which map entry to start looking up tiles
 			u16 map_entry = ((current_screen_line >> 3) << 5);
 			map_entry += (current_screen_pixel >> 3);
@@ -1272,11 +1309,42 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 
 		//Get tile and map addresses
 		u32 tile_addr = 0x6200000 + lcd_stat.bg_base_tile_addr_b[bg_id];
-		u32 map_addr = 0x6200000 + lcd_stat.bg_base_map_addr_b[bg_id];
+		u32 map_addr_base = 0x6200000 + lcd_stat.bg_base_map_addr_b[bg_id];
+		u32 map_addr = 0;
 
 		//Cycle through all tiles on this scanline
 		for(u32 x = 0; x < 256;)
 		{
+			//Determine meta x-coordinate of rendered BG pixel
+			u16 meta_x = ((scanline_pixel_counter + lcd_stat.bg_offset_x_b[bg_id]) & lcd_stat.text_width_b[bg_id]);
+
+			//Determine meta Y-coordinate of rendered BG pixel
+			u16 meta_y = ((lcd_stat.current_scanline + lcd_stat.bg_offset_y_b[bg_id]) & lcd_stat.text_height_b[bg_id]);
+
+			//Determine the address offset for the screen
+			switch(lcd_stat.bg_size_b[bg_id])
+			{
+				//Size 0 - 256x256
+				case 0x0:
+					map_addr = map_addr_base;
+					break;
+
+				//Size 1 - 512x256
+				case 0x1: 
+					map_addr = map_addr_base + screen_offset_lut[meta_x];
+					break;
+
+				//Size 2 - 256x512
+				case 0x2:
+					map_addr = map_addr_base + screen_offset_lut[meta_y];
+					break;
+
+				//Size 3 - 512x512
+				case 0x3:
+					map_addr = map_addr_base + (meta_y > 255) ? (screen_offset_lut[meta_x] | 0x1000) : screen_offset_lut[meta_x];
+					break;
+			}
+
 			//Determine which map entry to start looking up tiles
 			u16 map_entry = ((current_screen_line >> 3) << 5);
 			map_entry += (current_screen_pixel >> 3);
