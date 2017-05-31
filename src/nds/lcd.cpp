@@ -1171,7 +1171,9 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 
 				//Size 3 - 512x512
 				case 0x3:
-					map_addr = map_addr_base + (meta_y > 255) ? (screen_offset_lut[meta_x] | 0x1000) : screen_offset_lut[meta_x];
+					map_addr = screen_offset_lut[meta_x];
+					if(meta_y > 255) { map_addr |= 0x1000; }
+					map_addr += map_addr_base;
 					break;
 			}
 				
@@ -1341,7 +1343,9 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 
 				//Size 3 - 512x512
 				case 0x3:
-					map_addr = map_addr_base + (meta_y > 255) ? (screen_offset_lut[meta_x] | 0x1000) : screen_offset_lut[meta_x];
+					map_addr = screen_offset_lut[meta_x];
+					if(meta_y > 255) { map_addr |= 0x1000; }
+					map_addr += map_addr_base;
 					break;
 			}
 
