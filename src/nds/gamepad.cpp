@@ -244,13 +244,13 @@ void NTR_GamePad::process_keyboard(int pad, bool pressed)
 	else if((pad == config::ntr_key_b) && (!pressed)) { key_input |= 0x2; }
 
 	//Emulate X button press
-	else if((pad == config::ntr_key_x) && (pressed)) { ext_key_input &= 0x1; }
+	else if((pad == config::ntr_key_x) && (pressed)) { ext_key_input &= ~0x1; }
 
 	//Emulate X button release
 	else if((pad == config::ntr_key_x) && (!pressed)) { ext_key_input |= 0x1; }
 
 	//Emulate Y button press
-	else if((pad == config::ntr_key_y) && (pressed)) { ext_key_input &= 0x2; }
+	else if((pad == config::ntr_key_y) && (pressed)) { ext_key_input &= ~0x2; }
 
 	//Emulate Y button release
 	else if((pad == config::ntr_key_y) && (!pressed)) { ext_key_input |= 0x2; }
