@@ -429,8 +429,8 @@ void NTR_ARM9::decode()
 
 		else if((current_instruction & 0xF800) == 0xE800)
 		{
-			//THUMB_5 BLX
-			instruction_operation[pipeline_id] = THUMB_5;
+			//THUMB_19 BLX
+			instruction_operation[pipeline_id] = THUMB_19;
 		}
 	}
 

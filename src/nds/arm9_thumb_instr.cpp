@@ -1575,7 +1575,7 @@ void NTR_ARM9::unconditional_branch(u16 current_thumb_instruction)
 void NTR_ARM9::long_branch_link(u16 current_thumb_instruction)
 {
 	//Determine if this is the first or second instruction executed
-	bool first_op = (((current_thumb_instruction >> 11) & 0x1F) == 0x1F) ? false : true;
+	bool first_op = (((current_thumb_instruction >> 11) & 0x1F) == 0x1E) ? true : false;
 
 	u32 lbl_addr = 0;
 
@@ -1621,5 +1621,15 @@ void NTR_ARM9::long_branch_link(u16 current_thumb_instruction)
 		//Clock CPU and controllers - 2S
 		clock(reg.r15, false);
 		clock((reg.r15 + 2), false);
+
+		//BLX
+		if(((current_thumb_instruction >> 11) & 0x1F) == 0x1D)
+		{
+			arm_mode = ARM;
+			reg.cpsr &= ~0x20;
+
+			//Auto-align destination to word
+			reg.r15 &= ~0x2;
+		}
 	}
 }
