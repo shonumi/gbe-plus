@@ -60,6 +60,12 @@ void NTR_ARM9::process_swi(u32 comment)
 			swi_cpuset();
 			break;
 
+		//CPUFastSet
+		case 0xC:
+			std::cout<<"ARM9::SWI::CPU Fast Set \n";
+			swi_cpufastset();
+			break;
+
 		//Sqrt
 		case 0xD:
 			std::cout<<"ARM9::SWI::Sqrt \n";
@@ -308,6 +314,60 @@ void NTR_ARM9::swi_cpuset()
 	set_reg(1, dest_addr);
 }
 
+/****** HLE implementation of CPUFastSet - NDS9 ******/
+void NTR_ARM9::swi_cpufastset()
+{
+	//Grab source address - R0
+	u32 src_addr = get_reg(0);
+
+	//Grab destination address - R1
+	u32 dest_addr = get_reg(1);
+
+	src_addr &= ~0x3;
+	dest_addr &= ~0x3;
+
+	//Grab transfer control options - R2
+	u32 transfer_control = get_reg(2);
+
+	//Transfer size - Bits 0-20 of R2
+	u32 transfer_size = (transfer_control & 0x1FFFFF);
+
+	//Determine if the transfer operation is copy or fill - Bit 24 of R2
+	u8 copy_fill = (transfer_control & 0x1000000) ? 1 : 0;
+
+	u32 temp = 0;
+
+	while(transfer_size != 0)
+	{
+		//Copy from source to destination
+		if(copy_fill == 0)
+		{
+			temp = mem->read_u32(src_addr);
+			mem->write_u32(dest_addr, temp);
+			
+			src_addr += 4;
+			dest_addr += 4;
+
+			transfer_size--;
+		}
+
+		//Fill first entry from source with destination
+		else
+		{
+			temp = mem->read_u32(src_addr);
+			mem->write_u32(dest_addr, temp);
+			
+			dest_addr += 4;
+			
+			transfer_size--;
+		}
+	}
+
+	//Write-back R0, R1
+	set_reg(0, src_addr);
+	set_reg(1, dest_addr);
+}
+
 /****** HLE implementation of Sqrt - NDS9 ******/
 void NTR_ARM9::swi_sqrt()
 {
@@ -443,6 +503,12 @@ void NTR_ARM7::process_swi(u32 comment)
 		case 0xB:
 			std::cout<<"ARM7::SWI::CPUSet \n";
 			swi_cpuset();
+			break;
+
+		//CPUFastSet
+		case 0xC:
+			std::cout<<"ARM7::SWI::CPU Fast Set \n";
+			swi_cpufastset();
 			break;
 
 		//Sqrt
@@ -717,6 +783,64 @@ void NTR_ARM7::swi_cpuset()
 			
 				dest_addr += 4;
 			}
+			
+			transfer_size--;
+		}
+	}
+
+	//Write-back R0, R1
+	set_reg(0, src_addr);
+	set_reg(1, dest_addr);
+}
+
+/****** HLE implementation of CPUFastSet - NDS7 ******/
+void NTR_ARM7::swi_cpufastset()
+{
+	//Grab source address - R0
+	u32 src_addr = get_reg(0);
+
+	//Grab destination address - R1
+	u32 dest_addr = get_reg(1);
+
+	src_addr &= ~0x3;
+	dest_addr &= ~0x3;
+
+	//Abort read/writes to the BIOS
+	if(src_addr <= 0x3FFF) { return; }
+	if(dest_addr <= 0x3FFF) { return; }
+
+	//Grab transfer control options - R2
+	u32 transfer_control = get_reg(2);
+
+	//Transfer size - Bits 0-20 of R2
+	u32 transfer_size = (transfer_control & 0x1FFFFF);
+
+	//Determine if the transfer operation is copy or fill - Bit 24 of R2
+	u8 copy_fill = (transfer_control & 0x1000000) ? 1 : 0;
+
+	u32 temp = 0;
+
+	while(transfer_size != 0)
+	{
+		//Copy from source to destination
+		if(copy_fill == 0)
+		{
+			temp = mem->read_u32(src_addr);
+			mem->write_u32(dest_addr, temp);
+			
+			src_addr += 4;
+			dest_addr += 4;
+
+			transfer_size--;
+		}
+
+		//Fill first entry from source with destination
+		else
+		{
+			temp = mem->read_u32(src_addr);
+			mem->write_u32(dest_addr, temp);
+			
+			dest_addr += 4;
 			
 			transfer_size--;
 		}
