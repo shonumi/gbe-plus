@@ -1110,6 +1110,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 	{
 		//Grab BG ID
 		u8 bg_id = (bg_control - 0x4000008) >> 1;
+		u8 bg_priority = lcd_stat.bg_priority_a[bg_id] + 1;
 
 		//Abort rendering if this BG is disabled
 		if(!lcd_stat.bg_enable_a[bg_id]) { return; }
@@ -1205,13 +1206,13 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 					u8 raw_color = (flip & 0x1) ? mem->read_u8(tile_data_addr--) : mem->read_u8(tile_data_addr++);
 
 					//Only draw if no previous pixel was rendered
-					if(!render_buffer_a[scanline_pixel_counter])
+					if(!render_buffer_a[scanline_pixel_counter] || (bg_priority < render_buffer_a[scanline_pixel_counter]))
 					{
 						//Only draw colors if not transparent
 						if(raw_color)
 						{
 							scanline_buffer_a[scanline_pixel_counter] = (lcd_stat.ext_pal_a) ? lcd_stat.bg_ext_pal_a[ext_pal_id + raw_color]  : lcd_stat.bg_pal_a[raw_color];
-							render_buffer_a[scanline_pixel_counter] = (bg_id + 1);
+							render_buffer_a[scanline_pixel_counter] = bg_priority;
 						}
 
 						else { full_render = false; }
@@ -1233,13 +1234,13 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 					u8 pal_2 = (pal_id * 16) + (raw_color >> 4);
 
 					//Only draw if no previous pixel was rendered
-					if(!render_buffer_a[scanline_pixel_counter])
+					if(!render_buffer_a[scanline_pixel_counter] || (bg_priority < render_buffer_a[scanline_pixel_counter]))
 					{
 						//Only draw colors if not transparent
 						if(raw_color & 0xF)
 						{
 							scanline_buffer_a[scanline_pixel_counter] = lcd_stat.bg_pal_a[pal_1];
-							render_buffer_a[scanline_pixel_counter] = (bg_id + 1);
+							render_buffer_a[scanline_pixel_counter] = bg_priority;
 						}
 
 						else { full_render = false; }
@@ -1250,13 +1251,13 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 					if(scanline_pixel_counter & 0x100) { return; }
 
 					//Only draw if no previous pixel was rendered
-					if(!render_buffer_a[scanline_pixel_counter])
+					if(!render_buffer_a[scanline_pixel_counter] || (bg_priority < render_buffer_a[scanline_pixel_counter]))
 					{
 						//Only draw colors if not transparent
 						if(raw_color >> 4)
 						{
 							scanline_buffer_a[scanline_pixel_counter] = lcd_stat.bg_pal_a[pal_2];
-							render_buffer_a[scanline_pixel_counter] = (bg_id + 1);
+							render_buffer_a[scanline_pixel_counter] = bg_priority;
 						}
 
 						else { full_render = false; }
@@ -1282,6 +1283,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 	{
 		//Grab BG ID
 		u8 bg_id = (bg_control - 0x4001008) >> 1;
+		u8 bg_priority = lcd_stat.bg_priority_b[bg_id] + 1;
 
 		//Abort rendering if this bg is disabled
 		if(!lcd_stat.bg_enable_b[bg_id]) { return; }
@@ -1377,13 +1379,13 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 					u8 raw_color = (flip & 0x1) ? mem->read_u8(tile_data_addr--) : mem->read_u8(tile_data_addr++);
 
 					//Only draw if no previous pixel was rendered
-					if(!render_buffer_b[scanline_pixel_counter])
+					if(!render_buffer_b[scanline_pixel_counter] || (bg_priority < render_buffer_b[scanline_pixel_counter]))
 					{
 						//Only draw colors if not transparent
 						if(raw_color)
 						{
 							scanline_buffer_b[scanline_pixel_counter] = (lcd_stat.ext_pal_b) ? lcd_stat.bg_ext_pal_b[ext_pal_id + raw_color]  : lcd_stat.bg_pal_b[raw_color];
-							render_buffer_b[scanline_pixel_counter] = (bg_id + 1);
+							render_buffer_b[scanline_pixel_counter] = bg_priority;
 						}
 
 						else { full_render = false; }
@@ -1405,13 +1407,13 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 					u8 pal_2 = (pal_id * 16) + (raw_color >> 4);
 
 					//Only draw if no previous pixel was rendered
-					if(!render_buffer_b[scanline_pixel_counter])
+					if(!render_buffer_b[scanline_pixel_counter] || (bg_priority < render_buffer_b[scanline_pixel_counter]))
 					{
 						//Only draw colors if not transparent
 						if(raw_color & 0xF)
 						{
 							scanline_buffer_b[scanline_pixel_counter] = lcd_stat.bg_pal_b[pal_1];
-							render_buffer_b[scanline_pixel_counter] = (bg_id + 1);
+							render_buffer_b[scanline_pixel_counter] = bg_priority;
 						}
 
 						else { full_render = false; }
@@ -1422,13 +1424,13 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 					if(scanline_pixel_counter & 0x100) { return; }
 
 					//Only draw if no previous pixel was rendered
-					if(!render_buffer_b[scanline_pixel_counter])
+					if(!render_buffer_b[scanline_pixel_counter] || (bg_priority < render_buffer_b[scanline_pixel_counter]))
 					{
 						//Only draw colors if not transparent
 						if(raw_color >> 4)
 						{
 							scanline_buffer_b[scanline_pixel_counter] = lcd_stat.bg_pal_b[pal_2];
-							render_buffer_b[scanline_pixel_counter] = (bg_id + 1);
+							render_buffer_b[scanline_pixel_counter] = bg_priority;
 						}
 
 						else { full_render = false; }
