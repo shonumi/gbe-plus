@@ -2819,7 +2819,9 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 					nds_card.baud_rate = (nds_card.cnt & 0x8000000) ? 4 : 5;
 					nds_card.transfer_clock = nds_card.baud_rate;
 					
-					nds_card.transfer_size = (0x100 << ((nds_card.cnt >> 24) & 0x7));
+					if((nds_card.cnt >> 24) & 0x7) { nds_card.transfer_size = (0x100 << ((nds_card.cnt >> 24) & 0x7)); }
+					else { nds_card.transfer_size = 0; }
+
 					nds_card.active_transfer = true;
 					nds_card.state = 0;
 
@@ -3531,6 +3533,8 @@ void NTR_MMU::process_card_bus()
 					nds_card.transfer_src += 0x200;
 					nds_card.transfer_src &= 0xFFF;
 				}
+
+				nds_card.transfer_size = 0x200;
 			}
 
 			//Dummy
