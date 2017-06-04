@@ -27,10 +27,10 @@ NTR_ARM9::~NTR_ARM9()
 void NTR_ARM9::reset()
 {
 	reg.r0 = reg.r1 = reg.r2 = reg.r3 = reg.r4 = reg.r5 = reg.r6 = reg.r7 = reg.r8 = reg.r9 = reg.r10 = reg.r11 = reg.r12 = reg.r14 = 0;
-	reg.r13 = reg.r13_fiq = reg.r13_abt = reg.r13_und = 0x803EC0;
-	reg.r13_svc = 0x803FC0;
-	reg.r13_irq = 0x803FA0;
-	reg.r15 = 0x8000000;
+	reg.r13 = reg.r13_fiq = reg.r13_abt = reg.r13_und = 0x3002F7C;
+	reg.r13_svc = 0x3003FC0;
+	reg.r13_irq = 0x3003F80;
+	reg.r15 = 0;
 	reg.cpsr = 0x5F;
 
 	reg.r8_fiq = reg.r9_fiq = reg.r10_fiq = reg.r11_fiq = reg.r12_fiq = reg.r14_fiq = reg.spsr_fiq = 0;
