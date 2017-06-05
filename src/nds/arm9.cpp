@@ -72,6 +72,7 @@ void NTR_ARM9::reset()
 	debug_cycles = 0;
 
 	sync_cycles = 0;
+	system_cycles = 0;
 	re_sync = false;
 
 	flush_pipeline();
@@ -817,7 +818,7 @@ void NTR_ARM9::execute()
 			debug_code = instruction_pipeline[pipeline_id];
 
 			//Clock CPU and controllers - 1S
-			clock(reg.r15, false); 
+			clock(reg.r15, CODE_S32); 
 		}
 	}
 
@@ -1197,73 +1198,112 @@ void NTR_ARM9::mem_check_8(u32 addr, u32& value, bool load_store)
 	else { mem->write_u8(addr, value); }
 }
 
-
-/****** Runs audio and video controllers every clock cycle ******/
-void NTR_ARM9::clock(u32 access_addr, bool first_access)
+/****** Counts cycles for memory accesses  ******/
+void NTR_ARM9::clock(u32 access_addr, mem_modes current_mode)
 {
-	//TODO - Everything here
-	//Determine cycles with Wait States + access timing
-	u8 access_cycles = 8;
-
-	//ARM9 CPU sync cycles
-	sync_cycles += access_cycles;
-
-	//Run controllers for each cycle		 
-	for(int x = 0; x < access_cycles; x++)
+	//Determine memory region being accessed
+	switch(access_addr >> 24)
 	{
-		controllers.video.step();
-		clock_dma();
-	}
+		//ITCM - TODO Cache Miss
+		case 0x1:
+			system_cycles += 2;
+			break;
 
-	//Run timers
-	clock_timers(access_cycles);
+		//Main Memory
+		case 0x2:
+			switch(current_mode)
+			{
+				case CODE_N16: system_cycles += 9; break;
+				case CODE_S16: system_cycles += 9; break;
+				case CODE_N32: system_cycles += 18; break;
+				case CODE_S32: system_cycles += 18; break;
 
-	//Run AUXSPI Bus
-	if((mem->nds_aux_spi.active_transfer) && ((mem->nds9_exmem & 0x800) == 0))
-	{
-		mem->nds_aux_spi.transfer_clock -= access_cycles;
-		if(mem->nds_aux_spi.transfer_clock <= 0) { mem->process_aux_spi_bus(); }
-	}
+				case DATA_N16: system_cycles += 18; break;
+				case DATA_S16: system_cycles += 2; break;
+				case DATA_N32: system_cycles += 20; break;
+				case DATA_S32: system_cycles += 4; break;
+			}
 
-	//Run Cartridge Bus
-	if((mem->nds_card.active_transfer) && ((mem->nds9_exmem & 0x800) == 0))
-	{
-		mem->nds_card.transfer_clock -= access_cycles;
-		if(mem->nds_card.transfer_clock <= 0) { mem->process_card_bus(); }
+			break;
+
+		//WRAM, BIOS, I/O, OAM
+		case 0x3:
+		case 0x4:
+		case 0x7:
+			switch(current_mode)
+			{
+				case CODE_N16: system_cycles += 4; break;
+				case CODE_S16: system_cycles += 4; break;
+				case CODE_N32: system_cycles += 8; break;
+				case CODE_S32: system_cycles += 8; break;
+
+				case DATA_N16: system_cycles += 8; break;
+				case DATA_S16: system_cycles += 2; break;
+				case DATA_N32: system_cycles += 8; break;
+				case DATA_S32: system_cycles += 2; break;
+			}
+
+			break;
+
+		//VRAM, Palettes
+		case 0x5:
+		case 0x6:
+			switch(current_mode)
+			{
+				case CODE_N16: system_cycles += 5; break;
+				case CODE_S16: system_cycles += 5; break;
+				case CODE_N32: system_cycles += 10; break;
+				case CODE_S32: system_cycles += 10; break;
+
+				case DATA_N16: system_cycles += 8; break;
+				case DATA_S16: system_cycles += 2; break;
+				case DATA_N32: system_cycles += 10; break;
+				case DATA_S32: system_cycles += 4; break;
+			}
+
+			break;
+
+		default: system_cycles += 2;
 	}
 }
 
+/****** Counts internal cycles ******/
+void NTR_ARM9::clock() { system_cycles++; }
+
 /****** Runs audio and video controllers every clock cycle ******/
-void NTR_ARM9::clock()
+void NTR_ARM9::clock_system()
 {
-	u8 access_cycles = 8;
+	//Convert 66MHz cycles to 33MHz
+	system_cycles >>= 1;
 
 	//ARM9 CPU sync cycles
-	sync_cycles += access_cycles;
+	sync_cycles += system_cycles;
 
 	//Run controllers for each cycle		 
-	for(int x = 0; x < access_cycles; x++)
-	{
-		controllers.video.step();
-		clock_dma();
-	}
+	for(int x = 0; x < system_cycles; x++) { controllers.video.step(); }
+
+	//Run DMA channels
+	clock_dma();
 
 	//Run timers
-	clock_timers(access_cycles);
+	clock_timers(system_cycles);
 
 	//Run AUXSPI Bus
 	if((mem->nds_aux_spi.active_transfer) && ((mem->nds9_exmem & 0x800) == 0))
 	{
-		mem->nds_aux_spi.transfer_clock -= access_cycles;
+		mem->nds_aux_spi.transfer_clock -= system_cycles;
 		if(mem->nds_aux_spi.transfer_clock <= 0) { mem->process_aux_spi_bus(); }
 	}
 
 	//Run Cartridge Bus
 	if((mem->nds_card.active_transfer) && ((mem->nds9_exmem & 0x800) == 0))
 	{
-		mem->nds_card.transfer_clock -= access_cycles;
+		mem->nds_card.transfer_clock -= system_cycles;
 		if(mem->nds_card.transfer_clock <= 0) { mem->process_card_bus(); }
 	}
+
+	//Reset system cycles
+	system_cycles = 2;
 }
 
 /****** Runs DMA controllers every clock cycle ******/
