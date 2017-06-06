@@ -92,6 +92,19 @@ class NTR_ARM7
 		BIOS_SWI_FINISH
 	};
 
+	//Memory access enumerations
+	enum mem_modes
+	{
+		CODE_N16,
+		CODE_N32,
+		CODE_S16,
+		CODE_S32,
+		DATA_N16,
+		DATA_N32,
+		DATA_S16,
+		DATA_S32
+	};
+
 	cpu_modes current_cpu_mode;
 	instr_modes arm_mode;
 
@@ -175,6 +188,7 @@ class NTR_ARM7
 	u32 debug_cycles;
 
 	s16 sync_cycles;
+	u16 system_cycles;
 	bool re_sync;
 
 	NTR_MMU* mem;
@@ -237,9 +251,10 @@ class NTR_ARM7
 	void long_branch_link(u16 current_thumb_instruction);
 
 	//System functions
-	void clock(u32 access_address, bool first_access);
+	void clock(u32 access_address, mem_modes current_mode);
 	void clock();
 	void clock_timers(u8 access_cycles);
+	void clock_system();
 	void clock_dma();
 	void handle_interrupt();
 

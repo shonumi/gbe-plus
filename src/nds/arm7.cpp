@@ -68,6 +68,7 @@ void NTR_ARM7::reset()
 	debug_cycles = 0;
 
 	sync_cycles = 0;
+	system_cycles = 0;
 	re_sync = false;
 
 	flush_pipeline();
@@ -766,7 +767,7 @@ void NTR_ARM7::execute()
 			debug_code = instruction_pipeline[pipeline_id];
 
 			//Clock CPU and controllers - 1S
-			clock(reg.r15, false); 
+			clock(reg.r15, CODE_S32); 
 		}
 	}
 
@@ -1117,97 +1118,113 @@ void NTR_ARM7::mem_check_8(u32 addr, u32& value, bool load_store)
 	else { mem->write_u8(addr, value); }
 }
 
+/****** Counts cycles for memory accesses  ******/
+void NTR_ARM7::clock(u32 access_addr, mem_modes current_mode)
+{
+	//Determine memory region being accessed
+	switch(access_addr >> 24)
+	{
+		//Main Memory
+		case 0x2:
+			switch(current_mode)
+			{
+				case CODE_N16: system_cycles += 8; break;
+				case CODE_S16: system_cycles += 1; break;
+				case CODE_N32: system_cycles += 9; break;
+				case CODE_S32: system_cycles += 2; break;
+
+				case DATA_N16: system_cycles += 9; break;
+				case DATA_S16: system_cycles += 1; break;
+				case DATA_N32: system_cycles += 10; break;
+				case DATA_S32: system_cycles += 2; break;
+			}
+
+			break;
+
+		//WRAM, BIOS, I/O, OAM
+		case 0x3:
+		case 0x4:
+		case 0x7:
+			switch(current_mode)
+			{
+				case CODE_N16: system_cycles += 1; break;
+				case CODE_S16: system_cycles += 1; break;
+				case CODE_N32: system_cycles += 1; break;
+				case CODE_S32: system_cycles += 1; break;
+
+				case DATA_N16: system_cycles += 1; break;
+				case DATA_S16: system_cycles += 1; break;
+				case DATA_N32: system_cycles += 1; break;
+				case DATA_S32: system_cycles += 1; break;
+			}
+
+			break;
+
+		//VRAM, Palettes
+		case 0x5:
+		case 0x6:
+			switch(current_mode)
+			{
+				case CODE_N16: system_cycles += 1; break;
+				case CODE_S16: system_cycles += 1; break;
+				case CODE_N32: system_cycles += 2; break;
+				case CODE_S32: system_cycles += 2; break;
+
+				case DATA_N16: system_cycles += 1; break;
+				case DATA_S16: system_cycles += 1; break;
+				case DATA_N32: system_cycles += 2; break;
+				case DATA_S32: system_cycles += 2; break;
+			}
+
+			break;
+
+		default: system_cycles += 2;
+	}
+}
+
+/****** Counts internal cycles ******/
+void NTR_ARM7::clock() { system_cycles++; }
+
 /****** Runs audio and video controllers every clock cycle ******/
-void NTR_ARM7::clock(u32 access_addr, bool first_access)
+void NTR_ARM7::clock_system()
 {
 	//Determine cycles with Wait States + access timing
 	u8 access_cycles = 8;
 
-	//ARM9 CPU sync cycles
-	sync_cycles += access_cycles;
-
-	//Run controllers for each cycle		 
-	for(int x = 0; x < access_cycles; x++)
-	{
-		clock_dma();
-	}
-
-	//Run timers
-	clock_timers(access_cycles);
-
-	//Run SPI Bus
-	if(mem->nds7_spi.active_transfer)
-	{
-		mem->nds7_spi.transfer_clock -= access_cycles;
-		if(mem->nds7_spi.transfer_clock <= 0) { mem->process_spi_bus(); }
-	}
-
-	//Run AUXSPI Bus
-	if((mem->nds_aux_spi.active_transfer) && (mem->nds7_exmem & 0x800))
-	{
-		mem->nds_aux_spi.transfer_clock -= access_cycles;
-		if(mem->nds_aux_spi.transfer_clock <= 0) { mem->process_aux_spi_bus(); }
-	}
-
-	//Run Cartridge Bus
-	if((mem->nds_card.active_transfer) && (mem->nds7_exmem & 0x800))
-	{
-		mem->nds_card.transfer_clock -= access_cycles;
-		if(mem->nds_card.transfer_clock <= 0) { mem->process_card_bus(); }
-	}
-
-	//Run RTC
-	if((mem->nds7_ie & 0x80) && (mem->nds7_rtc.int1_enable) && (mem->memory_map[NDS_RCNT+1] & 0x1))
-	{
-		mem->nds7_rtc.int1_clock -= access_cycles;
-
-		//Raise INT1 IRQ for Selected Frequency
-		if(mem->nds7_rtc.int1_clock <= 0)
-		{
-			mem->nds7_if |= 0x80;
-			mem->nds7_rtc.int1_clock = mem->nds7_rtc.int1_freq;
-		}
-	}
-}
-
-/****** Runs audio and video controllers every clock cycle ******/
-void NTR_ARM7::clock()
-{
-	u8 access_cycles = 8;
-
 	//ARM7 CPU sync cycles
-	sync_cycles += access_cycles;
+	sync_cycles += system_cycles;
 
+	//Run DMA channels
 	clock_dma();
 
 	//Run timers
-	clock_timers(access_cycles);
+	clock_timers(system_cycles);
 
 	//Run SPI Bus
 	if(mem->nds7_spi.active_transfer)
 	{
-		mem->nds7_spi.transfer_clock -= access_cycles;
+		mem->nds7_spi.transfer_clock -= system_cycles;
 		if(mem->nds7_spi.transfer_clock <= 0) { mem->process_spi_bus(); }
 	}
 
 	//Run AUXSPI Bus
 	if((mem->nds_aux_spi.active_transfer) && (mem->nds7_exmem & 0x800))
 	{
-		mem->nds_aux_spi.transfer_clock -= access_cycles;
+		mem->nds_aux_spi.transfer_clock -= system_cycles;
 		if(mem->nds_aux_spi.transfer_clock <= 0) { mem->process_aux_spi_bus(); }
 	}
 
 	//Run Cartridge Bus
 	if((mem->nds_card.active_transfer) && (mem->nds7_exmem & 0x800))
 	{
-		mem->nds_card.transfer_clock -= access_cycles;
+		mem->nds_card.transfer_clock -= system_cycles;
 		if(mem->nds_card.transfer_clock <= 0) { mem->process_card_bus(); }
 	}
 
 	//Run RTC
 	if((mem->nds7_ie & 0x80) && (mem->nds7_rtc.int1_enable) && (mem->memory_map[NDS_RCNT+1] & 0x1))
 	{
-		mem->nds7_rtc.int1_clock -= access_cycles;
+		mem->nds7_rtc.int1_clock -= system_cycles;
 
 		//Raise INT1 IRQ for Selected Frequency
 		if(mem->nds7_rtc.int1_clock <= 0)
@@ -1216,6 +1233,9 @@ void NTR_ARM7::clock()
 			mem->nds7_rtc.int1_clock = mem->nds7_rtc.int1_freq;
 		}
 	}
+
+	//Reset system cycles
+	system_cycles = 2;
 }
 
 /****** Runs DMA controllers every clock cycle ******/

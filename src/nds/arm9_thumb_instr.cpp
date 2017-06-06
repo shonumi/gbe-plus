@@ -1297,7 +1297,6 @@ void NTR_ARM9::multiple_load_store(u16 current_thumb_instruction)
 		}
 	}
 
-
 	//Grab n_count
 	for(int x = 0; x < 8; x++)
 	{

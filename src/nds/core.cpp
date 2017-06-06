@@ -204,7 +204,7 @@ void NTR_core::run_core()
 				//Check to see if CPU is paused or idle for any reason
 				if(core_cpu_nds9.idle_state)
 				{
-					core_cpu_nds9.clock();
+					core_cpu_nds9.system_cycles += 8;
 
 					switch(core_cpu_nds9.idle_state)
 					{
@@ -298,15 +298,11 @@ void NTR_core::run_core()
 			{
 				core_cpu_nds7.sync_cycles = 0;
 
-				//TODO - This is temporary
-				core_cpu_nds7.clock();
-				core_cpu_nds7.clock();
-				core_cpu_nds7.clock();
-				core_cpu_nds7.clock();
-
 				//Check to see if CPU is paused or idle for any reason
 				if(core_cpu_nds7.idle_state)
 				{
+					core_cpu_nds7.system_cycles += 8;
+
 					switch(core_cpu_nds7.idle_state)
 					{
 						//Halt SWI
@@ -366,6 +362,9 @@ void NTR_core::run_core()
 						core_cpu_nds7.update_pc();
 					}
 				}
+
+				//Clock system components
+				core_cpu_nds7.clock_system();
 
 				//Determine if NDS9 needs to run in order to sync
 				cpu_sync_cycles -= core_cpu_nds7.sync_cycles;

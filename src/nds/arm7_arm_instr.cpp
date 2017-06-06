@@ -35,14 +35,14 @@ void NTR_ARM7::branch_exchange(u32 current_arm_instruction)
 			//Branch
 			case 0x1:
 				//Clock CPU and controllers - 1N
-				clock(reg.r15, true);
+				clock(reg.r15, CODE_N32);
 
 				reg.r15 = result;
 				needs_flush = true;
 
 				//Clock CPU and controllers - 2S
-				clock(reg.r15, false);
-				clock((reg.r15 + 4), false);
+				clock(reg.r15, CODE_S32);
+				clock((reg.r15 + 4), CODE_S32);
 
 				break;
 
@@ -78,29 +78,29 @@ void NTR_ARM7::branch_link(u32 current_arm_instruction)
 		//Branch
 		case 0x0:
 			//Clock CPU and controllers - 1N
-			clock(reg.r15, true);
+			clock(reg.r15, CODE_N32);
 
 			reg.r15 = final_addr;
 			needs_flush = true;
 
 			//Clock CPU and controllers - 2S
-			clock(reg.r15, false);
-			clock((reg.r15 + 4), false);
+			clock(reg.r15, CODE_S32);
+			clock((reg.r15 + 4), CODE_S32);
 
 			break;
 
 		//Branch and Link
 		case 0x1:
 			//Clock CPU and controllers - 1N
-			clock(reg.r15, true);
+			clock(reg.r15, CODE_N32);
 
 			set_reg(14, (reg.r15 - 4));
 			reg.r15 = final_addr;
 			needs_flush = true;
 
 			//Clock CPU and controllers - 2S
-			clock(reg.r15, false);
-			clock((reg.r15 + 4), false);
+			clock(reg.r15, CODE_S32);
+			clock((reg.r15 + 4), CODE_S32);
 
 			break;
 	}
@@ -205,7 +205,7 @@ void NTR_ARM7::data_processing(u32 current_arm_instruction)
 	//Clock CPU and controllers - 1N
 	if(dest_reg == 15)
 	{
-		clock(reg.r15, true);
+		clock(reg.r15, CODE_N32);
 		
 		//When the set condition parameter is 1 and destination register is R15, change CPSR to SPSR
 		if(set_condition)
@@ -385,15 +385,15 @@ void NTR_ARM7::data_processing(u32 current_arm_instruction)
 	{
 		//Clock CPU and controllers - 2S
 		needs_flush = true; 
-		clock(reg.r15, false);
-		clock((reg.r15 + 4), false);
+		clock(reg.r15, CODE_S32);
+		clock((reg.r15 + 4), CODE_S32);
 	}
 
 	//Timings for regular registers
 	else 
 	{
 		//Clock CPU and controllers - 1S
-		clock((reg.r15 + 4), false);
+		clock((reg.r15 + 4), CODE_S32);
 	}
 }
 
@@ -512,7 +512,7 @@ void NTR_ARM7::psr_transfer(u32 current_arm_instruction)
 	}
 
 	//Clock CPU and controllers - 1S
-	clock((reg.r15 + 4), false);
+	clock((reg.r15 + 4), CODE_S32);
 } 
 
 
@@ -799,7 +799,7 @@ void NTR_ARM7::single_data_transfer(u32 current_arm_instruction)
 	}
 
 	//Clock CPU and controllers - 1N
-	clock(reg.r15, true);
+	clock(reg.r15, CODE_N32);
 
 	//Store Byte or Word
 	if(load_store == 0) 
@@ -810,6 +810,9 @@ void NTR_ARM7::single_data_transfer(u32 current_arm_instruction)
 			if(dest_reg == 15) { value += 4; }
 			value &= 0xFF;
 			mem_check_8(base_addr, value, false);
+
+			//Clock CPU and controllers - 1N
+			clock(base_addr, DATA_N16);
 		}
 
 		else
@@ -817,10 +820,10 @@ void NTR_ARM7::single_data_transfer(u32 current_arm_instruction)
 			value = get_reg(dest_reg);
 			if(dest_reg == 15) { value += 4; }
 			mem->write_u32(base_addr, value);
-		}
 
-		//Clock CPU and controllers - 1N
-		clock(base_addr, true);
+			//Clock CPU and controllers - 1N
+			clock(base_addr, DATA_N32);
+		}
 	}
 
 	//Load Byte or Word
@@ -833,7 +836,7 @@ void NTR_ARM7::single_data_transfer(u32 current_arm_instruction)
 			clock();
 
 			//Clock CPU and controllers - 1N
-			if(dest_reg == 15) { clock((reg.r15 + 4), true); } 
+			if(dest_reg == 15) { clock((reg.r15 + 4), DATA_N16); } 
 
 			set_reg(dest_reg, value);
 		}
@@ -845,7 +848,7 @@ void NTR_ARM7::single_data_transfer(u32 current_arm_instruction)
 			clock();
 
 			//Clock CPU and controllers - 1N
-			if(dest_reg == 15) { clock((reg.r15 + 4), true); } 
+			if(dest_reg == 15) { clock((reg.r15 + 4), DATA_N32); } 
 
 			set_reg(dest_reg, value);
 		}
@@ -867,8 +870,8 @@ void NTR_ARM7::single_data_transfer(u32 current_arm_instruction)
 	if((dest_reg == 15) && (load_store == 1)) 
 	{
 		//Clock CPU and controllser - 2S
-		clock(reg.r15, false);
-		clock((reg.r15 + 4), false);
+		clock(reg.r15, CODE_S32);
+		clock((reg.r15 + 4), CODE_S32);
 		needs_flush = true;
 	}
 
@@ -876,7 +879,7 @@ void NTR_ARM7::single_data_transfer(u32 current_arm_instruction)
 	else if((dest_reg != 15) && (load_store == 1))
 	{
 		//Clock CPU and controllers - 1S
-		clock(reg.r15, false);
+		clock(reg.r15, CODE_S32);
 	}
 }
 
