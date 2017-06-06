@@ -150,6 +150,15 @@ class NTR_MMU
 		bool int2_enable;
 	} nds7_rtc;
 
+	//NDS9 Maths
+	struct nds9_hardware_math
+	{
+		u64 div_numer;
+		u64 div_denom;
+		u64 div_result;
+		u64 div_remainder;
+	} nds9_math;
+
 	//Touchscreen controller
 	struct nds_touchscreen_controller
 	{
@@ -255,6 +264,7 @@ class NTR_MMU
 
 	void write_u16_fast(u32 address, u16 value);
 	void write_u32_fast(u32 address, u32 value);
+	void write_u64_fast(u32 address, u64 value);
 
 	bool read_file(std::string filename);
 	bool read_bios_nds7(std::string filename);

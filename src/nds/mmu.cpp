@@ -106,10 +106,6 @@ void NTR_MMU::reset()
 	firmware_state = 0;
 	firmware_index = 0;
 
-	//Default memory access timings (4, 2)
-	n_clock = 4;
-	s_clock = 2;
-
 	//Setup NDS_DMA info
 	for(int x = 0; x < 8; x++)
 	{
@@ -184,6 +180,11 @@ void NTR_MMU::reset()
 	nds7_rtc.int1_freq = 0;
 	nds7_rtc.int1_enable = false;
 	nds7_rtc.int2_enable = false;
+
+	nds9_math.div_numer = 0;
+	nds9_math.div_denom = 0;
+	nds9_math.div_result = 0;
+	nds9_math.div_remainder = 0;
 	
 	touchscreen.adc_x1 = read_u16(0x27FFCD8) & 0x1FFF;
 	touchscreen.adc_y1 = read_u16(0x27FFCDA) & 0x1FFF;
@@ -2746,12 +2747,181 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 			break;
 
+		//Division math via hardware
+		//Note, all of the below addresses trigger a calculation
 		case NDS_DIVCNT:
 		case NDS_DIVCNT+1:
+		case NDS_DIVCNT+2:
+		case NDS_DIVCNT+3:
+		case NDS_DIVNUMER:
+		case NDS_DIVNUMER+1:
+		case NDS_DIVNUMER+2:
+		case NDS_DIVNUMER+3:
+		case NDS_DIVNUMER+4:
+		case NDS_DIVNUMER+5:
+		case NDS_DIVNUMER+6:
+		case NDS_DIVNUMER+7:
+		case NDS_DIVDENOM:
+		case NDS_DIVDENOM+1:
+		case NDS_DIVDENOM+2:
+		case NDS_DIVDENOM+3:
+		case NDS_DIVDENOM+4:
+		case NDS_DIVDENOM+5:
+		case NDS_DIVDENOM+6:
+		case NDS_DIVDENOM+7:
 			if(access_mode)
 			{
 				memory_map[address] = value;
-				std::cout<<"MMU::NDS_DIVCNT Write\n";
+
+				u8 div_mode = memory_map[NDS_DIVCNT] & 0x3;
+				u8 numer_sign = 0;
+				u8 denom_sign = 0;
+
+				//Grab numerator and denomenator
+				nds9_math.div_numer = read_u32_fast(NDS_DIVNUMER+4);
+				nds9_math.div_numer <<= 16;
+				nds9_math.div_numer <<= 16;
+				nds9_math.div_numer |= read_u32_fast(NDS_DIVNUMER);
+
+				nds9_math.div_denom = read_u32_fast(NDS_DIVDENOM+4);
+				nds9_math.div_denom <<= 16;
+				nds9_math.div_denom <<= 16;
+				nds9_math.div_denom |= read_u32_fast(NDS_DIVDENOM);
+
+				//Set division by zero flag
+				if(!nds9_math.div_denom)
+				{
+					if(div_mode) { memory_map[NDS_DIVCNT+1] |= 0x40; }
+					return;
+				}
+
+				else { memory_map[NDS_DIVCNT+1] &= ~0x40; }
+
+				//Mode 0 32-bit - 32-bit
+				if(div_mode == 0)
+				{
+					u32 result = 0;
+					u32 remainder = 0;					
+
+					//Determine signs
+					numer_sign = (nds9_math.div_numer & 0x80000000) ? 1 : 0;
+					denom_sign = (nds9_math.div_denom & 0x80000000) ? 1 : 0;
+
+					//Convert 2s complement if negative
+					if(numer_sign)
+					{
+						nds9_math.div_numer = ~nds9_math.div_numer;
+						nds9_math.div_numer++;
+						nds9_math.div_numer &= 0xFFFFFFFF;
+					}
+
+					if(denom_sign)
+					{
+						nds9_math.div_denom = ~nds9_math.div_denom;
+						nds9_math.div_denom++;
+						nds9_math.div_denom &= 0xFFFFFFFF;
+					}
+
+					result = nds9_math.div_numer / nds9_math.div_denom;
+					remainder = nds9_math.div_numer % nds9_math.div_denom;
+
+					//Convert result and remainder to 2s complement if necessary
+					if(numer_sign != denom_sign)
+					{
+						result = ~result;
+						result--;
+
+						remainder = ~remainder;
+						remainder--;
+					}
+
+					//Write results and remainder
+					write_u64_fast(NDS_DIVRESULT, result);
+					write_u64_fast(NDS_DIVREMAIN, remainder);
+				}
+
+				//Mode 1 64-bit - 32-bit
+				else if((div_mode == 1) || (div_mode == 3))
+				{
+					u64 result = 0;
+					u32 remainder = 0;					
+
+					//Determine signs
+					numer_sign = (nds9_math.div_numer & 0x8000000000000000) ? 1 : 0;
+					denom_sign = (nds9_math.div_denom & 0x80000000) ? 1 : 0;
+
+					//Convert 2s complement if negative
+					if(numer_sign)
+					{
+						nds9_math.div_numer = ~nds9_math.div_numer;
+						nds9_math.div_numer++;
+					}
+
+					if(denom_sign)
+					{
+						nds9_math.div_denom = ~nds9_math.div_denom;
+						nds9_math.div_denom++;
+						nds9_math.div_denom &= 0xFFFFFFFF;
+					}
+
+					result = nds9_math.div_numer / nds9_math.div_denom;
+					remainder = nds9_math.div_numer % nds9_math.div_denom;
+
+					//Convert result and remainder to 2s complement if necessary
+					if(numer_sign != denom_sign)
+					{
+						result = ~result;
+						result--;
+
+						remainder = ~remainder;
+						remainder--;
+					}
+
+					//Write results and remainder
+					write_u64_fast(NDS_DIVRESULT, result);
+					write_u64_fast(NDS_DIVREMAIN, remainder);
+				}
+
+				//Mode 2 64-bit - 64-bit
+				else
+				{
+					u64 result = 0;
+					u64 remainder = 0;					
+
+					//Determine signs
+					numer_sign = (nds9_math.div_numer & 0x8000000000000000) ? 1 : 0;
+					denom_sign = (nds9_math.div_denom & 0x8000000000000000) ? 1 : 0;
+
+					//Convert 2s complement if negative
+					if(numer_sign)
+					{
+						nds9_math.div_numer = ~nds9_math.div_numer;
+						nds9_math.div_numer++;
+					}
+
+					if(denom_sign)
+					{
+						nds9_math.div_denom = ~nds9_math.div_denom;
+						nds9_math.div_denom++;
+					}
+
+					result = nds9_math.div_numer / nds9_math.div_denom;
+					remainder = nds9_math.div_numer % nds9_math.div_denom;
+
+					//Convert result and remainder to 2s complement if necessary
+					if(numer_sign != denom_sign)
+					{
+						result = ~result;
+						result--;
+
+						remainder = ~remainder;
+						remainder--;
+					}
+
+					//Write results and remainder
+					write_u64_fast(NDS_DIVRESULT, result);
+					write_u64_fast(NDS_DIVREMAIN, remainder);
+				}
 			}
 
 			break;
@@ -3089,7 +3259,24 @@ void NTR_MMU::write_u32_fast(u32 address, u32 value)
 	memory_map[address+1] = ((value >> 8) & 0xFF);
 	memory_map[address+2] = ((value >> 16) & 0xFF);
 	memory_map[address+3] = ((value >> 24) & 0xFF);
-}	
+}
+
+/****** Writes 8 bytes into memory - No checks done on the read, used for known memory locations such as registers ******/
+void NTR_MMU::write_u64_fast(u32 address, u64 value)
+{
+	memory_map[address] = (value & 0xFF);
+	memory_map[address+1] = ((value >> 8) & 0xFF);
+	memory_map[address+2] = ((value >> 16) & 0xFF);
+	memory_map[address+3] = ((value >> 24) & 0xFF);
+
+	value >>= 16;
+	value >>= 16;
+
+	memory_map[address+4] = (value & 0xFF);
+	memory_map[address+5] = ((value >> 8) & 0xFF);
+	memory_map[address+6] = ((value >> 16) & 0xFF);
+	memory_map[address+7] = ((value >> 24) & 0xFF);
+}
 
 /****** Read binary file to memory ******/
 bool NTR_MMU::read_file(std::string filename)
