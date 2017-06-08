@@ -2645,6 +2645,14 @@ void NTR_LCD::step()
 			if(lcd_stat.hblank_irq_enable_a) { mem->nds9_if |= 0x2; }
 			if(lcd_stat.hblank_irq_enable_b) { mem->nds7_if |= 0x2; }
 		}
+
+		//Turn off HBlank flag at the start of a scanline
+		else if((lcd_stat.lcd_clock % 2130) == 0)
+		{
+			//Reset HBlank flag in DISPSTAT
+			lcd_stat.display_stat_a &= ~0x2;
+			lcd_stat.display_stat_b &= ~0x2;
+		}
 	}
 }
 
