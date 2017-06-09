@@ -1325,13 +1325,6 @@ void NTR_ARM7::handle_interrupt()
 			//When there is a match, jump to interrupt vector
 			if((ie_check & (1 << x)) && (if_check & (1 << x)))
 			{
-				//If an HLE SWI is waiting for the next VBlank interrupt, advance the PC to complete the SWI call
-				if((swi_vblank_wait) && (x == 0)) 
-				{  
-					reg.r15 += (arm_mode == ARM) ? 4 : 2;
-					swi_vblank_wait = false; 
-				}
-
 				current_cpu_mode = IRQ;
 
 				//If a Branch instruction has just executed, the PC is changed before jumping into the interrupt
