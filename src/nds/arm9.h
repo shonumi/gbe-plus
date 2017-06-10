@@ -303,6 +303,7 @@ class NTR_ARM9
 	void swi_lz77uncompvram();
 	void swi_rluncompvram();
 	void swi_huffuncomp();
+	void swi_bitunpack();
 
 	void swi_isdebugger();
 	void swi_waitbyloop();
