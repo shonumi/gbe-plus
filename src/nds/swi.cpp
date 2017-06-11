@@ -90,6 +90,18 @@ void NTR_ARM9::process_swi(u32 comment)
 			swi_lz77uncompvram();
 			break;
 
+		//RLUnCompReadNormalWrite8Bit
+		case 0x14:
+			std::cout<<"ARM9::SWI::LUnCompReadNormalWrite8Bit \n";
+			swi_rluncompvram();
+			break;
+
+		//RLUnCompReadByCallback
+		case 0x15:
+			std::cout<<"ARM9::SWI::RLUnCompReadByCallback \n";
+			swi_rluncompvram();
+			break;
+
 		default:
 			std::cout<<"SWI::Error - Unknown NDS9 BIOS function 0x" << std::hex << comment << "\n";
 			running = false;
@@ -547,6 +559,56 @@ void NTR_ARM9::swi_lz77uncompvram()
 	}
 }
 
+/****** HLE implementation of RLUnCompVram - NDS9 ******/
+void NTR_ARM9::swi_rluncompvram()
+{
+	//Grab source address - R0
+	u32 src_addr = get_reg(0);
+
+	//Grab destination address - R1
+	u32 dest_addr = get_reg(1);
+
+	//Grab data header
+	u32 data_header = mem->read_u32(src_addr);
+
+	u32 data_size = (data_header >> 8);
+
+	//Data pointer to compressed data. Points to first flag.
+	u32 data_ptr = (src_addr + 4);
+
+	//Uncompress data
+	while(data_size > 0)
+	{
+		u8 flag = mem->read_u8(data_ptr++);
+
+		u8 data_length = (flag & 0x7F);
+
+		//Adjust data length, +1 for uncompressed data, +3 for compressed data
+		if(flag & 0x80) { data_length += 3; }
+		else { data_length += 1; }
+
+		//Output the specified byte the amount of times in data_length
+		for(int x = 0; x < data_length; x++)
+		{
+			u8 data_byte = 0;
+
+			//Compressed
+			if(flag & 0x80) { data_byte = mem->read_u8(data_ptr); }
+
+			//Uncompressed
+			else { data_byte = mem->read_u8(data_ptr++); }
+				
+			mem->write_u8(dest_addr++, data_byte);
+			data_size--;
+
+			if(data_size == 0) { return; }
+		}
+
+		//Manually adjust data pointer for compressed data to point to next flag
+		if(flag & 0x80) { data_ptr++; }
+	}
+}	
+
 /****** Process Software Interrupts - NDS7 ******/
 void NTR_ARM7::process_swi(u32 comment)
 {
@@ -622,6 +684,18 @@ void NTR_ARM7::process_swi(u32 comment)
 		case 0x12:
 			std::cout<<"ARM7::SWI::LZ77UnCompReadByCallback \n";
 			swi_lz77uncompvram();
+			break;
+
+		//RLUnCompReadNormalWrite8Bit
+		case 0x14:
+			std::cout<<"ARM7::SWI::LUnCompReadNormalWrite8Bit \n";
+			swi_rluncompvram();
+			break;
+
+		//RLUnCompReadByCallback
+		case 0x15:
+			std::cout<<"ARM7::SWI::RLUnCompReadByCallback \n";
+			swi_rluncompvram();
 			break;
 			
 		default:
@@ -1108,3 +1182,53 @@ void NTR_ARM7::swi_lz77uncompvram()
 		}
 	}
 }
+
+/****** HLE implementation of RLUnCompVram - NDS7 ******/
+void NTR_ARM7::swi_rluncompvram()
+{
+	//Grab source address - R0
+	u32 src_addr = get_reg(0);
+
+	//Grab destination address - R1
+	u32 dest_addr = get_reg(1);
+
+	//Grab data header
+	u32 data_header = mem->read_u32(src_addr);
+
+	u32 data_size = (data_header >> 8);
+
+	//Data pointer to compressed data. Points to first flag.
+	u32 data_ptr = (src_addr + 4);
+
+	//Uncompress data
+	while(data_size > 0)
+	{
+		u8 flag = mem->read_u8(data_ptr++);
+
+		u8 data_length = (flag & 0x7F);
+
+		//Adjust data length, +1 for uncompressed data, +3 for compressed data
+		if(flag & 0x80) { data_length += 3; }
+		else { data_length += 1; }
+
+		//Output the specified byte the amount of times in data_length
+		for(int x = 0; x < data_length; x++)
+		{
+			u8 data_byte = 0;
+
+			//Compressed
+			if(flag & 0x80) { data_byte = mem->read_u8(data_ptr); }
+
+			//Uncompressed
+			else { data_byte = mem->read_u8(data_ptr++); }
+				
+			mem->write_u8(dest_addr++, data_byte);
+			data_size--;
+
+			if(data_size == 0) { return; }
+		}
+
+		//Manually adjust data pointer for compressed data to point to next flag
+		if(flag & 0x80) { data_ptr++; }
+	}
+}	
