@@ -303,6 +303,7 @@ class NTR_ARM7
 
 	void swi_getcrc16();
 	void swi_waitbyloop();
+	void swi_isdebugger();
 };
 		
 #endif // NDS7_CPU

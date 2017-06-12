@@ -72,6 +72,12 @@ void NTR_ARM9::process_swi(u32 comment)
 			swi_sqrt();
 			break;
 
+		//GetCRC16
+		case 0xE:
+			//std::cout<<"ARM9::SWI::GetCRC16 \n";
+			swi_getcrc16();
+			break;
+
 		//IsDebugger
 		case 0xF:
 			//std::cout<<"ARM9::SWI::IsDebugger \n";
@@ -397,6 +403,41 @@ void NTR_ARM9::swi_sqrt()
 	set_reg(0, result);
 }
 
+/****** HLE implementation of GetCRC16 - NDS9 ******/
+void NTR_ARM9::swi_getcrc16()
+{
+	//R0 = Initial CRC value
+	//R1 = Start address of data to look at
+	//R2 = Length of data to look at in bytes
+	u16 crc = get_reg(0);
+	u32 data_addr = get_reg(1) & ~0x1;
+	u32 length = get_reg(2) & ~0x1;
+
+	//LUT for CRC
+	u16 table[] = { 0xC0C1, 0xC181, 0xC301, 0xC601, 0xCC01, 0xD801, 0xF001, 0xA001 };
+
+	//Cycle through all the data to get the CRC16
+	for(u32 x = 0; x < length; x++)
+	{
+		u16 data_byte = mem->memory_map[data_addr++];
+		crc = crc ^ data_byte;
+
+		for(u32 y = 0; y < 8; y++)
+		{
+			
+			if(crc & 0x1)
+			{
+				crc >>= 1;
+				crc = crc ^ (table[y] << (7 - y));
+			}
+
+			else { crc >>= 1; }
+		}
+	}
+
+	set_reg(0, crc);
+}
+
 /****** HLE implementation of IsDebugger - NDS9 ******/
 void NTR_ARM9::swi_isdebugger()
 {
@@ -672,6 +713,12 @@ void NTR_ARM7::process_swi(u32 comment)
 		case 0xE:
 			//std::cout<<"ARM7::SWI::GetCRC16 \n";
 			swi_getcrc16();
+			break;
+
+		//IsDebugger
+		case 0xF:
+			std::cout<<"ARM7::SWI::IsDebugger \n";
+			swi_isdebugger();
 			break;
 
 		//BitUnPack
@@ -1030,6 +1077,17 @@ void NTR_ARM7::swi_sqrt()
 	u16 result = sqrt(input);
 	set_reg(0, result);
 }
+
+/****** HLE implementation of IsDebugger - NDS7 ******/
+void NTR_ARM7::swi_isdebugger()
+{
+	//Always act as if a retail NDS, set RO to zero
+	set_reg(0, 0);
+
+	//Destroy value at 0x27FFFFA (halfword)
+	mem->write_u16(0x27FFFFA, 0x0);
+}
+
 
 /****** HLE implementation of BitUnPack - NDS7 ******/
 void NTR_ARM7::swi_bitunpack()
