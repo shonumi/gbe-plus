@@ -1693,6 +1693,36 @@ void NTR_ARM9::sticky_math(u32 current_arm_instruction)
 
 			break;
 
+		//QDADD
+		case 0x4:
+			input_1 = get_reg(src1_reg);
+			input_2 = get_reg(src2_reg);
+			result = input_1 + (input_2 * 2);
+			
+			//Saturate result if necessary
+			sat_code = update_sticky_overflow(input_1, input_2, result, true);
+			if(sat_code == 1) { result = 0x7FFFFFFF; }
+			else if(sat_code == 2) { result = 0x80000000; }
+
+			set_reg(dest_reg, result);
+
+			break;
+
+		//QDSUB
+		case 0x6:
+			input_1 = get_reg(src1_reg);
+			input_2 = get_reg(src2_reg);
+			result = input_1 - (input_2 * 2);
+			
+			//Saturate result if necessary
+			sat_code = update_sticky_overflow(input_1, input_2, result, true);
+			if(sat_code == 1) { result = 0x7FFFFFFF; }
+			else if(sat_code == 2) { result = 0x80000000; }
+
+			set_reg(dest_reg, result);
+
+			break;
+
 		//Unknown opcode
 		default:
 			std::cout<<"CPU::ARM9::Warning - Unknown QADD-QSUB opcode 0x" << std::hex << (u16)op << "\n";
