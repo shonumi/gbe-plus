@@ -106,7 +106,7 @@ class DMG_MMU
 	u8 ir_signal;
 	bool ir_send;
 
-	DMG_GamePad* g_pad;
+	dmg_core_pad* g_pad;
 
 	DMG_MMU();
 	~DMG_MMU();

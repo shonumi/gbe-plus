@@ -14,6 +14,7 @@ set(HEADERS
 	util.h
 	ogl_util.h
 	cgfx_common.h
+	dmg_core_pad.h
 	)
 
 

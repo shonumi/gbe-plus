@@ -18,8 +18,9 @@
 
 #include "common.h"
 #include "common/config.h"
+#include "common/dmg_core_pad.h"
 
-class DMG_GamePad
+class DMG_GamePad : virtual public dmg_core_pad
 {
 	public:
 
