@@ -3,6 +3,7 @@ include_directories(.)
 add_subdirectory(common)
 add_subdirectory(gba)
 add_subdirectory(dmg)
+add_subdirectory(sgb)
 add_subdirectory(nds)
 
 if(QT_GUI)
@@ -15,7 +16,7 @@ SET(USER_HOME $ENV{HOME} CACHE STRING "Target User Home")
 SET(USER $ENV{USER} CACHE STRING "Target User")
 
 add_executable(gbe_plus ${SRCS})
-target_link_libraries(gbe_plus common gba dmg nds)
+target_link_libraries(gbe_plus common gba dmg sgb nds)
 target_link_libraries(gbe_plus ${SDL2_LIBRARY} ${OPENGL_gl_LIBRARY})
 
 if (LINK_CABLE)

@@ -1,0 +1,42 @@
+set(SRCS
+	./../dmg/apu.cpp
+	core.cpp
+	gamepad.cpp
+	./../dmg/lcd.cpp
+	./../dmg/mbc1.cpp
+	./../dmg/mbc2.cpp
+	./../dmg/mbc3.cpp
+	./../dmg/mbc5.cpp
+	./../dmg/mbc7.cpp
+	./../dmg/huc1.cpp
+	./../dmg/mmm01.cpp
+	./../dmg/camera.cpp
+	./../dmg/mmu.cpp
+	./../dmg/opengl.cpp
+	./../dmg/z80.cpp
+	./../dmg/custom_graphics.cpp
+	./../dmg/sio.cpp
+	)
+
+set(HEADERS
+	./../dmg/apu.h
+	./../dmg/apu_data.h
+	./../dmg/common.h
+	core.h
+	gamepad.h
+	./../dmg/lcd.h
+	./../dmg/lcd_data.h
+	./../dmg/mmu.h
+	./../dmg/z80.h
+	./../dmg/custom_graphics_data.h
+	./../dmg/sio.h
+	./../dmg/sio_data.h
+	)
+
+add_library(sgb STATIC ${SRCS} ${HEADERS})
+
+target_link_libraries(sgb common ${SDL2_LIBRARY} ${OPENGL_gl_LIBRARY})
+
+if (LINK_CABLE)
+    target_link_libraries(sgb ${SDL2NET_LIBRARY})
+endif()
