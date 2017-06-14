@@ -48,6 +48,7 @@ class dmg_core_pad
 	virtual void start_rumble() = 0;
 	virtual void stop_rumble() = 0;
 	virtual u8 read() = 0;
+	virtual void write(u8 value) = 0;
 };
 
 #endif // DMG_CORE_PAD 

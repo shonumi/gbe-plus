@@ -543,3 +543,6 @@ u8 DMG_GamePad::read()
 			return 0xFF;
 	}
 } 
+
+/****** Write to P1 ******/
+void DMG_GamePad::write(u8 value) { column_id = (value & 0x30); }

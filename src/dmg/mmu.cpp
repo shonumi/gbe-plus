@@ -1056,7 +1056,11 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	}
 
 	//P1 - Joypad register
-	else if(address == REG_P1) { g_pad->column_id = (value & 0x30); memory_map[REG_P1] = g_pad->read(); }
+	else if(address == REG_P1)
+	{
+		g_pad->write(value);
+		memory_map[REG_P1] = g_pad->read();
+	}
 
 	//HDMA transfer
 	else if(address == REG_HDMA5)

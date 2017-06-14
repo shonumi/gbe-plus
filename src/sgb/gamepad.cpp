@@ -313,3 +313,6 @@ u8 SGB_GamePad::read()
 			return 0xFF;
 	}
 } 
+
+/****** Write to P1 ******/
+void SGB_GamePad::write(u8 value) { column_id = (value & 0x30); }

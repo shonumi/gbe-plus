@@ -36,6 +36,7 @@ class DMG_GamePad : virtual public dmg_core_pad
 	void start_rumble();
 	void stop_rumble();
 	u8 read();
+	void write(u8 value);
 };
 
 #endif // GB_GAMEPAD 
