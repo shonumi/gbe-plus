@@ -24,22 +24,6 @@ class DMG_GamePad : virtual public dmg_core_pad
 {
 	public:
 
-	u8 p14, p15;
-	u8 column_id;
-
-	u16 sensor_x;
-	u16 sensor_y;
-	u8 gyro_flags;
-
-	int pad;
-
-	//Shadow status for keyboard input
-	bool up_shadow, down_shadow, left_shadow, right_shadow;
-
-	SDL_Joystick* jstick;
-    	SDL_Haptic* rumble;
-	bool is_rumbling;
-
 	DMG_GamePad();
 	~DMG_GamePad();
 
