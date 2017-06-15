@@ -38,6 +38,17 @@ class SGB_GamePad : virtual public dmg_core_pad
 	void stop_rumble();
 	u8 read();
 	void write(u8 value);
+
+	struct sgb_packets
+	{
+		u8 state;
+		u8 command;
+		u8 ptr;
+		u8 length;
+		u8 bit_count;
+		u8 data_count;
+		std::vector<u8> data;
+	} packet;
 };
 
 #endif // SGB_GAMEPAD 

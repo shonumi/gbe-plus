@@ -20,6 +20,13 @@ SGB_GamePad::SGB_GamePad()
 	column_id = 0;
 	pad = 0;
 	up_shadow = down_shadow = left_shadow = right_shadow = false;
+
+	packet.state = 0;
+	packet.command = 0;
+	packet.length = 0;
+	packet.ptr = 0;
+	packet.bit_count = 0;
+	packet.data.resize(0x80, 0);
 }
 
 /****** Initialize GamePad ******/
@@ -315,4 +322,87 @@ u8 SGB_GamePad::read()
 } 
 
 /****** Write to P1 ******/
-void SGB_GamePad::write(u8 value) { column_id = (value & 0x30); }
+void SGB_GamePad::write(u8 value)
+{
+	column_id = (value & 0x30);
+
+	//Grab bit from SGB packet transmission
+	u8 sgb_bit = 0xFF;
+	
+	if((value & 0x30) == 0x20) { sgb_bit = 0; }
+	else if((value & 0x30) == 0x10) { sgb_bit = 1; }
+
+	//Process incoming SGB packets
+	switch(packet.state)
+	{
+		//RESET pulse
+		case 0x0:
+			if((value & 0x30) == 0)
+			{
+				packet.bit_count = 0;
+
+				//Start new packet transmission
+				if(packet.length == 0)
+				{
+					packet.state = 1;
+					packet.data.resize(0x80, 0);
+					packet.ptr = 0;
+					packet.command = 0;
+					packet.length = 0;
+				}
+
+				//Continue current transmission
+				else
+				{
+					packet.state = 2;
+					packet.data_count = 0;
+				}
+			}
+
+			break;
+
+		//Command Code + Length
+		case 0x1:
+			if(packet.bit_count < 4) { packet.length |= (sgb_bit << packet.bit_count); }
+			else { packet.command |= (sgb_bit << (4 - packet.bit_count)); }
+
+			packet.bit_count++;
+			
+			//Move to data
+			if(packet.bit_count == 8)
+			{
+				packet.state = 2;
+				packet.bit_count = 0;
+				packet.data_count = 1;
+			}
+
+			break;
+
+		//Parameter Data
+		case 0x2:
+			packet.data[packet.ptr] |= (sgb_bit << packet.bit_count);
+
+			packet.bit_count++;
+
+			if(packet.bit_count == 8)
+			{
+				packet.bit_count = 0;
+				packet.ptr++;
+				packet.data_count++;
+
+				//Move to Stop bit
+				if(packet.data_count == 16) { packet.state = 3; }
+			}
+
+			break;
+
+		//Stop Bit
+		case 0x3:
+			if(sgb_bit == 0)
+			{
+				packet.state = 0;
+				packet.length--;
+			}
+			break;
+	}
+}
