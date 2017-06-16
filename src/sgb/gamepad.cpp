@@ -27,6 +27,7 @@ SGB_GamePad::SGB_GamePad()
 	packet.ptr = 0;
 	packet.bit_count = 0;
 	packet.data.resize(0x80, 0);
+	packet.lcd_command = false;
 }
 
 /****** Initialize GamePad ******/
@@ -402,7 +403,11 @@ void SGB_GamePad::write(u8 value)
 			{
 				packet.state = 0;
 				packet.length--;
+
+				//Process SGB command
+				if(packet.length == 0) { packet.lcd_command = true; }
 			}
+
 			break;
 	}
 }

@@ -2,7 +2,7 @@ set(SRCS
 	./../dmg/apu.cpp
 	core.cpp
 	gamepad.cpp
-	./../dmg/lcd.cpp
+	lcd.cpp
 	./../dmg/mbc1.cpp
 	./../dmg/mbc2.cpp
 	./../dmg/mbc3.cpp
@@ -24,10 +24,10 @@ set(HEADERS
 	./../dmg/common.h
 	core.h
 	gamepad.h
-	./../dmg/lcd.h
+	lcd.h
 	./../dmg/lcd_data.h
 	./../dmg/mmu.h
-	./../dmg/z80.h
+	z80.h
 	./../dmg/custom_graphics_data.h
 	./../dmg/sio.h
 	./../dmg/sio_data.h

@@ -27,7 +27,6 @@ SGB_core::SGB_core()
 	//Link LCD and MMU
 	core_cpu.controllers.video.mem = &core_mmu;
 	core_mmu.set_lcd_data(&core_cpu.controllers.video.lcd_stat);
-	core_mmu.set_cgfx_data(&core_cpu.controllers.video.cgfx_stat);
 
 	//Link APU and MMU
 	core_cpu.controllers.audio.mem = &core_mmu;
@@ -1860,42 +1859,19 @@ u8 SGB_core::ex_read_u8(u16 address) { return core_mmu.read_u8(address); }
 void SGB_core::ex_write_u8(u16 address, u8 value) { core_mmu.write_u8(address, value); }
 
 /****** Dumps selected OBJ to a file ******/
-void SGB_core::dump_obj(int obj_index)
-{
-	//SGB OBJs
-	if(config::gb_type < 2) { core_cpu.controllers.video.dump_dmg_obj(obj_index); }
-
-	//GBC OBJs
-	else { core_cpu.controllers.video.dump_gbc_obj(obj_index); }
-}
+void SGB_core::dump_obj(int obj_index) { }
 
 /****** Dumps selected BG tile to a file ******/
-void SGB_core::dump_bg(int bg_index)
-{
-	//SGB BG tiles
-	if(config::gb_type < 2) { core_cpu.controllers.video.dump_dmg_bg(bg_index); }
-
-	//GBC BG tiles
-	else{ core_cpu.controllers.video.dump_gbc_bg(bg_index); }
-}
+void SGB_core::dump_bg(int bg_index) { }
 
 /****** Grabs the OBJ palette ******/
-u32* SGB_core::get_obj_palette(int pal_index)
-{
-	return &core_cpu.controllers.video.lcd_stat.obj_colors_final[0][pal_index];
-}
+u32* SGB_core::get_obj_palette(int pal_index) { }
 
 /****** Grabs the BG palette ******/
-u32* SGB_core::get_bg_palette(int pal_index)
-{
-	return &core_cpu.controllers.video.lcd_stat.bg_colors_final[0][pal_index];
-}
+u32* SGB_core::get_bg_palette(int pal_index) { }
 
 /****** Grabs the hash for a specific tile ******/
-std::string SGB_core::get_hash(u32 addr, u8 gfx_type)
-{
-	return core_cpu.controllers.video.get_hash(addr, gfx_type);
-}
+std::string SGB_core::get_hash(u32 addr, u8 gfx_type) { }
 
 /****** Starts netplay connection ******/
 void SGB_core::start_netplay()
