@@ -351,10 +351,11 @@ void SGB_GamePad::write(u8 value)
 	column_id = (value & 0x30);
 
 	//Grab bit from SGB packet transmission
-	u8 sgb_bit = 0xFF;
+	u8 sgb_bit = 0x0;
 	
 	if((value & 0x30) == 0x20) { sgb_bit = 0; }
 	else if((value & 0x30) == 0x10) { sgb_bit = 1; }
+	else if(packet.state != 0) { return; }
 
 	//Process incoming SGB packets
 	switch(packet.state)
@@ -387,8 +388,8 @@ void SGB_GamePad::write(u8 value)
 
 		//Command Code + Length
 		case 0x1:
-			if(packet.bit_count < 4) { packet.length |= (sgb_bit << packet.bit_count); }
-			else { packet.command |= (sgb_bit << (4 - packet.bit_count)); }
+			if(packet.bit_count < 3) { packet.length |= (sgb_bit << packet.bit_count); }
+			else { packet.command |= (sgb_bit << (packet.bit_count - 3)); }
 
 			packet.bit_count++;
 			
