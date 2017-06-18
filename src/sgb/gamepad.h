@@ -47,6 +47,7 @@ class SGB_GamePad : virtual public dmg_core_pad
 		u8 length;
 		u8 bit_count;
 		u8 data_count;
+		u8 mult_flag;
 		std::vector<u8> data;
 		bool lcd_command;
 	} packet;

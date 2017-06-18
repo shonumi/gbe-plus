@@ -46,8 +46,6 @@ int main(int argc, char* args[])
 	//Get emulated system type from file
 	config::gb_type = get_system_type_from_file(config::rom_file);
 
-	std::cout<<"TYPE -> 0x" << (u16)config::gb_type << "\n";
-
 	//Start the appropiate system core - DMG, SGB, GBC, GBA, or NDS
 	if(config::gb_type == 3) { gbe_plus = new AGB_core(); }
 	else if((config::gb_type >= 0) && (config::gb_type <= 2)) { gbe_plus = new DMG_core(); }

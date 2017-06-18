@@ -26,6 +26,7 @@ SGB_GamePad::SGB_GamePad()
 	packet.length = 0;
 	packet.ptr = 0;
 	packet.bit_count = 0;
+	packet.mult_flag = 0xF0;
 	packet.data.resize(0x80, 0);
 	packet.lcd_command = false;
 }
@@ -332,7 +333,21 @@ u8 SGB_GamePad::read()
 	switch(column_id)
 	{
 		case 0x30:
-			return (p14 | p15);
+			//Read Joypad ID
+			if(packet.mult_flag & 0x3)
+			{
+				u8 old_id = (packet.mult_flag >> 4);
+				u8 new_id = old_id - 1;
+				packet.mult_flag &= ~0xF0;
+
+				if(new_id == 0xB) { packet.mult_flag = 0xF0; }
+				else { packet.mult_flag |= (new_id << 4); }
+
+				return old_id;
+			}
+
+			//Read P14 OR P15
+			else { return (p14 | p15); }
 
 		case 0x20:
 			return p15;
@@ -429,7 +444,18 @@ void SGB_GamePad::write(u8 value)
 				packet.length--;
 
 				//Process SGB command
-				if(packet.length == 0) { packet.lcd_command = true; }
+				if(packet.length == 0)
+				{
+					//MULT_REQ
+					if(packet.command == 0x11)
+					{
+						packet.mult_flag &= ~0x3;
+						packet.mult_flag |= (packet.data[0] & 0x3);
+					}
+					
+					//Alert LCD to process all other SGB commands
+					else { packet.lcd_command = true; }
+				}
 			}
 
 			break;
