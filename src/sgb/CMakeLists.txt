@@ -12,8 +12,8 @@ set(SRCS
 	./../dmg/mmm01.cpp
 	./../dmg/camera.cpp
 	./../dmg/mmu.cpp
-	./../dmg/opengl.cpp
-	./../dmg/z80.cpp
+	opengl.cpp
+	z80.cpp
 	./../dmg/custom_graphics.cpp
 	./../dmg/sio.cpp
 	)

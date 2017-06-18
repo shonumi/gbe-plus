@@ -71,7 +71,7 @@ class SGB_core : virtual public core_emu
 		u32 get_core_data(u32 core_index);
 
 		DMG_MMU core_mmu;
-		Z80 core_cpu;
+		SGB_Z80 core_cpu;
 		SGB_GamePad core_pad;
 };
 		

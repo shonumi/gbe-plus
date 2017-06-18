@@ -9,14 +9,14 @@
 // Draws background, window, and sprites to screen
 // Responsible for blitting pixel data and limiting frame rate
 
-#ifndef SGB_LCD
-#define SGB_LCD
+#ifndef SGB_VID
+#define SGB_VID
 
 #include "SDL2/SDL.h"
 #include "SDL2/SDL_opengl.h"
 #include "dmg/mmu.h"
 
-class DMG_LCD
+class SGB_LCD
 {
 	public:
 	
@@ -24,8 +24,8 @@ class DMG_LCD
 	DMG_MMU* mem;
 
 	//Core Functions
-	DMG_LCD();
-	~DMG_LCD();
+	SGB_LCD();
+	~SGB_LCD();
 
 	void step(int cpu_clock);
 	void reset();
@@ -108,4 +108,4 @@ class DMG_LCD
 	void opengl_blit();
 };
 
-#endif // SGB_LCD 
+#endif // SGB_VID 

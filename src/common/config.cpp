@@ -542,6 +542,7 @@ u8 get_system_type_from_file(std::string filename)
 		if(test_stream.is_open())
 		{
 			u8 color_byte;
+			u8 sgb_byte;
 
 			test_stream.seekg(0x143);
 			test_stream.read((char*)&color_byte, 1);
@@ -549,6 +550,12 @@ u8 get_system_type_from_file(std::string filename)
 			//If GBC compatible, use GBC mode. Otherwise, use DMG mode
 			if((color_byte == 0xC0) || (color_byte == 0x80)) { gb_type = 2; }
 			else { gb_type = 1; }
+
+			test_stream.seekg(0x146);
+			test_stream.read((char*)&sgb_byte, 1);
+
+			//If SGB compatible, use it if SGB set as the system
+			if((sgb_byte == 0x3) && (config::gb_type == 0x80)) { gb_type = 0x80; }
 
 			test_stream.close();
 		}
@@ -885,9 +892,10 @@ bool parse_ini_file()
 				std::stringstream temp_stream(ini_item);
 				temp_stream >> output;
 
-				if((output >= 0) && (output <= 4)) 
+				if((output >= 0) && (output <= 5)) 
 				{
-					config::gb_type = output;
+					if(output == 5) { config::gb_type = 0x80; }
+					else { config::gb_type = output; }
 					validate_system_type();
 				}
 			}

@@ -14,21 +14,21 @@
 #include "common/util.h"
 
 /****** LCD Constructor ******/
-DMG_LCD::DMG_LCD()
+SGB_LCD::SGB_LCD()
 {
 	window = NULL;
 	reset();
 }
 
 /****** LCD Destructor ******/
-DMG_LCD::~DMG_LCD()
+SGB_LCD::~SGB_LCD()
 {
 	SDL_DestroyWindow(window);
 	std::cout<<"LCD::Shutdown\n";
 }
 
 /****** Reset LCD ******/
-void DMG_LCD::reset()
+void SGB_LCD::reset()
 {
 	final_screen = NULL;
 	mem = NULL;
@@ -148,7 +148,7 @@ void DMG_LCD::reset()
 }
 
 /****** Initialize LCD with SDL ******/
-bool DMG_LCD::init()
+bool SGB_LCD::init()
 {
 	//Initialize with SDL rendering software or hardware
 	if(config::sdl_render)
@@ -189,7 +189,7 @@ bool DMG_LCD::init()
 }
 
 /****** Read LCD data from save state ******/
-bool DMG_LCD::lcd_read(u32 offset, std::string filename)
+bool SGB_LCD::lcd_read(u32 offset, std::string filename)
 {
 	std::ifstream file(filename.c_str(), std::ios::binary);
 	
@@ -220,7 +220,7 @@ bool DMG_LCD::lcd_read(u32 offset, std::string filename)
 }
 
 /****** Read LCD data from save state ******/
-bool DMG_LCD::lcd_write(std::string filename)
+bool SGB_LCD::lcd_write(std::string filename)
 {
 	std::ofstream file(filename.c_str(), std::ios::binary | std::ios::app);
 	
@@ -240,7 +240,7 @@ bool DMG_LCD::lcd_write(std::string filename)
 }
 
 /****** Compares LY and LYC - Generates STAT interrupt ******/
-void DMG_LCD::scanline_compare()
+void SGB_LCD::scanline_compare()
 {
 	if(mem->memory_map[REG_LY] == mem->memory_map[REG_LYC]) 
 	{ 
@@ -251,7 +251,7 @@ void DMG_LCD::scanline_compare()
 }
 
 /****** Updates OAM entries when values in memory change ******/
-void DMG_LCD::update_oam()
+void SGB_LCD::update_oam()
 {
 	lcd_stat.oam_update = false;
 
@@ -297,7 +297,7 @@ void DMG_LCD::update_oam()
 }
 
 /****** Updates a list of OBJs to render on the current scanline ******/
-void DMG_LCD::update_obj_render_list()
+void SGB_LCD::update_obj_render_list()
 {
 	obj_render_length = -1;
 
@@ -364,7 +364,7 @@ void DMG_LCD::update_obj_render_list()
 }
 
 /****** Render pixels for a given scanline (per-scanline) - DMG version ******/
-void DMG_LCD::render_sgb_scanline() 
+void SGB_LCD::render_sgb_scanline() 
 {
 	//Draw background pixel data
 	if(lcd_stat.bg_enable) { render_sgb_bg_scanline(); }
@@ -383,7 +383,7 @@ void DMG_LCD::render_sgb_scanline()
 }
 
 /****** Renders pixels for the BG (per-scanline) ******/
-void DMG_LCD::render_sgb_bg_scanline()
+void SGB_LCD::render_sgb_bg_scanline()
 {
 	//Determine where to start drawing
 	u8 rendered_scanline = lcd_stat.current_scanline + lcd_stat.bg_scroll_y;
@@ -445,7 +445,7 @@ void DMG_LCD::render_sgb_bg_scanline()
 }
 
 /****** Renders pixels for the Window (per-scanline) ******/
-void DMG_LCD::render_sgb_win_scanline()
+void SGB_LCD::render_sgb_win_scanline()
 {
 	//Determine if scanline is within window, if not abort rendering
 	if((lcd_stat.current_scanline < lcd_stat.window_y) || (lcd_stat.window_x >= 160)) { return; }
@@ -513,7 +513,7 @@ void DMG_LCD::render_sgb_win_scanline()
 }
 
 /****** Renders pixels for OBJs (per-scanline) ******/
-void DMG_LCD::render_sgb_obj_scanline()
+void SGB_LCD::render_sgb_obj_scanline()
 {
 	//If no sprites are rendered on this line, quit now
 	if(obj_render_length < 0) { return; }
@@ -593,7 +593,7 @@ void DMG_LCD::render_sgb_obj_scanline()
 }
 
 /****** Execute LCD operations ******/
-void DMG_LCD::step(int cpu_clock) 
+void SGB_LCD::step(int cpu_clock) 
 {
         //Enable the LCD
 	if((lcd_stat.on_off) && (lcd_stat.lcd_enable)) 

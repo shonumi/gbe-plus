@@ -10,6 +10,7 @@
 
 #include "gba/core.h"
 #include "dmg/core.h"
+#include "sgb/core.h"
 #include "nds/core.h"
 #include "common/config.h"
 
@@ -42,12 +43,15 @@ int main(int argc, char* args[])
 	//These will override .ini options!
 	if(!parse_cli_args()) { return 0; }
 
-	//Validate the emulated system type
-	validate_system_type();
+	//Get emulated system type from file
+	config::gb_type = get_system_type_from_file(config::rom_file);
 
-	//Start the appropiate system core - DMG, GBC, GBA, or NDS
+	std::cout<<"TYPE -> 0x" << (u16)config::gb_type << "\n";
+
+	//Start the appropiate system core - DMG, SGB, GBC, GBA, or NDS
 	if(config::gb_type == 3) { gbe_plus = new AGB_core(); }
 	else if((config::gb_type >= 0) && (config::gb_type <= 2)) { gbe_plus = new DMG_core(); }
+	else if(config::gb_type == 0x80) { config::gb_type = 1; gbe_plus = new SGB_core(); }
 	else { gbe_plus = new NTR_core(); }
 	
 	//Read BIOS file optionally

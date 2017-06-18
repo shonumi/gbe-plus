@@ -303,6 +303,29 @@ void SGB_GamePad::process_joystick(int pad, bool pressed)
 	else if((pad == config::dmg_joy_down) && (!pressed)) { p15 |= 0x8; p15 |= 0x4; }
 }
 
+/****** Process gyroscope sensors - Only used for MBC7 ******/
+void SGB_GamePad::process_gyroscope() { }
+
+/****** Start haptic force-feedback on joypad ******/
+void SGB_GamePad::start_rumble()
+{
+	if((jstick != NULL) && (rumble != NULL) && (is_rumbling == false))
+	{
+		SDL_HapticRumblePlay(rumble, 1, -1);
+		is_rumbling = true;
+	}
+}
+
+/****** Stop haptic force-feedback on joypad ******/
+void SGB_GamePad::stop_rumble()
+{
+	if((jstick != NULL) && (rumble != NULL) && (is_rumbling == true))
+	{
+		SDL_HapticRumbleStop(rumble);
+       		is_rumbling = false;
+	}
+}
+
 /****** Update P1 ******/
 u8 SGB_GamePad::read()
 {

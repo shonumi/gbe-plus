@@ -20,7 +20,7 @@
 #include "dmg/apu.h"
 #include "dmg/sio.h"
 
-class Z80
+class SGB_Z80
 {
 	public:
 	
@@ -104,14 +104,14 @@ class Z80
 	//Audio-Video and other controllers
 	struct io_controllers
 	{
-		DMG_LCD video;
+		SGB_LCD video;
 		DMG_APU audio;
 		DMG_SIO serial_io;
 	} controllers;
 
 	//Core Functions
-	Z80();
-	~Z80();
+	SGB_Z80();
+	~SGB_Z80();
 	void reset();
 	void reset_bios();
 	void exec_op(u8 opcode);
