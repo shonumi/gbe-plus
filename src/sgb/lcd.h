@@ -93,6 +93,9 @@ class SGB_LCD
 	int fps_count;
 	int fps_time;
 
+	//SGB stuff
+	u8 sgb_mask_mode;
+
 	//OAM updates
 	void update_oam();
 	void update_obj_render_list();
@@ -106,6 +109,8 @@ class SGB_LCD
 	void scanline_compare();
 
 	void opengl_blit();
+
+	void process_sgb_command();
 };
 
 #endif // SGB_VID 

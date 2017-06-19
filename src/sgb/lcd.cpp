@@ -140,6 +140,9 @@ void SGB_LCD::reset()
 	//16 pixel (vertical) flipping lookup generation
         for(int x = 0; x < 16; x++) { lcd_stat.flip_16[x] = (15 - x); }
 
+	//Initialize SGB stuff
+	sgb_mask_mode = 0;
+
 	//Initialize system screen dimensions
 	config::sys_width = 160;
 	config::sys_height = 144;
@@ -366,6 +369,23 @@ void SGB_LCD::update_obj_render_list()
 /****** Render pixels for a given scanline (per-scanline) - DMG version ******/
 void SGB_LCD::render_sgb_scanline() 
 {
+	//Handle SGB Mask Mode
+	switch(sgb_mask_mode)
+	{
+		//Freeze current image
+		case 0x1: return;
+
+		//Black screen
+		case 0x2:
+			for(int x = 0; x < 160; x++) { scanline_buffer[x] = 0; }
+			return;
+
+		//Color 0
+		case 0x3:
+			for(int x = 0; x < 160; x++) { scanline_buffer[x] = config::DMG_BG_PAL[0]; }
+			return;
+	}
+
 	//Draw background pixel data
 	if(lcd_stat.bg_enable) { render_sgb_bg_scanline(); }
 
@@ -595,6 +615,9 @@ void SGB_LCD::render_sgb_obj_scanline()
 /****** Execute LCD operations ******/
 void SGB_LCD::step(int cpu_clock) 
 {
+	//Process SGB commands
+	if(mem->g_pad->get_pad_data(0)) { process_sgb_command(); }
+
         //Enable the LCD
 	if((lcd_stat.on_off) && (lcd_stat.lcd_enable)) 
 	{
@@ -852,4 +875,29 @@ void SGB_LCD::step(int cpu_clock)
 	}
 
 	mem->memory_map[REG_STAT] = (mem->memory_map[REG_STAT] & ~0x3) | lcd_stat.lcd_mode;
+}
+
+/****** Processes video related SGB commands ******/
+void SGB_LCD::process_sgb_command()
+{
+	switch(mem->g_pad->get_pad_data(2))
+	{
+		//PAL_SET
+		case 0xA:
+			mem->g_pad->set_pad_data(0, 0);
+			mem->g_pad->set_pad_data(1, 0);
+			sgb_mask_mode = 0;
+			break;
+
+		//PAL_TRN
+		case 0xB:
+			mem->g_pad->set_pad_data(0, 0);
+			break;
+
+		//MASK_EN
+		case 0x17:
+			mem->g_pad->set_pad_data(0, 0);
+			sgb_mask_mode = mem->g_pad->get_pad_data(1);
+			break;
+	}
 }

@@ -546,3 +546,9 @@ u8 DMG_GamePad::read()
 
 /****** Write to P1 ******/
 void DMG_GamePad::write(u8 value) { column_id = (value & 0x30); }
+
+/****** Grabs misc pad data ******/
+u32 DMG_GamePad::get_pad_data(u32 index) { return 0; }
+
+/****** Sets misc pad data ******/
+void DMG_GamePad::set_pad_data(u32 index, u32 value) { }

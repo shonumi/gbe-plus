@@ -38,6 +38,8 @@ class SGB_GamePad : virtual public dmg_core_pad
 	void stop_rumble();
 	u8 read();
 	void write(u8 value);
+	u32 get_pad_data(u32 index);
+	void set_pad_data(u32 index, u32 value);
 
 	struct sgb_packets
 	{
@@ -48,6 +50,7 @@ class SGB_GamePad : virtual public dmg_core_pad
 		u8 bit_count;
 		u8 data_count;
 		u8 mult_flag;
+		u8 mask_mode;
 		std::vector<u8> data;
 		bool lcd_command;
 	} packet;

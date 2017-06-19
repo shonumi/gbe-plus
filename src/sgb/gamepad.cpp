@@ -452,6 +452,13 @@ void SGB_GamePad::write(u8 value)
 						packet.mult_flag &= ~0x3;
 						packet.mult_flag |= (packet.data[0] & 0x3);
 					}
+
+					//MASK_EN
+					else if(packet.command == 0x17)
+					{
+						packet.mask_mode = (packet.data[0] & 0x3);
+						packet.lcd_command = true;
+					}
 					
 					//Alert LCD to process all other SGB commands
 					else { packet.lcd_command = true; }
@@ -461,3 +468,38 @@ void SGB_GamePad::write(u8 value)
 			break;
 	}
 }
+
+/****** Grabs misc pad data ******/
+u32 SGB_GamePad::get_pad_data(u32 index)
+{
+	switch(index)
+	{
+		case 0x0:
+			return packet.lcd_command;
+
+		case 0x1:
+			return packet.mask_mode;
+
+		case 0x2:
+			return packet.command;
+
+		default:
+			return 0;
+	}
+}
+
+/****** Sets misc pad data ******/
+void SGB_GamePad::set_pad_data(u32 index, u32 value)
+{
+	switch(index)
+	{
+		case 0x0:
+			packet.lcd_command = (value & 0x1) ? true : false;
+			break;
+
+		case 0x1:
+			packet.mask_mode = (value & 0x3);
+			break;
+	}
+}
+
