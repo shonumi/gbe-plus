@@ -95,6 +95,8 @@ class SGB_LCD
 
 	//SGB stuff
 	u8 sgb_mask_mode;
+	u32 sgb_pal[2048];
+	u8 atf_data[4050];
 
 	//OAM updates
 	void update_oam();

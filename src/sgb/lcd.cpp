@@ -143,6 +143,9 @@ void SGB_LCD::reset()
 	//Initialize SGB stuff
 	sgb_mask_mode = 0;
 
+	for(int x = 0; x < 2048; x++) { sgb_pal[x] = 0; }
+	for(int x = 0; x < 4050; x++) { atf_data[x] = 0; }
+
 	//Initialize system screen dimensions
 	config::sys_width = 160;
 	config::sys_height = 144;
@@ -892,12 +895,53 @@ void SGB_LCD::process_sgb_command()
 		//PAL_TRN
 		case 0xB:
 			mem->g_pad->set_pad_data(0, 0);
+
+			//1K VRAM transfer -> 2048 SGB colors, 512 palettes, 4 colors per palette
+			for(u32 x = 0; x < 0x1000; x += 2)
+			{
+				u16 color = mem->read_u16(0x8000 + x);
+
+				u8 red = ((color & 0x1F) << 3);
+				color >>= 5;
+
+				u8 green = ((color & 0x1F) << 3);
+				color >>= 5;
+
+				u8 blue = ((color & 0x1F) << 3);
+
+				sgb_pal[x << 1] =  0xFF000000 | (red << 16) | (green << 8) | (blue);
+			}
+
+			break;
+
+		//CHR_TRN - Stubbed
+		case 0x13:
+			mem->g_pad->set_pad_data(0, 0);
+			break;
+
+		//PIC_TRN - Stubbed
+		case 0x14:
+			mem->g_pad->set_pad_data(0, 0);
+			break;
+
+		//ATTR_TRN
+		case 0x15:
+			mem->g_pad->set_pad_data(0, 0);
+
+			//4050 byte VRAM transfer -> 20x18 ATR map
+			for(u32 x = 0; x < 4050; x++) { atf_data[x] = mem->memory_map[0x8000 + x]; }
+
 			break;
 
 		//MASK_EN
 		case 0x17:
 			mem->g_pad->set_pad_data(0, 0);
 			sgb_mask_mode = mem->g_pad->get_pad_data(1);
+			break;
+
+		//Unknown command or unhandled command
+		default:
+			mem->g_pad->set_pad_data(0, 0);
 			break;
 	}
 }
