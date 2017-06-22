@@ -49,7 +49,7 @@ int main(int argc, char* args[])
 	//Start the appropiate system core - DMG, SGB, GBC, GBA, or NDS
 	if(config::gb_type == 3) { gbe_plus = new AGB_core(); }
 	else if((config::gb_type >= 0) && (config::gb_type <= 2)) { gbe_plus = new DMG_core(); }
-	else if(config::gb_type == 0x80) { config::gb_type = 1; gbe_plus = new SGB_core(); }
+	else if(config::gb_type == 5) { config::gb_type = 1; gbe_plus = new SGB_core(); }
 	else { gbe_plus = new NTR_core(); }
 	
 	//Read BIOS file optionally

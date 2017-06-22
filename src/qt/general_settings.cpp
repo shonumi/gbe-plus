@@ -51,6 +51,8 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	sys_type->addItem("Game Boy [DMG]");
 	sys_type->addItem("Game Boy Color [GBC]");
 	sys_type->addItem("Game Boy Advance [GBA]");
+	sys_type->addItem("Nintendo DS [NDS]");
+	sys_type->addItem("Super Game Boy [SGB]");
 
 	QHBoxLayout* sys_type_layout = new QHBoxLayout;
 	sys_type_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);

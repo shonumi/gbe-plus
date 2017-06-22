@@ -555,7 +555,7 @@ u8 get_system_type_from_file(std::string filename)
 			test_stream.read((char*)&sgb_byte, 1);
 
 			//If SGB compatible, use it if SGB set as the system
-			if((sgb_byte == 0x3) && (config::gb_type == 0x80)) { gb_type = 0x80; }
+			if((sgb_byte == 0x3) && (config::gb_type == 5)) { gb_type = 5; }
 
 			test_stream.close();
 		}
@@ -894,8 +894,7 @@ bool parse_ini_file()
 
 				if((output >= 0) && (output <= 5)) 
 				{
-					if(output == 5) { config::gb_type = 0x80; }
-					else { config::gb_type = output; }
+					config::gb_type = output;
 					validate_system_type();
 				}
 			}

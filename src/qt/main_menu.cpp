@@ -464,6 +464,7 @@ void main_menu::boot_game()
 		case 0x2: test_bios_path = config::gbc_bios_path; break;
 		case 0x3: test_bios_path = config::agb_bios_path; break;
 		case 0x4: test_bios_path = config::nds7_bios_path; break;
+		case 0x5: config::use_bios = false;
 	}
 
 	test_file.setFileName(QString::fromStdString(test_bios_path));
@@ -624,7 +625,14 @@ void main_menu::boot_game()
 		base_width = (160 * cgfx::scaling_factor);
 		base_height = (144 * cgfx::scaling_factor);
 
-		main_menu::gbe_plus = new DMG_core();
+		if(config::gb_type == 5)
+		{
+			main_menu::gbe_plus = new SGB_core();
+			config::gb_type = 1;
+		}
+
+		else { main_menu::gbe_plus = new DMG_core(); }
+
 		resize((base_width * config::scaling_factor), (base_height * config::scaling_factor) + menu_height);
 
 		//Resize drawing screens
@@ -1011,6 +1019,7 @@ void main_menu::reset()
 			case 0x2: test_bios_path = config::gbc_bios_path; break;
 			case 0x3: test_bios_path = config::agb_bios_path; break;
 			case 0x4: test_bios_path = config::nds7_bios_path; break;
+			case 0x5: config::use_bios = false;
 		}
 
 		test_file.setFileName(QString::fromStdString(test_bios_path));
@@ -1291,6 +1300,7 @@ void main_menu::load_recent(int file_id)
 		case 0x2: test_bios_path = config::gbc_bios_path; break;
 		case 0x3: test_bios_path = config::agb_bios_path; break;
 		case 0x4: test_bios_path = config::nds7_bios_path; break;
+		case 0x5: config::use_bios = false;
 	}
 
 	test_file.setFileName(QString::fromStdString(test_bios_path));
