@@ -145,6 +145,7 @@ void SGB_LCD::reset()
 
 	for(int x = 0; x < 2048; x++) { sgb_pal[x] = 0; }
 	for(int x = 0; x < 4050; x++) { atf_data[x] = 0; }
+	for(int x = 0; x < 4; x++) { sgb_system_pal[x] = 0; }
 
 	//Initialize system screen dimensions
 	config::sys_width = 160;
@@ -889,7 +890,25 @@ void SGB_LCD::process_sgb_command()
 		case 0xA:
 			mem->g_pad->set_pad_data(0, 0);
 			mem->g_pad->set_pad_data(1, 0);
-			sgb_mask_mode = 0;
+
+			//Grab system pallete numbers
+			sgb_system_pal[0] = mem->g_pad->get_pad_data(3);
+			sgb_system_pal[1] = mem->g_pad->get_pad_data(4);
+			sgb_system_pal[2] = mem->g_pad->get_pad_data(5);
+			sgb_system_pal[3] = mem->g_pad->get_pad_data(6);
+
+			u8 atf_byte = mem->g_pad->get_pad_data(7);
+
+			//Grab ATF if necessary
+			if(atf_byte & 0x80)
+			{
+				current_atf = atf_byte & 0x3F;
+				if(current_atf < 0x2C) { current_atf = 0x2C; }
+			}
+
+			//Disable mask if necessary
+			if(atf_byte & 0x40) { sgb_mask_mode = 0; }
+
 			break;
 
 		//PAL_TRN

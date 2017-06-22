@@ -483,6 +483,26 @@ u32 SGB_GamePad::get_pad_data(u32 index)
 		case 0x2:
 			return packet.command;
 
+		//PAL_SET - Get System Color 0
+		case 0x3:
+			return (packet.data[2] << 8) | packet.data[1];
+
+		//PAL_SET - Get System Color 1
+		case 0x4:
+			return (packet.data[4] << 8) | packet.data[3];
+
+		//PAL_SET - Get System Color 2
+		case 0x5:
+			return (packet.data[6] << 8) | packet.data[5];
+
+		//PAL_SET - Get System Color 3
+		case 0x6:
+			return (packet.data[8] << 8) | packet.data[7];
+
+		//PAL_SET - Get Attribute File
+		case 0x7:
+			return packet.data[9];
+
 		default:
 			return 0;
 	}
