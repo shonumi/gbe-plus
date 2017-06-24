@@ -1,4 +1,4 @@
-// GB Enhanced+ Copyright Daniel Baxter 2015
+// GB Enhanced+ Copyright Daniel Baxter 2017
 // Licensed under the GPLv2
 // See LICENSE.txt for full license text
 
@@ -409,6 +409,13 @@ void SGB_LCD::render_sgb_scanline()
 /****** Renders pixels for the BG (per-scanline) ******/
 void SGB_LCD::render_sgb_bg_scanline()
 {
+	//Determine current ATF for SGB system colors
+	u8 system_colors = 0;
+	u16 pal_id = 0;
+	u8 color_shift = 0;
+	u16 atf_index = current_atf * 90;
+	atf_index += (lcd_stat.current_scanline / 8) * 5;
+
 	//Determine where to start drawing
 	u8 rendered_scanline = lcd_stat.current_scanline + lcd_stat.bg_scroll_y;
 	lcd_stat.scanline_pixel_counter = (0x100 - lcd_stat.bg_scroll_x);
@@ -423,6 +430,13 @@ void SGB_LCD::render_sgb_bg_scanline()
 	//Generate background pixel data for selected tiles
 	for(int x = tile_lower_range; x < tile_upper_range; x++)
 	{
+		//Lookup SGB system colors from ATF
+		if(x < 20)
+		{
+			system_colors = (atf_data[atf_index] >> color_shift) & 0x3;
+			pal_id = sgb_system_pal[system_colors] * 4;
+		}
+		
 		u8 map_entry = mem->read_u8(lcd_stat.bg_map_addr + x);
 		u8 tile_pixel = 0;
 
@@ -447,23 +461,35 @@ void SGB_LCD::render_sgb_bg_scanline()
 			switch(lcd_stat.bgp[tile_pixel])
 			{
 				case 0: 
-					scanline_buffer[lcd_stat.scanline_pixel_counter++] = config::DMG_BG_PAL[0];
+					scanline_buffer[lcd_stat.scanline_pixel_counter++] = sgb_pal[pal_id];
 					break;
 
 				case 1: 
-					scanline_buffer[lcd_stat.scanline_pixel_counter++] = config::DMG_BG_PAL[1];
+					scanline_buffer[lcd_stat.scanline_pixel_counter++] = sgb_pal[pal_id + 1];
 					break;
 
 				case 2: 
-					scanline_buffer[lcd_stat.scanline_pixel_counter++] = config::DMG_BG_PAL[2];
+					scanline_buffer[lcd_stat.scanline_pixel_counter++] = sgb_pal[pal_id + 2];
 					break;
 
 				case 3: 
-					scanline_buffer[lcd_stat.scanline_pixel_counter++] = config::DMG_BG_PAL[3];
+					scanline_buffer[lcd_stat.scanline_pixel_counter++] = sgb_pal[pal_id + 3];
 					break;
 			}
 
 			u8 last_scanline_pixel = lcd_stat.scanline_pixel_counter - 1;
+		}
+
+		//Increment ATF index
+		if(x < 20)
+		{
+			color_shift += 2;
+
+			if(color_shift == 8)
+			{
+				color_shift = 0;
+				atf_index++;
+			}
 		}
 	}
 }
@@ -888,26 +914,28 @@ void SGB_LCD::process_sgb_command()
 	{
 		//PAL_SET
 		case 0xA:
-			mem->g_pad->set_pad_data(0, 0);
-			mem->g_pad->set_pad_data(1, 0);
-
-			//Grab system pallete numbers
-			sgb_system_pal[0] = mem->g_pad->get_pad_data(3);
-			sgb_system_pal[1] = mem->g_pad->get_pad_data(4);
-			sgb_system_pal[2] = mem->g_pad->get_pad_data(5);
-			sgb_system_pal[3] = mem->g_pad->get_pad_data(6);
-
-			u8 atf_byte = mem->g_pad->get_pad_data(7);
-
-			//Grab ATF if necessary
-			if(atf_byte & 0x80)
 			{
-				current_atf = atf_byte & 0x3F;
-				if(current_atf < 0x2C) { current_atf = 0x2C; }
-			}
+				mem->g_pad->set_pad_data(0, 0);
+				mem->g_pad->set_pad_data(1, 0);
 
-			//Disable mask if necessary
-			if(atf_byte & 0x40) { sgb_mask_mode = 0; }
+				//Grab system pallete numbers
+				sgb_system_pal[0] = mem->g_pad->get_pad_data(3);
+				sgb_system_pal[1] = mem->g_pad->get_pad_data(4);
+				sgb_system_pal[2] = mem->g_pad->get_pad_data(5);
+				sgb_system_pal[3] = mem->g_pad->get_pad_data(6);
+
+				u8 atf_byte = mem->g_pad->get_pad_data(7);
+
+				//Grab ATF if necessary
+				if(atf_byte & 0x80)
+				{
+					current_atf = atf_byte & 0x3F;
+					if(current_atf > 0x2C) { current_atf = 0x2C; }
+				}
+
+				//Disable mask if necessary
+				if(atf_byte & 0x40) { sgb_mask_mode = 0; }
+			}
 
 			break;
 
@@ -928,7 +956,7 @@ void SGB_LCD::process_sgb_command()
 
 				u8 blue = ((color & 0x1F) << 3);
 
-				sgb_pal[x << 1] =  0xFF000000 | (red << 16) | (green << 8) | (blue);
+				sgb_pal[x >> 1] =  0xFF000000 | (red << 16) | (green << 8) | (blue);
 			}
 
 			break;

@@ -385,6 +385,7 @@ void SGB_GamePad::write(u8 value)
 				if(packet.length == 0)
 				{
 					packet.state = 1;
+					packet.data.clear();
 					packet.data.resize(0x80, 0);
 					packet.ptr = 0;
 					packet.command = 0;
@@ -485,23 +486,23 @@ u32 SGB_GamePad::get_pad_data(u32 index)
 
 		//PAL_SET - Get System Color 0
 		case 0x3:
-			return (packet.data[2] << 8) | packet.data[1];
+			return (packet.data[1] << 8) | packet.data[0];
 
 		//PAL_SET - Get System Color 1
 		case 0x4:
-			return (packet.data[4] << 8) | packet.data[3];
+			return (packet.data[3] << 8) | packet.data[2];
 
 		//PAL_SET - Get System Color 2
 		case 0x5:
-			return (packet.data[6] << 8) | packet.data[5];
+			return (packet.data[5] << 8) | packet.data[4];
 
 		//PAL_SET - Get System Color 3
 		case 0x6:
-			return (packet.data[8] << 8) | packet.data[7];
+			return (packet.data[7] << 8) | packet.data[6];
 
 		//PAL_SET - Get Attribute File
 		case 0x7:
-			return packet.data[9];
+			return packet.data[8];
 
 		default:
 			return 0;
