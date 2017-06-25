@@ -415,6 +415,7 @@ void SGB_LCD::render_sgb_bg_scanline()
 	u8 color_shift = 0;
 	u16 atf_index = current_atf * 90;
 	atf_index += (lcd_stat.current_scanline / 8) * 5;
+	u8 sgb_tile_count = 0;
 
 	//Determine where to start drawing
 	u8 rendered_scanline = lcd_stat.current_scanline + lcd_stat.bg_scroll_y;
@@ -431,7 +432,7 @@ void SGB_LCD::render_sgb_bg_scanline()
 	for(int x = tile_lower_range; x < tile_upper_range; x++)
 	{
 		//Lookup SGB system colors from ATF
-		if(x < 20)
+		if(sgb_tile_count < 20)
 		{
 			system_colors = (atf_data[atf_index] >> color_shift) & 0x3;
 			pal_id = sgb_system_pal[system_colors] * 4;
@@ -481,7 +482,7 @@ void SGB_LCD::render_sgb_bg_scanline()
 		}
 
 		//Increment ATF index
-		if(x < 20)
+		if(sgb_tile_count < 20)
 		{
 			color_shift += 2;
 
@@ -491,6 +492,8 @@ void SGB_LCD::render_sgb_bg_scanline()
 				atf_index++;
 			}
 		}
+
+		sgb_tile_count++;
 	}
 }
 
@@ -946,7 +949,7 @@ void SGB_LCD::process_sgb_command()
 			//1K VRAM transfer -> 2048 SGB colors, 512 palettes, 4 colors per palette
 			for(u32 x = 0; x < 0x1000; x += 2)
 			{
-				u16 color = mem->read_u16(0x8000 + x);
+				u16 color = mem->read_u16(lcd_stat.bg_tile_addr + x);
 
 				u8 red = ((color & 0x1F) << 3);
 				color >>= 5;
@@ -976,7 +979,7 @@ void SGB_LCD::process_sgb_command()
 			mem->g_pad->set_pad_data(0, 0);
 
 			//4050 byte VRAM transfer -> 20x18 ATR map
-			for(u32 x = 0; x < 4050; x++) { atf_data[x] = mem->memory_map[0x8000 + x]; }
+			for(u32 x = 0; x < 4050; x++) { atf_data[x] = mem->memory_map[lcd_stat.bg_tile_addr + x]; }
 
 			break;
 
