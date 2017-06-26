@@ -412,10 +412,13 @@ void SGB_LCD::render_sgb_bg_scanline()
 	//Determine current ATF for SGB system colors
 	u8 system_colors = 0;
 	u16 pal_id = 0;
-	u8 color_shift = 0;
+	s8 color_shift = 6;
 	u16 atf_index = current_atf * 90;
 	atf_index += (lcd_stat.current_scanline / 8) * 5;
 	u8 sgb_tile_count = 0;
+
+	//Grab Color 0
+	u32 color_0 = sgb_pal[(sgb_system_pal[0] * 4)];
 
 	//Determine where to start drawing
 	u8 rendered_scanline = lcd_stat.current_scanline + lcd_stat.bg_scroll_y;
@@ -461,8 +464,8 @@ void SGB_LCD::render_sgb_bg_scanline()
 				
 			switch(lcd_stat.bgp[tile_pixel])
 			{
-				case 0: 
-					scanline_buffer[lcd_stat.scanline_pixel_counter++] = sgb_pal[pal_id];
+				case 0:
+					scanline_buffer[lcd_stat.scanline_pixel_counter++] = color_0;
 					break;
 
 				case 1: 
@@ -484,11 +487,11 @@ void SGB_LCD::render_sgb_bg_scanline()
 		//Increment ATF index
 		if(sgb_tile_count < 20)
 		{
-			color_shift += 2;
+			color_shift -= 2;
 
-			if(color_shift == 8)
+			if(color_shift < 0)
 			{
-				color_shift = 0;
+				color_shift = 6;
 				atf_index++;
 			}
 		}
@@ -915,11 +918,12 @@ void SGB_LCD::process_sgb_command()
 {
 	switch(mem->g_pad->get_pad_data(2))
 	{
+		//PAL01
+
 		//PAL_SET
 		case 0xA:
 			{
 				mem->g_pad->set_pad_data(0, 0);
-				mem->g_pad->set_pad_data(1, 0);
 
 				//Grab system pallete numbers
 				sgb_system_pal[0] = mem->g_pad->get_pad_data(3);
@@ -937,7 +941,11 @@ void SGB_LCD::process_sgb_command()
 				}
 
 				//Disable mask if necessary
-				if(atf_byte & 0x40) { sgb_mask_mode = 0; }
+				if(atf_byte & 0x40)
+				{
+					sgb_mask_mode = 0;
+					mem->g_pad->set_pad_data(1, 0);
+				}
 			}
 
 			break;
@@ -979,7 +987,7 @@ void SGB_LCD::process_sgb_command()
 			mem->g_pad->set_pad_data(0, 0);
 
 			//4050 byte VRAM transfer -> 20x18 ATR map
-			for(u32 x = 0; x < 4050; x++) { atf_data[x] = mem->memory_map[lcd_stat.bg_tile_addr + x]; }
+			for(u32 x = 0; x < 4050; x++) { atf_data[x] = mem->read_u8(lcd_stat.bg_tile_addr + x); }
 
 			break;
 
