@@ -95,10 +95,11 @@ class SGB_LCD
 
 	//SGB stuff
 	u8 sgb_mask_mode;
-	u32 sgb_pal[2048];
+	u32 sgb_pal[2064];
 	u8 atf_data[4050];
 	u16 sgb_system_pal[4];
 	u8 current_atf;
+	bool manual_pal;
 
 	//OAM updates
 	void update_oam();
@@ -115,6 +116,7 @@ class SGB_LCD
 	void opengl_blit();
 
 	void process_sgb_command();
+	u32 get_color(u16 input_color);
 };
 
 #endif // SGB_VID 

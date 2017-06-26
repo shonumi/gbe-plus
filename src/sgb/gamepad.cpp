@@ -485,23 +485,39 @@ u32 SGB_GamePad::get_pad_data(u32 index)
 			return packet.command;
 
 		//PAL_SET - Get System Color 0
+		//PALXX - Get Color 0
 		case 0x3:
 			return (packet.data[1] << 8) | packet.data[0];
 
 		//PAL_SET - Get System Color 1
+		//PALXX - Get Color 1
 		case 0x4:
 			return (packet.data[3] << 8) | packet.data[2];
 
 		//PAL_SET - Get System Color 2
+		//PALXX - Get Color 2
 		case 0x5:
 			return (packet.data[5] << 8) | packet.data[4];
 
 		//PAL_SET - Get System Color 3
+		//PALXX - Get Color 3
 		case 0x6:
 			return (packet.data[7] << 8) | packet.data[6];
 
-		//PAL_SET - Get Attribute File
+		//PALXX - Get Color 4
 		case 0x7:
+			return (packet.data[9] << 8) | packet.data[8];
+
+		//PALXX - Get Color 5
+		case 0x8:
+			return (packet.data[11] << 8) | packet.data[10];
+
+		//PALXX - Get Color 6
+		case 0x9:
+			return (packet.data[13] << 8) | packet.data[12];
+
+		//PAL_SET - Get Attribute File
+		case 0xA:
 			return packet.data[8];
 
 		default:
