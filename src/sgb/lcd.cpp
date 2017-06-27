@@ -611,6 +611,16 @@ void SGB_LCD::render_sgb_obj_scanline()
 	//If no sprites are rendered on this line, quit now
 	if(obj_render_length < 0) { return; }
 
+	//Determine current ATF for SGB system colors
+	u8 system_colors = 0;
+	u16 pal_id = 0;
+	s8 color_shift = 0;
+	u16 atf_index = current_atf * 90;
+	atf_index += (lcd_stat.current_scanline / 8) * 5;
+
+	//Grab Color 0
+	u32 color_0 = (manual_pal) ? sgb_pal[2048] : sgb_pal[(sgb_system_pal[0] * 4)];
+
 	//Cycle through all sprites that are rendering on this pixel, draw them according to their priority
 	for(int x = obj_render_length; x >= 0; x--)
 	{
@@ -657,22 +667,33 @@ void SGB_LCD::render_sgb_obj_scanline()
 			//Render sprite pixel
 			if(draw_obj_pixel)
 			{
+				//Lookup SGB system colors from ATF
+				if(lcd_stat.scanline_pixel_counter < 160)
+				{
+					u8 shift_index = (lcd_stat.scanline_pixel_counter / 32);
+					color_shift = 6 - ((lcd_stat.scanline_pixel_counter % 8) & ~0x1);
+					system_colors = (atf_data[atf_index + shift_index] >> color_shift) & 0x3;
+			
+					if(manual_pal) { pal_id = (system_colors * 4) + 2048; }
+					else { pal_id = sgb_system_pal[system_colors] * 4; }
+				}
+
 				switch(lcd_stat.obp[tile_pixel][obj[sprite_id].palette_number])
 				{
 					case 0: 
-						scanline_buffer[lcd_stat.scanline_pixel_counter++] = config::DMG_OBJ_PAL[0][obj[sprite_id].palette_number];
+						scanline_buffer[lcd_stat.scanline_pixel_counter++] = color_0;
 						break;
 
 					case 1: 
-						scanline_buffer[lcd_stat.scanline_pixel_counter++] = config::DMG_OBJ_PAL[1][obj[sprite_id].palette_number];
+						scanline_buffer[lcd_stat.scanline_pixel_counter++] = sgb_pal[pal_id + 1];
 						break;
 
 					case 2: 
-						scanline_buffer[lcd_stat.scanline_pixel_counter++] = config::DMG_OBJ_PAL[2][obj[sprite_id].palette_number];
+						scanline_buffer[lcd_stat.scanline_pixel_counter++] = sgb_pal[pal_id + 2];
 						break;
 
 					case 3: 
-						scanline_buffer[lcd_stat.scanline_pixel_counter++] = config::DMG_OBJ_PAL[3][obj[sprite_id].palette_number];
+						scanline_buffer[lcd_stat.scanline_pixel_counter++] = sgb_pal[pal_id + 3];
 						break;
 				}
 
@@ -1104,6 +1125,7 @@ void SGB_LCD::process_sgb_command()
 		//Unknown command or unhandled command
 		default:
 			mem->g_pad->set_pad_data(0, 0);
+			std::cout<<"LCD::Unhandled SGB command 0x" << mem->g_pad->get_pad_data(2) << "\n"; 
 			break;
 	}
 }
