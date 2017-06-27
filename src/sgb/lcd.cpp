@@ -416,7 +416,6 @@ void SGB_LCD::render_sgb_bg_scanline()
 	s8 color_shift = 6;
 	u16 atf_index = current_atf * 90;
 	atf_index += (lcd_stat.current_scanline / 8) * 5;
-	u8 sgb_tile_count = 0;
 
 	//Grab Color 0
 	u32 color_0 = (manual_pal) ? sgb_pal[2048] : sgb_pal[(sgb_system_pal[0] * 4)];
@@ -436,7 +435,7 @@ void SGB_LCD::render_sgb_bg_scanline()
 	for(int x = tile_lower_range; x < tile_upper_range; x++)
 	{
 		//Lookup SGB system colors from ATF
-		if(sgb_tile_count < 20)
+		if(((lcd_stat.scanline_pixel_counter + 8) & 0xFF) < 160)
 		{
 			system_colors = (atf_data[atf_index] >> color_shift) & 0x3;
 			
@@ -488,7 +487,7 @@ void SGB_LCD::render_sgb_bg_scanline()
 		}
 
 		//Increment ATF index
-		if(sgb_tile_count < 20)
+		if(((lcd_stat.scanline_pixel_counter + 8) & 0xFF) < 160)
 		{
 			color_shift -= 2;
 
@@ -498,8 +497,6 @@ void SGB_LCD::render_sgb_bg_scanline()
 				atf_index++;
 			}
 		}
-
-		sgb_tile_count++;
 	}
 }
 
@@ -515,7 +512,6 @@ void SGB_LCD::render_sgb_win_scanline()
 	s8 color_shift = 6;
 	u16 atf_index = current_atf * 90;
 	atf_index += (lcd_stat.current_scanline / 8) * 5;
-	u8 sgb_tile_count = 0;
 
 	//Grab Color 0
 	u32 color_0 = (manual_pal) ? sgb_pal[2048] : sgb_pal[(sgb_system_pal[0] * 4)];
@@ -535,7 +531,7 @@ void SGB_LCD::render_sgb_win_scanline()
 	for(int x = tile_lower_range; x < tile_upper_range; x++)
 	{
 		//Lookup SGB system colors from ATF
-		if(sgb_tile_count < 20)
+		if(((lcd_stat.scanline_pixel_counter + 8) & 0xFF) < 160)
 		{
 			system_colors = (atf_data[atf_index] >> color_shift) & 0x3;
 			
@@ -590,7 +586,7 @@ void SGB_LCD::render_sgb_win_scanline()
 		}
 
 		//Increment ATF index
-		if(sgb_tile_count < 20)
+		if(((lcd_stat.scanline_pixel_counter + 8) & 0xFF) < 160)
 		{
 			color_shift -= 2;
 
@@ -600,8 +596,6 @@ void SGB_LCD::render_sgb_win_scanline()
 				atf_index++;
 			}
 		}
-
-		sgb_tile_count++;
 	}
 }
 
