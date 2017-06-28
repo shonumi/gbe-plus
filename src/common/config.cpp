@@ -535,7 +535,7 @@ u8 get_system_type_from_file(std::string filename)
 	else if((ext != ".gba") && (gb_type == 3)) { gb_type = 2; }
 
 	//For Auto or GBC mode, determine what the CGB Flag is
-	if((gb_type == 0) || (gb_type == 2))
+	if((gb_type == 0) || (gb_type == 2) || (gb_type == 5))
 	{
 		std::ifstream test_stream(filename.c_str(), std::ios::binary);
 		
@@ -688,6 +688,9 @@ bool parse_cli_args()
 			//Set system type - NDS
 			else if(config::cli_args[x] == "--sys-nds") { config::gb_type = 4; }
 
+			//Set system type - SGB
+			else if(config::cli_args[x] == "--sys-sgb") { config::gb_type = 5; }
+
 			//Print Help
 			else if((config::cli_args[x] == "-h") || (config::cli_args[x] == "--help")) 
 			{
@@ -709,6 +712,7 @@ bool parse_cli_args()
 				std::cout<<"--sys-gbc \t\t\t\t Set the emulated system type to GBC\n";
 				std::cout<<"--sys-gba \t\t\t\t Set the emulated system type to GBA\n";
 				std::cout<<"--sys-nds \t\t\t\t Set the emulated system type to NDS\n";
+				std::cout<<"--sys-sgb \t\t\t\t Set the emulated system type to SGB\n";
 				std::cout<<"--save-auto \t\t\t\t Set the GBA save type to Auto Detect\n";
 				std::cout<<"--save-none \t\t\t\t Disables all GBA saves\n";
 				std::cout<<"--save-sram \t\t\t\t Force the GBA save type to SRAM\n";

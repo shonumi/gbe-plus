@@ -575,6 +575,8 @@ void main_menu::boot_game()
 	else if((ext != ".gba") && (config::gb_type == 3)) { config::gb_type = 2; config::gba_enhance = true; }
 	else { config::gba_enhance = false; }
 
+	if(config::gb_type == 5) { config::gb_type = get_system_type_from_file(config::rom_file); }
+
 	//Determine CGFX scaling factor
 	cgfx::scaling_factor = (settings->cgfx_scale->currentIndex() + 1);
 	if(!cgfx::load_cgfx) { cgfx::scaling_factor = 1; }
