@@ -250,6 +250,24 @@ void SGB_GamePad::process_keyboard(int pad, bool pressed)
 		if(up_shadow) { p15 &= ~0x4; }
 		else { p15 |= 0x4; } 
 	}
+
+	//Toggle SGB border on
+	else if((pad == config::agb_key_r_trigger) && (pressed))
+	{
+		config::request_resize = true;
+		config::resize_mode--;
+		
+		if(config::resize_mode < 0) { config::resize_mode = 0; }
+	}
+
+	//Toggle SGB border off
+	else if((pad == config::agb_key_l_trigger) && (pressed))
+	{
+		config::request_resize = true;
+		config::resize_mode++;
+
+		if(config::resize_mode > 1) { config::resize_mode = 1; }
+	}
 }
 
 /****** Processes input based on unique pad # for joysticks ******/

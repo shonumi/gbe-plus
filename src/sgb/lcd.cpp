@@ -148,6 +148,10 @@ void SGB_LCD::reset()
 	for(int x = 0; x < 4050; x++) { atf_data[x] = 0; }
 	for(int x = 0; x < 4; x++) { sgb_system_pal[x] = 0; }
 
+	//Initialize SGB border off
+	config::resize_mode = 0;
+	config::request_resize = false;
+
 	//Initialize system screen dimensions
 	config::sys_width = 160;
 	config::sys_height = 144;
@@ -400,10 +404,26 @@ void SGB_LCD::render_sgb_scanline()
 	//Draw sprite pixel data
 	if(lcd_stat.obj_enable) { render_sgb_obj_scanline(); }
 
-	for(int x = 0; x < 160; x++)
+	//Push scanline buffer to screen buffer - Normal version
+	if((config::resize_mode == 0) && (!config::request_resize))
 	{
-		screen_buffer[(config::sys_width * lcd_stat.current_scanline) + x] = scanline_buffer[x];
-		scanline_buffer[x] = 0xFFFFFFFF;
+		for(int x = 0; x < 160; x++)
+		{
+			screen_buffer[(config::sys_width * lcd_stat.current_scanline) + x] = scanline_buffer[x];
+			scanline_buffer[x] = 0xFFFFFFFF;
+		}
+	}
+
+	//Push scanline buffer to screen buffer - SGB border version
+	else if((config::resize_mode == 1) && (!config::request_resize))
+	{
+		u16 offset = 8248 + (lcd_stat.current_scanline * 256);
+
+		for(int x = 0; x < 160; x++)
+		{
+			screen_buffer[offset + x] = scanline_buffer[x];
+			scanline_buffer[x] = 0xFFFFFFFF;
+		}
 	}
 }
 
@@ -799,6 +819,34 @@ void SGB_LCD::step(int cpu_clock)
 				//Restore Window parameters
 				lcd_stat.last_y = 0;
 				lcd_stat.window_y = mem->memory_map[REG_WY];
+
+				//Check for screen resize - SGB border on
+				if((config::request_resize) && (config::resize_mode > 0))
+				{
+					config::sys_width = 256;
+					config::sys_height = 224;
+					screen_buffer.clear();
+					screen_buffer.resize(0xE000, 0xFFFFFFFF);
+					
+					if((window != NULL) && (config::sdl_render)) { SDL_DestroyWindow(window); }
+					init();
+					
+					if(config::sdl_render) { config::request_resize = false; }
+				}
+
+				//Check for screen resize - SGB border off
+				else if(config::request_resize)
+				{
+					config::sys_width = 160;
+					config::sys_height = 144;
+					screen_buffer.clear();
+					screen_buffer.resize(0x5A00, 0xFFFFFFFF);
+
+					if((window != NULL) && (config::sdl_render)) { SDL_DestroyWindow(window); }
+					init();
+					
+					if(config::sdl_render) { config::request_resize = false; }
+				}
 
 				//Increment scanline count
 				lcd_stat.current_scanline++;
