@@ -43,6 +43,7 @@ void SGB_LCD::reset()
 
 	screen_buffer.resize(0x5A00, 0);
 	scanline_buffer.resize(0x100, 0);
+	border_buffer.resize(0xE000, 0);
 	scanline_raw.resize(0x100, 0);
 	scanline_priority.resize(0x100, 0);
 
@@ -143,10 +144,15 @@ void SGB_LCD::reset()
 	//Initialize SGB stuff
 	sgb_mask_mode = 0;
 	manual_pal = false;
+	render_border = false;
 
 	for(int x = 0; x < 2064; x++) { sgb_pal[x] = 0; }
 	for(int x = 0; x < 4050; x++) { atf_data[x] = 0; }
 	for(int x = 0; x < 4; x++) { sgb_system_pal[x] = 0; }
+
+	for(int x = 0; x < 1024; x++) { border_tile_map[x] = 0; }
+	for(int x = 0; x < 64; x++) { border_pal[x] = 0; }
+	for(int x = 0; x < 8192; x++) { border_chr[x] = 0; }
 
 	//Initialize SGB border off
 	config::resize_mode = 0;
@@ -816,6 +822,9 @@ void SGB_LCD::step(int cpu_clock)
 			{
 				lcd_stat.lcd_mode = 1;
 
+				//Update border
+				if(render_border) { render_sgb_border(); }
+
 				//Restore Window parameters
 				lcd_stat.last_y = 0;
 				lcd_stat.window_y = mem->memory_map[REG_WY];
@@ -962,6 +971,11 @@ void SGB_LCD::step(int cpu_clock)
 
 				//Process Gameshark cheats
 				if(config::use_cheats) { mem->set_gs_cheats(); }
+
+				if(config::resize_mode == 1)
+				{
+					for(u32 x = 0; x < 0xE000; x++) { screen_buffer[x] = border_buffer[x]; }
+				}
 			}
 
 			//Processing VBlank
@@ -1134,19 +1148,54 @@ void SGB_LCD::process_sgb_command()
 			for(u32 x = 0; x < 0x1000; x += 2)
 			{
 				u16 color = mem->read_u16(lcd_stat.bg_tile_addr + x);
-				sgb_pal[x >> 1] =  get_color(color);
+				sgb_pal[x >> 1] = get_color(color);
 			}
 
 			break;
 
-		//CHR_TRN - Stubbed
+		//CHR_TRN
 		case 0x13:
-			mem->g_pad->set_pad_data(0, 0);
+			{
+				mem->g_pad->set_pad_data(0, 0);
+
+				u8 tile_options = (mem->g_pad->get_pad_data(3) & 0x3);
+
+				//SNES OBJ not supported yet
+				if((tile_options & 0x2) == 0)
+				{
+					u8 offset = (tile_options & 0x1) ? 0x1000 : 0; 
+
+					//Grab border CHR data
+					for(u32 x = 0; x < 0x1000; x++)
+					{
+						border_chr[x + offset] = mem->read_u8(lcd_stat.bg_tile_addr + x);
+					}
+
+					render_border = true;
+				}
+			}
+				
 			break;
 
-		//PIC_TRN - Stubbed
+		//PIC_TRN
 		case 0x14:
 			mem->g_pad->set_pad_data(0, 0);
+
+			//Grab border tile map data
+			for(int x = 0; x < 0x800; x++)
+			{
+				border_tile_map[x] = mem->read_u16(lcd_stat.bg_tile_addr + x);
+			}
+
+			//Grab border palette data
+			for(u32 x = 0x800; x < 0x880; x++)
+			{
+				u16 color = mem->read_u16(lcd_stat.bg_tile_addr + x);
+				border_pal[x >> 1] = get_color(color);
+			}
+
+			render_border = true;
+
 			break;
 
 		//ATTR_TRN
@@ -1184,4 +1233,56 @@ u32 SGB_LCD::get_color(u16 input_color)
 	u8 blue = ((input_color & 0x1F) << 3);
 
 	return 0xFF000000 | (red << 16) | (green << 8) | (blue);
+}
+
+/****** Draws the SGB border to a buffer ******/
+void SGB_LCD::render_sgb_border()
+{
+	render_border = false;
+
+	u16 border_pixel_counter = 0;
+
+	//Cycle through each tile, rendering border scanline-by-scanline
+	for(u16 line = 0; line < 224; line++)
+	{
+		//Determine which tiles we should generate to get the scanline data - integer division ftw :p
+		u16 tile_lower_range = (line / 8) * 32;
+		u16 tile_upper_range = tile_lower_range + 32;
+
+		//Determine which line of the tiles to generate pixels for this scanline
+		u8 tile_line = line % 8;
+
+		//Generate border pixel data for selected tiles
+		for(int x = tile_lower_range; x < tile_upper_range; x++)
+		{		
+			u16 map_entry = border_tile_map[x];
+			u8 tile_pixel = 0;
+			u8 ext_pal = 0;
+
+			u8 pal_id = ((map_entry >> 10) & 0x7) - 4;
+			pal_id *= 16;
+
+			//Calculate the address of the 8x1 pixel data based on map entry
+			u16 tile_addr = (map_entry << 5) + (tile_line << 2);
+
+			//Grab bytes from CHR data representing 8x1 pixel data
+			u16 tile_data = (border_chr[tile_addr + 1] << 8) | border_chr[tile_addr];
+
+			//Grab bytes from CHR data representing extended palette data
+			u16 ext_color_data = (border_chr[tile_addr + 16 + 1] << 8) | border_chr[tile_addr + 16];
+
+			for(int y = 7; y >= 0; y--)
+			{
+				//Calculate raw value of the tile's pixel
+				tile_pixel = ((tile_data >> 8) & (1 << y)) ? 2 : 0;
+				tile_pixel |= (tile_data & (1 << y)) ? 1 : 0;
+
+				//Calculate extended color data
+				ext_pal = ((ext_color_data >> 8) & (1 << y)) ? 2 : 0;
+				ext_pal |= (ext_color_data & (1 << y)) ? 1 : 0;
+				
+				border_buffer[border_pixel_counter++] = border_pal[pal_id + (ext_pal * 4) + tile_pixel];
+			}
+		}
+	}
 }

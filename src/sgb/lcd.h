@@ -84,6 +84,7 @@ class SGB_LCD
 
 	//Screen pixel buffer
 	std::vector<u32> scanline_buffer;
+	std::vector<u32> border_buffer;
 	std::vector<u32> screen_buffer;
 	std::vector<u8> scanline_raw;
 	std::vector<u8> scanline_priority;
@@ -100,6 +101,11 @@ class SGB_LCD
 	u16 sgb_system_pal[4];
 	u8 current_atf;
 	bool manual_pal;
+	bool render_border;
+
+	u16 border_tile_map[1024];
+	u32 border_pal[64];
+	u8 border_chr[8192];
 
 	//OAM updates
 	void update_oam();
@@ -116,6 +122,7 @@ class SGB_LCD
 	void opengl_blit();
 
 	void process_sgb_command();
+	void render_sgb_border();
 	u32 get_color(u16 input_color);
 };
 
