@@ -311,6 +311,12 @@ void DMG_core::run_core()
 			{
 				core_cpu.controllers.serial_io.sio_stat.shift_counter += core_cpu.cycles;
 
+				if((core_cpu.controllers.serial_io.barcode_boy.send_data) && ((core_mmu.memory_map[REG_SC] & 0x80) == 0))
+				{
+					core_cpu.controllers.serial_io.sio_stat.shifts_left = 8;
+					core_cpu.controllers.serial_io.sio_stat.shift_counter = 0;
+				}	
+
 				//After SIO clocks, perform SIO operations now
 				if(core_cpu.controllers.serial_io.sio_stat.shift_counter >= core_cpu.controllers.serial_io.sio_stat.shift_clock)
 				{
@@ -369,7 +375,6 @@ void DMG_core::run_core()
 								{
 									core_mmu.memory_map[REG_SB] = core_cpu.controllers.serial_io.barcode_boy.byte;
 									core_mmu.memory_map[IF_FLAG] |= 0x08;
-									core_cpu.controllers.serial_io.barcode_boy.send_data = false;
 								}
 									
 								break;
@@ -506,6 +511,12 @@ void DMG_core::step()
 		{
 			core_cpu.controllers.serial_io.sio_stat.shift_counter += core_cpu.cycles;
 
+			if((core_cpu.controllers.serial_io.barcode_boy.send_data) && ((core_mmu.memory_map[REG_SC] & 0x80) == 0))
+			{
+				core_cpu.controllers.serial_io.sio_stat.shifts_left = 8;
+				core_cpu.controllers.serial_io.sio_stat.shift_counter = 0;
+			}	
+
 			//After SIO clocks, perform SIO operations now
 			if(core_cpu.controllers.serial_io.sio_stat.shift_counter >= core_cpu.controllers.serial_io.sio_stat.shift_clock)
 			{
@@ -564,7 +575,6 @@ void DMG_core::step()
 							{
 								core_mmu.memory_map[REG_SB] = core_cpu.controllers.serial_io.barcode_boy.byte;
 								core_mmu.memory_map[IF_FLAG] |= 0x08;
-								core_cpu.controllers.serial_io.barcode_boy.send_data = false;
 							}
 								
 							break;
@@ -1795,11 +1805,10 @@ void DMG_core::handle_hotkey(SDL_Event& event)
 		if(core_cpu.controllers.serial_io.barcode_boy.current_state == BARCODE_BOY_ACTIVE)
 		{
 			core_cpu.controllers.serial_io.barcode_boy.current_state = BARCODE_BOY_SEND_BARCODE;
-			core_cpu.controllers.serial_io.barcode_boy_process();
+			core_cpu.controllers.serial_io.barcode_boy.send_data = true;
 
-			core_mmu.memory_map[REG_SB] = core_cpu.controllers.serial_io.barcode_boy.byte;
-			core_mmu.memory_map[IF_FLAG] |= 0x08;
-			core_cpu.controllers.serial_io.barcode_boy.send_data = false;
+			core_cpu.controllers.serial_io.sio_stat.shifts_left = 8;
+			core_cpu.controllers.serial_io.sio_stat.shift_counter = 0;
 		}
 	}
 }

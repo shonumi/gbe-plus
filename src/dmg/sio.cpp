@@ -1873,13 +1873,6 @@ void DMG_SIO::barcode_boy_process()
 		//Send Barcode data back to Game Boy
 		case BARCODE_BOY_SEND_BARCODE:
 
-			//Force serial transfer with Game Boy
-			if(barcode_boy.counter)
-			{
-				sio_stat.shifts_left = 8;
-				sio_stat.shift_counter = 0;
-			}
-
 			//Signal transmission start to Game Boy (1st barcode number)
 			if(barcode_boy.counter == 0)
 			{
@@ -1912,7 +1905,7 @@ void DMG_SIO::barcode_boy_process()
 				barcode_boy.counter++;
 			}
 
-			//Send 13 digit JAN number
+			//Send 13 digit JAN number (again)
 			else if((barcode_boy.counter > 15) && (barcode_boy.counter < 29))
 			{
 				barcode_boy.byte = barcode_boy.data[barcode_boy.counter - 16];
@@ -1929,6 +1922,9 @@ void DMG_SIO::barcode_boy_process()
 				barcode_boy.current_state = BARCODE_BOY_ACTIVE;
 			}
 
+			sio_stat.shifts_left = 8;
+			sio_stat.shift_counter = 0;
+
 			break;
 	}
 }
@@ -1944,11 +1940,11 @@ bool DMG_SIO::barcode_boy_load_barcode(std::string filename)
 		return false;
 	}
 
-	barcode_boy.data.resize(26, 0x0);
+	barcode_boy.data.resize(13, 0x0);
 
 	u8* ex_data = &barcode_boy.data[0];
 
-	barcode.read((char*)ex_data, 26); 
+	barcode.read((char*)ex_data, 13); 
 	barcode.close();
 
 	std::cout<<"SIO::Loaded Barcode Boy barcode data.\n";
