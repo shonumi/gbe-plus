@@ -126,6 +126,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	sio_dev->addItem("GB Printer");
 	sio_dev->addItem("GB Mobile Adapter");
 	sio_dev->addItem("Bardigun Barcode Scanner");
+	sio_dev->addItem("Barcode Boy");
 
 	QHBoxLayout* sio_layout = new QHBoxLayout;
 	sio_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);

@@ -102,6 +102,17 @@ class DMG_SIO
 		u32 barcode_pointer;
 	} bardigun_scanner;
 
+	//Barcode Boy
+	struct gb_barcode_boy_scanner
+	{
+		std::vector <u8> data;
+		u16 counter;
+		barcode_boy_state current_state;
+		u8 timeout_data[12];
+		u8 byte;
+		bool send_data;
+	} barcode_boy;
+
 	DMG_SIO();
 	~DMG_SIO();
 
@@ -125,6 +136,9 @@ class DMG_SIO
 
 	void bardigun_process();
 	bool bardigun_load_barcode(std::string filename);
+
+	void barcode_boy_process();
+	bool barcode_boy_load_barcode(std::string filename);
 };
 
 #endif // GB_SIO

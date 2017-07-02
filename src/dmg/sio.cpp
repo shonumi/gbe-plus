@@ -215,6 +215,11 @@ void DMG_SIO::reset()
 			sio_stat.sio_type = GB_BARDIGUN_SCANNER;
 			break;
 
+		//Barcode Boy
+		case 0x5:
+			sio_stat.sio_type = GB_BARCODE_BOY;
+			break;
+
 		//Always wait until netplay connection is established to change to GB_LINK
 		//Also, any invalid types are ignored
 		default:
@@ -261,6 +266,20 @@ void DMG_SIO::reset()
 	bardigun_scanner.inactive_counter = 0x500;
 	bardigun_scanner.barcode_pointer = 0;
 	if(config::sio_device == 4) { bardigun_load_barcode(config::external_card_file); }
+
+	//Barcode Boy
+	barcode_boy.data.clear();
+	barcode_boy.current_state = BARCODE_BOY_INACTIVE;
+	barcode_boy.counter = 0;
+	barcode_boy.send_data = false;
+	if(config::sio_device == 5) { barcode_boy_load_barcode(config::external_card_file); }
+
+	//Timeout data - 0x00 0x00 0x00 0x00 0x09 0x09 0x01 0x00 0x01 0x00 0x01 0x04
+	barcode_boy.timeout_data[0] = barcode_boy.timeout_data[1] = barcode_boy.timeout_data[2] = barcode_boy.timeout_data[3] = 0x0;
+	barcode_boy.timeout_data[4] = barcode_boy.timeout_data[5] = 0x9;
+	barcode_boy.timeout_data[6] = barcode_boy.timeout_data[8] = barcode_boy.timeout_data[10] = 0x1;
+	barcode_boy.timeout_data[7] = barcode_boy.timeout_data[9] = 0x0;
+	barcode_boy.timeout_data[11] = 0x4;
 
 	#ifdef GBE_NETPLAY
 
@@ -1775,7 +1794,7 @@ void DMG_SIO::bardigun_process()
 
 			break;
 	}
-}
+}		
 
 /****** Loads a Bardigun barcode file ******/
 bool DMG_SIO::bardigun_load_barcode(std::string filename)
@@ -1801,5 +1820,137 @@ bool DMG_SIO::bardigun_load_barcode(std::string filename)
 	barcode.close();
 
 	std::cout<<"SIO::Loaded Bardigun barcode data.\n";
+	return true;
+}
+
+/****** Processes Barcode Boy barcode data sent to the Game Boy ******/
+void DMG_SIO::barcode_boy_process()
+{
+	//Switch to handshake mode if necessary
+	if((barcode_boy.current_state != BARCODE_BOY_INACTIVE) && (sio_stat.transfer_byte == 0x10))
+	{
+		barcode_boy.current_state = BARCODE_BOY_INACTIVE;
+		barcode_boy.counter = 0;
+	}
+
+	switch(barcode_boy.current_state)
+	{
+		//Confirm handshake with Game Boy
+		case BARCODE_BOY_INACTIVE:
+
+			if(barcode_boy.counter < 4)
+			{
+				if((sio_stat.transfer_byte == 0x10) && ((barcode_boy.counter & 0x1) == 0))
+				{
+					mem->memory_map[REG_SB] = 0x10;
+					mem->memory_map[IF_FLAG] |= 0x08;
+					barcode_boy.counter++;
+				}
+
+				else if((sio_stat.transfer_byte == 0x7) && (barcode_boy.counter & 0x1))
+				{
+					mem->memory_map[REG_SB] = 0x7;
+					mem->memory_map[IF_FLAG] |= 0x08;
+					barcode_boy.counter++;
+				}
+
+				else
+				{
+					mem->memory_map[REG_SB] = 0x0;
+					mem->memory_map[IF_FLAG] |= 0x08;
+					barcode_boy.counter = 0;
+				}
+			}
+
+			if(barcode_boy.counter == 4)
+			{
+				barcode_boy.current_state = BARCODE_BOY_ACTIVE;
+				barcode_boy.counter = 0;
+			}
+
+			break;
+
+		//Send Barcode data back to Game Boy
+		case BARCODE_BOY_SEND_BARCODE:
+
+			//Force serial transfer with Game Boy
+			if(barcode_boy.counter)
+			{
+				sio_stat.shifts_left = 8;
+				sio_stat.shift_counter = 0;
+			}
+
+			//Signal transmission start to Game Boy (1st barcode number)
+			if(barcode_boy.counter == 0)
+			{
+				barcode_boy.byte = 0x2;
+				barcode_boy.send_data = true;
+				barcode_boy.counter++;			
+			}
+
+			//Send 13 digit JAN number
+			else if((barcode_boy.counter > 0) && (barcode_boy.counter < 14))
+			{
+				barcode_boy.byte = barcode_boy.data[barcode_boy.counter - 1];
+				barcode_boy.send_data = true;
+				barcode_boy.counter++;
+			}
+
+			//Signal transmission stop to Game Boy (1st barcode number)
+			else if(barcode_boy.counter == 14)
+			{
+				barcode_boy.byte = 0x3;
+				barcode_boy.send_data = true;
+				barcode_boy.counter++;
+			}
+
+			//Signal transmission start to Game Boy (2nd barcode number)
+			else if(barcode_boy.counter == 15)
+			{
+				barcode_boy.byte = 0x2;
+				barcode_boy.send_data = true;
+				barcode_boy.counter++;
+			}
+
+			//Send 13 digit JAN number
+			else if((barcode_boy.counter > 15) && (barcode_boy.counter < 29))
+			{
+				barcode_boy.byte = barcode_boy.data[barcode_boy.counter - 16];
+				barcode_boy.send_data = true;
+				barcode_boy.counter++;
+			}
+
+			//Signal transmission stop to Game Boy (2nd barcode number)
+			else if(barcode_boy.counter == 29)
+			{
+				barcode_boy.byte = 0x3;
+				barcode_boy.send_data = true;
+				barcode_boy.counter = 0;
+				barcode_boy.current_state = BARCODE_BOY_ACTIVE;
+			}
+
+			break;
+	}
+}
+
+/****** Loads a Barcode Boy barcode file ******/
+bool DMG_SIO::barcode_boy_load_barcode(std::string filename)
+{
+	std::ifstream barcode(filename.c_str(), std::ios::binary);
+
+	if(!barcode.is_open()) 
+	{ 
+		std::cout<<"SIO::Barcode Boy barcode data could not be read. Check file path or permissions. \n";
+		return false;
+	}
+
+	barcode_boy.data.resize(26, 0x0);
+
+	u8* ex_data = &barcode_boy.data[0];
+
+	barcode.read((char*)ex_data, 26); 
+	barcode.close();
+
+	std::cout<<"SIO::Loaded Barcode Boy barcode data.\n";
 	return true;
 }
