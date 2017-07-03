@@ -1831,6 +1831,7 @@ void DMG_SIO::barcode_boy_process()
 	{
 		barcode_boy.current_state = BARCODE_BOY_INACTIVE;
 		barcode_boy.counter = 0;
+		barcode_boy.send_data = false;
 	}
 
 	switch(barcode_boy.current_state)
@@ -1838,16 +1839,23 @@ void DMG_SIO::barcode_boy_process()
 		//Confirm handshake with Game Boy
 		case BARCODE_BOY_INACTIVE:
 
-			if(barcode_boy.counter < 4)
+			if(barcode_boy.counter < 2)
 			{
-				if((sio_stat.transfer_byte == 0x10) && ((barcode_boy.counter & 0x1) == 0))
+				mem->memory_map[REG_SB] = 0xFF;
+				mem->memory_map[IF_FLAG] |= 0x08;
+				barcode_boy.counter++;
+			}	
+
+			else if((barcode_boy.counter >= 2) && (barcode_boy.counter < 4))
+			{
+				if((sio_stat.transfer_byte == 0x10) && (barcode_boy.counter == 2))
 				{
 					mem->memory_map[REG_SB] = 0x10;
 					mem->memory_map[IF_FLAG] |= 0x08;
 					barcode_boy.counter++;
 				}
 
-				else if((sio_stat.transfer_byte == 0x7) && (barcode_boy.counter & 0x1))
+				else if((sio_stat.transfer_byte == 0x7) && (barcode_boy.counter == 3))
 				{
 					mem->memory_map[REG_SB] = 0x7;
 					mem->memory_map[IF_FLAG] |= 0x08;
