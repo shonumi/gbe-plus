@@ -1859,6 +1859,15 @@ void DMG_core::handle_hotkey(int input, bool pressed)
 		core_cpu.controllers.serial_io.bardigun_scanner.current_state = BARDIGUN_INACTIVE;
 		core_cpu.controllers.serial_io.bardigun_scanner.inactive_counter = 0x500;
 		core_cpu.controllers.serial_io.bardigun_scanner.barcode_pointer = 0;
+
+		if(core_cpu.controllers.serial_io.barcode_boy.current_state == BARCODE_BOY_ACTIVE)
+		{
+			core_cpu.controllers.serial_io.barcode_boy.current_state = BARCODE_BOY_SEND_BARCODE;
+			core_cpu.controllers.serial_io.barcode_boy.send_data = true;
+
+			core_cpu.controllers.serial_io.sio_stat.shifts_left = 8;
+			core_cpu.controllers.serial_io.sio_stat.shift_counter = 0;
+		}
 	}
 }
 
