@@ -146,7 +146,14 @@ void SGB_LCD::reset()
 	manual_pal = false;
 	render_border = false;
 
-	for(int x = 0; x < 2064; x++) { sgb_pal[x] = 0; }
+	for(int x = 0; x < 2064; x += 4)
+	{
+		sgb_pal[x] = config::DMG_BG_PAL[0];
+		sgb_pal[x + 1] = config::DMG_BG_PAL[1];
+		sgb_pal[x + 2] = config::DMG_BG_PAL[2];
+		sgb_pal[x + 3] = config::DMG_BG_PAL[3];
+	}
+
 	for(int x = 0; x < 4050; x++) { atf_data[x] = 0; }
 	for(int x = 0; x < 4; x++) { sgb_system_pal[x] = 0; }
 
