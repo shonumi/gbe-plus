@@ -1163,7 +1163,7 @@ void SGB_LCD::process_sgb_command()
 				//SNES OBJ not supported yet
 				if((tile_options & 0x2) == 0)
 				{
-					u8 offset = (tile_options & 0x1) ? 0x1000 : 0; 
+					u16 offset = (tile_options & 0x1) ? 0x1000 : 0; 
 
 					//Grab border CHR data
 					for(u32 x = 0; x < 0x1000; x++)
@@ -1182,15 +1182,15 @@ void SGB_LCD::process_sgb_command()
 			mem->g_pad->set_pad_data(0, 0);
 
 			//Grab border tile map data
-			for(int x = 0; x < 0x800; x++)
+			for(u32 x = 0; x < 0x800; x+= 2)
 			{
-				border_tile_map[x] = mem->read_u16(lcd_stat.bg_tile_addr + x);
+				border_tile_map[x >> 1] = mem->read_u16(lcd_stat.bg_tile_addr + x);
 			}
 
 			//Grab border palette data
-			for(u32 x = 0x800; x < 0x880; x++)
+			for(u32 x = 0; x < 0x80; x += 2)
 			{
-				u16 color = mem->read_u16(lcd_stat.bg_tile_addr + x);
+				u16 color = mem->read_u16(lcd_stat.bg_tile_addr + 0x800 + x);
 				border_pal[x >> 1] = get_color(color);
 			}
 
@@ -1262,14 +1262,19 @@ void SGB_LCD::render_sgb_border()
 			u8 pal_id = ((map_entry >> 10) & 0x7) - 4;
 			pal_id *= 16;
 
+			map_entry &= 0xFF;
+
 			//Calculate the address of the 8x1 pixel data based on map entry
-			u16 tile_addr = (map_entry << 5) + (tile_line << 2);
+			u16 tile_addr = (map_entry << 5) + (tile_line << 1);
+
+			//Calculate the address of the extended palette data
+			u16 pal_addr = tile_addr + 16;
 
 			//Grab bytes from CHR data representing 8x1 pixel data
 			u16 tile_data = (border_chr[tile_addr + 1] << 8) | border_chr[tile_addr];
 
 			//Grab bytes from CHR data representing extended palette data
-			u16 ext_color_data = (border_chr[tile_addr + 16 + 1] << 8) | border_chr[tile_addr + 16];
+			u16 ext_color_data = (border_chr[pal_addr + 1] << 8) | border_chr[pal_addr];
 
 			for(int y = 7; y >= 0; y--)
 			{
