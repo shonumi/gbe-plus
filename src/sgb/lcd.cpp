@@ -423,7 +423,7 @@ void SGB_LCD::render_sgb_scanline()
 	//Push scanline buffer to screen buffer - SGB border version
 	else if((config::resize_mode == 1) && (!config::request_resize))
 	{
-		u16 offset = 8248 + (lcd_stat.current_scanline * 256);
+		u16 offset = 10288 + (lcd_stat.current_scanline * 256);
 
 		for(int x = 0; x < 160; x++)
 		{
