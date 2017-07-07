@@ -1257,7 +1257,7 @@ void SGB_LCD::render_sgb_border()
 		u16 tile_upper_range = tile_lower_range + 32;
 
 		//Determine which line of the tiles to generate pixels for this scanline
-		u8 tile_line = line % 8;
+		u8 tile_line = 0;
 
 		//Generate border pixel data for selected tiles
 		for(int x = tile_lower_range; x < tile_upper_range; x++)
@@ -1268,6 +1268,11 @@ void SGB_LCD::render_sgb_border()
 
 			u8 pal_id = ((map_entry >> 10) & 0x7) - 4;
 			pal_id *= 16;
+
+			bool h_flip = (map_entry & 0x4000) ? true : false;
+			bool v_flip = (map_entry & 0x8000) ? true : false;
+
+			tile_line = (v_flip) ? lcd_stat.flip_8[tile_line] : (line % 8);
 
 			map_entry &= 0xFF;
 
@@ -1285,14 +1290,28 @@ void SGB_LCD::render_sgb_border()
 
 			for(int y = 7; y >= 0; y--)
 			{
-				//Calculate raw value of the tile's pixel
-				tile_pixel = ((tile_data >> 8) & (1 << y)) ? 2 : 0;
-				tile_pixel |= (tile_data & (1 << y)) ? 1 : 0;
+				if(h_flip)
+				{
+					//Calculate raw value of the tile's pixel
+					tile_pixel = ((tile_data >> 8) & (1 << lcd_stat.flip_8[y])) ? 2 : 0;
+					tile_pixel |= (tile_data & (1 << lcd_stat.flip_8[y])) ? 1 : 0;
 
-				//Calculate extended color data
-				ext_pal = ((ext_color_data >> 8) & (1 << y)) ? 2 : 0;
-				ext_pal |= (ext_color_data & (1 << y)) ? 1 : 0;
-				
+					//Calculate extended color data
+					ext_pal = ((ext_color_data >> 8) & (1 << lcd_stat.flip_8[y])) ? 2 : 0;
+					ext_pal |= (ext_color_data & (1 << lcd_stat.flip_8[y])) ? 1 : 0;
+				}
+
+				else
+				{
+					//Calculate raw value of the tile's pixel
+					tile_pixel = ((tile_data >> 8) & (1 << y)) ? 2 : 0;
+					tile_pixel |= (tile_data & (1 << y)) ? 1 : 0;
+
+					//Calculate extended color data
+					ext_pal = ((ext_color_data >> 8) & (1 << y)) ? 2 : 0;
+					ext_pal |= (ext_color_data & (1 << y)) ? 1 : 0;
+				}				
+
 				border_buffer[border_pixel_counter++] = border_pal[pal_id + (ext_pal * 4) + tile_pixel];
 			}
 		}
