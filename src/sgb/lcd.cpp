@@ -1257,7 +1257,7 @@ void SGB_LCD::render_sgb_border()
 		u16 tile_upper_range = tile_lower_range + 32;
 
 		//Determine which line of the tiles to generate pixels for this scanline
-		u8 tile_line = 0;
+		u8 tile_line = (line % 8);
 
 		//Generate border pixel data for selected tiles
 		for(int x = tile_lower_range; x < tile_upper_range; x++)
@@ -1272,12 +1272,12 @@ void SGB_LCD::render_sgb_border()
 			bool h_flip = (map_entry & 0x4000) ? true : false;
 			bool v_flip = (map_entry & 0x8000) ? true : false;
 
-			tile_line = (v_flip) ? lcd_stat.flip_8[tile_line] : (line % 8);
+			u8 real_line = (v_flip) ? lcd_stat.flip_8[tile_line] : (tile_line % 8);
 
 			map_entry &= 0xFF;
 
 			//Calculate the address of the 8x1 pixel data based on map entry
-			u16 tile_addr = (map_entry << 5) + (tile_line << 1);
+			u16 tile_addr = (map_entry << 5) + (real_line << 1);
 
 			//Calculate the address of the extended palette data
 			u16 pal_addr = tile_addr + 16;
