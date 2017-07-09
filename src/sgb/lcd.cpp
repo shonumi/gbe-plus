@@ -1113,7 +1113,7 @@ void SGB_LCD::process_sgb_command()
 				sgb_pal[2058] = get_color(mem->g_pad->get_pad_data(8));
 				sgb_pal[2059] = get_color(mem->g_pad->get_pad_data(9));
 
-				break;		
+				break;	
 
 		//PAL_SET
 		case 0xA:
@@ -1211,6 +1211,16 @@ void SGB_LCD::process_sgb_command()
 
 			//4050 byte VRAM transfer -> 20x18 ATR map
 			for(u32 x = 0; x < 4050; x++) { atf_data[x] = mem->read_u8(lcd_stat.bg_tile_addr + x); }
+
+			break;
+
+		//ATTR_SET
+		case 0x16:
+			mem->g_pad->set_pad_data(0, 0);
+		
+			//Set current ATF
+			current_atf = mem->g_pad->get_pad_data(3) & 0x3F;
+			if(current_atf > 0x2C) { current_atf = 0x2C; }
 
 			break;
 
