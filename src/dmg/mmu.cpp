@@ -1738,6 +1738,12 @@ bool DMG_MMU::read_file(std::string filename)
 		write_u8(REG_OBP1, 0xFF);
 	}
 
+	//Manually set some GBC I/O registers
+	else if(config::gb_type == 2)
+	{
+		memory_map[REG_RP] = 0x2;
+	}
+
 	//Load backup save data if applicable
         load_backup(config::save_file);
 
