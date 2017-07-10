@@ -979,7 +979,7 @@ void SGB_LCD::step(int cpu_clock)
 				//Process Gameshark cheats
 				if(config::use_cheats) { mem->set_gs_cheats(); }
 
-				if(config::resize_mode == 1)
+				if((config::resize_mode == 1) && (!config::request_resize))
 				{
 					for(u32 x = 0; x < 0xE000; x++) { screen_buffer[x] = border_buffer[x]; }
 				}
