@@ -427,11 +427,19 @@ bool DMG_SIO::receive_byte()
 			{
 				temp_buffer[1] = 0x41;
 				
-				//Clear out Bit 0 of RP if receiving signal
-				if(temp_buffer[0] == 1) { mem->memory_map[REG_RP] &= ~0x2; }
+				//Clear out Bit 1 of RP if receiving signal
+				if(temp_buffer[0] == 1)
+				{
+					mem->memory_map[REG_RP] &= ~0x2;
+					mem->ir_counter = 12672;
+				}
 
 				//Set Bit 1 of RP if IR signal is normal
-				else { mem->memory_map[REG_RP] |= 0x2; }
+				else
+				{
+					mem->memory_map[REG_RP] |= 0x2;
+					mem->ir_counter = 0;
+				}
 
 				//Send acknowlegdement
 				SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2);

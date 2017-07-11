@@ -231,6 +231,18 @@ void DMG_core::run_core()
 
 				//Receive bytes normally
 				core_cpu.controllers.serial_io.receive_byte();
+
+				//Fade IR signal after a certain amount of time
+				if(core_mmu.ir_counter > 0)
+				{
+					core_mmu.ir_counter -= core_cpu.cycles;
+
+					if(core_mmu.ir_counter <= 0)
+					{
+						core_mmu.ir_counter = 0;
+						core_mmu.memory_map[REG_RP] &= ~0x2;
+					}
+				}
 			}
 
 			core_cpu.cycles = 0;
@@ -433,6 +445,18 @@ void DMG_core::step()
 
 			//Receive bytes normally
 			core_cpu.controllers.serial_io.receive_byte();
+
+			//Fade IR signal after a certain amount of time
+			if(core_mmu.ir_counter > 0)
+			{
+				core_mmu.ir_counter -= core_cpu.cycles;
+
+				if(core_mmu.ir_counter <= 0)
+				{
+					core_mmu.ir_counter = 0;
+					core_mmu.memory_map[REG_RP] &= ~0x2;
+				}
+			}
 		}
 
 		core_cpu.cycles = 0;

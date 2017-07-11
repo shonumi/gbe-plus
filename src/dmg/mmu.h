@@ -105,6 +105,7 @@ class DMG_MMU
 
 	u8 ir_signal;
 	bool ir_send;
+	s32 ir_counter;
 
 	dmg_core_pad* g_pad;
 
