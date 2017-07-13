@@ -1073,6 +1073,26 @@ void DMG_core::debug_process_command()
 			debug_process_command();
 		}
 
+		//Display current ROM bank (if any)
+		else if(command == "rom")
+		{
+			std::cout<<"Current ROM Bank: 0x" << core_mmu.rom_bank << "\n";
+
+			valid_command = true;
+			db_unit.last_command = "rom";
+			debug_process_command();
+		}
+
+		//Display current RAM bank (if any)
+		else if(command == "ram")
+		{
+			std::cout<<"Current RAM Bank: 0x" << core_mmu.bank_bits << "\n";
+
+			valid_command = true;
+			db_unit.last_command = "ram";
+			debug_process_command();
+		}
+
 		//Print help information
 		else if(command == "h")
 		{
@@ -1084,6 +1104,8 @@ void DMG_core::debug_process_command()
 			std::cout<<"w8 \t\t Write BYTE @ memory, format 0x1234ABCD for addr, 0x12 for value\n";
 			std::cout<<"w16 \t\t Write WORD @ memory, format 0x1234ABCD for addr, 0x1234 for value\n";
 			std::cout<<"reg \t\t Change register value (0-9) \n";
+			std::cout<<"rom \t\t Display current ROM bank (if any) \n";
+			std::cout<<"ram \t\t Display current RAM bank (if any) \n";
 			std::cout<<"dq \t\t Quit the debugger\n";
 			std::cout<<"dc \t\t Toggle CPU cycle display\n";
 			std::cout<<"cr \t\t Reset CPU cycle counter\n";
