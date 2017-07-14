@@ -46,6 +46,10 @@ DMG_core::DMG_core()
 	db_unit.last_command = "n";
 	db_unit.last_mnemonic = "";
 
+	db_unit.breakpoints.clear();
+	db_unit.watchpoint_addr.clear();
+	db_unit.watchpoint_val.clear();
+
 	std::cout<<"GBE::Launching DMG-GBC core\n";
 }
 
@@ -638,9 +642,29 @@ void DMG_core::debug_step()
 				printed = true;
 			}
 		}
-
 	}
 
+	//In continue mode, if watchpoints exist, try to stop one one
+	if((db_unit.watchpoint_addr.size() > 0) && (db_unit.last_command == "c"))
+	{
+		for(int x = 0; x < db_unit.watchpoint_addr.size(); x++)
+		{
+			//When a watchpoint is triggered, display info, wait for next input command
+			if((core_mmu.read_u8(db_unit.watchpoint_addr[x]) == db_unit.watchpoint_val[x])
+			&& (core_mmu.read_u8(db_unit.watchpoint_addr[x]) != db_unit.watchpoint_old_val[x]))
+			{
+				db_unit.last_mnemonic = debug_get_mnemonic(core_cpu.reg.pc);
+				core_cpu.opcode = core_mmu.read_u8(core_cpu.reg.pc);
+
+				debug_display();
+				debug_process_command();
+				printed = true;
+			}
+
+			db_unit.watchpoint_old_val[x] = core_mmu.read_u8(db_unit.watchpoint_addr[x]);
+		}
+	}
+				
 	//When in next instruction mode, simply display info, wait for next input command
 	else if(db_unit.last_command == "n")
 	{
@@ -1007,6 +1031,58 @@ void DMG_core::debug_process_command()
 
 				db_unit.last_command = "reg";
 				debug_display();
+				debug_process_command();
+			}
+		}
+
+		//Break on memory change
+		else if((command.substr(0, 2) == "bc") && (command.substr(3, 2) == "0x"))
+		{
+			valid_command = true;
+			bool valid_value = false;
+			u32 mem_location = 0;
+			u32 mem_value = 0;
+			std::string hex_string = command.substr(5);
+
+			//Convert hex string into usable u32
+			valid_command = util::from_hex_str(hex_string, mem_location);
+
+			//Request valid input again
+			if(!valid_command)
+			{
+				std::cout<<"\nInvalid memory address : " << command << "\n";
+				std::cout<<": ";
+				std::getline(std::cin, command);
+			}
+
+			else
+			{
+				//Request value
+				while(!valid_value)
+				{
+					std::cout<<"\nWatch value: ";
+					std::getline(std::cin, command);
+				
+					valid_value = util::from_hex_str(command.substr(2), mem_value);
+				
+					if(!valid_value)
+					{
+						std::cout<<"\nInvalid value : " << command << "\n";
+					}
+
+					else if((valid_value) && (mem_value > 0xFF))
+					{
+						std::cout<<"\nValue is too large (greater than 0xFF) : 0x" << std::hex << mem_value;
+						valid_value = false;
+					}
+				}
+
+				std::cout<<"\n";
+
+				db_unit.last_command = "bc";
+				db_unit.watchpoint_addr.push_back(mem_location);
+				db_unit.watchpoint_val.push_back(mem_value);
+				db_unit.watchpoint_old_val.push_back(core_mmu.read_u8(mem_location));
 				debug_process_command();
 			}
 		}

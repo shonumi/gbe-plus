@@ -78,6 +78,9 @@ class core_emu
 		bool display_cycles;
 		bool print_all;
 		std::vector <u32> breakpoints;
+		std::vector <u32> watchpoint_addr;
+		std::vector <u32> watchpoint_val;
+		std::vector <u32> watchpoint_old_val;
 		std::string last_command;
 		std::string last_mnemonic;
 	} db_unit;
