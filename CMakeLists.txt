@@ -26,6 +26,12 @@ if (LINK_CABLE)
     endif()
 endif()
 
+option(ADVANCED_DEBUG "Enable advanced debugging features (may affect performance)" OFF)
+
+if (ADVANCED_DEBUG)
+    add_definitions(-DGBE_DEBUG)
+endif()
+
 find_package(OpenGL REQUIRED)
 if (OPENGL_FOUND)
     include_directories(${OPENGL_INCLUDE_DIRS})

@@ -45,6 +45,7 @@ DMG_core::DMG_core()
 	db_unit.print_all = false;
 	db_unit.last_command = "n";
 	db_unit.last_mnemonic = "";
+	db_unit.last_pc = 0;
 
 	db_unit.breakpoints.clear();
 	db_unit.watchpoint_addr.clear();
@@ -644,8 +645,8 @@ void DMG_core::debug_step()
 		}
 	}
 
-	//In continue mode, if watchpoints exist, try to stop one one
-	if((db_unit.watchpoint_addr.size() > 0) && (db_unit.last_command == "c"))
+	//In continue mode, if a watch point is triggered, try to stop on one
+	else if((db_unit.watchpoint_addr.size() > 0) && (db_unit.last_command == "c"))
 	{
 		for(int x = 0; x < db_unit.watchpoint_addr.size(); x++)
 		{
@@ -676,13 +677,67 @@ void DMG_core::debug_step()
 		printed = true;
 	}
 
+	//Advanced debugging
+	#ifdef GBE_DEBUG
+
+	//In continue mode, if a write-breakpoint is triggered, try to stop on one
+	else if((db_unit.write_addr.size() > 0) && (db_unit.last_command == "c") && (core_mmu.debug_write))
+	{
+		for(int x = 0; x < db_unit.write_addr.size(); x++)
+		{
+			if(db_unit.write_addr[x] == core_mmu.debug_addr)
+			{
+				db_unit.last_mnemonic = debug_get_mnemonic(db_unit.last_pc);
+				core_cpu.opcode = core_mmu.read_u8(db_unit.last_pc);
+				debug_display();
+
+				db_unit.last_mnemonic = debug_get_mnemonic(core_cpu.reg.pc);
+				core_cpu.opcode = core_mmu.read_u8(core_cpu.reg.pc);
+				debug_display();
+
+				debug_process_command();
+				printed = true;
+			}
+		}
+	}
+
+	//In continue mode, if a read-breakpoint is triggered, try to stop on one
+	else if((db_unit.read_addr.size() > 0) && (db_unit.last_command == "c") && (core_mmu.debug_read))
+	{
+		for(int x = 0; x < db_unit.read_addr.size(); x++)
+		{
+			if(db_unit.read_addr[x] == core_mmu.debug_addr)
+			{
+				db_unit.last_mnemonic = debug_get_mnemonic(db_unit.last_pc);
+				core_cpu.opcode = core_mmu.read_u8(db_unit.last_pc);
+				debug_display();
+
+				db_unit.last_mnemonic = debug_get_mnemonic(core_cpu.reg.pc);
+				core_cpu.opcode = core_mmu.read_u8(core_cpu.reg.pc);
+				debug_display();
+
+				debug_process_command();
+				printed = true;
+			}
+		}
+	}
+
+	//Reset read-write alerts
+	core_mmu.debug_read = false;
+	core_mmu.debug_write = false;
+
+	#endif
+
 	//Display every instruction when print all is enabled
 	if((!printed) && (db_unit.print_all)) 
 	{
 		db_unit.last_mnemonic = debug_get_mnemonic(core_cpu.reg.pc);
 		core_cpu.opcode = core_mmu.read_u8(core_cpu.reg.pc);
 		debug_display();
-	} 
+	}
+
+	//Update last PC
+	db_unit.last_pc = core_cpu.reg.pc;
 }
 
 /****** Debugger - Display relevant info to the screen ******/
@@ -1087,6 +1142,65 @@ void DMG_core::debug_process_command()
 			}
 		}
 
+		//Advanced debugging
+		#ifdef GBE_DEBUG
+
+		//Set write breakpoint
+		else if((command.substr(0, 2) == "bw") && (command.substr(3, 2) == "0x"))
+		{
+			valid_command = true;
+			u32 mem_location = 0;
+			std::string hex_string = command.substr(5);
+
+			//Convert hex string into usable u32
+			valid_command = util::from_hex_str(hex_string, mem_location);
+
+			//Request valid input again
+			if(!valid_command)
+			{
+				std::cout<<"\nInvalid memory address : " << command << "\n";
+				std::cout<<": ";
+				std::getline(std::cin, command);
+			}
+
+			else
+			{
+				db_unit.last_command = "bw";
+				db_unit.write_addr.push_back(mem_location);
+				std::cout<<"\nWrite Breakpoint added at 0x" << std::hex << mem_location << "\n";
+				debug_process_command();
+			}
+		}
+
+		//Set write breakpoint
+		else if((command.substr(0, 2) == "br") && (command.substr(3, 2) == "0x"))
+		{
+			valid_command = true;
+			u32 mem_location = 0;
+			std::string hex_string = command.substr(5);
+
+			//Convert hex string into usable u32
+			valid_command = util::from_hex_str(hex_string, mem_location);
+
+			//Request valid input again
+			if(!valid_command)
+			{
+				std::cout<<"\nInvalid memory address : " << command << "\n";
+				std::cout<<": ";
+				std::getline(std::cin, command);
+			}
+
+			else
+			{
+				db_unit.last_command = "br";
+				db_unit.read_addr.push_back(mem_location);
+				std::cout<<"\nRead Breakpoint added at 0x" << std::hex << mem_location << "\n";
+				debug_process_command();
+			}
+		}
+
+		#endif
+
 		//Toggle display of CPU cycles
 		else if(command == "dc")
 		{
@@ -1174,11 +1288,12 @@ void DMG_core::debug_process_command()
 		{
 			std::cout<<"n \t\t Run next Fetch-Decode-Execute stage\n";
 			std::cout<<"c \t\t Continue until next breakpoint\n";
-			std::cout<<"bp \t\t Set breakpoint, format 0x1234ABCD\n";
-			std::cout<<"u8 \t\t Show BYTE @ memory, format 0x1234ABCD\n";
-			std::cout<<"u16 \t\t Show WORD @ memory, format 0x1234ABCD\n";
-			std::cout<<"w8 \t\t Write BYTE @ memory, format 0x1234ABCD for addr, 0x12 for value\n";
-			std::cout<<"w16 \t\t Write WORD @ memory, format 0x1234ABCD for addr, 0x1234 for value\n";
+			std::cout<<"bp \t\t Set breakpoint, format 0x1234\n";
+			std::cout<<"bc \t\t Set breakpoint on memory change, format 0x1234 for addr, 0x12 for value\n"; 
+			std::cout<<"u8 \t\t Show BYTE @ memory, format 0x1234\n";
+			std::cout<<"u16 \t\t Show WORD @ memory, format 0x1234\n";
+			std::cout<<"w8 \t\t Write BYTE @ memory, format 0x1234 for addr, 0x12 for value\n";
+			std::cout<<"w16 \t\t Write WORD @ memory, format 0x1234 for addr, 0x1234 for value\n";
 			std::cout<<"reg \t\t Change register value (0-9) \n";
 			std::cout<<"rom \t\t Display current ROM bank (if any) \n";
 			std::cout<<"ram \t\t Display current RAM bank (if any) \n";

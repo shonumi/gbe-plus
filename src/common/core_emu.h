@@ -83,6 +83,13 @@ class core_emu
 		std::vector <u32> watchpoint_old_val;
 		std::string last_command;
 		std::string last_mnemonic;
+		u32 last_pc;
+
+		//Advanced debugging
+		#ifdef GBE_DEBUG
+		std::vector <u32> write_addr;
+		std::vector <u32> read_addr;
+		#endif
 	} db_unit;
 };
 

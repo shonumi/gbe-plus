@@ -109,6 +109,13 @@ class DMG_MMU
 
 	dmg_core_pad* g_pad;
 
+	//Advanced debugging
+	#ifdef GBE_DEBUG
+	bool debug_write;
+	bool debug_read;
+	u16 debug_addr;
+	#endif
+
 	DMG_MMU();
 	~DMG_MMU();
 
