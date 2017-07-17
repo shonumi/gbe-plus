@@ -274,13 +274,6 @@ void DMG_SIO::reset()
 	barcode_boy.send_data = false;
 	if(config::sio_device == 5) { barcode_boy_load_barcode(config::external_card_file); }
 
-	//Timeout data - 0x00 0x00 0x00 0x00 0x09 0x09 0x01 0x00 0x01 0x00 0x01 0x04
-	barcode_boy.timeout_data[0] = barcode_boy.timeout_data[1] = barcode_boy.timeout_data[2] = barcode_boy.timeout_data[3] = 0x0;
-	barcode_boy.timeout_data[4] = barcode_boy.timeout_data[5] = 0x9;
-	barcode_boy.timeout_data[6] = barcode_boy.timeout_data[8] = barcode_boy.timeout_data[10] = 0x1;
-	barcode_boy.timeout_data[7] = barcode_boy.timeout_data[9] = 0x0;
-	barcode_boy.timeout_data[11] = 0x4;
-
 	#ifdef GBE_NETPLAY
 
 	//Close any current connections

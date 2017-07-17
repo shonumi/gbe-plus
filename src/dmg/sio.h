@@ -108,7 +108,6 @@ class DMG_SIO
 		std::vector <u8> data;
 		u16 counter;
 		barcode_boy_state current_state;
-		u8 timeout_data[12];
 		u8 byte;
 		bool send_data;
 	} barcode_boy;
