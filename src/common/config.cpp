@@ -134,6 +134,7 @@ namespace config
 	//Netplay settings
 	bool use_netplay = true;
 	bool netplay_hard_sync = true;
+	u32 netplay_sync_threshold = 32;
 	u16 netplay_server_port = 2000;
 	u16 netplay_client_port = 2001;
 	std::string netplay_client_ip = "127.0.0.1";
@@ -2196,6 +2197,26 @@ bool parse_ini_file()
 			}
 		}
 
+		//Netplay sync threshold
+		if(ini_item == "#netplay_sync_threshold")
+		{
+			if((x + 1) < size) 
+			{
+				ini_item = ini_opts[++x];
+				std::stringstream temp_stream(ini_item);
+				temp_stream >> output;
+
+				config::netplay_sync_threshold = output;
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#netplay_sync_threshold) \n";
+				return false;
+			}
+		}
+
+
 		//Netplay server port
 		else if(ini_item == "#netplay_server_port")
 		{
@@ -2828,6 +2849,15 @@ bool save_ini_file()
 			std::string val = (config::netplay_hard_sync) ? "1" : "0";
 
 			output_lines[line_pos] = "[#use_netplay_hard_sync:" + val + "]";
+		}
+
+		//Use netplay sync threshold
+		else if(ini_item == "#netplay_sync_threshold")
+		{
+			line_pos = output_count[x];
+			std::string val = util::to_str(config::netplay_sync_threshold);
+
+			output_lines[line_pos] = "[#netplay_sync_threshold:" + val + "]";
 		}
 
 		//Netplay server port
