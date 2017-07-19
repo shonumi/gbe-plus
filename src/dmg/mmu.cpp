@@ -321,14 +321,11 @@ u8 DMG_MMU::read_u8(u16 address)
 		//GBC only
 		if(config::gb_type < 2) { return 0x0; }
 
-		//Bits 6 and 7 must be set to read Bit 1
-		else if(memory_map[address] & 0xC0) { return (memory_map[address] & 0xC3); }
+		//If Bits 6 and 7 are not set, treat Bit 1 as HIGH
+		if((memory_map[address] & 0xC0) == 0) { return memory_map[address] | 0x2; }
 
-		//Otherwise, treat Bit 1 as HIGH
-		else
-		{
-			return (memory_map[address] & 0xC1) | 0x2;
-		}
+		//Otherwise, read RP normally
+		else { return memory_map[address]; }
 	}
 
 	//Read from P1
