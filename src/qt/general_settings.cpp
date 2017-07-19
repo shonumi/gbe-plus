@@ -690,6 +690,18 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	hard_sync_layout->addWidget(hard_sync_label);
 	hard_sync_set->setLayout(hard_sync_layout);
 
+	//Netplay - Sync Threshold
+	QWidget* sync_threshold_set = new QWidget(netplay);
+	QLabel* sync_threshold_label = new QLabel("Sync threshold");
+	sync_threshold = new QSpinBox(netplay);
+	sync_threshold->setMinimum(0);
+
+	QHBoxLayout* sync_threshold_layout = new QHBoxLayout;
+	sync_threshold_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	sync_threshold_layout->addWidget(sync_threshold_label);
+	sync_threshold_layout->addWidget(sync_threshold);
+	sync_threshold_set->setLayout(sync_threshold_layout);
+
 	//Netplay - Server port
 	QWidget* server_port_set = new QWidget(netplay);
 	QLabel* server_port_label = new QLabel("Server Port : ");
@@ -733,6 +745,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	netplay_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	netplay_layout->addWidget(enable_netplay_set);
 	netplay_layout->addWidget(hard_sync_set);
+	netplay_layout->addWidget(sync_threshold_set);
 	netplay_layout->addWidget(server_port_set);
 	netplay_layout->addWidget(client_port_set);
 	netplay_layout->addWidget(ip_address_set);
@@ -902,6 +915,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(advanced_button, SIGNAL(clicked()), this, SLOT(switch_control_layout()));
 	connect(enable_netplay, SIGNAL(stateChanged(int)), this, SLOT(set_netplay()));
 	connect(hard_sync, SIGNAL(stateChanged(int)), this, SLOT(set_hard_sync()));
+	connect(sync_threshold, SIGNAL(valueChanged(int)), this, SLOT(update_sync_threshold()));
 	connect(server_port, SIGNAL(valueChanged(int)), this, SLOT(update_server_port()));
 	connect(client_port, SIGNAL(valueChanged(int)), this, SLOT(update_client_port()));
 	connect(ip_update, SIGNAL(clicked()), this, SLOT(update_ip_addr()));
@@ -1232,7 +1246,20 @@ void gen_settings::set_ini_options()
 
 	//Netplay
 	if(config::use_netplay) { enable_netplay->setChecked(true); }
-	if(config::netplay_hard_sync) { hard_sync->setChecked(true); }
+
+	if(config::netplay_hard_sync)
+	{
+		hard_sync->setChecked(true);
+		sync_threshold->setEnabled(true);
+	}
+
+	else
+	{
+		hard_sync->setChecked(false);
+		sync_threshold->setEnabled(false);
+	}
+		
+	sync_threshold->setValue(config::netplay_sync_threshold);
 	server_port->setValue(config::netplay_server_port);
 	client_port->setValue(config::netplay_client_port);
 	ip_address->setText(QString::fromStdString(config::netplay_client_ip));
@@ -1595,8 +1622,23 @@ void gen_settings::set_netplay()
 /****** Sets the netplay hard sync option ******/
 void gen_settings::set_hard_sync()
 {
-	if(hard_sync->isChecked()) { config::netplay_hard_sync = true; }
-	else { config::netplay_hard_sync = false; }
+	if(hard_sync->isChecked())
+	{
+		config::netplay_hard_sync = true;
+		sync_threshold->setEnabled(true);
+	}
+
+	else
+	{
+		config::netplay_hard_sync = false;
+		sync_threshold->setEnabled(false);
+	}
+}
+
+/****** Sets the netplay sync threshold ******/
+void gen_settings::update_sync_threshold()
+{
+	config::netplay_sync_threshold = sync_threshold->value();
 }
 
 /****** Sets the netplay server port ******/

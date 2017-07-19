@@ -135,6 +135,7 @@ class gen_settings : public QDialog
 	//Netplay tab widgets
 	QCheckBox* enable_netplay;
 	QCheckBox* hard_sync;
+	QSpinBox* sync_threshold;
 	QSpinBox* server_port;
 	QSpinBox* client_port;
 	QLineEdit* ip_address;
@@ -173,6 +174,7 @@ class gen_settings : public QDialog
 	void dead_zone_change();
 	void set_netplay();
 	void set_hard_sync();
+	void update_sync_threshold();
 	void update_server_port();
 	void update_client_port();
 	void update_ip_addr();
