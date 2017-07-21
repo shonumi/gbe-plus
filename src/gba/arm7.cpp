@@ -1537,10 +1537,8 @@ void ARM7::clock_timers()
 /****** Jumps to or exits an interrupt ******/
 void ARM7::handle_interrupt()
 {
-	//TODO - Implement a better way of exiting interrupts other than recognizing the SUB PC, #4 instruction
-
 	//Exit interrupt
-	if((in_interrupt) && (reg.r15 == 0x144))
+	if((in_interrupt) && (reg.r15 == 0x13C))
 	{
 		//Restore registers from SP
 		u32 sp_addr = get_reg(13);
