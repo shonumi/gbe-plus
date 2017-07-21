@@ -40,7 +40,7 @@ void AGB_APU::reset()
 	apu_stat.sample_rate = config::sample_rate;
 	apu_stat.main_volume = 4;
 
-	apu_stat.channel_master_volume = config::volume;
+	apu_stat.channel_master_volume = (config::volume >> 2);
 	apu_stat.channel_left_volume = 0.0;
 	apu_stat.channel_right_volume = 0.0;
 
