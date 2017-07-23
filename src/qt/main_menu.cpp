@@ -1080,6 +1080,7 @@ void main_menu::fullscreen()
 		//Set fullscreen
 		if(findChild<QAction*>("fullscreen_action")->isChecked())
 		{
+			QApplication::setOverrideCursor(Qt::BlankCursor);
 			fullscreen_mode = true;
 			setWindowState(Qt::WindowFullScreen);
 			menu_bar->hide();
@@ -1088,6 +1089,7 @@ void main_menu::fullscreen()
 
 		else
 		{
+			QApplication::setOverrideCursor(Qt::ArrowCursor);
 			fullscreen_mode = false;
 			setWindowState(Qt::WindowNoState);
 			menu_bar->show();
