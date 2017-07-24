@@ -870,9 +870,23 @@ bool main_menu::eventFilter(QObject* target, QEvent* event)
 	{
 		if((target == sw_screen) || (target == hw_screen))
 		{
+			float x_scaling_factor, y_scaling_factor = 0.0;
+
+			if(target == sw_screen)
+			{
+				x_scaling_factor = sw_screen->width() / 256.0;
+				y_scaling_factor = sw_screen->height() / 384.0;
+			}
+
+			else
+			{
+				x_scaling_factor = hw_screen->width() / 256.0;
+				y_scaling_factor = hw_screen->height() / 384.0;
+			}
+
 			QMouseEvent* mouse_event = static_cast<QMouseEvent*>(event);
-			u32 x = (mouse_event->x() / config::scaling_factor);
-			u32 y = (mouse_event->y() / config::scaling_factor);
+			u32 x = (mouse_event->x() / x_scaling_factor);
+			u32 y = (mouse_event->y() / y_scaling_factor);
 
 			//Adjust Y for bottom touchscreen
 			if(y > 192)
@@ -901,9 +915,23 @@ bool main_menu::eventFilter(QObject* target, QEvent* event)
 	{
 		if((target == sw_screen) || (target == hw_screen))
 		{
+			float x_scaling_factor, y_scaling_factor = 0.0;
+
+			if(target == sw_screen)
+			{
+				x_scaling_factor = sw_screen->width() / 256.0;
+				y_scaling_factor = sw_screen->height() / 384.0;
+			}
+
+			else
+			{
+				x_scaling_factor = hw_screen->width() / 256.0;
+				y_scaling_factor = hw_screen->height() / 384.0;
+			}
+
 			QMouseEvent* mouse_event = static_cast<QMouseEvent*>(event);
-			u32 x = (mouse_event->x() / config::scaling_factor);
-			u32 y = (mouse_event->y() / config::scaling_factor);
+			u32 x = (mouse_event->x() / x_scaling_factor);
+			u32 y = (mouse_event->y() / y_scaling_factor);
 
 			//Adjust Y for bottom touchscreen
 			if(y > 192)
@@ -935,9 +963,23 @@ bool main_menu::eventFilter(QObject* target, QEvent* event)
 			//Only process mouse motion if touch_by_mouse has been set in NDS core
 			if(main_menu::gbe_plus->get_core_data(2) == 0) { return QWidget::eventFilter(target, event); }
 
+			float x_scaling_factor, y_scaling_factor = 0.0;
+
+			if(target == sw_screen)
+			{
+				x_scaling_factor = sw_screen->width() / 256.0;
+				y_scaling_factor = sw_screen->height() / 384.0;
+			}
+
+			else
+			{
+				x_scaling_factor = hw_screen->width() / 256.0;
+				y_scaling_factor = hw_screen->height() / 384.0;
+			}
+
 			QMouseEvent* mouse_event = static_cast<QMouseEvent*>(event);
-			u32 x = (mouse_event->x() / config::scaling_factor);
-			u32 y = (mouse_event->y() / config::scaling_factor);
+			u32 x = (mouse_event->x() / x_scaling_factor);
+			u32 y = (mouse_event->y() / y_scaling_factor);
 
 			//Adjust Y for bottom touchscreen
 			if(y > 192)
