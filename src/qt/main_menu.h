@@ -53,6 +53,7 @@ class main_menu : public QWidget
 
 	void pause_emu();
 	void open_first_file();
+	void get_nds_ar_size(u32 &width, u32 &height, u32 &offset_x, u32 &offset_y);
 
 	protected:
 	void paintEvent(QPaintEvent* event);

@@ -876,23 +876,36 @@ bool main_menu::eventFilter(QObject* target, QEvent* event)
 	{
 		if((target == sw_screen) || (target == hw_screen))
 		{
+			QMouseEvent* mouse_event = static_cast<QMouseEvent*>(event);
 			float x_scaling_factor, y_scaling_factor = 0.0;
+			u32 x, y = 0;
 
-			if(target == sw_screen)
+			if(config::maintain_aspect_ratio)
 			{
-				x_scaling_factor = sw_screen->width() / 256.0;
-				y_scaling_factor = sw_screen->height() / 384.0;
+				u32 w = (target == sw_screen) ? sw_screen->width() : hw_screen->width();
+				u32 h = (target == sw_screen) ? sw_screen->height() : hw_screen->height();
+				u32 off_x, off_y = 0;
+
+				get_nds_ar_size(w, h, off_x, off_y);
+
+				x_scaling_factor = w / 256.0;
+				y_scaling_factor = h / 384.0;
+
+				x = ((mouse_event->x() - off_x) / x_scaling_factor);
+				y = ((mouse_event->y() - off_y) / y_scaling_factor);
+
+				if((mouse_event->x() < off_x) || (mouse_event->x() > (w + off_x))) { return QWidget::eventFilter(target, event); }
+				if((mouse_event->y() < off_y) || (mouse_event->y() > (h + off_y))) { return QWidget::eventFilter(target, event); }
 			}
 
 			else
 			{
-				x_scaling_factor = hw_screen->width() / 256.0;
-				y_scaling_factor = hw_screen->height() / 384.0;
-			}
+				x_scaling_factor = (target == sw_screen) ? (sw_screen->width() / 256.0) : (hw_screen->width() / 256.0);
+				y_scaling_factor = (target == sw_screen) ? (sw_screen->height() / 384.0) : (hw_screen->height() / 384.0);
 
-			QMouseEvent* mouse_event = static_cast<QMouseEvent*>(event);
-			u32 x = (mouse_event->x() / x_scaling_factor);
-			u32 y = (mouse_event->y() / y_scaling_factor);
+				x = (mouse_event->x() / x_scaling_factor);
+			 	y = (mouse_event->y() / y_scaling_factor);
+			}
 
 			//Adjust Y for bottom touchscreen
 			if(y > 192)
@@ -921,23 +934,36 @@ bool main_menu::eventFilter(QObject* target, QEvent* event)
 	{
 		if((target == sw_screen) || (target == hw_screen))
 		{
+			QMouseEvent* mouse_event = static_cast<QMouseEvent*>(event);
 			float x_scaling_factor, y_scaling_factor = 0.0;
+			u32 x, y = 0;
 
-			if(target == sw_screen)
+			if(config::maintain_aspect_ratio)
 			{
-				x_scaling_factor = sw_screen->width() / 256.0;
-				y_scaling_factor = sw_screen->height() / 384.0;
+				u32 w = (target == sw_screen) ? sw_screen->width() : hw_screen->width();
+				u32 h = (target == sw_screen) ? sw_screen->height() : hw_screen->height();
+				u32 off_x, off_y = 0;
+
+				get_nds_ar_size(w, h, off_x, off_y);
+
+				x_scaling_factor = w / 256.0;
+				y_scaling_factor = h / 384.0;
+
+				x = ((mouse_event->x() - off_x) / x_scaling_factor);
+				y = ((mouse_event->y() - off_y) / y_scaling_factor);
+
+				if((mouse_event->x() < off_x) || (mouse_event->x() > (w + off_x))) { return QWidget::eventFilter(target, event); }
+				if((mouse_event->y() < off_y) || (mouse_event->y() > (h + off_y))) { return QWidget::eventFilter(target, event); }
 			}
 
 			else
 			{
-				x_scaling_factor = hw_screen->width() / 256.0;
-				y_scaling_factor = hw_screen->height() / 384.0;
-			}
+				x_scaling_factor = (target == sw_screen) ? (sw_screen->width() / 256.0) : (hw_screen->width() / 256.0);
+				y_scaling_factor = (target == sw_screen) ? (sw_screen->height() / 384.0) : (hw_screen->height() / 384.0);
 
-			QMouseEvent* mouse_event = static_cast<QMouseEvent*>(event);
-			u32 x = (mouse_event->x() / x_scaling_factor);
-			u32 y = (mouse_event->y() / y_scaling_factor);
+				x = (mouse_event->x() / x_scaling_factor);
+			 	y = (mouse_event->y() / y_scaling_factor);
+			}
 
 			//Adjust Y for bottom touchscreen
 			if(y > 192)
@@ -969,23 +995,36 @@ bool main_menu::eventFilter(QObject* target, QEvent* event)
 			//Only process mouse motion if touch_by_mouse has been set in NDS core
 			if(main_menu::gbe_plus->get_core_data(2) == 0) { return QWidget::eventFilter(target, event); }
 
+			QMouseEvent* mouse_event = static_cast<QMouseEvent*>(event);
 			float x_scaling_factor, y_scaling_factor = 0.0;
+			u32 x, y = 0;
 
-			if(target == sw_screen)
+			if(config::maintain_aspect_ratio)
 			{
-				x_scaling_factor = sw_screen->width() / 256.0;
-				y_scaling_factor = sw_screen->height() / 384.0;
+				u32 w = (target == sw_screen) ? sw_screen->width() : hw_screen->width();
+				u32 h = (target == sw_screen) ? sw_screen->height() : hw_screen->height();
+				u32 off_x, off_y = 0;
+
+				get_nds_ar_size(w, h, off_x, off_y);
+
+				x_scaling_factor = w / 256.0;
+				y_scaling_factor = h / 384.0;
+
+				x = ((mouse_event->x() - off_x) / x_scaling_factor);
+				y = ((mouse_event->y() - off_y) / y_scaling_factor);
+
+				if((mouse_event->x() < off_x) || (mouse_event->x() > (w + off_x))) { return QWidget::eventFilter(target, event); }
+				if((mouse_event->y() < off_y) || (mouse_event->y() > (h + off_y))) { return QWidget::eventFilter(target, event); }
 			}
 
 			else
 			{
-				x_scaling_factor = hw_screen->width() / 256.0;
-				y_scaling_factor = hw_screen->height() / 384.0;
-			}
+				x_scaling_factor = (target == sw_screen) ? (sw_screen->width() / 256.0) : (hw_screen->width() / 256.0);
+				y_scaling_factor = (target == sw_screen) ? (sw_screen->height() / 384.0) : (hw_screen->height() / 384.0);
 
-			QMouseEvent* mouse_event = static_cast<QMouseEvent*>(event);
-			u32 x = (mouse_event->x() / x_scaling_factor);
-			u32 y = (mouse_event->y() / y_scaling_factor);
+				x = (mouse_event->x() / x_scaling_factor);
+			 	y = (mouse_event->y() / y_scaling_factor);
+			}
 
 			//Adjust Y for bottom touchscreen
 			if(y > 192)
@@ -1456,6 +1495,35 @@ void main_menu::stop_netplay()
 	if(main_menu::gbe_plus != NULL)
 	{
 		main_menu::gbe_plus->stop_netplay();
+	}
+}
+
+/****** Calculates the NDS screen size + offsets when maintaining proper aspect ratio ******/
+void main_menu::get_nds_ar_size(u32 &width, u32 &height, u32 &offset_x, u32 &offset_y)
+{
+	float w_ratio = 256.0 / width;
+	float h_ratio = 384.0 / height;
+
+	u32 original_w = width;
+	u32 original_h = height;
+
+	//Calculate height to maintain aspect ratio
+	if(w_ratio > h_ratio)
+	{
+		height = (384 * (width / 256.0)) ;
+
+		//Calculate offsets
+		offset_x = 0;
+		offset_y = (original_h - height) / 2;
+	}
+
+	else if(h_ratio > w_ratio)
+	{
+		width = (256 * (height / 384.0)) ;
+
+		//Calculate offsets
+		offset_x = (original_w - width) / 2;
+		offset_y = 0;
 	}
 }
 
