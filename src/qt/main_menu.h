@@ -49,6 +49,7 @@ class main_menu : public QWidget
 	int menu_height;
 
 	bool fullscreen_mode;
+	bool is_sgb_core;
 
 	void pause_emu();
 	void open_first_file();

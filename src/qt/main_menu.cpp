@@ -312,6 +312,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	display_height = QApplication::desktop()->screenGeometry().height();
 
 	fullscreen_mode = false;
+	is_sgb_core = false;
 }
 
 /****** Opens a file from the CLI arguments ******/
@@ -631,9 +632,14 @@ void main_menu::boot_game()
 		{
 			main_menu::gbe_plus = new SGB_core();
 			config::gb_type = 1;
+			is_sgb_core = true;
 		}
 
-		else { main_menu::gbe_plus = new DMG_core(); }
+		else
+		{
+			main_menu::gbe_plus = new DMG_core();
+			is_sgb_core = false;
+		}
 
 		resize((base_width * config::scaling_factor), (base_height * config::scaling_factor) + menu_height);
 
@@ -1228,6 +1234,9 @@ void main_menu::show_cgfx()
 		return;
 	}
 
+	//Do nothing for SGB for now
+	else if(is_sgb_core) { return; }
+
 	findChild<QAction*>("pause_action")->setEnabled(false);
 
 	//Wait until LY equals the selected line to stop on, or LCD is turned off
@@ -1299,7 +1308,7 @@ void main_menu::show_debugger()
 	if(main_menu::gbe_plus != NULL)
 	{
 		//Show DMG-GBC debugger
-		if(config::gb_type <= 2) 
+		if((config::gb_type <= 2) && (!is_sgb_core)) 
 		{
 			findChild<QAction*>("pause_action")->setEnabled(false);
 
