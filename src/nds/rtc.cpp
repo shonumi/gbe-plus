@@ -57,13 +57,13 @@ void NTR_MMU::process_rtc()
 					//Validate command
 					if((nds7_rtc.serial_byte & 0xF) == 0x6)
 					{
-						std::cout<<"COMMAND -> 0x" << (u16)nds7_rtc.serial_byte << "\n";
+						//std::cout<<"COMMAND -> 0x" << (u16)nds7_rtc.serial_byte << "\n";
 
 						u8 param = ((nds7_rtc.serial_byte >> 4) & 0x7);
 						bool read_data = (nds7_rtc.serial_byte & 0x80) ? true : false;
 						
-						if(read_data) { std::cout<<"READ COMMAND 0x" << std::hex << u16(param) << "\n"; }
-						else { std::cout<<"WRITE COMMAND 0x" << std::hex << u16(param) << "\n"; }
+						//if(read_data) { std::cout<<"READ COMMAND 0x" << std::hex << u16(param) << "\n"; }
+						//else { std::cout<<"WRITE COMMAND 0x" << std::hex << u16(param) << "\n"; }
 
 						//Change state based on the received parameter
 						switch(param)

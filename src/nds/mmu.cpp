@@ -101,7 +101,7 @@ void NTR_MMU::reset()
 	write_u16(NDS_EXMEM, 0xE880);
 
 	//HLE firmware stuff
-	setup_default_firmware();
+	if(!config::use_firmware) { setup_default_firmware(); }
 
 	firmware_state = 0;
 	firmware_index = 0;
@@ -185,16 +185,6 @@ void NTR_MMU::reset()
 	nds9_math.div_denom = 0;
 	nds9_math.div_result = 0;
 	nds9_math.div_remainder = 0;
-	
-	touchscreen.adc_x1 = read_u16(0x27FFCD8) & 0x1FFF;
-	touchscreen.adc_y1 = read_u16(0x27FFCDA) & 0x1FFF;
-	touchscreen.scr_x1 = read_u8(0x27FFCDC);
-	touchscreen.scr_y1 = read_u8(0x27FFCDD);
-
-	touchscreen.adc_x2 = read_u16(0x27FFCDE) & 0x1FFF;
-	touchscreen.adc_y2 = read_u16(0x27FFCE0) & 0x1FFF;
-	touchscreen.scr_x2 = read_u8(0x27FFCE2);
-	touchscreen.scr_y2 = read_u8(0x27FFCE3);
 
 	touchscreen_state = 0;
 
@@ -3435,47 +3425,18 @@ bool NTR_MMU::read_firmware(std::string filename)
 	//Copy current settings from firmware to RAM
 	for(u8 x = 0; x < 0x70; x++) { write_u8(0x27FFC80, firmware[0x3FE00 + x]); }
 
+	//Setup touchscreen calibration
+	touchscreen.adc_x1 = read_u16(0x27FFCD8) & 0x1FFF;
+	touchscreen.adc_y1 = read_u16(0x27FFCDA) & 0x1FFF;
+	touchscreen.scr_x1 = read_u8(0x27FFCDC);
+	touchscreen.scr_y1 = read_u8(0x27FFCDD);
+
+	touchscreen.adc_x2 = read_u16(0x27FFCDE) & 0x1FFF;
+	touchscreen.adc_y2 = read_u16(0x27FFCE0) & 0x1FFF;
+	touchscreen.scr_x2 = read_u8(0x27FFCE2);
+	touchscreen.scr_y2 = read_u8(0x27FFCE3);
+
 	in_firmware = true;
-	u16 arm9_entry, arm7_entry;
-	u16 shifts = (firmware[0x15] << 8) | firmware[0x14];
-	u8 current_shift = (shifts & 0x7);
-
-	//Setup ARM9 firmware offset
-	u16 boot_code = (firmware[0xD] << 8) | firmware[0xC];
-	header.arm9_rom_offset = boot_code * (1 << (2 + current_shift));
-
-	//Setup ARM9 RAM address
-	boot_code = (firmware[0xF] << 8) | firmware[0xE];
-	current_shift = ((shifts >> 3) & 0x7);
-	header.arm9_ram_addr = 0x2800000 + (boot_code * (1 << (2 + current_shift)));
-
-	//Setup ARM9 entry point
-	header.arm9_entry_addr = header.arm9_ram_addr;
-
-	//Setup ARM7 firmware offset
-	boot_code = (firmware[0x11] << 8) | firmware[0x10];
-	current_shift = ((shifts >> 6) & 0x7);
-	header.arm7_rom_offset = boot_code * (1 << (2 + current_shift));
-
-	//Setup ARM7 RAM address
-	boot_code = (firmware[0x13] << 8) | firmware[0x12];
-	current_shift = ((shifts >> 9) & 0x7);
-	header.arm7_ram_addr = 0x3810000 + (boot_code * (1 << (2 + current_shift)));
-
-	//Setup ARM7 entry point
-	header.arm7_entry_addr = header.arm7_ram_addr;
-
-	//Copy firmware to RAM address (ARM9 code)
-	for(u32 x = 0; x < firmware.size(); x++)
-	{
-		write_u8((header.arm9_ram_addr + x), firmware[header.arm9_rom_offset + x]);
-	}
-
-	//Copy firmware to RAM address (ARM7 code)
-	for(u32 x = 0; x < firmware.size(); x++)
-	{
-		write_u8((header.arm7_ram_addr + x), firmware[header.arm7_rom_offset + x]);
-	}
 
 	file.close();
 	std::cout<<"MMU::NDS firmware file " << filename << " loaded successfully. \n";
@@ -4004,7 +3965,18 @@ void NTR_MMU::setup_default_firmware()
 	for(u32 x = 0; x < 0x6C; x++)
 	{
 		write_u8((0x27FFC80 + x), firmware[0x3FE00 + x]);
-	} 
+	}
+
+	//Setup touchscreen calibration
+	touchscreen.adc_x1 = read_u16(0x27FFCD8) & 0x1FFF;
+	touchscreen.adc_y1 = read_u16(0x27FFCDA) & 0x1FFF;
+	touchscreen.scr_x1 = read_u8(0x27FFCDC);
+	touchscreen.scr_y1 = read_u8(0x27FFCDD);
+
+	touchscreen.adc_x2 = read_u16(0x27FFCDE) & 0x1FFF;
+	touchscreen.adc_y2 = read_u16(0x27FFCE0) & 0x1FFF;
+	touchscreen.scr_x2 = read_u8(0x27FFCE2);
+	touchscreen.scr_y2 = read_u8(0x27FFCE3);
 }
 	
 /****** Points the MMU to an lcd_data structure (FROM THE LCD ITSELF) ******/

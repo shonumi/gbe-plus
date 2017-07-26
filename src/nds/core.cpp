@@ -121,6 +121,9 @@ void NTR_core::reset()
 	//Re-read BIOS file
 	if((config::use_bios) && (!read_bios(""))) { can_reset = false; }
 
+	//Re-read firmware file
+	if((config::use_firmware) && (!read_firmware(config::nds_firmware_path))) { can_reset = false; }
+
 	//Link CPUs and MMU
 	core_cpu_nds9.mem = &core_mmu;
 	core_cpu_nds7.mem = &core_mmu;
