@@ -26,11 +26,26 @@ NTR_ARM7::~NTR_ARM7()
 void NTR_ARM7::reset()
 {
 	reg.r0 = reg.r1 = reg.r2 = reg.r3 = reg.r4 = reg.r5 = reg.r6 = reg.r7 = reg.r8 = reg.r9 = reg.r10 = reg.r11 = reg.r12 = reg.r14 = 0;
-	reg.r13 = reg.r13_fiq = reg.r13_abt = reg.r13_und = 0x380FD80;
-	reg.r13_svc = 0x380FFC0;
-	reg.r13_irq = 0x380FF80;
-	reg.r15 = 0x8000000;
-	reg.cpsr = 0x5F;
+
+	//Set default values for some registers if not booting from the NDS firmware
+	if(!config::use_bios || !config::use_firmware)
+	{
+		reg.r13 = reg.r13_fiq = reg.r13_abt = reg.r13_und = 0x380FD80;
+		reg.r13_svc = 0x380FFC0;
+		reg.r13_irq = 0x380FF80;
+		reg.r15 = 0x8000000;
+		reg.cpsr = 0x5F;
+	}
+
+	//Otherwise, init registers as zero
+	else
+	{
+		reg.r13 = reg.r13_fiq = reg.r13_abt = reg.r13_und = 0;
+		reg.r13_svc = 0;
+		reg.r13_irq = 0;
+		reg.r15 = 0;
+		reg.cpsr = 0;
+	}
 
 	reg.r8_fiq = reg.r9_fiq = reg.r10_fiq = reg.r11_fiq = reg.r12_fiq = reg.r14_fiq = reg.spsr_fiq = 0;
 	reg.r14_svc = reg.spsr_svc = 0;

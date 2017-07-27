@@ -128,8 +128,11 @@ void NTR_core::reset()
 	core_cpu_nds9.mem = &core_mmu;
 	core_cpu_nds7.mem = &core_mmu;
 
-	core_cpu_nds9.reg.r12 = core_cpu_nds9.reg.r14 = core_cpu_nds9.reg.r15 = core_mmu.header.arm9_entry_addr;
-	core_cpu_nds7.reg.r12 = core_cpu_nds7.reg.r14 = core_cpu_nds7.reg.r15 = core_mmu.header.arm7_entry_addr;
+	if(!config::use_bios || !config::use_firmware)
+	{
+		core_cpu_nds9.reg.r12 = core_cpu_nds9.reg.r14 = core_cpu_nds9.reg.r15 = core_mmu.header.arm9_entry_addr;
+		core_cpu_nds7.reg.r12 = core_cpu_nds7.reg.r14 = core_cpu_nds7.reg.r15 = core_mmu.header.arm7_entry_addr;
+	}
 
 	//Link LCD and MMU
 	core_cpu_nds9.controllers.video.mem = &core_mmu;
@@ -171,11 +174,14 @@ void NTR_core::run_core()
 	//Reaneble cursor for this core since it's actually useful for the touchscreen
 	SDL_ShowCursor(SDL_ENABLE);
 
-	//Point ARM9 PC to entry address
-	core_cpu_nds9.reg.r15 = core_mmu.header.arm9_entry_addr;
+	if(!config::use_bios || !config::use_firmware)
+	{
+		//Point ARM9 PC to entry address
+		core_cpu_nds9.reg.r15 = core_mmu.header.arm9_entry_addr;
 
-	//Point ARM7 PC to entry address
-	core_cpu_nds7.reg.r15 = core_mmu.header.arm7_entry_addr;
+		//Point ARM7 PC to entry address
+		core_cpu_nds7.reg.r15 = core_mmu.header.arm7_entry_addr;
+	}
 
 	//Begin running the core
 	while(running)
