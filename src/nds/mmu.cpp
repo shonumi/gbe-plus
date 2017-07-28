@@ -62,43 +62,46 @@ void NTR_MMU::reset()
 	power_cnt1 = 0;
 
 	//HLE MMIO stuff
-	memory_map[NDS_DISPCNT_A] = 0x80;
-	memory_map[NDS_POSTFLG] = 0x1;
+	if(!config::use_bios || !config::use_firmware)
+	{
+		memory_map[NDS_DISPCNT_A] = 0x80;
+		memory_map[NDS_POSTFLG] = 0x1;
 
-	write_u16_fast(NDS_BG2PA_A, 0x100);
-	write_u16_fast(NDS_BG2PD_A, 0x100);
-	write_u16_fast(NDS_BG3PA_A, 0x100);
-	write_u16_fast(NDS_BG3PD_A, 0x100);
+		write_u16_fast(NDS_BG2PA_A, 0x100);
+		write_u16_fast(NDS_BG2PD_A, 0x100);
+		write_u16_fast(NDS_BG3PA_A, 0x100);
+		write_u16_fast(NDS_BG3PD_A, 0x100);
 
-	write_u16_fast(NDS_BG2PA_B, 0x100);
-	write_u16_fast(NDS_BG2PD_B, 0x100);
-	write_u16_fast(NDS_BG3PA_B, 0x100);
-	write_u16_fast(NDS_BG3PD_B, 0x100);
+		write_u16_fast(NDS_BG2PA_B, 0x100);
+		write_u16_fast(NDS_BG2PD_B, 0x100);
+		write_u16_fast(NDS_BG3PA_B, 0x100);
+		write_u16_fast(NDS_BG3PD_B, 0x100);
 	
-	//NDS7 BIOS CRC
-	write_u16_fast(0x23FF850, 0x5835);
-	write_u16_fast(0x23FFC10, 0x5835);
+		//NDS7 BIOS CRC
+		write_u16_fast(0x23FF850, 0x5835);
+		write_u16_fast(0x23FFC10, 0x5835);
 
-	//NDS9 to NDS7 message
-	write_u32_fast(0x23FF880, 0x7);
+		//NDS9 to NDS7 message
+		write_u32_fast(0x23FF880, 0x7);
 
-	//NDS7 Boot Task
-	write_u32_fast(0x23FF884, 0x6);
+		//NDS7 Boot Task
+		write_u32_fast(0x23FF884, 0x6);
 
-	//Misc Boot Flags
-	write_u32_fast(0x23FF890, 0xB0002A22);
+		//Misc Boot Flags
+		write_u32_fast(0x23FF890, 0xB0002A22);
 
-	//Frame Counter
-	write_u32_fast(0x23FFC3C, 0x332);
+		//Frame Counter
+		write_u32_fast(0x23FFC3C, 0x332);
 
-	//Boot Status
-	write_u16_fast(0x23FFC40, 0x1);
+		//Boot Status
+		write_u16_fast(0x23FFC40, 0x1);
 
-	//Setup EXMEM + default access mode to NDS9
-	access_mode = 0;
-	write_u16(NDS_EXMEM, 0xE880);
-	access_mode = 1;
-	write_u16(NDS_EXMEM, 0xE880);
+		//Setup EXMEM + default access mode to NDS9
+		access_mode = 0;
+		write_u16(NDS_EXMEM, 0xE880);
+		access_mode = 1;
+		write_u16(NDS_EXMEM, 0xE880);
+	}
 
 	//HLE firmware stuff
 	if(!config::use_firmware) { setup_default_firmware(); }
