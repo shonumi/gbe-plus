@@ -85,7 +85,7 @@ void NTR_ARM9::branch_link(u32 current_arm_instruction)
 	u32 final_addr = reg.r15;
 
 	//Add offset as 2s complement if necessary
-	if(offset & 0x2000000) { final_addr |= 0xFC000000; }
+	if(offset & 0x2000000) { offset |= 0xFC000000; }
 
 	final_addr += offset;
 
