@@ -3765,11 +3765,15 @@ void NTR_MMU::process_card_bus()
 	//Prepare for next transfer, if any
 	nds_card.transfer_size -= 4;
 
+	//Finish card transfer, raise IRQ if necessary
 	if(!nds_card.transfer_size)
 	{
 		nds_card.active_transfer = false;
 		nds_card.cnt |= 0x800000;
 		nds_card.cnt &= ~0x80000000;
+
+		if((nds9_exmem & 0x800) == 0) { nds9_if |= 0x80000; }
+		else if(nds7_exmem & 0x800) { nds7_if |= 0x80000; }
 	}
 	
 	else { nds_card.transfer_clock = nds_card.baud_rate; }
