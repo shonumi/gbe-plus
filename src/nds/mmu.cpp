@@ -437,7 +437,7 @@ u8 NTR_MMU::read_u8(u32 address)
 	//Check for AUXSPICNT
 	else if((address & ~0x1) == NDS_AUXSPICNT)
 	{
-		if((access_mode && ((nds9_exmem & 0x800) == 0)) || (access_mode && (nds7_exmem & 0x800)))
+		if((access_mode && ((nds9_exmem & 0x800) == 0)) || (!access_mode && (nds7_exmem & 0x800)))
 		{
 			u8 addr_shift = (address & 0x1) << 3;
 			return ((nds_aux_spi.cnt >> addr_shift) & 0xFF);
@@ -449,7 +449,7 @@ u8 NTR_MMU::read_u8(u32 address)
 	//Check for AUXSPIDATA
 	else if((address & ~0x1) == NDS_AUXSPIDATA)
 	{
-		if((access_mode && ((nds9_exmem & 0x800) == 0)) || (access_mode && (nds7_exmem & 0x800)))
+		if((access_mode && ((nds9_exmem & 0x800) == 0)) || (!access_mode && (nds7_exmem & 0x800)))
 		{
 			u8 addr_shift = (address & 0x1) << 3;
 			return ((nds_aux_spi.data >> addr_shift) & 0xFF);
@@ -459,7 +459,7 @@ u8 NTR_MMU::read_u8(u32 address)
 	//Check for ROMCNT
 	else if((address & ~0x3) == NDS_ROMCNT)
 	{
-		if((access_mode && ((nds9_exmem & 0x800) == 0)) || (access_mode && (nds7_exmem & 0x800)))
+		if((access_mode && ((nds9_exmem & 0x800) == 0)) || (!access_mode && (nds7_exmem & 0x800)))
 		{
 			u8 addr_shift = (address & 0x3) << 3;
 			return ((nds_card.cnt >> addr_shift) & 0xFF);
