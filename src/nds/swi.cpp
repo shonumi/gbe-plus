@@ -685,6 +685,12 @@ void NTR_ARM7::process_swi(u32 comment)
 			swi_halt();
 			break;
 
+		//SoundBias
+		case 0x8:
+			std::cout<<"ARM7::SWI::SoundBias \n";
+			swi_soundbias();
+			break;
+
 		//Div
 		case 0x9:
 			std::cout<<"ARM7::SWI::Div \n";
@@ -890,6 +896,17 @@ void NTR_ARM7::swi_halt()
 {
 	//Set CPU idle state to 1
 	idle_state = 1;
+}
+
+/****** HLE implementation of SoundBias - NDS7 ******/
+void NTR_ARM7::swi_soundbias()
+{
+	//TODO - Emulate delay
+	u16 sound_bias = mem->read_u16(NDS_SOUNDBIAS);
+	sound_bias &= ~0x3FF;
+	
+	if(reg.r0) { sound_bias |= 0x200; }
+	mem->write_u16(NDS_SOUNDBIAS, sound_bias);
 }
 
 /****** HLE implementation of Div - NDS7 ******/

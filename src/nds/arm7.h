@@ -299,7 +299,7 @@ class NTR_ARM7
 	void swi_bgaffineset();
 	void swi_objaffineset();
 	void swi_bitunpack();
-	void swi_midikey2freq();
+	void swi_soundbias();
 
 	void swi_getcrc16();
 	void swi_waitbyloop();
