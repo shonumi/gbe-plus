@@ -99,6 +99,9 @@ void NTR_ARM9::dma0()
 			mem->dma[0].control &= ~0x80000000;
 			mem->write_u32(NDS_DMA0CNT, mem->dma[0].control);
 
+			//Trigger IRQ
+			if(mem->dma[0].control & 0x40000000) { mem->nds9_if |= 0x100; }
+
 			break;
 
 			case 0x1: std::cout<<"NDS9 DMA0 - VBlank\n"; break;
@@ -200,6 +203,9 @@ void NTR_ARM9::dma1()
 
 			mem->dma[1].control &= ~0x80000000;
 			mem->write_u32(NDS_DMA1CNT, mem->dma[1].control);
+
+			//Trigger IRQ
+			if(mem->dma[1].control & 0x40000000) { mem->nds9_if |= 0x200; }
 
 			break;
 
@@ -303,6 +309,9 @@ void NTR_ARM9::dma2()
 			mem->dma[2].control &= ~0x80000000;
 			mem->write_u32(NDS_DMA2CNT, mem->dma[2].control);
 
+			//Trigger IRQ
+			if(mem->dma[2].control & 0x40000000) { mem->nds9_if |= 0x400; }
+
 			break;
 
 			case 0x1: std::cout<<"NDS9 DMA2 - VBlank\n"; break;
@@ -405,6 +414,9 @@ void NTR_ARM9::dma3()
 			mem->dma[3].control &= ~0x80000000;
 			mem->write_u32(NDS_DMA3CNT, mem->dma[3].control);
 
+			//Trigger IRQ
+			if(mem->dma[3].control & 0x40000000) { mem->nds9_if |= 0x800; }
+
 			break;
 
 			case 0x1: std::cout<<"NDS9 DMA3 - VBlank\n"; break;
@@ -500,6 +512,9 @@ void NTR_ARM7::dma0()
 			mem->dma[4].control &= ~0x80000000;
 			mem->write_u32(NDS_DMA0CNT, mem->dma[4].control);
 
+			//Trigger IRQ
+			if(mem->dma[4].control & 0x40000000) { mem->nds7_if |= 0x100; }
+
 			break;
 
 			case 0x1: std::cout<<"NDS7 DMA0 - VBlank\n"; break;
@@ -591,6 +606,9 @@ void NTR_ARM7::dma1()
 
 			mem->dma[5].control &= ~0x80000000;
 			mem->write_u32(NDS_DMA1CNT, mem->dma[5].control);
+
+			//Trigger IRQ
+			if(mem->dma[5].control & 0x40000000) { mem->nds7_if |= 0x200; }
 
 			break;
 
@@ -684,6 +702,9 @@ void NTR_ARM7::dma2()
 			mem->dma[6].control &= ~0x80000000;
 			mem->write_u32(NDS_DMA2CNT, mem->dma[6].control);
 
+			//Trigger IRQ
+			if(mem->dma[6].control & 0x40000000) { mem->nds7_if |= 0x400; }
+
 			break;
 
 			case 0x1: std::cout<<"NDS7 DMA2 - VBlank\n"; break;
@@ -775,6 +796,9 @@ void NTR_ARM7::dma3()
 
 			mem->dma[7].control &= ~0x80000000;
 			mem->write_u32(NDS_DMA3CNT, mem->dma[7].control);
+
+			//Trigger IRQ
+			if(mem->dma[7].control & 0x40000000) { mem->nds7_if |= 0x800; }
 
 			break;
 
