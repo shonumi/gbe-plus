@@ -3023,6 +3023,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		case NDS_CARDCMD_LO+3:
 			if((access_mode && ((nds9_exmem & 0x800) == 0)) || (!access_mode && (nds7_exmem & 0x800)))
 			{
+				memory_map[address] = value;
 				nds_card.cmd_lo = ((memory_map[NDS_CARDCMD_LO+3] << 24) | (memory_map[NDS_CARDCMD_LO+2] << 16) | (memory_map[NDS_CARDCMD_LO+1] << 8) | memory_map[NDS_CARDCMD_LO]);
 			}
 
@@ -3034,11 +3035,11 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		case NDS_CARDCMD_HI+3:
 			if((access_mode && ((nds9_exmem & 0x800) == 0)) || (!access_mode && (nds7_exmem & 0x800)))
 			{
+				memory_map[address] = value;
 				nds_card.cmd_hi = ((memory_map[NDS_CARDCMD_HI+3] << 24) | (memory_map[NDS_CARDCMD_HI+2] << 16) | (memory_map[NDS_CARDCMD_HI+1] << 8) | memory_map[NDS_CARDCMD_HI]);
 			}
 
 			break;
-
 
 		case NDS_SPICNT:
 			if(access_mode) { return; }
