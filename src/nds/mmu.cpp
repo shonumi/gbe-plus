@@ -466,6 +466,26 @@ u8 NTR_MMU::read_u8(u32 address)
 		}
 	}
 
+	//Check for NDS_CARDCMD_LO
+	else if((address & ~0x3) == NDS_CARDCMD_LO)
+	{
+		if((access_mode && ((nds9_exmem & 0x800) == 0)) || (!access_mode && (nds7_exmem & 0x800)))
+		{
+			u8 addr_shift = (address & 0x3) << 3;
+			return ((nds_card.cmd_lo >> addr_shift) & 0xFF);
+		}
+	}
+
+	//Check for NDS_CARDCMD_HI
+	else if((address & ~0x3) == NDS_CARDCMD_HI)
+	{
+		if((access_mode && ((nds9_exmem & 0x800) == 0)) || (!access_mode && (nds7_exmem & 0x800)))
+		{
+			u8 addr_shift = (address & 0x3) << 3;
+			return ((nds_card.cmd_hi >> addr_shift) & 0xFF);
+		}
+	}
+
 	//Check for SPICNT
 	else if((address & ~0x1) == NDS_SPICNT)
 	{
