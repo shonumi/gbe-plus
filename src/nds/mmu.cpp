@@ -3712,7 +3712,8 @@ void NTR_MMU::process_card_bus()
 			//Dummy
 			else if((!nds_card.cmd_hi) && (nds_card.cmd_lo == 0x9F000000))
 			{
-				std::cout<<"MMU::Game Card Bus Dummy Command (STUBBED)\n";
+				nds_card.state = 0x20;
+				nds_card.transfer_size = 0x2000;
 			}
 
 			//Get ROM chip ID 1
@@ -3781,7 +3782,20 @@ void NTR_MMU::process_card_bus()
 	}
 
 	//Perform transfer
-	for(u32 x = 0; x < 4; x++) { memory_map[NDS_CARD_DATA + x] = cart_data[nds_card.transfer_src++]; }
+	for(u32 x = 0; x < 4; x++)
+	{
+		switch(nds_card.state)
+		{
+			//Dummy
+			case 0x20:
+				memory_map[NDS_CARD_DATA + x] = 0xFF;
+				break;
+
+			//Normal Transfer
+			default:
+				memory_map[NDS_CARD_DATA + x] = cart_data[nds_card.transfer_src++];
+		}
+	}
 
 	//Prepare for next transfer, if any
 	nds_card.transfer_size -= 4;
