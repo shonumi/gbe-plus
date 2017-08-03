@@ -3024,7 +3024,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			if((access_mode && ((nds9_exmem & 0x800) == 0)) || (!access_mode && (nds7_exmem & 0x800)))
 			{
 				memory_map[address] = value;
-				nds_card.cmd_lo = ((memory_map[NDS_CARDCMD_LO+3] << 24) | (memory_map[NDS_CARDCMD_LO+2] << 16) | (memory_map[NDS_CARDCMD_LO+1] << 8) | memory_map[NDS_CARDCMD_LO]);
+				nds_card.cmd_lo = ((memory_map[NDS_CARDCMD_LO] << 24) | (memory_map[NDS_CARDCMD_LO+1] << 16) | (memory_map[NDS_CARDCMD_LO+2] << 8) | memory_map[NDS_CARDCMD_LO+3]);
 			}
 
 			break;
@@ -3036,7 +3036,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			if((access_mode && ((nds9_exmem & 0x800) == 0)) || (!access_mode && (nds7_exmem & 0x800)))
 			{
 				memory_map[address] = value;
-				nds_card.cmd_hi = ((memory_map[NDS_CARDCMD_HI+3] << 24) | (memory_map[NDS_CARDCMD_HI+2] << 16) | (memory_map[NDS_CARDCMD_HI+1] << 8) | memory_map[NDS_CARDCMD_HI]);
+				nds_card.cmd_hi = ((memory_map[NDS_CARDCMD_HI] << 24) | (memory_map[NDS_CARDCMD_HI+1] << 16) | (memory_map[NDS_CARDCMD_HI+2] << 8) | memory_map[NDS_CARDCMD_HI+3]);
 			}
 
 			break;
@@ -3690,7 +3690,7 @@ void NTR_MMU::process_card_bus()
 		//Grab command
 		case 0:
 			//Read Header -> 0x00000000000000000000000000000000
-			if(!nds_card.cmd_lo && !nds_card.cmd_hi)
+			if(!nds_card.cmd_hi && !nds_card.cmd_lo)
 			{
 				nds_card.state = 0x10;
 
@@ -3710,70 +3710,70 @@ void NTR_MMU::process_card_bus()
 			}
 
 			//Dummy
-			else if((!nds_card.cmd_lo) && (nds_card.cmd_hi == 0x9F000000))
+			else if((!nds_card.cmd_hi) && (nds_card.cmd_lo == 0x9F000000))
 			{
 				std::cout<<"MMU::Game Card Bus Dummy Command (STUBBED)\n";
 			}
 
 			//Get ROM chip ID 1
-			else if((!nds_card.cmd_lo) && (nds_card.cmd_hi == 0x90000000))
+			else if((!nds_card.cmd_hi) && (nds_card.cmd_lo == 0x90000000))
 			{
 				std::cout<<"MMU::Game Card Bus Chip ID 1 Command (STUBBED)\n";
 			}
 
 			//Activate Key 1 Encryption
-			else if((nds_card.cmd_hi >> 24) == 0x3C)
+			else if((nds_card.cmd_lo >> 24) == 0x3C)
 			{
 				std::cout<<"MMU::Game Card Bus Activate Key 1 Encryption Command (STUBBED)\n";
 			}
 
 			//Activate Key 2 Encryption
-			else if((nds_card.cmd_hi >> 28) == 0x4)
+			else if((nds_card.cmd_lo >> 28) == 0x4)
 			{
 				std::cout<<"MMU::Game Card Bus Activate Key 2 Encryption Command (STUBBED)\n";
 			}
 
 			//Get ROM chip ID 2
-			else if((nds_card.cmd_hi >> 28) == 0x1)
+			else if((nds_card.cmd_lo >> 28) == 0x1)
 			{
 				std::cout<<"MMU::Game Card Bus Chip ID 2 Command (STUBBED)\n";
 			}
 
 
 			//Get Secure Area Block
-			else if((nds_card.cmd_hi >> 28) == 0x2)
+			else if((nds_card.cmd_lo >> 28) == 0x2)
 			{
 				std::cout<<"MMU::Game Card Bus Get Secure Area Block Command (STUBBED)\n";
 			}
 
 
 			//Disable Key 2
-			else if((nds_card.cmd_hi >> 28) == 0x6)
+			else if((nds_card.cmd_lo >> 28) == 0x6)
 			{
 				std::cout<<"MMU::Game Card Bus Disable Key 2 Command (STUBBED)\n";
 			}
 
 			//Enter Main Data Mode
-			else if((nds_card.cmd_hi >> 28) == 0xA)
+			else if((nds_card.cmd_lo >> 28) == 0xA)
 			{
 				std::cout<<"MMU::Game Card Bus Enter Main Data Mode Command (STUBBED)\n";
 			}
 
 			//Get Data
-			else if((nds_card.cmd_hi >> 24) == 0xB7)
+			else if((nds_card.cmd_lo >> 24) == 0xB7)
 			{
 				std::cout<<"MMU::Game Card Bus Get Data Command (STUBBED)\n";
 			}
 
 			//Get ROM ID 3
-			else if((nds_card.cmd_hi >> 24) == 0xB8)
+			else if((nds_card.cmd_lo >> 24) == 0xB8)
 			{
 				std::cout<<"MMU::Game Card Bus Get Chip ID 3 (STUBBED)\n";
 			}
 
 			else
 			{
-				std::cout<<"MMU::Warning - Unexpected command to game card bus\n";
+				std::cout<<"MMU::Warning - Unexpected command to game card bus -> 0x" << nds_card.cmd_lo << nds_card.cmd_hi << "\n";
 			}
 
 			break;
