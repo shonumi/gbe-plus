@@ -165,6 +165,7 @@ void NTR_MMU::reset()
 	nds_card.active_transfer = false;
 	nds_card.cmd_lo = 0;
 	nds_card.cmd_hi = 0;
+	nds_card.chip_id = 0xFC2;
 
 	nds7_rtc.cnt = 0;
 	nds7_rtc.data = 0;
@@ -3719,7 +3720,8 @@ void NTR_MMU::process_card_bus()
 			//Get ROM chip ID 1
 			else if((!nds_card.cmd_hi) && (nds_card.cmd_lo == 0x90000000))
 			{
-				std::cout<<"MMU::Game Card Bus Chip ID 1 Command (STUBBED)\n";
+				nds_card.state = 0x30;
+				nds_card.transfer_size = 0x4;
 			}
 
 			//Activate Key 1 Encryption
@@ -3789,6 +3791,11 @@ void NTR_MMU::process_card_bus()
 			//Dummy
 			case 0x20:
 				memory_map[NDS_CARD_DATA + x] = 0xFF;
+				break;
+
+			//1st ROM Chip ID
+			case 0x30:
+				memory_map[NDS_CARD_DATA + x] = (nds_card.chip_id >> (x * 8)) & 0xFF;
 				break;
 
 			//Normal Transfer
