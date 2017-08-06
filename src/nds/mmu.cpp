@@ -3727,7 +3727,8 @@ void NTR_MMU::process_card_bus()
 			//Activate Key 1 Encryption
 			else if((nds_card.cmd_lo >> 24) == 0x3C)
 			{
-				std::cout<<"MMU::Game Card Bus Activate Key 1 Encryption Command (STUBBED)\n";
+				nds_card.state = 0x40;
+				nds_card.transfer_size = 0x4;
 			}
 
 			//Activate Key 2 Encryption
@@ -3789,7 +3790,9 @@ void NTR_MMU::process_card_bus()
 		switch(nds_card.state)
 		{
 			//Dummy
+			//Activate Key 1 Encryption
 			case 0x20:
+			case 0x40:
 				memory_map[NDS_CARD_DATA + x] = 0xFF;
 				break;
 
