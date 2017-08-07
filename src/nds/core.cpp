@@ -425,26 +425,19 @@ void NTR_core::step()
 		{
 			core_cpu_nds9.sync_cycles = 0;
 
-			//TODO - This is temporary
-			core_cpu_nds9.clock();
-			core_cpu_nds9.clock();
-			core_cpu_nds9.clock();
-			core_cpu_nds9.clock();
-
 			//Check to see if CPU is paused or idle for any reason
 			if(core_cpu_nds9.idle_state)
 			{
+				core_cpu_nds9.system_cycles += 8;
+
 				switch(core_cpu_nds9.idle_state)
 				{
 					//Halt SWI
 					case 0x1:
-						//Check IE and IF, if there is a match, exit halt state
+						//Match up bits in IE and IF to exit halt
+						for(u32 x = 0; x < 21; x++)
 						{
-							//Match up bits in IE and IF
-							for(u32 x = 0; x < 21; x++)
-							{
-								if((core_mmu.nds9_ie & (1 << x)) && (core_mmu.nds9_if & (1 << x))) { core_cpu_nds9.idle_state = 0; }
-							}
+							if((core_mmu.nds9_ie & (1 << x)) && (core_mmu.nds9_if & (1 << x))) { core_cpu_nds9.idle_state = 0; }
 						}
 
 						break;
@@ -452,7 +445,7 @@ void NTR_core::step()
 					//WaitByLoop SWI
 					case 0x2:
 						core_cpu_nds9.swi_waitbyloop_count--;
-						if(!core_cpu_nds9.swi_waitbyloop_count) { core_cpu_nds9.idle_state = 0; }
+						if(core_cpu_nds9.swi_waitbyloop_count & 0x80000000) { core_cpu_nds9.idle_state = 0; }
 						break;
 
 					//IntrWait, VBlankIntrWait
@@ -487,6 +480,14 @@ void NTR_core::step()
 
 						break;
 				}
+
+				if(!core_cpu_nds9.idle_state)
+				{
+					core_cpu_nds9.handle_interrupt();
+		
+					//Flush pipeline if necessary
+					if(core_cpu_nds9.needs_flush) { core_cpu_nds9.flush_pipeline(); }
+				}
 			}
 
 			//Otherwise, handle normal CPU operations
@@ -502,12 +503,15 @@ void NTR_core::step()
 				if(core_cpu_nds9.needs_flush) { core_cpu_nds9.flush_pipeline(); }
 
 				//Else update the pipeline and PC
-				else 
+				else if((core_cpu_nds9.idle_state & 0x1) == 0)
 				{ 
 					core_cpu_nds9.pipeline_pointer = (core_cpu_nds9.pipeline_pointer + 1) % 3;
 					core_cpu_nds9.update_pc();
 				}
 			}
+
+			//Clock system components
+			core_cpu_nds9.clock_system();
 
 			//Determine if NDS7 needs to run in order to sync
 			cpu_sync_cycles -= core_cpu_nds9.sync_cycles;	
@@ -526,26 +530,19 @@ void NTR_core::step()
 		{
 			core_cpu_nds7.sync_cycles = 0;
 
-			//TODO - This is temporary
-			core_cpu_nds7.clock();
-			core_cpu_nds7.clock();
-			core_cpu_nds7.clock();
-			core_cpu_nds7.clock();
-
 			//Check to see if CPU is paused or idle for any reason
 			if(core_cpu_nds7.idle_state)
 			{
+				core_cpu_nds7.system_cycles += 8;
+
 				switch(core_cpu_nds7.idle_state)
 				{
 					//Halt SWI
 					case 0x1:
-						//Check IE and IF, if there is a match, exit halt state
+						//Match up bits in IE and IF to exit halt
+						for(u32 x = 0; x < 24; x++)
 						{
-							//Match up bits in IE and IF
-							for(u32 x = 0; x < 24; x++)
-							{
-								if((core_mmu.nds7_ie & (1 << x)) && (core_mmu.nds7_if & (1 << x))) { core_cpu_nds7.idle_state = 0; }
-							}
+							if((core_mmu.nds7_ie & (1 << x)) && (core_mmu.nds7_if & (1 << x))) { core_cpu_nds7.idle_state = 0; }
 						}
 
 						break;
@@ -553,24 +550,12 @@ void NTR_core::step()
 					//WaitByLoop SWI
 					case 0x2:
 						core_cpu_nds7.swi_waitbyloop_count--;
-						if(!core_cpu_nds7.swi_waitbyloop_count) { core_cpu_nds7.idle_state = 0; }
+						if(core_cpu_nds7.swi_waitbyloop_count & 0x80000000) { core_cpu_nds7.idle_state = 0; }
 						break;
 
 					//IntrWait, VBlankIntrWait
 					case 0x3:
-						//If R0 == 0, quit on any IRQ
-						if((core_cpu_nds7.reg.r0 == 0) && (core_mmu.nds7_if))
-						{
-							//Restore old IF, also OR in any new flags that were set
-							core_mmu.nds7_if = (core_mmu.nds7_old_if | core_mmu.nds7_if);
-
-							//Restore old IE
-							core_mmu.nds7_ie = core_mmu.nds7_old_ie;
-
-							core_cpu_nds7.idle_state = 0;
-						}
-
-						//Otherwise, match up bits in IE and IF
+						//Match up bits in IE and IF
 						for(int x = 0; x < 24; x++)
 						{
 							//When there is a match check to see if IntrWait can quit
@@ -588,6 +573,14 @@ void NTR_core::step()
 
 						break;
 				}
+
+				if(!core_cpu_nds7.idle_state)
+				{
+					core_cpu_nds7.handle_interrupt();
+		
+					//Flush pipeline if necessary
+					if(core_cpu_nds7.needs_flush) { core_cpu_nds7.flush_pipeline(); }
+				}
 			}
 
 			//Otherwise, handle normal CPU operations
@@ -603,12 +596,15 @@ void NTR_core::step()
 				if(core_cpu_nds7.needs_flush) { core_cpu_nds7.flush_pipeline(); }
 
 				//Else update the pipeline and PC
-				else 
+				else if((core_cpu_nds7.idle_state & 0x1) == 0)
 				{ 
 					core_cpu_nds7.pipeline_pointer = (core_cpu_nds7.pipeline_pointer + 1) % 3;
 					core_cpu_nds7.update_pc();
 				}
 			}
+
+			//Clock system components
+			core_cpu_nds7.clock_system();
 
 			//Determine if NDS9 needs to run in order to sync
 			cpu_sync_cycles -= core_cpu_nds7.sync_cycles;
