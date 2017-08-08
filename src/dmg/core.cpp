@@ -207,7 +207,7 @@ void DMG_core::run_core()
 				//Perform syncing operations when hard sync is enabled
 				if(config::netplay_hard_sync)
 				{
-					core_cpu.controllers.serial_io.sio_stat.sync_counter += core_cpu.cycles;
+					core_cpu.controllers.serial_io.sio_stat.sync_counter += (core_cpu.double_speed) ? (core_cpu.cycles >> 1) : core_cpu.cycles;
 
 					//Once this Game Boy has reached a specified amount of cycles, freeze until the other Game Boy finished that many cycles
 					if(core_cpu.controllers.serial_io.sio_stat.sync_counter >= core_cpu.controllers.serial_io.sio_stat.sync_clock)
@@ -326,7 +326,7 @@ void DMG_core::run_core()
 			//Update serial input-output operations
 			if(core_cpu.controllers.serial_io.sio_stat.shifts_left != 0)
 			{
-				core_cpu.controllers.serial_io.sio_stat.shift_counter += core_cpu.cycles;
+				core_cpu.controllers.serial_io.sio_stat.shift_counter += (core_cpu.double_speed) ? (core_cpu.cycles >> 1) : core_cpu.cycles;
 
 				if((core_cpu.controllers.serial_io.barcode_boy.send_data) && ((core_mmu.memory_map[REG_SC] & 0x80) == 0))
 				{
@@ -394,6 +394,11 @@ void DMG_core::run_core()
 									core_mmu.memory_map[IF_FLAG] |= 0x08;
 								}
 									
+								break;
+
+							//Process Full Changer communications
+							case GB_FULL_CHANGER:
+								core_cpu.controllers.serial_io.full_changer_process();
 								break;
 						}
 					}
@@ -1276,7 +1281,7 @@ void DMG_core::debug_process_command()
 		//Display current RAM bank (if any)
 		else if(command == "ram")
 		{
-			std::cout<<"Current RAM Bank: 0x" << core_mmu.bank_bits << "\n";
+			std::cout<<"Current RAM Bank: 0x" << (u16)core_mmu.bank_bits << "\n";
 
 			valid_command = true;
 			db_unit.last_command = "ram";
@@ -2035,17 +2040,37 @@ void DMG_core::handle_hotkey(SDL_Event& event)
 	//Bardigun + Barcode Boy - Reswipe card
 	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F3))
 	{
-		core_cpu.controllers.serial_io.bardigun_scanner.current_state = BARDIGUN_INACTIVE;
-		core_cpu.controllers.serial_io.bardigun_scanner.inactive_counter = 0x500;
-		core_cpu.controllers.serial_io.bardigun_scanner.barcode_pointer = 0;
-
-		if(core_cpu.controllers.serial_io.barcode_boy.current_state == BARCODE_BOY_ACTIVE)
+		switch(core_cpu.controllers.serial_io.sio_stat.sio_type)
 		{
-			core_cpu.controllers.serial_io.barcode_boy.current_state = BARCODE_BOY_SEND_BARCODE;
-			core_cpu.controllers.serial_io.barcode_boy.send_data = true;
 
-			core_cpu.controllers.serial_io.sio_stat.shifts_left = 8;
-			core_cpu.controllers.serial_io.sio_stat.shift_counter = 0;
+			//Bardigun reswipe card
+			case GB_BARDIGUN_SCANNER:
+				core_cpu.controllers.serial_io.bardigun_scanner.current_state = BARDIGUN_INACTIVE;
+				core_cpu.controllers.serial_io.bardigun_scanner.inactive_counter = 0x500;
+				core_cpu.controllers.serial_io.bardigun_scanner.barcode_pointer = 0;
+				break;
+
+			//Barcode Boy reswipe card
+			case GB_BARCODE_BOY:
+				if(core_cpu.controllers.serial_io.barcode_boy.current_state == BARCODE_BOY_ACTIVE)
+				{
+					core_cpu.controllers.serial_io.barcode_boy.current_state = BARCODE_BOY_SEND_BARCODE;
+					core_cpu.controllers.serial_io.barcode_boy.send_data = true;
+
+					core_cpu.controllers.serial_io.sio_stat.shifts_left = 8;
+					core_cpu.controllers.serial_io.sio_stat.shift_counter = 0;
+				}
+
+				break;
+
+			//Full Changer draw Cosmic Character
+			case GB_FULL_CHANGER:
+				std::cout<<"FIRE\n";
+				core_cpu.controllers.serial_io.full_changer.delay_counter = 0;
+				core_cpu.controllers.serial_io.full_changer.current_state = FULL_CHANGER_SEND_SIGNAL;
+				core_cpu.controllers.serial_io.full_changer.light_on = false;
+				core_cpu.controllers.serial_io.full_changer_process();
+				break;
 		}
 	}
 }

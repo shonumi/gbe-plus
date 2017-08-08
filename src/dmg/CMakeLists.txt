@@ -16,6 +16,7 @@ set(SRCS
 	z80.cpp
 	custom_graphics.cpp
 	sio.cpp
+	infrared.cpp
 	)
 
 set(HEADERS

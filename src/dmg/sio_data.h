@@ -23,6 +23,7 @@ enum sio_types
 	GB_MOBILE_ADAPTER,
 	GB_BARDIGUN_SCANNER,
 	GB_BARCODE_BOY,
+	GB_FULL_CHANGER,
 };
 
 enum printer_state
@@ -57,7 +58,12 @@ enum barcode_boy_state
 	BARCODE_BOY_INACTIVE,
 	BARCODE_BOY_ACTIVE,
 	BARCODE_BOY_SEND_BARCODE,
-	BARCODE_BOY_TIMEOUT,
+};
+
+enum full_changer_state
+{
+	FULL_CHANGER_INACTIVE,
+	FULL_CHANGER_SEND_SIGNAL,
 };
 
 struct dmg_sio_data

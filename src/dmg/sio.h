@@ -112,6 +112,15 @@ class DMG_SIO
 		bool send_data;
 	} barcode_boy;
 
+	//Full Changer
+	struct gb_full_changer
+	{
+		std::vector<u16> data;
+		u8 delay_counter;
+		bool light_on;
+		full_changer_state current_state;
+	} full_changer;
+
 	DMG_SIO();
 	~DMG_SIO();
 
@@ -138,6 +147,9 @@ class DMG_SIO
 
 	void barcode_boy_process();
 	bool barcode_boy_load_barcode(std::string filename);
+
+	void full_changer_process();
+	bool full_changer_load_db(std::string filename);
 };
 
 #endif // GB_SIO

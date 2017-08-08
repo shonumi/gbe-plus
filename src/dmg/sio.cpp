@@ -220,6 +220,11 @@ void DMG_SIO::reset()
 			sio_stat.sio_type = GB_BARCODE_BOY;
 			break;
 
+		//Full Changer
+		case 0x6:
+			sio_stat.sio_type = GB_FULL_CHANGER;
+			break;
+
 		//Always wait until netplay connection is established to change to GB_LINK
 		//Also, any invalid types are ignored
 		default:
@@ -273,6 +278,12 @@ void DMG_SIO::reset()
 	barcode_boy.counter = 0;
 	barcode_boy.send_data = false;
 	if(config::sio_device == 5) { barcode_boy_load_barcode(config::external_card_file); }
+
+	//Full Changer
+	full_changer.data.clear();
+	full_changer.delay_counter = 0;
+	full_changer.light_on = false;
+	if(config::sio_device == 6) { full_changer_load_db(config::external_card_file); }
 
 	#ifdef GBE_NETPLAY
 
