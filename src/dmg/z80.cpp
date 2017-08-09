@@ -2027,8 +2027,8 @@ void Z80::exec_op(u8 opcode)
 		case 0xC8 :
 			{
 				u8 zero_flag = (reg.f & 0x80) ? 1 : 0;
-				if(zero_flag == 1) { reg.pc = mem->read_u16(reg.sp); reg.sp += 2;} 
-				cycles += 8;
+				if(zero_flag == 1) { reg.pc = mem->read_u16(reg.sp); reg.sp += 2; cycles += 20; } 
+				else { cycles += 8; }
 			}
 			break;
 
@@ -2078,7 +2078,7 @@ void Z80::exec_op(u8 opcode)
 			reg.sp -= 2;
 			mem->write_u16(reg.sp, reg.pc+2);
 			reg.pc = mem->read_u16(reg.pc);
-			cycles += 12;
+			cycles += 24;
 			break;
 
 		//ADC A, n
