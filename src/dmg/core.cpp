@@ -2065,11 +2065,7 @@ void DMG_core::handle_hotkey(SDL_Event& event)
 
 			//Full Changer draw Cosmic Character
 			case GB_FULL_CHANGER:
-				std::cout<<"FIRE\n";
-				core_cpu.controllers.serial_io.full_changer.delay_counter = 0;
-				core_cpu.controllers.serial_io.full_changer.current_state = FULL_CHANGER_SEND_SIGNAL;
-				core_cpu.controllers.serial_io.full_changer.light_on = false;
-				core_cpu.controllers.serial_io.full_changer_process();
+				core_mmu.ir_trigger = 1;
 				break;
 		}
 	}

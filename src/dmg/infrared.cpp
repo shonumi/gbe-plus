@@ -14,6 +14,15 @@
 /****** Processes Full Changer data sent to the Game Boy ******/
 void DMG_SIO::full_changer_process()
 {
+	//Initiate Full Changer transmission
+	if(mem->ir_trigger == 2)
+	{
+		mem->ir_trigger = 0;
+		full_changer.delay_counter = 0;
+		full_changer.current_state = FULL_CHANGER_SEND_SIGNAL;
+		full_changer.light_on = true;
+	}
+
 	if(full_changer.current_state != FULL_CHANGER_SEND_SIGNAL) { return; }
 
 	//Start or stop sending light pulse to Game Boy
@@ -21,30 +30,26 @@ void DMG_SIO::full_changer_process()
 	{
 		mem->memory_map[REG_RP] &= ~0x2;
 		full_changer.light_on = false;
-		std::cout<<"ON\n";
 	}
 
 	else
 	{
 		mem->memory_map[REG_RP] |= 0x2;
 		full_changer.light_on = true;
-		std::cout<<"OFF\n";
 	}
 
 	//Schedule the next on-off pulse
 	if(full_changer.delay_counter != full_changer.data.size())
 	{
 		sio_stat.shift_counter = 0;
-		sio_stat.shift_clock = (12 * (full_changer.data[full_changer.delay_counter])) + (6 * (full_changer.data[full_changer.delay_counter] - 1)) + 20;
+		sio_stat.shift_clock = full_changer.data[full_changer.delay_counter];
 		sio_stat.shifts_left = 1;
-		std::cout<<"DELAY -> " << std::dec << sio_stat.shift_clock << "\n";
-		std::cout<<"COUNT -> " << std::dec << (u16)full_changer.delay_counter << "\n\n";
 
 		//Set up next delay
 		full_changer.delay_counter++;
 	}
 
-	else { full_changer.current_state = FULL_CHANGER_INACTIVE; std::cout<<"FINISH\n"; }
+	else { full_changer.current_state = FULL_CHANGER_INACTIVE; }
 }
 
 /****** Loads a database file of Cosmic Characters for the Full Changer ******/

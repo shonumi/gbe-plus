@@ -73,6 +73,7 @@ void DMG_MMU::reset()
 
 	ir_signal = 0;
 	ir_send = false;
+	ir_trigger = false;
 	ir_counter = 0;
 
 	//Resize various banks
@@ -320,6 +321,15 @@ u8 DMG_MMU::read_u8(u16 address)
 	{
 		//GBC only
 		if(config::gb_type < 2) { return 0x0; }
+
+		//Initiate Full Changer
+		if(!ir_signal && (ir_trigger == 1))
+		{
+			ir_trigger++;
+			sio_stat->shift_counter = 0;
+			sio_stat->shift_clock = 0;
+			sio_stat->shifts_left = 1;
+		}
 
 		//If Bits 6 and 7 are not set, treat Bit 1 as HIGH
 		if((memory_map[address] & 0xC0) == 0) { return memory_map[address] | 0x2; }
