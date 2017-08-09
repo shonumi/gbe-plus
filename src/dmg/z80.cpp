@@ -905,7 +905,7 @@ void Z80::exec_op(u8 opcode)
 		//JR, n
 		case 0x18 :
 			jr(mem->read_u8(reg.pc++));
-			cycles += 8;
+			cycles += 12;
 			break;
 
 		//ADD HL, DE
@@ -955,8 +955,8 @@ void Z80::exec_op(u8 opcode)
 		case 0x20 :	
 			{
 				u8 zero_flag = (reg.f & 0x80) ? 1 : 0;
-				if(zero_flag == 0) { jr(mem->read_u8(reg.pc));}
-				cycles += 8;
+				if(zero_flag == 0) { jr(mem->read_u8(reg.pc)); cycles += 12; }
+				else { cycles += 8; }
 				reg.pc++;
 			}
 			break;
@@ -1009,8 +1009,8 @@ void Z80::exec_op(u8 opcode)
 		case 0x28 :
 			{
 				u8 zero_flag = (reg.f & 0x80) ? 1 : 0;
-				if(zero_flag == 1) { jr(mem->read_u8(reg.pc));}
-				cycles += 8;
+				if(zero_flag == 1) { jr(mem->read_u8(reg.pc)); cycles += 12; }
+				else { cycles += 8; }
 				reg.pc++;
 			}
 			break;
@@ -1063,8 +1063,8 @@ void Z80::exec_op(u8 opcode)
 		case 0x30 :	
 			{
 				u8 carry_flag = (reg.f & 0x10) ? 1 : 0;
-				if(carry_flag == 0) { jr(mem->read_u8(reg.pc));}
-				cycles += 8;
+				if(carry_flag == 0) { jr(mem->read_u8(reg.pc)); cycles += 12; }
+				else { cycles += 8; }
 				reg.pc++;
 			}
 			break;
@@ -1125,8 +1125,8 @@ void Z80::exec_op(u8 opcode)
 		case 0x38 :
 			{
 				u8 carry_flag = (reg.f & 0x10) ? 1 : 0;
-				if(carry_flag == 1) { jr(mem->read_u8(reg.pc));}
-				cycles += 8;
+				if(carry_flag == 1) { jr(mem->read_u8(reg.pc)); cycles += 12; }
+				else { cycles += 8; }
 				reg.pc++;
 			}
 			break;
