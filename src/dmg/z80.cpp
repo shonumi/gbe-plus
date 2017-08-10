@@ -1957,8 +1957,8 @@ void Z80::exec_op(u8 opcode)
 		case 0xC0 :
 			{
 				u8 zero_flag = (reg.f & 0x80) ? 1 : 0;
-				if(zero_flag == 0) { reg.pc = mem->read_u16(reg.sp); reg.sp += 2; }
-				cycles += 8;
+				if(zero_flag == 0) { reg.pc = mem->read_u16(reg.sp); reg.sp += 2; cycles += 20; }
+				else { cycles += 8; }
 			}
 			break;
 
@@ -1973,16 +1973,15 @@ void Z80::exec_op(u8 opcode)
 		case 0xC2 :
 			{
 				u8 zero_flag = (reg.f & 0x80) ? 1 : 0;
-				if(zero_flag == 0) { reg.pc = mem->read_u16(reg.pc); }
-				else { reg.pc += 2; }
-				cycles += 12; 
+				if(zero_flag == 0) { reg.pc = mem->read_u16(reg.pc); cycles += 16; }
+				else { reg.pc += 2; cycles += 12; }
 			}
 			break;
 
 		//JP nn
 		case 0xC3 :
 			reg.pc = mem->read_u16(reg.pc);
-			cycles += 12;
+			cycles += 16;
 			break;
 
 		//CALL NZ, nn
@@ -1995,10 +1994,10 @@ void Z80::exec_op(u8 opcode)
 					reg.sp -= 2;
 					mem->write_u16(reg.sp, reg.pc+2);
 					reg.pc = mem->read_u16(reg.pc);
+					cycles += 24;
 				}
 				
-				else { reg.pc += 2; }
-				cycles += 12;
+				else { reg.pc += 2; cycles += 12; }
 			}
 			break;
 
@@ -2036,16 +2035,15 @@ void Z80::exec_op(u8 opcode)
 		case 0xC9 :
 			reg.pc = mem->read_u16(reg.sp);
 			reg.sp += 2;
-			cycles += 8;
+			cycles += 16;
 			break;
 
 		//JP Z nn
 		case 0xCA :
 			{
 				u8 zero_flag = (reg.f & 0x80) ? 1 : 0;
-				if(zero_flag == 1) { reg.pc = mem->read_u16(reg.pc); }
-				else { reg.pc += 2; }
-				cycles += 12;
+				if(zero_flag == 1) { reg.pc = mem->read_u16(reg.pc); cycles += 16; }
+				else { reg.pc += 2; cycles += 12; }
 			}
 			break;
 
@@ -2066,10 +2064,10 @@ void Z80::exec_op(u8 opcode)
 					reg.sp -= 2;
 					mem->write_u16(reg.sp, reg.pc+2);
 					reg.pc = mem->read_u16(reg.pc);
+					cycles += 24;
 				}
 				
-				else { reg.pc += 2; }
-				cycles += 12;
+				else { reg.pc += 2; cycles += 12; }
 			}
 			break;
 
@@ -2099,8 +2097,8 @@ void Z80::exec_op(u8 opcode)
 		case 0xD0 :
 			{
 				u8 carry_flag = (reg.f & 0x10) ? 1 : 0;
-				if(carry_flag == 0) { reg.pc = mem->read_u16(reg.sp); reg.sp += 2; }
-				cycles += 8;
+				if(carry_flag == 0) { reg.pc = mem->read_u16(reg.sp); reg.sp += 2; cycles += 20; }
+				else { cycles += 8; }
 			}
 			break;
 
@@ -2115,9 +2113,8 @@ void Z80::exec_op(u8 opcode)
 		case 0xD2 :
 			{
 				u8 carry_flag = (reg.f & 0x10) ? 1 : 0;
-				if(carry_flag == 0) { reg.pc = mem->read_u16(reg.pc); }
-				else { reg.pc += 2; }
-				cycles += 12; 
+				if(carry_flag == 0) { reg.pc = mem->read_u16(reg.pc); cycles += 16; }
+				else { reg.pc += 2; cycles += 12; }
 			}
 			break;
 
@@ -2131,10 +2128,10 @@ void Z80::exec_op(u8 opcode)
 					reg.sp -= 2;
 					mem->write_u16(reg.sp, reg.pc+2);
 					reg.pc = mem->read_u16(reg.pc);
+					cycles += 24;
 				}
 				
-				else { reg.pc += 2; }
-				cycles += 12;
+				else { reg.pc += 2; cycles += 12; }
 			}
 			break;
 				
@@ -2163,8 +2160,8 @@ void Z80::exec_op(u8 opcode)
 		case 0xD8 :
 			{
 				u8 carry_flag = (reg.f & 0x10) ? 1 : 0;
-				if(carry_flag == 1) { reg.pc = mem->read_u16(reg.sp); reg.sp += 2;} 
-				cycles += 8;
+				if(carry_flag == 1) { reg.pc = mem->read_u16(reg.sp); reg.sp += 2; cycles += 20; } 
+				else { cycles += 8; }
 			}
 			break;
 
@@ -2172,7 +2169,7 @@ void Z80::exec_op(u8 opcode)
 		case 0xD9 :
 			reg.pc = mem->read_u16(reg.sp);
 			reg.sp += 2;
-			cycles += 8;
+			cycles += 16;
 			interrupt = true;
 			break;
 
@@ -2180,9 +2177,8 @@ void Z80::exec_op(u8 opcode)
 		case 0xDA :
 			{
 				u8 carry_flag = (reg.f & 0x10) ? 1 : 0;
-				if(carry_flag == 1) { reg.pc = mem->read_u16(reg.pc); }
-				else { reg.pc += 2; }
-				cycles += 12;
+				if(carry_flag == 1) { reg.pc = mem->read_u16(reg.pc); cycles += 16; }
+				else { reg.pc += 2; cycles += 12; }
 			}
 			break;
 
@@ -2196,10 +2192,10 @@ void Z80::exec_op(u8 opcode)
 					reg.sp -= 2;
 					mem->write_u16(reg.sp, reg.pc+2);
 					reg.pc = mem->read_u16(reg.pc);
+					cycles += 24;
 				}
 				
-				else { reg.pc += 2; }
-				cycles += 12;
+				else { reg.pc += 2; cycles += 12; }
 			}
 			break;
 
