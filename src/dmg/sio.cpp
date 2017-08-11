@@ -283,7 +283,12 @@ void DMG_SIO::reset()
 	full_changer.data.clear();
 	full_changer.delay_counter = 0;
 	full_changer.light_on = false;
-	if(config::sio_device == 6) { full_changer_load_db(config::external_card_file); }
+
+	if(config::sio_device == 6)
+	{
+		std::string database = config::data_path + "zzh_db.bin";
+		full_changer_load_db(database);
+	}
 
 	#ifdef GBE_NETPLAY
 
