@@ -426,7 +426,7 @@ void DMG_core::step()
 			//Perform syncing operations when hard sync is enabled
 			if(config::netplay_hard_sync)
 			{
-				core_cpu.controllers.serial_io.sio_stat.sync_counter += core_cpu.cycles;
+				core_cpu.controllers.serial_io.sio_stat.sync_counter += (core_cpu.double_speed) ? (core_cpu.cycles >> 1) : core_cpu.cycles;;
 
 				//Once this Game Boy has reached a specified amount of cycles, freeze until the other Game Boy finished that many cycles
 				if(core_cpu.controllers.serial_io.sio_stat.sync_counter >= core_cpu.controllers.serial_io.sio_stat.sync_clock)
@@ -543,7 +543,7 @@ void DMG_core::step()
 		//Update serial input-output operations
 		if(core_cpu.controllers.serial_io.sio_stat.shifts_left != 0)
 		{
-			core_cpu.controllers.serial_io.sio_stat.shift_counter += core_cpu.cycles;
+			core_cpu.controllers.serial_io.sio_stat.shift_counter += (core_cpu.double_speed) ? (core_cpu.cycles >> 1) : core_cpu.cycles;;
 
 			if((core_cpu.controllers.serial_io.barcode_boy.send_data) && ((core_mmu.memory_map[REG_SC] & 0x80) == 0))
 			{
@@ -611,6 +611,11 @@ void DMG_core::step()
 								core_mmu.memory_map[IF_FLAG] |= 0x08;
 							}
 								
+							break;
+
+						//Process Full Changer communications
+						case GB_FULL_CHANGER:
+							core_cpu.controllers.serial_io.full_changer_process();
 							break;
 					}
 				}
