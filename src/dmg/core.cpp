@@ -2070,6 +2070,7 @@ void DMG_core::handle_hotkey(SDL_Event& event)
 
 			//Full Changer draw Cosmic Character
 			case GB_FULL_CHANGER:
+				core_cpu.controllers.serial_io.full_changer.delay_counter = (core_cpu.controllers.serial_io.full_changer.current_character * 72);
 				core_mmu.ir_trigger = 1;
 				break;
 		}

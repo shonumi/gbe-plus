@@ -116,7 +116,8 @@ class DMG_SIO
 	struct gb_full_changer
 	{
 		std::vector<u16> data;
-		u8 delay_counter;
+		u32 delay_counter;
+		u8 current_character;
 		bool light_on;
 		full_changer_state current_state;
 	} full_changer;

@@ -282,6 +282,7 @@ void DMG_SIO::reset()
 	//Full Changer
 	full_changer.data.clear();
 	full_changer.delay_counter = 0;
+	full_changer.current_character = 0;
 	full_changer.light_on = false;
 
 	if(config::sio_device == 6)
