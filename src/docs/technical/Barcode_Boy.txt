@@ -1,0 +1,88 @@
+Barcode Boy Technical Documentation 0.1
+July 4th, 2017
+Shonumi aka D.S. Baxter
+
+
+***************************************************
+Introduction
+***************************************************
+
+
+Appearing around 1992, the Barcode Boy is the earliest form of card-scanning on Nintendo's Game Boy line of handhelds, predating both the e-Reader and the Bardigun Taisen Reader by a number of years. Only a limited set of games made by Namcot were compatible (or rather absolutely required) the Barcode Boy. All of the games and the Barcode Boy itself were only released in Japan. Not much has been written about any of the games, like Battle Space or Monster Maker, and even less has been documented about the Barcode Boy hardware, the scanning process, and the barcodes. Again, here it is 2017, and there are such little efforts to preserve and record exotic portable gaming hardware. This small technical file aims to archive all the information I found through reverse engineering, hopefully serving as a guide for other emu-devs and providing details for gaming historians that would otherwise be lost to time. Here we go then.
+
+***************************************************
+General Hardware Information
+***************************************************
+
+
+Barcode Boy is a rather bulky add-on that snaps on top of the original DMG (the gray "brick")
+Barcode Boy requires 2 AA batteries (with a DMG-01, that brings the total to 6 AA necessary to play any Barcode Boy game)
+Barcode Boy WILL NOT WORK WITH OTHER GAME BOYS! For whatever reason using the Universal Link Cable (MGB-010) will not work.
+Barcode Boy games are always labeled with a "B.B." logo with a little card. Apparently there are 2 types (no idea what the Red/Blue differences are, untranslated)
+Includes a very, very short Link Cable
+Unlike the Barcode Taisen Bardigun reader, the Barcode Boy has no button. It is always "ON" when switched on, thus draining batteries even while not scanning
+
+ 
+***************************************************
+Barcode Boy-DMG Communication
+***************************************************
+
+
+Each game will first try to detect if the Barcode Boy is plugged in and turned on. The Game Boy will send the bytes [0x10, 0x07, 0x10, 0x07] as part of a handshake. A properly functioning Barcode Boy will return the bytes [0xFF, 0xFF, 0x10, 0x07]. For whatever reason, Barcode Boy games will still properly detect the Barcode Boy scanner even if the first two bytes in the reply to the handshake aren't 0xFF. In reality, the first two bytes of the handshake are useless and ignored, but the last two bytes *MUST* be [0x10, 0x07]. If the Barcode Boy is plugged in but not turned on, it responds with 0x00 for the entire handshake, so that fails obviously.
+
+After detection passes, the Game Boy will sit and wait for a response. The Game Boy, unlike how it works with other SIO devices, takes on a passive role with the Barcode Boy by switching to an external clock. The Game Boy actually requires the Barcode Boy to take the initiative when scanning. Therefore, it is assumed that the Barcode Boy uses an internal clock and drives serial communications while scanning a barcode.
+
+Nitty-gritty bits:
+
+1. The game logic pings the Barcode Boy with [0x10, 0x07, 0x10, 0x07]. The Barcode Boy is expected to reply; the first two bytes are not important (real hardware returns 0xFF), but the second two bytes must be [0x10, 0x07].
+
+2. Afterwards, the Game Boy waits for input using an external clock. What follows are two strings of numbers representing the barcode data. The "numbers" are represented as ASCII instead of hex.
+
+3. Both strings are 13-digits long and are the JAN-13 number corresponding to the barcode.
+
+4. Before sending each string, the Barcode Boy sends a 0x02 byte.
+
+5. After sending each string, the Barcode Boy sends a 0x03 byte.
+
+6. And, that's it. Altogether, the Barcode Boy transmits 30 bytes to the Game Boy.
+
+Overall known communication protocol:
+
+* Handshake -> [0x10, 0x07, 0x10, 0x07]
+* Start Barcode Data Transmission -> [0x02]
+* Stop Barcode Data Transmission -> [0x03]
+
+Standard communication flow:
+
+[DMG]			[BCB]
+Handshake	--->
+		<---	Handshake
+
+		<---	0x2
+		<---	JAN-13
+		<---	0x3
+
+		<---	0x2
+		<---	JAN-13
+		<---	0x3
+
+Since the Barcode Boy acts as master (after the handshake at least), the Game Boy never initiates a transfer during barcode transmission. When sending barcode data, the Barcode Boy doesn't seem to care what value the Game Boy writes to SB, although no Barcode Boy games write to SB at that time anyway. Ultimately unknown if the Barcode Boy accepts input beyond the handshake, but no evidence has been observed to suggest otherwise.
+
+***************************************************
+Barcode Format
+***************************************************
+
+
+The two strings are the actual barcode data in numerical form. The barcode format itself is JAN-13, which is EAN compatible. Older JAN barcodes start off with the flag code 49, as do all Barcode Boy barcodes, presumably (I only have about half of all available cards to verify this). Interestingly enough, the newer JAN flag code is 45 and was introduced in 1992, the same year the Barcode Boy was released. Probably due to timing, it wasn't possible or convenient to develop the hardware to recognize the newer format.
+
+Using scans of the barcode @ 600 DPI, the smallest bar width is approximately 7 pixels (give or take). With that information, it's possible to recreate the JAN-13 number with a sufficient image and knowledge of EAN-13. It should be noted that the Barcode Boy appears to do away with the center guard, however, it maintains left and right guards.
+
+
+***************************************************
+Card Dumping + Emulation
+***************************************************
+
+
+Amazingly simple in comparison to something like Barcode Taisen Bardigun, chiefly because such a small amount of bytes need to be sent to the Game Boy. Basically, all you need to do is convert the barcode to JAN-13.
+
+As far as emulation goes, simply convert the JAN-13 ASCII string to hex and transmit it accordingly.

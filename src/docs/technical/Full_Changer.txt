@@ -1,0 +1,128 @@
+Full Changer Technical Documentation 0.1
+July 10th, 2017
+Shonumi aka D.S. Baxter
+
+
+***************************************************
+Introduction
+***************************************************
+
+Zok Zok Heroes was a GBC JRPG released on August 4, 2000, made by Media Factory when they still produced video games. It used a special accessory called the "Full Changer", a device that looks like a toy, but acts as an IR transmitter. It sent signals to the GBC once players moved it through the air to "draw" certain patterns. Once the GBC gets the IR light pulses, it allows players to transform into different "Bright Heroes" to do battle against evil bad guys. It never sold outside of Japan. After a specific point early in the game, it becomes impossible to progress further in emulators without cheat codes/hacks or by properly emulating the Full Changer. Below are brief technical notes about the Full Changer.
+
+***************************************************
+General Cart+Hardware Information
+***************************************************
+
+
+Zok Zok Heroes (CGB-BZHJ-JPN)
+MBC5 + Battery Saves
+GBC Only
+
+Comes with 1 Full Changer accessory
+Full Changer uses one CR2032
+Full Changer presumably contains an accelerometer to detect movement
+Full Changer has a series of status lights and blinks/beeps when swung correctly
+
+***************************************************
+Full Changer Operation
+***************************************************
+
+
+1. Grab the Full Changer firmly, holding it by the strap
+
+2. Press and release the top button. It should beep and the 3 lights should flash for approximately 5 seconds.
+
+3. During those 5 seconds, move the Full Changer to draw the pattern of a "Cosmic Character" e.g. for "Z" start left, move right, stop, move downward and leftward, stop, move right, stop.
+
+4. Make sure the Full Changer is always held upright while drawing.
+
+5. For each successful movement, the Full Changer will activate another light and beep. Once all three at lit, it beeps a little tune and the data is ready to be sent to the GBC.
+
+6. Put the bottom of the Full Changer on top of the GBC, making sure to cover the IR port. The Full Changer has a little plastic guide to make sure everything fits and faces the right direction.
+
+***************************************************
+Full Changer-GBC Communication
+***************************************************
+
+
+The Full Changer sends a total of 18 IR pulses (on then off periods) when transmitting data. The length of these pulses varies and determines what values the Full Changer is trying to send. Zok Zok Heroes runs in a couple of loops while the pulse takes place. Each iteration, it increments a counter to get an idea of the overall "delay" it takes for the IR light to turn on then turn off. That counter is then placed in WRAM as a single byte (anything greater than 0xFF causes a timeout) and verified later. In this way, Zok Zok Heroes can view data from the Full Changer as a series of bytes rather than light pulses. These 18 bytes do not appear to have to be especially strict values (e.g. changing them +1 or -1 should still yield the same Bright Hero transformation). The overall data format, if any, is currently unknown, making it difficult to determine what those 18 bytes should be without intercepting an actual transmission from the Full Changer (this could change in the future with more analysis).
+
+***************************************************
+Capturing IR Data From Full Changer
+***************************************************
+
+
+Below is the disassembled GBZ80 code Zok Zok Heroes uses to grab the 18 bytes:
+
+//This all happens at ROM Bank 1
+//Wait for IR light to come on (Bit 1 of 0xFF46 goes to zero)
+//D is set to 0xFF, timeout if it reaches zero
+DEC D
+RET Z
+LDH A, (0xFF56)
+BIT 1, A
+JR NZ, 0xF9
+
+//E acts as a counter for total number of bytes processed from Full Changer
+LD E 0x12
+LD HL, 0xD005
+
+//Wait for IR light to go off (Bit 1 of 0xFF46 goes to one)
+LD D, 0x00
+CALL 0x575E
+	INC D
+	RET Z
+	LDH A, (0xFF56)
+	BIT 1, A
+	JR Z, 0xF9
+	RET
+
+//Wait for IR light to go on (Bit 1 of 0xFF46 goes to one)
+CALL 0x576C
+	INC D
+	RET Z
+	LDH A, (0xFF56)
+	BIT 1, A
+	JR NZ, 0xF9
+	RET
+
+//Save results to 0xD005 - 0xD017
+LD (HL), D
+INC HL
+DEC E
+
+//Jump back to LD, 0x00. Repeat loop until E is zero.
+JR NZ, 0xF3
+
+Once all 18 bytes have been stored in WRAM, it's possible to read them and save them using a ROM hack. Alternatively, homebrew software can use code with the same timing to accurately capture IR data from the Full Changer.
+
+***************************************************
+Emulating The Full Changer
+***************************************************
+
+
+The Full Changer can be successfully emulated by setting Bit 1 of RP register (located at 0xFF56) to 0 or 1 at the appropiate times. To do so requires accurate timing and knowing the amount of cycles it takes to generate the delays represented by those 18 bytes in WRAM. When activating the Full Changer, GBE+ always fires the 1st "ON" IR signal at a specific time to get consistent timings:
+
+
+DEC D
+RET Z
+LDH A, (0xFF56)
+
+<---- After the CPU reads 0xFF56 and the user activates the Full Changer, IR light is turned on here
+<---- This happens after the actual instruction is executed, so the loop runs once more
+
+BIT 1, A
+JR NZ, 0xF9
+
+
+Afterwards, the timings for ON and OFF pulses can be calculated as such (ALL TIMING IS IN DOUBLE SPEED):
+
+1st ON pulse length			74 + (20 * (LENGTH-2))
+
+Every other ON pulse length		78 + (20 * (LENGTH-2))
+
+OFF pulse length			38 + (20 * (LENGTH-2))
+
+The LENGTH is number of times the CPU register D is incremented at 0x575E or 0x576C. The sum two LENGTHs from one ON pulse and one OFF pulse must be equal to the delay data in WRAM. For example, say the delay data contains 0x30. This means that the TOTAL amount of times D was incremented is 0x30. In a perfect world, the Full Changer would probably turn on the IR light so that D is incremented 0x18 times, then turn off the IR light so that D is incremented again 0x18 times. In reality, however, the length of the ON/OFF pulses could run a bit longer or shorter. As far as Zok Zok Heroes is concerned, the total amount of time the IR light is ON then OFF is what matters, so the ON/OFF pulse timings ultimately have to add up.
+
+The current database GBE+ uses recreates ON/OFF pulses that generally run for the same amount of cycles. However, based on hardware tests, the ON pulses have variable lengths, while the OFF pulses are typically constant. Again, Zok Zok Heroes won't care, as long as the total time of the ON/OFF pulses meets whatever value it expects.

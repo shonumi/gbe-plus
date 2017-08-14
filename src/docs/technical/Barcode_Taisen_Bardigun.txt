@@ -1,0 +1,100 @@
+Barcode Taisen Bardigun Technical Documentation 0.1
+May 27th, 2017
+Shonumi aka D.S. Baxter
+
+
+***************************************************
+Introduction
+***************************************************
+
+
+Barcode Taisen Bardigun is an obscure/rare Japanese Game Boy game released December 11, 1998, made by TAM. It doesn't seem like a very interesting or noteworthy game in and of itself (yet another monster breeding/raising/fighting/collecting game). However, this game featured exclusive hardware, a card reader that scanned various barcodes. It predates the Nintendo e-Reader by a number of years. Additionally, when I first bought this game off of e-Bay, there was virtually no information about it. This game literally was a black hole in terms of data: no FAQs anywhere, scarcely any mention on Wikipedia or any other wikis, a few screenshots, and maybe one decent YouTube video (made in 2017 no less). It's like no one knew what the game was about; nearly all the Google search results were for downloads for the ROM, and the rest were for a cheat code.
+
+The game and card reader hardware are now almost 20 years old, so I figured it's high time someone went ahead and tried to preserve it. It's a small piece of gaming history, but it doesn't deserve to be erased or forgotten. Below are my reverse engineering notes. I've already scanned the entire manual for archival purposes, but translating that is slow going.
+
+
+***************************************************
+General Cart+Hardware Information
+***************************************************
+
+
+Barcode Taisen Bardigun (DMG-ABEJ-JPN)
+MBC3 + RTC + Battery Saves (Same as Pokemon Gold and Silver)
+Compatible with DMG, SGB, and GBC systems
+Japanese-text only (hiragana/katakana only, a bit of a blessing given 8x8 fonts are not the best for kanji)
+Supports Link Cable for multiplayer
+
+Comes with 1 card-reader powered by 3 AAA batteries
+Comes with 5 cards bundled (only 3 have barcodes, the other 2 are just collectables?)
+Reader connects to DMG/GBC serial port for communication (technically could work with SGB2 on a Super Famicom, that'd be crazy to see)
+
+
+***************************************************
+Card Reader-GBC communication
+***************************************************
+
+
+Game Boy will initialize a transfer with an internal clock; much like every other Serial I/O device (GB Printer, GB Mobile Adapter), Game Boy sends initial data, then the reader responds. Transfer rate is 1KB/s, the slowest speed, so there is no difference between DMG and GBC transfers. To begin, the Game Boy constantly sends 0xFF to the reader. The game logic times out after a few seconds if no proper response is established.
+
+To scan a card, hold it face down (barcode facing the ground and towards the reader), press the reader's button, and swipe. The scanner only seems to activate once the button is pushed (makes sense, else it'd waste battery if it were constantly on, or constantly on and trying to receieve commands from the Game Boy). Without pressing the button, the game logic times out the scanning process after a few seconds (about 9 seconds). If an error is detected during the scan process, the reader seems to acknowledge this pretty quickly.
+
+Nitty-gritty bits
+
+1. When connected, the reader responds with 0x00 until it is prepared to send the barcode data.
+
+2. Afterwards, it begins processing barcode data. Data is represented serially. A bit reading "1" indicates that the card reader is detecting whitespace. A bit reading "0" indicates the card reader is detecting a black segment (black bar).
+
+3. The barcode sequence itself is nothing more than a continuous stream of zeroes and ones. That is to say, groups of ones and zeroes are always packed together, but the length of each group determines the length of any given bar.
+
+4. There doesn't appear to be a fixed number of bytes that the Game Boy seems to expect when scanning. Different scans seem to produce different amounts of data transferred to the Game Boy. This could be due to numerous reasons in the hardware (swipe speed, how clean the scanner is, some other variance within the scanner's light sensitivity). Overall, however, the most important thing seems to be the length and sequence of the bars encoded as groups of ones and zeroes.
+
+5. The Game Boy doesn't ever seem to send any interesting data, just 0xFF. No commands are sent. The Game Boy simply sends a byte and expects a result to come from the reader; the results are what matter and are interpreted later on.
+
+
+***************************************************
+Barcode Format
+***************************************************
+
+
+Because the incoming barcode data is not consistent byte-for-byte, the patterns are what matters most. To illustrate this idea, below are two sets of data extracted after scanning a card (using a hacked version of Barcode Taisen Bardigun and saving all SIO communications to Cart RAM).
+
+SET_1		SET_2
+00 00		00 03		
+7F FE		FF F8
+00 01		00 03
+FF FF 		FF FF
+FF FF		FF FF
+FF C0		FF E0
+00 3F		00 0F
+FF 00		FF 80
+00 00		00 00
+07 FF		00 FF
+00 00		FC 00
+FF FF		03 FF
+FF C0		FF FF
+00 00		C0 00
+
+Set 1 [16:0] [14:1] [15:0] [43:1] ...
+Set 2 [14:0] [15:1] [14:0] [45:1] ...
+
+As we can see, the pattern is roughly the same. It switches between 0s, 1s, and 0s (black, white, black) fairly quickly followed by a long segment of 1s (white) which is roughly the general pattern seen at the beginning/ends of the barcodes. Based on this information, we can also see that the thinest bars are about 0.0133 (8 pixels when scanning at 600dpi). Some calculations based on this information
+
+Bar Width (in pixels @ 600dpi) -> Estimated bit-count sent to Game Boy
+
+8	->	~14-16
+16	->	~27-29
+24	->	~43-45
+
+Every 8 pixels should be approximately 15 bits worth of data sent to the Game Boy, plus of minus some fluctuations thanks to quantum physics and transdimensional interference. And aliens. Or, put another way:
+
+Number of Pixels @ 600dpi * 1.875 = Approximate bit count.
+
+
+***************************************************
+Card Dumping
+***************************************************
+
+
+With the above guideline, it should be possible to dump the cards by scanning them, then creating a binary file containing barcodes as alternating bitstreams of 0s and 1s. With this method, no homebrew techniques are needed, and only an image file is necessary to actually preserve the card.
+
+The second method involves using a hacked version of the Barcode Taisen Bardigun ROM on a flashcart to save incoming Serial I/O data as a card is scanned. The binary can be pulled from a save file. Both binary files could be used an input to feed back to an emulator.
