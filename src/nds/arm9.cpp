@@ -36,16 +36,18 @@ void NTR_ARM9::reset()
 		reg.r13_irq = 0x3003F80;
 		reg.cpsr = 0x5F;
 		reg.r15 = 0;
+		current_cpu_mode = SYS;
 	}
 
-	//Otherwise, init registers as zero (except PC)
+	//Otherwise, init registers as zero (except PC), CPSR in SVC mode with IRQ and FIQ bits set
 	else
 	{
 		reg.r13 = reg.r13_fiq = reg.r13_abt = reg.r13_und = 0;
 		reg.r13_svc = 0;
 		reg.r13_irq = 0;
-		reg.cpsr = 0;
+		reg.cpsr = 0xD3;
 		reg.r15 = 0xFFFF0000;
+		current_cpu_mode = SVC;
 	}
 
 	reg.r8_fiq = reg.r9_fiq = reg.r10_fiq = reg.r11_fiq = reg.r12_fiq = reg.r14_fiq = reg.spsr_fiq = 0;
@@ -66,7 +68,6 @@ void NTR_ARM9::reset()
 	swi_waitbyloop_count = 0;
 
 	arm_mode = ARM;
-	current_cpu_mode = SYS;
 
 	controllers.timer.clear();
 	controllers.timer.resize(4);
@@ -972,7 +973,7 @@ bool NTR_ARM9::check_condition(u32 current_arm_instruction) const
 		default:
 			if(instruction_pipeline[((pipeline_pointer + 1) % 3)] != ARM_4)
 			{
-				std::cout<<"CPU::ARM9::Warning: ARM instruction uses reserved conditional code NV \n";
+				//std::cout<<"CPU::ARM9::Warning: ARM instruction uses reserved conditional code NV \n";
 			}
 
 			return true;
