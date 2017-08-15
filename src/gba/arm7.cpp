@@ -36,16 +36,18 @@ void ARM7::reset()
 		reg.r13_irq = 0x03007FA0;
 		reg.r15 = 0x8000000;
 		reg.cpsr = 0x5F;
+		current_cpu_mode = SYS;
 	}
 
-	//Otherwise, init registers as zero
+	//Otherwise, init registers as zero, CPSR in SVC mode with IRQ and FIQ bits set
 	else
 	{
 		reg.r13 = reg.r13_fiq = reg.r13_abt = reg.r13_und = 0;
 		reg.r13_svc = 0;
 		reg.r13_irq = 0;
 		reg.r15 = 0;
-		reg.cpsr = 0;
+		reg.cpsr = 0xD3;
+		current_cpu_mode = SVC;
 	}
 
 	reg.r8_fiq = reg.r9_fiq = reg.r10_fiq = reg.r11_fiq = reg.r12_fiq = reg.r14_fiq = reg.spsr_fiq = 0;
@@ -62,7 +64,6 @@ void ARM7::reset()
 	swi_vblank_wait = false;
 
 	arm_mode = ARM;
-	current_cpu_mode = SYS;
 	bios_read_state = BIOS_STARTUP;
 
 	controllers.timer.clear();
