@@ -2546,6 +2546,9 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 					//Raise Send FIFO EMPTY IRQ if necessary
 					if(nds9_ipc.cnt & 0x4) { nds9_if |= 0x20000; }
+
+					//Set latest readable RECV value to zero
+					nds9_ipc.fifo_latest = 0;
 				}
 			}
 
@@ -2572,6 +2575,9 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 					//Raise Send FIFO EMPTY IRQ if necessary
 					if(nds7_ipc.cnt & 0x4) { nds7_if |= 0x20000; }
+
+					//Set latest readable RECV value to zero
+					nds7_ipc.fifo_latest = 0;
 				}
 			}
 
