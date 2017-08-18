@@ -134,6 +134,20 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	sio_layout->addWidget(sio_dev);
 	sio_set->setLayout(sio_layout);
 
+	//General settings - Emulated IR device
+	QWidget* ir_set = new QWidget(general);
+	QLabel* ir_label = new QLabel("Infrared Device", ir_set);
+	ir_dev = new QComboBox(ir_set);
+	ir_dev->setToolTip("Changes the emulated IR device that will communicate with the emulated Game Boy");
+	ir_dev->addItem("GBC IR Port");
+	ir_dev->addItem("Full Changer");
+
+	QHBoxLayout* ir_layout = new QHBoxLayout;
+	ir_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	ir_layout->addWidget(ir_label);
+	ir_layout->addWidget(ir_dev);
+	ir_set->setLayout(ir_layout);
+
 	//General settings - Enable patches
 	QWidget* patch_set = new QWidget(general);
 	QLabel* patch_label = new QLabel("Enable ROM patches", patch_set);
@@ -150,6 +164,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	gen_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	gen_layout->addWidget(sys_type_set);
 	gen_layout->addWidget(sio_set);
+	gen_layout->addWidget(ir_set);
 	gen_layout->addWidget(special_cart_set);
 	gen_layout->addWidget(bios_set);
 	gen_layout->addWidget(cheats_set);
@@ -898,6 +913,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(tabs_button->button(QDialogButtonBox::Close), SIGNAL(clicked()), this, SLOT(close_settings()));
 	connect(bios, SIGNAL(stateChanged(int)), this, SLOT(set_bios()));
 	connect(sio_dev, SIGNAL(currentIndexChanged(int)), this, SLOT(sio_dev_change()));
+	connect(ir_dev, SIGNAL(currentIndexChanged(int)), this, SLOT(ir_dev_change()));
 	connect(auto_patch, SIGNAL(stateChanged(int)), this, SLOT(set_patches()));
 	connect(edit_cheats, SIGNAL(clicked()), this, SLOT(show_cheats()));
 	connect(edit_rtc, SIGNAL(clicked()), this, SLOT(show_rtc()));
@@ -1123,6 +1139,9 @@ void gen_settings::set_ini_options()
 	//Emulated SIO device
 	sio_dev->setCurrentIndex(config::sio_device);
 
+	//Emulated IR device
+	ir_dev->setCurrentIndex(config::ir_device);
+
 	//BIOS or Boot ROM option
 	if(config::use_bios) { bios->setChecked(true); }
 
@@ -1286,6 +1305,12 @@ void gen_settings::set_bios()
 void gen_settings::sio_dev_change()
 {
 	config::sio_device = sio_dev->currentIndex();
+}
+
+/****** Changes the emulated IR device ******/
+void gen_settings::ir_dev_change()
+{
+	config::ir_device = ir_dev->currentIndex();
 }
 
 /****** Toggles whether to enable auto-patching ******/

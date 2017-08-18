@@ -111,6 +111,7 @@ namespace config
 	gba_save_types agb_save_type = AGB_AUTO_DETECT;
 
 	u32 sio_device = 0;
+	u32 ir_device = 0;
 	bool use_opengl = false;
 	bool turbo = false;
 
@@ -878,12 +879,31 @@ bool parse_ini_file()
 				std::stringstream temp_stream(ini_item);
 				temp_stream >> output;
 
-				if((output >= 0) && (output <= 6)) { config::sio_device = output; }
+				if((output >= 0) && (output <= 5)) { config::sio_device = output; }
 			}
 
 			else 
 			{ 
 				std::cout<<"GBE::Error - Could not parse gbe.ini (#sio_device) \n";
+				return false;
+			}
+		}
+
+		//Emulated IR device
+		if(ini_item == "#ir_device")
+		{
+			if((x + 1) < size) 
+			{
+				ini_item = ini_opts[++x];
+				std::stringstream temp_stream(ini_item);
+				temp_stream >> output;
+
+				if((output >= 0) && (output <= 6)) { config::ir_device = output; }
+			}
+
+			else 
+			{ 
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#ir_device) \n";
 				return false;
 			}
 		}
@@ -2391,12 +2411,20 @@ bool save_ini_file()
 			output_lines[line_pos] = "[#use_firmware:" + val + "]";
 		}
 
-		//Use GB Printer
+		//Emulated SIO device
 		if(ini_item == "#sio_device")
 		{
 			line_pos = output_count[x];
 
 			output_lines[line_pos] = "[#sio_device:" + util::to_str(config::sio_device) + "]";
+		}
+
+		//Emulated IR device
+		if(ini_item == "#ir_device")
+		{
+			line_pos = output_count[x];
+
+			output_lines[line_pos] = "[#ir_device:" + util::to_str(config::ir_device) + "]";
 		}
 
 		//Set emulated system type

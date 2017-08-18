@@ -23,7 +23,15 @@ enum sio_types
 	GB_MOBILE_ADAPTER,
 	GB_BARDIGUN_SCANNER,
 	GB_BARCODE_BOY,
-	GB_FULL_CHANGER,
+};
+
+//Infrared device-type enumeration
+enum ir_types
+{
+	GBC_IR_PORT,
+	GBC_FULL_CHANGER,
+	GBC_POCKET_PIKACHU_2,
+	GBC_POCKET_SAKURA,
 };
 
 enum printer_state
@@ -80,6 +88,7 @@ struct dmg_sio_data
 	u32 sync_counter;
 	u32 sync_clock;
 	sio_types sio_type;
+	ir_types ir_type;
 };
 
 #endif // GB_SIO_DATA 

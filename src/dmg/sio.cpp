@@ -220,15 +220,34 @@ void DMG_SIO::reset()
 			sio_stat.sio_type = GB_BARCODE_BOY;
 			break;
 
-		//Full Changer
-		case 0x6:
-			sio_stat.sio_type = GB_FULL_CHANGER;
-			break;
-
 		//Always wait until netplay connection is established to change to GB_LINK
 		//Also, any invalid types are ignored
 		default:
 			sio_stat.sio_type = NO_GB_DEVICE;
+			break;
+	}
+
+	switch(config::ir_device)
+	{
+		//Full Changer
+		case 0x1:
+			sio_stat.ir_type = GBC_FULL_CHANGER;
+			break;
+
+		//Pocket Pikachu 2
+		case 0x2:
+			sio_stat.ir_type = GBC_POCKET_PIKACHU_2;
+			break;
+
+		//Pocket Sakura
+		case 0x3:
+			sio_stat.ir_type = GBC_POCKET_SAKURA;
+			break;
+
+		//Use standard GBC IR port communication as the default (GBE+ will ignore it for DMG games)
+		//Also, any invalid types are ignored
+		default:
+			sio_stat.ir_type = GBC_IR_PORT;
 			break;
 	}
 
@@ -285,7 +304,7 @@ void DMG_SIO::reset()
 	full_changer.current_character = 0;
 	full_changer.light_on = false;
 
-	if(config::sio_device == 6)
+	if(config::ir_device == 1)
 	{
 		std::string database = config::data_path + "zzh_db.bin";
 		full_changer_load_db(database);

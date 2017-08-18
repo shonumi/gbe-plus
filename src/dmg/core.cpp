@@ -395,9 +395,12 @@ void DMG_core::run_core()
 								}
 									
 								break;
+						}
 
+						switch(core_cpu.controllers.serial_io.sio_stat.ir_type)
+						{
 							//Process Full Changer communications
-							case GB_FULL_CHANGER:
+							case GBC_FULL_CHANGER:
 								core_cpu.controllers.serial_io.full_changer_process();
 								break;
 						}
@@ -612,9 +615,12 @@ void DMG_core::step()
 							}
 								
 							break;
+					}
 
+					switch(core_cpu.controllers.serial_io.sio_stat.ir_type)
+					{
 						//Process Full Changer communications
-						case GB_FULL_CHANGER:
+						case GBC_FULL_CHANGER:
 							core_cpu.controllers.serial_io.full_changer_process();
 							break;
 					}
@@ -2042,7 +2048,9 @@ void DMG_core::handle_hotkey(SDL_Event& event)
 		}
 	}
 
+	//Initiate various communication functions
 	//Bardigun + Barcode Boy - Reswipe card
+	//Full Changer - Draw Cosmic Character
 	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F3))
 	{
 		switch(core_cpu.controllers.serial_io.sio_stat.sio_type)
@@ -2067,9 +2075,12 @@ void DMG_core::handle_hotkey(SDL_Event& event)
 				}
 
 				break;
+		}
 
+		switch(core_cpu.controllers.serial_io.sio_stat.ir_type)
+		{
 			//Full Changer draw Cosmic Character
-			case GB_FULL_CHANGER:
+			case GBC_FULL_CHANGER:
 				core_cpu.controllers.serial_io.full_changer.delay_counter = (core_cpu.controllers.serial_io.full_changer.current_character * 72);
 				core_mmu.ir_trigger = 1;
 				break;
@@ -2117,20 +2128,42 @@ void DMG_core::handle_hotkey(int input, bool pressed)
 		}
 	}
 
+	//Initiate various communication functions
 	//Bardigun + Barcode Boy - Reswipe card
+	//Full Changer - Draw Cosmic Character
 	else if((input == SDLK_F3) && (pressed))
 	{
-		core_cpu.controllers.serial_io.bardigun_scanner.current_state = BARDIGUN_INACTIVE;
-		core_cpu.controllers.serial_io.bardigun_scanner.inactive_counter = 0x500;
-		core_cpu.controllers.serial_io.bardigun_scanner.barcode_pointer = 0;
-
-		if(core_cpu.controllers.serial_io.barcode_boy.current_state == BARCODE_BOY_ACTIVE)
+		switch(core_cpu.controllers.serial_io.sio_stat.sio_type)
 		{
-			core_cpu.controllers.serial_io.barcode_boy.current_state = BARCODE_BOY_SEND_BARCODE;
-			core_cpu.controllers.serial_io.barcode_boy.send_data = true;
 
-			core_cpu.controllers.serial_io.sio_stat.shifts_left = 8;
-			core_cpu.controllers.serial_io.sio_stat.shift_counter = 0;
+			//Bardigun reswipe card
+			case GB_BARDIGUN_SCANNER:
+				core_cpu.controllers.serial_io.bardigun_scanner.current_state = BARDIGUN_INACTIVE;
+				core_cpu.controllers.serial_io.bardigun_scanner.inactive_counter = 0x500;
+				core_cpu.controllers.serial_io.bardigun_scanner.barcode_pointer = 0;
+				break;
+
+			//Barcode Boy reswipe card
+			case GB_BARCODE_BOY:
+				if(core_cpu.controllers.serial_io.barcode_boy.current_state == BARCODE_BOY_ACTIVE)
+				{
+					core_cpu.controllers.serial_io.barcode_boy.current_state = BARCODE_BOY_SEND_BARCODE;
+					core_cpu.controllers.serial_io.barcode_boy.send_data = true;
+
+					core_cpu.controllers.serial_io.sio_stat.shifts_left = 8;
+					core_cpu.controllers.serial_io.sio_stat.shift_counter = 0;
+				}
+
+				break;
+		}
+
+		switch(core_cpu.controllers.serial_io.sio_stat.ir_type)
+		{
+			//Full Changer draw Cosmic Character
+			case GBC_FULL_CHANGER:
+				core_cpu.controllers.serial_io.full_changer.delay_counter = (core_cpu.controllers.serial_io.full_changer.current_character * 72);
+				core_mmu.ir_trigger = 1;
+				break;
 		}
 	}
 }

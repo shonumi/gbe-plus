@@ -40,6 +40,7 @@ class gen_settings : public QDialog
 	QCheckBox* cheats;
 	QPushButton* edit_cheats;
 	QComboBox* sio_dev;
+	QComboBox* ir_dev;
 	QCheckBox* auto_patch;
 
 	//Display tab widgets
@@ -157,6 +158,7 @@ class gen_settings : public QDialog
 	private slots:
 	void set_bios();
 	void sio_dev_change();
+	void ir_dev_change();
 	void set_patches();
 	void show_cheats();
 	void show_rtc();
