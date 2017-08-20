@@ -288,7 +288,7 @@ void NTR_core::run_core()
 					if(core_cpu_nds9.needs_flush) { core_cpu_nds9.flush_pipeline(); }
 
 					//Else update the pipeline and PC
-					else if((core_cpu_nds9.idle_state & 0x1) == 0)
+					else
 					{ 
 						core_cpu_nds9.pipeline_pointer = (core_cpu_nds9.pipeline_pointer + 1) % 3;
 						core_cpu_nds9.update_pc();
@@ -381,7 +381,7 @@ void NTR_core::run_core()
 					if(core_cpu_nds7.needs_flush) { core_cpu_nds7.flush_pipeline(); }
 
 					//Else update the pipeline and PC
-					else if((core_cpu_nds7.idle_state & 0x1) == 0)
+					else
 					{ 
 						core_cpu_nds7.pipeline_pointer = (core_cpu_nds7.pipeline_pointer + 1) % 3;
 						core_cpu_nds7.update_pc();
@@ -503,7 +503,7 @@ void NTR_core::step()
 				if(core_cpu_nds9.needs_flush) { core_cpu_nds9.flush_pipeline(); }
 
 				//Else update the pipeline and PC
-				else if((core_cpu_nds9.idle_state & 0x1) == 0)
+				else
 				{ 
 					core_cpu_nds9.pipeline_pointer = (core_cpu_nds9.pipeline_pointer + 1) % 3;
 					core_cpu_nds9.update_pc();
@@ -596,7 +596,7 @@ void NTR_core::step()
 				if(core_cpu_nds7.needs_flush) { core_cpu_nds7.flush_pipeline(); }
 
 				//Else update the pipeline and PC
-				else if((core_cpu_nds7.idle_state & 0x1) == 0)
+				else
 				{ 
 					core_cpu_nds7.pipeline_pointer = (core_cpu_nds7.pipeline_pointer + 1) % 3;
 					core_cpu_nds7.update_pc();

@@ -705,6 +705,7 @@ void NTR_ARM7::execute()
 
 			default:
 				debug_message = 0x13; debug_code = instruction_pipeline[pipeline_id];
+				std::cout<<"CPU::ARM9::Error - Unknown THUMB instruction -> 0x" << std::hex << debug_code << "\n";
 				running = false;
 				break;
 		}
@@ -771,6 +772,7 @@ void NTR_ARM7::execute()
 
 				default:
 					debug_message = 0x1E; debug_code = instruction_pipeline[pipeline_id];
+					std::cout<<"CPU::ARM7::Error - Unknown ARM instruction -> 0x" << std::hex << debug_code << "\n";
 					running = false;
 					break;
 			}
@@ -1343,16 +1345,9 @@ void NTR_ARM7::handle_interrupt()
 			{
 				current_cpu_mode = IRQ;
 
-				//If a Branch instruction has just executed, the PC is changed before jumping into the interrupt
-				//When returning from an interrupt, the GBA calls SUBS R15, R14, 0x4 to return where it left off
-				//As a result, LR needs to hold the value of the PC + 4 (really, PC+nn+4, where nn is 2 instruction sizes)
+				//Save PC to LR
 				if(needs_flush) { set_reg(14, (reg.r15 + 4)); }
-
-				//When there is no Branch, THUMB's LR has to be set to PC+nn+2 (nn is 4, two instruction sizes)
-				//In GBE+, the branch instruction executes, but interrupts happens before PC updates at the new location (so we move the PC along here instead).
-				//SUBS R15, R14, 0x4 would jump back to the current instruction, thus executing the THUMB opcode twice!
-				else if((!needs_flush) && (arm_mode == THUMB)) { set_reg(14, (reg.r15 + 2)); }
-				else if((!needs_flush) && (arm_mode == ARM)) { set_reg(14, reg.r15); }
+				else { set_reg(14, reg.r15); }
 
 				//Set PC and SPSR
 				reg.r15 = mem->nds7_bios_vector + 0x18;
