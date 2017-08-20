@@ -196,6 +196,8 @@ void NTR_MMU::reset()
 	nds9_timer = NULL;
 	nds7_timer = NULL;
 
+	access_mode = 1;
+
 	std::cout<<"MMU::Initialized\n";
 }
 
@@ -2549,6 +2551,9 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 					//Set latest readable RECV value to zero
 					nds9_ipc.fifo_latest = 0;
+
+					//Bit 3 is write only, so effectively never set it
+					nds9_ipc.cnt &= ~0x8;
 				}
 			}
 
@@ -2578,6 +2583,9 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 					//Set latest readable RECV value to zero
 					nds7_ipc.fifo_latest = 0;
+
+					//Bit 3 is write only, so effectively never set it
+					nds7_ipc.cnt &= ~0x8;
 				}
 			}
 
