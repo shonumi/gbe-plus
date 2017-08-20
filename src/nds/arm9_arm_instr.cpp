@@ -261,6 +261,9 @@ void NTR_ARM9::data_processing(u32 current_arm_instruction)
 				case 0x1F: current_cpu_mode = SYS; break;
 				default: std::cout<<"CPU::ARM9::Warning - ARM.5 CPSR setting unknown CPU mode -> 0x" << std::hex << (reg.cpsr & 0x1F) << "\n";
 			}
+
+			//Switch to ARM or THUMB mode if necessary
+			arm_mode = (reg.cpsr & 0x20) ? THUMB : ARM;
 		}
 	}
 
