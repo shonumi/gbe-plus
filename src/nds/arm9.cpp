@@ -1374,11 +1374,22 @@ void NTR_ARM9::clock_timers(u8 access_cycles)
 /****** Jumps to or exits an interrupt ******/
 void NTR_ARM9::handle_interrupt()
 {
-	//TODO - Implement a better way of exiting interrupts other than recognizing the SUB PC, #4 instruction
-
 	//Exit interrupt
-	if((in_interrupt) && (debug_code == 0xE25EF004))
+	if((in_interrupt) && (reg.r15 == 0xFFFF0294))
 	{
+		//Restore registers from SP
+		u32 sp_addr = get_reg(13);
+		reg.r0 = mem->read_u32(sp_addr); sp_addr += 4;
+		reg.r1 = mem->read_u32(sp_addr); sp_addr += 4;
+		reg.r2 = mem->read_u32(sp_addr); sp_addr += 4;
+		reg.r3 = mem->read_u32(sp_addr); sp_addr += 4;
+		set_reg(12, mem->read_u32(sp_addr)); sp_addr += 4;
+		set_reg(14, mem->read_u32(sp_addr)); sp_addr += 4;
+		set_reg(13, sp_addr);
+
+		//Set PC to LR - 4;
+		reg.r15 = get_reg(14) - 4;
+
 		//Set CPSR from SPSR, turn on IRQ flag
 		reg.cpsr = get_spsr();
 		reg.cpsr &= ~CPSR_IRQ;
