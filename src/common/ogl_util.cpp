@@ -446,7 +446,7 @@ GLuint ogl_load_shader(std::string vertex_shader_file, std::string fragment_shad
 	glGetShaderInfoLog(fragment_shader_id, log_length, NULL, &fs_error[0]);
 
 	//Print any error messages from compiling fragment shader
-	std::cout<<"OGL::Fragment Shadder Error Message Log: " << &fs_error[0] << "\n";
+	std::cout<<"OGL::Fragment Shader Error Message Log: " << &fs_error[0] << "\n";
  
 	//Link the program
 	std::cout<<"OGL::Linking shaders...\n";
