@@ -3394,6 +3394,11 @@ bool NTR_MMU::read_bios_nds7(std::string filename)
 	file.close();
 	std::cout<<"MMU::NDS7 BIOS file " << filename << " loaded successfully. \n";
 
+	//Copy initial KEY1 table
+	key1_table.clear();
+
+	for(u32 x = 0; x < 0x1048; x++) { key1_table.push_back(nds7_bios[0x30 + x]); }
+
 	return true;
 }
 

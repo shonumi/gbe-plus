@@ -224,6 +224,9 @@ class NTR_MMU
 		u8 raw_cnt[4];
 	} dma[8];
 
+	//KEY1 key table
+	std::vector<u8> key1_table;
+
 	//NDS9 and NDS7 have separate IE, IF, and other registers (accessed at the same address)
 	u32 nds9_ie;
 	u32 nds9_if;
