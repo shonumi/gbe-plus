@@ -227,6 +227,9 @@ class NTR_MMU
 	//KEY1 key table
 	std::vector<u8> key1_table;
 
+	//Keycode
+	std::vector<u32> key_code;
+
 	//NDS9 and NDS7 have separate IE, IF, and other registers (accessed at the same address)
 	u32 nds9_ie;
 	u32 nds9_if;
@@ -284,6 +287,9 @@ class NTR_MMU
 	void process_touchscreen();
 	void process_rtc();
 	void setup_default_firmware();
+
+	void decrypt_card_command();
+	void init_key_code(u32 id, u8 level, u32 mod);
 
 	void set_lcd_data(ntr_lcd_data* ex_lcd_stat);
 

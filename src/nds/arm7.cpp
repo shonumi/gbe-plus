@@ -705,7 +705,7 @@ void NTR_ARM7::execute()
 
 			default:
 				debug_message = 0x13; debug_code = instruction_pipeline[pipeline_id];
-				std::cout<<"CPU::ARM9::Error - Unknown THUMB instruction -> 0x" << std::hex << debug_code << "\n";
+				std::cout<<"CPU::ARM7::Error - Unknown THUMB instruction -> 0x" << std::hex << debug_code << "\n";
 				running = false;
 				break;
 		}
@@ -717,7 +717,6 @@ void NTR_ARM7::execute()
 		//Conditionally execute ARM instruction
 		if(check_condition(instruction_pipeline[pipeline_id]))
 		{
-
 			switch(instruction_operation[pipeline_id])
 			{
 				case ARM_3:

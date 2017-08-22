@@ -15,6 +15,7 @@ set(SRCS
 	gamepad.cpp
 	opengl.cpp
 	rtc.cpp
+	gamecard.cpp
 	)
 
 set(HEADERS
