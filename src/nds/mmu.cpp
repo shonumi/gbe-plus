@@ -192,6 +192,10 @@ void NTR_MMU::reset()
 
 	touchscreen_state = 0;
 
+	key1_table.clear();
+	key_code.clear();
+	key_level = 0;
+
 	g_pad = NULL;
 	nds9_timer = NULL;
 	nds7_timer = NULL;

@@ -230,6 +230,9 @@ class NTR_MMU
 	//Keycode
 	std::vector<u32> key_code;
 
+	//Encryption key level
+	u8 key_level;
+
 	//NDS9 and NDS7 have separate IE, IF, and other registers (accessed at the same address)
 	u32 nds9_ie;
 	u32 nds9_if;
@@ -290,6 +293,7 @@ class NTR_MMU
 
 	void decrypt_card_command();
 	void init_key_code(u32 id, u8 level, u32 mod);
+	u32 key1_read_u32(u32 index);
 
 	void set_lcd_data(ntr_lcd_data* ex_lcd_stat);
 

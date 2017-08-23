@@ -156,7 +156,23 @@ void NTR_MMU::process_card_bus()
 /****** Decrypts 64-bit game card command ******/
 void NTR_MMU::decrypt_card_command()
 {
+	u32 x = nds_card.cmd_hi;
+	u32 y = nds_card.cmd_lo;
+	u32 z = 0;
 
+	for(u32 index = 17; index >= 2; index--)
+	{
+		z = (key1_read_u32(index << 2) ^ x);
+		x = key1_read_u32(0x48 + (((z >> 24) & 0xFF) * 4));
+		x = key1_read_u32(0x448 + (((z >> 16) & 0xFF) * 4)) + x;
+		x = key1_read_u32(0x848 + (((z >> 8) & 0xFF) * 4)) ^ x;
+		x = key1_read_u32(0xC48 + ((z & 0xFF) * 4)) + x;
+		x = (y ^ x);
+		y = z;
+	}
+
+	nds_card.cmd_lo = (x ^ key1_read_u32(4));
+	nds_card.cmd_hi = (y ^ key1_read_u32(0));
 }
 
 /****** Initializes keycode ******/
@@ -164,3 +180,9 @@ void NTR_MMU::init_key_code(u32 id, u8 level, u32 mod)
 {
 
 }
+
+/****** Reads 4 bytes from the KEY1 table ******/
+u32 NTR_MMU::key1_read_u32(u32 index)
+{
+	return ((key1_table[index + 3] << 24) | (key1_table[index + 2] << 16) | (key1_table[index + 1] << 8) | key1_table[index]);
+} 
