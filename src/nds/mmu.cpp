@@ -195,6 +195,7 @@ void NTR_MMU::reset()
 	key1_table.clear();
 	key_code.clear();
 	key_level = 0;
+	key_id = 0;
 
 	g_pad = NULL;
 	nds9_timer = NULL;
@@ -3029,6 +3030,9 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 					nds_card.active_transfer = true;
 					nds_card.state = 0;
 
+					//Decrypt gamecard command
+					if(key_level) { key1_decrypt(nds_card.cmd_lo, nds_card.cmd_hi); }
+
 					std::cout<<"CART TRANSFER -> 0x" << nds_card.cnt << " -- SIZE -> 0x" << nds_card.transfer_size << " -- CMD -> 0x" << nds_card.cmd_lo << nds_card.cmd_hi << "\n";
 				}
 
@@ -3398,11 +3402,6 @@ bool NTR_MMU::read_bios_nds7(std::string filename)
 	file.close();
 	std::cout<<"MMU::NDS7 BIOS file " << filename << " loaded successfully. \n";
 
-	//Copy initial KEY1 table
-	key1_table.clear();
-
-	for(u32 x = 0; x < 0x1048; x++) { key1_table.push_back(nds7_bios[0x30 + x]); }
-
 	return true;
 }
 
@@ -3491,11 +3490,8 @@ bool NTR_MMU::read_firmware(std::string filename)
 	file.close();
 	std::cout<<"MMU::NDS firmware file " << filename << " loaded successfully. \n";
 
-	//Set default keycode to Firmware ID
-	u32 firmware_id = (firmware[0x8] | (firmware[0x9] << 8) | (firmware[0xA] << 16) | (firmware[0xB] << 24));
-	key_code.push_back(firmware_id);
-	key_code.push_back(firmware_id);
-	key_code.push_back(firmware_id);
+	//Set default ID code to Firmware ID
+	key_id = (firmware[0x8] | (firmware[0x9] << 8) | (firmware[0xA] << 16) | (firmware[0xB] << 24));
 
 	return true;
 }
@@ -3590,6 +3586,9 @@ void NTR_MMU::parse_header()
 		header.arm7_size <<= 8;
 		header.arm7_size |= cart_data[0x3F - x];
 	}
+
+	//Set default ID code to Game ID
+	key_id = (cart_data[0xC] | (cart_data[0xD] << 8) | (cart_data[0xE] << 16) | (cart_data[0xF] << 24));
 }
 
 /****** Handles various SPI Bus interactions ******/
