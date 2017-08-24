@@ -90,6 +90,8 @@ namespace util
 
 	u32 get_bcd(u32 input);
 
+	u32 bswap(u32 input);
+
 	SDL_Surface* load_icon(std::string filename);
 
 	extern u32 crc32_table[256];

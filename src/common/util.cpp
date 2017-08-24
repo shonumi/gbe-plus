@@ -865,4 +865,15 @@ u32 get_bcd(u32 input)
 	return input;
 }
 
+/****** Byte swaps a 32-bit value ******/
+u32 bswap(u32 input)
+{
+	u32 result = (input >> 24);
+	result |= (((input >> 16) & 0xFF) << 8);
+	result |= (((input >> 8) & 0xFF) << 16);
+	result |= ((input & 0xFF) << 24);
+
+	return result;
+}
+
 } //Namespace
