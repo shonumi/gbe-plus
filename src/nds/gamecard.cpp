@@ -11,6 +11,8 @@
 
 #include "mmu.h"
 
+#include "common/util.h"
+
 /****** Handles various cartridge bus interactions ******/
 void NTR_MMU::process_card_bus()
 {
@@ -59,8 +61,7 @@ void NTR_MMU::process_card_bus()
 				nds_card.state = 0x40;
 				nds_card.transfer_size = 0x4;
 
-				key_level = 1;
-				init_key_code(key_level, 0);
+				init_key_code(1, 8);
 			}
 
 			//Activate Key 2 Encryption
@@ -163,7 +164,7 @@ void NTR_MMU::key1_encrypt(u32 &lo, u32 &hi)
 	u32 y = lo;
 	u32 z = 0;
 
-	for(u32 index = 0; index <= 16; index++)
+	for(u32 index = 0; index < 16; index++)
 	{
 		z = (key1_read_u32(index << 2) ^ x);
 		x = key1_read_u32(0x48 + (((z >> 24) & 0xFF) * 4));
@@ -185,7 +186,7 @@ void NTR_MMU::key1_decrypt(u32 &lo, u32 &hi)
 	u32 y = lo;
 	u32 z = 0;
 
-	for(u32 index = 17; index >= 2; index--)
+	for(u32 index = 17; index > 2; index--)
 	{
 		z = (key1_read_u32(index << 2) ^ x);
 		x = key1_read_u32(0x48 + (((z >> 24) & 0xFF) * 4));
@@ -213,13 +214,64 @@ void NTR_MMU::init_key_code(u8 level, u32 mod)
 	key_code.push_back(key_id * 2);
 
 	//Init Level 1
-	if(level == 1) { }
+	if(level == 1)
+	{
+		key_level = 1;
+		apply_key_code(mod);
+	}
 
 	//TODO - Everything else
+}
+
+/****** Applies keycode ******/
+void NTR_MMU::apply_key_code(u32 mod)
+{
+	key1_encrypt(key_code[1], key_code[2]);
+	key1_encrypt(key_code[0], key_code[1]);
+
+	u32 temp_lo = 0;
+	u32 temp_hi = 0;
 }
 
 /****** Reads 4 bytes from the KEY1 table ******/
 u32 NTR_MMU::key1_read_u32(u32 index)
 {
 	return ((key1_table[index + 3] << 24) | (key1_table[index + 2] << 16) | (key1_table[index + 1] << 8) | key1_table[index]);
+}
+
+/****** Performs shifted 32-bit reads from keycode ******/
+u32 NTR_MMU::key_code_read_u32(u32 index)
+{
+	u32 result = 0;
+	u8 shift = 24;
+	index += 3;
+
+	for(u32 x = 0; x < 4; x++)
+	{
+		switch(index)
+		{
+			//Byte 1
+			case 0x0: result |= ((key_code[0] & 0xFF) << shift); break;
+			case 0x1: result |= (((key_code[0] >> 8) & 0xFF) << shift); break;
+			case 0x2: result |= (((key_code[0] >> 16) & 0xFF) << shift); break;
+			case 0x3: result |= (((key_code[0] >> 24) & 0xFF) << shift); break;
+
+			//Byte 2
+			case 0x4: result |= ((key_code[1] & 0xFF) << shift); break;
+			case 0x5: result |= (((key_code[1] >> 8) & 0xFF) << shift); break;
+			case 0x6: result |= (((key_code[1] >> 16) & 0xFF) << shift); break;
+			case 0x7: result |= (((key_code[1] >> 24) & 0xFF) << shift); break;
+
+			//Byte 3
+			case 0x8: result |= ((key_code[2] & 0xFF) << shift); break;
+			case 0x9: result |= (((key_code[2] >> 8) & 0xFF) << shift); break;
+			case 0xA: result |= (((key_code[2] >> 16) & 0xFF) << shift); break;
+			case 0xB: result |= (((key_code[2] >> 24) & 0xFF) << shift); break;
+		}
+
+		shift -= 8;
+		index--;
+	}
+
+	return result;
 }

@@ -295,7 +295,9 @@ class NTR_MMU
 	void key1_encrypt(u32 &lo, u32 &hi);
 	void key1_decrypt(u32 &lo, u32 &hi);
 	void init_key_code(u8 level, u32 mod);
+	void apply_key_code(u32 mod);
 	u32 key1_read_u32(u32 index);
+	u32 key_code_read_u32(u32 index);
 
 	void set_lcd_data(ntr_lcd_data* ex_lcd_stat);
 
