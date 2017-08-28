@@ -220,6 +220,11 @@ void DMG_SIO::reset()
 			sio_stat.sio_type = GB_BARCODE_BOY;
 			break;
 
+		//4 Player Adapter
+		case 0x6:
+			sio_stat.sio_type = GB_FOUR_PLAYER_ADAPTER;
+			break;
+
 		//Always wait until netplay connection is established to change to GB_LINK
 		//Also, any invalid types are ignored
 		default:
@@ -297,6 +302,12 @@ void DMG_SIO::reset()
 	barcode_boy.counter = 0;
 	barcode_boy.send_data = false;
 	if(config::sio_device == 5) { barcode_boy_load_barcode(config::external_card_file); }
+
+	//4 Player Adapter
+	four_player.current_state = FOUR_PLAYER_INACTIVE;
+	four_player.ping_count = 0;
+	four_player.id = 1;
+	four_player.status = 1;
 
 	//Full Changer
 	full_changer.data.clear();
@@ -1994,4 +2005,41 @@ bool DMG_SIO::barcode_boy_load_barcode(std::string filename)
 
 	std::cout<<"SIO::Loaded Barcode Boy barcode data.\n";
 	return true;
+}
+
+/****** Processes data sent to the Game Boy via 4 Player Adapter ******/
+void DMG_SIO::four_player_process()
+{
+	if(sio_stat.internal_clock) { four_player.current_state = FOUR_PLAYER_INACTIVE; }
+	else { four_player.current_state = FOUR_PLAYER_PING; }
+
+	switch(four_player.current_state)
+	{
+		case FOUR_PLAYER_INACTIVE: return;
+
+		//Handle ping
+		case FOUR_PLAYER_PING:
+
+			//Update link status
+			if((four_player.ping_count == 1) || (four_player.ping_count == 2))
+			{
+				if(sio_stat.transfer_byte == 0x88) { four_player.status |= (1 << (four_player.id + 3)); }
+				else { four_player.status &= ~(1 << (four_player.id + 3)); }
+			}
+
+			//Return magic byte for 1st byte
+			if(four_player.ping_count == 0) { mem->memory_map[REG_SB] = 0xFE; }
+
+			//Otherwise, return status byte
+			else { mem->memory_map[REG_SB] = four_player.status; }
+
+			mem->memory_map[IF_FLAG] |= 0x08;
+
+			four_player.ping_count++;
+			four_player.ping_count &= 0x3;
+
+			std::cout<<"SB -> 0x" << (u16)mem->memory_map[REG_SB] << "\n";
+
+			break;
+	}
 }

@@ -23,6 +23,7 @@ enum sio_types
 	GB_MOBILE_ADAPTER,
 	GB_BARDIGUN_SCANNER,
 	GB_BARCODE_BOY,
+	GB_FOUR_PLAYER_ADAPTER,
 };
 
 //Infrared device-type enumeration
@@ -66,6 +67,12 @@ enum barcode_boy_state
 	BARCODE_BOY_INACTIVE,
 	BARCODE_BOY_ACTIVE,
 	BARCODE_BOY_SEND_BARCODE,
+};
+
+enum four_player_state
+{
+	FOUR_PLAYER_INACTIVE,
+	FOUR_PLAYER_PING,
 };
 
 enum full_changer_state

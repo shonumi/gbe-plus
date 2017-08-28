@@ -122,6 +122,15 @@ class DMG_SIO
 		full_changer_state current_state;
 	} full_changer;
 
+	//4 Player Adapter
+	struct gb_four_player_adapter
+	{
+		u8 ping_count;
+		u8 id;
+		u8 status;
+		four_player_state current_state;
+	} four_player;
+
 	DMG_SIO();
 	~DMG_SIO();
 
@@ -151,6 +160,8 @@ class DMG_SIO
 
 	void full_changer_process();
 	bool full_changer_load_db(std::string filename);
+
+	void four_player_process();
 };
 
 #endif // GB_SIO

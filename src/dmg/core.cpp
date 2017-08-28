@@ -395,6 +395,11 @@ void DMG_core::run_core()
 								}
 									
 								break;
+
+							//Process 4 Player communications
+							case GB_FOUR_PLAYER_ADAPTER:
+								core_cpu.controllers.serial_io.four_player_process();
+								break;
 						}
 
 						switch(core_cpu.controllers.serial_io.sio_stat.ir_type)

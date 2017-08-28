@@ -1164,18 +1164,6 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		value &= 0x83;
 		sio_stat->internal_clock = (value & 0x1) ? true : false;
 
-		//Start serial transfer
-		if(value & 0x80)
-		{
-			if(sio_stat->internal_clock)
-			{
-				sio_stat->active_transfer = true;
-				sio_stat->shifts_left = 8;
-				sio_stat->shift_counter = 0;
-				sio_stat->transfer_byte = memory_map[REG_SB];
-			}
-		}
-
 		//DMG uses 8192Hz clock only (512 cycles)
 		if(config::gb_type != 2) { sio_stat->shift_clock = 512; }
 
@@ -1193,6 +1181,28 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 
 			//524288Hz - Bit 1 set, Double Speed
 			else { sio_stat->shift_clock = 8; }
+		}
+
+		//Start serial transfer
+		if(value & 0x80)
+		{
+			if(sio_stat->internal_clock)
+			{
+				sio_stat->active_transfer = true;
+				sio_stat->shifts_left = 8;
+				sio_stat->shift_counter = 0;
+				sio_stat->transfer_byte = memory_map[REG_SB];
+			}
+
+			//Special handling for 4 Player Adapter
+			else if((!sio_stat->internal_clock) && (sio_stat->sio_type == 6))
+			{
+				sio_stat->active_transfer = true;
+				sio_stat->shifts_left = 8;
+				sio_stat->shift_counter = 0;
+				sio_stat->transfer_byte = memory_map[REG_SB];
+				sio_stat->shift_clock = 4096;
+			}	
 		}
 
 		memory_map[address] = value;
