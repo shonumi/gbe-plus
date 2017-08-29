@@ -396,6 +396,40 @@ bool DMG_SIO::send_byte()
 	return true;
 }
 
+/****** Tranfers status bytes via 4 Player Adapter ******/
+bool DMG_SIO::four_player_send_byte()
+{
+	#ifdef GBE_NETPLAY
+
+	u8 temp_buffer[2];
+	temp_buffer[0] = four_player.status;
+	temp_buffer[1] = 0xFE;
+
+	if(SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2) < 2)
+	{
+		std::cout<<"SIO::Error - Host failed to send data to client\n";
+		sio_stat.connected = false;
+		server.connected = false;
+		sender.connected = false;
+		return false;
+	}
+
+	//Wait for other instance of GBE+ to send an acknowledgement
+	//This is blocking, will effectively pause GBE+ until it gets something
+	if(SDLNet_TCP_Recv(server.remote_socket, temp_buffer, 2) > 0)
+	{
+		u8 id = (temp_buffer[0] & 0xF);
+		u8 status_bit = temp_buffer[0] & (1 << (id + 3));
+				
+		four_player.status &= ~(1 << (id + 3));
+		four_player.status |= status_bit;
+	}
+
+	#endif
+
+	return true;
+}
+
 /****** Tranfers one bit to another system's IR port ******/
 bool DMG_SIO::send_ir_signal()
 {
@@ -450,6 +484,26 @@ bool DMG_SIO::receive_byte()
 			{
 				sio_stat.sync = false;
 				sio_stat.sync_counter = 0;
+				return true;
+			}
+
+			//Receive 4 Player status update
+			else if(temp_buffer[1] == 0xFE)
+			{
+				u8 id = (temp_buffer[0] & 0xF);
+				u8 status_bit = temp_buffer[0] & (1 << (id + 3));
+				
+				four_player.status &= ~(1 << (id + 3));
+				four_player.status |= status_bit;
+
+				temp_buffer[0] = four_player.status;
+				temp_buffer[1] = 0x1;
+
+				std::cout<<"ID -> 0x" << (u16)status_bit << "\n";
+
+				//Send acknowlegdement
+				SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2);
+
 				return true;
 			}
 
@@ -582,7 +636,14 @@ void DMG_SIO::process_network_communication()
 			sio_stat.connected = true;
 
 			//Set the emulated SIO device type
-			sio_stat.sio_type = GB_LINK;
+			if(sio_stat.sio_type != GB_FOUR_PLAYER_ADAPTER) { sio_stat.sio_type = GB_LINK; }
+
+			//For 4 Player adapter, set ID based on port number
+			else
+			{
+				four_player.id = (sender.port > server.port) ? 1 : 2;
+				four_player.status = four_player.id;
+			}
 		}
 	}
 
@@ -2025,6 +2086,8 @@ void DMG_SIO::four_player_process()
 			{
 				if(sio_stat.transfer_byte == 0x88) { four_player.status |= (1 << (four_player.id + 3)); }
 				else { four_player.status &= ~(1 << (four_player.id + 3)); }
+
+				if(sio_stat.connected) { four_player_send_byte(); }
 			}
 
 			//Return magic byte for 1st byte

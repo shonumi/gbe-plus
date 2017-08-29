@@ -138,6 +138,7 @@ class DMG_SIO
 	void reset();
 
 	bool send_byte();
+	bool four_player_send_byte();
 	bool send_ir_signal();
 	bool receive_byte();
 	bool request_sync();
