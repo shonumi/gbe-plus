@@ -74,6 +74,10 @@ DMG_SIO::~DMG_SIO()
 
 	if(sender.host_socket != NULL)
 	{
+		//Update 4 Player status
+		four_player.status &= ~0xF0;
+		four_player_send_byte();
+
 		//Send disconnect byte to another system first
 		u8 temp_buffer[2];
 		temp_buffer[0] = 0;
@@ -303,12 +307,6 @@ void DMG_SIO::reset()
 	barcode_boy.send_data = false;
 	if(config::sio_device == 5) { barcode_boy_load_barcode(config::external_card_file); }
 
-	//4 Player Adapter
-	four_player.current_state = FOUR_PLAYER_INACTIVE;
-	four_player.ping_count = 0;
-	four_player.id = 1;
-	four_player.status = 1;
-
 	//Full Changer
 	full_changer.data.clear();
 	full_changer.delay_counter = 0;
@@ -338,6 +336,10 @@ void DMG_SIO::reset()
 
 		if(sender.host_socket != NULL)
 		{
+			//Update 4 Player status
+			four_player.status &= ~0xF0;
+			four_player_send_byte();
+
 			//Send disconnect byte to another system first
 			u8 temp_buffer[2];
 			temp_buffer[0] = 0;
@@ -361,6 +363,12 @@ void DMG_SIO::reset()
 	sender.port = config::netplay_client_port;
 
 	#endif
+
+	//4 Player Adapter
+	four_player.current_state = FOUR_PLAYER_INACTIVE;
+	four_player.ping_count = 0;
+	four_player.id = 1;
+	four_player.status = 1;
 }
 
 /****** Tranfers one byte to another system ******/
@@ -498,8 +506,6 @@ bool DMG_SIO::receive_byte()
 
 				temp_buffer[0] = four_player.status;
 				temp_buffer[1] = 0x1;
-
-				std::cout<<"ID -> 0x" << (u16)status_bit << "\n";
 
 				//Send acknowlegdement
 				SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2);
@@ -2100,8 +2106,6 @@ void DMG_SIO::four_player_process()
 
 			four_player.ping_count++;
 			four_player.ping_count &= 0x3;
-
-			std::cout<<"SB -> 0x" << (u16)mem->memory_map[REG_SB] << "\n";
 
 			break;
 	}
