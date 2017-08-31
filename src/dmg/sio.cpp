@@ -2078,7 +2078,22 @@ bool DMG_SIO::barcode_boy_load_barcode(std::string filename)
 void DMG_SIO::four_player_process()
 {
 	if(sio_stat.internal_clock) { four_player.current_state = FOUR_PLAYER_INACTIVE; }
-	else { four_player.current_state = FOUR_PLAYER_PING; }
+	
+	else
+	{
+		//Start preparation for real Link Cable communications
+		if(sio_stat.transfer_byte == 0xAA)
+		{
+			if(four_player.current_state != FOUR_PLAYER_PREP_NETWORK) { four_player.ping_count = 0; }
+			four_player.current_state = FOUR_PLAYER_PREP_NETWORK;
+		}
+
+		//Start Link Cable ping
+		else if((four_player.current_state != FOUR_PLAYER_PREP_NETWORK) && (four_player.current_state != FOUR_PLAYER_PROCESS_NETWORK))
+		{
+			four_player.current_state = FOUR_PLAYER_PING;
+		}
+	}
 
 	switch(four_player.current_state)
 	{
@@ -2106,6 +2121,16 @@ void DMG_SIO::four_player_process()
 
 			four_player.ping_count++;
 			four_player.ping_count &= 0x3;
+
+			break;
+
+		//Prepare for real Link Cable communications
+		case FOUR_PLAYER_PREP_NETWORK:
+			four_player.ping_count++;
+			if(four_player.ping_count == 4) { four_player.current_state = FOUR_PLAYER_PROCESS_NETWORK; }
+
+			mem->memory_map[REG_SB] = 0xCC;
+			mem->memory_map[IF_FLAG] |= 0x08;
 
 			break;
 	}
