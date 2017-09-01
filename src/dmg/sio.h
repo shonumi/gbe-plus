@@ -11,6 +11,8 @@
 // Emulates GBC IR port (not exactly SIO, but the RP register is related to pin 4 of the link port)
 // Emulates the GB Printer
 
+#include <queue>
+
 #ifndef GB_SIO
 #define GB_SIO
 
@@ -129,6 +131,7 @@ class DMG_SIO
 		u8 id;
 		u8 status;
 		four_player_state current_state;
+		std::queue <u8> data;
 	} four_player;
 
 	DMG_SIO();
@@ -139,6 +142,8 @@ class DMG_SIO
 
 	bool send_byte();
 	bool four_player_send_byte();
+	void four_player_broadcast(u8 data_one, u8 data_two);
+	u8 four_player_request(u8 data_one, u8 data_two);
 	bool send_ir_signal();
 	bool receive_byte();
 	bool request_sync();

@@ -369,6 +369,8 @@ void DMG_SIO::reset()
 	four_player.ping_count = 0;
 	four_player.id = 1;
 	four_player.status = 1;
+
+	while(!four_player.data.empty()) { four_player.data.pop(); }
 }
 
 /****** Tranfers one byte to another system ******/
@@ -436,6 +438,62 @@ bool DMG_SIO::four_player_send_byte()
 	#endif
 
 	return true;
+}
+
+/****** Broadcasts data to all connected Game Boys when using the 4 Player Adapter ******/
+void DMG_SIO::four_player_broadcast(u8 data_one, u8 data_two)
+{
+	#ifdef GBE_NETPLAY
+
+	u8 temp_buffer[2];
+	temp_buffer[0] = data_one;
+	temp_buffer[1] = data_two;
+
+	if(SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2) < 2)
+	{
+		std::cout<<"SIO::Error - Host failed to send data to client\n";
+		sio_stat.connected = false;
+		server.connected = false;
+		sender.connected = false;
+		return;
+	}
+
+	//Wait for other instance of GBE+ to send an acknowledgement
+	//This is blocking, will effectively pause GBE+ until it gets something
+	SDLNet_TCP_Recv(server.remote_socket, temp_buffer, 2);
+
+	#endif
+
+	return;
+}
+
+/****** Requests data from a specific Game Boys when using the 4 Player Adapter ******/
+u8 DMG_SIO::four_player_request(u8 data_one, u8 data_two)
+{
+	#ifdef GBE_NETPLAY
+
+	u8 temp_buffer[2];
+	temp_buffer[0] = data_one;
+	temp_buffer[1] = data_two;
+
+	if(SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2) < 2)
+	{
+		std::cout<<"SIO::Error - Host failed to send data to client\n";
+		sio_stat.connected = false;
+		server.connected = false;
+		sender.connected = false;
+		return false;
+	}
+
+	//Wait for other instance of GBE+ to send an acknowledgement
+	//This is blocking, will effectively pause GBE+ until it gets something
+	SDLNet_TCP_Recv(server.remote_socket, temp_buffer, 2);
+
+	return temp_buffer[0];
+
+	#endif
+
+	return 0;
 }
 
 /****** Tranfers one bit to another system's IR port ******/
@@ -511,6 +569,47 @@ bool DMG_SIO::receive_byte()
 				SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2);
 
 				return true;
+			}
+
+			//Prepare 4 Player network
+			else if(temp_buffer[1] == 0xFD)
+			{
+				//Switch to real 4 player communication after 4th byte sent
+				if(temp_buffer[1] == 4)
+				{
+					four_player.current_state = FOUR_PLAYER_PROCESS_NETWORK;
+					four_player.ping_count = 0;
+				}
+
+				mem->memory_map[REG_SB] = 0xCC;
+				mem->memory_map[IF_FLAG] |= 0x08;
+
+				temp_buffer[1] = 0x1;
+
+				//Send acknowlegdement
+				SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2);
+			}
+
+			//Receive byte broadcast through 4-player network
+			else if(temp_buffer[1] == 0xFC)
+			{
+				mem->memory_map[REG_SB] = temp_buffer[0];
+				mem->memory_map[IF_FLAG] |= 0x08;
+
+				temp_buffer[1] = 0x1;
+
+				//Send acknowlegdement
+				SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2);
+			}
+
+			//Respond for request for transfer byte
+			else if(temp_buffer[1] == 0xFB)
+			{
+				temp_buffer[0] = sio_stat.transfer_byte;
+				temp_buffer[1] = 0x1;
+
+				//Send acknowlegdement
+				SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2);
 			}
 
 			//Disconnect netplay
@@ -2082,7 +2181,7 @@ void DMG_SIO::four_player_process()
 	else
 	{
 		//Start preparation for real Link Cable communications
-		if(sio_stat.transfer_byte == 0xAA)
+		if((sio_stat.transfer_byte == 0xAA) && (four_player.id == 1))
 		{
 			if(four_player.current_state != FOUR_PLAYER_PREP_NETWORK) { four_player.ping_count = 0; }
 			four_player.current_state = FOUR_PLAYER_PREP_NETWORK;
@@ -2127,11 +2226,110 @@ void DMG_SIO::four_player_process()
 		//Prepare for real Link Cable communications
 		case FOUR_PLAYER_PREP_NETWORK:
 			four_player.ping_count++;
-			if(four_player.ping_count == 4) { four_player.current_state = FOUR_PLAYER_PROCESS_NETWORK; }
 
 			mem->memory_map[REG_SB] = 0xCC;
 			mem->memory_map[IF_FLAG] |= 0x08;
 
+			#ifdef GBE_NETPLAY
+			{
+				//Broadcast data to other Game Boys
+				u8 temp_buffer[2];
+				temp_buffer[0] = four_player.ping_count;
+				temp_buffer[1] = 0xFD;
+		
+				if(SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2) < 2)
+				{
+					std::cout<<"SIO::Error - Host failed to send data to client\n";
+					sio_stat.connected = false;
+					server.connected = false;
+					sender.connected = false;
+					return;
+				}
+
+				SDLNet_TCP_Recv(server.remote_socket, temp_buffer, 2);
+			}
+			#endif
+
+			if(four_player.ping_count == 4)
+			{
+				four_player.ping_count = 0;
+				four_player.current_state = FOUR_PLAYER_PROCESS_NETWORK;
+
+				//Set up data buffer
+				while(!four_player.data.empty()) { four_player.data.pop(); }
+
+				//Data in initial buffer is technically garbage. Set to zero for now.
+				for(u32 x = 0; x < 16; x++) { four_player.data.push(0x00); }
+			}
+
 			break;
+
+		//Process Link Cable communications
+		case FOUR_PLAYER_PROCESS_NETWORK:
+			if(four_player.id != 1) { return; }
+
+			switch(four_player.ping_count / 4)
+			{
+				//Player 1 - Output old data - Queue new data
+				case 0x0:
+					{
+						//Request new data from Player 1
+						u8 next_data = sio_stat.transfer_byte;
+
+						//Broadcast old data to other Game Boys
+						four_player_broadcast(four_player.data.front(), 0xFC);
+
+						mem->memory_map[REG_SB] = four_player.data.front();
+						mem->memory_map[IF_FLAG] |= 0x08;
+
+						//Queue new data
+						four_player.data.pop();
+						four_player.data.push(sio_stat.transfer_byte);
+					}
+
+					break;
+
+				//Player 2 - Output old data - Queue new data
+				case 0x1:
+					{
+						//Request new data from Player 2
+						u8 next_data = four_player_request(2, 0xFB);
+
+						//Broadcast old data to other Game Boys
+						four_player_broadcast(four_player.data.front(), 0xFC);
+
+						mem->memory_map[REG_SB] = four_player.data.front();
+						mem->memory_map[IF_FLAG] |= 0x08;
+
+						//Queue new data
+						four_player.data.pop();
+						four_player.data.push(next_data);
+					}
+
+					break;
+
+				//Player 3-4 - TODO
+				case 0x2:
+				case 0x3:
+					{
+						//Request new data
+						u8 next_data = 0x00;
+
+						//Broadcast old data to other Game Boys
+						four_player_broadcast(four_player.data.front(), 0xFC);
+
+						mem->memory_map[REG_SB] = four_player.data.front();
+						mem->memory_map[IF_FLAG] |= 0x08;
+
+						//Queue new data
+						four_player.data.pop();
+						four_player.data.push(next_data);
+					}
+
+					break;
+			}
+
+			four_player.ping_count++;
+			four_player.ping_count &= 0xF;
 	}
 }
