@@ -575,7 +575,7 @@ bool DMG_SIO::receive_byte()
 			else if(temp_buffer[1] == 0xFD)
 			{
 				//Switch to real 4 player communication after 4th byte sent
-				if(temp_buffer[1] == 4)
+				if(temp_buffer[0] == 4)
 				{
 					four_player.current_state = FOUR_PLAYER_PROCESS_NETWORK;
 					four_player.ping_count = 0;
@@ -588,6 +588,8 @@ bool DMG_SIO::receive_byte()
 
 				//Send acknowlegdement
 				SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2);
+
+				return true;
 			}
 
 			//Receive byte broadcast through 4-player network
@@ -600,6 +602,8 @@ bool DMG_SIO::receive_byte()
 
 				//Send acknowlegdement
 				SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2);
+
+				return true;
 			}
 
 			//Respond for request for transfer byte
@@ -610,6 +614,8 @@ bool DMG_SIO::receive_byte()
 
 				//Send acknowlegdement
 				SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2);
+
+				return true;
 			}
 
 			//Disconnect netplay
@@ -2230,25 +2236,7 @@ void DMG_SIO::four_player_process()
 			mem->memory_map[REG_SB] = 0xCC;
 			mem->memory_map[IF_FLAG] |= 0x08;
 
-			#ifdef GBE_NETPLAY
-			{
-				//Broadcast data to other Game Boys
-				u8 temp_buffer[2];
-				temp_buffer[0] = four_player.ping_count;
-				temp_buffer[1] = 0xFD;
-		
-				if(SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2) < 2)
-				{
-					std::cout<<"SIO::Error - Host failed to send data to client\n";
-					sio_stat.connected = false;
-					server.connected = false;
-					sender.connected = false;
-					return;
-				}
-
-				SDLNet_TCP_Recv(server.remote_socket, temp_buffer, 2);
-			}
-			#endif
+			four_player_broadcast(four_player.ping_count, 0xFD);
 
 			if(four_player.ping_count == 4)
 			{
