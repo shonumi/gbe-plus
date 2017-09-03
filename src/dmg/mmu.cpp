@@ -1195,7 +1195,7 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 			}
 
 			//Special handling for 4 Player Adapter
-			else if((!sio_stat->internal_clock) && (sio_stat->sio_type == 6))
+			else if((!sio_stat->internal_clock) && (sio_stat->sio_type == 6) && (sio_stat->network_id & 0x80))
 			{
 				sio_stat->active_transfer = true;
 				sio_stat->shifts_left = 8;

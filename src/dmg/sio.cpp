@@ -201,6 +201,7 @@ void DMG_SIO::reset()
 	sio_stat.sync_clock = config::netplay_sync_threshold;
 	sio_stat.sync = false;
 	sio_stat.transfer_byte = 0;
+	sio_stat.network_id = 0x80;
 	
 	switch(config::sio_device)
 	{
@@ -367,6 +368,7 @@ void DMG_SIO::reset()
 	//4 Player Adapter
 	four_player.current_state = FOUR_PLAYER_INACTIVE;
 	four_player.ping_count = 0;
+	four_player.ping_finish = false;
 	four_player.id = 1;
 	four_player.status = 1;
 
@@ -574,6 +576,13 @@ bool DMG_SIO::receive_byte()
 			//Prepare 4 Player network
 			else if(temp_buffer[1] == 0xFD)
 			{
+				four_player.current_state = FOUR_PLAYER_PREP_NETWORK;
+
+				sio_stat.network_id &= 0x80;
+				sio_stat.shifts_left = 0;
+				sio_stat.shift_counter = 0;
+				sio_stat.shift_clock = 0;
+
 				//Switch to real 4 player communication after 4th byte sent
 				if(temp_buffer[0] == 4)
 				{
@@ -610,6 +619,18 @@ bool DMG_SIO::receive_byte()
 			else if(temp_buffer[1] == 0xFB)
 			{
 				temp_buffer[0] = sio_stat.transfer_byte;
+				temp_buffer[1] = 0x1;
+
+				//Send acknowlegdement
+				SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2);
+
+				return true;
+			}
+
+			//Respond for request for ping finish status
+			else if(temp_buffer[1] == 0xFA)
+			{
+				temp_buffer[0] = (four_player.ping_finish) ? 1 : 0;
 				temp_buffer[1] = 0x1;
 
 				//Send acknowlegdement
@@ -754,6 +775,7 @@ void DMG_SIO::process_network_communication()
 			{
 				four_player.id = (sender.port > server.port) ? 1 : 2;
 				four_player.status = four_player.id;
+				sio_stat.network_id |= four_player.id;
 			}
 		}
 	}
@@ -2191,6 +2213,12 @@ void DMG_SIO::four_player_process()
 		{
 			if(four_player.current_state != FOUR_PLAYER_PREP_NETWORK) { four_player.ping_count = 0; }
 			four_player.current_state = FOUR_PLAYER_PREP_NETWORK;
+
+			//Wait for other Game Boys to finish their pings
+			while(four_player_request(0x1, 0xFA) != 1)
+			{
+				receive_byte();
+			}
 		}
 
 		//Start Link Cable ping
@@ -2226,6 +2254,7 @@ void DMG_SIO::four_player_process()
 
 			four_player.ping_count++;
 			four_player.ping_count &= 0x3;
+			four_player.ping_finish = (four_player.ping_count == 0) ? true : false;
 
 			break;
 

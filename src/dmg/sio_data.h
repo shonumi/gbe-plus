@@ -92,6 +92,7 @@ struct dmg_sio_data
 	bool sync;
 	u8 shifts_left;
 	u8 transfer_byte;
+	u8 network_id;
 	u32 shift_counter;
 	u32 shift_clock;
 	u32 sync_counter;
