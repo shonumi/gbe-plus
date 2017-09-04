@@ -90,9 +90,11 @@ struct dmg_sio_data
 	bool double_speed;
 	bool internal_clock;
 	bool sync;
+	bool ping_finish;
 	u8 shifts_left;
 	u8 transfer_byte;
 	u8 network_id;
+	u8 ping_count;
 	u32 shift_counter;
 	u32 shift_clock;
 	u32 sync_counter;

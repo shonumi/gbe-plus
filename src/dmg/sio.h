@@ -127,8 +127,6 @@ class DMG_SIO
 	//4 Player Adapter
 	struct gb_four_player_adapter
 	{
-		u8 ping_count;
-		bool ping_finish;
 		u8 id;
 		u8 status;
 		four_player_state current_state;

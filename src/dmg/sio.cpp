@@ -202,6 +202,8 @@ void DMG_SIO::reset()
 	sio_stat.sync = false;
 	sio_stat.transfer_byte = 0;
 	sio_stat.network_id = 0x80;
+	sio_stat.ping_count = 0;
+	sio_stat.ping_finish = false;
 	
 	switch(config::sio_device)
 	{
@@ -367,8 +369,6 @@ void DMG_SIO::reset()
 
 	//4 Player Adapter
 	four_player.current_state = FOUR_PLAYER_INACTIVE;
-	four_player.ping_count = 0;
-	four_player.ping_finish = false;
 	four_player.id = 1;
 	four_player.status = 1;
 
@@ -587,7 +587,7 @@ bool DMG_SIO::receive_byte()
 				if(temp_buffer[0] == 4)
 				{
 					four_player.current_state = FOUR_PLAYER_PROCESS_NETWORK;
-					four_player.ping_count = 0;
+					sio_stat.ping_count = 0;
 				}
 
 				mem->memory_map[REG_SB] = 0xCC;
@@ -630,8 +630,10 @@ bool DMG_SIO::receive_byte()
 			//Respond for request for ping finish status
 			else if(temp_buffer[1] == 0xFA)
 			{
-				temp_buffer[0] = (four_player.ping_finish) ? 1 : 0;
+				temp_buffer[0] = (sio_stat.ping_finish) ? 1 : 0;
 				temp_buffer[1] = 0x1;
+
+				if(sio_stat.sync) { temp_buffer[0] |= 0x80; }
 
 				//Send acknowlegdement
 				SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2);
@@ -639,6 +641,18 @@ bool DMG_SIO::receive_byte()
 				return true;
 			}
 
+			//Forcibly clears hard sync status
+			else if(temp_buffer[1] == 0xF9)
+			{
+				sio_stat.sync = false;
+				temp_buffer[1] = 0x1;
+
+				//Send acknowlegdement
+				SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2);
+
+				return true;
+			}
+			
 			//Disconnect netplay
 			else if(temp_buffer[1] == 0x80)
 			{
@@ -2211,14 +2225,22 @@ void DMG_SIO::four_player_process()
 		//Start preparation for real Link Cable communications
 		if((sio_stat.transfer_byte == 0xAA) && (four_player.id == 1))
 		{
-			if(four_player.current_state != FOUR_PLAYER_PREP_NETWORK) { four_player.ping_count = 0; }
-			four_player.current_state = FOUR_PLAYER_PREP_NETWORK;
-
-			//Wait for other Game Boys to finish their pings
-			while(four_player_request(0x1, 0xFA) != 1)
+			if(four_player.current_state != FOUR_PLAYER_PREP_NETWORK)
 			{
-				receive_byte();
+				sio_stat.ping_count = 0;
+
+				u8 ping_status = four_player_request(0x1, 0xFA);
+
+				//Wait for other Game Boys to finish their pings
+				while((ping_status & 0x1) == 0)
+				{
+					receive_byte();
+					ping_status = four_player_request(0x1, 0xFA);
+					if(ping_status & 0x80) { four_player_broadcast(0x1, 0xF9); }
+				}
 			}
+
+			four_player.current_state = FOUR_PLAYER_PREP_NETWORK;
 		}
 
 		//Start Link Cable ping
@@ -2236,7 +2258,7 @@ void DMG_SIO::four_player_process()
 		case FOUR_PLAYER_PING:
 
 			//Update link status
-			if((four_player.ping_count == 1) || (four_player.ping_count == 2))
+			if((sio_stat.ping_count == 1) || (sio_stat.ping_count == 2))
 			{
 				if(sio_stat.transfer_byte == 0x88) { four_player.status |= (1 << (four_player.id + 3)); }
 				else { four_player.status &= ~(1 << (four_player.id + 3)); }
@@ -2245,31 +2267,32 @@ void DMG_SIO::four_player_process()
 			}
 
 			//Return magic byte for 1st byte
-			if(four_player.ping_count == 0) { mem->memory_map[REG_SB] = 0xFE; }
+			if(sio_stat.ping_count == 0) { mem->memory_map[REG_SB] = 0xFE; }
 
 			//Otherwise, return status byte
 			else { mem->memory_map[REG_SB] = four_player.status; }
 
 			mem->memory_map[IF_FLAG] |= 0x08;
 
-			four_player.ping_count++;
-			four_player.ping_count &= 0x3;
-			four_player.ping_finish = (four_player.ping_count == 0) ? true : false;
+			sio_stat.ping_count++;
+			sio_stat.ping_count &= 0x3;
 
 			break;
 
 		//Prepare for real Link Cable communications
 		case FOUR_PLAYER_PREP_NETWORK:
-			four_player.ping_count++;
+			if(four_player.id != 1) { return; }
+
+			sio_stat.ping_count++;
 
 			mem->memory_map[REG_SB] = 0xCC;
 			mem->memory_map[IF_FLAG] |= 0x08;
 
-			four_player_broadcast(four_player.ping_count, 0xFD);
+			four_player_broadcast(sio_stat.ping_count, 0xFD);
 
-			if(four_player.ping_count == 4)
+			if(sio_stat.ping_count == 4)
 			{
-				four_player.ping_count = 0;
+				sio_stat.ping_count = 0;
 				four_player.current_state = FOUR_PLAYER_PROCESS_NETWORK;
 
 				//Set up data buffer
@@ -2285,7 +2308,7 @@ void DMG_SIO::four_player_process()
 		case FOUR_PLAYER_PROCESS_NETWORK:
 			if(four_player.id != 1) { return; }
 
-			switch(four_player.ping_count / 4)
+			switch(sio_stat.ping_count / 4)
 			{
 				//Player 1 - Output old data - Queue new data
 				case 0x0:
@@ -2346,7 +2369,9 @@ void DMG_SIO::four_player_process()
 					break;
 			}
 
-			four_player.ping_count++;
-			four_player.ping_count &= 0xF;
+			sio_stat.ping_count++;
+			sio_stat.ping_count &= 0xF;
+
+			break;
 	}
 }
