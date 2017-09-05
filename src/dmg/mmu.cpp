@@ -932,14 +932,7 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	}
 
 	//Current scanline
-	else if(address == REG_LY) 
-	{ 
-		memory_map[REG_LY] = 0;
-		lcd_stat->current_scanline = 0;
-		lcd_stat->lcd_mode = 2;
-		lcd_stat->lcd_clock = 0;
-		lcd_stat->vblank_clock = 0;
-	}
+	else if(address == REG_LY) { return; }
 
 	//LYC
 	else if(address == REG_LYC)
