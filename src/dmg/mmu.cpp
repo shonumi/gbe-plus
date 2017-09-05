@@ -1204,6 +1204,11 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 				sio_stat->ping_finish = (sio_stat->ping_count == 0) ? true : false;
 			}
 
+			else if((!sio_stat->internal_clock) && (sio_stat->sio_type == 6) && (sio_stat->network_id & 0x40))
+			{
+				sio_stat->send_data = true;
+			}
+
 			sio_stat->transfer_byte = memory_map[REG_SB];
 		}
 

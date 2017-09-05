@@ -204,6 +204,7 @@ void DMG_SIO::reset()
 	sio_stat.network_id = 0x80;
 	sio_stat.ping_count = 0;
 	sio_stat.ping_finish = false;
+	sio_stat.send_data = false;
 	
 	switch(config::sio_device)
 	{
@@ -371,8 +372,6 @@ void DMG_SIO::reset()
 	four_player.current_state = FOUR_PLAYER_INACTIVE;
 	four_player.id = 1;
 	four_player.status = 1;
-
-	while(!four_player.data.empty()) { four_player.data.pop(); }
 }
 
 /****** Tranfers one byte to another system ******/
@@ -578,7 +577,7 @@ bool DMG_SIO::receive_byte()
 			{
 				four_player.current_state = FOUR_PLAYER_PREP_NETWORK;
 
-				sio_stat.network_id &= 0x80;
+				sio_stat.network_id &= ~0x80;
 				sio_stat.shifts_left = 0;
 				sio_stat.shift_counter = 0;
 				sio_stat.shift_clock = 0;
@@ -588,6 +587,8 @@ bool DMG_SIO::receive_byte()
 				{
 					four_player.current_state = FOUR_PLAYER_PROCESS_NETWORK;
 					sio_stat.ping_count = 0;
+					sio_stat.network_id |= 0x40;
+					sio_stat.send_data = false;
 				}
 
 				mem->memory_map[REG_SB] = 0xCC;
@@ -645,6 +646,24 @@ bool DMG_SIO::receive_byte()
 			else if(temp_buffer[1] == 0xF9)
 			{
 				sio_stat.sync = false;
+				temp_buffer[1] = 0x1;
+
+				//Send acknowlegdement
+				SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2);
+
+				return true;
+			}
+
+			//Receive byte from slave Game Boys for 4 player
+			else if(temp_buffer[1] == 0xF0)
+			{
+				four_player.wait_flags = 0;
+
+				if(sio_stat.ping_count < 4)
+				{
+					four_player.incoming[sio_stat.ping_count % 4] = temp_buffer[0];
+				}
+			
 				temp_buffer[1] = 0x1;
 
 				//Send acknowlegdement
@@ -2294,12 +2313,10 @@ void DMG_SIO::four_player_process()
 			{
 				sio_stat.ping_count = 0;
 				four_player.current_state = FOUR_PLAYER_PROCESS_NETWORK;
-
-				//Set up data buffer
-				while(!four_player.data.empty()) { four_player.data.pop(); }
+				four_player.wait_flags |= 0x2;
 
 				//Data in initial buffer is technically garbage. Set to zero for now.
-				for(u32 x = 0; x < 16; x++) { four_player.data.push(0x00); }
+				for(u32 x = 0; x < 16; x++) { four_player.data[x] = 0; }
 			}
 
 			break;
@@ -2308,66 +2325,44 @@ void DMG_SIO::four_player_process()
 		case FOUR_PLAYER_PROCESS_NETWORK:
 			if(four_player.id != 1) { return; }
 
+			//Wait for byte from Player 2
+			while(four_player.wait_flags)
+			{
+				receive_byte();
+				if(four_player_request(0x1, 0xFA) & 0x80) { four_player_broadcast(0x1, 0xF9); }
+			}
+
+			four_player.wait_flags |= 0x2;
+				
+			//Broadcast old data to other Game Boys
+			four_player_broadcast(four_player.data[sio_stat.ping_count], 0xFC);
+
+			mem->memory_map[REG_SB] = four_player.data[sio_stat.ping_count];
+			mem->memory_map[IF_FLAG] |= 0x08;
+
+			//Buffer new data
 			switch(sio_stat.ping_count / 4)
 			{
-				//Player 1 - Output old data - Queue new data
-				case 0x0:
-					{
-						//Request new data from Player 1
-						u8 next_data = sio_stat.transfer_byte;
-
-						//Broadcast old data to other Game Boys
-						four_player_broadcast(four_player.data.front(), 0xFC);
-
-						mem->memory_map[REG_SB] = four_player.data.front();
-						mem->memory_map[IF_FLAG] |= 0x08;
-
-						//Queue new data
-						four_player.data.pop();
-						four_player.data.push(sio_stat.transfer_byte);
-					}
-
+				//Player 1
+				case 0x00:
+					four_player.data[sio_stat.ping_count] = sio_stat.transfer_byte;
 					break;
 
-				//Player 2 - Output old data - Queue new data
-				case 0x1:
-					{
-						//Request new data from Player 2
-						u8 next_data = four_player_request(2, 0xFB);
-
-						//Broadcast old data to other Game Boys
-						four_player_broadcast(four_player.data.front(), 0xFC);
-
-						mem->memory_map[REG_SB] = four_player.data.front();
-						mem->memory_map[IF_FLAG] |= 0x08;
-
-						//Queue new data
-						four_player.data.pop();
-						four_player.data.push(next_data);
-					}
-
+				//Player 2
+				case 0x01:
+					four_player.data[sio_stat.ping_count] = four_player.incoming[sio_stat.ping_count % 4];
 					break;
 
-				//Player 3-4 - TODO
-				case 0x2:
-				case 0x3:
-					{
-						//Request new data
-						u8 next_data = 0x00;
-
-						//Broadcast old data to other Game Boys
-						four_player_broadcast(four_player.data.front(), 0xFC);
-
-						mem->memory_map[REG_SB] = four_player.data.front();
-						mem->memory_map[IF_FLAG] |= 0x08;
-
-						//Queue new data
-						four_player.data.pop();
-						four_player.data.push(next_data);
-					}
-
+				//Player 3
+				case 0x02:
+					four_player.data[sio_stat.ping_count] = 0x00;
 					break;
-			}
+
+				//Player 4
+				case 0x03:
+					four_player.data[sio_stat.ping_count] = 0x00;
+					break;
+			}			
 
 			sio_stat.ping_count++;
 			sio_stat.ping_count &= 0xF;
