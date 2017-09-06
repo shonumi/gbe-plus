@@ -5,7 +5,6 @@ project(gbe_plus)
 add_definitions(-O3 -funroll-loops)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeTests)
-include(FindSDL2 REQUIRED)
 
 find_package(SDL2 REQUIRED)
 if (SDL2_FOUND)
