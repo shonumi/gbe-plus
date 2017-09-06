@@ -234,10 +234,10 @@ void DMG_core::run_core()
 				//Send IR signal for GBC games
 				if(core_mmu.ir_send) { core_cpu.controllers.serial_io.send_ir_signal(); }
 
-				//Send data for 4 player adapter
+				//Confirm SB write to Player 1 on 4-Player adapter
 				if(core_cpu.controllers.serial_io.sio_stat.send_data)
 				{
-					core_cpu.controllers.serial_io.four_player_broadcast(core_cpu.controllers.serial_io.sio_stat.transfer_byte, 0xF0);
+					core_cpu.controllers.serial_io.four_player_broadcast(0x2, 0xFE);
 					core_cpu.controllers.serial_io.sio_stat.send_data = false;
 				}
 

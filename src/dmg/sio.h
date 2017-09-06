@@ -169,6 +169,7 @@ class DMG_SIO
 	bool full_changer_load_db(std::string filename);
 
 	void four_player_process();
+	void four_player_update_status(u8 status);
 };
 
 #endif // GB_SIO
