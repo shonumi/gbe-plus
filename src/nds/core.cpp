@@ -14,6 +14,8 @@
 #include <ctime>
 #include <sstream>
 
+#include "common/util.h"
+
 #include "core.h"
 
 /****** Core Constructor ******/
@@ -45,6 +47,10 @@ NTR_core::NTR_core()
 	db_unit.debug_mode = false;
 	//db_unit.display_cycles = false;
 	db_unit.last_command = "n";
+
+	db_unit.breakpoints.clear();
+	db_unit.watchpoint_addr.clear();
+	db_unit.watchpoint_val.clear();
 
 	//Reset CPU sync
 	cpu_sync_cycles = 0.0;
@@ -644,6 +650,26 @@ void NTR_core::debug_step()
 
 	}
 
+	//In continue mode, if a watch point is triggered, try to stop on one
+	else if((db_unit.watchpoint_addr.size() > 0) && (db_unit.last_command == "c"))
+	{
+		for(int x = 0; x < db_unit.watchpoint_addr.size(); x++)
+		{
+			//When a watchpoint is triggered, display info, wait for next input command
+			if((core_mmu.read_u8(db_unit.watchpoint_addr[x]) == db_unit.watchpoint_val[x])
+			&& (core_mmu.read_u8(db_unit.watchpoint_addr[x]) != db_unit.watchpoint_old_val[x]))
+			{
+				std::cout<<"Watchpoint Triggered: 0x" << std::hex << db_unit.watchpoint_addr[x] << " -- Value: 0x" << (u16)db_unit.watchpoint_val[x] << "\n";
+	
+				debug_display();
+				debug_process_command();
+				printed = true;
+			}
+
+			db_unit.watchpoint_old_val[x] = core_mmu.read_u8(db_unit.watchpoint_addr[x]);
+		}
+	}
+
 	//When in next instruction mode, simply display info, wait for next input command
 	else if(db_unit.last_command == "n")
 	{
@@ -1091,6 +1117,58 @@ void NTR_core::debug_process_command()
 			}
 		}
 
+		//Break on memory change
+		else if((command.substr(0, 2) == "bc") && (command.substr(3, 2) == "0x"))
+		{
+			valid_command = true;
+			bool valid_value = false;
+			u32 mem_location = 0;
+			u32 mem_value = 0;
+			std::string hex_string = command.substr(5);
+
+			//Convert hex string into usable u32
+			valid_command = util::from_hex_str(hex_string, mem_location);
+
+			//Request valid input again
+			if(!valid_command)
+			{
+				std::cout<<"\nInvalid memory address : " << command << "\n";
+				std::cout<<": ";
+				std::getline(std::cin, command);
+			}
+
+			else
+			{
+				//Request value
+				while(!valid_value)
+				{
+					std::cout<<"\nWatch value: ";
+					std::getline(std::cin, command);
+				
+					valid_value = util::from_hex_str(command.substr(2), mem_value);
+				
+					if(!valid_value)
+					{
+						std::cout<<"\nInvalid value : " << command << "\n";
+					}
+
+					else if((valid_value) && (mem_value > 0xFF))
+					{
+						std::cout<<"\nValue is too large (greater than 0xFF) : 0x" << std::hex << mem_value;
+						valid_value = false;
+					}
+				}
+
+				std::cout<<"\n";
+
+				db_unit.last_command = "bc";
+				db_unit.watchpoint_addr.push_back(mem_location);
+				db_unit.watchpoint_val.push_back(mem_value);
+				db_unit.watchpoint_old_val.push_back(core_mmu.read_u8(mem_location));
+				debug_process_command();
+			}
+		}
+
 		/*
 		//Toggle display of CPU cycles
 		else if(command == "dc")
@@ -1162,6 +1240,7 @@ void NTR_core::debug_process_command()
 			std::cout<<"c \t\t Continue until next breakpoint\n";
 			std::cout<<"sc \t\t Switch CPU (NDS9 or NDS7)\n";
 			std::cout<<"bp \t\t Set breakpoint, format 0x1234ABCD\n";
+			std::cout<<"bc \t\t Set breakpoint on memory change, format 0x1234ABCD for addr, 0x12 for value\n";
 			std::cout<<"u8 \t\t Show BYTE @ memory, format 0x1234ABCD\n";
 			std::cout<<"u16 \t\t Show HALFWORD @ memory, format 0x1234ABCD\n";
 			std::cout<<"u32 \t\t Show WORD @ memory, format 0x1234ABCD\n";

@@ -1079,6 +1079,7 @@ void AGB_core::debug_process_command()
 			std::cout<<"n \t\t Run next Fetch-Decode-Execute stage\n";
 			std::cout<<"c \t\t Continue until next breakpoint\n";
 			std::cout<<"bp \t\t Set breakpoint, format 0x1234ABCD\n";
+			std::cout<<"bc \t\t Set breakpoint on memory change, format 0x1234ABCD for addr, 0x12 for value\n";
 			std::cout<<"u8 \t\t Show BYTE @ memory, format 0x1234ABCD\n";
 			std::cout<<"u16 \t\t Show HALFWORD @ memory, format 0x1234ABCD\n";
 			std::cout<<"u32 \t\t Show WORD @ memory, format 0x1234ABCD\n";
