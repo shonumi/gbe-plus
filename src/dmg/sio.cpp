@@ -76,8 +76,9 @@ DMG_SIO::~DMG_SIO()
 	{
 		//Update 4 Player status
 		four_player.status &= ~0xF0;
+		four_player_broadcast(four_player.status, 0xFD);
 
-		//Send disconnect byte to another system first
+		//Send disconnect byte to another system
 		u8 temp_buffer[2];
 		temp_buffer[0] = 0;
 		temp_buffer[1] = 0x80;
@@ -341,8 +342,9 @@ void DMG_SIO::reset()
 		{
 			//Update 4 Player status
 			four_player.status &= ~0xF0;
+			four_player_broadcast(four_player.status, 0xFD);
 
-			//Send disconnect byte to another system first
+			//Send disconnect byte to another system
 			u8 temp_buffer[2];
 			temp_buffer[0] = 0;
 			temp_buffer[1] = 0x80;
@@ -413,6 +415,8 @@ void DMG_SIO::four_player_broadcast(u8 data_one, u8 data_two)
 	//Process incoming data first
 	receive_byte();
 
+	if(!sio_stat.connected) { return; }
+
 	u8 temp_buffer[2];
 	temp_buffer[0] = data_one;
 	temp_buffer[1] = data_two;
@@ -442,6 +446,8 @@ u8 DMG_SIO::four_player_request(u8 data_one, u8 data_two)
 
 	//Process incoming data first
 	receive_byte();
+
+	if(!sio_stat.connected) { return 0; }
 
 	u8 temp_buffer[2];
 	temp_buffer[0] = data_one;
@@ -608,6 +614,24 @@ bool DMG_SIO::receive_byte()
 				std::cout<<"SIO::Netplay connection terminated. Restart to reconnect.\n";
 				sio_stat.connected = false;
 				sio_stat.sync = false;
+
+				if(sio_stat.sio_type == GB_FOUR_PLAYER_ADAPTER)
+				{
+					four_player.wait_flags = 0;
+					
+					//Resume ping for Players 2-4
+					if((sio_stat.network_id & 0x40) && (four_player.current_state))
+					{
+						sio_stat.network_id &= ~0x40;
+						sio_stat.network_id |= 0x80;
+
+						sio_stat.active_transfer = true;
+						sio_stat.shifts_left = 8;
+						sio_stat.shift_counter = 0;
+						sio_stat.shift_clock = 4096;
+					}
+				}
+
 				return true;
 			}
 
@@ -2207,7 +2231,7 @@ void DMG_SIO::four_player_process()
 			while(four_player.wait_flags) {	four_player_broadcast(0, 0xF0); }
 
 			//Reset wait flags
-			four_player.wait_flags |= 0x2;
+			if(sio_stat.connected) { four_player.wait_flags |= 0x2; }
 				
 			//Update current link status
 			if((sio_stat.ping_count == 1) || (sio_stat.ping_count == 2))
