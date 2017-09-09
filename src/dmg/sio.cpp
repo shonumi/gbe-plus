@@ -564,6 +564,12 @@ bool DMG_SIO::receive_byte()
 
 				temp_buffer[1] = 0x1;
 
+				if((four_player.current_state == FOUR_PLAYER_PING) && (temp_buffer[0] == 0xCC))
+				{
+					four_player.current_state = FOUR_PLAYER_SYNC;
+					sio_stat.ping_count = 0;
+				}
+
 				switch(four_player.current_state)
 				{
 					//Handle ping
@@ -2212,8 +2218,15 @@ void DMG_SIO::four_player_process()
 {
 	if(sio_stat.internal_clock) { four_player.current_state = FOUR_PLAYER_INACTIVE; }
 	
+	//Start Link Cable sync
+	else if((four_player.current_state == FOUR_PLAYER_PING) && (sio_stat.transfer_byte == 0xAA))
+	{
+		if(four_player.current_state != FOUR_PLAYER_SYNC) { sio_stat.ping_count = 0; }
+		four_player.current_state = FOUR_PLAYER_SYNC;
+	}
+
 	//Start Link Cable ping
-	else if((four_player.current_state != FOUR_PLAYER_PREP_NETWORK) && (four_player.current_state != FOUR_PLAYER_PROCESS_NETWORK))
+	else if((four_player.current_state != FOUR_PLAYER_SYNC) && (four_player.current_state != FOUR_PLAYER_PROCESS_NETWORK))
 	{
 		four_player.current_state = FOUR_PLAYER_PING;
 	}
@@ -2257,6 +2270,29 @@ void DMG_SIO::four_player_process()
 
 			sio_stat.ping_count++;
 			sio_stat.ping_count &= 0x3;
+
+			break;
+
+		//Sync via Link Cable
+		case FOUR_PLAYER_SYNC:
+
+			//Wait for other players to send bytes
+			while(four_player.wait_flags) {	four_player_broadcast(0, 0xF0); }
+
+			//Reset wait flags
+			if(sio_stat.connected) { four_player.wait_flags |= 0x2; }
+
+			//Player 1 - Return 0xCC
+			mem->memory_map[REG_SB] = 0xCC;
+			mem->memory_map[IF_FLAG] |= 0x08;
+
+			//Players 2-4 - Return 0xCC
+			four_player_broadcast(0xCC, 0xFC);
+
+			sio_stat.ping_count++;
+			sio_stat.ping_count &= 0x3;
+
+			if(sio_stat.ping_count == 0) { four_player.current_state = FOUR_PLAYER_PROCESS_NETWORK; }
 
 			break;
 	}
