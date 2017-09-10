@@ -128,6 +128,9 @@ void NTR_LCD::reset()
 	lcd_stat.bg_mode_b = 0;
 	lcd_stat.hblank_interval_free = false;
 
+	lcd_stat.forced_blank_a = false;
+	lcd_stat.forced_blank_b = false;
+
 	lcd_stat.vblank_irq_enable_a = false;
 	lcd_stat.hblank_irq_enable_a = false;
 	lcd_stat.vcount_irq_enable_a = false;
@@ -2330,6 +2333,11 @@ void NTR_LCD::render_scanline()
 	{
 		//Display Mode 0 - Blank screen
 		case 0x0:
+
+		//Forced Blank
+		case 0x80:
+		case 0x81:
+		case 0x82:
 			for(u16 x = 0; x < 256; x++) { scanline_buffer_a[x] = 0xFFFFFFFF; }
 			break;
 
@@ -2373,6 +2381,10 @@ void NTR_LCD::render_scanline()
 	{
 		//Display Mode 0 - Blank screen
 		case 0x0:
+
+		//Forced Blank
+		case 0x80:
+		case 0x81:
 			for(u16 x = 0; x < 256; x++) { scanline_buffer_b[x] = 0xFFFFFFFF; }
 			break;
 

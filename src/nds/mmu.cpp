@@ -624,6 +624,10 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			lcd_stat->bg_mode_a = (lcd_stat->display_control_a & 0x7);
 			lcd_stat->display_mode_a = (lcd_stat->display_control_a >> 16) & 0x3;
 
+			//Forced Blank
+			lcd_stat->forced_blank_a = (lcd_stat->display_control_a & 0x80) ? true : false;
+			lcd_stat->display_mode_a = (lcd_stat->forced_blank_a) ? (lcd_stat->display_mode_a | 0x80) : (lcd_stat->display_mode_a & ~0x80);
+
 			//Enable or disable BGs
 			lcd_stat->bg_enable_a[0] = (lcd_stat->display_control_a & 0x100) ? true : false;
 			lcd_stat->bg_enable_a[1] = (lcd_stat->display_control_a & 0x200) ? true : false;
@@ -651,6 +655,10 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			lcd_stat->display_control_b = ((memory_map[NDS_DISPCNT_B+3] << 24) | (memory_map[NDS_DISPCNT_B+2] << 16) | (memory_map[NDS_DISPCNT_B+1] << 8) | memory_map[NDS_DISPCNT_B]);
 			lcd_stat->bg_mode_b = (lcd_stat->display_control_b & 0x7);
 			lcd_stat->display_mode_b = (lcd_stat->display_control_b >> 16) & 0x1;
+
+			//Forced Blank
+			lcd_stat->forced_blank_b = (lcd_stat->display_control_b & 0x80) ? true : false;
+			lcd_stat->display_mode_b = (lcd_stat->forced_blank_b) ? (lcd_stat->display_mode_b | 0x80) : (lcd_stat->display_mode_b & ~0x80);
 
 			//Enable or disable BGs
 			lcd_stat->bg_enable_b[0] = (lcd_stat->display_control_b & 0x100) ? true : false;
