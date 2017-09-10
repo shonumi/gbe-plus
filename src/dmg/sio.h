@@ -130,6 +130,7 @@ class DMG_SIO
 		u8 id;
 		u8 status;
 		u8 data[16];
+		u8 buffer[16];
 		u8 incoming[4];
 		u8 wait_flags;
 		four_player_state current_state;

@@ -374,7 +374,7 @@ void DMG_SIO::reset()
 	four_player.status = 1;
 }
 
-/****** Tranfers one byte to another system ******/
+/****** Transfers one byte to another system ******/
 bool DMG_SIO::send_byte()
 {
 	#ifdef GBE_NETPLAY
@@ -473,7 +473,7 @@ u8 DMG_SIO::four_player_request(u8 data_one, u8 data_two)
 	return 0;
 }
 
-/****** Tranfers one bit to another system's IR port ******/
+/****** Transfers one bit to another system's IR port ******/
 bool DMG_SIO::send_ir_signal()
 {
 	#ifdef GBE_NETPLAY
@@ -593,6 +593,18 @@ bool DMG_SIO::receive_byte()
 
 						break;
 				}
+
+				//Send acknowlegdement
+				SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2);
+
+				return true;
+			}
+
+			//4-Player - Return current transfer value
+			else if(temp_buffer[1] == 0xFB)
+			{
+				temp_buffer[0] = sio_stat.transfer_byte;
+				temp_buffer[1] = 0x1;
 
 				//Send acknowlegdement
 				SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2);
@@ -1322,7 +1334,7 @@ void DMG_SIO::mobile_adapter_process()
 			
 			break;
 
-		//Receive tranferred data
+		//Receive transferred data
 		case GBMA_RECEIVE_DATA:
 
 			//Push data to packet buffer
@@ -2292,7 +2304,60 @@ void DMG_SIO::four_player_process()
 			sio_stat.ping_count++;
 			sio_stat.ping_count &= 0x3;
 
-			if(sio_stat.ping_count == 0) { four_player.current_state = FOUR_PLAYER_PROCESS_NETWORK; }
+			if(sio_stat.ping_count == 0)
+			{
+				four_player.current_state = FOUR_PLAYER_PROCESS_NETWORK;
+
+				//Data in initial buffer is technically garbage. Set to zero for now.
+				for(u32 x = 0; x < 16; x++)
+				{
+					four_player.data[x] = 0;
+					four_player.buffer[x] = 0;
+				}
+			}
+
+			break;
+
+		//Send and receive data via Link Cable
+		case FOUR_PLAYER_PROCESS_NETWORK:
+
+			//Wait for other players to send bytes
+			while(four_player.wait_flags) {	four_player_broadcast(0, 0xF0); }
+
+			//Reset wait flags
+			if(sio_stat.connected) { four_player.wait_flags |= 0x2; }
+
+			//Player 1 - Return buffered data
+			mem->memory_map[REG_SB] = four_player.data[sio_stat.ping_count];
+			mem->memory_map[IF_FLAG] |= 0x08;
+
+			//Players 2-4 - Return buffered data
+			four_player_broadcast(four_player.data[sio_stat.ping_count], 0xFC);
+
+			//Update buffer
+			if(sio_stat.ping_count < 4)
+			{
+				//Grab Player 1 data
+				four_player.buffer[sio_stat.ping_count] = sio_stat.transfer_byte;
+
+				//Grab Player 2 data
+				u8 p_data = four_player_request(0, 0xFB);
+				four_player.buffer[4 + sio_stat.ping_count] = p_data;
+
+				//Grab Player 3 data
+				p_data = 0x00;
+				four_player.buffer[8 + sio_stat.ping_count] = p_data;
+
+				//Grab Player 4 data
+				p_data = 0x00;
+				four_player.buffer[12 + sio_stat.ping_count] = p_data;
+			}
+
+			//Update data
+			four_player.data[sio_stat.ping_count] = four_player.buffer[sio_stat.ping_count];
+
+			sio_stat.ping_count++;
+			sio_stat.ping_count &= 0xF;
 
 			break;
 	}
