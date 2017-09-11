@@ -29,11 +29,9 @@ NTR_core::NTR_core()
 	core_cpu_nds9.controllers.video.mem = &core_mmu;
 	core_mmu.set_lcd_data(&core_cpu_nds9.controllers.video.lcd_stat);
 
-	/*
 	//Link APU and MMU
-	core_cpu.controllers.audio.mem = &core_mmu;
-	core_mmu.set_apu_data(&core_cpu.controllers.audio.apu_stat);
-	*/
+	core_cpu_nds7.controllers.audio.mem = &core_mmu;
+	core_mmu.set_apu_data(&core_cpu_nds7.controllers.audio.apu_stat);
 
 	//Link MMU and GamePad
 	core_mmu.g_pad = &core_pad;
@@ -76,14 +74,12 @@ void NTR_core::start()
 		core_cpu_nds9.running = false;
 	}
 
-	/*
 	//Initialize audio output
-	if(!core_cpu.controllers.audio.init())
+	if(!core_cpu_nds7.controllers.audio.init())
 	{
 		running = false;
-		core_cpu.running = false;
+		core_cpu_nds7.running = false;
 	}
-	*/
 
 	//Initialize the GamePad
 	core_pad.init();
@@ -112,10 +108,7 @@ void NTR_core::reset()
 	bool can_reset = true;
 
 	core_cpu_nds9.controllers.video.reset();
-
-	/*
-	core_cpu.controllers.audio.reset();
-	*/
+	core_cpu_nds7.controllers.audio.reset();
 
 	core_cpu_nds9.reset();
 	core_cpu_nds7.reset();
@@ -144,10 +137,9 @@ void NTR_core::reset()
 	core_cpu_nds9.controllers.video.mem = &core_mmu;
 	core_mmu.set_lcd_data(&core_cpu_nds9.controllers.video.lcd_stat);
 
-	/*
 	//Link APU and MMU
-	core_cpu.controllers.audio.mem = &core_mmu;
-	*/
+	core_cpu_nds7.controllers.audio.mem = &core_mmu;
+	core_mmu.set_apu_data(&core_cpu_nds7.controllers.audio.apu_stat);
 
 	//Link MMU and GamePad
 	core_mmu.g_pad = &core_pad;

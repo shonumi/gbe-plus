@@ -19,6 +19,7 @@
 #include "timer.h"
 #include "mmu.h"
 #include "lcd.h"
+#include "apu.h"
 
 class NTR_ARM7
 {
@@ -197,6 +198,7 @@ class NTR_ARM7
 	//TODO - NDS7 will handle audio
 	struct io_controllers
 	{
+		NTR_APU audio;
 		std::vector<nds_timer> timer;
 	} controllers;
 

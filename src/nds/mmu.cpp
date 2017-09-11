@@ -3929,3 +3929,7 @@ void NTR_MMU::setup_default_firmware()
 	
 /****** Points the MMU to an lcd_data structure (FROM THE LCD ITSELF) ******/
 void NTR_MMU::set_lcd_data(ntr_lcd_data* ex_lcd_stat) { lcd_stat = ex_lcd_stat; }
+
+/****** Points the MMU to an apu_data structure (FROM THE APU ITSELF) ******/
+void NTR_MMU::set_apu_data(ntr_apu_data* ex_apu_stat) { apu_stat = ex_apu_stat; }
+

@@ -19,6 +19,7 @@
 #include "common/config.h"
 #include "mmu.h"
 #include "lcd.h"
+#include "apu.h"
 #include "arm9.h"
 #include "arm7.h"
 
