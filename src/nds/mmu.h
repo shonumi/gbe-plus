@@ -22,6 +22,7 @@
 #include "timer.h"
 #include "common/config.h"
 #include "lcd_data.h"
+#include "apu_data.h"
 
 class NTR_MMU
 {
