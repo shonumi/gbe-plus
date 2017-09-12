@@ -610,7 +610,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			break;
 
 		case 0x4:
-			if((!access_mode) && (address < 0x4000500))
+			if((!access_mode) && (address >= 0x4000400) && (address < 0x4000500))
 			{
 				apu_io_id = (address >> 8) & 0xF;
 				address &= 0x400000F;
@@ -3210,6 +3210,8 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			if(access_mode) { return; }
 			memory_map[address | (apu_io_id << 8)] = value;
 			apu_stat->channel[apu_io_id].cnt = read_u32_fast(NDS_SOUNDXCNT | (apu_io_id << 8));
+
+			if(apu_stat->channel[apu_io_id].cnt & 0x80000000) { std::cout<<"SOUND CHANNEL " << (u16)apu_io_id << " PLAY\n"; }
 
 			break;
 
