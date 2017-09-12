@@ -257,6 +257,7 @@ class NTR_MMU
 	bool in_firmware;
 
 	u16 touchscreen_state;
+	u8 apu_io_id;
 
 	NTR_MMU();
 	~NTR_MMU();

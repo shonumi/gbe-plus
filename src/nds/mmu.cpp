@@ -597,6 +597,7 @@ u32 NTR_MMU::read_u32_fast(u32 address) const
 void NTR_MMU::write_u8(u32 address, u8 value)
 {
 	//Mirror memory address if applicable
+	//Or narrow down certain I/O regs (sound)
 	switch(address >> 24)
 	{
 		case 0x2:
@@ -606,6 +607,15 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		case 0x3:
 			if((access_mode) || (address <= 0x37FFFFF)) { address &= 0x3007FFF; }
 			else { address &= 0x380FFFF; }
+			break;
+
+		case 0x4:
+			if((!access_mode) && (address < 0x4000500))
+			{
+				apu_io_id = (address >> 8) & 0xF;
+				address &= 0x400000F;
+			}
+
 			break;
 	}
 
@@ -3192,6 +3202,54 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			}
 
 			break;
+
+		case NDS_SOUNDXCNT:
+		case NDS_SOUNDXCNT + 1:
+		case NDS_SOUNDXCNT + 2:
+		case NDS_SOUNDXCNT + 3:
+			if(access_mode) { return; }
+			memory_map[address | (apu_io_id << 8)] = value;
+			apu_stat->channel[apu_io_id].cnt = read_u32_fast(NDS_SOUNDXCNT | (apu_io_id << 8));
+
+			break;
+
+		case NDS_SOUNDXSAD:
+		case NDS_SOUNDXSAD + 1:
+		case NDS_SOUNDXSAD + 2:
+		case NDS_SOUNDXSAD + 3:
+			if(access_mode) { return; }
+			memory_map[address | (apu_io_id << 8)] = value;
+			apu_stat->channel[apu_io_id].data_src = read_u32_fast(NDS_SOUNDXSAD | (apu_io_id << 8)) & 0x7FFFFFF;
+
+			break;
+
+		case NDS_SOUNDXTMR:
+		case NDS_SOUNDXTMR + 1:
+			if(access_mode) { return; }
+			memory_map[address | (apu_io_id << 8)] = value;
+			apu_stat->channel[apu_io_id].output_frequency =  16756991 / read_u16_fast(NDS_SOUNDXTMR | (apu_io_id << 8));
+
+			break;
+
+		case NDS_SOUNDXPNT:
+		case NDS_SOUNDXPNT + 1:
+			if(access_mode) { return; }
+			memory_map[address | (apu_io_id << 8)] = value;
+			apu_stat->channel[apu_io_id].loop_start = read_u16_fast(NDS_SOUNDXPNT | (apu_io_id << 8));
+
+			break;
+
+		case NDS_SOUNDXLEN:
+		case NDS_SOUNDXLEN + 1:
+		case NDS_SOUNDXLEN + 2:
+		case NDS_SOUNDXLEN + 3:
+			if(access_mode) { return; }
+			memory_map[address | (apu_io_id << 8)] = value;
+			apu_stat->channel[apu_io_id].length = read_u32_fast(NDS_SOUNDXLEN | (apu_io_id << 8)) & 0x3FFFFF;
+
+			break;
+
+		
 
 		default:
 			memory_map[address] = value;

@@ -23,6 +23,7 @@ struct ntr_apu_data
 		u32 data_src;
 		u32 loop_start;
 		u32 length;
+		u32 cnt;
 
 		bool playing;
 		bool enable;
