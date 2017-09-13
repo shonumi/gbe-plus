@@ -21,8 +21,10 @@ struct ntr_apu_data
 	{
 		u32 output_frequency;
 		u32 data_src;
+		u32 data_pos;
 		u32 loop_start;
 		u32 length;
+		u32 samples;
 		u32 cnt;
 
 		bool playing;
