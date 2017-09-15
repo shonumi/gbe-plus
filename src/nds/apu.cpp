@@ -112,6 +112,9 @@ void NTR_APU::generate_channel_samples(s32* stream, int length, u8 id)
 
 	for(u32 x = 0; x < length; x++)
 	{
+		//Channel 0 should set default data
+		if(id == 0) { stream[x] = 0; }
+
 		//Pull data from NDS memory
 		if((apu_stat.channel[id].samples) && (apu_stat.channel[id].playing))
 		{
