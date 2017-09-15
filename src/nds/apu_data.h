@@ -31,8 +31,6 @@ struct ntr_apu_data
 		bool enable;
 		bool right_enable;
 		bool left_enable;
-
-		s16 buffer[0x10000];
 	} channel[16];
 
 	bool sound_on;

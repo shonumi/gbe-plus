@@ -42,7 +42,7 @@ void NTR_APU::reset()
 	apu_stat.channel_right_volume = 0.0;
 
 	//Reset Channel 1-16 data
-	for(int x = 0; x < 4; x++)
+	for(int x = 0; x < 16; x++)
 	{
 		apu_stat.channel[x].output_frequency = 0;
 		apu_stat.channel[x].data_src = 0;
@@ -52,12 +52,10 @@ void NTR_APU::reset()
 		apu_stat.channel[x].samples = 0;
 		apu_stat.channel[x].cnt = 0;
 
-		apu_stat.channel[x].playing = 0;
-		apu_stat.channel[x].enable = 0;
-		apu_stat.channel[x].right_enable = 0;
-		apu_stat.channel[x].left_enable = 0;
-
-		for(int y = 0; y < 0x10000; y++) { apu_stat.channel[x].buffer[y] = -32768; }
+		apu_stat.channel[x].playing = false;
+		apu_stat.channel[x].enable = false;
+		apu_stat.channel[x].right_enable = false;
+		apu_stat.channel[x].left_enable = false;
 	}
 }
 
@@ -101,15 +99,66 @@ bool NTR_APU::init()
 	}
 }
 
+/****** Generates samples for NDS sound channels ******/
+void NTR_APU::generate_channel_samples(s32* stream, int length, u8 id)
+{
+	double sample_ratio = (apu_stat.channel[id].output_frequency / apu_stat.sample_rate);
+	u32 sample_pos = apu_stat.channel[id].data_pos;
+	u8 format = ((apu_stat.channel[id].cnt >> 29) & 0x3);
+
+	s8 nds_sample_8 = 0;
+	s16 nds_sample_16 = 0;
+	u32 samples_played = 0;
+
+	for(u32 x = 0; x < length; x++)
+	{
+		//Pull data from NDS memory
+		if((apu_stat.channel[id].samples) && (apu_stat.channel[id].playing))
+		{
+			//PCM8
+			if(format == 0)
+			{
+				nds_sample_8 = mem->memory_map[sample_pos + (sample_ratio * x)];
+				apu_stat.channel[id].samples--;
+
+				//Scale S8 audio to S16
+				stream[x] += (nds_sample_8 * 256);
+			}
+
+			else { stream[x] += -32768; }
+
+			samples_played++;
+
+			if(apu_stat.channel[id].samples == 0) { apu_stat.channel[id].playing = false; }
+		}
+
+		//Generate silence if sound has run out of samples or is not playing
+		else { stream[x] += -32768; }
+	}
+
+	//Advance data pointer to sound samples
+	apu_stat.channel[id].data_pos += (sample_ratio * samples_played);
+}
+
 /****** SDL Audio Callback ******/ 
 void ntr_audio_callback(void* _apu, u8 *_stream, int _length)
 {
 	s16* stream = (s16*) _stream;
 	int length = _length/2;
+	s32 channel_stream[length];
+
+	NTR_APU* apu_link = (NTR_APU*) _apu;
+
+	double channel_ratio = apu_link->apu_stat.channel_master_volume / 128.0;
+
+	//Generate samples
+	for(u32 x = 0; x < 16; x++) { apu_link->generate_channel_samples(channel_stream, length, x); }
 
 	//Custom software mixing
 	for(u32 x = 0; x < length; x++)
 	{
-		stream[x] = -32768;
-	} 
+		channel_stream[x] *= channel_ratio;
+		channel_stream[x] /= 16;
+		stream[x] = channel_stream[x];
+	}
 }

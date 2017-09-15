@@ -3214,7 +3214,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			//Begin playing sound channel
 			if(apu_stat->channel[apu_io_id].cnt & 0x80000000)
 			{
-				apu_stat->channel[apu_io_id].playing = true;
+				//apu_stat->channel[apu_io_id].playing = true;
 				u8 format = ((apu_stat->channel[apu_io_id].cnt >> 29) & 0x3);
 
 				//Determine loop start offset and sample length
@@ -3280,8 +3280,6 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			apu_stat->channel[apu_io_id].length = read_u32_fast(NDS_SOUNDXLEN | (apu_io_id << 8)) & 0x3FFFFF;
 
 			break;
-
-		
 
 		default:
 			memory_map[address] = value;
