@@ -3259,7 +3259,23 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		case NDS_SOUNDXTMR + 1:
 			if(access_mode) { return; }
 			memory_map[address | (apu_io_id << 8)] = value;
-			apu_stat->channel[apu_io_id].output_frequency =  16756991 / read_u16_fast(NDS_SOUNDXTMR | (apu_io_id << 8));
+
+			{
+				s16 raw_freq = 0;
+				u16 tmr = read_u16_fast(NDS_SOUNDXTMR | (apu_io_id << 8));
+
+				if(tmr & 0x8000)
+				{
+					tmr--;
+					tmr = ~tmr;
+
+					raw_freq = -tmr;
+				}
+
+				else { raw_freq = tmr; }
+
+				apu_stat->channel[apu_io_id].output_frequency =  -16756991 / raw_freq;
+			}
 
 			break;
 

@@ -19,7 +19,7 @@ struct ntr_apu_data
 	//Digital channels, new to the GBA
 	struct digital_channels
 	{
-		u32 output_frequency;
+		double output_frequency;
 		u32 data_src;
 		u32 data_pos;
 		u32 loop_start;

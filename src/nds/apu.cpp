@@ -37,14 +37,14 @@ void NTR_APU::reset()
 	apu_stat.sample_rate = config::sample_rate;
 	apu_stat.main_volume = 4;
 
-	apu_stat.channel_master_volume = (config::volume >> 2);
+	apu_stat.channel_master_volume = config::volume;
 	apu_stat.channel_left_volume = 0.0;
 	apu_stat.channel_right_volume = 0.0;
 
 	//Reset Channel 1-16 data
 	for(int x = 0; x < 16; x++)
 	{
-		apu_stat.channel[x].output_frequency = 0;
+		apu_stat.channel[x].output_frequency = 0.0;
 		apu_stat.channel[x].data_src = 0;
 		apu_stat.channel[x].data_pos = 0;
 		apu_stat.channel[x].loop_start = 0;
@@ -152,15 +152,12 @@ void ntr_audio_callback(void* _apu, u8 *_stream, int _length)
 
 	NTR_APU* apu_link = (NTR_APU*) _apu;
 
-	double channel_ratio = apu_link->apu_stat.channel_master_volume / 128.0;
-
 	//Generate samples
 	for(u32 x = 0; x < 16; x++) { apu_link->generate_channel_samples(channel_stream, length, x); }
 
 	//Custom software mixing
 	for(u32 x = 0; x < length; x++)
 	{
-		channel_stream[x] *= channel_ratio;
 		channel_stream[x] /= 16;
 		stream[x] = channel_stream[x];
 	}
