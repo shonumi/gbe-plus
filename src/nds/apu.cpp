@@ -128,6 +128,18 @@ void NTR_APU::generate_channel_samples(s32* stream, int length, u8 id)
 				stream[x] += (nds_sample_8 * 256);
 			}
 
+			//PCM16
+			else if(format == 1)
+			{
+				u32 data_addr = (sample_pos + (sample_ratio * x));
+				data_addr &= ~0x1;
+				
+				nds_sample_16 = mem->read_u16_fast(data_addr);
+				apu_stat.channel[id].samples--;
+
+				stream[x] += nds_sample_16;
+			}
+
 			else { stream[x] += -32768; }
 
 			samples_played++;
@@ -140,7 +152,17 @@ void NTR_APU::generate_channel_samples(s32* stream, int length, u8 id)
 	}
 
 	//Advance data pointer to sound samples
-	apu_stat.channel[id].data_pos += (sample_ratio * samples_played);
+	switch(format)
+	{
+		case 0x0:
+			apu_stat.channel[id].data_pos += (sample_ratio * samples_played);
+			break;
+
+		case 0x1:
+			apu_stat.channel[id].data_pos += (sample_ratio * samples_played);
+			apu_stat.channel[id].data_pos &= ~0x1;
+			break;
+	} 
 }
 
 /****** SDL Audio Callback ******/ 
