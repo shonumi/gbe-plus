@@ -144,7 +144,11 @@ void NTR_APU::generate_channel_samples(s32* stream, int length, u8 id)
 
 			samples_played++;
 
-			if(apu_stat.channel[id].samples == 0) { apu_stat.channel[id].playing = false; }
+			if(apu_stat.channel[id].samples == 0)
+			{
+				apu_stat.channel[id].playing = false;
+				apu_stat.channel[id].cnt &= ~0x80000000;
+			}
 		}
 
 		//Generate silence if sound has run out of samples or is not playing

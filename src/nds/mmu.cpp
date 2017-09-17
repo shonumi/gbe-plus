@@ -220,6 +220,13 @@ u8 NTR_MMU::read_u8(u32 address)
 			if((access_mode) || (address <= 0x37FFFFF)) { address &= 0x3007FFF; }
 			else { address &= 0x380FFFF; }
 			break;
+
+		case 0x4:
+			if((!access_mode) && (address >= 0x4000400) && (address < 0x4000500))
+			{
+				apu_io_id = (address >> 8) & 0xF;
+				address &= 0x400040F;
+			}
 	}
 
 	switch(address)
@@ -542,7 +549,17 @@ u8 NTR_MMU::read_u8(u32 address)
 
 	//Check POSTFLG - NDS7
 	else if((address == NDS_POSTFLG) && (!access_mode)) { return memory_map[address] & 0x1; }
-		
+
+	//Check for SOUNDXCNT - NDS7
+	else if((address & ~0x3) == NDS_SOUNDXCNT)
+	{
+		//Only NDS7 can access this register, return 0 for NDS9
+		if(access_mode) { return 0; }
+
+		u8 addr_shift = (address & 0x3) << 3;
+		return ((apu_stat->channel[apu_io_id].cnt >> addr_shift) & 0xFF);
+	}
+	
 	return memory_map[address];
 }
 
