@@ -224,7 +224,7 @@ u8 NTR_MMU::read_u8(u32 address)
 		case 0x4:
 			if((!access_mode) && (address >= 0x4000400) && (address < 0x4000500))
 			{
-				apu_io_id = (address >> 8) & 0xF;
+				apu_io_id = (address >> 4) & 0xF;
 				address &= 0x400040F;
 			}
 	}
@@ -629,7 +629,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		case 0x4:
 			if((!access_mode) && (address >= 0x4000400) && (address < 0x4000500))
 			{
-				apu_io_id = (address >> 8) & 0xF;
+				apu_io_id = (address >> 4) & 0xF;
 				address &= 0x400040F;
 			}
 
@@ -3291,7 +3291,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 				else { raw_freq = tmr; }
 
-				apu_stat->channel[apu_io_id].output_frequency =  -16756991 / raw_freq;
+				if(raw_freq) { apu_stat->channel[apu_io_id].output_frequency = -16756991 / raw_freq; }
 			}
 
 			break;

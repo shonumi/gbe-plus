@@ -121,11 +121,17 @@ void NTR_APU::generate_channel_samples(s32* stream, int length, u8 id)
 			//PCM8
 			if(format == 0)
 			{
+				u32 data_addr = (sample_pos + (sample_ratio * x));
 				nds_sample_8 = mem->memory_map[sample_pos + (sample_ratio * x)];
-				apu_stat.channel[id].samples--;
 
 				//Scale S8 audio to S16
 				stream[x] += (nds_sample_8 * 256);
+
+				if(data_addr >= (apu_stat.channel[id].data_src + apu_stat.channel[id].samples))
+				{
+					apu_stat.channel[id].playing = false;
+					apu_stat.channel[id].cnt &= ~0x80000000;
+				}	
 			}
 
 			//PCM16
@@ -133,22 +139,20 @@ void NTR_APU::generate_channel_samples(s32* stream, int length, u8 id)
 			{
 				u32 data_addr = (sample_pos + (sample_ratio * x));
 				data_addr &= ~0x1;
-				
 				nds_sample_16 = mem->read_u16_fast(data_addr);
-				apu_stat.channel[id].samples--;
 
 				stream[x] += nds_sample_16;
+
+				if(data_addr >= (apu_stat.channel[id].data_src + apu_stat.channel[id].samples))
+				{
+					apu_stat.channel[id].playing = false;
+					apu_stat.channel[id].cnt &= ~0x80000000;
+				}	
 			}
 
 			else { stream[x] += -32768; }
 
 			samples_played++;
-
-			if(apu_stat.channel[id].samples == 0)
-			{
-				apu_stat.channel[id].playing = false;
-				apu_stat.channel[id].cnt &= ~0x80000000;
-			}
 		}
 
 		//Generate silence if sound has run out of samples or is not playing
