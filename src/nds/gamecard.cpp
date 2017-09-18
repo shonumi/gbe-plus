@@ -99,13 +99,19 @@ void NTR_MMU::process_card_bus()
 			//Get Data
 			else if((nds_card.cmd_lo >> 24) == 0xB7)
 			{
-				std::cout<<"MMU::Game Card Bus Get Data Command (STUBBED)\n";
+				nds_card.state = 0x10;
+				nds_card.transfer_size = 0x200;
+
+				nds_card.transfer_src = (nds_card.cmd_lo << 8);
+				nds_card.transfer_src |= (nds_card.cmd_hi >> 24);
+				nds_card.transfer_src &= (cart_data.size() - 1);
 			}
 
 			//Get ROM ID 3
 			else if((nds_card.cmd_lo >> 24) == 0xB8)
 			{
-				std::cout<<"MMU::Game Card Bus Get Chip ID 3 (STUBBED)\n";
+				nds_card.state = 0x30;
+				nds_card.transfer_size = 0x4;
 			}
 
 			else
@@ -152,6 +158,8 @@ void NTR_MMU::process_card_bus()
 
 		if((nds9_exmem & 0x800) == 0) { nds9_if |= 0x80000; }
 		else if(nds7_exmem & 0x800) { nds7_if |= 0x80000; }
+
+		nds_card.state = 0;
 	}
 	
 	else { nds_card.transfer_clock = nds_card.baud_rate; }
