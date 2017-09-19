@@ -177,6 +177,7 @@ class NTR_ARM9
 	u8 flush_counter;
 
 	u8 idle_state;
+	u8 last_idle_state;
 
 	bool swi_vblank_wait;
 	u32 swi_waitbyloop_count;

@@ -45,7 +45,7 @@ void NTR_MMU::reset()
 	nds7_irq_handler = 0x380FFFC;
 	nds7_ie = 0x0;
 	nds7_if = 0x0;
-	nds7_old_ie = 0x0;
+	nds7_temp_if = 0x0;
 	nds7_ime = 0;
 	nds7_exmem = 0;
 	power_cnt2 = 0;
@@ -56,7 +56,7 @@ void NTR_MMU::reset()
 	nds9_irq_handler = 0x0;
 	nds9_ie = 0x0;
 	nds9_if = 0x0;
-	nds9_old_ie = 0x0;
+	nds9_temp_if = 0x0;
 	nds9_ime = 0;
 	nds9_exmem = 0;
 	power_cnt1 = 0;

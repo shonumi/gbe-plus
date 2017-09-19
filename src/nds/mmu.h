@@ -238,16 +238,14 @@ class NTR_MMU
 	//NDS9 and NDS7 have separate IE, IF, and other registers (accessed at the same address)
 	u32 nds9_ie;
 	u32 nds9_if;
-	u32 nds9_old_ie;
-	u32 nds9_old_if;
+	u32 nds9_temp_if;
 	u32 nds9_ime;
 	u16 power_cnt1;
 	u16 nds9_exmem;
 
 	u32 nds7_ie;
 	u32 nds7_if;
-	u32 nds7_old_ie;
-	u32 nds7_old_if;
+	u32 nds7_temp_if;
 	u32 nds7_ime;
 	u16 power_cnt2;
 	u16 nds7_exmem;

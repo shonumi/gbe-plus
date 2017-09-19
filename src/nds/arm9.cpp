@@ -63,6 +63,7 @@ void NTR_ARM9::reset()
 	in_interrupt = false;
 
 	idle_state = 0;
+	last_idle_state = 0;
 
 	swi_vblank_wait = false;
 	swi_waitbyloop_count = 0;
@@ -1403,6 +1404,12 @@ void NTR_ARM9::handle_interrupt()
 
 		current_cpu_mode = SYS;
 		debug_code = 0xFEEDBACC;
+
+		if(last_idle_state)
+		{
+			idle_state = last_idle_state;
+			last_idle_state = 0;
+		}
 	}
 
 	//Jump into an interrupt, check if the master flag is enabled

@@ -234,31 +234,26 @@ void NTR_core::run_core()
 						//IntrWait, VBlankIntrWait
 						case 0x3:
 							//If R0 == 0, quit on any IRQ
-							if((core_cpu_nds9.reg.r0 == 0) && (core_mmu.nds9_if))
-							{
-								//Restore old IF, also OR in any new flags that were set
-								core_mmu.nds9_if = (core_mmu.nds9_old_if | core_mmu.nds9_if);
-
-								//Restore old IE
-								core_mmu.nds9_ie = core_mmu.nds9_old_ie;
-
-								core_cpu_nds9.idle_state = 0;
-							}
+							if((core_cpu_nds9.reg.r0 == 0) && (core_mmu.nds9_if)) { core_cpu_nds9.idle_state = 0; }
 
 							//Otherwise, match up bits in IE and IF
 							for(int x = 0; x < 21; x++)
 							{
-								//When there is a match check to see if IntrWait can quit
-								if((core_mmu.nds9_ie & (1 << x)) && (core_mmu.nds9_if & (1 << x)))
+								//When there is a match check to see if IntrWait or VBlankIntrWait can quit
+								if((core_mmu.nds9_if & (1 << x)) && (core_mmu.nds9_temp_if & (1 << x)))
 								{
-									//Restore old IF, also OR in any new flags that were set
-									core_mmu.nds9_if = (core_mmu.nds9_old_if | core_mmu.nds9_if);
-
-									//Restore old IE
-									core_mmu.nds9_ie = core_mmu.nds9_old_ie;
-
 									core_cpu_nds9.idle_state = 0;
 								}
+
+								//Execute any other pending IRQs that happen during IntrWait or VBlankIntrWait
+								if((core_mmu.nds9_ie & (1 << x)) && (core_mmu.nds9_if & (1 << x)))
+								{
+									core_cpu_nds9.last_idle_state = core_cpu_nds9.idle_state;
+									core_cpu_nds9.idle_state = 0;
+								}
+
+								//Clear IF flags to wait for new one
+								if(core_cpu_nds9.idle_state) { core_mmu.nds9_if &= ~core_mmu.nds9_temp_if; }
 							}
 
 							break;
@@ -341,17 +336,21 @@ void NTR_core::run_core()
 							//Match up bits in IE and IF
 							for(int x = 0; x < 24; x++)
 							{
-								//When there is a match check to see if IntrWait can quit
-								if((core_mmu.nds7_ie & (1 << x)) && (core_mmu.nds7_if & (1 << x)))
+								//When there is a match check to see if IntrWait or VBlankIntrWait can quit
+								if((core_mmu.nds7_if & (1 << x)) && (core_mmu.nds7_temp_if & (1 << x)))
 								{
-									//Restore old IF, also OR in any new flags that were set
-									core_mmu.nds7_if = (core_mmu.nds7_old_if | core_mmu.nds7_if);
-
-									//Restore old IE
-									core_mmu.nds7_ie = core_mmu.nds7_old_ie;
-
 									core_cpu_nds7.idle_state = 0;
 								}
+
+								//Execute any other pending IRQs that happen during IntrWait or VBlankIntrWait
+								if((core_mmu.nds7_ie & (1 << x)) && (core_mmu.nds7_if & (1 << x)))
+								{
+									core_cpu_nds7.last_idle_state = core_cpu_nds7.idle_state;
+									core_cpu_nds7.idle_state = 0;
+								}
+
+								//Clear IF flags to wait for new one
+								if(core_cpu_nds7.idle_state) { core_mmu.nds7_if &= ~core_mmu.nds7_temp_if; }
 							}
 
 							break;
@@ -449,31 +448,26 @@ void NTR_core::step()
 					//IntrWait, VBlankIntrWait
 					case 0x3:
 						//If R0 == 0, quit on any IRQ
-						if((core_cpu_nds9.reg.r0 == 0) && (core_mmu.nds9_if))
-						{
-							//Restore old IF, also OR in any new flags that were set
-							core_mmu.nds9_if = (core_mmu.nds9_old_if | core_mmu.nds9_if);
-
-							//Restore old IE
-							core_mmu.nds9_ie = core_mmu.nds9_old_ie;
-
-							core_cpu_nds9.idle_state = 0;
-						}
+						if((core_cpu_nds9.reg.r0 == 0) && (core_mmu.nds9_if)) { core_cpu_nds9.idle_state = 0; }
 
 						//Otherwise, match up bits in IE and IF
 						for(int x = 0; x < 21; x++)
 						{
 							//When there is a match check to see if IntrWait can quit
-							if((core_mmu.nds9_ie & (1 << x)) && (core_mmu.nds9_if & (1 << x)))
+							if((core_mmu.nds9_if & (1 << x)) && (core_mmu.nds9_temp_if & (1 << x)))
 							{
-								//Restore old IF, also OR in any new flags that were set
-								core_mmu.nds9_if = (core_mmu.nds9_old_if | core_mmu.nds9_if);
-
-								//Restore old IE
-								core_mmu.nds9_ie = core_mmu.nds9_old_ie;
-
 								core_cpu_nds9.idle_state = 0;
 							}
+
+							//Execute any pending IRQs outside of IntrWait or VBlankIntrWait
+							if((core_mmu.nds9_ie & (1 << x)) && (core_mmu.nds9_if & (1 << x)))
+							{
+								core_cpu_nds9.last_idle_state = core_cpu_nds9.idle_state;
+								core_cpu_nds9.idle_state = 0;
+							}
+
+							//Clear IF flags to wait for new flags if necessary
+							if(core_cpu_nds9.idle_state) { core_mmu.nds9_if &= ~core_mmu.nds9_temp_if; }
 						}
 
 						break;
@@ -557,16 +551,20 @@ void NTR_core::step()
 						for(int x = 0; x < 24; x++)
 						{
 							//When there is a match check to see if IntrWait can quit
-							if((core_mmu.nds7_ie & (1 << x)) && (core_mmu.nds7_if & (1 << x)))
+							if((core_mmu.nds7_if & (1 << x)) && (core_mmu.nds7_temp_if & (1 << x)))
 							{
-								//Restore old IF, also OR in any new flags that were set
-								core_mmu.nds7_if = (core_mmu.nds7_old_if | core_mmu.nds7_if);
-
-								//Restore old IE
-								core_mmu.nds7_ie = core_mmu.nds7_old_ie;
-
 								core_cpu_nds7.idle_state = 0;
 							}
+
+							//Execute any pending IRQs outside of IntrWait or VBlankIntrWait
+							if((core_mmu.nds7_ie & (1 << x)) && (core_mmu.nds7_if & (1 << x)))
+							{
+								core_cpu_nds7.last_idle_state = core_cpu_nds7.idle_state;
+								core_cpu_nds7.idle_state = 0;
+							}
+
+							//Clear IF flags to wait for new flags if necessary
+							if(core_cpu_nds7.idle_state) { core_mmu.nds7_if &= ~core_mmu.nds7_temp_if; }
 						}
 
 						break;

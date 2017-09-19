@@ -123,6 +123,7 @@ void NTR_LCD::reset()
 	lcd_stat.ext_pal_b = 0;
 
 	lcd_stat.display_stat_a = 0;
+	lcd_stat.display_stat_b = 0;
 
 	lcd_stat.bg_mode_a = 0;
 	lcd_stat.bg_mode_b = 0;

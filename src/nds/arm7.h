@@ -176,6 +176,7 @@ class NTR_ARM7
 	bool in_interrupt;
 
 	u8 idle_state;
+	u8 last_idle_state;
 
 	bool swi_vblank_wait;
 	u32 swi_waitbyloop_count;
