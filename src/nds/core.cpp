@@ -252,9 +252,10 @@ void NTR_core::run_core()
 									core_cpu_nds9.idle_state = 0;
 								}
 
-								//Clear IF flags to wait for new one
-								if(core_cpu_nds9.idle_state) { core_mmu.nds9_if &= ~core_mmu.nds9_temp_if; }
 							}
+
+							//Clear IF flags to wait for new one
+							if(core_cpu_nds9.idle_state) { core_mmu.nds9_if &= ~core_mmu.nds9_temp_if; }
 
 							break;
 					}
@@ -349,9 +350,10 @@ void NTR_core::run_core()
 									core_cpu_nds7.idle_state = 0;
 								}
 
-								//Clear IF flags to wait for new one
-								if(core_cpu_nds7.idle_state) { core_mmu.nds7_if &= ~core_mmu.nds7_temp_if; }
 							}
+
+							//Clear IF flags to wait for new one
+							if(core_cpu_nds7.idle_state) { core_mmu.nds7_if &= ~core_mmu.nds7_temp_if; }
 
 							break;
 					}
