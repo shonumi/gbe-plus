@@ -709,7 +709,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		case NDS_DISPSTAT:
 			if(access_mode)
 			{	
-				lcd_stat->display_stat_a &= ~0xF8;
+				lcd_stat->display_stat_a &= 0xFF07;
 				lcd_stat->display_stat_a |= (value & ~0x7);
 
 				lcd_stat->vblank_irq_enable_a = (value & 0x8) ? true : false;
@@ -723,7 +723,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 			else
 			{	
-				lcd_stat->display_stat_b &= ~0xF8;
+				lcd_stat->display_stat_b &= 0xFF07;
 				lcd_stat->display_stat_b |= (value & ~0x7);
 
 				lcd_stat->vblank_irq_enable_b = (value & 0x8) ? true : false;
