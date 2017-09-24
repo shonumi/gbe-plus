@@ -993,6 +993,165 @@ void NTR_core::debug_process_command()
 			}
 		}
 
+		//Write memory - 1 byte
+		else if((command.substr(0, 2) == "w8") && (command.substr(3, 2) == "0x"))
+		{
+			valid_command = true;
+			bool valid_value = false;
+			u32 mem_location = 0;
+			u32 mem_value = 0;
+			std::string hex_string = command.substr(5);
+
+			//Convert hex string into usable u32
+			valid_command = util::from_hex_str(hex_string, mem_location);
+
+			//Request valid input again
+			if(!valid_command)
+			{
+				std::cout<<"\nInvalid memory address : " << command << "\n";
+				std::cout<<": ";
+				std::getline(std::cin, command);
+			}
+
+			else
+			{
+				//Request value
+				while(!valid_value)
+				{
+					std::cout<<"\nInput value: ";
+					std::getline(std::cin, command);
+				
+					valid_value = util::from_hex_str(command.substr(2), mem_value);
+				
+					if(!valid_value)
+					{
+						std::cout<<"\nInvalid value : " << command << "\n";
+					}
+
+					else if((valid_value) && (mem_value > 0xFF))
+					{
+						std::cout<<"\nValue is too large (greater than 0xFF) : 0x" << std::hex << mem_value;
+						valid_value = false;
+					}
+				}
+
+				std::cout<<"\n";
+
+				u8 last_access = core_mmu.access_mode;
+				core_mmu.access_mode = nds9_debug;
+
+				db_unit.last_command = "w8";
+				core_mmu.write_u8(mem_location, mem_value);
+				debug_process_command();
+
+				core_mmu.access_mode = last_access;
+			}
+		}
+
+		//Write memory - 2 bytes
+		else if((command.substr(0, 3) == "w16") && (command.substr(4, 2) == "0x"))
+		{
+			valid_command = true;
+			bool valid_value = false;
+			u32 mem_location = 0;
+			u32 mem_value = 0;
+			std::string hex_string = command.substr(6);
+
+			//Convert hex string into usable u32
+			valid_command = util::from_hex_str(hex_string, mem_location);
+
+			//Request valid input again
+			if(!valid_command)
+			{
+				std::cout<<"\nInvalid memory address : " << command << "\n";
+				std::cout<<": ";
+				std::getline(std::cin, command);
+			}
+
+			else
+			{
+				//Request value
+				while(!valid_value)
+				{
+					std::cout<<"\nInput value: ";
+					std::getline(std::cin, command);
+				
+					valid_value = util::from_hex_str(command.substr(2), mem_value);
+				
+					if(!valid_value)
+					{
+						std::cout<<"\nInvalid value : " << command << "\n";
+					}
+
+					else if((valid_value) && (mem_value > 0xFFFF))
+					{
+						std::cout<<"\nValue is too large (greater than 0xFFFF) : 0x" << std::hex << mem_value;
+						valid_value = false;
+					}
+				}
+
+				std::cout<<"\n";
+
+				u8 last_access = core_mmu.access_mode;
+				core_mmu.access_mode = nds9_debug;
+
+				db_unit.last_command = "w16";
+				core_mmu.write_u16(mem_location, mem_value);
+				debug_process_command();
+
+				core_mmu.access_mode = last_access;
+			}
+		}
+
+		//Write memory - 4 bytes
+		else if((command.substr(0, 3) == "w32") && (command.substr(4, 2) == "0x"))
+		{
+			valid_command = true;
+			bool valid_value = false;
+			u32 mem_location = 0;
+			u32 mem_value = 0;
+			std::string hex_string = command.substr(6);
+
+			//Convert hex string into usable u32
+			valid_command = util::from_hex_str(hex_string, mem_location);
+
+			//Request valid input again
+			if(!valid_command)
+			{
+				std::cout<<"\nInvalid memory address : " << command << "\n";
+				std::cout<<": ";
+				std::getline(std::cin, command);
+			}
+
+			else
+			{
+				//Request value
+				while(!valid_value)
+				{
+					std::cout<<"\nInput value: ";
+					std::getline(std::cin, command);
+				
+					valid_value = util::from_hex_str(command.substr(2), mem_value);
+				
+					if(!valid_value)
+					{
+						std::cout<<"\nInvalid value : " << command << "\n";
+					}
+				}
+
+				std::cout<<"\n";
+
+				u8 last_access = core_mmu.access_mode;
+				core_mmu.access_mode = nds9_debug;
+
+				db_unit.last_command = "w32";
+				core_mmu.write_u32(mem_location, mem_value);
+				debug_process_command();
+
+				core_mmu.access_mode = last_access;
+			}
+		}
+
 		//Break on memory change
 		else if((command.substr(0, 2) == "bc") && (command.substr(3, 2) == "0x"))
 		{
