@@ -1622,6 +1622,12 @@ bool DMG_MMU::read_file(std::string filename)
 			std::cout<<"MMU::ROM Size - " << std::dec << cart.rom_size << "KB\n";
 			break;
 
+		case 0x20:
+			std::cout<<"MMU::Cartridge Type - MBC6\n";
+			std::cout<<"MMU::MBC type currently unsupported \n";
+			return false;
+			break;
+
 		case 0x22:
 			cart.mbc_type = MBC7;
 			cart.ram = false;
