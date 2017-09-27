@@ -72,6 +72,18 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	bios_layout->addWidget(bios_label);
 	bios_set->setLayout(bios_layout);
 
+	//General settings - Use Firmware
+	QWidget* firmware_set = new QWidget(general);
+	QLabel* firmware_label = new QLabel("Use System Firmware", firmware_set);
+	firmware = new QCheckBox(firmware_set);
+	firmware->setToolTip("Instructs GBE+ to boot use a system's firmware if applicable");
+
+	QHBoxLayout* firmware_layout = new QHBoxLayout;
+	firmware_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	firmware_layout->addWidget(firmware);
+	firmware_layout->addWidget(firmware_label);
+	firmware_set->setLayout(firmware_layout);
+
 	//General settings - Emulate specialty game carts
 	QWidget* special_cart_set = new QWidget(general);
 	QLabel* special_cart_label = new QLabel("Special ROM Type : ", special_cart_set);
@@ -167,6 +179,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	gen_layout->addWidget(ir_set);
 	gen_layout->addWidget(special_cart_set);
 	gen_layout->addWidget(bios_set);
+	gen_layout->addWidget(firmware_set);
 	gen_layout->addWidget(cheats_set);
 	gen_layout->addWidget(patch_set);
 	gen_layout->addWidget(rtc_set);
@@ -912,6 +925,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(tabs_button, SIGNAL(rejected()), this, SLOT(reject()));
 	connect(tabs_button->button(QDialogButtonBox::Close), SIGNAL(clicked()), this, SLOT(close_settings()));
 	connect(bios, SIGNAL(stateChanged(int)), this, SLOT(set_bios()));
+	connect(firmware, SIGNAL(stateChanged(int)), this, SLOT(set_firmware()));
 	connect(sio_dev, SIGNAL(currentIndexChanged(int)), this, SLOT(sio_dev_change()));
 	connect(ir_dev, SIGNAL(currentIndexChanged(int)), this, SLOT(ir_dev_change()));
 	connect(auto_patch, SIGNAL(stateChanged(int)), this, SLOT(set_patches()));
@@ -1145,6 +1159,9 @@ void gen_settings::set_ini_options()
 	//BIOS or Boot ROM option
 	if(config::use_bios) { bios->setChecked(true); }
 
+	//Use firmware
+	if(config::use_firmware) { firmware->setChecked(true); }
+
 	//Enable patches
 	if(config::use_patches) { auto_patch->setChecked(true); }
 
@@ -1299,6 +1316,13 @@ void gen_settings::set_bios()
 {
 	if(bios->isChecked()) { config::use_bios = true; }
 	else { config::use_bios = false; }
+}
+
+/****** Toggles whether to use firmware ******/
+void gen_settings::set_firmware()
+{
+	if(firmware->isChecked()) { config::use_firmware = true; }
+	else { config::use_firmware = false; }
 }
 
 /****** Changes the emulated Serial IO device ******/

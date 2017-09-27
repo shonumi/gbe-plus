@@ -36,6 +36,7 @@ class gen_settings : public QDialog
 	//General tab widgets
 	QComboBox* sys_type;
 	QCheckBox* bios;
+	QCheckBox* firmware;
 	QComboBox* special_cart;
 	QCheckBox* cheats;
 	QPushButton* edit_cheats;
@@ -157,6 +158,7 @@ class gen_settings : public QDialog
 
 	private slots:
 	void set_bios();
+	void set_firmware();
 	void sio_dev_change();
 	void ir_dev_change();
 	void set_patches();
