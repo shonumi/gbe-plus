@@ -74,9 +74,9 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 
 	//General settings - Use Firmware
 	QWidget* firmware_set = new QWidget(general);
-	QLabel* firmware_label = new QLabel("Use System Firmware", firmware_set);
+	QLabel* firmware_label = new QLabel("Use NDS Firmware", firmware_set);
 	firmware = new QCheckBox(firmware_set);
-	firmware->setToolTip("Instructs GBE+ to boot use a system's firmware if applicable");
+	firmware->setToolTip("Instructs GBE+ to boot using NDS firmware if applicable");
 
 	QHBoxLayout* firmware_layout = new QHBoxLayout;
 	firmware_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -819,6 +819,19 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	gba_bios_layout->addWidget(gba_bios_button);
 	gba_bios_set->setLayout(gba_bios_layout);
 
+	//Path settings - System Firmware
+	QWidget* nds_firmware_set = new QWidget(paths);
+	nds_firmware_label = new QLabel("NDS Firmware :  ");
+	QPushButton* nds_firmware_button = new QPushButton("Browse");
+	nds_firmware = new QLineEdit(paths);
+
+	QHBoxLayout* nds_firmware_layout = new QHBoxLayout;
+	nds_firmware_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	nds_firmware_layout->addWidget(nds_firmware_label);
+	nds_firmware_layout->addWidget(nds_firmware);
+	nds_firmware_layout->addWidget(nds_firmware_button);
+	nds_firmware_set->setLayout(nds_firmware_layout);
+
 	//Path settings - CGFX Manifest
 	QWidget* manifest_set = new QWidget(paths);
 	manifest_label = new QLabel("CGFX Manifest :  ");
@@ -904,6 +917,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	paths_layout->addWidget(dmg_bios_set);
 	paths_layout->addWidget(gbc_bios_set);
 	paths_layout->addWidget(gba_bios_set);
+	paths_layout->addWidget(nds_firmware_set);
 	paths_layout->addWidget(manifest_set);
 	paths_layout->addWidget(dump_bg_set);
 	paths_layout->addWidget(dump_obj_set);
@@ -956,6 +970,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(dmg_bios_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
 	connect(gbc_bios_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
 	connect(gba_bios_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
+	connect(nds_firmware_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
 	connect(manifest_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
 	connect(dump_bg_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
 	connect(dump_obj_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
@@ -966,12 +981,13 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	paths_mapper->setMapping(dmg_bios_button, 0);
 	paths_mapper->setMapping(gbc_bios_button, 1);
 	paths_mapper->setMapping(gba_bios_button, 2);
-	paths_mapper->setMapping(manifest_button, 3);
-	paths_mapper->setMapping(screenshot_button, 4);
-	paths_mapper->setMapping(dump_bg_button, 5);
-	paths_mapper->setMapping(dump_obj_button, 6);
-	paths_mapper->setMapping(game_saves_button, 7);
-	paths_mapper->setMapping(cheats_path_button, 8);
+	paths_mapper->setMapping(nds_firmware_button, 3);
+	paths_mapper->setMapping(manifest_button, 4);
+	paths_mapper->setMapping(screenshot_button, 5);
+	paths_mapper->setMapping(dump_bg_button, 6);
+	paths_mapper->setMapping(dump_obj_button, 7);
+	paths_mapper->setMapping(game_saves_button, 8);
+	paths_mapper->setMapping(cheats_path_button, 9);
 	connect(paths_mapper, SIGNAL(mapped(int)), this, SLOT(set_paths(int)));
 
 	QSignalMapper* button_config = new QSignalMapper(this);
@@ -1270,12 +1286,13 @@ void gen_settings::set_ini_options()
 	QString path_1(QString::fromStdString(config::dmg_bios_path));
 	QString path_2(QString::fromStdString(config::gbc_bios_path));
 	QString path_3(QString::fromStdString(config::agb_bios_path));
-	QString path_4(QString::fromStdString(cgfx::manifest_file));
-	QString path_5(QString::fromStdString(config::ss_path));
-	QString path_6(QString::fromStdString(cgfx::dump_bg_path));
-	QString path_7(QString::fromStdString(cgfx::dump_obj_path));
-	QString path_8(QString::fromStdString(config::save_path));
-	QString path_9(QString::fromStdString(config::cheats_path));
+	QString path_4(QString::fromStdString(config::nds_firmware_path));
+	QString path_5(QString::fromStdString(cgfx::manifest_file));
+	QString path_6(QString::fromStdString(config::ss_path));
+	QString path_7(QString::fromStdString(cgfx::dump_bg_path));
+	QString path_8(QString::fromStdString(cgfx::dump_obj_path));
+	QString path_9(QString::fromStdString(config::save_path));
+	QString path_10(QString::fromStdString(config::cheats_path));
 
 	//Rumble
 	if(config::use_haptics) { rumble_on->setChecked(true); }
@@ -1303,12 +1320,13 @@ void gen_settings::set_ini_options()
 	dmg_bios->setText(path_1);
 	gbc_bios->setText(path_2);
 	gba_bios->setText(path_3);
-	manifest->setText(path_4);
-	screenshot->setText(path_5);
-	dump_bg->setText(path_6);
-	dump_obj->setText(path_7);
-	game_saves->setText(path_8);
-	cheats_path->setText(path_9);
+	nds_firmware->setText(path_4);
+	manifest->setText(path_5);
+	screenshot->setText(path_6);
+	dump_bg->setText(path_7);
+	dump_obj->setText(path_8);
+	game_saves->setText(path_9);
+	cheats_path->setText(path_10);
 }
 
 /****** Toggles whether to use the Boot ROM or BIOS ******/
@@ -1515,8 +1533,8 @@ void gen_settings::set_paths(int index)
 {
 	QString path;
 
-	//Open file browser for Boot ROMs, BIOS, cheats, and manifests
-	if((index < 4) || (index == 8))
+	//Open file browser for Boot ROMs, BIOS, Firmware, cheats, and manifests
+	if((index < 5) || (index == 9))
 	{
 		path = QFileDialog::getOpenFileName(this, tr("Open"), "", tr("All files (*)"));
 		if(path.isNull()) { return; }
@@ -1527,8 +1545,8 @@ void gen_settings::set_paths(int index)
 	{
 		//Open the data folder for CGFX dumps
 		//On Linux or Unix, this is supposed to be a hidden folder, so we need a custom dialog
-		//This uses relative paths, but for game saves we need full path, so ignore if index is 7
-		if((index >= 5) && (index != 7))
+		//This uses relative paths, but for game saves we need full path, so ignore if index is 8
+		if((index >= 6) && (index != 8))
 		{
 			data_folder->open_data_folder();			
 
@@ -1570,31 +1588,36 @@ void gen_settings::set_paths(int index)
 			break;
 
 		case 3:
+			config::nds_firmware_path = path.toStdString();
+			nds_firmware->setText(path);
+			break;
+
+		case 4:
 			cgfx::manifest_file = path.toStdString();
 			manifest->setText(path);
 			break;
 
-		case 4:
+		case 5:
 			config::ss_path = path.toStdString();
 			screenshot->setText(path);
 			break;
 
-		case 5:
+		case 6:
 			cgfx::dump_bg_path = path.toStdString();
 			dump_bg->setText(path);
 			break;
 
-		case 6:
+		case 7:
 			cgfx::dump_obj_path = path.toStdString();
 			dump_obj->setText(path);
 			break;
 
-		case 7:
+		case 8:
 			config::save_path = path.toStdString();
 			game_saves->setText(path);
 			break;
 
-		case 8:
+		case 9:
 			config::cheats_path = path.toStdString();
 			cheats_path->setText(path);
 
@@ -2204,6 +2227,7 @@ void gen_settings::paintEvent(QPaintEvent* event)
 {
 	gbc_bios_label->setMinimumWidth(dmg_bios_label->width());
 	gba_bios_label->setMinimumWidth(dmg_bios_label->width());
+	nds_firmware_label->setMinimumWidth(dmg_bios_label->width());
 	manifest_label->setMinimumWidth(dmg_bios_label->width());
 	dump_bg_label->setMinimumWidth(dmg_bios_label->width());
 	dump_obj_label->setMinimumWidth(dmg_bios_label->width());
