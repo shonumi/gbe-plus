@@ -3254,6 +3254,16 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 						apu_stat->channel[apu_io_id].data_pos = apu_stat->channel[apu_io_id].data_src + ((apu_stat->channel[apu_io_id].loop_start - 1) * 8);
 						apu_stat->channel[apu_io_id].samples = ((apu_stat->channel[apu_io_id].length - 1) * 8);
 						break;
+
+					//PSG-Noise
+					case 0x3:
+						if(apu_io_id < 8)
+						{
+							std::cout<<"MMU::Warning - Tried to play PSG-White noise on unsupported sound channel\n";
+							apu_stat->channel[apu_io_id].playing = false;
+						}
+
+						break;
 				}	
 			}
 
