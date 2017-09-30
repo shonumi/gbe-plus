@@ -231,6 +231,26 @@ void DMG_core::debug_process_command()
 			}
 		}
 
+		//Delete all breakpoints
+		else if(command.substr(0, 3) == "del")
+		{
+			valid_command = true;
+			
+			db_unit.breakpoints.clear();
+			db_unit.watchpoint_addr.clear();
+			db_unit.watchpoint_val.clear();
+			db_unit.watchpoint_old_val.clear();
+
+			//Advanced debugging
+			#ifdef GBE_DEBUG
+			db_unit.write_addr.clear();
+			db_unit.read_addr.clear();
+			#endif
+			
+			std::cout<<"\nBreakpoints deleted\n";
+			debug_process_command();
+		}
+
 		//Show memory - 1 byte
 		else if((command.substr(0, 2) == "u8") && (command.substr(3, 2) == "0x"))
 		{
@@ -698,6 +718,7 @@ void DMG_core::debug_process_command()
 			std::cout<<"br \t\t Set breakpoint on memory read, format 0x1234 for addr\n";
 			#endif
 
+			std::cout<<"del \t\t Deletes ALL current breakpoints\n";
 			std::cout<<"u8 \t\t Show BYTE @ memory, format 0x1234\n";
 			std::cout<<"u16 \t\t Show WORD @ memory, format 0x1234\n";
 			std::cout<<"w8 \t\t Write BYTE @ memory, format 0x1234 for addr, 0x12 for value\n";
