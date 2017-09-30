@@ -17,6 +17,7 @@ set(SRCS
 	custom_graphics.cpp
 	sio.cpp
 	infrared.cpp
+	debug.cpp
 	)
 
 set(HEADERS
