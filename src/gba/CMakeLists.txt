@@ -11,6 +11,7 @@ set(SRCS
 	swi.cpp
 	thumb_instr.cpp
 	gpio.cpp
+	debug.cpp
 	)
 
 set(HEADERS
