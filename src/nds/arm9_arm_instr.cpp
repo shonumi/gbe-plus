@@ -1549,7 +1549,12 @@ void NTR_ARM9::coprocessor_register_transfer(u32 current_instruction)
 			co_proc.regs[CP15::C7_CM_XX] = get_reg(arm_reg);
 
 			//C7, C0, 4
-			if((cop_opr == 0) && (cop_info == 4)) { idle_state = 1; }
+			if((cop_opr == 0) && (cop_info == 4))
+			{
+				idle_state = 1;
+				last_idle_state = 1;
+				std::cout<<"ARM9 HALT\n";
+			}
 
 			//C7,C5,0
 			if((cop_opr == 5) && (cop_info == 0)) { co_proc.invalidate_instr_cache(); }
