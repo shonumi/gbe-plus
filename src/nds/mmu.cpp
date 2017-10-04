@@ -3239,20 +3239,20 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 				{
 					//PCM8
 					case 0x0:
-						apu_stat->channel[apu_io_id].data_pos = apu_stat->channel[apu_io_id].data_src + (apu_stat->channel[apu_io_id].loop_start * 4);
-						apu_stat->channel[apu_io_id].samples = (apu_stat->channel[apu_io_id].length * 4);
+						apu_stat->channel[apu_io_id].data_pos = apu_stat->channel[apu_io_id].data_src;
+						apu_stat->channel[apu_io_id].samples = (apu_stat->channel[apu_io_id].length * 4) + (apu_stat->channel[apu_io_id].loop_start * 4);
 						break;
 
 					//PCM16
 					case 0x1:
-						apu_stat->channel[apu_io_id].data_pos = apu_stat->channel[apu_io_id].data_src + (apu_stat->channel[apu_io_id].loop_start * 2);
-						apu_stat->channel[apu_io_id].samples = (apu_stat->channel[apu_io_id].length * 2);
+						apu_stat->channel[apu_io_id].data_pos = apu_stat->channel[apu_io_id].data_src;
+						apu_stat->channel[apu_io_id].samples = (apu_stat->channel[apu_io_id].length * 2) + (apu_stat->channel[apu_io_id].loop_start * 2);
 						break;
 
 					//IMA-ADPCM
 					case 0x2:
-						apu_stat->channel[apu_io_id].data_pos = apu_stat->channel[apu_io_id].data_src + ((apu_stat->channel[apu_io_id].loop_start - 1) * 8);
-						apu_stat->channel[apu_io_id].samples = ((apu_stat->channel[apu_io_id].length - 1) * 8);
+						apu_stat->channel[apu_io_id].data_pos = apu_stat->channel[apu_io_id].data_src;
+						apu_stat->channel[apu_io_id].samples = ((apu_stat->channel[apu_io_id].length - 1) * 8) + ((apu_stat->channel[apu_io_id].loop_start - 1) * 8);
 						break;
 
 					//PSG-Noise
