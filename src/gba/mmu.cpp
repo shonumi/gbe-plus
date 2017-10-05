@@ -1158,6 +1158,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			apu_stat->channel[3].envelope_step = (memory_map[SND4CNT_L+1] & 0x7);
 			apu_stat->channel[3].envelope_direction = (memory_map[SND4CNT_L+1] & 0x8) ? 1 : 0;
 			apu_stat->channel[3].volume = (memory_map[SND4CNT_L+1] >> 4) & 0xF;
+
 			break;
 
 		//Sound Channel 4 Control - Noise Parameters
@@ -1185,12 +1186,12 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 		case SND4CNT_H+1:
 			memory_map[address] = value;
 			apu_stat->channel[3].length_flag = (memory_map[SND4CNT_H+1] & 0x40) ? true : false;
-			if(memory_map[SND4CNT_H+1] & 0x80) { apu_stat->channel[3].playing = true; }
 
 			if(apu_stat->channel[3].volume == 0) { apu_stat->channel[3].playing = false; }
 
-			if((address == SND4CNT_H+1) && (apu_stat->channel[3].playing)) 
+			else if(memory_map[SND4CNT_H+1] & 0x80)
 			{
+				apu_stat->channel[3].playing = true;
 				apu_stat->channel[3].frequency_distance = 0;
 				apu_stat->channel[3].sample_length = (apu_stat->channel[3].duration * apu_stat->sample_rate);
 				apu_stat->channel[3].envelope_counter = 0;
