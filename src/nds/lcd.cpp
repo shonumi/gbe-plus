@@ -2797,4 +2797,64 @@ void NTR_LCD::reload_affine_references(u32 bg_control)
 	if(engine_a) { lcd_stat.bg_affine_a[aff_id].y_pos = lcd_stat.bg_affine_a[aff_id].y_ref; }
 	else { lcd_stat.bg_affine_b[aff_id].y_pos = lcd_stat.bg_affine_b[aff_id].y_ref; }
 }
+
+/****** Generates the game icon (non-animated) from NDS cart header ******/
+bool NTR_LCD::get_cart_icon(SDL_Surface* nds_icon)
+{
+	u32 icon_base = mem->read_cart_u32(0x68);
 	
+	if(!icon_base) { return false; }
+
+	//Create SDL_Surface for icon
+	nds_icon = SDL_CreateRGBSurface(SDL_SWSURFACE, 32, 32, 32, 0, 0, 0, 0);
+
+	//Lock source surface
+	if(SDL_MUSTLOCK(nds_icon)){ SDL_LockSurface(nds_icon); }
+	u32* icon_data = (u32*)nds_icon->pixels;
+
+	//Generate palettes
+	u32 pals[16];
+
+	for(u32 x = 0; x < 16; x++)
+	{
+		u16 raw_pal = mem->read_cart_u16(icon_base + 0x220 + (x << 1));
+		
+		u8 red = ((raw_pal & 0x1F) << 3);
+		raw_pal >>= 5;
+
+		u8 green = ((raw_pal & 0x1F) << 3);
+		raw_pal >>= 5;
+
+		u8 blue = ((raw_pal & 0x1F) << 3);
+
+		pals[x] =  0xFF000000 | (red << 16) | (green << 8) | (blue);
+	}
+
+	u16 data_pos = 0;
+
+	//Cycle through all tiles to generate icon data
+	for(u32 x = 0; x < 16; x++)
+	{
+		u16 pixel_pos = ((x / 4) * 256) + ((x % 4) * 8);
+
+		for(u32 y = 0; y < 32; y++)
+		{
+			u8 icon_char = mem->cart_data[icon_base + 0x20 + data_pos];
+			u8 char_r = (icon_char >> 4);
+			u8 char_l = (icon_char & 0xF);
+			data_pos++;
+
+			icon_data[pixel_pos++] = pals[char_l];
+			icon_data[pixel_pos++] = pals[char_r];
+
+			if((pixel_pos % 8) == 0) { pixel_pos += 24; }
+		}
+	}
+
+	//Unlock source surface
+	if(SDL_MUSTLOCK(nds_icon)){ SDL_UnlockSurface(nds_icon); }
+
+	SDL_SaveBMP(nds_icon, "icon.bmp");
+
+	return true;
+}
