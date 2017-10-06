@@ -610,6 +610,19 @@ u32 NTR_MMU::read_u32_fast(u32 address) const
 	return ((memory_map[address+3] << 24) | (memory_map[address+2] << 16) | (memory_map[address+1] << 8) | memory_map[address]);
 }
 
+/****** Reads 2 bytes from cartridge memory - No checks done on the read ******/
+u16 NTR_MMU::read_cart_u16(u32 address) const
+{
+	return ((cart_data[address+1] << 8) | cart_data[address]);
+}
+
+/****** Reads 4 bytes from cartridge memory - No checks done on the read ******/
+u32 NTR_MMU::read_cart_u32(u32 address) const
+{
+	return ((cart_data[address+3] << 24) | (cart_data[address+2] << 16) | (cart_data[address+1] << 8) | cart_data[address]);
+}
+
+
 /****** Write byte into memory ******/
 void NTR_MMU::write_u8(u32 address, u8 value)
 {
