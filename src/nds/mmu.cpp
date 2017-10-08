@@ -3245,6 +3245,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			if(apu_stat->channel[apu_io_id].cnt & 0x80000000)
 			{
 				apu_stat->channel[apu_io_id].playing = true;
+				apu_stat->channel[apu_io_id].volume = (apu_stat->channel[apu_io_id].cnt & 0x7F);
 				u8 format = ((apu_stat->channel[apu_io_id].cnt >> 29) & 0x3);
 
 				//Determine loop start offset and sample length

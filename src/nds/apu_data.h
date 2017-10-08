@@ -26,6 +26,7 @@ struct ntr_apu_data
 		u32 length;
 		u32 samples;
 		u32 cnt;
+		u8 volume;
 
 		bool playing;
 		bool enable;
