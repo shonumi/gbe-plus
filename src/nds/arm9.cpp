@@ -66,6 +66,7 @@ void NTR_ARM9::reset()
 	last_idle_state = 0;
 
 	thumb_long_branch = false;
+	last_instr_branch = false;
 	swi_waitbyloop_count = 0;
 
 	arm_mode = ARM;
@@ -1392,6 +1393,8 @@ void NTR_ARM9::handle_interrupt()
 			if((ie_check & (1 << x)) && (if_check & (1 << x)))
 			{
 				current_cpu_mode = IRQ;
+
+				if((last_instr_branch) && (!needs_flush)) { reg.r15 += (arm_mode == ARM) ? 4 : 2; }
 
 				//Save PC to LR
 				set_reg(14, reg.r15);

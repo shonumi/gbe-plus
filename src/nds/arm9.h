@@ -180,6 +180,7 @@ class NTR_ARM9
 	u8 last_idle_state;
 
 	bool thumb_long_branch;
+	bool last_instr_branch;
 	u32 swi_waitbyloop_count;
 
 	u32 instruction_pipeline[3];

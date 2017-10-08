@@ -284,13 +284,18 @@ void NTR_core::run_core()
 					core_cpu_nds9.handle_interrupt();
 		
 					//Flush pipeline if necessary
-					if(core_cpu_nds9.needs_flush) { core_cpu_nds9.flush_pipeline(); }
+					if(core_cpu_nds9.needs_flush)
+					{
+						core_cpu_nds9.flush_pipeline();
+						core_cpu_nds9.last_instr_branch = true;
+					}
 
 					//Else update the pipeline and PC
 					else
 					{ 
 						core_cpu_nds9.pipeline_pointer = (core_cpu_nds9.pipeline_pointer + 1) % 3;
 						core_cpu_nds9.update_pc();
+						core_cpu_nds9.last_instr_branch = false;
 					}
 				}
 
@@ -389,13 +394,18 @@ void NTR_core::run_core()
 					core_cpu_nds7.handle_interrupt();
 		
 					//Flush pipeline if necessary
-					if(core_cpu_nds7.needs_flush) { core_cpu_nds7.flush_pipeline(); }
+					if(core_cpu_nds7.needs_flush)
+					{
+						core_cpu_nds7.flush_pipeline();
+						core_cpu_nds7.last_instr_branch = true;
+					}
 
 					//Else update the pipeline and PC
 					else
 					{ 
 						core_cpu_nds7.pipeline_pointer = (core_cpu_nds7.pipeline_pointer + 1) % 3;
 						core_cpu_nds7.update_pc();
+						core_cpu_nds7.last_instr_branch = true;
 					}
 				}
 
