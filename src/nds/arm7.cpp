@@ -61,7 +61,7 @@ void NTR_ARM7::reset()
 	idle_state = 0;
 	last_idle_state = 0;
 
-	swi_vblank_wait = false;
+	thumb_long_branch = false;
 	swi_waitbyloop_count = 0;
 
 	arm_mode = ARM;
@@ -1308,48 +1308,12 @@ void NTR_ARM7::clock_timers(u8 access_cycles)
 /****** Jumps to or exits an interrupt ******/
 void NTR_ARM7::handle_interrupt()
 {
-	//Exit interrupt
-	if((in_interrupt) && (reg.r15 == 0x2DD8))
-	{
-		//Restore registers from SP
-		u32 sp_addr = get_reg(13);
-		reg.r0 = mem->read_u32(sp_addr); sp_addr += 4;
-		reg.r1 = mem->read_u32(sp_addr); sp_addr += 4;
-		reg.r2 = mem->read_u32(sp_addr); sp_addr += 4;
-		reg.r3 = mem->read_u32(sp_addr); sp_addr += 4;
-		set_reg(12, mem->read_u32(sp_addr)); sp_addr += 4;
-		set_reg(14, mem->read_u32(sp_addr)); sp_addr += 4;
-		set_reg(13, sp_addr);
-
-		//Set PC to LR - 4;
-		reg.r15 = get_reg(14) - 4;
-
-		//Set CPSR from SPSR, turn on IRQ flag
-		reg.cpsr = get_spsr();
-		reg.cpsr &= ~CPSR_IRQ;
-		reg.cpsr &= ~0x1F;
-		reg.cpsr |= CPSR_MODE_SYS;
-
-		//Request pipeline flush, signal end of interrupt handling, switch to appropiate ARM/THUMB mode
-		needs_flush = true;
-		in_interrupt = false;
-		arm_mode = (reg.cpsr & 0x20) ? THUMB : ARM;
-
-		current_cpu_mode = SYS;
-		debug_code = 0xFEEDBACC;
-
-		if(last_idle_state)
-		{
-			idle_state = last_idle_state;
-			last_idle_state = 0;
-		}
-	}
-
 	//Jump into an interrupt, check if the master flag is enabled
-	if((mem->nds7_ime & 0x1) && ((reg.cpsr & CPSR_IRQ) == 0) && (!in_interrupt))
+	if((mem->nds7_ime & 0x1) && ((reg.cpsr & CPSR_IRQ) == 0))
 	{
 		//Wait until pipeline is finished filling
-		if(debug_message == 0xFF) { return; }
+		//Wait until THUMB.19 is finished executing
+		if((debug_message == 0xFF) || (thumb_long_branch)) { return; }
 
 		u32 if_check = mem->nds7_if;
 		u32 ie_check = mem->nds7_ie;
@@ -1363,8 +1327,7 @@ void NTR_ARM7::handle_interrupt()
 				current_cpu_mode = IRQ;
 
 				//Save PC to LR
-				if(needs_flush) { set_reg(14, (reg.r15 + 4)); }
-				else { set_reg(14, reg.r15); }
+				set_reg(14, reg.r15);
 
 				//Set PC and SPSR
 				reg.r15 = mem->nds7_bios_vector + 0x18;
@@ -1374,6 +1337,7 @@ void NTR_ARM7::handle_interrupt()
 				needs_flush = true;
 				in_interrupt = true;
 				arm_mode = ARM;
+				last_idle_state = 0;
 
 				//Alter CPSR bits, turn off THUMB and IRQ flags, set mode bits
 				reg.cpsr &= ~0x20;
