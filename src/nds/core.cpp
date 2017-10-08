@@ -405,7 +405,7 @@ void NTR_core::run_core()
 					{ 
 						core_cpu_nds7.pipeline_pointer = (core_cpu_nds7.pipeline_pointer + 1) % 3;
 						core_cpu_nds7.update_pc();
-						core_cpu_nds7.last_instr_branch = true;
+						core_cpu_nds7.last_instr_branch = false;
 					}
 				}
 
