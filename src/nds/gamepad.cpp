@@ -152,13 +152,14 @@ void NTR_GamePad::handle_input(SDL_Event &event)
 		pad = 400;
 
 		//Top screen cannot be touched
-		if((event.button.y / config::scaling_factor) < 192) { return; }
+		if(((event.button.y / config::scaling_factor) < 192) && ((config::lcd_config & 0x1) == 0)) { return; }
+		else if(((event.button.y / config::scaling_factor) > 192) && (config::lcd_config & 0x1)) { return; }
 
 		mouse_x = (event.button.x / config::scaling_factor);
 		mouse_y = (event.button.y / config::scaling_factor);
 
 		//Adjust mouse Y coordinate to NDS coordinate
-		mouse_y -= 192;
+		if((config::lcd_config & 0x1) == 0) { mouse_y -= 192; }
 
 		switch(event.button.button)
 		{
@@ -181,8 +182,13 @@ void NTR_GamePad::handle_input(SDL_Event &event)
 	{
 		pad = 400;
 
+		bool is_top = false;
+
 		//Top screen cannot be touched
-		if((event.button.y / config::scaling_factor) < 192)
+		if(((event.button.y / config::scaling_factor) < 192) && ((config::lcd_config & 0x1) == 0)) { is_top = true; }
+		else if(((event.button.y / config::scaling_factor) > 192) && (config::lcd_config & 0x1)) { is_top = true; }
+
+		if(is_top)
 		{
 			mouse_x = 0;
 			mouse_y = 0xFFF;
@@ -193,7 +199,7 @@ void NTR_GamePad::handle_input(SDL_Event &event)
 		mouse_y = (event.button.y / config::scaling_factor);
 
 		//Adjust mouse Y coordinate to NDS coordinate
-		mouse_y -= 192;
+		if((config::lcd_config & 0x1) == 0) { mouse_y -= 192; }
 
 		switch(event.button.button)
 		{
@@ -218,13 +224,14 @@ void NTR_GamePad::handle_input(SDL_Event &event)
 		if(!touch_by_mouse) { return; }
 
 		//Top screen cannot be touched
-		if((event.button.y / config::scaling_factor) < 192) { return; }
+		if(((event.button.y / config::scaling_factor) < 192) && ((config::lcd_config & 0x1) == 0)) { return; }
+		else if(((event.button.y / config::scaling_factor) > 192) && (config::lcd_config & 0x1)) { return; }
 
 		mouse_x = (event.button.x / config::scaling_factor);
 		mouse_y = (event.button.y / config::scaling_factor);
 
 		//Adjust mouse Y coordinate to NDS coordinate
-		mouse_y -= 192;
+		if((config::lcd_config & 0x1) == 0) { mouse_y -= 192; }
 	}
 }	
 
