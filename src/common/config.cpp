@@ -157,6 +157,9 @@ namespace config
 	//Aspect ratio
 	bool maintain_aspect_ratio = false;
 
+	//LCD configuration (NDS primarily)
+	u8 lcd_config = 0;
+
 	//Sound parameters
 	u8 volume = 128;
 	u8 old_volume = 0;

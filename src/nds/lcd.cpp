@@ -2530,6 +2530,13 @@ void NTR_LCD::step()
 			u16 disp_a_offset = (mem->power_cnt1 & 0x8000) ? 0 : 0xC000;
 			u16 disp_b_offset = (mem->power_cnt1 & 0x8000) ? 0xC000 : 0;
 
+			//Swap top and bottom if LCD configuration calls for it
+			if(config::lcd_config & 0x1)
+			{
+				disp_a_offset = (disp_a_offset) ? 0 : 0xC000;
+				disp_b_offset = (disp_b_offset) ? 0 : 0xC000;
+			}
+			
 			//Push scanline pixel data to screen buffer
 			for(u16 x = 0; x < 256; x++)
 			{
