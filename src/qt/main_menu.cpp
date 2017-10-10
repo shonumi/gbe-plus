@@ -908,10 +908,17 @@ bool main_menu::eventFilter(QObject* target, QEvent* event)
 			}
 
 			//Adjust Y for bottom touchscreen
-			if(y > 192)
-			{
-				y -= 192;
+			bool is_bottom = false;
 
+			if((y < 192) && (config::lcd_config & 0x1)) { is_bottom = true; }
+			else if((y > 192) && ((config::lcd_config & 0x1) == 0))
+			{
+				is_bottom = true;
+				y -= 192;
+			}
+
+			if(is_bottom)
+			{
 				//Pack Pad, X, Y into a 24-bit number to send to the NDS core
 				x &= 0xFF;
 				y &= 0xFF;
@@ -966,10 +973,17 @@ bool main_menu::eventFilter(QObject* target, QEvent* event)
 			}
 
 			//Adjust Y for bottom touchscreen
-			if(y > 192)
-			{
-				y -= 192;
+			bool is_bottom = false;
 
+			if((y < 192) && (config::lcd_config & 0x1)) { is_bottom = true; }
+			else if((y > 192) && ((config::lcd_config & 0x1) == 0))
+			{
+				is_bottom = true;
+				y -= 192;
+			}
+
+			if(is_bottom)
+			{
 				//Pack Pad, X, Y into a 24-bit number to send to the NDS core
 				x &= 0xFF;
 				y &= 0xFF;
@@ -1027,10 +1041,17 @@ bool main_menu::eventFilter(QObject* target, QEvent* event)
 			}
 
 			//Adjust Y for bottom touchscreen
-			if(y > 192)
-			{
-				y -= 192;
+			bool is_bottom = false;
 
+			if((y < 192) && (config::lcd_config & 0x1)) { is_bottom = true; }
+			else if((y > 192) && ((config::lcd_config & 0x1) == 0))
+			{
+				is_bottom = true;
+				y -= 192;
+			}
+
+			if(is_bottom)
+			{
 				//Pack Pad, X, Y into a 24-bit number to send to the NDS core
 				x &= 0xFF;
 				y &= 0xFF;

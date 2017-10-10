@@ -1410,6 +1410,13 @@ void NTR_core::handle_hotkey(int input, bool pressed)
 
 	//Toggle turbo off
 	else if((input == config::hotkey_turbo) && (!pressed)) { config::turbo = false; }
+
+	//Toggle swap NDS screens on F4
+	else if((input == SDLK_F4) && (pressed))
+	{
+		if(config::lcd_config & 0x1) { config::lcd_config &= ~0x1; }
+		else { config::lcd_config |= 0x1; }
+	}
 }
 
 /****** Updates the core's volume ******/
