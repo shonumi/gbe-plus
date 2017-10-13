@@ -3338,6 +3338,25 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 			break;
 
+		case NDS_SOUNDCNT:
+		case NDS_SOUNDCNT + 1:
+			if(access_mode) { return; }
+			memory_map[address] = value;
+
+			//Master Volume + Master Enabled
+			if(memory_map[NDS_SOUNDCNT + 1] & 0x80)
+			{
+				apu_stat->main_volume = (memory_map[NDS_SOUNDCNT] & 0x7F);
+			}
+
+			else { apu_stat->main_volume = 0; }
+
+			break;
+
+		case NDS_SOUNDCNT + 2:
+		case NDS_SOUNDCNT + 3:
+			return;
+			
 		default:
 			memory_map[address] = value;
 			break;

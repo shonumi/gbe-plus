@@ -107,7 +107,10 @@ void NTR_APU::generate_channel_samples(s32* stream, int length, u8 id)
 	u32 sample_pos = apu_stat.channel[id].data_pos;
 	u8 format = ((apu_stat.channel[id].cnt >> 29) & 0x3);
 	u8 loop_mode = ((apu_stat.channel[id].cnt >> 27) & 0x3);
+
+	//Calculate volume
 	float vol = (apu_stat.channel[id].volume != 0) ? (apu_stat.channel[id].volume / 127.0) : 0;
+	vol *= (apu_stat.main_volume / 127.0);
 
 	s8 nds_sample_8 = 0;
 	s16 nds_sample_16 = 0;
