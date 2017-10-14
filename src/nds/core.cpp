@@ -254,7 +254,7 @@ void NTR_core::run_core()
 								else if((core_mmu.nds9_ie & (1 << x)) && (core_mmu.nds9_if & (1 << x)))
 								{
 									core_cpu_nds9.idle_state = 0;
-									core_cpu_nds9.reg.r15 -= (core_cpu_nds9.arm_mode == NTR_ARM9::ARM) ? 8 : 4;
+									core_cpu_nds9.reg.r15 -= (core_cpu_nds9.arm_mode == NTR_ARM9::ARM) ? 8 : 2;
 								}
 
 							}
@@ -277,11 +277,11 @@ void NTR_core::run_core()
 				//Otherwise, handle normal CPU operations
 				else
 				{
+					core_cpu_nds9.handle_interrupt();
+
 					core_cpu_nds9.fetch();
 					core_cpu_nds9.decode();
 					core_cpu_nds9.execute();
-
-					core_cpu_nds9.handle_interrupt();
 		
 					//Flush pipeline if necessary
 					if(core_cpu_nds9.needs_flush)
@@ -364,7 +364,7 @@ void NTR_core::run_core()
 								else if((core_mmu.nds7_ie & (1 << x)) && (core_mmu.nds7_if & (1 << x)))
 								{
 									core_cpu_nds7.idle_state = 0;
-									core_cpu_nds7.reg.r15 -= (core_cpu_nds7.arm_mode == NTR_ARM7::ARM) ? 8 : 4;
+									core_cpu_nds7.reg.r15 -= (core_cpu_nds7.arm_mode == NTR_ARM7::ARM) ? 8 : 2;
 								}
 
 							}
@@ -387,11 +387,11 @@ void NTR_core::run_core()
 				//Otherwise, handle normal CPU operations
 				else
 				{
+					core_cpu_nds7.handle_interrupt();
+
 					core_cpu_nds7.fetch();
 					core_cpu_nds7.decode();
 					core_cpu_nds7.execute();
-
-					core_cpu_nds7.handle_interrupt();
 		
 					//Flush pipeline if necessary
 					if(core_cpu_nds7.needs_flush)

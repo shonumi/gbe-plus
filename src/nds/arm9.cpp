@@ -1394,7 +1394,8 @@ void NTR_ARM9::handle_interrupt()
 			{
 				current_cpu_mode = IRQ;
 
-				if((last_instr_branch) && (!needs_flush)) { reg.r15 += (arm_mode == ARM) ? 4 : 2; }
+				if(last_instr_branch) { reg.r15 += 4; }
+				else if((last_idle_state == 0) && (arm_mode == ARM)) { reg.r15 -= 4; }
 
 				//Save PC to LR
 				set_reg(14, reg.r15);
@@ -1404,7 +1405,8 @@ void NTR_ARM9::handle_interrupt()
 				set_spsr(reg.cpsr);
 
 				//Request pipeline flush, signal interrupt handling, and go to ARM mode
-				needs_flush = true;
+				flush_pipeline();
+
 				in_interrupt = true;
 				arm_mode = ARM;
 				last_idle_state = 0;
