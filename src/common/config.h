@@ -146,6 +146,7 @@ namespace config
 	extern bool request_resize;
 	extern s8 resize_mode;
 	extern bool maintain_aspect_ratio;
+	extern u8 lcd_config;
 
 	extern u32 DMG_BG_PAL[4];
 	extern u32 DMG_OBJ_PAL[4][2];

@@ -38,8 +38,6 @@ void NTR_APU::reset()
 	apu_stat.main_volume = 4;
 
 	apu_stat.channel_master_volume = config::volume;
-	apu_stat.channel_left_volume = 0.0;
-	apu_stat.channel_right_volume = 0.0;
 
 	//Reset Channel 1-16 data
 	for(int x = 0; x < 16; x++)
@@ -51,11 +49,10 @@ void NTR_APU::reset()
 		apu_stat.channel[x].length = 0;
 		apu_stat.channel[x].samples = 0;
 		apu_stat.channel[x].cnt = 0;
+		apu_stat.channel[x].volume = 0;
 
 		apu_stat.channel[x].playing = false;
 		apu_stat.channel[x].enable = false;
-		apu_stat.channel[x].right_enable = false;
-		apu_stat.channel[x].left_enable = false;
 	}
 }
 
@@ -105,6 +102,11 @@ void NTR_APU::generate_channel_samples(s32* stream, int length, u8 id)
 	double sample_ratio = (apu_stat.channel[id].output_frequency / apu_stat.sample_rate);
 	u32 sample_pos = apu_stat.channel[id].data_pos;
 	u8 format = ((apu_stat.channel[id].cnt >> 29) & 0x3);
+	u8 loop_mode = ((apu_stat.channel[id].cnt >> 27) & 0x3);
+
+	//Calculate volume
+	float vol = (apu_stat.channel[id].volume != 0) ? (apu_stat.channel[id].volume / 127.0) : 0;
+	vol *= (apu_stat.main_volume / 127.0);
 
 	s8 nds_sample_8 = 0;
 	s16 nds_sample_16 = 0;
@@ -127,10 +129,25 @@ void NTR_APU::generate_channel_samples(s32* stream, int length, u8 id)
 				//Scale S8 audio to S16
 				stream[x] += (nds_sample_8 * 256);
 
+				//Adjust volume level
+				stream[x] *= vol;
+
 				if(data_addr >= (apu_stat.channel[id].data_src + apu_stat.channel[id].samples))
 				{
-					apu_stat.channel[id].playing = false;
-					apu_stat.channel[id].cnt &= ~0x80000000;
+					//Loop sound
+					if(loop_mode == 1)
+					{
+						apu_stat.channel[id].data_src += (apu_stat.channel[id].loop_start * 4);
+						apu_stat.channel[id].data_pos = apu_stat.channel[id].data_src;
+						apu_stat.channel[id].samples = (apu_stat.channel[id].length * 4);
+					}
+					
+					//Stop sound
+					else if(loop_mode == 2)
+					{
+						apu_stat.channel[id].playing = false;
+						apu_stat.channel[id].cnt &= ~0x80000000;
+					}
 				}	
 			}
 
@@ -143,10 +160,25 @@ void NTR_APU::generate_channel_samples(s32* stream, int length, u8 id)
 
 				stream[x] += nds_sample_16;
 
+				//Adjust volume level
+				stream[x] *= vol;
+
 				if(data_addr >= (apu_stat.channel[id].data_src + apu_stat.channel[id].samples))
 				{
-					apu_stat.channel[id].playing = false;
-					apu_stat.channel[id].cnt &= ~0x80000000;
+					//Loop sound
+					if(loop_mode == 1)
+					{
+						apu_stat.channel[id].data_src += (apu_stat.channel[id].loop_start * 2);
+						apu_stat.channel[id].data_pos = apu_stat.channel[id].data_src;
+						apu_stat.channel[id].samples = (apu_stat.channel[id].length * 2);
+					}
+					
+					//Stop sound
+					else if(loop_mode == 2)
+					{	
+						apu_stat.channel[id].playing = false;
+						apu_stat.channel[id].cnt &= ~0x80000000;
+					}
 				}	
 			}
 

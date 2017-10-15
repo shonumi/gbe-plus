@@ -277,6 +277,9 @@ class NTR_MMU
 	void write_u32_fast(u32 address, u32 value);
 	void write_u64_fast(u32 address, u64 value);
 
+	u16 read_cart_u16(u32 address) const;
+	u32 read_cart_u32(u32 address) const;
+
 	bool read_file(std::string filename);
 	bool read_bios_nds7(std::string filename);
 	bool read_bios_nds9(std::string filename);

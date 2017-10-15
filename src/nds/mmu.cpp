@@ -610,6 +610,19 @@ u32 NTR_MMU::read_u32_fast(u32 address) const
 	return ((memory_map[address+3] << 24) | (memory_map[address+2] << 16) | (memory_map[address+1] << 8) | memory_map[address]);
 }
 
+/****** Reads 2 bytes from cartridge memory - No checks done on the read ******/
+u16 NTR_MMU::read_cart_u16(u32 address) const
+{
+	return ((cart_data[address+1] << 8) | cart_data[address]);
+}
+
+/****** Reads 4 bytes from cartridge memory - No checks done on the read ******/
+u32 NTR_MMU::read_cart_u32(u32 address) const
+{
+	return ((cart_data[address+3] << 24) | (cart_data[address+2] << 16) | (cart_data[address+1] << 8) | cart_data[address]);
+}
+
+
 /****** Write byte into memory ******/
 void NTR_MMU::write_u8(u32 address, u8 value)
 {
@@ -3232,6 +3245,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			if(apu_stat->channel[apu_io_id].cnt & 0x80000000)
 			{
 				apu_stat->channel[apu_io_id].playing = true;
+				apu_stat->channel[apu_io_id].volume = (apu_stat->channel[apu_io_id].cnt & 0x7F);
 				u8 format = ((apu_stat->channel[apu_io_id].cnt >> 29) & 0x3);
 
 				//Determine loop start offset and sample length
@@ -3239,20 +3253,20 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 				{
 					//PCM8
 					case 0x0:
-						apu_stat->channel[apu_io_id].data_pos = apu_stat->channel[apu_io_id].data_src + (apu_stat->channel[apu_io_id].loop_start * 4);
-						apu_stat->channel[apu_io_id].samples = (apu_stat->channel[apu_io_id].length * 4);
+						apu_stat->channel[apu_io_id].data_pos = apu_stat->channel[apu_io_id].data_src;
+						apu_stat->channel[apu_io_id].samples = (apu_stat->channel[apu_io_id].length * 4) + (apu_stat->channel[apu_io_id].loop_start * 4);
 						break;
 
 					//PCM16
 					case 0x1:
-						apu_stat->channel[apu_io_id].data_pos = apu_stat->channel[apu_io_id].data_src + (apu_stat->channel[apu_io_id].loop_start * 2);
-						apu_stat->channel[apu_io_id].samples = (apu_stat->channel[apu_io_id].length * 2);
+						apu_stat->channel[apu_io_id].data_pos = apu_stat->channel[apu_io_id].data_src;
+						apu_stat->channel[apu_io_id].samples = (apu_stat->channel[apu_io_id].length * 2) + (apu_stat->channel[apu_io_id].loop_start * 2);
 						break;
 
 					//IMA-ADPCM
 					case 0x2:
-						apu_stat->channel[apu_io_id].data_pos = apu_stat->channel[apu_io_id].data_src + ((apu_stat->channel[apu_io_id].loop_start - 1) * 8);
-						apu_stat->channel[apu_io_id].samples = ((apu_stat->channel[apu_io_id].length - 1) * 8);
+						apu_stat->channel[apu_io_id].data_pos = apu_stat->channel[apu_io_id].data_src;
+						apu_stat->channel[apu_io_id].samples = ((apu_stat->channel[apu_io_id].length - 1) * 8) + ((apu_stat->channel[apu_io_id].loop_start - 1) * 8);
 						break;
 
 					//PSG-Noise
@@ -3324,6 +3338,25 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 			break;
 
+		case NDS_SOUNDCNT:
+		case NDS_SOUNDCNT + 1:
+			if(access_mode) { return; }
+			memory_map[address] = value;
+
+			//Master Volume + Master Enabled
+			if(memory_map[NDS_SOUNDCNT + 1] & 0x80)
+			{
+				apu_stat->main_volume = (memory_map[NDS_SOUNDCNT] & 0x7F);
+			}
+
+			else { apu_stat->main_volume = 0; }
+
+			break;
+
+		case NDS_SOUNDCNT + 2:
+		case NDS_SOUNDCNT + 3:
+			return;
+			
 		default:
 			memory_map[address] = value;
 			break;

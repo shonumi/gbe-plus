@@ -1420,6 +1420,13 @@ void NTR_core::handle_hotkey(SDL_Event& event)
 		
 	//Reset emulation on F8
 	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F8)) { reset(); }
+
+	//Toggle swap NDS screens on F4
+	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F4))
+	{
+		if(config::lcd_config & 0x1) { config::lcd_config &= ~0x1; }
+		else { config::lcd_config |= 0x1; }
+	}
 }
 
 /****** Process hotkey input - Use exsternally when not using SDL ******/
@@ -1430,6 +1437,13 @@ void NTR_core::handle_hotkey(int input, bool pressed)
 
 	//Toggle turbo off
 	else if((input == config::hotkey_turbo) && (!pressed)) { config::turbo = false; }
+
+	//Toggle swap NDS screens on F4
+	else if((input == SDLK_F4) && (pressed))
+	{
+		if(config::lcd_config & 0x1) { config::lcd_config &= ~0x1; }
+		else { config::lcd_config |= 0x1; }
+	}
 }
 
 /****** Updates the core's volume ******/

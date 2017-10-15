@@ -26,11 +26,10 @@ struct ntr_apu_data
 		u32 length;
 		u32 samples;
 		u32 cnt;
+		u8 volume;
 
 		bool playing;
 		bool enable;
-		bool right_enable;
-		bool left_enable;
 	} channel[16];
 
 	bool sound_on;
@@ -40,8 +39,6 @@ struct ntr_apu_data
 	double sample_rate;
 
 	u8 channel_master_volume;
-	double channel_left_volume;
-	double channel_right_volume;
 };
 
 #endif // NDS_APU_DATA
