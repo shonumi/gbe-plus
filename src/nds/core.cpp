@@ -224,6 +224,7 @@ void NTR_core::run_core()
 								{
 									core_cpu_nds9.idle_state = 0;
 									core_cpu_nds9.reg.r15 -= (core_cpu_nds9.arm_mode == NTR_ARM9::ARM) ? 4 : 0;
+									x = 100;
 								}
 							}
 
@@ -248,6 +249,7 @@ void NTR_core::run_core()
 								{
 									core_cpu_nds9.idle_state = 0;
 									core_cpu_nds9.reg.r15 -= (core_cpu_nds9.arm_mode == NTR_ARM9::ARM) ? 4 : 0;
+									x = 100;
 								}
 
 								//Execute any other pending IRQs that happen during IntrWait or VBlankIntrWait
@@ -255,6 +257,7 @@ void NTR_core::run_core()
 								{
 									core_cpu_nds9.idle_state = 0;
 									core_cpu_nds9.reg.r15 -= (core_cpu_nds9.arm_mode == NTR_ARM9::ARM) ? 8 : 2;
+									x = 100;
 								}
 
 							}
@@ -337,6 +340,7 @@ void NTR_core::run_core()
 								{
 									core_cpu_nds7.idle_state = 0;
 									core_cpu_nds7.reg.r15 -= (core_cpu_nds7.arm_mode == NTR_ARM7::ARM) ? 4 : 0;
+									x = 100;
 								}
 							}
 
@@ -358,6 +362,7 @@ void NTR_core::run_core()
 								{
 									core_cpu_nds7.idle_state = 0;
 									core_cpu_nds7.reg.r15 -= (core_cpu_nds7.arm_mode == NTR_ARM7::ARM) ? 4 : 0;
+									x = 100;
 								}
 
 								//Execute any other pending IRQs that happen during IntrWait or VBlankIntrWait
@@ -365,6 +370,7 @@ void NTR_core::run_core()
 								{
 									core_cpu_nds7.idle_state = 0;
 									core_cpu_nds7.reg.r15 -= (core_cpu_nds7.arm_mode == NTR_ARM7::ARM) ? 8 : 2;
+									x = 100;
 								}
 
 							}
