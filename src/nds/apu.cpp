@@ -38,8 +38,6 @@ void NTR_APU::reset()
 	apu_stat.main_volume = 4;
 
 	apu_stat.channel_master_volume = config::volume;
-	apu_stat.channel_left_volume = 0.0;
-	apu_stat.channel_right_volume = 0.0;
 
 	//Reset Channel 1-16 data
 	for(int x = 0; x < 16; x++)
@@ -55,8 +53,6 @@ void NTR_APU::reset()
 
 		apu_stat.channel[x].playing = false;
 		apu_stat.channel[x].enable = false;
-		apu_stat.channel[x].right_enable = false;
-		apu_stat.channel[x].left_enable = false;
 	}
 }
 
