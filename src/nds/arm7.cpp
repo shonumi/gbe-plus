@@ -1324,8 +1324,6 @@ void NTR_ARM7::handle_interrupt()
 			//When there is a match, jump to interrupt vector
 			if((ie_check & (1 << x)) && (if_check & (1 << x)))
 			{
-				if(instruction_operation[(pipeline_pointer + 1) % 3] == THUMB_19) { return; }
-
 				current_cpu_mode = IRQ;
 
 				if(last_instr_branch) { reg.r15 += 4; }
