@@ -12,6 +12,7 @@
 #include <cmath>
 
 #include "lcd.h"
+#include "common/util.h"
 
 /****** LCD Constructor ******/
 NTR_LCD::NTR_LCD()
