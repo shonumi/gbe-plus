@@ -1420,7 +1420,10 @@ void NTR_core::handle_hotkey(int input, bool pressed)
 }
 
 /****** Updates the core's volume ******/
-void NTR_core::update_volume(u8 volume) { }
+void NTR_core::update_volume(u8 volume)
+{
+	config::volume = volume;
+}
 
 /****** Feeds key input from an external source (useful for TAS) ******/
 void NTR_core::feed_key_input(int sdl_key, bool pressed)
