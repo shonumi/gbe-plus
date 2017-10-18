@@ -1386,39 +1386,35 @@ void NTR_ARM9::handle_interrupt()
 		u32 if_check = mem->nds9_if;
 		u32 ie_check = mem->nds9_ie;
 
-		//Match up bits in IE and IF
-		for(int x = 0; x <= 21; x++)
+		//When there is a match, jump to interrupt vector
+		if(ie_check & if_check)
 		{
-			//When there is a match, jump to interrupt vector
-			if((ie_check & (1 << x)) && (if_check & (1 << x)))
-			{
-				current_cpu_mode = IRQ;
+			current_cpu_mode = IRQ;
 
-				if(last_instr_branch) { reg.r15 += 4; }
-				else if((last_idle_state == 0) && (arm_mode == ARM)) { reg.r15 -= 4; }
+			if(last_instr_branch) { reg.r15 += 4; }
+			else if((last_idle_state == 0) && (arm_mode == ARM)) { reg.r15 -= 4; }
 
-				//Save PC to LR
-				set_reg(14, reg.r15);
+			//Save PC to LR
+			set_reg(14, reg.r15);
 
-				//Set PC and SPSR
-				reg.r15 = mem->nds9_bios_vector + 0x18;
-				set_spsr(reg.cpsr);
+			//Set PC and SPSR
+			reg.r15 = mem->nds9_bios_vector + 0x18;
+			set_spsr(reg.cpsr);
 
-				//Request pipeline flush, signal interrupt handling, and go to ARM mode
-				flush_pipeline();
+			//Request pipeline flush, signal interrupt handling, and go to ARM mode
+			flush_pipeline();
 
-				in_interrupt = true;
-				arm_mode = ARM;
-				last_idle_state = 0;
+			in_interrupt = true;
+			arm_mode = ARM;
+			last_idle_state = 0;
 
-				//Alter CPSR bits, turn off THUMB and IRQ flags, set mode bits
-				reg.cpsr &= ~0x20;
-				reg.cpsr |= CPSR_IRQ;
-				reg.cpsr &= ~0x1F;
-				reg.cpsr |= CPSR_MODE_IRQ;
+			//Alter CPSR bits, turn off THUMB and IRQ flags, set mode bits
+			reg.cpsr &= ~0x20;
+			reg.cpsr |= CPSR_IRQ;
+			reg.cpsr &= ~0x1F;
+			reg.cpsr |= CPSR_MODE_IRQ;
 
-				return;
-			}
+			return;
 		}
 	}
 }
