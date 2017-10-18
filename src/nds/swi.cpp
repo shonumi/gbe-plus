@@ -175,6 +175,7 @@ void NTR_ARM9::swi_halt()
 	//Set CPU idle state to 1
 	idle_state = 1;
 	last_idle_state = 1;
+	mem->nds9_temp_if = mem->nds9_if;
 
 	//Destroy R0
 	set_reg(0, 0);
@@ -887,6 +888,7 @@ void NTR_ARM7::swi_halt()
 	//Set CPU idle state to 1
 	idle_state = 1;
 	last_idle_state = 1;
+	mem->nds7_temp_if = mem->nds7_if;
 }
 
 /****** HLE implementation of SoundBias - NDS7 ******/

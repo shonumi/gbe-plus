@@ -218,15 +218,13 @@ void NTR_core::run_core()
 						//Halt SWI
 						case 0x1:
 							//Match up bits in IE and IF to exit halt
-							for(u32 x = 0; x < 21; x++)
+							if(core_mmu.nds9_if & ~core_mmu.nds9_temp_if & core_mmu.nds9_ie)
 							{
-								if((core_mmu.nds9_ie & (1 << x)) && (core_mmu.nds9_if & (1 << x)))
-								{
-									core_cpu_nds9.idle_state = 0;
-									core_cpu_nds9.reg.r15 -= (core_cpu_nds9.arm_mode == NTR_ARM9::ARM) ? 4 : 0;
-									x = 100;
-								}
+								core_cpu_nds9.idle_state = 0;
+								core_cpu_nds9.reg.r15 -= (core_cpu_nds9.arm_mode == NTR_ARM9::ARM) ? 4 : 0;
 							}
+
+							core_mmu.nds9_temp_if = core_mmu.nds9_if;
 
 							break;
 
@@ -334,15 +332,13 @@ void NTR_core::run_core()
 						//Halt SWI
 						case 0x1:
 							//Match up bits in IE and IF to exit halt
-							for(u32 x = 0; x < 24; x++)
+							if(core_mmu.nds7_if & ~core_mmu.nds7_temp_if & core_mmu.nds7_ie)
 							{
-								if((core_mmu.nds7_ie & (1 << x)) && (core_mmu.nds7_if & (1 << x)))
-								{
-									core_cpu_nds7.idle_state = 0;
-									core_cpu_nds7.reg.r15 -= (core_cpu_nds7.arm_mode == NTR_ARM7::ARM) ? 4 : 0;
-									x = 100;
-								}
+								core_cpu_nds7.idle_state = 0;
+								core_cpu_nds7.reg.r15 -= (core_cpu_nds7.arm_mode == NTR_ARM7::ARM) ? 4 : 0;
 							}
+
+							core_mmu.nds7_temp_if = core_mmu.nds7_if;
 
 							break;
 
