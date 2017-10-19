@@ -221,7 +221,13 @@ void NTR_core::run_core()
 							if(core_mmu.nds9_if & ~core_mmu.nds9_temp_if & core_mmu.nds9_ie)
 							{
 								core_cpu_nds9.idle_state = 0;
-								core_cpu_nds9.reg.r15 -= (core_cpu_nds9.arm_mode == NTR_ARM9::ARM) ? 4 : 0;
+								
+								if((core_mmu.nds9_ime & 0x1) && ((core_cpu_nds9.reg.cpsr & CPSR_IRQ) == 0))
+								{
+									core_cpu_nds9.reg.r15 -= (core_cpu_nds9.arm_mode == NTR_ARM9::ARM) ? 4 : 0;
+								}
+
+								else { core_cpu_nds9.last_idle_state = 0; }
 							}
 
 							core_mmu.nds9_temp_if = core_mmu.nds9_if;
@@ -243,14 +249,26 @@ void NTR_core::run_core()
 							if(core_mmu.nds9_if & core_mmu.nds9_temp_if)
 							{
 								core_cpu_nds9.idle_state = 0;
-								core_cpu_nds9.reg.r15 -= (core_cpu_nds9.arm_mode == NTR_ARM9::ARM) ? 4 : 0;
+
+								if((core_mmu.nds9_ime & 0x1) && ((core_cpu_nds9.reg.cpsr & CPSR_IRQ) == 0))
+								{
+									core_cpu_nds9.reg.r15 -= (core_cpu_nds9.arm_mode == NTR_ARM9::ARM) ? 4 : 0;
+								}
+
+								else { core_cpu_nds9.last_idle_state = 0; }
 							}
 
 							//Execute any other pending IRQs that happen during IntrWait or VBlankIntrWait
 							else if(core_mmu.nds9_ie & core_mmu.nds9_if)
 							{
 								core_cpu_nds9.idle_state = 0;
-								core_cpu_nds9.reg.r15 -= (core_cpu_nds9.arm_mode == NTR_ARM9::ARM) ? 8 : 2;
+
+								if((core_mmu.nds9_ime & 0x1) && ((core_cpu_nds9.reg.cpsr & CPSR_IRQ) == 0))
+								{
+									core_cpu_nds9.reg.r15 -= (core_cpu_nds9.arm_mode == NTR_ARM9::ARM) ? 8 : 2;
+								}
+
+								else { core_cpu_nds9.last_idle_state = 0; }
 							}
 
 							//Clear IF flags to wait for new one
@@ -328,7 +346,13 @@ void NTR_core::run_core()
 							if(core_mmu.nds7_if & ~core_mmu.nds7_temp_if & core_mmu.nds7_ie)
 							{
 								core_cpu_nds7.idle_state = 0;
-								core_cpu_nds7.reg.r15 -= (core_cpu_nds7.arm_mode == NTR_ARM7::ARM) ? 4 : 0;
+
+								if((core_mmu.nds7_ime & 0x1) && ((core_cpu_nds7.reg.cpsr & CPSR_IRQ) == 0))
+								{
+									core_cpu_nds7.reg.r15 -= (core_cpu_nds7.arm_mode == NTR_ARM7::ARM) ? 4 : 0;
+								}
+
+								else { core_cpu_nds7.last_idle_state = 0; }
 							}
 
 							core_mmu.nds7_temp_if = core_mmu.nds7_if;
@@ -347,14 +371,26 @@ void NTR_core::run_core()
 							if(core_mmu.nds7_if & core_mmu.nds7_temp_if)
 							{
 								core_cpu_nds7.idle_state = 0;
-								core_cpu_nds7.reg.r15 -= (core_cpu_nds7.arm_mode == NTR_ARM7::ARM) ? 4 : 0;
+
+								if((core_mmu.nds7_ime & 0x1) && ((core_cpu_nds7.reg.cpsr & CPSR_IRQ) == 0))
+								{
+									core_cpu_nds7.reg.r15 -= (core_cpu_nds7.arm_mode == NTR_ARM7::ARM) ? 4 : 0;
+								}
+
+								else { core_cpu_nds7.last_idle_state = 0; }
 							}
 
 							//Execute any other pending IRQs that happen during IntrWait or VBlankIntrWait
 							else if(core_mmu.nds7_ie & core_mmu.nds7_if)
 							{
 								core_cpu_nds7.idle_state = 0;
-								core_cpu_nds7.reg.r15 -= (core_cpu_nds7.arm_mode == NTR_ARM7::ARM) ? 8 : 2;
+
+								if((core_mmu.nds7_ime & 0x1) && ((core_cpu_nds7.reg.cpsr & CPSR_IRQ) == 0))
+								{
+									core_cpu_nds7.reg.r15 -= (core_cpu_nds7.arm_mode == NTR_ARM7::ARM) ? 8 : 2;
+								}
+
+								else { core_cpu_nds7.last_idle_state = 0; }
 							}
 
 							//Clear IF flags to wait for new one
