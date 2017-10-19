@@ -16,59 +16,55 @@ void NTR_ARM9::branch_exchange(u32 current_arm_instruction)
 	//Grab source register - Bits 0-2
 	u8 src_reg = (current_arm_instruction & 0xF);
 
-	//Valid registers : 0-14
-	if(src_reg <= 14)
-	{
-		u32 result = get_reg(src_reg);
-		u8 op = (current_arm_instruction >> 4) & 0xF;
+	if(src_reg == 15) { std::cout<<"CPU::ARM9::Warning - ARM.3 Branch and Exchange - R15 used as operand\n"; } 
 
-		//Switch to THUMB mode if necessary
-		if(result & 0x1) 
-		{ 
-			arm_mode = THUMB;
-			reg.cpsr |= 0x20;
-			result &= ~0x1;
-		}
+	u32 result = get_reg(src_reg);
+	u8 op = (current_arm_instruction >> 4) & 0xF;
 
-		switch(op)
-		{
-			//Branch
-			case 0x1:
-				//Clock CPU and controllers - 1N
-				clock(reg.r15, CODE_N32);
-
-				reg.r15 = result;
-				needs_flush = true;
-
-				//Clock CPU and controllers - 2S
-				clock(reg.r15, CODE_S32);
-				clock((reg.r15 + 4), CODE_S32);
-
-				break;
-
-			//Branch and Link
-			case 0x3:
-				//Clock CPU and controllers - 1N
-				clock(reg.r15, CODE_N32);
-
-				set_reg(14, (reg.r15 - 4));
-				reg.r15 = result;
-				needs_flush = true;
-
-				//Clock CPU and controllers - 2S
-				clock(reg.r15, CODE_S32);
-				clock((reg.r15 + 4), CODE_S32);
-
-				break;
-
-			default:
-				std::cout<<"CPU::ARM9::Error - ARM.3 invalid Branch and Exchange opcode : 0x" << std::hex << op << "\n";
-				running = false;
-				break;
-		}
+	//Switch to THUMB mode if necessary
+	if(result & 0x1) 
+	{ 
+		arm_mode = THUMB;
+		reg.cpsr |= 0x20;
+		result &= ~0x1;
 	}
 
-	else { std::cout<<"CPU::ARM9::Error - ARM.3 Branch and Exchange - Invalid operand : R15\n"; running = false; }
+	switch(op)
+	{
+		//Branch
+		case 0x1:
+			//Clock CPU and controllers - 1N
+			clock(reg.r15, CODE_N32);
+
+			reg.r15 = result;
+			needs_flush = true;
+
+			//Clock CPU and controllers - 2S
+			clock(reg.r15, CODE_S32);
+			clock((reg.r15 + 4), CODE_S32);
+
+			break;
+
+		//Branch and Link
+		case 0x3:
+			//Clock CPU and controllers - 1N
+			clock(reg.r15, CODE_N32);
+
+			set_reg(14, (reg.r15 - 4));
+			reg.r15 = result;
+			needs_flush = true;
+
+			//Clock CPU and controllers - 2S
+			clock(reg.r15, CODE_S32);
+			clock((reg.r15 + 4), CODE_S32);
+
+			break;
+
+		default:
+			std::cout<<"CPU::ARM9::Error - ARM.3 invalid Branch and Exchange opcode : 0x" << std::hex << op << "\n";
+			running = false;
+			break;
+	}
 }  
 
 /****** ARM.4 - Branch, Branch with Link, and Branch with Link and Exchange ******/
