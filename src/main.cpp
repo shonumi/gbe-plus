@@ -46,11 +46,29 @@ int main(int argc, char* args[])
 	//Get emulated system type from file
 	config::gb_type = get_system_type_from_file(config::rom_file);
 
-	//Start the appropiate system core - DMG, SGB, GBC, GBA, or NDS
-	if(config::gb_type == 3) { gbe_plus = new AGB_core(); }
-	else if((config::gb_type >= 0) && (config::gb_type <= 2)) { gbe_plus = new DMG_core(); }
-	else if(config::gb_type == 5) { config::gb_type = 1; gbe_plus = new SGB_core(); }
-	else { gbe_plus = new NTR_core(); }
+	//GBA core
+	if(config::gb_type == 3)
+	{
+		gbe_plus = new AGB_core();
+	}
+	
+	//DMG-GBC core
+	else if((config::gb_type >= 0) && (config::gb_type <= 2))
+	{
+		gbe_plus = new DMG_core();
+	}
+
+	//Super Game Boy (SGB1 and SGB2)
+	else if((config::gb_type == 5) || (config::gb_type == 6))
+	{
+		gbe_plus = new SGB_core();
+	}
+
+	//NDS core
+	else
+	{
+		gbe_plus = new NTR_core();
+	}
 	
 	//Read BIOS file optionally
 	if(config::use_bios) 
