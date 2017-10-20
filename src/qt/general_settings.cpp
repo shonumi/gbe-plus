@@ -53,6 +53,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	sys_type->addItem("Game Boy Advance [GBA]");
 	sys_type->addItem("Nintendo DS [NDS]");
 	sys_type->addItem("Super Game Boy [SGB]");
+	sys_type->addItem("Super Game Boy 2 [SGB2]");
 
 	QHBoxLayout* sys_type_layout = new QHBoxLayout;
 	sys_type_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -88,7 +89,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	QWidget* special_cart_set = new QWidget(general);
 	QLabel* special_cart_label = new QLabel("Special ROM Type : ", special_cart_set);
 	special_cart = new QComboBox(special_cart_set);
-	special_cart->setToolTip("Emulates various special_cart setups");
+	special_cart->setToolTip("Emulates various special cart setups");
 	special_cart->addItem("None");
 	special_cart->addItem("DMG - MBC1M");
 	special_cart->addItem("DMG - MMM01");
