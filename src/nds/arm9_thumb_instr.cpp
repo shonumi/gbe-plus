@@ -1631,4 +1631,6 @@ void NTR_ARM9::long_branch_link(u16 current_thumb_instruction)
 			reg.r15 &= ~0x2;
 		}
 	}
+
+	thumb_long_branch = true;
 }

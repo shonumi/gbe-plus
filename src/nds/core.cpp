@@ -218,10 +218,19 @@ void NTR_core::run_core()
 						//Halt SWI
 						case 0x1:
 							//Match up bits in IE and IF to exit halt
-							for(u32 x = 0; x < 21; x++)
+							if(core_mmu.nds9_if & ~core_mmu.nds9_temp_if & core_mmu.nds9_ie)
 							{
-								if((core_mmu.nds9_ie & (1 << x)) && (core_mmu.nds9_if & (1 << x))) { core_cpu_nds9.idle_state = 0; }
+								core_cpu_nds9.idle_state = 0;
+								
+								if((core_mmu.nds9_ime & 0x1) && ((core_cpu_nds9.reg.cpsr & CPSR_IRQ) == 0))
+								{
+									core_cpu_nds9.reg.r15 -= (core_cpu_nds9.arm_mode == NTR_ARM9::ARM) ? 4 : 0;
+								}
+
+								else { core_cpu_nds9.last_idle_state = 0; }
 							}
+
+							core_mmu.nds9_temp_if = core_mmu.nds9_if;
 
 							break;
 
@@ -243,13 +252,28 @@ void NTR_core::run_core()
 								if((core_mmu.nds9_if & (1 << x)) && (core_mmu.nds9_temp_if & (1 << x)))
 								{
 									core_cpu_nds9.idle_state = 0;
+									x = 100;
+
+									if((core_mmu.nds9_ime & 0x1) && ((core_cpu_nds9.reg.cpsr & CPSR_IRQ) == 0) && (core_mmu.nds9_ie & core_mmu.nds9_if))
+									{
+										core_cpu_nds9.reg.r15 -= (core_cpu_nds9.arm_mode == NTR_ARM9::ARM) ? 4 : 0;
+									}
+
+									else { core_cpu_nds9.last_idle_state = 0; }
 								}
 
 								//Execute any other pending IRQs that happen during IntrWait or VBlankIntrWait
-								if((core_mmu.nds9_ie & (1 << x)) && (core_mmu.nds9_if & (1 << x)))
+								else if((core_mmu.nds9_ie & (1 << x)) && (core_mmu.nds9_if & (1 << x)))
 								{
-									core_cpu_nds9.last_idle_state = core_cpu_nds9.idle_state;
 									core_cpu_nds9.idle_state = 0;
+									x = 100;
+
+									if((core_mmu.nds9_ime & 0x1) && ((core_cpu_nds9.reg.cpsr & CPSR_IRQ) == 0))
+									{
+										core_cpu_nds9.reg.r15 -= (core_cpu_nds9.arm_mode == NTR_ARM9::ARM) ? 8 : 2;
+									}
+
+									else { core_cpu_nds9.last_idle_state = 0; }
 								}
 
 							}
@@ -272,20 +296,25 @@ void NTR_core::run_core()
 				//Otherwise, handle normal CPU operations
 				else
 				{
+					core_cpu_nds9.handle_interrupt();
+
 					core_cpu_nds9.fetch();
 					core_cpu_nds9.decode();
 					core_cpu_nds9.execute();
-
-					core_cpu_nds9.handle_interrupt();
 		
 					//Flush pipeline if necessary
-					if(core_cpu_nds9.needs_flush) { core_cpu_nds9.flush_pipeline(); }
+					if(core_cpu_nds9.needs_flush)
+					{
+						core_cpu_nds9.flush_pipeline();
+						core_cpu_nds9.last_instr_branch = true;
+					}
 
 					//Else update the pipeline and PC
 					else
 					{ 
 						core_cpu_nds9.pipeline_pointer = (core_cpu_nds9.pipeline_pointer + 1) % 3;
 						core_cpu_nds9.update_pc();
+						core_cpu_nds9.last_instr_branch = false;
 					}
 				}
 
@@ -302,6 +331,8 @@ void NTR_core::run_core()
 					cpu_sync_cycles *= -1.0;
 					core_mmu.access_mode = 0;
 				}
+
+				core_cpu_nds9.thumb_long_branch = false;
 			}
 
 			//Run NDS7
@@ -319,10 +350,19 @@ void NTR_core::run_core()
 						//Halt SWI
 						case 0x1:
 							//Match up bits in IE and IF to exit halt
-							for(u32 x = 0; x < 24; x++)
+							if(core_mmu.nds7_if & ~core_mmu.nds7_temp_if & core_mmu.nds7_ie)
 							{
-								if((core_mmu.nds7_ie & (1 << x)) && (core_mmu.nds7_if & (1 << x))) { core_cpu_nds7.idle_state = 0; }
+								core_cpu_nds7.idle_state = 0;
+
+								if((core_mmu.nds7_ime & 0x1) && ((core_cpu_nds7.reg.cpsr & CPSR_IRQ) == 0))
+								{
+									core_cpu_nds7.reg.r15 -= (core_cpu_nds7.arm_mode == NTR_ARM7::ARM) ? 4 : 0;
+								}
+
+								else { core_cpu_nds7.last_idle_state = 0; }
 							}
+
+							core_mmu.nds7_temp_if = core_mmu.nds7_if;
 
 							break;
 
@@ -341,13 +381,28 @@ void NTR_core::run_core()
 								if((core_mmu.nds7_if & (1 << x)) && (core_mmu.nds7_temp_if & (1 << x)))
 								{
 									core_cpu_nds7.idle_state = 0;
+									x = 100;
+
+									if((core_mmu.nds7_ime & 0x1) && ((core_cpu_nds7.reg.cpsr & CPSR_IRQ) == 0) && (core_mmu.nds7_ie & core_mmu.nds7_if))
+									{
+										core_cpu_nds7.reg.r15 -= (core_cpu_nds7.arm_mode == NTR_ARM7::ARM) ? 4 : 0;
+									}
+
+									else { core_cpu_nds7.last_idle_state = 0; }
 								}
 
 								//Execute any other pending IRQs that happen during IntrWait or VBlankIntrWait
-								if((core_mmu.nds7_ie & (1 << x)) && (core_mmu.nds7_if & (1 << x)))
+								else if((core_mmu.nds7_ie & (1 << x)) && (core_mmu.nds7_if & (1 << x)))
 								{
-									core_cpu_nds7.last_idle_state = core_cpu_nds7.idle_state;
 									core_cpu_nds7.idle_state = 0;
+									x = 100;
+
+									if((core_mmu.nds7_ime & 0x1) && ((core_cpu_nds7.reg.cpsr & CPSR_IRQ) == 0))
+									{
+										core_cpu_nds7.reg.r15 -= (core_cpu_nds7.arm_mode == NTR_ARM7::ARM) ? 8 : 2;
+									}
+
+									else { core_cpu_nds7.last_idle_state = 0; }
 								}
 
 							}
@@ -370,20 +425,25 @@ void NTR_core::run_core()
 				//Otherwise, handle normal CPU operations
 				else
 				{
+					core_cpu_nds7.handle_interrupt();
+
 					core_cpu_nds7.fetch();
 					core_cpu_nds7.decode();
 					core_cpu_nds7.execute();
-
-					core_cpu_nds7.handle_interrupt();
 		
 					//Flush pipeline if necessary
-					if(core_cpu_nds7.needs_flush) { core_cpu_nds7.flush_pipeline(); }
+					if(core_cpu_nds7.needs_flush)
+					{
+						core_cpu_nds7.flush_pipeline();
+						core_cpu_nds7.last_instr_branch = true;
+					}
 
 					//Else update the pipeline and PC
 					else
 					{ 
 						core_cpu_nds7.pipeline_pointer = (core_cpu_nds7.pipeline_pointer + 1) % 3;
 						core_cpu_nds7.update_pc();
+						core_cpu_nds7.last_instr_branch = false;
 					}
 				}
 
@@ -400,6 +460,8 @@ void NTR_core::run_core()
 					cpu_sync_cycles *= -1.0;
 					core_mmu.access_mode = 1;
 				}
+
+				core_cpu_nds7.thumb_long_branch = false;
 			}
 		}
 
@@ -1279,9 +1341,6 @@ void NTR_core::debug_process_command()
 			std::cout<<"u8 \t\t Show BYTE @ memory, format 0x1234ABCD\n";
 			std::cout<<"u16 \t\t Show HALFWORD @ memory, format 0x1234ABCD\n";
 			std::cout<<"u32 \t\t Show WORD @ memory, format 0x1234ABCD\n";
-			std::cout<<"w8 \t\t Write BYTE @ memory, format 0x1234ABCD for addr, 0x12 for value\n";
-			std::cout<<"w16 \t\t Write HALFWORD @ memory, format 0x1234ABCD for addr, 0x1234 for value\n";
-			std::cout<<"w32 \t\t Write WORD @ memory, format 0x1234ABCD for addr, 0x1234ABCD for value\n";
 			std::cout<<"dq \t\t Quit the debugger\n";
 			std::cout<<"dc \t\t Toggle CPU cycle display\n";
 			std::cout<<"cr \t\t Reset CPU cycle counter\n";
