@@ -143,6 +143,7 @@ void SGB_LCD::reset()
 
 	//Initialize SGB stuff
 	sgb_mask_mode = 0;
+	current_atf = 0;
 	manual_pal = false;
 	render_border = false;
 
