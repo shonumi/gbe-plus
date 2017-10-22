@@ -143,6 +143,7 @@ void SGB_LCD::reset()
 
 	//Initialize SGB stuff
 	sgb_mask_mode = 0;
+	current_atf = 0;
 	manual_pal = false;
 	render_border = false;
 
@@ -200,6 +201,8 @@ bool SGB_LCD::init()
 		}
 
 		if(final_screen == NULL) { return false; }
+
+		SDL_SetWindowIcon(window, util::load_icon(config::data_path + "icons/gbe_plus.bmp"));
 	}
 
 	//Initialize with only a buffer for OpenGL (for external rendering)

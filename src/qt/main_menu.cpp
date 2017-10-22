@@ -576,7 +576,7 @@ void main_menu::boot_game()
 	else if((ext != ".gba") && (config::gb_type == 3)) { config::gb_type = 2; config::gba_enhance = true; }
 	else { config::gba_enhance = false; }
 
-	if(config::gb_type == 5) { config::gb_type = get_system_type_from_file(config::rom_file); }
+	if((config::gb_type == 5) || (config::gb_type == 6)) { config::gb_type = get_system_type_from_file(config::rom_file); }
 
 	//Determine CGFX scaling factor
 	cgfx::scaling_factor = (settings->cgfx_scale->currentIndex() + 1);
@@ -628,10 +628,9 @@ void main_menu::boot_game()
 		base_width = (160 * cgfx::scaling_factor);
 		base_height = (144 * cgfx::scaling_factor);
 
-		if(config::gb_type == 5)
+		if((config::gb_type == 5) || (config::gb_type == 6))
 		{
 			main_menu::gbe_plus = new SGB_core();
-			config::gb_type = 1;
 			is_sgb_core = true;
 		}
 

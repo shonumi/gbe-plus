@@ -220,6 +220,8 @@ bool DMG_LCD::init()
 		}
 
 		if(final_screen == NULL) { return false; }
+
+		SDL_SetWindowIcon(window, util::load_icon(config::data_path + "icons/gbe_plus.bmp"));
 	}
 
 	//Initialize with only a buffer for OpenGL (for external rendering)

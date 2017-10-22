@@ -847,7 +847,7 @@ SDL_Surface* load_icon(std::string filename)
 	{
 		out_pixel_data[a] = (0xFF000000 | (in_pixel_data[b+2] << 16) | (in_pixel_data[b+1] << 8) | (in_pixel_data[b]));
 
-		if(out_pixel_data[a] == 0xFF00FF00) { out_pixel_data[a] = 0; }
+		SDL_SetColorKey(output, SDL_TRUE, 0xFF00FF00);
 	}
 
 	return output;

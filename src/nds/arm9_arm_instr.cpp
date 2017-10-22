@@ -1581,8 +1581,12 @@ void NTR_ARM9::coprocessor_register_transfer(u32 current_instruction)
 			//C7,C6,1
 			else if((cop_opr == 6) && (cop_info == 1)) { co_proc.invalidate_data_cache_line(co_proc.regs[CP15::C7_CM_XX]); }
 
+			//C7,C8,2
+			else if((cop_opr == 8) && (cop_info == 2)) { idle_state = 1; }
+
 			//C7,C10,4
 			else if((cop_opr == 10) && (cop_info == 4)) { co_proc.drain_write_buffer(); }
+
 		}
 
 		//Move ARM register to C9,C0,0-1

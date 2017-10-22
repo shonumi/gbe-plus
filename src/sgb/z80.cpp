@@ -13,6 +13,11 @@
 /****** SGB_Z80 Constructor ******/
 SGB_Z80::SGB_Z80() 
 {
+	if(config::gb_type == 6) { sgb_type = 1; }
+	else { sgb_type = 0; } 
+
+	config::gb_type = 1;
+
 	if(config::use_bios) { reset_bios(); }
 	else { reset(); }
 }
@@ -27,8 +32,8 @@ SGB_Z80::~SGB_Z80()
 void SGB_Z80::reset() 
 {
 	//Values represent HLE BIOS
-	reg.a = (config::gb_type == 2) ? 0x11 : 0x01;
-	reg.b = (config::gba_enhance) ? 0x01 : 0x00;
+	reg.a = (sgb_type) ? 0xFF : 0x1;
+	reg.b = 0x00;
 	reg.c = 0x13;
 	reg.d = 0x00;
 	reg.e = 0xD8;
