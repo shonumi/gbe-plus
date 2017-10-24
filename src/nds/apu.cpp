@@ -183,13 +183,13 @@ void NTR_APU::generate_channel_samples(s32* stream, int length, u8 id)
 				}	
 			}
 
-			else { stream[x] += -32768; }
+			else { stream[x] += (-32768 * vol); }
 
 			samples_played++;
 		}
 
 		//Generate silence if sound has run out of samples or is not playing
-		else { stream[x] += -32768; }
+		else { stream[x] += (-32768 * vol); }
 	}
 
 	//Advance data pointer to sound samples
