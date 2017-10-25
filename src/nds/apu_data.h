@@ -32,6 +32,9 @@ struct ntr_apu_data
 		bool enable;
 	} channel[16];
 
+	//IMA-ADPCM table
+	u16 adpcm_table[128];
+
 	bool sound_on;
 	bool stereo;
 

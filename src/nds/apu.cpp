@@ -54,6 +54,18 @@ void NTR_APU::reset()
 		apu_stat.channel[x].playing = false;
 		apu_stat.channel[x].enable = false;
 	}
+
+	//Setup IMA-ADPCM table
+	for(u32 x = 0x776D2, a = 0; a < 128; a++)
+	{
+		if(a == 3) { apu_stat.adpcm_table[a] = 0xA; }
+		else if(a == 4) { apu_stat.adpcm_table[a] = 0xB; }
+		else if(a == 88) { apu_stat.adpcm_table[a] = 0x7FFF; }
+		else if(a >= 89) { apu_stat.adpcm_table[a] = 0; }
+		else { apu_stat.adpcm_table[a] = (x >> 16); }
+		
+		x = x + (x / 10);
+	}
 }
 
 /****** Initialize APU with SDL ******/
