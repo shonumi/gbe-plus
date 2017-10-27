@@ -3267,6 +3267,15 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 					case 0x2:
 						apu_stat->channel[apu_io_id].data_pos = apu_stat->channel[apu_io_id].data_src;
 						apu_stat->channel[apu_io_id].samples = ((apu_stat->channel[apu_io_id].length - 1) * 8) + ((apu_stat->channel[apu_io_id].loop_start - 1) * 8);
+
+						//Grab header
+						apu_stat->channel[apu_io_id].adpcm_header = read_u32(apu_stat->channel[apu_io_id].data_src);
+						apu_stat->channel[apu_io_id].data_src += 4;
+
+						//Set up initial ADPCM stuff
+						apu_stat->channel[apu_io_id].adpcm_value = (apu_stat->channel[apu_io_id].adpcm_header & 0xFFFF);
+						apu_stat->channel[apu_io_id].adpcm_index = ((apu_stat->channel[apu_io_id].adpcm_header >> 16) & 0x7F);
+
 						break;
 
 					//PSG-Noise

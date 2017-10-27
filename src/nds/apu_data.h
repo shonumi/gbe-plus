@@ -30,6 +30,10 @@ struct ntr_apu_data
 
 		bool playing;
 		bool enable;
+
+		u32 adpcm_header;
+		u8 adpcm_index;
+		u16 adpcm_val;
 	} channel[16];
 
 	//IMA-ADPCM table

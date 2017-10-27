@@ -53,6 +53,10 @@ void NTR_APU::reset()
 
 		apu_stat.channel[x].playing = false;
 		apu_stat.channel[x].enable = false;
+
+		adpcm_header = 0;
+		adpcm_index = 0;
+		adpcm_val = 0;
 	}
 
 	//Setup IMA-ADPCM table
