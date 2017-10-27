@@ -3273,7 +3273,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 						apu_stat->channel[apu_io_id].data_src += 4;
 
 						//Set up initial ADPCM stuff
-						apu_stat->channel[apu_io_id].adpcm_value = (apu_stat->channel[apu_io_id].adpcm_header & 0xFFFF);
+						apu_stat->channel[apu_io_id].adpcm_val = (apu_stat->channel[apu_io_id].adpcm_header & 0xFFFF);
 						apu_stat->channel[apu_io_id].adpcm_index = ((apu_stat->channel[apu_io_id].adpcm_header >> 16) & 0x7F);
 
 						break;
