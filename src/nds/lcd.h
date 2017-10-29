@@ -34,6 +34,7 @@ class NTR_LCD
 	void update();
 
 	bool get_cart_icon(SDL_Surface* nds_icon);
+	bool save_cart_icon(std::string nds_icon_file);
 
 	//Screen data
 	SDL_Window* window;

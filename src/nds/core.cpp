@@ -83,6 +83,8 @@ void NTR_core::start()
 
 	//Initialize the GamePad
 	core_pad.init();
+
+	get_core_data(3);
 }
 
 /****** Stop the core ******/
@@ -1570,7 +1572,18 @@ u32 NTR_core::get_core_data(u32 core_index)
 		case 0x2:
 			result = (core_pad.touch_by_mouse) ? 1 : 0;
 			break;
+
+		//Result from save cart icon
+		case 0x3:
+			{
+				std::string cache_path = config::data_path + "icons/cache/";
+				std::string full_file_path = cache_path + core_mmu.header.game_code + ".bmp";
+				result = core_cpu_nds9.controllers.video.save_cart_icon(full_file_path);
+			}
+
+			break;
 	}
 
 	return result;
 }
+	
