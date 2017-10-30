@@ -1577,7 +1577,12 @@ u32 NTR_core::get_core_data(u32 core_index)
 		case 0x3:
 			{
 				std::string cache_path = config::data_path + "icons/cache/";
-				std::string full_file_path = cache_path + core_mmu.header.game_code + ".bmp";
+				std::string full_file_path = cache_path + core_mmu.header.game_code;
+
+				u32 icon_base = core_mmu.read_cart_u32(0x68);
+				u32 icon_crc = core_mmu.read_cart_u16(icon_base + 2);
+				full_file_path += util::to_hex_str(icon_crc) + ".bmp";
+
 				result = core_cpu_nds9.controllers.video.save_cart_icon(full_file_path);
 			}
 
