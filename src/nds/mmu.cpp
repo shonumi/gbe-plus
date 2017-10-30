@@ -29,7 +29,8 @@ NTR_MMU::~NTR_MMU()
 /****** MMU Reset ******/
 void NTR_MMU::reset()
 {
-	current_save_type = AUTO;	
+	current_save_type = AUTO;
+	current_slot2_device = SLOT2_AUTO;	
 
 	memory_map.clear();
 	memory_map.resize(0x10000000, 0);
@@ -227,6 +228,19 @@ u8 NTR_MMU::read_u8(u32 address)
 				apu_io_id = (address >> 4) & 0xF;
 				address &= 0x400040F;
 			}
+
+			break;
+
+		case 0x8:
+			if(current_slot2_device == SLOT2_PASSME)
+			{
+				if((address & 0x7FFFFFF) < cart_data.size()) { return cart_data[address & 0x7FFFFFF]; }
+				else { return 0xFF; }
+			}
+
+			else { return 0xFF; }
+
+			break;
 	}
 
 	switch(address)
@@ -3546,6 +3560,16 @@ bool NTR_MMU::read_file(std::string filename)
 	}
 
 	access_mode = 1;
+
+	//Detect Slot2 device if set to automatic
+	if(current_slot2_device == SLOT2_AUTO)
+	{
+		//Detect PASSME device
+		if(read_cart_u32(0xAC) == 0x53534150) { current_slot2_device = SLOT2_PASSME; }
+
+		//Otherwise, set Slot2 to none
+		else { current_slot2_device = SLOT2_NONE; }
+	} 
 
 	return true;
 }

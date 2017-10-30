@@ -39,7 +39,17 @@ class NTR_MMU
 		FRAM
 	};
 
+	//Slot-2 enumerations
+	enum slot2_types
+	{
+		SLOT2_AUTO,
+		SLOT2_NONE,
+		SLOT2_PASSME,
+		SLOT2_RUMBLE_PAK
+	};
+
 	backup_types current_save_type;
+	slot2_types current_slot2_device;
 
 	std::vector <u8> memory_map;
 	std::vector <u8> cart_data;
