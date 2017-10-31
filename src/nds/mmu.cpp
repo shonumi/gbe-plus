@@ -3289,6 +3289,10 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 						//Set up initial ADPCM stuff
 						apu_stat->channel[apu_io_id].adpcm_val = (apu_stat->channel[apu_io_id].adpcm_header & 0xFFFF);
 						apu_stat->channel[apu_io_id].adpcm_index = ((apu_stat->channel[apu_io_id].adpcm_header >> 16) & 0x7F);
+						apu_stat->channel[apu_io_id].adpcm_pos = 0;
+
+						//Decode ADPCM audio
+						apu_stat->channel[apu_io_id].decode_adpcm = true;
 
 						break;
 

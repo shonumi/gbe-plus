@@ -16,7 +16,7 @@
 
 struct ntr_apu_data
 {
-	//Digital channels, new to the GBA
+	//Digital channels
 	struct digital_channels
 	{
 		double output_frequency;
@@ -32,12 +32,18 @@ struct ntr_apu_data
 		bool enable;
 
 		u32 adpcm_header;
+		u32 adpcm_pos;
 		u8 adpcm_index;
 		u16 adpcm_val;
+		std::vector<s16> adpcm_buffer;
+		bool decode_adpcm;
 	} channel[16];
 
 	//IMA-ADPCM table
 	u16 adpcm_table[128];
+
+	//Index table
+	s8 index_table[8];
 
 	bool sound_on;
 	bool stereo;

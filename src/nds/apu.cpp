@@ -55,8 +55,11 @@ void NTR_APU::reset()
 		apu_stat.channel[x].enable = false;
 
 		apu_stat.channel[x].adpcm_header = 0;
+		apu_stat.channel[x].adpcm_pos = 0;
 		apu_stat.channel[x].adpcm_index = 0;
 		apu_stat.channel[x].adpcm_val = 0;
+		apu_stat.channel[x].adpcm_buffer.clear();
+		apu_stat.channel[x].decode_adpcm = false;
 	}
 
 	//Setup IMA-ADPCM table
@@ -70,6 +73,13 @@ void NTR_APU::reset()
 		
 		x = x + (x / 10);
 	}
+
+	//Setup index table
+	apu_stat.index_table[0] = apu_stat.index_table[1] = apu_stat.index_table[2] = apu_stat.index_table[3] = -1;
+	apu_stat.index_table[4] = 2;
+	apu_stat.index_table[5] = 4;
+	apu_stat.index_table[6] = 6;
+	apu_stat.index_table[7] = 8;
 }
 
 /****** Initialize APU with SDL ******/
@@ -128,6 +138,7 @@ void NTR_APU::generate_channel_samples(s32* stream, int length, u8 id)
 	s8 nds_sample_8 = 0;
 	s16 nds_sample_16 = 0;
 	u32 samples_played = 0;
+	u32 adpcm_pos = 0;
 
 	for(u32 x = 0; x < length; x++)
 	{
@@ -199,6 +210,25 @@ void NTR_APU::generate_channel_samples(s32* stream, int length, u8 id)
 				}	
 			}
 
+			//IMA-ADPCM
+			else if(format == 2)
+			{
+				u32 data_pos = (apu_stat.channel[id].adpcm_pos + (sample_ratio * x));
+				nds_sample_16 = apu_stat.channel[id].adpcm_buffer[data_pos];
+
+				stream[x] += nds_sample_16;
+
+				//Adjust volume level
+				stream[x] *= vol;
+
+				if(data_pos >= apu_stat.channel[id].samples)
+				{
+					apu_stat.channel[id].playing = false;
+					apu_stat.channel[id].cnt &= ~0x80000000;
+				}
+
+			}
+
 			else { stream[x] += (-32768 * vol); }
 
 			samples_played++;
@@ -219,8 +249,68 @@ void NTR_APU::generate_channel_samples(s32* stream, int length, u8 id)
 			apu_stat.channel[id].data_pos += (sample_ratio * samples_played);
 			apu_stat.channel[id].data_pos &= ~0x1;
 			break;
+
+		case 0x2:
+			apu_stat.channel[id].adpcm_pos += (sample_ratio * samples_played);
+			break;
 	} 
 }
+
+/****** Decodes IMA-ADPCM data into samples, stores into channel buffer ******/
+void NTR_APU::decode_adpcm_samples(u8 id)
+{
+	//Clear channel buffer and reset flag
+	apu_stat.channel[id].adpcm_buffer.clear();
+	apu_stat.channel[id].decode_adpcm = false;
+
+	u32 current_pos = 0;
+	u8 half_byte = 0;
+	u8 full_byte = 0;
+	u32 diff = 0;
+	s32 high_result, low_result = 0;
+	s16 next_index;
+
+	//Decode IMA-ADPCM from memory
+	while(current_pos < apu_stat.channel[id].samples)
+	{
+		//Grab data from memory, 1 byte at a time for every 2 samples
+		//Also determine if current sample uses upper or lower half of byte from memory
+		if((current_pos & 0x1) == 0)
+		{
+			full_byte = mem->memory_map[apu_stat.channel[id].data_src + (current_pos >> 1)];
+			half_byte = (full_byte & 0xF);
+		}
+
+		else { half_byte = ((full_byte >> 4) & 0xF); }
+
+		//Calculate difference
+		diff = (apu_stat.adpcm_table[apu_stat.channel[id].adpcm_index] / 8);
+
+		if(half_byte & 0x1) { diff += (apu_stat.adpcm_table[apu_stat.channel[id].adpcm_index] / 4); }
+		if(half_byte & 0x2) { diff += (apu_stat.adpcm_table[apu_stat.channel[id].adpcm_index] / 2); }
+		if(half_byte & 0x4) { diff += apu_stat.adpcm_table[apu_stat.channel[id].adpcm_index]; }
+
+		high_result = apu_stat.channel[id].adpcm_val + diff;
+		if(high_result > 32767) { high_result = 32767; }
+
+		low_result = apu_stat.channel[id].adpcm_val - diff;
+		if(low_result < -32768) { low_result = -32768; }
+
+		if(half_byte & 0x8) { apu_stat.channel[id].adpcm_val = high_result; }
+		else { apu_stat.channel[id].adpcm_val = low_result; }
+
+		//Calculate next index
+		next_index = apu_stat.channel[id].adpcm_index + apu_stat.index_table[half_byte & 0x7];
+		if(next_index > 88) { next_index = 88; }
+		else if(next_index < 0) { next_index = 0; }
+
+		//Set next index and push sample to buffer
+		apu_stat.channel[id].adpcm_index = next_index;
+		apu_stat.channel[id].adpcm_buffer.push_back(apu_stat.channel[id].adpcm_val);
+
+		current_pos++;
+	}
+}	
 
 /****** SDL Audio Callback ******/ 
 void ntr_audio_callback(void* _apu, u8 *_stream, int _length)
@@ -232,7 +322,14 @@ void ntr_audio_callback(void* _apu, u8 *_stream, int _length)
 	NTR_APU* apu_link = (NTR_APU*) _apu;
 
 	//Generate samples
-	for(u32 x = 0; x < 16; x++) { apu_link->generate_channel_samples(channel_stream, length, x); }
+	for(u32 x = 0; x < 16; x++)
+	{
+		//Decode IMA-ADPCM samples first
+		if(apu_link->apu_stat.channel[x].decode_adpcm) { apu_link->decode_adpcm_samples(x); }
+
+		//Grab samples
+		apu_link->generate_channel_samples(channel_stream, length, x);
+	}
 
 	//Custom software mixing
 	for(u32 x = 0; x < length; x++)

@@ -32,6 +32,7 @@ class NTR_APU
 	~NTR_APU();
 
 	void generate_channel_samples(s32* stream, int length, u8 id);
+	void decode_adpcm_samples(u8 id);
 
 	bool init();
 	void reset();
