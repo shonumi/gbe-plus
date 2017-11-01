@@ -17,6 +17,7 @@ set(SRCS
 	rtc.cpp
 	gamecard.cpp
 	apu.cpp
+	debug.cpp
 	)
 
 set(HEADERS
