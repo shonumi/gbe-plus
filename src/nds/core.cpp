@@ -56,6 +56,7 @@ NTR_core::NTR_core()
 	core_cpu_nds7.re_sync = false;
 
 	nds9_debug = true;
+	arm_debug = true;
 
 	std::cout<<"GBE::Launching NDS core\n";
 }

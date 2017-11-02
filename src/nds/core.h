@@ -79,6 +79,7 @@ class NTR_core : virtual public core_emu
 
 		double cpu_sync_cycles;
 		bool nds9_debug;
+		bool arm_debug;
 
 		NTR_GamePad core_pad;
 };

@@ -222,7 +222,49 @@ void NTR_core::debug_display() const
 }
 
 /****** Returns a string with the mnemonic assembly instruction ******/
-std::string NTR_core::debug_get_mnemonic(u32 addr) { }
+std::string NTR_core::debug_get_mnemonic(u32 addr)
+{
+	u32 opcode = (arm_debug) ? core_mmu.read_u32(addr) : core_mmu.read_u16(addr);
+	std::string instr = "";
+
+	//Get ARM mnemonic
+	if(arm_debug) { }
+
+	//Get THUMB mnemonic
+	else
+	{
+		//SWI opcodes
+		if((opcode & 0xFF00) == 0xDF00)
+		{
+			instr = "SWI " + util::to_hex_str(opcode & 0xFF);
+		}
+
+		//ADD SP opcodes
+		else if((opcode & 0xFF00) == 0xB000)
+		{
+			instr = "ADD SP, ";
+			u16 offset = ((opcode & 0x7F) << 2);
+			
+			if(opcode & 0x80) { instr += util::to_hex_str(offset); }
+			else { instr += "-" + util::to_hex_str(offset); }
+		}
+
+		//PUSH-POP opcodes
+		else if((opcode & 0xF600) == 0xB400)
+		{
+			instr = (opcode & 0x800) ? "POP " : "PUSH ";
+			u8 r_list = (opcode & 0xFF);
+
+			for(u32 x = 0; x < 8; x++)
+			{
+				if(r_list & 0x1) { instr += "R" + util::to_str(x) + ", "; }
+			}
+
+			if((opcode & 0x100) && (opcode & 0x800)) { instr += "R15"; }
+			else if(opcode & 0x800) { instr += "R14"; }
+		}
+	}
+}
 
 /****** Debugger - Wait for user input, process it to decide what next to do ******/
 void NTR_core::debug_process_command()
