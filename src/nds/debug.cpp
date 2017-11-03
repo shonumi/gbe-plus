@@ -23,6 +23,13 @@ void NTR_core::debug_step()
 	//Select NDS9 or NDS7 PC when looking for a break condition
 	u32 pc = nds9_debug ? core_cpu_nds9.reg.r15 : core_cpu_nds7.reg.r15;
 
+	arm_debug = false;
+
+	if((nds9_debug) && (core_cpu_nds9.arm_mode == NTR_ARM9::ARM)) { arm_debug = true; }
+	else if((!nds9_debug) && (core_cpu_nds7.arm_mode == NTR_ARM7::ARM)) { arm_debug = true; }
+
+	u32 op_addr = arm_debug ? (pc - 12) : (pc - 6);
+
 	//In continue mode, if breakpoints exist, try to stop on one
 	if((db_unit.breakpoints.size() > 0) && (db_unit.last_command == "c"))
 	{
@@ -31,6 +38,8 @@ void NTR_core::debug_step()
 			//When a BP is matched, display info, wait for next input command
 			if(pc == db_unit.breakpoints[x])
 			{
+				db_unit.last_mnemonic = debug_get_mnemonic(op_addr);
+
 				debug_display();
 				debug_process_command();
 				printed = true;
@@ -49,7 +58,9 @@ void NTR_core::debug_step()
 			&& (core_mmu.read_u8(db_unit.watchpoint_addr[x]) != db_unit.watchpoint_old_val[x]))
 			{
 				std::cout<<"Watchpoint Triggered: 0x" << std::hex << db_unit.watchpoint_addr[x] << " -- Value: 0x" << (u16)db_unit.watchpoint_val[x] << "\n";
-	
+
+				db_unit.last_mnemonic = debug_get_mnemonic(op_addr);
+
 				debug_display();
 				debug_process_command();
 				printed = true;
@@ -62,13 +73,19 @@ void NTR_core::debug_step()
 	//When in next instruction mode, simply display info, wait for next input command
 	else if(db_unit.last_command == "n")
 	{
+		db_unit.last_mnemonic = debug_get_mnemonic(op_addr);
+
 		debug_display();
 		debug_process_command();
 		printed = true;
 	}
 
 	//Display every instruction when print all is enabled
-	if((!printed) && (db_unit.print_all)) { debug_display(); } 
+	if((!printed) && (db_unit.print_all))
+	{
+		db_unit.last_mnemonic = debug_get_mnemonic(op_addr);
+		debug_display();
+	} 
 }
 
 /****** Debugger - Display relevant info to the screen ******/
@@ -91,43 +108,43 @@ void NTR_core::debug_display() const
 		case 0xFF:
 			std::cout << "Filling pipeline\n"; break;
 		case 0x0: 
-			std::cout << std::hex << "CPU::Executing THUMB_1 : 0x" << debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing THUMB_1 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x1:
-			std::cout << std::hex << "CPU::Executing THUMB_2 : 0x" << debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing THUMB_2 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x2:
-			std::cout << std::hex << "CPU::Executing THUMB_3 : 0x" << debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing THUMB_3 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x3:
-			std::cout << std::hex << "CPU::Executing THUMB_4 : 0x" << debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing THUMB_4 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x4:
-			std::cout << std::hex << "CPU::Executing THUMB_5 : 0x" << debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing THUMB_5 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x5:
-			std::cout << std::hex << "CPU::Executing THUMB_6 : 0x" << debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing THUMB_6 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x6:
-			std::cout << std::hex << "CPU::Executing THUMB_7 : 0x" << debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing THUMB_7 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x7:
-			std::cout << std::hex << "CPU::Executing THUMB_8 : 0x" << debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing THUMB_8 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x8:
-			std::cout << std::hex << "CPU::Executing THUMB_9 : 0x" << debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing THUMB_9 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x9:
-			std::cout << std::hex << "CPU::Executing THUMB_10 : 0x" << debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing THUMB_10 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0xA:
-			std::cout << std::hex << "CPU::Executing THUMB_11 : 0x" << debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing THUMB_11 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0xB:
-			std::cout << std::hex << "CPU::Executing THUMB_12 : 0x" << debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing THUMB_12 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0xC:
-			std::cout << std::hex << "CPU::Executing THUMB_13 : 0x" << debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing THUMB_13 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0xD:
-			std::cout << std::hex << "CPU::Executing THUMB_14 : 0x" << debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing THUMB_14 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0xE:
-			std::cout << std::hex << "CPU::Executing THUMB_15 : 0x" << debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing THUMB_15 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0xF:
-			std::cout << std::hex << "CPU::Executing THUMB_16 : 0x" << debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing THUMB_16 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x10:
-			std::cout << std::hex << "CPU::Executing THUMB_17 : 0x" << debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing THUMB_17 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x11:
-			std::cout << std::hex << "CPU::Executing THUMB_18 : 0x" << debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing THUMB_18 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x12:
-			std::cout << std::hex << "CPU::Executing THUMB_19 : 0x" << debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing THUMB_19 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x13:
 			std::cout << std::hex << "Unknown THUMB Instruction : 0x" << debug_code << "\n\n"; break;
 		case 0x14:
@@ -233,13 +250,13 @@ std::string NTR_core::debug_get_mnemonic(u32 addr)
 	//Get THUMB mnemonic
 	else
 	{
-		//SWI opcodes
+		//THUMB.17 SWI opcodes
 		if((opcode & 0xFF00) == 0xDF00)
 		{
 			instr = "SWI " + util::to_hex_str(opcode & 0xFF);
 		}
 
-		//ADD SP opcodes
+		//THUMB.13 ADD SP opcodes
 		else if((opcode & 0xFF00) == 0xB000)
 		{
 			instr = "ADD SP, ";
@@ -249,7 +266,7 @@ std::string NTR_core::debug_get_mnemonic(u32 addr)
 			else { instr += "-" + util::to_hex_str(offset); }
 		}
 
-		//PUSH-POP opcodes
+		//THUMB.14 PUSH-POP opcodes
 		else if((opcode & 0xF600) == 0xB400)
 		{
 			instr = (opcode & 0x800) ? "POP " : "PUSH ";
@@ -263,7 +280,69 @@ std::string NTR_core::debug_get_mnemonic(u32 addr)
 			if((opcode & 0x100) && (opcode & 0x800)) { instr += "R15"; }
 			else if(opcode & 0x800) { instr += "R14"; }
 		}
+
+		//THUMB.7 Load-Store Reg Offsets opcodes
+		else if((opcode & 0xF200) == 0x5000)
+		{
+			u8 op = ((opcode >> 10) & 0x3);
+
+			instr = (op & 0x2) ? "LDR" : "STR";
+			if(op & 0x1) { instr += "B"; }
+
+			instr += " R" + util::to_str(opcode & 0x7) + ",";
+			instr += " [R" + util::to_str((opcode >> 3) & 0x7) + "],";
+			instr += " R" + util::to_str((opcode >> 6) & 0x7);
+		}
+
+		//THUMB.8 Load-Store Sign Extended opcodes
+		else if((opcode & 0xF200) == 5200)
+		{
+			u8 op = ((opcode >> 10) & 0x3);
+
+			switch(op)
+			{
+				case 0x0: instr = "STRH"; break;
+				case 0x1: instr = "LDSB"; break;
+				case 0x2: instr = "LDRH"; break;
+				case 0x3: instr = "LDSH"; break;
+			}
+
+			instr += " R" + util::to_str(opcode & 0x7) + ",";
+			instr += " [R" + util::to_str((opcode >> 3) & 0x7) + "],";
+			instr += " R" + util::to_str((opcode >> 6) & 0x7);
+		}
+
+		//THUMB.4 ALU opcodes
+		else if((opcode & 0xFC00) == 0x4000)
+		{
+			u8 op = ((opcode >> 6) & 0xF);
+
+			switch(op)
+			{
+				case 0x0: instr = "AND"; break;
+				case 0x1: instr = "EOR"; break;
+				case 0x2: instr = "LSL"; break;
+				case 0x3: instr = "LSR"; break;
+				case 0x4: instr = "ASR"; break;
+				case 0x5: instr = "ADC"; break;
+				case 0x6: instr = "SBC"; break;
+				case 0x7: instr = "ROR"; break;
+				case 0x8: instr = "TST"; break;
+				case 0x9: instr = "NEG"; break;
+				case 0xA: instr = "CMP"; break;
+				case 0xB: instr = "CMN"; break;
+				case 0xC: instr = "ORR"; break;
+				case 0xD: instr = "MUL"; break;
+				case 0xE: instr = "BIC"; break;
+				case 0xF: instr = "MVN"; break;
+			}
+
+			instr += "R" + util::to_str(opcode & 0x7) + ", ";
+			instr += "R" + util::to_str((opcode >> 3) & 0x7);
+		}	
 	}
+
+	return instr;
 }
 
 /****** Debugger - Wait for user input, process it to decide what next to do ******/
