@@ -84,6 +84,7 @@ void NTR_ARM7::reset()
 	debug_message = 0xFF;
 	debug_code = 0;
 	debug_cycles = 0;
+	debug_addr = 0;
 
 	sync_cycles = 0;
 	system_cycles = 0;
@@ -613,6 +614,8 @@ void NTR_ARM7::execute()
 	//Execute THUMB instruction
 	if(arm_mode == THUMB)
 	{
+		debug_addr = (reg.r15 - 4);
+
 		switch(instruction_operation[pipeline_id])
 		{
 			case THUMB_1:
@@ -716,6 +719,8 @@ void NTR_ARM7::execute()
 	//Execute ARM instruction
 	else if(arm_mode == ARM)
 	{
+		debug_addr = (reg.r15 - 8);
+
 		//Conditionally execute ARM instruction
 		if(check_condition(instruction_pipeline[pipeline_id]))
 		{

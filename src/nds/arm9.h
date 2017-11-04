@@ -190,6 +190,7 @@ class NTR_ARM9
 	u8 debug_message;
 	u32 debug_code;
 	u32 debug_cycles;
+	u32 debug_addr;
 
 	s16 sync_cycles;
 	u16 system_cycles;

@@ -28,7 +28,7 @@ void NTR_core::debug_step()
 	if((nds9_debug) && (core_cpu_nds9.arm_mode == NTR_ARM9::ARM)) { arm_debug = true; }
 	else if((!nds9_debug) && (core_cpu_nds7.arm_mode == NTR_ARM7::ARM)) { arm_debug = true; }
 
-	u32 op_addr = arm_debug ? (pc - 12) : (pc - 6);
+	u32 op_addr = nds9_debug ? core_cpu_nds9.debug_addr : core_cpu_nds7.debug_addr;
 
 	//In continue mode, if breakpoints exist, try to stop on one
 	if((db_unit.breakpoints.size() > 0) && (db_unit.last_command == "c"))
@@ -85,7 +85,7 @@ void NTR_core::debug_step()
 	{
 		db_unit.last_mnemonic = debug_get_mnemonic(op_addr);
 		debug_display();
-	} 
+	}
 }
 
 /****** Debugger - Display relevant info to the screen ******/
@@ -339,7 +339,48 @@ std::string NTR_core::debug_get_mnemonic(u32 addr)
 
 			instr += "R" + util::to_str(opcode & 0x7) + ", ";
 			instr += "R" + util::to_str((opcode >> 3) & 0x7);
-		}	
+		}
+
+		//THUMB.5 High Reg opcodes
+		else if((opcode & 0xFC00) == 0x4400)
+		{
+			u8 op = ((opcode >> 8) & 0x3);
+			u8 sr_msb = (opcode & 0x40) ? 1 : 0;
+			u8 dr_msb = (opcode & 0x80) ? 1 : 0;
+
+			u8 rs = sr_msb ? 0x8 : 0x0;
+			u8 rd = dr_msb ? 0x8 : 0x0;
+
+			rs |= ((opcode >> 3) & 0x7);
+			rd |= (opcode & 0x7);
+
+			switch(op)
+			{
+				case 0x0: instr = "ADD"; break;
+				case 0x1: instr = "CMP"; break;
+				case 0x2: instr = "MOV"; break;
+				case 0x3: instr = dr_msb ? "BLX" : "BX"; break;
+			}
+
+			if(op < 3)
+			{
+				instr += " R" + util::to_str(rd) + ",";
+				instr += " R" + util::to_str(rs);
+			}
+
+			else { instr += " R" + util::to_str(rs); }
+		}
+
+		//THUMB.18 Unconditional Branch opcodes
+		else if((opcode & 0xF800) == 0xE000)
+		{
+			u32 offset = (opcode & 0x7FF);
+			offset <<= 1;
+			if(offset & 0x800) { offset |= 0xFFFFF000; }
+			offset += addr;
+
+			instr = "B " + util::to_hex_str(offset);
+		}
 	}
 
 	return instr;
