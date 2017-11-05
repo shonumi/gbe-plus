@@ -377,7 +377,7 @@ std::string NTR_core::debug_get_mnemonic(u32 addr)
 			u32 offset = (opcode & 0x7FF);
 			offset <<= 1;
 			if(offset & 0x800) { offset |= 0xFFFFF000; }
-			offset += addr;
+			offset += (addr + 4);
 
 			instr = "B " + util::to_hex_str(offset);
 		}
@@ -387,7 +387,7 @@ std::string NTR_core::debug_get_mnemonic(u32 addr)
 		{
 			u32 offset = (opcode & 0xFF);
 			offset <<= 2;
-			offset += addr;
+			offset += (addr + 4);
 
 			instr = "LDR R" + util::to_str((opcode >> 8) & 0x7) + ", [" + util::to_hex_str(offset) + "]";
 		}
