@@ -402,10 +402,43 @@ std::string NTR_core::debug_get_mnemonic(u32 addr)
 
 			switch(op)
 			{
-				case 0x0: instr = "ADD R" + util::to_str(rd) + ", R" + util::to_str(rs) + ", R" + util::to_str(rn);
-				case 0x1: instr = "SUB R" + util::to_str(rd) + ", R" + util::to_str(rs) + ", R" + util::to_str(rn);
-				case 0x2: instr = "ADD R" + util::to_str(rd) + ", R" + util::to_str(rs) + ", " + util::to_hex_str(rn);
-				case 0x3: instr = "SUB R" + util::to_str(rd) + ", R" + util::to_str(rs) + ", " + util::to_hex_str(rn);
+				case 0x0: instr = "ADD R" + util::to_str(rd) + ", R" + util::to_str(rs) + ", R" + util::to_str(rn); break;
+				case 0x1: instr = "SUB R" + util::to_str(rd) + ", R" + util::to_str(rs) + ", R" + util::to_str(rn); break;
+				case 0x2: instr = "ADD R" + util::to_str(rd) + ", R" + util::to_str(rs) + ", " + util::to_hex_str(rn); break;
+				case 0x3: instr = "SUB R" + util::to_str(rd) + ", R" + util::to_str(rs) + ", " + util::to_hex_str(rn); break;
+			}
+		}
+
+		//THUMB.1 Move Shifted Register
+		else if((opcode & 0xE000) == 0)
+		{
+			u8 op = ((opcode >> 11) & 0x3);
+			u8 rd = (opcode & 0x7);
+			u8 rs = ((opcode >> 3) & 0x7);
+			u8 offset = ((opcode >> 6) & 0x1F);
+
+			switch(op)
+			{
+				case 0x0: instr = "LSL R" + util::to_str(rd) + ", R" + util::to_str(rs) + ", " + util::to_str(offset); break;
+				case 0x1: instr = "LSR R" + util::to_str(rd) + ", R" + util::to_str(rs) + ", " + util::to_str(offset); break;
+				case 0x2: instr = "ASR R" + util::to_str(rd) + ", R" + util::to_str(rs) + ", " + util::to_str(offset); break;
+				case 0x3: instr = "Reserved"; break;
+			}
+		}
+
+		//THUMB.3 MCAS opcodes
+		else if((opcode & 0xE000) == 0x2000)
+		{
+			u8 op = ((opcode >> 11) & 0x3);
+			u8 rd = ((opcode >> 8) & 0x7);
+			u8 imm = (opcode & 0xFF);
+
+			switch(op)
+			{
+				case 0x0: instr = "MOV R" + util::to_str(rd) + ", " + util::to_hex_str(imm); break;
+				case 0x1: instr = "CMP R" + util::to_str(rd) + ", " + util::to_hex_str(imm); break;
+				case 0x2: instr = "ADD R" + util::to_str(rd) + ", " + util::to_hex_str(imm); break;
+				case 0x3: instr = "SUB R" + util::to_str(rd) + ", " + util::to_hex_str(imm); break;
 			}
 		}
 	}
