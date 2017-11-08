@@ -312,6 +312,22 @@ std::string NTR_core::debug_get_mnemonic(u32 addr)
 			instr += " R" + util::to_str((opcode >> 6) & 0x7);
 		}
 
+		//THUMB.10 Load-Store Halfword opcodes
+		else if((opcode & 0xF000) == 0x8000)
+		{
+			u8 op = ((opcode >> 11) & 0x1);
+			u8 rd = (opcode & 0x7);
+			u8 rb = ((opcode >> 3) & 0x7);
+			u8 offset = ((opcode >> 6) & 0x1F);
+			offset *= 2;
+
+			switch(op)
+			{
+				case 0x0: instr = "STRH R" + util::to_str(rd) + ", [R" + util::to_str(rb) + ", " + util::to_hex_str(offset) + "]"; break;
+				case 0x1: instr = "LDRH R" + util::to_str(rd) + ", [R" + util::to_str(rb) + ", " + util::to_hex_str(offset) + "]"; break;
+			}
+		}		
+
 		//THUMB.4 ALU opcodes
 		else if((opcode & 0xFC00) == 0x4000)
 		{
@@ -441,6 +457,25 @@ std::string NTR_core::debug_get_mnemonic(u32 addr)
 				case 0x3: instr = "SUB R" + util::to_str(rd) + ", " + util::to_hex_str(imm); break;
 			}
 		}
+
+		//THUMB.9 Load-Store with offset
+		else if((opcode & 0xE000) == 0x6000)
+		{
+			u8 op = ((opcode >> 11) & 0x3);
+			u8 rd = (opcode & 0x7);
+			u8 rb = ((opcode >> 3) & 0x7);
+			u8 offset = ((opcode >> 6) & 0x1F);
+
+			switch(op)
+			{
+				case 0x0: instr = "STR R" + util::to_str(rd) + ", [R" + util::to_str(rb) + ", " + util::to_hex_str(offset * 4) + "]"; break;
+				case 0x1: instr = "LDR R" + util::to_str(rd) + ", [R" + util::to_str(rb) + ", " + util::to_hex_str(offset * 4) + "]"; break;
+				case 0x2: instr = "STRB R" + util::to_str(rd) + ", [R" + util::to_str(rb) + ", " + util::to_hex_str(offset) + "]"; break;
+				case 0x3: instr = "LDRB R" + util::to_str(rd) + ", [R" + util::to_str(rb) + ", " + util::to_hex_str(offset) + "]"; break;
+			}
+		}
+
+		
 	}
 
 	return instr;
