@@ -830,6 +830,14 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		}
 	}
 
+	//NR50 S01-S02 volume
+	else if(address == NR50)
+	{
+		memory_map[address] = value;
+		apu_stat->channel_left_volume = (value & 0x7) / 7.0;
+		apu_stat->channel_right_volume = ((value >> 4) & 0x7) / 7.0;
+	}
+
 	//NR51 SO1-SO2 Sound Channel Output
 	//Note, in mono-sound mode, these effectively control per-channel sound output
 	else if(address == NR51)

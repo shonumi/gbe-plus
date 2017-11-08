@@ -582,6 +582,7 @@ void dmg_audio_callback(void* _apu, u8 *_stream, int _length)
 	{
 		s32 out_sample = channel_1_stream[x] + channel_2_stream[x] + channel_3_stream[x] + channel_4_stream[x];
 		out_sample *= volume_ratio;
+		out_sample *= apu_link->apu_stat.channel_left_volume;
 		out_sample /= 4;
 
 		stream[x] = out_sample;
