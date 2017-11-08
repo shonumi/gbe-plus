@@ -895,6 +895,10 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	//BGP
 	else if(address == REG_BGP)
 	{
+		//Avoid updating DMG BG palette if it's the same value
+		//Some games spam writes to BGP with the same palette, causing a huge load on CGFX
+		if(memory_map[address] == value) { return; }
+
 		memory_map[address] = value;
 
 		//Determine Background/Window Palette - From lightest to darkest
