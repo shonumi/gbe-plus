@@ -326,7 +326,37 @@ std::string NTR_core::debug_get_mnemonic(u32 addr)
 				case 0x0: instr = "STRH R" + util::to_str(rd) + ", [R" + util::to_str(rb) + ", " + util::to_hex_str(offset) + "]"; break;
 				case 0x1: instr = "LDRH R" + util::to_str(rd) + ", [R" + util::to_str(rb) + ", " + util::to_hex_str(offset) + "]"; break;
 			}
-		}		
+		}
+
+		//THUMB.11 Load-Store SP relative opcodes
+		else if((opcode & 0xF000) == 0x9000)
+		{
+			u8 op = ((opcode >> 11) & 0x1);
+			u8 rd = ((opcode >> 8) & 0x7);
+			u16 offset = (opcode & 0xFF);
+			offset *= 4;
+
+			switch(op)
+			{
+				case 0x0: instr = "STR R" + util::to_str(rd) + ", [SP, " + util::to_hex_str(offset) + "]"; break;
+				case 0x1: instr = "LDR R" + util::to_str(rd) + ", [SP, " + util::to_hex_str(offset) + "]"; break;
+			}
+		}
+
+		//THUMB.12 Get relative address opcodes
+		else if((opcode & 0xF000) == 0xA000)
+		{
+			u8 op = ((opcode >> 11) & 0x1);
+			u8 rd = ((opcode >> 8) & 0x7);
+			u16 offset = (opcode & 0xFF);
+			offset *= 4;
+
+			switch(op)
+			{
+				case 0x0: instr = "ADD R" + util::to_str(rd) + ", PC, " + util::to_hex_str(offset); break;
+				case 0x1: instr = "ADD R" + util::to_str(rd) + ", SP, " + util::to_hex_str(offset); break;
+			}
+		}
 
 		//THUMB.4 ALU opcodes
 		else if((opcode & 0xFC00) == 0x4000)
