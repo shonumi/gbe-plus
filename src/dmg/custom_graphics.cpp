@@ -415,12 +415,6 @@ void DMG_LCD::dump_dmg_obj(u8 obj_index)
 	cgfx_stat.current_obj_hash[obj_index] = "";
 	std::string final_hash = "";
 
-	//Generate salt for hash - Use OBJ palettes
-	u16 hash_salt = 0;
-
-	if(obj[obj_index].palette_number == 0) { hash_salt = ((mem->memory_map[REG_OBP0] << 8) | mem->memory_map[REG_OBP1]); }
-	else { hash_salt = ((mem->memory_map[REG_OBP1] << 8) | mem->memory_map[REG_OBP0]); }
-
 	//Determine if in 8x8 or 8x16 mode
 	obj_height = (mem->memory_map[REG_LCDC] & 0x04) ? 16 : 8;
 
@@ -433,15 +427,17 @@ void DMG_LCD::dump_dmg_obj(u8 obj_index)
 		u16 temp_hash = mem->read_u8((x * 4) + obj_tile_addr);
 		temp_hash <<= 8;
 		temp_hash += mem->read_u8((x * 4) + obj_tile_addr + 1);
-		temp_hash = temp_hash ^ hash_salt;
 		cgfx_stat.current_obj_hash[obj_index] += hash::raw_to_64(temp_hash);
 
 		temp_hash = mem->read_u8((x * 4) + obj_tile_addr + 2);
 		temp_hash <<= 8;
 		temp_hash += mem->read_u8((x * 4) + obj_tile_addr + 3);
-		temp_hash = temp_hash ^ hash_salt;
 		cgfx_stat.current_obj_hash[obj_index] += hash::raw_to_64(temp_hash);
 	}
+
+	//Prepend palette data
+	u8 pal_data = (obj[obj_index].palette_number == 1) ? mem->memory_map[REG_OBP1] : mem->memory_map[REG_OBP0];
+	cgfx_stat.current_obj_hash[obj_index] = hash::raw_to_64(pal_data) + "_" + cgfx_stat.current_obj_hash[obj_index];
 
 	final_hash = cgfx_stat.current_obj_hash[obj_index];
 
@@ -691,9 +687,6 @@ void DMG_LCD::dump_dmg_bg(u16 bg_index)
 	cgfx_stat.current_bg_hash[bg_index] = "";
 	std::string final_hash = "";
 
-	//Generate salt for hash - Use BG palette (mirrored to 16-bits)
-	u16 hash_salt = ((mem->memory_map[REG_BGP] << 8) | mem->memory_map[REG_BGP]);
-
 	//Grab OBJ tile addr from index
 	u16 bg_tile_addr = (bg_index * 16) + 0x8000;
 
@@ -703,19 +696,21 @@ void DMG_LCD::dump_dmg_bg(u16 bg_index)
 		u16 temp_hash = mem->read_u8((x * 4) + bg_tile_addr);
 		temp_hash <<= 8;
 		temp_hash += mem->read_u8((x * 4) + bg_tile_addr + 1);
-		temp_hash = temp_hash ^ hash_salt;
 		cgfx_stat.current_bg_hash[bg_index] += hash::raw_to_64(temp_hash);
 
 		temp_hash = mem->read_u8((x * 4) + bg_tile_addr + 2);
 		temp_hash <<= 8;
 		temp_hash += mem->read_u8((x * 4) + bg_tile_addr + 3);
-		temp_hash = temp_hash ^ hash_salt;
 		cgfx_stat.current_bg_hash[bg_index] += hash::raw_to_64(temp_hash);
 	}
 
+	//Prepend palette data
+	u8 pal_data = mem->memory_map[REG_BGP];
+	cgfx_stat.current_bg_hash[bg_index] = hash::raw_to_64(pal_data) + "_" + cgfx_stat.current_bg_hash[bg_index];
+
 	final_hash = cgfx_stat.current_bg_hash[bg_index];
 
-	//Update the OBJ hash list
+	//Update the BG hash list
 	if(!cgfx::ignore_existing_hash)
 	{
 		for(int x = 0; x < cgfx_stat.bg_hash_list.size(); x++)
@@ -728,7 +723,7 @@ void DMG_LCD::dump_dmg_bg(u16 bg_index)
 		}
 	}
 
-	//For new OBJs, dump BMP file
+	//For new BG graphics, dump BMP file
 	cgfx_stat.bg_hash_list.push_back(final_hash);
 
 	bg_dump = SDL_CreateRGBSurface(SDL_SWSURFACE, 8, 8, 32, 0, 0, 0, 0);
@@ -1029,12 +1024,6 @@ void DMG_LCD::update_dmg_obj_hash(u8 obj_index)
 	cgfx_stat.current_obj_hash[obj_index] = "";
 	std::string final_hash = "";
 
-	//Generate salt for hash - Use OBJ palettes
-	u16 hash_salt = 0;
-
-	if(obj[obj_index].palette_number == 0) { hash_salt = ((mem->memory_map[REG_OBP0] << 8) | mem->memory_map[REG_OBP1]); }
-	else { hash_salt = ((mem->memory_map[REG_OBP1] << 8) | mem->memory_map[REG_OBP0]); }
-
 	//Determine if in 8x8 or 8x16 mode
 	obj_height = (mem->memory_map[REG_LCDC] & 0x04) ? 16 : 8;
 
@@ -1047,15 +1036,17 @@ void DMG_LCD::update_dmg_obj_hash(u8 obj_index)
 		u16 temp_hash = mem->read_u8((x * 4) + obj_tile_addr);
 		temp_hash <<= 8;
 		temp_hash += mem->read_u8((x * 4) + obj_tile_addr + 1);
-		temp_hash = temp_hash ^ hash_salt;
 		cgfx_stat.current_obj_hash[obj_index] += hash::raw_to_64(temp_hash);
 
 		temp_hash = mem->read_u8((x * 4) + obj_tile_addr + 2);
 		temp_hash <<= 8;
 		temp_hash += mem->read_u8((x * 4) + obj_tile_addr + 3);
-		temp_hash = temp_hash ^ hash_salt;
 		cgfx_stat.current_obj_hash[obj_index] += hash::raw_to_64(temp_hash);
 	}
+
+	//Prepend palette data
+	u8 pal_data = (obj[obj_index].palette_number == 1) ? mem->memory_map[REG_OBP1] : mem->memory_map[REG_OBP0];
+	cgfx_stat.current_obj_hash[obj_index] = hash::raw_to_64(pal_data) + "_" + cgfx_stat.current_obj_hash[obj_index];
 
 	final_hash = cgfx_stat.current_obj_hash[obj_index];
 
@@ -1142,9 +1133,6 @@ void DMG_LCD::update_dmg_bg_hash(u16 bg_index)
 	cgfx_stat.current_bg_hash[bg_index] = "";
 	std::string final_hash = "";
 
-	//Generate salt for hash - Use BG palette (mirrored to 16-bits)
-	u16 hash_salt = ((mem->memory_map[REG_BGP] << 8) | mem->memory_map[REG_BGP]);
-
 	//Grab BG tile addr from index
 	u16 bg_tile_addr = (bg_index * 16) + 0x8000;
 
@@ -1154,15 +1142,17 @@ void DMG_LCD::update_dmg_bg_hash(u16 bg_index)
 		u16 temp_hash = mem->read_u8((x * 4) + bg_tile_addr);
 		temp_hash <<= 8;
 		temp_hash += mem->read_u8((x * 4) + bg_tile_addr + 1);
-		temp_hash = temp_hash ^ hash_salt;
 		cgfx_stat.current_bg_hash[bg_index] += hash::raw_to_64(temp_hash);
 
 		temp_hash = mem->read_u8((x * 4) + bg_tile_addr + 2);
 		temp_hash <<= 8;
 		temp_hash += mem->read_u8((x * 4) + bg_tile_addr + 3);
-		temp_hash = temp_hash ^ hash_salt;
 		cgfx_stat.current_bg_hash[bg_index] += hash::raw_to_64(temp_hash);
 	}
+
+	//Prepend palette data
+	u8 pal_data = mem->memory_map[REG_BGP];
+	cgfx_stat.current_bg_hash[bg_index] = hash::raw_to_64(pal_data) + "_" + cgfx_stat.current_bg_hash[bg_index];
 
 	final_hash = cgfx_stat.current_bg_hash[bg_index];
 
@@ -1307,12 +1297,6 @@ std::string DMG_LCD::get_hash(u16 addr, u8 gfx_type)
 		addr >>= 8;
 		addr = 0x8000 + (addr << 4);
 
-		//Generate salt for hash - Use OBJ palettes
-		u16 hash_salt = 0;
-
-		if(obj[obj_index].palette_number == 0) { hash_salt = ((mem->memory_map[REG_OBP0] << 8) | mem->memory_map[REG_OBP1]); }
-		else { hash_salt = ((mem->memory_map[REG_OBP1] << 8) | mem->memory_map[REG_OBP0]); }
-
 		//Determine if in 8x8 or 8x16 mode
 		u8 obj_height = (mem->memory_map[REG_LCDC] & 0x04) ? 16 : 8;
 
@@ -1322,15 +1306,17 @@ std::string DMG_LCD::get_hash(u16 addr, u8 gfx_type)
 			u16 temp_hash = mem->read_u8((x * 4) + addr);
 			temp_hash <<= 8;
 			temp_hash += mem->read_u8((x * 4) + addr + 1);
-			temp_hash = temp_hash ^ hash_salt;
 			final_hash += hash::raw_to_64(temp_hash);
 
 			temp_hash = mem->read_u8((x * 4) + addr + 2);
 			temp_hash <<= 8;
 			temp_hash += mem->read_u8((x * 4) + addr + 3);
-			temp_hash = temp_hash ^ hash_salt;
 			final_hash += hash::raw_to_64(temp_hash);
 		}
+
+		//Prepend palette data
+		u8 pal_data = (obj[obj_index].palette_number == 1) ? mem->memory_map[REG_OBP1] : mem->memory_map[REG_OBP0];
+		final_hash = hash::raw_to_64(pal_data) + "_" + final_hash;
 	}
 
 	//Get GBC OBJ hash
@@ -1383,24 +1369,23 @@ std::string DMG_LCD::get_hash(u16 addr, u8 gfx_type)
 	//Get DMG BG hash
 	else if(gfx_type == 10)
 	{
-		//Generate salt for hash - Use BG palette (mirrored to 16-bits)
-		u16 hash_salt = ((mem->memory_map[REG_BGP] << 8) | mem->memory_map[REG_BGP]);
-
 		//Create a hash for this BG tile
 		for(int x = 0; x < 4; x++)
 		{
 			u16 temp_hash = mem->read_u8((x * 4) + addr);
 			temp_hash <<= 8;
 			temp_hash += mem->read_u8((x * 4) + addr + 1);
-			temp_hash = temp_hash ^ hash_salt;
 			final_hash += hash::raw_to_64(temp_hash);
 
 			temp_hash = mem->read_u8((x * 4) + addr + 2);
 			temp_hash <<= 8;
 			temp_hash += mem->read_u8((x * 4) + addr + 3);
-			temp_hash = temp_hash ^ hash_salt;
 			final_hash += hash::raw_to_64(temp_hash);
 		}
+
+		//Prepend palette data
+		u8 pal_data = mem->memory_map[REG_BGP];
+		final_hash = hash::raw_to_64(pal_data) + "_" + final_hash;
 	}
 
 	//Get GBC BG hash
