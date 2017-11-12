@@ -117,6 +117,7 @@ bool DMG_APU::init()
 	else
 	{
 		apu_stat.channel_master_volume = (config::volume >> 2);
+		apu_stat.sample_rate *= 4;
 
 		SDL_PauseAudio(0);
 		std::cout<<"APU::Initialized\n";
@@ -575,6 +576,7 @@ void dmg_audio_callback(void* _apu, u8 *_stream, int _length)
 {
 	s16* stream = (s16*) _stream;
 	int length = _length/2;
+	length *= 4;
 
 	s16 channel_1_stream[length];
 	s16 channel_2_stream[length];
@@ -597,6 +599,6 @@ void dmg_audio_callback(void* _apu, u8 *_stream, int _length)
 		out_sample *= apu_link->apu_stat.channel_left_volume;
 		out_sample /= 4;
 
-		stream[x] = out_sample;
+		stream[x / 4] = out_sample;
 	} 
 }
