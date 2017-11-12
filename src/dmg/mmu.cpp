@@ -540,6 +540,10 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 			apu_stat->channel[0].envelope_counter = 0;
 			apu_stat->channel[0].sweep_counter = 0;
 		}
+
+		//Set NR52 flag
+		if(apu_stat->channel[0].playing) { memory_map[NR52] |= 0x1; }
+		else { memory_map[NR52] &= ~0x1; }
 	}
 
 	//NR21 - Duration, Duty Cycle
@@ -669,6 +673,10 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 			apu_stat->channel[1].envelope_counter = 0;
 			apu_stat->channel[1].sweep_counter = 0;
 		}
+
+		//Set NR52 flag
+		if(apu_stat->channel[1].playing) { memory_map[NR52] |= 0x2; }
+		else { memory_map[NR52] &= ~0x2; }
 	}
 
 	//NR31 - Duration
@@ -738,6 +746,10 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 			apu_stat->channel[2].frequency_distance = 0;
 			apu_stat->channel[2].sample_length = (apu_stat->channel[2].duration * apu_stat->sample_rate)/1000;
 		}
+
+		//Set NR52 flag
+		if(apu_stat->channel[2].playing) { memory_map[NR52] |= 0x4; }
+		else { memory_map[NR52] &= ~0x4; }
 	}
 
 	//NR42 - Envelope, Volume
@@ -828,6 +840,10 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 			apu_stat->noise_7_stage_lsfr = 0x40;
 			apu_stat->noise_15_stage_lsfr = 0x4000;
 		}
+
+		//Set NR52 flag
+		if(apu_stat->channel[3].playing) { memory_map[NR52] |= 0x8; }
+		else { memory_map[NR52] &= ~0x8; }
 	}
 
 	//NR50 S01-S02 volume
