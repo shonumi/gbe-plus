@@ -271,14 +271,26 @@ std::string NTR_core::debug_get_mnemonic(u32 addr)
 		{
 			instr = (opcode & 0x800) ? "POP " : "PUSH ";
 			u8 r_list = (opcode & 0xFF);
+			u8 last_reg = 0;
 
 			for(u32 x = 0; x < 8; x++)
 			{
-				if(r_list & 0x1) { instr += "R" + util::to_str(x) + ", "; }
+				if((r_list >> x) & 0x1) { last_reg = x; }
 			}
 
-			if((opcode & 0x100) && (opcode & 0x800)) { instr += "R15"; }
-			else if(opcode & 0x800) { instr += "R14"; }
+			for(u32 x = 0; x < 8; x++)
+			{
+				if((r_list >> x) & 0x1)
+				{
+					instr += "R" + util::to_str(x);
+					if(x != last_reg) { instr += ", "; }
+				}
+			}
+
+			instr += "}";
+
+			if((opcode & 0x100) && (opcode & 0x800)) { instr += "{R15}"; }
+			else if(opcode & 0x800) { instr += "{R14}"; }
 		}
 
 		//THUMB.7 Load-Store Reg Offsets opcodes
@@ -358,6 +370,33 @@ std::string NTR_core::debug_get_mnemonic(u32 addr)
 			}
 		}
 
+		//THUMB.15 LDM-STM opcodes
+		else if((opcode & 0xF000) == 0xC000)
+		{
+			instr = (opcode & 0x800) ? "LDMIA " : "STMIA ";
+			u8 r_list = (opcode & 0xFF);
+			u8 rb = ((opcode >> 8) & 0x7);
+			u8 last_reg = 0;
+
+			for(u32 x = 0; x < 8; x++)
+			{
+				if((r_list >> x) & 0x1) { last_reg = x; }
+			}
+				
+			instr += util::to_str(rb) + " {";
+
+			for(u32 x = 0; x < 8; x++)
+			{
+				if((r_list >> x) & 0x1)
+				{
+					instr += "R" + util::to_str(x);
+					if(x != last_reg) { instr += ", "; }
+				}
+			}
+
+			instr += "}";
+		}
+			
 		//THUMB.4 ALU opcodes
 		else if((opcode & 0xFC00) == 0x4000)
 		{
