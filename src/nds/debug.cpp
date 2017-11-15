@@ -396,7 +396,39 @@ std::string NTR_core::debug_get_mnemonic(u32 addr)
 
 			instr += "}";
 		}
+
+		//THUMB.16 Conditional Branch opcodes
+		else if((opcode & 0xF000) == 0xD000)
+		{
+			u8 op = ((opcode >> 8) & 0xF);
 			
+			u32 offset = (opcode & 0xFF);
+			offset <<= 1;			
+			if(offset & 0x100) { offset |= 0xFFFFFE00; }
+			offset += (addr + 4);
+
+			switch(op)
+			{
+				case 0x0: instr = "BEQ "; break;
+				case 0x1: instr = "BNE "; break;
+				case 0x2: instr = "BCS "; break;
+				case 0x3: instr = "BCC "; break;
+				case 0x4: instr = "BMI "; break;
+				case 0x5: instr = "BPL "; break;
+				case 0x6: instr = "BVS "; break;
+				case 0x7: instr = "BVC "; break;
+				case 0x8: instr = "BHI "; break;
+				case 0x9: instr = "BLS "; break;
+				case 0xA: instr = "BGE "; break;
+				case 0xB: instr = "BLT "; break;
+				case 0xC: instr = "BGT "; break;
+				case 0xD: instr = "BLE "; break;
+				default: instr = "UNDEF Branch"; break;
+			}
+
+			instr += util::to_hex_str(offset);
+		}
+	
 		//THUMB.4 ALU opcodes
 		else if((opcode & 0xFC00) == 0x4000)
 		{
