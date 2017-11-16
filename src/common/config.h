@@ -152,6 +152,7 @@ namespace config
 	extern u32 DMG_OBJ_PAL[4][2];
 
 	extern u16 rtc_offset[6];
+	extern u32 oc_flags;
 
 	extern bool use_external_interfaces;
 

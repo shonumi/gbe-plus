@@ -195,6 +195,9 @@ namespace config
 
 	//Real-time clock offsets
 	u16 rtc_offset[6] = { 0, 0, 0, 0, 0, 0 };
+
+	//CPU overclocking flags
+	u32 oc_flags = 0;
 }
 
 /****** Reset DMG default colors ******/
@@ -1430,6 +1433,25 @@ bool parse_ini_file()
 			}
 		}
 
+		//CPU overclocking flags
+		else if(ini_item == "#oc_flags")
+		{
+			if((x + 1) < size)
+			{
+				ini_item = ini_opts[++x];
+				std::stringstream temp_stream(ini_item);
+				temp_stream >> output;
+				
+				if((output >= 0) && (output <= 2)) { config::oc_flags = output; }
+			}
+
+			else
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#oc_flags) \n";
+				return false;
+			}
+		}
+			
 		//Emulated DMG-on-GBC palette
 		else if(ini_item == "#dmg_on_gbc_pal")
 		{
@@ -2640,6 +2662,15 @@ bool save_ini_file()
 			val += util::to_str(config::rtc_offset[5]);
 
 			output_lines[line_pos] = "[#rtc_offset:" + val + "]";
+		}
+
+		//CPU overclocking flags
+		else if(ini_item == "#oc_flags")
+		{
+			line_pos = output_count[x];
+			std::string val = util::to_str(config::oc_flags);
+
+			output_lines[line_pos] = "[#oc_flags:" + val + "]";
 		}
 
 		//Emulated DMG-on-GBC palette

@@ -1673,6 +1673,9 @@ void DMG_LCD::hdma()
 /****** Execute LCD operations ******/
 void DMG_LCD::step(int cpu_clock) 
 {
+	cpu_clock >>= config::oc_flags;
+	cpu_clock = (cpu_clock == 0) ? 1 : cpu_clock;
+
         //Enable the LCD
 	if((lcd_stat.on_off) && (lcd_stat.lcd_enable)) 
 	{
