@@ -1442,7 +1442,7 @@ bool parse_ini_file()
 				std::stringstream temp_stream(ini_item);
 				temp_stream >> output;
 				
-				if((output >= 0) && (output <= 2)) { config::oc_flags = output; }
+				if((output >= 0) && (output <= 3)) { config::oc_flags = output; }
 			}
 
 			else

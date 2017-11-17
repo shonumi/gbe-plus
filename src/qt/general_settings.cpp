@@ -161,6 +161,22 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	ir_layout->addWidget(ir_dev);
 	ir_set->setLayout(ir_layout);
 
+	//General settings - Emulated CPU Speed
+	QWidget* overclock_set = new QWidget(general);
+	QLabel* overclock_label = new QLabel("Emulated CPU Speed", overclock_set);
+	overclock = new QComboBox(overclock_set);
+	overclock->setToolTip("Changes the emulated CPU speed. More demanding, but reduces lag that happens on real hardware. May break some games.");
+	overclock->addItem("1x");
+	overclock->addItem("2x");
+	overclock->addItem("4x");
+	overclock->addItem("8x");
+
+	QHBoxLayout* overclock_layout = new QHBoxLayout;
+	overclock_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	overclock_layout->addWidget(overclock_label);
+	overclock_layout->addWidget(overclock);
+	overclock_set->setLayout(overclock_layout);
+
 	//General settings - Enable patches
 	QWidget* patch_set = new QWidget(general);
 	QLabel* patch_label = new QLabel("Enable ROM patches", patch_set);
@@ -179,6 +195,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	gen_layout->addWidget(sio_set);
 	gen_layout->addWidget(ir_set);
 	gen_layout->addWidget(special_cart_set);
+	gen_layout->addWidget(overclock_set);
 	gen_layout->addWidget(bios_set);
 	gen_layout->addWidget(firmware_set);
 	gen_layout->addWidget(cheats_set);
@@ -944,6 +961,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(firmware, SIGNAL(stateChanged(int)), this, SLOT(set_firmware()));
 	connect(sio_dev, SIGNAL(currentIndexChanged(int)), this, SLOT(sio_dev_change()));
 	connect(ir_dev, SIGNAL(currentIndexChanged(int)), this, SLOT(ir_dev_change()));
+	connect(overclock, SIGNAL(currentIndexChanged(int)), this, SLOT(overclock_change()));
 	connect(auto_patch, SIGNAL(stateChanged(int)), this, SLOT(set_patches()));
 	connect(edit_cheats, SIGNAL(clicked()), this, SLOT(show_cheats()));
 	connect(edit_rtc, SIGNAL(clicked()), this, SLOT(show_rtc()));
@@ -1174,6 +1192,9 @@ void gen_settings::set_ini_options()
 	//Emulated IR device
 	ir_dev->setCurrentIndex(config::ir_device);
 
+	//Emulated CPU speed
+	overclock->setCurrentIndex(config::oc_flags);
+
 	//BIOS or Boot ROM option
 	if(config::use_bios) { bios->setChecked(true); }
 
@@ -1356,6 +1377,12 @@ void gen_settings::sio_dev_change()
 void gen_settings::ir_dev_change()
 {
 	config::ir_device = ir_dev->currentIndex();
+}
+
+/****** Changes the emulated CPU speed ******/
+void gen_settings::overclock_change()
+{
+	config::oc_flags = overclock->currentIndex();
 }
 
 /****** Toggles whether to enable auto-patching ******/

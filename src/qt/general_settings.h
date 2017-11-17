@@ -38,6 +38,7 @@ class gen_settings : public QDialog
 	QCheckBox* bios;
 	QCheckBox* firmware;
 	QComboBox* special_cart;
+	QComboBox* overclock;
 	QCheckBox* cheats;
 	QPushButton* edit_cheats;
 	QComboBox* sio_dev;
@@ -163,6 +164,7 @@ class gen_settings : public QDialog
 	void set_firmware();
 	void sio_dev_change();
 	void ir_dev_change();
+	void overclock_change();
 	void set_patches();
 	void show_cheats();
 	void show_rtc();
