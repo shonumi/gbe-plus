@@ -739,6 +739,9 @@ void SGB_LCD::render_sgb_obj_scanline()
 /****** Execute LCD operations ******/
 void SGB_LCD::step(int cpu_clock) 
 {
+	cpu_clock >>= config::oc_flags;
+	cpu_clock = (cpu_clock == 0) ? 1 : cpu_clock;
+
 	//Process SGB commands
 	if(mem->g_pad->get_pad_data(0)) { process_sgb_command(); }
 
