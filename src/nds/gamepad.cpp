@@ -523,4 +523,8 @@ void NTR_GamePad::clear_input()
 	key_input = 0x3FF;
 	ext_key_input = 0x7F;
 	up_shadow = down_shadow = left_shadow = right_shadow = false;
+	mouse_x = 0;
+	mouse_y = 0xFFF;
+	touch_hold = false;
+	touch_by_mouse = false;
 }
