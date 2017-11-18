@@ -92,6 +92,7 @@ struct dmg_sio_data
 	bool sync;
 	bool ping_finish;
 	bool send_data;
+	bool clock_change;
 	u8 shifts_left;
 	u8 transfer_byte;
 	u8 network_id;

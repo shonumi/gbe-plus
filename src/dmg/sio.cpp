@@ -205,6 +205,7 @@ void DMG_SIO::reset()
 	sio_stat.ping_count = 0;
 	sio_stat.ping_finish = false;
 	sio_stat.send_data = false;
+	sio_stat.clock_change = false;
 	
 	switch(config::sio_device)
 	{
@@ -372,6 +373,8 @@ void DMG_SIO::reset()
 	four_player.current_state = FOUR_PLAYER_INACTIVE;
 	four_player.id = 1;
 	four_player.status = 1;
+	four_player.begin_network_sync = false;
+	four_player.buffer_pos = 0;
 }
 
 /****** Transfers one byte to another system ******/
@@ -2231,10 +2234,9 @@ void DMG_SIO::four_player_process()
 	if(sio_stat.internal_clock) { four_player.current_state = FOUR_PLAYER_INACTIVE; }
 	
 	//Start Link Cable sync
-	else if((four_player.current_state == FOUR_PLAYER_PING) && (sio_stat.transfer_byte == 0xAA))
+	else if((four_player.current_state == FOUR_PLAYER_PING) && (sio_stat.transfer_byte == 0xAA) && (!four_player.begin_network_sync))
 	{
-		if(four_player.current_state != FOUR_PLAYER_SYNC) { sio_stat.ping_count = 0; }
-		four_player.current_state = FOUR_PLAYER_SYNC;
+		four_player.begin_network_sync = true;
 	}
 
 	//Start Link Cable ping
@@ -2261,7 +2263,7 @@ void DMG_SIO::four_player_process()
 			//Update current link status
 			if((sio_stat.ping_count == 1) || (sio_stat.ping_count == 2))
 			{
-				if(sio_stat.transfer_byte == 0x88) { four_player.status |= (1 << (four_player.id + 3)); }
+				if((sio_stat.transfer_byte == 0x88) || (four_player.begin_network_sync)) { four_player.status |= (1 << (four_player.id + 3)); }
 				else { four_player.status &= ~(1 << (four_player.id + 3)); }
 			}
 
@@ -2282,6 +2284,13 @@ void DMG_SIO::four_player_process()
 
 			sio_stat.ping_count++;
 			sio_stat.ping_count &= 0x3;
+
+			//Wait until current packet is finished before starting network sync
+			if((sio_stat.ping_count == 0) && (four_player.begin_network_sync))
+			{
+				four_player.begin_network_sync = false;
+				four_player.current_state = FOUR_PLAYER_SYNC;
+			}
 
 			break;
 
@@ -2307,9 +2316,12 @@ void DMG_SIO::four_player_process()
 			if(sio_stat.ping_count == 0)
 			{
 				four_player.current_state = FOUR_PLAYER_PROCESS_NETWORK;
+				four_player.buffer_pos = 0;
+
+				sio_stat.clock_change = true;
 
 				//Data in initial buffer is technically garbage. Set to zero for now.
-				for(u32 x = 0; x < 16; x++)
+				for(u32 x = 0; x < 32; x++)
 				{
 					four_player.data[x] = 0;
 					four_player.buffer[x] = 0;
@@ -2328,39 +2340,46 @@ void DMG_SIO::four_player_process()
 			if(sio_stat.connected) { four_player.wait_flags |= 0x2; }
 
 			//Player 1 - Return buffered data
-			mem->memory_map[REG_SB] = four_player.data[sio_stat.ping_count];
+			mem->memory_map[REG_SB] = four_player.buffer[four_player.buffer_pos];
 			mem->memory_map[IF_FLAG] |= 0x08;
 
+			//std::cout<<"SENDING BUFFER POS -> " << std::dec << (u16)four_player.buffer_pos << std::hex << "\n";
+
 			//Players 2-4 - Return buffered data
-			four_player_broadcast(four_player.data[sio_stat.ping_count], 0xFC);
+			four_player_broadcast(four_player.buffer[four_player.buffer_pos], 0xFC);
 
 			//Update buffer
-			if(sio_stat.ping_count < 4)
+			if((sio_stat.ping_count > 0) && (sio_stat.ping_count < 5))
 			{
+				u8 temp_pos = (four_player.buffer_pos + 15) & 0x1F;
+
 				//Grab Player 1 data
-				four_player.buffer[sio_stat.ping_count] = sio_stat.transfer_byte;
+				four_player.buffer[temp_pos] = sio_stat.transfer_byte;
+				//std::cout<<"STORING BUFFER POS -> " << std::dec << (u16)temp_pos << std::hex << "\n";
 
 				//Grab Player 2 data
 				u8 p_data = four_player_request(0, 0xFB);
-				four_player.buffer[4 + sio_stat.ping_count] = p_data;
+				four_player.buffer[temp_pos + 4] = p_data;
 
 				//Grab Player 3 data
 				p_data = 0x00;
-				four_player.buffer[8 + sio_stat.ping_count] = p_data;
+				four_player.buffer[temp_pos + 8] = p_data;
 
 				//Grab Player 4 data
 				p_data = 0x00;
-				four_player.buffer[12 + sio_stat.ping_count] = p_data;
+				four_player.buffer[temp_pos + 12] = p_data;
 			}
-
-			//Update data
-			four_player.data[sio_stat.ping_count] = four_player.buffer[sio_stat.ping_count];
 
 			sio_stat.ping_count++;
 			sio_stat.ping_count &= 0xF;
 
+			four_player.buffer_pos++;
+			four_player.buffer_pos &= 0x1F;
+
 			break;
 	}
+
+	//std::cout<<"SIO RECV -> 0x" << (u16)mem->memory_map[REG_SB] << "\n";
 }
 
 /****** Updates current status for 4 Player Adapter ******/
