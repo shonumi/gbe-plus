@@ -150,7 +150,7 @@ void NTR_core::debug_display() const
 		case 0x14:
 			std::cout << std::hex << "CPU::Executing ARM_3 : 0x" << debug_code << "\n\n"; break;
 		case 0x15:
-			std::cout << std::hex << "CPU::Executing ARM_4 : 0x" << debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing ARM_4 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x16:
 			std::cout << std::hex << "CPU::Executing ARM_5 : 0x" << debug_code << "\n\n"; break;
 		case 0x17:
@@ -166,7 +166,7 @@ void NTR_core::debug_display() const
 		case 0x1C:
 			std::cout << std::hex << "CPU::Executing ARM_12 : 0x" << debug_code << "\n\n"; break;
 		case 0x1D:
-			std::cout << std::hex << "CPU::Executing ARM_13 : 0x" << debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing ARM_13 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x1E:
 			std::cout << std::hex << "CPU::Executing ARM Coprocessor Register Transfer : 0x" << debug_code << "\n\n"; break;
 		case 0x1F:
@@ -245,7 +245,58 @@ std::string NTR_core::debug_get_mnemonic(u32 addr)
 	std::string instr = "";
 
 	//Get ARM mnemonic
-	if(arm_debug) { }
+	if(arm_debug)
+	{
+		std::string cond_code = "";
+		u8 cond_bytes = ((opcode >> 28) & 0xF);
+
+		switch(cond_bytes)
+		{
+			case 0x0: cond_code = "EQ"; break;
+			case 0x1: cond_code = "NE"; break;
+			case 0x2: cond_code = "CS"; break;
+			case 0x3: cond_code = "CC"; break;
+			case 0x4: cond_code = "MI"; break;
+			case 0x5: cond_code = "PL"; break;
+			case 0x6: cond_code = "VS"; break;
+			case 0x7: cond_code = "VC"; break;
+			case 0x8: cond_code = "HI"; break;
+			case 0x9: cond_code = "LS"; break;
+			case 0xA: cond_code = "GE"; break;
+			case 0xB: cond_code = "LT"; break;
+			case 0xC: cond_code = "GT"; break;
+			case 0xD: cond_code = "LE"; break;
+			case 0xE: cond_code = ""; break;
+			case 0xF: cond_code = ""; break;
+		}
+
+		//ARM.13 SWI opcodes
+		if((opcode & 0xF000000) == 0xF000000)
+		{
+			instr = "SWI" + cond_code + " " + util::to_hex_str((opcode >> 16) & 0xFF);
+		}
+
+		//ARM.4 B, BL, BLX opcodes
+		else if((opcode & 0xE000000) == 0xA000000)
+		{
+			u8 op = (opcode >> 24) & 0x1;
+			if((opcode >> 28) == 0xF) { op = 2; }
+
+			u32 offset = (opcode & 0xFFFFFF);
+			offset <<= 2;
+			if(offset & 0x2000000) { offset |= 0xFC000000; }
+			offset += (addr + 8);
+
+			if((op == 2) && (opcode & 0x1000000)) { offset += 2; }
+
+			switch(op)
+			{
+				case 0x0: instr = "B" + cond_code + " " + util::to_hex_str(offset); break;
+				case 0x1: instr = "BL" + cond_code + " " + util::to_hex_str(offset); break;
+				case 0x2: instr = "BLX" + cond_code + " " + util::to_hex_str(offset); break;
+			}
+		}
+	}
 
 	//Get THUMB mnemonic
 	else
