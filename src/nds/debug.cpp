@@ -296,6 +296,21 @@ std::string NTR_core::debug_get_mnemonic(u32 addr)
 				case 0x2: instr = "BLX" + cond_code + " " + util::to_hex_str(offset); break;
 			}
 		}
+
+		//ARM.3 B and BX opcodes
+		else if((opcode & 0xFFFFFD0) == 0x12FFF10)
+		{
+			u8 op = (opcode >> 4) & 0xF;
+			u8 rn = (opcode & 0xF);
+
+			switch(op)
+			{
+				case 0x0: instr = "B" + cond_code + " R" + util::to_str(rn); break;
+				case 0x3: instr = "BX" + cond_code + " R" + util::to_str(rn); break;
+			}
+		}
+
+			
 	}
 
 	//Get THUMB mnemonic
