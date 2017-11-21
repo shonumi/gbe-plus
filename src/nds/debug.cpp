@@ -158,7 +158,7 @@ void NTR_core::debug_display() const
 		case 0x18:
 			std::cout << std::hex << "CPU::Executing ARM_7 : 0x" << debug_code << "\n\n"; break;
 		case 0x19:
-			std::cout << std::hex << "CPU::Executing ARM_9 : 0x" << debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing ARM_9 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x1A:
 			std::cout << std::hex << "CPU::Executing ARM_10 : 0x" << debug_code << "\n\n"; break;
 		case 0x1B:
@@ -310,7 +310,56 @@ std::string NTR_core::debug_get_mnemonic(u32 addr)
 			}
 		}
 
-			
+		//ARM.9 Single Data Transfer opcodes
+		else if((opcode & 0xC000000) == 0x4000000)
+		{
+			u8 op = ((opcode >> 20) & 0x1);
+			u8 rd = ((opcode >> 12) & 0xF);
+			u8 rn = ((opcode >> 16) & 0xF);
+			u8 is_imm = ((opcode >> 25) & 0x1);
+			u8 is_up = ((opcode >> 23) & 0x1);
+			u8 is_byte = ((opcode >> 22) & 0x1);
+			std::string immediate = "";
+
+			if(is_imm)
+			{
+				u8 shift = ((opcode >> 7) & 0x1F);
+				u8 shift_type = ((opcode >> 5) & 0x3);
+				u8 rm = (opcode & 0xF);
+
+				immediate = "R" + util::to_str(rm) + " ";
+
+				switch(shift_type)
+				{
+					case 0x0: immediate += "LSL #" + util::to_str(shift); break;
+					case 0x1: immediate += "LSR #" + util::to_str(shift); break;
+					case 0x2: immediate += "ASR #" + util::to_str(shift); break;
+					case 0x3: immediate += "ROR #" + util::to_str(shift); break;
+				}
+			}
+
+			else { immediate = util::to_hex_str(opcode & 0xFFF); }
+
+			if(!is_up) { immediate = "- " + immediate; }
+			else { immediate = "+ " + immediate; }
+				
+			switch(op)
+			{
+				case 0x0:
+					instr = "STR" + cond_code;
+					if(is_byte) { instr += "B"; }
+					instr += " R" + util::to_str(rd) + ",";
+					instr += " [R" + util::to_str(rn) + " " + immediate + "]";
+					break;
+
+				case 0x1:
+					instr = "LDR" + cond_code;
+					if(is_byte) { instr += "B"; }
+					instr += " R" + util::to_str(rd) + ",";
+					instr += " [R" + util::to_str(rn) + " " + immediate + "]";
+					break;
+			}
+		}	
 	}
 
 	//Get THUMB mnemonic
