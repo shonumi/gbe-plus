@@ -359,7 +359,20 @@ std::string NTR_core::debug_get_mnemonic(u32 addr)
 					instr += " [R" + util::to_str(rn) + " " + immediate + "]";
 					break;
 			}
-		}	
+		}
+
+		//ARM.12 Swap opcodes
+		else if((opcode & 0xFB00FF0) == 0x1000090)
+		{
+			u8 is_byte = ((opcode >> 22) & 0x1);
+			u8 rm = (opcode & 0xF);
+			u8 rd = ((opcode >> 12) & 0xF);
+			u8 rn = ((opcode >> 16) & 0xF);
+
+			instr = "SWP" + cond_code;
+			if(is_byte) { instr += "B"; }
+			instr += " R" + util::to_str(rd) + ", R" + util::to_str(rm) + ", [R" + util::to_str(rn) + "]";
+		}
 	}
 
 	//Get THUMB mnemonic
