@@ -129,11 +129,12 @@ class DMG_SIO
 	{
 		u8 id;
 		u8 status;
-		u8 data[32];
-		u8 buffer[32];
+		std::vector<u8> buffer;
 		u8 incoming[4];
 		u8 wait_flags;
 		u8 buffer_pos;
+		u8 packet_size;
+		u32 clock;
 		bool begin_network_sync;
 		four_player_state current_state;
 	} four_player;

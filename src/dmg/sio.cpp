@@ -197,6 +197,7 @@ void DMG_SIO::reset()
 	sio_stat.shifts_left = 0;
 	sio_stat.shift_counter = 0;
 	sio_stat.shift_clock = 512;
+	sio_stat.dmg07_clock = 2048;
 	sio_stat.sync_counter = 0;
 	sio_stat.sync_clock = config::netplay_sync_threshold;
 	sio_stat.sync = false;
@@ -205,7 +206,6 @@ void DMG_SIO::reset()
 	sio_stat.ping_count = 0;
 	sio_stat.ping_finish = false;
 	sio_stat.send_data = false;
-	sio_stat.clock_change = false;
 	
 	switch(config::sio_device)
 	{
@@ -375,6 +375,9 @@ void DMG_SIO::reset()
 	four_player.status = 1;
 	four_player.begin_network_sync = false;
 	four_player.buffer_pos = 0;
+	four_player.buffer.clear();
+	four_player.packet_size = 0;
+	four_player.clock = 0;
 }
 
 /****** Transfers one byte to another system ******/
@@ -2285,11 +2288,20 @@ void DMG_SIO::four_player_process()
 			sio_stat.ping_count++;
 			sio_stat.ping_count &= 0x3;
 
+			//Grab packet size
+			if((sio_stat.ping_count == 1) && (!four_player.begin_network_sync)) { four_player.packet_size = sio_stat.transfer_byte; }
+
+			//Grab clock rate
+			if((sio_stat.ping_count == 0) && (!four_player.begin_network_sync)) { four_player.clock = (6 * sio_stat.transfer_byte) + 512; }
+
 			//Wait until current packet is finished before starting network sync
 			if((sio_stat.ping_count == 0) && (four_player.begin_network_sync))
 			{
 				four_player.begin_network_sync = false;
 				four_player.current_state = FOUR_PLAYER_SYNC;
+
+				//Change DMG-07 clock based on input from master DMG
+				sio_stat.dmg07_clock = four_player.clock;
 			}
 
 			break;
@@ -2317,14 +2329,12 @@ void DMG_SIO::four_player_process()
 			{
 				four_player.current_state = FOUR_PLAYER_PROCESS_NETWORK;
 				four_player.buffer_pos = 0;
-
-				sio_stat.clock_change = true;
+				four_player.buffer.clear();
 
 				//Data in initial buffer is technically garbage. Set to zero for now.
-				for(u32 x = 0; x < 32; x++)
+				for(u32 x = 0; x < (four_player.packet_size * 8); x++)
 				{
-					four_player.data[x] = 0;
-					four_player.buffer[x] = 0;
+					four_player.buffer.push_back(0);
 				}
 			}
 
@@ -2343,43 +2353,40 @@ void DMG_SIO::four_player_process()
 			mem->memory_map[REG_SB] = four_player.buffer[four_player.buffer_pos];
 			mem->memory_map[IF_FLAG] |= 0x08;
 
-			//std::cout<<"SENDING BUFFER POS -> " << std::dec << (u16)four_player.buffer_pos << std::hex << "\n";
-
 			//Players 2-4 - Return buffered data
 			four_player_broadcast(four_player.buffer[four_player.buffer_pos], 0xFC);
 
+			u8 buff_pos = four_player.buffer_pos % (four_player.packet_size * 4);
+
 			//Update buffer
-			if((sio_stat.ping_count > 0) && (sio_stat.ping_count < 5))
+			if((buff_pos > 0) && (buff_pos < (four_player.packet_size + 1)))
 			{
-				u8 temp_pos = (four_player.buffer_pos + 15) & 0x1F;
+				u8 temp_pos = ((four_player.buffer_pos - 1) + (four_player.packet_size * 4)) % (four_player.packet_size * 8);
 
 				//Grab Player 1 data
 				four_player.buffer[temp_pos] = sio_stat.transfer_byte;
-				//std::cout<<"STORING BUFFER POS -> " << std::dec << (u16)temp_pos << std::hex << "\n";
 
 				//Grab Player 2 data
 				u8 p_data = four_player_request(0, 0xFB);
-				four_player.buffer[temp_pos + 4] = p_data;
+				four_player.buffer[temp_pos + four_player.packet_size] = p_data;
 
 				//Grab Player 3 data
 				p_data = 0x00;
-				four_player.buffer[temp_pos + 8] = p_data;
+				four_player.buffer[temp_pos + (four_player.packet_size * 2)] = p_data;
 
 				//Grab Player 4 data
 				p_data = 0x00;
-				four_player.buffer[temp_pos + 12] = p_data;
+				four_player.buffer[temp_pos + (four_player.packet_size * 3)] = p_data;
 			}
 
 			sio_stat.ping_count++;
-			sio_stat.ping_count &= 0xF;
+			sio_stat.ping_count = sio_stat.ping_count % (four_player.packet_size * 4);
 
 			four_player.buffer_pos++;
-			four_player.buffer_pos &= 0x1F;
+			four_player.buffer_pos = four_player.buffer_pos % (four_player.packet_size * 8);
 
 			break;
 	}
-
-	//std::cout<<"SIO RECV -> 0x" << (u16)mem->memory_map[REG_SB] << "\n";
 }
 
 /****** Updates current status for 4 Player Adapter ******/
