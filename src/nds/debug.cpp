@@ -154,7 +154,7 @@ void NTR_core::debug_display() const
 		case 0x16:
 			std::cout << std::hex << "CPU::Executing ARM_5 : 0x" << debug_code << "\n\n"; break;
 		case 0x17:
-			std::cout << std::hex << "CPU::Executing ARM_6 : 0x" << debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing ARM_6 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x18:
 			std::cout << std::hex << "CPU::Executing ARM_7 : 0x" << debug_code << "\n\n"; break;
 		case 0x19:
@@ -372,6 +372,45 @@ std::string NTR_core::debug_get_mnemonic(u32 addr)
 			instr = "SWP" + cond_code;
 			if(is_byte) { instr += "B"; }
 			instr += " R" + util::to_str(rd) + ", R" + util::to_str(rm) + ", [R" + util::to_str(rn) + "]";
+		}
+
+		//ARM.6 PSR opcodes
+		else if(((opcode & 0xFB00000) == 0x3200000)
+		|| ((opcode & 0xF900FF0) == 0x1000000))
+		{
+			u8 op = ((opcode >> 21) & 0x1);
+			u8 is_imm = ((opcode >> 25) & 0x1);
+			std::string psr = ((opcode >> 22) & 0x1) ? "SPSR" : "CPSR";
+
+			//MRS
+			if(opcode == 0)
+			{
+				instr = "MRS" + cond_code + ", R" + util::to_str(((opcode >> 12) & 0xF)) + ", " + psr;
+			}
+
+			//MSR
+			else
+			{
+				std::string immediate = "";
+				std::string flags = "_";
+				
+				if((opcode >> 19) & 0x1) { flags += "f"; }
+				if((opcode >> 18) & 0x1) { flags += "s"; }
+				if((opcode >> 17) & 0x1) { flags += "x"; }
+				if((opcode >> 16) & 0x1) { flags += "c"; }
+				
+				if(is_imm)
+				{
+					u8 ror = (opcode >> 8) & 0xF;
+					ror *= 2;
+
+					immediate = util::to_hex_str(opcode & 0xFF) + " ROR #" + util::to_str(ror);
+				}
+
+				else { immediate = "R" + util::to_str(opcode & 0xF); }
+
+				instr = "MSR " + psr + ", " + immediate;
+			}
 		}
 	}
 
