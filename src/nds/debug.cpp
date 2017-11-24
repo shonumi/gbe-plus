@@ -148,7 +148,7 @@ void NTR_core::debug_display() const
 		case 0x13:
 			std::cout << std::hex << "Unknown THUMB Instruction : 0x" << debug_code << "\n\n"; break;
 		case 0x14:
-			std::cout << std::hex << "CPU::Executing ARM_3 : 0x" << debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing ARM_3 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x15:
 			std::cout << std::hex << "CPU::Executing ARM_4 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x16:
@@ -160,11 +160,11 @@ void NTR_core::debug_display() const
 		case 0x19:
 			std::cout << std::hex << "CPU::Executing ARM_9 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x1A:
-			std::cout << std::hex << "CPU::Executing ARM_10 : 0x" << debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing ARM_10 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x1B:
 			std::cout << std::hex << "CPU::Executing ARM_11 : 0x" << debug_code << "\n\n"; break;
 		case 0x1C:
-			std::cout << std::hex << "CPU::Executing ARM_12 : 0x" << debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing ARM_12 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x1D:
 			std::cout << std::hex << "CPU::Executing ARM_13 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x1E:
@@ -412,6 +412,59 @@ std::string NTR_core::debug_get_mnemonic(u32 addr)
 				instr = "MSR " + psr + ", " + immediate;
 			}
 		}
+
+		//ARM.10 Halfword Signed Transfers
+		else if(((opcode & 0xE400F90) == 0x90)
+		|| ((opcode & 0xE400090) == 0x400090))
+		{
+			u8 op = ((opcode >> 5) & 0x3);
+			u8 is_pre = ((opcode >> 24) & 0x1); 
+			u8 is_up = ((opcode >> 23) & 0x1);
+			u8 is_imm = ((opcode >> 22) & 0x1);
+			u8 is_write_back = ((opcode >> 21) & 0x1);
+			u8 is_load = ((opcode >> 20) & 0x1);
+			u8 rn = ((opcode >> 16) & 0xF);
+			u8 rd = ((opcode >> 12) & 0xF);
+			std::string immediate = "";
+
+			if(is_imm)
+			{
+				u8 imm = ((opcode >> 8) & 0xF);
+				imm |= (opcode & 0xF);
+				immediate = util::to_hex_str(imm);
+			}
+
+			else { immediate = "R" + util::to_str(opcode & 0xF); }
+
+			if(is_load) { op += 0x10; }
+
+			switch(op)
+			{
+				case 0x1: instr = "STR" + cond_code + "H R" + util::to_str(rd) + ", "; break;
+				case 0x2: instr = "LDR" + cond_code + "D R" + util::to_str(rd) + ", "; break;
+				case 0x3: instr = "STR" + cond_code + "D R" + util::to_str(rd) + ", "; break;
+				case 0x11: instr = "LDR" + cond_code + "H R" + util::to_str(rd) + ", "; break;
+				case 0x12: instr = "LDR" + cond_code + "SB R" + util::to_str(rd) + ", "; break;
+				case 0x13: instr = "LDR" + cond_code + "SH R" + util::to_str(rd) + ", "; break;
+			}
+
+			if(is_pre)
+			{
+				instr += "[R" + util::to_str(rn);
+				if(is_up) { instr += " + "; }
+				else { instr += " - "; }
+				instr += immediate + "]";
+				if(is_write_back) { instr += "{!}"; }
+			}
+
+			else
+			{
+				instr += "[R" + util::to_str(rn) + "], ";
+				if(is_up) { instr += " + "; }
+				else { instr += " - "; }
+				instr += immediate;
+			}
+		}	
 	}
 
 	//Get THUMB mnemonic
