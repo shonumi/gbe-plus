@@ -136,6 +136,7 @@ class DMG_SIO
 		u8 packet_size;
 		u32 clock;
 		bool begin_network_sync;
+		bool restart_network;
 		four_player_state current_state;
 	} four_player;
 

@@ -75,6 +75,7 @@ enum four_player_state
 	FOUR_PLAYER_PING,
 	FOUR_PLAYER_SYNC,
 	FOUR_PLAYER_PROCESS_NETWORK,
+	FOUR_PLAYER_RESTART_NETWORK,
 };
 
 enum full_changer_state

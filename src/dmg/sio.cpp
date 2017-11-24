@@ -374,6 +374,7 @@ void DMG_SIO::reset()
 	four_player.id = 1;
 	four_player.status = 1;
 	four_player.begin_network_sync = false;
+	four_player.restart_network = false;
 	four_player.buffer_pos = 0;
 	four_player.buffer.clear();
 	four_player.packet_size = 0;
@@ -576,6 +577,12 @@ bool DMG_SIO::receive_byte()
 					sio_stat.ping_count = 0;
 				}
 
+				else if((four_player.current_state == FOUR_PLAYER_SYNC) && (temp_buffer[0] != 0xCC))
+				{
+					four_player.current_state = FOUR_PLAYER_PROCESS_NETWORK;
+					sio_stat.ping_count = 0;
+				}
+
 				switch(four_player.current_state)
 				{
 					//Handle ping
@@ -611,6 +618,21 @@ bool DMG_SIO::receive_byte()
 			{
 				temp_buffer[0] = sio_stat.transfer_byte;
 				temp_buffer[1] = 0x1;
+
+				//Send acknowlegdement
+				SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2);
+
+				return true;
+			}
+
+			//4-Player - Reset status
+			else if(temp_buffer[1] == 0xFA)
+			{
+				temp_buffer[1] = 0x1;
+	
+				four_player.status &= 0x7;
+				four_player.current_state = FOUR_PLAYER_PING;
+				sio_stat.ping_count = 0;
 
 				//Send acknowlegdement
 				SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2);
@@ -2243,12 +2265,19 @@ void DMG_SIO::four_player_process()
 	}
 
 	//Start Link Cable ping
-	else if((four_player.current_state != FOUR_PLAYER_SYNC) && (four_player.current_state != FOUR_PLAYER_PROCESS_NETWORK))
+	else if((four_player.current_state != FOUR_PLAYER_SYNC) && (four_player.current_state != FOUR_PLAYER_PROCESS_NETWORK) && (four_player.current_state != FOUR_PLAYER_RESTART_NETWORK))
 	{
 		four_player.current_state = FOUR_PLAYER_PING;
 	}
 
+	//End network comms and start ping again
+	else if((four_player.current_state == FOUR_PLAYER_PROCESS_NETWORK) && (sio_stat.transfer_byte == 0xFF) && (!four_player.restart_network))
+	{
+		four_player.restart_network = true;
+	}
+
 	u8 req_byte = 0;
+	u8 buff_pos = 0;
 
 	switch(four_player.current_state)
 	{
@@ -2356,7 +2385,7 @@ void DMG_SIO::four_player_process()
 			//Players 2-4 - Return buffered data
 			four_player_broadcast(four_player.buffer[four_player.buffer_pos], 0xFC);
 
-			u8 buff_pos = four_player.buffer_pos % (four_player.packet_size * 4);
+			buff_pos = four_player.buffer_pos % (four_player.packet_size * 4);
 
 			//Update buffer
 			if((buff_pos > 0) && (buff_pos < (four_player.packet_size + 1)))
@@ -2384,6 +2413,42 @@ void DMG_SIO::four_player_process()
 
 			four_player.buffer_pos++;
 			four_player.buffer_pos = four_player.buffer_pos % (four_player.packet_size * 8);
+
+			if((sio_stat.ping_count == 0) && (four_player.restart_network))
+			{
+				four_player.restart_network = false;
+				four_player.current_state = FOUR_PLAYER_RESTART_NETWORK;
+			}
+
+			break;
+
+		//Restart network and enter ping phase
+		case FOUR_PLAYER_RESTART_NETWORK:
+
+			//Wait for other players to send bytes
+			while(four_player.wait_flags) {	four_player_broadcast(0, 0xF0); }
+
+			//Reset wait flags
+			if(sio_stat.connected) { four_player.wait_flags |= 0x2; }
+
+			//Player 1 - Return 0xFF
+			mem->memory_map[REG_SB] = 0xFF;
+			mem->memory_map[IF_FLAG] |= 0x08;
+
+			//Players 2-4 - Return 0xFF
+			four_player_broadcast(0xFF, 0xFC);
+
+			sio_stat.ping_count++;
+			sio_stat.ping_count = sio_stat.ping_count % (four_player.packet_size * 4);
+
+			if(sio_stat.ping_count == 0)
+			{
+				four_player.current_state = FOUR_PLAYER_PING;
+				four_player.status &= 0x7;
+
+				//Players 2-4 - Clear status
+				four_player_broadcast(0, 0xFA);
+			}
 
 			break;
 	}
