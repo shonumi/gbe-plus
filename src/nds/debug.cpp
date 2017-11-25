@@ -162,7 +162,7 @@ void NTR_core::debug_display() const
 		case 0x1A:
 			std::cout << std::hex << "CPU::Executing ARM_10 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x1B:
-			std::cout << std::hex << "CPU::Executing ARM_11 : 0x" << debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing ARM_11 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x1C:
 			std::cout << std::hex << "CPU::Executing ARM_12 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x1D:
@@ -464,6 +464,47 @@ std::string NTR_core::debug_get_mnemonic(u32 addr)
 				else { instr += " - "; }
 				instr += immediate;
 			}
+		}
+
+		//ARM.11 Block Transfer opcodes
+		else if((opcode & 0xE000000) == 0x8000000)
+		{
+			u8 op = ((opcode >> 20) & 0x1);
+			u8 is_pre = ((opcode >> 24) & 0x1); 
+			u8 is_up = ((opcode >> 23) & 0x1);
+			u8 is_psr = ((opcode >> 22) & 0x1);
+			u8 is_write_back = ((opcode >> 21) & 0x1);
+			u8 rn = ((opcode >> 16) & 0xF);
+			u16 list = (opcode & 0xFFFF);
+			u8 last_reg = 0;
+
+			std::string amod = "";
+			std::string rlist = "";
+
+			if((is_pre) && (is_up)) { amod = "IB"; }
+			else if((!is_pre) && (is_up)) { amod = "IA"; }
+			else if((is_pre) && (!is_up)) { amod = "DB"; }
+			else { amod = "DA"; }
+
+			for(u32 x = 0; x < 16; x++)
+			{
+				if((list >> x) & 0x1) { last_reg = x; }
+			}
+
+			for(u32 x = 0; x < 16; x++)
+			{
+				if((list >> x) & 0x1)
+				{
+					rlist += "R" + util::to_str(x);
+					if(x != last_reg) { rlist += ", "; }
+				}
+			}
+
+			instr = (op) ? "LDM" : "STM";
+			instr += cond_code + amod + " R" + util::to_str(rn);
+			if(is_write_back) { instr += "{!}"; }
+			instr += ", {" + rlist + "}";
+			if(is_psr) { instr += "{^}"; }
 		}	
 	}
 
