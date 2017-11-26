@@ -505,7 +505,88 @@ std::string NTR_core::debug_get_mnemonic(u32 addr)
 			if(is_write_back) { instr += "{!}"; }
 			instr += ", {" + rlist + "}";
 			if(is_psr) { instr += "{^}"; }
-		}	
+		}
+
+		//ARM.7 Multiply opcodes
+		else if(((opcode & 0xFC000F0) == 0x90)
+		|| ((opcode & 0xF8000F0) == 0x800090))
+		{
+			u8 op = ((opcode >> 21) & 0xF);
+			u8 is_set_cond = ((opcode >> 20) & 0x1);
+			u8 rd = ((opcode >> 16) & 0xF);
+			u8 rn = ((opcode >> 12) & 0xF);
+			u8 rs = ((opcode >> 8) & 0xF);
+			u8 rm = (opcode & 0xF);
+
+			switch(op)
+			{
+				case 0x0:
+					instr = "MUL" + cond_code;
+					if(is_set_cond) { instr += "{S}"; }
+					instr += " R" + util::to_str(rd) + ", R" + util::to_str(rm) + ", R" + util::to_str(rs);
+					break;
+
+				case 0x1:
+					instr = "MLA" + cond_code;
+					if(is_set_cond) { instr += "{S}"; }
+					instr += " R" + util::to_str(rd) + ", R" + util::to_str(rm) + ", R" + util::to_str(rs) + ", R" + util::to_str(rn);
+					break;
+
+				case 0x4:
+					instr = "UMULL" + cond_code;
+					if(is_set_cond) { instr += "{S}"; }
+					instr += " R" + util::to_str(rn) + ", R" + util::to_str(rd) + ", R" + util::to_str(rm) + ", R" + util::to_str(rs);
+					break;
+
+				case 0x5:
+					instr = "UMLAL" + cond_code;
+					if(is_set_cond) { instr += "{S}"; }
+					instr += " R" + util::to_str(rn) + ", R" + util::to_str(rd) + ", R" + util::to_str(rm) + ", R" + util::to_str(rs);
+					break;
+
+				case 0x6:
+					instr = "SMULL" + cond_code;
+					if(is_set_cond) { instr += "{S}"; }
+					instr += " R" + util::to_str(rn) + ", R" + util::to_str(rd) + ", R" + util::to_str(rm) + ", R" + util::to_str(rs);
+					break;
+
+				case 0x7:
+					instr = "SMLAL" + cond_code;
+					if(is_set_cond) { instr += "{S}"; }
+					instr += " R" + util::to_str(rn) + ", R" + util::to_str(rd) + ", R" + util::to_str(rm) + ", R" + util::to_str(rs);
+					break;
+
+				case 0x8:
+					instr = "SMLAxy" + cond_code;
+					instr += " R" + util::to_str(rd) + ", R" + util::to_str(rm) + ", R" + util::to_str(rs) + ", R" + util::to_str(rn);
+					break;
+
+				case 0x9:
+					if(opcode & 0x20)
+					{
+						instr = "SMULWy" + cond_code;
+						instr += " R" + util::to_str(rd) + ", R" + util::to_str(rm) + ", R" + util::to_str(rs);
+					}
+
+					else
+					{
+						instr = "SMLAWy" + cond_code;
+						instr += " R" + util::to_str(rd) + ", R" + util::to_str(rm) + ", R" + util::to_str(rs) + ", R" + util::to_str(rn);
+					}
+ 
+					break;
+
+				case 0xA:
+					instr = "SMLALxy" + cond_code;
+					instr += " R" + util::to_str(rn) + ", R" + util::to_str(rd) + ", R" + util::to_str(rm) + ", R" + util::to_str(rs);
+					break;
+
+				case 0xB:
+					instr = "SMULxy" + cond_code;
+					instr += " R" + util::to_str(rd) + ", R" + util::to_str(rm) + ", R" + util::to_str(rs);
+					break;
+			}
+		}
 	}
 
 	//Get THUMB mnemonic
