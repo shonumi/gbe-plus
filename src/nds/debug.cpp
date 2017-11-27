@@ -156,7 +156,7 @@ void NTR_core::debug_display() const
 		case 0x17:
 			std::cout << std::hex << "CPU::Executing ARM_6 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x18:
-			std::cout << std::hex << "CPU::Executing ARM_7 : 0x" << debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing ARM_7 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x19:
 			std::cout << std::hex << "CPU::Executing ARM_9 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x1A:
@@ -174,9 +174,9 @@ void NTR_core::debug_display() const
 		case 0x20:
 			std::cout << std::hex << "CPU::Executing ARM Coprocessor Data Operation : 0x" << debug_code << "\n\n"; break;
 		case 0x21:
-			std::cout << std::hex << "CPU::Executing ARM CLZ : 0x" << debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing ARM CLZ : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x22:
-			std::cout << std::hex << "CPU::Executing ARM QADD-QSUB : 0x" << debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing ARM QADD-QSUB : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x23:
 			std::cout << std::hex << "Unknown ARM Instruction : 0x" << debug_code << "\n\n"; break;
 		case 0x24:
@@ -586,6 +586,34 @@ std::string NTR_core::debug_get_mnemonic(u32 addr)
 					instr += " R" + util::to_str(rd) + ", R" + util::to_str(rm) + ", R" + util::to_str(rs);
 					break;
 			}
+		}
+
+		//CLZ opcodes
+		else if((opcode & 0xFFF0FF0) == 0x16F0F10)
+		{
+			u8 rd = ((opcode >> 12) & 0xF);
+			u8 rm = (opcode & 0xF);
+
+			instr = "CLZ" + cond_code + " R" + util::to_str(rd) + ", R" + util::to_str(rm);
+		}
+
+		//QALU opcodes
+		else if((opcode & 0xF900FF0) == 0x1000050)
+		{
+			u8 op = ((opcode >> 20) & 0xF);
+			u8 rn = ((opcode >> 16) & 0xF);
+			u8 rd = ((opcode >> 12) & 0xF);
+			u8 rm = (opcode & 0xF);
+
+			switch(op)
+			{
+				case 0x0: instr = "QADD" + cond_code; break;
+				case 0x2: instr = "QSUB" + cond_code; break;
+				case 0x4: instr = "QDADD" + cond_code; break;
+				case 0x6: instr = "QDSUB" + cond_code; break;
+			}
+
+			instr += " R" + util::to_str(rd) + ", R" + util::to_str(rm) + ", R" + util::to_str(rn);
 		}
 	}
 
