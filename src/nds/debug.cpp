@@ -152,7 +152,7 @@ void NTR_core::debug_display() const
 		case 0x15:
 			std::cout << std::hex << "CPU::Executing ARM_4 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x16:
-			std::cout << std::hex << "CPU::Executing ARM_5 : 0x" << debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing ARM_5 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x17:
 			std::cout << std::hex << "CPU::Executing ARM_6 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x18:
@@ -614,6 +614,77 @@ std::string NTR_core::debug_get_mnemonic(u32 addr)
 			}
 
 			instr += " R" + util::to_str(rd) + ", R" + util::to_str(rm) + ", R" + util::to_str(rn);
+		}
+
+		//ARM.5 ALU opcodes
+		else if(((opcode & 0xE000010) == 0) || ((opcode & 0xE000010) == 0x10) || ((opcode & 0xE000000) == 0x2000000))
+		{
+			u8 op = ((opcode >> 21) & 0xF);
+			u8 is_imm = ((opcode >> 25) & 0x1);
+			u8 is_set_cond = ((opcode >> 20) & 0x1);
+			u8 rn = ((opcode >> 16) & 0xF);
+			u8 rd = ((opcode >> 12) & 0xF);
+			u8 imm = 0;
+			u8 shift = 0;
+			std::string op2 = "";
+			std::string s = (is_set_cond) ? "{S}" : "";
+			std::string p = (is_set_cond) ? "{P}" : "";
+
+			if(is_imm)
+			{
+				imm = (opcode & 0xFF);
+				shift = ((opcode >> 8) & 0xF);
+				shift *= 2;
+				op2 = util::to_hex_str(imm) + " ROR #" + util::to_str(shift);
+			}
+
+			else
+			{
+				u8 rm = (opcode & 0xF);
+				u8 shift_type = ((opcode >> 5) & 0x3);
+
+				op2 = "R" + util::to_str(rm) + " ";
+				
+				switch(shift_type)
+				{
+					case 0x0: op2 += "LSL"; break;
+					case 0x1: op2 += "LSR"; break;
+					case 0x2: op2 += "ASR"; break;
+					case 0x3: op2 += "ROR"; break;
+				}
+
+				if(opcode & 0x10)
+				{
+					u8 rs = ((opcode >> 8) & 0xF);
+					op2 += " R" + util::to_str(rs);
+				}
+
+				else
+				{
+					u8 shift_amount = (((opcode) >> 7) & 0x1F);
+					op2 += " " + util::to_hex_str(shift_amount);
+				}
+			}
+
+			switch(op)
+			{
+				case 0x0: instr = "AND" + cond_code + s + " R" + util::to_str(rd) + ", R" + util::to_str(rn) + ", " + op2; break;
+				case 0x1: instr = "EOR" + cond_code + s + " R" + util::to_str(rd) + ", R" + util::to_str(rn) + ", " + op2; break;
+				case 0x2: instr = "SUB" + cond_code + s + " R" + util::to_str(rd) + ", R" + util::to_str(rn) + ", " + op2; break;
+				case 0x3: instr = "RSB" + cond_code + s + " R" + util::to_str(rd) + ", R" + util::to_str(rn) + ", " + op2; break;
+				case 0x4: instr = "ADD" + cond_code + s + " R" + util::to_str(rd) + ", R" + util::to_str(rn) + ", " + op2; break;
+				case 0x5: instr = "ADC" + cond_code + s + " R" + util::to_str(rd) + ", R" + util::to_str(rn) + ", " + op2; break;
+				case 0x6: instr = "SBC" + cond_code + s + " R" + util::to_str(rd) + ", R" + util::to_str(rn) + ", " + op2; break;
+				case 0x7: instr = "RSC" + cond_code + s + " R" + util::to_str(rd) + ", R" + util::to_str(rn) + ", " + op2; break;
+				case 0x8: instr = "TST" + cond_code + p + " R" + util::to_str(rn) + ", " + op2; break;
+				case 0x9: instr = "TEQ" + cond_code + p + " R" + util::to_str(rn) + ", " + op2; break;
+				case 0xA: instr = "CMP" + cond_code + p + " R" + util::to_str(rn) + ", " + op2; break;
+				case 0xB: instr = "CMN" + cond_code + p + " R" + util::to_str(rn) + ", " + op2; break;
+				case 0xC: instr = "ORR" + cond_code + s + " R" + util::to_str(rd) + ", R" + util::to_str(rn) + ", " + op2; break;
+				case 0xD: instr = "MOV" + cond_code + s + " R" + util::to_str(rd) + ", " + op2; break;
+				case 0xE: instr = "BIC" + cond_code + s + " R" + util::to_str(rd) + ", R" + util::to_str(rn) + ", " + op2; break;
+				case 0xF: instr = "MVN" + cond_code + s + " R" + util::to_str(rd) + ", " + op2; break;
+			}
 		}
 	}
 
