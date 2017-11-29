@@ -168,7 +168,7 @@ void NTR_core::debug_display() const
 		case 0x1D:
 			std::cout << std::hex << "CPU::Executing ARM_13 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x1E:
-			std::cout << std::hex << "CPU::Executing ARM Coprocessor Register Transfer : 0x" << debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing ARM Coprocessor Register Transfer : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x1F:
 			std::cout << std::hex << "CPU::Executing ARM Coprocessor Data Transfer : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x20:
@@ -732,6 +732,33 @@ std::string NTR_core::debug_get_mnemonic(u32 addr)
 				else { instr += " - "; }
 				instr += immediate;
 			}
+		}
+
+		//ARM CoRegTrans opcodes
+		else if((opcode & 0xF000010) == 0xE000010)
+		{
+			u8 op = ((opcode >> 20) & 0x1);
+			u8 cp_opc = ((opcode >> 21) & 0x7);
+			u8 cn = ((opcode >> 16) & 0xF);
+			u8 rd = ((opcode >> 12) & 0xF);
+			u8 pn = ((opcode >> 8) & 0xF);
+			u8 cp = ((opcode >> 5) & 0x7);
+			u8 cm = (opcode & 0xF);
+
+			switch(op)
+			{
+				case 0x0:
+					if((opcode >> 28) == 0xF) { instr = "MCR2"; }
+					else { instr = "MCR" + cond_code; }
+					break;
+
+				case 0x1:
+					if((opcode >> 28) == 0xF) { instr = "MRC2"; }
+					else { instr = "MRC" + cond_code; }
+					break;
+			}
+
+			instr += " P" + util::to_str(pn) + ", <" + util::to_str(cp_opc) + ">, R" + util::to_str(rd) + ", C" + util::to_str(cn) + ", C" + util::to_str(cm) + "{" + util::to_str(cp) + "}";
 		}	 
 	}
 
