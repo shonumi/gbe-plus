@@ -170,7 +170,7 @@ void NTR_core::debug_display() const
 		case 0x1E:
 			std::cout << std::hex << "CPU::Executing ARM Coprocessor Register Transfer : 0x" << debug_code << "\n\n"; break;
 		case 0x1F:
-			std::cout << std::hex << "CPU::Executing ARM Coprocessor Data Transfer : 0x" << debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing ARM Coprocessor Data Transfer : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x20:
 			std::cout << std::hex << "CPU::Executing ARM Coprocessor Data Operation : 0x" << debug_code << "\n\n"; break;
 		case 0x21:
@@ -686,6 +686,53 @@ std::string NTR_core::debug_get_mnemonic(u32 addr)
 				case 0xF: instr = "MVN" + cond_code + s + " R" + util::to_str(rd) + ", " + op2; break;
 			}
 		}
+
+		//ARM CoDataTrans opcodes
+		else if((opcode & 0xE000000) == 0xC000000)
+		{
+			u8 op = ((opcode >> 20) & 0x1);
+			u8 rn = ((opcode >> 16) & 0xF);
+			u8 cd = ((opcode >> 12) & 0xF);
+			u8 pn = ((opcode >> 8) & 0xF);
+			u8 is_up = ((opcode >> 23) & 0x1);
+			u8 is_pre = ((opcode >> 24) & 0x1);
+			u8 is_write_back = ((opcode >> 21) & 0x1);
+
+			std::string l = ((opcode >> 22) & 0x1) ? "{L}" : "";
+			std::string immediate = util::to_hex_str((opcode & 0xF) * 4);
+
+			switch(op)
+			{
+				case 0x0:
+					if((opcode >> 28) == 0xF) { instr = "STC2" + l; }
+					else { instr = "STC" + cond_code + l; }
+					break;
+
+				case 0x1:
+					if((opcode >> 28) == 0xF) { instr = "LDC2" + l; }
+					else { instr = "LCD" + cond_code + l; }
+					break;
+			}
+
+			instr += " P" + util::to_str(pn) + ", C" + util::to_str(cd) + ", ";
+
+			if(is_pre)
+			{
+				instr += "[R" + util::to_str(rn);
+				if(is_up) { instr += " + "; }
+				else { instr += " - "; }
+				instr += immediate + "]";
+				if(is_write_back) { instr += "{!}"; }
+			}
+
+			else
+			{
+				instr += "[R" + util::to_str(rn) + "], ";
+				if(is_up) { instr += " + "; }
+				else { instr += " - "; }
+				instr += immediate;
+			}
+		}	 
 	}
 
 	//Get THUMB mnemonic
