@@ -1457,6 +1457,7 @@ void gen_settings::ogl_frag_change()
 	if((main_menu::gbe_plus != NULL) && (config::use_opengl))
 	{
 		qt_gui::draw_surface->hw_screen->reload_shaders();
+		qt_gui::draw_surface->hw_screen->update();
 	}
 }
 
