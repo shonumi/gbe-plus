@@ -1059,6 +1059,21 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	{
 		memory_map[address] = value;
 		lcd_stat->window_x = (value < 7) ? 0 : (value - 7);
+
+		//Check to see if the Window was set off screen while enabled
+		//Record the current rendered line of the Window, start rendering on this line if turned on again before VBlank
+		if((lcd_stat->window_enable) && (lcd_stat->window_x >= 160))
+		{
+			if(lcd_stat->current_scanline >= 0x90) { lcd_stat->last_y = 0; } 
+			else { lcd_stat->last_y = (lcd_stat->current_scanline - lcd_stat->window_y); }
+		}
+
+		//Check to see if the Window was set on screen while enabled
+		//Use the last recorded Window render line if the Window was previously turned on
+		if((lcd_stat->window_enable) && (lcd_stat->window_x < 160))
+		{
+			lcd_stat->window_y = lcd_stat->current_scanline - lcd_stat->last_y;
+		}
 	}	
 
 	//DMA transfer
