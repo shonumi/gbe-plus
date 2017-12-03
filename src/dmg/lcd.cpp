@@ -1630,6 +1630,12 @@ void DMG_LCD::gdma()
 		mem->write_u8(dest_addr++, mem->read_u8(start_addr++));
 	}
 
+	mem->memory_map[REG_HDMA1] = (start_addr >> 8);
+	mem->memory_map[REG_HDMA2] = (start_addr & 0xFF);
+
+	mem->memory_map[REG_HDMA3] = (dest_addr >> 8);
+	mem->memory_map[REG_HDMA4] = (dest_addr & 0xFF);
+
 	lcd_stat.hdma_in_progress = false;
 	mem->memory_map[REG_HDMA5] = 0xFF;
 }
@@ -1640,9 +1646,6 @@ void DMG_LCD::hdma()
 	u16 start_addr = (mem->memory_map[REG_HDMA1] << 8) | mem->memory_map[REG_HDMA2];
 	u16 dest_addr = (mem->memory_map[REG_HDMA3] << 8) | mem->memory_map[REG_HDMA4];
 	u8 line_transfer_count = (mem->memory_map[REG_HDMA5] & 0x7F);
-
-	start_addr += (lcd_stat.hdma_current_line * 16);
-	dest_addr += (lcd_stat.hdma_current_line * 16);
 
 	//Ignore bottom 4 bits of start address
 	start_addr &= 0xFFF0;
@@ -1658,12 +1661,15 @@ void DMG_LCD::hdma()
 		mem->write_u8(dest_addr++, mem->read_u8(start_addr++));
 	}
 							
-	lcd_stat.hdma_current_line++;
+	mem->memory_map[REG_HDMA1] = (start_addr >> 8);
+	mem->memory_map[REG_HDMA2] = (start_addr & 0xFF);
+
+	mem->memory_map[REG_HDMA3] = (dest_addr >> 8);
+	mem->memory_map[REG_HDMA4] = (dest_addr & 0xFF);
 
 	if(line_transfer_count == 0) 
 	{ 
 		lcd_stat.hdma_in_progress = false;
-		lcd_stat.hdma_current_line = 0;
 		mem->memory_map[REG_HDMA5] = 0xFF;
 	}
 
