@@ -1008,7 +1008,12 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		lcd_stat->bg_enable = (value & 0x1) ? true : false;
 
 		//Check to see if the LCD was turned off/on while on/off (VBlank only?)
-		if(lcd_stat->on_off != lcd_stat->lcd_enable) { lcd_stat->on_off = true; }
+		if(lcd_stat->on_off != lcd_stat->lcd_enable)
+		{
+			lcd_stat->on_off = true;
+			if(lcd_stat->lcd_enable) { lcd_stat->frame_delay = 1; }
+		}
+		
 		else { lcd_stat->on_off = false; }
 
 		//Update all sprites if the OBJ size changes
@@ -1138,7 +1143,6 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		if(((value & 0x80) == 0) && (lcd_stat->hdma_in_progress)) 
 		{ 
 			lcd_stat->hdma_in_progress = false;
-			lcd_stat->hdma_current_line = 0;
 			value = 0x80;
 		}
 
@@ -1146,7 +1150,6 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		else 
 		{
 			lcd_stat->hdma_in_progress = true;
-			lcd_stat->hdma_current_line = 0;
 			lcd_stat->hdma_type = (value & 0x80) ? 1 : 0;
 			value &= ~0x80;
 		}

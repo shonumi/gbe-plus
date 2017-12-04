@@ -84,8 +84,9 @@ void SGB_LCD::reset()
 	lcd_stat.update_bg_colors = false;
 	lcd_stat.update_obj_colors = false;
 	lcd_stat.hdma_in_progress = false;
-	lcd_stat.hdma_current_line = 0;
 	lcd_stat.hdma_type = 0;
+
+	lcd_stat.frame_delay = 0;
 
 	//Clear GBC color palettes
 	for(int x = 0; x < 4; x++)
@@ -419,6 +420,12 @@ void SGB_LCD::render_sgb_scanline()
 				
 	//Draw sprite pixel data
 	if(lcd_stat.obj_enable) { render_sgb_obj_scanline(); }
+
+	//Draw blank screen for 1 frame after LCD enabled
+	if(lcd_stat.frame_delay)
+	{
+		for(int x = 0; x < 256; x++) { scanline_buffer[x] = 0xFFFFFFFF; }
+	}
 
 	//Push scanline buffer to screen buffer - Normal version
 	if((config::resize_mode == 0) && (!config::request_resize))
@@ -834,6 +841,9 @@ void SGB_LCD::step(int cpu_clock)
 			if(lcd_stat.lcd_mode != 1)
 			{
 				lcd_stat.lcd_mode = 1;
+
+				//Unset frame delay
+				lcd_stat.frame_delay = 0;
 
 				//Update border
 				if(render_border) { render_sgb_border(); }

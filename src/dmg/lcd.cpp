@@ -85,8 +85,9 @@ void DMG_LCD::reset()
 	lcd_stat.update_bg_colors = false;
 	lcd_stat.update_obj_colors = false;
 	lcd_stat.hdma_in_progress = false;
-	lcd_stat.hdma_current_line = 0;
 	lcd_stat.hdma_type = 0;
+
+	lcd_stat.frame_delay = 0;
 
 	//Clear GBC color palettes
 	for(int x = 0; x < 4; x++)
@@ -432,6 +433,12 @@ void DMG_LCD::render_dmg_scanline()
 	//Ignore CGFX when greater than 1:1
 	if((cgfx::load_cgfx) && (cgfx::scaling_factor > 1)) { return; }
 
+	//Draw blank screen for 1 frame after LCD enabled
+	if(lcd_stat.frame_delay)
+	{
+		for(int x = 0; x < 256; x++) { scanline_buffer[x] = 0xFFFFFFFF; }
+	}
+
 	//Push scanline buffer to screen buffer - Normal version
 	else if((config::resize_mode == 0) && (!config::request_resize))
 	{
@@ -492,6 +499,12 @@ void DMG_LCD::render_gbc_scanline()
 
 	//Ignore CGFX when greater than 1:1
 	if((cgfx::load_cgfx) && (cgfx::scaling_factor > 1)) { return; }
+
+	//Draw blank screen for 1 frame after LCD enabled
+	if(lcd_stat.frame_delay)
+	{
+		for(int x = 0; x < 256; x++) { scanline_buffer[x] = 0xFFFFFFFF; }
+	}
 
 	//Push scanline buffer to screen buffer - Normal version
 	else if((config::resize_mode == 0) && (!config::request_resize))
@@ -1840,6 +1853,9 @@ void DMG_LCD::step(int cpu_clock)
 				//Restore Window parameters
 				lcd_stat.last_y = 0;
 				lcd_stat.window_y = mem->memory_map[REG_WY];
+
+				//Unset frame delay
+				lcd_stat.frame_delay = 0;
 
 				//Check for screen resize - DMG/GBC stretch
 				if((config::request_resize) && (config::resize_mode > 0))
