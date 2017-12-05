@@ -573,6 +573,42 @@ u8 NTR_MMU::read_u8(u32 address)
 		u8 addr_shift = (address & 0x3) << 3;
 		return ((apu_stat->channel[apu_io_id].cnt >> addr_shift) & 0xFF);
 	}
+
+	//Check for DMA0CNT
+	else if((address & ~0x3) == NDS_DMA0CNT)
+	{
+		u8 addr_shift = (address & 0x3) << 3;
+		
+		if(access_mode) { return ((dma[0].control >> addr_shift) & 0xFF); }
+		else { return ((dma[4].control >> addr_shift) & 0xFF); }
+	}
+
+	//Check for DMA1CNT
+	else if((address & ~0x3) == NDS_DMA1CNT)
+	{
+		u8 addr_shift = (address & 0x3) << 3;
+		
+		if(access_mode) { return ((dma[1].control >> addr_shift) & 0xFF); }
+		else { return ((dma[5].control >> addr_shift) & 0xFF); }
+	} 
+
+	//Check for DMA2CNT
+	else if((address & ~0x3) == NDS_DMA2CNT)
+	{
+		u8 addr_shift = (address & 0x3) << 3;
+		
+		if(access_mode) { return ((dma[2].control >> addr_shift) & 0xFF); }
+		else { return ((dma[6].control >> addr_shift) & 0xFF); }
+	} 
+
+	//Check for DMA3CNT
+	else if((address & ~0x3) == NDS_DMA3CNT)
+	{
+		u8 addr_shift = (address & 0x3) << 3;
+		
+		if(access_mode) { return ((dma[3].control >> addr_shift) & 0xFF); }
+		else { return ((dma[7].control >> addr_shift) & 0xFF); }
+	} 
 	
 	return memory_map[address];
 }
