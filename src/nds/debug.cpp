@@ -108,75 +108,75 @@ void NTR_core::debug_display() const
 		case 0xFF:
 			std::cout << "Filling pipeline\n"; break;
 		case 0x0: 
-			std::cout << std::hex << "CPU::Executing THUMB_1 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing THUMB_1 : 0x" << debug_code << "\nCPU::Opcode -> " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x1:
-			std::cout << std::hex << "CPU::Executing THUMB_2 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing THUMB_2 : 0x" << debug_code << "\nCPU::Opcode -> " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x2:
-			std::cout << std::hex << "CPU::Executing THUMB_3 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing THUMB_3 : 0x" << debug_code << "\nCPU::Opcode -> " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x3:
-			std::cout << std::hex << "CPU::Executing THUMB_4 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing THUMB_4 : 0x" << debug_code << "\nCPU::Opcode -> " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x4:
-			std::cout << std::hex << "CPU::Executing THUMB_5 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing THUMB_5 : 0x" << debug_code << "\nCPU::Opcode -> " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x5:
-			std::cout << std::hex << "CPU::Executing THUMB_6 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing THUMB_6 : 0x" << debug_code << "\nCPU::Opcode -> " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x6:
-			std::cout << std::hex << "CPU::Executing THUMB_7 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing THUMB_7 : 0x" << debug_code << "\nCPU::Opcode -> " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x7:
-			std::cout << std::hex << "CPU::Executing THUMB_8 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing THUMB_8 : 0x" << debug_code << "\nCPU::Opcode -> " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x8:
-			std::cout << std::hex << "CPU::Executing THUMB_9 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing THUMB_9 : 0x" << debug_code << "\nCPU::Opcode -> " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x9:
-			std::cout << std::hex << "CPU::Executing THUMB_10 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing THUMB_10 : 0x" << debug_code << "\nCPU::Opcode -> " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0xA:
-			std::cout << std::hex << "CPU::Executing THUMB_11 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing THUMB_11 : 0x" << debug_code << "\nCPU::Opcode -> " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0xB:
-			std::cout << std::hex << "CPU::Executing THUMB_12 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing THUMB_12 : 0x" << debug_code << "\nCPU::Opcode -> " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0xC:
-			std::cout << std::hex << "CPU::Executing THUMB_13 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing THUMB_13 : 0x" << debug_code << "\nCPU::Opcode -> " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0xD:
-			std::cout << std::hex << "CPU::Executing THUMB_14 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing THUMB_14 : 0x" << debug_code << "\nCPU::Opcode -> " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0xE:
-			std::cout << std::hex << "CPU::Executing THUMB_15 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing THUMB_15 : 0x" << debug_code << "\nCPU::Opcode -> " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0xF:
-			std::cout << std::hex << "CPU::Executing THUMB_16 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing THUMB_16 : 0x" << debug_code << "\nCPU::Opcode -> " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x10:
-			std::cout << std::hex << "CPU::Executing THUMB_17 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing THUMB_17 : 0x" << debug_code << "\nCPU::Opcode -> " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x11:
-			std::cout << std::hex << "CPU::Executing THUMB_18 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing THUMB_18 : 0x" << debug_code << "\nCPU::Opcode -> " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x12:
-			std::cout << std::hex << "CPU::Executing THUMB_19 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing THUMB_19 : 0x" << debug_code << "\nCPU::Opcode -> " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x13:
 			std::cout << std::hex << "Unknown THUMB Instruction : 0x" << debug_code << "\n\n"; break;
 		case 0x14:
-			std::cout << std::hex << "CPU::Executing ARM_3 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing ARM_3 : 0x" << debug_code << "\nCPU::Opcode -> " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x15:
-			std::cout << std::hex << "CPU::Executing ARM_4 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing ARM_4 : 0x" << debug_code << "\nCPU::Opcode -> " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x16:
-			std::cout << std::hex << "CPU::Executing ARM_5 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing ARM_5 : 0x" << debug_code << "\nCPU::Opcode -> " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x17:
-			std::cout << std::hex << "CPU::Executing ARM_6 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing ARM_6 : 0x" << debug_code << "\nCPU::Opcode -> " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x18:
-			std::cout << std::hex << "CPU::Executing ARM_7 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing ARM_7 : 0x" << debug_code << "\nCPU::Opcode -> " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x19:
-			std::cout << std::hex << "CPU::Executing ARM_9 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing ARM_9 : 0x" << debug_code << "\nCPU::Opcode -> " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x1A:
-			std::cout << std::hex << "CPU::Executing ARM_10 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing ARM_10 : 0x" << debug_code << "\nCPU::Opcode -> " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x1B:
-			std::cout << std::hex << "CPU::Executing ARM_11 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing ARM_11 : 0x" << debug_code << "\nCPU::Opcode -> " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x1C:
-			std::cout << std::hex << "CPU::Executing ARM_12 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing ARM_12 : 0x" << debug_code << "\nCPU::Opcode -> " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x1D:
-			std::cout << std::hex << "CPU::Executing ARM_13 : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing ARM_13 : 0x" << debug_code << "\nCPU::Opcode -> " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x1E:
-			std::cout << std::hex << "CPU::Executing ARM Coprocessor Register Transfer : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing ARM Coprocessor Register Transfer : 0x" << debug_code << "\nCPU::Opcode -> " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x1F:
-			std::cout << std::hex << "CPU::Executing ARM Coprocessor Data Transfer : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing ARM Coprocessor Data Transfer : 0x" << debug_code << "\nCPU::Opcode -> " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x20:
 			std::cout << std::hex << "CPU::Executing ARM Coprocessor Data Operation : 0x" << debug_code << "\n\n"; break;
 		case 0x21:
-			std::cout << std::hex << "CPU::Executing ARM CLZ : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing ARM CLZ : 0x" << debug_code << "\nCPU::Opcode -> " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x22:
-			std::cout << std::hex << "CPU::Executing ARM QADD-QSUB : 0x" << debug_code << " -- " << db_unit.last_mnemonic << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing ARM QADD-QSUB : 0x" << debug_code << "\nCPU::Opcode -> " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x23:
 			std::cout << std::hex << "Unknown ARM Instruction : 0x" << debug_code << "\n\n"; break;
 		case 0x24:
