@@ -152,14 +152,27 @@ void NTR_GamePad::handle_input(SDL_Event &event)
 		pad = 400;
 
 		//Top screen cannot be touched
-		if(((event.button.y / config::scaling_factor) < 192) && ((config::lcd_config & 0x1) == 0)) { return; }
-		else if(((event.button.y / config::scaling_factor) > 192) && (config::lcd_config & 0x1)) { return; }
+		if(((event.button.y / config::scaling_factor) < 192) && (config::lcd_config == 0)) { return; }
+		else if(((event.button.y / config::scaling_factor) > 192) && (config::lcd_config == 1)) { return; }
+		else if(((event.button.x / config::scaling_factor) < 256) && (config::lcd_config == 2)) { return; }
+		else if(((event.button.x / config::scaling_factor) > 256) && (config::lcd_config == 3)) { return; }
 
 		mouse_x = (event.button.x / config::scaling_factor);
 		mouse_y = (event.button.y / config::scaling_factor);
 
-		//Adjust mouse Y coordinate to NDS coordinate
-		if((config::lcd_config & 0x1) == 0) { mouse_y -= 192; }
+		//Adjust mouse X and Y coordinates to NDS coordinate
+		switch(config::lcd_config)
+		{
+			//Normal vertical mode
+			case 0x0:
+				mouse_y -= 192;
+				break;
+
+			//Normal horizontal mode
+			case 0x2:
+				mouse_x -= 256;
+				break;
+		}
 
 		switch(event.button.button)
 		{
@@ -185,8 +198,10 @@ void NTR_GamePad::handle_input(SDL_Event &event)
 		bool is_top = false;
 
 		//Top screen cannot be touched
-		if(((event.button.y / config::scaling_factor) < 192) && ((config::lcd_config & 0x1) == 0)) { is_top = true; }
-		else if(((event.button.y / config::scaling_factor) > 192) && (config::lcd_config & 0x1)) { is_top = true; }
+		if(((event.button.y / config::scaling_factor) < 192) && (config::lcd_config == 0)) { is_top = true; }
+		else if(((event.button.y / config::scaling_factor) > 192) && (config::lcd_config == 1)) { is_top = true; }
+		else if(((event.button.x / config::scaling_factor) < 256) && (config::lcd_config == 2)) { is_top = true; }
+		else if(((event.button.x / config::scaling_factor) > 256) && (config::lcd_config == 3)) { is_top = true; }
 
 		if(is_top)
 		{
@@ -198,8 +213,19 @@ void NTR_GamePad::handle_input(SDL_Event &event)
 		mouse_x = (event.button.x / config::scaling_factor);
 		mouse_y = (event.button.y / config::scaling_factor);
 
-		//Adjust mouse Y coordinate to NDS coordinate
-		if((config::lcd_config & 0x1) == 0) { mouse_y -= 192; }
+		//Adjust mouse X and Y coordinates to NDS coordinate
+		switch(config::lcd_config)
+		{
+			//Normal vertical mode
+			case 0x0:
+				mouse_y -= 192;
+				break;
+
+			//Normal horizontal mode
+			case 0x2:
+				mouse_x -= 256;
+				break;
+		}
 
 		switch(event.button.button)
 		{
@@ -224,14 +250,27 @@ void NTR_GamePad::handle_input(SDL_Event &event)
 		if(!touch_by_mouse) { return; }
 
 		//Top screen cannot be touched
-		if(((event.button.y / config::scaling_factor) < 192) && ((config::lcd_config & 0x1) == 0)) { return; }
-		else if(((event.button.y / config::scaling_factor) > 192) && (config::lcd_config & 0x1)) { return; }
+		if(((event.button.y / config::scaling_factor) < 192) && (config::lcd_config == 0)) { return; }
+		else if(((event.button.y / config::scaling_factor) > 192) && (config::lcd_config == 1)) { return; }
+		else if(((event.button.x / config::scaling_factor) < 256) && (config::lcd_config == 2)) { return; }
+		else if(((event.button.x / config::scaling_factor) > 256) && (config::lcd_config == 3)) { return; }
 
 		mouse_x = (event.button.x / config::scaling_factor);
 		mouse_y = (event.button.y / config::scaling_factor);
 
-		//Adjust mouse Y coordinate to NDS coordinate
-		if((config::lcd_config & 0x1) == 0) { mouse_y -= 192; }
+		//Adjust mouse X and Y coordinates to NDS coordinate
+		switch(config::lcd_config)
+		{
+			//Normal vertical mode
+			case 0x0:
+				mouse_y -= 192;
+				break;
+
+			//Normal horizontal mode
+			case 0x2:
+				mouse_x -= 256;
+				break;
+		}
 	}
 }	
 
