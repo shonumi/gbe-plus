@@ -2526,7 +2526,7 @@ void NTR_LCD::step()
 			//Render scanline data
 			render_scanline();
 
-			u32 render_position = (lcd_stat.current_scanline * 256);
+			u32 render_position = (lcd_stat.current_scanline * config::sys_width);
 
 			//Swap top and bottom if POWERCNT1 Bit 15 is not set, otherwise A is top, B is bottom
 			u16 disp_a_offset = (mem->power_cnt1 & 0x8000) ? 0 : 0xC000;
@@ -2538,6 +2538,13 @@ void NTR_LCD::step()
 				disp_a_offset = (disp_a_offset) ? 0 : 0xC000;
 				disp_b_offset = (disp_b_offset) ? 0 : 0xC000;
 			}
+
+			//Horizontal vs. Vertical mode
+			if(config::lcd_config & 0x2)
+			{
+				disp_a_offset = (disp_a_offset) ? 0x100 : 0;
+				disp_b_offset = (disp_b_offset) ? 0x100 : 0;
+			} 
 			
 			//Push scanline pixel data to screen buffer
 			for(u16 x = 0; x < 256; x++)
@@ -2634,6 +2641,23 @@ void NTR_LCD::step()
 				config::title << "GBE+ " << fps_count << "FPS";
 				SDL_SetWindowTitle(window, config::title.str().c_str());
 				fps_count = 0; 
+			}
+
+			//Check for screen resize - Horizontal vs Vertical
+			if(config::request_resize)
+			{
+				if(config::resize_mode) { config::lcd_config |= 0x2; }
+				else { config::lcd_config &= ~0x2; }
+
+				config::sys_width = (config::resize_mode) ? 512 : 256;
+				config::sys_height = (config::resize_mode) ? 192 : 384;
+				screen_buffer.clear();
+				screen_buffer.resize(0x18000, 0xFFFFFFFF);
+					
+				if((window != NULL) && (config::sdl_render)) { SDL_DestroyWindow(window); }
+				init();
+					
+				if(config::sdl_render) { config::request_resize = false; }
 			}
 		}
 

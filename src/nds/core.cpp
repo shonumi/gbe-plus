@@ -774,6 +774,15 @@ void NTR_core::handle_hotkey(SDL_Event& event)
 	//Reset emulation on F8
 	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F8)) { reset(); }
 
+	//Toggle vertical or horizontal mode on F3
+	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F3))
+	{
+		if(config::lcd_config & 0x2) { config::resize_mode = 0; }
+		else { config::resize_mode = 1; }
+		
+		config::request_resize = true;
+	}
+		
 	//Toggle swap NDS screens on F4
 	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F4))
 	{
