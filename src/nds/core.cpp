@@ -806,6 +806,15 @@ void NTR_core::handle_hotkey(int input, bool pressed)
 		if(config::lcd_config & 0x1) { config::lcd_config &= ~0x1; }
 		else { config::lcd_config |= 0x1; }
 	}
+
+	//Toggle vertical or horizontal mode on F3
+	else if((input == SDLK_F3) && (pressed))
+	{
+		if(config::lcd_config & 0x2) { config::resize_mode = 0; }
+		else { config::resize_mode = 1; }
+		
+		config::request_resize = true;
+	}
 }
 
 /****** Updates the core's volume ******/
