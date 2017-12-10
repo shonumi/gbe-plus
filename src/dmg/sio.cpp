@@ -18,6 +18,8 @@
 DMG_SIO::DMG_SIO()
 {
 	network_init = false;
+	is_master = false;
+	master_id = 0;
 
 	reset();
 
@@ -59,34 +61,40 @@ DMG_SIO::~DMG_SIO()
 {
 	#ifdef GBE_NETPLAY
 
-	//Close SDL_net and any current connections
-	if(server.host_socket != NULL)
-	{
-		SDLNet_TCP_DelSocket(tcp_sockets, server.host_socket);
-		SDLNet_TCP_Close(server.host_socket);
-	}
-
-	if(server.remote_socket != NULL)
-	{
-		SDLNet_TCP_DelSocket(tcp_sockets, server.remote_socket);
-		SDLNet_TCP_Close(server.remote_socket);
-	}
-
-	if(sender.host_socket != NULL)
-	{
-		//Update 4 Player status
-		four_player.status &= ~0xF0;
-		four_player_broadcast(four_player.status, 0xFD);
-
-		//Send disconnect byte to another system
-		u8 temp_buffer[2];
-		temp_buffer[0] = 0;
-		temp_buffer[1] = 0x80;
+	//Close any current connections
+	if(sio_stat.sio_type == GB_FOUR_PLAYER_ADAPTER) { four_player_disconnect(); }
 		
-		SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2);
+	else
+	{
+		//Close SDL_net and any current connections
+		if(server.host_socket != NULL)
+		{
+			SDLNet_TCP_DelSocket(tcp_sockets, server.host_socket);
+			SDLNet_TCP_Close(server.host_socket);
+		}
 
-		SDLNet_TCP_DelSocket(tcp_sockets, sender.host_socket);
-		SDLNet_TCP_Close(sender.host_socket);
+		if(server.remote_socket != NULL)
+		{
+			SDLNet_TCP_DelSocket(tcp_sockets, server.remote_socket);
+			SDLNet_TCP_Close(server.remote_socket);
+		}
+
+		if(sender.host_socket != NULL)
+		{
+			//Update 4 Player status
+			four_player.status &= ~0xF0;
+			four_player_broadcast(four_player.status, 0xFD);
+
+			//Send disconnect byte to another system
+			u8 temp_buffer[2];
+			temp_buffer[0] = 0;
+			temp_buffer[1] = 0x80;
+		
+			SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2);
+
+			SDLNet_TCP_DelSocket(tcp_sockets, sender.host_socket);
+			SDLNet_TCP_Close(sender.host_socket);
+		}
 	}
 
 	SDLNet_Quit();
@@ -137,6 +145,20 @@ bool DMG_SIO::init()
 	}
 
 	network_init = true;
+
+	//Initialize DMG-07
+	if(sio_stat.sio_type == GB_FOUR_PLAYER_ADAPTER)
+	{
+		if(four_player_init())
+		{
+			std::cout<<"SIO::Initialized\n";
+			return true;
+		}
+
+		else { return false; }
+	}
+
+	//Initialize other Link Cable communications normally
 
 	//Server info
 	server.host_socket = NULL;
@@ -327,7 +349,9 @@ void DMG_SIO::reset()
 	#ifdef GBE_NETPLAY
 
 	//Close any current connections
-	if(network_init)
+	if((network_init) && (sio_stat.sio_type == GB_FOUR_PLAYER_ADAPTER)) { four_player_disconnect(); }
+		
+	else if((network_init) && (sio_stat.sio_type != GB_FOUR_PLAYER_ADAPTER))
 	{
 		if(server.host_socket != NULL)
 		{
@@ -702,6 +726,13 @@ bool DMG_SIO::request_sync()
 void DMG_SIO::process_network_communication()
 {
 	#ifdef GBE_NETPLAY
+
+	//Process DMG-07 connections separately
+	if(sio_stat.sio_type == GB_FOUR_PLAYER_ADAPTER)
+	{
+		four_player_process_network_communication();
+		return;
+	}
 
 	//If no communication with another GBE+ instance has been established yet, see if a connection can be made
 	if(!sio_stat.connected)

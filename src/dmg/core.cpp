@@ -2292,12 +2292,14 @@ void DMG_core::start_netplay()
 		//Process network connections
 		core_cpu.controllers.serial_io.process_network_communication();
 
-		//Check again if the GBE+ instances connected, exit waiting if so
-		if(core_cpu.controllers.serial_io.sio_stat.connected) { break; }
+		//Check again if the GBE+ instances connected, exit waiting if not the 4-Player adapter
+		if((core_cpu.controllers.serial_io.sio_stat.connected) && (core_cpu.controllers.serial_io.sio_stat.sio_type != GB_FOUR_PLAYER_ADAPTER)) { break; }
 	}
 
 	if(!core_cpu.controllers.serial_io.sio_stat.connected) { std::cout<<"SIO::No netplay connection established\n"; }
 	else { std::cout<<"SIO::Netplay connection established\n"; }
+
+	core_cpu.controllers.serial_io.sio_stat.connected = false;
 }
 
 /****** Stops netplay connection ******/
