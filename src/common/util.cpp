@@ -708,7 +708,22 @@ void str_to_data(u8* data, std::string input)
 		data++;
 	}
 }
-	
+
+/****** Swaps unprintable characters in an ASCII string for spaces ******/
+std::string make_ascii_printable(std::string input)
+{
+	std::string result = "";
+
+	for(u32 x = 0; x < input.size(); x++)
+	{
+		char ascii = input[x];
+
+		if((ascii >= 0x20) && (ascii <= 0x7E)) { result += ascii; }
+		else { result += " "; }
+	}
+
+	return result;
+}
 
 /****** Converts a string IP address to an integer value ******/
 bool ip_to_u32(std::string ip_addr, u32 &result)

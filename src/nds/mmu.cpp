@@ -9,6 +9,7 @@
 // Handles reading and writing bytes to memory locations
 
 #include "mmu.h"
+#include "common/util.h"
 
 /****** MMU Constructor ******/
 NTR_MMU::NTR_MMU() 
@@ -3763,9 +3764,9 @@ void NTR_MMU::parse_header()
 	header.maker_code = "";
 	for(int x = 0; x < 2; x++) { header.maker_code += cart_data[0x10 + x]; }
 
-	std::cout<<"MMU::Game Title - " << header.title << "\n";
-	std::cout<<"MMU::Game Code - " << header.game_code << "\n";
-	std::cout<<"MMU::Maker Code - " << header.maker_code << "\n";
+	std::cout<<"MMU::Game Title - " << util::make_ascii_printable(header.title) << "\n";
+	std::cout<<"MMU::Game Code - " << util::make_ascii_printable(header.game_code) << "\n";
+	std::cout<<"MMU::Maker Code - " << util::make_ascii_printable(header.maker_code) << "\n";
 
 	//ARM9 ROM Offset
 	header.arm9_rom_offset = 0;
