@@ -35,6 +35,7 @@ class DMG_SIO
 	bool network_init;
 	bool is_master;
 	u8 master_id;
+	u8 max_clients;
 
 	#ifdef GBE_NETPLAY
 
@@ -195,7 +196,8 @@ class DMG_SIO
 	void four_player_disconnect();
 	void four_player_process_network_communication();
 	bool four_player_receive_byte();
-	void four_player_send_byte(u8 data_one, u8 data_two);
+	bool four_player_request_sync();
+	bool four_player_data_status();
 	void four_player_broadcast(u8 data_one, u8 data_two);
 	u8 four_player_request(u8 data_one, u8 data_two, u8 id);
 

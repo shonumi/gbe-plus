@@ -219,11 +219,12 @@ void DMG_core::run_core()
 						while(core_cpu.controllers.serial_io.sio_stat.sync)
 						{
 							core_cpu.controllers.serial_io.receive_byte();
+							if(core_cpu.controllers.serial_io.is_master) { core_cpu.controllers.serial_io.four_player_request_sync(); }
 
 							//Timeout if 10 seconds passes
 							timeout = SDL_GetTicks();
 							
-							if((timeout - current_time) >= 10000)
+							if((timeout - current_time) >= 5000)
 							{
 								core_cpu.controllers.serial_io.reset();
 							}						
@@ -233,13 +234,6 @@ void DMG_core::run_core()
 
 				//Send IR signal for GBC games
 				if(core_mmu.ir_send) { core_cpu.controllers.serial_io.send_ir_signal(); }
-
-				//Confirm SB write to Player 1 on 4-Player adapter
-				if(core_cpu.controllers.serial_io.sio_stat.send_data)
-				{
-					core_cpu.controllers.serial_io.four_player_broadcast(0x2, 0xFE);
-					core_cpu.controllers.serial_io.sio_stat.send_data = false;
-				}
 
 				//Receive bytes normally
 				core_cpu.controllers.serial_io.receive_byte();
@@ -457,7 +451,7 @@ void DMG_core::step()
 						//Timeout if 10 seconds passes
 						timeout = SDL_GetTicks();
 							
-						if((timeout - current_time) >= 10000)
+						if((timeout - current_time) >= 5000)
 						{
 							core_cpu.controllers.serial_io.reset();
 						}						
@@ -2282,7 +2276,7 @@ void DMG_core::start_netplay()
 	//Wait 10 seconds before timing out
 	u32 time_out = 0;
 
-	while(time_out < 10000)
+	while(time_out < 5000)
 	{
 		time_out += 100;
 		if((time_out % 1000) == 0) { std::cout<<"SIO::Netplay is waiting to establish remote connection...\n"; }
@@ -2298,8 +2292,6 @@ void DMG_core::start_netplay()
 
 	if(!core_cpu.controllers.serial_io.sio_stat.connected) { std::cout<<"SIO::No netplay connection established\n"; }
 	else { std::cout<<"SIO::Netplay connection established\n"; }
-
-	core_cpu.controllers.serial_io.sio_stat.connected = false;
 }
 
 /****** Stops netplay connection ******/

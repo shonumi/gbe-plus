@@ -476,6 +476,8 @@ bool DMG_SIO::receive_byte()
 {
 	#ifdef GBE_NETPLAY
 
+	if(sio_stat.sio_type == GB_FOUR_PLAYER_ADAPTER) { return four_player_receive_byte(); }
+
 	u8 temp_buffer[1];
 	temp_buffer[0] = temp_buffer[1] = 0;
 
@@ -700,6 +702,12 @@ bool DMG_SIO::receive_byte()
 bool DMG_SIO::request_sync()
 {
 	#ifdef GBE_NETPLAY
+
+	if(sio_stat.sio_type == GB_FOUR_PLAYER_ADAPTER)
+	{
+		sio_stat.sync = true;
+		return true;
+	}
 
 	u8 temp_buffer[2];
 	temp_buffer[0] = 0;

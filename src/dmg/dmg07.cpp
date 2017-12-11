@@ -69,13 +69,6 @@ bool DMG_SIO::four_player_init()
 	//Create sockets sets
 	four_player_tcp_sockets = SDLNet_AllocSocketSet(12);
 
-	//Initialize hard syncing
-	if(config::netplay_hard_sync)
-	{
-		//The instance with the highest server port will start off waiting in sync mode
-		sio_stat.sync_counter = (config::netplay_server_port > config::netplay_client_port) ? 64 : 0;
-	}
-
 	#endif
 
 	return true;
@@ -105,7 +98,7 @@ void DMG_SIO::four_player_disconnect()
 		{
 			//Update 4 Player status
 			four_player.status &= ~0xF0;
-			four_player_send_byte(four_player.status, 0xFD);
+			//four_player_send_byte(four_player.status, 0xFD);
 
 			//Send disconnect byte to another system
 			u8 temp_buffer[2];
@@ -171,6 +164,7 @@ void DMG_SIO::four_player_process_network_communication()
 			if(four_player.id == 1)
 			{
 				sio_stat.network_id |= 0x80;
+				four_player.wait_flags = 1;
 
 				if(sio_stat.send_data)
 				{
@@ -190,38 +184,68 @@ void DMG_SIO::four_player_process_network_communication()
 			}
 		}
 	}
+
+	max_clients = 0;
+
+	for(int x = 0; x < 3; x++)
+	{
+		if((four_player_server[x].connected) && (four_player_sender[x].connected)) { max_clients++; }
+	}
 }
 
-/****** Sends data back to master ******/
-void DMG_SIO::four_player_send_byte(u8 data_one, u8 data_two)
+/****** Requests syncronization with another system ******/
+bool DMG_SIO::four_player_request_sync()
 {
 	#ifdef GBE_NETPLAY
 
 	//Process incoming data first
 	four_player_receive_byte();
 
-	if(!sio_stat.connected || is_master) { return; }
-	
-	u8 temp_buffer[2];
-	temp_buffer[0] = data_one;
-	temp_buffer[1] = data_two;
+	bool all_connected = true;
 
-	if(SDLNet_TCP_Send(four_player_sender[master_id].host_socket, (void*)temp_buffer, 2) < 2)
+	for(int x = 0; x < max_clients; x++)
 	{
-		std::cout<<"SIO::Error - Host failed to send data to client\n";
-		sio_stat.connected = false;
-		four_player_server[master_id].connected = false;
-		four_player_sender[master_id].connected = false;
-		return;
+		u8 sync_stat = four_player_request(0, 0xF8, x);
+		if(!sync_stat) { all_connected = false; }
 	}
 
-	//Wait for other instance of GBE+ to send an acknowledgement
-	//This is blocking, will effectively pause GBE+ until it gets something
-	SDLNet_TCP_Recv(four_player_server[master_id].remote_socket, temp_buffer, 2);
+	if(all_connected)
+	{
+		four_player_broadcast(0, 0xF0);
+		sio_stat.sync = false;
+		sio_stat.sync_counter = 0;
+	}
 
 	#endif
 
-	return;
+	return true;
+}
+
+/****** Requests data status from another system ******/
+bool DMG_SIO::four_player_data_status()
+{
+	#ifdef GBE_NETPLAY
+
+	//Process syncronication first
+	four_player_request_sync();
+
+	bool data_ready = true;
+
+	for(int x = 0; x < max_clients; x++)
+	{
+		u8 data_stat = four_player_request(0, 0xFE, x);
+		if(!data_stat) { data_ready = false; }
+	}
+
+	if(data_ready)
+	{
+		four_player_broadcast(0, 0xF7);
+		four_player.wait_flags = 0;
+	} 
+
+	#endif
+
+	return true;
 }
 
 /****** Receives one byte from another system for the DMG-07 ******/
@@ -238,22 +262,14 @@ bool DMG_SIO::four_player_receive_byte()
 	//If this socket is active, receive the transfer
 	for(int x = 0; x < 3; x++)
 	{
-		if((four_player_server[x].remote_socket != NULL) && (SDLNet_SocketReady(four_player_server[x].remote_socket))
+		if((four_player_server[x].remote_socket != NULL) && (SDLNet_SocketReady(four_player_server[x].remote_socket)))
 		{
 			if(SDLNet_TCP_Recv(four_player_server[x].remote_socket, temp_buffer, 2) > 0)
 			{
-				//Stop sync
-				if(temp_buffer[1] == 0xFF)
-				{
-					sio_stat.sync = false;
-					sio_stat.sync_counter = 0;
-					return true;
-				}
-
 				//4-Player - Confirm SB write for Players 2, 3, and 4
-				else if(temp_buffer[1] == 0xFE)
+				if(temp_buffer[1] == 0xFE)
 				{
-					four_player.wait_flags &= ~temp_buffer[0];
+					temp_buffer[0] = sio_stat.send_data ? 1 : 0;
 					temp_buffer[1] = 0x1;
 
 					//Send acknowlegdement
@@ -346,6 +362,30 @@ bool DMG_SIO::four_player_receive_byte()
 					four_player.status &= 0x7;
 					four_player.current_state = FOUR_PLAYER_PING;
 					sio_stat.ping_count = 0;
+
+					//Send acknowlegdement
+					SDLNet_TCP_Send(four_player_sender[x].host_socket, (void*)temp_buffer, 2);
+
+					return true;
+				}
+
+				//Request sync status
+				if(temp_buffer[1] == 0xF8)
+				{
+					temp_buffer[0] = sio_stat.sync ? 1 : 0;
+					temp_buffer[1] = 0x1;
+
+					//Send acknowlegdement
+					SDLNet_TCP_Send(four_player_sender[x].host_socket, (void*)temp_buffer, 2);
+
+					return true;
+				}
+
+				//4-Player - Confirm SB write for Players 2, 3, and 4
+				if(temp_buffer[1] == 0xF7)
+				{
+					sio_stat.send_data = false;
+					temp_buffer[1] = 0x1;
 
 					//Send acknowlegdement
 					SDLNet_TCP_Send(four_player_sender[x].host_socket, (void*)temp_buffer, 2);
@@ -536,7 +576,7 @@ void DMG_SIO::four_player_process()
 		case FOUR_PLAYER_PING:
 
 			//Wait for other players to send bytes
-			while(four_player.wait_flags) {	four_player_broadcast(0, 0xF0); }
+			while(four_player.wait_flags) {	four_player_data_status(); }
 
 			//Reset wait flags
 			if(sio_stat.connected) { four_player.wait_flags |= 0x2; }
@@ -588,7 +628,7 @@ void DMG_SIO::four_player_process()
 		case FOUR_PLAYER_SYNC:
 
 			//Wait for other players to send bytes
-			while(four_player.wait_flags) {	four_player_broadcast(0, 0xF0); }
+			while(four_player.wait_flags) {	four_player_data_status(); }
 
 			//Reset wait flags
 			if(sio_stat.connected) { four_player.wait_flags |= 0x2; }
@@ -622,7 +662,7 @@ void DMG_SIO::four_player_process()
 		case FOUR_PLAYER_PROCESS_NETWORK:
 
 			//Wait for other players to send bytes
-			while(four_player.wait_flags) {	four_player_broadcast(0, 0xF0); }
+			while(four_player.wait_flags) {	four_player_data_status(); }
 
 			//Reset wait flags
 			if(sio_stat.connected) { four_player.wait_flags |= 0x2; }
@@ -675,7 +715,7 @@ void DMG_SIO::four_player_process()
 		case FOUR_PLAYER_RESTART_NETWORK:
 
 			//Wait for other players to send bytes
-			while(four_player.wait_flags) {	four_player_broadcast(0, 0xF0); }
+			while(four_player.wait_flags) {	four_player_data_status(); }
 
 			//Reset wait flags
 			if(sio_stat.connected) { four_player.wait_flags |= 0x2; }
