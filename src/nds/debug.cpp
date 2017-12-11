@@ -172,7 +172,7 @@ void NTR_core::debug_display() const
 		case 0x1F:
 			std::cout << std::hex << "CPU::Executing ARM Coprocessor Data Transfer : 0x" << debug_code << "\nCPU::Opcode -> " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x20:
-			std::cout << std::hex << "CPU::Executing ARM Coprocessor Data Operation : 0x" << debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Executing ARM Coprocessor Data Operation : 0x" << debug_code << "\nCPU::Opcode -> " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x21:
 			std::cout << std::hex << "CPU::Executing ARM CLZ : 0x" << debug_code << "\nCPU::Opcode -> " << db_unit.last_mnemonic << "\n\n"; break;
 		case 0x22:
@@ -180,7 +180,7 @@ void NTR_core::debug_display() const
 		case 0x23:
 			std::cout << std::hex << "Unknown ARM Instruction : 0x" << debug_code << "\n\n"; break;
 		case 0x24:
-			std::cout << std::hex << "CPU::Skipping ARM Instruction : 0x" << debug_code << "\n\n"; break;
+			std::cout << std::hex << "CPU::Skipping ARM Instruction : 0x" << debug_code << "\nCPU::Opcode -> " << db_unit.last_mnemonic << "\n\n"; break;
 	}
 
 	//Display CPU registers
@@ -759,7 +759,23 @@ std::string NTR_core::debug_get_mnemonic(u32 addr)
 			}
 
 			instr += " P" + util::to_str(pn) + ", <" + util::to_str(cp_opc) + ">, R" + util::to_str(rd) + ", C" + util::to_str(cn) + ", C" + util::to_str(cm) + "{" + util::to_str(cp) + "}";
-		}	 
+		}
+
+		//ARM CoDataOp opcodes
+		else if((opcode & 0xF000010) == 0xE000000)
+		{
+			u8 cp_opc = ((opcode >> 20) & 0xF);
+			u8 cn = ((opcode >> 16) & 0xF);
+			u8 cd = ((opcode >> 12) & 0xF);
+			u8 pn = ((opcode >> 8) & 0xF);
+			u8 cp = ((opcode >> 5) & 0x7);
+			u8 cm = (opcode & 0xF);
+
+			if((opcode >> 28) == 0xF) { instr = "CDP2"; }
+			else { instr = "CDP" + cond_code; }
+
+			instr += " P" + util::to_str(pn) + ", <" + util::to_str(cp_opc) + ">, C" + util::to_str(cd) + ", C" + util::to_str(cn) + ", C" + util::to_str(cm) + "{" + util::to_str(cp) + "}";
+		}
 	}
 
 	//Get THUMB mnemonic
