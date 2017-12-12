@@ -478,14 +478,15 @@ void DMG_SIO::four_player_broadcast(u8 data_one, u8 data_two)
 	if(!sio_stat.connected) { return; }
 
 	u8 temp_buffer[2];
-	temp_buffer[0] = data_one;
-	temp_buffer[1] = data_two;
 
 	for(int x = 0; x < 3; x++)
 	{
 		//Only broadcast to instances where connection is verified
 		if((four_player_server[x].connected) && (four_player_sender[x].connected))
 		{
+			temp_buffer[0] = data_one;
+			temp_buffer[1] = data_two;
+
 			if(SDLNet_TCP_Send(four_player_sender[x].host_socket, (void*)temp_buffer, 2) < 2)
 			{
 				std::cout<<"SIO::Error - Host failed to send data to client\n";
@@ -565,7 +566,7 @@ void DMG_SIO::four_player_process()
 		four_player.restart_network = true;
 	}
 
-	u8 req_byte = 0;
+	u8 req_byte[3] = {0, 0, 0};
 	u8 buff_pos = 0;
 
 	switch(four_player.current_state)
@@ -588,9 +589,22 @@ void DMG_SIO::four_player_process()
 				else { four_player.status &= ~(1 << (four_player.id + 3)); }
 			}
 
-			//Update remote link status
-			req_byte = four_player_request(four_player.status, 0xFD, 0);
-			four_player_update_status(req_byte);
+			//Grab remote link status Player 2
+			req_byte[0] = four_player_request(four_player.status, 0xFD, 0);
+			if(req_byte[0] & 0x20) { four_player.status |= 0x20; }
+			else { four_player.status &= ~0x20; }
+
+			//Grab remote link status Player 3
+			req_byte[1] = four_player_request(four_player.status, 0xFD, 1);
+			if(req_byte[1] & 0x40) { four_player.status |= 0x40; }
+			else { four_player.status &= ~0x40; }
+
+			//Grab remote link status Player 4
+			req_byte[2] = four_player_request(four_player.status, 0xFD, 2);
+			if(req_byte[2] & 0x80) { four_player.status |= 0x80; }
+			else { four_player.status &= ~0x80; }
+
+			four_player_broadcast(four_player.status, 0xFD);
 
 			//Player 1 - Return magic byte for 1st byte
 			if(sio_stat.ping_count == 0) { mem->memory_map[REG_SB] = 0xFE; }
@@ -746,9 +760,15 @@ void DMG_SIO::four_player_process()
 /****** Updates current status for 4 Player Adapter ******/
 void DMG_SIO::four_player_update_status(u8 status)
 {
-	u8 id = (status & 0xF);
-	u8 status_bit = status & (1 << (id + 3));
-				
-	four_player.status &= ~(1 << (id + 3));
-	four_player.status |= status_bit;
+	u8 status_bits = status;
+			
+	switch(four_player.id)
+	{
+		case 0x1: status_bits &= 0xE0; four_player.status &= ~0xE0; break;
+		case 0x2: status_bits &= 0xD0; four_player.status &= ~0xD0; break;
+		case 0x3: status_bits &= 0xB0; four_player.status &= ~0xB0; break;
+		case 0x4: status_bits &= 0x70; four_player.status &= ~0x70; break;
+	}
+	
+	four_player.status |= status_bits;
 }
