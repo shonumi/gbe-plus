@@ -1468,6 +1468,10 @@ bool DMG_MMU::read_file(std::string filename)
 		file.read((char*)ex_mem, 0x8000);
 	}
 
+	std::string title = "";
+	for(u32 x = 0; x < 16; x++) { title += memory_map[0x134 + x]; }
+	std::cout<<"MMU::Game Title - " << util::make_ascii_printable(title) << "\n";
+
 	//Grab MBC type byte
 	u8 mbc_type_byte = memory_map[ROM_MBC];
 
