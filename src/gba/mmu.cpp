@@ -1833,6 +1833,18 @@ bool AGB_MMU::read_file(std::string filename)
 
 	file.close();
 
+	std::string title = "";
+	for(u32 x = 0; x < 12; x++) { title += memory_map[0x80000A0 + x]; }
+
+	std::string game_code = "";
+	for(u32 x = 0; x < 4; x++) { game_code += memory_map[0x80000AC + x]; }
+
+	std::string maker_code = "";
+	for(u32 x = 0; x < 2; x++) { maker_code += memory_map[0x80000B0 + x]; }
+
+	std::cout<<"MMU::Game Title - " << util::make_ascii_printable(title) << "\n";
+	std::cout<<"MMU::Game Code - " << util::make_ascii_printable(game_code) << "\n";
+	std::cout<<"MMU::Maker Code - " << util::make_ascii_printable(maker_code) << "\n";
 	std::cout<<"MMU::ROM Size: " << std::dec << (file_size / 1024) << "KB\n";
 	std::cout<<"MMU::ROM CRC32: " << std::hex << util::get_crc32(&memory_map[0x8000000], file_size) << "\n";
 	std::cout<<"MMU::" << filename << " loaded successfully. \n";
