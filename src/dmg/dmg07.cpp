@@ -67,7 +67,7 @@ bool DMG_SIO::four_player_init()
 	}
 
 	//Create sockets sets
-	four_player_tcp_sockets = SDLNet_AllocSocketSet(12);
+	four_player_tcp_sockets = SDLNet_AllocSocketSet(9);
 
 	#endif
 
@@ -79,40 +79,41 @@ void DMG_SIO::four_player_disconnect()
 {
 	#ifdef GBE_NETPLAY
 
+	//Send disconnect byte to another system
+	u8 temp_buffer[2];
+	temp_buffer[0] = 0;
+	temp_buffer[1] = 0x80;
+
+	if((four_player_sender[master_id].host_socket != NULL) && (!is_master))
+	{
+		SDLNet_TCP_Send(four_player_sender[master_id].host_socket, (void*)temp_buffer, 2);
+	}
+
+	else if(is_master) { four_player_broadcast(0, 0x80); }
+
 	for(int x = 0; x < 3; x++)
 	{
 		//Close SDL_net and any current connections
 		if(four_player_server[x].host_socket != NULL)
 		{
 			SDLNet_TCP_DelSocket(four_player_tcp_sockets, four_player_server[x].host_socket);
-			SDLNet_TCP_Close(four_player_server[x].host_socket);
+			if(four_player_server[x].connected) { SDLNet_TCP_Close(four_player_server[x].host_socket); }
 		}
 
 		if(four_player_server[x].remote_socket != NULL)
 		{
 			SDLNet_TCP_DelSocket(four_player_tcp_sockets, four_player_server[x].remote_socket);
-			SDLNet_TCP_Close(four_player_server[x].remote_socket);
+			if(four_player_server[x].connected) { SDLNet_TCP_Close(four_player_server[x].remote_socket); }
 		}
 
 		if(four_player_sender[x].host_socket != NULL)
 		{
-			//Update 4 Player status
-			four_player.status &= ~0xF0;
-			//four_player_send_byte(four_player.status, 0xFD);
-
-			//Send disconnect byte to another system
-			u8 temp_buffer[2];
-			temp_buffer[0] = 0;
-			temp_buffer[1] = 0x80;
-		
-			if(four_player_sender[master_id].host_socket != NULL)
-			{
-				SDLNet_TCP_Send(four_player_sender[master_id].host_socket, (void*)temp_buffer, 2);
-			}
-
 			SDLNet_TCP_DelSocket(four_player_tcp_sockets, four_player_sender[x].host_socket);
-			SDLNet_TCP_Close(four_player_sender[x].host_socket);
+			if(four_player_sender[x].connected) { SDLNet_TCP_Close(four_player_sender[x].host_socket); }
 		}
+
+		four_player_server[x].connected = false;
+		four_player_sender[x].connected = false;
 	}
 
 	#endif
@@ -413,6 +414,7 @@ bool DMG_SIO::four_player_receive_byte()
 					std::cout<<"SIO::Netplay connection terminated. Restart to reconnect.\n";
 					sio_stat.connected = false;
 					sio_stat.sync = false;
+					return true;
 
 					if(sio_stat.sio_type == GB_FOUR_PLAYER_ADAPTER)
 					{

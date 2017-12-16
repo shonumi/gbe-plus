@@ -61,41 +61,37 @@ DMG_SIO::~DMG_SIO()
 {
 	#ifdef GBE_NETPLAY
 
-	//Close any current connections
-	if(sio_stat.sio_type == GB_FOUR_PLAYER_ADAPTER) { four_player_disconnect(); }
+	//Close any current connections - Four Player
+	four_player_disconnect();
 		
-	else
+	//Close SDL_net and any current connections
+	if(server.host_socket != NULL)
 	{
-		//Close SDL_net and any current connections
-		if(server.host_socket != NULL)
-		{
-			SDLNet_TCP_DelSocket(tcp_sockets, server.host_socket);
-			SDLNet_TCP_Close(server.host_socket);
-		}
-
-		if(server.remote_socket != NULL)
-		{
-			SDLNet_TCP_DelSocket(tcp_sockets, server.remote_socket);
-			SDLNet_TCP_Close(server.remote_socket);
-		}
-
-		if(sender.host_socket != NULL)
-		{
-			//Update 4 Player status
-			four_player.status &= ~0xF0;
-			four_player_broadcast(four_player.status, 0xFD);
-
-			//Send disconnect byte to another system
-			u8 temp_buffer[2];
-			temp_buffer[0] = 0;
-			temp_buffer[1] = 0x80;
-		
-			SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2);
-
-			SDLNet_TCP_DelSocket(tcp_sockets, sender.host_socket);
-			SDLNet_TCP_Close(sender.host_socket);
-		}
+		SDLNet_TCP_DelSocket(tcp_sockets, server.host_socket);
+		if(server.connected) { SDLNet_TCP_Close(server.host_socket); }
 	}
+
+	if(server.remote_socket != NULL)
+	{
+		SDLNet_TCP_DelSocket(tcp_sockets, server.remote_socket);
+		if(server.connected) { SDLNet_TCP_Close(server.remote_socket); }
+	}
+
+	if(sender.host_socket != NULL)
+	{
+		//Send disconnect byte to another system
+		u8 temp_buffer[2];
+		temp_buffer[0] = 0;
+		temp_buffer[1] = 0x80;
+		
+		SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2);
+
+		SDLNet_TCP_DelSocket(tcp_sockets, sender.host_socket);
+		if(sender.connected) { SDLNet_TCP_Close(sender.host_socket); }
+	}
+
+	server.connected = false;
+	sender.connected = false;
 
 	SDLNet_Quit();
 
@@ -200,6 +196,20 @@ bool DMG_SIO::init()
 	{
 		//The instance with the highest server port will start off waiting in sync mode
 		sio_stat.sync_counter = (config::netplay_server_port > config::netplay_client_port) ? 64 : 0;
+	}
+
+	//Default Four Player settings 
+	for(u32 x = 0; x < 3; x++)
+	{
+		four_player_server[x].host_socket = NULL;
+		four_player_server[x].remote_socket = NULL;
+		four_player_server[x].connected = false;
+		four_player_server[x].port = 0;
+
+		//Client info
+		four_player_sender[x].host_socket = NULL;
+		four_player_sender[x].connected = false;
+		four_player_sender[x].port = 0;
 	}
 
 	#endif
@@ -349,26 +359,41 @@ void DMG_SIO::reset()
 	#ifdef GBE_NETPLAY
 
 	//Close any current connections
-	if((network_init) && (sio_stat.sio_type == GB_FOUR_PLAYER_ADAPTER)) { four_player_disconnect(); }
-		
-	else if((network_init) && (sio_stat.sio_type != GB_FOUR_PLAYER_ADAPTER))
+	if(network_init)
 	{
-		if(server.host_socket != NULL)
+		for(int x = 0; x < 3; x++)
+		{
+			if((four_player_server[x].host_socket != NULL) && (four_player_server[x].connected))
+			{
+				SDLNet_TCP_Close(four_player_server[x].host_socket);
+			}
+
+			if((four_player_server[x].remote_socket != NULL) && (four_player_server[x].connected))
+			{
+				SDLNet_TCP_Close(four_player_server[x].remote_socket);
+			}
+
+			if((four_player_sender[x].host_socket != NULL) && (four_player_sender[x].connected))
+			{
+				SDLNet_TCP_Close(four_player_sender[x].host_socket);
+			}
+
+			four_player_server[x].connected = false;
+			four_player_sender[x].connected = false;
+		}
+		
+		if((server.host_socket != NULL) && (server.connected))
 		{
 			SDLNet_TCP_Close(server.host_socket);
 		}
 
-		if(server.remote_socket != NULL)
+		if((server.remote_socket != NULL) && (server.connected))
 		{
 			SDLNet_TCP_Close(server.remote_socket);
 		}
 
 		if(sender.host_socket != NULL)
 		{
-			//Update 4 Player status
-			four_player.status &= ~0xF0;
-			four_player_broadcast(four_player.status, 0xFD);
-
 			//Send disconnect byte to another system
 			u8 temp_buffer[2];
 			temp_buffer[0] = 0;
@@ -376,7 +401,7 @@ void DMG_SIO::reset()
 		
 			SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2);
 
-			SDLNet_TCP_Close(sender.host_socket);
+			if(sender.connected) { SDLNet_TCP_Close(sender.host_socket); }
 		}
 	}
 
