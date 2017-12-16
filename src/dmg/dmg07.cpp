@@ -501,6 +501,13 @@ void DMG_SIO::four_player_broadcast(u8 data_one, u8 data_two)
 			//Wait for other instance of GBE+ to send an acknowledgement
 			//This is blocking, will effectively pause GBE+ until it gets something
 			SDLNet_TCP_Recv(four_player_server[x].remote_socket, temp_buffer, 2);
+
+			if(temp_buffer[1] == 0x80)
+			{
+				std::cout<<"SIO::Netplay connection terminated. Restart to reconnect.\n";
+				reset();
+				return;
+			}
 		}
 	}
 
@@ -537,6 +544,13 @@ u8 DMG_SIO::four_player_request(u8 data_one, u8 data_two, u8 id)
 	//Wait for other instance of GBE+ to send an acknowledgement
 	//This is blocking, will effectively pause GBE+ until it gets something
 	SDLNet_TCP_Recv(four_player_server[id].remote_socket, temp_buffer, 2);
+
+	if(temp_buffer[1] == 0x80)
+	{
+		std::cout<<"SIO::Netplay connection terminated. Restart to reconnect.\n";
+		reset();
+		return 0;
+	}
 
 	return temp_buffer[0];
 
