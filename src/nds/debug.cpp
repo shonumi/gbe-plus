@@ -1490,6 +1490,80 @@ void NTR_core::debug_process_command()
 			}
 		}
 
+		//Disassembles 16 ARM instructions from specified address
+		else if((command.substr(0, 2) == "da") && (command.substr(3, 2) == "0x"))
+		{
+			valid_command = true;
+			bool valid_value = false;
+			u32 mem_location = 0;
+			std::string hex_string = command.substr(5);
+
+			//Convert hex string into usable u32
+			valid_command = util::from_hex_str(hex_string, mem_location);
+
+			//Request valid input again
+			if(!valid_command)
+			{
+				std::cout<<"\nInvalid memory address : " << command << "\n";
+				std::cout<<": ";
+				std::getline(std::cin, command);
+			}
+
+			else
+			{
+
+				bool dbg = arm_debug;
+				arm_debug = true;
+
+				for(u32 x = 0; x < 16; x++)
+				{
+					std::cout<<"0x" << (mem_location + (x * 4)) << "\t" << debug_get_mnemonic(mem_location + (x * 4)) << "\n";
+				}
+
+				db_unit.last_command = "da";
+				debug_process_command();
+
+				arm_debug = dbg;
+			}
+		}
+
+		//Disassembles 16 THUMB instructions from specified address
+		else if((command.substr(0, 2) == "dt") && (command.substr(3, 2) == "0x"))
+		{
+			valid_command = true;
+			bool valid_value = false;
+			u32 mem_location = 0;
+			std::string hex_string = command.substr(5);
+
+			//Convert hex string into usable u32
+			valid_command = util::from_hex_str(hex_string, mem_location);
+
+			//Request valid input again
+			if(!valid_command)
+			{
+				std::cout<<"\nInvalid memory address : " << command << "\n";
+				std::cout<<": ";
+				std::getline(std::cin, command);
+			}
+
+			else
+			{
+
+				bool dbg = arm_debug;
+				arm_debug = false;
+
+				for(u32 x = 0; x < 16; x++)
+				{
+					std::cout<<"0x" << (mem_location + (x * 2)) << "\t" << debug_get_mnemonic(mem_location + (x * 2)) << "\n";
+				}
+
+				db_unit.last_command = "dt";
+				debug_process_command();
+
+				arm_debug = dbg;
+			}
+		}
+
 		/*
 		//Toggle display of CPU cycles
 		else if(command == "dc")
@@ -1567,6 +1641,8 @@ void NTR_core::debug_process_command()
 			std::cout<<"u32 \t\t Show WORD @ memory, format 0x1234ABCD\n";
 			std::cout<<"dq \t\t Quit the debugger\n";
 			std::cout<<"dc \t\t Toggle CPU cycle display\n";
+			std::cout<<"da \t\t Disassembles some ARM instructions, format 0x1234ABCD for addr\n";
+			std::cout<<"dt \t\t Disassembles some THUMB instructions, format 0x1234ABCD for addr\n";
 			std::cout<<"cr \t\t Reset CPU cycle counter\n";
 			std::cout<<"rs \t\t Reset emulation\n";
 			std::cout<<"q \t\t Quit GBE+\n\n";
