@@ -33,6 +33,9 @@ class DMG_SIO
 	dmg_sio_data sio_stat;
 
 	bool network_init;
+	bool is_master;
+	u8 master_id;
+	u8 max_clients;
 
 	#ifdef GBE_NETPLAY
 
@@ -54,7 +57,26 @@ class DMG_SIO
 		u16 port;
 	} sender;
 
+	//Receiving server (4-Player)
+	struct four_player_tcp_server
+	{
+		TCPsocket host_socket, remote_socket;
+		IPaddress host_ip;
+		bool connected;
+		u16 port;
+	} four_player_server[3];
+
+	//Sending client (4-Player)
+	struct four_player_tcp_sender
+	{
+		TCPsocket host_socket;
+		IPaddress host_ip;
+		bool connected;
+		u16 port;
+	} four_player_sender[3];
+
 	SDLNet_SocketSet tcp_sockets;
+	SDLNet_SocketSet four_player_tcp_sockets;
 
 	#endif
 
@@ -129,9 +151,14 @@ class DMG_SIO
 	{
 		u8 id;
 		u8 status;
-		u8 data[16];
+		std::vector<u8> buffer;
 		u8 incoming[4];
 		u8 wait_flags;
+		u8 buffer_pos;
+		u8 packet_size;
+		u32 clock;
+		bool begin_network_sync;
+		bool restart_network;
 		four_player_state current_state;
 	} four_player;
 
@@ -142,9 +169,6 @@ class DMG_SIO
 	void reset();
 
 	bool send_byte();
-	bool four_player_send_byte();
-	void four_player_broadcast(u8 data_one, u8 data_two);
-	u8 four_player_request(u8 data_one, u8 data_two);
 	bool send_ir_signal();
 	bool receive_byte();
 	bool request_sync();
@@ -168,7 +192,17 @@ class DMG_SIO
 	void full_changer_process();
 	bool full_changer_load_db(std::string filename);
 
+	bool four_player_init();
+	void four_player_disconnect();
+	void four_player_process_network_communication();
+	bool four_player_receive_byte();
+	bool four_player_request_sync();
+	bool four_player_data_status();
+	void four_player_broadcast(u8 data_one, u8 data_two);
+	u8 four_player_request(u8 data_one, u8 data_two, u8 id);
+
 	void four_player_process();
+	void four_player_update_status(u8 status);
 };
 
 #endif // GB_SIO

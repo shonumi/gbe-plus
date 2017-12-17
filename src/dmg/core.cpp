@@ -219,6 +219,7 @@ void DMG_core::run_core()
 						while(core_cpu.controllers.serial_io.sio_stat.sync)
 						{
 							core_cpu.controllers.serial_io.receive_byte();
+							if(core_cpu.controllers.serial_io.is_master) { core_cpu.controllers.serial_io.four_player_request_sync(); }
 
 							//Timeout if 10 seconds passes
 							timeout = SDL_GetTicks();
@@ -233,13 +234,6 @@ void DMG_core::run_core()
 
 				//Send IR signal for GBC games
 				if(core_mmu.ir_send) { core_cpu.controllers.serial_io.send_ir_signal(); }
-
-				//Send data for 4 player adapter
-				if(core_cpu.controllers.serial_io.sio_stat.send_data)
-				{
-					core_cpu.controllers.serial_io.four_player_broadcast(core_cpu.controllers.serial_io.sio_stat.transfer_byte, 0xF0);
-					core_cpu.controllers.serial_io.sio_stat.send_data = false;
-				}
 
 				//Receive bytes normally
 				core_cpu.controllers.serial_io.receive_byte();
@@ -453,6 +447,7 @@ void DMG_core::step()
 					while(core_cpu.controllers.serial_io.sio_stat.sync)
 					{
 						core_cpu.controllers.serial_io.receive_byte();
+						if(core_cpu.controllers.serial_io.is_master) { core_cpu.controllers.serial_io.four_player_request_sync(); }
 
 						//Timeout if 10 seconds passes
 						timeout = SDL_GetTicks();
@@ -626,6 +621,11 @@ void DMG_core::step()
 								core_mmu.memory_map[IF_FLAG] |= 0x08;
 							}
 								
+							break;
+
+						//Process 4 Player communications
+						case GB_FOUR_PLAYER_ADAPTER:
+							core_cpu.controllers.serial_io.four_player_process();
 							break;
 					}
 
@@ -1059,8 +1059,8 @@ void DMG_core::start_netplay()
 		//Process network connections
 		core_cpu.controllers.serial_io.process_network_communication();
 
-		//Check again if the GBE+ instances connected, exit waiting if so
-		if(core_cpu.controllers.serial_io.sio_stat.connected) { break; }
+		//Check again if the GBE+ instances connected, exit waiting if not the 4-Player adapter
+		if((core_cpu.controllers.serial_io.sio_stat.connected) && (core_cpu.controllers.serial_io.sio_stat.sio_type != GB_FOUR_PLAYER_ADAPTER)) { break; }
 	}
 
 	if(!core_cpu.controllers.serial_io.sio_stat.connected) { std::cout<<"SIO::No netplay connection established\n"; }

@@ -1235,21 +1235,17 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 				sio_stat->shift_counter = 0;
 			}
 
-			//Special handling for 4 Player Adapter
+			//Special handling for 4 Player Adapter - Player 1
 			else if((!sio_stat->internal_clock) && (sio_stat->sio_type == 6) && (sio_stat->network_id & 0x80))
 			{
 				sio_stat->active_transfer = true;
 				sio_stat->shifts_left = 8;
 				sio_stat->shift_counter = 0;
-				sio_stat->shift_clock = 4096;
-
-				sio_stat->ping_finish = (sio_stat->ping_count == 0) ? true : false;
+				sio_stat->shift_clock = sio_stat->dmg07_clock;
 			}
 
-			else if((!sio_stat->internal_clock) && (sio_stat->sio_type == 6) && (sio_stat->network_id & 0x40))
-			{
-				sio_stat->send_data = true;
-			}
+			//Special handling for 4 Player Adapter - Players 2-4
+			else if((!sio_stat->internal_clock) && (sio_stat->sio_type == 6)) { sio_stat->send_data = true; }
 
 			sio_stat->transfer_byte = memory_map[REG_SB];
 		}

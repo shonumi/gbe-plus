@@ -17,6 +17,7 @@ set(SRCS
 	custom_graphics.cpp
 	sio.cpp
 	infrared.cpp
+	dmg07.cpp
 	debug.cpp
 	)
 

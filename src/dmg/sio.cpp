@@ -18,6 +18,8 @@
 DMG_SIO::DMG_SIO()
 {
 	network_init = false;
+	is_master = false;
+	master_id = 0;
 
 	reset();
 
@@ -59,26 +61,25 @@ DMG_SIO::~DMG_SIO()
 {
 	#ifdef GBE_NETPLAY
 
+	//Close any current connections - Four Player
+	four_player_disconnect();
+		
 	//Close SDL_net and any current connections
 	if(server.host_socket != NULL)
 	{
 		SDLNet_TCP_DelSocket(tcp_sockets, server.host_socket);
-		SDLNet_TCP_Close(server.host_socket);
+		if(server.connected) { SDLNet_TCP_Close(server.host_socket); }
 	}
 
 	if(server.remote_socket != NULL)
 	{
 		SDLNet_TCP_DelSocket(tcp_sockets, server.remote_socket);
-		SDLNet_TCP_Close(server.remote_socket);
+		if(server.connected) { SDLNet_TCP_Close(server.remote_socket); }
 	}
 
 	if(sender.host_socket != NULL)
 	{
-		//Update 4 Player status
-		four_player.status &= ~0xF0;
-		four_player_send_byte();
-
-		//Send disconnect byte to another system first
+		//Send disconnect byte to another system
 		u8 temp_buffer[2];
 		temp_buffer[0] = 0;
 		temp_buffer[1] = 0x80;
@@ -86,8 +87,11 @@ DMG_SIO::~DMG_SIO()
 		SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2);
 
 		SDLNet_TCP_DelSocket(tcp_sockets, sender.host_socket);
-		SDLNet_TCP_Close(sender.host_socket);
+		if(sender.connected) { SDLNet_TCP_Close(sender.host_socket); }
 	}
+
+	server.connected = false;
+	sender.connected = false;
 
 	SDLNet_Quit();
 
@@ -138,6 +142,20 @@ bool DMG_SIO::init()
 
 	network_init = true;
 
+	//Initialize DMG-07
+	if(sio_stat.sio_type == GB_FOUR_PLAYER_ADAPTER)
+	{
+		if(four_player_init())
+		{
+			std::cout<<"SIO::Initialized\n";
+			return true;
+		}
+
+		else { return false; }
+	}
+
+	//Initialize other Link Cable communications normally
+
 	//Server info
 	server.host_socket = NULL;
 	server.remote_socket = NULL;
@@ -180,6 +198,20 @@ bool DMG_SIO::init()
 		sio_stat.sync_counter = (config::netplay_server_port > config::netplay_client_port) ? 64 : 0;
 	}
 
+	//Default Four Player settings 
+	for(u32 x = 0; x < 3; x++)
+	{
+		four_player_server[x].host_socket = NULL;
+		four_player_server[x].remote_socket = NULL;
+		four_player_server[x].connected = false;
+		four_player_server[x].port = 0;
+
+		//Client info
+		four_player_sender[x].host_socket = NULL;
+		four_player_sender[x].connected = false;
+		four_player_sender[x].port = 0;
+	}
+
 	#endif
 
 	std::cout<<"SIO::Initialized\n";
@@ -197,11 +229,12 @@ void DMG_SIO::reset()
 	sio_stat.shifts_left = 0;
 	sio_stat.shift_counter = 0;
 	sio_stat.shift_clock = 512;
+	sio_stat.dmg07_clock = 2048;
 	sio_stat.sync_counter = 0;
 	sio_stat.sync_clock = config::netplay_sync_threshold;
 	sio_stat.sync = false;
 	sio_stat.transfer_byte = 0;
-	sio_stat.network_id = 0x80;
+	sio_stat.network_id = 0;
 	sio_stat.ping_count = 0;
 	sio_stat.ping_finish = false;
 	sio_stat.send_data = false;
@@ -328,30 +361,57 @@ void DMG_SIO::reset()
 	//Close any current connections
 	if(network_init)
 	{
-		if(server.host_socket != NULL)
+		for(int x = 0; x < 3; x++)
+		{
+			//Send disconnect byte to other systems
+			if((four_player_server[x].connected) && (four_player_sender[x].connected))
+			{
+				u8 temp_buffer[2];
+				temp_buffer[0] = 0;
+				temp_buffer[1] = 0x80;
+
+				SDLNet_TCP_Send(four_player_sender[x].host_socket, (void*)temp_buffer, 2);
+			}
+
+			if((four_player_server[x].host_socket != NULL) && (four_player_server[x].connected))
+			{
+				SDLNet_TCP_Close(four_player_server[x].host_socket);
+			}
+
+			if((four_player_server[x].remote_socket != NULL) && (four_player_server[x].connected))
+			{
+				SDLNet_TCP_Close(four_player_server[x].remote_socket);
+			}
+
+			if((four_player_sender[x].host_socket != NULL) && (four_player_sender[x].connected))
+			{
+				SDLNet_TCP_Close(four_player_sender[x].host_socket);
+			}
+
+			four_player_server[x].connected = false;
+			four_player_sender[x].connected = false;
+		}
+		
+		if((server.host_socket != NULL) && (server.connected))
 		{
 			SDLNet_TCP_Close(server.host_socket);
 		}
 
-		if(server.remote_socket != NULL)
+		if((server.remote_socket != NULL) && (server.connected))
 		{
 			SDLNet_TCP_Close(server.remote_socket);
 		}
 
 		if(sender.host_socket != NULL)
 		{
-			//Update 4 Player status
-			four_player.status &= ~0xF0;
-			four_player_send_byte();
-
-			//Send disconnect byte to another system first
+			//Send disconnect byte to another system
 			u8 temp_buffer[2];
 			temp_buffer[0] = 0;
 			temp_buffer[1] = 0x80;
 		
 			SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2);
 
-			SDLNet_TCP_Close(sender.host_socket);
+			if(sender.connected) { SDLNet_TCP_Close(sender.host_socket); }
 		}
 	}
 
@@ -372,9 +432,15 @@ void DMG_SIO::reset()
 	four_player.current_state = FOUR_PLAYER_INACTIVE;
 	four_player.id = 1;
 	four_player.status = 1;
+	four_player.begin_network_sync = false;
+	four_player.restart_network = false;
+	four_player.buffer_pos = 0;
+	four_player.buffer.clear();
+	four_player.packet_size = 0;
+	four_player.clock = 0;
 }
 
-/****** Tranfers one byte to another system ******/
+/****** Transfers one byte to another system ******/
 bool DMG_SIO::send_byte()
 {
 	#ifdef GBE_NETPLAY
@@ -407,97 +473,7 @@ bool DMG_SIO::send_byte()
 	return true;
 }
 
-/****** Tranfers status bytes via 4 Player Adapter ******/
-bool DMG_SIO::four_player_send_byte()
-{
-	#ifdef GBE_NETPLAY
-
-	u8 temp_buffer[2];
-	temp_buffer[0] = four_player.status;
-	temp_buffer[1] = 0xFE;
-
-	if(SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2) < 2)
-	{
-		std::cout<<"SIO::Error - Host failed to send data to client\n";
-		sio_stat.connected = false;
-		server.connected = false;
-		sender.connected = false;
-		return false;
-	}
-
-	//Wait for other instance of GBE+ to send an acknowledgement
-	//This is blocking, will effectively pause GBE+ until it gets something
-	if(SDLNet_TCP_Recv(server.remote_socket, temp_buffer, 2) > 0)
-	{
-		u8 id = (temp_buffer[0] & 0xF);
-		u8 status_bit = temp_buffer[0] & (1 << (id + 3));
-				
-		four_player.status &= ~(1 << (id + 3));
-		four_player.status |= status_bit;
-	}
-
-	#endif
-
-	return true;
-}
-
-/****** Broadcasts data to all connected Game Boys when using the 4 Player Adapter ******/
-void DMG_SIO::four_player_broadcast(u8 data_one, u8 data_two)
-{
-	#ifdef GBE_NETPLAY
-
-	u8 temp_buffer[2];
-	temp_buffer[0] = data_one;
-	temp_buffer[1] = data_two;
-
-	if(SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2) < 2)
-	{
-		std::cout<<"SIO::Error - Host failed to send data to client\n";
-		sio_stat.connected = false;
-		server.connected = false;
-		sender.connected = false;
-		return;
-	}
-
-	//Wait for other instance of GBE+ to send an acknowledgement
-	//This is blocking, will effectively pause GBE+ until it gets something
-	SDLNet_TCP_Recv(server.remote_socket, temp_buffer, 2);
-
-	#endif
-
-	return;
-}
-
-/****** Requests data from a specific Game Boys when using the 4 Player Adapter ******/
-u8 DMG_SIO::four_player_request(u8 data_one, u8 data_two)
-{
-	#ifdef GBE_NETPLAY
-
-	u8 temp_buffer[2];
-	temp_buffer[0] = data_one;
-	temp_buffer[1] = data_two;
-
-	if(SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2) < 2)
-	{
-		std::cout<<"SIO::Error - Host failed to send data to client\n";
-		sio_stat.connected = false;
-		server.connected = false;
-		sender.connected = false;
-		return false;
-	}
-
-	//Wait for other instance of GBE+ to send an acknowledgement
-	//This is blocking, will effectively pause GBE+ until it gets something
-	SDLNet_TCP_Recv(server.remote_socket, temp_buffer, 2);
-
-	return temp_buffer[0];
-
-	#endif
-
-	return 0;
-}
-
-/****** Tranfers one bit to another system's IR port ******/
+/****** Transfers one bit to another system's IR port ******/
 bool DMG_SIO::send_ir_signal()
 {
 	#ifdef GBE_NETPLAY
@@ -535,6 +511,8 @@ bool DMG_SIO::receive_byte()
 {
 	#ifdef GBE_NETPLAY
 
+	if(sio_stat.sio_type == GB_FOUR_PLAYER_ADAPTER) { return four_player_receive_byte(); }
+
 	u8 temp_buffer[1];
 	temp_buffer[0] = temp_buffer[1] = 0;
 
@@ -554,15 +532,23 @@ bool DMG_SIO::receive_byte()
 				return true;
 			}
 
-			//Receive 4 Player status update
+			//4-Player - Confirm SB write for Players 2, 3, and 4
 			else if(temp_buffer[1] == 0xFE)
 			{
-				u8 id = (temp_buffer[0] & 0xF);
-				u8 status_bit = temp_buffer[0] & (1 << (id + 3));
-				
-				four_player.status &= ~(1 << (id + 3));
-				four_player.status |= status_bit;
+				four_player.wait_flags &= ~temp_buffer[0];
+				temp_buffer[1] = 0x1;
 
+				//Send acknowlegdement
+				SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2);
+
+				return true;
+			}
+
+			//4-Player - Receive status update from Player 1
+			else if(temp_buffer[1] == 0xFD)
+			{
+				four_player_update_status(temp_buffer[0]);
+	
 				temp_buffer[0] = four_player.status;
 				temp_buffer[1] = 0x1;
 
@@ -572,37 +558,7 @@ bool DMG_SIO::receive_byte()
 				return true;
 			}
 
-			//Prepare 4 Player network
-			else if(temp_buffer[1] == 0xFD)
-			{
-				four_player.current_state = FOUR_PLAYER_PREP_NETWORK;
-
-				sio_stat.network_id &= ~0x80;
-				sio_stat.shifts_left = 0;
-				sio_stat.shift_counter = 0;
-				sio_stat.shift_clock = 0;
-
-				//Switch to real 4 player communication after 4th byte sent
-				if(temp_buffer[0] == 4)
-				{
-					four_player.current_state = FOUR_PLAYER_PROCESS_NETWORK;
-					sio_stat.ping_count = 0;
-					sio_stat.network_id |= 0x40;
-					sio_stat.send_data = false;
-				}
-
-				mem->memory_map[REG_SB] = 0xCC;
-				mem->memory_map[IF_FLAG] |= 0x08;
-
-				temp_buffer[1] = 0x1;
-
-				//Send acknowlegdement
-				SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2);
-
-				return true;
-			}
-
-			//Receive byte broadcast through 4-player network
+			//4-Player - Receive and process serial out byte
 			else if(temp_buffer[1] == 0xFC)
 			{
 				mem->memory_map[REG_SB] = temp_buffer[0];
@@ -610,13 +566,49 @@ bool DMG_SIO::receive_byte()
 
 				temp_buffer[1] = 0x1;
 
+				if((four_player.current_state == FOUR_PLAYER_PING) && (temp_buffer[0] == 0xCC))
+				{
+					four_player.current_state = FOUR_PLAYER_SYNC;
+					sio_stat.ping_count = 0;
+				}
+
+				else if((four_player.current_state == FOUR_PLAYER_SYNC) && (temp_buffer[0] != 0xCC))
+				{
+					four_player.current_state = FOUR_PLAYER_PROCESS_NETWORK;
+					sio_stat.ping_count = 0;
+				}
+
+				switch(four_player.current_state)
+				{
+					//Handle ping
+					case FOUR_PLAYER_PING:
+
+						//Update current link status
+						if((sio_stat.ping_count == 1) || (sio_stat.ping_count == 2))
+						{
+							if(sio_stat.transfer_byte == 0x88) { four_player.status |= (1 << (four_player.id + 3)); }
+							else { four_player.status &= ~(1 << (four_player.id + 3)); }
+						}
+
+						//Return magic byte for 1st byte
+						if(sio_stat.ping_count == 0) { mem->memory_map[REG_SB] = 0xFE; }
+
+						//Otherwise, return status byte
+						else { mem->memory_map[REG_SB] = four_player.status; }
+
+						sio_stat.ping_count++;
+						sio_stat.ping_count &= 0x3;
+
+						break;
+				}
+
 				//Send acknowlegdement
 				SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2);
 
 				return true;
 			}
 
-			//Respond for request for transfer byte
+			//4-Player - Return current transfer value
 			else if(temp_buffer[1] == 0xFB)
 			{
 				temp_buffer[0] = sio_stat.transfer_byte;
@@ -628,13 +620,14 @@ bool DMG_SIO::receive_byte()
 				return true;
 			}
 
-			//Respond for request for ping finish status
+			//4-Player - Reset status
 			else if(temp_buffer[1] == 0xFA)
 			{
-				temp_buffer[0] = (sio_stat.ping_finish) ? 1 : 0;
 				temp_buffer[1] = 0x1;
-
-				if(sio_stat.sync) { temp_buffer[0] |= 0x80; }
+	
+				four_player.status &= 0x7;
+				four_player.current_state = FOUR_PLAYER_PING;
+				sio_stat.ping_count = 0;
 
 				//Send acknowlegdement
 				SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2);
@@ -642,10 +635,12 @@ bool DMG_SIO::receive_byte()
 				return true;
 			}
 
-			//Forcibly clears hard sync status
-			else if(temp_buffer[1] == 0xF9)
+			//Stop sync with acknowledgement
+			if(temp_buffer[1] == 0xF0)
 			{
 				sio_stat.sync = false;
+				sio_stat.sync_counter = 0;
+
 				temp_buffer[1] = 0x1;
 
 				//Send acknowlegdement
@@ -654,30 +649,30 @@ bool DMG_SIO::receive_byte()
 				return true;
 			}
 
-			//Receive byte from slave Game Boys for 4 player
-			else if(temp_buffer[1] == 0xF0)
-			{
-				four_player.wait_flags = 0;
-
-				if(sio_stat.ping_count < 4)
-				{
-					four_player.incoming[sio_stat.ping_count % 4] = temp_buffer[0];
-				}
-			
-				temp_buffer[1] = 0x1;
-
-				//Send acknowlegdement
-				SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2);
-
-				return true;
-			}
-			
 			//Disconnect netplay
 			else if(temp_buffer[1] == 0x80)
 			{
 				std::cout<<"SIO::Netplay connection terminated. Restart to reconnect.\n";
 				sio_stat.connected = false;
 				sio_stat.sync = false;
+
+				if(sio_stat.sio_type == GB_FOUR_PLAYER_ADAPTER)
+				{
+					four_player.wait_flags = 0;
+					
+					//Resume ping for Players 2-4
+					if((sio_stat.network_id & 0x40) && (four_player.current_state))
+					{
+						sio_stat.network_id &= ~0x40;
+						sio_stat.network_id |= 0x80;
+
+						sio_stat.active_transfer = true;
+						sio_stat.shifts_left = 8;
+						sio_stat.shift_counter = 0;
+						sio_stat.shift_clock = 4096;
+					}
+				}
+
 				return true;
 			}
 
@@ -743,6 +738,12 @@ bool DMG_SIO::request_sync()
 {
 	#ifdef GBE_NETPLAY
 
+	if(sio_stat.sio_type == GB_FOUR_PLAYER_ADAPTER)
+	{
+		sio_stat.sync = true;
+		return true;
+	}
+
 	u8 temp_buffer[2];
 	temp_buffer[0] = 0;
 	temp_buffer[1] = 0xFF;
@@ -768,6 +769,13 @@ bool DMG_SIO::request_sync()
 void DMG_SIO::process_network_communication()
 {
 	#ifdef GBE_NETPLAY
+
+	//Process DMG-07 connections separately
+	if(sio_stat.sio_type == GB_FOUR_PLAYER_ADAPTER)
+	{
+		four_player_process_network_communication();
+		return;
+	}
 
 	//If no communication with another GBE+ instance has been established yet, see if a connection can be made
 	if(!sio_stat.connected)
@@ -808,7 +816,26 @@ void DMG_SIO::process_network_communication()
 			{
 				four_player.id = (sender.port > server.port) ? 1 : 2;
 				four_player.status = four_player.id;
-				sio_stat.network_id |= four_player.id;
+				
+				sio_stat.network_id = four_player.id;
+				if(four_player.id == 1)
+				{
+					sio_stat.network_id |= 0x80;
+
+					if(sio_stat.send_data)
+					{
+						sio_stat.active_transfer = true;
+						sio_stat.shifts_left = 8;
+						sio_stat.shift_counter = 0;
+						sio_stat.shift_clock = 4096;
+					}
+				}
+
+				else
+				{
+					sio_stat.network_id |= 0x40;
+					four_player.current_state = FOUR_PLAYER_PING;
+				}
 			}
 		}
 	}
@@ -1343,7 +1370,7 @@ void DMG_SIO::mobile_adapter_process()
 			
 			break;
 
-		//Receive tranferred data
+		//Receive transferred data
 		case GBMA_RECEIVE_DATA:
 
 			//Push data to packet buffer
@@ -2232,141 +2259,4 @@ bool DMG_SIO::barcode_boy_load_barcode(std::string filename)
 
 	std::cout<<"SIO::Loaded Barcode Boy barcode data.\n";
 	return true;
-}
-
-/****** Processes data sent to the Game Boy via 4 Player Adapter ******/
-void DMG_SIO::four_player_process()
-{
-	if(sio_stat.internal_clock) { four_player.current_state = FOUR_PLAYER_INACTIVE; }
-	
-	else
-	{
-		//Start preparation for real Link Cable communications
-		if((sio_stat.transfer_byte == 0xAA) && (four_player.id == 1))
-		{
-			if(four_player.current_state != FOUR_PLAYER_PREP_NETWORK)
-			{
-				sio_stat.ping_count = 0;
-
-				u8 ping_status = four_player_request(0x1, 0xFA);
-
-				//Wait for other Game Boys to finish their pings
-				while((ping_status & 0x1) == 0)
-				{
-					receive_byte();
-					ping_status = four_player_request(0x1, 0xFA);
-					if(ping_status & 0x80) { four_player_broadcast(0x1, 0xF9); }
-				}
-			}
-
-			four_player.current_state = FOUR_PLAYER_PREP_NETWORK;
-		}
-
-		//Start Link Cable ping
-		else if((four_player.current_state != FOUR_PLAYER_PREP_NETWORK) && (four_player.current_state != FOUR_PLAYER_PROCESS_NETWORK))
-		{
-			four_player.current_state = FOUR_PLAYER_PING;
-		}
-	}
-
-	switch(four_player.current_state)
-	{
-		case FOUR_PLAYER_INACTIVE: return;
-
-		//Handle ping
-		case FOUR_PLAYER_PING:
-
-			//Update link status
-			if((sio_stat.ping_count == 1) || (sio_stat.ping_count == 2))
-			{
-				if(sio_stat.transfer_byte == 0x88) { four_player.status |= (1 << (four_player.id + 3)); }
-				else { four_player.status &= ~(1 << (four_player.id + 3)); }
-
-				if(sio_stat.connected) { four_player_send_byte(); }
-			}
-
-			//Return magic byte for 1st byte
-			if(sio_stat.ping_count == 0) { mem->memory_map[REG_SB] = 0xFE; }
-
-			//Otherwise, return status byte
-			else { mem->memory_map[REG_SB] = four_player.status; }
-
-			mem->memory_map[IF_FLAG] |= 0x08;
-
-			sio_stat.ping_count++;
-			sio_stat.ping_count &= 0x3;
-
-			break;
-
-		//Prepare for real Link Cable communications
-		case FOUR_PLAYER_PREP_NETWORK:
-			if(four_player.id != 1) { return; }
-
-			sio_stat.ping_count++;
-
-			mem->memory_map[REG_SB] = 0xCC;
-			mem->memory_map[IF_FLAG] |= 0x08;
-
-			four_player_broadcast(sio_stat.ping_count, 0xFD);
-
-			if(sio_stat.ping_count == 4)
-			{
-				sio_stat.ping_count = 0;
-				four_player.current_state = FOUR_PLAYER_PROCESS_NETWORK;
-				four_player.wait_flags |= 0x2;
-
-				//Data in initial buffer is technically garbage. Set to zero for now.
-				for(u32 x = 0; x < 16; x++) { four_player.data[x] = 0; }
-			}
-
-			break;
-
-		//Process Link Cable communications
-		case FOUR_PLAYER_PROCESS_NETWORK:
-			if(four_player.id != 1) { return; }
-
-			//Wait for byte from Player 2
-			while(four_player.wait_flags)
-			{
-				receive_byte();
-				if(four_player_request(0x1, 0xFA) & 0x80) { four_player_broadcast(0x1, 0xF9); }
-			}
-
-			four_player.wait_flags |= 0x2;
-				
-			//Broadcast old data to other Game Boys
-			four_player_broadcast(four_player.data[sio_stat.ping_count], 0xFC);
-
-			mem->memory_map[REG_SB] = four_player.data[sio_stat.ping_count];
-			mem->memory_map[IF_FLAG] |= 0x08;
-
-			//Buffer new data
-			switch(sio_stat.ping_count / 4)
-			{
-				//Player 1
-				case 0x00:
-					four_player.data[sio_stat.ping_count] = sio_stat.transfer_byte;
-					break;
-
-				//Player 2
-				case 0x01:
-					four_player.data[sio_stat.ping_count] = four_player.incoming[sio_stat.ping_count % 4];
-					break;
-
-				//Player 3
-				case 0x02:
-					four_player.data[sio_stat.ping_count] = 0x00;
-					break;
-
-				//Player 4
-				case 0x03:
-					four_player.data[sio_stat.ping_count] = 0x00;
-					break;
-			}			
-
-			sio_stat.ping_count++;
-			sio_stat.ping_count &= 0xF;
-
-			break;
-	}
 }

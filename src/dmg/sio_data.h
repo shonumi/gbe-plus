@@ -73,8 +73,9 @@ enum four_player_state
 {
 	FOUR_PLAYER_INACTIVE,
 	FOUR_PLAYER_PING,
-	FOUR_PLAYER_PREP_NETWORK,
+	FOUR_PLAYER_SYNC,
 	FOUR_PLAYER_PROCESS_NETWORK,
+	FOUR_PLAYER_RESTART_NETWORK,
 };
 
 enum full_changer_state
@@ -100,6 +101,7 @@ struct dmg_sio_data
 	u32 shift_clock;
 	u32 sync_counter;
 	u32 sync_clock;
+	u32 dmg07_clock;
 	sio_types sio_type;
 	ir_types ir_type;
 };
