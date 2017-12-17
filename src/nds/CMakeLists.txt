@@ -16,6 +16,8 @@ set(SRCS
 	opengl.cpp
 	rtc.cpp
 	gamecard.cpp
+	apu.cpp
+	debug.cpp
 	)
 
 set(HEADERS
@@ -27,6 +29,8 @@ set(HEADERS
 	lcd.h
 	cp15.h
 	gamepad.h
+	apu_data.h
+	apu.h
 	)
 
 add_library(nds STATIC ${SRCS} ${HEADERS})

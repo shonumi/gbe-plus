@@ -33,6 +33,9 @@ class NTR_LCD
 	void opengl_init();
 	void update();
 
+	bool get_cart_icon(SDL_Surface* nds_icon);
+	bool save_cart_icon(std::string nds_icon_file);
+
 	//Screen data
 	SDL_Window* window;
 	SDL_Surface* final_screen;

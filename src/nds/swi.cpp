@@ -32,19 +32,19 @@ void NTR_ARM9::process_swi(u32 comment)
 
 		//IntrWait
 		case 0x4:
-			//std::cout<<"ARM9::SWI::IntrWait \n";
+			std::cout<<"ARM9::SWI::IntrWait \n";
 			swi_intrwait();
 			break;
 
 		//VBlankIntrWait
 		case 0x5:
-			//std::cout<<"ARM9::SWI::VBlankIntrWait \n";
+			std::cout<<"ARM9::SWI::VBlankIntrWait \n";
 			swi_vblankintrwait();
 			break;
 
 		//Halt
 		case 0x6:
-			//std::cout<<"ARM9::SWI::Halt \n";
+			std::cout<<"ARM9::SWI::Halt \n";
 			swi_halt();
 			break;
 
@@ -174,6 +174,8 @@ void NTR_ARM9::swi_halt()
 {
 	//Set CPU idle state to 1
 	idle_state = 1;
+	last_idle_state = 1;
+	mem->nds9_temp_if = mem->nds9_if;
 
 	//Destroy R0
 	set_reg(0, 0);
@@ -190,16 +192,14 @@ void NTR_ARM9::swi_intrwait()
 	mem->write_u32(NDS_IME, 0x1);
 	reg.cpsr &= ~CPSR_IRQ;
 
-	//Grab old IF, set current one to zero
-	mem->nds9_old_if = mem->nds9_if;
-	mem->nds9_if = 0;
+	//Create temporary IF for flags in R1
+	mem->nds9_temp_if = reg.r1;
 
-	//Grab old IE, set current one to R1
-	mem->nds9_old_ie = mem->nds9_ie;
-	mem->nds9_ie = reg.r1;
+	if(reg.r0) { mem->nds9_if &= ~mem->nds9_temp_if; }
 
 	//Set CPU idle state to 3
 	idle_state = 3;
+	last_idle_state = 3;
 }
 
 /****** HLE implementation of VBlankIntrWait - NDS9 ******/
@@ -213,16 +213,13 @@ void NTR_ARM9::swi_vblankintrwait()
 	mem->write_u32(NDS_IME, 0x1);
 	reg.cpsr &= ~CPSR_IRQ;
 
-	//Grab old IF, set current one to zero
-	mem->nds9_old_if = mem->nds9_if;
-	mem->nds9_if = 0;
-
-	//Grab old IE, set current one to R1
-	mem->nds9_old_ie = mem->nds9_ie;
-	mem->nds9_ie = reg.r1;
+	//Create temporary IF for flags in R1
+	mem->nds9_temp_if = reg.r1;
+	mem->nds9_if &= ~mem->nds9_temp_if;
 
 	//Set CPU idle state to 3
 	idle_state = 3;
+	last_idle_state = 3;
 }
 
 /****** HLE implementation of Div - NDS9 ******/
@@ -681,7 +678,7 @@ void NTR_ARM7::process_swi(u32 comment)
 
 		//Halt
 		case 0x6:
-			////std::cout<<"ARM7::SWI::Halt \n";
+			//std::cout<<"ARM7::SWI::Halt \n";
 			swi_halt();
 			break;
 
@@ -856,16 +853,13 @@ void NTR_ARM7::swi_intrwait()
 	mem->write_u32(NDS_IME, 0x1);
 	reg.cpsr &= ~CPSR_IRQ;
 
-	//Grab old IF, set current one to zero if necessary
-	mem->nds7_old_if = mem->nds7_if;
-	mem->nds7_if = (reg.r0) ? 0 : mem->nds7_if;
-
-	//Grab old IE, set current one to R1
-	mem->nds7_old_ie = mem->nds7_ie;
-	mem->nds7_ie = reg.r1;
+	//Create temporary IF for flags in R1
+	mem->nds7_temp_if = reg.r1;
+	mem->nds7_if &= ~mem->nds7_temp_if;
 
 	//Set CPU idle state to 3
 	idle_state = 3;
+	last_idle_state = 3;
 }
 
 /****** HLE implementation of VBlankIntrWait - NDS7 ******/
@@ -879,16 +873,13 @@ void NTR_ARM7::swi_vblankintrwait()
 	mem->write_u32(NDS_IME, 0x1);
 	reg.cpsr &= ~CPSR_IRQ;
 
-	//Grab old IF, set current one to zero
-	mem->nds7_old_if = mem->nds7_if;
-	mem->nds7_if = 0;
-
-	//Grab old IE, set current one to R1
-	mem->nds7_old_ie = mem->nds7_ie;
-	mem->nds7_ie = reg.r1;
+	//Create temporary IF for flags in R1
+	mem->nds7_temp_if = reg.r1;
+	mem->nds7_if &= ~mem->nds7_temp_if;
 
 	//Set CPU idle state to 3
 	idle_state = 3;
+	last_idle_state = 3;
 }
 
 /****** HLE implementation of Halt - NDS7 ******/
@@ -896,6 +887,8 @@ void NTR_ARM7::swi_halt()
 {
 	//Set CPU idle state to 1
 	idle_state = 1;
+	last_idle_state = 1;
+	mem->nds7_temp_if = mem->nds7_if;
 }
 
 /****** HLE implementation of SoundBias - NDS7 ******/

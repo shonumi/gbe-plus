@@ -48,6 +48,9 @@ struct ntr_lcd_data
 
 	bool hblank_interval_free;
 
+	bool forced_blank_a;
+	bool forced_blank_b;
+
 	u32 vram_bank_addr[9];
 	bool vram_bank_enable[9];
 

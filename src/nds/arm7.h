@@ -19,6 +19,7 @@
 #include "timer.h"
 #include "mmu.h"
 #include "lcd.h"
+#include "apu.h"
 
 class NTR_ARM7
 {
@@ -175,8 +176,10 @@ class NTR_ARM7
 	bool in_interrupt;
 
 	u8 idle_state;
+	u8 last_idle_state;
 
-	bool swi_vblank_wait;
+	bool thumb_long_branch;
+	bool last_instr_branch;
 	u32 swi_waitbyloop_count;
 
 	u32 instruction_pipeline[3];
@@ -186,6 +189,7 @@ class NTR_ARM7
 	u8 debug_message;
 	u32 debug_code;
 	u32 debug_cycles;
+	u32 debug_addr;
 
 	s16 sync_cycles;
 	u16 system_cycles;
@@ -197,6 +201,7 @@ class NTR_ARM7
 	//TODO - NDS7 will handle audio
 	struct io_controllers
 	{
+		NTR_APU audio;
 		std::vector<nds_timer> timer;
 	} controllers;
 

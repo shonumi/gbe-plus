@@ -19,6 +19,7 @@
 #include "common/config.h"
 #include "mmu.h"
 #include "lcd.h"
+#include "apu.h"
 #include "arm9.h"
 #include "arm7.h"
 
@@ -78,6 +79,7 @@ class NTR_core : virtual public core_emu
 
 		double cpu_sync_cycles;
 		bool nds9_debug;
+		bool arm_debug;
 
 		NTR_GamePad core_pad;
 };

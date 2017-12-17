@@ -53,6 +53,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	sys_type->addItem("Game Boy Advance [GBA]");
 	sys_type->addItem("Nintendo DS [NDS]");
 	sys_type->addItem("Super Game Boy [SGB]");
+	sys_type->addItem("Super Game Boy 2 [SGB2]");
 
 	QHBoxLayout* sys_type_layout = new QHBoxLayout;
 	sys_type_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -72,11 +73,23 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	bios_layout->addWidget(bios_label);
 	bios_set->setLayout(bios_layout);
 
+	//General settings - Use Firmware
+	QWidget* firmware_set = new QWidget(general);
+	QLabel* firmware_label = new QLabel("Use NDS Firmware", firmware_set);
+	firmware = new QCheckBox(firmware_set);
+	firmware->setToolTip("Instructs GBE+ to boot using NDS firmware if applicable");
+
+	QHBoxLayout* firmware_layout = new QHBoxLayout;
+	firmware_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	firmware_layout->addWidget(firmware);
+	firmware_layout->addWidget(firmware_label);
+	firmware_set->setLayout(firmware_layout);
+
 	//General settings - Emulate specialty game carts
 	QWidget* special_cart_set = new QWidget(general);
 	QLabel* special_cart_label = new QLabel("Special ROM Type : ", special_cart_set);
 	special_cart = new QComboBox(special_cart_set);
-	special_cart->setToolTip("Emulates various special_cart setups");
+	special_cart->setToolTip("Emulates various special cart setups");
 	special_cart->addItem("None");
 	special_cart->addItem("DMG - MBC1M");
 	special_cart->addItem("DMG - MMM01");
@@ -148,6 +161,22 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	ir_layout->addWidget(ir_dev);
 	ir_set->setLayout(ir_layout);
 
+	//General settings - Emulated CPU Speed
+	QWidget* overclock_set = new QWidget(general);
+	QLabel* overclock_label = new QLabel("Emulated CPU Speed", overclock_set);
+	overclock = new QComboBox(overclock_set);
+	overclock->setToolTip("Changes the emulated CPU speed. More demanding, but reduces lag that happens on real hardware. May break some games.");
+	overclock->addItem("1x");
+	overclock->addItem("2x");
+	overclock->addItem("4x");
+	overclock->addItem("8x");
+
+	QHBoxLayout* overclock_layout = new QHBoxLayout;
+	overclock_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	overclock_layout->addWidget(overclock_label);
+	overclock_layout->addWidget(overclock);
+	overclock_set->setLayout(overclock_layout);
+
 	//General settings - Enable patches
 	QWidget* patch_set = new QWidget(general);
 	QLabel* patch_label = new QLabel("Enable ROM patches", patch_set);
@@ -166,7 +195,9 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	gen_layout->addWidget(sio_set);
 	gen_layout->addWidget(ir_set);
 	gen_layout->addWidget(special_cart_set);
+	gen_layout->addWidget(overclock_set);
 	gen_layout->addWidget(bios_set);
+	gen_layout->addWidget(firmware_set);
 	gen_layout->addWidget(cheats_set);
 	gen_layout->addWidget(patch_set);
 	gen_layout->addWidget(rtc_set);
@@ -254,6 +285,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	ogl_frag_shader->addItem("Bad Bloom");
 	ogl_frag_shader->addItem("Chrono");
 	ogl_frag_shader->addItem("Grayscale");
+	ogl_frag_shader->addItem("LCD Mode");
 	ogl_frag_shader->addItem("Pastel");
 	ogl_frag_shader->addItem("Scale2x");
 	ogl_frag_shader->addItem("Scale3x");
@@ -806,6 +838,19 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	gba_bios_layout->addWidget(gba_bios_button);
 	gba_bios_set->setLayout(gba_bios_layout);
 
+	//Path settings - System Firmware
+	QWidget* nds_firmware_set = new QWidget(paths);
+	nds_firmware_label = new QLabel("NDS Firmware :  ");
+	QPushButton* nds_firmware_button = new QPushButton("Browse");
+	nds_firmware = new QLineEdit(paths);
+
+	QHBoxLayout* nds_firmware_layout = new QHBoxLayout;
+	nds_firmware_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	nds_firmware_layout->addWidget(nds_firmware_label);
+	nds_firmware_layout->addWidget(nds_firmware);
+	nds_firmware_layout->addWidget(nds_firmware_button);
+	nds_firmware_set->setLayout(nds_firmware_layout);
+
 	//Path settings - CGFX Manifest
 	QWidget* manifest_set = new QWidget(paths);
 	manifest_label = new QLabel("CGFX Manifest :  ");
@@ -891,6 +936,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	paths_layout->addWidget(dmg_bios_set);
 	paths_layout->addWidget(gbc_bios_set);
 	paths_layout->addWidget(gba_bios_set);
+	paths_layout->addWidget(nds_firmware_set);
 	paths_layout->addWidget(manifest_set);
 	paths_layout->addWidget(dump_bg_set);
 	paths_layout->addWidget(dump_obj_set);
@@ -912,8 +958,10 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(tabs_button, SIGNAL(rejected()), this, SLOT(reject()));
 	connect(tabs_button->button(QDialogButtonBox::Close), SIGNAL(clicked()), this, SLOT(close_settings()));
 	connect(bios, SIGNAL(stateChanged(int)), this, SLOT(set_bios()));
+	connect(firmware, SIGNAL(stateChanged(int)), this, SLOT(set_firmware()));
 	connect(sio_dev, SIGNAL(currentIndexChanged(int)), this, SLOT(sio_dev_change()));
 	connect(ir_dev, SIGNAL(currentIndexChanged(int)), this, SLOT(ir_dev_change()));
+	connect(overclock, SIGNAL(currentIndexChanged(int)), this, SLOT(overclock_change()));
 	connect(auto_patch, SIGNAL(stateChanged(int)), this, SLOT(set_patches()));
 	connect(edit_cheats, SIGNAL(clicked()), this, SLOT(show_cheats()));
 	connect(edit_rtc, SIGNAL(clicked()), this, SLOT(show_rtc()));
@@ -942,6 +990,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(dmg_bios_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
 	connect(gbc_bios_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
 	connect(gba_bios_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
+	connect(nds_firmware_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
 	connect(manifest_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
 	connect(dump_bg_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
 	connect(dump_obj_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
@@ -952,12 +1001,13 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	paths_mapper->setMapping(dmg_bios_button, 0);
 	paths_mapper->setMapping(gbc_bios_button, 1);
 	paths_mapper->setMapping(gba_bios_button, 2);
-	paths_mapper->setMapping(manifest_button, 3);
-	paths_mapper->setMapping(screenshot_button, 4);
-	paths_mapper->setMapping(dump_bg_button, 5);
-	paths_mapper->setMapping(dump_obj_button, 6);
-	paths_mapper->setMapping(game_saves_button, 7);
-	paths_mapper->setMapping(cheats_path_button, 8);
+	paths_mapper->setMapping(nds_firmware_button, 3);
+	paths_mapper->setMapping(manifest_button, 4);
+	paths_mapper->setMapping(screenshot_button, 5);
+	paths_mapper->setMapping(dump_bg_button, 6);
+	paths_mapper->setMapping(dump_obj_button, 7);
+	paths_mapper->setMapping(game_saves_button, 8);
+	paths_mapper->setMapping(cheats_path_button, 9);
 	connect(paths_mapper, SIGNAL(mapped(int)), this, SLOT(set_paths(int)));
 
 	QSignalMapper* button_config = new QSignalMapper(this);
@@ -1142,8 +1192,14 @@ void gen_settings::set_ini_options()
 	//Emulated IR device
 	ir_dev->setCurrentIndex(config::ir_device);
 
+	//Emulated CPU speed
+	overclock->setCurrentIndex(config::oc_flags);
+
 	//BIOS or Boot ROM option
 	if(config::use_bios) { bios->setChecked(true); }
+
+	//Use firmware
+	if(config::use_firmware) { firmware->setChecked(true); }
 
 	//Enable patches
 	if(config::use_patches) { auto_patch->setChecked(true); }
@@ -1173,13 +1229,14 @@ void gen_settings::set_ini_options()
 	else if(config::fragment_shader == (config::data_path + "shaders/bad_bloom.fs")) { ogl_frag_shader->setCurrentIndex(3); }
 	else if(config::fragment_shader == (config::data_path + "shaders/chrono.fs")) { ogl_frag_shader->setCurrentIndex(4); }
 	else if(config::fragment_shader == (config::data_path + "shaders/grayscale.fs")) { ogl_frag_shader->setCurrentIndex(5); }
-	else if(config::fragment_shader == (config::data_path + "shaders/pastel.fs")) { ogl_frag_shader->setCurrentIndex(6); }
-	else if(config::fragment_shader == (config::data_path + "shaders/scale2x.fs")) { ogl_frag_shader->setCurrentIndex(7); }
-	else if(config::fragment_shader == (config::data_path + "shaders/scale3x.fs")) { ogl_frag_shader->setCurrentIndex(8); }
-	else if(config::fragment_shader == (config::data_path + "shaders/sepia.fs")) { ogl_frag_shader->setCurrentIndex(9); }
-	else if(config::fragment_shader == (config::data_path + "shaders/spotlight.fs")) { ogl_frag_shader->setCurrentIndex(10); }
-	else if(config::fragment_shader == (config::data_path + "shaders/tv_mode.fs")) { ogl_frag_shader->setCurrentIndex(11); }
-	else if(config::fragment_shader == (config::data_path + "shaders/washout.fs")) { ogl_frag_shader->setCurrentIndex(12); }
+	else if(config::fragment_shader == (config::data_path + "shaders/lcd_mode.fs")) { ogl_frag_shader->setCurrentIndex(6); }
+	else if(config::fragment_shader == (config::data_path + "shaders/pastel.fs")) { ogl_frag_shader->setCurrentIndex(7); }
+	else if(config::fragment_shader == (config::data_path + "shaders/scale2x.fs")) { ogl_frag_shader->setCurrentIndex(8); }
+	else if(config::fragment_shader == (config::data_path + "shaders/scale3x.fs")) { ogl_frag_shader->setCurrentIndex(9); }
+	else if(config::fragment_shader == (config::data_path + "shaders/sepia.fs")) { ogl_frag_shader->setCurrentIndex(10); }
+	else if(config::fragment_shader == (config::data_path + "shaders/spotlight.fs")) { ogl_frag_shader->setCurrentIndex(11); }
+	else if(config::fragment_shader == (config::data_path + "shaders/tv_mode.fs")) { ogl_frag_shader->setCurrentIndex(12); }
+	else if(config::fragment_shader == (config::data_path + "shaders/washout.fs")) { ogl_frag_shader->setCurrentIndex(13); }
 
 	//OpenGL option
 	if(config::use_opengl)
@@ -1253,12 +1310,13 @@ void gen_settings::set_ini_options()
 	QString path_1(QString::fromStdString(config::dmg_bios_path));
 	QString path_2(QString::fromStdString(config::gbc_bios_path));
 	QString path_3(QString::fromStdString(config::agb_bios_path));
-	QString path_4(QString::fromStdString(cgfx::manifest_file));
-	QString path_5(QString::fromStdString(config::ss_path));
-	QString path_6(QString::fromStdString(cgfx::dump_bg_path));
-	QString path_7(QString::fromStdString(cgfx::dump_obj_path));
-	QString path_8(QString::fromStdString(config::save_path));
-	QString path_9(QString::fromStdString(config::cheats_path));
+	QString path_4(QString::fromStdString(config::nds_firmware_path));
+	QString path_5(QString::fromStdString(cgfx::manifest_file));
+	QString path_6(QString::fromStdString(config::ss_path));
+	QString path_7(QString::fromStdString(cgfx::dump_bg_path));
+	QString path_8(QString::fromStdString(cgfx::dump_obj_path));
+	QString path_9(QString::fromStdString(config::save_path));
+	QString path_10(QString::fromStdString(config::cheats_path));
 
 	//Rumble
 	if(config::use_haptics) { rumble_on->setChecked(true); }
@@ -1286,12 +1344,13 @@ void gen_settings::set_ini_options()
 	dmg_bios->setText(path_1);
 	gbc_bios->setText(path_2);
 	gba_bios->setText(path_3);
-	manifest->setText(path_4);
-	screenshot->setText(path_5);
-	dump_bg->setText(path_6);
-	dump_obj->setText(path_7);
-	game_saves->setText(path_8);
-	cheats_path->setText(path_9);
+	nds_firmware->setText(path_4);
+	manifest->setText(path_5);
+	screenshot->setText(path_6);
+	dump_bg->setText(path_7);
+	dump_obj->setText(path_8);
+	game_saves->setText(path_9);
+	cheats_path->setText(path_10);
 }
 
 /****** Toggles whether to use the Boot ROM or BIOS ******/
@@ -1299,6 +1358,13 @@ void gen_settings::set_bios()
 {
 	if(bios->isChecked()) { config::use_bios = true; }
 	else { config::use_bios = false; }
+}
+
+/****** Toggles whether to use firmware ******/
+void gen_settings::set_firmware()
+{
+	if(firmware->isChecked()) { config::use_firmware = true; }
+	else { config::use_firmware = false; }
 }
 
 /****** Changes the emulated Serial IO device ******/
@@ -1311,6 +1377,12 @@ void gen_settings::sio_dev_change()
 void gen_settings::ir_dev_change()
 {
 	config::ir_device = ir_dev->currentIndex();
+}
+
+/****** Changes the emulated CPU speed ******/
+void gen_settings::overclock_change()
+{
+	config::oc_flags = overclock->currentIndex();
 }
 
 /****** Toggles whether to enable auto-patching ******/
@@ -1372,18 +1444,20 @@ void gen_settings::ogl_frag_change()
 		case 3: config::fragment_shader = config::data_path + "shaders/bad_bloom.fs"; break;
 		case 4: config::fragment_shader = config::data_path + "shaders/chrono.fs"; break;
 		case 5: config::fragment_shader = config::data_path + "shaders/grayscale.fs"; break;
-		case 6: config::fragment_shader = config::data_path + "shaders/pastel.fs"; break;
-		case 7: config::fragment_shader = config::data_path + "shaders/scale2x.fs"; break;
-		case 8: config::fragment_shader = config::data_path + "shaders/scale3x.fs"; break;
-		case 9: config::fragment_shader = config::data_path + "shaders/sepia.fs"; break;
-		case 10: config::fragment_shader = config::data_path + "shaders/spotlight.fs"; break;
-		case 11: config::fragment_shader = config::data_path + "shaders/tv_mode.fs"; break;
-		case 12: config::fragment_shader = config::data_path + "shaders/washout.fs"; break;
+		case 6: config::fragment_shader = config::data_path + "shaders/lcd_mode.fs"; break;
+		case 7: config::fragment_shader = config::data_path + "shaders/pastel.fs"; break;
+		case 8: config::fragment_shader = config::data_path + "shaders/scale2x.fs"; break;
+		case 9: config::fragment_shader = config::data_path + "shaders/scale3x.fs"; break;
+		case 10: config::fragment_shader = config::data_path + "shaders/sepia.fs"; break;
+		case 11: config::fragment_shader = config::data_path + "shaders/spotlight.fs"; break;
+		case 12: config::fragment_shader = config::data_path + "shaders/tv_mode.fs"; break;
+		case 13: config::fragment_shader = config::data_path + "shaders/washout.fs"; break;
 	}
 
 	if((main_menu::gbe_plus != NULL) && (config::use_opengl))
 	{
 		qt_gui::draw_surface->hw_screen->reload_shaders();
+		qt_gui::draw_surface->hw_screen->update();
 	}
 }
 
@@ -1491,8 +1565,8 @@ void gen_settings::set_paths(int index)
 {
 	QString path;
 
-	//Open file browser for Boot ROMs, BIOS, cheats, and manifests
-	if((index < 4) || (index == 8))
+	//Open file browser for Boot ROMs, BIOS, Firmware, cheats, and manifests
+	if((index < 5) || (index == 9))
 	{
 		path = QFileDialog::getOpenFileName(this, tr("Open"), "", tr("All files (*)"));
 		if(path.isNull()) { return; }
@@ -1503,8 +1577,8 @@ void gen_settings::set_paths(int index)
 	{
 		//Open the data folder for CGFX dumps
 		//On Linux or Unix, this is supposed to be a hidden folder, so we need a custom dialog
-		//This uses relative paths, but for game saves we need full path, so ignore if index is 7
-		if((index >= 5) && (index != 7))
+		//This uses relative paths, but for game saves we need full path, so ignore if index is 8
+		if((index >= 6) && (index != 8))
 		{
 			data_folder->open_data_folder();			
 
@@ -1546,31 +1620,36 @@ void gen_settings::set_paths(int index)
 			break;
 
 		case 3:
+			config::nds_firmware_path = path.toStdString();
+			nds_firmware->setText(path);
+			break;
+
+		case 4:
 			cgfx::manifest_file = path.toStdString();
 			manifest->setText(path);
 			break;
 
-		case 4:
+		case 5:
 			config::ss_path = path.toStdString();
 			screenshot->setText(path);
 			break;
 
-		case 5:
+		case 6:
 			cgfx::dump_bg_path = path.toStdString();
 			dump_bg->setText(path);
 			break;
 
-		case 6:
+		case 7:
 			cgfx::dump_obj_path = path.toStdString();
 			dump_obj->setText(path);
 			break;
 
-		case 7:
+		case 8:
 			config::save_path = path.toStdString();
 			game_saves->setText(path);
 			break;
 
-		case 8:
+		case 9:
 			config::cheats_path = path.toStdString();
 			cheats_path->setText(path);
 
@@ -2180,6 +2259,7 @@ void gen_settings::paintEvent(QPaintEvent* event)
 {
 	gbc_bios_label->setMinimumWidth(dmg_bios_label->width());
 	gba_bios_label->setMinimumWidth(dmg_bios_label->width());
+	nds_firmware_label->setMinimumWidth(dmg_bios_label->width());
 	manifest_label->setMinimumWidth(dmg_bios_label->width());
 	dump_bg_label->setMinimumWidth(dmg_bios_label->width());
 	dump_obj_label->setMinimumWidth(dmg_bios_label->width());

@@ -117,6 +117,7 @@ bool DMG_APU::init()
 	else
 	{
 		apu_stat.channel_master_volume = (config::volume >> 2);
+		apu_stat.sample_rate *= 4;
 
 		SDL_PauseAudio(0);
 		std::cout<<"APU::Initialized\n";
@@ -300,6 +301,9 @@ void DMG_APU::generate_channel_1_samples(s16* stream, int length)
 	{
 		for(int x = 0; x < length; x++) { stream[x] = -32768; }
 	}
+
+	//Set NR52 flag
+	if(!apu_stat.channel[0].playing) { mem->memory_map[NR52] &= ~0x1; }
 }
 
 /******* Generate samples for GB sound channel 2 ******/
@@ -370,6 +374,9 @@ void DMG_APU::generate_channel_2_samples(s16* stream, int length)
 	{
 		for(int x = 0; x < length; x++) { stream[x] = -32768; }
 	}
+
+	//Set NR52 flag
+	if(!apu_stat.channel[1].playing) { mem->memory_map[NR52] &= ~0x2; }
 }
 
 /******* Generate samples for GB sound channel 3 ******/
@@ -444,6 +451,9 @@ void DMG_APU::generate_channel_3_samples(s16* stream, int length)
 	{
 		for(int x = 0; x < length; x++) { stream[x] = -32768; }
 	}
+
+	//Set NR52 flag
+	if(!apu_stat.channel[2].playing) { mem->memory_map[NR52] &= ~0x4; }
 }
 
 /******* Generate samples for GB sound channel 4 ******/
@@ -556,6 +566,9 @@ void DMG_APU::generate_channel_4_samples(s16* stream, int length)
 	{
 		for(int x = 0; x < length; x++) { stream[x] = -32768; }
 	}
+
+	//Set NR52 flag
+	if(!apu_stat.channel[3].playing) { mem->memory_map[NR52] &= ~0x8; }
 }
 
 /****** SDL Audio Callback ******/ 
@@ -563,6 +576,7 @@ void dmg_audio_callback(void* _apu, u8 *_stream, int _length)
 {
 	s16* stream = (s16*) _stream;
 	int length = _length/2;
+	length *= 4;
 
 	s16 channel_1_stream[length];
 	s16 channel_2_stream[length];
@@ -582,8 +596,9 @@ void dmg_audio_callback(void* _apu, u8 *_stream, int _length)
 	{
 		s32 out_sample = channel_1_stream[x] + channel_2_stream[x] + channel_3_stream[x] + channel_4_stream[x];
 		out_sample *= volume_ratio;
+		out_sample *= apu_link->apu_stat.channel_left_volume;
 		out_sample /= 4;
 
-		stream[x] = out_sample;
+		stream[x / 4] = out_sample;
 	} 
 }

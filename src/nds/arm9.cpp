@@ -63,8 +63,10 @@ void NTR_ARM9::reset()
 	in_interrupt = false;
 
 	idle_state = 0;
+	last_idle_state = 0;
 
-	swi_vblank_wait = false;
+	thumb_long_branch = false;
+	last_instr_branch = false;
 	swi_waitbyloop_count = 0;
 
 	arm_mode = ARM;
@@ -86,6 +88,7 @@ void NTR_ARM9::reset()
 	debug_message = 0xFF;
 	debug_code = 0;
 	debug_cycles = 0;
+	debug_addr = 0;
 
 	sync_cycles = 0;
 	system_cycles = 0;
@@ -633,6 +636,8 @@ void NTR_ARM9::execute()
 	//Execute THUMB instruction
 	if(arm_mode == THUMB)
 	{
+		debug_addr = (reg.r15 - 4);
+
 		switch(instruction_operation[pipeline_id])
 		{
 			case THUMB_1:
@@ -736,6 +741,8 @@ void NTR_ARM9::execute()
 	//Execute ARM instruction
 	else if(arm_mode == ARM)
 	{
+		debug_addr = (reg.r15 - 8);
+
 		//Conditionally execute ARM instruction
 		if(check_condition(instruction_pipeline[pipeline_id]))
 		{
@@ -846,7 +853,7 @@ void NTR_ARM9::flush_pipeline()
 	needs_flush = false;
 	pipeline_pointer = 0;
 	instruction_pipeline[0] = instruction_pipeline[1] = instruction_pipeline[2];
-	instruction_operation[0] = instruction_operation[1] = instruction_operation[2] = PIPELINE_FILL;;
+	instruction_operation[0] = instruction_operation[1] = instruction_operation[2] = PIPELINE_FILL;
 }
 
 /****** Updates the PC after each fetch-decode-execute ******/
@@ -1374,75 +1381,45 @@ void NTR_ARM9::clock_timers(u8 access_cycles)
 /****** Jumps to or exits an interrupt ******/
 void NTR_ARM9::handle_interrupt()
 {
-	//Exit interrupt
-	if((in_interrupt) && (reg.r15 == 0xFFFF0294))
-	{
-		//Restore registers from SP
-		u32 sp_addr = get_reg(13);
-		reg.r0 = mem->read_u32(sp_addr); sp_addr += 4;
-		reg.r1 = mem->read_u32(sp_addr); sp_addr += 4;
-		reg.r2 = mem->read_u32(sp_addr); sp_addr += 4;
-		reg.r3 = mem->read_u32(sp_addr); sp_addr += 4;
-		set_reg(12, mem->read_u32(sp_addr)); sp_addr += 4;
-		set_reg(14, mem->read_u32(sp_addr)); sp_addr += 4;
-		set_reg(13, sp_addr);
-
-		//Set PC to LR - 4;
-		reg.r15 = get_reg(14) - 4;
-
-		//Set CPSR from SPSR, turn on IRQ flag
-		reg.cpsr = get_spsr();
-		reg.cpsr &= ~CPSR_IRQ;
-		reg.cpsr &= ~0x1F;
-		reg.cpsr |= CPSR_MODE_SYS;
-
-		//Request pipeline flush, signal end of interrupt handling, switch to appropiate ARM/THUMB mode
-		needs_flush = true;
-		in_interrupt = false;
-		arm_mode = (reg.cpsr & 0x20) ? THUMB : ARM;
-
-		current_cpu_mode = SYS;
-		debug_code = 0xFEEDBACC;
-	}
-
 	//Jump into an interrupt, check if the master flag is enabled
-	if((mem->nds9_ime & 0x1) && ((reg.cpsr & CPSR_IRQ) == 0) && (!in_interrupt))
+	if((mem->nds9_ime & 0x1) && ((reg.cpsr & CPSR_IRQ) == 0))
 	{
 		//Wait until pipeline is finished filling
-		if(debug_message == 0xFF) { return; }
+		//Wait until THUMB.19 is finished executing
+		if((debug_message == 0xFF) || (thumb_long_branch)) { return; }
 
 		u32 if_check = mem->nds9_if;
 		u32 ie_check = mem->nds9_ie;
 
-		//Match up bits in IE and IF
-		for(int x = 0; x <= 21; x++)
+		//When there is a match, jump to interrupt vector
+		if(ie_check & if_check)
 		{
-			//When there is a match, jump to interrupt vector
-			if((ie_check & (1 << x)) && (if_check & (1 << x)))
-			{
-				current_cpu_mode = IRQ;
+			current_cpu_mode = IRQ;
 
-				//Save PC to LR
-				if(needs_flush) { set_reg(14, (reg.r15 + 4)); }
-				else { set_reg(14, reg.r15); }
+			if(last_instr_branch) { reg.r15 += 4; }
+			else if((last_idle_state == 0) && (arm_mode == ARM)) { reg.r15 -= 4; }
 
-				//Set PC and SPSR
-				reg.r15 = mem->nds9_bios_vector + 0x18;
-				set_spsr(reg.cpsr);
+			//Save PC to LR
+			set_reg(14, reg.r15);
 
-				//Request pipeline flush, signal interrupt handling, and go to ARM mode
-				needs_flush = true;
-				in_interrupt = true;
-				arm_mode = ARM;
+			//Set PC and SPSR
+			reg.r15 = mem->nds9_bios_vector + 0x18;
+			set_spsr(reg.cpsr);
 
-				//Alter CPSR bits, turn off THUMB and IRQ flags, set mode bits
-				reg.cpsr &= ~0x20;
-				reg.cpsr |= CPSR_IRQ;
-				reg.cpsr &= ~0x1F;
-				reg.cpsr |= CPSR_MODE_IRQ;
+			//Request pipeline flush, signal interrupt handling, and go to ARM mode
+			flush_pipeline();
 
-				return;
-			}
+			in_interrupt = true;
+			arm_mode = ARM;
+			last_idle_state = 0;
+
+			//Alter CPSR bits, turn off THUMB and IRQ flags, set mode bits
+			reg.cpsr &= ~0x20;
+			reg.cpsr |= CPSR_IRQ;
+			reg.cpsr &= ~0x1F;
+			reg.cpsr |= CPSR_MODE_IRQ;
+
+			return;
 		}
 	}
 }

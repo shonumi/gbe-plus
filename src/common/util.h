@@ -86,6 +86,8 @@ namespace util
 	std::string data_to_str(u8* data, u32 length);
 	void str_to_data(u8* data, std::string input);
 
+	std::string make_ascii_printable(std::string input);
+
 	std::string get_filename_from_path(std::string path);
 
 	u32 get_bcd(u32 input);

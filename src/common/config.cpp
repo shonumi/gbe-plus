@@ -157,6 +157,9 @@ namespace config
 	//Aspect ratio
 	bool maintain_aspect_ratio = false;
 
+	//LCD configuration (NDS primarily)
+	u8 lcd_config = 0;
+
 	//Sound parameters
 	u8 volume = 128;
 	u8 old_volume = 0;
@@ -192,6 +195,9 @@ namespace config
 
 	//Real-time clock offsets
 	u16 rtc_offset[6] = { 0, 0, 0, 0, 0, 0 };
+
+	//CPU overclocking flags
+	u32 oc_flags = 0;
 }
 
 /****** Reset DMG default colors ******/
@@ -537,7 +543,7 @@ u8 get_system_type_from_file(std::string filename)
 	else if((ext != ".gba") && (gb_type == 3)) { gb_type = 2; }
 
 	//For Auto or GBC mode, determine what the CGB Flag is
-	if((gb_type == 0) || (gb_type == 2) || (gb_type == 5))
+	if((gb_type == 0) || (gb_type == 2) || (gb_type == 5) || (gb_type == 6))
 	{
 		std::ifstream test_stream(filename.c_str(), std::ios::binary);
 		
@@ -558,6 +564,7 @@ u8 get_system_type_from_file(std::string filename)
 
 			//If SGB compatible, use it if SGB set as the system
 			if((sgb_byte == 0x3) && (config::gb_type == 5)) { gb_type = 5; }
+			else if((sgb_byte == 0x3) && (config::gb_type == 6)) { gb_type = 6; }
 
 			test_stream.close();
 		}
@@ -690,8 +697,11 @@ bool parse_cli_args()
 			//Set system type - NDS
 			else if(config::cli_args[x] == "--sys-nds") { config::gb_type = 4; }
 
-			//Set system type - SGB
+			//Set system type - SGB1
 			else if(config::cli_args[x] == "--sys-sgb") { config::gb_type = 5; }
+
+			//Set system type - SGB2
+			else if(config::cli_args[x] == "--sys-sgb2") { config::gb_type = 6; }
 
 			//Print Help
 			else if((config::cli_args[x] == "-h") || (config::cli_args[x] == "--help")) 
@@ -715,6 +725,7 @@ bool parse_cli_args()
 				std::cout<<"--sys-gba \t\t\t\t Set the emulated system type to GBA\n";
 				std::cout<<"--sys-nds \t\t\t\t Set the emulated system type to NDS\n";
 				std::cout<<"--sys-sgb \t\t\t\t Set the emulated system type to SGB\n";
+				std::cout<<"--sys-sgb2 \t\t\t\t Set the emulated system type to SGB2\n";
 				std::cout<<"--save-auto \t\t\t\t Set the GBA save type to Auto Detect\n";
 				std::cout<<"--save-none \t\t\t\t Disables all GBA saves\n";
 				std::cout<<"--save-sram \t\t\t\t Force the GBA save type to SRAM\n";
@@ -917,7 +928,7 @@ bool parse_ini_file()
 				std::stringstream temp_stream(ini_item);
 				temp_stream >> output;
 
-				if((output >= 0) && (output <= 5)) 
+				if((output >= 0) && (output <= 6)) 
 				{
 					config::gb_type = output;
 					validate_system_type();
@@ -1422,6 +1433,25 @@ bool parse_ini_file()
 			}
 		}
 
+		//CPU overclocking flags
+		else if(ini_item == "#oc_flags")
+		{
+			if((x + 1) < size)
+			{
+				ini_item = ini_opts[++x];
+				std::stringstream temp_stream(ini_item);
+				temp_stream >> output;
+				
+				if((output >= 0) && (output <= 3)) { config::oc_flags = output; }
+			}
+
+			else
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#oc_flags) \n";
+				return false;
+			}
+		}
+			
 		//Emulated DMG-on-GBC palette
 		else if(ini_item == "#dmg_on_gbc_pal")
 		{
@@ -2634,6 +2664,15 @@ bool save_ini_file()
 			output_lines[line_pos] = "[#rtc_offset:" + val + "]";
 		}
 
+		//CPU overclocking flags
+		else if(ini_item == "#oc_flags")
+		{
+			line_pos = output_count[x];
+			std::string val = util::to_str(config::oc_flags);
+
+			output_lines[line_pos] = "[#oc_flags:" + val + "]";
+		}
+
 		//Emulated DMG-on-GBC palette
 		else if(ini_item == "#dmg_on_gbc_pal")
 		{
@@ -2652,7 +2691,8 @@ bool save_ini_file()
 			else if(config::fragment_shader == (config::data_path + "shaders/4xBR.fs")) { config::fragment_shader = "4xBR.fs"; }
 			else if(config::fragment_shader == (config::data_path + "shaders/bad_bloom.fs")) { config::fragment_shader = "bad_bloom.fs"; }
 			else if(config::fragment_shader == (config::data_path + "shaders/chrono.fs")) { config::fragment_shader = "chrono.fs"; }
-			else if(config::fragment_shader == (config::data_path + "shaders/grayscale.fs")) { config::fragment_shader= "grayscale.fs"; }
+			else if(config::fragment_shader == (config::data_path + "shaders/grayscale.fs")) { config::fragment_shader = "grayscale.fs"; }
+			else if(config::fragment_shader == (config::data_path + "shaders/lcd_mode.fs")) { config::fragment_shader = "lcd_mode.fs"; }
 			else if(config::fragment_shader == (config::data_path + "shaders/pastel.fs")) { config::fragment_shader = "pastel.fs"; }
 			else if(config::fragment_shader == (config::data_path + "shaders/scale2x.fs")) { config::fragment_shader = "scale2x.fs"; }
 			else if(config::fragment_shader == (config::data_path + "shaders/scale3x.fs")) { config::fragment_shader = "scale3x.fs"; }

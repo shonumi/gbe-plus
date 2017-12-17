@@ -36,7 +36,9 @@ class gen_settings : public QDialog
 	//General tab widgets
 	QComboBox* sys_type;
 	QCheckBox* bios;
+	QCheckBox* firmware;
 	QComboBox* special_cart;
+	QComboBox* overclock;
 	QCheckBox* cheats;
 	QPushButton* edit_cheats;
 	QComboBox* sio_dev;
@@ -76,6 +78,7 @@ class gen_settings : public QDialog
 	QLineEdit* dmg_bios;
 	QLineEdit* gbc_bios;
 	QLineEdit* gba_bios;
+	QLineEdit* nds_firmware;
 	QLineEdit* manifest;
 	QLineEdit* dump_bg;
 	QLineEdit* dump_obj;
@@ -86,6 +89,7 @@ class gen_settings : public QDialog
 	QLabel* dmg_bios_label;
 	QLabel* gbc_bios_label;
 	QLabel* gba_bios_label;
+	QLabel* nds_firmware_label;
 	QLabel* manifest_label;
 	QLabel* dump_bg_label;
 	QLabel* dump_obj_label;
@@ -157,8 +161,10 @@ class gen_settings : public QDialog
 
 	private slots:
 	void set_bios();
+	void set_firmware();
 	void sio_dev_change();
 	void ir_dev_change();
+	void overclock_change();
 	void set_patches();
 	void show_cheats();
 	void show_rtc();

@@ -177,8 +177,10 @@ class NTR_ARM9
 	u8 flush_counter;
 
 	u8 idle_state;
+	u8 last_idle_state;
 
-	bool swi_vblank_wait;
+	bool thumb_long_branch;
+	bool last_instr_branch;
 	u32 swi_waitbyloop_count;
 
 	u32 instruction_pipeline[3];
@@ -188,6 +190,7 @@ class NTR_ARM9
 	u8 debug_message;
 	u32 debug_code;
 	u32 debug_cycles;
+	u32 debug_addr;
 
 	s16 sync_cycles;
 	u16 system_cycles;

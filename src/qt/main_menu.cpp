@@ -576,7 +576,7 @@ void main_menu::boot_game()
 	else if((ext != ".gba") && (config::gb_type == 3)) { config::gb_type = 2; config::gba_enhance = true; }
 	else { config::gba_enhance = false; }
 
-	if(config::gb_type == 5) { config::gb_type = get_system_type_from_file(config::rom_file); }
+	if((config::gb_type == 5) || (config::gb_type == 6)) { config::gb_type = get_system_type_from_file(config::rom_file); }
 
 	//Determine CGFX scaling factor
 	cgfx::scaling_factor = (settings->cgfx_scale->currentIndex() + 1);
@@ -628,10 +628,9 @@ void main_menu::boot_game()
 		base_width = (160 * cgfx::scaling_factor);
 		base_height = (144 * cgfx::scaling_factor);
 
-		if(config::gb_type == 5)
+		if((config::gb_type == 5) || (config::gb_type == 6))
 		{
 			main_menu::gbe_plus = new SGB_core();
-			config::gb_type = 1;
 			is_sgb_core = true;
 		}
 
@@ -719,7 +718,7 @@ void main_menu::paintEvent(QPaintEvent* event)
 
 		else if(config::request_resize)
 		{
-			if((config::resize_mode > 0) && (config::sys_width != 240) && (config::sys_width != 256)) { return; }
+			if((config::resize_mode > 0) && (config::sys_width != 240) && (config::sys_width != 256) && (config::sys_width != 512)) { return; }
 
 			base_width = config::sys_width;
 			base_height = config::sys_height;
@@ -908,10 +907,17 @@ bool main_menu::eventFilter(QObject* target, QEvent* event)
 			}
 
 			//Adjust Y for bottom touchscreen
-			if(y > 192)
-			{
-				y -= 192;
+			bool is_bottom = false;
 
+			if((y < 192) && (config::lcd_config & 0x1)) { is_bottom = true; }
+			else if((y > 192) && ((config::lcd_config & 0x1) == 0))
+			{
+				is_bottom = true;
+				y -= 192;
+			}
+
+			if(is_bottom)
+			{
 				//Pack Pad, X, Y into a 24-bit number to send to the NDS core
 				x &= 0xFF;
 				y &= 0xFF;
@@ -966,10 +972,17 @@ bool main_menu::eventFilter(QObject* target, QEvent* event)
 			}
 
 			//Adjust Y for bottom touchscreen
-			if(y > 192)
-			{
-				y -= 192;
+			bool is_bottom = false;
 
+			if((y < 192) && (config::lcd_config & 0x1)) { is_bottom = true; }
+			else if((y > 192) && ((config::lcd_config & 0x1) == 0))
+			{
+				is_bottom = true;
+				y -= 192;
+			}
+
+			if(is_bottom)
+			{
 				//Pack Pad, X, Y into a 24-bit number to send to the NDS core
 				x &= 0xFF;
 				y &= 0xFF;
@@ -1027,10 +1040,17 @@ bool main_menu::eventFilter(QObject* target, QEvent* event)
 			}
 
 			//Adjust Y for bottom touchscreen
-			if(y > 192)
-			{
-				y -= 192;
+			bool is_bottom = false;
 
+			if((y < 192) && (config::lcd_config & 0x1)) { is_bottom = true; }
+			else if((y > 192) && ((config::lcd_config & 0x1) == 0))
+			{
+				is_bottom = true;
+				y -= 192;
+			}
+
+			if(is_bottom)
+			{
 				//Pack Pad, X, Y into a 24-bit number to send to the NDS core
 				x &= 0xFF;
 				y &= 0xFF;

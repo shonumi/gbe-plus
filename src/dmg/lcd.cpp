@@ -85,8 +85,9 @@ void DMG_LCD::reset()
 	lcd_stat.update_bg_colors = false;
 	lcd_stat.update_obj_colors = false;
 	lcd_stat.hdma_in_progress = false;
-	lcd_stat.hdma_current_line = 0;
 	lcd_stat.hdma_type = 0;
+
+	lcd_stat.frame_delay = 0;
 
 	//Clear GBC color palettes
 	for(int x = 0; x < 4; x++)
@@ -220,6 +221,8 @@ bool DMG_LCD::init()
 		}
 
 		if(final_screen == NULL) { return false; }
+
+		SDL_SetWindowIcon(window, util::load_icon(config::data_path + "icons/gbe_plus.bmp"));
 	}
 
 	//Initialize with only a buffer for OpenGL (for external rendering)
@@ -430,6 +433,12 @@ void DMG_LCD::render_dmg_scanline()
 	//Ignore CGFX when greater than 1:1
 	if((cgfx::load_cgfx) && (cgfx::scaling_factor > 1)) { return; }
 
+	//Draw blank screen for 1 frame after LCD enabled
+	if(lcd_stat.frame_delay)
+	{
+		for(int x = 0; x < 256; x++) { scanline_buffer[x] = 0xFFFFFFFF; }
+	}
+
 	//Push scanline buffer to screen buffer - Normal version
 	else if((config::resize_mode == 0) && (!config::request_resize))
 	{
@@ -490,6 +499,12 @@ void DMG_LCD::render_gbc_scanline()
 
 	//Ignore CGFX when greater than 1:1
 	if((cgfx::load_cgfx) && (cgfx::scaling_factor > 1)) { return; }
+
+	//Draw blank screen for 1 frame after LCD enabled
+	if(lcd_stat.frame_delay)
+	{
+		for(int x = 0; x < 256; x++) { scanline_buffer[x] = 0xFFFFFFFF; }
+	}
 
 	//Push scanline buffer to screen buffer - Normal version
 	else if((config::resize_mode == 0) && (!config::request_resize))
@@ -1628,6 +1643,12 @@ void DMG_LCD::gdma()
 		mem->write_u8(dest_addr++, mem->read_u8(start_addr++));
 	}
 
+	mem->memory_map[REG_HDMA1] = (start_addr >> 8);
+	mem->memory_map[REG_HDMA2] = (start_addr & 0xFF);
+
+	mem->memory_map[REG_HDMA3] = (dest_addr >> 8);
+	mem->memory_map[REG_HDMA4] = (dest_addr & 0xFF);
+
 	lcd_stat.hdma_in_progress = false;
 	mem->memory_map[REG_HDMA5] = 0xFF;
 }
@@ -1638,9 +1659,6 @@ void DMG_LCD::hdma()
 	u16 start_addr = (mem->memory_map[REG_HDMA1] << 8) | mem->memory_map[REG_HDMA2];
 	u16 dest_addr = (mem->memory_map[REG_HDMA3] << 8) | mem->memory_map[REG_HDMA4];
 	u8 line_transfer_count = (mem->memory_map[REG_HDMA5] & 0x7F);
-
-	start_addr += (lcd_stat.hdma_current_line * 16);
-	dest_addr += (lcd_stat.hdma_current_line * 16);
 
 	//Ignore bottom 4 bits of start address
 	start_addr &= 0xFFF0;
@@ -1656,12 +1674,15 @@ void DMG_LCD::hdma()
 		mem->write_u8(dest_addr++, mem->read_u8(start_addr++));
 	}
 							
-	lcd_stat.hdma_current_line++;
+	mem->memory_map[REG_HDMA1] = (start_addr >> 8);
+	mem->memory_map[REG_HDMA2] = (start_addr & 0xFF);
+
+	mem->memory_map[REG_HDMA3] = (dest_addr >> 8);
+	mem->memory_map[REG_HDMA4] = (dest_addr & 0xFF);
 
 	if(line_transfer_count == 0) 
 	{ 
 		lcd_stat.hdma_in_progress = false;
-		lcd_stat.hdma_current_line = 0;
 		mem->memory_map[REG_HDMA5] = 0xFF;
 	}
 
@@ -1671,6 +1692,9 @@ void DMG_LCD::hdma()
 /****** Execute LCD operations ******/
 void DMG_LCD::step(int cpu_clock) 
 {
+	cpu_clock >>= config::oc_flags;
+	cpu_clock = (cpu_clock == 0) ? 1 : cpu_clock;
+
         //Enable the LCD
 	if((lcd_stat.on_off) && (lcd_stat.lcd_enable)) 
 	{
@@ -1829,6 +1853,9 @@ void DMG_LCD::step(int cpu_clock)
 				//Restore Window parameters
 				lcd_stat.last_y = 0;
 				lcd_stat.window_y = mem->memory_map[REG_WY];
+
+				//Unset frame delay
+				lcd_stat.frame_delay = 0;
 
 				//Check for screen resize - DMG/GBC stretch
 				if((config::request_resize) && (config::resize_mode > 0))

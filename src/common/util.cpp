@@ -708,7 +708,22 @@ void str_to_data(u8* data, std::string input)
 		data++;
 	}
 }
-	
+
+/****** Swaps unprintable characters in an ASCII string for spaces ******/
+std::string make_ascii_printable(std::string input)
+{
+	std::string result = "";
+
+	for(u32 x = 0; x < input.size(); x++)
+	{
+		char ascii = input[x];
+
+		if((ascii >= 0x20) && (ascii <= 0x7E)) { result += ascii; }
+		else { result += " "; }
+	}
+
+	return result;
+}
 
 /****** Converts a string IP address to an integer value ******/
 bool ip_to_u32(std::string ip_addr, u32 &result)
@@ -847,7 +862,7 @@ SDL_Surface* load_icon(std::string filename)
 	{
 		out_pixel_data[a] = (0xFF000000 | (in_pixel_data[b+2] << 16) | (in_pixel_data[b+1] << 8) | (in_pixel_data[b]));
 
-		if(out_pixel_data[a] == 0xFF00FF00) { out_pixel_data[a] = 0; }
+		SDL_SetColorKey(output, SDL_TRUE, 0xFF00FF00);
 	}
 
 	return output;

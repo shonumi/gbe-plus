@@ -540,6 +540,10 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 			apu_stat->channel[0].envelope_counter = 0;
 			apu_stat->channel[0].sweep_counter = 0;
 		}
+
+		//Set NR52 flag
+		if(apu_stat->channel[0].playing) { memory_map[NR52] |= 0x1; }
+		else { memory_map[NR52] &= ~0x1; }
 	}
 
 	//NR21 - Duration, Duty Cycle
@@ -669,6 +673,10 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 			apu_stat->channel[1].envelope_counter = 0;
 			apu_stat->channel[1].sweep_counter = 0;
 		}
+
+		//Set NR52 flag
+		if(apu_stat->channel[1].playing) { memory_map[NR52] |= 0x2; }
+		else { memory_map[NR52] &= ~0x2; }
 	}
 
 	//NR31 - Duration
@@ -738,6 +746,10 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 			apu_stat->channel[2].frequency_distance = 0;
 			apu_stat->channel[2].sample_length = (apu_stat->channel[2].duration * apu_stat->sample_rate)/1000;
 		}
+
+		//Set NR52 flag
+		if(apu_stat->channel[2].playing) { memory_map[NR52] |= 0x4; }
+		else { memory_map[NR52] &= ~0x4; }
 	}
 
 	//NR42 - Envelope, Volume
@@ -828,6 +840,18 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 			apu_stat->noise_7_stage_lsfr = 0x40;
 			apu_stat->noise_15_stage_lsfr = 0x4000;
 		}
+
+		//Set NR52 flag
+		if(apu_stat->channel[3].playing) { memory_map[NR52] |= 0x8; }
+		else { memory_map[NR52] &= ~0x8; }
+	}
+
+	//NR50 S01-S02 volume
+	else if(address == NR50)
+	{
+		memory_map[address] = value;
+		apu_stat->channel_left_volume = (value & 0x7) / 7.0;
+		apu_stat->channel_right_volume = ((value >> 4) & 0x7) / 7.0;
 	}
 
 	//NR51 SO1-SO2 Sound Channel Output
@@ -887,6 +911,10 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	//BGP
 	else if(address == REG_BGP)
 	{
+		//Avoid updating DMG BG palette if it's the same value
+		//Some games spam writes to BGP with the same palette, causing a huge load on CGFX
+		if(memory_map[address] == value) { return; }
+
 		memory_map[address] = value;
 
 		//Determine Background/Window Palette - From lightest to darkest
@@ -980,7 +1008,12 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		lcd_stat->bg_enable = (value & 0x1) ? true : false;
 
 		//Check to see if the LCD was turned off/on while on/off (VBlank only?)
-		if(lcd_stat->on_off != lcd_stat->lcd_enable) { lcd_stat->on_off = true; }
+		if(lcd_stat->on_off != lcd_stat->lcd_enable)
+		{
+			lcd_stat->on_off = true;
+			if(lcd_stat->lcd_enable) { lcd_stat->frame_delay = 1; }
+		}
+		
 		else { lcd_stat->on_off = false; }
 
 		//Update all sprites if the OBJ size changes
@@ -1029,8 +1062,26 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	//Window X
 	else if(address == REG_WX)
 	{
+		u8 last_wx = memory_map[address];
+
 		memory_map[address] = value;
 		lcd_stat->window_x = (value < 7) ? 0 : (value - 7);
+
+		//Check to see if the Window was set off screen while enabled
+		//Record the current rendered line of the Window, start rendering on this line if turned on again before VBlank
+		if((lcd_stat->window_enable) && (lcd_stat->window_x >= 160))
+		{
+			if(lcd_stat->current_scanline >= 0x90) { lcd_stat->last_y = 0; } 
+			else { lcd_stat->last_y = (lcd_stat->current_scanline - lcd_stat->window_y); }
+		}
+
+		//Check to see if the Window was set on screen while enabled
+		//Use the last recorded Window render line if the Window was previously turned on
+		if((lcd_stat->window_enable) && (lcd_stat->window_x < 160) && (last_wx >= 160))
+		{
+			if(lcd_stat->current_scanline >= 0x90) { lcd_stat->last_y = 0; } 
+			else { lcd_stat->window_y = lcd_stat->current_scanline - lcd_stat->last_y; }
+		}
 	}	
 
 	//DMA transfer
@@ -1092,7 +1143,6 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		if(((value & 0x80) == 0) && (lcd_stat->hdma_in_progress)) 
 		{ 
 			lcd_stat->hdma_in_progress = false;
-			lcd_stat->hdma_current_line = 0;
 			value = 0x80;
 		}
 
@@ -1100,7 +1150,6 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		else 
 		{
 			lcd_stat->hdma_in_progress = true;
-			lcd_stat->hdma_current_line = 0;
 			lcd_stat->hdma_type = (value & 0x80) ? 1 : 0;
 			value &= ~0x80;
 		}
@@ -1415,6 +1464,10 @@ bool DMG_MMU::read_file(std::string filename)
 		file.read((char*)ex_mem, 0x8000);
 	}
 
+	std::string title = "";
+	for(u32 x = 0; x < 16; x++) { title += memory_map[0x134 + x]; }
+	std::cout<<"MMU::Game Title - " << util::make_ascii_printable(title) << "\n";
+
 	//Grab MBC type byte
 	u8 mbc_type_byte = memory_map[ROM_MBC];
 
@@ -1616,6 +1669,12 @@ bool DMG_MMU::read_file(std::string filename)
 			std::cout<<"MMU::Cartridge Type - MBC5 + RAM + Battery + Rumble\n";
 			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
 			std::cout<<"MMU::ROM Size - " << std::dec << cart.rom_size << "KB\n";
+			break;
+
+		case 0x20:
+			std::cout<<"MMU::Cartridge Type - MBC6\n";
+			std::cout<<"MMU::MBC type currently unsupported \n";
+			return false;
 			break;
 
 		case 0x22:

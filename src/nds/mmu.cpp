@@ -9,6 +9,7 @@
 // Handles reading and writing bytes to memory locations
 
 #include "mmu.h"
+#include "common/util.h"
 
 /****** MMU Constructor ******/
 NTR_MMU::NTR_MMU() 
@@ -29,7 +30,8 @@ NTR_MMU::~NTR_MMU()
 /****** MMU Reset ******/
 void NTR_MMU::reset()
 {
-	current_save_type = AUTO;	
+	current_save_type = AUTO;
+	current_slot2_device = SLOT2_AUTO;	
 
 	memory_map.clear();
 	memory_map.resize(0x10000000, 0);
@@ -45,7 +47,7 @@ void NTR_MMU::reset()
 	nds7_irq_handler = 0x380FFFC;
 	nds7_ie = 0x0;
 	nds7_if = 0x0;
-	nds7_old_ie = 0x0;
+	nds7_temp_if = 0x0;
 	nds7_ime = 0;
 	nds7_exmem = 0;
 	power_cnt2 = 0;
@@ -56,7 +58,7 @@ void NTR_MMU::reset()
 	nds9_irq_handler = 0x0;
 	nds9_ie = 0x0;
 	nds9_if = 0x0;
-	nds9_old_ie = 0x0;
+	nds9_temp_if = 0x0;
 	nds9_ime = 0;
 	nds9_exmem = 0;
 	power_cnt1 = 0;
@@ -219,6 +221,26 @@ u8 NTR_MMU::read_u8(u32 address)
 		case 0x3:
 			if((access_mode) || (address <= 0x37FFFFF)) { address &= 0x3007FFF; }
 			else { address &= 0x380FFFF; }
+			break;
+
+		case 0x4:
+			if((!access_mode) && (address >= 0x4000400) && (address < 0x4000500))
+			{
+				apu_io_id = (address >> 4) & 0xF;
+				address &= 0x400040F;
+			}
+
+			break;
+
+		case 0x8:
+			if(current_slot2_device == SLOT2_PASSME)
+			{
+				if((address & 0x7FFFFFF) < cart_data.size()) { return cart_data[address & 0x7FFFFFF]; }
+				else { return 0xFF; }
+			}
+
+			else { return 0xFF; }
+
 			break;
 	}
 
@@ -542,7 +564,53 @@ u8 NTR_MMU::read_u8(u32 address)
 
 	//Check POSTFLG - NDS7
 	else if((address == NDS_POSTFLG) && (!access_mode)) { return memory_map[address] & 0x1; }
+
+	//Check for SOUNDXCNT - NDS7
+	else if((address & ~0x3) == NDS_SOUNDXCNT)
+	{
+		//Only NDS7 can access this register, return 0 for NDS9
+		if(access_mode) { return 0; }
+
+		u8 addr_shift = (address & 0x3) << 3;
+		return ((apu_stat->channel[apu_io_id].cnt >> addr_shift) & 0xFF);
+	}
+
+	//Check for DMA0CNT
+	else if((address & ~0x3) == NDS_DMA0CNT)
+	{
+		u8 addr_shift = (address & 0x3) << 3;
 		
+		if(access_mode) { return ((dma[0].control >> addr_shift) & 0xFF); }
+		else { return ((dma[4].control >> addr_shift) & 0xFF); }
+	}
+
+	//Check for DMA1CNT
+	else if((address & ~0x3) == NDS_DMA1CNT)
+	{
+		u8 addr_shift = (address & 0x3) << 3;
+		
+		if(access_mode) { return ((dma[1].control >> addr_shift) & 0xFF); }
+		else { return ((dma[5].control >> addr_shift) & 0xFF); }
+	} 
+
+	//Check for DMA2CNT
+	else if((address & ~0x3) == NDS_DMA2CNT)
+	{
+		u8 addr_shift = (address & 0x3) << 3;
+		
+		if(access_mode) { return ((dma[2].control >> addr_shift) & 0xFF); }
+		else { return ((dma[6].control >> addr_shift) & 0xFF); }
+	} 
+
+	//Check for DMA3CNT
+	else if((address & ~0x3) == NDS_DMA3CNT)
+	{
+		u8 addr_shift = (address & 0x3) << 3;
+		
+		if(access_mode) { return ((dma[3].control >> addr_shift) & 0xFF); }
+		else { return ((dma[7].control >> addr_shift) & 0xFF); }
+	} 
+	
 	return memory_map[address];
 }
 
@@ -593,10 +661,24 @@ u32 NTR_MMU::read_u32_fast(u32 address) const
 	return ((memory_map[address+3] << 24) | (memory_map[address+2] << 16) | (memory_map[address+1] << 8) | memory_map[address]);
 }
 
+/****** Reads 2 bytes from cartridge memory - No checks done on the read ******/
+u16 NTR_MMU::read_cart_u16(u32 address) const
+{
+	return ((cart_data[address+1] << 8) | cart_data[address]);
+}
+
+/****** Reads 4 bytes from cartridge memory - No checks done on the read ******/
+u32 NTR_MMU::read_cart_u32(u32 address) const
+{
+	return ((cart_data[address+3] << 24) | (cart_data[address+2] << 16) | (cart_data[address+1] << 8) | cart_data[address]);
+}
+
+
 /****** Write byte into memory ******/
 void NTR_MMU::write_u8(u32 address, u8 value)
 {
 	//Mirror memory address if applicable
+	//Or narrow down certain I/O regs (sound)
 	switch(address >> 24)
 	{
 		case 0x2:
@@ -606,6 +688,15 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		case 0x3:
 			if((access_mode) || (address <= 0x37FFFFF)) { address &= 0x3007FFF; }
 			else { address &= 0x380FFFF; }
+			break;
+
+		case 0x4:
+			if((!access_mode) && (address >= 0x4000400) && (address < 0x4000500))
+			{
+				apu_io_id = (address >> 4) & 0xF;
+				address &= 0x400040F;
+			}
+
 			break;
 	}
 
@@ -623,6 +714,10 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			lcd_stat->display_control_a = ((memory_map[NDS_DISPCNT_A+3] << 24) | (memory_map[NDS_DISPCNT_A+2] << 16) | (memory_map[NDS_DISPCNT_A+1] << 8) | memory_map[NDS_DISPCNT_A]);
 			lcd_stat->bg_mode_a = (lcd_stat->display_control_a & 0x7);
 			lcd_stat->display_mode_a = (lcd_stat->display_control_a >> 16) & 0x3;
+
+			//Forced Blank
+			lcd_stat->forced_blank_a = (lcd_stat->display_control_a & 0x80) ? true : false;
+			lcd_stat->display_mode_a = (lcd_stat->forced_blank_a) ? (lcd_stat->display_mode_a | 0x80) : (lcd_stat->display_mode_a & ~0x80);
 
 			//Enable or disable BGs
 			lcd_stat->bg_enable_a[0] = (lcd_stat->display_control_a & 0x100) ? true : false;
@@ -652,6 +747,10 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			lcd_stat->bg_mode_b = (lcd_stat->display_control_b & 0x7);
 			lcd_stat->display_mode_b = (lcd_stat->display_control_b >> 16) & 0x1;
 
+			//Forced Blank
+			lcd_stat->forced_blank_b = (lcd_stat->display_control_b & 0x80) ? true : false;
+			lcd_stat->display_mode_b = (lcd_stat->forced_blank_b) ? (lcd_stat->display_mode_b | 0x80) : (lcd_stat->display_mode_b & ~0x80);
+
 			//Enable or disable BGs
 			lcd_stat->bg_enable_b[0] = (lcd_stat->display_control_b & 0x100) ? true : false;
 			lcd_stat->bg_enable_b[1] = (lcd_stat->display_control_b & 0x200) ? true : false;
@@ -674,7 +773,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		case NDS_DISPSTAT:
 			if(access_mode)
 			{	
-				lcd_stat->display_stat_a &= ~0xF8;
+				lcd_stat->display_stat_a &= 0xFF07;
 				lcd_stat->display_stat_a |= (value & ~0x7);
 
 				lcd_stat->vblank_irq_enable_a = (value & 0x8) ? true : false;
@@ -688,7 +787,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 			else
 			{	
-				lcd_stat->display_stat_b &= ~0xF8;
+				lcd_stat->display_stat_b &= 0xFF07;
 				lcd_stat->display_stat_b |= (value & ~0x7);
 
 				lcd_stat->vblank_irq_enable_b = (value & 0x8) ? true : false;
@@ -2377,13 +2476,13 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 				switch(timer->cnt & 0x3)
 				{
-					case 0x0: timer->prescalar = (1 << 25); break;
-					case 0x1: timer->prescalar = (1 << 19); break;
-					case 0x2: timer->prescalar = (1 << 17); break;
-					case 0x3: timer->prescalar = (1 << 16); break;
+					case 0x0: timer->prescalar = 1; break;
+					case 0x1: timer->prescalar = 64; break;
+					case 0x2: timer->prescalar = 256; break;
+					case 0x3: timer->prescalar = 1024; break;
 				}
 
-				if(timer->count_up) { timer->prescalar = (1 << 25); }
+				if(timer->count_up) { timer->prescalar = 1; }
 
 				timer->prescalar--;
 				timer->clock = timer->prescalar;
@@ -2409,13 +2508,13 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 				switch(timer->cnt & 0x3)
 				{
-					case 0x0: timer->prescalar = (1 << 25); break;
-					case 0x1: timer->prescalar = (1 << 19); break;
-					case 0x2: timer->prescalar = (1 << 17); break;
-					case 0x3: timer->prescalar = (1 << 16); break;
+					case 0x0: timer->prescalar = 1; break;
+					case 0x1: timer->prescalar = 64; break;
+					case 0x2: timer->prescalar = 256; break;
+					case 0x3: timer->prescalar = 1024; break;
 				}
 
-				if(timer->count_up) { timer->prescalar = (1 << 25); }
+				if(timer->count_up) { timer->prescalar = 1; }
 
 				timer->prescalar--;
 				timer->clock = timer->prescalar; 
@@ -2441,13 +2540,13 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 				switch(timer->cnt & 0x3)
 				{
-					case 0x0: timer->prescalar = (1 << 25); break;
-					case 0x1: timer->prescalar = (1 << 19); break;
-					case 0x2: timer->prescalar = (1 << 17); break;
-					case 0x3: timer->prescalar = (1 << 16); break;
+					case 0x0: timer->prescalar = 1; break;
+					case 0x1: timer->prescalar = 64; break;
+					case 0x2: timer->prescalar = 256; break;
+					case 0x3: timer->prescalar = 1024; break;
 				}
 
-				if(timer->count_up) { timer->prescalar = (1 << 25); }
+				if(timer->count_up) { timer->prescalar = 1; }
 
 				timer->prescalar--;
 				timer->clock = timer->prescalar; 
@@ -2473,13 +2572,13 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 				switch(timer->cnt & 0x3)
 				{
-					case 0x0: timer->prescalar = (1 << 25); break;
-					case 0x1: timer->prescalar = (1 << 19); break;
-					case 0x2: timer->prescalar = (1 << 17); break;
-					case 0x3: timer->prescalar = (1 << 16); break;
+					case 0x0: timer->prescalar = 1; break;
+					case 0x1: timer->prescalar = 64; break;
+					case 0x2: timer->prescalar = 256; break;
+					case 0x3: timer->prescalar = 1024; break;
 				}
 
-				if(timer->count_up) { timer->prescalar = (1 << 25); }
+				if(timer->count_up) { timer->prescalar = 1; }
 
 				timer->prescalar--;
 				timer->clock = timer->prescalar; 
@@ -3185,6 +3284,144 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 			break;
 
+		case NDS_SOUNDXCNT:
+		case NDS_SOUNDXCNT + 1:
+		case NDS_SOUNDXCNT + 2:
+		case NDS_SOUNDXCNT + 3:
+			if(access_mode) { return; }
+			memory_map[address | (apu_io_id << 8)] = value;
+			apu_stat->channel[apu_io_id].cnt = read_u32_fast(NDS_SOUNDXCNT | (apu_io_id << 8));
+
+			//Begin playing sound channel
+			if(apu_stat->channel[apu_io_id].cnt & 0x80000000)
+			{
+
+				apu_stat->channel[apu_io_id].playing = true;
+				apu_stat->channel[apu_io_id].volume = (apu_stat->channel[apu_io_id].cnt & 0x7F);
+				u8 format = ((apu_stat->channel[apu_io_id].cnt >> 29) & 0x3);
+
+				//Determine loop start offset and sample length
+				switch(format)
+				{
+					//PCM8
+					case 0x0:
+						apu_stat->channel[apu_io_id].data_pos = apu_stat->channel[apu_io_id].data_src;
+						apu_stat->channel[apu_io_id].samples = (apu_stat->channel[apu_io_id].length * 4) + (apu_stat->channel[apu_io_id].loop_start * 4);
+						break;
+
+					//PCM16
+					case 0x1:
+						apu_stat->channel[apu_io_id].data_pos = apu_stat->channel[apu_io_id].data_src;
+						apu_stat->channel[apu_io_id].samples = (apu_stat->channel[apu_io_id].length * 2) + (apu_stat->channel[apu_io_id].loop_start * 2);
+						break;
+
+					//IMA-ADPCM
+					case 0x2:
+						apu_stat->channel[apu_io_id].data_pos = apu_stat->channel[apu_io_id].data_src;
+						apu_stat->channel[apu_io_id].samples = ((apu_stat->channel[apu_io_id].length - 1) * 8) + ((apu_stat->channel[apu_io_id].loop_start - 1) * 8);
+
+						//Grab header
+						apu_stat->channel[apu_io_id].adpcm_header = read_u32(apu_stat->channel[apu_io_id].data_src);
+						apu_stat->channel[apu_io_id].data_src += 4;
+
+						//Set up initial ADPCM stuff
+						apu_stat->channel[apu_io_id].adpcm_val = (apu_stat->channel[apu_io_id].adpcm_header & 0xFFFF);
+						apu_stat->channel[apu_io_id].adpcm_index = ((apu_stat->channel[apu_io_id].adpcm_header >> 16) & 0x7F);
+						apu_stat->channel[apu_io_id].adpcm_pos = 0;
+
+						//Decode ADPCM audio
+						apu_stat->channel[apu_io_id].decode_adpcm = true;
+
+						break;
+
+					//PSG-Noise
+					case 0x3:
+						if(apu_io_id < 8)
+						{
+							std::cout<<"MMU::Warning - Tried to play PSG-White noise on unsupported sound channel\n";
+							apu_stat->channel[apu_io_id].playing = false;
+						}
+
+						break;
+				}	
+			}
+
+			//Stop playing sound channel
+			else { apu_stat->channel[apu_io_id].playing = false; }
+
+			break;
+
+		case NDS_SOUNDXSAD:
+		case NDS_SOUNDXSAD + 1:
+		case NDS_SOUNDXSAD + 2:
+		case NDS_SOUNDXSAD + 3:
+			if(access_mode) { return; }
+			memory_map[address | (apu_io_id << 8)] = value;
+			apu_stat->channel[apu_io_id].data_src = read_u32_fast(NDS_SOUNDXSAD | (apu_io_id << 8)) & 0x7FFFFFF;
+
+			break;
+
+		case NDS_SOUNDXTMR:
+		case NDS_SOUNDXTMR + 1:
+			if(access_mode) { return; }
+			memory_map[address | (apu_io_id << 8)] = value;
+
+			{
+				s16 raw_freq = 0;
+				u16 tmr = read_u16_fast(NDS_SOUNDXTMR | (apu_io_id << 8));
+
+				if(tmr & 0x8000)
+				{
+					tmr--;
+					tmr = ~tmr;
+
+					raw_freq = -tmr;
+				}
+
+				else { raw_freq = tmr; }
+
+				if(raw_freq) { apu_stat->channel[apu_io_id].output_frequency = -16756991 / raw_freq; }
+			}
+
+			break;
+
+		case NDS_SOUNDXPNT:
+		case NDS_SOUNDXPNT + 1:
+			if(access_mode) { return; }
+			memory_map[address | (apu_io_id << 8)] = value;
+			apu_stat->channel[apu_io_id].loop_start = read_u16_fast(NDS_SOUNDXPNT | (apu_io_id << 8));
+
+			break;
+
+		case NDS_SOUNDXLEN:
+		case NDS_SOUNDXLEN + 1:
+		case NDS_SOUNDXLEN + 2:
+		case NDS_SOUNDXLEN + 3:
+			if(access_mode) { return; }
+			memory_map[address | (apu_io_id << 8)] = value;
+			apu_stat->channel[apu_io_id].length = read_u32_fast(NDS_SOUNDXLEN | (apu_io_id << 8)) & 0x3FFFFF;
+
+			break;
+
+		case NDS_SOUNDCNT:
+		case NDS_SOUNDCNT + 1:
+			if(access_mode) { return; }
+			memory_map[address] = value;
+
+			//Master Volume + Master Enabled
+			if(memory_map[NDS_SOUNDCNT + 1] & 0x80)
+			{
+				apu_stat->main_volume = (memory_map[NDS_SOUNDCNT] & 0x7F);
+			}
+
+			else { apu_stat->main_volume = 0; }
+
+			break;
+
+		case NDS_SOUNDCNT + 2:
+		case NDS_SOUNDCNT + 3:
+			return;
+			
 		default:
 			memory_map[address] = value;
 			break;
@@ -3366,6 +3603,16 @@ bool NTR_MMU::read_file(std::string filename)
 
 	access_mode = 1;
 
+	//Detect Slot2 device if set to automatic
+	if(current_slot2_device == SLOT2_AUTO)
+	{
+		//Detect PASSME device
+		if(read_cart_u32(0xAC) == 0x53534150) { current_slot2_device = SLOT2_PASSME; }
+
+		//Otherwise, set Slot2 to none
+		else { current_slot2_device = SLOT2_NONE; }
+	} 
+
 	return true;
 }
 
@@ -3517,9 +3764,9 @@ void NTR_MMU::parse_header()
 	header.maker_code = "";
 	for(int x = 0; x < 2; x++) { header.maker_code += cart_data[0x10 + x]; }
 
-	std::cout<<"MMU::Game Title - " << header.title << "\n";
-	std::cout<<"MMU::Game Code - " << header.game_code << "\n";
-	std::cout<<"MMU::Maker Code - " << header.maker_code << "\n";
+	std::cout<<"MMU::Game Title - " << util::make_ascii_printable(header.title) << "\n";
+	std::cout<<"MMU::Game Code - " << util::make_ascii_printable(header.game_code) << "\n";
+	std::cout<<"MMU::Maker Code - " << util::make_ascii_printable(header.maker_code) << "\n";
 
 	//ARM9 ROM Offset
 	header.arm9_rom_offset = 0;
@@ -3921,3 +4168,7 @@ void NTR_MMU::setup_default_firmware()
 	
 /****** Points the MMU to an lcd_data structure (FROM THE LCD ITSELF) ******/
 void NTR_MMU::set_lcd_data(ntr_lcd_data* ex_lcd_stat) { lcd_stat = ex_lcd_stat; }
+
+/****** Points the MMU to an apu_data structure (FROM THE APU ITSELF) ******/
+void NTR_MMU::set_apu_data(ntr_apu_data* ex_apu_stat) { apu_stat = ex_apu_stat; }
+

@@ -1582,4 +1582,6 @@ void NTR_ARM7::long_branch_link(u16 current_thumb_instruction)
 		clock(reg.r15, CODE_S16);
 		clock((reg.r15 + 2), CODE_S16);
 	}
+
+	thumb_long_branch = true;
 }

@@ -22,6 +22,7 @@
 #include "timer.h"
 #include "common/config.h"
 #include "lcd_data.h"
+#include "apu_data.h"
 
 class NTR_MMU
 {
@@ -38,7 +39,17 @@ class NTR_MMU
 		FRAM
 	};
 
+	//Slot-2 enumerations
+	enum slot2_types
+	{
+		SLOT2_AUTO,
+		SLOT2_NONE,
+		SLOT2_PASSME,
+		SLOT2_RUMBLE_PAK
+	};
+
 	backup_types current_save_type;
+	slot2_types current_slot2_device;
 
 	std::vector <u8> memory_map;
 	std::vector <u8> cart_data;
@@ -237,16 +248,14 @@ class NTR_MMU
 	//NDS9 and NDS7 have separate IE, IF, and other registers (accessed at the same address)
 	u32 nds9_ie;
 	u32 nds9_if;
-	u32 nds9_old_ie;
-	u32 nds9_old_if;
+	u32 nds9_temp_if;
 	u32 nds9_ime;
 	u16 power_cnt1;
 	u16 nds9_exmem;
 
 	u32 nds7_ie;
 	u32 nds7_if;
-	u32 nds7_old_ie;
-	u32 nds7_old_if;
+	u32 nds7_temp_if;
 	u32 nds7_ime;
 	u16 power_cnt2;
 	u16 nds7_exmem;
@@ -256,6 +265,7 @@ class NTR_MMU
 	bool in_firmware;
 
 	u16 touchscreen_state;
+	u8 apu_io_id;
 
 	NTR_MMU();
 	~NTR_MMU();
@@ -276,6 +286,9 @@ class NTR_MMU
 	void write_u16_fast(u32 address, u16 value);
 	void write_u32_fast(u32 address, u32 value);
 	void write_u64_fast(u32 address, u64 value);
+
+	u16 read_cart_u16(u32 address) const;
+	u32 read_cart_u32(u32 address) const;
 
 	bool read_file(std::string filename);
 	bool read_bios_nds7(std::string filename);
@@ -300,6 +313,7 @@ class NTR_MMU
 	u32 key_code_read_u32(u32 index);
 
 	void set_lcd_data(ntr_lcd_data* ex_lcd_stat);
+	void set_apu_data(ntr_apu_data* ex_apu_stat);
 
 	void parse_header();
 
@@ -311,6 +325,9 @@ class NTR_MMU
 
 	//Only the MMU and LCD should communicate through this structure
 	ntr_lcd_data* lcd_stat;
+
+	//Only the MMU and APU should communicate through this structure
+	ntr_apu_data* apu_stat;
 };
 
 #endif // NDS_MMU

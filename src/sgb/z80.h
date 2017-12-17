@@ -101,6 +101,9 @@ class SGB_Z80
 	bool double_speed;
 	bool skip_instruction;
 
+	//SGB type
+	u8 sgb_type;
+
 	//Audio-Video and other controllers
 	struct io_controllers
 	{

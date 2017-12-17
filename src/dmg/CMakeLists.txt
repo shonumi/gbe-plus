@@ -18,6 +18,7 @@ set(SRCS
 	sio.cpp
 	infrared.cpp
 	dmg07.cpp
+	debug.cpp
 	)
 
 set(HEADERS

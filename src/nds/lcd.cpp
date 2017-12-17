@@ -12,6 +12,7 @@
 #include <cmath>
 
 #include "lcd.h"
+#include "common/util.h"
 
 /****** LCD Constructor ******/
 NTR_LCD::NTR_LCD()
@@ -123,10 +124,14 @@ void NTR_LCD::reset()
 	lcd_stat.ext_pal_b = 0;
 
 	lcd_stat.display_stat_a = 0;
+	lcd_stat.display_stat_b = 0;
 
 	lcd_stat.bg_mode_a = 0;
 	lcd_stat.bg_mode_b = 0;
 	lcd_stat.hblank_interval_free = false;
+
+	lcd_stat.forced_blank_a = false;
+	lcd_stat.forced_blank_b = false;
 
 	lcd_stat.vblank_irq_enable_a = false;
 	lcd_stat.hblank_irq_enable_a = false;
@@ -253,6 +258,8 @@ bool NTR_LCD::init()
 		}
 
 		if(final_screen == NULL) { return false; }
+
+		SDL_SetWindowIcon(window, util::load_icon(config::data_path + "icons/gbe_plus.bmp"));
 	}
 
 	//Initialize with only a buffer for OpenGL (for external rendering)
@@ -2330,6 +2337,11 @@ void NTR_LCD::render_scanline()
 	{
 		//Display Mode 0 - Blank screen
 		case 0x0:
+
+		//Forced Blank
+		case 0x80:
+		case 0x81:
+		case 0x82:
 			for(u16 x = 0; x < 256; x++) { scanline_buffer_a[x] = 0xFFFFFFFF; }
 			break;
 
@@ -2373,6 +2385,10 @@ void NTR_LCD::render_scanline()
 	{
 		//Display Mode 0 - Blank screen
 		case 0x0:
+
+		//Forced Blank
+		case 0x80:
+		case 0x81:
 			for(u16 x = 0; x < 256; x++) { scanline_buffer_b[x] = 0xFFFFFFFF; }
 			break;
 
@@ -2453,7 +2469,6 @@ void NTR_LCD::step()
 			lcd_stat.display_stat_b &= ~0x2;
 			
 			lcd_stat.current_scanline++;
-			if(lcd_stat.current_scanline == 263) { lcd_stat.current_scanline = 0; }
 
 			//Update VCOUNT
 			mem->write_u16_fast(NDS_VCOUNT, lcd_stat.current_scanline);
@@ -2511,12 +2526,26 @@ void NTR_LCD::step()
 			//Render scanline data
 			render_scanline();
 
-			u32 render_position = (lcd_stat.current_scanline * 256);
+			u32 render_position = (lcd_stat.current_scanline * config::sys_width);
 
 			//Swap top and bottom if POWERCNT1 Bit 15 is not set, otherwise A is top, B is bottom
 			u16 disp_a_offset = (mem->power_cnt1 & 0x8000) ? 0 : 0xC000;
 			u16 disp_b_offset = (mem->power_cnt1 & 0x8000) ? 0xC000 : 0;
 
+			//Swap top and bottom if LCD configuration calls for it
+			if(config::lcd_config & 0x1)
+			{
+				disp_a_offset = (disp_a_offset) ? 0 : 0xC000;
+				disp_b_offset = (disp_b_offset) ? 0 : 0xC000;
+			}
+
+			//Horizontal vs. Vertical mode
+			if(config::lcd_config & 0x2)
+			{
+				disp_a_offset = (disp_a_offset) ? 0x100 : 0;
+				disp_b_offset = (disp_b_offset) ? 0x100 : 0;
+			} 
+			
 			//Push scanline pixel data to screen buffer
 			for(u16 x = 0; x < 256; x++)
 			{
@@ -2613,12 +2642,23 @@ void NTR_LCD::step()
 				SDL_SetWindowTitle(window, config::title.str().c_str());
 				fps_count = 0; 
 			}
-		}
 
-		//Reset LCD clock
-		else if(lcd_stat.lcd_clock >= 558060) 
-		{
-			lcd_stat.lcd_clock -= 558060;
+			//Check for screen resize - Horizontal vs Vertical
+			if(config::request_resize)
+			{
+				if(config::resize_mode) { config::lcd_config |= 0x2; }
+				else { config::lcd_config &= ~0x2; }
+
+				config::sys_width = (config::resize_mode) ? 512 : 256;
+				config::sys_height = (config::resize_mode) ? 192 : 384;
+				screen_buffer.clear();
+				screen_buffer.resize(0x18000, 0xFFFFFFFF);
+					
+				if((window != NULL) && (config::sdl_render)) { SDL_DestroyWindow(window); }
+				init();
+					
+				if(config::sdl_render) { config::request_resize = false; }
+			}
 		}
 
 		//Increment scanline after HBlank starts
@@ -2652,6 +2692,13 @@ void NTR_LCD::step()
 			//Reset HBlank flag in DISPSTAT
 			lcd_stat.display_stat_a &= ~0x2;
 			lcd_stat.display_stat_b &= ~0x2;
+
+			//Reset LCD clock
+			if(lcd_stat.current_scanline == 263)
+			{
+				lcd_stat.lcd_clock -= 560190;
+				lcd_stat.current_scanline = 0xFFFF;
+			}
 		}
 	}
 }
@@ -2784,4 +2831,123 @@ void NTR_LCD::reload_affine_references(u32 bg_control)
 	if(engine_a) { lcd_stat.bg_affine_a[aff_id].y_pos = lcd_stat.bg_affine_a[aff_id].y_ref; }
 	else { lcd_stat.bg_affine_b[aff_id].y_pos = lcd_stat.bg_affine_b[aff_id].y_ref; }
 }
+
+/****** Generates the game icon (non-animated) from NDS cart header ******/
+bool NTR_LCD::get_cart_icon(SDL_Surface* nds_icon)
+{
+	u32 icon_base = mem->read_cart_u32(0x68);
 	
+	if(!icon_base) { return false; }
+
+	//Create SDL_Surface for icon
+	nds_icon = SDL_CreateRGBSurface(SDL_SWSURFACE, 32, 32, 32, 0, 0, 0, 0);
+
+	//Lock source surface
+	if(SDL_MUSTLOCK(nds_icon)){ SDL_LockSurface(nds_icon); }
+	u32* icon_data = (u32*)nds_icon->pixels;
+
+	//Generate palettes
+	u32 pals[16];
+
+	for(u32 x = 0; x < 16; x++)
+	{
+		u16 raw_pal = mem->read_cart_u16(icon_base + 0x220 + (x << 1));
+		
+		u8 red = ((raw_pal & 0x1F) << 3);
+		raw_pal >>= 5;
+
+		u8 green = ((raw_pal & 0x1F) << 3);
+		raw_pal >>= 5;
+
+		u8 blue = ((raw_pal & 0x1F) << 3);
+
+		pals[x] =  0xFF000000 | (red << 16) | (green << 8) | (blue);
+	}
+
+	u16 data_pos = 0;
+
+	//Cycle through all tiles to generate icon data
+	for(u32 x = 0; x < 16; x++)
+	{
+		u16 pixel_pos = ((x / 4) * 256) + ((x % 4) * 8);
+
+		for(u32 y = 0; y < 32; y++)
+		{
+			u8 icon_char = mem->cart_data[icon_base + 0x20 + data_pos];
+			u8 char_r = (icon_char >> 4);
+			u8 char_l = (icon_char & 0xF);
+			data_pos++;
+
+			icon_data[pixel_pos++] = pals[char_l];
+			icon_data[pixel_pos++] = pals[char_r];
+
+			if((pixel_pos % 8) == 0) { pixel_pos += 24; }
+		}
+	}
+
+	//Unlock source surface
+	if(SDL_MUSTLOCK(nds_icon)){ SDL_UnlockSurface(nds_icon); }
+
+	return true;
+}
+
+/****** Saves the game icon (non-animated) from NDS cart header ******/
+bool NTR_LCD::save_cart_icon(std::string nds_icon_file)
+{
+	u32 icon_base = mem->read_cart_u32(0x68);
+	
+	if(!icon_base) { return false; }
+
+	//Create SDL_Surface for icon
+	SDL_Surface* nds_icon = SDL_CreateRGBSurface(SDL_SWSURFACE, 32, 32, 32, 0, 0, 0, 0);
+
+	//Lock source surface
+	if(SDL_MUSTLOCK(nds_icon)){ SDL_LockSurface(nds_icon); }
+	u32* icon_data = (u32*)nds_icon->pixels;
+
+	//Generate palettes
+	u32 pals[16];
+
+	for(u32 x = 0; x < 16; x++)
+	{
+		u16 raw_pal = mem->read_cart_u16(icon_base + 0x220 + (x << 1));
+		
+		u8 red = ((raw_pal & 0x1F) << 3);
+		raw_pal >>= 5;
+
+		u8 green = ((raw_pal & 0x1F) << 3);
+		raw_pal >>= 5;
+
+		u8 blue = ((raw_pal & 0x1F) << 3);
+
+		pals[x] =  0xFF000000 | (red << 16) | (green << 8) | (blue);
+	}
+
+	u16 data_pos = 0;
+
+	//Cycle through all tiles to generate icon data
+	for(u32 x = 0; x < 16; x++)
+	{
+		u16 pixel_pos = ((x / 4) * 256) + ((x % 4) * 8);
+
+		for(u32 y = 0; y < 32; y++)
+		{
+			u8 icon_char = mem->cart_data[icon_base + 0x20 + data_pos];
+			u8 char_r = (icon_char >> 4);
+			u8 char_l = (icon_char & 0xF);
+			data_pos++;
+
+			icon_data[pixel_pos++] = pals[char_l];
+			icon_data[pixel_pos++] = pals[char_r];
+
+			if((pixel_pos % 8) == 0) { pixel_pos += 24; }
+		}
+	}
+
+	//Unlock source surface
+	if(SDL_MUSTLOCK(nds_icon)){ SDL_UnlockSurface(nds_icon); }
+
+	SDL_SaveBMP(nds_icon, nds_icon_file.c_str());
+
+	return true;
+}
