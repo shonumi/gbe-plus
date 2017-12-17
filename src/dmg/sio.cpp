@@ -363,6 +363,16 @@ void DMG_SIO::reset()
 	{
 		for(int x = 0; x < 3; x++)
 		{
+			//Send disconnect byte to other systems
+			if((four_player_server[x].connected) && (four_player_sender[x].connected))
+			{
+				u8 temp_buffer[2];
+				temp_buffer[0] = 0;
+				temp_buffer[1] = 0x80;
+
+				SDLNet_TCP_Send(four_player_sender[x].host_socket, (void*)temp_buffer, 2);
+			}
+
 			if((four_player_server[x].host_socket != NULL) && (four_player_server[x].connected))
 			{
 				SDLNet_TCP_Close(four_player_server[x].host_socket);

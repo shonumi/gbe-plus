@@ -89,7 +89,16 @@ void DMG_SIO::four_player_disconnect()
 		SDLNet_TCP_Send(four_player_sender[master_id].host_socket, (void*)temp_buffer, 2);
 	}
 
-	else if(is_master) { four_player_broadcast(0, 0x80); }
+	else if(is_master)
+	{
+		for(int x = 0; x < 3; x++)
+		{
+			if((four_player_server[x].connected) && (four_player_sender[x].connected))
+			{
+				SDLNet_TCP_Send(four_player_sender[x].host_socket, (void*)temp_buffer, 2);
+			}
+		}
+	}
 
 	for(int x = 0; x < 3; x++)
 	{

@@ -224,7 +224,7 @@ void DMG_core::run_core()
 							//Timeout if 10 seconds passes
 							timeout = SDL_GetTicks();
 							
-							if((timeout - current_time) >= 5000)
+							if((timeout - current_time) >= 10000)
 							{
 								core_cpu.controllers.serial_io.reset();
 							}						
@@ -447,11 +447,12 @@ void DMG_core::step()
 					while(core_cpu.controllers.serial_io.sio_stat.sync)
 					{
 						core_cpu.controllers.serial_io.receive_byte();
+						if(core_cpu.controllers.serial_io.is_master) { core_cpu.controllers.serial_io.four_player_request_sync(); }
 
 						//Timeout if 10 seconds passes
 						timeout = SDL_GetTicks();
 							
-						if((timeout - current_time) >= 5000)
+						if((timeout - current_time) >= 10000)
 						{
 							core_cpu.controllers.serial_io.reset();
 						}						
@@ -620,6 +621,11 @@ void DMG_core::step()
 								core_mmu.memory_map[IF_FLAG] |= 0x08;
 							}
 								
+							break;
+
+						//Process 4 Player communications
+						case GB_FOUR_PLAYER_ADAPTER:
+							core_cpu.controllers.serial_io.four_player_process();
 							break;
 					}
 
@@ -2276,7 +2282,7 @@ void DMG_core::start_netplay()
 	//Wait 10 seconds before timing out
 	u32 time_out = 0;
 
-	while(time_out < 5000)
+	while(time_out < 10000)
 	{
 		time_out += 100;
 		if((time_out % 1000) == 0) { std::cout<<"SIO::Netplay is waiting to establish remote connection...\n"; }
