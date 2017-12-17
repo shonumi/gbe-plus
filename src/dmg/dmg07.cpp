@@ -131,6 +131,8 @@ void DMG_SIO::four_player_disconnect()
 /****** Manages network communication via SDL_net for DMG-07 ******/
 void DMG_SIO::four_player_process_network_communication()
 {
+	#ifdef GBE_NETPLAY
+
 	for(int x = 0; x < 3; x++)
 	{
 		//Try to accept incoming connections to the server
@@ -201,6 +203,8 @@ void DMG_SIO::four_player_process_network_communication()
 	{
 		if((four_player_server[x].connected) && (four_player_sender[x].connected)) { max_clients++; }
 	}
+
+	#endif
 }
 
 /****** Requests syncronization with another system ******/
