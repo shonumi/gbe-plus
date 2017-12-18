@@ -622,6 +622,37 @@ void DMG_core::debug_process_command()
 
 		#endif
 
+		//Disassembles 16 GBZ80 instructions from specified address
+		else if((command.substr(0, 2) == "dz") && (command.substr(3, 2) == "0x"))
+		{
+			valid_command = true;
+			bool valid_value = false;
+			u32 mem_location = 0;
+			std::string hex_string = command.substr(5);
+
+			//Convert hex string into usable u32
+			valid_command = util::from_hex_str(hex_string, mem_location);
+
+			//Request valid input again
+			if(!valid_command)
+			{
+				std::cout<<"\nInvalid memory address : " << command << "\n";
+				std::cout<<": ";
+				std::getline(std::cin, command);
+			}
+
+			else
+			{		
+				for(u32 x = 0; x < 16; x++)
+				{
+					std::cout<<"0x" << (mem_location + x) << "\t" << debug_get_mnemonic(mem_location + x) << "\n";
+				}
+
+				db_unit.last_command = "dz";
+				debug_process_command();
+			}
+		}
+
 		//Toggle display of CPU cycles
 		else if(command == "dc")
 		{
@@ -726,6 +757,7 @@ void DMG_core::debug_process_command()
 			std::cout<<"reg \t\t Change register value (0-9) \n";
 			std::cout<<"rom \t\t Display current ROM bank (if any) \n";
 			std::cout<<"ram \t\t Display current RAM bank (if any) \n";
+			std::cout<<"da \t\t Disassembles some GBZ80 instructions, format 0x1234 for addr\n";
 			std::cout<<"dq \t\t Quit the debugger\n";
 			std::cout<<"dc \t\t Toggle CPU cycle display\n";
 			std::cout<<"cr \t\t Reset CPU cycle counter\n";
