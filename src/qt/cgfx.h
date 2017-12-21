@@ -198,6 +198,7 @@ class gbe_cgfx : public QDialog
 	void dump_selection();
 	void dump_obj_meta_tile();
 	void write_manifest_entry();
+	bool delete_manifest_entry(int index);
 	void show_advanced_obj(int index);
 	void show_advanced_bg(int index);
 	void browse_advanced_dir();

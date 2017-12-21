@@ -3405,6 +3405,95 @@ void gbe_cgfx::write_manifest_entry()
 	parse_manifest_items();
 }
 
+/****** Deletes a specific entry from the manifest ******/
+bool gbe_cgfx::delete_manifest_entry(int index)
+{
+	std::vector <std::string> manifest;
+
+	std::ifstream in_file(cgfx::manifest_file.c_str(), std::ios::in); 
+	std::string input_line = "";
+	std::string line_char = "";
+
+	u32 entry_count = 0;
+
+	if(!in_file.is_open())
+	{
+		std::cout<<"CGFX::Could not open manifest file " << cgfx::manifest_file << ". Check file path or permissions. \n";
+		return false; 
+	}
+
+	//Cycle through whole file, line-by-line
+	while(getline(in_file, input_line))
+	{
+		line_char = input_line[0];
+		bool ignore = false;	
+		u8 item_count = 0;
+		bool is_meta = false;
+		bool is_entry = false;
+
+		//Check if line starts with [ - if not, skip line
+		if(line_char == "[")
+		{
+			is_entry = true;
+			std::string line_item = "";
+
+			//Cycle through line, character-by-character
+			for(int x = 0; ++x < input_line.length();)
+			{
+				line_char = input_line[x];
+
+				//Check for single-quotes, don't parse ":" or "]" within them
+				if((line_char == "'") && (!ignore)) { ignore = true; }
+				else if((line_char == "'") && (ignore)) { ignore = false; }
+
+				//Check the character for item limiter : or ] - Push to Vector
+				else if(((line_char == ":") || (line_char == "]")) && (!ignore)) 
+				{
+					//Determine if entry is a meta tile
+					if(item_count == 1)
+					{
+						u32 match_number = 0;
+						std::string meta_file = line_item;
+
+						std::size_t match = meta_file.find_last_of("_") + 1;
+						if(match != std::string::npos) { meta_file = meta_file.substr(match); }
+						if(util::from_str(meta_file, match_number)) { is_meta = true; }
+					}
+
+					line_item = "";
+					item_count++;
+				}
+
+				else { line_item += line_char; }
+			}
+
+			//If not a meta tile entry, increment entry count
+			if(!is_meta) { entry_count++; }
+		}
+
+		//Rebuild manifest with all lines except those belonging to the specific entry
+		if((entry_count != (index + 1)) || (!is_entry)) { manifest.push_back(input_line); }
+	}
+	
+	in_file.close();
+
+	//If manifest is empty, quit now
+	if(manifest.empty()) { return false; }
+
+	std::ofstream out_file(cgfx::manifest_file.c_str(), std::ios::out | std::ios::trunc);
+
+	if(!out_file.is_open())
+	{
+		std::cout<<"CGFX::Could not open manifest file " << cgfx::manifest_file << ". Check file path or permissions. \n";
+		return false; 
+	}
+
+	//Save new manifest file
+	for(int x = 0; x < manifest.size(); x++) { out_file << manifest[x] << "\n";; }
+
+	out_file.close();
+}
+
 /****** Browse for a directory to use in the advanced menu ******/
 void gbe_cgfx::browse_advanced_dir()
 {
