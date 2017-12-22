@@ -3492,6 +3492,8 @@ bool gbe_cgfx::delete_manifest_entry(int index)
 	for(int x = 0; x < manifest.size(); x++) { out_file << manifest[x] << "\n";; }
 
 	out_file.close();
+
+	parse_manifest_items();
 }
 
 /****** Browse for a directory to use in the advanced menu ******/
@@ -4110,14 +4112,21 @@ bool gbe_cgfx::parse_manifest_items()
 	
 	file.close();
 
+	//Clear previous layout
+	QLabel* clear_label = new QLabel(" ");
+	manifest_display->setWidget(clear_label);
+
 	//If manifest is empty, quit now
 	if(manifest.empty()) { return false; }
 
 	int spacer = 0;
+	int entry_count = 0;
 
 	QGridLayout* temp_layout = new QGridLayout;
 	temp_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	QWidget* manifest_regular_set = new QWidget;
+
+	QSignalMapper* del_signal = new QSignalMapper(this);
 
 	//Parse entries
 	for(int x = 0, y = 0; y < manifest_entry_size.size(); y++)
@@ -4205,6 +4214,11 @@ bool gbe_cgfx::parse_manifest_items()
 			//Spacer label
 			if(!is_meta)
 			{
+				//Delete
+				QPushButton* del_button = new QPushButton("Delete");
+				connect(del_button, SIGNAL(clicked()), del_signal, SLOT(map()));
+				del_signal->setMapping(del_button, entry_count);
+
 				QLabel* spacer_label = new QLabel(" ");
 
 				temp_layout->addWidget(hash_label, spacer++, 1, 1, 1);
@@ -4213,10 +4227,12 @@ bool gbe_cgfx::parse_manifest_items()
 				temp_layout->addWidget(size_label, spacer++, 1, 1, 1);
 				temp_layout->addWidget(vram_label, spacer++, 1, 1, 1);
 				temp_layout->addWidget(bright_label, spacer++, 1, 1, 1);
-				temp_layout->addWidget(spacer_label, spacer++, 1, 1, 1);
+				temp_layout->addWidget(del_button, spacer++, 1, 1, 1);
 				temp_layout->addWidget(spacer_label, spacer++, 1, 1, 1);
 
 				temp_layout->addWidget(preview, (spacer - 8), 0, 6, 1);
+
+				entry_count++;
 			}
 		}
 
@@ -4272,18 +4288,27 @@ bool gbe_cgfx::parse_manifest_items()
 			//Spacer label
 			QLabel* spacer_label = new QLabel(" ");
 
+			//Delete
+			QPushButton* del_button = new QPushButton("Delete");
+			connect(del_button, SIGNAL(clicked()), del_signal, SLOT(map()));
+			del_signal->setMapping(del_button, entry_count);
+
 			temp_layout->addWidget(file_label, spacer++, 1, 1, 1);
 			temp_layout->addWidget(type_label, spacer++, 1, 1, 1);
 			temp_layout->addWidget(size_label, spacer++, 1, 1, 1);
-			temp_layout->addWidget(spacer_label, spacer++, 1, 1, 1);
+			temp_layout->addWidget(del_button, spacer++, 1, 1, 1);
 			temp_layout->addWidget(spacer_label, spacer++, 1, 1, 1);
 			temp_layout->addWidget(spacer_label, spacer++, 1, 1, 1);
 			temp_layout->addWidget(spacer_label, spacer++, 1, 1, 1);
 			temp_layout->addWidget(spacer_label, spacer++, 1, 1, 1);
 
 			temp_layout->addWidget(preview, (spacer - 8), 0, 6, 1);
+
+			entry_count++;
 		}
 	}
+
+	connect(del_signal, SIGNAL(mapped(int)), this, SLOT(delete_manifest_entry(int))) ;
 
 	manifest_regular_set->setLayout(temp_layout);	
 	manifest_display->setWidget(manifest_regular_set);
