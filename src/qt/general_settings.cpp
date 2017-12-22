@@ -140,6 +140,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	sio_dev->addItem("GB Mobile Adapter");
 	sio_dev->addItem("Bardigun Barcode Scanner");
 	sio_dev->addItem("Barcode Boy");
+	sio_dev->addItem("DMG-07");
 
 	QHBoxLayout* sio_layout = new QHBoxLayout;
 	sio_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
