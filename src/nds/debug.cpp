@@ -809,6 +809,8 @@ std::string NTR_core::debug_get_mnemonic(u32 addr)
 				if((r_list >> x) & 0x1) { last_reg = x; }
 			}
 
+			instr += "{";
+
 			for(u32 x = 0; x < 8; x++)
 			{
 				if((r_list >> x) & 0x1)
@@ -967,22 +969,22 @@ std::string NTR_core::debug_get_mnemonic(u32 addr)
 
 			switch(op)
 			{
-				case 0x0: instr = "AND"; break;
-				case 0x1: instr = "EOR"; break;
-				case 0x2: instr = "LSL"; break;
-				case 0x3: instr = "LSR"; break;
-				case 0x4: instr = "ASR"; break;
-				case 0x5: instr = "ADC"; break;
-				case 0x6: instr = "SBC"; break;
-				case 0x7: instr = "ROR"; break;
-				case 0x8: instr = "TST"; break;
-				case 0x9: instr = "NEG"; break;
-				case 0xA: instr = "CMP"; break;
-				case 0xB: instr = "CMN"; break;
-				case 0xC: instr = "ORR"; break;
-				case 0xD: instr = "MUL"; break;
-				case 0xE: instr = "BIC"; break;
-				case 0xF: instr = "MVN"; break;
+				case 0x0: instr = "AND "; break;
+				case 0x1: instr = "EOR "; break;
+				case 0x2: instr = "LSL "; break;
+				case 0x3: instr = "LSR "; break;
+				case 0x4: instr = "ASR "; break;
+				case 0x5: instr = "ADC "; break;
+				case 0x6: instr = "SBC "; break;
+				case 0x7: instr = "ROR "; break;
+				case 0x8: instr = "TST "; break;
+				case 0x9: instr = "NEG "; break;
+				case 0xA: instr = "CMP "; break;
+				case 0xB: instr = "CMN "; break;
+				case 0xC: instr = "ORR "; break;
+				case 0xD: instr = "MUL "; break;
+				case 0xE: instr = "BIC "; break;
+				case 0xF: instr = "MVN "; break;
 			}
 
 			instr += "R" + util::to_str(opcode & 0x7) + ", ";
