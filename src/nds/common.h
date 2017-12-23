@@ -115,6 +115,9 @@ const u32 NDS_VRAMCNT_G = 0x4000246;
 const u32 NDS_VRAMCNT_H = 0x4000248;
 const u32 NDS_VRAMCNT_I = 0x4000249;
 
+//WRAM
+const u32 NDS_WRAMCNT = 0x4000247;
+
 //Interrupt registers
 const u32 NDS_IME = 0x4000208;
 const u32 NDS_IE = 0x4000210;

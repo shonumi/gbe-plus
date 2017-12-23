@@ -193,6 +193,8 @@ class NTR_MMU
 	//Determines whether memory access comes from NDS9/NDS7
 	u8 access_mode;
 
+	u8 wram_mode;
+
 	//Structure for handling DS cart headers
 	struct cart_header
 	{

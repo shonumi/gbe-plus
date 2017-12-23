@@ -204,6 +204,7 @@ void NTR_MMU::reset()
 	nds7_timer = NULL;
 
 	access_mode = 1;
+	wram_mode = 3;
 
 	std::cout<<"MMU::Initialized\n";
 }
@@ -219,8 +220,32 @@ u8 NTR_MMU::read_u8(u32 address)
 			break;
 
 		case 0x3:
-			if((access_mode) || (address <= 0x37FFFFF)) { address &= 0x3007FFF; }
-			else { address &= 0x380FFFF; }
+			//ARM9 WRAM reading
+			if(access_mode)
+			{
+				switch(wram_mode)
+				{
+					case 0x0: address &= 0x3007FFF; break;
+					case 0x1: address = 0x3004000 | (address & 0x3FFF); break;
+					case 0x2: address = 0x3000000 | (address & 0x3FFF); break;
+					case 0x3: return 0;
+				}
+			}
+
+			//ARM7 WRAM reading
+			else if((!access_mode) && (address <= 0x37FFFFF))
+			{
+				switch(wram_mode)
+				{
+					case 0x0: address = 0x380FFFF | (address & 0xFFFF); break;
+					case 0x1: address = 0x3000000 | (address & 0x3FFF); break;
+					case 0x2: address = 0x3004000 | (address & 0x3FFF); break;
+					case 0x3: address &= 0x3007FFF; break;
+				}
+			}
+
+			else if((!access_mode) && (address > 0x37FFFFF)) { address &= 0x380FFFF; }
+
 			break;
 
 		case 0x4:
@@ -686,8 +711,32 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			break;
 
 		case 0x3:
-			if((access_mode) || (address <= 0x37FFFFF)) { address &= 0x3007FFF; }
-			else { address &= 0x380FFFF; }
+			//ARM9 WRAM reading
+			if(access_mode)
+			{
+				switch(wram_mode)
+				{
+					case 0x0: address &= 0x3007FFF; break;
+					case 0x1: address = 0x3004000 | (address & 0x3FFF); break;
+					case 0x2: address = 0x3000000 | (address & 0x3FFF); break;
+					case 0x3: return;
+				}
+			}
+
+			//ARM7 WRAM reading
+			else if((!access_mode) && (address <= 0x37FFFFF))
+			{
+				switch(wram_mode)
+				{
+					case 0x0: address = 0x380FFFF | (address & 0xFFFF); break;
+					case 0x1: address = 0x3000000 | (address & 0x3FFF); break;
+					case 0x2: address = 0x3004000 | (address & 0x3FFF); break;
+					case 0x3: address &= 0x3007FFF; break;
+				}
+			}
+
+			else if((!access_mode) && (address > 0x37FFFFF)) { address &= 0x380FFFF; }
+
 			break;
 
 		case 0x4:
@@ -1878,6 +1927,18 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		case NDS_BLDY:
 			memory_map[address] = value;
 			break;
+
+		//WRAM Control
+		case NDS_WRAMCNT:
+			if(access_mode)
+			{
+				std::cout<<"WRITE -> 0x" << (u16)value << "\n";
+				memory_map[address] = (value & 0x3);
+				wram_mode = (value & 0x3);
+			}
+
+			break;
+				
 
 		//VRAM Bank Control A-G
 		case NDS_VRAMCNT_A:
