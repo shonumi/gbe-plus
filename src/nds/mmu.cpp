@@ -244,7 +244,7 @@ u8 NTR_MMU::read_u8(u32 address)
 				}
 			}
 
-			else if((!access_mode) && (address > 0x37FFFFF)) { address &= 0x380FFFF; }
+			else { address &= 0x380FFFF; }
 
 			break;
 
@@ -735,7 +735,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 				}
 			}
 
-			else if((!access_mode) && (address > 0x37FFFFF)) { address &= 0x380FFFF; }
+			else { address &= 0x380FFFF; }
 
 			break;
 
@@ -1932,7 +1932,6 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		case NDS_WRAMCNT:
 			if(access_mode)
 			{
-				std::cout<<"WRITE -> 0x" << (u16)value << "\n";
 				memory_map[address] = (value & 0x3);
 				wram_mode = (value & 0x3);
 			}

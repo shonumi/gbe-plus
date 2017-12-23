@@ -868,6 +868,14 @@ void NTR_ARM7::single_data_transfer(u32 current_arm_instruction)
 	//Timings for LDR - PC
 	if((dest_reg == 15) && (load_store == 1)) 
 	{
+		//Switch to THUMB mode if necessary
+		if(reg.r15 & 0x1) 
+		{ 
+			arm_mode = THUMB;
+			reg.cpsr |= 0x20;
+			reg.r15 &= ~0x1;
+		}
+
 		//Clock CPU and controllser - 2S
 		clock(reg.r15, CODE_S32);
 		clock((reg.r15 + 4), CODE_S32);
