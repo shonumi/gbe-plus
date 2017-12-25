@@ -1159,6 +1159,14 @@ void NTR_ARM7::block_data_transfer(u32 current_arm_instruction)
 			}
 		}
 	}
+
+	//Switch to THUMB mode if necessary
+	if((needs_flush) && (reg.r15 & 0x1)) 
+	{
+		arm_mode = THUMB;
+		reg.cpsr |= 0x20;
+		reg.r15 &= ~0x1;
+	}
 }
 		
 /****** ARM.12 - Single Data Swap ******/

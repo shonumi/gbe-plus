@@ -1200,6 +1200,7 @@ void NTR_ARM9::block_data_transfer(u32 current_arm_instruction)
 					}
 
 					set_reg(x, mem->read_u32(base_addr));
+
 					if(x == 15) { needs_flush = true; } 
 				}
 
@@ -1281,6 +1282,14 @@ void NTR_ARM9::block_data_transfer(u32 current_arm_instruction)
 				default: std::cout<<"CPU::ARM9::Warning - ARM.11 CPSR setting unknown CPU mode -> 0x" << std::hex << (reg.cpsr & 0x1F) << "\n";
 			}
 		}
+	}
+
+	//Switch to THUMB mode if necessary
+	if((needs_flush) && (reg.r15 & 0x1)) 
+	{
+		arm_mode = THUMB;
+		reg.cpsr |= 0x20;
+		reg.r15 &= ~0x1;
 	}
 }
 		
