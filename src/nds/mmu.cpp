@@ -98,6 +98,10 @@ void NTR_MMU::reset()
 		//Boot Status
 		write_u16_fast(0x23FFC40, 0x1);
 
+		//Chip ID 1
+		write_u32(0x27FFC00, 0xFC2);
+		write_u32(0x27FF800, 0xFC2);
+
 		//Setup EXMEM + default access mode to NDS9
 		access_mode = 0;
 		write_u16(NDS_EXMEM, 0xE880);
