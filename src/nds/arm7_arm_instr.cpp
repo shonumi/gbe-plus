@@ -134,7 +134,7 @@ void NTR_ARM7::data_processing(u32 current_arm_instruction)
 		u8 offset = (current_arm_instruction >> 8) & 0xF;
 		
 		//Shift immediate - ROR special case - Carry flag not affected
-		rotate_right_special(operand, offset);
+		shift_out = rotate_right_special(operand, offset);
 	}
 
 	//Use register as operand

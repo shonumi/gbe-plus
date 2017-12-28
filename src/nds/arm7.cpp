@@ -1105,8 +1105,10 @@ u8 NTR_ARM7::rotate_right(u32& input, u8 offset)
 }
 
 /****** Performs 32-bit rotate right - For ARM.5 Data Processing when Bit 25 is 1 ******/
-void NTR_ARM7::rotate_right_special(u32& input, u8 offset)
+u8 NTR_ARM7::rotate_right_special(u32& input, u8 offset)
 {
+	u8 carry_out = 2;
+
 	if(offset > 0)
 	{
 		//Perform ROR shift on immediate
@@ -1118,6 +1120,8 @@ void NTR_ARM7::rotate_right_special(u32& input, u8 offset)
 			if(carry_out) { input |= 0x80000000; }
 		}
 	}
+
+	return carry_out;
 }			
 
 /****** Checks address before 32-bit reading/writing for special case scenarios ******/
