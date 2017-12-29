@@ -1527,6 +1527,9 @@ void main_menu::get_nds_ar_size(u32 &width, u32 &height, u32 &offset_x, u32 &off
 	u32 original_w = width;
 	u32 original_h = height;
 
+	offset_x = 0;
+	offset_y = 0;
+
 	//Calculate height to maintain aspect ratio
 	if(w_ratio > h_ratio)
 	{
