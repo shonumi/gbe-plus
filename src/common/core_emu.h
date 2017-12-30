@@ -77,6 +77,7 @@ class core_emu
 		bool debug_mode;
 		bool display_cycles;
 		bool print_all;
+		bool print_pc;
 		std::vector <u32> breakpoints;
 		std::vector <u32> watchpoint_addr;
 		std::vector <u32> watchpoint_val;

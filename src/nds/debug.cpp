@@ -86,6 +86,9 @@ void NTR_core::debug_step()
 		db_unit.last_mnemonic = debug_get_mnemonic(op_addr);
 		debug_display();
 	}
+
+	//Display current PC when print PC is enabled
+	if(db_unit.print_pc) { std::cout<<"PC -> 0x" << ((nds9_debug) ? core_cpu_nds9.reg.r15 : core_cpu_nds7.reg.r15) << "\n"; }
 }
 
 /****** Debugger - Display relevant info to the screen ******/
@@ -1630,6 +1633,26 @@ void NTR_core::debug_process_command()
 			debug_process_command();
 		}
 
+		//Print every PC to the screen
+		else if(command == "pc")
+		{
+			if(db_unit.print_pc)
+			{
+				std::cout<<"\nPrint-PC turned off\n";
+				db_unit.print_pc = false;
+			}
+
+			else
+			{
+				std::cout<<"\nPrint-PC turned on\n";
+				db_unit.print_pc = true;
+			}
+
+			valid_command = true;
+			db_unit.last_command = "pc";
+			debug_process_command();
+		}
+
 		//Print help information
 		else if(command == "h")
 		{
@@ -1647,6 +1670,8 @@ void NTR_core::debug_process_command()
 			std::cout<<"dt \t\t Disassembles some THUMB instructions, format 0x1234ABCD for addr\n";
 			std::cout<<"cr \t\t Reset CPU cycle counter\n";
 			std::cout<<"rs \t\t Reset emulation\n";
+			std::cout<<"pa \t\t Toggles printing all instructions to screen\n";
+			std::cout<<"pc \t\t Toggles printing all Program Counter values to screen\n";
 			std::cout<<"q \t\t Quit GBE+\n\n";
 
 			valid_command = true;
