@@ -16,6 +16,7 @@ set(SRCS
 	z80.cpp
 	./../dmg/custom_graphics.cpp
 	./../dmg/sio.cpp
+	debug.cpp
 	)
 
 set(HEADERS
