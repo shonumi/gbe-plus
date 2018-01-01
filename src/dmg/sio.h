@@ -162,6 +162,8 @@ class DMG_SIO
 		four_player_state current_state;
 	} four_player;
 
+	bool dmg07_init;
+
 	DMG_SIO();
 	~DMG_SIO();
 

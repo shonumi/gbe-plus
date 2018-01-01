@@ -69,6 +69,8 @@ bool DMG_SIO::four_player_init()
 	//Create sockets sets
 	four_player_tcp_sockets = SDLNet_AllocSocketSet(9);
 
+	dmg07_init = true;
+
 	#endif
 
 	return true;
@@ -78,6 +80,8 @@ bool DMG_SIO::four_player_init()
 void DMG_SIO::four_player_disconnect()
 {
 	#ifdef GBE_NETPLAY
+
+	if(!dmg07_init) { return; }
 
 	//Send disconnect byte to another system
 	u8 temp_buffer[2];

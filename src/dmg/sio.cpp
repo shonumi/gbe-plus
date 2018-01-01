@@ -18,6 +18,7 @@
 DMG_SIO::DMG_SIO()
 {
 	network_init = false;
+	dmg07_init = false;
 	is_master = false;
 	master_id = 0;
 

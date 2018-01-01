@@ -16,6 +16,7 @@ set(SRCS
 	z80.cpp
 	./../dmg/custom_graphics.cpp
 	./../dmg/sio.cpp
+	./../dmg/dmg07.cpp
 	debug.cpp
 	)
 
