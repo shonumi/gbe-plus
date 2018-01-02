@@ -153,7 +153,7 @@ void NTR_MMU::process_card_bus()
 	if(!nds_card.transfer_size)
 	{
 		nds_card.active_transfer = false;
-		nds_card.cnt |= 0x800000;
+		nds_card.cnt &= ~0x800000;
 		nds_card.cnt &= ~0x80000000;
 
 		if((nds9_exmem & 0x800) == 0) { nds9_if |= 0x80000; }

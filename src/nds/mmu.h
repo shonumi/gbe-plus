@@ -127,6 +127,7 @@ class NTR_MMU
 		u8 state;
 		u8 last_state;
 		u32 transfer_src;
+		u8 transfer_count;
 		u32 chip_id;
 
 		//ROM data

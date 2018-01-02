@@ -166,6 +166,7 @@ void NTR_MMU::reset()
 	nds_card.baud_rate = 0;
 	nds_card.transfer_clock = 0;
 	nds_card.transfer_src = 0;
+	nds_card.transfer_count = 0;
 	nds_card.state = 0;
 	nds_card.last_state = 0;
 	nds_card.active_transfer = false;
@@ -542,6 +543,24 @@ u8 NTR_MMU::read_u8(u32 address)
 		{
 			u8 addr_shift = (address & 0x3) << 3;
 			return ((nds_card.cmd_hi >> addr_shift) & 0xFF);
+		}
+	}
+
+	//Check for NDS_CARD_DATA
+	else if((address & ~0x3) == NDS_CARD_DATA)
+	{
+		if((access_mode && ((nds9_exmem & 0x800) == 0)) || (!access_mode && (nds7_exmem & 0x800)))
+		{
+			nds_card.transfer_count++;
+			u8 ret_val = memory_map[address];
+
+			if(nds_card.transfer_count == 4)
+			{
+				process_card_bus();
+				nds_card.transfer_count = 0;
+			}
+
+			return ret_val;
 		}
 	}
 
@@ -3192,14 +3211,16 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 					nds_card.active_transfer = true;
 					nds_card.state = 0;
+					nds_card.transfer_count = 0;
 
 					//Decrypt gamecard command
 					if(key_level) { key1_decrypt(nds_card.cmd_lo, nds_card.cmd_hi); }
 
 					std::cout<<"CART TRANSFER -> 0x" << nds_card.cnt << " -- SIZE -> 0x" << nds_card.transfer_size << " -- CMD -> 0x" << nds_card.cmd_lo << nds_card.cmd_hi << "\n";
+					process_card_bus();
 				}
 
-				if(!nds_card.active_transfer) { nds_card.cnt |= 0x800000; }
+				if(nds_card.transfer_size) { nds_card.cnt |= 0x800000; }
 				else { nds_card.cnt &= ~0x800000; }
 			}
 

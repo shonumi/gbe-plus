@@ -1241,13 +1241,6 @@ void NTR_ARM7::clock_system()
 		if(mem->nds_aux_spi.transfer_clock <= 0) { mem->process_aux_spi_bus(); }
 	}
 
-	//Run Cartridge Bus
-	if((mem->nds_card.active_transfer) && (mem->nds7_exmem & 0x800))
-	{
-		mem->nds_card.transfer_clock -= system_cycles;
-		if(mem->nds_card.transfer_clock <= 0) { mem->process_card_bus(); }
-	}
-
 	//Run RTC
 	if((mem->nds7_ie & 0x80) && (mem->nds7_rtc.int1_enable) && (mem->memory_map[NDS_RCNT+1] & 0x1))
 	{
