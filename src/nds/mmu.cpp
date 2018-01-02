@@ -3220,7 +3220,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 					process_card_bus();
 				}
 
-				if(nds_card.transfer_size) { nds_card.cnt |= 0x800000; }
+				if((nds_card.cnt >> 24) & 0x7) { nds_card.cnt |= 0x800000; }
 				else { nds_card.cnt &= ~0x800000; }
 			}
 
