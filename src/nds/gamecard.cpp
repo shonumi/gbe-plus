@@ -37,29 +37,24 @@ void NTR_MMU::process_card_bus()
 					nds_card.transfer_src += 0x200;
 					nds_card.transfer_src &= 0xFFF;
 				}
-
-				nds_card.transfer_size = 0x200;
 			}
 
 			//Dummy
 			else if((!nds_card.cmd_hi) && (nds_card.cmd_lo == 0x9F000000))
 			{
 				nds_card.state = 0x20;
-				nds_card.transfer_size = 0x2000;
 			}
 
 			//Get ROM chip ID 1
 			else if((!nds_card.cmd_hi) && (nds_card.cmd_lo == 0x90000000))
 			{
 				nds_card.state = 0x30;
-				nds_card.transfer_size = 0x4;
 			}
 
 			//Activate Key 1 Encryption
 			else if((nds_card.cmd_lo >> 24) == 0x3C)
 			{
 				nds_card.state = 0x40;
-				nds_card.transfer_size = 0x4;
 
 				init_key_code(1, 8);
 			}
@@ -100,7 +95,6 @@ void NTR_MMU::process_card_bus()
 			else if((nds_card.cmd_lo >> 24) == 0xB7)
 			{
 				nds_card.state = 0x10;
-				nds_card.transfer_size = 0x200;
 
 				nds_card.transfer_src = (nds_card.cmd_lo << 8);
 				nds_card.transfer_src |= (nds_card.cmd_hi >> 24);
@@ -111,7 +105,6 @@ void NTR_MMU::process_card_bus()
 			else if((nds_card.cmd_lo >> 24) == 0xB8)
 			{
 				nds_card.state = 0x30;
-				nds_card.transfer_size = 0x4;
 			}
 
 			else
