@@ -163,6 +163,22 @@ void SGB_LCD::reset()
 	for(int x = 0; x < 64; x++) { border_pal[x] = 0; }
 	for(int x = 0; x < 8192; x++) { border_chr[x] = 0; }
 
+	for(int x = 0; x < 18; x++)
+	{
+		atr_blk[x].in = false;
+		atr_blk[x].surround = false;
+		atr_blk[x].out = false;
+
+		atr_blk[x].pal_in = 0;
+		atr_blk[x].pal_surround = 0;
+		atr_blk[x].pal_out = 0;
+
+		atr_blk[x].x1 = 0;
+		atr_blk[x].x2 = 0;
+		atr_blk[x].y1 = 0;
+		atr_blk[x].y2 = 0;
+	}
+
 	//Initialize SGB border off
 	config::resize_mode = 0;
 	config::request_resize = false;
@@ -1128,6 +1144,30 @@ void SGB_LCD::process_sgb_command()
 				sgb_pal[2057] = get_color(mem->g_pad->get_pad_data(7));
 				sgb_pal[2058] = get_color(mem->g_pad->get_pad_data(8));
 				sgb_pal[2059] = get_color(mem->g_pad->get_pad_data(9));
+
+				break;
+
+		//ATTR_BLK
+		case 0x4:
+				//Grab data sets
+				for(u32 x = 0, y = 0x8001; x < mem->g_pad->get_pad_data(0x8000); x++)
+				{
+
+					atr_blk[x].in = mem->g_pad->get_pad_data(y) & 0x1;
+					atr_blk[x].surround = mem->g_pad->get_pad_data(y) & 0x2;
+					atr_blk[x].out = mem->g_pad->get_pad_data(y) & 0x4;
+					y++;
+
+					atr_blk[x].pal_in = mem->g_pad->get_pad_data(y) & 0x3;
+					atr_blk[x].pal_surround = (mem->g_pad->get_pad_data(y) >> 2) & 0x3;
+					atr_blk[x].pal_out = (mem->g_pad->get_pad_data(y) >> 4) & 0x3;
+					y++;
+
+					atr_blk[x].x1 = mem->g_pad->get_pad_data(y); y++;
+					atr_blk[x].y1 = mem->g_pad->get_pad_data(y); y++;
+					atr_blk[x].x2 = mem->g_pad->get_pad_data(y); y++;
+					atr_blk[x].y2 = mem->g_pad->get_pad_data(y); y++;
+				}
 
 				break;	
 

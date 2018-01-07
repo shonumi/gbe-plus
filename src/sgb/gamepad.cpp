@@ -491,7 +491,9 @@ void SGB_GamePad::write(u8 value)
 /****** Grabs misc pad data ******/
 u32 SGB_GamePad::get_pad_data(u32 index)
 {
-	switch(index)
+	if(index & 0x8000) { return packet.data[index & 0x7F]; }
+	
+	switch(index & 0xFF)
 	{
 		case 0x0:
 			return packet.lcd_command;
@@ -537,6 +539,10 @@ u32 SGB_GamePad::get_pad_data(u32 index)
 		//PAL_SET - Get Attribute File
 		case 0xA:
 			return packet.data[8];
+
+		//Get Command Length
+		case 0xFF:
+			return packet.length;
 
 		default:
 			return 0;

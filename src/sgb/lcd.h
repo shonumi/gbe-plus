@@ -107,6 +107,22 @@ class SGB_LCD
 	u32 border_pal[64];
 	u8 border_chr[8192];
 
+	struct attribute_blocks
+	{
+		bool in;
+		bool surround;
+		bool out;
+
+		u8 pal_in;
+		u8 pal_surround;
+		u8 pal_out;
+
+		u16 x1;
+		u16 x2;
+		u16 y1;
+		u16 y2;
+	} atr_blk[18];
+
 	//OAM updates
 	void update_oam();
 	void update_obj_render_list();
