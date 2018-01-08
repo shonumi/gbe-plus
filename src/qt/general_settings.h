@@ -16,6 +16,7 @@
 
 #include <QtGui>
 
+#include "common/common.h"
 #include "data_dialog.h"
 #include "cheat_menu.h"
 #include "rtc_menu.h"
@@ -178,6 +179,7 @@ class gen_settings : public QDialog
 	void sample_rate_change();
 	void mute();
 	void set_paths(int index);
+	void rebuild_input_index();
 	void input_device_change();
 	void dead_zone_change();
 	void set_netplay();
@@ -227,6 +229,7 @@ class gen_settings : public QDialog
 
 	SDL_Joystick* jstick;
 	int input_type;
+	u32 joystick_count;
 };
 
 #endif //SETTINGS_GBE_QT 

@@ -407,6 +407,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	input_device = new QComboBox(input_device_set);
 	input_device->setToolTip("Selects the current input device to configure");
 	input_device->addItem("Keyboard");
+	input_device->installEventFilter(this);
 
 	QHBoxLayout* input_device_layout = new QHBoxLayout;
 	input_device_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -1160,8 +1161,9 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 
 	//Joystick handling
 	jstick = SDL_JoystickOpen(0);
+	joystick_count = SDL_NumJoysticks();
 	
-	for(int x = 0; x < SDL_NumJoysticks(); x++)
+	for(int x = 0; x < joystick_count; x++)
 	{
 		SDL_Joystick* jstick = SDL_JoystickOpen(x);
 		std::string joy_name = SDL_JoystickName(jstick);
@@ -1658,6 +1660,27 @@ void gen_settings::set_paths(int index)
 			parse_cheats_file();
 
 			break;
+	}
+}
+
+/****** Rebuilds input device index ******/
+void gen_settings::rebuild_input_index()
+{
+	SDL_JoystickUpdate();
+
+	//Rebuild input device index
+	if(SDL_NumJoysticks() != joystick_count)
+	{
+		joystick_count = SDL_NumJoysticks();
+		input_device->clear();
+		input_device->addItem("Keyboard");
+
+		for(int x = 0; x < joystick_count; x++)
+		{
+			SDL_Joystick* jstick = SDL_JoystickOpen(x);
+			std::string joy_name = SDL_JoystickName(jstick);
+			input_device->addItem(QString::fromStdString(joy_name));
+		}
 	}
 }
 
@@ -2488,6 +2511,12 @@ bool gen_settings::eventFilter(QObject* target, QEvent* event)
 	{
 		QKeyEvent* key_event = static_cast<QKeyEvent*>(event);
 		keyPressEvent(key_event);
+	}
+
+	//Check mouse click for input device
+	else if((target == input_device) && (event->type() == QEvent::MouseButtonPress))
+	{
+		rebuild_input_index();
 	}
 
 	return QDialog::eventFilter(target, event);
