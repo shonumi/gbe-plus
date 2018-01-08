@@ -180,7 +180,10 @@ void DMG_core::debug_display() const
 
 	flag_stats += ")";
 
-	std::cout<< std::hex <<"FLAGS : 0x" << std::setw(2) << std::setfill('0') << (u32)core_cpu.reg.f << "\t" << flag_stats << "\n\n";
+	std::cout<< std::hex <<"FLAGS : 0x" << std::setw(2) << std::setfill('0') << (u32)core_cpu.reg.f << "\t" << flag_stats << "\n";
+
+	std::cout<< std::hex << "ROM BANK  : 0x" << std::setw(2) << std::setfill('0') << (u32)core_mmu.rom_bank << 
+	" -- RAM BANK  : 0x" << std::setw(2) << std::setfill('0') << (u32)core_mmu.ram_bank << "\n\n";
 }
 
 /****** Debugger - Wait for user input, process it to decide what next to do ******/
