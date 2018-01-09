@@ -1681,6 +1681,12 @@ void gen_settings::rebuild_input_index()
 			std::string joy_name = SDL_JoystickName(jstick);
 			input_device->addItem(QString::fromStdString(joy_name));
 		}
+
+		//Set input index to 0
+		input_device->setCurrentIndex(0);
+
+		//Set joy id to 0 until new joystick selected
+		config::joy_id = 0;
 	}
 }
 
