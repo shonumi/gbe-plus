@@ -94,6 +94,7 @@ namespace config
 	extern int hotkey_camera;
 	extern int dead_zone;
 	extern int joy_id;
+	extern int joy_sdl_id;
 	extern bool use_haptics;
 
 	extern u32 flags;

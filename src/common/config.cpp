@@ -98,6 +98,7 @@ namespace config
 
 	//Default joystick ID
 	int joy_id = 0;
+	int joy_sdl_id = 0;
 
 	//Default Haptic setting
 	bool use_haptics = false;

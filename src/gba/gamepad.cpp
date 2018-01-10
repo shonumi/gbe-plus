@@ -41,6 +41,7 @@ void AGB_GamePad::init()
 
 	jstick = NULL;
 	jstick = SDL_JoystickOpen(config::joy_id);
+	config::joy_sdl_id = SDL_JoystickInstanceID(jstick);
 
 	if((jstick == NULL) && (SDL_NumJoysticks() >= 1)) { std::cout<<"JOY::Could not initialize joystick \n"; }
 	else if((jstick == NULL) && (SDL_NumJoysticks() == 0)) { std::cout<<"JOY::No joysticks detected \n"; }
@@ -91,6 +92,8 @@ void AGB_GamePad::handle_input(SDL_Event &event)
 	//Joystick Button Presses
 	else if(event.type == SDL_JOYBUTTONDOWN)
 	{
+		if(event.jbutton.which != config::joy_sdl_id) { return; }
+
 		pad = 100 + event.jbutton.button;
 		process_joystick(pad, true);
 	}
@@ -98,6 +101,8 @@ void AGB_GamePad::handle_input(SDL_Event &event)
 	//Joystick Button Releases
 	else if(event.type == SDL_JOYBUTTONUP)
 	{
+		if(event.jbutton.which != config::joy_sdl_id) { return; }
+
 		pad = 100 + event.jbutton.button;
 		process_joystick(pad, false);
 	}
@@ -105,6 +110,8 @@ void AGB_GamePad::handle_input(SDL_Event &event)
 	//Joystick axes
 	else if(event.type == SDL_JOYAXISMOTION)
 	{
+		if(event.jaxis.which != config::joy_sdl_id) { return; }
+
 		pad = 200 + (event.jaxis.axis * 2);
 		int axis_pos = event.jaxis.value;
 		if(axis_pos > 0) { pad++; }
@@ -117,6 +124,8 @@ void AGB_GamePad::handle_input(SDL_Event &event)
 	//Joystick hats
         else if(event.type == SDL_JOYHATMOTION)
 	{
+		if(event.jhat.which != config::joy_sdl_id) { return; }
+
 		pad = 300;
 		pad += event.jhat.hat * 4;
 
