@@ -64,6 +64,13 @@ void DMG_MMU::reset()
 	cart.rtc_enabled = false;
 	cart.rtc_latch_1 = cart.rtc_latch_2 = 0xFF;
 
+	for(int x = 0; x < 5; x++)
+	{
+		cart.latch_reg[x] = 0;
+		cart.rtc_reg[x] = 0;
+		cart.rtc_last_time[x] = 0;
+	}
+
 	cart.idle = false;
 	cart.internal_value = cart.internal_state = cart.cs = cart.sk = cart.buffer_length = cart.command_code = cart.addr = cart.buffer = 0;
 
@@ -1941,9 +1948,9 @@ bool DMG_MMU::load_backup(std::string filename)
 			//Read RTC data
 			if(cart.rtc) 
 			{
-				u8* ex_ram = &cart.rtc_reg[0];
+				u8* ex_ram = &cart.rtc_last_tme[0];
 				sram.read((char*)ex_ram, 0x5);
-			} 
+			}
 		}
 
 		sram.close();
@@ -2004,7 +2011,7 @@ bool DMG_MMU::save_backup(std::string filename)
 			
 				for(int x = 0; x < 5; x++)
 				{
-					sram.write(reinterpret_cast<char*> (&cart.rtc_reg[x]), 0x1);
+					sram.write(reinterpret_cast<char*> (&cart.rtc_last_time[x]), 0x1);
 				}
 			} 
 
