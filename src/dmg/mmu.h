@@ -83,7 +83,8 @@ class DMG_MMU
 		bool rtc;
 		bool rtc_enabled;
 		bool rtc_latched;
-		u8 rtc_latch_1, rtc_latch_2, rtc_reg[5], rtc_last_time[5];
+		u8 rtc_latch_1, rtc_latch_2, rtc_reg[5];
+		int rtc_last_time[9];
 		u8 latch_reg[5];
 
 		//MBC7

@@ -68,8 +68,9 @@ void DMG_MMU::reset()
 	{
 		cart.latch_reg[x] = 0;
 		cart.rtc_reg[x] = 0;
-		cart.rtc_last_time[x] = 0;
 	}
+
+	for(int x = 0; x < 9; x++) { cart.rtc_last_time[x] = 0; }
 
 	cart.idle = false;
 	cart.internal_value = cart.internal_state = cart.cs = cart.sk = cart.buffer_length = cart.command_code = cart.addr = cart.buffer = 0;
@@ -1590,8 +1591,6 @@ bool DMG_MMU::read_file(std::string filename)
 			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
 			std::cout<<"MMU::ROM Size - " << std::dec << cart.rom_size << "KB\n";
 
-			grab_time();
-
 			break;
 
 		case 0x11:
@@ -1921,6 +1920,11 @@ bool DMG_MMU::load_backup(std::string filename)
 
 		else 
 		{
+			//Get the file size
+			sram.seekg(0, sram.end);
+			u32 file_size = sram.tellg();
+			sram.seekg(0, sram.beg);
+
 			//Read MBC RAM
 			if((cart.mbc_type != ROM_ONLY) && (cart.mbc_type != MBC7))
 			{
@@ -1946,10 +1950,10 @@ bool DMG_MMU::load_backup(std::string filename)
 			}
 
 			//Read RTC data
-			if(cart.rtc) 
+			if((cart.rtc) && (file_size >= 0x2024)) 
 			{
-				u8* ex_ram = &cart.rtc_last_tme[0];
-				sram.read((char*)ex_ram, 0x5);
+				int* ex_ram = &cart.rtc_last_time[0];
+				sram.read((char*)ex_ram, 0x24);
 			}
 		}
 
@@ -2008,10 +2012,10 @@ bool DMG_MMU::save_backup(std::string filename)
 			if(cart.rtc) 
 			{
 				grab_time();
-			
-				for(int x = 0; x < 5; x++)
+
+				for(int x = 0; x < 9; x++)
 				{
-					sram.write(reinterpret_cast<char*> (&cart.rtc_last_time[x]), 0x1);
+					sram.write(reinterpret_cast<char*> (&cart.rtc_last_time[x]), 0x4);
 				}
 			} 
 

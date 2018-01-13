@@ -20,33 +20,92 @@ void DMG_MMU::grab_time()
 	//Grab local time
 	time_t system_time = time(0);
 	tm* current_time = localtime(&system_time);
+	tm last_time;
 
-	//Seconds - Disregard tm_sec's 60 or 61 seconds
-	cart.rtc_reg[0] = current_time->tm_sec;
-	if(cart.rtc_reg[0] > 59) { cart.rtc_reg[0] = 59; }
+	bool first_time = true;
 
-	cart.rtc_reg[0] += config::rtc_offset[0];
-	cart.rtc_reg[0] = (cart.rtc_reg[0] % 60);
-		
-	//Minutes
-	cart.rtc_reg[1] = current_time->tm_min;
-	cart.rtc_reg[1] += config::rtc_offset[1];
-	cart.rtc_reg[1] = (cart.rtc_reg[1] % 60);
+	for(int x = 0; x < 9; x++)
+	{
+		if(cart.rtc_last_time[x]) { first_time = false; }
+	}
 
-	//Hours
-	cart.rtc_reg[2] = current_time->tm_hour;
-	cart.rtc_reg[2] += config::rtc_offset[2];
-	cart.rtc_reg[2] = (cart.rtc_reg[2] % 24);
-				
-	//Days
-	u16 temp_day = current_time->tm_yday;
-	temp_day += config::rtc_offset[3];
-	temp_day = (temp_day % 366);
+	if(first_time)
+	{
+		cart.rtc_last_time[0] = current_time->tm_sec;
+		cart.rtc_last_time[1] = current_time->tm_min; 
+		cart.rtc_last_time[2] = current_time->tm_hour; 
+		cart.rtc_last_time[3] = current_time->tm_mday; 
+		cart.rtc_last_time[4] = current_time->tm_mon; 
+		cart.rtc_last_time[5] = current_time->tm_year; 
+		cart.rtc_last_time[6] = current_time->tm_wday;
+		cart.rtc_last_time[7] = current_time->tm_yday; 
+		cart.rtc_last_time[8] = current_time->tm_isdst;
+		return;
+	}
 
-	cart.rtc_reg[3] = temp_day & 0xFF;
-	temp_day >>= 8;
-	if(temp_day == 1) { cart.rtc_reg[4] |= 0x1; }
-	else { cart.rtc_reg[4] &= ~0x1; }
+	//Manually restore tm structure for previous time
+	last_time.tm_sec = cart.rtc_last_time[0];
+	last_time.tm_min = cart.rtc_last_time[1]; 
+	last_time.tm_hour = cart.rtc_last_time[2]; 
+	last_time.tm_mday = cart.rtc_last_time[3]; 
+	last_time.tm_mon = cart.rtc_last_time[4]; 
+	last_time.tm_year = cart.rtc_last_time[5]; 
+	last_time.tm_wday = cart.rtc_last_time[6];
+	last_time.tm_yday = cart.rtc_last_time[7]; 
+	last_time.tm_isdst = cart.rtc_last_time[8];
+
+	//Calculate difference in seconds since last time update
+	double time_passed = difftime(system_time, mktime(&last_time));
+
+	for(int x = 0; x < time_passed; x++)
+	{
+		cart.rtc_reg[0]++;
+
+		//Update seconds
+		if(cart.rtc_reg[0] >= 60)
+		{
+			cart.rtc_reg[0] = 0;
+			cart.rtc_reg[1]++;
+		}
+
+		//Update minutes
+		if(cart.rtc_reg[1] >= 60)
+		{
+			cart.rtc_reg[1] = 0;
+			cart.rtc_reg[2]++;
+		}
+
+		//Update hours
+		if(cart.rtc_reg[2] >= 24)
+		{
+			cart.rtc_reg[2] = 0;
+
+			if((cart.rtc_reg[3] == 0xFF) && (!cart.rtc_reg[4]))
+			{
+				cart.rtc_reg[3] = 0;
+				cart.rtc_reg[4] = 1;
+			}
+
+			else if((cart.rtc_reg[3] == 0xFF) && (cart.rtc_reg[4]))
+			{
+				cart.rtc_reg[3] = 0;
+				cart.rtc_reg[4] = 0;
+			}
+
+			else { cart.rtc_reg[3]++; }
+		}
+	}
+
+	//Manually set new time
+	cart.rtc_last_time[0] = current_time->tm_sec;
+	cart.rtc_last_time[1] = current_time->tm_min; 
+	cart.rtc_last_time[2] = current_time->tm_hour; 
+	cart.rtc_last_time[3] = current_time->tm_mday; 
+	cart.rtc_last_time[4] = current_time->tm_mon; 
+	cart.rtc_last_time[5] = current_time->tm_year; 
+	cart.rtc_last_time[6] = current_time->tm_wday;
+	cart.rtc_last_time[7] = current_time->tm_yday; 
+	cart.rtc_last_time[8] = current_time->tm_isdst;
 
 	for(int x = 0; x < 5; x++) { cart.latch_reg[x] = cart.rtc_reg[x]; }
 }
