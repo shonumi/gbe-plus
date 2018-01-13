@@ -1950,10 +1950,13 @@ bool DMG_MMU::load_backup(std::string filename)
 			}
 
 			//Read RTC data
-			if((cart.rtc) && (file_size >= 0x2024)) 
+			if((cart.rtc) && (file_size >= 0x20029)) 
 			{
-				int* ex_ram = &cart.rtc_last_time[0];
-				sram.read((char*)ex_ram, 0x24);
+				int* ex_ram_time = &cart.rtc_last_time[0];
+				sram.read((char*)ex_ram_time, 0x24);
+
+				u8* ex_ram_reg = &cart.rtc_reg[0];
+				sram.read((char*)ex_ram_reg, 0x5);
 			}
 		}
 
@@ -2016,6 +2019,11 @@ bool DMG_MMU::save_backup(std::string filename)
 				for(int x = 0; x < 9; x++)
 				{
 					sram.write(reinterpret_cast<char*> (&cart.rtc_last_time[x]), 0x4);
+				}
+
+				for(int x = 0; x < 5; x++)
+				{
+					sram.write(reinterpret_cast<char*> (&cart.rtc_reg[x]), 0x1);
 				}
 			} 
 
