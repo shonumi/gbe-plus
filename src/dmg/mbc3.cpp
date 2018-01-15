@@ -55,12 +55,15 @@ void DMG_MMU::grab_time()
 	last_time.tm_isdst = cart.rtc_last_time[8];
 
 	//Add offsets to system time
+	if((current_time->tm_sec + config::rtc_offset[0]) >= 60) { current_time->tm_min++; }
 	current_time->tm_sec += config::rtc_offset[0];
 	current_time->tm_sec = (current_time->tm_sec % 60);
 
+	if((current_time->tm_min + config::rtc_offset[1]) >= 60) { current_time->tm_hour++; }
 	current_time->tm_min += config::rtc_offset[1];
 	current_time->tm_min = (current_time->tm_min % 60);
 
+	if((current_time->tm_hour + config::rtc_offset[2]) >= 24) { current_time->tm_mday++; }
 	current_time->tm_hour += config::rtc_offset[2];
 	current_time->tm_hour = (current_time->tm_hour % 24);
 
