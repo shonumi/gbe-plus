@@ -81,12 +81,18 @@ cheat_menu::cheat_menu(QWidget *parent) : QDialog(parent)
 	
 	current_cheat_index = 0;
 
-	parse_cheats_file();
+	empty_cheats = parse_cheats_file(false);
 }
 
 /****** Grab cheats from config data ******/
 void cheat_menu::fetch_cheats()
 {
+	//If cheats file was empty, try importing them again
+	if(!empty_cheats)
+	{
+		empty_cheats = parse_cheats_file(true);
+	}
+
 	//Rebuild cheat list layout
 	if(data_set->layout() != NULL) { delete data_set->layout(); }
 	if(info_set->layout() != NULL) { delete info_set->layout(); }

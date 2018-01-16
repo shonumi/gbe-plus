@@ -46,6 +46,7 @@ class cheat_menu : public QDialog
 	QLabel* add_label;
 
 	int current_cheat_index;
+	bool empty_cheats;
 
 	void fetch_cheats();
 

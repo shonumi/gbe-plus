@@ -167,7 +167,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	parse_ini_file();
 
 	//Parse cheats file
-	if(config::use_cheats) { parse_cheats_file(); }
+	if(config::use_cheats) { parse_cheats_file(false); }
 
 	//Parse command-line arguments
 	//These will override .ini options!
@@ -538,7 +538,7 @@ void main_menu::boot_game()
 	if(settings->cheats->isChecked())
 	{
 		config::use_cheats = true;
-		parse_cheats_file();
+		parse_cheats_file(false);
 	}
 
 	else { config::use_cheats = false; }

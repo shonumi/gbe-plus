@@ -1657,7 +1657,8 @@ void gen_settings::set_paths(int index)
 			cheats_path->setText(path);
 
 			//Make sure to update cheats from new file
-			parse_cheats_file();
+			if(!dmg_cheat_menu->empty_cheats) { dmg_cheat_menu->empty_cheats = parse_cheats_file(true); }
+			else { parse_cheats_file(false); }
 
 			break;
 	}

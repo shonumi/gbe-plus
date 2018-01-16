@@ -35,7 +35,7 @@ int main(int argc, char* args[])
 	parse_ini_file();
 
 	//Parse cheat file
-	if(config::use_cheats) { parse_cheats_file(); }
+	if(config::use_cheats) { parse_cheats_file(false); }
 
 	if(config::mute) { config::volume = 0; }
 

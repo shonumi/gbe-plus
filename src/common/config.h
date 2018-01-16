@@ -26,7 +26,7 @@ u8 get_system_type_from_file(std::string filename);
 bool parse_cli_args();
 void parse_filenames();
 bool parse_ini_file();
-bool parse_cheats_file();
+bool parse_cheats_file(bool add_cheats);
 bool save_ini_file();
 bool save_cheats_file();
 

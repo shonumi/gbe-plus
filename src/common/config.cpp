@@ -2993,7 +2993,7 @@ bool save_ini_file()
 }
 
 /****** Parse the cheats file ******/
-bool parse_cheats_file()
+bool parse_cheats_file(bool add_cheats)
 {
 	if(config::cheats_path.empty()) { return false; }
 
@@ -3007,9 +3007,12 @@ bool parse_cheats_file()
 	std::string info;
 
 	//Clear cheat codes
-	config::gs_cheats.clear();
-	config::gg_cheats.clear();
-	config::cheats_info.clear();
+	if(!add_cheats)
+	{
+		config::gs_cheats.clear();
+		config::gg_cheats.clear();
+		config::cheats_info.clear();
+	}
 
 	if(!file.is_open())
 	{
@@ -3118,6 +3121,8 @@ bool parse_cheats_file()
 			}
 		}	
 	}
+
+	if(add_cheats) { save_cheats_file(); }
 
 	return true;
 }
