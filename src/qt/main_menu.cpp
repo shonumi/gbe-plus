@@ -21,7 +21,8 @@
 main_menu::main_menu(QWidget *parent) : QWidget(parent)
 {
 	//Setup actions
-	QAction* open = new QAction("Open", this);
+	QAction* open = new QAction("Open...", this);
+	QAction* select_card = new QAction("Select Card File", this);
 	QAction* quit = new QAction ("Quit", this);
 
 	QAction* pause = new QAction("Pause", this);
@@ -72,6 +73,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 
 	file = new QMenu(tr("File"), this);
 	file->addAction(open);
+	file->addAction(select_card);
 	recent_list = file->addMenu(tr("Recent Files"));
 	file->addSeparator();
 	state_save_list = file->addMenu(tr("Save State"));
@@ -125,6 +127,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	//Setup signals
 	connect(quit, SIGNAL(triggered()), this, SLOT(quit()));
 	connect(open, SIGNAL(triggered()), this, SLOT(open_file()));
+	connect(select_card, SIGNAL(triggered()), this, SLOT(select_card_file()));
 	connect(pause, SIGNAL(triggered()), this, SLOT(pause()));
 	connect(fullscreen, SIGNAL(triggered()), this, SLOT(fullscreen()));
 	connect(screenshot, SIGNAL(triggered()), this, SLOT(screenshot()));
@@ -395,6 +398,19 @@ void main_menu::open_file()
 	}
 
 	boot_game();
+}
+
+/****** Opens card file ******/
+void main_menu::select_card_file()
+{
+	SDL_PauseAudio(1);
+
+	QString filename = QFileDialog::getOpenFileName(this, tr("Open"), "", tr("Binary card data (*.bin)"));
+	if(filename.isNull()) { SDL_PauseAudio(0); return; }
+
+	config::external_card_file = filename.toStdString();
+
+	SDL_PauseAudio(0);
 }
 
 /****** Exits the emulator ******/
