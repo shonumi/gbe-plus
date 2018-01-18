@@ -2133,6 +2133,8 @@ void NTR_LCD::render_bg_mode_direct(u32 bg_control)
 		double new_x, new_y = 0.0;
 		u16 bg_pixel_width, bg_pixel_height = 0;
 
+		u32 bitmap_addr = lcd_stat.bg_bitmap_base_addr_a[bg_id & 0x1];
+
 		//Determine bitmap dimensions
 		switch(lcd_stat.bg_size_a[bg_id])
 		{
@@ -2190,7 +2192,7 @@ void NTR_LCD::render_bg_mode_direct(u32 bg_control)
 				src_x = new_x;
 				src_y = new_y;
 
-				raw_color = mem->read_u16(0x6000000 + (((src_y * bg_pixel_width) + src_x) * 2));
+				raw_color = mem->read_u16(bitmap_addr + (((src_y * bg_pixel_width) + src_x) * 2));
 			
 				//Convert 16-bit ARGB to 32-bit ARGB - Bit 15 is alpha transparency
 				if(raw_color & 0x8000)
@@ -2241,6 +2243,8 @@ void NTR_LCD::render_bg_mode_direct(u32 bg_control)
 		u16 src_x, src_y = 0;
 		double new_x, new_y = 0.0;
 		u16 bg_pixel_width, bg_pixel_height = 0;
+
+		u32 bitmap_addr = lcd_stat.bg_bitmap_base_addr_b[bg_id & 0x1];
 
 		//Determine bitmap dimensions
 		switch(lcd_stat.bg_size_b[bg_id])
@@ -2299,7 +2303,7 @@ void NTR_LCD::render_bg_mode_direct(u32 bg_control)
 				src_x = new_x;
 				src_y = new_y;
 
-				raw_color = mem->read_u16(0x6200000 + (((src_y * bg_pixel_width) + src_x) * 2));
+				raw_color = mem->read_u16(bitmap_addr + (((src_y * bg_pixel_width) + src_x) * 2));
 			
 				//Convert 16-bit ARGB to 32-bit ARGB - Bit 15 is alpha transparency
 				if(raw_color & 0x8000)
