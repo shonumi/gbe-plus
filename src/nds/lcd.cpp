@@ -2152,6 +2152,7 @@ void NTR_LCD::render_bg_mode_direct(u32 bg_control)
 		//Grab BG ID
 		u8 bg_id = (bg_control - 0x4000008) >> 1;
 		u8 affine_id = (bg_id & 0x1);
+		u8 bg_priority = lcd_stat.bg_priority_a[bg_id] + 1;
 
 		//Reload X-Y references at start of frame
 		if(lcd_stat.current_scanline == 0) { reload_affine_references(bg_control); }
@@ -2161,6 +2162,8 @@ void NTR_LCD::render_bg_mode_direct(u32 bg_control)
 
 		//Abort rendering if BGs with high priority have already completely rendered a scanline
 		if(full_scanline_render_a) { return; }
+
+		bool full_render = true;
 
 		u16 raw_color = 0;
 		u8 scanline_pixel_counter = 0;
@@ -2222,27 +2225,36 @@ void NTR_LCD::render_bg_mode_direct(u32 bg_control)
 				while(new_y < 0) { new_y += bg_pixel_height; } 
 			}
 
-			if(render_pixel)
+			//Only draw if no previous pixel was rendered
+			if(!render_buffer_a[scanline_pixel_counter] || (bg_priority < render_buffer_a[scanline_pixel_counter]))
 			{
-				//Determine source pixel X-Y coordinates
-				src_x = new_x;
-				src_y = new_y;
-
-				raw_color = mem->read_u16(bitmap_addr + (((src_y * bg_pixel_width) + src_x) * 2));
-			
-				//Convert 16-bit ARGB to 32-bit ARGB - Bit 15 is alpha transparency
-				if(raw_color & 0x8000)
+				if(render_pixel)
 				{
-					u8 red = ((raw_color & 0x1F) << 3);
-					raw_color >>= 5;
+					//Determine source pixel X-Y coordinates
+					src_x = new_x;
+					src_y = new_y;
 
-					u8 green = ((raw_color & 0x1F) << 3);
-					raw_color >>= 5;
+					raw_color = mem->read_u16(bitmap_addr + (((src_y * bg_pixel_width) + src_x) * 2));
+			
+					//Convert 16-bit ARGB to 32-bit ARGB - Bit 15 is alpha transparency
+					if(raw_color & 0x8000)
+					{
+						u8 red = ((raw_color & 0x1F) << 3);
+						raw_color >>= 5;
 
-					u8 blue = ((raw_color & 0x1F) << 3);
+						u8 green = ((raw_color & 0x1F) << 3);
+						raw_color >>= 5;
 
-					scanline_buffer_a[scanline_pixel_counter] = 0xFF000000 | (red << 16) | (green << 8) | (blue);
+						u8 blue = ((raw_color & 0x1F) << 3);
+
+						scanline_buffer_a[scanline_pixel_counter] = 0xFF000000 | (red << 16) | (green << 8) | (blue);
+						render_buffer_a[scanline_pixel_counter] = bg_priority;
+					}
+
+					else { full_render = false; }
 				}
+
+				else { full_render = false; }
 			}
 
 			scanline_pixel_counter++;
@@ -2255,6 +2267,8 @@ void NTR_LCD::render_bg_mode_direct(u32 bg_control)
 		//Update XREF and YREF for next line
 		lcd_stat.bg_affine_a[affine_id].x_ref += lcd_stat.bg_affine_a[affine_id].dmx;
 		lcd_stat.bg_affine_a[affine_id].y_ref += lcd_stat.bg_affine_a[affine_id].dmy;
+
+		full_scanline_render_a = full_render;
 	}
 
 	//Render Engine B
@@ -2263,6 +2277,7 @@ void NTR_LCD::render_bg_mode_direct(u32 bg_control)
 		//Grab BG ID
 		u8 bg_id = (bg_control - 0x4001008) >> 1;
 		u8 affine_id = (bg_id & 0x1);
+		u8 bg_priority = lcd_stat.bg_priority_b[bg_id] + 1;
 
 		//Reload X-Y references at start of frame
 		if(lcd_stat.current_scanline == 0) { reload_affine_references(bg_control); }
@@ -2272,6 +2287,8 @@ void NTR_LCD::render_bg_mode_direct(u32 bg_control)
 
 		//Abort rendering if BGs with high priority have already completely rendered a scanline
 		if(full_scanline_render_b) { return; }
+
+		bool full_render = true;
 
 		u16 raw_color = 0;
 		u8 scanline_pixel_counter = 0;
@@ -2333,27 +2350,36 @@ void NTR_LCD::render_bg_mode_direct(u32 bg_control)
 				while(new_y < 0) { new_y += bg_pixel_height; } 
 			}
 
-			if(render_pixel)
+			//Only draw if no previous pixel was rendered
+			if(!render_buffer_b[scanline_pixel_counter] || (bg_priority < render_buffer_b[scanline_pixel_counter]))
 			{
-				//Determine source pixel X-Y coordinates
-				src_x = new_x;
-				src_y = new_y;
-
-				raw_color = mem->read_u16(bitmap_addr + (((src_y * bg_pixel_width) + src_x) * 2));
-			
-				//Convert 16-bit ARGB to 32-bit ARGB - Bit 15 is alpha transparency
-				if(raw_color & 0x8000)
+				if(render_pixel)
 				{
-					u8 red = ((raw_color & 0x1F) << 3);
-					raw_color >>= 5;
+					//Determine source pixel X-Y coordinates
+					src_x = new_x;
+					src_y = new_y;
 
-					u8 green = ((raw_color & 0x1F) << 3);
-					raw_color >>= 5;
+					raw_color = mem->read_u16(bitmap_addr + (((src_y * bg_pixel_width) + src_x) * 2));
+			
+					//Convert 16-bit ARGB to 32-bit ARGB - Bit 15 is alpha transparency
+					if(raw_color & 0x8000)
+					{
+						u8 red = ((raw_color & 0x1F) << 3);
+						raw_color >>= 5;
 
-					u8 blue = ((raw_color & 0x1F) << 3);
+						u8 green = ((raw_color & 0x1F) << 3);
+						raw_color >>= 5;
 
-					scanline_buffer_b[scanline_pixel_counter] = 0xFF000000 | (red << 16) | (green << 8) | (blue);
+						u8 blue = ((raw_color & 0x1F) << 3);
+
+						scanline_buffer_b[scanline_pixel_counter] = 0xFF000000 | (red << 16) | (green << 8) | (blue);
+						render_buffer_b[scanline_pixel_counter] = bg_priority;
+					}
+
+					else { full_render = false; }
 				}
+
+				else { full_render = false; }
 			}
 
 			scanline_pixel_counter++;
@@ -2366,6 +2392,8 @@ void NTR_LCD::render_bg_mode_direct(u32 bg_control)
 		//Update XREF and YREF for next line
 		lcd_stat.bg_affine_b[affine_id].x_ref += lcd_stat.bg_affine_b[affine_id].dmx;
 		lcd_stat.bg_affine_b[affine_id].y_ref += lcd_stat.bg_affine_b[affine_id].dmy;
+
+		full_scanline_render_b = full_render;
 	}
 }
 
