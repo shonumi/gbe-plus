@@ -186,7 +186,7 @@ ogl_matrix ogl_matrix::operator*(const ogl_matrix &input_matrix)
 		u32 output_rows = rows;
 		u32 output_columns = input_matrix.columns;
 
-		ogl_matrix output_matrix(output_rows, output_columns);
+		ogl_matrix output_matrix(output_columns, output_rows);
 
 		//Find the dot product for all values in the new matrix
 		for(u32 y = 0; y < rows; y++)
