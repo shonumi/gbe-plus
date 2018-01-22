@@ -8,6 +8,7 @@
 //
 // Defines the LCD data structures that the MMU will update whenever values are written in memory
 // Only the LCD should read values from this namespace. Only the MMU should write values to this namespace.
+// 2D and 3D data structures are separated for organizational purposes
 
 #ifndef NDS_LCD_DATA
 #define NDS_LCD_DATA
@@ -169,6 +170,11 @@ struct ntr_lcd_data
 
 	bool oam_update;
 	std::vector<bool> oam_update_list;
+};
+
+struct ntr_lcd_3D_data
+{
+	u32 display_control;
 };
 
 #endif // NDS_LCD_DATA

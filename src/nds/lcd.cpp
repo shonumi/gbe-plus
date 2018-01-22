@@ -226,6 +226,8 @@ void NTR_LCD::reset()
 		screen_offset_lut[x] = (x > 255) ? 0x800 : 0x0;
 	}
 
+	lcd_3D_stat.display_control = 0;
+
 	//Initialize system screen dimensions
 	config::sys_width = 256;
 	config::sys_height = 384;

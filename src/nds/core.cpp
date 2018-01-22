@@ -28,6 +28,7 @@ NTR_core::NTR_core()
 	//Link LCD and MMU
 	core_cpu_nds9.controllers.video.mem = &core_mmu;
 	core_mmu.set_lcd_data(&core_cpu_nds9.controllers.video.lcd_stat);
+	core_mmu.set_lcd_3D_data(&core_cpu_nds9.controllers.video.lcd_3D_stat);
 
 	//Link APU and MMU
 	core_cpu_nds7.controllers.audio.mem = &core_mmu;
@@ -139,6 +140,7 @@ void NTR_core::reset()
 	//Link LCD and MMU
 	core_cpu_nds9.controllers.video.mem = &core_mmu;
 	core_mmu.set_lcd_data(&core_cpu_nds9.controllers.video.lcd_stat);
+	core_mmu.set_lcd_3D_data(&core_cpu_nds9.controllers.video.lcd_3D_stat);
 
 	//Link APU and MMU
 	core_cpu_nds7.controllers.audio.mem = &core_mmu;

@@ -657,7 +657,16 @@ u8 NTR_MMU::read_u8(u32 address)
 		
 		if(access_mode) { return ((dma[3].control >> addr_shift) & 0xFF); }
 		else { return ((dma[7].control >> addr_shift) & 0xFF); }
-	} 
+	}
+
+	//Check for DISP3DCNT
+	else if((address & ~0x3) == NDS_DISP3DCNT)
+	{
+		u8 addr_shift = (address & 0x3) << 3;
+		
+		if(access_mode) { return ((lcd_3D_stat->display_control >> addr_shift) & 0xFF); }
+		else { return 0; }
+	}
 	
 	return memory_map[address];
 }
@@ -2102,6 +2111,17 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			}
 
 			break;
+
+		//3D Display Control
+		case NDS_DISP3DCNT:
+		case NDS_DISP3DCNT+1:
+		case NDS_DISP3DCNT+2:
+		case NDS_DISP3DCNT+3:
+			memory_map[address] = value;
+			lcd_3D_stat->display_control = ((memory_map[NDS_DISP3DCNT+3] << 24) | (memory_map[NDS_DISP3DCNT+2] << 16) | (memory_map[NDS_DISP3DCNT+1] << 8) | memory_map[NDS_DISP3DCNT]);
+
+			break;
+		
 
 		//DMA0 Start Address
 		case NDS_DMA0SAD:
@@ -4254,6 +4274,9 @@ void NTR_MMU::setup_default_firmware()
 	
 /****** Points the MMU to an lcd_data structure (FROM THE LCD ITSELF) ******/
 void NTR_MMU::set_lcd_data(ntr_lcd_data* ex_lcd_stat) { lcd_stat = ex_lcd_stat; }
+
+/****** Points the MMU to an lcd_3D_data structure (FROM THE LCD ITSELF) ******/
+void NTR_MMU::set_lcd_3D_data(ntr_lcd_3D_data* ex_lcd_3D_stat) { lcd_3D_stat = ex_lcd_3D_stat; }
 
 /****** Points the MMU to an apu_data structure (FROM THE APU ITSELF) ******/
 void NTR_MMU::set_apu_data(ntr_apu_data* ex_apu_stat) { apu_stat = ex_apu_stat; }

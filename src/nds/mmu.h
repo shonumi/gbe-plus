@@ -316,6 +316,7 @@ class NTR_MMU
 	u32 key_code_read_u32(u32 index);
 
 	void set_lcd_data(ntr_lcd_data* ex_lcd_stat);
+	void set_lcd_3D_data(ntr_lcd_3D_data* ex_lcd_3D_stat);
 	void set_apu_data(ntr_apu_data* ex_apu_stat);
 
 	void parse_header();
@@ -328,6 +329,9 @@ class NTR_MMU
 
 	//Only the MMU and LCD should communicate through this structure
 	ntr_lcd_data* lcd_stat;
+
+	//Only the MMU and LCD should communicate through this structure
+	ntr_lcd_3D_data* lcd_3D_stat;
 
 	//Only the MMU and APU should communicate through this structure
 	ntr_apu_data* apu_stat;

@@ -51,6 +51,7 @@ class NTR_LCD
 	u32 external_data_usage;
 
 	ntr_lcd_data lcd_stat;
+	ntr_lcd_3D_data lcd_3D_stat;
 
 	private:
 
