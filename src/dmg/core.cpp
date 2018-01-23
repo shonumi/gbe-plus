@@ -409,6 +409,11 @@ void DMG_core::run_core()
 							case GBC_FULL_CHANGER:
 								core_cpu.controllers.serial_io.full_changer_process();
 								break;
+
+							//Process TV Remote commnications
+							case GBC_TV_REMOTE:
+								core_cpu.controllers.serial_io.tv_remote_process();
+								break;
 						}
 					}
 				}
@@ -635,6 +640,11 @@ void DMG_core::step()
 						case GBC_FULL_CHANGER:
 							core_cpu.controllers.serial_io.full_changer_process();
 							break;
+
+						//Process TV Remote commnications
+						case GBC_TV_REMOTE:
+							core_cpu.controllers.serial_io.tv_remote_process();
+							break;
 					}
 				}
 			}
@@ -837,6 +847,7 @@ void DMG_core::handle_hotkey(SDL_Event& event)
 	//Initiate various communication functions
 	//Bardigun + Barcode Boy - Reswipe card
 	//Full Changer - Draw Cosmic Character
+	//TV Remote - Send signal
 	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F3))
 	{
 		switch(core_cpu.controllers.serial_io.sio_stat.sio_type)
@@ -865,9 +876,14 @@ void DMG_core::handle_hotkey(SDL_Event& event)
 
 		switch(core_cpu.controllers.serial_io.sio_stat.ir_type)
 		{
-			//Full Changer draw Cosmic Character
+			//Full Changer - Draw Cosmic Character
 			case GBC_FULL_CHANGER:
 				core_cpu.controllers.serial_io.full_changer.delay_counter = (core_cpu.controllers.serial_io.full_changer.current_character * 72);
+				core_mmu.ir_trigger = 1;
+				break;
+
+			//TV Remote - Send signal
+			case GBC_TV_REMOTE:
 				core_mmu.ir_trigger = 1;
 				break;
 		}
@@ -917,6 +933,7 @@ void DMG_core::handle_hotkey(int input, bool pressed)
 	//Initiate various communication functions
 	//Bardigun + Barcode Boy - Reswipe card
 	//Full Changer - Draw Cosmic Character
+	//TV Remote - Send Signal
 	else if((input == SDLK_F3) && (pressed))
 	{
 		switch(core_cpu.controllers.serial_io.sio_stat.sio_type)
@@ -948,6 +965,11 @@ void DMG_core::handle_hotkey(int input, bool pressed)
 			//Full Changer draw Cosmic Character
 			case GBC_FULL_CHANGER:
 				core_cpu.controllers.serial_io.full_changer.delay_counter = (core_cpu.controllers.serial_io.full_changer.current_character * 72);
+				core_mmu.ir_trigger = 1;
+				break;
+
+			//TV Remote - Send signal
+			case GBC_TV_REMOTE:
 				core_mmu.ir_trigger = 1;
 				break;
 		}

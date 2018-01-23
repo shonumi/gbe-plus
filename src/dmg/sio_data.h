@@ -33,6 +33,7 @@ enum ir_types
 	GBC_FULL_CHANGER,
 	GBC_POCKET_PIKACHU_2,
 	GBC_POCKET_SAKURA,
+	GBC_TV_REMOTE,
 };
 
 enum printer_state
@@ -82,6 +83,12 @@ enum full_changer_state
 {
 	FULL_CHANGER_INACTIVE,
 	FULL_CHANGER_SEND_SIGNAL,
+};
+
+enum tv_remote_state
+{
+	TV_REMOTE_INACTIVE,
+	TV_REMOTE_SEND_SIGNAL,
 };
 
 struct dmg_sio_data

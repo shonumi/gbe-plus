@@ -146,6 +146,16 @@ class DMG_SIO
 		full_changer_state current_state;
 	} full_changer;
 
+	//TV Remote
+	struct gb_tv_remote
+	{
+		std::vector<u16> data;
+		u32 delay_counter;
+		u8 current_data;
+		bool light_on;
+		tv_remote_state current_state;
+	} tv_remote;
+
 	//4 Player Adapter
 	struct gb_four_player_adapter
 	{
@@ -193,6 +203,8 @@ class DMG_SIO
 
 	void full_changer_process();
 	bool full_changer_load_db(std::string filename);
+
+	void tv_remote_process();
 
 	bool four_player_init();
 	void four_player_disconnect();

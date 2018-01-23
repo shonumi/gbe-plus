@@ -155,6 +155,9 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	ir_dev->setToolTip("Changes the emulated IR device that will communicate with the emulated Game Boy");
 	ir_dev->addItem("GBC IR Port");
 	ir_dev->addItem("Full Changer");
+	ir_dev->addItem("Pocket Pikachu 2");
+	ir_dev->addItem("Pocket Sakura");
+	ir_dev->addItem("TV Remote");
 
 	QHBoxLayout* ir_layout = new QHBoxLayout;
 	ir_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);

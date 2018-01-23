@@ -10,6 +10,7 @@
 // Emulates Gameboy-to-Gameboy data transfers
 
 #include <ctime>
+#include <cstdlib>
 
 #include "sio.h"
 #include "common/util.h"
@@ -291,6 +292,11 @@ void DMG_SIO::reset()
 			sio_stat.ir_type = GBC_POCKET_SAKURA;
 			break;
 
+		//TV Remote
+		case 0x4:
+			sio_stat.ir_type = GBC_TV_REMOTE;
+			break;
+
 		//Use standard GBC IR port communication as the default (GBE+ will ignore it for DMG games)
 		//Also, any invalid types are ignored
 		default:
@@ -351,6 +357,19 @@ void DMG_SIO::reset()
 	full_changer.current_character = 0;
 	full_changer.light_on = false;
 
+	//TV Remote
+	tv_remote.data.clear();
+	tv_remote.delay_counter = 0;
+	tv_remote.current_data = 0;
+	tv_remote.light_on = false;
+
+	srand(time(NULL));
+	for(int x = 0; x < 64; x++)
+	{
+		int random_data = (rand() % 64) + 64;
+		tv_remote.data.push_back(random_data);
+	}
+	
 	if(config::ir_device == 1)
 	{
 		std::string database = config::data_path + "zzh_db.bin";

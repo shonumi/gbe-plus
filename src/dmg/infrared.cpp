@@ -6,7 +6,7 @@
 // Date : August 07, 2017
 // Description : IR accessory emulation
 //
-// Emulates various IR accessories (Pocket Pikachu 2, Full Changer)
+// Emulates various IR accessories (Pocket Pikachu 2, Full Changer, Pocket Sakura, TV Remote)
 
 #include "sio.h"
 #include "common/util.h" 
@@ -84,4 +84,45 @@ bool DMG_SIO::full_changer_load_db(std::string filename)
 
 	std::cout<<"SIO::Loaded Full Changer database.\n";
 	return true;
+}
+
+/****** Processes TV Remote data sent to the Game Boy ******/
+void DMG_SIO::tv_remote_process()
+{
+	//Initiate IR transmission
+	if(mem->ir_trigger == 2)
+	{
+		mem->ir_trigger = 0;
+		tv_remote.current_data = 0;
+		tv_remote.current_state = TV_REMOTE_SEND_SIGNAL;
+		tv_remote.light_on = false;
+	}
+
+	if(tv_remote.current_state != TV_REMOTE_SEND_SIGNAL) { return; }
+
+	//Start or stop sending light pulse to Game Boy
+	if(tv_remote.light_on)
+	{
+		mem->memory_map[REG_RP] &= ~0x2;
+		tv_remote.light_on = false;
+	}
+
+	else
+	{
+		mem->memory_map[REG_RP] |= 0x2;
+		tv_remote.light_on = true;
+	}
+
+	//Schedule the next on-off pulse
+	if(tv_remote.current_data != tv_remote.data.size())
+	{
+		sio_stat.shift_counter = 0;
+		sio_stat.shift_clock = tv_remote.data[tv_remote.current_data];
+		sio_stat.shifts_left = 1;
+
+		//Set up next delay
+		tv_remote.current_data++;
+	}
+
+	else { tv_remote.current_state = TV_REMOTE_INACTIVE; }
 }
