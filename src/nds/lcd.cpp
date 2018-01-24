@@ -227,6 +227,13 @@ void NTR_LCD::reset()
 	}
 
 	lcd_3D_stat.display_control = 0;
+	lcd_3D_stat.current_gx_command = 0;
+	lcd_3D_stat.parameter_index = 0;
+	lcd_3D_stat.process_command = false;
+	lcd_3D_stat.packed_command = false;
+
+	//3D GFX command parameters
+	for(int x = 0; x < 32; x++) { lcd_3D_stat.command_parameters[x] = 0; }
 
 	//Initialize system screen dimensions
 	config::sys_width = 256;

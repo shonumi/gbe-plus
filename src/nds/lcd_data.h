@@ -175,6 +175,12 @@ struct ntr_lcd_data
 struct ntr_lcd_3D_data
 {
 	u32 display_control;
+
+	u8 current_gx_command;
+	u8 command_parameters[32];
+	u8 parameter_index;
+	bool process_command;
+	bool packed_command;
 };
 
 #endif // NDS_LCD_DATA

@@ -181,6 +181,9 @@ class NTR_MMU
 		u8 scr_y1, scr_y2;
 	} touchscreen;
 
+	//NDS9 3D GX FIFO
+	std::queue <u8> nds9_gx_fifo;
+
 	//Memory access timings (Nonsequential and Sequential)
 	u8 n_clock;
 	u8 s_clock;

@@ -778,6 +778,40 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 				address &= 0x400040F;
 			}
 
+			//Some 3D on NDS9 and sound on NDS7 share I/O addresses
+			//Process NDS9 stuff here
+			if((access_mode) && (address >= 0x4000400) && (address < 0x4000500))
+			{
+				switch(address)
+				{
+					//3D GX FIFO
+					case NDS_GXFIFO:
+					case NDS_GXFIFO+1:
+					case NDS_GXFIFO+2:
+					case NDS_GXFIFO+3:
+						
+						if(nds9_gx_fifo.size() == 1280) { nds9_gx_fifo.pop(); }
+						nds9_gx_fifo.push(value);
+
+						//Determine if new command is packed or unpacked
+						if((!lcd_3D_stat->process_command) && (address & 0x3))
+						{
+							lcd_3D_stat->packed_command = (value) ? true : false;
+							lcd_3D_stat->process_command = true;
+						}
+
+						//TODO - Break down parameters
+						//TODO - Actually process commands
+						
+						if((address & 0x3) == 0)
+						{
+							lcd_3D_stat->process_command = false;
+						}
+
+					break;
+				}
+			}
+
 			break;
 	}
 
@@ -2121,7 +2155,6 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			lcd_3D_stat->display_control = ((memory_map[NDS_DISP3DCNT+3] << 24) | (memory_map[NDS_DISP3DCNT+2] << 16) | (memory_map[NDS_DISP3DCNT+1] << 8) | memory_map[NDS_DISP3DCNT]);
 
 			break;
-		
 
 		//DMA0 Start Address
 		case NDS_DMA0SAD:
