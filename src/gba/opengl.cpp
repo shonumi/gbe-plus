@@ -20,7 +20,7 @@
 #include <ctime>
 
 #include "lcd.h"
-#include "common/ogl_util.h"
+#include "common/gx_util.h"
 
 /****** Initialize OpenGL through SDL ******/
 void AGB_LCD::opengl_init()
@@ -128,7 +128,7 @@ void AGB_LCD::opengl_init()
 	external_data_usage = 0;
 
 	//Load the shader
-	program_id = ogl_load_shader(config::vertex_shader, config::fragment_shader, external_data_usage);
+	program_id = gx_load_shader(config::vertex_shader, config::fragment_shader, external_data_usage);
 
 	if(program_id == -1) { std::cout<<"LCD::Error - Could not generate shaders\n"; }
 }

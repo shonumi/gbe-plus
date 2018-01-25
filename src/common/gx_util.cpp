@@ -2,12 +2,12 @@
 // Licensed under the GPLv2
 // See LICENSE.txt for full license text
 
-// File : ogl_util.cpp
+// File : gx_util.cpp
 // Date : August 08, 2016
 // Description : OpenGL math utilities
 //
-// Provides OpenGL math utilities such as matrix handling and transformations, vector stuff
-// Handles loading shaders
+// Provides 3D math utilities such as matrix handling and transformations, vector stuff
+// Handles OpenGL specific stuff like loading shaders
 
 #include <iostream>
 #include <fstream>
@@ -20,10 +20,10 @@
 #define GL_GLEXT_PROTOTYPES 1
 #endif
 
-#include "ogl_util.h"
+#include "gx_util.h"
 
 /****** OpenGL Vector Constructor ******/
-ogl_vector::ogl_vector()
+gx_vector::gx_vector()
 {
 	//When no arguments are given, generate a vector with 4 elements
 	data.resize(4, 0.0);
@@ -32,7 +32,7 @@ ogl_vector::ogl_vector()
 }
 
 /****** OpenGL Vector Constructor ******/
-ogl_vector::ogl_vector(u32 input_size)
+gx_vector::gx_vector(u32 input_size)
 {
 	data.resize(input_size, 0.0);
 
@@ -40,15 +40,15 @@ ogl_vector::ogl_vector(u32 input_size)
 }
 
 /****** OpenGL Vector Destructor ******/
-ogl_vector::~ogl_vector()
+gx_vector::~gx_vector()
 {
 	data.clear();
 }
 
 /****** OpenGL Vector addition operator ******/
-ogl_vector ogl_vector::operator+ (const ogl_vector &input_vector)
+gx_vector gx_vector::operator+ (const gx_vector &input_vector)
 {
-	ogl_vector output_vector(size);
+	gx_vector output_vector(size);
 
 	if(size == input_vector.size)
 	{
@@ -65,9 +65,9 @@ ogl_vector ogl_vector::operator+ (const ogl_vector &input_vector)
 }
 
 /****** OpenGL Vector subtraction operator ******/
-ogl_vector ogl_vector::operator- (const ogl_vector &input_vector)
+gx_vector gx_vector::operator- (const gx_vector &input_vector)
 {
-	ogl_vector output_vector(size);
+	gx_vector output_vector(size);
 
 	if(size == input_vector.size)
 	{
@@ -84,9 +84,9 @@ ogl_vector ogl_vector::operator- (const ogl_vector &input_vector)
 }
 
 /****** OpenGL Vector multiplication operator - Vector-Vector ******/
-ogl_vector ogl_vector::operator* (const ogl_vector &input_vector)
+gx_vector gx_vector::operator* (const gx_vector &input_vector)
 {
-	ogl_vector output_vector(size);
+	gx_vector output_vector(size);
 
 	if(size == input_vector.size)
 	{
@@ -103,9 +103,9 @@ ogl_vector ogl_vector::operator* (const ogl_vector &input_vector)
 }
 
 /****** OpenGL Vector multiplication operator - Scalar ******/
-ogl_vector operator* (float scalar, const ogl_vector &input_vector)
+gx_vector operator* (float scalar, const gx_vector &input_vector)
 {
-	ogl_vector output_vector(input_vector.size);
+	gx_vector output_vector(input_vector.size);
 
 	for(u32 x = 0; x < output_vector.size; x++) { output_vector.data[x] = input_vector.data[x] * scalar; }
 
@@ -113,9 +113,9 @@ ogl_vector operator* (float scalar, const ogl_vector &input_vector)
 }
 
 /****** OpenGL Vector multiplication operator - Scalar ******/
-ogl_vector operator* (const ogl_vector &input_vector, float scalar)
+gx_vector operator* (const gx_vector &input_vector, float scalar)
 {
-	ogl_vector output_vector(input_vector.size);
+	gx_vector output_vector(input_vector.size);
 
 	for(u32 x = 0; x < output_vector.size; x++) { output_vector.data[x] = input_vector.data[x] * scalar; }
 
@@ -123,19 +123,19 @@ ogl_vector operator* (const ogl_vector &input_vector, float scalar)
 }
 
 /****** OpenGL Vector bracket operator - Getter ******/
-float ogl_vector::operator[](u32 index) const
+float gx_vector::operator[](u32 index) const
 {
 	return data[index];
 }
 
 /****** OpenGL Vector bracket operator - Setter ******/
-float &ogl_vector::operator[](u32 index)
+float &gx_vector::operator[](u32 index)
 {
 	return data[index];
 }
 
 /****** OpenGL Matrix Constructor ******/
-ogl_matrix::ogl_matrix()
+gx_matrix::gx_matrix()
 {
 	//When no arguments are given, generate a 4x4 identity matrix
 	data.resize(4);
@@ -155,7 +155,7 @@ ogl_matrix::ogl_matrix()
 }
 
 /****** OpenGL Matrix Constructor ******/
-ogl_matrix::ogl_matrix(u32 input_columns, u32 input_rows)
+gx_matrix::gx_matrix(u32 input_columns, u32 input_rows)
 {
 	//Generate the columns
 	data.resize(input_columns);
@@ -171,13 +171,13 @@ ogl_matrix::ogl_matrix(u32 input_columns, u32 input_rows)
 }
 
 /****** OpenGL Matrix Destructor ******/
-ogl_matrix::~ogl_matrix()
+gx_matrix::~gx_matrix()
 {
 	data.clear();
 }
 
 /****** OpenGL Matrix multiplication operator - Matrix-Matrix ******/
-ogl_matrix ogl_matrix::operator*(const ogl_matrix &input_matrix)
+gx_matrix gx_matrix::operator*(const gx_matrix &input_matrix)
 {
 	//Determine if matrix can be multiplied
 	if(columns == input_matrix.rows)
@@ -186,7 +186,7 @@ ogl_matrix ogl_matrix::operator*(const ogl_matrix &input_matrix)
 		u32 output_rows = rows;
 		u32 output_columns = input_matrix.columns;
 
-		ogl_matrix output_matrix(output_columns, output_rows);
+		gx_matrix output_matrix(output_columns, output_rows);
 
 		//Find the dot product for all values in the new matrix
 		for(u32 y = 0; y < rows; y++)
@@ -210,16 +210,16 @@ ogl_matrix ogl_matrix::operator*(const ogl_matrix &input_matrix)
 	//Otherwise return an identity matrix
 	else
 	{
-		ogl_matrix output_matrix;
+		gx_matrix output_matrix;
 		return output_matrix;
 	}
 }
 
 /****** OpenGL Matrix multiplication operator - Matrix-Vector ******/
-ogl_vector operator* (const ogl_matrix &input_matrix, const ogl_vector &input_vector)
+gx_vector operator* (const gx_matrix &input_matrix, const gx_vector &input_vector)
 {
 	//IMPORTANT - Matrix * Vector = VECTOR
-	ogl_vector output_vector(input_vector.size);
+	gx_vector output_vector(input_vector.size);
 
 	//Determine if matrix can be multiplied
 	if(input_matrix.columns == input_vector.size)
@@ -248,9 +248,9 @@ ogl_vector operator* (const ogl_matrix &input_matrix, const ogl_vector &input_ve
 }
 
 /****** OpenGL Matrix multiplication operator - Scalar ******/
-ogl_matrix operator*(float scalar, const ogl_matrix &input_matrix)
+gx_matrix operator*(float scalar, const gx_matrix &input_matrix)
 {
-	ogl_matrix output_matrix(input_matrix.rows, input_matrix.columns);
+	gx_matrix output_matrix(input_matrix.rows, input_matrix.columns);
 
 	for(u32 y = 0; y < output_matrix.rows; y++)
 	{
@@ -265,9 +265,9 @@ ogl_matrix operator*(float scalar, const ogl_matrix &input_matrix)
 }
 
 /****** OpenGL Matrix multiplication operator - Scalar ******/
-ogl_matrix operator*(const ogl_matrix &input_matrix, float scalar)
+gx_matrix operator*(const gx_matrix &input_matrix, float scalar)
 {
-	ogl_matrix output_matrix(input_matrix.rows, input_matrix.columns);
+	gx_matrix output_matrix(input_matrix.rows, input_matrix.columns);
 
 	for(u32 y = 0; y < output_matrix.rows; y++)
 	{
@@ -282,21 +282,21 @@ ogl_matrix operator*(const ogl_matrix &input_matrix, float scalar)
 }
 
 /****** OpenGL Matrix bracket operator - Getter ******/
-std::vector<float> ogl_matrix::operator[](u32 index) const
+std::vector<float> gx_matrix::operator[](u32 index) const
 {
 	return data[index];
 }
 
 /****** OpenGL Matrix bracket operator - Setter ******/
-std::vector<float> &ogl_matrix::operator[](u32 index)
+std::vector<float> &gx_matrix::operator[](u32 index)
 {
 	return data[index];
 }
 
 /****** Generates an orthogonal projection matrix ******/
-ogl_matrix ortho_matrix(float width, float height, float z_far, float z_near)
+gx_matrix ortho_matrix(float width, float height, float z_far, float z_near)
 {
-	ogl_matrix output_matrix(4, 4);
+	gx_matrix output_matrix(4, 4);
 
 	output_matrix[0][0] = 2.0 / width;
 	output_matrix[3][0] = -1.0;
@@ -313,7 +313,7 @@ ogl_matrix ortho_matrix(float width, float height, float z_far, float z_near)
 }
 
 /****** Inverts a 2x2 matrix if applicable ******/
-bool ogl_matrix::invert_2x2()
+bool gx_matrix::invert_2x2()
 {
 	//Check matrix size first - Do nothing if this is not a 2x2 matrix
 	if((rows != 2) || (columns != 2)) { return false; }
@@ -344,7 +344,7 @@ bool ogl_matrix::invert_2x2()
 }
 
 /****** Clears all of the matrix data (sets everything to zero) ******/
-void ogl_matrix::clear()
+void gx_matrix::clear()
 {
 	//This does not delete the matrix, just the data inside
 	for(u32 y = 0; y < rows; y++)
@@ -357,7 +357,7 @@ void ogl_matrix::clear()
 }
 
 /****** Loads and compiles GLSL vertex and fragment shaders ******/
-GLuint ogl_load_shader(std::string vertex_shader_file, std::string fragment_shader_file, u32 &ext_data_usage)
+GLuint gx_load_shader(std::string vertex_shader_file, std::string fragment_shader_file, u32 &ext_data_usage)
 {
 	GLuint vertex_shader_id = glCreateShader(GL_VERTEX_SHADER);
 	GLuint fragment_shader_id = glCreateShader(GL_FRAGMENT_SHADER);

@@ -20,7 +20,7 @@
 
 #include "screens.h"
 #include "render.h"
-#include "common/ogl_util.h"
+#include "common/gx_util.h"
 
 /****** Software screen constructor ******/
 soft_screen::soft_screen(QWidget *parent) : QWidget(parent) { }
@@ -178,7 +178,7 @@ void hard_screen::initializeGL()
 	external_data_usage = 0;
 
 	//Load the shader
-	program_id = ogl_load_shader(config::vertex_shader, config::fragment_shader, external_data_usage);
+	program_id = gx_load_shader(config::vertex_shader, config::fragment_shader, external_data_usage);
 
 	if(program_id == -1) { std::cout<<"LCD::Error - Could not generate shaders\n"; }
 }
@@ -290,7 +290,7 @@ void hard_screen::resizeEvent(QResizeEvent* event)
 /****** Reloads fragment and vertex shaders ******/
 void hard_screen::reload_shaders()
 {
-	program_id = ogl_load_shader(config::vertex_shader, config::fragment_shader, external_data_usage);
+	program_id = gx_load_shader(config::vertex_shader, config::fragment_shader, external_data_usage);
 }
 
 /****** Calculates aspect ratio or stretched ******/

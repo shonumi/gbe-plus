@@ -12,6 +12,7 @@
 #include "SDL2/SDL.h"
 #include "SDL2/SDL_opengl.h"
 #include "mmu.h"
+#include "common/gx_util.h"
 
 #ifndef NDS_LCD
 #define NDS_LCD
@@ -139,6 +140,10 @@ class NTR_LCD
 	u8 inv_lut[8];
 	u16 screen_offset_lut[512];
 
+	//3D Polygons
+	std::vector<gx_matrix> gx_triangles;
+	std::vector<gx_matrix> gx_quads;
+
 	void render_scanline();
 	void render_bg_scanline(u32 bg_control);
 	void render_bg_mode_text(u32 bg_control);
@@ -149,6 +154,7 @@ class NTR_LCD
 	void render_obj_scanline(u32 bg_control);
 	void scanline_compare();
 	void reload_affine_references(u32 bg_control);
+	void render_3D();
 };
 
 #endif // NDS_LCD

@@ -229,11 +229,16 @@ void NTR_LCD::reset()
 	lcd_3D_stat.display_control = 0;
 	lcd_3D_stat.current_gx_command = 0;
 	lcd_3D_stat.parameter_index = 0;
+	lcd_3D_stat.buffer_id = 0;
+	lcd_3D_stat.gx_state = 0;
 	lcd_3D_stat.process_command = false;
 	lcd_3D_stat.packed_command = false;
 
 	//3D GFX command parameters
 	for(int x = 0; x < 32; x++) { lcd_3D_stat.command_parameters[x] = 0; }
+
+	gx_triangles.clear();
+	gx_quads.clear();
 
 	//Initialize system screen dimensions
 	config::sys_width = 256;
@@ -719,6 +724,16 @@ void NTR_LCD::render_bg_scanline(u32 bg_control)
 		{
 			bg_id = bg_render_list[x];
 			bg_control = NDS_BG0CNT_A + (bg_id << 1);
+
+			//Render 3D first
+			if((bg_id == 0) && (lcd_stat.display_control_a & 0x8))
+			{
+				render_3D();
+				x++;
+
+				bg_id = bg_render_list[x];
+				bg_control = NDS_BG0CNT_A + (bg_id << 1);
+			}
 
 			switch(lcd_stat.bg_mode_a)
 			{
@@ -2541,6 +2556,15 @@ void NTR_LCD::step()
 {
 	lcd_stat.lcd_clock++;
 
+	//Process GX commands and states
+	if(lcd_3D_stat.process_command)
+	{
+		//TODO - Process individual commands here
+		lcd_3D_stat.parameter_index = 0;
+		lcd_3D_stat.current_gx_command = 0;
+		lcd_3D_stat.process_command = false;
+	}
+
 	//Mode 0 - Scanline rendering
 	if(((lcd_stat.lcd_clock % 2130) <= 1536) && (lcd_stat.lcd_clock < 408960)) 
 	{
@@ -2784,6 +2808,13 @@ void NTR_LCD::step()
 				lcd_stat.lcd_clock -= 560190;
 				lcd_stat.current_scanline = 0xFFFF;
 			}
+		}
+
+		//3D - Swap Buffers command
+		if((lcd_3D_stat.gx_state & 0x80) && (lcd_stat.display_stat_a & 0x1))
+		{
+			lcd_3D_stat.buffer_id += 1;
+			lcd_3D_stat.buffer_id &= 0x1;
 		}
 	}
 }

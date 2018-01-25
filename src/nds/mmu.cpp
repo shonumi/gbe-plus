@@ -780,7 +780,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 			//Some 3D on NDS9 and sound on NDS7 share I/O addresses
 			//Process NDS9 stuff here
-			if((access_mode) && (address >= 0x4000400) && (address < 0x4000500))
+			if((access_mode) && (address >= 0x4000400) && (address < 0x4000520))
 			{
 				switch(address)
 				{
@@ -809,6 +809,47 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 						}
 
 					break;
+
+					//VTX_16
+					case 0x400048C:
+					case 0x400048D:
+					case 0x400048E:
+					case 0x400048F:
+						std::cout<<"GX - VTX_16\n";
+						lcd_3D_stat->current_gx_command = 0x23;
+						lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = value;
+						if(lcd_3D_stat->parameter_index == 8) { lcd_3D_stat->process_command = true; }
+
+						break;
+
+					//BEGIN_VTXS
+					case 0x4000500:
+					case 0x4000501:
+					case 0x4000502:
+					case 0x4000503:
+						std::cout<<"GX - BEGIN_VTXS -> " << (value & 0x3) << "\n";
+						lcd_3D_stat->current_gx_command = 0x40;
+						lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = value;
+						if(lcd_3D_stat->parameter_index == 4) { lcd_3D_stat->process_command = true; }
+						
+						break;
+
+					//END_VTXS
+					case 0x4000504:
+					case 0x4000505:
+					case 0x4000506:
+					case 0x4000507:
+						lcd_3D_stat->current_gx_command = 0x41;
+						lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = value;
+						if(lcd_3D_stat->parameter_index == 4) { lcd_3D_stat->process_command = true; }
+						std::cout<<"GX - END_VTXS\n";
+						break;
+
+					//SWAP_BUFFERS
+					case 0x4000540:
+						std::cout<<"GX - SWAP BUFFERS\n";
+						lcd_3D_stat->gx_state |= 0x80;
+						break;
 				}
 			}
 

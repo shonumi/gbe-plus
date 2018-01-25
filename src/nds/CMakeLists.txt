@@ -18,6 +18,7 @@ set(SRCS
 	gamecard.cpp
 	apu.cpp
 	debug.cpp
+	gx_render.cpp
 	)
 
 set(HEADERS
