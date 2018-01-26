@@ -234,6 +234,11 @@ void NTR_LCD::reset()
 	lcd_3D_stat.process_command = false;
 	lcd_3D_stat.packed_command = false;
 
+	lcd_3D_stat.view_port_x1 = 0;
+	lcd_3D_stat.view_port_x2 = 0;
+	lcd_3D_stat.view_port_y1 = 0;
+	lcd_3D_stat.view_port_y2 = 0;
+
 	//3D GFX command parameters
 	for(int x = 0; x < 32; x++) { lcd_3D_stat.command_parameters[x] = 0; }
 
@@ -2557,13 +2562,7 @@ void NTR_LCD::step()
 	lcd_stat.lcd_clock++;
 
 	//Process GX commands and states
-	if(lcd_3D_stat.process_command)
-	{
-		//TODO - Process individual commands here
-		lcd_3D_stat.parameter_index = 0;
-		lcd_3D_stat.current_gx_command = 0;
-		lcd_3D_stat.process_command = false;
-	}
+	if(lcd_3D_stat.process_command) { process_gx_command(); }
 
 	//Mode 0 - Scanline rendering
 	if(((lcd_stat.lcd_clock % 2130) <= 1536) && (lcd_stat.lcd_clock < 408960)) 

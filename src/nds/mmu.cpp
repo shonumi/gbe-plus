@@ -850,6 +850,16 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 						std::cout<<"GX - SWAP BUFFERS\n";
 						lcd_3D_stat->gx_state |= 0x80;
 						break;
+
+					//VIEWPORT
+					case 0x4000580:
+					case 0x4000581:
+					case 0x4000582:
+					case 0x4000583:
+						lcd_3D_stat->current_gx_command = 0x60;
+						lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = value;
+						if(lcd_3D_stat->parameter_index == 4) { lcd_3D_stat->process_command = true; }
+						break;
 				}
 			}
 

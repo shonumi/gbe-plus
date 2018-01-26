@@ -183,6 +183,11 @@ struct ntr_lcd_3D_data
 	u8 gx_state;
 	bool process_command;
 	bool packed_command;
+
+	u8 view_port_x1;
+	u8 view_port_x2;
+	u8 view_port_y1;
+	u8 view_port_y2;
 };
 
 #endif // NDS_LCD_DATA
