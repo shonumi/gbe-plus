@@ -60,7 +60,7 @@ class gx_matrix
 	gx_matrix operator* (const gx_matrix &input_matrix);
 
 	//Matrix 2x2 Inversion
-	bool invert_2x2();	
+	bool invert_2x2();
 
 	//Access matrix data
 	std::vector<float> operator[](u32 index) const;
@@ -68,6 +68,7 @@ class gx_matrix
 
 	void clear();
 	void resize(u32 input_columns, u32 input_rows);
+	void make_identity(u32 size);	
 
 	u32 rows;
 	u32 columns;

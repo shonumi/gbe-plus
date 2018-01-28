@@ -343,6 +343,16 @@ bool gx_matrix::invert_2x2()
 	return true;
 }
 
+/****** Makes an identity matrix of a given size ******/
+void gx_matrix::make_identity(u32 size)
+{
+	if(!size) { return; }
+
+	resize(size, size);
+
+	for(int x < size; x++) { data[x][x] = 1.0; }
+}
+
 /****** Clears all of the matrix data (sets everything to zero) ******/
 void gx_matrix::clear()
 {
@@ -359,6 +369,8 @@ void gx_matrix::clear()
 /****** Clears a matrix and resizes to given dimensions ******/
 void gx_matrix::resize(u32 input_columns, u32 input_rows)
 {
+	if(!input_columns || !input_rows) { return; }
+
 	data.resize(input_columns);
 
 	for(u32 x = 0; x < input_columns; x++) { data[x].resize(input_rows, 0.0); }
