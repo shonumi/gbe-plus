@@ -144,6 +144,15 @@ class NTR_LCD
 	std::vector<gx_matrix> gx_triangles;
 	std::vector<gx_matrix> gx_quads;
 
+	//Matrix Stacks
+	std::vector<gx_matrix> gx_projection_stack;
+
+	//Matrices
+	gx_matrix gx_projection_matrix;
+	gx_matrix gx_position_matrix;
+	gx_matrix gx_position_vector_matrix;
+	gx_matrix gx_texture_matrix;
+
 	void render_scanline();
 	void render_bg_scanline(u32 bg_control);
 	void render_bg_mode_text(u32 bg_control);

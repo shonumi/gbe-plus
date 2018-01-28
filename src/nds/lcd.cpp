@@ -244,8 +244,15 @@ void NTR_LCD::reset()
 	//3D GFX command parameters
 	for(int x = 0; x < 32; x++) { lcd_3D_stat.command_parameters[x] = 0; }
 
+	//Polygon vertices
 	gx_triangles.clear();
 	gx_quads.clear();
+
+	//GX Matrices
+	gx_projection_matrix.resize(4, 4);
+	gx_position_matrix.resize(4, 4);
+	gx_position_vector_matrix.resize(4, 4);
+	gx_texture_matrix.resize(4, 4);
 
 	//Initialize system screen dimensions
 	config::sys_width = 256;

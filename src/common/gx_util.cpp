@@ -350,7 +350,7 @@ void gx_matrix::make_identity(u32 size)
 
 	resize(size, size);
 
-	for(int x < size; x++) { data[x][x] = 1.0; }
+	for(int x = 0; x < size; x++) { data[x][x] = 1.0; }
 }
 
 /****** Clears all of the matrix data (sets everything to zero) ******/

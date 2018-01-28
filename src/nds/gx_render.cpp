@@ -27,6 +27,18 @@ void NTR_LCD::process_gx_command()
 			lcd_3D_stat.matrix_mode = (lcd_3D_stat.command_parameters[0] & 0x3);
 			break;
 
+		//MTX_IDENTITY:
+		case 0x15:
+			switch(lcd_3D_stat.matrix_mode)
+			{
+				case 0x0: gx_projection_matrix.make_identity(4); break;
+				case 0x1: gx_position_matrix.make_identity(4); break;
+				case 0x2: gx_position_vector_matrix.make_identity(4); break;
+				case 0x3: gx_texture_matrix.make_identity(4); break;
+			}
+
+			break;
+
 		//VIEWPORT
 		case 0x60:
 			lcd_3D_stat.view_port_y2 = (lcd_3D_stat.command_parameters[0] & 0xBF);
