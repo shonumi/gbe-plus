@@ -67,6 +67,7 @@ class gx_matrix
 	std::vector<float> &operator[](u32 index);
 
 	void clear();
+	void resize(u32 input_columns, u32 input_rows);
 
 	u32 rows;
 	u32 columns;

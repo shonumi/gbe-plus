@@ -356,6 +356,17 @@ void gx_matrix::clear()
 	}
 }
 
+/****** Clears a matrix and resizes to given dimensions ******/
+void gx_matrix::resize(u32 input_columns, u32 input_rows)
+{
+	data.resize(input_columns);
+
+	for(u32 x = 0; x < input_columns; x++) { data[x].resize(input_rows, 0.0); }
+
+	columns = input_columns;
+	rows = input_rows;
+}
+
 /****** Loads and compiles GLSL vertex and fragment shaders ******/
 GLuint gx_load_shader(std::string vertex_shader_file, std::string fragment_shader_file, u32 &ext_data_usage)
 {
