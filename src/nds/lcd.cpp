@@ -239,6 +239,8 @@ void NTR_LCD::reset()
 	lcd_3D_stat.view_port_y1 = 0;
 	lcd_3D_stat.view_port_y2 = 0;
 
+	lcd_3D_stat.matrix_mode = 0;
+
 	//3D GFX command parameters
 	for(int x = 0; x < 32; x++) { lcd_3D_stat.command_parameters[x] = 0; }
 

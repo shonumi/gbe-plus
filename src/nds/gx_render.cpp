@@ -22,11 +22,16 @@ void NTR_LCD::process_gx_command()
 {
 	switch(lcd_3D_stat.current_gx_command)
 	{
+		//MTX_MODE
+		case 0x10:
+			lcd_3D_stat.matrix_mode = (lcd_3D_stat.command_parameters[0] & 0x3);
+			break;
+
 		//VIEWPORT
 		case 0x60:
-			lcd_3D_stat.view_port_y2 = lcd_3D_stat.command_parameters[0];
+			lcd_3D_stat.view_port_y2 = (lcd_3D_stat.command_parameters[0] & 0xBF);
 			lcd_3D_stat.view_port_x2 = lcd_3D_stat.command_parameters[1];
-			lcd_3D_stat.view_port_y1 = lcd_3D_stat.command_parameters[2];
+			lcd_3D_stat.view_port_y1 = (lcd_3D_stat.command_parameters[2] & 0xBF);
 			lcd_3D_stat.view_port_x1 = lcd_3D_stat.command_parameters[3];
 			break;
 	}
