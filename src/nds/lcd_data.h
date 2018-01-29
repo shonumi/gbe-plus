@@ -177,7 +177,7 @@ struct ntr_lcd_3D_data
 	u32 display_control;
 
 	u8 current_gx_command;
-	u8 command_parameters[32];
+	u8 command_parameters[128];
 	u8 parameter_index;
 	u8 buffer_id;
 	u8 gx_state;

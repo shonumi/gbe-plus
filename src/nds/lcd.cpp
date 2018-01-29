@@ -242,7 +242,7 @@ void NTR_LCD::reset()
 	lcd_3D_stat.matrix_mode = 0;
 
 	//3D GFX command parameters
-	for(int x = 0; x < 32; x++) { lcd_3D_stat.command_parameters[x] = 0; }
+	for(int x = 0; x < 128; x++) { lcd_3D_stat.command_parameters[x] = 0; }
 
 	//Polygon vertices
 	gx_triangles.clear();
