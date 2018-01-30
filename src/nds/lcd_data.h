@@ -190,6 +190,8 @@ struct ntr_lcd_3D_data
 	u8 view_port_y2;
 
 	u8 matrix_mode;
+	u8 vertex_mode;
+	u8 vertex_list_index;
 };
 
 #endif // NDS_LCD_DATA

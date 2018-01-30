@@ -45,7 +45,7 @@ void NTR_LCD::process_gx_command()
 		case 0x18:
 			for(int a = 0; a < 64;)
 			{
-				u32 raw_value = lcd_3D_stat.command_parameters[a] | (lcd_3D_stat.command_parameters[a+1] << 8) | (lcd_3D_stat.command_parameters[a+2] << 16) | (lcd_3D_stat.command_parameters[a+3] << 24);
+				u32 raw_value = lcd_3D_stat.command_parameters[a+3] | (lcd_3D_stat.command_parameters[a+2] << 8) | (lcd_3D_stat.command_parameters[a+1] << 16) | (lcd_3D_stat.command_parameters[a] << 24);
 				float result = 0.0;
 				
 				if(raw_value & 0x80000000) 
@@ -56,7 +56,7 @@ void NTR_LCD::process_gx_command()
 				}
 
 				else { result = (raw_value >> 12); }
-				if((raw_value & 0x7FFFF) != 0) { result += (raw_value & 0xFFF) / 4096.0; }
+				if((raw_value & 0xFFF) != 0) { result += (raw_value & 0xFFF) / 4096.0; }
 
 				u8 x = ((a / 4) % 4);
 				u8 y = (a / 16);
@@ -81,7 +81,7 @@ void NTR_LCD::process_gx_command()
 
 			for(int a = 0; a < 48;)
 			{
-				u32 raw_value = lcd_3D_stat.command_parameters[a] | (lcd_3D_stat.command_parameters[a+1] << 8) | (lcd_3D_stat.command_parameters[a+2] << 16) | (lcd_3D_stat.command_parameters[a+3] << 24);
+				u32 raw_value = lcd_3D_stat.command_parameters[a+3] | (lcd_3D_stat.command_parameters[a+2] << 8) | (lcd_3D_stat.command_parameters[a+1] << 16) | (lcd_3D_stat.command_parameters[a] << 24);
 				float result = 0.0;
 				
 				if(raw_value & 0x80000000) 
@@ -92,7 +92,7 @@ void NTR_LCD::process_gx_command()
 				}
 
 				else { result = (raw_value >> 12); }
-				if((raw_value & 0x7FFFF) != 0) { result += (raw_value & 0xFFF) / 4096.0; }
+				if((raw_value & 0xFFF) != 0) { result += (raw_value & 0xFFF) / 4096.0; }
 
 				u8 x = ((a / 4) % 3);
 				u8 y = (a / 12);
@@ -117,7 +117,7 @@ void NTR_LCD::process_gx_command()
 
 			for(int a = 0; a < 36;)
 			{
-				u32 raw_value = lcd_3D_stat.command_parameters[a] | (lcd_3D_stat.command_parameters[a+1] << 8) | (lcd_3D_stat.command_parameters[a+2] << 16) | (lcd_3D_stat.command_parameters[a+3] << 24);
+				u32 raw_value = lcd_3D_stat.command_parameters[a+3] | (lcd_3D_stat.command_parameters[a+2] << 8) | (lcd_3D_stat.command_parameters[a+1] << 16) | (lcd_3D_stat.command_parameters[a] << 24);
 				float result = 0.0;
 				
 				if(raw_value & 0x80000000) 
@@ -128,7 +128,7 @@ void NTR_LCD::process_gx_command()
 				}
 
 				else { result = (raw_value >> 12); }
-				if((raw_value & 0x7FFFF) != 0) { result += (raw_value & 0xFFF) / 4096.0; }
+				if((raw_value & 0xFFF) != 0) { result += (raw_value & 0xFFF) / 4096.0; }
 
 				u8 x = ((a / 4) % 2);
 				u8 y = (a / 12);
@@ -145,6 +145,81 @@ void NTR_LCD::process_gx_command()
 				case 0x3: gx_texture_matrix = temp_matrix * gx_texture_matrix; break;
 			}
 
+			break;
+
+		//VTX_16
+		case 0x23:
+			//Push new polygon if necessary
+			if(lcd_3D_stat.vertex_list_index == 0)
+			{
+				switch(lcd_3D_stat.vertex_mode)
+				{
+					//Triangles
+					case 0x0:
+						temp_matrix.resize(3, 3);
+						gx_triangles.push_back(temp_matrix);
+						break;
+
+					//Quads
+					case 0x1:
+						temp_matrix.resize(4, 4);
+						gx_quads.push_back(temp_matrix);
+						break;
+				}
+			}
+
+			{
+				float temp_result[4];
+				u8 list_size = 0;
+
+				for(int a = 0; a < 8;)
+				{
+					u16 raw_value = lcd_3D_stat.command_parameters[a+2] | (lcd_3D_stat.command_parameters[a] << 8);
+					float result = 0.0;
+				
+					if(raw_value & 0x8000) 
+					{ 
+						u16 p = ((raw_value >> 12) - 1);
+						p = (~p & 0x7);
+						result = -1.0 * p;
+					}
+
+					else { result = (raw_value >> 12); }
+					if((raw_value & 0xFFF) != 0) { result += (raw_value & 0xFFF) / 4096.0; }
+
+					temp_result[a/2] = result;
+					a += 2;
+				}
+
+				switch(lcd_3D_stat.vertex_mode)
+				{
+					//Triangles
+					case 0x0:
+						gx_triangles.back().data[lcd_3D_stat.vertex_list_index][0] = temp_result[1];
+						gx_triangles.back().data[lcd_3D_stat.vertex_list_index][1] = temp_result[0];
+						gx_triangles.back().data[lcd_3D_stat.vertex_list_index][2] = temp_result[3];
+						list_size = 3;
+						break;
+
+					//Quads
+					case 0x1:
+						gx_quads.back().data[lcd_3D_stat.vertex_list_index][0] = temp_result[1];
+						gx_quads.back().data[lcd_3D_stat.vertex_list_index][1] = temp_result[0];
+						gx_quads.back().data[lcd_3D_stat.vertex_list_index][2] = temp_result[3];
+						list_size = 4;
+						break;
+
+				}
+
+				lcd_3D_stat.vertex_list_index++;
+				if(lcd_3D_stat.vertex_list_index == list_size) { lcd_3D_stat.vertex_list_index = 0; }
+			}
+
+			break;
+
+		//BEGIN_VTXS:
+		case 0x40:
+			lcd_3D_stat.vertex_mode = (lcd_3D_stat.command_parameters[3] & 0x3);
 			break;
 
 		//VIEWPORT

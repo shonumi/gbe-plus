@@ -240,6 +240,8 @@ void NTR_LCD::reset()
 	lcd_3D_stat.view_port_y2 = 0;
 
 	lcd_3D_stat.matrix_mode = 0;
+	lcd_3D_stat.vertex_mode = 0;
+	lcd_3D_stat.vertex_list_index = 0;
 
 	//3D GFX command parameters
 	for(int x = 0; x < 128; x++) { lcd_3D_stat.command_parameters[x] = 0; }
@@ -2823,6 +2825,13 @@ void NTR_LCD::step()
 		{
 			lcd_3D_stat.buffer_id += 1;
 			lcd_3D_stat.buffer_id &= 0x1;
+			lcd_3D_stat.vertex_list_index = 0;
+
+			std::cout<<"SWAP\n";
+
+			//Clear polygons (and vertices as well)
+			gx_triangles.clear();
+			gx_quads.clear();
 		}
 	}
 }
