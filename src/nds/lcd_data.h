@@ -192,6 +192,8 @@ struct ntr_lcd_3D_data
 	u8 matrix_mode;
 	u8 vertex_mode;
 	u8 vertex_list_index;
+
+	u32 rear_plane_color;
 };
 
 #endif // NDS_LCD_DATA

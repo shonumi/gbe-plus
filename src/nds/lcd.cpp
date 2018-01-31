@@ -48,6 +48,7 @@ void NTR_LCD::reset()
 	window = NULL;
 
 	screen_buffer.clear();
+	gx_screen_buffer.clear();
 
 	scanline_buffer_a.clear();
 	scanline_buffer_b.clear();
@@ -71,6 +72,7 @@ void NTR_LCD::reset()
 
 	//Screen + render buffer initialization
 	screen_buffer.resize(0x18000, 0);
+	gx_screen_buffer.resize(0xC000, 0);
 
 	scanline_buffer_a.resize(0x100, 0);
 	scanline_buffer_b.resize(0x100, 0);
@@ -242,6 +244,8 @@ void NTR_LCD::reset()
 	lcd_3D_stat.matrix_mode = 0;
 	lcd_3D_stat.vertex_mode = 0;
 	lcd_3D_stat.vertex_list_index = 0;
+
+	lcd_3D_stat.rear_plane_color = 0;
 
 	//3D GFX command parameters
 	for(int x = 0; x < 128; x++) { lcd_3D_stat.command_parameters[x] = 0; }
@@ -2826,12 +2830,15 @@ void NTR_LCD::step()
 			lcd_3D_stat.buffer_id += 1;
 			lcd_3D_stat.buffer_id &= 0x1;
 			lcd_3D_stat.vertex_list_index = 0;
-
-			std::cout<<"SWAP\n";
+			lcd_3D_stat.gx_state &= ~0x80;
 
 			//Clear polygons (and vertices as well)
 			gx_triangles.clear();
 			gx_quads.clear();
+
+			//Clear 3D buffer and fill with rear plane
+			gx_screen_buffer.clear();
+			gx_screen_buffer.resize(0xC000, lcd_3D_stat.rear_plane_color);
 		}
 	}
 }

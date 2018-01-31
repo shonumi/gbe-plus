@@ -122,6 +122,7 @@ class NTR_LCD
 	std::vector<u32> scanline_buffer_a;
 	std::vector<u32> scanline_buffer_b;
 	std::vector<u32> screen_buffer;
+	std::vector<u32> gx_screen_buffer;
 
 	//Render buffer
 	std::vector<u8> render_buffer_a;

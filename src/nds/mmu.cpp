@@ -921,22 +921,6 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 						if(lcd_3D_stat->parameter_index == 4) { lcd_3D_stat->process_command = true; }
 						std::cout<<"GX - END_VTXS\n";
 						break;
-
-					//SWAP_BUFFERS
-					case 0x4000540:
-						std::cout<<"GX - SWAP BUFFERS\n";
-						lcd_3D_stat->gx_state |= 0x80;
-						break;
-
-					//VIEWPORT
-					case 0x4000580:
-					case 0x4000581:
-					case 0x4000582:
-					case 0x4000583:
-						lcd_3D_stat->current_gx_command = 0x60;
-						lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = value;
-						if(lcd_3D_stat->parameter_index == 4) { lcd_3D_stat->process_command = true; }
-						break;
 				}
 			}
 
@@ -3688,6 +3672,54 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		case NDS_SOUNDCNT + 2:
 		case NDS_SOUNDCNT + 3:
 			return;
+
+		//GX - CLEAR_COLOR
+		case 0x4000350:
+		case 0x4000351:
+		case 0x4000352:
+		case 0x4000353:
+			if(access_mode)
+			{
+				memory_map[address] = value;
+
+				u16 color_bytes = (memory_map[0x4000351] << 8) | memory_map[0x4000350];
+
+				u8 red = ((color_bytes & 0x1F) << 3);
+				color_bytes >>= 5;
+
+				u8 green = ((color_bytes & 0x1F) << 3);
+				color_bytes >>= 5;
+
+				u8 blue = ((color_bytes & 0x1F) << 3);
+
+				lcd_3D_stat->rear_plane_color = 0xFF000000 | (red << 16) | (green << 8) | (blue);
+			}
+
+			break;
+
+		//SWAP_BUFFERS
+		case 0x4000540:
+			if(access_mode)
+			{
+				std::cout<<"GX - SWAP BUFFERS\n";
+				lcd_3D_stat->gx_state |= 0x80;
+			}
+
+			break;
+
+		//VIEWPORT
+		case 0x4000580:
+		case 0x4000581:
+		case 0x4000582:
+		case 0x4000583:
+			if(access_mode)
+			{
+				lcd_3D_stat->current_gx_command = 0x60;
+				lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = value;
+				if(lcd_3D_stat->parameter_index == 4) { lcd_3D_stat->process_command = true; }
+			}
+			
+			break;
 			
 		default:
 			memory_map[address] = value;

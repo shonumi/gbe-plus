@@ -15,7 +15,24 @@
 
 void NTR_LCD::render_3D()
 {
+	u8 bg_priority = lcd_stat.bg_priority_a[0] + 1;
 
+	//Abort rendering if this BG is disabled
+	if(!lcd_stat.bg_enable_a[0]) { return; }
+
+	//Abort rendering if BGs with high priority have already completely rendered a scanline
+	if(full_scanline_render_a) { return; }
+
+	bool full_render = true;
+
+	//Push 3D screen buffer data to scanline buffer
+	u16 gx_index = (256 * lcd_stat.current_scanline);
+
+	for(u32 x = 0; x < 256; x++)
+	{
+		scanline_buffer_a[x] = gx_screen_buffer[gx_index + x];
+		render_buffer_a[x] = bg_priority;
+	} 
 }
 
 void NTR_LCD::process_gx_command()
