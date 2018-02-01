@@ -235,6 +235,7 @@ void NTR_LCD::reset()
 	lcd_3D_stat.gx_state = 0;
 	lcd_3D_stat.process_command = false;
 	lcd_3D_stat.packed_command = false;
+	lcd_3D_stat.render_polygon = false;
 
 	lcd_3D_stat.view_port_x1 = 0;
 	lcd_3D_stat.view_port_x2 = 0;
@@ -2782,6 +2783,24 @@ void NTR_LCD::step()
 					
 				if(config::sdl_render) { config::request_resize = false; }
 			}
+
+			//3D - Swap Buffers command
+			if((lcd_3D_stat.gx_state & 0x80) && (lcd_stat.display_stat_a & 0x1))
+			{
+				lcd_3D_stat.buffer_id += 1;
+				lcd_3D_stat.buffer_id &= 0x1;
+				lcd_3D_stat.vertex_list_index = 0;
+				lcd_3D_stat.gx_state &= ~0x80;
+				lcd_3D_stat.render_polygon = false;
+
+				//Clear polygons (and vertices as well)
+				gx_triangles.clear();
+				gx_quads.clear();
+
+				//Clear 3D buffer and fill with rear plane
+				gx_screen_buffer.clear();
+				gx_screen_buffer.resize(0xC000, lcd_3D_stat.rear_plane_color);
+			}
 		}
 
 		//Increment scanline after HBlank starts
@@ -2822,23 +2841,6 @@ void NTR_LCD::step()
 				lcd_stat.lcd_clock -= 560190;
 				lcd_stat.current_scanline = 0xFFFF;
 			}
-		}
-
-		//3D - Swap Buffers command
-		if((lcd_3D_stat.gx_state & 0x80) && (lcd_stat.display_stat_a & 0x1))
-		{
-			lcd_3D_stat.buffer_id += 1;
-			lcd_3D_stat.buffer_id &= 0x1;
-			lcd_3D_stat.vertex_list_index = 0;
-			lcd_3D_stat.gx_state &= ~0x80;
-
-			//Clear polygons (and vertices as well)
-			gx_triangles.clear();
-			gx_quads.clear();
-
-			//Clear 3D buffer and fill with rear plane
-			gx_screen_buffer.clear();
-			gx_screen_buffer.resize(0xC000, lcd_3D_stat.rear_plane_color);
 		}
 	}
 }

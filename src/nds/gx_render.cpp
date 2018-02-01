@@ -25,6 +25,33 @@ void NTR_LCD::render_3D()
 
 	bool full_render = true;
 
+	//Software rendering of polygons
+	//Triangles only atm
+	if(lcd_3D_stat.render_polygon)
+	{
+		//Calculate origin coordinates based on viewport dimensions
+		u8 origin_x = (lcd_3D_stat.view_port_x2 - lcd_3D_stat.view_port_x1) / 2;
+		u8 origin_y = (lcd_3D_stat.view_port_y2 - lcd_3D_stat.view_port_y1) / 2;
+
+		//Plot points used for screen rendering
+		u8 plot_x1 = 0;
+		u8 plot_x2 = 0;
+		u8 plot_y1 = 0;
+		u8 plot_y2 = 0;
+		u16 buffer_index = 0;
+		gx_matrix temp_matrix;
+
+		//Render lines between all vertices
+		for(u8 x = 0; x < 3; x++)
+		{
+			//Convert plot points to buffer index
+			buffer_index = (plot_y1 * 256) + plot_x1;
+			if(buffer_index < 0xC000) { gx_screen_buffer[buffer_index] = 0xFFFFFFFF; }
+		}
+
+		lcd_3D_stat.render_polygon = false;
+	}
+
 	//Push 3D screen buffer data to scanline buffer
 	u16 gx_index = (256 * lcd_stat.current_scanline);
 
@@ -191,7 +218,7 @@ void NTR_LCD::process_gx_command()
 
 				for(int a = 0; a < 8;)
 				{
-					u16 raw_value = lcd_3D_stat.command_parameters[a+2] | (lcd_3D_stat.command_parameters[a] << 8);
+					u16 raw_value = lcd_3D_stat.command_parameters[a+1] | (lcd_3D_stat.command_parameters[a] << 8);
 					float result = 0.0;
 				
 					if(raw_value & 0x8000) 
@@ -229,7 +256,12 @@ void NTR_LCD::process_gx_command()
 				}
 
 				lcd_3D_stat.vertex_list_index++;
-				if(lcd_3D_stat.vertex_list_index == list_size) { lcd_3D_stat.vertex_list_index = 0; }
+
+				if(lcd_3D_stat.vertex_list_index == list_size)
+				{
+					lcd_3D_stat.vertex_list_index = 0;
+					lcd_3D_stat.render_polygon = true;
+				}
 			}
 
 			break;
@@ -237,6 +269,11 @@ void NTR_LCD::process_gx_command()
 		//BEGIN_VTXS:
 		case 0x40:
 			lcd_3D_stat.vertex_mode = (lcd_3D_stat.command_parameters[3] & 0x3);
+			break;
+
+		//END_VTXS:
+		case 0x41:
+			if(!lcd_3D_stat.render_polygon) { lcd_3D_stat.render_polygon = true; }
 			break;
 
 		//VIEWPORT

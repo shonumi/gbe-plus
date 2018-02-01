@@ -193,6 +193,8 @@ struct ntr_lcd_3D_data
 	u8 vertex_mode;
 	u8 vertex_list_index;
 
+	bool render_polygon;
+
 	u32 rear_plane_color;
 };
 
