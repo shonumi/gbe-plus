@@ -147,11 +147,17 @@ class NTR_LCD
 
 	//Matrix Stacks
 	std::vector<gx_matrix> gx_projection_stack;
+	std::vector<gx_matrix> gx_position_stack;
+	std::vector<gx_matrix> gx_vector_stack;
+	std::vector<gx_matrix> gx_texture_stack;
+
+	u8 position_sp;
+	u8 vector_sp;
 
 	//Matrices
 	gx_matrix gx_projection_matrix;
 	gx_matrix gx_position_matrix;
-	gx_matrix gx_position_vector_matrix;
+	gx_matrix gx_vector_matrix;
 	gx_matrix gx_texture_matrix;
 
 	void render_scanline();

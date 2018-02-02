@@ -29,9 +29,11 @@ void NTR_LCD::render_3D()
 	//Triangles only atm
 	if(lcd_3D_stat.render_polygon)
 	{
+		std::cout<<"RENDER\n";
+
 		//Calculate origin coordinates based on viewport dimensions
-		u8 origin_x = (lcd_3D_stat.view_port_x2 - lcd_3D_stat.view_port_x1) / 2;
-		u8 origin_y = (lcd_3D_stat.view_port_y2 - lcd_3D_stat.view_port_y1) / 2;
+		u8 viewport_width = (lcd_3D_stat.view_port_x2 - lcd_3D_stat.view_port_x1);
+		u8 viewport_height = (lcd_3D_stat.view_port_y2 - lcd_3D_stat.view_port_y1);
 
 		//Plot points used for screen rendering
 		u8 plot_x1 = 0;
@@ -40,10 +42,21 @@ void NTR_LCD::render_3D()
 		u8 plot_y2 = 0;
 		u16 buffer_index = 0;
 		gx_matrix temp_matrix;
+		gx_matrix clip_matrix = gx_position_matrix * gx_projection_matrix;
 
 		//Render lines between all vertices
 		for(u8 x = 0; x < 3; x++)
 		{
+			temp_matrix.resize(1, 4);
+			temp_matrix.data[0][0] = gx_triangles[0].data[x][0];
+			temp_matrix.data[0][1] = gx_triangles[0].data[x][1];
+			temp_matrix.data[0][2] = gx_triangles[0].data[x][2];
+			temp_matrix.data[0][3] = 1.0;
+			temp_matrix = temp_matrix * clip_matrix;
+
+ 			plot_x1 = ((temp_matrix.data[0][0] + temp_matrix.data[0][3]) * viewport_width) / ((2 * temp_matrix.data[0][3]) + lcd_3D_stat.view_port_x1);
+  			plot_y1 = ((temp_matrix.data[0][1] + temp_matrix.data[0][3]) * viewport_height) / ((2 * temp_matrix.data[0][3]) + lcd_3D_stat.view_port_y1);
+
 			//Convert plot points to buffer index
 			buffer_index = (plot_y1 * 256) + plot_x1;
 			if(buffer_index < 0xC000) { gx_screen_buffer[buffer_index] = 0xFFFFFFFF; }
@@ -73,14 +86,86 @@ void NTR_LCD::process_gx_command()
 			lcd_3D_stat.matrix_mode = (lcd_3D_stat.command_parameters[0] & 0x3);
 			break;
 
+		//MTX_PUSH
+		case 0x11:
+			switch(lcd_3D_stat.matrix_mode)
+			{
+				case 0x0:
+					gx_projection_stack[0] = gx_projection_matrix;
+					break;
+
+				case 0x1:
+				case 0x2:
+					gx_position_stack[position_sp++] = gx_position_matrix;
+					gx_vector_stack[vector_sp++] = gx_vector_matrix;
+
+					break;
+
+				case 0x3:
+					gx_texture_stack[0] = gx_texture_matrix;
+					break;
+			}
+
+			break;
+
+		//MTX_POP
+		case 0x12:
+			switch(lcd_3D_stat.matrix_mode)
+			{
+				case 0x0:
+					gx_projection_matrix = gx_projection_stack[0];
+					break;
+
+				case 0x1:
+				case 0x2:
+					{
+						s8 test_range = 0;
+						s8 offset = (lcd_3D_stat.command_parameters[3] & 0x1F);
+
+						if(offset == 0) { offset++; }
+						if((lcd_3D_stat.command_parameters[3] & 0x20) == 0) { offset *= -1; }
+						test_range = offset + position_sp;
+					
+						if((test_range >= 0) && (test_range <= 30))
+						{
+							position_sp = test_range;
+							vector_sp = test_range;
+
+							gx_position_matrix = gx_position_stack[position_sp];
+							gx_vector_matrix = gx_vector_stack[vector_sp];
+
+						}
+					}
+
+					break;
+
+				case 0x3:
+					gx_texture_matrix = gx_texture_stack[0];
+					break;
+			}
+
+			break;
+
 		//MTX_IDENTITY:
 		case 0x15:
 			switch(lcd_3D_stat.matrix_mode)
 			{
-				case 0x0: gx_projection_matrix.make_identity(4); break;
-				case 0x1: gx_position_matrix.make_identity(4); break;
-				case 0x2: gx_position_vector_matrix.make_identity(4); break;
-				case 0x3: gx_texture_matrix.make_identity(4); break;
+				case 0x0:
+					gx_projection_matrix.make_identity(4);
+					break;
+
+				case 0x1:
+					gx_position_matrix.make_identity(4);
+					break;
+
+				case 0x2:
+					gx_position_matrix.make_identity(4);
+					gx_vector_matrix.make_identity(4);
+					break;
+
+				case 0x3:
+					gx_texture_matrix.make_identity(4);
+					break;
 			}
 
 			break;
@@ -111,10 +196,22 @@ void NTR_LCD::process_gx_command()
 
 			switch(lcd_3D_stat.matrix_mode)
 			{
-				case 0x0: gx_projection_matrix = temp_matrix * gx_projection_matrix; break;
-				case 0x1: gx_position_matrix = temp_matrix * gx_position_matrix; break;
-				case 0x2: gx_position_vector_matrix = temp_matrix * gx_position_vector_matrix; break;
-				case 0x3: gx_texture_matrix = temp_matrix * gx_texture_matrix; break;
+				case 0x0:
+					gx_projection_matrix = temp_matrix * gx_projection_matrix;
+					break;
+
+				case 0x1:
+					gx_position_matrix = temp_matrix * gx_position_matrix;
+					break;
+
+				case 0x2:
+					gx_position_matrix = temp_matrix * gx_position_matrix;
+					gx_vector_matrix = temp_matrix * gx_vector_matrix;
+					break;
+
+				case 0x3:
+					gx_texture_matrix = temp_matrix * gx_texture_matrix;
+					break;
 			}
 
 			break;
@@ -147,10 +244,22 @@ void NTR_LCD::process_gx_command()
 
 			switch(lcd_3D_stat.matrix_mode)
 			{
-				case 0x0: gx_projection_matrix = temp_matrix * gx_projection_matrix; break;
-				case 0x1: gx_position_matrix = temp_matrix * gx_position_matrix; break;
-				case 0x2: gx_position_vector_matrix = temp_matrix * gx_position_vector_matrix; break;
-				case 0x3: gx_texture_matrix = temp_matrix * gx_texture_matrix; break;
+				case 0x0:
+					gx_projection_matrix = temp_matrix * gx_projection_matrix;
+					break;
+
+				case 0x1:
+					gx_position_matrix = temp_matrix * gx_position_matrix;
+					break;
+
+				case 0x2:
+					gx_position_matrix = temp_matrix * gx_position_matrix;
+					gx_vector_matrix = temp_matrix * gx_vector_matrix;
+					break;
+
+				case 0x3:
+					gx_texture_matrix = temp_matrix * gx_texture_matrix;
+					break;
 			}
 
 			break;
@@ -183,10 +292,73 @@ void NTR_LCD::process_gx_command()
 
 			switch(lcd_3D_stat.matrix_mode)
 			{
-				case 0x0: gx_projection_matrix = temp_matrix * gx_projection_matrix; break;
-				case 0x1: gx_position_matrix = temp_matrix * gx_position_matrix; break;
-				case 0x2: gx_position_vector_matrix = temp_matrix * gx_position_vector_matrix; break;
-				case 0x3: gx_texture_matrix = temp_matrix * gx_texture_matrix; break;
+				case 0x0:
+					gx_projection_matrix = temp_matrix * gx_projection_matrix;
+					break;
+
+				case 0x1:
+					gx_position_matrix = temp_matrix * gx_position_matrix;
+					break;
+
+				case 0x2:
+					gx_position_matrix = temp_matrix * gx_position_matrix;
+					gx_vector_matrix = temp_matrix * gx_vector_matrix;
+					break;
+
+				case 0x3:
+					gx_texture_matrix = temp_matrix * gx_texture_matrix;
+					break;
+			}
+
+			break;
+
+		//MTX_SCALE
+		//MTX_TRANS
+		case 0x1B:
+		case 0x1C:
+			temp_matrix.make_identity(4);
+
+			for(int a = 0; a < 12;)
+			{
+				u32 raw_value = lcd_3D_stat.command_parameters[a+3] | (lcd_3D_stat.command_parameters[a+2] << 8) | (lcd_3D_stat.command_parameters[a+1] << 16) | (lcd_3D_stat.command_parameters[a] << 24);
+				float result = 0.0;
+				
+				if(raw_value & 0x80000000) 
+				{ 
+					u32 p = ((raw_value >> 12) - 1);
+					p = (~p & 0x7FFFF);
+					result = -1.0 * p;
+				}
+
+				else { result = (raw_value >> 12); }
+				if((raw_value & 0xFFF) != 0) { result += (raw_value & 0xFFF) / 4096.0; }
+
+				u8 x = (a / 4);
+
+				if(lcd_3D_stat.current_gx_command == 0x1B) { temp_matrix.data[x][x] = result; }
+				else { temp_matrix.data[x][3] = result; }
+
+				a += 4;
+			}
+
+			switch(lcd_3D_stat.matrix_mode)
+			{
+				case 0x0:
+					gx_projection_matrix = temp_matrix * gx_projection_matrix;
+					break;
+
+				case 0x1:
+					gx_position_matrix = temp_matrix * gx_position_matrix;
+					break;
+
+				case 0x2:
+					gx_position_matrix = temp_matrix * gx_position_matrix;
+					if(lcd_3D_stat.current_gx_command == 0x1C) { gx_vector_matrix = temp_matrix * gx_vector_matrix; }
+					break;
+
+				case 0x3:
+					gx_texture_matrix = temp_matrix * gx_texture_matrix;
+					break;
 			}
 
 			break;
@@ -273,7 +445,6 @@ void NTR_LCD::process_gx_command()
 
 		//END_VTXS:
 		case 0x41:
-			if(!lcd_3D_stat.render_polygon) { lcd_3D_stat.render_polygon = true; }
 			break;
 
 		//VIEWPORT

@@ -819,6 +819,50 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 						break;
 
+					//MTX_PUSH
+					case 0x4000444:
+						std::cout<<"GX - MTX_PUSH -> " << (u16)lcd_3D_stat->matrix_mode << "\n";
+						lcd_3D_stat->current_gx_command = 0x11;
+						lcd_3D_stat->process_command = true;
+
+						break;
+
+					//MTX_POP
+					case 0x4000448:
+					case 0x4000449:
+					case 0x400044A:
+					case 0x400044B:
+						std::cout<<"GX - MTX_POP -> " << (u16)lcd_3D_stat->matrix_mode << "\n";
+						lcd_3D_stat->current_gx_command = 0x12;
+						lcd_3D_stat->process_command = true;
+						if(lcd_3D_stat->parameter_index == 4) { lcd_3D_stat->process_command = true; }
+
+						break;
+
+					//MTX_STORE
+					case 0x400044C:
+					case 0x400044D:
+					case 0x400044E:
+					case 0x400044F:
+						std::cout<<"GX - MTX_STORE -> " << (u16)lcd_3D_stat->matrix_mode << "\n";
+						lcd_3D_stat->current_gx_command = 0x13;
+						lcd_3D_stat->process_command = true;
+						if(lcd_3D_stat->parameter_index == 4) { lcd_3D_stat->process_command = true; }
+
+						break;
+
+					//MTX_RESTORE
+					case 0x4000450:
+					case 0x4000451:
+					case 0x4000452:
+					case 0x4000453:
+						std::cout<<"GX - MTX_RESTORE -> " << (u16)lcd_3D_stat->matrix_mode << "\n";
+						lcd_3D_stat->current_gx_command = 0x14;
+						lcd_3D_stat->process_command = true;
+						if(lcd_3D_stat->parameter_index == 4) { lcd_3D_stat->process_command = true; }
+
+						break;
+						
 					//MTX_IDENTITY:
 					case 0x4000454:
 						std::cout<<"GX - MTX_IDENTITY\n";
@@ -886,6 +930,31 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 						if(lcd_3D_stat->parameter_index == 36) { lcd_3D_stat->process_command = true; }
 
 						break;
+
+					//MTX_SCALE
+					case 0x400046C:
+					case 0x400046D:
+					case 0x400046E:
+					case 0x400046F:
+						std::cout<<"GX - MTX_SCALE\n";
+						lcd_3D_stat->current_gx_command = 0x1B;
+						lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = value;
+						if(lcd_3D_stat->parameter_index == 12) { lcd_3D_stat->process_command = true; }
+
+						break;
+
+					//MTX_TRANS
+					case 0x4000470:
+					case 0x4000471:
+					case 0x4000472:
+					case 0x4000473:
+						std::cout<<"GX - MTX_TRANS ->" << (u16)lcd_3D_stat->matrix_mode << "\n";
+						lcd_3D_stat->current_gx_command = 0x1C;
+						lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = value;
+						if(lcd_3D_stat->parameter_index == 12) { lcd_3D_stat->process_command = true; }
+
+						break;
+
 						
 					//VTX_16
 					case 0x400048C:

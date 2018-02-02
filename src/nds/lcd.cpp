@@ -258,8 +258,18 @@ void NTR_LCD::reset()
 	//GX Matrices
 	gx_projection_matrix.resize(4, 4);
 	gx_position_matrix.resize(4, 4);
-	gx_position_vector_matrix.resize(4, 4);
+	gx_vector_matrix.resize(4, 4);
 	gx_texture_matrix.resize(4, 4);
+
+	//GX Matrix Stacks
+	gx_projection_stack.resize(1);
+	gx_position_stack.resize(31);
+	gx_vector_stack.resize(31);
+	gx_texture_stack.resize(1);
+
+	//Matrix Stack Pointers
+	position_sp = 0;
+	vector_sp = 0;
 
 	//Initialize system screen dimensions
 	config::sys_width = 256;
@@ -2579,6 +2589,8 @@ void NTR_LCD::step()
 
 	//Process GX commands and states
 	if(lcd_3D_stat.process_command) { process_gx_command(); }
+	
+	if(lcd_3D_stat.render_polygon) { render_3D(); }
 
 	//Mode 0 - Scanline rendering
 	if(((lcd_stat.lcd_clock % 2130) <= 1536) && (lcd_stat.lcd_clock < 408960)) 
