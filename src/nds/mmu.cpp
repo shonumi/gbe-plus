@@ -11,6 +11,8 @@
 #include "mmu.h"
 #include "common/util.h"
 
+#include <cmath>
+
 /****** MMU Constructor ******/
 NTR_MMU::NTR_MMU() 
 {
@@ -196,6 +198,8 @@ void NTR_MMU::reset()
 	nds9_math.div_denom = 0;
 	nds9_math.div_result = 0;
 	nds9_math.div_remainder = 0;
+	nds9_math.sqrt_param = 0;
+	nds9_math.sqrt_result = 0;
 
 	touchscreen_state = 0;
 
@@ -3379,10 +3383,37 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 		case NDS_SQRTCNT:
 		case NDS_SQRTCNT+1:
+		case NDS_SQRTCNT+2:
+		case NDS_SQRTCNT+3:
+		case NDS_SQRTPARAM:
+		case NDS_SQRTPARAM+1:
+		case NDS_SQRTPARAM+2:
+		case NDS_SQRTPARAM+3:
+		case NDS_SQRTPARAM+4:
+		case NDS_SQRTPARAM+5:
+		case NDS_SQRTPARAM+6:
+		case NDS_SQRTPARAM+7:
 			if(access_mode)
 			{
+				//TODO - 64-bit SQRT ops via sqrt() will have issues, but only with ridiculously large numbers
 				memory_map[address] = value;
 				std::cout<<"MMU::NDS_SQRTCNT Write\n";
+
+				u8 sqrt_mode = memory_map[NDS_SQRTCNT] & 0x1;
+				
+				//Grab SQRT parameter
+				if(sqrt_mode)
+				{
+					nds9_math.sqrt_param = read_u32_fast(NDS_SQRTPARAM+4);
+					nds9_math.sqrt_param <<= 16;
+					nds9_math.sqrt_param <<= 16;
+					nds9_math.sqrt_param |= read_u32_fast(NDS_SQRTPARAM);
+				}
+
+				else { nds9_math.sqrt_param = read_u32_fast(NDS_SQRTPARAM); }
+
+				nds9_math.sqrt_result = sqrt(nds9_math.sqrt_param);
+				write_u32_fast(NDS_SQRTRESULT, nds9_math.sqrt_result);
 			}
 
 			break;

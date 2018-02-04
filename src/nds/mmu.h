@@ -170,6 +170,8 @@ class NTR_MMU
 		u64 div_denom;
 		u64 div_result;
 		u64 div_remainder;
+		u64 sqrt_param;
+		u32 sqrt_result;
 	} nds9_math;
 
 	//Touchscreen controller
