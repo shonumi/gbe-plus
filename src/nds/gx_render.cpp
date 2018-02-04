@@ -29,8 +29,6 @@ void NTR_LCD::render_3D()
 	//Triangles only atm
 	if(lcd_3D_stat.render_polygon)
 	{
-		std::cout<<"RENDER\n";
-
 		//Calculate origin coordinates based on viewport dimensions
 		u8 viewport_width = (lcd_3D_stat.view_port_x2 - lcd_3D_stat.view_port_x1);
 		u8 viewport_height = (lcd_3D_stat.view_port_y2 - lcd_3D_stat.view_port_y1);
@@ -38,28 +36,29 @@ void NTR_LCD::render_3D()
 		//Plot points used for screen rendering
 		u8 plot_x1 = 0;
 		u8 plot_x2 = 0;
-		u8 plot_y1 = 0;
-		u8 plot_y2 = 0;
-		u16 buffer_index = 0;
+		s16 plot_y1 = 0;
+		s16 plot_y2 = 0;
+		s32 buffer_index = 0;
 		gx_matrix temp_matrix;
 		gx_matrix clip_matrix = gx_position_matrix * gx_projection_matrix;
 
 		//Render lines between all vertices
 		for(u8 x = 0; x < 3; x++)
 		{
-			temp_matrix.resize(1, 4);
+			temp_matrix.resize(4, 1);
 			temp_matrix.data[0][0] = gx_triangles[0].data[x][0];
-			temp_matrix.data[0][1] = gx_triangles[0].data[x][1];
-			temp_matrix.data[0][2] = gx_triangles[0].data[x][2];
-			temp_matrix.data[0][3] = 1.0;
+			temp_matrix.data[1][0] = gx_triangles[0].data[x][1];
+			temp_matrix.data[2][0] = gx_triangles[0].data[x][2];
+			temp_matrix.data[3][0] = 1.0;
 			temp_matrix = temp_matrix * clip_matrix;
+			float temp_x, temp_y;
 
- 			plot_x1 = ((temp_matrix.data[0][0] + temp_matrix.data[0][3]) * viewport_width) / ((2 * temp_matrix.data[0][3]) + lcd_3D_stat.view_port_x1);
-  			plot_y1 = ((temp_matrix.data[0][1] + temp_matrix.data[0][3]) * viewport_height) / ((2 * temp_matrix.data[0][3]) + lcd_3D_stat.view_port_y1);
+ 			plot_x1 = ((temp_matrix.data[0][0] + temp_matrix.data[3][0]) * viewport_width) / ((2 * temp_matrix.data[3][0]) + lcd_3D_stat.view_port_x1);
+  			plot_y1 = ((-temp_matrix.data[1][0] + temp_matrix.data[3][0]) * viewport_height) / ((2 * temp_matrix.data[3][0]) + lcd_3D_stat.view_port_y1);
 
 			//Convert plot points to buffer index
 			buffer_index = (plot_y1 * 256) + plot_x1;
-			if(buffer_index < 0xC000) { gx_screen_buffer[buffer_index] = 0xFFFFFFFF; }
+			if((buffer_index >= 0) && (buffer_index < 0xC000)) { gx_screen_buffer[buffer_index] = 0xFFFFFFFF; }
 		}
 
 		lcd_3D_stat.render_polygon = false;
@@ -283,7 +282,7 @@ void NTR_LCD::process_gx_command()
 				else { result = (raw_value >> 12); }
 				if((raw_value & 0xFFF) != 0) { result += (raw_value & 0xFFF) / 4096.0; }
 
-				u8 x = ((a / 4) % 2);
+				u8 x = ((a / 4) % 3);
 				u8 y = (a / 12);
 
 				temp_matrix.data[x][y] = result;
