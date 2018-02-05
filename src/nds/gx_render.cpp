@@ -34,15 +34,13 @@ void NTR_LCD::render_3D()
 		u8 viewport_height = (lcd_3D_stat.view_port_y2 - lcd_3D_stat.view_port_y1);
 
 		//Plot points used for screen rendering
-		u8 plot_x1 = 0;
-		u8 plot_x2 = 0;
-		s16 plot_y1 = 0;
-		s16 plot_y2 = 0;
+		float plot_x[3];
+		float plot_y[3];
 		s32 buffer_index = 0;
 		gx_matrix temp_matrix;
 		gx_matrix clip_matrix = gx_position_matrix * gx_projection_matrix;
 
-		//Render lines between all vertices
+		//Translate all vertices to screen coordinates
 		for(u8 x = 0; x < 3; x++)
 		{
 			temp_matrix.resize(4, 1);
@@ -51,14 +49,89 @@ void NTR_LCD::render_3D()
 			temp_matrix.data[2][0] = gx_triangles[0].data[x][2];
 			temp_matrix.data[3][0] = 1.0;
 			temp_matrix = temp_matrix * clip_matrix;
-			float temp_x, temp_y;
 
- 			plot_x1 = ((temp_matrix.data[0][0] + temp_matrix.data[3][0]) * viewport_width) / ((2 * temp_matrix.data[3][0]) + lcd_3D_stat.view_port_x1);
-  			plot_y1 = ((-temp_matrix.data[1][0] + temp_matrix.data[3][0]) * viewport_height) / ((2 * temp_matrix.data[3][0]) + lcd_3D_stat.view_port_y1);
+ 			plot_x[x] = ((temp_matrix.data[0][0] + temp_matrix.data[3][0]) * viewport_width) / ((2 * temp_matrix.data[3][0]) + lcd_3D_stat.view_port_x1);
+  			plot_y[x] = ((-temp_matrix.data[1][0] + temp_matrix.data[3][0]) * viewport_height) / ((2 * temp_matrix.data[3][0]) + lcd_3D_stat.view_port_y1);
+		}
 
-			//Convert plot points to buffer index
-			buffer_index = (plot_y1 * 256) + plot_x1;
-			if((buffer_index >= 0) && (buffer_index < 0xC000)) { gx_screen_buffer[buffer_index] = 0xFFFFFFFF; }
+		//Draw lines for all polygons
+		for(u8 x = 0; x < 3; x++)
+		{
+			u8 next_index = x + 1;
+			if(next_index == 3) { next_index = 0; }
+
+			float x_dist = (plot_x[next_index] - plot_x[x]);
+			float y_dist = (plot_y[next_index] - plot_y[x]);
+			float x_inc = 0.0;
+			float y_inc = 0.0;
+			float x_coord = plot_x[x];
+			float y_coord = plot_y[x];
+
+			u16 xy_start = 0;
+			u16 xy_end = 0;
+
+			if((x_dist != 0) && (y_dist != 0))
+			{
+				float s = (y_dist / x_dist);
+				if(s < 0.0) { s *= -1.0; }
+
+				//Steep slope, Y = 1
+				if(s > 1.0)
+				{
+					y_inc = (y_dist > 0) ? 1.0 : -1.0;
+					x_inc = (x_dist / y_dist);
+					
+					if((x_dist < 0) && (x_inc > 0)) { x_inc *= -1.0; }
+					else if((x_dist > 0) && (x_inc < 0)) { x_inc *= -1.0; }
+					
+					if(y_dist < 0) { y_dist *= -1.0;}
+					xy_end = y_dist;
+				}
+
+				//Gentle slope, X = 1
+				else
+				{
+					x_inc = (x_dist > 0) ? 1.0 : -1.0;
+					y_inc = (y_dist / x_dist);
+
+					if((y_dist < 0) && (y_inc > 0)) { y_inc *= -1.0; }
+					else if((y_dist > 0) && (y_inc < 0)) { y_inc *= -1.0; }
+
+					if(x_dist < 0) { x_dist *= -1.0;}
+					xy_end = x_dist;
+				}
+			}
+
+			else if(x_dist == 0)
+			{
+				x_inc = 0.0;
+				y_inc = (y_dist > 0) ? 1.0 : -1.0;
+				if(y_dist < 0) { y_dist *= -1.0;}
+				xy_end = y_dist;
+			}
+
+			else if(y_dist == 0)
+			{
+				x_inc = (x_dist > 0) ? 1.0 : -1.0;
+				y_inc = 0.0;
+				if(x_dist < 0) { x_dist *= -1.0;}
+				xy_end = x_dist;
+			}
+
+			while(xy_start != xy_end)
+			{
+				//Only draw on-screen objects
+				if((x_coord >= 0) && (x_coord < 256) && (y_coord >= 0) && (y_coord <= 192))
+				{
+					//Convert plot points to buffer index
+					buffer_index = ((s32)y_coord * 256) + (s32)x_coord;
+					gx_screen_buffer[buffer_index] = 0xFFFFFFFF;
+				}
+
+				x_coord += x_inc;
+				y_coord += y_inc;
+				xy_start++;
+			}
 		}
 
 		lcd_3D_stat.render_polygon = false;
