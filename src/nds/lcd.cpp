@@ -2810,8 +2810,8 @@ void NTR_LCD::step()
 				gx_quads.clear();
 
 				//Clear 3D buffer and fill with rear plane
-				gx_screen_buffer.clear();
-				gx_screen_buffer.resize(0xC000, lcd_3D_stat.rear_plane_color);
+				//gx_screen_buffer.clear();
+				//gx_screen_buffer.resize(0xC000, lcd_3D_stat.rear_plane_color);
 			}
 		}
 

@@ -26,7 +26,7 @@ void NTR_LCD::render_3D()
 	bool full_render = true;
 
 	//Software rendering of polygons
-	//Triangles only atm
+	//Triangles and Quads only atm
 	if(lcd_3D_stat.render_polygon)
 	{
 		//Calculate origin coordinates based on viewport dimensions
@@ -34,19 +34,45 @@ void NTR_LCD::render_3D()
 		u8 viewport_height = (lcd_3D_stat.view_port_y2 - lcd_3D_stat.view_port_y1);
 
 		//Plot points used for screen rendering
-		float plot_x[3];
-		float plot_y[3];
+		float plot_x[4];
+		float plot_y[4];
 		s32 buffer_index = 0;
+		u8 vert_count = 0;
 		gx_matrix temp_matrix;
+		gx_matrix vert_matrix;
 		gx_matrix clip_matrix = gx_position_matrix * gx_projection_matrix;
 
+		//Determine what kind of polygon to render
+		switch(lcd_3D_stat.vertex_mode)
+		{
+			//Triangles
+			case 0x0:
+				vert_matrix = gx_triangles.front();
+				vert_count = 3;
+				break;
+
+			//Quads
+			case 0x1:
+				vert_matrix = gx_quads.front();
+				vert_count = 4;
+				break;
+
+			//Triangle Strips
+			case 0x2:
+				return;
+
+			//Quad Strips
+			case 0x3:
+				return;
+		}
+
 		//Translate all vertices to screen coordinates
-		for(u8 x = 0; x < 3; x++)
+		for(u8 x = 0; x < vert_count; x++)
 		{
 			temp_matrix.resize(4, 1);
-			temp_matrix.data[0][0] = gx_triangles[0].data[x][0];
-			temp_matrix.data[1][0] = gx_triangles[0].data[x][1];
-			temp_matrix.data[2][0] = gx_triangles[0].data[x][2];
+			temp_matrix.data[0][0] = vert_matrix.data[x][0];
+			temp_matrix.data[1][0] = vert_matrix.data[x][1];
+			temp_matrix.data[2][0] = vert_matrix.data[x][2];
 			temp_matrix.data[3][0] = 1.0;
 			temp_matrix = temp_matrix * clip_matrix;
 
@@ -55,10 +81,10 @@ void NTR_LCD::render_3D()
 		}
 
 		//Draw lines for all polygons
-		for(u8 x = 0; x < 3; x++)
+		for(u8 x = 0; x < vert_count; x++)
 		{
 			u8 next_index = x + 1;
-			if(next_index == 3) { next_index = 0; }
+			if(next_index == vert_count) { next_index = 0; }
 
 			float x_dist = (plot_x[next_index] - plot_x[x]);
 			float y_dist = (plot_y[next_index] - plot_y[x]);
@@ -453,6 +479,15 @@ void NTR_LCD::process_gx_command()
 						temp_matrix.resize(4, 4);
 						gx_quads.push_back(temp_matrix);
 						break;
+
+					//Triangle Strips
+					//Quad Strips
+					case 0x2:
+					case 0x3:
+						lcd_3D_stat.parameter_index = 0;
+						lcd_3D_stat.current_gx_command = 0;
+						lcd_3D_stat.process_command = false;
+						return;
 				}
 			}
 
