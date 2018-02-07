@@ -122,7 +122,7 @@ class NTR_LCD
 	std::vector<u32> scanline_buffer_a;
 	std::vector<u32> scanline_buffer_b;
 	std::vector<u32> screen_buffer;
-	std::vector<u32> gx_screen_buffer;
+	std::vector< std::vector<u32> > gx_screen_buffer;
 
 	//Render buffer
 	std::vector<u8> render_buffer_a;
@@ -171,7 +171,8 @@ class NTR_LCD
 	void scanline_compare();
 	void reload_affine_references(u32 bg_control);
 
-	void render_3D();
+	void render_bg_3D();
+	void render_geometry();
 	void process_gx_command();
 };
 

@@ -72,7 +72,9 @@ void NTR_LCD::reset()
 
 	//Screen + render buffer initialization
 	screen_buffer.resize(0x18000, 0);
-	gx_screen_buffer.resize(0xC000, 0);
+	gx_screen_buffer.resize(2);
+	gx_screen_buffer[0].resize(0xC000, 0);
+	gx_screen_buffer[1].resize(0xC000, 0);
 
 	scanline_buffer_a.resize(0x100, 0);
 	scanline_buffer_b.resize(0x100, 0);
@@ -759,7 +761,7 @@ void NTR_LCD::render_bg_scanline(u32 bg_control)
 			//Render 3D first
 			if((bg_id == 0) && (lcd_stat.display_control_a & 0x8))
 			{
-				render_3D();
+				render_bg_3D();
 				x++;
 
 				bg_id = bg_render_list[x];
@@ -2590,7 +2592,7 @@ void NTR_LCD::step()
 	//Process GX commands and states
 	if(lcd_3D_stat.process_command) { process_gx_command(); }
 	
-	if(lcd_3D_stat.render_polygon) { render_3D(); }
+	if(lcd_3D_stat.render_polygon) { render_geometry(); }
 
 	//Mode 0 - Scanline rendering
 	if(((lcd_stat.lcd_clock % 2130) <= 1536) && (lcd_stat.lcd_clock < 408960)) 
@@ -2810,8 +2812,8 @@ void NTR_LCD::step()
 				gx_quads.clear();
 
 				//Clear 3D buffer and fill with rear plane
-				//gx_screen_buffer.clear();
-				//gx_screen_buffer.resize(0xC000, lcd_3D_stat.rear_plane_color);
+				gx_screen_buffer[lcd_3D_stat.buffer_id].clear();
+				gx_screen_buffer[lcd_3D_stat.buffer_id].resize(0xC000, lcd_3D_stat.rear_plane_color);
 			}
 		}
 
