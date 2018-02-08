@@ -154,6 +154,9 @@ class NTR_LCD
 	u8 position_sp;
 	u8 vector_sp;
 
+	//Vertex properties and attributes
+	u32 vert_colors[4];
+
 	//Matrices
 	gx_matrix gx_projection_matrix;
 	gx_matrix gx_position_matrix;

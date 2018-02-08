@@ -165,7 +165,7 @@ void NTR_LCD::render_geometry()
 			{
 				//Convert plot points to buffer index
 				buffer_index = ((s32)y_coord * 256) + (s32)x_coord;
-				gx_screen_buffer[lcd_3D_stat.buffer_id][buffer_index] = 0xFFFFFFFF;
+				gx_screen_buffer[lcd_3D_stat.buffer_id][buffer_index] = vert_colors[x];
 			}
 
 			x_coord += x_inc;
@@ -466,6 +466,30 @@ void NTR_LCD::process_gx_command()
 
 			break;
 
+		//VERT_COLOR
+		case 0x20:
+			{
+				u32 color_bytes = lcd_3D_stat.command_parameters[3] | (lcd_3D_stat.command_parameters[2] << 8) | (lcd_3D_stat.command_parameters[1] << 16) | (lcd_3D_stat.command_parameters[0] << 24);
+
+				u8 red = (color_bytes & 0x1F);
+				red = (!red) ? 0 : ((red * 2) + 1);
+				red <<= 2;
+				color_bytes >>= 5;
+
+				u8 green = (color_bytes & 0x1F);
+				green = (!green) ? 0 : ((green * 2) + 1);
+				green <<= 2;
+				color_bytes >>= 5;
+
+				u8 blue = (color_bytes & 0x1F);
+				blue = (!blue) ? 0 : ((blue * 2) + 1);
+				blue <<= 2;
+
+				lcd_3D_stat.vertex_color = 0xFF000000 | (red << 16) | (green << 8) | (blue);
+			}
+
+			break;
+			
 		//VTX_16
 		case 0x23:
 			//Push new polygon if necessary
@@ -538,6 +562,9 @@ void NTR_LCD::process_gx_command()
 						break;
 
 				}
+
+				//Set vertex color
+				vert_colors[lcd_3D_stat.vertex_list_index] = lcd_3D_stat.vertex_color;
 
 				lcd_3D_stat.vertex_list_index++;
 

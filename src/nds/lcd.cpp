@@ -249,9 +249,13 @@ void NTR_LCD::reset()
 	lcd_3D_stat.vertex_list_index = 0;
 
 	lcd_3D_stat.rear_plane_color = 0;
+	lcd_3D_stat.vertex_color = 0;
 
 	//3D GFX command parameters
 	for(int x = 0; x < 128; x++) { lcd_3D_stat.command_parameters[x] = 0; }
+	
+	//Vertex colors
+	for(int x = 0; x < 4; x++) { vert_colors[x] = 0xFFFFFFFF; }
 
 	//Polygon vertices
 	gx_triangles.clear();

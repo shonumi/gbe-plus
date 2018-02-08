@@ -196,6 +196,7 @@ struct ntr_lcd_3D_data
 	bool render_polygon;
 
 	u32 rear_plane_color;
+	u32 vertex_color;
 };
 
 #endif // NDS_LCD_DATA
