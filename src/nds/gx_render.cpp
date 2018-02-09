@@ -73,14 +73,17 @@ void NTR_LCD::render_geometry()
 
 		//Triangle Strips
 		case 0x2:
+			lcd_3D_stat.render_polygon = false;
 			return;
 
 		//Quad Strips
 		case 0x3:
+			lcd_3D_stat.render_polygon = false;
 			return;
 	}
 
 	//Translate all vertices to screen coordinates
+
 	for(u8 x = 0; x < vert_count; x++)
 	{
 		temp_matrix.resize(4, 1);
@@ -89,7 +92,6 @@ void NTR_LCD::render_geometry()
 		temp_matrix.data[2][0] = vert_matrix.data[x][2];
 		temp_matrix.data[3][0] = 1.0;
 		temp_matrix = temp_matrix * clip_matrix;
-
  		plot_x[x] = ((temp_matrix.data[0][0] + temp_matrix.data[3][0]) * viewport_width) / ((2 * temp_matrix.data[3][0]) + lcd_3D_stat.view_port_x1);
   		plot_y[x] = ((-temp_matrix.data[1][0] + temp_matrix.data[3][0]) * viewport_height) / ((2 * temp_matrix.data[3][0]) + lcd_3D_stat.view_port_y1);
 	}
@@ -174,7 +176,95 @@ void NTR_LCD::render_geometry()
 		}
 	}
 
+	//Fill in polygon
+	switch(lcd_3D_stat.vertex_mode)
+	{
+		//Triangles
+		case 0x0:
+			//Solid color fill
+			if((vert_colors[0] == vert_colors[1]) && (vert_colors[0] == vert_colors[2])) { fill_tri_solid(plot_x, plot_y); }
+			break;
+
+		//Quads
+		case 0x1:
+			break;
+
+		//Triangle Strips
+		case 0x2:
+			lcd_3D_stat.render_polygon = false;
+			return;
+
+		//Quad Strips
+		case 0x3:
+			lcd_3D_stat.render_polygon = false;
+			return;
+	}
+
 	lcd_3D_stat.render_polygon = false;
+}
+
+/****** NDS 3D Software Renderer - Fills a triangle with a solid color ******/
+void NTR_LCD::fill_tri_solid(float* px, float* py)
+{
+	if(py[1] == py[0])
+	{
+		float temp_x = px[1];
+		float temp_y = py[1];
+		
+		px[1] = px[2];
+		py[1] = py[2];
+
+		px[2] = temp_x;
+		py[2] = temp_y;
+	}
+
+	//Calculate Y deltas between vertices
+	float y_delta_v1 = (py[1] - py[0]) / (px[1] - px[0]);
+	float y_delta_v2 = (py[2] - py[0]) / (px[2] - px[0]);
+	
+	//Calculate X-Y deltas between vertices
+	s8 x_delta = ((px[1] - px[0]) > 0) ? 1 : -1;
+	s8 y_delta = ((py[1] - py[0]) > 0) ? -1 : 1;
+
+	//Calculate boundaries
+	float upper_bound = py[0];
+	float lower_bound = py[0];
+	u16 side_bound = px[1];
+
+	u16 x_coord = px[0];
+	u16 y_coord = upper_bound;
+
+	u32 buffer_index = 0;
+
+	//std::cout<<"UPPER BOUND -> " << upper_bound << " :: LOWER BOUND -> " << lower_bound << "\n";
+
+	//Draw 1st half of triangle
+	while(x_coord != side_bound)
+	{
+		y_coord = upper_bound;
+		s32 low = lower_bound;
+
+		while(y_coord != low)
+		{
+			//std::cout<< std::dec << "X -> " << x_coord << " Y -> " << y_coord << "\n";
+			//std::cout<<"P0 -> " << px[0] << " :: " << py[0] << "\n";
+			//std::cout<<"P1 -> " << px[1] << " :: " << py[1] << "\n";
+			//std::cout<<"P2 -> " << px[2] << " :: " << py[2] << "\n";
+			//std::cout<<"UPPER BOUND -> " << upper_bound << " :: LOWER BOUND -> " << lower_bound << "\n";
+			//std::cout<<"X DEL -> " << (s32)x_delta << " :: Y DEL -> " << (s32)y_delta << "\n";
+
+			buffer_index = ((s32)y_coord * 256) + (s32)x_coord;
+			gx_screen_buffer[lcd_3D_stat.buffer_id][buffer_index] = vert_colors[0];
+			y_coord += y_delta;
+		}
+
+		upper_bound += y_delta_v1;
+		lower_bound += y_delta_v2; 
+		x_coord += x_delta;
+		//std::cout<<"THIS\n";
+	}
+
+	//std::cout<<"ME\n";
 }
 
 /****** Parses and processes commands sent to the NDS 3D engine ******/

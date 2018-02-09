@@ -174,9 +174,11 @@ class NTR_LCD
 	void scanline_compare();
 	void reload_affine_references(u32 bg_control);
 
+	//3D functions
 	void render_bg_3D();
 	void render_geometry();
 	void process_gx_command();
+	void fill_tri_solid(float* px, float* py);
 };
 
 #endif // NDS_LCD
