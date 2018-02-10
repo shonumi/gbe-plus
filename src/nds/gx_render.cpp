@@ -13,6 +13,8 @@
 #include "lcd.h"
 #include "common/util.h"
 
+#include <cmath>
+
 /****** Copies rendered 3D scene to scanline buffer ******/
 void NTR_LCD::render_bg_3D()
 {
@@ -206,65 +208,101 @@ void NTR_LCD::render_geometry()
 /****** NDS 3D Software Renderer - Fills a triangle with a solid color ******/
 void NTR_LCD::fill_tri_solid(float* px, float* py)
 {
-	if(py[1] == py[0])
-	{
-		float temp_x = px[1];
-		float temp_y = py[1];
-		
-		px[1] = px[2];
-		py[1] = py[2];
+	//Vertex IDs
+	u8 v0 = 0;
+	u8 v1 = 0;
+	u8 v2 = 0;
 
-		px[2] = temp_x;
-		py[2] = temp_y;
-	}
+	//Sort IDS
+	//V0 = furthest left
+	if(px[1] < px[v0]) { v0 = 1; }
+	if(px[2] < px[v0]) { v0 = 2; }
+
+	//V2 = furthest right
+	if(px[1] > px[v2]) { v2 = 1; }
+	if(px[2] > px[v2]) { v2 = 2; }
+
+	//V3 = last point
+	if((v0 + v2) == 3) { v1 = 0; }
+	else if((v0 + v2) == 2) { v1 = 1; }
+	else { v1 = 2; }
 
 	//Calculate Y deltas between vertices
-	float y_delta_v1 = (py[1] - py[0]) / (px[1] - px[0]);
-	float y_delta_v2 = (py[2] - py[0]) / (px[2] - px[0]);
-	
-	//Calculate X-Y deltas between vertices
-	s8 x_delta = ((px[1] - px[0]) > 0) ? 1 : -1;
-	s8 y_delta = ((py[1] - py[0]) > 0) ? -1 : 1;
+	float y_delta_v1 = (py[v1] - py[v0]) / (px[v1] - px[v0]);
+	float y_delta_v2 = (py[v2] - py[v0]) / (px[v2] - px[v0]);
 
 	//Calculate boundaries
-	float upper_bound = py[0];
-	float lower_bound = py[0];
-	u16 side_bound = px[1];
+	float v_bound_1 = py[v0];
+	float v_bound_2 = py[v0];
+	u16 side_bound = px[v1];
 
-	u16 x_coord = px[0];
-	u16 y_coord = upper_bound;
+	u16 x_coord = px[v0];
+	u16 y_coord = py[v0];
 
 	u32 buffer_index = 0;
-
-	//std::cout<<"UPPER BOUND -> " << upper_bound << " :: LOWER BOUND -> " << lower_bound << "\n";
+	s32 low = 0;
 
 	//Draw 1st half of triangle
 	while(x_coord != side_bound)
 	{
-		y_coord = upper_bound;
-		s32 low = lower_bound;
+		//Determine which boundary is top and bottom
+		if(v_bound_1 < v_bound_2)
+		{
+			y_coord = v_bound_1;
+			low = v_bound_2;
+		}
+
+		else
+		{
+			y_coord = v_bound_2;
+			low = v_bound_1;
+		}
 
 		while(y_coord != low)
 		{
-			//std::cout<< std::dec << "X -> " << x_coord << " Y -> " << y_coord << "\n";
-			//std::cout<<"P0 -> " << px[0] << " :: " << py[0] << "\n";
-			//std::cout<<"P1 -> " << px[1] << " :: " << py[1] << "\n";
-			//std::cout<<"P2 -> " << px[2] << " :: " << py[2] << "\n";
-			//std::cout<<"UPPER BOUND -> " << upper_bound << " :: LOWER BOUND -> " << lower_bound << "\n";
-			//std::cout<<"X DEL -> " << (s32)x_delta << " :: Y DEL -> " << (s32)y_delta << "\n";
-
 			buffer_index = ((s32)y_coord * 256) + (s32)x_coord;
 			gx_screen_buffer[lcd_3D_stat.buffer_id][buffer_index] = vert_colors[0];
-			y_coord += y_delta;
+			y_coord++;
 		}
 
-		upper_bound += y_delta_v1;
-		lower_bound += y_delta_v2; 
-		x_coord += x_delta;
-		//std::cout<<"THIS\n";
+		v_bound_1 += y_delta_v1;
+		v_bound_2 += y_delta_v2; 
+		x_coord++;
 	}
 
-	//std::cout<<"ME\n";
+	//Calculate Y deltas between vertices
+	y_delta_v1 = (py[v2] - py[v1]) / (px[v2] - px[v1]);
+	y_delta_v2 = (py[v2] - py[v0]) / (px[v2] - px[v0]);
+	
+	side_bound = px[v2];
+
+	//Draw 2nd half of triangle
+	while(x_coord != side_bound)
+	{
+		//Determine which boundary is top and bottom
+		if(v_bound_1 < v_bound_2)
+		{
+			y_coord = v_bound_1;
+			low = v_bound_2;
+		}
+
+		else
+		{
+			y_coord = v_bound_2;
+			low = v_bound_1;
+		}
+
+		while(y_coord != low)
+		{
+			buffer_index = ((s32)y_coord * 256) + (s32)x_coord;
+			gx_screen_buffer[lcd_3D_stat.buffer_id][buffer_index] = vert_colors[0];
+			y_coord++;
+		}
+
+		v_bound_1 += y_delta_v1;
+		v_bound_2 += y_delta_v2; 
+		x_coord++;
+	}
 }
 
 /****** Parses and processes commands sent to the NDS 3D engine ******/
