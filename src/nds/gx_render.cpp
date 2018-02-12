@@ -96,6 +96,13 @@ void NTR_LCD::render_geometry()
 		temp_matrix = temp_matrix * clip_matrix;
  		plot_x[x] = ((temp_matrix.data[0][0] + temp_matrix.data[3][0]) * viewport_width) / ((2 * temp_matrix.data[3][0]) + lcd_3D_stat.view_port_x1);
   		plot_y[x] = ((-temp_matrix.data[1][0] + temp_matrix.data[3][0]) * viewport_height) / ((2 * temp_matrix.data[3][0]) + lcd_3D_stat.view_port_y1);
+
+		//Check for wonky coordinates
+		if(isnan(plot_x[x])) { lcd_3D_stat.render_polygon = false; return; }
+		if(isinf(plot_x[x])) { lcd_3D_stat.render_polygon = false; return; }
+
+		if(isnan(plot_y[x])) { lcd_3D_stat.render_polygon = false; return; }
+		if(isinf(plot_y[x])) { lcd_3D_stat.render_polygon = false; return; }
 	}
 
 	//Draw lines for all polygons
@@ -111,8 +118,8 @@ void NTR_LCD::render_geometry()
 		float x_coord = plot_x[x];
 		float y_coord = plot_y[x];
 
-		u16 xy_start = 0;
-		u16 xy_end = 0;
+		s32 xy_start = 0;
+		s32 xy_end = 0;
 
 		if((x_dist != 0) && (y_dist != 0))
 		{
@@ -236,10 +243,10 @@ void NTR_LCD::fill_tri_solid(float* px, float* py)
 	//Calculate boundaries
 	float v_bound_1 = py[v0];
 	float v_bound_2 = py[v0];
-	u16 side_bound = px[v1];
+	u16 side_bound = (px[v1] > 255) ? 255 : px[v1];
 
-	u16 x_coord = px[v0];
-	u16 y_coord = py[v0];
+	s32 x_coord = px[v0];
+	s32 y_coord = py[v0];
 
 	u32 buffer_index = 0;
 	s32 low = 0;
@@ -272,8 +279,14 @@ void NTR_LCD::fill_tri_solid(float* px, float* py)
 
 			while(y_coord != low)
 			{
-				buffer_index = ((s32)y_coord * 256) + (s32)x_coord;
-				gx_screen_buffer[lcd_3D_stat.buffer_id][buffer_index] = vert_colors[0];
+				//Only draw on-screen objects
+				if((x_coord >= 0) && (x_coord < 256) && (y_coord >= 0) && (y_coord <= 192))
+				{
+					//Convert plot points to buffer index
+					buffer_index = ((s32)y_coord * 256) + (s32)x_coord;
+					gx_screen_buffer[lcd_3D_stat.buffer_id][buffer_index] = vert_colors[x];
+				}
+
 				y_coord++;
 			}
 
