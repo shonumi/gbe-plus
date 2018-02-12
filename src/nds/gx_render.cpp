@@ -189,6 +189,8 @@ void NTR_LCD::render_geometry()
 
 		//Quads
 		case 0x1:
+			//Solid color fill
+			if((vert_colors[0] == vert_colors[1]) && (vert_colors[0] == vert_colors[2]) && (vert_colors[0] == vert_colors[3])) { fill_quad_solid(plot_x, plot_y); }
 			break;
 
 		//Triangle Strips
@@ -242,67 +244,50 @@ void NTR_LCD::fill_tri_solid(float* px, float* py)
 	u32 buffer_index = 0;
 	s32 low = 0;
 
-	//Draw 1st half of triangle
-	while(x_coord != side_bound)
+	for(int x = 0; x < 2; x++)
 	{
-		//Determine which boundary is top and bottom
-		if(v_bound_1 < v_bound_2)
+		//Draw 2nd half of triangle
+		if(x == 1)
 		{
-			y_coord = v_bound_1;
-			low = v_bound_2;
-		}
-
-		else
-		{
-			y_coord = v_bound_2;
-			low = v_bound_1;
-		}
-
-		while(y_coord != low)
-		{
-			buffer_index = ((s32)y_coord * 256) + (s32)x_coord;
-			gx_screen_buffer[lcd_3D_stat.buffer_id][buffer_index] = vert_colors[0];
-			y_coord++;
-		}
-
-		v_bound_1 += y_delta_v1;
-		v_bound_2 += y_delta_v2; 
-		x_coord++;
-	}
-
-	//Calculate Y deltas between vertices
-	y_delta_v1 = (py[v2] - py[v1]) / (px[v2] - px[v1]);
-	y_delta_v2 = (py[v2] - py[v0]) / (px[v2] - px[v0]);
+			y_delta_v1 = (py[v2] - py[v1]) / (px[v2] - px[v1]);
+			y_delta_v2 = (py[v2] - py[v0]) / (px[v2] - px[v0]);
 	
-	side_bound = px[v2];
-
-	//Draw 2nd half of triangle
-	while(x_coord != side_bound)
-	{
-		//Determine which boundary is top and bottom
-		if(v_bound_1 < v_bound_2)
-		{
-			y_coord = v_bound_1;
-			low = v_bound_2;
+			side_bound = px[v2];
 		}
 
-		else
+		while(x_coord != side_bound)
 		{
-			y_coord = v_bound_2;
-			low = v_bound_1;
-		}
+			//Determine which boundary is top and bottom
+			if(v_bound_1 < v_bound_2)
+			{
+				y_coord = v_bound_1;
+				low = v_bound_2;
+			}
 
-		while(y_coord != low)
-		{
-			buffer_index = ((s32)y_coord * 256) + (s32)x_coord;
-			gx_screen_buffer[lcd_3D_stat.buffer_id][buffer_index] = vert_colors[0];
-			y_coord++;
-		}
+			else
+			{
+				y_coord = v_bound_2;
+				low = v_bound_1;
+			}
 
-		v_bound_1 += y_delta_v1;
-		v_bound_2 += y_delta_v2; 
-		x_coord++;
+			while(y_coord != low)
+			{
+				buffer_index = ((s32)y_coord * 256) + (s32)x_coord;
+				gx_screen_buffer[lcd_3D_stat.buffer_id][buffer_index] = vert_colors[0];
+				y_coord++;
+			}
+
+			v_bound_1 += y_delta_v1;
+			v_bound_2 += y_delta_v2; 
+			x_coord++;
+		}
 	}
+}
+
+/****** NDS 3D Software Renderer - Fills a quads with a solid color ******/
+void NTR_LCD::fill_quad_solid(float* px, float* py)
+{
+
 }
 
 /****** Parses and processes commands sent to the NDS 3D engine ******/

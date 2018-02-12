@@ -179,6 +179,7 @@ class NTR_LCD
 	void render_geometry();
 	void process_gx_command();
 	void fill_tri_solid(float* px, float* py);
+	void fill_quad_solid(float* px, float* py);
 };
 
 #endif // NDS_LCD
