@@ -671,6 +671,15 @@ u8 NTR_MMU::read_u8(u32 address)
 		if(access_mode) { return ((lcd_3D_stat->display_control >> addr_shift) & 0xFF); }
 		else { return 0; }
 	}
+
+	//Check for RAMCOUNT
+	else if((address & ~0x3) == NDS_GXRAM_COUNT)
+	{
+		u8 addr_shift = (address & 0x3) << 3;
+
+		if(access_mode) { return ((lcd_3D_stat->poly_count >> addr_shift) & 0xFF); }
+		else { return 0; }
+	}
 	
 	return memory_map[address];
 }

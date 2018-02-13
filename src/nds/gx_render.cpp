@@ -103,6 +103,12 @@ void NTR_LCD::render_geometry()
 
 		if(isnan(plot_y[x])) { lcd_3D_stat.render_polygon = false; return; }
 		if(isinf(plot_y[x])) { lcd_3D_stat.render_polygon = false; return; }
+
+		//Check if coordinates need to be clipped to the view volume
+		if((plot_x[x] < 0) || (plot_x[x] > 255) || (plot_y[x] < 0) || (plot_y[x] > 192))
+		{
+			lcd_3D_stat.clip_flags |= (1 << x);
+		}
 	}
 
 	//Draw lines for all polygons
@@ -212,6 +218,7 @@ void NTR_LCD::render_geometry()
 	}
 
 	lcd_3D_stat.render_polygon = false;
+	lcd_3D_stat.clip_flags = 0;
 }
 
 /****** NDS 3D Software Renderer - Fills a triangle with a solid color ******/
@@ -225,11 +232,17 @@ void NTR_LCD::fill_tri_solid(float* px, float* py)
 	//Sort IDS
 	//V0 = furthest left
 	if(px[1] < px[v0]) { v0 = 1; }
+	if((px[1] == px[v0]) && (py[1] < py[v0])) { v0 = 1; }
+
 	if(px[2] < px[v0]) { v0 = 2; }
+	if((px[2] == px[v0]) && (py[2] < py[v0])) { v0 = 2; }
 
 	//V2 = furthest right
 	if(px[1] > px[v2]) { v2 = 1; }
+	if((px[1] == px[v2]) && (py[1] < py[v2])) { v2 = 1; }
+
 	if(px[2] > px[v2]) { v2 = 2; }
+	if((px[2] == px[v2]) && (py[2] < py[v2])) { v2 = 2; }
 
 	//V3 = last point
 	if((v0 + v2) == 3) { v1 = 0; }
@@ -621,18 +634,29 @@ void NTR_LCD::process_gx_command()
 			//Push new polygon if necessary
 			if(lcd_3D_stat.vertex_list_index == 0)
 			{
+				//Limit 3D engine to 2048 polygons
+				if(lcd_3D_stat.poly_count >= 2048)
+				{
+					lcd_3D_stat.parameter_index = 0;
+					lcd_3D_stat.current_gx_command = 0;
+					lcd_3D_stat.process_command = false;
+					return;
+				}
+
 				switch(lcd_3D_stat.vertex_mode)
 				{
 					//Triangles
 					case 0x0:
 						temp_matrix.resize(3, 3);
 						gx_triangles.push_back(temp_matrix);
+						lcd_3D_stat.poly_count++;
 						break;
 
 					//Quads
 					case 0x1:
 						temp_matrix.resize(4, 4);
 						gx_quads.push_back(temp_matrix);
+						lcd_3D_stat.poly_count++;
 						break;
 
 					//Triangle Strips

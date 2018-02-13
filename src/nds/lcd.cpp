@@ -250,6 +250,7 @@ void NTR_LCD::reset()
 
 	lcd_3D_stat.rear_plane_color = 0;
 	lcd_3D_stat.vertex_color = 0;
+	lcd_3D_stat.clip_flags = 0;
 
 	//3D GFX command parameters
 	for(int x = 0; x < 128; x++) { lcd_3D_stat.command_parameters[x] = 0; }
@@ -2810,6 +2811,8 @@ void NTR_LCD::step()
 				lcd_3D_stat.vertex_list_index = 0;
 				lcd_3D_stat.gx_state &= ~0x80;
 				lcd_3D_stat.render_polygon = false;
+				lcd_3D_stat.poly_count = 0;
+				lcd_3D_stat.vert_count = 0;
 
 				//Clear polygons (and vertices as well)
 				gx_triangles.clear();

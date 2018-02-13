@@ -197,6 +197,9 @@ struct ntr_lcd_3D_data
 
 	u32 rear_plane_color;
 	u32 vertex_color;
+	u32 clip_flags;
+	u16 poly_count;
+	u16 vert_count;
 };
 
 #endif // NDS_LCD_DATA
