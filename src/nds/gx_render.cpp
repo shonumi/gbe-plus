@@ -412,7 +412,9 @@ void NTR_LCD::process_gx_command()
 
 			break;
 
+		//MTX_LOAD_4x4
 		//MTX_MULT_4x4
+		case 0x16:
 		case 0x18:
 			for(int a = 0; a < 64;)
 			{
@@ -439,26 +441,41 @@ void NTR_LCD::process_gx_command()
 			switch(lcd_3D_stat.matrix_mode)
 			{
 				case 0x0:
-					gx_projection_matrix = temp_matrix * gx_projection_matrix;
+					if(lcd_3D_stat.current_gx_command == 0x16) { gx_projection_matrix = temp_matrix; }
+					else { gx_projection_matrix = temp_matrix * gx_projection_matrix; }
 					break;
 
 				case 0x1:
-					gx_position_matrix = temp_matrix * gx_position_matrix;
+					if(lcd_3D_stat.current_gx_command == 0x16) { gx_position_matrix = temp_matrix; }
+					else { gx_position_matrix = temp_matrix * gx_position_matrix; }
 					break;
 
 				case 0x2:
-					gx_position_matrix = temp_matrix * gx_position_matrix;
-					gx_vector_matrix = temp_matrix * gx_vector_matrix;
+					if(lcd_3D_stat.current_gx_command == 0x16)
+					{
+						gx_position_matrix = temp_matrix;
+						gx_vector_matrix = temp_matrix;
+					}
+
+					else
+					{
+						gx_position_matrix = temp_matrix * gx_position_matrix;
+						gx_vector_matrix = temp_matrix * gx_vector_matrix;
+					}
+
 					break;
 
 				case 0x3:
-					gx_texture_matrix = temp_matrix * gx_texture_matrix;
+					if(lcd_3D_stat.current_gx_command == 0x16) { gx_texture_matrix = temp_matrix; }
+					else { gx_texture_matrix = temp_matrix * gx_texture_matrix; }
 					break;
 			}
 
 			break;
 
+		//MTX_LOAD_4x3
 		//MTX_MULT_4x3
+		case 0x17:
 		case 0x19:
 			temp_matrix.make_identity(4);
 
@@ -487,20 +504,33 @@ void NTR_LCD::process_gx_command()
 			switch(lcd_3D_stat.matrix_mode)
 			{
 				case 0x0:
-					gx_projection_matrix = temp_matrix * gx_projection_matrix;
+					if(lcd_3D_stat.current_gx_command == 0x16) { gx_projection_matrix = temp_matrix; }
+					else { gx_projection_matrix = temp_matrix * gx_projection_matrix; }
 					break;
 
 				case 0x1:
-					gx_position_matrix = temp_matrix * gx_position_matrix;
+					if(lcd_3D_stat.current_gx_command == 0x16) { gx_position_matrix = temp_matrix; }
+					else { gx_position_matrix = temp_matrix * gx_position_matrix; }
 					break;
 
 				case 0x2:
-					gx_position_matrix = temp_matrix * gx_position_matrix;
-					gx_vector_matrix = temp_matrix * gx_vector_matrix;
+					if(lcd_3D_stat.current_gx_command == 0x16)
+					{
+						gx_position_matrix = temp_matrix;
+						gx_vector_matrix = temp_matrix;
+					}
+
+					else
+					{
+						gx_position_matrix = temp_matrix * gx_position_matrix;
+						gx_vector_matrix = temp_matrix * gx_vector_matrix;
+					}
+
 					break;
 
 				case 0x3:
-					gx_texture_matrix = temp_matrix * gx_texture_matrix;
+					if(lcd_3D_stat.current_gx_command == 0x16) { gx_texture_matrix = temp_matrix; }
+					else { gx_texture_matrix = temp_matrix * gx_texture_matrix; }
 					break;
 			}
 
