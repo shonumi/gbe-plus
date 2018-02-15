@@ -677,7 +677,7 @@ u8 NTR_MMU::read_u8(u32 address)
 	{
 		u8 addr_shift = (address & 0x3) << 3;
 
-		if(access_mode) { return ((lcd_3D_stat->poly_count >> addr_shift) & 0xFF); }
+		if(access_mode) { return ((((lcd_3D_stat->vert_count << 8) | lcd_3D_stat->poly_count)  >> addr_shift) & 0xFF); }
 		else { return 0; }
 	}
 	
