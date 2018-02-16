@@ -65,6 +65,7 @@ class main_menu : public QWidget
 	private slots:
 	void open_file();
 	void select_card_file();
+	void select_cam_file();
 	void fullscreen();
 	void screenshot();
 	void pause();
