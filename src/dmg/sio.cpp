@@ -169,25 +169,32 @@ bool DMG_SIO::init()
 	sender.connected = false;
 	sender.port = config::netplay_client_port;
 
+	//Abort initialization if server and client ports are the same
+	if(config::netplay_server_port == config::netplay_client_port)
+	{
+		std::cout<<"SIO::Error - Server and client ports are the same. Could not initialize SDL_net\n";
+		return false;
+	}
+
 	//Setup server, resolve the server with NULL as the hostname, the server will now listen for connections
 	if(SDLNet_ResolveHost(&server.host_ip, NULL, server.port) < 0)
 	{
 		std::cout<<"SIO::Error - Server could not resolve hostname\n";
-		return -1;
+		return false;
 	}
 
 	//Open a connection to listen on host's port
 	if(!(server.host_socket = SDLNet_TCP_Open(&server.host_ip)))
 	{
 		std::cout<<"SIO::Error - Server could not open a connection on Port " << server.port << "\n";
-		return -1;
+		return false;
 	}
 
 	//Setup client, listen on another port
 	if(SDLNet_ResolveHost(&sender.host_ip, config::netplay_client_ip.c_str(), sender.port) < 0)
 	{
 		std::cout<<"SIO::Error - Client could not resolve hostname\n";
-		return -1;
+		return false;
 	}
 
 	//Create sockets sets
