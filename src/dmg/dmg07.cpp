@@ -17,6 +17,13 @@ bool DMG_SIO::four_player_init()
 {
 	#ifdef GBE_NETPLAY
 
+	//Abort initialization if server and client ports are the same
+	if(config::netplay_server_port == config::netplay_client_port)
+	{
+		std::cout<<"SIO::Error - Server and client ports are the same. Could not initialize SDL_net\n";
+		return false;
+	}
+
 	network_init = true;
 	bool server_init = false;
 
