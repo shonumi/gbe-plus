@@ -156,6 +156,16 @@ class DMG_SIO
 		tv_remote_state current_state;
 	} tv_remote;
 
+	//Pocket IR device - Pocket Pikachu 2 and Pocket Sakura
+	struct gb_pocket_ir
+	{
+		std::vector<u16> data;
+		u32 delay_counter;
+		u32 current_data;
+		bool light_on;
+		pocket_ir_state current_state;
+	} pocket_ir;
+	
 	//4 Player Adapter
 	struct gb_four_player_adapter
 	{
@@ -205,6 +215,9 @@ class DMG_SIO
 	bool full_changer_load_db(std::string filename);
 
 	void tv_remote_process();
+
+	void pocket_ir_process();
+	bool pocket_ir_load_db(std::string filename);
 
 	bool four_player_init();
 	void four_player_disconnect();

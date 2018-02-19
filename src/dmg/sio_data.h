@@ -91,6 +91,12 @@ enum tv_remote_state
 	TV_REMOTE_SEND_SIGNAL,
 };
 
+enum pocket_ir_state
+{
+	POCKET_IR_INACTIVE,
+	POCKET_IR_SEND_SIGNAL,
+};
+
 struct dmg_sio_data
 {
 	bool connected;

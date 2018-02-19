@@ -126,3 +126,83 @@ void DMG_SIO::tv_remote_process()
 
 	else { tv_remote.current_state = TV_REMOTE_INACTIVE; }
 }
+
+/****** Loads a database file for Pocket Pikachu or Pocket Sakura ******/
+bool DMG_SIO::pocket_ir_load_db(std::string filename)
+{
+	std::ifstream database(filename.c_str(), std::ios::binary);
+
+	if(!database.is_open()) 
+	{ 
+		if(sio_stat.ir_type == GBC_POCKET_PIKACHU_2) { std::cout<<"SIO::Loaded Pocket Pikachu 2 database data could not be read. Check file path or permissions. \n"; }
+		else { std::cout<<"SIO::Loaded Pocket Sakura database data could not be read. Check file path or permissions. \n"; }
+		return false;
+	}
+
+	//Get file size
+	database.seekg(0, database.end);
+	u32 database_size = database.tellg();
+	database.seekg(0, database.beg);
+	database_size >>= 1;
+
+	pocket_ir.data.clear();
+	u16 temp_word = 0;
+	
+	for(u32 x = 0; x < database_size; x++)
+	{
+		database.read((char*)&temp_word, 2);
+		pocket_ir.data.push_back(temp_word);
+	}
+
+	database.close();
+
+	if(sio_stat.ir_type == GBC_POCKET_PIKACHU_2) { std::cout<<"SIO::Loaded Pocket Pikachu 2 database.\n"; }
+	else { std::cout<<"SIO::Loaded Pocket Sakura database.\n"; }
+
+	return true;
+}
+
+/****** Processes Pocket Pikachu 2 or Pocket Sakura data sent to the Game Boy ******/
+void DMG_SIO::pocket_ir_process()
+{
+	//Initiate IR device transmission
+	if(mem->ir_trigger == 2)
+	{
+		mem->ir_trigger = 0;
+		pocket_ir.current_data = 0;
+		pocket_ir.current_state = POCKET_IR_SEND_SIGNAL;
+		pocket_ir.light_on = true;
+	}
+
+	if(pocket_ir.current_state != POCKET_IR_SEND_SIGNAL) { return; }
+
+	//Start or stop sending light pulse to Game Boy
+	if(pocket_ir.light_on)
+	{
+		mem->memory_map[REG_RP] &= ~0x2;
+		pocket_ir.light_on = false;
+		std::cout<<"ON -> ";
+	}
+
+	else
+	{
+		mem->memory_map[REG_RP] |= 0x2;
+		pocket_ir.light_on = true;
+		std::cout<<"OFF -> ";
+	}
+
+	//Schedule the next on-off pulse
+	if(pocket_ir.current_data != pocket_ir.data.size())
+	{
+		sio_stat.shift_counter = 0;
+		sio_stat.shift_clock = pocket_ir.data[pocket_ir.current_data];
+		sio_stat.shifts_left = 1;
+
+		//Set up next delay
+		pocket_ir.current_data++;
+
+		std::cout<< std::dec << sio_stat.shift_clock << "\n";
+	}
+
+	else { pocket_ir.current_state = POCKET_IR_INACTIVE; std::cout<<"DONE\n";  }
+}

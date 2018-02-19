@@ -410,6 +410,11 @@ void DMG_core::run_core()
 								core_cpu.controllers.serial_io.full_changer_process();
 								break;
 
+							//Process Pocket Pikachu 2 communications
+							case GBC_POCKET_PIKACHU_2:
+								core_cpu.controllers.serial_io.pocket_ir_process();
+								break;
+
 							//Process TV Remote commnications
 							case GBC_TV_REMOTE:
 								core_cpu.controllers.serial_io.tv_remote_process();
@@ -639,6 +644,11 @@ void DMG_core::step()
 						//Process Full Changer communications
 						case GBC_FULL_CHANGER:
 							core_cpu.controllers.serial_io.full_changer_process();
+							break;
+
+						//Process Pocket Pikachu 2 communications
+						case GBC_POCKET_PIKACHU_2:
+							core_cpu.controllers.serial_io.pocket_ir_process();
 							break;
 
 						//Process TV Remote commnications
@@ -882,6 +892,11 @@ void DMG_core::handle_hotkey(SDL_Event& event)
 				core_mmu.ir_trigger = 1;
 				break;
 
+			//Pocket Pikachu 2 - Send Watts
+			case GBC_POCKET_PIKACHU_2:
+				core_mmu.ir_trigger = 1;
+				break;
+
 			//TV Remote - Send signal
 			case GBC_TV_REMOTE:
 				core_mmu.ir_trigger = 1;
@@ -965,6 +980,11 @@ void DMG_core::handle_hotkey(int input, bool pressed)
 			//Full Changer draw Cosmic Character
 			case GBC_FULL_CHANGER:
 				core_cpu.controllers.serial_io.full_changer.delay_counter = (core_cpu.controllers.serial_io.full_changer.current_character * 72);
+				core_mmu.ir_trigger = 1;
+				break;
+
+			//Pocket Pikachu 2 - Send Watts
+			case GBC_POCKET_PIKACHU_2:
 				core_mmu.ir_trigger = 1;
 				break;
 

@@ -370,6 +370,12 @@ void DMG_SIO::reset()
 	tv_remote.current_data = 0;
 	tv_remote.light_on = false;
 
+	//Pocket IR
+	pocket_ir.data.clear();
+	pocket_ir.delay_counter = 0;
+	pocket_ir.current_data = 0;
+	pocket_ir.light_on = false;
+
 	srand(time(NULL));
 	for(int x = 0; x < 64; x++)
 	{
@@ -381,6 +387,12 @@ void DMG_SIO::reset()
 	{
 		std::string database = config::data_path + "zzh_db.bin";
 		full_changer_load_db(database);
+	}
+
+	else if(config::ir_device == 2)
+	{
+		std::string database = config::data_path + "pocket_pikachu_db.bin";
+		pocket_ir_load_db(database);
 	}
 
 	#ifdef GBE_NETPLAY
