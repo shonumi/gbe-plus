@@ -169,7 +169,7 @@ void DMG_SIO::pocket_ir_process()
 	if(mem->ir_trigger == 2)
 	{
 		mem->ir_trigger = 0;
-		pocket_ir.current_data = 0;
+		pocket_ir.current_data = pocket_ir.db_step * pocket_ir.db_index;
 		pocket_ir.current_state = POCKET_IR_SEND_SIGNAL;
 		pocket_ir.light_on = true;
 	}
@@ -181,14 +181,12 @@ void DMG_SIO::pocket_ir_process()
 	{
 		mem->memory_map[REG_RP] &= ~0x2;
 		pocket_ir.light_on = false;
-		std::cout<<"ON -> ";
 	}
 
 	else
 	{
 		mem->memory_map[REG_RP] |= 0x2;
 		pocket_ir.light_on = true;
-		std::cout<<"OFF -> ";
 	}
 
 	//Schedule the next on-off pulse
@@ -200,9 +198,7 @@ void DMG_SIO::pocket_ir_process()
 
 		//Set up next delay
 		pocket_ir.current_data++;
-
-		std::cout<< std::dec << sio_stat.shift_clock << "\n";
 	}
 
-	else { pocket_ir.current_state = POCKET_IR_INACTIVE; std::cout<<"DONE\n";  }
+	else { pocket_ir.current_state = POCKET_IR_INACTIVE; }
 }
