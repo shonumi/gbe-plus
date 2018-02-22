@@ -162,7 +162,6 @@ class DMG_SIO
 		std::vector<u16> data;
 		u32 current_data;
 		u32 db_step;
-		u32 db_index;
 		bool light_on;
 		pocket_ir_state current_state;
 	} pocket_ir;

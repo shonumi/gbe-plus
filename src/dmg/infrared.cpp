@@ -169,7 +169,7 @@ void DMG_SIO::pocket_ir_process()
 	if(mem->ir_trigger == 2)
 	{
 		mem->ir_trigger = 0;
-		pocket_ir.current_data = pocket_ir.db_step * pocket_ir.db_index;
+		pocket_ir.current_data = pocket_ir.db_step * config::ir_db_index;
 		pocket_ir.current_state = POCKET_IR_SEND_SIGNAL;
 		pocket_ir.light_on = true;
 	}
@@ -190,7 +190,7 @@ void DMG_SIO::pocket_ir_process()
 	}
 
 	//Schedule the next on-off pulse
-	if(pocket_ir.current_data != pocket_ir.data.size())
+	if(pocket_ir.current_data < (pocket_ir.db_step * (config::ir_db_index + 1)))
 	{
 		sio_stat.shift_counter = 0;
 		sio_stat.shift_clock = pocket_ir.data[pocket_ir.current_data];

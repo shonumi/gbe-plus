@@ -373,7 +373,6 @@ void DMG_SIO::reset()
 	//Pocket IR
 	pocket_ir.data.clear();
 	pocket_ir.db_step = 0;
-	pocket_ir.db_index = 0;
 	pocket_ir.current_data = 0;
 	pocket_ir.light_on = false;
 
@@ -393,7 +392,7 @@ void DMG_SIO::reset()
 	else if(config::ir_device == 2)
 	{
 		std::string database = config::data_path + "pocket_pikachu_db.bin";
-		pocket_ir.db_step = 0xFAE;
+		pocket_ir.db_step = 0x7D7;
 		pocket_ir_load_db(database);
 	}
 

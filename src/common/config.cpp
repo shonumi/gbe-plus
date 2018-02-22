@@ -199,6 +199,9 @@ namespace config
 
 	//CPU overclocking flags
 	u32 oc_flags = 0;
+
+	//IR database index
+	u32 ir_db_index = 0;
 }
 
 /****** Reset DMG default colors ******/
@@ -2324,6 +2327,25 @@ bool parse_ini_file()
 			}
 		}
 
+		//IR database index
+		else if(ini_item == "#ir_db_index")
+		{
+			if((x + 1) < size)
+			{
+				ini_item = ini_opts[++x];
+				std::stringstream temp_stream(ini_item);
+				temp_stream >> output;
+				
+				if(output >= 0) { config::ir_db_index = output; }
+			}
+
+			else
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#ir_db_index) \n";
+				return false;
+			}
+		}
+
 		//Recent files
 		else if(ini_item == "#recent_files")
 		{
@@ -2952,6 +2974,15 @@ bool save_ini_file()
 		{
 			line_pos = output_count[x];
 			output_lines[line_pos] = "[#netplay_client_ip:" + config::netplay_client_ip + "]";
+		}
+
+		//IR database index
+		else if(ini_item == "#ir_db_index")
+		{
+			line_pos = output_count[x];
+			std::string val = util::to_str(config::ir_db_index);
+
+			output_lines[line_pos] = "[#ir_db_index:" + val + "]";
 		}
 
 		else if(ini_item == "#recent_files")

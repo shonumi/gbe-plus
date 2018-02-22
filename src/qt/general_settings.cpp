@@ -159,10 +159,12 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	ir_dev->addItem("Pocket Sakura");
 	ir_dev->addItem("TV Remote");
 
+	QPushButton* config_ir = new QPushButton("Configure");
+
 	QHBoxLayout* ir_layout = new QHBoxLayout;
-	ir_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-	ir_layout->addWidget(ir_label);
-	ir_layout->addWidget(ir_dev);
+	ir_layout->addWidget(ir_label, 0, Qt::AlignLeft);
+	ir_layout->addWidget(ir_dev, 1, Qt::AlignLeft);
+	ir_layout->addWidget(config_ir, 0, Qt::AlignRight);
 	ir_set->setLayout(ir_layout);
 
 	//General settings - Emulated CPU Speed
@@ -970,6 +972,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(auto_patch, SIGNAL(stateChanged(int)), this, SLOT(set_patches()));
 	connect(edit_cheats, SIGNAL(clicked()), this, SLOT(show_cheats()));
 	connect(edit_rtc, SIGNAL(clicked()), this, SLOT(show_rtc()));
+	connect(config_ir, SIGNAL(clicked()), this, SLOT(show_ir_config()));
 	connect(ogl, SIGNAL(stateChanged(int)), this, SLOT(set_ogl()));
 	connect(screen_scale, SIGNAL(currentIndexChanged(int)), this, SLOT(screen_scale_change()));
 	connect(aspect_ratio, SIGNAL(stateChanged(int)), this, SLOT(aspect_ratio_change()));
@@ -1181,6 +1184,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 
 	dmg_cheat_menu = new cheat_menu;
 	real_time_clock_menu = new rtc_menu;
+	pocket_pikachu_menu = new pp2_menu;
 
 	resize(450, 450);
 	setWindowTitle(tr("GBE+ Settings"));
@@ -1409,6 +1413,15 @@ void gen_settings::show_cheats()
 void gen_settings::show_rtc()
 {
 	real_time_clock_menu->show();
+}
+
+/****** Displays relevant IR configuration window ******/
+void gen_settings::show_ir_config()
+{
+	switch(config::ir_device)
+	{
+		case 0x2: pocket_pikachu_menu->show(); break;
+	}	
 }
 
 /****** Toggles enabling or disabling the fragment shader widget when setting OpenGL ******/

@@ -154,6 +154,7 @@ namespace config
 
 	extern u16 rtc_offset[6];
 	extern u32 oc_flags;
+	extern u32 ir_db_index;
 
 	extern bool use_external_interfaces;
 
