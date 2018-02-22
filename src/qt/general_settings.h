@@ -43,6 +43,7 @@ class gen_settings : public QDialog
 	QComboBox* overclock;
 	QCheckBox* cheats;
 	QPushButton* edit_cheats;
+	QPushButton* config_ir;
 	QComboBox* sio_dev;
 	QComboBox* ir_dev;
 	QCheckBox* auto_patch;

@@ -159,7 +159,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	ir_dev->addItem("Pocket Sakura");
 	ir_dev->addItem("TV Remote");
 
-	QPushButton* config_ir = new QPushButton("Configure");
+	config_ir = new QPushButton("Configure");
 
 	QHBoxLayout* ir_layout = new QHBoxLayout;
 	ir_layout->addWidget(ir_label, 0, Qt::AlignLeft);
@@ -1202,6 +1202,9 @@ void gen_settings::set_ini_options()
 	//Emulated IR device
 	ir_dev->setCurrentIndex(config::ir_device);
 
+	if(config::ir_device != 2) { config_ir->setEnabled(false); }
+	else { config_ir->setEnabled(true); }
+
 	//Emulated CPU speed
 	overclock->setCurrentIndex(config::oc_flags);
 
@@ -1222,6 +1225,9 @@ void gen_settings::set_ini_options()
 	real_time_clock_menu->mins_offset->setValue(config::rtc_offset[1]);
 	real_time_clock_menu->hours_offset->setValue(config::rtc_offset[2]);
 	real_time_clock_menu->days_offset->setValue(config::rtc_offset[3]);
+
+	//Pocket Pikachu 2
+	pocket_pikachu_menu->watts->setCurrentIndex(config::ir_db_index);
 
 	//Screen scale options
 	screen_scale->setCurrentIndex(config::scaling_factor - 1);
@@ -1387,6 +1393,9 @@ void gen_settings::sio_dev_change()
 void gen_settings::ir_dev_change()
 {
 	config::ir_device = ir_dev->currentIndex();
+
+	if(config::ir_device != 2) { config_ir->setEnabled(false); }
+	else { config_ir->setEnabled(true); }
 }
 
 /****** Changes the emulated CPU speed ******/
