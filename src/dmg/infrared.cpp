@@ -17,8 +17,11 @@ void DMG_SIO::full_changer_process()
 	//Initiate Full Changer transmission
 	if(mem->ir_trigger == 2)
 	{
+		//Validate IR database index
+		if(config::ir_db_index > 0) { config::ir_db_index = 0; }
+
 		mem->ir_trigger = 0;
-		full_changer.delay_counter = 0;
+		full_changer.delay_counter = (config::ir_db_index * 0x48);
 		full_changer.current_state = FULL_CHANGER_SEND_SIGNAL;
 		full_changer.light_on = true;
 	}
@@ -168,6 +171,9 @@ void DMG_SIO::pocket_ir_process()
 	//Initiate IR device transmission
 	if(mem->ir_trigger == 2)
 	{
+		//Validate IR database index
+		if((config::ir_device == 2) && (config::ir_db_index > 2)) { config::ir_db_index = 0; }
+
 		mem->ir_trigger = 0;
 		pocket_ir.current_data = pocket_ir.db_step * config::ir_db_index;
 		pocket_ir.current_state = POCKET_IR_SEND_SIGNAL;

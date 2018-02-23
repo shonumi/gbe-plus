@@ -1392,6 +1392,13 @@ void gen_settings::sio_dev_change()
 /****** Changes the emulated IR device ******/
 void gen_settings::ir_dev_change()
 {
+	//Reset IR database index when switching devices
+	if(config::ir_device != ir_dev->currentIndex())
+	{
+		config::ir_db_index = 0;
+		pocket_pikachu_menu->watts->setCurrentIndex(0);
+	}
+
 	config::ir_device = ir_dev->currentIndex();
 
 	if(config::ir_device != 2) { config_ir->setEnabled(false); }
