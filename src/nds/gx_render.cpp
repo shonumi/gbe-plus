@@ -768,6 +768,116 @@ void NTR_LCD::process_gx_command()
 
 			break;
 
+		//VTX_10
+		case 0x24:
+			//Push new polygon if necessary
+			if(lcd_3D_stat.vertex_list_index == 0)
+			{
+				//Limit 3D engine to 2048 polygons and 6144 vertices
+				if(( lcd_3D_stat.poly_count >= 2048) || (lcd_3D_stat.vert_count >= 6144))
+				{
+					lcd_3D_stat.parameter_index = 0;
+					lcd_3D_stat.current_gx_command = 0;
+					lcd_3D_stat.process_command = false;
+					return;
+				}
+
+				switch(lcd_3D_stat.vertex_mode)
+				{
+					//Triangles
+					case 0x0:
+						temp_matrix.resize(3, 3);
+						gx_triangles.push_back(temp_matrix);
+						lcd_3D_stat.poly_count++;
+						lcd_3D_stat.vert_count += 3;
+						break;
+
+					//Quads
+					case 0x1:
+						temp_matrix.resize(4, 4);
+						gx_quads.push_back(temp_matrix);
+						lcd_3D_stat.poly_count++;
+						lcd_3D_stat.vert_count += 4;
+						break;
+
+					//Triangle Strips
+					//Quad Strips
+					case 0x2:
+					case 0x3:
+						lcd_3D_stat.parameter_index = 0;
+						lcd_3D_stat.current_gx_command = 0;
+						lcd_3D_stat.process_command = false;
+						return;
+				}
+
+				//Limit 3D engine to 6144 vertices
+				if(lcd_3D_stat.poly_count >= 6144)
+				{
+					lcd_3D_stat.parameter_index = 0;
+					lcd_3D_stat.current_gx_command = 0;
+					lcd_3D_stat.process_command = false;
+					return;
+				}
+			}
+
+			{
+				float temp_result[3];
+				u8 list_size = 0;
+				u32 raw_value = lcd_3D_stat.command_parameters[3] | (lcd_3D_stat.command_parameters[2] << 8) | (lcd_3D_stat.command_parameters[1] << 16) | (lcd_3D_stat.command_parameters[0] << 24);
+
+				for(int a = 0; a < 3; a++)
+				{
+					u16 value = (raw_value >> (10 * a)) & 0x3FF;
+					
+					float result = 0.0;
+				
+					if(value & 0x200) 
+					{ 
+						u16 p = ((value >> 6) - 1);
+						p = (~p & 0x7);
+						result = -1.0 * p;
+					}
+
+					else { result = (value >> 6); }
+					if((value & 0x3F) != 0) { result += (value & 0x3F) / 64.0; }
+
+					temp_result[a] = result;
+				}
+
+				switch(lcd_3D_stat.vertex_mode)
+				{
+					//Triangles
+					case 0x0:
+						gx_triangles.back().data[lcd_3D_stat.vertex_list_index][0] = temp_result[0];
+						gx_triangles.back().data[lcd_3D_stat.vertex_list_index][1] = temp_result[1];
+						gx_triangles.back().data[lcd_3D_stat.vertex_list_index][2] = temp_result[2];
+						list_size = 3;
+						break;
+
+					//Quads
+					case 0x1:
+						gx_quads.back().data[lcd_3D_stat.vertex_list_index][0] = temp_result[0];
+						gx_quads.back().data[lcd_3D_stat.vertex_list_index][1] = temp_result[1];
+						gx_quads.back().data[lcd_3D_stat.vertex_list_index][2] = temp_result[2];
+						list_size = 4;
+						break;
+
+				}
+
+				//Set vertex color
+				vert_colors[lcd_3D_stat.vertex_list_index] = lcd_3D_stat.vertex_color;
+
+				lcd_3D_stat.vertex_list_index++;
+
+				if(lcd_3D_stat.vertex_list_index == list_size)
+				{
+					lcd_3D_stat.vertex_list_index = 0;
+					lcd_3D_stat.render_polygon = true;
+				}
+			}
+
+			break;
+
 		//BEGIN_VTXS:
 		case 0x40:
 			lcd_3D_stat.vertex_mode = (lcd_3D_stat.command_parameters[3] & 0x3);
