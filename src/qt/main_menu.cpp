@@ -75,9 +75,9 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	file = new QMenu(tr("File"), this);
 	file->addAction(open);
 	file->addSeparator();
+	recent_list = file->addMenu(tr("Recent Files"));
 	file->addAction(select_card);
 	file->addAction(select_cam_file);
-	recent_list = file->addMenu(tr("Recent Files"));
 	file->addSeparator();
 	state_save_list = file->addMenu(tr("Save State"));
 	state_load_list = file->addMenu(tr("Load State"));

@@ -13,6 +13,7 @@ set(SRCS
 	cheat_menu.cpp
 	rtc_menu.cpp
 	pp2_menu.cpp
+	zzh_menu.cpp
 	)
 
 set(HEADERS
@@ -27,6 +28,7 @@ set(HEADERS
 	cheat_menu.h
 	rtc_menu.h
 	pp2_menu.h
+	zzh_menu.h
 	)
 
 add_executable(gbe_plus_qt ${SRCS} ${HEADERS})

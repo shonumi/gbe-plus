@@ -1185,6 +1185,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	dmg_cheat_menu = new cheat_menu;
 	real_time_clock_menu = new rtc_menu;
 	pocket_pikachu_menu = new pp2_menu;
+	full_changer_menu = new zzh_menu;
 
 	resize(450, 450);
 	setWindowTitle(tr("GBE+ Settings"));
@@ -1202,8 +1203,8 @@ void gen_settings::set_ini_options()
 	//Emulated IR device
 	ir_dev->setCurrentIndex(config::ir_device);
 
-	if(config::ir_device != 2) { config_ir->setEnabled(false); }
-	else { config_ir->setEnabled(true); }
+	if((config::ir_device == 1) || (config::ir_device == 2)) { config_ir->setEnabled(true); }
+	else { config_ir->setEnabled(false); }
 
 	//Emulated CPU speed
 	overclock->setCurrentIndex(config::oc_flags);
@@ -1226,8 +1227,13 @@ void gen_settings::set_ini_options()
 	real_time_clock_menu->hours_offset->setValue(config::rtc_offset[2]);
 	real_time_clock_menu->days_offset->setValue(config::rtc_offset[3]);
 
+	//Full Changer
+	if(config::ir_db_index < 1) { full_changer_menu->cosmic_character->setCurrentIndex(config::ir_db_index); }
+	else { full_changer_menu->cosmic_character->setCurrentIndex(0); }
+
 	//Pocket Pikachu 2
-	pocket_pikachu_menu->watts->setCurrentIndex(config::ir_db_index);
+	if(config::ir_db_index < 3) { pocket_pikachu_menu->watts->setCurrentIndex(config::ir_db_index); }
+	else { pocket_pikachu_menu->watts->setCurrentIndex(0); }
 
 	//Screen scale options
 	screen_scale->setCurrentIndex(config::scaling_factor - 1);
@@ -1396,13 +1402,14 @@ void gen_settings::ir_dev_change()
 	if(config::ir_device != ir_dev->currentIndex())
 	{
 		config::ir_db_index = 0;
+		full_changer_menu->cosmic_character->setCurrentIndex(0);
 		pocket_pikachu_menu->watts->setCurrentIndex(0);
 	}
 
 	config::ir_device = ir_dev->currentIndex();
 
-	if(config::ir_device != 2) { config_ir->setEnabled(false); }
-	else { config_ir->setEnabled(true); }
+	if((config::ir_device == 1) || (config::ir_device == 2)) { config_ir->setEnabled(true); }
+	else { config_ir->setEnabled(false); }
 }
 
 /****** Changes the emulated CPU speed ******/
@@ -1436,6 +1443,7 @@ void gen_settings::show_ir_config()
 {
 	switch(config::ir_device)
 	{
+		case 0x1: full_changer_menu->show(); break;
 		case 0x2: pocket_pikachu_menu->show(); break;
 	}	
 }
