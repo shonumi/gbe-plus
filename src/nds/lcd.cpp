@@ -252,6 +252,10 @@ void NTR_LCD::reset()
 	lcd_3D_stat.vertex_color = 0;
 	lcd_3D_stat.clip_flags = 0;
 
+	lcd_3D_stat.last_x = 0;
+	lcd_3D_stat.last_y = 0;
+	lcd_3D_stat.last_z = 0;
+
 	//3D GFX command parameters
 	for(int x = 0; x < 128; x++) { lcd_3D_stat.command_parameters[x] = 0; }
 	

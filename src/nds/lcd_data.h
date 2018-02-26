@@ -200,6 +200,10 @@ struct ntr_lcd_3D_data
 	u32 clip_flags;
 	u16 poly_count;
 	u16 vert_count;
+
+	float last_x;
+	float last_y;
+	float last_z;
 };
 
 #endif // NDS_LCD_DATA

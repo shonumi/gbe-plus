@@ -1004,6 +1004,18 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 						break;
 
+					//VTX_XY
+					case 0x4000494:
+					case 0x4000495:
+					case 0x4000496:
+					case 0x4000497:
+						std::cout<<"GX - VTX_XY\n";
+						lcd_3D_stat->current_gx_command = 0x25;
+						lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = value;
+						if(lcd_3D_stat->parameter_index == 4) { lcd_3D_stat->process_command = true; }
+
+						break;
+
 					//BEGIN_VTXS
 					case 0x4000500:
 					case 0x4000501:
