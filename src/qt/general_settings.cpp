@@ -1232,7 +1232,7 @@ void gen_settings::set_ini_options()
 	else { full_changer_menu->cosmic_character->setCurrentIndex(0); }
 
 	//Pocket Pikachu 2
-	if(config::ir_db_index < 3) { pocket_pikachu_menu->watts->setCurrentIndex(config::ir_db_index); }
+	if(config::ir_db_index < 5) { pocket_pikachu_menu->watts->setCurrentIndex(config::ir_db_index); }
 	else { pocket_pikachu_menu->watts->setCurrentIndex(0); }
 
 	//Screen scale options

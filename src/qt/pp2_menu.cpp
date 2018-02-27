@@ -25,6 +25,8 @@ pp2_menu::pp2_menu(QWidget *parent) : QDialog(parent)
 	watts->addItem("1W");
 	watts->addItem("100W");
 	watts->addItem("200W");
+	watts->addItem("300W");
+	watts->addItem("400W");
 
 	QHBoxLayout* watts_layout = new QHBoxLayout;
 	watts_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
