@@ -180,6 +180,7 @@ class NTR_LCD
 	void process_gx_command();
 	void fill_tri_solid(float* px, float* py);
 	void fill_quad_solid(float* px, float* py);
+	bool poly_push(gx_matrix &current_matrix);
 };
 
 #endif // NDS_LCD

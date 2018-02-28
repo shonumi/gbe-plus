@@ -316,6 +316,68 @@ void NTR_LCD::fill_quad_solid(float* px, float* py)
 
 }
 
+/****** Determines if a polygon can be pushed to internal rendering list ******/
+bool NTR_LCD::poly_push(gx_matrix &current_matrix)
+{
+	bool status = false;
+
+	//Limit 3D engine to 2048 polygons and 6144 vertices
+	if((lcd_3D_stat.poly_count >= 2048) || (lcd_3D_stat.vert_count >= 6144)) { status = false; }
+
+	else
+	{
+		switch(lcd_3D_stat.vertex_mode)
+		{
+			//Triangles
+			case 0x0:
+				if(((lcd_3D_stat.poly_count + 1) < 2048) && ((lcd_3D_stat.vert_count + 3) < 6144))
+				{
+					current_matrix.resize(3, 3);
+					gx_triangles.push_back(current_matrix);
+					lcd_3D_stat.poly_count++;
+					lcd_3D_stat.vert_count += 3;
+					status = true;
+				}
+
+				else { status = false; }
+
+				break;
+
+			//Quads
+			case 0x1:
+				if(((lcd_3D_stat.poly_count + 1) < 2048) && ((lcd_3D_stat.vert_count + 4) < 6144))
+				{
+					current_matrix.resize(4, 4);
+					gx_quads.push_back(current_matrix);
+					lcd_3D_stat.poly_count++;
+					lcd_3D_stat.vert_count += 4;
+					status = true;
+				}
+
+				else { status = false; }
+
+				break;
+
+
+			//Triangle Strips
+			//Quad Strips
+			case 0x2:
+			case 0x3:
+				status = false;
+				break;
+		}		
+	}
+
+	if(!status)
+	{
+		lcd_3D_stat.parameter_index = 0;
+		lcd_3D_stat.current_gx_command = 0;
+		lcd_3D_stat.process_command = false;
+	}
+
+	return status;
+}	
+
 /****** Parses and processes commands sent to the NDS 3D engine ******/
 void NTR_LCD::process_gx_command()
 {
@@ -664,51 +726,7 @@ void NTR_LCD::process_gx_command()
 			//Push new polygon if necessary
 			if(lcd_3D_stat.vertex_list_index == 0)
 			{
-				//Limit 3D engine to 2048 polygons and 6144 vertices
-				if(( lcd_3D_stat.poly_count >= 2048) || (lcd_3D_stat.vert_count >= 6144))
-				{
-					lcd_3D_stat.parameter_index = 0;
-					lcd_3D_stat.current_gx_command = 0;
-					lcd_3D_stat.process_command = false;
-					return;
-				}
-
-				switch(lcd_3D_stat.vertex_mode)
-				{
-					//Triangles
-					case 0x0:
-						temp_matrix.resize(3, 3);
-						gx_triangles.push_back(temp_matrix);
-						lcd_3D_stat.poly_count++;
-						lcd_3D_stat.vert_count += 3;
-						break;
-
-					//Quads
-					case 0x1:
-						temp_matrix.resize(4, 4);
-						gx_quads.push_back(temp_matrix);
-						lcd_3D_stat.poly_count++;
-						lcd_3D_stat.vert_count += 4;
-						break;
-
-					//Triangle Strips
-					//Quad Strips
-					case 0x2:
-					case 0x3:
-						lcd_3D_stat.parameter_index = 0;
-						lcd_3D_stat.current_gx_command = 0;
-						lcd_3D_stat.process_command = false;
-						return;
-				}
-
-				//Limit 3D engine to 6144 vertices
-				if(lcd_3D_stat.poly_count >= 6144)
-				{
-					lcd_3D_stat.parameter_index = 0;
-					lcd_3D_stat.current_gx_command = 0;
-					lcd_3D_stat.process_command = false;
-					return;
-				}
+				if(!poly_push(temp_matrix)) { std::cout<<"NO\n"; return; }
 			}
 
 			{
@@ -784,51 +802,7 @@ void NTR_LCD::process_gx_command()
 			//Push new polygon if necessary
 			if(lcd_3D_stat.vertex_list_index == 0)
 			{
-				//Limit 3D engine to 2048 polygons and 6144 vertices
-				if(( lcd_3D_stat.poly_count >= 2048) || (lcd_3D_stat.vert_count >= 6144))
-				{
-					lcd_3D_stat.parameter_index = 0;
-					lcd_3D_stat.current_gx_command = 0;
-					lcd_3D_stat.process_command = false;
-					return;
-				}
-
-				switch(lcd_3D_stat.vertex_mode)
-				{
-					//Triangles
-					case 0x0:
-						temp_matrix.resize(3, 3);
-						gx_triangles.push_back(temp_matrix);
-						lcd_3D_stat.poly_count++;
-						lcd_3D_stat.vert_count += 3;
-						break;
-
-					//Quads
-					case 0x1:
-						temp_matrix.resize(4, 4);
-						gx_quads.push_back(temp_matrix);
-						lcd_3D_stat.poly_count++;
-						lcd_3D_stat.vert_count += 4;
-						break;
-
-					//Triangle Strips
-					//Quad Strips
-					case 0x2:
-					case 0x3:
-						lcd_3D_stat.parameter_index = 0;
-						lcd_3D_stat.current_gx_command = 0;
-						lcd_3D_stat.process_command = false;
-						return;
-				}
-
-				//Limit 3D engine to 6144 vertices
-				if(lcd_3D_stat.poly_count >= 6144)
-				{
-					lcd_3D_stat.parameter_index = 0;
-					lcd_3D_stat.current_gx_command = 0;
-					lcd_3D_stat.process_command = false;
-					return;
-				}
+				if(!poly_push(temp_matrix)) { return; }
 			}
 
 			{
@@ -904,51 +878,7 @@ void NTR_LCD::process_gx_command()
 			//Push new polygon if necessary
 			if(lcd_3D_stat.vertex_list_index == 0)
 			{
-				//Limit 3D engine to 2048 polygons and 6144 vertices
-				if(( lcd_3D_stat.poly_count >= 2048) || (lcd_3D_stat.vert_count >= 6144))
-				{
-					lcd_3D_stat.parameter_index = 0;
-					lcd_3D_stat.current_gx_command = 0;
-					lcd_3D_stat.process_command = false;
-					return;
-				}
-
-				switch(lcd_3D_stat.vertex_mode)
-				{
-					//Triangles
-					case 0x0:
-						temp_matrix.resize(3, 3);
-						gx_triangles.push_back(temp_matrix);
-						lcd_3D_stat.poly_count++;
-						lcd_3D_stat.vert_count += 3;
-						break;
-
-					//Quads
-					case 0x1:
-						temp_matrix.resize(4, 4);
-						gx_quads.push_back(temp_matrix);
-						lcd_3D_stat.poly_count++;
-						lcd_3D_stat.vert_count += 4;
-						break;
-
-					//Triangle Strips
-					//Quad Strips
-					case 0x2:
-					case 0x3:
-						lcd_3D_stat.parameter_index = 0;
-						lcd_3D_stat.current_gx_command = 0;
-						lcd_3D_stat.process_command = false;
-						return;
-				}
-
-				//Limit 3D engine to 6144 vertices
-				if(lcd_3D_stat.poly_count >= 6144)
-				{
-					lcd_3D_stat.parameter_index = 0;
-					lcd_3D_stat.current_gx_command = 0;
-					lcd_3D_stat.process_command = false;
-					return;
-				}
+				if(!poly_push(temp_matrix)) { return; }
 			}
 
 			{
