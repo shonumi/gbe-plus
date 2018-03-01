@@ -874,7 +874,11 @@ void NTR_LCD::process_gx_command()
 			break;
 
 		//VTX_XY
+		//VTX_XZ
+		//VTX_YZ
 		case 0x25:
+		case 0x26:
+		case 0x27:
 			//Push new polygon if necessary
 			if(lcd_3D_stat.vertex_list_index == 0)
 			{
@@ -909,25 +913,79 @@ void NTR_LCD::process_gx_command()
 				{
 					//Triangles
 					case 0x0:
-						gx_triangles.back().data[lcd_3D_stat.vertex_list_index][0] = temp_result[0];
-						gx_triangles.back().data[lcd_3D_stat.vertex_list_index][1] = temp_result[1];
-						gx_triangles.back().data[lcd_3D_stat.vertex_list_index][2] = lcd_3D_stat.last_z;
 						list_size = 3;
 
-						lcd_3D_stat.last_x = gx_triangles.back().data[lcd_3D_stat.vertex_list_index][0];
-						lcd_3D_stat.last_y = gx_triangles.back().data[lcd_3D_stat.vertex_list_index][1];
+						//XY
+						if(lcd_3D_stat.current_gx_command == 0x25)
+						{
+							gx_triangles.back().data[lcd_3D_stat.vertex_list_index][0] = temp_result[0];
+							gx_triangles.back().data[lcd_3D_stat.vertex_list_index][1] = temp_result[1];
+							gx_triangles.back().data[lcd_3D_stat.vertex_list_index][2] = lcd_3D_stat.last_z;
+
+							lcd_3D_stat.last_x = gx_triangles.back().data[lcd_3D_stat.vertex_list_index][0];
+							lcd_3D_stat.last_y = gx_triangles.back().data[lcd_3D_stat.vertex_list_index][1];
+						}
+
+						//XZ
+						if(lcd_3D_stat.current_gx_command == 0x26)
+						{
+							gx_triangles.back().data[lcd_3D_stat.vertex_list_index][0] = temp_result[0];
+							gx_triangles.back().data[lcd_3D_stat.vertex_list_index][1] = lcd_3D_stat.last_y;
+							gx_triangles.back().data[lcd_3D_stat.vertex_list_index][2] = temp_result[1];
+
+							lcd_3D_stat.last_x = gx_triangles.back().data[lcd_3D_stat.vertex_list_index][0];
+							lcd_3D_stat.last_z = gx_triangles.back().data[lcd_3D_stat.vertex_list_index][1];
+						}
+
+						//YZ
+						if(lcd_3D_stat.current_gx_command == 0x27)
+						{
+							gx_triangles.back().data[lcd_3D_stat.vertex_list_index][0] = lcd_3D_stat.last_x;
+							gx_triangles.back().data[lcd_3D_stat.vertex_list_index][1] = temp_result[0];
+							gx_triangles.back().data[lcd_3D_stat.vertex_list_index][2] = temp_result[1];
+
+							lcd_3D_stat.last_y = gx_triangles.back().data[lcd_3D_stat.vertex_list_index][0];
+							lcd_3D_stat.last_z = gx_triangles.back().data[lcd_3D_stat.vertex_list_index][1];
+						}
 						
 						break;
 
 					//Quads
 					case 0x1:
-						gx_quads.back().data[lcd_3D_stat.vertex_list_index][0] = temp_result[0];
-						gx_quads.back().data[lcd_3D_stat.vertex_list_index][1] = temp_result[1];
-						gx_quads.back().data[lcd_3D_stat.vertex_list_index][2] = lcd_3D_stat.last_z;
 						list_size = 4;
 
-						lcd_3D_stat.last_x = gx_quads.back().data[lcd_3D_stat.vertex_list_index][0];
-						lcd_3D_stat.last_y = gx_quads.back().data[lcd_3D_stat.vertex_list_index][1];
+						//XY
+						if(lcd_3D_stat.current_gx_command == 0x25)
+						{
+							gx_quads.back().data[lcd_3D_stat.vertex_list_index][0] = temp_result[0];
+							gx_quads.back().data[lcd_3D_stat.vertex_list_index][1] = temp_result[1];
+							gx_quads.back().data[lcd_3D_stat.vertex_list_index][2] = lcd_3D_stat.last_z;
+
+							lcd_3D_stat.last_x = gx_quads.back().data[lcd_3D_stat.vertex_list_index][0];
+							lcd_3D_stat.last_y = gx_quads.back().data[lcd_3D_stat.vertex_list_index][1];
+						}
+
+						//XZ
+						if(lcd_3D_stat.current_gx_command == 0x26)
+						{
+							gx_quads.back().data[lcd_3D_stat.vertex_list_index][0] = temp_result[0];
+							gx_quads.back().data[lcd_3D_stat.vertex_list_index][1] = lcd_3D_stat.last_y;
+							gx_quads.back().data[lcd_3D_stat.vertex_list_index][2] = temp_result[1];
+
+							lcd_3D_stat.last_x = gx_quads.back().data[lcd_3D_stat.vertex_list_index][0];
+							lcd_3D_stat.last_z = gx_quads.back().data[lcd_3D_stat.vertex_list_index][1];
+						}
+
+						//YZ
+						if(lcd_3D_stat.current_gx_command == 0x27)
+						{
+							gx_quads.back().data[lcd_3D_stat.vertex_list_index][0] = lcd_3D_stat.last_x;
+							gx_quads.back().data[lcd_3D_stat.vertex_list_index][1] = temp_result[0];
+							gx_quads.back().data[lcd_3D_stat.vertex_list_index][2] = temp_result[1];
+
+							lcd_3D_stat.last_y = gx_quads.back().data[lcd_3D_stat.vertex_list_index][0];
+							lcd_3D_stat.last_z = gx_quads.back().data[lcd_3D_stat.vertex_list_index][1];
+						}
 
 						break;
 
