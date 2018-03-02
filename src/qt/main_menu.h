@@ -85,6 +85,7 @@ class main_menu : public QWidget
 	void load_state(int slot);
 	void start_netplay();
 	void stop_netplay();
+	void start_special_comm();
 
 	private:
 	QWidget* about_box;

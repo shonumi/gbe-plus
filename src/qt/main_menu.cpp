@@ -32,6 +32,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	QAction* screenshot = new QAction("Screenshot", this);
 	QAction* nplay_start = new QAction("Start Netplay", this);
 	QAction* nplay_stop = new QAction("Stop Netplay", this);
+	QAction* special_comm = new QAction("Start IR/SIO Device", this);
 
 	QAction* general = new QAction("General Settings...", this);
 	QAction* display = new QAction("Display", this);
@@ -55,6 +56,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	screenshot->setShortcut(tr("F9"));
 	nplay_start->setShortcut(tr("F5"));
 	nplay_stop->setShortcut(tr("F6"));
+	special_comm->setShortcut(tr("F3"));
 	debugging->setShortcut(tr("F7"));
 
 	pause->setCheckable(true);
@@ -97,6 +99,8 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	emulation->addSeparator();
 	emulation->addAction(nplay_start);
 	emulation->addAction(nplay_stop);
+	emulation->addSeparator();
+	emulation->addAction(special_comm);
 	menu_bar->addMenu(emulation);
 
 	//Setup Options menu
@@ -137,6 +141,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	connect(screenshot, SIGNAL(triggered()), this, SLOT(screenshot()));
 	connect(nplay_start, SIGNAL(triggered()), this, SLOT(start_netplay()));
 	connect(nplay_stop, SIGNAL(triggered()), this, SLOT(stop_netplay()));
+	connect(special_comm, SIGNAL(triggered()), this, SLOT(start_special_comm()));
 	connect(reset, SIGNAL(triggered()), this, SLOT(reset()));
 	connect(general, SIGNAL(triggered()), this, SLOT(show_settings()));
 	connect(display, SIGNAL(triggered()), this, SLOT(show_display_settings()));
@@ -1548,6 +1553,16 @@ void main_menu::stop_netplay()
 	if(main_menu::gbe_plus != NULL)
 	{
 		main_menu::gbe_plus->stop_netplay();
+	}
+}
+
+/****** Starts special communications (IR or SIO device) ******/
+void main_menu::start_special_comm()
+{
+	if(main_menu::gbe_plus != NULL)
+	{
+		//This just feeds a simulated F3 keypress to the core
+		gbe_plus->feed_key_input(SDLK_F3, true);
 	}
 }
 
