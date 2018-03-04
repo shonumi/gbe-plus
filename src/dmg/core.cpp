@@ -1132,6 +1132,22 @@ u32 DMG_core::get_core_data(u32 core_index)
 			result = ~((core_pad.p15 << 4) | core_pad.p14);
 			result &= 0xFF;
 			break;
+
+		//Load card data
+		case 0x1:
+			if(core_cpu.controllers.serial_io.sio_stat.sio_type == GB_BARDIGUN_SCANNER)
+			{
+				bool card_result = core_cpu.controllers.serial_io.bardigun_load_barcode(config::external_card_file);
+				result = card_result ? 1 : 0;
+			}
+
+			else if(core_cpu.controllers.serial_io.sio_stat.sio_type == GB_BARCODE_BOY)
+			{
+				bool card_result = core_cpu.controllers.serial_io.barcode_boy_load_barcode(config::external_card_file);
+				result = card_result ? 1 : 0;
+			}
+
+			break;
 	}
 
 	return result;

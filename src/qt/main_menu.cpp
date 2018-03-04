@@ -419,6 +419,12 @@ void main_menu::select_card_file()
 
 	config::external_card_file = filename.toStdString();
 
+	//Tell DMG-GBC core to update data
+	if((config::gb_type >= 0) && (config::gb_type <= 2) && (main_menu::gbe_plus != NULL))
+	{
+		main_menu::gbe_plus->get_core_data(1);
+	}
+
 	SDL_PauseAudio(0);
 }
 
