@@ -422,7 +422,12 @@ void main_menu::select_card_file()
 	//Tell DMG-GBC core to update data
 	if((config::gb_type >= 0) && (config::gb_type <= 2) && (main_menu::gbe_plus != NULL))
 	{
-		main_menu::gbe_plus->get_core_data(1);
+		if(main_menu::gbe_plus->get_core_data(1) == 0)
+		{
+			std::string mesg_text = "The card file: '" + config::external_card_file + "' could not be loaded"; 
+			warning_box->setText(QString::fromStdString(mesg_text));
+			warning_box->show();
+		}
 	}
 
 	SDL_PauseAudio(0);
