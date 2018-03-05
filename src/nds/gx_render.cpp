@@ -98,11 +98,11 @@ void NTR_LCD::render_geometry()
   		plot_y[x] = ((-temp_matrix.data[1][0] + temp_matrix.data[3][0]) * viewport_height) / ((2 * temp_matrix.data[3][0]) + lcd_3D_stat.view_port_y1);
 
 		//Check for wonky coordinates
-		if(isnan(plot_x[x])) { lcd_3D_stat.render_polygon = false; return; }
-		if(isinf(plot_x[x])) { lcd_3D_stat.render_polygon = false; return; }
+		if(std::isnan(plot_x[x])) { lcd_3D_stat.render_polygon = false; return; }
+		if(std::isinf(plot_x[x])) { lcd_3D_stat.render_polygon = false; return; }
 
-		if(isnan(plot_y[x])) { lcd_3D_stat.render_polygon = false; return; }
-		if(isinf(plot_y[x])) { lcd_3D_stat.render_polygon = false; return; }
+		if(std::isnan(plot_y[x])) { lcd_3D_stat.render_polygon = false; return; }
+		if(std::isinf(plot_y[x])) { lcd_3D_stat.render_polygon = false; return; }
 
 		//Check if coordinates need to be clipped to the view volume
 		if((plot_x[x] < 0) || (plot_x[x] > 255) || (plot_y[x] < 0) || (plot_y[x] > 192))
