@@ -480,7 +480,7 @@ void NTR_LCD::process_gx_command()
 		case 0x18:
 			for(int a = 0; a < 64;)
 			{
-				u32 raw_value = lcd_3D_stat.command_parameters[a+3] | (lcd_3D_stat.command_parameters[a+2] << 8) | (lcd_3D_stat.command_parameters[a+1] << 16) | (lcd_3D_stat.command_parameters[a] << 24);
+				u32 raw_value = read_param_u32(a);
 				float result = 0.0;
 				
 				if(raw_value & 0x80000000) 
@@ -543,7 +543,7 @@ void NTR_LCD::process_gx_command()
 
 			for(int a = 0; a < 48;)
 			{
-				u32 raw_value = lcd_3D_stat.command_parameters[a+3] | (lcd_3D_stat.command_parameters[a+2] << 8) | (lcd_3D_stat.command_parameters[a+1] << 16) | (lcd_3D_stat.command_parameters[a] << 24);
+				u32 raw_value = read_param_u32(a);
 				float result = 0.0;
 				
 				if(raw_value & 0x80000000) 
@@ -604,7 +604,7 @@ void NTR_LCD::process_gx_command()
 
 			for(int a = 0; a < 36;)
 			{
-				u32 raw_value = lcd_3D_stat.command_parameters[a+3] | (lcd_3D_stat.command_parameters[a+2] << 8) | (lcd_3D_stat.command_parameters[a+1] << 16) | (lcd_3D_stat.command_parameters[a] << 24);
+				u32 raw_value = read_param_u32(a);
 				float result = 0.0;
 				
 				if(raw_value & 0x80000000) 
@@ -654,7 +654,7 @@ void NTR_LCD::process_gx_command()
 
 			for(int a = 0; a < 12;)
 			{
-				u32 raw_value = lcd_3D_stat.command_parameters[a+3] | (lcd_3D_stat.command_parameters[a+2] << 8) | (lcd_3D_stat.command_parameters[a+1] << 16) | (lcd_3D_stat.command_parameters[a] << 24);
+				u32 raw_value = read_param_u32(a);
 				float result = 0.0;
 				
 				if(raw_value & 0x80000000) 
@@ -700,7 +700,7 @@ void NTR_LCD::process_gx_command()
 		//VERT_COLOR
 		case 0x20:
 			{
-				u32 color_bytes = lcd_3D_stat.command_parameters[3] | (lcd_3D_stat.command_parameters[2] << 8) | (lcd_3D_stat.command_parameters[1] << 16) | (lcd_3D_stat.command_parameters[0] << 24);
+				u32 color_bytes = read_param_u32(0);
 
 				u8 red = (color_bytes & 0x1F);
 				red = (!red) ? 0 : ((red * 2) + 1);
@@ -726,7 +726,7 @@ void NTR_LCD::process_gx_command()
 			//Push new polygon if necessary
 			if(lcd_3D_stat.vertex_list_index == 0)
 			{
-				if(!poly_push(temp_matrix)) { std::cout<<"NO\n"; return; }
+				if(!poly_push(temp_matrix)) { return; }
 			}
 
 			{
@@ -808,7 +808,7 @@ void NTR_LCD::process_gx_command()
 			{
 				float temp_result[3];
 				u8 list_size = 0;
-				u32 raw_value = lcd_3D_stat.command_parameters[3] | (lcd_3D_stat.command_parameters[2] << 8) | (lcd_3D_stat.command_parameters[1] << 16) | (lcd_3D_stat.command_parameters[0] << 24);
+				u32 raw_value = read_param_u32(0);
 
 				for(int a = 0; a < 3; a++)
 				{
@@ -888,7 +888,7 @@ void NTR_LCD::process_gx_command()
 			{
 				float temp_result[2];
 				u8 list_size = 0;
-				u32 raw_value = lcd_3D_stat.command_parameters[3] | (lcd_3D_stat.command_parameters[2] << 8) | (lcd_3D_stat.command_parameters[1] << 16) | (lcd_3D_stat.command_parameters[0] << 24);
+				u32 raw_value = read_param_u32(0);
 
 				for(int a = 0; a < 2; a++)
 				{
@@ -1027,3 +1027,17 @@ void NTR_LCD::process_gx_command()
 	lcd_3D_stat.current_gx_command = 0;
 	lcd_3D_stat.process_command = false;
 }
+
+/****** Reads GX command parameters as a 32-bit value *****/
+u32 NTR_LCD::read_param_u32(u8 i)
+{
+	u32 val = lcd_3D_stat.command_parameters[i+3] | (lcd_3D_stat.command_parameters[i+2] << 8) | (lcd_3D_stat.command_parameters[i+1] << 16) | (lcd_3D_stat.command_parameters[i] << 24);
+	return val;
+}
+
+/****** Reads GX command parameters as a 32-bit value *****/
+u16 NTR_LCD::read_param_u16(u8 i)
+{
+	u16 val = lcd_3D_stat.command_parameters[i+1] | (lcd_3D_stat.command_parameters[i] << 8);
+	return val;
+}	
