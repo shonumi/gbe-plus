@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.11)
 
 project(gbe_plus)
 
-add_definitions(-O3 -funroll-loops)
+add_definitions(-O3 -funroll-loops -Wno-error -Wno-narrowing)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeTests)
 
