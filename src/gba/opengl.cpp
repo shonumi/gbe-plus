@@ -17,6 +17,10 @@
 #define GL_GLEXT_PROTOTYPES 1
 #endif
 
+#ifdef GBE_GLEW
+#include "GL/glew.h"
+#endif
+
 #include <ctime>
 
 #include "lcd.h"

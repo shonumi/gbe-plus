@@ -20,6 +20,10 @@
 #define GL_GLEXT_PROTOTYPES 1
 #endif
 
+#ifdef GBE_GLEW
+#include "GL/glew.h"
+#endif
+
 #include "gx_util.h"
 
 /****** OpenGL Vector Constructor ******/

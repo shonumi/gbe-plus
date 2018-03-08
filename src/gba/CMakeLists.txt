@@ -30,3 +30,7 @@ set(HEADERS
 add_library(gba STATIC ${SRCS} ${HEADERS})
 
 target_link_libraries(gba ${SDL2_LIBRARY} ${OPENGL_gl_LIBRARY}) 
+
+if (WIN32)
+    target_link_libraries(gba ${GLEW_LIBRARY})
+endif()

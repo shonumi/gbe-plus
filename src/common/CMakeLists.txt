@@ -21,3 +21,7 @@ set(HEADERS
 add_library(common STATIC ${SRCS} ${HEADERS})
 
 target_link_libraries(common ${SDL2_LIBRARY} ${OPENGL_gl_LIBRARY})
+
+if (WIN32)
+    target_link_libraries(common ${GLEW_LIBRARY})
+endif()

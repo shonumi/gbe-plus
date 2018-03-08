@@ -38,6 +38,17 @@ else()
     message(STATUS "OpenGL not found.")
 endif()
 
+if (WIN32)
+    find_package(GLEW REQUIRED)
+    if (GLEW_FOUND)
+        include_directories($(GLEW_INCLUDE_DIRS))
+    else()
+        message(STATUS "GLEW not found.")
+    endif()
+
+    add_definitions(-DGBE_GLEW)
+endif()
+
 option(QT_GUI "Enable the Qt GUI" ON)
 option(QT_VERSION_4 "Use Qt 4" ON)
 option(QT_VERSION_5 "Use Qt 5" OFF)

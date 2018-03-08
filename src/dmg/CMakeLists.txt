@@ -43,3 +43,7 @@ target_link_libraries(dmg common ${SDL2_LIBRARY} ${OPENGL_gl_LIBRARY})
 if (LINK_CABLE)
     target_link_libraries(dmg ${SDL2NET_LIBRARY})
 endif()
+
+if (WIN32)
+    target_link_libraries(dmg ${GLEW_LIBRARY})
+endif()

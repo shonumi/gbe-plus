@@ -23,6 +23,10 @@ if (LINK_CABLE)
     target_link_libraries(gbe_plus ${SDL2NET_LIBRARY})
 endif()
 
+if (WIN32)
+    target_link_libraries(gbe_plus ${GLEW_LIBRARY})
+endif()
+
 if(UNIX AND NOT APPLE)
 	install(TARGETS gbe_plus DESTINATION /usr/local/bin)
 	install(FILES gbe.ini DESTINATION ${USER_HOME}/.gbe_plus/)
