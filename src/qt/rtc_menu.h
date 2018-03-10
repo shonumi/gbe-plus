@@ -11,7 +11,13 @@
 #ifndef RTCMENU_GBE_QT
 #define RTCMENU_GBE_QT
 
-#include <QtGui> 
+#ifdef GBE_QT_5
+#include <QtWidgets>
+#endif
+
+#ifdef GBE_QT_4
+#include <QtGui>
+#endif 
 
 class rtc_menu : public QDialog
 {

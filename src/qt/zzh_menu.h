@@ -11,7 +11,13 @@
 #ifndef ZZHMENU_GBE_QT
 #define ZZHMENU_GBE_QT
 
-#include <QtGui> 
+#ifdef GBE_QT_5
+#include <QtWidgets>
+#endif
+
+#ifdef GBE_QT_4
+#include <QtGui>
+#endif
 
 class zzh_menu : public QDialog
 {

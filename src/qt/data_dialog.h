@@ -11,7 +11,13 @@
 #ifndef DATADIALOG_GBE_QT
 #define DATADIALOG_GBE_QT
 
+#ifdef GBE_QT_5
+#include <QtWidgets>
+#endif
+
+#ifdef GBE_QT_4
 #include <QtGui>
+#endif
 
 class data_dialog : public QFileDialog
 {
