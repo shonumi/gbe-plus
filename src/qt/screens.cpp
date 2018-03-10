@@ -8,14 +8,6 @@
 //
 // Widgets for rendering via software, or OpenGL for HW acceleration
 
-#ifndef GL3_PROTOTYPES
-#define GL3_PROTOTYPES 1
-#endif
-
-#ifndef GL_GLEXT_PROTOTYPES
-#define GL_GLEXT_PROTOTYPES 1
-#endif
-
 #include <ctime>
 
 #include "screens.h"
