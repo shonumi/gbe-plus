@@ -14,6 +14,7 @@ set(SRCS
 	rtc_menu.cpp
 	pp2_menu.cpp
 	zzh_menu.cpp
+	ogl_manager.cpp
 	)
 
 set(HEADERS
@@ -29,6 +30,7 @@ set(HEADERS
 	rtc_menu.h
 	pp2_menu.h
 	zzh_menu.h
+	ogl_manager.h
 	)
 
 add_executable(gbe_plus_qt ${SRCS} ${HEADERS})
@@ -37,6 +39,10 @@ target_link_libraries(gbe_plus_qt ${SDL2_LIBRARY} ${OPENGL_gl_LIBRARY} ${GBE_QT_
 
 if (LINK_CABLE)
     target_link_libraries(gbe_plus_qt ${SDL2NET_LIBRARY})
+endif()
+
+if (WIN32)
+    target_link_libraries(gbe_plus_qt ${GLEW_LIBRARY})
 endif()
 
 install(TARGETS gbe_plus_qt DESTINATION bin) 

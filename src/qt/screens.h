@@ -22,6 +22,8 @@
 #include <QGLWidget>
 #include <QGLFormat>
 
+#include "ogl_manager.h"
+
 #include "common/common.h"
 
 class soft_screen : public QWidget
@@ -42,14 +44,9 @@ class hard_screen : public QGLWidget
 	
 	public:
 	hard_screen(QWidget *parent = 0);
-	GLuint lcd_texture;
 	QGLFormat screen_format;
 
-	GLuint program_id;
-	GLuint vertex_buffer_object, vertex_array_object, element_buffer_object;
-	GLfloat ogl_x_scale, ogl_y_scale;
-	GLfloat ext_data_1, ext_data_2;
-	u32 external_data_usage;
+	ogl_manager gwin;
 
 	bool old_aspect_flag;
 
