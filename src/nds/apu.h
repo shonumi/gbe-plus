@@ -26,7 +26,6 @@ class NTR_APU
 	ntr_apu_data apu_stat;
 
 	SDL_AudioSpec desired_spec;
-    	SDL_AudioSpec obtained_spec;
 
 	NTR_APU();
 	~NTR_APU();

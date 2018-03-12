@@ -26,7 +26,6 @@ class AGB_APU
 	agb_apu_data apu_stat;
 
 	SDL_AudioSpec desired_spec;
-    	SDL_AudioSpec obtained_spec;
 
 	AGB_APU();
 	~AGB_APU();

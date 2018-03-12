@@ -39,6 +39,10 @@ ogl_manager::~ogl_manager() { }
 /****** OpenGL Manager - Init ******/
 void ogl_manager::init()
 {
+	#ifdef GBE_GLEW
+	glewInit();
+	#endif
+
 	glDeleteVertexArrays(1, &vertex_array_object);
 	glDeleteBuffers(1, &vertex_buffer_object);
 	glDeleteBuffers(1, &element_buffer_object);

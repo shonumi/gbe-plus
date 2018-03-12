@@ -26,7 +26,6 @@ class DMG_APU
 	dmg_apu_data apu_stat;
 
 	SDL_AudioSpec desired_spec;
-    	SDL_AudioSpec obtained_spec;
 
 	DMG_APU();
 	~DMG_APU();

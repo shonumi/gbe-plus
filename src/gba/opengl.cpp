@@ -79,6 +79,10 @@ void AGB_LCD::opengl_init()
 
 	gl_context = SDL_GL_CreateContext(window);
 
+	#ifdef GBE_GLEW
+	glewInit();
+	#endif
+
 	glDeleteVertexArrays(1, &vertex_array_object);
 	glDeleteBuffers(1, &vertex_buffer_object);
 	glDeleteBuffers(1, &element_buffer_object);

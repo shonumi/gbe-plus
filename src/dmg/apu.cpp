@@ -103,15 +103,10 @@ bool DMG_APU::init()
     	desired_spec.userdata = this;
 
     	//Open SDL audio for desired specifications
-	if(SDL_OpenAudio(&desired_spec, &obtained_spec) < 0) 
+	if(SDL_OpenAudio(&desired_spec, NULL) < 0) 
 	{ 
 		std::cout<<"APU::Failed to open audio\n";
 		return false; 
-	}
-	else if(desired_spec.format != obtained_spec.format) 
-	{ 
-		std::cout<<"APU::Could not obtain desired audio format\n";
-		return false;
 	}
 
 	else
