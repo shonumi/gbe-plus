@@ -1,3 +1,13 @@
+// GB Enhanced+ Copyright Daniel Baxter 2018
+// Licensed under the GPLv2
+// See LICENSE.txt for full license text
+
+// File : ogl_manager.h
+// Date : March 10, 2018
+// Description : OpenGL management for Qt
+//
+// Abstracts OpenGL management away from Qt
+// Uses OpenGL directly and sometimes with GLEW
 
 #ifndef OGLMAN_GBE_QT
 #define OGLMAN_GBE_QT

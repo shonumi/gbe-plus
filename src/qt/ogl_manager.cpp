@@ -1,3 +1,13 @@
+// GB Enhanced+ Copyright Daniel Baxter 2018
+// Licensed under the GPLv2
+// See LICENSE.txt for full license text
+
+// File : ogl_manager.cpp
+// Date : March 10, 2018
+// Description : OpenGL management for Qt
+//
+// Abstracts OpenGL management away from Qt
+// Uses OpenGL directly and sometimes with GLEW
 
 #include <iostream>
 
