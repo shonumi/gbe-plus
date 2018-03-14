@@ -47,7 +47,7 @@ ogl_manager::ogl_manager()
 ogl_manager::~ogl_manager() { }
 
 /****** OpenGL Manager - Init ******/
-bool ogl_manager::init()
+void ogl_manager::init()
 {
 	#ifdef GBE_GLEW
  	GLenum glew_err = glewInit();
@@ -112,13 +112,7 @@ bool ogl_manager::init()
 	//Load the shader
 	program_id = gx_load_shader(config::vertex_shader, config::fragment_shader, external_data_usage);
 
-	if(program_id == -1)
-	{
-		std::cout<<"LCD::Error - Could not generate shaders\n";
-		return false;
-	}
-
-	return true;
+	if(program_id == -1) { std::cout<<"LCD::Error - Could not generate shaders\n"; }
 }
 
 /****** OpenGL Manager - Paint ******/
