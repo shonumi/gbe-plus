@@ -1449,76 +1449,72 @@ void AGB_LCD::step()
 			//Raise VBlank interrupt
 			if(mem->memory_map[DISPSTAT] & 0x8) { mem->memory_map[REG_IF] |= 0x1; }
 
-			//Render final buffer - Only if Forced Blank is disabled
-			if((mem->memory_map[DISPCNT] & 0x80) == 0)
+			//Use SDL
+			if(config::sdl_render)
 			{
-				//Use SDL
-				if(config::sdl_render)
+				//If using SDL and no OpenGL, manually stretch for fullscreen via SDL
+				if((config::flags & SDL_WINDOW_FULLSCREEN_DESKTOP) && (!config::use_opengl))
 				{
-					//If using SDL and no OpenGL, manually stretch for fullscreen via SDL
-					if((config::flags & SDL_WINDOW_FULLSCREEN_DESKTOP) && (!config::use_opengl))
-					{
-						//Lock source surface
-						if(SDL_MUSTLOCK(original_screen)){ SDL_LockSurface(original_screen); }
-						u32* out_pixel_data = (u32*)original_screen->pixels;
+					//Lock source surface
+					if(SDL_MUSTLOCK(original_screen)){ SDL_LockSurface(original_screen); }
+					u32* out_pixel_data = (u32*)original_screen->pixels;
 
-						for(int a = 0; a < 0x9600; a++) { out_pixel_data[a] = screen_buffer[a]; }
+					for(int a = 0; a < 0x9600; a++) { out_pixel_data[a] = screen_buffer[a]; }
 
-						//Unlock source surface
-						if(SDL_MUSTLOCK(original_screen)){ SDL_UnlockSurface(original_screen); }
+					//Unlock source surface
+					if(SDL_MUSTLOCK(original_screen)){ SDL_UnlockSurface(original_screen); }
 		
-						//Blit the original surface to the final stretched one
-						SDL_Rect dest_rect;
-						dest_rect.w = config::sys_width * max_fullscreen_ratio;
-						dest_rect.h = config::sys_height * max_fullscreen_ratio;
-						dest_rect.x = ((config::win_width - dest_rect.w) >> 1);
-						dest_rect.y = ((config::win_height - dest_rect.h) >> 1);
-						SDL_BlitScaled(original_screen, NULL, final_screen, &dest_rect);
+					//Blit the original surface to the final stretched one
+					SDL_Rect dest_rect;
+					dest_rect.w = config::sys_width * max_fullscreen_ratio;
+					dest_rect.h = config::sys_height * max_fullscreen_ratio;
+					dest_rect.x = ((config::win_width - dest_rect.w) >> 1);
+					dest_rect.y = ((config::win_height - dest_rect.h) >> 1);
+					SDL_BlitScaled(original_screen, NULL, final_screen, &dest_rect);
 
-						if(SDL_UpdateWindowSurface(window) != 0) { std::cout<<"LCD::Error - Could not blit\n"; }
-					}
-					
-					//Otherwise, render normally (SDL 1:1, OpenGL handles its own stretching)
-					else
-					{
-						//Lock source surface
-						if(SDL_MUSTLOCK(final_screen)){ SDL_LockSurface(final_screen); }
-						u32* out_pixel_data = (u32*)final_screen->pixels;
-
-						for(int a = 0; a < 0x9600; a++) { out_pixel_data[a] = screen_buffer[a]; }
-
-						//Unlock source surface
-						if(SDL_MUSTLOCK(final_screen)){ SDL_UnlockSurface(final_screen); }
-		
-						//Display final screen buffer - OpenGL
-						if(config::use_opengl) { opengl_blit(); }
-				
-						//Display final screen buffer - SDL
-						else 
-						{
-							if(SDL_UpdateWindowSurface(window) != 0) { std::cout<<"LCD::Error - Could not blit\n"; }
-						}
-					}
+					if(SDL_UpdateWindowSurface(window) != 0) { std::cout<<"LCD::Error - Could not blit\n"; }
 				}
-
-				//Use external rendering method (GUI)
+					
+				//Otherwise, render normally (SDL 1:1, OpenGL handles its own stretching)
 				else
 				{
-					if(!config::use_opengl) { config::render_external_sw(screen_buffer); }
+					//Lock source surface
+					if(SDL_MUSTLOCK(final_screen)){ SDL_LockSurface(final_screen); }
+					u32* out_pixel_data = (u32*)final_screen->pixels;
 
-					else
+					for(int a = 0; a < 0x9600; a++) { out_pixel_data[a] = screen_buffer[a]; }
+
+					//Unlock source surface
+					if(SDL_MUSTLOCK(final_screen)){ SDL_UnlockSurface(final_screen); }
+		
+					//Display final screen buffer - OpenGL
+					if(config::use_opengl) { opengl_blit(); }
+				
+					//Display final screen buffer - SDL
+					else 
 					{
-						//Lock source surface
-						if(SDL_MUSTLOCK(final_screen)){ SDL_LockSurface(final_screen); }
-						u32* out_pixel_data = (u32*)final_screen->pixels;
-
-						for(int a = 0; a < 0x9600; a++) { out_pixel_data[a] = screen_buffer[a]; }
-
-						//Unlock source surface
-						if(SDL_MUSTLOCK(final_screen)){ SDL_UnlockSurface(final_screen); }
-
-						config::render_external_hw(final_screen);
+						if(SDL_UpdateWindowSurface(window) != 0) { std::cout<<"LCD::Error - Could not blit\n"; }
 					}
+				}
+			}
+
+			//Use external rendering method (GUI)
+			else
+			{
+				if(!config::use_opengl) { config::render_external_sw(screen_buffer); }
+
+				else
+				{
+					//Lock source surface
+					if(SDL_MUSTLOCK(final_screen)){ SDL_LockSurface(final_screen); }
+					u32* out_pixel_data = (u32*)final_screen->pixels;
+
+					for(int a = 0; a < 0x9600; a++) { out_pixel_data[a] = screen_buffer[a]; }
+
+					//Unlock source surface
+					if(SDL_MUSTLOCK(final_screen)){ SDL_UnlockSurface(final_screen); }
+
+					config::render_external_hw(final_screen);
 				}
 			}
 
