@@ -80,7 +80,12 @@ void SGB_LCD::opengl_init()
 	gl_context = SDL_GL_CreateContext(window);
 
 	#ifdef GBE_GLEW
-	glewInit();
+ 	GLenum glew_err = glewInit();
+ 	if(glew_err != GLEW_OK)
+	{
+		std::cout<<"LCD::Error - Could not initialize GLEW: " << glewGetErrorString(glew_err) << "\n";
+		return;
+  	}
 	#endif
 
 	glDeleteVertexArrays(1, &vertex_array_object);

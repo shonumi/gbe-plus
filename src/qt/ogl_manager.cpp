@@ -47,10 +47,15 @@ ogl_manager::ogl_manager()
 ogl_manager::~ogl_manager() { }
 
 /****** OpenGL Manager - Init ******/
-void ogl_manager::init()
+bool ogl_manager::init()
 {
 	#ifdef GBE_GLEW
-	glewInit();
+ 	GLenum glew_err = glewInit();
+ 	if(glew_err != GLEW_OK)
+	{
+		std::cout<<"LCD::Error - Could not initialize GLEW: " << glewGetErrorString(glew_err) << "\n";
+		return;
+  	}
 	#endif
 
 	glDeleteVertexArrays(1, &vertex_array_object);
@@ -107,7 +112,13 @@ void ogl_manager::init()
 	//Load the shader
 	program_id = gx_load_shader(config::vertex_shader, config::fragment_shader, external_data_usage);
 
-	if(program_id == -1) { std::cout<<"LCD::Error - Could not generate shaders\n"; }
+	if(program_id == -1)
+	{
+		std::cout<<"LCD::Error - Could not generate shaders\n";
+		return false;
+	}
+
+	return true;
 }
 
 /****** OpenGL Manager - Paint ******/
