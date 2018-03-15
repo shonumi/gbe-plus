@@ -117,6 +117,7 @@ void hard_screen::initializeGL()
 
 	gwin.ext_data_1 = gwin.ext_data_2 = 1.0;
 	gwin.init();
+	gwin.resize(width(), height());
 }
 
 /****** Hardware screen paint event ******/
