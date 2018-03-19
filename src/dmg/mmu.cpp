@@ -1280,6 +1280,9 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 			
 			//Send IR signal to another GBC
 			if(ir_signal != old_ir_stat) { ir_send = true; }
+
+			//Emulate constant IR light source
+			if((sio_stat->ir_type == 5) && (value & 0xC0)) { memory_map[address] &= ~0x2; } 
 		}
 	}
 

@@ -304,6 +304,11 @@ void DMG_SIO::reset()
 			sio_stat.ir_type = GBC_TV_REMOTE;
 			break;
 
+		//Constant Light Source
+		case 0x5:
+			sio_stat.ir_type = GBC_LIGHT_SOURCE;
+			break;
+
 		//Use standard GBC IR port communication as the default (GBE+ will ignore it for DMG games)
 		//Also, any invalid types are ignored
 		default:

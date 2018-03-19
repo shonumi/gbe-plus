@@ -34,6 +34,7 @@ enum ir_types
 	GBC_POCKET_PIKACHU_2,
 	GBC_POCKET_SAKURA,
 	GBC_TV_REMOTE,
+	GBC_LIGHT_SOURCE,
 };
 
 enum printer_state

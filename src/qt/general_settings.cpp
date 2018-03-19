@@ -158,6 +158,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	ir_dev->addItem("Pocket Pikachu 2");
 	ir_dev->addItem("Pocket Sakura");
 	ir_dev->addItem("TV Remote");
+	ir_dev->addItem("Constant IR Light");
 
 	config_ir = new QPushButton("Configure");
 
