@@ -2036,6 +2036,18 @@ void DMG_LCD::step(int cpu_clock)
 
 				//Process Gameshark cheats
 				if(config::use_cheats) { mem->set_gs_cheats(); }
+
+				//Process Constant IR Light - Interactive Mode
+				if((config::ir_device == 5) && (config::ir_db_index == 1))
+				{
+					if(mem->g_pad->ir_delay)
+					{
+						mem->memory_map[REG_RP] &= ~0x2;
+						mem->g_pad->ir_delay--;
+					}
+
+					else { mem->memory_map[REG_RP] |= 0x2; }
+				}
 			}
 
 			//Processing VBlank

@@ -20,6 +20,7 @@ DMG_GamePad::DMG_GamePad()
 	pad = 0;
 	up_shadow = down_shadow = left_shadow = right_shadow = false;
 	sensor_x = sensor_y = 2047;
+	ir_delay = 0;
 }
 
 /****** Initialize GamePad ******/
@@ -296,6 +297,9 @@ void DMG_GamePad::process_keyboard(int pad, bool pressed)
 		gyro_flags |= 0x40;
 
 		gyro_flags &= ~0x8;
+
+		//Reset constant IR light source
+		if((config::ir_device == 5) && (ir_delay == 0)) { ir_delay = 10; }
 	}
 
 	//Emulate Gyroscope Up tilt release
@@ -410,7 +414,14 @@ void DMG_GamePad::process_joystick(int pad, bool pressed)
 	else if((pad == config::con_joy_right) && (!pressed)) { gyro_flags &= ~0x2; }
 
 	//Emulate Gyroscope Up tilt press
-	else if((pad == config::con_joy_up) && (pressed)) { gyro_flags |= 0x4; gyro_flags &= ~0x8; }
+	else if((pad == config::con_joy_up) && (pressed))
+	{
+		gyro_flags |= 0x4;
+		gyro_flags &= ~0x8;
+
+		//Reset constant IR light source
+		if((config::ir_device == 5) && (ir_delay == 0)) { ir_delay = 10; }
+	}
 
 	//Emulate Gyroscope Up tilt release
 	else if((pad == config::con_joy_up) && (!pressed)) { gyro_flags &= ~0x4; }

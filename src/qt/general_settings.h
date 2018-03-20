@@ -28,6 +28,7 @@
 #include "rtc_menu.h"
 #include "pp2_menu.h"
 #include "zzh_menu.h"
+#include "con_ir_menu.h"
 
 class gen_settings : public QDialog
 {
@@ -161,6 +162,7 @@ class gen_settings : public QDialog
 	rtc_menu* real_time_clock_menu;
 	pp2_menu* pocket_pikachu_menu;
 	zzh_menu* full_changer_menu;
+	con_ir_menu* chalien_menu;
 	QMessageBox* warning_box;
 
 	void update_volume();

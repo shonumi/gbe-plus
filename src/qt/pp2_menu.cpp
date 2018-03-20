@@ -2,7 +2,7 @@
 // Licensed under the GPLv2
 // See LICENSE.txt for full license text
 
-// File : pp2_menu.h
+// File : pp2_menu.cpp
 // Date : February 21, 2018
 // Description : Pocket Pikachu 2 menu
 //
