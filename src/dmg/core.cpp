@@ -411,7 +411,9 @@ void DMG_core::run_core()
 								break;
 
 							//Process Pocket Pikachu 2 communications
+							//Process Pocket Sakura communications
 							case GBC_POCKET_PIKACHU_2:
+							case GBC_POCKET_SAKURA:
 								core_cpu.controllers.serial_io.pocket_ir_process();
 								break;
 
@@ -647,7 +649,9 @@ void DMG_core::step()
 							break;
 
 						//Process Pocket Pikachu 2 communications
+						//Process Pocket Sakura communications
 						case GBC_POCKET_PIKACHU_2:
+						case GBC_POCKET_SAKURA:
 							core_cpu.controllers.serial_io.pocket_ir_process();
 							break;
 
@@ -893,7 +897,9 @@ void DMG_core::handle_hotkey(SDL_Event& event)
 				break;
 
 			//Pocket Pikachu 2 - Send Watts
+			//Pocket Sakura - Send Points
 			case GBC_POCKET_PIKACHU_2:
+			case GBC_POCKET_SAKURA:
 				core_mmu.ir_trigger = 1;
 				break;
 
@@ -984,7 +990,9 @@ void DMG_core::handle_hotkey(int input, bool pressed)
 				break;
 
 			//Pocket Pikachu 2 - Send Watts
+			//Pocket Sakura - Send Points
 			case GBC_POCKET_PIKACHU_2:
+			case GBC_POCKET_SAKURA:
 				core_mmu.ir_trigger = 1;
 				break;
 
