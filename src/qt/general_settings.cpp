@@ -1187,6 +1187,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	dmg_cheat_menu = new cheat_menu;
 	real_time_clock_menu = new rtc_menu;
 	pocket_pikachu_menu = new pp2_menu;
+	pocket_sakura_menu = new ps_menu;
 	full_changer_menu = new zzh_menu;
 	chalien_menu = new con_ir_menu;
 
@@ -1206,7 +1207,7 @@ void gen_settings::set_ini_options()
 	//Emulated IR device
 	ir_dev->setCurrentIndex(config::ir_device);
 
-	if((config::ir_device == 1) || (config::ir_device == 2) || (config::ir_device == 5)) { config_ir->setEnabled(true); }
+	if((config::ir_device == 1) || (config::ir_device == 2) || (config::ir_device == 3) || (config::ir_device == 5)) { config_ir->setEnabled(true); }
 	else { config_ir->setEnabled(false); }
 
 	//Emulated CPU speed
@@ -1237,6 +1238,10 @@ void gen_settings::set_ini_options()
 	//Pocket Pikachu 2
 	if(config::ir_db_index < 6) { pocket_pikachu_menu->watts->setCurrentIndex(config::ir_db_index); }
 	else { pocket_pikachu_menu->watts->setCurrentIndex(0); }
+
+	//Pocket Sakura
+	if(config::ir_db_index < 2) { pocket_sakura_menu->points->setCurrentIndex(config::ir_db_index); }
+	else { pocket_sakura_menu->points->setCurrentIndex(0); }
 
 	//Constant IR Light
 	if(config::ir_db_index < 2) { chalien_menu->ir_mode->setCurrentIndex(config::ir_db_index); }
@@ -1412,12 +1417,13 @@ void gen_settings::ir_dev_change()
 		config::ir_db_index = 0;
 		full_changer_menu->cosmic_character->setCurrentIndex(0);
 		pocket_pikachu_menu->watts->setCurrentIndex(0);
+		pocket_sakura_menu->points->setCurrentIndex(0);
 		chalien_menu->ir_mode->setCurrentIndex(0);
 	}
 
 	config::ir_device = ir_dev->currentIndex();
 
-	if((config::ir_device == 1) || (config::ir_device == 2) || config::ir_device == 5) { config_ir->setEnabled(true); }
+	if((config::ir_device == 1) || (config::ir_device == 2) || (config::ir_device == 3) || config::ir_device == 5) { config_ir->setEnabled(true); }
 	else { config_ir->setEnabled(false); }
 }
 
@@ -1454,6 +1460,7 @@ void gen_settings::show_ir_config()
 	{
 		case 0x1: full_changer_menu->show(); break;
 		case 0x2: pocket_pikachu_menu->show(); break;
+		case 0x3: pocket_sakura_menu->show(); break;
 		case 0x5: chalien_menu->show(); break;
 	}	
 }

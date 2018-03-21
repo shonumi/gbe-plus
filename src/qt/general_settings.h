@@ -27,6 +27,7 @@
 #include "cheat_menu.h"
 #include "rtc_menu.h"
 #include "pp2_menu.h"
+#include "ps_menu.h"
 #include "zzh_menu.h"
 #include "con_ir_menu.h"
 
@@ -161,6 +162,7 @@ class gen_settings : public QDialog
 	cheat_menu* dmg_cheat_menu;
 	rtc_menu* real_time_clock_menu;
 	pp2_menu* pocket_pikachu_menu;
+	ps_menu* pocket_sakura_menu;
 	zzh_menu* full_changer_menu;
 	con_ir_menu* chalien_menu;
 	QMessageBox* warning_box;

@@ -4,9 +4,10 @@
 
 // File : con_ir_menu.cpp
 // Date : February 21, 2018
-// Description : Pocket Pikachu 2 menu
+// Description : Constant IR Light menu
 //
-// Change the amount of ir_mode GBE+ will receive from Pikachu
+// Change the mode of the constant IR light source
+// Static vs. Interactive
 
 #include "con_ir_menu.h"
 

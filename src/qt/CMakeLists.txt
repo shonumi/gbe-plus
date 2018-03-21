@@ -16,6 +16,7 @@ set(SRCS
 	zzh_menu.cpp
 	ogl_manager.cpp
 	con_ir_menu.cpp
+	ps_menu.cpp
 	)
 
 set(HEADERS
@@ -33,6 +34,7 @@ set(HEADERS
 	zzh_menu.h
 	ogl_manager.h
 	con_ir_menu.h
+	ps_menu.h
 	)
 
 add_executable(gbe_plus_qt ${SRCS} ${HEADERS})

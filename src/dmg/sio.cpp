@@ -404,6 +404,7 @@ void DMG_SIO::reset()
 	else if(config::ir_device == 3)
 	{
 		std::string database = config::data_path + "pocket_sakura_db.bin";
+		pocket_ir.db_step = 0x647;
 		pocket_ir_load_db(database);
 	}
 
