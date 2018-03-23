@@ -1240,7 +1240,7 @@ void gen_settings::set_ini_options()
 	else { pocket_pikachu_menu->watts->setCurrentIndex(0); }
 
 	//Pocket Sakura
-	if(config::ir_db_index < 2) { pocket_sakura_menu->points->setCurrentIndex(config::ir_db_index); }
+	if(config::ir_db_index < 3) { pocket_sakura_menu->points->setCurrentIndex(config::ir_db_index); }
 	else { pocket_sakura_menu->points->setCurrentIndex(0); }
 
 	//Constant IR Light
