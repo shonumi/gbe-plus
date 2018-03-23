@@ -25,6 +25,7 @@ ps_menu::ps_menu(QWidget *parent) : QDialog(parent)
 	points->addItem("1 Point");
 	points->addItem("5 Points");
 	points->addItem("10 Points");
+	points->addItem("25 Points");
 
 	QHBoxLayout* points_layout = new QHBoxLayout;
 	points_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
