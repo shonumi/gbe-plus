@@ -155,7 +155,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	ir_dev->setToolTip("Changes the emulated IR device that will communicate with the emulated Game Boy");
 	ir_dev->addItem("GBC IR Port");
 	ir_dev->addItem("Full Changer");
-	ir_dev->addItem("Pocket Pikachu 2");
+	ir_dev->addItem("Pokemon Pikachu 2");
 	ir_dev->addItem("Pocket Sakura");
 	ir_dev->addItem("TV Remote");
 	ir_dev->addItem("Constant IR Light");
@@ -1186,7 +1186,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 
 	dmg_cheat_menu = new cheat_menu;
 	real_time_clock_menu = new rtc_menu;
-	pocket_pikachu_menu = new pp2_menu;
+	pokemon_pikachu_menu = new pp2_menu;
 	pocket_sakura_menu = new ps_menu;
 	full_changer_menu = new zzh_menu;
 	chalien_menu = new con_ir_menu;
@@ -1235,9 +1235,9 @@ void gen_settings::set_ini_options()
 	if(config::ir_db_index < 1) { full_changer_menu->cosmic_character->setCurrentIndex(config::ir_db_index); }
 	else { full_changer_menu->cosmic_character->setCurrentIndex(0); }
 
-	//Pocket Pikachu 2
-	if(config::ir_db_index < 6) { pocket_pikachu_menu->watts->setCurrentIndex(config::ir_db_index); }
-	else { pocket_pikachu_menu->watts->setCurrentIndex(0); }
+	//Pokemon Pikachu 2
+	if(config::ir_db_index < 6) { pokemon_pikachu_menu->watts->setCurrentIndex(config::ir_db_index); }
+	else { pokemon_pikachu_menu->watts->setCurrentIndex(0); }
 
 	//Pocket Sakura
 	if(config::ir_db_index < 4) { pocket_sakura_menu->points->setCurrentIndex(config::ir_db_index); }
@@ -1416,7 +1416,7 @@ void gen_settings::ir_dev_change()
 	{
 		config::ir_db_index = 0;
 		full_changer_menu->cosmic_character->setCurrentIndex(0);
-		pocket_pikachu_menu->watts->setCurrentIndex(0);
+		pokemon_pikachu_menu->watts->setCurrentIndex(0);
 		pocket_sakura_menu->points->setCurrentIndex(0);
 		chalien_menu->ir_mode->setCurrentIndex(0);
 	}
@@ -1459,7 +1459,7 @@ void gen_settings::show_ir_config()
 	switch(config::ir_device)
 	{
 		case 0x1: full_changer_menu->show(); break;
-		case 0x2: pocket_pikachu_menu->show(); break;
+		case 0x2: pokemon_pikachu_menu->show(); break;
 		case 0x3: pocket_sakura_menu->show(); break;
 		case 0x5: chalien_menu->show(); break;
 	}	

@@ -4,7 +4,7 @@
 
 // File : pp2_menu.h
 // Date : February 21, 2018
-// Description : Pocket Pikachu 2 menu
+// Description : Pokemon Pikachu 2 menu
 //
 // Change the amount of watts GBE+ will receive from Pikachu
 

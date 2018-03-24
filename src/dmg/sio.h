@@ -156,7 +156,7 @@ class DMG_SIO
 		tv_remote_state current_state;
 	} tv_remote;
 
-	//Pocket IR device - Pocket Pikachu 2 and Pocket Sakura
+	//Pocket IR device - Pokemon Pikachu 2 and Pocket Sakura
 	struct gb_pocket_ir
 	{
 		std::vector<u16> data;

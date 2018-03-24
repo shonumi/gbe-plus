@@ -6,7 +6,7 @@
 // Date : August 07, 2017
 // Description : IR accessory emulation
 //
-// Emulates various IR accessories (Pocket Pikachu 2, Full Changer, Pocket Sakura, TV Remote)
+// Emulates various IR accessories (Pokemon Pikachu 2, Full Changer, Pocket Sakura, TV Remote)
 
 #include "sio.h"
 #include "common/util.h" 
@@ -130,14 +130,14 @@ void DMG_SIO::tv_remote_process()
 	else { tv_remote.current_state = TV_REMOTE_INACTIVE; }
 }
 
-/****** Loads a database file for Pocket Pikachu or Pocket Sakura ******/
+/****** Loads a database file for Pokemon Pikachu or Pocket Sakura ******/
 bool DMG_SIO::pocket_ir_load_db(std::string filename)
 {
 	std::ifstream database(filename.c_str(), std::ios::binary);
 
 	if(!database.is_open()) 
 	{ 
-		if(sio_stat.ir_type == GBC_POCKET_PIKACHU_2) { std::cout<<"SIO::Loaded Pocket Pikachu 2 database data could not be read. Check file path or permissions. \n"; }
+		if(sio_stat.ir_type == GBC_POKEMON_PIKACHU_2) { std::cout<<"SIO::Loaded Pokemon Pikachu 2 database data could not be read. Check file path or permissions. \n"; }
 		else { std::cout<<"SIO::Loaded Pocket Sakura database data could not be read. Check file path or permissions. \n"; }
 		return false;
 	}
@@ -159,13 +159,13 @@ bool DMG_SIO::pocket_ir_load_db(std::string filename)
 
 	database.close();
 
-	if(sio_stat.ir_type == GBC_POCKET_PIKACHU_2) { std::cout<<"SIO::Loaded Pocket Pikachu 2 database.\n"; }
+	if(sio_stat.ir_type == GBC_POKEMON_PIKACHU_2) { std::cout<<"SIO::Loaded Pokemon Pikachu 2 database.\n"; }
 	else { std::cout<<"SIO::Loaded Pocket Sakura database.\n"; }
 
 	return true;
 }
 
-/****** Processes Pocket Pikachu 2 or Pocket Sakura data sent to the Game Boy ******/
+/****** Processes Pokemon Pikachu 2 or Pocket Sakura data sent to the Game Boy ******/
 void DMG_SIO::pocket_ir_process()
 {
 	//Initiate IR device transmission

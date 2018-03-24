@@ -289,9 +289,9 @@ void DMG_SIO::reset()
 			sio_stat.ir_type = GBC_FULL_CHANGER;
 			break;
 
-		//Pocket Pikachu 2
+		//Pokemon Pikachu 2
 		case 0x2:
-			sio_stat.ir_type = GBC_POCKET_PIKACHU_2;
+			sio_stat.ir_type = GBC_POKEMON_PIKACHU_2;
 			break;
 
 		//Pocket Sakura
@@ -396,7 +396,7 @@ void DMG_SIO::reset()
 
 	else if(config::ir_device == 2)
 	{
-		std::string database = config::data_path + "pocket_pikachu_db.bin";
+		std::string database = config::data_path + "pokemon_pikachu_db.bin";
 		pocket_ir.db_step = 0x7D7;
 		pocket_ir_load_db(database);
 	}

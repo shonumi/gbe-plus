@@ -4,7 +4,7 @@
 
 // File : pp2_menu.cpp
 // Date : February 21, 2018
-// Description : Pocket Pikachu 2 menu
+// Description : Pokemon Pikachu 2 menu
 //
 // Change the amount of watts GBE+ will receive from Pikachu
 
@@ -42,7 +42,7 @@ pp2_menu::pp2_menu(QWidget *parent) : QDialog(parent)
 	setLayout(final_layout);
 
 	setMinimumWidth(300);
-	setWindowTitle(QString("Pocket Pikachu 2 Configuration"));
+	setWindowTitle(QString("Pokemon Pikachu 2 Configuration"));
 	hide();
 
 	connect(close_button, SIGNAL(accepted()), this, SLOT(accept()));

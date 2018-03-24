@@ -330,7 +330,7 @@ u8 DMG_MMU::read_u8(u16 address)
 		//GBC only
 		if(config::gb_type < 2) { return 0x0; }
 
-		//Initiate manual IR transmission (Full Changer, Pocket Pikachu 2, Pocket Sakura, TV Remote)
+		//Initiate manual IR transmission (Full Changer, Pokemon Pikachu 2, Pocket Sakura, TV Remote)
 		if(!ir_signal && (ir_trigger == 1))
 		{
 			ir_trigger++;
