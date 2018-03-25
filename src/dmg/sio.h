@@ -45,6 +45,8 @@ class DMG_SIO
 		TCPsocket host_socket, remote_socket;
 		IPaddress host_ip;
 		bool connected;
+		bool host_init;
+		bool remote_init;
 		u16 port;
 	} server;
 
@@ -54,6 +56,7 @@ class DMG_SIO
 		TCPsocket host_socket;
 		IPaddress host_ip;
 		bool connected;
+		bool host_init;
 		u16 port;
 	} sender;
 

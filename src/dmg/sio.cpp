@@ -70,13 +70,13 @@ DMG_SIO::~DMG_SIO()
 	if(server.host_socket != NULL)
 	{
 		SDLNet_TCP_DelSocket(tcp_sockets, server.host_socket);
-		if(server.connected) { SDLNet_TCP_Close(server.host_socket); }
+		if(server.host_init) { SDLNet_TCP_Close(server.host_socket); }
 	}
 
 	if(server.remote_socket != NULL)
 	{
 		SDLNet_TCP_DelSocket(tcp_sockets, server.remote_socket);
-		if(server.connected) { SDLNet_TCP_Close(server.remote_socket); }
+		if(server.remote_init) { SDLNet_TCP_Close(server.remote_socket); }
 	}
 
 	if(sender.host_socket != NULL)
@@ -89,11 +89,15 @@ DMG_SIO::~DMG_SIO()
 		SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2);
 
 		SDLNet_TCP_DelSocket(tcp_sockets, sender.host_socket);
-		if(sender.connected) { SDLNet_TCP_Close(sender.host_socket); }
+		if(sender.host_init) { SDLNet_TCP_Close(sender.host_socket); }
 	}
 
 	server.connected = false;
 	sender.connected = false;
+
+	server.host_init = false;
+	server.remote_init = false;
+	sender.host_init = false;
 
 	SDLNet_Quit();
 
@@ -160,12 +164,15 @@ bool DMG_SIO::init()
 
 	//Server info
 	server.host_socket = NULL;
+	server.host_init = false;
 	server.remote_socket = NULL;
+	server.remote_init = false;
 	server.connected = false;
 	server.port = config::netplay_server_port;
 
 	//Client info
 	sender.host_socket = NULL;
+	sender.host_init = false;
 	sender.connected = false;
 	sender.port = config::netplay_client_port;
 
@@ -189,6 +196,8 @@ bool DMG_SIO::init()
 		std::cout<<"SIO::Error - Server could not open a connection on Port " << server.port << "\n";
 		return false;
 	}
+
+	server.host_init = true;
 
 	//Setup client, listen on another port
 	if(SDLNet_ResolveHost(&sender.host_ip, config::netplay_client_ip.c_str(), sender.port) < 0)
@@ -444,12 +453,12 @@ void DMG_SIO::reset()
 			four_player_sender[x].connected = false;
 		}
 		
-		if((server.host_socket != NULL) && (server.connected))
+		if((server.host_socket != NULL) && (server.host_init))
 		{
 			SDLNet_TCP_Close(server.host_socket);
 		}
 
-		if((server.remote_socket != NULL) && (server.connected))
+		if((server.remote_socket != NULL) && (server.remote_init))
 		{
 			SDLNet_TCP_Close(server.remote_socket);
 		}
@@ -463,18 +472,21 @@ void DMG_SIO::reset()
 		
 			SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2);
 
-			if(sender.connected) { SDLNet_TCP_Close(sender.host_socket); }
+			if(sender.host_init) { SDLNet_TCP_Close(sender.host_socket); }
 		}
 	}
 
 	//Server info
 	server.host_socket = NULL;
+	server.host_init = false;
 	server.remote_socket = NULL;
+	server.remote_init = false;
 	server.connected = false;
 	server.port = config::netplay_server_port;
 
 	//Client info
 	sender.host_socket = NULL;
+	sender.host_init = false;
 	sender.connected = false;
 	sender.port = config::netplay_client_port;
 
@@ -721,6 +733,7 @@ void DMG_SIO::process_network_communication()
 				SDLNet_TCP_AddSocket(tcp_sockets, server.host_socket);
 				SDLNet_TCP_AddSocket(tcp_sockets, server.remote_socket);
 				server.connected = true;
+				server.remote_init = true;
 			}
 		}
 
@@ -733,6 +746,7 @@ void DMG_SIO::process_network_communication()
 				std::cout<<"SIO::Connected to server\n";
 				SDLNet_TCP_AddSocket(tcp_sockets, sender.host_socket);
 				sender.connected = true;
+				sender.host_init = true;
 			}
 		}
 
