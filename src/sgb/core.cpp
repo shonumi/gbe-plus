@@ -229,6 +229,7 @@ void SGB_core::run_core()
 				core_cpu.controllers.serial_io.receive_byte();
 			}
 
+			core_cpu.debug_cycles += core_cpu.cycles;
 			core_cpu.cycles = 0;
 
 			//Handle Interrupts
@@ -410,6 +411,7 @@ void SGB_core::step()
 			core_cpu.controllers.serial_io.receive_byte();
 		}
 
+		core_cpu.debug_cycles += core_cpu.cycles;
 		core_cpu.cycles = 0;
 
 		//Handle Interrupts

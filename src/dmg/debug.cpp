@@ -182,6 +182,8 @@ void DMG_core::debug_display() const
 
 	std::cout<< std::hex <<"FLAGS : 0x" << std::setw(2) << std::setfill('0') << (u32)core_cpu.reg.f << "\t" << flag_stats << "\n";
 
+	if(db_unit.display_cycles) { std::cout<<"CYCLES : " << std::dec << core_cpu.debug_cycles << "\n"; }
+
 	std::cout<< std::hex << "ROM BANK  : 0x" << std::setw(2) << std::setfill('0') << (u32)core_mmu.rom_bank << 
 	" -- RAM BANK  : 0x" << std::setw(2) << std::setfill('0') << (u32)core_mmu.ram_bank << "\n\n";
 }
@@ -703,7 +705,7 @@ void DMG_core::debug_process_command()
 			std::cout<<"\nCPU cycle counter reset to 0\n";
 
 			valid_command = true;
-			//core_cpu.debug_cycles = 0;
+			core_cpu.debug_cycles = 0;
 			debug_process_command();
 		}
 

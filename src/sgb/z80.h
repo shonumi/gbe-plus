@@ -81,6 +81,7 @@ class SGB_Z80
 	//Internal CPU clock
 	u32 cpu_clock_m, cpu_clock_t;
 	u32 cycles;
+	u32 debug_cycles;
 
 	//DIV and TIMA timer counters
 	u32 div_counter, tima_counter;

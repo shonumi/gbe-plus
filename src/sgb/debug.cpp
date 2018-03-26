@@ -180,6 +180,8 @@ void SGB_core::debug_display() const
 
 	flag_stats += ")";
 
+	if(db_unit.display_cycles) { std::cout<<"CYCLES : " << std::dec << core_cpu.debug_cycles << "\n"; }
+
 	std::cout<< std::hex <<"FLAGS : 0x" << std::setw(2) << std::setfill('0') << (u32)core_cpu.reg.f << "\t" << flag_stats << "\n\n";
 }
 
@@ -700,7 +702,7 @@ void SGB_core::debug_process_command()
 			std::cout<<"\nCPU cycle counter reset to 0\n";
 
 			valid_command = true;
-			//core_cpu.debug_cycles = 0;
+			core_cpu.debug_cycles = 0;
 			debug_process_command();
 		}
 

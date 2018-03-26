@@ -251,6 +251,7 @@ void DMG_core::run_core()
 				}
 			}
 
+			core_cpu.debug_cycles += core_cpu.cycles;
 			core_cpu.cycles = 0;
 
 			//Handle Interrupts
@@ -491,6 +492,7 @@ void DMG_core::step()
 			}
 		}
 
+		core_cpu.debug_cycles += core_cpu.cycles;
 		core_cpu.cycles = 0;
 
 		//Handle Interrupts
