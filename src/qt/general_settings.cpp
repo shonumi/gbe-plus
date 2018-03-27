@@ -751,6 +751,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	QLabel* sync_threshold_label = new QLabel("Sync threshold");
 	sync_threshold = new QSpinBox(netplay);
 	sync_threshold->setMinimum(0);
+	sync_threshold->setToolTip("Amount of emulated CPU cycles GBE+ will pause when enabling hard sync.");
 
 	QHBoxLayout* sync_threshold_layout = new QHBoxLayout;
 	sync_threshold_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -764,6 +765,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	server_port = new QSpinBox(netplay);
 	server_port->setMinimum(0);
 	server_port->setMaximum(0xFFFF);
+	server_port->setToolTip("GBE+ server port number.\nMust match the client port number of another instance of GBE+ when networking.");
 
 	QHBoxLayout* server_port_layout = new QHBoxLayout;
 	server_port_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -777,6 +779,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	client_port = new QSpinBox(netplay);
 	client_port->setMinimum(0);
 	client_port->setMaximum(0xFFFF);
+	client_port->setToolTip("GBE+ client port number.\nMust match the server port number of another instance of GBE+ when networking.");
 
 	QHBoxLayout* client_port_layout = new QHBoxLayout;
 	client_port_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -788,6 +791,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	QWidget* ip_address_set = new QWidget(netplay);
 	QLabel* ip_address_label = new QLabel("Client IP Address : ");
 	ip_address = new QLineEdit(netplay);
+	ip_address->setToolTip("IP address GBE+ will establish a connection with.");
 	ip_update = new QPushButton("Update IP");
 
 	QHBoxLayout* ip_address_layout = new QHBoxLayout;
