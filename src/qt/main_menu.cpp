@@ -1289,7 +1289,7 @@ void main_menu::show_settings()
 {
 	settings->show();
 	settings->tabs->setCurrentIndex(0);
-	settings->advanced_button->setVisible(false);
+	settings->controls_combo->setVisible(false);
 }
 
 /****** Shows the Display settings dialog ******/
@@ -1297,7 +1297,7 @@ void main_menu::show_display_settings()
 {
 	settings->show();
 	settings->tabs->setCurrentIndex(1);
-	settings->advanced_button->setVisible(false);
+	settings->controls_combo->setVisible(false);
 }
 
 /****** Shows the Sound settings dialog ******/
@@ -1305,7 +1305,7 @@ void main_menu::show_sound_settings()
 {
 	settings->show();
 	settings->tabs->setCurrentIndex(2);
-	settings->advanced_button->setVisible(false);
+	settings->controls_combo->setVisible(false);
 }
 
 /****** Shows the Control settings dialog ******/
@@ -1313,7 +1313,7 @@ void main_menu::show_control_settings()
 {
 	settings->show();
 	settings->tabs->setCurrentIndex(3);
-	settings->advanced_button->setVisible(true);
+	settings->controls_combo->setVisible(true);
 }
 
 /****** Shows the Netplay settings dialog ******/
@@ -1321,7 +1321,7 @@ void main_menu::show_netplay_settings()
 {
 	settings->show();
 	settings->tabs->setCurrentIndex(4);
-	settings->advanced_button->setVisible(false);
+	settings->controls_combo->setVisible(false);
 }
 
 /****** Shows the Paths settings dialog ******/
@@ -1329,7 +1329,7 @@ void main_menu::show_paths_settings()
 {
 	settings->show();
 	settings->tabs->setCurrentIndex(5);
-	settings->advanced_button->setVisible(false);
+	settings->controls_combo->setVisible(false);
 }
 
 /****** Shows the Custom Graphics dialog ******/

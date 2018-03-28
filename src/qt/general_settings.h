@@ -42,7 +42,7 @@ class gen_settings : public QDialog
 
 	QTabWidget* tabs;
 	QDialogButtonBox* tabs_button;
-	QPushButton* advanced_button;
+	QComboBox* controls_combo;
 
 	//General tab widgets
 	QComboBox* sys_type;
@@ -82,7 +82,7 @@ class gen_settings : public QDialog
 
 	QVBoxLayout* controls_layout;
 	QVBoxLayout* advanced_controls_layout;
-	bool config_advanced_controls;
+	QVBoxLayout* hotkey_controls_layout;
 
 	QSlider* dead_zone;
 
@@ -128,6 +128,9 @@ class gen_settings : public QDialog
 	QLineEdit* input_con_right;
 	QLineEdit* input_con_up;
 	QLineEdit* input_con_down;
+	QLineEdit* input_turbo;
+	QLineEdit* input_mute;
+	QLineEdit* input_camera;
 
 	QPushButton* config_a;
 	QPushButton* config_b;
@@ -145,6 +148,9 @@ class gen_settings : public QDialog
 	QPushButton* config_con_right;
 	QPushButton* config_con_up;
 	QPushButton* config_con_down;
+	QPushButton* config_turbo;
+	QPushButton* config_mute;
+	QPushButton* config_camera;
 
 	//Advanced controls tab widget
 	QCheckBox* rumble_on;
@@ -239,6 +245,10 @@ class gen_settings : public QDialog
 	QWidget* con_down_set;
 	QWidget* con_left_set;
 	QWidget* con_right_set;
+
+	QWidget* hotkey_turbo_set;
+	QWidget* hotkey_mute_set;
+	QWidget* hotkey_camera_set;
 
 	void process_joystick_event();
 	void input_delay(QPushButton* input_button); 

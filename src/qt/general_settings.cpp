@@ -39,8 +39,17 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	tabs->addTab(netplay, tr("Netplay"));
 	tabs->addTab(paths, tr("Paths"));
 
+	QWidget* button_set = new QWidget;
 	tabs_button = new QDialogButtonBox(QDialogButtonBox::Close);
-	advanced_button = tabs_button->addButton("Advanced Controls", QDialogButtonBox::ActionRole);
+	controls_combo = new QComboBox;
+	controls_combo->addItem("Standard Controls");
+	controls_combo->addItem("Advanced Controls");
+
+	QHBoxLayout* button_layout = new QHBoxLayout;
+	button_layout->setAlignment(Qt::AlignTop | Qt::AlignRight);
+	button_layout->addWidget(controls_combo);
+	button_layout->addWidget(tabs_button);
+	button_set->setLayout(button_layout);
 
 	//General settings - Emulated system type
 	QWidget* sys_type_set = new QWidget(general);
@@ -690,6 +699,51 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	con_down_layout->setContentsMargins(6, 0, 0, 0);
 	con_down_set->setLayout(con_down_layout);
 
+	//Hotkey settings - Turbo
+	hotkey_turbo_set = new QWidget(controls);
+	QLabel* hotkey_turbo_label = new QLabel("Toggle Turbo : ");
+	input_turbo = new QLineEdit(controls);
+	config_turbo = new QPushButton("Configure");
+	input_turbo->setMaximumWidth(100);
+	config_turbo->setMaximumWidth(100);
+
+	QHBoxLayout* hotkey_turbo_layout = new QHBoxLayout;
+	hotkey_turbo_layout->addWidget(hotkey_turbo_label, 1, Qt::AlignLeft);
+	hotkey_turbo_layout->addWidget(input_turbo, 1, Qt::AlignLeft);
+	hotkey_turbo_layout->addWidget(config_turbo, 1, Qt::AlignLeft);
+	hotkey_turbo_layout->setContentsMargins(6, 0, 0, 0);
+	hotkey_turbo_set->setLayout(hotkey_turbo_layout);
+
+	//Hotkey settings - Mute
+	hotkey_mute_set = new QWidget(controls);
+	QLabel* hotkey_mute_label = new QLabel("Toggle Mute : ");
+	input_mute = new QLineEdit(controls);
+	config_mute = new QPushButton("Configure");
+	input_mute->setMaximumWidth(100);
+	config_mute->setMaximumWidth(100);
+
+	QHBoxLayout* hotkey_mute_layout = new QHBoxLayout;
+	hotkey_mute_layout->addWidget(hotkey_mute_label, 1, Qt::AlignLeft);
+	hotkey_mute_layout->addWidget(input_mute, 1, Qt::AlignLeft);
+	hotkey_mute_layout->addWidget(config_mute, 1, Qt::AlignLeft);
+	hotkey_mute_layout->setContentsMargins(6, 0, 0, 0);
+	hotkey_mute_set->setLayout(hotkey_mute_layout);
+
+	//Hotkey settings - Camera
+	hotkey_camera_set = new QWidget(controls);
+	QLabel* hotkey_camera_label = new QLabel("Load GB Camera File : ");
+	input_camera = new QLineEdit(controls);
+	config_camera = new QPushButton("Configure");
+	input_camera->setMaximumWidth(100);
+	config_camera->setMaximumWidth(100);
+
+	QHBoxLayout* hotkey_camera_layout = new QHBoxLayout;
+	hotkey_camera_layout->addWidget(hotkey_camera_label, 1, Qt::AlignLeft);
+	hotkey_camera_layout->addWidget(input_camera, 1, Qt::AlignLeft);
+	hotkey_camera_layout->addWidget(config_camera, 1, Qt::AlignLeft);
+	hotkey_camera_layout->setContentsMargins(6, 0, 0, 0);
+	hotkey_camera_set->setLayout(hotkey_camera_layout);
+
 	controls_layout = new QVBoxLayout;
 	controls_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	controls_layout->addWidget(input_device_set);
@@ -715,12 +769,22 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	advanced_controls_layout->addWidget(con_down_set);
 	advanced_controls_layout->addWidget(con_left_set);
 	advanced_controls_layout->addWidget(con_right_set);
+
+	hotkey_controls_layout = new QVBoxLayout;
+	hotkey_controls_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	hotkey_controls_layout->addWidget(hotkey_turbo_set);
+	hotkey_controls_layout->addWidget(hotkey_mute_set);
+	hotkey_controls_layout->addWidget(hotkey_camera_set);
 	
 	rumble_set->setVisible(false);
 	con_up_set->setVisible(false);
 	con_down_set->setVisible(false);
 	con_left_set->setVisible(false);
 	con_right_set->setVisible(false);
+
+	hotkey_turbo_set->setVisible(false);
+	hotkey_mute_set->setVisible(false);
+	hotkey_camera_set->setVisible(false);
 
 	//Netplay - Enable Netplay
 	QWidget* enable_netplay_set = new QWidget(netplay);
@@ -990,7 +1054,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(sound_on, SIGNAL(stateChanged(int)), this, SLOT(mute()));
 	connect(dead_zone, SIGNAL(valueChanged(int)), this, SLOT(dead_zone_change()));
 	connect(input_device, SIGNAL(currentIndexChanged(int)), this, SLOT(input_device_change()));
-	connect(advanced_button, SIGNAL(clicked()), this, SLOT(switch_control_layout()));
+	connect(controls_combo, SIGNAL(currentIndexChanged(int)), this, SLOT(switch_control_layout()));
 	connect(enable_netplay, SIGNAL(stateChanged(int)), this, SLOT(set_netplay()));
 	connect(hard_sync, SIGNAL(stateChanged(int)), this, SLOT(set_hard_sync()));
 	connect(sync_threshold, SIGNAL(valueChanged(int)), this, SLOT(update_sync_threshold()));
@@ -1041,6 +1105,10 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(config_con_down, SIGNAL(clicked()), button_config, SLOT(map()));
 	connect(config_con_left, SIGNAL(clicked()), button_config, SLOT(map()));
 	connect(config_con_right, SIGNAL(clicked()), button_config, SLOT(map()));
+	connect(config_turbo, SIGNAL(clicked()), button_config, SLOT(map()));
+	connect(config_mute, SIGNAL(clicked()), button_config, SLOT(map()));
+	connect(config_camera, SIGNAL(clicked()), button_config, SLOT(map()));
+	
 
 	button_config->setMapping(config_a, 0);
 	button_config->setMapping(config_b, 1);
@@ -1058,12 +1126,15 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	button_config->setMapping(config_con_down, 13);
 	button_config->setMapping(config_con_left, 14);
 	button_config->setMapping(config_con_right, 15);
+	button_config->setMapping(config_turbo, 16);
+	button_config->setMapping(config_mute, 17);
+	button_config->setMapping(config_camera, 18);
 	connect(button_config, SIGNAL(mapped(int)), this, SLOT(configure_button(int))) ;
 
 	//Final tab layout
 	QVBoxLayout* main_layout = new QVBoxLayout;
 	main_layout->addWidget(tabs);
-	main_layout->addWidget(tabs_button);
+	main_layout->addWidget(button_set);
 	setLayout(main_layout);
 
 	//Config button formatting
@@ -1083,6 +1154,9 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	config_con_down->setMinimumWidth(150);
 	config_con_left->setMinimumWidth(150);
 	config_con_right->setMinimumWidth(150);
+	config_turbo->setMinimumWidth(150);
+	config_mute->setMinimumWidth(150);
+	config_camera->setMinimumWidth(150);
 
 	input_a->setReadOnly(true);
 	input_b->setReadOnly(true);
@@ -1100,6 +1174,9 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	input_con_down->setReadOnly(true);
 	input_con_left->setReadOnly(true);
 	input_con_right->setReadOnly(true);
+	input_turbo->setReadOnly(true);
+	input_mute->setReadOnly(true);
+	input_camera->setReadOnly(true);
 
 	//Install event filters
 	config_a->installEventFilter(this);
@@ -1118,6 +1195,9 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	config_con_down->installEventFilter(this);
 	config_con_left->installEventFilter(this);
 	config_con_right->installEventFilter(this);
+	config_turbo->installEventFilter(this);
+	config_mute->installEventFilter(this);
+	config_camera->installEventFilter(this);
 
 	input_a->installEventFilter(this);
 	input_b->installEventFilter(this);
@@ -1135,6 +1215,9 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	input_con_down->installEventFilter(this);
 	input_con_left->installEventFilter(this);
 	input_con_right->installEventFilter(this);
+	input_turbo->installEventFilter(this);
+	input_mute->installEventFilter(this);
+	input_camera->installEventFilter(this);
 
 	//Set focus policies
 	config_a->setFocusPolicy(Qt::NoFocus);
@@ -1153,6 +1236,9 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	config_con_down->setFocusPolicy(Qt::NoFocus);
 	config_con_left->setFocusPolicy(Qt::NoFocus);
 	config_con_right->setFocusPolicy(Qt::NoFocus);
+	config_turbo->setFocusPolicy(Qt::NoFocus);
+	config_mute->setFocusPolicy(Qt::NoFocus);
+	config_camera->setFocusPolicy(Qt::NoFocus);
 
 	input_a->setFocusPolicy(Qt::NoFocus);
 	input_b->setFocusPolicy(Qt::NoFocus);
@@ -1170,6 +1256,9 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	input_con_down->setFocusPolicy(Qt::NoFocus);
 	input_con_left->setFocusPolicy(Qt::NoFocus);
 	input_con_right->setFocusPolicy(Qt::NoFocus);
+	input_turbo->setFocusPolicy(Qt::NoFocus);
+	input_mute->setFocusPolicy(Qt::NoFocus);
+	input_camera->setFocusPolicy(Qt::NoFocus);
 
 	//Joystick handling
 	jstick = SDL_JoystickOpen(0);
@@ -1185,7 +1274,6 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	sample_rate = config::sample_rate;
 	resize_screen = false;
 	grab_input = false;
-	config_advanced_controls = false;
 	input_type = 0;
 
 	dmg_cheat_menu = new cheat_menu;
@@ -1344,6 +1432,9 @@ void gen_settings::set_ini_options()
 	input_con_down->setText(QString::number(config::con_key_down));
 	input_con_left->setText(QString::number(config::con_key_left));
 	input_con_right->setText(QString::number(config::con_key_right));
+	input_turbo->setText(QString::number(config::hotkey_turbo));
+	input_mute->setText(QString::number(config::hotkey_mute));
+	input_camera->setText(QString::number(config::hotkey_camera));
 
 	//BIOS, Boot ROM and Manifest paths
 	QString path_1(QString::fromStdString(config::dmg_bios_path));
@@ -2260,15 +2351,15 @@ void gen_settings::close_input()
 	grab_input = false;
 
 	//Additionally, set the Advanced Controls button visible or invisible when switching tabs
-	if(tabs->currentIndex() == 3) { advanced_button->setVisible(true); }
-	else { advanced_button->setVisible(false); }
+	if(tabs->currentIndex() == 3) { controls_combo->setVisible(true); }
+	else { controls_combo->setVisible(false); }
 }
 
 /****** Changes Qt widget layout - Switches between advanced control configuration mode ******/
 void gen_settings::switch_control_layout()
 {
-	//Switch from standard control layout to advanced control layout
-	if(!config_advanced_controls)
+	//Switch to Advanced Control layout
+	if(controls_combo->currentIndex() == 1)
 	{
 		//Set all advanced control widgets to visible
 		for(int x = 0; x < advanced_controls_layout->count(); x++)
@@ -2281,8 +2372,6 @@ void gen_settings::switch_control_layout()
 		{
 			controls_layout->itemAt(x)->widget()->setVisible(false);
 		}
-
-		config_advanced_controls = true;
 
 		delete controls->layout();
 		advanced_controls_layout->insertWidget(0, input_device_set);
@@ -2306,14 +2395,10 @@ void gen_settings::switch_control_layout()
 		controls_layout->addWidget(dead_zone_set);
 
 		input_device_set->setVisible(true);
-
-		//Set the text for the button
-		std::string button_text = "Standard Controls";
-		advanced_button->setText(QString::fromStdString(button_text));
 	}
 
-	//Switch from advanced control layout to standard control layout
-	else
+	//Switch to Standard Control layout
+	else if(controls_combo->currentIndex() == 0)
 	{
 		//Set all advanced control widgets to invisible
 		for(int x = 0; x < advanced_controls_layout->count(); x++)
@@ -2326,8 +2411,6 @@ void gen_settings::switch_control_layout()
 		{
 			controls_layout->itemAt(x)->widget()->setVisible(true);
 		}
-
-		config_advanced_controls = false;
 
 		delete controls->layout();
 		controls_layout->insertWidget(0, input_device_set);
@@ -2343,10 +2426,6 @@ void gen_settings::switch_control_layout()
 		advanced_controls_layout->addWidget(con_right_set);
 
 		input_device_set->setVisible(true);
-
-		//Set the text for the button
-		std::string button_text = "Advanced Controls";
-		advanced_button->setText(QString::fromStdString(button_text));
 	}
 }
 
