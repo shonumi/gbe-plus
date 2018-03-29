@@ -44,6 +44,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	controls_combo = new QComboBox;
 	controls_combo->addItem("Standard Controls");
 	controls_combo->addItem("Advanced Controls");
+	controls_combo->addItem("Hotkey Controls");
 
 	QHBoxLayout* button_layout = new QHBoxLayout;
 	button_layout->setAlignment(Qt::AlignTop | Qt::AlignRight);
@@ -731,7 +732,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 
 	//Hotkey settings - Camera
 	hotkey_camera_set = new QWidget(controls);
-	QLabel* hotkey_camera_label = new QLabel("Load GB Camera File : ");
+	QLabel* hotkey_camera_label = new QLabel("GB Camera File : ");
 	input_camera = new QLineEdit(controls);
 	config_camera = new QPushButton("Configure");
 	input_camera->setMaximumWidth(100);
@@ -1275,6 +1276,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	resize_screen = false;
 	grab_input = false;
 	input_type = 0;
+	last_control_id = 0;
 
 	dmg_cheat_menu = new cheat_menu;
 	real_time_clock_menu = new rtc_menu;
@@ -2065,6 +2067,24 @@ void gen_settings::configure_button(int button)
 			input_con_right->setFocus();
 			input_index = 15;
 			break;
+
+		case 16:
+			input_delay(config_turbo);
+			input_turbo->setFocus();
+			input_index = 16;
+			break;
+
+		case 17:
+			input_delay(config_mute);
+			input_turbo->setFocus();
+			input_index = 17;
+			break;
+
+		case 18:
+			input_delay(config_camera);
+			input_turbo->setFocus();
+			input_index = 18;
+			break;
 	}
 
 	if(input_type != 0) { process_joystick_event(); }
@@ -2346,11 +2366,14 @@ void gen_settings::close_input()
 	config_con_down->setText("Configure");
 	config_con_left->setText("Configure");
 	config_con_right->setText("Configure");
+	config_turbo->setText("Configure");
+	config_mute->setText("Configure");
+	config_camera->setText("Configure");
 
 	input_index = -1;
 	grab_input = false;
 
-	//Additionally, set the Advanced Controls button visible or invisible when switching tabs
+	//Additionally, controls combo to visible or invisible when switching tabs
 	if(tabs->currentIndex() == 3) { controls_combo->setVisible(true); }
 	else { controls_combo->setVisible(false); }
 }
@@ -2373,28 +2396,18 @@ void gen_settings::switch_control_layout()
 			controls_layout->itemAt(x)->widget()->setVisible(false);
 		}
 
+		//Set all hotkey control widgets to invisible
+		for(int x = 0; x < hotkey_controls_layout->count(); x++)
+		{
+			hotkey_controls_layout->itemAt(x)->widget()->setVisible(false);
+		}
+
 		delete controls->layout();
 		advanced_controls_layout->insertWidget(0, input_device_set);
 		controls->setLayout(advanced_controls_layout);
 
-		//Rebuild old layout (was deleted above)
-		controls_layout = new QVBoxLayout;
-		controls_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-		controls_layout->addWidget(input_a_set);
-		controls_layout->addWidget(input_b_set);
-		controls_layout->addWidget(input_x_set);
-		controls_layout->addWidget(input_y_set);
-		controls_layout->addWidget(input_start_set);
-		controls_layout->addWidget(input_select_set);
-		controls_layout->addWidget(input_left_set);
-		controls_layout->addWidget(input_right_set);
-		controls_layout->addWidget(input_up_set);
-		controls_layout->addWidget(input_down_set);
-		controls_layout->addWidget(input_l_set);
-		controls_layout->addWidget(input_r_set);
-		controls_layout->addWidget(dead_zone_set);
-
 		input_device_set->setVisible(true);
+		input_device_set->setEnabled(true);
 	}
 
 	//Switch to Standard Control layout
@@ -2406,27 +2419,97 @@ void gen_settings::switch_control_layout()
 			advanced_controls_layout->itemAt(x)->widget()->setVisible(false);
 		}
 
-		//Set all standard control widgets to invisible
+		//Set all standard control widgets to visible
 		for(int x = 0; x < controls_layout->count(); x++)
 		{
 			controls_layout->itemAt(x)->widget()->setVisible(true);
+		}
+
+		//Set all hotkey control widgets to invisible
+		for(int x = 0; x < hotkey_controls_layout->count(); x++)
+		{
+			hotkey_controls_layout->itemAt(x)->widget()->setVisible(false);
 		}
 
 		delete controls->layout();
 		controls_layout->insertWidget(0, input_device_set);
 		controls->setLayout(controls_layout);
 
-		//Rebuild old layout (was deleted above)
-		advanced_controls_layout = new QVBoxLayout;
-		advanced_controls_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-		advanced_controls_layout->addWidget(rumble_set);
-		advanced_controls_layout->addWidget(con_up_set);
-		advanced_controls_layout->addWidget(con_down_set);
-		advanced_controls_layout->addWidget(con_left_set);
-		advanced_controls_layout->addWidget(con_right_set);
+		input_device_set->setVisible(true);
+		input_device_set->setEnabled(true);
+	}
+
+	//Switch to Hotkey layout
+	else if(controls_combo->currentIndex() == 2)
+	{
+		//Set all advanced control widgets to invisible
+		for(int x = 0; x < advanced_controls_layout->count(); x++)
+		{
+			advanced_controls_layout->itemAt(x)->widget()->setVisible(false);
+		}
+
+		//Set all standard control widgets to invisible
+		for(int x = 0; x < controls_layout->count(); x++)
+		{
+			controls_layout->itemAt(x)->widget()->setVisible(false);
+		}
+
+		//Set all hotkey control widgets to visible
+		for(int x = 0; x < hotkey_controls_layout->count(); x++)
+		{
+			hotkey_controls_layout->itemAt(x)->widget()->setVisible(true);
+		}
+
+		delete controls->layout();
+		hotkey_controls_layout->insertWidget(0, input_device_set);
+		controls->setLayout(hotkey_controls_layout);
 
 		input_device_set->setVisible(true);
+		input_device_set->setEnabled(false);
+		input_device->setCurrentIndex(0);
 	}
+
+	//Rebuild old layout (was deleted above)
+	switch(last_control_id)
+	{
+		case 0:
+			controls_layout = new QVBoxLayout;
+			controls_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+			controls_layout->addWidget(input_a_set);
+			controls_layout->addWidget(input_b_set);
+			controls_layout->addWidget(input_x_set);
+			controls_layout->addWidget(input_y_set);
+			controls_layout->addWidget(input_start_set);
+			controls_layout->addWidget(input_select_set);
+			controls_layout->addWidget(input_left_set);
+			controls_layout->addWidget(input_right_set);
+			controls_layout->addWidget(input_up_set);
+			controls_layout->addWidget(input_down_set);
+			controls_layout->addWidget(input_l_set);
+			controls_layout->addWidget(input_r_set);
+			controls_layout->addWidget(dead_zone_set);
+			break;
+
+		case 1:
+			advanced_controls_layout = new QVBoxLayout;
+			advanced_controls_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+			advanced_controls_layout->addWidget(rumble_set);
+			advanced_controls_layout->addWidget(con_up_set);
+			advanced_controls_layout->addWidget(con_down_set);
+			advanced_controls_layout->addWidget(con_left_set);
+			advanced_controls_layout->addWidget(con_right_set);
+			break;
+
+		case 2:
+			hotkey_controls_layout = new QVBoxLayout;
+			hotkey_controls_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+			hotkey_controls_layout->addWidget(hotkey_turbo_set);
+			hotkey_controls_layout->addWidget(hotkey_mute_set);
+			hotkey_controls_layout->addWidget(hotkey_camera_set);
+			break;
+	}
+
+	last_control_id = controls_combo->currentIndex();
 }
 
 /****** Updates the settings window ******/
@@ -2646,6 +2729,39 @@ void gen_settings::keyPressEvent(QKeyEvent* event)
 
 				config_con_right->setText("Configure");
 				input_con_right->clearFocus();
+				break;
+
+			case 16:
+				if(last_key != -1)
+				{
+					config::hotkey_turbo = last_key;
+					input_turbo->setText(QString::number(last_key));
+				}
+
+				config_turbo->setText("Configure");
+				input_turbo->clearFocus();
+				break;
+
+			case 17:
+				if(last_key != -1)
+				{
+					config::hotkey_mute = last_key;
+					input_mute->setText(QString::number(last_key));
+				}
+
+				config_mute->setText("Configure");
+				input_mute->clearFocus();
+				break;
+
+			case 18:
+				if(last_key != -1)
+				{
+					config::hotkey_camera = last_key;
+					input_camera->setText(QString::number(last_key));
+				}
+
+				config_camera->setText("Configure");
+				input_camera->clearFocus();
 				break;
 		}
 
