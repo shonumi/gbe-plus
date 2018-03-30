@@ -137,8 +137,8 @@ bool DMG_SIO::pocket_ir_load_db(std::string filename)
 
 	if(!database.is_open()) 
 	{ 
-		if(sio_stat.ir_type == GBC_POKEMON_PIKACHU_2) { std::cout<<"SIO::Loaded Pokemon Pikachu 2 database data could not be read. Check file path or permissions. \n"; }
-		else { std::cout<<"SIO::Loaded Pocket Sakura database data could not be read. Check file path or permissions. \n"; }
+		if(sio_stat.ir_type == GBC_POKEMON_PIKACHU_2) { std::cout<<"SIO::Pokemon Pikachu 2 database data could not be read. Check file path or permissions. \n"; }
+		else { std::cout<<"SIO::Pocket Sakura database data could not be read. Check file path or permissions. \n"; }
 		return false;
 	}
 
@@ -196,7 +196,7 @@ void DMG_SIO::pocket_ir_process()
 	if(pocket_ir.current_data < (pocket_ir.db_step * (config::ir_db_index + 1)))
 	{
 		sio_stat.shift_counter = 0;
-		sio_stat.shift_clock = pocket_ir.data[pocket_ir.current_data];
+		sio_stat.shift_clock = (pocket_ir.data[pocket_ir.current_data] * 2);
 		sio_stat.shifts_left = 1;
 
 		//Set up next delay

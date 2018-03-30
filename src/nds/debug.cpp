@@ -1191,6 +1191,26 @@ void NTR_core::debug_process_command()
 			}
 		}
 
+		//Delete all breakpoints
+		else if(command.substr(0, 3) == "del")
+		{
+			valid_command = true;
+			
+			db_unit.breakpoints.clear();
+			db_unit.watchpoint_addr.clear();
+			db_unit.watchpoint_val.clear();
+			db_unit.watchpoint_old_val.clear();
+
+			//Advanced debugging
+			#ifdef GBE_DEBUG
+			db_unit.write_addr.clear();
+			db_unit.read_addr.clear();
+			#endif
+			
+			std::cout<<"\nBreakpoints deleted\n";
+			debug_process_command();
+		}
+
 		//Show memory - byte
 		else if((command.substr(0, 2) == "u8") && (command.substr(3, 2) == "0x"))
 		{
@@ -1661,6 +1681,7 @@ void NTR_core::debug_process_command()
 			std::cout<<"sc \t\t Switch CPU (NDS9 or NDS7)\n";
 			std::cout<<"bp \t\t Set breakpoint, format 0x1234ABCD\n";
 			std::cout<<"bc \t\t Set breakpoint on memory change, format 0x1234ABCD for addr, 0x12 for value\n";
+			std::cout<<"del \t\t Deletes ALL current breakpoints\n";
 			std::cout<<"u8 \t\t Show BYTE @ memory, format 0x1234ABCD\n";
 			std::cout<<"u16 \t\t Show HALFWORD @ memory, format 0x1234ABCD\n";
 			std::cout<<"u32 \t\t Show WORD @ memory, format 0x1234ABCD\n";
