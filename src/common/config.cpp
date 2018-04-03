@@ -781,8 +781,17 @@ bool parse_ini_file()
 
 	if(!file.is_open())
 	{
-		std::string unix_str = getenv("HOME");
+		const char* unix_chr = getenv("HOME");
+		std::string unix_str = "";
 		std::string last_chr = "";
+
+		if(unix_chr != NULL) { unix_str = unix_chr; }
+		
+		else
+		{
+			std::cout<<"GBE::Error - Could not open gbe.ini configuration file. Check file path or permissions. \n";
+			return false;
+		}
 
 		last_chr = unix_str[unix_str.length() - 1];
 		config::cfg_path = (last_chr == "/") ? unix_str + ".gbe_plus/" : unix_str + "/.gbe_plus/";
