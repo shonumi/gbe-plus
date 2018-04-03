@@ -1,4 +1,4 @@
-Barcode Boy Technical Documentation 0.1
+Barcode Boy Technical Documentation 0.2
 July 4th, 2017
 Shonumi aka D.S. Baxter
 
@@ -73,7 +73,7 @@ Barcode Format
 ***************************************************
 
 
-The two strings are the actual barcode data in numerical form. The barcode format itself is JAN-13, which is EAN compatible. Older JAN barcodes start off with the flag code 49, as do all Barcode Boy barcodes, presumably (I only have about half of all available cards to verify this). Interestingly enough, the newer JAN flag code is 45 and was introduced in 1992, the same year the Barcode Boy was released. Probably due to timing, it wasn't possible or convenient to develop the hardware to recognize the newer format.
+The two strings are the actual barcode data in numerical form. The barcode format itself is JAN-13, which is EAN compatible. Older JAN barcodes start off with the flag code 49, as do some Barcode Boy barcodes. Interestingly enough, the newer JAN flag code is 45 and was introduced in 1992, the same year the Barcode Boy was released. Probably due to timing, it wasn't possible or convenient to develop the hardware to recognize the newer format. Some Barcode Boy barcodes are technically "coupons/vouchers" types; they use the flag code 99 instead of 45 or 49.
 
 Using scans of the barcode @ 600 DPI, the smallest bar width is approximately 7 pixels (give or take). With that information, it's possible to recreate the JAN-13 number with a sufficient image and knowledge of EAN-13. It should be noted that the Barcode Boy appears to do away with the center guard, however, it maintains left and right guards.
 
@@ -83,6 +83,6 @@ Card Dumping + Emulation
 ***************************************************
 
 
-Amazingly simple in comparison to something like Barcode Taisen Bardigun, chiefly because such a small amount of bytes need to be sent to the Game Boy. Basically, all you need to do is convert the barcode to JAN-13.
+Amazingly simple in comparison to something like Barcode Taisen Bardigun, chiefly because such a small amount of bytes need to be sent to the Game Boy. Basically, all you need to do is convert the barcode to JAN-13. Anything capable of reading standard barcodes found on most products should be sufficient to grab the numerical form of each card.
 
 As far as emulation goes, simply convert the JAN-13 ASCII string to hex and transmit it accordingly.
