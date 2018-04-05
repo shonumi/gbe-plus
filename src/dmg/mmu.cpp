@@ -454,7 +454,11 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		}
 
 		//Turn off sound channel if envelope volume is 0 and mode is subtraction
-		if((next_direction == 0) && (next_volume == 0)) { apu_stat->channel[0].playing = false; }
+		if((next_direction == 0) && (next_volume == 0))
+		{
+			apu_stat->channel[0].playing = false;
+			memory_map[NR52] &= ~0x1;
+		}
 	}
 
 	//NR13 - Frequency LO
@@ -532,7 +536,11 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 			apu_stat->channel[0].envelope_step = (memory_map[NR12] & 0x07);
 
 			//Turn off sound channel if envelope volume is 0 and mode is subtraction
-			if((apu_stat->channel[0].envelope_direction == 0) && (apu_stat->channel[0].volume == 0)) { apu_stat->channel[0].playing = false; }
+			if((apu_stat->channel[0].envelope_direction == 0) && (apu_stat->channel[0].volume == 0))
+			{
+				apu_stat->channel[0].playing = false;
+				memory_map[NR52] &= ~0x1;
+			}
 
 			//Sweep
 			apu_stat->channel[0].sweep_direction = (memory_map[NR10] & 0x08) ? 1 : 0;
@@ -551,7 +559,6 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 
 		//Set NR52 flag
 		if(apu_stat->channel[0].playing) { memory_map[NR52] |= 0x1; }
-		else { memory_map[NR52] &= ~0x1; }
 	}
 
 	//NR21 - Duration, Duty Cycle
@@ -605,7 +612,11 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		}
 
 		//Turn off sound channel if envelope volume is 0 and mode is subtraction
-		if((next_direction == 0) && (next_volume == 0)) { apu_stat->channel[1].playing = false; }
+		if((next_direction == 0) && (next_volume == 0))
+		{
+			apu_stat->channel[1].playing = false;
+			memory_map[NR52] &= ~0x2;
+		}
 	}
 
 	//NR23 - Frequency LO
@@ -673,7 +684,11 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 			apu_stat->channel[1].envelope_step = (memory_map[NR22] & 0x07);
 
 			//Turn off sound channel if envelope volume is 0 and mode is subtraction
-			if((apu_stat->channel[1].envelope_direction == 0) && (apu_stat->channel[1].volume == 0)) { apu_stat->channel[1].playing = false; }
+			if((apu_stat->channel[1].envelope_direction == 0) && (apu_stat->channel[1].volume == 0))
+			{
+				apu_stat->channel[1].playing = false;
+				memory_map[NR52] &= ~0x2;
+			}
 
 			//Internal APU time-keeping
 			apu_stat->channel[1].frequency_distance = 0;
@@ -684,7 +699,18 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 
 		//Set NR52 flag
 		if(apu_stat->channel[1].playing) { memory_map[NR52] |= 0x2; }
-		else { memory_map[NR52] &= ~0x2; }
+	}
+
+	//NR30 - Sound3 Enable/Disable
+	else if(address == NR30)
+	{
+		memory_map[address] = value;
+
+		if((value & 0x80) == 0)
+		{
+			apu_stat->channel[2].playing = false;
+			memory_map[NR52] &= ~0x4;
+		}
 	}
 
 	//NR31 - Duration
@@ -757,7 +783,6 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 
 		//Set NR52 flag
 		if(apu_stat->channel[2].playing) { memory_map[NR52] |= 0x4; }
-		else { memory_map[NR52] &= ~0x4; }
 	}
 
 	//NR42 - Envelope, Volume
@@ -781,7 +806,11 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		}
 
 		//Turn off sound channel if envelope volume is 0 and mode is subtraction
-		if((next_direction == 0) && (next_volume == 0)) { apu_stat->channel[3].playing = false; }
+		if((next_direction == 0) && (next_volume == 0))
+		{
+			apu_stat->channel[3].playing = false;
+			memory_map[NR52] &= ~0x8;
+		}
 	}
 
 	//NR43 - Polynomial Counter
@@ -840,7 +869,11 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 			apu_stat->channel[3].envelope_step = (memory_map[NR42] & 0x07);
 
 			//Turn off sound channel if envelope volume is 0 and mode is subtraction
-			if((apu_stat->channel[3].envelope_direction == 0) && (apu_stat->channel[3].volume == 0)) { apu_stat->channel[3].playing = false; }
+			if((apu_stat->channel[3].envelope_direction == 0) && (apu_stat->channel[3].volume == 0))
+			{
+				apu_stat->channel[3].playing = false;
+				memory_map[NR52] &= ~0x8;
+			}
 
 			//Internal APU time-keeping
 			apu_stat->channel[3].frequency_distance = 0;
@@ -851,7 +884,6 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 
 		//Set NR52 flag
 		if(apu_stat->channel[3].playing) { memory_map[NR52] |= 0x8; }
-		else { memory_map[NR52] &= ~0x8; }
 	}
 
 	//NR50 S01-S02 volume

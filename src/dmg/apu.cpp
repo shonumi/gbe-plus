@@ -181,7 +181,7 @@ void DMG_APU::generate_channel_1_samples(s16* stream, int length)
 	if((apu_stat.channel[0].so1_output) || (apu_stat.channel[0].so2_output)) { output_status = true; }
 
 	//Generate samples from the last output of the channel
-	if((apu_stat.channel[0].playing) && (apu_stat.sound_on) && (output_status))
+	if((apu_stat.channel[0].playing) && (apu_stat.sound_on))
 	{
 		int frequency_samples = apu_stat.sample_rate/apu_stat.channel[0].output_frequency;
 
@@ -271,7 +271,7 @@ void DMG_APU::generate_channel_1_samples(s16* stream, int length)
 				&& (apu_stat.channel[0].frequency_distance < (frequency_samples/8) * apu_stat.channel[0].duty_cycle_end)
 				&& (apu_stat.channel[0].volume != 0))
 				{
-					stream[x] = -32768 + (4369 * apu_stat.channel[0].volume);
+					stream[x] = output_status ? (-32768 + (4369 * apu_stat.channel[0].volume)) : -32768;
 				}
 
 				//Generate low wave form if duty cycle is off OR volume is muted
@@ -279,14 +279,20 @@ void DMG_APU::generate_channel_1_samples(s16* stream, int length)
 			}
 
 			//Continuously generate sound if necessary
-			else if((apu_stat.channel[0].sample_length == 0) && (!apu_stat.channel[0].length_flag)) { apu_stat.channel[0].sample_length = (apu_stat.channel[0].duration * apu_stat.sample_rate)/1000; }
+			else if((apu_stat.channel[0].sample_length == 0) && (!apu_stat.channel[0].length_flag))
+			{
+				apu_stat.channel[0].sample_length = (apu_stat.channel[0].duration * apu_stat.sample_rate)/1000;
+			}
 
 			//Or stop sound after duration has been met, reset Sound 1 On Flag
 			else if((apu_stat.channel[0].sample_length == 0) && (apu_stat.channel[0].length_flag)) 
 			{ 
 				stream[x] = -32768; 
 				apu_stat.channel[0].sample_length = 0; 
-				apu_stat.channel[0].playing = false; 
+				apu_stat.channel[0].playing = false;
+
+				//Set NR52 flag
+				mem->memory_map[NR52] &= ~0x1;
 			}
 		}
 	}
@@ -296,9 +302,6 @@ void DMG_APU::generate_channel_1_samples(s16* stream, int length)
 	{
 		for(int x = 0; x < length; x++) { stream[x] = -32768; }
 	}
-
-	//Set NR52 flag
-	if(!apu_stat.channel[0].playing) { mem->memory_map[NR52] &= ~0x1; }
 }
 
 /******* Generate samples for GB sound channel 2 ******/
@@ -308,7 +311,7 @@ void DMG_APU::generate_channel_2_samples(s16* stream, int length)
 	if((apu_stat.channel[1].so1_output) || (apu_stat.channel[1].so2_output)) { output_status = true; }
 
 	//Generate samples from the last output of the channel
-	if((apu_stat.channel[1].playing) && (apu_stat.sound_on) && (output_status))
+	if((apu_stat.channel[1].playing) && (apu_stat.sound_on))
 	{
 		int frequency_samples = apu_stat.sample_rate/apu_stat.channel[1].output_frequency;
 
@@ -344,7 +347,7 @@ void DMG_APU::generate_channel_2_samples(s16* stream, int length)
 				&& (apu_stat.channel[1].frequency_distance < (frequency_samples/8) * apu_stat.channel[1].duty_cycle_end)
 				&& (apu_stat.channel[1].volume != 0))
 				{
-					stream[x] = -32768 + (4369 * apu_stat.channel[1].volume);
+					stream[x] = output_status ? (-32768 + (4369 * apu_stat.channel[1].volume)) : -32768;;
 				}
 
 				//Generate low wave form if duty cycle is off OR volume is muted
@@ -352,14 +355,20 @@ void DMG_APU::generate_channel_2_samples(s16* stream, int length)
 			}
 
 			//Continuously generate sound if necessary
-			else if((apu_stat.channel[1].sample_length == 0) && (!apu_stat.channel[1].length_flag)) { apu_stat.channel[1].sample_length = (apu_stat.channel[1].duration * apu_stat.sample_rate)/1000; }
+			else if((apu_stat.channel[1].sample_length == 0) && (!apu_stat.channel[1].length_flag))
+			{
+				apu_stat.channel[1].sample_length = (apu_stat.channel[1].duration * apu_stat.sample_rate)/1000;
+			}
 
 			//Or stop sound after duration has been met, reset Sound 2 On Flag
 			else if((apu_stat.channel[1].sample_length == 0) && (apu_stat.channel[1].length_flag)) 
 			{ 
 				stream[x] = -32768; 
 				apu_stat.channel[1].sample_length = 0; 
-				apu_stat.channel[1].playing = false; 
+				apu_stat.channel[1].playing = false;
+
+				//Set NR52 flag
+				mem->memory_map[NR52] &= ~0x2;
 			}
 		}
 	}
@@ -369,9 +378,6 @@ void DMG_APU::generate_channel_2_samples(s16* stream, int length)
 	{
 		for(int x = 0; x < length; x++) { stream[x] = -32768; }
 	}
-
-	//Set NR52 flag
-	if(!apu_stat.channel[1].playing) { mem->memory_map[NR52] &= ~0x2; }
 }
 
 /******* Generate samples for GB sound channel 3 ******/
@@ -379,27 +385,26 @@ void DMG_APU::generate_channel_3_samples(s16* stream, int length)
 {
 	bool output_status = false;
 	if((apu_stat.channel[2].so1_output) || (apu_stat.channel[2].so2_output)) { output_status = true; }
-	if((output_status) && (mem->memory_map[NR30] & 0x80)) { output_status = true; }
 	else { output_status = false; }
 
 	//Generate samples from the last output of the channel
-	if((apu_stat.channel[2].playing) && (apu_stat.sound_on) && (output_status))
+	if((apu_stat.channel[2].playing) && (apu_stat.sound_on))
 	{
 		//Determine amount of samples per waveform sample
 		double wave_step = (apu_stat.sample_rate/apu_stat.channel[2].output_frequency) / 32.0;
-
-		//Generate silence if samples per waveform sample is zero
-		if(wave_step == 0.0) 
-		{ 
-			for(int x = 0; x < length; x++) { stream[x] = -32768; }
-			return;
-		}
 
 		int frequency_samples = apu_stat.sample_rate/apu_stat.channel[2].output_frequency;
 
 		for(int x = 0; x < length; x++, apu_stat.channel[2].sample_length--)
 		{
-			if(apu_stat.channel[2].sample_length > 0)
+			//Generate silence if samples per waveform sample is zero
+			if(wave_step == 0.0) 
+			{ 
+				stream[x] = -32768;
+			}
+
+			//Generate waveform
+			else if(apu_stat.channel[2].sample_length > 0)
 			{
 				apu_stat.channel[2].frequency_distance++;
 				
@@ -415,7 +420,7 @@ void DMG_APU::generate_channel_3_samples(s16* stream, int length)
 					step >>= 1;
 					apu_stat.waveram_sample = mem->memory_map[0xFF30 + step] >> 4;
 					apu_stat.waveram_sample >>= apu_stat.channel[2].volume;
-					stream[x] = -32768 + (4369 * apu_stat.waveram_sample);
+					stream[x] = output_status ? (-32768 + (4369 * apu_stat.waveram_sample)) : -32768;
 				}
 
 				//Grab wave RAM step data for odd steps
@@ -424,19 +429,25 @@ void DMG_APU::generate_channel_3_samples(s16* stream, int length)
 					step >>= 1;
 					apu_stat.waveram_sample = mem->memory_map[0xFF30 + step] & 0xF;
 					apu_stat.waveram_sample >>= apu_stat.channel[2].volume;
-					stream[x] = -32768 + (4369 * apu_stat.waveram_sample);
+					stream[x] = output_status ? (-32768 + (4369 * apu_stat.waveram_sample)) : -32768;
 				}
 			}
 
 			//Continuously generate sound if necessary
-			else if((apu_stat.channel[2].sample_length == 0) && (!apu_stat.channel[2].length_flag)) { apu_stat.channel[2].sample_length = (apu_stat.channel[2].duration * apu_stat.sample_rate)/1000; }
+			else if((apu_stat.channel[2].sample_length == 0) && (!apu_stat.channel[2].length_flag))
+			{
+				apu_stat.channel[2].sample_length = (apu_stat.channel[2].duration * apu_stat.sample_rate)/1000;
+			}
 
 			//Or stop sound after duration has been met, reset Sound 3 On Flag
 			else if((apu_stat.channel[2].sample_length == 0) && (apu_stat.channel[2].length_flag)) 
 			{ 
 				stream[x] = -32768; 
 				apu_stat.channel[2].sample_length = 0; 
-				apu_stat.channel[2].playing = false; 
+				apu_stat.channel[2].playing = false;
+
+				//Set NR52 flag
+				mem->memory_map[NR52] &= ~0x4;
 			}
 		}
 	}
@@ -446,9 +457,6 @@ void DMG_APU::generate_channel_3_samples(s16* stream, int length)
 	{
 		for(int x = 0; x < length; x++) { stream[x] = -32768; }
 	}
-
-	//Set NR52 flag
-	if(!apu_stat.channel[2].playing) { mem->memory_map[NR52] &= ~0x4; }
 }
 
 /******* Generate samples for GB sound channel 4 ******/
@@ -458,7 +466,7 @@ void DMG_APU::generate_channel_4_samples(s16* stream, int length)
 	if((apu_stat.channel[3].so1_output) || (apu_stat.channel[3].so2_output)) { output_status = true; }
 
 	//Generate samples from the last output of the channel
-	if((apu_stat.channel[3].playing) && (apu_stat.sound_on) && (output_status))
+	if((apu_stat.channel[3].playing) && (apu_stat.sound_on))
 	{
 		double samples_per_freq = apu_stat.channel[3].output_frequency/apu_stat.sample_rate;
 		double samples_per_freq_counter = 0;
@@ -528,12 +536,12 @@ void DMG_APU::generate_channel_4_samples(s16* stream, int length)
 				//Generate high wave if LSFR returns 1 from first byte and volume is not muted
 				if((apu_stat.noise_stages == 15) && (apu_stat.noise_15_stage_lsfr & 0x1) && (apu_stat.channel[3].volume >= 1)) 
 				{ 
-					stream[x] = -32768 + (4369 * apu_stat.channel[3].volume); 
+					stream[x] = output_status ? (-32768 + (4369 * apu_stat.channel[3].volume)) : -32768; 
 				}
 
 				else if((apu_stat.noise_stages == 7) && (apu_stat.noise_7_stage_lsfr & 0x1) && (apu_stat.channel[3].volume >= 1)) 
 				{ 
-					stream[x] = -32768 + (4369 * apu_stat.channel[3].volume); 
+					stream[x] = output_status ? (-32768 + (4369 * apu_stat.channel[3].volume)) : -32768; 
 				}
 
 				//Or generate low wave
@@ -552,6 +560,9 @@ void DMG_APU::generate_channel_4_samples(s16* stream, int length)
 				stream[x] = -32768;
 				apu_stat.channel[3].sample_length = 0;
 				apu_stat.channel[3].playing = false;
+
+				//Set NR52 flag
+				mem->memory_map[NR52] &= ~0x8;
 			}
 		}
 	}
@@ -561,9 +572,6 @@ void DMG_APU::generate_channel_4_samples(s16* stream, int length)
 	{
 		for(int x = 0; x < length; x++) { stream[x] = -32768; }
 	}
-
-	//Set NR52 flag
-	if(!apu_stat.channel[3].playing) { mem->memory_map[NR52] &= ~0x8; }
 }
 
 /****** SDL Audio Callback ******/ 
