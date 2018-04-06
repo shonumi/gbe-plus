@@ -196,7 +196,7 @@ void DMG_SIO::pocket_ir_process()
 	if(pocket_ir.current_data < (pocket_ir.db_step * (config::ir_db_index + 1)))
 	{
 		sio_stat.shift_counter = 0;
-		sio_stat.shift_clock = (pocket_ir.data[pocket_ir.current_data] * 2);
+		sio_stat.shift_clock = pocket_ir.data[pocket_ir.current_data];
 		sio_stat.shifts_left = 1;
 
 		//Set up next delay
