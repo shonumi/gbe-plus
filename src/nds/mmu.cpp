@@ -793,7 +793,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 			//Some 3D on NDS9 and sound on NDS7 share I/O addresses
 			//Process NDS9 stuff here
-			if((access_mode) && (address >= 0x4000400) && (address < 0x4000520))
+			if((access_mode) && (address >= 0x4000400) && (address < 0x4000520) && (power_cnt1 & 0x8))
 			{
 				switch(address)
 				{
