@@ -108,6 +108,12 @@ void NTR_ARM9::process_swi(u32 comment)
 			swi_rluncompvram();
 			break;
 
+		//CustomPost
+		case 0x1F:
+			std::cout<<"ARM9::SWI::CustomPost \n";
+			swi_custompost();
+			break;
+
 		default:
 			std::cout<<"SWI::Error - Unknown NDS9 BIOS function 0x" << std::hex << comment << "\n";
 			running = false;
@@ -646,7 +652,13 @@ void NTR_ARM9::swi_rluncompvram()
 		//Manually adjust data pointer for compressed data to point to next flag
 		if(flag & 0x80) { data_ptr++; }
 	}
-}	
+}
+
+/****** HLE implementation of CustomPost - NDS9 ******/
+void NTR_ARM9::swi_custompost()
+{
+	mem->write_u32(NDS_POSTFLG, reg.r0);
+}
 
 /****** Process Software Interrupts - NDS7 ******/
 void NTR_ARM7::process_swi(u32 comment)

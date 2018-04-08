@@ -311,6 +311,7 @@ class NTR_ARM9
 	void swi_isdebugger();
 	void swi_waitbyloop();
 	void swi_getcrc16();
+	void swi_custompost();
 };
 		
 #endif // NDS9_CPU 
