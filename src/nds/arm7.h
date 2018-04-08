@@ -305,6 +305,7 @@ class NTR_ARM7
 	void swi_objaffineset();
 	void swi_bitunpack();
 	void swi_soundbias();
+	void swi_customhalt();
 
 	void swi_getcrc16();
 	void swi_waitbyloop();

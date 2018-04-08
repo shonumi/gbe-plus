@@ -748,6 +748,12 @@ void NTR_ARM7::process_swi(u32 comment)
 			std::cout<<"ARM7::SWI::RLUnCompReadByCallback \n";
 			swi_rluncompvram();
 			break;
+
+		//CustomHalt
+		case 0x1F:
+			std::cout<<"ARM7::SWI::CustomHalt \n";
+			swi_customhalt();
+			break;
 			
 		default:
 			std::cout<<"SWI::Error - Unknown NDS7 BIOS function 0x" << std::hex << comment << "\n";
@@ -1302,3 +1308,10 @@ void NTR_ARM7::swi_rluncompvram()
 		if(flag & 0x80) { data_ptr++; }
 	}
 }	
+
+/****** HLE implementation of CustomHalt - NDS7 ******/
+void NTR_ARM7::swi_customhalt()
+{
+	u8 param = (reg.r2 & 0xFF);
+	mem->write_u8(NDS_HALTCNT, param);
+}
