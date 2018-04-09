@@ -761,6 +761,18 @@ void NTR_ARM7::process_swi(u32 comment)
 			swi_rluncompvram();
 			break;
 
+		//GetPitchTable
+		case 0x1B:
+			std::cout<<"ARM7::SWI::GetPitchTable\n";
+			swi_getpitchtable();
+			break;
+
+		//GetVolumeTable
+		case 0x1C:
+			std::cout<<"ARM7::SWI::GetVolumeTable \n";
+			swi_getvolumetable();
+			break;
+
 		//CustomHalt
 		case 0x1F:
 			std::cout<<"ARM7::SWI::CustomHalt \n";
@@ -1320,6 +1332,35 @@ void NTR_ARM7::swi_rluncompvram()
 		if(flag & 0x80) { data_ptr++; }
 	}
 }	
+
+/****** HLE implementation of GetPitchTable - NDS7 ******/
+void NTR_ARM7::swi_getpitchtable()
+{
+	float index = reg.r0;
+	float ratio = reg.r0 / 767.0;
+
+	if((index < 0) || (index > 0x2FF))
+	{
+		std::cout<<"ARM7::SWI::Warning - Invalid GetPitchTable index results in garbage data\n";
+	}
+
+	reg.r0 = (0xFF8A * ratio);
+}
+
+/****** HLE implementation of GetVolumeTable - NDS7 ******/
+void NTR_ARM7::swi_getvolumetable()
+{
+	float index = reg.r0;
+	float ratio = reg.r0 / 723.0;
+
+	if((index < 0) || (index > 0x2D3))
+	{
+		std::cout<<"ARM7::SWI::Warning - Invalid GetVolumeTable index results in garbage data\n";
+	}
+
+	reg.r0 = (127 * ratio);
+}
+	
 
 /****** HLE implementation of CustomHalt - NDS7 ******/
 void NTR_ARM7::swi_customhalt()
