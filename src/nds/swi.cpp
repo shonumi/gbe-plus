@@ -761,6 +761,12 @@ void NTR_ARM7::process_swi(u32 comment)
 			swi_rluncompvram();
 			break;
 
+		//GetSineTable
+		case 0x1A:
+			std::cout<<"ARM7::SWI::GetSineTable\n";
+			swi_getsinetable();
+			break;
+
 		//GetPitchTable
 		case 0x1B:
 			std::cout<<"ARM7::SWI::GetPitchTable\n";
@@ -1332,6 +1338,22 @@ void NTR_ARM7::swi_rluncompvram()
 		if(flag & 0x80) { data_ptr++; }
 	}
 }	
+
+/****** HLE implementation of GetSineTable - NDS7 ******/
+void NTR_ARM7::swi_getsinetable()
+{
+	float index = reg.r0;
+	float ratio = reg.r0 / 63.0;
+	double pi = 3.14159265;
+
+	if((index < 0) || (index > 0x3F))
+	{
+		std::cout<<"ARM7::SWI::Warning - Invalid GetSineTable index results in garbage data\n";
+	}
+
+	ratio *= 88.6;
+	reg.r0 = sin((ratio * pi) / 180.0) * 0x8000;
+}
 
 /****** HLE implementation of GetPitchTable - NDS7 ******/
 void NTR_ARM7::swi_getpitchtable()
