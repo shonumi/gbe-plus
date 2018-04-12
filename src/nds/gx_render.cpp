@@ -701,22 +701,7 @@ void NTR_LCD::process_gx_command()
 		case 0x20:
 			{
 				u32 color_bytes = read_param_u32(0);
-
-				u8 red = (color_bytes & 0x1F);
-				red = (!red) ? 0 : ((red * 2) + 1);
-				red <<= 2;
-				color_bytes >>= 5;
-
-				u8 green = (color_bytes & 0x1F);
-				green = (!green) ? 0 : ((green * 2) + 1);
-				green <<= 2;
-				color_bytes >>= 5;
-
-				u8 blue = (color_bytes & 0x1F);
-				blue = (!blue) ? 0 : ((blue * 2) + 1);
-				blue <<= 2;
-
-				lcd_3D_stat.vertex_color = 0xFF000000 | (red << 16) | (green << 8) | (blue);
+				lcd_3D_stat.vertex_color = get_rgb15(color_bytes);
 			}
 
 			break;
@@ -1041,3 +1026,23 @@ u16 NTR_LCD::read_param_u16(u8 i)
 	u16 val = lcd_3D_stat.command_parameters[i+1] | (lcd_3D_stat.command_parameters[i] << 8);
 	return val;
 }	
+
+/****** Returns 32-bit color from RGB15 format ******/
+u32 NTR_LCD::get_rgb15(u16 color_bytes)
+{
+	u8 red = (color_bytes & 0x1F);
+	red = (!red) ? 0 : ((red * 2) + 1);
+	red <<= 2;
+	color_bytes >>= 5;
+
+	u8 green = (color_bytes & 0x1F);
+	green = (!green) ? 0 : ((green * 2) + 1);
+	green <<= 2;
+	color_bytes >>= 5;
+
+	u8 blue = (color_bytes & 0x1F);
+	blue = (!blue) ? 0 : ((blue * 2) + 1);
+	blue <<= 2;
+
+	return 0xFF000000 | (red << 16) | (green << 8) | (blue);
+}

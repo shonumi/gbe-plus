@@ -183,6 +183,7 @@ class NTR_LCD
 	bool poly_push(gx_matrix &current_matrix);
 	u32 read_param_u32(u8 index);
 	u16 read_param_u16(u8 index);
+	u32 get_rgb15(u16 color_bytes);
 };
 
 #endif // NDS_LCD
