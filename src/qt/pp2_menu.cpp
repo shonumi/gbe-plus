@@ -22,12 +22,12 @@ pp2_menu::pp2_menu(QWidget *parent) : QDialog(parent)
 	QLabel* watts_label = new QLabel("Number of Watts : ");
  	
 	watts = new QComboBox;
-	watts->addItem("1W");
-	watts->addItem("100W");
-	watts->addItem("200W");
-	watts->addItem("300W");
-	watts->addItem("400W");
-	watts->addItem("500W");
+	watts->addItem("1W - Pokemon Crystal");
+	watts->addItem("100W - Pokemon Crystal");
+	watts->addItem("200W - Pokemon Crystal");
+	watts->addItem("300W - Pokemon Crystal");
+	watts->addItem("400W - Pokemon Crystal");
+	watts->addItem("500W - Pokemon Crystal");
 
 	QHBoxLayout* watts_layout = new QHBoxLayout;
 	watts_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
