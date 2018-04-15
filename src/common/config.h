@@ -30,6 +30,9 @@ bool parse_cheats_file(bool add_cheats);
 bool save_ini_file();
 bool save_cheats_file();
 
+bool load_osd_font();
+void draw_osd_msg(std::vector <u32> &osd_surface);
+
 enum special_cart_types
 {
 	NORMAL_CART,
@@ -155,6 +158,10 @@ namespace config
 	extern u16 rtc_offset[6];
 	extern u32 oc_flags;
 	extern u32 ir_db_index;
+
+	extern bool use_osd;
+	extern std::vector <u32> osd_font;
+	extern std::string osd_message;
 
 	extern bool use_external_interfaces;
 

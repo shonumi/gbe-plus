@@ -202,6 +202,11 @@ namespace config
 
 	//IR database index
 	u32 ir_db_index = 0;
+
+	//On-screen display settings
+	bool use_osd = false;
+	std::vector <u32> osd_font;
+	std::string osd_message = "";
 }
 
 /****** Reset DMG default colors ******/

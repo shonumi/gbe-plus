@@ -4,6 +4,7 @@ set(SRCS
 	util.cpp
 	gx_util.cpp
 	cgfx_common.cpp
+	osd.cpp
 	)
 
 set(HEADERS

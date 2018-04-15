@@ -34,6 +34,9 @@ int main(int argc, char* args[])
 	//Parse .ini options
 	parse_ini_file();
 
+	//Load OSD font
+	load_osd_font();
+
 	//Parse cheat file
 	if(config::use_cheats) { parse_cheats_file(false); }
 
