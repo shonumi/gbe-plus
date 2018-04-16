@@ -204,9 +204,10 @@ namespace config
 	u32 ir_db_index = 0;
 
 	//On-screen display settings
-	bool use_osd = false;
+	bool use_osd = true;
 	std::vector <u32> osd_font;
 	std::string osd_message = "";
+	u32 osd_count = 0;
 }
 
 /****** Reset DMG default colors ******/

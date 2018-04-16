@@ -718,6 +718,10 @@ void NTR_core::handle_hotkey(SDL_Event& event)
 		save_name += save_stream.str() + ".bmp";
 	
 		SDL_SaveBMP(core_cpu_nds9.controllers.video.final_screen, save_name.c_str());
+
+		//OSD
+		config::osd_message = "SAVED SCREENSHOT";
+		config::osd_count = 180;
 	}
 
 	//Start CLI debugger on F7

@@ -2729,6 +2729,13 @@ void NTR_LCD::step()
 			//Update VCOUNT
 			mem->write_u16_fast(NDS_VCOUNT, lcd_stat.current_scanline);
 
+			//Display any OSD messages
+			if(config::osd_count)
+			{
+				config::osd_count--;
+				draw_osd_msg(screen_buffer);
+			}
+
 			//Use SDL
 			if(config::sdl_render)
 			{

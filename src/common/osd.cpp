@@ -24,6 +24,7 @@ bool load_osd_font()
 	if(!file.is_open())
 	{
 		std::cout<<"GBE::Could not open font file " << font_file << ". Check file path or permissions. \n";
+		config::use_osd = false;
 		return false; 
 	}
 
@@ -65,11 +66,19 @@ bool load_osd_font()
 
 /****** Draws an OSD message onto a given buffer ******/
 void draw_osd_msg(std::vector <u32> &osd_surface)
-{	
+{
+	//Abort OSD drawing if 1) OSD disabled, 2) message size is zero, 3) given buffer is less than 20 8x8 tiles
+	if(!config::use_osd) { return; }
+	if(config::osd_message.size() == 0) { return; }
+	if(osd_surface.size() < 1280) { return; }
+
 	u32 chr_offset = 0;
 	u32 buffer_pos = 0;
 	u32 chr_pos = 0;
 	u8 current_chr = 0;
+
+	//Limite message size to 20 characters.
+	u8 message_size = (config::osd_message.size() <= 20) ? config::osd_message.size() : 20;
 
 	//Cycle through every character
 	for(u32 x = 0; x < config::osd_message.size(); x++)
@@ -78,7 +87,7 @@ void draw_osd_msg(std::vector <u32> &osd_surface)
 
 		//Convert ASCII text to font offsets
 		if(current_chr == 0x20) { chr_offset = 0; }
-		else if((current_chr >= 0x30) && (current_chr <= 0x39)) { chr_offset = (current_chr - 0x29); }
+		else if((current_chr >= 0x30) && (current_chr <= 0x39)) { chr_offset = (current_chr - 0x2F); }
 		else if((current_chr >= 0x41) && (current_chr <= 0x5A)) { chr_offset = (current_chr - 0x36); }
 		else if((current_chr >= 0x61) && (current_chr <= 0x7A)) { chr_offset = (current_chr - 0x56); }
 		else { chr_offset = 0; }

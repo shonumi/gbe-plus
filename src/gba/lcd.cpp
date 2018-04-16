@@ -1449,6 +1449,13 @@ void AGB_LCD::step()
 			//Raise VBlank interrupt
 			if(mem->memory_map[DISPSTAT] & 0x8) { mem->memory_map[REG_IF] |= 0x1; }
 
+			//Display any OSD messages
+			if(config::osd_count)
+			{
+				config::osd_count--;
+				draw_osd_msg(screen_buffer);
+			}
+
 			//Use SDL
 			if(config::sdl_render)
 			{

@@ -160,6 +160,10 @@ void DMG_core::load_state(u8 slot)
 	if(!core_cpu.controllers.video.lcd_read(offset, state_file)) { return; }
 
 	std::cout<<"GBE::Loaded state " << state_file << "\n";
+
+	//OSD
+	config::osd_message = "LOADED STATE " + util::to_str(slot);
+	config::osd_count = 180;
 }
 
 /****** Saves a save state ******/
@@ -176,6 +180,10 @@ void DMG_core::save_state(u8 slot)
 	if(!core_cpu.controllers.video.lcd_write(state_file)) { return; }
 
 	std::cout<<"GBE::Saved state " << state_file << "\n";
+
+	//OSD
+	config::osd_message = "SAVED STATE " + util::to_str(slot);
+	config::osd_count = 180;
 }
 
 /****** Run the core in a loop until exit ******/
@@ -749,6 +757,10 @@ void DMG_core::handle_hotkey(SDL_Event& event)
 		save_name += save_stream.str() + ".bmp";
 	
 		SDL_SaveBMP(core_cpu.controllers.video.final_screen, save_name.c_str());
+
+		//OSD
+		config::osd_message = "SAVED SCREENSHOT";
+		config::osd_count = 180;
 	}
 
 	//Toggle Fullscreen on F12

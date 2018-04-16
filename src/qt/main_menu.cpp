@@ -178,6 +178,9 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	//Parse .ini options
 	parse_ini_file();
 
+	//Load OSD font
+	load_osd_font();
+
 	//Parse cheats file
 	if(config::use_cheats) { parse_cheats_file(false); }
 
@@ -1281,6 +1284,10 @@ void main_menu::screenshot()
 
 		//Save software screen
 		else { qt_gui::screen->save(qt_save_name, "PNG"); }
+
+		//OSD
+		config::osd_message = "SAVED SCREENSHOT";
+		config::osd_count = 180;
 	}
 }
 

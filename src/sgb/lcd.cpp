@@ -913,6 +913,13 @@ void SGB_LCD::step(int cpu_clock)
 				//VBlank INT
 				mem->memory_map[IF_FLAG] |= 1;
 
+				//Display any OSD messages
+				if(config::osd_count)
+				{
+					config::osd_count--;
+					draw_osd_msg(screen_buffer);
+				}
+
 				//Render final screen buffer
 				if(lcd_stat.lcd_enable)
 				{
