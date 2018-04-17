@@ -1361,7 +1361,7 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		{
 			cgfx_stat->update_map = true;
 
-			u8 map_number = address - 0x9800;
+			u16 map_number = address - 0x9800;
 			cgfx_stat->bg_map_update_list[map_number] = true;
 		}
 	}
