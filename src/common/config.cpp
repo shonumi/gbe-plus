@@ -204,7 +204,7 @@ namespace config
 	u32 ir_db_index = 0;
 
 	//On-screen display settings
-	bool use_osd = true;
+	bool use_osd = false;
 	std::vector <u32> osd_font;
 	std::string osd_message = "";
 	u32 osd_count = 0;
@@ -997,6 +997,26 @@ bool parse_ini_file()
 			else 
 			{
 				std::cout<<"GBE::Error - Could not parse gbe.ini (#use_patches) \n";
+				return false;
+			}
+		}
+
+		//Use OSD
+		if(ini_item == "#use_osd")
+		{
+			if((x + 1) < size) 
+			{
+				ini_item = ini_opts[++x];
+				std::stringstream temp_stream(ini_item);
+				temp_stream >> output;
+
+				if(output == 1) { config::use_osd = true; }
+				else { config::use_osd = false; }
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#use_osd) \n";
 				return false;
 			}
 		}
@@ -2519,6 +2539,15 @@ bool save_ini_file()
 			std::string val = (config::use_patches) ? "1" : "0";
 
 			output_lines[line_pos] = "[#use_patches:" + val + "]";
+		}
+
+		//Use OSD
+		else if(ini_item == "#use_osd")
+		{
+			line_pos = output_count[x];
+			std::string val = (config::use_osd) ? "1" : "0";
+
+			output_lines[line_pos] = "[#use_osd:" + val + "]";
 		}
 
 		//DMG BIOS path

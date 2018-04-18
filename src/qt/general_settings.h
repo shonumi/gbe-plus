@@ -66,6 +66,7 @@ class gen_settings : public QDialog
 	QCheckBox* ogl;
 	QCheckBox* load_cgfx;
 	QCheckBox* aspect_ratio;
+	QCheckBox* osd_enable;
 
 	//Sound tab widgets
 	QComboBox* freq;
@@ -195,6 +196,7 @@ class gen_settings : public QDialog
 	void set_ogl();
 	void screen_scale_change();
 	void aspect_ratio_change();
+	void set_osd();
 	void dmg_gbc_pal_change();
 	void ogl_frag_change();
 	void set_cgfx();

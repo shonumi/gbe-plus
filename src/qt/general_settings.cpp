@@ -354,6 +354,18 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	aspect_layout->addWidget(aspect_label);
 	aspect_set->setLayout(aspect_layout);
 
+	//Display settings - On-Screen Display
+	QWidget* osd_set = new QWidget(display);
+	QLabel* osd_label = new QLabel("Enable On-Screen Display Messages");
+	osd_enable = new QCheckBox(osd_set);
+	osd_enable->setToolTip("Displays messages from the emulator on-screen");
+
+	QHBoxLayout* osd_layout = new QHBoxLayout;
+	osd_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	osd_layout->addWidget(osd_enable);
+	osd_layout->addWidget(osd_label);
+	osd_set->setLayout(osd_layout);
+
 	QVBoxLayout* disp_layout = new QVBoxLayout;
 	disp_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	disp_layout->addWidget(screen_scale_set);
@@ -363,6 +375,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	disp_layout->addWidget(ogl_set);
 	disp_layout->addWidget(load_cgfx_set);
 	disp_layout->addWidget(aspect_set);
+	disp_layout->addWidget(osd_set);
 	display->setLayout(disp_layout);
 
 	//Sound settings - Output frequency
@@ -1047,6 +1060,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(ogl, SIGNAL(stateChanged(int)), this, SLOT(set_ogl()));
 	connect(screen_scale, SIGNAL(currentIndexChanged(int)), this, SLOT(screen_scale_change()));
 	connect(aspect_ratio, SIGNAL(stateChanged(int)), this, SLOT(aspect_ratio_change()));
+	connect(osd_enable, SIGNAL(stateChanged(int)), this, SLOT(set_osd()));
 	connect(dmg_gbc_pal, SIGNAL(currentIndexChanged(int)), this, SLOT(dmg_gbc_pal_change()));
 	connect(ogl_frag_shader, SIGNAL(currentIndexChanged(int)), this, SLOT(ogl_frag_change()));
 	connect(load_cgfx, SIGNAL(stateChanged(int)), this, SLOT(set_cgfx()));
@@ -1388,6 +1402,9 @@ void gen_settings::set_ini_options()
 	//Maintain aspect ratio option
 	if(config::maintain_aspect_ratio) { aspect_ratio->setChecked(true); }
 
+	//OSD option
+	if(config::use_osd) { osd_enable->setChecked(true); }
+
 	//Sample rate option
 	switch((int)config::sample_rate)
 	{
@@ -1581,6 +1598,13 @@ void gen_settings::aspect_ratio_change()
 {
 	if(aspect_ratio->isChecked()) { config::maintain_aspect_ratio = true; }
 	else { config::maintain_aspect_ratio = false; }
+}
+
+/****** Toggles enabling or disabling on-screen display messages ******/
+void gen_settings::set_osd()
+{
+	if(osd_enable->isChecked()) { config::use_osd = true; }
+	else { config::use_osd = false; }
 }
 
 /****** Changes the emulated DMG-on-GBC palette ******/
