@@ -15,6 +15,7 @@
 #include <sstream>
 
 #include "common/util.h"
+#include "common/cgfx_common.h"
 
 #include "core.h"
 
@@ -160,6 +161,9 @@ void DMG_core::load_state(u8 slot)
 	if(!core_cpu.controllers.video.lcd_read(offset, state_file)) { return; }
 
 	std::cout<<"GBE::Loaded state " << state_file << "\n";
+
+	//Invalidate current CGFX
+	if(cgfx::load_cgfx) { core_cpu.controllers.video.invalidate_cgfx(); }
 
 	//OSD
 	config::osd_message = "LOADED STATE " + util::to_str(slot);

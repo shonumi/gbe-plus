@@ -1426,3 +1426,28 @@ std::string DMG_LCD::get_hash(u16 addr, u8 gfx_type)
 
 	return final_hash;
 }
+
+/****** Invalidates all current hashes and forces updates for all of VRAM ******/
+void DMG_LCD::invalidate_cgfx()
+{
+	cgfx_stat.current_obj_hash.clear();
+	cgfx_stat.current_obj_hash.resize(40, "");
+
+	cgfx_stat.current_bg_hash.clear();
+	cgfx_stat.current_bg_hash.resize(384, "");
+
+	cgfx_stat.current_gbc_bg_hash.clear();
+	cgfx_stat.current_gbc_bg_hash.resize(2048, "");
+
+	cgfx_stat.bg_update_list.clear();
+	cgfx_stat.bg_update_list.resize(384, true);
+
+	cgfx_stat.bg_tile_update_list.clear();
+	cgfx_stat.bg_tile_update_list.resize(256, true);
+
+	cgfx_stat.bg_map_update_list.clear();
+	cgfx_stat.bg_map_update_list.resize(2048, true);
+
+	cgfx_stat.update_bg = true;
+	cgfx_stat.update_map = true;
+}
