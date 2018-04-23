@@ -389,7 +389,6 @@ void main_menu::open_file()
 		//Delete the earliest element
 		if(config::recent_files.size() > 10) { config::recent_files.erase(config::recent_files.begin()); }
 
-
 		//Update the recent list
 		recent_list->clear();
 
@@ -408,6 +407,9 @@ void main_menu::open_file()
 
 		connect(list_mapper, SIGNAL(mapped(int)), this, SLOT(load_recent(int)));
 	}
+
+	//Save ini file immediately to preserve Recent Files list in case of crash or abort
+	save_ini_file();
 
 	boot_game();
 }
