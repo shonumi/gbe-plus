@@ -144,6 +144,7 @@ void SGB_LCD::reset()
 
 	//Initialize SGB stuff
 	sgb_mask_mode = 0;
+	sgb_gfx_mode = 0;
 	current_atf = 0;
 	color_0 = 0;
 	manual_pal = false;
@@ -164,21 +165,7 @@ void SGB_LCD::reset()
 	for(int x = 0; x < 64; x++) { border_pal[x] = 0; }
 	for(int x = 0; x < 8192; x++) { border_chr[x] = 0; }
 
-	for(int x = 0; x < 18; x++)
-	{
-		atr_blk[x].in = false;
-		atr_blk[x].surround = false;
-		atr_blk[x].out = false;
-
-		atr_blk[x].pal_in = 0;
-		atr_blk[x].pal_surround = 0;
-		atr_blk[x].pal_out = 0;
-
-		atr_blk[x].x1 = 0;
-		atr_blk[x].x2 = 0;
-		atr_blk[x].y1 = 0;
-		atr_blk[x].y2 = 0;
-	}
+	for(int x = 0; x < 360; x++) { atr_blk[x] = 0; }
 
 	//Initialize SGB border off
 	config::resize_mode = 0;
@@ -476,6 +463,7 @@ void SGB_LCD::render_sgb_bg_scanline()
 	s8 color_shift = 6;
 	u16 atf_index = current_atf * 90;
 	atf_index += (lcd_stat.current_scanline / 8) * 5;
+	u8 current_screen_pixel = 0;
 
 	//Grab Color 0
 	u32 color_z = (manual_pal) ? color_0 : sgb_pal[(sgb_system_pal[0] * 4)];
@@ -494,10 +482,23 @@ void SGB_LCD::render_sgb_bg_scanline()
 	//Generate background pixel data for selected tiles
 	for(int x = tile_lower_range; x < tile_upper_range; x++)
 	{
-		//Lookup SGB system colors from ATF
-		if(((lcd_stat.scanline_pixel_counter + 8) & 0xFF) < 160)
+		//Lookup SGB colors from ATF
+		if((current_screen_pixel < 160) && (sgb_gfx_mode == 0))
 		{
 			system_colors = (atf_data[atf_index] >> color_shift) & 0x3;
+			
+			if(manual_pal) { pal_id = (system_colors * 4) + 2048; }
+			else { pal_id = sgb_system_pal[system_colors] * 4; }
+		}
+
+		//Look up SGB colors from ATR_BLK
+		else if((current_screen_pixel < 160) && (sgb_gfx_mode == 1))
+		{
+			u8 atr_x = (current_screen_pixel / 8);
+			u8 atr_y = (lcd_stat.current_scanline / 8);
+			u16 index = (atr_y * 20) + atr_x;
+
+			system_colors = atr_blk[index];
 			
 			if(manual_pal) { pal_id = (system_colors * 4) + 2048; }
 			else { pal_id = sgb_system_pal[system_colors] * 4; }
@@ -544,6 +545,7 @@ void SGB_LCD::render_sgb_bg_scanline()
 			}
 
 			u8 last_scanline_pixel = lcd_stat.scanline_pixel_counter - 1;
+			current_screen_pixel++;
 		}
 
 		//Increment ATF index
@@ -572,6 +574,7 @@ void SGB_LCD::render_sgb_win_scanline()
 	s8 color_shift = 6;
 	u16 atf_index = current_atf * 90;
 	atf_index += (lcd_stat.current_scanline / 8) * 5;
+	u8 current_screen_pixel = 0;
 
 	//Grab Color 0
 	u32 color_z = (manual_pal) ? color_0 : sgb_pal[(sgb_system_pal[0] * 4)];
@@ -590,10 +593,23 @@ void SGB_LCD::render_sgb_win_scanline()
 	//Generate background pixel data for selected tiles
 	for(int x = tile_lower_range; x < tile_upper_range; x++)
 	{
-		//Lookup SGB system colors from ATF
-		if(((lcd_stat.scanline_pixel_counter + 8) & 0xFF) < 160)
+		//Lookup SGB colors from ATF
+		if((current_screen_pixel < 160) && (sgb_gfx_mode == 0))
 		{
 			system_colors = (atf_data[atf_index] >> color_shift) & 0x3;
+			
+			if(manual_pal) { pal_id = (system_colors * 4) + 2048; }
+			else { pal_id = sgb_system_pal[system_colors] * 4; }
+		}
+
+		//Look up SGB colors from ATR_BLK
+		else if((current_screen_pixel < 160) && (sgb_gfx_mode == 1))
+		{
+			u8 atr_x = (current_screen_pixel / 8);
+			u8 atr_y = (lcd_stat.current_scanline / 8);
+			u16 index = (atr_y * 20) + atr_x;
+
+			system_colors = atr_blk[index];
 			
 			if(manual_pal) { pal_id = (system_colors * 4) + 2048; }
 			else { pal_id = sgb_system_pal[system_colors] * 4; }
@@ -640,6 +656,7 @@ void SGB_LCD::render_sgb_win_scanline()
 			}
 
 			u8 last_scanline_pixel = lcd_stat.scanline_pixel_counter - 1;
+			current_screen_pixel++;
 
 			//Abort rendering if next pixel is off-screen
 			if(lcd_stat.scanline_pixel_counter == 160) { return; }
@@ -1177,24 +1194,40 @@ void SGB_LCD::process_sgb_command()
 
 		//ATTR_BLK
 		case 0x4:
+				mem->g_pad->set_pad_data(0, 0);
+
+				sgb_gfx_mode = 1;
+
 				//Grab data sets
 				for(u32 x = 0, y = 0x8001; x < mem->g_pad->get_pad_data(0x8000); x++)
 				{
-
-					atr_blk[x].in = mem->g_pad->get_pad_data(y) & 0x1;
-					atr_blk[x].surround = mem->g_pad->get_pad_data(y) & 0x2;
-					atr_blk[x].out = mem->g_pad->get_pad_data(y) & 0x4;
+					bool atr_blk_in = mem->g_pad->get_pad_data(y) & 0x1;
+					bool atr_blk_surround = mem->g_pad->get_pad_data(y) & 0x2;
+					bool atr_blk_out = mem->g_pad->get_pad_data(y) & 0x4;
 					y++;
 
-					atr_blk[x].pal_in = mem->g_pad->get_pad_data(y) & 0x3;
-					atr_blk[x].pal_surround = (mem->g_pad->get_pad_data(y) >> 2) & 0x3;
-					atr_blk[x].pal_out = (mem->g_pad->get_pad_data(y) >> 4) & 0x3;
+					u8 pal_in = mem->g_pad->get_pad_data(y) & 0x3;
+					u8 pal_surround = (mem->g_pad->get_pad_data(y) >> 2) & 0x3;
+					u8 pal_out = (mem->g_pad->get_pad_data(y) >> 4) & 0x3;
 					y++;
 
-					atr_blk[x].x1 = mem->g_pad->get_pad_data(y); y++;
-					atr_blk[x].y1 = mem->g_pad->get_pad_data(y); y++;
-					atr_blk[x].x2 = mem->g_pad->get_pad_data(y); y++;
-					atr_blk[x].y2 = mem->g_pad->get_pad_data(y); y++;
+					u8 x1 = mem->g_pad->get_pad_data(y); y++;
+					u8 y1 = mem->g_pad->get_pad_data(y); y++;
+					u8 x2 = mem->g_pad->get_pad_data(y); y++;
+					u8 y2 = mem->g_pad->get_pad_data(y); y++;
+
+					//Cycle through 20x18 CHRs and set palette according to blocks
+					for(u32 index = 0; index < 360; index++)
+					{
+						u8 atr_x = (index % 20);
+						u8 atr_y = (index / 20);						
+
+						//Check inside
+						if((atr_x >= x1) && (atr_x <= x2) && (atr_y >= y1) && (atr_y <= y2) && (atr_blk_in)) { atr_blk[index] = pal_in; }
+
+						//Check outside
+						if(((atr_x < x1) || (atr_x > x2) || (atr_y < y1) || (atr_y > y1)) && (atr_blk_out)) { atr_blk[index] = pal_out; }
+					}	
 				}
 
 				break;	
@@ -1293,6 +1326,8 @@ void SGB_LCD::process_sgb_command()
 		case 0x15:
 			mem->g_pad->set_pad_data(0, 0);
 
+			sgb_gfx_mode = 0;
+
 			//4050 byte VRAM transfer -> 20x18 ATR map
 			for(u32 x = 0; x < 4050; x++) { atf_data[x] = mem->read_u8(lcd_stat.bg_tile_addr + x); }
 
@@ -1301,6 +1336,8 @@ void SGB_LCD::process_sgb_command()
 		//ATTR_SET
 		case 0x16:
 			mem->g_pad->set_pad_data(0, 0);
+
+			sgb_gfx_mode = 0;
 		
 			//Set current ATF
 			current_atf = mem->g_pad->get_pad_data(3) & 0x3F;

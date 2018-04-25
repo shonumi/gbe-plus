@@ -96,6 +96,7 @@ class SGB_LCD
 
 	//SGB stuff
 	u8 sgb_mask_mode;
+	u8 sgb_gfx_mode;
 	u32 sgb_pal[2064];
 	u8 atf_data[4050];
 	u16 sgb_system_pal[4];
@@ -107,22 +108,7 @@ class SGB_LCD
 	u16 border_tile_map[1024];
 	u32 border_pal[64];
 	u8 border_chr[8192];
-
-	struct attribute_blocks
-	{
-		bool in;
-		bool surround;
-		bool out;
-
-		u8 pal_in;
-		u8 pal_surround;
-		u8 pal_out;
-
-		u16 x1;
-		u16 x2;
-		u16 y1;
-		u16 y2;
-	} atr_blk[18];
+	u8 atr_blk[360];
 
 	//OAM updates
 	void update_oam();
