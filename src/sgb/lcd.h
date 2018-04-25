@@ -100,6 +100,7 @@ class SGB_LCD
 	u8 atf_data[4050];
 	u16 sgb_system_pal[4];
 	u8 current_atf;
+	u32 color_0;
 	bool manual_pal;
 	bool render_border;
 

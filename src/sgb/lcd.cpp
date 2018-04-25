@@ -145,6 +145,7 @@ void SGB_LCD::reset()
 	//Initialize SGB stuff
 	sgb_mask_mode = 0;
 	current_atf = 0;
+	color_0 = 0;
 	manual_pal = false;
 	render_border = false;
 
@@ -424,7 +425,7 @@ void SGB_LCD::render_sgb_scanline()
 
 		//Color 0
 		case 0x3:
-			for(int x = 0; x < 160; x++) { scanline_buffer[x] = config::DMG_BG_PAL[0]; }
+			for(int x = 0; x < 160; x++) { scanline_buffer[x] = color_0; }
 			return;
 	}
 
@@ -477,7 +478,7 @@ void SGB_LCD::render_sgb_bg_scanline()
 	atf_index += (lcd_stat.current_scanline / 8) * 5;
 
 	//Grab Color 0
-	u32 color_0 = (manual_pal) ? sgb_pal[2048] : sgb_pal[(sgb_system_pal[0] * 4)];
+	u32 color_z = (manual_pal) ? color_0 : sgb_pal[(sgb_system_pal[0] * 4)];
 
 	//Determine where to start drawing
 	u8 rendered_scanline = lcd_stat.current_scanline + lcd_stat.bg_scroll_y;
@@ -526,7 +527,7 @@ void SGB_LCD::render_sgb_bg_scanline()
 			switch(lcd_stat.bgp[tile_pixel])
 			{
 				case 0:
-					scanline_buffer[lcd_stat.scanline_pixel_counter++] = color_0;
+					scanline_buffer[lcd_stat.scanline_pixel_counter++] = color_z;
 					break;
 
 				case 1: 
@@ -573,7 +574,7 @@ void SGB_LCD::render_sgb_win_scanline()
 	atf_index += (lcd_stat.current_scanline / 8) * 5;
 
 	//Grab Color 0
-	u32 color_0 = (manual_pal) ? sgb_pal[2048] : sgb_pal[(sgb_system_pal[0] * 4)];
+	u32 color_z = (manual_pal) ? color_0 : sgb_pal[(sgb_system_pal[0] * 4)];
 
 	//Determine where to start drawing
 	u8 rendered_scanline = lcd_stat.current_scanline - lcd_stat.window_y;
@@ -622,7 +623,7 @@ void SGB_LCD::render_sgb_win_scanline()
 			switch(lcd_stat.bgp[tile_pixel])
 			{
 				case 0: 
-					scanline_buffer[lcd_stat.scanline_pixel_counter++] = color_0;
+					scanline_buffer[lcd_stat.scanline_pixel_counter++] = color_z;
 					break;
 
 				case 1: 
@@ -672,7 +673,7 @@ void SGB_LCD::render_sgb_obj_scanline()
 	atf_index += (lcd_stat.current_scanline / 8) * 5;
 
 	//Grab Color 0
-	u32 color_0 = (manual_pal) ? sgb_pal[2048] : sgb_pal[(sgb_system_pal[0] * 4)];
+	u32 color_z = (manual_pal) ? color_0 : sgb_pal[(sgb_system_pal[0] * 4)];
 
 	//Cycle through all sprites that are rendering on this pixel, draw them according to their priority
 	for(int x = obj_render_length; x >= 0; x--)
@@ -734,7 +735,7 @@ void SGB_LCD::render_sgb_obj_scanline()
 				switch(lcd_stat.obp[tile_pixel][obj[sprite_id].palette_number])
 				{
 					case 0: 
-						scanline_buffer[lcd_stat.scanline_pixel_counter++] = color_0;
+						scanline_buffer[lcd_stat.scanline_pixel_counter++] = color_z;
 						break;
 
 					case 1: 
@@ -1095,6 +1096,11 @@ void SGB_LCD::process_sgb_command()
 				sgb_pal[2054] = get_color(mem->g_pad->get_pad_data(8));
 				sgb_pal[2055] = get_color(mem->g_pad->get_pad_data(9));
 
+				color_0 = sgb_pal[2048];
+				sgb_pal[2052] = color_0;
+				sgb_pal[2056] = color_0;
+				sgb_pal[2060] = color_0;
+
 				break;
 
 		//PAL23
@@ -1113,6 +1119,11 @@ void SGB_LCD::process_sgb_command()
 				sgb_pal[2061] = get_color(mem->g_pad->get_pad_data(7));
 				sgb_pal[2062] = get_color(mem->g_pad->get_pad_data(8));
 				sgb_pal[2063] = get_color(mem->g_pad->get_pad_data(9));
+
+				color_0 = sgb_pal[2056];
+				sgb_pal[2048] = color_0;
+				sgb_pal[2052] = color_0;
+				sgb_pal[2060] = color_0;
 
 				break;
 
@@ -1133,6 +1144,11 @@ void SGB_LCD::process_sgb_command()
 				sgb_pal[2062] = get_color(mem->g_pad->get_pad_data(8));
 				sgb_pal[2063] = get_color(mem->g_pad->get_pad_data(9));
 
+				color_0 = sgb_pal[2048];
+				sgb_pal[2052] = color_0;
+				sgb_pal[2056] = color_0;
+				sgb_pal[2060] = color_0;
+
 				break;
 
 		//PAL12
@@ -1151,6 +1167,11 @@ void SGB_LCD::process_sgb_command()
 				sgb_pal[2057] = get_color(mem->g_pad->get_pad_data(7));
 				sgb_pal[2058] = get_color(mem->g_pad->get_pad_data(8));
 				sgb_pal[2059] = get_color(mem->g_pad->get_pad_data(9));
+
+				color_0 = sgb_pal[2052];
+				sgb_pal[2048] = color_0;
+				sgb_pal[2056] = color_0;
+				sgb_pal[2060] = color_0;
 
 				break;
 
