@@ -1211,6 +1211,11 @@ void SGB_LCD::process_sgb_command()
 					u8 pal_out = (mem->g_pad->get_pad_data(y) >> 4) & 0x3;
 					y++;
 
+					bool single_mode = false;
+					
+					if(atr_blk_in && !atr_blk_surround && !atr_blk_out) { single_mode = true; }
+					else if(!atr_blk_in && !atr_blk_surround && atr_blk_out) { single_mode = true; }
+
 					u8 x1 = mem->g_pad->get_pad_data(y); y++;
 					u8 y1 = mem->g_pad->get_pad_data(y); y++;
 					u8 x2 = mem->g_pad->get_pad_data(y); y++;
@@ -1220,13 +1225,31 @@ void SGB_LCD::process_sgb_command()
 					for(u32 index = 0; index < 360; index++)
 					{
 						u8 atr_x = (index % 20);
-						u8 atr_y = (index / 20);						
+						u8 atr_y = (index / 20);
 
-						//Check inside
-						if((atr_x >= x1) && (atr_x <= x2) && (atr_y >= y1) && (atr_y <= y2) && (atr_blk_in)) { atr_blk[index] = pal_in; }
+						//Check surround - Top
+						if((atr_y == y1) && (atr_x >= x1) && (atr_x <= x2) && (atr_blk_surround)) { atr_blk[index] = pal_surround; }
 
-						//Check outside
-						if(((atr_x < x1) || (atr_x > x2) || (atr_y < y1) || (atr_y > y1)) && (atr_blk_out)) { atr_blk[index] = pal_out; }
+						//Check surround - Bottom
+						if((atr_y == y2) && (atr_x >= x1) && (atr_x <= x2) && (atr_blk_surround)) { atr_blk[index] = pal_surround; }
+
+						//Check surround - Left
+						if((atr_x == x1) && (atr_y >= y1) && (atr_y <= y2) && (atr_blk_surround)) { atr_blk[index] = pal_surround; }
+
+						//Check surround - Right
+						if((atr_x == x2) && (atr_y >= y1) && (atr_y <= y2) && (atr_blk_surround)) { atr_blk[index] = pal_surround; }
+
+						//Check inside - Force surrounding change to pal_in
+						if((atr_x >= x1) && (atr_x <= x2) && (atr_y >= y1) && (atr_y <= y2) && (atr_blk_in) && (single_mode)) { atr_blk[index] = pal_in; }
+
+						//Check inside - Let surrounding change to pal_surround
+						else if((atr_x > x1) && (atr_x < x2) && (atr_y > y1) && (atr_y < y2) && (atr_blk_in) && (!single_mode)) { atr_blk[index] = pal_in; }
+
+						//Check outside - Force surrounding change to pal_out
+						else if(((atr_x <= x1) || (atr_x >= x2) || (atr_y <= y1) || (atr_y >= y2)) && (atr_blk_out) && (single_mode)) { atr_blk[index] = pal_out; }
+
+						//Check outside - Let surrounding change to pal_surround
+						else if(((atr_x < x1) || (atr_x > x2) || (atr_y < y1) || (atr_y > y2)) && (atr_blk_out) && (!single_mode)) { atr_blk[index] = pal_out; }
 					}	
 				}
 
