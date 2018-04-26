@@ -42,11 +42,10 @@ if (WIN32)
     find_package(GLEW REQUIRED)
     if (GLEW_FOUND)
         include_directories($(GLEW_INCLUDE_DIRS))
+    	add_definitions(-DGBE_GLEW)
     else()
         message(STATUS "GLEW not found.")
     endif()
-
-    add_definitions(-DGBE_GLEW)
 endif()
 
 option(QT_GUI "Enable the Qt GUI" ON)
