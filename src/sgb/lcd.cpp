@@ -459,11 +459,11 @@ void SGB_LCD::render_sgb_bg_scanline()
 {
 	//Determine current ATF for SGB system colors
 	u8 system_colors = 0;
-	u16 pal_id = 0;
-	s8 color_shift = 6;
-	u16 atf_index = current_atf * 90;
-	atf_index += (lcd_stat.current_scanline / 8) * 5;
+	u8 color_shift = 6;
 	u8 current_screen_pixel = 0;
+	u16 pal_id = 0;
+	u16 atf_index = (current_atf * 90) + ((lcd_stat.current_scanline / 8) * 5);
+	u16 atf_lookup = 0; 
 
 	//Grab Color 0
 	u32 color_z = (manual_pal) ? color_0 : sgb_pal[(sgb_system_pal[0] * 4)];
@@ -481,29 +481,7 @@ void SGB_LCD::render_sgb_bg_scanline()
 
 	//Generate background pixel data for selected tiles
 	for(int x = tile_lower_range; x < tile_upper_range; x++)
-	{
-		//Lookup SGB colors from ATF
-		if((current_screen_pixel < 160) && (sgb_gfx_mode == 0))
-		{
-			system_colors = (atf_data[atf_index] >> color_shift) & 0x3;
-			
-			if(manual_pal) { pal_id = (system_colors * 4) + 2048; }
-			else { pal_id = sgb_system_pal[system_colors] * 4; }
-		}
-
-		//Look up SGB colors from ATR_BLK
-		else if((current_screen_pixel < 160) && (sgb_gfx_mode == 1))
-		{
-			u8 atr_x = (current_screen_pixel / 8);
-			u8 atr_y = (lcd_stat.current_scanline / 8);
-			u16 index = (atr_y * 20) + atr_x;
-
-			system_colors = atr_blk[index];
-			
-			if(manual_pal) { pal_id = (system_colors * 4) + 2048; }
-			else { pal_id = sgb_system_pal[system_colors] * 4; }
-		}
-		
+	{	
 		u8 map_entry = mem->read_u8(lcd_stat.bg_map_addr + x);
 		u8 tile_pixel = 0;
 
@@ -518,6 +496,30 @@ void SGB_LCD::render_sgb_bg_scanline()
 
 		for(int y = 7; y >= 0; y--)
 		{
+			//Lookup SGB colors from ATF
+			if((current_screen_pixel < 160) && (sgb_gfx_mode == 0))
+			{
+				atf_lookup = atf_index + (current_screen_pixel / 32);
+				color_shift = 6 - (((current_screen_pixel & 0x1F) / 8) * 2);
+				system_colors = (atf_data[atf_lookup] >> color_shift) & 0x3;
+			
+				if(manual_pal) { pal_id = (system_colors * 4) + 2048; }
+				else { pal_id = sgb_system_pal[system_colors] * 4; }
+			}
+
+			//Look up SGB colors from ATR_BLK
+			else if((current_screen_pixel < 160) && (sgb_gfx_mode == 1))
+			{
+				u8 atr_x = (current_screen_pixel / 8);
+				u8 atr_y = (lcd_stat.current_scanline / 8);
+				u16 index = (atr_y * 20) + atr_x;
+
+				system_colors = atr_blk[index];
+			
+				if(manual_pal) { pal_id = (system_colors * 4) + 2048; }
+				else { pal_id = sgb_system_pal[system_colors] * 4; }
+			}
+
 			//Calculate raw value of the tile's pixel
 			tile_pixel = ((tile_data >> 8) & (1 << y)) ? 2 : 0;
 			tile_pixel |= (tile_data & (1 << y)) ? 1 : 0;
@@ -544,20 +546,7 @@ void SGB_LCD::render_sgb_bg_scanline()
 					break;
 			}
 
-			u8 last_scanline_pixel = lcd_stat.scanline_pixel_counter - 1;
 			current_screen_pixel++;
-		}
-
-		//Increment ATF index
-		if(((lcd_stat.scanline_pixel_counter + 8) & 0xFF) < 160)
-		{
-			color_shift -= 2;
-
-			if(color_shift < 0)
-			{
-				color_shift = 6;
-				atf_index++;
-			}
 		}
 	}
 }
@@ -1098,162 +1087,212 @@ void SGB_LCD::process_sgb_command()
 	{
 		//PAL01
 		case 0x0:
-				mem->g_pad->set_pad_data(0, 0);
+			mem->g_pad->set_pad_data(0, 0);
 
-				manual_pal = true;
+			manual_pal = true;
 
-				//Grab Colors 0-3 - Palette 0
-				sgb_pal[2048] = get_color(mem->g_pad->get_pad_data(3));
-				sgb_pal[2049] = get_color(mem->g_pad->get_pad_data(4));
-				sgb_pal[2050] = get_color(mem->g_pad->get_pad_data(5));
-				sgb_pal[2051] = get_color(mem->g_pad->get_pad_data(6));
+			//Grab Colors 0-3 - Palette 0
+			sgb_pal[2048] = get_color(mem->g_pad->get_pad_data(3));
+			sgb_pal[2049] = get_color(mem->g_pad->get_pad_data(4));
+			sgb_pal[2050] = get_color(mem->g_pad->get_pad_data(5));
+			sgb_pal[2051] = get_color(mem->g_pad->get_pad_data(6));
 
-				//Grab Colors 1-3 - Palette 1
-				sgb_pal[2053] = get_color(mem->g_pad->get_pad_data(7));
-				sgb_pal[2054] = get_color(mem->g_pad->get_pad_data(8));
-				sgb_pal[2055] = get_color(mem->g_pad->get_pad_data(9));
+			//Grab Colors 1-3 - Palette 1
+			sgb_pal[2053] = get_color(mem->g_pad->get_pad_data(7));
+			sgb_pal[2054] = get_color(mem->g_pad->get_pad_data(8));
+			sgb_pal[2055] = get_color(mem->g_pad->get_pad_data(9));
 
-				color_0 = sgb_pal[2048];
-				sgb_pal[2052] = color_0;
-				sgb_pal[2056] = color_0;
-				sgb_pal[2060] = color_0;
+			color_0 = sgb_pal[2048];
+			sgb_pal[2052] = color_0;
+			sgb_pal[2056] = color_0;
+			sgb_pal[2060] = color_0;
 
-				break;
+			break;
 
 		//PAL23
 		case 0x1:
-				mem->g_pad->set_pad_data(0, 0);
+			mem->g_pad->set_pad_data(0, 0);
 
-				manual_pal = true;
+			manual_pal = true;
 
-				//Grab Colors 0-3 - Palette 2
-				sgb_pal[2056] = get_color(mem->g_pad->get_pad_data(3));
-				sgb_pal[2057] = get_color(mem->g_pad->get_pad_data(4));
-				sgb_pal[2058] = get_color(mem->g_pad->get_pad_data(5));
-				sgb_pal[2059] = get_color(mem->g_pad->get_pad_data(6));
+			//Grab Colors 0-3 - Palette 2
+			sgb_pal[2056] = get_color(mem->g_pad->get_pad_data(3));
+			sgb_pal[2057] = get_color(mem->g_pad->get_pad_data(4));
+			sgb_pal[2058] = get_color(mem->g_pad->get_pad_data(5));
+			sgb_pal[2059] = get_color(mem->g_pad->get_pad_data(6));
 
-				//Grab Colors 1-3 - Palette 3
-				sgb_pal[2061] = get_color(mem->g_pad->get_pad_data(7));
-				sgb_pal[2062] = get_color(mem->g_pad->get_pad_data(8));
-				sgb_pal[2063] = get_color(mem->g_pad->get_pad_data(9));
+			//Grab Colors 1-3 - Palette 3
+			sgb_pal[2061] = get_color(mem->g_pad->get_pad_data(7));
+			sgb_pal[2062] = get_color(mem->g_pad->get_pad_data(8));
+			sgb_pal[2063] = get_color(mem->g_pad->get_pad_data(9));
 
-				color_0 = sgb_pal[2056];
-				sgb_pal[2048] = color_0;
-				sgb_pal[2052] = color_0;
-				sgb_pal[2060] = color_0;
+			color_0 = sgb_pal[2056];
+			sgb_pal[2048] = color_0;
+			sgb_pal[2052] = color_0;
+			sgb_pal[2060] = color_0;
 
-				break;
+			break;
 
 		//PAL03
 		case 0x2:
-				mem->g_pad->set_pad_data(0, 0);
+			mem->g_pad->set_pad_data(0, 0);
 
-				manual_pal = true;
+			manual_pal = true;
 
-				//Grab Colors 0-3 - Palette 0
-				sgb_pal[2048] = get_color(mem->g_pad->get_pad_data(3));
-				sgb_pal[2049] = get_color(mem->g_pad->get_pad_data(4));
-				sgb_pal[2050] = get_color(mem->g_pad->get_pad_data(5));
-				sgb_pal[2051] = get_color(mem->g_pad->get_pad_data(6));
+			//Grab Colors 0-3 - Palette 0
+			sgb_pal[2048] = get_color(mem->g_pad->get_pad_data(3));
+			sgb_pal[2049] = get_color(mem->g_pad->get_pad_data(4));
+			sgb_pal[2050] = get_color(mem->g_pad->get_pad_data(5));
+			sgb_pal[2051] = get_color(mem->g_pad->get_pad_data(6));
 
-				//Grab Colors 1-3 - Palette 3
-				sgb_pal[2061] = get_color(mem->g_pad->get_pad_data(7));
-				sgb_pal[2062] = get_color(mem->g_pad->get_pad_data(8));
-				sgb_pal[2063] = get_color(mem->g_pad->get_pad_data(9));
+			//Grab Colors 1-3 - Palette 3
+			sgb_pal[2061] = get_color(mem->g_pad->get_pad_data(7));
+			sgb_pal[2062] = get_color(mem->g_pad->get_pad_data(8));
+			sgb_pal[2063] = get_color(mem->g_pad->get_pad_data(9));
 
-				color_0 = sgb_pal[2048];
-				sgb_pal[2052] = color_0;
-				sgb_pal[2056] = color_0;
-				sgb_pal[2060] = color_0;
+			color_0 = sgb_pal[2048];
+			sgb_pal[2052] = color_0;
+			sgb_pal[2056] = color_0;
+			sgb_pal[2060] = color_0;
 
-				break;
+			break;
 
 		//PAL12
 		case 0x3:
-				mem->g_pad->set_pad_data(0, 0);
+			mem->g_pad->set_pad_data(0, 0);
 
-				manual_pal = true;
+			manual_pal = true;
 
-				//Grab Colors 0-3 - Palette 1
-				sgb_pal[2052] = get_color(mem->g_pad->get_pad_data(3));
-				sgb_pal[2053] = get_color(mem->g_pad->get_pad_data(4));
-				sgb_pal[2054] = get_color(mem->g_pad->get_pad_data(5));
-				sgb_pal[2055] = get_color(mem->g_pad->get_pad_data(6));
+			//Grab Colors 0-3 - Palette 1
+			sgb_pal[2052] = get_color(mem->g_pad->get_pad_data(3));
+			sgb_pal[2053] = get_color(mem->g_pad->get_pad_data(4));
+			sgb_pal[2054] = get_color(mem->g_pad->get_pad_data(5));
+			sgb_pal[2055] = get_color(mem->g_pad->get_pad_data(6));
 
-				//Grab Colors 1-3 - Palette 2
-				sgb_pal[2057] = get_color(mem->g_pad->get_pad_data(7));
-				sgb_pal[2058] = get_color(mem->g_pad->get_pad_data(8));
-				sgb_pal[2059] = get_color(mem->g_pad->get_pad_data(9));
+			//Grab Colors 1-3 - Palette 2
+			sgb_pal[2057] = get_color(mem->g_pad->get_pad_data(7));
+			sgb_pal[2058] = get_color(mem->g_pad->get_pad_data(8));
+			sgb_pal[2059] = get_color(mem->g_pad->get_pad_data(9));
 
-				color_0 = sgb_pal[2052];
-				sgb_pal[2048] = color_0;
-				sgb_pal[2056] = color_0;
-				sgb_pal[2060] = color_0;
+			color_0 = sgb_pal[2052];
+			sgb_pal[2048] = color_0;
+			sgb_pal[2056] = color_0;
+			sgb_pal[2060] = color_0;
 
-				break;
+			break;
 
 		//ATTR_BLK
 		case 0x4:
-				mem->g_pad->set_pad_data(0, 0);
+			mem->g_pad->set_pad_data(0, 0);
 
-				sgb_gfx_mode = 1;
+			sgb_gfx_mode = 1;
+
+			//Grab data sets
+			for(u32 x = 0, y = 0x8001; x < mem->g_pad->get_pad_data(0x8000); x++)
+			{
+				bool atr_blk_in = mem->g_pad->get_pad_data(y) & 0x1;
+				bool atr_blk_surround = mem->g_pad->get_pad_data(y) & 0x2;
+				bool atr_blk_out = mem->g_pad->get_pad_data(y) & 0x4;
+				y++;
+
+				u8 pal_in = mem->g_pad->get_pad_data(y) & 0x3;
+				u8 pal_surround = (mem->g_pad->get_pad_data(y) >> 2) & 0x3;
+				u8 pal_out = (mem->g_pad->get_pad_data(y) >> 4) & 0x3;
+				y++;
+
+				bool single_mode = false;
+					
+				if(atr_blk_in && !atr_blk_surround && !atr_blk_out) { single_mode = true; }
+				else if(!atr_blk_in && !atr_blk_surround && atr_blk_out) { single_mode = true; }
+
+				u8 x1 = mem->g_pad->get_pad_data(y); y++;
+				u8 y1 = mem->g_pad->get_pad_data(y); y++;
+				u8 x2 = mem->g_pad->get_pad_data(y); y++;
+				u8 y2 = mem->g_pad->get_pad_data(y); y++;
+
+				//Cycle through 20x18 CHRs and set palette according to blocks
+				for(u32 index = 0; index < 360; index++)
+				{
+					u8 atr_x = (index % 20);
+					u8 atr_y = (index / 20);
+
+					//Check surround - Top
+					if((atr_y == y1) && (atr_x >= x1) && (atr_x <= x2) && (atr_blk_surround)) { atr_blk[index] = pal_surround; }
+
+					//Check surround - Bottom
+					else if((atr_y == y2) && (atr_x >= x1) && (atr_x <= x2) && (atr_blk_surround)) { atr_blk[index] = pal_surround; }
+
+					//Check surround - Left
+					else if((atr_x == x1) && (atr_y >= y1) && (atr_y <= y2) && (atr_blk_surround)) { atr_blk[index] = pal_surround; }
+
+					//Check surround - Right
+					else if((atr_x == x2) && (atr_y >= y1) && (atr_y <= y2) && (atr_blk_surround)) { atr_blk[index] = pal_surround; }
+
+					//Check inside - Force surrounding change to pal_in
+					if((atr_x >= x1) && (atr_x <= x2) && (atr_y >= y1) && (atr_y <= y2) && (atr_blk_in) && (single_mode)) { atr_blk[index] = pal_in; }
+
+					//Check inside - Let surrounding change to pal_surround
+					else if((atr_x > x1) && (atr_x < x2) && (atr_y > y1) && (atr_y < y2) && (atr_blk_in) && (!single_mode)) { atr_blk[index] = pal_in; }
+
+					//Check outside - Force surrounding change to pal_out
+					else if(((atr_x <= x1) || (atr_x >= x2) || (atr_y <= y1) || (atr_y >= y2)) && (atr_blk_out) && (single_mode)) { atr_blk[index] = pal_out; }
+
+					//Check outside - Let surrounding change to pal_surround
+					else if(((atr_x < x1) || (atr_x > x2) || (atr_y < y1) || (atr_y > y2)) && (atr_blk_out) && (!single_mode)) { atr_blk[index] = pal_out; }
+				}	
+			}
+
+			break;
+
+		//ATTR_CHR
+		case 0x7:
+			mem->g_pad->set_pad_data(0, 0);
+
+			sgb_gfx_mode = 1;
+
+			{
+				u8 x_coord = mem->g_pad->get_pad_data(0x8000);
+				u8 y_coord = mem->g_pad->get_pad_data(0x8001);
+				u8 write_mode = (mem->g_pad->get_pad_data(0x8004) & 0x1);
+				u16 index = (y_coord * 20) + x_coord;
+				u16 data_sets = (mem->g_pad->get_pad_data(0x8003) << 8) | mem->g_pad->get_pad_data(0x8002);
 
 				//Grab data sets
-				for(u32 x = 0, y = 0x8001; x < mem->g_pad->get_pad_data(0x8000); x++)
+				for(u32 x = 0, y = 0x8005; x < data_sets;)
 				{
-					bool atr_blk_in = mem->g_pad->get_pad_data(y) & 0x1;
-					bool atr_blk_surround = mem->g_pad->get_pad_data(y) & 0x2;
-					bool atr_blk_out = mem->g_pad->get_pad_data(y) & 0x4;
-					y++;
+					u8 pal_data = mem->g_pad->get_pad_data(y);
 
-					u8 pal_in = mem->g_pad->get_pad_data(y) & 0x3;
-					u8 pal_surround = (mem->g_pad->get_pad_data(y) >> 2) & 0x3;
-					u8 pal_out = (mem->g_pad->get_pad_data(y) >> 4) & 0x3;
-					y++;
-
-					bool single_mode = false;
-					
-					if(atr_blk_in && !atr_blk_surround && !atr_blk_out) { single_mode = true; }
-					else if(!atr_blk_in && !atr_blk_surround && atr_blk_out) { single_mode = true; }
-
-					u8 x1 = mem->g_pad->get_pad_data(y); y++;
-					u8 y1 = mem->g_pad->get_pad_data(y); y++;
-					u8 x2 = mem->g_pad->get_pad_data(y); y++;
-					u8 y2 = mem->g_pad->get_pad_data(y); y++;
-
-					//Cycle through 20x18 CHRs and set palette according to blocks
-					for(u32 index = 0; index < 360; index++)
+					//Grab 4 CHR palettes
+					for(s32 z = 6; z >= 0; z -= 2)
 					{
-						u8 atr_x = (index % 20);
-						u8 atr_y = (index / 20);
+						u8 atr_pal = ((pal_data >> z) & 0x3);
+						atr_blk[index] = atr_pal;
 
-						//Check surround - Top
-						if((atr_y == y1) && (atr_x >= x1) && (atr_x <= x2) && (atr_blk_surround)) { atr_blk[index] = pal_surround; }
+						//Increment X-Y Coordinates - Top to bottom
+						if(write_mode)
+						{
+							y_coord++;
+							if(y_coord == 18) { y_coord = 0; x_coord++; }
+							if(x_coord == 20) { x_coord = 0; }
+						}
 
-						//Check surround - Bottom
-						if((atr_y == y2) && (atr_x >= x1) && (atr_x <= x2) && (atr_blk_surround)) { atr_blk[index] = pal_surround; }
+						//Increment X-Y Coordinates - Left to right
+						else
+						{
+							x_coord++;
+							if(x_coord == 20) { x_coord = 0; y_coord++; }
+							if(y_coord == 18) { y_coord = 0; }
+						}
 
-						//Check surround - Left
-						if((atr_x == x1) && (atr_y >= y1) && (atr_y <= y2) && (atr_blk_surround)) { atr_blk[index] = pal_surround; }
+						index = (y_coord * 20) + x_coord;
+					}
 
-						//Check surround - Right
-						if((atr_x == x2) && (atr_y >= y1) && (atr_y <= y2) && (atr_blk_surround)) { atr_blk[index] = pal_surround; }
+					x += 4;
+					y++;
+				}		
+			}
 
-						//Check inside - Force surrounding change to pal_in
-						if((atr_x >= x1) && (atr_x <= x2) && (atr_y >= y1) && (atr_y <= y2) && (atr_blk_in) && (single_mode)) { atr_blk[index] = pal_in; }
-
-						//Check inside - Let surrounding change to pal_surround
-						else if((atr_x > x1) && (atr_x < x2) && (atr_y > y1) && (atr_y < y2) && (atr_blk_in) && (!single_mode)) { atr_blk[index] = pal_in; }
-
-						//Check outside - Force surrounding change to pal_out
-						else if(((atr_x <= x1) || (atr_x >= x2) || (atr_y <= y1) || (atr_y >= y2)) && (atr_blk_out) && (single_mode)) { atr_blk[index] = pal_out; }
-
-						//Check outside - Let surrounding change to pal_surround
-						else if(((atr_x < x1) || (atr_x > x2) || (atr_y < y1) || (atr_y > y2)) && (atr_blk_out) && (!single_mode)) { atr_blk[index] = pal_out; }
-					}	
-				}
-
-				break;	
+			break;
 
 		//PAL_SET
 		case 0xA:
