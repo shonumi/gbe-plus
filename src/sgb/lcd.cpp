@@ -1244,6 +1244,45 @@ void SGB_LCD::process_sgb_command()
 
 			break;
 
+		//ATTR_LIN
+		case 0x5:
+			mem->g_pad->set_pad_data(0, 0);
+
+			sgb_gfx_mode = 1;
+
+			{
+				u8 x_coord = 0;
+				u8 y_coord = 0;
+				u8 data_sets = mem->g_pad->get_pad_data(0x8000);
+				u16 index = 0;
+
+				//Grab data sets
+				for(u32 x = 0, y = 0x8001; x < data_sets; x++)
+				{
+					u8 data_byte = mem->g_pad->get_pad_data(y);
+					u8 line = (data_byte & 0x1F);
+					u8 pal = ((data_byte >> 5) & 0x3);
+					u8 write_mode = (data_byte & 0x80);
+					u8 write_length = write_mode ? 20 : 18;
+
+					if(write_mode) { y_coord = line; x_coord = 0; }
+					else { x_coord = line; y_coord = 0; }
+
+					for(u8 z = 0; z < write_length; z++)
+					{
+						index = (y_coord * 20) + x_coord;
+						atr_blk[index] = pal;
+
+						if(write_mode) { x_coord++; }
+						else { y_coord++; }
+					}
+
+					y++;
+				}
+			}
+
+			break;	
+
 		//ATTR_CHR
 		case 0x7:
 			mem->g_pad->set_pad_data(0, 0);
