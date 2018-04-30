@@ -69,6 +69,7 @@ enum barcode_boy_state
 	BARCODE_BOY_INACTIVE,
 	BARCODE_BOY_ACTIVE,
 	BARCODE_BOY_SEND_BARCODE,
+	BARCODE_BOY_FINISH,
 };
 
 enum four_player_state
