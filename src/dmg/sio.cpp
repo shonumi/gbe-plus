@@ -2047,12 +2047,24 @@ bool DMG_SIO::bardigun_load_barcode(std::string filename)
 /****** Processes Barcode Boy barcode data sent to the Game Boy ******/
 void DMG_SIO::barcode_boy_process()
 {
-	//Switch to handshake mode if necessary
-	if((barcode_boy.current_state != BARCODE_BOY_INACTIVE) && (sio_stat.transfer_byte == 0x10))
+	//Handle handshake bytes
+	if((barcode_boy.current_state != BARCODE_BOY_INACTIVE) && ((sio_stat.transfer_byte == 0x10) || (sio_stat.transfer_byte == 0x7)))
 	{
-		barcode_boy.current_state = BARCODE_BOY_INACTIVE;
-		barcode_boy.counter = 0;
-		barcode_boy.send_data = false;
+		//Ignore additional handshake bytes after sending handshake to DMG
+		if(barcode_boy.current_state == BARCODE_BOY_ACTIVE)
+		{
+			mem->memory_map[REG_SB] = 0xFF;
+			mem->memory_map[IF_FLAG] |= 0x08;
+			return;
+		}
+
+		//Switch to inactive mode and redo handshake
+		else if(barcode_boy.current_state == BARCODE_BOY_FINISH)
+		{
+			barcode_boy.current_state = BARCODE_BOY_INACTIVE;
+			barcode_boy.counter = 0;
+			barcode_boy.send_data = false;
+		}
 	}
 
 	switch(barcode_boy.current_state)
@@ -2148,7 +2160,7 @@ void DMG_SIO::barcode_boy_process()
 				barcode_boy.byte = 0x3;
 				barcode_boy.send_data = true;
 				barcode_boy.counter = 0;
-				barcode_boy.current_state = BARCODE_BOY_ACTIVE;
+				barcode_boy.current_state = BARCODE_BOY_FINISH;
 			}
 
 			sio_stat.shifts_left = 8;
