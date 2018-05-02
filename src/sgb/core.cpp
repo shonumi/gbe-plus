@@ -46,6 +46,10 @@ SGB_core::SGB_core()
 	db_unit.last_mnemonic = "";
 
 	std::cout<<"GBE::Launching SGB core\n";
+
+	//OSD
+	config::osd_message = "SGB CORE INIT";
+	config::osd_count = 180;
 }
 
 /****** Start the core ******/

@@ -60,6 +60,10 @@ NTR_core::NTR_core()
 	arm_debug = true;
 
 	std::cout<<"GBE::Launching NDS core\n";
+
+	//OSD
+	config::osd_message = "NDS CORE INIT";
+	config::osd_count = 180;
 }
 
 /****** Start the core ******/

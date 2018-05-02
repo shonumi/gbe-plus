@@ -53,6 +53,10 @@ DMG_core::DMG_core()
 	db_unit.watchpoint_val.clear();
 
 	std::cout<<"GBE::Launching DMG-GBC core\n";
+
+	//OSD
+	config::osd_message = "DMG GBC CORE INIT";
+	config::osd_count = 180;
 }
 
 /****** Start the core ******/
