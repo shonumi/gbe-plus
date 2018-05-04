@@ -839,6 +839,16 @@ bool parse_ini_file()
 				//Check the character for item limiter : or ] - Push to Vector
 				else if(((line_char == ":") || (line_char == "]")) && (!ignore)) 
 				{
+					//Find and replace sequence for single quotes
+					bool parse_quotes = true;
+
+					while(parse_quotes)
+					{
+						size_t seq = line_item.find("^^^^");
+						if(seq == std::string::npos) { parse_quotes = false; }
+						else { line_item.replace(seq, std::string("^^^^").length(), "'"); }
+					}
+
 					ini_opts.push_back(line_item);
 					line_item = ""; 
 				}
@@ -3056,7 +3066,18 @@ bool save_ini_file()
 	}
 
 	for(int x = 0; x < recent_count; x++)
-	{	
+	{
+
+		//Find and replace sequence for single quotes
+		bool parse_quotes = true;
+
+		while(parse_quotes)
+		{
+			size_t seq = config::recent_files[x].find("'");
+			if(seq == std::string::npos) { parse_quotes = false; }
+			else { config::recent_files[x].replace(seq, std::string("'").length(), "^^^^"); }
+		}
+
 		std::string val = "'" + config::recent_files[x] + "'";
 		val = "[#recent_files:" + val + "]";
 		

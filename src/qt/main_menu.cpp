@@ -408,9 +408,6 @@ void main_menu::open_file()
 		connect(list_mapper, SIGNAL(mapped(int)), this, SLOT(load_recent(int)));
 	}
 
-	//Save ini file immediately to preserve Recent Files list in case of crash or abort
-	save_ini_file();
-
 	boot_game();
 }
 
