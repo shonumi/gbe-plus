@@ -14,6 +14,7 @@
 
 #include <vector>
 #include <string>
+#include <map>
 
 #include "common/common.h"
 
@@ -29,7 +30,7 @@ struct dmg_cgfx_data
 	//ID - Keeps track of which manifest entry corresponds to which OBJ or BG entry
 	//VRAM Address - If not zero, this value is computed with the hash
 	//Auto Bright - Boolean to auto adjust CGFX assets to the original GBC or GBA palette brightness
-	std::vector <std::string> m_hashes;
+	std::map <std::string, u32> m_hashes;
 	std::vector <std::string> m_files;
 	std::vector <u8> m_types;
 	std::vector <u16> m_id;
