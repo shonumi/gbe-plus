@@ -72,8 +72,9 @@ cheat_menu::cheat_menu(QWidget *parent) : QDialog(parent)
 	add_label = new QLabel("Cheat Code Type: ");
 
 	add_type = new QComboBox;
-	add_type->addItem("Gameshark Code");
+	add_type->addItem("Gameshark Code (DMG-GBC)");
 	add_type->addItem("Game Genie Code");
+	add_type->addItem("Gameshark Code (GBA) v1");
 
 	add_set->hide();
 	add_type->hide();
@@ -129,6 +130,7 @@ void cheat_menu::fetch_cheats()
 
 	u32 gs_count = 0;
 	u32 gg_count = 0;
+	u32 gsa_count = 0;
 
 	//Setup signal mapper
 	if(edit_signal != NULL) { delete edit_signal; }
@@ -147,21 +149,30 @@ void cheat_menu::fetch_cheats()
 		if(last_char == "*")
 		{
 			current_cheat.resize(current_cheat.size() - 1);
-			code_type = "Gameshark Code: ";
+			code_type = "Gameshark Code (DMG-GBC): ";
 			code_data = util::to_hex_str(config::gs_cheats[gs_count++]);
 			code_data = code_data.substr(2);
 		}
 
+		//Fetch GG code
 		else if(last_char == "^")
 		{
 			current_cheat.resize(current_cheat.size() - 1);
-			code_type = "Game Genie Code: ";
+			code_type = "Game Genie Code: \t";
 			code_data = config::gg_cheats[gg_count++];
+		}
+
+		//Fetch GSA code
+		else if(last_char == "#")
+		{
+			current_cheat.resize(current_cheat.size() - 1);
+			code_type = "Gameshark Code (GBA) v1: ";
+			code_data = config::gsa_cheats[gsa_count++];
 		}
 
 		else { return; }
 
-		std::string final_str = code_type + "\t" + code_data + "\n" + "Code Description: \t" + current_cheat + "\n";
+		std::string final_str = code_type + "\t" + code_data + "\n" + "Code Description: \t\t" + current_cheat + "\n";
 		cheats_display->addItem(QString::fromStdString(final_str));
 	}
 }
@@ -180,6 +191,7 @@ void cheat_menu::edit_cheat_data()
 
 	int gs_count = 0;
 	int gg_count = 0;
+	int gsa_count = 0;
 
 	std::string data_str;
 
@@ -206,6 +218,7 @@ void cheat_menu::edit_cheat_data()
 			gs_count++;
 		}
 
+		//GG code
 		else if(last_char == "^")
 		{
 			if(x == cheat_code_index)
@@ -217,6 +230,20 @@ void cheat_menu::edit_cheat_data()
 			}
 
 			gg_count++;
+		}
+
+		//GSA code
+		else if(last_char == "#")
+		{
+			if(x == cheat_code_index)
+			{
+				current_cheat.resize(current_cheat.size() - 1);
+				code_data = config::gsa_cheats[gsa_count];
+
+				data_str = "GSA v1-v2 Code: \t";
+			}
+
+			gsa_count++;
 		}
 	}
 
@@ -278,11 +305,12 @@ void cheat_menu::update_cheats()
 
 	int gs_count = -1;
 	int gg_count = -1;
+	int gsa_count = -1;
 
 	//Add new cheat data
 	if(current_cheat_index == -1)
 	{
-		//Add new Gameshark cheat
+		//Add new Gameshark (DMG-GBC) cheat
 		if(add_type->currentIndex() == 0)
 		{
 			std::string code_data = data_line->text().toStdString();
@@ -316,6 +344,22 @@ void cheat_menu::update_cheats()
 			config::cheats_info.push_back(code_info);
 		}
 
+		//Add new Gameshark (GBA) cheat
+		else if(add_type->currentIndex() == 2)
+		{
+			//Parse code format
+			std::string code_data = data_line->text().toStdString();
+			std::string code_info = info_line->text().toStdString();
+
+			code_info += "#";
+
+			//Cut down data if it larger than 16 characters
+			if(code_data.length() > 16) { code_data = code_data.substr(0, 16); }
+	
+			config::gsa_cheats.push_back(code_data);
+			config::cheats_info.push_back(code_info);
+		}
+
 		fetch_cheats();
 		return;
 	}
@@ -336,11 +380,20 @@ void cheat_menu::update_cheats()
 			gs_count++;
 		}
 
+		//GG code
 		else if(last_char == "^")
 		{
 			if(x == current_cheat_index) { code_type = 1; }
 
 			gg_count++;
+		}
+
+		//GSA code
+		else if(last_char == "#")
+		{
+			if(x == current_cheat_index) { code_type = 2; }
+
+			gsa_count++;
 		}
 	}
 
@@ -375,6 +428,22 @@ void cheat_menu::update_cheats()
 	
 		config::gg_cheats[gg_count] = code_data;
 		config::cheats_info[current_cheat_index] = code_info + "^";
+
+		fetch_cheats();
+	}
+
+	//Process GSA code editing
+	else if(code_type == 2)
+	{
+		//Parse code format
+		std::string code_data = data_line->text().toStdString();
+		std::string code_info = info_line->text().toStdString();
+
+		//Cut down data if it larger than 16 characters
+		if(code_data.length() > 16) { code_data = code_data.substr(0, 16); }
+	
+		config::gsa_cheats[gsa_count] = code_data;
+		config::cheats_info[current_cheat_index] = code_info + "#";
 
 		fetch_cheats();
 	}
@@ -457,6 +526,7 @@ void cheat_menu::delete_cheats()
 
 	int gs_count = 0;
 	int gg_count = 0;
+	int gsa_count = 0;
 	int code_type = -1;
 
 	//Search for specific cheat info
@@ -475,15 +545,22 @@ void cheat_menu::delete_cheats()
 			gs_count++;
 		}
 
+		//GG code
 		else if(last_char == "^")
 		{
 			if(x == cheat_code_index) { code_type = 1; }
 
 			gg_count++;
 		}
-	}
 
-	
+		//GSA code
+		else if(last_char == "#")
+		{
+			if(x == cheat_code_index) { code_type = 2; }
+
+			gsa_count++;
+		}
+	}
 
 	//Delete GS code
 	if(code_type == 0)
@@ -500,6 +577,15 @@ void cheat_menu::delete_cheats()
 		if(gg_count > 0) { gg_count--; }
 
 		config::gg_cheats.erase(config::gg_cheats.begin() + gg_count);
+		config::cheats_info.erase(config::cheats_info.begin() + cheat_code_index);
+	}
+
+	//Delete GSA code
+	else if(code_type == 2)
+	{
+		if(gsa_count > 0) { gg_count--; }
+
+		config::gsa_cheats.erase(config::gsa_cheats.begin() + gsa_count);
 		config::cheats_info.erase(config::cheats_info.begin() + cheat_code_index);
 	}
 

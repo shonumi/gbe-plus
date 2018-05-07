@@ -124,10 +124,11 @@ namespace config
 
 	std::stringstream title;
 
-	//Cheats - Gameshark and Game Genie
+	//Cheats - Gameshark and Game Genie (DMG-GBC), Gameshark - GBA
 	bool use_cheats = false;
 	std::vector <u32> gs_cheats;
 	std::vector <std::string> gg_cheats;
+	std::vector <std::string> gsa_cheats;
 	std::vector <std::string> cheats_info;
 
 	//Patches
@@ -3108,6 +3109,7 @@ bool parse_cheats_file(bool add_cheats)
 	{
 		config::gs_cheats.clear();
 		config::gg_cheats.clear();
+		config::gsa_cheats.clear();
 		config::cheats_info.clear();
 	}
 
@@ -3184,10 +3186,11 @@ bool parse_cheats_file(bool add_cheats)
 
 			else
 			{
-				std::cout<<"GBE::Error - Could not parse Gameshark cheat code " << cheat_code << "\n";
+				std::cout<<"GBE::Error - Could not parse Gameshark (DMG-GBC) cheat code " << cheat_code << "\n";
 
 				config::gs_cheats.clear();
 				config::gg_cheats.clear();
+				config::gsa_cheats.clear();
 				config::cheats_info.clear();
 
 				return false;
@@ -3198,7 +3201,7 @@ bool parse_cheats_file(bool add_cheats)
 		else if(code_type == "GG")
 		{
 			//Verify length
-			if (cheat_code.length() == 9)
+			if(cheat_code.length() == 9)
 			{
 				config::gg_cheats.push_back(cheat_code);
 
@@ -3212,6 +3215,32 @@ bool parse_cheats_file(bool add_cheats)
 
 				config::gs_cheats.clear();
 				config::gg_cheats.clear();
+				config::gsa_cheats.clear();
+				config::cheats_info.clear();
+
+				return false;
+			}
+		}
+
+		//Add Gameshark GBA codes
+		else if(code_type == "GSA1")
+		{
+			//Verify length
+			if(cheat_code.length() == 16)
+			{
+				config::gsa_cheats.push_back(cheat_code);
+
+				info += "#";
+				config::cheats_info.push_back(info);
+			}
+
+			else
+			{
+				std::cout<<"GBE::Error - Could not parse Gameshark (GBA) cheat code " << cheat_code << "\n";
+
+				config::gs_cheats.clear();
+				config::gg_cheats.clear();
+				config::gsa_cheats.clear();
 				config::cheats_info.clear();
 
 				return false;
@@ -3239,6 +3268,7 @@ bool save_cheats_file()
 
 	int gs_count = 0;
 	int gg_count = 0;
+	int gsa_count = 0;
 
 	//Cycle through cheats
 	for(u32 x = 0; x < config::cheats_info.size(); x++)
@@ -3277,6 +3307,23 @@ bool save_cheats_file()
 
 			//Make sure code data length is 9
 			while(data_str.size() != 9)
+			{
+				data_str = "0" + data_str;
+			}
+
+			std::string output_line = "[" + code_str + ":" + data_str + ":" + info_str + "]\n";
+			file << output_line;
+		}
+
+		//GSA1 code
+		else if(last_char == "#")
+		{
+			info_str.resize(info_str.size() - 1);
+			code_str = "GSA1";
+			data_str = config::gsa_cheats[gsa_count++];
+
+			//Make sure code data length is 16
+			while(data_str.size() != 16)
 			{
 				data_str = "0" + data_str;
 			}

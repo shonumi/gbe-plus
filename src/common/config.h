@@ -124,6 +124,7 @@ namespace config
 	extern bool use_cheats;
 	extern std::vector <u32> gs_cheats;
 	extern std::vector <std::string> gg_cheats;
+	extern std::vector <std::string> gsa_cheats;
 	extern std::vector <std::string> cheats_info;
 	extern bool use_patches;
 
