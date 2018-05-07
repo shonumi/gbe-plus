@@ -115,6 +115,9 @@ class AGB_MMU
 		u8 solar_counter;
 	} gpio;
 
+	std::vector<u32> cheat_bytes;
+	u8 gsa_patch_count;
+
 	AGB_MMU();
 	~AGB_MMU();
 
@@ -159,6 +162,10 @@ class AGB_MMU
 	void process_gyro_sensor();
 	
 	void process_motion();
+
+	//Cheat code functions
+	void decrypt_gsa(u32 &addr, u32 &val, bool v1);
+	void set_cheats();
 
 	void set_lcd_data(agb_lcd_data* ex_lcd_stat);
 	void set_apu_data(agb_apu_data* ex_apu_stat);

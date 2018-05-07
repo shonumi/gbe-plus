@@ -12,6 +12,7 @@ set(SRCS
 	thumb_instr.cpp
 	gpio.cpp
 	debug.cpp
+	cheats.cpp
 	)
 
 set(HEADERS

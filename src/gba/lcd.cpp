@@ -1424,6 +1424,8 @@ void AGB_LCD::step()
 			//Start HBlank DMA
 			mem->start_blank_dma();
 		}
+
+		if((config::use_cheats) && ((current_scanline & 0x7) == 0)) { mem->set_cheats(); }
 	}
 
 	//Mode 2 - VBlank

@@ -121,6 +121,9 @@ void AGB_MMU::reset()
 
 	current_save_type = NONE;
 
+	cheat_bytes.clear();
+	gsa_patch_count = 0;
+
 	g_pad = NULL;
 	timer = NULL;
 
@@ -1880,6 +1883,32 @@ bool AGB_MMU::read_file(std::string filename)
 	if(checksum != memory_map[0x80000BD]) 
 	{
 		std::cout<<"MMU::Warning - Cartridge Header Checksum is 0x" << std::hex << (int)memory_map[0x80000BD] <<". Correct value is 0x" << (int)checksum << "\n";
+	}
+
+	//Convert cheat code strings into bytes
+	if(config::use_cheats)
+	{
+		for(u32 x = 0; x < config::gsa_cheats.size(); x++)
+		{
+			std::string cheat_code = config::gsa_cheats[x];
+
+			//Split codes in half
+			std::string a = cheat_code.substr(0, 8);
+			std::string v = cheat_code.substr(8, 8);
+
+			//Convert from string to hex
+			u32 a_result, v_result;
+
+			if(!util::from_hex_str(a, a_result)) { config::use_cheats = false; }	
+			if(!util::from_hex_str(v, v_result)) { config::use_cheats = false; }
+
+			//Decrypt cheats
+			decrypt_gsa(a_result, v_result, true);	
+
+			//Store to cheat bytes
+			cheat_bytes.push_back(a_result);
+			cheat_bytes.push_back(v_result);
+		}
 	}
 
 	std::string backup_file = filename + ".sav";
