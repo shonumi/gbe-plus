@@ -45,10 +45,57 @@ void AGB_MMU::set_cheats()
 		//Grab two 32-bit values for GSA cheat
 		u32 a = cheat_bytes[x];
 		u32 v = cheat_bytes[x + 1];
+		u16 c = 0;
+
+		//Ignore Master Enable
+		if((v & 0xFFFFFF) == 0x1DC0DE) { a = 0xFFFFFFFF; } 
 
 		//GSA cheat commands
 		switch(a >> 28)
 		{
+			//8-bit RAM Write
+			case 0x0:
+				a &= 0xFFFFFFF;
+				v &= 0xFF;
+				write_u8(a, v);
+
+				break;
+
+			//16-bit RAM
+			case 0x1:
+				a &= 0xFFFFFFF;
+				v &= 0xFFFF;
+				write_u16(a, v);
+
+				break;
+
+			//32-bit RAM
+			case 0x2:
+				a &= 0xFFFFFFF;
+				write_u32(a, v);
+
+				break;
+
+			//Write to list
+			case 0x3:
+				c = (a & 0xFFFF) - 1;
+
+				while(v != 0)
+				{			
+					if((x + 2) <= cheat_bytes.size())
+					{
+						x += 2;
+						
+						write_u32(cheat_bytes[x], v);
+						if(cheat_bytes[x + 1]) { write_u32(cheat_bytes[x + 1], v); }
+						else { v = 0; }
+					}
+
+					else { v = 0; }
+				}
+
+				break;
+
 			//ROM Patch
 			case 0x6:
 				if(gsa_patch_count < 1)
@@ -63,6 +110,20 @@ void AGB_MMU::set_cheats()
 				}
 
 				break;
+
+			//IF-THEN
+			//Change Seeds
+			case 0xD:
+				if(a == 0xDEADFACE) { }
+
+				break;
+
+			//Hook Routine (Ignore)
+			case 0xF:
+				break;
+
+			default:
+				std::cout<<"MMU::Unhandled GSA command -> 0x" << a << "\n";
 		}
 	}
 }
