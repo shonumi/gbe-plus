@@ -166,6 +166,7 @@ class AGB_MMU
 	//Cheat code functions
 	void decrypt_gsa(u32 &addr, u32 &val, bool v1);
 	void set_cheats();
+	void process_cheats(u32 a, u32 v, u32& index);
 
 	void set_lcd_data(agb_lcd_data* ex_lcd_stat);
 	void set_apu_data(agb_apu_data* ex_apu_stat);
