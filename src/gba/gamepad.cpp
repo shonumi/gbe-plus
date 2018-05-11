@@ -9,6 +9,7 @@
 // Reads and writes to the KEYINPUT and KEYCNT registers
 // Handles input from keyboard using SDL events
 
+#include "common/util.h"
 #include "gamepad.h"
 
 /****** GamePad Constructor *******/
@@ -339,6 +340,10 @@ void AGB_GamePad::process_keyboard(int pad, bool pressed)
 		{
 			solar_value -= 0x8;
 			if(solar_value < 0x50) { solar_value = 0x50; }
+
+			float percent = (1.0 - ((solar_value - 0x50) / 152.0)) * 100.0; 
+			config::osd_message = "SOLAR SENSOR " + util::to_str(u8(percent));
+			config::osd_count = 180;
 		}
 
 		//Emulate upwards tilt press
@@ -373,6 +378,10 @@ void AGB_GamePad::process_keyboard(int pad, bool pressed)
 		{
 			solar_value += 0x8;
 			if(solar_value > 0xE8) { solar_value = 0xE8; }
+
+			float percent = (1.0 - ((solar_value - 0x50) / 152.0)) * 100.0; 
+			config::osd_message = "SOLAR SENSOR " + util::to_str(u8(percent));
+			config::osd_count = 180;
 		}
 
 		//Emulate downwards tilt press
@@ -529,6 +538,10 @@ void AGB_GamePad::process_joystick(int pad, bool pressed)
 		{
 			solar_value -= 0x8;
 			if(solar_value < 0x50) { solar_value = 0x50; }
+
+			float percent = (1.0 - ((solar_value - 0x50) / 152.0)) * 100.0; 
+			config::osd_message = "SOLAR SENSOR " + util::to_str(u8(percent));
+			config::osd_count = 180;
 		}
 
 		//Emulate upwards tilt press
@@ -563,6 +576,10 @@ void AGB_GamePad::process_joystick(int pad, bool pressed)
 		{
 			solar_value += 0x8;
 			if(solar_value > 0xE8) { solar_value = 0xE8; }
+
+			float percent = (1.0 - ((solar_value - 0x50) / 152.0)) * 100.0; 
+			config::osd_message = "SOLAR SENSOR " + util::to_str(u8(percent));
+			config::osd_count = 180;
 		}
 
 		//Emulate downwards tilt press
