@@ -31,6 +31,7 @@ struct dmg_cgfx_data
 	//VRAM Address - If not zero, this value is computed with the hash
 	//Auto Bright - Boolean to auto adjust CGFX assets to the original GBC or GBA palette brightness
 	std::map <std::string, u32> m_hashes;
+	std::map <std::string, u32> m_hashes_raw;
 	std::vector <std::string> m_files;
 	std::vector <u8> m_types;
 	std::vector <u16> m_id;
@@ -74,9 +75,11 @@ struct dmg_cgfx_data
 	std::vector <bool> bg_tile_update_list;
 	std::vector <bool> bg_map_update_list;
 
-	//Average palette brightness
-	u8 bg_pal_brightness[8];
-	u8 obj_pal_brightness[8];
+	//Palette brightness max and min
+	u8 bg_pal_max[8];
+	u8 bg_pal_min[8];
+	u8 obj_pal_max[8];
+	u8 obj_pal_min[8];
 };
 
 #endif // GB_CGFX_DATA

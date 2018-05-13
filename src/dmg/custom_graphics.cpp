@@ -32,6 +32,7 @@ bool DMG_LCD::load_manifest(std::string filename)
 	cgfx_stat.manifest.clear();
 	cgfx_stat.manifest_entry_size.clear();
 	cgfx_stat.m_hashes.clear();
+	cgfx_stat.m_hashes_raw.clear();
 	cgfx_stat.m_files.clear();
 	cgfx_stat.m_types.clear();
 	cgfx_stat.m_vram_addr.clear();
@@ -122,20 +123,38 @@ bool DMG_LCD::load_manifest(std::string filename)
 				{
 					//DMG, GBC, or GBA OBJ
 					case 1:
-					case 2:
-					case 3:
 						cgfx_stat.m_id.push_back(cgfx_stat.obj_hash_list.size());
 						cgfx_stat.obj_hash_list.push_back(hash);
 						cgfx_stat.m_hashes.insert(std::make_pair(hash, hash_id));
+						cgfx_stat.m_hashes_raw.insert(std::make_pair(hash.substr(4), hash_id));
+						break;
+
+					case 2:
+						cgfx_stat.m_id.push_back(cgfx_stat.obj_hash_list.size());
+						cgfx_stat.obj_hash_list.push_back(hash);
+						cgfx_stat.m_hashes.insert(std::make_pair(hash, hash_id));
+						cgfx_stat.m_hashes_raw.insert(std::make_pair(hash.substr(5), hash_id));
+						break;
+
+					case 3:
 						break;
 
 					//DMG, GBC, or GBA BG
 					case 10:
-					case 20:
-					case 30:
 						cgfx_stat.m_id.push_back(cgfx_stat.bg_hash_list.size());
 						cgfx_stat.bg_hash_list.push_back(hash);
 						cgfx_stat.m_hashes.insert(std::make_pair(hash, hash_id));
+						cgfx_stat.m_hashes_raw.insert(std::make_pair(hash.substr(4), hash_id));
+						break;
+						
+					case 20:
+						cgfx_stat.m_id.push_back(cgfx_stat.bg_hash_list.size());
+						cgfx_stat.bg_hash_list.push_back(hash);
+						cgfx_stat.m_hashes.insert(std::make_pair(hash, hash_id));
+						cgfx_stat.m_hashes_raw.insert(std::make_pair(hash.substr(5), hash_id));
+						break;
+
+					case 30:
 						break;
 		
 					//Undefined type
@@ -1244,22 +1263,38 @@ void DMG_LCD::update_gbc_bg_hash(u16 map_addr)
 bool DMG_LCD::has_hash(u16 addr, std::string hash)
 {
 	bool match = false;
+	u8 sub_size = (config::gb_type == 0) ? 4 : 5;
 
-	if(cgfx_stat.m_hashes.find(hash) != cgfx_stat.m_hashes.end())
+	if(hash.length() < 5) { return false; }
+
+	//Check for pure hash first and foremost
+	if(cgfx_stat.m_hashes_raw.find(hash.substr(sub_size)) != cgfx_stat.m_hashes_raw.end())
 	{
-		u32 id = cgfx_stat.m_hashes[hash];
+		u32 id = cgfx_stat.m_hashes_raw[hash.substr(sub_size)];
 
-		if(cgfx_stat.m_vram_addr[id] == 0)
-		{
-			cgfx_stat.last_id = id;
-			match = true;
-		}
-			
-		//Check VRAM addr requirement, if applicable
-		else if(cgfx_stat.m_vram_addr[id] == addr)
+		if(cgfx_stat.m_auto_bright[id] == 1)
 		{
 			cgfx_stat.last_id = id;
 			return true;
+		}
+
+		//Otherwise, process hashes with palette data prepended
+		if(cgfx_stat.m_hashes.find(hash) != cgfx_stat.m_hashes.end())
+		{
+			id = cgfx_stat.m_hashes[hash];
+	
+			if(cgfx_stat.m_vram_addr[id] == 0)
+			{
+				cgfx_stat.last_id = id;
+				return true;
+			}
+			
+			//Check VRAM addr requirement, if applicable
+			else if(cgfx_stat.m_vram_addr[id] == addr)
+			{
+				cgfx_stat.last_id = id;
+				return true;
+			}
 		}
 	}
 
@@ -1269,14 +1304,29 @@ bool DMG_LCD::has_hash(u16 addr, std::string hash)
 /****** Adjusts pixel brightness according to a given GBC palette ******/
 u32 DMG_LCD::adjust_pixel_brightness(u32 color, u8 palette_id, u8 gfx_type)
 {
-	//Compare average palette brightness with input brightness
-	u8 palette_brightness = (gfx_type) ? cgfx_stat.obj_pal_brightness[palette_id] : cgfx_stat.bg_pal_brightness[palette_id];
+	u8 pal_max = (gfx_type) ? cgfx_stat.obj_pal_max[palette_id] : cgfx_stat.bg_pal_max[palette_id];
+	u8 pal_min = (gfx_type) ? cgfx_stat.obj_pal_min[palette_id] : cgfx_stat.bg_pal_min[palette_id];
+	u8 current_brightness = util::get_brightness_fast(color);
 
-	util::hsl temp_color = util::rgb_to_hsl(color);
-	temp_color.lightness = palette_brightness / 255.0;
+	if(current_brightness > pal_max)
+	{
+		util::hsl temp_color = util::rgb_to_hsl(color);
+		temp_color.lightness = pal_max / 255.0;
 
-	u32 final_color = util::hsl_to_rgb(temp_color);
-	return final_color;
+		u32 final_color = util::hsl_to_rgb(temp_color);
+		return final_color;
+	}
+
+	else if(current_brightness < pal_min)
+	{
+		util::hsl temp_color = util::rgb_to_hsl(color);
+		temp_color.lightness = pal_min / 255.0;
+
+		u32 final_color = util::hsl_to_rgb(temp_color);
+		return final_color;
+	}
+
+	return color;
 }
 
 /****** Returns the hash for a specific tile ******/

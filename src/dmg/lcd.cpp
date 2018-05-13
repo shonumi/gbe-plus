@@ -165,6 +165,14 @@ void DMG_LCD::reset()
 	cgfx_stat.update_bg = false;
 	cgfx_stat.update_map = false;
 
+	for(int x = 0; x < 8; x++)
+	{
+		cgfx_stat.bg_pal_max[x] = 0;
+		cgfx_stat.bg_pal_min[x] = 0;
+		cgfx_stat.obj_pal_max[x] = 0;
+		cgfx_stat.obj_pal_min[x] = 0;
+	}
+
 	//Initialize system screen dimensions
 	config::sys_width = 160;
 	config::sys_height = 144;
@@ -1534,15 +1542,18 @@ void DMG_LCD::update_bg_colors()
 		mem->vram_bank = temp_vram_bank;
 	}
 
-	//CGFX - Calculate average palette brightness
+	//CGFX - Find max-min palette brightness
 	if(cgfx::load_cgfx)
 	{
-		u16 avg = 0;
+		cgfx_stat.bg_pal_max[palette] = cgfx_stat.bg_pal_min[palette] = util::get_brightness_fast(lcd_stat.bg_colors_final[0][palette]);
 
-		for(u8 x = 0; x < 4; x++) { avg += util::get_brightness_fast(lcd_stat.bg_colors_final[x][palette]); }
+		for(u32 x = 0; x < 4; x++)
+		{
+			u8 brightness = util::get_brightness_fast(lcd_stat.bg_colors_final[x][palette]);
 
-		avg >>= 2;
-		cgfx_stat.bg_pal_brightness[palette] = avg;
+			if(brightness > cgfx_stat.bg_pal_max[palette]) { cgfx_stat.bg_pal_max[palette] = brightness; }
+			if(brightness < cgfx_stat.bg_pal_min[palette]) { cgfx_stat.bg_pal_min[palette] = brightness; }
+		}
 	}
 }
 
@@ -1616,15 +1627,18 @@ void DMG_LCD::update_obj_colors()
 		}
 	}
 
-	//CGFX - Calculate average palette brightness
+	//CGFX - Find max-min palette brightness
 	if(cgfx::load_cgfx)
 	{
-		u16 avg = 0;
+		cgfx_stat.obj_pal_max[palette] = cgfx_stat.obj_pal_min[palette] = util::get_brightness_fast(lcd_stat.obj_colors_final[1][palette]);
 
-		for(u8 x = 0; x < 4; x++) { avg += util::get_brightness_fast(lcd_stat.obj_colors_final[x][palette]); }
+		for(u32 x = 1; x < 4; x++)
+		{
+			u8 brightness = util::get_brightness_fast(lcd_stat.obj_colors_final[x][palette]);
 
-		avg >>= 2;
-		cgfx_stat.obj_pal_brightness[palette] = avg;
+			if(brightness > cgfx_stat.obj_pal_max[palette]) { cgfx_stat.obj_pal_max[palette] = brightness; }
+			if(brightness < cgfx_stat.obj_pal_min[palette]) { cgfx_stat.obj_pal_min[palette] = brightness; }
+		}
 	}
 }
 
