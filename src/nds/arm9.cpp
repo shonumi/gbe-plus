@@ -1306,8 +1306,8 @@ void NTR_ARM9::clock_system()
 	//ARM9 CPU sync cycles
 	sync_cycles += system_cycles;
 
-	//Run controllers for each cycle		 
-	for(int x = 0; x < system_cycles; x++) { controllers.video.step(); }
+	//Run LCD controller		 
+	controllers.video.step(system_cycles);
 
 	//Run DMA channels
 	clock_dma();

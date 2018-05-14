@@ -28,7 +28,7 @@ class NTR_LCD
 	NTR_LCD();
 	~NTR_LCD();
 
-	void step();
+	void step(u32 cpu_cycles);
 	void reset();
 	bool init();
 	void opengl_init();

@@ -2593,10 +2593,10 @@ void NTR_LCD::update()
 }
 
 
-/****** Run LCD for one cycle ******/
-void NTR_LCD::step()
+/****** Run LCD for a given amount of cycles ******/
+void NTR_LCD::step(u32 cpu_cycles)
 {
-	lcd_stat.lcd_clock++;
+	lcd_stat.lcd_clock += cpu_cycles;
 
 	//Process GX commands and states
 	if(lcd_3D_stat.process_command) { process_gx_command(); }
@@ -2604,7 +2604,7 @@ void NTR_LCD::step()
 	if(lcd_3D_stat.render_polygon) { render_geometry(); }
 
 	//Mode 0 - Scanline rendering
-	if(((lcd_stat.lcd_clock % 2130) <= 1536) && (lcd_stat.lcd_clock < 408960)) 
+	if(((lcd_stat.lcd_clock % 4260) <= 3072) && (lcd_stat.lcd_clock < 817920)) 
 	{
 		//Change mode
 		if(lcd_stat.lcd_mode != 0) 
@@ -2625,7 +2625,7 @@ void NTR_LCD::step()
 	}
 
 	//Mode 1 - H-Blank
-	else if(((lcd_stat.lcd_clock % 2130) > 1536) && (lcd_stat.lcd_clock < 408960))
+	else if(((lcd_stat.lcd_clock % 4260) > 3072) && (lcd_stat.lcd_clock < 817920))
 	{
 		//Change mode
 		if(lcd_stat.lcd_mode != 1) 
@@ -2706,7 +2706,7 @@ void NTR_LCD::step()
 	else
 	{
 		//Change mode
-		if(lcd_stat.lcd_mode != 2) 
+		if(lcd_stat.lcd_mode < 2) 
 		{
 			lcd_stat.lcd_mode = 2;
 
@@ -2728,13 +2728,6 @@ void NTR_LCD::step()
 
 			//Update VCOUNT
 			mem->write_u16_fast(NDS_VCOUNT, lcd_stat.current_scanline);
-
-			//Display any OSD messages
-			if(config::osd_count)
-			{
-				config::osd_count--;
-				draw_osd_msg(screen_buffer);
-			}
 
 			//Use SDL
 			if(config::sdl_render)
@@ -2836,32 +2829,38 @@ void NTR_LCD::step()
 		}
 
 		//Increment scanline after HBlank starts
-		else if((lcd_stat.lcd_clock % 2130) == 1536)
+		else if((lcd_stat.lcd_clock % 4260) >= 3072)
 		{
-			lcd_stat.current_scanline++;
-			scanline_compare();
-
-			//Update VCOUNT
-			mem->write_u16_fast(NDS_VCOUNT, lcd_stat.current_scanline);
-
-			//Reset VBlank flag in DISPSTAT on line 261
-			if(lcd_stat.current_scanline == 261)
+			//Change mode
+			if(lcd_stat.lcd_mode != 3) 
 			{
-				lcd_stat.display_stat_a &= ~0x1;
-				lcd_stat.display_stat_b &= ~0x1;
+				lcd_stat.lcd_mode = 3;
+
+				lcd_stat.current_scanline++;
+				scanline_compare();
+
+				//Update VCOUNT
+				mem->write_u16_fast(NDS_VCOUNT, lcd_stat.current_scanline);
+
+				//Reset VBlank flag in DISPSTAT on line 261
+				if(lcd_stat.current_scanline == 261)
+				{
+					lcd_stat.display_stat_a &= ~0x1;
+					lcd_stat.display_stat_b &= ~0x1;
+				}
+
+				//Set HBlank flag in DISPSTAT
+				lcd_stat.display_stat_a |= 0x2;
+				lcd_stat.display_stat_b |= 0x2;
+
+				//Trigger HBlank IRQ
+				if(lcd_stat.hblank_irq_enable_a) { mem->nds9_if |= 0x2; }
+				if(lcd_stat.hblank_irq_enable_b) { mem->nds7_if |= 0x2; }
 			}
-
-			//Set HBlank flag in DISPSTAT
-			lcd_stat.display_stat_a |= 0x2;
-			lcd_stat.display_stat_b |= 0x2;
-
-			//Trigger HBlank IRQ
-			if(lcd_stat.hblank_irq_enable_a) { mem->nds9_if |= 0x2; }
-			if(lcd_stat.hblank_irq_enable_b) { mem->nds7_if |= 0x2; }
 		}
 
 		//Turn off HBlank flag at the start of a scanline
-		else if((lcd_stat.lcd_clock % 2130) == 0)
+		else if(lcd_stat.lcd_clock >= 1120380)
 		{
 			//Reset HBlank flag in DISPSTAT
 			lcd_stat.display_stat_a &= ~0x2;
@@ -2870,10 +2869,12 @@ void NTR_LCD::step()
 			//Reset LCD clock
 			if(lcd_stat.current_scanline == 263)
 			{
-				lcd_stat.lcd_clock -= 560190;
+				lcd_stat.lcd_clock -= 1120380;
 				lcd_stat.current_scanline = 0xFFFF;
 			}
 		}
+
+		else if((lcd_stat.lcd_clock % 4260) < 3072) { lcd_stat.lcd_mode = 2; }
 	}
 }
 
