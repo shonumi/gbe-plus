@@ -1672,6 +1672,19 @@ void gen_settings::set_cgfx()
 		cgfx::load_cgfx = false;
 		cgfx_scale->setEnabled(false);
 	}
+
+	//Instruct core to invalidate any CGFX when turning option on or off during gameplay
+	if(main_menu::gbe_plus != NULL)
+	{
+		switch(config::gb_type)
+		{
+			case 0:
+			case 1:
+			case 2:
+				main_menu::gbe_plus->get_core_data(2);
+				break;
+		}
+	}
 }
 
 /****** Dynamically changes the core's volume ******/

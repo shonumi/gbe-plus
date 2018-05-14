@@ -1178,6 +1178,12 @@ u32 DMG_core::get_core_data(u32 core_index)
 			}
 
 			break;
+
+		//Invalidate CGFX
+		case 0x2:
+			core_cpu.controllers.video.invalidate_cgfx();
+			result = 1;
+			break;
 	}
 
 	return result;

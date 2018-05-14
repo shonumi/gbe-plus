@@ -23,6 +23,7 @@ namespace cgfx
 	extern u8 gbc_obj_vram_bank;
 
 	extern bool load_cgfx;
+	extern bool loaded;
 	extern bool auto_dump_obj;
 	extern bool auto_dump_bg;
 	extern bool ignore_blank_dumps;

@@ -18,6 +18,7 @@ namespace cgfx
 	u8 gbc_obj_vram_bank = 0;
 
 	bool load_cgfx = false;
+	bool loaded = false;
 	bool auto_dump_obj = false;
 	bool auto_dump_bg = false;
 	bool ignore_blank_dumps = false;

@@ -184,7 +184,7 @@ void DMG_LCD::reset()
 	//Load CGFX manifest
 	if(cgfx::load_cgfx) 
 	{
-		cgfx::load_cgfx = load_manifest(cgfx::manifest_file);
+		cgfx::load_cgfx = cgfx::loaded = load_manifest(cgfx::manifest_file);
 		
 		//Initialize HD buffer for CGFX greater that 1:1
 		if((cgfx::load_cgfx) && (cgfx::scaling_factor > 1))
@@ -439,7 +439,7 @@ void DMG_LCD::render_dmg_scanline()
 	if(lcd_stat.obj_enable) { render_dmg_obj_scanline(); }
 
 	//Ignore CGFX when greater than 1:1
-	if((cgfx::load_cgfx) && (cgfx::scaling_factor > 1)) { return; }
+	if((cgfx::loaded) && (cgfx::scaling_factor > 1)) { return; }
 
 	//Draw blank screen for 1 frame after LCD enabled
 	if(lcd_stat.frame_delay)
@@ -506,7 +506,7 @@ void DMG_LCD::render_gbc_scanline()
 	if(lcd_stat.obj_enable) { render_gbc_obj_scanline(); }
 
 	//Ignore CGFX when greater than 1:1
-	if((cgfx::load_cgfx) && (cgfx::scaling_factor > 1)) { return; }
+	if((cgfx::loaded) && (cgfx::scaling_factor > 1)) { return; }
 
 	//Draw blank screen for 1 frame after LCD enabled
 	if(lcd_stat.frame_delay)
@@ -633,7 +633,7 @@ void DMG_LCD::render_dmg_bg_scanline()
 				u8 last_scanline_pixel = lcd_stat.scanline_pixel_counter - 1;
 
 				//Render HD
-				if((cgfx::load_cgfx) && (cgfx::scaling_factor > 1) && (last_scanline_pixel < 160))
+				if((cgfx::loaded) && (cgfx::scaling_factor > 1) && (last_scanline_pixel < 160))
 				{
 					u32 pos = (last_scanline_pixel * cgfx::scaling_factor) + (lcd_stat.current_scanline * cgfx::scaling_factor * config::sys_width);
 			
@@ -791,7 +791,7 @@ void DMG_LCD::render_gbc_bg_scanline()
 				u8 last_scanline_pixel = lcd_stat.scanline_pixel_counter - 1;
 
 				//Render HD
-				if((cgfx::load_cgfx) && (cgfx::scaling_factor > 1) && (last_scanline_pixel < 160))
+				if((cgfx::loaded) && (cgfx::scaling_factor > 1) && (last_scanline_pixel < 160))
 				{
 					u32 pos = (last_scanline_pixel * cgfx::scaling_factor) + (lcd_stat.current_scanline * cgfx::scaling_factor * config::sys_width);
 			
@@ -973,7 +973,7 @@ void DMG_LCD::render_dmg_win_scanline()
 				u8 last_scanline_pixel = lcd_stat.scanline_pixel_counter - 1;
 
 				//Render HD
-				if((cgfx::load_cgfx) && (cgfx::scaling_factor > 1) && (last_scanline_pixel < 160))
+				if((cgfx::loaded) && (cgfx::scaling_factor > 1) && (last_scanline_pixel < 160))
 				{
 					u32 pos = (last_scanline_pixel * cgfx::scaling_factor) + (lcd_stat.current_scanline * cgfx::scaling_factor * config::sys_width);
 			
@@ -1079,7 +1079,7 @@ void DMG_LCD::render_gbc_win_scanline()
 				u8 last_scanline_pixel = lcd_stat.scanline_pixel_counter - 1;
 
 				//Render HD
-				if((cgfx::load_cgfx) && (cgfx::scaling_factor > 1) && (last_scanline_pixel < 160))
+				if((cgfx::loaded) && (cgfx::scaling_factor > 1) && (last_scanline_pixel < 160))
 				{
 					u32 pos = (last_scanline_pixel * cgfx::scaling_factor) + (lcd_stat.current_scanline * cgfx::scaling_factor * config::sys_width);
 			
@@ -1186,7 +1186,7 @@ void DMG_LCD::render_dmg_obj_scanline()
 					u8 last_scanline_pixel = lcd_stat.scanline_pixel_counter - 1;
 
 					//Render HD
-					if((cgfx::load_cgfx) && (cgfx::scaling_factor > 1) && (last_scanline_pixel < 160))
+					if((cgfx::loaded) && (cgfx::scaling_factor > 1) && (last_scanline_pixel < 160))
 					{
 						u32 pos = (last_scanline_pixel * cgfx::scaling_factor) + (lcd_stat.current_scanline * cgfx::scaling_factor * config::sys_width);
 			
@@ -1355,7 +1355,7 @@ void DMG_LCD::render_gbc_obj_scanline()
 					u8 last_scanline_pixel = lcd_stat.scanline_pixel_counter - 1;
 
 					//Render HD
-					if((cgfx::load_cgfx) && (cgfx::scaling_factor > 1) && (last_scanline_pixel < 160))
+					if((cgfx::loaded) && (cgfx::scaling_factor > 1) && (last_scanline_pixel < 160))
 					{
 						u32 pos = (last_scanline_pixel * cgfx::scaling_factor) + (lcd_stat.current_scanline * cgfx::scaling_factor * config::sys_width);
 			
@@ -1927,7 +1927,7 @@ void DMG_LCD::step(int cpu_clock)
 				if(config::osd_count)
 				{
 					config::osd_count--;
-					if(!cgfx::load_cgfx) { draw_osd_msg(screen_buffer); }
+					if(!cgfx::loaded) { draw_osd_msg(screen_buffer); }
 					else { draw_osd_msg(hd_screen_buffer); }
 				}
 
@@ -1945,13 +1945,13 @@ void DMG_LCD::step(int cpu_clock)
 							u32* out_pixel_data = (u32*)original_screen->pixels;
 
 							//Regular 1:1 framebuffer rendering
-							if((!cgfx::load_cgfx) || (cgfx::scaling_factor <= 1))
+							if((!cgfx::loaded) || (cgfx::scaling_factor <= 1))
 							{
 								for(int a = 0; a < screen_buffer.size(); a++) { out_pixel_data[a] = screen_buffer[a]; }
 							}
 
 							//HD CGFX framebuffer rendering
-							else if((cgfx::load_cgfx) && (cgfx::scaling_factor > 1))
+							else if((cgfx::loaded) && (cgfx::scaling_factor > 1))
 							{
 								for(int a = 0; a < hd_screen_buffer.size(); a++) { out_pixel_data[a] = hd_screen_buffer[a]; }
 							}
@@ -1978,13 +1978,13 @@ void DMG_LCD::step(int cpu_clock)
 							u32* out_pixel_data = (u32*)final_screen->pixels;
 
 							//Regular 1:1 framebuffer rendering
-							if((!cgfx::load_cgfx) || (cgfx::scaling_factor <= 1))
+							if((!cgfx::loaded) || (cgfx::scaling_factor <= 1))
 							{
 								for(int a = 0; a < screen_buffer.size(); a++) { out_pixel_data[a] = screen_buffer[a]; }
 							}
 
 							//HD CGFX framebuffer rendering
-							else if((cgfx::load_cgfx) && (cgfx::scaling_factor > 1))
+							else if((cgfx::loaded) && (cgfx::scaling_factor > 1))
 							{
 								for(int a = 0; a < hd_screen_buffer.size(); a++) { out_pixel_data[a] = hd_screen_buffer[a]; }
 							}
@@ -2009,10 +2009,10 @@ void DMG_LCD::step(int cpu_clock)
 						if(!config::use_opengl)
 						{
 							//Regular 1:1 framebuffer rendering
-							if((!cgfx::load_cgfx) || (cgfx::scaling_factor <= 1)) { config::render_external_sw(screen_buffer); }
+							if((!cgfx::loaded) || (cgfx::scaling_factor <= 1)) { config::render_external_sw(screen_buffer); }
 						
 							//HD CGFX framebuffer rendering
-							else if((cgfx::load_cgfx) && (cgfx::scaling_factor > 1)) { config::render_external_sw(hd_screen_buffer); }
+							else if((cgfx::loaded) && (cgfx::scaling_factor > 1)) { config::render_external_sw(hd_screen_buffer); }
 						}
 
 						else
@@ -2022,13 +2022,13 @@ void DMG_LCD::step(int cpu_clock)
 							u32* out_pixel_data = (u32*)final_screen->pixels;
 
 							//Regular 1:1 framebuffer rendering
-							if((!cgfx::load_cgfx) || (cgfx::scaling_factor <= 1))
+							if((!cgfx::loaded) || (cgfx::scaling_factor <= 1))
 							{
 								for(int a = 0; a < screen_buffer.size(); a++) { out_pixel_data[a] = screen_buffer[a]; }
 							}
 
 							//HD CGFX framebuffer rendering
-							else if((cgfx::load_cgfx) && (cgfx::scaling_factor > 1))
+							else if((cgfx::loaded) && (cgfx::scaling_factor > 1))
 							{
 								for(int a = 0; a < hd_screen_buffer.size(); a++) { out_pixel_data[a] = hd_screen_buffer[a]; }
 							}
