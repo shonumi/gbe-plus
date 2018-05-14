@@ -25,6 +25,7 @@ struct dmg_cgfx_data
 	
 	//Data pulled from manifest file - Regular entries
 	//Hashes - Actual hash data. Duplicated abd sorted into separate OBJ + BG lists
+	//Hashes Raw - So called raw hash data (no prepended palette data). May match multiple tiles.
 	//Files - Location of the image file used for this hash
 	//Types - Determines what system a hash belongs to (DMG, GBC, GBA) and if it's an OBJ or BG
 	//ID - Keeps track of which manifest entry corresponds to which OBJ or BG entry

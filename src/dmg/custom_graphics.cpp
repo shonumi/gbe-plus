@@ -107,6 +107,7 @@ bool DMG_LCD::load_manifest(std::string filename)
 		{
 			//Grab hash
 			std::string hash = cgfx_stat.manifest[x++];
+			std::string sub_hash = "";
 
 			//Only add hash from manifest if it is new. Otherwise, ignore duplicate entries
 			if(cgfx_stat.m_hashes.find(hash) == cgfx_stat.m_hashes.end())
@@ -123,17 +124,19 @@ bool DMG_LCD::load_manifest(std::string filename)
 				{
 					//DMG, GBC, or GBA OBJ
 					case 1:
+						sub_hash = hash.substr(4);
 						cgfx_stat.m_id.push_back(cgfx_stat.obj_hash_list.size());
 						cgfx_stat.obj_hash_list.push_back(hash);
 						cgfx_stat.m_hashes.insert(std::make_pair(hash, hash_id));
-						cgfx_stat.m_hashes_raw.insert(std::make_pair(hash.substr(4), hash_id));
+						cgfx_stat.m_hashes_raw.insert(std::make_pair(sub_hash, hash_id));
 						break;
 
 					case 2:
+						sub_hash = hash.substr(5);
 						cgfx_stat.m_id.push_back(cgfx_stat.obj_hash_list.size());
 						cgfx_stat.obj_hash_list.push_back(hash);
 						cgfx_stat.m_hashes.insert(std::make_pair(hash, hash_id));
-						cgfx_stat.m_hashes_raw.insert(std::make_pair(hash.substr(5), hash_id));
+						cgfx_stat.m_hashes_raw.insert(std::make_pair(sub_hash, hash_id));
 						break;
 
 					case 3:
@@ -141,17 +144,19 @@ bool DMG_LCD::load_manifest(std::string filename)
 
 					//DMG, GBC, or GBA BG
 					case 10:
+						sub_hash = hash.substr(4);
 						cgfx_stat.m_id.push_back(cgfx_stat.bg_hash_list.size());
 						cgfx_stat.bg_hash_list.push_back(hash);
 						cgfx_stat.m_hashes.insert(std::make_pair(hash, hash_id));
-						cgfx_stat.m_hashes_raw.insert(std::make_pair(hash.substr(4), hash_id));
+						cgfx_stat.m_hashes_raw.insert(std::make_pair(sub_hash, hash_id));
 						break;
 						
 					case 20:
+						sub_hash = hash.substr(5);
 						cgfx_stat.m_id.push_back(cgfx_stat.bg_hash_list.size());
 						cgfx_stat.bg_hash_list.push_back(hash);
 						cgfx_stat.m_hashes.insert(std::make_pair(hash, hash_id));
-						cgfx_stat.m_hashes_raw.insert(std::make_pair(hash.substr(5), hash_id));
+						cgfx_stat.m_hashes_raw.insert(std::make_pair(sub_hash, hash_id));
 						break;
 
 					case 30:
@@ -175,6 +180,13 @@ bool DMG_LCD::load_manifest(std::string filename)
 				u32 bright_value = 0;
 				util::from_str(cgfx_stat.manifest[x++], bright_value);
 				cgfx_stat.m_auto_bright.push_back(bright_value);
+
+				//Enable EXT_AUTO_BRIGHT for all matching raw hashes if necessary
+				if((bright_value) && (cgfx_stat.m_hashes_raw.find(sub_hash) != cgfx_stat.m_hashes_raw.end()))
+				{
+					u32 bright_id = cgfx_stat.m_hashes_raw[sub_hash];
+					cgfx_stat.m_auto_bright[bright_id] = 1;
+				} 
 
 				hash_id++;
 			}
@@ -1262,39 +1274,40 @@ void DMG_LCD::update_gbc_bg_hash(u16 map_addr)
 /****** Search for an existing hash from the manifest ******/
 bool DMG_LCD::has_hash(u16 addr, std::string hash)
 {
-	bool match = false;
-	u8 sub_size = (config::gb_type == 0) ? 4 : 5;
-
+	//Sanity check on hash lengths
 	if(hash.length() < 5) { return false; }
 
-	//Check for pure hash first and foremost
-	if(cgfx_stat.m_hashes_raw.find(hash.substr(sub_size)) != cgfx_stat.m_hashes_raw.end())
+	bool match = false;
+	std::string sub_hash = (config::gb_type == 0) ? hash.substr(4) : hash.substr(5);
+	
+	//Check for 100% match
+	if(cgfx_stat.m_hashes.find(hash) != cgfx_stat.m_hashes.end())
 	{
-		u32 id = cgfx_stat.m_hashes_raw[hash.substr(sub_size)];
+		u32 id = cgfx_stat.m_hashes[hash];
+	
+		if(cgfx_stat.m_vram_addr[id] == 0)
+		{
+			cgfx_stat.last_id = id;
+			return true;
+		}
+			
+		//Check VRAM addr requirement, if applicable
+		else if(cgfx_stat.m_vram_addr[id] == addr)
+		{
+			cgfx_stat.last_id = id;
+			return true;
+		}
+	}
+
+	//Check for pure afterwards for EXT_AUTO_BRIGHT
+	else if(cgfx_stat.m_hashes_raw.find(sub_hash) != cgfx_stat.m_hashes_raw.end())
+	{
+		u32 id = cgfx_stat.m_hashes_raw[sub_hash];
 
 		if(cgfx_stat.m_auto_bright[id] == 1)
 		{
 			cgfx_stat.last_id = id;
 			return true;
-		}
-
-		//Otherwise, process hashes with palette data prepended
-		if(cgfx_stat.m_hashes.find(hash) != cgfx_stat.m_hashes.end())
-		{
-			id = cgfx_stat.m_hashes[hash];
-	
-			if(cgfx_stat.m_vram_addr[id] == 0)
-			{
-				cgfx_stat.last_id = id;
-				return true;
-			}
-			
-			//Check VRAM addr requirement, if applicable
-			else if(cgfx_stat.m_vram_addr[id] == addr)
-			{
-				cgfx_stat.last_id = id;
-				return true;
-			}
 		}
 	}
 
