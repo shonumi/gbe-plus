@@ -354,6 +354,10 @@ void gx_matrix::make_identity(u32 size)
 
 	resize(size, size);
 
+	//Zero out matrix
+	clear();
+
+	//Make identity
 	for(int x = 0; x < size; x++) { data[x][x] = 1.0; }
 }
 
