@@ -55,6 +55,7 @@ void NTR_LCD::reset()
 
 	render_buffer_a.clear();
 	render_buffer_b.clear();
+	gx_render_buffer.clear();
 
 	lcd_stat.lcd_clock = 0;
 	lcd_stat.lcd_mode = 0;
@@ -81,6 +82,7 @@ void NTR_LCD::reset()
 
 	render_buffer_a.resize(0x100, 0);
 	render_buffer_b.resize(0x100, 0);
+	gx_render_buffer.resize(0xC000, 0);
 
 	full_scanline_render_a = false;
 	full_scanline_render_b = false;
@@ -2832,6 +2834,9 @@ void NTR_LCD::step()
 				//Clear 3D buffer and fill with rear plane
 				gx_screen_buffer[lcd_3D_stat.buffer_id].clear();
 				gx_screen_buffer[lcd_3D_stat.buffer_id].resize(0xC000, lcd_3D_stat.rear_plane_color);
+
+				//Clear render buffer
+				gx_render_buffer.assign(0xC000, 0);
 			}
 		}
 

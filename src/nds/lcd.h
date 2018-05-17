@@ -127,6 +127,7 @@ class NTR_LCD
 	//Render buffer
 	std::vector<u8> render_buffer_a;
 	std::vector<u8> render_buffer_b;
+	std::vector<u8> gx_render_buffer;
 
 	bool full_scanline_render_a;
 	bool full_scanline_render_b;
