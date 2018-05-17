@@ -451,6 +451,64 @@ void NTR_LCD::process_gx_command()
 
 			break;
 
+		//MTX_STORE
+		case 0x13:
+			switch(lcd_3D_stat.matrix_mode)
+			{
+				case 0x0:
+					gx_projection_stack[0] = gx_projection_matrix;
+					break;
+
+				case 0x1:
+				case 0x2:
+					{
+						u8 offset = (lcd_3D_stat.command_parameters[3] & 0x1F);
+						
+						if(offset <= 30)
+						{
+							gx_position_stack[offset] = gx_position_matrix;
+							gx_vector_stack[offset] = gx_vector_matrix;
+						}
+					}
+
+					break;
+
+				case 0x3:
+					gx_texture_stack[0] = gx_texture_matrix;
+					break;
+			}
+
+			break;
+
+		//MTX_RESTORE
+		case 0x14:
+			switch(lcd_3D_stat.matrix_mode)
+			{
+				case 0x0:
+					gx_projection_matrix = gx_projection_stack[0];
+					break;
+
+				case 0x1:
+				case 0x2:
+					{
+						u8 offset = (lcd_3D_stat.command_parameters[3] & 0x1F);
+						
+						if(offset <= 30)
+						{
+							gx_position_matrix = gx_position_stack[offset];
+							gx_vector_matrix = gx_vector_stack[offset];
+						}
+					}
+
+					break;
+
+				case 0x3:
+					gx_texture_matrix = gx_texture_stack[0];
+					break;
+			}
+
+			break;
+
 		//MTX_IDENTITY:
 		case 0x15:
 			switch(lcd_3D_stat.matrix_mode)
