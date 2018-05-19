@@ -30,6 +30,7 @@ This list represents all the games that have been verified to use the IR port. W
 - Bomberman Max: Red Challenger			Combine Charaboms/Trade completed levels/Unlock hidden areas
 - Carl Lewis Alhletics 2000			Ubi Key
 - Chee-Chai Alien				Enhances IR sensor to detect artificial light sources. Catch/trade Chaliens
+- Dancing Furby					Sends signal to Furby doll, Furby reacts based on dance performance
 - Donkey Kong Country				Transfer pictures to stickerbook
 - Harry Potter and the Sorceror's Stone		Trade "Famous Witches and Wizards" cards 
 - Harry Potter and the Chamber of Secrets	Trade "Famous Witches and Wizards" cards 
