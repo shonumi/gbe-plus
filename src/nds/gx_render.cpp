@@ -94,8 +94,8 @@ void NTR_LCD::render_geometry()
 		temp_matrix.data[2][0] = vert_matrix.data[x][2];
 		temp_matrix.data[3][0] = 1.0;
 		temp_matrix = temp_matrix * clip_matrix;
- 		plot_x[x] = ((temp_matrix.data[0][0] + temp_matrix.data[3][0]) * viewport_width) / ((2 * temp_matrix.data[3][0]) + lcd_3D_stat.view_port_x1);
-  		plot_y[x] = ((-temp_matrix.data[1][0] + temp_matrix.data[3][0]) * viewport_height) / ((2 * temp_matrix.data[3][0]) + lcd_3D_stat.view_port_y1);
+ 		plot_x[x] = round(((temp_matrix.data[0][0] + temp_matrix.data[3][0]) * viewport_width) / ((2 * temp_matrix.data[3][0]) + lcd_3D_stat.view_port_x1));
+  		plot_y[x] = round(((-temp_matrix.data[1][0] + temp_matrix.data[3][0]) * viewport_height) / ((2 * temp_matrix.data[3][0]) + lcd_3D_stat.view_port_y1));
 
 		//Check for wonky coordinates
 		if(std::isnan(plot_x[x])) { lcd_3D_stat.render_polygon = false; return; }
@@ -126,6 +126,7 @@ void NTR_LCD::render_geometry()
 
 		s32 xy_start = 0;
 		s32 xy_end = 0;
+		s32 xy_inc = 0;
 
 		if((x_dist != 0) && (y_dist != 0))
 		{
@@ -140,9 +141,9 @@ void NTR_LCD::render_geometry()
 					
 				if((x_dist < 0) && (x_inc > 0)) { x_inc *= -1.0; }
 				else if((x_dist > 0) && (x_inc < 0)) { x_inc *= -1.0; }
-					
-				if(y_dist < 0) { y_dist *= -1.0;}
-				xy_end = y_dist;
+
+				xy_start = plot_y[x];
+				xy_end = plot_y[next_index];
 			}
 
 			//Gentle slope, X = 1
@@ -154,8 +155,8 @@ void NTR_LCD::render_geometry()
 				if((y_dist < 0) && (y_inc > 0)) { y_inc *= -1.0; }
 				else if((y_dist > 0) && (y_inc < 0)) { y_inc *= -1.0; }
 
-				if(x_dist < 0) { x_dist *= -1.0;}
-				xy_end = x_dist;
+				xy_start = plot_x[x];
+				xy_end = plot_x[next_index];
 			}
 		}
 
@@ -163,17 +164,22 @@ void NTR_LCD::render_geometry()
 		{
 			x_inc = 0.0;
 			y_inc = (y_dist > 0) ? 1.0 : -1.0;
-			if(y_dist < 0) { y_dist *= -1.0;}
-			xy_end = y_dist;
+
+			xy_start = plot_y[x];
+			xy_end = plot_y[next_index];
 		}
 
 		else if(y_dist == 0)
 		{
 			x_inc = (x_dist > 0) ? 1.0 : -1.0;
 			y_inc = 0.0;
-			if(x_dist < 0) { x_dist *= -1.0;}
-			xy_end = x_dist;
+
+			xy_start = plot_x[x];
+			xy_end = plot_x[next_index];
 		}
+
+		xy_inc = (xy_start < xy_end) ? 1 : -1;
+		xy_end += (xy_inc > 0) ? 1 : -1;
 
 		while(xy_start != xy_end)
 		{
@@ -181,14 +187,14 @@ void NTR_LCD::render_geometry()
 			if((x_coord >= 0) && (x_coord < 256) && (y_coord >= 0) && (y_coord <= 192))
 			{
 				//Convert plot points to buffer index
-				buffer_index = ((s32)y_coord * 256) + (s32)x_coord;
+				buffer_index = (round(y_coord) * 256) + round(x_coord);
 				gx_screen_buffer[lcd_3D_stat.buffer_id][buffer_index] = vert_colors[x];
 				gx_render_buffer[buffer_index] = bg_priority;
 			}
 
 			x_coord += x_inc;
 			y_coord += y_inc;
-			xy_start++;
+			xy_start += xy_inc;
 		}
 	}
 
@@ -314,6 +320,8 @@ void NTR_LCD::fill_tri_solid(float* px, float* py)
 /****** NDS 3D Software Renderer - Fills a quads with a solid color ******/
 void NTR_LCD::fill_quad_solid(float* px, float* py)
 {
+	return;
+
 	//Vertex IDs
 	u8 v0 = 0;
 	u8 v1 = 1;
