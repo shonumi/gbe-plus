@@ -11,6 +11,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <cmath>
 
 #ifndef GL3_PROTOTYPES
 #define GL3_PROTOTYPES 1
@@ -500,4 +501,16 @@ GLuint gx_load_shader(std::string vertex_shader_file, std::string fragment_shade
 	glDeleteShader(fragment_shader_id);
  
 	return program_id;
+}
+
+/****** Returns distance between 2D vectors ******/
+float dist(float x1, float y1, float x2, float y2)
+{
+	return sqrt(((x2 - x1) * (x2 - x1)) + ((y2 - y1) * (y2 - y1)));
+}
+
+/****** Returns distance between 3D vectors ******/
+float dist(float x1, float y1, float z1, float x2, float y2, float z2)
+{
+	return sqrt(((x2 - x1) * (x2 - x1)) + ((y2 - y1) * (y2 - y1)) + ((z2 - z1) * (z2 - z1)));
 }

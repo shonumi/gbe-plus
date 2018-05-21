@@ -90,4 +90,10 @@ gx_matrix ortho_matrix(float width, float height, float z_far, float z_near);
 //GLSL vertex and fragment shader loader
 GLuint gx_load_shader(std::string vertex_shader_file, std::string fragment_shader_file, u32 &external_data_usage);
 
+//2D distance
+float dist(float x1, float y1, float x2, float y2);
+
+//3D distance
+float dist(float x1, float y1, float z1, float x2, float y2, float z2);
+
 #endif // GBE_GX_UTIL
