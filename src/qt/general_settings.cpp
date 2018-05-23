@@ -408,6 +408,19 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	sound_on_layout->addWidget(sound_on_label);
 	sound_on_set->setLayout(sound_on_layout);
 
+	//Sound settings - Enable stereo sound
+	QWidget* stereo_enable_set = new QWidget(sound);
+	QLabel* stereo_enable_label = new QLabel("Enable Stereo Output");
+	stereo_enable = new QCheckBox(stereo_enable_set);
+	stereo_enable->setToolTip("Enables stereo sound output.");
+	stereo_enable->setChecked(true);
+
+	QHBoxLayout* stereo_enable_layout = new QHBoxLayout;
+	stereo_enable_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	stereo_enable_layout->addWidget(stereo_enable);
+	stereo_enable_layout->addWidget(stereo_enable_label);
+	stereo_enable_set->setLayout(stereo_enable_layout);
+
 	//Sound settings - Volume
 	QWidget* volume_set = new QWidget(sound);
 	QLabel* volume_label = new QLabel("Volume : ");
@@ -428,6 +441,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	audio_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	audio_layout->addWidget(freq_set);
 	audio_layout->addWidget(sound_on_set);
+	audio_layout->addWidget(stereo_enable_set);
 	audio_layout->addWidget(volume_set);
 	sound->setLayout(audio_layout);
 
@@ -1323,15 +1337,19 @@ void gen_settings::set_ini_options()
 
 	//BIOS or Boot ROM option
 	if(config::use_bios) { bios->setChecked(true); }
+	else { bios->setChecked(false); }
 
 	//Use firmware
 	if(config::use_firmware) { firmware->setChecked(true); }
+	else { firmware->setChecked(false); }
 
 	//Enable patches
 	if(config::use_patches) { auto_patch->setChecked(true); }
+	else { auto_patch->setChecked(false); }
 
 	//Use cheats
 	if(config::use_cheats) { cheats->setChecked(true); }
+	else { cheats->setChecked(false); }
 
 	//RTC offsets
 	real_time_clock_menu->secs_offset->setValue(config::rtc_offset[0]);
@@ -1388,7 +1406,11 @@ void gen_settings::set_ini_options()
 		ogl_frag_shader->setEnabled(true);
 	}
 
-	else { ogl_frag_shader->setEnabled(false); }
+	else
+	{
+		ogl->setChecked(false);
+		ogl_frag_shader->setEnabled(false);
+	}
 
 	//CGFX option
 	if(cgfx::load_cgfx)
@@ -1397,13 +1419,19 @@ void gen_settings::set_ini_options()
 		cgfx_scale->setEnabled(true);
 	}
 
-	else { cgfx_scale->setEnabled(false); }
+	else
+	{
+		load_cgfx->setChecked(false);
+		cgfx_scale->setEnabled(false);
+	}
 
 	//Maintain aspect ratio option
 	if(config::maintain_aspect_ratio) { aspect_ratio->setChecked(true); }
+	else { aspect_ratio->setChecked(false); }
 
 	//OSD option
 	if(config::use_osd) { osd_enable->setChecked(true); }
+	else { osd_enable->setChecked(false); }
 
 	//Sample rate option
 	switch((int)config::sample_rate)
@@ -1430,6 +1458,10 @@ void gen_settings::set_ini_options()
 		sound_on->setChecked(true);
 		volume->setEnabled(true);
 	}
+
+	//Stereo sound option
+	if(config::use_stereo) { stereo_enable->setChecked(true); }
+	else { stereo_enable->setChecked(false); }
 
 	//Dead-zone
 	dead_zone->setValue(config::dead_zone);
@@ -1469,9 +1501,11 @@ void gen_settings::set_ini_options()
 
 	//Rumble
 	if(config::use_haptics) { rumble_on->setChecked(true); }
+	else { rumble_on->setChecked(false); }
 
 	//Netplay
 	if(config::use_netplay) { enable_netplay->setChecked(true); }
+	else { enable_netplay->setChecked(false); }
 
 	if(config::netplay_hard_sync)
 	{

@@ -72,6 +72,7 @@ class gen_settings : public QDialog
 	QComboBox* freq;
 	QSlider* volume;
 	QCheckBox* sound_on;
+	QCheckBox* stereo_enable;
 
 	data_dialog* data_folder;
 
