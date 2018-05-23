@@ -139,6 +139,7 @@ namespace config
 	extern u8 old_volume;
 	extern double sample_rate;
 	extern bool mute;
+	extern bool use_stereo;
 	
 	extern u32 sys_width;
 	extern u32 sys_height;

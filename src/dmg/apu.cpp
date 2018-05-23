@@ -97,7 +97,7 @@ bool DMG_APU::init()
 	//Setup the desired audio specifications
     	desired_spec.freq = apu_stat.sample_rate;
 	desired_spec.format = AUDIO_S16SYS;
-    	desired_spec.channels = 1;
+    	desired_spec.channels = (config::use_stereo) ? 2 : 1;
     	desired_spec.samples = 1024;
     	desired_spec.callback = dmg_audio_callback;
     	desired_spec.userdata = this;
@@ -581,6 +581,9 @@ void dmg_audio_callback(void* _apu, u8 *_stream, int _length)
 	int length = _length/2;
 	length *= 4;
 
+	//Set correct length for stereo
+	if(config::use_stereo) { length /= 2; }
+
 	s16 channel_1_stream[length];
 	s16 channel_2_stream[length];
 	s16 channel_3_stream[length];
@@ -597,11 +600,47 @@ void dmg_audio_callback(void* _apu, u8 *_stream, int _length)
 	//Custom software mixing
 	for(u32 x = 0; x < length; x++)
 	{
-		s32 out_sample = channel_1_stream[x] + channel_2_stream[x] + channel_3_stream[x] + channel_4_stream[x];
-		out_sample *= volume_ratio;
-		out_sample *= apu_link->apu_stat.channel_left_volume;
-		out_sample /= 4;
+		//Mono audio
+		if(!config::use_stereo)
+		{
+			s32 out_sample = channel_1_stream[x] + channel_2_stream[x] + channel_3_stream[x] + channel_4_stream[x];
+			out_sample *= volume_ratio;
+			out_sample *= apu_link->apu_stat.channel_left_volume;
+			out_sample /= 4;
 
-		stream[x / 4] = out_sample;
+			stream[x / 4] = out_sample;
+		}
+
+		//Stereo audio
+		else
+		{
+			u32 index = (x / 4) * 2;
+
+			//Left sample
+			s32 ch1 = apu_link->apu_stat.channel[0].so1_output ? channel_1_stream[x] : -32768;
+			s32 ch2 = apu_link->apu_stat.channel[1].so1_output ? channel_2_stream[x] : -32768;
+			s32 ch3 = apu_link->apu_stat.channel[2].so1_output ? channel_3_stream[x] : -32768;
+			s32 ch4 = apu_link->apu_stat.channel[3].so1_output ? channel_4_stream[x] : -32768;
+
+			s32 out_sample = ch1 + ch2 + ch3 + ch4;
+			out_sample *= volume_ratio;
+			out_sample *= apu_link->apu_stat.channel_left_volume;
+			out_sample /= 4;
+
+			stream[index] = out_sample;
+
+			//Right sample
+			ch1 = apu_link->apu_stat.channel[0].so2_output ? channel_1_stream[x] : -32768;
+			ch2 = apu_link->apu_stat.channel[1].so2_output ? channel_2_stream[x] : -32768;
+			ch3 = apu_link->apu_stat.channel[2].so2_output ? channel_3_stream[x] : -32768;
+			ch4 = apu_link->apu_stat.channel[3].so2_output ? channel_4_stream[x] : -32768;
+
+			out_sample = ch1 + ch2 + ch3 + ch4;
+			out_sample *= volume_ratio;
+			out_sample *= apu_link->apu_stat.channel_right_volume;
+			out_sample /= 4;
+
+			stream[index + 1] = out_sample;
+		}
 	} 
 }

@@ -167,6 +167,7 @@ namespace config
 	u8 old_volume = 0;
 	double sample_rate = 44100.0;
 	bool mute = false;
+	bool use_stereo = false;
 
 	//System screen sizes
 	u32 sys_width = 0;
@@ -1359,6 +1360,25 @@ bool parse_ini_file()
 			else 
 			{
 				std::cout<<"GBE::Error - Could not parse gbe.ini (#mute) \n";
+				return false;
+			}
+		}
+
+		//Stereo settings
+		else if(ini_item == "#use_stereo")
+		{
+			if((x + 1) < size)
+			{
+				ini_item = ini_opts[++x];
+				std::stringstream temp_stream(ini_item);
+				temp_stream >> output;
+
+				if((output >= 0) && (output <= 1)) { config::use_stereo = output; }
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#use_stereo) \n";
 				return false;
 			}
 		}
@@ -2701,6 +2721,15 @@ bool save_ini_file()
 			std::string val = (config::mute) ? "1" : "0";
 
 			output_lines[line_pos] = "[#mute:" + val + "]";
+		}
+
+		//Stereo settings
+		else if(ini_item == "#use_stereo")
+		{
+			line_pos = output_count[x];
+			std::string val = (config::use_stereo) ? "1" : "0";
+
+			output_lines[line_pos] = "[#use_stereo:" + val + "]";
 		}
 
 		//Sample rate
