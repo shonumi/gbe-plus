@@ -1102,7 +1102,7 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	//Window X
 	else if(address == REG_WX)
 	{
-		u8 last_wx = memory_map[address];
+		u8 last_wx = (memory_map[address] < 7) ? 0 : (memory_map[address] - 7);
 
 		memory_map[address] = value;
 		lcd_stat->window_x = (value < 7) ? 0 : (value - 7);
