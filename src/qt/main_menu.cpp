@@ -678,17 +678,23 @@ void main_menu::boot_game()
 
 	else 
 	{
-		base_width = (160 * cgfx::scaling_factor);
-		base_height = (144 * cgfx::scaling_factor);
-
 		if((config::gb_type == 5) || (config::gb_type == 6))
 		{
+			base_width = 160;
+			base_height = 144;
+
+			//Disable CGFX
+			settings->load_cgfx->setChecked(false);
+
 			main_menu::gbe_plus = new SGB_core();
 			is_sgb_core = true;
 		}
 
 		else
 		{
+			base_width = (160 * cgfx::scaling_factor);
+			base_height = (144 * cgfx::scaling_factor);
+
 			main_menu::gbe_plus = new DMG_core();
 			is_sgb_core = false;
 		}

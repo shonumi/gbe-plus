@@ -15,12 +15,16 @@
 #include <sstream>
 
 #include "common/util.h"
+#include "common/cgfx_common.h"
 
 #include "core.h"
 
 /****** Core Constructor ******/
 SGB_core::SGB_core()
 {
+	//Disable CGFX
+	cgfx::load_cgfx = false;
+
 	//Link CPU and MMU
 	core_cpu.mem = &core_mmu;
 
