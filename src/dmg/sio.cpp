@@ -1175,10 +1175,11 @@ void DMG_SIO::print_image()
 
 	srand(SDL_GetTicks());
 
-	std::string filename = "gb_print_";
+	std::string filename = config::ss_path + "gb_print_";
 	filename += util::to_str(rand() % 1024);
 	filename += util::to_str(rand() % 1024);
 	filename += util::to_str(rand() % 1024);
+	filename += ".bmp";
 
 	//Create a 160x144 image from the buffer, save as BMP
 	SDL_Surface *print_screen = SDL_CreateRGBSurface(SDL_SWSURFACE, 160, height, 32, 0, 0, 0, 0);
