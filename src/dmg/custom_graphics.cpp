@@ -48,6 +48,13 @@ bool DMG_LCD::load_manifest(std::string filename)
 		return false; 
 	}
 
+	//Set up m_vram_addr
+	for(int x = 0; x < 512; x++)
+	{
+		std::map<std::string, u32> temp;
+		cgfx_stat.m_vram_addr.push_back(temp);
+	}
+
 	//Cycle through whole file, line-by-line
 	while(getline(file, input_line))
 	{
@@ -109,8 +116,12 @@ bool DMG_LCD::load_manifest(std::string filename)
 			std::string hash = cgfx_stat.manifest[x++];
 			std::string sub_hash = "";
 
+			//Test for EXT_VRAM_ADDR
+			u32 vram_test = 0;
+			if(cgfx_stat.manifest[x + 2].length() == 6) { util::from_hex_str(cgfx_stat.manifest[x + 2].substr(2), vram_test); }
+
 			//Only add hash from manifest if it is new. Otherwise, ignore duplicate entries
-			if(cgfx_stat.m_hashes.find(hash) == cgfx_stat.m_hashes.end())
+			if((cgfx_stat.m_hashes.find(hash) == cgfx_stat.m_hashes.end()) || (vram_test))
 			{
 				//Grab file associated with hash
 				cgfx_stat.m_files.push_back(cgfx_stat.manifest[x++]);
@@ -172,9 +183,13 @@ bool DMG_LCD::load_manifest(std::string filename)
 				if(!load_image_data()) { return false; }
 
 				//EXT_VRAM_ADDR
-				u32 vram_address = 0;
-				util::from_hex_str(cgfx_stat.manifest[x++], vram_address);
-				cgfx_stat.m_vram_addr.push_back(vram_address);	
+				if(vram_test)
+				{
+					vram_test = ((vram_test & 0x1FFF) >> 4);
+					cgfx_stat.m_vram_addr[vram_test].insert(std::make_pair(hash, hash_id));
+				}
+
+				x++;
 
 				//EXT_AUTO_BRIGHT
 				u32 bright_value = 0;
@@ -1279,22 +1294,22 @@ bool DMG_LCD::has_hash(u16 addr, std::string hash)
 
 	bool match = false;
 	std::string sub_hash = (config::gb_type == 0) ? hash.substr(4) : hash.substr(5);
+	u32 vram_index = ((addr & 0x1FFF) >> 4);
 	
 	//Check for 100% match
 	if(cgfx_stat.m_hashes.find(hash) != cgfx_stat.m_hashes.end())
 	{
-		u32 id = cgfx_stat.m_hashes[hash];
-	
-		if(cgfx_stat.m_vram_addr[id] == 0)
+		//Check regular entries first
+		if(cgfx_stat.m_vram_addr[vram_index].find(hash) == cgfx_stat.m_vram_addr[vram_index].end())
 		{
-			cgfx_stat.last_id = id;
+			cgfx_stat.last_id = cgfx_stat.m_hashes[hash];
 			return true;
 		}
-			
+		
 		//Check VRAM addr requirement, if applicable
-		else if(cgfx_stat.m_vram_addr[id] == addr)
+		else
 		{
-			cgfx_stat.last_id = id;
+			cgfx_stat.last_id = cgfx_stat.m_vram_addr[vram_index][hash];
 			return true;
 		}
 	}

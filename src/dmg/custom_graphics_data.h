@@ -36,7 +36,7 @@ struct dmg_cgfx_data
 	std::vector <std::string> m_files;
 	std::vector <u8> m_types;
 	std::vector <u16> m_id;
-	std::vector <u32> m_vram_addr;
+	std::vector < std::map <std::string, u32> > m_vram_addr;
 	std::vector <u16> m_auto_bright;
 
 	//Data pulled from manifest file - Metatile entries
