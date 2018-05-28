@@ -77,10 +77,11 @@ namespace config
 
 	//Default keyboard bindings - Context
 	//Left = 4 (numpad), Right = 6 (numpad), Up = 8 (numpad), Down = 2 (numpad)
-	int con_key_left = 260; int con_key_right = 262; int con_key_up = 264; int con_key_down = 258;
+	//Con1 = 7 (numpad), Con2 = 9 (numpad)
+	int con_key_left = 260; int con_key_right = 262; int con_key_up = 264; int con_key_down = 258; int con_key_1 = 263; int con_key_2 = 265;
 
 	//Default joystick bindings - Context
-	int con_joy_left = 204; int con_joy_right = 205; int con_joy_up = 206; int con_joy_down = 207;
+	int con_joy_left = 204; int con_joy_right = 205; int con_joy_up = 206; int con_joy_down = 207; int con_joy_1 = 109; int con_joy_2 = 110;
 
 	//Default NDS touch zone mappings
 	int touch_zone_x[10] = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
@@ -2000,7 +2001,7 @@ bool parse_ini_file()
 		//Context keyboard controls
 		else if(ini_item == "#con_key_controls")
 		{
-			if((x + 4) < size)
+			if((x + 6) < size)
 			{
 				std::stringstream temp_stream;
 
@@ -2027,6 +2028,18 @@ bool parse_ini_file()
 				temp_stream >> config::con_key_down;
 				temp_stream.clear();
 				temp_stream.str(std::string());
+
+				//CON1
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::con_key_1;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//CON2
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::con_key_2;
+				temp_stream.clear();
+				temp_stream.str(std::string());
 			}
 
 			else 
@@ -2039,7 +2052,7 @@ bool parse_ini_file()
 		//Context joystick controls
 		else if(ini_item == "#con_joy_controls")
 		{
-			if((x + 4) < size)
+			if((x + 6) < size)
 			{
 				std::stringstream temp_stream;
 
@@ -2064,6 +2077,18 @@ bool parse_ini_file()
 				//DOWN
 				temp_stream << ini_opts[++x];
 				temp_stream >> config::con_joy_down;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//CON1
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::con_joy_1;
+				temp_stream.clear();
+				temp_stream.str(std::string());
+
+				//CON2
+				temp_stream << ini_opts[++x];
+				temp_stream >> config::con_joy_2;
 				temp_stream.clear();
 				temp_stream.str(std::string());
 			}
@@ -2927,7 +2952,9 @@ bool save_ini_file()
 			std::string val = util::to_str(config::con_key_left) + ":";
 			val += util::to_str(config::con_key_right) + ":";
 			val += util::to_str(config::con_key_up) + ":";
-			val += util::to_str(config::con_key_down);
+			val += util::to_str(config::con_key_down) + ":";
+			val += util::to_str(config::con_key_1) + ":";
+			val += util::to_str(config::con_key_2);
 
 			output_lines[line_pos] = "[#con_key_controls:" + val + "]";
 		}
@@ -2939,7 +2966,9 @@ bool save_ini_file()
 			std::string val = util::to_str(config::con_joy_left) + ":";
 			val += util::to_str(config::con_joy_right) + ":";
 			val += util::to_str(config::con_joy_up) + ":";
-			val += util::to_str(config::con_joy_down);
+			val += util::to_str(config::con_joy_down) + ":";
+			val += util::to_str(config::con_joy_1) + ":";
+			val += util::to_str(config::con_joy_2);
 
 			output_lines[line_pos] = "[#con_joy_controls:" + val + "]";
 		}

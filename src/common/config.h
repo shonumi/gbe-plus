@@ -85,8 +85,8 @@ namespace config
 	extern int dmg_key_a, dmg_key_b, dmg_key_start, dmg_key_select, dmg_key_up, dmg_key_down, dmg_key_left, dmg_key_right;
 	extern int dmg_joy_a, dmg_joy_b, dmg_joy_start, dmg_joy_select, dmg_joy_up, dmg_joy_down, dmg_joy_left, dmg_joy_right;
 
-	extern int con_key_up, con_key_down, con_key_left, con_key_right;
-	extern int con_joy_up, con_joy_down, con_joy_left, con_joy_right;
+	extern int con_key_up, con_key_down, con_key_left, con_key_right, con_key_1, con_key_2;
+	extern int con_joy_up, con_joy_down, con_joy_left, con_joy_right, con_joy_1, con_joy_2;
 
 	extern int touch_zone_x[10];
 	extern int touch_zone_y[10];
