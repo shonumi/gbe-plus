@@ -727,6 +727,36 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	con_down_layout->setContentsMargins(6, 0, 0, 0);
 	con_down_set->setLayout(con_down_layout);
 
+	//Advanced control settings - Context 1
+	con_1_set = new QWidget(controls);
+	QLabel* con_1_label = new QLabel("Context 1 : ");
+	input_con_1 = new QLineEdit(controls);
+	config_con_1 = new QPushButton("Configure");
+	input_con_1->setMaximumWidth(100);
+	config_con_1->setMaximumWidth(100);
+
+	QHBoxLayout* con_1_layout = new QHBoxLayout;
+	con_1_layout->addWidget(con_1_label, 1, Qt::AlignLeft);
+	con_1_layout->addWidget(input_con_1, 1, Qt::AlignLeft);
+	con_1_layout->addWidget(config_con_1, 1, Qt::AlignLeft);
+	con_1_layout->setContentsMargins(6, 0, 0, 0);
+	con_1_set->setLayout(con_1_layout);
+
+	//Advanced control settings - Context 2
+	con_2_set = new QWidget(controls);
+	QLabel* con_2_label = new QLabel("Context 2 : ");
+	input_con_2 = new QLineEdit(controls);
+	config_con_2 = new QPushButton("Configure");
+	input_con_2->setMaximumWidth(100);
+	config_con_2->setMaximumWidth(100);
+
+	QHBoxLayout* con_2_layout = new QHBoxLayout;
+	con_2_layout->addWidget(con_2_label, 1, Qt::AlignLeft);
+	con_2_layout->addWidget(input_con_2, 1, Qt::AlignLeft);
+	con_2_layout->addWidget(config_con_2, 1, Qt::AlignLeft);
+	con_2_layout->setContentsMargins(6, 0, 0, 0);
+	con_2_set->setLayout(con_2_layout);
+
 	//Hotkey settings - Turbo
 	hotkey_turbo_set = new QWidget(controls);
 	QLabel* hotkey_turbo_label = new QLabel("Toggle Turbo : ");
@@ -797,6 +827,8 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	advanced_controls_layout->addWidget(con_down_set);
 	advanced_controls_layout->addWidget(con_left_set);
 	advanced_controls_layout->addWidget(con_right_set);
+	advanced_controls_layout->addWidget(con_1_set);
+	advanced_controls_layout->addWidget(con_2_set);
 
 	hotkey_controls_layout = new QVBoxLayout;
 	hotkey_controls_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -809,6 +841,8 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	con_down_set->setVisible(false);
 	con_left_set->setVisible(false);
 	con_right_set->setVisible(false);
+	con_1_set->setVisible(false);
+	con_2_set->setVisible(false);
 
 	hotkey_turbo_set->setVisible(false);
 	hotkey_mute_set->setVisible(false);
@@ -1134,6 +1168,8 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(config_con_down, SIGNAL(clicked()), button_config, SLOT(map()));
 	connect(config_con_left, SIGNAL(clicked()), button_config, SLOT(map()));
 	connect(config_con_right, SIGNAL(clicked()), button_config, SLOT(map()));
+	connect(config_con_1, SIGNAL(clicked()), button_config, SLOT(map()));
+	connect(config_con_2, SIGNAL(clicked()), button_config, SLOT(map()));
 	connect(config_turbo, SIGNAL(clicked()), button_config, SLOT(map()));
 	connect(config_mute, SIGNAL(clicked()), button_config, SLOT(map()));
 	connect(config_camera, SIGNAL(clicked()), button_config, SLOT(map()));
@@ -1155,9 +1191,11 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	button_config->setMapping(config_con_down, 13);
 	button_config->setMapping(config_con_left, 14);
 	button_config->setMapping(config_con_right, 15);
-	button_config->setMapping(config_turbo, 16);
-	button_config->setMapping(config_mute, 17);
-	button_config->setMapping(config_camera, 18);
+	button_config->setMapping(config_con_1, 16);
+	button_config->setMapping(config_con_2, 17);
+	button_config->setMapping(config_turbo, 18);
+	button_config->setMapping(config_mute, 19);
+	button_config->setMapping(config_camera, 20);
 	connect(button_config, SIGNAL(mapped(int)), this, SLOT(configure_button(int))) ;
 
 	//Final tab layout
@@ -1183,6 +1221,8 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	config_con_down->setMinimumWidth(150);
 	config_con_left->setMinimumWidth(150);
 	config_con_right->setMinimumWidth(150);
+	config_con_1->setMinimumWidth(150);
+	config_con_2->setMinimumWidth(150);
 	config_turbo->setMinimumWidth(150);
 	config_mute->setMinimumWidth(150);
 	config_camera->setMinimumWidth(150);
@@ -1224,6 +1264,8 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	config_con_down->installEventFilter(this);
 	config_con_left->installEventFilter(this);
 	config_con_right->installEventFilter(this);
+	config_con_1->installEventFilter(this);
+	config_con_2->installEventFilter(this);
 	config_turbo->installEventFilter(this);
 	config_mute->installEventFilter(this);
 	config_camera->installEventFilter(this);
@@ -1244,6 +1286,8 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	input_con_down->installEventFilter(this);
 	input_con_left->installEventFilter(this);
 	input_con_right->installEventFilter(this);
+	input_con_1->installEventFilter(this);
+	input_con_2->installEventFilter(this);
 	input_turbo->installEventFilter(this);
 	input_mute->installEventFilter(this);
 	input_camera->installEventFilter(this);
@@ -1265,6 +1309,8 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	config_con_down->setFocusPolicy(Qt::NoFocus);
 	config_con_left->setFocusPolicy(Qt::NoFocus);
 	config_con_right->setFocusPolicy(Qt::NoFocus);
+	config_con_1->setFocusPolicy(Qt::NoFocus);
+	config_con_2->setFocusPolicy(Qt::NoFocus);
 	config_turbo->setFocusPolicy(Qt::NoFocus);
 	config_mute->setFocusPolicy(Qt::NoFocus);
 	config_camera->setFocusPolicy(Qt::NoFocus);
@@ -1285,6 +1331,8 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	input_con_down->setFocusPolicy(Qt::NoFocus);
 	input_con_left->setFocusPolicy(Qt::NoFocus);
 	input_con_right->setFocusPolicy(Qt::NoFocus);
+	input_con_1->setFocusPolicy(Qt::NoFocus);
+	input_con_2->setFocusPolicy(Qt::NoFocus);
 	input_turbo->setFocusPolicy(Qt::NoFocus);
 	input_mute->setFocusPolicy(Qt::NoFocus);
 	input_camera->setFocusPolicy(Qt::NoFocus);
@@ -1483,6 +1531,8 @@ void gen_settings::set_ini_options()
 	input_con_down->setText(QString::number(config::con_key_down));
 	input_con_left->setText(QString::number(config::con_key_left));
 	input_con_right->setText(QString::number(config::con_key_right));
+	input_con_1->setText(QString::number(config::con_key_1));
+	input_con_2->setText(QString::number(config::con_key_2));
 	input_turbo->setText(QString::number(config::hotkey_turbo));
 	input_mute->setText(QString::number(config::hotkey_mute));
 	input_camera->setText(QString::number(config::hotkey_camera));
@@ -1943,6 +1993,8 @@ void gen_settings::input_device_change()
 		input_con_down->setText(QString::number(config::con_key_down));
 		input_con_left->setText(QString::number(config::con_key_left));
 		input_con_right->setText(QString::number(config::con_key_right));
+		input_con_1->setText(QString::number(config::con_key_1));
+		input_con_2->setText(QString::number(config::con_key_2));
 	}
 
 	else
@@ -1963,6 +2015,8 @@ void gen_settings::input_device_change()
 		input_con_down->setText(QString::number(config::con_joy_down));
 		input_con_left->setText(QString::number(config::con_joy_left));
 		input_con_right->setText(QString::number(config::con_joy_right));
+		input_con_1->setText(QString::number(config::con_joy_1));
+		input_con_2->setText(QString::number(config::con_joy_2));
 
 		//Use new joystick id
 		config::joy_id = input_device->currentIndex() - 1;
@@ -2139,22 +2193,34 @@ void gen_settings::configure_button(int button)
 			input_index = 15;
 			break;
 
-		case 16:
-			input_delay(config_turbo);
-			input_turbo->setFocus();
+		case 16: 
+			input_delay(config_con_1);
+			input_con_1->setFocus();
 			input_index = 16;
 			break;
 
-		case 17:
-			input_delay(config_mute);
-			input_turbo->setFocus();
+		case 17: 
+			input_delay(config_con_2);
+			input_con_2->setFocus();
 			input_index = 17;
 			break;
 
 		case 18:
-			input_delay(config_camera);
+			input_delay(config_turbo);
 			input_turbo->setFocus();
 			input_index = 18;
+			break;
+
+		case 19:
+			input_delay(config_mute);
+			input_turbo->setFocus();
+			input_index = 19;
+			break;
+
+		case 20:
+			input_delay(config_camera);
+			input_turbo->setFocus();
+			input_index = 20;
 			break;
 	}
 
@@ -2411,6 +2477,28 @@ void gen_settings::process_joystick_event()
 			config_con_right->setText("Configure");
 			input_con_right->clearFocus();
 			break;
+
+		case 16:
+			if(pad != 0)
+			{
+				config::con_joy_1 = pad;
+				input_con_1->setText(QString::number(pad));
+			}
+
+			config_con_1->setText("Configure");
+			input_con_1->clearFocus();
+			break;
+
+		case 17:
+			if(pad != 0)
+			{
+				config::con_joy_2 = pad;
+				input_con_2->setText(QString::number(pad));
+			}
+
+			config_con_2->setText("Configure");
+			input_con_2->clearFocus();
+			break;
 	}
 
 	input_index = -1;
@@ -2437,6 +2525,8 @@ void gen_settings::close_input()
 	config_con_down->setText("Configure");
 	config_con_left->setText("Configure");
 	config_con_right->setText("Configure");
+	config_con_1->setText("Configure");
+	config_con_2->setText("Configure");
 	config_turbo->setText("Configure");
 	config_mute->setText("Configure");
 	config_camera->setText("Configure");
@@ -2569,6 +2659,8 @@ void gen_settings::switch_control_layout()
 			advanced_controls_layout->addWidget(con_down_set);
 			advanced_controls_layout->addWidget(con_left_set);
 			advanced_controls_layout->addWidget(con_right_set);
+			advanced_controls_layout->addWidget(con_1_set);
+			advanced_controls_layout->addWidget(con_2_set);
 			break;
 
 		case 2:
@@ -2805,6 +2897,28 @@ void gen_settings::keyPressEvent(QKeyEvent* event)
 			case 16:
 				if(last_key != -1)
 				{
+					config::con_key_1 = last_key;
+					input_con_1->setText(QString::number(last_key));
+				}
+
+				config_con_1->setText("Configure");
+				input_con_1->clearFocus();
+				break;
+
+			case 17:
+				if(last_key != -1)
+				{
+					config::con_key_2 = last_key;
+					input_con_2->setText(QString::number(last_key));
+				}
+
+				config_con_2->setText("Configure");
+				input_con_2->clearFocus();
+				break;
+
+			case 18:
+				if(last_key != -1)
+				{
 					config::hotkey_turbo = last_key;
 					input_turbo->setText(QString::number(last_key));
 				}
@@ -2813,7 +2927,7 @@ void gen_settings::keyPressEvent(QKeyEvent* event)
 				input_turbo->clearFocus();
 				break;
 
-			case 17:
+			case 19:
 				if(last_key != -1)
 				{
 					config::hotkey_mute = last_key;
@@ -2824,7 +2938,7 @@ void gen_settings::keyPressEvent(QKeyEvent* event)
 				input_mute->clearFocus();
 				break;
 
-			case 18:
+			case 20:
 				if(last_key != -1)
 				{
 					config::hotkey_camera = last_key;

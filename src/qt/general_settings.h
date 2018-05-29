@@ -131,6 +131,8 @@ class gen_settings : public QDialog
 	QLineEdit* input_con_right;
 	QLineEdit* input_con_up;
 	QLineEdit* input_con_down;
+	QLineEdit* input_con_1;
+	QLineEdit* input_con_2;
 	QLineEdit* input_turbo;
 	QLineEdit* input_mute;
 	QLineEdit* input_camera;
@@ -151,6 +153,8 @@ class gen_settings : public QDialog
 	QPushButton* config_con_right;
 	QPushButton* config_con_up;
 	QPushButton* config_con_down;
+	QPushButton* config_con_1;
+	QPushButton* config_con_2;
 	QPushButton* config_turbo;
 	QPushButton* config_mute;
 	QPushButton* config_camera;
@@ -249,6 +253,8 @@ class gen_settings : public QDialog
 	QWidget* con_down_set;
 	QWidget* con_left_set;
 	QWidget* con_right_set;
+	QWidget* con_1_set;
+	QWidget* con_2_set;
 
 	QWidget* hotkey_turbo_set;
 	QWidget* hotkey_mute_set;
