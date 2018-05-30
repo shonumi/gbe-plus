@@ -1353,11 +1353,14 @@ void ARM7::mem_check_8(u32 addr, u32& value, bool load_store)
 
 			switch(bios_read_state)
 			{
-				case BIOS_STARTUP: value = 0x00; break;
-				case BIOS_IRQ_EXECUTE : value = 0x04; break;
-				case BIOS_IRQ_FINISH : value = 0x02; break;
-				case BIOS_SWI_FINISH : value = 0x04; break;
+				case BIOS_STARTUP: value = 0xE129F000; break;
+				case BIOS_IRQ_EXECUTE : value = 0xE25EF004; break;
+				case BIOS_IRQ_FINISH : value = 0xE55EC002; break;
+				case BIOS_SWI_FINISH : value = 0xE3A02004; break;
 			}
+
+			value >>= (8 * (addr & 0x3));
+			value &= 0xFF;
 		}
 
 		//Normal operation

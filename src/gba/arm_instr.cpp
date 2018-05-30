@@ -836,7 +836,7 @@ void ARM7::single_data_transfer(u32 current_arm_instruction)
 		if(byte_word == 1)
 		{
 			//Clock CPU and controllers - 1I
-			value = mem->read_u8(base_addr);
+			mem_check_8(base_addr, value, true);
 			clock();
 
 			//Clock CPU and controllers - 1N
