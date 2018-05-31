@@ -671,12 +671,10 @@ void SGB_LCD::render_sgb_obj_scanline()
 	//If no sprites are rendered on this line, quit now
 	if(obj_render_length < 0) { return; }
 
-	//Determine current ATF for SGB system colors
 	u8 system_colors = 0;
 	u16 pal_id = 0;
 	s8 color_shift = 0;
-	u16 atf_index = current_atf * 90;
-	atf_index += (lcd_stat.current_scanline / 8) * 5;
+	u8 current_screen_pixel = 0;
 
 	//Grab Color 0
 	u32 color_z = (manual_pal) ? color_0 : sgb_pal[(sgb_system_pal[0] * 4)];
@@ -688,6 +686,7 @@ void SGB_LCD::render_sgb_obj_scanline()
 
 		//Set the current pixel to start obj rendering
 		lcd_stat.scanline_pixel_counter = obj[sprite_id].x;
+		current_screen_pixel = obj[sprite_id].x;
 		
 		//Determine which line of the tiles to generate pixels for this scanline		
 		u8 tile_line = (lcd_stat.current_scanline - obj[sprite_id].y);
@@ -727,12 +726,26 @@ void SGB_LCD::render_sgb_obj_scanline()
 			//Render sprite pixel
 			if(draw_obj_pixel)
 			{
-				//Lookup SGB system colors from ATF
-				if(lcd_stat.scanline_pixel_counter < 160)
+				//Lookup SGB colors from ATF
+				if((current_screen_pixel < 160) && (sgb_gfx_mode == 0))
 				{
-					u8 shift_index = (lcd_stat.scanline_pixel_counter / 32);
-					color_shift = 6 - ((lcd_stat.scanline_pixel_counter % 8) & ~0x1);
-					system_colors = (atf_data[atf_index + shift_index] >> color_shift) & 0x3;
+					u16 atf_index = current_atf * 90;
+					atf_index += (lcd_stat.current_scanline / 8) * 5;
+
+					system_colors = (atf_data[atf_index] >> color_shift) & 0x3;
+			
+					if(manual_pal) { pal_id = (system_colors * 4) + 2048; }
+					else { pal_id = sgb_system_pal[system_colors] * 4; }
+				}
+
+				//Look up SGB colors from ATR_BLK
+				else if((current_screen_pixel < 160) && (sgb_gfx_mode == 1))
+				{
+					u8 atr_x = (current_screen_pixel / 8);
+					u8 atr_y = (lcd_stat.current_scanline / 8);
+					u16 index = (atr_y * 20) + atr_x;
+
+					system_colors = atr_blk[index];
 			
 					if(manual_pal) { pal_id = (system_colors * 4) + 2048; }
 					else { pal_id = sgb_system_pal[system_colors] * 4; }
@@ -758,6 +771,7 @@ void SGB_LCD::render_sgb_obj_scanline()
 				}
 
 				u8 last_scanline_pixel = lcd_stat.scanline_pixel_counter - 1;
+				current_screen_pixel++;
 			}
 
 			//Move onto next pixel in scanline to see if sprite rendering occurs
