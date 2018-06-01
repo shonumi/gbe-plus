@@ -651,6 +651,9 @@ bool parse_cli_args()
 			//Use MBC1M multicart mode if applicable for a given ROM
 			else if(config::cli_args[x] == "--mbc1m") { config::cart_type = DMG_MBC1M; }
 
+			//Use MBC1S if applicable for Pocket Sonar
+			else if(config::cli_args[x] == "--mbc1s") { config::cart_type = DMG_MBC1S; }
+
 			//Use MMM01 multicart mode if applicable for a given ROM
 			else if(config::cli_args[x] == "--mmm01") { config::cart_type = DMG_MMM01; }
 

@@ -58,6 +58,7 @@ void DMG_MMU::reset()
 	cart.battery = false;
 	cart.ram = false;
 	cart.multicart = ((config::cart_type == DMG_MBC1M) || (config::cart_type == DMG_MMM01));
+	cart.sonar = (config::cart_type == DMG_MBC1S);
 	cart.rumble = false;
 
 	cart.rtc = false;
@@ -78,6 +79,8 @@ void DMG_MMU::reset()
 	for(u32 x = 0; x < 54; x++) { cart.cam_reg[x] = 0; }
 	cart.cam_buffer.clear();
 	cart.cam_lock = false;
+
+	cart.sonar_byte = 0;
 
 	ir_signal = 0;
 	ir_send = false;
@@ -1380,7 +1383,8 @@ u8 DMG_MMU::mbc_read(u16 address)
 	switch(cart.mbc_type)
 	{
 		case MBC1:
-			return cart.multicart ? mbc1_multicart_read(address) : mbc1_read(address);
+			if(!cart.sonar) { return cart.multicart ? mbc1_multicart_read(address) : mbc1_read(address); }
+			else { return mbc1s_read(address); }
 			break;
 
 		case MBC2:
@@ -1419,7 +1423,8 @@ void DMG_MMU::mbc_write(u16 address, u8 value)
 	switch(cart.mbc_type)
 	{
 		case MBC1:
-			cart.multicart ? mbc1_multicart_write(address, value) : mbc1_write(address, value);
+			if(!cart.sonar) { cart.multicart ? mbc1_multicart_write(address, value) : mbc1_write(address, value); }
+			else { mbc1s_write(address, value); }
 			break;
 
 		case MBC2:

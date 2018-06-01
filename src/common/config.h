@@ -37,6 +37,7 @@ enum special_cart_types
 {
 	NORMAL_CART,
 	DMG_MBC1M,
+	DMG_MBC1S,
 	DMG_MMM01,
 	AGB_RTC,
 	AGB_SOLAR_SENSOR,

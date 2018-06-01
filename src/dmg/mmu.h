@@ -77,6 +77,7 @@ class DMG_MMU
 		bool battery;
 		bool ram;
 		bool multicart;
+		bool sonar;
 		bool rumble;
 
 		//MBC3 RTC
@@ -102,6 +103,9 @@ class DMG_MMU
 		u8 cam_reg[54];
 		std::vector <u8> cam_buffer;
 		bool cam_lock;
+
+		//MBC1S
+		u8 sonar_byte;
 	} cart;
 
 	u8 ir_signal;
@@ -148,6 +152,9 @@ class DMG_MMU
 
 	void mbc1_multicart_write(u16 address, u8 value);
 	u8 mbc1_multicart_read(u16 address);
+
+	void mbc1s_write(u16 address, u8 value);
+	u8 mbc1s_read(u16 address);
 
 	void mbc2_write(u16 address, u8 value);
 	u8 mbc2_read(u16 address);
