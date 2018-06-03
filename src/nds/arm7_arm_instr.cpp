@@ -33,15 +33,11 @@ void NTR_ARM7::branch_exchange(u32 current_arm_instruction)
 	{
 		//Branch
 		case 0x1:
-			//Clock CPU and controllers - 1N
-			clock(reg.r15, CODE_N32);
-
 			reg.r15 = result;
 			needs_flush = true;
 
-			//Clock CPU and controllers - 2S
-			clock(reg.r15, CODE_S32);
-			clock((reg.r15 + 4), CODE_S32);
+			//Clock CPU and controllers - 1N + 2S
+			system_cycles += 3;
 
 			break;
 
@@ -73,30 +69,22 @@ void NTR_ARM7::branch_link(u32 current_arm_instruction)
 	{
 		//Branch
 		case 0x0:
-			//Clock CPU and controllers - 1N
-			clock(reg.r15, CODE_N32);
-
 			reg.r15 = final_addr;
 			needs_flush = true;
 
-			//Clock CPU and controllers - 2S
-			clock(reg.r15, CODE_S32);
-			clock((reg.r15 + 4), CODE_S32);
+			//Clock CPU and controllers - 1N + 2S
+			system_cycles += 3;
 
 			break;
 
 		//Branch and Link
 		case 0x1:
-			//Clock CPU and controllers - 1N
-			clock(reg.r15, CODE_N32);
-
 			set_reg(14, (reg.r15 - 4));
 			reg.r15 = final_addr;
 			needs_flush = true;
 
-			//Clock CPU and controllers - 2S
-			clock(reg.r15, CODE_S32);
-			clock((reg.r15 + 4), CODE_S32);
+			//Clock CPU and controllers - 1N + 2S
+			system_cycles += 3;
 
 			break;
 	}
@@ -191,17 +179,18 @@ void NTR_ARM7::data_processing(u32 current_arm_instruction)
 		}
 		
 		//Clock CPU and controllers - 1I
-		clock();
+		system_cycles++;
 	}		
 
 	//TODO - When op is 0x8 through 0xB, make sure Bit 20 is 1 (rather force it? Unsure)
 	//TODO - 2nd Operand for TST/TEQ/CMP/CMN must be R0 (rather force it to be R0)
 	//TODO - See GBATEK - S=1, with unused Rd bits=1111b
 
-	//Clock CPU and controllers - 1N
+	//Destination register is R15
 	if(dest_reg == 15)
 	{
-		clock(reg.r15, CODE_N32);
+		//Clock CPU and controllers - 1S + 1N
+		system_cycles += 2;
 		
 		//When the set condition parameter is 1 and destination register is R15, change CPSR to SPSR
 		if(set_condition)
@@ -219,12 +208,14 @@ void NTR_ARM7::data_processing(u32 current_arm_instruction)
 				case 0x17: current_cpu_mode = ABT; break;
 				case 0x1B: current_cpu_mode = UND; break;
 				case 0x1F: current_cpu_mode = SYS; break;
-				default: std::cout<<"CPU::ARM9::Warning - ARM.6 CPSR setting unknown CPU mode -> 0x" << std::hex << (reg.cpsr & 0x1F) << "\n";
+				default: std::cout<<"CPU::ARM9::Warning - ARM.5 CPSR setting unknown CPU mode -> 0x" << std::hex << (reg.cpsr & 0x1F) << "\n";
 			}
 
 			//Switch to ARM or THUMB mode if necessary
 			arm_mode = (reg.cpsr & 0x20) ? THUMB : ARM;
 		}
+
+		needs_flush = true; 
 	}
 
 	switch(op)
@@ -379,21 +370,8 @@ void NTR_ARM7::data_processing(u32 current_arm_instruction)
 			break;
 	}
 
-	//Timings for PC as destination register
-	if(dest_reg == 15) 
-	{
-		//Clock CPU and controllers - 2S
-		needs_flush = true; 
-		clock(reg.r15, CODE_S32);
-		clock((reg.r15 + 4), CODE_S32);
-	}
-
-	//Timings for regular registers
-	else 
-	{
-		//Clock CPU and controllers - 1S
-		clock((reg.r15 + 4), CODE_S32);
-	}
+	//Clock CPU and controllers - 1S
+	system_cycles++;
 }
 
 /****** ARM.6 PSR Transfer ******/
@@ -511,7 +489,7 @@ void NTR_ARM7::psr_transfer(u32 current_arm_instruction)
 	}
 
 	//Clock CPU and controllers - 1S
-	clock((reg.r15 + 4), CODE_S32);
+	system_cycles++;
 } 
 
 
