@@ -4,14 +4,14 @@ Shonumi aka D.S. Baxter
 
 
 ***************************************************
-Introduction
+1. Introduction
 ***************************************************
 
 
 Appearing around 1992, the Barcode Boy is the earliest form of card-scanning on Nintendo's Game Boy line of handhelds, predating both the e-Reader and the Bardigun Taisen Reader by a number of years. Only a limited set of games made by Namcot were compatible (or rather absolutely required) the Barcode Boy. All of the games and the Barcode Boy itself were only released in Japan. Not much has been written about any of the games, like Battle Space or Monster Maker, and even less has been documented about the Barcode Boy hardware, the scanning process, and the barcodes. Again, here it is 2017, and there are such little efforts to preserve and record exotic portable gaming hardware. This small technical file aims to archive all the information I found through reverse engineering, hopefully serving as a guide for other emu-devs and providing details for gaming historians that would otherwise be lost to time. Here we go then.
 
 ***************************************************
-General Hardware Information
+2. General Hardware Information
 ***************************************************
 
 
@@ -23,7 +23,7 @@ Includes a very, very short Link Cable
 Unlike the Barcode Taisen Bardigun reader, the Barcode Boy has no button. It is always "ON" when switched on, thus draining batteries even while not scanning
 
 ***************************************************
-Barcode Boy Games
+3. Barcode Boy Games
 ***************************************************
 
 Only 5 Barcode Boy games are known to exist:
@@ -35,7 +35,7 @@ Only 5 Barcode Boy games are known to exist:
 - Famista 3
 
 ***************************************************
-Barcode Boy-DMG Communication
+4. Barcode Boy-DMG Communication
 ***************************************************
 
 
@@ -82,7 +82,7 @@ Since the Barcode Boy acts as master (after the handshake at least), the Game Bo
 Once the Barcode Boy sends the handshake [0x10, 0x07] back to the Game Boy, the scanner returns 0xFF anytime the Game Boy tries to send additional data while the handheld is still on its own internal clock. After the Barcode Boy finishes sending back the barcode data to the Game Boy, it requires the handshake again. It appears the handshake can fail for unknown reasons (probably related to the hardware). For example, the Barcode Boy at times may send back [0x90, 0x07], which seems to indicate an error of some sort.
 
 ***************************************************
-Barcode Format
+5. Barcode Format
 ***************************************************
 
 
@@ -91,7 +91,7 @@ The two strings are the actual barcode data in numerical form. The barcode forma
 Using scans of the barcode @ 600 DPI, the smallest bar width is approximately 7 pixels (give or take). With that information, it's possible to recreate the EAN-13 number with a sufficient image and barcode scanning software. It should be noted that the Barcode Boy appears to do away with the center guard, however, it maintains left and right guards.
 
 ***************************************************
-Card Dumping + Emulation
+6. Card Dumping + Emulation
 ***************************************************
 
 
@@ -100,7 +100,7 @@ Amazingly simple in comparison to something like Barcode Taisen Bardigun, chiefl
 As far as emulation goes, simply convert the EAN-13 ASCII string to hex and transmit it accordingly.
 
 ***************************************************
-Barcode Errors
+7. Barcode Errors
 ***************************************************
 
 

@@ -1,4 +1,4 @@
-DMG-07 Technical Documentation 0.3
+DMG-07 Technical Documentation 0.4
 November 23, 2017
 Shonumi aka D.S. Baxter
 
@@ -21,7 +21,28 @@ Player 1 needs to be a DMG model unless an MGB-004 adapter is used.
 DMG-07 uses a Motorola 402038 for multiplexing stuff.
 
 ***************************************************
-3. DMG-07 Protocol
+3. DMG-07 Compatible Games
+***************************************************
+
+
+This list represents all the games that have been verified to use the DMG-07. This list is probably not complete as there are likely more Japanese exclusives that need to be added.
+
+- Chachamaru Panix
+- Downtown Nekketsu Koushinkyoku: Dokodemo Daiundoukai
+- Faceball 2000
+- F1 Race
+- F1 Pole Position
+- Nekketsu Koukou Dodge Ball-Bu
+- Super R.C. Pro-Am
+- Top Rank Tennis
+- Trax
+- Trump Boy II
+- Uno: Small World 2
+- Wave Race
+- Yoshi's Cookie
+
+***************************************************
+4. DMG-07 Protocol
 ***************************************************
 
 
@@ -30,7 +51,7 @@ The DMG-07 protocol can be divided into 2 sections, the "ping" phase, and the "t
 A very important thing to note is that all Game Boys transfer data across the DMG-07 via an external clock source. Apparently, the clock source is provided by the DMG-07 itself. Trying to send data via an internal clock results in garbage data.
 
 ===================================================
-3.a DMG-07 Ping Phase
+4.a DMG-07 Ping Phase
 =================================================== 
 
 
@@ -82,7 +103,7 @@ The lowest setting (RATE = 0) runs the DMG-07 at the normal speed DMGs usually t
 SIZE sets the length of packets exchanged between all Game Boys. Nothing fancy, just the number of bytes in each packet. It probably shouldn't be set to zero. 
 
 ===================================================
-3.b DMG-07 Transmission Phase
+4.b DMG-07 Transmission Phase
 =================================================== 
 
 
@@ -143,7 +164,7 @@ With the buffering system, Game Boys would normally be reading data from previou
 When the DMG-07 enters the transmission phase, the buffer is initially filled with garbage data that is based on output the master Game Boy had sent during the ping phase. At this time, it is recommended to ignore the earliest packets received, however, it is safe to start putting new, relevant data into the buffer.
 
 ===================================================
-3.b DMG-07 Restarting the Ping Phase
+4.c DMG-07 Restarting the Ping Phase
 =================================================== 
 
 

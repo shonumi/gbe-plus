@@ -4,13 +4,13 @@ Shonumi aka D.S. Baxter
 
 
 ***************************************************
-Introduction
+1. Introduction
 ***************************************************
 
 Zok Zok Heroes was a GBC JRPG released on August 4, 2000, made by Media Factory when they still produced video games. It used a special accessory called the "Full Changer", a device that looks like a toy, but acts as an IR transmitter. It sent signals to the GBC once players moved it through the air to "draw" certain patterns. Once the GBC gets the IR light pulses, it allows players to transform into different "Bright Heroes" to do battle against evil bad guys. It never sold outside of Japan. After a specific point early in the game, it becomes impossible to progress further in emulators without cheat codes/hacks or by properly emulating the Full Changer. Below are brief technical notes about the Full Changer.
 
 ***************************************************
-General Cart+Hardware Information
+2. General Cart+Hardware Information
 ***************************************************
 
 
@@ -24,7 +24,7 @@ Full Changer presumably contains an accelerometer to detect movement
 Full Changer has a series of status lights and blinks/beeps when swung correctly
 
 ***************************************************
-Full Changer Operation
+3. Full Changer Operation
 ***************************************************
 
 
@@ -41,14 +41,14 @@ Full Changer Operation
 6. Put the bottom of the Full Changer on top of the GBC, making sure to cover the IR port. The Full Changer has a little plastic guide to make sure everything fits and faces the right direction.
 
 ***************************************************
-Full Changer-GBC Communication
+4. Full Changer-GBC Communication
 ***************************************************
 
 
 The Full Changer sends a total of 18 IR pulses (on then off periods) when transmitting data. The length of these pulses varies and determines what values the Full Changer is trying to send. Zok Zok Heroes runs in a couple of loops while the pulse takes place. Each iteration, it increments a counter to get an idea of the overall "delay" it takes for the IR light to turn on then turn off. That counter is then placed in WRAM as a single byte (anything greater than 0xFF causes a timeout) and verified later. In this way, Zok Zok Heroes can view data from the Full Changer as a series of bytes rather than light pulses. These 18 bytes do not appear to have to be especially strict values (e.g. changing them +1 or -1 should still yield the same Bright Hero transformation). The overall data format, if any, is currently unknown, making it difficult to determine what those 18 bytes should be without intercepting an actual transmission from the Full Changer (this could change in the future with more analysis).
 
 ***************************************************
-Capturing IR Data From Full Changer
+5. Capturing IR Data From Full Changer
 ***************************************************
 
 
@@ -97,7 +97,7 @@ JR NZ, 0xF3
 Once all 18 bytes have been stored in WRAM, it's possible to read them and save them using a ROM hack. Alternatively, homebrew software can use code with the same timing to accurately capture IR data from the Full Changer.
 
 ***************************************************
-Emulating The Full Changer
+6. Emulating The Full Changer
 ***************************************************
 
 

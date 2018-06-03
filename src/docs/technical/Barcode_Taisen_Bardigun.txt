@@ -4,7 +4,7 @@ Shonumi aka D.S. Baxter
 
 
 ***************************************************
-Introduction
+1. Introduction
 ***************************************************
 
 
@@ -14,7 +14,7 @@ The game and card reader hardware are now almost 20 years old, so I figured it's
 
 
 ***************************************************
-General Cart+Hardware Information
+2. General Cart+Hardware Information
 ***************************************************
 
 
@@ -30,7 +30,7 @@ Reader connects to DMG/GBC serial port for communication (technically could work
 
 
 ***************************************************
-Card Reader-GBC communication
+3. Card Reader-GBC communication
 ***************************************************
 
 
@@ -52,7 +52,7 @@ Nitty-gritty bits
 
 
 ***************************************************
-Barcode Format
+4. Barcode Format
 ***************************************************
 
 
@@ -91,7 +91,7 @@ Number of Pixels @ 600dpi * 1.875 = Approximate bit count.
 
 
 ***************************************************
-Card Dumping
+5. Card Dumping
 ***************************************************
 
 
