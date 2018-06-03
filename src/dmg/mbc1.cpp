@@ -8,6 +8,7 @@
 //
 // Handles reading and writing bytes to memory locations for MBC1
 // Used to switch ROM and RAM banks in MBC1
+// Also handles multicart (MBC1M) and sonar (MBC1S) variants
 
 #include "mmu.h"
 
@@ -163,13 +164,6 @@ u8 DMG_MMU::mbc1_multicart_read(u16 address)
 /****** Performs write operations specific to the MBC1S ******/
 void DMG_MMU::mbc1s_write(u16 address, u8 value)
 {
-	//Write to External RAM
-	if((address >= 0xA000) && (address <= 0xBFFF) && (cart.ram))
-	{
-		if((bank_mode == 0) && (ram_banking_enabled)) { random_access_bank[0][address - 0xA000] = value; }
-		else if((bank_mode == 1) && (ram_banking_enabled)) { random_access_bank[bank_bits][address - 0xA000] = value; }
-	}
-
 	//MBC register - Enable or Disable RAM Banking
 	if((address <= 0x1FFF) && (cart.ram))
 	{
@@ -183,10 +177,19 @@ void DMG_MMU::mbc1s_write(u16 address, u8 value)
 		rom_bank = (value & 0x1F);
 	}
 
-	//MBC register - Select ROM bank bits 5 to 6 or Set or RAM bank
-	else if((address >= 0x4000) && (address <= 0x5FFF)) { bank_bits = (value & 0x3); }
+	//MBC register - Sonar pulse
+	else if((address >= 0x4000) && (address <= 0x5FFF))
+	{
+		if(bank_mode & 0x1)
+		{
+			//Reset counter when writing 1 then 0
+			if((value == 0) && (bank_bits & 0x1)) { cart.pulse_count = 0; }
+		}
 
-	//MBC register - ROM/RAM Select
+		bank_bits = (value & 0x1);
+	}
+
+	//MBC register - Activate sonar
 	else if((address >= 0x6000) && (address <= 0x7FFF)) { bank_mode = (value & 0x1); }
 }
 
@@ -217,11 +220,62 @@ u8 DMG_MMU::mbc1s_read(u16 address)
 		else { return memory_map[address]; }
 	}
 
-	//Read using RAM Banking
+	//Read sonar data
 	else if((address >= 0xA000) && (address <= 0xBFFF))
 	{
-		if((bank_mode == 0) && (ram_banking_enabled)) { return random_access_bank[0][address - 0xA000]; }
-		else if((bank_mode == 1) && (ram_banking_enabled)) { return random_access_bank[bank_bits][address - 0xA000]; }
-		else { return 0x00; }
+		//Use current depth to pull data from frame
+		float index = 1.0;
+
+		switch(cart.depth)
+		{
+			case 0: index = 188.0; break;
+			case 1: index = 196.0; break;
+			case 2: index = 198.0; break;
+			case 3: index = 199.4; break;
+			case 4: index = 199.0; break;
+			case 5: index = 200.0; break;
+		}
+
+		//Find current index of frame data based on pulse count
+		index = 96.0 / index;
+		index *= cart.frame_count;
+		u32 final_index = index;
+
+		//Grab sonar data from fame
+		if(index < cart.frame_data.size()) { cart.sonar_byte = cart.frame_data[u32(index)]; }
+		cart.pulse_count++;
+		cart.frame_count++;
+
+		return cart.sonar_byte;
 	}
+}
+
+/****** Calculates depth based on number of 0xA000 reads after 1st screen refresh ******/
+void DMG_MMU::mbc1s_calculate_depth()
+{
+	switch(cart.pulse_count)
+	{
+		case 188: cart.depth = 0; break;
+		case 155: cart.depth = 1; break;
+		case 77: cart.depth = 2; break;
+		case 51: cart.depth = 3; break;
+		case 37: cart.depth = 4; break;
+		case 24: cart.depth = 5; break;
+	}
+
+	//Also calculate frame count
+	u32 total_reads = 0;
+
+	switch(cart.depth)
+	{
+		case 0: total_reads = 30080; break;
+		case 1: total_reads = 31360; break;
+		case 2: total_reads = 31680; break;
+		case 3: total_reads = 31904; break;
+		case 4: total_reads = 31840; break;
+		case 5: total_reads = 32000; break;
+	}
+
+	if(cart.frame_count > total_reads) { cart.frame_count = 0; }
+
 }

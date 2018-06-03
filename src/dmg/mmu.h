@@ -106,6 +106,10 @@ class DMG_MMU
 
 		//MBC1S
 		u8 sonar_byte;
+		u8 depth;
+		std::vector <u8> frame_data;
+		u32 pulse_count;
+		u32 frame_count;
 	} cart;
 
 	u8 ir_signal;
@@ -155,6 +159,7 @@ class DMG_MMU
 
 	void mbc1s_write(u16 address, u8 value);
 	u8 mbc1s_read(u16 address);
+	void mbc1s_calculate_depth();
 
 	void mbc2_write(u16 address, u8 value);
 	u8 mbc2_read(u16 address);

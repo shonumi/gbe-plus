@@ -81,6 +81,10 @@ void DMG_MMU::reset()
 	cart.cam_lock = false;
 
 	cart.sonar_byte = 0;
+	cart.frame_data.clear();
+	cart.pulse_count = 0;
+	cart.frame_count = 0;
+	cart.depth = 0;
 
 	ir_signal = 0;
 	ir_send = false;
@@ -1773,6 +1777,9 @@ bool DMG_MMU::read_file(std::string filename)
 			std::cout<<"MMU::MBC type currently unsupported \n";
 			return false;
 	}
+
+	//Let MBC1S access cart RAM area for MBC registers
+	if(cart.sonar) { cart.ram = true; }
 
 	//Calculate 8-bit checksum
 	u8 checksum = 0;
