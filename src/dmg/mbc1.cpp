@@ -11,6 +11,7 @@
 // Also handles multicart (MBC1M) and sonar (MBC1S) variants
 
 #include "mmu.h"
+#include "common/util.h"
 
 /****** Performs write operations specific to the MBC1 ******/
 void DMG_MMU::mbc1_write(u16 address, u8 value)
@@ -238,11 +239,12 @@ u8 DMG_MMU::mbc1s_read(u16 address)
 
 		//Find current index of frame data based on pulse count
 		index = 96.0 / index;
-		index *= cart.frame_count;
+		index *= cart.pulse_count;
+		index += 96 * cart.frame_count;
 		u32 final_index = index;
 
 		//Grab sonar data from fame
-		if(index < cart.frame_data.size()) { cart.sonar_byte = cart.frame_data[u32(index)]; }
+		if(final_index < cart.frame_data.size()) { cart.sonar_byte = cart.frame_data[final_index]; }
 		cart.pulse_count++;
 		cart.frame_count++;
 
@@ -278,4 +280,116 @@ void DMG_MMU::mbc1s_calculate_depth()
 
 	if(cart.frame_count > total_reads) { cart.frame_count = 0; }
 
+}
+
+/****** Open external image and convert to sonar data ******/
+bool DMG_MMU::mbc1s_load_sonar_data(std::string filename)
+{
+	//Load source image
+	SDL_Surface* src_img = NULL;
+	src_img = SDL_LoadBMP(filename.c_str());
+
+	if(src_img == NULL)
+	{
+		std::cout<<"MMU::Error - Could not load sonar image " << filename << "\n";
+		return false;
+	}
+
+	//Grab image dimensions, calculate scaling - Ideal sonar images are 160x96
+	double scale_x = src_img->w / 160.0;
+	double scale_y = src_img->h / 96.0;
+
+	std::vector<u32> src_buffer;
+
+	//Lock surface
+	if(SDL_MUSTLOCK(src_img)) { SDL_LockSurface(src_img); }
+
+	//Grab pixel data from input image - Load 24-bit color data
+	//Load 24-bit data
+	u8* pixel_data = (u8*)src_img->pixels;
+
+	for(int a = 0, b = 0; a < (src_img->w * src_img->h); a++, b+=3)
+	{
+		src_buffer.push_back(0xFF000000 | (pixel_data[b+2] << 16) | (pixel_data[b+1] << 8) | (pixel_data[b]));
+	}
+
+	//Unlock source surface
+	if(SDL_MUSTLOCK(src_img)){ SDL_UnlockSurface(src_img); }
+
+	//Scale buffer from input image to 160x96 pixel buffer
+	std::vector<u8> pixel_buffer;
+
+	for(u32 y = 0; y < 96; y++)
+	{
+		for(u32 x = 0; x < 160; x++)
+		{
+			u32 x_pos = x * scale_x;
+			u32 y_pos = y * scale_y;
+			u32 final_pos = (y_pos * src_img->w) + (x_pos);
+
+			u32 final_color = src_buffer[final_pos];
+
+			//Convert to GB grayscale via brightness
+			u8 brightness = util::get_brightness_fast(final_color);
+
+			//Darkest color
+			if(brightness < 0x3F) { pixel_buffer.push_back(3); }
+			
+			//Semi-darkest color
+			else if(brightness < 0x7F) { pixel_buffer.push_back(2); }
+
+			//Semi-lightest color
+			else if(brightness < 0xBF) { pixel_buffer.push_back(1); }
+
+			//Lightest color
+			else { pixel_buffer.push_back(0); }
+		}
+	}
+
+	cart.frame_data.clear();
+	u32 index = 0;
+	u8 gt = 0;
+	bool is_ground = false;
+
+	//Convert pixel data frame data
+	for(u32 x = 0; x < 160; x++)
+	{
+		for(u32 y = 0; y < 96; y++)
+		{
+			index = (160 * y) + x;
+			u8 s_byte;			
+
+			//Update ground detection
+			if(!is_ground)
+			{
+				if(pixel_buffer[index] == 3)
+				{
+					gt++;	
+					if(gt == 3) { is_ground = true; }
+				}
+
+				else { gt = 0; }
+			}
+
+			//Determine sonar byte
+			switch(pixel_buffer[index])
+			{
+				//Open water : Not Applicable below ground
+				case 0: s_byte = 0x7; break;
+
+				//Not Applicable above ground : Inner floor
+				case 1: s_byte = 0x7; break;
+
+				//Inner floor : Not Applicable below ground
+				case 2: s_byte = 0x3; break;
+
+				//Outer floor : Outer floor
+				case 3: s_byte = 0x0; break;
+			}
+
+			cart.frame_data.push_back(s_byte);
+		}
+	}
+
+	return true;
 }

@@ -160,6 +160,7 @@ class DMG_MMU
 	void mbc1s_write(u16 address, u8 value);
 	u8 mbc1s_read(u16 address);
 	void mbc1s_calculate_depth();
+	bool mbc1s_load_sonar_data(std::string filename);
 
 	void mbc2_write(u16 address, u8 value);
 	u8 mbc2_read(u16 address);
