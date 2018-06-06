@@ -10,6 +10,8 @@
 // Used to switch ROM and RAM banks in MBC1
 // Also handles multicart (MBC1M) and sonar (MBC1S) variants
 
+#include <cmath>
+
 #include "mmu.h"
 #include "common/util.h"
 
@@ -224,31 +226,34 @@ u8 DMG_MMU::mbc1s_read(u16 address)
 	//Read sonar data
 	else if((address >= 0xA000) && (address <= 0xBFFF))
 	{
-		//Use current depth to pull data from frame
-		float index = 1.0;
+		//Find ratio needed for the frame based on current depth
+		float frame_ratio = 0.0;
 
 		switch(cart.depth)
 		{
-			case 0: index = 188.0; break;
-			case 1: index = 196.0; break;
-			case 2: index = 198.0; break;
-			case 3: index = 199.4; break;
-			case 4: index = 199.0; break;
-			case 5: index = 200.0; break;
+			case 0: frame_ratio = 188.0; break;
+			case 1: frame_ratio = 196.0; break;
+			case 2: frame_ratio = 198.0; break;
+			case 3: frame_ratio = 199.4; break;
+			case 4: frame_ratio = 199.0; break;
+			case 5: frame_ratio = 200.0; break;
 		}
 
-		//Find current index of frame data based on pulse count
-		index = 96.0 / index;
-		index *= cart.pulse_count;
-		index += 96 * cart.frame_count;
-		u32 final_index = index;
+		frame_ratio = round(cart.frame_count / frame_ratio);
 
-		//Grab sonar data from fame
-		if(final_index < cart.frame_data.size()) { cart.sonar_byte = cart.frame_data[final_index]; }
+		//Find current index of frame data based on pulse count
+		u32 index = cart.pulse_count;
+		index += (96 * frame_ratio);
+
+		//Grab sonar data from frame
+		if((index < cart.frame_data.size()) && (cart.pulse_count < 96)) {  cart.sonar_byte = cart.frame_data[index]; }
+
 		cart.pulse_count++;
 		cart.frame_count++;
 
-		return cart.sonar_byte;
+		if(cart.pulse_count == 1) { return 0x1; }
+		else if(cart.pulse_count < 86) { return cart.sonar_byte; }
+		else { return 0x0; }
 	}
 }
 
