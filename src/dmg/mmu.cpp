@@ -113,6 +113,9 @@ void DMG_MMU::reset()
 	debug_addr = 0;
 	#endif
 
+	//Load Pocket Sonar data now
+	if(cart.sonar) { mbc1s_load_sonar_data(config::external_image_file); }
+
 	std::cout<<"MMU::Initialized\n";
 }
 

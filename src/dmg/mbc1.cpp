@@ -290,6 +290,8 @@ void DMG_MMU::mbc1s_calculate_depth()
 /****** Open external image and convert to sonar data ******/
 bool DMG_MMU::mbc1s_load_sonar_data(std::string filename)
 {
+	if(filename.empty()) { return false; }
+
 	//Load source image
 	SDL_Surface* src_img = NULL;
 	src_img = SDL_LoadBMP(filename.c_str());
@@ -395,6 +397,8 @@ bool DMG_MMU::mbc1s_load_sonar_data(std::string filename)
 			cart.frame_data.push_back(s_byte);
 		}
 	}
+
+	std::cout<<"MMU::Pocket Sonar image " << filename << " successfully loaded\n";
 
 	return true;
 }

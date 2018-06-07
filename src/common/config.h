@@ -74,6 +74,7 @@ namespace config
 	extern std::string cheats_path;
 	extern std::string external_camera_file;
 	extern std::string external_card_file;
+	extern std::string external_image_file;
 	extern std::vector <std::string> recent_files;
 	extern std::vector <std::string> cli_args;
 
