@@ -782,10 +782,18 @@ void NTR_core::handle_hotkey(SDL_Event& event)
 	}
 
 	//Toggle turbo on
-	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_TAB)) { config::turbo = true; }
+	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == config::hotkey_turbo))
+	{
+		config::turbo = true;
+		if((config::sdl_render) && (config::use_opengl)) { SDL_GL_SetSwapInterval(0); }
+	}
 
 	//Toggle turbo off
-	else if((event.type == SDL_KEYUP) && (event.key.keysym.sym == SDLK_TAB)) { config::turbo = false; }
+	else if((event.type == SDL_KEYUP) && (event.key.keysym.sym == config::hotkey_turbo))
+	{
+		config::turbo = false;
+		if((config::sdl_render) && (config::use_opengl)) { SDL_GL_SetSwapInterval(1); }
+	}
 		
 	//Reset emulation on F8
 	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F8)) { reset(); }
