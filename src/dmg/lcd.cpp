@@ -818,6 +818,7 @@ void DMG_LCD::render_cgfx_gbc_bg_scanline(u16 tile_data, u8 bg_map_attribute, bo
 
 	//Determine which line of the tiles to generate pixels for this scanline
 	u8 tile_line = rendered_scanline % 8;
+	if(bg_map_attribute & 0x40) { tile_line = lcd_stat.flip_8[tile_line]; }
 	u8 tile_start = tile_line * 8;
 
 	//Grab the ID of this hash to pull custom pixel data
@@ -828,6 +829,7 @@ void DMG_LCD::render_cgfx_gbc_bg_scanline(u16 tile_data, u8 bg_map_attribute, bo
 
 	u8 tile_pixel = 0;
 	u8 bg_priority = (bg_map_attribute & 0x80) ? 1 : 0;
+	u8 start_x = lcd_stat.scanline_pixel_counter;
 
 	for(int x = tile_start, y = 7; x < (tile_start + 8); x++, y--)
 	{
@@ -866,10 +868,14 @@ void DMG_LCD::render_cgfx_gbc_bg_scanline(u16 tile_data, u8 bg_map_attribute, bo
 		//Render HD
 		else
 		{
-			u32 pos = (lcd_stat.scanline_pixel_counter * cgfx::scaling_factor) + (lcd_stat.current_scanline * cgfx::scaling_factor * config::sys_width);
+			//Account for horizontal flipping if necessary
+			u8 flip_x = lcd_stat.scanline_pixel_counter;
+			if(bg_map_attribute & 0x20) { flip_x = start_x + (7 - (x - tile_start)); }
+
+			u32 pos = (flip_x * cgfx::scaling_factor) + (lcd_stat.current_scanline * cgfx::scaling_factor * config::sys_width);
 			u32 bg_pos = ((x - tile_start) * cgfx::scaling_factor) + (tile_line * cgfx::scale_squared * 8);
 			
-			if(lcd_stat.scanline_pixel_counter < 160)
+			if(flip_x < 160)
 			{
 
 				for(int a = 0; a < cgfx::scaling_factor; a++)
