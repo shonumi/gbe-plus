@@ -732,6 +732,9 @@ void main_menu::boot_game()
 		findChild<QAction*>("debugging_action")->setEnabled(true);
 	}
 
+	//Tell settings whether this is an SGB core
+	settings->is_sgb_core = is_sgb_core;
+
 	//Read specified ROM file
 	main_menu::gbe_plus->read_file(config::rom_file);
 	

@@ -89,6 +89,8 @@ class gen_settings : public QDialog
 
 	QSlider* dead_zone;
 
+	bool is_sgb_core;
+
 	//Paths tab widgets
 	QLineEdit* dmg_bios;
 	QLineEdit* gbc_bios;

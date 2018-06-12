@@ -1175,7 +1175,6 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(config_mute, SIGNAL(clicked()), button_config, SLOT(map()));
 	connect(config_camera, SIGNAL(clicked()), button_config, SLOT(map()));
 	
-
 	button_config->setMapping(config_a, 0);
 	button_config->setMapping(config_b, 1);
 	button_config->setMapping(config_x, 2);
@@ -1354,6 +1353,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	grab_input = false;
 	input_type = 0;
 	last_control_id = 0;
+	is_sgb_core = false;
 
 	dmg_cheat_menu = new cheat_menu;
 	real_time_clock_menu = new rtc_menu;
@@ -1761,11 +1761,20 @@ void gen_settings::set_cgfx()
 	//Instruct core to invalidate any CGFX when turning option on or off during gameplay
 	if(main_menu::gbe_plus != NULL)
 	{
+		//Prevent SGB core from CGFX actions while running
+		if(is_sgb_core)
+		{
+			load_cgfx->setChecked(false);
+			load_cgfx->setCheckState(Qt::Unchecked);
+			cgfx::load_cgfx = false;
+			cgfx_scale->setEnabled(false);
+		}
+
 		switch(config::gb_type)
 		{
 			case 0:
 			case 1:
-			case 2:
+			case 2:	
 				main_menu::gbe_plus->get_core_data(2);
 				break;
 		}
