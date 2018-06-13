@@ -829,7 +829,10 @@ void DMG_LCD::render_cgfx_gbc_bg_scanline(u16 tile_data, u8 bg_map_attribute, bo
 
 	u8 tile_pixel = 0;
 	u8 bg_priority = (bg_map_attribute & 0x80) ? 1 : 0;
-	u8 start_x = lcd_stat.scanline_pixel_counter;
+
+	//Account for horizontal flipping
+	lcd_stat.scanline_pixel_counter = (bg_map_attribute & 0x20) ? (lcd_stat.scanline_pixel_counter + 7) : lcd_stat.scanline_pixel_counter;
+	s16 counter = (bg_map_attribute & 0x20) ? -1 : 1;
 
 	for(int x = tile_start, y = 7; x < (tile_start + 8); x++, y--)
 	{
@@ -868,39 +871,42 @@ void DMG_LCD::render_cgfx_gbc_bg_scanline(u16 tile_data, u8 bg_map_attribute, bo
 		//Render HD
 		else
 		{
-			//Account for horizontal flipping if necessary
-			u8 flip_x = lcd_stat.scanline_pixel_counter;
-			if(bg_map_attribute & 0x20) { flip_x = start_x + (7 - (x - tile_start)); }
-
-			u32 pos = (flip_x * cgfx::scaling_factor) + (lcd_stat.current_scanline * cgfx::scaling_factor * config::sys_width);
+			u32 pos = (lcd_stat.scanline_pixel_counter * cgfx::scaling_factor) + (lcd_stat.current_scanline * cgfx::scaling_factor * config::sys_width);
 			u32 bg_pos = ((x - tile_start) * cgfx::scaling_factor) + (tile_line * cgfx::scale_squared * 8);
+			u32 c = 0;
+			u32 d = 0;
 			
-			if(flip_x < 160)
+			if(lcd_stat.scanline_pixel_counter < 160)
 			{
-
 				for(int a = 0; a < cgfx::scaling_factor; a++)
 				{
+					//Calculate vertical flipping offset
+					d = (bg_map_attribute & 0x40) ? ((cgfx::scaling_factor - a - 1) * config::sys_width) :  (a * config::sys_width);
+
 					for(int b = 0; b < cgfx::scaling_factor; b++)
 					{
+						//Calculate horizontal flipping offset
+						c = (bg_map_attribute & 0x20) ? (cgfx::scaling_factor - b - 1) : b;
 
 						//Adjust pixel brightness if EXT_AUTO_BRIGHT is set
 						if(auto_bright)
 						{
-							u32 custom_color = cgfx_stat.bg_pixel_data[bg_tile_id][bg_pos + b];
-							hd_screen_buffer[pos + b] = adjust_pixel_brightness(custom_color, (bg_map_attribute & 0x7), 0);
+							u32 custom_color = cgfx_stat.bg_pixel_data[bg_tile_id][bg_pos + c];
+							hd_screen_buffer[pos + b + d] = adjust_pixel_brightness(custom_color, (bg_map_attribute & 0x7), 0);
 						}
 
-						else { hd_screen_buffer[pos + b] = cgfx_stat.bg_pixel_data[bg_tile_id][bg_pos + b]; }
+						else { hd_screen_buffer[pos + b + d] = cgfx_stat.bg_pixel_data[bg_tile_id][bg_pos + c]; }
 					}
 				
-					pos += config::sys_width;
 					bg_pos += (8 * cgfx::scaling_factor);
 				}
 			}
 
-			lcd_stat.scanline_pixel_counter++;
+			lcd_stat.scanline_pixel_counter += counter;
 		}
 	}
+
+	if(bg_map_attribute & 0x20) { lcd_stat.scanline_pixel_counter += 8; }
 }
 
 /****** Renders pixels for the Window (per-scanline) - DMG version ******/
