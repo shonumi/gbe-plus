@@ -1497,7 +1497,6 @@ std::string DMG_LCD::get_hash(u16 addr, u8 gfx_type)
 		mem->vram_bank = old_vram_bank;
 	}
 
-
 	return final_hash;
 }
 
@@ -1524,4 +1523,32 @@ void DMG_LCD::invalidate_cgfx()
 
 	cgfx_stat.update_bg = true;
 	cgfx_stat.update_map = true;
+
+	//Recalculate palette max-min BG brightness
+	for(u32 y = 0; y < 8; y++)
+	{
+		cgfx_stat.bg_pal_max[y] = cgfx_stat.bg_pal_min[y] = util::get_brightness_fast(lcd_stat.bg_colors_final[0][y]);
+
+		for(u32 x = 0; x < 4; x++)
+		{
+			u8 brightness = util::get_brightness_fast(lcd_stat.bg_colors_final[x][y]);
+
+			if(brightness > cgfx_stat.bg_pal_max[y]) { cgfx_stat.bg_pal_max[y] = brightness; }
+			if(brightness < cgfx_stat.bg_pal_min[y]) { cgfx_stat.bg_pal_min[y] = brightness; }
+		}
+	}
+
+	//Recalculate palette max-min OBJ brightness
+	for(u32 y = 0; y < 8; y++)
+	{
+		cgfx_stat.obj_pal_max[y] = cgfx_stat.obj_pal_min[y] = util::get_brightness_fast(lcd_stat.obj_colors_final[1][y]);
+
+		for(u32 x = 1; x < 4; x++)
+		{
+			u8 brightness = util::get_brightness_fast(lcd_stat.obj_colors_final[x][y]);
+
+			if(brightness > cgfx_stat.obj_pal_max[y]) { cgfx_stat.obj_pal_max[y] = brightness; }
+			if(brightness < cgfx_stat.obj_pal_min[y]) { cgfx_stat.obj_pal_min[y] = brightness; }
+		}
+	}
 }

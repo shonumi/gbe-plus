@@ -906,7 +906,7 @@ void DMG_LCD::render_cgfx_gbc_bg_scanline(u16 tile_data, u8 bg_map_attribute, bo
 		}
 	}
 
-	if(bg_map_attribute & 0x20) { lcd_stat.scanline_pixel_counter += 8; }
+	if(bg_map_attribute & 0x20) { lcd_stat.scanline_pixel_counter += 9; }
 }
 
 /****** Renders pixels for the Window (per-scanline) - DMG version ******/
