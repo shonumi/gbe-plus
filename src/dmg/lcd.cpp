@@ -862,10 +862,10 @@ void DMG_LCD::render_cgfx_gbc_bg_scanline(u16 tile_data, u8 bg_map_attribute, bo
 			if(auto_bright) 
 			{
 				u32 custom_color = cgfx_stat.bg_pixel_data[bg_tile_id][x];
-				scanline_buffer[lcd_stat.scanline_pixel_counter++] = adjust_pixel_brightness(custom_color, (bg_map_attribute & 0x7), 0);
+				scanline_buffer[lcd_stat.scanline_pixel_counter] = adjust_pixel_brightness(custom_color, (bg_map_attribute & 0x7), 0);
 			}
 
-			else { scanline_buffer[lcd_stat.scanline_pixel_counter++] = cgfx_stat.bg_pixel_data[bg_tile_id][x]; }
+			else { scanline_buffer[lcd_stat.scanline_pixel_counter] = cgfx_stat.bg_pixel_data[bg_tile_id][x]; }
 		}
 
 		//Render HD
@@ -901,9 +901,9 @@ void DMG_LCD::render_cgfx_gbc_bg_scanline(u16 tile_data, u8 bg_map_attribute, bo
 					bg_pos += (8 * cgfx::scaling_factor);
 				}
 			}
-
-			lcd_stat.scanline_pixel_counter += counter;
 		}
+
+		lcd_stat.scanline_pixel_counter += counter;
 	}
 
 	if(bg_map_attribute & 0x20) { lcd_stat.scanline_pixel_counter += 9; }
