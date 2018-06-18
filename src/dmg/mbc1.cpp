@@ -251,8 +251,23 @@ u8 DMG_MMU::mbc1s_read(u16 address)
 		cart.pulse_count++;
 		cart.frame_count++;
 
-		if(cart.pulse_count == 1) { return 0x1; }
-		else if(cart.pulse_count < 86) { return cart.sonar_byte; }
+		//Calculate frame count
+		u32 total_reads = 0;
+
+		switch(cart.depth)
+		{
+			case 0: total_reads = 30080; break;
+			case 1: total_reads = 31360; break;
+			case 2: total_reads = 31680; break;
+			case 3: total_reads = 31904; break;
+			case 4: total_reads = 31840; break;
+			case 5: total_reads = 32000; break;
+		}
+
+		if(cart.frame_count > total_reads) { cart.frame_count = 0; }
+
+		//Return sonar byte
+		if(cart.pulse_count < 86) { return cart.sonar_byte; }
 		else { return 0x0; }
 	}
 }
@@ -381,17 +396,17 @@ bool DMG_MMU::mbc1s_load_sonar_data(std::string filename)
 			//Determine sonar byte
 			switch(pixel_buffer[index])
 			{
-				//Open water : Not Applicable below ground
+				//Open water : Not Applicable below ground (translate to Inner Floor 2)
 				case 0: s_byte = 0x7; break;
 
-				//Not Applicable above ground : Inner floor
+				//Not Applicable above ground (translate to Inner Floor 2) : Inner Floor 1
 				case 1: s_byte = 0x7; break;
 
-				//Inner floor : Not Applicable below ground
-				case 2: s_byte = 0x3; break;
+				//Inner Floor 2 : Not Applicable below ground (translate to Inner Floor 1)
+				case 2: s_byte = (!is_ground) ? 0x3 : 0x7; break;
 
 				//Outer floor : Outer floor
-				case 3: s_byte = 0x0; break;
+				case 3: s_byte = (!is_ground) ? 0x1 : 0x0; break;
 			}
 
 			cart.frame_data.push_back(s_byte);
