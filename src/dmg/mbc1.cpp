@@ -186,7 +186,13 @@ void DMG_MMU::mbc1s_write(u16 address, u8 value)
 		if(bank_mode & 0x1)
 		{
 			//Reset counter when writing 1 then 0
-			if((value == 0) && (bank_bits & 0x1)) { cart.pulse_count = 0; }
+			if((value == 0) && (bank_bits & 0x1))
+			{
+				cart.pulse_count = 0;
+				cart.frame_count += 1;
+				
+				if(cart.frame_count >= 160) { cart.frame_count = 0; }
+			}
 		}
 
 		bank_bits = (value & 0x1);
@@ -226,49 +232,17 @@ u8 DMG_MMU::mbc1s_read(u16 address)
 	//Read sonar data
 	else if((address >= 0xA000) && (address <= 0xBFFF))
 	{
-		//Find ratio needed for the frame based on current depth
-		float frame_ratio = 0.0;
-
-		switch(cart.depth)
-		{
-			case 0: frame_ratio = 188.0; break;
-			case 1: frame_ratio = 196.0; break;
-			case 2: frame_ratio = 198.0; break;
-			case 3: frame_ratio = 199.4; break;
-			case 4: frame_ratio = 199.0; break;
-			case 5: frame_ratio = 200.0; break;
-		}
-
-		frame_ratio = round(cart.frame_count / frame_ratio);
-
 		//Find current index of frame data based on pulse count
 		u32 index = cart.pulse_count;
-		index += (96 * frame_ratio);
+		index += (96 * cart.frame_count);
 
 		//Grab sonar data from frame
 		if((index < cart.frame_data.size()) && (cart.pulse_count < 96)) {  cart.sonar_byte = cart.frame_data[index]; }
 
 		cart.pulse_count++;
-		cart.frame_count++;
-
-		//Calculate frame count
-		u32 total_reads = 0;
-
-		switch(cart.depth)
-		{
-			case 0: total_reads = 30080; break;
-			case 1: total_reads = 31360; break;
-			case 2: total_reads = 31680; break;
-			case 3: total_reads = 31904; break;
-			case 4: total_reads = 31840; break;
-			case 5: total_reads = 32000; break;
-		}
-
-		if(cart.frame_count > total_reads) { cart.frame_count = 0; }
 
 		//Return sonar byte
-		if(cart.pulse_count < 86) { return cart.sonar_byte; }
-		else { return 0x0; }
+		return cart.sonar_byte;
 	}
 }
 
