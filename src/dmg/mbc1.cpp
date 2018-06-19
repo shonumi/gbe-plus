@@ -323,19 +323,16 @@ bool DMG_MMU::mbc1s_load_sonar_data(std::string filename)
 			u32 y_pos = y * scale_y;
 			u32 final_pos = (y_pos * src_img->w) + (x_pos);
 
-			u32 final_color = src_buffer[final_pos];
-
-			//Convert to GB grayscale via brightness
-			u8 brightness = util::get_brightness_fast(final_color);
+			u32 final_color = 0xFF000000 | src_buffer[final_pos];
 
 			//Darkest color
-			if(brightness < 0x3F) { pixel_buffer.push_back(3); }
+			if(final_color == 0xFF000000) { pixel_buffer.push_back(3); }
 			
 			//Semi-darkest color
-			else if(brightness < 0x7F) { pixel_buffer.push_back(2); }
+			else if(final_color == 0xFF606060) { pixel_buffer.push_back(2); std::cout<<"ME\n"; }
 
 			//Semi-lightest color
-			else if(brightness < 0xBF) { pixel_buffer.push_back(1); }
+			else if(final_color == 0xFFC0C0C0) { pixel_buffer.push_back(1); }
 
 			//Lightest color
 			else { pixel_buffer.push_back(0); }
@@ -350,6 +347,8 @@ bool DMG_MMU::mbc1s_load_sonar_data(std::string filename)
 	//Convert pixel data frame data
 	for(u32 x = 0; x < 160; x++)
 	{
+		is_ground = false;
+
 		for(u32 y = 0; y < 96; y++)
 		{
 			index = (160 * y) + x;
@@ -373,8 +372,8 @@ bool DMG_MMU::mbc1s_load_sonar_data(std::string filename)
 				//Open water : Not Applicable below ground (translate to Inner Floor 2)
 				case 0: s_byte = 0x7; break;
 
-				//Not Applicable above ground (translate to Inner Floor 2) : Inner Floor 1
-				case 1: s_byte = 0x7; break;
+				//Not Applicable above ground (translate to fish) : Inner Floor 1
+				case 1: s_byte = (!is_ground) ? 0x1 : 0x7; break;
 
 				//Inner Floor 2 : Not Applicable below ground (translate to Inner Floor 1)
 				case 2: s_byte = (!is_ground) ? 0x3 : 0x7; break;
