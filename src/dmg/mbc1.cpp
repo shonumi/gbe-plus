@@ -252,9 +252,9 @@ void DMG_MMU::mbc1s_calculate_depth()
 	switch(cart.pulse_count)
 	{
 		case 188: cart.depth = 0; break;
-		case 155: cart.depth = 1; break;
-		case 77: cart.depth = 2; break;
-		case 51: cart.depth = 3; break;
+		case 154: if(cart.depth != 3) { cart.depth = 1; } break;
+		case 76: cart.depth = 2; break;
+		case 50: cart.depth = 3; break;
 		case 37: cart.depth = 4; break;
 		case 24: cart.depth = 5; break;
 	}
@@ -273,7 +273,6 @@ void DMG_MMU::mbc1s_calculate_depth()
 	}
 
 	if(cart.frame_count > total_reads) { cart.frame_count = 0; }
-
 }
 
 /****** Open external image and convert to sonar data ******/
