@@ -2089,8 +2089,6 @@ void DMG_LCD::step(int cpu_clock)
 
 					else { mem->memory_map[REG_RP] |= 0x2; }
 				}
-
-				if(mem->cart.sonar) { mem->mbc1s_calculate_depth(); }
 			}
 
 			//Processing VBlank

@@ -246,35 +246,6 @@ u8 DMG_MMU::mbc1s_read(u16 address)
 	}
 }
 
-/****** Calculates depth based on number of 0xA000 reads after 1st screen refresh ******/
-void DMG_MMU::mbc1s_calculate_depth()
-{
-	switch(cart.pulse_count)
-	{
-		case 188: cart.depth = 0; break;
-		case 154: if(cart.depth != 3) { cart.depth = 1; } break;
-		case 76: cart.depth = 2; break;
-		case 50: cart.depth = 3; break;
-		case 37: cart.depth = 4; break;
-		case 24: cart.depth = 5; break;
-	}
-
-	//Also calculate frame count
-	u32 total_reads = 0;
-
-	switch(cart.depth)
-	{
-		case 0: total_reads = 30080; break;
-		case 1: total_reads = 31360; break;
-		case 2: total_reads = 31680; break;
-		case 3: total_reads = 31904; break;
-		case 4: total_reads = 31840; break;
-		case 5: total_reads = 32000; break;
-	}
-
-	if(cart.frame_count > total_reads) { cart.frame_count = 0; }
-}
-
 /****** Open external image and convert to sonar data ******/
 bool DMG_MMU::mbc1s_load_sonar_data(std::string filename)
 {
