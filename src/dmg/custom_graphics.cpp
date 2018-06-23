@@ -112,13 +112,15 @@ bool DMG_LCD::load_manifest(std::string filename)
 		//Parse regular entries
 		if(cgfx_stat.manifest_entry_size[y] == 5)
 		{
-			//Grab hash
+			//Grab hashes
 			std::string hash = cgfx_stat.manifest[x++];
 			std::string sub_hash = "";
+			std::string vram_hash = cgfx_stat.manifest[x + 2];
 
 			//Test for EXT_VRAM_ADDR
 			u32 vram_test = 0;
 			if(cgfx_stat.manifest[x + 2].length() == 6) { util::from_hex_str(cgfx_stat.manifest[x + 2].substr(2), vram_test); }
+			bool use_vram = false;
 
 			//Only add hash from manifest if it is new. Otherwise, ignore duplicate entries
 			if((cgfx_stat.m_hashes.find(hash) == cgfx_stat.m_hashes.end()) || (vram_test))
@@ -185,8 +187,12 @@ bool DMG_LCD::load_manifest(std::string filename)
 				//EXT_VRAM_ADDR
 				if(vram_test)
 				{
+					use_vram = true;
+					vram_hash = (sub_hash + vram_hash);
+
 					vram_test = ((vram_test & 0x1FFF) >> 4);
 					cgfx_stat.m_vram_addr[vram_test].insert(std::make_pair(hash, hash_id));
+
 				}
 
 				x++;
@@ -201,7 +207,15 @@ bool DMG_LCD::load_manifest(std::string filename)
 				{
 					u32 bright_id = cgfx_stat.m_hashes_raw[sub_hash];
 					cgfx_stat.m_auto_bright[bright_id] = 1;
-				} 
+				}
+
+				//If EXT_VRAM_ADDR and EXT_AUTO_BRIGHT both enabled, use a secondary hash for VRAM addr
+				if((bright_value) && (use_vram))
+				{
+					cgfx_stat.m_hashes_raw.insert(std::make_pair(vram_hash, hash_id));
+					u32 bright_id = cgfx_stat.m_hashes_raw[vram_hash];
+					cgfx_stat.m_auto_bright[bright_id] = 1;
+				}
 
 				hash_id++;
 			}
@@ -1294,6 +1308,7 @@ bool DMG_LCD::has_hash(u16 addr, std::string hash)
 
 	bool match = false;
 	std::string sub_hash = (config::gb_type == 0) ? hash.substr(4) : hash.substr(5);
+	std::string vram_hash = sub_hash + util::to_hex_str(addr);
 	u32 vram_index = ((addr & 0x1FFF) >> 4);
 	
 	//Check for 100% match
@@ -1317,12 +1332,24 @@ bool DMG_LCD::has_hash(u16 addr, std::string hash)
 	//Check for pure afterwards for EXT_AUTO_BRIGHT
 	else if(cgfx_stat.m_hashes_raw.find(sub_hash) != cgfx_stat.m_hashes_raw.end())
 	{
-		u32 id = cgfx_stat.m_hashes_raw[sub_hash];
-
-		if(cgfx_stat.m_auto_bright[id] == 1)
+		//Check for EXT_VRAM_ADDR and EXT_AUTO_BRIGHT combos
+		if(cgfx_stat.m_hashes_raw.find(vram_hash) != cgfx_stat.m_hashes_raw.end())
 		{
+			u32 id = cgfx_stat.m_hashes_raw[vram_hash];
+
 			cgfx_stat.last_id = id;
 			return true;
+		}
+
+		else
+		{	
+			u32 id = cgfx_stat.m_hashes_raw[sub_hash];
+
+			if(cgfx_stat.m_auto_bright[id] == 1)
+			{
+				cgfx_stat.last_id = id;
+				return true;
+			}
 		}
 	}
 
