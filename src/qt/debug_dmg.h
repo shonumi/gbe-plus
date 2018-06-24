@@ -119,6 +119,9 @@ class dmg_debug : public QDialog
 	QLabel* obj_g_label;
 	QLabel* obj_b_label;
 
+	QLabel* bg_24_color;
+	QLabel* obj_24_color;
+
 	//Memory widgets
 	QTextEdit* mem_addr;
 	QTextEdit* mem_values;

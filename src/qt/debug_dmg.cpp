@@ -842,12 +842,14 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	bg_r_label = new QLabel("R : \t", bg_label_set);
 	bg_g_label = new QLabel("G : \t", bg_label_set);
 	bg_b_label = new QLabel("B : \t", bg_label_set);
+	bg_24_color = new QLabel("0x000000\t", bg_label_set);
 	
 	QVBoxLayout* bg_label_layout = new QVBoxLayout;
 	bg_label_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	bg_label_layout->addWidget(bg_r_label);
 	bg_label_layout->addWidget(bg_g_label);
 	bg_label_layout->addWidget(bg_b_label);
+	bg_label_layout->addWidget(bg_24_color);
 	bg_label_set->setLayout(bg_label_layout);
 	bg_label_set->setMaximumHeight(128);
 
@@ -860,12 +862,14 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	obj_r_label = new QLabel("R : \t", obj_label_set);
 	obj_g_label = new QLabel("G : \t", obj_label_set);
 	obj_b_label = new QLabel("B : \t", obj_label_set);
+	obj_24_color = new QLabel("0x000000\t", obj_label_set);
 	
 	QVBoxLayout* obj_label_layout = new QVBoxLayout;
 	obj_label_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	obj_label_layout->addWidget(obj_r_label);
 	obj_label_layout->addWidget(obj_g_label);
 	obj_label_layout->addWidget(obj_b_label);
+	obj_label_layout->addWidget(obj_24_color);
 	obj_label_set->setLayout(obj_label_layout);
 	obj_label_set->setMaximumHeight(128);
 	
@@ -878,11 +882,11 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	palettes_layout->addWidget(bg_pal_preview, 0, 1, 1, 1);
 	palettes_layout->addWidget(obj_pal_preview, 1, 1, 1, 1);
 
-	palettes_layout->addWidget(bg_label_set, 0, 2, 1, 1);
-	palettes_layout->addWidget(obj_label_set, 1, 2, 1, 1);
+	palettes_layout->addWidget(bg_label_set, 0, 2, 1, 2);
+	palettes_layout->addWidget(obj_label_set, 1, 2, 1, 2);
 
 	palettes->setLayout(palettes_layout);
-	palettes->setMaximumWidth(500);
+	palettes->setMaximumWidth(600);
 
 	//Memory
 	QFont mono_font("Monospace");
@@ -1645,9 +1649,13 @@ void dmg_debug::preview_bg_color(int y, int x)
 	int r, g, b = 0;
 	bg_pal_table->item(y, x)->background().color().getRgb(&r, &g, &b);
 
+	u32 color_word = (r << 16) | (g << 8) | b;
+	std::string color_hex = util::to_hex_str(color_word) + "\t";
+
 	bg_r_label->setText(QString::number(r/8).prepend("R : ").append("\t"));
 	bg_g_label->setText(QString::number(g/8).prepend("G : ").append("\t"));
 	bg_b_label->setText(QString::number(b/8).prepend("B : ").append("\t"));
+	bg_24_color->setText(QString::fromStdString(color_hex));
 }
 
 /****** Updates a preview of the selected OBJ Color ******/
@@ -1660,9 +1668,13 @@ void dmg_debug::preview_obj_color(int y, int x)
 	int r, g, b = 0;
 	obj_pal_table->item(y, x)->background().color().getRgb(&r, &g, &b);
 
+	u32 color_word = (r << 16) | (g << 8) | b;
+	std::string color_hex = util::to_hex_str(color_word) + "\t";
+
 	obj_r_label->setText(QString::number(r/8).prepend("R : ").append("\t"));
 	obj_g_label->setText(QString::number(g/8).prepend("G : ").append("\t"));
 	obj_b_label->setText(QString::number(b/8).prepend("B : ").append("\t"));
+	obj_24_color->setText(QString::fromStdString(color_hex));
 }
 
 /****** Scrolls everything in the memory tab via main scrollbar ******/
