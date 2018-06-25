@@ -1650,7 +1650,7 @@ void dmg_debug::preview_bg_color(int y, int x)
 	bg_pal_table->item(y, x)->background().color().getRgb(&r, &g, &b);
 
 	u32 color_word = (r << 16) | (g << 8) | b;
-	std::string color_hex = util::to_hex_str(color_word) + "\t";
+	std::string color_hex = util::to_hex_str(color_word, 3) + "\t";
 
 	bg_r_label->setText(QString::number(r/8).prepend("R : ").append("\t"));
 	bg_g_label->setText(QString::number(g/8).prepend("G : ").append("\t"));
@@ -1669,7 +1669,7 @@ void dmg_debug::preview_obj_color(int y, int x)
 	obj_pal_table->item(y, x)->background().color().getRgb(&r, &g, &b);
 
 	u32 color_word = (r << 16) | (g << 8) | b;
-	std::string color_hex = util::to_hex_str(color_word) + "\t";
+	std::string color_hex = util::to_hex_str(color_word, 3) + "\t";
 
 	obj_r_label->setText(QString::number(r/8).prepend("R : ").append("\t"));
 	obj_g_label->setText(QString::number(g/8).prepend("G : ").append("\t"));

@@ -600,6 +600,29 @@ std::string to_hex_str(u32 input)
 	return temp.str();
 }
 
+/****** Convert a number into hex as C++ string - Full 8, 16, 24, or 32-bit representations ******/
+std::string to_hex_str(u32 input, u8 bit_level)
+{
+	std::stringstream temp;
+	std::string result = "";
+	u32 num = (input & 0xFF);
+
+	//Limit to 32-bit max
+	if(bit_level > 4) { bit_level = 4; }
+
+	for(u32 x = 0; x < bit_level; x++)
+	{
+		temp << std::hex << std::uppercase << num;
+		result += temp.str();
+		if(num < 0x10) { result = "0" + result; }
+		num = ((input >> ((x+1) * 8)) & 0xFF);
+		temp.str(std::string());
+	}
+
+	result = "0x" + result;
+	return result;
+}
+
 /****** Converts C++ string representing a hex number into an integer value ******/
 bool from_hex_str(std::string input, u32 &result)
 {
