@@ -232,12 +232,15 @@ u8 DMG_MMU::mbc1s_read(u16 address)
 	//Read sonar data
 	else if((address >= 0xA000) && (address <= 0xBFFF))
 	{
+		//Grab frame slice size
+		u32 slice_size = (cart.frame_data.size() == 15360) ? 96 : 192;
+
 		//Find current index of frame data based on pulse count
 		u32 index = cart.pulse_count;
-		index += (96 * cart.frame_count);
+		index += (slice_size * cart.frame_count);
 
 		//Grab sonar data from frame
-		if((index < cart.frame_data.size()) && (cart.pulse_count < 96)) {  cart.sonar_byte = cart.frame_data[index]; }
+		if((index < cart.frame_data.size()) && (cart.pulse_count < slice_size)) {  cart.sonar_byte = cart.frame_data[index]; }
 
 		cart.pulse_count++;
 
@@ -261,9 +264,12 @@ bool DMG_MMU::mbc1s_load_sonar_data(std::string filename)
 		return false;
 	}
 
+	u32 output_w = 160;
+	u32 output_h = (src_img->h > src_img->w) ? 192 : 96;
+
 	//Grab image dimensions, calculate scaling - Ideal sonar images are 160x96
-	double scale_x = src_img->w / 160.0;
-	double scale_y = src_img->h / 96.0;
+	double scale_x = src_img->w / output_w;
+	double scale_y = src_img->h / output_h;
 
 	std::vector<u32> src_buffer;
 
@@ -282,12 +288,12 @@ bool DMG_MMU::mbc1s_load_sonar_data(std::string filename)
 	//Unlock source surface
 	if(SDL_MUSTLOCK(src_img)){ SDL_UnlockSurface(src_img); }
 
-	//Scale buffer from input image to 160x96 pixel buffer
+	//Scale buffer from input image to 160x96 or 160x192 pixel buffer
 	std::vector<u8> pixel_buffer;
 
-	for(u32 y = 0; y < 96; y++)
+	for(u32 y = 0; y < output_h; y++)
 	{
-		for(u32 x = 0; x < 160; x++)
+		for(u32 x = 0; x < output_w; x++)
 		{
 			u32 x_pos = x * scale_x;
 			u32 y_pos = y * scale_y;
@@ -315,13 +321,13 @@ bool DMG_MMU::mbc1s_load_sonar_data(std::string filename)
 	bool is_ground = false;
 
 	//Convert pixel data frame data
-	for(u32 x = 0; x < 160; x++)
+	for(u32 x = 0; x < output_w; x++)
 	{
 		is_ground = false;
 
-		for(u32 y = 0; y < 96; y++)
+		for(u32 y = 0; y < output_h; y++)
 		{
-			index = (160 * y) + x;
+			index = (output_w * y) + x;
 			u8 s_byte;			
 
 			//Update ground detection
