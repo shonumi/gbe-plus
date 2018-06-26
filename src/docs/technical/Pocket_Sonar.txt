@@ -1,0 +1,198 @@
+Gyogun Tanchiki: Pocket Sonar Technical Documentation 0.1
+April 7th, 2018
+Shonumi aka D.S. Baxter
+
+
+***************************************************
+1. Introduction
+*************************************************** 
+
+Gyogun Tanchiki: Pocket Sonar (shortened to just Pocket Sonar) was a combination "game" and accessory released by Bandai on July 24, 1998 exclusively in Japan. The cart and attached sonar device act as a fish finder, capable of probing water depths of up to 20 meters. It was the first video-game based sonar hardware, but not the last (Bandai released the WonderSwan Handy Sonar the following year).
+
+
+***************************************************
+2. General Hardware Information
+***************************************************
+
+- Comes in a long, bulky blue cartridge.
+- Requires 4 AAA batteries to work, has ON/OFF switch + light.
+- Sonar device attaches via a 3.5mm jack inside the cartridge.
+- Sonar device has a super long cord, with yellow foam around the actual audio hardware.
+- Manual says operating tempurature range (使用温度範囲) is between 5C and 50C (no ice fishing, do not use in a hot spring).
+- Cartridge uses the MBC1S, virtually identical to the MBC1, but has sonar capabilities built-in.
+- Capable of probing depths of 20m.
+- Internally, MBC1S is two PCBs (MBC and sonar) linked together by 5 soldered wires.
+
+
+***************************************************
+3. MBC1S
+***************************************************
+
+The MBC1S is a specialized variant of the standard MBC1. The key difference here is that the ability to control sonar hardware was added. Aside from that, the MBC1S appears largely identical to the MBC1 from a high-level view. Below are the MBC registers:
+
+0x0000 - 0x1FFF (W)	:	Unknown. Not used in the Pocket Sonar. Pocket Sonar has no cart RAM.
+
+0x2000 - 0x3FFF (W)	:	ROM Bank Number. Same as MBC1.
+
+0x4000 - 0x5FFF	(W)	:	Sonar Pulse. Apparently activates the sonar when writing "1", turns it off when writing "0". Must be in "sonar mode"
+
+0x6000 - 0x7FFF	(W)	:	Sonar Mode Enable/Disable. Activates "sonar mode" when writing "1". Pocket Sonar never seems to write "0" here though.
+
+0xA000		(R)	:	Sonar Data. Data comes in byte-by-byte and the software uses that information to build an image of what's in the water.
+
+The Pocket Sonar doesn't have cartridge-based RAM, so it repurposes most MBC1 registers dealing with RAM to instead handle sonar.
+
+
+***************************************************
+4. Sonar Format
+***************************************************
+
+The Pocket Sonar displays a 160x96 image on screen based on sonar data. This "frame" is constantly updated, albeit quite slowly. The next frame slides in from the right to replace the old one. Each frame is generated using the responses that come from reading 0xA000. The byte held in this register determines what color the software should draw on-screen, and the colors ultimately represent either open water or soil, sediment, rocks, and other solid flooring. The Pocket Sonar interprets two different "sets" of colors, one for before solid flooring is detected, and one for after. With Shade 0 being the lightest DMG pixel color and Shade 3 being the darkest DMG pixel color, the following values held in 0xA000 determine the corresponding colors:
+
+---------------------------------------------------------
+VAL = 0xA000 AND 0x7 : Before solid flooring detected (0xA000 reads 0x00)
+---------------------------------------------------------
+1		SHADE 3		Solid object or debris (the top-most exterior)
+2, 3		SHADE 2		Solid object or debris (inner layers)
+4, 5, 6, 7	SHADE 0		Open water
+
+---------------------------------------------------------
+VAL = 0xA000 AND 0x7 : After solid flooring detected (0xA000 reads 0x00)
+---------------------------------------------------------
+0, 1, 2, 3	SHADE 3		Solid floor (the top-most exterior)
+4, 5, 6, 7	SHADE 1		Solid floor (inner layers)
+
+Solid floor detections appears to happen after the Pocket Sonar returns a single 0x00 byte for each section of the frame. Every frame is internally divided into 1x96 strips by the software. Depending on the depth the Pocket Sonar is trying to probe (e.g. 2m, 5m, 10m, etc), the device reads 0xA000 more frequently.
+
+---------------------------------------------------------
+Depth		1x96 Reads		Total Frame Reads
+---------------------------------------------------------
+2 meters	188			30080
+5 meters	196			31360
+10 meters	198			31680
+15 meters	199.4			31904
+20 meters	199			31840
+30 meters	200			32000
+
+The first 96 reads correspond directly to a 1x96 strip that's part of the larger 160x96 frame. That is to say, 1 read = 1 pixel drawn on-screen (after the waterline). The additional reads from 0xA000 are not drawn unless the magnification feature is used. With magnification, instead of displaying the sonar image from the waterline to the probing depth (e.g. 0-2m, 0-5m, 0-10m), the Pocket Sonar will start drawing at halfway to the probing depth (e.g. 1-2m, 2.5-5m, 5-10m). It effectively drops viewport of the sonar image, and in doing so displays some of the other reads beyond the first 96. Consequently, using the magnification feature changes the above chart to this:
+
+-----------------------------------------------------------------
+Depth			1x96 Reads		Total Frame Reads
+-----------------------------------------------------------------
+1.0 - 2.0 meters	176			28160
+2.5 - 5.0 meters	192			30720
+5.0 - 10.0 meters	196			31360
+7.5 - 15.0 meters	198			31680
+10.0 - 20.0 meters	198			31680
+20.0 - 30.0 meters	199			31840
+
+The Pocket Sonar represents the waterline as all black and forcibly draws a certain number of pixels for it depending on the depth the device is checking. The waterline is not applicable when using magnification. Apparently the Pocket Sonar internally divides the 160x96 frame into a 80x96 "sub-frame". It isn't clear what the purpose of this is, but it appears to be some sort of mid-frame reset if necessary, perhaps if garbage values are detected (e.g. sonar data that doesn't realistically make sense?)
+
+To collect the above sonar data, the MBC1S must first send out a sonar pulse by writing "1" then "0" to the memory regions 0x4000 - 0x5FFF. Afterwards, 0xA000 will hold a single byte representing part of the sonar image. The process of reading back the sonar image appears to take some time, however. It doesn't seem to be immediate, as the Pocket Sonar's software reads 0xA000 across several screen refreshes. Below are charts detailing the number of 0xA000 reads per-screen refresh on the Game Boy LCD:
+
+-------------------------------------------------------------
+2 Meters	Magnification OFF	Magnification ON
+-------------------------------------------------------------
+Refresh_0	188 reads		176 reads
+Refresh_1	0 reads			0 reads
+Refresh_2	0 reads			0 reads
+Refresh_3	0 reads			0 reads
+Refresh_4	0 reads			0 reads
+Refresh_5	0 reads			0 reads
+Refresh_6	0 reads			0 reads
+Refresh_7	0 reads			0 reads
+
+-------------------------------------------------------------
+5 Meters	Magnification OFF	Magnification ON
+-------------------------------------------------------------
+Refresh_0	153 or 154 reads	192 reads
+Refresh_1	42 or 43 reads		0 reads		
+Refresh_2	0 reads			0 reads
+Refresh_3	0 reads			0 reads
+Refresh_4	0 reads			0 reads
+Refresh_5	0 reads			0 reads
+Refresh_6	0 reads			0 reads
+Refresh_7	0 reads			0 reads
+Refresh_8	0 reads
+
+-------------------------------------------------------------
+10 Meters	Magnification OFF	Magnification ON
+-------------------------------------------------------------
+Refresh_0	76 reads		135 or 137 reads
+Refresh_1	121 reads		59 or 61 reads
+Refresh_2	1 read			0 reads
+Refresh_3	0 reads			0 reads
+Refresh_4	0 reads			0 reads
+Refresh_5	0 reads			0 reads
+Refresh_6	0 reads			0 reads
+Refresh_7	0 reads			0 reads
+Refresh_8	0 reads			0 reads
+Refresh_9	0 reads
+
+-------------------------------------------------------------
+15 Meters	Magnification OFF	Magnification ON
+-------------------------------------------------------------
+Refresh_0	50 reads		90 or 92 reads
+Refresh_1	81 reads		106 or 108 reads
+Refresh_2	68 reads		0 reads
+Refresh_3	0 reads			0 reads
+Refresh_4	0 reads			0 reads
+Refresh_5	0 reads			0 reads
+Refresh_6	0 reads			0 reads
+Refresh_7	0 reads			0 reads
+Refresh_8	0 reads			0 reads
+Refresh_9	0 reads
+
+-------------------------------------------------------------
+20 Meters	Magnification OFF	Magnification ON
+-------------------------------------------------------------
+Refresh_0	37 reads		68 or 69 reads
+Refresh_1	60 reads		109 reads
+Refresh_2	59 or 60 reads		20 or 21 reads
+Refresh_3	42 or 43 reads		0 reads
+Refresh_4	0 reads			0 reads
+Refresh_5	0 reads			0 reads
+Refresh_6	0 reads			0 reads
+Refresh_7	0 reads			0 reads
+Refresh_8	0 reads			0 reads
+Refresh_9	0 reads			0 reads
+Refresh_10	0 reads
+
+-------------------------------------------------------------
+30 Meters	Magnification OFF	Magnification ON
+-------------------------------------------------------------
+Refresh_0	24 reads		45 or 46 reads
+Refresh_1	40 reads		73 reads
+Refresh_2	41 reads		73 reads
+Refresh_3	40 reads		7 or 8 reads
+Refresh_4	40 reads		0 reads
+Refresh_5	15 reads		0 reads
+Refresh_6	0 reads			0 reads
+Refresh_7	0 reads			0 reads
+Refresh_8	0 reads			0 reads
+Refresh_8	0 reads			0 reads
+Refresh_10	0 reads			0 reads
+Refresh_11	0 reads
+Refresh_12	0 reads
+
+The values above should be considered approximate. When changing between different depths, the above numbers get slightly messed up for a short time (usually just for 1 sonar pulse) before they normalize. During the transition, the totals still add up (e.g. 10m still reads 0xA000 198 times per 1x96 segment of the frame, with magnification off), however, the spacing between reads shifts a bit. Trying to change 30m to the next depth (pressing A on the depth change menu item) sometimes causes an elongated pause between sonar pulses (31 LCD refreshes, so more than 1/2 a second) but since 30m is the max, the Pocket Sonar keeps reading 0xA000 at 200 times per 1x96 frame segment. The numbers briefly fluctuate across screen refreshes until returning to the chart above.
+
+
+***************************************************
+5. Fish Finder
+***************************************************
+
+The usefulness of the Pocket Sonar, aside from bathymetry, is largely its fish finding capabilities. The Pocket Sonar has a toggable option for displaying any fish it believes it has detected. The fish are represented by simple 8x8 graphics. Strangely enough, the fish are aligned to a slightly different grid than the 160x96 sonar image. If using the 160x96 sonar image divided into 8x8 cells as a reference, the fish are drawn over this image with a Y offset of -1. This "fish grid" also determines when the Pocket Sonar software thinks it has located a fish.
+
+Fish tiles are always aligned on the X-axis by 8 pixels of the "fish grid", so they are always locked into columns, however, they seem to shift freely on the Y-axis. Obviously, fish are only detected in open water; once solid flooring (and not just debris or other objects) has been detected, no fish appear below the floor. As such, fish detection only happens when using the first "set" of colors for drawing the frame. To detect fish, an 8x8 section of the "fish grid" needs to have only 1 value of 0x00 or 0x01 within the first column. If not, the Pocket Sonar will treat it as a miscellaneous object. Even if the second column (or every other one) has multiple 0x00 or 0x01 values, the Pocket Sonar only cares about first column. The first occurence of a 0x00 or 0x01 value in the first column of any 8x8 cell on the "fish grid" appears to determine where the fish tile is aligned vertically.
+
+Oddly enough, several options change the X offset of the "fish grid". Enabling or disabling the option for displaying fish seems to reposition the "fish grid" according to whatever 1x96 segment of the frame is rendered. Additionally, toggling magnifcation or the "auto" (オート) mode resets the "fish grid".
+
+
+***************************************************
+6. Further Research
+***************************************************
+
+There are a couple of uncertainties that require further research to clarify. The Pocket Sonar displays a brief "demo" mode if players wait around the title screen. It shows an example sonar image scrolling across the screen, however it uses 3 shades to represent the ground (SHADE 3, SHADE 2, and SHADE 1 in that order). It doesn't seem possible to recreate this type of image when actually using the Pocket Sonar, as the ground only uses 2 shades (SHADE 3 and SHADE 1). Additionally, on the box and in the manual, all pictures of the Pocket Sonar in action only show these 2 shades. Extensive testing using various values for the sonar image data at 0xA000 could not reproduce the "demo" mode either. While the "demo" mode may be impossible on real hardware, actual tests in real bodies of water need to be done to ultimately verify this behavior.
+
+Additionally, while the Pocket Sonar clearly states it can probe a depth of 20m, the software has settings for 30m. It isn't clear if the Pocket Sonar is capable of handling 30m without issue or if it can do 30m with some degree of inaccuracy. Again, real world testing would have to be done to determine the exact nature of the 30m setting.
