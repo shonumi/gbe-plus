@@ -3695,10 +3695,10 @@ void gbe_cgfx::dump_selection()
 			{
 				u8 x_coord, y_coord;
 				
-				if(main_menu::gbe_plus->ex_read_u8(REG_SX) % 8) { x_coord = ((x - 1) * 8) + (main_menu::gbe_plus->ex_read_u8(REG_SX) % 8); }
+				if(main_menu::gbe_plus->ex_read_u8(REG_SX) % 8) { x_coord = ((x - 1) * 8) + (8 - (main_menu::gbe_plus->ex_read_u8(REG_SX) % 8)); }
 				else { x_coord = (x * 8); }
 
-				if(main_menu::gbe_plus->ex_read_u8(REG_SY) % 8) { y_coord = ((y - 1) * 8) + (main_menu::gbe_plus->ex_read_u8(REG_SY) % 8); }
+				if(main_menu::gbe_plus->ex_read_u8(REG_SY) % 8) { y_coord = ((y - 1) * 8) + (8 - (main_menu::gbe_plus->ex_read_u8(REG_SY) % 8)); }
 				else { y_coord = (y * 8); }
 
 				gfx_hash = hash_tile(x_coord, y_coord);
