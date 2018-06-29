@@ -3208,7 +3208,19 @@ bool gbe_cgfx::eventFilter(QObject* target, QEvent* event)
 		{
 			//Update the preview
 			if((mouse_event->x() <= 320) && (mouse_event->y() <= 288)) { dump_layer_tile(x, y); }
-		}		
+		}
+
+
+		//OBJ Meta - Delete entire meta tile
+		else if((target == obj_meta_img) && (mouse_event->buttons() == Qt::RightButton))
+		{
+			QImage temp_obj(320, 320, QImage::Format_ARGB32);
+			temp_obj.fill(qRgb(255, 255, 255));
+			obj_meta_pixel_data = temp_obj;
+			obj_meta_img->setPixmap(QPixmap::fromImage(obj_meta_pixel_data));
+
+			for(int a = 0; a < obj_meta_str.size(); a++) { obj_meta_str[a] = ""; }
+		}
 	}
 
 	//Single click
