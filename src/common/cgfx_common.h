@@ -24,8 +24,6 @@ namespace cgfx
 
 	extern bool load_cgfx;
 	extern bool loaded;
-	extern bool auto_dump_obj;
-	extern bool auto_dump_bg;
 	extern bool ignore_blank_dumps;
 
 	extern u32 transparency_color;

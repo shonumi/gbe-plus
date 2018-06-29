@@ -345,7 +345,7 @@ void DMG_LCD::update_oam()
 			obj[x].bg_priority = (attribute & 0x80) ? 1 : 0;
 
 			//CGFX - Update OBJ hashes
-			if((cgfx::load_cgfx) || (cgfx::auto_dump_obj)) 
+			if(cgfx::load_cgfx) 
 			{
 				if(config::gb_type == 2) { update_gbc_obj_hash(x); }
 				else { update_dmg_obj_hash(x); }
@@ -1535,7 +1535,7 @@ void DMG_LCD::update_bg_colors()
 	lcd_stat.update_bg_colors = false;
 
 	//CGFX - Update BG hashes
-	if(((cgfx::load_cgfx) || (cgfx::auto_dump_bg)) && (old_color != lcd_stat.bg_colors_final[color][palette]))
+	if((cgfx::load_cgfx) && (old_color != lcd_stat.bg_colors_final[color][palette]))
 	{
 		u8 temp_vram_bank = mem->vram_bank;
 		mem->vram_bank = 1;
@@ -1631,7 +1631,7 @@ void DMG_LCD::update_obj_colors()
 	lcd_stat.update_obj_colors = false;
 
 	//CGFX - Update OBJ hashes
-	if(((cgfx::load_cgfx) || (cgfx::auto_dump_obj)) && (old_color != lcd_stat.obj_colors_final[color][palette])) 
+	if((cgfx::load_cgfx) && (old_color != lcd_stat.obj_colors_final[color][palette]))
 	{
 		for(int x = 0; x < 40; x++)
 		{

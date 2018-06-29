@@ -1001,78 +1001,6 @@ void DMG_LCD::dump_gbc_bg(u16 bg_index)
 	cgfx::last_added = true;
 }
 
-/****** Dumps GBC BG tile from selected memory address (Auto-dump version) ******/
-void DMG_LCD::dump_gbc_bg(std::string final_hash, u16 bg_tile_addr, u8 palette) 
-{
-	SDL_Surface* bg_dump = SDL_CreateRGBSurface(SDL_SWSURFACE, 8, 8, 32, 0, 0, 0, 0);
-
-	std::string dump_file =  "";
-	if(cgfx::dump_name.empty()) { dump_file = config::data_path + cgfx::dump_bg_path + final_hash + ".bmp"; }
-	else { dump_file = config::data_path + cgfx::dump_bg_path + cgfx::dump_name; }
-
-	if(SDL_MUSTLOCK(bg_dump)) { SDL_LockSurface(bg_dump); }
-
-	u32* dump_pixel_data = (u32*)bg_dump->pixels;
-	u8 pixel_counter = 0;
-
-	//Generate RGBA values of the sprite for the dump file
-	for(int x = 0; x < 8; x++)
-	{
-		//Grab bytes from VRAM representing 8x1 pixel data
-		u16 raw_data = mem->read_u16(bg_tile_addr);
-
-		//Grab individual pixels
-		for(int y = 7; y >= 0; y--)
-		{
-			u8 raw_pixel = ((raw_data >> 8) & (1 << y)) ? 2 : 0;
-			raw_pixel |= (raw_data & (1 << y)) ? 1 : 0;
-
-			dump_pixel_data[pixel_counter++] = lcd_stat.bg_colors_final[raw_pixel][palette];
-		}
-
-		bg_tile_addr += 2;
-	}
-
-	if(SDL_MUSTLOCK(bg_dump)) { SDL_UnlockSurface(bg_dump); }
-
-	//Ignore blank or empty dumps
-	if(cgfx::ignore_blank_dumps)
-	{
-		bool blank = true;
-
-		for(int x = 1; x < pixel_counter; x++)
-		{
-			if(dump_pixel_data[0] != dump_pixel_data[x]) { blank = false; break; }
-		}
-
-		if(blank)
-		{
-			cgfx::last_added = false;
-			return;
-		}
-	}
-
-	//Save to BMP
-	if(SDL_SaveBMP(bg_dump, dump_file.c_str()) == 0)
-	{
-		cgfx::last_saved = true;
-		std::cout<<"LCD::Background Tile - " << dump_file << "\n";
-	}
-
-	else
-	{
-		cgfx::last_saved = false;
-		std::cout<<"LCD::Error - Could not save background tile to " << dump_file << ". Please check file path and permissions \n";
-	}
-
-	//Save CGFX data
-	cgfx::last_hash = final_hash;
-	cgfx::last_vram_addr = bg_tile_addr - 16;
-	cgfx::last_type = 20;
-	cgfx::last_palette = palette + 1;
-	cgfx::last_added = true;
-}
-
 /****** Updates the current hash for the selected DMG OBJ ******/
 void DMG_LCD::update_dmg_obj_hash(u8 obj_index)
 {
@@ -1106,9 +1034,6 @@ void DMG_LCD::update_dmg_obj_hash(u8 obj_index)
 	cgfx_stat.current_obj_hash[obj_index] = hash::raw_to_64(pal_data) + "_" + cgfx_stat.current_obj_hash[obj_index];
 
 	final_hash = cgfx_stat.current_obj_hash[obj_index];
-
-	//Optionally auto-dump DMG OBJ
-	if(cgfx::auto_dump_obj) { dump_dmg_obj(obj_index); }
 
 	//Update the OBJ hash list
 	for(int x = 0; x < cgfx_stat.obj_hash_list.size(); x++)
@@ -1168,9 +1093,6 @@ void DMG_LCD::update_gbc_obj_hash(u8 obj_index)
 
 	final_hash = cgfx_stat.current_obj_hash[obj_index];
 
-	//Optionally auto-dump GBC OBJ
-	if(cgfx::auto_dump_obj) { dump_gbc_obj(obj_index); }
-
 	//Limit OBJ hash list size, delete oldest entry
 	if(cgfx_stat.obj_hash_list.size() > 128) { cgfx_stat.obj_hash_list.erase(cgfx_stat.obj_hash_list.begin()); }
 
@@ -1212,9 +1134,6 @@ void DMG_LCD::update_dmg_bg_hash(u16 bg_index)
 	cgfx_stat.current_bg_hash[bg_index] = hash::raw_to_64(pal_data) + "_" + cgfx_stat.current_bg_hash[bg_index];
 
 	final_hash = cgfx_stat.current_bg_hash[bg_index];
-
-	//Optionally auto-dump DMG BG
-	if(cgfx::auto_dump_bg) { dump_dmg_bg(bg_index); }
 
 	//Update the BG hash list
 	for(int x = 0; x < cgfx_stat.bg_hash_list.size(); x++)
@@ -1288,9 +1207,6 @@ void DMG_LCD::update_gbc_bg_hash(u16 map_addr)
 	}
 
 	cgfx_stat.bg_hash_list.push_back(final_hash);
-
-	//Optionally auto-dump GBC BG
-	if(cgfx::auto_dump_bg) { dump_gbc_bg(final_hash, bg_tile_addr, palette); }
 
 	//Limit BG hash list size, delete oldest entry
 	//To be on the safe side, allow 2x as much as the DMG

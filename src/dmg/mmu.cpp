@@ -974,7 +974,7 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		lcd_stat->bgp[3] = (value >> 6) & 0x3;
 
 		//Update CGFX
-		if((cgfx::load_cgfx) || (cgfx::auto_dump_bg))
+		if(cgfx::load_cgfx)
 		{
 			for(int x = 0; x < 384; x++)
 			{
@@ -1340,7 +1340,7 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	else if(address > 0x7FFF) { memory_map[address] = value; }
 
 	//CGFX processing - Check for BG updates
-	if((cgfx::load_cgfx || cgfx::auto_dump_bg) && (address >= 0x8000) && (address <= 0x9FFF))
+	if((cgfx::load_cgfx) && (address >= 0x8000) && (address <= 0x9FFF))
 	{
 		//If the last VRAM value is the same, do not update
 		//Some games GBC games will spam VRAM addresses with the same data

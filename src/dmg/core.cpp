@@ -1099,7 +1099,7 @@ void DMG_core::dump_bg(int bg_index)
 	if(config::gb_type < 2) { core_cpu.controllers.video.dump_dmg_bg(bg_index); }
 
 	//GBC BG tiles
-	else{ core_cpu.controllers.video.dump_gbc_bg(bg_index); }
+	else { core_cpu.controllers.video.dump_gbc_bg(bg_index); }
 }
 
 /****** Grabs the OBJ palette ******/
