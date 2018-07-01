@@ -25,6 +25,7 @@ namespace cgfx
 	extern bool load_cgfx;
 	extern bool loaded;
 	extern bool ignore_blank_dumps;
+	extern bool auto_obj_trans;
 
 	extern u32 transparency_color;
 	extern u8 scaling_factor;

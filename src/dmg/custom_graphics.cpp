@@ -537,23 +537,28 @@ void DMG_LCD::dump_dmg_obj(u8 obj_index)
 			u8 raw_pixel = ((raw_data >> 8) & (1 << y)) ? 2 : 0;
 			raw_pixel |= (raw_data & (1 << y)) ? 1 : 0;
 
-			switch(lcd_stat.obp[raw_pixel][obj[obj_index].palette_number])
+			if((raw_pixel == 0) && (cgfx::auto_obj_trans)) { dump_pixel_data[pixel_counter++] = cgfx::transparency_color; }
+
+			else
 			{
-				case 0: 
-					dump_pixel_data[pixel_counter++] = 0xFFFFFFFF;
-					break;
+				switch(lcd_stat.obp[raw_pixel][obj[obj_index].palette_number])
+				{
+					case 0: 
+						dump_pixel_data[pixel_counter++] = 0xFFFFFFFF;
+						break;
 
-				case 1: 
-					dump_pixel_data[pixel_counter++] = 0xFFC0C0C0;
-					break;
+					case 1: 
+						dump_pixel_data[pixel_counter++] = 0xFFC0C0C0;
+						break;
 
-				case 2: 
-					dump_pixel_data[pixel_counter++] = 0xFF606060;
-					break;
+					case 2: 
+						dump_pixel_data[pixel_counter++] = 0xFF606060;
+						break;
 
-				case 3: 
-					dump_pixel_data[pixel_counter++] = 0xFF000000;
-					break;
+					case 3: 
+						dump_pixel_data[pixel_counter++] = 0xFF000000;
+						break;
+				}
 			}
 		}
 
@@ -687,7 +692,8 @@ void DMG_LCD::dump_gbc_obj(u8 obj_index)
 			u8 raw_pixel = ((raw_data >> 8) & (1 << y)) ? 2 : 0;
 			raw_pixel |= (raw_data & (1 << y)) ? 1 : 0;
 
-			dump_pixel_data[pixel_counter++] = lcd_stat.obj_colors_final[raw_pixel][obj[obj_index].color_palette_number];
+			if((raw_pixel == 0) && (cgfx::auto_obj_trans)) { dump_pixel_data[pixel_counter++] = cgfx::transparency_color; }
+			else { dump_pixel_data[pixel_counter++] = lcd_stat.obj_colors_final[raw_pixel][obj[obj_index].color_palette_number]; }
 		}
 
 		obj_tile_addr += 2;

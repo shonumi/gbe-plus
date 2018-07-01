@@ -19,9 +19,8 @@ namespace cgfx
 
 	bool load_cgfx = false;
 	bool loaded = false;
-	bool auto_dump_obj = false;
-	bool auto_dump_bg = false;
 	bool ignore_blank_dumps = false;
+	bool auto_obj_trans = false;
 
 	u8 scaling_factor = 1;
 	u8 scale_squared = 1;

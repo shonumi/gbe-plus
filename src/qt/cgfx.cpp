@@ -47,6 +47,10 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	QLabel* advanced_label = new QLabel("Use advanced menu", advanced_set);
 	advanced = new QCheckBox(advanced_set);
 
+	QWidget* auto_trans_set = new QWidget(config_tab);
+	QLabel* auto_trans_label = new QLabel("Automatically add transparency color when dumping OBJs", auto_trans_set);
+	auto_trans = new QCheckBox(auto_trans_set);
+
 	obj_set = new QWidget(obj_tab);
 	bg_set = new QWidget(bg_tab);
 	layers_set = new QWidget(layers_tab);
@@ -367,10 +371,17 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	blank_layout->addWidget(blank_label);
 	blank_set->setLayout(blank_layout);
 
+	QHBoxLayout* auto_trans_layout = new QHBoxLayout;
+	auto_trans_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	auto_trans_layout->addWidget(auto_trans);
+	auto_trans_layout->addWidget(auto_trans_label);
+	auto_trans_set->setLayout(auto_trans_layout);
+
 	QVBoxLayout* config_tab_layout = new QVBoxLayout;
 	config_tab_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	config_tab_layout->addWidget(advanced_set);
 	config_tab_layout->addWidget(blank_set);
+	config_tab_layout->addWidget(auto_trans_set);
 	config_tab->setLayout(config_tab_layout);
 
 	//OBJ Tab layout
@@ -415,6 +426,7 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	connect(tabs_button, SIGNAL(rejected()), this, SLOT(reject()));
 	connect(tabs_button->button(QDialogButtonBox::Close), SIGNAL(clicked()), this, SLOT(close_cgfx()));
 	connect(blank, SIGNAL(stateChanged(int)), this, SLOT(set_blanks()));
+	connect(auto_trans, SIGNAL(stateChanged(int)), this, SLOT(set_auto_trans()));
 	connect(layer_select, SIGNAL(currentIndexChanged(int)), this, SLOT(layer_change()));
 	connect(data_folder, SIGNAL(accepted()), this, SLOT(select_folder()));
 	connect(data_folder, SIGNAL(rejected()), this, SLOT(reject_folder()));
@@ -1302,6 +1314,13 @@ void gbe_cgfx::set_blanks()
 {
 	if(blank->isChecked()) { cgfx::ignore_blank_dumps = true; }
 	else { cgfx::ignore_blank_dumps = false; }
+}
+
+/****** Toggles whether to automatically add the transparency color when dumping OBJs ******/
+void gbe_cgfx::set_auto_trans()
+{
+	if(auto_trans->isChecked()) { cgfx::auto_obj_trans = true; }
+	else { cgfx::auto_obj_trans = false; }
 }
 
 /****** Changes the current viewable layer for dumping ******/

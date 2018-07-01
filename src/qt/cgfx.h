@@ -54,6 +54,7 @@ class gbe_cgfx : public QDialog
 	//Configure tab widgets
 	QCheckBox* advanced;
 	QCheckBox* blank;
+	QCheckBox* auto_trans;
 
 	//Advanced menu
 	QWidget* advanced_box;
@@ -208,6 +209,7 @@ class gbe_cgfx : public QDialog
 	void browse_advanced_dir();
 	void browse_advanced_file();
 	void set_blanks();
+	void set_auto_trans();
 	void layer_change();
 	void select_folder();
 	void reject_folder();
