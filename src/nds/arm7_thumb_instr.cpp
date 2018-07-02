@@ -64,7 +64,7 @@ void NTR_ARM7::move_shifted_register(u16 current_thumb_instruction)
 	else if(shift_out == 0) { reg.cpsr &= ~CPSR_C_FLAG; }
 
 	//Clock CPU and controllers - 1S
-	clock(reg.r15, CODE_16);
+	execute_cycles++;
 } 
 
 /****** THUMB.2 - Add-Sub Immediate ******/
@@ -119,7 +119,7 @@ void NTR_ARM7::add_sub_immediate(u16 current_thumb_instruction)
 	else { update_condition_arithmetic(input, operand, result, true); }
 
 	//Clock CPU and controllers - 1S
-	clock(reg.r15, CODE_16);
+	execute_cycles++;
 }
 
 /****** THUMB.3 Move-Compare-Add-Subtract Immediate ******/
@@ -172,7 +172,7 @@ void NTR_ARM7::mcas_immediate(u16 current_thumb_instruction)
 	if(op != 1) { set_reg(dest_reg, result); }
 
 	//Clock CPU and controllers - 1S
-	clock(reg.r15, CODE_16);
+	execute_cycles++;
 }
 			
 /****** THUMB.4 ALU Operations ******/
@@ -211,7 +211,7 @@ void NTR_ARM7::alu_ops(u16 current_thumb_instruction)
 			set_reg(dest_reg, result);
 
 			//Clock CPU and controllers - 1S
-			clock(reg.r15, CODE_16);
+			execute_cycles++;
 
 			break;
 
@@ -230,7 +230,7 @@ void NTR_ARM7::alu_ops(u16 current_thumb_instruction)
 			set_reg(dest_reg, result);
 
 			//Clock CPU and controllers - 1S
-			clock(reg.r15, CODE_16);
+			execute_cycles++;
 
 			break;
 
@@ -255,13 +255,10 @@ void NTR_ARM7::alu_ops(u16 current_thumb_instruction)
 				else if(shift_out == 0) { reg.cpsr &= ~CPSR_C_FLAG; }
 			}
 
-			//Clock CPU and controllers - 1I
-			clock();
+			//Clock CPU and controllers - 1I + 1S
+			execute_cycles += 2;
 
 			set_reg(dest_reg, result);
-
-			//Clock CPU and controllers - 1S
-			clock((reg.r15 + 2), CODE_16);
 
 			break;
 
@@ -286,13 +283,10 @@ void NTR_ARM7::alu_ops(u16 current_thumb_instruction)
 				else if(shift_out == 0) { reg.cpsr &= ~CPSR_C_FLAG; }
 			}
 
-			//Clock CPU and controllers - 1I
-			clock();
+			//Clock CPU and controllers - 1I + 1S
+			execute_cycles += 2;
 
 			set_reg(dest_reg, result);
-
-			//Clock CPU and controllers - 1S
-			clock((reg.r15 + 2), CODE_16);
 
 			break;
 
@@ -317,13 +311,10 @@ void NTR_ARM7::alu_ops(u16 current_thumb_instruction)
 				else if(shift_out == 0) { reg.cpsr &= ~CPSR_C_FLAG; }
 			}
 
-			//Clock CPU and controllers - 1I
-			clock();
+			//Clock CPU and controllers - 1I + 1S
+			execute_cycles += 2;
 
 			set_reg(dest_reg, result);
-
-			//Clock CPU and controllers - 1S
-			clock((reg.r15 + 2), CODE_16);
 
 			break;
 
@@ -335,7 +326,7 @@ void NTR_ARM7::alu_ops(u16 current_thumb_instruction)
 			set_reg(dest_reg, result);
 
 			//Clock CPU and controllers - 1S
-			clock(reg.r15, CODE_16);
+			execute_cycles++;
 
 			break;
 
@@ -351,7 +342,7 @@ void NTR_ARM7::alu_ops(u16 current_thumb_instruction)
 			set_reg(dest_reg, result);
 
 			//Clock CPU and controllers - 1S
-			clock(reg.r15, CODE_16);
+			execute_cycles++;
 
 			break;
 
@@ -376,13 +367,10 @@ void NTR_ARM7::alu_ops(u16 current_thumb_instruction)
 				else if(shift_out == 0) { reg.cpsr &= ~CPSR_C_FLAG; }
 			}
 
-			//Clock CPU and controllers - 1I
-			clock();
+			//Clock CPU and controllers - 1I + 1S
+			execute_cycles += 2;
 
 			set_reg(dest_reg, result);
-
-			//Clock CPU and controllers - 1S
-			clock(reg.r15, CODE_16);
 
 			break;
 
@@ -399,7 +387,7 @@ void NTR_ARM7::alu_ops(u16 current_thumb_instruction)
 			else { reg.cpsr &= ~CPSR_N_FLAG; }
 
 			//Clock CPU and controllers - 1S
-			clock(reg.r15, CODE_16);
+			execute_cycles++;
 
 			break;
 
@@ -412,7 +400,7 @@ void NTR_ARM7::alu_ops(u16 current_thumb_instruction)
 			set_reg(dest_reg, result);
 
 			//Clock CPU and controllers - 1S
-			clock(reg.r15, CODE_16);
+			execute_cycles++;
 
 			break;
 
@@ -422,7 +410,7 @@ void NTR_ARM7::alu_ops(u16 current_thumb_instruction)
 			update_condition_arithmetic(input, operand, result, false);
 
 			//Clock CPU and controllers - 1S
-			clock(reg.r15, CODE_16);
+			execute_cycles++;
 
 			break;
 
@@ -432,7 +420,7 @@ void NTR_ARM7::alu_ops(u16 current_thumb_instruction)
 			update_condition_arithmetic(input, operand, result, true);
 
 			//Clock CPU and controllers - 1S
-			clock(reg.r15, CODE_16);
+			execute_cycles++;
 
 			break;
 
@@ -451,7 +439,7 @@ void NTR_ARM7::alu_ops(u16 current_thumb_instruction)
 			set_reg(dest_reg, result);
 
 			//Clock CPU and controllers - 1S
-			clock(reg.r15, CODE_16);
+			execute_cycles++;
 
 			break;
 
@@ -470,7 +458,8 @@ void NTR_ARM7::alu_ops(u16 current_thumb_instruction)
 			//Destroy Carry flag
 			reg.cpsr &= ~CPSR_C_FLAG;
 
-			//TODO - Figure out the timing for this opcode
+			//Clock CPU and controllers - 1S + 3I
+			system_cycles += 4;
 
 			set_reg(dest_reg, result);
 			break;
@@ -490,7 +479,7 @@ void NTR_ARM7::alu_ops(u16 current_thumb_instruction)
 			set_reg(dest_reg, result);
 
 			//Clock CPU and controllers - 1S
-			clock(reg.r15, CODE_16);
+			execute_cycles++;
 
 			break;
 
@@ -509,7 +498,7 @@ void NTR_ARM7::alu_ops(u16 current_thumb_instruction)
 			set_reg(dest_reg, result);
 
 			//Clock CPU and controllers - 1S
-			clock(reg.r15, CODE_16);
+			execute_cycles++;
 
 			break;
 	}
@@ -563,22 +552,18 @@ void NTR_ARM7::hireg_bx(u16 current_thumb_instruction)
 				set_reg(dest_reg, result);
 
 				//Clock CPU and controllers - 1S
-				clock(reg.r15, CODE_16);
+				execute_cycles++;
 			}
 
 			//Destination is PC
 			else
 			{
-				//Clock CPU and controllers - 1N
-				clock(reg.r15, CODE_16);
+				//Clock CPU and controllers - 1N + 2S
+				execute_cycles += 3;
 
 				result = (input + operand);
 				set_reg(dest_reg, result);
 				needs_flush = true;
-
-				//Clock CPU and controllers - 2S
-				clock(reg.r15, CODE_16);
-				clock((reg.r15 + 2), CODE_16);
 			}
 
 			break;
@@ -589,7 +574,7 @@ void NTR_ARM7::hireg_bx(u16 current_thumb_instruction)
 			update_condition_arithmetic(input, operand, result, false);
 
 			//Clock CPU and controllers - 1S
-			clock(reg.r15, CODE_16);
+			execute_cycles++;
 
 			break;
 
@@ -605,22 +590,18 @@ void NTR_ARM7::hireg_bx(u16 current_thumb_instruction)
 				set_reg(dest_reg, result);
 
 				//Clock CPU and controllers - 1S
-				clock(reg.r15, CODE_16);
+				execute_cycles++;
 			}
 
 			//Operand is PC
 			else
 			{
-				//Clock CPU and controllers - 1N
-				clock(reg.r15, CODE_16);
+				//Clock CPU and controllers - 1N + 2S
+				execute_cycles += 3;
 
 				result = operand;
 				set_reg(dest_reg, result);
 				needs_flush = true;
-
-				//Clock CPU and controllers - 2S
-				clock(reg.r15, CODE_16);
-				clock((reg.r15 + 2), CODE_16);
 			}
 
 			break;
@@ -637,8 +618,8 @@ void NTR_ARM7::hireg_bx(u16 current_thumb_instruction)
 			//Align operand to half-word
 			else { operand &= ~0x1; }
 
-			//Clock CPU and controllers - 1N
-			clock(reg.r15, CODE_16);
+			//Clock CPU and controllers - 1N + 2S
+			execute_cycles += 3;
 
 			//Auto-align PC when using R15 as an operand
 			if(src_reg == 15)
@@ -647,10 +628,6 @@ void NTR_ARM7::hireg_bx(u16 current_thumb_instruction)
 			}
 
 			else { reg.r15 = operand; }
-
-			//Clock CPU and controllers - 2S
-			clock(reg.r15, CODE_16);
-			clock((reg.r15 + 2), CODE_16);
 
 			needs_flush = true;
 			break;
@@ -671,15 +648,13 @@ void NTR_ARM7::load_pc_relative(u16 current_thumb_instruction)
 	u32 load_addr = (reg.r15 & ~0x2) + offset;
 
 	//Clock CPU and controllers - 1N
-	clock(load_addr, DATA_32);
+	execute_cycles += get_access_time(load_addr, DATA_32);
 
-	//Clock CPU and controllers - 1I
+	//Clock CPU and controllers - 1I + 1S
 	mem_check_32(load_addr, value, true);
-	clock();
+	execute_cycles += 2;
 
-	//Clock CPU and controllers - 1S
 	set_reg(dest_reg, value);
-	clock((reg.r15 + 2), CODE_16);
 }
 
 /****** THUMB.7 Load-Store with Register Offset ******/
@@ -706,55 +681,51 @@ void NTR_ARM7::load_store_reg_offset(u16 current_thumb_instruction)
 		//STR
 		case 0x0:
 			//Clock CPU and controllers - 1N
-			clock(reg.r15, CODE_16);
+			execute_cycles++;
 
 			//Clock CPU and controllers - 1N
 			value = get_reg(src_dest_reg);
 			mem->write_u32(op_addr, value);
-			clock(op_addr, DATA_32);
+			execute_cycles += get_access_time(op_addr, DATA_32);
 
 			break;
 
 		//STRB
 		case 0x1:
 			//Clock CPU and controllers - 1N
-			clock(reg.r15, CODE_16);
+			execute_cycles++;
 
 			//Clock CPU and controllers - 1N
 			value = get_reg(src_dest_reg);
 			value &= 0xFF;
 			mem_check_8(op_addr, value, false);
-			clock(op_addr, DATA_16);
+			execute_cycles += get_access_time(op_addr, DATA_16);
 
 			break;
 
 		//LDR
 		case 0x2:
 			//Clock CPU and controllers - 1N
-			clock(op_addr, DATA_32);
+			execute_cycles += get_access_time(op_addr, DATA_32);
 
-			//Clock CPU and controllers - 1I
+			//Clock CPU and controllers - 1I + 1S
 			mem_check_32(op_addr, value, true);
-			clock();
+			execute_cycles += 2;
 
-			//Clock CPU and controllers - 1S
 			set_reg(src_dest_reg, value);
-			clock((reg.r15 + 2), CODE_16);
 
 			break;
 
 		//LDRB
 		case 0x3:
 			//Clock CPU and controllers - 1N
-			clock(op_addr, DATA_16);
+			execute_cycles += get_access_time(op_addr, DATA_16);
 
-			//Clock CPU and controllers - 1I
+			//Clock CPU and controllers - 1I + 1S
 			mem_check_8(op_addr, value, true);
-			clock();
+			execute_cycles += 2;
 
-			//Clock CPU and controllers - 1S
 			set_reg(src_dest_reg, value);
-			clock((reg.r15 + 2), CODE_16);
 
 			break;
 	}
