@@ -818,23 +818,28 @@ QImage gbe_cgfx::grab_dmg_obj_data(int obj_index)
 			u8 raw_pixel = ((raw_data >> 8) & (1 << y)) ? 2 : 0;
 			raw_pixel |= (raw_data & (1 << y)) ? 1 : 0;
 
-			switch(obp[raw_pixel][pal_num])
+			if((raw_pixel == 0) && (cgfx::auto_obj_trans)) { obj_pixels.push_back(cgfx::transparency_color); }
+
+			else
 			{
-				case 0: 
-					obj_pixels.push_back(0xFFFFFFFF);
-					break;
+				switch(obp[raw_pixel][pal_num])
+				{
+					case 0: 
+						obj_pixels.push_back(0xFFFFFFFF);
+						break;
 
-				case 1: 
-					obj_pixels.push_back(0xFFC0C0C0);
-					break;
+					case 1: 
+						obj_pixels.push_back(0xFFC0C0C0);
+						break;
 
-				case 2: 
-					obj_pixels.push_back(0xFF606060);
-					break;
+					case 2: 
+						obj_pixels.push_back(0xFF606060);
+						break;
 
-				case 3: 
-					obj_pixels.push_back(0xFF000000);
-					break;
+					case 3: 
+						obj_pixels.push_back(0xFF000000);
+						break;
+				}
 			}
 		}
 
@@ -908,7 +913,8 @@ QImage gbe_cgfx::grab_gbc_obj_data(int obj_index)
 			u8 raw_pixel = ((raw_data >> 8) & (1 << y)) ? 2 : 0;
 			raw_pixel |= (raw_data & (1 << y)) ? 1 : 0;
 
-			obj_pixels.push_back(obp[raw_pixel]);
+			if((raw_pixel == 0) && (cgfx::auto_obj_trans)) { obj_pixels.push_back(cgfx::transparency_color); }
+			else { obj_pixels.push_back(obp[raw_pixel]); }
 		}
 
 		obj_tile_addr += 2;
