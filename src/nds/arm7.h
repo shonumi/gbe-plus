@@ -96,14 +96,10 @@ class NTR_ARM7
 	//Memory access enumerations
 	enum mem_modes
 	{
-		CODE_N16,
-		CODE_N32,
-		CODE_S16,
-		CODE_S32,
-		DATA_N16,
-		DATA_N32,
-		DATA_S16,
-		DATA_S32
+		CODE_16,
+		CODE_32,
+		DATA_16,
+		DATA_32
 	};
 
 	cpu_modes current_cpu_mode;
@@ -195,7 +191,8 @@ class NTR_ARM7
 	u16 system_cycles;
 	u16 fetch_cycles;
 	u16 execute_cycles;
-	u32 last_addr;
+	u32 last_code_addr;
+	u32 last_data_addr;
 	bool re_sync;
 
 	NTR_MMU* mem;
@@ -265,7 +262,7 @@ class NTR_ARM7
 	void clock_system();
 	void clock_dma();
 	void handle_interrupt();
-	u32 get_access_time(u32 addr, u8 io_width);
+	u32 get_access_time(u32 addr, mem_modes access_mode);
 
 	//DMA functions
 	void dma0();

@@ -37,7 +37,7 @@ void NTR_ARM7::branch_exchange(u32 current_arm_instruction)
 			needs_flush = true;
 
 			//Clock CPU and controllers - 1N + 2S
-			system_cycles += 3;
+			execute_cycles += 3;
 
 			break;
 
@@ -73,7 +73,7 @@ void NTR_ARM7::branch_link(u32 current_arm_instruction)
 			needs_flush = true;
 
 			//Clock CPU and controllers - 1N + 2S
-			system_cycles += 3;
+			execute_cycles += 3;
 
 			break;
 
@@ -84,7 +84,7 @@ void NTR_ARM7::branch_link(u32 current_arm_instruction)
 			needs_flush = true;
 
 			//Clock CPU and controllers - 1N + 2S
-			system_cycles += 3;
+			execute_cycles += 3;
 
 			break;
 	}
@@ -179,7 +179,7 @@ void NTR_ARM7::data_processing(u32 current_arm_instruction)
 		}
 		
 		//Clock CPU and controllers - 1I
-		system_cycles++;
+		execute_cycles++;
 	}		
 
 	//TODO - When op is 0x8 through 0xB, make sure Bit 20 is 1 (rather force it? Unsure)
@@ -190,7 +190,7 @@ void NTR_ARM7::data_processing(u32 current_arm_instruction)
 	if(dest_reg == 15)
 	{
 		//Clock CPU and controllers - 1S + 1N
-		system_cycles += 2;
+		execute_cycles += 2;
 		
 		//When the set condition parameter is 1 and destination register is R15, change CPSR to SPSR
 		if(set_condition)
@@ -371,7 +371,7 @@ void NTR_ARM7::data_processing(u32 current_arm_instruction)
 	}
 
 	//Clock CPU and controllers - 1S
-	system_cycles++;
+	execute_cycles++;
 }
 
 /****** ARM.6 PSR Transfer ******/
@@ -489,7 +489,7 @@ void NTR_ARM7::psr_transfer(u32 current_arm_instruction)
 	}
 
 	//Clock CPU and controllers - 1S
-	system_cycles++;
+	execute_cycles++;
 } 
 
 
@@ -582,7 +582,7 @@ void NTR_ARM7::multiply(u32 current_arm_instruction)
 			}
 
 			//Clock CPU and controllers - 1S + (m)I
-			system_cycles += (1 + m_count);
+			execute_cycles += (1 + m_count);
 			
 			break;
 
@@ -603,7 +603,7 @@ void NTR_ARM7::multiply(u32 current_arm_instruction)
 			}
 
 			//Clock CPU and controllers - 1S + (m + 1)I
-			system_cycles += (2 + m_count);
+			execute_cycles += (2 + m_count);
 			
 			break;
 
@@ -630,7 +630,7 @@ void NTR_ARM7::multiply(u32 current_arm_instruction)
 			}
 
 			//Clock CPU and controllers - 1S + (m + 1)I
-			system_cycles += (2 + m_count);
+			execute_cycles += (2 + m_count);
 
 			break;
 
@@ -663,7 +663,7 @@ void NTR_ARM7::multiply(u32 current_arm_instruction)
 			}
 
 			//Clock CPU and controllers - 1S + (m + 2)I
-			system_cycles += (3 + m_count);
+			execute_cycles += (3 + m_count);
 
 			break;
 
@@ -693,7 +693,7 @@ void NTR_ARM7::multiply(u32 current_arm_instruction)
 			}
 
 			//Clock CPU and controllers - 1S + (m + 1)I
-			system_cycles += (2 + m_count);
+			execute_cycles += (2 + m_count);
 
 			break;
 
@@ -728,7 +728,7 @@ void NTR_ARM7::multiply(u32 current_arm_instruction)
 			}
 
 			//Clock CPU and controllers - 1S + (m + 2)I
-			system_cycles += (3 + m_count);
+			execute_cycles += (3 + m_count);
 
 			break;
 			
@@ -822,7 +822,7 @@ void NTR_ARM7::single_data_transfer(u32 current_arm_instruction)
 	}
 
 	//Clock CPU and controllers - 1N
-	clock(reg.r15, CODE_N32);
+	execute_cycles++;
 
 	//Store Byte or Word
 	if(load_store == 0) 
@@ -835,7 +835,7 @@ void NTR_ARM7::single_data_transfer(u32 current_arm_instruction)
 			mem_check_8(base_addr, value, false);
 
 			//Clock CPU and controllers - 1N
-			clock(base_addr, DATA_N16);
+			execute_cycles += get_access_time(base_addr, DATA_16);
 		}
 
 		else
@@ -845,7 +845,7 @@ void NTR_ARM7::single_data_transfer(u32 current_arm_instruction)
 			mem->write_u32(base_addr, value);
 
 			//Clock CPU and controllers - 1N
-			clock(base_addr, DATA_N32);
+			execute_cycles += get_access_time(base_addr, DATA_32);
 		}
 	}
 
@@ -856,10 +856,10 @@ void NTR_ARM7::single_data_transfer(u32 current_arm_instruction)
 		{
 			//Clock CPU and controllers - 1I
 			value = mem->read_u8(base_addr);
-			clock();
+			execute_cycles++;
 
 			//Clock CPU and controllers - 1N
-			if(dest_reg == 15) { clock((reg.r15 + 4), DATA_N16); } 
+			if(dest_reg == 15) { execute_cycles += get_access_time((reg.r15 + 4), DATA_16); } 
 
 			set_reg(dest_reg, value);
 		}
@@ -868,10 +868,10 @@ void NTR_ARM7::single_data_transfer(u32 current_arm_instruction)
 		{
 			//Clock CPU and controllers - 1I
 			mem_check_32(base_addr, value, true);
-			clock();
+			execute_cycles++;
 
 			//Clock CPU and controllers - 1N
-			if(dest_reg == 15) { clock((reg.r15 + 4), DATA_N32); } 
+			if(dest_reg == 15) { execute_cycles += get_access_time((reg.r15 + 4), DATA_32); } 
 
 			set_reg(dest_reg, value);
 		}
@@ -901,8 +901,7 @@ void NTR_ARM7::single_data_transfer(u32 current_arm_instruction)
 		}
 
 		//Clock CPU and controllser - 2S
-		clock(reg.r15, CODE_S32);
-		clock((reg.r15 + 4), CODE_S32);
+		execute_cycles += 2;
 		needs_flush = true;
 	}
 
@@ -910,7 +909,7 @@ void NTR_ARM7::single_data_transfer(u32 current_arm_instruction)
 	else if((dest_reg != 15) && (load_store == 1))
 	{
 		//Clock CPU and controllers - 1S
-		clock(reg.r15, CODE_S32);
+		execute_cycles++;
 	}
 }
 

@@ -90,7 +90,8 @@ void NTR_ARM7::reset()
 
 	sync_cycles = 0;
 	system_cycles = 0;
-	last_addr = 0;
+	last_code_addr = 0;
+	last_data_addr = 0;
 	re_sync = false;
 
 	flush_pipeline();
@@ -324,7 +325,7 @@ void NTR_ARM7::fetch()
 		instruction_operation[pipeline_pointer] = UNDEFINED;
 
 		//Calculate cycles necessary to fetch opcode
-		fetch_cycles = get_access_time(reg.r15, 16);
+		fetch_cycles = get_access_time(reg.r15, CODE_16);
 	}
 
 	//Fetch ARM instructions
@@ -337,7 +338,7 @@ void NTR_ARM7::fetch()
 		instruction_operation[pipeline_pointer] = UNDEFINED;
 
 		//Calculate cycles necessary to fetch opcode
-		fetch_cycles = get_access_time(reg.r15, 32);
+		fetch_cycles = get_access_time(reg.r15, CODE_32);
 	}
 }
 
@@ -620,8 +621,8 @@ void NTR_ARM7::execute()
 		return; 
 	}
 
-	//Reset system cycles
-	system_cycles = 0;
+	//Reset execute cycles
+	execute_cycles = 0;
 
 	//Execute THUMB instruction
 	if(arm_mode == THUMB)
@@ -803,7 +804,7 @@ void NTR_ARM7::execute()
 			debug_code = instruction_pipeline[pipeline_id];
 
 			//Clock CPU and controllers - 1S
-			clock(reg.r15, CODE_S32); 
+			execute_cycles++;
 		}
 	}
 }
@@ -1158,11 +1159,12 @@ void NTR_ARM7::mem_check_8(u32 addr, u32& value, bool load_store)
 }
 
 /****** Calculates the time it takes for memory accesses ******/
-u32 NTR_ARM7::get_access_time(u32 addr, u8 io_width)
+u32 NTR_ARM7::get_access_time(u32 addr, mem_modes access_mode)
 {
-	bool is_halfword = (io_width == 16);
+	bool is_halfword = ((access_mode == CODE_16) || (access_mode == DATA_16));
 	u8 offset = (arm_mode == THUMB) ? 2 : 4;
 	u32 cycles = 0;
+	u32 last_addr = ((access_mode == CODE_16) || (access_mode == CODE_32)) ? last_code_addr : last_data_addr;
 
 	//Determine memory region being accessed
 	switch(addr >> 24)
@@ -1193,72 +1195,15 @@ u32 NTR_ARM7::get_access_time(u32 addr, u8 io_width)
 	//Account for Non-Sequential access
 	if(addr != (last_addr + offset)) { cycles++; }
 
-	last_addr = addr;
+	//Save last accessed address for future reference
+	if((access_mode == CODE_16) || (access_mode == CODE_32)) { last_code_addr = addr; }
+	else { last_data_addr = addr; }
+
+	return cycles;
 }
 
 /****** Counts cycles for memory accesses  ******/
-void NTR_ARM7::clock(u32 access_addr, mem_modes current_mode)
-{
-	//Determine memory region being accessed
-	switch(access_addr >> 24)
-	{
-		//Main Memory
-		case 0x2:
-			switch(current_mode)
-			{
-				case CODE_N16: system_cycles += 8; break;
-				case CODE_S16: system_cycles += 1; break;
-				case CODE_N32: system_cycles += 9; break;
-				case CODE_S32: system_cycles += 2; break;
-
-				case DATA_N16: system_cycles += 9; break;
-				case DATA_S16: system_cycles += 1; break;
-				case DATA_N32: system_cycles += 10; break;
-				case DATA_S32: system_cycles += 2; break;
-			}
-
-			break;
-
-		//WRAM, BIOS, I/O, OAM
-		case 0x3:
-		case 0x4:
-		case 0x7:
-			switch(current_mode)
-			{
-				case CODE_N16: system_cycles += 1; break;
-				case CODE_S16: system_cycles += 1; break;
-				case CODE_N32: system_cycles += 1; break;
-				case CODE_S32: system_cycles += 1; break;
-
-				case DATA_N16: system_cycles += 1; break;
-				case DATA_S16: system_cycles += 1; break;
-				case DATA_N32: system_cycles += 1; break;
-				case DATA_S32: system_cycles += 1; break;
-			}
-
-			break;
-
-		//VRAM, Palettes
-		case 0x5:
-		case 0x6:
-			switch(current_mode)
-			{
-				case CODE_N16: system_cycles += 1; break;
-				case CODE_S16: system_cycles += 1; break;
-				case CODE_N32: system_cycles += 2; break;
-				case CODE_S32: system_cycles += 2; break;
-
-				case DATA_N16: system_cycles += 1; break;
-				case DATA_S16: system_cycles += 1; break;
-				case DATA_N32: system_cycles += 2; break;
-				case DATA_S32: system_cycles += 2; break;
-			}
-
-			break;
-
-		default: system_cycles += 2;
-	}
-}
+void NTR_ARM7::clock(u32 access_addr, mem_modes current_mode) { }
 
 /****** Counts internal cycles ******/
 void NTR_ARM7::clock() { system_cycles++; }
