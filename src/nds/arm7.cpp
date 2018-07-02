@@ -10,6 +10,8 @@
 
 #include "arm7.h"
 
+#include <algorithm>
+
 /****** CPU Constructor ******/
 NTR_ARM7::NTR_ARM7()
 {
@@ -88,6 +90,7 @@ void NTR_ARM7::reset()
 
 	sync_cycles = 0;
 	system_cycles = 0;
+	last_addr = 0;
 	re_sync = false;
 
 	flush_pipeline();
@@ -319,6 +322,9 @@ void NTR_ARM7::fetch()
 
 		//Set the operation to perform as UNDEFINED until decoded
 		instruction_operation[pipeline_pointer] = UNDEFINED;
+
+		//Calculate cycles necessary to fetch opcode
+		fetch_cycles = get_access_time(reg.r15, 16);
 	}
 
 	//Fetch ARM instructions
@@ -329,6 +335,9 @@ void NTR_ARM7::fetch()
 
 		//Set the operation to perform as UNDEFINED until decoded
 		instruction_operation[pipeline_pointer] = UNDEFINED;
+
+		//Calculate cycles necessary to fetch opcode
+		fetch_cycles = get_access_time(reg.r15, 32);
 	}
 }
 
@@ -610,6 +619,9 @@ void NTR_ARM7::execute()
 		debug_message = 0xFF; 
 		return; 
 	}
+
+	//Reset system cycles
+	system_cycles = 0;
 
 	//Execute THUMB instruction
 	if(arm_mode == THUMB)
@@ -1145,6 +1157,45 @@ void NTR_ARM7::mem_check_8(u32 addr, u32& value, bool load_store)
 	else { mem->write_u8(addr, value); }
 }
 
+/****** Calculates the time it takes for memory accesses ******/
+u32 NTR_ARM7::get_access_time(u32 addr, u8 io_width)
+{
+	bool is_halfword = (io_width == 16);
+	u8 offset = (arm_mode == THUMB) ? 2 : 4;
+	u32 cycles = 0;
+
+	//Determine memory region being accessed
+	switch(addr >> 24)
+	{
+		case 0x0:
+		case 0x1:
+		case 0x3:
+		case 0x4:
+		case 0x7:
+		case 0xB:
+		case 0xC:
+		case 0xD:
+		case 0xE:
+		case 0xF:
+			cycles = 1; break; 
+
+		case 0x2:
+		case 0x5:
+		case 0x6:
+			cycles = (is_halfword) ? 1 : 2; break;
+
+		case 0x8:
+		case 0x9:
+		case 0xA:
+			cycles = (is_halfword) ? 8 : 16; break;
+	}
+
+	//Account for Non-Sequential access
+	if(addr != (last_addr + offset)) { cycles++; }
+
+	last_addr = addr;
+}
+
 /****** Counts cycles for memory accesses  ******/
 void NTR_ARM7::clock(u32 access_addr, mem_modes current_mode)
 {
@@ -1215,8 +1266,8 @@ void NTR_ARM7::clock() { system_cycles++; }
 /****** Runs audio and video controllers every clock cycle ******/
 void NTR_ARM7::clock_system()
 {
-	//Determine cycles with Wait States + access timing
-	u8 access_cycles = 8;
+	//Store cycles from ALU + MEM stages
+	system_cycles = std::max(fetch_cycles, execute_cycles);
 
 	//ARM7 CPU sync cycles
 	sync_cycles += system_cycles;
@@ -1253,9 +1304,6 @@ void NTR_ARM7::clock_system()
 			mem->nds7_rtc.int1_clock = mem->nds7_rtc.int1_freq;
 		}
 	}
-
-	//Reset system cycles
-	system_cycles = 2;
 }
 
 /****** Runs DMA controllers every clock cycle ******/

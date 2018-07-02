@@ -193,6 +193,9 @@ class NTR_ARM7
 
 	s16 sync_cycles;
 	u16 system_cycles;
+	u16 fetch_cycles;
+	u16 execute_cycles;
+	u32 last_addr;
 	bool re_sync;
 
 	NTR_MMU* mem;
@@ -262,6 +265,7 @@ class NTR_ARM7
 	void clock_system();
 	void clock_dma();
 	void handle_interrupt();
+	u32 get_access_time(u32 addr, u8 io_width);
 
 	//DMA functions
 	void dma0();

@@ -534,6 +534,34 @@ void NTR_ARM7::multiply(u32 current_arm_instruction)
 	s64 value_s64 = 1;
 	u32 value_32 = 0;
 
+	u8 m_count = 0;
+
+	//Calculate m_count based on Rs
+	switch(op_code)
+	{
+		case 0x0:
+		case 0x1:
+		case 0x6:
+		case 0x7:
+			//Get count of most significant bits that are all 0 or all 1 for timing
+			if((Rs >> 8) == 0xFFFFFF || 0) { m_count = 1; }
+			else if((Rs >> 16) == 0xFFFF || 0) { m_count = 2; }
+			else if((Rs >> 24) == 0xFF || 0) { m_count = 3; }
+			else { m_count = 4; }
+			
+			break;
+
+		case 0x4:
+		case 0x5:
+			//Get count of most significant bits that are all 0 or all 1 for timing
+			if((Rs >> 8) == 0) { m_count = 1; }
+			else if((Rs >> 16) == 0) { m_count = 2; }
+			else if((Rs >> 24) == 0) { m_count = 3; }
+			else { m_count = 4; }
+
+			break;
+	}
+
 	//Perform multiplication ops
 	switch(op_code)
 	{
@@ -552,6 +580,9 @@ void NTR_ARM7::multiply(u32 current_arm_instruction)
 				if(value_32 == 0) { reg.cpsr |= CPSR_Z_FLAG; }
 				else { reg.cpsr &= ~CPSR_Z_FLAG; }
 			}
+
+			//Clock CPU and controllers - 1S + (m)I
+			system_cycles += (1 + m_count);
 			
 			break;
 
@@ -570,6 +601,9 @@ void NTR_ARM7::multiply(u32 current_arm_instruction)
 				if(value_32 == 0) { reg.cpsr |= CPSR_Z_FLAG; }
 				else { reg.cpsr &= ~CPSR_Z_FLAG; }
 			}
+
+			//Clock CPU and controllers - 1S + (m + 1)I
+			system_cycles += (2 + m_count);
 			
 			break;
 
@@ -594,6 +628,9 @@ void NTR_ARM7::multiply(u32 current_arm_instruction)
 				if(value_64 == 0) { reg.cpsr |= CPSR_Z_FLAG; }
 				else { reg.cpsr &= ~CPSR_Z_FLAG; }
 			}
+
+			//Clock CPU and controllers - 1S + (m + 1)I
+			system_cycles += (2 + m_count);
 
 			break;
 
@@ -625,6 +662,9 @@ void NTR_ARM7::multiply(u32 current_arm_instruction)
 				else { reg.cpsr &= ~CPSR_Z_FLAG; }
 			}
 
+			//Clock CPU and controllers - 1S + (m + 2)I
+			system_cycles += (3 + m_count);
+
 			break;
 
 
@@ -651,6 +691,9 @@ void NTR_ARM7::multiply(u32 current_arm_instruction)
 				if(value_s64 == 0) { reg.cpsr |= CPSR_Z_FLAG; }
 				else { reg.cpsr &= ~CPSR_Z_FLAG; }
 			}
+
+			//Clock CPU and controllers - 1S + (m + 1)I
+			system_cycles += (2 + m_count);
 
 			break;
 
@@ -683,6 +726,9 @@ void NTR_ARM7::multiply(u32 current_arm_instruction)
 				if(value_s64 == 0) { reg.cpsr |= CPSR_Z_FLAG; }
 				else { reg.cpsr &= ~CPSR_Z_FLAG; }
 			}
+
+			//Clock CPU and controllers - 1S + (m + 2)I
+			system_cycles += (3 + m_count);
 
 			break;
 			
