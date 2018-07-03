@@ -33,9 +33,6 @@ class gbe_cgfx : public QDialog
 	public:
 	gbe_cgfx(QWidget *parent = 0);
 
-	void update_obj_window(int rows, int count);
-	void update_bg_window(int rows, int count);
-
 	bool parse_manifest_items();
 
 	void draw_dmg_bg();
@@ -111,14 +108,6 @@ class gbe_cgfx : public QDialog
 	std::vector<std::string> obj_meta_str;
 	std::vector<u16> obj_meta_addr;
 
-	//OBJ tab widgets
-	std::vector<QImage> cgfx_obj;
-	std::vector<QPushButton*> obj_button;
-
-	//BG tab widgets
-	std::vector<QImage> cgfx_bg;
-	std::vector<QPushButton*> bg_button;
-
 	//Manifest tab widgets
 	QScrollArea* manifest_display;
 
@@ -149,16 +138,11 @@ class gbe_cgfx : public QDialog
 	void paintEvent(QPaintEvent* event);
 
 	private:
-	QWidget* obj_set;
-	QWidget* bg_set;
 	QWidget* layers_set;
 
 	QGridLayout* obj_layout;
 	QGridLayout* bg_layout;
 	QGridLayout* layers_layout;
-
-	QSignalMapper* obj_signal;
-	QSignalMapper* bg_signal;
 
 	QPushButton* a_input;
 	QPushButton* b_input;
@@ -175,12 +159,9 @@ class gbe_cgfx : public QDialog
 	QLabel* current_layer;
 	QLabel* current_tile;
 
-	void setup_obj_window(int rows, int count);
 	void update_preview(u32 x, u32 y);
 	void dump_layer_tile(u32 x, u32 y);
 	std::string hash_tile(u8 x, u8 y);
-
-	void setup_bg_window(int rows, int count);
 
 	u8 dump_type;
 	int advanced_index;

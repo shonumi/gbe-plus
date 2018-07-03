@@ -23,16 +23,12 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	tabs = new QTabWidget(this);
 	
 	QDialog* config_tab = new QDialog;
-	QDialog* obj_tab = new QDialog;
-	QDialog* bg_tab = new QDialog;
 	QDialog* layers_tab = new QDialog;
 	QDialog* manifest_tab = new QDialog;
 	QDialog* obj_meta_tab = new QDialog;
 
 	tabs->addTab(layers_tab, tr("Layers - BG Meta Tile"));
 	tabs->addTab(obj_meta_tab, tr("OBJ Meta Tile"));
-	tabs->addTab(obj_tab, tr("OBJ Tiles"));
-	tabs->addTab(bg_tab, tr("BG Tiles"));
 	tabs->addTab(manifest_tab, tr("Manifest"));
 	tabs->addTab(config_tab, tr("Configure"));
 
@@ -51,23 +47,8 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	QLabel* auto_trans_label = new QLabel("Automatically add transparency color when dumping OBJs", auto_trans_set);
 	auto_trans = new QCheckBox(auto_trans_set);
 
-	obj_set = new QWidget(obj_tab);
-	bg_set = new QWidget(bg_tab);
 	layers_set = new QWidget(layers_tab);
-
-	obj_layout = new QGridLayout;
-	bg_layout = new QGridLayout;
 	layers_layout = new QGridLayout;
-
-	setup_obj_window(8, 40);
-	setup_bg_window(8, 384);
-
-	//Setup scroll areas
-	QScrollArea* obj_scroll = new QScrollArea;
-	obj_scroll->setWidget(obj_set);
-
-	QScrollArea* bg_scroll = new QScrollArea;
-	bg_scroll->setWidget(bg_set);
 
 	//Setup Layers widgets
 	QImage temp_img(320, 288, QImage::Format_ARGB32);
@@ -384,16 +365,6 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	config_tab_layout->addWidget(auto_trans_set);
 	config_tab->setLayout(config_tab_layout);
 
-	//OBJ Tab layout
-	QVBoxLayout* obj_tab_layout = new QVBoxLayout;
-	obj_tab_layout->addWidget(obj_scroll);
-	obj_tab->setLayout(obj_tab_layout);
-
-	//BG Tab layout
-	QVBoxLayout* bg_tab_layout = new QVBoxLayout;
-	bg_tab_layout->addWidget(bg_scroll);
-	bg_tab->setLayout(bg_tab_layout);
-
 	//Layers Tab layout
 	QGridLayout* layers_tab_layout = new QGridLayout;
 	layers_tab_layout->addWidget(select_set, 0, 0, 1, 1);
@@ -416,9 +387,6 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	main_layout->addWidget(tabs);
 	main_layout->addWidget(tabs_button);
 	setLayout(main_layout);
-
-	obj_signal = NULL;
-	bg_signal = NULL;
 
 	data_folder = new data_dialog;
 
@@ -601,81 +569,6 @@ gbe_cgfx::gbe_cgfx(QWidget *parent) : QDialog(parent)
 	obj_meta_addr.resize(400, 0);
 }
 
-/****** Sets up the OBJ dumping window ******/
-void gbe_cgfx::setup_obj_window(int rows, int count)
-{
-	//Clear out previous widgets
-	cgfx_obj.clear();
-	obj_button.clear();
-
-	//Generate the correct number of QImages
-	for(int x = 0; x < count; x++)
-	{
-		cgfx_obj.push_back(QImage(64, 64, QImage::Format_ARGB32));
-		
-		//Set QImage to black first
-		for(int pixel_counter = 0; pixel_counter < 4096; pixel_counter++)
-		{
-			cgfx_obj[x].setPixel((pixel_counter % 64), (pixel_counter / 64), 0xFF000000);
-		}
-
-		//Wrap QImage in a QLabel
-		QPushButton* label = new QPushButton;
-		label->setIcon(QPixmap::fromImage(cgfx_obj[x]));
-		label->setIconSize(QPixmap::fromImage(cgfx_obj[x]).rect().size());
-		label->setFlat(true);
-		obj_button.push_back(label);
-
-		obj_layout->addWidget(obj_button[x], (x / rows), (x % rows));
-	}
-
-	obj_set->setLayout(obj_layout);
-}
-
-/****** Updates the OBJ dumping window ******/
-void gbe_cgfx::update_obj_window(int rows, int count)
-{
-	if(main_menu::gbe_plus == NULL) { return; }
-
-	//Clear out previous widgets
-	for(int x = 0; x < obj_button.size(); x++)
-	{
-		//Remove QWidgets from the layout
-		//Manual memory management is not ideal, but QWidgets can't be copied (can't be pushed back to a vector)
-		obj_layout->removeItem(obj_layout->itemAt(x));
-		delete obj_button[x];
-	}
-
-	cgfx_obj.clear();
-	obj_button.clear();
-
-	//Setup signal mapper
-	if(obj_signal != NULL) { delete obj_signal; }
-	obj_signal = new QSignalMapper;
-
-	//Generate the correct number of QImages
-	for(int x = 0; x < count; x++)
-	{
-		cgfx_obj.push_back(grab_obj_data(x));
-
-		//Wrap QImage in a QLabel
-		QPushButton* label = new QPushButton;
-		label->setIcon(QPixmap::fromImage(cgfx_obj[x]));
-		label->setIconSize(QPixmap::fromImage(cgfx_obj[x]).rect().size());
-		label->setFlat(true);
-
-		obj_button.push_back(label);
-		obj_layout->addWidget(obj_button[x], (x / rows), (x % rows));
-
-		//Map signals
-		connect(obj_button[x], SIGNAL(clicked()), obj_signal, SLOT(map()));
-		obj_signal->setMapping(obj_button[x], x);
-	}
-
-	obj_set->setLayout(obj_layout);
-	connect(obj_signal, SIGNAL(mapped(int)), this, SLOT(show_advanced_obj(int))) ;
-}
-
 /****** Optionally shows the advanced menu before dumping - OBJ version ******/
 void gbe_cgfx::show_advanced_obj(int index)
 {
@@ -715,7 +608,7 @@ void gbe_cgfx::show_advanced_obj(int index)
 	else { dump_obj(index); }
 }
 
-/****** Optionally shows the advanced menu before dumping - OBJ version ******/
+/****** Optionally shows the advanced menu before dumping - BG version ******/
 void gbe_cgfx::show_advanced_bg(int index)
 {
 	//When estimating dumpable tiles, use estimated palettes + vram_banks
@@ -765,7 +658,7 @@ void gbe_cgfx::show_advanced_bg(int index)
 	else { dump_bg(index); }
 }
 
-/****** Grabs an OBJ in VRAM and converts it to a QImage - DMG Version ******/
+/****** Grabs an OBJ in VRAM and converts it to a QImage ******/
 QImage gbe_cgfx::grab_obj_data(int obj_index)
 {
 	//Grab DMG OBJs
@@ -944,81 +837,6 @@ QImage gbe_cgfx::grab_gbc_obj_data(int obj_index)
 		QImage final_image = raw_image.scaled(32, 64);
 		return final_image;
 	}
-}
-
-/****** Sets up the BG dumping window ******/
-void gbe_cgfx::setup_bg_window(int rows, int count)
-{
-	//Clear out previous widgets
-	cgfx_bg.clear();
-	bg_button.clear();
-
-	//Generate the correct number of QImages
-	for(int x = 0; x < count; x++)
-	{
-		cgfx_bg.push_back(QImage(64, 64, QImage::Format_ARGB32));
-		
-		//Set QImage to black first
-		for(int pixel_counter = 0; pixel_counter < 4096; pixel_counter++)
-		{
-			cgfx_bg[x].setPixel((pixel_counter % 64), (pixel_counter / 64), 0xFF000000);
-		}
-
-		//Wrap QImage in a QLabel
-		QPushButton* label = new QPushButton;
-		label->setIcon(QPixmap::fromImage(cgfx_bg[x]));
-		label->setIconSize(QPixmap::fromImage(cgfx_bg[x]).rect().size());
-		label->setFlat(true);
-		bg_button.push_back(label);
-
-		bg_layout->addWidget(bg_button[x], (x / rows), (x % rows));
-	}
-
-	bg_set->setLayout(bg_layout);
-}
-
-/****** Updates the BG dumping window ******/
-void gbe_cgfx::update_bg_window(int rows, int count)
-{
-	if(main_menu::gbe_plus == NULL) { return; }
-
-	//Clear out previous widgets
-	for(int x = 0; x < bg_button.size(); x++)
-	{
-		//Remove QWidgets from the layout
-		//Manual memory management is not ideal, but QWidgets can't be copied (can't be pushed back to a vector)
-		bg_layout->removeItem(bg_layout->itemAt(x));
-		delete bg_button[x];
-	}
-
-	cgfx_bg.clear();
-	bg_button.clear();
-
-	//Setup signal mapper
-	if(bg_signal != NULL) { delete bg_signal; }
-	bg_signal = new QSignalMapper;
-	
-	//Generate the correct number of QImages
-	for(int x = 0; x < count; x++)
-	{
-		cgfx_bg.push_back(grab_bg_data(x));
-
-		//Wrap QImage in a QLabel
-		QPushButton* label = new QPushButton;
-		label->setIcon(QPixmap::fromImage(cgfx_bg[x]));
-		label->setIconSize(QPixmap::fromImage(cgfx_bg[x]).rect().size());
-		label->setFlat(true);
-
-		bg_button.push_back(label);
-		bg_layout->addWidget(bg_button[x], (x / rows), (x % rows));
-
-		//Map signals
-		connect(bg_button[x], SIGNAL(clicked()), bg_signal, SLOT(map()));
-		bg_signal->setMapping(bg_button[x], x);
-	}
-
-	bg_set->setLayout(bg_layout);
-	connect(bg_signal, SIGNAL(mapped(int)), this, SLOT(show_advanced_bg(int))) ;
 }
 
 /****** Grabs a BG tile in VRAM and converts it to a QImage ******/
@@ -4336,10 +4154,6 @@ void gbe_cgfx::advance_next_frame()
 	}
 
 	layer_change();
-
-	//Update OBJ and BG tabs as well
-	update_obj_window(8, 40);
-	update_bg_window(8, 384);
 }
 
 /****** Updates input control when advancing frames ******/

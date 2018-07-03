@@ -1397,9 +1397,6 @@ void main_menu::show_cgfx()
 		else { main_menu::gbe_plus->step(); }
 	}
 
-	cgfx->update_obj_window(8, 40);
-	cgfx->update_bg_window(8, 384);
-
 	//Draw DMG layers
 	if(config::gb_type < 2)
 	{
