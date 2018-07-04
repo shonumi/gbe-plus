@@ -364,13 +364,14 @@ u8 SGB_GamePad::read()
 			if(packet.mult_flag & 0x3)
 			{
 				u8 old_id = (packet.mult_flag >> 4);
+				u8 old_num = (packet.mult_flag & 0x3);
 				u8 new_id = old_id - 1;
 				packet.mult_flag &= ~0xF0;
 
 				if(new_id == 0xB) { packet.mult_flag = 0xF0; }
-				else { packet.mult_flag |= (new_id << 4); }
+				else { packet.mult_flag = (new_id << 4); }
 
-				return old_id;
+				packet.mult_flag |= old_num;
 			}
 
 			//Read P14 OR P15
