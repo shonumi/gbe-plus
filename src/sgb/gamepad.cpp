@@ -368,10 +368,12 @@ u8 SGB_GamePad::read()
 				u8 new_id = old_id - 1;
 				packet.mult_flag &= ~0xF0;
 
-				if(new_id == 0xB) { packet.mult_flag = 0xF0; }
+				if(new_id == 0xB) { packet.mult_flag = 0xF0; new_id = 0xF; }
 				else { packet.mult_flag = (new_id << 4); }
 
 				packet.mult_flag |= old_num;
+
+				return new_id;
 			}
 
 			//Read P14 OR P15
