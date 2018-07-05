@@ -496,10 +496,6 @@ void NTR_ARM7::psr_transfer(u32 current_arm_instruction)
 /****** ARM.7 Multiply and Multiply-Accumulate ******/
 void NTR_ARM7::multiply(u32 current_arm_instruction)
 {
-	//TODO - Timings
-	//TODO - The rest of the opcodes
-	//TODO - Set conditions
-
 	//Grab operand register Rm - Bits 0-3
 	u8 op_rm_reg = (current_arm_instruction) & 0xF;
 
@@ -821,9 +817,6 @@ void NTR_ARM7::single_data_transfer(u32 current_arm_instruction)
 		else { base_addr -= base_offset; } 
 	}
 
-	//Clock CPU and controllers - 1N
-	execute_cycles++;
-
 	//Store Byte or Word
 	if(load_store == 0) 
 	{
@@ -834,8 +827,8 @@ void NTR_ARM7::single_data_transfer(u32 current_arm_instruction)
 			value &= 0xFF;
 			mem_check_8(base_addr, value, false);
 
-			//Clock CPU and controllers - 1N
-			execute_cycles += get_access_time(base_addr, DATA_16);
+			//Clock CPU and controllers - 2N
+			execute_cycles = 1 + get_access_time(base_addr, DATA_16);
 		}
 
 		else
@@ -844,8 +837,8 @@ void NTR_ARM7::single_data_transfer(u32 current_arm_instruction)
 			if(dest_reg == 15) { value += 4; }
 			mem->write_u32(base_addr, value);
 
-			//Clock CPU and controllers - 1N
-			execute_cycles += get_access_time(base_addr, DATA_32);
+			//Clock CPU and controllers - 2N
+			execute_cycles += 1 + get_access_time(base_addr, DATA_32);
 		}
 	}
 
@@ -854,24 +847,20 @@ void NTR_ARM7::single_data_transfer(u32 current_arm_instruction)
 	{
 		if(byte_word == 1)
 		{
-			//Clock CPU and controllers - 1I
 			value = mem->read_u8(base_addr);
-			execute_cycles++;
 
-			//Clock CPU and controllers - 1N
-			if(dest_reg == 15) { execute_cycles += get_access_time((reg.r15 + 4), DATA_16); } 
+			//Clock CPU and controllers - 1I + 1N
+			execute_cycles = 1 + get_access_time(base_addr, DATA_16); 
 
 			set_reg(dest_reg, value);
 		}
 
 		else
 		{
-			//Clock CPU and controllers - 1I
 			mem_check_32(base_addr, value, true);
-			execute_cycles++;
 
-			//Clock CPU and controllers - 1N
-			if(dest_reg == 15) { execute_cycles += get_access_time((reg.r15 + 4), DATA_32); } 
+			//Clock CPU and controllers - 1I + 1N
+			execute_cycles = 1 + get_access_time(base_addr, DATA_32); 
 
 			set_reg(dest_reg, value);
 		}
@@ -900,8 +889,8 @@ void NTR_ARM7::single_data_transfer(u32 current_arm_instruction)
 			reg.r15 &= ~0x1;
 		}
 
-		//Clock CPU and controllser - 2S
-		execute_cycles += 2;
+		//Clock CPU and controllers - 2S + 1N
+		execute_cycles += 3;
 		needs_flush = true;
 	}
 
@@ -916,8 +905,6 @@ void NTR_ARM7::single_data_transfer(u32 current_arm_instruction)
 /****** ARM.10 Halfword-Signed Transfer ******/
 void NTR_ARM7::halfword_signed_transfer(u32 current_arm_instruction)
 {
-	//TODO - Timings
-
 	//Grab Pre-Post bit - Bit 24
 	u8 pre_post = (current_arm_instruction & 0x1000000) ? 1 : 0;
 
@@ -991,6 +978,9 @@ void NTR_ARM7::halfword_signed_transfer(u32 current_arm_instruction)
 
 				value &= 0xFFFF;
 				mem->write_u16(base_addr, value);
+
+				//Clock CPU and controllers - 2N
+				execute_cycles = 1 + get_access_time(base_addr, DATA_16);
 			}
 
 			//Load halfword
@@ -998,6 +988,9 @@ void NTR_ARM7::halfword_signed_transfer(u32 current_arm_instruction)
 			{
 				value = mem->read_u16(base_addr);
 				set_reg(dest_reg, value);
+
+				//Clock CPU and controllers - 1I + 1N
+				execute_cycles = 1 + get_access_time(base_addr, DATA_16);
 			}
 
 			break;
@@ -1009,6 +1002,9 @@ void NTR_ARM7::halfword_signed_transfer(u32 current_arm_instruction)
 			if(value & 0x80) { value |= 0xFFFFFF00; }
 			set_reg(dest_reg, value);
 
+			//Clock CPU and controllers - 1I + 1N
+			execute_cycles = 1 + get_access_time(base_addr, DATA_16);
+
 			break;
 
 		//Load signed halfword (sign extended)
@@ -1017,6 +1013,9 @@ void NTR_ARM7::halfword_signed_transfer(u32 current_arm_instruction)
 
 			if(value & 0x8000) { value |= 0xFFFF0000; }
 			set_reg(dest_reg, value);
+
+			//Clock CPU and controllers - 1I + 1N
+			execute_cycles = 1 + get_access_time(base_addr, DATA_16);
 
 			break;
 
@@ -1035,6 +1034,29 @@ void NTR_ARM7::halfword_signed_transfer(u32 current_arm_instruction)
 
 	//Write-back into base register
 	if((write_back == 1) && (base_reg != dest_reg)) { set_reg(base_reg, base_addr); }
+
+	//Timings for LDR - PC
+	if((dest_reg == 15) && (load_store == 1)) 
+	{
+		//Switch to THUMB mode if necessary
+		if(reg.r15 & 0x1) 
+		{ 
+			arm_mode = THUMB;
+			reg.cpsr |= 0x20;
+			reg.r15 &= ~0x1;
+		}
+
+		//Clock CPU and controllers - 2S + 1N
+		execute_cycles += 3;
+		needs_flush = true;
+	}
+
+	//Timings for LDR - No PC
+	else if((dest_reg != 15) && (load_store == 1))
+	{
+		//Clock CPU and controllers - 1S
+		execute_cycles++;
+	}
 }
 
 /****** ARM.11 Block Data Transfer ******/
