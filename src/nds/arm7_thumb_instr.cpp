@@ -848,7 +848,6 @@ void NTR_ARM7::load_store_imm_offset(u16 current_thumb_instruction)
 		//LDRB
 		case 0x3:
 			op_addr += offset;
-			clock(op_addr, DATA_16);
 			mem_check_8(op_addr, value, true);
 			set_reg(src_dest_reg, value);
 
@@ -885,28 +884,21 @@ void NTR_ARM7::load_store_halfword(u16 current_thumb_instruction)
 	{
 		//STRH
 		case 0x0:
-			//Clock CPU and controllers - 1N
-			clock(reg.r15, CODE_16);
+			//Clock CPU and controllers - 2N
+			execute_cycles = 1 + get_access_time(op_addr, DATA_16);
 
-			//Clock CPU and controllers - 1N
 			value = get_reg(src_dest_reg);
 			mem_check_16(op_addr, value, false);
-			clock(op_addr, DATA_16);
 
 			break;
 
 		//LDRH
 		case 0x1:
-			//Clock CPU and controllers - 1N
-			clock(op_addr, DATA_32);
+			//Clock CPU and controllers - 1N + 1I + 1S
+			execute_cycles = 2 + get_access_time(op_addr, DATA_16);
 
-			//Clock CPU and controllers - 1I
 			mem_check_16(op_addr, value, true);
-			clock();
-
-			//Clock CPU and controllers - 1S
 			set_reg(src_dest_reg, value);
-			clock((reg.r15 + 2), CODE_16);
 
 			break;
 	}
@@ -935,28 +927,21 @@ void NTR_ARM7::load_store_sp_relative(u16 current_thumb_instruction)
 	{
 		//STR
 		case 0x0:
-			//Clock CPU and controllers - 1N
-			clock(reg.r15, CODE_16);
+			//Clock CPU and controllers - 2N
+			execute_cycles = 1 + get_access_time(op_addr, DATA_32);
 
-			//Clock CPU and controllers - 1N
 			value = get_reg(src_dest_reg);
 			mem_check_32(op_addr, value, false);
-			clock(op_addr, DATA_32);
 
 			break;
 
 		//LDR
 		case 0x1:
-			//Clock CPU and controllers - 1N
-			clock(op_addr, DATA_32);
+			//Clock CPU and controllers - 1N + 1I + 1S
+			execute_cycles = 2 + get_access_time(op_addr, DATA_32);
 
-			//Clock CPU and controllers - 1I
 			mem_check_32(op_addr, value, true);
-			clock();
-
-			//Clock CPU and controllers - 1S
 			set_reg(src_dest_reg, value);
-			clock((reg.r15 + 2), CODE_16);
 
 			break;
 	}
@@ -994,7 +979,7 @@ void NTR_ARM7::get_relative_address(u16 current_thumb_instruction)
 	}
 
 	//Clock CPU and controllers - 1S
-	clock(reg.r15, CODE_16);
+	execute_cycles++;
 }
 
 /****** THUMB.13 Add Offset to Stack Pointer ******/
@@ -1029,7 +1014,7 @@ void NTR_ARM7::add_offset_sp(u16 current_thumb_instruction)
 	set_reg(13, r13);
 
 	//Clock CPU and controllers - 1S
-	clock(reg.r15, CODE_16);
+	execute_cycles++;
 }
 		
 /****** THUMB.14 Push-Pop Registers ******/
