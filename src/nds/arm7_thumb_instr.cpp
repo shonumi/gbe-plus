@@ -647,13 +647,10 @@ void NTR_ARM7::load_pc_relative(u16 current_thumb_instruction)
 	u32 value = 0;
 	u32 load_addr = (reg.r15 & ~0x2) + offset;
 
-	//Clock CPU and controllers - 1N
-	execute_cycles += get_access_time(load_addr, DATA_32);
+	//Clock CPU and controllers - 1N + 1I + 1S
+	execute_cycles = 2 + get_access_time(load_addr, DATA_32);
 
-	//Clock CPU and controllers - 1I + 1S
 	mem_check_32(load_addr, value, true);
-	execute_cycles += 2;
-
 	set_reg(dest_reg, value);
 }
 
@@ -680,51 +677,41 @@ void NTR_ARM7::load_store_reg_offset(u16 current_thumb_instruction)
 	{
 		//STR
 		case 0x0:
-			//Clock CPU and controllers - 1N
-			execute_cycles++;
+			//Clock CPU and controllers - 2N
+			execute_cycles = 1 + get_access_time(op_addr, DATA_32);
 
-			//Clock CPU and controllers - 1N
 			value = get_reg(src_dest_reg);
 			mem->write_u32(op_addr, value);
-			execute_cycles += get_access_time(op_addr, DATA_32);
 
 			break;
 
 		//STRB
 		case 0x1:
-			//Clock CPU and controllers - 1N
-			execute_cycles++;
+			//Clock CPU and controllers - 2N
+			execute_cycles = 1 + get_access_time(op_addr, DATA_16);
 
-			//Clock CPU and controllers - 1N
 			value = get_reg(src_dest_reg);
 			value &= 0xFF;
 			mem_check_8(op_addr, value, false);
-			execute_cycles += get_access_time(op_addr, DATA_16);
 
 			break;
 
 		//LDR
 		case 0x2:
-			//Clock CPU and controllers - 1N
-			execute_cycles += get_access_time(op_addr, DATA_32);
+			//Clock CPU and controllers - 1N + 1I + 1S
+			execute_cycles = 2 + get_access_time(op_addr, DATA_32);
 
-			//Clock CPU and controllers - 1I + 1S
 			mem_check_32(op_addr, value, true);
-			execute_cycles += 2;
-
 			set_reg(src_dest_reg, value);
 
 			break;
 
 		//LDRB
 		case 0x3:
-			//Clock CPU and controllers - 1N
-			execute_cycles += get_access_time(op_addr, DATA_16);
+			//Clock CPU and controllers - 1N + 1I + 1S
+			execute_cycles = 2 + get_access_time(op_addr, DATA_16);
 
-			//Clock CPU and controllers - 1I + 1S
 			mem_check_8(op_addr, value, true);
-			execute_cycles += 2;
-
 			set_reg(src_dest_reg, value);
 
 			break;
@@ -754,67 +741,49 @@ void NTR_ARM7::load_store_sign_ex(u16 current_thumb_instruction)
 	{
 		//STRH
 		case 0x0:
-			//Clock CPU and controllers - 1N
-			clock(reg.r15, CODE_16);
+			//Clock CPU and controllers - 2N
+			execute_cycles = 1 + get_access_time(op_addr, DATA_16);
 
-			//Clock CPU and controllers - 1N
 			value = get_reg(src_dest_reg);
 			value &= 0xFFFF;
 			mem_check_16(op_addr, value, false);
-			clock(op_addr, DATA_16);
 
 			break;
 
 		//LDSB
 		case 0x1:
-			//Clock CPU and controllers - 1N
-			clock(op_addr, DATA_16);
+			//Clock CPU and controllers - 1N + 1I + 1S
+			execute_cycles = 2 + get_access_time(op_addr, DATA_16);
 
-			//Clock CPU and controllers - 1I
 			value = mem->read_u8(op_addr);
-			clock();
 
 			//Sign extend from Bit 7
 			if(value & 0x80) { value |= 0xFFFFFF00; }
-
-			//Clock CPU and controllers - 1S
 			set_reg(src_dest_reg, value);
-			clock((reg.r15 + 2), CODE_16);
 
 			break;
 
 		//LDRH
 		case 0x2:
+			//Clock CPU and controllers - 1N + 1I + 1S
+			execute_cycles = 2 + get_access_time(op_addr, DATA_16);
+
 			//Since value is u32 and 0, it is already zero-extended :)
-			
-			//Clock CPU and controllers - 1N
-			clock(op_addr, DATA_16);
-
-			//Clock CPU and controllers - 1I
 			mem_check_16(op_addr, value, true);
-			clock();
-
-			//Clock CPU and controllers - 1S
 			set_reg(src_dest_reg, value);
-			clock((reg.r15 + 2), CODE_16);
 
 			break;
 
 		//LDSH
 		case 0x3:
-			//Clock CPU and controllers - 1N
-			clock(op_addr, DATA_16);
+			//Clock CPU and controllers - 1N + 1I + 1S
+			execute_cycles = 2 + get_access_time(op_addr, DATA_16);
 
-			//Clock CPU and controllers - 1I
 			mem_check_16(op_addr, value, true);
-			clock();
 
 			//Sign extend from Bit 15
 			if(value & 0x8000) { value |= 0xFFFF0000; }
-
-			//Clock CPU and controllers - 1S
 			set_reg(src_dest_reg, value);
-			clock((reg.r15 + 2), CODE_16);
 
 			break;
 	}		
@@ -843,61 +812,48 @@ void NTR_ARM7::load_store_imm_offset(u16 current_thumb_instruction)
 	{
 		//STR
 		case 0x0:
-			//Clock CPU and controllers - 1N
 			value = get_reg(src_dest_reg);
 			offset <<= 2;
 			op_addr += offset;
-			clock(reg.r15, CODE_16);
-			
-			//Clock CPU and controllers - 1N
 			mem_check_32(op_addr, value, false);
-			clock(op_addr, DATA_32);
+
+			//Clock CPU and controllers - 2N
+			execute_cycles = 1 + get_access_time(op_addr, DATA_32);
 			
 			break;
 
 		//LDR
 		case 0x1:
-			//Clock CPU and controllers - 1N
 			offset <<= 2;
 			op_addr += offset;
-			clock(op_addr, DATA_32);
-
-			//Clock CPU and controllers - 1I
 			mem_check_32(op_addr, value, true);
-			clock();
-
-			//Clock CPU and controllers - 1S
 			set_reg(src_dest_reg, value);
-			clock((reg.r15 + 2), CODE_16);
+
+			//Clock CPU and controllers - 1N + 1I + 1S
+			execute_cycles = 2 + get_access_time(op_addr, DATA_32);
 
 			break;
 
 		//STRB
 		case 0x2:
-			//Clock CPU and controllers - 1N
 			value = get_reg(src_dest_reg);
 			op_addr += offset;
-			clock(reg.r15, CODE_16);
-
-			//Clock CPU and controllers - 1N
 			mem_check_8(op_addr, value, false);
-			clock(op_addr, DATA_16);
+
+			//Clock CPU and controllers - 2N
+			execute_cycles = 1 + get_access_time(op_addr, DATA_16);
 
 			break;
 
 		//LDRB
 		case 0x3:
-			//Clock CPU and controllers - 1N
 			op_addr += offset;
 			clock(op_addr, DATA_16);
-
-			//Clock CPU and controllers - 1I
 			mem_check_8(op_addr, value, true);
-			clock();
-
-			//Clock CPU and controllers - 1S
 			set_reg(src_dest_reg, value);
-			clock((reg.r15 + 2), CODE_16);
+
+			//Clock CPU and controllers - 1N + 1I + 1S
+			execute_cycles = 2 + get_access_time(op_addr, DATA_16);
 
 			break;
 	}
