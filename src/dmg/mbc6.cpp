@@ -68,7 +68,7 @@ void DMG_MMU::mbc6_write(u16 address, u8 value)
 	}
 }
 
-/****** Performs write operations specific to the MBC6 ******/
+/****** Performs read operations specific to the MBC6 ******/
 u8 DMG_MMU::mbc6_read(u16 address)
 {
 	//Read using ROM Banking - Bank 0
@@ -76,12 +76,12 @@ u8 DMG_MMU::mbc6_read(u16 address)
 	{
 		u8 bank_0 = (rom_bank & 0x7F);
 		u32 bank_addr = (0x2000 * bank_0);
-		u8 real_bank = bank_addr / 0x4000;
+		u8 real_bank = (bank_addr / 0x4000);
 
 		if(bank_0 >= 4)
 		{
-			if(bank_0 & 0x1) { return read_only_bank[real_bank][address - 0x2000]; }
-			else { return read_only_bank[real_bank][address - 0x4000]; }
+			if(bank_0 & 0x1) { return read_only_bank[real_bank - 2][address - 0x2000]; }
+			else { return read_only_bank[real_bank - 2][address - 0x4000]; }
 		}
 
 		//When reading from Bank 0-3, just use the memory map
@@ -104,10 +104,12 @@ u8 DMG_MMU::mbc6_read(u16 address)
 		u32 bank_addr = (0x2000 * bank_1);
 		u8 real_bank = (bank_addr / 0x4000);
 
+		if(bank_1 & 0x40) { return memory_map[address]; }
+
 		if(bank_1 >= 4)
 		{
-			if(bank_1 & 0x1) { return read_only_bank[real_bank][address - 0x4000]; }
-			else { return read_only_bank[real_bank][address - 0x6000]; }
+			if(bank_1 & 0x1) { return read_only_bank[real_bank - 2][address - 0x4000]; }
+			else { return read_only_bank[real_bank - 2][address - 0x6000]; }
 		}
 
 		//When reading from Bank 0-3, just use the memory map
