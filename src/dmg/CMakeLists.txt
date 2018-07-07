@@ -7,6 +7,7 @@ set(SRCS
 	mbc2.cpp
 	mbc3.cpp
 	mbc5.cpp
+	mbc6.cpp
 	mbc7.cpp
 	huc1.cpp
 	mmm01.cpp

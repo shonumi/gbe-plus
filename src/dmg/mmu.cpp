@@ -1406,6 +1406,10 @@ u8 DMG_MMU::mbc_read(u16 address)
 			return mbc5_read(address);
 			break;
 
+		case MBC6:
+			return mbc6_read(address);
+			break;
+
 		case MBC7:
 			return mbc7_read(address);
 			break;
@@ -1444,6 +1448,10 @@ void DMG_MMU::mbc_write(u16 address, u8 value)
 
 		case MBC5:
 			mbc5_write(address, value);
+			break;
+
+		case MBC6:
+			mbc6_write(address, value);
 			break;
 
 		case MBC7:
@@ -1728,8 +1736,13 @@ bool DMG_MMU::read_file(std::string filename)
 			break;
 
 		case 0x20:
-			std::cout<<"MMU::Cartridge Type - MBC6\n";
-			std::cout<<"MMU::MBC type currently unsupported \n";
+			cart.mbc_type = MBC6;
+			cart.ram = true;
+			cart.battery = true;
+
+			std::cout<<"MMU::Cartridge Type - MBC6 + RAM + Battery + Flash\n";
+			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
+			std::cout<<"MMU::ROM Size - " << std::dec << cart.rom_size << "KB\n";
 			return false;
 			break;
 

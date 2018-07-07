@@ -36,6 +36,7 @@ class DMG_MMU
 		MBC2, 
 		MBC3, 
 		MBC5,
+		MBC6,
 		MBC7,
 		HUC1,
 		MMM01,
@@ -169,6 +170,9 @@ class DMG_MMU
 
 	void mbc5_write(u16 address, u8 value);
 	u8 mbc5_read(u16 address);
+
+	void mbc6_write(u16 address, u8 value);
+	u8 mbc6_read(u16 address);
 
 	void mbc7_write(u16 address, u8 value);
 	void mbc7_write_ram(u8 value);
