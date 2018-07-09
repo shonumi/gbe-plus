@@ -1,0 +1,155 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<title>Dan Docs</title>
+		<meta charset="utf-8" />
+
+		<style type="text/css">
+
+			body
+			{
+				font-family: "times new roman", serif, verdana;
+				font-size: 18px;
+				margin: 0px;
+				background-color: #FFFFFF;
+			}
+
+			li
+			{
+				margin-top: 10px;
+			}
+
+			.gray_title
+			{
+				width: 100%;
+				background-color: #C0C0C0;
+				margin-bottom: 15px;
+			}
+
+			.list_head
+			{
+				margin-bottom: 0px;
+			}
+
+			.list_item
+			{
+				margin-top: 0px;
+				margin-bottom: 0px;
+			}
+
+			.code_tab
+			{
+				padding-right: 8em;
+			}
+
+		</style>
+	</head>
+
+	<p class="gray_title">Dan Docs</p>
+
+	<p class="list_head"><strong>Overview</strong></p>
+	<p class="list_item"><a href="#about">About Dan Docs</a></p>
+
+	<p class="list_head"><strong>Barcode Taisen Bardigun Scanner</strong></p>
+	<p class="list_item"><a href="#btb_gen">General Hardware Information - [BTB]</a></p>
+	<p class="list_item"><a href="#btb_com">Card Reader to GBC Communication</a></p>
+	<p class="list_item"><a href="#btb_bar">Barcode Format</a></p>
+	<p class="list_item"><a href="#btb_rip">Card Dumping</a></p>
+
+	<a name="about"></a>
+	<p class="gray_title">About Dan Docs</p>
+
+	<p>For the longest time, a technical document called Pan Docs formed the basis of nearly all known documentation about the Nintendo Game Boy. To this day, Pan Docs (or an updated version such as the GBDev wiki) continues to be the go-to source of general Game Boy information. However, while Pan Docs covers the basics well enough, it does not touch upon more obscure Game Boy hardware. Dan Docs, on the other hand, aims to fill this gap. Dan Docs is basically everything else you wanted to know about the Game Boy, but no one dared to ask.</p>
+
+	<p>All of the data here comes from my research for the GBE+ project. Much of this information is copied+pasted from the text files I&#39;ve made over the years. For ease of use and access, however, it&#39;s been converted to a single HTML document. As more items are reverse-engineered and studied, they will be added to Dan Docs as well as GBE+.</p>
+
+	<!-- Barcode Taisen Bardigun -->
+
+	<a name="btb_gen"></a>
+	<p class="gray_title">General Hardware Information - [BTB]</p>
+
+	<p>Barcode Taisen Bardigun is a Japanese Game Boy game released December 11, 1998, made by TAM. It doesn&#39;t seem like a very interesting or noteworthy game in and of itself (yet another monster breeding&#47;raising&#47;fighting&#47;collecting game). However, this game featured exclusive hardware, a card reader that scanned various barcodes</p>
+
+	<p class="list_item">* Barcode Taisen Bardigun (DMG-ABEJ-JPN)</p>
+	<p class="list_item">* MBC3 + RTC + Battery Saves (Same as Pokemon Gold and Silver)</p>
+	<p class="list_item">* Compatible with DMG, SGB, and GBC systems</p>
+	<p class="list_item">* Japanese-text only (hiragana&#47;katakana only, a bit of a blessing given 8x8 fonts are not the best for kanji)</p>
+	<p class="list_item">* Supports Link Cable for multiplayer</p>
+	<p class="list_item">* Comes with 1 card-reader powered by 3 AAA batteries</p>
+	<p class="list_item">* Comes with 5 cards bundled (only 3 have barcodes, the other 2 are just collectables?)</p>
+	<p class="list_item">* Reader connects to DMG/GBC serial port for communication</p>
+
+	<a name="btb_com"></a>
+	<p class="gray_title">Card Reader to GBC Communication</p>
+
+	<p>Game Boy will initialize a transfer with an internal clock; much like every other Serial I/O device (GB Printer, GB Mobile Adapter), Game Boy sends initial data, then the reader responds. Transfer rate is 1KB&#47;s, the slowest speed, so there is no difference between DMG and GBC transfers. To begin, the Game Boy constantly sends 0xFF to the reader. The game logic times out after a few seconds if no proper response is established.</p>
+
+	<p>To scan a card, hold it face down (barcode facing the ground and towards the reader), press the reader&#39;s button, and swipe. The scanner only seems to activate once the button is pushed (otherwise it&#39;d waste battery if it were constantly on, or constantly on and trying to receieve commands from the Game Boy). Without pressing the button, the game logic times out the scanning process after a few seconds (about 9 seconds). If an error is detected during the scan process, the reader seems to acknowledge this pretty quickly.</p>
+
+	<p>Nitty-gritty bits</p>
+
+	<ol>
+		<li>When connected, the reader responds with 0x00 until it is prepared to send the barcode data.</li>
+
+		<li>Afterwards, it begins processing barcode data. Data is represented serially. A bit reading &#34;1&#34; indicates that the card reader is detecting whitespace. A bit reading &#34;0&#34; indicates the card reader is detecting a black segment (black bar).</li>
+
+		<li>The barcode sequence itself is nothing more than a continuous stream of zeroes and ones. That is to say, groups of ones and zeroes are always packed together, but the length of each group determines the length of any given bar.</li>
+
+		<li>There doesn&#39;t appear to be a fixed number of bytes that the Game Boy seems to expect when scanning. Different scans seem to produce different amounts of data transferred to the Game Boy. This could be due to numerous reasons in the hardware (swipe speed, how clean the scanner is, some other variance within the scanner's light sensitivity). Overall, however, the most important thing seems to be the length and sequence of the bars encoded as groups of ones and zeroes.</li>
+
+		<li>The Game Boy doesn&#39;t ever seem to send any interesting data, just 0xFF. No commands are sent. The Game Boy simply sends a byte and expects a result to come from the reader; the results are what matter and are interpreted later on.</li>
+
+	</ol>
+
+	<a name="btb_bar"></a>
+	<p class="gray_title">Barcode Format</p>
+
+	<p>Because the incoming barcode data is not consistent byte-for-byte, the patterns are what matters most. To illustrate this idea, below are two sets of data extracted after scanning a card (using a hacked version of Barcode Taisen Bardigun and saving all SIO communications to Cart RAM).</p>
+
+	<code>
+		<p class="list_item"><span class="code_tab">SET 1</span> SET 2</p>
+		<p class="list_item"><span class="code_tab">00 00</span> 00 03</p>
+		<p class="list_item"><span class="code_tab">7F FE</span> FF F8</p>
+		<p class="list_item"><span class="code_tab">00 01</span> 00 03</p>
+		<p class="list_item"><span class="code_tab">FF FF</span> FF FF</p>
+		<p class="list_item"><span class="code_tab">FF FF</span> FF FF</p>
+		<p class="list_item"><span class="code_tab">FF C0</span> FF E0</p>
+		<p class="list_item"><span class="code_tab">00 3F</span> 00 0F</p>
+		<p class="list_item"><span class="code_tab">FF 00</span> FF 80</p>
+		<p class="list_item"><span class="code_tab">00 00</span> 00 00</p>
+		<p class="list_item"><span class="code_tab">07 FF</span> 00 FF</p>
+		<p class="list_item"><span class="code_tab">00 00</span> FC 00</p>
+		<p class="list_item"><span class="code_tab">FF FF</span> 03 FF</p>
+		<p class="list_item"><span class="code_tab">FF C0</span> FF FF</p>
+		<p class="list_item"><span class="code_tab">00 00</span> C0 00</p>
+	</code>
+
+	<p>Each set is actually a bitstream of 0s and 1s like so:</p>
+
+	<code>
+		<p>Set 1 [16:0] [14:1] [15:0] [43:1] ... </p>
+		<p>Set 2 [14:0] [15:1] [14:0] [45:1] ... </p>
+	</code>
+
+	<p>The patterns in the sets are roughly the same. They switch between 0s, 1s, and 0s (black, white, black) fairly quickly followed by a long segment of 1s (white) which is roughly the general pattern seen at the beginning&#47;ends of the barcodes. Based on this information, the thinest bars are about 0.0133 inches (8 pixels when scanning at 600dpi). Some further calculations based on this information:</p>
+
+	<code>
+		<p>Bar Width (in pixels @ 600dpi) :: Estimated bit-count sent to Game Boy</p>
+
+		<p class="list_item">8&nbsp; :: ~14-16</p>
+		<p class="list_item">16 :: ~27-29</p>
+		<p class="list_item">24 :: ~43-45</p>
+	</code>
+
+	<p>Every 8 pixels should be approximately 15 bits worth of data sent to the Game Boy, so:</p>
+
+	<code><p>Number of Pixels @ 600dpi * 1.875 = Approximate bit count</p></code>
+
+	<a name="btb_rip"></a>
+	<p class="gray_title">Card Dumping</p>
+
+	<p>With the above guideline, it is possible to dump the cards by scanning them, then creating a binary file containing barcodes as alternating bitstreams of 0s and 1s. With this method, no homebrew techniques are needed, and only an image file is necessary to actually preserve the card.</p>
+
+	<p>The second method involves using a hacked version of the Barcode Taisen Bardigun ROM on a flashcart to save incoming Serial I&#47;O data as a card is scanned. The binary can be pulled from a save file. Both binary files could be used an input to feed back to an emulator.</p>
+
+</html>					
