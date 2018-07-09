@@ -19,6 +19,11 @@
 				margin-top: 10px;
 			}
 
+			code
+			{
+				white-space: pre;
+			}
+
 			.gray_title
 			{
 				width: 100%;
@@ -35,11 +40,6 @@
 			{
 				margin-top: 0px;
 				margin-bottom: 0px;
-			}
-
-			.code_tab
-			{
-				padding-right: 8em;
 			}
 
 		</style>
@@ -70,14 +70,16 @@
 
 	<p>Barcode Taisen Bardigun is a Japanese Game Boy game released December 11, 1998, made by TAM. It doesn&#39;t seem like a very interesting or noteworthy game in and of itself (yet another monster breeding&#47;raising&#47;fighting&#47;collecting game). However, this game featured exclusive hardware, a card reader that scanned various barcodes</p>
 
-	<p class="list_item">* Barcode Taisen Bardigun (DMG-ABEJ-JPN)</p>
-	<p class="list_item">* MBC3 + RTC + Battery Saves (Same as Pokemon Gold and Silver)</p>
-	<p class="list_item">* Compatible with DMG, SGB, and GBC systems</p>
-	<p class="list_item">* Japanese-text only (hiragana&#47;katakana only, a bit of a blessing given 8x8 fonts are not the best for kanji)</p>
-	<p class="list_item">* Supports Link Cable for multiplayer</p>
-	<p class="list_item">* Comes with 1 card-reader powered by 3 AAA batteries</p>
-	<p class="list_item">* Comes with 5 cards bundled (only 3 have barcodes, the other 2 are just collectables?)</p>
-	<p class="list_item">* Reader connects to DMG/GBC serial port for communication</p>
+	<ul>
+		<li class="list_item">Barcode Taisen Bardigun (DMG-ABEJ-JPN)</li>
+		<li class="list_item">MBC3 + RTC + Battery Saves (Same as Pokemon Gold and Silver)</li>
+		<li class="list_item">Compatible with DMG, SGB, and GBC systems</li>
+		<li class="list_item">Japanese-text only (hiragana&#47;katakana only, a bit of a blessing given 8x8 fonts are not the best for kanji)</li>
+		<li class="list_item">Supports Link Cable for multiplayer</li>
+		<li class="list_item">Comes with 1 card-reader powered by 3 AAA batteries</li>
+		<li class="list_item">Comes with 5 cards bundled (only 3 have barcodes, the other 2 are just collectables?)</li>
+		<li class="list_item">Reader connects to DMG/GBC serial port for communication</li>
+	</ul>
 
 	<a name="btb_com"></a>
 	<p class="gray_title">Card Reader to GBC Communication</p>
@@ -106,44 +108,38 @@
 
 	<p>Because the incoming barcode data is not consistent byte-for-byte, the patterns are what matters most. To illustrate this idea, below are two sets of data extracted after scanning a card (using a hacked version of Barcode Taisen Bardigun and saving all SIO communications to Cart RAM).</p>
 
-	<code>
-		<p class="list_item"><span class="code_tab">SET 1</span> SET 2</p>
-		<p class="list_item"><span class="code_tab">00 00</span> 00 03</p>
-		<p class="list_item"><span class="code_tab">7F FE</span> FF F8</p>
-		<p class="list_item"><span class="code_tab">00 01</span> 00 03</p>
-		<p class="list_item"><span class="code_tab">FF FF</span> FF FF</p>
-		<p class="list_item"><span class="code_tab">FF FF</span> FF FF</p>
-		<p class="list_item"><span class="code_tab">FF C0</span> FF E0</p>
-		<p class="list_item"><span class="code_tab">00 3F</span> 00 0F</p>
-		<p class="list_item"><span class="code_tab">FF 00</span> FF 80</p>
-		<p class="list_item"><span class="code_tab">00 00</span> 00 00</p>
-		<p class="list_item"><span class="code_tab">07 FF</span> 00 FF</p>
-		<p class="list_item"><span class="code_tab">00 00</span> FC 00</p>
-		<p class="list_item"><span class="code_tab">FF FF</span> 03 FF</p>
-		<p class="list_item"><span class="code_tab">FF C0</span> FF FF</p>
-		<p class="list_item"><span class="code_tab">00 00</span> C0 00</p>
-	</code>
+<code>SET_1		SET_2
+00 00		00 03		
+7F FE		FF F8
+00 01		00 03
+FF FF 		FF FF
+FF FF		FF FF
+FF C0		FF E0
+00 3F		00 0F
+FF 00		FF 80
+00 00		00 00
+07 FF		00 FF
+00 00		FC 00
+FF FF		03 FF
+FF C0		FF FF
+00 00		C0 00</code>
 
-	<p>Each set is actually a bitstream of 0s and 1s like so:</p>
+<p>Each set is actually a bitstream of 0s and 1s like so:</p>
 
-	<code>
-		<p>Set 1 [16:0] [14:1] [15:0] [43:1] ... </p>
-		<p>Set 2 [14:0] [15:1] [14:0] [45:1] ... </p>
-	</code>
+<code>Set 1 [16:0] [14:1] [15:0] [43:1] ...
+Set 2 [14:0] [15:1] [14:0] [45:1] ...</code>
 
 	<p>The patterns in the sets are roughly the same. They switch between 0s, 1s, and 0s (black, white, black) fairly quickly followed by a long segment of 1s (white) which is roughly the general pattern seen at the beginning&#47;ends of the barcodes. Based on this information, the thinest bars are about 0.0133 inches (8 pixels when scanning at 600dpi). Some further calculations based on this information:</p>
 
-	<code>
-		<p>Bar Width (in pixels @ 600dpi) :: Estimated bit-count sent to Game Boy</p>
+<code>Bar Width (in pixels @ 600dpi) -&gt; Estimated bit-count sent to Game Boy
 
-		<p class="list_item">8&nbsp; :: ~14-16</p>
-		<p class="list_item">16 :: ~27-29</p>
-		<p class="list_item">24 :: ~43-45</p>
-	</code>
+8	-&gt;	~14-16
+16	-&gt;	~27-29
+24	-&gt;	~43-45</code>
 
 	<p>Every 8 pixels should be approximately 15 bits worth of data sent to the Game Boy, so:</p>
 
-	<code><p>Number of Pixels @ 600dpi * 1.875 = Approximate bit count</p></code>
+	<code>Number of Pixels @ 600dpi * 1.875 = Approximate bit count</code>
 
 	<a name="btb_rip"></a>
 	<p class="gray_title">Card Dumping</p>
