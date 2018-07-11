@@ -50,6 +50,14 @@
 	<p class="list_head"><strong>Overview</strong></p>
 	<p class="list_item"><a href="#about">About Dan Docs</a></p>
 
+	<p class="list_head"><strong>Barcode Boy</strong></p>
+	<p class="list_item"><a href="#bcb_gen">General Hardware Information - [BCB]</a></p>
+	<p class="list_item"><a href="#bcb_gam">Barcode Boy Games</a></p>
+	<p class="list_item"><a href="#bcb_com">Barcode Boy to DMG Communication</a></p>
+	<p class="list_item"><a href="#bcb_bar">Barcode Format</a></p>
+	<p class="list_item"><a href="#bcb_rip">Card Dumping + Emulation</a></p>
+	<p class="list_item"><a href="#bcb_err">Barcode Errors</a></p>
+
 	<p class="list_head"><strong>Barcode Taisen Bardigun Scanner</strong></p>
 	<p class="list_item"><a href="#btb_gen">General Hardware Information - [BTB]</a></p>
 	<p class="list_item"><a href="#btb_com">Card Reader to GBC Communication</a></p>
@@ -62,6 +70,99 @@
 	<p>For the longest time, a technical document called Pan Docs formed the basis of nearly all known documentation about the Nintendo Game Boy. To this day, Pan Docs (or an updated version such as the GBDev wiki) continues to be the go-to source of general Game Boy information. However, while Pan Docs covers the basics well enough, it does not touch upon more obscure Game Boy hardware. Dan Docs, on the other hand, aims to fill this gap. Dan Docs is basically everything else you wanted to know about the Game Boy, but no one dared to ask.</p>
 
 	<p>All of the data here comes from my research for the GBE+ project. Much of this information is copied+pasted from the text files I&#39;ve made over the years. For ease of use and access, however, it&#39;s been converted to a single HTML document. As more items are reverse-engineered and studied, they will be added to Dan Docs as well as GBE+.</p>
+
+	<!-- Barcode Boy -->
+
+	<a name="bcb_gen"></a>
+	<p class="gray_title">General Hardware Information - [BCB]</p>
+
+	<p>Appearing around 1992, the Barcode Boy is the earliest form of card-scanning on Nintendo&#39;s Game Boy line of handhelds, predating both the e-Reader and the Bardigun Taisen Reader by a number of years. Only a limited set of games made by Namcot were compatible with (or rather absolutely required) the Barcode Boy. All of the games and the Barcode Boy itself were only released in Japan.</p>
+
+	<ul>
+		<li class="list_item">Barcode Boy is a rather bulky add-on that snaps on top of the original DMG (the gray &#34;brick&#34;)</li>
+		<li class="list_item">Barcode Boy requires 2 AA batteries (with a DMG-01, that brings the total to 6 AA necessary to play any Barcode Boy game)</li>
+		<li class="list_item">Barcode Boy WILL NOT WORK WITH OTHER GAME BOYS! For whatever reason using the Universal Link Cable (MGB-010) will not work.</li>
+		<li class="list_item">Barcode Boy games are always labeled with a &#34;B.B.&#34; logo with a little card. Apparently there are 2 types (no idea what the Red/Blue differences are)</li>
+		<li class="list_item">Includes a very, very short Link Cable</li>
+		<li class="list_item">Unlike the Barcode Taisen Bardigun reader, the Barcode Boy has no button. It is always &#34;ON&#34; when switched on, thus draining batteries even while not scanning</li>
+	</ul>
+
+	<a name="bcb_gam"></a>
+	<p class="gray_title">Barcode Boy Games</p>
+
+	<p>Only 5 Barcode Boy games are known to exist:</p>
+
+	<ul>
+		<li class="list_item">Battle Space</li>
+		<li class="list_item">Monster Maker Barcode Saga</li>
+		<li class="list_item">Kattobi Road</li>
+		<li class="list_item">Family Jockey 2</li>
+		<li class="list_item">Famista 3</li>
+	</ul>
+
+	<a name="bcb_com"></a>
+	<p class="gray_title">Barcode Boy to DMG Communication</p>
+
+	<p>Each game will first try to detect if the Barcode Boy is plugged in and turned on. The Game Boy will send the bytes [0x10, 0x07, 0x10, 0x07] as part of a handshake. A properly functioning Barcode Boy will return the bytes [0xFF, 0xFF, 0x10, 0x07]. Barcode Boy games will still successfully detect the Barcode Boy scanner even if the first two bytes in the reply to the handshake aren't 0xFF, probably to simplify the game code. As a result, the first two bytes of the handshake are useless and ignored, but the last two bytes *MUST* be [0x10, 0x07]. If the Barcode Boy is plugged in but not turned on, it responds with 0x00 for the entire handshake, and the game produces an error message.</p>
+
+	<p>After detection passes, the Game Boy will sit and wait for a response. The Game Boy, unlike how it works with other SIO devices, takes on a passive role with the Barcode Boy by switching to an external clock. The Game Boy actually requires the Barcode Boy to take the initiative when scanning. Therefore, it is assumed that the Barcode Boy uses an internal clock and drives serial communications while scanning a barcode.</p>
+
+	<p>Nitty-gritty bits:</p>
+	
+	<ol>
+		<li>The game logic pings the Barcode Boy with [0x10, 0x07, 0x10, 0x07]. The Barcode Boy is expected to reply; the first two bytes are not important (real hardware returns 0xFF), but the second two bytes must be [0x10, 0x07].</li>
+		<li>Afterwards, the Game Boy waits for input using an external clock. What follows are two strings of numbers representing the barcode data. The &#34;numbers&#34; are represented as ASCII instead of hex.</li>
+		<li>Both strings are 13-digits long and are the EAN-13 number corresponding to the barcode.</li>
+		<li>Before sending each string, the Barcode Boy sends a 0x02 byte.</li>
+		<li>After sending each string, the Barcode Boy sends a 0x03 byte.</li>
+		<li>Altogether, the Barcode Boy transmits 30 bytes to the Game Boy.</li>
+	</ol>
+
+	<p>Overall known communication protocol:</p>
+
+	<ul>
+		<li>Handshake -&gt; Send [0x10, 0x07, 0x10, 0x07] : Receive [0xFF, 0xFF, 0x10, 0x07]</li>
+		<li>Start Barcode Data Transmission -&gt; [0x02]</li>
+		<li>Stop Barcode Data Transmission -&gt; [0x03]</li>
+	</ul>
+
+	<p>Standard communication flow:</p>
+
+<code>[DMG]			[BCB]
+Handshake	--->
+		<---	Handshake
+
+		<---	0x2
+		<---	EAN-13
+		<---	0x3
+
+		<---	0x2
+		<---	EAN-13
+		<---	0x3</code>
+
+	<p>Since the Barcode Boy acts as master (after the handshake at least), the Game Boy never initiates a transfer during barcode transmission. When sending barcode data, the Barcode Boy doesn&#39;t seem to care what value the Game Boy writes to SB, although no Barcode Boy games write to SB at that time anyway. Ultimately unknown if the Barcode Boy accepts input beyond the handshake, but no evidence has been observed to suggest otherwise.</p>
+
+	<p>Once the Barcode Boy sends the handshake [0x10, 0x07] back to the Game Boy, the scanner returns 0xFF anytime the Game Boy tries to send additional data while the handheld is still on its own internal clock. After the Barcode Boy finishes sending back the barcode data to the Game Boy, it requires the handshake again. It appears the handshake can fail for unknown reasons (probably related to the hardware). For example, the Barcode Boy at times may send back [0x90, 0x07], which seems to indicate an error of some sort.</p>
+
+	<a name="bcb_bar"></a>
+	<p class="gray_title">Barcode Format</p>
+
+	<p>The two strings are the actual barcode data in numerical form. The barcode format itself is EAN-13, and a few games use JAN-13 specifically. Older JAN-13 barcodes start off with the flag code 49. Interestingly enough, the newer JAN-13 flag code is 45 and was introduced in 1992, the same year the Barcode Boy was released. Probably due to timing or convenience, the JAN-13 barcodes on the cards stuck to the older flag code. Some Barcode Boy barcodes are technically &#34;coupons&#47;vouchers&#34; types, as they use the flag code 99 instead of 45 or 49. Family Jockey 2 and Famista 3 don't use JAN-13 specifically; instead they use random EAN-13 barcodes with varying flag codes.</p>
+
+	<p>Using scans of the barcode @ 600 DPI, the smallest bar width is approximately 7 pixels (give or take). With that information, it&#39;s possible to recreate the EAN-13 number with a sufficient image and barcode scanning software. It should be noted that the Barcode Boy appears to do away with the center guard, however, it maintains left and right guards.</p>
+
+	<a name="bcb_rip"></a>
+	<p class="gray_title">Card Dumping + Emulation</p>
+
+	<p>Amazingly simple in comparison to something like Barcode Taisen Bardigun, chiefly because such a small amount of bytes need to be sent to the Game Boy. Basically, all you need to do is convert the barcode to EAN-13. Anything capable of reading standard barcodes found on most products should be sufficient to grab the numerical form of each card.</p>
+
+	<p>As far as emulation goes, simply convert the EAN-13 ASCII string to hex and transmit it accordingly.</p>
+
+	<a name="bcb_err"></a>
+	<p class="gray_title">Barcode Errors</p>
+
+	<p>Interestingly enough, a vast majority of the barcodes for Family Jockey 2 are completely incorrect. Only 3 out of the 8 barcodes actually generate horses with the stats listed on the cards. Barcodes A1, B1, and A4 work fine; the rest give stats that do not match up with the card's. Some, such as A2, even generate horses that are totally unfit for competition (A2 produces stats with 2s and 0s, and the max is supposed to be 9 in each category). It's not clear if this was a programming glitch or a mistake Namcot made when printing the cards, or some combination of the two. All other Barcode Boy games came packaged with cards that have no issues whatsoever.</p>
+
 
 	<!-- Barcode Taisen Bardigun -->
 
