@@ -278,7 +278,7 @@ bool DMG_SIO::four_player_receive_byte()
 {
 	#ifdef GBE_NETPLAY
 
-	u8 temp_buffer[1];
+	u8 temp_buffer[2];
 	temp_buffer[0] = temp_buffer[1] = 0;
 
 	//Check the status of connection
