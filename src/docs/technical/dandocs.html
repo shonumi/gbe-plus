@@ -51,18 +51,26 @@
 	<p class="list_item"><a href="#about">About Dan Docs</a></p>
 
 	<p class="list_head"><strong>Barcode Boy</strong></p>
-	<p class="list_item"><a href="#bcb_gen">General Hardware Information - [BCB]</a></p>
-	<p class="list_item"><a href="#bcb_gam">Barcode Boy Games</a></p>
+	<p class="list_item"><a href="#bcb_gen">General Hardware Information</a></p>
+	<p class="list_item"><a href="#bcb_gam">Compatible Games</a></p>
 	<p class="list_item"><a href="#bcb_com">Barcode Boy to DMG Communication</a></p>
 	<p class="list_item"><a href="#bcb_bar">Barcode Format</a></p>
 	<p class="list_item"><a href="#bcb_rip">Card Dumping + Emulation</a></p>
 	<p class="list_item"><a href="#bcb_err">Barcode Errors</a></p>
 
 	<p class="list_head"><strong>Barcode Taisen Bardigun Scanner</strong></p>
-	<p class="list_item"><a href="#btb_gen">General Hardware Information - [BTB]</a></p>
+	<p class="list_item"><a href="#btb_gen">General Hardware Information</a></p>
 	<p class="list_item"><a href="#btb_com">Card Reader to GBC Communication</a></p>
 	<p class="list_item"><a href="#btb_bar">Barcode Format</a></p>
 	<p class="list_item"><a href="#btb_rip">Card Dumping</a></p>
+
+	<p class="list_head"><strong>DMG-07 4-Player Adapter</strong></p>
+	<p class="list_item"><a href="#dmg07_gen">General Hardware Information</a></p>
+	<p class="list_item"><a href="#dmg07_gam">Compatible Games</a></p>
+	<p class="list_item"><a href="#dmg07_pro">Link Cable Protocol</a></p>
+	<p class="list_item"><a href="#dmg07_pin">Ping Phase</a></p>
+	<p class="list_item"><a href="#dmg07_tra">Transmission Phase</a></p>
+	<p class="list_item"><a href="#dmg07_res">Restarting Ping Phase</a></p>
 
 	<a name="about"></a>
 	<p class="gray_title">About Dan Docs</p>
@@ -74,7 +82,7 @@
 	<!-- Barcode Boy -->
 
 	<a name="bcb_gen"></a>
-	<p class="gray_title">General Hardware Information - [BCB]</p>
+	<p class="gray_title">[Barcode Boy] : General Hardware Information</p>
 
 	<p>Appearing around 1992, the Barcode Boy is the earliest form of card-scanning on Nintendo&#39;s Game Boy line of handhelds, predating both the e-Reader and the Bardigun Taisen Reader by a number of years. Only a limited set of games made by Namcot were compatible with (or rather absolutely required) the Barcode Boy. All of the games and the Barcode Boy itself were only released in Japan.</p>
 
@@ -88,7 +96,7 @@
 	</ul>
 
 	<a name="bcb_gam"></a>
-	<p class="gray_title">Barcode Boy Games</p>
+	<p class="gray_title">[Barcode Boy] : Compatible Games</p>
 
 	<p>Only 5 Barcode Boy games are known to exist:</p>
 
@@ -101,7 +109,7 @@
 	</ul>
 
 	<a name="bcb_com"></a>
-	<p class="gray_title">Barcode Boy to DMG Communication</p>
+	<p class="gray_title">[Barcode Boy] : Barcode Boy to DMG Communication</p>
 
 	<p>Each game will first try to detect if the Barcode Boy is plugged in and turned on. The Game Boy will send the bytes [0x10, 0x07, 0x10, 0x07] as part of a handshake. A properly functioning Barcode Boy will return the bytes [0xFF, 0xFF, 0x10, 0x07]. Barcode Boy games will still successfully detect the Barcode Boy scanner even if the first two bytes in the reply to the handshake aren't 0xFF, probably to simplify the game code. As a result, the first two bytes of the handshake are useless and ignored, but the last two bytes *MUST* be [0x10, 0x07]. If the Barcode Boy is plugged in but not turned on, it responds with 0x00 for the entire handshake, and the game produces an error message.</p>
 
@@ -145,21 +153,21 @@ Handshake	--->
 	<p>Once the Barcode Boy sends the handshake [0x10, 0x07] back to the Game Boy, the scanner returns 0xFF anytime the Game Boy tries to send additional data while the handheld is still on its own internal clock. After the Barcode Boy finishes sending back the barcode data to the Game Boy, it requires the handshake again. It appears the handshake can fail for unknown reasons (probably related to the hardware). For example, the Barcode Boy at times may send back [0x90, 0x07], which seems to indicate an error of some sort.</p>
 
 	<a name="bcb_bar"></a>
-	<p class="gray_title">Barcode Format</p>
+	<p class="gray_title">[Barcode Boy] : Barcode Format</p>
 
 	<p>The two strings are the actual barcode data in numerical form. The barcode format itself is EAN-13, and a few games use JAN-13 specifically. Older JAN-13 barcodes start off with the flag code 49. Interestingly enough, the newer JAN-13 flag code is 45 and was introduced in 1992, the same year the Barcode Boy was released. Probably due to timing or convenience, the JAN-13 barcodes on the cards stuck to the older flag code. Some Barcode Boy barcodes are technically &#34;coupons&#47;vouchers&#34; types, as they use the flag code 99 instead of 45 or 49. Family Jockey 2 and Famista 3 don't use JAN-13 specifically; instead they use random EAN-13 barcodes with varying flag codes.</p>
 
 	<p>Using scans of the barcode @ 600 DPI, the smallest bar width is approximately 7 pixels (give or take). With that information, it&#39;s possible to recreate the EAN-13 number with a sufficient image and barcode scanning software. It should be noted that the Barcode Boy appears to do away with the center guard, however, it maintains left and right guards.</p>
 
 	<a name="bcb_rip"></a>
-	<p class="gray_title">Card Dumping + Emulation</p>
+	<p class="gray_title">[Barcode Boy] : Card Dumping + Emulation</p>
 
 	<p>Amazingly simple in comparison to something like Barcode Taisen Bardigun, chiefly because such a small amount of bytes need to be sent to the Game Boy. Basically, all you need to do is convert the barcode to EAN-13. Anything capable of reading standard barcodes found on most products should be sufficient to grab the numerical form of each card.</p>
 
 	<p>As far as emulation goes, simply convert the EAN-13 ASCII string to hex and transmit it accordingly.</p>
 
 	<a name="bcb_err"></a>
-	<p class="gray_title">Barcode Errors</p>
+	<p class="gray_title">[Barcode Boy] : Barcode Errors</p>
 
 	<p>Interestingly enough, a vast majority of the barcodes for Family Jockey 2 are completely incorrect. Only 3 out of the 8 barcodes actually generate horses with the stats listed on the cards. Barcodes A1, B1, and A4 work fine; the rest give stats that do not match up with the card's. Some, such as A2, even generate horses that are totally unfit for competition (A2 produces stats with 2s and 0s, and the max is supposed to be 9 in each category). It's not clear if this was a programming glitch or a mistake Namcot made when printing the cards, or some combination of the two. All other Barcode Boy games came packaged with cards that have no issues whatsoever.</p>
 
@@ -167,7 +175,7 @@ Handshake	--->
 	<!-- Barcode Taisen Bardigun -->
 
 	<a name="btb_gen"></a>
-	<p class="gray_title">General Hardware Information - [BTB]</p>
+	<p class="gray_title">[Barcode Taisen Bardigun] : General Hardware Information</p>
 
 	<p>Barcode Taisen Bardigun is a Japanese Game Boy game released December 11, 1998, made by TAM. It doesn&#39;t seem like a very interesting or noteworthy game in and of itself (yet another monster breeding&#47;raising&#47;fighting&#47;collecting game). However, this game featured exclusive hardware, a card reader that scanned various barcodes</p>
 
@@ -183,7 +191,7 @@ Handshake	--->
 	</ul>
 
 	<a name="btb_com"></a>
-	<p class="gray_title">Card Reader to GBC Communication</p>
+	<p class="gray_title">[Barcode Taisen Bardigun] : Card Reader to GBC Communication</p>
 
 	<p>Game Boy will initialize a transfer with an internal clock; much like every other Serial I/O device (GB Printer, GB Mobile Adapter), Game Boy sends initial data, then the reader responds. Transfer rate is 1KB&#47;s, the slowest speed, so there is no difference between DMG and GBC transfers. To begin, the Game Boy constantly sends 0xFF to the reader. The game logic times out after a few seconds if no proper response is established.</p>
 
@@ -205,7 +213,7 @@ Handshake	--->
 	</ol>
 
 	<a name="btb_bar"></a>
-	<p class="gray_title">Barcode Format</p>
+	<p class="gray_title">[Barcode Taisen Bardigun] : Barcode Format</p>
 
 	<p>Because the incoming barcode data is not consistent byte-for-byte, the patterns are what matters most. To illustrate this idea, below are two sets of data extracted after scanning a card (using a hacked version of Barcode Taisen Bardigun and saving all SIO communications to Cart RAM).</p>
 
@@ -243,10 +251,170 @@ Set 2 [14:0] [15:1] [14:0] [45:1] ...</code>
 	<code>Number of Pixels @ 600dpi * 1.875 = Approximate bit count</code>
 
 	<a name="btb_rip"></a>
-	<p class="gray_title">Card Dumping</p>
+	<p class="gray_title">[Barcode Taisen Bardigun] : Card Dumping</p>
 
 	<p>With the above guideline, it is possible to dump the cards by scanning them, then creating a binary file containing barcodes as alternating bitstreams of 0s and 1s. With this method, no homebrew techniques are needed, and only an image file is necessary to actually preserve the card.</p>
 
 	<p>The second method involves using a hacked version of the Barcode Taisen Bardigun ROM on a flashcart to save incoming Serial I&#47;O data as a card is scanned. The binary can be pulled from a save file. Both binary files could be used an input to feed back to an emulator.</p>
+
+	<!-- DMG-07 -->
+
+	<a name="dmg07_gen"></a>
+	<p class="gray_title">[DMG-07] : General Hardware Information</p>
+
+	<p>The DMG-07 is an accessory that allows 4 Game Boys to connect for multiplayer. In the West, it first appeared with the game F-1 Race as bundle in 1990. Only a few other games took advantage of the DMG-07 (namely Wave Race and Faceball 2000, Yoshi&#39;s Cookie) and it did not see widespread support at all.</p>
+
+	<ul>
+		<li class="list_item">DMG-07 is a gray &#34;hub&#34; with 3 input ports for Gen 1 Link Cables.</li>
+		<li class="list_item">DMG-07 is largely designed for Gen 1 Link Cables and DMG models. MGB-010s allow any Game Boy (up to the Micro) to connect as Players 2-4.</li>
+		<li class="list_item">Player 1 comes with a built-in cable (Gen 1). All other players need extra cables.</li>
+		<li class="list_item">Player 1 needs to be a DMG model unless an MGB-004 adapter is used.</li>
+		<li class="list_item">DMG-07 uses a Motorola 402038 for multiplexing stuff.</li>
+	</ul>
+
+	<a name="dmg07_gam"></a>
+	<p class="gray_title">[DMG-07] : Compatible Games</p>
+
+	<ul>
+		<li class="list_item">Chachamaru Panix</li>
+		<li class="list_item">Downtown Nekketsu Koushinkyoku: Dokodemo Daiundoukai</li>
+		<li class="list_item">Faceball 2000</li>
+		<li class="list_item">F1 Race</li>
+		<li class="list_item">F1 Pole Position</li>
+		<li class="list_item">Nekketsu Koukou Dodge Ball-Bu</li>
+		<li class="list_item">Super R.C. Pro-Am</li>
+		<li class="list_item">Top Rank Tennis</li>
+		<li class="list_item">Trax</li>
+		<li class="list_item">Trump Boy II</li>
+		<li class="list_item">Uno: Small World 2</li>
+		<li class="list_item">Wave Race</li>
+		<li class="list_item">Yoshi&#39;s Cookie</li>
+	</ul>
+
+	<a name="dmg07_pro"></a>
+	<p class="gray_title">[DMG-07] : Link Cable Protocol</p>
+
+	<p>The DMG-07 protocol can be divided into 2 sections, the &#34;ping&#34; phase, and the &#34;transmission&#34; phase. The initial ping phase involves sending packets back and forth between connected Game Boys probing for their current connection status. Afterwards, the DMG-07 enters into transmission mode where the Game Boys exchange data across the network.</p>
+
+	<p>A very important thing to note is that all Game Boys transfer data across the DMG-07 via an external clock source. Apparently, the clock source is provided by the DMG-07 itself. Trying to send data via an internal clock results in garbage data.</p>
+
+	<a name="dmg07_pin"></a>
+	<p class="gray_title">[DMG-07] : Ping Phase</p>
+
+	<p>When a &#34;master&#34; Game Boy (Player 1) is first connected to the DMG-07, setting Bit 7 of 0xFF02 to 1 and setting Bit 0 of 0xFF02 to 0 causes the accessory to send out "ping" packets periodically. All connected Game Boys will receive 4 bytes as part of the ping packet, at a rate of about 2048 bits-per-second, or about 256 bytes-per-second. Essentially, the ping seems to run 1&#47;4 as fast as the clock used for normal serial transfers on the DMG (1KB&#47;s). The ping data looks like this:</p>
+
+	<code>0xFE		ID Byte
+0x??		STAT1
+0x??		STAT2
+0x??		STAT3</code>
+
+	<p>3 &#34;STAT&#34; bytes are sent indicating the current connection status of the other Game Boys. Each byte is usually the same, however, sometimes the status can change mid-way through a ping, typically on STAT2 or STAT3. Each STAT byte looks like such:</p>
+
+	<code>Bit 0-2: 	Player ID
+Bit 4:		Player 1 Connected
+Bit 5:		Player 2 Connected
+Bit 6:		Player 3 Connected
+Bit 7:		Player 4 Connected</code>
+
+	<p>The Player ID is simply a value of 1-4. Its value is determined by whichever port a Game Boy is connected to. As more Game Boys connect, the upper bits of the STAT bytes are turned on.</p>
+
+	<p>When talking about Game Boys and the &#34;connection&#34;, this refers to a Game Boy properly responding to STAT1 and STAT2 bytes when receiving a ping packet from the DMG-07. In this way, the Game Boy broadcasts across the Link Cable network that it is an active participant in communications. It also acts as a sort of acknowledgement signal, where software can drop a Game Boy if the DMG-07 detects an improper response during a ping, or a Game Boy simply quits the network. The proper response is to send 0x88 *after* receiving the ID Byte and STAT1, in which case the upper-half of STAT1, STAT2, and STAT3 are updated to show that a Game Boy is &#34;connected&#34;. If for whatever reason, the acknowledgement codes are not sent, the above bits are unset.</p>
+
+	<p>Some examples of ping packets are shown below:</p>
+
+	<code>0xFE 0x01 0x01 0x01	-&gt;	Ping packet received by Player 1 with no other Game Boys connected
+0xFE 0x11 0x11 0x11	-&gt;	Ping packet received by Player 1 when Player 1 has connected
+0xFE 0x31 0x31 0x31	-&gt;	Ping packet received by Player 1 when Players 1 & 2 have connected
+0xFE 0x71 0x71 0x71	-&gt;	Ping packet received by Player 1 when Players 1, 2, & 3 have connected
+0xFE 0x62 0x62 0x62	-&gt;	Ping packet received by Player 2 when Players 2 & 3 are connected (but not Player 1)</code>
+
+	<p>It&39;s possible to have situations where some players are connected but others are not; the gaps don&#39;t matter. For example, Player 1 and Player 4 can be connected, while Player 2 and Player 3 can be disconnected (or non-existant, same thing); most games do not care so long as Player 1 is active, as that Game Boy acts as master and orchestrates the multiplayer session from a software point of view. Because of the way the DMG-07 hardcodes player IDs based on which port a Game Boy is physically connected to, in the above situation Player 4 wouldn&#39;t suddenly become Player 2 in a game like F-1 Race.</p>
+
+	<p>During the ping phase, the master Game Boy is capable of setting up two parameters that will be used during the transmission phase. The clock rate for the transmission phase can be adjusted, as well as the packet size each Game Boy will use. The master Game Boy needs to respond with one byte for STAT2 and STAT3 respectively. The chart below illustrates how a master Game Boy should respond to all bytes in a ping packet:</p>
+
+<code>----------------------------
+DMG-07		Game Boy
+----------------------------
+0xFE	&lt;--&gt;	(ACK1) = 0x88
+STAT1	&lt;--&gt;	(ACK2) = 0x88	
+STAT2	&lt;--&gt;	(RATE) = Link Cable Speed 
+STAT3	&lt;--&gt;	(SIZE) = Packet Size</code>
+
+	<p>The new clock rate is only applied when entering the transmission phase; the ping phase runs at a constant 2048 bits-per-second. The formula for the new clock rate is as follows:</p>
+
+<code>DMG-07 Bits-Per-Second --&gt; 4194304 &#47; ((6 * RATE) + 512)</code>
+
+	<p>The lowest setting (RATE = 0) runs the DMG-07 at the normal speed DMGs usually transfer data (1KB&#47;s), while setting it to 0xFF runs its close to the slowest speed (2042 bits-per-second).</p>
+
+	<p>SIZE sets the length of packets exchanged between all Game Boys. Nothing fancy, just the number of bytes in each packet. It probably shouldn&#39;t be set to zero.</p>
+
+	<a name="dmg07_tra"></a>
+	<p class="gray_title">[DMG-07] : Transmission Phase</p>
+
+	<p>When the master Game Boy (Player 1) is ready, it should send 4 bytes (0xAA 0xAA 0xAA 0xAA). Some games only send 3 bytes however (0xAA 0xAA 0xAA and 0x00). This alerts the DMG-07 to start the transmission phase. The RATE and SIZE parameters are applied at this point. The protocol is simple: Each Game Boy sends a packet to the DMG-07 simultaneously, then the DMG-07 outputs each packet to all connected Game Boys. All data is buffered, so there is a 4 packet delay after each Game Boy submits their data (the delay is still 4 packets long even if some Game Boys are not connected). For example, say the packet size is 4 bytes; the flow of data would look like this when sending:</p>
+
+
+<code>--------------------------------------------------------------------------------------------
+P1 send		P2 send		P3 send		P4 send		Transfer count
+--------------------------------------------------------------------------------------------
+P1_byte_1	P2_byte_1	P3_byte_1	P4_byte_1	0
+P1_byte_2	P2_byte_2	P3_byte_2	P4_byte_2	1
+P1_byte_3	P2_byte_3	P3_byte_3	P4_byte_3	2
+P1_byte_4	P2_byte_4	P3_byte_4	P4_byte_4	3
+
+0		0		0		0		4 (Typically supposed to be zero, but DMG-07 ignores anything here)
+0		0		0		0		5
+0		0		0		0		6
+0		0		0		0		7
+
+0		0		0		0		8
+0		0		0		0		9
+0		0		0		0		10
+0		0		0		0		11
+
+0		0		0		0		12
+0		0		0		0		13
+0		0		0		0		14
+0		0		0		0		15</code>
+
+	<p>And when receiving, the flow of data would look like this:</p>
+
+<code>--------------------------------------------------------------------------------------------
+P1 recv		P2 recv		P3 recv		P4 recv		Transfer count
+--------------------------------------------------------------------------------------------
+P1_byte_1	P1_byte_1	P1_byte_1	P1_byte_1	16
+P1_byte_2	P1_byte_2	P1_byte_2	P1_byte_2	17
+P1_byte_3	P1_byte_3	P1_byte_3	P1_byte_3	18
+P1_byte_4	P1_byte_4	P1_byte_4	P1_byte_4	19
+
+P2_byte_1	P2_byte_1	P2_byte_1	P2_byte_1	20
+P2_byte_2	P2_byte_2	P2_byte_2	P2_byte_2	21
+P2_byte_3	P2_byte_3	P2_byte_3	P2_byte_3	22
+P2_byte_4	P2_byte_4	P2_byte_4	P2_byte_4	23
+
+P3_byte_1	P3_byte_1	P3_byte_1	P3_byte_1	24
+P3_byte_2	P3_byte_2	P3_byte_2	P3_byte_2	25
+P3_byte_3	P3_byte_3	P3_byte_3	P3_byte_3	26
+P3_byte_4	P3_byte_4	P3_byte_4	P3_byte_4	27
+
+P4_byte_1	P4_byte_1	P4_byte_1	P4_byte_1	28
+P4_byte_2	P4_byte_2	P4_byte_2	P4_byte_2	29
+P4_byte_3	P4_byte_3	P4_byte_3	P4_byte_3	30
+P4_byte_4	P4_byte_4	P4_byte_4	P4_byte_4	31</code>
+
+	<p>Again, due to buffering, data output to the DMG-07 is actually delayed by several transfers according to the size of the packets. All connected Game Boys should send their data into the buffer during the first few transfers. Here, the packet size is 4 bytes, so each Game Boy should submit their data during the first 4 transfers. The other 12 transfers don&#39;t care what the Game Boys send; it won&#39;t enter into the buffer. The next 16 transfers return the packets each Game Boy previously sent (if no Game Boy exists for player, that slot is filled with zeroes).</p>
+
+	<p>With the buffering system, Game Boys would normally be reading data from previous packets during transfers 0-15, in addition to sending new packets. Likewise, during transfers 16-19 each Game Boy is sending new packets. In effect, while receiving old data, Game Boys are supposed to pump new data into the network.</p>
+
+	<p>When the DMG-07 enters the transmission phase, the buffer is initially filled with garbage data that is based on output the master Game Boy had sent during the ping phase. At this time, it is recommended to ignore the earliest packets received, however, it is safe to start putting new, relevant data into the buffer.</p>
+
+	<a name="dmg07_res"></a>
+	<p class="gray_title">[DMG-07] : Restarting Ping Phase</p>
+
+	<p>It&#39;s possible to restart the ping phase while operating in the transmission phase. To do so, the master Game Boy should send 4 or more bytes (0xFF 0xFF 0xFF 0xFF). Again, some games send less (0xFF 0xFF 0xFF and 0x00). It&#39;s possible only 1 or 2 0xFF bytes need to be sent, but this has not been extensively investigated yet. At any rate, the bytes alert the DMG-07 that the ping phase should begin again. Most games use this to end the multiplayer session and return to the title screen. For example, in F-1 Race, the game automatically jumps back to the title screen after all races have been completed, while Wave Race has a menu to continue playing or end the session. In either case, the games send 0xFF bytes and the DMG-07 sends ping packets after a brief delay. During this delay, the transmission protocol is still working as intended until the switch happens.</p>
+
+
+
+
 
 </html>					
