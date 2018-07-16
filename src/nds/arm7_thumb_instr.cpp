@@ -1049,7 +1049,7 @@ void NTR_ARM7::push_pop(u16 current_thumb_instruction)
 		//PUSH
 		case 0x0:
 			//Clock CPU and controllers - 1N
-			clock(reg.r15, CODE_16);
+			execute_cycles++;
 
 			//Optionally store LR onto the stack
 			if(pc_lr_bit) 
@@ -1057,9 +1057,6 @@ void NTR_ARM7::push_pop(u16 current_thumb_instruction)
 				r13 -= 4;
 				mem_check_32(r13, lr, false);
 				set_reg(14, lr);  
-
-				//Clock CPU and controllers - 1S
-				clock(r13, DATA_32);
 			}
 
 			//Cycle through the register list
@@ -1072,10 +1069,13 @@ void NTR_ARM7::push_pop(u16 current_thumb_instruction)
 					mem_check_32(r13, push_value, false);
 
 					//Clock CPU and controllers - (n)S
-					if((n_count - 1) != 0) { clock(r13, DATA_32); n_count--; }
+					if((n_count - 1) != 0)
+					{
+						execute_cycles += get_access_time(r13, DATA_32);
+						n_count--;
+					}
 
-					//Clock CPU and controllers - 1N
-					else { clock(r13, DATA_32); x = 10; break; }
+					else { x = 10; break; }
 				}
 			}
 
@@ -1083,8 +1083,8 @@ void NTR_ARM7::push_pop(u16 current_thumb_instruction)
 
 		//POP
 		case 0x1:
-			//Clock CPU and controllers - 1N
-			clock(reg.r15, CODE_16);
+			//Clock CPU and controllers - 1N + 1I
+			execute_cycles += 2;
 			
 			//Cycle through the register list
 			for(int x = 0; x < 8; x++)
@@ -1097,7 +1097,7 @@ void NTR_ARM7::push_pop(u16 current_thumb_instruction)
 					r13 += 4;
 
 					//Clock CPU and controllers - (n)S
-					if(n_count > 1) { clock(r13, DATA_32); }
+					if(n_count > 1) { execute_cycles += get_access_time(r13, DATA_32); }
 				}
 
 				r_list >>= 1;
@@ -1106,30 +1106,13 @@ void NTR_ARM7::push_pop(u16 current_thumb_instruction)
 			//Optionally load PC from the stack
 			if(pc_lr_bit) 
 			{
-				//Clock CPU and controllers - 1I
-				clock();
+				//Clock CPU and controllers - 2N + 1S
+				execute_cycles += 3;
 
-				//Clock CPU and controllers - 1N
-				clock(r13, DATA_32);
-
-				//Clock CPU and controllers - 2S
 				mem_check_32(r13, reg.r15, true);
 				reg.r15 &= ~0x1;
 				r13 += 4;
 				needs_flush = true;
-
-				clock(reg.r15, CODE_16);
-				clock((reg.r15 + 2), CODE_16); 
-			}
-
-			//If PC not loaded, last cycles are Internal then Sequential
-			else
-			{
-				//Clock CPU and controllers - 1I
-				clock();
-
-				//Clock CPU and controllers - 1S
-				clock((reg.r15 + 2), CODE_16);
 			}
 
 			break;
