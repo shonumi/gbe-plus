@@ -9,9 +9,9 @@
 			body
 			{
 				font-family: "times new roman", serif, verdana;
-				font-size: 18px;
 				margin: 0px;
 				background-color: #FFFFFF;
+				padding: 8px;
 			}
 
 			li
@@ -29,6 +29,7 @@
 				width: 100%;
 				background-color: #C0C0C0;
 				margin-bottom: 15px;
+				font-size: 24px;
 			}
 
 			.list_head
@@ -44,7 +45,7 @@
 
 			.list_tab
 			{
-				margin-top: 0px:
+				margin-top: 0px;
 				margin-bottom: 0px;
 				width: 100%;
 			}
@@ -187,16 +188,16 @@
 	<p>Standard communication flow:</p>
 
 <code>[DMG]			[BCB]
-Handshake	--->
-		<---	Handshake
+Handshake	---&gt;
+		&lt;---	Handshake
 
-		<---	0x2
-		<---	EAN-13
-		<---	0x3
+		&lt;---	0x2
+		&lt;---	EAN-13
+		&lt;---	0x3
 
-		<---	0x2
-		<---	EAN-13
-		<---	0x3</code>
+		&lt;---	0x2
+		&lt;---	EAN-13
+		&lt;---	0x3</code>
 
 	<p>Since the Barcode Boy acts as master (after the handshake at least), the Game Boy never initiates a transfer during barcode transmission. When sending barcode data, the Barcode Boy doesn&#39;t seem to care what value the Game Boy writes to SB, although no Barcode Boy games write to SB at that time anyway. Ultimately unknown if the Barcode Boy accepts input beyond the handshake, but no evidence has been observed to suggest otherwise.</p>
 
@@ -378,7 +379,7 @@ Bit 7:		Player 4 Connected</code>
 0xFE 0x71 0x71 0x71	-&gt;	Ping packet received by Player 1 when Players 1, 2, & 3 have connected
 0xFE 0x62 0x62 0x62	-&gt;	Ping packet received by Player 2 when Players 2 & 3 are connected (but not Player 1)</code>
 
-	<p>It&39;s possible to have situations where some players are connected but others are not; the gaps don&#39;t matter. For example, Player 1 and Player 4 can be connected, while Player 2 and Player 3 can be disconnected (or non-existant, same thing); most games do not care so long as Player 1 is active, as that Game Boy acts as master and orchestrates the multiplayer session from a software point of view. Because of the way the DMG-07 hardcodes player IDs based on which port a Game Boy is physically connected to, in the above situation Player 4 wouldn&#39;t suddenly become Player 2 in a game like F-1 Race.</p>
+	<p>It&#39;s possible to have situations where some players are connected but others are not; the gaps don&#39;t matter. For example, Player 1 and Player 4 can be connected, while Player 2 and Player 3 can be disconnected (or non-existant, same thing); most games do not care so long as Player 1 is active, as that Game Boy acts as master and orchestrates the multiplayer session from a software point of view. Because of the way the DMG-07 hardcodes player IDs based on which port a Game Boy is physically connected to, in the above situation Player 4 wouldn&#39;t suddenly become Player 2 in a game like F-1 Race.</p>
 
 	<p>During the ping phase, the master Game Boy is capable of setting up two parameters that will be used during the transmission phase. The clock rate for the transmission phase can be adjusted, as well as the packet size each Game Boy will use. The master Game Boy needs to respond with one byte for STAT2 and STAT3 respectively. The chart below illustrates how a master Game Boy should respond to all bytes in a ping packet:</p>
 
@@ -553,8 +554,8 @@ JR NZ, 0xF3</code>
 RET Z
 LDH A, (0xFF56)
 
-<---- After the CPU reads 0xFF56 and the user activates the Full Changer, IR light is turned on here
-<---- This happens after the actual instruction is executed, so the loop runs once more
+&lt;---- After the CPU reads 0xFF56 and the user activates the Full Changer, IR light is turned on here
+&lt;---- This happens after the actual instruction is executed, so the loop runs once more
 
 BIT 1, A
 JR NZ, 0xF9</code>
@@ -571,7 +572,7 @@ OFF pulse length			38 + (20 * (LENGTH-2))</code>
 
 	<p>The LENGTH is number of times the CPU register D is incremented at 0x575E or 0x576C. The sum two LENGTHs from one ON pulse and one OFF pulse must be equal to the delay data in WRAM. For example, say the delay data contains 0x30. This means that the TOTAL amount of times D was incremented is 0x30. In a perfect world, the Full Changer would probably turn on the IR light so that D is incremented 0x18 times, then turn off the IR light so that D is incremented again 0x18 times. In reality, however, the length of the ON&#47;OFF pulses could run a bit longer or shorter. As far as Zok Zok Heroes is concerned, the total amount of time the IR light is ON then OFF is what matters, so the ON&#47;OFF pulse timings ultimately have to add up.</p>
 
-	</p>The current database GBE+ uses recreates ON&#47;OFF pulses that generally run for the same amount of cycles. However, based on hardware tests, the ON pulses have variable lengths, while the OFF pulses are typically constant. Again, Zok Zok Heroes won&#39;t care, as long as the total time of the ON&#47;OFF pulses meets whatever value it expects.</p>
+	<p>The current database GBE+ uses recreates ON&#47;OFF pulses that generally run for the same amount of cycles. However, based on hardware tests, the ON pulses have variable lengths, while the OFF pulses are typically constant. Again, Zok Zok Heroes won&#39;t care, as long as the total time of the ON&#47;OFF pulses meets whatever value it expects.</p>
 
 	<!-- GBA Screen Stretch -->
 	<a name="gss_gen"></a>
@@ -621,7 +622,7 @@ DMG/GBC screen (240x144 pixels, or 30x18 tiles)</code>
 		<li class="list_tab"><div class="x">Chee-Chai Alien</div><div class="y">Enhances IR sensor to detect artificial light sources. Catch&#47;trade Chaliens</div></li>
 		<li class="list_tab"><div class="x">Dancing Furby</div><div class="y">Sends signal to Furby doll, Furby reacts based on dance performance</div></li>
 		<li class="list_tab"><div class="x">Donkey Kong Country</div><div class="y">Transfer pictures to stickerbook</div></li>
-		<li class="list_tab"><div class="x">Harry Potter and the Sorceror&#39s Stone</div><div class="y">Trade &#34;Famous Witches and Wizards&#34; cards</div></li>
+		<li class="list_tab"><div class="x">Harry Potter and the Sorceror&#39;s Stone</div><div class="y">Trade &#34;Famous Witches and Wizards&#34; cards</div></li>
 		<li class="list_tab"><div class="x">Harry Potter and the Chamber of Secrets</div><div class="y">Trade &#34;Famous Witches and Wizards&#34; cards</div></li>
 		<li class="list_tab"><div class="x">Mary-Kate and Ashley Pocket Planner</div><div class="y">Send and receive &#34;G-mail&#34; messages</div></li>
 		<li class="list_tab"><div class="x">Mickey&#39;s Racing Adventure</div><div class="y">Send and receive messages. Unlocks ??? in Mickey&#39;s Speedway USA</div></li>
