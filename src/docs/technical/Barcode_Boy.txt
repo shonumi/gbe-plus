@@ -1,4 +1,4 @@
-Barcode Boy Technical Documentation 0.3
+Barcode Boy Technical Documentation 0.4
 July 4th, 2017
 Shonumi aka D.S. Baxter
 
@@ -18,7 +18,7 @@ Appearing around 1992, the Barcode Boy is the earliest form of card-scanning on 
 Barcode Boy is a rather bulky add-on that snaps on top of the original DMG (the gray "brick")
 Barcode Boy requires 2 AA batteries (with a DMG-01, that brings the total to 6 AA necessary to play any Barcode Boy game)
 Barcode Boy WILL NOT WORK WITH OTHER GAME BOYS! For whatever reason using the Universal Link Cable (MGB-010) will not work.
-Barcode Boy games are always labeled with a "B.B." logo with a little card. Apparently there are 2 types (no idea what the Red/Blue differences are, untranslated)
+Barcode Boy games are always labeled with a "B.B." logo with a little card.
 Includes a very, very short Link Cable
 Unlike the Barcode Taisen Bardigun reader, the Barcode Boy has no button. It is always "ON" when switched on, thus draining batteries even while not scanning
 
@@ -33,6 +33,8 @@ Only 5 Barcode Boy games are known to exist:
 - Kattobi Road
 - Family Jockey 2
 - Famista 3
+
+Barcode Boy titles come in two types: those that absolutely require the Barcode Boy for any gameplay at all (専用カートリッジ) and those that merely support the Barcode Boy as an accessory for additional content (対応カートリッジ). These games are differentiated with red and blue "B.B." logos respectively. Only Battle Space and Monster Maker: Barcode Saga fall into the first group.
 
 ***************************************************
 4. Barcode Boy-DMG Communication
