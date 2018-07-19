@@ -57,13 +57,8 @@ void NTR_MMU::process_rtc()
 					//Validate command
 					if((nds7_rtc.serial_byte & 0xF) == 0x6)
 					{
-						//std::cout<<"COMMAND -> 0x" << (u16)nds7_rtc.serial_byte << "\n";
-
 						u8 param = ((nds7_rtc.serial_byte >> 4) & 0x7);
 						bool read_data = (nds7_rtc.serial_byte & 0x80) ? true : false;
-						
-						//if(read_data) { std::cout<<"READ COMMAND 0x" << std::hex << u16(param) << "\n"; }
-						//else { std::cout<<"WRITE COMMAND 0x" << std::hex << u16(param) << "\n"; }
 
 						//Change state based on the received parameter
 						switch(param)
@@ -132,11 +127,15 @@ void NTR_MMU::process_rtc()
 									tm* current_time = localtime(&system_time);
 
 									//Year
-									nds7_rtc.serial_data[0] = (current_time->tm_year % 100);
+									nds7_rtc.serial_data[0] = current_time->tm_year;
+									nds7_rtc.serial_data[0] += config::rtc_offset[5];
+									nds7_rtc.serial_data[0] = (nds7_rtc.serial_data[0] % 100);
 									nds7_rtc.serial_data[0] = util::get_bcd(nds7_rtc.serial_data[0]);
 
 									//Month
-									nds7_rtc.serial_data[1] = (current_time->tm_mon + 1);
+									nds7_rtc.serial_data[1] = current_time->tm_mon;
+									nds7_rtc.serial_data[1] += config::rtc_offset[4];
+									nds7_rtc.serial_data[1] = (nds7_rtc.serial_data[1] % 12) + 1;
 									nds7_rtc.serial_data[1] = util::get_bcd(nds7_rtc.serial_data[1]);
 
 									//Day of month
