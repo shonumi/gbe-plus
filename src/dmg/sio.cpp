@@ -1227,6 +1227,10 @@ void DMG_SIO::print_image()
 	SDL_FreeSurface(print_screen);
 
 	printer.strip_count = 0;
+
+	//OSD
+	config::osd_message = "SAVED GB PRINTER IMG"
+	config::osd_count = 180;
 }
 
 /****** Processes data sent to the GB Mobile Adapter ******/
@@ -2012,7 +2016,14 @@ void DMG_SIO::bardigun_process()
 			mem->memory_map[REG_SB] = bardigun_scanner.data[bardigun_scanner.barcode_pointer++];
 			mem->memory_map[IF_FLAG] |= 0x08;
 
-			if(bardigun_scanner.barcode_pointer == bardigun_scanner.data.size()) { bardigun_scanner.current_state = BARDIGUN_INACTIVE; }
+			if(bardigun_scanner.barcode_pointer == bardigun_scanner.data.size())
+			{
+				bardigun_scanner.current_state = BARDIGUN_INACTIVE;
+
+				//OSD
+				config::osd_message = "BARCODE SWIPED"
+				config::osd_count = 180;
+			}
 
 			break;
 	}
@@ -2162,6 +2173,10 @@ void DMG_SIO::barcode_boy_process()
 				barcode_boy.send_data = true;
 				barcode_boy.counter = 0;
 				barcode_boy.current_state = BARCODE_BOY_FINISH;
+
+				//OSD
+				config::osd_message = "BARCODE SWIPED"
+				config::osd_count = 180;
 			}
 
 			sio_stat.shifts_left = 8;
