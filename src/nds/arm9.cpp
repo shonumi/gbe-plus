@@ -311,6 +311,9 @@ void NTR_ARM9::fetch()
 
 		//Set the operation to perform as UNDEFINED until decoded
 		instruction_operation[pipeline_pointer] = UNDEFINED;
+
+		//Calculate cycles necessary to fetch opcode
+		fetch_cycles = get_access_time(reg.r15, CODE_16);
 	}
 
 	//Fetch ARM instructions
@@ -321,6 +324,9 @@ void NTR_ARM9::fetch()
 
 		//Set the operation to perform as UNDEFINED until decoded
 		instruction_operation[pipeline_pointer] = UNDEFINED;
+
+		//Calculate cycles necessary to fetch opcode
+		fetch_cycles = get_access_time(reg.r15, CODE_32);
 	}
 }
 
@@ -625,6 +631,9 @@ void NTR_ARM9::decode()
 /****** Execute ARM instruction ******/
 void NTR_ARM9::execute()
 {
+	//Reset execute cycles
+	execute_cycles = 0;
+
 	u8 pipeline_id = (pipeline_pointer + 1) % 3;
 
 	if(instruction_operation[pipeline_id] == PIPELINE_FILL) 
@@ -841,7 +850,7 @@ void NTR_ARM9::execute()
 			debug_code = instruction_pipeline[pipeline_id];
 
 			//Clock CPU and controllers - 1S
-			clock(reg.r15, CODE_S32); 
+			execute_cycles++;
 		}
 	}
 
@@ -1225,6 +1234,54 @@ void NTR_ARM9::mem_check_8(u32 addr, u32& value, bool load_store)
 	else { mem->write_u8(addr, value); }
 }
 
+/****** Calculates the time it takes for memory accesses ******/
+u32 NTR_ARM7::get_access_time(u32 addr, mem_modes access_mode)
+{
+	bool is_halfword = ((access_mode == CODE_16) || (access_mode == DATA_16));
+	u8 offset = (arm_mode == THUMB) ? 2 : 4;
+	u32 cycles = 0;
+	u32 last_addr = ((access_mode == CODE_16) || (access_mode == CODE_32)) ? last_code_addr : last_data_addr;
+
+	//Determine memory region being accessed
+	switch(addr >> 24)
+	{
+		case 0x0:
+		case 0x1:
+			cycles = 1; break;
+
+		case 0x3:
+		case 0x4:
+		case 0x7:
+		case 0xB:
+		case 0xC:
+		case 0xD:
+		case 0xE:
+		case 0xF:
+			cycles = 2; break;
+
+		 
+
+		case 0x2:
+		case 0x5:
+		case 0x6:
+			cycles = (is_halfword) ? 2 : 4; break;
+
+		case 0x8:
+		case 0x9:
+		case 0xA:
+			cycles = (is_halfword) ? 16 : 32; break;
+	}
+
+	//Account for Non-Sequential access
+	if(addr != (last_addr + offset)) { cycles += 6; }
+
+	//Save last accessed address for future reference
+	if((access_mode == CODE_16) || (access_mode == CODE_32)) { last_code_addr = addr; }
+	else { last_data_addr = addr; }
+
+	return cycles;
+}
+
 /****** Counts cycles for memory accesses  ******/
 void NTR_ARM9::clock(u32 access_addr, mem_modes current_mode)
 {
@@ -1300,10 +1357,10 @@ void NTR_ARM9::clock() { system_cycles++; }
 /****** Runs audio and video controllers every clock cycle ******/
 void NTR_ARM9::clock_system()
 {
-	//Convert 66MHz cycles to 33MHz
-	system_cycles >>= 1;
+	//Store cycles from ALU + MEM stages
+	system_cycles = std::max(fetch_cycles, execute_cycles);
 
-	//ARM9 CPU sync cycles
+	//ARM7 CPU sync cycles
 	sync_cycles += system_cycles;
 
 	//Run LCD controller		 

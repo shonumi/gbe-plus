@@ -33,30 +33,22 @@ void NTR_ARM9::branch_exchange(u32 current_arm_instruction)
 	{
 		//Branch
 		case 0x1:
-			//Clock CPU and controllers - 1N
-			clock(reg.r15, CODE_N32);
-
 			reg.r15 = result;
 			needs_flush = true;
 
-			//Clock CPU and controllers - 2S
-			clock(reg.r15, CODE_S32);
-			clock((reg.r15 + 4), CODE_S32);
+			//Clock CPU and controllers - 1N + 2S
+			execute_cycles += 3;
 
 			break;
 
 		//Branch and Link
 		case 0x3:
-			//Clock CPU and controllers - 1N
-			clock(reg.r15, CODE_N32);
-
 			set_reg(14, (reg.r15 - 4));
 			reg.r15 = result;
 			needs_flush = true;
 
-			//Clock CPU and controllers - 2S
-			clock(reg.r15, CODE_S32);
-			clock((reg.r15 + 4), CODE_S32);
+			//Clock CPU and controllers - 1N + 2S
+			execute_cycles += 3;
 
 			break;
 
@@ -89,46 +81,25 @@ void NTR_ARM9::branch_link(u32 current_arm_instruction)
 	{
 		//Branch
 		case 0x0:
-			//Clock CPU and controllers - 1N
-			clock(reg.r15, CODE_N32);
-
 			reg.r15 = final_addr;
 			needs_flush = true;
-
-			//Clock CPU and controllers - 2S
-			clock(reg.r15, CODE_S32);
-			clock((reg.r15 + 4), CODE_S32);
 
 			break;
 
 		//Branch and Link
 		case 0x1:
-			//Clock CPU and controllers - 1N
-			clock(reg.r15, CODE_N32);
-
 			set_reg(14, (reg.r15 - 4));
 			reg.r15 = final_addr;
 			needs_flush = true;
-
-			//Clock CPU and controllers - 2S
-			clock(reg.r15, CODE_S32);
-			clock((reg.r15 + 4), CODE_S32);
 
 			break;
 
 		//Branch and Link and Exchange
 		case 0x2:
-			//Clock CPU and controllers - 1N
-			clock(reg.r15, CODE_N32);
-
 			set_reg(14, (reg.r15 - 4));
 			reg.r15 = final_addr;
 			if(current_arm_instruction & 0x1000000) { reg.r15 += 2; }
 			needs_flush = true;
-
-			//Clock CPU and controllers - 2S
-			clock(reg.r15, CODE_S32);
-			clock((reg.r15 + 4), CODE_S32);
 
 			//Switch to THUMB mode
 			arm_mode = THUMB;
@@ -136,6 +107,9 @@ void NTR_ARM9::branch_link(u32 current_arm_instruction)
 
 			break;
 	}
+
+	//Clock CPU and controllers - 1N + 2S
+	execute_cycles += 3;
 }
 
 /****** ARM.5 Data Processing ******/
@@ -227,17 +201,18 @@ void NTR_ARM9::data_processing(u32 current_arm_instruction)
 		}
 		
 		//Clock CPU and controllers - 1I
-		clock();
+		execute_cycles++;
 	}		
 
 	//TODO - When op is 0x8 through 0xB, make sure Bit 20 is 1 (rather force it? Unsure)
 	//TODO - 2nd Operand for TST/TEQ/CMP/CMN must be R0 (rather force it to be R0)
 	//TODO - See GBATEK - S=1, with unused Rd bits=1111b
 
-	//Clock CPU and controllers - 1N
+	//Destination register is R15
 	if(dest_reg == 15)
 	{
-		clock(reg.r15, CODE_N32);
+		//Clock CPU and controllers - 1S + 1N
+		execute_cycles += 2;
 		
 		//When the set condition parameter is 1 and destination register is R15, change CPSR to SPSR
 		if(set_condition)
@@ -261,6 +236,8 @@ void NTR_ARM9::data_processing(u32 current_arm_instruction)
 			//Switch to ARM or THUMB mode if necessary
 			arm_mode = (reg.cpsr & 0x20) ? THUMB : ARM;
 		}
+
+		needs_flush = true; 
 	}
 
 	switch(op)
@@ -415,21 +392,8 @@ void NTR_ARM9::data_processing(u32 current_arm_instruction)
 			break;
 	}
 
-	//Timings for PC as destination register
-	if(dest_reg == 15) 
-	{
-		//Clock CPU and controllers - 2S
-		needs_flush = true; 
-		clock(reg.r15, CODE_S32);
-		clock((reg.r15 + 4), CODE_S32);
-	}
-
-	//Timings for regular registers
-	else 
-	{
-		//Clock CPU and controllers - 1S
-		clock((reg.r15 + 4), CODE_S32);
-	}
+	//Clock CPU and controllers - 1S
+	execute_cycles++;
 }
 
 /****** ARM.6 PSR Transfer ******/
@@ -547,17 +511,12 @@ void NTR_ARM9::psr_transfer(u32 current_arm_instruction)
 	}
 
 	//Clock CPU and controllers - 1S
-	clock((reg.r15 + 4), CODE_S32);
+	execute_cycles++;
 } 
 
 /****** ARM.7 Multiply and Multiply-Accumulate ******/
 void NTR_ARM9::multiply(u32 current_arm_instruction)
 {
-	//TODO - Timings
-	//TODO - The rest of the opcodes
-	//TODO - Find out what GBATEK means when it says the carry flag is 'destroyed'.
-	//TODO - Set conditions
-
 	//Grab operand register Rm - Bits 0-3
 	u8 op_rm_reg = (current_arm_instruction) & 0xF;
 
@@ -592,6 +551,35 @@ void NTR_ARM9::multiply(u32 current_arm_instruction)
 	s64 value_s64 = 1;
 	u32 value_32 = 0;
 
+	u8 m_count = 0;
+
+	//Calculate m_count based on Rs
+	switch(op_code)
+	{
+		case 0x0:
+		case 0x1:
+		case 0x6:
+		case 0x7:
+			//Get count of most significant bits that are all 0 or all 1 for timing
+			if((Rs >> 8) == 0xFFFFFF || 0) { m_count = 1; }
+			else if((Rs >> 16) == 0xFFFF || 0) { m_count = 2; }
+			else if((Rs >> 24) == 0xFF || 0) { m_count = 3; }
+			else { m_count = 4; }
+			
+			break;
+
+		case 0x4:
+		case 0x5:
+			//Get count of most significant bits that are all 0 or all 1 for timing
+			if((Rs >> 8) == 0) { m_count = 1; }
+			else if((Rs >> 16) == 0) { m_count = 2; }
+			else if((Rs >> 24) == 0) { m_count = 3; }
+			else { m_count = 4; }
+
+			break;
+	}
+
+
 	//Perform multiplication ops
 	switch(op_code)
 	{
@@ -610,6 +598,9 @@ void NTR_ARM9::multiply(u32 current_arm_instruction)
 				if(value_32 == 0) { reg.cpsr |= CPSR_Z_FLAG; }
 				else { reg.cpsr &= ~CPSR_Z_FLAG; }
 			}
+
+			//Clock CPU and controllers - 1S + (m)I
+			execute_cycles += (1 + m_count);
 			
 			break;
 
@@ -628,6 +619,9 @@ void NTR_ARM9::multiply(u32 current_arm_instruction)
 				if(value_32 == 0) { reg.cpsr |= CPSR_Z_FLAG; }
 				else { reg.cpsr &= ~CPSR_Z_FLAG; }
 			}
+
+			//Clock CPU and controllers - 1S + (m + 1)I
+			execute_cycles += (2 + m_count);
 			
 			break;
 
@@ -652,6 +646,9 @@ void NTR_ARM9::multiply(u32 current_arm_instruction)
 				if(value_64 == 0) { reg.cpsr |= CPSR_Z_FLAG; }
 				else { reg.cpsr &= ~CPSR_Z_FLAG; }
 			}
+
+			//Clock CPU and controllers - 1S + (m + 1)I
+			execute_cycles += (2 + m_count);
 
 			break;
 
@@ -683,6 +680,9 @@ void NTR_ARM9::multiply(u32 current_arm_instruction)
 				else { reg.cpsr &= ~CPSR_Z_FLAG; }
 			}
 
+			//Clock CPU and controllers - 1S + (m + 2)I
+			execute_cycles += (3 + m_count);
+
 			break;
 
 
@@ -709,6 +709,9 @@ void NTR_ARM9::multiply(u32 current_arm_instruction)
 				if(value_s64 == 0) { reg.cpsr |= CPSR_Z_FLAG; }
 				else { reg.cpsr &= ~CPSR_Z_FLAG; }
 			}
+
+			//Clock CPU and controllers - 1S + (m + 1)I
+			execute_cycles += (2 + m_count);
 
 			break;
 
@@ -742,6 +745,9 @@ void NTR_ARM9::multiply(u32 current_arm_instruction)
 				else { reg.cpsr &= ~CPSR_Z_FLAG; }
 			}
 
+			//Clock CPU and controllers - 1S + (m + 2)I
+			execute_cycles += (3 + m_count);
+
 			break;
 
 		//SMLAxy
@@ -758,6 +764,9 @@ void NTR_ARM9::multiply(u32 current_arm_instruction)
 
 			update_sticky_overflow((Rm * Rs), Rn, value_32, true);
 
+			//Clock CPU and controllers - 1S
+			execute_cycles++;
+
 			break;
 
 		//SMULxy
@@ -770,6 +779,10 @@ void NTR_ARM9::multiply(u32 current_arm_instruction)
 
 			value_32 = (Rm * Rs);
 			set_reg(dest_reg, value_32);
+
+			//Clock CPU and controllers - 1S
+			execute_cycles++;
+
 
 			break;
 			
@@ -858,9 +871,6 @@ void NTR_ARM9::single_data_transfer(u32 current_arm_instruction)
 		else { base_addr -= base_offset; } 
 	}
 
-	//Clock CPU and controllers - 1N
-	clock(reg.r15, CODE_N32);
-
 	//Store Byte or Word
 	if(load_store == 0) 
 	{
@@ -871,8 +881,8 @@ void NTR_ARM9::single_data_transfer(u32 current_arm_instruction)
 			value &= 0xFF;
 			mem->write_u8(base_addr, value);
 
-			//Clock CPU and controllers - 1N
-			clock(base_addr, DATA_N16);
+			//Clock CPU and controllers - 2N
+			execute_cycles = 1 + get_access_time(base_addr, DATA_16);
 		}
 
 		else
@@ -881,8 +891,8 @@ void NTR_ARM9::single_data_transfer(u32 current_arm_instruction)
 			if(dest_reg == 15) { value += 4; }
 			mem->write_u32(base_addr, value);
 
-			//Clock CPU and controllers - 1N
-			clock(base_addr, DATA_N32);
+			//Clock CPU and controllers - 2N
+			execute_cycles = 1 + get_access_time(base_addr, DATA_32);
 		}
 	}
 
@@ -891,24 +901,20 @@ void NTR_ARM9::single_data_transfer(u32 current_arm_instruction)
 	{
 		if(byte_word == 1)
 		{
-			//Clock CPU and controllers - 1I
 			value = mem->read_u8(base_addr);
-			clock();
 
-			//Clock CPU and controllers - 1N
-			if(dest_reg == 15) { clock((reg.r15 + 4), DATA_N16); } 
+			//Clock CPU and controllers - 1I + 1N
+			execute_cycles = 1 + get_access_time(base_addr, DATA_16); 
 
 			set_reg(dest_reg, value);
 		}
 
 		else
 		{
-			//Clock CPU and controllers - 1I
 			value = mem->read_u32(base_addr);
-			clock();
 
-			//Clock CPU and controllers - 1N
-			if(dest_reg == 15) { clock((reg.r15 + 4), DATA_N32); } 
+			//Clock CPU and controllers - 1I + 1N
+			execute_cycles = 1 + get_access_time(base_addr, DATA_32); 
 
 			set_reg(dest_reg, value);
 		}
@@ -937,9 +943,8 @@ void NTR_ARM9::single_data_transfer(u32 current_arm_instruction)
 			reg.r15 &= ~0x1;
 		}
 
-		//Clock CPU and controllser - 2S
-		clock(reg.r15, CODE_S32);
-		clock((reg.r15 + 4), CODE_S32);
+		//Clock CPU and controllers - 2S + 1N
+		execute_cycles += 3;
 		needs_flush = true;
 	}
 
@@ -947,15 +952,13 @@ void NTR_ARM9::single_data_transfer(u32 current_arm_instruction)
 	else if((dest_reg != 15) && (load_store == 1))
 	{
 		//Clock CPU and controllers - 1S
-		clock(reg.r15, CODE_S32);
+		execute_cycles++;
 	}
 }
 
 /****** ARM.10 Halfword-Signed Transfer ******/
 void NTR_ARM9::halfword_signed_transfer(u32 current_arm_instruction)
 {
-	//TODO - Timings
-
 	//Grab Pre-Post bit - Bit 24
 	u8 pre_post = (current_arm_instruction & 0x1000000) ? 1 : 0;
 
@@ -1029,6 +1032,9 @@ void NTR_ARM9::halfword_signed_transfer(u32 current_arm_instruction)
 
 				value &= 0xFFFF;
 				mem->write_u16(base_addr, value);
+
+				//Clock CPU and controllers - 2N
+				execute_cycles = 1 + get_access_time(base_addr, DATA_16);
 			}
 
 			//Load halfword
@@ -1036,6 +1042,9 @@ void NTR_ARM9::halfword_signed_transfer(u32 current_arm_instruction)
 			{
 				value = mem->read_u16(base_addr);
 				set_reg(dest_reg, value);
+
+				//Clock CPU and controllers - 1I + 1N
+				execute_cycles = 1 + get_access_time(base_addr, DATA_16);
 			}
 
 			break;
@@ -1051,8 +1060,14 @@ void NTR_ARM9::halfword_signed_transfer(u32 current_arm_instruction)
 				value = mem->read_u32(base_addr);
 				set_reg(dest_reg, value);
 
+				//Clock CPU and controllers - 1I + 1N
+				execute_cycles = 1 + get_access_time(base_addr, DATA_32);
+
 				value = mem->read_u32(base_addr + 4);
 				set_reg(dest_reg + 1, value);
+
+				//Clock CPU and controllers - 1N
+				execute_cycles = get_access_time(base_addr, DATA_32);
 			}
 			
 			//Load signed byte
@@ -1062,6 +1077,9 @@ void NTR_ARM9::halfword_signed_transfer(u32 current_arm_instruction)
 
 				if(value & 0x80) { value |= 0xFFFFFF00; }
 				set_reg(dest_reg, value);
+
+				//Clock CPU and controllers - 1I + 1N
+				execute_cycles = 1 + get_access_time(base_addr, DATA_16);
 			}
 
 			break;
@@ -1077,8 +1095,14 @@ void NTR_ARM9::halfword_signed_transfer(u32 current_arm_instruction)
 				value = get_reg(dest_reg);
 				mem->write_u32(base_addr, value);
 
+				//Clock CPU and controllers - 2N
+				execute_cycles = 1 + get_access_time(base_addr, DATA_32);
+
 				value = get_reg(dest_reg + 1);
 				mem->write_u32(base_addr + 4, value);
+
+				//Clock CPU and controllers - 1N
+				execute_cycles = get_access_time(base_addr, DATA_32);
 			}
 
 			//Load signed halfword
@@ -1088,6 +1112,9 @@ void NTR_ARM9::halfword_signed_transfer(u32 current_arm_instruction)
 
 				if(value & 0x8000) { value |= 0xFFFF0000; }
 				set_reg(dest_reg, value);
+
+				//Clock CPU and controllers - 1I + 1N
+				execute_cycles = 1 + get_access_time(base_addr, DATA_16);
 			}
 
 			break;
@@ -1107,6 +1134,29 @@ void NTR_ARM9::halfword_signed_transfer(u32 current_arm_instruction)
 
 	//Write-back into base register
 	if((write_back == 1) && (base_reg != dest_reg)) { set_reg(base_reg, base_addr); }
+
+	//Timings for LDR - PC
+	if((dest_reg == 15) && (load_store == 1)) 
+	{
+		//Switch to THUMB mode if necessary
+		if(reg.r15 & 0x1) 
+		{ 
+			arm_mode = THUMB;
+			reg.cpsr |= 0x20;
+			reg.r15 &= ~0x1;
+		}
+
+		//Clock CPU and controllers - 2S + 1N
+		execute_cycles += 3;
+		needs_flush = true;
+	}
+
+	//Timings for LDR - No PC
+	else if((dest_reg != 15) && (load_store == 1))
+	{
+		//Clock CPU and controllers - 1S
+		execute_cycles++;
+	}
 }
 
 /****** ARM.11 Block Data Transfer ******/
@@ -1681,7 +1731,7 @@ void NTR_ARM9::count_leading_zeroes(u32 current_arm_instruction)
 	set_reg(dest_reg, zeroes);
 		
 	//Clock CPU and controllers - 1S
-	clock((reg.r15 + 4), CODE_S32);
+	execute_cycles++;
 }
 
 /****** QADD and QSUB ******/
@@ -1772,5 +1822,5 @@ void NTR_ARM9::sticky_math(u32 current_arm_instruction)
 	}
 
 	//Clock CPU and controllers - 1S
-	clock((reg.r15 + 4), CODE_S32);
+	execute_cycles++;
 }

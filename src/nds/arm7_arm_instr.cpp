@@ -492,7 +492,6 @@ void NTR_ARM7::psr_transfer(u32 current_arm_instruction)
 	execute_cycles++;
 } 
 
-
 /****** ARM.7 Multiply and Multiply-Accumulate ******/
 void NTR_ARM7::multiply(u32 current_arm_instruction)
 {

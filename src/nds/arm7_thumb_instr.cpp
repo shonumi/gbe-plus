@@ -459,7 +459,7 @@ void NTR_ARM7::alu_ops(u16 current_thumb_instruction)
 			reg.cpsr &= ~CPSR_C_FLAG;
 
 			//Clock CPU and controllers - 1S + 3I
-			system_cycles += 4;
+			execute_cycles += 4;
 
 			set_reg(dest_reg, result);
 			break;

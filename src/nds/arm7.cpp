@@ -613,6 +613,9 @@ void NTR_ARM7::decode()
 /****** Execute ARM instruction ******/
 void NTR_ARM7::execute()
 {
+	//Reset execute cycles
+	execute_cycles = 0;
+
 	u8 pipeline_id = (pipeline_pointer + 1) % 3;
 
 	if(instruction_operation[pipeline_id] == PIPELINE_FILL) 
@@ -620,9 +623,6 @@ void NTR_ARM7::execute()
 		debug_message = 0xFF; 
 		return; 
 	}
-
-	//Reset execute cycles
-	execute_cycles = 0;
 
 	//Execute THUMB instruction
 	if(arm_mode == THUMB)
