@@ -289,6 +289,39 @@ void DMG_core::debug_process_command()
 			}
 		}
 
+		//Show memory - 16 bytes
+		else if((command.substr(0, 3) == "u8s") && (command.substr(4, 2) == "0x"))
+		{
+			valid_command = true;
+			u32 mem_location = 0;
+			std::string hex_string = command.substr(6);
+
+			if(hex_string.size() > 4) { hex_string = hex_string.substr(hex_string.size() - 4); }
+
+			//Convert hex string into usable u32
+			valid_command = util::from_hex_str(hex_string, mem_location);
+
+			//Request valid input again
+			if(!valid_command)
+			{
+				std::cout<<"\nInvalid memory address : " << command << "\n";
+				std::cout<<": ";
+				std::getline(std::cin, command);
+			}
+
+			else
+			{
+				db_unit.last_command = "u8s";
+				
+				for(u32 x = 0; x < 16; x++)
+				{
+					std::cout<<"Memory @ " << util::to_hex_str(mem_location + x) << " : 0x" << std::hex << (int)core_mmu.read_u8(mem_location + x) << "\n";
+				}
+				
+				debug_process_command();
+			}
+		}
+
 		//Show memory - 2 bytes
 		else if((command.substr(0, 3) == "u16") && (command.substr(4, 2) == "0x"))
 		{
@@ -797,6 +830,7 @@ void DMG_core::debug_process_command()
 
 			std::cout<<"del \t\t Deletes ALL current breakpoints\n";
 			std::cout<<"u8 \t\t Show BYTE @ memory, format 0x1234\n";
+			std::cout<<"u8s \t\t Show 16 BYTES @ memory, format 0x1234\n";
 			std::cout<<"u16 \t\t Show WORD @ memory, format 0x1234\n";
 			std::cout<<"w8 \t\t Write BYTE @ memory, format 0x1234 for addr, 0x12 for value\n";
 			std::cout<<"w16 \t\t Write WORD @ memory, format 0x1234 for addr, 0x1234 for value\n";
