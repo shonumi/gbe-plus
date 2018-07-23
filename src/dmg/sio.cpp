@@ -1857,28 +1857,77 @@ void DMG_SIO::mobile_adapter_process_pop()
 	//For now, just initiate a POP session, but return errors for everything after that
 	std::string pop_response = "";
 	std::string pop_data = util::data_to_str(mobile_adapter.packet_buffer.data(), mobile_adapter.packet_buffer.size());
+	u8 response_id = 0;
+	u8 pop_command = 0xFF;
+
+	for(u32 x = 0; x < mobile_adapter.packet_buffer.size(); x++)
+	{
+		std::cout<<"POP DAT " << std::dec << x << " --> 0x" << std::hex << (u32)mobile_adapter.packet_buffer[x] << " :: " <<  "\n";
+	}
 
 	std::size_t user_match = pop_data.find("USER");
 	std::size_t pass_match = pop_data.find("PASS");
 	std::size_t quit_match = pop_data.find("QUIT");
+	std::size_t stat_match = pop_data.find("STAT");
+	std::size_t top_match = pop_data.find("TOP");
+
+	//Check POP command
+	if(user_match != std::string::npos) { pop_command = 1; }
+	else if(pass_match != std::string::npos) { pop_command = 2; }
+	else if(quit_match != std::string::npos) { pop_command = 3; }
+	else if(stat_match != std::string::npos) { pop_command = 4; }
+	else if(top_match != std::string::npos) { pop_command = 5; }
 
 	//Check for POP initiation
-	if((mobile_adapter.data_length == 1) && (!mobile_adapter.pop_session_started))
+	else if((mobile_adapter.data_length == 1) && (!mobile_adapter.pop_session_started))
 	{
 		mobile_adapter.pop_session_started = true;
-		pop_response = "+OK\r\n";
+		pop_command = 0;
 	}
 
-	//Check for other commands, just say everything is OK
-	else if((user_match != std::string::npos) || (pass_match != std::string::npos) || (quit_match != std::string::npos))
+	//Check for POP end
+	else if((mobile_adapter.data_length == 1) && (mobile_adapter.pop_session_started))
 	{
-		pop_response = "+OK\r\n";
+		mobile_adapter.pop_session_started = false;
+		pop_command = 6;
 	}
 
-	//For everything else, return an error
-	else
+	switch(pop_command)
 	{
-		pop_response = "-ERR\r\n";
+		//Init + USER, PASS, and QUIT commands
+		case 0x0:
+		case 0x1:
+		case 0x2:
+		case 0x3:
+			pop_response = "+OK\r\n";
+			response_id = 0x95;
+			break;
+
+		//STAT command
+		case 0x4:
+			//When not connecting a real server, fake an inbox with 1 message
+			pop_response = "+OK 1 10\r\n";
+			response_id = 0x95;
+			break;
+
+		//TOP command
+		case 0x5:
+			//When not connecting to a real server, fake a message
+			pop_response = "+OK 1 Hello GBE+";
+			response_id = 0x95;
+			break;
+
+		//End
+		case 0x6:
+			pop_response = "+OK\r\n";
+			response_id = 0x9F;
+			break;
+
+		//Error
+		default:
+			pop_response = "-ERR\r\n";
+			response_id = 0x95;
+			break;
 	}
 
 	//Start building the reply packet
@@ -1890,7 +1939,7 @@ void DMG_SIO::mobile_adapter_process_pop()
 	mobile_adapter.packet_buffer[1] = (0x66);
 
 	//Header
-	mobile_adapter.packet_buffer[2] = (0x95);
+	mobile_adapter.packet_buffer[2] = response_id;
 	mobile_adapter.packet_buffer[3] = (0x00);
 	mobile_adapter.packet_buffer[4] = (0x00);
 	mobile_adapter.packet_buffer[5] = pop_response.size() + 1;
