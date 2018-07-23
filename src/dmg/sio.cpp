@@ -353,6 +353,7 @@ void DMG_SIO::reset()
 
 	mobile_adapter.port = 0;
 	mobile_adapter.ip_addr = 0;
+	mobile_adapter.transfer_state = 0;
 	mobile_adapter.line_busy = false;
 	mobile_adapter.pop_session_started = false;
 	mobile_adapter.http_session_started = false;
@@ -1229,7 +1230,7 @@ void DMG_SIO::print_image()
 	printer.strip_count = 0;
 
 	//OSD
-	config::osd_message = "SAVED GB PRINTER IMG"
+	config::osd_message = "SAVED GB PRINTER IMG";
 	config::osd_count = 180;
 }
 
@@ -1918,20 +1919,21 @@ void DMG_SIO::mobile_adapter_process_http()
 {
 	std::string http_response = "";
 	u8 response_id = 0;
+	bool not_found = true;
 
 	//Send empty body until HTTP request is finished transmitting
 	if(mobile_adapter.data_length != 1)
 	{
 		mobile_adapter.http_data += util::data_to_str(mobile_adapter.packet_buffer.data() + 7, mobile_adapter.packet_buffer.size() - 7);
-		http_response = " ";
+		http_response = "";
 		response_id = 0x95;
 	}
 
 	//Process HTTP request once initial line + headers + message body have been received.
 	else
 	{
-		//For now, just return 404 as the default
-		http_response = "HTTP/1.0 404 Not Found\r\n";
+		//Update transfer status
+		if(!mobile_adapter.transfer_state) { mobile_adapter.transfer_state = 1; }
 
 		//Determine if this request is GET or POST
 		std::size_t get_match = mobile_adapter.http_data.find("GET");
@@ -1941,16 +1943,55 @@ void DMG_SIO::mobile_adapter_process_http()
 		if(get_match != std::string::npos)
 		{
 			//See if this is the homepage for Mobile Trainer
-			if(mobile_adapter.http_data.find("/01/CGB-B9AJ/index.html") != std::string::npos)
-			{
-				http_response = "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\nContent-Length: 31\r\n<html><body>HELLO</body></html>";
-			}
+			if(mobile_adapter.http_data.find("/01/CGB-B9AJ/index.html") != std::string::npos) { not_found = false; }
 		}
 
-		mobile_adapter.http_data = "";
+		//Respond to HTTP request
+		switch(mobile_adapter.transfer_state)
+		{
+			//Status - 200 or 404
+			case 0x1:
+				if(not_found) { http_response = "HTTP/1.0 404 Not Found\r\n"; }
+				else { http_response = "HTTP/1.0 200 OK\r\n"; }
 
-		//Be sure to change command ID to 0x9F at the end of an HTTP response
-		response_id = 0x9F;
+				mobile_adapter.transfer_state = 2;
+				response_id = 0x95;
+
+				break;
+
+			//Header or close connection if 404
+			case 0x2:
+				if(not_found)
+				{
+					http_response = "";
+					response_id = 0x9F;
+					mobile_adapter.transfer_state = 0;
+				}
+
+				else
+				{
+					http_response = "Content-Type: text/html\r\n\r\n";
+					response_id = 0x95;
+					mobile_adapter.transfer_state = 3;
+				}
+
+				break;
+
+			//HTTP data payload
+			//TODO - Remove hardcoding for Mobile Trainer
+			case 0x3:
+				http_response = "Hello World";
+				response_id = 0x95;
+				mobile_adapter.transfer_state = 4;
+				break;
+
+			//Close connection
+			case 0x4:
+				http_response = "";
+				response_id = 0x9F;
+				mobile_adapter.transfer_state = 0;
+				break;
+		}
 	}
 
 	//Start building the reply packet
@@ -2021,7 +2062,7 @@ void DMG_SIO::bardigun_process()
 				bardigun_scanner.current_state = BARDIGUN_INACTIVE;
 
 				//OSD
-				config::osd_message = "BARCODE SWIPED"
+				config::osd_message = "BARCODE SWIPED";
 				config::osd_count = 180;
 			}
 
@@ -2175,7 +2216,7 @@ void DMG_SIO::barcode_boy_process()
 				barcode_boy.current_state = BARCODE_BOY_FINISH;
 
 				//OSD
-				config::osd_message = "BARCODE SWIPED"
+				config::osd_message = "BARCODE SWIPED";
 				config::osd_count = 180;
 			}
 

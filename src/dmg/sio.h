@@ -115,6 +115,7 @@ class DMG_SIO
 
 		u16 port;
 		u32 ip_addr;
+		u32 transfer_state;
 		bool pop_session_started;
 		bool http_session_started;
 		bool line_busy;
