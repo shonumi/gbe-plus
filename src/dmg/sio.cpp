@@ -2015,6 +2015,7 @@ void DMG_SIO::mobile_adapter_process_http()
 					http_response = "";
 					response_id = 0x9F;
 					mobile_adapter.transfer_state = 0;
+					mobile_adapter.http_data = "";
 				}
 
 				else
@@ -2029,7 +2030,7 @@ void DMG_SIO::mobile_adapter_process_http()
 			//HTTP data payload
 			//TODO - Remove hardcoding for Mobile Trainer
 			case 0x3:
-				http_response = "Hello World";
+				http_response = "<html><body>Hello World</body></html>";
 				response_id = 0x95;
 				mobile_adapter.transfer_state = 4;
 				break;
@@ -2039,6 +2040,7 @@ void DMG_SIO::mobile_adapter_process_http()
 				http_response = "";
 				response_id = 0x9F;
 				mobile_adapter.transfer_state = 0;
+				mobile_adapter.http_data = "";
 				break;
 		}
 	}
