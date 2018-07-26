@@ -1865,6 +1865,7 @@ void DMG_SIO::mobile_adapter_process_pop()
 	std::size_t quit_match = pop_data.find("QUIT");
 	std::size_t stat_match = pop_data.find("STAT");
 	std::size_t top_match = pop_data.find("TOP");
+	std::size_t dele_match = pop_data.find("DELE");
 
 	//Check POP command
 	if(user_match != std::string::npos) { pop_command = 1; }
@@ -1872,6 +1873,7 @@ void DMG_SIO::mobile_adapter_process_pop()
 	else if(quit_match != std::string::npos) { pop_command = 3; }
 	else if(stat_match != std::string::npos) { pop_command = 4; }
 	else if(top_match != std::string::npos) { pop_command = 5; }
+	else if(dele_match != std::string::npos) { pop_command = 6; }
 
 	//Check for POP initiation
 	else if((mobile_adapter.data_length == 1) && (!mobile_adapter.pop_session_started))
@@ -1884,16 +1886,17 @@ void DMG_SIO::mobile_adapter_process_pop()
 	else if((mobile_adapter.data_length == 1) && (mobile_adapter.pop_session_started))
 	{
 		mobile_adapter.pop_session_started = false;
-		pop_command = 6;
+		pop_command = 7;
 	}
 
 	switch(pop_command)
 	{
-		//Init + USER, PASS, and QUIT commands
+		//Init + USER, PASS, DELE, and QUIT commands
 		case 0x0:
 		case 0x1:
 		case 0x2:
 		case 0x3:
+		case 0x6:
 			pop_response = "+OK\r\n";
 			response_id = 0x95;
 			break;
@@ -1914,7 +1917,7 @@ void DMG_SIO::mobile_adapter_process_pop()
 			break;
 
 		//End
-		case 0x6:
+		case 0x7:
 			pop_response = "+OK\r\n";
 			response_id = 0x9F;
 			break;
