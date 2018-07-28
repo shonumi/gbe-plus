@@ -208,6 +208,7 @@ class DMG_SIO
 	void mobile_adapter_process();
 	void mobile_adapter_process_pop();
 	void mobile_adapter_process_http();
+	void mobile_adapter_process_smtp();
 
 	void bardigun_process();
 	bool bardigun_load_barcode(std::string filename);

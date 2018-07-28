@@ -1470,8 +1470,11 @@ void DMG_SIO::mobile_adapter_process()
 						//HTTP data transfer
 						else if(mobile_adapter.port == 80) { mobile_adapter_process_http(); }
 
+						//CHARGEN data transfer
+						else if(mobile_adapter.port == 25) { mobile_adapter_process_smtp(); }
+
 						//Unknown port
-						else { std::cout<<"SIO::Warning - Mobile Adapter accessing TCP transfer on unknown port " << mobile_adapter.port << "\n"; }
+						else { std::cout<<"SIO::Warning - Mobile Adapter accessing TCP transfer on unknown port " << std::dec << mobile_adapter.port << "\n"; }
 
 						break;
 
@@ -1766,6 +1769,7 @@ void DMG_SIO::mobile_adapter_process()
 						//Reset all sessions
 						mobile_adapter.pop_session_started = false;
 						mobile_adapter.http_session_started = false;
+						mobile_adapter.transfer_state = 0;
 
 						break;
 
@@ -2111,6 +2115,88 @@ void DMG_SIO::mobile_adapter_process_http()
 
 	//Body
 	util::str_to_data(mobile_adapter.packet_buffer.data() + 7, http_response);
+
+	//Checksum
+	u16 checksum = 0;
+	for(u32 x = 2; x < mobile_adapter.packet_buffer.size(); x++) { checksum += mobile_adapter.packet_buffer[x]; }
+
+	mobile_adapter.packet_buffer.push_back((checksum >> 8) & 0xFF);
+	mobile_adapter.packet_buffer.push_back(checksum & 0xFF);
+
+	//Acknowledgement handshake
+	mobile_adapter.packet_buffer.push_back(0x88);
+	mobile_adapter.packet_buffer.push_back(0x00);
+
+	//Send packet back
+	mobile_adapter.packet_size = 0;
+	mobile_adapter.current_state = GBMA_ECHO_PACKET;
+}
+
+/****** Processes SMTP transfers from the emulated GB Mobile Adapter ******/
+void DMG_SIO::mobile_adapter_process_smtp()
+{
+	std::string smtp_response = "";
+	std::string smtp_data = util::data_to_str(mobile_adapter.packet_buffer.data(), mobile_adapter.packet_buffer.size());
+	u8 response_id = 0;
+	u8 smtp_command = 0xFF;
+
+	//Check for SMTP initiation
+	if((mobile_adapter.data_length == 1) && (!mobile_adapter.transfer_state))
+	{
+		smtp_command = 0;
+	}
+
+	std::size_t mail_match = smtp_data.find("MAIL FROM");
+	std::size_t rcpt_match = smtp_data.find("RCPT TO");
+	std::size_t quit_match = smtp_data.find("QUIT");
+	std::size_t data_match = smtp_data.find("DATA");
+
+	//Check POP command
+	if(mail_match != std::string::npos) { smtp_command = 1; }
+	else if(rcpt_match != std::string::npos) { smtp_command = 2; }
+	else if(quit_match != std::string::npos) { smtp_command = 3; }
+	else if(data_match != std::string::npos) { smtp_command = 4; }
+
+	//Handle SMTP commands
+	switch(smtp_command)
+	{
+		//Init + MAIL FROM, RCPT TO
+		case 0x0:
+		case 0x1:
+		case 0x2:
+			smtp_response = "250 OK\r\n";
+			response_id = 0x95;
+			break;
+
+		//QUIT
+		case 0x3:
+			smtp_response = "221\r\n";
+			response_id = 0x95;
+			break;
+
+		//DATA
+		case 0x4:
+			smtp_response = "354\r\n";
+			response_id = 0x95;
+			break;
+	}
+
+	//Start building the reply packet
+	mobile_adapter.packet_buffer.clear();
+	mobile_adapter.packet_buffer.resize(7 + smtp_response.size(), 0x00);
+
+	//Magic bytes
+	mobile_adapter.packet_buffer[0] = 0x99;
+	mobile_adapter.packet_buffer[1] = 0x66;
+
+	//Header
+	mobile_adapter.packet_buffer[2] = response_id;
+	mobile_adapter.packet_buffer[3] = 0x00;
+	mobile_adapter.packet_buffer[4] = 0x00;
+	mobile_adapter.packet_buffer[5] = smtp_response.size() + 1;
+
+	//Body
+	util::str_to_data(mobile_adapter.packet_buffer.data() + 7, smtp_response);
 
 	//Checksum
 	u16 checksum = 0;
