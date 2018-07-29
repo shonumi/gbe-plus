@@ -121,6 +121,7 @@
 	<p class="list_item"><a href="#ps_mbc">MBC1S</a></p>
 	<p class="list_item"><a href="#ps_fmt">Sonar Format</a></p>
 	<p class="list_item"><a href="#ps_fsh">Fish Finder</a></p>
+	<p class="list_item"><a href="#ps_gbi">Game Boy Incompatibilities</a></p>
 	<p class="list_item"><a href="#ps_rsc">Further Research</a></p>
 
 	<a name="about"></a>
@@ -917,6 +918,11 @@ Refresh_12	0 reads</code>
 	<p>Fish tiles are always aligned on the X-axis by 8 pixels of the &#34;fish grid&#34;, so they are always locked into columns, however, they seem to shift freely on the Y-axis. Obviously, fish are only detected in open water; once solid flooring (and not just debris or other objects) has been detected, no fish appear below the floor. As such, fish detection only happens when using the first &#34;set&#34; of colors for drawing the frame. To detect fish, an 8x8 section of the &#34;fish grid&#34; needs to have only 1 value of 0x00 or 0x01 within the first column. If not, the Pocket Sonar will treat it as a miscellaneous object. Even if the second column (or every other one) has multiple 0x00 or 0x01 values, the Pocket Sonar only cares about first column. The first occurence of a 0x00 or 0x01 value in the first column of any 8x8 cell on the &#34;fish grid&#34; appears to determine where the fish tile is aligned vertically.</p>
 
 	<p>Oddly enough, several options change the X offset of the &#34;fish grid&#34;. Enabling or disabling the option for displaying fish seems to reposition the &#34;fish grid&#34; according to whatever 1x96 segment of the frame is rendered. Additionally, toggling magnifcation or the &#34;auto&#34; (オート) mode resets the &#34;fish grid&#34;.</p>
+
+	<a name="ps_gbi"></a>
+	<p class="gray_title">[Pocket Sonar] : Game Boy Incompatibilities</p>
+
+	<p>For some reason, Game Boy Color and Game Boy Advance units do not work with the Pocket Sonar. These handhelds seem to return 0x00 when reading 0xA000 for the sonar. When the sonar is turned on, this results in a pure black screen. When the sonar is turned off, some other value (probably 0xFF) is read, resulting in a pure white screen. DMG and MGB Game Boys have no apparent trouble properly reading sonar data from 0xA000 though.</p>
 
 	<a name="ps_rsc"></a>
 	<p class="gray_title">[Pocket Sonar] : Further Research</p>

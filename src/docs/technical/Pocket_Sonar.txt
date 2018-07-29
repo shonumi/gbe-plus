@@ -22,7 +22,7 @@ Gyogun Tanchiki: Pocket Sonar (shortened to just Pocket Sonar) was a combination
 - Cartridge uses the MBC1S, virtually identical to the MBC1, but has sonar capabilities built-in.
 - Capable of probing depths of 20m.
 - Internally, MBC1S is two PCBs (MBC and sonar) linked together by 5 soldered wires.
-
+- Does not appear to be compatible with the GBC or GBA.
 
 ***************************************************
 3. MBC1S
@@ -188,9 +188,14 @@ Fish tiles are always aligned on the X-axis by 8 pixels of the "fish grid", so t
 
 Oddly enough, several options change the X offset of the "fish grid". Enabling or disabling the option for displaying fish seems to reposition the "fish grid" according to whatever 1x96 segment of the frame is rendered. Additionally, toggling magnifcation or the "auto" (オート) mode resets the "fish grid".
 
+***************************************************
+6. Game Boy Incompatibilities
+***************************************************
+
+For some reason, Game Boy Color and Game Boy Advance units do not work with the Pocket Sonar. These handhelds seem to return 0x00 when reading 0xA000 for the sonar. When the sonar is turned on, this results in a pure black screen. When the sonar is turned off, some other value (probably 0xFF) is read, resulting in a pure white screen. DMG and MGB Game Boys have no apparent trouble properly reading sonar data from 0xA000 though.
 
 ***************************************************
-6. Further Research
+7. Further Research
 ***************************************************
 
 There are a couple of uncertainties that require further research to clarify. The Pocket Sonar displays a brief "demo" mode if players wait around the title screen. It shows an example sonar image scrolling across the screen, however it uses 3 shades to represent the ground (SHADE 3, SHADE 2, and SHADE 1 in that order). It doesn't seem possible to recreate this type of image when actually using the Pocket Sonar, as the ground only uses 2 shades (SHADE 3 and SHADE 1). Additionally, on the box and in the manual, all pictures of the Pocket Sonar in action only show these 2 shades. Extensive testing using various values for the sonar image data at 0xA000 could not reproduce the "demo" mode either. While the "demo" mode may be impossible on real hardware, actual tests in real bodies of water need to be done to ultimately verify this behavior.
