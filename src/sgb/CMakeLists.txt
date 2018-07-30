@@ -17,6 +17,7 @@ set(SRCS
 	./../dmg/custom_graphics.cpp
 	./../dmg/sio.cpp
 	./../dmg/dmg07.cpp
+	./../dmg/gbma.cpp
 	debug.cpp
 	)
 

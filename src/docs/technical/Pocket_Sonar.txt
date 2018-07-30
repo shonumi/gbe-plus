@@ -1,4 +1,4 @@
-Gyogun Tanchiki: Pocket Sonar Technical Documentation 0.1
+Gyogun Tanchiki: Pocket Sonar Technical Documentation 0.2
 April 7th, 2018
 Shonumi aka D.S. Baxter
 
@@ -23,6 +23,7 @@ Gyogun Tanchiki: Pocket Sonar (shortened to just Pocket Sonar) was a combination
 - Capable of probing depths of 20m.
 - Internally, MBC1S is two PCBs (MBC and sonar) linked together by 5 soldered wires.
 - Does not appear to be compatible with the GBC or GBA.
+
 
 ***************************************************
 3. MBC1S
@@ -188,11 +189,13 @@ Fish tiles are always aligned on the X-axis by 8 pixels of the "fish grid", so t
 
 Oddly enough, several options change the X offset of the "fish grid". Enabling or disabling the option for displaying fish seems to reposition the "fish grid" according to whatever 1x96 segment of the frame is rendered. Additionally, toggling magnifcation or the "auto" (オート) mode resets the "fish grid".
 
+
 ***************************************************
 6. Game Boy Incompatibilities
 ***************************************************
 
 For some reason, Game Boy Color and Game Boy Advance units do not work with the Pocket Sonar. These handhelds seem to return 0x00 when reading 0xA000 for the sonar. When the sonar is turned on, this results in a pure black screen. When the sonar is turned off, some other value (probably 0xFF) is read, resulting in a pure white screen. DMG and MGB Game Boys have no apparent trouble properly reading sonar data from 0xA000 though.
+
 
 ***************************************************
 7. Further Research

@@ -19,6 +19,7 @@ set(SRCS
 	sio.cpp
 	infrared.cpp
 	dmg07.cpp
+	gbma.cpp
 	debug.cpp
 	)
 
