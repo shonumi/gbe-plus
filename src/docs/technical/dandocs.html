@@ -747,7 +747,7 @@ Bit 1 = 0 (sometimes 1)		Bit 1 = 0			Bright</code>
 	<a name="ps_gen"></a>
 	<p class="gray_title">[Pocket Sonar] : General Hardware Information</p>
 
-	<p>Gyogun Tanchiki: Pocket Sonar (shortened to just Pocket Sonar) was a combination &#34;game&#34; and accessory released by Bandai on July 24, 1998 exclusively in Japan. The cart and attached sonar device act as a fish finder, capable of probing water depths of up to 20 meters. It was the first video-game based sonar hardware, but not the last (Bandai released the WonderSwan Handy Sonar the following year).</p>
+	<p>Gyogun Tanchiki: Pocket Sonar (shortened to just Pocket Sonar) was a combination &#34;game&#34; and accessory released by Bandai on July 24, 1998 exclusively in Japan. The cart and attached sonar device act as a fish finder, capable of probing water depths of up to 20 meters. It was the first video-game based sonar hardware, but not the last (Bandai released the WonderSwan Handy Sonar the following year). Apparently, Bandai worked with Honda Electronics for this product.</p>
 
 	<ul>
 		<li class="list_item">Comes in a long, bulky blue cartridge.</li>
@@ -756,7 +756,7 @@ Bit 1 = 0 (sometimes 1)		Bit 1 = 0			Bright</code>
 		<li class="list_item">Sonar device has a super long cord, with yellow foam around the actual audio hardware.</li>
 		<li class="list_item">Manual says operating tempurature range (使用温度範囲) is between 5C and 50C (no ice fishing, do not use in a hot spring).</li>
 		<li class="list_item">Cartridge uses the MBC1S, virtually identical to the MBC1, but has sonar capabilities built-in.</li>
-		<li class="list_item">Capable of probing depths of 20m.</li>
+		<li class="list_item">Officially capable of probing depths of 20m, but has an option for 30m.</li>
 		<li class="list_item">Internally, MBC1S is two PCBs (MBC and sonar) linked together by 5 soldered wires.</li>
 	</ul>
 
@@ -927,8 +927,8 @@ Refresh_12	0 reads</code>
 	<a name="ps_rsc"></a>
 	<p class="gray_title">[Pocket Sonar] : Further Research</p>
 
-	<p>There are a couple of uncertainties that require further research to clarify. The Pocket Sonar displays a brief &#34;demo&#34; mode if players wait around the title screen. It shows an example sonar image scrolling across the screen, however it uses 3 shades to represent the ground (SHADE 3, SHADE 2, and SHADE 1 in that order). It doesn&#39;t seem possible to recreate this type of image when actually using the Pocket Sonar, as the ground only uses 2 shades (SHADE 3 and SHADE 1). Additionally, on the box and in the manual, all pictures of the Pocket Sonar in action only show these 2 shades. Extensive testing using various values for the sonar image data at 0xA000 could not reproduce the &#34;demo&#34; mode either. While the &#34;demo&#34; mode may be impossible on real hardware, actual tests in real bodies of water need to be done to ultimately verify this behavior.</p>
+	<p>There are a couple of discrepancies that require further clarification. The Pocket Sonar displays a brief "demo" mode if players wait around the title screen. It shows an example sonar image scrolling across the screen, however it uses 3 shades to represent the ground (SHADE 3, SHADE 2, and SHADE 1 in that order). It doesn't seem possible to recreate this type of image when actually using the Pocket Sonar, as the ground only uses 2 shades (SHADE 3 and SHADE 1). Additionally, on the box and in the manual, all pictures of the Pocket Sonar in action only show these 2 shades. Extensive testing using various values for the sonar image data at 0xA000 could not reproduce the "demo" mode either. While the "demo" mode may be impossible on real hardware, as actual tests in real bodies of water have not reproduced it.</p>
 
-	<p>Additionally, while the Pocket Sonar clearly states it can probe a depth of 20m, the software has settings for 30m. It isn&#39;t clear if the Pocket Sonar is capable of handling 30m without issue or if it can do 30m with some degree of inaccuracy. Again, real world testing would have to be done to determine the exact nature of the 30m setting.</p>
+	<p>Additionally, while the Pocket Sonar clearly states it can probe a depth of 20m, the software has settings for 30m. Furthermore, there is photographic evidence of at least one individual successfully using the 30m option. It isn't clear if the Pocket Sonar is capable of handling 30m without issue or if it can do 30m with some degree of inaccuracy. Again, real world testing would have to be done to determine the exact nature of the 30m setting.</p>
 
 </html>					
