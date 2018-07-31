@@ -648,6 +648,7 @@ void DMG_SIO::mobile_adapter_process_pop()
 	std::size_t stat_match = pop_data.find("STAT");
 	std::size_t top_match = pop_data.find("TOP");
 	std::size_t dele_match = pop_data.find("DELE");
+	std::size_t retr_match = pop_data.find("RETR");
 
 	//Check POP command
 	if(user_match != std::string::npos) { pop_command = 1; }
@@ -656,6 +657,7 @@ void DMG_SIO::mobile_adapter_process_pop()
 	else if(stat_match != std::string::npos) { pop_command = 4; }
 	else if(top_match != std::string::npos) { pop_command = 5; }
 	else if(dele_match != std::string::npos) { pop_command = 6; }
+	else if(retr_match != std::string::npos) { pop_command = 7; }
 
 	//Check for POP initiation
 	else if((mobile_adapter.data_length == 1) && (!mobile_adapter.pop_session_started))
@@ -668,7 +670,7 @@ void DMG_SIO::mobile_adapter_process_pop()
 	else if((mobile_adapter.data_length == 1) && (mobile_adapter.pop_session_started))
 	{
 		mobile_adapter.pop_session_started = false;
-		pop_command = 7;
+		pop_command = 8;
 	}
 
 	switch(pop_command)
@@ -686,7 +688,7 @@ void DMG_SIO::mobile_adapter_process_pop()
 		//STAT command
 		case 0x4:
 			//When not connecting a real server, fake an inbox with 1 message
-			pop_response = "+OK 1 0\r\n";
+			pop_response = "+OK 1\r\n";
 			response_id = 0x95;
 			break;
 
@@ -695,11 +697,18 @@ void DMG_SIO::mobile_adapter_process_pop()
 			//When not connecting to a real server, fake a message
 			pop_response = "+OK\r\n";
 			response_id = 0x95;
-			mobile_adapter.transfer_state = 1;
+			mobile_adapter.transfer_state = 0x1;
+			break;
+
+		//RETR
+		case 0x7:
+			pop_response = "+OK\r\n";
+			response_id = 0x95;
+			mobile_adapter.transfer_state = 0x11;
 			break;
 
 		//End
-		case 0x7:
+		case 0x8:
 			pop_response = "+OK\r\n";
 			response_id = 0x9F;
 			break;
@@ -715,52 +724,73 @@ void DMG_SIO::mobile_adapter_process_pop()
 	switch(mobile_adapter.transfer_state)
 	{
 		//Init TOP
-		case 1:
-			mobile_adapter.transfer_state = 2;
+		//Init RETR
+		case 0x1:
+		case 0x11:
+			mobile_adapter.transfer_state = (mobile_adapter.transfer_state & 0x10) ? 0x12 : 0x2;
 			break;
 
 		//Email Header - Date
 		case 2:
+		case 0x12:
 			pop_response = "Date: Wed, 25 Jul 2018 12:00:00 -0600\r\n";
-			mobile_adapter.transfer_state = 3;
+			mobile_adapter.transfer_state = (mobile_adapter.transfer_state & 0x10) ? 0x13 : 0x3;
 			response_id = 0x95;
 			break;
 
 		//Email Header - Subject
 		case 3:
+		case 0x13:
 			pop_response = "Subject: This is a test\r\n";
-			mobile_adapter.transfer_state = 4;
+			mobile_adapter.transfer_state = (mobile_adapter.transfer_state & 0x10) ? 0x14 : 0x4;
 			response_id = 0x95;
 			break;
 
 		//Email Header - Sender
 		case 4:
+		case 0x14:
 			pop_response = "From: gbe_plus@test.com\r\n";
-			mobile_adapter.transfer_state = 5;
+			mobile_adapter.transfer_state = (mobile_adapter.transfer_state & 0x10) ? 0x15 : 0x5;
 			response_id = 0x95;
 			break;
 
 		//Email Header - Recipient
 		case 5:
+		case 0x15:
 			pop_response = "To: user@test.com\r\n";
-			mobile_adapter.transfer_state = 6;
+			mobile_adapter.transfer_state = (mobile_adapter.transfer_state & 0x10) ? 0x16 : 0x6;
 			response_id = 0x95;
 			break;
 
 		//Email Header - Content Type
 		case 6:
-			pop_response = "Content-Type: text/plain\r\n";
-			mobile_adapter.transfer_state = 7;
+		case 0x16:
+			pop_response = "Content-Type: text/plain\r\n\r\n";
+			mobile_adapter.transfer_state = (mobile_adapter.transfer_state & 0x10) ? 0x17 : 0x7;
 			response_id = 0x95;
 			break;
 
 		//End TOP
 		case 7:
 			pop_response = ".\r\n";
-			mobile_adapter.transfer_state = 0;
-			response_id = 0x9F;
+			mobile_adapter.transfer_state = 0x0;
+			response_id = 0x95;
 			break;
-	}		
+
+		//Message content
+		case 0x17:
+			pop_response = "Hello from GBE+\r\n\r\n";
+			mobile_adapter.transfer_state = 0x18;
+			response_id = 0x95;
+			break;
+
+		//Message end
+		case 0x18:
+			pop_response = ".\r\n";
+			mobile_adapter.transfer_state = 0x0;
+			response_id = 0x95;
+			break;
+	}
 
 	//Start building the reply packet
 	mobile_adapter.packet_buffer.clear();
