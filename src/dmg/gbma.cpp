@@ -831,6 +831,7 @@ void DMG_SIO::mobile_adapter_process_http()
 	std::string http_response = "";
 	u8 response_id = 0;
 	bool not_found = true;
+	bool img = false;
 
 	//Send empty body until HTTP request is finished transmitting
 	if(mobile_adapter.data_length != 1)
@@ -855,6 +856,36 @@ void DMG_SIO::mobile_adapter_process_http()
 		{
 			//See if this is the homepage for Mobile Trainer
 			if(mobile_adapter.http_data.find("/01/CGB-B9AJ/index.html") != std::string::npos) { not_found = false; }
+
+			else if(mobile_adapter.http_data.find("gbe_head.bmp") != std::string::npos)
+			{
+				std::string filename = config::data_path + "icons/gbe_plus_mobile_header.bmp";
+
+				//Open up GBE+ header image
+				std::ifstream f_img(filename.c_str(), std::ios::binary);
+
+				if(f_img.is_open()) 
+				{
+					//Get file size
+					f_img.seekg(0, f_img.end);
+					u32 file_size = f_img.tellg();
+					f_img.seekg(0, f_img.beg);
+
+					mobile_adapter.gbe_header.resize(file_size, 0x0);
+					u8* ex_mem = &mobile_adapter.gbe_header[0];
+
+					f_img.read((char*)ex_mem, file_size);
+					f_img.seekg(0, f_img.beg);
+					f_img.close();
+
+					not_found = false;
+					img = true;
+
+					mobile_adapter.data_index = 0;
+				}
+
+				else { std::cout<<"SIO :: GBMA could not open " << filename << "\n"; }
+			}
 		}
 
 		//Respond to HTTP request
@@ -880,11 +911,19 @@ void DMG_SIO::mobile_adapter_process_http()
 					mobile_adapter.http_data = "";
 				}
 
-				else
+				else if(!img)
 				{
 					http_response = "Content-Type: text/html\r\n\r\n";
 					response_id = 0x95;
 					mobile_adapter.transfer_state = 3;
+				}
+
+				else if(img)
+				{
+					http_response = "Content-Type: image/bmp\r\n\r\n";
+					response_id = 0x95;
+					mobile_adapter.transfer_state = 0x13;
+					mobile_adapter.http_data = "";
 				}
 
 				break;
@@ -892,9 +931,24 @@ void DMG_SIO::mobile_adapter_process_http()
 			//HTTP data payload
 			//TODO - Remove hardcoding for Mobile Trainer
 			case 0x3:
-				http_response = "<html><body>Hello World</body></html>";
+				http_response = "<html><body><img src=\"gbe_head.bmp\" /><center>Hello World</center></body></html>";
 				response_id = 0x95;
 				mobile_adapter.transfer_state = 4;
+				break;
+
+			case 0x13:
+				for(int x = 0; x < 254; x++)
+				{
+					if(mobile_adapter.data_index < mobile_adapter.gbe_header.size())
+					{
+						http_response += mobile_adapter.gbe_header[mobile_adapter.data_index++];
+					}
+
+					else { x = 255; }
+				}
+					
+				response_id = 0x95;
+				mobile_adapter.transfer_state = (mobile_adapter.data_index < mobile_adapter.gbe_header.size()) ? 0x13 : 0x4;
 				break;
 
 			//Close connection
