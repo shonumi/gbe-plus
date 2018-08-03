@@ -345,7 +345,7 @@ void DMG_SIO::reset()
 	mobile_adapter.data.clear();
 	mobile_adapter.data.resize(0xC0, 0x0);
 	mobile_adapter.packet_buffer.clear();
-	mobile_adapter.gbe_header.clear();
+	mobile_adapter.net_data.clear();
 	mobile_adapter.packet_size = 0;
 	mobile_adapter.current_state = GBMA_AWAITING_PACKET;
 

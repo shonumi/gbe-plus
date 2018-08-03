@@ -105,7 +105,7 @@ class DMG_SIO
 	{
 		std::vector <u8> data;
 		std::vector <u8> packet_buffer;
-		std::vector <u8> gbe_header;
+		std::vector <u8> net_data;
 		u32 packet_size;	
 		mobile_state current_state;
 		std::string http_data;

@@ -854,29 +854,41 @@ void DMG_SIO::mobile_adapter_process_http()
 		//Process GET requests
 		if(get_match != std::string::npos)
 		{
-			//See if this is the homepage for Mobile Trainer
-			if(mobile_adapter.http_data.find("/01/CGB-B9AJ/index.html") != std::string::npos) { not_found = false; }
+			std::string filename = "";
 
+			//See if this is the homepage for Mobile Trainer
+			if(mobile_adapter.http_data.find("/01/CGB-B9AJ/index.html") != std::string::npos)
+			{
+				not_found = false;
+				filename = config::data_path + "gbma/index.html";
+			}
+
+			//See if this is the homepage header image
 			else if(mobile_adapter.http_data.find("gbe_head.bmp") != std::string::npos)
 			{
-				std::string filename = config::data_path + "icons/gbe_plus_mobile_header.bmp";
+				not_found = false;
+				img = true;
+				filename = config::data_path + "gbma/gbe_plus_mobile_header.bmp";
+			}
 
+			if(!not_found)
+			{
 				//Open up GBE+ header image
-				std::ifstream f_img(filename.c_str(), std::ios::binary);
+				std::ifstream file(filename.c_str(), std::ios::binary);
 
-				if(f_img.is_open()) 
+				if(file.is_open()) 
 				{
 					//Get file size
-					f_img.seekg(0, f_img.end);
-					u32 file_size = f_img.tellg();
-					f_img.seekg(0, f_img.beg);
+					file.seekg(0, file.end);
+					u32 file_size = file.tellg();
+					file.seekg(0, file.beg);
 
-					mobile_adapter.gbe_header.resize(file_size, 0x0);
-					u8* ex_mem = &mobile_adapter.gbe_header[0];
+					mobile_adapter.net_data.resize(file_size, 0x0);
+					u8* ex_mem = &mobile_adapter.net_data[0];
 
-					f_img.read((char*)ex_mem, file_size);
-					f_img.seekg(0, f_img.beg);
-					f_img.close();
+					file.read((char*)ex_mem, file_size);
+					file.seekg(0, file.beg);
+					file.close();
 
 					not_found = false;
 					img = true;
@@ -931,24 +943,33 @@ void DMG_SIO::mobile_adapter_process_http()
 			//HTTP data payload
 			//TODO - Remove hardcoding for Mobile Trainer
 			case 0x3:
-				http_response = "<html><body><img src=\"gbe_head.bmp\" /><center>Hello World</center></body></html>";
+				for(int x = 0; x < 254; x++)
+				{
+					if(mobile_adapter.data_index < mobile_adapter.net_data.size())
+					{
+						http_response += mobile_adapter.net_data[mobile_adapter.data_index++];
+					}
+
+					else { x = 255; }
+				}
+
 				response_id = 0x95;
-				mobile_adapter.transfer_state = 4;
+				mobile_adapter.transfer_state = (mobile_adapter.data_index < mobile_adapter.net_data.size()) ? 0x3 : 0x4;
 				break;
 
 			case 0x13:
 				for(int x = 0; x < 254; x++)
 				{
-					if(mobile_adapter.data_index < mobile_adapter.gbe_header.size())
+					if(mobile_adapter.data_index < mobile_adapter.net_data.size())
 					{
-						http_response += mobile_adapter.gbe_header[mobile_adapter.data_index++];
+						http_response += mobile_adapter.net_data[mobile_adapter.data_index++];
 					}
 
 					else { x = 255; }
 				}
 					
 				response_id = 0x95;
-				mobile_adapter.transfer_state = (mobile_adapter.data_index < mobile_adapter.gbe_header.size()) ? 0x13 : 0x4;
+				mobile_adapter.transfer_state = (mobile_adapter.data_index < mobile_adapter.net_data.size()) ? 0x13 : 0x4;
 				break;
 
 			//Close connection
