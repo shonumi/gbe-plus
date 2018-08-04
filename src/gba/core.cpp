@@ -41,6 +41,7 @@ AGB_core::AGB_core()
 	db_unit.debug_mode = false;
 	db_unit.display_cycles = false;
 	db_unit.print_all = false;
+	db_unit.print_pc = false;
 	db_unit.last_command = "n";
 
 	db_unit.breakpoints.clear();
