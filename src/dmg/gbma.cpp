@@ -900,6 +900,14 @@ void DMG_SIO::mobile_adapter_process_http()
 			}
 		}
 
+		//Process POST requests
+		else if(post_match != std::string::npos)
+		{
+			http_response = "HTTP/1.0 200 OK\r\n";
+			response_id = 0x95;
+			mobile_adapter.transfer_state = 5;
+		}
+
 		//Respond to HTTP request
 		switch(mobile_adapter.transfer_state)
 		{
@@ -977,6 +985,12 @@ void DMG_SIO::mobile_adapter_process_http()
 				http_response = "";
 				response_id = 0x9F;
 				mobile_adapter.transfer_state = 0;
+				mobile_adapter.http_data = "";
+				break;
+
+			//Preparse POST request finish
+			case 0x5:
+				mobile_adapter.transfer_state = 4;
 				mobile_adapter.http_data = "";
 				break;
 		}
