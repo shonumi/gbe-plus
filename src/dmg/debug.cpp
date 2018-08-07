@@ -184,8 +184,21 @@ void DMG_core::debug_display() const
 
 	if(db_unit.display_cycles) { std::cout<<"CYCLES : " << std::dec << core_cpu.debug_cycles << "\n"; }
 
+	u32 ram_bank = 0;
+	
+	switch(core_mmu.cart.mbc_type)
+	{
+		case DMG_MMU::MBC1: ram_bank = (core_mmu.cart.multicart) ? core_mmu.bank_bits : 0; break;
+		case DMG_MMU::MBC2: ram_bank = 0; break;
+		case DMG_MMU::MBC3:
+		case DMG_MMU::MBC5:
+		case DMG_MMU::MMM01:
+		case DMG_MMU::GB_CAMERA:
+		case DMG_MMU::HUC1: ram_bank = core_mmu.bank_bits; break;
+	} 
+
 	std::cout<< std::hex << "ROM BANK  : 0x" << std::setw(2) << std::setfill('0') << (u32)core_mmu.rom_bank << 
-	" -- RAM BANK  : 0x" << std::setw(2) << std::setfill('0') << (u32)core_mmu.ram_bank << "\n\n";
+	" -- RAM BANK  : 0x" << std::setw(2) << std::setfill('0') << (u32)ram_bank << "\n\n";
 }
 
 /****** Debugger - Wait for user input, process it to decide what next to do ******/
@@ -807,7 +820,20 @@ void DMG_core::debug_process_command()
 		//Display current RAM bank (if any)
 		else if(command == "ram")
 		{
-			std::cout<<"Current RAM Bank: 0x" << (u16)core_mmu.bank_bits << "\n";
+			u32 ram_bank = 0;
+	
+			switch(core_mmu.cart.mbc_type)
+			{
+				case DMG_MMU::MBC1: ram_bank = (core_mmu.cart.multicart) ? core_mmu.bank_bits : 0; break;
+				case DMG_MMU::MBC2: ram_bank = 0; break;
+				case DMG_MMU::MBC3:
+				case DMG_MMU::MBC5:
+				case DMG_MMU::MMM01:
+				case DMG_MMU::GB_CAMERA:
+				case DMG_MMU::HUC1: ram_bank = core_mmu.bank_bits; break;
+			} 
+
+			std::cout<<"Current RAM Bank: 0x" << ram_bank << "\n";
 
 			valid_command = true;
 			db_unit.last_command = "ram";
