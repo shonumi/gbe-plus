@@ -89,6 +89,9 @@ class DMG_MMU
 		int rtc_last_time[9];
 		u8 latch_reg[5];
 
+		//MBC6
+		u8 flash_cnt;
+
 		//MBC7
 		bool idle;
 		u8 internal_value;

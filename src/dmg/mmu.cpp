@@ -65,6 +65,8 @@ void DMG_MMU::reset()
 	cart.rtc_enabled = false;
 	cart.rtc_latch_1 = cart.rtc_latch_2 = 0xFF;
 
+	cart.flash_cnt = 0;
+
 	for(int x = 0; x < 5; x++)
 	{
 		cart.latch_reg[x] = 0;
@@ -1739,7 +1741,6 @@ bool DMG_MMU::read_file(std::string filename)
 			cart.mbc_type = MBC6;
 			cart.ram = true;
 			cart.battery = true;
-			rom_bank = 0x4000;
 
 			std::cout<<"MMU::Cartridge Type - MBC6 + RAM + Battery + Flash\n";
 			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];

@@ -53,6 +53,20 @@ void DMG_MMU::mbc6_write(u16 address, u8 value)
 		bank_bits |= ((value << 4) & 0x70);
 	}
 
+	//MBC register - FLASH Control
+	else if((address >= 0xC00) && (address <= 0xFFF))
+	{
+		if(value & 0x1) { cart.flash_cnt |= 0x1; }
+		else { cart.flash_cnt &= ~0x1; }
+	}
+
+	//MBC register - FLASH enable
+	else if((address >= 0x1000) && (address <= 0x1FFF))
+	{
+		if(value & 0x1) { cart.flash_cnt |= 0x2; }
+		else { cart.flash_cnt &= ~0x2; }
+	}
+
 	//MBC register - Select ROM Bank 1
 	else if((address >= 0x2000) && (address <= 0x27FF)) 
 	{
@@ -60,11 +74,25 @@ void DMG_MMU::mbc6_write(u16 address, u8 value)
 		rom_bank |= (value & 0x7F);
 	}
 
+	//MBC register - Bank 1 Type
+	else if((address >= 0x2800) && (address <= 0x2FFF))
+	{
+		if(value == 0x8) { cart.flash_cnt |= 0x4; }
+		else { cart.flash_cnt &= ~0x4; }
+	}
+
 	//MBC register - Select ROM Bank 2
 	else if((address >= 0x3000) && (address <= 0x37FF))
 	{
 		rom_bank &= ~0x7F00;
 		rom_bank |= ((value << 8) & 0x7F00);
+	}
+
+	//MBC register - Bank 2 Type
+	else if((address >= 0x3800) && (address <= 0x3FFF))
+	{
+		if(value == 0x8) { cart.flash_cnt |= 0x8; }
+		else { cart.flash_cnt &= ~0x8; }
 	}
 }
 
@@ -74,6 +102,9 @@ u8 DMG_MMU::mbc6_read(u16 address)
 	//Read using ROM Banking - Bank 0
 	if((address >= 0x4000) && (address <= 0x5FFF))
 	{
+		//Read from FLASH - TODO
+		if((cart.flash_cnt & 0x1) && (cart.flash_cnt & 0x4)) { return 0x0; }
+
 		u8 bank_0 = (rom_bank & 0x7F);
 		u32 bank_addr = (0x2000 * bank_0);
 		u8 real_bank = (bank_addr / 0x4000);
@@ -100,11 +131,12 @@ u8 DMG_MMU::mbc6_read(u16 address)
 	//Read using ROM Banking - Bank 1
 	else if((address >= 0x6000) && (address <= 0x7FFF))
 	{
+		//Read from FLASH - TODO
+		if((cart.flash_cnt & 0x2) && (cart.flash_cnt & 0x8)) { return 0x0; }
+
 		u8 bank_1 = ((rom_bank >> 8) & 0x7F);
 		u32 bank_addr = (0x2000 * bank_1);
 		u8 real_bank = (bank_addr / 0x4000);
-
-		if(bank_1 & 0x40) { return memory_map[address]; }
 
 		if(bank_1 >= 4)
 		{
