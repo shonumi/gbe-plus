@@ -26,7 +26,7 @@ void DMG_MMU::mbc6_write(u16 address, u8 value)
 	else if((address >= 0xB000) && (address <= 0xBFFF))
 	{
 		u8 bank_1 = ((bank_bits >> 4) & 0x7);
-		if(ram_banking_enabled) { random_access_bank[bank_1][address - 0xA000] = value; }
+		if(ram_banking_enabled) { random_access_bank[bank_1][address - 0xB000] = value; }
 	}
 
 	//MBC register - Enable or Disable RAM Banking
@@ -36,6 +36,7 @@ void DMG_MMU::mbc6_write(u16 address, u8 value)
 		{ 
 			if(cart.ram) { ram_banking_enabled = true; } 
 		}
+
 		else { ram_banking_enabled = false; }
 	}
 
@@ -67,28 +68,28 @@ void DMG_MMU::mbc6_write(u16 address, u8 value)
 		else { cart.flash_cnt &= ~0x2; }
 	}
 
-	//MBC register - Select ROM Bank 1
+	//MBC register - Select ROM Bank 0
 	else if((address >= 0x2000) && (address <= 0x27FF)) 
 	{
 		rom_bank &= ~0x7F;
 		rom_bank |= (value & 0x7F);
 	}
 
-	//MBC register - Bank 1 Type
+	//MBC register - Bank 0 Type
 	else if((address >= 0x2800) && (address <= 0x2FFF))
 	{
 		if(value == 0x8) { cart.flash_cnt |= 0x4; }
 		else { cart.flash_cnt &= ~0x4; }
 	}
 
-	//MBC register - Select ROM Bank 2
+	//MBC register - Select ROM Bank 1
 	else if((address >= 0x3000) && (address <= 0x37FF))
 	{
 		rom_bank &= ~0x7F00;
 		rom_bank |= ((value << 8) & 0x7F00);
 	}
 
-	//MBC register - Bank 2 Type
+	//MBC register - Bank 1 Type
 	else if((address >= 0x3800) && (address <= 0x3FFF))
 	{
 		if(value == 0x8) { cart.flash_cnt |= 0x8; }
@@ -106,8 +107,7 @@ u8 DMG_MMU::mbc6_read(u16 address)
 		if((cart.flash_cnt & 0x1) && (cart.flash_cnt & 0x4)) { return 0x0; }
 
 		u8 bank_0 = (rom_bank & 0x7F);
-		u32 bank_addr = (0x2000 * bank_0);
-		u8 real_bank = (bank_addr / 0x4000);
+		u8 real_bank = (bank_0 >> 1);
 
 		if(bank_0 >= 4)
 		{
@@ -135,8 +135,7 @@ u8 DMG_MMU::mbc6_read(u16 address)
 		if((cart.flash_cnt & 0x2) && (cart.flash_cnt & 0x8)) { return 0x0; }
 
 		u8 bank_1 = ((rom_bank >> 8) & 0x7F);
-		u32 bank_addr = (0x2000 * bank_1);
-		u8 real_bank = (bank_addr / 0x4000);
+		u8 real_bank = (bank_1 >> 1);
 
 		if(bank_1 >= 4)
 		{
@@ -169,7 +168,7 @@ u8 DMG_MMU::mbc6_read(u16 address)
 	else if((address >= 0xB000) && (address <= 0xBFFF))
 	{
 		u8 bank_1 = ((bank_bits >> 4) & 0x7);
-		if(ram_banking_enabled) { return random_access_bank[bank_1][address - 0xA000]; }
+		if(ram_banking_enabled) { return random_access_bank[bank_1][address - 0xB000]; }
 		else { return 0x00; }
 	}
 }
