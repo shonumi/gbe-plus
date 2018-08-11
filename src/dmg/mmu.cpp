@@ -1741,6 +1741,7 @@ bool DMG_MMU::read_file(std::string filename)
 			cart.mbc_type = MBC6;
 			cart.ram = true;
 			cart.battery = true;
+			rom_bank = 0x302;
 
 			std::cout<<"MMU::Cartridge Type - MBC6 + RAM + Battery + Flash\n";
 			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
