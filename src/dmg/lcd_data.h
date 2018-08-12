@@ -57,6 +57,7 @@ struct dmg_lcd_data
 	bool update_bg_colors;
 	bool update_obj_colors;
 	bool hdma_in_progress;
+	bool hdma_line;
 	u8 hdma_type;
 
 	u16 obj_colors_raw[4][8];

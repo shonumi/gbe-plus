@@ -85,6 +85,7 @@ void DMG_LCD::reset()
 	lcd_stat.update_bg_colors = false;
 	lcd_stat.update_obj_colors = false;
 	lcd_stat.hdma_in_progress = false;
+	lcd_stat.hdma_line = false;
 	lcd_stat.hdma_type = 0;
 
 	lcd_stat.frame_delay = 0;
@@ -1654,74 +1655,6 @@ void DMG_LCD::update_obj_colors()
 	}
 }
 
-/****** GBC General Purpose DMA ******/
-void DMG_LCD::gdma()
-{
-	u16 start_addr = (mem->memory_map[REG_HDMA1] << 8) | mem->memory_map[REG_HDMA2];
-	u16 dest_addr = (mem->memory_map[REG_HDMA3] << 8) | mem->memory_map[REG_HDMA4];
-
-	//Ignore bottom 4 bits of start address
-	start_addr &= 0xFFF0;
-
-	//Ignore top 3 bits and bottom 4 bits of destination address
-	dest_addr &= 0x1FF0;
-
-	//Destination is ALWAYS in VRAM
-	dest_addr |= 0x8000;
-
-	u8 transfer_byte_count = (mem->memory_map[REG_HDMA5] & 0x7F) + 1;
-
-	for(u16 x = 0; x < (transfer_byte_count * 16); x++)
-	{
-		mem->write_u8(dest_addr++, mem->read_u8(start_addr++));
-	}
-
-	mem->memory_map[REG_HDMA1] = (start_addr >> 8);
-	mem->memory_map[REG_HDMA2] = (start_addr & 0xFF);
-
-	mem->memory_map[REG_HDMA3] = (dest_addr >> 8);
-	mem->memory_map[REG_HDMA4] = (dest_addr & 0xFF);
-
-	lcd_stat.hdma_in_progress = false;
-	mem->memory_map[REG_HDMA5] = 0xFF;
-}
-
-/****** GBC Horizontal DMA ******/
-void DMG_LCD::hdma()
-{
-	u16 start_addr = (mem->memory_map[REG_HDMA1] << 8) | mem->memory_map[REG_HDMA2];
-	u16 dest_addr = (mem->memory_map[REG_HDMA3] << 8) | mem->memory_map[REG_HDMA4];
-	u8 line_transfer_count = (mem->memory_map[REG_HDMA5] & 0x7F);
-
-	//Ignore bottom 4 bits of start address
-	start_addr &= 0xFFF0;
-
-	//Ignore top 3 bits and bottom 4 bits of destination address
-	dest_addr &= 0x1FF0;
-
-	//Destination is ALWAYS in VRAM
-	dest_addr |= 0x8000;
-
-	for(u16 x = 0; x < 16; x++)
-	{
-		mem->write_u8(dest_addr++, mem->read_u8(start_addr++));
-	}
-							
-	mem->memory_map[REG_HDMA1] = (start_addr >> 8);
-	mem->memory_map[REG_HDMA2] = (start_addr & 0xFF);
-
-	mem->memory_map[REG_HDMA3] = (dest_addr >> 8);
-	mem->memory_map[REG_HDMA4] = (dest_addr & 0xFF);
-
-	if(line_transfer_count == 0) 
-	{ 
-		lcd_stat.hdma_in_progress = false;
-		mem->memory_map[REG_HDMA5] = 0xFF;
-	}
-
-	else { line_transfer_count--; mem->memory_map[REG_HDMA5] = line_transfer_count; }
-}
-
 /****** Execute LCD operations ******/
 void DMG_LCD::step(int cpu_clock) 
 {
@@ -1762,7 +1695,7 @@ void DMG_LCD::step(int cpu_clock)
 	if((lcd_stat.update_obj_colors) && (config::gb_type == 2)) { update_obj_colors(); }
 
 	//General Purpose DMA
-	if((lcd_stat.hdma_in_progress) && (lcd_stat.hdma_type == 0) && (config::gb_type == 2)) { gdma(); }
+	if((lcd_stat.hdma_in_progress) && (lcd_stat.hdma_type == 0) && (config::gb_type == 2)) { mem->gdma(); }
 
 	//Perform LCD operations if LCD is enabled
 	if(lcd_stat.lcd_enable) 
@@ -1790,6 +1723,8 @@ void DMG_LCD::step(int cpu_clock)
 
 					//OAM STAT INT
 					if(mem->memory_map[REG_STAT] & 0x20) { mem->memory_map[IF_FLAG] |= 2; }
+
+					lcd_stat.hdma_line = false;
 				}
 			}
 
@@ -1807,7 +1742,7 @@ void DMG_LCD::step(int cpu_clock)
 					lcd_stat.lcd_mode = 0;
 
 					//Horizontal blanking DMA
-					if((lcd_stat.hdma_in_progress) && (lcd_stat.hdma_type == 1) && (config::gb_type == 2)) { hdma(); }
+					if((lcd_stat.hdma_in_progress) && (lcd_stat.hdma_type == 1) && (config::gb_type == 2)) { mem->hdma(); }
 
 					//Update OAM
 					if(lcd_stat.oam_update) { update_oam(); }

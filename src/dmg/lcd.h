@@ -152,10 +152,6 @@ class DMG_LCD
 	bool render_dmg_obj_pixel();
 	bool render_dmg_bg_pixel();
 
-	//GBC DMAs
-	void hdma();
-	void gdma();
-
 	void scanline_compare();
 
 	void opengl_blit();

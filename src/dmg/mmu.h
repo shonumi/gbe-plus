@@ -143,6 +143,10 @@ class DMG_MMU
 	void write_u8(u16 address, u8 value);
 	void write_u16(u16 address, u16 value);
 
+	//GBC DMAs
+	void hdma();
+	void gdma();
+
 	bool read_file(std::string filename);
 	bool read_bios(std::string filename);
 	bool save_backup(std::string filename);

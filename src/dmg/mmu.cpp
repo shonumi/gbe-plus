@@ -1207,6 +1207,9 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		}
 
 		memory_map[address] = value;
+
+		//Perform HDMA now if already in HBlank Mode
+		if((lcd_stat->hdma_in_progress) && (lcd_stat->lcd_mode == 0)) { hdma(); }
 	}
 
 	//VBK - Update VRAM bank
@@ -1472,6 +1475,78 @@ void DMG_MMU::mbc_write(u16 address, u8 value)
 			cam_write(address, value);
 			break;
 	}
+}
+
+/****** GBC General Purpose DMA ******/
+void DMG_MMU::gdma()
+{
+	u16 start_addr = (memory_map[REG_HDMA1] << 8) | memory_map[REG_HDMA2];
+	u16 dest_addr = (memory_map[REG_HDMA3] << 8) | memory_map[REG_HDMA4];
+
+	//Ignore bottom 4 bits of start address
+	start_addr &= 0xFFF0;
+
+	//Ignore top 3 bits and bottom 4 bits of destination address
+	dest_addr &= 0x1FF0;
+
+	//Destination is ALWAYS in VRAM
+	dest_addr |= 0x8000;
+
+	u8 transfer_byte_count = (memory_map[REG_HDMA5] & 0x7F) + 1;
+
+	for(u16 x = 0; x < (transfer_byte_count * 16); x++)
+	{
+		write_u8(dest_addr++, read_u8(start_addr++));
+	}
+
+	memory_map[REG_HDMA1] = (start_addr >> 8);
+	memory_map[REG_HDMA2] = (start_addr & 0xFF);
+
+	memory_map[REG_HDMA3] = (dest_addr >> 8);
+	memory_map[REG_HDMA4] = (dest_addr & 0xFF);
+
+	lcd_stat->hdma_in_progress = false;
+	memory_map[REG_HDMA5] = 0xFF;
+}
+
+/****** GBC Horizontal DMA ******/
+void DMG_MMU::hdma()
+{
+	if(lcd_stat->hdma_line) { return; }
+
+	u16 start_addr = (memory_map[REG_HDMA1] << 8) | memory_map[REG_HDMA2];
+	u16 dest_addr = (memory_map[REG_HDMA3] << 8) | memory_map[REG_HDMA4];
+	u8 line_transfer_count = (memory_map[REG_HDMA5] & 0x7F);
+
+	//Ignore bottom 4 bits of start address
+	start_addr &= 0xFFF0;
+
+	//Ignore top 3 bits and bottom 4 bits of destination address
+	dest_addr &= 0x1FF0;
+
+	//Destination is ALWAYS in VRAM
+	dest_addr |= 0x8000;
+
+	for(u16 x = 0; x < 16; x++)
+	{
+		write_u8(dest_addr++, read_u8(start_addr++));
+	}
+							
+	memory_map[REG_HDMA1] = (start_addr >> 8);
+	memory_map[REG_HDMA2] = (start_addr & 0xFF);
+
+	memory_map[REG_HDMA3] = (dest_addr >> 8);
+	memory_map[REG_HDMA4] = (dest_addr & 0xFF);
+
+	if(line_transfer_count == 0) 
+	{ 
+		lcd_stat->hdma_in_progress = false;
+		memory_map[REG_HDMA5] = 0xFF;
+	}
+
+	else { line_transfer_count--; memory_map[REG_HDMA5] = line_transfer_count; }
+
+	lcd_stat->hdma_line = true;
 }
 
 /****** Read binary file to memory ******/
