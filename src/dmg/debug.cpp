@@ -185,6 +185,10 @@ void DMG_core::debug_display() const
 	if(db_unit.display_cycles) { std::cout<<"CYCLES : " << std::dec << core_cpu.debug_cycles << "\n"; }
 
 	u32 ram_bank = 0;
+	std::string rom_bank = "";
+
+	if(core_mmu.cart.mbc_type != DMG_MMU::MBC6) { rom_bank = util::to_hex_str(core_mmu.rom_bank); }
+	else { rom_bank = util::to_hex_str(core_mmu.rom_bank & 0x7F) + " :: " + util::to_hex_str((core_mmu.rom_bank >> 8) & 0x7F); }
 	
 	switch(core_mmu.cart.mbc_type)
 	{
@@ -197,7 +201,7 @@ void DMG_core::debug_display() const
 		case DMG_MMU::HUC1: ram_bank = core_mmu.bank_bits; break;
 	} 
 
-	std::cout<< std::hex << "ROM BANK  : 0x" << std::setw(2) << std::setfill('0') << (u32)core_mmu.rom_bank << 
+	std::cout<< std::hex << "ROM BANK  : " << std::setw(2) << std::setfill('0') << rom_bank << 
 	" -- RAM BANK  : 0x" << std::setw(2) << std::setfill('0') << (u32)ram_bank << "\n\n";
 }
 
