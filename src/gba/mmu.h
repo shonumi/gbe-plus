@@ -21,6 +21,7 @@
 #include "timer.h"
 #include "lcd_data.h"
 #include "apu_data.h"
+#include "sio_data.h"
 
 class AGB_MMU
 {
@@ -170,6 +171,7 @@ class AGB_MMU
 
 	void set_lcd_data(agb_lcd_data* ex_lcd_stat);
 	void set_apu_data(agb_apu_data* ex_apu_stat);
+	void set_sio_data(agb_sio_data* ex_sio_stat);
 
 	AGB_GamePad* g_pad;
 	std::vector<gba_timer>* timer;
@@ -186,6 +188,9 @@ class AGB_MMU
 
 	//Only the MMU and APU should communicate through this structure
 	agb_apu_data* apu_stat;
+
+	//Only the MMU and SIO should communicate through this structure
+	agb_sio_data* sio_stat;
 };
 
 #endif // GBA_MMU

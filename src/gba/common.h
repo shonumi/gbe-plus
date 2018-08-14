@@ -149,6 +149,13 @@ const u32 GPIO_DATA = 0x80000C4;
 const u32 GPIO_DIRECTION = 0x80000C6;
 const u32 GPIO_CNT = 0x80000C8;
 
+/* Serial IO */
+const u32 SIO_DATA_32_L = 0x4000120;
+const u32 SIO_DATA_32_H = 0x4000122;
+const u32 SIO_CNT = 0x4000128;
+const u32 R_CNT = 0x4000134;
+const u32 SIO_DATA_8 = 0x400012A;
+
 /* Misc */
 const u32 FLASH_RAM_CMD0 = 0xE005555;
 const u32 FLASH_RAM_CMD1 = 0xE002AAA;

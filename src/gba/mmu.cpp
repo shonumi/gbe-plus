@@ -2695,6 +2695,9 @@ void AGB_MMU::set_lcd_data(agb_lcd_data* ex_lcd_stat) { lcd_stat = ex_lcd_stat; 
 /****** Points the MMU to an apu_data structure (FROM THE APU ITSELF) ******/
 void AGB_MMU::set_apu_data(agb_apu_data* ex_apu_stat) { apu_stat = ex_apu_stat; }
 
+/****** Points the MMU to an apu_data structure (FROM SIO ITSELF) ******/
+void AGB_MMU::set_sio_data(agb_sio_data* ex_sio_stat) { sio_stat = ex_sio_stat; }
+
 /****** Read MMU data from save state ******/
 bool AGB_MMU::mmu_read(u32 offset, std::string filename)
 {
@@ -2866,4 +2869,3 @@ u32 AGB_MMU::size()
 
 	return mmu_size;
 }
-	

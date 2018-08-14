@@ -26,6 +26,7 @@ set(HEADERS
 	lcd_data.h
 	mmu.h
 	timer.h
+	sio_data.h
 	)
 
 add_library(gba STATIC ${SRCS} ${HEADERS})
