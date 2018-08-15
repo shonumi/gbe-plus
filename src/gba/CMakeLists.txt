@@ -13,6 +13,7 @@ set(SRCS
 	gpio.cpp
 	debug.cpp
 	cheats.cpp
+	sio.cpp
 	)
 
 set(HEADERS
@@ -27,11 +28,16 @@ set(HEADERS
 	mmu.h
 	timer.h
 	sio_data.h
+	sio.h
 	)
 
 add_library(gba STATIC ${SRCS} ${HEADERS})
 
 target_link_libraries(gba ${SDL2_LIBRARY} ${OPENGL_gl_LIBRARY}) 
+
+if (LINK_CABLE)
+    target_link_libraries(gba ${SDL2NET_LIBRARY})
+endif()
 
 if (WIN32)
     target_link_libraries(gba ${GLEW_LIBRARY})

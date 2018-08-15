@@ -27,9 +27,8 @@ struct agb_sio_data
 	bool active_transfer;
 	bool internal_clock;
 	bool sync;
-	bool ping_finish;
-	bool send_data;
-	u32 transfer_byte;
+	u32 sync_counter;
+	u32 transfer_data;
 	u32 shift_counter;
 	u32 shift_clock;
 	agb_sio_types sio_type;
