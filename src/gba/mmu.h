@@ -194,5 +194,3 @@ class AGB_MMU
 };
 
 #endif // GBA_MMU
-
-

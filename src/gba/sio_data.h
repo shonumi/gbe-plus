@@ -31,6 +31,7 @@ struct agb_sio_data
 	u32 transfer_data;
 	u32 shift_counter;
 	u32 shift_clock;
+	u32 cnt;
 	agb_sio_types sio_type;
 };
 

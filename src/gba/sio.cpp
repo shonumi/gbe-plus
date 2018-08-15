@@ -159,6 +159,7 @@ void AGB_SIO::reset()
 	sio_stat.transfer_data = 0;
 	sio_stat.shift_counter = 64;
 	sio_stat.shift_clock = 0;
+	sio_stat.cnt = 0;
 
 	#ifdef GBE_NETPLAY
 

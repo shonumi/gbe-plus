@@ -21,6 +21,7 @@
 #include "mmu.h"
 #include "lcd.h"
 #include "apu.h"
+#include "sio.h"
 
 
 class ARM7
@@ -184,6 +185,7 @@ class ARM7
 	{
 		AGB_LCD video;
 		AGB_APU audio;
+		AGB_SIO serial_io;
 		std::vector<gba_timer> timer;
 	} controllers;
 

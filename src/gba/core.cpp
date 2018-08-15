@@ -32,6 +32,10 @@ AGB_core::AGB_core()
 	core_cpu.controllers.audio.mem = &core_mmu;
 	core_mmu.set_apu_data(&core_cpu.controllers.audio.apu_stat);
 
+	//Link SIO and MMU
+	core_cpu.controllers.serial_io.mem = &core_mmu;
+	core_mmu.set_sio_data(&core_cpu.controllers.serial_io.sio_stat);
+
 	//Link MMU and GamePad
 	core_cpu.mem->g_pad = &core_pad;
 
@@ -150,6 +154,10 @@ void AGB_core::reset()
 
 	//Link APU and MMU
 	core_cpu.controllers.audio.mem = &core_mmu;
+
+	//Link SIO and MMU
+	core_cpu.controllers.serial_io.mem = &core_mmu;
+	core_mmu.set_sio_data(&core_cpu.controllers.serial_io.sio_stat);
 
 	//Link MMU and GamePad
 	core_cpu.mem->g_pad = &core_pad;
