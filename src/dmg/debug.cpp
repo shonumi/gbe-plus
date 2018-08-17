@@ -184,25 +184,33 @@ void DMG_core::debug_display() const
 
 	if(db_unit.display_cycles) { std::cout<<"CYCLES : " << std::dec << core_cpu.debug_cycles << "\n"; }
 
-	u32 ram_bank = 0;
+	std::string ram_bank = "";
 	std::string rom_bank = "";
+	u32 temp = 0;
 
 	if(core_mmu.cart.mbc_type != DMG_MMU::MBC6) { rom_bank = util::to_hex_str(core_mmu.rom_bank); }
-	else { rom_bank = util::to_hex_str(core_mmu.rom_bank & 0x7F) + " :: " + util::to_hex_str((core_mmu.rom_bank >> 8) & 0x7F); }
+
+	else
+	{
+		rom_bank = util::to_hex_str(core_mmu.rom_bank & 0x7F) + " :: " + util::to_hex_str((core_mmu.rom_bank >> 8) & 0x7F);
+		ram_bank = util::to_hex_str(core_mmu.bank_bits & 0x7) + " :: " + util::to_hex_str((core_mmu.bank_bits >> 8) & 0x7);
+	}
 	
 	switch(core_mmu.cart.mbc_type)
 	{
-		case DMG_MMU::MBC1: ram_bank = (core_mmu.cart.multicart) ? core_mmu.bank_bits : 0; break;
-		case DMG_MMU::MBC2: ram_bank = 0; break;
+		case DMG_MMU::MBC1: temp = (core_mmu.cart.multicart) ? core_mmu.bank_bits : 0; break;
+		case DMG_MMU::MBC2: temp = 0; break;
 		case DMG_MMU::MBC3:
 		case DMG_MMU::MBC5:
 		case DMG_MMU::MMM01:
 		case DMG_MMU::GB_CAMERA:
-		case DMG_MMU::HUC1: ram_bank = core_mmu.bank_bits; break;
-	} 
+		case DMG_MMU::HUC1: temp = core_mmu.bank_bits; break;
+	}
+
+	if(core_mmu.cart.mbc_type != DMG_MMU::MBC6) { ram_bank = util::to_hex_str(temp); }
 
 	std::cout<< std::hex << "ROM BANK  : " << std::setw(2) << std::setfill('0') << rom_bank << 
-	" -- RAM BANK  : 0x" << std::setw(2) << std::setfill('0') << (u32)ram_bank << "\n\n";
+	" -- RAM BANK  : " << std::setw(2) << std::setfill('0') << ram_bank << "\n\n";
 }
 
 /****** Debugger - Wait for user input, process it to decide what next to do ******/
