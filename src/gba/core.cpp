@@ -79,6 +79,9 @@ void AGB_core::start()
 		core_cpu.running = false;
 	}
 
+	//Initialize SIO
+	core_cpu.controllers.serial_io.init();
+
 	//Initialize the GamePad
 	core_pad.init();
 }
@@ -336,6 +339,18 @@ void AGB_core::handle_hotkey(SDL_Event& event)
 		load_state(0);
 	}
 
+	//Pause and wait for netplay connection on F5
+	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F5))
+	{
+		start_netplay();	
+	}
+
+	//Disconnect netplay connection on F6
+	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F6))
+	{
+		stop_netplay();
+	}
+
 	//Start CLI debugger on F7
 	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F7) && (!config::use_external_interfaces))
 	{
@@ -579,10 +594,39 @@ u32* AGB_core::get_bg_palette(int pal_index)
 std::string AGB_core::get_hash(u32 addr, u8 gfx_type) { }
 
 /****** Starts netplay connection ******/
-void AGB_core::start_netplay() { }
+void AGB_core::start_netplay()
+{
+	//Do nothing if netplay is not enabled
+	if(!config::use_netplay) { return; }
+
+	//Wait 10 seconds before timing out
+	u32 time_out = 0;
+
+	while(time_out < 10000)
+	{
+		time_out += 100;
+		if((time_out % 1000) == 0) { std::cout<<"SIO::Netplay is waiting to establish remote connection...\n"; }
+
+		SDL_Delay(100);
+
+		//Process network connections
+		core_cpu.controllers.serial_io.process_network_communication();
+	}
+
+	if(!core_cpu.controllers.serial_io.sio_stat.connected) { std::cout<<"SIO::No netplay connection established\n"; }
+	else { std::cout<<"SIO::Netplay connection established\n"; }
+}
 
 /****** Stops netplay connection ******/
-void AGB_core::stop_netplay() { }
+void AGB_core::stop_netplay()
+{
+	//Only attempt to disconnect if connected at all
+	if(core_cpu.controllers.serial_io.sio_stat.connected)
+	{
+		core_cpu.controllers.serial_io.reset();
+		std::cout<<"SIO::Netplay connection terminated. Restart to reconnect.\n";
+	}
+}
 
 /****** Returns miscellaneous data from the core ******/
 u32 AGB_core::get_core_data(u32 core_index)
