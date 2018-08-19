@@ -161,6 +161,25 @@ void AGB_SIO::reset()
 	sio_stat.shift_clock = 0;
 	sio_stat.cnt = 0;
 
+	switch(config::sio_device)
+	{
+		//Ignore invalid DMG/GBC devices
+		case 0x1:
+		case 0x2:
+		case 0x3:
+		case 0x4:
+		case 0x5:
+			sio_stat.sio_type = INVALID_GBA_DEVICE;
+			break;
+
+		//Reserved for other GBA SIO devices
+
+		//Always wait until netplay connection is established to change to GBA_LINK
+		default:
+			sio_stat.sio_type = NO_GBA_DEVICE;
+			break;
+	}
+
 	#ifdef GBE_NETPLAY
 
 	//Close any current connections
@@ -331,7 +350,7 @@ void AGB_SIO::process_network_communication()
 	#ifdef GBE_NETPLAY
 
 	//If no communication with another GBE+ instance has been established yet, see if a connection can be made
-	if(!sio_stat.connected)
+	if((!sio_stat.connected) && (sio_stat.sio_type != INVALID_GBA_DEVICE))
 	{
 		//Try to accept incoming connections to the server
 		if(!server.connected)
@@ -362,6 +381,7 @@ void AGB_SIO::process_network_communication()
 		if((server.connected) && (sender.connected))
 		{
 			sio_stat.connected = true;
+			sio_stat.sio_type = GBA_LINK;
 		}
 	}
 

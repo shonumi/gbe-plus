@@ -18,6 +18,7 @@
 enum agb_sio_types
 { 
 	NO_GBA_DEVICE,
+	INVALID_GBA_DEVICE,
 	GBA_LINK,
 };
 
