@@ -348,8 +348,8 @@ void AGB_LCD::update_obj_affine_transformation()
 				obj[x].ch = obj[x].height >> 1;
 
 				//Find OBJ center
-				obj[x].cx = obj[x].x + obj[x].cw - 1;
-				obj[x].cy = obj[x].y + obj[x].ch - 1;
+				obj[x].cx = obj[x].x + obj[x].cw;
+				obj[x].cy = obj[x].y + obj[x].ch;
 
 				if(obj[x].cx > 0xFF) { obj[x].cx -= 0x1FF; }
 				if(obj[x].cy > 0xFF) { obj[x].cy -= 0xFF; }
@@ -364,8 +364,8 @@ void AGB_LCD::update_obj_affine_transformation()
 				obj[x].ch = obj[x].height >> 1;
 
 				//Find OBJ center
-				obj[x].cx = (obj[x].x + obj[x].width - 1);
-				obj[x].cy = (obj[x].y + obj[x].height - 1);
+				obj[x].cx = (obj[x].x + obj[x].width);
+				obj[x].cy = (obj[x].y + obj[x].height);
 
 				if(obj[x].cx > 0xFF) { obj[x].cx -= 0x1FF; }
 				if(obj[x].cy > 0xFF) { obj[x].cy -= 0xFF; }
