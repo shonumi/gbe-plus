@@ -353,7 +353,6 @@ void AGB_LCD::update_obj_affine_transformation()
 
 				if(obj[x].cx > 0xFF) { obj[x].cx -= 0x1FF; }
 				if(obj[x].cy > 0xFF) { obj[x].cy -= 0xFF; }
-
 			}
 
 			//Process double-sized OBJs
@@ -1046,7 +1045,7 @@ void AGB_LCD::render_scanline()
 		if((obj_render) && (last_obj_priority <= lcd_stat.bg_priority[bg_id])) { last_bg_priority = 4; return; }
 
 		//If the last BG pixel is outside the current window, and WINOUT disables this BG layer, skip rendering
-		else if((winout) && (!lcd_stat.in_window) && (!lcd_stat.window_out_enable[bg_id][0])) { continue; }
+		else if((winout) && (!lcd_stat.in_window) && (!lcd_stat.window_out_enable[bg_id][0]) && (!obj_win_pixel)) { continue; }
 
 		//If the last BG pixel is inside the current window, and WININ disables this BG layer, skip rendering
 		else if((lcd_stat.window_enable[lcd_stat.current_window]) && (lcd_stat.in_window) && (!lcd_stat.window_in_enable[bg_id][lcd_stat.current_window])) { continue; }
