@@ -1208,6 +1208,9 @@ u32 AGB_LCD::alpha_blend()
 	//If BG0-3 was drawn last but is not the 1st target, abort alpha blending
 	if((last_bg_priority < 4) && (!lcd_stat.sfx_target[last_bg_priority][0])) { return final_color; }
 
+	//If no 1st target is set, abort alpha blending unless semi-trasnparent OBJ
+	if(((mem->memory_map[BLDCNT] & 0x3F) == 0) && (last_obj_mode != 1)) { return final_color; }
+
 	//Determine which priority to start looking at to grab the 2nd target
 	u8 current_bg_priority = (last_bg_priority == 4) ? last_obj_priority : lcd_stat.bg_priority[last_bg_priority];
 
