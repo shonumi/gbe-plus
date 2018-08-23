@@ -1018,7 +1018,8 @@ void AGB_LCD::render_scanline()
 	}
 
 	//Turn off OBJ rendering if in/out of a window where OBJ rendering is disabled
-	if((lcd_stat.window_enable[lcd_stat.current_window]) && (!lcd_stat.in_window) && (!lcd_stat.window_out_enable[4][0])) { obj_render = false; }
+	if((lcd_stat.obj_win_enable) && (obj_win_pixel)) { }
+	else if((lcd_stat.window_enable[lcd_stat.current_window]) && (!lcd_stat.in_window) && (!lcd_stat.window_out_enable[4][0])) { obj_render = false; }
 	else if((lcd_stat.window_enable[lcd_stat.current_window]) && (lcd_stat.in_window) && (!lcd_stat.window_in_enable[4][lcd_stat.current_window])) { obj_render = false; }
 
 	//Also turn off OBJ rendering if OBJ Window is enabled, but rendered pixel is outside any OBJ Window
