@@ -1222,7 +1222,7 @@ void NTR_ARM7::block_data_transfer(u32 current_arm_instruction)
 	}
 
 	//Timings for LDM PC
-	if(need_flush && load_store) 
+	if(needs_flush && load_store) 
 	{
 		//Clock CPU and controllers - 2S + 1N
 		execute_cycles += 3;

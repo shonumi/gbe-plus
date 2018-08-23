@@ -93,14 +93,10 @@ class NTR_ARM9
 	//Memory access enumerations
 	enum mem_modes
 	{
-		CODE_N16,
-		CODE_N32,
-		CODE_S16,
-		CODE_S32,
-		DATA_N16,
-		DATA_N32,
-		DATA_S16,
-		DATA_S32
+		CODE_16,
+		CODE_32,
+		DATA_16,
+		DATA_32
 	};
 
 	cpu_modes current_cpu_mode;

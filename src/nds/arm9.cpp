@@ -1235,7 +1235,7 @@ void NTR_ARM9::mem_check_8(u32 addr, u32& value, bool load_store)
 }
 
 /****** Calculates the time it takes for memory accesses ******/
-u32 NTR_ARM7::get_access_time(u32 addr, mem_modes access_mode)
+u32 NTR_ARM9::get_access_time(u32 addr, mem_modes access_mode)
 {
 	bool is_halfword = ((access_mode == CODE_16) || (access_mode == DATA_16));
 	u8 offset = (arm_mode == THUMB) ? 2 : 4;
@@ -1285,70 +1285,7 @@ u32 NTR_ARM7::get_access_time(u32 addr, mem_modes access_mode)
 /****** Counts cycles for memory accesses  ******/
 void NTR_ARM9::clock(u32 access_addr, mem_modes current_mode)
 {
-	//Determine memory region being accessed
-	switch(access_addr >> 24)
-	{
-		//ITCM - TODO Cache Miss
-		case 0x1:
-			system_cycles += 2;
-			break;
 
-		//Main Memory
-		case 0x2:
-			switch(current_mode)
-			{
-				case CODE_N16: system_cycles += 9; break;
-				case CODE_S16: system_cycles += 9; break;
-				case CODE_N32: system_cycles += 18; break;
-				case CODE_S32: system_cycles += 18; break;
-
-				case DATA_N16: system_cycles += 18; break;
-				case DATA_S16: system_cycles += 2; break;
-				case DATA_N32: system_cycles += 20; break;
-				case DATA_S32: system_cycles += 4; break;
-			}
-
-			break;
-
-		//WRAM, BIOS, I/O, OAM
-		case 0x3:
-		case 0x4:
-		case 0x7:
-			switch(current_mode)
-			{
-				case CODE_N16: system_cycles += 4; break;
-				case CODE_S16: system_cycles += 4; break;
-				case CODE_N32: system_cycles += 8; break;
-				case CODE_S32: system_cycles += 8; break;
-
-				case DATA_N16: system_cycles += 8; break;
-				case DATA_S16: system_cycles += 2; break;
-				case DATA_N32: system_cycles += 8; break;
-				case DATA_S32: system_cycles += 2; break;
-			}
-
-			break;
-
-		//VRAM, Palettes
-		case 0x5:
-		case 0x6:
-			switch(current_mode)
-			{
-				case CODE_N16: system_cycles += 5; break;
-				case CODE_S16: system_cycles += 5; break;
-				case CODE_N32: system_cycles += 10; break;
-				case CODE_S32: system_cycles += 10; break;
-
-				case DATA_N16: system_cycles += 8; break;
-				case DATA_S16: system_cycles += 2; break;
-				case DATA_N32: system_cycles += 10; break;
-				case DATA_S32: system_cycles += 4; break;
-			}
-
-			break;
-
-		default: system_cycles += 2;
-	}
 }
 
 /****** Counts internal cycles ******/

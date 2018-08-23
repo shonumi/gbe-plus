@@ -739,6 +739,7 @@ void NTR_ARM9::load_store_reg_offset(u16 current_thumb_instruction)
 			set_reg(src_dest_reg, value);
 
 			break;
+	}
 }
 
 /****** THUMB.8 Load-Store Sign-Extended ******/
@@ -835,61 +836,47 @@ void NTR_ARM9::load_store_imm_offset(u16 current_thumb_instruction)
 	{
 		//STR
 		case 0x0:
-			//Clock CPU and controllers - 1N
 			value = get_reg(src_dest_reg);
 			offset <<= 2;
 			op_addr += offset;
-			clock(reg.r15, CODE_N16);
-			
-			//Clock CPU and controllers - 1N
 			mem_check_32(op_addr, value, false);
-			clock(op_addr, DATA_N32);
+
+			//Clock CPU and controllers - 2N
+			execute_cycles = 1 + get_access_time(op_addr, DATA_32);
 			
 			break;
 
 		//LDR
 		case 0x1:
-			//Clock CPU and controllers - 1N
 			offset <<= 2;
 			op_addr += offset;
-			clock(op_addr, DATA_N32);
-
-			//Clock CPU and controllers - 1I
 			mem_check_32(op_addr, value, true);
-			clock();
-
-			//Clock CPU and controllers - 1S
 			set_reg(src_dest_reg, value);
-			clock((reg.r15 + 2), CODE_S16);
+
+			//Clock CPU and controllers - 1N + 1I + 1S
+			execute_cycles = 2 + get_access_time(op_addr, DATA_32);
 
 			break;
 
 		//STRB
 		case 0x2:
-			//Clock CPU and controllers - 1N
 			value = get_reg(src_dest_reg);
 			op_addr += offset;
-			clock(reg.r15,  CODE_N16);
-
-			//Clock CPU and controllers - 1N
 			mem_check_8(op_addr, value, false);
-			clock(op_addr, DATA_N16);
+
+			//Clock CPU and controllers - 2N
+			execute_cycles = 1 + get_access_time(op_addr, DATA_16);
 
 			break;
 
 		//LDRB
 		case 0x3:
-			//Clock CPU and controllers - 1N
 			op_addr += offset;
-			clock(op_addr, DATA_N16);
-
-			//Clock CPU and controllers - 1I
 			mem_check_8(op_addr, value, true);
-			clock();
-
-			//Clock CPU and controllers - 1S
 			set_reg(src_dest_reg, value);
-			clock((reg.r15 + 2), CODE_S16);
+
+			//Clock CPU and controllers - 1N + 1I + 1S
+			execute_cycles = 2 + get_access_time(op_addr, DATA_16);
 
 			break;
 	}
@@ -921,28 +908,21 @@ void NTR_ARM9::load_store_halfword(u16 current_thumb_instruction)
 	{
 		//STRH
 		case 0x0:
-			//Clock CPU and controllers - 1N
-			clock(reg.r15, CODE_N16);
+			//Clock CPU and controllers - 2N
+			execute_cycles = 1 + get_access_time(op_addr, DATA_16);
 
-			//Clock CPU and controllers - 1N
 			value = get_reg(src_dest_reg);
 			mem_check_16(op_addr, value, false);
-			clock(op_addr, DATA_N16);
 
 			break;
 
 		//LDRH
 		case 0x1:
-			//Clock CPU and controllers - 1N
-			clock(op_addr, DATA_N16);
+			//Clock CPU and controllers - 1N + 1I + 1S
+			execute_cycles = 2 + get_access_time(op_addr, DATA_16);
 
-			//Clock CPU and controllers - 1I
 			mem_check_16(op_addr, value, true);
-			clock();
-
-			//Clock CPU and controllers - 1S
 			set_reg(src_dest_reg, value);
-			clock((reg.r15 + 2), CODE_S16);
 
 			break;
 	}
@@ -971,28 +951,21 @@ void NTR_ARM9::load_store_sp_relative(u16 current_thumb_instruction)
 	{
 		//STR
 		case 0x0:
-			//Clock CPU and controllers - 1N
-			clock(reg.r15, CODE_N16);
+			//Clock CPU and controllers - 2N
+			execute_cycles = 1 + get_access_time(op_addr, DATA_32);
 
-			//Clock CPU and controllers - 1N
 			value = get_reg(src_dest_reg);
 			mem_check_32(op_addr, value, false);
-			clock(op_addr, DATA_N32);
 
 			break;
 
 		//LDR
 		case 0x1:
-			//Clock CPU and controllers - 1N
-			clock(op_addr, DATA_N32);
+			//Clock CPU and controllers - 1N + 1I + 1S
+			execute_cycles = 2 + get_access_time(op_addr, DATA_32);
 
-			//Clock CPU and controllers - 1I
 			mem_check_32(op_addr, value, true);
-			clock();
-
-			//Clock CPU and controllers - 1S
 			set_reg(src_dest_reg, value);
-			clock((reg.r15 + 2), CODE_S16);
 
 			break;
 	}
@@ -1030,7 +1003,7 @@ void NTR_ARM9::get_relative_address(u16 current_thumb_instruction)
 	}
 
 	//Clock CPU and controllers - 1S
-	clock(reg.r15, CODE_S16);
+	execute_cycles++;
 }
 
 /****** THUMB.13 Add Offset to Stack Pointer ******/
@@ -1065,7 +1038,7 @@ void NTR_ARM9::add_offset_sp(u16 current_thumb_instruction)
 	set_reg(13, r13);
 
 	//Clock CPU and controllers - 1S
-	clock(reg.r15, CODE_S16);
+	execute_cycles++;
 }
 		
 /****** THUMB.14 Push-Pop Registers ******/
@@ -1100,7 +1073,7 @@ void NTR_ARM9::push_pop(u16 current_thumb_instruction)
 		//PUSH
 		case 0x0:
 			//Clock CPU and controllers - 1N
-			clock(reg.r15, CODE_N16);
+			execute_cycles++;
 
 			//Optionally store LR onto the stack
 			if(pc_lr_bit) 
@@ -1108,9 +1081,6 @@ void NTR_ARM9::push_pop(u16 current_thumb_instruction)
 				r13 -= 4;
 				mem_check_32(r13, lr, false);
 				set_reg(14, lr);  
-
-				//Clock CPU and controllers - 1S
-				clock(r13, DATA_S32);
 			}
 
 			//Cycle through the register list
@@ -1123,10 +1093,10 @@ void NTR_ARM9::push_pop(u16 current_thumb_instruction)
 					mem_check_32(r13, push_value, false);
 
 					//Clock CPU and controllers - (n)S
-					if((n_count - 1) != 0) { clock(r13, DATA_S32); n_count--; }
+					execute_cycles += get_access_time(r13, DATA_32);
 
-					//Clock CPU and controllers - 1N
-					else { clock(r13, DATA_N32); x = 10; break; }
+					if((n_count - 1) != 0) { n_count--; }
+					else { x = 10; break; }
 				}
 			}
 
@@ -1134,8 +1104,8 @@ void NTR_ARM9::push_pop(u16 current_thumb_instruction)
 
 		//POP
 		case 0x1:
-			//Clock CPU and controllers - 1N
-			clock(reg.r15, CODE_N16);
+			//Clock CPU and controllers - 1N + 1I
+			execute_cycles += 2;
 			
 			//Cycle through the register list
 			for(int x = 0; x < 8; x++)
@@ -1148,7 +1118,7 @@ void NTR_ARM9::push_pop(u16 current_thumb_instruction)
 					r13 += 4;
 
 					//Clock CPU and controllers - (n)S
-					if(n_count > 1) { clock(r13, DATA_S32); }
+					if(n_count > 1) { execute_cycles += get_access_time(r13, DATA_32); }
 				}
 
 				r_list >>= 1;
@@ -1157,13 +1127,9 @@ void NTR_ARM9::push_pop(u16 current_thumb_instruction)
 			//Optionally load PC from the stack
 			if(pc_lr_bit) 
 			{
-				//Clock CPU and controllers - 1I
-				clock();
+				//Clock CPU and controllers - 2N + 1S
+				execute_cycles += 3;
 
-				//Clock CPU and controllers - 1N
-				clock(r13, DATA_N32);
-
-				//Clock CPU and controllers - 2S
 				mem_check_32(r13, reg.r15, true);
 
 				//ARMv5 - Switch to ARM when Bit 0 of the new PC is unset
@@ -1176,21 +1142,6 @@ void NTR_ARM9::push_pop(u16 current_thumb_instruction)
 				reg.r15 &= ~0x1;
 				r13 += 4;
 				needs_flush = true;
-
-				clock(reg.r15,  CODE_S16);
-				clock((reg.r15 + 2), CODE_S16);
-
-				
-			}
-
-			//If PC not loaded, last cycles are Internal then Sequential
-			else
-			{
-				//Clock CPU and controllers - 1I
-				clock();
-
-				//Clock CPU and controllers - 1S
-				clock((reg.r15 + 2), CODE_S16);
 			}
 
 			break;
@@ -1246,7 +1197,7 @@ void NTR_ARM9::multiple_load_store(u16 current_thumb_instruction)
 			if(r_list != 0)
 			{
 				//Clock CPU and controllers - 1N
-				clock(reg.r15, CODE_N16);
+				execute_cycles += 1;
 
 				//Cycle through the register list
 				for(int x = 0; x < 8; x++)
@@ -1263,10 +1214,10 @@ void NTR_ARM9::multiple_load_store(u16 current_thumb_instruction)
 						set_reg(base_reg, base_addr);
 
 						//Clock CPU and controllers - (n)S
-						if((n_count - 1) != 0) { clock(base_addr, DATA_S32); n_count--; }
-
-						//Clock CPU and controllers - 1N
-						else { clock(base_addr, DATA_N32); x = 10; break; }
+						execute_cycles += get_access_time(base_addr, DATA_32);
+						
+						if((n_count - 1) != 0) { n_count--; }
+						else { x = 10; break; }
 					}
 
 					r_list >>= 1;
@@ -1292,8 +1243,8 @@ void NTR_ARM9::multiple_load_store(u16 current_thumb_instruction)
 			//If register list is not empty, load normally
 			if(r_list != 0)
 			{
-				//Clock CPU and controllers - 1N
-				clock(reg.r15, CODE_N16);
+				//Clock CPU and controllers - 1N + 1I
+				execute_cycles += 2;
 
 				//Cycle through the register list
 				for(int x = 0; x < 8; x++)
@@ -1310,17 +1261,11 @@ void NTR_ARM9::multiple_load_store(u16 current_thumb_instruction)
 						if(write_back) { set_reg(base_reg, base_addr); }
 
 						//Clock CPU and controllers - (n)S
-						if(n_count > 1) { clock(base_addr, DATA_S32); }
+						if(n_count > 1) { execute_cycles += get_access_time(base_addr, DATA_32); }
 					}
 
 					r_list >>= 1;
 				}
-
-				//Clock CPU and controllers - 1I
-				clock();
-
-				//Clock CPU and controllers - 1S
-				clock((reg.r15 + 2), CODE_S16);
 			}
 
 			//Special case with empty list
@@ -1467,20 +1412,17 @@ void NTR_ARM9::conditional_branch(u16 current_thumb_instruction)
 
 	if(needs_flush)
 	{
-		//Clock CPU and controllers - 1N
-		clock(reg.r15, CODE_N16);
+		//Clock CPU and controllers - 1N + 2S
+		execute_cycles += 3;
 
-		//Clock CPU and controllers - 2S 
 		reg.r15 += offset;  
-		clock(reg.r15, CODE_S16);
-		clock((reg.r15 + 2), CODE_S16);
 	}
 
 	else 
 	{
 		//Clock CPU and controllers - 1S
-		clock(reg.r15, CODE_S16);
-	} 
+		execute_cycles += 1;
+	}
 }
 
 /****** THUMB.18 Unconditional Branch ******/
@@ -1495,13 +1437,10 @@ void NTR_ARM9::unconditional_branch(u16 current_thumb_instruction)
 
 	needs_flush = true;
 
-	//Clock CPU and controllers - 1N
-	clock(reg.r15, CODE_N16);
+	//Clock CPU and controllers - 1N + 2S
+	execute_cycles += 3;
 
-	//Clock CPU and controllers - 2S 
-	reg.r15 += offset;  
-	clock(reg.r15, CODE_S16);
-	clock((reg.r15 + 2), CODE_S16);
+	reg.r15 += offset; 
 }
 
 /****** THUMB.19 Long Branch with Link ******/
@@ -1528,7 +1467,7 @@ void NTR_ARM9::long_branch_link(u16 current_thumb_instruction)
 		set_reg(14, lbl_addr);
 
 		//Clock CPU and controllers - 1S
-		clock(reg.r15, CODE_S16);
+		execute_cycles += 1;
 	}
 
 	//Perform 2nd 16-bit operation
@@ -1542,18 +1481,14 @@ void NTR_ARM9::long_branch_link(u16 current_thumb_instruction)
 		lbl_addr = get_reg(14);
 		lbl_addr += ((current_thumb_instruction & 0x7FF) << 1);
 
-		//Clock CPU and controllers - 1N
-		clock(reg.r15, CODE_N16);
-
 		reg.r15 = lbl_addr;
 		reg.r15 &= ~0x1;
 
 		needs_flush = true;
 		set_reg(14, next_instr_addr);
 
-		//Clock CPU and controllers - 2S
-		clock(reg.r15, CODE_S16);
-		clock((reg.r15 + 2), CODE_S16);
+		//Clock CPU and controllers - 1N + 2S
+		execute_cycles += 3;
 
 		//BLX
 		if(((current_thumb_instruction >> 11) & 0x1F) == 0x1D)
