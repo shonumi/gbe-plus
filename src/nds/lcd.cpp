@@ -264,6 +264,9 @@ void NTR_LCD::reset()
 	//Vertex colors
 	for(int x = 0; x < 4; x++) { vert_colors[x] = 0xFFFFFFFF; }
 
+	//Polygon fill coordinates
+	for(int x = 0; x < 256; x++) { lcd_3D_stat.hi_fill[x] = lcd_3D_stat.lo_fill[x] = 0xFF; }
+
 	//Polygon vertices
 	gx_triangles.clear();
 	gx_quads.clear();

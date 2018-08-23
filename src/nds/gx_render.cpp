@@ -85,7 +85,6 @@ void NTR_LCD::render_geometry()
 	}
 
 	//Translate all vertices to screen coordinates
-
 	for(u8 x = 0; x < vert_count; x++)
 	{
 		temp_matrix.resize(4, 1);
@@ -109,6 +108,13 @@ void NTR_LCD::render_geometry()
 		{
 			lcd_3D_stat.clip_flags |= (1 << x);
 		}
+	}
+
+	//Reset hi and lo fill coordinates
+	for(int x = 0; x < 256; x++)
+	{
+		lcd_3D_stat.hi_fill[x] = 0xFF;
+		lcd_3D_stat.lo_fill[x] = 0;
 	}
 
 	//Draw lines for all polygons
@@ -184,13 +190,27 @@ void NTR_LCD::render_geometry()
 		while(xy_start != xy_end)
 		{
 			//Only draw on-screen objects
-			if((x_coord >= 0) && (x_coord < 256) && (y_coord >= 0) && (y_coord <= 192))
+			if((x_coord >= 0) && (x_coord <= 255) && (y_coord >= 0) && (y_coord <= 191))
 			{
 				//Convert plot points to buffer index
 				buffer_index = (round(y_coord) * 256) + round(x_coord);
 				gx_screen_buffer[lcd_3D_stat.buffer_id][buffer_index] = vert_colors[x];
 				gx_render_buffer[buffer_index] = bg_priority;
 			}
+
+			//Set fill coordinates
+			if((x_coord >= 0) && (x_coord <= 255))
+			{
+				s32 temp_y = round(y_coord);
+				s32 temp_x = round(x_coord);
+
+				//Keep fill coordinates on-screen if they extend vertically				
+				if(temp_y > 0xC0) { temp_y = 0xC0; }
+				else if(temp_y < 0) { temp_y = 0; }
+
+				if(lcd_3D_stat.hi_fill[temp_x] > temp_y) { lcd_3D_stat.hi_fill[temp_x] = temp_y; }
+				if(lcd_3D_stat.lo_fill[temp_x] < temp_y) { lcd_3D_stat.lo_fill[temp_x] = temp_y; }
+			} 
 
 			x_coord += x_inc;
 			y_coord += y_inc;
@@ -231,88 +251,19 @@ void NTR_LCD::render_geometry()
 /****** NDS 3D Software Renderer - Fills a triangle with a solid color ******/
 void NTR_LCD::fill_tri_solid(float* px, float* py)
 {
-	//Vertex IDs
-	u8 v0 = 0;
-	u8 v1 = 0;
-	u8 v2 = 0;
-
-	//Sort IDS
-	//V0 = furthest left
-	if(px[1] < px[v0]) { v0 = 1; }
-	if((px[1] == px[v0]) && (py[1] < py[v0])) { v0 = 1; }
-
-	if(px[2] < px[v0]) { v0 = 2; }
-	if((px[2] == px[v0]) && (py[2] < py[v0])) { v0 = 2; }
-
-	//V2 = furthest right
-	if(px[1] > px[v2]) { v2 = 1; }
-	if((px[1] == px[v2]) && (py[1] < py[v2])) { v2 = 1; }
-
-	if(px[2] > px[v2]) { v2 = 2; }
-	if((px[2] == px[v2]) && (py[2] < py[v2])) { v2 = 2; }
-
-	//V3 = last point
-	if((v0 + v2) == 3) { v1 = 0; }
-	else if((v0 + v2) == 2) { v1 = 1; }
-	else { v1 = 2; }
-
-	//Calculate Y deltas between vertices
-	float y_delta_v1 = (py[v1] - py[v0]) / (px[v1] - px[v0]);
-	float y_delta_v2 = (py[v2] - py[v0]) / (px[v2] - px[v0]);
-
-	//Calculate boundaries
-	float v_bound_1 = py[v0];
-	float v_bound_2 = py[v0];
-	u16 side_bound = (px[v1] > 255) ? 255 : px[v1];
-
-	s32 x_coord = px[v0];
-	s32 y_coord = py[v0];
-
+	u8 y_coord = 0;
 	u32 buffer_index = 0;
-	s32 low = 0;
 
-	for(int x = 0; x < 2; x++)
+	for(u32 x = 0; x < 256; x++)
 	{
-		//Draw 2nd half of triangle
-		if(x == 1)
+		y_coord = lcd_3D_stat.hi_fill[x];
+
+		while(y_coord < lcd_3D_stat.lo_fill[x])
 		{
-			y_delta_v1 = (py[v2] - py[v1]) / (px[v2] - px[v1]);
-			y_delta_v2 = (py[v2] - py[v0]) / (px[v2] - px[v0]);
-	
-			side_bound = px[v2];
-		}
-
-		while(x_coord != side_bound)
-		{
-			//Determine which boundary is top and bottom
-			if(v_bound_1 < v_bound_2)
-			{
-				y_coord = v_bound_1;
-				low = v_bound_2;
-			}
-
-			else
-			{
-				y_coord = v_bound_2;
-				low = v_bound_1;
-			}
-
-			while(y_coord != low)
-			{
-				//Only draw on-screen objects
-				if((x_coord >= 0) && (x_coord < 256) && (y_coord >= 0) && (y_coord <= 192))
-				{
-					//Convert plot points to buffer index
-					buffer_index = ((s32)y_coord * 256) + (s32)x_coord;
-					gx_screen_buffer[lcd_3D_stat.buffer_id][buffer_index] = vert_colors[x];
-				}
-
-				y_coord++;
-			}
-
-			v_bound_1 += y_delta_v1;
-			v_bound_2 += y_delta_v2; 
-			x_coord++;
+			//Convert plot points to buffer index
+			buffer_index = (y_coord * 256) + x;
+			gx_screen_buffer[lcd_3D_stat.buffer_id][buffer_index] = vert_colors[0];
+			y_coord++;
 		}
 	}
 }
