@@ -271,146 +271,22 @@ void NTR_LCD::fill_tri_solid(float* px, float* py)
 /****** NDS 3D Software Renderer - Fills a quads with a solid color ******/
 void NTR_LCD::fill_quad_solid(float* px, float* py)
 {
-	return;
-
-	//Vertex IDs
-	u8 v0 = 0;
-	u8 v1 = 1;
-	u8 v2 = 2;
-	u8 v3 = 3;
-	u8 temp = 0;
-
-	s32 max = 0;
-	s32 min = 0;
-
-	//Bubble-sort based on X coordinate
-	for(u8 x = 0; x < 3; x++)
-	{
-		if(px[v1] < px[v0]) { temp = v0; v0 = v1; v1 = temp; }
-		if(px[v2] < px[v1]) { temp = v1; v1 = v2; v2 = temp; }
-		if(px[v3] < px[v2]) { temp = v2; v2 = v3; v3 = temp; }
-	}
-
-	//Grab minimum and maximum X coordinates
-	min = px[v0];
-	max = px[v3];
-
-	//Correctly sort V0-V1 and V2-V3 based on Y coordinate
-	if((px[v0] == px[v1]) && (py[v1] < py[v0])) { temp = v0; v0 = v1; v1 = temp; }
-	if((px[v1] == px[v2]) && (py[v2] < py[v1])) { temp = v1; v1 = v2; v2 = temp; }
-	if((px[v2] == px[v3]) && (py[v3] < py[v2])) { temp = v2; v2 = v3; v3 = temp; }
-	
-	if(py[v1] < py[v0]) { temp = v0; v0 = v1; v1 = temp; }
-	if(py[v3] < py[v2]) { temp = v2; v2 = v3; v3 = temp; }
-
-	float y_delta_a[3];
-	float y_delta_b[3];
-	float v_bound_a = 0.0;
-	float v_bound_b = 0.0;
-
-	s32 p0 = 0;
-	s32 p1 = 0;
-	s32 plot_x = min;
-	s32 plot_y = 0;
-	s32 vert = 0;
+	u8 y_coord = 0;
 	u32 buffer_index = 0;
 
-	//Calculate various slopes
-	if(px[v0] == px[v1])
+	for(u32 x = 0; x < 256; x++)
 	{
-		y_delta_a[0] = (px[v2] - px[v0]) ? ((py[v2] - py[v0]) / (px[v2] - px[v0])) : 0;
-		y_delta_b[0] = (px[v3] - px[v1]) ? ((py[v3] - py[v1]) / (px[v3] - px[v1])) : 0;
-		p0 = px[v0] + 1;
-		v_bound_a = py[v0];
-		v_bound_b = py[v1];
-		
-		y_delta_a[1] = y_delta_a[0];
-		y_delta_b[1] = y_delta_b[0];
-	}
+		y_coord = lcd_3D_stat.hi_fill[x];
 
-	else if(px[v0] > px[v1])
-	{
-		y_delta_a[0] = (px[v0] - px[v1]) ? ((py[v0] - py[v1]) / (px[v0] - px[v1])) : 0;
-		y_delta_b[0] = (px[v3] - px[v1]) ? ((py[v3] - py[v1]) / (px[v3] - px[v1])) : 0;
-		p0 = px[v0] + 1;
-		v_bound_a = py[v1];
-		v_bound_b = py[v1];
-		
-		y_delta_a[1] = (px[v0] - px[v2]) ? ((py[v0] - py[v2]) / (px[v0] - px[v2])) : 0;
-		y_delta_b[1] = y_delta_b[0];
-	}
-
-	else
-	{
-		y_delta_a[0] = (px[v2] - px[v0]) ? ((py[v2] - py[v0]) / (px[v2] - px[v0])) : 0;
-		y_delta_b[0] = (px[v0] - px[v1]) ? ((py[v0] - py[v1]) / (px[v0] - px[v1])) : 0;
-		p0 = px[v1] + 1;
-		v_bound_a = py[v0];
-		v_bound_b = py[v0];
-		
-		y_delta_a[1] = y_delta_a[0];
-		y_delta_b[1] = (px[v3] - px[v1]) ? ((py[v3] - py[v1]) / (px[v3] - px[v1])) : 0;
-	}
-
-	if(px[v2] == px[v3])
-	{
-		p1 = px[v2] + 1;
-		y_delta_a[2] = y_delta_a[1];
-		y_delta_b[2] = y_delta_b[1];
-	}
-
-	else if(px[v2] > px[v3])
-	{
-		p1 = px[v3] + 1;
-		y_delta_a[2] = y_delta_a[1];
-		y_delta_b[2] = (px[v2] - px[v3]) ? ((py[v2] - py[v3]) / (px[v2] - px[v3])) : 0;
-	}
-
-	else
-	{
-		p1 = px[v2] + 1;
-		y_delta_a[2] = (px[v3] - px[v2]) ? ((py[v3] - py[v2]) / (px[v3] - px[v2])) : 0;
-		y_delta_b[2] = y_delta_b[1];
-	}
-
-	//Draw to screen
-	while(plot_x <= max)
-	{
-		//Determine upper and lower draw boundaries
-		plot_y = (v_bound_a < v_bound_b) ? v_bound_a : v_bound_b;		
-		vert = (v_bound_a > v_bound_b) ? v_bound_a : v_bound_b;
-
-		while(plot_y <= vert)
+		while(y_coord < lcd_3D_stat.lo_fill[x])
 		{
-			//Only draw on-screen objects
-			if((plot_x >= 0) && (plot_x < 256) && (plot_y >= 0) && (plot_y < 192))
-			{
-				//Convert plot points to buffer index
-				buffer_index = (plot_y * 256) + plot_x;
-				gx_screen_buffer[lcd_3D_stat.buffer_id][buffer_index] = vert_colors[0];
-			}
+			//Convert plot points to buffer index
+			buffer_index = (y_coord * 256) + x;
+			gx_screen_buffer[lcd_3D_stat.buffer_id][buffer_index] = vert_colors[0];
+			y_coord++;
+		}
+	}
 	
-			plot_y++;
-		}
-
-		plot_x++;
-
-		//Change slopes
-		if(plot_x == p0)
-		{
-			y_delta_a[0] = y_delta_a[1];
-			y_delta_b[0] = y_delta_b[1];
-		}
-
-		if(plot_x == p1)
-		{
-			y_delta_a[0] = y_delta_a[2];
-			y_delta_b[0] = y_delta_b[2];
-		}
-		
-		v_bound_a += y_delta_a[0];
-		v_bound_b += y_delta_b[0];
-	}
 }
 
 /****** Determines if a polygon can be pushed to internal rendering list ******/
