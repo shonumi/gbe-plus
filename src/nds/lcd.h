@@ -179,8 +179,7 @@ class NTR_LCD
 	void render_bg_3D();
 	void render_geometry();
 	void process_gx_command();
-	void fill_tri_solid(float* px, float* py);
-	void fill_quad_solid(float* px, float* py);
+	void fill_poly_solid();
 	bool poly_push(gx_matrix &current_matrix);
 	u32 read_param_u32(u8 index);
 	u16 read_param_u16(u8 index);

@@ -224,13 +224,13 @@ void NTR_LCD::render_geometry()
 		//Triangles
 		case 0x0:
 			//Solid color fill
-			if((vert_colors[0] == vert_colors[1]) && (vert_colors[0] == vert_colors[2])) { fill_tri_solid(plot_x, plot_y); }
+			if((vert_colors[0] == vert_colors[1]) && (vert_colors[0] == vert_colors[2])) { fill_poly_solid(); }
 			break;
 
 		//Quads
 		case 0x1:
 			//Solid color fill
-			if((vert_colors[0] == vert_colors[1]) && (vert_colors[0] == vert_colors[2]) && (vert_colors[0] == vert_colors[3])) { fill_quad_solid(plot_x, plot_y); }
+			if((vert_colors[0] == vert_colors[1]) && (vert_colors[0] == vert_colors[2]) && (vert_colors[0] == vert_colors[3])) { fill_poly_solid(); }
 			break;
 
 		//Triangle Strips
@@ -248,8 +248,8 @@ void NTR_LCD::render_geometry()
 	lcd_3D_stat.clip_flags = 0;
 }
 
-/****** NDS 3D Software Renderer - Fills a triangle with a solid color ******/
-void NTR_LCD::fill_tri_solid(float* px, float* py)
+/****** NDS 3D Software Renderer - Fills a given poly with a solid color ******/
+void NTR_LCD::fill_poly_solid()
 {
 	u8 y_coord = 0;
 	u32 buffer_index = 0;
@@ -266,27 +266,6 @@ void NTR_LCD::fill_tri_solid(float* px, float* py)
 			y_coord++;
 		}
 	}
-}
-
-/****** NDS 3D Software Renderer - Fills a quads with a solid color ******/
-void NTR_LCD::fill_quad_solid(float* px, float* py)
-{
-	u8 y_coord = 0;
-	u32 buffer_index = 0;
-
-	for(u32 x = 0; x < 256; x++)
-	{
-		y_coord = lcd_3D_stat.hi_fill[x];
-
-		while(y_coord < lcd_3D_stat.lo_fill[x])
-		{
-			//Convert plot points to buffer index
-			buffer_index = (y_coord * 256) + x;
-			gx_screen_buffer[lcd_3D_stat.buffer_id][buffer_index] = vert_colors[0];
-			y_coord++;
-		}
-	}
-	
 }
 
 /****** Determines if a polygon can be pushed to internal rendering list ******/
