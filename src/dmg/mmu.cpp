@@ -1244,9 +1244,9 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	//SVBK - Update Working RAM bank
 	else if(address == REG_SVBK) 
 	{
-		wram_bank = value & 0x7;
+		wram_bank = (value & 0x7);
 		if(wram_bank == 0) { wram_bank = 1; }
-		memory_map[address] = value;
+		memory_map[address] = (value  & 0x7);
 	}
 
 	//SB - Serial transfer data
