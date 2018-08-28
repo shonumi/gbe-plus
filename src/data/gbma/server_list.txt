@@ -1,1 +1,5 @@
- 
+/01/CGB-B9AJ/index.html
+gbma/index.html
+
+gbe_head.bmp
+gbma/gbe_plus_mobile_header.bmp

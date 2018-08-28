@@ -26,7 +26,7 @@ DMG_SIO::DMG_SIO()
 
 	reset();
 
-	//Load Mobile Adapter data
+	//Load Mobile Adapter data + internal server list
 	if(sio_stat.sio_type == GB_MOBILE_ADAPTER)
 	{
 		std::string mobile_conf_file = config::data_path + "gbma_conf.bin";
@@ -56,6 +56,8 @@ DMG_SIO::DMG_SIO()
 		mobile_conf.close();
 
 		std::cout<<"SIO::Loaded GB Mobile Adapter configuration data.\n";
+
+		mobile_adapter_load_server_list();
 	}
 }
 

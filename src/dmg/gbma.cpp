@@ -856,21 +856,19 @@ void DMG_SIO::mobile_adapter_process_http()
 		{
 			std::string filename = "";
 
-			//See if this is the homepage for Mobile Trainer
-			if(mobile_adapter.http_data.find("/01/CGB-B9AJ/index.html") != std::string::npos)
+			//Search internal server list
+			for(u32 x = 0; x < mobile_adapter.srv_list_in.size(); x++)
 			{
-				not_found = false;
-				filename = config::data_path + "gbma/index.html";
-			}
+				if(mobile_adapter.http_data.find(mobile_adapter.srv_list_in[x]) != std::string::npos)
+				{
+					not_found = false;
+					filename = config::data_path + mobile_adapter.srv_list_out[x];
 
-			//See if this is the homepage header image
-			else if(mobile_adapter.http_data.find("gbe_head.bmp") != std::string::npos)
-			{
-				not_found = false;
-				img = true;
-				filename = config::data_path + "gbma/gbe_plus_mobile_header.bmp";
+					//Check for GBE+ images
+					if(mobile_adapter.srv_list_out[x] == "gbma/gbe_plus_mobile_header.bmp") { img = true; }
+				}
 			}
-
+				
 			if(!not_found)
 			{
 				//Open up GBE+ header image
@@ -1140,6 +1138,8 @@ bool DMG_SIO::mobile_adapter_load_server_list()
 	}
 
 	if(mobile_adapter.srv_list_in.size() > mobile_adapter.srv_list_out.size()) { mobile_adapter.srv_list_in.pop_back(); }
+
+	std::cout<<"SIO::Loaded GB Mobile Adapter internal server list\n";
 
 	file.close();
 	return true;
