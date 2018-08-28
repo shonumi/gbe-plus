@@ -1110,3 +1110,37 @@ void DMG_SIO::mobile_adapter_process_smtp()
 	mobile_adapter.packet_size = 0;
 	mobile_adapter.current_state = GBMA_ECHO_PACKET;
 } 
+
+/***** Loads a list of web addresses and points to local files in GBE+ data folder ******/
+bool DMG_SIO::mobile_adapter_load_server_list()
+{
+	mobile_adapter.srv_list_in.clear();
+	mobile_adapter.srv_list_out.clear();
+
+	std::string input_line = "";
+	std::string list_file = config::data_path + "gbma/server_list.txt";
+	std::ifstream file(list_file.c_str(), std::ios::in);
+	u8 line_count = 0;
+
+	if(!file.is_open())
+	{
+		std::cout<<"SIO::Error - Could not open GB Mobile Adapter internal server list\n";
+		return false;
+	}
+
+	while(getline(file, input_line))
+	{
+		if(!input_line.empty())
+		{
+			if(line_count & 0x1) { mobile_adapter.srv_list_out.push_back(input_line); }
+			else { mobile_adapter.srv_list_in.push_back(input_line); }
+			
+			line_count++;
+		}
+	}
+
+	if(mobile_adapter.srv_list_in.size() > mobile_adapter.srv_list_out.size()) { mobile_adapter.srv_list_in.pop_back(); }
+
+	file.close();
+	return true;
+}

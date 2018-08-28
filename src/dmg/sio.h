@@ -106,6 +106,8 @@ class DMG_SIO
 		std::vector <u8> data;
 		std::vector <u8> packet_buffer;
 		std::vector <u8> net_data;
+		std::vector <std::string> srv_list_in;
+		std::vector <std::string> srv_list_out;
 		u32 packet_size;	
 		mobile_state current_state;
 		std::string http_data;
@@ -211,6 +213,7 @@ class DMG_SIO
 	void mobile_adapter_process_pop();
 	void mobile_adapter_process_http();
 	void mobile_adapter_process_smtp();
+	bool mobile_adapter_load_server_list();
 
 	void bardigun_process();
 	bool bardigun_load_barcode(std::string filename);
