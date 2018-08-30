@@ -365,9 +365,16 @@ void SGB_core::run_core()
 								core_cpu.controllers.serial_io.printer_process();
 								break;
 
-							//Process GB Mobile Adapter communications
-							case GB_MOBILE_ADAPTER:
-								core_cpu.controllers.serial_io.mobile_adapter_process();
+							//Process Barcode Boy communications
+							case GB_BARCODE_BOY:
+								core_cpu.controllers.serial_io.barcode_boy_process();
+
+								if(core_cpu.controllers.serial_io.barcode_boy.send_data)
+								{
+									core_mmu.memory_map[REG_SB] = core_cpu.controllers.serial_io.barcode_boy.byte;
+									core_mmu.memory_map[IF_FLAG] |= 0x08;
+								}
+									
 								break;
 
 							//Process Bardigun card scanner communications
@@ -545,9 +552,16 @@ void SGB_core::step()
 							core_cpu.controllers.serial_io.printer_process();
 							break;
 
-						//Process GB Mobile Adapter communications
-						case GB_MOBILE_ADAPTER:
-							core_cpu.controllers.serial_io.mobile_adapter_process();
+						//Process Barcode Boy communications
+						case GB_BARCODE_BOY:
+							core_cpu.controllers.serial_io.barcode_boy_process();
+
+							if(core_cpu.controllers.serial_io.barcode_boy.send_data)
+							{
+								core_mmu.memory_map[REG_SB] = core_cpu.controllers.serial_io.barcode_boy.byte;
+								core_mmu.memory_map[IF_FLAG] |= 0x08;
+							}
+									
 							break;
 
 						//Process Bardigun card scanner communications
@@ -764,9 +778,29 @@ void SGB_core::handle_hotkey(SDL_Event& event)
 	//Bardigun + Barcode Boy - Reswipe card
 	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F3))
 	{
-		core_cpu.controllers.serial_io.bardigun_scanner.current_state = BARDIGUN_INACTIVE;
-		core_cpu.controllers.serial_io.bardigun_scanner.inactive_counter = 0x500;
-		core_cpu.controllers.serial_io.bardigun_scanner.barcode_pointer = 0;
+		switch(core_cpu.controllers.serial_io.sio_stat.sio_type)
+		{
+
+			//Bardigun reswipe card
+			case GB_BARDIGUN_SCANNER:
+				core_cpu.controllers.serial_io.bardigun_scanner.current_state = BARDIGUN_INACTIVE;
+				core_cpu.controllers.serial_io.bardigun_scanner.inactive_counter = 0x500;
+				core_cpu.controllers.serial_io.bardigun_scanner.barcode_pointer = 0;
+				break;
+
+			//Barcode Boy reswipe card
+			case GB_BARCODE_BOY:
+				if(core_cpu.controllers.serial_io.barcode_boy.current_state == BARCODE_BOY_ACTIVE)
+				{
+					core_cpu.controllers.serial_io.barcode_boy.current_state = BARCODE_BOY_SEND_BARCODE;
+					core_cpu.controllers.serial_io.barcode_boy.send_data = true;
+
+					core_cpu.controllers.serial_io.sio_stat.shifts_left = 8;
+					core_cpu.controllers.serial_io.sio_stat.shift_counter = 0;
+				}
+
+				break;
+		}
 	}
 }
 
@@ -813,9 +847,29 @@ void SGB_core::handle_hotkey(int input, bool pressed)
 	//Bardigun + Barcode Boy - Reswipe card
 	else if((input == SDLK_F3) && (pressed))
 	{
-		core_cpu.controllers.serial_io.bardigun_scanner.current_state = BARDIGUN_INACTIVE;
-		core_cpu.controllers.serial_io.bardigun_scanner.inactive_counter = 0x500;
-		core_cpu.controllers.serial_io.bardigun_scanner.barcode_pointer = 0;
+		switch(core_cpu.controllers.serial_io.sio_stat.sio_type)
+		{
+
+			//Bardigun reswipe card
+			case GB_BARDIGUN_SCANNER:
+				core_cpu.controllers.serial_io.bardigun_scanner.current_state = BARDIGUN_INACTIVE;
+				core_cpu.controllers.serial_io.bardigun_scanner.inactive_counter = 0x500;
+				core_cpu.controllers.serial_io.bardigun_scanner.barcode_pointer = 0;
+				break;
+
+			//Barcode Boy reswipe card
+			case GB_BARCODE_BOY:
+				if(core_cpu.controllers.serial_io.barcode_boy.current_state == BARCODE_BOY_ACTIVE)
+				{
+					core_cpu.controllers.serial_io.barcode_boy.current_state = BARCODE_BOY_SEND_BARCODE;
+					core_cpu.controllers.serial_io.barcode_boy.send_data = true;
+
+					core_cpu.controllers.serial_io.sio_stat.shifts_left = 8;
+					core_cpu.controllers.serial_io.sio_stat.shift_counter = 0;
+				}
+
+				break;
+		}
 	}
 }
 
