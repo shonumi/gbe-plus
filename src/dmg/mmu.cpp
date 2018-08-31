@@ -1216,7 +1216,7 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	else if(address == REG_VBK) 
 	{ 
 		vram_bank = value & 0x1; 
-		memory_map[address] = value; 
+		memory_map[address] = (config::gb_type < 2) ? 0xFF : (value & 0x1); 
 	}
 
 	//KEY1 - Double-Normal speed switch
@@ -1983,6 +1983,7 @@ bool DMG_MMU::read_file(std::string filename)
 	{
 		write_u8(REG_OBP0, 0xFF);
 		write_u8(REG_OBP1, 0xFF);
+		write_u8(REG_VBK, 0xFF);
 	}
 
 	//Manually set some GBC I/O registers
