@@ -3,3 +3,9 @@ gbma/index.html
 
 gbe_head.bmp
 gbma/gbe_plus_mobile_header.bmp
+
+/A4/CGB-BMVJ/h0000.cgb
+gbma/h0000.cgb
+
+/A4/CGB-BMVJ/RomList.cgb
+gbma/RomList.cgb
