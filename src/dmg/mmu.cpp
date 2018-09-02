@@ -1230,14 +1230,14 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	//BCPD - Update background color palettes
 	else if(address == REG_BCPD)
 	{
-		memory_map[address] = value;
+		memory_map[address] = (config::gb_type < 2) ? 0xFF : value; 
 		lcd_stat->update_bg_colors = true;
 	}
 
 	//OCPD - Update sprite color palettes
 	else if(address == REG_OCPD)
 	{
-		memory_map[address] = value;
+		memory_map[address] = (config::gb_type < 2) ? 0xFF : value; 
 		lcd_stat->update_obj_colors = true;
 	}
 
@@ -1246,7 +1246,7 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	{
 		wram_bank = (value & 0x7);
 		if(wram_bank == 0) { wram_bank = 1; }
-		memory_map[address] = (value  & 0x7);
+		memory_map[address] = (config::gb_type < 2) ? 0xFF : (value & 0x7);
 	}
 
 	//SB - Serial transfer data
@@ -1984,6 +1984,10 @@ bool DMG_MMU::read_file(std::string filename)
 		write_u8(REG_OBP0, 0xFF);
 		write_u8(REG_OBP1, 0xFF);
 		write_u8(REG_VBK, 0xFF);
+		write_u8(REG_RP, 0xFF);
+		write_u8(REG_BCPD, 0xFF);
+		write_u8(REG_OCPD, 0xFF);
+		write_u8(REG_SVBK, 0xFF);
 	}
 
 	//Manually set some GBC I/O registers
