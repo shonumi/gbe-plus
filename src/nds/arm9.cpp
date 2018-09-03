@@ -1259,8 +1259,6 @@ u32 NTR_ARM9::get_access_time(u32 addr, mem_modes access_mode)
 		case 0xF:
 			cycles = 2; break;
 
-		 
-
 		case 0x2:
 		case 0x5:
 		case 0x6:
@@ -1285,7 +1283,6 @@ u32 NTR_ARM9::get_access_time(u32 addr, mem_modes access_mode)
 /****** Counts cycles for memory accesses  ******/
 void NTR_ARM9::clock(u32 access_addr, mem_modes current_mode)
 {
-
 }
 
 /****** Counts internal cycles ******/
@@ -1296,6 +1293,7 @@ void NTR_ARM9::clock_system()
 {
 	//Store cycles from ALU + MEM stages
 	system_cycles = std::max(fetch_cycles, execute_cycles);
+	system_cycles >>= 1;
 
 	//ARM7 CPU sync cycles
 	sync_cycles += system_cycles;

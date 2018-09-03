@@ -1162,7 +1162,6 @@ void NTR_ARM9::halfword_signed_transfer(u32 current_arm_instruction)
 /****** ARM.11 Block Data Transfer ******/
 void NTR_ARM9::block_data_transfer(u32 current_arm_instruction)
 {
-	//TODO - Clock cycles
 	//TODO - Handle empty RList
 
 	//Grab Pre-Post bit - Bit 24
@@ -1219,7 +1218,10 @@ void NTR_ARM9::block_data_transfer(u32 current_arm_instruction)
 			last_reg = x;
 		}
 	}
-	
+
+	//Clock CPU and controllers
+	execute_cycles += (load_store) ? 1 : 2;
+
 	//Load-Store with an ascending stack order, Up-Down = 1
 	if((up_down == 1) && (r_list != 0))
 	{
@@ -1253,6 +1255,9 @@ void NTR_ARM9::block_data_transfer(u32 current_arm_instruction)
 
 					if(x == 15) { needs_flush = true; } 
 				}
+
+				//Clock CPU and controllers
+				execute_cycles += get_access_time(base_addr, DATA_32);
 
 				//Increment after transfer if post-indexing
 				if(pre_post == 0) { base_addr += 4; }
@@ -1295,6 +1300,9 @@ void NTR_ARM9::block_data_transfer(u32 current_arm_instruction)
 					set_reg(x, mem->read_u32(base_addr));
 					if(x == 15) { needs_flush = true; } 
 				}
+
+				//Clock CPU and controllers
+				execute_cycles += get_access_time(base_addr, DATA_32);
 
 				//Decrement after transfer if post-indexing
 				if(pre_post == 0) { base_addr -= 4; }
@@ -1341,6 +1349,20 @@ void NTR_ARM9::block_data_transfer(u32 current_arm_instruction)
 		reg.cpsr |= 0x20;
 		reg.r15 &= ~0x1;
 	}
+
+	//Timings for LDM PC
+	if(needs_flush && load_store) 
+	{
+		//Clock CPU and controllers - 2S + 1N
+		execute_cycles += 3;
+	}
+
+	//Timings for LDR - No PC
+	else if(load_store)
+	{
+		//Clock CPU and controllers - 1S
+		execute_cycles++;
+	}
 }
 		
 /****** ARM.12 - Single Data Swap ******/
@@ -1364,6 +1386,9 @@ void NTR_ARM9::single_data_swap(u32 current_arm_instruction)
 	u32 dest_value = 0;
 	u32 swap_value = 0;
 
+	//Clock CPU and controllers - 1S + 1I
+	execute_cycles += 2;
+
 	//Swap a single byte
 	if(byte_word == 1)
 	{
@@ -1371,9 +1396,15 @@ void NTR_ARM9::single_data_swap(u32 current_arm_instruction)
 		dest_value = mem->read_u8(base_addr);
 		swap_value = (get_reg(src_reg) & 0xFF);
 
+		//Clock CPU and controllers - 1N
+		execute_cycles += get_access_time(base_addr, DATA_16);
+
 		//Swap the values
 		mem->write_u8(base_addr, swap_value);
 		set_reg(dest_reg, dest_value);
+
+		//Clock CPU and controllers - 1N
+		execute_cycles += get_access_time(base_addr, DATA_16);
 	}
 
 	//Swap a single word
@@ -1383,9 +1414,15 @@ void NTR_ARM9::single_data_swap(u32 current_arm_instruction)
 		dest_value = mem->read_u32(base_addr);
 		swap_value = get_reg(src_reg);
 
+		//Clock CPU and controllers - 1N
+		execute_cycles += get_access_time(base_addr, DATA_32);
+
 		//Swap the values
 		mem->write_u32(base_addr, swap_value);
 		set_reg(dest_reg, dest_value);
+
+		//Clock CPU and controllers - 1N
+		execute_cycles += get_access_time(base_addr, DATA_32);
 	}
 }
 
@@ -1697,6 +1734,9 @@ void NTR_ARM9::coprocessor_register_transfer(u32 current_instruction)
 			std::cout<<"COP::Warning - MCR accessed unknown C15 register : C" << (int)cop_reg << ",C" << (int)cop_opr << "," << (int)cop_info << "\n";
 		}
 	}
+
+	//Clock CPU and controllers - 1S
+	execute_cycles++;
 }
 
 /****** Count Leading Zeroes ******/
