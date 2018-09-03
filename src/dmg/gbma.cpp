@@ -866,6 +866,8 @@ void DMG_SIO::mobile_adapter_process_http()
 
 					//Check for GBE+ images
 					if(mobile_adapter.srv_list_out[x] == "gbma/gbe_plus_mobile_header.bmp") { img = true; }
+
+					break;
 				}
 			}
 				
