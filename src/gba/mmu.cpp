@@ -127,12 +127,15 @@ void AGB_MMU::reset()
 	g_pad = NULL;
 	timer = NULL;
 
+	//Advanced debugging
+	#ifdef GBE_DEBUG
 	debug_read = false;
 	debug_write = false;
 	debug_addr[0] = 0;
 	debug_addr[1] = 0;
 	debug_addr[2] = 0;
 	debug_addr[3] = 0;
+	#endif
 
 	std::cout<<"MMU::Initialized\n";
 }

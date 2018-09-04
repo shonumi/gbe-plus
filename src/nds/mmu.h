@@ -275,6 +275,14 @@ class NTR_MMU
 	u16 touchscreen_state;
 	u8 apu_io_id;
 
+	//Advanced debugging
+	#ifdef GBE_DEBUG
+	bool debug_write;
+	bool debug_read;
+	u32 debug_addr[4];
+	u8 debug_access;
+	#endif
+
 	NTR_MMU();
 	~NTR_MMU();
 

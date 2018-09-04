@@ -53,6 +53,12 @@ NTR_core::NTR_core()
 	db_unit.watchpoint_addr.clear();
 	db_unit.watchpoint_val.clear();
 
+	//Advanced debugging
+	#ifdef GBE_DEBUG
+	db_unit.write_addr.clear();
+	db_unit.read_addr.clear();
+	#endif
+
 	//Reset CPU sync
 	cpu_sync_cycles = 0.0;
 	core_cpu_nds9.re_sync = true;
