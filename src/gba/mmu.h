@@ -119,6 +119,13 @@ class AGB_MMU
 	std::vector<u32> cheat_bytes;
 	u8 gsa_patch_count;
 
+	//Advanced debugging
+	#ifdef GBE_DEBUG
+	bool debug_write;
+	bool debug_read;
+	u32 debug_addr[4];
+	#endif
+
 	AGB_MMU();
 	~AGB_MMU();
 
@@ -126,12 +133,12 @@ class AGB_MMU
 
 	void start_blank_dma();
 
-	u8 read_u8(u32 address) const;
-	u16 read_u16(u32 address) const;
-	u32 read_u32(u32 address) const;
+	u8 read_u8(u32 address);
+	u16 read_u16(u32 address);
+	u32 read_u32(u32 address);
 
-	u16 read_u16_fast(u32 address) const;
-	u32 read_u32_fast(u32 address) const;
+	u16 read_u16_fast(u32 address);
+	u32 read_u32_fast(u32 address);
 
 	void write_u8(u32 address, u8 value);
 	void write_u16(u32 address, u16 value);

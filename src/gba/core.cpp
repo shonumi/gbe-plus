@@ -52,6 +52,12 @@ AGB_core::AGB_core()
 	db_unit.watchpoint_addr.clear();
 	db_unit.watchpoint_val.clear();
 
+	//Advanced debugging
+	#ifdef GBE_DEBUG
+	db_unit.write_addr.clear();
+	db_unit.read_addr.clear();
+	#endif
+
 	std::cout<<"GBE::Launching GBA core\n";
 
 	//OSD

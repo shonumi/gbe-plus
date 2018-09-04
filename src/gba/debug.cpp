@@ -64,6 +64,55 @@ void AGB_core::debug_step()
 		printed = true;
 	}
 
+	//Advanced debugging
+	#ifdef GBE_DEBUG
+
+	//In continue mode, if a write-breakpoint is triggered, try to stop on one
+	else if((db_unit.write_addr.size() > 0) && (db_unit.last_command == "c") && (core_mmu.debug_write))
+	{
+		for(int x = 0; x < db_unit.write_addr.size(); x++)
+		{
+			for(int y = 0; y < 4; y++)
+			{
+				if(db_unit.write_addr[x] == core_mmu.debug_addr[y])
+				{
+					debug_display();
+					debug_process_command();
+					printed = true;
+					break;
+				}
+			}
+		}
+	}
+
+	//In continue mode, if a read-breakpoint is triggered, try to stop on one
+	else if((db_unit.read_addr.size() > 0) && (db_unit.last_command == "c") && (core_mmu.debug_read))
+	{
+		for(int x = 0; x < db_unit.read_addr.size(); x++)
+		{
+			for(int y = 0; y < 4; y++)
+			{
+				if(db_unit.read_addr[x] == core_mmu.debug_addr[y])
+				{
+					debug_display();
+					debug_process_command();
+					printed = true;
+					break;
+				}
+			}
+		}
+	}
+
+	//Reset read-write alerts
+	core_mmu.debug_read = false;
+	core_mmu.debug_write = false;
+	core_mmu.debug_addr[0] = 0;
+	core_mmu.debug_addr[1] = 0;
+	core_mmu.debug_addr[2] = 0;
+	core_mmu.debug_addr[3] = 0;
+
+	#endif
+
 	//Display every instruction when print all is enabled
 	if((!printed) && (db_unit.print_all)) { debug_display(); }
 
@@ -807,6 +856,69 @@ void AGB_core::debug_process_command()
 			}
 		}
 
+		//Advanced debugging
+		#ifdef GBE_DEBUG
+
+		//Set write breakpoint
+		else if((command.substr(0, 2) == "bw") && (command.substr(3, 2) == "0x"))
+		{
+			valid_command = true;
+			u32 mem_location = 0;
+			std::string hex_string = command.substr(5);
+
+			if(hex_string.size() > 10) { hex_string = hex_string.substr(hex_string.size() - 10); }
+
+			//Convert hex string into usable u32
+			valid_command = util::from_hex_str(hex_string, mem_location);
+
+			//Request valid input again
+			if(!valid_command)
+			{
+				std::cout<<"\nInvalid memory address : " << command << "\n";
+				std::cout<<": ";
+				std::getline(std::cin, command);
+			}
+
+			else
+			{
+				db_unit.last_command = "bw";
+				db_unit.write_addr.push_back(mem_location);
+				std::cout<<"\nWrite Breakpoint added at 0x" << std::hex << mem_location << "\n";
+				debug_process_command();
+			}
+		}
+
+		//Set write breakpoint
+		else if((command.substr(0, 2) == "br") && (command.substr(3, 2) == "0x"))
+		{
+			valid_command = true;
+			u32 mem_location = 0;
+			std::string hex_string = command.substr(5);
+
+			if(hex_string.size() > 10) { hex_string = hex_string.substr(hex_string.size() - 10); }
+
+			//Convert hex string into usable u32
+			valid_command = util::from_hex_str(hex_string, mem_location);
+
+			//Request valid input again
+			if(!valid_command)
+			{
+				std::cout<<"\nInvalid memory address : " << command << "\n";
+				std::cout<<": ";
+				std::getline(std::cin, command);
+			}
+
+			else
+			{
+				db_unit.last_command = "br";
+				db_unit.read_addr.push_back(mem_location);
+				std::cout<<"\nRead Breakpoint added at 0x" << std::hex << mem_location << "\n";
+				debug_process_command();
+			}
+		}
+
+		#endif
+
 		//Toggle display of CPU cycles
 		else if(command == "dc")
 		{
@@ -896,6 +1008,13 @@ void AGB_core::debug_process_command()
 			std::cout<<"c \t\t Continue until next breakpoint\n";
 			std::cout<<"bp \t\t Set breakpoint, format 0x1234ABCD\n";
 			std::cout<<"bc \t\t Set breakpoint on memory change, format 0x1234ABCD for addr, 0x12 for value\n";
+
+			//Advanced debugging
+			#ifdef GBE_DEBUG
+			std::cout<<"bw \t\t Set breakpoint on memory write, format 0x1234ABCD for addr\n";
+			std::cout<<"br \t\t Set breakpoint on memory read, format 0x1234ABCD for addr\n";
+			#endif
+
 			std::cout<<"del \t\t Deletes ALL current breakpoints\n";
 			std::cout<<"u8 \t\t Show BYTE @ memory, format 0x1234ABCD\n";
 			std::cout<<"u8s \t\t Show 16 BYTES @ memory, format 0x1234\n";

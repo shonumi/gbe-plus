@@ -127,12 +127,25 @@ void AGB_MMU::reset()
 	g_pad = NULL;
 	timer = NULL;
 
+	debug_read = false;
+	debug_write = false;
+	debug_addr[0] = 0;
+	debug_addr[1] = 0;
+	debug_addr[2] = 0;
+	debug_addr[3] = 0;
+
 	std::cout<<"MMU::Initialized\n";
 }
 
 /****** Read byte from memory ******/
-u8 AGB_MMU::read_u8(u32 address) const
+u8 AGB_MMU::read_u8(u32 address)
 {
+	//Advanced debugging
+	#ifdef GBE_DEBUG
+	debug_read = true;
+	debug_addr[address & 0x3] = address;
+	#endif
+
 	//Check for unused memory first
 	if(address >= 0x10000000) { std::cout<<"Out of bounds read : 0x" << std::hex << address << "\n"; return 0; }
 
@@ -250,25 +263,25 @@ u8 AGB_MMU::read_u8(u32 address) const
 }
 
 /****** Read 2 bytes from memory ******/
-u16 AGB_MMU::read_u16(u32 address) const
+u16 AGB_MMU::read_u16(u32 address)
 {
 	return ((read_u8(address+1) << 8) | read_u8(address)); 
 }
 
 /****** Read 4 bytes from memory ******/
-u32 AGB_MMU::read_u32(u32 address) const
+u32 AGB_MMU::read_u32(u32 address)
 {
 	return ((read_u8(address+3) << 24) | (read_u8(address+2) << 16) | (read_u8(address+1) << 8) | read_u8(address));
 }
 
 /****** Reads 2 bytes from memory - No checks done on the read, used for known memory locations such as registers ******/
-u16 AGB_MMU::read_u16_fast(u32 address) const
+u16 AGB_MMU::read_u16_fast(u32 address)
 {
 	return ((memory_map[address+1] << 8) | memory_map[address]);
 }
 
 /****** Reads 4 bytes from memory - No checks done on the read, used for known memory locations such as registers ******/
-u32 AGB_MMU::read_u32_fast(u32 address) const
+u32 AGB_MMU::read_u32_fast(u32 address)
 {
 	return ((memory_map[address+3] << 24) | (memory_map[address+2] << 16) | (memory_map[address+1] << 8) | memory_map[address]);
 }
@@ -276,6 +289,12 @@ u32 AGB_MMU::read_u32_fast(u32 address) const
 /****** Write byte into memory ******/
 void AGB_MMU::write_u8(u32 address, u8 value)
 {
+	//Advanced debugging
+	#ifdef GBE_DEBUG
+	debug_write = true;
+	debug_addr[address & 0x3] = address;
+	#endif
+
 	//Check for unused memory first
 	if(address >= 0x10000000) { std::cout<<"Out of bounds write : 0x" << std::hex << address << "\n"; return; }
 
