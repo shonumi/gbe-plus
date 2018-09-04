@@ -1720,6 +1720,7 @@ void NTR_ARM9::coprocessor_register_transfer(u32 current_instruction)
 					co_proc.regs[CP15::C9_C1_0] = get_reg(arm_reg);
 					co_proc.set_dtcm_size_base();
 					mem->nds9_irq_handler = co_proc.regs[CP15::CP15_TEMP] + 0x3FFC;
+					mem->dtcm_addr = co_proc.regs[CP15::CP15_TEMP];
 					break;
 
 				case 0x1:
