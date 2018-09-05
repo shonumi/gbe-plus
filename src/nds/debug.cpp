@@ -28,7 +28,7 @@ void NTR_core::debug_step()
 	if((nds9_debug) && (core_cpu_nds9.arm_mode == NTR_ARM9::ARM)) { arm_debug = true; }
 	else if((!nds9_debug) && (core_cpu_nds7.arm_mode == NTR_ARM7::ARM)) { arm_debug = true; }
 
-	u32 op_addr = nds9_debug ? core_cpu_nds9.debug_addr : core_cpu_nds7.debug_addr;
+	u32 op_addr = (pc - 0x0C);
 
 	//In continue mode, if breakpoints exist, try to stop on one
 	if((db_unit.breakpoints.size() > 0) && (db_unit.last_command == "c"))
