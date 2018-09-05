@@ -392,6 +392,19 @@ void NTR_ARM9::data_processing(u32 current_arm_instruction)
 			break;
 	}
 
+	if(dest_reg == 15)
+	{
+		//Switch to THUMB mode if necessary
+		if(reg.r15 & 0x1) 
+		{ 
+			arm_mode = THUMB;
+			reg.cpsr |= 0x20;
+			reg.r15 &= ~0x1;
+		}
+
+		else { reg.r15 &= ~0x3; }
+	}
+
 	//Clock CPU and controllers - 1S
 	execute_cycles++;
 }
