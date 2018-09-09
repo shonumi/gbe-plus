@@ -518,6 +518,14 @@ void ARM7::psr_transfer(u32 current_arm_instruction)
 						case 0x1F: current_cpu_mode = SYS; break;
 						default: std::cout<<"CPU::Warning - ARM.6 CPSR setting unknown CPU mode\n";
 					}
+
+					if(reg.cpsr & 0x20)
+					{
+						std::cout<<"CPU::Warning - ARM.6 Setting THUMB mode\n";
+						arm_mode = THUMB;
+						reg.r15 &= ~0x1;
+						needs_flush = true;
+					}
 				}
 	
 				//Write into SPSR
