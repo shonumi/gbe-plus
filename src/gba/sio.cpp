@@ -160,6 +160,7 @@ void AGB_SIO::reset()
 	sio_stat.transfer_data_u32 = 0;
 	sio_stat.shift_counter = 64;
 	sio_stat.shift_clock = 0;
+	sio_stat.r_cnt = 0;
 	sio_stat.cnt = 0;
 
 	switch(config::sio_device)
@@ -180,6 +181,8 @@ void AGB_SIO::reset()
 			sio_stat.sio_type = NO_GBA_DEVICE;
 			break;
 	}
+
+	sio_stat.sio_mode = NORMAL_8BIT;
 
 	#ifdef GBE_NETPLAY
 

@@ -22,6 +22,17 @@ enum agb_sio_types
 	GBA_LINK,
 };
 
+//Serial Input-Output device mode enumeration
+enum agb_sio_modes
+{
+	NORMAL_8BIT,
+	NORMAL_32BIT,
+	MULTIPLAY_16BIT,
+	UART,
+	GENERAL_PURPOSE,
+	JOY_BUS,
+};
+
 struct agb_sio_data
 {
 	bool connected;
@@ -33,8 +44,10 @@ struct agb_sio_data
 	u32 transfer_data_u32;
 	u32 shift_counter;
 	u32 shift_clock;
-	u32 cnt;
+	u16 cnt;
+	u16 r_cnt;
 	agb_sio_types sio_type;
+	agb_sio_modes sio_mode;
 };
 
 #endif // GBA_SIO_DATA 

@@ -1591,6 +1591,23 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 
 			break;
 
+		//RCNT Mode Selection
+		case R_CNT:
+		case R_CNT+1:
+			memory_map[address] = value;
+			sio_stat->r_cnt = ((memory_map[R_CNT+1] << 8) | memory_map[R_CNT]);
+
+			//Determine SIO mode
+			if(sio_stat->r_cnt & 0xC000) { sio_stat->sio_mode = JOY_BUS; }
+			else if(sio_stat->r_cnt & 0x8000) { sio_stat->sio_mode = GENERAL_PURPOSE; }
+			else if(sio_stat->cnt & 0x3000) { sio_stat->sio_mode = UART; }
+			else if(sio_stat->cnt & 0x2000) { sio_stat->sio_mode = MULTIPLAY_16BIT; }
+			else if(sio_stat->cnt & 0x1000) { sio_stat->sio_mode = NORMAL_32BIT; }
+			else { sio_stat->sio_mode = NORMAL_8BIT; }
+
+			break;
+			
+
 		//Serial IO Control
 		case SIO_CNT:
 		case SIO_CNT+1:
@@ -1598,6 +1615,15 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			sio_stat->cnt = ((memory_map[SIO_CNT+1] << 8) | memory_map[SIO_CNT]);
 			sio_stat->internal_clock = (sio_stat->cnt & 0x1) ? true : false;
 			sio_stat->active_transfer = (sio_stat->cnt & 0x80) ? true : false;
+
+			//Determine SIO mode
+			if(sio_stat->r_cnt & 0xC000) { sio_stat->sio_mode = JOY_BUS; }
+			else if(sio_stat->r_cnt & 0x8000) { sio_stat->sio_mode = GENERAL_PURPOSE; }
+			else if(sio_stat->cnt & 0x3000) { sio_stat->sio_mode = UART; }
+			else if(sio_stat->cnt & 0x2000) { sio_stat->sio_mode = MULTIPLAY_16BIT; }
+			else if(sio_stat->cnt & 0x1000) { sio_stat->sio_mode = NORMAL_32BIT; }
+			else { sio_stat->sio_mode = NORMAL_8BIT; }
+
 			break;
 
 		//Serial Data8
