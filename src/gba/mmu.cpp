@@ -1599,6 +1599,21 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			sio_stat->internal_clock = (sio_stat->cnt & 0x1) ? true : false;
 			sio_stat->active_transfer = (sio_stat->cnt & 0x80) ? true : false;
 			break;
+
+		//Serial Data8
+		case SIO_DATA_8:
+			memory_map[address] = value;
+			sio_stat->transfer_data_u8 = value;
+			break;
+
+		//Serial Data32
+		case SIO_DATA_32_L:
+		case SIO_DATA_32_L+1:
+		case SIO_DATA_32_L+2:
+		case SIO_DATA_32_L+3:
+			memory_map[address] = value;
+			sio_stat->transfer_data_u32 = ((memory_map[SIO_DATA_32_L+3] << 24) | (memory_map[SIO_DATA_32_L+2] << 16) | (memory_map[SIO_DATA_32_L+1] << 8) | memory_map[SIO_DATA_32_L]);
+			break;
 			
 		//Wait State Control
 		case WAITCNT:

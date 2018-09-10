@@ -156,7 +156,8 @@ void AGB_SIO::reset()
 	sio_stat.internal_clock = false;
 	sio_stat.sync_counter = 0;
 	sio_stat.sync = false;
-	sio_stat.transfer_data = 0;
+	sio_stat.transfer_data_u8 = 0;
+	sio_stat.transfer_data_u32 = 0;
 	sio_stat.shift_counter = 64;
 	sio_stat.shift_clock = 0;
 	sio_stat.cnt = 0;
@@ -214,11 +215,14 @@ bool AGB_SIO::send_data()
 {
 	#ifdef GBE_NETPLAY
 
+	//TODO
+	u32 transfer_data = 0;
+
 	u8 temp_buffer[5];
-	temp_buffer[0] = (sio_stat.transfer_data & 0xFF);
-	temp_buffer[1] = ((sio_stat.transfer_data >> 8) & 0xFF);
-	temp_buffer[2] = ((sio_stat.transfer_data >> 16) & 0xFF);
-	temp_buffer[3] = ((sio_stat.transfer_data >> 24) & 0xFF);
+	temp_buffer[0] = (transfer_data & 0xFF);
+	temp_buffer[1] = ((transfer_data >> 8) & 0xFF);
+	temp_buffer[2] = ((transfer_data >> 16) & 0xFF);
+	temp_buffer[3] = ((transfer_data >> 24) & 0xFF);
 	temp_buffer[4] = 0x40;
 
 	if(SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 5) < 5)

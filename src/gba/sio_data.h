@@ -29,7 +29,8 @@ struct agb_sio_data
 	bool internal_clock;
 	bool sync;
 	u32 sync_counter;
-	u32 transfer_data;
+	u32 transfer_data_u8;
+	u32 transfer_data_u32;
 	u32 shift_counter;
 	u32 shift_clock;
 	u32 cnt;
