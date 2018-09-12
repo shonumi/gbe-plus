@@ -85,7 +85,7 @@ void AGB_MMU::reset()
 	if(!config::use_bios)
 	{
 		memory_map[DISPCNT] = 0x80;
-		write_u16(0x4000134, 0x8000);
+		memory_map[R_CNT+1] = 0x80;
 		write_u8(0x4000300, 0x1);
 		write_u8(0x4000410, 0xFF);
 		write_u32(0x4000800, 0xD000020);
