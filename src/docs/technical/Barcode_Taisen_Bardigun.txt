@@ -1,4 +1,4 @@
-Barcode Taisen Bardigun Technical Documentation 0.1
+Barcode Taisen Bardigun Technical Documentation 0.2
 May 27th, 2017
 Shonumi aka D.S. Baxter
 
@@ -18,7 +18,7 @@ The game and card reader hardware are now almost 20 years old, so I figured it's
 ***************************************************
 
 
-Barcode Taisen Bardigun (DMG-ABEJ-JPN)
+Barcode Taisen Bardigun (DMG-ABEJ-JPN) and (DMG-ABEJ-JPN-1)
 MBC3 + RTC + Battery Saves (Same as Pokemon Gold and Silver)
 Compatible with DMG, SGB, and GBC systems
 Japanese-text only (hiragana/katakana only, a bit of a blessing given 8x8 fonts are not the best for kanji)
@@ -26,6 +26,7 @@ Supports Link Cable for multiplayer
 
 Comes with 1 card-reader powered by 3 AAA batteries
 Comes with 5 cards bundled (only 3 have barcodes, the other 2 are just collectables?)
+Some cards come as cut-outs from a cardboard sheet
 Reader connects to DMG/GBC serial port for communication (technically could work with SGB2 on a Super Famicom, that'd be crazy to see)
 
 
@@ -98,3 +99,11 @@ Number of Pixels @ 600dpi * 1.875 = Approximate bit count.
 With the above guideline, it should be possible to dump the cards by scanning them, then creating a binary file containing barcodes as alternating bitstreams of 0s and 1s. With this method, no homebrew techniques are needed, and only an image file is necessary to actually preserve the card.
 
 The second method involves using a hacked version of the Barcode Taisen Bardigun ROM on a flashcart to save incoming Serial I/O data as a card is scanned. The binary can be pulled from a save file. Both binary files could be used an input to feed back to an emulator.
+
+
+***************************************************
+6. ROM Revision
+***************************************************
+
+
+Barcode Taisen Bardigun has two known ROMs, DMG-ABEJ-JPN and DMG-ABEJ-JPN-1. The later version polishes many rough edges found in the first release (e.g. including a text box when barcode scanning fails). Currently, both games appear to be largely the same besides these UI and UX enhancements. Barcode scanning is exactly the same in each.

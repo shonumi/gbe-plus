@@ -86,6 +86,7 @@
 	<p class="list_item"><a href="#btb_com">Card Reader to GBC Communication</a></p>
 	<p class="list_item"><a href="#btb_bar">Barcode Format</a></p>
 	<p class="list_item"><a href="#btb_rip">Card Dumping</a></p>
+	<p class="list_item"><a href="#btb_rom">ROM Revision</a></p>
 
 	<p class="list_head"><strong>DMG-07 4-Player Adapter</strong></p>
 	<p class="list_item"><a href="#dmg07_gen">General Hardware Information</a></p>
@@ -234,13 +235,14 @@ Handshake	---&gt;
 	<p>Barcode Taisen Bardigun is a Japanese Game Boy game released December 11, 1998, made by TAM. It doesn&#39;t seem like a very interesting or noteworthy game in and of itself (yet another monster breeding&#47;raising&#47;fighting&#47;collecting game). However, this game featured exclusive hardware, a card reader that scanned various barcodes</p>
 
 	<ul>
-		<li class="list_item">Barcode Taisen Bardigun (DMG-ABEJ-JPN)</li>
+		<li class="list_item">Barcode Taisen Bardigun (DMG-ABEJ-JPN) and (DMG-ABEJ-JPN-1)</li>
 		<li class="list_item">MBC3 + RTC + Battery Saves (Same as Pokemon Gold and Silver)</li>
 		<li class="list_item">Compatible with DMG, SGB, and GBC systems</li>
 		<li class="list_item">Japanese-text only (hiragana&#47;katakana only, a bit of a blessing given 8x8 fonts are not the best for kanji)</li>
 		<li class="list_item">Supports Link Cable for multiplayer</li>
 		<li class="list_item">Comes with 1 card-reader powered by 3 AAA batteries</li>
 		<li class="list_item">Comes with 5 cards bundled (only 3 have barcodes, the other 2 are just collectables?)</li>
+		<li class="list_item">Some cards come as cut-outs from a cardboard sheet</li>
 		<li class="list_item">Reader connects to DMG/GBC serial port for communication</li>
 	</ul>
 
@@ -310,6 +312,11 @@ Set 2 [14:0] [15:1] [14:0] [45:1] ...</code>
 	<p>With the above guideline, it is possible to dump the cards by scanning them, then creating a binary file containing barcodes as alternating bitstreams of 0s and 1s. With this method, no homebrew techniques are needed, and only an image file is necessary to actually preserve the card.</p>
 
 	<p>The second method involves using a hacked version of the Barcode Taisen Bardigun ROM on a flashcart to save incoming Serial I&#47;O data as a card is scanned. The binary can be pulled from a save file. Both binary files could be used an input to feed back to an emulator.</p>
+
+	<a name="btb_rom"></a>
+	<p class="gray_title">[Barcode Taisen Bardigun] : ROM Revision</p>
+
+	<p>Barcode Taisen Bardigun has two known ROMs, DMG-ABEJ-JPN and DMG-ABEJ-JPN-1. The later version polishes many rough edges found in the first release (e.g. including a text box when barcode scanning fails). Currently, both games appear to be largely the same besides these UI and UX enhancements. Barcode scanning is exactly the same in each.</p>
 
 	<!-- DMG-07 -->
 
