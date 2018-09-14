@@ -1597,13 +1597,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			memory_map[address] = value;
 			sio_stat->r_cnt = ((memory_map[R_CNT+1] << 8) | memory_map[R_CNT]);
 
-			//Determine SIO mode
-			if(sio_stat->r_cnt & 0xC000) { sio_stat->sio_mode = JOY_BUS; }
-			else if(sio_stat->r_cnt & 0x8000) { sio_stat->sio_mode = GENERAL_PURPOSE; }
-			else if(sio_stat->cnt & 0x3000) { sio_stat->sio_mode = UART; }
-			else if(sio_stat->cnt & 0x2000) { sio_stat->sio_mode = MULTIPLAY_16BIT; }
-			else if(sio_stat->cnt & 0x1000) { sio_stat->sio_mode = NORMAL_32BIT; }
-			else { sio_stat->sio_mode = NORMAL_8BIT; }
+			process_sio();
 
 			break;
 			
@@ -1616,13 +1610,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			sio_stat->internal_clock = (sio_stat->cnt & 0x1) ? true : false;
 			sio_stat->active_transfer = (sio_stat->cnt & 0x80) ? true : false;
 
-			//Determine SIO mode
-			if(sio_stat->r_cnt & 0xC000) { sio_stat->sio_mode = JOY_BUS; }
-			else if(sio_stat->r_cnt & 0x8000) { sio_stat->sio_mode = GENERAL_PURPOSE; }
-			else if(sio_stat->cnt & 0x3000) { sio_stat->sio_mode = UART; }
-			else if(sio_stat->cnt & 0x2000) { sio_stat->sio_mode = MULTIPLAY_16BIT; }
-			else if(sio_stat->cnt & 0x1000) { sio_stat->sio_mode = NORMAL_32BIT; }
-			else { sio_stat->sio_mode = NORMAL_8BIT; }
+			process_sio();
 
 			break;
 
@@ -2536,6 +2524,37 @@ void AGB_MMU::process_motion()
 		memory_map[0xE008400] = (g_pad->sensor_y & 0xFF);
 		memory_map[0xE008500] = (g_pad->sensor_y >> 8);
 	}
+}
+
+/****** Updates various SIO related data when writing to SIO registers ******/
+void AGB_MMU::process_sio()
+{
+	//Determine SIO mode
+	if(sio_stat->r_cnt & 0xC000) { sio_stat->sio_mode = JOY_BUS; }
+	else if(sio_stat->r_cnt & 0x8000) { sio_stat->sio_mode = GENERAL_PURPOSE; }
+
+	//UART
+	else if(sio_stat->cnt & 0x3000)
+	{
+		sio_stat->sio_mode = UART;
+				
+		//Convert baud rate to approximate GBA CPU cycles
+		switch(sio_stat->cnt & 0x3)
+		{
+			case 0x0: sio_stat->shift_clock = 1747; break;
+			case 0x1: sio_stat->shift_clock = 436; break;
+			case 0x2: sio_stat->shift_clock = 291; break;
+			case 0x3: sio_stat->shift_clock = 145; break;
+		}
+
+		//Start UART transfer if necessary
+		if((!sio_stat->active_transfer) && ((sio_stat->r_cnt & 0x1) == 0) && (sio_stat->cnt & 0x404)) { sio_stat->active_transfer = true; }
+		else if((!sio_stat->active_transfer) && (sio_stat->cnt & 0x400)) { sio_stat->active_transfer = true; }
+	}
+
+	else if(sio_stat->cnt & 0x2000) { sio_stat->sio_mode = MULTIPLAY_16BIT; }
+	else if(sio_stat->cnt & 0x1000) { sio_stat->sio_mode = NORMAL_32BIT; }
+	else { sio_stat->sio_mode = NORMAL_8BIT; }
 }
 
 /****** Applies an IPS patch to a ROM loaded in memory ******/

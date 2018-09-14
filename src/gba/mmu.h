@@ -171,6 +171,8 @@ class AGB_MMU
 	
 	void process_motion();
 
+	void process_sio();
+
 	//Cheat code functions
 	void decrypt_gsa(u32 &addr, u32 &val, bool v1);
 	void set_cheats();
