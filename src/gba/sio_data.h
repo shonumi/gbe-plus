@@ -46,6 +46,7 @@ struct agb_sio_data
 	u32 shift_clock;
 	u16 cnt;
 	u16 r_cnt;
+	u8 player_id;
 	agb_sio_types sio_type;
 	agb_sio_modes sio_mode;
 };

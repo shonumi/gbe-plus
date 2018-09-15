@@ -162,6 +162,7 @@ void AGB_SIO::reset()
 	sio_stat.shift_clock = 0;
 	sio_stat.r_cnt = 0x8000;
 	sio_stat.cnt = 0;
+	sio_stat.player_id = 0;
 
 	switch(config::sio_device)
 	{

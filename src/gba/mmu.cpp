@@ -222,6 +222,22 @@ u8 AGB_MMU::read_u8(u32 address)
 			return (g_pad->key_input >> 8);
 			break;
 
+		case R_CNT:
+			return (sio_stat->r_cnt & 0xFF);
+			break;
+
+		case R_CNT+1:
+			return (sio_stat->r_cnt >> 8);
+			break;
+
+		case SIO_CNT:
+			return (sio_stat->cnt & 0xFF);
+			break;
+
+		case SIO_CNT+1:
+			return (sio_stat->cnt >> 8);
+			break;
+
 		case WAVERAM0_L : return apu_stat->waveram_data[(apu_stat->waveram_bank_rw << 4)]; break;
 		case WAVERAM0_L+1: return apu_stat->waveram_data[(apu_stat->waveram_bank_rw << 4) + 1]; break;
 		case WAVERAM0_H: return apu_stat->waveram_data[(apu_stat->waveram_bank_rw << 4) + 2]; break;
@@ -2534,7 +2550,7 @@ void AGB_MMU::process_sio()
 	else if(sio_stat->r_cnt & 0x8000) { sio_stat->sio_mode = GENERAL_PURPOSE; }
 
 	//UART
-	else if(sio_stat->cnt & 0x3000)
+	else if((sio_stat->cnt & 0x3000) == 0x3000)
 	{
 		sio_stat->sio_mode = UART;
 				
@@ -2552,7 +2568,26 @@ void AGB_MMU::process_sio()
 		else if((!sio_stat->active_transfer) && (sio_stat->cnt & 0x400)) { sio_stat->active_transfer = true; }
 	}
 
-	else if(sio_stat->cnt & 0x2000) { sio_stat->sio_mode = MULTIPLAY_16BIT; }
+	//Multiplayer - 16bit
+	else if(sio_stat->cnt & 0x2000)
+	{
+		sio_stat->sio_mode = MULTIPLAY_16BIT;
+
+		//Convert baud rate to approximate GBA CPU cycles
+		switch(sio_stat->cnt & 0x3)
+		{
+			case 0x0: sio_stat->shift_clock = 1747; break;
+			case 0x1: sio_stat->shift_clock = 436; break;
+			case 0x2: sio_stat->shift_clock = 291; break;
+			case 0x3: sio_stat->shift_clock = 145; break;
+		}
+
+		//Determine Player ID
+		sio_stat->cnt &= ~0x30;
+		sio_stat->cnt |= ((sio_stat->player_id & 0x3) << 4);
+
+	}
+
 	else if(sio_stat->cnt & 0x1000) { sio_stat->sio_mode = NORMAL_32BIT; }
 	else { sio_stat->sio_mode = NORMAL_8BIT; }
 }
