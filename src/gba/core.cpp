@@ -254,6 +254,19 @@ void AGB_core::run_core()
 		//Run the CPU
 		if(core_cpu.running)
 		{	
+			//Receive byte from another instance of GBE+ via netplay - Manage sync
+			if(core_cpu.controllers.serial_io.sio_stat.connected)
+			{
+				//Perform syncing operations when hard sync is enabled
+				if(config::netplay_hard_sync) { hard_sync(); }
+
+				//Receive bytes normally
+				core_cpu.controllers.serial_io.receive_byte();
+			}
+
+			//Reset system cycles for next instruction
+			core_cpu.system_cycles = 0;
+
 			if(db_unit.debug_mode) { debug_step(); }
 
 			core_cpu.fetch();
@@ -631,6 +644,31 @@ void AGB_core::stop_netplay()
 	{
 		core_cpu.controllers.serial_io.reset();
 		std::cout<<"SIO::Netplay connection terminated. Restart to reconnect.\n";
+	}
+}
+
+/****** Perform hard sync for netplay ******/
+void AGB_core::hard_sync()
+{
+	core_cpu.controllers.serial_io.sio_stat.sync_counter += core_cpu.system_cycles;
+
+	//Once this Game Boy has reached a specified amount of cycles, freeze until the other Game Boy finished that many cycles
+	if(core_cpu.controllers.serial_io.sio_stat.sync_counter >= core_cpu.controllers.serial_io.sio_stat.sync_clock)
+	{
+		core_cpu.controllers.serial_io.request_sync();
+		u32 current_time = SDL_GetTicks();
+		u32 timeout = 0;
+
+		while(core_cpu.controllers.serial_io.sio_stat.sync)
+		{
+			core_cpu.controllers.serial_io.receive_byte();
+			//if(core_cpu.controllers.serial_io.is_master) { core_cpu.controllers.serial_io.four_player_request_sync(); }
+
+			//Timeout if 10 seconds passes
+			timeout = SDL_GetTicks();
+							
+			if((timeout - current_time) >= 10000) { core_cpu.controllers.serial_io.reset(); }						
+		}
 	}
 }
 

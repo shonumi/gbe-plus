@@ -173,6 +173,7 @@ class ARM7
 	u32 instruction_pipeline[3];
 	arm_instructions instruction_operation[3];
 	u8 pipeline_pointer;
+	u32 system_cycles;
 
 	u8 debug_message;
 	u32 debug_code;

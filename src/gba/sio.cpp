@@ -155,6 +155,7 @@ void AGB_SIO::reset()
 	sio_stat.active_transfer = false;
 	sio_stat.internal_clock = false;
 	sio_stat.sync_counter = 0;
+	sio_stat.sync_clock = config::netplay_sync_threshold;
 	sio_stat.sync = false;
 	sio_stat.transfer_data_u8 = 0;
 	sio_stat.transfer_data_u32 = 0;

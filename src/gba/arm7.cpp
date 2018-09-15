@@ -79,6 +79,8 @@ void ARM7::reset()
 		controllers.timer[x].enable = false;
 	}
 
+	system_cycles = 0;
+
 	debug_message = 0xFF;
 	debug_code = 0;
 	debug_cycles = 0;
@@ -1418,7 +1420,6 @@ void ARM7::clock(u32 access_addr, bool first_access)
 		//Access time is +1 if outside of H-Blank of V-Blank, that is to say during scanline rendering
 		//Otherwise, each 16-bit access is 1 cycle
 		if(controllers.video.lcd_mode == 0) { access_cycles++; }
-
 	}
 
 	//Wait State 0
@@ -1430,6 +1431,8 @@ void ARM7::clock(u32 access_addr, bool first_access)
 		//Determine second access cycles (Sequential)
 		else { access_cycles += mem->s_clock; }
 	}
+
+	system_cycles += access_cycles;
 
 	//Run controllers for each cycle		 
 	for(int x = 0; x < access_cycles; x++)
@@ -1461,6 +1464,8 @@ void ARM7::clock()
 		if(controllers.audio.apu_stat.psg_needs_fill) { controllers.audio.buffer_channels(); }
 		controllers.audio.apu_stat.psg_needs_fill = true;
 	}
+
+	system_cycles++;
 }
 
 /****** Runs DMA controllers every clock cycle ******/

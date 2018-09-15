@@ -67,6 +67,7 @@ class AGB_core : virtual public core_emu
 		//Netplay interface
 		void start_netplay();
 		void stop_netplay();
+		void hard_sync();
 
 		//Misc
 		u32 get_core_data(u32 core_index);
