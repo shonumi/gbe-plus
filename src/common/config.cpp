@@ -142,6 +142,7 @@ namespace config
 	u32 netplay_sync_threshold = 32;
 	u16 netplay_server_port = 2000;
 	u16 netplay_client_port = 2001;
+	u8 netplay_id = 0;
 	std::string netplay_client_ip = "127.0.0.1";
 
 	u8 dmg_gbc_pal = 0;
@@ -2440,6 +2441,26 @@ bool parse_ini_file()
 			}
 		}
 
+		//Netplay Player ID
+		else if(ini_item == "#netplay_id")
+		{
+			if((x + 1) < size) 
+			{
+				ini_item = ini_opts[++x];
+				std::stringstream temp_stream(ini_item);
+				temp_stream >> output;
+
+				if(output <= 3) { config::netplay_id = output; }
+				else { config::netplay_id = 0; }
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#netplay_id) \n";
+				return false;
+			}
+		}
+
 		//IR database index
 		else if(ini_item == "#ir_db_index")
 		{
@@ -3119,6 +3140,15 @@ bool save_ini_file()
 		{
 			line_pos = output_count[x];
 			output_lines[line_pos] = "[#netplay_client_ip:" + config::netplay_client_ip + "]";
+		}
+
+		//Netplay Player ID
+		else if(ini_item == "#netplay_id")
+		{
+			line_pos = output_count[x];
+			std::string val = util::to_str(config::netplay_id);
+
+			output_lines[line_pos] = "[#netplay_id:" + val + "]";
 		}
 
 		//IR database index
