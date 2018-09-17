@@ -1484,6 +1484,38 @@ void ARM7::clock_dma()
 	if(mem->dma[3].enable) { dma3(); }
 }
 
+/****** Runs Serial IO for some cycles ******/
+void ARM7::clock_sio()
+{
+	if(controllers.serial_io.sio_stat.shifts_left != 0)
+	{
+		controllers.serial_io.sio_stat.shift_counter += system_cycles;
+
+		//After SIO clocks, perform SIO operations now
+		if(controllers.serial_io.sio_stat.shift_counter >= controllers.serial_io.sio_stat.shift_clock)
+		{
+			controllers.serial_io.sio_stat.shift_counter -= controllers.serial_io.sio_stat.shift_clock;
+			controllers.serial_io.sio_stat.shifts_left--;
+
+			//Complete the transfer
+			if(controllers.serial_io.sio_stat.shifts_left == 0)
+			{
+				controllers.serial_io.sio_stat.active_transfer = false;
+
+				//16-bit Multiplayer Mode
+				if((controllers.serial_io.sio_stat.sio_type == GBA_LINK) && (controllers.serial_io.sio_stat.sio_mode == MULTIPLAY_16BIT))
+				{
+					//Reset Bit 7 in SIO_CNT
+					mem->memory_map[SIO_CNT] &= ~0x80;
+
+					//Transfer data over network
+					controllers.serial_io.send_data();
+				}
+			}
+		}
+	}
+}
+
 /****** Runs Timer controllers every clock cycle ******/
 void ARM7::clock_timers()
 {

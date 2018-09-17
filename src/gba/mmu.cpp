@@ -1624,7 +1624,6 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			memory_map[address] = value;
 			sio_stat->cnt = ((memory_map[SIO_CNT+1] << 8) | memory_map[SIO_CNT]);
 			sio_stat->internal_clock = (sio_stat->cnt & 0x1) ? true : false;
-			sio_stat->active_transfer = (sio_stat->cnt & 0x80) ? true : false;
 
 			process_sio();
 
@@ -2582,10 +2581,26 @@ void AGB_MMU::process_sio()
 			case 0x3: sio_stat->shift_clock = 145; break;
 		}
 
+		//Mask out Read-Only bits - Do not mask START bit for master
+		sio_stat->cnt &= (sio_stat->player_id == 0) ? ~0x7C : ~0xFC;
+
+		//Determine Parent-Child status
+		if(sio_stat->player_id != 0) { sio_stat->cnt |= 0x4; }
+
+		//Determine connection status
+		if(!sio_stat->connected) { sio_stat->cnt |= 0x8; }
+
 		//Determine Player ID
-		sio_stat->cnt &= ~0x30;
 		sio_stat->cnt |= ((sio_stat->player_id & 0x3) << 4);
 
+		//Start transfer
+		if((sio_stat->player_id == 0) && (!sio_stat->active_transfer) && (sio_stat->cnt & 0x80))
+		{
+			sio_stat->active_transfer = true;
+			sio_stat->shifts_left = 16;
+			sio_stat->shift_counter = 0;
+			sio_stat->transfer_data_u32 = (memory_map[SIO_DATA_8 + 1] << 8) | memory_map[SIO_DATA_8];
+		}
 	}
 
 	else if(sio_stat->cnt & 0x1000) { sio_stat->sio_mode = NORMAL_32BIT; }

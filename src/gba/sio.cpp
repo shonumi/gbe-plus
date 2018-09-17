@@ -161,9 +161,10 @@ void AGB_SIO::reset()
 	sio_stat.transfer_data_u32 = 0;
 	sio_stat.shift_counter = 64;
 	sio_stat.shift_clock = 0;
+	sio_stat.shifts_left = 0;
 	sio_stat.r_cnt = 0x8000;
 	sio_stat.cnt = 0;
-	sio_stat.player_id = 0;
+	sio_stat.player_id = config::netplay_id;
 
 	switch(config::sio_device)
 	{
@@ -271,6 +272,16 @@ bool AGB_SIO::receive_byte()
 			//Stop sync
 			if(temp_buffer[4] == 0xFF)
 			{
+				//Check ID byte
+				if(temp_buffer[3] == sio_stat.player_id)
+				{
+					std::cout<<"SIO::Error - Netplay IDs are the same. Closing connection.\n";
+					sio_stat.connected = false;
+					server.connected = false;
+					sender.connected = false;
+					return false;
+				}
+
 				sio_stat.sync = false;
 				sio_stat.sync_counter = 0;
 				return true;
@@ -334,7 +345,7 @@ bool AGB_SIO::request_sync()
 {
 	#ifdef GBE_NETPLAY
 
-	u8 temp_buffer[5] = {0, 0, 0, 0, 0xFF} ;
+	u8 temp_buffer[5] = {0, 0, 0, sio_stat.player_id, 0xFF} ;
 
 	//Send the sync code 0xFF
 	if(SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 5) < 5)

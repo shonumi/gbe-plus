@@ -45,6 +45,7 @@ struct agb_sio_data
 	u32 transfer_data_u32;
 	u32 shift_counter;
 	u32 shift_clock;
+	u32 shifts_left;
 	u16 cnt;
 	u16 r_cnt;
 	u8 player_id;
