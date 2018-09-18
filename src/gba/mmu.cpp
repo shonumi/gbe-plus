@@ -1628,21 +1628,6 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			process_sio();
 
 			break;
-
-		//Serial Data8
-		case SIO_DATA_8:
-			memory_map[address] = value;
-			sio_stat->transfer_data_u8 = value;
-			break;
-
-		//Serial Data32
-		case SIO_DATA_32_L:
-		case SIO_DATA_32_L+1:
-		case SIO_DATA_32_L+2:
-		case SIO_DATA_32_L+3:
-			memory_map[address] = value;
-			sio_stat->transfer_data_u32 = ((memory_map[SIO_DATA_32_L+3] << 24) | (memory_map[SIO_DATA_32_L+2] << 16) | (memory_map[SIO_DATA_32_L+1] << 8) | memory_map[SIO_DATA_32_L]);
-			break;
 			
 		//Wait State Control
 		case WAITCNT:
@@ -2588,7 +2573,7 @@ void AGB_MMU::process_sio()
 		if(sio_stat->player_id != 0) { sio_stat->cnt |= 0x4; }
 
 		//Determine connection status
-		if(!sio_stat->connected) { sio_stat->cnt |= 0x8; }
+		if(sio_stat->connected) { sio_stat->cnt |= 0x8; }
 
 		//Determine Player ID
 		sio_stat->cnt |= ((sio_stat->player_id & 0x3) << 4);
@@ -2599,7 +2584,7 @@ void AGB_MMU::process_sio()
 			sio_stat->active_transfer = true;
 			sio_stat->shifts_left = 16;
 			sio_stat->shift_counter = 0;
-			sio_stat->transfer_data_u32 = (memory_map[SIO_DATA_8 + 1] << 8) | memory_map[SIO_DATA_8];
+			sio_stat->transfer_data = (memory_map[SIO_DATA_8 + 1] << 8) | memory_map[SIO_DATA_8];
 		}
 	}
 

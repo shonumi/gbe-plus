@@ -262,6 +262,9 @@ void AGB_core::run_core()
 
 				//Receive bytes normally
 				core_cpu.controllers.serial_io.receive_byte();
+
+				//Clock SIO
+				core_cpu.clock_sio();
 			}
 
 			//Reset system cycles for next instruction
