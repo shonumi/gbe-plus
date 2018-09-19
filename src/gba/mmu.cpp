@@ -2585,6 +2585,12 @@ void AGB_MMU::process_sio()
 			sio_stat->shifts_left = 16;
 			sio_stat->shift_counter = 0;
 			sio_stat->transfer_data = (memory_map[SIO_DATA_8 + 1] << 8) | memory_map[SIO_DATA_8];
+
+			//Reset incoming data
+			write_u16_fast(0x4000120, 0xFFFF);
+			write_u16_fast(0x4000122, 0xFFFF);
+			write_u16_fast(0x4000124, 0xFFFF);
+			write_u16_fast(0x4000126, 0xFFFF);
 		}
 	}
 

@@ -227,8 +227,6 @@ bool AGB_SIO::send_data()
 	temp_buffer[3] = ((sio_stat.transfer_data >> 24) & 0xFF);
 	temp_buffer[4] = (0x40 | sio_stat.player_id);
 
-	std::cout<<"DATA SEND -> 0x" << sio_stat.transfer_data << "\n";
-
 	if(SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 5) < 5)
 	{
 		std::cout<<"SIO::Error - Host failed to send data to client\n";
@@ -266,11 +264,17 @@ bool AGB_SIO::send_data()
 					mem->memory_map[0x4000127] = temp_buffer[1];
 					break;
 			}
+
+			//Set master data
+			mem->write_u16_fast(0x4000120, sio_stat.transfer_data);
+
+			//Raise SIO IRQ after sending byte
+			if(sio_stat.cnt & 0x4000) { mem->memory_map[REG_IF] |= 0x80; }
+
+			//Set SC and SO HIGH on master
+			mem->write_u8(R_CNT, (mem->memory_map[R_CNT] | 0x9));
 		}
 	}
-
-	//Raise SIO IRQ after sending byte
-	mem->memory_map[REG_IF] |= 0x80;
 
 	#endif
 
@@ -337,8 +341,15 @@ bool AGB_SIO::receive_byte()
 			//Process GBA SIO communications
 			else if((temp_buffer[4] >= 0x40) && (temp_buffer[4] <= 0x43))
 			{
+				//Reset transfer data
+				mem->write_u16_fast(0x4000124, 0xFFFF);
+				mem->write_u16_fast(0x4000126, 0xFFFF);
+
 				//Raise SIO IRQ after sending byte
-				mem->memory_map[REG_IF] |= 0x80;
+				if(sio_stat.cnt & 0x4000) { mem->memory_map[REG_IF] |= 0x80; }
+
+				//Set SO HIGH on all children
+				mem->write_u8(R_CNT, (mem->memory_map[R_CNT] | 0x8));
 
 				//Store byte from transfer into SIO data registers - 16-bit Multiplayer
 				if(sio_stat.sio_mode == MULTIPLAY_16BIT)
