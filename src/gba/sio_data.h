@@ -39,6 +39,7 @@ struct agb_sio_data
 	bool active_transfer;
 	bool internal_clock;
 	bool sync;
+	bool connection_ready;
 	u32 sync_counter;
 	u32 sync_clock;
 	u32 transfer_data;

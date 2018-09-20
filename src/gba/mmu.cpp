@@ -2573,7 +2573,7 @@ void AGB_MMU::process_sio()
 		if(sio_stat->player_id != 0) { sio_stat->cnt |= 0x4; }
 
 		//Determine connection status
-		if(sio_stat->connected) { sio_stat->cnt |= 0x8; }
+		if(sio_stat->connection_ready) { sio_stat->cnt |= 0x8; }
 
 		//Determine Player ID
 		sio_stat->cnt |= ((sio_stat->player_id & 0x3) << 4);

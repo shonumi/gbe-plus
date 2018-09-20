@@ -157,6 +157,7 @@ void AGB_SIO::reset()
 	sio_stat.sync_counter = 0;
 	sio_stat.sync_clock = config::netplay_sync_threshold;
 	sio_stat.sync = false;
+	sio_stat.connection_ready = false;
 	sio_stat.transfer_data = 0;
 	sio_stat.shift_counter = 64;
 	sio_stat.shift_clock = 0;
@@ -239,40 +240,53 @@ bool AGB_SIO::send_data()
 	//Wait for other GBA to acknowledge
 	if(SDLNet_TCP_Recv(server.remote_socket, temp_buffer, 5) > 0)
 	{
-		//16-bit Multiplayer
-		if(sio_stat.sio_mode == MULTIPLAY_16BIT)
+		//Only process response if the emulated SIO connection is ready
+		if(sio_stat.connection_ready)
 		{
-			switch(temp_buffer[4])
+			//16-bit Multiplayer
+			if(sio_stat.sio_mode == MULTIPLAY_16BIT)
 			{
-				case 0x0:
-					mem->memory_map[0x4000120] = temp_buffer[0];
-					mem->memory_map[0x4000121] = temp_buffer[1];
-					break;
+				switch(temp_buffer[4])
+				{
+					case 0x0:
+						mem->memory_map[0x4000120] = temp_buffer[0];
+						mem->memory_map[0x4000121] = temp_buffer[1];
+						break;
 
-				case 0x1:
-					mem->memory_map[0x4000122] = temp_buffer[0];
-					mem->memory_map[0x4000123] = temp_buffer[1];
-					break; 
+					case 0x1:
+						mem->memory_map[0x4000122] = temp_buffer[0];
+						mem->memory_map[0x4000123] = temp_buffer[1];
+						break; 
 
-				case 0x2:
-					mem->memory_map[0x4000124] = temp_buffer[0];
-					mem->memory_map[0x4000125] = temp_buffer[1];
-					break; 
+					case 0x2:
+						mem->memory_map[0x4000124] = temp_buffer[0];
+						mem->memory_map[0x4000125] = temp_buffer[1];
+						break; 
 
-				case 0x3:
-					mem->memory_map[0x4000126] = temp_buffer[0];
-					mem->memory_map[0x4000127] = temp_buffer[1];
-					break;
+					case 0x3:
+						mem->memory_map[0x4000126] = temp_buffer[0];
+						mem->memory_map[0x4000127] = temp_buffer[1];
+						break;
+				}
+
+				//Set master data
+				mem->write_u16_fast(0x4000120, sio_stat.transfer_data);
+
+				//Raise SIO IRQ after sending byte
+				if(sio_stat.cnt & 0x4000) { mem->memory_map[REG_IF] |= 0x80; }
+
+				//Set SC and SO HIGH on master
+				mem->write_u8(R_CNT, (mem->memory_map[R_CNT] | 0x9));
 			}
+		}
 
-			//Set master data
-			mem->write_u16_fast(0x4000120, sio_stat.transfer_data);
-
-			//Raise SIO IRQ after sending byte
-			if(sio_stat.cnt & 0x4000) { mem->memory_map[REG_IF] |= 0x80; }
-
-			//Set SC and SO HIGH on master
-			mem->write_u8(R_CNT, (mem->memory_map[R_CNT] | 0x9));
+		//Otherwise delay the transfer
+		else
+		{
+			sio_stat.active_transfer = true;
+			sio_stat.shifts_left = 16;
+			sio_stat.shift_counter = 0;
+			mem->memory_map[SIO_CNT] |= 0x80;
 		}
 	}
 
@@ -309,6 +323,8 @@ bool AGB_SIO::receive_byte()
 					return false;
 				}
 
+				sio_stat.connection_ready = (temp_buffer[2] == sio_stat.sio_mode) ? true : false;
+
 				sio_stat.sync = false;
 				sio_stat.sync_counter = 0;
 				return true;
@@ -341,51 +357,54 @@ bool AGB_SIO::receive_byte()
 			//Process GBA SIO communications
 			else if((temp_buffer[4] >= 0x40) && (temp_buffer[4] <= 0x43))
 			{
-				//Reset transfer data
-				mem->write_u16_fast(0x4000124, 0xFFFF);
-				mem->write_u16_fast(0x4000126, 0xFFFF);
-
-				//Raise SIO IRQ after sending byte
-				if(sio_stat.cnt & 0x4000) { mem->memory_map[REG_IF] |= 0x80; }
-
-				//Set SO HIGH on all children
-				mem->write_u8(R_CNT, (mem->memory_map[R_CNT] | 0x8));
-
-				//Store byte from transfer into SIO data registers - 16-bit Multiplayer
-				if(sio_stat.sio_mode == MULTIPLAY_16BIT)
+				if(sio_stat.connection_ready)
 				{
-					switch(temp_buffer[4])
+					//Reset transfer data
+					mem->write_u16_fast(0x4000124, 0xFFFF);
+					mem->write_u16_fast(0x4000126, 0xFFFF);
+
+					//Raise SIO IRQ after sending byte
+					if(sio_stat.cnt & 0x4000) { mem->memory_map[REG_IF] |= 0x80; }
+
+					//Set SO HIGH on all children
+					mem->write_u8(R_CNT, (mem->memory_map[R_CNT] | 0x8));
+
+					//Store byte from transfer into SIO data registers - 16-bit Multiplayer
+					if(sio_stat.sio_mode == MULTIPLAY_16BIT)
 					{
-						case 0x40:
-							mem->memory_map[0x4000120] = temp_buffer[0];
-							mem->memory_map[0x4000121] = temp_buffer[1];
-							break;
+						switch(temp_buffer[4])
+						{
+							case 0x40:
+								mem->memory_map[0x4000120] = temp_buffer[0];
+								mem->memory_map[0x4000121] = temp_buffer[1];
+								break;
 
-						case 0x41:
-							mem->memory_map[0x4000122] = temp_buffer[0];
-							mem->memory_map[0x4000123] = temp_buffer[1];
-							break; 
+							case 0x41:
+								mem->memory_map[0x4000122] = temp_buffer[0];
+								mem->memory_map[0x4000123] = temp_buffer[1];
+								break; 
 
-						case 0x42:
-							mem->memory_map[0x4000124] = temp_buffer[0];
-							mem->memory_map[0x4000125] = temp_buffer[1];
-							break; 
+							case 0x42:
+								mem->memory_map[0x4000124] = temp_buffer[0];
+								mem->memory_map[0x4000125] = temp_buffer[1];
+								break; 
 
-						case 0x43:
-							mem->memory_map[0x4000126] = temp_buffer[0];
-							mem->memory_map[0x4000127] = temp_buffer[1];
-							break;
+							case 0x43:
+								mem->memory_map[0x4000126] = temp_buffer[0];
+								mem->memory_map[0x4000127] = temp_buffer[1];
+								break;
+						}
+
+						sio_stat.transfer_data = (mem->memory_map[SIO_DATA_8 + 1] << 8) | mem->memory_map[SIO_DATA_8];
+
+						temp_buffer[0] = (sio_stat.transfer_data & 0xFF);
+						temp_buffer[1] = ((sio_stat.transfer_data >> 8) & 0xFF);
+						temp_buffer[2] = ((sio_stat.transfer_data >> 16) & 0xFF);
+						temp_buffer[3] = ((sio_stat.transfer_data >> 24) & 0xFF);
 					}
 
-					sio_stat.transfer_data = (mem->memory_map[SIO_DATA_8 + 1] << 8) | mem->memory_map[SIO_DATA_8];
-
-					temp_buffer[0] = (sio_stat.transfer_data & 0xFF);
-					temp_buffer[1] = ((sio_stat.transfer_data >> 8) & 0xFF);
-					temp_buffer[2] = ((sio_stat.transfer_data >> 16) & 0xFF);
-					temp_buffer[3] = ((sio_stat.transfer_data >> 24) & 0xFF);
+					temp_buffer[4] = sio_stat.player_id;
 				}
-
-				temp_buffer[4] = sio_stat.player_id;
 
 				//Send acknowledgement
 				if(SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 5) < 5)
@@ -412,7 +431,7 @@ bool AGB_SIO::request_sync()
 {
 	#ifdef GBE_NETPLAY
 
-	u8 temp_buffer[5] = {0, 0, 0, sio_stat.player_id, 0xFF} ;
+	u8 temp_buffer[5] = {0, 0, sio_stat.sio_mode, sio_stat.player_id, 0xFF} ;
 
 	//Send the sync code 0xFF
 	if(SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 5) < 5)
