@@ -18,6 +18,8 @@
 /****** SIO Constructor ******/
 AGB_SIO::AGB_SIO()
 {
+	network_init = false;
+
 	reset();
 }
 
