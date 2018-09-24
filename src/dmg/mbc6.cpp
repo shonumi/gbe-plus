@@ -57,11 +57,14 @@ void DMG_MMU::mbc6_write(u16 address, u8 value)
 	//MBC register - FLASH Control
 	else if((address >= 0xC00) && (address <= 0xFFF))
 	{
-		if(value & 0x1) { cart.flash_cnt |= 0x1; }
-		else { cart.flash_cnt &= ~0x1; }
+		if(cart.flash_cnt & 0x2)
+		{
+			if(value & 0x1) { cart.flash_cnt |= 0x1; }
+			else { cart.flash_cnt &= ~0x1; }
+		}
 	}
 
-	//MBC register - FLASH enable
+	//MBC register - FLASH Control Write Enable
 	else if((address >= 0x1000) && (address <= 0x1FFF))
 	{
 		if(value & 0x1) { cart.flash_cnt |= 0x2; }
@@ -132,7 +135,7 @@ u8 DMG_MMU::mbc6_read(u16 address)
 	else if((address >= 0x6000) && (address <= 0x7FFF))
 	{
 		//Read from FLASH - TODO
-		if((cart.flash_cnt & 0x2) && (cart.flash_cnt & 0x8)) { return 0x0; }
+		if((cart.flash_cnt & 0x1) && (cart.flash_cnt & 0x8)) { return 0x0; }
 
 		u8 bank_1 = ((rom_bank >> 8) & 0x7F);
 		u8 real_bank = (bank_1 >> 1);
