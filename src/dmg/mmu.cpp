@@ -66,6 +66,8 @@ void DMG_MMU::reset()
 	cart.rtc_latch_1 = cart.rtc_latch_2 = 0xFF;
 
 	cart.flash_cnt = 0;
+	cart.flash_cmd = 0;
+	cart.flash_get_id = false;
 
 	for(int x = 0; x < 5; x++)
 	{

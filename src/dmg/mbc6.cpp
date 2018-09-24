@@ -98,6 +98,43 @@ void DMG_MMU::mbc6_write(u16 address, u8 value)
 		if(value == 0x8) { cart.flash_cnt |= 0x8; }
 		else { cart.flash_cnt &= ~0x8; }
 	}
+
+	//Flash commands
+	else if((address >= 0x6000) && (address <= 0x7FFF))
+	{
+		//Grab Flash handshake
+		if((address == 0x7555) && (cart.flash_cmd == 0) && (value == 0xAA)) { cart.flash_cmd = 1; }
+		else if((address == 0x6AAA) && (cart.flash_cmd == 1) && (value == 0x55) { cart.flash_cmd = 2; }
+
+		//Grab Flash commands
+		else if(cart.flash_cmd == 2)
+		{
+			switch(value)
+			{
+				//Flash erase sector
+				case 0x30:
+					cart.flash_cmd = 0;
+					break;
+
+				//Flash erase command
+				case 0x80:
+					cart.flash_cmd = 0;
+					break;
+
+				//Flash ID start
+				case 0x90:
+					cart.flash_get_id = true;
+					cart.flash_cmd = 0;
+					break;
+
+				//Flash ID end - Reset
+				case 0xF0:
+					cart.flash_get_id = false;
+					cart.flash_cmd = 0;
+					break;
+			}
+		}
+	}	
 }
 
 /****** Performs read operations specific to the MBC6 ******/

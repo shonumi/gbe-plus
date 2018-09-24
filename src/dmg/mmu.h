@@ -91,6 +91,8 @@ class DMG_MMU
 
 		//MBC6
 		u8 flash_cnt;
+		u8 flash_cmd;
+		bool flash_get_id;
 
 		//MBC7
 		bool idle;
