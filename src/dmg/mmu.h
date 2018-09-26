@@ -54,6 +54,9 @@ class DMG_MMU
 	std::vector< std::vector<u8> > working_ram_bank;
 	std::vector< std::vector<u8> > video_ram;
 
+	//Flash memory - MBC6 only
+	std::vector< std::vector<u8> > flash;
+
 	//Bank controls
 	u16 rom_bank;
 	u8 ram_bank;
@@ -92,6 +95,7 @@ class DMG_MMU
 		//MBC6
 		u8 flash_cnt;
 		u8 flash_cmd;
+		u8 flash_stat;
 		bool flash_get_id;
 
 		//MBC7

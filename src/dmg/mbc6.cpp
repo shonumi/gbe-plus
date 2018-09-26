@@ -99,41 +99,48 @@ void DMG_MMU::mbc6_write(u16 address, u8 value)
 		else { cart.flash_cnt &= ~0x8; }
 	}
 
-	//Flash commands
+	//FLASH commands
 	else if((address >= 0x6000) && (address <= 0x7FFF))
 	{
-		//Grab Flash handshake
-		if((address == 0x7555) && (cart.flash_cmd == 0) && (value == 0xAA)) { cart.flash_cmd = 1; }
-		else if((address == 0x6AAA) && (cart.flash_cmd == 1) && (value == 0x55) { cart.flash_cmd = 2; }
+		u8 bank = ((rom_bank >> 8) & 0x7);
 
-		//Grab Flash commands
+		//Grab FLASH handshake
+		if((address == 0x7555) && (cart.flash_cmd == 0) && (value == 0xAA)) { cart.flash_cmd = 1; cart.flash_stat &= ~0x1; }
+		else if((address == 0x6AAA) && (cart.flash_cmd == 1) && (value == 0x55)) { cart.flash_cmd = 2; }
+
+		//Grab FLASH commands
 		else if(cart.flash_cmd == 2)
 		{
 			switch(value)
 			{
-				//Flash erase sector
+				//FLASH erase sector
 				case 0x30:
+					flash[bank].resize(0x2000, 0);
+					cart.flash_stat |= 0x1;
 					cart.flash_cmd = 0;
 					break;
 
-				//Flash erase command
+				//FLASH erase command
 				case 0x80:
 					cart.flash_cmd = 0;
 					break;
 
-				//Flash ID start
+				//FLASH ID start
 				case 0x90:
 					cart.flash_get_id = true;
 					cart.flash_cmd = 0;
 					break;
 
-				//Flash ID end - Reset
+				//FLASH ID end - Reset
 				case 0xF0:
 					cart.flash_get_id = false;
 					cart.flash_cmd = 0;
 					break;
 			}
 		}
+
+		//Write to FLASH normally
+		else { flash[bank][address - 0x6000] = value; }
 	}	
 }
 
@@ -172,7 +179,20 @@ u8 DMG_MMU::mbc6_read(u16 address)
 	else if((address >= 0x6000) && (address <= 0x7FFF))
 	{
 		//Read from FLASH - TODO
-		if((cart.flash_cnt & 0x1) && (cart.flash_cnt & 0x8)) { return 0x0; }
+		if((cart.flash_cnt & 0x1) && (cart.flash_cnt & 0x8))
+		{
+			u8 bank = ((rom_bank >> 8) & 0x7);
+
+			//Grab FLASH IDs
+			if((cart.flash_get_id) && (address == 0x6000)) { return 0xC2; }
+			else if((cart.flash_get_id) && (address == 0x6001)) { return 0x81; }
+
+			//Get FLASH Status
+			else if(cart.flash_stat & 0x1) { return 0x80; }
+
+			//Read from FLASH normally
+			else { return flash[bank][address - 0x6000]; }
+		}
 
 		u8 bank_1 = ((rom_bank >> 8) & 0x7F);
 		u8 real_bank = (bank_1 >> 1);
