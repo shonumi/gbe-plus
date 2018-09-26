@@ -272,13 +272,13 @@ void DMG_SIO::mobile_adapter_process()
 						mobile_adapter.packet_buffer.push_back(0x01);
 
 						//Body
-						if(mobile_adapter.line_busy) { mobile_adapter.packet_buffer.push_back(0x05); }
+						if(mobile_adapter.line_busy) { mobile_adapter.packet_buffer.push_back(0x04); }
 						else { mobile_adapter.packet_buffer.push_back(0x00); }
 
 						//Checksum
 						mobile_adapter.packet_buffer.push_back(0x00);
 
-						if(mobile_adapter.line_busy) { mobile_adapter.packet_buffer.push_back(0x1D); }
+						if(mobile_adapter.line_busy) { mobile_adapter.packet_buffer.push_back(0x1C); }
 						else { mobile_adapter.packet_buffer.push_back(0x18); }
 
 						//Acknowledgement handshake
