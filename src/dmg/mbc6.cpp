@@ -151,7 +151,7 @@ u8 DMG_MMU::mbc6_read(u16 address)
 	if((address >= 0x4000) && (address <= 0x5FFF))
 	{
 		//Read from FLASH - TODO
-		if((cart.flash_cnt & 0x1) && (cart.flash_cnt & 0x4)) { return 0x0; }
+		if(cart.flash_cnt & 0x4) { return 0x0; }
 
 		u8 bank_0 = (rom_bank & 0x7F);
 		u8 real_bank = (bank_0 >> 1);
@@ -179,7 +179,7 @@ u8 DMG_MMU::mbc6_read(u16 address)
 	else if((address >= 0x6000) && (address <= 0x7FFF))
 	{
 		//Read from FLASH - TODO
-		if((cart.flash_cnt & 0x1) && (cart.flash_cnt & 0x8))
+		if(cart.flash_cnt & 0x8)
 		{
 			u8 bank = ((rom_bank >> 8) & 0x7);
 
