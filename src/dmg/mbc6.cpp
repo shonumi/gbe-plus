@@ -115,13 +115,14 @@ void DMG_MMU::mbc6_write(u16 address, u8 value)
 			{
 				//FLASH erase sector
 				case 0x30:
-					flash[bank].resize(0x2000, 0);
+					flash[bank].resize(0x2000, 0xFF);
 					cart.flash_stat |= 0x1;
 					cart.flash_cmd = 0;
 					break;
 
 				//FLASH erase command
 				case 0x80:
+					cart.flash_stat |= 0x6;
 					cart.flash_cmd = 0;
 					break;
 
@@ -183,9 +184,9 @@ u8 DMG_MMU::mbc6_read(u16 address)
 		{
 			u8 bank = ((rom_bank >> 8) & 0x7);
 
-			//Grab FLASH IDs
-			if((cart.flash_get_id) && (address == 0x6000)) { return 0xC2; }
-			else if((cart.flash_get_id) && (address == 0x6001)) { return 0x81; }
+			//Some FLASH erase status
+			if((cart.flash_stat & 0x2) && (address == 0x606D)) { cart.flash_stat &= ~0x2; return 0x3B; }
+			if((cart.flash_stat & 0x4) && (address == 0x606E)) { cart.flash_stat &= ~0x4; return 0xB3; }
 
 			//Get FLASH Status
 			else if(cart.flash_stat & 0x1) { return 0x80; }
