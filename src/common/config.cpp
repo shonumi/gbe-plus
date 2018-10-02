@@ -2889,6 +2889,17 @@ bool save_ini_file()
 			output_lines[line_pos] = "[#fragment_shader:'" + config::fragment_shader + "']";
 		}
 
+		//OpenGL Vertex Shader
+		else if(ini_item == "#vertex_shader")
+		{
+			line_pos = output_count[x];
+
+			if(config::vertex_shader == (config::data_path + "shaders/vertex.vs")) { config::vertex_shader = "vertex.vs"; }
+			else if(config::vertex_shader == (config::data_path + "shaders/invert_x.vs")) { config::vertex_shader = "invert_x.vs"; }
+
+			output_lines[line_pos] = "[#vertex_shader:'" + config::vertex_shader + "']";
+		}
+
 		//DMG-GBC keyboard controls
 		else if(ini_item == "#dmg_key_controls")
 		{

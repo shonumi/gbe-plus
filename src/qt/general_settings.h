@@ -63,6 +63,7 @@ class gen_settings : public QDialog
 	QComboBox* cgfx_scale;
 	QComboBox* dmg_gbc_pal;
 	QComboBox* ogl_frag_shader;
+	QComboBox* ogl_vert_shader;
 	QCheckBox* ogl;
 	QCheckBox* load_cgfx;
 	QCheckBox* aspect_ratio;
@@ -206,6 +207,7 @@ class gen_settings : public QDialog
 	void set_osd();
 	void dmg_gbc_pal_change();
 	void ogl_frag_change();
+	void ogl_vert_change();
 	void set_cgfx();
 	void volume_change();
 	void sample_rate_change();

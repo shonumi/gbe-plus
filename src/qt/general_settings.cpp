@@ -319,6 +319,20 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	ogl_frag_shader_layout->addWidget(ogl_frag_shader);
 	ogl_frag_shader_set->setLayout(ogl_frag_shader_layout);
 
+	//Display settings - OpenGL Vertex Shader
+	QWidget* ogl_vert_shader_set = new QWidget(display);
+	QLabel* ogl_vert_shader_label = new QLabel("Vertex Shader : ");
+	ogl_vert_shader = new QComboBox(ogl_vert_shader_set);
+	ogl_vert_shader->setToolTip("Applies an OpenGL GLSL vertex shader to change screen positions");
+	ogl_vert_shader->addItem("Default");
+	ogl_vert_shader->addItem("X Inverse");
+
+	QHBoxLayout* ogl_vert_shader_layout = new QHBoxLayout;
+	ogl_vert_shader_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	ogl_vert_shader_layout->addWidget(ogl_vert_shader_label);
+	ogl_vert_shader_layout->addWidget(ogl_vert_shader);
+	ogl_vert_shader_set->setLayout(ogl_vert_shader_layout);
+
 	//Display settings - Use OpenGL
 	QWidget* ogl_set = new QWidget(display);
 	QLabel* ogl_label = new QLabel("Use OpenGL");
@@ -373,6 +387,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	disp_layout->addWidget(cgfx_scale_set);
 	disp_layout->addWidget(dmg_gbc_pal_set);
 	disp_layout->addWidget(ogl_frag_shader_set);
+	disp_layout->addWidget(ogl_vert_shader_set);
 	disp_layout->addWidget(ogl_set);
 	disp_layout->addWidget(load_cgfx_set);
 	disp_layout->addWidget(aspect_set);
@@ -1112,6 +1127,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(osd_enable, SIGNAL(stateChanged(int)), this, SLOT(set_osd()));
 	connect(dmg_gbc_pal, SIGNAL(currentIndexChanged(int)), this, SLOT(dmg_gbc_pal_change()));
 	connect(ogl_frag_shader, SIGNAL(currentIndexChanged(int)), this, SLOT(ogl_frag_change()));
+	connect(ogl_vert_shader, SIGNAL(currentIndexChanged(int)), this, SLOT(ogl_vert_change()));
 	connect(load_cgfx, SIGNAL(stateChanged(int)), this, SLOT(set_cgfx()));
 	connect(volume, SIGNAL(valueChanged(int)), this, SLOT(volume_change()));
 	connect(freq, SIGNAL(currentIndexChanged(int)), this, SLOT(sample_rate_change()));
@@ -1448,17 +1464,23 @@ void gen_settings::set_ini_options()
 	else if(config::fragment_shader == (config::data_path + "shaders/tv_mode.fs")) { ogl_frag_shader->setCurrentIndex(13); }
 	else if(config::fragment_shader == (config::data_path + "shaders/washout.fs")) { ogl_frag_shader->setCurrentIndex(14); }
 
+	//OpenGL Vertex Shader
+	if(config::vertex_shader == (config::data_path + "shaders/vertex.fs")) { ogl_vert_shader->setCurrentIndex(0); }
+	else if(config::vertex_shader == (config::data_path + "shaders/invert_x.vs")) { ogl_vert_shader->setCurrentIndex(1); }
+
 	//OpenGL option
 	if(config::use_opengl)
 	{
 		ogl->setChecked(true);
 		ogl_frag_shader->setEnabled(true);
+		ogl_vert_shader->setEnabled(true);
 	}
 
 	else
 	{
 		ogl->setChecked(false);
 		ogl_frag_shader->setEnabled(false);
+		ogl_vert_shader->setEnabled(false);
 	}
 
 	//CGFX option
@@ -1664,11 +1686,20 @@ void gen_settings::show_ir_config()
 	}	
 }
 
-/****** Toggles enabling or disabling the fragment shader widget when setting OpenGL ******/
+/****** Toggles enabling or disabling the fragment and vertex shader widgets when setting OpenGL ******/
 void gen_settings::set_ogl()
 {
-	if(ogl->isChecked()) { ogl_frag_shader->setEnabled(true); }
-	else { ogl_frag_shader->setEnabled(false); }
+	if(ogl->isChecked())
+	{
+		ogl_frag_shader->setEnabled(true);
+		ogl_vert_shader->setEnabled(true);
+	}
+
+	else
+	{
+		ogl_frag_shader->setEnabled(false);
+		ogl_frag_shader->setEnabled(false);
+	}
 }
 
 /****** Changes the display scale ******/
@@ -1719,6 +1750,22 @@ void gen_settings::ogl_frag_change()
 		case 12: config::fragment_shader = config::data_path + "shaders/spotlight.fs"; break;
 		case 13: config::fragment_shader = config::data_path + "shaders/tv_mode.fs"; break;
 		case 14: config::fragment_shader = config::data_path + "shaders/washout.fs"; break;
+	}
+
+	if((main_menu::gbe_plus != NULL) && (config::use_opengl))
+	{
+		qt_gui::draw_surface->hw_screen->reload_shaders();
+		qt_gui::draw_surface->hw_screen->update();
+	}
+}
+
+/****** Changes the current OpenGL vertex shader ******/
+void gen_settings::ogl_vert_change()
+{
+	switch(ogl_vert_shader->currentIndex())
+	{
+		case 0: config::vertex_shader = config::data_path + "shaders/vertex.vs"; break;
+		case 1: config::vertex_shader = config::data_path + "shaders/invert_x.vs"; break;
 	}
 
 	if((main_menu::gbe_plus != NULL) && (config::use_opengl))
