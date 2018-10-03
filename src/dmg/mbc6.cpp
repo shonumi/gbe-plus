@@ -100,7 +100,7 @@ void DMG_MMU::mbc6_write(u16 address, u8 value)
 	}
 
 	//FLASH commands
-	else if((address >= 0x6000) && (address <= 0x7FFF))
+	else if((address >= 0x4000) && (address <= 0x7FFF))
 	{
 		u8 bank = ((rom_bank >> 8) & 0x7);
 
@@ -141,7 +141,8 @@ void DMG_MMU::mbc6_write(u16 address, u8 value)
 		}
 
 		//Write to FLASH normally
-		else { flash[bank][address - 0x6000] = value; }
+		else if(address >= 0x6000) { flash[bank][address - 0x6000] = value; }
+		else { flash[bank][address - 0x4000] = value; }
 	}	
 }
 
@@ -152,7 +153,16 @@ u8 DMG_MMU::mbc6_read(u16 address)
 	if((address >= 0x4000) && (address <= 0x5FFF))
 	{
 		//Read from FLASH - TODO
-		if(cart.flash_cnt & 0x4) { return 0x0; }
+		if(cart.flash_cnt & 0x4)
+		{
+			u8 bank = ((rom_bank >> 8) & 0x7);
+
+			//Get FLASH Status
+			else if(cart.flash_stat & 0x1) { return 0x80; }
+
+			//Read from FLASH normally
+			else { return flash[bank][address - 0x4000]; }
+		}
 
 		u8 bank_0 = (rom_bank & 0x7F);
 		u8 real_bank = (bank_0 >> 1);
