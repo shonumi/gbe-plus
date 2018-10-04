@@ -72,13 +72,7 @@ void main()
 		get_brightness(current_color, current_luma);
 		luma_distance = abs(current_luma - input_luma);
 		
-		if(luma_distance >= 0.15)
-		{
-			if(input_luma >= luma_threshold)
-			{
-				current_color = mix(temp_color, current_color, 0.5);
-			}
-		}
+		if((luma_distance >= 0.15) && (input_luma >= luma_threshold)) { current_color = mix(temp_color, current_color, 0.5); }
 	}
 
 	if((current_pos.x - tex_x) >= 0.0)
@@ -91,13 +85,7 @@ void main()
 		get_brightness(current_color, current_luma);
 		luma_distance = abs(current_luma - input_luma);
 		
-		if(luma_distance >= 0.15)
-		{
-			if(input_luma >= luma_threshold)
-			{
-				current_color = mix(temp_color, current_color, 0.5);
-			}
-		}
+		if((luma_distance >= 0.15) && (input_luma >= luma_threshold)) { current_color = mix(temp_color, current_color, 0.5); }
 	}
 
 	if((current_pos.y + tex_y) <= 1.0)
@@ -110,13 +98,7 @@ void main()
 		get_brightness(current_color, current_luma);
 		luma_distance = abs(current_luma - input_luma);
 		
-		if(luma_distance >= 0.15)
-		{
-			if(input_luma >= luma_threshold)
-			{
-				current_color = mix(temp_color, current_color, 0.5);
-			}
-		}
+		if((luma_distance >= 0.15) && (input_luma >= luma_threshold)) { current_color = mix(temp_color, current_color, 0.5); }
 	}
 
 	if((current_pos.y - tex_y) >= 0.0)
@@ -129,13 +111,7 @@ void main()
 		get_brightness(current_color, current_luma);
 		luma_distance = abs(current_luma - input_luma);
 		
-		if(luma_distance >= 0.15)
-		{
-			if(input_luma >= luma_threshold)
-			{
-				current_color = mix(temp_color, current_color, 0.5);
-			}
-		}
+		if((luma_distance >= 0.15) && (input_luma >= luma_threshold)) { current_color = mix(temp_color, current_color, 0.5); }
 	}
 
 
@@ -149,13 +125,7 @@ void main()
 		get_brightness(current_color, current_luma);
 		luma_distance = abs(current_luma - input_luma);
 		
-		if(luma_distance >= 0.15)
-		{
-			if(input_luma >= luma_threshold)
-			{
-				current_color = mix(temp_color, current_color, 0.5);
-			}
-		}
+		if((luma_distance >= 0.15) && (input_luma >= luma_threshold)) { current_color = mix(temp_color, current_color, 0.5); }
 	}
 
 	if((current_pos.x - tex_x - tex_x) >= 0.0)
@@ -168,13 +138,7 @@ void main()
 		get_brightness(current_color, current_luma);
 		luma_distance = abs(current_luma - input_luma);
 		
-		if(luma_distance >= 0.15)
-		{
-			if(input_luma >= luma_threshold)
-			{
-				current_color = mix(temp_color, current_color, 0.5);
-			}
-		}
+		if((luma_distance >= 0.15) && (input_luma >= luma_threshold)) { current_color = mix(temp_color, current_color, 0.5); }
 	}
 
 	if((current_pos.y + tex_y + tex_y) <= 1.0)
@@ -187,13 +151,7 @@ void main()
 		get_brightness(current_color, current_luma);
 		luma_distance = abs(current_luma - input_luma);
 		
-		if(luma_distance >= 0.15)
-		{
-			if(input_luma >= luma_threshold)
-			{
-				current_color = mix(temp_color, current_color, 0.5);
-			}
-		}
+		if((luma_distance >= 0.15) && (input_luma >= luma_threshold)) { current_color = mix(temp_color, current_color, 0.5); }
 	}
 
 	if((current_pos.y - tex_y - tex_y) >= 0.0)
@@ -206,16 +164,8 @@ void main()
 		get_brightness(current_color, current_luma);
 		luma_distance = abs(current_luma - input_luma);
 		
-		if(luma_distance >= 0.15)
-		{
-			if(input_luma >= luma_threshold)
-			{
-				current_color = mix(temp_color, current_color, 0.5);
-			}
-		}
+		if((luma_distance >= 0.15) && (input_luma >= luma_threshold)) { current_color = mix(temp_color, current_color, 0.5); }
 	}
-
-
 
 	get_brightness(texture(screen_texture, texture_coordinates), current_luma);
 
