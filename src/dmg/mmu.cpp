@@ -67,7 +67,7 @@ void DMG_MMU::reset()
 
 	cart.flash_cnt = 0;
 	cart.flash_cmd = 0;
-	cart.flash_stat = 0;
+	cart.flash_stat = 0x6;
 	cart.flash_get_id = false;
 
 	for(int x = 0; x < 5; x++)

@@ -140,6 +140,9 @@ void DMG_MMU::mbc6_write(u16 address, u8 value)
 			}
 		}
 
+		//Terminate erase command
+		else if((cart.flash_stat & 0x1) && (value == 0xF0)) { cart.flash_stat &= ~0x1; }
+
 		//Write to FLASH normally
 		else if(address >= 0x6000) { flash[bank][address - 0x6000] = value; }
 		else { flash[bank][address - 0x4000] = value; }
