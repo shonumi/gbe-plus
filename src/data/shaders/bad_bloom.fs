@@ -62,109 +62,59 @@ void main()
 	current_color.b *= light_threshold;
 
 	//Blend far texels, top, bottom, left, right
-	if((current_pos.x + tex_x) <= 1.0)
+	for(float x = 0; x < 2.0; x += 1.0)
 	{
-		temp_pos.x = current_pos.x + tex_x;
-		temp_pos.y = current_pos.y;
-		temp_color = texture(screen_texture, temp_pos);
+		if((current_pos.x + (tex_x * x)) <= 1.0)
+		{
+			temp_pos.x = current_pos.x + (tex_x * x);
+			temp_pos.y = current_pos.y;
+			temp_color = texture(screen_texture, temp_pos);
 
-		get_brightness(temp_color, input_luma);
-		get_brightness(current_color, current_luma);
-		luma_distance = abs(current_luma - input_luma);
+			get_brightness(temp_color, input_luma);
+			get_brightness(current_color, current_luma);
+			luma_distance = abs(current_luma - input_luma);
 		
-		if((luma_distance >= 0.15) && (input_luma >= luma_threshold)) { current_color = mix(temp_color, current_color, 0.5); }
-	}
+			if((luma_distance >= 0.15) && (input_luma >= luma_threshold)) { current_color = mix(temp_color, current_color, 0.5); }
+		}
 
-	if((current_pos.x - tex_x) >= 0.0)
-	{
-		temp_pos.x = current_pos.x - tex_x;
-		temp_pos.y = current_pos.y;
-		temp_color = texture(screen_texture, temp_pos);
+		if((current_pos.x - (tex_x * x)) >= 0.0)
+		{
+			temp_pos.x = current_pos.x - (tex_x * x);
+			temp_pos.y = current_pos.y;
+			temp_color = texture(screen_texture, temp_pos);
 
-		get_brightness(temp_color, input_luma);
-		get_brightness(current_color, current_luma);
-		luma_distance = abs(current_luma - input_luma);
+			get_brightness(temp_color, input_luma);
+			get_brightness(current_color, current_luma);
+			luma_distance = abs(current_luma - input_luma);
 		
-		if((luma_distance >= 0.15) && (input_luma >= luma_threshold)) { current_color = mix(temp_color, current_color, 0.5); }
-	}
+			if((luma_distance >= 0.15) && (input_luma >= luma_threshold)) { current_color = mix(temp_color, current_color, 0.5); }
+		}
 
-	if((current_pos.y + tex_y) <= 1.0)
-	{
-		temp_pos.x = current_pos.x;
-		temp_pos.y = current_pos.y + tex_y;
-		temp_color = texture(screen_texture, temp_pos);
+		if((current_pos.y + (tex_y * x)) <= 1.0)
+		{
+			temp_pos.x = current_pos.x;
+			temp_pos.y = current_pos.y + (tex_y * x);
+			temp_color = texture(screen_texture, temp_pos);
 
-		get_brightness(temp_color, input_luma);
-		get_brightness(current_color, current_luma);
-		luma_distance = abs(current_luma - input_luma);
+			get_brightness(temp_color, input_luma);
+			get_brightness(current_color, current_luma);
+			luma_distance = abs(current_luma - input_luma);
 		
-		if((luma_distance >= 0.15) && (input_luma >= luma_threshold)) { current_color = mix(temp_color, current_color, 0.5); }
-	}
+			if((luma_distance >= 0.15) && (input_luma >= luma_threshold)) { current_color = mix(temp_color, current_color, 0.5); }
+		}
 
-	if((current_pos.y - tex_y) >= 0.0)
-	{
-		temp_pos.x = current_pos.x;
-		temp_pos.y = current_pos.y - tex_y;
-		temp_color = texture(screen_texture, temp_pos);
+		if((current_pos.y - (tex_y * x)) >= 0.0)
+		{
+			temp_pos.x = current_pos.x;
+			temp_pos.y = current_pos.y - tex_y;
+			temp_color = texture(screen_texture, temp_pos);
 
-		get_brightness(temp_color, input_luma);
-		get_brightness(current_color, current_luma);
-		luma_distance = abs(current_luma - input_luma);
+			get_brightness(temp_color, input_luma);
+			get_brightness(current_color, current_luma);
+			luma_distance = abs(current_luma - input_luma);
 		
-		if((luma_distance >= 0.15) && (input_luma >= luma_threshold)) { current_color = mix(temp_color, current_color, 0.5); }
-	}
-
-
-	if((current_pos.x + tex_x + tex_x) <= 1.0)
-	{
-		temp_pos.x = current_pos.x + tex_x + tex_x;
-		temp_pos.y = current_pos.y;
-		temp_color = texture(screen_texture, temp_pos);
-
-		get_brightness(temp_color, input_luma);
-		get_brightness(current_color, current_luma);
-		luma_distance = abs(current_luma - input_luma);
-		
-		if((luma_distance >= 0.15) && (input_luma >= luma_threshold)) { current_color = mix(temp_color, current_color, 0.5); }
-	}
-
-	if((current_pos.x - tex_x - tex_x) >= 0.0)
-	{
-		temp_pos.x = current_pos.x - tex_x - tex_x;
-		temp_pos.y = current_pos.y;
-		temp_color = texture(screen_texture, temp_pos);
-
-		get_brightness(temp_color, input_luma);
-		get_brightness(current_color, current_luma);
-		luma_distance = abs(current_luma - input_luma);
-		
-		if((luma_distance >= 0.15) && (input_luma >= luma_threshold)) { current_color = mix(temp_color, current_color, 0.5); }
-	}
-
-	if((current_pos.y + tex_y + tex_y) <= 1.0)
-	{
-		temp_pos.x = current_pos.x;
-		temp_pos.y = current_pos.y + tex_y + tex_y;
-		temp_color = texture(screen_texture, temp_pos);
-
-		get_brightness(temp_color, input_luma);
-		get_brightness(current_color, current_luma);
-		luma_distance = abs(current_luma - input_luma);
-		
-		if((luma_distance >= 0.15) && (input_luma >= luma_threshold)) { current_color = mix(temp_color, current_color, 0.5); }
-	}
-
-	if((current_pos.y - tex_y - tex_y) >= 0.0)
-	{
-		temp_pos.x = current_pos.x;
-		temp_pos.y = current_pos.y - tex_y - tex_y;
-		temp_color = texture(screen_texture, temp_pos);
-
-		get_brightness(temp_color, input_luma);
-		get_brightness(current_color, current_luma);
-		luma_distance = abs(current_luma - input_luma);
-		
-		if((luma_distance >= 0.15) && (input_luma >= luma_threshold)) { current_color = mix(temp_color, current_color, 0.5); }
+			if((luma_distance >= 0.15) && (input_luma >= luma_threshold)) { current_color = mix(temp_color, current_color, 0.5); }
+		}
 	}
 
 	get_brightness(texture(screen_texture, texture_coordinates), current_luma);
