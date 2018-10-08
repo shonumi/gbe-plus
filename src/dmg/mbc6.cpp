@@ -161,7 +161,7 @@ u8 DMG_MMU::mbc6_read(u16 address)
 			u8 bank = ((rom_bank >> 8) & 0x7);
 
 			//Get FLASH Status
-			else if(cart.flash_stat & 0x1) { return 0x80; }
+			if(cart.flash_stat & 0x1) { return 0x80; }
 
 			//Read from FLASH normally
 			else { return flash[bank][address - 0x4000]; }

@@ -284,6 +284,14 @@ u8 NTR_MMU::read_u8(u32 address)
 
 			break;
 
+		case 0x5:
+			if(access_mode) { address &= 0x5007FFF; }
+			break;
+
+		case 0x7:
+			if(access_mode) { address &= 0x7007FFF; }
+			break;
+
 		case 0x8:
 			if(current_slot2_device == SLOT2_PASSME)
 			{
