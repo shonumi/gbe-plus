@@ -242,6 +242,10 @@ u8 NTR_MMU::read_u8(u32 address)
 	//Mirror memory address if applicable
 	switch(address >> 24)
 	{
+		case 0x0:
+			if(access_mode) { address &= 0x7FFF; }
+			break;
+
 		case 0x2:
 			address &= 0x23FFFFF;
 			break;
