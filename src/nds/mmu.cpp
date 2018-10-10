@@ -4028,6 +4028,9 @@ void NTR_MMU::write_u32(u32 address, u32 value)
 /****** Writes 2 bytes into memory - No checks done on the read, used for known memory locations such as registers ******/
 void NTR_MMU::write_u16_fast(u32 address, u16 value)
 {
+	//Always force half-word alignment
+	address &= ~0x1;
+
 	memory_map[address] = (value & 0xFF);
 	memory_map[address+1] = ((value >> 8) & 0xFF);
 }
@@ -4035,6 +4038,9 @@ void NTR_MMU::write_u16_fast(u32 address, u16 value)
 /****** Writes 4 bytes into memory - No checks done on the read, used for known memory locations such as registers ******/
 void NTR_MMU::write_u32_fast(u32 address, u32 value)
 {
+	//Always force word alignment
+	address &= ~0x3;
+
 	memory_map[address] = (value & 0xFF);
 	memory_map[address+1] = ((value >> 8) & 0xFF);
 	memory_map[address+2] = ((value >> 16) & 0xFF);
