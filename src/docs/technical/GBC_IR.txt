@@ -32,6 +32,7 @@ This list represents all the games that have been verified to use the IR port. W
 - Chee-Chai Alien				Enhances IR sensor to detect artificial light sources. Catch/trade Chaliens
 - Dancing Furby					Sends signal to Furby doll, Furby reacts based on dance performance
 - Donkey Kong Country				Transfer pictures to stickerbook
+- Game Boy Wars 3				Wireless multiplayer
 - Harry Potter and the Sorceror's Stone		Trade "Famous Witches and Wizards" cards 
 - Harry Potter and the Chamber of Secrets	Trade "Famous Witches and Wizards" cards 
 - Mary-Kate and Ashley Pocket Planner		Send and receive "G-mail" messages
