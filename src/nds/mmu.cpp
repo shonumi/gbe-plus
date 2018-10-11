@@ -717,6 +717,7 @@ u8 NTR_MMU::read_u8(u32 address)
 /****** Read 2 bytes from memory ******/
 u16 NTR_MMU::read_u16(u32 address)
 {
+	address &= ~0x1;
 	return ((read_u8(address+1) << 8) | read_u8(address)); 
 }
 
@@ -752,6 +753,7 @@ u32 NTR_MMU::read_u32(u32 address)
 /****** Reads 2 bytes from memory - No checks done on the read, used for known memory locations such as registers ******/
 u16 NTR_MMU::read_u16_fast(u32 address) const
 {
+	address &= ~0x1;
 	return ((memory_map[address+1] << 8) | memory_map[address]);
 }
 
@@ -772,7 +774,6 @@ u32 NTR_MMU::read_cart_u32(u32 address) const
 {
 	return ((cart_data[address+3] << 24) | (cart_data[address+2] << 16) | (cart_data[address+1] << 8) | cart_data[address]);
 }
-
 
 /****** Write byte into memory ******/
 void NTR_MMU::write_u8(u32 address, u8 value)
