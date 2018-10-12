@@ -331,6 +331,8 @@ class NTR_MMU
 	void set_lcd_data(ntr_lcd_data* ex_lcd_stat);
 	void set_lcd_3D_data(ntr_lcd_3D_data* ex_lcd_3D_stat);
 	void set_apu_data(ntr_apu_data* ex_apu_stat);
+	void set_nds7_pc(u32* ex_pc);
+	void set_nds9_pc(u32* ex_pc);
 
 	void parse_header();
 
@@ -348,6 +350,9 @@ class NTR_MMU
 
 	//Only the MMU and APU should communicate through this structure
 	ntr_apu_data* apu_stat;
+
+	u32* nds7_pc;
+	u32* nds9_pc;
 };
 
 #endif // NDS_MMU

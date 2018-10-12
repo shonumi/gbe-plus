@@ -4686,3 +4686,8 @@ void NTR_MMU::set_lcd_3D_data(ntr_lcd_3D_data* ex_lcd_3D_stat) { lcd_3D_stat = e
 /****** Points the MMU to an apu_data structure (FROM THE APU ITSELF) ******/
 void NTR_MMU::set_apu_data(ntr_apu_data* ex_apu_stat) { apu_stat = ex_apu_stat; }
 
+/****** Points the MMU to the NDS7 Program Counter ******/
+void NTR_MMU::set_nds7_pc(u32* ex_pc) { nds7_pc = ex_pc; }
+
+/****** Points the MMU to the NDS9 Program Counter ******/
+void NTR_MMU::set_nds9_pc(u32* ex_pc) { nds9_pc = ex_pc; }

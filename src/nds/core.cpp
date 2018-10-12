@@ -25,6 +25,9 @@ NTR_core::NTR_core()
 	core_cpu_nds9.mem = &core_mmu;
 	core_cpu_nds7.mem = &core_mmu;
 
+	core_mmu.set_nds7_pc(&core_cpu_nds7.reg.r15);
+	core_mmu.set_nds9_pc(&core_cpu_nds9.reg.r15);
+
 	//Link LCD and MMU
 	core_cpu_nds9.controllers.video.mem = &core_mmu;
 	core_mmu.set_lcd_data(&core_cpu_nds9.controllers.video.lcd_stat);
