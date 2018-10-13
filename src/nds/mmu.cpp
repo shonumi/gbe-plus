@@ -306,6 +306,10 @@ u8 NTR_MMU::read_u8(u32 address)
 			else { return 0xFF; }
 
 			break;
+
+		case 0xF:
+			if((access_mode) && (*nds9_pc < 0xFFFF0000)) { return ((address & 0x3) == 0) ? 1 : 0; }
+			break;
 	}
 
 	switch(address)
