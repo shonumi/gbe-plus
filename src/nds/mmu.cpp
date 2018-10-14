@@ -244,6 +244,13 @@ u8 NTR_MMU::read_u8(u32 address)
 	{
 		case 0x0:
 			if(access_mode) { address &= 0x7FFF; }
+			
+			else
+			{
+				//NDS7 BIOS read
+				if(address < 0x4000) { return nds7_bios[address - nds7_bios_vector]; }		
+			}
+
 			break;
 
 		case 0x2:
@@ -307,8 +314,9 @@ u8 NTR_MMU::read_u8(u32 address)
 
 			break;
 
-		case 0xF:
-			if((access_mode) && (*nds9_pc < 0xFFFF0000)) { return ((address & 0x3) == 0) ? 1 : 0; }
+		case 0xFF:
+			//NDS9 BIOS read
+			if((access_mode) && (address < 0xFFFF0C00)) { return nds9_bios[address - nds9_bios_vector]; }
 			break;
 	}
 
@@ -331,14 +339,8 @@ u8 NTR_MMU::read_u8(u32 address)
 			break;
 	}
 
-	//Read from NDS9 BIOS
-	if((address >= nds9_bios_vector) && (address <= (nds9_bios_vector + 0xC00)) && (access_mode)) { return nds9_bios[address - nds9_bios_vector]; }
-
-	//Read from NDS7 BIOS
-	if((address >= nds7_bios_vector) && (address <= (nds7_bios_vector + 0x4000)) && (!access_mode)) { return nds7_bios[address - nds7_bios_vector]; }
-
 	//Check for unused memory first
-	else if(address >= 0x10000000) { return 0; std::cout<<"Out of bounds read : 0x" << std::hex << address << "\n"; return 0; }
+	if(address >= 0x10000000) { std::cout<<"Out of bounds read : 0x" << std::hex << address << "\n"; return 0; }
 
 	//Check for reading DISPSTAT
 	else if((address & ~0x1) == NDS_DISPSTAT)
