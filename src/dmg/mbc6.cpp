@@ -107,6 +107,8 @@ void DMG_MMU::mbc6_write(u16 address, u8 value)
 		//Grab FLASH handshake
 		if((address == 0x7555) && (cart.flash_cmd == 0) && (value == 0xAA)) { cart.flash_cmd = 1; cart.flash_stat &= ~0x1; }
 		else if((address == 0x6AAA) && (cart.flash_cmd == 1) && (value == 0x55)) { cart.flash_cmd = 2; }
+		else if((address == 0x5555) && (cart.flash_cmd == 0) && (value == 0xAA)) { cart.flash_cmd = 1; cart.flash_stat &= ~0x1; }
+		else if((address == 0x4AAA) && (cart.flash_cmd == 1) && (value == 0x55)) { cart.flash_cmd = 2; }
 
 		//Grab FLASH commands
 		else if(cart.flash_cmd == 2)
