@@ -102,7 +102,9 @@ void DMG_MMU::mbc6_write(u16 address, u8 value)
 	//FLASH commands
 	else if((address >= 0x4000) && (address <= 0x7FFF))
 	{
-		u8 bank = ((rom_bank >> 8) & 0x7);
+		u8 bank_0 = (bank_bits & 0x7);
+		u8 bank_1 = ((rom_bank >> 8) & 0x7);
+		bool is_bank_0 = (address < 0x6000) ? true : false;
 
 		//Grab FLASH handshake
 		if((address == 0x7555) && (cart.flash_cmd == 0) && (value == 0xAA)) { cart.flash_cmd = 1; cart.flash_stat &= ~0x1; }
@@ -117,7 +119,8 @@ void DMG_MMU::mbc6_write(u16 address, u8 value)
 			{
 				//FLASH erase sector
 				case 0x30:
-					flash[bank].resize(0x2000, 0xFF);
+					if(is_bank_0) { flash[bank_0].resize(0x2000, 0xFF); }
+					else { flash[bank_1].resize(0x2000, 0xFF); }
 					cart.flash_stat |= 0x1;
 					cart.flash_cmd = 0;
 					break;
@@ -146,8 +149,8 @@ void DMG_MMU::mbc6_write(u16 address, u8 value)
 		else if((cart.flash_stat & 0x1) && (value == 0xF0)) { cart.flash_stat &= ~0x1; }
 
 		//Write to FLASH normally
-		else if(address >= 0x6000) { flash[bank][address - 0x6000] = value; }
-		else { flash[bank][address - 0x4000] = value; }
+		else if(address >= 0x6000) { flash[bank_1][address - 0x6000] = value; }
+		else { flash[bank_0][address - 0x4000] = value; }
 	}	
 }
 
