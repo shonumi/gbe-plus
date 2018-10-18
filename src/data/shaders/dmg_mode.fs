@@ -46,17 +46,17 @@ void main()
 	//Color 1 - 2nd darkest
 	else if(b_val < 0.50)
 	{
-		output_color.r = 0.33;
-		output_color.g = 0.33;
-		output_color.b = 0.33;
+		output_color.r = 0.375;
+		output_color.g = 0.375;
+		output_color.b = 0.375;
 	}
 
 	//Color 2 - 2nd lightest
 	else if(b_val < 0.75)
 	{
-		output_color.r = 0.66;
-		output_color.g = 0.66;
-		output_color.b = 0.66;
+		output_color.r = 0.75;
+		output_color.g = 0.75;
+		output_color.b = 0.75;
 	}
 
 	//Color 3 - White
