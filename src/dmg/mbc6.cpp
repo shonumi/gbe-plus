@@ -142,6 +142,12 @@ void DMG_MMU::mbc6_write(u16 address, u8 value)
 					cart.flash_get_id = false;
 					cart.flash_cmd = 0;
 					break;
+
+				//FLASH write command
+				case 0xA0:
+					cart.flash_stat |= 0x1;
+					cart.flash_cmd = 0;
+					break;
 			}
 		}
 
