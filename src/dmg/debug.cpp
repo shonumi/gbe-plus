@@ -138,7 +138,7 @@ void DMG_core::debug_step()
 	}
 
 	//Display current PC when print PC is enabled
-	if(db_unit.print_pc) { std::cout<<"PC -> 0x" << core_cpu.reg.pc << "\n"; }
+	if(db_unit.print_pc) { std::cout<<"PC -> 0x" << core_cpu.reg.pc << " :: " << debug_get_mnemonic(core_cpu.reg.pc) << "\n"; }
 
 	//Update last PC
 	db_unit.last_pc = core_cpu.reg.pc;
