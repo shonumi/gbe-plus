@@ -148,6 +148,10 @@ void DMG_MMU::mbc6_write(u16 address, u8 value)
 					cart.flash_stat |= 0x1;
 					cart.flash_cmd = 0;
 					break;
+
+				default:
+					std::cout<<"MMU::Warning - Unknown MBC6 Flash command 0x" << (u16)value << "\n";
+					break;
 			}
 		}
 

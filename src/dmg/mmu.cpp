@@ -2119,6 +2119,34 @@ bool DMG_MMU::load_backup(std::string filename)
 		std::cout<<"MMU::Loaded save data file " << filename <<  "\n";
 	}
 
+	//Load MBC6 Flash if applicable
+	if(cart.mbc_type == MBC6)
+	{
+		filename = config::save_path + util::get_filename_from_path(filename) + ".flash";
+		std::ifstream flash_save(filename.c_str(), std::ios::binary);
+		
+		//Get the file size
+		flash_save.seekg(0, flash_save.end);
+		u32 file_size = flash_save.tellg();
+		flash_save.seekg(0, flash_save.beg);
+
+		if(file_size != 0x10000)
+		{
+			std::cout<<"MMU::Error - MBC6 Flash save file " << filename << " is the incorrect size\n";
+			return false;
+		}
+
+		for(int x = 0; x < 0x8; x++)
+		{
+			u8* ex_ram = &flash[x][0];
+			flash_save.read((char*)ex_ram, 0x2000); 
+		}
+
+		flash_save.close();
+
+		std::cout<<"MMU::Loaded MBC6 Flash save data file " << filename <<  "\n";
+	}
+
 	return true;
 }
 
@@ -2185,6 +2213,22 @@ bool DMG_MMU::save_backup(std::string filename)
 
 			std::cout<<"MMU::Wrote save data file " << filename <<  "\n";
 		}
+	}
+
+	//Save MBC6 Flash if applicable
+	if(cart.mbc_type == MBC6)
+	{
+		filename = config::save_path + util::get_filename_from_path(filename) + ".flash";
+		std::ofstream flash_save(filename.c_str(), std::ios::binary);
+
+		for(int x = 0; x < 0x8; x++)
+		{
+			flash_save.write(reinterpret_cast<char*> (&flash[x][0]), 0x2000);
+		}
+
+		flash_save.close();
+
+		std::cout<<"MMU::Wrote MBC6 Flash save data file " << filename <<  "\n";
 	}
 
 	return true;
