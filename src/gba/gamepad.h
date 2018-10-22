@@ -40,6 +40,7 @@ class AGB_GamePad
 	int pad;
 	u16 key_input;
 	bool is_rumbling;
+	bool is_gb_player;
 
 	u16 gyro_value;
 	u8 gyro_flags;

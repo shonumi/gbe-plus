@@ -20,6 +20,7 @@ AGB_GamePad::AGB_GamePad()
 	jstick = NULL;
 	up_shadow = down_shadow = left_shadow = right_shadow = false;
 	is_rumbling = false;
+	is_gb_player = false;
 
 	gyro_value = 0x6C0;
 	gyro_flags = 0;
@@ -67,6 +68,10 @@ void AGB_GamePad::init()
 			SDL_HapticRumbleInit(rumble);
 			std::cout<<"JOY::Rumble initialized\n";
 		}
+
+		//Emulate GB Player detection if rumble is enabled
+		//Masks bits 4-7 of KEYINPUT until player gives input
+		is_gb_player = true;
 	}
 }
 
@@ -407,6 +412,8 @@ void AGB_GamePad::process_keyboard(int pad, bool pressed)
 			else { gyro_flags &= ~0x4; }
 		}
 	}
+
+	is_gb_player = false;
 }
 
 /****** Processes input based on unique pad # for joysticks ******/
@@ -605,6 +612,8 @@ void AGB_GamePad::process_joystick(int pad, bool pressed)
 			else { gyro_flags &= ~0x4; }
 		}
 	}
+
+	is_gb_player = false;
 }
 
 /****** Clears any existing input - Primarily used for the SoftReset SWI ******/

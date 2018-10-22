@@ -215,7 +215,7 @@ u8 AGB_MMU::read_u8(u32 address)
 			break;
 
 		case KEYINPUT:
-			return (g_pad->key_input & 0xFF);
+			return g_pad->is_gb_player ? (g_pad->key_input & 0x0F) : (g_pad->key_input & 0xFF);
 			break;
 
 		case KEYINPUT+1:
