@@ -20,6 +20,7 @@ enum agb_sio_types
 	NO_GBA_DEVICE,
 	INVALID_GBA_DEVICE,
 	GBA_LINK,
+	GBA_PLAYER_RUMBLE,
 };
 
 //Serial Input-Output device mode enumeration
@@ -33,6 +34,13 @@ enum agb_sio_modes
 	JOY_BUS,
 };
 
+//GB Player Rumble enumerations
+enum gb_player_rumble_state
+{
+	GB_PLAYER_RUMBLE_INACTIVE,
+	GB_PLAYER_RUMBLE_ACTIVE,
+};
+
 struct agb_sio_data
 {
 	bool connected;
@@ -40,6 +48,7 @@ struct agb_sio_data
 	bool internal_clock;
 	bool sync;
 	bool connection_ready;
+	bool emu_device_ready;
 	u32 sync_counter;
 	u32 sync_clock;
 	u32 transfer_data;

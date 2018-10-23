@@ -119,6 +119,8 @@ class AGB_MMU
 	std::vector<u32> cheat_bytes;
 	u8 gsa_patch_count;
 
+	bool sio_emu_device_ready;
+
 	//Advanced debugging
 	#ifdef GBE_DEBUG
 	bool debug_write;
@@ -172,6 +174,7 @@ class AGB_MMU
 	void process_motion();
 
 	void process_sio();
+	void process_player_rumble();
 
 	//Cheat code functions
 	void decrypt_gsa(u32 &addr, u32 &val, bool v1);

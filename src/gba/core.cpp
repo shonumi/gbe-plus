@@ -90,6 +90,7 @@ void AGB_core::start()
 
 	//Initialize the GamePad
 	core_pad.init();
+	if(core_mmu.gpio.type == AGB_MMU::GPIO_RUMBLE) { core_pad.is_gb_player = false; }
 }
 
 /****** Stop the core ******/
@@ -266,6 +267,9 @@ void AGB_core::run_core()
 				//Clock SIO
 				core_cpu.clock_sio();
 			}
+
+			//Otherwise, try to run any emulate SIO devices attached to GBE+
+			else if(core_cpu.controllers.serial_io.sio_stat.emu_device_ready) { core_cpu.clock_sio(); }
 
 			//Reset system cycles for next instruction
 			core_cpu.system_cycles = 0;

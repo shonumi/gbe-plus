@@ -61,6 +61,14 @@ class AGB_SIO
 
 	#endif
 
+	//GB Player Rumble
+	struct gb_player_rumble
+	{
+		std::vector <u32> sio_buffer;
+		u8 buffer_index;
+		gb_player_rumble_state current_state;
+	} player_rumble;
+
 	AGB_SIO();
 	~AGB_SIO();
 
@@ -71,6 +79,8 @@ class AGB_SIO
 	bool receive_byte();
 	bool request_sync();
 	void process_network_communication();
+
+	void gba_player_rumble_process();
 };
 
 #endif // GBA_SIO

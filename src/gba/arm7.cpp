@@ -1511,6 +1511,13 @@ void ARM7::clock_sio()
 					//Transfer data over network
 					controllers.serial_io.send_data();
 				}
+
+				//32-bit Normal Mode - GB Player Rumble
+				else if((controllers.serial_io.sio_stat.sio_type == GBA_PLAYER_RUMBLE) && (controllers.serial_io.sio_stat.sio_mode = NORMAL_32BIT))
+				{
+					//Process GB Player Rumble
+					controllers.serial_io.gba_player_rumble_process();
+				}
 			}
 		}
 	}

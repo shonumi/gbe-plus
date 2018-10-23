@@ -160,6 +160,7 @@ void AGB_SIO::reset()
 	sio_stat.sync_clock = config::netplay_sync_threshold;
 	sio_stat.sync = false;
 	sio_stat.connection_ready = false;
+	sio_stat.emu_device_ready = false;
 	sio_stat.transfer_data = 0;
 	sio_stat.shift_counter = 64;
 	sio_stat.shift_clock = 0;
@@ -176,10 +177,14 @@ void AGB_SIO::reset()
 		case 0x3:
 		case 0x4:
 		case 0x5:
+		case 0x6:
 			sio_stat.sio_type = INVALID_GBA_DEVICE;
 			break;
 
 		//Reserved for other GBA SIO devices
+		case 0x7:
+			sio_stat.sio_type = GBA_PLAYER_RUMBLE;
+			break;
 
 		//Always wait until netplay connection is established to change to GBA_LINK
 		default:
@@ -188,6 +193,28 @@ void AGB_SIO::reset()
 	}
 
 	sio_stat.sio_mode = GENERAL_PURPOSE;
+
+	//GBA Player Rumble
+	player_rumble.sio_buffer.push_back(0x0000494E);
+	player_rumble.sio_buffer.push_back(0x0000494E);
+	player_rumble.sio_buffer.push_back(0xB6B1494E);
+	player_rumble.sio_buffer.push_back(0xB6B1544E);
+	player_rumble.sio_buffer.push_back(0xABB1544E);
+	player_rumble.sio_buffer.push_back(0xABB14E45);
+	player_rumble.sio_buffer.push_back(0xB1BA4E45);
+	player_rumble.sio_buffer.push_back(0xB1BA4F44);
+	player_rumble.sio_buffer.push_back(0xB0BB4F44);
+	player_rumble.sio_buffer.push_back(0xB0BB8002);
+	player_rumble.sio_buffer.push_back(0x10000010);
+	player_rumble.sio_buffer.push_back(0x20000013);
+	player_rumble.sio_buffer.push_back(0x30000003);
+	player_rumble.sio_buffer.push_back(0x30000003);
+	player_rumble.sio_buffer.push_back(0x30000003);
+	player_rumble.sio_buffer.push_back(0x30000003);
+	player_rumble.sio_buffer.push_back(0x30000003);
+	
+	player_rumble.buffer_index = 0;
+	player_rumble.current_state = GB_PLAYER_RUMBLE_INACTIVE;
 
 	#ifdef GBE_NETPLAY
 
@@ -494,4 +521,10 @@ void AGB_SIO::process_network_communication()
 	}
 
 	#endif
+}
+
+/****** Processes GB Player Rumble SIO communications ******/
+void AGB_SIO::gba_player_rumble_process()
+{
+
 }

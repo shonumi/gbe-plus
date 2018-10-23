@@ -124,6 +124,8 @@ void AGB_MMU::reset()
 	cheat_bytes.clear();
 	gsa_patch_count = 0;
 
+	sio_emu_device_ready = false;
+
 	g_pad = NULL;
 	timer = NULL;
 
@@ -2592,8 +2594,47 @@ void AGB_MMU::process_sio()
 		}
 	}
 
-	else if(sio_stat->cnt & 0x1000) { sio_stat->sio_mode = NORMAL_32BIT; }
+	//Normal Mode - 32-bit
+	else if(sio_stat->cnt & 0x1000)
+	{
+		sio_stat->sio_mode = NORMAL_32BIT;
+		sio_stat->emu_device_ready = false;
+
+		//Convert transfer speed to GBA CPU cycles
+		sio_stat->shift_clock = (sio_stat->cnt & 0x2) ? 8 : 64;
+
+		//Set internal or external clock
+		sio_stat->internal_clock = (sio_stat->cnt & 0x1) ? true : false;
+
+		//Start transfer
+		if((sio_stat->player_id == 0) && (!sio_stat->active_transfer) && (sio_stat->internal_clock) && (sio_stat->cnt & 0x80))
+		{
+			sio_stat->active_transfer = true;
+			sio_stat->shifts_left = 32;
+			sio_stat->shift_counter = 0;
+			sio_stat->transfer_data = read_u32_fast(SIO_DATA_32_L);
+		}
+
+		//Signal to emulated GB Player rumble that emulated GBA is ready for SIO transfer
+		else if((config::sio_device == 7) && (!sio_stat->internal_clock) && (sio_stat->cnt & 0x80))
+		{
+			sio_stat->emu_device_ready = true;
+			sio_emu_device_ready = true;
+		}
+	}
+
 	else { sio_stat->sio_mode = NORMAL_8BIT; }
+}
+
+/****** Continually processes GB Player Rumble SIO communications ******/
+void AGB_MMU::process_player_rumble()
+{
+	if(!sio_stat->active_transfer)
+	{
+		sio_stat->active_transfer = true;
+		sio_stat->shifts_left = 32;
+		sio_stat->shift_counter = 0;
+	}
 }
 
 /****** Applies an IPS patch to a ROM loaded in memory ******/

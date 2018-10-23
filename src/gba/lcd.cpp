@@ -1551,6 +1551,9 @@ void AGB_LCD::step()
 
 			//Process motion controls
 			if((config::cart_type == AGB_GYRO_SENSOR) || (config::cart_type == AGB_TILT_SENSOR)) { mem->process_motion(); }
+
+			//Process GB Player Rumble
+			if((config::sio_device == 7) && (mem->sio_emu_device_ready)) { mem->process_player_rumble(); }
 		}
 
 		//Setup HBlank
