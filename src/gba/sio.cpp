@@ -196,7 +196,7 @@ void AGB_SIO::reset()
 
 	//GBA Player Rumble
 	player_rumble.sio_buffer.push_back(0x0000494E);
-	player_rumble.sio_buffer.push_back(0x0000494E);
+	player_rumble.sio_buffer.push_back(0x8888494E);
 	player_rumble.sio_buffer.push_back(0xB6B1494E);
 	player_rumble.sio_buffer.push_back(0xB6B1544E);
 	player_rumble.sio_buffer.push_back(0xABB1544E);
@@ -526,5 +526,23 @@ void AGB_SIO::process_network_communication()
 /****** Processes GB Player Rumble SIO communications ******/
 void AGB_SIO::gba_player_rumble_process()
 {
+	//Send data to GBA
+	mem->write_u32_fast(SIO_DATA_32_L, player_rumble.sio_buffer[player_rumble.buffer_index++]);
 
+	//Raise SIO IRQ after sending byte
+	if(sio_stat.cnt & 0x4000) { mem->memory_map[REG_IF] |= 0x80; }
+
+	if(player_rumble.buffer_index == 17)
+	{
+		player_rumble.buffer_index = 0;
+		sio_stat.emu_device_ready = false;
+	}
+
+	else
+	{
+		sio_stat.shifts_left = 32;
+		sio_stat.shift_counter = 0;
+	}
+
+	sio_stat.active_transfer = false;	
 }
