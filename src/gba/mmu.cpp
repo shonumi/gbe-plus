@@ -151,8 +151,37 @@ u8 AGB_MMU::read_u8(u32 address)
 	debug_addr[address & 0x3] = address;
 	#endif
 
-	//Check for unused memory first
-	if(address >= 0x10000000) { std::cout<<"Out of bounds read : 0x" << std::hex << address << "\n"; return 0; }
+	//Check for unused memory and mirrors first
+	switch(address >> 24)
+	{
+		case 0x0:
+		case 0x1:
+		case 0x2:
+		case 0x4:
+		case 0x5:
+		case 0x6:
+		case 0x7:
+		case 0x8:
+		case 0x9:
+		case 0xA:
+		case 0xB:
+		case 0xC:
+		case 0xD:
+		case 0xE:
+		case 0xF:
+			break;
+
+		//Fast WRAM 32KB mirror
+		case 0x3:
+			address &= 0x3007FFF;
+			break;
+
+		//Unused memory at 0x10000000 and above
+		default:
+			std::cout<<"Out of bounds read : 0x" << std::hex << address << "\n";
+			return 0;
+			
+	}
 
 	//Read from game save data
 	if((address >= 0xE000000) && (address <= 0xE00FFFF))
@@ -316,11 +345,39 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 	debug_addr[address & 0x3] = address;
 	#endif
 
-	//Check for unused memory first
-	if(address >= 0x10000000) { std::cout<<"Out of bounds write : 0x" << std::hex << address << "\n"; return; }
+	//Check for unused memory and mirrors first
+	switch(address >> 24)
+	{
+		case 0x0:
+		case 0x1:
+		case 0x2:
+		case 0x4:
+		case 0x5:
+		case 0x6:
+		case 0x7:
+		case 0x8:
+		case 0x9:
+		case 0xA:
+		case 0xB:
+		case 0xC:
+		case 0xD:
+		case 0xE:
+		case 0xF:
+			break;
+
+		//Fast WRAM 32KB mirror
+		case 0x3:
+			address &= 0x3007FFF;
+			break;
+
+		//Unused memory at 0x10000000 and above
+		default:
+			std::cout<<"Out of bounds read : 0x" << std::hex << address << "\n";
+			break;
+	}
 
 	//BIOS is read-only, prevent any attempted writes
-	else if((address <= 0x3FFF) && (bios_lock)) { return; }
+	if((address <= 0x3FFF) && (bios_lock)) { return; }
 
 	switch(address)
 	{
@@ -1801,15 +1858,8 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			memory_map[address] = value;
 	}
 
-	//Mirror memory from 0x3007FXX to 0x3FFFFXX
-	if((address >= 0x3007F00) && (address <= 0x3007FFF)) 
-	{
-		u32 mirror_addr = 0x03FFFF00 + (address & 0xFF);
-		memory_map[mirror_addr] = value;
-	}
-
 	//Trigger BG palette update in LCD
-	else if((address >= 0x5000000) && (address <= 0x50001FF))
+	if((address >= 0x5000000) && (address <= 0x50001FF))
 	{
 		lcd_stat->bg_pal_update = true;
 		lcd_stat->bg_pal_update_list[(address & 0x1FF) >> 1] = true;
