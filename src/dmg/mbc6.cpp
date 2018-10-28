@@ -106,10 +106,13 @@ void DMG_MMU::mbc6_write(u16 address, u8 value)
 		u8 bank_1 = ((rom_bank >> 8) & 0x7);
 		bool is_bank_0 = (address < 0x6000) ? true : false;
 
+		//Signal write command finish
+		if(((address & 0x7F) == 0x7F) && (value == 0)) { cart.flash_stat |= 0x80; return; }
+
 		//Grab FLASH handshake
-		if((address == 0x7555) && (cart.flash_cmd == 0) && (value == 0xAA)) { cart.flash_cmd = 1; cart.flash_stat &= ~0x1; }
+		if((address == 0x7555) && (cart.flash_cmd == 0) && (value == 0xAA)) { cart.flash_cmd = 1; cart.flash_stat &= ~0x81; }
 		else if((address == 0x6AAA) && (cart.flash_cmd == 1) && (value == 0x55)) { cart.flash_cmd = 2; }
-		else if((address == 0x5555) && (cart.flash_cmd == 0) && (value == 0xAA)) { cart.flash_cmd = 1; cart.flash_stat &= ~0x1; }
+		else if((address == 0x5555) && (cart.flash_cmd == 0) && (value == 0xAA)) { cart.flash_cmd = 1; cart.flash_stat &= ~0x81; }
 		else if((address == 0x4AAA) && (cart.flash_cmd == 1) && (value == 0x55)) { cart.flash_cmd = 2; }
 
 		//Grab FLASH commands
@@ -145,7 +148,6 @@ void DMG_MMU::mbc6_write(u16 address, u8 value)
 
 				//FLASH write command
 				case 0xA0:
-					cart.flash_stat |= 0x1;
 					cart.flash_cmd = 0;
 					break;
 
@@ -155,8 +157,12 @@ void DMG_MMU::mbc6_write(u16 address, u8 value)
 			}
 		}
 
-		//Terminate erase command
-		else if((cart.flash_stat & 0x1) && (value == 0xF0)) { cart.flash_stat &= ~0x1; }
+		//Terminate erase or write command
+		else if((cart.flash_stat & 0x81) && (value == 0xF0))
+		{
+			if((cart.flash_stat & 0x81) == 0x1) { cart.flash_stat &= ~0x1; }
+			else if((cart.flash_stat & 0x80) == 0x80) { cart.flash_stat &= ~0x80; }
+		}
 
 		//Write to FLASH normally
 		else if(address >= 0x6000) { flash[bank_1][address - 0x6000] = value; }
@@ -176,7 +182,7 @@ u8 DMG_MMU::mbc6_read(u16 address)
 			u8 bank = ((rom_bank >> 8) & 0x7);
 
 			//Get FLASH Status
-			if(cart.flash_stat & 0x1) { return 0x80; }
+			if(cart.flash_stat & 0x81) { return 0x80; }
 
 			//Read from FLASH normally
 			else { return flash[bank][address - 0x4000]; }
@@ -212,12 +218,8 @@ u8 DMG_MMU::mbc6_read(u16 address)
 		{
 			u8 bank = ((rom_bank >> 8) & 0x7);
 
-			//Some FLASH erase status
-			if((cart.flash_stat & 0x2) && (address == 0x606D)) { cart.flash_stat &= ~0x2; return 0x3B; }
-			if((cart.flash_stat & 0x4) && (address == 0x606E)) { cart.flash_stat &= ~0x4; return 0xB3; }
-
 			//Get FLASH Status
-			else if(cart.flash_stat & 0x1) { return 0x80; }
+			if(cart.flash_stat & 0x81) { return 0x80; }
 
 			//Read from FLASH normally
 			else { return flash[bank][address - 0x6000]; }
