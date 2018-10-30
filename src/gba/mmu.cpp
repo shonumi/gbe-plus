@@ -158,9 +158,7 @@ u8 AGB_MMU::read_u8(u32 address)
 		case 0x1:
 		case 0x2:
 		case 0x4:
-		case 0x5:
 		case 0x6:
-		case 0x7:
 		case 0x8:
 		case 0x9:
 		case 0xA:
@@ -174,6 +172,16 @@ u8 AGB_MMU::read_u8(u32 address)
 		//Fast WRAM 32KB mirror
 		case 0x3:
 			address &= 0x3007FFF;
+			break;
+
+		case 0x5:
+			//Pallete RAM 32KB mirror
+			address &= 0x5007FFF;
+			break;
+
+		case 0x7:
+			//OAM 32KB mirror
+			address &= 0x7007FFF;
 			break;
 
 		//Unused memory at 0x10000000 and above
@@ -352,9 +360,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 		case 0x1:
 		case 0x2:
 		case 0x4:
-		case 0x5:
 		case 0x6:
-		case 0x7:
 		case 0x8:
 		case 0x9:
 		case 0xA:
@@ -368,6 +374,16 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 		//Fast WRAM 32KB mirror
 		case 0x3:
 			address &= 0x3007FFF;
+			break;
+
+		case 0x5:
+			//Pallete RAM 32KB mirror
+			address &= 0x5007FFF;
+			break;
+
+		case 0x7:
+			//OAM 32KB mirror
+			address &= 0x7007FFF;
 			break;
 
 		//Unused memory at 0x10000000 and above
