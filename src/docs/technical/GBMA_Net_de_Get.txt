@@ -191,6 +191,6 @@ The MBC6 writes games to Flash ROM for long-time data storage. Although technica
 
 * Net de Get makes extensive use of the 0x30 command to erase sectors, particularly before a minigame is downloaded. After the 0x30 command is issued, Net de Get issues a 0xF0 command, which forcibly terminates the previous erase command. During this time (until another Flash command is issued), any reads to Flash return the current status of the previous erase command. The status is a single byte. Bit 7 determines if the erase command has indeed finished (1 = Done, 0 = In Progress). Bit 4 seems to indicate a timeout (1 = Timeout, 0 = OK). Net de Get actively checks both bits.
 
-* Net de Get only writes to Flash ROM in portions of 128 bytes. At the end of each 128 byte section, it will use the 0xF0 command to terminate writing.
+* Net de Get only writes to Flash ROM in portions of 128 bytes at a time. At the end of each 128 byte section, write a 0x00 at the very last byte. This seems to indicate that the Flash chip should return the status byte from any reads, much like the 0x30 commands. Again, Bit 7 and 4 are checked. Afterwards, the game will use the 0xF0 command to terminate writing.
 
 * Net de Get actually saves the downloaded minigame to SRAM initially, then portions are copied to WRAM, and eventually Flash ROM. Net de Get also actively verifies whether the data written to Flash is correct by comparing current Flash memory to the original RAM data.
