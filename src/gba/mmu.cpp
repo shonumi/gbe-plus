@@ -156,7 +156,6 @@ u8 AGB_MMU::read_u8(u32 address)
 	{
 		case 0x0:
 		case 0x1:
-		case 0x2:
 		case 0x4:
 		case 0x6:
 		case 0x8:
@@ -167,6 +166,11 @@ u8 AGB_MMU::read_u8(u32 address)
 		case 0xD:
 		case 0xE:
 		case 0xF:
+			break;
+
+		//Slow WRAM 256KB mirror
+		case 0x2:
+			address &= 0x203FFFF;
 			break;
 
 		//Fast WRAM 32KB mirror
@@ -358,7 +362,6 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 	{
 		case 0x0:
 		case 0x1:
-		case 0x2:
 		case 0x4:
 		case 0x6:
 		case 0x8:
@@ -369,6 +372,11 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 		case 0xD:
 		case 0xE:
 		case 0xF:
+			break;
+
+		//Slow WRAM 256KB mirror
+		case 0x2:
+			address &= 0x203FFFF;
 			break;
 
 		//Fast WRAM 32KB mirror
