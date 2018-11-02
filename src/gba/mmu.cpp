@@ -160,10 +160,6 @@ u8 AGB_MMU::read_u8(u32 address)
 		case 0x6:
 		case 0x8:
 		case 0x9:
-		case 0xA:
-		case 0xB:
-		case 0xC:
-		case 0xD:
 		case 0xE:
 		case 0xF:
 			break;
@@ -178,14 +174,26 @@ u8 AGB_MMU::read_u8(u32 address)
 			address &= 0x3007FFF;
 			break;
 
+		//Pallete RAM 32KB mirror
 		case 0x5:
-			//Pallete RAM 32KB mirror
 			address &= 0x5007FFF;
 			break;
 
+		//OAM 32KB mirror
 		case 0x7:
-			//OAM 32KB mirror
 			address &= 0x7007FFF;
+			break;
+
+		//ROM Waitstate 1 (mirror of Waitstate 0)
+		case 0xA:
+		case 0xB:
+			address -= 0x2000000;
+			break;
+
+		//ROM Waitstate 2 (mirror of Waitstate 0)
+		case 0xC:
+		case 0xD:
+			address -= 0x4000000;
 			break;
 
 		//Unused memory at 0x10000000 and above
@@ -366,10 +374,6 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 		case 0x6:
 		case 0x8:
 		case 0x9:
-		case 0xA:
-		case 0xB:
-		case 0xC:
-		case 0xD:
 		case 0xE:
 		case 0xF:
 			break;
@@ -384,14 +388,26 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			address &= 0x3007FFF;
 			break;
 
+		//Pallete RAM 32KB mirror
 		case 0x5:
-			//Pallete RAM 32KB mirror
 			address &= 0x5007FFF;
 			break;
 
+		//OAM 32KB mirror
 		case 0x7:
-			//OAM 32KB mirror
 			address &= 0x7007FFF;
+			break;
+
+		//ROM Waitstate 1 (mirror of Waitstate 0)
+		case 0xA:
+		case 0xB:
+			address -= 0x2000000;
+			break;
+
+		//ROM Waitstate 2 (mirror of Waitstate 0)
+		case 0xC:
+		case 0xD:
+			address -= 0x4000000;
 			break;
 
 		//Unused memory at 0x10000000 and above
@@ -2001,12 +2017,6 @@ bool AGB_MMU::read_file(std::string filename)
 
 		//Attempt a UPS patch
 		if(!patch_pass) { patch_pass = patch_ups(patch_file + ".ups"); }
-	}
-
-	//Mirror ROM to different parts of the GBA memory map (Wait States 1 and 2)
-	for(u32 x = 0x8000000; x < 0x9FFFFFF; x++)
-	{
-		memory_map[0xA000000 + (x - 0x8000000)] = memory_map[0xC000000 + (x - 0x8000000)] = memory_map[x];
 	}
 
 	//Calculate 8-bit checksum
