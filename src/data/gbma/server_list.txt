@@ -9,3 +9,6 @@ gbma/h0000.cgb
 
 /A4/CGB-BMVJ/RomList.cgb
 gbma/RomList.cgb
+
+/cgb/download?name=/A4/CGB-BMVJ/
+gbma/minigame.bin
