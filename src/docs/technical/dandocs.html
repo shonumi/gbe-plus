@@ -12,6 +12,7 @@
 				margin: 0px;
 				background-color: #FFFFFF;
 				padding: 8px;
+				height: 100%;
 			}
 
 			li
@@ -24,9 +25,31 @@
 				white-space: pre;
 			}
 
+			.toc_sec
+			{
+				width: 33%;
+				float: left;
+			}
+
+			.toc_con
+			{
+				width: 100%;
+				height: 20%;
+				float: top;
+				overflow: auto;
+			}
+
 			.gray_title
 			{
 				width: 100%;
+				background-color: #C0C0C0;
+				margin-bottom: 15px;
+				font-size: 24px;
+			}
+
+			.toc_gray_title
+			{
+				width: 95%;
 				background-color: #C0C0C0;
 				margin-bottom: 15px;
 				font-size: 24px;
@@ -68,71 +91,62 @@
 		</style>
 	</head>
 
-	<p class="gray_title">Dan Docs</p>
+	<body>
 
-	<p class="list_head"><strong>Overview</strong></p>
-	<p class="list_item"><a href="#about">About Dan Docs</a></p>
+	<div class="toc_con">
+		<div class="toc_sec">
 
-	<p class="list_head"><strong>Barcode Boy</strong></p>
-	<p class="list_item"><a href="#bcb_gen">General Hardware Information</a></p>
-	<p class="list_item"><a href="#bcb_gam">Compatible Games</a></p>
-	<p class="list_item"><a href="#bcb_com">Barcode Boy to DMG Communication</a></p>
-	<p class="list_item"><a href="#bcb_bar">Barcode Format</a></p>
-	<p class="list_item"><a href="#bcb_rip">Card Dumping + Emulation</a></p>
-	<p class="list_item"><a href="#bcb_err">Barcode Errors</a></p>
+			<p class="toc_gray_title">Hardware and Accessories</p>
 
-	<p class="list_head"><strong>Barcode Taisen Bardigun Scanner</strong></p>
-	<p class="list_item"><a href="#btb_gen">General Hardware Information</a></p>
-	<p class="list_item"><a href="#btb_com">Card Reader to GBC Communication</a></p>
-	<p class="list_item"><a href="#btb_bar">Barcode Format</a></p>
-	<p class="list_item"><a href="#btb_rip">Card Dumping</a></p>
-	<p class="list_item"><a href="#btb_rom">ROM Revision</a></p>
+			<p class="list_head"><strong>Overview</strong></p>
+			<p class="list_item"><a href="#about">About Dan Docs</a></p>
 
-	<p class="list_head"><strong>DMG-07 4-Player Adapter</strong></p>
-	<p class="list_item"><a href="#dmg07_gen">General Hardware Information</a></p>
-	<p class="list_item"><a href="#dmg07_gam">Compatible Games</a></p>
-	<p class="list_item"><a href="#dmg07_pro">Link Cable Protocol</a></p>
-	<p class="list_item"><a href="#dmg07_pin">Ping Phase</a></p>
-	<p class="list_item"><a href="#dmg07_tra">Transmission Phase</a></p>
-	<p class="list_item"><a href="#dmg07_res">Restarting Ping Phase</a></p>
+			<p class="list_head"><strong>DMG and GBC</strong></p>
+			<p class="list_item"><a href="#bcb">Barcode Boy</a></p>
+			<p class="list_item"><a href="#btb">Barcode Taisen Bardigun Scanner</a></p>
+			<p class="list_item"><a href="#dmg07">DMG-07 4-Player Adapter</a></p>
+			<p class="list_item"><a href="#zzh">Zok Zok Heroes Full Changer</a></p>
+			<p class="list_item"><a href="#ir">GBC Infrared Communication</a></p>
+			<p class="list_item"><a href="#ps">Gyogun Tanchiki: Pocket Sonar</a></p>
 
-	<p class="list_head"><strong>Zok Zok Heroes Full Changer</strong></p>
-	<p class="list_item"><a href="#zzh_gen">General Hardware Information</a></p>
-	<p class="list_item"><a href="#zzh_opr">Operation</a></p>
-	<p class="list_item"><a href="#zzh_com">IR Communication</a></p>
-	<p class="list_item"><a href="#zzh_cap">Capturing IR Data</a></p>
-	<p class="list_item"><a href="#zzh_emu">Emulation</a></p>
-	
-	<p class="list_head"><strong>GBA Screen Stretch</strong></p>
-	<p class="list_item"><a href="#gss_gen">General Information</a></p>
+			<p class="list_head"><strong>GBA</strong></p>
+			<p class="list_item"><a href="#gss">GBA Screen Stretch</a></p>
+			
+		</div>
 
-	<p class="list_head"><strong>GBC Infrared Communication</strong></p>
-	<p class="list_item"><a href="#ir_gen">General Hardware Information</a></p>
-	<p class="list_item"><a href="#ir_gam">Compatible Games</a></p>
-	<p class="list_item"><a href="#ir_typ">Communication Types</a></p>
-	<p class="list_item"><a href="#ir_pro">Communication Protocol</a></p>
-	<p class="list_item"><a href="#ir_reg">RP Register</a></p>
-	<p class="list_item"><a href="#ir_fad">Signal Fade</a></p>
-	<p class="list_item"><a href="#ir_obs">Obscure Behavior</a></p>
-	<p class="list_item"><a href="#ir_pp2">Pokemon Pikachu 2</a></p>
-	<p class="list_item"><a href="#ir_sak">Pocket Sakura</a></p>
+		<div class="toc_sec">
+			<p class="toc_gray_title">Mobile Adapter GB</p>
 
-	<p class="list_head"><strong>Gyogun Tanchiki: Pocket Sonar</strong></p>
-	<p class="list_item"><a href="#ps_gen">General Hardware Information</a></p>
-	<p class="list_item"><a href="#ps_mbc">MBC1S</a></p>
-	<p class="list_item"><a href="#ps_fmt">Sonar Format</a></p>
-	<p class="list_item"><a href="#ps_fsh">Fish Finder</a></p>
-	<p class="list_item"><a href="#ps_gbi">Game Boy Incompatibilities</a></p>
-	<p class="list_item"><a href="#ps_rsc">Further Research</a></p>
+			<p class="list_head"><strong>Game and Server Documentation</strong></p>
+			<p class="list_item"><a href="#ndg">Net de Get: Minigame @ 100</a></p>
+		</div>
+	</div>
 
 	<a name="about"></a>
 	<p class="gray_title">About Dan Docs</p>
 
 	<p>For the longest time, a technical document called Pan Docs formed the basis of nearly all known documentation about the Nintendo Game Boy. To this day, Pan Docs (or an updated version such as the GBDev wiki) continues to be the go-to source of general Game Boy information. However, while Pan Docs covers the basics well enough, it does not touch upon more obscure Game Boy hardware. Dan Docs, on the other hand, aims to fill this gap. Dan Docs is basically everything else you wanted to know about the Game Boy, but no one dared to ask.</p>
 
-	<p>All of the data here comes from my research for the GBE+ project. Much of this information is copied+pasted from the text files I&#39;ve made over the years. For ease of use and access, however, it&#39;s been converted to a single HTML document. As more items are reverse-engineered and studied, they will be added to Dan Docs as well as GBE+.</p>
+	<p>All of the data here either comes from my research for the GBE+ project or from others studying Game Boy. Much of this information is copied+pasted from the text files I&#39;ve made over the years. For ease of use and access, however, it&#39;s been converted to a single HTML document. As more items are reverse-engineered and studied, they will be added to Dan Docs as well as GBE+.</p>
+
+	<p>Consider all information within this document to be Public Domain. Copy and share as you please.</p>
+
+	<p class="list_head"><strong>Credits</strong></p>
+	<p class="list_item">ClawGrip - Scans of all known Barcode Boy cards</p>
+	<p class="list_item">endrift - MBC6 documentation</p>
+	<p class="list_item">Háčky - Mobile Adapter GB documentation</p>
+	<p class="list_item">Robert Abel (Tauwasser) - Net de Get translation help</p> 
 
 	<!-- Barcode Boy -->
+
+	<a name="bcb"></a>
+	<p class="gray_title">Barcode Boy</p>
+	<p class="list_item"><a href="#bcb_gen">General Hardware Information</a></p>
+	<p class="list_item"><a href="#bcb_gam">Compatible Games</a></p>
+	<p class="list_item"><a href="#bcb_com">Barcode Boy to DMG Communication</a></p>
+	<p class="list_item"><a href="#bcb_bar">Barcode Format</a></p>
+	<p class="list_item"><a href="#bcb_rip">Card Dumping + Emulation</a></p>
+	<p class="list_item"><a href="#bcb_err">Barcode Errors</a></p>
 
 	<a name="bcb_gen"></a>
 	<p class="gray_title">[Barcode Boy] : General Hardware Information</p>
@@ -228,7 +242,14 @@ Handshake	---&gt;
 
 
 	<!-- Barcode Taisen Bardigun -->
-
+	<a name="btb"></a>
+	<p class="gray_title">Barcode Taisen Bardigun Scanner</p>
+	<p class="list_item"><a href="#btb_gen">General Hardware Information</a></p>
+	<p class="list_item"><a href="#btb_com">Card Reader to GBC Communication</a></p>
+	<p class="list_item"><a href="#btb_bar">Barcode Format</a></p>
+	<p class="list_item"><a href="#btb_rip">Card Dumping</a></p>
+	<p class="list_item"><a href="#btb_rom">ROM Revision</a></p>
+	
 	<a name="btb_gen"></a>
 	<p class="gray_title">[Barcode Taisen Bardigun] : General Hardware Information</p>
 
@@ -319,6 +340,15 @@ Set 2 [14:0] [15:1] [14:0] [45:1] ...</code>
 	<p>Barcode Taisen Bardigun has two known ROMs, DMG-ABEJ-JPN and DMG-ABEJ-JPN-1. The later version polishes many rough edges found in the first release (e.g. including a text box when barcode scanning fails). Currently, both games appear to be largely the same besides these UI and UX enhancements. Barcode scanning is exactly the same in each.</p>
 
 	<!-- DMG-07 -->
+
+	<a name="dmg07"></a>
+	<p class="gray_title">DMG-07 4-Player Adapter</p>
+	<p class="list_item"><a href="#dmg07_gen">General Hardware Information</a></p>
+	<p class="list_item"><a href="#dmg07_gam">Compatible Games</a></p>
+	<p class="list_item"><a href="#dmg07_pro">Link Cable Protocol</a></p>
+	<p class="list_item"><a href="#dmg07_pin">Ping Phase</a></p>
+	<p class="list_item"><a href="#dmg07_tra">Transmission Phase</a></p>
+	<p class="list_item"><a href="#dmg07_res">Restarting Ping Phase</a></p>
 
 	<a name="dmg07_gen"></a>
 	<p class="gray_title">[DMG-07] : General Hardware Information</p>
@@ -476,6 +506,14 @@ P4_byte_4	P4_byte_4	P4_byte_4	P4_byte_4	31</code>
 
 	<!-- Zok Zok Heroes Full Changer -->
 
+	<a name="zzh"></a>
+	<p class="gray_title">Zok Zok Heroes Full Changer</p>
+	<p class="list_item"><a href="#zzh_gen">General Hardware Information</a></p>
+	<p class="list_item"><a href="#zzh_opr">Operation</a></p>
+	<p class="list_item"><a href="#zzh_com">IR Communication</a></p>
+	<p class="list_item"><a href="#zzh_cap">Capturing IR Data</a></p>
+	<p class="list_item"><a href="#zzh_emu">Emulation</a></p>
+
 	<a name="zzh_gen"></a>
 	<p class="gray_title">[Full Changer] : General Hardware Information</p>
 
@@ -582,33 +620,22 @@ OFF pulse length			38 + (20 * (LENGTH-2))</code>
 
 	<p>The current database GBE+ uses recreates ON&#47;OFF pulses that generally run for the same amount of cycles. However, based on hardware tests, the ON pulses have variable lengths, while the OFF pulses are typically constant. Again, Zok Zok Heroes won&#39;t care, as long as the total time of the ON&#47;OFF pulses meets whatever value it expects.</p>
 
-	<!-- GBA Screen Stretch -->
-	<a name="gss_gen"></a>
-
-	<p class="gray_title">GBA Screen Stretch</p>
-
-	<p>GBA hardware has the ability to stretch the final image drawn on-screen when running DMG or GBC games. On applicable hardware (e.g. not the Micro, original NDS, or NDS Lite models), the L and R triggers toggle this feature on and off respectively. The default mode is to display the DMG&#47;GBC image in the middle of the GBA screen with black borders. The dimensions are as follows:</p>
-
-<code>Top and bottom borders (240x8 pixels, or 30x1 tiles)
-Left and right borders (40x160 pixels, or 5x20 tiles)
-DMG/GBC screen (160x144 pixels, or 20x18 tiles)</code>
-
-	<p>Technically, the original DMG&#47;GBC screen has an offset of (40, 8). Once the player toggles stretching, the above dimensions change:</p>
-
-<code>Top and bottom borders (240x8 pixels, or 30x1 tiles)
-Left and right borders (Not Applicable)
-DMG/GBC screen (240x144 pixels, or 30x18 tiles)</code>
-
-	<p>The DMG&#47;GBC screen completely stretches to the left and right ends of the screen. No vertical stretching occurs; the black bars still exist at the top and the bottom. Horizontal stretching follows a simple formula. For every 2 pixels from the original 160x144 image, a third pixel is generated by blending them together. This third pixel is then placed between the two original pixels. For example, imagine Pixel A and Pixel B represent original pixels from the 160x144 image. Pixel C is the result of blending the two of them. The GBA will produce A-C-B when stretching DMG and GBC games.</p>
-
-	<p>This method of stretching acts on the present 160x144 image generated by the DMG/GBC game, that is to say, scrolling the background, window, or OBJs can produce minor inconsistencies depending on where a tile is rendered to the screen. Generally, these inconsistencies affect the blending seen around edges. For example, in the first level of Super Mario Land, the trunks of the trees in the background are only 1 pixel wide. When stretching, the blended edge will switch from the left to the right depending on its current position due to scrolling. However, these inconsistencies are barely visible under the best circumstances, and almost impossible to detect during actual gameplay.</p>
-
-	<p>The blending comes straight from the GBA&#39;s affine transformations. That is to say, after the final DMG&#47;GBC screen is rendered, the GBA controls all output via BG2. Even in the GBA&#39;s DMG&#47;GBC backward compatibility mode, GBA video hardware is still being used to display graphics. Currently, the exact formula for determining colors remains unknown, however, something as simple as averaging Pixel A and Pixel B gives quick, adequately believable results. One thing that is known about the blending: if A and B are the same color, they will not produce a different color.</p>
-
 	<!-- GBC IR -->
-	<a name="ir_gen"></a>
 
+	<a name="ir"></a>
 	<p class="gray_title">GBC Infrared Communication</p>
+	<p class="list_item"><a href="#ir_gen">General Hardware Information</a></p>
+	<p class="list_item"><a href="#ir_gam">Compatible Games</a></p>
+	<p class="list_item"><a href="#ir_typ">Communication Types</a></p>
+	<p class="list_item"><a href="#ir_pro">Communication Protocol</a></p>
+	<p class="list_item"><a href="#ir_reg">RP Register</a></p>
+	<p class="list_item"><a href="#ir_fad">Signal Fade</a></p>
+	<p class="list_item"><a href="#ir_obs">Obscure Behavior</a></p>
+	<p class="list_item"><a href="#ir_pp2">Pokemon Pikachu 2</a></p>
+	<p class="list_item"><a href="#ir_sak">Pocket Sakura</a></p>
+
+	<a name="ir_gen"></a>
+	<p class="gray_title">[GBC Infrared] : General Hardware Information</p>
 
 	<p>The Game Boy Color came with an infrared port on the very top of the handheld. Previously, where IR communications had to be done with special cartridges (like the HuC-1 variants), the Game Boy itself now had the hardware built-in. Unfortunately, the feature was never popular outside of a few games and accessories. The IR port essentially sends out signals and is also capable of receiving them, allowing for fast, wireless, line-of-sight transmission.</p>
 
@@ -634,6 +661,7 @@ DMG/GBC screen (240x144 pixels, or 30x18 tiles)</code>
 		<li class="list_tab"><div class="x">Harry Potter and the Sorceror&#39;s Stone</div><div class="y">Trade &#34;Famous Witches and Wizards&#34; cards</div></li>
 		<li class="list_tab"><div class="x">Harry Potter and the Chamber of Secrets</div><div class="y">Trade &#34;Famous Witches and Wizards&#34; cards</div></li>
 		<li class="list_tab"><div class="x">Kaijin Zona</div><div class="y">Receive randomized puzzles via IR signals</div></li>
+		<li class="list_tab"><div class="x">Laura</div><div class="y">Ubi Key</div></li>
 		<li class="list_tab"><div class="x">Mary-Kate and Ashley Pocket Planner</div><div class="y">Send and receive &#34;G-mail&#34; messages</div></li>
 		<li class="list_tab"><div class="x">Mickey&#39;s Racing Adventure</div><div class="y">Send and receive messages. Unlocks ??? in Mickey&#39;s Speedway USA</div></li>
 		<li class="list_tab"><div class="x">Mickey&#39;s Speedway USA</div><div class="y">???</div></li>
@@ -751,6 +779,15 @@ Bit 1 = 0 (sometimes 1)		Bit 1 = 0			Bright</code>
 	<p>Each transfer appears to be 1607 ON-OFF transitions long.</p>
 
 	<!-- Pocket Sonar -->
+
+	<a name="ps"></a>
+	<p class="gray_title">Gyogun Tanchiki: Pocket Sonar</p>
+	<p class="list_item"><a href="#ps_gen">General Hardware Information</a></p>
+	<p class="list_item"><a href="#ps_mbc">MBC1S</a></p>
+	<p class="list_item"><a href="#ps_fmt">Sonar Format</a></p>
+	<p class="list_item"><a href="#ps_fsh">Fish Finder</a></p>
+	<p class="list_item"><a href="#ps_gbi">Game Boy Incompatibilities</a></p>
+	<p class="list_item"><a href="#ps_rsc">Further Research</a></p>
 
 	<a name="ps_gen"></a>
 	<p class="gray_title">[Pocket Sonar] : General Hardware Information</p>
@@ -935,8 +972,269 @@ Refresh_12	0 reads</code>
 	<a name="ps_rsc"></a>
 	<p class="gray_title">[Pocket Sonar] : Further Research</p>
 
-	<p>There are a couple of discrepancies that require further clarification. The Pocket Sonar displays a brief "demo" mode if players wait around the title screen. It shows an example sonar image scrolling across the screen, however it uses 3 shades to represent the ground (SHADE 3, SHADE 2, and SHADE 1 in that order). It doesn't seem possible to recreate this type of image when actually using the Pocket Sonar, as the ground only uses 2 shades (SHADE 3 and SHADE 1). Additionally, on the box and in the manual, all pictures of the Pocket Sonar in action only show these 2 shades. Extensive testing using various values for the sonar image data at 0xA000 could not reproduce the "demo" mode either. While the "demo" mode may be impossible on real hardware, as actual tests in real bodies of water have not reproduced it.</p>
+	<p>There are a couple of discrepancies that require further clarification. The Pocket Sonar displays a brief "demo" mode if players wait around the title screen. It shows an example sonar image scrolling across the screen, however it uses 3 shades to represent the ground (SHADE 3, SHADE 2, and SHADE 1 in that order). It doesn&#39;t seem possible to recreate this type of image when actually using the Pocket Sonar, as the ground only uses 2 shades (SHADE 3 and SHADE 1). Additionally, on the box and in the manual, all pictures of the Pocket Sonar in action only show these 2 shades. Extensive testing using various values for the sonar image data at 0xA000 could not reproduce the "demo" mode either. While the "demo" mode may be impossible on real hardware, as actual tests in real bodies of water have not reproduced it.</p>
 
-	<p>Additionally, while the Pocket Sonar clearly states it can probe a depth of 20m, the software has settings for 30m. Furthermore, there is photographic evidence of at least one individual successfully using the 30m option. It isn't clear if the Pocket Sonar is capable of handling 30m without issue or if it can do 30m with some degree of inaccuracy. Again, real world testing would have to be done to determine the exact nature of the 30m setting.</p>
+	<p>Additionally, while the Pocket Sonar clearly states it can probe a depth of 20m, the software has settings for 30m. Furthermore, there is photographic evidence of at least one individual successfully using the 30m option. It isn&#39;t clear if the Pocket Sonar is capable of handling 30m without issue or if it can do 30m with some degree of inaccuracy. Again, real world testing would have to be done to determine the exact nature of the 30m setting.</p>
 
+	<!-- GBA Screen Stretch -->
+	<a name="gss"></a>
+	<p class="gray_title">GBA Screen Stretch</p>
+
+	<p>GBA hardware has the ability to stretch the final image drawn on-screen when running DMG or GBC games. On applicable hardware (e.g. not the Micro, original NDS, or NDS Lite models), the L and R triggers toggle this feature on and off respectively. The default mode is to display the DMG&#47;GBC image in the middle of the GBA screen with black borders. The dimensions are as follows:</p>
+
+<code>Top and bottom borders (240x8 pixels, or 30x1 tiles)
+Left and right borders (40x160 pixels, or 5x20 tiles)
+DMG/GBC screen (160x144 pixels, or 20x18 tiles)</code>
+
+	<p>Technically, the original DMG&#47;GBC screen has an offset of (40, 8). Once the player toggles stretching, the above dimensions change:</p>
+
+<code>Top and bottom borders (240x8 pixels, or 30x1 tiles)
+Left and right borders (Not Applicable)
+DMG/GBC screen (240x144 pixels, or 30x18 tiles)</code>
+
+	<p>The DMG&#47;GBC screen completely stretches to the left and right ends of the screen. No vertical stretching occurs; the black bars still exist at the top and the bottom. Horizontal stretching follows a simple formula. For every 2 pixels from the original 160x144 image, a third pixel is generated by blending them together. This third pixel is then placed between the two original pixels. For example, imagine Pixel A and Pixel B represent original pixels from the 160x144 image. Pixel C is the result of blending the two of them. The GBA will produce A-C-B when stretching DMG and GBC games.</p>
+
+	<p>This method of stretching acts on the present 160x144 image generated by the DMG/GBC game, that is to say, scrolling the background, window, or OBJs can produce minor inconsistencies depending on where a tile is rendered to the screen. Generally, these inconsistencies affect the blending seen around edges. For example, in the first level of Super Mario Land, the trunks of the trees in the background are only 1 pixel wide. When stretching, the blended edge will switch from the left to the right depending on its current position due to scrolling. However, these inconsistencies are barely visible under the best circumstances, and almost impossible to detect during actual gameplay.</p>
+
+	<p>The blending comes straight from the GBA&#39;s affine transformations. That is to say, after the final DMG&#47;GBC screen is rendered, the GBA controls all output via BG2. Even in the GBA&#39;s DMG&#47;GBC backward compatibility mode, GBA video hardware is still being used to display graphics. Currently, the exact formula for determining colors remains unknown, however, something as simple as averaging Pixel A and Pixel B gives quick, adequately believable results. One thing that is known about the blending: if A and B are the same color, they will not produce a different color.</p>
+
+	<!-- Net de Get -->
+	<a name="ndg"></a>
+	<p class="gray_title">Net de Get: Mini Game @ 100</p>
+	<p class="list_item"><a href="#ndg_gen">General Information</a></p>
+	<p class="list_item"><a href="#ndg_ser">Server Structure</a></p>
+	<p class="list_item"><a href="#ndg_h00">h0000.cgb</a></p>
+	<p class="list_item"><a href="#ndg_rom">RomList.cgb</a></p>
+	<p class="list_item"><a href="#ndg_cgb">cgb&#47;download?name=&#47;A4&#47;CGB-BMVJ&#47;</a></p>
+	<p class="list_item"><a href="#ndg_wrp">Download Wrapper</a></p>
+	<p class="list_item"><a href="#ndg_gam">Minigame Format</a></p>
+	<p class="list_item"><a href="#ndg_str">String Format</a></p>
+	<p class="list_item"><a href="#ndg_fla">MBC6 Flash Operation</a></p>
+
+	<a name="ndg_gen">
+	<p class="gray_title">[Net de Get] : General Information </p>
+
+	<p>Net de Get is a Game Boy Color game published by Konami and released on June 12, 2001. In addition to being one of the select few GBC games to support the GB Mobile Adapter, it is the only known game to use the MBC6. This special cartridge allowed the Game Boy to download minigames online and save them locally to Flash memory for offline play. Players earn points based on their performance in minigames. Once enough points have been accumulated, they can be exchanged for downloadable minigames.</p>
+
+	<a name="ndg_ser"></a>
+	<p class="gray_title">[Net de Get] : Server Structure</p>
+
+	<p>Net de Get is currently known to access the following URLs:</p>
+
+	<ul>
+		<li class="list_item">http:&#47;&#47;gameboy.datacenter.ne.jp&#47;cgb&#47;download?name=&#47;A4&#47;CGB-BMVJ&#47;h0000.cgb</li>
+		<li class="list_item">http:&#47;&#47;gameboy.datacenter.ne.jp&#47;cgb&#47;download?name=&#47;A4&#47;CGB-BMVJ&#47;RomList.cgb</li>
+		<li class="list_item">http:&#47;&#47;gameboy.datacenter.ne.jp&#47;cgb&#47;download?name=&#47;A4&#47;CGB-BMVJ&#47;</li>
+	</ul>
+
+	<p>Although a few other URLs are present within the ROM, the above are the only ones observed in actual use.</p>
+
+
+	<a name="ndg_h00"></a>
+	<p class="gray_title">[Net de Get] : h0000.cgb</p>
+
+	<p>After some points are earned through the base set of minigames, players unlock the &#34;セーバ&#34; or &#34;Server&#34; option from the main menu. After the user&#39;s password is given, this file is then downloaded via HTTP GET. The purpose of h0000.cgb is simply to display the text &#34;ミニゲームリスト&#34; or &#34;Minigame List&#34;. Selecting this downloads RomList.cgb via HTTP GET. The format of h0000.cgb is described below:</p>
+
+<code>----------------------------------
+Header - 4 bytes
+----------------------------------
+0x0000 - &#34;M&#34;			::	0x4D
+0x0001 - &#34;N&#34;			::	0x4E
+0x0002 - &#34;G&#34;			::	0x47
+0x0003 - &#34;L&#34;			::	0x4C
+
+----------------------------------
+Text offset - 6 bytes
+----------------------------------
+0x0004 - Offset			::	Offset to text string. Calculated as 10 + (Offset * 5).
+0x0005 - ???			:: 	0x0005 through 0x0009 seem to be ignored.
+0x0006 - ???			::
+0x0007 - ???			::
+0x0008 - ???			::
+0x0009 - ???			::</code>
+
+	<a name="ndg_rom"></a>
+	<p class="gray_title">[Net de Get] : RomList.cgb</p>
+
+	<p>After h0000.cgb is downloaded, next comes RomList.cgb. This file contains a list of all available minigames the server has to offer. It also displays how many points it costs to download, as well as the type of minigame being downloaded.</p>
+
+<code>----------------------------------
+Entry Count - 1 byte
+----------------------------------
+0x00 - Number of entries	::	(1 - ?) Maximum not currently known.
+
+----------------------------------
+Data Offsets - 2 bytes each
+----------------------------------
+0x01				::	Low byte of 16-bit internal offset to RomsList.cgb data structure.
+0x02				::	High byte of 16-bit internal offset to RomsList.cgb data structure. 
+...				::	Repeat offsets as needed.
+
+----------------------------------
+Data Structure
+----------------------------------
+0x00	 			::	Number of points necessary for download (modulus 100). Should be 0x00 - 0x63 ideally.
+0x01				::	Mini-game icon type. See Icon Type below for details.
+0x08 - 0x0A			::	Disables download (grayed out text). All 3 must be zero, otherwise download is disabled.
+0x0C - 0x0F			::	Disables menu item completely (no text, item not selectable). All 4 must be zero, otherwise menu item is disabled.
+0x10				::	String Length 1. Each menu item should ideally be 12 characters or less (font is fixed width). Used for minigame name.
+0x11 - ...			::	Menu Item Text (see String Format below).
+0x11 + String Length 1		::	String Length 2. Each menu item draws additional text to a small on-screen textbox. Used brief explanations about minigame. Ideal max is 0xF.
+0x11 + 1 + String Length 1 	::	Additional textbox string.</code>
+
+	<p>Minigames have their own categories and can be assigned their own specific icons. The following bytes dictate what icon is drawn:</p>
+
+<code>----------------------------------
+Icon Type
+----------------------------------
+0x00				::	Question Mark		不定その他	Unspecified other aka misc.
+0x01				::	Boxing Glove		アクション	Action
+0x02				::	Green Head		パズル		Puzzle
+0x03				::	Running Person		オーソドックス	Orthodox aka Platformer?
+0x04				::	Sword			アールピージー	RPG
+0x05				::	Green Sheet		シミュレーション 	Simulation
+0x06				::	Fighter Jet		シューティング	Shooter&#47;Shooting game 
+0x07				::	Red Square		アドベンチャー	Adventure 
+0x08				::	Blue Square (P)		プログラム	Program i.e. a full minigame, as opposed to additional data.
+0x09				::	Green Square (D)	???		???
+0x0A				::	Red Square (A)		アペンド		Additional minigame data.
+0x0B				::	Brown Square (S)	???		???</code>
+
+	<p>Each mini game has two icons. The first describes the main type, &#34;Program&#34; for the main minigame, or &#34;Append&#34; for additional data or content. The 2nd icon describes the sub-type for the minigame. Apparently for minigame downloads, the main type is forcibly set to &#34;Program&#34;. Byte 0x01 of the data structure controls only the 2nd icon, the sub-type. In that regard, only values of 0x00 through 0x07 are contextually correct. It should also be noted that two other main types seem to exist (the Green and Brown squares), but they are unused, or at least have no mention whatsoever in the game manual.</p>
+
+	<a name="ndg_cgb"></a>
+	<p class="gray_title">[Net de Get] : cgb&#47;download?name=&#47;A4&#47;CGB-BMVJ&#47;</p>
+
+	<p>The GB Mobile Adapter attempts to access this URL for downloading minigames. The server responds with the required binary data. It is currently unknown exactly how the server knows what data to send to the GBC depending on which minigame is chosen. Net de Get will blindly receive data, regardless of what it is. That is to say, no error checking of the minigame itself is done during the download phase.</p>
+
+	<a name="ndg_wrp"></a>
+	<p class="gray_title">[Net de Get] : Download Wrapper</p>
+
+	<p>Rather than simply downloading the minigame data as-is, Net de Get expects minigames to have come in a sort of wrapper file. This consists of a brief header followed by the actual minigame data as described in the next section below. The wrapper header is as follows:</p>
+
+<code>0x00:				::	Offset to the rest of the wrapper data. This is the 1-byte value + 1, so 1-256.
+Offset + 0x00			::	???
+Offset + 0x01			::	For most minigame downloads, this should be 0x00. When set to 0x05, it seems to do a block-fill operation on the MBC6 Flash ROM.
+Offset + 0x02			::	???
+Offset + 0x03			::	???
+Offset + 0x04			::	Minigame size (low-byte).
+Offset + 0x05			::	Minigame size (high-byte). Should not be zero.
+Offset + 0x06			::	???
+Offset + 0x07			::	???
+Offset + 0x08 ...		::	Minigame data (as described below in Minigame Format).</code>
+
+	<p>The minigame is copied to various RAM locations (SRAM and WRAM) until it is finally written to Flash. A maximum of 0x200 bytes is copied at a time. The wrapper, however, expects a 0x100 &#34;footer&#34; to be inserted after each of the 0x200 chunks. This is only necessary if the minigame size is greater than 0x200 bytes. For example, if a minigame is only 0x100 bytes, then the footer can be ignored, although such a small size is rather impractical. Additionally, only the last footer technically needs to be correctly formatted. The default footer is as follows:</p>
+
+	<p>0x00, 0x00, 0x01, 0x00, 0x02, 0x03, 0x00, 0x04, 0x00, 0x05, 0x00, 0x06, 0x00, 0x07, 0x00, 0x08, 0x00, 0x09, 0x00, 0x0A, 0x00, 0x0B, 0x0C, 0x00, 0x0D, 0x00, 0x0E, 0x00, 0xFF ... (the remaining 225 bytes should be 0x00).</p>
+
+	<p>So in summary, the wrapper effectively looks like this:</p>
+
+<code>Wrapper Header ->
+	Minigame Data Chunk (0x200 max)
+		Footer (0x100)
+	Minigame Data Chunk (0x200 max)
+		Footer (0x100)
+	...</code>
+
+	<p>Note that the footer is written to SRAM later on, not Flash. Improperly formatted footers may crash the game when booting or trying to access the minigame menu. There may be other valid footers, but the default above is the only one tested extensively.</p>
+
+	<a name="ndg_gam"></a>
+	<p class="gray_title">[Net de Get] : Minigame Format</p>
+
+	<p>The minigame format is essentially the same as that found on the MBC6 ROM. Using the base address of the Flash ROM bank, minigames look like so:</p>
+
+<code>0x00 - 0x02			::	Typically contains a JR or JP instuction.
+0x05 				::	Points required to play the minigame.
+0x06				::	Primary minigame icon.
+0x07				::	Secondary minigame icon.
+0x09 - 0x0C			::	Game ID, simply in the format &#34;Gxyz&#34; where &#34;xyz&#34; are three numbers. E.g. the first minigame ID in the Net de Get ROM is &#34;G000&#34;
+0x0F - ...			::	Text for game title. Null terminated, but nothing stops it from being too long. Text can technically spill over multiple lines.
+0x24 - ...			::	Text for dialog box. Null terminated.
+0x44				::	If this is 0xFF, it prints the game title, otherwise the title is blank. Oddly enough, the dialog box is unaffected and always printed.
+0x6D - 0x6E			::	Always 0x3B, 0xB3. Acts like a watermark for valid minigames. Net de Get checks this specifically to tell if a game is on Flash ROM.
+0x6F - ...			::	Code + Data.</code>
+
+	<p>Generally, the jump instruction goes right to Byte 0x6F, but not always. When the minigame is selected from the menu and the play (あそぶ) option is selected, the MBC6 switches Bank 0 (0x4000 - 0x5FFF) with Flash ROM, then performs a CALL 0x4000, which in turn executes the jump instruction and starts the minigame. It should also be noted that the downloaded minigame code is actually executed from Flash ROM rather than copying it somewhere else first like WRAM.</p>
+
+	<p>Unlike the previous icons from RomList.cgb, each minigame&#39;s primary icon can be specified. The secondary minigame icon is nearly identical to the format in RomList.cgb, but contains some variations:</p>
+
+<code>----------------------------------
+Primary Minigame Icon Type
+----------------------------------
+0x00				::	Gray Square (P)		プログラム	Program i.e. a full minigame, as opposed to additional data. Might be &#34;disabled&#34; since it&#39;s gray.
+0x01				::	Blue Square (P)		プログラム	Program i.e. a full minigame, as opposed to additional data.
+0x02				::	Green Square (D)	???		???
+0x03				::	Green Square (D)	???		???
+0x04				::	Red Square (A)		アペンド		Additional minigame data.
+0x05				::	Gray Square (A)		アペンド		Additional minigame data (disabled?).
+0x06				::	Gray Square (A)		アペンド		Additional minigame data (disabled?).
+0x07				::	Gray Square (A)		アペンド		Additional minigame data (disabled?).
+0x08				::	Brown Square (S)	???		???
+
+----------------------------------
+Secondary Minigame Icon Type
+----------------------------------
+0x00				::	Question Mark		不定その他	Unspecified other aka misc.
+0x01				::	Boxing Glove		アクション	Action
+0x02				::	Green Head		パズル		Puzzle
+0x03				::	Running Person		オーソドックス	Orthodox aka Platformer?
+0x04				::	Sword			アールピージー	RPG
+0x05				::	Green Sheet		シミュレーション 	Simulation
+0x06				::	Fighter Jet		シューティング	Shooter&#47;Shooting game 
+0x07				::	Green Square		アドベンチャー	Adventure</code>
+
+	<p>For the secondary icon, everything above 0x08 results in garbage tile data being drawn on-screen. 0x07 is the same icon as in RomList.cgb, except the color is now green instead of Red. Strangely enough, the game manual only shows the red version of that icon.</p>
+
+	<a name="ndg_str"></a>
+	<p class="gray_title">[Net de Get] : String Format</p>
+
+	<p>Blank entries represent values that are not used and can effectively be treated as spaces.</p>
+
+<code>        0    1    2    3    4    5    6    7    8    9    A    B    C    D    E    F
+0x00
+0x10         !    "    #    $    %    &    '    (    )    *    +    ‘    -    .    /
+0x20    0    1    2    3    4    5    6    7    8    9    :    ;    <    =    >    ?
+0x30    [    ¥    ]    x    ÷    {    |    }    ˜    @    ⌜    ⌟    —    ~    、    。
+0x40         A    B    C    D    E    F    G    H    I    J    K    L    M    N    O
+0x50    P    Q    R    S    T    U    V    W    X    Y    Z    ✜    ‥    ^    _    ’
+0x60         a    b    c    d    e    f    g    h    i    j    k    l    m    n    o
+0x70    p    q    r    s    t    u    v    w    x    y    z    Ⓐ    Ⓑ
+
+
+0x80    ぁ    あ    ぃ    い    ぅ    う    ぇ    え    ぉ    お    か    き    く    け    こ    さ        
+0x90    し    す    せ    そ    た    ち    っ    つ    て    と    な    に    ぬ    ね    の    は
+0xA0    ひ    ふ    へ    ほ    ま    み    む    め    も    ゃ    や    ゅ    ゆ    ょ    よ    ら
+0xB0    り    る    れ    ろ    ゎ    わ    を    ん    →    ←    ↑    ↓    •
+0xC0    ァ    ア    ィ    イ    ゥ    ウ    ェ    エ    ォ    オ    カ    キ    ク    ケ    コ    サ
+0xD0    シ    ス    セ    ン    タ    チ    ッ    ツ    テ    ト    ナ    ニ    ヌ    ネ    ノ    ハ      
+0xE0    ヒ    フ    ヘ    ホ    マ    ミ    ム    メ    モ    ャ    ヤ    ュ    ユ    ョ    ヨ    ラ 
+0xF0    リ    ル    レ    ロ    ヮ    ワ    ヲ    ン    ☎    ♪    ☺    ☺    ★    ❤     ﾟ     ﾞ</code>
+
+	<p>A couple of things to note, since some characters listed are not quite the same in Unicode as they are on Net de Get:</p>
+
+	<ul>
+		<li class="list_item">0x33 is supposed to be the multiplication sign (not X).</li>
+		<li class="list_item">0x5B is supposed to be the GBC&#39;s d-pad.</li>
+		<li class="list_item">0x7B and 0x7C are actually inverted color-wise (black circle with white &#34;A&#34; or &#34;B&#34; in the center). These are presumably the GBC&#39s A and B buttons.</li>
+		<li class="list_item">0xF8 is actually inverted color-wise (black outlines, white on the inside).</li>
+		<li class="list_item">0xFB is a &#34;smiley face&#34; like 0xFA, but it&#39;s kind of lumpy and missing an eye.</li>
+	</ul>
+
+	<a name="ndg_fla"></a>
+	<p class="gray_title">[Net de Get] : MBC6 Flash Operation</p>
+
+	<p>The MBC6 writes games to Flash ROM for long-time data storage. Although technically it has a limited number of lifetime writes, it does not rely on a battery unlike cartridge SRAM for DMG/GBC games. The MBC6 uses the MX29F008TC-14. While no specific documentation about the MX29F008TC-14 is available, the following information has been reverse-engineered based on how Net de Get&#39;s code expects Flash ROM to work.</p>
+
+	<ul>
+		<li>Net de Get never appears to check the chip ID for Flash ROM. Instead of issuing the 0x90 command, it immediately accesses Flash. Given that the MX29F008TC-14 was likely a variant of other existing Macronix Flash chips but specialized exclusively for the Game Boy Color, it&#39;s entirely possible that Net de Get was all but gauranteed to use one Flash chip. In that sense, the developers had no need to identity other Flash hardware.</li>
+
+		<li>Net de Get makes extensive use of the 0x30 command to erase sectors, particularly before a minigame is downloaded. After the 0x30 command is issued, Net de Get issues a 0xF0 command, which forcibly terminates the previous erase command. During this time (until another Flash command is issued), any reads to Flash return the current status of the previous erase command. The status is a single byte. Bit 7 determines if the erase command has indeed finished (1 = Done, 0 = In Progress). Bit 4 seems to indicate a timeout (1 = Timeout, 0 = OK). Net de Get actively checks both bits.</li>
+
+		<li>Net de Get only writes to Flash ROM in portions of 128 bytes at a time. At the end of each 128 byte section (e.g. 0x407F, 0x40FF, etc), it writes a 0x00 at the very last byte. This seems to indicate that the Flash chip should return the status byte from any reads, much like the 0x30 commands. Again, Bit 7 and 4 are checked. Afterwards, the game will use the 0xF0 command to terminate writing.</li>
+
+		<li>Net de Get actually saves the downloaded minigame to SRAM initially, then portions are copied to WRAM, and eventually Flash ROM. Net de Get also actively verifies whether the data written to Flash is correct by comparing current Flash memory to the original RAM data. Any discrepancy triggers an error message and aborts.</li>
+
+	</ul>
+
+	</body>
 </html>					

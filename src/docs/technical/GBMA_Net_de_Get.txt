@@ -88,7 +88,7 @@ Icon Type
 0x00				::	Question Mark		不定その他	Unspecified other aka misc.
 0x01				::	Boxing Glove		アクション	Action
 0x02				::	Green Head		パズル		Puzzle
-0x03				::	Running Person		オーンドックス	On Docks? Platformer??
+0x03				::	Running Person		オーソドックス	Orthodox aka Platformer?
 0x04				::	Sword			アールピージー	RPG
 0x05				::	Green Sheet		シミュレーション 	Simulation
 0x06				::	Fighter Jet		シューティング	Shooter/Shooting game 
@@ -181,7 +181,7 @@ Secondary Minigame Icon Type
 0x00				::	Question Mark		不定その他	Unspecified other aka misc.
 0x01				::	Boxing Glove		アクション	Action
 0x02				::	Green Head		パズル		Puzzle
-0x03				::	Running Person		オーンドックス	On Docks? Platformer??
+0x03				::	Running Person		オーソドックス	Orthodox aka Platformer?
 0x04				::	Sword			アールピージー	RPG
 0x05				::	Green Sheet		シミュレーション 	Simulation
 0x06				::	Fighter Jet		シューティング	Shooter/Shooting game 

@@ -36,6 +36,7 @@ This list represents all the games that have been verified to use the IR port. W
 - Harry Potter and the Sorceror's Stone		Trade "Famous Witches and Wizards" cards 
 - Harry Potter and the Chamber of Secrets	Trade "Famous Witches and Wizards" cards 
 - Kaijin Zona					Receive randomized puzzles via IR signals
+- Laura						Ubi Key
 - Mary-Kate and Ashley Pocket Planner		Send and receive "G-mail" messages
 - Mickey's Racing Adventure			Send and receive messages. Unlocks ??? in Mickey's Speedway USA
 - Mickey's Speedway USA				???
