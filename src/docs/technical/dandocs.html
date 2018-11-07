@@ -118,6 +118,7 @@
 			<p class="toc_gray_title">Mobile Adapter GB</p>
 
 			<p class="list_head"><strong>Game and Server Documentation</strong></p>
+			<p class="list_item"><a href="#mbt">Mobile Trainer</a></p>
 			<p class="list_item"><a href="#ndg">Net de Get: Minigame @ 100</a></p>
 		</div>
 	</div>
@@ -998,6 +999,91 @@ DMG/GBC screen (240x144 pixels, or 30x18 tiles)</code>
 
 	<p>The blending comes straight from the GBA&#39;s affine transformations. That is to say, after the final DMG&#47;GBC screen is rendered, the GBA controls all output via BG2. Even in the GBA&#39;s DMG&#47;GBC backward compatibility mode, GBA video hardware is still being used to display graphics. Currently, the exact formula for determining colors remains unknown, however, something as simple as averaging Pixel A and Pixel B gives quick, adequately believable results. One thing that is known about the blending: if A and B are the same color, they will not produce a different color.</p>
 
+	<!-- Mobile Trainer -->
+	<a name="mbt"></a>
+	<p class="gray_title">Mobile Trainer</p>
+	<p class="list_item"><a href="#mbt_gen">General Information</a></p>
+	<p class="list_item"><a href="#mbt_ser">Server Structure</a></p>
+	<p class="list_item"><a href="#mbt_ind">index.html</a></p>
+	<p class="list_item"><a href="#mbt_web">Web Browser</a></p>
+	<p class="list_item"><a href="#mbt_eml">Email</a></p>
+
+	<a name="mbt_gen"></a>
+	<p class="gray_title">[Mobile Trainer] : General Information</p>
+	
+	<p>Mobile Trainer is utility software designed as a configuration tool for the Mobile Adapter GB. It also served as a basic web-browser and email client when connected to the Mobile System GB network. The cartridge came bundled with every Mobile Adapter and was released on January 27, 2001.</p>
+
+	<a name="mbt_ser"></a>
+	<p class="gray_title">[Mobile Trainer] : Server Structure</p>
+
+	<p>Mobile Trainer is currently known to access the following URL:</p>
+
+	<ul>
+		<li class="list_item">http:&#47;&#47;gameboy.datacenter.ne.jp&#47;01&#47;CGB-B9AJ&#47;index.html</li>
+	</ul>
+
+	<p>Although a few other URLs are present within the ROM, the above is the only ones observed in actual use. Additionally, Mobile Trainer is currently known to access POP3 mail servers on port 110 and SMTP servers on port 25.</p>
+
+	<a name="mbt_ind"></a>
+	<p class="gray_title">[Mobile Trainer] - index.html</p>
+
+	<p>This is the &#34;Home Page&#34; for the Mobile Adapter. News and updates published by Nintendo would appear here periodically. Other pages could be accessed if the Home Page had links. Beyond a few screenshots, not much else has been recorded about the content and structure of the Home Page.</p>
+
+	<a name="mbt_web"></a>
+	<p class="gray_title">[Mobile Trainer] - Web Browser</p>
+
+	<p>Mobile Trainer features a barebones web-browser supported a limited subset of HTML. The following HTML elements are known to render:</p>
+
+	<ul>
+		<li class="list_tab"><div class="x">&lt;a&gt;</div><div class="y">Hyperlinking can be selected with d-pad and A button</div></li>
+		<li class="list_tab"><div class="x">&lt;b&gt;</div><div class="y">This turns text red instead of black</div></li>
+		<li class="list_tab"><div class="x">&lt;br&gt;</div><div class="y">New line</div></li>
+		<li class="list_tab"><div class="x">&lt;div&gt;</div><div class="y">Starts a new line, can use the align=&#34;&#34; attribute</div></li>
+		<li class="list_tab"><div class="x">&lt;center&gt;</div><div class="y">Centers text. Needs to be inside &lt;html&gt;&lt;&#47;html&gt; tags to render</div></li>
+		<li class="list_tab"><div class="x">&lt;html&gt;</div><div class="y">Not necessary for most elements to render correctly</div></li>
+		<li class="list_tab"><div class="x">&lt;hr&gt;</div><div class="y">Works</div></li>
+		<li class="list_tab"><div class="x">&lt;img&gt;</div><div class="y">Only accepts 1BPP BMPs. If 404, displays a small &#34;broken image&#34; icon</div></li>
+		<li class="list_tab"><div class="x">&lt;title&gt;</div><div class="y">Works</div></li>
+		<li class="list_tab"><div class="x">&lt;li&gt;</div><div class="y">Works</div></li>
+		<li class="list_tab"><div class="x">&lt;ol&gt;</div><div class="y">Works</div></li>
+		<li class="list_tab"><div class="x">&lt;ul&gt;</div><div class="y">Works. Little tiny dot for bullet points</div></li>
+	</ul>
+
+	<p>Manual URL input is not possible from the browser. As such, it is restricted to the Home Page and whatever links appear in the index.html file. Bookmarks can be saved, however, and accessed without having to go through the Home Page. Manually editing the save file would allow bookmarks to point to arbitrary URLs.</p>
+
+	<p>Accessing the Home Page and associated links is timed, as the Mobile Adapter keeps an active connection to the server, thus a service charge (from the wireless provider) would be applied for the total time spent browsing. Handily enough, there is an option within the browser to cut the connection and freeze the timer.</p>
+
+	<p>&lt;img&gt; tags will only work with 1BPP BMP files. There are several additional restrictions:</p>
+
+	<ul>
+		<li class="list_item">Maximum size is 144x256. While the BMP specification allows width and height to be defined as 32-bit integers, any image where the dimensions exceed 8-bit integers is rejected.</li>
+		<li class="list_item">The offset to pixel data in the BMP file header must be a 16-bit integer, despite being 32-bit in the specification.</li>
+		<li class="list_item">The 16-bit value for BPP in the BMP image header must be 0x1 (with the MSB being zero).</li>
+		<li class="list_item">The 16-bit value for planes in the BMP image header must be 0x1 (with the MSB being zero).</li>
+		<li class="list_item">The entire 32-bit integer for compression flags in the BMP image header must be zero.</li>
+		<li class="list_item">The entire 32-bit integer for the number of color maps in the BMP image header must be zero.</li>
+	</ul>
+
+	<p>Just about everything else in the BMP file and image header is ignored. Most image editors will produce a BMP that works fine with the Mobile Trainer web-browser. Some BMPs may need minor alterations. For example, GIMP may set the number of color maps but otherwise typically produce a valid BMP for Mobile Trainer (in which case, the incorrect bytes can be manually changed in a hex editor).</p>
+
+	<a name="mbt_eml"></a>
+	<p class="gray_title">[Mobile Trainer] : Email</p>
+
+	<p>Email could be sent and received by Mobile Trainer. Users would have to register a DION account and would receive their information (email address, password, etc). Other game servers on the Mobile System GB network could send email to this account for various reasons. Pokemon Crystal, for example would send an email if a deposited Pokemon had been traded with another player. The email server itself is essentially a standard POP3 and SMTP server for receiving and sending email. The email format sent follows this format roughly (keep in mind the xxxx and yyyy and zzzz parts are not exactly lengths, consider them variable).</p>
+
+<code>MIME-Version: 1.0
+From: xxxx@yyyy.dion.ne.jp (=?ISO-2022-JP?zzzzzzzzzzzzzzzz)
+To: [email_address]
+Subject: =?ISO-2022-JP?xxxx
+X-Game-title: MOBILE TRAINER
+X-Game-code: CGB-B9AJ-00
+Content-Type: text&#47;plain; charset=iso-2022-jp
+[content_of_email]</code>
+
+	<p>As the above makes clear, emails are sent using ISO-2022 character encodings. The recepient&#39;s email address is not checked or verified by Mobile Trainer. It will blindly hand over the mail to the SMTP server, only showing the user and error if the server reports a problem. It is unknown if there were restrictions on which email addresses the Mobile System GB would service (only other DION email for Mobile Adapter customers, or anyone anywhere?) Email can be sent and received from the same menu. A small animation appears of the player walking to a digital post office and sending mail and receiving any new mail afterwards.</p>
+
+	<p>Also of note: there is absolutely no encryption done and any POP or SMTP transfer. While the limited nature, obscurity, and short lifespan of the Mobile System GB network probably prevented any major security concerns from appearing, by modern standards it is a security nightmare. For example, when retrieving mail via the POP3 server, both user ID and password are transmitted in plaintext. Those two pieces of information would be enough to impersonate another user for any other Mobile Adapter compatible game.</p>
+
 	<!-- Net de Get -->
 	<a name="ndg"></a>
 	<p class="gray_title">Net de Get: Mini Game @ 100</p>
@@ -1011,8 +1097,8 @@ DMG/GBC screen (240x144 pixels, or 30x18 tiles)</code>
 	<p class="list_item"><a href="#ndg_str">String Format</a></p>
 	<p class="list_item"><a href="#ndg_fla">MBC6 Flash Operation</a></p>
 
-	<a name="ndg_gen">
-	<p class="gray_title">[Net de Get] : General Information </p>
+	<a name="ndg_gen"></a>
+	<p class="gray_title">[Net de Get] : General Information</p>
 
 	<p>Net de Get is a Game Boy Color game published by Konami and released on June 12, 2001. In addition to being one of the select few GBC games to support the GB Mobile Adapter, it is the only known game to use the MBC6. This special cartridge allowed the Game Boy to download minigames online and save them locally to Flash memory for offline play. Players earn points based on their performance in minigames. Once enough points have been accumulated, they can be exchanged for downloadable minigames.</p>
 
