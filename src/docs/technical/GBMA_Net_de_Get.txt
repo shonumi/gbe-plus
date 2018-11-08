@@ -17,7 +17,7 @@ Net de Get is currently known to access the following URLs:
 
 * http://gameboy.datacenter.ne.jp/cgb/download?name=/A4/CGB-BMVJ/h0000.cgb
 * http://gameboy.datacenter.ne.jp/cgb/download?name=/A4/CGB-BMVJ/RomList.cgb
-* http://gameboy.datacenter.ne.jp/cgb/download?name=/A4/CGB-BMVJ/
+* http://gameboy.datacenter.ne.jp/cgb/download?name=/A4/CGB-BMVJ/*
 
 Although a few other URLs are present within the ROM, the above are the only ones observed in actual use.
 
@@ -72,13 +72,18 @@ Data Structure
 ----------------------------------
 0x00	 			::	Number of points necessary for download (modulus 100). Should be 0x00 - 0x63 ideally.
 0x01				::	Mini-game icon type. See Icon Type below for details.
+0x02 - 0x05			::	Game ID, simply in the format "Gxyz" where "xyz" are three numbers. E.g. the first minigame ID in the Net de Get ROM is "G000"
 0x08 - 0x0A			::	Disables download (grayed out text). All 3 must be zero, otherwise download is disabled.
 0x0C - 0x0F			::	Disables menu item completely (no text, item not selectable). All 4 must be zero, otherwise menu item is disabled.
 0x10				::	String Length 1. Each menu item should ideally be 12 characters or less (font is fixed width). Used for minigame name.
 0x11 - ...			::	Menu Item Text (see String Format below).
 0x11 + String Length 1		::	String Length 2. Each menu item draws additional text to a small on-screen textbox. Used brief explanations about minigame. Ideal max is 0xF.
 0x11 + 1 + String Length 1 	::	Additional textbox string.
+0x11 + 2 + String Length 1 & 2	::	The price of the minigame download in yen. 4 digits max.
+0x11 + 6 + String Length 1 & 2	::	Unique ID for download. 8 characters max.
 
+
+The offset to the data structure is technically (ADDRESS - 0x4). If the data structure is located at 0x44, the offset is written as 0x40.
 
 Minigames have their own categories and can be assigned their own specific icons. The following bytes dictate what icon is drawn:
 
@@ -102,10 +107,14 @@ Each mini game has two icons. The first describes the main type, "Program" for t
 
 
 ***************************************************
-5. cgb/download?name=/A4/CGB-BMVJ/
+5. cgb/download?name=/A4/CGB-BMVJ/*
 ***************************************************
 
-The GB Mobile Adapter attempts to access this URL for downloading minigames. The server responds with the required binary data. It is currently unknown exactly how the server knows what data to send to the GBC depending on which minigame is chosen. Net de Get will blindly receive data, regardless of what it is. That is to say, no error checking of the minigame itself is done during the download phase.
+The GB Mobile Adapter attempts to access this URL for downloading minigames. The file containing the minigame is appended to the base URL. The appended part should be 12 characters, 4 for the price in yen, followed by 8 characters for rest of the unique ID. Although it is unknown if this really was the case, it would make sense to use the minigame ID (e.g. "G000") along with ".cgb". Thus a full URL would be something like:
+
+	http://gameboy.datacenter.ne.jp/cgb/download?name=/A4/CGB-BMVJ/1234G000.cgb
+
+Note that the filename of the minigame should start with numbers (the price) since this indicates a service fee for the download. The server responds with the required binary data. Net de Get will blindly receive data, regardless of what it is. That is to say, no error checking of the minigame itself is done during the download phase.
 
 
 ***************************************************
