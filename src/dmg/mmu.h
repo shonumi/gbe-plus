@@ -96,6 +96,7 @@ class DMG_MMU
 		u8 flash_cnt;
 		u8 flash_cmd;
 		u8 flash_stat;
+		u8 flash_io_bank;
 		bool flash_get_id;
 
 		//MBC7

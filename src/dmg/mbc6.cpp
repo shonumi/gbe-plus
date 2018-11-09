@@ -102,9 +102,11 @@ void DMG_MMU::mbc6_write(u16 address, u8 value)
 	//FLASH commands
 	else if((address >= 0x4000) && (address <= 0x7FFF))
 	{
-		u8 bank_0 = (bank_bits & 0x7);
-		u8 bank_1 = ((rom_bank >> 8) & 0x7);
+		u8 bank_0 = (bank_bits & 0x7F);
+		u8 bank_1 = ((rom_bank >> 8) & 0x7F);
 		bool is_bank_0 = (address < 0x6000) ? true : false;
+
+		u8 bank = (address < 0x6000) ? (bank_0 >> 4) : (bank_1 >> 4);
 
 		//Signal write command finish
 		if(((address & 0x7F) == 0x7F) && (value == 0)) { cart.flash_stat |= 0x80; return; }
@@ -122,9 +124,12 @@ void DMG_MMU::mbc6_write(u16 address, u8 value)
 			{
 				//FLASH erase sector
 				case 0x30:
-					for(u32 x = 0; x < 0x2000; x++) { flash[0][x] = 0; }
 					cart.flash_stat |= 0x1;
 					cart.flash_cmd = 0;
+					cart.flash_io_bank = bank;
+
+					for(u32 x = 0; x < 0x2000; x++) { flash[cart.flash_io_bank][x] = 0; }
+
 					break;
 
 				//FLASH erase command
@@ -164,8 +169,8 @@ void DMG_MMU::mbc6_write(u16 address, u8 value)
 		}
 
 		//Write to FLASH normally
-		else if(address >= 0x6000) { flash[0][address - 0x6000] = value; }
-		else { flash[0][address - 0x4000] = value; }
+		else if(address >= 0x6000) { flash[cart.flash_io_bank][address - 0x6000] = value; }
+		else { flash[cart.flash_io_bank][address - 0x4000] = value; }
 	}	
 }
 
@@ -178,13 +183,11 @@ u8 DMG_MMU::mbc6_read(u16 address)
 		//Read from FLASH - TODO
 		if(cart.flash_cnt & 0x4)
 		{
-			u8 bank = ((rom_bank >> 8) & 0x7);
-
 			//Get FLASH Status
 			if(cart.flash_stat & 0x81) { return 0x80; }
 
 			//Read from FLASH normally
-			else { return flash[0][address - 0x4000]; }
+			else { return flash[cart.flash_io_bank][address - 0x4000]; }
 		}
 
 		u8 bank_0 = (rom_bank & 0x7F);
@@ -215,13 +218,14 @@ u8 DMG_MMU::mbc6_read(u16 address)
 		//Read from FLASH - TODO
 		if(cart.flash_cnt & 0x8)
 		{
-			u8 bank = ((rom_bank >> 8) & 0x7);
+			u8 bank = ((rom_bank >> 8) & 0x7F);
+			bank >>= 4;
 
 			//Get FLASH Status
 			if(cart.flash_stat & 0x81) { return 0x80; }
 
 			//Read from FLASH normally
-			else { return flash[0][address - 0x6000]; }
+			else { return flash[bank][address - 0x6000]; }
 		}
 
 		u8 bank_1 = ((rom_bank >> 8) & 0x7F);
