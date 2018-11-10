@@ -212,6 +212,7 @@ void AGB_SIO::reset()
 	player_rumble.sio_buffer.push_back(0x30000003);
 	player_rumble.sio_buffer.push_back(0x30000003);
 	player_rumble.sio_buffer.push_back(0x30000003);
+	player_rumble.sio_buffer.push_back(0x00000000);
 	
 	player_rumble.buffer_index = 0;
 	player_rumble.current_state = GB_PLAYER_RUMBLE_INACTIVE;
@@ -526,13 +527,25 @@ void AGB_SIO::process_network_communication()
 /****** Processes GB Player Rumble SIO communications ******/
 void AGB_SIO::gba_player_rumble_process()
 {
+	//Check rumble status
+	if(player_rumble.buffer_index == 17)
+	{
+		u8 rumble_stat = mem->memory_map[SIO_DATA_32_L];
+
+		//Turn rumble on
+		if(rumble_stat == 0x26) { mem->g_pad->start_rumble(); }
+
+		//Turn rumble off
+		else { mem->g_pad->stop_rumble(); }
+	}
+
 	//Send data to GBA
 	mem->write_u32_fast(SIO_DATA_32_L, player_rumble.sio_buffer[player_rumble.buffer_index++]);
 
 	//Raise SIO IRQ after sending byte
 	if(sio_stat.cnt & 0x4000) { mem->memory_map[REG_IF] |= 0x80; }
 
-	if(player_rumble.buffer_index == 17)
+	if(player_rumble.buffer_index == 18)
 	{
 		player_rumble.buffer_index = 0;
 		sio_stat.emu_device_ready = false;
