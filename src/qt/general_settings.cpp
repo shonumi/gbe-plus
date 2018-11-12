@@ -152,6 +152,8 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	sio_dev->addItem("Bardigun Barcode Scanner");
 	sio_dev->addItem("Barcode Boy");
 	sio_dev->addItem("DMG-07");
+	sio_dev->insertSeparator(7);
+	sio_dev->addItem("GBA Link Cable");
 	sio_dev->addItem("GB Player Rumble");
 
 	QHBoxLayout* sio_layout = new QHBoxLayout;

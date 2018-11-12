@@ -182,7 +182,7 @@ void AGB_SIO::reset()
 			break;
 
 		//Reserved for other GBA SIO devices
-		case 0x7:
+		case 0x8:
 			sio_stat.sio_type = GBA_PLAYER_RUMBLE;
 			break;
 

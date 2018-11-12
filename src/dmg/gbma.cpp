@@ -248,7 +248,7 @@ void DMG_SIO::mobile_adapter_process()
 						//HTTP data transfer
 						else if(mobile_adapter.port == 80) { mobile_adapter_process_http(); }
 
-						//CHARGEN data transfer
+						//SMTP data transfer
 						else if(mobile_adapter.port == 25) { mobile_adapter_process_smtp(); }
 
 						//Unknown port

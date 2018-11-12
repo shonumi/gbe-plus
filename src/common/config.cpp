@@ -927,7 +927,7 @@ bool parse_ini_file()
 				std::stringstream temp_stream(ini_item);
 				temp_stream >> output;
 
-				if((output >= 0) && (output <= 7)) { config::sio_device = output; }
+				if((output >= 0) && (output <= 8)) { config::sio_device = output; }
 			}
 
 			else 
