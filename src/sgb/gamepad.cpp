@@ -19,6 +19,7 @@ SGB_GamePad::SGB_GamePad()
 	p15 = 0xEF;
 	column_id = 0;
 	pad = 0;
+	joypad_irq = false;
 	up_shadow = down_shadow = left_shadow = right_shadow = false;
 
 	packet.state = 0;
@@ -77,6 +78,9 @@ SGB_GamePad::~SGB_GamePad() { }
 /****** Handle Input From Keyboard ******/
 void SGB_GamePad::handle_input(SDL_Event &event)
 {
+	u16 last_input = ((p14 << 8) | p15);
+	u16 next_input = 0;
+
 	//Key Presses
 	if(event.type == SDL_KEYDOWN)
 	{
@@ -179,6 +183,12 @@ void SGB_GamePad::handle_input(SDL_Event &event)
 				break;
 		}
 	}
+
+	next_input = ((p14 << 8) | p15);
+
+	//Update Joypad Interrupt Flag
+	if((last_input != next_input) && (next_input != 0xDFEF)) { joypad_irq = true; }
+	else { joypad_irq = false; }
 }
 
 /****** Processes input based on unique pad # for keyboards ******/

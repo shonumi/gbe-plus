@@ -21,6 +21,7 @@ DMG_GamePad::DMG_GamePad()
 	up_shadow = down_shadow = left_shadow = right_shadow = false;
 	sensor_x = sensor_y = 2047;
 	ir_delay = 0;
+	joypad_irq = false;
 }
 
 /****** Initialize GamePad ******/
@@ -69,6 +70,9 @@ DMG_GamePad::~DMG_GamePad() { }
 /****** Handle Input From Keyboard ******/
 void DMG_GamePad::handle_input(SDL_Event &event)
 {
+	u16 last_input = ((p14 << 8) | p15);
+	u16 next_input = 0;
+
 	//Key Presses
 	if(event.type == SDL_KEYDOWN)
 	{
@@ -171,6 +175,12 @@ void DMG_GamePad::handle_input(SDL_Event &event)
 				break;
 		}
 	}
+
+	next_input = ((p14 << 8) | p15);
+
+	//Update Joypad Interrupt Flag
+	if((last_input != next_input) && (next_input != 0xDFEF)) { joypad_irq = true; }
+	else { joypad_irq = false; }
 }
 
 /****** Processes input based on unique pad # for keyboards ******/
