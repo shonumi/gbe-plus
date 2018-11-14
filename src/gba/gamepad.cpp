@@ -29,6 +29,9 @@ AGB_GamePad::AGB_GamePad()
 
 	sensor_x = 0x392;
 	sensor_y = 0x3A0;
+
+	joypad_irq = false;
+	key_cnt = 0;
 }
 
 /****** Initialize GamePad ******/
@@ -81,6 +84,9 @@ AGB_GamePad::~AGB_GamePad() { }
 /****** Handle input from keyboard or joystick for processing ******/
 void AGB_GamePad::handle_input(SDL_Event &event)
 {
+	u16 last_input = key_input;
+	u16 key_mask = (key_cnt & 0x3FF);
+
 	//Key Presses
 	if(event.type == SDL_KEYDOWN)
 	{
@@ -183,6 +189,18 @@ void AGB_GamePad::handle_input(SDL_Event &event)
 				break;
 		}
 	}
+
+	//Update Joypad Interrupt Flag
+	if((last_input != key_input) && (key_input != 0x3FF))
+	{
+		//Logical OR mode
+		if(((key_cnt & 0x8000) == 0) && (key_input & key_mask))  { joypad_irq = true; }
+
+		//Logical AND mode
+		else if ((key_cnt & 0x8000) && ((key_input & key_mask) == key_mask)) { joypad_irq = true; }
+	}
+
+	else { joypad_irq = false; }
 }
 
 /****** Processes input based on unique pad # for keyboards ******/

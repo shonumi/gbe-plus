@@ -50,6 +50,9 @@ class AGB_GamePad
 	u16 sensor_x;
 	u16 sensor_y;
 
+	bool joypad_irq;
+	u16 key_cnt;
+
 	private:
 
 	//Shadow status for keyboard input

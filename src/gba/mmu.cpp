@@ -1577,6 +1577,13 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 		case KEYINPUT+1:
 			break;
 
+		//Key Interrupt Control
+		case KEYCNT:
+		case KEYCNT+1:
+			memory_map[address] = value;
+			g_pad->key_cnt = ((memory_map[KEYCNT+1] << 8) | memory_map[KEYCNT]);
+			break;
+
 		//Timer 0 Reload Value
 		case TM0CNT_L:
 		case TM0CNT_L+1:
