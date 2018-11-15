@@ -26,6 +26,9 @@ NTR_GamePad::NTR_GamePad()
 
 	nds7_input_irq = NULL;
 	nds9_input_irq = NULL;
+
+	joypad_irq = false;
+	key_cnt = 0;
 }
 
 /****** Initialize GamePad ******/
@@ -52,6 +55,9 @@ NTR_GamePad::~NTR_GamePad() { }
 /****** Handle input from keyboard or joystick for processing ******/
 void NTR_GamePad::handle_input(SDL_Event &event)
 {
+	u16 last_input = key_input;
+	u16 key_mask = (key_cnt & 0x3FF);
+
 	//Key Presses
 	if(event.type == SDL_KEYDOWN)
 	{
@@ -281,6 +287,18 @@ void NTR_GamePad::handle_input(SDL_Event &event)
 				break;
 		}
 	}
+
+	//Update Joypad Interrupt Flag
+	if((last_input != key_input) && (key_input != 0x3FF))
+	{
+		//Logical OR mode
+		if(((key_cnt & 0x8000) == 0) && (key_input & key_mask))  { joypad_irq = true; }
+
+		//Logical AND mode
+		else if ((key_cnt & 0x8000) && ((key_input & key_mask) == key_mask)) { joypad_irq = true; }
+	}
+
+	else { joypad_irq = false; }
 }	
 
 /****** Processes input based on unique pad # for keyboards ******/

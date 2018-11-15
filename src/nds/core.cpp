@@ -215,7 +215,14 @@ void NTR_core::run_core()
 			|| (event.type == SDL_JOYBUTTONDOWN) || (event.type == SDL_JOYBUTTONUP)
 			|| (event.type == SDL_JOYAXISMOTION) || (event.type == SDL_JOYHATMOTION)
 			|| (event.type == SDL_MOUSEBUTTONDOWN) || (event.type == SDL_MOUSEBUTTONUP)
-			|| (event.type == SDL_MOUSEMOTION)) { core_pad.handle_input(event); handle_hotkey(event); }
+			|| (event.type == SDL_MOUSEMOTION))
+			{
+				core_pad.handle_input(event);
+				handle_hotkey(event);
+
+				//Trigger Joypad Interrupt if necessary
+				if(core_pad.joypad_irq) { core_mmu.memory_map[NDS_IF] |= 0x1000; }
+			}
 		}
 
 		//Run the CPU

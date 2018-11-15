@@ -44,6 +44,9 @@ class NTR_GamePad
 	u32* nds7_input_irq;
 	u32* nds9_input_irq;
 
+	bool joypad_irq;
+	u16 key_cnt;
+
 	private:
 
 	//Shadow status for keyboard input
