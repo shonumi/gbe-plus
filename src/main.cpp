@@ -14,7 +14,9 @@
 #include "nds/core.h"
 #include "common/config.h"
 
-int main(int argc, char* args[]) 
+#include <SDL2/SDL_main.h>
+
+int main(int argc, char* args[])
 {
 	std::cout<<"GBE+ 1.2 [SDL]\n";
 

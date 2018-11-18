@@ -365,20 +365,21 @@ void agb_audio_callback(void* _apu, u8 *_stream, int _length)
 	s16* stream = (s16*) _stream;
 	int length = _length/2;
 
-	s16 channel_1_stream[length];
-	s16 channel_2_stream[length];
-	s16 channel_3_stream[length];
-	s16 channel_4_stream[length];
-	s16 dma_a_stream[length];
-	s16 dma_b_stream[length];
+	std::vector<s16> channel_1_stream(length);
+	std::vector<s16> channel_2_stream(length);
+	std::vector<s16> channel_3_stream(length);
+	std::vector<s16> channel_4_stream(length);
+
+	std::vector<s16> dma_a_stream(length);
+	std::vector<s16> dma_b_stream(length);
 
 	AGB_APU* apu_link = (AGB_APU*) _apu;
-	apu_link->generate_channel_1_samples(channel_1_stream, length);
-	apu_link->generate_channel_2_samples(channel_2_stream, length);
-	apu_link->generate_channel_3_samples(channel_3_stream, length);
-	apu_link->generate_channel_4_samples(channel_4_stream, length);
-	apu_link->generate_dma_a_samples(dma_a_stream, length);
-	apu_link->generate_dma_b_samples(dma_b_stream, length);
+	apu_link->generate_channel_1_samples(&channel_1_stream[0], length);
+	apu_link->generate_channel_2_samples(&channel_2_stream[0], length);
+	apu_link->generate_channel_3_samples(&channel_3_stream[0], length);
+	apu_link->generate_channel_4_samples(&channel_4_stream[0], length);
+	apu_link->generate_dma_a_samples(&dma_a_stream[0], length);
+	apu_link->generate_dma_b_samples(&dma_b_stream[0], length);
 
 	double channel_ratio = apu_link->apu_stat.channel_master_volume / 128.0;
 	double dma_a_ratio = apu_link->apu_stat.dma[0].master_volume / 128.0;
@@ -397,7 +398,7 @@ void agb_audio_callback(void* _apu, u8 *_stream, int _length)
 		out_sample /= 6;
 
 		stream[x] = out_sample;
-	} 
+	}
 }
 
 /****** Fill PSG channels with audio data when buffering ******/
