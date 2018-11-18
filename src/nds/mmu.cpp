@@ -1110,6 +1110,14 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			}
 
 			break;
+
+		case 0x5:
+			if(access_mode) { address &= 0x5007FFF; }
+			break;
+
+		case 0x7:
+			if(access_mode) { address &= 0x7007FFF; }
+			break;
 	}
 
 	//Check for unused memory first
@@ -4557,7 +4565,7 @@ void NTR_MMU::process_touchscreen()
 			if(nds7_spi.data & 0x4) { }
 			else { nds7_spi.data = 0x0; }
 
-			touchscreen_state++;
+			touchscreen_state = 0;
 			break;
 
 		//Read Touch Y Byte 1
@@ -4569,7 +4577,7 @@ void NTR_MMU::process_touchscreen()
 		//Read Touch Y Byte 2
 		case 0x3:
 			nds7_spi.data = ((touch_y & 0x1F) << 3);
-			touchscreen_state++;
+			touchscreen_state = 2;
 			break;
 
 		//Read Touch X Byte 1
@@ -4581,7 +4589,7 @@ void NTR_MMU::process_touchscreen()
 		//Read Touch X Byte 2
 		case 0xB:
 			nds7_spi.data = ((touch_x & 0x1F) << 3);
-			touchscreen_state++;
+			touchscreen_state = 0xA;
 			break;
 
 		//Read AUX Input Byte 1
@@ -4597,7 +4605,7 @@ void NTR_MMU::process_touchscreen()
 			if(nds7_spi.data & 0x4) { }
 			else { nds7_spi.data = 0x0; }
 
-			touchscreen_state++;
+			touchscreen_state = 0xC;
 			break;
 
 		//Read Temp 1 Byte 1
@@ -4613,7 +4621,7 @@ void NTR_MMU::process_touchscreen()
 			if(nds7_spi.data & 0x4) { }
 			else { nds7_spi.data = 0x0; }
 
-			touchscreen_state++;
+			touchscreen_state = 0xE;
 			break;
 
 		default: nds7_spi.data = 0;
