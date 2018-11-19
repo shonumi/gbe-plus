@@ -212,6 +212,12 @@ void NTR_MMU::reset()
 	nds9_timer = NULL;
 	nds7_timer = NULL;
 
+	dtcm_addr = 0xDEADC0DE;
+	itcm_addr = 0;
+
+	dtcm.clear();
+	dtcm.resize(0x4000, 0);
+
 	access_mode = 1;
 	wram_mode = 3;
 
@@ -238,6 +244,12 @@ u8 NTR_MMU::read_u8(u32 address)
 	debug_addr[address & 0x3] = address;
 	debug_access = (access_mode) ? 0 : 1;
 	#endif
+
+	//Check DTCM first
+	if((access_mode) && (address >= dtcm_addr) && (address <= (dtcm_addr + 0x3FFF)))
+	{
+		return dtcm[address - dtcm_addr];
+	}
 
 	//Mirror memory address if applicable
 	switch(address >> 24)
@@ -790,6 +802,12 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 	debug_addr[address & 0x3] = address;
 	debug_access = (access_mode) ? 0 : 1;
 	#endif
+
+	//Check DTCM first
+	if((access_mode) && (address >= dtcm_addr) && (address <= (dtcm_addr + 0x3FFF)))
+	{
+		dtcm[address - dtcm_addr] = value;
+	}
 
 	//Mirror memory address if applicable
 	//Or narrow down certain I/O regs (sound)

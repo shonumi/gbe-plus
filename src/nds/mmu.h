@@ -56,6 +56,7 @@ class NTR_MMU
 	std::vector <u8> nds7_bios;
 	std::vector <u8> nds9_bios;
 	std::vector <u8> firmware;
+ 	std::vector <u8> dtcm; 
 	
 	//NDS7 IPC FIFO
 	struct nds7_interprocess
@@ -274,6 +275,9 @@ class NTR_MMU
 
 	u16 touchscreen_state;
 	u8 apu_io_id;
+
+	u32 dtcm_addr;
+	u32 itcm_addr;
 
 	//Advanced debugging
 	#ifdef GBE_DEBUG
