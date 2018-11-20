@@ -52,7 +52,7 @@ Accessing the Home Page and associated links is timed, as the Mobile Adapter kee
 
 <img> tags will only work with 1BPP BMP files. There are several additional restrictions:
 
-* Maximum size is 144x256. While the BMP specification allows width and height to be defined as 32-bit integers, any image where the dimensions exceed 8-bit integers is rejected.
+* Maximum size is 144x96. While the BMP specification allows width and height to be defined as 32-bit integers, any image where the dimensions exceed 8-bit integers is rejected.
 * The offset to pixel data in the BMP file header must be a 16-bit integer, despite being 32-bit in the specification.
 * The 16-bit value for BPP in the BMP image header must be 0x1 (with the MSB being zero).
 * The 16-bit value for planes in the BMP image header must be 0x1 (with the MSB being zero).

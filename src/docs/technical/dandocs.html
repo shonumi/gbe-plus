@@ -1056,7 +1056,7 @@ DMG/GBC screen (240x144 pixels, or 30x18 tiles)</code>
 	<p>&lt;img&gt; tags will only work with 1BPP BMP files. There are several additional restrictions:</p>
 
 	<ul>
-		<li class="list_item">Maximum size is 144x256. While the BMP specification allows width and height to be defined as 32-bit integers, any image where the dimensions exceed 8-bit integers is rejected.</li>
+		<li class="list_item">Maximum size is 144x96. While the BMP specification allows width and height to be defined as 32-bit integers, any image where the dimensions exceed 8-bit integers is rejected.</li>
 		<li class="list_item">The offset to pixel data in the BMP file header must be a 16-bit integer, despite being 32-bit in the specification.</li>
 		<li class="list_item">The 16-bit value for BPP in the BMP image header must be 0x1 (with the MSB being zero).</li>
 		<li class="list_item">The 16-bit value for planes in the BMP image header must be 0x1 (with the MSB being zero).</li>
@@ -1091,7 +1091,7 @@ Content-Type: text&#47;plain; charset=iso-2022-jp
 	<p class="list_item"><a href="#ndg_ser">Server Structure</a></p>
 	<p class="list_item"><a href="#ndg_h00">h0000.cgb</a></p>
 	<p class="list_item"><a href="#ndg_rom">RomList.cgb</a></p>
-	<p class="list_item"><a href="#ndg_cgb">cgb&#47;download?name=&#47;A4&#47;CGB-BMVJ&#47;</a></p>
+	<p class="list_item"><a href="#ndg_cgb">cgb&#47;download?name=&#47;A4&#47;CGB-BMVJ&#47;*</a></p>
 	<p class="list_item"><a href="#ndg_wrp">Download Wrapper</a></p>
 	<p class="list_item"><a href="#ndg_gam">Minigame Format</a></p>
 	<p class="list_item"><a href="#ndg_str">String Format</a></p>
@@ -1189,9 +1189,13 @@ Icon Type
 	<p>Each mini game has two icons. The first describes the main type, &#34;Program&#34; for the main minigame, or &#34;Append&#34; for additional data or content. The 2nd icon describes the sub-type for the minigame. Apparently for minigame downloads, the main type is forcibly set to &#34;Program&#34;. Byte 0x01 of the data structure controls only the 2nd icon, the sub-type. In that regard, only values of 0x00 through 0x07 are contextually correct. It should also be noted that two other main types seem to exist (the Green and Brown squares), but they are unused, or at least have no mention whatsoever in the game manual.</p>
 
 	<a name="ndg_cgb"></a>
-	<p class="gray_title">[Net de Get] : cgb&#47;download?name=&#47;A4&#47;CGB-BMVJ&#47;</p>
+	<p class="gray_title">[Net de Get] : cgb&#47;download?name=&#47;A4&#47;CGB-BMVJ&#47;*</p>
 
-	<p>The GB Mobile Adapter attempts to access this URL for downloading minigames. The server responds with the required binary data. It is currently unknown exactly how the server knows what data to send to the GBC depending on which minigame is chosen. Net de Get will blindly receive data, regardless of what it is. That is to say, no error checking of the minigame itself is done during the download phase.</p>
+	<p>The GB Mobile Adapter attempts to access this URL for downloading minigames. The file containing the minigame is appended to the base URL. The appended part should be 12 characters, 4 for the price in yen, followed by 8 characters for rest of the unique ID. Although it is unknown if this really was the case, it would make sense to use the minigame ID (e.g. "G000") along with ".cgb". Thus a full URL would be something like:</p>
+
+<code>http:&#47;&#47;gameboy.datacenter.ne.jp&#47;cgb&#47;download?name=&#47;A4&#47;CGB-BMVJ&#47;1234G000.cgb</code>
+
+	<p>Note that the filename of the minigame should start with numbers (the price) since this indicates a service fee for the download. The server responds with the required binary data. Net de Get will blindly receive data, regardless of what it is. That is to say, no error checking of the minigame itself is done during the download phase.</p>
 
 	<a name="ndg_wrp"></a>
 	<p class="gray_title">[Net de Get] : Download Wrapper</p>
@@ -1222,7 +1226,7 @@ Offset + 0x08 ...		::	Minigame data (as described below in Minigame Format).</co
 		Footer (0x100)
 	...</code>
 
-	<p>Note that the footer is written to SRAM later on, not Flash. Improperly formatted footers may crash the game when booting or trying to access the minigame menu. There may be other valid footers, but the default above is the only one tested extensively.</p>
+	<p>Note that the footer is written to SRAM later on, not flash. Improperly formatted footers may crash the game when booting or trying to access the minigame menu. There are other valid footers, but the default above is the only one tested extensively. It is currently unknown exactly how this data should be formatted.</p>
 
 	<a name="ndg_gam"></a>
 	<p class="gray_title">[Net de Get] : Minigame Format</p>
@@ -1278,8 +1282,8 @@ Secondary Minigame Icon Type
 
 <code>        0    1    2    3    4    5    6    7    8    9    A    B    C    D    E    F
 0x00
-0x10         !    "    #    $    %    &    '    (    )    *    +    ‘    -    .    /
-0x20    0    1    2    3    4    5    6    7    8    9    :    ;    <    =    >    ?
+0x10         !    &#34;    #    $    %    &    &#39;    (    )    *    +    ‘    -    .    &#47;
+0x20    0    1    2    3    4    5    6    7    8    9    :    ;    &lt;    =    &gt;    ?
 0x30    [    ¥    ]    x    ÷    {    |    }    ˜    @    ⌜    ⌟    —    ~    、    。
 0x40         A    B    C    D    E    F    G    H    I    J    K    L    M    N    O
 0x50    P    Q    R    S    T    U    V    W    X    Y    Z    ✜    ‥    ^    _    ’
@@ -1301,7 +1305,7 @@ Secondary Minigame Icon Type
 	<ul>
 		<li class="list_item">0x33 is supposed to be the multiplication sign (not X).</li>
 		<li class="list_item">0x5B is supposed to be the GBC&#39;s d-pad.</li>
-		<li class="list_item">0x7B and 0x7C are actually inverted color-wise (black circle with white &#34;A&#34; or &#34;B&#34; in the center). These are presumably the GBC&#39s A and B buttons.</li>
+		<li class="list_item">0x7B and 0x7C are actually inverted color-wise (black circle with white &#34;A&#34; or &#34;B&#34; in the center). These are presumably the GBC&#39;s A and B buttons.</li>
 		<li class="list_item">0xF8 is actually inverted color-wise (black outlines, white on the inside).</li>
 		<li class="list_item">0xFB is a &#34;smiley face&#34; like 0xFA, but it&#39;s kind of lumpy and missing an eye.</li>
 	</ul>
@@ -1319,6 +1323,8 @@ Secondary Minigame Icon Type
 		<li>Net de Get only writes to Flash ROM in portions of 128 bytes at a time. At the end of each 128 byte section (e.g. 0x407F, 0x40FF, etc), it writes a 0x00 at the very last byte. This seems to indicate that the Flash chip should return the status byte from any reads, much like the 0x30 commands. Again, Bit 7 and 4 are checked. Afterwards, the game will use the 0xF0 command to terminate writing.</li>
 
 		<li>Net de Get actually saves the downloaded minigame to SRAM initially, then portions are copied to WRAM, and eventually Flash ROM. Net de Get also actively verifies whether the data written to Flash is correct by comparing current Flash memory to the original RAM data. Any discrepancy triggers an error message and aborts.</li>
+
+		<li>The exact way in which the MBC6 handles flash ROM banking is not entirely understood, however, there is some evidence of how it should work. After issuing command 0x30 (sector erase), the current bank is taken from whatever bank ID was written to in 0x2000 (for flash ROM mapped to 0x4000 - 0x5FFF) or 0x3000 (for flash ROM mapped to 0x6000 - 0x7FFF). The flash bank used for all further IO operations is essentially &#34;remembered&#34; after the 0x30 command. Reads and writes to flash ROM will use that &#34;remembered&#34; bank instead of the one specified at 0x2000 or 0x3000 until another command is issued. The other 8KB area of flash memory can use the bank ID in 0x2000 or 0x3000 for reading normally.</li>
 
 	</ul>
 

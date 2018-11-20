@@ -6,7 +6,7 @@ Shonumi aka D.S. Baxter
 1. Introduction
 ***************************************************
 
-Net de Get is a Game Boy Color game published by Konami and released on June 12, 2001. In addition to being one of the select few GBC games to support the GB Mobile Adapter, it is the only known game to use the MBC6. This special cartridge allowed the Game Boy to download minigames online and save them locally to Flash memory for offline play. Players earn points based on their performance in minigames. Once enough points have been accumulated, they can be exchanged for downloadable minigames. 
+Net de Get is a Game Boy Color game published by Konami and released on June 12, 2001. In addition to being one of the select few GBC games to support the GB Mobile Adapter, it is the only known game to use the MBC6. This special cartridge allowed the Game Boy to download minigames online and save them locally to flash memory for offline play. Players earn points based on their performance in minigames. Once enough points have been accumulated, they can be exchanged for downloadable minigames. 
 
 
 ***************************************************
@@ -125,7 +125,7 @@ Rather than simply downloading the minigame data as-is, Net de Get expects minig
 
 0x00:				::	Offset to the rest of the wrapper data. This is the 1-byte value + 1, so 1-256.
 Offset + 0x00			::	???
-Offset + 0x01			::	For most minigame downloads, this should be 0x00. When set to 0x05, it seems to do a block-fill operation on the MBC6 Flash ROM.
+Offset + 0x01			::	For most minigame downloads, this should be 0x00. When set to 0x05, it seems to do a block-fill operation on the MBC6 flash ROM.
 Offset + 0x02			::	???
 Offset + 0x03			::	???
 Offset + 0x04			::	Minigame size (low-byte).
@@ -134,7 +134,7 @@ Offset + 0x06			::	???
 Offset + 0x07			::	???
 Offset + 0x08 ...		::	Minigame data (as described below in Minigame Format).
 
-The minigame is copied to various RAM locations (SRAM and WRAM) until it is finally written to Flash. A maximum of 0x200 bytes is copied at a time. The wrapper, however, expects a 0x100 "footer" to be inserted after each of the 0x200 chunks. This is only necessary if the minigame size is greater than 0x200 bytes. For example, if a minigame is only 0x100 bytes, then the footer can be ignored, although such a small size is rather impractical. Additionally, only the last footer technically needs to be correctly formatted. The default footer is as follows:
+The minigame is copied to various RAM locations (SRAM and WRAM) until it is finally written to flash. A maximum of 0x200 bytes is copied at a time. The wrapper, however, expects a 0x100 "footer" to be inserted after each of the 0x200 chunks. This is only necessary if the minigame size is greater than 0x200 bytes. For example, if a minigame is only 0x100 bytes, then the footer can be ignored, although such a small size is rather impractical. Additionally, only the last footer technically needs to be correctly formatted. The default footer is as follows:
 
 0x00, 0x00, 0x01, 0x00, 0x02, 0x03, 0x00, 0x04, 0x00, 0x05, 0x00, 0x06, 0x00, 0x07, 0x00, 0x08, 0x00, 0x09, 0x00, 0x0A, 0x00, 0x0B, 0x0C, 0x00, 0x0D, 0x00, 0x0E, 0x00, 0xFF ... (the remaining 225 bytes should be 0x00).
 
@@ -147,14 +147,14 @@ Wrapper Header ->
 		Footer (0x100)
 	...
 
-Note that the footer is written to SRAM later on, not Flash. Improperly formatted footers may crash the game when booting or trying to access the minigame menu. There may be other valid footers, but the default above is the only one tested extensively.
+Note that the footer is written to SRAM later on, not flash. Improperly formatted footers may crash the game when booting or trying to access the minigame menu. There are other valid footers, but the default above is the only one tested extensively. It is currently unknown exactly how this data should be formatted.
 
 
 ***************************************************
 7. Minigame Format
 ***************************************************
 
-The minigame format is essentially the same as that found on the MBC6 ROM. Using the base address of the Flash ROM bank, minigames look like so:
+The minigame format is essentially the same as that found on the MBC6 ROM. Using the base address of the flash ROM bank, minigames look like so:
 
 0x00 - 0x02			::	Typically contains a JR or JP instuction.
 0x05 				::	Points required to play the minigame.
@@ -164,10 +164,10 @@ The minigame format is essentially the same as that found on the MBC6 ROM. Using
 0x0F - ...			::	Text for game title. Null terminated, but nothing stops it from being too long. Text can technically spill over multiple lines.
 0x24 - ...			::	Text for dialog box. Null terminated.
 0x44				::	If this is 0xFF, it prints the game title, otherwise the title is blank. Oddly enough, the dialog box is unaffected and always printed.
-0x6D - 0x6E			::	Always 0x3B, 0xB3. Acts like a watermark for valid minigames. Net de Get checks this specifically to tell if a game is on Flash ROM.
+0x6D - 0x6E			::	Always 0x3B, 0xB3. Acts like a watermark for valid minigames. Net de Get checks this specifically to tell if a game is on flash ROM.
 0x6F - ...			::	Code + Data.
 
-Generally, the jump instruction goes right to Byte 0x6F, but not always. When the minigame is selected from the menu and the play (あそぶ) option is selected, the MBC6 switches Bank 0 (0x4000 - 0x5FFF) with Flash ROM, then performs a CALL 0x4000, which in turn executes the jump instruction and starts the minigame. It should also be noted that the downloaded minigame code is actually executed from Flash ROM rather than copying it somewhere else first like WRAM.
+Generally, the jump instruction goes right to Byte 0x6F, but not always. When the minigame is selected from the menu and the play (あそぶ) option is selected, the MBC6 switches Bank 0 (0x4000 - 0x5FFF) with flash ROM, then performs a CALL 0x4000, which in turn executes the jump instruction and starts the minigame. It should also be noted that the downloaded minigame code is actually executed from flash ROM rather than copying it somewhere else first like WRAM.
 
 Unlike the previous icons from RomList.cgb, each minigame's primary icon can be specified. The secondary minigame icon is nearly identical to the format in RomList.cgb, but contains some variations:
 
@@ -235,15 +235,17 @@ A couple of things to note, since some characters listed are not quite the same 
 
 
 ***************************************************
-9. MBC6 Flash Operation
+9. MBC6 flash Operation
 ***************************************************
 
-The MBC6 writes games to Flash ROM for long-time data storage. Although technically it has a limited number of lifetime writes, it does not rely on a battery unlike cartridge SRAM for DMG/GBC games. The MBC6 uses the MX29F008TC-14. While no specific documentation about the MX29F008TC-14 is available, the following information has been reverse-engineered based on how Net de Get's code expects Flash ROM to work.
+The MBC6 writes games to flash ROM for long-time data storage. Although technically it has a limited number of lifetime writes, it does not rely on a battery unlike cartridge SRAM for DMG/GBC games. The MBC6 uses the MX29F008TC-14. While no specific documentation about the MX29F008TC-14 is available, the following information has been reverse-engineered based on how Net de Get's code expects flash ROM to work.
 
-* Net de Get never appears to check the chip ID for Flash ROM. Instead of issuing the 0x90 command, it immediately accesses Flash. Given that the MX29F008TC-14 was likely a variant of other existing Macronix Flash chips but specialized exclusively for the Game Boy Color, it's entirely possible that Net de Get was all but gauranteed to use one Flash chip. In that sense, the developers had no need to identity other Flash hardware.
+* Net de Get never appears to check the chip ID for flash ROM. Instead of issuing the 0x90 command, it immediately accesses flash. Given that the MX29F008TC-14 was likely a variant of other existing Macronix flash chips but specialized exclusively for the Game Boy Color, it's entirely possible that Net de Get was all but gauranteed to use one flash chip. In that sense, the developers had no need to identity other flash hardware.
 
-* Net de Get makes extensive use of the 0x30 command to erase sectors, particularly before a minigame is downloaded. After the 0x30 command is issued, Net de Get issues a 0xF0 command, which forcibly terminates the previous erase command. During this time (until another Flash command is issued), any reads to Flash return the current status of the previous erase command. The status is a single byte. Bit 7 determines if the erase command has indeed finished (1 = Done, 0 = In Progress). Bit 4 seems to indicate a timeout (1 = Timeout, 0 = OK). Net de Get actively checks both bits.
+* Net de Get makes extensive use of the 0x30 command to erase sectors, particularly before a minigame is downloaded. After the 0x30 command is issued, Net de Get issues a 0xF0 command, which forcibly terminates the previous erase command. During this time (until another flash command is issued), any reads to flash return the current status of the previous erase command. The status is a single byte. Bit 7 determines if the erase command has indeed finished (1 = Done, 0 = In Progress). Bit 4 seems to indicate a timeout (1 = Timeout, 0 = OK). Net de Get actively checks both bits.
 
-* Net de Get only writes to Flash ROM in portions of 128 bytes at a time. At the end of each 128 byte section (e.g. 0x407F, 0x40FF, etc), it writes a 0x00 at the very last byte. This seems to indicate that the Flash chip should return the status byte from any reads, much like the 0x30 commands. Again, Bit 7 and 4 are checked. Afterwards, the game will use the 0xF0 command to terminate writing.
+* Net de Get only writes to flash ROM in portions of 128 bytes at a time. At the end of each 128 byte section (e.g. 0x407F, 0x40FF, etc), it writes a 0x00 at the very last byte. This seems to indicate that the flash chip should return the status byte from any reads, much like the 0x30 commands. Again, Bit 7 and 4 are checked. Afterwards, the game will use the 0xF0 command to terminate writing.
 
-* Net de Get actually saves the downloaded minigame to SRAM initially, then portions are copied to WRAM, and eventually Flash ROM. Net de Get also actively verifies whether the data written to Flash is correct by comparing current Flash memory to the original RAM data. Any discrepancy triggers an error message and aborts.
+* Net de Get actually saves the downloaded minigame to SRAM initially, then portions are copied to WRAM, and eventually flash ROM. Net de Get also actively verifies whether the data written to flash is correct by comparing current flash memory to the original RAM data. Any discrepancy triggers an error message and aborts.
+
+* The exact way in which the MBC6 handles flash ROM banking is not entirely understood, however, there is some evidence of how it should work. After issuing command 0x30 (sector erase), the current bank is taken from whatever bank ID was written to in 0x2000 (for flash ROM mapped to 0x4000 - 0x5FFF) or 0x3000 (for flash ROM mapped to 0x6000 - 0x7FFF). The flash bank used for all further IO operations is essentially "remembered" after the 0x30 command. Reads and writes to flash ROM will use that "remembered" bank instead of the one specified at 0x2000 or 0x3000 until another command is issued. The other 8KB area of flash memory can use the bank ID in 0x2000 or 0x3000 for reading normally.
