@@ -17,7 +17,7 @@ SET(USER $ENV{USER} CACHE STRING "Target User")
 
 add_executable(gbe_plus ${SRCS})
 target_link_libraries(gbe_plus common gba dmg sgb nds)
-target_link_libraries(gbe_plus ${SDL2_LIBRARY} ${OPENGL_gl_LIBRARY})
+target_link_libraries(gbe_plus ${SDL2_LIBRARY} ${OPENGL_gl_LIBRARY} ${SDL2MAIN_LIBRARY})
 
 if (LINK_CABLE)
     target_link_libraries(gbe_plus ${SDL2NET_LIBRARY})

@@ -935,13 +935,13 @@ void SGB_core::dump_obj(int obj_index) { }
 void SGB_core::dump_bg(int bg_index) { }
 
 /****** Grabs the OBJ palette ******/
-u32* SGB_core::get_obj_palette(int pal_index) { }
+u32* SGB_core::get_obj_palette(int pal_index) { return NULL; }
 
 /****** Grabs the BG palette ******/
-u32* SGB_core::get_bg_palette(int pal_index) { }
+u32* SGB_core::get_bg_palette(int pal_index) { return NULL; }
 
 /****** Grabs the hash for a specific tile ******/
-std::string SGB_core::get_hash(u32 addr, u8 gfx_type) { }
+std::string SGB_core::get_hash(u32 addr, u8 gfx_type) { return ""; }
 
 /****** Starts netplay connection ******/
 void SGB_core::start_netplay()

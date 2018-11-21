@@ -312,7 +312,7 @@ void ntr_audio_callback(void* _apu, u8 *_stream, int _length)
 {
 	s16* stream = (s16*) _stream;
 	int length = _length/2;
-	s32 channel_stream[length];
+	std::vector<s32> channel_stream(length);
 
 	NTR_APU* apu_link = (NTR_APU*) _apu;
 
@@ -323,7 +323,7 @@ void ntr_audio_callback(void* _apu, u8 *_stream, int _length)
 		if(apu_link->apu_stat.channel[x].decode_adpcm) { apu_link->decode_adpcm_samples(x); }
 
 		//Grab samples
-		apu_link->generate_channel_samples(channel_stream, length, x);
+		apu_link->generate_channel_samples(&channel_stream[0], length, x);
 	}
 
 	//Custom software mixing

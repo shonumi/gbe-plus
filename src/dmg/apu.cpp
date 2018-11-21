@@ -584,16 +584,16 @@ void dmg_audio_callback(void* _apu, u8 *_stream, int _length)
 	//Set correct length for stereo
 	if(config::use_stereo) { length /= 2; }
 
-	s16 channel_1_stream[length];
-	s16 channel_2_stream[length];
-	s16 channel_3_stream[length];
-	s16 channel_4_stream[length];
+	std::vector<s16> channel_1_stream(length);
+	std::vector<s16> channel_2_stream(length);
+	std::vector<s16> channel_3_stream(length);
+	std::vector<s16> channel_4_stream(length);
 
 	DMG_APU* apu_link = (DMG_APU*) _apu;
-	apu_link->generate_channel_1_samples(channel_1_stream, length);
-	apu_link->generate_channel_2_samples(channel_2_stream, length);
-	apu_link->generate_channel_3_samples(channel_3_stream, length);
-	apu_link->generate_channel_4_samples(channel_4_stream, length);
+	apu_link->generate_channel_1_samples(&channel_1_stream[0], length);
+	apu_link->generate_channel_2_samples(&channel_2_stream[0], length);
+	apu_link->generate_channel_3_samples(&channel_3_stream[0], length);
+	apu_link->generate_channel_4_samples(&channel_4_stream[0], length);
 
 	double volume_ratio = apu_link->apu_stat.channel_master_volume / 128.0;
 
