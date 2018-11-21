@@ -1310,6 +1310,42 @@ void NTR_ARM7::clock_timers(u8 access_cycles)
 /****** Jumps to or exits an interrupt ******/
 void NTR_ARM7::handle_interrupt()
 {
+	//Exit interrupt
+	if((!config::use_bios) && (reg.r15 == 0x2DD4))
+	{
+		//Restore registers from SP
+		u32 sp_addr = get_reg(13);
+		reg.r0 = mem->read_u32(sp_addr); sp_addr += 4;
+		reg.r1 = mem->read_u32(sp_addr); sp_addr += 4;
+		reg.r2 = mem->read_u32(sp_addr); sp_addr += 4;
+		reg.r3 = mem->read_u32(sp_addr); sp_addr += 4;
+		set_reg(12, mem->read_u32(sp_addr)); sp_addr += 4;
+		set_reg(14, mem->read_u32(sp_addr)); sp_addr += 4;
+		set_reg(13, sp_addr);
+
+		//Set PC to LR - 4;
+		reg.r15 = get_reg(14) - 4;
+
+		//Set CPSR from SPSR, turn on IRQ flag
+		reg.cpsr = get_spsr();
+
+		//Set the CPU mode accordingly
+		switch((reg.cpsr & 0x1F))
+		{
+			case 0x10: current_cpu_mode = USR; break;
+			case 0x11: current_cpu_mode = FIQ; break;
+			case 0x12: current_cpu_mode = IRQ; break;
+			case 0x13: current_cpu_mode = SVC; break;
+			case 0x17: current_cpu_mode = ABT; break;
+			case 0x1B: current_cpu_mode = UND; break;
+			case 0x1F: current_cpu_mode = SYS; break;
+		}
+
+		//Request pipeline flush, signal end of interrupt handling, switch to appropiate ARM/THUMB mode
+		flush_pipeline();
+		arm_mode = (reg.cpsr & 0x20) ? THUMB : ARM;
+	}
+
 	//Jump into an interrupt, check if the master flag is enabled
 	if((mem->nds7_ime & 0x1) && ((reg.cpsr & CPSR_IRQ) == 0))
 	{
@@ -1348,7 +1384,27 @@ void NTR_ARM7::handle_interrupt()
 			reg.cpsr &= ~0x1F;
 			reg.cpsr |= CPSR_MODE_IRQ;
 
-			return;
+			//Execute real BIOS code by returning, otherwise use HLE to service the interrupt
+			if(config::use_bios) { return; }
+
+			//Save registers to SP
+			u32 sp_addr = get_reg(13);
+			sp_addr -= 4; mem->write_u32(sp_addr, get_reg(14));
+			sp_addr -= 4; mem->write_u32(sp_addr, get_reg(12));
+			sp_addr -= 4; mem->write_u32(sp_addr, reg.r3);
+			sp_addr -= 4; mem->write_u32(sp_addr, reg.r2);
+			sp_addr -= 4; mem->write_u32(sp_addr, reg.r1);
+			sp_addr -= 4; mem->write_u32(sp_addr, reg.r0);
+			set_reg(13, sp_addr);
+
+			//Set LR to 0x2DD4
+			set_reg(14, 0x2DD4);
+
+			//Set R0 to 0x4000000
+			reg.r0 = 0x4000000;
+
+			//Set PC to value held in 0x380FFFC
+			reg.r15 = mem->read_u32(0x380FFFC) & ~0x3;
 		}
 	}
 }
