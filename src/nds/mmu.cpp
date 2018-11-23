@@ -100,10 +100,6 @@ void NTR_MMU::reset()
 		//Boot Status
 		write_u16_fast(0x23FFC40, 0x1);
 
-		//Chip ID 1
-		write_u32(0x27FFC00, 0xFC2);
-		write_u32(0x27FF800, 0xFC2);
-
 		//Setup EXMEM + default access mode to NDS9
 		access_mode = 0;
 		write_u16(NDS_EXMEM, 0xE880);
@@ -4379,6 +4375,13 @@ void NTR_MMU::parse_header()
 
 	//Set default ID code to Game ID
 	key_id = (cart_data[0xC] | (cart_data[0xD] << 8) | (cart_data[0xE] << 16) | (cart_data[0xF] << 24));
+
+	//Calculate Chip ID 1
+	u32 chip_id = 0xC2;
+	chip_id |= ((((128 << cart_data[0x14]) / 1024) - 1) << 8);
+
+	write_u32(0x27FFC00, chip_id);
+	write_u32(0x27FF800, chip_id);
 }
 
 /****** Handles various SPI Bus interactions ******/
