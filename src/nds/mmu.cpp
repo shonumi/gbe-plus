@@ -3927,6 +3927,9 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 				u8 blue = ((color_bytes & 0x1F) << 3);
 
 				lcd_3D_stat->rear_plane_color = 0xFF000000 | (red << 16) | (green << 8) | (blue);
+
+				//Grab alpha value separately
+				lcd_3D_stat->rear_plane_alpha = (memory_map[0x4000352] & 0x1F);
 			}
 
 			break;

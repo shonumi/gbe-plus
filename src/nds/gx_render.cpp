@@ -26,6 +26,8 @@ void NTR_LCD::render_bg_3D()
 
 	bool full_render = true;
 
+	u8 bg_priority = lcd_stat.bg_priority_a[0] + 1;
+
 	//Grab data from the previous buffer
 	u16 current_buffer = (lcd_3D_stat.buffer_id + 1);
 	current_buffer &= 0x1;
@@ -35,8 +37,14 @@ void NTR_LCD::render_bg_3D()
 
 	for(u32 x = 0; x < 256; x++)
 	{
-		scanline_buffer_a[x] = gx_screen_buffer[current_buffer][gx_index + x];
-		render_buffer_a[x] = gx_render_buffer[gx_index + x];
+		if(!render_buffer_a[x] || (bg_priority < render_buffer_a[x]))
+		{
+			if(gx_render_buffer[gx_index + x])
+			{
+				scanline_buffer_a[x] = gx_screen_buffer[current_buffer][gx_index + x];
+				render_buffer_a[x] = bg_priority;
+			}
+		}
 	} 
 }
 
@@ -195,7 +203,7 @@ void NTR_LCD::render_geometry()
 				//Convert plot points to buffer index
 				buffer_index = (round(y_coord) * 256) + round(x_coord);
 				gx_screen_buffer[lcd_3D_stat.buffer_id][buffer_index] = vert_colors[x];
-				gx_render_buffer[buffer_index] = bg_priority;
+				gx_render_buffer[buffer_index] = 1;
 			}
 
 			//Set fill coordinates

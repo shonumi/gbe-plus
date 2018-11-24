@@ -251,6 +251,7 @@ void NTR_LCD::reset()
 	lcd_3D_stat.vertex_list_index = 0;
 
 	lcd_3D_stat.rear_plane_color = 0;
+	lcd_3D_stat.rear_plane_alpha = 0;
 	lcd_3D_stat.vertex_color = 0;
 	lcd_3D_stat.clip_flags = 0;
 
@@ -2837,7 +2838,8 @@ void NTR_LCD::step()
 				gx_screen_buffer[lcd_3D_stat.buffer_id].resize(0xC000, lcd_3D_stat.rear_plane_color);
 
 				//Clear render buffer
-				gx_render_buffer.assign(0xC000, 0);
+				if(!lcd_3D_stat.rear_plane_alpha) { gx_render_buffer.assign(0xC000, 0); }
+				else { gx_render_buffer.assign(0xC000, 1); }
 			}
 		}
 
