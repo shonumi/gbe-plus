@@ -271,6 +271,7 @@ void NTR_LCD::fill_poly_solid()
 			//Convert plot points to buffer index
 			buffer_index = (y_coord * 256) + x;
 			gx_screen_buffer[lcd_3D_stat.buffer_id][buffer_index] = vert_colors[0];
+			gx_render_buffer[buffer_index] = 1;
 			y_coord++;
 		}
 	}
