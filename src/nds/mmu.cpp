@@ -4573,6 +4573,10 @@ void NTR_MMU::process_touchscreen()
 	touch_x &= 0xFFF;
 	touch_y &= 0xFFF;
 
+	//Crude emulation of Z positioning, just enough to register difference between light and strong touches
+	u16 touch_z1 = 0x0;
+	u16 touch_z2 = 0xF;
+
 	//Process various touchscreen states
 	switch(touchscreen_state)
 	{
@@ -4602,6 +4606,30 @@ void NTR_MMU::process_touchscreen()
 		case 0x3:
 			nds7_spi.data = ((touch_y & 0x1F) << 3);
 			touchscreen_state = 2;
+			break;
+
+		//Read Z1 Position Byte 1
+		case 0x6:
+			nds7_spi.data = (touch_z1 >> 5);
+			touchscreen_state++;
+			break;
+
+		//Read Z1 Position Byte 2
+		case 0x7:
+			nds7_spi.data = ((touch_z1 & 0x1F) << 3);
+			touchscreen_state = 6;
+			break;
+
+		//Read Z2 Position Byte 1
+		case 0x8:
+			nds7_spi.data = (touch_z2 >> 5);
+			touchscreen_state++;
+			break;
+
+		//Read Z2 Position Byte 2
+		case 0x9:
+			nds7_spi.data = ((touch_z2 & 0x1F) << 3);
+			touchscreen_state = 8;
 			break;
 
 		//Read Touch X Byte 1
