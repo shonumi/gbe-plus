@@ -93,6 +93,7 @@ namespace config
 	extern int touch_zone_x[10];
 	extern int touch_zone_y[10];
 	extern int touch_zone_pad[10];
+	extern u8 touch_mode;
 
 	extern int hotkey_turbo;
 	extern int hotkey_mute;

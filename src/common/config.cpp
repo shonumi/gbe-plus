@@ -89,6 +89,9 @@ namespace config
 	int touch_zone_y[10] = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
 	int touch_zone_pad[10] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
+	//Default NDS touch mode (light pressure)
+	u8 touch_mode = 0;
+
 	//Hotkey bindings
 	//Turbo = TAB
 	int hotkey_turbo = SDLK_TAB;
@@ -828,7 +831,7 @@ bool parse_ini_file()
 	while(getline(file, input_line))
 	{
 		line_char = input_line[0];
-		bool ignore = false;	
+		bool ignore = false;
 	
 		//Check if line starts with [ - if not, skip line
 		if(line_char == "[")
@@ -2195,6 +2198,24 @@ bool parse_ini_file()
 			}
 		}
 
+		//NDS touch mode
+		else if(ini_item == "#nds_touch_mode")
+		{
+			if((x + 1) < size)
+			{
+				ini_item = ini_opts[++x];
+				std::stringstream temp_stream(ini_item);
+				temp_stream >> output;
+				config::touch_mode = output;
+			}
+
+			else
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#touch_mode) \n";
+				return false;
+			}
+		}
+
 		//Use CGFX
 		else if(ini_item == "#use_cgfx")
 		{
@@ -3170,6 +3191,15 @@ bool save_ini_file()
 			std::string val = util::to_str(config::ir_db_index);
 
 			output_lines[line_pos] = "[#ir_db_index:" + val + "]";
+		}
+
+		//NDS touch mode
+		else if(ini_item == "#nds_touch_mode")
+		{
+			line_pos = output_count[x];
+			std::string val = util::to_str(config::touch_mode);
+
+			output_lines[line_pos] = "[#nds_touch_mode:" + val + "]";
 		}
 
 		else if(ini_item == "#recent_files")

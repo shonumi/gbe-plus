@@ -4575,7 +4575,7 @@ void NTR_MMU::process_touchscreen()
 
 	//Crude emulation of Z positioning, just enough to register difference between light and strong touches
 	u16 touch_z1 = 0x0;
-	u16 touch_z2 = 0xF;
+	u16 touch_z2 = config::touch_mode ? 0x1FF : 0xF;
 
 	//Process various touchscreen states
 	switch(touchscreen_state)
