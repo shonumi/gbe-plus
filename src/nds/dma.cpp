@@ -114,6 +114,8 @@ void NTR_ARM9::dma0()
 		}
 
 		mem->dma[0].enable = false;
+
+		if((mem->dma[0].control >> 28) & 0x7) { running = false; }
 	}
 }
 
@@ -219,6 +221,8 @@ void NTR_ARM9::dma1()
 		}
 
 		mem->dma[1].enable = false;
+
+		if((mem->dma[1].control >> 28) & 0x7) { running = false; }
 	}
 }
 
@@ -324,6 +328,8 @@ void NTR_ARM9::dma2()
 		}
 
 		mem->dma[2].enable = false;
+
+		if((mem->dma[2].control >> 28) & 0x7) { running = false; }
 	}
 }
 
@@ -429,6 +435,8 @@ void NTR_ARM9::dma3()
 		}
 
 		mem->dma[3].enable = false;
+
+		if((mem->dma[3].control >> 28) & 0x7) { running = false; }
 	}
 }
 
@@ -524,6 +532,8 @@ void NTR_ARM7::dma0()
 		}
 
 		mem->dma[4].enable = false;
+
+		if((mem->dma[4].control >> 28) & 0x7) { running = false; }
 	}
 }
 
@@ -619,6 +629,8 @@ void NTR_ARM7::dma1()
 		}
 
 		mem->dma[5].enable = false;
+
+		if((mem->dma[5].control >> 28) & 0x7) { running = false; }
 	}
 }
 
@@ -714,6 +726,8 @@ void NTR_ARM7::dma2()
 		}
 
 		mem->dma[6].enable = false;
+
+		if((mem->dma[6].control >> 28) & 0x7) { running = false; }
 	}
 }
 
@@ -808,5 +822,7 @@ void NTR_ARM7::dma3()
 		}
 
 		mem->dma[7].enable = false;
+
+		if((mem->dma[7].control >> 28) & 0x7) { running = false; }
 	}
 }
