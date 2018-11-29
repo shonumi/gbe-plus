@@ -60,6 +60,7 @@ void NTR_LCD::render_geometry()
 	//Plot points used for screen rendering
 	float plot_x[4];
 	float plot_y[4];
+	float plot_z[4];
 	s32 buffer_index = 0;
 	u8 vert_count = 0;
 	gx_matrix temp_matrix;
@@ -100,9 +101,14 @@ void NTR_LCD::render_geometry()
 		temp_matrix.data[1][0] = vert_matrix.data[x][1];
 		temp_matrix.data[2][0] = vert_matrix.data[x][2];
 		temp_matrix.data[3][0] = 1.0;
+
+		//Generate NDS XY screen coordinate from clip matrix
 		temp_matrix = temp_matrix * clip_matrix;
  		plot_x[x] = round(((temp_matrix.data[0][0] + temp_matrix.data[3][0]) * viewport_width) / ((2 * temp_matrix.data[3][0]) + lcd_3D_stat.view_port_x1));
   		plot_y[x] = round(((-temp_matrix.data[1][0] + temp_matrix.data[3][0]) * viewport_height) / ((2 * temp_matrix.data[3][0]) + lcd_3D_stat.view_port_y1));
+
+		//Get Z coordinate, use existing data from vertex
+		plot_z[x] = vert_matrix.data[x][2];
 
 		//Check for wonky coordinates
 		if(std::isnan(plot_x[x])) { lcd_3D_stat.render_polygon = false; return; }
@@ -195,6 +201,9 @@ void NTR_LCD::render_geometry()
 		xy_inc = (xy_start < xy_end) ? 1 : -1;
 		xy_end += (xy_inc > 0) ? 1 : -1;
 
+		float z_coord = plot_z[x];
+		float z_inc = (plot_z[next_index] - plot_z[x]) / (xy_end / xy_inc);
+
 		while(xy_start != xy_end)
 		{
 			//Only draw on-screen objects
@@ -202,8 +211,14 @@ void NTR_LCD::render_geometry()
 			{
 				//Convert plot points to buffer index
 				buffer_index = (round(y_coord) * 256) + round(x_coord);
-				gx_screen_buffer[lcd_3D_stat.buffer_id][buffer_index] = vert_colors[x];
-				gx_render_buffer[buffer_index] = 1;
+
+				//Check Z buffer if drawing is applicable
+				if(z_coord > gx_z_buffer[buffer_index])
+				{ 
+					gx_screen_buffer[lcd_3D_stat.buffer_id][buffer_index] = vert_colors[x];
+					gx_render_buffer[buffer_index] = 1;
+					gx_z_buffer[buffer_index] = z_coord;
+				}
 			}
 
 			//Set fill coordinates
@@ -222,6 +237,7 @@ void NTR_LCD::render_geometry()
 
 			x_coord += x_inc;
 			y_coord += y_inc;
+			z_coord += z_inc;
 			xy_start += xy_inc;
 		}
 	}
