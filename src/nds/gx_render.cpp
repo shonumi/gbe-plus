@@ -280,15 +280,34 @@ void NTR_LCD::fill_poly_solid()
 
 	for(u32 x = 0; x < 256; x++)
 	{
+		float z_start = 0.0;
+		float z_end = 0.0;
+		float z_inc = 0.0;
+
+		//Calculate Z start and end fill coordinates
+		z_start = gx_z_buffer[(lcd_3D_stat.hi_fill[x] * 256) + x];
+		z_end = gx_z_buffer[(lcd_3D_stat.lo_fill[x] * 256) + x];
+		
+		z_inc = z_end - z_start;
+		if((lcd_3D_stat.hi_fill[x] - lcd_3D_stat.lo_fill[x]) != 0) { z_inc /= float(lcd_3D_stat.hi_fill[x] - lcd_3D_stat.lo_fill[x]); }
+
 		y_coord = lcd_3D_stat.hi_fill[x];
 
 		while(y_coord < lcd_3D_stat.lo_fill[x])
 		{
 			//Convert plot points to buffer index
 			buffer_index = (y_coord * 256) + x;
-			gx_screen_buffer[lcd_3D_stat.buffer_id][buffer_index] = vert_colors[0];
-			gx_render_buffer[buffer_index] = 1;
+
+			//Check Z buffer if drawing is applicable
+			if(z_start > gx_z_buffer[buffer_index])
+			{ 
+				gx_screen_buffer[lcd_3D_stat.buffer_id][buffer_index] = vert_colors[0];
+				gx_render_buffer[buffer_index] = 1;
+				gx_z_buffer[buffer_index] = z_start;
+			}
+
 			y_coord++;
+			z_start += z_inc; 
 		}
 	}
 }
