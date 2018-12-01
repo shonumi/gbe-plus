@@ -204,6 +204,12 @@ void NTR_LCD::reset()
 		lcd_stat.bg_bitmap_base_addr_b[x] = 0x6000000;
 	}
 
+	//OBJ affine parameters
+	for(int x = 0; x < 256; x++)
+	{
+		lcd_stat.obj_affine[x] = 0.0;
+	}
+
 	//VRAM blocks
 	lcd_stat.vram_bank_addr[0] = 0x6800000;
 	lcd_stat.vram_bank_addr[1] = 0x6820000;
@@ -472,10 +478,75 @@ void NTR_LCD::update_oam()
 	}
 
 	//Update OBJ for affine transformations
-	//update_obj_affine_transformation();
+	update_obj_affine_transformation();
 
 	//Update render list for the current scanline
 	update_obj_render_list();
+}
+
+/****** Updates the size and position of OBJs from affine transformation ******/
+void NTR_LCD::update_obj_affine_transformation()
+{
+	//Cycle through all OAM entries
+	for(int x = 0; x < 256; x++)
+	{
+		//Determine if affine transformations occur on this OBJ
+		if(obj[x].affine_enable)
+		{
+			//Process regular-sized OBJs
+			if(!obj[x].type)
+			{
+				//Find half width and half height
+				obj[x].cw = obj[x].width >> 1;
+				obj[x].ch = obj[x].height >> 1;
+
+				//Find OBJ center
+				obj[x].cx = obj[x].x + obj[x].cw;
+				obj[x].cy = obj[x].y + obj[x].ch;
+
+				if(obj[x].cx > 0xFF) { obj[x].cx -= 0x1FF; }
+				if(obj[x].cy > 0xFF) { obj[x].cy -= 0xFF; }
+			}
+
+			//Process double-sized OBJs
+			else
+			{
+				//Find half width and half height
+				obj[x].cw = obj[x].width >> 1;
+				obj[x].ch = obj[x].height >> 1;
+
+				//Find OBJ center
+				obj[x].cx = (obj[x].x + obj[x].width);
+				obj[x].cy = (obj[x].y + obj[x].height);
+
+				if(obj[x].cx > 0xFF) { obj[x].cx -= 0x1FF; }
+				if(obj[x].cy > 0xFF) { obj[x].cy -= 0xFF; }
+
+				obj[x].left = obj[x].x;
+				obj[x].top = obj[x].y;
+
+				obj[x].right = (obj[x].left + (obj[x].width << 1) - 1) & 0x1FF;
+				obj[x].bottom = (obj[x].top + (obj[x].height << 1) - 1) & 0xFF;
+
+				//Precalculate OBJ wrapping
+				if(obj[x].left > obj[x].right)
+				{
+					obj[x].x_wrap = true;
+					obj[x].x_wrap_val = ((obj[x].width << 1) - obj[x].right - 1);
+				}
+
+				else { obj[x].x_wrap = false; }
+
+				if(obj[x].top > obj[x].bottom)
+				{
+					obj[x].y_wrap = true;
+					obj[x].y_wrap_val = ((obj[x].height << 1) - obj[x].bottom - 1);
+				}
+
+				else { obj[x].y_wrap = false; }
+			}
+		}
+	}
 }
 
 /****** Updates a list of OBJs to render on the current scanline ******/
@@ -1090,7 +1161,9 @@ void NTR_LCD::render_obj_scanline(u32 bg_control)
 	u8 render_width = 0;
 	u8 raw_color = 0;
 	bool ext_pal = false;
+	bool render_obj;
 	s16 h_flip, v_flip = 0;
+	u16 obj_x, obj_y = 0;
 
 	//Cycle through all current OBJ and render them based on their priority
 	for(int x = 0; x < obj_render_length; x++)
@@ -1116,32 +1189,69 @@ void NTR_LCD::render_obj_scanline(u32 bg_control)
 
 			while(render_width < obj[obj_id].width)
 			{
+				render_obj = true;
+
 				if(scanline_pixel_counter < 256)
 				{
-					//Determine X and Y meta-tiles
-					u16 obj_x = render_width;
-					u16 obj_y = obj[obj_id].y_wrap ? (lcd_stat.current_scanline + obj[obj_id].y_wrap_val) : (lcd_stat.current_scanline - obj[obj_id].y);
-
-					//Horizontal flip the internal X coordinate
-					if(obj[obj_id].h_flip)
+					//Determine X and Y meta-tiles - Normal OBJ rendering
+					if(!obj[obj_id].affine_enable)
 					{
-						h_flip = obj_x;
-						h_flip -= (obj[obj_id].width - 1);
+						obj_x = render_width;
+						obj_y = obj[obj_id].y_wrap ? (lcd_stat.current_scanline + obj[obj_id].y_wrap_val) : (lcd_stat.current_scanline - obj[obj_id].y);
 
-						if(h_flip < 0) { h_flip *= -1; }
+						//Horizontal flip the internal X coordinate
+						if(obj[obj_id].h_flip)
+						{
+							h_flip = obj_x;
+							h_flip -= (obj[obj_id].width - 1);
 
-						obj_x = h_flip;
+							if(h_flip < 0) { h_flip *= -1; }
+
+							obj_x = h_flip;
+						}
+
+						//Vertical flip the internal Y coordinate
+						if(obj[obj_id].v_flip)
+						{
+							v_flip = obj_y;
+							v_flip -= (obj[obj_id].height - 1);
+
+							if(v_flip < 0) { v_flip *= -1; }
+
+							obj_y = v_flip;
+						}
 					}
 
-					//Vertical flip the internal Y coordinate
-					if(obj[obj_id].v_flip)
+					//Determine X and Y meta-tile - Affine OBJ rendering
+					else
 					{
-						v_flip = obj_y;
-						v_flip -= (obj[obj_id].height - 1);
+						u8 index = (obj[obj_id].affine_group << 2);
+						s16 current_x, current_y;
 
-						if(v_flip < 0) { v_flip *= -1; }
+						//Determine current X position relative to the OBJ center X, account for screen wrapping
+						if((obj[obj_id].x_wrap) && (scanline_pixel_counter < obj[obj_id].right))
+						{
+							current_x = scanline_pixel_counter - (obj[obj_id].cx - obj[obj_id].x_wrap);
+						}
 
-						obj_y = v_flip;
+						else { current_x = scanline_pixel_counter - obj[obj_id].cx; }
+
+						//Determine current Y position relative to the OBJ center Y, account for screen wrapping
+						if((obj[obj_id].y_wrap) && (lcd_stat.current_scanline < obj[obj_id].bottom))
+						{
+							current_y = lcd_stat.current_scanline - (obj[obj_id].cy - obj[obj_id].y_wrap);
+						}
+
+						else { current_y = lcd_stat.current_scanline - obj[obj_id].cy; }
+
+						s16 new_x = obj[obj_id].cw + (lcd_stat.obj_affine[index] * current_x) + (lcd_stat.obj_affine[index+1] * current_y);
+						s16 new_y = obj[obj_id].ch + (lcd_stat.obj_affine[index+2] * current_x) + (lcd_stat.obj_affine[index+3] * current_y);
+
+						//If out of bounds for the transformed sprite, abort rendering
+						if((new_x < 0) || (new_y < 0) || (new_x >= obj[obj_id].width) || (new_y >= obj[obj_id].height)) { render_obj = false; }
+		
+						obj_x = new_x;
+						obj_y = new_y;
 					}
 
 					u8 meta_x = obj_x / 8;
@@ -1157,14 +1267,14 @@ void NTR_LCD::render_obj_scanline(u32 bg_control)
 					if((bit_depth == 32) && (!ext_pal)) { raw_color = (obj_x & 0x1) ? (raw_color >> 4) : (raw_color & 0xF); }
 
 					//Draw for Engine A
-					if(!engine_id && raw_color && !render_buffer_a[scanline_pixel_counter])
+					if(!engine_id && raw_color && !render_buffer_a[scanline_pixel_counter] && render_obj)
 					{
 						scanline_buffer_a[scanline_pixel_counter] = (ext_pal) ? lcd_stat.obj_ext_pal_a[(pal_id * 256) + raw_color] : lcd_stat.obj_pal_a[(pal_id * 16) + raw_color];
 						render_buffer_a[scanline_pixel_counter] = (obj[obj_id].bg_priority + 1);
 					}
 
 					//Draw for Engine B
-					else if(engine_id && raw_color && !render_buffer_b[scanline_pixel_counter])
+					else if(engine_id && raw_color && !render_buffer_b[scanline_pixel_counter] && render_obj)
 					{
 						scanline_buffer_b[scanline_pixel_counter] = (ext_pal) ? lcd_stat.obj_ext_pal_b[(pal_id * 256) + raw_color] : lcd_stat.obj_pal_b[(pal_id * 16) + raw_color];
 						render_buffer_b[scanline_pixel_counter] = (obj[obj_id].bg_priority + 1);

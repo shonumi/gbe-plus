@@ -107,6 +107,7 @@ class NTR_LCD
 
 	void update_palettes();
 	void update_oam();
+	void update_obj_affine_transformation();
 	void update_obj_render_list();
 
 	void opengl_blit();
