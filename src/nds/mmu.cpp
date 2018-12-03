@@ -3459,11 +3459,11 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 					//Convert result and remainder to 2s complement if necessary
 					if(numer_sign != denom_sign)
 					{
-						result = ~result;
 						result--;
+						result = ~result;
 
-						remainder = ~remainder;
 						remainder--;
+						remainder = ~remainder;
 					}
 
 					//Write results and remainder
@@ -3500,11 +3500,11 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 					//Convert result and remainder to 2s complement if necessary
 					if(numer_sign != denom_sign)
 					{
-						result = ~result;
 						result--;
+						result = ~result;
 
-						remainder = ~remainder;
 						remainder--;
+						remainder = ~remainder;
 					}
 
 					//Write results and remainder
