@@ -1329,23 +1329,17 @@ void NTR_ARM9::clock_system()
 /****** Runs DMA controllers every clock cycle ******/
 void NTR_ARM9::clock_dma()
 {
-	//DMA0
-	if(mem->dma[0].enable) { dma0(); }
-
-	//DMA1
-	if(mem->dma[1].enable) { dma1(); }
-
-	//DMA2
-	if(mem->dma[2].enable) { dma2(); }
-
-	//DMA3
-	if(mem->dma[3].enable) { dma3(); }
+	//Run DMA0 - DMA3 if applicable
+	for(u32 x = 0; x < 4; x++)
+	{
+		if(mem->dma[x].enable) { nds9_dma(x); }
+	}
 }
 
 /****** Runs Timer controllers every clock cycle ******/
 void NTR_ARM9::clock_timers(u8 access_cycles)
 {
-	for(int x = 0; x < 4; x++)
+	for(u32 x = 0; x < 4; x++)
 	{
 		//See if this timer is enabled first
 		if(controllers.timer[x].enable)

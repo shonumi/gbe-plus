@@ -273,11 +273,8 @@ class NTR_ARM9
 	void clock_dma();
 	void handle_interrupt();
 
-	//DMA functions
-	void dma0();
-	void dma1();
-	void dma2();
-	void dma3();
+	//DMA
+	void nds9_dma(u8 index);
 
 	//Misc CPU helpers
 	void update_condition_logical(u32 result, u8 shift_out);
