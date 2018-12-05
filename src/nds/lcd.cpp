@@ -2816,6 +2816,9 @@ void NTR_LCD::step()
 				screen_buffer[render_position + x + disp_a_offset] = scanline_buffer_a[x];
 				screen_buffer[render_position + x + disp_b_offset] = scanline_buffer_b[x];
 			}
+
+			//Start HBlank DMA
+			mem->start_hblank_dma();
 		}
 	}
 

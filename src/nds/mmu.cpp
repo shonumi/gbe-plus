@@ -4291,6 +4291,21 @@ bool NTR_MMU::load_backup(std::string filename) { return true; }
 /****** Save backup save data ******/
 bool NTR_MMU::save_backup(std::string filename) { return true; }
 
+/****** Start the DMA channels during HBlanking periods ******/
+void NTR_MMU::start_hblank_dma()
+{
+	for(u32 x = 0; x < 4; x++)
+	{
+		//Repeat bits automatically enable DMAs
+		if(dma[x].control & 0x200)
+		{
+			dma[x].enable = true;
+			u8 dma_type = ((dma[x].control >> 12) & 0x7);
+			if(dma_type == 2) { dma[x].started = true; }
+		}
+	}
+}
+
 /****** Parses cartridge header ******/
 void NTR_MMU::parse_header()
 {

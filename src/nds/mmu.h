@@ -292,6 +292,8 @@ class NTR_MMU
 
 	void reset();
 
+	void start_hblank_dma();
+
 	u8 read_u8(u32 address);
 	u16 read_u16(u32 address);
 	u32 read_u32(u32 address);

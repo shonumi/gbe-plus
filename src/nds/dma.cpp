@@ -134,7 +134,7 @@ void NTR_ARM9::dma1()
 		if((mem->dma[1].control & 0x80000000) == 0) { mem->dma[1].enable = false; return; }
 
 		//Check DMA Start Timings
-		switch(((mem->dma[1].control >> 28) & 0x3))
+		switch(((mem->dma[1].control >> 28) & 0x7))
 		{
 			case 0x0:
 			{
@@ -241,7 +241,7 @@ void NTR_ARM9::dma2()
 		if((mem->dma[2].control & 0x80000000) == 0) { mem->dma[2].enable = false; return; }
 
 		//Check DMA Start Timings
-		switch(((mem->dma[2].control >> 28) & 0x3))
+		switch(((mem->dma[2].control >> 28) & 0x7))
 		{
 			case 0x0:
 			{
@@ -344,14 +344,19 @@ void NTR_ARM9::dma3()
 	{
 		u32 temp_value = 0;
 		u32 original_dest_addr = mem->dma[3].destination_address;
+		u8 start_timing = ((mem->dma[3].control >> 28) & 0x7);
 
 		if((mem->dma[3].control & 0x80000000) == 0) { mem->dma[3].enable = false; return; }
 
 		//Check DMA Start Timings
-		switch(((mem->dma[3].control >> 28) & 0x3))
+		switch(start_timing)
 		{
 			case 0x0:
+			case 0x2:
 			{
+				//Verify HBlank timing
+				if((start_timing == 2) && (!mem->dma[3].started)) { return; }
+
 				std::cout<<"NDS9 DMA3 - Immediate\n";
 				std::cout<<"START ADDR -> 0x" << std::hex << mem->dma[3].start_address << "\n";
 				std::cout<<"DEST  ADDR -> 0x" << std::hex << mem->dma[3].destination_address << "\n";
@@ -423,20 +428,18 @@ void NTR_ARM9::dma3()
 			//Trigger IRQ
 			if(mem->dma[3].control & 0x40000000) { mem->nds9_if |= 0x800; }
 
+			mem->dma[3].enable = false;
+			mem->dma[3].started = true;
+
 			break;
 
-			case 0x1: std::cout<<"NDS9 DMA3 - VBlank\n"; break;
-			case 0x2: std::cout<<"NDS9 DMA3 - HBlank\n"; break;
-			case 0x3: std::cout<<"NDS9 DMA3 - Display Sync\n"; break;
-			case 0x4: std::cout<<"NDS9 DMA3 - Main Mem Display\n"; break;
-			case 0x5: std::cout<<"NDS9 DMA3 - DS Cart\n"; break;
-			case 0x6: std::cout<<"NDS9 DMA3 - GBA Cart\n"; break;
-			case 0x7: std::cout<<"NDS9 DMA3 - Geometry Command FIFO\n"; break;
+			case 0x1: std::cout<<"NDS9 DMA3 - VBlank\n"; running = false; break;
+			case 0x3: std::cout<<"NDS9 DMA3 - Display Sync\n"; running = false; break;
+			case 0x4: std::cout<<"NDS9 DMA3 - Main Mem Display\n"; running = false; break;
+			case 0x5: std::cout<<"NDS9 DMA3 - DS Cart\n"; running = false; break;
+			case 0x6: std::cout<<"NDS9 DMA3 - GBA Cart\n"; running = false; break;
+			case 0x7: std::cout<<"NDS9 DMA3 - Geometry Command FIFO\n"; running = false; break;
 		}
-
-		mem->dma[3].enable = false;
-
-		if((mem->dma[3].control >> 28) & 0x7) { running = false; }
 	}
 }
 
