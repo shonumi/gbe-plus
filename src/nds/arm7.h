@@ -264,10 +264,7 @@ class NTR_ARM7
 	void handle_interrupt();
 
 	//DMA functions
-	void dma0();
-	void dma1();
-	void dma2();
-	void dma3();
+	void nds7_dma(u8 index);
 
 	//Misc CPU helpers
 	void update_condition_logical(u32 result, u8 shift_out);

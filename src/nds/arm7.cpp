@@ -1261,17 +1261,11 @@ void NTR_ARM7::clock_system()
 /****** Runs DMA controllers every clock cycle ******/
 void NTR_ARM7::clock_dma()
 {
-	//DMA0
-	if(mem->dma[4].enable) { dma0(); }
-
-	//DMA1
-	if(mem->dma[5].enable) { dma1(); }
-
-	//DMA2
-	if(mem->dma[6].enable) { dma2(); }
-
-	//DMA3
-	if(mem->dma[7].enable) { dma3(); }
+	//Run DMA0 - DMA3 if applicable
+	for(u32 x = 4; x < 8; x++)
+	{
+		if(mem->dma[x].enable) { nds7_dma(x); }
+	}
 }
 
 /****** Runs timer controllers ******/
