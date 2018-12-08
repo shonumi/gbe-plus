@@ -1,4 +1,4 @@
-Full Changer Technical Documentation 0.1
+Full Changer Technical Documentation 0.2
 August 10th, 2017
 Shonumi aka D.S. Baxter
 
@@ -20,7 +20,7 @@ GBC Only
 
 Comes with 1 Full Changer accessory
 Full Changer uses one CR2032
-Full Changer presumably contains an accelerometer to detect movement
+Full Changer contains 4 Hall effect sensors to detect movement
 Full Changer has a series of status lights and blinks/beeps when swung correctly
 
 ***************************************************
