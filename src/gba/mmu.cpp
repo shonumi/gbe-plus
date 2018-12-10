@@ -2623,7 +2623,7 @@ void AGB_MMU::process_motion()
 void AGB_MMU::process_sio()
 {
 	//Determine SIO mode
-	if(sio_stat->r_cnt & 0xC000) { sio_stat->sio_mode = JOY_BUS; }
+	if((sio_stat->r_cnt & 0xC000) == 0xC000) { sio_stat->sio_mode = JOY_BUS; }
 	else if(sio_stat->r_cnt & 0x8000) { sio_stat->sio_mode = GENERAL_PURPOSE; }
 
 	//UART
