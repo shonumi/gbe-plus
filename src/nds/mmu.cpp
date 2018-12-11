@@ -4117,8 +4117,8 @@ bool NTR_MMU::read_file(std::string filename)
 	//Read data from the ROM file
 	file.read(reinterpret_cast<char*> (&cart_data[0]), file_size);
 
-	//Copy 512 byte header to Main RAM on boot
-	for(u32 x = 0; x < 0x200; x++) { write_u8((0x27FFE00 + x), cart_data[x]); }
+	//Copy 368 bytes from header to Main RAM on boot
+	for(u32 x = 0; x < 0x170; x++) { write_u8((0x27FFE00 + x), cart_data[x]); }
 
 	file.close();
 	std::cout<<"MMU::" << filename << " loaded successfully. \n";
