@@ -2622,9 +2622,39 @@ void AGB_MMU::process_motion()
 /****** Updates various SIO related data when writing to SIO registers ******/
 void AGB_MMU::process_sio()
 {
-	//Determine SIO mode
+	//Joybus
 	if((sio_stat->r_cnt & 0xC000) == 0xC000) { sio_stat->sio_mode = JOY_BUS; }
-	else if(sio_stat->r_cnt & 0x8000) { sio_stat->sio_mode = GENERAL_PURPOSE; }
+	
+	//General Purpose
+	else if(sio_stat->r_cnt & 0x8000)
+	{
+		sio_stat->sio_mode = GENERAL_PURPOSE;
+
+		//Determine IO direction of the pins
+		u8 io_dir = (sio_stat->r_cnt >> 4) & 0xF;
+		u8 io_pin = (sio_stat->r_cnt & 0xF);
+		u8 io_val = 0;
+
+		sio_stat->r_cnt &= ~0xF;
+
+		//SC pin
+		if(io_dir & 0x1) { io_val |= (io_pin & 0x1) ? 0x1 : 0x0; }
+		else { io_val |= 0x1; }
+
+		//SD pin
+		if(io_dir & 0x2) { io_val |= (io_pin & 0x2) ? 0x2 : 0x0; }
+		else { io_val |= 0x2; }
+
+		//SO pin
+		if(io_dir & 0x4) { io_val |= (io_pin & 0x4) ? 0x4 : 0x0; }
+		else { io_val |= 0x4; }
+
+		//SI pin
+		if(io_dir & 0x8) { io_val |= (io_pin & 0x8) ? 0x8 : 0x0; }
+		else { io_val |= 0x8; }
+
+		sio_stat->r_cnt |= io_val;
+	}
 
 	//UART
 	else if((sio_stat->cnt & 0x3000) == 0x3000)
