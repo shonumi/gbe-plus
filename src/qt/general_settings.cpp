@@ -155,6 +155,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	sio_dev->insertSeparator(7);
 	sio_dev->addItem("GBA Link Cable");
 	sio_dev->addItem("GB Player Rumble");
+	sio_dev->addItem("Soul Doll Adapter");
 
 	QHBoxLayout* sio_layout = new QHBoxLayout;
 	sio_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);

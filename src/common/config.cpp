@@ -36,6 +36,7 @@ namespace config
 	std::string external_camera_file = "";
 	std::string external_card_file = "";
 	std::string external_image_file = "";
+	std::string external_data_file = "";
 	std::vector <std::string> recent_files;
 	std::vector <std::string> cli_args;
 	bool use_debugger = false;
@@ -930,7 +931,7 @@ bool parse_ini_file()
 				std::stringstream temp_stream(ini_item);
 				temp_stream >> output;
 
-				if((output >= 0) && (output <= 8)) { config::sio_device = output; }
+				if((output >= 0) && (output <= 9)) { config::sio_device = output; }
 			}
 
 			else 
@@ -1256,6 +1257,24 @@ bool parse_ini_file()
 			}
 
 			else { config::external_image_file = ""; }
+		}
+
+		//External data file
+		else if(ini_item == "#data_file")
+		{
+			if((x + 1) < size) 
+			{
+				ini_item = ini_opts[++x];
+				std::string first_char = "";
+				first_char = ini_item[0];
+				
+				//When left blank, don't parse the next line item
+				if(first_char != "#") { config::external_data_file = ini_item; }
+				else { config::external_data_file = ""; x--;}
+ 
+			}
+
+			else { config::external_data_file = ""; }
 		}
 
 		//Use OpenGL
@@ -2776,6 +2795,15 @@ bool save_ini_file()
 			std::string val = (config::external_image_file == "") ? "" : (":'" + config::external_image_file + "'");
 
 			output_lines[line_pos] = "[#image_file" + val + "]";
+		}
+
+		//External image file
+		else if(ini_item == "#data_file")
+		{
+			line_pos = output_count[x];
+			std::string val = (config::external_data_file == "") ? "" : (":'" + config::external_data_file + "'");
+
+			output_lines[line_pos] = "[#data_file" + val + "]";
 		}
 
 		//Use OpenGL

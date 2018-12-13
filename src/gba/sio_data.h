@@ -21,6 +21,7 @@ enum agb_sio_types
 	INVALID_GBA_DEVICE,
 	GBA_LINK,
 	GBA_PLAYER_RUMBLE,
+	GBA_SOUL_DOLL_ADAPTER,
 };
 
 //Serial Input-Output device mode enumeration

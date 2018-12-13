@@ -186,6 +186,10 @@ void AGB_SIO::reset()
 			sio_stat.sio_type = GBA_PLAYER_RUMBLE;
 			break;
 
+		case 0x9:
+			sio_stat.sio_type = GBA_SOUL_DOLL_ADAPTER;
+			break;
+
 		//Always wait until netplay connection is established to change to GBA_LINK
 		default:
 			sio_stat.sio_type = NO_GBA_DEVICE;
