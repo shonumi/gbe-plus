@@ -1721,6 +1721,9 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 
 			process_sio();
 
+			//Trigger transfer to emulated Soul Doll Adapter if necessary
+			if((config::sio_device == 9) && (address == R_CNT+1)) { sio_stat->emu_device_ready = true; }
+
 			break;
 			
 

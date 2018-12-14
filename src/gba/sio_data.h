@@ -42,6 +42,13 @@ enum gb_player_rumble_state
 	GB_PLAYER_RUMBLE_ACTIVE,
 };
 
+//Soul Doll Adapter enumerations
+enum soul_doll_adapter_state
+{
+	GBA_SOUL_DOLL_ADAPTER_INACTIVE,
+	GBA_SOUL_DOLL_ADAPTER_ACTIVE,
+};
+
 struct agb_sio_data
 {
 	bool connected;

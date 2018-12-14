@@ -221,6 +221,13 @@ void AGB_SIO::reset()
 	player_rumble.buffer_index = 0;
 	player_rumble.current_state = GB_PLAYER_RUMBLE_INACTIVE;
 
+	//Soul Doll Adapter
+	sda.data.clear();
+	sda.buffer_index = 0;
+	sda.start_transmission = false;
+	sda.current_state = GBA_SOUL_DOLL_ADAPTER_INACTIVE;
+	if(config::sio_device == 9) { soul_doll_adapter_load_data(config::external_data_file); }
+
 	#ifdef GBE_NETPLAY
 
 	//Close any current connections
@@ -563,3 +570,49 @@ void AGB_SIO::gba_player_rumble_process()
 
 	sio_stat.active_transfer = false;	
 }
+
+/****** Loads Soul Doll Adapter Data ******/
+bool AGB_SIO::soul_doll_adapter_load_data(std::string filename)
+{
+	std::ifstream doll_data(filename.c_str(), std::ios::binary);
+
+	if(!doll_data.is_open()) 
+	{ 
+		std::cout<<"SIO::Soul Doll data could not be read. Check file path or permissions. \n";
+		return false;
+	}
+
+	sda.data.resize(92, 0x00);
+
+	u16* ex_data = &sda.data[0];
+
+	doll_data.read((char*)ex_data, 184); 
+	doll_data.close();
+
+	std::cout<<"SIO::Loaded Soul Doll data.\n";
+	return true;
+}
+
+/****** Process Soul Doll Adapter ******/
+void AGB_SIO::soul_doll_adapter_process()
+{
+	//Change Soul Doll Adapter state if necessary
+	//if((sda.current_state == GBA_SOUL_DOLL_ADAPTER_INACTIVE) && (sda.prev_data == 0x80A5) && (sio_stat.r_cnt == 0x802D)) { sda.current_state = GBA_SOUL_DOLL_ADAPTER_ACTIVE; std::cout<<"ACTIVE\n"; }
+	//if((sda.current_state == GBA_SOUL_DOLL_ADAPTER_ACTIVE) && (sda.prev_data == 0x80AD) && (sio_stat.r_cnt == 0x802D)) { sda.current_state = GBA_SOUL_DOLL_ADAPTER_INACTIVE; std::cout<<"INACTIVE\n"; }
+
+	//Soul Doll Adapter Inactive - Echo bytes
+	if(sda.current_state == GBA_SOUL_DOLL_ADAPTER_INACTIVE)
+	{
+		//During inactive phase, echo everything save for the following
+		switch(sio_stat.r_cnt)
+		{
+			case 0x802D: sio_stat.r_cnt = 0x8025; break;
+			case 0x802F: sio_stat.r_cnt = 0x8027; break;
+		}
+	}
+
+	sio_stat.emu_device_ready = false;
+	sda.prev_data = sio_stat.r_cnt;
+}
+
+	

@@ -69,6 +69,16 @@ class AGB_SIO
 		gb_player_rumble_state current_state;
 	} player_rumble;
 
+	//Soul Doll Adapter
+	struct soul_doll_adapter
+	{
+		std::vector <u16> data;
+		u16 prev_data;
+		u8 buffer_index;
+		bool start_transmission;
+		soul_doll_adapter_state current_state;
+	} sda;
+
 	AGB_SIO();
 	~AGB_SIO();
 
@@ -81,6 +91,9 @@ class AGB_SIO
 	void process_network_communication();
 
 	void gba_player_rumble_process();
+
+	bool soul_doll_adapter_load_data(std::string filename);
+	void soul_doll_adapter_process();
 };
 
 #endif // GBA_SIO
