@@ -1524,15 +1524,16 @@ void ARM7::clock_sio()
 			}
 		}
 	}
+}
 
-	else if(controllers.serial_io.sio_stat.emu_device_ready)
+/****** Runs an emulated SIO device whenever requested ******/
+void ARM7::clock_emulated_sio_device()
+{
+	switch(config::sio_device)
 	{
-		switch(config::sio_device)
-		{
-			case 0x9: controllers.serial_io.soul_doll_adapter_process(); break;
+		case 0x9: controllers.serial_io.soul_doll_adapter_process(); break;
 
-			default: break;
-		}
+		default: break;
 	}
 }
 

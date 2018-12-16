@@ -246,6 +246,7 @@ class ARM7
 	void clock_timers();
 	void clock_dma();
 	void clock_sio();
+	void clock_emulated_sio_device();
 	void handle_interrupt();
 
 	//DMA functions

@@ -276,7 +276,7 @@ void AGB_core::run_core()
 			}
 
 			//Otherwise, try to run any emulate SIO devices attached to GBE+
-			else if(core_cpu.controllers.serial_io.sio_stat.emu_device_ready) { core_cpu.clock_sio(); }
+			else if(core_cpu.controllers.serial_io.sio_stat.emu_device_ready) { core_cpu.clock_emulated_sio_device(); }
 
 			//Reset system cycles for next instruction
 			core_cpu.system_cycles = 0;
