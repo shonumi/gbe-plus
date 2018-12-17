@@ -875,7 +875,7 @@ bool parse_ini_file()
 	//Cycle through all items in the .ini file
 	//Set options as appropiate
 	int size = ini_opts.size();
-	int output = 0;
+	u32 output = 0;
 	std::string ini_item = "";
 
 	for(int x = 0; x < size; x++)
@@ -908,8 +908,7 @@ bool parse_ini_file()
 			if((x + 1) < size) 
 			{
 				ini_item = ini_opts[++x];
-				std::stringstream temp_stream(ini_item);
-				temp_stream >> output;
+				util::from_str(ini_item, output);
 
 				if(output == 1) { config::use_firmware = true; }
 				else { config::use_firmware = false; }
@@ -928,8 +927,7 @@ bool parse_ini_file()
 			if((x + 1) < size) 
 			{
 				ini_item = ini_opts[++x];
-				std::stringstream temp_stream(ini_item);
-				temp_stream >> output;
+				util::from_str(ini_item, output);
 
 				if((output >= 0) && (output <= 9)) { config::sio_device = output; }
 			}
@@ -947,8 +945,7 @@ bool parse_ini_file()
 			if((x + 1) < size) 
 			{
 				ini_item = ini_opts[++x];
-				std::stringstream temp_stream(ini_item);
-				temp_stream >> output;
+				util::from_str(ini_item, output);
 
 				if((output >= 0) && (output <= 6)) { config::ir_device = output; }
 			}
@@ -966,8 +963,7 @@ bool parse_ini_file()
 			if((x + 1) < size) 
 			{
 				ini_item = ini_opts[++x];
-				std::stringstream temp_stream(ini_item);
-				temp_stream >> output;
+				util::from_str(ini_item, output);
 
 				if((output >= 0) && (output <= 6)) 
 				{
@@ -989,8 +985,7 @@ bool parse_ini_file()
 			if((x + 1) < size) 
 			{
 				ini_item = ini_opts[++x];
-				std::stringstream temp_stream(ini_item);
-				temp_stream >> output;
+				util::from_str(ini_item, output);
 
 				if(output == 1) { config::use_cheats = true; }
 				else { config::use_cheats = false; }
@@ -1009,8 +1004,7 @@ bool parse_ini_file()
 			if((x + 1) < size) 
 			{
 				ini_item = ini_opts[++x];
-				std::stringstream temp_stream(ini_item);
-				temp_stream >> output;
+				util::from_str(ini_item, output);
 
 				if(output == 1) { config::use_patches = true; }
 				else { config::use_patches = false; }
@@ -1029,8 +1023,7 @@ bool parse_ini_file()
 			if((x + 1) < size) 
 			{
 				ini_item = ini_opts[++x];
-				std::stringstream temp_stream(ini_item);
-				temp_stream >> output;
+				util::from_str(ini_item, output);
 
 				if(output == 1) { config::use_osd = true; }
 				else { config::use_osd = false; }
@@ -1283,8 +1276,7 @@ bool parse_ini_file()
 			if((x + 1) < size) 
 			{
 				ini_item = ini_opts[++x];
-				std::stringstream temp_stream(ini_item);
-				temp_stream >> output;
+				util::from_str(ini_item, output);
 
 				if(output == 1) { config::use_opengl = true; }
 				else { config::use_opengl = false; }
@@ -1339,8 +1331,7 @@ bool parse_ini_file()
 			if((x + 1) < size) 
 			{
 				ini_item = ini_opts[++x];
-				std::stringstream temp_stream(ini_item);
-				temp_stream >> output;
+				util::from_str(ini_item, output);
 
 				if((output >= 0) && (output <= 32767)) { config::dead_zone = output; }
 			}
@@ -1358,8 +1349,7 @@ bool parse_ini_file()
 			if((x + 1) < size) 
 			{
 				ini_item = ini_opts[++x];
-				std::stringstream temp_stream(ini_item);
-				temp_stream >> output;
+				util::from_str(ini_item, output);
 
 				if(output == 1) { config::use_haptics = true; }
 				else { config::use_haptics = false; }
@@ -1378,8 +1368,7 @@ bool parse_ini_file()
 			if((x + 1) < size)
 			{
 				ini_item = ini_opts[++x];
-				std::stringstream temp_stream(ini_item);
-				temp_stream >> output;
+				util::from_str(ini_item, output);
 
 				if((output >= 0) && (output <= 128)) { config::volume = output; }
 			}
@@ -1397,8 +1386,7 @@ bool parse_ini_file()
 			if((x + 1) < size)
 			{
 				ini_item = ini_opts[++x];
-				std::stringstream temp_stream(ini_item);
-				temp_stream >> output;
+				util::from_str(ini_item, output);
 
 				if((output >= 0) && (output <= 1)) { config::mute = output; }
 			}
@@ -1416,8 +1404,7 @@ bool parse_ini_file()
 			if((x + 1) < size)
 			{
 				ini_item = ini_opts[++x];
-				std::stringstream temp_stream(ini_item);
-				temp_stream >> output;
+				util::from_str(ini_item, output);
 
 				if((output >= 0) && (output <= 1)) { config::use_stereo = output; }
 			}
@@ -1435,8 +1422,7 @@ bool parse_ini_file()
 			if((x + 1) < size)
 			{
 				ini_item = ini_opts[++x];
-				std::stringstream temp_stream(ini_item);
-				temp_stream >> output;
+				util::from_str(ini_item, output);
 
 				if((output >= 1) && (output <= 48000)) { config::sample_rate = (double)output; }
 			}
@@ -1454,8 +1440,7 @@ bool parse_ini_file()
 			if((x + 1) < size) 
 			{
 				ini_item = ini_opts[++x];
-				std::stringstream temp_stream(ini_item);
-				temp_stream >> output;
+				util::from_str(ini_item, output);
 
 				if((output >= 1) && (output <= 10)) { config::scaling_factor = config::old_scaling_factor = output; }
 				else { config::scaling_factor = 1; }
@@ -1474,8 +1459,7 @@ bool parse_ini_file()
 			if((x + 1) < size) 
 			{
 				ini_item = ini_opts[++x];
-				std::stringstream temp_stream(ini_item);
-				temp_stream >> output;
+				util::from_str(ini_item, output);
 
 				if(output == 1) { config::maintain_aspect_ratio = true; }
 				else { config::maintain_aspect_ratio = false; }
@@ -1555,8 +1539,7 @@ bool parse_ini_file()
 			if((x + 1) < size)
 			{
 				ini_item = ini_opts[++x];
-				std::stringstream temp_stream(ini_item);
-				temp_stream >> output;
+				util::from_str(ini_item, output);
 				
 				if((output >= 0) && (output <= 3)) { config::oc_flags = output; }
 			}
@@ -1574,8 +1557,7 @@ bool parse_ini_file()
 			if((x + 1) < size) 
 			{
 				ini_item = ini_opts[++x];
-				std::stringstream temp_stream(ini_item);
-				temp_stream >> output;
+				util::from_str(ini_item, output);
 
 				if((output >= 1) && (output <= 14)) 
 				{
@@ -2223,8 +2205,8 @@ bool parse_ini_file()
 			if((x + 1) < size)
 			{
 				ini_item = ini_opts[++x];
-				std::stringstream temp_stream(ini_item);
-				temp_stream >> output;
+				util::from_str(ini_item, output);
+
 				config::touch_mode = output;
 			}
 
@@ -2241,8 +2223,7 @@ bool parse_ini_file()
 			if((x + 1) < size) 
 			{
 				ini_item = ini_opts[++x];
-				std::stringstream temp_stream(ini_item);
-				temp_stream >> output;
+				util::from_str(ini_item, output);
 
 				if(output == 1) { cgfx::load_cgfx = true; }
 				else { cgfx::load_cgfx = false; }
@@ -2309,8 +2290,7 @@ bool parse_ini_file()
 			if((x + 1) < size) 
 			{
 				ini_item = ini_opts[++x];
-				std::stringstream temp_stream(ini_item);
-				temp_stream >> output;
+				util::from_str(ini_item, output);
 
 				if((output >= 1) && (output <= 10)) { cgfx::scaling_factor = output; }
 				else { cgfx::scaling_factor = 1; }
@@ -2371,8 +2351,7 @@ bool parse_ini_file()
 			if((x + 1) < size) 
 			{
 				ini_item = ini_opts[++x];
-				std::stringstream temp_stream(ini_item);
-				temp_stream >> output;
+				util::from_str(ini_item, output);
 
 				if(output == 1) { config::use_netplay = true; }
 				else { config::use_netplay = false; }
@@ -2391,8 +2370,7 @@ bool parse_ini_file()
 			if((x + 1) < size) 
 			{
 				ini_item = ini_opts[++x];
-				std::stringstream temp_stream(ini_item);
-				temp_stream >> output;
+				util::from_str(ini_item, output);
 
 				if(output == 1) { config::netplay_hard_sync = true; }
 				else { config::netplay_hard_sync = false; }
@@ -2411,8 +2389,7 @@ bool parse_ini_file()
 			if((x + 1) < size) 
 			{
 				ini_item = ini_opts[++x];
-				std::stringstream temp_stream(ini_item);
-				temp_stream >> output;
+				util::from_str(ini_item, output);
 
 				config::netplay_sync_threshold = output;
 			}
@@ -2431,8 +2408,7 @@ bool parse_ini_file()
 			if((x + 1) < size) 
 			{
 				ini_item = ini_opts[++x];
-				std::stringstream temp_stream(ini_item);
-				temp_stream >> output;
+				util::from_str(ini_item, output);
 
 				if(output <= 65535) { config::netplay_server_port = output; }
 				else { config::netplay_server_port = 2000; }
@@ -2451,8 +2427,7 @@ bool parse_ini_file()
 			if((x + 1) < size) 
 			{
 				ini_item = ini_opts[++x];
-				std::stringstream temp_stream(ini_item);
-				temp_stream >> output;
+				util::from_str(ini_item, output);
 
 				if(output <= 65535) { config::netplay_client_port = output; }
 				else { config::netplay_client_port = 2001; }
@@ -2487,8 +2462,7 @@ bool parse_ini_file()
 			if((x + 1) < size) 
 			{
 				ini_item = ini_opts[++x];
-				std::stringstream temp_stream(ini_item);
-				temp_stream >> output;
+				util::from_str(ini_item, output);
 
 				if(output <= 3) { config::netplay_id = output; }
 				else { config::netplay_id = 0; }
@@ -2507,8 +2481,7 @@ bool parse_ini_file()
 			if((x + 1) < size)
 			{
 				ini_item = ini_opts[++x];
-				std::stringstream temp_stream(ini_item);
-				temp_stream >> output;
+				util::from_str(ini_item, output);
 				
 				if(output >= 0) { config::ir_db_index = output; }
 			}
