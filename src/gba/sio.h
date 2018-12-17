@@ -72,9 +72,9 @@ class AGB_SIO
 	//Soul Doll Adapter
 	struct soul_doll_adapter
 	{
-		std::vector <u16> data;
+		std::vector <u8> data;
 		u16 prev_data;
-		u8 buffer_index;
+		u32 buffer_index;
 		bool start_transmission;
 		soul_doll_adapter_state current_state;
 	} sda;

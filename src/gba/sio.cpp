@@ -587,9 +587,9 @@ bool AGB_SIO::soul_doll_adapter_load_data(std::string filename)
 	u32 file_size = doll_data.tellg();
 	doll_data.seekg(0, doll_data.beg);
 
-	sda.data.resize((file_size >> 1), 0);
+	sda.data.resize(file_size, 0);
 
-	u16* ex_data = &sda.data[0];
+	u8* ex_data = &sda.data[0];
 
 	doll_data.read((char*)ex_data, file_size); 
 	doll_data.close();
@@ -601,30 +601,42 @@ bool AGB_SIO::soul_doll_adapter_load_data(std::string filename)
 /****** Process Soul Doll Adapter ******/
 void AGB_SIO::soul_doll_adapter_process()
 {
-	//Change Soul Doll Adapter state if necessary
-	//Changing back to inactive may have to be done manually (e.g. via hotkey)
-	if((sda.current_state == GBA_SOUL_DOLL_ADAPTER_INACTIVE) && (sda.prev_data == 0x80A5) && (sio_stat.r_cnt == 0x802D))
-	{
-		sda.current_state = GBA_SOUL_DOLL_ADAPTER_ACTIVE;
-		sda.buffer_index = 0;
-	}
-
 	//Soul Doll Adapter Inactive - Echo bytes
 	if(sda.current_state == GBA_SOUL_DOLL_ADAPTER_INACTIVE)
 	{
 		//During inactive phase, echo everything save for the following
 		switch(sio_stat.r_cnt)
 		{
-			case 0x802D: sio_stat.r_cnt = 0x8025; break;
-			case 0x802F: sio_stat.r_cnt = 0x8027; break;
+			case 0x802D:
+				if(sda.prev_data == 0x80A5) { sio_stat.r_cnt = 0x8025; }
+				break;
+
+			case 0x802F:
+				sio_stat.r_cnt = 0x8027;
+				break;
 		}
+
+		if(sda.buffer_index < 2) { sda.buffer_index++; }
 	}
 
 	//Soul Doll Adapter Active
 	else if(sda.current_state == GBA_SOUL_DOLL_ADAPTER_ACTIVE)
 	{
-		sio_stat.r_cnt = sda.data[sda.buffer_index++];
-		if(sda.buffer_index == (sda.data.size() >> 1)) { sda.buffer_index = 0; }
+		sio_stat.r_cnt = (0x8000 | sda.data[sda.buffer_index++]);
+
+		if(sda.buffer_index == sda.data.size())
+		{
+			sda.current_state = GBA_SOUL_DOLL_ADAPTER_INACTIVE;
+			sda.buffer_index = 0;
+		}
+	}
+
+	//Change Soul Doll Adapter state if necessary
+	//Changing back to inactive may have to be done manually (e.g. via hotkey)
+	if((sda.current_state == GBA_SOUL_DOLL_ADAPTER_INACTIVE) && (sda.prev_data == 0x802D) && (sio_stat.r_cnt == 0x802D) && (sda.buffer_index >= 2))
+	{
+		sda.current_state = GBA_SOUL_DOLL_ADAPTER_ACTIVE;
+		sda.buffer_index = 0;
 	}
 
 	sio_stat.emu_device_ready = false;
