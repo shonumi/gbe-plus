@@ -45,45 +45,45 @@ namespace config
 	//Arrow Z = A button, X = B button, START = Return, Select = Space
 	//UP, LEFT, DOWN, RIGHT = Arrow keys
 	//A key = Left Shoulder, S key = Right Shoulder
-	int ntr_key_a = SDLK_z; int ntr_key_b = SDLK_x; int ntr_key_x = SDLK_d; int ntr_key_y = SDLK_c; int ntr_key_start = SDLK_RETURN; int ntr_key_select = SDLK_SPACE;
-	int ntr_key_l_trigger = SDLK_a; int ntr_key_r_trigger = SDLK_s;
-	int ntr_key_left = SDLK_LEFT; int ntr_key_right = SDLK_RIGHT; int ntr_key_down = SDLK_DOWN; int ntr_key_up = SDLK_UP;
+	u32 ntr_key_a = SDLK_z; u32 ntr_key_b = SDLK_x; u32 ntr_key_x = SDLK_d; u32 ntr_key_y = SDLK_c; u32 ntr_key_start = SDLK_RETURN; u32 ntr_key_select = SDLK_SPACE;
+	u32 ntr_key_l_trigger = SDLK_a; u32 ntr_key_r_trigger = SDLK_s;
+	u32 ntr_key_left = SDLK_LEFT; u32 ntr_key_right = SDLK_RIGHT; u32 ntr_key_down = SDLK_DOWN; u32 ntr_key_up = SDLK_UP;
 
 	//Default joystick bindings - NDS
-	int ntr_joy_a = 100; int ntr_joy_b = 101; int ntr_joy_x = 102; int ntr_joy_y = 103; int ntr_joy_start = 107; int ntr_joy_select = 106;
-	int ntr_joy_r_trigger = 105; int ntr_joy_l_trigger = 104;
-	int ntr_joy_left = 200; int ntr_joy_right = 201; int ntr_joy_up = 202; int ntr_joy_down = 203;
+	u32 ntr_joy_a = 100; u32 ntr_joy_b = 101; u32 ntr_joy_x = 102; u32 ntr_joy_y = 103; u32 ntr_joy_start = 107; u32 ntr_joy_select = 106;
+	u32 ntr_joy_r_trigger = 105; u32 ntr_joy_l_trigger = 104;
+	u32 ntr_joy_left = 200; u32 ntr_joy_right = 201; u32 ntr_joy_up = 202; u32 ntr_joy_down = 203;
 
 	//Default keyboard bindings - GBA
 	//Arrow Z = A button, X = B button, START = Return, Select = Space
 	//UP, LEFT, DOWN, RIGHT = Arrow keys
 	//A key = Left Shoulder, S key = Right Shoulder
-	int agb_key_a = SDLK_z; int agb_key_b = SDLK_x; int agb_key_start = SDLK_RETURN; int agb_key_select = SDLK_SPACE;
-	int agb_key_l_trigger = SDLK_a; int agb_key_r_trigger = SDLK_s;
-	int agb_key_left = SDLK_LEFT; int agb_key_right = SDLK_RIGHT; int agb_key_down = SDLK_DOWN; int agb_key_up = SDLK_UP;
+	u32 agb_key_a = SDLK_z; u32 agb_key_b = SDLK_x; u32 agb_key_start = SDLK_RETURN; u32 agb_key_select = SDLK_SPACE;
+	u32 agb_key_l_trigger = SDLK_a; u32 agb_key_r_trigger = SDLK_s;
+	u32 agb_key_left = SDLK_LEFT; u32 agb_key_right = SDLK_RIGHT; u32 agb_key_down = SDLK_DOWN; u32 agb_key_up = SDLK_UP;
 
 	//Default joystick bindings - GBA
-	int agb_joy_a = 100; int agb_joy_b = 101; int agb_joy_start = 107; int agb_joy_select = 106;
-	int agb_joy_r_trigger = 105; int agb_joy_l_trigger = 104;
-	int agb_joy_left = 200; int agb_joy_right = 201; int agb_joy_up = 202; int agb_joy_down = 203;
+	u32 agb_joy_a = 100; u32 agb_joy_b = 101; u32 agb_joy_start = 107; u32 agb_joy_select = 106;
+	u32 agb_joy_r_trigger = 105; u32 agb_joy_l_trigger = 104;
+	u32 agb_joy_left = 200; u32 agb_joy_right = 201; u32 agb_joy_up = 202; u32 agb_joy_down = 203;
 
 	//Default keyboard bindings - DMG
 	//Arrow Z = A button, X = B button, START = Return, Select = Space
 	//UP, LEFT, DOWN, RIGHT = Arrow keys
-	int dmg_key_a = SDLK_z; int dmg_key_b = SDLK_x; int dmg_key_start = SDLK_RETURN; int dmg_key_select = SDLK_SPACE; 
-	int dmg_key_left = SDLK_LEFT; int dmg_key_right = SDLK_RIGHT; int dmg_key_down = SDLK_DOWN; int dmg_key_up = SDLK_UP;
+	u32 dmg_key_a = SDLK_z; u32 dmg_key_b = SDLK_x; u32 dmg_key_start = SDLK_RETURN; u32 dmg_key_select = SDLK_SPACE; 
+	u32 dmg_key_left = SDLK_LEFT; u32 dmg_key_right = SDLK_RIGHT; u32 dmg_key_down = SDLK_DOWN; u32 dmg_key_up = SDLK_UP;
 
 	//Default joystick bindings - DMG
-	int dmg_joy_a = 100; int dmg_joy_b = 101; int dmg_joy_start = 107; int dmg_joy_select = 106;
-	int dmg_joy_left = 200; int dmg_joy_right = 201; int dmg_joy_up = 202; int dmg_joy_down = 203;
+	u32 dmg_joy_a = 100; u32 dmg_joy_b = 101; u32 dmg_joy_start = 107; u32 dmg_joy_select = 106;
+	u32 dmg_joy_left = 200; u32 dmg_joy_right = 201; u32 dmg_joy_up = 202; u32 dmg_joy_down = 203;
 
 	//Default keyboard bindings - Context
 	//Left = 4 (numpad), Right = 6 (numpad), Up = 8 (numpad), Down = 2 (numpad)
 	//Con1 = 7 (numpad), Con2 = 9 (numpad)
-	int con_key_left = 260; int con_key_right = 262; int con_key_up = 264; int con_key_down = 258; int con_key_1 = 263; int con_key_2 = 265;
+	u32 con_key_left = 260; u32 con_key_right = 262; u32 con_key_up = 264; u32 con_key_down = 258; u32 con_key_1 = 263; u32 con_key_2 = 265;
 
 	//Default joystick bindings - Context
-	int con_joy_left = 204; int con_joy_right = 205; int con_joy_up = 206; int con_joy_down = 207; int con_joy_1 = 109; int con_joy_2 = 110;
+	u32 con_joy_left = 204; u32 con_joy_right = 205; u32 con_joy_up = 206; u32 con_joy_down = 207; u32 con_joy_1 = 109; u32 con_joy_2 = 110;
 
 	//Default NDS touch zone mappings
 	int touch_zone_x[10] = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
@@ -95,9 +95,9 @@ namespace config
 
 	//Hotkey bindings
 	//Turbo = TAB
-	int hotkey_turbo = SDLK_TAB;
-	int hotkey_mute = SDLK_m;
-	int hotkey_camera = SDLK_p;
+	u32 hotkey_turbo = SDLK_TAB;
+	u32 hotkey_mute = SDLK_m;
+	u32 hotkey_camera = SDLK_p;
 
 	//Default joystick dead-zone
 	int dead_zone = 16000;
@@ -1578,55 +1578,29 @@ bool parse_ini_file()
 		{
 			if((x + 8) < size)
 			{
-				std::stringstream temp_stream;
-
 				//A
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::dmg_key_a;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::dmg_key_a);
 
 				//B
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::dmg_key_b;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::dmg_key_b);
 
 				//START
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::dmg_key_start;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::dmg_key_start);
 
 				//SELECT
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::dmg_key_select;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::dmg_key_select);
 
 				//LEFT
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::dmg_key_left;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::dmg_key_left);
 
 				//RIGHT
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::dmg_key_right;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::dmg_key_right);
 
 				//UP
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::dmg_key_up;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::dmg_key_up);
 
 				//DOWN
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::dmg_key_down;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::dmg_key_down);
 			}
 
 			else 
@@ -1641,55 +1615,29 @@ bool parse_ini_file()
 		{
 			if((x + 8) < size)
 			{
-				std::stringstream temp_stream;
-
 				//A
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::dmg_joy_a;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::dmg_joy_a);
 
 				//B
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::dmg_joy_b;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::dmg_joy_b);
 
 				//START
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::dmg_joy_start;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::dmg_joy_start);
 
 				//SELECT
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::dmg_joy_select;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::dmg_joy_select);
 
 				//LEFT
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::dmg_joy_left;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::dmg_joy_left);
 
 				//RIGHT
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::dmg_joy_right;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::dmg_joy_right);
 
 				//UP
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::dmg_joy_up;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::dmg_joy_up);
 
 				//DOWN
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::dmg_joy_down;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::dmg_joy_down);
 			}
 
 			else 
@@ -1704,67 +1652,35 @@ bool parse_ini_file()
 		{
 			if((x + 10) < size)
 			{
-				std::stringstream temp_stream;
-
 				//A
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::agb_key_a;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::agb_key_a);
 
 				//B
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::agb_key_b;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::agb_key_b);
 
 				//START
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::agb_key_start;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::agb_key_start);
 
 				//SELECT
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::agb_key_select;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::agb_key_select);
 
 				//LEFT
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::agb_key_left;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::agb_key_left);
 
 				//RIGHT
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::agb_key_right;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::agb_key_right);
 
 				//UP
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::agb_key_up;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::agb_key_up);
 
 				//DOWN
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::agb_key_down;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::agb_key_down);
 
 				//LEFT TRIGGER
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::agb_key_l_trigger;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::agb_key_l_trigger);
 
 				//RIGHT TRIGGER
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::agb_key_r_trigger;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::agb_key_r_trigger);
 			}
 
 			else 
@@ -1779,67 +1695,35 @@ bool parse_ini_file()
 		{
 			if((x + 10) < size)
 			{
-				std::stringstream temp_stream;
-
 				//A
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::agb_joy_a;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::agb_joy_a);
 
 				//B
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::agb_joy_b;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::agb_joy_b);
 
 				//START
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::agb_joy_start;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::agb_joy_start);
 
 				//SELECT
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::agb_joy_select;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::agb_joy_select);
 
 				//LEFT
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::agb_joy_left;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::agb_joy_left);
 
 				//RIGHT
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::agb_joy_right;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::agb_joy_right);
 
 				//UP
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::agb_joy_up;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::agb_joy_up);
 
 				//DOWN
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::agb_joy_down;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::agb_joy_down);
 
 				//LEFT TRIGGER
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::agb_joy_l_trigger;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::agb_joy_l_trigger);
 
 				//RIGHT TRIGGER
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::agb_joy_r_trigger;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::agb_joy_r_trigger);
 			}
 
 
@@ -1855,79 +1739,41 @@ bool parse_ini_file()
 		{
 			if((x + 12) < size)
 			{
-				std::stringstream temp_stream;
-
 				//A
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::ntr_key_a;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::ntr_key_a);
 
 				//B
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::ntr_key_b;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::ntr_key_b);
 
 				//X
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::ntr_key_x;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::ntr_key_x);
 
 				//Y
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::ntr_key_y;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::ntr_key_y);
 
 				//START
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::ntr_key_start;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::ntr_key_start);
 
 				//SELECT
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::ntr_key_select;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::ntr_key_select);
 
 				//LEFT
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::ntr_key_left;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::ntr_key_left);
 
 				//RIGHT
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::ntr_key_right;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::ntr_key_right);
 
 				//UP
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::ntr_key_up;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::ntr_key_up);
 
 				//DOWN
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::ntr_key_down;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::ntr_key_down);
 
 				//LEFT TRIGGER
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::ntr_key_l_trigger;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::ntr_key_l_trigger);
 
 				//RIGHT TRIGGER
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::ntr_key_r_trigger;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::ntr_key_r_trigger);
 			}
 
 			else 
@@ -1942,79 +1788,41 @@ bool parse_ini_file()
 		{
 			if((x + 12) < size)
 			{
-				std::stringstream temp_stream;
-
 				//A
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::ntr_joy_a;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::ntr_joy_a);
 
 				//B
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::ntr_joy_b;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::ntr_joy_b);
 
 				//X
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::ntr_joy_x;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::ntr_joy_x);
 
 				//Y
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::ntr_joy_y;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::ntr_joy_y);
 
 				//START
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::ntr_joy_start;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::ntr_joy_start);
 
 				//SELECT
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::ntr_joy_select;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::ntr_joy_select);
 
 				//LEFT
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::ntr_joy_left;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::ntr_joy_left);
 
 				//RIGHT
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::ntr_joy_right;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::ntr_joy_right);
 
 				//UP
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::ntr_joy_up;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::ntr_joy_up);
 
 				//DOWN
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::ntr_joy_down;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::ntr_joy_down);
 
 				//LEFT TRIGGER
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::ntr_joy_l_trigger;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::ntr_joy_l_trigger);
 
 				//RIGHT TRIGGER
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::ntr_joy_r_trigger;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::ntr_joy_r_trigger);
 			}
 
 
@@ -2030,43 +1838,23 @@ bool parse_ini_file()
 		{
 			if((x + 6) < size)
 			{
-				std::stringstream temp_stream;
-
 				//LEFT
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::con_key_left;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::con_key_left);
 
 				//RIGHT
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::con_key_right;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::con_key_right);
 
 				//UP
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::con_key_up;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::con_key_up);
 
 				//DOWN
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::con_key_down;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::con_key_down);
 
 				//CON1
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::con_key_1;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::con_key_1);
 
 				//CON2
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::con_key_2;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::con_key_2);
 			}
 
 			else 
@@ -2081,43 +1869,23 @@ bool parse_ini_file()
 		{
 			if((x + 6) < size)
 			{
-				std::stringstream temp_stream;
-
 				//LEFT
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::con_joy_left;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::con_joy_left);
 
 				//RIGHT
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::con_joy_right;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::con_joy_right);
 
 				//UP
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::con_joy_up;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::con_joy_up);
 
 				//DOWN
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::con_joy_down;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::con_joy_down);
 
 				//CON1
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::con_joy_1;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::con_joy_1);
 
 				//CON2
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::con_joy_2;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::con_joy_2);
 			}
 
 			else 
@@ -2132,25 +1900,14 @@ bool parse_ini_file()
 		{
 			if((x + 3) < size)
 			{
-				std::stringstream temp_stream;
-
 				//Turbo
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::hotkey_turbo;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::hotkey_turbo);
 
 				//Mute
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::hotkey_mute;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::hotkey_mute);
 
 				//GB Camera
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::hotkey_camera;
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], config::hotkey_camera);
 			}
 
 			else 

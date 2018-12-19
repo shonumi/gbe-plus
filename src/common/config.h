@@ -79,26 +79,26 @@ namespace config
 	extern std::vector <std::string> recent_files;
 	extern std::vector <std::string> cli_args;
 
-	extern int ntr_key_a, ntr_key_b, ntr_key_x, ntr_key_y, ntr_key_start, ntr_key_select, ntr_key_up, ntr_key_down, ntr_key_left, ntr_key_right, ntr_key_r_trigger, ntr_key_l_trigger;
-	extern int ntr_joy_a, ntr_joy_b, ntr_joy_x, ntr_joy_y, ntr_joy_start, ntr_joy_select, ntr_joy_up, ntr_joy_down, ntr_joy_left, ntr_joy_right, ntr_joy_r_trigger, ntr_joy_l_trigger;
+	extern u32 ntr_key_a, ntr_key_b, ntr_key_x, ntr_key_y, ntr_key_start, ntr_key_select, ntr_key_up, ntr_key_down, ntr_key_left, ntr_key_right, ntr_key_r_trigger, ntr_key_l_trigger;
+	extern u32 ntr_joy_a, ntr_joy_b, ntr_joy_x, ntr_joy_y, ntr_joy_start, ntr_joy_select, ntr_joy_up, ntr_joy_down, ntr_joy_left, ntr_joy_right, ntr_joy_r_trigger, ntr_joy_l_trigger;
 
-	extern int agb_key_a, agb_key_b, agb_key_start, agb_key_select, agb_key_up, agb_key_down, agb_key_left, agb_key_right, agb_key_r_trigger, agb_key_l_trigger;
-	extern int agb_joy_a, agb_joy_b, agb_joy_start, agb_joy_select, agb_joy_up, agb_joy_down, agb_joy_left, agb_joy_right, agb_joy_r_trigger, agb_joy_l_trigger;
+	extern u32 agb_key_a, agb_key_b, agb_key_start, agb_key_select, agb_key_up, agb_key_down, agb_key_left, agb_key_right, agb_key_r_trigger, agb_key_l_trigger;
+	extern u32 agb_joy_a, agb_joy_b, agb_joy_start, agb_joy_select, agb_joy_up, agb_joy_down, agb_joy_left, agb_joy_right, agb_joy_r_trigger, agb_joy_l_trigger;
 
-	extern int dmg_key_a, dmg_key_b, dmg_key_start, dmg_key_select, dmg_key_up, dmg_key_down, dmg_key_left, dmg_key_right;
-	extern int dmg_joy_a, dmg_joy_b, dmg_joy_start, dmg_joy_select, dmg_joy_up, dmg_joy_down, dmg_joy_left, dmg_joy_right;
+	extern u32 dmg_key_a, dmg_key_b, dmg_key_start, dmg_key_select, dmg_key_up, dmg_key_down, dmg_key_left, dmg_key_right;
+	extern u32 dmg_joy_a, dmg_joy_b, dmg_joy_start, dmg_joy_select, dmg_joy_up, dmg_joy_down, dmg_joy_left, dmg_joy_right;
 
-	extern int con_key_up, con_key_down, con_key_left, con_key_right, con_key_1, con_key_2;
-	extern int con_joy_up, con_joy_down, con_joy_left, con_joy_right, con_joy_1, con_joy_2;
+	extern u32 con_key_up, con_key_down, con_key_left, con_key_right, con_key_1, con_key_2;
+	extern u32 con_joy_up, con_joy_down, con_joy_left, con_joy_right, con_joy_1, con_joy_2;
 
 	extern int touch_zone_x[10];
 	extern int touch_zone_y[10];
 	extern int touch_zone_pad[10];
 	extern u8 touch_mode;
 
-	extern int hotkey_turbo;
-	extern int hotkey_mute;
-	extern int hotkey_camera;
+	extern u32 hotkey_turbo;
+	extern u32 hotkey_mute;
+	extern u32 hotkey_camera;
 	extern int dead_zone;
 	extern int joy_id;
 	extern int joy_sdl_id;
