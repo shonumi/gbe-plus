@@ -616,7 +616,7 @@ void AGB_SIO::soul_doll_adapter_process()
 				break;
 		}
 
-		if(sda.buffer_index < 2) { sda.buffer_index++; }
+		if(sda.buffer_index < 3) { sda.buffer_index++; }
 	}
 
 	//Soul Doll Adapter Active
@@ -633,7 +633,7 @@ void AGB_SIO::soul_doll_adapter_process()
 
 	//Change Soul Doll Adapter state if necessary
 	//Changing back to inactive may have to be done manually (e.g. via hotkey)
-	if((sda.current_state == GBA_SOUL_DOLL_ADAPTER_INACTIVE) && (sda.prev_data == 0x802D) && (sio_stat.r_cnt == 0x802D) && (sda.buffer_index >= 2))
+	if((sda.current_state == GBA_SOUL_DOLL_ADAPTER_INACTIVE) && (sda.prev_data == 0x802D) && (sio_stat.r_cnt == 0x802D) && (sda.buffer_index >= 3))
 	{
 		sda.current_state = GBA_SOUL_DOLL_ADAPTER_ACTIVE;
 		sda.buffer_index = 0;
