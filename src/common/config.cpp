@@ -887,9 +887,7 @@ bool parse_ini_file()
 		{
 			if((x + 1) < size) 
 			{
-				ini_item = ini_opts[++x];
-				std::stringstream temp_stream(ini_item);
-				temp_stream >> output;
+				util::from_str(ini_opts[++x], output);
 
 				if(output == 1) { config::use_bios = true; }
 				else { config::use_bios = false; }
@@ -1461,53 +1459,28 @@ bool parse_ini_file()
 		{
 			if((x + 6) < size)
 			{
-				std::stringstream temp_stream;
-
 				//Seconds offset
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::rtc_offset[0];
-				temp_stream.clear();
-				temp_stream.str(std::string());
-
+				util::from_str(ini_opts[++x], (u32&)config::rtc_offset[0]);
 				if(config::rtc_offset[0] > 59) { config::rtc_offset[0] = 59; }
 
 				//Minutes offset
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::rtc_offset[1];
-				temp_stream.clear();
-				temp_stream.str(std::string());
-
+				util::from_str(ini_opts[++x], (u32&)config::rtc_offset[1]);
 				if(config::rtc_offset[1] > 59) { config::rtc_offset[1] = 59; }
 
 				//Hours offset
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::rtc_offset[2];
-				temp_stream.clear();
-				temp_stream.str(std::string());
-
+				util::from_str(ini_opts[++x], (u32&)config::rtc_offset[2]);
 				if(config::rtc_offset[2] > 23) { config::rtc_offset[2] = 23; }
 
 				//Days offset
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::rtc_offset[3];
-				temp_stream.clear();
-				temp_stream.str(std::string());
-
+				util::from_str(ini_opts[++x], (u32&)config::rtc_offset[3]);
 				if(config::rtc_offset[3] > 365) { config::rtc_offset[3] = 365; }
 
 				//Months offset
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::rtc_offset[4];
-				temp_stream.clear();
-				temp_stream.str(std::string());
-
+				util::from_str(ini_opts[++x], (u32&)config::rtc_offset[4]);
 				if(config::rtc_offset[4] > 11) { config::rtc_offset[4] = 11; }
 
 				//Years offset
-				temp_stream << ini_opts[++x];
-				temp_stream >> config::rtc_offset[5];
-				temp_stream.clear();
-				temp_stream.str(std::string());
+				util::from_str(ini_opts[++x], (u32&)config::rtc_offset[5]);
 			}
 
 			else 
