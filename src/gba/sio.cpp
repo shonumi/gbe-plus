@@ -223,9 +223,14 @@ void AGB_SIO::reset()
 
 	//Soul Doll Adapter
 	sda.data.clear();
+	sda.data_section = 0;
 	sda.buffer_index = 0;
+	sda.data_count = 0;
+	sda.delay = 0;
 	sda.start_transmission = false;
 	sda.current_state = GBA_SOUL_DOLL_ADAPTER_INACTIVE;
+	sda.prev_data = 0;
+	sda.prev_write = 0;
 	if(config::sio_device == 9) { soul_doll_adapter_load_data(config::external_data_file); }
 
 	#ifdef GBE_NETPLAY
@@ -587,6 +592,12 @@ bool AGB_SIO::soul_doll_adapter_load_data(std::string filename)
 	u32 file_size = doll_data.tellg();
 	doll_data.seekg(0, doll_data.beg);
 
+	if(file_size != 0x9000)
+	{
+		std::cout<<"SIO::Error - Soul Doll data has incorrect size\n";
+		return false;
+	}
+
 	sda.data.resize(file_size, 0);
 
 	u8* ex_data = &sda.data[0];
@@ -604,7 +615,7 @@ void AGB_SIO::soul_doll_adapter_process()
 	//Soul Doll Adapter Inactive - Echo bytes
 	if(sda.current_state == GBA_SOUL_DOLL_ADAPTER_INACTIVE)
 	{
-		//During inactive phase, echo everything save for the following
+		//During this phase, echo everything save for the following
 		switch(sio_stat.r_cnt)
 		{
 			case 0x802D:
@@ -616,29 +627,100 @@ void AGB_SIO::soul_doll_adapter_process()
 				break;
 		}
 
-		if(sda.buffer_index < 3) { sda.buffer_index++; }
+		if(sda.data_count < 3) { sda.data_count++; }
 	}
 
-	//Soul Doll Adapter Active
+	//Soul Doll Adapter Active - Reply with Doll data
 	else if(sda.current_state == GBA_SOUL_DOLL_ADAPTER_ACTIVE)
 	{
 		sio_stat.r_cnt = (0x8000 | sda.data[sda.buffer_index++]);
+		sda.data_count++;
 
-		if(sda.buffer_index == sda.data.size())
+		//1st 4608 transfer data segment
+		if((sda.data_count == 4608) && (sda.data_section == 0))
+		{
+			sda.current_state = GBA_SOUL_DOLL_ADAPTER_DATA_WAIT;
+			sda.data_count = 0;
+			sda.data_section++;
+		}
+
+		//9216 transfer data segments 1-3
+		else if((sda.data_count == 9216) && (sda.data_section >= 1) && (sda.data_section <= 4))
+		{
+			sda.current_state = GBA_SOUL_DOLL_ADAPTER_DATA_WAIT;
+			sda.data_count = 0;
+			sda.data_section++;
+		}
+
+		//2nd 4608 transfer data segment
+		if((sda.data_count == 4608) && (sda.data_section == 4))
 		{
 			sda.current_state = GBA_SOUL_DOLL_ADAPTER_INACTIVE;
 			sda.buffer_index = 0;
+			sda.data_count = 0;
 		}
 	}
 
-	//Change Soul Doll Adapter state if necessary
-	//Changing back to inactive may have to be done manually (e.g. via hotkey)
-	if((sda.current_state == GBA_SOUL_DOLL_ADAPTER_INACTIVE) && (sda.prev_data == 0x802D) && (sio_stat.r_cnt == 0x802D) && (sda.buffer_index >= 3))
+	//Soul Doll Adapter Data Wait - Halt processing for certain number of transfers
+	else if(sda.current_state == GBA_SOUL_DOLL_ADAPTER_DATA_WAIT)
+	{
+		sda.data_count++;
+
+		switch(sda.data_section)
+		{
+			//1st 4608 data segment, wait until start signal (0x8020, 0x802D)
+			case 0x1:
+
+				if((sda.prev_write == 0x8020) && (mem->read_u16_fast(R_CNT) == 0x802D))
+				{
+					sda.delay = sda.data_count + 160;
+				}
+
+				else if(sda.data_count == sda.delay)
+				{
+					sda.data_count = 0;
+					sda.current_state = GBA_SOUL_DOLL_ADAPTER_ACTIVE;
+				}
+
+				break;
+
+			//1st, 2nd, and 3rd data segments
+			case 0x2:
+			case 0x3:
+			case 0x4:
+				if(sda.data_count == 168)
+				{
+					sda.data_count = 0;
+					sda.current_state = GBA_SOUL_DOLL_ADAPTER_ACTIVE;
+				}
+
+				break;
+		}
+
+		//During this phase, echo everything save for the following
+		switch(sio_stat.r_cnt)
+		{
+			case 0x802D:
+				if(sda.prev_data == 0x80A5) { sio_stat.r_cnt = 0x8025; }
+				break;
+
+			case 0x802F:
+				sio_stat.r_cnt = 0x8027;
+				break;
+		}
+	}	
+
+	//Start Soul Doll Adapter data transfers
+	if((sda.current_state == GBA_SOUL_DOLL_ADAPTER_INACTIVE) && (sda.prev_data == 0x802D) && (sio_stat.r_cnt == 0x802D) && (sda.data_count >= 3) && (sda.data_section == 0))
 	{
 		sda.current_state = GBA_SOUL_DOLL_ADAPTER_ACTIVE;
 		sda.buffer_index = 0;
+		sda.data_count = 0;
+		sda.data_section = 0;
+		sda.delay = 0;
 	}
 
 	sio_stat.emu_device_ready = false;
 	sda.prev_data = sio_stat.r_cnt;
+	sda.prev_write = mem->read_u16_fast(R_CNT);
 }

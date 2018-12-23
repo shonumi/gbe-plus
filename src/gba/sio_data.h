@@ -47,6 +47,7 @@ enum soul_doll_adapter_state
 {
 	GBA_SOUL_DOLL_ADAPTER_INACTIVE,
 	GBA_SOUL_DOLL_ADAPTER_ACTIVE,
+	GBA_SOUL_DOLL_ADAPTER_DATA_WAIT,
 };
 
 struct agb_sio_data
