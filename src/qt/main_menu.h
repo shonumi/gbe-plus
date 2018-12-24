@@ -73,6 +73,7 @@ class main_menu : public QWidget
 	void select_card_file();
 	void select_cam_file();
 	void select_img_file();
+	void select_data_file();
 	void fullscreen();
 	void screenshot();
 	void pause();

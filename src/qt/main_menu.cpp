@@ -25,6 +25,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	QAction* select_card = new QAction("Select Card File", this);
 	QAction* select_cam = new QAction("Select GB Camera Photo", this);
 	QAction* select_img = new QAction("Select Image File", this);
+	QAction* select_data = new QAction("Select Data File", this);
 	QAction* quit = new QAction ("Quit", this);
 
 	QAction* pause = new QAction("Pause", this);
@@ -82,6 +83,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	file->addAction(select_card);
 	file->addAction(select_cam);
 	file->addAction(select_img);
+	file->addAction(select_data);
 	file->addSeparator();
 	state_save_list = file->addMenu(tr("Save State"));
 	state_load_list = file->addMenu(tr("Load State"));
@@ -139,6 +141,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	connect(select_card, SIGNAL(triggered()), this, SLOT(select_card_file()));
 	connect(select_cam, SIGNAL(triggered()), this, SLOT(select_cam_file()));
 	connect(select_img, SIGNAL(triggered()), this, SLOT(select_img_file()));
+	connect(select_data, SIGNAL(triggered()), this, SLOT(select_data_file()));
 	connect(pause, SIGNAL(triggered()), this, SLOT(pause()));
 	connect(fullscreen, SIGNAL(triggered()), this, SLOT(fullscreen()));
 	connect(screenshot, SIGNAL(triggered()), this, SLOT(screenshot()));
@@ -460,6 +463,19 @@ void main_menu::select_img_file()
 	if(filename.isNull()) { SDL_PauseAudio(0); return; }
 
 	config::external_image_file = filename.toStdString();
+
+	SDL_PauseAudio(0);
+}
+
+/****** Opens an binary data file for various uses ******/
+void main_menu::select_data_file()
+{
+	SDL_PauseAudio(1);
+
+	QString filename = QFileDialog::getOpenFileName(this, tr("Open"), "", tr("Bitmap File(*.bin)"));
+	if(filename.isNull()) { SDL_PauseAudio(0); return; }
+
+	config::external_data_file = filename.toStdString();
 
 	SDL_PauseAudio(0);
 }
