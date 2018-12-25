@@ -227,7 +227,7 @@ void AGB_SIO::reset()
 	sda.buffer_index = 0;
 	sda.data_count = 0;
 	sda.delay = 0;
-	sda.start_transmission = false;
+	sda.flags = 0;
 	sda.current_state = GBA_SOUL_DOLL_ADAPTER_INACTIVE;
 	sda.prev_data = 0;
 	sda.prev_write = 0;
@@ -645,7 +645,7 @@ void AGB_SIO::soul_doll_adapter_process()
 		}
 
 		//9216 transfer data segments 1-3
-		else if((sda.data_count == 9216) && (sda.data_section >= 1) && (sda.data_section <= 4))
+		else if((sda.data_count == 9216) && (sda.data_section >= 1) && (sda.data_section <= 3))
 		{
 			sda.current_state = GBA_SOUL_DOLL_ADAPTER_DATA_WAIT;
 			sda.data_count = 0;
@@ -653,7 +653,7 @@ void AGB_SIO::soul_doll_adapter_process()
 		}
 
 		//2nd 4608 transfer data segment
-		if((sda.data_count == 4608) && (sda.data_section == 4))
+		else if((sda.data_count == 4608) && (sda.data_section == 4))
 		{
 			sda.current_state = GBA_SOUL_DOLL_ADAPTER_INACTIVE;
 			sda.buffer_index = 0;
@@ -671,23 +671,39 @@ void AGB_SIO::soul_doll_adapter_process()
 			//1st 4608 data segment, wait until start signal (0x8020, 0x802D)
 			case 0x1:
 
+				//Detect whether or not jump to last 4608 data segment is necessary
+				//Seems to be if a large amount of transfers happen here without sending the start signal
+				//Sign of Nekrom seems to do this, but not Isle of Trial
+				if(sda.data_count >= 1000)
+				{	
+					//Move buffer index to (4608 + (9216 * 3)), the last 4608 data segment
+					sda.flags = 1;
+					sda.buffer_index = 0x7E00;
+				}
+
+				//Detect end of 4608 data segment
 				if((sda.prev_write == 0x8020) && (mem->read_u16_fast(R_CNT) == 0x802D))
 				{
 					sda.delay = sda.data_count + 160;
 				}
 
+				//Return from DATA_WAIT to ACTIVE
 				else if(sda.data_count == sda.delay)
 				{
 					sda.data_count = 0;
 					sda.current_state = GBA_SOUL_DOLL_ADAPTER_ACTIVE;
+
+					if(sda.flags == 1) { sda.data_section = 4; }
 				}
 
 				break;
 
-			//1st, 2nd, and 3rd data segments
+			//1st, 2nd, and 3rd 9216 data segments, wait until 168 transfers
 			case 0x2:
 			case 0x3:
 			case 0x4:
+
+				//Return from DATA_WAIT to ACTIVE
 				if(sda.data_count == 168)
 				{
 					sda.data_count = 0;
@@ -718,6 +734,7 @@ void AGB_SIO::soul_doll_adapter_process()
 		sda.data_count = 0;
 		sda.data_section = 0;
 		sda.delay = 0;
+		sda.flags = 0;
 	}
 
 	sio_stat.emu_device_ready = false;

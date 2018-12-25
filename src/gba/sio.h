@@ -74,12 +74,12 @@ class AGB_SIO
 	{
 		std::vector <u8> data;
 		u8 data_section;
+		u8 flags;
 		u16 prev_data;
 		u16 prev_write;
 		u32 buffer_index;
 		u32 data_count;
 		u32 delay;
-		bool start_transmission;
 		soul_doll_adapter_state current_state;
 	} sda;
 
