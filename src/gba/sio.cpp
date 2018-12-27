@@ -595,10 +595,12 @@ bool AGB_SIO::soul_doll_adapter_load_data(std::string filename)
 	if(file_size != 0x9000)
 	{
 		std::cout<<"SIO::Error - Soul Doll data has incorrect size\n";
+		sda.flags |= 0x80;
 		return false;
 	}
 
 	sda.data.resize(file_size, 0);
+	sda.flags &= ~0x80;
 
 	u8* ex_data = &sda.data[0];
 
@@ -612,6 +614,9 @@ bool AGB_SIO::soul_doll_adapter_load_data(std::string filename)
 /****** Process Soul Doll Adapter ******/
 void AGB_SIO::soul_doll_adapter_process()
 {
+	//Abort any processing if Soul Doll data was not loaded
+	if(sda.flags & 0x80) { return; }
+
 	//Soul Doll Adapter Inactive - Echo bytes
 	if(sda.current_state == GBA_SOUL_DOLL_ADAPTER_INACTIVE)
 	{
