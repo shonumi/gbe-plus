@@ -607,7 +607,7 @@ bool AGB_SIO::soul_doll_adapter_load_data(std::string filename)
 	doll_data.read((char*)ex_data, file_size); 
 	doll_data.close();
 
-	std::cout<<"SIO::Loaded Soul Doll data.\n";
+	std::cout<<"SIO::Loaded Soul Doll data file " << filename << "\n";
 	return true;
 }
 

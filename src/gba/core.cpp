@@ -504,6 +504,29 @@ void AGB_core::handle_hotkey(SDL_Event& event)
 		
 	//Reset emulation on F8
 	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F8)) { reset(); }
+
+	//Initiate various communication functions
+	//Soul Doll Adapter - Reset Soul Doll
+	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F3))
+	{
+		switch(core_cpu.controllers.serial_io.sio_stat.sio_type)
+		{
+			//Reset adapter
+			case GBA_SOUL_DOLL_ADAPTER:
+				core_cpu.controllers.serial_io.sda.current_state = GBA_SOUL_DOLL_ADAPTER_INACTIVE;
+				core_cpu.controllers.serial_io.sda.buffer_index = 0;
+				core_cpu.controllers.serial_io.sda.data_count = 0;
+				core_cpu.controllers.serial_io.sda.data_section = 0;
+				core_cpu.controllers.serial_io.sda.delay = 0;
+				core_cpu.controllers.serial_io.sda.flags &= ~0x1;
+
+				//OSD
+				config::osd_message = "SOUL DOLL ADAPTER RESET";
+				config::osd_count = 180;
+				
+				break;
+		}
+	}
 }
 
 /****** Process hotkey input - Use exsternally when not using SDL ******/
