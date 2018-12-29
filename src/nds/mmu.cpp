@@ -3380,7 +3380,32 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 				//Set division by zero flag
 				if(!nds9_math.div_denom)
 				{
-					if(div_mode) { memory_map[NDS_DIVCNT+1] |= 0x40; }
+					memory_map[NDS_DIVCNT+1] |= 0x40;
+
+					//Remainder = numerator
+					write_u64_fast(NDS_DIVREMAIN, nds9_math.div_numer);
+					
+					u32 result_32 = nds9_math.div_numer;
+					u64 result_64 = nds9_math.div_numer;
+	
+					switch(div_mode)
+					{
+						//32-bit result + or - 1
+						case 0x00:
+							if(nds9_math.div_numer & 0x80000000) { result_32--; }
+							else { result_32++; }
+							write_u64_fast(NDS_DIVRESULT, result_32);
+							break;
+
+						//64-bit result + or - 1
+						case 0x1:
+						case 0x2:
+							if(nds9_math.div_numer & 0x8000000000000000) { result_64--; }
+							else { result_64++; }
+							write_u64_fast(NDS_DIVRESULT, result_64);
+							break;
+					}
+
 					return;
 				}
 
