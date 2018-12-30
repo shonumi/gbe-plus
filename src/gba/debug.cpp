@@ -1049,3 +1049,894 @@ void AGB_core::debug_process_command()
 
 /****** Returns a string with the mnemonic assembly instruction ******/
 std::string AGB_core::debug_get_mnemonic(u32 addr) { return " "; }
+
+/****** Returns a string with the mnemonic assembly instruction ******/
+std::string AGB_core::debug_get_mnemonic(u32 data, bool is_addr)
+{
+	bool arm_debug = (core_cpu.arm_mode == ARM7::ARM) ? true : false;
+	std::string instr = "";
+
+	u32 opcode = 0;
+	u32 addr = data;
+	if(is_addr) { opcode = (arm_debug) ? core_mmu.read_u32(addr) : core_mmu.read_u16(addr); }
+	else { opcode = data; }
+
+	//Get ARM mnemonic
+	if(arm_debug)
+	{
+		std::string cond_code = "";
+		u8 cond_bytes = ((opcode >> 28) & 0xF);
+
+		switch(cond_bytes)
+		{
+			case 0x0: cond_code = "EQ"; break;
+			case 0x1: cond_code = "NE"; break;
+			case 0x2: cond_code = "CS"; break;
+			case 0x3: cond_code = "CC"; break;
+			case 0x4: cond_code = "MI"; break;
+			case 0x5: cond_code = "PL"; break;
+			case 0x6: cond_code = "VS"; break;
+			case 0x7: cond_code = "VC"; break;
+			case 0x8: cond_code = "HI"; break;
+			case 0x9: cond_code = "LS"; break;
+			case 0xA: cond_code = "GE"; break;
+			case 0xB: cond_code = "LT"; break;
+			case 0xC: cond_code = "GT"; break;
+			case 0xD: cond_code = "LE"; break;
+			case 0xE: cond_code = ""; break;
+			case 0xF: cond_code = ""; break;
+		}
+
+		//ARM.13 SWI opcodes
+		if((opcode & 0xF000000) == 0xF000000)
+		{
+			instr = "SWI" + cond_code + " " + util::to_hex_str((opcode >> 16) & 0xFF);
+		}
+
+		//ARM.4 B, BL, BLX opcodes
+		else if((opcode & 0xE000000) == 0xA000000)
+		{
+			u8 op = (opcode >> 24) & 0x1;
+			if((opcode >> 28) == 0xF) { op = 2; }
+
+			u32 offset = (opcode & 0xFFFFFF);
+			offset <<= 2;
+			if(offset & 0x2000000) { offset |= 0xFC000000; }
+			offset += (addr + 8);
+
+			if((op == 2) && (opcode & 0x1000000)) { offset += 2; }
+
+			switch(op)
+			{
+				case 0x0: instr = "B" + cond_code + " " + util::to_hex_str(offset); break;
+				case 0x1: instr = "BL" + cond_code + " " + util::to_hex_str(offset); break;
+				case 0x2: instr = "BLX" + cond_code + " " + util::to_hex_str(offset) + " (ARMv5)"; break;
+			}
+		}
+
+		//ARM.3 B and BX opcodes
+		else if((opcode & 0xFFFFFD0) == 0x12FFF10)
+		{
+			u8 op = (opcode >> 4) & 0xF;
+			u8 rn = (opcode & 0xF);
+
+			switch(op)
+			{
+				case 0x0: instr = "B" + cond_code + " R" + util::to_str(rn); break;
+				case 0x3: instr = "BX" + cond_code + " R" + util::to_str(rn); break;
+			}
+		}
+
+		//ARM.9 Single Data Transfer opcodes
+		else if((opcode & 0xC000000) == 0x4000000)
+		{
+			u8 op = ((opcode >> 20) & 0x1);
+			u8 rd = ((opcode >> 12) & 0xF);
+			u8 rn = ((opcode >> 16) & 0xF);
+			u8 is_imm = ((opcode >> 25) & 0x1);
+			u8 is_up = ((opcode >> 23) & 0x1);
+			u8 is_byte = ((opcode >> 22) & 0x1);
+			std::string immediate = "";
+
+			if(is_imm)
+			{
+				u8 shift = ((opcode >> 7) & 0x1F);
+				u8 shift_type = ((opcode >> 5) & 0x3);
+				u8 rm = (opcode & 0xF);
+
+				immediate = "R" + util::to_str(rm) + " ";
+
+				switch(shift_type)
+				{
+					case 0x0: immediate += "LSL #" + util::to_str(shift); break;
+					case 0x1: immediate += "LSR #" + util::to_str(shift); break;
+					case 0x2: immediate += "ASR #" + util::to_str(shift); break;
+					case 0x3: immediate += "ROR #" + util::to_str(shift); break;
+				}
+			}
+
+			else { immediate = util::to_hex_str(opcode & 0xFFF); }
+
+			if(!is_up) { immediate = "- " + immediate; }
+			else { immediate = "+ " + immediate; }
+				
+			switch(op)
+			{
+				case 0x0:
+					instr = "STR" + cond_code;
+					if(is_byte) { instr += "B"; }
+					instr += " R" + util::to_str(rd) + ",";
+					instr += " [R" + util::to_str(rn) + " " + immediate + "]";
+					break;
+
+				case 0x1:
+					instr = "LDR" + cond_code;
+					if(is_byte) { instr += "B"; }
+					instr += " R" + util::to_str(rd) + ",";
+					instr += " [R" + util::to_str(rn) + " " + immediate + "]";
+					break;
+			}
+		}
+
+		//ARM.12 Swap opcodes
+		else if((opcode & 0xFB00FF0) == 0x1000090)
+		{
+			u8 is_byte = ((opcode >> 22) & 0x1);
+			u8 rm = (opcode & 0xF);
+			u8 rd = ((opcode >> 12) & 0xF);
+			u8 rn = ((opcode >> 16) & 0xF);
+
+			instr = "SWP" + cond_code;
+			if(is_byte) { instr += "B"; }
+			instr += " R" + util::to_str(rd) + ", R" + util::to_str(rm) + ", [R" + util::to_str(rn) + "]";
+		}
+
+		//ARM.6 PSR opcodes
+		else if(((opcode & 0xFB00000) == 0x3200000)
+		|| ((opcode & 0xF900FF0) == 0x1000000))
+		{
+			u8 op = ((opcode >> 21) & 0x1);
+			u8 is_imm = ((opcode >> 25) & 0x1);
+			std::string psr = ((opcode >> 22) & 0x1) ? "SPSR" : "CPSR";
+
+			//MRS
+			if(opcode == 0)
+			{
+				instr = "MRS" + cond_code + ", R" + util::to_str(((opcode >> 12) & 0xF)) + ", " + psr;
+			}
+
+			//MSR
+			else
+			{
+				std::string immediate = "";
+				std::string flags = "_";
+				
+				if((opcode >> 19) & 0x1) { flags += "f"; }
+				if((opcode >> 18) & 0x1) { flags += "s"; }
+				if((opcode >> 17) & 0x1) { flags += "x"; }
+				if((opcode >> 16) & 0x1) { flags += "c"; }
+				
+				if(is_imm)
+				{
+					u8 ror = (opcode >> 8) & 0xF;
+					ror *= 2;
+
+					immediate = util::to_hex_str(opcode & 0xFF) + " ROR #" + util::to_str(ror);
+				}
+
+				else { immediate = "R" + util::to_str(opcode & 0xF); }
+
+				instr = "MSR " + psr + ", " + immediate;
+			}
+		}
+
+		//ARM.10 Halfword Signed Transfers
+		else if(((opcode & 0xE400F90) == 0x90)
+		|| ((opcode & 0xE400090) == 0x400090))
+		{
+			u8 op = ((opcode >> 5) & 0x3);
+			u8 is_pre = ((opcode >> 24) & 0x1); 
+			u8 is_up = ((opcode >> 23) & 0x1);
+			u8 is_imm = ((opcode >> 22) & 0x1);
+			u8 is_write_back = ((opcode >> 21) & 0x1);
+			u8 is_load = ((opcode >> 20) & 0x1);
+			u8 rn = ((opcode >> 16) & 0xF);
+			u8 rd = ((opcode >> 12) & 0xF);
+			std::string immediate = "";
+
+			if(is_imm)
+			{
+				u8 imm = ((opcode >> 8) & 0xF);
+				imm |= (opcode & 0xF);
+				immediate = util::to_hex_str(imm);
+			}
+
+			else { immediate = "R" + util::to_str(opcode & 0xF); }
+
+			if(is_load) { op += 0x10; }
+
+			switch(op)
+			{
+				case 0x1: instr = "STR" + cond_code + "H R" + util::to_str(rd) + ", "; break;
+				case 0x2: instr = "LDR" + cond_code + "D R" + util::to_str(rd) + ", "; break;
+				case 0x3: instr = "STR" + cond_code + "D R" + util::to_str(rd) + ", "; break;
+				case 0x11: instr = "LDR" + cond_code + "H R" + util::to_str(rd) + ", "; break;
+				case 0x12: instr = "LDR" + cond_code + "SB R" + util::to_str(rd) + ", "; break;
+				case 0x13: instr = "LDR" + cond_code + "SH R" + util::to_str(rd) + ", "; break;
+			}
+
+			if(is_pre)
+			{
+				instr += "[R" + util::to_str(rn);
+				if(is_up) { instr += " + "; }
+				else { instr += " - "; }
+				instr += immediate + "]";
+				if(is_write_back) { instr += "{!}"; }
+			}
+
+			else
+			{
+				instr += "[R" + util::to_str(rn) + "], ";
+				if(is_up) { instr += " + "; }
+				else { instr += " - "; }
+				instr += immediate;
+			}
+		}
+
+		//ARM.11 Block Transfer opcodes
+		else if((opcode & 0xE000000) == 0x8000000)
+		{
+			u8 op = ((opcode >> 20) & 0x1);
+			u8 is_pre = ((opcode >> 24) & 0x1); 
+			u8 is_up = ((opcode >> 23) & 0x1);
+			u8 is_psr = ((opcode >> 22) & 0x1);
+			u8 is_write_back = ((opcode >> 21) & 0x1);
+			u8 rn = ((opcode >> 16) & 0xF);
+			u16 list = (opcode & 0xFFFF);
+			u8 last_reg = 0;
+
+			std::string amod = "";
+			std::string rlist = "";
+
+			if((is_pre) && (is_up)) { amod = "IB"; }
+			else if((!is_pre) && (is_up)) { amod = "IA"; }
+			else if((is_pre) && (!is_up)) { amod = "DB"; }
+			else { amod = "DA"; }
+
+			for(u32 x = 0; x < 16; x++)
+			{
+				if((list >> x) & 0x1) { last_reg = x; }
+			}
+
+			for(u32 x = 0; x < 16; x++)
+			{
+				if((list >> x) & 0x1)
+				{
+					rlist += "R" + util::to_str(x);
+					if(x != last_reg) { rlist += ", "; }
+				}
+			}
+
+			instr = (op) ? "LDM" : "STM";
+			instr += cond_code + amod + " R" + util::to_str(rn);
+			if(is_write_back) { instr += "{!}"; }
+			instr += ", {" + rlist + "}";
+			if(is_psr) { instr += "{^}"; }
+		}
+
+		//ARM.7 Multiply opcodes
+		else if(((opcode & 0xFC000F0) == 0x90)
+		|| ((opcode & 0xF8000F0) == 0x800090))
+		{
+			u8 op = ((opcode >> 21) & 0xF);
+			u8 is_set_cond = ((opcode >> 20) & 0x1);
+			u8 rd = ((opcode >> 16) & 0xF);
+			u8 rn = ((opcode >> 12) & 0xF);
+			u8 rs = ((opcode >> 8) & 0xF);
+			u8 rm = (opcode & 0xF);
+
+			switch(op)
+			{
+				case 0x0:
+					instr = "MUL" + cond_code;
+					if(is_set_cond) { instr += "{S}"; }
+					instr += " R" + util::to_str(rd) + ", R" + util::to_str(rm) + ", R" + util::to_str(rs);
+					break;
+
+				case 0x1:
+					instr = "MLA" + cond_code;
+					if(is_set_cond) { instr += "{S}"; }
+					instr += " R" + util::to_str(rd) + ", R" + util::to_str(rm) + ", R" + util::to_str(rs) + ", R" + util::to_str(rn);
+					break;
+
+				case 0x4:
+					instr = "UMULL" + cond_code;
+					if(is_set_cond) { instr += "{S}"; }
+					instr += " R" + util::to_str(rn) + ", R" + util::to_str(rd) + ", R" + util::to_str(rm) + ", R" + util::to_str(rs);
+					break;
+
+				case 0x5:
+					instr = "UMLAL" + cond_code;
+					if(is_set_cond) { instr += "{S}"; }
+					instr += " R" + util::to_str(rn) + ", R" + util::to_str(rd) + ", R" + util::to_str(rm) + ", R" + util::to_str(rs);
+					break;
+
+				case 0x6:
+					instr = "SMULL" + cond_code;
+					if(is_set_cond) { instr += "{S}"; }
+					instr += " R" + util::to_str(rn) + ", R" + util::to_str(rd) + ", R" + util::to_str(rm) + ", R" + util::to_str(rs);
+					break;
+
+				case 0x7:
+					instr = "SMLAL" + cond_code;
+					if(is_set_cond) { instr += "{S}"; }
+					instr += " R" + util::to_str(rn) + ", R" + util::to_str(rd) + ", R" + util::to_str(rm) + ", R" + util::to_str(rs);
+					break;
+
+				case 0x8:
+					instr = "SMLAxy" + cond_code;
+					instr += " R" + util::to_str(rd) + ", R" + util::to_str(rm) + ", R" + util::to_str(rs) + ", R" + util::to_str(rn);
+					instr += " (ARMv5)";
+					break;
+
+				case 0x9:
+					if(opcode & 0x20)
+					{
+						instr = "SMULWy" + cond_code;
+						instr += " R" + util::to_str(rd) + ", R" + util::to_str(rm) + ", R" + util::to_str(rs);
+						instr += " (ARMv5)";
+					}
+
+					else
+					{
+						instr = "SMLAWy" + cond_code;
+						instr += " R" + util::to_str(rd) + ", R" + util::to_str(rm) + ", R" + util::to_str(rs) + ", R" + util::to_str(rn);
+						instr += " (ARMv5)";
+					}
+ 
+					break;
+
+				case 0xA:
+					instr = "SMLALxy" + cond_code;
+					instr += " R" + util::to_str(rn) + ", R" + util::to_str(rd) + ", R" + util::to_str(rm) + ", R" + util::to_str(rs);
+					instr += " (ARMv5)";
+					break;
+
+				case 0xB:
+					instr = "SMULxy" + cond_code;
+					instr += " R" + util::to_str(rd) + ", R" + util::to_str(rm) + ", R" + util::to_str(rs);
+					instr += " (ARMv5)";
+					break;
+			}
+		}
+
+		//CLZ opcodes
+		else if((opcode & 0xFFF0FF0) == 0x16F0F10)
+		{
+			u8 rd = ((opcode >> 12) & 0xF);
+			u8 rm = (opcode & 0xF);
+
+			instr = "CLZ" + cond_code + " R" + util::to_str(rd) + ", R" + util::to_str(rm);
+			instr += " (ARMv5)";
+		}
+
+		//QALU opcodes
+		else if((opcode & 0xF900FF0) == 0x1000050)
+		{
+			u8 op = ((opcode >> 20) & 0xF);
+			u8 rn = ((opcode >> 16) & 0xF);
+			u8 rd = ((opcode >> 12) & 0xF);
+			u8 rm = (opcode & 0xF);
+
+			switch(op)
+			{
+				case 0x0: instr = "QADD" + cond_code; break;
+				case 0x2: instr = "QSUB" + cond_code; break;
+				case 0x4: instr = "QDADD" + cond_code; break;
+				case 0x6: instr = "QDSUB" + cond_code; break;
+			}
+
+			instr += " R" + util::to_str(rd) + ", R" + util::to_str(rm) + ", R" + util::to_str(rn);
+			instr += " (ARMv5)";
+		}
+
+		//ARM.5 ALU opcodes
+		else if(((opcode & 0xE000010) == 0) || ((opcode & 0xE000010) == 0x10) || ((opcode & 0xE000000) == 0x2000000))
+		{
+			u8 op = ((opcode >> 21) & 0xF);
+			u8 is_imm = ((opcode >> 25) & 0x1);
+			u8 is_set_cond = ((opcode >> 20) & 0x1);
+			u8 rn = ((opcode >> 16) & 0xF);
+			u8 rd = ((opcode >> 12) & 0xF);
+			u8 imm = 0;
+			u8 shift = 0;
+			std::string op2 = "";
+			std::string s = (is_set_cond) ? "{S}" : "";
+			std::string p = (is_set_cond) ? "{P}" : "";
+
+			if(is_imm)
+			{
+				imm = (opcode & 0xFF);
+				shift = ((opcode >> 8) & 0xF);
+				shift *= 2;
+				op2 = util::to_hex_str(imm) + " ROR #" + util::to_str(shift);
+			}
+
+			else
+			{
+				u8 rm = (opcode & 0xF);
+				u8 shift_type = ((opcode >> 5) & 0x3);
+
+				op2 = "R" + util::to_str(rm) + " ";
+				
+				switch(shift_type)
+				{
+					case 0x0: op2 += "LSL"; break;
+					case 0x1: op2 += "LSR"; break;
+					case 0x2: op2 += "ASR"; break;
+					case 0x3: op2 += "ROR"; break;
+				}
+
+				if(opcode & 0x10)
+				{
+					u8 rs = ((opcode >> 8) & 0xF);
+					op2 += " R" + util::to_str(rs);
+				}
+
+				else
+				{
+					u8 shift_amount = (((opcode) >> 7) & 0x1F);
+					op2 += " " + util::to_hex_str(shift_amount);
+				}
+			}
+
+			switch(op)
+			{
+				case 0x0: instr = "AND" + cond_code + s + " R" + util::to_str(rd) + ", R" + util::to_str(rn) + ", " + op2; break;
+				case 0x1: instr = "EOR" + cond_code + s + " R" + util::to_str(rd) + ", R" + util::to_str(rn) + ", " + op2; break;
+				case 0x2: instr = "SUB" + cond_code + s + " R" + util::to_str(rd) + ", R" + util::to_str(rn) + ", " + op2; break;
+				case 0x3: instr = "RSB" + cond_code + s + " R" + util::to_str(rd) + ", R" + util::to_str(rn) + ", " + op2; break;
+				case 0x4: instr = "ADD" + cond_code + s + " R" + util::to_str(rd) + ", R" + util::to_str(rn) + ", " + op2; break;
+				case 0x5: instr = "ADC" + cond_code + s + " R" + util::to_str(rd) + ", R" + util::to_str(rn) + ", " + op2; break;
+				case 0x6: instr = "SBC" + cond_code + s + " R" + util::to_str(rd) + ", R" + util::to_str(rn) + ", " + op2; break;
+				case 0x7: instr = "RSC" + cond_code + s + " R" + util::to_str(rd) + ", R" + util::to_str(rn) + ", " + op2; break;
+				case 0x8: instr = "TST" + cond_code + p + " R" + util::to_str(rn) + ", " + op2; break;
+				case 0x9: instr = "TEQ" + cond_code + p + " R" + util::to_str(rn) + ", " + op2; break;
+				case 0xA: instr = "CMP" + cond_code + p + " R" + util::to_str(rn) + ", " + op2; break;
+				case 0xB: instr = "CMN" + cond_code + p + " R" + util::to_str(rn) + ", " + op2; break;
+				case 0xC: instr = "ORR" + cond_code + s + " R" + util::to_str(rd) + ", R" + util::to_str(rn) + ", " + op2; break;
+				case 0xD: instr = "MOV" + cond_code + s + " R" + util::to_str(rd) + ", " + op2; break;
+				case 0xE: instr = "BIC" + cond_code + s + " R" + util::to_str(rd) + ", R" + util::to_str(rn) + ", " + op2; break;
+				case 0xF: instr = "MVN" + cond_code + s + " R" + util::to_str(rd) + ", " + op2; break;
+			}
+		}
+
+		//ARM CoDataTrans opcodes
+		else if((opcode & 0xE000000) == 0xC000000)
+		{
+			u8 op = ((opcode >> 20) & 0x1);
+			u8 rn = ((opcode >> 16) & 0xF);
+			u8 cd = ((opcode >> 12) & 0xF);
+			u8 pn = ((opcode >> 8) & 0xF);
+			u8 is_up = ((opcode >> 23) & 0x1);
+			u8 is_pre = ((opcode >> 24) & 0x1);
+			u8 is_write_back = ((opcode >> 21) & 0x1);
+
+			std::string l = ((opcode >> 22) & 0x1) ? "{L}" : "";
+			std::string immediate = util::to_hex_str((opcode & 0xF) * 4);
+
+			switch(op)
+			{
+				case 0x0:
+					if((opcode >> 28) == 0xF) { instr = "STC2" + l; }
+					else { instr = "STC" + cond_code + l; }
+					break;
+
+				case 0x1:
+					if((opcode >> 28) == 0xF) { instr = "LDC2" + l; }
+					else { instr = "LCD" + cond_code + l; }
+					break;
+			}
+
+			instr += " P" + util::to_str(pn) + ", C" + util::to_str(cd) + ", ";
+
+			if(is_pre)
+			{
+				instr += "[R" + util::to_str(rn);
+				if(is_up) { instr += " + "; }
+				else { instr += " - "; }
+				instr += immediate + "]";
+				if(is_write_back) { instr += "{!}"; }
+			}
+
+			else
+			{
+				instr += "[R" + util::to_str(rn) + "], ";
+				if(is_up) { instr += " + "; }
+				else { instr += " - "; }
+				instr += immediate;
+			}
+
+			instr += " (ARMv5)";
+		}
+
+		//ARM CoRegTrans opcodes
+		else if((opcode & 0xF000010) == 0xE000010)
+		{
+			u8 op = ((opcode >> 20) & 0x1);
+			u8 cp_opc = ((opcode >> 21) & 0x7);
+			u8 cn = ((opcode >> 16) & 0xF);
+			u8 rd = ((opcode >> 12) & 0xF);
+			u8 pn = ((opcode >> 8) & 0xF);
+			u8 cp = ((opcode >> 5) & 0x7);
+			u8 cm = (opcode & 0xF);
+
+			switch(op)
+			{
+				case 0x0:
+					if((opcode >> 28) == 0xF) { instr = "MCR2"; }
+					else { instr = "MCR" + cond_code; }
+					break;
+
+				case 0x1:
+					if((opcode >> 28) == 0xF) { instr = "MRC2"; }
+					else { instr = "MRC" + cond_code; }
+					break;
+			}
+
+			instr += " P" + util::to_str(pn) + ", <" + util::to_str(cp_opc) + ">, R" + util::to_str(rd) + ", C" + util::to_str(cn) + ", C" + util::to_str(cm) + "{" + util::to_str(cp) + "}";
+			instr += " (ARMv5)";
+		}
+
+		//ARM CoDataOp opcodes
+		else if((opcode & 0xF000010) == 0xE000000)
+		{
+			u8 cp_opc = ((opcode >> 20) & 0xF);
+			u8 cn = ((opcode >> 16) & 0xF);
+			u8 cd = ((opcode >> 12) & 0xF);
+			u8 pn = ((opcode >> 8) & 0xF);
+			u8 cp = ((opcode >> 5) & 0x7);
+			u8 cm = (opcode & 0xF);
+
+			if((opcode >> 28) == 0xF) { instr = "CDP2"; }
+			else { instr = "CDP" + cond_code; }
+
+			instr += " P" + util::to_str(pn) + ", <" + util::to_str(cp_opc) + ">, C" + util::to_str(cd) + ", C" + util::to_str(cn) + ", C" + util::to_str(cm) + "{" + util::to_str(cp) + "}";
+			instr += " (ARMv5)";
+		}
+	}
+
+	//Get THUMB mnemonic
+	else
+	{
+		//THUMB.17 SWI opcodes
+		if((opcode & 0xFF00) == 0xDF00)
+		{
+			instr = "SWI " + util::to_hex_str(opcode & 0xFF);
+		}
+
+		//THUMB.13 ADD SP opcodes
+		else if((opcode & 0xFF00) == 0xB000)
+		{
+			instr = "ADD SP, ";
+			u16 offset = ((opcode & 0x7F) << 2);
+			
+			if(opcode & 0x80) { instr += util::to_hex_str(offset); }
+			else { instr += "-" + util::to_hex_str(offset); }
+		}
+
+		//THUMB.14 PUSH-POP opcodes
+		else if((opcode & 0xF600) == 0xB400)
+		{
+			instr = (opcode & 0x800) ? "POP " : "PUSH ";
+			u8 r_list = (opcode & 0xFF);
+			u8 last_reg = 0;
+
+			for(u32 x = 0; x < 8; x++)
+			{
+				if((r_list >> x) & 0x1) { last_reg = x; }
+			}
+
+			instr += "{";
+
+			for(u32 x = 0; x < 8; x++)
+			{
+				if((r_list >> x) & 0x1)
+				{
+					instr += "R" + util::to_str(x);
+					if(x != last_reg) { instr += ", "; }
+				}
+			}
+
+			instr += "}";
+
+			if((opcode & 0x100) && (opcode & 0x800)) { instr += "{R15}"; }
+			else if(opcode & 0x800) { instr += "{R14}"; }
+		}
+
+		//THUMB.7 Load-Store Reg Offsets opcodes
+		else if((opcode & 0xF200) == 0x5000)
+		{
+			u8 op = ((opcode >> 10) & 0x3);
+
+			instr = (op & 0x2) ? "LDR" : "STR";
+			if(op & 0x1) { instr += "B"; }
+
+			instr += " R" + util::to_str(opcode & 0x7) + ",";
+			instr += " [R" + util::to_str((opcode >> 3) & 0x7) + "],";
+			instr += " R" + util::to_str((opcode >> 6) & 0x7);
+		}
+
+		//THUMB.8 Load-Store Sign Extended opcodes
+		else if((opcode & 0xF200) == 5200)
+		{
+			u8 op = ((opcode >> 10) & 0x3);
+
+			switch(op)
+			{
+				case 0x0: instr = "STRH"; break;
+				case 0x1: instr = "LDSB"; break;
+				case 0x2: instr = "LDRH"; break;
+				case 0x3: instr = "LDSH"; break;
+			}
+
+			instr += " R" + util::to_str(opcode & 0x7) + ",";
+			instr += " [R" + util::to_str((opcode >> 3) & 0x7) + "],";
+			instr += " R" + util::to_str((opcode >> 6) & 0x7);
+		}
+
+		//THUMB.10 Load-Store Halfword opcodes
+		else if((opcode & 0xF000) == 0x8000)
+		{
+			u8 op = ((opcode >> 11) & 0x1);
+			u8 rd = (opcode & 0x7);
+			u8 rb = ((opcode >> 3) & 0x7);
+			u8 offset = ((opcode >> 6) & 0x1F);
+			offset *= 2;
+
+			switch(op)
+			{
+				case 0x0: instr = "STRH R" + util::to_str(rd) + ", [R" + util::to_str(rb) + ", " + util::to_hex_str(offset) + "]"; break;
+				case 0x1: instr = "LDRH R" + util::to_str(rd) + ", [R" + util::to_str(rb) + ", " + util::to_hex_str(offset) + "]"; break;
+			}
+		}
+
+		//THUMB.11 Load-Store SP relative opcodes
+		else if((opcode & 0xF000) == 0x9000)
+		{
+			u8 op = ((opcode >> 11) & 0x1);
+			u8 rd = ((opcode >> 8) & 0x7);
+			u16 offset = (opcode & 0xFF);
+			offset *= 4;
+
+			switch(op)
+			{
+				case 0x0: instr = "STR R" + util::to_str(rd) + ", [SP, " + util::to_hex_str(offset) + "]"; break;
+				case 0x1: instr = "LDR R" + util::to_str(rd) + ", [SP, " + util::to_hex_str(offset) + "]"; break;
+			}
+		}
+
+		//THUMB.12 Get relative address opcodes
+		else if((opcode & 0xF000) == 0xA000)
+		{
+			u8 op = ((opcode >> 11) & 0x1);
+			u8 rd = ((opcode >> 8) & 0x7);
+			u16 offset = (opcode & 0xFF);
+			offset *= 4;
+
+			switch(op)
+			{
+				case 0x0: instr = "ADD R" + util::to_str(rd) + ", PC, " + util::to_hex_str(offset); break;
+				case 0x1: instr = "ADD R" + util::to_str(rd) + ", SP, " + util::to_hex_str(offset); break;
+			}
+		}
+
+		//THUMB.15 LDM-STM opcodes
+		else if((opcode & 0xF000) == 0xC000)
+		{
+			instr = (opcode & 0x800) ? "LDMIA " : "STMIA ";
+			u8 r_list = (opcode & 0xFF);
+			u8 rb = ((opcode >> 8) & 0x7);
+			u8 last_reg = 0;
+
+			for(u32 x = 0; x < 8; x++)
+			{
+				if((r_list >> x) & 0x1) { last_reg = x; }
+			}
+				
+			instr += util::to_str(rb) + " {";
+
+			for(u32 x = 0; x < 8; x++)
+			{
+				if((r_list >> x) & 0x1)
+				{
+					instr += "R" + util::to_str(x);
+					if(x != last_reg) { instr += ", "; }
+				}
+			}
+
+			instr += "}";
+		}
+
+		//THUMB.16 Conditional Branch opcodes
+		else if((opcode & 0xF000) == 0xD000)
+		{
+			u8 op = ((opcode >> 8) & 0xF);
+			
+			u32 offset = (opcode & 0xFF);
+			offset <<= 1;			
+			if(offset & 0x100) { offset |= 0xFFFFFE00; }
+			offset += (addr + 4);
+
+			switch(op)
+			{
+				case 0x0: instr = "BEQ "; break;
+				case 0x1: instr = "BNE "; break;
+				case 0x2: instr = "BCS "; break;
+				case 0x3: instr = "BCC "; break;
+				case 0x4: instr = "BMI "; break;
+				case 0x5: instr = "BPL "; break;
+				case 0x6: instr = "BVS "; break;
+				case 0x7: instr = "BVC "; break;
+				case 0x8: instr = "BHI "; break;
+				case 0x9: instr = "BLS "; break;
+				case 0xA: instr = "BGE "; break;
+				case 0xB: instr = "BLT "; break;
+				case 0xC: instr = "BGT "; break;
+				case 0xD: instr = "BLE "; break;
+				default: instr = "UNDEF Branch"; break;
+			}
+
+			instr += util::to_hex_str(offset);
+		}
+	
+		//THUMB.4 ALU opcodes
+		else if((opcode & 0xFC00) == 0x4000)
+		{
+			u8 op = ((opcode >> 6) & 0xF);
+
+			switch(op)
+			{
+				case 0x0: instr = "AND "; break;
+				case 0x1: instr = "EOR "; break;
+				case 0x2: instr = "LSL "; break;
+				case 0x3: instr = "LSR "; break;
+				case 0x4: instr = "ASR "; break;
+				case 0x5: instr = "ADC "; break;
+				case 0x6: instr = "SBC "; break;
+				case 0x7: instr = "ROR "; break;
+				case 0x8: instr = "TST "; break;
+				case 0x9: instr = "NEG "; break;
+				case 0xA: instr = "CMP "; break;
+				case 0xB: instr = "CMN "; break;
+				case 0xC: instr = "ORR "; break;
+				case 0xD: instr = "MUL "; break;
+				case 0xE: instr = "BIC "; break;
+				case 0xF: instr = "MVN "; break;
+			}
+
+			instr += "R" + util::to_str(opcode & 0x7) + ", ";
+			instr += "R" + util::to_str((opcode >> 3) & 0x7);
+		}
+
+		//THUMB.5 High Reg opcodes
+		else if((opcode & 0xFC00) == 0x4400)
+		{
+			u8 op = ((opcode >> 8) & 0x3);
+			u8 sr_msb = (opcode & 0x40) ? 1 : 0;
+			u8 dr_msb = (opcode & 0x80) ? 1 : 0;
+
+			u8 rs = sr_msb ? 0x8 : 0x0;
+			u8 rd = dr_msb ? 0x8 : 0x0;
+
+			rs |= ((opcode >> 3) & 0x7);
+			rd |= (opcode & 0x7);
+
+			switch(op)
+			{
+				case 0x0: instr = "ADD"; break;
+				case 0x1: instr = "CMP"; break;
+				case 0x2: instr = "MOV"; break;
+				case 0x3: instr = dr_msb ? "BLX" : "BX"; break;
+			}
+
+			if(op < 3)
+			{
+				instr += " R" + util::to_str(rd) + ",";
+				instr += " R" + util::to_str(rs);
+			}
+
+			else { instr += " R" + util::to_str(rs); }
+		}
+
+		//THUMB.18 Unconditional Branch opcodes
+		else if((opcode & 0xF800) == 0xE000)
+		{
+			u32 offset = (opcode & 0x7FF);
+			offset <<= 1;
+			if(offset & 0x800) { offset |= 0xFFFFF000; }
+			offset += (addr + 4);
+
+			instr = "B " + util::to_hex_str(offset);
+		}
+
+		//THUMB.6 Load PC Relative opcodes
+		else if((opcode & 0xF800) == 0x4800)
+		{
+			u32 offset = (opcode & 0xFF);
+			offset <<= 2;
+			offset += (addr + 4);
+
+			instr = "LDR R" + util::to_str((opcode >> 8) & 0x7) + ", [" + util::to_hex_str(offset) + "]";
+		}
+
+		//THUMB.2 ADD-SUB opcodes
+		else if((opcode & 0xF800) == 0x1800)
+		{
+			u8 op = ((opcode >> 9) & 0x3);
+			u8 rd = (opcode & 0x7);
+			u8 rs = ((opcode >> 3) & 0x7);
+			u8 rn = ((opcode >> 6) & 0x7);
+
+			switch(op)
+			{
+				case 0x0: instr = "ADD R" + util::to_str(rd) + ", R" + util::to_str(rs) + ", R" + util::to_str(rn); break;
+				case 0x1: instr = "SUB R" + util::to_str(rd) + ", R" + util::to_str(rs) + ", R" + util::to_str(rn); break;
+				case 0x2: instr = "ADD R" + util::to_str(rd) + ", R" + util::to_str(rs) + ", " + util::to_hex_str(rn); break;
+				case 0x3: instr = "SUB R" + util::to_str(rd) + ", R" + util::to_str(rs) + ", " + util::to_hex_str(rn); break;
+			}
+		}
+
+		//THUMB.1 Move Shifted Register
+		else if((opcode & 0xE000) == 0)
+		{
+			u8 op = ((opcode >> 11) & 0x3);
+			u8 rd = (opcode & 0x7);
+			u8 rs = ((opcode >> 3) & 0x7);
+			u8 offset = ((opcode >> 6) & 0x1F);
+
+			switch(op)
+			{
+				case 0x0: instr = "LSL R" + util::to_str(rd) + ", R" + util::to_str(rs) + ", " + util::to_str(offset); break;
+				case 0x1: instr = "LSR R" + util::to_str(rd) + ", R" + util::to_str(rs) + ", " + util::to_str(offset); break;
+				case 0x2: instr = "ASR R" + util::to_str(rd) + ", R" + util::to_str(rs) + ", " + util::to_str(offset); break;
+				case 0x3: instr = "Reserved"; break;
+			}
+		}
+
+		//THUMB.3 MCAS opcodes
+		else if((opcode & 0xE000) == 0x2000)
+		{
+			u8 op = ((opcode >> 11) & 0x3);
+			u8 rd = ((opcode >> 8) & 0x7);
+			u8 imm = (opcode & 0xFF);
+
+			switch(op)
+			{
+				case 0x0: instr = "MOV R" + util::to_str(rd) + ", " + util::to_hex_str(imm); break;
+				case 0x1: instr = "CMP R" + util::to_str(rd) + ", " + util::to_hex_str(imm); break;
+				case 0x2: instr = "ADD R" + util::to_str(rd) + ", " + util::to_hex_str(imm); break;
+				case 0x3: instr = "SUB R" + util::to_str(rd) + ", " + util::to_hex_str(imm); break;
+			}
+		}
+
+		//THUMB.9 Load-Store with offset
+		else if((opcode & 0xE000) == 0x6000)
+		{
+			u8 op = ((opcode >> 11) & 0x3);
+			u8 rd = (opcode & 0x7);
+			u8 rb = ((opcode >> 3) & 0x7);
+			u8 offset = ((opcode >> 6) & 0x1F);
+
+			switch(op)
+			{
+				case 0x0: instr = "STR R" + util::to_str(rd) + ", [R" + util::to_str(rb) + ", " + util::to_hex_str(offset * 4) + "]"; break;
+				case 0x1: instr = "LDR R" + util::to_str(rd) + ", [R" + util::to_str(rb) + ", " + util::to_hex_str(offset * 4) + "]"; break;
+				case 0x2: instr = "STRB R" + util::to_str(rd) + ", [R" + util::to_str(rb) + ", " + util::to_hex_str(offset) + "]"; break;
+				case 0x3: instr = "LDRB R" + util::to_str(rd) + ", [R" + util::to_str(rb) + ", " + util::to_hex_str(offset) + "]"; break;
+			}
+		}
+	}
+
+	return instr;
+}
