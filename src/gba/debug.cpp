@@ -1066,9 +1066,6 @@ std::string AGB_core::debug_get_mnemonic(u32 data, bool is_addr)
 	bool arm_debug = (core_cpu.debug_message > 0x13) ? true : false;
 	std::string instr = "";
 
-	if(arm_debug) { std::cout<<"ARM\n"; }
-	else { std::cout<<"THUMB\n"; }
-
 	u32 opcode = 0;
 	u32 addr = data;
 	if(is_addr) { opcode = (arm_debug) ? core_mmu.read_u32(addr) : core_mmu.read_u16(addr); }

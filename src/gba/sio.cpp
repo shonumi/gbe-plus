@@ -584,6 +584,7 @@ bool AGB_SIO::soul_doll_adapter_load_data(std::string filename)
 	if(!doll_data.is_open()) 
 	{ 
 		std::cout<<"SIO::Soul Doll data could not be read. Check file path or permissions. \n";
+		sda.flags |= 0x80;
 		return false;
 	}
 
@@ -682,7 +683,7 @@ void AGB_SIO::soul_doll_adapter_process()
 				if(sda.data_count >= 1000)
 				{	
 					//Move buffer index to (4608 + (9216 * 3)), the last 4608 data segment
-					sda.flags = 1;
+					sda.flags |= 1;
 					sda.buffer_index = 0x7E00;
 				}
 
@@ -698,7 +699,7 @@ void AGB_SIO::soul_doll_adapter_process()
 					sda.data_count = 0;
 					sda.current_state = GBA_SOUL_DOLL_ADAPTER_ACTIVE;
 
-					if(sda.flags == 1) { sda.data_section = 4; }
+					if(sda.flags & 0x1) { sda.data_section = 4; }
 				}
 
 				break;
@@ -739,7 +740,7 @@ void AGB_SIO::soul_doll_adapter_process()
 		sda.data_count = 0;
 		sda.data_section = 0;
 		sda.delay = 0;
-		sda.flags = 0;
+		sda.flags &= ~0x1;
 	}
 
 	sio_stat.emu_device_ready = false;
