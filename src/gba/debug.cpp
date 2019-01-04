@@ -124,7 +124,11 @@ void AGB_core::debug_step()
 	#endif
 
 	//Display every instruction when print all is enabled
-	if((!printed) && (db_unit.print_all)) { debug_display(); }
+	if((!printed) && (db_unit.print_all))
+	{
+		db_unit.last_mnemonic = debug_get_mnemonic(core_cpu.debug_code, false);
+		debug_display();
+	}
 
 	//Display current PC when print PC is enabled
 	if(db_unit.print_pc) { std::cout<<"PC -> 0x" << core_cpu.reg.r15 << "\n"; }
