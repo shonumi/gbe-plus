@@ -678,17 +678,14 @@ QImage gbe_cgfx::grab_dmg_obj_data(int obj_index)
 	//Setup palettes
 	u8 obp[4][2];
 
-	u8 value = main_menu::gbe_plus->ex_read_u8(REG_OBP0);
-	obp[0][0] = value  & 0x3;
-	obp[1][0] = (value >> 2) & 0x3;
-	obp[2][0] = (value >> 4) & 0x3;
-	obp[3][0] = (value >> 6) & 0x3;
+	u8 obp0 = main_menu::gbe_plus->ex_read_u8(REG_OBP0);
+	u8 obp1 = main_menu::gbe_plus->ex_read_u8(REG_OBP1);
 
-	value = main_menu::gbe_plus->ex_read_u8(REG_OBP1);
-	obp[0][1] = value  & 0x3;
-	obp[1][1] = (value >> 2) & 0x3;
-	obp[2][1] = (value >> 4) & 0x3;
-	obp[3][1] = (value >> 6) & 0x3;
+	for(u32 x = 0; x < 4; x++)
+	{
+		obp[x][0] = (obp0 >> (x * 2)) & 0x3;
+		obp[x][1] = (obp1 >> (x * 2)) & 0x3;
+	}
 
 	//Grab palette number from OAM
 	u8 pal_num = (main_menu::gbe_plus->ex_read_u8(OAM + (obj_index * 4) + 3) & 0x10) ? 1 : 0;
@@ -857,10 +854,8 @@ QImage gbe_cgfx::grab_dmg_bg_data(int bg_index)
 	u8 bgp[4];
 
 	u8 value = main_menu::gbe_plus->ex_read_u8(REG_BGP);
-	bgp[0] = value  & 0x3;
-	bgp[1] = (value >> 2) & 0x3;
-	bgp[2] = (value >> 4) & 0x3;
-	bgp[3] = (value >> 6) & 0x3;
+
+	for(u32 x = 0; x < 4; x++) { bgp[x] = (value >> (x * 2)) & 0x3; }
 
 	//Grab bg tile addr from index
 	u16 tile_num = bg_index;
@@ -1185,10 +1180,8 @@ void gbe_cgfx::draw_dmg_bg()
 	u8 bgp[4];
 
 	u8 value = main_menu::gbe_plus->ex_read_u8(REG_BGP);
-	bgp[0] = value  & 0x3;
-	bgp[1] = (value >> 2) & 0x3;
-	bgp[2] = (value >> 4) & 0x3;
-	bgp[3] = (value >> 6) & 0x3;
+
+	for(u32 x = 0; x < 4; x++) { bgp[x] = (value >> (x * 2)) & 0x3; }
 
 	//Determine BG Map & Tile address
 	u16 bg_map_addr = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x8) ? 0x9C00 : 0x9800;
@@ -1434,10 +1427,8 @@ void gbe_cgfx::draw_dmg_win()
 	u8 bgp[4];
 
 	u8 value = main_menu::gbe_plus->ex_read_u8(REG_BGP);
-	bgp[0] = value  & 0x3;
-	bgp[1] = (value >> 2) & 0x3;
-	bgp[2] = (value >> 4) & 0x3;
-	bgp[3] = (value >> 6) & 0x3;
+
+	for(u32 x = 0; x < 4; x++) { bgp[x] = (value >> (x * 2)) & 0x3; }
 
 	//Determine BG Map & Tile address
 	u16 win_map_addr = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x40) ? 0x9C00 : 0x9800;
@@ -1717,17 +1708,14 @@ void gbe_cgfx::draw_dmg_obj()
 	//Setup palettes
 	u8 obp[4][2];
 
-	u8 value = main_menu::gbe_plus->ex_read_u8(REG_OBP0);
-	obp[0][0] = value  & 0x3;
-	obp[1][0] = (value >> 2) & 0x3;
-	obp[2][0] = (value >> 4) & 0x3;
-	obp[3][0] = (value >> 6) & 0x3;
+	u8 obp0 = main_menu::gbe_plus->ex_read_u8(REG_OBP0);
+	u8 obp1 = main_menu::gbe_plus->ex_read_u8(REG_OBP1);
 
-	value = main_menu::gbe_plus->ex_read_u8(REG_OBP1);
-	obp[0][1] = value  & 0x3;
-	obp[1][1] = (value >> 2) & 0x3;
-	obp[2][1] = (value >> 4) & 0x3;
-	obp[3][1] = (value >> 6) & 0x3;
+	for(u32 x = 0; x < 4; x++)
+	{
+		obp[x][0] = (obp0 >> (x * 2)) & 0x3;
+		obp[x][1] = (obp1 >> (x * 2)) & 0x3;
+	}
 
 	//8 pixel (horizontal+vertical) flipping lookup generation
 	u8 flip_8[8];
