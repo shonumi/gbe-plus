@@ -51,6 +51,9 @@ class DMG_LCD
 	void update_gbc_obj_hash(u8 obj_index);
 	void update_gbc_bg_hash(u16 map_addr);
 
+	void render_scanline(u8 line, u8 type);
+	u32 get_scanline_pixel(u8 pixel);
+
 	bool has_hash(u16 addr, std::string hash);
 	std::string get_hash(u16 addr, u8 gfx_type);
 	u32 adjust_pixel_brightness(u32 color, u8 palette_id, u8 gfx_type);

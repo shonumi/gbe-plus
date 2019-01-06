@@ -1171,7 +1171,7 @@ u32 DMG_core::get_core_data(u32 core_index)
 {
 	u32 result = 0;
 
-	switch(core_index)
+	switch(core_index & 0xFF)
 	{
 		//Joypad state
 		case 0x0:
@@ -1198,6 +1198,26 @@ u32 DMG_core::get_core_data(u32 core_index)
 		//Invalidate CGFX
 		case 0x2:
 			core_cpu.controllers.video.invalidate_cgfx();
+			result = 1;
+			break;
+
+		//Grab current scanline pixel
+		case 0x3:
+			//Use bits 8-15 as index
+			result = core_cpu.controllers.video.get_scanline_pixel((core_index >> 8) & 0xFF);
+			break;
+
+		//Render DMG BG Scanline
+		case 0x4:
+			//Use bits 8-15 as index
+			core_cpu.controllers.video.render_scanline(((core_index >> 8) & 0xFF), 0);
+			result = 1;
+			break;
+
+		//Render DMG Window Scanline
+		case 0x5:
+			//Use bits 8-15 as index
+			core_cpu.controllers.video.render_scanline(((core_index >> 8) & 0xFF), 1);
 			result = 1;
 			break;
 	}

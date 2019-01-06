@@ -561,6 +561,36 @@ void DMG_LCD::render_gbc_scanline()
 	}	
 }
 
+/****** Manually renders a given scanline - Used for external interfaces to grab screen data ******/
+void DMG_LCD::render_scanline(u8 line, u8 type)
+{
+	//Temporarily force current scanline
+	u8 temp_line = lcd_stat.current_scanline;
+	lcd_stat.current_scanline = line;
+
+	//Temporarily disable CGFX if necessary
+	bool cg_stat = cgfx::loaded;
+	cgfx::loaded = false;
+	
+	//Render based on specified type
+	switch(type)
+	{
+		case 0x00: render_dmg_bg_scanline(); break;
+		case 0x01: render_dmg_win_scanline(); break;
+		case 0x02: render_dmg_obj_scanline(); break;
+		case 0x03: render_gbc_bg_scanline(); break;
+		case 0x04: render_gbc_win_scanline(); break;
+		case 0x05: render_gbc_obj_scanline(); break;
+	}
+
+	//Restore current scanline and CGFX
+	lcd_stat.current_scanline = temp_line;
+	cgfx::loaded = cg_stat;
+}
+
+/****** Manually retrieve a given pixel from scanline buffer - Used for external interfaces ******/
+u32 DMG_LCD::get_scanline_pixel(u8 pixel) { return scanline_buffer[pixel]; }
+
 /****** Renders pixels for the BG (per-scanline) - DMG version ******/
 void DMG_LCD::render_dmg_bg_scanline()
 {
