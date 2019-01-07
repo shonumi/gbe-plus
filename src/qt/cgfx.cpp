@@ -1210,116 +1210,20 @@ void gbe_cgfx::draw_gbc_bg()
 	if(main_menu::gbe_plus == NULL) { return; }
 
 	std::vector<u32> bg_pixels;
-	u32 scanline_pixel_buffer[256];
-
-	//8 pixel (horizontal+vertical) flipping lookup generation
-	u8 flip_8[8];
-	for(int x = 0; x < 8; x++) { flip_8[x] = (7 - x); }
-
-	//Determine BG Map & Tile address
-	u16 bg_map_addr = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x8) ? 0x9C00 : 0x9800;
-	u16 bg_tile_addr = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x10) ? 0x8000 : 0x8800;
-
-	//Grab VRAM banks
-	u8 current_vram_bank = main_menu::gbe_plus->ex_read_u8(REG_VBK);
 
 	for(u8 current_scanline = 0; current_scanline < 144; current_scanline++)
 	{
-		//Determine where to start drawing
-		u8 rendered_scanline = current_scanline + main_menu::gbe_plus->ex_read_u8(REG_SY);
-		u8 scanline_pixel_counter = (0x100 - main_menu::gbe_plus->ex_read_u8(REG_SX));
-
-		//Determine which tiles we should generate to get the scanline data - integer division ftw :p
-		u16 tile_lower_range = (rendered_scanline / 8) * 32;
-		u16 tile_upper_range = tile_lower_range + 32;
-
-		//Generate background pixel data for selected tiles
-		for(int x = tile_lower_range; x < tile_upper_range; x++)
-		{
-			//Determine if this tile needs to be highlighted for selection dumping
-			bool highlight = false;
-
-			u8 target_scanline = current_scanline + (main_menu::gbe_plus->ex_read_u8(REG_SY) % 8);
-			u8 target_pixel = scanline_pixel_counter + (main_menu::gbe_plus->ex_read_u8(REG_SX) % 8);
-
-			if(((target_pixel / 8) >= min_x_rect) && ((target_pixel / 8) <= max_x_rect)
-			&& ((target_scanline / 8) >= min_y_rect) && ((target_scanline / 8) <= max_y_rect))
-			{
-				highlight = true;
-			}
-
-			//Determine which line of the tiles to generate pixels for this scanline
-			u8 tile_line = rendered_scanline % 8;
-
-			//Read the tile number
-			main_menu::gbe_plus->ex_write_u8(REG_VBK, 0);
-			u8 map_entry = main_menu::gbe_plus->ex_read_u8(bg_map_addr + x);
-			
-			//Read the BG attributes
-			main_menu::gbe_plus->ex_write_u8(REG_VBK, 1);
-			u8 bg_attribute = main_menu::gbe_plus->ex_read_u8(bg_map_addr + x);
-			u8 pal_num = (bg_attribute & 0x7);
-			u8 vram_bank = (bg_attribute & 0x8) ? 1 : 0;
-
-			//Setup palettes
-			u32 bgp[4];
-
-			u32* color = main_menu::gbe_plus->get_bg_palette(pal_num);
-
-			bgp[0] = *color; color += 8;
-			bgp[1] = *color; color += 8;
-			bgp[2] = *color; color += 8;
-			bgp[3] = *color; color += 8;
-
-			u8 tile_pixel = 0;
-
-			//Convert tile number to signed if necessary
-			if(bg_tile_addr == 0x8800) 
-			{
-				if(map_entry <= 127) { map_entry += 128; }
-				else { map_entry -= 128; }
-			}
-
-			//Account for vertical flipping
-			if(bg_attribute & 0x40) { tile_line = flip_8[tile_line]; }
-
-			//Calculate the address of the 8x1 pixel data based on map entry
-			u16 tile_addr = (bg_tile_addr + (map_entry << 4) + (tile_line << 1));
-
-			//Grab bytes from VRAM representing 8x1 pixel data
-			main_menu::gbe_plus->ex_write_u8(REG_VBK, vram_bank);
-			u16 tile_data = (main_menu::gbe_plus->ex_read_u8(tile_addr + 1) << 8) | main_menu::gbe_plus->ex_read_u8(tile_addr);
-
-			for(int y = 7; y >= 0; y--)
-			{
-				//Calculate raw value of the tile's pixel
-				if(bg_attribute & 0x20) 
-				{
-					tile_pixel = ((tile_data >> 8) & (1 << flip_8[y])) ? 2 : 0;
-					tile_pixel |= (tile_data & (1 << flip_8[y])) ? 1 : 0;
-				}
-
-				else 
-				{
-					tile_pixel = ((tile_data >> 8) & (1 << y)) ? 2 : 0;
-					tile_pixel |= (tile_data & (1 << y)) ? 1 : 0;
-				}
-				
-				scanline_pixel_buffer[scanline_pixel_counter++] = bgp[tile_pixel];
-
-				//Highlight selected pixels, if applicable
-				if(highlight)
-				{
-					u8 temp = scanline_pixel_counter - 1;
-					scanline_pixel_buffer[temp] += 0x00808080;
-				}
-			}
-
-			main_menu::gbe_plus->ex_write_u8(REG_VBK, current_vram_bank);
-		}
+		//Render a given scanline on the core
+		u16 core_line = (current_scanline << 8) | 0x7;
+		main_menu::gbe_plus->get_core_data(core_line);
 
 		//Copy scanline buffer to BG buffer
-		for(u8 pixel_counter = 0; pixel_counter < 160; pixel_counter++) { bg_pixels.push_back(scanline_pixel_buffer[pixel_counter]); }
+		for(u8 pixel_counter = 0; pixel_counter < 160; pixel_counter++)
+		{
+			u16 core_pixel = (pixel_counter << 8) | 0x3;
+			u32 bg_data = main_menu::gbe_plus->get_core_data(core_pixel);
+			bg_pixels.push_back(bg_data);
+		}
 	}
 
 	QImage raw_image(160, 144, QImage::Format_ARGB32);	
@@ -1378,129 +1282,19 @@ void gbe_cgfx::draw_gbc_win()
 	if(main_menu::gbe_plus == NULL) { return; }
 
 	std::vector<u32> bg_pixels;
-	u32 scanline_pixel_buffer[256];
-
-	//8 pixel (horizontal+vertical) flipping lookup generation
-	u8 flip_8[8];
-	for(int x = 0; x < 8; x++) { flip_8[x] = (7 - x); }
-
-	//Determine BG Map & Tile address
-	u16 win_map_addr = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x40) ? 0x9C00 : 0x9800;
-	u16 bg_tile_addr = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x10) ? 0x8000 : 0x8800;
-
-	//Grab VRAM banks
-	u8 current_vram_bank = main_menu::gbe_plus->ex_read_u8(REG_VBK);
 
 	for(u8 current_scanline = 0; current_scanline < 144; current_scanline++)
 	{
-		//Determine where to start drawing
-		u8 rendered_scanline = current_scanline - main_menu::gbe_plus->ex_read_u8(REG_WY);
-		u8 scanline_pixel_counter = main_menu::gbe_plus->ex_read_u8(REG_WX);
-		scanline_pixel_counter = (scanline_pixel_counter < 7) ? 0 : (scanline_pixel_counter - 7); 
-
-		bool draw_line = true;
-
-		//Determine if scanline is within window, if not abort rendering
-		if(current_scanline < main_menu::gbe_plus->ex_read_u8(REG_WY)) 
-		{
-			for(u8 pixel_counter = 0; pixel_counter < 160; pixel_counter++) { bg_pixels.push_back(0xFFFFFFFF); }
-			draw_line = false;
-		}
-
-		//Determine which tiles we should generate to get the scanline data - integer division ftw :p
-		u16 tile_lower_range = (rendered_scanline / 8) * 32;
-		u16 tile_upper_range = tile_lower_range + 32;
-
-		//Generate background pixel data for selected tiles
-		for(int x = tile_lower_range; x < tile_upper_range; x++)
-		{
-			//Determine if this tile needs to be highlighted for selection dumping
-			bool highlight = false;
-
-			if(((scanline_pixel_counter / 8) >= min_x_rect) && ((scanline_pixel_counter / 8) <= max_x_rect)
-			&& ((rendered_scanline / 8) >= min_y_rect) && ((rendered_scanline / 8) <= max_y_rect))
-			{
-				highlight = true;
-			}
-
-			//Determine which line of the tiles to generate pixels for this scanline
-			u8 tile_line = rendered_scanline % 8;
-
-			//Read the tile number
-			main_menu::gbe_plus->ex_write_u8(REG_VBK, 0);
-			u8 map_entry = main_menu::gbe_plus->ex_read_u8(win_map_addr + x);
-			
-			//Read the BG attributes
-			main_menu::gbe_plus->ex_write_u8(REG_VBK, 1);
-			u8 bg_attribute = main_menu::gbe_plus->ex_read_u8(win_map_addr + x);
-			u8 pal_num = (bg_attribute & 0x7);
-			u8 vram_bank = (bg_attribute & 0x8) ? 1 : 0;
-
-			//Setup palettes
-			u32 bgp[4];
-
-			u32* color = main_menu::gbe_plus->get_bg_palette(pal_num);
-
-			bgp[0] = *color; color += 8;
-			bgp[1] = *color; color += 8;
-			bgp[2] = *color; color += 8;
-			bgp[3] = *color; color += 8;
-
-			u8 tile_pixel = 0;
-
-			//Convert tile number to signed if necessary
-			if(bg_tile_addr == 0x8800) 
-			{
-				if(map_entry <= 127) { map_entry += 128; }
-				else { map_entry -= 128; }
-			}
-
-			//Account for vertical flipping
-			if(bg_attribute & 0x40) { tile_line = flip_8[tile_line]; }
-
-			//Calculate the address of the 8x1 pixel data based on map entry
-			u16 tile_addr = (bg_tile_addr + (map_entry << 4) + (tile_line << 1));
-
-			//Grab bytes from VRAM representing 8x1 pixel data
-			main_menu::gbe_plus->ex_write_u8(REG_VBK, vram_bank);
-			u16 tile_data = (main_menu::gbe_plus->ex_read_u8(tile_addr + 1) << 8) | main_menu::gbe_plus->ex_read_u8(tile_addr);
-
-			for(int y = 7; y >= 0; y--)
-			{
-				//Calculate raw value of the tile's pixel
-				if(bg_attribute & 0x20) 
-				{
-					tile_pixel = ((tile_data >> 8) & (1 << flip_8[y])) ? 2 : 0;
-					tile_pixel |= (tile_data & (1 << flip_8[y])) ? 1 : 0;
-				}
-
-				else 
-				{
-					tile_pixel = ((tile_data >> 8) & (1 << y)) ? 2 : 0;
-					tile_pixel |= (tile_data & (1 << y)) ? 1 : 0;
-				}
-				
-				if(scanline_pixel_counter >= 160) { scanline_pixel_buffer[scanline_pixel_counter++] = 0xFFFFFFFF; }
-				else { scanline_pixel_buffer[scanline_pixel_counter++] = bgp[tile_pixel]; }
-
-				//Highlight selected pixels, if applicable
-				if(highlight)
-				{
-					u8 temp = scanline_pixel_counter - 1;
-					scanline_pixel_buffer[temp] += 0x00808080;
-				}
-			}
-
-			main_menu::gbe_plus->ex_write_u8(REG_VBK, current_vram_bank);
-		}
+		//Render a given scanline on the core
+		u16 core_line = (current_scanline << 8) | 0x8;
+		main_menu::gbe_plus->get_core_data(core_line);
 
 		//Copy scanline buffer to BG buffer
-		if(draw_line)
+		for(u8 pixel_counter = 0; pixel_counter < 160; pixel_counter++)
 		{
-			for(u8 pixel_counter = 0; pixel_counter < 160; pixel_counter++)
-			{
-				bg_pixels.push_back(scanline_pixel_buffer[pixel_counter]);
-			}
+			u16 core_pixel = (pixel_counter << 8) | 0x3;
+			u32 bg_data = main_menu::gbe_plus->get_core_data(core_pixel);
+			bg_pixels.push_back(bg_data);
 		}
 	}
 
