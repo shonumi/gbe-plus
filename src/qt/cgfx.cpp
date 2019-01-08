@@ -744,19 +744,9 @@ QImage gbe_cgfx::grab_dmg_obj_data(int obj_index)
 		raw_image.setPixel((x % 8), (x / 8), obj_pixels[x]);
 	}
 
-	//Scale final output to 64x64
-	if(obj_height == 8)
-	{
-		QImage final_image = raw_image.scaled(64, 64);
-		return final_image;
-	}
-
-	//Scale final output to 32x64
-	else
-	{
-		QImage final_image = raw_image.scaled(32, 64);
-		return final_image;
-	}
+	//Scale final output to 64x64 or 32x64
+	QImage final_image = (obj_height == 8) ? raw_image.scaled(64, 64) : raw_image.scaled(32, 64);
+	return final_image;
 }
 
 /****** Grabs an OBJ in VRAM and converts it to a QImage - GBC Version ******/
@@ -821,19 +811,9 @@ QImage gbe_cgfx::grab_gbc_obj_data(int obj_index)
 		raw_image.setPixel((x % 8), (x / 8), obj_pixels[x]);
 	}
 
-	//Scale final output to 64x64
-	if(obj_height == 8)
-	{
-		QImage final_image = raw_image.scaled(64, 64);
-		return final_image;
-	}
-
-	//Scale final output to 32x64
-	else
-	{
-		QImage final_image = raw_image.scaled(32, 64);
-		return final_image;
-	}
+	//Scale final output to 64x64 or 32x64
+	QImage final_image = (obj_height == 8) ? raw_image.scaled(64, 64) : raw_image.scaled(32, 64);
+	return final_image;
 }
 
 /****** Grabs a BG tile in VRAM and converts it to a QImage ******/
