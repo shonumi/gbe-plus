@@ -674,6 +674,17 @@ void AGB_SIO::soul_doll_adapter_process()
 
 		switch(sda.data_section)
 		{
+			//Wait until 1st 4608 segment starts
+			case 0x0:
+				if(sda.data_count == 160)
+				{
+					sda.data_count = 0;
+					sda.current_state = GBA_SOUL_DOLL_ADAPTER_ACTIVE;
+					sda.delay = 0;
+				}
+
+				break;
+
 			//1st 4608 data segment, wait until start signal (0x8020, 0x802D)
 			case 0x1:
 
@@ -735,11 +746,11 @@ void AGB_SIO::soul_doll_adapter_process()
 	//Start Soul Doll Adapter data transfers
 	if((sda.current_state == GBA_SOUL_DOLL_ADAPTER_INACTIVE) && (sda.prev_data == 0x802D) && (sio_stat.r_cnt == 0x802D) && (sda.data_count >= 3) && (sda.data_section == 0))
 	{
-		sda.current_state = GBA_SOUL_DOLL_ADAPTER_ACTIVE;
+		sda.current_state = GBA_SOUL_DOLL_ADAPTER_DATA_WAIT;
 		sda.buffer_index = 0;
 		sda.data_count = 0;
 		sda.data_section = 0;
-		sda.delay = 0;
+		sda.delay = 160;
 		sda.flags &= ~0x1;
 	}
 
