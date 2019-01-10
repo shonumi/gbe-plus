@@ -1130,8 +1130,9 @@ void gbe_cgfx::layer_change()
 	{
 		switch(layer_select->currentIndex())
 		{
-			case 0: draw_dmg_bg(); break;
-			case 1: draw_dmg_win(); break;
+			//BG, Window, OBJ
+			case 0: draw_gb_layer(0); break;
+			case 1: draw_gb_layer(1); break;
 			case 2: draw_dmg_obj(); break;
 		}
 	}
@@ -1141,132 +1142,27 @@ void gbe_cgfx::layer_change()
 	{
 		switch(layer_select->currentIndex())
 		{
-			case 0: draw_gbc_bg(); break;
-			case 1: draw_gbc_win(); break;
+			//BG, Window, OBJ
+			case 0: draw_gb_layer(3); break;
+			case 1: draw_gb_layer(4); break;
 			case 2: draw_gbc_obj(); break;
 		}
 	}
 }
 
-/****** Draws the DMG BG layer ******/
-void gbe_cgfx::draw_dmg_bg()
+/****** Draw DMG and GBC layers ******/
+void gbe_cgfx::draw_gb_layer(u8 layer)
 {
 	if(main_menu::gbe_plus == NULL) { return; }
+
+	layer += 4;
 
 	std::vector<u32> bg_pixels;
 
 	for(u8 current_scanline = 0; current_scanline < 144; current_scanline++)
 	{
 		//Render a given scanline on the core
-		u16 core_line = (current_scanline << 8) | 0x4;
-		main_menu::gbe_plus->get_core_data(core_line);
-
-		//Copy scanline buffer to BG buffer
-		for(u8 pixel_counter = 0; pixel_counter < 160; pixel_counter++)
-		{
-			u16 core_pixel = (pixel_counter << 8) | 0x3;
-			u32 bg_data = main_menu::gbe_plus->get_core_data(core_pixel);
-			bg_pixels.push_back(bg_data);
-		}
-	}
-
-	QImage raw_image(160, 144, QImage::Format_ARGB32);	
-
-	//Copy raw pixels to QImage
-	for(int x = 0; x < bg_pixels.size(); x++)
-	{
-		raw_image.setPixel((x % 160), (x / 160), bg_pixels[x]);
-	}
-
-	raw_image = raw_image.scaled(320, 288);
-
-	//Set label Pixmap
-	current_layer->setPixmap(QPixmap::fromImage(raw_image));
-}
-
-/****** Draws the GBC BG layer ******/
-void gbe_cgfx::draw_gbc_bg()
-{
-	if(main_menu::gbe_plus == NULL) { return; }
-
-	std::vector<u32> bg_pixels;
-
-	for(u8 current_scanline = 0; current_scanline < 144; current_scanline++)
-	{
-		//Render a given scanline on the core
-		u16 core_line = (current_scanline << 8) | 0x7;
-		main_menu::gbe_plus->get_core_data(core_line);
-
-		//Copy scanline buffer to BG buffer
-		for(u8 pixel_counter = 0; pixel_counter < 160; pixel_counter++)
-		{
-			u16 core_pixel = (pixel_counter << 8) | 0x3;
-			u32 bg_data = main_menu::gbe_plus->get_core_data(core_pixel);
-			bg_pixels.push_back(bg_data);
-		}
-	}
-
-	QImage raw_image(160, 144, QImage::Format_ARGB32);	
-
-	//Copy raw pixels to QImage
-	for(int x = 0; x < bg_pixels.size(); x++)
-	{
-		raw_image.setPixel((x % 160), (x / 160), bg_pixels[x]);
-	}
-
-	raw_image = raw_image.scaled(320, 288);
-
-	//Set label Pixmap
-	current_layer->setPixmap(QPixmap::fromImage(raw_image));
-}
-
-/****** Draws the DMG Window layer ******/
-void gbe_cgfx::draw_dmg_win()
-{
-	if(main_menu::gbe_plus == NULL) { return; }
-
-	std::vector<u32> bg_pixels;
-
-	for(u8 current_scanline = 0; current_scanline < 144; current_scanline++)
-	{
-		//Render a given scanline on the core
-		u16 core_line = (current_scanline << 8) | 0x5;
-		main_menu::gbe_plus->get_core_data(core_line);
-
-		//Copy scanline buffer to BG buffer
-		for(u8 pixel_counter = 0; pixel_counter < 160; pixel_counter++)
-		{
-			u16 core_pixel = (pixel_counter << 8) | 0x3;
-			u32 bg_data = main_menu::gbe_plus->get_core_data(core_pixel);
-			bg_pixels.push_back(bg_data);
-		}
-	}
-
-	QImage raw_image(160, 144, QImage::Format_ARGB32);	
-
-	//Copy raw pixels to QImage
-	for(int x = 0; x < bg_pixels.size(); x++)
-	{
-		raw_image.setPixel((x % 160), (x / 160), bg_pixels[x]);
-	}
-
-	raw_image = raw_image.scaled(320, 288);
-
-	//Set label Pixmap
-	current_layer->setPixmap(QPixmap::fromImage(raw_image));
-}
-
-/****** Draws the GBC Window layer ******/
-void gbe_cgfx::draw_gbc_win()
-{
-	if(main_menu::gbe_plus == NULL) { return; }
-
-	std::vector<u32> bg_pixels;
-
-	for(u8 current_scanline = 0; current_scanline < 144; current_scanline++)
-	{
-		//Render a given scanline on the core
-		u16 core_line = (current_scanline << 8) | 0x8;
+		u16 core_line = (current_scanline << 8) | layer;
 		main_menu::gbe_plus->get_core_data(core_line);
 
 		//Copy scanline buffer to BG buffer

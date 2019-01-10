@@ -35,12 +35,8 @@ class gbe_cgfx : public QDialog
 
 	bool parse_manifest_items();
 
-	void draw_dmg_bg();
-	void draw_dmg_win();
+	void draw_gb_layer(u8 layer);
 	void draw_dmg_obj();
-
-	void draw_gbc_bg();
-	void draw_gbc_win();
 	void draw_gbc_obj();
 
 	void reset_inputs();

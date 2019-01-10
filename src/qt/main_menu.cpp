@@ -1418,8 +1418,8 @@ void main_menu::show_cgfx()
 	{
 		switch(cgfx->layer_select->currentIndex())
 		{
-			case 0: cgfx->draw_dmg_bg(); break;
-			case 1: cgfx->draw_dmg_win(); break;
+			case 0: cgfx->draw_gb_layer(0); break;
+			case 1: cgfx->draw_gb_layer(1); break;
 			case 2: cgfx->draw_dmg_obj(); break;
 		}
 	}
@@ -1429,8 +1429,8 @@ void main_menu::show_cgfx()
 	{
 		switch(cgfx->layer_select->currentIndex())
 		{
-			case 0: cgfx->draw_gbc_bg(); break;
-			case 1: cgfx->draw_gbc_win(); break;
+			case 0: cgfx->draw_gb_layer(3); break;
+			case 1: cgfx->draw_gb_layer(4); break;
 			case 2: cgfx->draw_gbc_obj(); break;
 		}
 	}
