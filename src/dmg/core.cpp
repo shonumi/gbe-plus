@@ -150,6 +150,16 @@ void DMG_core::load_state(u8 slot)
 
 	u32 offset = 0;
 
+	//Check if save state is accessible
+	std::ifstream test(state_file.c_str());
+	
+	if(!test.good())
+	{
+		config::osd_message = "INVALID SAVE STATE " + util::to_str(slot);
+		config::osd_count = 180;
+		return;
+	}
+
 	//Offset 0, size 43
 	if(!core_cpu.cpu_read(offset, state_file)) { return; }
 	offset += core_cpu.size();	
