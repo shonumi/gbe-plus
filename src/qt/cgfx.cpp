@@ -1217,175 +1217,30 @@ void gbe_cgfx::draw_dmg_obj()
 {
 	if(main_menu::gbe_plus == NULL) { return; }
 
-	std::vector<u32> obj_pixels;
-	u32 scanline_pixel_buffer[256];
-
-	//Determine if in 8x8 or 8x16 mode
-	u8 obj_height = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x04) ? 16 : 8;
-
-	//Setup palettes
-	u8 obp[4][2];
-
-	u8 obp0 = main_menu::gbe_plus->ex_read_u8(REG_OBP0);
-	u8 obp1 = main_menu::gbe_plus->ex_read_u8(REG_OBP1);
-
-	for(u32 x = 0; x < 4; x++)
-	{
-		obp[x][0] = (obp0 >> (x * 2)) & 0x3;
-		obp[x][1] = (obp1 >> (x * 2)) & 0x3;
-	}
-
-	//8 pixel (horizontal+vertical) flipping lookup generation
-	u8 flip_8[8];
-	for(int x = 0; x < 8; x++) { flip_8[x] = (7 - x); }
+	std::vector<u32> bg_pixels;
 
 	for(u8 current_scanline = 0; current_scanline < 144; current_scanline++)
 	{
-		u8 obj_x_sort[40];
-		u8 obj_sort_length = 0;
+		//Render a given scanline on the core
+		u16 core_line = (current_scanline << 8) | 6;
+		main_menu::gbe_plus->get_core_data(core_line);
 
-		u8 obj_render_list[10];
-		int obj_render_length = -1;
-
-		//Cycle through all of the sprites
-		for(int x = 0; x < 40; x++)
-		{
-			u8 obj_y = main_menu::gbe_plus->ex_read_u8(OAM + (x * 4));
-			obj_y -= 16;
-
-			u8 test_top = ((obj_y + obj_height) > 0x100) ? 0 : obj_y;
-			u8 test_bottom = (obj_y + obj_height);
-
-			//Check to see if sprite is rendered on the current scanline
-			if((current_scanline >= test_top) && (current_scanline < test_bottom))
-			{
-				obj_x_sort[obj_sort_length++] = x;
-			}
-
-			if(obj_sort_length == 10) { break; }
-		}
-
-		//Sort them based on X coordinate
-		for(int scanline_pixel = 0; scanline_pixel < 256; scanline_pixel++)
-		{
-			for(int x = 0; x < obj_sort_length; x++)
-			{
-				u8 sprite_id = obj_x_sort[x];
-				u8 obj_x = main_menu::gbe_plus->ex_read_u8(OAM + (sprite_id * 4) + 1);
-				obj_x -= 8;
-
-				if(obj_x == scanline_pixel) 
-				{
-					obj_render_length++;
-					obj_render_list[obj_render_length] = sprite_id; 
-				}
-
-				//Enforce 10 sprite-per-scanline limit
-				if(obj_render_length == 9) { break; }
-			}
-		}
-
-		//White-out scanline pixel data before drawing
-		for(int x = 0; x < 256; x++) { scanline_pixel_buffer[x] = 0xFFFFFFFF; } 
-
-		//Cycle through all sprites that are rendering on this pixel, draw them according to their priority
-		for(int x = obj_render_length; x >= 0; x--)
-		{
-			u8 sprite_id = obj_render_list[x];
-			u8 obj_x = main_menu::gbe_plus->ex_read_u8(OAM + (sprite_id * 4) + 1);
-			u8 obj_y = main_menu::gbe_plus->ex_read_u8(OAM + (sprite_id * 4));
-
-			obj_x -= 8;
-			obj_y -= 16;
-
-			u8 pal_num = (main_menu::gbe_plus->ex_read_u8(OAM + (sprite_id * 4) + 3) & 0x10) ? 1 : 0;
-			u8 tile_num = main_menu::gbe_plus->ex_read_u8(OAM + (sprite_id * 4) + 2);
-
-			if(obj_height == 16) { tile_num &= ~0x1; }
-
-			bool h_flip = (main_menu::gbe_plus->ex_read_u8(OAM + (sprite_id * 4) + 3) & 0x20) ? true : false;
-			bool v_flip = (main_menu::gbe_plus->ex_read_u8(OAM + (sprite_id * 4) + 3) & 0x40) ? true : false;
-
-			//Determine which line of the tiles to generate pixels for this scanline		
-			u8 tile_line = (current_scanline - obj_y);
-
-			//Account for vertical flipping
-			if(v_flip) 
-			{
-				s16 flip = tile_line;
-				flip -= (obj_height - 1);
-
-				if(flip < 0) { flip *= -1; }
-
-				tile_line = flip;
-			}
-
-			u8 tile_pixel = 0;
-
-			//Calculate the address of the 8x1 pixel data based on map entry
-			u16 tile_addr = (0x8000 + (tile_num << 4) + (tile_line << 1));
-
-			//Grab bytes from VRAM representing 8x1 pixel data
-			u16 tile_data = (main_menu::gbe_plus->ex_read_u8(tile_addr + 1) << 8) | main_menu::gbe_plus->ex_read_u8(tile_addr);
-
-			for(int y = 7; y >= 0; y--)
-			{
-				bool draw_obj_pixel = true;
-
-				//Calculate raw value of the tile's pixel
-				if(h_flip) 
-				{
-					tile_pixel = ((tile_data >> 8) & (1 << flip_8[y])) ? 2 : 0;
-					tile_pixel |= (tile_data & (1 << flip_8[y])) ? 1 : 0;
-				}
-
-				else 
-				{
-					tile_pixel = ((tile_data >> 8) & (1 << y)) ? 2 : 0;
-					tile_pixel |= (tile_data & (1 << y)) ? 1 : 0;
-				}
-
-				//If raw color is zero, this is the sprite's transparency, abort rendering this pixel
-				if(tile_pixel == 0) { draw_obj_pixel = false; obj_x++; }
-				
-				//Render sprite pixel
-				if(draw_obj_pixel)
-				{
-					switch(obp[tile_pixel][pal_num])
-					{
-						case 0: 
-							scanline_pixel_buffer[obj_x++] = config::DMG_OBJ_PAL[0][pal_num];
-							break;
-
-						case 1: 
-							scanline_pixel_buffer[obj_x++] = config::DMG_OBJ_PAL[1][pal_num];
-							break;
-
-						case 2: 
-							scanline_pixel_buffer[obj_x++] = config::DMG_OBJ_PAL[2][pal_num];
-							break;
-
-						case 3: 
-							scanline_pixel_buffer[obj_x++] = config::DMG_OBJ_PAL[3][pal_num];
-							break;
-					}
-				}
-			}
-		}
-
-		//Copy scanline buffer to OBJ buffer
+		//Copy scanline buffer to BG buffer
 		for(u8 pixel_counter = 0; pixel_counter < 160; pixel_counter++)
 		{
-			obj_pixels.push_back(scanline_pixel_buffer[pixel_counter]);
+			u16 core_pixel = (pixel_counter << 8) | 0x3;
+			u32 bg_data = main_menu::gbe_plus->get_core_data(core_pixel);
+
+			bg_pixels.push_back(bg_data);
 		}
 	}
 
 	QImage raw_image(160, 144, QImage::Format_ARGB32);	
 
 	//Copy raw pixels to QImage
-	for(int x = 0; x < obj_pixels.size(); x++)
+	for(int x = 0; x < bg_pixels.size(); x++)
 	{
-		raw_image.setPixel((x % 160), (x / 160), obj_pixels[x]);
+		raw_image.setPixel((x % 160), (x / 160), bg_pixels[x]);
 	}
 
 	raw_image = raw_image.scaled(320, 288);
@@ -1399,137 +1254,30 @@ void gbe_cgfx::draw_gbc_obj()
 {
 	if(main_menu::gbe_plus == NULL) { return; }
 
-	std::vector<u32> obj_pixels;
-	u32 scanline_pixel_buffer[256];
-
-	//Determine if in 8x8 or 8x16 mode
-	u8 obj_height = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x04) ? 16 : 8;
-
-	//8 pixel (horizontal+vertical) flipping lookup generation
-	u8 flip_8[8];
-	for(int x = 0; x < 8; x++) { flip_8[x] = (7 - x); }
+	std::vector<u32> bg_pixels;
 
 	for(u8 current_scanline = 0; current_scanline < 144; current_scanline++)
 	{
-		u8 obj_render_list[10];
-		int obj_render_length = -1;
+		//Render a given scanline on the core
+		u16 core_line = (current_scanline << 8) | 9;
+		main_menu::gbe_plus->get_core_data(core_line);
 
-		//Cycle through all of the sprites
-		for(int x = 0; x < 40; x++)
-		{
-			u8 obj_y = main_menu::gbe_plus->ex_read_u8(OAM + (x * 4));
-			obj_y -= 16;
-
-			u8 test_top = ((obj_y + obj_height) > 0x100) ? 0 : obj_y;
-			u8 test_bottom = (obj_y + obj_height);
-
-			//Check to see if sprite is rendered on the current scanline
-			if((current_scanline >= test_top) && (current_scanline < test_bottom))
-			{
-				obj_render_length++;
-				obj_render_list[obj_render_length] = x; 
-			}
-
-			//Enforce 10 sprite-per-scanline limit
-			if(obj_render_length == 9) { break; }
-		}
-
-		//White-out scanline pixel data before drawing
-		for(int x = 0; x < 256; x++) { scanline_pixel_buffer[x] = 0xFFFFFFFF; } 
-
-		//Cycle through all sprites that are rendering on this pixel, draw them according to their priority
-		for(int x = obj_render_length; x >= 0; x--)
-		{
-			u8 current_vram_bank = main_menu::gbe_plus->ex_read_u8(REG_VBK);
-
-			u8 sprite_id = obj_render_list[x];
-			u8 obj_x = main_menu::gbe_plus->ex_read_u8(OAM + (sprite_id * 4) + 1);
-			u8 obj_y = main_menu::gbe_plus->ex_read_u8(OAM + (sprite_id * 4));
-
-			obj_x -= 8;
-			obj_y -= 16;
-
-			u8 pal_num = (main_menu::gbe_plus->ex_read_u8(OAM + (sprite_id * 4) + 3) & 0x7);
-			u8 vram_bank = (main_menu::gbe_plus->ex_read_u8(OAM + (sprite_id * 4) + 3) & 0x08) ? 1 : 0;
-			u8 tile_num = main_menu::gbe_plus->ex_read_u8(OAM + (sprite_id * 4) + 2);
-
-			if(obj_height == 16) { tile_num &= ~0x1; }
-
-			bool h_flip = (main_menu::gbe_plus->ex_read_u8(OAM + (sprite_id * 4) + 3) & 0x20) ? true : false;
-			bool v_flip = (main_menu::gbe_plus->ex_read_u8(OAM + (sprite_id * 4) + 3) & 0x40) ? true : false;
-
-			//Setup palettes
-			u32 obp[4];
-			u32* color = main_menu::gbe_plus->get_obj_palette(pal_num);
-
-			obp[0] = *color; color += 8;
-			obp[1] = *color; color += 8;
-			obp[2] = *color; color += 8;
-			obp[3] = *color; color += 8;
-
-			//Determine which line of the tiles to generate pixels for this scanline		
-			u8 tile_line = (current_scanline - obj_y);
-
-			//Account for vertical flipping
-			if(v_flip) 
-			{
-				s16 flip = tile_line;
-				flip -= (obj_height - 1);
-
-				if(flip < 0) { flip *= -1; }
-
-				tile_line = flip;
-			}
-
-			u8 tile_pixel = 0;
-
-			//Calculate the address of the 8x1 pixel data based on map entry
-			u16 tile_addr = (0x8000 + (tile_num << 4) + (tile_line << 1));
-
-			//Grab bytes from VRAM representing 8x1 pixel data
-			main_menu::gbe_plus->ex_write_u8(REG_VBK, vram_bank);
-			u16 tile_data = (main_menu::gbe_plus->ex_read_u8(tile_addr + 1) << 8) | main_menu::gbe_plus->ex_read_u8(tile_addr);
-
-			for(int y = 7; y >= 0; y--)
-			{
-				bool draw_obj_pixel = true;
-
-				//Calculate raw value of the tile's pixel
-				if(h_flip) 
-				{
-					tile_pixel = ((tile_data >> 8) & (1 << flip_8[y])) ? 2 : 0;
-					tile_pixel |= (tile_data & (1 << flip_8[y])) ? 1 : 0;
-				}
-
-				else 
-				{
-					tile_pixel = ((tile_data >> 8) & (1 << y)) ? 2 : 0;
-					tile_pixel |= (tile_data & (1 << y)) ? 1 : 0;
-				}
-
-				//If raw color is zero, this is the sprite's transparency, abort rendering this pixel
-				if(tile_pixel == 0) { draw_obj_pixel = false; obj_x++; }
-				
-				//Render sprite pixel
-				if(draw_obj_pixel) { scanline_pixel_buffer[obj_x++] = obp[tile_pixel]; }
-			}
-
-			main_menu::gbe_plus->ex_write_u8(REG_VBK, current_vram_bank);
-		}
-
-		//Copy scanline buffer to OBJ buffer
+		//Copy scanline buffer to BG buffer
 		for(u8 pixel_counter = 0; pixel_counter < 160; pixel_counter++)
 		{
-			obj_pixels.push_back(scanline_pixel_buffer[pixel_counter]);
+			u16 core_pixel = (pixel_counter << 8) | 0x3;
+			u32 bg_data = main_menu::gbe_plus->get_core_data(core_pixel);
+
+			bg_pixels.push_back(bg_data);
 		}
 	}
 
 	QImage raw_image(160, 144, QImage::Format_ARGB32);	
 
 	//Copy raw pixels to QImage
-	for(int x = 0; x < obj_pixels.size(); x++)
+	for(int x = 0; x < bg_pixels.size(); x++)
 	{
-		raw_image.setPixel((x % 160), (x / 160), obj_pixels[x]);
+		raw_image.setPixel((x % 160), (x / 160), bg_pixels[x]);
 	}
 
 	raw_image = raw_image.scaled(320, 288);

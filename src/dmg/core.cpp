@@ -1231,6 +1231,13 @@ u32 DMG_core::get_core_data(u32 core_index)
 			result = 1;
 			break;
 
+		//Render DMG OBJ Scanline
+		case 0x6:
+			//Use bits 8-15 as index
+			core_cpu.controllers.video.render_scanline(((core_index >> 8) & 0xFF), 2);
+			result = 1;
+			break;
+
 		//Render GBC BG Scanline
 		case 0x7:
 			//Use bits 8-15 as index
@@ -1242,6 +1249,13 @@ u32 DMG_core::get_core_data(u32 core_index)
 		case 0x8:
 			//Use bits 8-15 as index
 			core_cpu.controllers.video.render_scanline(((core_index >> 8) & 0xFF), 4);
+			result = 1;
+			break;
+
+		//Render GBC OBJ Scanline
+		case 0x9:
+			//Use bits 8-15 as index
+			core_cpu.controllers.video.render_scanline(((core_index >> 8) & 0xFF), 5);
 			result = 1;
 			break;
 	}

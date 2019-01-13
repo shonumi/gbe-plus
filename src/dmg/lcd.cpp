@@ -572,15 +572,18 @@ void DMG_LCD::render_scanline(u8 line, u8 type)
 	bool cg_stat = cgfx::loaded;
 	cgfx::loaded = false;
 	
+	//Clear scanline data before rendering
+	for(u32 x = 0; x < 0x100; x++) { scanline_buffer[x] = 0xFFFFFFFF; }
+
 	//Render based on specified type
 	switch(type)
 	{
 		case 0x00: render_dmg_bg_scanline(); break;
 		case 0x01: render_dmg_win_scanline(); break;
-		case 0x02: render_dmg_obj_scanline(); break;
+		case 0x02: update_obj_render_list(); render_dmg_obj_scanline(); break;
 		case 0x03: render_gbc_bg_scanline(); break;
 		case 0x04: render_gbc_win_scanline(); break;
-		case 0x05: render_gbc_obj_scanline(); break;
+		case 0x05: update_obj_render_list(); render_gbc_obj_scanline(); break;
 	}
 
 	//Restore current scanline and CGFX
