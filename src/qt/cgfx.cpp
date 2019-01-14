@@ -1133,7 +1133,7 @@ void gbe_cgfx::layer_change()
 			//BG, Window, OBJ
 			case 0: draw_gb_layer(0); break;
 			case 1: draw_gb_layer(1); break;
-			case 2: draw_dmg_obj(); break;
+			case 2: draw_gb_layer(2); break;
 		}
 	}
 
@@ -1145,7 +1145,7 @@ void gbe_cgfx::layer_change()
 			//BG, Window, OBJ
 			case 0: draw_gb_layer(3); break;
 			case 1: draw_gb_layer(4); break;
-			case 2: draw_gbc_obj(); break;
+			case 2: draw_gb_layer(5); break;
 		}
 	}
 }
@@ -1156,8 +1156,9 @@ void gbe_cgfx::draw_gb_layer(u8 layer)
 	if(main_menu::gbe_plus == NULL) { return; }
 
 	bool is_win = ((layer == 1) || (layer == 4)) ? true : false;
-	std::vector<u32> bg_pixels;
+	bool is_obj = ((layer == 2) || (layer == 5)) ? true : false;
 
+	std::vector<u32> pixels;
 	layer += 4;
 
 	u8 target_scanline = 0;
@@ -1173,7 +1174,7 @@ void gbe_cgfx::draw_gb_layer(u8 layer)
 		for(u8 pixel_counter = 0; pixel_counter < 160; pixel_counter++)
 		{
 			u16 core_pixel = (pixel_counter << 8) | 0x3;
-			u32 bg_data = main_menu::gbe_plus->get_core_data(core_pixel);
+			u32 pix_data = main_menu::gbe_plus->get_core_data(core_pixel);
 
 			//Handle highlighting
 			if(is_win)
@@ -1182,102 +1183,29 @@ void gbe_cgfx::draw_gb_layer(u8 layer)
 				target_pixel = pixel_counter + main_menu::gbe_plus->ex_read_u8(REG_WX);
 			}
 
-			else
+			else if(!is_win && !is_obj)
 			{
 				target_scanline = current_scanline + (main_menu::gbe_plus->ex_read_u8(REG_SY) % 8);
 				target_pixel = pixel_counter + (main_menu::gbe_plus->ex_read_u8(REG_SX) % 8);
 			}
 
 			if(((target_pixel / 8) >= min_x_rect) && ((target_pixel / 8) <= max_x_rect)
-			&& ((target_scanline / 8) >= min_y_rect) && ((target_scanline / 8) <= max_y_rect))
+			&& ((target_scanline / 8) >= min_y_rect) && ((target_scanline / 8) <= max_y_rect)
+			&& (!is_obj))
 			{
-				bg_data += 0x00808080;
+				pix_data += 0x00808080;
 			}
 
-			bg_pixels.push_back(bg_data);
+			pixels.push_back(pix_data);
 		}
 	}
 
 	QImage raw_image(160, 144, QImage::Format_ARGB32);	
 
 	//Copy raw pixels to QImage
-	for(int x = 0; x < bg_pixels.size(); x++)
+	for(int x = 0; x < pixels.size(); x++)
 	{
-		raw_image.setPixel((x % 160), (x / 160), bg_pixels[x]);
-	}
-
-	raw_image = raw_image.scaled(320, 288);
-
-	//Set label Pixmap
-	current_layer->setPixmap(QPixmap::fromImage(raw_image));
-}
-
-/****** Draws the DMG OBJ layer ******/
-void gbe_cgfx::draw_dmg_obj()
-{
-	if(main_menu::gbe_plus == NULL) { return; }
-
-	std::vector<u32> bg_pixels;
-
-	for(u8 current_scanline = 0; current_scanline < 144; current_scanline++)
-	{
-		//Render a given scanline on the core
-		u16 core_line = (current_scanline << 8) | 6;
-		main_menu::gbe_plus->get_core_data(core_line);
-
-		//Copy scanline buffer to BG buffer
-		for(u8 pixel_counter = 0; pixel_counter < 160; pixel_counter++)
-		{
-			u16 core_pixel = (pixel_counter << 8) | 0x3;
-			u32 bg_data = main_menu::gbe_plus->get_core_data(core_pixel);
-
-			bg_pixels.push_back(bg_data);
-		}
-	}
-
-	QImage raw_image(160, 144, QImage::Format_ARGB32);	
-
-	//Copy raw pixels to QImage
-	for(int x = 0; x < bg_pixels.size(); x++)
-	{
-		raw_image.setPixel((x % 160), (x / 160), bg_pixels[x]);
-	}
-
-	raw_image = raw_image.scaled(320, 288);
-
-	//Set label Pixmap
-	current_layer->setPixmap(QPixmap::fromImage(raw_image));
-}
-
-/****** Draws the GBC OBJ layer ******/
-void gbe_cgfx::draw_gbc_obj()
-{
-	if(main_menu::gbe_plus == NULL) { return; }
-
-	std::vector<u32> bg_pixels;
-
-	for(u8 current_scanline = 0; current_scanline < 144; current_scanline++)
-	{
-		//Render a given scanline on the core
-		u16 core_line = (current_scanline << 8) | 9;
-		main_menu::gbe_plus->get_core_data(core_line);
-
-		//Copy scanline buffer to BG buffer
-		for(u8 pixel_counter = 0; pixel_counter < 160; pixel_counter++)
-		{
-			u16 core_pixel = (pixel_counter << 8) | 0x3;
-			u32 bg_data = main_menu::gbe_plus->get_core_data(core_pixel);
-
-			bg_pixels.push_back(bg_data);
-		}
-	}
-
-	QImage raw_image(160, 144, QImage::Format_ARGB32);	
-
-	//Copy raw pixels to QImage
-	for(int x = 0; x < bg_pixels.size(); x++)
-	{
-		raw_image.setPixel((x % 160), (x / 160), bg_pixels[x]);
+		raw_image.setPixel((x % 160), (x / 160), pixels[x]);
 	}
 
 	raw_image = raw_image.scaled(320, 288);
