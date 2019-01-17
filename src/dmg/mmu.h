@@ -39,6 +39,7 @@ class DMG_MMU
 		MBC6,
 		MBC7,
 		HUC1,
+		HUC3,
 		MMM01,
 		GB_CAMERA,
 	};
@@ -194,6 +195,9 @@ class DMG_MMU
 
 	void huc1_write(u16 address, u8 value);
 	u8 huc1_read(u16 address);
+
+	void huc3_write(u16 address, u8 value);
+	u8 huc3_read(u16 address);
 
 	void mmm01_write(u16 address, u8 value);
 	u8 mmm01_read(u16 address);

@@ -10,6 +10,7 @@ set(SRCS
 	mbc6.cpp
 	mbc7.cpp
 	huc1.cpp
+	huc3.cpp
 	mmm01.cpp
 	camera.cpp
 	mmu.cpp

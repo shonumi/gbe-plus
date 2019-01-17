@@ -1,18 +1,18 @@
-// GB Enhanced Copyright Daniel Baxter 2015
+// GB Enhanced Copyright Daniel Baxter 2019
 // Licensed under the GPLv2
 // See LICENSE.txt for full license text
 
-// File : huc1.cpp
-// Date : September 05, 2016
-// Description : Game Boy HuC-1 I/O handling
+// File : huc3.cpp
+// Date : January 16, 2019
+// Description : Game Boy HuC-3 I/O handling
 //
-// Handles reading and writing bytes to memory locations for HuC-1
-// Used to switch ROM and RAM banks in HuC-1
+// Handles reading and writing bytes to memory locations for HuC-3
+// Used to switch ROM and RAM banks in HuC-3
 
 #include "mmu.h"
 
-/****** Performs write operations specific to the HuC-1 ******/
-void DMG_MMU::huc1_write(u16 address, u8 value)
+/****** Performs write operations specific to the HuC-3 ******/
+void DMG_MMU::huc3_write(u16 address, u8 value)
 {
 	//Write to External RAM
 	if((address >= 0xA000) && (address <= 0xBFFF))
@@ -32,7 +32,7 @@ void DMG_MMU::huc1_write(u16 address, u8 value)
 	//MBC register - Select ROM bank
 	else if((address >= 0x2000) && (address <= 0x3FFF))
 	{
-		rom_bank = (value & 0x3F);
+		rom_bank = (value & 0x7F);
 		
 		//Lowest switchable ROM bank is 1
 		if(rom_bank == 0) { rom_bank++; }
@@ -40,13 +40,10 @@ void DMG_MMU::huc1_write(u16 address, u8 value)
 
 	//MBC register - Select RAM bank
 	else if((address >= 0x4000) && (address <= 0x5FFF)) { bank_bits = (value & 0x3); }
+} 
 
-	//MBC register - Switch between 8KB and 32KB
-	else if((address >= 0x6000) && (address <= 0x7FFF)) { bank_mode = (value & 0x1); }
-}
-
-/****** Performs read operations specific to the HuC-1 ******/
-u8 DMG_MMU::huc1_read(u16 address)
+/****** Performs read operations specific to the HuC-3 ******/
+u8 DMG_MMU::huc3_read(u16 address)
 {
 	//Read using ROM Banking - Bank 0
 	if(address <= 0x3FFF) { return memory_map[address]; }
@@ -68,7 +65,7 @@ u8 DMG_MMU::huc1_read(u16 address)
 	//RAM is always enabled of the HuC-1
 	else if((address >= 0xA000) && (address <= 0xBFFF))
 	{
-		if(bank_mode == 0) { return random_access_bank[0][address - 0xA000]; }
-		else { return random_access_bank[bank_bits][address - 0xA000]; }
+		if(ram_banking_enabled) { return random_access_bank[bank_bits][address - 0xA000]; }
+		else { return 0; }
 	}
 }
