@@ -18,8 +18,7 @@ void DMG_MMU::huc3_write(u16 address, u8 value)
 	if((address >= 0xA000) && (address <= 0xBFFF))
 	{
 		//Only write to RAM if writing has been enabled
-		if((bank_mode == 0) && (ram_banking_enabled)) { random_access_bank[0][address - 0xA000] = value; }
-		else if((bank_mode == 1) && (ram_banking_enabled)) { random_access_bank[bank_bits][address - 0xA000] = value; }
+		if(ram_banking_enabled) { random_access_bank[bank_bits][address - 0xA000] = value; }
 	}
 
 	//MBC register - Enable or Disable RAM Write
@@ -62,10 +61,9 @@ u8 DMG_MMU::huc3_read(u16 address)
 	}
 
 	//Read using RAM Banking
-	//RAM is always enabled of the HuC-1
 	else if((address >= 0xA000) && (address <= 0xBFFF))
 	{
 		if(ram_banking_enabled) { return random_access_bank[bank_bits][address - 0xA000]; }
-		else { return 0; }
+		else { return 1; }
 	}
 }
