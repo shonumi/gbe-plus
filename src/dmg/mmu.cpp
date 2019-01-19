@@ -97,6 +97,8 @@ void DMG_MMU::reset()
 	ir_trigger = false;
 	ir_counter = 0;
 
+	div_reset = false;
+
 	//Resize various banks
 	read_only_bank.resize(0x200);
 	for(int x = 0; x < 0x200; x++) { read_only_bank[x].resize(0x4000, 0); }
@@ -370,7 +372,6 @@ u8 DMG_MMU::read_u8(u16 address)
 
 	//Read normally
 	return memory_map[address]; 
-
 }
 
 /****** Read signed byte from memory ******/
@@ -421,7 +422,11 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	}
 
 	//DIV - Reset register to zero
-	else if(address == REG_DIV) { memory_map[address] = 0; }
+	else if(address == REG_DIV)
+	{
+		memory_map[address] = 0;
+		div_reset = true;
+	}
 
 	//NR11 - Duty Cycle
 	else if(address == NR11)

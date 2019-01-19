@@ -129,6 +129,8 @@ class DMG_MMU
 	u8 ir_trigger;
 	s32 ir_counter;
 
+	bool div_reset;
+
 	dmg_core_pad* g_pad;
 
 	//Advanced debugging

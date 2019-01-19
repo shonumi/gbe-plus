@@ -334,7 +334,13 @@ void DMG_core::run_core()
 
 			//Update TIMA timer
 			if(core_mmu.memory_map[REG_TAC] & 0x4) 
-			{	
+			{
+				if(core_mmu.div_reset)
+				{
+					core_mmu.div_reset = false;
+					core_cpu.tima_counter = 0;
+				}
+
 				core_cpu.tima_counter += core_cpu.cycles;
 
 				switch(core_mmu.memory_map[REG_TAC] & 0x3)
