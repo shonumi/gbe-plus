@@ -17,15 +17,25 @@ void DMG_MMU::huc3_write(u16 address, u8 value)
 	//Write to External RAM
 	if((address >= 0xA000) && (address <= 0xBFFF))
 	{
-		//Only write to RAM if writing has been enabled
-		if(ram_banking_enabled) { random_access_bank[bank_bits][address - 0xA000] = value; }
+		//Handle IR signals
+		if(ir_trigger)
+		{
+			ir_signal = (value & 0x1);
+			ir_send = true;
+		}
+
+		//Otherwise write to RAM if enabled
+		else if(ram_banking_enabled) { random_access_bank[bank_bits][address - 0xA000] = value; }
 	}
 
-	//MBC register - Enable or Disable RAM Write
+	//MBC register - Enable or Disable RAM Write or IR
 	if(address <= 0x1FFF)
 	{
 		if((value & 0xF) == 0xA) { ram_banking_enabled = true; }
 		else { ram_banking_enabled = false; }
+
+		if((value & 0xF) == 0xE) { ir_trigger = 1; }
+		else { ir_trigger = 0; }
 	}
 
 	//MBC register - Select ROM bank
@@ -63,7 +73,11 @@ u8 DMG_MMU::huc3_read(u16 address)
 	//Read using RAM Banking
 	else if((address >= 0xA000) && (address <= 0xBFFF))
 	{
-		if(ram_banking_enabled) { return random_access_bank[bank_bits][address - 0xA000]; }
+		//Prioritize IR reading if applicable
+		if(ir_trigger) { return 0xC0 | (ir_signal); }
+
+		//Otherwise read from RAM
+		else if(ram_banking_enabled) { return random_access_bank[bank_bits][address - 0xA000]; }
 		else { return 1; }
 	}
 }
