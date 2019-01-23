@@ -48,8 +48,19 @@ void DMG_MMU::tama5_write(u16 address, u8 value)
 					rom_bank &= ~0xF0;
 					rom_bank |= ((value & 0xF) << 4);
 					break;
+
+				//Constant Value = 0xA1
+				case 0xA:
+					value = 0xA1;
+					break;
 			}
+
+			//Save data to internal MBC registers
+			if((bank_mode & 0xF) <= 0xD) { cart.tama_reg[bank_mode & 0xF] = (value & 0xF); }
 		}
+
+		//Initial 0xA001 write
+		else if((address == 0xA001) && (value == 0xA)) { cart.tama_reg[0xA] = 0xF1; }
 	}
 }
 
@@ -70,7 +81,7 @@ u8 DMG_MMU::tama5_read(u16 address)
 		}
 
 		//When reading from Bank 1, just use the memory map
-		else { return memory_map[address]; }
+		return memory_map[address];
 	}
 
 	//Access TAMA5 registers
@@ -82,5 +93,16 @@ u8 DMG_MMU::tama5_read(u16 address)
 			bank_mode |= 0x40;
 			return 0xF1;
 		}
+
+		//Read register data
+		else if(((bank_mode & 0xC0) == 0xC0) && (address == 0xA000))
+		{
+			if((bank_mode & 0xF) <= 0xD) { return cart.tama_reg[bank_mode & 0xF]; }
+		}
+
+		//Initial 0xA000 read
+		else if(address == 0xA000) { return cart.tama_reg[0xA]; }
+
+		return 0;
 	}
 }
