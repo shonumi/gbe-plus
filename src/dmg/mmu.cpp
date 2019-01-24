@@ -92,6 +92,8 @@ void DMG_MMU::reset()
 	cart.frame_count = 0;
 	cart.depth = 0;
 
+	for(u32 x = 0; x < 13; x++) { cart.tama_reg[x] = 0; }
+
 	ir_signal = 0;
 	ir_send = false;
 	ir_trigger = false;
@@ -1448,6 +1450,10 @@ u8 DMG_MMU::mbc_read(u16 address)
 		case GB_CAMERA:
 			return cam_read(address);
 			break;
+
+		case TAMA5:
+			return tama5_read(address);
+			break;
 	}
 }
 
@@ -1495,6 +1501,10 @@ void DMG_MMU::mbc_write(u16 address, u8 value)
 
 		case GB_CAMERA:
 			cam_write(address, value);
+			break;
+
+		case TAMA5:
+			tama5_write(address, value);
 			break;
 	}
 }
@@ -1866,9 +1876,12 @@ bool DMG_MMU::read_file(std::string filename)
 			break;
 
 		case 0xFD:
+			cart.mbc_type = TAMA5;
+			cart.ram = true;
+
 			std::cout<<"MMU::Cartridge Type - Bandai TAMA5\n";
-			std::cout<<"MMU::MBC type currently unsupported \n";
-			return false;
+			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];
+			std::cout<<"MMU::ROM Size - " << std::dec << cart.rom_size << "KB\n";
 			break;
 
 		case 0xFE:

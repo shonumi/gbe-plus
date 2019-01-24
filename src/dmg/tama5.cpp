@@ -17,23 +17,23 @@ void DMG_MMU::tama5_write(u16 address, u8 value)
 	//Access TAMA5 registers
 	if((address >= 0xA000) && (address <= 0xBFFF) && (cart.ram))
 	{
-		//Unlock MBC
-		if(((bank_mode & 0x80) == 0) && (address == 0xA001) && (value == 0xA))
+		//Initial 0xA001 write
+		if((address == 0xA001) && (value == 0xA) && (!bank_mode))
 		{
-			//Bit 7 = Unlock flag. Bit 6 = Read from 0xA000 flag
+			cart.tama_reg[0xA] = 0xF1;
 			bank_mode |= 0x80;
-			bank_mode &= ~0x40;
 		}
 
 		//Select MBC register
-		else if(((bank_mode & 0xC0) == 0xC0) && (address == 0xA001))
+		else if((bank_mode & 0x80) && (address == 0xA001))
 		{
 			//Store TAMA5 MBC register as single byte in lower halfbyte
+			bank_mode &= ~0xF;
 			bank_mode |= (value & 0xF);
 		}
 
 		//Write register data
-		else if(((bank_mode & 0xC0) == 0xC0) && (address == 0xA000))
+		else if((bank_mode & 0x80) && (address == 0xA000))
 		{
 			switch(bank_mode & 0xF)
 			{
@@ -58,9 +58,6 @@ void DMG_MMU::tama5_write(u16 address, u8 value)
 			//Save data to internal MBC registers
 			if((bank_mode & 0xF) <= 0xD) { cart.tama_reg[bank_mode & 0xF] = (value & 0xF); }
 		}
-
-		//Initial 0xA001 write
-		else if((address == 0xA001) && (value == 0xA)) { cart.tama_reg[0xA] = 0xF1; }
 	}
 }
 
@@ -87,21 +84,14 @@ u8 DMG_MMU::tama5_read(u16 address)
 	//Access TAMA5 registers
 	else if((address >= 0xA000) && (address <= 0xBFFF))
 	{
-		//Unlock MBC
-		if((bank_mode & 0xC0) == 0x80)
-		{
-			bank_mode |= 0x40;
-			return 0xF1;
-		}
-
 		//Read register data
-		else if(((bank_mode & 0xC0) == 0xC0) && (address == 0xA000))
+		if((bank_mode & 0x80) && (address == 0xA000))
 		{
-			if((bank_mode & 0xF) <= 0xD) { return cart.tama_reg[bank_mode & 0xF]; }
+			if((bank_mode & 0xF) <= 0xD)
+			{
+				return cart.tama_reg[bank_mode & 0xF];
+			}
 		}
-
-		//Initial 0xA000 read
-		else if(address == 0xA000) { return cart.tama_reg[0xA]; }
 
 		return 0;
 	}

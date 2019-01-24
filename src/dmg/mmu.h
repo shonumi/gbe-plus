@@ -42,6 +42,7 @@ class DMG_MMU
 		HUC3,
 		MMM01,
 		GB_CAMERA,
+		TAMA5,
 	};
 
 	std::vector <u8> memory_map;
@@ -122,6 +123,9 @@ class DMG_MMU
 		std::vector <u8> frame_data;
 		u32 pulse_count;
 		u32 frame_count;
+
+		//TAMA5
+		u8 tama_reg[13];
 	} cart;
 
 	u8 ir_signal;
@@ -207,6 +211,9 @@ class DMG_MMU
 	void cam_write(u16 address, u8 value);
 	u8 cam_read(u16 address);
 	bool cam_load_snapshot(std::string filename);
+
+	void tama5_write(u16 address, u8 value);
+	u8 tama5_read(u16 address);
 
 	void set_gs_cheats();
 	void set_gg_cheats();

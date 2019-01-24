@@ -13,6 +13,7 @@ set(SRCS
 	huc3.cpp
 	mmm01.cpp
 	camera.cpp
+	tama5.cpp
 	mmu.cpp
 	opengl.cpp
 	z80.cpp
