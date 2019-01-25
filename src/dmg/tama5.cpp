@@ -49,6 +49,21 @@ void DMG_MMU::tama5_write(u16 address, u8 value)
 					rom_bank |= ((value & 0xF) << 4);
 					break;
 
+				//RAM Write - Perform write on last register access
+				case 0x7:
+					if((cart.tama_reg[0x6] == 2) || (cart.tama_reg[0x6] == 3))
+					{
+						u8 addr = (cart.tama_reg[0x06] << 4);
+						addr |= (value & 0xF);
+
+						u8 ram_val = cart.tama_reg[0x4];
+						ram_val |= (cart.tama_reg[0x5] << 4);
+
+						random_access_bank[0][addr] = ram_val;
+					}
+
+					break;
+
 				//Constant Value = 0xA1
 				case 0xA:
 					value = 0xA1;
