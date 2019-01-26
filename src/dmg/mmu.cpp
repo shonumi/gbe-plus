@@ -1878,6 +1878,7 @@ bool DMG_MMU::read_file(std::string filename)
 		case 0xFD:
 			cart.mbc_type = TAMA5;
 			cart.ram = true;
+			cart.battery = true;
 
 			std::cout<<"MMU::Cartridge Type - Bandai TAMA5\n";
 			cart.rom_size = 32 << memory_map[ROM_ROMSIZE];

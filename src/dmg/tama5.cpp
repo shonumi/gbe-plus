@@ -49,8 +49,9 @@ void DMG_MMU::tama5_write(u16 address, u8 value)
 					rom_bank |= ((value & 0xF) << 4);
 					break;
 
-				//RAM Write - Perform write on last register access
+				//RAM Write or RAM access - Perform write on last register access
 				case 0x7:
+					//Write
 					if((cart.tama_reg[0x6] == 2) || (cart.tama_reg[0x6] == 3))
 					{
 						u8 addr = (cart.tama_reg[0x06] << 4);
@@ -60,6 +61,18 @@ void DMG_MMU::tama5_write(u16 address, u8 value)
 						ram_val |= (cart.tama_reg[0x5] << 4);
 
 						random_access_bank[0][addr] = ram_val;
+					}
+
+					//Read
+					else if(cart.tama_reg[0x6] < 2)
+					{
+						u8 addr = (cart.tama_reg[0x06] << 4);
+						addr |= (value & 0xF);
+
+						u8 ram_val = random_access_bank[0][addr];
+						
+						cart.tama_reg[0xC] = 0xF0 | (ram_val & 0xF);
+						cart.tama_reg[0xD] = 0xF0 | ((ram_val >> 4) & 0xF);
 					}
 
 					break;
@@ -101,7 +114,7 @@ u8 DMG_MMU::tama5_read(u16 address)
 	{
 		//Read register data
 		if((bank_mode & 0x80) && (address == 0xA000))
-		{
+		{			
 			if((bank_mode & 0xF) <= 0xD)
 			{
 				return cart.tama_reg[bank_mode & 0xF];
