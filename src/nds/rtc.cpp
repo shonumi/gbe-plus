@@ -152,9 +152,6 @@ void NTR_MMU::process_rtc()
 									nds7_rtc.serial_data[4] = (nds7_rtc.regs[0] & 0x2) ? (nds7_rtc.serial_data[4] % 24) : (nds7_rtc.serial_data[4] % 12);
 									raw_hours = nds7_rtc.serial_data[4];
 									nds7_rtc.serial_data[4] = util::get_bcd(nds7_rtc.serial_data[4]);
-
-									//AM-PM flag
-									if((nds7_rtc.regs[0] & 0x40) && (raw_hours >= 12)) { nds7_rtc.serial_data[4] |= 0x40; }
 									
 									//Minutes
 									nds7_rtc.serial_data[5] = current_time->tm_min;
@@ -197,9 +194,6 @@ void NTR_MMU::process_rtc()
 									nds7_rtc.serial_data[0] = (nds7_rtc.regs[0] & 0x40) ? (nds7_rtc.serial_data[0] % 24) : (nds7_rtc.serial_data[0] % 12);
 									raw_hours = nds7_rtc.serial_data[0];
 									nds7_rtc.serial_data[0] = util::get_bcd(nds7_rtc.serial_data[0]);
-
-									//AM-PM flag
-									if((nds7_rtc.regs[0] & 0x40) && (raw_hours >= 12)) { nds7_rtc.serial_data[0] |= 0x40; }
 	
 									//Minutes
 									nds7_rtc.serial_data[1] = current_time->tm_min;
