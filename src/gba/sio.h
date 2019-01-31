@@ -73,13 +73,18 @@ class AGB_SIO
 	struct soul_doll_adapter
 	{
 		std::vector <u8> data;
-		u8 data_section;
-		u8 flags;
+		std::vector <u8> stream_byte;
+		std::vector <u32> stream_word;
+		u32 stop_signal;
+		u16 eeprom_addr;
 		u16 prev_data;
 		u16 prev_write;
-		u32 buffer_index;
-		u32 data_count;
-		u32 delay;
+		u8 data_count;
+		u8 slave_addr;
+		u8 word_addr;
+		u8 eeprom_cmd;
+		u8 flags;
+		bool get_slave_addr;
 		soul_doll_adapter_state current_state;
 	} sda;
 

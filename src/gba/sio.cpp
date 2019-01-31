@@ -223,14 +223,20 @@ void AGB_SIO::reset()
 
 	//Soul Doll Adapter
 	sda.data.clear();
-	sda.data_section = 0;
-	sda.buffer_index = 0;
-	sda.data_count = 0;
-	sda.delay = 0;
-	sda.flags = 0;
-	sda.current_state = GBA_SOUL_DOLL_ADAPTER_INACTIVE;
+	sda.stream_byte.clear();
+	sda.stream_word.clear();
+	sda.stop_signal = 0xFF2727FF;
+	sda.eeprom_addr = 0;
 	sda.prev_data = 0;
 	sda.prev_write = 0;
+	sda.data_count = 0;
+	sda.slave_addr = 0xFF;
+	sda.word_addr = 0;
+	sda.eeprom_cmd = 0xFF;
+	sda.flags = 0;
+	sda.get_slave_addr = true;
+	sda.current_state = GBA_SOUL_DOLL_ADAPTER_ECHO;
+
 	if(config::sio_device == 9) { soul_doll_adapter_load_data(config::external_data_file); }
 
 	#ifdef GBE_NETPLAY
@@ -593,7 +599,7 @@ bool AGB_SIO::soul_doll_adapter_load_data(std::string filename)
 	u32 file_size = doll_data.tellg();
 	doll_data.seekg(0, doll_data.beg);
 
-	if(file_size != 0x9000)
+	if(file_size != 0x400)
 	{
 		std::cout<<"SIO::Error - Soul Doll data has incorrect size\n";
 		sda.flags |= 0x80;
@@ -618,8 +624,8 @@ void AGB_SIO::soul_doll_adapter_process()
 	//Abort any processing if Soul Doll data was not loaded
 	if(sda.flags & 0x80) { return; }
 
-	//Soul Doll Adapter Inactive - Echo bytes
-	if(sda.current_state == GBA_SOUL_DOLL_ADAPTER_INACTIVE)
+	//Soul Doll Adapter Echo Mode - Echo bytes until EEPROM command detected
+	if(sda.current_state == GBA_SOUL_DOLL_ADAPTER_ECHO)
 	{
 		//During this phase, echo everything save for the following
 		switch(sio_stat.r_cnt)
@@ -633,125 +639,142 @@ void AGB_SIO::soul_doll_adapter_process()
 				break;
 		}
 
-		if(sda.data_count < 3) { sda.data_count++; }
-	}
+		//Add LSB of RCNT to stream for later analysis
+		sda.stream_byte.push_back(sio_stat.r_cnt & 0xFF);
 
-	//Soul Doll Adapter Active - Reply with Doll data
-	else if(sda.current_state == GBA_SOUL_DOLL_ADAPTER_ACTIVE)
-	{
-		sio_stat.r_cnt = (0x8000 | sda.data[sda.buffer_index++]);
-		sda.data_count++;
-
-		//1st 4608 transfer data segment
-		if((sda.data_count == 4608) && (sda.data_section == 0))
+		//Update data stream as 32-bit values
+		if(sda.stream_byte.size() == 4)
 		{
-			sda.current_state = GBA_SOUL_DOLL_ADAPTER_DATA_WAIT;
-			sda.data_count = 0;
-			sda.data_section++;
+			u32 word = (sda.stream_byte[0] << 24) | (sda.stream_byte[1] << 16) | (sda.stream_byte[2] << 8) | sda.stream_byte[3];
+			sda.stream_word.push_back(word);
+			sda.stream_byte.clear();
 		}
 
-		//9216 transfer data segments 1-3
-		else if((sda.data_count == 9216) && (sda.data_section >= 1) && (sda.data_section <= 3))
+		//Check for device start signal V1 - Clear stream and wait for slave address
+		if((sda.prev_write == 0x8020) && (mem->read_u16_fast(R_CNT) == 0x802D))
 		{
-			sda.current_state = GBA_SOUL_DOLL_ADAPTER_DATA_WAIT;
-			sda.data_count = 0;
-			sda.data_section++;
-		}
-
-		//2nd 4608 transfer data segment
-		else if((sda.data_count == 4608) && (sda.data_section == 4))
-		{
-			sda.current_state = GBA_SOUL_DOLL_ADAPTER_INACTIVE;
-			sda.buffer_index = 0;
-			sda.data_count = 0;
+			sda.stream_byte.clear();
+			sda.stream_word.clear();
+			sda.get_slave_addr = true;
 		}
 	}
 
-	//Soul Doll Adapter Data Wait - Halt processing for certain number of transfers
-	else if(sda.current_state == GBA_SOUL_DOLL_ADAPTER_DATA_WAIT)
+	//Soul Doll Adapter Read Mode - Read back bytes from EEPROM
+	else if(sda.current_state == GBA_SOUL_DOLL_ADAPTER_READ)
 	{
-		sda.data_count++;
+		//Add LSB of RCNT to stream for later analysis
+		sda.stream_byte.push_back(sio_stat.r_cnt & 0xFF);
 
-		switch(sda.data_section)
+		//Update data stream as 32-bit values
+		if(sda.stream_byte.size() == 4)
 		{
-			//Wait until 1st 4608 segment starts
-			case 0x0:
-				if(sda.data_count == 160)
-				{
-					sda.data_count = 0;
-					sda.current_state = GBA_SOUL_DOLL_ADAPTER_ACTIVE;
-					sda.delay = 0;
-				}
-
-				break;
-
-			//1st 4608 data segment, wait until start signal (0x8020, 0x802D)
-			case 0x1:
-
-				//Detect whether or not jump to last 4608 data segment is necessary
-				//Seems to be if a large amount of transfers happen here without sending the start signal
-				//Sign of Nekrom seems to do this, but not Isle of Trial
-				if(sda.data_count >= 1000)
-				{	
-					//Move buffer index to (4608 + (9216 * 3)), the last 4608 data segment
-					sda.flags |= 1;
-					sda.buffer_index = 0x7E00;
-				}
-
-				//Detect end of 4608 data segment
-				if((sda.prev_write == 0x8020) && (mem->read_u16_fast(R_CNT) == 0x802D))
-				{
-					sda.delay = sda.data_count + 160;
-				}
-
-				//Return from DATA_WAIT to ACTIVE
-				else if(sda.data_count == sda.delay)
-				{
-					sda.data_count = 0;
-					sda.current_state = GBA_SOUL_DOLL_ADAPTER_ACTIVE;
-
-					if(sda.flags & 0x1) { sda.data_section = 4; }
-				}
-
-				break;
-
-			//1st, 2nd, and 3rd 9216 data segments, wait until 168 transfers
-			case 0x2:
-			case 0x3:
-			case 0x4:
-
-				//Return from DATA_WAIT to ACTIVE
-				if(sda.data_count == 168)
-				{
-					sda.data_count = 0;
-					sda.current_state = GBA_SOUL_DOLL_ADAPTER_ACTIVE;
-				}
-
-				break;
+			u32 word = (sda.stream_byte[0] << 24) | (sda.stream_byte[1] << 16) | (sda.stream_byte[2] << 8) | sda.stream_byte[3];
+			sda.stream_word.push_back(word);
+			sda.stream_byte.clear();
 		}
 
-		//During this phase, echo everything save for the following
-		switch(sio_stat.r_cnt)
+		//If 0xADAFAFAD received in Read Mode, this signals an end to Read Mode and a return to Echo Mode
+		if(sda.stream_word.back() == 0xADAFAFAD)
 		{
-			case 0x802D:
-				if(sda.prev_data == 0x80A5) { sio_stat.r_cnt = 0x8025; }
-				break;
-
-			case 0x802F:
-				sio_stat.r_cnt = 0x8027;
-				break;
+			sda.current_state = GBA_SOUL_DOLL_ADAPTER_ECHO;
+			sda.data_count = 0;
+			sda.stream_byte.clear();
+			sda.stream_word.clear();
+			sda.stop_signal = 0xFF2727FF;
+			sda.get_slave_addr = true;
 		}
-	}	
 
-	//Start Soul Doll Adapter data transfers
-	if((sda.current_state == GBA_SOUL_DOLL_ADAPTER_INACTIVE) && (sda.prev_data == 0x802D) && (sio_stat.r_cnt == 0x802D) && (sda.data_count >= 3) && (sda.data_section == 0))
+		//Read from EEPROM for 32 transfers (1 byte), echo RCNT until stop signal
+		if(sda.data_count < 32)
+		{
+			sio_stat.r_cnt = 0x8000;
+
+			u8 eeprom_index = sda.data_count / 4;
+			u8 eeprom_bit = (sda.data[sda.eeprom_addr] >> (7 - eeprom_index)) & 0x1;
+			u32 eeprom_response = (eeprom_bit) ? 0x2D2F2F2D : 0x25272725;
+		
+			//Return the proper value for RCNT based on bit from EEPROM
+			switch(sda.data_count % 4)
+			{
+				case 0x0:
+				case 0x3:
+					sio_stat.r_cnt |= (eeprom_bit) ? 0x2D : 0x25;
+					break;
+
+				case 0x1:
+				case 0x2:
+					sio_stat.r_cnt |= (eeprom_bit) ? 0x2F : 0x27;
+					break;
+			}
+
+			sda.data_count++;
+		}
+	}
+
+	//Check for stop signal in 32-bit stream
+	if(!sda.stream_word.empty())
 	{
-		sda.current_state = GBA_SOUL_DOLL_ADAPTER_DATA_WAIT;
-		sda.buffer_index = 0;
-		sda.data_count = 0;
-		sda.data_section = 0;
-		sda.delay = 160;
-		sda.flags &= ~0x1;
+		bool ignore = false;
+		u8 last_byte = 0;
+
+		//Stop signal should be xx2727xx or xxA7A7xx
+		if((sda.stream_word.back() | 0xFF0000FF) == sda.stop_signal)
+		{
+			//Discard last word if it is the stop signal
+			sda.stream_word.pop_back();
+
+			//Calculate last byte from 32-bit stream
+			for(u32 x = 0; x < 8; x++)
+			{
+				u32 word = sda.stream_word[sda.stream_word.size() - x - 1];
+				if(word & 0x800) { last_byte |= (1 << x); }
+			}
+
+			switch(sda.current_state)
+			{
+				//Echo Mode - Check for EEPROM command
+				case GBA_SOUL_DOLL_ADAPTER_ECHO:
+
+					//Check if the data is a slave address
+					if(((last_byte >> 4) == 0xA) && (sda.get_slave_addr))
+					{
+						u8 last_eeprom_cmd = sda.eeprom_cmd;
+
+						sda.eeprom_addr &= ~0x300;
+						sda.eeprom_addr |= ((last_byte & 0x6) << 7);
+						sda.slave_addr = (last_byte & 0x6);
+						sda.eeprom_cmd = (last_byte & 0x1);
+						sda.get_slave_addr = false;
+
+						//If last EEPROM command was Dummy Write (0) and next EEPROM command is read (1), switch to Read Mode
+						if((last_eeprom_cmd == 0) && (sda.eeprom_cmd == 1))
+						{
+							sda.current_state = GBA_SOUL_DOLL_ADAPTER_READ;
+							sda.stop_signal = 0xFFA7A7FF;
+							sda.data_count = 0;
+							sda.eeprom_cmd = 0xFF;
+						}
+					}
+
+					//Check if the data is a word address
+					else if(!sda.get_slave_addr)
+					{
+						sda.eeprom_addr &= ~0xFF;
+						sda.eeprom_addr |= last_byte;
+						sda.get_slave_addr = true;
+					}
+
+					break;
+
+				//Read Mode - Increment EEPROM address
+				case GBA_SOUL_DOLL_ADAPTER_READ:
+					sda.eeprom_addr++;
+					sda.data_count = 0;
+					break;
+			}
+
+			sda.stream_word.clear();
+		}
 	}
 
 	sio_stat.emu_device_ready = false;

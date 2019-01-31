@@ -45,9 +45,9 @@ enum gb_player_rumble_state
 //Soul Doll Adapter enumerations
 enum soul_doll_adapter_state
 {
-	GBA_SOUL_DOLL_ADAPTER_INACTIVE,
-	GBA_SOUL_DOLL_ADAPTER_ACTIVE,
-	GBA_SOUL_DOLL_ADAPTER_DATA_WAIT,
+	GBA_SOUL_DOLL_ADAPTER_ECHO,
+	GBA_SOUL_DOLL_ADAPTER_READ,
+	GBA_SOUL_DOLL_ADAPTER_WRITE,
 };
 
 struct agb_sio_data

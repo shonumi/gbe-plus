@@ -523,12 +523,7 @@ void AGB_core::handle_hotkey(SDL_Event& event)
 		{
 			//Reset adapter
 			case GBA_SOUL_DOLL_ADAPTER:
-				core_cpu.controllers.serial_io.sda.current_state = GBA_SOUL_DOLL_ADAPTER_INACTIVE;
-				core_cpu.controllers.serial_io.sda.buffer_index = 0;
-				core_cpu.controllers.serial_io.sda.data_count = 0;
-				core_cpu.controllers.serial_io.sda.data_section = 0;
-				core_cpu.controllers.serial_io.sda.delay = 0;
-				core_cpu.controllers.serial_io.sda.flags &= ~0x1;
+				core_cpu.controllers.serial_io.sda.current_state = GBA_SOUL_DOLL_ADAPTER_ECHO;
 
 				//OSD
 				config::osd_message = "SOUL DOLL ADAPTER RESET";
