@@ -65,6 +65,14 @@ AGB_SIO::~AGB_SIO()
 
 	#endif
 
+	//Save any new Legendz data for updated Soul Doll
+	if(sda.update_soul_doll)
+	{
+		std::ofstream out_data(config::external_data_file.c_str(), std::ios::binary);
+		out_data.write((char*)&sda.data[0], 0x400);
+		out_data.close();
+	}
+
 	std::cout<<"SIO::Shutdown\n";
 }
 
@@ -235,6 +243,7 @@ void AGB_SIO::reset()
 	sda.eeprom_cmd = 0xFF;
 	sda.flags = 0;
 	sda.get_slave_addr = true;
+	sda.update_soul_doll = false;
 	sda.current_state = GBA_SOUL_DOLL_ADAPTER_ECHO;
 
 	if(config::sio_device == 9) { soul_doll_adapter_load_data(config::external_data_file); }
@@ -711,14 +720,52 @@ void AGB_SIO::soul_doll_adapter_process()
 		}
 	}
 
+	//Soul Doll Adapter Write Mode - Write to EEPROM
+	else if(sda.current_state == GBA_SOUL_DOLL_ADAPTER_WRITE)
+	{
+		//During this phase, echo everything save for the following
+		switch(sio_stat.r_cnt)
+		{
+			case 0x802D:
+				if(sda.prev_data == 0x80A5) { sio_stat.r_cnt = 0x8025; }
+				break;
+
+			case 0x802F:
+				sio_stat.r_cnt = 0x8027;
+				break;
+		}
+
+		//Add LSB of RCNT to stream for later analysis
+		sda.stream_byte.push_back(sio_stat.r_cnt & 0xFF);
+
+		//Update data stream as 32-bit values
+		if(sda.stream_byte.size() == 4)
+		{
+			u32 word = (sda.stream_byte[0] << 24) | (sda.stream_byte[1] << 16) | (sda.stream_byte[2] << 8) | sda.stream_byte[3];
+			sda.stream_word.push_back(word);
+			sda.stream_byte.clear();
+		}
+	}
+
 	//Check for stop signal in 32-bit stream
 	if(!sda.stream_word.empty())
 	{
-		bool ignore = false;
 		u8 last_byte = 0;
 
+		//Read and Write commands are formatted similarly
+		//After a slave address and word address are received, examine the first word to determine which command it really is
+		//If the first word received after slave + word addresses are sent == 0xADAFA7A5, then proceed with Read Mode on the next stop signal
+		//Otherwise, entire Write Mode now
+		if((sda.stream_word.size() == 1) && (sda.eeprom_cmd == 0) && (sda.get_slave_addr) && (sda.stream_word[0] != 0xADAFA7A5))
+		{
+			sda.current_state = GBA_SOUL_DOLL_ADAPTER_WRITE;
+			sda.stop_signal = 0xFF2727FF;
+			sda.data_count = 1;
+			sda.eeprom_cmd = 0xFF;
+		}
+
 		//Stop signal should be xx2727xx or xxA7A7xx
-		if((sda.stream_word.back() | 0xFF0000FF) == sda.stop_signal)
+		else if((sda.stream_word.back() | 0xFF0000FF) == sda.stop_signal)
 		{
 			//Discard last word if it is the stop signal
 			sda.stream_word.pop_back();
@@ -770,6 +817,26 @@ void AGB_SIO::soul_doll_adapter_process()
 				case GBA_SOUL_DOLL_ADAPTER_READ:
 					sda.eeprom_addr++;
 					sda.data_count = 0;
+					break;
+
+				//Write Mode - Write data to EEPROM address
+				case GBA_SOUL_DOLL_ADAPTER_WRITE:
+					sda.data[sda.eeprom_addr] = last_byte;
+					sda.update_soul_doll = true;
+
+					sda.eeprom_addr++;
+					sda.data_count++;
+
+					//End of Page Write - Return to Echo Mode
+					if(sda.data_count == 17)
+					{
+						sda.current_state = GBA_SOUL_DOLL_ADAPTER_ECHO;
+						sda.stop_signal = 0xFF2727FF;
+						sda.data_count = 0;
+						sda.eeprom_cmd = 0xFF;
+						sda.get_slave_addr = false;
+					}
+						
 					break;
 			}
 

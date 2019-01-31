@@ -85,6 +85,7 @@ class AGB_SIO
 		u8 eeprom_cmd;
 		u8 flags;
 		bool get_slave_addr;
+		bool update_soul_doll;
 		soul_doll_adapter_state current_state;
 	} sda;
 
