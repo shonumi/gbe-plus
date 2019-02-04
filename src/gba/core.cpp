@@ -524,6 +524,9 @@ void AGB_core::handle_hotkey(SDL_Event& event)
 			//Reset adapter
 			case GBA_SOUL_DOLL_ADAPTER:
 				core_cpu.controllers.serial_io.sda.current_state = GBA_SOUL_DOLL_ADAPTER_ECHO;
+				core_cpu.controllers.serial_io.sda.get_slave_addr = true;
+				core_cpu.controllers.serial_io.sda.eeprom_cmd = 0xFF;
+				core_cpu.controllers.serial_io.sda.stop_signal = 0xFF2727FF;
 
 				//OSD
 				config::osd_message = "SOUL DOLL ADAPTER RESET";
@@ -542,6 +545,27 @@ void AGB_core::handle_hotkey(int input, bool pressed)
 
 	//Toggle turbo off
 	else if((input == config::hotkey_turbo) && (!pressed)) { config::turbo = false; }
+
+	//Initiate various communication functions
+	//Soul Doll Adapter - Reset Soul Doll
+	else if((input == SDLK_F3) && (pressed))
+	{
+		switch(core_cpu.controllers.serial_io.sio_stat.sio_type)
+		{
+			//Reset adapter
+			case GBA_SOUL_DOLL_ADAPTER:
+				core_cpu.controllers.serial_io.sda.current_state = GBA_SOUL_DOLL_ADAPTER_ECHO;
+				core_cpu.controllers.serial_io.sda.get_slave_addr = true;
+				core_cpu.controllers.serial_io.sda.eeprom_cmd = 0xFF;
+				core_cpu.controllers.serial_io.sda.stop_signal = 0xFF2727FF;
+
+				//OSD
+				config::osd_message = "SOUL DOLL ADAPTER RESET";
+				config::osd_count = 180;
+				
+				break;
+		}
+	}
 }
 
 /****** Updates the core's volume ******/
