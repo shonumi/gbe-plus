@@ -89,6 +89,13 @@ class AGB_SIO
 		soul_doll_adapter_state current_state;
 	} sda;
 
+	//Battle Chip Gate
+	struct battle_chip_gate
+	{
+		std::vector <u8> data;
+		battle_chip_gate_state current_state;
+	} chip_gate;
+
 	AGB_SIO();
 	~AGB_SIO();
 
@@ -104,6 +111,8 @@ class AGB_SIO
 
 	bool soul_doll_adapter_load_data(std::string filename);
 	void soul_doll_adapter_process();
+
+	void battle_chip_gate_process();
 };
 
 #endif // GBA_SIO

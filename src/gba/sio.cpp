@@ -198,6 +198,10 @@ void AGB_SIO::reset()
 			sio_stat.sio_type = GBA_SOUL_DOLL_ADAPTER;
 			break;
 
+		case 0xA:
+			sio_stat.sio_type = GBA_BATTLE_CHIP_GATE;
+			break;
+
 		//Always wait until netplay connection is established to change to GBA_LINK
 		default:
 			sio_stat.sio_type = NO_GBA_DEVICE;
@@ -847,4 +851,21 @@ void AGB_SIO::soul_doll_adapter_process()
 	sio_stat.emu_device_ready = false;
 	sda.prev_data = sio_stat.r_cnt;
 	sda.prev_write = mem->read_u16_fast(R_CNT);
+}
+
+/****** Process Battle Chip Gate ******/
+void AGB_SIO::battle_chip_gate_process()
+{
+	//Standby Mode
+	if(chip_gate.current_state == GBA_BATTLE_CHIP_GATE_STANDBY)
+	{
+		//Reply with 0xFF6C for Child 1 data
+		mem->write_u16_fast(0x4000122, 0xFFC6);
+
+		//Raise SIO IRQ after sending byte
+		if(sio_stat.cnt & 0x4000) { mem->memory_map[REG_IF] |= 0x80; }
+	}
+
+	sio_stat.emu_device_ready = false;
+	sio_stat.active_transfer = false;
 }

@@ -2693,13 +2693,13 @@ void AGB_MMU::process_sio()
 		}
 
 		//Mask out Read-Only bits - Do not mask START bit for master
-		sio_stat->cnt &= (sio_stat->player_id == 0) ? ~0x7C : ~0xFC;
+		//sio_stat->cnt &= (sio_stat->player_id == 0) ? ~0x7C : ~0xFC;
 
 		//Determine Parent-Child status
 		if(sio_stat->player_id != 0) { sio_stat->cnt |= 0x4; }
 
 		//Determine connection status
-		if(sio_stat->connection_ready) { sio_stat->cnt |= 0x8; }
+		if(sio_stat->connection_ready || (sio_stat->sio_type == GBA_BATTLE_CHIP_GATE)) { sio_stat->cnt |= 0x8; }
 
 		//Determine Player ID
 		sio_stat->cnt |= ((sio_stat->player_id & 0x3) << 4);
@@ -2713,8 +2713,12 @@ void AGB_MMU::process_sio()
 			sio_stat->transfer_data = (memory_map[SIO_DATA_8 + 1] << 8) | memory_map[SIO_DATA_8];
 
 			//Reset incoming data
-			write_u32_fast(0x4000120, 0xFFFFFFFF);
+			write_u16_fast(0x4000120, (sio_stat->transfer_data & 0xFFFF));
+			write_u16_fast(0x4000122, 0xFFFF);
 			write_u32_fast(0x4000124, 0xFFFFFFFF);
+
+			//Initiate transfer to emulated Battle Chip Gate
+			if(sio_stat->sio_type == GBA_BATTLE_CHIP_GATE) { sio_stat->emu_device_ready = true; }
 		}
 	}
 

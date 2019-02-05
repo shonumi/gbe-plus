@@ -1531,8 +1531,15 @@ void ARM7::clock_emulated_sio_device()
 {
 	switch(config::sio_device)
 	{
-		case 0x9: controllers.serial_io.soul_doll_adapter_process(); break;
+		case 0x9:
+			controllers.serial_io.soul_doll_adapter_process();
+			break;
 
+		case 0xA:
+			controllers.serial_io.battle_chip_gate_process();
+			break;
+
+		//Clock everything else normally
 		default: break;
 	}
 }

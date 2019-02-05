@@ -925,7 +925,7 @@ bool parse_ini_file()
 			{
 				util::from_str(ini_opts[++x], output);
 
-				if((output >= 0) && (output <= 9)) { config::sio_device = output; }
+				if((output >= 0) && (output <= 10)) { config::sio_device = output; }
 			}
 
 			else 

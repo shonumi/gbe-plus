@@ -22,6 +22,7 @@ enum agb_sio_types
 	GBA_LINK,
 	GBA_PLAYER_RUMBLE,
 	GBA_SOUL_DOLL_ADAPTER,
+	GBA_BATTLE_CHIP_GATE,
 };
 
 //Serial Input-Output device mode enumeration
@@ -48,6 +49,12 @@ enum soul_doll_adapter_state
 	GBA_SOUL_DOLL_ADAPTER_ECHO,
 	GBA_SOUL_DOLL_ADAPTER_READ,
 	GBA_SOUL_DOLL_ADAPTER_WRITE,
+};
+
+//Battle Chip Gate enumerations
+enum battle_chip_gate_state
+{
+	GBA_BATTLE_CHIP_GATE_STANDBY,
 };
 
 struct agb_sio_data
