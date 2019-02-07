@@ -47,7 +47,7 @@ Start signal when receiving data through read operations:
 0xA5 0xA7 0xA7 0xA5
 --------------------
 
-These signals determine when a command begins or when data is read or written.
+These signals determine when one command ends and another begins or when data is read or written.
 
 
 ***************************************************
@@ -66,6 +66,8 @@ The GBA uses 4 transfers per bits, with Bit 3 of RCNT determining whether the va
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Bit 7               | Bit 6               | Bit 5               | Bit 4               | Bit 3               | Bit 2               | Bit 1               | Bit 0
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Device ID - 0b1010                                                                    | Ignored             | 2 MSB of final address                    | EEPROM command     
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 0xAD 0xAF 0xAF 0xAD | 0xA5 0xA7 0xA7 0xA5 | 0xAD 0xAF 0xAF 0xAD | 0xA5 0xA7 0xA7 0xA5 | 0xA5 0xA7 0xA7 0xA5 | 0xAD 0xAF 0xAF 0xAD | 0xAD 0xAF 0xAF 0xAD | 0xA5 0xA7 0xA7 0xA5
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -97,7 +99,7 @@ But *after* the 1st byte has been read, the start signal shifts to something lik
 0xA5 0xA7 0xA7 0xA5
 --------------------
 
-It isn't until another command is issued that the start signals swap. Generally, both Isle of Trial and Sign of Nekrom tend to read EEPROM in chunks of 128 bytes of 256 bytes.
+It isn't until another command is issued that the start signals swap. Generally, both Isle of Trial and Sign of Nekrom tend to read EEPROM in chunks of 128 bytes of 256 bytes. If the internal pointer for the EEPROM address is incremented past 0x3FF, it rolls over to 0x000. Apparently, when this happens, another device start signal must be issued.
 
 
 ***************************************************

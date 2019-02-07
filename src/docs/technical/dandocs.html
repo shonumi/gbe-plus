@@ -1169,6 +1169,8 @@ DMG/GBC screen (240x144 pixels, or 30x18 tiles)</code>
 0xA5 0xA7 0xA7 0xA5
 --------------------</code></p>
 
+	<p>These signals determine when one command ends and another begins or when data is read or written.</p>
+
 	<a name="sda_out"></a>
 	<p class="gray_title">[Soul Doll Adapter] : Communication Protocol - Read Operations</a></p>
 
@@ -1186,6 +1188,8 @@ DMG/GBC screen (240x144 pixels, or 30x18 tiles)</code>
 
 	<p><code>-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Bit 7               | Bit 6               | Bit 5               | Bit 4               | Bit 3               | Bit 2               | Bit 1               | Bit 0
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Device ID - 0b1010                                                                    | Ignored             | 2 MSB of final address                    | EEPROM command     
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 0xAD 0xAF 0xAF 0xAD | 0xA5 0xA7 0xA7 0xA5 | 0xAD 0xAF 0xAF 0xAD | 0xA5 0xA7 0xA7 0xA5 | 0xA5 0xA7 0xA7 0xA5 | 0xAD 0xAF 0xAF 0xAD | 0xAD 0xAF 0xAF 0xAD | 0xA5 0xA7 0xA7 0xA5
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------</code></p>
@@ -1217,7 +1221,7 @@ Bit 7               | Bit 6               | Bit 5               | Bit 4         
 0xA5 0xA7 0xA7 0xA5
 --------------------</code></p>
 
-	<p>It isn&#39;t until another command is issued that the start signals swap. Generally, both Isle of Trial and Sign of Nekrom tend to read EEPROM in chunks of 128 bytes of 256 bytes.</p>
+	<p>It isn&#39;t until another command is issued that the start signals swap. Generally, both Isle of Trial and Sign of Nekrom tend to read EEPROM in chunks of 128 bytes of 256 bytes. If the internal pointer for the EEPROM address is incremented past 0x3FF, it rolls over to 0x000. Apparently, when this happens, another device start signal must be issued.</p>
 
 	<a name="sda_inp"></a>
 	<p class="gray_title">[Soul Doll Adapter] : Communication Protocol - Write Operations</a></p>
