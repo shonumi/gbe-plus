@@ -160,8 +160,6 @@ u8 AGB_MMU::read_u8(u32 address)
 		case 0x6:
 		case 0x8:
 		case 0x9:
-		case 0xE:
-		case 0xF:
 			break;
 
 		//Slow WRAM 256KB mirror
@@ -194,6 +192,12 @@ u8 AGB_MMU::read_u8(u32 address)
 		case 0xC:
 		case 0xD:
 			address -= 0x4000000;
+			break;
+
+		//SRAM Mirror
+		case 0xE:
+		case 0xF:
+			if(current_save_type == SRAM) { address &= 0xF003FFF; }
 			break;
 
 		//Unused memory at 0x10000000 and above
@@ -374,8 +378,6 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 		case 0x6:
 		case 0x8:
 		case 0x9:
-		case 0xE:
-		case 0xF:
 			break;
 
 		//Slow WRAM 256KB mirror
@@ -408,6 +410,12 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 		case 0xC:
 		case 0xD:
 			address -= 0x4000000;
+			break;
+
+		//SRAM Mirror
+		case 0xE:
+		case 0xF:
+			if(current_save_type == SRAM) { address &= 0xF003FFF; }
 			break;
 
 		//Unused memory at 0x10000000 and above
