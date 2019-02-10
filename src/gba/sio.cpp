@@ -252,6 +252,15 @@ void AGB_SIO::reset()
 
 	if(config::sio_device == 9) { soul_doll_adapter_load_data(config::external_data_file); }
 
+	//Battle Chip Gate
+	chip_gate.data = 0x8E70;
+	chip_gate.id = 0;
+	chip_gate.data_inc = 3;
+	chip_gate.data_dec = 3;
+	chip_gate.data_count = 0;
+	chip_gate.start = false;
+	chip_gate.current_state = GBA_BATTLE_CHIP_GATE_STANDBY;
+
 	#ifdef GBE_NETPLAY
 
 	//Close any current connections
@@ -861,6 +870,81 @@ void AGB_SIO::battle_chip_gate_process()
 	{
 		//Reply with 0xFF6C for Child 1 data
 		mem->write_u16_fast(0x4000122, 0xFFC6);
+
+		//Raise SIO IRQ after sending byte
+		if(sio_stat.cnt & 0x4000) { mem->memory_map[REG_IF] |= 0x80; }
+
+		if((sio_stat.transfer_data == 0xA380) || (sio_stat.transfer_data == 0xA3D0)) { chip_gate.data_count = 1; }
+
+		else if((sio_stat.transfer_data == 0) && (chip_gate.data_count == 1))
+		{
+			chip_gate.current_state = GBA_BATTLE_CHIP_GATE_CHIP_IN;
+		}
+
+		else { chip_gate.data_count++; }
+	}
+
+	//Chip In Mode
+	if(chip_gate.current_state == GBA_BATTLE_CHIP_GATE_CHIP_IN)
+	{
+		u8 data_0 = (chip_gate.data >> 8);
+		u8 data_1 = chip_gate.data & 0xFF;
+
+		if((sio_stat.transfer_data == 0xA380) || (sio_stat.transfer_data == 0xA3D0))
+		{
+			chip_gate.data_count = 0;
+			chip_gate.current_state = GBA_BATTLE_CHIP_GATE_STANDBY;
+		}
+
+		//Respond with sequenced data
+		switch(chip_gate.data_count)
+		{
+			case 0x0:
+				mem->write_u16_fast(0x4000122, 0xFFC6);
+				break;
+
+			case 0x1:
+			case 0x2:
+				mem->write_u16_fast(0x4000122, 0xFFFF);
+				break;
+
+			case 0x3:
+				mem->write_u16_fast(0x4000122, data_0);
+				
+				data_0 += chip_gate.data_inc;
+				chip_gate.data &= ~0xFF00;
+				chip_gate.data |= (data_0 << 8);
+
+				if(data_0 == 0x3B)
+				{
+					data_1 -= chip_gate.data_dec;
+					chip_gate.data &= ~0xFF;
+					chip_gate.data |= data_1;
+					chip_gate.data_count++;
+				}
+
+				break;
+
+			case 0x4:
+				mem->write_u16_fast(0x4000122, (0xFF00 | data_1));
+
+				data_1 -= chip_gate.data_dec;
+				chip_gate.data &= ~0xFF;
+				chip_gate.data |= data_1;
+
+				break;
+
+			case 0x5:
+				mem->write_u16_fast(0x4000122, chip_gate.id);
+				break;
+
+			default:
+				mem->write_u16_fast(0x4000122, 0x0000);
+				break;
+		}
+
+		chip_gate.data_count++;
+		if(chip_gate.data_count == 9) { chip_gate.data_count = 0; }
 
 		//Raise SIO IRQ after sending byte
 		if(sio_stat.cnt & 0x4000) { mem->memory_map[REG_IF] |= 0x80; }

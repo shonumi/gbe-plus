@@ -92,7 +92,12 @@ class AGB_SIO
 	//Battle Chip Gate
 	struct battle_chip_gate
 	{
-		std::vector <u8> data;
+		u16 data;
+		u16 id;
+		u8 data_inc;
+		u8 data_dec;
+		u32 data_count;
+		bool start;
 		battle_chip_gate_state current_state;
 	} chip_gate;
 

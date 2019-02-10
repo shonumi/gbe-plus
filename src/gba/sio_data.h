@@ -55,6 +55,7 @@ enum soul_doll_adapter_state
 enum battle_chip_gate_state
 {
 	GBA_BATTLE_CHIP_GATE_STANDBY,
+	GBA_BATTLE_CHIP_GATE_CHIP_IN,
 };
 
 struct agb_sio_data

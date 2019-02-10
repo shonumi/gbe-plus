@@ -517,6 +517,7 @@ void AGB_core::handle_hotkey(SDL_Event& event)
 
 	//Initiate various communication functions
 	//Soul Doll Adapter - Reset Soul Doll
+	//Battle Chip Gate - Insert Battle Chip
 	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F3))
 	{
 		switch(core_cpu.controllers.serial_io.sio_stat.sio_type)
@@ -532,6 +533,33 @@ void AGB_core::handle_hotkey(SDL_Event& event)
 				config::osd_message = "SOUL DOLL ADAPTER RESET";
 				config::osd_count = 180;
 				
+				break;
+
+			//Insert Battle Chip
+			case GBA_BATTLE_CHIP_GATE:
+				core_cpu.controllers.serial_io.chip_gate.id = 0x1;
+
+				//OSD
+				config::osd_message = "BATTLE CHIP IN";
+				config::osd_count = 180;
+
+				break;
+		}
+	}
+
+	//Battle Chip Gate - Extract Battle Chip
+	else if((event.type == SDL_KEYUP) && (event.key.keysym.sym == SDLK_F3))
+	{
+		switch(core_cpu.controllers.serial_io.sio_stat.sio_type)
+		{
+			//Extract Battle Chip
+			case GBA_BATTLE_CHIP_GATE:
+				core_cpu.controllers.serial_io.chip_gate.id = 0x0;
+
+				//OSD
+				config::osd_message = "BATTLE CHIP OUT";
+				config::osd_count = 180;
+
 				break;
 		}
 	}
