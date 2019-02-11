@@ -66,12 +66,7 @@ AGB_SIO::~AGB_SIO()
 	#endif
 
 	//Save any new Legendz data for updated Soul Doll
-	if(sda.update_soul_doll)
-	{
-		std::ofstream out_data(config::external_data_file.c_str(), std::ios::binary);
-		out_data.write((char*)&sda.data[0], 0x400);
-		out_data.close();
-	}
+	soul_doll_adapter_save_data();
 
 	std::cout<<"SIO::Shutdown\n";
 }
@@ -234,21 +229,7 @@ void AGB_SIO::reset()
 	player_rumble.current_state = GB_PLAYER_RUMBLE_INACTIVE;
 
 	//Soul Doll Adapter
-	sda.data.clear();
-	sda.stream_byte.clear();
-	sda.stream_word.clear();
-	sda.stop_signal = 0xFF2727FF;
-	sda.eeprom_addr = 0;
-	sda.prev_data = 0;
-	sda.prev_write = 0;
-	sda.data_count = 0;
-	sda.slave_addr = 0xFF;
-	sda.word_addr = 0;
-	sda.eeprom_cmd = 0xFF;
-	sda.flags = 0;
-	sda.get_slave_addr = true;
-	sda.update_soul_doll = false;
-	sda.current_state = GBA_SOUL_DOLL_ADAPTER_ECHO;
+	soul_doll_adapter_reset();
 
 	if(config::sio_device == 9) { soul_doll_adapter_load_data(config::external_data_file); }
 
@@ -604,6 +585,26 @@ void AGB_SIO::gba_player_rumble_process()
 	sio_stat.active_transfer = false;	
 }
 
+/****** Resets Soul Doll Adapter ******/
+void AGB_SIO::soul_doll_adapter_reset()
+{
+	sda.data.clear();
+	sda.stream_byte.clear();
+	sda.stream_word.clear();
+	sda.stop_signal = 0xFF2727FF;
+	sda.eeprom_addr = 0;
+	sda.prev_data = 0;
+	sda.prev_write = 0;
+	sda.data_count = 0;
+	sda.slave_addr = 0xFF;
+	sda.word_addr = 0;
+	sda.eeprom_cmd = 0xFF;
+	sda.flags = 0;
+	sda.get_slave_addr = true;
+	sda.update_soul_doll = false;
+	sda.current_state = GBA_SOUL_DOLL_ADAPTER_ECHO;
+}
+
 /****** Loads Soul Doll Adapter Data ******/
 bool AGB_SIO::soul_doll_adapter_load_data(std::string filename)
 {
@@ -639,6 +640,26 @@ bool AGB_SIO::soul_doll_adapter_load_data(std::string filename)
 	std::cout<<"SIO::Loaded Soul Doll data file " << filename << "\n";
 	return true;
 }
+
+/****** Update binary file for Soul Doll ******/
+bool AGB_SIO::soul_doll_adapter_save_data()
+{
+	if(sda.update_soul_doll)
+	{
+		std::ofstream out_data(config::external_data_file.c_str(), std::ios::binary);
+		
+		if(!out_data.is_open())
+		{
+			std::cout<<"SIO::Error - Could not update Soul Doll data file. Check file path or permissions. \n";
+			return false;
+		}
+
+		out_data.write((char*)&sda.data[0], 0x400);
+		out_data.close();
+
+		return true;
+	}
+} 
 
 /****** Process Soul Doll Adapter ******/
 void AGB_SIO::soul_doll_adapter_process()

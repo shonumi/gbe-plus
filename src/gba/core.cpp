@@ -524,10 +524,7 @@ void AGB_core::handle_hotkey(SDL_Event& event)
 		{
 			//Reset adapter
 			case GBA_SOUL_DOLL_ADAPTER:
-				core_cpu.controllers.serial_io.sda.current_state = GBA_SOUL_DOLL_ADAPTER_ECHO;
-				core_cpu.controllers.serial_io.sda.get_slave_addr = true;
-				core_cpu.controllers.serial_io.sda.eeprom_cmd = 0xFF;
-				core_cpu.controllers.serial_io.sda.stop_signal = 0xFF2727FF;
+				core_cpu.controllers.serial_io.soul_doll_adapter_reset();
 
 				//OSD
 				config::osd_message = "SOUL DOLL ADAPTER RESET";
@@ -582,10 +579,7 @@ void AGB_core::handle_hotkey(int input, bool pressed)
 		{
 			//Reset adapter
 			case GBA_SOUL_DOLL_ADAPTER:
-				core_cpu.controllers.serial_io.sda.current_state = GBA_SOUL_DOLL_ADAPTER_ECHO;
-				core_cpu.controllers.serial_io.sda.get_slave_addr = true;
-				core_cpu.controllers.serial_io.sda.eeprom_cmd = 0xFF;
-				core_cpu.controllers.serial_io.sda.stop_signal = 0xFF2727FF;
+				core_cpu.controllers.serial_io.soul_doll_adapter_reset();
 
 				//OSD
 				config::osd_message = "SOUL DOLL ADAPTER RESET";
@@ -777,6 +771,17 @@ u32 AGB_core::get_core_data(u32 core_index)
 		case 0x0:
 			result = ~(core_pad.key_input);
 			result &= 0x3FF;
+			break;
+
+		//Save Soul Doll data
+		case 0x1:
+			result = core_cpu.controllers.serial_io.soul_doll_adapter_save_data();
+			core_cpu.controllers.serial_io.soul_doll_adapter_reset();
+			break;
+
+		//Load Soul Doll data
+		case 0x2:
+			result = core_cpu.controllers.serial_io.soul_doll_adapter_load_data(config::external_data_file.c_str());
 			break;
 	}
 

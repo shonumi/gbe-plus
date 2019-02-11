@@ -115,6 +115,8 @@ class AGB_SIO
 	void gba_player_rumble_process();
 
 	bool soul_doll_adapter_load_data(std::string filename);
+	bool soul_doll_adapter_save_data();
+	void soul_doll_adapter_reset();
 	void soul_doll_adapter_process();
 
 	void battle_chip_gate_process();
