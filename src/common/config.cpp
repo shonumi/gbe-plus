@@ -212,6 +212,9 @@ namespace config
 	//IR database index
 	u32 ir_db_index = 0;
 
+	//Battle Chip ID for Megaman Battle Network games + Chip Gates
+	u16 battle_chip_id = 1;
+
 	//On-screen display settings
 	bool use_osd = false;
 	std::vector <u32> osd_font;

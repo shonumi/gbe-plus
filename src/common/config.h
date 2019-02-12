@@ -166,6 +166,8 @@ namespace config
 	extern u32 oc_flags;
 	extern u32 ir_db_index;
 
+	extern u16 battle_chip_id;
+
 	extern bool use_osd;
 	extern std::vector <u32> osd_font;
 	extern std::string osd_message;

@@ -534,7 +534,7 @@ void AGB_core::handle_hotkey(SDL_Event& event)
 
 			//Insert Battle Chip
 			case GBA_BATTLE_CHIP_GATE:
-				core_cpu.controllers.serial_io.chip_gate.id = 0x1;
+				core_cpu.controllers.serial_io.chip_gate.id = config::battle_chip_id;
 
 				//OSD
 				config::osd_message = "BATTLE CHIP IN";
