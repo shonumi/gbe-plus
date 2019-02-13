@@ -973,4 +973,8 @@ void AGB_SIO::battle_chip_gate_process()
 
 	sio_stat.emu_device_ready = false;
 	sio_stat.active_transfer = false;
+
+	//Clear Bit 7 of SIOCNT
+	sio_stat.cnt &= ~0x80;
+	mem->write_u16_fast(0x4000128, sio_stat.cnt);
 }
