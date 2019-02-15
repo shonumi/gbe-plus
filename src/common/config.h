@@ -167,6 +167,7 @@ namespace config
 	extern u32 ir_db_index;
 
 	extern u16 battle_chip_id;
+	extern u16 chip_list[6];
 
 	extern bool use_osd;
 	extern std::vector <u32> osd_font;

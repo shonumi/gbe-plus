@@ -886,7 +886,8 @@ void AGB_SIO::soul_doll_adapter_process()
 /****** Process Battle Chip Gate ******/
 void AGB_SIO::battle_chip_gate_process()
 {
-	//std::cout<<"SEND -> 0x" << sio_stat.transfer_data << "\n";
+	//Update Battle Chip ID
+	chip_gate.id = config::battle_chip_id;
 
 	//Standby Mode
 	if(chip_gate.current_state == GBA_BATTLE_CHIP_GATE_STANDBY)

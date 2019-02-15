@@ -309,6 +309,9 @@ void AGB_GamePad::process_keyboard(int pad, bool pressed)
 
 			gyro_value = 0x6C0;
 		}
+
+		//Emulate Battle Chip insertion
+		else if(config::sio_device == 10) { config::battle_chip_id = config::chip_list[0]; }
 	}
 
 	//Context Left release
@@ -323,6 +326,9 @@ void AGB_GamePad::process_keyboard(int pad, bool pressed)
 			if(gyro_flags & 0x20) { gyro_flags |= 0x2; }
 			else { gyro_flags &= ~0x2; }
 		}
+
+		//Emulate Battle Chip extraction
+		else if(config::sio_device == 10) { config::battle_chip_id = 0; }
 	}
 
 	//Context Right press
@@ -339,6 +345,9 @@ void AGB_GamePad::process_keyboard(int pad, bool pressed)
 
 			gyro_value = 0x6C0;
 		}
+
+		//Emulate Battle Chip insertion
+		else if(config::sio_device == 10) { config::battle_chip_id = config::chip_list[1]; }
 	}
 
 	//Context Right release
@@ -353,6 +362,9 @@ void AGB_GamePad::process_keyboard(int pad, bool pressed)
 			if(gyro_flags & 0x10) { gyro_flags |= 0x1; }
 			else { gyro_flags &= ~0x1; }
 		}
+
+		//Emulate Battle Chip extraction
+		else if(config::sio_device == 10) { config::battle_chip_id = 0; }
 	}
 
 	//Context Up press
@@ -377,6 +389,9 @@ void AGB_GamePad::process_keyboard(int pad, bool pressed)
 
 			gyro_flags &= ~0x8;
 		}
+
+		//Emulate Battle Chip insertion
+		else if(config::sio_device == 10) { config::battle_chip_id = config::chip_list[2]; }
 	}
 
 	//Context Up release
@@ -391,6 +406,9 @@ void AGB_GamePad::process_keyboard(int pad, bool pressed)
 			if(gyro_flags & 0x80) { gyro_flags |= 0x8; }
 			else { gyro_flags &= ~0x8; }
 		}
+
+		//Emulate Battle Chip extraction
+		else if(config::sio_device == 10) { config::battle_chip_id = 0; }
 	}
 
 	//Context Down press
@@ -415,6 +433,9 @@ void AGB_GamePad::process_keyboard(int pad, bool pressed)
 
 			gyro_flags &= ~0x4;
 		}
+
+		//Emulate Battle Chip insertion
+		else if(config::sio_device == 10) { config::battle_chip_id = config::chip_list[3]; }
 	}
 
 	//Context Down release
@@ -429,6 +450,9 @@ void AGB_GamePad::process_keyboard(int pad, bool pressed)
 			if(gyro_flags & 0x40) { gyro_flags |= 0x4; }
 			else { gyro_flags &= ~0x4; }
 		}
+
+		//Emulate Battle Chip extraction
+		else if(config::sio_device == 10) { config::battle_chip_id = 0; }
 	}
 
 	is_gb_player = false;
@@ -510,6 +534,9 @@ void AGB_GamePad::process_joystick(int pad, bool pressed)
 
 			gyro_value = 0x6C0;
 		}
+
+		//Emulate Battle Chip insertion
+		else if(config::sio_device == 10) { config::battle_chip_id = config::chip_list[0]; }
 	}
 
 	//Context Left release
@@ -524,6 +551,9 @@ void AGB_GamePad::process_joystick(int pad, bool pressed)
 			if(gyro_flags & 0x20) { gyro_flags |= 0x2; }
 			else { gyro_flags &= ~0x2; }
 		}
+
+		//Emulate Battle Chip extraction
+		else if(config::sio_device == 10) { config::battle_chip_id = 0; }
 	}
 
 	//Context Right press
@@ -539,6 +569,9 @@ void AGB_GamePad::process_joystick(int pad, bool pressed)
 
 			gyro_value = 0x6C0;
 		}
+
+		//Emulate Battle Chip insertion
+		else if(config::sio_device == 10) { config::battle_chip_id = config::chip_list[1]; }
 	}
 
 	//Context Right release
@@ -553,6 +586,9 @@ void AGB_GamePad::process_joystick(int pad, bool pressed)
 			if(gyro_flags & 0x10) { gyro_flags |= 0x1; }
 			else { gyro_flags &= ~0x1; }
 		}
+
+		//Emulate Battle Chip extraction
+		else if(config::sio_device == 10) { config::battle_chip_id = 0; }
 	}
 
 	//Context Up press
@@ -577,6 +613,9 @@ void AGB_GamePad::process_joystick(int pad, bool pressed)
 
 			gyro_flags &= ~0x8;
 		}
+
+		//Emulate Battle Chip insertion
+		else if(config::sio_device == 10) { config::battle_chip_id = config::chip_list[2]; }
 	}
 
 	//Context Up release
@@ -591,6 +630,9 @@ void AGB_GamePad::process_joystick(int pad, bool pressed)
 			if(gyro_flags & 0x80) { gyro_flags |= 0x8; }
 			else { gyro_flags &= ~0x8; }
 		}
+
+		//Emulate Battle Chip extraction
+		else if(config::sio_device == 10) { config::battle_chip_id = 0; }
 	}
 
 	//Context Down press
@@ -615,6 +657,9 @@ void AGB_GamePad::process_joystick(int pad, bool pressed)
 
 			gyro_flags &= ~0x4;
 		}
+
+		//Emulate Battle Chip insertion
+		else if(config::sio_device == 10) { config::battle_chip_id = config::chip_list[3]; }
 	}
 
 	//Context Down release
@@ -629,6 +674,9 @@ void AGB_GamePad::process_joystick(int pad, bool pressed)
 			if(gyro_flags & 0x40) { gyro_flags |= 0x4; }
 			else { gyro_flags &= ~0x4; }
 		}
+
+		//Emulate Battle Chip extraction
+		else if(config::sio_device == 10) { config::battle_chip_id = 0; }
 	}
 
 	is_gb_player = false;

@@ -213,7 +213,10 @@ namespace config
 	u32 ir_db_index = 0;
 
 	//Battle Chip ID for Megaman Battle Network games + Chip Gates
-	u16 battle_chip_id = 1;
+	u16 battle_chip_id = 0;
+
+	//Default Battle Chip IDs
+	u16 chip_list[6] = { 0, 0, 0, 0, 0, 0 };
 
 	//On-screen display settings
 	bool use_osd = false;
@@ -1853,6 +1856,47 @@ bool parse_ini_file()
 			}
 		}
 
+		//Battle Chip ID list
+		else if(ini_item == "#chip_list")
+		{
+			if((x + 6) < size)
+			{
+				for(u32 y = 0; y < 6; y++)
+				{
+					ini_item = ini_opts[++x];
+					std::size_t found = ini_item.find("0x");
+					std::string format = ini_item.substr(0, 2);
+
+					//Value must be in hex format with "0x"
+					if(format != "0x")
+					{
+						std::cout<<"GBE::Error - Could not parse gbe.ini (#chip_list) \n";
+						return false;
+					}
+
+					std::string id_str = ini_item.substr(found + 2);
+
+					//Value must not be more than 4 characters long for 0xFFFF
+					if(id_str.size() > 4)
+					{
+						std::cout<<"GBE::Error - Could not parse gbe.ini (#chip_list) \n";
+						return false;
+					}
+
+					u32 id_val = 0;
+
+					//Parse the string into hex
+					if(!util::from_hex_str(id_str, id_val))
+					{
+						std::cout<<"GBE::Error - Could not parse gbe.ini (#chip_list) \n";
+						return false;
+					}
+
+					config::chip_list[y] = id_val;
+				}
+			}
+		}
+			
 		//Hotkeys
 		else if(ini_item == "#hotkeys")
 		{
