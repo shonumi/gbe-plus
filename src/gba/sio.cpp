@@ -886,6 +886,8 @@ void AGB_SIO::soul_doll_adapter_process()
 /****** Process Battle Chip Gate ******/
 void AGB_SIO::battle_chip_gate_process()
 {
+	//std::cout<<"SEND -> 0x" << sio_stat.transfer_data << "\n";
+
 	//Standby Mode
 	if(chip_gate.current_state == GBA_BATTLE_CHIP_GATE_STANDBY)
 	{
@@ -935,14 +937,6 @@ void AGB_SIO::battle_chip_gate_process()
 				data_0 += chip_gate.data_inc;
 				chip_gate.data &= ~0xFF00;
 				chip_gate.data |= (data_0 << 8);
-
-				if(data_0 == 0x3B)
-				{
-					data_1 -= chip_gate.data_dec;
-					chip_gate.data &= ~0xFF;
-					chip_gate.data |= data_1;
-					chip_gate.data_count++;
-				}
 
 				break;
 
