@@ -420,8 +420,8 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 
 		//Unused memory at 0x10000000 and above
 		default:
-			std::cout<<"Out of bounds read : 0x" << std::hex << address << "\n";
-			break;
+			std::cout<<"Out of bounds write : 0x" << std::hex << address << "\n";
+			return;
 	}
 
 	//BIOS is read-only, prevent any attempted writes
@@ -2634,11 +2634,16 @@ void AGB_MMU::process_motion()
 void AGB_MMU::process_sio()
 {
 	//Joybus
-	if((sio_stat->r_cnt & 0xC000) == 0xC000) { sio_stat->sio_mode = JOY_BUS; }
+	if((sio_stat->r_cnt & 0xC000) == 0xC000)
+	{
+		if(sio_stat->sio_mode != JOY_BUS) { sio_stat->active_transfer = false; }
+		sio_stat->sio_mode = JOY_BUS;
+	}
 	
 	//General Purpose
 	else if(sio_stat->r_cnt & 0x8000)
 	{
+		if(sio_stat->sio_mode != GENERAL_PURPOSE) { sio_stat->active_transfer = false; }
 		sio_stat->sio_mode = GENERAL_PURPOSE;
 
 		//Determine IO direction of the pins
@@ -2670,6 +2675,7 @@ void AGB_MMU::process_sio()
 	//UART
 	else if((sio_stat->cnt & 0x3000) == 0x3000)
 	{
+		if(sio_stat->sio_mode != UART) { sio_stat->active_transfer = false; }
 		sio_stat->sio_mode = UART;
 				
 		//Convert baud rate to approximate GBA CPU cycles
@@ -2689,6 +2695,7 @@ void AGB_MMU::process_sio()
 	//Multiplayer - 16bit
 	else if(sio_stat->cnt & 0x2000)
 	{
+		if(sio_stat->sio_mode != MULTIPLAY_16BIT) { sio_stat->active_transfer = false; }
 		sio_stat->sio_mode = MULTIPLAY_16BIT;
 
 		//Convert baud rate to approximate GBA CPU cycles
@@ -2733,8 +2740,8 @@ void AGB_MMU::process_sio()
 	//Normal Mode - 32-bit
 	else if(sio_stat->cnt & 0x1000)
 	{
+		if(sio_stat->sio_mode != NORMAL_32BIT) { sio_stat->active_transfer = false; }
 		sio_stat->sio_mode = NORMAL_32BIT;
-		sio_stat->emu_device_ready = false;
 
 		//Convert transfer speed to GBA CPU cycles
 		sio_stat->shift_clock = (sio_stat->cnt & 0x2) ? 8 : 64;
@@ -2745,10 +2752,21 @@ void AGB_MMU::process_sio()
 		//Start transfer
 		if((sio_stat->player_id == 0) && (!sio_stat->active_transfer) && (sio_stat->internal_clock) && (sio_stat->cnt & 0x80))
 		{
-			sio_stat->active_transfer = true;
-			sio_stat->shifts_left = 32;
-			sio_stat->shift_counter = 0;
-			sio_stat->transfer_data = read_u32_fast(SIO_DATA_32_L);
+			//Initiate transfer to emulated Battle Chip Gate
+			if(sio_stat->sio_type == GBA_BATTLE_CHIP_GATE)
+			{
+				sio_stat->transfer_data = read_u32_fast(SIO_DATA_32_L);
+				sio_stat->emu_device_ready = true;
+				sio_stat->active_transfer = true;
+			}
+
+			else
+			{
+				sio_stat->active_transfer = true;
+				sio_stat->shifts_left = 32;
+				sio_stat->shift_counter = 0;
+				sio_stat->transfer_data = read_u32_fast(SIO_DATA_32_L);
+			}
 		}
 
 		//Signal to emulated GB Player rumble that emulated GBA is ready for SIO transfer
@@ -2759,7 +2777,11 @@ void AGB_MMU::process_sio()
 		}
 	}
 
-	else { sio_stat->sio_mode = NORMAL_8BIT; }
+	else
+	{
+		if(sio_stat->sio_mode != NORMAL_8BIT) { sio_stat->active_transfer = false; }
+		sio_stat->sio_mode = NORMAL_8BIT;
+	}
 }
 
 /****** Continually processes GB Player Rumble SIO communications ******/

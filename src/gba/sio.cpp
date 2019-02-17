@@ -582,7 +582,7 @@ void AGB_SIO::gba_player_rumble_process()
 		sio_stat.shift_counter = 0;
 	}
 
-	sio_stat.active_transfer = false;	
+	sio_stat.active_transfer = false;
 }
 
 /****** Resets Soul Doll Adapter ******/
@@ -892,20 +892,34 @@ void AGB_SIO::battle_chip_gate_process()
 	//Standby Mode
 	if(chip_gate.current_state == GBA_BATTLE_CHIP_GATE_STANDBY)
 	{
+		//Reply with 0x00 for Normal32 transfers - Beast Gate Link
+		if(sio_stat.sio_mode == NORMAL_32BIT)
+		{
+			mem->write_u32_fast(0x4000120, 0xFFFFFFFF);
+			mem->memory_map[0x400012A] = 0;
+		}
+
 		//Reply with 0xFF6C for Child 1 data
-		mem->write_u16_fast(0x4000122, 0xFFC6);
+		else if(sio_stat.sio_mode == MULTIPLAY_16BIT) { mem->write_u16_fast(0x4000122, 0xFFC6); }
 
 		//Raise SIO IRQ after sending byte
 		if(sio_stat.cnt & 0x4000) { mem->memory_map[REG_IF] |= 0x80; }
 
-		if((sio_stat.transfer_data == 0xA380) || (sio_stat.transfer_data == 0xA3D0)) { chip_gate.data_count = 1; }
+		//Wait for potential start signal
+		if((sio_stat.transfer_data == 0xA380) || (sio_stat.transfer_data == 0xA3D0) || (sio_stat.transfer_data == 0xA6C0)) { chip_gate.data_count = 0xFFFF; }
 
-		else if((sio_stat.transfer_data == 0) && (chip_gate.data_count == 1))
+		//If start signal received, switch to Chip In Mode
+		else if((sio_stat.transfer_data == 0) && (chip_gate.data_count == 0xFFFF))
 		{
 			chip_gate.current_state = GBA_BATTLE_CHIP_GATE_CHIP_IN;
+			chip_gate.data_count = 1;
 		}
 
-		else { chip_gate.data_count++; }
+		else
+		{
+			chip_gate.data_count++;
+			chip_gate.data_count &= 0xFF;
+		}
 	}
 
 	//Chip In Mode
@@ -914,10 +928,22 @@ void AGB_SIO::battle_chip_gate_process()
 		u8 data_0 = (chip_gate.data >> 8);
 		u8 data_1 = chip_gate.data & 0xFF;
 
-		if((sio_stat.transfer_data == 0xA380) || (sio_stat.transfer_data == 0xA3D0))
+		//During Chip In Mode, immediately switch to Standby if start signal detected at any point
+		if((sio_stat.transfer_data == 0xA380) || (sio_stat.transfer_data == 0xA3D0) || (sio_stat.transfer_data == 0xA6C0))
 		{
-			chip_gate.data_count = 0;
+			chip_gate.data_count = 0xFFFF;
+			mem->write_u16_fast(0x4000122, 0xFFC6);
+
+			//Raise SIO IRQ after sending byte
+			if(sio_stat.cnt & 0x4000) { mem->memory_map[REG_IF] |= 0x80; }
+
+			//Clear Bit 7 of SIOCNT
+			sio_stat.cnt &= ~0x80;
+			mem->write_u16_fast(0x4000128, sio_stat.cnt);
+
 			chip_gate.current_state = GBA_BATTLE_CHIP_GATE_STANDBY;
+
+			return;
 		}
 
 		//Respond with sequenced data
