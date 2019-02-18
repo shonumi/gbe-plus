@@ -1536,6 +1536,8 @@ void ARM7::clock_emulated_sio_device()
 			break;
 
 		case 0xA:
+		case 0xB:
+		case 0xC:
 			controllers.serial_io.battle_chip_gate_process();
 			break;
 

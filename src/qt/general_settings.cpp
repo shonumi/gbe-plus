@@ -156,6 +156,8 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	sio_dev->addItem("GB Player Rumble");
 	sio_dev->addItem("Soul Doll Adapter");
 	sio_dev->addItem("Battle Chip Gate");
+	sio_dev->addItem("Progress Chip Gate");
+	sio_dev->addItem("Beast Link Gate");
 
 	QHBoxLayout* sio_layout = new QHBoxLayout;
 	sio_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);

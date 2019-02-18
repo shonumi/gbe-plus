@@ -311,7 +311,7 @@ void AGB_GamePad::process_keyboard(int pad, bool pressed)
 		}
 
 		//Emulate Battle Chip insertion
-		else if(config::sio_device == 10) { config::battle_chip_id = config::chip_list[0]; }
+		else if((config::sio_device >= 10) && (config::sio_device <= 12)) { config::battle_chip_id = config::chip_list[0]; }
 	}
 
 	//Context Left release
@@ -328,7 +328,7 @@ void AGB_GamePad::process_keyboard(int pad, bool pressed)
 		}
 
 		//Emulate Battle Chip extraction
-		else if(config::sio_device == 10) { config::battle_chip_id = 0; }
+		else if((config::sio_device >= 10) && (config::sio_device <= 12)) { config::battle_chip_id = 0; }
 	}
 
 	//Context Right press
@@ -347,7 +347,7 @@ void AGB_GamePad::process_keyboard(int pad, bool pressed)
 		}
 
 		//Emulate Battle Chip insertion
-		else if(config::sio_device == 10) { config::battle_chip_id = config::chip_list[1]; }
+		else if((config::sio_device >= 10) && (config::sio_device <= 12)) { config::battle_chip_id = config::chip_list[1]; }
 	}
 
 	//Context Right release
@@ -364,7 +364,7 @@ void AGB_GamePad::process_keyboard(int pad, bool pressed)
 		}
 
 		//Emulate Battle Chip extraction
-		else if(config::sio_device == 10) { config::battle_chip_id = 0; }
+		else if((config::sio_device >= 10) && (config::sio_device <= 12)) { config::battle_chip_id = 0; }
 	}
 
 	//Context Up press
@@ -391,7 +391,7 @@ void AGB_GamePad::process_keyboard(int pad, bool pressed)
 		}
 
 		//Emulate Battle Chip insertion
-		else if(config::sio_device == 10) { config::battle_chip_id = config::chip_list[2]; }
+		else if((config::sio_device >= 10) && (config::sio_device <= 12)) { config::battle_chip_id = config::chip_list[2]; }
 	}
 
 	//Context Up release
@@ -408,7 +408,7 @@ void AGB_GamePad::process_keyboard(int pad, bool pressed)
 		}
 
 		//Emulate Battle Chip extraction
-		else if(config::sio_device == 10) { config::battle_chip_id = 0; }
+		else if((config::sio_device >= 10) && (config::sio_device <= 12)) { config::battle_chip_id = 0; }
 	}
 
 	//Context Down press
@@ -435,7 +435,7 @@ void AGB_GamePad::process_keyboard(int pad, bool pressed)
 		}
 
 		//Emulate Battle Chip insertion
-		else if(config::sio_device == 10) { config::battle_chip_id = config::chip_list[3]; }
+		else if((config::sio_device >= 10) && (config::sio_device <= 12)) { config::battle_chip_id = config::chip_list[3]; }
 	}
 
 	//Context Down release
@@ -452,7 +452,7 @@ void AGB_GamePad::process_keyboard(int pad, bool pressed)
 		}
 
 		//Emulate Battle Chip extraction
-		else if(config::sio_device == 10) { config::battle_chip_id = 0; }
+		else if((config::sio_device >= 10) && (config::sio_device <= 12)) { config::battle_chip_id = 0; }
 	}
 
 	is_gb_player = false;
@@ -536,7 +536,7 @@ void AGB_GamePad::process_joystick(int pad, bool pressed)
 		}
 
 		//Emulate Battle Chip insertion
-		else if(config::sio_device == 10) { config::battle_chip_id = config::chip_list[0]; }
+		else if((config::sio_device >= 10) && (config::sio_device <= 12)) { config::battle_chip_id = config::chip_list[0]; }
 	}
 
 	//Context Left release
@@ -553,7 +553,7 @@ void AGB_GamePad::process_joystick(int pad, bool pressed)
 		}
 
 		//Emulate Battle Chip extraction
-		else if(config::sio_device == 10) { config::battle_chip_id = 0; }
+		else if((config::sio_device >= 10) && (config::sio_device <= 12)) { config::battle_chip_id = 0; }
 	}
 
 	//Context Right press
@@ -571,7 +571,7 @@ void AGB_GamePad::process_joystick(int pad, bool pressed)
 		}
 
 		//Emulate Battle Chip insertion
-		else if(config::sio_device == 10) { config::battle_chip_id = config::chip_list[1]; }
+		else if((config::sio_device >= 10) && (config::sio_device <= 12)) { config::battle_chip_id = config::chip_list[1]; }
 	}
 
 	//Context Right release
@@ -588,7 +588,7 @@ void AGB_GamePad::process_joystick(int pad, bool pressed)
 		}
 
 		//Emulate Battle Chip extraction
-		else if(config::sio_device == 10) { config::battle_chip_id = 0; }
+		else if((config::sio_device >= 10) && (config::sio_device <= 12)) { config::battle_chip_id = 0; }
 	}
 
 	//Context Up press
@@ -615,7 +615,7 @@ void AGB_GamePad::process_joystick(int pad, bool pressed)
 		}
 
 		//Emulate Battle Chip insertion
-		else if(config::sio_device == 10) { config::battle_chip_id = config::chip_list[2]; }
+		else if((config::sio_device >= 10) && (config::sio_device <= 12)) { config::battle_chip_id = config::chip_list[2]; }
 	}
 
 	//Context Up release
@@ -632,7 +632,7 @@ void AGB_GamePad::process_joystick(int pad, bool pressed)
 		}
 
 		//Emulate Battle Chip extraction
-		else if(config::sio_device == 10) { config::battle_chip_id = 0; }
+		else if((config::sio_device >= 10) && (config::sio_device <= 12)) { config::battle_chip_id = 0; }
 	}
 
 	//Context Down press
@@ -659,7 +659,7 @@ void AGB_GamePad::process_joystick(int pad, bool pressed)
 		}
 
 		//Emulate Battle Chip insertion
-		else if(config::sio_device == 10) { config::battle_chip_id = config::chip_list[3]; }
+		else if((config::sio_device >= 10) && (config::sio_device <= 12)) { config::battle_chip_id = config::chip_list[3]; }
 	}
 
 	//Context Down release
@@ -676,7 +676,7 @@ void AGB_GamePad::process_joystick(int pad, bool pressed)
 		}
 
 		//Emulate Battle Chip extraction
-		else if(config::sio_device == 10) { config::battle_chip_id = 0; }
+		else if((config::sio_device >= 10) && (config::sio_device <= 12)) { config::battle_chip_id = 0; }
 	}
 
 	is_gb_player = false;

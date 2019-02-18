@@ -94,6 +94,7 @@ class AGB_SIO
 	{
 		u16 data;
 		u16 id;
+		u16 unit_code;
 		u8 data_inc;
 		u8 data_dec;
 		u32 data_count;

@@ -189,11 +189,15 @@ void AGB_SIO::reset()
 			sio_stat.sio_type = GBA_PLAYER_RUMBLE;
 			break;
 
+		//Soul Doll Adapter
 		case 0x9:
 			sio_stat.sio_type = GBA_SOUL_DOLL_ADAPTER;
 			break;
 
+		//Battle Chip Gate, Progress Chip Gate, and Beast Link Gate
 		case 0xA:
+		case 0xB:
+		case 0xC:
 			sio_stat.sio_type = GBA_BATTLE_CHIP_GATE;
 			break;
 
@@ -241,6 +245,14 @@ void AGB_SIO::reset()
 	chip_gate.data_count = 0;
 	chip_gate.start = false;
 	chip_gate.current_state = GBA_BATTLE_CHIP_GATE_STANDBY;
+
+	switch(config::sio_device)
+	{
+		case 0xA: chip_gate.unit_code = 0xFFC6; break;
+		case 0xB: chip_gate.unit_code = 0xFFC7; break;
+		case 0xC: chip_gate.unit_code = 0xFFC4; break;
+		default: chip_gate.unit_code = 0;
+	}
 
 	#ifdef GBE_NETPLAY
 
@@ -900,7 +912,7 @@ void AGB_SIO::battle_chip_gate_process()
 		}
 
 		//Reply with 0xFF6C for Child 1 data
-		else if(sio_stat.sio_mode == MULTIPLAY_16BIT) { mem->write_u16_fast(0x4000122, 0xFFC6); }
+		else if(sio_stat.sio_mode == MULTIPLAY_16BIT) { mem->write_u16_fast(0x4000122, chip_gate.unit_code); }
 
 		//Raise SIO IRQ after sending byte
 		if(sio_stat.cnt & 0x4000) { mem->memory_map[REG_IF] |= 0x80; }
@@ -932,7 +944,7 @@ void AGB_SIO::battle_chip_gate_process()
 		if((sio_stat.transfer_data == 0xA380) || (sio_stat.transfer_data == 0xA3D0) || (sio_stat.transfer_data == 0xA6C0))
 		{
 			chip_gate.data_count = 0xFFFF;
-			mem->write_u16_fast(0x4000122, 0xFFC6);
+			mem->write_u16_fast(0x4000122, chip_gate.unit_code);
 
 			//Raise SIO IRQ after sending byte
 			if(sio_stat.cnt & 0x4000) { mem->memory_map[REG_IF] |= 0x80; }
@@ -950,7 +962,7 @@ void AGB_SIO::battle_chip_gate_process()
 		switch(chip_gate.data_count)
 		{
 			case 0x0:
-				mem->write_u16_fast(0x4000122, 0xFFC6);
+				mem->write_u16_fast(0x4000122, chip_gate.unit_code);
 				break;
 
 			case 0x1:
