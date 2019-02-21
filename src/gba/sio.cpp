@@ -104,7 +104,7 @@ bool AGB_SIO::init()
 	sender.host_socket = NULL;
 	sender.host_init = false;
 	sender.connected = false;
-	sender.port = config::netplay_client_port;
+	sender.port = (config::use_net_gate) ? 80 : config::netplay_client_port;
 
 	//Abort initialization if server and client ports are the same
 	if(config::netplay_server_port == config::netplay_client_port)
@@ -898,6 +898,9 @@ void AGB_SIO::soul_doll_adapter_process()
 /****** Process Battle Chip Gate ******/
 void AGB_SIO::battle_chip_gate_process()
 {
+	//Process Net Gate if necessary
+	if(config::use_net_gate) { net_gate_process(); }
+
 	//Update Battle Chip ID
 	chip_gate.id = config::battle_chip_id;
 
@@ -1010,4 +1013,33 @@ void AGB_SIO::battle_chip_gate_process()
 	//Clear Bit 7 of SIOCNT
 	sio_stat.cnt &= ~0x80;
 	mem->write_u16_fast(0x4000128, sio_stat.cnt);
+}
+
+/****** Process Net Gate - Receive Battle Chip IDs via HTTP ******/
+void AGB_SIO::net_gate_process()
+{
+	#ifdef GBE_NETPLAY
+
+	if(network_init && config::use_netplay && !sio_stat.connected)
+	{
+		//Loop for a while to see if a connection will accept
+		for(u32 x = 0; x < 100; x++)
+		{
+			//Check remote socket for any connections
+			if(server.remote_socket = SDLNet_TCP_Accept(server.host_socket))
+			{
+				u8 temp_buffer[5] = {0, 0, 0, 0, 0} ;
+
+				//Net Gate protocol is 1-shot, no response, 5 bytes
+				if(SDLNet_TCP_Recv(server.remote_socket, temp_buffer, 5) > 0)
+				{
+					
+				}
+
+				x = 100;
+			}
+		}
+	}
+
+	#endif
 }

@@ -121,6 +121,7 @@ class AGB_SIO
 	void soul_doll_adapter_process();
 
 	void battle_chip_gate_process();
+	void net_gate_process();
 };
 
 #endif // GBA_SIO

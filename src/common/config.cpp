@@ -143,6 +143,7 @@ namespace config
 	//Netplay settings
 	bool use_netplay = true;
 	bool netplay_hard_sync = true;
+	bool use_net_gate = false;
 	u32 netplay_sync_threshold = 32;
 	u16 netplay_server_port = 2000;
 	u16 netplay_client_port = 2001;
@@ -2137,6 +2138,24 @@ bool parse_ini_file()
 			}
 		}
 
+		//Use Net Gate
+		else if(ini_item == "#use_net_gate")
+		{
+			if((x + 1) < size) 
+			{
+				util::from_str(ini_opts[++x], output);
+
+				if(output == 1) { config::use_net_gate = true; }
+				else { config::use_net_gate = false; }
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#use_net_gate) \n";
+				return false;
+			}
+		}
+
 		//Netplay sync threshold
 		if(ini_item == "#netplay_sync_threshold")
 		{
@@ -2880,6 +2899,15 @@ bool save_ini_file()
 			std::string val = (config::use_netplay) ? "1" : "0";
 
 			output_lines[line_pos] = "[#use_netplay:" + val + "]";
+		}
+
+		//Use Net Gate
+		else if(ini_item == "#use_net_gate")
+		{
+			line_pos = output_count[x];
+			std::string val = (config::use_net_gate) ? "1" : "0";
+
+			output_lines[line_pos] = "[#use_net_gate:" + val + "]";
 		}
 
 		//Use netplay hard sync
