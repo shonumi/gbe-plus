@@ -27,22 +27,24 @@ Starting with Mega Man Battle Network 4, Capcom along Takara introduced GBA acce
 
 Battle Chip Gate
 ===================================================
-Mega Man Battle Network 4:				Enables Operation Battle Mode and using real chips in battle
+Mega Man Battle Network 4:				Enables Operation Battles + using real chips in that same mode
 Mega Man Zero 3						Unlocks Guardian minigames based on chip ID
 Rockman EXE 4.5: Real Operation				Enables using real chips in ever battle
 
 
 Progress Chip Gate
 ===================================================
-Mega Man Battle Network 5				Enables Navi Change and Operation Battle Mode
+Mega Man Battle Network 5				Enables Navi Change and Operation Battles + using real chips in that same mode
 
 
 Beast Link Gate
 ===================================================
-Rockman EXE 6						Enables infinite BeastOut, Link Navi System, and using real chips in battle
+Rockman EXE 6						Enables infinite BeastOut, Link Navi System, and using real chips in any battle
 
 
-4.5 Real Operation was never released outside of Japan, and supposedly due to poor reception of these accessories in the west, English versions of Battle Network 6 had features relating to the Beast Link Gate disabled or removed.
+4.5 Real Operation was never released outside of Japan. Supposedly these accessories were deemed unpopular in the west, therefore English versions of Battle Network 6 had features relating to the Beast Link Gate disabled or removed. The bulk of content, such as BeastOut and loading Battle Chips during fights still works. The English version, however, merely alters the detection code so that it fails to recognize the Beast Link Gate even when properly plugged in.
+
+For Mega Man Zero 3, chips with odd IDs unlock the Phantom minigame, while chips with even IDs unlock the Harpuia minigame. The RedSun chip (#304) unlocks the Fefnir minigame, while the BlueMoon chip (#309) unlocks the Leviathan minigame.
 
 
 ***************************************************
@@ -57,6 +59,8 @@ Battle Chip Gate		0xFFC6
 Progress Chip Gate		0xFFC7
 Beast Link Gate			0xFFC4
 
+The English release of Battle Network 6 checks for a Gate ID of 0xFF00 instead of 0xFFC4, thus causing the rest of the detection code to fail and preventing players from using the Beast Link Gate via normal means.
+
 The start signal looks something like this sequence of transmissions:
 
 1) 0x0000
@@ -67,7 +71,7 @@ The start signal looks something like this sequence of transmissions:
 6) 0xA---
 7) 0x0000
 
-Typically, the 0xA--- values would be 0xA380 (used for Mega Man Zero 3), 0xA3D0 (used for 4.5 Real Operations), or 0xA6C0 (used for Battle Network 6). The purpose and function or lower 12-bits is unknown, but they may arbitrary, or simply any value OR'ed with 0x280. At any rate, the games use them as a means to keep track of the protocol by examining the last value sent (which would be stored in the halfword at 0x4000120).
+Typically, the 0xA--- values will be 0xA380 (used for Mega Man Zero 3), 0xA3D0 (used for 4.5 Real Operations), or 0xA6C0 (used for Battle Network 6). The purpose and function or lower 12-bits are unknown, but they may arbitrary, or simply any value OR'ed with 0x280. At any rate, the games use them as a means to keep track of the protocol by examining the last value sent (which would be stored in the halfword at 0x4000120).
 
 On the transmission of the 6th value for the above start signal, the protocol is already switching over to the next phase, a repeating series of 9 transfers that contains the Battle Chip ID. The 9-stage transfer session looks something like this:
 

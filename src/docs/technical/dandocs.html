@@ -117,6 +117,7 @@
 			<p class="list_head"><strong>GBA</strong></p>
 			<p class="list_item"><a href="#gss">GBA Screen Stretch</a></p>
 			<p class="list_item"><a href="#sda">Soul Doll Adapter</a></p>
+			<p class="list_item"><a href="#bcg">Battle Chip Gate</a></p>
 			
 		</div>
 
@@ -140,7 +141,7 @@
 
 	<p class="list_head"><strong>Credits</strong></p>
 	<p class="list_item">ClawGrip - Scans of all known Barcode Boy cards</p>
-	<p class="list_item">endrift - MBC6 documentation</p>
+	<p class="list_item">endrift - MBC6 documentation. Collaboration on Battle Chip Gate documentation (especially Progress Chip Gate) + testing + verification of results.</p>
 	<p class="list_item">Háčky - Mobile Adapter GB documentation</p>
 	<p class="list_item">Robert Abel (Tauwasser) - Net de Get translation help</p> 
 
@@ -1242,6 +1243,106 @@ Bit 7               | Bit 6               | Bit 5               | Bit 4         
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------</code></p>
 
 	<p>Again, 2nd and 3rd transfers use Bit 3 to determine a &#34;0&#34; or a &#34;1&#34;. The above example would be 0b10101010 or 0xAA. Unlike reads, which can continue on updating the internal EEPROM address, writes are done in 16-byte pages. Up to 16-bytes can be written sequentially; anymore and the writes loop around. E.g. if writing to 0x100 a page write has a range of 0x100 to 0x10F. Attempting to write a 17th byte will overwrite 0x100 instead of 0x110. In order to write 0x110 to 0x11F, another write slave address, write command, and word address need to be sent to the 24LC08.</p>
+
+	<!-- Battle Chip Gate -->
+	<a name="bcg"></a>
+	<p class="gray_title">Battle Chip gate</p>
+	<p class="list_item"><a href="#bcg_gen">General Hardware Information</a></p>
+	<p class="list_item"><a href="#bcg_gam">Compatible Games</a></p>
+	<p class="list_item"><a href="#bcg_pro">Protocol</a></p>
+	<p class="list_item"><a href="#bcg_mlt">Multiplayer Setup</a></p>
+
+	<p>Starting with Mega Man Battle Network 4, Capcom along Takara introduced GBA accessories known as Battle Chip Gates. These devices allowed players to insert physical Battle Chips into a slot, which in turn executed attacks or activated special moves during combat. Effectively, these Battle Chip Gates simulated the act of being a real &#34;Net Navi operator&#34; as depicted in the games and anime. Three hardware revisions exist for each mainline Battle Network game released after 2003 (4, 5, 6). Among those revisions are several variants that differ only in color and design. Each revision additionally uses its own collection of Battle Chips.</p>
+
+	<a name="bcg_gen"></a>
+	<p class="gray_title">[Battle Chip Gate] : General Hardware Information</p>
+
+	<ul>
+		<li class="list_item">Battle Chip Gates come in 3 hardware revisions: the original Battle Chip Gate, Progress Gate, and Beast Link Gate (Battle Network 4, 5, and 6 respectively).</li>
+		<li class="list_item">Each Battle Chip Gate accepts physical Battle Chip into a slot on the top of the unit (or on the side, in the case of the Beast Link Gate).</li>
+		<li class="list_item">Each Battle Chip Gate exposes a Link Cable port on its side, allowing for multiplayer while using the device.</li>
+		<li class="list_item">Each Battle Chip Gate uses semi-retractable clamps (similar the the GBA-GCN cable) to keep the unit stable and in place.</li>
+		<li class="list_item">Battle Chips are merely DIP switches. Their configuration effectively represents a numerical ID to the Battle Chip Gates, which the games then use.</li>
+	</ul>
+
+	<a name="bcg_gam"></a>
+	<p class="gray_title">[Battle Chip Gate] : Compatible Games</p>
+
+	<p><strong>Battle Chip Gate</strong></p>
+	<p><code>Mega Man Battle Network 4:				Enables Operation Battles + using real chips in that same mode
+Mega Man Zero 3						Unlocks Guardian minigames based on chip ID
+Rockman EXE 4.5: Real Operation				Enables using real chips in ever battle</code></p>
+
+	<p><strong>Progress Chip Gate</strong></p>
+	<p><code>Mega Man Battle Network 5				Enables Navi Change and Operation Battles + using real chips in that same mode</code></p>
+
+	<p><strong>Beast Link Gate</strong></p>
+	<p><code>Rockman EXE 6						Enables infinite BeastOut, Link Navi System, and using real chips in any battle</code></p>
+
+	<p>4.5 Real Operation was never released outside of Japan. Supposedly these accessories were deemed unpopular in the west, therefore English versions of Battle Network 6 had features relating to the Beast Link Gate disabled or removed. The bulk of content, such as BeastOut and loading Battle Chips during fights still works. The English version, however, merely alters the detection code so that it fails to recognize the Beast Link Gate even when properly plugged in.</p>
+
+	<p>For Mega Man Zero 3, chips with odd IDs unlock the Phantom minigame, while chips with even IDs unlock the Harpuia minigame. The RedSun chip (#304) unlocks the Fefnir minigame, while the BlueMoon chip (#309) unlocks the Leviathan minigame.</p>
+
+	<a name="bcg_pro"></a>
+	<p class="gray_title">[Battle Chip Gate] : Protocol</p>
+
+	<p>Each Battle Chip Gate uses mostly the same protocol with only very slight changes. They are largely the same hardware in different shells and different physical arrangements. From a software point of view, however, they behave nearly identically.</p>
+
+	<p>The Battle Chip Gates communicate via the GBA's Multi16 mode with a baud rate of 115200bps. The GBA acts as the parent, and the device is Child 1. The Chip Gates begin in a sort of &#34;stand-by&#34; mode where they continually respond with their &#34;Gate ID&#34;. This ID is the only thing the Chip Gates send until the GBA transmits a start signal. The Gate IDs are as follows:</p>
+
+	<p><code>Battle Chip Gate		0xFFC6
+Progress Chip Gate		0xFFC7
+Beast Link Gate			0xFFC4</code></p>
+
+	<p>The English release of Battle Network 6 checks for a Gate ID of 0xFF00 instead of 0xFFC4, thus causing the rest of the detection code to fail and preventing players from using the Beast Link Gate via normal means.</p>
+
+	<p>The start signal looks something like this sequence of transmissions:</p>
+
+	<ol>
+		<li class="list_item">0x0000</li>
+		<li class="list_item">0xA---</li>
+		<li class="list_item">0xA---</li>
+		<li class="list_item">0xA---</li>
+		<li class="list_item">0x8FFF</li>
+		<li class="list_item">0xA---</li>
+		<li class="list_item">0x0000</li>
+	</ol>
+
+	<p>Typically, the 0xA--- values will be 0xA380 (used for Mega Man Zero 3), 0xA3D0 (used for 4.5 Real Operations), or 0xA6C0 (used for Battle Network 6). The purpose and function or lower 12-bits are unknown, but they may arbitrary, or simply any value OR&#39;ed with 0x280. At any rate, the games use them as a means to keep track of the protocol by examining the last value sent (which would be stored in the halfword at 0x4000120).</p>
+
+	<p>On the transmission of the 6th value for the above start signal, the protocol is already switching over to the next phase, a repeating series of 9 transfers that contains the Battle Chip ID. The 9-stage transfer session looks something like this:</p>
+
+	<ol>
+		<li class="list_item">Chip Gate ID (e.g. 0xFFC6)</li>
+		<li class="list_item">0xFFFF</li>
+		<li class="list_item">0xFFFF</li>
+		<li class="list_item">0x--00</li>
+		<li class="list_item">0xFF--</li>
+		<li class="list_item">Battle Chip ID</li>
+		<li class="list_item">0x0000</li>
+		<li class="list_item">0x0000</li>
+		<li class="list_item">0x0000</li>
+	</ol>
+
+	<p>The 4th and 5th transfer contains seeds that increment and decrement respectively on each transfer. The two seeds together add up to 255, however, it appears all compatible game software simply ignore this data. 6th transfer is the Battle Chip ID as determined by the DIP switch. A value of zero indicates no chip is inserted, while a non-zero value indicates a chip is currently slotted. This 9-stage transfer loops endlessly until the GBA sends another start signal. Once any 0xA--- value of the start signal is received, the Battle Chip Gate responds with its Gate ID (just like in stand-by mode) until the start signal terminates. Afterwards, the 9-stage transfers begin once again.</p>
+
+	<p>Mega Man Battle Network 6 sends an indeterminate number of transfers via Normal32 mode before the first start signal, and oddly enough before the any first battle after loading a save. The Battle Chip Gates simply return zero for these transfers.</p>
+
+	<p>It appears that some of the bytes set high (such as transfers 2, 3, and 5) occasionally do hold other values ranging from 0x00, 0x80, or 0xC0, however the conditions under which this occurs remains unknown. Needless to say, on the software side those changes are irrelevant.</p>
+
+	<a name="bcg_mlt"></a>
+	<p class="gray_title">[Battle Chip Gate] : Multiplayer Setup</p>
+
+	<p>It&#39;s possible to link together 2 GBAs, each with their own Battle Chip Gate, for multiplayer battles in all of the compatible Battle Network games. The model for this multiplayer appears to work as follows:</p>
+	
+
+	<p><code>Player 1			Parent
+Player 1 Battle Chip Gate	Child 1
+Player 2			Child 2
+Player 2 Battle Chip Gate	Child 3</code></p>
+
+	<p>With this setup, Player 1 and Player 2 can technically ignore any output the opponent&#39;s Battle Chip Gate and focus on their own, despite essentially being able to see exactly what&#39;s happening on the other side. It also indicates that the Battle Chip Gates are capable of operating as Child 1 or Child 3.</p>
+
 
 	<!-- Mobile Trainer -->
 	<a name="mbt"></a>
