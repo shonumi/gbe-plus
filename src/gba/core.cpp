@@ -282,7 +282,7 @@ void AGB_core::run_core()
 				core_cpu.controllers.serial_io.receive_byte();
 
 				//Clock SIO
-				core_cpu.clock_sio();
+				//core_cpu.clock_sio();
 			}
 
 			//Otherwise, try to run any emulate SIO devices attached to GBE+
@@ -530,33 +530,6 @@ void AGB_core::handle_hotkey(SDL_Event& event)
 				config::osd_message = "SOUL DOLL ADAPTER RESET";
 				config::osd_count = 180;
 				
-				break;
-
-			//Insert Battle Chip
-			case GBA_BATTLE_CHIP_GATE:
-				core_cpu.controllers.serial_io.chip_gate.id = config::battle_chip_id;
-
-				//OSD
-				config::osd_message = "BATTLE CHIP IN";
-				config::osd_count = 180;
-
-				break;
-		}
-	}
-
-	//Battle Chip Gate - Extract Battle Chip
-	else if((event.type == SDL_KEYUP) && (event.key.keysym.sym == SDLK_F3))
-	{
-		switch(core_cpu.controllers.serial_io.sio_stat.sio_type)
-		{
-			//Extract Battle Chip
-			case GBA_BATTLE_CHIP_GATE:
-				core_cpu.controllers.serial_io.chip_gate.id = 0x0;
-
-				//OSD
-				config::osd_message = "BATTLE CHIP OUT";
-				config::osd_count = 180;
-
 				break;
 		}
 	}
