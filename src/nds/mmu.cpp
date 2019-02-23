@@ -1135,7 +1135,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 	}
 
 	//Check for unused memory first
-	if(address >= 0x10000000) { return; std::cout<<"Out of bounds write : 0x" << std::hex << address << "\n"; return; }
+	if(address >= 0x10000000) { std::cout<<"Out of bounds write : 0x" << std::hex << address << "\n"; return; }
 
 	switch(address)
 	{
