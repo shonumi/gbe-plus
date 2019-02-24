@@ -524,7 +524,7 @@ void AGB_SIO::process_network_communication()
 	#ifdef GBE_NETPLAY
 
 	//If no communication with another GBE+ instance has been established yet, see if a connection can be made
-	if((!sio_stat.connected) && (sio_stat.sio_type != INVALID_GBA_DEVICE) && (sio_stat.sio_type != GBA_BATTLE_CHIP_GATE))
+	if((!sio_stat.connected) && (sio_stat.sio_type != INVALID_GBA_DEVICE) && (!config::use_net_gate))
 	{
 		//Try to accept incoming connections to the server
 		if(!server.connected)
@@ -1029,7 +1029,7 @@ void AGB_SIO::net_gate_process()
 			//Check remote socket for any connections
 			if(server.remote_socket = SDLNet_TCP_Accept(server.host_socket))
 			{
-				u8 temp_buffer[3] = {0, 0, 0} ;
+				u8 temp_buffer[3] = {0, 0, 0};
 
 				//Net Gate protocol is 1-shot, no response, 3 bytes
 				if(SDLNet_TCP_Recv(server.remote_socket, temp_buffer, 3) > 0)

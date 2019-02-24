@@ -121,13 +121,13 @@ void ARM7::process_swi(u32 comment)
 
 		//CPUSet
 		case 0xB:
-			//std::cout<<"SWI::CPU Set \n";
+			std::cout<<"SWI::CPU Set \n";
 			swi_cpuset();
 			break;
 
 		//CPUFastSet
 		case 0xC:
-			//std::cout<<"SWI::CPU Fast Set \n";
+			std::cout<<"SWI::CPU Fast Set \n";
 			swi_cpufastset();
 			break;
 
@@ -139,13 +139,13 @@ void ARM7::process_swi(u32 comment)
 
 		//BGAffineSet
 		case 0xE:
-			//std::cout<<"SWI::BG Affine Set \n";
+			std::cout<<"SWI::BG Affine Set \n";
 			swi_bgaffineset();
 			break;
 
 		//OBJAffineSet
 		case 0xF:
-			//std::cout<<"SWI::OBJ Affine Set \n";
+			std::cout<<"SWI::OBJ Affine Set \n";
 			swi_objaffineset();
 			break;
 
@@ -157,13 +157,13 @@ void ARM7::process_swi(u32 comment)
 
 		//LZ77UnCompWram
 		case 0x11:
-			//std::cout<<"SWI::LZ77 Uncompress Work RAM \n";
+			std::cout<<"SWI::LZ77 Uncompress Work RAM \n";
 			swi_lz77uncompvram();
 			break;
 
 		//LZ77UnCompVram
 		case 0x12:
-			//std::cout<<"SWI::LZ77 Uncompress Video RAM \n";
+			std::cout<<"SWI::LZ77 Uncompress Video RAM \n";
 			swi_lz77uncompvram();
 			break;
 
