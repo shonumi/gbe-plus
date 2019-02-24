@@ -243,6 +243,7 @@ void AGB_SIO::reset()
 	chip_gate.data_inc = 3;
 	chip_gate.data_dec = 3;
 	chip_gate.data_count = 0;
+	chip_gate.net_gate_count = 0;
 	chip_gate.start = false;
 	chip_gate.current_state = GBA_BATTLE_CHIP_GATE_STANDBY;
 
@@ -523,7 +524,7 @@ void AGB_SIO::process_network_communication()
 	#ifdef GBE_NETPLAY
 
 	//If no communication with another GBE+ instance has been established yet, see if a connection can be made
-	if((!sio_stat.connected) && (sio_stat.sio_type != INVALID_GBA_DEVICE))
+	if((!sio_stat.connected) && (sio_stat.sio_type != INVALID_GBA_DEVICE) && (!config::use_net_gate))
 	{
 		//Try to accept incoming connections to the server
 		if(!server.connected)
@@ -898,6 +899,9 @@ void AGB_SIO::soul_doll_adapter_process()
 /****** Process Battle Chip Gate ******/
 void AGB_SIO::battle_chip_gate_process()
 {
+	//Process Net Gate if necessary
+	if(config::use_net_gate) { net_gate_process(); }
+
 	//Update Battle Chip ID
 	chip_gate.id = config::battle_chip_id;
 
@@ -1010,4 +1014,44 @@ void AGB_SIO::battle_chip_gate_process()
 	//Clear Bit 7 of SIOCNT
 	sio_stat.cnt &= ~0x80;
 	mem->write_u16_fast(0x4000128, sio_stat.cnt);
+}
+
+/****** Process Net Gate - Receive Battle Chip IDs via HTTP ******/
+void AGB_SIO::net_gate_process()
+{
+	#ifdef GBE_NETPLAY
+
+	if(network_init && config::use_netplay && !sio_stat.connected)
+	{
+		//Loop for a while to see if a connection will accept
+		for(u32 x = 0; x < 100; x++)
+		{
+			//Check remote socket for any connections
+			if(server.remote_socket = SDLNet_TCP_Accept(server.host_socket))
+			{
+				u8 temp_buffer[3] = {0, 0, 0};
+
+				//Net Gate protocol is 1-shot, no response, 3 bytes
+				if(SDLNet_TCP_Recv(server.remote_socket, temp_buffer, 3) > 0)
+				{
+					//Set Battle Chip ID from network data
+					if(temp_buffer[0] == 0x80)
+					{
+						config::battle_chip_id = (temp_buffer[1] << 8) | temp_buffer[2];
+						chip_gate.net_gate_count = 1024;
+					}
+				}
+
+				x = 100;
+			}
+		}
+	}
+
+	if(chip_gate.net_gate_count)
+	{
+		chip_gate.net_gate_count--;
+		if(!chip_gate.net_gate_count) { config::battle_chip_id = 0; }
+	}
+
+	#endif
 }

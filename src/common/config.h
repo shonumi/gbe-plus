@@ -134,6 +134,7 @@ namespace config
 
 	extern bool use_netplay;
 	extern bool netplay_hard_sync;
+	extern bool use_net_gate;
 	extern u32 netplay_sync_threshold;
 	extern u16 netplay_server_port;
 	extern u16 netplay_client_port;
