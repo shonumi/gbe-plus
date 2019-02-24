@@ -104,7 +104,7 @@ bool AGB_SIO::init()
 	sender.host_socket = NULL;
 	sender.host_init = false;
 	sender.connected = false;
-	sender.port = (config::use_net_gate) ? 80 : config::netplay_client_port;
+	sender.port = config::netplay_client_port;
 
 	//Abort initialization if server and client ports are the same
 	if(config::netplay_server_port == config::netplay_client_port)
@@ -243,6 +243,7 @@ void AGB_SIO::reset()
 	chip_gate.data_inc = 3;
 	chip_gate.data_dec = 3;
 	chip_gate.data_count = 0;
+	chip_gate.net_gate_count = 0;
 	chip_gate.start = false;
 	chip_gate.current_state = GBA_BATTLE_CHIP_GATE_STANDBY;
 
@@ -523,7 +524,7 @@ void AGB_SIO::process_network_communication()
 	#ifdef GBE_NETPLAY
 
 	//If no communication with another GBE+ instance has been established yet, see if a connection can be made
-	if((!sio_stat.connected) && (sio_stat.sio_type != INVALID_GBA_DEVICE))
+	if((!sio_stat.connected) && (sio_stat.sio_type != INVALID_GBA_DEVICE) && (sio_stat.sio_type != GBA_BATTLE_CHIP_GATE))
 	{
 		//Try to accept incoming connections to the server
 		if(!server.connected)
@@ -1028,17 +1029,28 @@ void AGB_SIO::net_gate_process()
 			//Check remote socket for any connections
 			if(server.remote_socket = SDLNet_TCP_Accept(server.host_socket))
 			{
-				u8 temp_buffer[5] = {0, 0, 0, 0, 0} ;
+				u8 temp_buffer[3] = {0, 0, 0} ;
 
-				//Net Gate protocol is 1-shot, no response, 5 bytes
-				if(SDLNet_TCP_Recv(server.remote_socket, temp_buffer, 5) > 0)
+				//Net Gate protocol is 1-shot, no response, 3 bytes
+				if(SDLNet_TCP_Recv(server.remote_socket, temp_buffer, 3) > 0)
 				{
-					
+					//Set Battle Chip ID from network data
+					if(temp_buffer[0] == 0x80)
+					{
+						config::battle_chip_id = (temp_buffer[1] << 8) | temp_buffer[2];
+						chip_gate.net_gate_count = 1024;
+					}
 				}
 
 				x = 100;
 			}
 		}
+	}
+
+	if(chip_gate.net_gate_count)
+	{
+		chip_gate.net_gate_count--;
+		if(!chip_gate.net_gate_count) { config::battle_chip_id = 0; }
 	}
 
 	#endif

@@ -98,6 +98,7 @@ class AGB_SIO
 		u8 data_inc;
 		u8 data_dec;
 		u32 data_count;
+		u32 net_gate_count;
 		bool start;
 		battle_chip_gate_state current_state;
 	} chip_gate;
