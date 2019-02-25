@@ -3390,10 +3390,10 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 	
 					switch(div_mode)
 					{
-						//32-bit result + or - 1
+						//32-bit result positive or negative 1 or - 1
 						case 0x00:
-							if(nds9_math.div_numer & 0x80000000) { result_32--; }
-							else { result_32++; }
+							if(nds9_math.div_numer & 0x80000000) { result_32 = 0x1; }
+							else { 0xFFFFFFFF; }
 							write_u64_fast(NDS_DIVRESULT, result_32);
 							break;
 
