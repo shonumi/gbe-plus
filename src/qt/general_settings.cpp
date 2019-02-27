@@ -895,6 +895,18 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	hard_sync_layout->addWidget(hard_sync_label);
 	hard_sync_set->setLayout(hard_sync_layout);
 
+	//Netplay - Enable Net Gate
+	QWidget* net_gate_set = new QWidget(netplay);
+	QLabel* net_gate_label = new QLabel("Use Net Gate");
+	net_gate = new QCheckBox(netplay);
+	net_gate->setToolTip("Allows GBE+ to receive chip IDs for Battle Chip Gate via TCP");
+
+	QHBoxLayout* net_gate_layout = new QHBoxLayout;
+	net_gate_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	net_gate_layout->addWidget(net_gate);
+	net_gate_layout->addWidget(net_gate_label);
+	net_gate_set->setLayout(net_gate_layout);
+
 	//Netplay - Sync Threshold
 	QWidget* sync_threshold_set = new QWidget(netplay);
 	QLabel* sync_threshold_label = new QLabel("Sync threshold");
@@ -953,6 +965,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	QVBoxLayout* netplay_layout = new QVBoxLayout;
 	netplay_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	netplay_layout->addWidget(enable_netplay_set);
+	netplay_layout->addWidget(net_gate_set);
 	netplay_layout->addWidget(hard_sync_set);
 	netplay_layout->addWidget(sync_threshold_set);
 	netplay_layout->addWidget(server_port_set);
@@ -1144,6 +1157,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(controls_combo, SIGNAL(currentIndexChanged(int)), this, SLOT(switch_control_layout()));
 	connect(enable_netplay, SIGNAL(stateChanged(int)), this, SLOT(set_netplay()));
 	connect(hard_sync, SIGNAL(stateChanged(int)), this, SLOT(set_hard_sync()));
+	connect(net_gate, SIGNAL(stateChanged(int)), this, SLOT(set_net_gate()));
 	connect(sync_threshold, SIGNAL(valueChanged(int)), this, SLOT(update_sync_threshold()));
 	connect(server_port, SIGNAL(valueChanged(int)), this, SLOT(update_server_port()));
 	connect(client_port, SIGNAL(valueChanged(int)), this, SLOT(update_client_port()));
@@ -2117,6 +2131,13 @@ void gen_settings::set_hard_sync()
 		config::netplay_hard_sync = false;
 		sync_threshold->setEnabled(false);
 	}
+}
+
+/****** Sets the Net Gate option ******/
+void gen_settings::set_net_gate()
+{
+	if(net_gate->isChecked()) { config::use_net_gate = true; }
+	else { config::use_net_gate = false; }
 }
 
 /****** Sets the netplay sync threshold ******/
