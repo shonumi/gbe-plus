@@ -2080,7 +2080,7 @@ bool AGB_MMU::read_file(std::string filename)
 	//Try to auto-detect save-type, if any
 	if(config::agb_save_type == AGB_AUTO_DETECT)
 	{
-		for(u32 x = 0x8000000; x < (0x8000000 + file_size); x+=4)
+		for(u32 x = 0x8000000; x < (0x8000000 + file_size); x+=1)
 		{
 			switch(memory_map[x])
 			{
