@@ -992,29 +992,58 @@ void AGB_LCD::render_scanline()
 	//Render sprites
 	obj_render = render_sprite_pixel();
 
+	bool check_x = false;
+	bool check_y = false;
+
 	//Determine window status of this pixel
 	if(lcd_stat.window_enable[0])
 	{
-		if((scanline_pixel_counter < lcd_stat.window_x1[0]) || (scanline_pixel_counter > lcd_stat.window_x2[0])
-		|| (current_scanline < lcd_stat.window_y1[0]) || (current_scanline > lcd_stat.window_y2[0]))
+		if((lcd_stat.window_x1[0] <= lcd_stat.window_x2[0]) && (scanline_pixel_counter >= lcd_stat.window_x1[0]) && (scanline_pixel_counter <= lcd_stat.window_x2[0]))
 		{
-			lcd_stat.in_window = false;
+			check_x = true;
+		}
+
+		else if((lcd_stat.window_x1[0] > lcd_stat.window_x2[0]) && ((scanline_pixel_counter >= lcd_stat.window_x1[0]) || (scanline_pixel_counter <= lcd_stat.window_x2[0])))
+		{
+			check_x = true;
+		}
+
+		if((lcd_stat.window_y1[0] <= lcd_stat.window_y2[0]) && (current_scanline >= lcd_stat.window_y1[0]) && (current_scanline <= lcd_stat.window_y2[0]))
+		{
+			check_y = true;
+		}
+
+		else if((lcd_stat.window_y1[0] > lcd_stat.window_y2[0]) && ((current_scanline >= lcd_stat.window_y1[0]) || (current_scanline <= lcd_stat.window_y2[0])))
+		{
+			check_y = true;
 		}
 		
-		else { lcd_stat.in_window = true; lcd_stat.current_window = 0; }
+		if(check_x && check_y) { lcd_stat.in_window = true; lcd_stat.current_window = 0; }
 	}
 
 	if((lcd_stat.window_enable[1]) && (!lcd_stat.in_window))
 	{
-		if(!lcd_stat.window_enable[0]) { lcd_stat.current_window = 1; }
-
-		if((scanline_pixel_counter < lcd_stat.window_x1[1]) || (scanline_pixel_counter > lcd_stat.window_x2[1])
-		|| (current_scanline < lcd_stat.window_y1[1]) || (current_scanline > lcd_stat.window_y2[1]))
+		if((lcd_stat.window_x1[1] <= lcd_stat.window_x2[1]) && (scanline_pixel_counter >= lcd_stat.window_x1[1]) && (scanline_pixel_counter <= lcd_stat.window_x2[1]))
 		{
-			lcd_stat.in_window = false;
+			check_x = true;
+		}
+
+		else if((lcd_stat.window_x1[1] > lcd_stat.window_x2[1]) && ((scanline_pixel_counter >= lcd_stat.window_x1[1]) || (scanline_pixel_counter <= lcd_stat.window_x2[1])))
+		{
+			check_x = true;
+		}
+
+		if((lcd_stat.window_y1[1] <= lcd_stat.window_y2[1]) && (current_scanline >= lcd_stat.window_y1[1]) && (current_scanline <= lcd_stat.window_y2[1]))
+		{
+			check_y = true;
+		}
+
+		else if((lcd_stat.window_y1[1] > lcd_stat.window_y2[1]) && ((current_scanline >= lcd_stat.window_y1[1]) || (current_scanline <= lcd_stat.window_y2[1])))
+		{
+			check_y = true;
 		}
 		
-		else { lcd_stat.in_window = true; lcd_stat.current_window = 1; }
+		if(check_x && check_y) { lcd_stat.in_window = true; lcd_stat.current_window = 1; }
 	}
 
 	//Turn off OBJ rendering if in/out of a window where OBJ rendering is disabled
