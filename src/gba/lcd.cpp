@@ -1021,8 +1021,12 @@ void AGB_LCD::render_scanline()
 		if(check_x && check_y) { lcd_stat.in_window = true; lcd_stat.current_window = 0; }
 	}
 
+	
 	if((lcd_stat.window_enable[1]) && (!lcd_stat.in_window))
 	{
+		check_x = false;
+		check_y = false;
+
 		if((lcd_stat.window_x1[1] <= lcd_stat.window_x2[1]) && (scanline_pixel_counter >= lcd_stat.window_x1[1]) && (scanline_pixel_counter <= lcd_stat.window_x2[1]))
 		{
 			check_x = true;
@@ -1045,6 +1049,7 @@ void AGB_LCD::render_scanline()
 		
 		if(check_x && check_y) { lcd_stat.in_window = true; lcd_stat.current_window = 1; }
 	}
+	
 
 	//Turn off OBJ rendering if in/out of a window where OBJ rendering is disabled
 	if((lcd_stat.obj_win_enable) && (obj_win_pixel)) { }
