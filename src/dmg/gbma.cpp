@@ -649,6 +649,7 @@ void DMG_SIO::mobile_adapter_process_pop()
 	std::size_t top_match = pop_data.find("TOP");
 	std::size_t dele_match = pop_data.find("DELE");
 	std::size_t retr_match = pop_data.find("RETR");
+	std::size_t list_match = pop_data.find("LIST");
 
 	//Check POP command
 	if(user_match != std::string::npos) { pop_command = 1; }
@@ -658,6 +659,7 @@ void DMG_SIO::mobile_adapter_process_pop()
 	else if(top_match != std::string::npos) { pop_command = 5; }
 	else if(dele_match != std::string::npos) { pop_command = 6; }
 	else if(retr_match != std::string::npos) { pop_command = 7; }
+	else if(list_match != std::string::npos) { pop_command = 8; }
 
 	//Check for POP initiation
 	else if((mobile_adapter.data_length == 1) && (!mobile_adapter.pop_session_started))
@@ -670,7 +672,7 @@ void DMG_SIO::mobile_adapter_process_pop()
 	else if((mobile_adapter.data_length == 1) && (mobile_adapter.pop_session_started))
 	{
 		mobile_adapter.pop_session_started = false;
-		pop_command = 8;
+		pop_command = 9;
 	}
 
 	switch(pop_command)
@@ -707,8 +709,14 @@ void DMG_SIO::mobile_adapter_process_pop()
 			mobile_adapter.transfer_state = 0x11;
 			break;
 
-		//End
+		//LIST
 		case 0x8:
+			pop_response = "+OK\r\n1 256\r\n";
+			response_id = 0x9F;
+			break;
+
+		//End
+		case 0x9:
 			pop_response = "+OK\r\n";
 			response_id = 0x9F;
 			break;
