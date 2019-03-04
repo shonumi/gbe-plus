@@ -363,6 +363,7 @@ void DMG_SIO::reset()
 	mobile_adapter.line_busy = false;
 	mobile_adapter.pop_session_started = false;
 	mobile_adapter.http_session_started = false;
+	mobile_adapter.smtp_session_started = false;
 	mobile_adapter.http_data = "";
 
 	//Bardigun barcode scanner

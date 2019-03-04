@@ -122,6 +122,7 @@ class DMG_SIO
 		u32 transfer_state;
 		bool pop_session_started;
 		bool http_session_started;
+		bool smtp_session_started;
 		bool line_busy;
 	} mobile_adapter;
 

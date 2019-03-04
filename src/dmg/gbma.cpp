@@ -547,6 +547,7 @@ void DMG_SIO::mobile_adapter_process()
 						//Reset all sessions
 						mobile_adapter.pop_session_started = false;
 						mobile_adapter.http_session_started = false;
+						mobile_adapter.smtp_session_started = false;
 						mobile_adapter.transfer_state = 0;
 
 						break;
@@ -1046,8 +1047,9 @@ void DMG_SIO::mobile_adapter_process_smtp()
 	u8 smtp_command = 0xFF;
 
 	//Check for SMTP initiation
-	if((mobile_adapter.data_length == 1) && (!mobile_adapter.transfer_state))
+	if((mobile_adapter.data_length == 1) && (!mobile_adapter.transfer_state) && (!mobile_adapter.smtp_session_started))
 	{
+		mobile_adapter.smtp_session_started = true;
 		smtp_command = 0;
 	}
 
@@ -1055,20 +1057,31 @@ void DMG_SIO::mobile_adapter_process_smtp()
 	std::size_t rcpt_match = smtp_data.find("RCPT TO");
 	std::size_t quit_match = smtp_data.find("QUIT");
 	std::size_t data_match = smtp_data.find("DATA");
+	std::size_t helo_match = smtp_data.find("HELO");
+	std::size_t end_match = smtp_data.find("\r\n.\r\n");
 
 	//Check POP command
 	if(mail_match != std::string::npos) { smtp_command = 1; }
 	else if(rcpt_match != std::string::npos) { smtp_command = 2; }
 	else if(quit_match != std::string::npos) { smtp_command = 3; }
 	else if(data_match != std::string::npos) { smtp_command = 4; }
+	else if(helo_match != std::string::npos) { smtp_command = 5; }
+	else if(end_match != std::string::npos) { smtp_command = 6; }
 
 	//Handle SMTP commands
 	switch(smtp_command)
 	{
-		//Init + MAIL FROM, RCPT TO
+		//Init
 		case 0x0:
+			smtp_response = "220 OK\r\n";
+			response_id = 0x95;
+			break;
+
+		//MAIL FROM, RCPT TO, HELO, DATA-END
 		case 0x1:
 		case 0x2:
+		case 0x5:
+		case 0x6:
 			smtp_response = "250 OK\r\n";
 			response_id = 0x95;
 			break;
@@ -1082,6 +1095,11 @@ void DMG_SIO::mobile_adapter_process_smtp()
 		//DATA
 		case 0x4:
 			smtp_response = "354\r\n";
+			response_id = 0x95;
+			break;
+
+		default:
+			smtp_response = "250 OK\r\n";
 			response_id = 0x95;
 			break;
 	}
