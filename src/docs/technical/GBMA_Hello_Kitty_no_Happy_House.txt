@@ -1,0 +1,41 @@
+Hello Kitty no Happy House Server Technical Documentation 0.1
+March 04, 2019
+Shonumi aka D.S. Baxter
+
+***************************************************
+1. Introduction
+***************************************************
+
+Hello Kitty no Happy House is a Game Boy Color title featuring furniture collection, minigames, and online communication. The game revolves around interacting with Hello Kitty, gaining new furniture, and decorating the "Happy House". As it concerns the Mobile Adapter GB, Hello Kitty no Happy House boasts basic email capabilities. Through the email service, users could share different furniture as presents.
+
+
+***************************************************
+2. Server Structure
+***************************************************
+
+Hello Kitty no Happy House is not known to access any resource via HTTP. Instead, it simply communicates with a SMTP server and POP3 server for sending and receiving email respectively.
+
+
+***************************************************
+3. Email
+***************************************************
+
+Email can be sent and received in Hello Kitty no Happy House, much like Mobile Trainer. The game offers similar tools to write the email, helping users fill out subjects, addresses, and content, and viewing the mailbox for received items. The game also sends "presents" to another user via email. The standard email format looks something like this (note that xxxx, yyyy, and zzzz parts are not exact lengths, consider them as variables):
+
+From: =?ISO-2022-JP?xxxxxxxxxxxxxxxxxxxxxxxx <yyyy@zzzz.dion.ne.jp>
+To: =?ISO-2022-JP?xxxxxxxxxxxxxxxxxxxxxxxx <yyyyyyyyy>
+Subject: =?ISO-2022-JP?xxxxxxxxxxxxxxxxxxxxxxxx
+MIME-Version: 1.0
+Content-Type: text/plain; charset="ISO-2022-JP"
+Content-Transfer-Encoding: 7bit
+X-Mailer: Hello Kitty Happy House
+X-Game-title: HKITTY_HH
+X-Game-code: CGB-BK7J-00
+[content of email]
+
+The game uses a two additional custom SMTP email headers to send furniture to another player. These headers are parsed for a 3-letter ASCII code which determines the item received. After the "X-Game-code" header, the following would be inserted before the content of the email:
+
+X-GBmail-type: exclusive
+X-HKH-HOUSE: [3-letter code]
+
+The codes appear to be simple, e.g. "AAE" for a framed picture and "AIG" for a green rug.
