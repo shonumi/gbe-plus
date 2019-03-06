@@ -44,6 +44,7 @@
 				width: 100%;
 				background-color: #C0C0C0;
 				margin-bottom: 15px;
+				padding-left: 5px;
 				font-size: 24px;
 			}
 
@@ -125,6 +126,7 @@
 			<p class="toc_gray_title">Mobile Adapter GB</p>
 
 			<p class="list_head"><strong>Game and Server Documentation</strong></p>
+			<p class="list_item"><a href="#hkh">Hello Kitty no Happy House</a></p>
 			<p class="list_item"><a href="#mbt">Mobile Trainer</a></p>
 			<p class="list_item"><a href="#ndg">Net de Get: Minigame @ 100</a></p>
 		</div>
@@ -1342,6 +1344,47 @@ Player 2			Child 2
 Player 2 Battle Chip Gate	Child 3</code></p>
 
 	<p>With this setup, Player 1 and Player 2 can technically ignore any output the opponent&#39;s Battle Chip Gate and focus on their own, despite essentially being able to see exactly what&#39;s happening on the other side. It also indicates that the Battle Chip Gates are capable of operating as Child 1 or Child 3.</p>
+
+
+	<!-- Hello Kitty no Happy House -->
+	<a name="hkh"></a>
+	<p class="gray_title">Hello Kitty no Happy House</p>
+	<p class="list_item"><a href="#hkh_gen">General Information</a></p>
+	<p class="list_item"><a href="#hkh_ser">Server Structure</a></p>
+	<p class="list_item"><a href="#hkh_eml">Email</a></p>
+
+	<a name="hkh_gen"></a>
+	<p class="gray_title">[Hello Kitty no Happy House] : General Information</p>
+
+	<p>Hello Kitty no Happy House is a Game Boy Color title featuring furniture collection, minigames, and online communication. The game revolves around interacting with Hello Kitty, gaining new furniture, and decorating the &#34;Happy House&#34;. As it concerns the Mobile Adapter GB, Hello Kitty no Happy House boasts basic email capabilities. Through the email service, users could share different furniture as presents.</p>
+
+	<a name="hkh_ser"></a>
+	<p class="gray_title">[Hello Kitty no Happy House] : Server Structure</p>
+
+	<p>Hello Kitty no Happy House is not known to access any resource via HTTP. Instead, it simply communicates with a SMTP server and POP3 server for sending and receiving email respectively.</p>
+
+	<a name="hkh_eml"></a>
+	<p class="gray_title">[Hello Kitty no Happy House] : Email</p>
+
+	<p>Email can be sent and received in Hello Kitty no Happy House, much like Mobile Trainer. The game offers similar tools to write the email, helping users fill out subjects, addresses, and content, and viewing the mailbox for received items. The game also sends &#34;presents&#34; to another user via email. The standard email format looks something like this (note that xxxx, yyyy, and zzzz parts are not exact lengths, consider them as variables):</p>
+
+<code>From: =?ISO-2022-JP?xxxxxxxxxxxxxxxxxxxxxxxx <yyyy@zzzz.dion.ne.jp>
+To: =?ISO-2022-JP?xxxxxxxxxxxxxxxxxxxxxxxx <yyyyyyyyy>
+Subject: =?ISO-2022-JP?xxxxxxxxxxxxxxxxxxxxxxxx
+MIME-Version: 1.0
+Content-Type: text/plain; charset=&#34;ISO-2022-JP&#34;
+Content-Transfer-Encoding: 7bit
+X-Mailer: Hello Kitty Happy House
+X-Game-title: HKITTY_HH
+X-Game-code: CGB-BK7J-00
+[content of email]</code>
+
+	<p>The game uses two additional custom SMTP email headers to send furniture to another player. These headers are parsed for a 3-letter ASCII code which determines the item received. After the "X-Game-code" header, the following would be inserted before the content of the email:</p>
+
+<code>X-GBmail-type: exclusive
+X-HKH-HOUSE: [3-letter code]</code>
+
+	<p>The codes appear to be simple, e.g. &#34;AAE&#34; for a framed picture and &#34;AIG&#34; for a green rug.</p>
 
 
 	<!-- Mobile Trainer -->

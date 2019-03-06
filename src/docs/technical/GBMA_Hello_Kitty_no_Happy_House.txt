@@ -33,7 +33,7 @@ X-Game-title: HKITTY_HH
 X-Game-code: CGB-BK7J-00
 [content of email]
 
-The game uses a two additional custom SMTP email headers to send furniture to another player. These headers are parsed for a 3-letter ASCII code which determines the item received. After the "X-Game-code" header, the following would be inserted before the content of the email:
+The game uses two additional custom SMTP email headers to send furniture to another player. These headers are parsed for a 3-letter ASCII code which determines the item received. After the "X-Game-code" header, the following would be inserted before the content of the email:
 
 X-GBmail-type: exclusive
 X-HKH-HOUSE: [3-letter code]
