@@ -642,6 +642,7 @@ void DMG_SIO::mobile_adapter_process_pop()
 	std::string pop_data = util::data_to_str(mobile_adapter.packet_buffer.data(), mobile_adapter.packet_buffer.size());
 	u8 response_id = 0;
 	u8 pop_command = 0xFF;
+	bool found_item = false;
 
 	std::size_t user_match = pop_data.find("USER");
 	std::size_t pass_match = pop_data.find("PASS");
@@ -674,6 +675,51 @@ void DMG_SIO::mobile_adapter_process_pop()
 	{
 		mobile_adapter.pop_session_started = false;
 		pop_command = 9;
+	}
+
+	//Open up internal file for email data if available
+	if(pop_command == 7)
+	{
+		std::string filename = "";
+
+		//Search internal server list
+		for(u32 x = 0; x < mobile_adapter.srv_list_in.size(); x++)
+		{
+			filename = config::data_path + mobile_adapter.srv_list_out[x];
+
+			//Check for GBE+ mail
+			if(mobile_adapter.srv_list_out[x] == "gbma/gbe_plus_mail.txt")
+			{
+				found_item = true;
+				break;
+			}
+
+		}
+				
+		if(found_item)
+		{
+			//Open up GBE+ mails
+			std::ifstream file(filename.c_str(), std::ios::binary);
+
+			if(file.is_open()) 
+			{
+				//Get file size
+				file.seekg(0, file.end);
+				u32 file_size = file.tellg();
+				file.seekg(0, file.beg);
+
+				mobile_adapter.net_data.resize(file_size, 0x0);
+				u8* ex_mem = &mobile_adapter.net_data[0];
+
+				file.read((char*)ex_mem, file_size);
+				file.seekg(0, file.beg);
+				file.close();
+
+				mobile_adapter.data_index = 0;
+			}
+
+			else { std::cout<<"SIO :: GBMA could not open " << filename << "\n"; }
+		}
 	}
 
 	switch(pop_command)
@@ -736,7 +782,12 @@ void DMG_SIO::mobile_adapter_process_pop()
 		//Init RETR
 		case 0x1:
 		case 0x11:
-			mobile_adapter.transfer_state = (mobile_adapter.transfer_state & 0x10) ? 0x12 : 0x2;
+			//Return email data from file
+			if((mobile_adapter.transfer_state == 0x11) && (found_item)) { mobile_adapter.transfer_state = 0x20; }
+
+			//Otherwise, continue with TOP or RETR from default email
+			else { mobile_adapter.transfer_state = (mobile_adapter.transfer_state & 0x10) ? 0x12 : 0x2; }
+
 			break;
 
 		//Email Header - Date
@@ -798,6 +849,27 @@ void DMG_SIO::mobile_adapter_process_pop()
 			pop_response = ".\r\n";
 			mobile_adapter.transfer_state = 0x0;
 			response_id = 0x95;
+			break;
+
+		//RETR from file data
+		case 0x20:
+			pop_response = "";
+
+			while((mobile_adapter.net_data[mobile_adapter.data_index] != 0xA) && (mobile_adapter.data_index != mobile_adapter.net_data.size()))
+			{
+				pop_response += std::string(1, mobile_adapter.net_data[mobile_adapter.data_index++]);
+			}
+
+			if(mobile_adapter.data_index != mobile_adapter.net_data.size())
+			{
+				pop_response += std::string(1, mobile_adapter.net_data[mobile_adapter.data_index++]);
+				mobile_adapter.transfer_state = 0x20;
+			}
+
+			else { mobile_adapter.transfer_state = 0x0; }
+
+			response_id = 0x95;
+
 			break;
 	}
 
