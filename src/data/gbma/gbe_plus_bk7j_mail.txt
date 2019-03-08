@@ -1,0 +1,14 @@
+Date: Wed, 07 Mar 2019 12:00:00 -0600
+Subject: Free Stuff
+From: gbe_plus@test.com
+To: user@test.com
+Content-Type: text/plain
+X-Mailer: Hello Kitty Happy House
+X-Game-title: HKITTY_HH
+X-Game-code: CGB-BK7J-00
+X-GBmail-type: exclusive
+X-HKH-HOUSE: AAE
+
+Hello from GBE+! Please enjoy this sample item!
+
+.
