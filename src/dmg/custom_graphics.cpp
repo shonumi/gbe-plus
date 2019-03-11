@@ -42,6 +42,11 @@ bool DMG_LCD::load_manifest(std::string filename)
 	cgfx_stat.m_meta_names.clear();
 	cgfx_stat.m_meta_forms.clear();
 
+	//Clear existing pixel data
+	cgfx_stat.obj_pixel_data.clear();
+	cgfx_stat.bg_pixel_data.clear();
+	cgfx_stat.meta_pixel_data.clear();
+
 	if(!file.is_open())
 	{
 		std::cout<<"CGFX::Could not open manifest file " << filename << ". Check file path or permissions. \n";
