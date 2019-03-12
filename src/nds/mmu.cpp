@@ -2939,8 +2939,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 				if(timer->count_up) { timer->prescalar = 1; }
 
-				timer->prescalar--;
-				timer->clock = timer->prescalar;
+				timer->clock = (timer->prescalar - 1);
 			}
 
 			break;
@@ -2971,7 +2970,6 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 				if(timer->count_up) { timer->prescalar = 1; }
 
-				timer->prescalar--;
 				timer->clock = timer->prescalar; 
 			}
 
@@ -3003,7 +3001,6 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 				if(timer->count_up) { timer->prescalar = 1; }
 
-				timer->prescalar--;
 				timer->clock = timer->prescalar; 
 			}
 
@@ -3035,7 +3032,6 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 				if(timer->count_up) { timer->prescalar = 1; }
 
-				timer->prescalar--;
 				timer->clock = timer->prescalar; 
 			}
 

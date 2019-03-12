@@ -79,7 +79,7 @@ void NTR_ARM9::reset()
 		controllers.timer[x].cnt = 0;
 		controllers.timer[x].counter = 0;
 		controllers.timer[x].reload_value = 0;
-		controllers.timer[x].prescalar = 0;
+		controllers.timer[x].prescalar = 1;
 		controllers.timer[x].clock = 0;
 		controllers.timer[x].count_up = false;
 		controllers.timer[x].enable = false;
@@ -1339,19 +1339,26 @@ void NTR_ARM9::clock_dma()
 /****** Runs Timer controllers every clock cycle ******/
 void NTR_ARM9::clock_timers(u8 access_cycles)
 {
+	u32 due_cycles = 0;
+	u32 update_count = 0;
+
 	for(u32 x = 0; x < 4; x++)
 	{
 		//See if this timer is enabled first
 		if(controllers.timer[x].enable)
 		{
-			controllers.timer[x].clock -= access_cycles;
-
 			//If internal clock goes past 0, increment counter
-			if(controllers.timer[x].clock & 0x80000000)
+			if((controllers.timer[x].clock - access_cycles) & 0x80000000)
 			{
-				controllers.timer[x].clock = controllers.timer[x].prescalar;
+				due_cycles = ~(controllers.timer[x].clock - access_cycles) + 1;
+				update_count = due_cycles / controllers.timer[x].prescalar;
+				due_cycles -= (update_count * controllers.timer[x].prescalar);
 
-				if(!controllers.timer[x].count_up) { controllers.timer[x].counter++; }
+				if((controllers.timer[x].prescalar == 1)) { controllers.timer[x].clock = 0; }
+				else { controllers.timer[x].clock = controllers.timer[x].prescalar - due_cycles; }
+
+				if(!update_count) { update_count = 1; }
+				if(!controllers.timer[x].count_up) { controllers.timer[x].counter += update_count; }
 
 				//If counter overflows, reload value, trigger interrupt if necessary
 				if(controllers.timer[x].counter == 0) 
@@ -1365,6 +1372,8 @@ void NTR_ARM9::clock_timers(u8 access_cycles)
 					if(controllers.timer[x].interrupt) { mem->nds9_if |= (8 << x); }
 				}
 			}
+
+			else { controllers.timer[x].clock -= access_cycles; }
 		}
 	}
 }
