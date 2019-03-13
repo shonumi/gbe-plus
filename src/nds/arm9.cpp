@@ -1341,6 +1341,7 @@ void NTR_ARM9::clock_timers(u8 access_cycles)
 {
 	u32 due_cycles = 0;
 	u32 update_count = 0;
+	u32 old_count = 0;
 
 	for(u32 x = 0; x < 4; x++)
 	{
@@ -1350,6 +1351,7 @@ void NTR_ARM9::clock_timers(u8 access_cycles)
 			//If internal clock goes past 0, increment counter
 			if((controllers.timer[x].clock - access_cycles) & 0x80000000)
 			{
+				old_count = controllers.timer[x].counter;
 				due_cycles = ~(controllers.timer[x].clock - access_cycles) + 1;
 				update_count = due_cycles / controllers.timer[x].prescalar;
 				due_cycles -= (update_count * controllers.timer[x].prescalar);
@@ -1361,7 +1363,7 @@ void NTR_ARM9::clock_timers(u8 access_cycles)
 				if(!controllers.timer[x].count_up) { controllers.timer[x].counter += update_count; }
 
 				//If counter overflows, reload value, trigger interrupt if necessary
-				if(controllers.timer[x].counter == 0) 
+				if((old_count + update_count) > 0xFFFF) 
 				{
 					controllers.timer[x].counter = controllers.timer[x].reload_value;
 
