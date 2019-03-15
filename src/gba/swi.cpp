@@ -227,7 +227,8 @@ void ARM7::process_swi(u32 comment)
 
 		//SoundChannelClear
 		case 0x1E:
-			std::cout<<"SWI::Sound Channel Clear (not implemented yet) \n";
+			std::cout<<"SWI::Sound Channel Clear \n";
+			swi_soundchannelclear();
 			break;
 
 		//MidiKey2Freq
@@ -1261,6 +1262,30 @@ void ARM7::swi_objaffineset()
 		mem->write_u16(dest_addr, -diff_x2); dest_addr += offset;
 		mem->write_u16(dest_addr, diff_y1); dest_addr += offset;
 		mem->write_u16(dest_addr, diff_y2); dest_addr += offset;
+	}
+}
+
+/****** HLE implementation of SoundChannelClear ******/
+void ARM7::swi_soundchannelclear()
+{
+	bios_read_state = BIOS_SWI_FINISH;
+
+	//Reset DMA channel data
+	for(int x = 0; x < 2; x++)
+	{
+		controllers.audio.apu_stat.dma[x].output_frequency = 0;
+		controllers.audio.apu_stat.dma[x].last_position = 0;
+		controllers.audio.apu_stat.dma[x].counter = 0;
+		controllers.audio.apu_stat.dma[x].length = 0;
+		controllers.audio.apu_stat.dma[x].timer = 0;
+		controllers.audio.apu_stat.dma[x].playing = false;
+	}
+
+	//Reset DMA FIFO buffers
+	for(int x = 0; x < 0x10000; x++) 
+	{
+		controllers.audio.apu_stat.dma[0].buffer[x] = -127;
+		controllers.audio.apu_stat.dma[1].buffer[x] = -127;
 	}
 }
 

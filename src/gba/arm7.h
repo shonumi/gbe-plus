@@ -291,6 +291,7 @@ class ARM7
 	void swi_objaffineset();
 	void swi_bitunpack();
 	void swi_midikey2freq();
+	void swi_soundchannelclear();
 	void swi_hardreset();
 
 	//Serialize data for save state loading/saving
