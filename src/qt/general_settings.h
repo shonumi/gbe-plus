@@ -87,6 +87,7 @@ class gen_settings : public QDialog
 	QVBoxLayout* controls_layout;
 	QVBoxLayout* advanced_controls_layout;
 	QVBoxLayout* hotkey_controls_layout;
+	QVBoxLayout* bcg_controls_layout;
 
 	QSlider* dead_zone;
 
@@ -165,6 +166,13 @@ class gen_settings : public QDialog
 	//Advanced controls tab widget
 	QCheckBox* rumble_on;
 
+	//Battle Chip Gate tab widgets
+	QComboBox* chip_gate_type;
+	QComboBox* battle_chip_1;
+	QComboBox* battle_chip_2;
+	QComboBox* battle_chip_3;
+	QComboBox* battle_chip_4;
+
 	//Netplay tab widgets
 	QCheckBox* enable_netplay;
 	QCheckBox* hard_sync;
@@ -220,6 +228,8 @@ class gen_settings : public QDialog
 	void set_netplay();
 	void set_hard_sync();
 	void set_net_gate();
+	void get_chip_list();
+	void set_battle_chip();
 	void update_sync_threshold();
 	void update_server_port();
 	void update_client_port();
@@ -266,12 +276,19 @@ class gen_settings : public QDialog
 	QWidget* hotkey_mute_set;
 	QWidget* hotkey_camera_set;
 
+	QWidget* bcg_gate_set;
+	QWidget* bcg_chip_1_set;
+	QWidget* bcg_chip_2_set;
+	QWidget* bcg_chip_3_set;
+	QWidget* bcg_chip_4_set;
+
 	void process_joystick_event();
 	void input_delay(QPushButton* input_button); 
 
 	SDL_Joystick* jstick;
 	int input_type;
 	u32 joystick_count;
+	u16 chip_list[512];
 };
 
 #endif //SETTINGS_GBE_QT 

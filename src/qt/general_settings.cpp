@@ -45,6 +45,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	controls_combo->addItem("Standard Controls");
 	controls_combo->addItem("Advanced Controls");
 	controls_combo->addItem("Hotkey Controls");
+	controls_combo->addItem("Battle Chip Gate Controls");
 
 	QHBoxLayout* button_layout = new QHBoxLayout;
 	button_layout->setAlignment(Qt::AlignTop | Qt::AlignRight);
@@ -825,6 +826,69 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	hotkey_camera_layout->setContentsMargins(6, 0, 0, 0);
 	hotkey_camera_set->setLayout(hotkey_camera_layout);
 
+	//Battle Chip Gate settings - Type
+	bcg_gate_set = new QWidget(controls);
+	QLabel* bcg_gate_label = new QLabel("Battle Chip Gate Type : ");
+	chip_gate_type = new QComboBox(bcg_gate_set);
+	chip_gate_type->setToolTip("Selects the list of available chips for each Battle Chip Gate");
+	chip_gate_type->addItem("Battle Chip Gate");
+	chip_gate_type->addItem("Progress Chip Gate");
+	chip_gate_type->addItem("Beast Link Gate");
+
+	QHBoxLayout* bcg_gate_layout = new QHBoxLayout;
+	bcg_gate_layout->addWidget(bcg_gate_label, 1, Qt::AlignLeft);
+	bcg_gate_layout->addWidget(chip_gate_type, 1, Qt::AlignLeft);
+	bcg_gate_layout->setContentsMargins(6, 0, 0, 0);
+	bcg_gate_set->setLayout(bcg_gate_layout);
+
+	//Battle Chip Gate settings - Chip 1
+	bcg_chip_1_set = new QWidget(controls);
+	QLabel* bcg_chip_1_label = new QLabel("Battle Chip 1 : ");
+	battle_chip_1 = new QComboBox(bcg_chip_1_set);
+	battle_chip_1->setSizeAdjustPolicy(QComboBox::AdjustToContents);
+
+	QHBoxLayout* bcg_chip_1_layout = new QHBoxLayout;
+	bcg_chip_1_layout->addWidget(bcg_chip_1_label, 1, Qt::AlignLeft);
+	bcg_chip_1_layout->addWidget(battle_chip_1, 1, Qt::AlignLeft);
+	bcg_chip_1_layout->setContentsMargins(6, 0, 0, 0);
+	bcg_chip_1_set->setLayout(bcg_chip_1_layout);
+
+	//Battle Chip Gate settings - Chip 2
+	bcg_chip_2_set = new QWidget(controls);
+	QLabel* bcg_chip_2_label = new QLabel("Battle Chip 2 : ");
+	battle_chip_2 = new QComboBox(bcg_chip_2_set);
+	battle_chip_2->setSizeAdjustPolicy(QComboBox::AdjustToContents);
+
+	QHBoxLayout* bcg_chip_2_layout = new QHBoxLayout;
+	bcg_chip_2_layout->addWidget(bcg_chip_2_label, 1, Qt::AlignLeft);
+	bcg_chip_2_layout->addWidget(battle_chip_2, 1, Qt::AlignLeft);
+	bcg_chip_2_layout->setContentsMargins(6, 0, 0, 0);
+	bcg_chip_2_set->setLayout(bcg_chip_2_layout);
+
+	//Battle Chip Gate settings - Chip 3
+	bcg_chip_3_set = new QWidget(controls);
+	QLabel* bcg_chip_3_label = new QLabel("Battle Chip 3 : ");
+	battle_chip_3 = new QComboBox(bcg_chip_3_set);
+	battle_chip_3->setSizeAdjustPolicy(QComboBox::AdjustToContents);
+
+	QHBoxLayout* bcg_chip_3_layout = new QHBoxLayout;
+	bcg_chip_3_layout->addWidget(bcg_chip_3_label, 1, Qt::AlignLeft);
+	bcg_chip_3_layout->addWidget(battle_chip_3, 1, Qt::AlignLeft);
+	bcg_chip_3_layout->setContentsMargins(6, 0, 0, 0);
+	bcg_chip_3_set->setLayout(bcg_chip_3_layout);
+
+	//Battle Chip Gate settings - Chip 4
+	bcg_chip_4_set = new QWidget(controls);
+	QLabel* bcg_chip_4_label = new QLabel("Battle Chip 4 : ");
+	battle_chip_4 = new QComboBox(bcg_chip_4_set);
+	battle_chip_4->setSizeAdjustPolicy(QComboBox::AdjustToContents);
+
+	QHBoxLayout* bcg_chip_4_layout = new QHBoxLayout;
+	bcg_chip_4_layout->addWidget(bcg_chip_4_label, 1, Qt::AlignLeft);
+	bcg_chip_4_layout->addWidget(battle_chip_4, 1, Qt::AlignLeft);
+	bcg_chip_4_layout->setContentsMargins(6, 0, 0, 0);
+	bcg_chip_4_set->setLayout(bcg_chip_4_layout);
+
 	controls_layout = new QVBoxLayout;
 	controls_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	controls_layout->addWidget(input_device_set);
@@ -858,6 +922,14 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	hotkey_controls_layout->addWidget(hotkey_turbo_set);
 	hotkey_controls_layout->addWidget(hotkey_mute_set);
 	hotkey_controls_layout->addWidget(hotkey_camera_set);
+
+	bcg_controls_layout = new QVBoxLayout;
+	bcg_controls_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	bcg_controls_layout->addWidget(bcg_gate_set);
+	bcg_controls_layout->addWidget(bcg_chip_1_set);
+	bcg_controls_layout->addWidget(bcg_chip_2_set);
+	bcg_controls_layout->addWidget(bcg_chip_3_set);
+	bcg_controls_layout->addWidget(bcg_chip_4_set);
 	
 	rumble_set->setVisible(false);
 	con_up_set->setVisible(false);
@@ -870,6 +942,12 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	hotkey_turbo_set->setVisible(false);
 	hotkey_mute_set->setVisible(false);
 	hotkey_camera_set->setVisible(false);
+
+	bcg_gate_set->setVisible(false);
+	bcg_chip_1_set->setVisible(false);
+	bcg_chip_2_set->setVisible(false);
+	bcg_chip_3_set->setVisible(false);
+	bcg_chip_4_set->setVisible(false);
 
 	//Netplay - Enable Netplay
 	QWidget* enable_netplay_set = new QWidget(netplay);
@@ -1158,6 +1236,11 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(enable_netplay, SIGNAL(stateChanged(int)), this, SLOT(set_netplay()));
 	connect(hard_sync, SIGNAL(stateChanged(int)), this, SLOT(set_hard_sync()));
 	connect(net_gate, SIGNAL(stateChanged(int)), this, SLOT(set_net_gate()));
+	connect(chip_gate_type, SIGNAL(currentIndexChanged(int)), this, SLOT(get_chip_list()));
+	connect(battle_chip_1, SIGNAL(currentIndexChanged(int)), this, SLOT(set_battle_chip()));
+	connect(battle_chip_2, SIGNAL(currentIndexChanged(int)), this, SLOT(set_battle_chip()));
+	connect(battle_chip_3, SIGNAL(currentIndexChanged(int)), this, SLOT(set_battle_chip()));
+	connect(battle_chip_4, SIGNAL(currentIndexChanged(int)), this, SLOT(set_battle_chip()));
 	connect(sync_threshold, SIGNAL(valueChanged(int)), this, SLOT(update_sync_threshold()));
 	connect(server_port, SIGNAL(valueChanged(int)), this, SLOT(update_server_port()));
 	connect(client_port, SIGNAL(valueChanged(int)), this, SLOT(update_client_port()));
@@ -1398,6 +1481,8 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	pocket_sakura_menu = new ps_menu;
 	full_changer_menu = new zzh_menu;
 	chalien_menu = new con_ir_menu;
+
+	get_chip_list();
 
 	resize(450, 450);
 	setWindowTitle(tr("GBE+ Settings"));
@@ -2140,6 +2225,67 @@ void gen_settings::set_net_gate()
 	else { config::use_net_gate = false; }
 }
 
+/****** Updates the current Battle Chip list ******/
+void gen_settings::get_chip_list()
+{
+	std::string list_file = config::data_path + "chip_gate/";
+	std::string input_line = "";
+	u32 line_count = 0;
+	u32 chip_count = 0;
+
+	switch(chip_gate_type->currentIndex())
+	{
+		case 0: list_file += "bcg_list.txt"; break;
+		case 1: break;
+		case 2: break;
+	}
+
+	//Clear current combo-boxes for Battle Chips 1-4
+	battle_chip_1->clear();
+	battle_chip_2->clear();
+	battle_chip_3->clear();
+	battle_chip_4->clear();
+
+	//Open text file and grab all lines
+	std::ifstream file(list_file.c_str(), std::ios::in);
+
+	if(!file.is_open()) { return; }
+
+	while(getline(file, input_line))
+	{
+		line_count++;
+
+		//Add chip 
+		if(!input_line.empty())
+		{
+			chip_list[chip_count++] = line_count;
+			battle_chip_1->addItem(QString::fromStdString(input_line));
+			battle_chip_2->addItem(QString::fromStdString(input_line));
+			battle_chip_3->addItem(QString::fromStdString(input_line));
+			battle_chip_4->addItem(QString::fromStdString(input_line));
+		}
+	}
+
+	u32 width = battle_chip_1->minimumSizeHint().width();
+	battle_chip_1->setMinimumWidth(width);
+}
+
+/****** Sets Battle Chip ID based on chip list ******/
+void gen_settings::set_battle_chip()
+{
+	u16 index = battle_chip_1->currentIndex();
+	config::chip_list[0] = chip_list[index];
+
+	index = battle_chip_2->currentIndex();
+	config::chip_list[1] = chip_list[index];
+
+	index = battle_chip_3->currentIndex();
+	config::chip_list[2] = chip_list[index];
+
+	index = battle_chip_4->currentIndex();
+	config::chip_list[3] = chip_list[index];
+}
+
 /****** Sets the netplay sync threshold ******/
 void gen_settings::update_sync_threshold()
 {
@@ -2650,6 +2796,12 @@ void gen_settings::switch_control_layout()
 			hotkey_controls_layout->itemAt(x)->widget()->setVisible(false);
 		}
 
+		//Set all Battle Chip Gate control widgets to invisible
+		for(int x = 0; x < bcg_controls_layout->count(); x++)
+		{
+			bcg_controls_layout->itemAt(x)->widget()->setVisible(false);
+		}
+
 		delete controls->layout();
 		advanced_controls_layout->insertWidget(0, input_device_set);
 		controls->setLayout(advanced_controls_layout);
@@ -2677,6 +2829,12 @@ void gen_settings::switch_control_layout()
 		for(int x = 0; x < hotkey_controls_layout->count(); x++)
 		{
 			hotkey_controls_layout->itemAt(x)->widget()->setVisible(false);
+		}
+
+		//Set all Battle Chip Gate control widgets to invisible
+		for(int x = 0; x < bcg_controls_layout->count(); x++)
+		{
+			bcg_controls_layout->itemAt(x)->widget()->setVisible(false);
 		}
 
 		delete controls->layout();
@@ -2708,9 +2866,51 @@ void gen_settings::switch_control_layout()
 			hotkey_controls_layout->itemAt(x)->widget()->setVisible(true);
 		}
 
+		//Set all Battle Chip Gate control widgets to invisible
+		for(int x = 0; x < bcg_controls_layout->count(); x++)
+		{
+			bcg_controls_layout->itemAt(x)->widget()->setVisible(false);
+		}
+
 		delete controls->layout();
 		hotkey_controls_layout->insertWidget(0, input_device_set);
 		controls->setLayout(hotkey_controls_layout);
+
+		input_device_set->setVisible(true);
+		input_device_set->setEnabled(false);
+		input_device->setCurrentIndex(0);
+	}
+
+	//Switch to Battle Chip Gate layout
+	else if(controls_combo->currentIndex() == 3)
+	{
+		//Set all advanced control widgets to invisible
+		for(int x = 0; x < advanced_controls_layout->count(); x++)
+		{
+			advanced_controls_layout->itemAt(x)->widget()->setVisible(false);
+		}
+
+		//Set all standard control widgets to invisible
+		for(int x = 0; x < controls_layout->count(); x++)
+		{
+			controls_layout->itemAt(x)->widget()->setVisible(false);
+		}
+
+		//Set all Battle Chip Gate control widgets to visible
+		for(int x = 0; x < bcg_controls_layout->count(); x++)
+		{
+			bcg_controls_layout->itemAt(x)->widget()->setVisible(true);
+		}
+
+		//Set all hotkey control widgets to invisible
+		for(int x = 0; x < hotkey_controls_layout->count(); x++)
+		{
+			hotkey_controls_layout->itemAt(x)->widget()->setVisible(false);
+		}
+
+		delete controls->layout();
+		bcg_controls_layout->insertWidget(0, input_device_set);
+		controls->setLayout(bcg_controls_layout);
 
 		input_device_set->setVisible(true);
 		input_device_set->setEnabled(false);
@@ -2756,6 +2956,16 @@ void gen_settings::switch_control_layout()
 			hotkey_controls_layout->addWidget(hotkey_turbo_set);
 			hotkey_controls_layout->addWidget(hotkey_mute_set);
 			hotkey_controls_layout->addWidget(hotkey_camera_set);
+			break;
+
+		case 3:
+			bcg_controls_layout = new QVBoxLayout;
+			bcg_controls_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+			bcg_controls_layout->addWidget(bcg_gate_set);
+			bcg_controls_layout->addWidget(bcg_chip_1_set);
+			bcg_controls_layout->addWidget(bcg_chip_2_set);
+			bcg_controls_layout->addWidget(bcg_chip_3_set);
+			bcg_controls_layout->addWidget(bcg_chip_4_set);
 			break;
 	}
 
