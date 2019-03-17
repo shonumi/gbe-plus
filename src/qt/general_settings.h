@@ -289,6 +289,7 @@ class gen_settings : public QDialog
 	int input_type;
 	u32 joystick_count;
 	u16 chip_list[512];
+	u16 init_chip_list[4];
 };
 
 #endif //SETTINGS_GBE_QT 

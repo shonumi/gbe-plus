@@ -22,6 +22,11 @@
 /****** General settings constructor ******/
 gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 {
+	init_chip_list[0] = config::chip_list[0];
+	init_chip_list[1] = config::chip_list[1];
+	init_chip_list[2] = config::chip_list[2];
+	init_chip_list[3] = config::chip_list[3];
+
 	//Set up tabs
 	tabs = new QTabWidget(this);
 	
@@ -1698,7 +1703,22 @@ void gen_settings::set_ini_options()
 		hard_sync->setChecked(false);
 		sync_threshold->setEnabled(false);
 	}
-		
+
+	//Net Gate
+	if(config::use_net_gate) { net_gate->setChecked(true); }
+	else { net_gate->setChecked(false); }
+
+	//Battle Gate Type
+	if(config::sio_device == 11) { chip_gate_type->setCurrentIndex(1); }
+	else if(config::sio_device == 12) { chip_gate_type->setCurrentIndex(2); }
+	else { chip_gate_type->setCurrentIndex(0); }
+
+	//Battle Chips 1-4
+	battle_chip_1->setCurrentIndex(init_chip_list[0]);
+	battle_chip_2->setCurrentIndex(init_chip_list[1]);
+	battle_chip_3->setCurrentIndex(init_chip_list[2]);
+	battle_chip_4->setCurrentIndex(init_chip_list[3]);
+
 	sync_threshold->setValue(config::netplay_sync_threshold);
 	server_port->setValue(config::netplay_server_port);
 	client_port->setValue(config::netplay_client_port);

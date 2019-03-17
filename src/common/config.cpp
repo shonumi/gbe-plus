@@ -1864,36 +1864,9 @@ bool parse_ini_file()
 			{
 				for(u32 y = 0; y < 6; y++)
 				{
-					ini_item = ini_opts[++x];
-					std::size_t found = ini_item.find("0x");
-					std::string format = ini_item.substr(0, 2);
-
-					//Value must be in hex format with "0x"
-					if(format != "0x")
-					{
-						std::cout<<"GBE::Error - Could not parse gbe.ini (#chip_list) \n";
-						return false;
-					}
-
-					std::string id_str = ini_item.substr(found + 2);
-
-					//Value must not be more than 4 characters long for 0xFFFF
-					if(id_str.size() > 4)
-					{
-						std::cout<<"GBE::Error - Could not parse gbe.ini (#chip_list) \n";
-						return false;
-					}
-
-					u32 id_val = 0;
-
-					//Parse the string into hex
-					if(!util::from_hex_str(id_str, id_val))
-					{
-						std::cout<<"GBE::Error - Could not parse gbe.ini (#chip_list) \n";
-						return false;
-					}
-
-					config::chip_list[y] = id_val;
+					u32 val = 0;
+					util::from_str(ini_opts[++x], val);
+					config::chip_list[y] = val;
 				}
 			}
 		}
@@ -2825,6 +2798,20 @@ bool save_ini_file()
 			val += util::to_str(config::con_joy_2);
 
 			output_lines[line_pos] = "[#con_joy_controls:" + val + "]";
+		}
+
+		//Battle Chip List
+		else if(ini_item == "#chip_list")
+		{
+			line_pos = output_count[x];
+			std::string val = util::to_str(config::chip_list[0]) + ":";
+			val += util::to_str(config::chip_list[1]) + ":";
+			val += util::to_str(config::chip_list[2]) + ":";
+			val += util::to_str(config::chip_list[3]) + ":";
+			val += util::to_str(config::chip_list[4]) + ":";
+			val += util::to_str(config::chip_list[5]);
+
+			output_lines[line_pos] = "[#chip_list:" + val + "]";
 		}
 
 		//Hotkeys
