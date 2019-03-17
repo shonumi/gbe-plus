@@ -1303,7 +1303,7 @@ void NTR_ARM7::clock_timers(u8 access_cycles)
 					if((x < 4) && (controllers.timer[x+1].count_up)) { controllers.timer[x+1].counter++; }
 
 					//Interrupt
-					if(controllers.timer[x].interrupt) { mem->nds9_if |= (8 << x); }
+					if(controllers.timer[x].interrupt) { mem->nds7_if |= (8 << x); }
 				}
 			}
 

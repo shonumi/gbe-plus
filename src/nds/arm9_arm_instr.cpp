@@ -1487,7 +1487,7 @@ void NTR_ARM9::coprocessor_register_transfer(u32 current_instruction)
 	//Execute MCR - Write to CP15 registers
 	else
 	{
-		std::cout<<"MCR -> C" << std::dec << (int)cop_reg << ",C" << (int)cop_opr << "," << (int)cop_info << " --> 0x" << std::hex << get_reg(arm_reg) <<"\n";
+		//std::cout<<"MCR -> C" << std::dec << (int)cop_reg << ",C" << (int)cop_opr << "," << (int)cop_info << " --> 0x" << std::hex << get_reg(arm_reg) <<"\n";
 
 		//C0,C0,0 - 2 are read-only
 

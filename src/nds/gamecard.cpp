@@ -99,6 +99,7 @@ void NTR_MMU::process_card_bus()
 				nds_card.transfer_src = (nds_card.cmd_lo << 8);
 				nds_card.transfer_src |= (nds_card.cmd_hi >> 24);
 				nds_card.transfer_src &= (cart_data.size() - 1);
+				nds_card.transfer_size += 4;
 			}
 
 			//Get ROM ID 3

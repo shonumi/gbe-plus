@@ -3552,7 +3552,6 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			{
 				//TODO - 64-bit SQRT ops via sqrt() will have issues, but only with ridiculously large numbers
 				memory_map[address] = value;
-				std::cout<<"MMU::NDS_SQRTCNT Write\n";
 
 				u8 sqrt_mode = memory_map[NDS_SQRTCNT] & 0x1;
 				
@@ -3637,7 +3636,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 					//Decrypt gamecard command
 					if(key_level) { key1_decrypt(nds_card.cmd_lo, nds_card.cmd_hi); }
 
-					std::cout<<"CART TRANSFER -> 0x" << nds_card.cnt << " -- SIZE -> 0x" << nds_card.transfer_size << " -- CMD -> 0x" << nds_card.cmd_lo << nds_card.cmd_hi << "\n";
+					//std::cout<<"CART TRANSFER -> 0x" << nds_card.cnt << " -- SIZE -> 0x" << nds_card.transfer_size << " -- CMD -> 0x" << nds_card.cmd_lo << nds_card.cmd_hi << "\n";
 					process_card_bus();
 				}
 
@@ -4421,6 +4420,8 @@ void NTR_MMU::parse_header()
 
 	write_u32(0x27FFC00, chip_id);
 	write_u32(0x27FF800, chip_id);
+
+	nds_card.chip_id = chip_id;
 }
 
 /****** Handles various SPI Bus interactions ******/

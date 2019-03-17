@@ -50,57 +50,57 @@ void CP15::reset()
 /****** C7,C5,0 - Invalidates the entire instruction cache ******/
 void CP15::invalidate_instr_cache()
 {
-	std::cout<<"CP15::C7,C5,0 - Invalidate Instruction Cache (STUBBED)\n";
+	//std::cout<<"CP15::C7,C5,0 - Invalidate Instruction Cache (STUBBED)\n";
 }
 
 /****** C7,C5,1 - Invalidates instruction cache line (32 bytes) ******/
 void CP15::invalidate_instr_cache_line(u32 virtual_address)
 {
-	std::cout<<"CP15::C7,C5,1 - Invalidate Instruction Cache Line (STUBBED)\n";
+	//std::cout<<"CP15::C7,C5,1 - Invalidate Instruction Cache Line (STUBBED)\n";
 }
 
 /****** C7,C6,0 - Invalidates the entire data cache ******/
 void CP15::invalidate_data_cache()
 {
-	std::cout<<"CP15::C7,C6,0 - Invalidate Data Cache (STUBBED)\n";
+	//std::cout<<"CP15::C7,C6,0 - Invalidate Data Cache (STUBBED)\n";
 }
 
 /****** C7,C6,1 - Invalidates data cache line (32 bytes) ******/
 void CP15::invalidate_data_cache_line(u32 virtual_address)
 {
-	std::cout<<"CP15::C7,C6,1 - Invalidate Data Cache Line (STUBBED)\n";
+	//std::cout<<"CP15::C7,C6,1 - Invalidate Data Cache Line (STUBBED)\n";
 }
 
 /****** C7,C10,4 - Drain write buffer ******/
 void CP15::drain_write_buffer()
 {
-	std::cout<<"CP15::C7,C10,4 - Drain Write Buffer (STUBBED)\n";
+	//std::cout<<"CP15::C7,C10,4 - Drain Write Buffer (STUBBED)\n";
 }
 
 /****** C9,C0,0 - Lockdown data cache ******/
 void CP15::data_cache_lockdown()
 {
-	std::cout<<"CP15::C9,C0,0 - Data Cache Lockdown (STUBBED)\n";
+	//std::cout<<"CP15::C9,C0,0 - Data Cache Lockdown (STUBBED)\n";
 }
 
 /****** C9,C0,1 - Lockdown instruction cache ******/
 void CP15::instr_cache_lockdown()
 {
-	std::cout<<"CP15::C9,C0,1 - Instruction Cache Lockdown (STUBBED)\n";
+	//std::cout<<"CP15::C9,C0,1 - Instruction Cache Lockdown (STUBBED)\n";
 }
 
 /****** C9,C1,0 - Sets the Data TCM size and base address ******/
 void CP15::set_dtcm_size_base()
 {
-	std::cout<<"CP15::C9,C1,0\n";
+	//std::cout<<"CP15::C9,C1,0\n";
 
 	regs[CP15_TEMP] = regs[C9_C1_0] &= ~0xFFF;
 
-	std::cout<<"DTCM BASE -> 0x" << std::hex << regs[CP15_TEMP] << "\n";
+	//std::cout<<"DTCM BASE -> 0x" << std::hex << regs[CP15_TEMP] << "\n";
 }
 
 /****** C9,C1,1 - Sets the Instruction TCM size and base address ******/
 void CP15::set_itcm_size_base()
 {
-	std::cout<<"CP15::C9,C1,1 - Set Instruction TCM Size and Base (STUBBED)\n";
+	//std::cout<<"CP15::C9,C1,1 - Set Instruction TCM Size and Base (STUBBED)\n";
 }
