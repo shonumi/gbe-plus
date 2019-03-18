@@ -1234,13 +1234,6 @@ void NTR_ARM7::clock_system()
 		if(mem->nds7_spi.transfer_clock <= 0) { mem->process_spi_bus(); }
 	}
 
-	//Run AUXSPI Bus
-	if((mem->nds_aux_spi.active_transfer) && (mem->nds7_exmem & 0x800))
-	{
-		mem->nds_aux_spi.transfer_clock -= system_cycles;
-		if(mem->nds_aux_spi.transfer_clock <= 0) { mem->process_aux_spi_bus(); }
-	}
-
 	//Run RTC
 	if((mem->nds7_ie & 0x80) && (mem->nds7_rtc.int1_enable) && (mem->memory_map[NDS_RCNT+1] & 0x1))
 	{

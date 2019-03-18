@@ -441,14 +441,14 @@ void NTR_ARM7::psr_transfer(u32 current_arm_instruction)
 				if(current_arm_instruction & 0x40000) 
 				{ 
 					op_field_mask |= 0x00FF0000;
-					std::cout<<"CPU::ARM7::Warning - ARM.6 MSR enabled access to Status Field \n";
+					//std::cout<<"CPU::ARM7::Warning - ARM.6 MSR enabled access to Status Field \n";
 				}
 
 				//Extension field - Bit 17
 				if(current_arm_instruction & 0x20000) 
 				{ 
 					op_field_mask |= 0x0000FF00;
-					std::cout<<"CPU::ARM7::Warning - ARM.6 MSR enabled access to Extension Field \n";
+					//std::cout<<"CPU::ARM7::Warning - ARM.6 MSR enabled access to Extension Field \n";
 				}
 
 				//Control field - Bit 15

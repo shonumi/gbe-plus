@@ -1584,7 +1584,7 @@ void NTR_ARM9::coprocessor_register_transfer(u32 current_instruction)
 				last_idle_state = 1;
 				mem->nds9_temp_if = mem->nds9_if;
 				mem->nds9_if = 0;
-				std::cout<<"ARM9 HALT\n";
+				//std::cout<<"ARM9 HALT\n";
 			}
 
 			//C7,C5,0

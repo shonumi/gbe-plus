@@ -769,13 +769,13 @@ void NTR_ARM7::process_swi(u32 comment)
 
 		//GetPitchTable
 		case 0x1B:
-			std::cout<<"ARM7::SWI::GetPitchTable\n";
+			//std::cout<<"ARM7::SWI::GetPitchTable\n";
 			swi_getpitchtable();
 			break;
 
 		//GetVolumeTable
 		case 0x1C:
-			std::cout<<"ARM7::SWI::GetVolumeTable \n";
+			//std::cout<<"ARM7::SWI::GetVolumeTable \n";
 			swi_getvolumetable();
 			break;
 

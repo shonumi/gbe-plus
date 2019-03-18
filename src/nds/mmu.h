@@ -56,7 +56,8 @@ class NTR_MMU
 	std::vector <u8> nds7_bios;
 	std::vector <u8> nds9_bios;
 	std::vector <u8> firmware;
- 	std::vector <u8> dtcm; 
+ 	std::vector <u8> dtcm;
+	std::vector <u8> save_data;
 	
 	//NDS7 IPC FIFO
 	struct nds7_interprocess
@@ -105,9 +106,10 @@ class NTR_MMU
 		u16 data;
 
 		//SPI data
-		u32 baud_rate;
-		s32 transfer_clock;
-		bool active_transfer;
+		u32 transfer_count;
+		u32 access_index;
+		u16 access_addr;
+		u8 state;
 
 		//EEPROM
 		u8 eeprom_stat;

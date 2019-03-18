@@ -1315,13 +1315,6 @@ void NTR_ARM9::clock_system()
 	//Run timers
 	clock_timers(system_cycles);
 
-	//Run AUXSPI Bus
-	if((mem->nds_aux_spi.active_transfer) && ((mem->nds9_exmem & 0x800) == 0))
-	{
-		mem->nds_aux_spi.transfer_clock -= system_cycles;
-		if(mem->nds_aux_spi.transfer_clock <= 0) { mem->process_aux_spi_bus(); }
-	}
-
 	//Reset system cycles
 	system_cycles = 2;
 }

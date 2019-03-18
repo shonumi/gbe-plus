@@ -43,6 +43,9 @@ void NTR_MMU::reset()
 	firmware.clear();
 	firmware.resize(0x40000, 0);
 
+	save_data.clear();
+	save_data.resize(0x10000, 0xFF);
+
 	nds7_bios.clear();
 	nds7_bios.resize(0x4000, 0);
 	nds7_bios_vector = 0x0;
@@ -152,12 +155,10 @@ void NTR_MMU::reset()
 
 	nds_aux_spi.cnt = 0;
 	nds_aux_spi.data = 0;
-	nds_aux_spi.baud_rate = 64;
-	nds_aux_spi.transfer_clock = 0;
-	nds_aux_spi.active_transfer = false;
-	nds_aux_spi.eeprom_stat = 0;
+	nds_aux_spi.transfer_count = 0;
+	nds_aux_spi.eeprom_stat = 0x0;
 	nds_aux_spi.backup_cmd = 0;
-	nds_aux_spi.backup_cmd_ready = true;;
+	nds_aux_spi.backup_cmd_ready = true;
 
 	nds_card.cnt = 0x800000;
 	nds_card.data = 0;
@@ -559,8 +560,7 @@ u8 NTR_MMU::read_u8(u32 address)
 	{
 		if((access_mode && ((nds9_exmem & 0x800) == 0)) || (!access_mode && (nds7_exmem & 0x800)))
 		{
-			u8 addr_shift = (address & 0x1) << 3;
-			return ((nds_aux_spi.data >> addr_shift) & 0xFF);
+			return memory_map[address];
 		}
 	}
 
@@ -3598,10 +3598,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 				//Start AUXSPI transfer
 				if(nds_aux_spi.cnt & 0xA000)
 				{
-					nds_aux_spi.active_transfer = true;
-					nds_aux_spi.baud_rate = (8192 << (nds_aux_spi.cnt & 0x3));
-					nds_aux_spi.transfer_clock = nds_aux_spi.baud_rate;
-					nds_aux_spi.cnt |= 0x80;
+					process_aux_spi_bus();
 				}		
 			}
 
@@ -4466,82 +4463,141 @@ void NTR_MMU::process_spi_bus()
 /****** Handles various AUXSPI Bus interactions ******/
 void NTR_MMU::process_aux_spi_bus()
 {
-	//If no backup type has been detected when loading a save file, detect based on commands sent via AUXSPI
-	if(current_save_type == AUTO)
+	bool do_command = true;
+
+	//Exit read or write mode
+	switch(nds_aux_spi.state)
 	{
-		switch(nds_aux_spi.data)
-		{
-			//EEPROM-FRAM commands
-			case 0x1:
-			case 0x2:
-			case 0x3:
-			case 0x4:
-			case 0x5:
-			case 0x6:
-			case 0x9F:
-				current_save_type = EEPROM;				
-				break;
-				
-			case 0xA:
-			case 0xB:
-				current_save_type = EEPROM_512;
-				break;
-		}
+		case 0x82:
+		case 0x83:
+		case 0x8A:
+		case 0x8B:
+			if(nds_aux_spi.data == 0x5) { nds_aux_spi.state = 0; }
+			break;
 	}
 
-	bool detect_command = false;
-
-	//Detect if this byte is an EEPROM command byte
-	if(((nds_aux_spi.data <= 0x6) || (nds_aux_spi.data == 0xA) || (nds_aux_spi.data == 0xB) || (nds_aux_spi.data == 0x9F)) && (nds_aux_spi.backup_cmd_ready)
-	&& ((current_save_type == EEPROM) || (current_save_type == EEPROM_512)) && (nds_aux_spi.data != 0))
+	//Handle AUX SPI state - Command parameters or data 
+	switch(nds_aux_spi.state)
 	{
-		detect_command = true;
-		nds_aux_spi.backup_cmd_ready = false;
+		//Write to status
+		case 0x1:
+			nds_aux_spi.eeprom_stat &= ~0xC;
+			nds_aux_spi.eeprom_stat |= (nds_aux_spi.data & 0xC) | 0x2;
+			nds_aux_spi.state = 0;
+			do_command = false;
+			break;
+
+		//Write to EEPROM
+		case 0x2:
+		case 0xA:
+			nds_aux_spi.access_addr = nds_aux_spi.data;
+			if(nds_aux_spi.state == 0xA) { nds_aux_spi.access_addr |= 0x100; }
+					
+			nds_aux_spi.state |= 0x80;
+			nds_aux_spi.data = 0xFF;
+
+			do_command = false;
+			break;
+
+		//Read from EEPROM low
+		case 0x3:
+		case 0xB:
+			nds_aux_spi.access_addr = nds_aux_spi.data;
+			if(nds_aux_spi.state == 0xB) { nds_aux_spi.access_addr |= 0x100; }
+					
+			nds_aux_spi.state |= 0x80;
+			nds_aux_spi.data = 0xFF;
+
+			do_command = false;
+			break;
+
+		//Read from status register
+		case 0x5:
+			nds_aux_spi.data = nds_aux_spi.eeprom_stat;
+			nds_aux_spi.state = 0;
+			do_command = false;
+			break;
+
+		//Write EEPROM data low
+		case 0x82:
+		case 0x8A:
+			save_data[nds_aux_spi.access_addr++] = nds_aux_spi.data;
+			do_command = false;
+			break;
+
+		//Read EEPROM data low
+		case 0x83:
+		case 0x8B:
+			nds_aux_spi.data = save_data[nds_aux_spi.access_addr++];
+			do_command = false;
+			break;
 	}
 
-	//Process initial command 
-	if(detect_command)
-	{
-		nds_aux_spi.backup_cmd = nds_aux_spi.data;
+	nds_aux_spi.backup_cmd = nds_aux_spi.data;
 
-		//Toggle Bit 1 of EEPROM Status Register when enabling or disabling writes
-		if(nds_aux_spi.backup_cmd == 0x6) { nds_aux_spi.eeprom_stat |= 0x2; }
-		else if(nds_aux_spi.backup_cmd == 0x4) { nds_aux_spi.eeprom_stat &= ~0x2; }
-	}
-
-	//Process command parameters (if any)
-	else
+	//Handle AUX SPI save memory commands
+	if(do_command)
 	{
 		switch(nds_aux_spi.backup_cmd)
 		{
 			//Write to status register
 			case 0x1:
-				nds_aux_spi.eeprom_stat &= ~0xC;
-				nds_aux_spi.eeprom_stat |= (nds_aux_spi.data & 0xC);
+				if((current_save_type == EEPROM) || (current_save_type == AUTO)) { nds_aux_spi.data = nds_aux_spi.eeprom_stat; }
+				else if(current_save_type == EEPROM_512) { nds_aux_spi.data = (nds_aux_spi.eeprom_stat | 0xF0); }
+				nds_aux_spi.data = 0xFF;
+				nds_aux_spi.state = 0x1;
+				break;
+
+			//Write to EEPROM low
+			case 0x2:
+				nds_aux_spi.data = 0xFF;
+				nds_aux_spi.access_index = 0;
+				nds_aux_spi.state = 0x2;
+				break;
+
+			//Read from EEPROM low
+			case 0x3:
+				nds_aux_spi.data = 0xFF;
+				nds_aux_spi.access_index = 0;
+				nds_aux_spi.state = 0x3;
 				break;
 
 			//Read from status register
 			case 0x5:
-				if(current_save_type == EEPROM) { nds_aux_spi.data = nds_aux_spi.eeprom_stat; }
-				else if(current_save_type == EEPROM_512) { nds_aux_spi.data = (nds_aux_spi.eeprom_stat | 0xF0); }
+				nds_aux_spi.data = 0xFF;
+				nds_aux_spi.state = 0x5;
+				break;
+
+			//Write enable
+			case 0x6:
+				nds_aux_spi.data = 0xFF;
+				break;
+
+			//Write to EEPROM high
+			case 0xA:
+				nds_aux_spi.data = 0xFF;
+				nds_aux_spi.access_index = 0;
+				nds_aux_spi.state = 0xA;
+				break;
+
+			//Read from EEPROM high
+			case 0xB:
+				nds_aux_spi.data = 0xFF;
+				nds_aux_spi.access_index = 0;
+				nds_aux_spi.state = 0xB;
 				break;
 
 			//Read JEDEC ID
 			case 0x9F:
 				nds_aux_spi.data = 0xFF;
+				nds_aux_spi.state = 0x9F;
 				break;
-
-			//Read from EEPROM
-			case 0x3:
-				nds_aux_spi.data = 0x0;
 		}
-
-		nds_aux_spi.backup_cmd_ready = true;
 	}
 
 	//Reset SPI for next transfer
-	nds_aux_spi.active_transfer = false;
-	nds_aux_spi.transfer_clock = 0;
+	write_u16_fast(NDS_AUXSPIDATA, nds_aux_spi.data);
+	nds_aux_spi.transfer_count = 0;
 	nds_aux_spi.cnt &= ~0x80;
 }
 
