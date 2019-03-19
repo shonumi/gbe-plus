@@ -2960,6 +2960,9 @@ void NTR_LCD::step()
 				//Clear z-buffer
 				gx_z_buffer.assign(0xC000, -4096);
 			}
+
+			//Start VBlank DMA
+			mem->start_vblank_dma();
 		}
 
 		//Increment scanline after HBlank starts

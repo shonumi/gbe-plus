@@ -159,6 +159,8 @@ void NTR_MMU::reset()
 	nds_aux_spi.eeprom_stat = 0x0;
 	nds_aux_spi.backup_cmd = 0;
 	nds_aux_spi.backup_cmd_ready = true;
+	nds_aux_spi.state = 0;
+	nds_aux_spi.last_state = 0;
 
 	nds_card.cnt = 0x800000;
 	nds_card.data = 0;
@@ -601,6 +603,8 @@ u8 NTR_MMU::read_u8(u32 address)
 		{
 			nds_card.transfer_count++;
 			u8 ret_val = memory_map[address];
+
+			std::cout<<"ME\n";
 
 			if(nds_card.transfer_count == 4)
 			{
@@ -4314,12 +4318,23 @@ void NTR_MMU::start_hblank_dma()
 	for(u32 x = 0; x < 4; x++)
 	{
 		//Repeat bits automatically enable DMAs
-		if(dma[x].control & 0x200)
-		{
-			dma[x].enable = true;
-			u8 dma_type = ((dma[x].control >> 12) & 0x7);
-			if(dma_type == 2) { dma[x].started = true; }
-		}
+		if(dma[x].control & 0x200) { dma[x].enable = true; }
+
+		u8 dma_type = ((dma[x].control >> 12) & 0x7);
+		if(dma_type == 2) { dma[x].started = true; }
+	}
+}
+
+/****** Start the DMA channels during VBlanking periods ******/
+void NTR_MMU::start_vblank_dma()
+{
+	for(u32 x = 0; x < 8; x++)
+	{
+		//Repeat bits automatically enable DMAs
+		if(dma[x].control & 0x200) { dma[x].enable = true; }
+
+		u8 dma_type = ((dma[x].control >> 12) & 0x7);
+		if(dma_type == 1) { dma[x].started = true; }
 	}
 }
 
@@ -4468,11 +4483,25 @@ void NTR_MMU::process_aux_spi_bus()
 	//Exit read or write mode
 	switch(nds_aux_spi.state)
 	{
+		case 0x05:
+			if(((nds_aux_spi.last_state == 0x82) || (nds_aux_spi.last_state == 0x8A)) && (nds_aux_spi.data != 0))
+			{
+				nds_aux_spi.state = nds_aux_spi.last_state;
+				save_data[nds_aux_spi.access_addr++] = 0x5;
+			}
+
+			break;
+
 		case 0x82:
 		case 0x83:
 		case 0x8A:
 		case 0x8B:
-			if(nds_aux_spi.data == 0x5) { nds_aux_spi.state = 0; }
+			if(nds_aux_spi.data == 0x5)
+			{
+				nds_aux_spi.last_state = nds_aux_spi.state;
+				nds_aux_spi.state = 0;
+			}
+
 			break;
 	}
 

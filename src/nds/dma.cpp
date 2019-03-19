@@ -28,8 +28,15 @@ void NTR_ARM9::nds9_dma(u8 index)
 	u32 cnt_addr = NDS_DMA0CNT + (index * 12);
 	u32 irq_mask = (1 << 8) << index;
 
-	//Verify HBlank timing
-	if((dma_mode == 2) && (!mem->dma[index].started)) { return; }
+	//Verify special DMA timings
+	switch(dma_mode)
+	{
+		//VBlank
+		//HBlank
+		case 0x1:
+		case 0x2:
+			if(!mem->dma[index].started) { return; }
+	}
 
 	std::cout<<"NDS9 DMA" << std::dec << (u16)index << "\n";
 	std::cout<<"START ADDR -> 0x" << std::hex << mem->dma[index].start_address << "\n";
@@ -48,7 +55,7 @@ void NTR_ARM9::nds9_dma(u8 index)
 	{
 		//Align addresses to half-word
 		mem->dma[index].start_address &= ~0x1;
-		mem->dma[index].destination_address	&= ~0x1;
+		mem->dma[index].destination_address &= ~0x1;
 
 		while(mem->dma[index].word_count != 0)
 		{
@@ -106,7 +113,6 @@ void NTR_ARM9::nds9_dma(u8 index)
 
 	switch(dma_mode)
 	{
-		case 0x1: std::cout<<"NDS9 DMA" << std::dec << (u16)index << " - VBlank\n"; running = false; break;
 		case 0x3: std::cout<<"NDS9 DMA" << std::dec << (u16)index << " - Display Sync\n"; running = false; break;
 		case 0x4: std::cout<<"NDS9 DMA" << std::dec << (u16)index << " - Main Mem Display\n"; running = false; break;
 		case 0x5: std::cout<<"NDS9 DMA" << std::dec << (u16)index << " - DS Cart\n"; running = false; break;
@@ -129,6 +135,14 @@ void NTR_ARM7::nds7_dma(u8 index)
 	u32 cnt_addr = NDS_DMA0CNT + (index * 12);
 	u32 irq_mask = (1 << 8) << index;
 
+	//Verify special DMA timings
+	switch(dma_mode)
+	{
+		//VBlank
+		case 0x1:
+			if(!mem->dma[index].started) { return; }
+	}
+
 	std::cout<<"NDS7 DMA" << std::dec << (u16)index << "\n";
 	std::cout<<"START ADDR -> 0x" << std::hex << mem->dma[index].start_address << "\n";
 	std::cout<<"DEST  ADDR -> 0x" << std::hex << mem->dma[index].destination_address << "\n";
@@ -139,7 +153,7 @@ void NTR_ARM7::nds7_dma(u8 index)
 	{
 		//Align addresses to half-word
 		mem->dma[index].start_address &= ~0x1;
-		mem->dma[index].destination_address	&= ~0x1;
+		mem->dma[index].destination_address &= ~0x1;
 
 		while(mem->dma[index].word_count != 0)
 		{
@@ -197,7 +211,6 @@ void NTR_ARM7::nds7_dma(u8 index)
 
 	switch(dma_mode)
 	{
-		case 0x1: std::cout<<"NDS7 DMA" << std::dec << (u16)index << " - VBlank\n"; running = false; break;
 		case 0x2: std::cout<<"NDS7 DMA" << std::dec << (u16)index << " - DS Cart\n"; running = false; break;
 		case 0x3: std::cout<<"NDS7 DMA" << std::dec << (u16)index << " - Wifi/GBA Cart\n"; running = false; break;
 	}
