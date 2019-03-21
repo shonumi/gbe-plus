@@ -22,6 +22,7 @@ NTR_MMU::NTR_MMU()
 /****** MMU Deconstructor ******/
 NTR_MMU::~NTR_MMU() 
 {
+	save_backup(config::save_file);
 	memory_map.clear();
 	cart_data.clear();
 	nds7_bios.clear();
@@ -603,8 +604,6 @@ u8 NTR_MMU::read_u8(u32 address)
 		{
 			nds_card.transfer_count++;
 			u8 ret_val = memory_map[address];
-
-			std::cout<<"ME\n";
 
 			if(nds_card.transfer_count == 4)
 			{
@@ -4174,7 +4173,11 @@ bool NTR_MMU::read_file(std::string filename)
 
 		//Otherwise, set Slot2 to none
 		else { current_slot2_device = SLOT2_NONE; }
-	} 
+	}
+
+	//Load cart save data
+	std::string backup_file = filename + ".sav";
+	load_backup(backup_file);
 
 	return true;
 }
@@ -4307,10 +4310,56 @@ bool NTR_MMU::read_firmware(std::string filename)
 }
 
 /****** Load backup save data ******/
-bool NTR_MMU::load_backup(std::string filename) { return true; }
+bool NTR_MMU::load_backup(std::string filename)
+{
+	//Use config save path if applicable
+	if(!config::save_path.empty())
+	{
+		 filename = config::save_path + util::get_filename_from_path(filename);
+	}
+
+	std::ifstream file(filename.c_str(), std::ios::binary);
+
+	if(!file.is_open()) 
+	{
+		std::cout<<"MMU::" << filename << " save data could not be opened. Check file path or permissions. \n";
+		return false;
+	}
+
+	//Clear save data
+	save_data.clear();
+	save_data.resize(0x10000, 0xFF);
+
+	//Read data from file
+	file.read(reinterpret_cast<char*> (&save_data[0]), 0x10000);
+	file.close();
+
+	return true;
+}
 
 /****** Save backup save data ******/
-bool NTR_MMU::save_backup(std::string filename) { return true; }
+bool NTR_MMU::save_backup(std::string filename)
+{
+	//Use config save path if applicable
+	if(!config::save_path.empty())
+	{
+		 filename = config::save_path + util::get_filename_from_path(filename);
+	}
+
+	std::ofstream file(filename.c_str(), std::ios::binary);
+
+	if(!file.is_open()) 
+	{
+		std::cout<<"MMU::" << filename << " save data could not be written. Check file path or permissions. \n";
+		return false;
+	}
+
+	//Write the data to a file
+	file.write(reinterpret_cast<char*> (&save_data[0]), 0x10000);
+	file.close();
+
+	return true;
+}
 
 /****** Start the DMA channels during HBlanking periods ******/
 void NTR_MMU::start_hblank_dma()
@@ -4520,7 +4569,12 @@ void NTR_MMU::process_aux_spi_bus()
 		case 0x2:
 		case 0xA:
 			nds_aux_spi.access_addr = nds_aux_spi.data;
-			if(nds_aux_spi.state == 0xA) { nds_aux_spi.access_addr |= 0x100; }
+
+			if(nds_aux_spi.state == 0xA)
+			{
+				nds_aux_spi.access_addr |= 0x100;
+				if(current_save_type == AUTO) { current_save_type = EEPROM; }
+			}
 					
 			nds_aux_spi.state |= 0x80;
 			nds_aux_spi.data = 0xFF;
@@ -4532,7 +4586,12 @@ void NTR_MMU::process_aux_spi_bus()
 		case 0x3:
 		case 0xB:
 			nds_aux_spi.access_addr = nds_aux_spi.data;
-			if(nds_aux_spi.state == 0xB) { nds_aux_spi.access_addr |= 0x100; }
+
+			if(nds_aux_spi.state == 0xB)
+			{
+				nds_aux_spi.access_addr |= 0x100;
+				if(current_save_type == AUTO) { current_save_type = EEPROM; }
+			}
 					
 			nds_aux_spi.state |= 0x80;
 			nds_aux_spi.data = 0xFF;

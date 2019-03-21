@@ -110,6 +110,7 @@ class NTR_MMU
 		u32 access_index;
 		u16 access_addr;
 		u8 state;
+		u8 last_state;
 
 		//EEPROM
 		u8 eeprom_stat;
@@ -295,6 +296,7 @@ class NTR_MMU
 	void reset();
 
 	void start_hblank_dma();
+	void start_vblank_dma();
 
 	u8 read_u8(u32 address);
 	u16 read_u16(u32 address);
