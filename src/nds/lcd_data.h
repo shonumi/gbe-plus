@@ -17,6 +17,14 @@
 
 #include "common.h"
 
+enum nds_sfx_types
+{
+	NDS_NORMAL,
+	NDS_ALPHA_BLEND,
+	NDS_BRIGHTNESS_UP,
+	NDS_BRIGHTNESS_DOWN,
+};
+
 struct ntr_lcd_data
 {
 	u16 current_scanline;
@@ -132,6 +140,15 @@ struct ntr_lcd_data
 	} bg_affine_b[2];
 
 	float obj_affine[256];
+
+	bool sfx_target_a[6][2];
+	bool sfx_target_b[6][2];
+
+	nds_sfx_types current_sfx_type_a;
+	nds_sfx_types current_sfx_type_b;
+
+	double brightness_coef_a;
+	double brightness_coef_b;
 
 	bool vblank_irq_enable_a;
 	bool hblank_irq_enable_a;

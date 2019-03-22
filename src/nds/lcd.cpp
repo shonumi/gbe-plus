@@ -58,6 +58,8 @@ void NTR_LCD::reset()
 	gx_render_buffer.clear();
 	gx_z_buffer.clear();
 
+	sfx_buffer.clear();
+
 	lcd_stat.lcd_clock = 0;
 	lcd_stat.lcd_mode = 0;
 
@@ -85,6 +87,8 @@ void NTR_LCD::reset()
 	render_buffer_b.resize(0x100, 0);
 	gx_render_buffer.resize(0xC000, 0);
 	gx_z_buffer.resize(0xC000, -4096);
+
+	sfx_buffer.resize(0x100, 0);
 
 	full_scanline_render_a = false;
 	full_scanline_render_b = false;
@@ -114,6 +118,10 @@ void NTR_LCD::reset()
 
 	lcd_stat.obj_ext_pal_update_b = true;
 	lcd_stat.obj_ext_pal_update_list_b.resize(0x1000, true);
+
+	//SFX and Window initialization
+	lcd_stat.current_sfx_type_a = NDS_NORMAL;
+	lcd_stat.current_sfx_type_b = NDS_NORMAL;
 
 	//OAM initialization
 	lcd_stat.oam_update = true;
@@ -825,6 +833,9 @@ void NTR_LCD::render_bg_scanline(u32 bg_control)
 		full_scanline_render_a = false;
 		render_buffer_a.assign(0x100, 0);
 
+		//Reset SFX buffer
+		sfx_buffer.assign(0x100, 0x80);
+
 		//Clear scanline with backdrop
 		for(u16 x = 0; x < 256; x++) { scanline_buffer_a[x] = lcd_stat.bg_pal_a[0]; }
 
@@ -984,6 +995,9 @@ void NTR_LCD::render_bg_scanline(u32 bg_control)
 					std::cout<<"LCD::Engine A - invalid or unsupported BG Mode : " << std::dec << (u16)lcd_stat.bg_mode_a << "\n";
 			}
 		}
+
+		//Apply SFX
+		apply_sfx(NDS_DISPCNT_A);
 	}
 
 	//Render Engine B
@@ -1272,6 +1286,7 @@ void NTR_LCD::render_obj_scanline(u32 bg_control)
 					{
 						scanline_buffer_a[scanline_pixel_counter] = (ext_pal) ? lcd_stat.obj_ext_pal_a[(pal_id * 256) + raw_color] : lcd_stat.obj_pal_a[(pal_id * 16) + raw_color];
 						render_buffer_a[scanline_pixel_counter] = (obj[obj_id].bg_priority + 1);
+						sfx_buffer[scanline_pixel_counter] = (render_buffer_a[scanline_pixel_counter] | 0x80);
 					}
 
 					//Draw for Engine B
@@ -1279,6 +1294,7 @@ void NTR_LCD::render_obj_scanline(u32 bg_control)
 					{
 						scanline_buffer_b[scanline_pixel_counter] = (ext_pal) ? lcd_stat.obj_ext_pal_b[(pal_id * 256) + raw_color] : lcd_stat.obj_pal_b[(pal_id * 16) + raw_color];
 						render_buffer_b[scanline_pixel_counter] = (obj[obj_id].bg_priority + 1);
+						sfx_buffer[scanline_pixel_counter] = (render_buffer_b[scanline_pixel_counter] | 0x80);
 					}
 						
 				}
@@ -2663,6 +2679,141 @@ void NTR_LCD::render_scanline()
 	}		
 }
 
+/****** Apply SFX to scanline pixels ******/
+void NTR_LCD::apply_sfx(u32 bg_control)
+{
+	//Calculate SFX buffer
+	for(u16 x = 0; x < 256; x++)
+	{
+		if((bg_control == NDS_DISPCNT_A) && (!sfx_buffer[x])) { sfx_buffer[x] = render_buffer_a[x]; }
+		else if((bg_control == NDS_DISPCNT_B) && (!sfx_buffer[x])) { sfx_buffer[x] = render_buffer_b[x]; }
+	}
+
+	//TODO - Use Window coordinates to determine if SFX is applicable here
+	//TODO - Determine is SFX can be applied here based on various other conditions
+
+	nds_sfx_types temp_type = (bg_control == NDS_DISPCNT_A) ? lcd_stat.current_sfx_type_a : lcd_stat.current_sfx_type_b;
+
+	//Apply the specified SFX
+	switch(temp_type)
+	{
+		case NDS_BRIGHTNESS_UP: 
+			brightness_up(bg_control); 
+			break;
+
+		case NDS_BRIGHTNESS_DOWN:
+			brightness_down(bg_control); 
+			break;
+	}
+}
+
+/****** SFX - Adjust scanline brightness up ******/
+void NTR_LCD::brightness_up(u32 bg_control)
+{
+	u8 target = 0;
+	u8 red = 0;
+	u8 green = 0;
+	u8 blue = 0;
+	u16 result = 0;
+	u32 color = 0;
+
+	if(bg_control == NDS_DISPCNT_A)
+	{
+		for(u16 x = 0; x < 256; x++)
+		{
+			//Determine if target is valid
+			switch(sfx_buffer[x])
+			{
+				case 0x0: target = 5; break;
+				case 0x1: target = 0; break;
+				case 0x2: target = 1; break;
+				case 0x3: target = 2; break;
+				case 0x4: target = 3; break;
+				
+				case 0x81:
+				case 0x82:
+				case 0x83:
+				case 0x84:
+					target = 4; break;
+			}
+
+			//Proceed with SFX
+			if(lcd_stat.sfx_target_a[target][0])
+			{
+				color = scanline_buffer_a[x];
+
+				//Increase RGB intensities
+				red = ((color >> 19) & 0x1F);
+				result = red + ((0x1F - red) * lcd_stat.brightness_coef_a);
+				red = (result > 0x1F) ? 0x1F : result;
+
+				green = ((color >> 11) & 0x1F);
+				result = green + ((0x1F - green) * lcd_stat.brightness_coef_a);
+				green = (result > 0x1F) ? 0x1F : result;
+
+				blue = ((color >> 3) & 0x1F);
+				result = blue + ((0x1F - blue) * lcd_stat.brightness_coef_a);
+				blue = (result > 0x1F) ? 0x1F : result;
+
+				//Copy 32-bit color to scanline buffer
+				scanline_buffer_a[x] = 0xFF000000 | (red << 19) | (green << 11) | (blue << 3);
+			}
+		}
+	}
+}
+
+/****** SFX - Adjust scanline brightness down ******/
+void NTR_LCD::brightness_down(u32 bg_control)
+{
+	u8 target = 0;
+	u8 red = 0;
+	u8 green = 0;
+	u8 blue = 0;
+	u16 result = 0;
+	u32 color = 0;
+
+	if(bg_control == NDS_DISPCNT_A)
+	{
+		for(u16 x = 0; x < 256; x++)
+		{
+			//Determine if target is valid
+			switch(sfx_buffer[x])
+			{
+				case 0x0: target = 5; break;
+				case 0x1: target = 0; break;
+				case 0x2: target = 1; break;
+				case 0x3: target = 2; break;
+				case 0x4: target = 3; break;
+				
+				case 0x81:
+				case 0x82:
+				case 0x83:
+				case 0x84:
+					target = 4; break;
+			}
+
+			//Proceed with SFX
+			if(lcd_stat.sfx_target_a[target][0])
+			{
+				color = scanline_buffer_a[x];
+
+				//Decrease RGB intensities 
+				red = ((color >> 19) & 0x1F);
+				red -= (red * lcd_stat.brightness_coef_a);
+
+				green = ((color >> 11) & 0x1F);
+				green -= (green * lcd_stat.brightness_coef_a);
+
+				blue = ((color >> 3) & 0x1F);
+				blue -= (blue * lcd_stat.brightness_coef_a);
+
+				//Copy 32-bit color to scanline buffer
+				scanline_buffer_a[x] = 0xFF000000 | (red << 19) | (green << 11) | (blue << 3);
+			}
+		}
+	}
+}
+		
 /****** Immediately draw current buffer to the screen ******/
 void NTR_LCD::update()
 {

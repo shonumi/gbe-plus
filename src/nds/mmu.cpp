@@ -2293,27 +2293,52 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			memory_map[address] = value;
 			break;
 
-		//SFX Control
-		case NDS_BLDCNT:
-			memory_map[address] = value;			
+		//SFX Control - Engine A
+		case NDS_BLDCNT_A:
+			memory_map[address] = value;
+			lcd_stat->sfx_target_a[0][0] = (value & 0x1) ? true : false;
+			lcd_stat->sfx_target_a[1][0] = (value & 0x2) ? true : false;
+			lcd_stat->sfx_target_a[2][0] = (value & 0x4) ? true : false;
+			lcd_stat->sfx_target_a[3][0] = (value & 0x8) ? true : false;
+			lcd_stat->sfx_target_a[4][0] = (value & 0x10) ? true : false;
+			lcd_stat->sfx_target_a[5][0] = (value & 0x20) ? true : false;
+
+			switch(value >> 6)
+			{
+				case 0x0: lcd_stat->current_sfx_type_a = NDS_NORMAL; break;
+				case 0x1: lcd_stat->current_sfx_type_a = NDS_ALPHA_BLEND; break;
+				case 0x2: lcd_stat->current_sfx_type_a = NDS_BRIGHTNESS_UP; break;
+				case 0x3: lcd_stat->current_sfx_type_a = NDS_BRIGHTNESS_DOWN; break;
+			}			
+
 			break;
 
-		case NDS_BLDCNT+1:
+		case NDS_BLDCNT_A+1:
+			memory_map[address] = (value & 0x3F);
+			lcd_stat->sfx_target_a[0][1] = (value & 0x1) ? true : false;
+			lcd_stat->sfx_target_a[1][1] = (value & 0x2) ? true : false;
+			lcd_stat->sfx_target_a[2][1] = (value & 0x4) ? true : false;
+			lcd_stat->sfx_target_a[3][1] = (value & 0x8) ? true : false;
+			lcd_stat->sfx_target_a[4][1] = (value & 0x10) ? true : false;
+			lcd_stat->sfx_target_a[5][1] = (value & 0x20) ? true : false;
+			break;
+
+		//SFX Alpha Control - Engine A
+		case NDS_BLDALPHA_A:
 			memory_map[address] = value;
 			break;
 
-		//SFX Alpha Control
-		case NDS_BLDALPHA:
+		case NDS_BLDALPHA_A+1:
 			memory_map[address] = value;
 			break;
 
-		case NDS_BLDALPHA+1:
-			memory_map[address] = value;
-			break;
+		//SFX Brightness Control - Engine A
+		case NDS_BLDY_A:
+			if(memory_map[address] == value) { return ; }
 
-		//SFX Brightness Control
-		case NDS_BLDY:
 			memory_map[address] = value;
+			if(value > 0xF) { value = 0x10; }
+			lcd_stat->brightness_coef_a = (value & 0x1F) / 16.0;
 			break;
 
 		//WRAM Control
@@ -2326,7 +2351,6 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 			break;
 				
-
 		//VRAM Bank Control A-G
 		case NDS_VRAMCNT_A:
 		case NDS_VRAMCNT_B:

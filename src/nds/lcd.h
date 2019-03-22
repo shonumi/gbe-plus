@@ -131,6 +131,9 @@ class NTR_LCD
 	std::vector<u8> gx_render_buffer;
 	std::vector<float> gx_z_buffer;
 
+	//Other buffers
+	std::vector<u8> sfx_buffer;
+
 	bool full_scanline_render_a;
 	bool full_scanline_render_b;
 
@@ -186,6 +189,11 @@ class NTR_LCD
 	u32 read_param_u32(u8 index);
 	u16 read_param_u16(u8 index);
 	u32 get_rgb15(u16 color_bytes);
+
+	//SFX functions
+	void apply_sfx(u32 bg_control);
+	void brightness_up(u32 bg_control);
+	void brightness_down(u32 bg_control);
 };
 
 #endif // NDS_LCD
