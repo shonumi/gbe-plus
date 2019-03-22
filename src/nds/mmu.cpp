@@ -4529,10 +4529,13 @@ void NTR_MMU::process_aux_spi_bus()
 {
 	bool do_command = true;
 
+	std::cout<<"AUX_IN -> 0x" << (u16)nds_aux_spi.data << " :: ";
+
 	//Exit read or write mode
 	switch(nds_aux_spi.state)
 	{
 		case 0x05:
+			//Continue Write Mode in certain cases when writing 0x5
 			if(((nds_aux_spi.last_state == 0x82) || (nds_aux_spi.last_state == 0x8A)) && (nds_aux_spi.data != 0))
 			{
 				nds_aux_spi.state = nds_aux_spi.last_state;
@@ -4547,6 +4550,10 @@ void NTR_MMU::process_aux_spi_bus()
 		case 0x8B:
 			if(nds_aux_spi.data == 0x5)
 			{
+				//Auto-detect save type
+				if((current_save_type == AUTO) && (nds_aux_spi.state == 0x83) && (nds_aux_spi.access_index < 3)) { current_save_type = EEPROM_512; }
+				else if((current_save_type == AUTO) && (nds_aux_spi.state == 0x83) && (nds_aux_spi.access_index >= 3)) { current_save_type = EEPROM; }
+
 				nds_aux_spi.last_state = nds_aux_spi.state;
 				nds_aux_spi.state = 0;
 			}
@@ -4568,15 +4575,29 @@ void NTR_MMU::process_aux_spi_bus()
 		//Write to EEPROM
 		case 0x2:
 		case 0xA:
-			nds_aux_spi.access_addr = nds_aux_spi.data;
-
-			if(nds_aux_spi.state == 0xA)
+			if((current_save_type == EEPROM_512) || (current_save_type == AUTO))
 			{
-				nds_aux_spi.access_addr |= 0x100;
-				if(current_save_type == AUTO) { current_save_type = EEPROM; }
+				if(nds_aux_spi.state == 2) { nds_aux_spi.access_addr = nds_aux_spi.data; }
+				nds_aux_spi.access_addr |= (nds_aux_spi.state == 0xA) ? 0x100 : 0;
+				nds_aux_spi.state |= 0x80;
 			}
+
+			else
+			{
+				nds_aux_spi.access_index++;
+
+				if(nds_aux_spi.access_index == 1) { nds_aux_spi.access_addr |= (nds_aux_spi.data << 8); }
+
+				else if(nds_aux_spi.access_index == 2)
+				{
+					nds_aux_spi.access_addr |= nds_aux_spi.data;
+					nds_aux_spi.access_index = 0;
+					nds_aux_spi.state |= 0x80;
 					
-			nds_aux_spi.state |= 0x80;
+				}
+
+			}
+
 			nds_aux_spi.data = 0xFF;
 
 			do_command = false;
@@ -4585,15 +4606,29 @@ void NTR_MMU::process_aux_spi_bus()
 		//Read from EEPROM low
 		case 0x3:
 		case 0xB:
-			nds_aux_spi.access_addr = nds_aux_spi.data;
-
-			if(nds_aux_spi.state == 0xB)
+			if((current_save_type == EEPROM_512) || (current_save_type == AUTO))
 			{
-				nds_aux_spi.access_addr |= 0x100;
-				if(current_save_type == AUTO) { current_save_type = EEPROM; }
+				if(nds_aux_spi.state == 3) { nds_aux_spi.access_addr = nds_aux_spi.data; }
+				nds_aux_spi.access_addr |= (nds_aux_spi.state == 0xB) ? 0x100 : 0;
+				nds_aux_spi.state |= 0x80;
 			}
+
+			else
+			{
+				nds_aux_spi.access_index++;
+
+				if(nds_aux_spi.access_index == 1) { nds_aux_spi.access_addr |= (nds_aux_spi.data << 8); }
+
+				else if(nds_aux_spi.access_index == 2)
+				{
+					nds_aux_spi.access_addr |= nds_aux_spi.data;
+					nds_aux_spi.access_index = 0;
+					nds_aux_spi.state |= 0x80;
 					
-			nds_aux_spi.state |= 0x80;
+				}
+
+			}
+
 			nds_aux_spi.data = 0xFF;
 
 			do_command = false;
@@ -4610,6 +4645,7 @@ void NTR_MMU::process_aux_spi_bus()
 		case 0x82:
 		case 0x8A:
 			save_data[nds_aux_spi.access_addr++] = nds_aux_spi.data;
+			nds_aux_spi.access_index++;
 			do_command = false;
 			break;
 
@@ -4617,6 +4653,7 @@ void NTR_MMU::process_aux_spi_bus()
 		case 0x83:
 		case 0x8B:
 			nds_aux_spi.data = save_data[nds_aux_spi.access_addr++];
+			nds_aux_spi.access_index++;
 			do_command = false;
 			break;
 	}
@@ -4687,6 +4724,8 @@ void NTR_MMU::process_aux_spi_bus()
 	write_u16_fast(NDS_AUXSPIDATA, nds_aux_spi.data);
 	nds_aux_spi.transfer_count = 0;
 	nds_aux_spi.cnt &= ~0x80;
+
+	std::cout<<"AUX OUT -> 0x" << (u16)nds_aux_spi.data << "\n";
 }
 
 /****** Handles read and write data operations to the firmware ******/
