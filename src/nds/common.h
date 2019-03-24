@@ -104,6 +104,10 @@ const u32 NDS_BG3PD_B = 0x4001036;
 const u32 NDS_BG3X_B = 0x4001038;
 const u32 NDS_BG3Y_B = 0x400103C;
 
+const u32 NDS_BLDCNT_B = 0x4001050;
+const u32 NDS_BLDALPHA_B = 0x4001052;
+const u32 NDS_BLDY_B = 0x4001054;
+
 //Misc Display registers
 const u32 NDS_VRAMCNT_A = 0x4000240;
 const u32 NDS_VRAMCNT_B = 0x4000241;

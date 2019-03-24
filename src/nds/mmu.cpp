@@ -2341,6 +2341,54 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			lcd_stat->brightness_coef_a = (value & 0x1F) / 16.0;
 			break;
 
+		//SFX Control - Engine A
+		case NDS_BLDCNT_B:
+			memory_map[address] = value;
+			lcd_stat->sfx_target_b[0][0] = (value & 0x1) ? true : false;
+			lcd_stat->sfx_target_b[1][0] = (value & 0x2) ? true : false;
+			lcd_stat->sfx_target_b[2][0] = (value & 0x4) ? true : false;
+			lcd_stat->sfx_target_b[3][0] = (value & 0x8) ? true : false;
+			lcd_stat->sfx_target_b[4][0] = (value & 0x10) ? true : false;
+			lcd_stat->sfx_target_b[5][0] = (value & 0x20) ? true : false;
+
+			switch(value >> 6)
+			{
+				case 0x0: lcd_stat->current_sfx_type_b = NDS_NORMAL; break;
+				case 0x1: lcd_stat->current_sfx_type_b = NDS_ALPHA_BLEND; break;
+				case 0x2: lcd_stat->current_sfx_type_b = NDS_BRIGHTNESS_UP; break;
+				case 0x3: lcd_stat->current_sfx_type_b = NDS_BRIGHTNESS_DOWN; break;
+			}			
+
+			break;
+
+		case NDS_BLDCNT_B+1:
+			memory_map[address] = (value & 0x3F);
+			lcd_stat->sfx_target_b[0][1] = (value & 0x1) ? true : false;
+			lcd_stat->sfx_target_b[1][1] = (value & 0x2) ? true : false;
+			lcd_stat->sfx_target_b[2][1] = (value & 0x4) ? true : false;
+			lcd_stat->sfx_target_b[3][1] = (value & 0x8) ? true : false;
+			lcd_stat->sfx_target_b[4][1] = (value & 0x10) ? true : false;
+			lcd_stat->sfx_target_b[5][1] = (value & 0x20) ? true : false;
+			break;
+
+		//SFX Alpha Control - Engine A
+		case NDS_BLDALPHA_B:
+			memory_map[address] = value;
+			break;
+
+		case NDS_BLDALPHA_B+1:
+			memory_map[address] = value;
+			break;
+
+		//SFX Brightness Control - Engine A
+		case NDS_BLDY_B:
+			if(memory_map[address] == value) { return ; }
+
+			memory_map[address] = value;
+			if(value > 0xF) { value = 0x10; }
+			lcd_stat->brightness_coef_b = (value & 0x1F) / 16.0;
+			break;
+
 		//WRAM Control
 		case NDS_WRAMCNT:
 			if(access_mode)
@@ -4553,8 +4601,6 @@ void NTR_MMU::process_aux_spi_bus()
 {
 	bool do_command = true;
 
-	std::cout<<"AUX_IN -> 0x" << (u16)nds_aux_spi.data << " :: ";
-
 	//Exit read or write mode
 	switch(nds_aux_spi.state)
 	{
@@ -4748,8 +4794,6 @@ void NTR_MMU::process_aux_spi_bus()
 	write_u16_fast(NDS_AUXSPIDATA, nds_aux_spi.data);
 	nds_aux_spi.transfer_count = 0;
 	nds_aux_spi.cnt &= ~0x80;
-
-	std::cout<<"AUX OUT -> 0x" << (u16)nds_aux_spi.data << "\n";
 }
 
 /****** Handles read and write data operations to the firmware ******/
