@@ -209,6 +209,7 @@ void NTR_APU::generate_channel_samples(s32* stream, int length, u8 id)
 			else if(format == 2)
 			{
 				u32 data_pos = (apu_stat.channel[id].adpcm_pos + (sample_ratio * x));
+				if(data_pos > apu_stat.channel[id].adpcm_buffer.size()) { data_pos = (apu_stat.channel[id].adpcm_buffer.size() - 1); }
 				nds_sample_16 = apu_stat.channel[id].adpcm_buffer[data_pos];
 
 				stream[x] += nds_sample_16;
