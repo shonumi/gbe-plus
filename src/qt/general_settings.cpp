@@ -22,10 +22,10 @@
 /****** General settings constructor ******/
 gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 {
-	init_chip_list[0] = config::chip_list[0];
-	init_chip_list[1] = config::chip_list[1];
-	init_chip_list[2] = config::chip_list[2];
-	init_chip_list[3] = config::chip_list[3];
+	if(config::chip_list[0]) { init_chip_list[0] = config::chip_list[0] - 1; }
+	if(config::chip_list[1]) { init_chip_list[1] = config::chip_list[1] - 1; }
+	if(config::chip_list[2]) { init_chip_list[2] = config::chip_list[2] - 1; }
+	if(config::chip_list[3]) { init_chip_list[3] = config::chip_list[3] - 1; }
 
 	//Set up tabs
 	tabs = new QTabWidget(this);
