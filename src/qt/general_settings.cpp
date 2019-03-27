@@ -22,10 +22,10 @@
 /****** General settings constructor ******/
 gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 {
-	if(config::chip_list[0]) { init_chip_list[0] = config::chip_list[0] - 1; }
-	if(config::chip_list[1]) { init_chip_list[1] = config::chip_list[1] - 1; }
-	if(config::chip_list[2]) { init_chip_list[2] = config::chip_list[2] - 1; }
-	if(config::chip_list[3]) { init_chip_list[3] = config::chip_list[3] - 1; }
+	init_chip_list[0] = config::chip_list[0];
+	init_chip_list[1] = config::chip_list[1];
+	init_chip_list[2] = config::chip_list[2];
+	init_chip_list[3] = config::chip_list[3];
 
 	//Set up tabs
 	tabs = new QTabWidget(this);
@@ -1714,10 +1714,13 @@ void gen_settings::set_ini_options()
 	else { chip_gate_type->setCurrentIndex(0); }
 
 	//Battle Chips 1-4
-	battle_chip_1->setCurrentIndex(init_chip_list[0]);
-	battle_chip_2->setCurrentIndex(init_chip_list[1]);
-	battle_chip_3->setCurrentIndex(init_chip_list[2]);
-	battle_chip_4->setCurrentIndex(init_chip_list[3]);
+	for(u32 x = 0; x < 512; x++)
+	{
+		if(chip_list[x] == init_chip_list[0]) { battle_chip_1->setCurrentIndex(x); }
+		if(chip_list[x] == init_chip_list[1]) { battle_chip_2->setCurrentIndex(x); }
+		if(chip_list[x] == init_chip_list[2]) { battle_chip_3->setCurrentIndex(x); }
+		if(chip_list[x] == init_chip_list[3]) { battle_chip_4->setCurrentIndex(x); }
+	}
 
 	sync_threshold->setValue(config::netplay_sync_threshold);
 	server_port->setValue(config::netplay_server_port);
@@ -2285,9 +2288,6 @@ void gen_settings::get_chip_list()
 			battle_chip_4->addItem(QString::fromStdString(input_line));
 		}
 	}
-
-	u32 width = battle_chip_1->minimumSizeHint().width();
-	battle_chip_1->setMinimumWidth(width);
 }
 
 /****** Sets Battle Chip ID based on chip list ******/
