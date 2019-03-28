@@ -2259,8 +2259,8 @@ void gen_settings::get_chip_list()
 	switch(chip_gate_type->currentIndex())
 	{
 		case 0: list_file += "bcg_list.txt"; break;
-		case 1: break;
-		case 2: break;
+		case 1: list_file += "pcg_list.txt"; break;
+		case 2: list_file += "blg_list.txt"; break;
 	}
 
 	//Clear current combo-boxes for Battle Chips 1-4
