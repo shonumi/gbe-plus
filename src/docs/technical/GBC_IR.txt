@@ -44,6 +44,7 @@ This list represents all the games that have been verified to use the IR port. W
 - Papyrus					Ubi Key
 - Perfect Dark					Trade multiplayer maps and other unlockables
 - Playmobil Interactive: Laura			Ubi Key
+- Pocket Family GB 2				Transfer characters and data
 - Pokemon Pinball				Trade/combine Top Scores
 - Pokemon Gold					Mystery Gift + Send trainer data to Viridian City Trainer House
 - Pokemon Silver				Mystery Gift + Send trainer data to Viridian City Trainer House
