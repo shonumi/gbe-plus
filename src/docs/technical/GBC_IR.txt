@@ -52,6 +52,7 @@ This list represents all the games that have been verified to use the IR port. W
 - Pokemon Trading Card Game			"Card Pop" to generate random cards. Trade individual cards. Trade deck configurations
 - Pokemon Card GB2: Here Comes Team GR!		"Card Pop" to generate random cards. Trade individual cards. Trade deck configurations
 - Rayman					Ubi Key
+- Robopon Sun Version				Boost stats via infrared signals. Open certain chests
 - The Road to El Dorado				Ubi Key
 - Sakura Taisen GB				Send step-based "Points" to GBC from Pocket Sakura, or between two GBCs
 - Shin Megami Tensei Devil Children White	Used for "Infrared Fusion" to strengthen some demons, obtain rare ones
@@ -59,6 +60,8 @@ This list represents all the games that have been verified to use the IR port. W
 - Toonsylvania					Ubi Key
 - Warlocked					Trade wizards
 - Zok Zok Heroes				Transmit "Cosmic Characters" from Full Changer accessory to transform hero
+
+It should be noted that a few games that use HuC-3 MBC are not in fact "GB KISS" games. Instead, they use the GBC's built-in IR hardware. Robopon Sun Version (US version only) and Pocket Family GB 2 are such examples. While the other Robopon games use the HuC-3's IR capabilities, these were lost when the game went overseas. A similar phenomenon can be seen with the Japanese release of Pokemon TCG (which used the HuC-1) versus releases for any other region (which use the GBC's native IR). Pocket Family GB 2 abandons the IR diodes on the HuC-3 PCB. At this point in time, Hudson may have finally decided to abandon GB KISS and the HuC-1 and HuC-3's IR features as they were redundant, especially for games designed to run exclusively on the GBC.
 
 ***************************************************
 4. IR Communication Types
