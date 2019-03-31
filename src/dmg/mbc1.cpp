@@ -305,7 +305,7 @@ bool DMG_MMU::mbc1s_load_sonar_data(std::string filename)
 			if(final_color == 0xFF000000) { pixel_buffer.push_back(3); }
 			
 			//Semi-darkest color
-			else if(final_color == 0xFF606060) { pixel_buffer.push_back(2); std::cout<<"ME\n"; }
+			else if(final_color == 0xFF606060) { pixel_buffer.push_back(2); }
 
 			//Semi-lightest color
 			else if(final_color == 0xFFC0C0C0) { pixel_buffer.push_back(1); }
