@@ -805,6 +805,7 @@ OFF pulse length			38 + (20 * (LENGTH-2))</code>
 		<li class="list_tab"><div class="x">Pokemon Trading Card Game</div><div class="y">&#34;Card Pop&#34; to generate random cards. Trade individual cards. Trade deck configurations</div></li>
 		<li class="list_tab"><div class="x">Pokemon Card GB2: Here Comes Team GR!</div><div class="y"> &#34;Card Pop&#34; to generate random cards. Trade individual cards. Trade deck configurations</div></li>
 		<li class="list_tab"><div class="x">Rayman</div><div class="y">Ubi Key</div></li>
+		<li class="list_tab"><div class="x">Robopon Sun Version</div><div class="y">Boost stats via infrared signals. Open certain chests</div></li>
 		<li class="list_tab"><div class="x">The Road to El Dorado</div><div class="y">Ubi Key</div></li>
 		<li class="list_tab"><div class="x">Sakura Taisen GB</div><div class="y">Send step-based &#34;Points&#34; to GBC from Pocket Sakura, or between two GBCs</div></li>
 		<li class="list_tab"><div class="x">Shin Megami Tensei Devil Children White</div><div class="y">Used for &#34;Infrared Fusion&#34; to strengthen some demons, obtain rare ones</div></li>
@@ -812,7 +813,9 @@ OFF pulse length			38 + (20 * (LENGTH-2))</code>
 		<li class="list_tab"><div class="x">Toonsylvania</div><div class="y">Ubi Key</div></li>
 		<li class="list_tab"><div class="x">Warlocked</div><div class="y">Trade wizards</div></li>
 		<li class="list_tab"><div class="x">Zok Zok Heroes</div><div class="y">Transmit &#34;Cosmic Characters&#34; from Full Changer accessory to transform hero</div></li>
-	</ul>		
+	</ul>
+
+	<p>It should be noted that a few games that use HuC-3 MBC are not in fact &#34;GB KISS&#34; games. Instead, they use the GBC&#39;s built-in IR hardware. Robopon Sun Version (US version only) and Pocket Family GB 2 are such examples. While the other Robopon games use the HuC-3&#39;s IR capabilities, these were lost when the game went overseas. A similar phenomenon can be seen with the Japanese release of Pokemon TCG (which used the HuC-1) versus releases for any other region (which use the GBC&#39;s native IR). Pocket Family GB 2 abandons the IR diodes on the HuC-3 PCB. At this point in time, Hudson may have finally decided to abandon GB KISS and the HuC-1 and HuC-3&#39;s IR features as they were redundant, especially for games designed to run exclusively on the GBC.	
 
 	<a name="ir_typ"></a>
 	<p class="gray_title">[GBC Infrared] : Communication Types</p>
@@ -1148,7 +1151,7 @@ DMG/GBC screen (240x144 pixels, or 30x18 tiles)</code>
 		<li class="list_item">Each Soul Doll uses a 24LC08 serial EEPROM controller, stores 1KB of data</li>
 	</ul>
 
-	<p>*Ones made after Yomigaeru Shiren no Shima was released may not be "recognized" in that game. If the data sent to the adapter is correct but the Soul Doll is not in the game's internal database, it is categorized as &#34;unknown&#34;.</p>
+	<p>*Ones made after Yomigaeru Shiren no Shima was released may not be "recognized" in that game. If the data sent to the adapter is correct but the Soul Doll is not in the game&#39;s internal database, it is categorized as &#34;unknown&#34;.</p>
 
 	<a name="sda_sig"></a>
 	<p class="gray_title">[Soul Doll Adapter] : Communication Protocol - Start Signal</a></p>
@@ -1203,9 +1206,9 @@ Device ID - 0b1010                                                              
 	<p><code>0xAD <span class="bld">0xAF 0xAF</span> 0xAD = Bit 3 is HIGH = 1
 0xA5 <span class="bld">0xA7 0xA7</span> 0xA5 = Bit 3 is LOW = 0</code></p>
 
-	<p>The first slave address sent is basically ignored, as if the write command. This, however, prompts the 24LC08 to expect a word address next. The word address is the same format; 4 transfers per bit, with the 2nd and 3rd Bit 3 values determining whether it's a &#34;0&#34; or a &#34;1&#34;. The word address forms the lower 8 bits of the final address to read from.</p>
+	<p>The first slave address sent is basically ignored, as if the write command. This, however, prompts the 24LC08 to expect a word address next. The word address is the same format; 4 transfers per bit, with the 2nd and 3rd Bit 3 values determining whether it&#39;s a &#34;0&#34; or a &#34;1&#34;. The word address forms the lower 8 bits of the final address to read from.</p>
 
-	<p>After the word address is sent, a final slave address is sent along with Bit 0 being set to 1 to indicate a read command. This final slave address forms the real two MSBs of the final address. Once this slave address and the read command are sent, EEPROM can be read from by sending a start signal followed by 32 transfers. The EEPROM controller doesn't seem to care what is sent during reading, so long as it's not another start signal. Once a full byte has been read, the internal pointer for the EEPROM address is incremented, and another read can be done simply by sending another start signal followed by 32 more transfers. The data format for reading looks something like this:</p>
+	<p>After the word address is sent, a final slave address is sent along with Bit 0 being set to 1 to indicate a read command. This final slave address forms the real two MSBs of the final address. Once this slave address and the read command are sent, EEPROM can be read from by sending a start signal followed by 32 transfers. The EEPROM controller doesn&#39;t seem to care what is sent during reading, so long as it&#39;s not another start signal. Once a full byte has been read, the internal pointer for the EEPROM address is incremented, and another read can be done simply by sending another start signal followed by 32 more transfers. The data format for reading looks something like this:</p>
 
 	<p><code>-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Bit 7               | Bit 6               | Bit 5               | Bit 4               | Bit 3               | Bit 2               | Bit 1               | Bit 0
@@ -1291,7 +1294,7 @@ Rockman EXE 4.5: Real Operation				Enables using real chips in ever battle</code
 
 	<p>Each Battle Chip Gate uses mostly the same protocol with only very slight changes. They are largely the same hardware in different shells and different physical arrangements. From a software point of view, however, they behave nearly identically.</p>
 
-	<p>The Battle Chip Gates communicate via the GBA's Multi16 mode with a baud rate of 115200bps. The GBA acts as the parent, and the device is Child 1. The Chip Gates begin in a sort of &#34;stand-by&#34; mode where they continually respond with their &#34;Gate ID&#34;. This ID is the only thing the Chip Gates send until the GBA transmits a start signal. The Gate IDs are as follows:</p>
+	<p>The Battle Chip Gates communicate via the GBA&#39;s Multi16 mode with a baud rate of 115200bps. The GBA acts as the parent, and the device is Child 1. The Chip Gates begin in a sort of &#34;stand-by&#34; mode where they continually respond with their &#34;Gate ID&#34;. This ID is the only thing the Chip Gates send until the GBA transmits a start signal. The Gate IDs are as follows:</p>
 
 	<p><code>Battle Chip Gate		0xFFC6
 Progress Chip Gate		0xFFC7

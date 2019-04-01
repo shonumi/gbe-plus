@@ -52,8 +52,8 @@ This list represents all the games that have been verified to use the IR port. W
 - Pokemon Trading Card Game			"Card Pop" to generate random cards. Trade individual cards. Trade deck configurations
 - Pokemon Card GB2: Here Comes Team GR!		"Card Pop" to generate random cards. Trade individual cards. Trade deck configurations
 - Rayman					Ubi Key
-- Robopon Sun Version				Boost stats via infrared signals. Open certain chests
 - The Road to El Dorado				Ubi Key
+- Robopon Sun Version				Boost stats via infrared signals. Open certain chests
 - Sakura Taisen GB				Send step-based "Points" to GBC from Pocket Sakura, or between two GBCs
 - Shin Megami Tensei Devil Children White	Used for "Infrared Fusion" to strengthen some demons, obtain rare ones
 - Super Mario Bros. DX				Trade/combine Top Scores
