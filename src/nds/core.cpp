@@ -893,6 +893,8 @@ bool NTR_core::read_bios(std::string filename)
 	{
 		return false;
 	}
+
+	return true;
 }
 
 /****** Read firmware file into memory ******/

@@ -2471,6 +2471,8 @@ bool gbe_cgfx::delete_manifest_entry(int index)
 	out_file.close();
 
 	parse_manifest_items();
+
+	return true;
 }
 
 /****** Browse for a directory to use in the advanced menu ******/
@@ -3289,6 +3291,8 @@ bool gbe_cgfx::parse_manifest_items()
 
 	manifest_regular_set->setLayout(temp_layout);	
 	manifest_display->setWidget(manifest_regular_set);
+
+	return true;
 }
 
 /****** Ignores manifest warnings until program quits ******/
