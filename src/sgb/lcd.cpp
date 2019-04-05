@@ -938,7 +938,7 @@ void SGB_LCD::step(int cpu_clock)
 				if(config::osd_count)
 				{
 					config::osd_count--;
-					draw_osd_msg(screen_buffer);
+					draw_osd_msg(screen_buffer, 0, 0);
 				}
 
 				//Render final screen buffer

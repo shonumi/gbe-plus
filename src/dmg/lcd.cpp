@@ -1907,8 +1907,8 @@ void DMG_LCD::step(int cpu_clock)
 				if(config::osd_count)
 				{
 					config::osd_count--;
-					if(!cgfx::loaded) { draw_osd_msg(screen_buffer); }
-					else { draw_osd_msg(hd_screen_buffer); }
+					if(!cgfx::loaded) { draw_osd_msg(screen_buffer, 0, 0); }
+					else { draw_osd_msg(hd_screen_buffer, 0, 0); }
 				}
 
 				//Render final screen buffer

@@ -191,6 +191,9 @@ class DMG_SIO
 		four_player_state current_state;
 	} four_player;
 
+	//Power Antenna
+	bool power_antenna_on;
+
 	bool dmg07_init;
 
 	DMG_SIO();

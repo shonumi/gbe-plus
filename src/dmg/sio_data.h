@@ -24,6 +24,7 @@ enum sio_types
 	GB_BARDIGUN_SCANNER,
 	GB_BARCODE_BOY,
 	GB_FOUR_PLAYER_ADAPTER,
+	GB_POWER_ANTENNA,
 };
 
 //Infrared device-type enumeration

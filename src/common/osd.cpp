@@ -65,23 +65,24 @@ bool load_osd_font()
 } 
 
 /****** Draws an OSD message onto a given buffer ******/
-void draw_osd_msg(std::vector <u32> &osd_surface)
+void draw_osd_msg(std::vector <u32> &osd_surface, u8 x_offset, u8 y_offset)
 {
-	//Abort OSD drawing if 1) OSD disabled, 2) message size is zero, 3) given buffer is less than 20 8x8 tiles
+	//Abort OSD drawing if 1) OSD disabled, 2) message size is zero, 3) given buffer is less than 20 8x8 tiles, 4) X offset is >= 20
 	if(!config::use_osd) { return; }
 	if(config::osd_message.size() == 0) { return; }
 	if(osd_surface.size() < 1280) { return; }
+	if(x_offset > 19) { return; }
 
 	u32 chr_offset = 0;
 	u32 buffer_pos = 0;
 	u32 chr_pos = 0;
 	u8 current_chr = 0;
 
-	//Limite message size to 20 characters.
+	//Limit message size to 20 characters.
 	u8 message_size = (config::osd_message.size() <= 20) ? config::osd_message.size() : 20;
 
 	//Cycle through every character
-	for(u32 x = 0; x < config::osd_message.size(); x++)
+	for(u32 x = 0; x < message_size; x++)
 	{
 		current_chr = config::osd_message[x];
 
@@ -96,10 +97,16 @@ void draw_osd_msg(std::vector <u32> &osd_surface)
 		{
 			for(u32 osd_w = 0; osd_w < 8; osd_w++)
 			{
-				buffer_pos = (x * 8) + (osd_h * config::sys_width) + osd_w;
-				chr_pos = (chr_offset * 64) + (osd_h * 8) + osd_w;
+				if(((x_offset * 8) + (x * 8)) < config::sys_width)
+				{
+					buffer_pos = (x * 8) + (osd_h * config::sys_width) + osd_w;
+					buffer_pos += (x_offset * 8);
+					buffer_pos += (y_offset * 8 * config::sys_width);
 
-				osd_surface[buffer_pos] = config::osd_font[chr_pos];
+					chr_pos = (chr_offset * 64) + (osd_h * 8) + osd_w;
+
+					if(buffer_pos < osd_surface.size()) { osd_surface[buffer_pos] = config::osd_font[chr_pos]; }
+				}
 			}
 		}
 	}

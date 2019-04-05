@@ -278,13 +278,18 @@ void DMG_SIO::reset()
 			break;
 
 		//Barcode Boy
-		case 0x5:
+		case 5:
 			sio_stat.sio_type = GB_BARCODE_BOY;
 			break;
 
 		//4 Player Adapter
-		case 0x6:
+		case 6:
 			sio_stat.sio_type = GB_FOUR_PLAYER_ADAPTER;
+			break;
+
+		//Power Antenna
+		case 13:
+			sio_stat.sio_type = GB_POWER_ANTENNA;
 			break;
 
 		//Always wait until netplay connection is established to change to GB_LINK
@@ -297,27 +302,27 @@ void DMG_SIO::reset()
 	switch(config::ir_device)
 	{
 		//Full Changer
-		case 0x1:
+		case 1:
 			sio_stat.ir_type = GBC_FULL_CHANGER;
 			break;
 
 		//Pokemon Pikachu 2
-		case 0x2:
+		case 2:
 			sio_stat.ir_type = GBC_POKEMON_PIKACHU_2;
 			break;
 
 		//Pocket Sakura
-		case 0x3:
+		case 3:
 			sio_stat.ir_type = GBC_POCKET_SAKURA;
 			break;
 
 		//TV Remote
-		case 0x4:
+		case 4:
 			sio_stat.ir_type = GBC_TV_REMOTE;
 			break;
 
 		//Constant Light Source
-		case 0x5:
+		case 5:
 			sio_stat.ir_type = GBC_LIGHT_SOURCE;
 			break;
 
@@ -379,6 +384,9 @@ void DMG_SIO::reset()
 	barcode_boy.counter = 0;
 	barcode_boy.send_data = false;
 	if(config::sio_device == 5) { barcode_boy_load_barcode(config::external_card_file); }
+
+	//Power Antenna
+	power_antenna_on = false;
 
 	//Full Changer
 	full_changer.data.clear();

@@ -442,6 +442,12 @@ void DMG_core::run_core()
 							case GB_FOUR_PLAYER_ADAPTER:
 								core_cpu.controllers.serial_io.four_player_process();
 								break;
+
+							//Process Power Antenna communications
+							case GB_POWER_ANTENNA:
+								if(core_cpu.controllers.serial_io.sio_stat.transfer_byte & 0x1) { core_cpu.controllers.serial_io.power_antenna_on = true; }
+								else if(core_cpu.controllers.serial_io.sio_stat.transfer_byte == 0) { core_cpu.controllers.serial_io.power_antenna_on = false; }
+								break;
 						}
 
 						switch(core_cpu.controllers.serial_io.sio_stat.ir_type)
@@ -680,6 +686,12 @@ void DMG_core::step()
 						//Process 4 Player communications
 						case GB_FOUR_PLAYER_ADAPTER:
 							core_cpu.controllers.serial_io.four_player_process();
+							break;
+
+						//Process Power Antenna communications
+						case GB_POWER_ANTENNA:
+							if(core_cpu.controllers.serial_io.sio_stat.transfer_byte & 0x1) { core_cpu.controllers.serial_io.power_antenna_on = true; }
+							else if(core_cpu.controllers.serial_io.sio_stat.transfer_byte == 0) { core_cpu.controllers.serial_io.power_antenna_on = false; }
 							break;
 					}
 
