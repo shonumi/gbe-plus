@@ -82,6 +82,8 @@ class DMG_LCD
 
 	int max_fullscreen_ratio;
 
+	bool power_antenna_osd;
+
 	private:
 
 	struct oam_entries

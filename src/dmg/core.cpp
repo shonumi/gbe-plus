@@ -445,8 +445,22 @@ void DMG_core::run_core()
 
 							//Process Power Antenna communications
 							case GB_POWER_ANTENNA:
-								if(core_cpu.controllers.serial_io.sio_stat.transfer_byte & 0x1) { core_cpu.controllers.serial_io.power_antenna_on = true; }
-								else if(core_cpu.controllers.serial_io.sio_stat.transfer_byte == 0) { core_cpu.controllers.serial_io.power_antenna_on = false; }
+								if(core_cpu.controllers.serial_io.sio_stat.transfer_byte & 0x1)
+								{
+									core_cpu.controllers.serial_io.power_antenna_on = true;
+									core_cpu.controllers.video.power_antenna_osd = true;
+									core_mmu.memory_map[REG_SB] = 0xF2;
+									core_mmu.memory_map[IF_FLAG] |= 0x08;
+								}
+								
+								else if(core_cpu.controllers.serial_io.sio_stat.transfer_byte == 0)
+								{
+									core_cpu.controllers.serial_io.power_antenna_on = false;
+									core_cpu.controllers.video.power_antenna_osd = false;
+									core_mmu.memory_map[REG_SB] = 0xF3;
+									core_mmu.memory_map[IF_FLAG] |= 0x08;
+								}
+
 								break;
 						}
 
@@ -690,9 +704,21 @@ void DMG_core::step()
 
 						//Process Power Antenna communications
 						case GB_POWER_ANTENNA:
-							if(core_cpu.controllers.serial_io.sio_stat.transfer_byte & 0x1) { core_cpu.controllers.serial_io.power_antenna_on = true; }
-							else if(core_cpu.controllers.serial_io.sio_stat.transfer_byte == 0) { core_cpu.controllers.serial_io.power_antenna_on = false; }
-							break;
+							if(core_cpu.controllers.serial_io.sio_stat.transfer_byte & 0x1)
+							{
+								core_cpu.controllers.serial_io.power_antenna_on = true;
+								core_cpu.controllers.video.power_antenna_osd = true;
+								core_mmu.memory_map[REG_SB] = 0xF2;
+								core_mmu.memory_map[IF_FLAG] |= 0x08;
+							}
+								
+							else if(core_cpu.controllers.serial_io.sio_stat.transfer_byte == 0)
+							{
+								core_cpu.controllers.serial_io.power_antenna_on = false;
+								core_cpu.controllers.video.power_antenna_osd = false;
+								core_mmu.memory_map[REG_SB] = 0xF3;
+								core_mmu.memory_map[IF_FLAG] |= 0x08;
+							}
 					}
 
 					switch(core_cpu.controllers.serial_io.sio_stat.ir_type)

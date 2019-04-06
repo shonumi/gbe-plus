@@ -200,6 +200,8 @@ void DMG_LCD::reset()
 	}
 
 	max_fullscreen_ratio = 2;
+
+	power_antenna_osd = false;
 }
 
 /****** Initialize LCD with SDL ******/
@@ -1907,8 +1909,16 @@ void DMG_LCD::step(int cpu_clock)
 				if(config::osd_count)
 				{
 					config::osd_count--;
-					if(!cgfx::loaded) { draw_osd_msg(screen_buffer, 0, 0); }
-					else { draw_osd_msg(hd_screen_buffer, 0, 0); }
+					if(!cgfx::loaded) { draw_osd_msg(config::osd_message, screen_buffer, 0, 0); }
+					else { draw_osd_msg(config::osd_message, screen_buffer, 0, 0); }
+				}
+
+				//Process Power Antenna
+				if(power_antenna_osd)
+				{
+					u8 x_offset = (config::sys_width / 8) - 3;
+					u8 y_offset = (config::sys_height / 8) - 1;
+					draw_osd_msg(std::string("***"), screen_buffer, x_offset, y_offset);
 				}
 
 				//Render final screen buffer
@@ -2056,7 +2066,7 @@ void DMG_LCD::step(int cpu_clock)
 					}
 
 					else { mem->memory_map[REG_RP] |= 0x2; }
-				}
+				}	
 			}
 
 			//Processing VBlank

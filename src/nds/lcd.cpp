@@ -3017,7 +3017,7 @@ void NTR_LCD::step()
 			if(config::osd_count)
 			{
 				config::osd_count--;
-				draw_osd_msg(screen_buffer, 0, 0);
+				draw_osd_msg(config::osd_message, screen_buffer, 0, 0);
 			}
 
 			//Use SDL
