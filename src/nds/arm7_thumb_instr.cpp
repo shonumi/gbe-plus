@@ -632,6 +632,7 @@ void NTR_ARM7::hireg_bx(u16 current_thumb_instruction)
 			{
 				arm_mode = ARM;
 				reg.cpsr &= ~0x20;
+				operand &= ~0x3;
 			}
 
 			//Align operand to half-word
