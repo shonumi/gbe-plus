@@ -1039,8 +1039,6 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 			memory_map[REG_STAT] |= 0x4; 
 			if(memory_map[REG_STAT] & 0x40) { memory_map[IF_FLAG] |= 2; }
 		}
-
-		else { memory_map[REG_STAT] &= ~0x4; }
 	}
 
 	//LCDC
