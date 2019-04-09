@@ -190,8 +190,11 @@ u8 AGB_MMU::read_u8(u32 address)
 
 		//ROM Waitstate 2 (mirror of Waitstate 0)
 		case 0xC:
-		case 0xD:
 			address -= 0x4000000;
+			break;
+
+		case 0xD:
+			if(current_save_type != EEPROM) { address -= 0x4000000; }
 			break;
 
 		//SRAM Mirror
@@ -408,8 +411,11 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 
 		//ROM Waitstate 2 (mirror of Waitstate 0)
 		case 0xC:
-		case 0xD:
 			address -= 0x4000000;
+			break;
+
+		case 0xD:
+			if(current_save_type != EEPROM) { address -= 0x4000000; }
 			break;
 
 		//SRAM Mirror
