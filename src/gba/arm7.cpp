@@ -1275,9 +1275,6 @@ void ARM7::mem_check_16(u32 addr, u32& value, bool load_store)
 			case 0x40000AA:
 			case 0x40000AC:
 			case 0x40000AE:
-			case 0x40000C6:
-			case 0x40000D2:
-			case 0x40000DE:
 			case 0x40000E0:
 			case 0x40000E2:
 			case 0x40000E4:
