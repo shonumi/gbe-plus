@@ -957,7 +957,7 @@ bool AGB_LCD::render_bg_mode_5()
 	u16 src_y = lcd_stat.bg_affine[0].y_pos;
 
 	//Determine which byte in VRAM to read for color data
-	u16 color_bytes = mem->read_u16_fast(lcd_stat.frame_base + (current_scanline * 320) + (scanline_pixel_counter * 2));
+	u16 color_bytes = mem->read_u16_fast(lcd_stat.frame_base + (src_y * 320) + (src_x * 2));
 	last_raw_color = color_bytes;
 
 	//ARGB conversion
