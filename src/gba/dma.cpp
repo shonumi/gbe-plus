@@ -606,6 +606,9 @@ void ARM7::dma3()
 			mem->eeprom.dma_ptr = mem->dma[3].destination_address;
 			mem->eeprom_read_data();
 
+			mem->dma[3].control &= ~0x8000;
+			mem->write_u16_fast(DMA3CNT_H, mem->dma[3].control);
+
 			mem->dma[3].enable = false;
 			return;
 		}
@@ -633,6 +636,9 @@ void ARM7::dma3()
 			//Write data
 			else if(mem->read_u8(mem->eeprom.dma_ptr) & 0x1) { mem->eeprom_write_data(); }
 			
+			mem->dma[3].control &= ~0x8000;
+			mem->write_u16_fast(DMA3CNT_H, mem->dma[3].control);
+
 			mem->dma[3].enable = false; 
 			return;
 		}
