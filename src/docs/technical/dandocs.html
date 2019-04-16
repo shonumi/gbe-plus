@@ -114,6 +114,7 @@
 			<p class="list_item"><a href="#zzh">Zok Zok Heroes Full Changer</a></p>
 			<p class="list_item"><a href="#ir">GBC Infrared Communication</a></p>
 			<p class="list_item"><a href="#ps">Gyogun Tanchiki: Pocket Sonar</a></p>
+			<p class="list_item"><a href="#pabs">Power Antenna + Bug Sensor</a></p>
 
 			<p class="list_head"><strong>GBA</strong></p>
 			<p class="list_item"><a href="#gss">GBA Screen Stretch</a></p>
@@ -1130,7 +1131,72 @@ DMG/GBC screen (240x144 pixels, or 30x18 tiles)</code>
 
 	<p>The blending comes straight from the GBA&#39;s affine transformations. That is to say, after the final DMG&#47;GBC screen is rendered, the GBA controls all output via BG2. Even in the GBA&#39;s DMG&#47;GBC backward compatibility mode, GBA video hardware is still being used to display graphics. Currently, the exact formula for determining colors remains unknown, however, something as simple as averaging Pixel A and Pixel B gives quick, adequately believable results. One thing that is known about the blending: if A and B are the same color, they will not produce a different color.</p>
 
+	<!-- Power Antenna + Bug Sensor -->
+
+	<a name="pabs"></a>
+	<p class="gray_title">Power Antenna + Bug Sensor</p>
+	<p class="list_item"><a href="#pabs_gen">General Hardware Information</a></p>
+	<p class="list_item"><a href="#pabs_gbc">Game Boy Color Operation</a></p>
+	<p class="list_item"><a href="#pabs_gba">Game Boy Advance Operation</a></p>
+	<p class="list_item"><a href="#pabs_msc">Misc. Notes</a></p>
+
+	<a name="pabs_gen"></a>
+	<p class="gray_title">[Power Antenna + Bug Sensor] : General Hardware Information</p>
+
+	<p>The Power Antenna are accessories bundled with the Keitai Denjuu Telefang Telefang games for the Game Boy Color and Game Boy Advance. An identical accessory, called the Bug Sensor, was also bundled with the Network Adventure Bugsite games on the GBC. Primarily cosmetic, these devices were essentially LEDs that were programmed to light up depending on certain events in the games.</p>
+
+	<ul>
+		<li class="list_item">The Power Antenna + Bug Sensor are small, plastic add-ons that fit into the serial port of a GBC or GBA</li>
+		<li class="list_item">3 versions exist, each one being specifically designed for Telefang 1, Telefang 2, or Bugsite</li>
+		<li class="list_item">Each version is virtually the same device in a different shell. Each of the above games can use any version of the Power Antenna or Bug Sensor*</li>
+		<li class="list_item">Depending on serial input from the game, the red LED will light up or turn off</li>
+	</ul>
+
+	<p>* The 2nd version of the Power Antenna, the one that came with Telefang 2, is physically only compatible with the GBA&#39;s link port. However, it can be used with the GBC games.</p>
+
+	<a name="pabs_gbc"></a>
+	<p class="gray_title">[Power Antenna + Bug Sensor] : Game Boy Color Operation</p>
+
+	<p>To communicate with the Power Antenna + Bug Sensor, the GBC must run on an internal clock. A single byte is then transmitted via serial communications. The chart below describe what input will affect the LED:</p>
+
+<code>-----------------------------------------------------
+Value Sent		| LED Result	
+-----------------------------------------------------
+0x00			| Turns LED off
+Bit 0 == 1		| Turns LED on (Strong Light)
+Bit 0 == 0		| Turns LED on (Weak Light)
+-----------------------------------------------------</code>
+
+	<p>&#34;Strong Light&#34; refers to the LED turning on and sustaining its brightest output; it will not turn off until a value of 0x00 is sent. &#34;Weak Light&#34; refers to the LED turning on temporarily and rapidly fading on its own. Weak Light is very dim (not noticable under certain lighting conditions) and is extremely short-lived. This mode does not appear to be used by the games. Instead, only Strong Light is turned on. Weak Light can be emitted constantly and indefinitely if multiple and repeated serial transfers occur. Sending such a transfer around 60Hz is enough to get weak light turned on for as long as desired.</p>
+
+	<p>It is possible to cause flickering by turning the LED on and off at given intervals. For Strong Light, this involves alternate transfers of 0x00 and some other value with Bit 0 set high. For Weak Light, simply send a value with Bit 0 set low and increase the gaps between transmission (e.g. delay transmission by 2 frames or 3 frames).</p>
+
+	<p>When the Power Antenna + Bug Sensor are emitting any kind of light, the device returns 0xF3 to the GBC. This is true even after Weak Light has fully faded. When no light is being emitted, the device returns 0xF2.</p>
+
+	<a name="pabs_gba"></a>
+	<p class="gray_title">[Power Antenna + Bug Sensor] : Game Boy Advance Operation</p>
+
+	<p>Communications with the Power Antenna + Bug Sensor are a bit different when operating in GBA mode (i.e. running GBA software, not using a GBA to run GBC software). The GBA must use NORMAL_8BIT or NORMAL_32BIT mode; either one is fine. The following values of SIOCNT will affect the LED:</p>
+
+<code>-----------------------------------------------------
+Value Written		| LED Result	
+-----------------------------------------------------
+0x0000			| Turns LED off
+0x0089			| Turns LED on (Strong Light)
+0x0081			| Turns LED on (Weak Light)
+-----------------------------------------------------</code>
+
+	<p>To turn off the LED, simply set Bit 3 of SIOCNT low. No serial transfer is required in this case, so it does not matter whether an internal or external clock is set. For Strong and Weak Light, a serial transfer is required. However, the 8-bit or 32-bit data sent is ignored. Instead, high or low values of Bit 3 of SIOCNT respectively dictate whether Strong or Weak Light is produced.</p>
+
+	<p>In NORMAL_8BIT mode, Strong and Weak Light return an 8-bit value of 0xFF instead of 0xF3 as on the GBC. In NORMAL_32BIT mode, the returned 32-bit value is 0x00.</p>
+
+	<a name="pabs_msc"></a>
+	<p class="gray_title">[Power Antenna + Bug Sensor] : Misc. Notes</p>
+
+	<p>Since all Power Antenna + Bug Sensors rely on the presence or absence of a single bit, it is possible for other software to inadvertedly turn it on. For example, the GBA BIOS performs a few NORMAL_32BIT transfers on an internal clock, therefore turning on the LED for the duration of the boot logo (and indefinitely if the game does not change SIOCNT). Even software written specifically for these devices may turn them on at odd moments. Telefang triggers the LED on when attempting to use multiplayer via the Link Cable, although in this case, there is a reasonable expectation that the Power Antenna would be unplugged first.</p>
+	
 	<!-- Soul Doll Adapter -->
+
 	<a name="sda"></a>
 	<p class="gray_title">Soul Doll Adapter</p>
 	<p class="list_item"><a href="#sda_gen">General Hardware Information</a></p>

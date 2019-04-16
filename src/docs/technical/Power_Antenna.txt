@@ -16,8 +16,10 @@ The Power Antenna are accessories bundled with the Keitai Denjuu Telefang Telefa
 
 - The Power Antenna + Bug Sensor are small, plastic add-ons that fit into the serial port of a GBC or GBA
 - 3 versions exist, each one being specifically designed for Telefang 1, Telefang 2, or Bugsite
-- Each version is virtually the same device in a different shell. Each of the above games can use any version of the Power Antenna or Bug Sensor
+- Each version is virtually the same device in a different shell. Each of the above games can use any version of the Power Antenna or Bug Sensor*
 - Depending on serial input from the game, the red LED will light up or turn off
+
+* The 2nd version of the Power Antenna, the one that came with Telefang 2, is physically only compatible with the GBA's link port. However, it can be used with the GBC games.
 
 ***************************************************
 3. Game Boy Color Operation
@@ -61,4 +63,4 @@ In NORMAL_8BIT mode, Strong and Weak Light return an 8-bit value of 0xFF instead
 5. Misc. Notes
 ***************************************************
 
-Since all Power Antenna + Bug Sensors rely on the presence or absence of a single bit, it's possible for other software to inadvertedly turn it on. For example, the GBA BIOS performs a few NORMAL_32BIT transfers on an internal clock, therefore turning on the LED for the duration of the boot logo (and indefinitely if the game does not change SIOCNT). Even software written specifically for these devices may turn them on at odd moments. Telefang triggers the LED on when attempting to use multiplayer via the Link Cable, although in this case, there is a reasonable expectation that the Power Antenna would be unplugged first.
+Since all Power Antenna + Bug Sensors rely on the presence or absence of a single bit, it is possible for other software to inadvertedly turn it on. For example, the GBA BIOS performs a few NORMAL_32BIT transfers on an internal clock, therefore turning on the LED for the duration of the boot logo (and indefinitely if the game does not change SIOCNT). Even software written specifically for these devices may turn them on at odd moments. Telefang triggers the LED on when attempting to use multiplayer via the Link Cable, although in this case, there is a reasonable expectation that the Power Antenna would be unplugged first.
