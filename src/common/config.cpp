@@ -541,6 +541,12 @@ void validate_system_type()
 
 	std::string ext = config::rom_file.substr(dot);
 
+	//Convert extension to lower-case ASCII
+	for(u32 x = 0; x < ext.length(); x++)
+	{
+		if((ext[x] >= 0x41) && (ext[x] <= 0x5A)) { ext[x] += 0x20; }
+	}
+
 	if(ext == ".gba") { config::gb_type = 3; }
 	else if(ext == ".nds") { config::gb_type = 4; }
 
@@ -562,6 +568,12 @@ u8 get_system_type_from_file(std::string filename)
 
 	std::string ext = filename.substr(dot);
 	
+	//Convert extension to lower-case ASCII
+	for(u32 x = 0; x < ext.length(); x++)
+	{
+		if((ext[x] >= 0x41) && (ext[x] <= 0x5A)) { ext[x] += 0x20; }
+	}
+
 	u8 gb_type = config::gb_type;
 
 	if(ext == ".gba") { gb_type = 3; }

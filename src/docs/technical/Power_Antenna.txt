@@ -25,7 +25,7 @@ The Power Antenna are accessories bundled with the Keitai Denjuu Telefang Telefa
 3. Game Boy Color Operation
 ***************************************************
 
-To communicate with the Power Antenna + Bug Sensor, the GBC must run on an internal clock. A single byte is then transmitted via serial communications. The chart below describe what input will affect the LED:
+To communicate with the Power Antenna + Bug Sensor, the GBC must run on an internal clock. A single byte is then transmitted via serial communications. The chart below describes what input will affect the LED:
 
 -----------------------------------------------------
 Value Sent		| LED Result	
