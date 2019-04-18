@@ -1322,8 +1322,6 @@ void NTR_core::debug_process_command()
 			u32 mem_location = 0;
 			std::string hex_string = command.substr(6);
 
-			if(hex_string.size() > 4) { hex_string = hex_string.substr(hex_string.size() - 4); }
-
 			//Convert hex string into usable u32
 			valid_command = util::from_hex_str(hex_string, mem_location);
 
