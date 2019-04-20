@@ -59,6 +59,7 @@ class AGB_LCD
 	u32 lcd_clock;
 
 	int max_fullscreen_ratio;
+	bool power_antenna_osd;
 
 	private:
 

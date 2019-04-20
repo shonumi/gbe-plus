@@ -201,6 +201,11 @@ void AGB_SIO::reset()
 			sio_stat.sio_type = GBA_BATTLE_CHIP_GATE;
 			break;
 
+		//Power Antenna + Bug Sensor
+		case 0xD:
+			sio_stat.sio_type = GBA_POWER_ANTENNA;
+			break;
+
 		//Always wait until netplay connection is established to change to GBA_LINK
 		default:
 			sio_stat.sio_type = NO_GBA_DEVICE;

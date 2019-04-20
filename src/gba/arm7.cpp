@@ -1538,6 +1538,26 @@ void ARM7::clock_emulated_sio_device()
 			controllers.serial_io.battle_chip_gate_process();
 			break;
 
+		case 0xD:
+			//Turn on Power Antenna
+			if((controllers.serial_io.sio_stat.cnt & 0x88) == 0x88)
+			{
+				controllers.video.power_antenna_osd = true;
+				std::cout<<"ON\n";
+			}
+
+			//Turn off Power Antenna
+			else
+			{
+				controllers.video.power_antenna_osd = false;
+				std::cout<<"OFF -> 0x" << (controllers.serial_io.sio_stat.cnt & 0x88) << "\n";
+			}
+
+			controllers.serial_io.sio_stat.emu_device_ready = false;
+			controllers.serial_io.sio_stat.active_transfer = false;
+
+			break;
+
 		//Clock everything else normally
 		default: break;
 	}

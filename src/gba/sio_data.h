@@ -23,6 +23,7 @@ enum agb_sio_types
 	GBA_PLAYER_RUMBLE,
 	GBA_SOUL_DOLL_ADAPTER,
 	GBA_BATTLE_CHIP_GATE,
+	GBA_POWER_ANTENNA,
 };
 
 //Serial Input-Output device mode enumeration

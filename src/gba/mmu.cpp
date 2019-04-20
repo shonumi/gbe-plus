@@ -2751,12 +2751,26 @@ void AGB_MMU::process_sio()
 			sio_stat->emu_device_ready = true;
 			sio_emu_device_ready = true;
 		}
+
+		//Turn Power Antenna on or off
+		if(config::sio_device == 13)
+		{
+			sio_stat->emu_device_ready = true;
+			sio_stat->active_transfer = true;
+		}	
 	}
 
 	else
 	{
 		if(sio_stat->sio_mode != NORMAL_8BIT) { sio_stat->active_transfer = false; }
 		sio_stat->sio_mode = NORMAL_8BIT;
+
+		//Turn Power Antenna on or off
+		if(config::sio_device == 13)
+		{
+			sio_stat->emu_device_ready = true;
+			sio_stat->active_transfer = true;
+		}
 	}
 }
 
