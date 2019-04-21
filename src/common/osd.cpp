@@ -71,7 +71,7 @@ void draw_osd_msg(std::string osd_text, std::vector <u32> &osd_surface, u8 x_off
 	if(!config::use_osd) { return; }
 	if(osd_text.size() == 0) { return; }
 	if(osd_surface.size() < 1280) { return; }
-	if(x_offset > 19) { return; }
+	if(x_offset > ((config::sys_width / 8) - 1)) { return; }
 
 	u32 chr_offset = 0;
 	u32 buffer_pos = 0;

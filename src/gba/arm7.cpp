@@ -1543,14 +1543,12 @@ void ARM7::clock_emulated_sio_device()
 			if((controllers.serial_io.sio_stat.cnt & 0x88) == 0x88)
 			{
 				controllers.video.power_antenna_osd = true;
-				std::cout<<"ON\n";
 			}
 
 			//Turn off Power Antenna
-			else
+			else if((controllers.serial_io.sio_stat.cnt & 0x88) == 0x80)
 			{
 				controllers.video.power_antenna_osd = false;
-				std::cout<<"OFF -> 0x" << (controllers.serial_io.sio_stat.cnt & 0x88) << "\n";
 			}
 
 			controllers.serial_io.sio_stat.emu_device_ready = false;

@@ -2745,18 +2745,18 @@ void AGB_MMU::process_sio()
 			}
 		}
 
+		//Turn Power Antenna on or off
+		else if((sio_stat->sio_type == GBA_POWER_ANTENNA) && ((sio_stat->cnt & 0x80) || (!sio_stat->internal_clock)))
+		{
+			sio_stat->emu_device_ready = true;
+			sio_stat->active_transfer = true;
+		}
+
 		//Signal to emulated GB Player rumble that emulated GBA is ready for SIO transfer
 		else if((config::sio_device == 7) && (!sio_stat->internal_clock) && (sio_stat->cnt & 0x80))
 		{
 			sio_stat->emu_device_ready = true;
 			sio_emu_device_ready = true;
-		}
-
-		//Turn Power Antenna on or off
-		if(config::sio_device == 13)
-		{
-			sio_stat->emu_device_ready = true;
-			sio_stat->active_transfer = true;
 		}	
 	}
 
@@ -2765,11 +2765,21 @@ void AGB_MMU::process_sio()
 		if(sio_stat->sio_mode != NORMAL_8BIT) { sio_stat->active_transfer = false; }
 		sio_stat->sio_mode = NORMAL_8BIT;
 
-		//Turn Power Antenna on or off
-		if(config::sio_device == 13)
+		//Convert transfer speed to GBA CPU cycles
+		sio_stat->shift_clock = (sio_stat->cnt & 0x2) ? 8 : 64;
+
+		//Set internal or external clock
+		sio_stat->internal_clock = (sio_stat->cnt & 0x1) ? true : false;
+
+		//Start transfer
+		if((sio_stat->player_id == 0) && (!sio_stat->active_transfer) && (sio_stat->internal_clock) && (sio_stat->cnt & 0x80))
 		{
-			sio_stat->emu_device_ready = true;
-			sio_stat->active_transfer = true;
+			//Turn Power Antenna on or off
+			if((sio_stat->sio_type == GBA_POWER_ANTENNA) && ((sio_stat->cnt & 0x80) || (!sio_stat->internal_clock)))
+			{
+				sio_stat->emu_device_ready = true;
+				sio_stat->active_transfer = true;
+			}
 		}
 	}
 }
