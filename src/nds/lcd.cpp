@@ -1184,6 +1184,7 @@ void NTR_LCD::render_obj_scanline(u32 bg_control)
 	bool render_obj;
 	s16 h_flip, v_flip = 0;
 	u16 obj_x, obj_y = 0;
+	u32 disp_cnt = engine_id ? lcd_stat.display_control_b : lcd_stat.display_control_a;
 
 	//Cycle through all current OBJ and render them based on their priority
 	for(int x = 0; x < obj_render_length; x++)
@@ -1278,9 +1279,22 @@ void NTR_LCD::render_obj_scanline(u32 bg_control)
 					u8 meta_x = obj_x / 8;
 					u8 meta_y = obj_y / 8;
 
-					//Determine address of this pixel
-					u32 obj_addr = obj[obj_id].addr + (((meta_y * meta_width) + meta_x) * bit_depth);
-					obj_addr += (((obj_y % 8) * 8) + (obj_x % 8)) >> pixel_shift;
+					//Determine address of this pixel - 1D
+					u32 obj_addr = obj[obj_id].addr;
+
+					//1D addressing
+					if(disp_cnt & 0x10)
+					{
+						obj_addr += (((meta_y * meta_width) + meta_x) * bit_depth);
+						obj_addr += (((obj_y % 8) * 8) + (obj_x % 8)) >> pixel_shift;
+					}
+
+					//2D addressing
+					else
+					{
+						obj_addr += (pixel_shift) ? ((meta_y * 16) + meta_x) : ((meta_y * 32) + meta_x);
+						obj_addr += (((obj_y % 8) * 8) + (obj_x % 8)) >> pixel_shift;
+					}
 
 					raw_color = mem->read_u8(obj_addr);
 
