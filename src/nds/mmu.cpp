@@ -4621,8 +4621,8 @@ void NTR_MMU::process_aux_spi_bus()
 			if(nds_aux_spi.data == 0x5)
 			{
 				//Auto-detect save type
-				if((current_save_type == AUTO) && (nds_aux_spi.state == 0x83) && (nds_aux_spi.access_index < 3)) { current_save_type = EEPROM_512; }
-				else if((current_save_type == AUTO) && (nds_aux_spi.state == 0x83) && (nds_aux_spi.access_index >= 3)) { current_save_type = EEPROM; }
+				if((current_save_type == AUTO) && (nds_aux_spi.state == 0x83) && (nds_aux_spi.access_index == 1)) { current_save_type = EEPROM_512; }
+				else if((current_save_type == AUTO) && (nds_aux_spi.state == 0x83) && (nds_aux_spi.access_index == 2)) { current_save_type = EEPROM; }
 
 				nds_aux_spi.last_state = nds_aux_spi.state;
 				nds_aux_spi.state = 0;
@@ -4656,14 +4656,13 @@ void NTR_MMU::process_aux_spi_bus()
 			{
 				nds_aux_spi.access_index++;
 
-				if(nds_aux_spi.access_index == 1) { nds_aux_spi.access_addr |= (nds_aux_spi.data << 8); }
+				if(nds_aux_spi.access_index == 1) { nds_aux_spi.access_addr = (nds_aux_spi.data << 8); }
 
 				else if(nds_aux_spi.access_index == 2)
 				{
 					nds_aux_spi.access_addr |= nds_aux_spi.data;
 					nds_aux_spi.access_index = 0;
 					nds_aux_spi.state |= 0x80;
-					
 				}
 
 			}
@@ -4687,14 +4686,13 @@ void NTR_MMU::process_aux_spi_bus()
 			{
 				nds_aux_spi.access_index++;
 
-				if(nds_aux_spi.access_index == 1) { nds_aux_spi.access_addr |= (nds_aux_spi.data << 8); }
+				if(nds_aux_spi.access_index == 1) { nds_aux_spi.access_addr = (nds_aux_spi.data << 8); }
 
 				else if(nds_aux_spi.access_index == 2)
 				{
 					nds_aux_spi.access_addr |= nds_aux_spi.data;
 					nds_aux_spi.access_index = 0;
 					nds_aux_spi.state |= 0x80;
-					
 				}
 
 			}
@@ -4794,8 +4792,6 @@ void NTR_MMU::process_aux_spi_bus()
 	write_u16_fast(NDS_AUXSPIDATA, nds_aux_spi.data);
 	nds_aux_spi.transfer_count = 0;
 	nds_aux_spi.cnt &= ~0x80;
-
-	std::cout<<"STATE -> 0x" << (u16)nds_aux_spi.state << "\n";
 }
 
 /****** Handles read and write data operations to the firmware ******/
