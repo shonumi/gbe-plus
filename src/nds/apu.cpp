@@ -219,8 +219,19 @@ void NTR_APU::generate_channel_samples(s32* stream, int length, u8 id)
 
 				if(data_pos >= apu_stat.channel[id].samples)
 				{
-					apu_stat.channel[id].playing = false;
-					apu_stat.channel[id].cnt &= ~0x80000000;
+					//Loop sound
+					if(loop_mode == 1)
+					{
+						apu_stat.channel[id].data_pos = apu_stat.channel[id].data_src;
+						apu_stat.channel[id].samples = ((apu_stat.channel[id].length - 1) * 8);
+					}
+
+					//Stop sound
+					else if(loop_mode == 2)
+					{
+						apu_stat.channel[id].playing = false;
+						apu_stat.channel[id].cnt &= ~0x80000000;
+					}
 				}
 
 			}
