@@ -2231,6 +2231,7 @@ void NTR_LCD::render_bg_mode_bitmap(u32 bg_control)
 					{
 						scanline_buffer_a[scanline_pixel_counter] = lcd_stat.bg_pal_a[raw_color];
 						render_buffer_a[scanline_pixel_counter] = bg_priority;
+						sfx_buffer[scanline_pixel_counter] = (render_buffer_a[scanline_pixel_counter] | 0x80);
 					}
 
 					else { full_render = false; }
@@ -2347,6 +2348,7 @@ void NTR_LCD::render_bg_mode_bitmap(u32 bg_control)
 					{
 						scanline_buffer_b[scanline_pixel_counter] = lcd_stat.bg_pal_b[raw_color];
 						render_buffer_b[scanline_pixel_counter] = bg_priority;
+						sfx_buffer[scanline_pixel_counter] = (render_buffer_b[scanline_pixel_counter] | 0x80);
 					}
 
 					else { full_render = false; }
@@ -2476,6 +2478,7 @@ void NTR_LCD::render_bg_mode_direct(u32 bg_control)
 
 						scanline_buffer_a[scanline_pixel_counter] = 0xFF000000 | (red << 16) | (green << 8) | (blue);
 						render_buffer_a[scanline_pixel_counter] = bg_priority;
+						sfx_buffer[scanline_pixel_counter] = (render_buffer_a[scanline_pixel_counter] | 0x80);
 					}
 
 					else { full_render = false; }
@@ -2601,6 +2604,7 @@ void NTR_LCD::render_bg_mode_direct(u32 bg_control)
 
 						scanline_buffer_b[scanline_pixel_counter] = 0xFF000000 | (red << 16) | (green << 8) | (blue);
 						render_buffer_b[scanline_pixel_counter] = bg_priority;
+						sfx_buffer[scanline_pixel_counter] = (render_buffer_b[scanline_pixel_counter] | 0x80);
 					}
 
 					else { full_render = false; }
