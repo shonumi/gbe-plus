@@ -94,6 +94,11 @@
 				font-weight: bold;
 			}
 
+			.spc
+			{
+				margin-bottom: 40px;
+			}
+
 		</style>
 	</head>
 
@@ -125,6 +130,9 @@
 
 		<div class="toc_sec">
 			<p class="toc_gray_title">Mobile Adapter GB</p>
+
+			<p class="list_head"><strong>Hardware Documentation</strong></p>
+			<p class="list_item"><a href="#magb">Mobile Adapter GB</a></p>
 
 			<p class="list_head"><strong>Game and Server Documentation</strong></p>
 			<p class="list_item"><a href="#hkh">Hello Kitty no Happy House</a></p>
@@ -1414,6 +1422,305 @@ Player 2			Child 2
 Player 2 Battle Chip Gate	Child 3</code></p>
 
 	<p>With this setup, Player 1 and Player 2 can technically ignore any output the opponent&#39;s Battle Chip Gate and focus on their own, despite essentially being able to see exactly what&#39;s happening on the other side. It also indicates that the Battle Chip Gates are capable of operating as Child 1 or Child 3.</p>
+
+	<!-- Mobile Adapter GB -->
+	<a name="magb"></a>
+	<p class="gray_title">Mobile Adapter GB</p>
+	<p class="list_item"><a href="#magb_gen">General Hardware Information</p>
+	<p class="list_item"><a href="#magb_gam">Compatible Games</p>
+	<p class="list_item"><a href="#magb_pak">Protocol - Packet Format</p>
+	<p class="list_item"><a href="#magb_flo">Protocol - Flow of Communication</p>
+	<p class="list_item"><a href="#magb_com">Protocol - Commands</p>
+	<p class="list_item"><a href="#magb_cfg">Configuration Data</p>
+
+	<a name="magb_gen"></a>
+	<p class="gray_title">[Mobile Adapter GB] : General Hardware Information</p>
+
+	<p>The Mobile Adapter GB was an accessory designed to allow the Game Boy Color, and later the Game Boy Advance, to connect online via cellular networks in Japan. Released on January 27, 2001, it supported a limited number of games before service was shutdown on December 14, 2002. Many of the compatible games supported features such on mail clients, downloadable bonus content, player-versus-player modes, and even online tournaments. It represented Nintendo&#39;s first official attempt at online gaming for its handhelds.</p>
+
+	<ul>
+		<li class="list_item">The Mobile Adapter is a small device that essentially allows a Japanese phone to connect to the Game Boy&#39;s link port</li>
+		<li class="list_item">Model number is CGB-005</li>
+		<li class="list_item">Officially released with 3 different versions of the Mobile Adapter. Each featured distinct colors to work with different type of phones</li>
+		<li class="list_item">Each Mobile Adapter came packaged with a cartridge called the Mobile Trainer to help configure and setup the device</li>
+		<li class="list_item">Servers were formally hosted at gameboy.datacenter.ne.jp</li>
+	</ul>
+	
+	<p>Below, the Mobile Adapter variants are explained in further detail:</p>
+
+	<code>Blue 	-> Used to connect PDC phones.
+Yellow	-> Used to connect cdmaOne phones.
+Red	-> Used to connect DDI phones.
+Green	-> Would have been used to connect PHS phones, but this version was never released.</code>
+
+	<a name="magb_gam"></a>
+	<p class="gray_title">[Mobile Adapter GB] : Compatible Games</p>
+
+	<p>There are currently 22 known games that are compatible with the Mobile Adapter:</p>
+
+	<p>Game Boy Color : 6 Total</p>
+
+	<ul>
+		<li class="list_item">Game Boy Wars 3</li>
+		<li class="list_item">Hello Kitty: Happy House</li>
+		<li class="list_item">Mobile Golf</li>
+		<li class="list_item">Mobile Trainer</li>
+		<li class="list_item">Net de Get Minigames @ 100</li>
+		<li class="list_item">Pocket Monsters Crystal Version</li>
+	</ul>
+
+	<p>Game Boy Advance : 16 Total</p>
+
+	<ul>
+		<li class="list_item">All-Japan GT Championship</li>
+		<li class="list_item">Daisenryaku For Game Boy Advance</li>
+		<li class="list_item">Doraemon: Midori no Wakusei Doki Doki Daikyuushuutsu!</li>
+		<li class="list_item">Exciting Bass</li>
+		<li class="list_item">EX Monopoly</li>
+		<li class="list_item">JGTO Licensed: Golfmaster Mobile</li>
+		<li class="list_item">Kinniku Banzuke ~Kongou-kun no Daibouken!~</li>
+		<li class="list_item">Mail de Cute</li>
+		<li class="list_item">Mario Kart Advance</li>
+		<li class="list_item">Mobile Pro Baseball: Control Baton</li>
+		<li class="list_item">Monster Guardians</li>
+		<li class="list_item">Morita Shougi Advance</li>
+		<li class="list_item">Napoleon</li>
+		<li class="list_item">Play Novel: Silent Hill</li>
+		<li class="list_item">Starcom: Star Communicator</li>
+		<li class="list_item">Zero-Tours</li>
+	</ul>
+
+	<p>Two games were planned but later cancelled: <strong>beatmaniaGB Net Jam</strong> for the GBC and <strong>Horse Racing Creating Derby</strong> for the GBA.</p>
+
+	<a name="magb_pak"></a>
+	<p class="gray_title">[Mobile Adapter GB] : Protocol - Packet Format</p>
+
+	<p>On the GBC, the Mobile Adapter operates using the fastest available setting (64KB/s) by setting Bits 0 and 1 of the SC register (0xFF02) high. It also uses an internal clock for all transfers. Communication is comparable to that of the Game Boy Printer, where the Game Boy sends packets with header, data, command, and checksum sections. Below is are charts breaking down the Mobile Adapter packet format:</p>
+
+<code>-------------------------------------------------
+Section			| Length		
+-------------------------------------------------
+Magic Bytes : 0x99 0x66	| 2 bytes
+Packet Header		| 4 bytes
+Packet Data		| 0-254 bytes
+Packet Checksum		| 2 bytes
+Acknowledgement	Signal	| 2 bytes
+-------------------------------------------------
+
+
+-------------------------------------------------
+Packet Header
+-------------------------------------------------
+Byte 1			| Command ID
+Byte 2			| Unknown/Unused (0x00)
+Byte 3			| Unknown/Unused (0x00)
+Byte 4			| Length of Packet Data
+-------------------------------------------------
+
+
+-------------------------------------------------
+Packet Data
+-------------------------------------------------
+Bytes 0-254		| Arbitrary data
+-------------------------------------------------
+
+
+-------------------------------------------------
+Packet Checksum	
+-------------------------------------------------
+Byte 1			| High byte of 16-bit sum
+Byte 2			| Low byte of 16-bit sum
+-------------------------------------------------
+
+
+-------------------------------------------------
+Awknowledgement Signal
+-------------------------------------------------
+Byte 1			| Device ID (sender)
+			| Device ID OR 0x80 (receiver)
+			|
+Byte 2			| Command ID (sender)
+			| Command ID OR 0x80 (receiver)
+-------------------------------------------------</code>
+
+	<p>The magic bytes are simply a pair of bytes used to identify the start of a Mobile Adapter packet. When one side starts receiving these magic bytes, the other should return the same to begin and sync communications.</p>
+
+	<p>Packet Data is arbitrary data and varies in length and content. It has a maximum size of 254 bytes. This restriction appears to come from the fact that the Packet Data and Packet Checksum are lumped together, and their total lengths must not exceed 256 bytes. Attempting to send more than 254 bytes of packet data causes communications errors (generally because both software and presumably hardware internally make their own cut off at 254 bytes, thus the packet checksum fails).</p>
+
+	<p>Data greater than 254 bytes may be broken up into multiple packets, however. For example, when sending a large binary file such as an image or executable code, multiple packets are transferred from the Mobile Adapter to the Game Boy while the TCP transfer is ongoing.</p>
+
+	<p>The Packet Checksum is simply the 16-bit sum of all previous header bytes and all previous packet data bytes. It does not include the magic bytes. The checksum is transmitted big-endian. After the checksum, a simple 2-byte Acknowledgement Signal is sent.</p>
+
+	<p>Bit 7 of any of these bytes will be set high if the device is the receiver of packet, and Bit 7 will be set low for the sender of the packet. This essentially confirms what role the Game Boy is acting in. If it is the receiver, it is expecting to read information from the from the Packet Data from the Mobile Adapter. For exmple, with Command 0x19, the Game Boy is explicitly requesting data from the adapter, and with Command 0x1A the Game Boy is explicitly sending data to the adapter. When acting as the receiver, the device fills its Packet Data with 0x4B bytes. If the Game Boy is the sender, it is expecting to push information from its own Packet Data to the Mobile Adapter. In this case, the Packet Data the Mobile Adapter sends in response is filled with 0x4B bytes.</p>
+
+	<p>If the checksum fails, the receiving side typically immediately sends 0xF1 to indicate an error. 0xEE, 0xF0, and 0xF2 also appear to be failure codes, however, their meaning is currently unknown. 
+
+	<p>The device ID determines what kind of hardware each side is communicating with. Below are the possible values and their meaning:</p>
+
+<code>-------------------------------------------------
+Device ID	| OR Value	| Device Type
+-------------------------------------------------
+0x00		| 0x80		| Game Boy Color
+0x08		| 0x88		| PDC Mobile Adapter (Blue)
+0x09		| 0x89		| cdmaOne Mobile Adapter (Yellow)
+0x0A		| 0x8A		| PHS Mobile Adapter (Green)
+0x0B		| 0x8B		| DDI Mobile Adapter (Red)
+-------------------------------------------------</code>
+
+	<a name="magb_flo"></a>
+	<p class="gray_title">[Mobile Adapter GB] : Protocol - Flow of Communication</p>
+
+	<p>Even though the protocol effectively enables 2-way communication between the Game Boy and a remote server, the handheld is expected to oversee all transmissions to the adapter itself. That is to say, the typical "master-slave" model often used for Game Boy serial I/O still applies in some sense. Once the server starts responding, the Game Boy has to continually initiate another transfer to the adapter (setting Bit 7 of 0xFF02 high) to keep reading any additional bytes that were sent.</p>
+
+	<p>It is up to the game software itself to handle secondary protocols (such as HTTP, POP3, or SMTP) which involve one side specifically acting as the sender or receiver. For example, after opening a TCP connection to an HTTP server and issuing the 0x15 command (Data Transfer), the software will determine whether the Game Boy is acting as a sender (making an HTTP request) or a receiver (receiving an HTTP response). Generally, this goes back and forth. The Game Boy sends information via its Packet Data, while the Mobile Adapter&#39;s Packet Data is filled with 0x4B bytes at this time until the Game Boy finishes its TCP transfer. When the Game Boy&#39;s TCP transfer is done, the adapter sends any information from the server in its Packet Data while that same part of packet from the Game Boy is filled with 0x4B bytes. The chart below illustrates this concept:</p>
+
+<code>--------------------------------------------------------------------------
+Device		| Role		| Packet Data	| Acknowledgement Signal
+--------------------------------------------------------------------------
+Game Boy	| Sender	| Arbitrary	| Device ID + Command ID
+Game Boy	| Receiver	| 0x4B 0x4B ... | Device ID OR 0x80 + Command ID OR 0x80
+Mobile Adapter	| Sender	| Arbitrary	| Device ID + Command ID
+Mobile Adapter	| Receiver	| 0x4B 0x4B ... | Device ID OR 0x80 + Command ID OR 0x80
+--------------------------------------------------------------------------</code>
+
+	<p>Many games appear to an follow a certain order of commands initially. This may have been part of some kind of standard library available to developers in order to connect to an ISP. The commands most commonly look like this:</p>
+
+<code>------------
+Command 0x10		Begin Session. First is perhaps to test the presence of the Mobile Adapter
+Command 0x11		Close Session.
+Command 0x10		Begin Session. Open session for configuration data
+------------
+Command 0x19		Read Configuration Data. Grab first 96 bytes
+Command 0x19		Read Configuration Data. Grab second 96 bytes
+Command 0x11		Close Session.
+Command 0x10		Begin Session. Open session to read configuration data again
+Command 0x19		Read Configuration Data. Grab first 96 bytes
+Command 0x19		Read Configuration Data. Grab second 96 bytes
+------------
+Command 0x17		Check Telephone Status if not busy
+Command 0x12		Dial Telephone. Should be the ISP&#39;s number stored in configuration data
+Command 0x21		ISP Login
+Command 0x28		DNS Query
+------------</code>
+
+	<p>From there, the software decides what next (if anything) needs to be done after successfully connecting to the internet.</p>
+
+	<a name="magb_com"></a>
+	<p class="gray_title">[Mobile Adapter GB] : Protocol - Commands</p>
+
+	<p class="list_item"><strong>Command 0x10 - Begin Session</strong></p>
+	<p class="list_item">Data Sent: &#34;NINTENDO&#34; ASCII string. 8 bytes only, not null-terminated</p>
+	<p class="list_item">Data Received: &#34;NINTENDO&#34; ASCII string. 8 bytes only, not null-terminated</p>
+
+	<p class="spc">Sent to the adapter at the beginning of a session. The Game Boy sends an ASCII string containing "NINTENDO" and the adapter replies with a packet containing the same data.</p>
+
+	<p class="list_item"><strong>Command 0x11 - End Session</strong></p>
+	<p class="list_item">Data Sent: N/A. Empty Packet Data</p>
+	<p class="list_item">Data Received: N/A. Empty Packet Data</p>
+
+	<p class="spc">Sent to the adapter at the end of a session. The Packet Data is empty, and the length is zero bytes.</p>
+
+	<p class="list_item"><strong>Command 0x12 - Dial Telephone</strong></p>
+	<p class="list_item">Data Sent: 1 unknown byte + telephone number</p>
+	<p class="list_item">Data Received: N/A. Empty Packet Data</p>
+
+	<p class="spc">Instructs the adapter to dial a telephone number. The first byte&#39;s purpose is unknown. The second byte is &#34;#&#34; in ASCII, and following data is the telephone number represented in ASCII values.</p>
+	
+	<p class="list_item"><strong>Command 0x13 - Hang Up Telephone</strong></p>
+	<p class="list_item">Data Sent: N/A. Empty Packet Data</p>
+	<p class="list_item">Data Received: N/A. Empty Packet Data</p>
+
+	<p class="spc">Instructs the adapter to close a telephone connection. The Packet Data is empty, and the length is zero bytes.</p>
+
+	<p class="list_item"><strong>Command 0x14 - Wait For Telephone Call</strong></p>
+	<p class="list_item">Data Sent: N/A. Empty Packet Data</p>
+	<p class="list_item">Data Received: N/A. Empty Packet Data</p>
+
+	<p class="spc">Instructs the adapter to wait for a telephone call. The Packet Data is empty, and the length is zero bytes.</p>
+
+	<p class="list_item"><strong>Command 0x15 - Transfer Data</strong></p>
+	<p class="list_item">Data Sent: 1 unknown byte + Arbitrary Data (optional)</p>
+	<p class="list_item">Data Received: 1 unknown byte + Arbitrary Data (optional)</p>
+
+	<p class="spc">Used to transfer data over TCP after the command 0x23 (Open TCP Connection) has been called. This command can communicate with a remote server or another Mobile Adapter. The Packet Data is a minimum length of 1 byte. That first byte&#39;s purpose is unknown. Generally, additional data is appended, although it is not required, such as when closing a connection. Large chunks of data greater than 254 bytes must be broken down into separate packets. While a connection is active (e.g. an HTTP request/response is in progress), the Command ID in the Acknowledgement Signal is 0x15 for the sender and 0x95 for the receiver. When a connection is closed (e.g. when an HTTP response has finished), the Command ID in the Acknowledgement Signal becomes 0x1F for the sender and 0x9F for the receiver.</p>
+
+	<p class="list_item"><strong>Command 0x17 - Telephone Status</strong></p>
+	<p class="list_item">Data Sent: N/A. Empty Packet Data</p>
+	<p class="list_item">Data Received: 1 byte for current telephone status</p>
+
+	<p>Typically sent to the adapter before dialing. Also used to test the telephone status before opening a TCP connection, or to constantly ping the phone to make sure it&#39;s still active. The reply is 1 byte. 0x00 means the phone is ready to make a call or connection. 0x04 and 0x05 indicate that the line is busy (presumably set after a command like 0x12). The difference between the two line-busy values is unknown. Most software does not seem to care which one is sent, but Net de Get: Mini Game @ 100 refuses to work with 0x05.</p>
+
+	<p class="spc">Additionally, the Game Boy seem to set Bits 0 - 4 high for the Command ID in the Acknowledgement Signal, thus sending 0x1F to the Mobile Adapter.</p>
+
+	<p class="list_item"><strong>Command 0x19 - Read Configuration Data</strong></p>
+	<p class="list_item">Data Sent: 1 byte offset + 1 byte read length</p>
+	<p class="list_item">Data Received: 1 unknown byte + Requested Configuration Data</p>
+
+	<p class="spc">Requests data from the adapter&#39;s 192-byte configuration memory. The first byte sent to the adapter is the offset. The second byte sent is the length of data to read. The adapter responds with 1 unknown byte followed by configuration data from the adapter&#39;s internal memory. Although it should be possible to read the entire configuration data with one packet, most software send 2 of these commands to read 96-byte chunks.</p>
+
+	<p class="list_item"><strong>Command 0x1A - Write Configuration Data</strong></p>
+	<p class="list_item">Data Sent: 1 unknown + Configuration Data to Write</p>
+	<p class="list_item">Data Received: N/A. Empty Packet Data</p>
+
+	<p class="spc">Writes data to the adapter&#39;s 192-byte configuration memory. The first byte sent to the adapter unknown. The following bytes are the data to be written in the adapters internal memory.</p>
+
+	<p class="list_item"><strong>Command 0x21 - ISP Login</strong></p>
+	<p class="list_item">Data Sent: 1 byte Login ID Length + Login ID + 1 byte Password Length + Password + 4 bytes DNS Address #1 + 4 bytes DNS Address #2</p>
+	<p class="list_item">Data Received: 4 bytes possibly representing IP address assigned to adapter</p>
+
+	<p class="spc">Logs into the DION service, which in turn connects to an internet server. Both the Login ID and Password are prefixed with bytes declaring their lengths. The IPv4 DNS addresses are 4 bytes each, with a single byte representing one octet.</p>
+
+	<p class="list_item"><strong>Command 0x22 - ISP Logout</strong></p>
+	<p class="list_item">Data Sent: N/A. Empty Packet Data</p>
+	<p class="list_item">Data Received: N/A. Empty Packet Data</p>
+
+	<p class="spc">Logs out of the DION service.</p>
+
+	<p class="list_item"><strong>Command 0x23 - Open TCP Connection</strong></p>
+	<p class="list_item">Data Sent: 4 bytes for IP Address + 2 Bytes for Port Number</p>
+	<p class="list_item">Data Received: 1 unknown byte</p>
+
+	<p class="spc">Opens a TCP connection at the given IP address on the given port. The IPv4 IP address is 4 bytes, with a single byte representing one octet. The port number is big-endian. Depending on which port the TCP connection opens (25, 80, 110), different protocols can be accessed on a server (SMTP, HTTP, and POP respectively). Handling the details of the protocol itself depends on software. The Mobile Adapter is merely responsible for opening the connection and handling TCP transfers such as when using Command 0x15.</p>
+
+	<p class="list_item"><strong>Command 0x24 - Close TCP Connection</strong></p>
+	<p class="list_item">Data Sent: 1 unknown byte</p>
+	<p class="list_item">Data Received: 1 unknown byte</p>
+
+	<p class="spc">Closes an active TCP connection.</p>
+
+	<p class="list_item"><strong>Command 0x28 - DNS Query</strong></p>
+	<p class="list_item">Data Sent: Domain Name</p>
+	<p class="list_item">Data Received: 4 bytes for IP Address</p>
+
+	<p class="spc">Looks up the IP address for a domain name, presumably using the DNS server addresses sent in Command 0x21</p>
+
+	<a name="magb_cfg"></a>
+	<p class="gray_title">[Mobile Adapter GB] : Protocol - Configuration Data</p>
+
+	<p>The Mobile Adapter has small area of built-in memory designed to store various settings for its configuration. It only uses 192 bytes but data is readable and writable via the Commands 0x19 and 0x1A respectively. These fields are filled out when running the initial setup on Mobile Trainer. The memory is laid out as describe below:</p>
+
+<code>--------------------------
+0x00 - 0x01		::	&#34;MA&#34; in ASCII. The &#34;Mobile Adapter&#34; header.
+0x02			::	Set to 0x1 during Mobile Trainer registration and 0x81 when registration is complete
+0x04 - 0x07		::	Primary DNS server (210.196.3.183)
+0x08 - 0x0B		::	Secondary DNS server (210.141.112.163)
+0x0C - 0x15		::	Login ID in the format gXXXXXXXXX. Mobile Trainer only allows 9 editable characters
+0x2C - 0x43		::	User email address in the format XXXXXXXX@YYYY.dion.ne.jp
+0x4A - 0x5D		::	SMTP server in the format mail.XXXX.dion.ne.jp
+0x5E - 0x70		::	POP server in the format pop.XXXX.dion.ne.jp
+0x76 - 0x8D		::	Configuration Slot #1
+0x8E - 0xA5		::	Configuration Slot #2
+0xA6 - 0xBD		::	Configuration Slot #3
+0xBE - 0xBF		::	16-bit big-endian checksum
+--------------------------</code>
+
+	<p>Each configuration slot may contain an 8-byte telephone number to be used to connect to the ISP and a 16-byte ID string. The telephone number is stored in a variant of binary-coded decimal, where 0x0A represents the &#34;#&#34; key, 0x0B represents the &#34;*&#34; key, and 0x0F marks the end of the telephone number. These slots may have been intended to allow users to connect online using ISPs besides DION at some point, however, Nintendo never implemented any such plans.</p>
+
+	<p>If the Mobile Adapter is connected to a PDC or CDMA device, the telephone number defaults to #9677 with an ID string of &#34;DION PDC/CDMAONE&#34;. If the Mobile Adapter is connected to a PHS or DDI device, the telephone number defaults to 0077487751 with an ID string of &#34;DION DDI-POCKET&#34;. Only the first slot is configured by Mobile Trainer; it fills the rest with 0xFF and 0x00 bytes. An unidentified device (as reported by the Device ID in the Acknowledgement Signal of a packet) causes the Mobile Adapter to overwrite all configuration data with garbage values.</p>
+
+	<p>The checksum is simply the 16-bit sum of bytes 0x00 - 0xBD.</p>
+
+	<p>All software compatible with the Mobile Adapter appears to read the configuration data first and foremost. If the data cannot be read or if there is a problem with the data, they will refuse to even attempt making an online connection. Generally, they return the error code 25-000 in that situation.</p>
 
 
 	<!-- Hello Kitty no Happy House -->

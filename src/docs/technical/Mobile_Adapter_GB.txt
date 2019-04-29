@@ -15,6 +15,7 @@ The Mobile Adapter GB was an accessory designed to allow the Game Boy Color, and
 ***************************************************
 
 - The Mobile Adapter is a small device that essentially allows a Japanese phone to connect to the Game Boy's link port
+- Model number is CGB-005
 - Officially released with 3 different versions of the Mobile Adapter. Each featured distinct colors to work with different type of phones
 - Each Mobile Adapter came packaged with a cartridge called the Mobile Trainer to help configure and setup the device
 - Servers were formally hosted at gameboy.datacenter.ne.jp
@@ -42,7 +43,7 @@ Game Boy Color : 6 Total
 * Net de Get Minigames @ 100
 * Pocket Monsters Crystal Version
 
-Game Boy Advance : 16
+Game Boy Advance : 16 Total
 
 * All-Japan GT Championship
 * Daisenryaku For Game Boy Advance
@@ -74,16 +75,15 @@ On the GBC, the Mobile Adapter operates using the fastest available setting (64K
 Section			| Length		
 -------------------------------------------------
 Magic Bytes : 0x99 0x66	| 2 bytes
-Header			| 4 bytes
+Packet Header		| 4 bytes
 Packet Data		| 0-254 bytes
 Packet Checksum		| 2 bytes
-Acknowledgement		| 2 bytes
+Acknowledgement	Signal	| 2 bytes
 -------------------------------------------------
 
-The magic bytes are simply a pair of bytes used to identify the start of a Mobile Adapter packet. When one side starts receiving these magic bytes, the other should return the same to begin and sync communications.
 
-The 4-byte header consists of the following parts:
-
+-------------------------------------------------
+Packet Header
 -------------------------------------------------
 Byte 1			| Command ID
 Byte 2			| Unknown/Unused (0x00)
@@ -91,25 +91,41 @@ Byte 3			| Unknown/Unused (0x00)
 Byte 4			| Length of Packet Data
 -------------------------------------------------
 
-Packet data is arbitrary data and varies in length and content. It has a maximum size of 254 bytes. This restriction appears to come from the fact that the packet data and packet checksum are lumped together, and their total lengths must not exceed 256 bytes. Attempting to send more than 254 bytes of packet data causes communications errors (generally because both software and presumably hardware internally make their own cut off at 254 bytes, thus the packet checksum fails).
-
-Data may be broken up into multiple packets, however. For example, when sending a large binary file such as an image or executable code, multiple packets are transferred from the Mobile Adapter to the Game Boy while the TCP transfer is ongoing.
-
-The packet checksum is simply the 16-bit sum of all previous header bytes and all previous packet data bytes. It does not include the magic bytes. The checksum is transmitted big-endian. After the checksum, a simple 2-byte acknowledgement signal is sent. It looks like such for the device acting as the sender:
 
 -------------------------------------------------
-Byte 1			| Device ID
-Byte 2			| Command ID
+Packet Data
+-------------------------------------------------
+Bytes 0-254		| Arbitrary data
 -------------------------------------------------
 
-For the device acting as the receiver, it must respond to the acknowledgement signal as such:
 
 -------------------------------------------------
-Byte 1			| Device ID OR 0x80
-Byte 2			| Command ID OR 0x80
+Packet Checksum	
+-------------------------------------------------
+Byte 1			| High byte of 16-bit sum
+Byte 2			| Low byte of 16-bit sum
 -------------------------------------------------
 
-Bit 7 of any of these bytes will be set high if the device is the receiver of packet, and Bit 7 will be set low for the sender of the packet. This essentially confirms what role the Game Boy is acting in. If it is the receiver, it is expecting to read information from the from the Packet Data from the Mobile Adapter. For exmple, with command 0x19, the GBC is explicitly requesting data from the adapter itself. When acting as the receiver, the device fills its Packet Data with 0x4B bytes. If the Game Boy is the sender, it is expecting to push information from its own Packet Data to the Mobile Adapter. In this case, the Packet Data the Mobile Adapter sends in response is filled with 0x4B bytes. 
+
+-------------------------------------------------
+Awknowledgement Signal
+-------------------------------------------------
+Byte 1			| Device ID (sender)
+			| Device ID OR 0x80 (receiver)
+			|
+Byte 2			| Command ID (sender)
+			| Command ID OR 0x80 (receiver)
+-------------------------------------------------
+
+The magic bytes are simply a pair of bytes used to identify the start of a Mobile Adapter packet. When one side starts receiving these magic bytes, the other should return the same to begin and sync communications.
+
+Packet Data is arbitrary data and varies in length and content. It has a maximum size of 254 bytes. This restriction appears to come from the fact that the Packet Data and Packet Checksum are lumped together, and their total lengths must not exceed 256 bytes. Attempting to send more than 254 bytes of packet data causes communications errors (generally because both software and presumably hardware internally make their own cut off at 254 bytes, thus the packet checksum fails).
+
+Data greater than 254 bytes may be broken up into multiple packets, however. For example, when sending a large binary file such as an image or executable code, multiple packets are transferred from the Mobile Adapter to the Game Boy while the TCP transfer is ongoing.
+
+The Packet Checksum is simply the 16-bit sum of all previous header bytes and all previous packet data bytes. It does not include the magic bytes. The checksum is transmitted big-endian. After the checksum, a simple 2-byte Acknowledgement Signal is sent. 
+
+Bit 7 of any of these bytes will be set high if the device is the receiver of packet, and Bit 7 will be set low for the sender of the packet. This essentially confirms what role the Game Boy is acting in. If it is the receiver, it is expecting to read information from the from the Packet Data from the Mobile Adapter. For exmple, with Command 0x19, the Game Boy is explicitly requesting data from the adapter, and with Command 0x1A the Game Boy is explicitly sending data to the adapter. When acting as the receiver, the device fills its Packet Data with 0x4B bytes. If the Game Boy is the sender, it is expecting to push information from its own Packet Data to the Mobile Adapter. In this case, the Packet Data the Mobile Adapter sends in response is filled with 0x4B bytes. 
 
 If the checksum fails, the receiving side typically immediately sends 0xF1 to indicate an error. 0xEE, 0xF0, and 0xF2 also appear to be failure codes, however, their meaning is currently unknown. 
 
@@ -130,7 +146,7 @@ Device ID	| OR Value	| Device Type
 5. Protocol - Flow of Communication 
 ***************************************************
 
-Even though the protocol effectively enables 2-way communication between the Game Boy and a remote server, the handheld is expected to oversee all transmissions. That is to say, the typical "master-slave" model often used for Game Boy serial I/O still applies in some sense. Once the server starts responding, the Game Boy has to continually initiate another transfer to the adapter (setting Bit 7 of 0xFF02 high) to keep reading any additional bytes that were sent.
+Even though the protocol effectively enables 2-way communication between the Game Boy and a remote server, the handheld is expected to oversee all transmissions to the adapter itself. That is to say, the typical "master-slave" model often used for Game Boy serial I/O still applies in some sense. Once the server starts responding, the Game Boy has to continually initiate another transfer to the adapter (setting Bit 7 of 0xFF02 high) to keep reading any additional bytes that were sent.
 
 It is up to the game software itself to handle secondary protocols (such as HTTP, POP3, or SMTP) which involve one side specifically acting as the sender or receiver. For example, after opening a TCP connection to an HTTP server and issuing the 0x15 command (Data Transfer), the software will determine whether the Game Boy is acting as a sender (making an HTTP request) or a receiver (receiving an HTTP response). Generally, this goes back and forth. The Game Boy sends information via its Packet Data, while the Mobile Adapter's Packet Data is filled with 0x4B bytes at this time until the Game Boy finishes its TCP transfer. When the Game Boy's TCP transfer is done, the adapter sends any information from the server in its Packet Data while that same part of packet from the Game Boy is filled with 0x4B bytes. The chart below illustrates this concept:
 
