@@ -133,6 +133,7 @@ class NTR_LCD
 
 	//Other buffers
 	std::vector<u8> sfx_buffer;
+	std::vector< std::vector<u32> > line_buffer;
 
 	bool full_scanline_render_a;
 	bool full_scanline_render_b;
