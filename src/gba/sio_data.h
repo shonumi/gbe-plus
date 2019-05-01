@@ -24,6 +24,7 @@ enum agb_sio_types
 	GBA_SOUL_DOLL_ADAPTER,
 	GBA_BATTLE_CHIP_GATE,
 	GBA_POWER_ANTENNA,
+	GBA_MOBILE_ADAPTER,
 };
 
 //Serial Input-Output device mode enumeration
@@ -57,6 +58,17 @@ enum battle_chip_gate_state
 {
 	GBA_BATTLE_CHIP_GATE_STANDBY,
 	GBA_BATTLE_CHIP_GATE_CHIP_IN,
+};
+
+//Mobile Adapter enumerations
+enum agb_mobile_state
+{
+	AGB_GBMA_AWAITING_PACKET,
+	AGB_GBMA_RECEIVE_HEADER,
+	AGB_GBMA_RECEIVE_DATA,
+	AGB_GBMA_RECEIVE_CHECKSUM,
+	AGB_GBMA_ACKNOWLEDGE_PACKET,
+	AGB_GBMA_ECHO_PACKET,
 };
 
 struct agb_sio_data

@@ -21,6 +21,40 @@ AGB_SIO::AGB_SIO()
 	network_init = false;
 
 	reset();
+
+	//Load Mobile Adapter data + internal server list
+	if(sio_stat.sio_type == GBA_MOBILE_ADAPTER)
+	{
+		std::string mobile_conf_file = config::data_path + "gbma_conf.bin";
+		std::ifstream mobile_conf(mobile_conf_file.c_str(), std::ios::binary);
+
+		if(!mobile_conf.is_open()) 
+		{ 
+			std::cout<<"SIO::Mobile Adapter GB configuration data could not be read. Check file path or permissions. \n";
+			return;
+		}
+
+		//Get file size
+		mobile_conf.seekg(0, mobile_conf.end);
+		u32 conf_size = mobile_conf.tellg();
+		mobile_conf.seekg(0, mobile_conf.beg);
+
+		if(conf_size != 0xC0)
+		{
+			std::cout<<"SIO::GB Mobile Adapter configuration data size was incorrect. Aborting attempt to read it. \n";
+			mobile_conf.close();
+			return;
+		}
+
+		u8* ex_data = &mobile_adapter.data[0];
+
+		mobile_conf.read((char*)ex_data, 0xC0); 
+		mobile_conf.close();
+
+		std::cout<<"SIO::Loaded Mobile Adapter GB configuration data.\n";
+
+		mobile_adapter_load_server_list();
+	}
 }
 
 /****** SIO Destructor ******/
@@ -177,14 +211,18 @@ void AGB_SIO::reset()
 		//Ignore invalid DMG/GBC devices
 		case 0x1:
 		case 0x2:
-		case 0x3:
 		case 0x4:
 		case 0x5:
 		case 0x6:
 			sio_stat.sio_type = INVALID_GBA_DEVICE;
 			break;
 
-		//Reserved for other GBA SIO devices
+		//Mobile Adapter GB
+		case 0x3:
+			sio_stat.sio_type = GBA_MOBILE_ADAPTER;
+			break;
+
+		//GB Player Rumble
 		case 0x8:
 			sio_stat.sio_type = GBA_PLAYER_RUMBLE;
 			break;
@@ -251,6 +289,29 @@ void AGB_SIO::reset()
 	chip_gate.net_gate_count = 0;
 	chip_gate.start = false;
 	chip_gate.current_state = GBA_BATTLE_CHIP_GATE_STANDBY;
+
+	//GB Mobile Adapter
+	mobile_adapter.data.clear();
+	mobile_adapter.data.resize(0xC0, 0x0);
+	mobile_adapter.packet_buffer.clear();
+	mobile_adapter.net_data.clear();
+	mobile_adapter.packet_size = 0;
+	mobile_adapter.current_state = AGB_GBMA_AWAITING_PACKET;
+	mobile_adapter.srv_list_in.clear();
+	mobile_adapter.srv_list_out.clear();
+
+	mobile_adapter.command = 0;
+	mobile_adapter.data_length = 0;
+	mobile_adapter.checksum = 0;
+
+	mobile_adapter.port = 0;
+	mobile_adapter.ip_addr = 0;
+	mobile_adapter.transfer_state = 0;
+	mobile_adapter.line_busy = false;
+	mobile_adapter.pop_session_started = false;
+	mobile_adapter.http_session_started = false;
+	mobile_adapter.smtp_session_started = false;
+	mobile_adapter.http_data = "";
 
 	switch(config::sio_device)
 	{

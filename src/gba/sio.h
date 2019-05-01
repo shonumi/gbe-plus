@@ -103,6 +103,32 @@ class AGB_SIO
 		battle_chip_gate_state current_state;
 	} chip_gate;
 
+	//Mobile Adapter GB
+	struct mobile_adapter_gb
+	{
+		std::vector <u8> data;
+		std::vector <u8> packet_buffer;
+		std::vector <u8> net_data;
+		std::vector <std::string> srv_list_in;
+		std::vector <std::string> srv_list_out;
+		u32 packet_size;	
+		agb_mobile_state current_state;
+		std::string http_data;
+
+		u8 command;
+		u16 checksum;
+		u8 data_length;
+		u16 data_index;
+
+		u16 port;
+		u32 ip_addr;
+		u32 transfer_state;
+		bool pop_session_started;
+		bool http_session_started;
+		bool smtp_session_started;
+		bool line_busy;
+	} mobile_adapter;
+
 	AGB_SIO();
 	~AGB_SIO();
 
@@ -123,6 +149,12 @@ class AGB_SIO
 
 	void battle_chip_gate_process();
 	void net_gate_process();
+
+	void mobile_adapter_process();
+	void mobile_adapter_process_pop();
+	void mobile_adapter_process_http();
+	void mobile_adapter_process_smtp();
+	bool mobile_adapter_load_server_list();
 };
 
 #endif // GBA_SIO

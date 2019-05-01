@@ -2780,6 +2780,14 @@ void AGB_MMU::process_sio()
 				sio_stat->emu_device_ready = true;
 				sio_stat->active_transfer = true;
 			}
+
+			//Send data to Mobile Adapter
+			else if(sio_stat->sio_type == GBA_MOBILE_ADAPTER)
+			{
+				sio_stat->emu_device_ready = true;
+				sio_stat->active_transfer = true;
+				sio_stat->transfer_data = memory_map[SIO_DATA_8];
+			}
 		}
 	}
 }

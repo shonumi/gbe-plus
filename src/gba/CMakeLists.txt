@@ -14,6 +14,7 @@ set(SRCS
 	debug.cpp
 	cheats.cpp
 	sio.cpp
+	gbma.cpp
 	)
 
 set(HEADERS
