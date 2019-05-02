@@ -300,6 +300,37 @@ void AGB_SIO::mobile_adapter_process()
 
 						break;
 
+					//Unknown command 0x18
+					//Sent after 0x10 on GBA games.
+					//Receives 1 byte of unknown purpose. Responds with empty body
+					case 0x18:
+						//Start building the reply packet - Empty body
+						mobile_adapter.packet_buffer.clear();
+
+						//Magic bytes
+						mobile_adapter.packet_buffer.push_back(0x99);
+						mobile_adapter.packet_buffer.push_back(0x66);
+
+						//Header
+						mobile_adapter.packet_buffer.push_back(0x18);
+						mobile_adapter.packet_buffer.push_back(0x00);
+						mobile_adapter.packet_buffer.push_back(0x00);
+						mobile_adapter.packet_buffer.push_back(0x00);
+
+						//Checksum
+						mobile_adapter.packet_buffer.push_back(0x00);
+						mobile_adapter.packet_buffer.push_back(0x18);
+
+						//Acknowledgement handshake
+						mobile_adapter.packet_buffer.push_back(0x88);
+						mobile_adapter.packet_buffer.push_back(0x00);
+
+						//Send packet back
+						mobile_adapter.packet_size = 0;
+						mobile_adapter.current_state = AGB_GBMA_ECHO_PACKET;
+
+						break;
+
 					//Read configuration data
 					case 0x19:
 						//Grab the offset and length to read. Two bytes of data
@@ -631,8 +662,6 @@ void AGB_SIO::mobile_adapter_process()
 				mem->memory_map[SIO_DATA_8] = mobile_adapter.packet_buffer[mobile_adapter.packet_size++];
 				if(sio_stat.cnt & 0x4000) { mem->memory_map[REG_IF] |= 0x80; }
 				sio_stat.cnt &= ~0x80;
-
-				std::cout<<"ECHO DAT -> 0x" << (u16)mem->memory_map[SIO_DATA_8] << "\n";
 
 				if(mobile_adapter.packet_size == mobile_adapter.packet_buffer.size())
 				{
