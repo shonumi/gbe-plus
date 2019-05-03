@@ -1,7 +1,8 @@
 Mobile Adapter GB Technical Documentation 0.1
 April 17, 2019
 Original documentation by Háčky -> https://forums.glitchcity.info/index.php?topic=7509.0
-Editing + formatting + addition notes by Shonumi
+Editing + formatting + additional notes by Shonumi
+Additional notes from Normatt
 
 ***************************************************
 1. Introduction
@@ -64,6 +65,8 @@ Game Boy Advance : 16 Total
 
 Two games were planned but later cancelled: beatmaniaGB Net Jam for the GBC and Horse Racing Creating Derby for the GBA.
 
+The GBA game Yu-Gi-Oh! Duel Monsters 5 Expert 1 contains code for the Mobile Adapter, but despite being built with the library it does not appear to use it. This functionality may have been planned and later abandoned.
+
 
 ***************************************************
 4. Protocol - Packet Format
@@ -119,9 +122,9 @@ Byte 2			| Command ID (sender)
 
 The magic bytes are simply a pair of bytes used to identify the start of a Mobile Adapter packet. When one side starts receiving these magic bytes, the other should return the same to begin and sync communications.
 
-Packet Data is arbitrary data and varies in length and content. It has a maximum size of 254 bytes. This restriction appears to come from the fact that the Packet Data and Packet Checksum are lumped together, and their total lengths must not exceed 256 bytes. Attempting to send more than 254 bytes of packet data causes communications errors (generally because both software and presumably hardware internally make their own cut off at 254 bytes, thus the packet checksum fails).
+Packet Data is arbitrary data and varies in length and content. On the Game Boy Color, it has a maximum size of 254 bytes. This restriction may be applied via software and appears to come from the fact that the Packet Data and Packet Checksum are lumped together, thus their total lengths must not exceed 256 bytes. Attempting to send more than 254 bytes of packet data causes communications errors in all supported GBC games. Evidence suggests GBA games can use Bytes 3 and 4 of the Packet Header to specify Packet Data size (possibly up to 64KB).  
 
-Data greater than 254 bytes may be broken up into multiple packets, however. For example, when sending a large binary file such as an image or executable code, multiple packets are transferred from the Mobile Adapter to the Game Boy while the TCP transfer is ongoing.
+On the GBC, data greater than 254 bytes may be broken up into multiple packets, however. For example, when sending a large binary file such as an image or executable code, multiple packets are transferred from the Mobile Adapter to the Game Boy while the TCP transfer is ongoing.
 
 The Packet Checksum is simply the 16-bit sum of all previous header bytes and all previous packet data bytes. It does not include the magic bytes. The checksum is transmitted big-endian. After the checksum, a simple 2-byte Acknowledgement Signal is sent. 
 
@@ -135,6 +138,7 @@ The device ID determines what kind of hardware each side is communicating with. 
 Device ID	| OR Value	| Device Type
 -------------------------------------------------
 0x00		| 0x80		| Game Boy Color
+0x01		| 0x81		| Game Boy Advance
 0x08		| 0x88		| PDC Mobile Adapter (Blue)
 0x09		| 0x89		| cdmaOne Mobile Adapter (Yellow)
 0x0A		| 0x8A		| PHS Mobile Adapter (Green)
@@ -241,6 +245,14 @@ Data Received: 1 byte for current telephone status
 Typically sent to the adapter before dialing. Also used to test the telephone status before opening a TCP connection, or to constantly ping the phone to make sure it's still active. The reply is 1 byte. 0x00 means the phone is ready to make a call or connection. 0x04 and 0x05 indicate that the line is busy (presumably set after a command like 0x12). The difference between the two line-busy values is unknown. Most software does not seem to care which one is sent, but Net de Get: Mini Game @ 100 refuses to work with 0x05.
 
 Additionally, the Game Boy seem to set Bits 0 - 4 high for the Command ID in the Acknowledgement Signal, thus sending 0x1F to the Mobile Adapter.
+
+----------
+
+[[Command 0x18 - Unknown Command]]
+Data Sent: 1 unknown byte
+Data Received: N/A. Empty Packet Data
+
+This command is generally sent after Command 0x10. Only GBA games have been known to use this command. The GBA sends 1 unknown byte. The response Packet Data is empty, and the length is zero bytes.
 
 ----------
 
