@@ -1,4 +1,4 @@
-Soul Doll Adapter Technical Documentation 0.1
+Soul Doll Adapter Technical Documentation 0.2
 December 18th, 2018
 Shonumi aka D.S. Baxter
 
@@ -120,3 +120,101 @@ Bit 7               | Bit 6               | Bit 5               | Bit 4         
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 Again, 2nd and 3rd transfers use Bit 3 to determine a "0" or a "1". The above example would be 0b10101010 or 0xAA. Unlike reads, which can continue on updating the internal EEPROM address, writes are done in 16-byte pages. Up to 16-bytes can be written sequentially; anymore and the writes loop around. E.g. if writing to 0x100 a page write has a range of 0x100 to 0x10F. Attempting to write a 17th byte will overwrite 0x100 instead of 0x110. In order to write 0x110 to 0x11F, another write slave address, write command, and word address need to be sent to the 24LC08.
+
+
+***************************************************
+6. Soul Doll Data Format
+***************************************************
+
+Most of the 1KB data contained on the 24LC08 appears to be related to the Talispod or Talisdam accessories, e.g. such data as the Legend's preferred humidity and tempurature, and their stats. For the games, however, only bytes 0x300 - 0x3FF are relevant. This area of memory specifies the nickname, the owner's name, and various other flags related to auto-training mode. Most importantly, these bytes determine what kind of Legend is generated from the Soul Doll. Byte 0x302 acts as this ID:
+
+0x01 = Windragon (A)?
+0x03 = Windragon (B)?
+0x04 = Mermaid
+0x05 = Werewolf
+0x06 = Will 'o' Wisp
+0x07 = Tornado Kingdragon
+0x08 = Blaze Dragon (A)?
+0x09 = Goblin
+0x0A = Yeti
+0x0B = Hell Hound
+0x0C = Volcano Kingdragon
+0x0D = Windragon Berserker Mode
+0x0E = Blazedragon Berserker Mode
+0x0F = Fire Giant
+0x10 = Undine
+0x11 = Peryton
+0x12 = Troll
+0x13 = Command Windragon
+0x14 = Manticore
+0x15 = Carbuncle
+0x16 = Command Blazedragon
+0x17 = Dwarf
+0x18 = Skeleton
+0x19 = Earthquake Kingdragon
+0x1A = Storm Kingdragon
+0x1B = Wyvern
+0x1E = Ranshiin (A)?
+0x1F = Ranshiin (B)?
+0x20 = Chibi Shiron
+0x21 = Command Windragon Break Armed
+0x22 = Command Blazedragon Volk Armed
+0x23 = Chimaera
+0x24 = Triton
+0x25 = Gargoyle
+0x26 = Cloud Giant
+0x27 = Command Windragon
+0x28 = Command Blazedragon
+0x2B = Spiritual Windragon
+0x2C = Hexadragon
+0x2D = Windragon Berserker Mode (Growing)?
+0x2E = Blazedradon Berserker Mode (Growing)?
+0x31 = Devour Crocodile (Dandy)
+0x32 = Harpy
+0x33 = Cait Sith
+0x34 = Command Blazedragon Volk Armed
+0x35 = Devour Crocodile
+0x36 = Vampire
+0x37 = Spiritual Kingdragon
+0x38 = Ogre
+0x39 = Spriggan
+0x3A = Command Windragon Break Armed
+0x3B = Bicorn
+0x3C = Centaur
+0x3D = Nekrom Kingdragon
+0x3E = Golem
+0x3F = Ifrit
+0x41 = Gorgon
+0x42 = Kraken
+0x43 = Minotauros
+0x44 = Oberon
+0x45 = Lich
+0x48 = Colonel Windragon Tornado Soul
+0x49 = Pheonix
+0x4A = Behemoth
+0x4B = Jabberwock
+0x4C = Leviathan
+0x4D = Fenrir
+0x4E = Colonel Blazedragon Volcano Soul
+0x4F = Sphinx
+0x50 = Cyclops
+0x54 = Syclla
+0x55 = Titan
+0x56 = Echidna
+0x59 = Ranshiin (B)?
+0x5A = Chibi Shiron (Manga Version)?
+0x5B = Blazedragon (B)?
+0x5C = Windragon (Manga Version)
+0x5D = Griffin
+0x5E = Bigfoot
+0x5F = Tiamat
+0x66 = Wyvern
+0x67 = Storm Kingdragon
+0x68 = Carbuncle
+0x6D = Giant Crab
+0x71 = Hydra
+0x72 = Iron Golem
+0x73 = Valkyrie
+0x74 = Cerberus
+
+Several ID appear to be mapped to the same Legend. This may be explained by the fact that some Soul Dollz were released in A, B, and sometimes C variants. The plastic figurine is different, but the GBA games generate the same sprite and default name for the Soul Doll. All of the potential duplicates are marked with "?" in the list above. Although there are 103 Soul Dollz, the list remains incomplete. The games between entries do not generate valid Legendz, which suggests other bytes in EEPROM are also responsible for the ID.
