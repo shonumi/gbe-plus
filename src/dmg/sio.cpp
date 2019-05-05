@@ -292,6 +292,11 @@ void DMG_SIO::reset()
 			sio_stat.sio_type = GB_POWER_ANTENNA;
 			break;
 
+		//Singer IZEK 1500
+		case 14:
+			sio_stat.sio_type = GB_SINGER_IZEK;
+			break;
+
 		//Always wait until netplay connection is established to change to GB_LINK
 		//Also, any invalid types are ignored
 		default:
@@ -387,6 +392,11 @@ void DMG_SIO::reset()
 
 	//Power Antenna
 	power_antenna_on = false;
+
+	//Singer IZEK 1500
+	singer_izek.data.clear();
+	singer_izek.current_state = SINGER_PING;
+	singer_izek.counter = 0;
 
 	//Full Changer
 	full_changer.data.clear();
@@ -1469,4 +1479,44 @@ bool DMG_SIO::barcode_boy_load_barcode(std::string filename)
 
 	std::cout<<"SIO::Loaded Barcode Boy barcode data.\n";
 	return true;
+}
+
+/****** Processes data sent from the Singer Izek to the Game Boy ******/
+void DMG_SIO::singer_izek_process()
+{
+	switch(singer_izek.current_state)
+	{
+		case SINGER_PING:
+			mem->memory_map[REG_SB] = (singer_izek.counter & 0x1) ? 0x00 : 0xFF;
+			mem->memory_map[IF_FLAG] |= 0x08;
+			singer_izek.counter++;
+
+			if(singer_izek.counter == 8)
+			{
+				singer_izek.counter = 0;
+				singer_izek.current_state = SINGER_SEND_DATA;
+			}
+
+			break;
+
+		case SINGER_SEND_DATA:
+			mem->memory_map[REG_SB] = 0xFF;
+			mem->memory_map[IF_FLAG] |= 0x08;
+			singer_izek.counter++;
+
+			if(singer_izek.counter == 128)
+			{
+				singer_izek.counter = 0;
+				singer_izek.current_state = SINGER_STATUS;
+			}
+
+			break;
+
+		case SINGER_STATUS:
+			mem->memory_map[REG_SB] = (singer_izek.counter & 0x1) ? 0xFF : 0x00;
+			mem->memory_map[IF_FLAG] |= 0x08;
+			singer_izek.counter++;
+
+			break;
+	}
 }

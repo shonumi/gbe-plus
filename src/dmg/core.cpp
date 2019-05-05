@@ -462,6 +462,11 @@ void DMG_core::run_core()
 								}
 
 								break;
+
+							//Process Singer IZEK communications
+							case GB_SINGER_IZEK:
+								core_cpu.controllers.serial_io.singer_izek_process();
+								break;
 						}
 
 						switch(core_cpu.controllers.serial_io.sio_stat.ir_type)
@@ -719,6 +724,11 @@ void DMG_core::step()
 								core_mmu.memory_map[REG_SB] = 0xF3;
 								core_mmu.memory_map[IF_FLAG] |= 0x08;
 							}
+
+						//Process Singer IZEK communications
+						case GB_SINGER_IZEK:
+							core_cpu.controllers.serial_io.singer_izek_process();
+							break;
 					}
 
 					switch(core_cpu.controllers.serial_io.sio_stat.ir_type)

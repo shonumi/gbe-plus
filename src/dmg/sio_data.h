@@ -25,6 +25,7 @@ enum sio_types
 	GB_BARCODE_BOY,
 	GB_FOUR_PLAYER_ADAPTER,
 	GB_POWER_ANTENNA,
+	GB_SINGER_IZEK,
 };
 
 //Infrared device-type enumeration
@@ -80,6 +81,13 @@ enum four_player_state
 	FOUR_PLAYER_SYNC,
 	FOUR_PLAYER_PROCESS_NETWORK,
 	FOUR_PLAYER_RESTART_NETWORK,
+};
+
+enum singer_izek_state
+{
+	SINGER_PING,
+	SINGER_SEND_DATA,
+	SINGER_STATUS,
 };
 
 enum full_changer_state

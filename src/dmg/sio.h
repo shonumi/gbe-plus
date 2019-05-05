@@ -145,6 +145,14 @@ class DMG_SIO
 		bool send_data;
 	} barcode_boy;
 
+	//Singer Izek 1500
+	struct gb_singer_izek_1500
+	{
+		std::vector<u8> data;
+		u16 counter;
+		singer_izek_state current_state;
+	} singer_izek;
+
 	//Full Changer
 	struct gb_full_changer
 	{
@@ -224,6 +232,8 @@ class DMG_SIO
 
 	void barcode_boy_process();
 	bool barcode_boy_load_barcode(std::string filename);
+
+	void singer_izek_process();
 
 	void full_changer_process();
 	bool full_changer_load_db(std::string filename);
