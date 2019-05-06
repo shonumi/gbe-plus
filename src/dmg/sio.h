@@ -149,6 +149,10 @@ class DMG_SIO
 	struct gb_singer_izek_1500
 	{
 		std::vector<u8> data;
+		std::vector<u8> x_plot;
+		std::vector<u8> y_plot;
+		u8 start_flag;
+		u8 plot_count;
 		u16 counter;
 		singer_izek_state current_state;
 	} singer_izek;

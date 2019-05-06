@@ -395,6 +395,10 @@ void DMG_SIO::reset()
 
 	//Singer IZEK 1500
 	singer_izek.data.clear();
+	singer_izek.x_plot.clear();
+	singer_izek.y_plot.clear();
+	singer_izek.start_flag = 0;
+	singer_izek.plot_count = 0;
 	singer_izek.current_state = SINGER_PING;
 	singer_izek.counter = 0;
 
@@ -1504,7 +1508,35 @@ void DMG_SIO::singer_izek_process()
 			mem->memory_map[IF_FLAG] |= 0x08;
 			singer_izek.counter++;
 
-			if(singer_izek.counter == 128)
+			//Grab number of plot points
+			if(((singer_izek.counter == 4 || singer_izek.counter == 5)) && (sio_stat.transfer_byte))
+			{
+				singer_izek.plot_count = sio_stat.transfer_byte;
+			}
+
+
+			//Grab first X stitch offset
+			else if(singer_izek.counter == 6)
+			{
+				singer_izek.x_plot.clear();
+				singer_izek.x_plot.push_back(sio_stat.transfer_byte);
+			}
+
+			//Grab first Y stitch offset
+			else if(singer_izek.counter == 8)
+			{
+				singer_izek.y_plot.clear();
+				singer_izek.y_plot.push_back(sio_stat.transfer_byte);
+			}
+
+			//Grab stitch start flag
+			if(((singer_izek.counter == 10 || singer_izek.counter == 11)) && (sio_stat.transfer_byte))
+			{
+				singer_izek.start_flag = sio_stat.transfer_byte;
+			}
+
+			//Exit data transmission and enter status mode
+			else if(singer_izek.counter == 128)
 			{
 				singer_izek.counter = 0;
 				singer_izek.current_state = SINGER_STATUS;
