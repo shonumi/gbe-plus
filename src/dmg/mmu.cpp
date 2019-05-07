@@ -2101,6 +2101,44 @@ bool DMG_MMU::load_backup(std::string filename)
 		 filename = config::save_path + util::get_filename_from_path(filename);
 	}
 
+	//Load MBC6 Flash if applicable
+	//Do this first for MBC6. Flash data is separate from SRAM and should load even without a game save
+	if(cart.mbc_type == MBC6)
+	{
+		std::string flash_name = config::save_path + util::get_filename_from_path(filename) + ".flash";
+		std::ifstream flash_save(flash_name.c_str(), std::ios::binary);
+
+		if(flash_save.is_open()) 
+		{
+			//Get the file size
+			flash_save.seekg(0, flash_save.end);
+			u32 file_size = flash_save.tellg();
+			flash_save.seekg(0, flash_save.beg);
+
+			if(file_size != 0x10000)
+			{
+				std::cout<<"MMU::Error - MBC6 Flash save file " << flash_name << " is the incorrect size\n";
+				return false;
+			}
+
+			for(int x = 0; x < 8; x++)
+			{
+				u8* ex_ram = &flash[x][0];
+				flash_save.read((char*)ex_ram, 0x2000); 
+			}
+
+			flash_save.close();
+
+			std::cout<<"MMU::Loaded MBC6 Flash save data file " << flash_name <<  "\n";
+		}
+
+
+		else
+		{
+			std::cout<<"MMU::" << flash_name << " Flash save file could not be opened. Check file path or permissions. \n";
+		}
+	}
+
 	//Load Saved RAM if available
 	if(cart.battery)
 	{
@@ -2157,34 +2195,6 @@ bool DMG_MMU::load_backup(std::string filename)
 		sram.close();
 	
 		std::cout<<"MMU::Loaded save data file " << filename <<  "\n";
-	}
-
-	//Load MBC6 Flash if applicable
-	if(cart.mbc_type == MBC6)
-	{
-		filename = config::save_path + util::get_filename_from_path(filename) + ".flash";
-		std::ifstream flash_save(filename.c_str(), std::ios::binary);
-		
-		//Get the file size
-		flash_save.seekg(0, flash_save.end);
-		u32 file_size = flash_save.tellg();
-		flash_save.seekg(0, flash_save.beg);
-
-		if(file_size != 0x10000)
-		{
-			std::cout<<"MMU::Error - MBC6 Flash save file " << filename << " is the incorrect size\n";
-			return false;
-		}
-
-		for(int x = 0; x < 0x8; x++)
-		{
-			u8* ex_ram = &flash[x][0];
-			flash_save.read((char*)ex_ram, 0x2000); 
-		}
-
-		flash_save.close();
-
-		std::cout<<"MMU::Loaded MBC6 Flash save data file " << filename <<  "\n";
 	}
 
 	return true;
