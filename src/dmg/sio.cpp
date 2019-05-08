@@ -1491,21 +1491,19 @@ void DMG_SIO::singer_izek_process()
 	switch(singer_izek.current_state)
 	{
 		case SINGER_PING:
-			mem->memory_map[REG_SB] = (singer_izek.counter & 0x1) ? 0x00 : 0xFF;
-			mem->memory_map[IF_FLAG] |= 0x08;
-			singer_izek.counter++;
+			//Wait for new start flag to appear
+			if(sio_stat.transfer_byte == 0x86) { singer_izek.counter++; }
 
-			if(singer_izek.counter == 8)
+			//Wait 1 transfer after new start flag to switch back to data mode
+			else if(singer_izek.counter)
 			{
-				singer_izek.counter = 0;
 				singer_izek.current_state = SINGER_SEND_DATA;
+				singer_izek.counter = 0;
 			}
 
 			break;
 
 		case SINGER_SEND_DATA:
-			mem->memory_map[REG_SB] = 0xFF;
-			mem->memory_map[IF_FLAG] |= 0x08;
 			singer_izek.counter++;
 
 			//Grab number of plot points
@@ -1539,16 +1537,16 @@ void DMG_SIO::singer_izek_process()
 			else if(singer_izek.counter == 128)
 			{
 				singer_izek.counter = 0;
-				singer_izek.current_state = SINGER_STATUS;
+				singer_izek.current_state = SINGER_PING;
 			}
 
 			break;
-
-		case SINGER_STATUS:
-			mem->memory_map[REG_SB] = (singer_izek.counter & 0x1) ? 0xFF : 0x00;
-			mem->memory_map[IF_FLAG] |= 0x08;
-			singer_izek.counter++;
-
-			break;
 	}
+
+	//Respond with 0x00 for external clock transfers
+	//Respond with 0xFF for internal clock transfers
+	if(!sio_stat.internal_clock) { mem->memory_map[REG_SB] = 0x00; }
+	else { mem->memory_map[REG_SB] = 0xFF; }
+
+	mem->memory_map[IF_FLAG] |= 0x08;
 }
