@@ -151,6 +151,8 @@ class DMG_SIO
 		std::vector<u8> data;
 		std::vector<u8> x_plot;
 		std::vector<u8> y_plot;
+		u8 next_x_plot;
+		u8 next_y_plot;
 		u8 start_flag;
 		u8 plot_count;
 		u16 counter;

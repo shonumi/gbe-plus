@@ -397,6 +397,8 @@ void DMG_SIO::reset()
 	singer_izek.data.clear();
 	singer_izek.x_plot.clear();
 	singer_izek.y_plot.clear();
+	singer_izek.next_x_plot = 0;
+	singer_izek.next_y_plot = 0;
 	singer_izek.start_flag = 0;
 	singer_izek.plot_count = 0;
 	singer_izek.current_state = SINGER_PING;
@@ -1507,30 +1509,51 @@ void DMG_SIO::singer_izek_process()
 			singer_izek.counter++;
 
 			//Grab number of plot points
-			if(((singer_izek.counter == 4 || singer_izek.counter == 5)) && (sio_stat.transfer_byte))
+			if(((singer_izek.counter == 5 || singer_izek.counter == 6)) && (sio_stat.transfer_byte))
 			{
 				singer_izek.plot_count = sio_stat.transfer_byte;
+				singer_izek.next_x_plot = 13;
+				singer_izek.next_y_plot = 14;
 			}
 
 
 			//Grab first X stitch offset
-			else if(singer_izek.counter == 6)
+			else if(singer_izek.counter == 7)
 			{
 				singer_izek.x_plot.clear();
 				singer_izek.x_plot.push_back(sio_stat.transfer_byte);
 			}
 
 			//Grab first Y stitch offset
-			else if(singer_izek.counter == 8)
+			else if(singer_izek.counter == 9)
 			{
 				singer_izek.y_plot.clear();
 				singer_izek.y_plot.push_back(sio_stat.transfer_byte);
 			}
 
 			//Grab stitch start flag
-			if(((singer_izek.counter == 10 || singer_izek.counter == 11)) && (sio_stat.transfer_byte))
+			else if(((singer_izek.counter == 11 || singer_izek.counter == 12)) && (sio_stat.transfer_byte))
 			{
 				singer_izek.start_flag = sio_stat.transfer_byte;
+			}
+
+			//Grab additional stitch offsets if necessary
+			else if(singer_izek.plot_count)
+			{
+				//Additional X stitch offset
+				if(singer_izek.counter == singer_izek.next_x_plot)
+				{
+					singer_izek.x_plot.push_back(sio_stat.transfer_byte);
+				}
+
+				//Additional Y stitch offset
+				if(singer_izek.counter == singer_izek.next_y_plot)
+				{
+					singer_izek.plot_count--;
+					singer_izek.y_plot.push_back(sio_stat.transfer_byte);
+					singer_izek.next_x_plot = singer_izek.counter + 1;
+					singer_izek.next_y_plot = singer_izek.counter + 2;
+				}
 			}
 
 			//Exit data transmission and enter status mode
