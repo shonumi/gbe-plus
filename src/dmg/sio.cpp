@@ -397,6 +397,7 @@ void DMG_SIO::reset()
 	singer_izek.data.clear();
 	singer_izek.x_plot.clear();
 	singer_izek.y_plot.clear();
+	singer_izek.stitch_buffer.clear();
 	singer_izek.next_x_plot = 0;
 	singer_izek.next_y_plot = 0;
 	singer_izek.start_flag = 0;
@@ -1509,30 +1510,30 @@ void DMG_SIO::singer_izek_process()
 			singer_izek.counter++;
 
 			//Grab number of plot points
-			if(((singer_izek.counter == 5 || singer_izek.counter == 6)) && (sio_stat.transfer_byte))
+			if(((singer_izek.counter == 4 || singer_izek.counter == 5)) && (sio_stat.transfer_byte))
 			{
 				singer_izek.plot_count = sio_stat.transfer_byte;
-				singer_izek.next_x_plot = 13;
-				singer_izek.next_y_plot = 14;
+				singer_izek.next_x_plot = 12;
+				singer_izek.next_y_plot = 13;
 			}
 
 
 			//Grab first X stitch offset
-			else if(singer_izek.counter == 7)
+			else if(singer_izek.counter == 6)
 			{
 				singer_izek.x_plot.clear();
 				singer_izek.x_plot.push_back(sio_stat.transfer_byte);
 			}
 
 			//Grab first Y stitch offset
-			else if(singer_izek.counter == 9)
+			else if(singer_izek.counter == 8)
 			{
 				singer_izek.y_plot.clear();
 				singer_izek.y_plot.push_back(sio_stat.transfer_byte);
 			}
 
 			//Grab stitch start flag
-			else if(((singer_izek.counter == 11 || singer_izek.counter == 12)) && (sio_stat.transfer_byte))
+			else if(((singer_izek.counter == 10 || singer_izek.counter == 11)) && (sio_stat.transfer_byte))
 			{
 				singer_izek.start_flag = sio_stat.transfer_byte;
 			}
@@ -1561,6 +1562,23 @@ void DMG_SIO::singer_izek_process()
 			{
 				singer_izek.counter = 0;
 				singer_izek.current_state = SINGER_PING;
+
+				//Use plot to create stitch buffer for visual output
+				singer_izek.stitch_buffer.clear();
+				singer_izek.stitch_buffer.resize(0x5A00, 0xFFFFFFFF);
+
+				u32 current_x = 0;
+				u32 current_y = 0;
+				u32 buffer_pos = 0;
+
+				for(u32 x = 0; x < singer_izek.x_plot.size(); x++)
+				{
+					current_x = singer_izek.x_plot[x];
+					current_y += singer_izek.y_plot[x];
+
+					buffer_pos = (current_y * 144) + current_x;
+					singer_izek.stitch_buffer[buffer_pos] = 0xFF000000;
+				}
 			}
 
 			break;
