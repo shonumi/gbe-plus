@@ -1513,20 +1513,20 @@ void DMG_SIO::singer_izek_process()
 			if(((singer_izek.counter == 4 || singer_izek.counter == 5)) && (sio_stat.transfer_byte))
 			{
 				singer_izek.plot_count = sio_stat.transfer_byte;
-				singer_izek.next_x_plot = 12;
-				singer_izek.next_y_plot = 13;
+				singer_izek.next_x_plot = 0;
+				singer_izek.next_y_plot = 0;
 			}
 
 
 			//Grab first X stitch offset
-			else if(singer_izek.counter == 6)
+			else if(((singer_izek.counter == 6) || (singer_izek.counter == 7)) && (sio_stat.transfer_byte))
 			{
 				singer_izek.x_plot.clear();
 				singer_izek.x_plot.push_back(sio_stat.transfer_byte);
 			}
 
 			//Grab first Y stitch offset
-			else if(singer_izek.counter == 8)
+			else if(((singer_izek.counter == 8) || (singer_izek.counter == 9)) && (sio_stat.transfer_byte))
 			{
 				singer_izek.y_plot.clear();
 				singer_izek.y_plot.push_back(sio_stat.transfer_byte);
@@ -1539,18 +1539,26 @@ void DMG_SIO::singer_izek_process()
 			}
 
 			//Grab additional stitch offsets if necessary
-			else if(singer_izek.plot_count)
+			else if((singer_izek.plot_count) && (sio_stat.transfer_byte))
 			{
+				if(!singer_izek.next_x_plot)
+				{
+					singer_izek.next_x_plot = singer_izek.counter;
+					singer_izek.next_y_plot = singer_izek.counter + 1;
+				}
+					
+
+				if(sio_stat.transfer_byte == 0xBC) { singer_izek.plot_count = 0; }
+
 				//Additional X stitch offset
-				if(singer_izek.counter == singer_izek.next_x_plot)
+				else if(singer_izek.counter == singer_izek.next_x_plot)
 				{
 					singer_izek.x_plot.push_back(sio_stat.transfer_byte);
 				}
 
 				//Additional Y stitch offset
-				if(singer_izek.counter == singer_izek.next_y_plot)
+				else if(singer_izek.counter == singer_izek.next_y_plot)
 				{
-					singer_izek.plot_count--;
 					singer_izek.y_plot.push_back(sio_stat.transfer_byte);
 					singer_izek.next_x_plot = singer_izek.counter + 1;
 					singer_izek.next_y_plot = singer_izek.counter + 2;
@@ -1576,9 +1584,20 @@ void DMG_SIO::singer_izek_process()
 					current_x = singer_izek.x_plot[x];
 					current_y += singer_izek.y_plot[x];
 
-					buffer_pos = (current_y * 144) + current_x;
+					buffer_pos = (current_y * 160) + current_x;
 					singer_izek.stitch_buffer[buffer_pos] = 0xFF000000;
 				}
+
+				SDL_Surface* stitch_surface = SDL_CreateRGBSurface(SDL_SWSURFACE, 160, 144, 32, 0, 0, 0, 0);
+
+				if(SDL_MUSTLOCK(stitch_surface)){ SDL_LockSurface(stitch_surface); }
+				u32* out_pixel_data = (u32*)stitch_surface->pixels;
+
+				for(u32 y = 0; y < 0x5A00; y++) { out_pixel_data[y] = singer_izek.stitch_buffer[y]; }
+				if(SDL_MUSTLOCK(stitch_surface)){ SDL_UnlockSurface(stitch_surface); }
+
+
+				SDL_SaveBMP(stitch_surface, "stitch.bmp");
 			}
 
 			break;
