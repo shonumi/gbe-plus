@@ -165,6 +165,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	sio_dev->addItem("Progress Chip Gate");
 	sio_dev->addItem("Beast Link Gate");
 	sio_dev->addItem("Power Antenna");
+	sio_dev->addItem("Singer IZEK 1500");
 
 	QHBoxLayout* sio_layout = new QHBoxLayout;
 	sio_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
