@@ -1931,7 +1931,8 @@ Data Structure
 0x10				::	String Length 1. Each menu item should ideally be 12 characters or less (font is fixed width). Used for minigame name.
 0x11 - ...			::	Menu Item Text (see String Format below).
 0x11 + String Length 1		::	String Length 2. Each menu item draws additional text to a small on-screen textbox. Used brief explanations about minigame. Ideal max is 0xF.
-0x11 + 1 + String Length 1 	::	Additional textbox string.</code>
+0x11 + 1 + String Length 1 	::	Additional textbox string.
+0x11 + 6 + String Length 1 & 2	::	Unique ID for download. 8 characters max.</code>
 
 	<p>Minigames have their own categories and can be assigned their own specific icons. The following bytes dictate what icon is drawn:</p>
 
