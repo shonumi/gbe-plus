@@ -1211,6 +1211,7 @@ Value Written		| LED Result
 	<p class="list_item"><a href="#sda_sig">Communication Protocol - Start Signal</a></p>
 	<p class="list_item"><a href="#sda_out">Communication Protocol - Read Operations</a></p>
 	<p class="list_item"><a href="#sda_inp">Communication Protocol - Write Operations</a></p>
+	<p class="list_item"><a href="#sda_fmt">Soul Doll Data Format</a></p>
 
 	<a name="sda_gen"></a>
 	<p class="gray_title">[Soul Doll Adapter] : General Hardware Information</p>
@@ -1323,6 +1324,102 @@ Bit 7               | Bit 6               | Bit 5               | Bit 4         
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------</code></p>
 
 	<p>Again, 2nd and 3rd transfers use Bit 3 to determine a &#34;0&#34; or a &#34;1&#34;. The above example would be 0b10101010 or 0xAA. Unlike reads, which can continue on updating the internal EEPROM address, writes are done in 16-byte pages. Up to 16-bytes can be written sequentially; anymore and the writes loop around. E.g. if writing to 0x100 a page write has a range of 0x100 to 0x10F. Attempting to write a 17th byte will overwrite 0x100 instead of 0x110. In order to write 0x110 to 0x11F, another write slave address, write command, and word address need to be sent to the 24LC08.</p>
+
+	<a name="sda_fmt"></a>
+	<p class="gray_title">[Soul Doll Adapter] : Soul Doll Data Format</p>
+
+	<p>Most of the 1KB data contained on the 24LC08 appears to be related to the Talispod or Talisdam accessories, e.g. such data as the Legend's preferred humidity and tempurature, and their stats. For the games, however, only bytes 0x300 - 0x3FF are relevant. This area of memory specifies the nickname, the owner's name, and various other flags related to auto-training mode. Most importantly, these bytes determine what kind of Legend is generated from the Soul Doll. Byte 0x302 acts as this ID:</p>
+
+	<p><code>0x01 = Windragon (A)?
+0x03 = Windragon (B)?
+0x04 = Mermaid
+0x05 = Werewolf
+0x06 = Will 'o' Wisp
+0x07 = Tornado Kingdragon
+0x08 = Blaze Dragon (A)?
+0x09 = Goblin
+0x0A = Yeti
+0x0B = Hell Hound
+0x0C = Volcano Kingdragon
+0x0D = Windragon Berserker Mode
+0x0E = Blazedragon Berserker Mode
+0x0F = Fire Giant
+0x10 = Undine
+0x11 = Peryton
+0x12 = Troll
+0x13 = Command Windragon
+0x14 = Manticore
+0x15 = Carbuncle
+0x16 = Command Blazedragon
+0x17 = Dwarf
+0x18 = Skeleton
+0x19 = Earthquake Kingdragon
+0x1A = Storm Kingdragon
+0x1B = Wyvern
+0x1E = Ranshiin (A)?
+0x1F = Ranshiin (B)?
+0x20 = Chibi Shiron
+0x21 = Command Windragon Break Armed
+0x22 = Command Blazedragon Volk Armed
+0x23 = Chimaera
+0x24 = Triton
+0x25 = Gargoyle
+0x26 = Cloud Giant
+0x27 = Command Windragon
+0x28 = Command Blazedragon
+0x2B = Spiritual Windragon
+0x2C = Hexadragon
+0x2D = Windragon Berserker Mode (Growing)?
+0x2E = Blazedradon Berserker Mode (Growing)?
+0x31 = Devour Crocodile (Dandy)
+0x32 = Harpy
+0x33 = Cait Sith
+0x34 = Command Blazedragon Volk Armed
+0x35 = Devour Crocodile
+0x36 = Vampire
+0x37 = Spiritual Kingdragon
+0x38 = Ogre
+0x39 = Spriggan
+0x3A = Command Windragon Break Armed
+0x3B = Bicorn
+0x3C = Centaur
+0x3D = Nekrom Kingdragon
+0x3E = Golem
+0x3F = Ifrit
+0x41 = Gorgon
+0x42 = Kraken
+0x43 = Minotauros
+0x44 = Oberon
+0x45 = Lich
+0x48 = Colonel Windragon Tornado Soul
+0x49 = Pheonix
+0x4A = Behemoth
+0x4B = Jabberwock
+0x4C = Leviathan
+0x4D = Fenrir
+0x4E = Colonel Blazedragon Volcano Soul
+0x4F = Sphinx
+0x50 = Cyclops
+0x54 = Syclla
+0x55 = Titan
+0x56 = Echidna
+0x59 = Ranshiin (B)?
+0x5A = Chibi Shiron (Manga Version)?
+0x5B = Blazedragon (B)?
+0x5C = Windragon (Manga Version)
+0x5D = Griffin
+0x5E = Bigfoot
+0x5F = Tiamat
+0x66 = Wyvern
+0x67 = Storm Kingdragon
+0x68 = Carbuncle
+0x6D = Giant Crab
+0x71 = Hydra
+0x72 = Iron Golem
+0x73 = Valkyrie
+0x74 = Cerberus</code>
+
+	<p>Several ID appear to be mapped to the same Legend. This may be explained by the fact that some Soul Dollz were released in A, B, and sometimes C variants. The plastic figurine is different, but the GBA games generate the same sprite and default name for the Soul Doll. All of the potential duplicates are marked with &#34;?&#34; in the list above. Although there are 103 Soul Dollz, the list remains incomplete. The games between entries do not generate valid Legendz, which suggests other bytes in EEPROM are also responsible for the ID.</p>
 
 	<!-- Battle Chip Gate -->
 	<a name="bcg"></a>
@@ -1492,6 +1589,8 @@ Green	-> Would have been used to connect PHS phones, but this version was never 
 
 	<p>Two games were planned but later cancelled: <strong>beatmaniaGB Net Jam</strong> for the GBC and <strong>Horse Racing Creating Derby</strong> for the GBA.</p>
 
+	<p>The GBA game Yu-Gi-Oh! Duel Monsters 5 Expert 1 contains code for the Mobile Adapter, but despite being built with the library it does not appear to use it. This functionality may have been planned and later abandoned.</p>
+
 	<a name="magb_pak"></a>
 	<p class="gray_title">[Mobile Adapter GB] : Protocol - Packet Format</p>
 
@@ -1545,9 +1644,9 @@ Byte 2			| Command ID (sender)
 
 	<p>The magic bytes are simply a pair of bytes used to identify the start of a Mobile Adapter packet. When one side starts receiving these magic bytes, the other should return the same to begin and sync communications.</p>
 
-	<p>Packet Data is arbitrary data and varies in length and content. It has a maximum size of 254 bytes. This restriction appears to come from the fact that the Packet Data and Packet Checksum are lumped together, and their total lengths must not exceed 256 bytes. Attempting to send more than 254 bytes of packet data causes communications errors (generally because both software and presumably hardware internally make their own cut off at 254 bytes, thus the packet checksum fails).</p>
+	<p>Packet Data is arbitrary data and varies in length and content. On the Game Boy Color, it has a maximum size of 254 bytes. This restriction may be applied via software and appears to come from the fact that the Packet Data and Packet Checksum are lumped together, thus their total lengths must not exceed 256 bytes. Attempting to send more than 254 bytes of packet data causes communications errors in all supported GBC games. Evidence suggests GBA games can use Bytes 3 and 4 of the Packet Header to specify Packet Data size (possibly up to 64KB). </p>
 
-	<p>Data greater than 254 bytes may be broken up into multiple packets, however. For example, when sending a large binary file such as an image or executable code, multiple packets are transferred from the Mobile Adapter to the Game Boy while the TCP transfer is ongoing.</p>
+	<p>On the GBC, data greater than 254 bytes may be broken up into multiple packets, however. For example, when sending a large binary file such as an image or executable code, multiple packets are transferred from the Mobile Adapter to the Game Boy while the TCP transfer is ongoing.</p>
 
 	<p>The Packet Checksum is simply the 16-bit sum of all previous header bytes and all previous packet data bytes. It does not include the magic bytes. The checksum is transmitted big-endian. After the checksum, a simple 2-byte Acknowledgement Signal is sent.</p>
 
@@ -1561,6 +1660,7 @@ Byte 2			| Command ID (sender)
 Device ID	| OR Value	| Device Type
 -------------------------------------------------
 0x00		| 0x80		| Game Boy Color
+0x01		| 0x81		| Game Boy Advance
 0x08		| 0x88		| PDC Mobile Adapter (Blue)
 0x09		| 0x89		| cdmaOne Mobile Adapter (Yellow)
 0x0A		| 0x8A		| PHS Mobile Adapter (Green)
@@ -1651,6 +1751,12 @@ Command 0x28		DNS Query
 	<p>Typically sent to the adapter before dialing. Also used to test the telephone status before opening a TCP connection, or to constantly ping the phone to make sure it&#39;s still active. The reply is 1 byte. 0x00 means the phone is ready to make a call or connection. 0x04 and 0x05 indicate that the line is busy (presumably set after a command like 0x12). The difference between the two line-busy values is unknown. Most software does not seem to care which one is sent, but Net de Get: Mini Game @ 100 refuses to work with 0x05.</p>
 
 	<p class="spc">Additionally, the Game Boy seem to set Bits 0 - 4 high for the Command ID in the Acknowledgement Signal, thus sending 0x1F to the Mobile Adapter.</p>
+
+	<p class="list_item"><strong>Command 0x18 - Unknown Command</strong></p>
+	<p class="list_item">Data Sent: 1 unknown byte</p>
+	<p class="list_item">Data Received: N/A. Empty Packet Data</p>
+
+	<p class="spc">This command is generally sent after Command 0x10. Only GBA games have been known to use this command. The GBA sends 1 unknown byte. The response Packet Data is empty, and the length is zero bytes.</p>
 
 	<p class="list_item"><strong>Command 0x19 - Read Configuration Data</strong></p>
 	<p class="list_item">Data Sent: 1 byte offset + 1 byte read length</p>
