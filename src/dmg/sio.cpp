@@ -1585,19 +1585,8 @@ void DMG_SIO::singer_izek_process()
 					current_y += singer_izek.y_plot[x];
 
 					buffer_pos = (current_y * 160) + current_x;
-					singer_izek.stitch_buffer[buffer_pos] = 0xFF000000;
+					if(buffer_pos < 0x5A00) { singer_izek.stitch_buffer[buffer_pos] = 0xFF000000; }
 				}
-
-				SDL_Surface* stitch_surface = SDL_CreateRGBSurface(SDL_SWSURFACE, 160, 144, 32, 0, 0, 0, 0);
-
-				if(SDL_MUSTLOCK(stitch_surface)){ SDL_LockSurface(stitch_surface); }
-				u32* out_pixel_data = (u32*)stitch_surface->pixels;
-
-				for(u32 y = 0; y < 0x5A00; y++) { out_pixel_data[y] = singer_izek.stitch_buffer[y]; }
-				if(SDL_MUSTLOCK(stitch_surface)){ SDL_UnlockSurface(stitch_surface); }
-
-
-				SDL_SaveBMP(stitch_surface, "stitch.bmp");
 			}
 
 			break;
