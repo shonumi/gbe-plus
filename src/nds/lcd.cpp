@@ -71,8 +71,7 @@ void NTR_LCD::reset()
 	lcd_stat.current_scanline = 0;
 	scanline_pixel_counter = 0;
 
-	lcd_stat.lyc_a = 0;
-	lcd_stat.lyc_b = 0;
+	lcd_stat.lyc = 0;
 
 	//Screen + render buffer initialization
 	screen_buffer.resize(0x18000, 0);
@@ -142,8 +141,7 @@ void NTR_LCD::reset()
 	lcd_stat.ext_pal_a = 0;
 	lcd_stat.ext_pal_b = 0;
 
-	lcd_stat.display_stat_a = 0;
-	lcd_stat.display_stat_b = 0;
+	lcd_stat.display_stat = 0;
 
 	lcd_stat.bg_mode_a = 0;
 	lcd_stat.bg_mode_b = 0;
@@ -152,13 +150,9 @@ void NTR_LCD::reset()
 	lcd_stat.forced_blank_a = false;
 	lcd_stat.forced_blank_b = false;
 
-	lcd_stat.vblank_irq_enable_a = false;
-	lcd_stat.hblank_irq_enable_a = false;
-	lcd_stat.vcount_irq_enable_a = false;
-
-	lcd_stat.vblank_irq_enable_b = false;
-	lcd_stat.hblank_irq_enable_b = false;
-	lcd_stat.vcount_irq_enable_b = false;
+	lcd_stat.vblank_irq_enable = false;
+	lcd_stat.hblank_irq_enable = false;
+	lcd_stat.vcount_irq_enable = false;
 
 	//Misc BG initialization
 	for(int x = 0; x < 4; x++)
@@ -1000,7 +994,7 @@ void NTR_LCD::render_bg_scanline(u32 bg_control)
 		}
 
 		//Apply SFX
-		apply_sfx(NDS_DISPCNT_A);
+		//apply_sfx(NDS_DISPCNT_A);
 	}
 
 	//Render Engine B
@@ -1163,7 +1157,7 @@ void NTR_LCD::render_bg_scanline(u32 bg_control)
 		}
 
 		//Apply SFX
-		apply_sfx(NDS_DISPCNT_B);
+		//apply_sfx(NDS_DISPCNT_B);
 	}
 }
 
@@ -2941,8 +2935,7 @@ void NTR_LCD::step()
 			lcd_stat.lcd_mode = 0;
 
 			//Reset HBlank flag in DISPSTAT
-			lcd_stat.display_stat_a &= ~0x2;
-			lcd_stat.display_stat_b &= ~0x2;
+			lcd_stat.display_stat &= ~0x2;
 			
 			lcd_stat.current_scanline++;
 
@@ -2962,12 +2955,14 @@ void NTR_LCD::step()
 			lcd_stat.lcd_mode = 1;
 
 			//Set HBlank flag in DISPSTAT
-			lcd_stat.display_stat_a |= 0x2;
-			lcd_stat.display_stat_b |= 0x2;
+			lcd_stat.display_stat |= 0x2;
 
 			//Trigger HBlank IRQ
-			if(lcd_stat.hblank_irq_enable_a) { mem->nds9_if |= 0x2; }
-			if(lcd_stat.hblank_irq_enable_b) { mem->nds7_if |= 0x2; }
+			if(lcd_stat.hblank_irq_enable)
+			{
+				mem->nds9_if |= 0x2;
+				mem->nds7_if |= 0x2;
+			}
 
 			//Update 2D engine OAM
 			if(lcd_stat.oam_update) { update_oam(); }
@@ -3043,16 +3038,17 @@ void NTR_LCD::step()
 			lcd_stat.lcd_mode = 2;
 
 			//Set VBlank flag in DISPSTAT
-			lcd_stat.display_stat_a |= 0x1;
-			lcd_stat.display_stat_b |= 0x1;
+			lcd_stat.display_stat |= 0x1;
 
 			//Reset HBlank flag in DISPSTAT
-			lcd_stat.display_stat_a &= ~0x2;
-			lcd_stat.display_stat_b &= ~0x2;
+			lcd_stat.display_stat &= ~0x2;
 
 			//Trigger VBlank IRQ
-			if(lcd_stat.vblank_irq_enable_a) { mem->nds9_if |= 0x1; }
-			if(lcd_stat.vblank_irq_enable_b) { mem->nds7_if |= 0x1; }
+			if(lcd_stat.vblank_irq_enable)
+			{
+				mem->nds9_if |= 0x1;
+				mem->nds7_if |= 0x1;
+			}
 
 			//Increment scanline count
 			lcd_stat.current_scanline++;
@@ -3147,7 +3143,7 @@ void NTR_LCD::step()
 			}
 
 			//3D - Swap Buffers command
-			if((lcd_3D_stat.gx_state & 0x80) && (lcd_stat.display_stat_a & 0x1))
+			if((lcd_3D_stat.gx_state & 0x80) && (lcd_stat.display_stat & 0x1))
 			{
 				lcd_3D_stat.buffer_id += 1;
 				lcd_3D_stat.buffer_id &= 0x1;
@@ -3189,25 +3185,25 @@ void NTR_LCD::step()
 			//Reset VBlank flag in DISPSTAT on line 261
 			if(lcd_stat.current_scanline == 261)
 			{
-				lcd_stat.display_stat_a &= ~0x1;
-				lcd_stat.display_stat_b &= ~0x1;
+				lcd_stat.display_stat &= ~0x1;
 			}
 
 			//Set HBlank flag in DISPSTAT
-			lcd_stat.display_stat_a |= 0x2;
-			lcd_stat.display_stat_b |= 0x2;
+			lcd_stat.display_stat |= 0x2;
 
 			//Trigger HBlank IRQ
-			if(lcd_stat.hblank_irq_enable_a) { mem->nds9_if |= 0x2; }
-			if(lcd_stat.hblank_irq_enable_b) { mem->nds7_if |= 0x2; }
+			if(lcd_stat.hblank_irq_enable)
+			{
+				mem->nds9_if |= 0x2;
+				mem->nds7_if |= 0x2;
+			}
 		}
 
 		//Turn off HBlank flag at the start of a scanline
 		else if((lcd_stat.lcd_clock % 2130) == 0)
 		{
 			//Reset HBlank flag in DISPSTAT
-			lcd_stat.display_stat_a &= ~0x2;
-			lcd_stat.display_stat_b &= ~0x2;
+			lcd_stat.display_stat &= ~0x2;
 
 			//Reset LCD clock
 			if(lcd_stat.current_scanline == 263)
@@ -3222,36 +3218,24 @@ void NTR_LCD::step()
 /****** Compare VCOUNT to LYC ******/
 void NTR_LCD::scanline_compare()
 {
-	//Raise VCOUNT interrupt - Engine A
-	if(lcd_stat.current_scanline == lcd_stat.lyc_a)
+	//Raise VCOUNT interrupt
+	if(lcd_stat.current_scanline == lcd_stat.lyc)
 	{
 		//Check to see if the VCOUNT IRQ is enabled in DISPSTAT
-		if(lcd_stat.vcount_irq_enable_a) { mem->nds9_if |= 0x4; }
+		if(lcd_stat.vcount_irq_enable)
+		{
+			mem->nds9_if |= 0x4;
+			mem->nds7_if |= 0x4;
+		}
 
 		//Toggle VCOUNT flag ON
-		lcd_stat.display_stat_a |= 0x4;
+		lcd_stat.display_stat |= 0x4;
 	}
 
 	else
 	{
 		//Toggle VCOUNT flag OFF
-		lcd_stat.display_stat_a &= ~0x4;
-	}
-
-	//Raise VCOUNT interrupt - Engine B
-	if(lcd_stat.current_scanline == lcd_stat.lyc_b)
-	{
-		//Check to see if the VCOUNT IRQ is enabled in DISPSTAT
-		if(lcd_stat.vcount_irq_enable_b) { mem->nds7_if |= 0x4; }
-
-		//Toggle VCOUNT flag ON
-		lcd_stat.display_stat_b |= 0x4;
-	}
-
-	else
-	{
-		//Toggle VCOUNT flag OFF
-		lcd_stat.display_stat_b &= ~0x4;
+		lcd_stat.display_stat &= ~0x4;
 	}
 }
 
