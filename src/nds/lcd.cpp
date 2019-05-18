@@ -1475,7 +1475,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 
 					//SFX and line buffer
 					sfx_buffer[scanline_pixel_counter] = (render_buffer_a[scanline_pixel_counter]);
-					line_buffer[bg_id][scanline_pixel_counter] = scanline_buffer_a[scanline_pixel_counter] = lcd_stat.bg_pal_a[pal_1];
+					line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_a[pal_1];
 
 					//Draw 256 pixels max
 					scanline_pixel_counter++;
@@ -1496,7 +1496,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 
 					//SFX and line buffer
 					sfx_buffer[scanline_pixel_counter] = (render_buffer_a[scanline_pixel_counter]);
-					line_buffer[bg_id][scanline_pixel_counter] = scanline_buffer_a[scanline_pixel_counter] = lcd_stat.bg_pal_a[pal_2];
+					line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_a[pal_2];
 
 					//Draw 256 pixels max
 					scanline_pixel_counter++;
@@ -1660,7 +1660,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 
 					//SFX and line buffer
 					sfx_buffer[scanline_pixel_counter] = (render_buffer_b[scanline_pixel_counter]);
-					line_buffer[bg_id][scanline_pixel_counter] = scanline_buffer_b[scanline_pixel_counter] = lcd_stat.bg_pal_b[pal_1];
+					line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_b[pal_1];
 
 					//Draw 256 pixels max
 					scanline_pixel_counter++;
@@ -1681,7 +1681,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 
 					//SFX and line buffer
 					sfx_buffer[scanline_pixel_counter] = (render_buffer_b[scanline_pixel_counter]);
-					line_buffer[bg_id][scanline_pixel_counter] = scanline_buffer_b[scanline_pixel_counter] = lcd_stat.bg_pal_b[pal_2];
+					line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_b[pal_2];
 
 					//Draw 256 pixels max
 					scanline_pixel_counter++;
