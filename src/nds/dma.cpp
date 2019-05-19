@@ -22,7 +22,7 @@ void NTR_ARM9::nds9_dma(u8 index)
 
 	u32 temp_value = 0;
 	u32 original_dest_addr = mem->dma[index].destination_address;
-	u8 dma_mode = ((mem->dma[index].control >> 28) & 0x7);
+	u8 dma_mode = ((mem->dma[index].control >> 27) & 0x7);
 
 	u32 fill_addr = NDS_DMA0FILL + (index * 4);
 	u32 cnt_addr = NDS_DMA0CNT + (index * 12);
