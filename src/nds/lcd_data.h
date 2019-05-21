@@ -31,12 +31,14 @@ struct ntr_lcd_data
 	u32 lcd_clock;
 	u8 lcd_mode;
 
-	u16 lyc;
+	u16 lyc_a;
+	u16 lyc_b;
 
 	u32 display_control_a;
 	u32 display_control_b;
 
-	u16 display_stat;
+	u16 display_stat_a;
+	u16 display_stat_b;
 	
 	u8 bg_mode_a;
 	u8 bg_mode_b;
@@ -148,9 +150,13 @@ struct ntr_lcd_data
 	double brightness_coef_a;
 	double brightness_coef_b;
 
-	bool vblank_irq_enable;
-	bool hblank_irq_enable;
-	bool vcount_irq_enable;
+	bool vblank_irq_enable_a;
+	bool hblank_irq_enable_a;
+	bool vcount_irq_enable_a;
+
+	bool vblank_irq_enable_b;
+	bool hblank_irq_enable_b;
+	bool vcount_irq_enable_b;
 
 	bool bg_pal_update_a;
 	std::vector<bool> bg_pal_update_list_a;
