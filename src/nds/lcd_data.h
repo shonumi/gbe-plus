@@ -31,14 +31,14 @@ struct ntr_lcd_data
 	u32 lcd_clock;
 	u8 lcd_mode;
 
-	u16 lyc_a;
-	u16 lyc_b;
+	u16 lyc_nds9;
+	u16 lyc_nds7;
 
 	u32 display_control_a;
 	u32 display_control_b;
 
-	u16 display_stat_a;
-	u16 display_stat_b;
+	u16 display_stat_nds9;
+	u16 display_stat_nds7;
 	
 	u8 bg_mode_a;
 	u8 bg_mode_b;

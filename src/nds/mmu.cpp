@@ -360,10 +360,10 @@ u8 NTR_MMU::read_u8(u32 address)
 		u8 addr_shift = (address & 0x1) << 3;
 
 		//Return NDS9 DISPSTAT
-		if(access_mode) { return ((lcd_stat->display_stat_a >> addr_shift) & 0xFF); }
+		if(access_mode) { return ((lcd_stat->display_stat_nds9 >> addr_shift) & 0xFF); }
 		
 		//Return NDS7 DISPSTAT
-		else { return ((lcd_stat->display_stat_b >> addr_shift) & 0xFF); }
+		else { return ((lcd_stat->display_stat_nds7 >> addr_shift) & 0xFF); }
 	}
 
 	//Check for reading IME
@@ -1210,30 +1210,30 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		case NDS_DISPSTAT:
 			if(access_mode)
 			{	
-				lcd_stat->display_stat_a &= 0xFF07;
-				lcd_stat->display_stat_a |= (value & ~0x7);
+				lcd_stat->display_stat_nds9 &= 0xFF07;
+				lcd_stat->display_stat_nds9 |= (value & ~0x7);
 
 				lcd_stat->vblank_irq_enable_a = (value & 0x8) ? true : false;
 				lcd_stat->hblank_irq_enable_a = (value & 0x10) ? true : false;
 				lcd_stat->vcount_irq_enable_a = (value & 0x20) ? true : false;
 
 				//MSB of LYC is Bit 7 of DISPSTAT
-				lcd_stat->lyc_a &= ~0x100;
-				if(value & 0x80) { lcd_stat->lyc_a |= 0x100; }
+				lcd_stat->lyc_nds9 &= ~0x100;
+				if(value & 0x80) { lcd_stat->lyc_nds9 |= 0x100; }
 			}
 
 			else
 			{	
-				lcd_stat->display_stat_b &= 0xFF07;
-				lcd_stat->display_stat_b |= (value & ~0x7);
+				lcd_stat->display_stat_nds7 &= 0xFF07;
+				lcd_stat->display_stat_nds7 |= (value & ~0x7);
 
 				lcd_stat->vblank_irq_enable_b = (value & 0x8) ? true : false;
 				lcd_stat->hblank_irq_enable_b = (value & 0x10) ? true : false;
 				lcd_stat->vcount_irq_enable_b = (value & 0x20) ? true : false;
 
 				//MSB of LYC is Bit 7 of DISPSTAT
-				lcd_stat->lyc_b &= ~0x100;
-				if(value & 0x80) { lcd_stat->lyc_b |= 0x100; }
+				lcd_stat->lyc_nds7 &= ~0x100;
+				if(value & 0x80) { lcd_stat->lyc_nds7 |= 0x100; }
 			}
  
 			break;
@@ -1242,20 +1242,20 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		case NDS_DISPSTAT+1:
 			if(access_mode)
 			{
-				lcd_stat->display_stat_a &= 0xFF;
-				lcd_stat->display_stat_a |= (value << 8);
+				lcd_stat->display_stat_nds9 &= 0xFF;
+				lcd_stat->display_stat_nds9 |= (value << 8);
 
-				lcd_stat->lyc_a &= ~0xFF;
-				lcd_stat->lyc_a |= value;
+				lcd_stat->lyc_nds9 &= ~0xFF;
+				lcd_stat->lyc_nds9 |= value;
 			}
 
 			else
 			{
-				lcd_stat->display_stat_b &= 0xFF;
-				lcd_stat->display_stat_b |= (value << 8);
+				lcd_stat->display_stat_nds7 &= 0xFF;
+				lcd_stat->display_stat_nds7 |= (value << 8);
 
-				lcd_stat->lyc_b &= ~0xFF;
-				lcd_stat->lyc_b |= value;
+				lcd_stat->lyc_nds7 &= ~0xFF;
+				lcd_stat->lyc_nds7 |= value;
 			}
 
 			break;
