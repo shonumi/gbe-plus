@@ -106,7 +106,7 @@ void DMG_MMU::mbc6_write(u16 address, u8 value)
 		u8 bank_1 = ((rom_bank >> 8) & 0x7F);
 		bool is_bank_0 = (address < 0x6000) ? true : false;
 
-		u8 bank = (address < 0x6000) ? (bank_0 >> 4) : (bank_1 >> 4);
+		u8 bank = (address < 0x6000) ? bank_0 : bank_1;
 
 		//Signal write command finish
 		if(((address & 0x7F) == 0x7F) && (value == 0)) { cart.flash_stat |= 0x80; return; }
@@ -219,7 +219,6 @@ u8 DMG_MMU::mbc6_read(u16 address)
 		if(cart.flash_cnt & 0x8)
 		{
 			u8 bank = ((rom_bank >> 8) & 0x7F);
-			bank >>= 4;
 
 			//Get FLASH Status
 			if(cart.flash_stat & 0x81) { return 0x80; }

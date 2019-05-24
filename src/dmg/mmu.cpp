@@ -114,8 +114,8 @@ void DMG_MMU::reset()
 	video_ram.resize(0x2);
 	for(int x = 0; x < 0x2; x++) { video_ram[x].resize(0x2000, 0); }
 
-	flash.resize(0x8);
-	for(int x = 0; x < 0x8; x++) { flash[x].resize(0x2000, 0); }
+	flash.resize(0x80);
+	for(int x = 0; x < 0x80; x++) { flash[x].resize(0x2000, 0); }
 
 	g_pad = NULL;
 
@@ -2115,13 +2115,13 @@ bool DMG_MMU::load_backup(std::string filename)
 			u32 file_size = flash_save.tellg();
 			flash_save.seekg(0, flash_save.beg);
 
-			if(file_size != 0x10000)
+			if(file_size != 0x100000)
 			{
 				std::cout<<"MMU::Error - MBC6 Flash save file " << flash_name << " is the incorrect size\n";
 				return false;
 			}
 
-			for(int x = 0; x < 8; x++)
+			for(int x = 0; x < 0x80; x++)
 			{
 				u8* ex_ram = &flash[x][0];
 				flash_save.read((char*)ex_ram, 0x2000); 
@@ -2271,7 +2271,7 @@ bool DMG_MMU::save_backup(std::string filename)
 		filename = config::save_path + util::get_filename_from_path(filename) + ".flash";
 		std::ofstream flash_save(filename.c_str(), std::ios::binary);
 
-		for(int x = 0; x < 0x8; x++)
+		for(int x = 0; x < 0x80; x++)
 		{
 			flash_save.write(reinterpret_cast<char*> (&flash[x][0]), 0x2000);
 		}
