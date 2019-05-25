@@ -2795,7 +2795,11 @@ void NTR_LCD::brightness_up(u32 bg_control)
 		//Proceed with SFX
 		if(sfx_target)
 		{
-			color = line_buffer[layer][x];
+			//Pull color from backdrop
+			if(layer == 0xFF) { color = (bg_control == NDS_DISPCNT_A) ? lcd_stat.bg_pal_a[0] : lcd_stat.bg_pal_b[0]; }
+
+			//Pull color from BG layers
+			else { color = line_buffer[layer][x]; }
 
 			//Increase RGB intensities
 			red = ((color >> 19) & 0x1F);
@@ -2855,7 +2859,11 @@ void NTR_LCD::brightness_down(u32 bg_control)
 		//Proceed with SFX
 		if(sfx_target)
 		{
-			color = line_buffer[layer][x];
+			//Pull color from backdrop
+			if(layer == 0xFF) { color = (bg_control == NDS_DISPCNT_A) ? lcd_stat.bg_pal_a[0] : lcd_stat.bg_pal_b[0]; }
+
+			//Pull color from BG layers
+			else { color = line_buffer[layer][x]; }
 
 			//Decrease RGB intensities 
 			red = ((color >> 19) & 0x1F);
