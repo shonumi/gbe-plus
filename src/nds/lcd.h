@@ -54,6 +54,8 @@ class NTR_LCD
 	ntr_lcd_data lcd_stat;
 	ntr_lcd_3D_data lcd_3D_stat;
 
+	int max_fullscreen_ratio;
+
 	private:
 
 	struct oam_entries
