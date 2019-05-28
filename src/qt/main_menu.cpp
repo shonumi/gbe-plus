@@ -1289,7 +1289,9 @@ void main_menu::fullscreen()
 		//Set fullscreen
 		if(findChild<QAction*>("fullscreen_action")->isChecked())
 		{
-			QApplication::setOverrideCursor(Qt::BlankCursor);
+			//Disable cursor except for NDS games
+			if(config::gb_type != 4) { QApplication::setOverrideCursor(Qt::BlankCursor); }
+
 			fullscreen_mode = true;
 			setWindowState(Qt::WindowFullScreen);
 			menu_bar->hide();
