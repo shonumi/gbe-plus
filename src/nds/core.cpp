@@ -797,6 +797,7 @@ void NTR_core::handle_hotkey(SDL_Event& event)
 				else { ratio = max_height; }
 
 				core_cpu_nds9.controllers.video.max_fullscreen_ratio = ratio;
+				core_pad.sdl_fs_ratio = ratio;
 			}
 		}
 

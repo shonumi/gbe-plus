@@ -35,6 +35,7 @@ class NTR_GamePad
 	void process_mouse(int pad, bool pressed);
 
 	int pad;
+	u8 sdl_fs_ratio;
 	u16 key_input;
 	u16 ext_key_input;
 	u32 mouse_x, mouse_y;
