@@ -228,21 +228,35 @@ void NTR_GamePad::handle_input(SDL_Event &event)
 
 		bool is_top = false;
 
-		//Top screen cannot be touched
-		if(((event.button.y / config::scaling_factor) < 192) && (config::lcd_config == 0)) { is_top = true; }
-		else if(((event.button.y / config::scaling_factor) > 192) && (config::lcd_config == 1)) { is_top = true; }
-		else if(((event.button.x / config::scaling_factor) < 256) && (config::lcd_config == 2)) { is_top = true; }
-		else if(((event.button.x / config::scaling_factor) > 256) && (config::lcd_config == 3)) { is_top = true; }
-
-		if(is_top)
+		//Calculate coordinates in SDL fullscreen
+		if((config::sdl_render) && (config::flags & SDL_WINDOW_FULLSCREEN_DESKTOP) && (!config::use_opengl))
 		{
-			mouse_x = 0;
-			mouse_y = 0xFFF;
-			return;
+			mouse_x = event.button.x - ((config::win_width - (config::sys_width * sdl_fs_ratio)) >> 1);
+			mouse_y = event.button.y - ((config::win_height - (config::sys_height * sdl_fs_ratio)) >> 1);
+
+			mouse_x /= sdl_fs_ratio;
+			mouse_y /= sdl_fs_ratio;
 		}
 
-		mouse_x = (event.button.x / config::scaling_factor);
-		mouse_y = (event.button.y / config::scaling_factor);
+		//Calculate coordinates normally
+		else
+		{
+			//Top screen cannot be touched
+			if(((event.button.y / config::scaling_factor) < 192) && (config::lcd_config == 0)) { is_top = true; }
+			else if(((event.button.y / config::scaling_factor) > 192) && (config::lcd_config == 1)) { is_top = true; }
+			else if(((event.button.x / config::scaling_factor) < 256) && (config::lcd_config == 2)) { is_top = true; }
+			else if(((event.button.x / config::scaling_factor) > 256) && (config::lcd_config == 3)) { is_top = true; }
+
+			if(is_top)
+			{
+				mouse_x = 0;
+				mouse_y = 0xFFF;
+				return;
+			}
+
+			mouse_x = (event.button.x / config::scaling_factor);
+			mouse_y = (event.button.y / config::scaling_factor);
+		}
 
 		//Adjust mouse X and Y coordinates to NDS coordinate
 		switch(config::lcd_config)
@@ -280,14 +294,28 @@ void NTR_GamePad::handle_input(SDL_Event &event)
 		//Only process mouse motion if the emulated stylus is down
 		if(!touch_by_mouse) { return; }
 
-		//Top screen cannot be touched
-		if(((event.button.y / config::scaling_factor) < 192) && (config::lcd_config == 0)) { return; }
-		else if(((event.button.y / config::scaling_factor) > 192) && (config::lcd_config == 1)) { return; }
-		else if(((event.button.x / config::scaling_factor) < 256) && (config::lcd_config == 2)) { return; }
-		else if(((event.button.x / config::scaling_factor) > 256) && (config::lcd_config == 3)) { return; }
+		//Calculate coordinates in SDL fullscreen
+		if((config::sdl_render) && (config::flags & SDL_WINDOW_FULLSCREEN_DESKTOP) && (!config::use_opengl))
+		{
+			mouse_x = event.button.x - ((config::win_width - (config::sys_width * sdl_fs_ratio)) >> 1);
+			mouse_y = event.button.y - ((config::win_height - (config::sys_height * sdl_fs_ratio)) >> 1);
 
-		mouse_x = (event.button.x / config::scaling_factor);
-		mouse_y = (event.button.y / config::scaling_factor);
+			mouse_x /= sdl_fs_ratio;
+			mouse_y /= sdl_fs_ratio;
+		}
+
+		//Calculate coordinates normally
+		else
+		{
+			//Top screen cannot be touched
+			if(((event.button.y / config::scaling_factor) < 192) && (config::lcd_config == 0)) { return; }
+			else if(((event.button.y / config::scaling_factor) > 192) && (config::lcd_config == 1)) { return; }
+			else if(((event.button.x / config::scaling_factor) < 256) && (config::lcd_config == 2)) { return; }
+			else if(((event.button.x / config::scaling_factor) > 256) && (config::lcd_config == 3)) { return; }
+
+			mouse_x = (event.button.x / config::scaling_factor);
+			mouse_y = (event.button.y / config::scaling_factor);
+		}
 
 		//Adjust mouse X and Y coordinates to NDS coordinate
 		switch(config::lcd_config)

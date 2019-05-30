@@ -38,10 +38,10 @@ void NTR_ARM9::nds9_dma(u8 index)
 			if(!mem->dma[index].started) { return; }
 	}
 
-	std::cout<<"NDS9 DMA" << std::dec << (u16)index << "\n";
-	std::cout<<"START ADDR -> 0x" << std::hex << mem->dma[index].start_address << "\n";
-	std::cout<<"DEST  ADDR -> 0x" << std::hex << mem->dma[index].destination_address << "\n";
-	std::cout<<"WORD COUNT -> 0x" << std::hex << mem->dma[index].word_count << "\n";
+	//std::cout<<"NDS9 DMA" << std::dec << (u16)index << "\n";
+	//std::cout<<"START ADDR -> 0x" << std::hex << mem->dma[index].start_address << "\n";
+	//std::cout<<"DEST  ADDR -> 0x" << std::hex << mem->dma[index].destination_address << "\n";
+	//std::cout<<"WORD COUNT -> 0x" << std::hex << mem->dma[index].word_count << "\n";
 
 	//DMA fill operation
 	if(mem->dma[index].start_address == fill_addr)
@@ -143,10 +143,10 @@ void NTR_ARM7::nds7_dma(u8 index)
 			if(!mem->dma[index].started) { return; }
 	}
 
-	std::cout<<"NDS7 DMA" << std::dec << (u16)index << "\n";
-	std::cout<<"START ADDR -> 0x" << std::hex << mem->dma[index].start_address << "\n";
-	std::cout<<"DEST  ADDR -> 0x" << std::hex << mem->dma[index].destination_address << "\n";
-	std::cout<<"WORD COUNT -> 0x" << std::hex << mem->dma[index].word_count << "\n";
+	//std::cout<<"NDS7 DMA" << std::dec << (u16)index << "\n";
+	//std::cout<<"START ADDR -> 0x" << std::hex << mem->dma[index].start_address << "\n";
+	//std::cout<<"DEST  ADDR -> 0x" << std::hex << mem->dma[index].destination_address << "\n";
+	//std::cout<<"WORD COUNT -> 0x" << std::hex << mem->dma[index].word_count << "\n";
 
 	//16-bit transfer
 	if(mem->dma[index].word_type == 0)
