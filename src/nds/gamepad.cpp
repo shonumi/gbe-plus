@@ -176,6 +176,12 @@ void NTR_GamePad::handle_input(SDL_Event &event)
 
 			mouse_x /= sdl_fs_ratio;
 			mouse_y /= sdl_fs_ratio;
+
+			//Top screen cannot be touched
+			if((mouse_y < 192) && (config::lcd_config == 0)) { return; }
+			else if((mouse_y > 192) && (config::lcd_config == 1)) { return; }
+			else if((mouse_x < 256) && (config::lcd_config == 2)) { return; }
+			else if((mouse_x > 256) && (config::lcd_config == 3)) { return; }
 		}
 
 		//Calculate coordinates normally
@@ -236,6 +242,12 @@ void NTR_GamePad::handle_input(SDL_Event &event)
 
 			mouse_x /= sdl_fs_ratio;
 			mouse_y /= sdl_fs_ratio;
+
+			//Top screen cannot be touched
+			if((mouse_y < 192) && (config::lcd_config == 0)) { return; }
+			else if((mouse_y > 192) && (config::lcd_config == 1)) { return; }
+			else if((mouse_x < 256) && (config::lcd_config == 2)) { return; }
+			else if((mouse_x > 256) && (config::lcd_config == 3)) { return; }
 		}
 
 		//Calculate coordinates normally
@@ -302,6 +314,12 @@ void NTR_GamePad::handle_input(SDL_Event &event)
 
 			mouse_x /= sdl_fs_ratio;
 			mouse_y /= sdl_fs_ratio;
+
+			//Top screen cannot be touched
+			if((mouse_y < 192) && (config::lcd_config == 0)) { return; }
+			else if((mouse_y > 192) && (config::lcd_config == 1)) { return; }
+			else if((mouse_x < 256) && (config::lcd_config == 2)) { return; }
+			else if((mouse_x > 256) && (config::lcd_config == 3)) { return; }
 		}
 
 		//Calculate coordinates normally
