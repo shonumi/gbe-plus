@@ -98,6 +98,7 @@ namespace config
 	u32 hotkey_turbo = SDLK_TAB;
 	u32 hotkey_mute = SDLK_m;
 	u32 hotkey_camera = SDLK_p;
+	u32 hotkey_swap_screen = SDLK_F4;
 
 	//Default joystick dead-zone
 	int dead_zone = 16000;
@@ -1886,7 +1887,7 @@ bool parse_ini_file()
 		//Hotkeys
 		else if(ini_item == "#hotkeys")
 		{
-			if((x + 3) < size)
+			if((x + 4) < size)
 			{
 				//Turbo
 				util::from_str(ini_opts[++x], config::hotkey_turbo);
@@ -1896,6 +1897,9 @@ bool parse_ini_file()
 
 				//GB Camera
 				util::from_str(ini_opts[++x], config::hotkey_camera);
+
+				//NDS swap screens
+				util::from_str(ini_opts[++x], config::hotkey_swap_screen);
 			}
 
 			else 

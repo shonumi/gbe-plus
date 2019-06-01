@@ -716,6 +716,8 @@ void NTR_core::step()
 /****** Process hotkey input ******/
 void NTR_core::handle_hotkey(SDL_Event& event)
 {
+	std::cout<<"WHAT -> " << std::dec << event.key.keysym.sym << "\n";
+
 	//Quit on Q or ESC
 	if((event.type == SDL_KEYDOWN) && ((event.key.keysym.sym == SDLK_q) || (event.key.keysym.sym == SDLK_ESCAPE)))
 	{
@@ -854,8 +856,8 @@ void NTR_core::handle_hotkey(SDL_Event& event)
 		config::request_resize = true;
 	}
 		
-	//Toggle swap NDS screens on F4
-	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F4))
+	//Toggle swap NDS screens
+	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == config::hotkey_swap_screen))
 	{
 		if(config::lcd_config & 0x1) { config::lcd_config &= ~0x1; }
 		else { config::lcd_config |= 0x1; }

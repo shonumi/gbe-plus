@@ -99,6 +99,7 @@ namespace config
 	extern u32 hotkey_turbo;
 	extern u32 hotkey_mute;
 	extern u32 hotkey_camera;
+	extern u32 hotkey_swap_screen;
 	extern int dead_zone;
 	extern int joy_id;
 	extern int joy_sdl_id;
