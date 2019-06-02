@@ -716,8 +716,6 @@ void NTR_core::step()
 /****** Process hotkey input ******/
 void NTR_core::handle_hotkey(SDL_Event& event)
 {
-	std::cout<<"WHAT -> " << std::dec << event.key.keysym.sym << "\n";
-
 	//Quit on Q or ESC
 	if((event.type == SDL_KEYDOWN) && ((event.key.keysym.sym == SDLK_q) || (event.key.keysym.sym == SDLK_ESCAPE)))
 	{
@@ -847,8 +845,8 @@ void NTR_core::handle_hotkey(SDL_Event& event)
 	//Reset emulation on F8
 	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F8)) { reset(); }
 
-	//Toggle vertical or horizontal mode on F3
-	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F3))
+	//Toggle vertical or horizontal mode
+	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == config::hotkey_shift_screen))
 	{
 		if(config::lcd_config & 0x2) { config::resize_mode = 0; }
 		else { config::resize_mode = 1; }
