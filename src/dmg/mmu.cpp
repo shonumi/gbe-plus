@@ -1327,7 +1327,7 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 			sio_stat->transfer_byte = memory_map[REG_SB];
 		}
 
-		memory_map[address] = value;
+		memory_map[address] = value | 0x7C;
 	}
 
 	//RP - IR port
