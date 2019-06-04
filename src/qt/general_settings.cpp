@@ -833,6 +833,36 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	hotkey_camera_layout->setContentsMargins(6, 0, 0, 0);
 	hotkey_camera_set->setLayout(hotkey_camera_layout);
 
+	//Hotkey settings - NDS Screen Swap
+	hotkey_swap_screen_set = new QWidget(controls);
+	QLabel* hotkey_swap_screen_label = new QLabel("DS Swap LCD : ");
+	input_swap_screen = new QLineEdit(controls);
+	config_swap_screen = new QPushButton("Configure");
+	input_swap_screen->setMaximumWidth(100);
+	config_swap_screen->setMaximumWidth(100);
+
+	QHBoxLayout* hotkey_swap_screen_layout = new QHBoxLayout;
+	hotkey_swap_screen_layout->addWidget(hotkey_swap_screen_label, 1, Qt::AlignLeft);
+	hotkey_swap_screen_layout->addWidget(input_swap_screen, 1, Qt::AlignLeft);
+	hotkey_swap_screen_layout->addWidget(config_swap_screen, 1, Qt::AlignLeft);
+	hotkey_swap_screen_layout->setContentsMargins(6, 0, 0, 0);
+	hotkey_swap_screen_set->setLayout(hotkey_swap_screen_layout);
+
+	//Hotkey settings - NDS Screen Shift
+	hotkey_shift_screen_set = new QWidget(controls);
+	QLabel* hotkey_shift_screen_label = new QLabel("DS V/H Mode : ");
+	input_shift_screen = new QLineEdit(controls);
+	config_shift_screen = new QPushButton("Configure");
+	input_shift_screen->setMaximumWidth(100);
+	config_shift_screen->setMaximumWidth(100);
+
+	QHBoxLayout* hotkey_shift_screen_layout = new QHBoxLayout;
+	hotkey_shift_screen_layout->addWidget(hotkey_shift_screen_label, 1, Qt::AlignLeft);
+	hotkey_shift_screen_layout->addWidget(input_shift_screen, 1, Qt::AlignLeft);
+	hotkey_shift_screen_layout->addWidget(config_shift_screen, 1, Qt::AlignLeft);
+	hotkey_shift_screen_layout->setContentsMargins(6, 0, 0, 0);
+	hotkey_shift_screen_set->setLayout(hotkey_shift_screen_layout);
+
 	//Battle Chip Gate settings - Type
 	bcg_gate_set = new QWidget(controls);
 	QLabel* bcg_gate_label = new QLabel("Battle Chip Gate Type : ");
@@ -929,7 +959,9 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	hotkey_controls_layout->addWidget(hotkey_turbo_set);
 	hotkey_controls_layout->addWidget(hotkey_mute_set);
 	hotkey_controls_layout->addWidget(hotkey_camera_set);
-
+	hotkey_controls_layout->addWidget(hotkey_swap_screen_set);
+	hotkey_controls_layout->addWidget(hotkey_shift_screen_set);
+	
 	bcg_controls_layout = new QVBoxLayout;
 	bcg_controls_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	bcg_controls_layout->addWidget(bcg_gate_set);
@@ -949,6 +981,8 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	hotkey_turbo_set->setVisible(false);
 	hotkey_mute_set->setVisible(false);
 	hotkey_camera_set->setVisible(false);
+	hotkey_swap_screen_set->setVisible(false);
+	hotkey_shift_screen_set->setVisible(false);
 
 	bcg_gate_set->setVisible(false);
 	bcg_chip_1_set->setVisible(false);
@@ -1301,6 +1335,8 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(config_turbo, SIGNAL(clicked()), button_config, SLOT(map()));
 	connect(config_mute, SIGNAL(clicked()), button_config, SLOT(map()));
 	connect(config_camera, SIGNAL(clicked()), button_config, SLOT(map()));
+	connect(config_swap_screen, SIGNAL(clicked()), button_config, SLOT(map()));
+	connect(config_shift_screen, SIGNAL(clicked()), button_config, SLOT(map()));
 	
 	button_config->setMapping(config_a, 0);
 	button_config->setMapping(config_b, 1);
@@ -1323,6 +1359,8 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	button_config->setMapping(config_turbo, 18);
 	button_config->setMapping(config_mute, 19);
 	button_config->setMapping(config_camera, 20);
+	button_config->setMapping(config_swap_screen, 21);
+	button_config->setMapping(config_shift_screen, 22);
 	connect(button_config, SIGNAL(mapped(int)), this, SLOT(configure_button(int))) ;
 
 	//Final tab layout
@@ -1353,6 +1391,8 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	config_turbo->setMinimumWidth(150);
 	config_mute->setMinimumWidth(150);
 	config_camera->setMinimumWidth(150);
+	config_swap_screen->setMinimumWidth(150);
+	config_shift_screen->setMinimumWidth(150);
 
 	input_a->setReadOnly(true);
 	input_b->setReadOnly(true);
@@ -1373,6 +1413,8 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	input_turbo->setReadOnly(true);
 	input_mute->setReadOnly(true);
 	input_camera->setReadOnly(true);
+	input_swap_screen->setReadOnly(true);
+	input_shift_screen->setReadOnly(true);
 
 	//Install event filters
 	config_a->installEventFilter(this);
@@ -1396,6 +1438,8 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	config_turbo->installEventFilter(this);
 	config_mute->installEventFilter(this);
 	config_camera->installEventFilter(this);
+	config_swap_screen->installEventFilter(this);
+	config_shift_screen->installEventFilter(this);
 
 	input_a->installEventFilter(this);
 	input_b->installEventFilter(this);
@@ -1418,6 +1462,8 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	input_turbo->installEventFilter(this);
 	input_mute->installEventFilter(this);
 	input_camera->installEventFilter(this);
+	input_swap_screen->installEventFilter(this);
+	input_shift_screen->installEventFilter(this);
 
 	//Set focus policies
 	config_a->setFocusPolicy(Qt::NoFocus);
@@ -1441,6 +1487,8 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	config_turbo->setFocusPolicy(Qt::NoFocus);
 	config_mute->setFocusPolicy(Qt::NoFocus);
 	config_camera->setFocusPolicy(Qt::NoFocus);
+	config_swap_screen->setFocusPolicy(Qt::NoFocus);
+	config_shift_screen->setFocusPolicy(Qt::NoFocus);
 
 	input_a->setFocusPolicy(Qt::NoFocus);
 	input_b->setFocusPolicy(Qt::NoFocus);
@@ -1463,6 +1511,8 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	input_turbo->setFocusPolicy(Qt::NoFocus);
 	input_mute->setFocusPolicy(Qt::NoFocus);
 	input_camera->setFocusPolicy(Qt::NoFocus);
+	input_swap_screen->setFocusPolicy(Qt::NoFocus);
+	input_shift_screen->setFocusPolicy(Qt::NoFocus);
 
 	//Joystick handling
 	jstick = SDL_JoystickOpen(0);
@@ -1673,6 +1723,8 @@ void gen_settings::set_ini_options()
 	input_turbo->setText(QString::number(config::hotkey_turbo));
 	input_mute->setText(QString::number(config::hotkey_mute));
 	input_camera->setText(QString::number(config::hotkey_camera));
+	input_swap_screen->setText(QString::number(config::hotkey_swap_screen));
+	input_shift_screen->setText(QString::number(config::hotkey_shift_screen));
 
 	//BIOS, Boot ROM and Manifest paths
 	QString path_1(QString::fromStdString(config::dmg_bios_path));
@@ -2477,6 +2529,18 @@ void gen_settings::configure_button(int button)
 			input_turbo->setFocus();
 			input_index = 20;
 			break;
+
+		case 21:
+			input_delay(config_swap_screen);
+			input_turbo->setFocus();
+			input_index = 21;
+			break;
+
+		case 22:
+			input_delay(config_shift_screen);
+			input_turbo->setFocus();
+			input_index = 22;
+			break;
 	}
 
 	if(input_type != 0) { process_joystick_event(); }
@@ -2785,6 +2849,8 @@ void gen_settings::close_input()
 	config_turbo->setText("Configure");
 	config_mute->setText("Configure");
 	config_camera->setText("Configure");
+	config_swap_screen->setText("Configure");
+	config_shift_screen->setText("Configure");
 
 	input_index = -1;
 	grab_input = false;
@@ -2978,6 +3044,8 @@ void gen_settings::switch_control_layout()
 			hotkey_controls_layout->addWidget(hotkey_turbo_set);
 			hotkey_controls_layout->addWidget(hotkey_mute_set);
 			hotkey_controls_layout->addWidget(hotkey_camera_set);
+			hotkey_controls_layout->addWidget(hotkey_swap_screen_set);
+			hotkey_controls_layout->addWidget(hotkey_shift_screen_set);
 			break;
 
 		case 3:
@@ -3267,6 +3335,29 @@ void gen_settings::keyPressEvent(QKeyEvent* event)
 				config_camera->setText("Configure");
 				input_camera->clearFocus();
 				break;
+
+			case 21:
+				if(last_key != -1)
+				{
+					config::hotkey_swap_screen = last_key;
+					input_swap_screen->setText(QString::number(last_key));
+				}
+
+				config_swap_screen->setText("Configure");
+				input_swap_screen->clearFocus();
+				break;
+
+			case 22:
+				if(last_key != -1)
+				{
+					config::hotkey_shift_screen = last_key;
+					input_shift_screen->setText(QString::number(last_key));
+				}
+
+				config_shift_screen->setText("Configure");
+				input_shift_screen->clearFocus();
+				break;
+
 		}
 
 		grab_input = false;

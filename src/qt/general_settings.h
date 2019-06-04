@@ -140,6 +140,8 @@ class gen_settings : public QDialog
 	QLineEdit* input_turbo;
 	QLineEdit* input_mute;
 	QLineEdit* input_camera;
+	QLineEdit* input_swap_screen;
+	QLineEdit* input_shift_screen;
 
 	QPushButton* config_a;
 	QPushButton* config_b;
@@ -162,6 +164,8 @@ class gen_settings : public QDialog
 	QPushButton* config_turbo;
 	QPushButton* config_mute;
 	QPushButton* config_camera;
+	QPushButton* config_swap_screen;
+	QPushButton* config_shift_screen;
 
 	//Advanced controls tab widget
 	QCheckBox* rumble_on;
@@ -275,6 +279,8 @@ class gen_settings : public QDialog
 	QWidget* hotkey_turbo_set;
 	QWidget* hotkey_mute_set;
 	QWidget* hotkey_camera_set;
+	QWidget* hotkey_swap_screen_set;
+	QWidget* hotkey_shift_screen_set;
 
 	QWidget* bcg_gate_set;
 	QWidget* bcg_chip_1_set;
