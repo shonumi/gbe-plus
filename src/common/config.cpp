@@ -821,30 +821,56 @@ bool parse_ini_file()
 	if(!file.is_open())
 	{
 		const char* unix_chr = getenv("HOME");
+		const char* win_chr = getenv("LOCALAPPDATA");
+
 		std::string unix_str = "";
+		std::string win_str = "";
 		std::string last_chr = "";
 
 		if(unix_chr != NULL) { unix_str = unix_chr; }
+		if(win_chr != NULL) { win_str = win_chr; }
 		
-		else
+		if((win_chr == NULL) && (unix_chr == NULL))
 		{
 			std::cout<<"GBE::Error - Could not open gbe.ini configuration file. Check file path or permissions. \n";
 			return false;
 		}
 
-		last_chr = unix_str[unix_str.length() - 1];
-		config::cfg_path = (last_chr == "/") ? unix_str + ".gbe_plus/" : unix_str + "/.gbe_plus/";
-		config::data_path = config::cfg_path + "data/";
-		unix_str += (last_chr == "/") ? ".gbe_plus/gbe.ini" : "/.gbe_plus/gbe.ini";
+		bool config_result = false;
 
 		//Test for Linux or Unix install location next
-		file.open(unix_str.c_str(), std::ios::in);
-		
-		if(!file.is_open())
+		if(win_chr == NULL)
 		{
-			std::cout<<"GBE::Error - Could not open gbe.ini configuration file. Check file path or permissions. \n";
-			return false;
-		} 
+			last_chr = unix_str[unix_str.length() - 1];
+			config::cfg_path = (last_chr == "/") ? unix_str + ".gbe_plus/" : unix_str + "/.gbe_plus/";
+			config::data_path = config::cfg_path + "data/";
+			unix_str += (last_chr == "/") ? ".gbe_plus/gbe.ini" : "/.gbe_plus/gbe.ini";
+
+			file.open(unix_str.c_str(), std::ios::in);
+
+			if(!file.is_open())
+			{
+				std::cout<<"GBE::Error - Could not open gbe.ini configuration file. Check file path or permissions. \n";
+				return false;
+			}
+		}
+
+		//Test for Windows install location next
+		else
+		{
+			last_chr = win_str[win_str.length() - 1];
+			config::cfg_path = (last_chr == "\\") ? win_str + "gbe_plus/" : win_str + "/gbe_plus/";
+			config::data_path = config::cfg_path + "data/";
+			win_str += (last_chr == "\\") ? "gbe_plus/gbe.ini" : "/gbe_plus/gbe.ini";
+
+			file.open(win_str.c_str(), std::ios::in);
+
+			if(!file.is_open())
+			{
+				std::cout<<"GBE::Error - Could not open gbe.ini configuration file. Check file path or permissions. \n";
+				return false;
+			}
+		}
 	}
 
 	int touch_zone_counter = 0;
