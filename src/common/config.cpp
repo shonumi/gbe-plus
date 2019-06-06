@@ -2867,8 +2867,10 @@ bool save_ini_file()
 			std::string val_1 = util::to_str(config::hotkey_turbo);
 			std::string val_2 = util::to_str(config::hotkey_mute);
 			std::string val_3 = util::to_str(config::hotkey_camera);
+			std::string val_4 = util::to_str(config::hotkey_swap_screen);
+			std::string val_5 = util::to_str(config::hotkey_shift_screen);
 
-			output_lines[line_pos] = "[#hotkeys:" + val_1 + ":" + val_2 + ":" + val_3 + "]";
+			output_lines[line_pos] = "[#hotkeys:" + val_1 + ":" + val_2 + ":" + val_3 + ":" + val_4 + ":" + val_5 + "]";
 		}
 
 		//Use CGFX
