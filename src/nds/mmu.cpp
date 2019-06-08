@@ -184,6 +184,7 @@ void NTR_MMU::reset()
 	nds7_rtc.serial_byte = 0;
 	nds7_rtc.data_index = 0;
 	nds7_rtc.serial_len = 0;
+	nds7_rtc.read_stat = 0;
 	nds7_rtc.reg_index = 0;
 	nds7_rtc.regs[0] = 0x2;
 	
@@ -726,6 +727,11 @@ u8 NTR_MMU::read_u8(u32 address)
 
 		if(access_mode) { return ((((lcd_3D_stat->vert_count << 8) | lcd_3D_stat->poly_count)  >> addr_shift) & 0xFF); }
 		else { return 0; }
+	}
+
+	else if(address == NDS_RTC)
+	{
+		return (access_mode) ? 0 : read_rtc();
 	}
 	
 	return memory_map[address];
@@ -3402,7 +3408,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 				}
 
 				//Communicate with the RTC
-				process_rtc();
+				write_rtc();
 			}
 
 			break;

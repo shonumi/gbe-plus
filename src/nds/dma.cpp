@@ -124,7 +124,7 @@ void NTR_ARM9::nds9_dma(u8 index)
 		mem->nds_card.cnt &= ~0x800000;
 		mem->nds_card.cnt &= ~0x80000000;
 
-		if((mem->nds9_exmem & 0x800) == 0) { mem->nds9_if |= 0x80000; std::cout<<"YO\n"; }
+		if((mem->nds9_exmem & 0x800) == 0) { mem->nds9_if |= 0x80000; }
 	}
 
 	mem->dma[index].control &= ~0x80000000;

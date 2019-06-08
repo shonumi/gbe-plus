@@ -13,8 +13,8 @@
 #include "mmu.h"
 #include "common/util.h"
 
-/****** Handles various RTC interactions ******/
-void NTR_MMU::process_rtc()
+/****** Writes to NDS RTC ******/
+void NTR_MMU::write_rtc()
 {
 	//Stop transfer when CS goes low
 	if(((nds7_rtc.data & 0x4) == 0x0) && (nds7_rtc.state != 0x100)) { nds7_rtc.state = 0x100; return; }
@@ -73,6 +73,7 @@ void NTR_MMU::process_rtc()
 									nds7_rtc.serial_counter = 0;
 									nds7_rtc.data_index = 0;
 									nds7_rtc.state = 0x103;
+									nds7_rtc.read_stat = 1;
 								}
 
 								//Write 1 byte for control register
@@ -97,6 +98,7 @@ void NTR_MMU::process_rtc()
 									nds7_rtc.serial_counter = 0;
 									nds7_rtc.data_index = 0;
 									nds7_rtc.state = 0x103;
+									nds7_rtc.read_stat = 1;
 								}
 
 								//Write 1 byte for control register
@@ -120,6 +122,7 @@ void NTR_MMU::process_rtc()
 									nds7_rtc.serial_counter = 0;
 									nds7_rtc.data_index = 0;
 									nds7_rtc.state = 0x103;
+									nds7_rtc.read_stat = 1;
 									u8 raw_hours = 0;
 
 									//Grab local time
@@ -182,6 +185,7 @@ void NTR_MMU::process_rtc()
 									nds7_rtc.serial_counter = 0;
 									nds7_rtc.data_index = 0;
 									nds7_rtc.state = 0x103;
+									nds7_rtc.read_stat = 1;
 									u8 raw_hours = 0;
 
 									//Grab local time
@@ -228,6 +232,7 @@ void NTR_MMU::process_rtc()
 									nds7_rtc.serial_counter = 0;
 									nds7_rtc.data_index = 0;
 									nds7_rtc.state = 0x103;
+									nds7_rtc.read_stat = 1;
 								}
 
 								else
@@ -253,6 +258,7 @@ void NTR_MMU::process_rtc()
 									nds7_rtc.serial_counter = 0;
 									nds7_rtc.data_index = 0;
 									nds7_rtc.state = 0x103;
+									nds7_rtc.read_stat = 1;
 								}
 
 								else
@@ -275,6 +281,7 @@ void NTR_MMU::process_rtc()
 									nds7_rtc.serial_counter = 0;
 									nds7_rtc.data_index = 0;
 									nds7_rtc.state = 0x103;
+									nds7_rtc.read_stat = 1;
 								}
 
 								else
@@ -297,6 +304,7 @@ void NTR_MMU::process_rtc()
 									nds7_rtc.serial_counter = 0;
 									nds7_rtc.data_index = 0;
 									nds7_rtc.state = 0x103;
+									nds7_rtc.read_stat = 1;
 								}
 
 								else
@@ -316,30 +324,12 @@ void NTR_MMU::process_rtc()
 
 			break;
 
-		//Reply to NDS with data (SCK=hi)
+		//Wait for SCK=lo to finish read
 		case 0x103:
-			if(nds7_rtc.data & 0x2)
-			{
-				//Set or unset Bit 1 of SIO data depending on the serial data being sent back
-				if(nds7_rtc.serial_data[nds7_rtc.data_index] & 0x1) { memory_map[NDS_RTC] |= 0x1; }
-				else { memory_map[NDS_RTC] &= ~0x1; }
-
-				nds7_rtc.serial_data[nds7_rtc.data_index] >>= 1;
-				nds7_rtc.serial_counter++;
-
-				//Once 8-bits have been sent, move onto the next byte in serial data
-				if(nds7_rtc.serial_counter == 8)
-				{
-					nds7_rtc.serial_counter = 0;
-					nds7_rtc.data_index++;
-
-					//Once all bytes from serial data have been sent, return to idle mode
-					if(nds7_rtc.data_index == nds7_rtc.serial_len) { nds7_rtc.state = 0x100; }
-				}
-			}
-
+			if((nds7_rtc.read_stat == 1) && ((nds7_rtc.data & 0x2) == 0)) { nds7_rtc.read_stat = 2; }
+			else if((nds7_rtc.read_stat == 3) && (nds7_rtc.data & 0x2)) { nds7_rtc.read_stat = 1; }
 			break;
-
+	
 		//Write data from NDS (SCK=lo)
 		case 0x104:
 			if((nds7_rtc.data & 0x2) == 0)
@@ -394,3 +384,36 @@ void NTR_MMU::process_rtc()
 			break;
 	}
 } 
+
+/****** Reads from the NDS RTC ******/
+u8 NTR_MMU::read_rtc()
+{
+	//Reply to NDS with data
+	if((nds7_rtc.read_stat == 2) && (nds7_rtc.state == 0x103))
+	{
+		nds7_rtc.read_stat = 3;
+
+		//Set or unset Bit 1 of SIO data depending on the serial data being sent back
+		if(nds7_rtc.serial_data[nds7_rtc.data_index] & 0x1) { memory_map[NDS_RTC] |= 0x1; }
+		else { memory_map[NDS_RTC] &= ~0x1; }
+
+		nds7_rtc.serial_data[nds7_rtc.data_index] >>= 1;
+		nds7_rtc.serial_counter++;
+
+		//Once 8-bits have been sent, move onto the next byte in serial data
+		if(nds7_rtc.serial_counter == 8)
+		{
+			nds7_rtc.serial_counter = 0;
+			nds7_rtc.data_index++;
+
+			//Once all bytes from serial data have been sent, return to idle mode
+			if(nds7_rtc.data_index == nds7_rtc.serial_len)
+			{
+				nds7_rtc.state = 0x100;
+				nds7_rtc.read_stat = 0;
+			}
+		}
+	}
+
+	return memory_map[NDS_RTC];
+}

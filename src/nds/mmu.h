@@ -155,6 +155,7 @@ class NTR_MMU
 		u8 serial_data[8];
 		u8 data_index;
 		u8 serial_len;
+		u8 read_stat;
 		
 		//0 = STAT1, 1 = STAT2, 2,3,4 = Alarm1-INT1, 5,6,7 = Alarm2-INT2, 8 = Clock adjust, 9 = Free
 		u8 regs[10];
@@ -328,7 +329,8 @@ class NTR_MMU
 	void process_card_bus();
 	void process_firmware();
 	void process_touchscreen();
-	void process_rtc();
+	void write_rtc();
+	u8 read_rtc();
 	void setup_default_firmware();
 
 	void key1_encrypt(u32 &lo, u32 &hi);
