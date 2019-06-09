@@ -4851,8 +4851,6 @@ void NTR_MMU::process_touchscreen()
 		//Read data from the touchscreen's channels
 		u8 channel = (nds7_spi.data >> 4) & 0x7;
 		touchscreen_state = (channel << 1);
-
-		return;
 	}
 
 	u16 touch_x = g_pad->mouse_x;
@@ -4890,13 +4888,19 @@ void NTR_MMU::process_touchscreen()
 
 		//Read Touch Y Byte 1
 		case 0x2:
-			nds7_spi.data = (touch_y >> 5);
-			touchscreen_state++;
+			if(nds7_spi.cnt & 0x800)
+			{
+				nds7_spi.data = ((touch_y << 3) & 0xFF);
+				touchscreen_state++;
+			}
+
+			else { nds7_spi.data = ((touch_y >> 5) & 0xFF); }
+
 			break;
 
 		//Read Touch Y Byte 2
 		case 0x3:
-			nds7_spi.data = ((touch_y & 0x1F) << 3);
+			nds7_spi.data = ((touch_y >> 5) & 0xFF);
 			touchscreen_state = 2;
 			break;
 
@@ -4926,13 +4930,19 @@ void NTR_MMU::process_touchscreen()
 
 		//Read Touch X Byte 1
 		case 0xA:
-			nds7_spi.data = (touch_x >> 5);
-			touchscreen_state++;
+			if(nds7_spi.cnt & 0x800)
+			{
+				nds7_spi.data = ((touch_x << 3) & 0xFF);
+				touchscreen_state++;
+			}
+
+			else { nds7_spi.data = ((touch_x >> 5) & 0xFF); }
+
 			break;
 
 		//Read Touch X Byte 2
 		case 0xB:
-			nds7_spi.data = ((touch_x & 0x1F) << 3);
+			nds7_spi.data = ((touch_x >> 5) & 0xFF);
 			touchscreen_state = 0xA;
 			break;
 
