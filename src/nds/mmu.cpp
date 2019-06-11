@@ -4853,12 +4853,8 @@ void NTR_MMU::process_touchscreen()
 		touchscreen_state = (channel << 1);
 	}
 
-	u16 touch_x = g_pad->mouse_x;
-	u16 touch_y = g_pad->mouse_y;
-
-	//Convert touch screen coordinate via ADC
-	touch_x = (((touch_x - touchscreen.scr_x1 + 1) * (touchscreen.adc_x2 - touchscreen.adc_x1)) / (touchscreen.scr_x2 - touchscreen.scr_x1)) + touchscreen.adc_x1;
-	touch_y = (((touch_y - touchscreen.scr_y1 + 1) * (touchscreen.adc_y2 - touchscreen.adc_y1)) / (touchscreen.scr_y2 - touchscreen.scr_y1)) + touchscreen.adc_y1;
+	u16 touch_x = (g_pad->mouse_x << 4);
+	u16 touch_y = (g_pad->mouse_y << 4);
 
 	touch_x &= 0xFFF;
 	touch_y &= 0xFFF;
@@ -5011,18 +5007,18 @@ void NTR_MMU::setup_default_firmware()
 	firmware[0x3FE0C] = 0x2B;
 
 	//User Settings Area 1 - Touchscreen calibration points
-	firmware[0x3FE58] = 0xA4;
-	firmware[0x3FE59] = 0x02;
-	firmware[0x3FE5A] = 0xF4;
-	firmware[0x3FE5B] = 0x02;
-	firmware[0x3FE5C] = 0x20;
-	firmware[0x3FE5D] = 0x20;
-	firmware[0x3FE5E] = 0x24;
-	firmware[0x3FE5F] = 0x0D;
-	firmware[0x3FE60] = 0xE0;
-	firmware[0x3FE61] = 0x0C;
-	firmware[0x3FE62] = 0xE0;
-	firmware[0x3FE63] = 0xA0;
+	firmware[0x3FE58] = 0x00;
+	firmware[0x3FE59] = 0x00;
+	firmware[0x3FE5A] = 0x00;
+	firmware[0x3FE5B] = 0x00;
+	firmware[0x3FE5C] = 0x00;
+	firmware[0x3FE5D] = 0x00;
+	firmware[0x3FE5E] = 0xF0;
+	firmware[0x3FE5F] = 0x0F;
+	firmware[0x3FE60] = 0xF0;
+	firmware[0x3FE61] = 0x0B;
+	firmware[0x3FE62] = 0xFF;
+	firmware[0x3FE63] = 0xBF;
 
 	//User Settings Area 1 - Nickname length
 	firmware[0x3FE1A] = 0x4;
