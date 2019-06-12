@@ -130,7 +130,7 @@ void NTR_MMU::write_rtc()
 									tm* current_time = localtime(&system_time);
 
 									//Year
-									nds7_rtc.serial_data[0] = current_time->tm_year;
+									nds7_rtc.serial_data[0] = current_time->tm_year + 2;
 									nds7_rtc.serial_data[0] += config::rtc_offset[5];
 									nds7_rtc.serial_data[0] = (nds7_rtc.serial_data[0] % 100);
 									nds7_rtc.serial_data[0] = util::get_bcd(nds7_rtc.serial_data[0]);
@@ -395,16 +395,16 @@ void NTR_MMU::write_rtc()
 u8 NTR_MMU::read_rtc()
 {
 	//Reply to NDS with data
-	if((nds7_rtc.read_stat == 2) && (nds7_rtc.state == 0x103))
+	if((nds7_rtc.read_stat >= 2) && (nds7_rtc.state == 0x103))
 	{
-		nds7_rtc.read_stat = 3;
-
 		//Set or unset Bit 1 of SIO data depending on the serial data being sent back
 		if(nds7_rtc.serial_data[nds7_rtc.data_index] & 0x1) { memory_map[NDS_RTC] |= 0x1; }
 		else { memory_map[NDS_RTC] &= ~0x1; }
 
 		nds7_rtc.serial_data[nds7_rtc.data_index] >>= 1;
-		nds7_rtc.serial_counter++;
+		if(nds7_rtc.read_stat == 2) { nds7_rtc.serial_counter++; }
+
+		nds7_rtc.read_stat = 3;
 
 		//Once 8-bits have been sent, move onto the next byte in serial data
 		if(nds7_rtc.serial_counter == 8)
