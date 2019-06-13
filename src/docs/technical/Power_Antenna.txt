@@ -50,12 +50,12 @@ Communications with the Power Antenna + Bug Sensor are a bit different when oper
 -----------------------------------------------------
 Value Written		| LED Result	
 -----------------------------------------------------
-0x0000			| Turns LED off
+0x0080			| Turns LED off
 0x0089			| Turns LED on (Strong Light)
 0x0081			| Turns LED on (Weak Light)
 -----------------------------------------------------
 
-To turn off the LED, simply set Bit 3 of SIOCNT low. No serial transfer is required in this case, so it does not matter whether an internal or external clock is set. For Strong and Weak Light, a serial transfer is required. However, the 8-bit or 32-bit data sent is ignored. Instead, high or low values of Bit 3 of SIOCNT respectively dictate whether Strong or Weak Light is produced. 
+To turn off the LED, simply set Bit 3 of SIOCNT low and start a serial transfer. It does not matter whether an internal or external clock is set. For Strong and Weak Light, the 8-bit or 32-bit data sent is ignored. Instead, high or low values of Bit 3 of SIOCNT respectively dictate whether Strong or Weak Light is produced. 
 
 In NORMAL_8BIT mode, Strong and Weak Light return an 8-bit value of 0xFF instead of 0xF3 as on the GBC. In NORMAL_32BIT mode, the returned 32-bit value is 0x00.
 
