@@ -241,6 +241,7 @@ class DMG_SIO
 	bool barcode_boy_load_barcode(std::string filename);
 
 	void singer_izek_process();
+	void singer_izek_fill_buffer();
 
 	void full_changer_process();
 	bool full_changer_load_db(std::string filename);

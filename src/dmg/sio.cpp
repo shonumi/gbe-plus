@@ -1571,22 +1571,7 @@ void DMG_SIO::singer_izek_process()
 				singer_izek.counter = 0;
 				singer_izek.current_state = SINGER_PING;
 
-				//Use plot to create stitch buffer for visual output
-				singer_izek.stitch_buffer.clear();
-				singer_izek.stitch_buffer.resize(0x5A00, 0xFFFFFFFF);
-
-				u32 current_x = 0;
-				u32 current_y = 0;
-				u32 buffer_pos = 0;
-
-				for(u32 x = 0; x < singer_izek.x_plot.size(); x++)
-				{
-					current_x = singer_izek.x_plot[x];
-					current_y += singer_izek.y_plot[x];
-
-					buffer_pos = (current_y * 160) + current_x;
-					if(buffer_pos < 0x5A00) { singer_izek.stitch_buffer[buffer_pos] = 0xFF000000; }
-				}
+				singer_izek_fill_buffer();
 			}
 
 			break;
@@ -1599,3 +1584,52 @@ void DMG_SIO::singer_izek_process()
 
 	mem->memory_map[IF_FLAG] |= 0x08;
 }
+
+/****** Applies stitch coordinates to the stitch buffer ******/
+void DMG_SIO::singer_izek_fill_buffer()
+{
+	//Use plots to create stitch buffer for visual output
+	singer_izek.stitch_buffer.clear();
+	singer_izek.stitch_buffer.resize(0x5A00, 0xFFFFFFFF);
+
+	u32 current_x = 0;
+	u32 current_y = 0;
+	u32 buffer_pos = 0;
+
+	for(u32 i = 0; i < singer_izek.x_plot.size(); i++)
+	{
+		//Horizontal Line - X0 != X1 AND Y1 != Y2
+		if((i >= 2) && (singer_izek.x_plot[i] != singer_izek.x_plot[i-1]) && (singer_izek.y_plot[i-1] != singer_izek.y_plot[i-2]))
+		{
+			//Go right
+			if(singer_izek.x_plot[i] >= singer_izek.x_plot[i-1]) { current_x += (singer_izek.x_plot[i] - 1); }
+
+			//Go left
+			else { current_x -= (0x1B - singer_izek.x_plot[i]); }
+		}
+
+		//Vertical Line - Y0 != Y1 AND X0 == X1
+		else if((i >= 1) && (singer_izek.y_plot[i] != singer_izek.y_plot[i-1]) && (singer_izek.x_plot[i] == singer_izek.x_plot[i-1]))
+		{
+			//Go up
+			if(singer_izek.y_plot[i] < singer_izek.y_plot[i-1]) { current_y -= (0x1C - singer_izek.y_plot[i]); }
+
+			//Go down
+			else { current_y += (singer_izek.y_plot[i] - 1); }
+		}
+
+		//Vertical Line - X0 == X1 AND Y0 == Y1
+		else if((i >= 1) && (singer_izek.x_plot[i] == singer_izek.x_plot[i-1]) && (singer_izek.y_plot[i] == singer_izek.y_plot[i-1]))
+		{
+			//Go up
+			if(singer_izek.y_plot[i] < singer_izek.y_plot[i-1]) { current_y -= (0x1C - singer_izek.y_plot[i]); }
+
+			//Go down
+			else { current_y += (singer_izek.y_plot[i] - 1); }
+		}
+
+		buffer_pos = (current_y * 160) + current_x;
+		if(buffer_pos < 0x5A00) { singer_izek.stitch_buffer[buffer_pos] = 0xFF000000; }
+	}
+}
+	
