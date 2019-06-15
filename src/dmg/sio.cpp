@@ -1491,6 +1491,8 @@ bool DMG_SIO::barcode_boy_load_barcode(std::string filename)
 /****** Processes data sent from the Singer Izek to the Game Boy ******/
 void DMG_SIO::singer_izek_process()
 {
+	std::cout<<"0x" << (u16)sio_stat.transfer_byte << "\n";
+
 	switch(singer_izek.current_state)
 	{
 		case SINGER_PING:
@@ -1592,8 +1594,11 @@ void DMG_SIO::singer_izek_fill_buffer()
 	singer_izek.stitch_buffer.clear();
 	singer_izek.stitch_buffer.resize(0x5A00, 0xFFFFFFFF);
 
-	u32 current_x = 0;
-	u32 current_y = 0;
+	u32 x_base = 1;
+	u32 y_base = 32;
+
+	u32 current_x = x_base + singer_izek.x_plot[0];
+	u32 current_y = y_base;
 	u32 buffer_pos = 0;
 
 	for(u32 i = 0; i < singer_izek.x_plot.size(); i++)
@@ -1601,16 +1606,14 @@ void DMG_SIO::singer_izek_fill_buffer()
 		//Horizontal Line - X0 != X1 AND Y1 != Y2
 		if((i >= 2) && (singer_izek.x_plot[i] != singer_izek.x_plot[i-1]) && (singer_izek.y_plot[i-1] != singer_izek.y_plot[i-2]))
 		{
-			//Go right
-			if(singer_izek.x_plot[i] >= singer_izek.x_plot[i-1]) { current_x += (singer_izek.x_plot[i] - 1); }
-
-			//Go left
-			else { current_x -= (0x1B - singer_izek.x_plot[i]); }
+			current_x = x_base + singer_izek.x_plot[i];
 		}
 
 		//Vertical Line - Y0 != Y1 AND X0 == X1
 		else if((i >= 1) && (singer_izek.y_plot[i] != singer_izek.y_plot[i-1]) && (singer_izek.x_plot[i] == singer_izek.x_plot[i-1]))
 		{
+			current_x = x_base + singer_izek.x_plot[i];
+
 			//Go up
 			if(singer_izek.y_plot[i] < singer_izek.y_plot[i-1]) { current_y -= (0x1C - singer_izek.y_plot[i]); }
 
@@ -1621,6 +1624,8 @@ void DMG_SIO::singer_izek_fill_buffer()
 		//Vertical Line - X0 == X1 AND Y0 == Y1
 		else if((i >= 1) && (singer_izek.x_plot[i] == singer_izek.x_plot[i-1]) && (singer_izek.y_plot[i] == singer_izek.y_plot[i-1]))
 		{
+			current_x = x_base + singer_izek.x_plot[i];
+
 			//Go up
 			if(singer_izek.y_plot[i] < singer_izek.y_plot[i-1]) { current_y -= (0x1C - singer_izek.y_plot[i]); }
 
