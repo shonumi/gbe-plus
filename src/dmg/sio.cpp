@@ -1601,10 +1601,12 @@ void DMG_SIO::singer_izek_fill_buffer()
 	u32 current_y = y_base;
 	u32 buffer_pos = 0;
 
+	bool diagonal = true;
+
 	for(u32 i = 0; i < singer_izek.x_plot.size(); i++)
 	{
 		//Horizontal Line - X0 != X1 AND Y1 != Y2
-		if((i >= 2) && (singer_izek.x_plot[i] != singer_izek.x_plot[i-1]) && (singer_izek.y_plot[i-1] != singer_izek.y_plot[i-2]))
+		if((i >= 2) && (singer_izek.x_plot[i] != singer_izek.x_plot[i-1]) && (singer_izek.y_plot[i-1] != singer_izek.y_plot[i-2]) && (!diagonal))
 		{
 			current_x = x_base + singer_izek.x_plot[i];
 		}
@@ -1612,8 +1614,6 @@ void DMG_SIO::singer_izek_fill_buffer()
 		//Vertical Line - Y0 != Y1 AND X0 == X1
 		else if((i >= 1) && (singer_izek.y_plot[i] != singer_izek.y_plot[i-1]) && (singer_izek.x_plot[i] == singer_izek.x_plot[i-1]))
 		{
-			current_x = x_base + singer_izek.x_plot[i];
-
 			//Go up
 			if(singer_izek.y_plot[i] < singer_izek.y_plot[i-1]) { current_y -= (0x1C - singer_izek.y_plot[i]); }
 
@@ -1624,6 +1624,16 @@ void DMG_SIO::singer_izek_fill_buffer()
 		//Vertical Line - X0 == X1 AND Y0 == Y1
 		else if((i >= 1) && (singer_izek.x_plot[i] == singer_izek.x_plot[i-1]) && (singer_izek.y_plot[i] == singer_izek.y_plot[i-1]))
 		{
+			//Go up
+			if(singer_izek.y_plot[i] < singer_izek.y_plot[i-1]) { current_y -= (0x1C - singer_izek.y_plot[i]); }
+
+			//Go down
+			else { current_y += (singer_izek.y_plot[i] - 1); }
+		}
+
+		//Diagonal Line - X0 != X1 AND Y1 == Y2
+		else if((i >= 2) && (singer_izek.x_plot[i] != singer_izek.x_plot[i-1]) && (singer_izek.y_plot[i-1] == singer_izek.y_plot[i-2]))
+		{
 			current_x = x_base + singer_izek.x_plot[i];
 
 			//Go up
@@ -1631,6 +1641,22 @@ void DMG_SIO::singer_izek_fill_buffer()
 
 			//Go down
 			else { current_y += (singer_izek.y_plot[i] - 1); }
+
+			diagonal = true;
+		}
+
+		//Diagonal Line - X0 != X1 AND last line was a diagonal
+		else if((i >= 1) && (singer_izek.x_plot[i] != singer_izek.x_plot[i-1]) && (diagonal))
+		{
+			current_x = x_base + singer_izek.x_plot[i];
+
+			//Go up
+			if(singer_izek.y_plot[i] < singer_izek.y_plot[i-1]) { current_y -= (0x1C - singer_izek.y_plot[i]); }
+
+			//Go down
+			else { current_y += (singer_izek.y_plot[i] - 1); }
+
+			diagonal = false;
 		}
 
 		buffer_pos = (current_y * 160) + current_x;
