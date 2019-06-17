@@ -1605,10 +1605,11 @@ void DMG_SIO::singer_izek_fill_buffer()
 
 	for(u32 i = 0; i < singer_izek.x_plot.size(); i++)
 	{
-		//Horizontal Line - X0 != X1 AND Y1 != Y2
-		if((i >= 2) && (singer_izek.x_plot[i] != singer_izek.x_plot[i-1]) && (singer_izek.y_plot[i-1] != singer_izek.y_plot[i-2]) && (!diagonal))
+		//Horizontal Line - X0 != X1 AND Y0 != Y1
+		if((i >= 2) && (singer_izek.x_plot[i] != singer_izek.x_plot[i-1]) && (singer_izek.y_plot[i] != singer_izek.y_plot[i-1]) && (!diagonal))
 		{
 			current_x = x_base + singer_izek.x_plot[i];
+			diagonal = false;
 		}
 
 		//Vertical Line - Y0 != Y1 AND X0 == X1
@@ -1619,6 +1620,8 @@ void DMG_SIO::singer_izek_fill_buffer()
 
 			//Go down
 			else { current_y += (singer_izek.y_plot[i] - 1); }
+
+			diagonal = false;
 		}
 
 		//Vertical Line - X0 == X1 AND Y0 == Y1
@@ -1629,10 +1632,12 @@ void DMG_SIO::singer_izek_fill_buffer()
 
 			//Go down
 			else { current_y += (singer_izek.y_plot[i] - 1); }
+
+			diagonal = false;
 		}
 
-		//Diagonal Line - X0 != X1 AND Y1 == Y2
-		else if((i >= 2) && (singer_izek.x_plot[i] != singer_izek.x_plot[i-1]) && (singer_izek.y_plot[i-1] == singer_izek.y_plot[i-2]))
+		//Diagonal Line - X0 != X1 AND Y0 == Y1
+		else if((i >= 2) && (singer_izek.x_plot[i] != singer_izek.x_plot[i-1]) && (singer_izek.y_plot[i] == singer_izek.y_plot[i-1]))
 		{
 			current_x = x_base + singer_izek.x_plot[i];
 
@@ -1661,6 +1666,6 @@ void DMG_SIO::singer_izek_fill_buffer()
 
 		buffer_pos = (current_y * 160) + current_x;
 		if(buffer_pos < 0x5A00) { singer_izek.stitch_buffer[buffer_pos] = 0xFF000000; }
-	}
+	}	SDL_Surface* tmp_s = SDL_CreateRGBSurface(SDL_SWSURFACE, 160, 144, 32, 0, 0, 0, 0);
 }
 	
