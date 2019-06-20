@@ -1603,8 +1603,6 @@ void DMG_SIO::singer_izek_fill_buffer()
 	u32 last_x = 0;
 	u32 last_y = 0;
 
-	u32 buffer_pos = 0;
-
 	bool diagonal = true;
 
 	for(u32 i = 0; i < singer_izek.x_plot.size(); i++)
@@ -1669,93 +1667,95 @@ void DMG_SIO::singer_izek_fill_buffer()
 		}
 
 		//Draw line between stitch coordinates
-		if(i >= 1)
-		{
-			s32 x_dist = (current_x - last_x);
-			s32 y_dist = (current_y - last_y);
-			float x_inc = 0.0;
-			float y_inc = 0.0;
-			float x_coord = last_x;
-			float y_coord = last_y;
-
-			s32 xy_start = 0;
-			s32 xy_end = 0;
-			s32 xy_inc = 0;
-
-			if((x_dist != 0) && (y_dist != 0))
-			{
-				float s = (y_dist / x_dist);
-				if(s < 0.0) { s *= -1.0; }
-
-				//Steep slope, Y = 1
-				if(s > 1.0)
-				{
-					y_inc = (y_dist > 0) ? 1.0 : -1.0;
-					x_inc = float(x_dist) / float(y_dist);
-					
-					if((x_dist < 0) && (x_inc > 0)) { x_inc *= -1.0; }
-					else if((x_dist > 0) && (x_inc < 0)) { x_inc *= -1.0; }
-
-					xy_start = last_y;
-					xy_end = current_y;
-				}
-
-				//Gentle slope, X = 1
-				else
-				{
-					std::cout<<"X DIST -> " << std::dec << x_dist << "\n";
-					std::cout<<"Y DIST -> " << std::dec << y_dist << "\n";
-
-					x_inc = (x_dist > 0) ? 1.0 : -1.0;
-					y_inc = float(y_dist) / float(x_dist);
-
-					if((y_dist < 0) && (y_inc > 0)) { y_inc *= -1.0; }
-					else if((y_dist > 0) && (y_inc < 0)) { y_inc *= -1.0; }
-
-					xy_start = last_x;
-					xy_end = current_x;
-				}
-			}
-
-			else if(x_dist == 0)
-			{
-				x_inc = 0.0;
-				y_inc = (y_dist > 0) ? 1.0 : -1.0;
-
-				xy_start = last_y;
-				xy_end = current_y;
-			}
-
-			else if(y_dist == 0)
-			{
-				x_inc = (x_dist > 0) ? 1.0 : -1.0;
-				y_inc = 0.0;
-
-				xy_start = last_x;
-				xy_end = current_x;
-			}
-
-			xy_inc = (xy_start < xy_end) ? 1 : -1;
-			xy_end += (xy_inc > 0) ? 1 : -1;
-
-			while(xy_start != xy_end)
-			{
-				//Only draw on-screen objects
-				if((x_coord >= 0) && (x_coord <= 160) && (y_coord >= 0) && (y_coord <= 144))
-				{
-					//Convert plot points to buffer index
-					buffer_pos = (round(y_coord) * 160) + round(x_coord);
-					singer_izek.stitch_buffer[buffer_pos] = 0xFF000000;
-				}
-
-				x_coord += x_inc;
-				y_coord += y_inc;
-				xy_start += xy_inc;
-			}
-		}
+		if(i >= 1) { singer_izek_draw_line(current_x, current_y, last_x, last_y); }
 
 		last_x = current_x;
 		last_y = current_y;
+	}
+}
+
+/****** Draws a line in the stitch buffer between 2 points ******/
+void DMG_SIO::singer_izek_draw_line(u32 current_x, u32 current_y, u32 last_x, u32 last_y)
+{
+	s32 x_dist = (current_x - last_x);
+	s32 y_dist = (current_y - last_y);
+	float x_inc = 0.0;
+	float y_inc = 0.0;
+	float x_coord = last_x;
+	float y_coord = last_y;
+
+	s32 xy_start = 0;
+	s32 xy_end = 0;
+	s32 xy_inc = 0;
+	
+	u32 buffer_pos = 0;
+
+	if((x_dist != 0) && (y_dist != 0))
+	{
+		float s = (y_dist / x_dist);
+		if(s < 0.0) { s *= -1.0; }
+
+		//Steep slope, Y = 1
+		if(s > 1.0)
+		{
+			y_inc = (y_dist > 0) ? 1.0 : -1.0;
+			x_inc = float(x_dist) / float(y_dist);
+					
+			if((x_dist < 0) && (x_inc > 0)) { x_inc *= -1.0; }
+			else if((x_dist > 0) && (x_inc < 0)) { x_inc *= -1.0; }
+
+			xy_start = last_y;
+			xy_end = current_y;
+		}
+
+		//Gentle slope, X = 1
+		else
+		{
+			x_inc = (x_dist > 0) ? 1.0 : -1.0;
+			y_inc = float(y_dist) / float(x_dist);
+
+			if((y_dist < 0) && (y_inc > 0)) { y_inc *= -1.0; }
+			else if((y_dist > 0) && (y_inc < 0)) { y_inc *= -1.0; }
+
+			xy_start = last_x;
+			xy_end = current_x;
+		}
+	}
+
+	else if(x_dist == 0)
+	{
+		x_inc = 0.0;
+		y_inc = (y_dist > 0) ? 1.0 : -1.0;
+
+		xy_start = last_y;
+		xy_end = current_y;
+	}
+
+	else if(y_dist == 0)
+	{
+		x_inc = (x_dist > 0) ? 1.0 : -1.0;
+		y_inc = 0.0;
+
+		xy_start = last_x;
+		xy_end = current_x;
+	}
+
+	xy_inc = (xy_start < xy_end) ? 1 : -1;
+	xy_end += (xy_inc > 0) ? 1 : -1;
+
+	while(xy_start != xy_end)
+	{
+		//Only draw on-screen objects
+		if((x_coord >= 0) && (x_coord <= 160) && (y_coord >= 0) && (y_coord <= 144))
+		{
+			//Convert plot points to buffer index
+			buffer_pos = (round(y_coord) * 160) + round(x_coord);
+			singer_izek.stitch_buffer[buffer_pos] = 0xFF000000;
+		}
+
+		x_coord += x_inc;
+		y_coord += y_inc;
+		xy_start += xy_inc;
 	}
 }
 	
