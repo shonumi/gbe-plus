@@ -1597,92 +1597,129 @@ void DMG_SIO::singer_izek_fill_buffer()
 	u32 x_base = 1;
 	u32 y_base = 32;
 
-	u32 current_x = x_base + singer_izek.x_plot[0];
-	u32 current_y = y_base;
+	singer_izek.current_x = x_base + singer_izek.x_plot[0];
+	singer_izek.current_y = y_base;
 
-	u32 last_x = 0;
-	u32 last_y = 0;
+	singer_izek.last_x = 0;
+	singer_izek.last_y = 0;
 
-	bool diagonal = true;
+	singer_izek.diagonal = true;
 
 	for(u32 i = 0; i < singer_izek.x_plot.size(); i++)
 	{
-		//Horizontal Line - X0 != X1 AND Y0 != Y1
-		if((i >= 2) && (singer_izek.x_plot[i] != singer_izek.x_plot[i-1]) && (singer_izek.y_plot[i] != singer_izek.y_plot[i-1]) && (!diagonal))
+		switch(singer_izek.start_flag)
 		{
-			current_x = x_base + singer_izek.x_plot[i];
-			diagonal = false;
-		}
+			//Custom stitching + Letters
+			case 0xC1:
+				break;
 
-		//Vertical Line - Y0 != Y1 AND X0 == X1
-		else if((i >= 1) && (singer_izek.y_plot[i] != singer_izek.y_plot[i-1]) && (singer_izek.x_plot[i] == singer_izek.x_plot[i-1]))
-		{
-			//Go up
-			if(singer_izek.y_plot[i] < singer_izek.y_plot[i-1]) { current_y -= (0x1C - singer_izek.y_plot[i]); }
+			//Generally stitching that goes in all directions
+			case 0xC2:
+				singer_izek_stitch_c2(i);
+				break;
 
-			//Go down
-			else { current_y += (singer_izek.y_plot[i] - 1); }
+			//Generally stitching that goes from left to right and downwards
+			case 0xC3:
+				break;
 
-			diagonal = false;
-		}
+			//Stitching that goes down in a straight line
+			case 0xC4:
+				singer_izek_stitch_c4(i);
+				break;
 
-		//Vertical Line - X0 == X1 AND Y0 == Y1
-		else if((i >= 1) && (singer_izek.x_plot[i] == singer_izek.x_plot[i-1]) && (singer_izek.y_plot[i] == singer_izek.y_plot[i-1]))
-		{
-			//Go up
-			if(singer_izek.y_plot[i] < singer_izek.y_plot[i-1]) { current_y -= (0x1C - singer_izek.y_plot[i]); }
-
-			//Go down
-			else { current_y += (singer_izek.y_plot[i] - 1); }
-
-			diagonal = false;
-		}
-
-		//Diagonal Line - X0 != X1 AND Y0 == Y1
-		else if((i >= 2) && (singer_izek.x_plot[i] != singer_izek.x_plot[i-1]) && (singer_izek.y_plot[i] == singer_izek.y_plot[i-1]))
-		{
-			current_x = x_base + singer_izek.x_plot[i];
-
-			//Go up
-			if(singer_izek.y_plot[i] < singer_izek.y_plot[i-1]) { current_y -= (0x1C - singer_izek.y_plot[i]); }
-
-			//Go down
-			else { current_y += (singer_izek.y_plot[i] - 1); }
-
-			diagonal = true;
-		}
-
-		//Diagonal Line - X0 != X1 AND last line was a diagonal
-		else if((i >= 1) && (singer_izek.x_plot[i] != singer_izek.x_plot[i-1]) && (diagonal))
-		{
-			current_x = x_base + singer_izek.x_plot[i];
-
-			//Go up
-			if(singer_izek.y_plot[i] < singer_izek.y_plot[i-1]) { current_y -= (0x1C - singer_izek.y_plot[i]); }
-
-			//Go down
-			else { current_y += (singer_izek.y_plot[i] - 1); }
-
-			diagonal = false;
+			//Unknown stitch type
+			default:
+				std::cout<<"SIO::Error - Unknown IZEK 1500 or JN-100 Stitch Type\n";
+				return;
 		}
 
 		//Draw line between stitch coordinates
-		if(i >= 1) { singer_izek_draw_line(current_x, current_y, last_x, last_y); }
+		if(i >= 1) { singer_izek_draw_line(); }
 
-		last_x = current_x;
-		last_y = current_y;
+		singer_izek.last_x = singer_izek.current_x;
+		singer_izek.last_y = singer_izek.current_y;
 	}
 }
 
-/****** Draws a line in the stitch buffer between 2 points ******/
-void DMG_SIO::singer_izek_draw_line(u32 current_x, u32 current_y, u32 last_x, u32 last_y)
+/****** Plots points for C2 stitching ******/
+void DMG_SIO::singer_izek_stitch_c2(u8 index)
 {
-	s32 x_dist = (current_x - last_x);
-	s32 y_dist = (current_y - last_y);
+	//Horizontal Line - X0 != X1 AND Y0 != Y1
+	if((index >= 2) && (singer_izek.x_plot[index] != singer_izek.x_plot[index-1]) && (singer_izek.y_plot[index] != singer_izek.y_plot[index-1]) && (!singer_izek.diagonal))
+	{
+		singer_izek.current_x = singer_izek.x_plot[index];
+		singer_izek.diagonal = false;
+	}
+
+	//Vertical Line - Y0 != Y1 AND X0 == X1
+	else if((index >= 1) && (singer_izek.y_plot[index] != singer_izek.y_plot[index-1]) && (singer_izek.x_plot[index] == singer_izek.x_plot[index-1]))
+	{
+		//Go up
+		if(singer_izek.y_plot[index] < singer_izek.y_plot[index-1]) { singer_izek.current_y -= (0x1C - singer_izek.y_plot[index]); }
+
+		//Go down
+		else { singer_izek.current_y += (singer_izek.y_plot[index] - 1); }
+
+		singer_izek.diagonal = false;
+	}
+
+	//Vertical Line - X0 == X1 AND Y0 == Y1
+	else if((index >= 1) && (singer_izek.x_plot[index] == singer_izek.x_plot[index-1]) && (singer_izek.y_plot[index] == singer_izek.y_plot[index-1]))
+	{
+		//Go up
+		if(singer_izek.y_plot[index] < singer_izek.y_plot[index-1]) { singer_izek.current_y -= (0x1C - singer_izek.y_plot[index]); }
+
+		//Go down
+		else { singer_izek.current_y += (singer_izek.y_plot[index] - 1); }
+
+		singer_izek.diagonal = false;
+	}
+
+	//Diagonal Line - X0 != X1 AND Y0 == Y1
+	else if((index >= 2) && (singer_izek.x_plot[index] != singer_izek.x_plot[index-1]) && (singer_izek.y_plot[index] == singer_izek.y_plot[index-1]))
+	{
+		singer_izek.current_x = singer_izek.x_plot[index];
+
+		//Go up
+		if(singer_izek.y_plot[index] < singer_izek.y_plot[index-1]) { singer_izek.current_y -= (0x1C - singer_izek.y_plot[index]); }
+
+		//Go down
+		else { singer_izek.current_y += (singer_izek.y_plot[index] - 1); }
+
+		singer_izek.diagonal = true;
+	}
+
+	//Diagonal Line - X0 != X1 AND last line was a diagonal
+	else if((index >= 1) && (singer_izek.x_plot[index] != singer_izek.x_plot[index-1]) && (singer_izek.diagonal))
+	{
+		singer_izek.current_x = singer_izek.x_plot[index];
+
+		//Go up
+		if(singer_izek.y_plot[index] < singer_izek.y_plot[index-1]) { singer_izek.current_y -= (0x1C - singer_izek.y_plot[index]); }
+
+		//Go down
+		else { singer_izek.current_y += (singer_izek.y_plot[index] - 1); }
+
+		singer_izek.diagonal = false;
+	}
+}
+
+/****** Plots points for C4 stitching ******/
+void DMG_SIO::singer_izek_stitch_c4(u8 index)
+{
+	//Vertical Line
+	if(index >= 1) { singer_izek.current_y += (singer_izek.y_plot[index] - 1); }
+}		
+
+/****** Draws a line in the stitch buffer between 2 points ******/
+void DMG_SIO::singer_izek_draw_line()
+{
+	s32 x_dist = (singer_izek.current_x - singer_izek.last_x);
+	s32 y_dist = (singer_izek.current_y - singer_izek.last_y);
 	float x_inc = 0.0;
 	float y_inc = 0.0;
-	float x_coord = last_x;
-	float y_coord = last_y;
+	float x_coord = singer_izek.last_x;
+	float y_coord = singer_izek.last_y;
 
 	s32 xy_start = 0;
 	s32 xy_end = 0;
@@ -1704,8 +1741,8 @@ void DMG_SIO::singer_izek_draw_line(u32 current_x, u32 current_y, u32 last_x, u3
 			if((x_dist < 0) && (x_inc > 0)) { x_inc *= -1.0; }
 			else if((x_dist > 0) && (x_inc < 0)) { x_inc *= -1.0; }
 
-			xy_start = last_y;
-			xy_end = current_y;
+			xy_start = singer_izek.last_y;
+			xy_end = singer_izek.current_y;
 		}
 
 		//Gentle slope, X = 1
@@ -1717,8 +1754,8 @@ void DMG_SIO::singer_izek_draw_line(u32 current_x, u32 current_y, u32 last_x, u3
 			if((y_dist < 0) && (y_inc > 0)) { y_inc *= -1.0; }
 			else if((y_dist > 0) && (y_inc < 0)) { y_inc *= -1.0; }
 
-			xy_start = last_x;
-			xy_end = current_x;
+			xy_start = singer_izek.last_x;
+			xy_end = singer_izek.current_x;
 		}
 	}
 
@@ -1727,8 +1764,8 @@ void DMG_SIO::singer_izek_draw_line(u32 current_x, u32 current_y, u32 last_x, u3
 		x_inc = 0.0;
 		y_inc = (y_dist > 0) ? 1.0 : -1.0;
 
-		xy_start = last_y;
-		xy_end = current_y;
+		xy_start = singer_izek.last_y;
+		xy_end = singer_izek.current_y;
 	}
 
 	else if(y_dist == 0)
@@ -1736,8 +1773,8 @@ void DMG_SIO::singer_izek_draw_line(u32 current_x, u32 current_y, u32 last_x, u3
 		x_inc = (x_dist > 0) ? 1.0 : -1.0;
 		y_inc = 0.0;
 
-		xy_start = last_x;
-		xy_end = current_x;
+		xy_start = singer_izek.last_x;
+		xy_end = singer_izek.current_x;
 	}
 
 	xy_inc = (xy_start < xy_end) ? 1 : -1;

@@ -152,11 +152,16 @@ class DMG_SIO
 		std::vector<u8> x_plot;
 		std::vector<u8> y_plot;
 		std::vector<u32> stitch_buffer;
+		u32 current_x;
+		u32 current_y;
+		u32 last_x;
+		u32 last_y;
 		u8 next_x_plot;
 		u8 next_y_plot;
 		u8 start_flag;
 		u8 plot_count;
 		u16 counter;
+		bool diagonal;
 		singer_izek_state current_state;
 	} singer_izek;
 
@@ -242,7 +247,9 @@ class DMG_SIO
 
 	void singer_izek_process();
 	void singer_izek_fill_buffer();
-	void singer_izek_draw_line(u32 current_x, u32 current_y, u32 last_x, u32 last_y);
+	void singer_izek_draw_line();
+	void singer_izek_stitch_c2(u8 index);
+	void singer_izek_stitch_c4(u8 index);
 
 	void full_changer_process();
 	bool full_changer_load_db(std::string filename);
