@@ -249,6 +249,7 @@ class DMG_SIO
 	void singer_izek_fill_buffer();
 	void singer_izek_draw_line();
 	void singer_izek_stitch_c2(u8 index);
+	void singer_izek_stitch_c3(u8 index);
 	void singer_izek_stitch_c4(u8 index);
 
 	void full_changer_process();

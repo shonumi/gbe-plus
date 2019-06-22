@@ -1620,6 +1620,7 @@ void DMG_SIO::singer_izek_fill_buffer()
 
 			//Generally stitching that goes from left to right and downwards
 			case 0xC3:
+				singer_izek_stitch_c3(i);
 				break;
 
 			//Stitching that goes down in a straight line
@@ -1701,6 +1702,35 @@ void DMG_SIO::singer_izek_stitch_c2(u8 index)
 		else { singer_izek.current_y += (singer_izek.y_plot[index] - 1); }
 
 		singer_izek.diagonal = false;
+	}
+}
+
+/****** Plots points for C3 stitching ******/
+void DMG_SIO::singer_izek_stitch_c3(u8 index)
+{
+	u8 x0 = singer_izek.x_plot[index];
+	u8 x1 = (index >= 1) ? singer_izek.x_plot[index-1] : 0;
+
+	u8 y0 = singer_izek.y_plot[index];
+	u8 y1 = ((index + 1) < singer_izek.y_plot.size()) ? singer_izek.y_plot[index+1] : 0;
+
+	//Vertical Line - X0 == X1
+	if((x0 == x1) && (x1))
+	{
+		singer_izek.current_y += (singer_izek.y_plot[index] - 1);
+	}
+
+	//Horizontal - Y0 == Y1
+	else if((x0 != x1) && (y0 == y1) && (x1) && (y1))
+	{
+		singer_izek.current_x = singer_izek.x_plot[index];
+	}
+
+	//Diagonal - X0 != X1
+	else if((x0 != x1) && (x1))
+	{
+		singer_izek.current_x = singer_izek.x_plot[index];
+		singer_izek.current_y += (singer_izek.y_plot[index] - 1);
 	}
 }
 
