@@ -1708,20 +1708,23 @@ void DMG_SIO::singer_izek_stitch_c2(u8 index)
 /****** Plots points for C3 stitching ******/
 void DMG_SIO::singer_izek_stitch_c3(u8 index)
 {
+	//X0 = Current X, X1 = Previous X
 	u8 x0 = singer_izek.x_plot[index];
 	u8 x1 = (index >= 1) ? singer_izek.x_plot[index-1] : 0;
 
+	//Y0 = Current Y, Y1 = Previous Y, Y2 = Next Y 
 	u8 y0 = singer_izek.y_plot[index];
-	u8 y1 = ((index + 1) < singer_izek.y_plot.size()) ? singer_izek.y_plot[index+1] : 0;
+	u8 y1 = (index >= 1) ? singer_izek.y_plot[index-1] : 0;
+	u8 y2 = ((index + 1) < singer_izek.y_plot.size()) ? singer_izek.y_plot[index+1] : 0;
 
-	//Vertical Line - X0 == X1
-	if((x0 == x1) && (x1))
+	//Vertical Line - X0 == X1 AND Y0 == Y1
+	if((x0 == x1) && (y0 == y1) && (x1) && (y1))
 	{
 		singer_izek.current_y += (singer_izek.y_plot[index] - 1);
 	}
 
-	//Horizontal - Y0 == Y1
-	else if((x0 != x1) && (y0 == y1) && (x1) && (y1))
+	//Horizontal - X0 != X1 AND Y0 == Y2 AND Y0 != Y1
+	else if((x0 != x1) && (y0 == y2) && (y0 != y1) && (x1) && (y1) && (y2))
 	{
 		singer_izek.current_x = singer_izek.x_plot[index];
 	}
