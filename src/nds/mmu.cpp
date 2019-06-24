@@ -239,12 +239,15 @@ void NTR_MMU::reset()
 /****** Read byte from memory ******/
 u8 NTR_MMU::read_u8(u32 address)
 {
+	//std::cout<<"READ -> 0x" << std::hex << address << "\n";
 	//Advanced debugging
 	#ifdef GBE_DEBUG
 	debug_read = true;
 	debug_addr[address & 0x3] = address;
 	debug_access = (access_mode) ? 0 : 1;
 	#endif
+
+	if((address >= 0x2000000) && (address <= 0x2000003)) { std::cout<<"FUCK FUCK FUCKYOU\n"; }
 
 	//Check DTCM first
 	if((access_mode) && (address >= dtcm_addr) && (address <= (dtcm_addr + 0x3FFF)))
@@ -4447,7 +4450,7 @@ void NTR_MMU::start_hblank_dma()
 		//Repeat bits automatically enable DMAs
 		if(dma[x].control & 0x200) { dma[x].enable = true; }
 
-		u8 dma_type = ((dma[x].control >> 12) & 0x7);
+		u8 dma_type = ((dma[x].control >> 27) & 0x7);
 		if(dma_type == 2) { dma[x].started = true; }
 	}
 }
@@ -4460,7 +4463,7 @@ void NTR_MMU::start_vblank_dma()
 		//Repeat bits automatically enable DMAs
 		if(dma[x].control & 0x200) { dma[x].enable = true; }
 
-		u8 dma_type = ((dma[x].control >> 12) & 0x7);
+		u8 dma_type = ((dma[x].control >> 27) & 0x7);
 		if(dma_type == 1) { dma[x].started = true; }
 	}
 }
