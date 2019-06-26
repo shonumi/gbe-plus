@@ -3251,6 +3251,9 @@ void NTR_LCD::step()
 			{
 				lcd_stat.lcd_clock -= 560190;
 				lcd_stat.current_scanline = 0xFFFF;
+
+				//Start Display Sync DMA
+				mem->start_dma(3);
 			}
 		}
 	}

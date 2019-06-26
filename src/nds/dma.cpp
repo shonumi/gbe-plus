@@ -33,8 +33,10 @@ void NTR_ARM9::nds9_dma(u8 index)
 	{
 		//VBlank
 		//HBlank
+		//Display Sync
 		case 0x1:
 		case 0x2:
+		case 0x3:
 			if(!mem->dma[index].started) { return; }
 	}
 
@@ -43,7 +45,7 @@ void NTR_ARM9::nds9_dma(u8 index)
 	//std::cout<<"DEST  ADDR -> 0x" << std::hex << mem->dma[index].destination_address << "\n";
 	//std::cout<<"WORD COUNT -> 0x" << std::hex << mem->dma[index].word_count << "\n";
 
-	if(dma_mode <= 2)
+	if(dma_mode <= 3)
 	{
 		//DMA fill operation
 		if(mem->dma[index].start_address == fill_addr)
@@ -138,7 +140,6 @@ void NTR_ARM9::nds9_dma(u8 index)
 
 	switch(dma_mode)
 	{
-		case 0x3: std::cout<<"NDS9 DMA" << std::dec << (u16)index << " - Display Sync\n"; running = false; break;
 		case 0x4: std::cout<<"NDS9 DMA" << std::dec << (u16)index << " - Main Mem Display\n"; running = false; break;
 		case 0x6: std::cout<<"NDS9 DMA" << std::dec << (u16)index << " - GBA Cart\n"; running = false; break;
 		case 0x7: std::cout<<"NDS9 DMA" << std::dec << (u16)index << " - Geometry Command FIFO\n"; running = false; break;

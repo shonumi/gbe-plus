@@ -4468,6 +4468,19 @@ void NTR_MMU::start_vblank_dma()
 	}
 }
 
+/****** Start the DMA channels depending on timed conditions ******/
+void NTR_MMU::start_dma(u8 dma_bits)
+{
+	for(u32 x = 0; x < 8; x++)
+	{
+		//Repeat bits automatically enable DMAs
+		if(dma[x].control & 0x200) { dma[x].enable = true; }
+
+		u8 dma_type = ((dma[x].control >> 27) & 0x7);
+		if(dma_type == dma_bits) { dma[x].started = true; }
+	}
+}
+
 /****** Parses cartridge header ******/
 void NTR_MMU::parse_header()
 {
