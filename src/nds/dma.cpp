@@ -48,11 +48,7 @@ void NTR_ARM9::nds9_dma(u8 index)
 	if(dma_mode <= 3)
 	{
 		//DMA fill operation
-		if(mem->dma[index].start_address == fill_addr)
-		{
-			mem->dma[index].start_address = mem->read_u32(fill_addr);
-			mem->dma[index].src_addr_ctrl = 4;
-		}
+		if(mem->dma[index].start_address == fill_addr) { mem->dma[index].src_addr_ctrl = 4; }
 
 		//16-bit transfer
 		if(mem->dma[index].word_type == 0)
