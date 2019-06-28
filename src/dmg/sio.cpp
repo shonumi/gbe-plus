@@ -1704,10 +1704,11 @@ void DMG_SIO::singer_izek_stitch_c3(u8 index)
 	if((x0 == x1) && (y0 == y1) && (x1) && (y1))
 	{
 		singer_izek.current_y += (singer_izek.y_plot[index] - 1);
+		std::cout<<"VERT\n";
 	}
 
-	//Horizontal - X0 != X1 AND Y0 == Y2 AND Y0 != Y1
-	else if((x0 != x1) && (y0 == y2) && (y0 != y1) && (x1) && (y1) && (y2))
+	//Horizontal - X0 != X1 AND Y0 == Y2 AND Y0 != Y1 AND 2nd+ line drawn
+	else if((x0 != x1) && (y0 == y2) && (y0 != y1) && (x1) && (y1) && (y2) && (index > 1))
 	{
 		singer_izek.current_x = singer_izek.x_plot[index];
 	}
