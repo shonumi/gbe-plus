@@ -586,6 +586,7 @@ u8 NTR_MMU::read_u8(u32 address)
 	{
 		if((access_mode && ((nds9_exmem & 0x800) == 0)) || (!access_mode && (nds7_exmem & 0x800)))
 		{
+			std::cout<<"ME\n";
 			u8 addr_shift = (address & 0x3) << 3;
 			return ((nds_card.cmd_lo >> addr_shift) & 0xFF);
 		}
@@ -687,6 +688,15 @@ u8 NTR_MMU::read_u8(u32 address)
 		else { return ((dma[4].control >> addr_shift) & 0xFF); }
 	}
 
+	//Check for DMA0SAD
+	else if((address & ~0x3) == NDS_DMA0SAD)
+	{
+		u8 addr_shift = (address & 0x3) << 3;
+		
+		if(access_mode) { return ((dma[0].start_address >> addr_shift) & 0xFF); }
+		else { return ((dma[4].start_address >> addr_shift) & 0xFF); }
+	}
+		
 	//Check for DMA1CNT
 	else if((address & ~0x3) == NDS_DMA1CNT)
 	{
@@ -694,7 +704,16 @@ u8 NTR_MMU::read_u8(u32 address)
 		
 		if(access_mode) { return ((dma[1].control >> addr_shift) & 0xFF); }
 		else { return ((dma[5].control >> addr_shift) & 0xFF); }
-	} 
+	}
+
+	//Check for DMA1SAD
+	else if((address & ~0x3) == NDS_DMA1SAD)
+	{
+		u8 addr_shift = (address & 0x3) << 3;
+		
+		if(access_mode) { return ((dma[1].start_address >> addr_shift) & 0xFF); }
+		else { return ((dma[5].start_address >> addr_shift) & 0xFF); }
+	}
 
 	//Check for DMA2CNT
 	else if((address & ~0x3) == NDS_DMA2CNT)
@@ -703,7 +722,16 @@ u8 NTR_MMU::read_u8(u32 address)
 		
 		if(access_mode) { return ((dma[2].control >> addr_shift) & 0xFF); }
 		else { return ((dma[6].control >> addr_shift) & 0xFF); }
-	} 
+	}
+
+	//Check for DMA2SAD
+	else if((address & ~0x3) == NDS_DMA2SAD)
+	{
+		u8 addr_shift = (address & 0x3) << 3;
+		
+		if(access_mode) { return ((dma[2].start_address >> addr_shift) & 0xFF); }
+		else { return ((dma[6].start_address >> addr_shift) & 0xFF); }
+	}
 
 	//Check for DMA3CNT
 	else if((address & ~0x3) == NDS_DMA3CNT)
@@ -712,6 +740,15 @@ u8 NTR_MMU::read_u8(u32 address)
 		
 		if(access_mode) { return ((dma[3].control >> addr_shift) & 0xFF); }
 		else { return ((dma[7].control >> addr_shift) & 0xFF); }
+	}
+
+	//Check for DMA3SAD
+	else if((address & ~0x3) == NDS_DMA3SAD)
+	{
+		u8 addr_shift = (address & 0x3) << 3;
+		
+		if(access_mode) { return ((dma[3].start_address >> addr_shift) & 0xFF); }
+		else { return ((dma[7].start_address >> addr_shift) & 0xFF); }
 	}
 
 	//Check for DISP3DCNT
@@ -3731,8 +3768,10 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		case NDS_CARDCMD_LO+1:
 		case NDS_CARDCMD_LO+2:
 		case NDS_CARDCMD_LO+3:
+			std::cout<<"YO\n";
 			if((access_mode && ((nds9_exmem & 0x800) == 0)) || (!access_mode && (nds7_exmem & 0x800)))
 			{
+				std::cout<<"WRITE\n";
 				memory_map[address] = value;
 				nds_card.cmd_lo = ((memory_map[NDS_CARDCMD_LO] << 24) | (memory_map[NDS_CARDCMD_LO+1] << 16) | (memory_map[NDS_CARDCMD_LO+2] << 8) | memory_map[NDS_CARDCMD_LO+3]);
 			}
@@ -3791,6 +3830,8 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			break;
 
 		case NDS_EXMEM:
+				std::cout<<"EXMEM -> 0x" << nds9_exmem << " :: 0x" << (u16)value << "\n";
+
 			if(access_mode)
 			{
 				nds9_exmem &= 0xFF00;
@@ -3799,6 +3840,8 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 				//Change Bit 7 of NDS EXMEMSTAT
 				if(value & 0x80) { nds7_exmem |= 0x80; }
 				else { nds7_exmem &= ~0x80; }
+
+				std::cout<<"EXMEM WRITE -> 0x" << nds9_exmem << " :: 0x" << (u16)value << "\n";
 			}
 
 			else
@@ -3810,6 +3853,8 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			break;
 
 		case NDS_EXMEM+1:
+				std::cout<<"EXMEM -> 0x" << nds9_exmem << " :: 0x" << (u16)value << "\n";
+
 			if(access_mode)
 			{
 				nds9_exmem &= 0xFF;
@@ -3818,6 +3863,8 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 				//Change Bits 8-15 of NDS EXMEMSTAT
 				nds7_exmem &= 0xFF;
 				nds7_exmem |= ((value & 0xE8) << 8);
+
+				std::cout<<"EXMEM WRITE -> 0x" << nds9_exmem << " :: 0x" << (u16)value << "\n";
 			}
 
 			break;
