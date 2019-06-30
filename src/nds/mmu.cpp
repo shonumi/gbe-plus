@@ -696,6 +696,15 @@ u8 NTR_MMU::read_u8(u32 address)
 		if(access_mode) { return ((dma[0].start_address >> addr_shift) & 0xFF); }
 		else { return ((dma[4].start_address >> addr_shift) & 0xFF); }
 	}
+
+	//Check for DMA0DAD
+	else if((address & ~0x3) == NDS_DMA0DAD)
+	{
+		u8 addr_shift = (address & 0x3) << 3;
+		
+		if(access_mode) { return ((dma[0].destination_address >> addr_shift) & 0xFF); }
+		else { return ((dma[4].destination_address >> addr_shift) & 0xFF); }
+	}
 		
 	//Check for DMA1CNT
 	else if((address & ~0x3) == NDS_DMA1CNT)
@@ -713,6 +722,15 @@ u8 NTR_MMU::read_u8(u32 address)
 		
 		if(access_mode) { return ((dma[1].start_address >> addr_shift) & 0xFF); }
 		else { return ((dma[5].start_address >> addr_shift) & 0xFF); }
+	}
+
+	//Check for DMA1DAD
+	else if((address & ~0x3) == NDS_DMA1DAD)
+	{
+		u8 addr_shift = (address & 0x3) << 3;
+		
+		if(access_mode) { return ((dma[1].destination_address >> addr_shift) & 0xFF); }
+		else { return ((dma[5].destination_address >> addr_shift) & 0xFF); }
 	}
 
 	//Check for DMA2CNT
@@ -733,6 +751,15 @@ u8 NTR_MMU::read_u8(u32 address)
 		else { return ((dma[6].start_address >> addr_shift) & 0xFF); }
 	}
 
+	//Check for DMA2DAD
+	else if((address & ~0x3) == NDS_DMA2DAD)
+	{
+		u8 addr_shift = (address & 0x3) << 3;
+		
+		if(access_mode) { return ((dma[2].destination_address >> addr_shift) & 0xFF); }
+		else { return ((dma[6].destination_address >> addr_shift) & 0xFF); }
+	}
+
 	//Check for DMA3CNT
 	else if((address & ~0x3) == NDS_DMA3CNT)
 	{
@@ -749,6 +776,15 @@ u8 NTR_MMU::read_u8(u32 address)
 		
 		if(access_mode) { return ((dma[3].start_address >> addr_shift) & 0xFF); }
 		else { return ((dma[7].start_address >> addr_shift) & 0xFF); }
+	}
+
+	//Check for DMA3DAD
+	else if((address & ~0x3) == NDS_DMA3DAD)
+	{
+		u8 addr_shift = (address & 0x3) << 3;
+		
+		if(access_mode) { return ((dma[3].destination_address >> addr_shift) & 0xFF); }
+		else { return ((dma[7].destination_address >> addr_shift) & 0xFF); }
 	}
 
 	//Check for DISP3DCNT
