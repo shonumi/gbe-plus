@@ -125,7 +125,7 @@ void NTR_ARM9::nds9_dma(u8 index)
 		if((mem->nds9_exmem & 0x800) == 0) { mem->nds9_if |= 0x80000; }
 	}
 
-	mem->dma[index].control &= ~0x80000000;
+	mem->dma[index].control &= ~0x801FFFFF;
 	mem->write_u32(cnt_addr, mem->dma[index].control);
 
 	//Trigger IRQ
@@ -221,7 +221,7 @@ void NTR_ARM7::nds7_dma(u8 index)
 		}
 	}
 
-	mem->dma[index].control &= ~0x80000000;
+	mem->dma[index].control &= ~0x80003FFF;
 	mem->write_u32(cnt_addr, mem->dma[index].control);
 
 	//Trigger IRQ
