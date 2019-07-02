@@ -4346,6 +4346,34 @@ bool NTR_MMU::read_file(std::string filename)
 	return true;
 }
 
+/****** Read GBA ROM to memory for Slot-2 ******/
+bool NTR_MMU::read_slot2_file(std::string filename)
+{
+	std::ifstream file(filename.c_str(), std::ios::binary);
+
+	if(!file.is_open()) 
+	{
+		std::cout<<"MMU::GBA ROM" << filename << " could not be opened. Check file path or permissions. \n";
+		return false;
+	}
+
+	//Get the file size
+	file.seekg(0, file.end);
+	u32 file_size = file.tellg();
+	file.seekg(0, file.beg);
+
+	//Only read 32MB at most
+	if(file_size > 0x2000000) { file_size = 0x2000000; }
+
+	//Read data from the ROM file
+	file.read(reinterpret_cast<char*> (&memory_map[0x8000000]), file_size);
+
+	file.close();
+	std::cout<<"MMU::GBA ROM" << filename << " loaded successfully. \n";
+
+	return true;
+}
+
 /****** Read NDS7 BIOS file into memory ******/
 bool NTR_MMU::read_bios_nds7(std::string filename)
 {

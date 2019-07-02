@@ -45,7 +45,8 @@ class NTR_MMU
 		SLOT2_AUTO,
 		SLOT2_NONE,
 		SLOT2_PASSME,
-		SLOT2_RUMBLE_PAK
+		SLOT2_RUMBLE_PAK,
+		SLOT2_GBA_CART
 	};
 
 	backup_types current_save_type;
@@ -319,6 +320,7 @@ class NTR_MMU
 	u32 read_cart_u32(u32 address) const;
 
 	bool read_file(std::string filename);
+	bool read_slot2_file(std::string filename);
 	bool read_bios_nds7(std::string filename);
 	bool read_bios_nds9(std::string filename);
 	bool read_firmware(std::string filename);
