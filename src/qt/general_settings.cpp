@@ -299,6 +299,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	dmg_gbc_pal->addItem("GBC BOOTROM - LEFT+B");
 	dmg_gbc_pal->addItem("GBC BOOTROM - RIGHT+B");
 	dmg_gbc_pal->addItem("DMG - Classic Green");
+	dmg_gbc_pal->addItem("DMG - Game Boy Light");
 
 	QHBoxLayout* dmg_gbc_pal_layout = new QHBoxLayout;
 	dmg_gbc_pal_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);

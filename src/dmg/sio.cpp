@@ -1640,6 +1640,12 @@ void DMG_SIO::singer_izek_fill_buffer()
 		singer_izek.last_x = singer_izek.current_x;
 		singer_izek.last_y = singer_izek.current_y;
 	}
+
+	SDL_Surface* tmp_s = SDL_CreateRGBSurface(SDL_SWSURFACE, 160, 144, 32, 0, 0, 0, 0);
+	u32* out_pixel_data = (u32*)tmp_s->pixels;
+	for(u32 x = 0; x < 0x5A00; x++) { out_pixel_data[x] = singer_izek.stitch_buffer[x]; }
+	SDL_SaveBMP(tmp_s, "YO.bmp");
+
 }
 
 /****** Plots points for C2 stitching ******/
@@ -1704,7 +1710,6 @@ void DMG_SIO::singer_izek_stitch_c3(u8 index)
 	if((x0 == x1) && (y0 == y1) && (x1) && (y1))
 	{
 		singer_izek.current_y += (singer_izek.y_plot[index] - 1);
-		std::cout<<"VERT\n";
 	}
 
 	//Horizontal - X0 != X1 AND Y0 == Y2 AND Y0 != Y1 AND 2nd+ line drawn

@@ -522,6 +522,23 @@ void set_dmg_colors(u8 color_type)
                         config::DMG_OBJ_PAL[0][1] = 0xFFE6FFD6;
 
 			break;
+
+		//Game Boy Light
+		case 15:
+			config::DMG_BG_PAL[0] = 0xFF38D5AA;
+			config::DMG_BG_PAL[1] = 0xFF40B38C;
+			config::DMG_BG_PAL[2] = 0xFF39A37D;
+			config::DMG_BG_PAL[3] = 0xFF008E63;
+
+			config::DMG_OBJ_PAL[0][0] = 0xFF38D5AA;
+			config::DMG_OBJ_PAL[1][0] = 0xFF40B38C;
+			config::DMG_OBJ_PAL[2][0] = 0xFF39A37D;
+			config::DMG_OBJ_PAL[3][0] = 0xFF008E63;
+
+			config::DMG_OBJ_PAL[0][1] = 0xFF38D5AA;
+			config::DMG_OBJ_PAL[1][1] = 0xFF40B38C;
+			config::DMG_OBJ_PAL[2][1] = 0xFF39A37D;
+			config::DMG_OBJ_PAL[3][1] = 0xFF008E63;
 	}
 }	
 
@@ -1561,7 +1578,7 @@ bool parse_ini_file()
 			{
 				util::from_str(ini_opts[++x], output);
 
-				if((output >= 1) && (output <= 14)) 
+				if((output >= 1) && (output <= 15)) 
 				{
 					config::dmg_gbc_pal = output;
 					set_dmg_colors(config::dmg_gbc_pal);
