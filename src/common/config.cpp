@@ -206,6 +206,10 @@ namespace config
 		{ 0xFF000000, 0xFF000000 }
 	};
 
+	//NDS Slot-2 device and file
+	u8 nds_slot2_device = 0;
+	std::string nds_slot2_file = "";
+
 	//Real-time clock offsets
 	u16 rtc_offset[6] = { 0, 0, 0, 0, 0, 0 };
 
@@ -676,6 +680,18 @@ bool parse_cli_args()
 					}
 				}
 			}
+
+			//Load NDS Slot-2 device
+			else if(config::cli_args[x] == "--slot2-gba")
+			{
+				if((++x) == config::cli_args.size()) { std::cout<<"GBE::Error - No GBA ROM file in arguments\n"; }
+
+				else 
+				{
+					config::nds_slot2_device = 4;
+					config::nds_slot2_file = config::cli_args[x];
+				}
+			}	
 
 			//Load Firmware (NDS)
 			else if((config::cli_args[x] == "-fw") || (config::cli_args[x] == "--firmware"))

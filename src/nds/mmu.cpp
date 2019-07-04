@@ -34,7 +34,14 @@ NTR_MMU::~NTR_MMU()
 void NTR_MMU::reset()
 {
 	current_save_type = AUTO;
-	current_slot2_device = SLOT2_AUTO;	
+
+	switch(config::nds_slot2_device)
+	{
+		case 0: current_slot2_device = SLOT2_AUTO; break;
+		case 1: current_slot2_device = SLOT2_NONE; break;
+		case 2: current_slot2_device = SLOT2_PASSME; break;
+		case 3: current_slot2_device = SLOT2_GBA_CART; break;
+	}	
 
 	memory_map.clear();
 	memory_map.resize(0x10000000, 0);
@@ -239,15 +246,12 @@ void NTR_MMU::reset()
 /****** Read byte from memory ******/
 u8 NTR_MMU::read_u8(u32 address)
 {
-	//std::cout<<"READ -> 0x" << std::hex << address << "\n";
 	//Advanced debugging
 	#ifdef GBE_DEBUG
 	debug_read = true;
 	debug_addr[address & 0x3] = address;
 	debug_access = (access_mode) ? 0 : 1;
 	#endif
-
-	if((address >= 0x2000000) && (address <= 0x2000003)) { std::cout<<"FUCK FUCK FUCKYOU\n"; }
 
 	//Check DTCM first
 	if((access_mode) && (address >= dtcm_addr) && (address <= (dtcm_addr + 0x3FFF)))
@@ -3804,10 +3808,8 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		case NDS_CARDCMD_LO+1:
 		case NDS_CARDCMD_LO+2:
 		case NDS_CARDCMD_LO+3:
-			std::cout<<"YO\n";
 			if((access_mode && ((nds9_exmem & 0x800) == 0)) || (!access_mode && (nds7_exmem & 0x800)))
 			{
-				std::cout<<"WRITE\n";
 				memory_map[address] = value;
 				nds_card.cmd_lo = ((memory_map[NDS_CARDCMD_LO] << 24) | (memory_map[NDS_CARDCMD_LO+1] << 16) | (memory_map[NDS_CARDCMD_LO+2] << 8) | memory_map[NDS_CARDCMD_LO+3]);
 			}
@@ -3866,8 +3868,6 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			break;
 
 		case NDS_EXMEM:
-				std::cout<<"EXMEM -> 0x" << nds9_exmem << " :: 0x" << (u16)value << "\n";
-
 			if(access_mode)
 			{
 				nds9_exmem &= 0xFF00;
@@ -3876,8 +3876,6 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 				//Change Bit 7 of NDS EXMEMSTAT
 				if(value & 0x80) { nds7_exmem |= 0x80; }
 				else { nds7_exmem &= ~0x80; }
-
-				std::cout<<"EXMEM WRITE -> 0x" << nds9_exmem << " :: 0x" << (u16)value << "\n";
 			}
 
 			else
@@ -3889,8 +3887,6 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			break;
 
 		case NDS_EXMEM+1:
-				std::cout<<"EXMEM -> 0x" << nds9_exmem << " :: 0x" << (u16)value << "\n";
-
 			if(access_mode)
 			{
 				nds9_exmem &= 0xFF;
@@ -3899,8 +3895,6 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 				//Change Bits 8-15 of NDS EXMEMSTAT
 				nds7_exmem &= 0xFF;
 				nds7_exmem |= ((value & 0xE8) << 8);
-
-				std::cout<<"EXMEM WRITE -> 0x" << nds9_exmem << " :: 0x" << (u16)value << "\n";
 			}
 
 			break;
@@ -4329,7 +4323,7 @@ bool NTR_MMU::read_file(std::string filename)
 
 	access_mode = 1;
 
-	//Detect Slot2 device if set to automatic
+	//Detect Slot-2 device if set to automatic
 	if(current_slot2_device == SLOT2_AUTO)
 	{
 		//Detect PASSME device
@@ -4337,6 +4331,20 @@ bool NTR_MMU::read_file(std::string filename)
 
 		//Otherwise, set Slot2 to none
 		else { current_slot2_device = SLOT2_NONE; }
+	}
+
+	//Handle Slot-2 device if necessary
+	switch(current_slot2_device)
+	{
+		//GBA Cart
+		case 4:
+			if(!read_slot2_file(config::nds_slot2_file))
+			{
+				config::nds_slot2_device = 1;
+				current_slot2_device = SLOT2_NONE;
+			}
+
+			break;
 	}
 
 	//Load cart save data
