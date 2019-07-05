@@ -1032,6 +1032,23 @@ bool parse_ini_file()
 			}
 		}
 
+		//Emulated Slot2 device
+		if(ini_item == "#slot2_device")
+		{
+			if((x + 1) < size) 
+			{
+				util::from_str(ini_opts[++x], output);
+
+				if((output >= 0) && (output <= 4)) { config::nds_slot2_device = output; }
+			}
+
+			else 
+			{ 
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#slot2_device) \n";
+				return false;
+			}
+		}
+
 		//Set emulated system type
 		else if(ini_item == "#system_type")
 		{
@@ -2445,6 +2462,14 @@ bool save_ini_file()
 			line_pos = output_count[x];
 
 			output_lines[line_pos] = "[#ir_device:" + util::to_str(config::ir_device) + "]";
+		}
+
+		//Emulated Slot2 device
+		if(ini_item == "#slot2_device")
+		{
+			line_pos = output_count[x];
+
+			output_lines[line_pos] = "[#slot2_device:" + util::to_str(config::nds_slot2_device) + "]";
 		}
 
 		//Set emulated system type
