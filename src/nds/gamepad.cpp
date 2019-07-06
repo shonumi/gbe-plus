@@ -23,6 +23,7 @@ NTR_GamePad::NTR_GamePad()
 	up_shadow = down_shadow = left_shadow = right_shadow = false;
 	touch_hold = false;
 	touch_by_mouse = false;
+	is_rumbling = false;
 
 	nds7_input_irq = NULL;
 	nds9_input_irq = NULL;
@@ -49,6 +50,28 @@ void NTR_GamePad::init()
 
 	if((jstick == NULL) && (SDL_NumJoysticks() >= 1)) { std::cout<<"JOY::Could not initialize joystick \n"; }
 	else if((jstick == NULL) && (SDL_NumJoysticks() == 0)) { std::cout<<"JOY::No joysticks detected \n"; }
+
+	rumble = NULL;
+
+	//Open haptics for rumbling
+	if(config::use_haptics)
+	{
+		if(SDL_InitSubSystem(SDL_INIT_HAPTIC) == -1)
+		{
+			std::cout<<"JOY::Could not initialize SDL haptics\n";
+			return;
+		}
+
+		rumble = SDL_HapticOpenFromJoystick(jstick);
+
+		if(rumble == NULL) { std::cout<<"JOY::Could not init rumble \n"; }
+	
+		else
+		{
+			SDL_HapticRumbleInit(rumble);
+			std::cout<<"JOY::Rumble initialized\n";
+		}
+	}
 }
 
 /****** GamePad Destructor ******/

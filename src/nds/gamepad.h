@@ -41,6 +41,7 @@ class NTR_GamePad
 	u32 mouse_x, mouse_y;
 	bool touch_hold;
 	bool touch_by_mouse;
+	bool is_rumbling;
 
 	u32* nds7_input_irq;
 	u32* nds9_input_irq;
@@ -54,6 +55,7 @@ class NTR_GamePad
 	bool up_shadow, down_shadow, left_shadow, right_shadow;
 
 	SDL_Joystick* jstick;
+    	SDL_Haptic* rumble;
 };
 
 #endif // NDS_GAMEPAD
