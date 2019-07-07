@@ -418,6 +418,14 @@ void NTR_ARM9::data_processing(u32 current_arm_instruction)
 	//Timings for PC as destination register
 	if(dest_reg == 15) 
 	{
+		//Switch to THUMB mode if necessary
+		if(reg.r15 & 0x1) 
+		{ 
+			arm_mode = THUMB;
+			reg.cpsr |= 0x20;
+			reg.r15 &= ~0x1;
+		}
+
 		//Clock CPU and controllers - 2S
 		needs_flush = true; 
 		clock(reg.r15, CODE_S32);
