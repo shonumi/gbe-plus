@@ -426,6 +426,8 @@ void NTR_ARM9::data_processing(u32 current_arm_instruction)
 			reg.r15 &= ~0x1;
 		}
 
+		else { reg.r15 &= ~0x3; }
+
 		//Clock CPU and controllers - 2S
 		needs_flush = true; 
 		clock(reg.r15, CODE_S32);
