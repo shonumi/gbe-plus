@@ -641,11 +641,12 @@ void main_menu::boot_game()
 		case 0x1: config::cart_type = DMG_MBC1M; break;
 		case 0x2: config::cart_type = DMG_MBC1S; break;
 		case 0x3: config::cart_type = DMG_MMM01; break;
-		case 0x4: config::cart_type = AGB_RTC; break;
-		case 0x5: config::cart_type = AGB_SOLAR_SENSOR; break;
-		case 0x6: config::cart_type = AGB_RUMBLE; break;
-		case 0x7: config::cart_type = AGB_GYRO_SENSOR; break;
-		case 0x8: config::cart_type = AGB_TILT_SENSOR; break;
+		case 0x4: config::cart_type = DMG_MBC30; break;
+		case 0x5: config::cart_type = AGB_RTC; break;
+		case 0x6: config::cart_type = AGB_SOLAR_SENSOR; break;
+		case 0x7: config::cart_type = AGB_RUMBLE; break;
+		case 0x8: config::cart_type = AGB_GYRO_SENSOR; break;
+		case 0x9: config::cart_type = AGB_TILT_SENSOR; break;
 	}
 
 	//Check rumble status

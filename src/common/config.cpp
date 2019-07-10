@@ -717,6 +717,9 @@ bool parse_cli_args()
 			//Use MMM01 multicart mode if applicable for a given ROM
 			else if(config::cli_args[x] == "--mmm01") { config::cart_type = DMG_MMM01; }
 
+			//Use MBC30 (double SRAM) for Pocket Monsters Crystal
+			else if(config::cli_args[x] == "--mbc30") { config::cart_type = DMG_MBC30; }
+
 			//Use Auto-Detect for GBA saves
 			else if(config::cli_args[x] == "--save-auto") { config::agb_save_type = AGB_AUTO_DETECT; }
 
@@ -791,6 +794,8 @@ bool parse_cli_args()
 				std::cout<<"-d, --debug \t\t\t\t Start the command-line debugger\n";
 				std::cout<<"--mbc1m \t\t\t\t Use MBC1M multicart mode if applicable\n";
 				std::cout<<"--mmm01 \t\t\t\t Use MMM01 multicart mode if applicable\n";
+				std::cout<<"--mbc1s \t\t\t\t Use MBC1S sonar cart\n";
+				std::cout<<"--mbc30 \t\t\t\t Use MBC30 for Pocket Monsters Crystal\n";
 				std::cout<<"--opengl \t\t\t\t Use OpenGL for screen drawing and scaling\n";
 				std::cout<<"--cheats \t\t\t\t Use Gameshark or Game Genie cheats\n";
 				std::cout<<"--patch \t\t\t\t Use a patch file for the ROM\n";

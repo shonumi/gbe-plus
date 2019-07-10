@@ -179,7 +179,8 @@ void DMG_MMU::mbc3_write(u16 address, u8 value)
 	//Write to External RAM or RTC register
 	if((address >= 0xA000) && (address <= 0xBFFF))
 	{
-		if((ram_banking_enabled) && (bank_bits <= 3)) { random_access_bank[bank_bits][address - 0xA000] = value; }
+		if((ram_banking_enabled) && (bank_bits <= 3) && (config::cart_type != DMG_MBC30)) { random_access_bank[bank_bits][address - 0xA000] = value; }
+		else if((ram_banking_enabled) && (bank_bits < 8) && (config::cart_type == DMG_MBC30)) { random_access_bank[bank_bits][address - 0xA000] = value; }
 		else if((cart.rtc_enabled) && (bank_bits >= 0x8) && (bank_bits <= 0xC)) { cart.rtc_reg[bank_bits - 8] = value; }
 	}
 
@@ -244,7 +245,8 @@ u8 DMG_MMU::mbc3_read(u16 address)
 	//Read using RAM Banking or RTC regs
 	else if((address >= 0xA000) && (address <= 0xBFFF))
 	{
-		if((ram_banking_enabled) && (bank_bits <= 3)) { return random_access_bank[bank_bits][address - 0xA000]; }
+		if((ram_banking_enabled) && (bank_bits <= 3) && (config::cart_type != DMG_MBC30)) { return random_access_bank[bank_bits][address - 0xA000]; }
+		else if((ram_banking_enabled) && (bank_bits < 8) && (config::cart_type == DMG_MBC30)) { return random_access_bank[bank_bits][address - 0xA000]; }
 		else if((cart.rtc_enabled) && (bank_bits >= 0x8) && (bank_bits <= 0xC)) { return cart.latch_reg[bank_bits - 8]; }
 		else { return 0x00; }
 	}
