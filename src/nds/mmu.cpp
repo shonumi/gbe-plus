@@ -4389,7 +4389,29 @@ bool NTR_MMU::read_slot2_file(std::string filename)
 	file.read(reinterpret_cast<char*> (&memory_map[0x8000000]), file_size);
 
 	file.close();
+
 	std::cout<<"MMU::GBA ROM" << filename << " loaded successfully. \n";
+
+	//Detect presence of save file and load it
+	filename += ".sav";
+	file.open(filename.c_str(), std::ios::binary);
+
+	if(!file.is_open()) 
+	{
+		std::cout<<"MMU::GBA save file" << filename << " could not be opened. Check file path or permissions. \n";
+	}
+
+	else
+	{
+		//Get the file size
+		file.seekg(0, file.end);
+		u32 file_size = file.tellg();
+		file.seekg(0, file.beg);
+
+		std::cout<<"MMU::GBA save file" << filename << " loaded successfully. \n";
+	}
+
+	file.close();
 
 	return true;
 }
