@@ -34,6 +34,7 @@ NTR_MMU::~NTR_MMU()
 void NTR_MMU::reset()
 {
 	current_save_type = AUTO;
+	gba_save_type = GBA_NONE;
 
 	switch(config::nds_slot2_device)
 	{
@@ -4392,6 +4393,55 @@ bool NTR_MMU::read_slot2_file(std::string filename)
 
 	std::cout<<"MMU::GBA ROM" << filename << " loaded successfully. \n";
 
+	//Determine GBA save type if any
+	for(u32 x = 0x8000000; x < (0x8000000 + file_size); x+=1)
+	{
+		switch(memory_map[x])
+		{
+			//EEPROM
+			case 0x45:
+				if((memory_map[x+1] == 0x45) && (memory_map[x+2] == 0x50) && (memory_map[x+3] == 0x52) && (memory_map[x+4] == 0x4F) && (memory_map[x+5] == 0x4D))
+				{
+					gba_save_type = GBA_EEPROM;
+				}
+				
+				break;
+
+			//FLASH RAM
+			case 0x46:
+				if((memory_map[x+1] == 0x4C) && (memory_map[x+2] == 0x41) && (memory_map[x+3] == 0x53) && (memory_map[x+4] == 0x48) && (memory_map[x+5] == 0x5F))
+				{
+					gba_save_type = GBA_FLASH_64;
+				}
+
+				//64KB "FLASH512_Vnnn"
+				else if((memory_map[x+1] == 0x4C) && (memory_map[x+2] == 0x41) && (memory_map[x+3] == 0x53) && (memory_map[x+4] == 0x48) && (memory_map[x+5] == 0x35)
+				&& (memory_map[x+6] == 0x31) && (memory_map[x+7] == 0x32)) 
+				{
+					gba_save_type = GBA_FLASH_64;
+
+				}
+
+				//128KB "FLASH1M_V"
+				else if((memory_map[x+1] == 0x4C) && (memory_map[x+2] == 0x41) && (memory_map[x+3] == 0x53) && (memory_map[x+4] == 0x48) && (memory_map[x+5] == 0x31)
+				&& (memory_map[x+6] == 0x4D))
+				{
+					gba_save_type = GBA_FLASH_128;
+				}
+
+				break;
+
+			//SRAM
+			case 0x53:
+				if((memory_map[x+1] == 0x52) && (memory_map[x+2] == 0x41) && (memory_map[x+3] == 0x4D))
+				{
+					gba_save_type = GBA_SRAM;
+				}
+
+				break;
+		}
+	}
+
 	//Detect presence of save file and load it
 	filename += ".sav";
 	file.open(filename.c_str(), std::ios::binary);
@@ -4399,17 +4449,15 @@ bool NTR_MMU::read_slot2_file(std::string filename)
 	if(!file.is_open()) 
 	{
 		std::cout<<"MMU::GBA save file" << filename << " could not be opened. Check file path or permissions. \n";
+		return true;
 	}
 
-	else
-	{
-		//Get the file size
-		file.seekg(0, file.end);
-		u32 file_size = file.tellg();
-		file.seekg(0, file.beg);
+	//Get the file size
+	file.seekg(0, file.end);
+	file_size = file.tellg();
+	file.seekg(0, file.beg);
 
-		std::cout<<"MMU::GBA save file" << filename << " loaded successfully. \n";
-	}
+	std::cout<<"MMU::GBA save file" << filename << " loaded successfully. \n";
 
 	file.close();
 

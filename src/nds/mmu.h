@@ -28,7 +28,7 @@ class NTR_MMU
 {
 	public:
 
-	//Cartridge save-type enumerations
+	//NDS cartridge save-type enumerations
 	enum backup_types
 	{
 		AUTO,
@@ -37,6 +37,16 @@ class NTR_MMU
 		EEPROM,
 		FLASH,
 		FRAM
+	};
+
+	//GBA cartridge save-type enumerations
+	enum gba_backup_types
+	{
+		GBA_NONE,
+		GBA_EEPROM,
+		GBA_FLASH_64,
+		GBA_FLASH_128,
+		GBA_SRAM
 	};
 
 	//Slot-2 enumerations
@@ -50,6 +60,7 @@ class NTR_MMU
 	};
 
 	backup_types current_save_type;
+	gba_backup_types gba_save_type;
 	slot2_types current_slot2_device;
 
 	std::vector <u8> memory_map;
