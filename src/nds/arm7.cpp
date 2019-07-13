@@ -180,7 +180,7 @@ u32 NTR_ARM7::get_reg(u8 g_reg) const
 
 		//This should not happen
 		default:
-			std::cout<<"CPU::Error - Tried to access invalid general purpose register: " << (int)g_reg << "\n"; break;
+			std::cout<<"CPU::Error - ARM7 tried to access invalid general purpose register: " << (int)g_reg << "\n"; break;
 	}
 
 	return 0;
@@ -270,7 +270,7 @@ void NTR_ARM7::set_reg(u8 s_reg, u32 value)
 
 		//This should not happen
 		default:
-			std::cout<<"CPU::Error - Tried to access invalid general purpose register: " << (int)s_reg << "\n"; break;
+			std::cout<<"CPU::Error - ARM7 tried to access invalid general purpose register: " << (int)s_reg << "\n"; break;
 	}
 }
 
@@ -286,7 +286,7 @@ u32 NTR_ARM7::get_spsr() const
 		case ABT: return reg.spsr_abt; break;
 		case IRQ: return reg.spsr_irq; break;
 		case UND: return reg.spsr_und; break;
-		default: std::cout<<"CPU::Error - Tried to access invalid SPSR in mode 0x" << std::hex << (int)current_cpu_mode << "\n"; break;
+		default: std::cout<<"CPU::Error - ARM7 tried to access invalid SPSR in mode 0x" << std::hex << (int)current_cpu_mode << "\n"; break;
 	}
 
 	return 0;
@@ -304,7 +304,7 @@ void NTR_ARM7::set_spsr(u32 value)
 		case ABT: reg.spsr_abt = value; break;
 		case IRQ: reg.spsr_irq = value; break;
 		case UND: reg.spsr_und = value; break;
-		default: std::cout<<"CPU::Error - Tried to access invalid SPSR in mode 0x" << std::hex << (int)current_cpu_mode << "\n"; break;
+		default: std::cout<<"CPU::Error - ARM7 tried to access invalid SPSR in mode 0x" << std::hex << (int)current_cpu_mode << "\n"; break;
 	}
 }
 
