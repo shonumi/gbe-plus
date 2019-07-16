@@ -735,9 +735,9 @@ bool AGB_SIO::soul_doll_adapter_save_data()
 
 		out_data.write((char*)&sda.data[0], 0x400);
 		out_data.close();
-
-		return true;
 	}
+
+	return true;
 } 
 
 /****** Process Soul Doll Adapter ******/

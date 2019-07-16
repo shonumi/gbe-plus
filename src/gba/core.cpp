@@ -631,6 +631,8 @@ u32 AGB_core::ex_get_reg(u8 reg_index)
 		case 0x23: return core_cpu.reg.r14_und;
 		case 0x24: return core_cpu.reg.spsr_und;
 	}
+
+	return 0;
 }
 
 /****** Read binary file to memory ******/
