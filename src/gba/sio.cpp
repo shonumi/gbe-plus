@@ -244,6 +244,11 @@ void AGB_SIO::reset()
 			sio_stat.sio_type = GBA_POWER_ANTENNA;
 			break;
 
+		//Multi Plust On System
+		case 0xF:
+			sio_stat.sio_type = GBA_MULTI_PLUST_ON_SYSTEM;
+			break;
+
 		//Always wait until netplay connection is established to change to GBA_LINK
 		default:
 			sio_stat.sio_type = NO_GBA_DEVICE;
@@ -312,6 +317,11 @@ void AGB_SIO::reset()
 	mobile_adapter.http_session_started = false;
 	mobile_adapter.smtp_session_started = false;
 	mobile_adapter.http_data = "";
+
+	//Multi Plust On System
+	mpos.data.clear();
+	mpos.current_state = AGB_MPOS_INIT;
+	mpos.data_count = 0;
 
 	switch(config::sio_device)
 	{
@@ -1120,4 +1130,27 @@ void AGB_SIO::net_gate_process()
 	}
 
 	#endif
+}
+
+/****** Process Multi Plust On System ******/
+void AGB_SIO::mpos_process()
+{
+	if(sio_stat.r_cnt == 0x80F0) { mpos.current_state = AGB_MPOS_INIT; }
+	else { mpos.current_state = AGB_MPOS_SEND_DATA; }
+
+	switch(mpos.current_state)
+	{
+		//Init signal. Echo 0x80F0
+		case AGB_MPOS_INIT:
+			mpos.data_count = 0;
+			break;
+
+		//Send looping data
+		case AGB_MPOS_SEND_DATA:
+			sio_stat.r_cnt = mpos.data[mpos.data_count++];
+			if(mpos.data_count == 37) { mpos.data_count = 0; }
+			break;
+	}
+
+	sio_stat.emu_device_ready = false;
 }

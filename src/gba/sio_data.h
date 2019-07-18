@@ -25,6 +25,7 @@ enum agb_sio_types
 	GBA_BATTLE_CHIP_GATE,
 	GBA_POWER_ANTENNA,
 	GBA_MOBILE_ADAPTER,
+	GBA_MULTI_PLUST_ON_SYSTEM,
 };
 
 //Serial Input-Output device mode enumeration
@@ -69,6 +70,13 @@ enum agb_mobile_state
 	AGB_GBMA_RECEIVE_CHECKSUM,
 	AGB_GBMA_ACKNOWLEDGE_PACKET,
 	AGB_GBMA_ECHO_PACKET,
+};
+
+//Multi Plust On System enumerations
+enum agb_mpos_state
+{
+	AGB_MPOS_INIT,
+	AGB_MPOS_SEND_DATA,
 };
 
 struct agb_sio_data

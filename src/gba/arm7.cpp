@@ -1571,6 +1571,10 @@ void ARM7::clock_emulated_sio_device()
 
 			break;
 
+		case 0xF:
+			controllers.serial_io.mpos_process();
+			break;
+
 		//Clock everything else normally
 		default: break;
 	}

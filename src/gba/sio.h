@@ -129,6 +129,14 @@ class AGB_SIO
 		bool line_busy;
 	} mobile_adapter;
 
+	//Multi Plust On System
+	struct multi_plust_on_system
+	{
+		std::vector <u16> data;
+		agb_mpos_state current_state;
+		u32 data_count;
+	} mpos;
+
 	AGB_SIO();
 	~AGB_SIO();
 
@@ -155,6 +163,8 @@ class AGB_SIO
 	void mobile_adapter_process_http();
 	void mobile_adapter_process_smtp();
 	bool mobile_adapter_load_server_list();
+
+	void mpos_process();
 };
 
 #endif // GBA_SIO
