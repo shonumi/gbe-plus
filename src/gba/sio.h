@@ -135,6 +135,7 @@ class AGB_SIO
 		std::vector <u16> data;
 		agb_mpos_state current_state;
 		u32 data_count;
+		u16 id;
 	} mpos;
 
 	AGB_SIO();
@@ -165,6 +166,7 @@ class AGB_SIO
 	bool mobile_adapter_load_server_list();
 
 	void mpos_process();
+	void mpos_generate_data();
 };
 
 #endif // GBA_SIO

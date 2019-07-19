@@ -322,6 +322,9 @@ void AGB_SIO::reset()
 	mpos.data.clear();
 	mpos.current_state = AGB_MPOS_INIT;
 	mpos.data_count = 0;
+	mpos.id = 0x16A0;
+
+	mpos_generate_data();
 
 	switch(config::sio_device)
 	{
@@ -1153,4 +1156,44 @@ void AGB_SIO::mpos_process()
 	}
 
 	sio_stat.emu_device_ready = false;
+}
+
+/****** Generates data for Multi Plust On System with a 16-bit ID ******/
+void AGB_SIO::mpos_generate_data()
+{
+	mpos.data.clear();
+	u16 mask = 0x8000;
+
+	//First 4 responses from hardware do not change
+	mpos.data.push_back(0x80B9);
+	mpos.data.push_back(0x80B1);
+	mpos.data.push_back(0x80BB);
+	mpos.data.push_back(0x80BB);
+
+	//Actual data from ID generated here
+	while(mask)
+	{
+		//Grab and translate data, MSB first
+		u8 data_bit = (mpos.id & mask) ? 1 : 0;
+
+		//Push back response if data bit is 1
+		if(data_bit)
+		{
+			mpos.data.push_back(0x80BE);
+			mpos.data.push_back(0x80BC);
+		}
+
+		//Push back response if data bit is 0
+		else
+		{
+			mpos.data.push_back(0x80B8);
+			mpos.data.push_back(0x80BA);
+		}
+
+		mask >>= 1;
+	}
+
+	//Last 2 responses from hardware do not change
+	mpos.data.push_back(0x80B8);
+	mpos.data.push_back(0x80BA);
 }
