@@ -1,0 +1,162 @@
+Multi Plust On System Documentation 0.1
+July 20th, 2019
+Shonumi aka D.S. Baxter
+
+***************************************************
+1. Introduction
+*************************************************** 
+
+The Multi Plust On System (MPOS) is an accessory for the Bouken Yuuki Pluster World franchise from Takara. Designed as a "toys-to-life" device, it allows plastic figurines to transfer characters known as "Plusters" into the games. Bouken Yuuki Pluster World: Densetsu no Pluster Gate and the EX version are RPGs, while Bouken Yuuki Pluster World: Pluston GP is a racing game. All 3 were released in 2003 and came with special sets featuring the the MPOS and a bundled Pluster figurine.
+
+
+***************************************************
+2. General Hardware Information
+***************************************************
+
+* The MPOS is a small attachment that fits into the GBA serial port and has a circular slot for figurines
+* Each figurine is entirely plastic, having no electronic parts whatsoever
+* Each figurine has a hollow base with different spokes extending slightly from the bottom
+* Once a figurine is inserted and secured inside the slot, these spokes push down on a sensitive pads beneath the surface
+* Internally, the MPOS uses two Texas Instruments HC165 parallel load-shift registers to output data to the GBA serially
+
+
+***************************************************
+3. Communication Protocol
+***************************************************
+
+Communication between the MPOS and the GBA is very simple. The role of the MPOS is to provide a single 16-bit number. Depending on which spokes the plastic model uses to put on the MPOS' array of pressure pads, a different number is sent to the GBA. The number effectively acts as an ID for the Pluster figurine. Using General Purpose Mode, both sides send a total of 37 transfers. At the beginning, of a session, the games will set all lines (SC, SD, SI, SO) high with the RCNT value 0x80F0. Afterwards the 37 transfers keep looping indefinitely. The first 4 transfer appear to act as a start signal. The start signal is the following:
+
+
+----------------------------------------------
+RCNT		|SC	| SD	| SI	| SO 
+----------------------------------------------
+0x80BD		| 1	| 0	| 1	| 1
+0x80B5		| 1	| 0	| 1	| 0
+0x80BF		| 1	| 1	| 1	| 1
+0x80BF		| 1	| 1	| 1	| 1
+
+
+Although the games' code ignores the results of the start signal, the MPOS returns these values:
+
+
+----------------------------------------------
+RCNT		|SC	| SD	| SI	| SO 
+----------------------------------------------
+0x80B9		| 1	| 0	| 0	| 1
+0x80B1		| 1	| 0	| 0	| 0
+0x80BB		| 1	| 1	| 0	| 1
+0x80BB		| 1	| 1	| 0	| 1
+
+
+The next 33 transfers are used for the 16-bit ID, 1 bit for every 2 transfers. The last transfer appears to dangle. This may simply be necessary to complete the transfer of the ID and begin the process over again. The GBA sends the following over and over again until it sends another start signal:
+
+
+----------------------------------------------
+RCNT		|SC	| SD	| SI	| SO 
+----------------------------------------------
+0x80BE		| 0	| 1	| 1	| 1
+0x80BC		| 0	| 0	| 1	| 1
+
+
+In response, the MPOS toggles SI every odd transfer (when receiving 0x80BE from the GBA) to send the the bit. For example, for the Pluster Wyburst (PF002), it produces the ID 0x16A0. The values sent back to the GBA look like this:
+
+
+------------------------------------------------------
+RCNT		|SC	| SD	| SI	| SO 	| Bit
+------------------------------------------------------
+0x80BA		| 0	| 1	| 0	| 1	| 0
+0x80B8		| 0	| 0	| 0	| 1	|
+0x80BA		| 0	| 1	| 0	| 1	| 0
+0x80B8		| 0	| 0	| 0	| 1	|
+0x80BA		| 0	| 1	| 0	| 1	| 0
+0x80B8		| 0	| 0	| 0	| 1	|
+0x80BE		| 0	| 1	| 1	| 1	| 1
+0x80BC		| 0	| 0	| 1	| 1	|
+0x80BA		| 0	| 1	| 0	| 1	| 0
+0x80B8		| 0	| 0	| 0	| 1	|
+0x80BE		| 0	| 1	| 1	| 1	| 1
+0x80BC		| 0	| 0	| 1	| 1	|
+0x80BE		| 0	| 1	| 1	| 1	| 1
+0x80BC		| 0	| 0	| 1	| 1	|
+0x80BA		| 0	| 1	| 0	| 1	| 0
+0x80B8		| 0	| 0	| 0	| 1	|
+0x80BE		| 0	| 1	| 1	| 1	| 1
+0x80BC		| 0	| 0	| 1	| 1	|
+0x80BA		| 0	| 1	| 0	| 1	| 0
+0x80B8		| 0	| 0	| 0	| 1	|
+0x80BE		| 0	| 1	| 1	| 1	| 1
+0x80BC		| 0	| 0	| 1	| 1	|
+0x80BA		| 0	| 1	| 0	| 1	| 0
+0x80B8		| 0	| 0	| 0	| 1	|
+0x80BA		| 0	| 1	| 0	| 1	| 0
+0x80B8		| 0	| 0	| 0	| 1	|
+0x80BA		| 0	| 1	| 0	| 1	| 0
+0x80B8		| 0	| 0	| 0	| 1	|
+0x80BA		| 0	| 1	| 0	| 1	| 0
+0x80B8		| 0	| 0	| 0	| 1	|
+0x80BA		| 0	| 1	| 0	| 1	| 0
+0x80B8		| 0	| 0	| 0	| 1	|
+0x80BA		| 0	| 1	| 0	| 1	|
+
+
+The ID is received serially, MSB first. Essentially, a "1" bit is transferred whenever both SD and SI go high, and a "0" bit is transferred whenever SD is high, but SI is low.
+
+
+***************************************************
+4. Pluster IDs
+***************************************************
+
+Currently, there are 12 identified Pluster figurines along with some 16-bit IDs that will generate that character in the games. It's possible that because there were variants of the figurines, some Plusters with the same number might have multiple valid IDs, since the configuration of their spokes would be different. Perhaps the electronic toys treated them differently, but the GBA games not. Alternatively, the games only check a handful of bits in the ID, so multiple valid IDs do exist when bits the software ignores are flipped anyway.
+
+IMPORTANT: These IDs were generated artificially by testing them against the games, so with the exception of Wyburst (0x16A0) none of these represent actual IDs captured from a MPOS. They are, however, sufficient for the purposes of emulation or using homebrew on a second GBA to fake a connected MPOS.
+
+PF001 - Beetma
+	* 0x16C0
+	* 0x1682
+	* 0x1642
+
+PF002 - Wyburst
+	* 0x16A0
+	* 0x1660
+	* 0x1622
+
+PF003 - Gabrian
+	* 0x1650
+	* 0x1630
+
+PF004 - Molly
+	* 0x16D8
+	* 0x16B2
+	* 0x1672
+
+PF005 - Hania
+	* 0x1688
+	* 0x1648
+	* 0x1628
+
+PF006 - Zagarian
+	* 0x1614
+
+PF007 - Tan Q
+	* 0x16D4
+
+PF008 - Warrion
+	* 0x16F0
+	* 0x1612
+
+PF009 - Doryuun
+	* 0x16B8
+	* 0x1678
+
+PF010 - Fezard
+	* 0x16D2
+	* 0x1618
+
+PF011 - Mashanta
+	* 0x1684		
+	* 0x1644
+	* 0x1624
+
+PF012 - Gingardo
+	* 0x16B4		
+	* 0x1674 
