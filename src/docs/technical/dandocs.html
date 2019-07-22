@@ -125,6 +125,7 @@
 			<p class="list_item"><a href="#gss">GBA Screen Stretch</a></p>
 			<p class="list_item"><a href="#sda">Soul Doll Adapter</a></p>
 			<p class="list_item"><a href="#bcg">Battle Chip Gate</a></p>
+			<p class="list_item"><a href="#mpos">Multi Plust On System</a></p>
 			
 		</div>
 
@@ -1423,7 +1424,7 @@ Bit 7               | Bit 6               | Bit 5               | Bit 4         
 
 	<!-- Battle Chip Gate -->
 	<a name="bcg"></a>
-	<p class="gray_title">Battle Chip gate</p>
+	<p class="gray_title">Battle Chip Gate</p>
 	<p class="list_item"><a href="#bcg_gen">General Hardware Information</a></p>
 	<p class="list_item"><a href="#bcg_gam">Compatible Games</a></p>
 	<p class="list_item"><a href="#bcg_pro">Protocol</a></p>
@@ -1519,6 +1520,158 @@ Player 2			Child 2
 Player 2 Battle Chip Gate	Child 3</code></p>
 
 	<p>With this setup, Player 1 and Player 2 can technically ignore any output the opponent&#39;s Battle Chip Gate and focus on their own, despite essentially being able to see exactly what&#39;s happening on the other side. It also indicates that the Battle Chip Gates are capable of operating as Child 1 or Child 3.</p>
+
+	<!-- Multi Plust On System -->
+	<a name="mpos"></a>
+	<p class="gray_title">Multi Plust On System</p>
+	<p class="list_item"><a href="#mpos_gen">General Hardware Information</a></p>
+	<p class="list_item"><a href="#mpos_com">Communication Protocol</a></p>
+	<p class="list_item"><a href="#mpos_fig">Pluster IDs</a></p>
+
+	<a name="mpos_gen"></a>
+	<p class="gray_title">[Multi Plust On System] : General Hardware Information</p>
+
+	<p>The Multi Plust On System (MPOS) is an accessory for the Bouken Yuuki Pluster World franchise from Takara. Designed as a &#34;toys-to-life&#34; device, it allows plastic figurines to transfer characters known as &#34;Plusters&#34; into the games. Bouken Yuuki Pluster World: Densetsu no Pluster Gate and the EX version are RPGs, while Bouken Yuuki Pluster World: Pluston GP is a racing game. All 3 were released in 2003 and came with special sets featuring the the MPOS and a bundled Pluster figurine.</p>
+
+	<ul>
+		<li class="list_item">The MPOS is a small attachment that fits into the GBA serial port and has a circular slot for figurines</li>
+		<li class="list_item">Each figurine is entirely plastic, having no electronic parts whatsoever</li>
+		<li class="list_item">Each figurine has a hollow base with different spokes extending slightly from the bottom</li>
+		<li class="list_item">Once a figurine is inserted and secured inside the slot, these spokes push down on a sensitive pads beneath the surface</li>
+		<li class="list_item">Internally, the MPOS uses two Texas Instruments HC165 parallel load-shift registers to output data to the GBA serially</li>
+	</ul>
+
+	<a name="mpos_com">
+	<p class="gray_title">[Multi Plust On System] : Communication Protocol</p>
+
+	<p>Communication between the MPOS and the GBA is very simple. The role of the MPOS is to provide a single 16-bit number. Depending on which spokes the plastic model uses to put on the MPOS&#39; array of pressure pads, a different number is sent to the GBA. The number effectively acts as an ID for the Pluster figurine. Using General Purpose Mode, both sides send a total of 37 transfers. At the beginning, of a session, the games will set all lines (SC, SD, SI, SO) as output with the RCNT value 0x80F0. Afterwards the 37 transfers keep looping indefinitely. The first 4 transfer appear to act as a start signal. The start signal is the following:</p>
+
+<code>----------------------------------------------
+RCNT		|SC	| SD	| SI	| SO 
+----------------------------------------------
+0x80BD		| 1	| 0	| 1	| 1
+0x80B5		| 1	| 0	| 1	| 0
+0x80BF		| 1	| 1	| 1	| 1
+0x80BF		| 1	| 1	| 1	| 1</code>
+
+
+	<p>Although the games&#39; code ignores the results of the start signal, the MPOS returns these values:</p>
+
+<code>----------------------------------------------
+RCNT		|SC	| SD	| SI	| SO 
+----------------------------------------------
+0x80B9		| 1	| 0	| 0	| 1
+0x80B1		| 1	| 0	| 0	| 0
+0x80BB		| 1	| 1	| 0	| 1
+0x80BB		| 1	| 1	| 0	| 1</code>
+
+	<p>The next 33 transfers are used for the 16-bit ID, 1 bit for every 2 transfers. The last transfer appears to dangle. This may simply be necessary to complete the transfer of the ID and begin the process over again. The GBA sends the following over and over again until it sends another start signal:</p>
+
+
+<code>----------------------------------------------
+RCNT		|SC	| SD	| SI	| SO 
+----------------------------------------------
+0x80BE		| 0	| 1	| 1	| 1
+0x80BC		| 0	| 0	| 1	| 1</code>
+
+	<p>In response, the MPOS toggles SI every odd transfer (when receiving 0x80BE from the GBA) to send the the bit. For example, for the Pluster Wyburst (PF002), it produces the ID 0x16A0. The values sent back to the GBA look like this:</p>
+
+<code>------------------------------------------------------
+RCNT		|SC	| SD	| SI	| SO 	| Bit
+------------------------------------------------------
+0x80BA		| 0	| 1	| 0	| 1	| 0
+0x80B8		| 0	| 0	| 0	| 1	|
+0x80BA		| 0	| 1	| 0	| 1	| 0
+0x80B8		| 0	| 0	| 0	| 1	|
+0x80BA		| 0	| 1	| 0	| 1	| 0
+0x80B8		| 0	| 0	| 0	| 1	|
+0x80BE		| 0	| 1	| 1	| 1	| 1
+0x80BC		| 0	| 0	| 1	| 1	|
+0x80BA		| 0	| 1	| 0	| 1	| 0
+0x80B8		| 0	| 0	| 0	| 1	|
+0x80BE		| 0	| 1	| 1	| 1	| 1
+0x80BC		| 0	| 0	| 1	| 1	|
+0x80BE		| 0	| 1	| 1	| 1	| 1
+0x80BC		| 0	| 0	| 1	| 1	|
+0x80BA		| 0	| 1	| 0	| 1	| 0
+0x80B8		| 0	| 0	| 0	| 1	|
+0x80BE		| 0	| 1	| 1	| 1	| 1
+0x80BC		| 0	| 0	| 1	| 1	|
+0x80BA		| 0	| 1	| 0	| 1	| 0
+0x80B8		| 0	| 0	| 0	| 1	|
+0x80BE		| 0	| 1	| 1	| 1	| 1
+0x80BC		| 0	| 0	| 1	| 1	|
+0x80BA		| 0	| 1	| 0	| 1	| 0
+0x80B8		| 0	| 0	| 0	| 1	|
+0x80BA		| 0	| 1	| 0	| 1	| 0
+0x80B8		| 0	| 0	| 0	| 1	|
+0x80BA		| 0	| 1	| 0	| 1	| 0
+0x80B8		| 0	| 0	| 0	| 1	|
+0x80BA		| 0	| 1	| 0	| 1	| 0
+0x80B8		| 0	| 0	| 0	| 1	|
+0x80BA		| 0	| 1	| 0	| 1	| 0
+0x80B8		| 0	| 0	| 0	| 1	|
+0x80BA		| 0	| 1	| 0	| 1	|</code>
+
+	<p>The ID is received serially, MSB first. Essentially, a &#34;1&#34; bit is transferred whenever both SD and SI go high, and a &#34;0&#34; bit is transferred whenever SD is high, but SI is low.</p>
+
+	<a name="mpos_fig">
+	<p class="gray_title">[Multi Plust On System] : Pluster IDs</p>
+
+	<p>Currently, there are 12 identified Pluster figurines along with some 16-bit IDs that will generate that character in the games. It&#39;s possible that because there were variants of the figurines, some Plusters with the same number might have multiple valid IDs, since the configuration of their spokes would be different. Perhaps the electronic toys treated them differently, but the GBA games not. Alternatively, the games only check a handful of bits in the ID, so multiple valid IDs do exist when bits the software ignores are flipped anyway.</p>
+
+	<p><strong>IMPORTANT:</strong> These IDs were generated artificially by testing them against the games, so with the exception of Wyburst (0x16A0) none of these represent actual IDs captured from a MPOS. They are, however, sufficient for the purposes of emulation or using homebrew on a second GBA to fake a connected MPOS.</p>
+
+<code>PF001 - Beetma
+	* 0x16C0
+	* 0x1682
+	* 0x1642
+
+PF002 - Wyburst
+	* 0x16A0
+	* 0x1660
+	* 0x1622
+
+PF003 - Gabrian
+	* 0x1650
+	* 0x1630
+
+PF004 - Molly
+	* 0x16D8
+	* 0x16B2
+	* 0x1672
+
+PF005 - Hania
+	* 0x1688
+	* 0x1648
+	* 0x1628
+
+PF006 - Zagarian
+	* 0x1614
+
+PF007 - Tan Q
+	* 0x16D4
+
+PF008 - Warrion
+	* 0x16F0
+	* 0x1612
+
+PF009 - Doryuun
+	* 0x16B8
+	* 0x1678
+
+PF010 - Fezard
+	* 0x16D2
+	* 0x1618
+
+PF011 - Mashanta
+	* 0x1684		
+	* 0x1644
+	* 0x1624
+
+PF012 - Gingardo
+	* 0x16B4		
+	* 0x1674</code>
 
 	<!-- Mobile Adapter GB -->
 	<a name="magb"></a>
