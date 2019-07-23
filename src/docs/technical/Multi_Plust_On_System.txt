@@ -6,7 +6,7 @@ Shonumi aka D.S. Baxter
 1. Introduction
 *************************************************** 
 
-The Multi Plust On System (MPOS) is an accessory for the Bouken Yuuki Pluster World franchise from Takara. Designed as a "toys-to-life" device, it allows plastic figurines to transfer characters known as "Plusters" into the games. Bouken Yuuki Pluster World: Densetsu no Pluster Gate and the EX version are RPGs, while Bouken Yuuki Pluster World: Pluston GP is a racing game. All 3 were released in 2003 and came with special sets featuring the the MPOS and a bundled Pluster figurine.
+The Multi Plust On System (MPOS) is an accessory for the Bouken Yuuki Pluster World franchise from Takara. Designed as a "toys-to-life" device, it allows plastic figurines to transfer characters known as "Plusters" into the games. Bouken Yuuki Pluster World: Densetsu no Plust Gate and the EX version are RPGs, while Bouken Yuuki Pluster World: Pluston GP is a racing game. All 3 were released in 2003 and came with special sets featuring the the MPOS and a bundled Pluster figurine.
 
 
 ***************************************************
@@ -21,7 +21,17 @@ The Multi Plust On System (MPOS) is an accessory for the Bouken Yuuki Pluster Wo
 
 
 ***************************************************
-3. Communication Protocol
+3. Compatible Games
+***************************************************
+
+- Bouken Yuuki Pluster World: Densetsu no Plust Gate
+- Bouken Yuuki Pluster World: Densetsu no Plust Gate EX
+- Bouken Yuuki Pluster World: Pluston GP
+
+All 3 games are more or less unplayable with the MPOS. A few minigames can be played in Densetsu no Plust Gate EX, but in both that game and the regular Densetsu no Plust Gate, starting the main RPG requires the MPOS be attached with a Pluster Figure inserted. In Pluston GP, many of the menus can be navigated, but beginning a race also require the accessory and an inserted figurine.
+
+***************************************************
+4. Communication Protocol
 ***************************************************
 
 Communication between the MPOS and the GBA is very simple. The role of the MPOS is to provide a single 16-bit number. Depending on which spokes the plastic model uses to put on the MPOS' array of pressure pads, a different number is sent to the GBA. The number effectively acts as an ID for the Pluster figurine. Using General Purpose Mode, both sides send a total of 37 transfers. At the beginning, of a session, the games will set all lines (SC, SD, SI, SO) as output with the RCNT value 0x80F0. Afterwards the 37 transfers keep looping indefinitely. The first 4 transfer appear to act as a start signal. The start signal is the following:
@@ -103,7 +113,7 @@ The ID is received serially, MSB first. Essentially, a "1" bit is transferred wh
 
 
 ***************************************************
-4. Pluster IDs
+5. Pluster IDs
 ***************************************************
 
 Currently, there are 12 identified Pluster figurines along with some 16-bit IDs that will generate that character in the games. It's possible that because there were variants of the figurines, some Plusters with the same number might have multiple valid IDs, since the configuration of their spokes would be different. Perhaps the electronic toys treated them differently, but the GBA games not. Alternatively, the games only check a handful of bits in the ID, so multiple valid IDs do exist when bits the software ignores are flipped anyway.
