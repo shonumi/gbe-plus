@@ -322,7 +322,7 @@ void AGB_SIO::reset()
 	mpos.data.clear();
 	mpos.current_state = AGB_MPOS_INIT;
 	mpos.data_count = 0;
-	mpos.id = 0x16A0;
+	mpos.id = config::mpos_id;
 
 	mpos_generate_data();
 

@@ -121,6 +121,7 @@ namespace config
 
 	u32 sio_device = 0;
 	u32 ir_device = 0;
+	u16 mpos_id = 0;
 	bool use_opengl = false;
 	bool turbo = false;
 
@@ -2331,6 +2332,50 @@ bool parse_ini_file()
 			else
 			{
 				std::cout<<"GBE::Error - Could not parse gbe.ini (#ir_db_index) \n";
+				return false;
+			}
+		}
+
+		//Multi Plust On System ID
+		else if(ini_item == "#mpos_id")
+		{
+			if((x + 1) < size)
+			{
+				ini_item = ini_opts[++x];
+				std::size_t found = ini_item.find("0x");
+				std::string format = ini_item.substr(0, 2);
+
+				//Value must be in hex format with "0x"
+				if(format != "0x")
+				{
+					std::cout<<"GBE::Error - Could not parse gbe.ini (#mpos_id) \n";
+					return false;
+				}
+
+				std::string id = ini_item.substr(found + 2);
+
+				//Value must not be more than 4 characters long for 16-bit
+				if(id.size() > 4)
+				{
+					std::cout<<"GBE::Error - Could not parse gbe.ini (#mpos_id) \n";
+					return false;
+				}
+
+				u32 final_id = 0;
+
+				//Parse the string into hex
+				if(!util::from_hex_str(id, final_id))
+				{
+					std::cout<<"GBE::Error - Could not parse gbe.ini (#mpos_id) \n";
+					return false;
+				}
+
+				config::mpos_id = final_id;
+			}
+
+			else
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#mpos_id) \n";
 				return false;
 			}
 		}

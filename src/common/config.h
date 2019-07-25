@@ -127,6 +127,7 @@ namespace config
 	extern bool gba_enhance;
 	extern bool sdl_render;
 	extern u8 dmg_gbc_pal;
+	extern u16 mpos_id;
 
 	extern u8 nds_slot2_device;
 	extern std::string nds_slot2_file;
