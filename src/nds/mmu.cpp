@@ -4458,7 +4458,7 @@ bool NTR_MMU::read_slot2_file(std::string filename)
 	file.seekg(0, file.beg);
 
 	//Load SRAM
-	if(gba_save_type == SRAM)
+	if(gba_save_type == GBA_SRAM)
 	{
 		if(file_size > 0x8000) { std::cout<<"MMU::Warning - Irregular GBA SRAM backup save size\n"; }
 
@@ -4474,7 +4474,7 @@ bool NTR_MMU::read_slot2_file(std::string filename)
 	}
 
 	//Load 64KB FLASH RAM
-	else if(current_save_type == FLASH_64)
+	else if(gba_save_type == GBA_FLASH_64)
 	{
 		if(file_size > 0x10000) { std::cout<<"MMU::Warning - Irregular GBA FLASH RAM backup save size\n"; }
 
