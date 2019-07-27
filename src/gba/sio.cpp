@@ -1145,6 +1145,8 @@ void AGB_SIO::mpos_process()
 	{
 		//Init signal. Echo 0x80F0
 		case AGB_MPOS_INIT:
+			mpos.id = config::mpos_id;
+			mpos_generate_data();
 			mpos.data_count = 0;
 			break;
 
