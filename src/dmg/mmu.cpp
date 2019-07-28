@@ -1297,6 +1297,8 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		//Start serial transfer
 		if(value & 0x80)
 		{
+			sio_stat->transfer_byte = memory_map[REG_SB];
+
 			if(sio_stat->internal_clock)
 			{
 				sio_stat->active_transfer = true;
@@ -1316,15 +1318,13 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 			//Special handling for 4 Player Adapter - Players 2-4
 			else if((!sio_stat->internal_clock) && (sio_stat->sio_type == 6)) { sio_stat->send_data = true; }
 
+			//Special handling for Singer IZEK 1500
 			else if((config::sio_device == 14) && (sio_stat->transfer_byte & 0x80))
 			{
 				sio_stat->active_transfer = true;
 				sio_stat->shifts_left = 8;
 				sio_stat->shift_counter = 0;
 			}
-
-
-			sio_stat->transfer_byte = memory_map[REG_SB];
 		}
 
 		memory_map[address] = value | 0x7C;
