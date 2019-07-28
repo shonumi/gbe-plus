@@ -30,6 +30,7 @@
 #include "ps_menu.h"
 #include "zzh_menu.h"
 #include "con_ir_menu.h"
+#include "mpos_menu.h"
 
 class gen_settings : public QDialog
 {
@@ -53,6 +54,7 @@ class gen_settings : public QDialog
 	QComboBox* overclock;
 	QCheckBox* cheats;
 	QPushButton* edit_cheats;
+	QPushButton* config_sio;
 	QPushButton* config_ir;
 	QComboBox* sio_dev;
 	QComboBox* ir_dev;
@@ -194,6 +196,7 @@ class gen_settings : public QDialog
 	ps_menu* pocket_sakura_menu;
 	zzh_menu* full_changer_menu;
 	con_ir_menu* chalien_menu;
+	mpos_menu* multi_plust_menu;
 	QMessageBox* warning_box;
 
 	void update_volume();
@@ -213,6 +216,7 @@ class gen_settings : public QDialog
 	void set_patches();
 	void show_cheats();
 	void show_rtc();
+	void show_sio_config();
 	void show_ir_config();
 	void set_ogl();
 	void screen_scale_change();

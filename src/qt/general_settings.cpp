@@ -149,7 +149,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 
 	//General settings - Emulated SIO device
 	QWidget* sio_set = new QWidget(general);
-	QLabel* sio_label = new QLabel("Serial IO Device (Link Cable)", sio_set);
+	QLabel* sio_label = new QLabel("Serial IO Device", sio_set);
 	sio_dev = new QComboBox(sio_set);
 	sio_dev->setToolTip("Changes the emulated Serial Input-Output device connected to the emulated Game Boy");
 	sio_dev->addItem("None");
@@ -169,10 +169,12 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	sio_dev->addItem("Singer IZEK 1500");
 	sio_dev->addItem("Multi Plust On System");
 
+	config_sio = new QPushButton("Configure");
+
 	QHBoxLayout* sio_layout = new QHBoxLayout;
-	sio_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-	sio_layout->addWidget(sio_label);
-	sio_layout->addWidget(sio_dev);
+	sio_layout->addWidget(sio_label, 0, Qt::AlignLeft);
+	sio_layout->addWidget(sio_dev, 1, Qt::AlignLeft);
+	sio_layout->addWidget(config_sio, 0, Qt::AlignRight);
 	sio_set->setLayout(sio_layout);
 
 	//General settings - Emulated IR device
@@ -1262,6 +1264,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(auto_patch, SIGNAL(stateChanged(int)), this, SLOT(set_patches()));
 	connect(edit_cheats, SIGNAL(clicked()), this, SLOT(show_cheats()));
 	connect(edit_rtc, SIGNAL(clicked()), this, SLOT(show_rtc()));
+	connect(config_sio, SIGNAL(clicked()), this, SLOT(show_sio_config()));
 	connect(config_ir, SIGNAL(clicked()), this, SLOT(show_ir_config()));
 	connect(ogl, SIGNAL(stateChanged(int)), this, SLOT(set_ogl()));
 	connect(screen_scale, SIGNAL(currentIndexChanged(int)), this, SLOT(screen_scale_change()));
@@ -1542,6 +1545,8 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	full_changer_menu = new zzh_menu;
 	chalien_menu = new con_ir_menu;
 
+	multi_plust_menu = new mpos_menu;
+
 	get_chip_list();
 
 	resize(450, 450);
@@ -1556,6 +1561,9 @@ void gen_settings::set_ini_options()
 
 	//Emulated SIO device
 	sio_dev->setCurrentIndex(config::sio_device);
+
+	if(config::sio_device == 15) { config_sio->setEnabled(true); }
+	else { config_sio->setEnabled(false); }
 
 	//Emulated IR device
 	ir_dev->setCurrentIndex(config::ir_device);
@@ -1814,6 +1822,9 @@ void gen_settings::set_firmware()
 void gen_settings::sio_dev_change()
 {
 	config::sio_device = sio_dev->currentIndex();
+
+	if(config::sio_device == 15) { config_sio->setEnabled(true); }
+	else { config_sio->setEnabled(false); }
 }
 
 /****** Changes the emulated IR device ******/
@@ -1859,6 +1870,15 @@ void gen_settings::show_cheats()
 void gen_settings::show_rtc()
 {
 	real_time_clock_menu->show();
+}
+
+/****** Displays relevant SIO configuration window ******/
+void gen_settings::show_sio_config()
+{
+	switch(config::sio_device)
+	{
+		case 15: multi_plust_menu->show(); break;
+	}
 }
 
 /****** Displays relevant IR configuration window ******/
