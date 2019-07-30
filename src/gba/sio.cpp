@@ -1138,7 +1138,27 @@ void AGB_SIO::net_gate_process()
 /****** Process Multi Plust On System ******/
 void AGB_SIO::mpos_process()
 {
-	if(sio_stat.r_cnt == 0x80F0) { mpos.current_state = AGB_MPOS_INIT; }
+	//Init signal. Sent by Pluston GP but not Plust Gate or Plust Gate EX
+	if(sio_stat.r_cnt == 0x80F0)
+	{
+		mpos.current_state = AGB_MPOS_INIT;
+	}
+
+	//Force start of send data state if no init signal sent
+	else if(sio_stat.r_cnt == 0x80BD)
+	{
+		mpos.current_state = AGB_MPOS_SEND_DATA;
+		mpos.data_count = 0;
+
+		//Generate new data if necessary
+		if(mpos.id != config::mpos_id)
+		{
+			mpos.id = config::mpos_id;
+			mpos_generate_data();
+		}
+			
+	}
+ 
 	else { mpos.current_state = AGB_MPOS_SEND_DATA; }
 
 	switch(mpos.current_state)
