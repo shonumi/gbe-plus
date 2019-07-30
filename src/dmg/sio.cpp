@@ -12,6 +12,7 @@
 
 #include <ctime>
 #include <cstdlib>
+#include <cmath>
 
 #include "sio.h"
 #include "common/util.h"
