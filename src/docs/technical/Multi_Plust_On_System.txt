@@ -169,4 +169,34 @@ PF011 - Mashanta
 
 PF012 - Gingardo
 	* 0x16B4		
-	* 0x1674 
+	* 0x1674
+
+Torastorm
+	* 0x16CC
+
+Gongoragon
+	* 0x16AC
+
+Mighty V
+	* 0x169C
+
+Dorastorm
+	* 0x16FC
+
+Beetma EX
+	* 0x1666
+
+Varouze
+	* 0x1636
+
+Gigajyuuru
+	* 0x164E
+
+Badnick
+	* 0x161E
+
+Poseihon
+	* 0x167E
+
+Tera
+	* 0x1621
