@@ -34,6 +34,17 @@ mpos_menu::mpos_menu(QWidget *parent) : QDialog(parent)
 	pluster->addItem("PF010 - Fezard");
 	pluster->addItem("PF011 - Mashanta");
 	pluster->addItem("PF012 - Gingardo");
+	pluster->addItem("Torastorm");
+	pluster->addItem("Gongoragon");
+	pluster->addItem("Mighty V");
+	pluster->addItem("Dorastorm");
+	pluster->addItem("Beetma EX");
+	pluster->addItem("Varouze");
+	pluster->addItem("Gigajoule");
+	pluster->addItem("Badnick");
+	pluster->addItem("Poseihorn");
+	pluster->addItem("Terra");
+	
 
 	QHBoxLayout* pluster_layout = new QHBoxLayout;
 	pluster_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -73,5 +84,15 @@ void mpos_menu::update_pluster_figurine()
 		case 9: config::mpos_id = 0x1618; break;
 		case 10: config::mpos_id = 0x1624; break;
 		case 11: config::mpos_id = 0x1674; break;
+		case 12: config::mpos_id = 0x16CC; break;
+		case 13: config::mpos_id = 0x16AC; break;
+		case 14: config::mpos_id = 0x169C; break;
+		case 15: config::mpos_id = 0x16FC; break;
+		case 16: config::mpos_id = 0x1666; break;
+		case 17: config::mpos_id = 0x1636; break;
+		case 18: config::mpos_id = 0x164E; break;
+		case 19: config::mpos_id = 0x161E; break;
+		case 20: config::mpos_id = 0x167E; break;
+		case 21: config::mpos_id = 0x1621; break;
 	}
 }
