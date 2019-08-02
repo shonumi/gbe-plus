@@ -417,6 +417,9 @@ void main_menu::open_file()
 	boot_game();
 }
 
+/****** Public function for setting card file ******/
+void main_menu::set_card_file() { select_card_file(); }
+
 /****** Opens card file ******/
 void main_menu::select_card_file()
 {

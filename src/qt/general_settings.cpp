@@ -1562,8 +1562,19 @@ void gen_settings::set_ini_options()
 	//Emulated SIO device
 	sio_dev->setCurrentIndex(config::sio_device);
 
-	if(config::sio_device == 15) { config_sio->setEnabled(true); }
-	else { config_sio->setEnabled(false); }
+	switch(config::sio_device)
+	{
+		case 1:
+		case 4:
+		case 5:
+		case 6:
+		case 7:
+		case 15:
+			config_sio->setEnabled(true);
+			break;
+
+		default: config_sio->setEnabled(false);
+	}
 
 	//Emulated IR device
 	ir_dev->setCurrentIndex(config::ir_device);
@@ -1823,8 +1834,19 @@ void gen_settings::sio_dev_change()
 {
 	config::sio_device = sio_dev->currentIndex();
 
-	if(config::sio_device == 15) { config_sio->setEnabled(true); }
-	else { config_sio->setEnabled(false); }
+	switch(config::sio_device)
+	{
+		case 1:
+		case 4:
+		case 5:
+		case 6:
+		case 7:
+		case 15:
+			config_sio->setEnabled(true);
+			break;
+
+		default: config_sio->setEnabled(false);
+	}
 }
 
 /****** Changes the emulated IR device ******/
@@ -1877,6 +1899,11 @@ void gen_settings::show_sio_config()
 {
 	switch(config::sio_device)
 	{
+		case 1: tabs->setCurrentIndex(4); break;
+		case 4: qt_gui::draw_surface->set_card_file(); break;
+		case 5: qt_gui::draw_surface->set_card_file(); break;
+		case 6: tabs->setCurrentIndex(4); break;
+		case 7: tabs->setCurrentIndex(4); break;
 		case 15: multi_plust_menu->show(); break;
 	}
 }
