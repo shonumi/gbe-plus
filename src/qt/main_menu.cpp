@@ -420,6 +420,9 @@ void main_menu::open_file()
 /****** Public function for setting card file ******/
 void main_menu::set_card_file() { select_card_file(); }
 
+/****** Public function for setting data file ******/
+void main_menu::set_data_file() { select_data_file(); }
+
 /****** Opens card file ******/
 void main_menu::select_card_file()
 {

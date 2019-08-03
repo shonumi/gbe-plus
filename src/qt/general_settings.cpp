@@ -1569,6 +1569,10 @@ void gen_settings::set_ini_options()
 		case 5:
 		case 6:
 		case 7:
+		case 9:
+		case 10:
+		case 11:
+		case 12:
 		case 15:
 			config_sio->setEnabled(true);
 			break;
@@ -1841,6 +1845,10 @@ void gen_settings::sio_dev_change()
 		case 5:
 		case 6:
 		case 7:
+		case 9:
+		case 10:
+		case 11:
+		case 12:
 		case 15:
 			config_sio->setEnabled(true);
 			break;
@@ -1904,6 +1912,10 @@ void gen_settings::show_sio_config()
 		case 5: qt_gui::draw_surface->set_card_file(); break;
 		case 6: tabs->setCurrentIndex(4); break;
 		case 7: tabs->setCurrentIndex(4); break;
+		case 9: qt_gui::draw_surface->set_data_file(); break;
+		case 10: tabs->setCurrentIndex(3); controls_combo->setCurrentIndex(3); chip_gate_type->setCurrentIndex(0); break;
+		case 11: tabs->setCurrentIndex(3); controls_combo->setCurrentIndex(3); chip_gate_type->setCurrentIndex(1); break;
+		case 12: tabs->setCurrentIndex(3); controls_combo->setCurrentIndex(3); chip_gate_type->setCurrentIndex(2); break;
 		case 15: multi_plust_menu->show(); break;
 	}
 }
