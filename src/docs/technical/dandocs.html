@@ -1630,60 +1630,92 @@ RCNT		|SC	| SD	| SI	| SO 	| Bit
 	<a name="mpos_fig">
 	<p class="gray_title">[Multi Plust On System] : Pluster IDs</p>
 
-	<p>Currently, there are 12 identified Pluster figurines along with some 16-bit IDs that will generate that character in the games. It&#39;s possible that because there were variants of the figurines, some Plusters with the same number might have multiple valid IDs, since the configuration of their spokes would be different. Perhaps the electronic toys treated them differently, but the GBA games not. Alternatively, the games only check a handful of bits in the ID, so multiple valid IDs do exist when bits the software ignores are flipped anyway.</p>
+	<p>Currently, there are 22 identified Pluster figurines along with some 16-bit IDs that will generate that character in the games. There are multiple variants of figurines, therefore Plusters have multiple valid IDs, since the configuration of their spokes is different. The electronic toys may treat them differently, yet the GBA games do not.</p>
 
 	<p><strong>IMPORTANT:</strong> These IDs were generated artificially by testing them against the games, so with the exception of Wyburst (0x16A0) none of these represent actual IDs captured from a MPOS. They are, however, sufficient for the purposes of emulation or using homebrew on a second GBA to fake a connected MPOS.</p>
 
-<code>PF001 - Beetma
+<code>PF001 :: Beetma
 	* 0x16C0
 	* 0x1682
 	* 0x1642
 
-PF002 - Wyburst
+PF002 :: Wyburst
 	* 0x16A0
 	* 0x1660
 	* 0x1622
 
-PF003 - Gabrian
+PF003 :: Gabrian
 	* 0x1650
 	* 0x1630
 
-PF004 - Molly
+PF004 :: Molly
 	* 0x16D8
 	* 0x16B2
 	* 0x1672
 
-PF005 - Hania
+PF005 :: Hania
 	* 0x1688
 	* 0x1648
 	* 0x1628
 
-PF006 - Zagarian
+PF006 :: Zagarian
 	* 0x1614
 
-PF007 - Tan Q
+PF007 :: Tan Q
 	* 0x16D4
 
-PF008 - Warrion
+PF008 :: Warrion
 	* 0x16F0
 	* 0x1612
 
-PF009 - Doryuun
+PF009 :: Doryuun
 	* 0x16B8
 	* 0x1678
 
-PF010 - Fezard
+PF010 :: Fezard
 	* 0x16D2
 	* 0x1618
 
-PF011 - Mashanta
+PF011 :: Mashanta
 	* 0x1684		
 	* 0x1644
 	* 0x1624
 
-PF012 - Gingardo
+PF012 :: Gingardo
 	* 0x16B4		
-	* 0x1674</code>
+	* 0x1674
+
+PF013 :: Torastorm
+	* 0x16CC
+
+PF014 :: Gongoragon
+	* 0x16AC
+
+PF015 :: Mighty V
+	* 0x169C
+
+PF016 :: Dorastorm
+	* 0x16FC
+
+PF-EX001 :: Beetma EX
+	* 0x1666
+
+PF-EX002 :: Varouze
+	* 0x1636
+
+PF-EX003 :: Gigajoule
+	* 0x164E
+
+PF-EX004 :: Badnick
+	* 0x161E
+
+PF-EX005 :: Poseihorn
+	* 0x167E
+
+PF-EX006 :: Tera
+	* 0x1621</code>
+
+	<p>When the MPOS is connected to the GBA but has no Pluster figurine inserted, the device returns the ID 0x1400.</p>
 
 	<!-- Mobile Adapter GB -->
 	<a name="magb"></a>

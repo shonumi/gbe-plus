@@ -120,85 +120,85 @@ Currently, there are 22 identified Pluster figurines along with some 16-bit IDs 
 
 IMPORTANT: These IDs were generated artificially by testing them against the games, so with the exception of Wyburst (0x16A0) none of these represent actual IDs directly captured from a MPOS. They are, however, sufficient for the purposes of emulation or using homebrew on a second GBA to fake a connected MPOS.
 
-PF001 - Beetma
+PF001 :: Beetma
 	* 0x16C0
 	* 0x1682
 	* 0x1642
 
-PF002 - Wyburst
+PF002 :: Wyburst
 	* 0x16A0
 	* 0x1660
 	* 0x1622
 
-PF003 - Gabrian
+PF003 :: Gabrian
 	* 0x1650
 	* 0x1630
 
-PF004 - Molly
+PF004 :: Molly
 	* 0x16D8
 	* 0x16B2
 	* 0x1672
 
-PF005 - Hania
+PF005 :: Hania
 	* 0x1688
 	* 0x1648
 	* 0x1628
 
-PF006 - Zagarian
+PF006 :: Zagarian
 	* 0x1614
 
-PF007 - Tan Q
+PF007 :: Tan Q
 	* 0x16D4
 
-PF008 - Warrion
+PF008 :: Warrion
 	* 0x16F0
 	* 0x1612
 
-PF009 - Doryuun
+PF009 :: Doryuun
 	* 0x16B8
 	* 0x1678
 
-PF010 - Fezard
+PF010 :: Fezard
 	* 0x16D2
 	* 0x1618
 
-PF011 - Mashanta
+PF011 :: Mashanta
 	* 0x1684		
 	* 0x1644
 	* 0x1624
 
-PF012 - Gingardo
+PF012 :: Gingardo
 	* 0x16B4		
 	* 0x1674
 
-Torastorm
+PF013 :: Torastorm
 	* 0x16CC
 
-Gongoragon
+PF014 :: Gongoragon
 	* 0x16AC
 
-Mighty V
+PF015 :: Mighty V
 	* 0x169C
 
-Dorastorm
+PF016 :: Dorastorm
 	* 0x16FC
 
-Beetma EX
+PF-EX001 :: Beetma EX
 	* 0x1666
 
-Varouze
+PF-EX002 :: Varouze
 	* 0x1636
 
-Gigajyuuru
+PF-EX003 :: Gigajoule
 	* 0x164E
 
-Badnick
+PF-EX004 :: Badnick
 	* 0x161E
 
-Poseihon
+PF-EX005 :: Poseihorn
 	* 0x167E
 
-Tera
+PF-EX006 :: Tera
 	* 0x1621
 
 When the MPOS is connected to the GBA but has no Pluster figurine inserted, the device returns the ID 0x1400.
