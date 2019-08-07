@@ -38,6 +38,7 @@ struct agb_lcd_data
 	u8 bg_depth[4];
 	u8 bg_size[4];
 	bool bg_enable[4];
+	bool bg_mosiac[4];
 	u32 bg_base_map_addr[4];
 	u32 bg_base_tile_addr[4];
 

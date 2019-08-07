@@ -479,6 +479,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			lcd_stat->bg_control[0] = ((memory_map[BG0CNT+1] << 8) | memory_map[BG0CNT]);
 			lcd_stat->bg_depth[0] = (lcd_stat->bg_control[0] & 0x80) ? 8 : 4;
 			lcd_stat->bg_size[0] = lcd_stat->bg_control[0] >> 14;
+			lcd_stat->bg_mosiac[0] = (lcd_stat->bg_control[0] & 0x40) ? true : false;
 
 			lcd_stat->bg_base_map_addr[0] = 0x6000000 + (0x800 * ((lcd_stat->bg_control[0] >> 8) & 0x1F));
 			lcd_stat->bg_base_tile_addr[0] = 0x6000000 + (0x4000 * ((lcd_stat->bg_control[0] >> 2) & 0x3));
@@ -503,6 +504,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			lcd_stat->bg_control[1] = ((memory_map[BG1CNT+1] << 8) | memory_map[BG1CNT]);
 			lcd_stat->bg_depth[1] = (lcd_stat->bg_control[1] & 0x80) ? 8 : 4;
 			lcd_stat->bg_size[1] = lcd_stat->bg_control[1] >> 14;
+			lcd_stat->bg_mosiac[1] = (lcd_stat->bg_control[1] & 0x40) ? true : false;
 
 			lcd_stat->bg_base_map_addr[1] = 0x6000000 + (0x800 * ((lcd_stat->bg_control[1] >> 8) & 0x1F));
 			lcd_stat->bg_base_tile_addr[1] = 0x6000000 + (0x4000 * ((lcd_stat->bg_control[1] >> 2) & 0x3));
@@ -527,6 +529,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			lcd_stat->bg_control[2] = ((memory_map[BG2CNT+1] << 8) | memory_map[BG2CNT]);
 			lcd_stat->bg_depth[2] = (lcd_stat->bg_control[2] & 0x80) ? 8 : 4;
 			lcd_stat->bg_size[2] = lcd_stat->bg_control[2] >> 14;
+			lcd_stat->bg_mosiac[2] = (lcd_stat->bg_control[2] & 0x40) ? true : false;
 
 			lcd_stat->bg_base_map_addr[2] = 0x6000000 + (0x800 * ((lcd_stat->bg_control[2] >> 8) & 0x1F));
 			lcd_stat->bg_base_tile_addr[2] = 0x6000000 + (0x4000 * ((lcd_stat->bg_control[2] >> 2) & 0x3));
@@ -551,6 +554,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			lcd_stat->bg_control[3] = ((memory_map[BG3CNT+1] << 8) | memory_map[BG3CNT]);
 			lcd_stat->bg_depth[3] = (lcd_stat->bg_control[3] & 0x80) ? 8 : 4;
 			lcd_stat->bg_size[3] = lcd_stat->bg_control[3] >> 14;
+			lcd_stat->bg_mosiac[3] = (lcd_stat->bg_control[3] & 0x40) ? true : false;
 
 			lcd_stat->bg_base_map_addr[3] = 0x6000000 + (0x800 * ((lcd_stat->bg_control[3] >> 8) & 0x1F));
 			lcd_stat->bg_base_tile_addr[3] = 0x6000000 + (0x4000 * ((lcd_stat->bg_control[3] >> 2) & 0x3));

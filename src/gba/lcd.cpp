@@ -137,6 +137,7 @@ void AGB_LCD::reset()
 		lcd_stat.bg_priority[x] = 0;
 		lcd_stat.bg_depth[x] = 4;
 		lcd_stat.bg_size[x] = 0;
+		lcd_stat.bg_mosiac[x] = false;
 		lcd_stat.bg_base_tile_addr[x] = 0x6000000;
 		lcd_stat.bg_base_map_addr[x] = 0x6000000;
 		lcd_stat.mode_0_width[x] = 256;
@@ -747,6 +748,10 @@ bool AGB_LCD::render_bg_mode_0(u32 bg_control)
 	//Determine the X-Y coordinates of the BG's tile on the tile map
 	u16 current_tile_pixel_x = ((scanline_pixel_counter + lcd_stat.bg_offset_x[bg_id]) % 256);
 	u16 current_tile_pixel_y = ((current_scanline + lcd_stat.bg_offset_y[bg_id]) % 256);
+
+	//Handle mosiac tiles
+	if(lcd_stat.bg_mosiac[bg_id] && lcd_stat.bg_mos_hsize) { current_tile_pixel_x = ((current_tile_pixel_x / lcd_stat.bg_mos_hsize) * lcd_stat.bg_mos_hsize); }
+	if(lcd_stat.bg_mosiac[bg_id] && lcd_stat.bg_mos_vsize) { current_tile_pixel_y = ((current_tile_pixel_y / lcd_stat.bg_mos_vsize) * lcd_stat.bg_mos_vsize); }
 
 	//Get current map entry for rendered pixel
 	u16 tile_number = lcd_stat.bg_num_lut[current_tile_pixel_x][current_tile_pixel_y];
