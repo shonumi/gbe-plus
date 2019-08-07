@@ -603,6 +603,10 @@ void ARM7::swi_cpufastset()
 	//Transfer size - Bits 0-20 of R2
 	u32 transfer_size = (transfer_control & 0x1FFFFF);
 
+	//Round up transfer size to nearest multiple of 8
+	u8 len_mod = (transfer_size & 0x7);
+	if(len_mod) { transfer_size += (8 - len_mod); }
+
 	//Determine if the transfer operation is copy or fill - Bit 24 of R2
 	u8 copy_fill = (transfer_control & 0x1000000) ? 1 : 0;
 
