@@ -866,6 +866,10 @@ bool AGB_LCD::render_bg_mode_1(u32 bg_control)
 	u16 src_x = new_x; 
 	u16 src_y = new_y;
 
+	//Handle mosiac tiles
+	if(lcd_stat.bg_mosiac[bg_id] && lcd_stat.bg_mos_hsize) { src_x = ((src_x / lcd_stat.bg_mos_hsize) * lcd_stat.bg_mos_hsize); }
+	if(lcd_stat.bg_mosiac[bg_id] && lcd_stat.bg_mos_vsize) { src_y = ((src_y / lcd_stat.bg_mos_vsize) * lcd_stat.bg_mos_vsize); }
+
 	//Get current map entry for rendered pixel
 	u16 tile_number = ((src_y / 8) * bg_tile_size) + (src_x / 8);
 
