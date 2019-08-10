@@ -34,18 +34,17 @@ mpos_menu::mpos_menu(QWidget *parent) : QDialog(parent)
 	pluster->addItem("PF010 - Fezard");
 	pluster->addItem("PF011 - Mashanta");
 	pluster->addItem("PF012 - Gingardo");
-	pluster->addItem("Torastorm");
-	pluster->addItem("Gongoragon");
-	pluster->addItem("Mighty V");
-	pluster->addItem("Dorastorm");
-	pluster->addItem("Beetma EX");
-	pluster->addItem("Varouze");
-	pluster->addItem("Gigajoule");
-	pluster->addItem("Badnick");
-	pluster->addItem("Poseihorn");
-	pluster->addItem("Terra");
+	pluster->addItem("PF013 - Torastorm");
+	pluster->addItem("PF014 - Gongoragon");
+	pluster->addItem("PF015 - Mighty V");
+	pluster->addItem("PF016 - Dorastorm");
+	pluster->addItem("PF EX001 - Beetma EX");
+	pluster->addItem("PF EX002 - Varouze");
+	pluster->addItem("PF EX003 - Gigajoule");
+	pluster->addItem("PF EX004 - Badnick");
+	pluster->addItem("PF EX005 - Poseihorn");
+	pluster->addItem("PF EX006 - Terra");
 	
-
 	QHBoxLayout* pluster_layout = new QHBoxLayout;
 	pluster_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	pluster_layout->addWidget(pluster_label);
