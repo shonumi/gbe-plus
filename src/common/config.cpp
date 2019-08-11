@@ -721,6 +721,21 @@ bool parse_cli_args()
 			//Use MBC30 (double SRAM) for Pocket Monsters Crystal
 			else if(config::cli_args[x] == "--mbc30") { config::cart_type = DMG_MBC30; }
 
+			//Use GBA RTC for a given ROM
+			else if(config::cli_args[x] == "--agb_rtc") { config::cart_type = AGB_RTC; }
+			
+			//Use GBA solar sensor for a given ROM
+			else if(config::cli_args[x] == "--agb_solar_sensor") { config::cart_type = AGB_SOLAR_SENSOR; }
+
+			//Use GBA rumble for Drill Dozer
+			else if(config::cli_args[x] == "--agb_rumble") { config::cart_type = AGB_RUMBLE; }
+
+			//Use GBA gyro sensor for WarioWare: Twisted
+			else if(config::cli_args[x] == "--agb_gyro_sensor") { config::cart_type = AGB_GYRO_SENSOR; }
+
+			//Use GBA tilt sensor for Yoshi Topsy Turvy aka Universal Gravitation
+			else if(config::cli_args[x] == "--agb_tilt_sensor") { config::cart_type = AGB_TILT_SENSOR; }
+
 			//Use Auto-Detect for GBA saves
 			else if(config::cli_args[x] == "--save-auto") { config::agb_save_type = AGB_AUTO_DETECT; }
 
