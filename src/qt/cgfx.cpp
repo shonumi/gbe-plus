@@ -3023,7 +3023,7 @@ std::string gbe_cgfx::hash_tile(u8 x, u8 y)
 		}
 	}
 
-	else { return ""; }
+	return "";
 }
 
 /****** Parses manifest entries to be viewed in the GUI ******/
