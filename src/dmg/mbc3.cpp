@@ -250,4 +250,7 @@ u8 DMG_MMU::mbc3_read(u16 address)
 		else if((cart.rtc_enabled) && (bank_bits >= 0x8) && (bank_bits <= 0xC)) { return cart.latch_reg[bank_bits - 8]; }
 		else { return 0x00; }
 	}
+
+	//For all unhandled reads, attempt to return the value from the memory map
+	return memory_map[address];
 }

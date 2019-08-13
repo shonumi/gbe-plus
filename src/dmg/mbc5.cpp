@@ -90,4 +90,7 @@ u8 DMG_MMU::mbc5_read(u16 address)
 		if(ram_banking_enabled) { return random_access_bank[bank_bits][address - 0xA000]; }
 		else { return 0x00; }
 	}
+
+	//For all unhandled reads, attempt to return the value from the memory map
+	return memory_map[address];
 }

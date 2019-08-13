@@ -87,6 +87,9 @@ u8 DMG_MMU::cam_read(u16 address)
 
 		else { return 0x00; }
 	}
+
+	//For all unhandled reads, attempt to return the value from the memory map
+	return memory_map[address];
 }
 
 /****** Open external image and convert to GB colors in VRAM ******/

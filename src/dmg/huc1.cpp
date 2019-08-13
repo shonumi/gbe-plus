@@ -82,4 +82,7 @@ u8 DMG_MMU::huc1_read(u16 address)
 		else if(bank_mode == 0) { return random_access_bank[0][address - 0xA000]; }
 		else { return random_access_bank[bank_bits][address - 0xA000]; }
 	}
+
+	//For all unhandled reads, attempt to return the value from the memory map
+	return memory_map[address];
 }

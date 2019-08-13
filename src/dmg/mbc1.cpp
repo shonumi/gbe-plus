@@ -79,6 +79,9 @@ u8 DMG_MMU::mbc1_read(u16 address)
 		else if((bank_mode == 1) && (ram_banking_enabled)) { return random_access_bank[bank_bits][address - 0xA000]; }
 		else { return 0x00; }
 	}
+
+	//For all unhandled reads, attempt to return the value from the memory map
+	return memory_map[address];
 }
 
 /****** Performs write operations specific to the MBC1M ******/
@@ -162,6 +165,9 @@ u8 DMG_MMU::mbc1_multicart_read(u16 address)
 		if(ram_banking_enabled) { return random_access_bank[0][address - 0xA000]; }
 		else { return 0x00; }
 	}
+
+	//For all unhandled reads, attempt to return the value from the memory map
+	return memory_map[address];
 }
 
 /****** Performs write operations specific to the MBC1S ******/
@@ -247,6 +253,9 @@ u8 DMG_MMU::mbc1s_read(u16 address)
 		//Return sonar byte
 		return cart.sonar_byte;
 	}
+
+	//For all unhandled reads, attempt to return the value from the memory map
+	return memory_map[address];
 }
 
 /****** Open external image and convert to sonar data ******/

@@ -1461,6 +1461,9 @@ u8 DMG_MMU::mbc_read(u16 address)
 			return tama5_read(address);
 			break;
 	}
+
+	//For all unhandled reads, attempt to return the value from the memory map
+	return memory_map[address];
 }
 
 /****** Determines which if any MBC to write to ******/

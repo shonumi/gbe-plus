@@ -350,4 +350,7 @@ u8 DMG_MMU::mbc7_read(u16 address)
 				return 0xFF;
 		}
 	}
+
+	//For all unhandled reads, attempt to return the value from the memory map
+	return memory_map[address];
 }

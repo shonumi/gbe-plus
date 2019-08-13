@@ -123,4 +123,7 @@ u8 DMG_MMU::tama5_read(u16 address)
 
 		return 0;
 	}
+
+	//For all unhandled reads, attempt to return the value from the memory map
+	return memory_map[address];
 }

@@ -56,5 +56,6 @@ u8 DMG_MMU::mbc2_read(u16 address)
 		else { return 0x00; }
 	}
 
-	else { return memory_map[address]; }
+	//For all unhandled reads, attempt to return the value from the memory map
+	return memory_map[address];
 } 
