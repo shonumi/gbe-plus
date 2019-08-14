@@ -1583,6 +1583,29 @@ void main_menu::load_recent(int file_id)
 	config::rom_file = config::recent_files[file_id];
 	config::save_file = config::rom_file + ".sav";
 
+	//Resort recent files list
+	std::string first_entry = config::recent_files[file_id];
+	config::recent_files.erase(config::recent_files.begin() + file_id);
+	config::recent_files.insert(config::recent_files.end(), first_entry);
+
+	//Update the recent list
+	recent_list->clear();
+
+	for(int x = (config::recent_files.size() - 1); x >= 0; x--)
+	{
+		QString path = QString::fromStdString(config::recent_files[x]);
+		QFileInfo file(path);
+		path = file.fileName();
+
+		QAction* temp = new QAction(path, this);
+		recent_list->addAction(temp);
+
+		connect(temp, SIGNAL(triggered()), list_mapper, SLOT(map()));
+		list_mapper->setMapping(temp, x);
+	}
+
+	connect(list_mapper, SIGNAL(mapped(int)), this, SLOT(load_recent(int)));
+
 	config::sdl_render = false;
 	config::render_external_sw = render_screen_sw;
 	config::render_external_hw = render_screen_hw;
