@@ -45,14 +45,14 @@ namespace config
 	//Arrow Z = A button, X = B button, START = Return, Select = Space
 	//UP, LEFT, DOWN, RIGHT = Arrow keys
 	//A key = Left Shoulder, S key = Right Shoulder
-	u32 ntr_key_a = SDLK_z; u32 ntr_key_b = SDLK_x; u32 ntr_key_x = SDLK_d; u32 ntr_key_y = SDLK_c; u32 ntr_key_start = SDLK_RETURN; u32 ntr_key_select = SDLK_SPACE;
-	u32 ntr_key_l_trigger = SDLK_a; u32 ntr_key_r_trigger = SDLK_s;
-	u32 ntr_key_left = SDLK_LEFT; u32 ntr_key_right = SDLK_RIGHT; u32 ntr_key_down = SDLK_DOWN; u32 ntr_key_up = SDLK_UP;
+	u32 gbe_key_a = SDLK_z; u32 gbe_key_b = SDLK_x; u32 gbe_key_x = SDLK_d; u32 gbe_key_y = SDLK_c; u32 gbe_key_start = SDLK_RETURN; u32 gbe_key_select = SDLK_SPACE;
+	u32 gbe_key_l_trigger = SDLK_a; u32 gbe_key_r_trigger = SDLK_s;
+	u32 gbe_key_left = SDLK_LEFT; u32 gbe_key_right = SDLK_RIGHT; u32 gbe_key_down = SDLK_DOWN; u32 gbe_key_up = SDLK_UP;
 
 	//Default joystick bindings - NDS
-	u32 ntr_joy_a = 100; u32 ntr_joy_b = 101; u32 ntr_joy_x = 102; u32 ntr_joy_y = 103; u32 ntr_joy_start = 107; u32 ntr_joy_select = 106;
-	u32 ntr_joy_r_trigger = 105; u32 ntr_joy_l_trigger = 104;
-	u32 ntr_joy_left = 200; u32 ntr_joy_right = 201; u32 ntr_joy_up = 202; u32 ntr_joy_down = 203;
+	u32 gbe_joy_a = 100; u32 gbe_joy_b = 101; u32 gbe_joy_x = 102; u32 gbe_joy_y = 103; u32 gbe_joy_start = 107; u32 gbe_joy_select = 106;
+	u32 gbe_joy_r_trigger = 105; u32 gbe_joy_l_trigger = 104;
+	u32 gbe_joy_left = 200; u32 gbe_joy_right = 201; u32 gbe_joy_up = 202; u32 gbe_joy_down = 203;
 
 	//Default keyboard bindings - GBA
 	//Arrow Z = A button, X = B button, START = Return, Select = Space
@@ -1808,100 +1808,100 @@ bool parse_ini_file()
 		}
 
 		//NDS keyboard controls
-		else if(ini_item == "#ntr_key_controls")
+		else if(ini_item == "#gbe_key_controls")
 		{
 			if((x + 12) < size)
 			{
 				//A
-				util::from_str(ini_opts[++x], config::ntr_key_a);
+				util::from_str(ini_opts[++x], config::gbe_key_a);
 
 				//B
-				util::from_str(ini_opts[++x], config::ntr_key_b);
+				util::from_str(ini_opts[++x], config::gbe_key_b);
 
 				//X
-				util::from_str(ini_opts[++x], config::ntr_key_x);
+				util::from_str(ini_opts[++x], config::gbe_key_x);
 
 				//Y
-				util::from_str(ini_opts[++x], config::ntr_key_y);
+				util::from_str(ini_opts[++x], config::gbe_key_y);
 
 				//START
-				util::from_str(ini_opts[++x], config::ntr_key_start);
+				util::from_str(ini_opts[++x], config::gbe_key_start);
 
 				//SELECT
-				util::from_str(ini_opts[++x], config::ntr_key_select);
+				util::from_str(ini_opts[++x], config::gbe_key_select);
 
 				//LEFT
-				util::from_str(ini_opts[++x], config::ntr_key_left);
+				util::from_str(ini_opts[++x], config::gbe_key_left);
 
 				//RIGHT
-				util::from_str(ini_opts[++x], config::ntr_key_right);
+				util::from_str(ini_opts[++x], config::gbe_key_right);
 
 				//UP
-				util::from_str(ini_opts[++x], config::ntr_key_up);
+				util::from_str(ini_opts[++x], config::gbe_key_up);
 
 				//DOWN
-				util::from_str(ini_opts[++x], config::ntr_key_down);
+				util::from_str(ini_opts[++x], config::gbe_key_down);
 
 				//LEFT TRIGGER
-				util::from_str(ini_opts[++x], config::ntr_key_l_trigger);
+				util::from_str(ini_opts[++x], config::gbe_key_l_trigger);
 
 				//RIGHT TRIGGER
-				util::from_str(ini_opts[++x], config::ntr_key_r_trigger);
+				util::from_str(ini_opts[++x], config::gbe_key_r_trigger);
 			}
 
 			else 
 			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#ntr_key_controls) \n";
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#gbe_key_controls) \n";
 				return false;
 			}
 		}
 
 		//NDS gamepad controls
-		else if(ini_item == "#ntr_joy_controls")
+		else if(ini_item == "#gbe_joy_controls")
 		{
 			if((x + 12) < size)
 			{
 				//A
-				util::from_str(ini_opts[++x], config::ntr_joy_a);
+				util::from_str(ini_opts[++x], config::gbe_joy_a);
 
 				//B
-				util::from_str(ini_opts[++x], config::ntr_joy_b);
+				util::from_str(ini_opts[++x], config::gbe_joy_b);
 
 				//X
-				util::from_str(ini_opts[++x], config::ntr_joy_x);
+				util::from_str(ini_opts[++x], config::gbe_joy_x);
 
 				//Y
-				util::from_str(ini_opts[++x], config::ntr_joy_y);
+				util::from_str(ini_opts[++x], config::gbe_joy_y);
 
 				//START
-				util::from_str(ini_opts[++x], config::ntr_joy_start);
+				util::from_str(ini_opts[++x], config::gbe_joy_start);
 
 				//SELECT
-				util::from_str(ini_opts[++x], config::ntr_joy_select);
+				util::from_str(ini_opts[++x], config::gbe_joy_select);
 
 				//LEFT
-				util::from_str(ini_opts[++x], config::ntr_joy_left);
+				util::from_str(ini_opts[++x], config::gbe_joy_left);
 
 				//RIGHT
-				util::from_str(ini_opts[++x], config::ntr_joy_right);
+				util::from_str(ini_opts[++x], config::gbe_joy_right);
 
 				//UP
-				util::from_str(ini_opts[++x], config::ntr_joy_up);
+				util::from_str(ini_opts[++x], config::gbe_joy_up);
 
 				//DOWN
-				util::from_str(ini_opts[++x], config::ntr_joy_down);
+				util::from_str(ini_opts[++x], config::gbe_joy_down);
 
 				//LEFT TRIGGER
-				util::from_str(ini_opts[++x], config::ntr_joy_l_trigger);
+				util::from_str(ini_opts[++x], config::gbe_joy_l_trigger);
 
 				//RIGHT TRIGGER
-				util::from_str(ini_opts[++x], config::ntr_joy_r_trigger);
+				util::from_str(ini_opts[++x], config::gbe_joy_r_trigger);
 			}
 
 
 			else 
 			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#ntr_joy_controls) \n";
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#gbe_joy_controls) \n";
 				return false;
 			}
 		}
@@ -2902,43 +2902,43 @@ bool save_ini_file()
 		}
 
 		//NDS keyboard controls
-		else if(ini_item == "#ntr_key_controls")
+		else if(ini_item == "#gbe_key_controls")
 		{
 			line_pos = output_count[x];
-			std::string val = util::to_str(config::ntr_key_a) + ":";
-			val += util::to_str(config::ntr_key_b) + ":";
-			val += util::to_str(config::ntr_key_x) + ":";
-			val += util::to_str(config::ntr_key_y) + ":";
-			val += util::to_str(config::ntr_key_start) + ":";
-			val += util::to_str(config::ntr_key_select) + ":";
-			val += util::to_str(config::ntr_key_left) + ":";
-			val += util::to_str(config::ntr_key_right) + ":";
-			val += util::to_str(config::ntr_key_up) + ":";
-			val += util::to_str(config::ntr_key_down) + ":";
-			val += util::to_str(config::ntr_key_l_trigger) + ":";
-			val += util::to_str(config::ntr_key_r_trigger);
+			std::string val = util::to_str(config::gbe_key_a) + ":";
+			val += util::to_str(config::gbe_key_b) + ":";
+			val += util::to_str(config::gbe_key_x) + ":";
+			val += util::to_str(config::gbe_key_y) + ":";
+			val += util::to_str(config::gbe_key_start) + ":";
+			val += util::to_str(config::gbe_key_select) + ":";
+			val += util::to_str(config::gbe_key_left) + ":";
+			val += util::to_str(config::gbe_key_right) + ":";
+			val += util::to_str(config::gbe_key_up) + ":";
+			val += util::to_str(config::gbe_key_down) + ":";
+			val += util::to_str(config::gbe_key_l_trigger) + ":";
+			val += util::to_str(config::gbe_key_r_trigger);
 
-			output_lines[line_pos] = "[#ntr_key_controls:" + val + "]";
+			output_lines[line_pos] = "[#gbe_key_controls:" + val + "]";
 		}
 
 		//NDS gamepad controls
-		else if(ini_item == "#ntr_joy_controls")
+		else if(ini_item == "#gbe_joy_controls")
 		{
 			line_pos = output_count[x];
-			std::string val = util::to_str(config::ntr_joy_a) + ":";
-			val += util::to_str(config::ntr_joy_b) + ":";
-			val += util::to_str(config::ntr_joy_x) + ":";
-			val += util::to_str(config::ntr_joy_y) + ":";
-			val += util::to_str(config::ntr_joy_start) + ":";
-			val += util::to_str(config::ntr_joy_select) + ":";
-			val += util::to_str(config::ntr_joy_left) + ":";
-			val += util::to_str(config::ntr_joy_right) + ":";
-			val += util::to_str(config::ntr_joy_up) + ":";
-			val += util::to_str(config::ntr_joy_down) + ":";
-			val += util::to_str(config::ntr_joy_l_trigger) + ":";
-			val += util::to_str(config::ntr_joy_r_trigger);
+			std::string val = util::to_str(config::gbe_joy_a) + ":";
+			val += util::to_str(config::gbe_joy_b) + ":";
+			val += util::to_str(config::gbe_joy_x) + ":";
+			val += util::to_str(config::gbe_joy_y) + ":";
+			val += util::to_str(config::gbe_joy_start) + ":";
+			val += util::to_str(config::gbe_joy_select) + ":";
+			val += util::to_str(config::gbe_joy_left) + ":";
+			val += util::to_str(config::gbe_joy_right) + ":";
+			val += util::to_str(config::gbe_joy_up) + ":";
+			val += util::to_str(config::gbe_joy_down) + ":";
+			val += util::to_str(config::gbe_joy_l_trigger) + ":";
+			val += util::to_str(config::gbe_joy_r_trigger);
 
-			output_lines[line_pos] = "[#ntr_joy_controls:" + val + "]";
+			output_lines[line_pos] = "[#gbe_joy_controls:" + val + "]";
 		}
 
 		//Context keyboard controls

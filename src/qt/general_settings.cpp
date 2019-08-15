@@ -1728,18 +1728,18 @@ void gen_settings::set_ini_options()
 	dead_zone->setValue(config::dead_zone);
 
 	//Keyboard controls
-	input_a->setText(QString::number(config::ntr_key_a));
-	input_b->setText(QString::number(config::ntr_key_b));
-	input_x->setText(QString::number(config::ntr_key_x));
-	input_y->setText(QString::number(config::ntr_key_y));
-	input_start->setText(QString::number(config::ntr_key_start));
-	input_select->setText(QString::number(config::ntr_key_select));
-	input_left->setText(QString::number(config::ntr_key_left));
-	input_right->setText(QString::number(config::ntr_key_right));
-	input_up->setText(QString::number(config::ntr_key_up));
-	input_down->setText(QString::number(config::ntr_key_down));
-	input_l->setText(QString::number(config::ntr_key_l_trigger));
-	input_r->setText(QString::number(config::ntr_key_r_trigger));
+	input_a->setText(QString::number(config::gbe_key_a));
+	input_b->setText(QString::number(config::gbe_key_b));
+	input_x->setText(QString::number(config::gbe_key_x));
+	input_y->setText(QString::number(config::gbe_key_y));
+	input_start->setText(QString::number(config::gbe_key_start));
+	input_select->setText(QString::number(config::gbe_key_select));
+	input_left->setText(QString::number(config::gbe_key_left));
+	input_right->setText(QString::number(config::gbe_key_right));
+	input_up->setText(QString::number(config::gbe_key_up));
+	input_down->setText(QString::number(config::gbe_key_down));
+	input_l->setText(QString::number(config::gbe_key_l_trigger));
+	input_r->setText(QString::number(config::gbe_key_r_trigger));
 	input_con_up->setText(QString::number(config::con_key_up));
 	input_con_down->setText(QString::number(config::con_key_down));
 	input_con_left->setText(QString::number(config::con_key_left));
@@ -2281,18 +2281,18 @@ void gen_settings::input_device_change()
 	//Switch to keyboard input configuration
 	if(input_type == 0)
 	{
-		input_a->setText(QString::number(config::ntr_key_a));
-		input_b->setText(QString::number(config::ntr_key_b));
-		input_x->setText(QString::number(config::ntr_key_x));
-		input_y->setText(QString::number(config::ntr_key_y));
-		input_start->setText(QString::number(config::ntr_key_start));
-		input_select->setText(QString::number(config::ntr_key_select));
-		input_left->setText(QString::number(config::ntr_key_left));
-		input_right->setText(QString::number(config::ntr_key_right));
-		input_up->setText(QString::number(config::ntr_key_up));
-		input_down->setText(QString::number(config::ntr_key_down));
-		input_l->setText(QString::number(config::ntr_key_l_trigger));
-		input_r->setText(QString::number(config::ntr_key_r_trigger));
+		input_a->setText(QString::number(config::gbe_key_a));
+		input_b->setText(QString::number(config::gbe_key_b));
+		input_x->setText(QString::number(config::gbe_key_x));
+		input_y->setText(QString::number(config::gbe_key_y));
+		input_start->setText(QString::number(config::gbe_key_start));
+		input_select->setText(QString::number(config::gbe_key_select));
+		input_left->setText(QString::number(config::gbe_key_left));
+		input_right->setText(QString::number(config::gbe_key_right));
+		input_up->setText(QString::number(config::gbe_key_up));
+		input_down->setText(QString::number(config::gbe_key_down));
+		input_l->setText(QString::number(config::gbe_key_l_trigger));
+		input_r->setText(QString::number(config::gbe_key_r_trigger));
 		input_con_up->setText(QString::number(config::con_key_up));
 		input_con_down->setText(QString::number(config::con_key_down));
 		input_con_left->setText(QString::number(config::con_key_left));
@@ -2303,18 +2303,18 @@ void gen_settings::input_device_change()
 
 	else
 	{
-		input_a->setText(QString::number(config::ntr_joy_a));
-		input_b->setText(QString::number(config::ntr_joy_b));
-		input_x->setText(QString::number(config::ntr_joy_x));
-		input_y->setText(QString::number(config::ntr_joy_y));
-		input_start->setText(QString::number(config::ntr_joy_start));
-		input_select->setText(QString::number(config::ntr_joy_select));
-		input_left->setText(QString::number(config::ntr_joy_left));
-		input_right->setText(QString::number(config::ntr_joy_right));
-		input_up->setText(QString::number(config::ntr_joy_up));
-		input_down->setText(QString::number(config::ntr_joy_down));
-		input_l->setText(QString::number(config::ntr_joy_l_trigger));
-		input_r->setText(QString::number(config::ntr_joy_r_trigger));
+		input_a->setText(QString::number(config::gbe_joy_a));
+		input_b->setText(QString::number(config::gbe_joy_b));
+		input_x->setText(QString::number(config::gbe_joy_x));
+		input_y->setText(QString::number(config::gbe_joy_y));
+		input_start->setText(QString::number(config::gbe_joy_start));
+		input_select->setText(QString::number(config::gbe_joy_select));
+		input_left->setText(QString::number(config::gbe_joy_left));
+		input_right->setText(QString::number(config::gbe_joy_right));
+		input_up->setText(QString::number(config::gbe_joy_up));
+		input_down->setText(QString::number(config::gbe_joy_down));
+		input_l->setText(QString::number(config::gbe_joy_l_trigger));
+		input_r->setText(QString::number(config::gbe_joy_r_trigger));
 		input_con_up->setText(QString::number(config::con_joy_up));
 		input_con_down->setText(QString::number(config::con_joy_down));
 		input_con_left->setText(QString::number(config::con_joy_left));
@@ -2686,7 +2686,7 @@ void gen_settings::process_joystick_event()
 		case 0:
 			if(pad != 0)
 			{
-				config::ntr_joy_a = config::agb_joy_a = config::dmg_joy_a = pad;
+				config::gbe_joy_a = config::agb_joy_a = config::dmg_joy_a = pad;
 				input_a->setText(QString::number(pad));
 			}
 
@@ -2697,7 +2697,7 @@ void gen_settings::process_joystick_event()
 		case 1:
 			if(pad != 0)
 			{
-				config::ntr_joy_b = config::agb_joy_b = config::dmg_joy_b = pad;
+				config::gbe_joy_b = config::agb_joy_b = config::dmg_joy_b = pad;
 				input_b->setText(QString::number(pad));
 			}
 
@@ -2708,7 +2708,7 @@ void gen_settings::process_joystick_event()
 		case 2:
 			if(pad != 0)
 			{
-				config::ntr_joy_x = pad;
+				config::gbe_joy_x = pad;
 				input_x->setText(QString::number(pad));
 			}
 
@@ -2719,7 +2719,7 @@ void gen_settings::process_joystick_event()
 		case 3:
 			if(pad != 0)
 			{
-				config::ntr_joy_y = pad;
+				config::gbe_joy_y = pad;
 				input_y->setText(QString::number(pad));
 			}
 
@@ -2730,7 +2730,7 @@ void gen_settings::process_joystick_event()
 		case 4:
 			if(pad != 0)
 			{
-				config::ntr_joy_start = config::agb_joy_start = config::dmg_joy_start = pad;
+				config::gbe_joy_start = config::agb_joy_start = config::dmg_joy_start = pad;
 				input_start->setText(QString::number(pad));
 			}
 
@@ -2741,7 +2741,7 @@ void gen_settings::process_joystick_event()
 		case 5:
 			if(pad != 0)
 			{
-				config::ntr_joy_select = config::agb_joy_select = config::dmg_joy_select = pad;
+				config::gbe_joy_select = config::agb_joy_select = config::dmg_joy_select = pad;
 				input_select->setText(QString::number(pad));
 			}
 
@@ -2752,7 +2752,7 @@ void gen_settings::process_joystick_event()
 		case 6:
 			if(pad != 0)
 			{
-				config::ntr_joy_left = config::agb_joy_left = config::dmg_joy_left = pad;
+				config::gbe_joy_left = config::agb_joy_left = config::dmg_joy_left = pad;
 				input_left->setText(QString::number(pad));
 			}
 
@@ -2763,7 +2763,7 @@ void gen_settings::process_joystick_event()
 		case 7:
 			if(pad != 0)
 			{
-				config::ntr_joy_right = config::agb_joy_right = config::dmg_joy_right = pad;
+				config::gbe_joy_right = config::agb_joy_right = config::dmg_joy_right = pad;
 				input_right->setText(QString::number(pad));
 			}
 
@@ -2774,7 +2774,7 @@ void gen_settings::process_joystick_event()
 		case 8:
 			if(pad != 0)
 			{
-				config::ntr_joy_up = config::agb_joy_up = config::dmg_joy_up = pad;
+				config::gbe_joy_up = config::agb_joy_up = config::dmg_joy_up = pad;
 				input_up->setText(QString::number(pad));
 			}
 
@@ -2785,7 +2785,7 @@ void gen_settings::process_joystick_event()
 		case 9:
 			if(pad != 0)
 			{
-				config::ntr_joy_down = config::agb_joy_down = config::dmg_joy_down = pad;
+				config::gbe_joy_down = config::agb_joy_down = config::dmg_joy_down = pad;
 				input_down->setText(QString::number(pad));
 			}
 
@@ -2796,7 +2796,7 @@ void gen_settings::process_joystick_event()
 		case 10: 
 			if(pad != 0)
 			{
-				config::ntr_joy_l_trigger = config::agb_joy_l_trigger = pad;
+				config::gbe_joy_l_trigger = config::agb_joy_l_trigger = pad;
 				input_l->setText(QString::number(pad));
 			}
 
@@ -2807,7 +2807,7 @@ void gen_settings::process_joystick_event()
 		case 11:
 			if(pad != 0)
 			{
-				config::ntr_joy_r_trigger = config::agb_joy_r_trigger = pad;
+				config::gbe_joy_r_trigger = config::agb_joy_r_trigger = pad;
 				input_r->setText(QString::number(pad));
 			}
 
@@ -3170,7 +3170,7 @@ void gen_settings::keyPressEvent(QKeyEvent* event)
 			case 0:
 				if(last_key != -1)
 				{
-					config::ntr_key_a = config::agb_key_a = config::dmg_key_a = last_key;
+					config::gbe_key_a = config::agb_key_a = config::dmg_key_a = last_key;
 					input_a->setText(QString::number(last_key));
 				}
 
@@ -3181,7 +3181,7 @@ void gen_settings::keyPressEvent(QKeyEvent* event)
 			case 1:
 				if(last_key != -1)
 				{
-					config::ntr_key_b = config::agb_key_b = config::dmg_key_b = last_key;
+					config::gbe_key_b = config::agb_key_b = config::dmg_key_b = last_key;
 					input_b->setText(QString::number(last_key));
 				}
 
@@ -3192,7 +3192,7 @@ void gen_settings::keyPressEvent(QKeyEvent* event)
 			case 2:
 				if(last_key != -1)
 				{
-					config::ntr_key_x = last_key;
+					config::gbe_key_x = last_key;
 					input_x->setText(QString::number(last_key));
 				}
 
@@ -3203,7 +3203,7 @@ void gen_settings::keyPressEvent(QKeyEvent* event)
 			case 3:
 				if(last_key != -1)
 				{
-					config::ntr_key_y = last_key;
+					config::gbe_key_y = last_key;
 					input_y->setText(QString::number(last_key));
 				}
 
@@ -3214,7 +3214,7 @@ void gen_settings::keyPressEvent(QKeyEvent* event)
 			case 4:
 				if(last_key != -1)
 				{
-					config::ntr_key_start = config::agb_key_start = config::dmg_key_start = last_key;
+					config::gbe_key_start = config::agb_key_start = config::dmg_key_start = last_key;
 					input_start->setText(QString::number(last_key));
 				}
 
@@ -3225,7 +3225,7 @@ void gen_settings::keyPressEvent(QKeyEvent* event)
 			case 5:
 				if(last_key != -1)
 				{
-					config::ntr_key_select = config::agb_key_select = config::dmg_key_select = last_key;
+					config::gbe_key_select = config::agb_key_select = config::dmg_key_select = last_key;
 					input_select->setText(QString::number(last_key));
 				}
 
@@ -3236,7 +3236,7 @@ void gen_settings::keyPressEvent(QKeyEvent* event)
 			case 6:
 				if(last_key != -1)
 				{
-					config::ntr_key_left = config::agb_key_left = config::dmg_key_left = last_key;
+					config::gbe_key_left = config::agb_key_left = config::dmg_key_left = last_key;
 					input_left->setText(QString::number(last_key));
 				}
 
@@ -3247,7 +3247,7 @@ void gen_settings::keyPressEvent(QKeyEvent* event)
 			case 7:
 				if(last_key != -1)
 				{
-					config::ntr_key_right = config::agb_key_right = config::dmg_key_right = last_key;
+					config::gbe_key_right = config::agb_key_right = config::dmg_key_right = last_key;
 					input_right->setText(QString::number(last_key));
 				}
 
@@ -3258,7 +3258,7 @@ void gen_settings::keyPressEvent(QKeyEvent* event)
 			case 8:
 				if(last_key != -1)
 				{
-					config::ntr_key_up = config::agb_key_up = config::dmg_key_up = last_key;
+					config::gbe_key_up = config::agb_key_up = config::dmg_key_up = last_key;
 					input_up->setText(QString::number(last_key));
 				}
 
@@ -3269,7 +3269,7 @@ void gen_settings::keyPressEvent(QKeyEvent* event)
 			case 9:
 				if(last_key != -1)
 				{
-					config::ntr_key_down = config::agb_key_down = config::dmg_key_down = last_key;
+					config::gbe_key_down = config::agb_key_down = config::dmg_key_down = last_key;
 					input_down->setText(QString::number(last_key));
 				}
 
@@ -3280,7 +3280,7 @@ void gen_settings::keyPressEvent(QKeyEvent* event)
 			case 10: 
 				if(last_key != -1)
 				{
-					config::ntr_key_l_trigger = config::agb_key_l_trigger = last_key;
+					config::gbe_key_l_trigger = config::agb_key_l_trigger = last_key;
 					input_l->setText(QString::number(last_key));
 				}
 
@@ -3291,7 +3291,7 @@ void gen_settings::keyPressEvent(QKeyEvent* event)
 			case 11:
 				if(last_key != -1)
 				{
-					config::ntr_key_r_trigger = config::agb_key_r_trigger = last_key;
+					config::gbe_key_r_trigger = config::agb_key_r_trigger = last_key;
 					input_r->setText(QString::number(last_key));
 				}
 

@@ -80,8 +80,8 @@ namespace config
 	extern std::vector <std::string> recent_files;
 	extern std::vector <std::string> cli_args;
 
-	extern u32 ntr_key_a, ntr_key_b, ntr_key_x, ntr_key_y, ntr_key_start, ntr_key_select, ntr_key_up, ntr_key_down, ntr_key_left, ntr_key_right, ntr_key_r_trigger, ntr_key_l_trigger;
-	extern u32 ntr_joy_a, ntr_joy_b, ntr_joy_x, ntr_joy_y, ntr_joy_start, ntr_joy_select, ntr_joy_up, ntr_joy_down, ntr_joy_left, ntr_joy_right, ntr_joy_r_trigger, ntr_joy_l_trigger;
+	extern u32 gbe_key_a, gbe_key_b, gbe_key_x, gbe_key_y, gbe_key_start, gbe_key_select, gbe_key_up, gbe_key_down, gbe_key_left, gbe_key_right, gbe_key_r_trigger, gbe_key_l_trigger;
+	extern u32 gbe_joy_a, gbe_joy_b, gbe_joy_x, gbe_joy_y, gbe_joy_start, gbe_joy_select, gbe_joy_up, gbe_joy_down, gbe_joy_left, gbe_joy_right, gbe_joy_r_trigger, gbe_joy_l_trigger;
 
 	extern u32 agb_key_a, agb_key_b, agb_key_start, agb_key_select, agb_key_up, agb_key_down, agb_key_left, agb_key_right, agb_key_r_trigger, agb_key_l_trigger;
 	extern u32 agb_joy_a, agb_joy_b, agb_joy_start, agb_joy_select, agb_joy_up, agb_joy_down, agb_joy_left, agb_joy_right, agb_joy_r_trigger, agb_joy_l_trigger;
