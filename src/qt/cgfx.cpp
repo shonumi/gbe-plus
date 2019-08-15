@@ -3388,47 +3388,47 @@ void gbe_cgfx::update_input_control(int index)
 	if(main_menu::gbe_plus == NULL) { return; }
 
 	//Send input state to core
-	if(a_input->isFlat()) { main_menu::gbe_plus->feed_key_input(config::dmg_key_a, false); }
-	else { main_menu::gbe_plus->feed_key_input(config::dmg_key_a, true); }
+	if(a_input->isFlat()) { main_menu::gbe_plus->feed_key_input(config::gbe_key_a, false); }
+	else { main_menu::gbe_plus->feed_key_input(config::gbe_key_a, true); }
 
-	if(b_input->isFlat()) { main_menu::gbe_plus->feed_key_input(config::dmg_key_b, false); }
-	else { main_menu::gbe_plus->feed_key_input(config::dmg_key_b, true); }
+	if(b_input->isFlat()) { main_menu::gbe_plus->feed_key_input(config::gbe_key_b, false); }
+	else { main_menu::gbe_plus->feed_key_input(config::gbe_key_b, true); }
 
-	if(select_input->isFlat()) { main_menu::gbe_plus->feed_key_input(config::dmg_key_select, false); }
-	else { main_menu::gbe_plus->feed_key_input(config::dmg_key_select, true); }
+	if(select_input->isFlat()) { main_menu::gbe_plus->feed_key_input(config::gbe_key_select, false); }
+	else { main_menu::gbe_plus->feed_key_input(config::gbe_key_select, true); }
 
-	if(start_input->isFlat()) { main_menu::gbe_plus->feed_key_input(config::dmg_key_start, false); }
-	else { main_menu::gbe_plus->feed_key_input(config::dmg_key_start, true); }
+	if(start_input->isFlat()) { main_menu::gbe_plus->feed_key_input(config::gbe_key_start, false); }
+	else { main_menu::gbe_plus->feed_key_input(config::gbe_key_start, true); }
 
-	if(left_input->isFlat()) { main_menu::gbe_plus->feed_key_input(config::dmg_key_left, false); }
+	if(left_input->isFlat()) { main_menu::gbe_plus->feed_key_input(config::gbe_key_left, false); }
 
 	else
 	{ 
-		main_menu::gbe_plus->feed_key_input(config::dmg_key_left, true);
+		main_menu::gbe_plus->feed_key_input(config::gbe_key_left, true);
 		right_input->setFlat(true);
 	}
 
-	if(right_input->isFlat()) { main_menu::gbe_plus->feed_key_input(config::dmg_key_right, false); }
+	if(right_input->isFlat()) { main_menu::gbe_plus->feed_key_input(config::gbe_key_right, false); }
 
 	else
 	{
-		main_menu::gbe_plus->feed_key_input(config::dmg_key_right, true);
+		main_menu::gbe_plus->feed_key_input(config::gbe_key_right, true);
 		left_input->setFlat(true);
 	}
 
-	if(up_input->isFlat()) { main_menu::gbe_plus->feed_key_input(config::dmg_key_up, false); }
+	if(up_input->isFlat()) { main_menu::gbe_plus->feed_key_input(config::gbe_key_up, false); }
 
 	else
 	{ 
-		main_menu::gbe_plus->feed_key_input(config::dmg_key_up, true);
+		main_menu::gbe_plus->feed_key_input(config::gbe_key_up, true);
 		down_input->setFlat(true);
 	}
 
-	if(down_input->isFlat()) { main_menu::gbe_plus->feed_key_input(config::dmg_key_down, false); }
+	if(down_input->isFlat()) { main_menu::gbe_plus->feed_key_input(config::gbe_key_down, false); }
 
 	else
 	{
-		main_menu::gbe_plus->feed_key_input(config::dmg_key_down, true);
+		main_menu::gbe_plus->feed_key_input(config::gbe_key_down, true);
 		up_input->setFlat(true);
 	}
 }
@@ -3447,14 +3447,14 @@ void gbe_cgfx::reset_inputs()
 
 	if(main_menu::gbe_plus == NULL) { return; }
 
-	main_menu::gbe_plus->feed_key_input(config::dmg_key_a, false);
-	main_menu::gbe_plus->feed_key_input(config::dmg_key_b, false);
-	main_menu::gbe_plus->feed_key_input(config::dmg_key_select, false);
-	main_menu::gbe_plus->feed_key_input(config::dmg_key_start, false);
-	main_menu::gbe_plus->feed_key_input(config::dmg_key_up, false);
-	main_menu::gbe_plus->feed_key_input(config::dmg_key_down, false);
-	main_menu::gbe_plus->feed_key_input(config::dmg_key_left, false);
-	main_menu::gbe_plus->feed_key_input(config::dmg_key_right, false);
+	main_menu::gbe_plus->feed_key_input(config::gbe_key_a, false);
+	main_menu::gbe_plus->feed_key_input(config::gbe_key_b, false);
+	main_menu::gbe_plus->feed_key_input(config::gbe_key_select, false);
+	main_menu::gbe_plus->feed_key_input(config::gbe_key_start, false);
+	main_menu::gbe_plus->feed_key_input(config::gbe_key_up, false);
+	main_menu::gbe_plus->feed_key_input(config::gbe_key_down, false);
+	main_menu::gbe_plus->feed_key_input(config::gbe_key_left, false);
+	main_menu::gbe_plus->feed_key_input(config::gbe_key_right, false);
 }
 
 /****** Updates the OBJ Meta Tile preview size ******/

@@ -83,12 +83,6 @@ namespace config
 	extern u32 gbe_key_a, gbe_key_b, gbe_key_x, gbe_key_y, gbe_key_start, gbe_key_select, gbe_key_up, gbe_key_down, gbe_key_left, gbe_key_right, gbe_key_r_trigger, gbe_key_l_trigger;
 	extern u32 gbe_joy_a, gbe_joy_b, gbe_joy_x, gbe_joy_y, gbe_joy_start, gbe_joy_select, gbe_joy_up, gbe_joy_down, gbe_joy_left, gbe_joy_right, gbe_joy_r_trigger, gbe_joy_l_trigger;
 
-	extern u32 agb_key_a, agb_key_b, agb_key_start, agb_key_select, agb_key_up, agb_key_down, agb_key_left, agb_key_right, agb_key_r_trigger, agb_key_l_trigger;
-	extern u32 agb_joy_a, agb_joy_b, agb_joy_start, agb_joy_select, agb_joy_up, agb_joy_down, agb_joy_left, agb_joy_right, agb_joy_r_trigger, agb_joy_l_trigger;
-
-	extern u32 dmg_key_a, dmg_key_b, dmg_key_start, dmg_key_select, dmg_key_up, dmg_key_down, dmg_key_left, dmg_key_right;
-	extern u32 dmg_joy_a, dmg_joy_b, dmg_joy_start, dmg_joy_select, dmg_joy_up, dmg_joy_down, dmg_joy_left, dmg_joy_right;
-
 	extern u32 con_key_up, con_key_down, con_key_left, con_key_right, con_key_1, con_key_2;
 	extern u32 con_joy_up, con_joy_down, con_joy_left, con_joy_right, con_joy_1, con_joy_2;
 

@@ -195,34 +195,34 @@ void SGB_GamePad::handle_input(SDL_Event &event)
 void SGB_GamePad::process_keyboard(int pad, bool pressed)
 {
 	//Emulate A button press
-	if((pad == config::dmg_key_a) && (pressed)) { p14 &= ~0x1; }
+	if((pad == config::gbe_key_a) && (pressed)) { p14 &= ~0x1; }
 
 	//Emulate A button release
-	else if((pad == config::dmg_key_a) && (!pressed)) { p14 |= 0x1; }
+	else if((pad == config::gbe_key_a) && (!pressed)) { p14 |= 0x1; }
 
 	//Emulate B button press
-	else if((pad == config::dmg_key_b) && (pressed)) { p14 &= ~0x2; }
+	else if((pad == config::gbe_key_b) && (pressed)) { p14 &= ~0x2; }
 
 	//Emulate B button release
-	else if((pad == config::dmg_key_b) && (!pressed)) { p14 |= 0x2; }
+	else if((pad == config::gbe_key_b) && (!pressed)) { p14 |= 0x2; }
 
 	//Emulate Select button press
-	else if((pad == config::dmg_key_select) && (pressed)) { p14 &= ~0x4; }
+	else if((pad == config::gbe_key_select) && (pressed)) { p14 &= ~0x4; }
 
 	//Emulate Select button release
-	else if((pad == config::dmg_key_select) && (!pressed)) { p14 |= 0x4; }
+	else if((pad == config::gbe_key_select) && (!pressed)) { p14 |= 0x4; }
 
 	//Emulate Start button press
-	else if((pad == config::dmg_key_start) && (pressed)) { p14 &= ~0x8; }
+	else if((pad == config::gbe_key_start) && (pressed)) { p14 &= ~0x8; }
 
 	//Emulate Start button release
-	else if((pad == config::dmg_key_start) && (!pressed)) { p14 |= 0x8; }
+	else if((pad == config::gbe_key_start) && (!pressed)) { p14 |= 0x8; }
 
 	//Emulate Right DPad press
-	else if((pad == config::dmg_key_right) && (pressed)) { p15 &= ~0x1; p15 |= 0x2; right_shadow = true; }
+	else if((pad == config::gbe_key_right) && (pressed)) { p15 &= ~0x1; p15 |= 0x2; right_shadow = true; }
 
 	//Emulate Right DPad release
-	else if((pad == config::dmg_key_right) && (!pressed)) 
+	else if((pad == config::gbe_key_right) && (!pressed)) 
 	{
 		right_shadow = false; 
 		p15 |= 0x1;
@@ -232,10 +232,10 @@ void SGB_GamePad::process_keyboard(int pad, bool pressed)
 	}
 
 	//Emulate Left DPad press
-	else if((pad == config::dmg_key_left) && (pressed)) { p15 &= ~0x2; p15 |= 0x1; left_shadow = true; }
+	else if((pad == config::gbe_key_left) && (pressed)) { p15 &= ~0x2; p15 |= 0x1; left_shadow = true; }
 
 	//Emulate Left DPad release
-	else if((pad == config::dmg_key_left) && (!pressed)) 
+	else if((pad == config::gbe_key_left) && (!pressed)) 
 	{
 		left_shadow = false;
 		p15 |= 0x2;
@@ -245,10 +245,10 @@ void SGB_GamePad::process_keyboard(int pad, bool pressed)
 	}
 
 	//Emulate Up DPad press
-	else if((pad == config::dmg_key_up) && (pressed)) { p15 &= ~0x4; p15 |= 0x8; up_shadow = true; }
+	else if((pad == config::gbe_key_up) && (pressed)) { p15 &= ~0x4; p15 |= 0x8; up_shadow = true; }
 
 	//Emulate Up DPad release
-	else if((pad == config::dmg_key_up) && (!pressed)) 
+	else if((pad == config::gbe_key_up) && (!pressed)) 
 	{
 		up_shadow = false; 
 		p15 |= 0x4;
@@ -258,10 +258,10 @@ void SGB_GamePad::process_keyboard(int pad, bool pressed)
 	}
 
 	//Emulate Down DPad press
-	else if((pad == config::dmg_key_down) && (pressed)) { p15 &= ~0x8; p15 |= 0x4; down_shadow = true; }
+	else if((pad == config::gbe_key_down) && (pressed)) { p15 &= ~0x8; p15 |= 0x4; down_shadow = true; }
 
 	//Emulate Down DPad release
-	else if((pad == config::dmg_key_down) && (!pressed)) 
+	else if((pad == config::gbe_key_down) && (!pressed)) 
 	{
 		down_shadow = false;
 		p15 |= 0x8;
@@ -271,7 +271,7 @@ void SGB_GamePad::process_keyboard(int pad, bool pressed)
 	}
 
 	//Toggle SGB border on
-	else if((pad == config::agb_key_r_trigger) && (pressed))
+	else if((pad == config::gbe_key_r_trigger) && (pressed))
 	{
 		config::request_resize = true;
 		config::resize_mode--;
@@ -280,7 +280,7 @@ void SGB_GamePad::process_keyboard(int pad, bool pressed)
 	}
 
 	//Toggle SGB border off
-	else if((pad == config::agb_key_l_trigger) && (pressed))
+	else if((pad == config::gbe_key_l_trigger) && (pressed))
 	{
 		config::request_resize = true;
 		config::resize_mode++;
@@ -293,52 +293,52 @@ void SGB_GamePad::process_keyboard(int pad, bool pressed)
 void SGB_GamePad::process_joystick(int pad, bool pressed)
 {
 	//Emulate A button press
-	if((pad == config::dmg_joy_a) && (pressed)) { p14 &= ~0x1; }
+	if((pad == config::gbe_joy_a) && (pressed)) { p14 &= ~0x1; }
 
 	//Emulate A button release
-	else if((pad == config::dmg_joy_a) && (!pressed)) { p14 |= 0x1; }
+	else if((pad == config::gbe_joy_a) && (!pressed)) { p14 |= 0x1; }
 
 	//Emulate B button press
-	else if((pad == config::dmg_joy_b) && (pressed)) { p14 &= ~0x2; }
+	else if((pad == config::gbe_joy_b) && (pressed)) { p14 &= ~0x2; }
 
 	//Emulate B button release
-	else if((pad == config::dmg_joy_b) && (!pressed)) { p14 |= 0x2; }
+	else if((pad == config::gbe_joy_b) && (!pressed)) { p14 |= 0x2; }
 
 	//Emulate Select button press
-	else if((pad == config::dmg_joy_select) && (pressed)) { p14 &= ~0x4; }
+	else if((pad == config::gbe_joy_select) && (pressed)) { p14 &= ~0x4; }
 
 	//Emulate Select button release
-	else if((pad == config::dmg_joy_select) && (!pressed)) { p14 |= 0x4; }
+	else if((pad == config::gbe_joy_select) && (!pressed)) { p14 |= 0x4; }
 
 	//Emulate Start button press
-	else if((pad == config::dmg_joy_start) && (pressed)) { p14 &= ~0x8; }
+	else if((pad == config::gbe_joy_start) && (pressed)) { p14 &= ~0x8; }
 
 	//Emulate Start button release
-	else if((pad == config::dmg_joy_start) && (!pressed)) { p14 |= 0x8; }
+	else if((pad == config::gbe_joy_start) && (!pressed)) { p14 |= 0x8; }
 
 	//Emulate Right DPad press
-	else if((pad == config::dmg_joy_right) && (pressed)) { p15 &= ~0x1; p15 |= 0x2; }
+	else if((pad == config::gbe_joy_right) && (pressed)) { p15 &= ~0x1; p15 |= 0x2; }
 
 	//Emulate Right DPad release
-	else if((pad == config::dmg_joy_right) && (!pressed)) { p15 |= 0x1; p15 |= 0x2;}
+	else if((pad == config::gbe_joy_right) && (!pressed)) { p15 |= 0x1; p15 |= 0x2;}
 
 	//Emulate Left DPad press
-	else if((pad == config::dmg_joy_left) && (pressed)) { p15 &= ~0x2; p15 |= 0x1; }
+	else if((pad == config::gbe_joy_left) && (pressed)) { p15 &= ~0x2; p15 |= 0x1; }
 
 	//Emulate Left DPad release
-	else if((pad == config::dmg_joy_left) && (!pressed)) { p15 |= 0x2; p15 |= 0x1; }
+	else if((pad == config::gbe_joy_left) && (!pressed)) { p15 |= 0x2; p15 |= 0x1; }
 
 	//Emulate Up DPad press
-	else if((pad == config::dmg_joy_up) && (pressed)) { p15 &= ~0x4; p15 |= 0x8; }
+	else if((pad == config::gbe_joy_up) && (pressed)) { p15 &= ~0x4; p15 |= 0x8; }
 
 	//Emulate Up DPad release
-	else if((pad == config::dmg_joy_up) && (!pressed)) { p15 |= 0x4; p15 |= 0x8;}
+	else if((pad == config::gbe_joy_up) && (!pressed)) { p15 |= 0x4; p15 |= 0x8;}
 
 	//Emulate Down DPad press
-	else if((pad == config::dmg_joy_down) && (pressed)) { p15 &= ~0x8; p15 |= 0x4;}
+	else if((pad == config::gbe_joy_down) && (pressed)) { p15 &= ~0x8; p15 |= 0x4;}
 
 	//Emulate Down DPad release
-	else if((pad == config::dmg_joy_down) && (!pressed)) { p15 |= 0x8; p15 |= 0x4; }
+	else if((pad == config::gbe_joy_down) && (!pressed)) { p15 |= 0x8; p15 |= 0x4; }
 }
 
 /****** Process gyroscope sensors - Only used for MBC7 ******/
