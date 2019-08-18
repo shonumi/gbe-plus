@@ -685,12 +685,12 @@ void DMG_SIO::mobile_adapter_process_pop()
 		//Search internal server list
 		for(u32 x = 0; x < mobile_adapter.srv_list_in.size(); x++)
 		{
-			filename = config::data_path + mobile_adapter.srv_list_out[x];
-
 			//Check for GBE+ mail
-			if(mobile_adapter.srv_list_out[x] == "gbma/gbe_plus_mail.txt")
+			if((mobile_adapter.srv_list_in[x] == "gbe_mail.txt") && (x != mobile_adapter.srv_list_out.size()))
 			{
+				filename = config::data_path + mobile_adapter.srv_list_out[x];
 				found_item = true;
+				x++;
 				break;
 			}
 
