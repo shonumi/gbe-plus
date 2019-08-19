@@ -1,4 +1,4 @@
-Hello Kitty no Happy House Server Technical Documentation 0.1
+Hello Kitty no Happy House Server Technical Documentation 0.2
 March 04, 2019
 Shonumi aka D.S. Baxter
 
@@ -39,3 +39,38 @@ X-GBmail-type: exclusive
 X-HKH-HOUSE: [3-letter code]
 
 The codes appear to be simple, e.g. "AAE" for a framed picture and "AIG" for a green rug.
+
+
+***************************************************
+4. Item Codes
+***************************************************
+
+Below are a list of 3-letter codes and the items they generate when used in the email header. If the game does not recognize the code, it defaults to using the "Green Iron" item.
+
+AAA - Green Iron
+AAB - Heart Clock
+AAC - Pendulum Clock
+AAD - Futuristic Clock
+AAE - Landscape Painting
+AAF - Pop Art Painting
+AAG - Kitty Elastomer
+AAH - Bronze Angel Statue
+AAI - Bronze Goddes Statue
+AAJ - Broze Kitty Statue
+AAK - Hanging Scroll
+AAL - Dragon Pennant
+AAM - Noble Pennant
+AAN - Wide TV
+AAO - Cute TV
+AAP - Wall-mounted TV
+AAQ - Digital Component Stereo
+AAR - Component Stereo
+AAS - Gramophone
+AAT - Massage Chair
+AAU - "Sexy" Massage Chair
+AAV - Relaxing Chair
+AAW - Globe
+AAX - Cosmic Globe
+AAY - Miniature House
+AAZ - Pink Chest
+
