@@ -45,7 +45,7 @@ The codes appear to be simple, e.g. "AAE" for a framed picture and "AIG" for a g
 4. Item Codes
 ***************************************************
 
-Below are a list of 3-letter codes and the items they generate when used in the email header. If the game does not recognize the code, it defaults to using the "Green Iron" item.
+Below are a list of 3-letter codes and the items they generate when used in the email header. If the game does not recognize the code, a present icon will appear next to the email, but no item is actually received.
 
 AAA - Green Iron
 AAB - Heart Clock
@@ -74,3 +74,29 @@ AAX - Cosmic Globe
 AAY - Miniature House
 AAZ - Pink Chest
 
+ABA - Hanging Scroll
+ABB - Dragon Pennant
+ABC - Noble Pennant
+ABD - Wide TV
+ABE - Cute TV
+ABF - Wall-mounted TV
+ABG - Digital Component Stereo
+ABH - Component Stereo
+ABI - Gramaphone
+ABJ - Massage Chair
+ABK - "Sexy" Massage Chair
+ABL - Relaxing Chair
+ABM - Globe
+ABN - Cosmic Globe
+ABO - Minature House
+ABP - Pink Chest
+ABQ - Japanese Drawer
+ABR - Toy Case
+ABS - Japanese Vase
+ABT - Western Vase
+ABU - Arabian Vase
+ABV - Tetra Aquarium
+ABW - Turtle Aquarium
+ABX - Arowana Aquarium
+ABY - Floor Light
+ABZ - Standing Light
