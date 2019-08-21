@@ -100,3 +100,30 @@ ABW - Turtle Aquarium
 ABX - Arowana Aquarium
 ABY - Floor Light
 ABZ - Standing Light
+
+ACA - "Sexy" Massage Chair
+ACB - Relaxing Chair
+ACC - Globe
+ACD - Cosmic Globe
+ACE - Miniature House
+ACF - Pink Chest
+ACG - Japanese Drawer
+ACH - Toy Case
+ACI - Japanese Vase
+ACJ - Western Vase
+ACK - Arabain Vase
+ACL - Tetra Aquarium
+ACM - Turtle Aquarium
+ACN - Arowana Aquarium
+ACO - Floor Light
+ACP - Standing Light
+ACQ - Mood Light
+ACR - Doggy Doll
+ACS - Sheep Doll
+ACT - Lion Doll
+ACU - Puppet Storage Box
+ACV - Robot Base
+ACW - Doll House
+ACX - Magazine Rack
+ACY - Letter Rack
+ACZ - Bookstand
