@@ -911,8 +911,10 @@ void DMG_SIO::mobile_adapter_process_http()
 {
 	std::string http_response = "";
 	u8 response_id = 0;
+	u32 auth_id = 0;
 	bool not_found = true;
 	bool img = false;
+	bool needs_auth = false;
 
 	//Send empty body until HTTP request is finished transmitting
 	if(mobile_adapter.data_length != 1)
@@ -932,6 +934,9 @@ void DMG_SIO::mobile_adapter_process_http()
 		std::size_t get_match = mobile_adapter.http_data.find("GET");
 		std::size_t post_match = mobile_adapter.http_data.find("POST");
 
+		//Determine if authorization headers were attached if needed
+		std::size_t auth_match = mobile_adapter.http_data.find("Authorization: GB00");
+
 		//Process GET requests
 		if(get_match != std::string::npos)
 		{
@@ -947,6 +952,18 @@ void DMG_SIO::mobile_adapter_process_http()
 
 					//Check for GBE+ images
 					if(mobile_adapter.srv_list_out[x] == "gbma/gbe_plus_mobile_header.bmp") { img = true; }
+
+					//Check for auth status
+					if((mobile_adapter.auth_list[x] == 0x00) && (auth_match == std::string::npos))
+					{
+						needs_auth = true;
+						auth_id = x;
+					}
+
+					else if((mobile_adapter.auth_list[x] == 0x00) && (auth_match != std::string::npos))
+					{
+						mobile_adapter.auth_list[x] = 0x01;
+					}
 
 					break;
 				}
@@ -992,10 +1009,22 @@ void DMG_SIO::mobile_adapter_process_http()
 		//Respond to HTTP request
 		switch(mobile_adapter.transfer_state)
 		{
-			//Status - 200 or 404
+			//Status - 200 or 404. 401 if authentication needed
 			case 0x1:
-				if(not_found) { http_response = "HTTP/1.0 404 Not Found\r\n"; }
-				else { http_response = "HTTP/1.0 200 OK\r\n"; }
+				if(needs_auth)
+				{
+					http_response = "HTTP/1.0 401 Unauthorized\r\nWWW-Authenticate: GB00 name=\"000000000000000000000000000000000000\"";
+				}
+					
+				else if(not_found)
+				{
+					http_response = "HTTP/1.0 404 Not Found\r\n";
+				}
+
+				else
+				{
+					http_response = "HTTP/1.0 200 OK\r\n";
+				}
 
 				mobile_adapter.transfer_state = 2;
 				response_id = 0x95;
@@ -1216,6 +1245,7 @@ bool DMG_SIO::mobile_adapter_load_server_list()
 	mobile_adapter.srv_list_out.clear();
 
 	std::string input_line = "";
+	std::string input_char = "";
 	std::string list_file = config::data_path + "gbma/server_list.txt";
 	std::ifstream file(list_file.c_str(), std::ios::in);
 	u8 line_count = 0;
@@ -1230,8 +1260,27 @@ bool DMG_SIO::mobile_adapter_load_server_list()
 	{
 		if(!input_line.empty())
 		{
+			//Populate paths of local files
 			if(line_count & 0x1) { mobile_adapter.srv_list_out.push_back(input_line); }
-			else { mobile_adapter.srv_list_in.push_back(input_line); }
+
+			//Populate paths of URIs to match (full or partial)
+			else
+			{
+				input_char = input_line[0];
+
+				//Determine if URI needs HTTP authentication (prepended with an *)
+				if(input_char == "*")
+				{
+					input_line = input_line.substr(1);
+
+					//0x00 = No auth done yet. 0x01 = Auth complete. 0xFF = No auth needed
+					mobile_adapter.auth_list.push_back(0x00);
+				}
+
+				else { mobile_adapter.auth_list.push_back(0xFF); }
+
+				mobile_adapter.srv_list_in.push_back(input_line);
+			}
 			
 			line_count++;
 		}

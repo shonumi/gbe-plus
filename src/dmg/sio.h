@@ -108,6 +108,7 @@ class DMG_SIO
 		std::vector <u8> net_data;
 		std::vector <std::string> srv_list_in;
 		std::vector <std::string> srv_list_out;
+		std::vector <u8> auth_list;
 		u32 packet_size;	
 		mobile_state current_state;
 		std::string http_data;
