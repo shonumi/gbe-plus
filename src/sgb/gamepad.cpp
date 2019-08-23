@@ -339,6 +339,24 @@ void SGB_GamePad::process_joystick(int pad, bool pressed)
 
 	//Emulate Down DPad release
 	else if((pad == config::gbe_joy_down) && (!pressed)) { p15 |= 0x8; p15 |= 0x4; }
+
+	//Toggle SGB border on
+	else if((pad == config::gbe_joy_r_trigger) && (pressed))
+	{
+		config::request_resize = true;
+		config::resize_mode--;
+		
+		if(config::resize_mode < 0) { config::resize_mode = 0; }
+	}
+
+	//Toggle SGB border off
+	else if((pad == config::gbe_joy_l_trigger) && (pressed))
+	{
+		config::request_resize = true;
+		config::resize_mode++;
+
+		if(config::resize_mode > 1) { config::resize_mode = 1; }
+	}
 }
 
 /****** Process gyroscope sensors - Only used for MBC7 ******/
