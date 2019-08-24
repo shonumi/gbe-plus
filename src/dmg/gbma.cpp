@@ -910,6 +910,7 @@ void DMG_SIO::mobile_adapter_process_pop()
 void DMG_SIO::mobile_adapter_process_http()
 {
 	std::string http_response = "";
+	std::string http_header = "";
 	u8 response_id = 0;
 	u32 auth_id = 0;
 	bool not_found = true;
@@ -958,11 +959,13 @@ void DMG_SIO::mobile_adapter_process_http()
 					{
 						needs_auth = true;
 						auth_id = x;
+						http_header = "WWW-Authenticate: GB00 name=\"000000000000000000000000000000000000\"\r\n";
 					}
 
 					else if((mobile_adapter.auth_list[x] == 0x00) && (auth_match != std::string::npos))
 					{
 						mobile_adapter.auth_list[x] = 0x01;
+						http_header = "Gb-Auth-ID: authaccepted\r\n";
 					}
 
 					break;
@@ -1025,6 +1028,8 @@ void DMG_SIO::mobile_adapter_process_http()
 				{
 					http_response = "HTTP/1.0 200 OK\r\n";
 				}
+
+				http_response += http_header;
 
 				mobile_adapter.transfer_state = 2;
 				response_id = 0x95;
