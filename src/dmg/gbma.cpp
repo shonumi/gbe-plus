@@ -914,22 +914,26 @@ void DMG_SIO::mobile_adapter_process_http()
 	u8 response_id = 0;
 	u32 auth_id = 0;
 	bool not_found = true;
-	bool img = false;
+	bool img = mobile_adapter.http_data.find(".bmp") != std::string::npos;
+	bool html = mobile_adapter.http_data.find(".html") != std::string::npos;
 	bool needs_auth = false;
 
+
+	//Build HTTP request
+	mobile_adapter.http_data += util::data_to_str(mobile_adapter.packet_buffer.data() + 7, mobile_adapter.packet_buffer.size() - 7);
+
 	//Send empty body until HTTP request is finished transmitting
-	if(mobile_adapter.data_length != 1)
+	if(mobile_adapter.http_data.find("\r\n\r\n") == std::string::npos)
 	{
-		mobile_adapter.http_data += util::data_to_str(mobile_adapter.packet_buffer.data() + 7, mobile_adapter.packet_buffer.size() - 7);
 		http_response = "";
 		response_id = 0x95;
 	}
 
 	//Process HTTP request once initial line + headers + message body have been received.
-	else
+	else if(!mobile_adapter.transfer_state)
 	{
 		//Update transfer status
-		if(!mobile_adapter.transfer_state) { mobile_adapter.transfer_state = 1; }
+		mobile_adapter.transfer_state = 1;
 
 		//Determine if this request is GET or POST
 		std::size_t get_match = mobile_adapter.http_data.find("GET");
@@ -959,19 +963,19 @@ void DMG_SIO::mobile_adapter_process_http()
 					{
 						needs_auth = true;
 						auth_id = x;
-						http_header = "WWW-Authenticate: GB00 name=\"000000000000000000000000000000000000\"\r\n";
+						http_header = "WWW-Authenticate: GB00 name=\"000000000000000000000000000000000000\"\r\n\r\n";
 					}
 
 					else if((mobile_adapter.auth_list[x] == 0x00) && (auth_match != std::string::npos))
 					{
 						mobile_adapter.auth_list[x] = 0x01;
-						http_header = "Gb-Auth-ID: authaccepted\r\n";
+						http_header = "Gb-Auth-ID: authaccepted\r\n\r\n";
 					}
 
 					break;
 				}
 			}
-				
+
 			if(!not_found)
 			{
 				//Open up GBE+ header image
@@ -992,7 +996,6 @@ void DMG_SIO::mobile_adapter_process_http()
 					file.close();
 
 					not_found = false;
-					img = true;
 
 					mobile_adapter.data_index = 0;
 				}
@@ -1004,111 +1007,171 @@ void DMG_SIO::mobile_adapter_process_http()
 		//Process POST requests
 		else if(post_match != std::string::npos)
 		{
-			http_response = "HTTP/1.0 200 OK\r\n";
-			response_id = 0x95;
-			mobile_adapter.transfer_state = 5;
+			bool post_is_done = false;
+
+			//Determine if POST Content-Length is done
+			std::size_t post_len_match = mobile_adapter.http_data.find("Content-Length:");
+
+			//Check to see if Content-Length has been specified in HTTP header
+			if(post_len_match != std::string::npos)
+			{
+				//Isolate string of number of bytes
+				std::string con_len = mobile_adapter.http_data.substr(post_len_match);
+				std::size_t next_line = con_len.find("\r\n");
+				con_len = con_len.substr(15, (next_line - 15));
+				
+				std::string final_str = "";
+				std::string temp_chr = "";
+
+				//Clean up string (only allow ASCII characters 0 - 9
+				for(u32 x = 0; x < con_len.length(); x++)
+				{
+					temp_chr = con_len[x];
+					if((temp_chr[0] >= 0x30) && (temp_chr[0] <= 0x39)) { final_str += temp_chr; }
+				}
+
+				//Convert string into a number
+				u32 num_of_bytes = 0;
+				bool found_len = util::from_str(final_str, num_of_bytes);
+
+				//If a valid length is found, wait until the appropiate amount of data is sent
+				if(found_len)
+				{
+					std::size_t data_start = mobile_adapter.http_data.find("\r\n\r\n");
+					
+					//Find the end of HTTP headers
+					if(data_start != std::string::npos)
+					{
+						std::string post_data = mobile_adapter.http_data.substr(data_start + 4);
+
+						//Send 200 OK response if content length has been met
+						if(post_data.length() >= num_of_bytes)
+						{
+							http_response = "HTTP/1.0 200 OK\r\n\r\n";
+							response_id = 0x95;
+							mobile_adapter.transfer_state = 5;
+							post_is_done = true;
+						}
+					}
+				}
+			}
+
+			if(!post_is_done)
+			{
+				response_id = 0x95;
+				mobile_adapter.transfer_state = 0;
+			}
 		}
-
-		//Respond to HTTP request
-		switch(mobile_adapter.transfer_state)
-		{
-			//Status - 200 or 404. 401 if authentication needed
-			case 0x1:
-				if(needs_auth)
-				{
-					http_response = "HTTP/1.0 401 Unauthorized\r\nWWW-Authenticate: GB00 name=\"000000000000000000000000000000000000\"";
-				}
-					
-				else if(not_found)
-				{
-					http_response = "HTTP/1.0 404 Not Found\r\n";
-				}
-
-				else
-				{
-					http_response = "HTTP/1.0 200 OK\r\n";
-				}
-
-				http_response += http_header;
-
+	}
+	
+	//Respond to HTTP request
+	switch(mobile_adapter.transfer_state)
+	{
+		//Status - 200 or 404. 401 if authentication needed
+		case 0x1:
+			if(needs_auth)
+			{
+				http_response = "HTTP/1.0 401 Unauthorized\r\n";
+				mobile_adapter.transfer_state = 4;
+			}
+				
+			else if(not_found)
+			{
+				http_response = "HTTP/1.0 404 Not Found\r\n";
 				mobile_adapter.transfer_state = 2;
-				response_id = 0x95;
+			}
 
-				break;
+			else
+			{
+				http_response = "HTTP/1.0 200 OK\r\n";
+				mobile_adapter.transfer_state = 2;
+			}
 
-			//Header or close connection if 404
-			case 0x2:
-				if(not_found)
-				{
-					http_response = "";
-					response_id = 0x9F;
-					mobile_adapter.transfer_state = 0;
-					mobile_adapter.http_data = "";
-				}
+			http_response += http_header;
+			response_id = 0x95;
 
-				else if(!img)
-				{
-					http_response = "Content-Type: text/html\r\n\r\n";
-					response_id = 0x95;
-					mobile_adapter.transfer_state = 3;
-				}
+			break;
 
-				else if(img)
-				{
-					http_response = "Content-Type: image/bmp\r\n\r\n";
-					response_id = 0x95;
-					mobile_adapter.transfer_state = 0x13;
-					mobile_adapter.http_data = "";
-				}
-
-				break;
-
-			//HTTP data payload
-			//TODO - Remove hardcoding for Mobile Trainer
-			case 0x3:
-				for(int x = 0; x < 254; x++)
-				{
-					if(mobile_adapter.data_index < mobile_adapter.net_data.size())
-					{
-						http_response += mobile_adapter.net_data[mobile_adapter.data_index++];
-					}
-
-					else { x = 255; }
-				}
-
-				response_id = 0x95;
-				mobile_adapter.transfer_state = (mobile_adapter.data_index < mobile_adapter.net_data.size()) ? 0x3 : 0x4;
-				break;
-
-			case 0x13:
-				for(int x = 0; x < 254; x++)
-				{
-					if(mobile_adapter.data_index < mobile_adapter.net_data.size())
-					{
-						http_response += mobile_adapter.net_data[mobile_adapter.data_index++];
-					}
-
-					else { x = 255; }
-				}
-					
-				response_id = 0x95;
-				mobile_adapter.transfer_state = (mobile_adapter.data_index < mobile_adapter.net_data.size()) ? 0x13 : 0x4;
-				break;
-
-			//Close connection
-			case 0x4:
+		//Header or close connection if 404
+		case 0x2:
+			if(!not_found)
+			{
 				http_response = "";
 				response_id = 0x9F;
 				mobile_adapter.transfer_state = 0;
 				mobile_adapter.http_data = "";
-				break;
+			}
 
-			//Preparse POST request finish
-			case 0x5:
-				mobile_adapter.transfer_state = 4;
+			else if(html)
+			{
+				http_response = "Content-Type: text/html\r\n\r\n";
+				response_id = 0x95;
+				mobile_adapter.transfer_state = 3;
 				mobile_adapter.http_data = "";
-				break;
-		}
+			}
+
+			else if(img)
+			{
+				http_response = "Content-Type: image/bmp\r\n\r\n";
+				response_id = 0x95;
+				mobile_adapter.transfer_state = 0x13;
+				mobile_adapter.http_data = "";
+			}
+
+			else
+			{
+				http_response = "Content-Type: text/plain\r\n\r\n";
+				response_id = 0x95;
+				mobile_adapter.transfer_state = 3;
+				mobile_adapter.http_data = "";
+			}
+
+			break;
+
+		//HTTP data payload
+		case 0x3:
+			for(int x = 0; x < 254; x++)
+			{
+				if(mobile_adapter.data_index < mobile_adapter.net_data.size())
+				{
+					http_response += mobile_adapter.net_data[mobile_adapter.data_index++];
+				}
+
+				else { x = 255; }
+			}
+
+			response_id = 0x95;
+			mobile_adapter.transfer_state = (mobile_adapter.data_index < mobile_adapter.net_data.size()) ? 0x3 : 0x4;
+			break;
+
+		case 0x13:
+			for(int x = 0; x < 254; x++)
+			{
+				if(mobile_adapter.data_index < mobile_adapter.net_data.size())
+				{
+					http_response += mobile_adapter.net_data[mobile_adapter.data_index++];
+				}
+
+				else { x = 255; }
+			}
+					
+			response_id = 0x95;
+			mobile_adapter.transfer_state = (mobile_adapter.data_index < mobile_adapter.net_data.size()) ? 0x13 : 0x4;
+			break;
+
+		//Close connection
+		case 0x4:
+			http_response = "";
+			response_id = 0x9F;
+			mobile_adapter.transfer_state = 0;
+			mobile_adapter.http_data = "";
+			break;
+
+		//Preparse POST request finish
+		case 0x5:
+			mobile_adapter.transfer_state = 4;
+			mobile_adapter.http_data = "";
+			break;
 	}
 
 	//Start building the reply packet
