@@ -912,12 +912,10 @@ void DMG_SIO::mobile_adapter_process_http()
 	std::string http_response = "";
 	std::string http_header = "";
 	u8 response_id = 0;
-	u32 auth_id = 0;
 	bool not_found = true;
+	bool needs_auth = false;
 	bool img = mobile_adapter.http_data.find(".bmp") != std::string::npos;
 	bool html = mobile_adapter.http_data.find(".html") != std::string::npos;
-	bool needs_auth = false;
-
 
 	//Build HTTP request
 	mobile_adapter.http_data += util::data_to_str(mobile_adapter.packet_buffer.data() + 7, mobile_adapter.packet_buffer.size() - 7);
@@ -939,9 +937,6 @@ void DMG_SIO::mobile_adapter_process_http()
 		std::size_t get_match = mobile_adapter.http_data.find("GET");
 		std::size_t post_match = mobile_adapter.http_data.find("POST");
 
-		//Determine if authorization headers were attached if needed
-		std::size_t auth_match = mobile_adapter.http_data.find("Authorization: GB00");
-
 		//Process GET requests
 		if(get_match != std::string::npos)
 		{
@@ -959,17 +954,12 @@ void DMG_SIO::mobile_adapter_process_http()
 					if(mobile_adapter.srv_list_out[x] == "gbma/gbe_plus_mobile_header.bmp") { img = true; }
 
 					//Check for auth status
-					if((mobile_adapter.auth_list[x] == 0x00) && (auth_match == std::string::npos))
+					//This method bypasses sending an actual WWW-Authenticate: GB00 header
+					if(mobile_adapter.auth_list[x] == 0x00)
 					{
-						needs_auth = true;
-						auth_id = x;
-						http_header = "WWW-Authenticate: GB00 name=\"000000000000000000000000000000000000\"\r\n\r\n";
-					}
-
-					else if((mobile_adapter.auth_list[x] == 0x00) && (auth_match != std::string::npos))
-					{
-						mobile_adapter.auth_list[x] = 0x01;
 						http_header = "Gb-Auth-ID: authaccepted\r\n\r\n";
+						needs_auth = true;
+						mobile_adapter.auth_list[x] = 0x01;
 					}
 
 					break;

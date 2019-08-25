@@ -1,0 +1,2 @@
+http://gameboy.datacenter.ne.jp/cgb/upload?name=/01/CGB-BXTJ/exchange/10upload.cgi
+http://gameboy.datacenter.ne.jp/cgb/upload?name=/01/CGB-BXTJ/exchange/cancel.cgi

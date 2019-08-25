@@ -15,3 +15,9 @@ gbma/RomList.cgb
 
 /cgb/download?name=/A4/CGB-BMVJ/
 gbma/minigame.bin
+
+cgb/download?name=/01/CGB-BXTJ/exchange/index.txt
+gbma/exchange.txt
+
+*/cgb/upload?name=/01/CGB-BXTJ/exchange/10upload.cgi
+gbma/10upload.txt
