@@ -21,3 +21,6 @@ gbma/exchange.txt
 
 */cgb/upload?name=/01/CGB-BXTJ/exchange/10upload.cgi
 gbma/10upload.txt
+
+/cgb/upload?name=/01/CGB-BXTJ/exchange/cancel.cgi
+gbma/cancel.txt
