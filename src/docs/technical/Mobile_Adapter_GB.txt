@@ -1,8 +1,7 @@
 Mobile Adapter GB Technical Documentation 0.1
 April 17, 2019
 Original documentation by Háčky -> https://forums.glitchcity.info/index.php?topic=7509.0
-Editing + formatting + additional notes by Shonumi
-Additional notes from Normatt
+Additional notes by REON Dev Team
 
 ***************************************************
 1. Introduction
@@ -130,7 +129,7 @@ The Packet Checksum is simply the 16-bit sum of all previous header bytes and al
 
 Bit 7 of any of these bytes will be set high if the device is the receiver of packet, and Bit 7 will be set low for the sender of the packet. This essentially confirms what role the Game Boy is acting in. If it is the receiver, it is expecting to read information from the from the Packet Data from the Mobile Adapter. For exmple, with Command 0x19, the Game Boy is explicitly requesting data from the adapter, and with Command 0x1A the Game Boy is explicitly sending data to the adapter. When acting as the receiver, the device fills its Packet Data with 0x4B bytes. If the Game Boy is the sender, it is expecting to push information from its own Packet Data to the Mobile Adapter. In this case, the Packet Data the Mobile Adapter sends in response is filled with 0x4B bytes. 
 
-If the checksum fails, the receiving side typically immediately sends 0xF1 to indicate an error. 0xEE, 0xF0, and 0xF2 also appear to be failure codes, however, their meaning is currently unknown. 
+If the checksum fails, the receiving side typically immediately sends 0xF1 to indicate an error. 0xF0, and 0xF2 also appear to be failure codes, however, their meaning is currently unknown. 0xEE indicates a specific error from a previously issued command.
 
 The device ID determines what kind of hardware each side is communicating with. Below are the possible values and their meaning:
 
@@ -152,7 +151,7 @@ Device ID	| OR Value	| Device Type
 
 Even though the protocol effectively enables 2-way communication between the Game Boy and a remote server, the handheld is expected to oversee all transmissions to the adapter itself. That is to say, the typical "master-slave" model often used for Game Boy serial I/O still applies in some sense. Once the server starts responding, the Game Boy has to continually initiate another transfer to the adapter (setting Bit 7 of 0xFF02 high) to keep reading any additional bytes that were sent.
 
-It is up to the game software itself to handle secondary protocols (such as HTTP, POP3, or SMTP) which involve one side specifically acting as the sender or receiver. For example, after opening a TCP connection to an HTTP server and issuing the 0x15 command (Data Transfer), the software will determine whether the Game Boy is acting as a sender (making an HTTP request) or a receiver (receiving an HTTP response). Generally, this goes back and forth. The Game Boy sends information via its Packet Data, while the Mobile Adapter's Packet Data is filled with 0x4B bytes at this time until the Game Boy finishes its TCP transfer. When the Game Boy's TCP transfer is done, the adapter sends any information from the server in its Packet Data while that same part of packet from the Game Boy is filled with 0x4B bytes. The chart below illustrates this concept:
+It is up to the game software itself to handle secondary protocols (such as HTTP, POP3, or SMTP) which involve one side specifically acting as the sender or receiver. For example, after opening a TCP connection to an HTTP server and issuing the 0x15 command (Data Transfer), the software will determine whether the Game Boy is acting as a sender (making an HTTP request) or a receiver (receiving an HTTP response). Generally, this goes back and forth. The Game Boy sends information via its Packet Data, while the Mobile Adapter's Packet Data is filled with 0xD2 bytes at this time until the Game Boy finishes its TCP transfer. When the Game Boy's TCP transfer is done, the adapter sends any information from the server in its Packet Data while that same part of packet from the Game Boy is filled with 0x4B bytes. The chart below illustrates this concept:
 
 --------------------------------------------------------------------------
 Device		| Role		| Packet Data	| Acknowledgement Signal
@@ -160,7 +159,7 @@ Device		| Role		| Packet Data	| Acknowledgement Signal
 Game Boy	| Sender	| Arbitrary	| Device ID + Command ID
 Game Boy	| Receiver	| 0x4B 0x4B ... | Device ID OR 0x80 + Command ID OR 0x80
 Mobile Adapter	| Sender	| Arbitrary	| Device ID + Command ID
-Mobile Adapter	| Receiver	| 0x4B 0x4B ... | Device ID OR 0x80 + Command ID OR 0x80
+Mobile Adapter	| Receiver	| 0xD2 0xD2 ... | Device ID OR 0x80 + Command ID OR 0x80
 --------------------------------------------------------------------------
 
 Many games appear to an follow a certain order of commands initially. This may have been part of some kind of standard library available to developers in order to connect to an ISP. The commands most commonly look like this:
@@ -185,6 +184,8 @@ Command 0x28		DNS Query
 
 From there, the software decides what next (if anything) needs to be done after successfully connecting to the internet.
 
+When the GBC or GBA first start communicating with the Mobile Adapter, the first byte sent in response will be garbage data. Afterwards, however, it will reply with 0xD2 as its "idle" byte until a command is finished being sent.
+
 
 ***************************************************
 6. Protocol - Commands 
@@ -194,7 +195,7 @@ From there, the software decides what next (if anything) needs to be done after 
 Data Sent: "NINTENDO" ASCII string. 8 bytes only, not null-terminated
 Data Received: "NINTENDO" ASCII string. 8 bytes only, not null terminated
 
-Sent to the adapter at the beginning of a session. The Game Boy sends an ASCII string containing "NINTENDO" and the adapter replies with a packet containing the same data.
+Sent to the adapter at the beginning of a session. The Game Boy sends an ASCII string containing "NINTENDO" and the adapter replies with a packet containing the same data. It must be noted that the adapter will not respond to other commands until it receives this command. If this command is sent twice, it returns an error.
 
 ----------
 
@@ -240,11 +241,11 @@ Used to transfer data over TCP after the command 0x23 (Open TCP Connection) has 
 
 [[Command 0x17 - Telephone Status]]
 Data Sent: N/A. Empty Packet Data
-Data Received: 1 byte for current telephone status
+Data Received: 1 byte for current telephone status + 2 unknown bytes
 
-Typically sent to the adapter before dialing. Also used to test the telephone status before opening a TCP connection, or to constantly ping the phone to make sure it's still active. The reply is 1 byte. 0x00 means the phone is ready to make a call or connection. 0x04 and 0x05 indicate that the line is busy (presumably set after a command like 0x12). The difference between the two line-busy values is unknown. Most software does not seem to care which one is sent, but Net de Get: Mini Game @ 100 refuses to work with 0x05.
+Typically sent to the adapter before dialing. Also used to test the telephone status before opening a TCP connection, or to constantly ping the phone to make sure it's still active. The reply is 1 byte. 0x00 means the phone is ready to make a call or connection. 0xFF indicates a disconnectd phone. 0x04 and 0x05 indicate that the line is busy (presumably set after a command like 0x12). The difference between the two line-busy values is unknown. Most software does not seem to care which one is sent, but Net de Get: Mini Game @ 100 refuses to work with 0x05.
 
-Additionally, the Game Boy seem to set Bits 0 - 4 high for the Command ID in the Acknowledgement Signal, thus sending 0x1F to the Mobile Adapter.
+Additionally, the Game Boy seems to set Bits 0 - 4 high for the Command ID in the Acknowledgement Signal, thus sending 0x1F to the Mobile Adapter.
 
 ----------
 
@@ -310,6 +311,24 @@ Data Received: 4 bytes for IP Address
 
 Looks up the IP address for a domain name, presumably using the DNS server addresses sent in Command 0x21
 
+----------
+
+[[Command 0x6E - Error Status]]
+Data Sent: N/A. Adapter sends this in response to a failed command
+Data Received: 1 byte for command that failed + 1 byte for error status
+
+If a previously sent command fails, the adapter will respond with this instead, indicating the command that failed as well as a brief status code. The error statuses for one command do not indicate the same error for another command, so context matters when parsing the codes. The following commands and their known error status codes are listed below:
+
+0x10: Error Code 0x01 - Sent twice
+0x10: Error Code 0x02 - Invalid contents
+0x12: Error Code 0x03 - Dial telephone with telephone disconnected
+0x14: Error Code 0x00 - Wait for call with telephone disconnected
+0x15: Error Code 0x01 - Transfer data without being connected
+0x19: Error Code 0x02 - Read outside of config area
+0x1A: Error Code 0x02 - Write outside of config area
+0x21: Error Code 0x01 - ISP login with disconnected phone
+
+
 
 ***************************************************
 7. Configuration Data
@@ -339,3 +358,5 @@ If the Mobile Adapter is connected to a PDC or CDMA device, the telephone number
 The checksum is simply the 16-bit sum of bytes 0x00 - 0xBD.
 
 All software compatible with the Mobile Adapter appears to read the configuration data first and foremost. If the data cannot be read or if there is a problem with the data, they will refuse to even attempt making an online connection. Generally, they return the error code 25-000 in that situation.
+
+If any compatible software attempts to read or write configuration data outside the allotted 192 bytes via commands 0x19 and 0x1A, the entire I/O operation is cancelled. No data is written even if the initial offset is within the 192 bytes. No data is returned either, as both commands respond with Error Status packets.
