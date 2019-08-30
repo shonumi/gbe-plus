@@ -71,7 +71,7 @@ The GBA game Yu-Gi-Oh! Duel Monsters 5 Expert 1 contains code for the Mobile Ada
 4. Protocol - Packet Format
 ***************************************************
 
-On the GBC, the Mobile Adapter operates using the fastest available setting (64KB/s) by setting Bits 0 and 1 of the SC register (0xFF02) high. It also uses an internal clock for all transfers. Communication is comparable to that of the Game Boy Printer, where the Game Boy sends packets with header, data, command, and checksum sections. Below is a chart breaking down the Mobile Adapter packet format:
+On the GBC, the Mobile Adapter operates using the fastest available setting (64KB/s) by setting Bits 0 and 1 of the SC register (0xFF02) high. It also uses an internal clock for all transfers. Communication is comparable to that of the Game Boy Printer, where the Game Boy sends packets with header, data, command, and checksum sections. On the GBA, the Mobile Adapter operates in NORMAL8 mode using a shift clock of 256KHz. Below is a chart breaking down the Mobile Adapter packet format:
 
 -------------------------------------------------
 Section			| Length		
