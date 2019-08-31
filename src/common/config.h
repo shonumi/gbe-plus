@@ -136,11 +136,13 @@ namespace config
 	extern bool use_netplay;
 	extern bool netplay_hard_sync;
 	extern bool use_net_gate;
+	extern bool use_real_gbma_server;
 	extern u32 netplay_sync_threshold;
 	extern u16 netplay_server_port;
 	extern u16 netplay_client_port;
 	extern u8 netplay_id;
 	extern std::string netplay_client_ip;
+	extern std::string gbma_server;
 
 	extern u8 volume;
 	extern u8 old_volume;

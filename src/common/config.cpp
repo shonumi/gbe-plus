@@ -124,11 +124,13 @@ namespace config
 	bool use_netplay = true;
 	bool netplay_hard_sync = true;
 	bool use_net_gate = false;
+	bool use_real_gbma_server = false;
 	u32 netplay_sync_threshold = 32;
 	u16 netplay_server_port = 2000;
 	u16 netplay_client_port = 2001;
 	u8 netplay_id = 0;
 	std::string netplay_client_ip = "127.0.0.1";
+	std::string gbma_server = "127.0.0.1";
 
 	u8 dmg_gbc_pal = 0;
 
@@ -2067,6 +2069,24 @@ bool parse_ini_file()
 			}
 		}
 
+		//Use real server for Mobile Adapter GB
+		else if(ini_item == "#use_real_gbma_server")
+		{
+			if((x + 1) < size) 
+			{
+				util::from_str(ini_opts[++x], output);
+
+				if(output == 1) { config::use_real_gbma_server = true; }
+				else { config::use_real_gbma_server = false; }
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#use_real_gbma_server) \n";
+				return false;
+			}
+		}
+
 		//Netplay sync threshold
 		if(ini_item == "#netplay_sync_threshold")
 		{
@@ -2133,6 +2153,23 @@ bool parse_ini_file()
 			else 
 			{
 				std::cout<<"GBE::Error - Could not parse gbe.ini (#netplay_client_ip) \n";
+				return false;
+			}
+		}
+
+
+		//Real Mobile Adapter GB IP address
+		else if(ini_item == "#gbma_server")
+		{
+			if((x + 1) < size) 
+			{
+				ini_item = ini_opts[++x];
+				config::gbma_server = ini_item;
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#gbma_server) \n";
 				return false;
 			}
 		}
