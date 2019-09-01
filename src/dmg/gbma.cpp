@@ -940,57 +940,143 @@ void DMG_SIO::mobile_adapter_process_http()
 		//Process GET requests
 		if(get_match != std::string::npos)
 		{
-			std::string filename = "";
-
-			//Search internal server list
-			for(u32 x = 0; x < mobile_adapter.srv_list_in.size(); x++)
+			//Use internal server
+			if(!config::use_real_gbma_server)
 			{
-				if(mobile_adapter.http_data.find(mobile_adapter.srv_list_in[x]) != std::string::npos)
+				std::string filename = "";
+
+				//Search internal server list
+				for(u32 x = 0; x < mobile_adapter.srv_list_in.size(); x++)
 				{
-					not_found = false;
-					filename = config::data_path + mobile_adapter.srv_list_out[x];
-
-					//Check for GBE+ images
-					if(mobile_adapter.srv_list_out[x] == "gbma/gbe_plus_mobile_header.bmp") { img = true; }
-
-					//Check for auth status
-					//This method bypasses sending an actual WWW-Authenticate: GB00 header
-					if(mobile_adapter.auth_list[x] == 0x00)
+					if(mobile_adapter.http_data.find(mobile_adapter.srv_list_in[x]) != std::string::npos)
 					{
-						http_header = "Gb-Auth-ID: authaccepted\r\n\r\n";
-						needs_auth = true;
-						mobile_adapter.auth_list[x] = 0x01;
+						not_found = false;
+						filename = config::data_path + mobile_adapter.srv_list_out[x];
+
+						//Check for GBE+ images
+						if(mobile_adapter.srv_list_out[x] == "gbma/gbe_plus_mobile_header.bmp") { img = true; }
+
+						//Check for auth status
+						//This method bypasses sending an actual WWW-Authenticate: GB00 header
+						if(mobile_adapter.auth_list[x] == 0x00)
+						{
+							http_header = "Gb-Auth-ID: authaccepted\r\n\r\n";
+							needs_auth = true;
+							mobile_adapter.auth_list[x] = 0x01;
+						}
+
+						break;
+					}
+				}
+
+				if(!not_found)
+				{
+					//Open up GBE+ header image
+					std::ifstream file(filename.c_str(), std::ios::binary);
+
+					if(file.is_open()) 
+					{
+						//Get file size
+						file.seekg(0, file.end);
+						u32 file_size = file.tellg();
+						file.seekg(0, file.beg);
+
+						mobile_adapter.net_data.resize(file_size, 0x0);
+						u8* ex_mem = &mobile_adapter.net_data[0];
+
+						file.read((char*)ex_mem, file_size);
+						file.seekg(0, file.beg);
+						file.close();
+
+						not_found = false;
+
+						mobile_adapter.data_index = 0;
 					}
 
-					break;
+					else { std::cout<<"SIO :: GBMA could not open " << filename << "\n"; }
 				}
 			}
 
-			if(!not_found)
+			//Request data from real GBMA server
+			else
 			{
-				//Open up GBE+ header image
-				std::ifstream file(filename.c_str(), std::ios::binary);
-
-				if(file.is_open()) 
+				//Isolate requested URL
+				std::size_t req_start = mobile_adapter.http_data.find("GET ");
+				std::string req_str = "";
+				std::string rep_str = "";
+				
+				if(req_start != std::string::npos)
 				{
-					//Get file size
-					file.seekg(0, file.end);
-					u32 file_size = file.tellg();
-					file.seekg(0, file.beg);
+					req_str = mobile_adapter.http_data.substr(req_start + 4);
+					std::size_t req_end = req_str.find(" ");
 
-					mobile_adapter.net_data.resize(file_size, 0x0);
-					u8* ex_mem = &mobile_adapter.net_data[0];
+					if(req_end != std::string::npos)
+					{
+						req_str = req_str.substr(0, req_end);
+						std::string work_str = "";
 
-					file.read((char*)ex_mem, file_size);
-					file.seekg(0, file.beg);
-					file.close();
+						//Strip out characters that should not be in a URL
+						for(u32 x = 0; x < req_str.length(); x++)
+						{
+							if((req_str[x] >= 0x20) && (req_str[x] <= 0x7E)) { work_str += req_str[x]; }
+						}
 
-					not_found = false;
-
-					mobile_adapter.data_index = 0;
+						req_str = work_str;
+					}
 				}
 
-				else { std::cout<<"SIO :: GBMA could not open " << filename << "\n"; }
+				//Make HTTP request if a URL was parsed
+				if(!req_str.empty() && sender.host_init)
+				{
+					req_str = "GET " + req_str + " HTTP/1.0\r\n\r\n";
+					rep_str = "";
+					u32 msg_size = req_str.size() + 1;
+					int response_size = -1;
+					u8 response_data[0x8000];
+					u8 timeout = 10;
+
+					#ifdef GBE_NETPLAY
+
+					if(SDLNet_TCP_Send(sender.host_socket, req_str.c_str(), msg_size) < msg_size)
+					{
+						std::cout<<"SIO::Error - Could not transmit to GB Mobile Adapter server\n";
+					}
+
+					//Wait for response
+					else
+					{
+						mobile_adapter.net_data.clear();
+
+						//Get HTTP headers
+						while(timeout)
+						{
+							response_size = -1;
+
+							//Check for socket activity, timeout after 1 second
+							if(SDLNet_CheckSockets(tcp_sockets, 100) != -1)
+							{
+								response_size = SDLNet_TCP_Recv(sender.host_socket, (void*)response_data, 0x8000);
+							}
+
+							//If a response was received, store net data
+							if((response_size != -1) && (response_size < 0x8000))
+							{
+								for(u32 x = 0; x < response_size; x++)
+								{
+									rep_str += response_data[x];
+									mobile_adapter.net_data.push_back(response_data[x]);
+								}
+							}
+
+							timeout--;
+						}
+						
+						mobile_adapter.data_index = 0;
+						mobile_adapter.transfer_state = 3;
+					}
+
+					#endif
+				}
 			}
 		}
 
@@ -1157,7 +1243,7 @@ void DMG_SIO::mobile_adapter_process_http()
 			mobile_adapter.http_data = "";
 			break;
 
-		//Preparse POST request finish
+		//Prepare POST request finish
 		case 0x5:
 			mobile_adapter.transfer_state = 4;
 			mobile_adapter.http_data = "";

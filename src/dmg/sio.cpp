@@ -202,6 +202,7 @@ bool DMG_SIO::init()
 		//Create sockets sets
 		tcp_sockets = SDLNet_AllocSocketSet(1);
 		SDLNet_TCP_AddSocket(tcp_sockets, sender.host_socket);
+		sender.host_init = true;
 
 		std::cout<<"SIO::Connected to GB Mobile Adapter server @ " << util::ip_to_str(sender.host_ip.host) << ":" << std::dec << sender.port << std::hex << "\n";
 
