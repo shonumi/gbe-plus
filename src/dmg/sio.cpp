@@ -86,14 +86,7 @@ DMG_SIO::~DMG_SIO()
 	if(sender.host_socket != NULL)
 	{
 		//Close connection with real Mobile Adapter GB server
-		if((sio_stat.sio_type == GB_MOBILE_ADAPTER) && (config::use_real_gbma_server))
-		{
-			SDLNet_TCP_DelSocket(tcp_sockets, sender.host_socket);
-			SDLNet_TCP_Close(sender.host_socket);
-		}
-
-		//Close netplay connection
-		else
+		if((sio_stat.sio_type != GB_MOBILE_ADAPTER) && (!config::use_real_gbma_server))
 		{
 			//Send disconnect byte to another system
 			u8 temp_buffer[2];
@@ -105,6 +98,7 @@ DMG_SIO::~DMG_SIO()
 			SDLNet_TCP_DelSocket(tcp_sockets, sender.host_socket);
 			if(sender.host_init) { SDLNet_TCP_Close(sender.host_socket); }
 		}
+
 	}
 
 	server.connected = false;
@@ -178,35 +172,18 @@ bool DMG_SIO::init()
 	//Initialize Mobile Adapter GB with real access to a server
 	else if((sio_stat.sio_type == GB_MOBILE_ADAPTER) && (config::use_real_gbma_server))
 	{
-		sender.host_socket = NULL;
-		sender.host_init = false;
-		sender.connected = false;
-		sender.port = 8000;
-
-		//Resolve hostname
-		if(SDLNet_ResolveHost(&sender.host_ip, config::gbma_server.c_str(), sender.port) < 0)
-		{
-			std::cout<<"SIO::Error - Could not resolve address of GB Mobile Adapter server\n";
-			return false;
-		}
-
-		//Open a connection to the server
-		sender.host_socket = SDLNet_TCP_Open(&sender.host_ip);
-
-		if(sender.host_socket == NULL)
-		{
-			std::cout<<"SIO::Error - Could not connect to GB Mobile Adapter server\n";
-			return false;
-		}
-
 		//Create sockets sets
 		tcp_sockets = SDLNet_AllocSocketSet(1);
-		SDLNet_TCP_AddSocket(tcp_sockets, sender.host_socket);
-		sender.host_init = true;
+
+		//Test connection
+		if(!mobile_adapter_open_tcp()) { return false; }
+
+		//Close connection
+		mobile_adapter_close_tcp();
 
 		std::cout<<"SIO::Connected to GB Mobile Adapter server @ " << util::ip_to_str(sender.host_ip.host) << ":" << std::dec << sender.port << std::hex << "\n";
-
 		std::cout<<"SIO::Initialized\n";
+
 		return true;
 	}
 

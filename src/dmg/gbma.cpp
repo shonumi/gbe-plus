@@ -1000,6 +1000,11 @@ void DMG_SIO::mobile_adapter_process_http()
 			//Request data from real GBMA server
 			else
 			{
+				//Open TCP connection
+				if(!mobile_adapter_open_tcp()) { return; }
+
+				#ifdef GBE_NETPLAY
+
 				//Isolate requested URL
 				std::size_t req_start = mobile_adapter.http_data.find("GET ");
 				std::string req_str = "";
@@ -1028,14 +1033,14 @@ void DMG_SIO::mobile_adapter_process_http()
 				//Make HTTP request if a URL was parsed
 				if(!req_str.empty() && sender.host_init)
 				{
+					std::cout<<"SIO::Requesting URI from GB Mobile Adapter server - " << req_str << "\n";
+
 					req_str = "GET " + req_str + " HTTP/1.0\r\n\r\n";
 					rep_str = "";
 					u32 msg_size = req_str.size() + 1;
 					int response_size = -1;
 					u8 response_data[0x8000];
 					u8 timeout = 10;
-
-					#ifdef GBE_NETPLAY
 
 					if(SDLNet_TCP_Send(sender.host_socket, req_str.c_str(), msg_size) < msg_size)
 					{
@@ -1075,8 +1080,12 @@ void DMG_SIO::mobile_adapter_process_http()
 						mobile_adapter.transfer_state = 3;
 					}
 
-					#endif
 				}
+
+				#endif
+
+				//Close TCP connection
+				mobile_adapter_close_tcp();
 			}
 		}
 
@@ -1436,4 +1445,51 @@ bool DMG_SIO::mobile_adapter_load_server_list()
 
 	file.close();
 	return true;
+}
+
+/****** Opens a TCP connection to a Mobile Adapter GB server ******/
+bool DMG_SIO::mobile_adapter_open_tcp()
+{
+	bool result = false;
+
+	sender.host_socket = NULL;
+	sender.host_init = false;
+	sender.connected = false;
+	sender.port = 8000;
+
+	#ifdef GBE_NETPLAY
+
+	//Resolve hostname
+	if(SDLNet_ResolveHost(&sender.host_ip, config::gbma_server.c_str(), sender.port) < 0)
+	{
+		std::cout<<"SIO::Error - Could not resolve address of GB Mobile Adapter server\n";
+		return false;
+	}
+
+	//Open a connection to the server
+	sender.host_socket = SDLNet_TCP_Open(&sender.host_ip);
+
+	if(sender.host_socket == NULL)
+	{
+		std::cout<<"SIO::Error - Could not connect to GB Mobile Adapter server\n";
+		return false;
+	}
+
+	sender.host_init = true;
+	result = true;
+
+	#endif
+
+	return result;
+}
+
+/****** Closes a TCP connection to a Mobile Adapter GB server ******/
+void DMG_SIO::mobile_adapter_close_tcp()
+{
+	#ifdef GBE_NETPLAY
+
+	SDLNet_TCP_DelSocket(tcp_sockets, sender.host_socket);
+	SDLNet_TCP_Close(sender.host_socket);
+
+	#endif
 }
