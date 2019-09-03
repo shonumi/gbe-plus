@@ -115,7 +115,7 @@ void DMG_MMU::reset()
 	for(int x = 0; x < 0x2; x++) { video_ram[x].resize(0x2000, 0); }
 
 	flash.resize(0x80);
-	for(int x = 0; x < 0x80; x++) { flash[x].resize(0x2000, 0); }
+	for(int x = 0; x < 0x80; x++) { flash[x].resize(0x2000, 0xFF); }
 
 	g_pad = NULL;
 
