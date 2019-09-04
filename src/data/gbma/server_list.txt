@@ -24,3 +24,12 @@ gbma/10upload.txt
 
 /cgb/upload?name=/01/CGB-BXTJ/exchange/cancel.cgi
 gbma/cancel.txt
+
+cgb/download?name=/18/CGB-BWWJ/0.map_menu.txt
+gbma/map_menu.txt
+
+cgb/download?name=/18/CGB-BWWJ/map/
+gbma/map.bin
+
+cgb/download?name=/18/CGB-BWWJ/charge/
+gbma/charge.txt
