@@ -142,7 +142,11 @@ namespace config
 	extern u16 netplay_client_port;
 	extern u8 netplay_id;
 	extern std::string netplay_client_ip;
+
+
 	extern std::string gbma_server;
+	extern bool use_real_gbma_server;
+	extern u16 gbma_server_http_port;
 
 	extern u8 volume;
 	extern u8 old_volume;
