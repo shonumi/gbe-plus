@@ -1001,7 +1001,7 @@ void DMG_SIO::mobile_adapter_process_http()
 			else
 			{
 				//Open TCP connection
-				if(!mobile_adapter_open_tcp()) { return; }
+				if(!mobile_adapter_open_tcp(config::gbma_server_http_port)) { return; }
 
 				#ifdef GBE_NETPLAY
 
@@ -1448,14 +1448,14 @@ bool DMG_SIO::mobile_adapter_load_server_list()
 }
 
 /****** Opens a TCP connection to a Mobile Adapter GB server ******/
-bool DMG_SIO::mobile_adapter_open_tcp()
+bool DMG_SIO::mobile_adapter_open_tcp(u16 port)
 {
 	bool result = false;
 
 	sender.host_socket = NULL;
 	sender.host_init = false;
 	sender.connected = false;
-	sender.port = 8000;
+	sender.port = port;
 
 	#ifdef GBE_NETPLAY
 

@@ -176,7 +176,7 @@ bool DMG_SIO::init()
 		tcp_sockets = SDLNet_AllocSocketSet(1);
 
 		//Test connection
-		if(!mobile_adapter_open_tcp()) { return false; }
+		if(!mobile_adapter_open_tcp(config::gbma_server_http_port)) { return false; }
 
 		//Close connection
 		mobile_adapter_close_tcp();
