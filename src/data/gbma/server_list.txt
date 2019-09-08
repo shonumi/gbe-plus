@@ -33,3 +33,6 @@ gbma/map.bin
 
 cgb/download?name=/18/CGB-BWWJ/charge/
 gbma/charge.txt
+
+/cgb/download?name=/18/CGB-BWWJ/0.youhei_menu.txt
+gbma/youhei_menu.txt
