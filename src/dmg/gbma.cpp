@@ -1391,6 +1391,40 @@ void DMG_SIO::mobile_adapter_process_smtp()
 	mobile_adapter.current_state = GBMA_ECHO_PACKET;
 } 
 
+/***** Loads binary configuration file for Mobile Adapter ******/
+bool DMG_SIO::mobile_adapter_load_config()
+{
+	std::string mobile_conf_file = config::data_path + "gbma_conf.bin";
+	std::ifstream mobile_conf(mobile_conf_file.c_str(), std::ios::binary);
+
+	if(!mobile_conf.is_open()) 
+	{ 
+		std::cout<<"SIO::GB Mobile Adapter configuration data could not be read. Check file path or permissions. \n";
+		return false;
+	}
+
+	//Get file size
+	mobile_conf.seekg(0, mobile_conf.end);
+	u32 conf_size = mobile_conf.tellg();
+	mobile_conf.seekg(0, mobile_conf.beg);
+
+	if(conf_size != 0xC0)
+	{
+		std::cout<<"SIO::GB Mobile Adapter configuration data size was incorrect. Aborting attempt to read it. \n";
+		mobile_conf.close();
+		return false;
+	}
+
+	u8* ex_data = &mobile_adapter.data[0];
+
+	mobile_conf.read((char*)ex_data, 0xC0); 
+	mobile_conf.close();
+
+	std::cout<<"SIO::Loaded GB Mobile Adapter configuration data.\n";
+
+	return true;
+}
+
 /***** Loads a list of web addresses and points to local files in GBE+ data folder ******/
 bool DMG_SIO::mobile_adapter_load_server_list()
 {

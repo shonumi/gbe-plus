@@ -26,40 +26,6 @@ DMG_SIO::DMG_SIO()
 	master_id = 0;
 
 	reset();
-
-	//Load Mobile Adapter data + internal server list
-	if(sio_stat.sio_type == GB_MOBILE_ADAPTER)
-	{
-		std::string mobile_conf_file = config::data_path + "gbma_conf.bin";
-		std::ifstream mobile_conf(mobile_conf_file.c_str(), std::ios::binary);
-
-		if(!mobile_conf.is_open()) 
-		{ 
-			std::cout<<"SIO::GB Mobile Adapter configuration data could not be read. Check file path or permissions. \n";
-			return;
-		}
-
-		//Get file size
-		mobile_conf.seekg(0, mobile_conf.end);
-		u32 conf_size = mobile_conf.tellg();
-		mobile_conf.seekg(0, mobile_conf.beg);
-
-		if(conf_size != 0xC0)
-		{
-			std::cout<<"SIO::GB Mobile Adapter configuration data size was incorrect. Aborting attempt to read it. \n";
-			mobile_conf.close();
-			return;
-		}
-
-		u8* ex_data = &mobile_adapter.data[0];
-
-		mobile_conf.read((char*)ex_data, 0xC0); 
-		mobile_conf.close();
-
-		std::cout<<"SIO::Loaded GB Mobile Adapter configuration data.\n";
-
-		mobile_adapter_load_server_list();
-	}
 }
 
 /****** SIO Destructor ******/
@@ -400,6 +366,13 @@ void DMG_SIO::reset()
 	mobile_adapter.http_session_started = false;
 	mobile_adapter.smtp_session_started = false;
 	mobile_adapter.http_data = "";
+
+	//Load configuration data + internal server list
+	if(config::sio_device == 3)
+	{
+		mobile_adapter_load_config();
+		mobile_adapter_load_server_list();
+	}
 
 	//Bardigun barcode scanner
 	bardigun_scanner.data.clear();
