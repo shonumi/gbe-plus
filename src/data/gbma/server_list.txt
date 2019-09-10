@@ -36,3 +36,6 @@ gbma/charge.txt
 
 /cgb/download?name=/18/CGB-BWWJ/0.youhei_menu.txt
 gbma/youhei_menu.txt
+
+/cgb/download?name=/18/CGB-BWWJ/mbox/mbox_serial.txt
+gbma/mbox_serial.txt
