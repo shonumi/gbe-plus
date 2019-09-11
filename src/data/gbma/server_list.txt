@@ -39,3 +39,6 @@ gbma/youhei_menu.txt
 
 /cgb/download?name=/18/CGB-BWWJ/mbox/mbox_serial.txt
 gbma/mbox_serial.txt
+
+/cgb/download?name=/18/CGB-BWWJ/mbox/mbox_
+gbma/mbox.bin
