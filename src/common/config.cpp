@@ -2929,6 +2929,31 @@ bool save_ini_file()
 			output_lines[line_pos] = "[#netplay_id:" + val + "]";
 		}
 
+		//Use real GBMA server
+		else if(ini_item == "#use_real_gbma_server")
+		{
+			line_pos = output_count[x];
+			std::string val = (config::use_real_gbma_server) ? "1" : "0";
+
+			output_lines[line_pos] = "[#use_real_gbma_server:" + val + "]";
+		}
+
+		//GBMA server IP or hostname
+		else if(ini_item == "#gbma_server_ip")
+		{
+			line_pos = output_count[x];
+			output_lines[line_pos] = "[#gbma_server_ip:" + config::gbma_server + "]";
+		}
+
+		//GBMA server HTTP port
+		else if(ini_item == "#gbma_server_http_port")
+		{
+			line_pos = output_count[x];
+			std::string val = util::to_str(config::gbma_server_http_port);
+
+			output_lines[line_pos] = "[#gbma_server_http_port:" + val + "]";
+		}
+
 		//IR database index
 		else if(ini_item == "#ir_db_index")
 		{
