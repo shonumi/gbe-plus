@@ -1,0 +1,114 @@
+Game Boy Wars 3 Server Technical Documentation 0.1
+September 7th, 2019
+Shonumi aka D.S. Baxter
+
+***************************************************
+1. Introduction
+***************************************************
+
+Game Boy Wars 3 is a turn-based war strategy game for the GBC, similar in gameplay to Nectaris. The online capabilities of the software consist of downloading custom maps, viewing messages and news from the developers, and unlocking premium mercenary units in battle.
+
+
+***************************************************
+2. Server Structure
+***************************************************
+
+Game Boy Wars 3 is currently known to access the following URLS (asterisks indicate variable characters):
+
+* http://gameboy.datacenter.ne.jp/cgb/download?name=/18/CGB-BWWJ/0.map_menu.txt
+* http://gameboy.datacenter.ne.jp/cgb/download?name=/18/CGB-BWWJ/map/map_****.cgb
+* http://gameboy.datacenter.ne.jp/cgb/download?name=/18/CGB-BWWJ/charge/****.cgb
+* http://gameboy.datacenter.ne.jp/cgb/download?name=/18/CGB-BWWJ/mbox/mbox_serial.txt
+* http://gameboy.datacenter.ne.jp/cgb/download?name=/18/CGB-BWWJ/mbox/mbox_**.cgb
+* http://gameboy.datacenter.ne.jp/cgb/download?name=/18/CGB-BWWJ/0.youhei_menu.txt
+
+
+***************************************************
+3. 0.map_menu.txt
+***************************************************
+
+This file dictates the price in yen for maps. Although every map should have cost 10 yen, the game allows for different prices to exist for any map. The file is simply text with the following format:
+
+[Minimum Map #]		[Maximum Map #]		[Price in yen]
+
+Each line defines a minimum and maximum map number to create a range of maps and the price that will apply to all of them. All values are 4-digits written in ASCII, and whitespace may be tabs or spaces. Before downloading a map, players must specify a 4 digit ID corresponding to the number of the map they want. If 0.map_menu.txt does not specify a range that includes that ID, that map is unavailble for download.
+
+This file specifies that no service charge should apply, as the filename is prefixed with "0".
+
+
+***************************************************
+3. map/map_****.cgb
+***************************************************
+
+This is the binary data for a downloadable map. The 4 digit ID previously specified by a player prior to download determines the full filename that the game will request. For example, if the ID 1337 is used, map_1337.cgb will be requested. The format is exactly the same as the custom maps that players can create themselves.
+
+----------------------------------
+Map Structure
+----------------------------------
+0x00 - 0x01			::	0x20, 0x00. Seems to be an identifier, but the game does not care what values these bytes are.
+0x02 - 0x03			::	16-bit sum of map size. LSB first. Calculated as 0x19F + (400 - (map width * map height))
+0x04				::	8-bit sum of all data until EOF. Calculated as 0xFE - (a, b, c, ...)
+0x20 - 0x2B			::	String for map name
+0x2C				::	Map width (Min: 20, Max: 50)
+0x2D				::	Map height (Min: 20, Max: 50)
+0x2E ... 			::	Map tiles
+EOF				::	The last byte is 0xFF
+
+The map tiles are 8-bit numbers that determine what is being placed on the map (e.g. main base, factory, combat units).
+
+----------------------------------
+Map Tiles
+----------------------------------
+0x00				::	Null space. Black tile that is "out of bounds".
+0x01				::	Red Star base
+0x02				::	Red Star city
+0x03				::	Red Star ruined city
+0x04				::	Red Star factory
+0x05				::	Red Star ruined factory
+0x06				::	Red Star airport
+0x07				::	Red Star ruined airport
+0x08				::	Red Star simple airport
+0x09				::	Red Star harbor
+0x0A				::	Red Star ruined harbor
+0x0B				::	Red Star Transmission Tower
+0x0C				::	White Moon base
+0x0D				::	White Moon city
+0x0E				::	White Moon ruined city
+0x0F				::	White Moon factory
+0x10				::	White Moon ruined factory
+
+The game does not do any error-checking on the maps besides checking the 16-bit map size sum and the 8-bit data sum. If those are valid, the game will run it. Maps that would typically be impossible to create through the normal editor (maps lacking a Red Star/White Moon base, maps with null spaces, maps with Transmission Towers) can be downloaded and played.
+
+
+***************************************************
+4. charge/****.cgb
+***************************************************
+
+This file is requested after a map has sucessfully been downloaded or a mercenary unit has been unlocked. The filename is the price of the service in yen. This price is specified in either 0.map_menu.txt or 0.youhei.txt. The game largely appears to ignore the contents of the file and instead merely wants to confirm an HTTP 200 response from the server. Requesting that file incurs a service charge and is the mechanism bheind Game Boy Wars 3's paid DLC. Neither 0.map_menu.txt or 0.youhei.txt check to make sure the 4-digit prices are valid ASCII numbers such as "30" or "10" and will blindly send whatever characters are written in those files.
+
+
+***************************************************
+5. mbox/mbox_serial.txt
+***************************************************
+(WIP)
+
+
+***************************************************
+6. mbox/mbox_**.cgb
+***************************************************
+(WIP)
+
+
+***************************************************
+7. 0.youhei_menu.txt
+***************************************************
+
+This file is requested when players use the Transmission Tower during a battle. It's merely a list that details the price in yen for each mercenary unit. The format is as follows:
+
+[Price for Merc Infantry]
+[Price for Merc AA Tank]
+[Price for Merc Tank]
+[Price for Merc Bomber]
+[Price for Merc Frigate]
+
+This file specifies that no service charge should apply, as the filename is prefixed with "0".
