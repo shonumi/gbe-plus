@@ -27,13 +27,9 @@ void main()
 	vec4 output_color = texture(screen_texture, texture_coordinates);
 
 	//Convert GLSL RGB floats to RGB555
-	int r = int(output_color.r * 255.0);
-	int g = int(output_color.g * 255.0);
-	int b = int(output_color.b * 255.0);
-
-	r /= 8;
-	g /= 8;
-	b /= 8;
+	int r = int(output_color.r * 255.0) / 8;
+	int g = int(output_color.g * 255.0) / 8;
+	int b = int(output_color.b * 255.0) / 8;
 
 	int rf = (r * 26) + (g * 4) + (b * 2);
 	int gf = (g * 24) + (b * 8);
@@ -43,13 +39,13 @@ void main()
 	gf = min(960, gf) / 4;
 	bf = min(960, bf) / 4;
 
-	float ri = float(rf);
-	float gi = float(gf);
-	float bi = float(bf);
+	float ri = float(rf) / 255.0;
+	float gi = float(gf) / 255.0;
+	float bi = float(bf) / 255.0;
 
-	output_color.r = (ri / 255.0);
-	output_color.b = (bi / 255.0);
-	output_color.g = (gi / 255.0);
+	output_color.r = (ri);
+	output_color.b = (bi);
+	output_color.g = (gi);
 
 	color = output_color;
 }
