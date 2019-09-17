@@ -2686,6 +2686,8 @@ bool save_ini_file()
 			else if(config::fragment_shader == (config::data_path + "shaders/badder_bloom.fs")) { config::fragment_shader = "badder_bloom.fs"; }
 			else if(config::fragment_shader == (config::data_path + "shaders/chrono.fs")) { config::fragment_shader = "chrono.fs"; }
 			else if(config::fragment_shader == (config::data_path + "shaders/dmg_mode.fs")) { config::fragment_shader = "dmg_mode.fs"; }
+			else if(config::fragment_shader == (config::data_path + "shaders/gba_gamma.fs")) { config::fragment_shader = "gba_gamma.fs"; }
+			else if(config::fragment_shader == (config::data_path + "shaders/gbc_gamma.fs")) { config::fragment_shader = "gbc_gamma.fs"; }
 			else if(config::fragment_shader == (config::data_path + "shaders/grayscale.fs")) { config::fragment_shader = "grayscale.fs"; }
 			else if(config::fragment_shader == (config::data_path + "shaders/lcd_mode.fs")) { config::fragment_shader = "lcd_mode.fs"; }
 			else if(config::fragment_shader == (config::data_path + "shaders/pastel.fs")) { config::fragment_shader = "pastel.fs"; }
