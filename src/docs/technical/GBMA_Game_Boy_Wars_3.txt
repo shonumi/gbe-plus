@@ -76,8 +76,37 @@ Map Tiles
 0x0E				::	White Moon ruined city
 0x0F				::	White Moon factory
 0x10				::	White Moon ruined factory
+0x11				::	White Moon airport
+0x12				::	White Moon ruined airport
+0x13				::	White Moon simple airport
+0x14				::	White Moon harbor
+0x15				::	White Moon ruined harbor
+0x16				::	White Moon Transmission Tower
+0x17				::	Neutral city
+0x18				::	Neutral ruined city	
+0x19				::	Neutral factory
+0x1A				::	Neutral ruined factory
+0x1B				::	Neutral airport
+0x1C				::	Neutral ruined airport
+0x1D				::	Neutral harbor
+0x1E				::	Neutral ruined harbor
+0x1F				::	Neutral Transmission Tower
+0x20				::	Plains
+0x21				::	Highway
+0x22				::	Bridge
+0x23				::	Bridge
+0x24				::	Mountains
+0x25				::	Forest
+0x26				::	Wasteland
+0x27				::	Desert
+0x28				::	River
+0x29				::	Sea
+0x2A				::	Shoal
+0x2B - 0xFF			::	These appears to be invalid, glitchy, or null tiles
 
 The game does not do any error-checking on the maps besides checking the 16-bit map size sum and the 8-bit data sum. If those are valid, the game will run it. Maps that would typically be impossible to create through the normal editor (maps lacking a Red Star/White Moon base, maps with null spaces, maps with Transmission Towers) can be downloaded and played.
+
+If the 16-bit map size sum and 8-bit data sum are invalid, the game will complain when first booting. The actual map data is not deleted from SRAM, rather it simply becomes inaccessible from any in-game menus. Making a new map for that map slot will overwrite it, however.
 
 
 ***************************************************
