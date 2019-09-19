@@ -52,6 +52,7 @@ Map Structure
 0x2C				::	Map width (Min: 20, Max: 50)
 0x2D				::	Map height (Min: 20, Max: 50)
 0x2E ... 			::	Map tiles
+...				::	Unit tiles (if any)
 EOF				::	The last byte is 0xFF
 
 The map tiles are 8-bit numbers that determine what is being placed on the map (e.g. main base, factory, combat units).
@@ -107,6 +108,87 @@ Map Tiles
 The game does not do any error-checking on the maps besides checking the 16-bit map size sum and the 8-bit data sum. If those are valid, the game will run it. Maps that would typically be impossible to create through the normal editor (maps lacking a Red Star/White Moon base, maps with null spaces, maps with Transmission Towers) can be downloaded and played.
 
 If the 16-bit map size sum and 8-bit data sum are invalid, the game will complain when first booting. The actual map data is not deleted from SRAM, rather it simply becomes inaccessible from any in-game menus. Making a new map for that map slot will overwrite it, however.
+
+Units can be placed on a map, but they are separate from the actual map data. After the map tile data is finished, unit tile data comes next. Each unit tile consists of 3 bytes:
+
+----------------------------------
+Unit Tile Bytes
+----------------------------------
+0x00				::	X position on map
+0x01				::	Y position on map
+0x02				::	Unit ID
+
+The IDs are as follows:
+
+----------------------------------
+Unit IDs
+----------------------------------
+0x00				::	N/A. No unit appears
+0x01				::	Invalid
+0x02				::	Red Star Infantry
+0x03				::	White Moon Infantry
+0x04				::	Red Star Missile Infantry
+0x05				::	White Moon Missle Infantry
+0x06				::	Red Star Merc Infantry
+0x07				::	White Moon Merc Infantry
+0x08				::	Red Star Construction Vehicle
+0x09				::	White Moon Construction Vehicle
+0x0A				::	Red Star Supply Vehicle
+0x0B				::	White Moon Supply Vehicle
+0x0C				::	Red Star Supply Vehicle S
+0x0D				::	White Moon Supply Vehicle S
+0x0E				::	Red Star Transport Truck
+0x0F				::	White Moon Transport Truck
+0x10				::	Red Star Transport Truck S
+0x11				::	White Moon Transport Truck S
+0x12				::	Red Star Combat Buggy
+0x13				::	White Moon Combat Buggy
+0x14				::	Red Star Combat Buggy S
+0x15				::	White Moon Combat Buggy S
+0x16				::	Red Star Combat Vehicle
+0x17				::	White Moon Combat Vehicle
+0x18				::	Red Star Combat Vehicle S
+0x19				::	White Moon Combat Vehicle S
+0x1A				::	Red Star Armored Transport Truck	
+0x1B				::	White Moon Armored Transport Truck
+0x1C				::	Red Star Armored Transport Truck S
+0x1D				::	White Moon Armored Transport Truck S
+0x1E				::	Red Star Rocket Launcher
+0x1F				::	White Moon Rocket Launcher
+0x20				::	Red Star Rocket Launcher S
+0x21				::	White Moon Rocket Launcher S
+0x22				::	Red Star Anti-Air Tank
+0x23				::	White Moon Anti-Air Tank
+0x24				::	Red Star Merc Anti-Air Tank
+0x25				::	White Moon Merc Anti-Air Tank
+0x26				::	Red Star Anti-Air Missile
+0x27				::	White Moon Anti-Air Missile
+0x28				::	Red Star Anti-Air Missile S
+0x29				::	White Moon Anti-Air Missile S
+0x2A				::	Red Star Artillery
+0x2B				::	White Moon Artillery
+0x2C				::	Red Star Artillery S
+0x2D				::	White Moon Artillery S
+0x2E				::	Red Star Anti-Infantry Tank
+0x2F				::	White Moon Anti-Infantry Tank
+0x30				::	Red Star Anti-Infantry Tank S
+0x31				::	White Moon Anti-Infantry Tank S
+0x32				::	Red Star Tank Destroyer
+0x33				::	White Moon Tank Destroyer
+0x34				::	Red Star Tank Destroyer S
+0x35				::	White Moon Tank Destroyer S
+0x36				::	Red Star Tank
+0x37				::	White Moon Tank
+0x38				::	Red Star Merc Tank
+0x39				::	White Moon Merc Tank
+0x3A				::	Red Star Fighter Jet A
+0x3B				::	White Moon Fighter Jet A
+0x3C				::	Red Star Fighter Jet B
+0x3D				::	White Moon Fighter Jet B
+0x3E				::	Red Star Fighter Jet S
+0x3F				::	White Moon Fighter Jet S
+0x40				::	Red Star Attack Aircraft A
+0x41				::	White Moon Attack Aircraft A
 
 
 ***************************************************
