@@ -1,4 +1,4 @@
-Game Boy Wars 3 Server Technical Documentation 0.1
+Game Boy Wars 3 Server Technical Documentation 0.2
 September 7th, 2019
 Shonumi aka D.S. Baxter
 
@@ -124,7 +124,7 @@ The IDs are as follows:
 Unit IDs
 ----------------------------------
 0x00				::	N/A. No unit appears
-0x01				::	Invalid
+0x01				::	Invalid (DEL tile)
 0x02				::	Red Star Infantry
 0x03				::	White Moon Infantry
 0x04				::	Red Star Missile Infantry
@@ -189,6 +189,50 @@ Unit IDs
 0x3F				::	White Moon Fighter Jet S
 0x40				::	Red Star Attack Aircraft A
 0x41				::	White Moon Attack Aircraft A
+0x42				::	Red Star Attack Aircraft B
+0x43				::	White Moon Attack Aircraft B
+0x44				::	Red Star Attack Aircraft S
+0x45				::	White Moon Attack Aircraft S
+0x46				::	Red Star Bomber
+0x47				::	White Moon Bomber
+0x48				::	Red Star Merc Bomber
+0x49				::	White Moon Merc Bomber
+0x4A				::	Red Star Transport Aircraft
+0x4B				::	White Moon Transport Aircraft
+0x4C				::	Red Star Aerial Tanker
+0x4D				::	White Moon Aerial Tanker
+0x4E				::	Red Star Attack Helicopter
+0x4F				::	White Moon Attack Helicopter
+0x50				::	Red Star Attack Helicopter S
+0x51				::	White Moon Attack Helicopter S
+0x52				::	Red Star Anti-Sub Helicopter
+0x53				::	White Moon Anti-Sub Helicopter
+0x54				::	Red Star Transport Helicopter
+0x55				::	White Moon Transport Helicopter
+0x56				::	Red Star Transport Helicopter S
+0x57				::	White Moon Transport Helicopter S
+0x58				::	Red Star Aegis Warship
+0x59				::	White Moon Aegis Warship
+0x5A				::	Red Star Merc Frigate
+0x5B				::	White Moon Merc Frigate
+0x5C				::	Red Star Large Aircraft Carrier
+0x5D				::	White Moon Large Aircraft Carrier
+0x5E				::	Red Star Small Aircraft Carrier	
+0x5F				::	White Moon Small Aircraft Carrier
+0x60				::	Red Star Transport Warship
+0x61				::	White Moon Transport Warship
+0x62				::	Red Star Supply Tanker
+0x63				::	White Moon Supply Tanker
+0x64				::	Red Star Submarine
+0x65				::	White Moon Submarine
+0x66				::	Red Star Submarine S
+0x67				::	White Moon Submarine S
+0x68				::	Red Star "Dummy" unit
+0x69				::	White Star "Dummy" unit
+0x6A				:: 	Invalid (DEL tile)
+0x6B - 0xFF			::	Invalid (glitchy tiles)
+
+Again, besides the basic additive checksumming, the game does not validate whether some units logically make sense when placed on a map (e.g. submarines on top of a mountain or in a forest). The in-game editor prevents such things from happening, however, downloaded maps can essentially do whatever they want. This includes populating the battlefield with the DLC mercenary units that would normally be available exclusively via the Transmission Tower. Mercenary units are not available through the in-game editor, however, downloaded maps can be freely edited, so such units can be deleted. 
 
 
 ***************************************************
