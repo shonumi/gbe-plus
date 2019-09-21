@@ -245,13 +245,21 @@ This file is requested after a map has sucessfully been downloaded or a mercenar
 ***************************************************
 5. mbox/mbox_serial.txt
 ***************************************************
-(WIP)
+
+This file contains a list of strings when accessing the Message Center. mbox_serial.txt points the game to a mailbox file to download. It appears every string should be a number, e.g. ASCII characters 0x30 - 0x39. A total of 16 lines are parsed. If the contents of the strings have changed since the last time the player has downloaded from the Message Center, this indicates that a new message should be downloaded from that mailbox. The simplest method of managing mbox_serial.txt would be to set all lines at a baseline number (e.g. 0000) and increment each line when that mailbox features a new message (e.g. change line 0 from 0000 to 0001). If multiple lines are changed, multiple messages will be downloaded.
+
+The previous strings (if any) are stored locally on the Game Boy Wars 3 cartridge RAM, and the game uses that to determine if anything should be downloaded at all. If no strings have been updated, Game Boy Wars 3 will not attempt to download any of the mailboxes.
+
+Evidently, these mbox_serial.txt may need some formatting to correctly display the date for a mailbox's message, however, this information is currently unknown.
 
 
 ***************************************************
 6. mbox/mbox_**.cgb
 ***************************************************
-(WIP)
+
+This file contains the message to display from a mailbox. The exact url is determined by mbox_serial.txt. If the first line's string in mbox_serial.txt is updated, the game downloads mbox_00.cgb. If the second line's string in mbox_serial.txt is updated, the game downloads mbox_01.cgb, and so on. There are only 16 mailboxes available: mbox_00.cgb to mbox_15.cgb.
+
+The format appears to be pure text, except that the first 7 characters are ignored. Messages can be displayed in ASCII. Hiragana and katakana are available as well, however, their format is currently unknown. The mbox_**.cgb file MUST end CRLF, otherwise the game does not know to stop parsing data and starts overwriting all kinds of RAM.
 
 
 ***************************************************
