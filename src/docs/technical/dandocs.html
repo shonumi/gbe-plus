@@ -136,6 +136,7 @@
 			<p class="list_item"><a href="#magb">Mobile Adapter GB</a></p>
 
 			<p class="list_head"><strong>Game and Server Documentation</strong></p>
+			<p class="list_item"><a href="#gbw">Game Boy Wars 3</a></p>
 			<p class="list_item"><a href="#hkh">Hello Kitty no Happy House</a></p>
 			<p class="list_item"><a href="#mbt">Mobile Trainer</a></p>
 			<p class="list_item"><a href="#ndg">Net de Get: Minigame @ 100</a></p>
@@ -2046,6 +2047,280 @@ Command 0x28		DNS Query
 	<p>All software compatible with the Mobile Adapter appears to read the configuration data first and foremost. If the data cannot be read or if there is a problem with the data, they will refuse to even attempt making an online connection. Generally, they return the error code 25-000 in that situation.</p>
 
 	<p>If any compatible software attempts to read or write configuration data outside the allotted 192 bytes via commands 0x19 and 0x1A, the entire I/O operation is cancelled. No data is written even if the initial offset is within the 192 bytes. No data is returned either, as both commands respond with Error Status packets.</p>
+
+
+	<!-- Game Boy Wars 3 -->
+	<a name="gbw"></a>
+	<p class="gray_title">Game Boy Wars 3</p>
+	<p class="list_item"><a href="#gbw_gen">General Information</a></p>
+	<p class="list_item"><a href="#gbw_ser">Server Structure</a></p>
+	<p class="list_item"><a href="#gbw_001">0.map_menu.txt</a></p>
+	<p class="list_item"><a href="#gbw_002">map/map_****.cgb</a></p>
+	<p class="list_item"><a href="#gbw_003">charge/****.cgb</a></p>
+	<p class="list_item"><a href="#gbw_004">mbox/mbox_serial.txt</a></p>
+	<p class="list_item"><a href="#gbw_005">mbox/mbox_**.cgb</a></p>
+	<p class="list_item"><a href="#gbw_006">0.youhei_menu.txt</a></p>
+
+	<a name="gbw_gen"></a>
+	<p class="gray_title">[Game Boy Wars 3] : General Information</p>
+
+	<p>Game Boy Wars 3 is a turn-based war strategy game for the GBC, similar in gameplay to Nectaris. The online capabilities of the software consist of downloading custom maps, viewing messages and news from the developers, and unlocking premium mercenary units in battle.</p>
+
+	<a name="gbw_ser"></a>
+	<p class="gray_title">[Game Boy Wars 3] : Server Structure</p>
+
+	<p>Game Boy Wars 3 is currently known to access the following URLS (asterisks indicate variable characters):</p>
+
+	<ul>
+		<li class="list_item">http:&#47;&#47;gameboy.datacenter.ne.jp&#47;cgb&#47;download?name=&#47;18&#47;CGB-BWWJ&#47;0.map_menu.txt</li>
+		<li class="list_item">http:&#47;&#47;gameboy.datacenter.ne.jp&#47;cgb&#47;download?name=&#47;18&#47;CGB-BWWJ&#47;map&#47;map_****.cgb</li>
+		<li class="list_item">http:&#47;&#47;gameboy.datacenter.ne.jp&#47;cgb&#47;download?name=&#47;18&#47;CGB-BWWJ&#47;charge&#47;****.cgb</li>
+		<li class="list_item">http:&#47;&#47;gameboy.datacenter.ne.jp&#47;cgb&#47;download?name=&#47;18&#47;CGB-BWWJ&#47;mbox&#47;mbox_serial.txt</li>
+		<li class="list_item">http:&#47;&#47;gameboy.datacenter.ne.jp&#47;cgb&#47;download?name=&#47;18&#47;CGB-BWWJ&#47;mbox&#47;mbox_**.cgb</li>
+		<li class="list_item">http:&#47;&#47;gameboy.datacenter.ne.jp&#47;cgb&#47;download?name=&#47;18&#47;CGB-BWWJ&#47;0.youhei_menu.txt</li>
+	</ul>
+
+	<a name="gbw_001"></a>
+	<p class="gray_title">[Game Boy Wars 3] : 0.map_menu.txt</p>
+
+	<p>This file dictates the price in yen for maps. Although every map should have cost 10 yen, the game allows for different prices to exist for any map. The file is simply text with the following format:</p>
+
+<code>[Minimum Map #]		[Maximum Map #]		[Price in yen]</code>
+
+	<p>Each line defines a minimum and maximum map number to create a range of maps and the price that will apply to all of them. All values are 4-digits written in ASCII, and whitespace may be tabs or spaces. Before downloading a map, players must specify a 4 digit ID corresponding to the number of the map they want. If 0.map_menu.txt does not specify a range that includes that ID, that map is unavailble for download.</p>
+
+	<p>This file specifies that no service charge should apply, as the filename is prefixed with &#34;0&#34;.</p>
+
+	<a name="gbw_002"></a>
+	<p class="gray_title">[Game Boy Wars 3] : map/map_****.cgb</p>
+
+	<p>This is the binary data for a downloadable map. The 4 digit ID previously specified by a player prior to download determines the full filename that the game will request. For example, if the ID 1337 is used, map_1337.cgb will be requested. The format is exactly the same as the custom maps that players can create themselves.</p>
+
+<code>----------------------------------
+Map Structure
+----------------------------------
+0x00 - 0x01			::	0x20, 0x00. Seems to be an identifier, but the game does not care what values these bytes are.
+0x02 - 0x03			::	16-bit sum of map size. LSB first. Calculated as 0x19F + (400 - (map width * map height))
+0x04				::	8-bit sum of all data until EOF. Calculated as 0xFE - (a, b, c, ...)
+0x20 - 0x2B			::	String for map name
+0x2C				::	Map width (Min: 20, Max: 50)
+0x2D				::	Map height (Min: 20, Max: 50)
+0x2E ... 			::	Map tiles
+...				::	Unit tiles (if any)
+EOF				::	The last byte is 0xFF</code>
+
+	<p>The map tiles are 8-bit numbers that determine what type of terrain or buildings are placed on the grid (e.g. plains, mountains, forest, main base, factory, etc).</p>
+
+<code>----------------------------------
+Map Tiles
+----------------------------------
+0x00				::	Null space. Black tile that is &#34;out of bounds&#34;.
+0x01				::	Red Star base
+0x02				::	Red Star city
+0x03				::	Red Star ruined city
+0x04				::	Red Star factory
+0x05				::	Red Star ruined factory
+0x06				::	Red Star airport
+0x07				::	Red Star ruined airport
+0x08				::	Red Star simple airport
+0x09				::	Red Star harbor
+0x0A				::	Red Star ruined harbor
+0x0B				::	Red Star Transmission Tower
+0x0C				::	White Moon base
+0x0D				::	White Moon city
+0x0E				::	White Moon ruined city
+0x0F				::	White Moon factory
+0x10				::	White Moon ruined factory
+0x11				::	White Moon airport
+0x12				::	White Moon ruined airport
+0x13				::	White Moon simple airport
+0x14				::	White Moon harbor
+0x15				::	White Moon ruined harbor
+0x16				::	White Moon Transmission Tower
+0x17				::	Neutral city
+0x18				::	Neutral ruined city	
+0x19				::	Neutral factory
+0x1A				::	Neutral ruined factory
+0x1B				::	Neutral airport
+0x1C				::	Neutral ruined airport
+0x1D				::	Neutral harbor
+0x1E				::	Neutral ruined harbor
+0x1F				::	Neutral Transmission Tower
+0x20				::	Plains
+0x21				::	Highway
+0x22				::	Bridge
+0x23				::	Bridge
+0x24				::	Mountains
+0x25				::	Forest
+0x26				::	Wasteland
+0x27				::	Desert
+0x28				::	River
+0x29				::	Sea
+0x2A				::	Shoal
+0x2B - 0xFF			::	These appears to be invalid, glitchy, or null tiles</code>
+
+	<p>The game does not do any error-checking on the maps besides checking the 16-bit map size sum and the 8-bit data sum. If those are valid, the game will run it. Maps that would typically be impossible to create through the normal editor (maps lacking a Red Star/White Moon base, maps with null spaces, maps with Transmission Towers) can be downloaded and played.</p>
+
+	<p>If the 16-bit map size sum and 8-bit data sum are invalid, the game will complain when first booting. The actual map data is not deleted from SRAM, rather it simply becomes inaccessible from any in-game menus. Making a new map for that map slot will overwrite it, however.</p>
+
+	<p>Units can be placed on a map, but they are separate from the actual map data. After the map tile data is finished, unit tile data comes next. Each unit tile consists of 3 bytes:</p>
+
+<code>----------------------------------
+Unit Tile Bytes
+----------------------------------
+0x00				::	X position on map
+0x01				::	Y position on map
+0x02				::	Unit ID</code>
+
+	<p>The IDs are as follows:</p>
+
+<code>----------------------------------
+Unit IDs
+----------------------------------
+0x00				::	N/A. No unit appears
+0x01				::	Invalid (DEL tile)
+0x02				::	Red Star Infantry
+0x03				::	White Moon Infantry
+0x04				::	Red Star Missile Infantry
+0x05				::	White Moon Missle Infantry
+0x06				::	Red Star Merc Infantry
+0x07				::	White Moon Merc Infantry
+0x08				::	Red Star Construction Vehicle
+0x09				::	White Moon Construction Vehicle
+0x0A				::	Red Star Supply Vehicle
+0x0B				::	White Moon Supply Vehicle
+0x0C				::	Red Star Supply Vehicle S
+0x0D				::	White Moon Supply Vehicle S
+0x0E				::	Red Star Transport Truck
+0x0F				::	White Moon Transport Truck
+0x10				::	Red Star Transport Truck S
+0x11				::	White Moon Transport Truck S
+0x12				::	Red Star Combat Buggy
+0x13				::	White Moon Combat Buggy
+0x14				::	Red Star Combat Buggy S
+0x15				::	White Moon Combat Buggy S
+0x16				::	Red Star Combat Vehicle
+0x17				::	White Moon Combat Vehicle
+0x18				::	Red Star Combat Vehicle S
+0x19				::	White Moon Combat Vehicle S
+0x1A				::	Red Star Armored Transport Truck	
+0x1B				::	White Moon Armored Transport Truck
+0x1C				::	Red Star Armored Transport Truck S
+0x1D				::	White Moon Armored Transport Truck S
+0x1E				::	Red Star Rocket Launcher
+0x1F				::	White Moon Rocket Launcher
+0x20				::	Red Star Rocket Launcher S
+0x21				::	White Moon Rocket Launcher S
+0x22				::	Red Star Anti-Air Tank
+0x23				::	White Moon Anti-Air Tank
+0x24				::	Red Star Merc Anti-Air Tank
+0x25				::	White Moon Merc Anti-Air Tank
+0x26				::	Red Star Anti-Air Missile
+0x27				::	White Moon Anti-Air Missile
+0x28				::	Red Star Anti-Air Missile S
+0x29				::	White Moon Anti-Air Missile S
+0x2A				::	Red Star Artillery
+0x2B				::	White Moon Artillery
+0x2C				::	Red Star Artillery S
+0x2D				::	White Moon Artillery S
+0x2E				::	Red Star Anti-Infantry Tank
+0x2F				::	White Moon Anti-Infantry Tank
+0x30				::	Red Star Anti-Infantry Tank S
+0x31				::	White Moon Anti-Infantry Tank S
+0x32				::	Red Star Tank Destroyer
+0x33				::	White Moon Tank Destroyer
+0x34				::	Red Star Tank Destroyer S
+0x35				::	White Moon Tank Destroyer S
+0x36				::	Red Star Tank
+0x37				::	White Moon Tank
+0x38				::	Red Star Merc Tank
+0x39				::	White Moon Merc Tank
+0x3A				::	Red Star Fighter Jet A
+0x3B				::	White Moon Fighter Jet A
+0x3C				::	Red Star Fighter Jet B
+0x3D				::	White Moon Fighter Jet B
+0x3E				::	Red Star Fighter Jet S
+0x3F				::	White Moon Fighter Jet S
+0x40				::	Red Star Attack Aircraft A
+0x41				::	White Moon Attack Aircraft A
+0x42				::	Red Star Attack Aircraft B
+0x43				::	White Moon Attack Aircraft B
+0x44				::	Red Star Attack Aircraft S
+0x45				::	White Moon Attack Aircraft S
+0x46				::	Red Star Bomber
+0x47				::	White Moon Bomber
+0x48				::	Red Star Merc Bomber
+0x49				::	White Moon Merc Bomber
+0x4A				::	Red Star Transport Aircraft
+0x4B				::	White Moon Transport Aircraft
+0x4C				::	Red Star Aerial Tanker
+0x4D				::	White Moon Aerial Tanker
+0x4E				::	Red Star Attack Helicopter
+0x4F				::	White Moon Attack Helicopter
+0x50				::	Red Star Attack Helicopter S
+0x51				::	White Moon Attack Helicopter S
+0x52				::	Red Star Anti-Sub Helicopter
+0x53				::	White Moon Anti-Sub Helicopter
+0x54				::	Red Star Transport Helicopter
+0x55				::	White Moon Transport Helicopter
+0x56				::	Red Star Transport Helicopter S
+0x57				::	White Moon Transport Helicopter S
+0x58				::	Red Star Aegis Warship
+0x59				::	White Moon Aegis Warship
+0x5A				::	Red Star Merc Frigate
+0x5B				::	White Moon Merc Frigate
+0x5C				::	Red Star Large Aircraft Carrier
+0x5D				::	White Moon Large Aircraft Carrier
+0x5E				::	Red Star Small Aircraft Carrier	
+0x5F				::	White Moon Small Aircraft Carrier
+0x60				::	Red Star Transport Warship
+0x61				::	White Moon Transport Warship
+0x62				::	Red Star Supply Tanker
+0x63				::	White Moon Supply Tanker
+0x64				::	Red Star Submarine
+0x65				::	White Moon Submarine
+0x66				::	Red Star Submarine S
+0x67				::	White Moon Submarine S
+0x68				::	Red Star &#34;Dummy&#34; unit
+0x69				::	White Star &#34;Dummy&#34; unit
+0x6A				:: 	Invalid (DEL tile)
+0x6B - 0xFF			::	Invalid (glitchy tiles)</code>
+
+	<p>Again, besides the basic additive checksumming, the game does not validate whether some units logically make sense when placed on a map (e.g. submarines on top of a mountain or in a forest). The in-game editor prevents such things from happening, however, downloaded maps can essentially do whatever they want. This includes populating the battlefield with the DLC mercenary units that would normally be available exclusively via the Transmission Tower. Mercenary units are not available through the in-game editor, however, downloaded maps can be freely edited, so such units can be deleted.</p>
+
+	<a name="gbw_003"></a>
+	<p class="gray_title">[Game Boy Wars 3] : charge/****.cgb</p>
+
+	<p>This file is requested after a map has sucessfully been downloaded or a mercenary unit has been unlocked. The filename is the price of the service in yen. This price is specified in either 0.map_menu.txt or 0.youhei.txt. The game largely appears to ignore the contents of the file and instead merely wants to confirm an HTTP 200 response from the server. Requesting that file incurs a service charge and is the mechanism behind Game Boy Wars 3&#39;s paid DLC. Neither 0.map_menu.txt or 0.youhei.txt check to make sure the 4-digit prices are valid ASCII numbers such as &#34;30&#34; or &#34;10&#34; and will blindly send whatever characters are written in those files.</p>
+
+	<a name="gbw_004"></a>
+	<p class="gray_title">[Game Boy Wars 3] : mbox/mbox_serial.txt</p>
+
+	<p>This file contains a list of strings when accessing the Message Center. mbox_serial.txt points the game to a mailbox file to download. It appears every string should be a number, e.g. ASCII characters 0x30 - 0x39. A total of 16 lines are parsed. If the contents of the strings have changed since the last time the player has downloaded from the Message Center, this indicates that a new message should be downloaded from that mailbox. The simplest method of managing mbox_serial.txt would be to set all lines at a baseline number (e.g. 0000) and increment each line when that mailbox features a new message (e.g. change line 0 from 0000 to 0001). If multiple lines are changed, multiple messages will be downloaded.</p>
+
+	<p>The previous strings (if any) are stored locally on the Game Boy Wars 3 cartridge RAM, and the game uses that to determine if anything should be downloaded at all. If no strings have been updated, Game Boy Wars 3 will not attempt to download any of the mailboxes.</p>
+
+	<p>Evidently, these mbox_serial.txt may need some formatting to correctly display the date for a mailbox&#39;s message, however, this information is currently unknown.</p>
+
+	<a name="gbw_005"></a>
+	<p class="gray_title">[Game Boy Wars 3] : mbox/mbox_**.cgb</p>
+
+	<p>This file contains the message to display from a mailbox. The exact url is determined by mbox_serial.txt. If the first line&#39;s string in mbox_serial.txt is updated, the game downloads mbox_00.cgb. If the second line's string in mbox_serial.txt is updated, the game downloads mbox_01.cgb, and so on. There are only 16 mailboxes available: mbox_00.cgb to mbox_15.cgb.</p>
+
+	<p>The format appears to be pure text, except that the first 7 characters are ignored. Messages can be displayed in ASCII. Hiragana and katakana are available as well, however, their format is currently unknown. The mbox_**.cgb file MUST end CRLF, otherwise the game does not know to stop parsing data and starts overwriting all kinds of RAM.</p>
+
+	<a name="gbw_006"></a>
+	<p class="gray_title">[Game Boy Wars 3] : 0.youhei_menu.txt</p>
+
+	<p>This file is requested when players use the Transmission Tower during a battle. It&#39;s merely a list that details the price in yen for each mercenary unit. The format is as follows:</p>
+
+<code>[Price for Merc Infantry]
+[Price for Merc AA Tank]
+[Price for Merc Tank]
+[Price for Merc Bomber]
+[Price for Merc Frigate]</code>
+
+	<p>This file specifies that no service charge should apply, as the filename is prefixed with &#34;0&#34;.</p>
 
 
 	<!-- Hello Kitty no Happy House -->

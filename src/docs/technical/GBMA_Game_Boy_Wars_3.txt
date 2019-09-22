@@ -55,7 +55,7 @@ Map Structure
 ...				::	Unit tiles (if any)
 EOF				::	The last byte is 0xFF
 
-The map tiles are 8-bit numbers that determine what is being placed on the map (e.g. main base, factory, combat units).
+The map tiles are 8-bit numbers that determine what type of terrain or buildings are placed on the grid (e.g. plains, mountains, forest, main base, factory, etc).
 
 ----------------------------------
 Map Tiles
@@ -239,7 +239,7 @@ Again, besides the basic additive checksumming, the game does not validate wheth
 4. charge/****.cgb
 ***************************************************
 
-This file is requested after a map has sucessfully been downloaded or a mercenary unit has been unlocked. The filename is the price of the service in yen. This price is specified in either 0.map_menu.txt or 0.youhei.txt. The game largely appears to ignore the contents of the file and instead merely wants to confirm an HTTP 200 response from the server. Requesting that file incurs a service charge and is the mechanism bheind Game Boy Wars 3's paid DLC. Neither 0.map_menu.txt or 0.youhei.txt check to make sure the 4-digit prices are valid ASCII numbers such as "30" or "10" and will blindly send whatever characters are written in those files.
+This file is requested after a map has sucessfully been downloaded or a mercenary unit has been unlocked. The filename is the price of the service in yen. This price is specified in either 0.map_menu.txt or 0.youhei.txt. The game largely appears to ignore the contents of the file and instead merely wants to confirm an HTTP 200 response from the server. Requesting that file incurs a service charge and is the mechanism behind Game Boy Wars 3's paid DLC. Neither 0.map_menu.txt or 0.youhei.txt check to make sure the 4-digit prices are valid ASCII numbers such as "30" or "10" and will blindly send whatever characters are written in those files.
 
 
 ***************************************************
