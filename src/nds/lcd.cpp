@@ -1187,6 +1187,7 @@ void NTR_LCD::render_obj_scanline(u32 bg_control)
 	u8 raw_color = 0;
 	bool ext_pal = false;
 	bool render_obj;
+	bool direct_bitmap = false;
 	s16 h_flip, v_flip = 0;
 	u16 obj_x, obj_y = 0;
 	u32 disp_cnt = engine_id ? lcd_stat.display_control_b : lcd_stat.display_control_a;
@@ -1213,6 +1214,8 @@ void NTR_LCD::render_obj_scanline(u32 bg_control)
 			u8 bit_depth = obj[obj_id].bit_depth * 8;
 			u8 pixel_shift = (bit_depth == 32) ? 1 : 0;
 			u16 draw_width = (obj[obj_id].affine_enable) ? (obj[obj_id].width * 2) : obj[obj_id].width;
+			
+			direct_bitmap = (obj[obj_id].mode == 3) ? true : false;
 
 			while(render_width < draw_width)
 			{
@@ -1301,26 +1304,33 @@ void NTR_LCD::render_obj_scanline(u32 bg_control)
 						obj_addr += (((obj_y % 8) * 8) + (obj_x % 8)) >> pixel_shift;
 					}
 
-					raw_color = mem->read_u8(obj_addr);
-
-					//Process 4-bit depth if necessary
-					if((bit_depth == 32) && (!ext_pal)) { raw_color = (obj_x & 0x1) ? (raw_color >> 4) : (raw_color & 0xF); }
-
-					//Draw for Engine A
-					if(!engine_id && raw_color && !render_buffer_a[scanline_pixel_counter] && render_obj)
+					//Draw tiled OBJs
+					if(!direct_bitmap)
 					{
-						scanline_buffer_a[scanline_pixel_counter] = (ext_pal) ? lcd_stat.obj_ext_pal_a[(pal_id * 256) + raw_color] : lcd_stat.obj_pal_a[(pal_id * 16) + raw_color];
-						render_buffer_a[scanline_pixel_counter] = (obj[obj_id].bg_priority + 1);
-						sfx_buffer[scanline_pixel_counter] = (render_buffer_a[scanline_pixel_counter] | 0x80);
+						raw_color = mem->read_u8(obj_addr);
+
+						//Process 4-bit depth if necessary
+						if((bit_depth == 32) && (!ext_pal)) { raw_color = (obj_x & 0x1) ? (raw_color >> 4) : (raw_color & 0xF); }
+
+						//Draw for Engine A
+						if(!engine_id && raw_color && !render_buffer_a[scanline_pixel_counter] && render_obj)
+						{
+							scanline_buffer_a[scanline_pixel_counter] = (ext_pal) ? lcd_stat.obj_ext_pal_a[(pal_id * 256) + raw_color] : lcd_stat.obj_pal_a[(pal_id * 16) + raw_color];
+							render_buffer_a[scanline_pixel_counter] = (obj[obj_id].bg_priority + 1);
+							sfx_buffer[scanline_pixel_counter] = (render_buffer_a[scanline_pixel_counter] | 0x80);
+						}
+
+						//Draw for Engine B
+						else if(engine_id && raw_color && !render_buffer_b[scanline_pixel_counter] && render_obj)
+						{
+							scanline_buffer_b[scanline_pixel_counter] = (ext_pal) ? lcd_stat.obj_ext_pal_b[(pal_id * 256) + raw_color] : lcd_stat.obj_pal_b[(pal_id * 16) + raw_color];
+							render_buffer_b[scanline_pixel_counter] = (obj[obj_id].bg_priority + 1);
+							sfx_buffer[scanline_pixel_counter] = (render_buffer_b[scanline_pixel_counter] | 0x80);
+						}
 					}
 
-					//Draw for Engine B
-					else if(engine_id && raw_color && !render_buffer_b[scanline_pixel_counter] && render_obj)
-					{
-						scanline_buffer_b[scanline_pixel_counter] = (ext_pal) ? lcd_stat.obj_ext_pal_b[(pal_id * 256) + raw_color] : lcd_stat.obj_pal_b[(pal_id * 16) + raw_color];
-						render_buffer_b[scanline_pixel_counter] = (obj[obj_id].bg_priority + 1);
-						sfx_buffer[scanline_pixel_counter] = (render_buffer_b[scanline_pixel_counter] | 0x80);
-					}
+					//Draw direct bitmap OBJs
+					else { }
 						
 				}
 
