@@ -364,6 +364,10 @@ void NTR_LCD::update_oam()
 	u32 oam_ptr = 0x7000000;
 	u16 attribute = 0;
 
+	u16 a_bound = (lcd_stat.display_control_a & 0x400000) ? 256 : 128;
+	u8 bitmap_mask_a = (lcd_stat.display_control_a & 0x20) ? 0x1F : 0xF;
+	u8 bitmap_mask_b = (lcd_stat.display_control_b & 0x20) ? 0x1F : 0xF; 
+
 	for(int x = 0; x < 256; x++)
 	{
 		//Update if OAM entry has changed
@@ -464,7 +468,25 @@ void NTR_LCD::update_oam()
 			//Precalculate OBJ base address
 			u8 boundary = (x < 128) ? lcd_stat.obj_boundary_a : lcd_stat.obj_boundary_b;
 			u32 base = (x < 128) ? 0x6400000 : 0x6600000;
-			obj[x].addr = (obj[x].tile_number * boundary) + base;
+
+			//Tiled OBJ address calculation
+			if(obj[x].mode != 3) { obj[x].addr = base + (obj[x].tile_number * boundary); }
+			
+			//Bitmap OBJ address calculation
+			else
+			{
+				//Engine A - 1D
+				if((x < 128) && (lcd_stat.display_control_a & 0x40)) { obj[x].addr = base + (obj[x].tile_number * a_bound); }
+
+				//Engine B - 1D - Force 128 pixel boundary
+				else if(lcd_stat.display_control_b & 0x40) { obj[x].addr = base + (obj[x].tile_number * 128); }
+
+				//Engine A - 2D
+				else if(x < 128) { obj[x].addr = base + ((obj[x].tile_number & bitmap_mask_a) * 0x10) + ((obj[x].tile_number & ~bitmap_mask_a) * 0x80); }
+
+				//Engine B - 2D
+				else { obj[x].addr = base + ((obj[x].tile_number & bitmap_mask_a) * 0x10) + ((obj[x].tile_number & ~bitmap_mask_a) * 0x80); }
+			}
 
 			//Read and parse OAM affine attribute
 			attribute = mem->read_u16_fast(oam_ptr - 2);
@@ -1287,26 +1309,26 @@ void NTR_LCD::render_obj_scanline(u32 bg_control)
 					u8 meta_x = obj_x / 8;
 					u8 meta_y = obj_y / 8;
 
-					//Determine address of this pixel - 1D
+					//Determine address of this pixel
 					u32 obj_addr = obj[obj_id].addr;
-
-					//1D addressing
-					if(disp_cnt & 0x10)
-					{
-						obj_addr += (((meta_y * meta_width) + meta_x) * bit_depth);
-						obj_addr += (((obj_y % 8) * 8) + (obj_x % 8)) >> pixel_shift;
-					}
-
-					//2D addressing
-					else
-					{
-						obj_addr += (pixel_shift) ? ((meta_y * 16) + meta_x) : ((meta_y * 32) + meta_x);
-						obj_addr += (((obj_y % 8) * 8) + (obj_x % 8)) >> pixel_shift;
-					}
 
 					//Draw tiled OBJs
 					if(!direct_bitmap)
 					{
+						//1D addressing
+						if(disp_cnt & 0x10)
+						{
+							obj_addr += (((meta_y * meta_width) + meta_x) * bit_depth);
+							obj_addr += (((obj_y % 8) * 8) + (obj_x % 8)) >> pixel_shift;
+						}
+
+						//2D addressing
+						else
+						{
+							obj_addr += (pixel_shift) ? ((meta_y * 16) + meta_x) : ((meta_y * 32) + meta_x);
+							obj_addr += (((obj_y % 8) * 8) + (obj_x % 8)) >> pixel_shift;
+						}
+
 						raw_color = mem->read_u8(obj_addr);
 
 						//Process 4-bit depth if necessary
@@ -1330,7 +1352,8 @@ void NTR_LCD::render_obj_scanline(u32 bg_control)
 					}
 
 					//Draw direct bitmap OBJs
-					else { }
+					else
+					{ }
 						
 				}
 
