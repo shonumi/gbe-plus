@@ -213,6 +213,9 @@ struct ntr_lcd_3D_data
 	u8 hi_fill[256];
 	u8 lo_fill[256];
 
+	float hi_line_z[256];
+	float lo_line_z[256];
+
 	bool render_polygon;
 
 	u32 rear_plane_color;

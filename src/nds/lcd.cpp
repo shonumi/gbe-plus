@@ -287,6 +287,9 @@ void NTR_LCD::reset()
 	//Polygon fill coordinates
 	for(int x = 0; x < 256; x++) { lcd_3D_stat.hi_fill[x] = lcd_3D_stat.lo_fill[x] = 0xFF; }
 
+	//Polygon fill Z coordinates
+	for(int x = 0; x < 256; x++) { lcd_3D_stat.hi_line_z[x] = lcd_3D_stat.lo_line_z[x] = 0.0; }
+
 	//Polygon vertices
 	gx_triangles.clear();
 	gx_quads.clear();

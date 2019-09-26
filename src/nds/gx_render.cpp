@@ -231,8 +231,17 @@ void NTR_LCD::render_geometry()
 				if(temp_y > 0xC0) { temp_y = 0xC0; }
 				else if(temp_y < 0) { temp_y = 0; }
 
-				if(lcd_3D_stat.hi_fill[temp_x] > temp_y) { lcd_3D_stat.hi_fill[temp_x] = temp_y; }
-				if(lcd_3D_stat.lo_fill[temp_x] < temp_y) { lcd_3D_stat.lo_fill[temp_x] = temp_y; }
+				if(lcd_3D_stat.hi_fill[temp_x] > temp_y)
+				{
+					lcd_3D_stat.hi_fill[temp_x] = temp_y;
+					lcd_3D_stat.hi_line_z[temp_x] = z_coord;
+				}
+
+				if(lcd_3D_stat.lo_fill[temp_x] < temp_y)
+				{
+					lcd_3D_stat.lo_fill[temp_x] = temp_y;
+					lcd_3D_stat.lo_line_z[temp_x] = z_coord;
+				}
 			} 
 
 			x_coord += x_inc;
