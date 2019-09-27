@@ -1314,6 +1314,7 @@ void NTR_LCD::render_obj_scanline(u32 bg_control)
 
 					//Determine address of this pixel
 					u32 obj_addr = obj[obj_id].addr;
+					u32 base = (obj_id < 128) ? 0x6400000 : 0x6600000;
 
 					//Draw tiled OBJs
 					if(!direct_bitmap)
@@ -1328,8 +1329,8 @@ void NTR_LCD::render_obj_scanline(u32 bg_control)
 						//2D addressing
 						else
 						{
-							obj_addr += (pixel_shift) ? ((meta_y * 16) + meta_x) : ((meta_y * 32) + meta_x);
-							obj_addr += (((obj_y % 8) * 8) + (obj_x % 8)) >> pixel_shift;
+							obj_addr = base + ((obj[obj_id].tile_number + meta_x + (meta_y << 5)) << 5);
+							obj_addr += (((obj_y % 8) * 8) + (obj_x % 8)) >> pixel_shift; 
 						}
 
 						raw_color = mem->read_u8(obj_addr);
