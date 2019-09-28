@@ -4876,8 +4876,23 @@ void NTR_MMU::process_aux_spi_bus()
 			if(nds_aux_spi.data == 0x5)
 			{
 				//Auto-detect save type
-				if((current_save_type == AUTO) && (nds_aux_spi.state == 0x83) && (nds_aux_spi.access_index == 1)) { current_save_type = EEPROM_512; }
-				else if((current_save_type == AUTO) && (nds_aux_spi.state == 0x83) && (nds_aux_spi.access_index == 2)) { current_save_type = EEPROM; }
+				if((current_save_type == AUTO) && (nds_aux_spi.state == 0x83) && (nds_aux_spi.access_index == 1))
+				{
+					current_save_type = EEPROM_512;
+					std::cout<<"MMU::Save Type Autodetected: EEPROM_512\n";
+				}
+
+				else if((current_save_type == AUTO) && (nds_aux_spi.state == 0x83) && (nds_aux_spi.access_index == 2))
+				{
+					current_save_type = EEPROM;
+					std::cout<<"MMU::Save Type Autodetected: EEPROM\n";
+				}
+
+				else if((current_save_type == AUTO) && (nds_aux_spi.state == 0x83) && (nds_aux_spi.access_index == 3))
+				{
+					current_save_type = FRAM;
+					std::cout<<"MMU::Save Type Autodetected: FRAM\n";
+				}
 
 				nds_aux_spi.last_state = nds_aux_spi.state;
 				nds_aux_spi.state = 0;
