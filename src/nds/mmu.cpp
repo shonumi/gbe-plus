@@ -229,6 +229,7 @@ void NTR_MMU::reset()
 
 	access_mode = 1;
 	wram_mode = 3;
+	do_save = false;
 
 	//Advanced debugging
 	#ifdef GBE_DEBUG
@@ -4654,6 +4655,9 @@ bool NTR_MMU::load_backup(std::string filename)
 /****** Save backup save data ******/
 bool NTR_MMU::save_backup(std::string filename)
 {
+	//Check to see if any save-based writes were made, otherwise, don't update or create new save file
+	if(!do_save) { return true; }
+
 	//Use config save path if applicable
 	if(!config::save_path.empty())
 	{
@@ -4671,6 +4675,8 @@ bool NTR_MMU::save_backup(std::string filename)
 	//Write the data to a file
 	file.write(reinterpret_cast<char*> (&save_data[0]), 0x10000);
 	file.close();
+
+	std::cout<<"MMU::Wrote save data file " << filename <<  "\n";
 
 	return true;
 }
@@ -4940,6 +4946,7 @@ void NTR_MMU::process_aux_spi_bus()
 			nds_aux_spi.data = 0xFF;
 
 			do_command = false;
+			do_save = true;
 			break;
 
 		//Read from EEPROM low
