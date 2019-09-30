@@ -47,83 +47,72 @@ The codes appear to be simple, e.g. "AAE" for a framed picture and "AIG" for a g
 
 Below are a list of 3-letter codes and the items they generate when used in the email header. If the game does not recognize the code, a present icon will appear next to the email, but no item is actually received.
 
-AAA - Green Iron
-AAB - Heart Clock
-AAC - Pendulum Clock
-AAD - Futuristic Clock
-AAE - Landscape Painting
-AAF - Pop Art Painting
-AAG - Kitty Elastomer
-AAH - Bronze Angel Statue
-AAI - Bronze Goddes Statue
-AAJ - Broze Kitty Statue
-AAK - Hanging Scroll
-AAL - Dragon Pennant
-AAM - Noble Pennant
-AAN - Wide TV
-AAO - Cute TV
-AAP - Wall-mounted TV
-AAQ - Digital Component Stereo
-AAR - Component Stereo
-AAS - Gramophone
-AAT - Massage Chair
-AAU - "Sexy" Massage Chair
-AAV - Relaxing Chair
-AAW - Globe
-AAX - Cosmic Globe
-AAY - Miniature House
-AAZ - Pink Chest
-
-ABA - Hanging Scroll
-ABB - Dragon Pennant
-ABC - Noble Pennant
-ABD - Wide TV
-ABE - Cute TV
-ABF - Wall-mounted TV
-ABG - Digital Component Stereo
-ABH - Component Stereo
-ABI - Gramaphone
-ABJ - Massage Chair
-ABK - "Sexy" Massage Chair
-ABL - Relaxing Chair
-ABM - Globe
-ABN - Cosmic Globe
-ABO - Minature House
-ABP - Pink Chest
-ABQ - Japanese Drawer
-ABR - Toy Case
-ABS - Japanese Vase
-ABT - Western Vase
-ABU - Arabian Vase
-ABV - Tetra Aquarium
-ABW - Turtle Aquarium
-ABX - Arowana Aquarium
-ABY - Floor Light
-ABZ - Standing Light
-
-ACA - "Sexy" Massage Chair
-ACB - Relaxing Chair
-ACC - Globe
-ACD - Cosmic Globe
-ACE - Miniature House
-ACF - Pink Chest
-ACG - Japanese Drawer
-ACH - Toy Case
-ACI - Japanese Vase
-ACJ - Western Vase
-ACK - Arabain Vase
-ACL - Tetra Aquarium
-ACM - Turtle Aquarium
-ACN - Arowana Aquarium
-ACO - Floor Light
-ACP - Standing Light
-ACQ - Mood Light
-ACR - Doggy Doll
-ACS - Sheep Doll
-ACT - Lion Doll
-ACU - Puppet Storage Box
-ACV - Robot Base
-ACW - Doll House
-ACX - Magazine Rack
-ACY - Letter Rack
-ACZ - Bookstand
+---------------------------------------------------
+Codes		| Item
+---------------------------------------------------
+AAA	 	Green Iron
+AAB		Heart Clock
+AAC		Pendulum Clock
+AAD		Futuristic Clock
+AAE		Landscape Painting
+AAF		Pop Art Painting
+AAG		Kitty Elastomer
+AAH		Bronze Angel Statue
+AAI 		Bronze Goddess Statue
+AAJ		Broze Kitty Statue
+AAK	ABA	Hanging Scroll
+AAL	ABB	Dragon Pennant
+AAM	ABC	Noble Pennant
+AAN	ABD	Wide TV
+AAO	ABE	Cute TV
+AAP	ABF	Wall-mounted TV
+AAQ	ABG	Digital Component Stereo
+AAR	ABH	Component Stereo
+AAS	ABI	Gramophone
+AAT	ABJ	Massage Chair
+AAU	ABK	"Sexy" Massage Chair
+AAV	ABL	Relaxing Chair
+AAW	ABM	Globe
+AAX	ABN	Cosmic Globe
+AAY	ABO	Miniature House
+AAZ	ABP	Pink Chest
+ABQ	ACG	Japanese Drawer
+ABR	ACH	Toy Case
+ABS	ACI	Japanese Vase
+ABT	ACJ	Western Vase
+ABU	ACK	Arabian Vase
+ABV	ACL	Tetra Aquarium
+ABW	ACM	Turtle Aquarium
+ABX	ACN	Arowana Aquarium
+ABY	ACO	Floor Light
+ABZ	ACP	Standing Light
+ACQ	ADG	Mood Light
+ACR	ADH	Doggy Doll
+ACS	ADI	Sheep Doll
+ACT	ADJ	Lion Doll
+ACU	ADK	Puppet Storage Box
+ACV	ADL	Robot Base
+ACW	ADM	Doll House
+ACX	ADN	Magazine Rack
+ACY	ADO	Letter Rack
+ACZ	ADP	Bookstand
+ADQ	AEG	Hat Stand
+ADR	AEH	Coat Stand
+ADS	AEI	Dear Daniel Doll
+ADT	AEJ	Pink Living Room Furniture
+ADU	AEK	Blue Living Room Furniture
+ADV	AEL	White Living Room Furniture
+ADW	AEM	Thai Living Room Furniture
+ADX	AEN	Chinese Living Room Furniture
+ADY	AEO	Asian Living Room Furniture
+ADZ	AEP	Japanese Living Room Furniture
+AEQ		Wooden Japanese Chestnut Living Room Furniture
+AER		Wajima Lacquer Living Room Furniture
+AES		Cozy Living Room Furniture
+AET		Checkered Living Room Furniture
+AEU		Pop Living Room Furniture
+AEV		Old Living Room Furniture
+AEW		Old-fashioned Living Room Furniture
+AEX		Antique Living Room Furniture
+AEY		Heart-themed Living Room Furniture
+AEZ		Apple-themed Living Room Furniture
