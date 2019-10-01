@@ -1135,7 +1135,7 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 
 		//Check to see if the Window was set off screen while enabled
 		//Record the current rendered line of the Window, start rendering on this line if turned on again before VBlank
-		if((lcd_stat->window_enable) && (lcd_stat->window_x >= 160))
+		if((lcd_stat->window_enable) && (lcd_stat->window_x >= 160) && (last_wx < 160))
 		{
 			if(lcd_stat->current_scanline >= 0x90) { lcd_stat->last_y = 0; } 
 			else { lcd_stat->last_y = (lcd_stat->current_scanline - lcd_stat->window_y); }
