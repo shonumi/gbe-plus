@@ -1210,6 +1210,7 @@ void NTR_LCD::render_obj_scanline(u32 bg_control)
 	u16 scanline_pixel_counter = 0;
 	u16 render_width = 0;
 	u8 raw_color = 0;
+	u16 raw_pixel = 0;
 	bool ext_pal = false;
 	bool render_obj;
 	bool direct_bitmap = false;
@@ -1357,7 +1358,35 @@ void NTR_LCD::render_obj_scanline(u32 bg_control)
 
 					//Draw direct bitmap OBJs
 					else
-					{ }
+					{
+						//1D addressing
+						if(disp_cnt & 0x10)
+						{
+							obj_addr += (((meta_y * meta_width) + meta_x) * 128);
+							obj_addr += (((obj_y % 8) * 8) + (obj_x % 8)) >> 1;
+						}
+
+						//2D addressing
+						else { }
+
+						raw_pixel = mem->read_u16(obj_addr);
+
+						//Draw for Engine A
+						if(!engine_id && (raw_pixel & 0x8000) && !render_buffer_a[scanline_pixel_counter] && render_obj)
+						{
+							scanline_buffer_a[scanline_pixel_counter] = get_rgb15(raw_pixel);
+							render_buffer_a[scanline_pixel_counter] = (obj[obj_id].bg_priority + 1);
+							sfx_buffer[scanline_pixel_counter] = (render_buffer_a[scanline_pixel_counter] | 0x80);
+						}
+
+						//Draw for Engine B
+						else if(engine_id && (raw_pixel & 0x8000) && !render_buffer_b[scanline_pixel_counter] && render_obj)
+						{
+							scanline_buffer_b[scanline_pixel_counter] = get_rgb15(raw_pixel);
+							render_buffer_b[scanline_pixel_counter] = (obj[obj_id].bg_priority + 1);
+							sfx_buffer[scanline_pixel_counter] = (render_buffer_b[scanline_pixel_counter] | 0x80);
+						}
+					}
 						
 				}
 
