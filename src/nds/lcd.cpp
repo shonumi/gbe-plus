@@ -1240,6 +1240,9 @@ void NTR_LCD::render_obj_scanline(u32 bg_control)
 			u8 bit_depth = obj[obj_id].bit_depth * 8;
 			u8 pixel_shift = (bit_depth == 32) ? 1 : 0;
 			u16 draw_width = (obj[obj_id].affine_enable) ? (obj[obj_id].width * 2) : obj[obj_id].width;
+
+			u8 bitmap_mask_a = (lcd_stat.display_control_a & 0x20) ? 0x1F : 0xF;
+			u8 bitmap_mask_b = (lcd_stat.display_control_b & 0x20) ? 0x1F : 0xF; 
 			
 			direct_bitmap = (obj[obj_id].mode == 3) ? true : false;
 
@@ -1367,7 +1370,14 @@ void NTR_LCD::render_obj_scanline(u32 bg_control)
 						}
 
 						//2D addressing
-						else { }
+						else
+						{
+							u8 target_tile = (obj[obj_id].tile_number + meta_x + (meta_y << (disp_cnt & 0x20) ? 5 : 4));
+							u8 mask = (engine_id) ? bitmap_mask_b : bitmap_mask_a;
+							
+							obj_addr = base + ((target_tile & mask) * 0x10) + ((target_tile & ~mask) * 0x80);
+							obj_addr += (((obj_y % 8) * 8) + (obj_x % 8)) >> 1;
+						}
 
 						raw_pixel = mem->read_u16(obj_addr);
 
