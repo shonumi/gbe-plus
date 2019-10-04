@@ -223,6 +223,9 @@ void NTR_core::run_core()
 				//Trigger Joypad Interrupt if necessary
 				if(core_pad.joypad_irq) { core_mmu.memory_map[NDS_IF] |= 0x1000; }
 			}
+
+			//Hotplug joypad
+			else if((event.type == SDL_JOYDEVICEADDED) && (!core_pad.joy_init)) { core_pad.init(); }
 		}
 
 		//Run the CPU

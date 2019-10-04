@@ -136,6 +136,9 @@ void AGB_core::sleep()
 		|| (event.type == SDL_JOYBUTTONDOWN) || (event.type == SDL_JOYBUTTONUP)
 		|| (event.type == SDL_JOYAXISMOTION) || (event.type == SDL_JOYHATMOTION)) { core_pad.handle_input(event); handle_hotkey(event); }
 
+		//Hotplug joypad
+		else if((event.type == SDL_JOYDEVICEADDED) && (!core_pad.joy_init)) { core_pad.init(); }
+
 		if(((core_pad.key_input & 0x4) == 0) && ((core_pad.key_input & 0x100) == 0) && ((core_pad.key_input & 0x200) == 0)) { l_r_select = true; }
 
 		SDL_Delay(50);
@@ -267,6 +270,9 @@ void AGB_core::run_core()
 				//Trigger Joypad Interrupt if necessary
 				if(core_pad.joypad_irq) { core_mmu.memory_map[REG_IF] |= 0x1000; }
 			}
+
+			//Hotplug joypad
+			else if((event.type == SDL_JOYDEVICEADDED) && (!core_pad.joy_init)) { core_pad.init(); }
 		}
 
 		//Run the CPU
@@ -291,6 +297,7 @@ void AGB_core::run_core()
 			//Reset system cycles for next instruction
 			core_cpu.system_cycles = 0;
 
+			if(core_mmu.memory_map[0x3008000] == 0xFE) { db_unit.debug_mode = true; }
 			if(db_unit.debug_mode) { debug_step(); }
 
 			core_cpu.fetch();

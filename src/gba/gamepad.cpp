@@ -31,6 +31,7 @@ AGB_GamePad::AGB_GamePad()
 	sensor_y = 0x3A0;
 
 	joypad_irq = false;
+	joy_init = false;
 	key_cnt = 0;
 }
 
@@ -50,6 +51,8 @@ void AGB_GamePad::init()
 
 	if((jstick == NULL) && (SDL_NumJoysticks() >= 1)) { std::cout<<"JOY::Could not initialize joystick \n"; }
 	else if((jstick == NULL) && (SDL_NumJoysticks() == 0)) { std::cout<<"JOY::No joysticks detected \n"; }
+
+	joy_init = (jstick == NULL) ? true : false;
 
 	rumble = NULL;
 

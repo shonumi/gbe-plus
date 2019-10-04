@@ -51,6 +51,7 @@ class AGB_GamePad
 	u16 sensor_y;
 
 	bool joypad_irq;
+	bool joy_init;
 	u16 key_cnt;
 
 	private:

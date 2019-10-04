@@ -20,6 +20,7 @@ SGB_GamePad::SGB_GamePad()
 	column_id = 0;
 	pad = 0;
 	joypad_irq = false;
+	joy_init = false;
 	up_shadow = down_shadow = left_shadow = right_shadow = false;
 
 	packet.state = 0;
@@ -45,6 +46,8 @@ void SGB_GamePad::init()
 	jstick = NULL;
 	jstick = SDL_JoystickOpen(config::joy_id);
 	config::joy_sdl_id = SDL_JoystickInstanceID(jstick);
+
+	joy_init = (jstick == NULL) ? true : false;
 
 	if((jstick == NULL) && (SDL_NumJoysticks() >= 1)) { std::cout<<"JOY::Could not initialize joystick \n"; }
 	else if((jstick == NULL) && (SDL_NumJoysticks() == 0)) { std::cout<<"JOY::No joysticks detected \n"; return; }

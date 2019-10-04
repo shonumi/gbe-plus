@@ -224,6 +224,9 @@ void SGB_core::run_core()
 				//Trigger Joypad Interrupt if necessary
 				if(core_pad.joypad_irq) { core_mmu.memory_map[IF_FLAG] |= 0x10; }
 			}
+
+			//Hotplug joypad
+			else if((event.type == SDL_JOYDEVICEADDED) && (!core_pad.joy_init)) { core_pad.init(); }
 		}
 
 		//Run the CPU

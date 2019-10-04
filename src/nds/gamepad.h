@@ -47,6 +47,7 @@ class NTR_GamePad
 	u32* nds9_input_irq;
 
 	bool joypad_irq;
+	bool joy_init;
 	u16 key_cnt;
 
 	private:

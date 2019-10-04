@@ -29,6 +29,7 @@ NTR_GamePad::NTR_GamePad()
 	nds9_input_irq = NULL;
 
 	joypad_irq = false;
+	joy_init = false;
 	key_cnt = 0;
 
 	sdl_fs_ratio = 1;
@@ -50,6 +51,8 @@ void NTR_GamePad::init()
 
 	if((jstick == NULL) && (SDL_NumJoysticks() >= 1)) { std::cout<<"JOY::Could not initialize joystick \n"; }
 	else if((jstick == NULL) && (SDL_NumJoysticks() == 0)) { std::cout<<"JOY::No joysticks detected \n"; }
+
+	joy_init = (jstick == NULL) ? true : false;
 
 	rumble = NULL;
 
