@@ -50,69 +50,79 @@ Below are a list of 3-letter codes and the items they generate when used in the 
 ---------------------------------------------------
 Codes		| Item
 ---------------------------------------------------
-AAA	 	Green Iron
-AAB		Heart Clock
-AAC		Pendulum Clock
-AAD		Futuristic Clock
-AAE		Landscape Painting
-AAF		Pop Art Painting
-AAG		Kitty Elastomer
-AAH		Bronze Angel Statue
-AAI 		Bronze Goddess Statue
-AAJ		Broze Kitty Statue
-AAK	ABA	Hanging Scroll
-AAL	ABB	Dragon Pennant
-AAM	ABC	Noble Pennant
-AAN	ABD	Wide TV
-AAO	ABE	Cute TV
-AAP	ABF	Wall-mounted TV
-AAQ	ABG	Digital Component Stereo
-AAR	ABH	Component Stereo
-AAS	ABI	Gramophone
-AAT	ABJ	Massage Chair
-AAU	ABK	"Sexy" Massage Chair
-AAV	ABL	Relaxing Chair
-AAW	ABM	Globe
-AAX	ABN	Cosmic Globe
-AAY	ABO	Miniature House
-AAZ	ABP	Pink Chest
-ABQ	ACG	Japanese Drawer
-ABR	ACH	Toy Case
-ABS	ACI	Japanese Vase
-ABT	ACJ	Western Vase
-ABU	ACK	Arabian Vase
-ABV	ACL	Tetra Aquarium
-ABW	ACM	Turtle Aquarium
-ABX	ACN	Arowana Aquarium
-ABY	ACO	Floor Light
-ABZ	ACP	Standing Light
-ACQ	ADG	Mood Light
-ACR	ADH	Doggy Doll
-ACS	ADI	Sheep Doll
-ACT	ADJ	Lion Doll
-ACU	ADK	Puppet Storage Box
-ACV	ADL	Robot Base
-ACW	ADM	Doll House
-ACX	ADN	Magazine Rack
-ACY	ADO	Letter Rack
-ACZ	ADP	Bookstand
-ADQ	AEG	Hat Stand
-ADR	AEH	Coat Stand
-ADS	AEI	Dear Daniel Doll
-ADT	AEJ	Pink Living Room Furniture
-ADU	AEK	Blue Living Room Furniture
-ADV	AEL	White Living Room Furniture
-ADW	AEM	Thai Living Room Furniture
-ADX	AEN	Chinese Living Room Furniture
-ADY	AEO	Asian Living Room Furniture
-ADZ	AEP	Japanese Living Room Furniture
-AEQ		Wooden Japanese Chestnut Living Room Furniture
-AER		Wajima Lacquer Living Room Furniture
-AES		Cozy Living Room Furniture
-AET		Checkered Living Room Furniture
-AEU		Pop Living Room Furniture
-AEV		Old Living Room Furniture
-AEW		Old-fashioned Living Room Furniture
-AEX		Antique Living Room Furniture
-AEY		Heart-themed Living Room Furniture
-AEZ		Apple-themed Living Room Furniture
+AAA	 		Green Iron
+AAB			Heart Clock
+AAC			Pendulum Clock
+AAD			Futuristic Clock
+AAE			Landscape Painting
+AAF			Pop Art Painting
+AAG			Kitty Elastomer
+AAH			Bronze Angel Statue
+AAI 			Bronze Goddess Statue
+AAJ			Broze Kitty Statue
+AAK	ABA		Hanging Scroll
+AAL	ABB		Dragon Pennant
+AAM	ABC		Noble Pennant
+AAN	ABD		Wide TV
+AAO	ABE		Cute TV
+AAP	ABF		Wall-mounted TV
+AAQ	ABG		Digital Component Stereo
+AAR	ABH		Component Stereo
+AAS	ABI		Gramophone
+AAT	ABJ		Massage Chair
+AAU	ABK	ACA	"Sexy" Massage Chair
+AAV	ABL	ACB	Relaxing Chair
+AAW	ABM	ACC	Globe
+AAX	ABN	ACD	Cosmic Globe
+AAY	ABO	ACE	Miniature House
+AAZ	ABP	ACF	Pink Chest
+ABQ	ACG		Japanese Drawer
+ABR	ACH		Toy Case
+ABS	ACI		Japanese Vase
+ABT	ACJ		Western Vase
+ABU	ACK	ADA	Arabian Vase
+ABV	ACL	ADB	Tetra Aquarium
+ABW	ACM	ADC	Turtle Aquarium
+ABX	ACN	ADD	Arowana Aquarium
+ABY	ACO	ADE	Floor Light
+ABZ	ACP	ADF	Standing Light
+ACQ	ADG		Mood Light
+ACR	ADH		Doggy Doll
+ACS	ADI		Sheep Doll
+ACT	ADJ		Lion Doll
+ACU	ADK	AEA	Puppet Storage Box
+ACV	ADL	AEB	Robot Base
+ACW	ADM	AEC	Doll House
+ACX	ADN	AED	Magazine Rack
+ACY	ADO	AEE	Letter Rack
+ACZ	ADP	AEF	Bookstand
+ADQ	AEG		Hat Stand
+ADR	AEH		Coat Stand
+ADS	AEI		Dear Daniel Doll
+ADT	AEJ		Pink Living Room Furniture
+ADU	AEK	AFA	Blue Living Room Furniture
+ADV	AEL	AFB	White Living Room Furniture
+ADW	AEM	AFC	Thai Living Room Furniture
+ADX	AEN	AFD	Chinese Living Room Furniture
+ADY	AEO	AFE	Asian Living Room Furniture
+ADZ	AEP	AFF	Japanese Living Room Furniture
+AEQ	AFG		Wooden Japanese Chestnut Living Room Furniture
+AER	AFH		Wajima Lacquer Living Room Furniture
+AES	AFI		Cozy Living Room Furniture
+AET	AFJ		Checkered Living Room Furniture
+AEU	AFK		Pop Living Room Furniture
+AEV	AFL		Old Living Room Furniture
+AEW	AFM		Old-fashioned Living Room Furniture
+AEX	AFN		Antique Living Room Furniture
+AEY	AFO		Heart-themed Living Room Furniture
+AEZ	AFP		Apple-themed Living Room Furniture
+AFQ	AGG		Flower-themed Living Room Furniture
+AFR	AGH		Red Kotatsu
+AFS	AGI		Blue Kotatsu
+AFT	AGJ		Yellow Kotatsu
+AFU	AGK	AGA	Extravagant Living Room Furniture
+AFV	AGL	AGB	Elegant Living Room Furniture
+AFW	AGM	AGC	Hello Kitty-themed Living Room Furniture
+AFX	AGN	AGD	Red Art Studio
+AFY	AGO	AGE	Blue Art Studio
+AFZ	AGP	AGF	Elegant Art Studio
