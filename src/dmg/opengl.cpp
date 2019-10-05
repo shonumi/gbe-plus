@@ -27,8 +27,10 @@
 #include "common/gx_util.h"
 
 /****** Initialize OpenGL through SDL ******/
-void DMG_LCD::opengl_init()
+bool DMG_LCD::opengl_init()
 {
+	#ifdef GBE_OGL
+
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
 
@@ -84,7 +86,7 @@ void DMG_LCD::opengl_init()
  	if(glew_err != GLEW_OK)
 	{
 		std::cout<<"LCD::Error - Could not initialize GLEW: " << glewGetErrorString(glew_err) << "\n";
-		return;
+		return false;
   	}
 	#endif
 
@@ -143,12 +145,24 @@ void DMG_LCD::opengl_init()
 	//Load the shader
 	program_id = gx_load_shader(config::vertex_shader, config::fragment_shader, external_data_usage);
 
-	if(program_id == -1) { std::cout<<"LCD::Error - Could not generate shaders\n"; }
+	if(program_id == -1)
+	{
+		std::cout<<"LCD::Error - Could not generate shaders\n";
+		return false;
+	}
+
+	return true;
+
+	#endif
+
+	return false;
 }
 
 /****** Blit using OpenGL ******/
 void DMG_LCD::opengl_blit()
 {
+	#ifdef GBE_OGL
+
 	//Determine what the shader's external data usage is
 	switch(external_data_usage)
 	{
@@ -212,4 +226,6 @@ void DMG_LCD::opengl_blit()
 	glUseProgram(0);
 
 	SDL_GL_SwapWindow(window);
+
+	#endif
 }

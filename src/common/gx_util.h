@@ -87,8 +87,12 @@ gx_vector operator* (const gx_matrix &input_matrix, const gx_vector &input_vecto
 //Projection matrix
 gx_matrix ortho_matrix(float width, float height, float z_far, float z_near);
 
+#ifdef GBE_OGL
+
 //GLSL vertex and fragment shader loader
 GLuint gx_load_shader(std::string vertex_shader_file, std::string fragment_shader_file, u32 &external_data_usage);
+
+#endif
 
 //2D distance
 float dist(float x1, float y1, float x2, float y2);

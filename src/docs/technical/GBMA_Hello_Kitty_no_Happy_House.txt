@@ -48,7 +48,7 @@ The codes appear to be simple, e.g. "AAE" for a framed picture and "AIG" for a g
 Below are a list of 3-letter codes and the items they generate when used in the email header. If the game does not recognize the code, a present icon will appear next to the email, but no item is actually received.
 
 ---------------------------------------------------
-Codes		| Item
+Codes			| Item
 ---------------------------------------------------
 AAA	 		Green Iron
 AAB			Heart Clock

@@ -30,7 +30,7 @@ class SGB_LCD
 	void step(int cpu_clock);
 	void reset();
 	bool init();
-	void opengl_init();
+	bool opengl_init();
 
 	//Serialize data for save state loading/saving
 	bool lcd_read(u32 offset, std::string filename);
@@ -42,6 +42,7 @@ class SGB_LCD
 	SDL_Surface* original_screen;
 
 	//OpenGL data
+	#ifdef GBE_OGL
 	SDL_GLContext gl_context;
 	GLuint lcd_texture;
 	GLuint program_id;
@@ -49,6 +50,7 @@ class SGB_LCD
 	GLfloat ogl_x_scale, ogl_y_scale;
 	GLfloat ext_data_1, ext_data_2;
 	u32 external_data_usage;
+	#endif
 
 	dmg_lcd_data lcd_stat;
 

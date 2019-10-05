@@ -36,7 +36,11 @@ set(HEADERS
 
 add_library(nds STATIC ${SRCS} ${HEADERS})
 
-target_link_libraries(nds ${SDL2_LIBRARY} ${OPENGL_gl_LIBRARY}) 
+target_link_libraries(nds ${SDL2_LIBRARY}) 
+
+if (USE_OGL)
+    target_link_libraries(nds ${OPENGL_gl_LIBRARY})
+endif()
 
 if (WIN32)
     target_link_libraries(nds ${GLEW_LIBRARY})

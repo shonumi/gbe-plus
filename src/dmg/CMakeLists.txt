@@ -42,10 +42,14 @@ set(HEADERS
 
 add_library(dmg STATIC ${SRCS} ${HEADERS})
 
-target_link_libraries(dmg common ${SDL2_LIBRARY} ${OPENGL_gl_LIBRARY})
+target_link_libraries(dmg common ${SDL2_LIBRARY})
 
 if (LINK_CABLE)
     target_link_libraries(dmg ${SDL2NET_LIBRARY})
+endif()
+
+if (USE_OGL)
+    target_link_libraries(dmg ${OPENGL_gl_LIBRARY})
 endif()
 
 if (WIN32)

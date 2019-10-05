@@ -388,6 +388,8 @@ void gx_matrix::resize(u32 input_columns, u32 input_rows)
 	rows = input_rows;
 }
 
+#ifdef GBE_OGL
+
 /****** Loads and compiles GLSL vertex and fragment shaders ******/
 GLuint gx_load_shader(std::string vertex_shader_file, std::string fragment_shader_file, u32 &ext_data_usage)
 {
@@ -502,6 +504,8 @@ GLuint gx_load_shader(std::string vertex_shader_file, std::string fragment_shade
  
 	return program_id;
 }
+
+#endif
 
 /****** Returns distance between 2D vectors ******/
 float dist(float x1, float y1, float x2, float y2)

@@ -31,7 +31,7 @@ class NTR_LCD
 	void step();
 	void reset();
 	bool init();
-	void opengl_init();
+	bool opengl_init();
 	void update();
 
 	bool get_cart_icon(SDL_Surface* nds_icon);
