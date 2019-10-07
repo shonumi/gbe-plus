@@ -1486,12 +1486,12 @@ bool DMG_SIO::mobile_adapter_open_tcp(u16 port)
 {
 	bool result = false;
 
+	#ifdef GBE_NETPLAY
+
 	sender.host_socket = NULL;
 	sender.host_init = false;
 	sender.connected = false;
 	sender.port = port;
-
-	#ifdef GBE_NETPLAY
 
 	//Resolve hostname
 	if(SDLNet_ResolveHost(&sender.host_ip, config::gbma_server.c_str(), sender.port) < 0)
