@@ -56,6 +56,9 @@ struct ntr_lcd_data
 	u16 bg_control_b[4];
 
 	bool hblank_interval_free;
+	
+	u16 master_bright;
+	u16 old_master_bright;
 
 	bool forced_blank_a;
 	bool forced_blank_b;

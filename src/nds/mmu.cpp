@@ -2650,6 +2650,14 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 			break;
 
+		//Master Brightness
+		case NDS_MASTER_BRIGHT:
+		case NDS_MASTER_BRIGHT+1:
+			memory_map[address] = value;
+			lcd_stat->master_bright = ((memory_map[NDS_MASTER_BRIGHT+1] << 8) | memory_map[NDS_MASTER_BRIGHT]);
+
+			break;
+
 		//DMA0 Start Address
 		case NDS_DMA0SAD:
 		case NDS_DMA0SAD+1:

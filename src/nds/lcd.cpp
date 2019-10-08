@@ -149,6 +149,9 @@ void NTR_LCD::reset()
 	lcd_stat.bg_mode_b = 0;
 	lcd_stat.hblank_interval_free = false;
 
+	lcd_stat.master_bright = 0;
+	lcd_stat.old_master_bright = 0;
+
 	lcd_stat.forced_blank_a = false;
 	lcd_stat.forced_blank_b = false;
 
@@ -2964,6 +2967,92 @@ void NTR_LCD::brightness_down(u32 bg_control)
 	}
 }
 
+/****** Adjusts master brightness before final scanline output ******/
+void NTR_LCD::adjust_master_brightness()
+{
+	double factor = (lcd_stat.master_bright & 0xF) / 16.0;
+	u32 color = 0;
+	
+	u8 r = 0;
+	u8 g = 0;
+	u8 b = 0;
+
+	//Master Brightness Up
+	if((lcd_stat.master_bright >> 14) == 0x1)
+	{
+		//Engine A pixels
+		for(u32 x = 0; x < 256; x++)
+		{
+			color = scanline_buffer_a[x];
+
+			r = (color >> 19) & 0x1F;
+			r = r + ((63 - r) * factor);
+
+			g = (color >> 11) & 0x1F;
+			g = g + ((63 - g) * factor);
+
+			b = (color >> 3) & 0x1F;
+			b = b + ((63 - b) * factor);
+
+			scanline_buffer_a[x] = 0xFF000000 | (r << 19) | (g << 11) | (b << 3);
+		}
+
+		//Engine B pixels
+		for(u32 x = 0; x < 256; x++)
+		{
+			color = scanline_buffer_b[x];
+
+			r = (color >> 19) & 0x1F;
+			r = r + ((63 - r) * factor);
+
+			g = (color >> 11) & 0x1F;
+			g = g + ((63 - g) * factor);
+
+			b = (color >> 3) & 0x1F;
+			b = b + ((63 - b) * factor);
+
+			scanline_buffer_b[x] = 0xFF000000 | (r << 19) | (g << 11) | (b << 3);
+		}
+	}
+
+	//Master Bright Down
+	if((lcd_stat.master_bright >> 14) == 0x2)
+	{
+		//Engine A pixels
+		for(u32 x = 0; x < 256; x++)
+		{
+			color = scanline_buffer_a[x];
+
+			r = (color >> 19) & 0x1F;
+			r = r - (r * factor);
+
+			g = (color >> 11) & 0x1F;
+			g = g - (g * factor);
+
+			b = (color >> 3) & 0x1F;
+			b = b - (b * factor);
+
+			scanline_buffer_a[x] = 0xFF000000 | (r << 19) | (g << 11) | (b << 3);
+		}
+
+		//Engine B pixels
+		for(u32 x = 0; x < 256; x++)
+		{
+			color = scanline_buffer_b[x];
+
+			r = (color >> 19) & 0x1F;
+			r = r - (r * factor);
+
+			g = (color >> 11) & 0x1F;
+			g = g - (g * factor);
+
+			b = (color >> 3) & 0x1F;
+			b = b - (b * factor);
+
+			scanline_buffer_b[x] = 0xFF000000 | (r << 19) | (g << 11) | (b << 3);
+		}
+	}
+}	
 		
 /****** Immediately draw current buffer to the screen ******/
 void NTR_LCD::update()
@@ -3091,6 +3180,9 @@ void NTR_LCD::step()
 
 			//Render scanline data
 			render_scanline();
+
+			//Apply Master Brightness if necessary
+			if(lcd_stat.master_bright != lcd_stat.old_master_bright) { adjust_master_brightness(); }
 
 			u32 render_position = (lcd_stat.current_scanline * config::sys_width);
 
@@ -3334,6 +3426,9 @@ void NTR_LCD::step()
 
 				//Start Display Sync DMA
 				mem->start_dma(3);
+
+				//Reset master brightness flag
+				lcd_stat.master_bright = lcd_stat.old_master_bright;
 			}
 		}
 	}
