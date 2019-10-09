@@ -218,10 +218,13 @@ bool DMG_LCD::init()
 		}
 
 		//Setup OpenGL rendering
-		if(config::use_opengl && !opengl_init())
+		if(config::use_opengl)
 		{
-			std::cout<<"LCD::Error - Could not initialize OpenGL\n";
-			return false;
+			if(!opengl_init())
+			{
+				std::cout<<"LCD::Error - Could not initialize OpenGL\n";
+				return false;
+			}
 		}
 
 		//Set up software rendering
