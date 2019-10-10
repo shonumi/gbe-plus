@@ -2349,47 +2349,139 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 			break;
 
-		//Window 0 Horizontal Coordinates
-		case NDS_WIN0H:
-		case NDS_WIN0H+1:
+		//Window 0 Horizontal Coordinates - Engine A
+		case NDS_WIN0H_A:
+		case NDS_WIN0H_A+1:
+			memory_map[address] = value;
+			lcd_stat->window_x_a[0][1] = memory_map[NDS_WIN0H_A+1];
+			lcd_stat->window_x_a[0][0] = memory_map[NDS_WIN0H_A];
+
+			//If the two X coordinates are the same, window should fail to draw
+			//Set both to a pixel that the NDS cannot draw so the LCD won't render it
+			if(lcd_stat->window_x_a[0][0] == lcd_stat->window_x_a[0][1]) { lcd_stat->window_x_a[0][0] = lcd_stat->window_x_a[0][1] = 256; }
+			break;
+
+		//Window 1 Horizontal Coordinates - Engine A
+		case NDS_WIN1H_A:
+		case NDS_WIN1H_A+1:
+			memory_map[address] = value;
+			lcd_stat->window_x_a[1][1] = memory_map[NDS_WIN1H_A+1];
+			lcd_stat->window_x_a[1][0] = memory_map[NDS_WIN1H_A];
+
+			//If the two X coordinates are the same, window should fail to draw
+			//Set both to a pixel that the NDS cannot draw so the LCD won't render it
+			if(lcd_stat->window_x_a[1][0] == lcd_stat->window_x_a[1][1]) { lcd_stat->window_x_a[1][0] = lcd_stat->window_x_a[1][1] = 256; }
+			break;
+
+		//Window 0 Vertical Coordinates - Engine A
+		case NDS_WIN0V_A:
+		case NDS_WIN0V_A+1:
+			memory_map[address] = value;
+			lcd_stat->window_y_a[0][1] = memory_map[NDS_WIN0V_A+1];
+			lcd_stat->window_y_a[0][0] = memory_map[NDS_WIN0V_A];
+
+			//If the two Y coordinates are the same, window should fail to draw
+			//Set both to a pixel that the NDS cannot draw so the LCD won't render it
+			if(lcd_stat->window_y_a[0][0] == lcd_stat->window_y_a[0][1]) { lcd_stat->window_y_a[0][0] = lcd_stat->window_y_a[0][1] = 256; }
+			break;
+
+		//Window 1 Vertical Coordinates - Engine A
+		case NDS_WIN1V_A:
+		case NDS_WIN1V_A+1:
+			memory_map[address] = value;
+			lcd_stat->window_y_a[1][1] = memory_map[NDS_WIN1V_A+1];
+			lcd_stat->window_y_a[1][0] = memory_map[NDS_WIN1V_A];
+
+			//If the two X coordinates are the same, window should fail to draw
+			//Set both to a pixel that the NDS cannot draw so the LCD won't render it
+			if(lcd_stat->window_y_a[1][0] == lcd_stat->window_y_a[1][1]) { lcd_stat->window_y_a[1][0] = lcd_stat->window_y_a[1][1] = 256; }
+			break;
+
+		//Window 0 In Enable Flags - Engine A
+		case NDS_WININ_A:
 			memory_map[address] = value;
 			break;
 
-		//Window 1 Horizontal Coordinates
-		case NDS_WIN1H:
-		case NDS_WIN1H+1:
+		//Window 1 In Enable Flags - Engine A
+		case NDS_WININ_A+1:
 			memory_map[address] = value;
 			break;
 
-		//Window 0 Vertical Coordinates
-		case NDS_WIN0V:
-		case NDS_WIN0V+1:
+		//Window 0 Out Enable Flags - Engine A
+		case NDS_WINOUT_A:
 			memory_map[address] = value;
 			break;
 
-		//Window 1 Vertical Coordinates
-		case NDS_WIN1V:
-		case NDS_WIN1V+1:
+		//Window 1 Out Enable Flags - Engine A
+		case NDS_WINOUT_A+1:
 			memory_map[address] = value;
 			break;
 
-		//Window 0 In Enable Flags
-		case NDS_WININ:
+		//Window 0 Horizontal Coordinates - Engine B
+		case NDS_WIN0H_B:
+		case NDS_WIN0H_B+1:
+			memory_map[address] = value;
+			lcd_stat->window_x_b[0][1] = memory_map[NDS_WIN0H_B+1];
+			lcd_stat->window_x_b[0][0] = memory_map[NDS_WIN0H_B];
+
+			//If the two X coordinates are the same, window should fail to draw
+			//Set both to a pixel that the NDS cannot draw so the LCD won't render it
+			if(lcd_stat->window_x_b[0][0] == lcd_stat->window_x_b[0][1]) { lcd_stat->window_x_b[0][0] = lcd_stat->window_x_b[0][1] = 256; }
+			break;
+
+		//Window 1 Horizontal Coordinates - Engine B
+		case NDS_WIN1H_B:
+		case NDS_WIN1H_B+1:
+			memory_map[address] = value;
+			lcd_stat->window_x_b[1][1] = memory_map[NDS_WIN1H_B+1];
+			lcd_stat->window_x_b[1][0] = memory_map[NDS_WIN1H_B];
+
+			//If the two X coordinates are the same, window should fail to draw
+			//Set both to a pixel that the NDS cannot draw so the LCD won't render it
+			if(lcd_stat->window_x_b[1][0] == lcd_stat->window_x_b[1][1]) { lcd_stat->window_x_b[1][0] = lcd_stat->window_x_b[1][1] = 256; }
+			break;
+
+		//Window 0 Vertical Coordinates - Engine B
+		case NDS_WIN0V_B:
+		case NDS_WIN0V_B+1:
+			memory_map[address] = value;
+			lcd_stat->window_y_b[0][1] = memory_map[NDS_WIN0V_B+1];
+			lcd_stat->window_y_b[0][0] = memory_map[NDS_WIN0V_B];
+
+			//If the two Y coordinates are the same, window should fail to draw
+			//Set both to a pixel that the NDS cannot draw so the LCD won't render it
+			if(lcd_stat->window_y_b[0][0] == lcd_stat->window_y_b[0][1]) { lcd_stat->window_y_b[0][0] = lcd_stat->window_y_b[0][1] = 256; }
+			break;
+
+		//Window 1 Vertical Coordinates - Engine B
+		case NDS_WIN1V_B:
+		case NDS_WIN1V_B+1:
+			memory_map[address] = value;
+			lcd_stat->window_y_b[1][1] = memory_map[NDS_WIN1V_B+1];
+			lcd_stat->window_y_b[1][0] = memory_map[NDS_WIN1V_B];
+
+			//If the two X coordinates are the same, window should fail to draw
+			//Set both to a pixel that the NDS cannot draw so the LCD won't render it
+			if(lcd_stat->window_y_b[1][0] == lcd_stat->window_y_b[1][1]) { lcd_stat->window_y_b[1][0] = lcd_stat->window_y_b[1][1] = 256; }
+			break;
+
+		//Window 0 In Enable Flags - Engine B
+		case NDS_WININ_B:
 			memory_map[address] = value;
 			break;
 
-		//Window 1 In Enable Flags
-		case NDS_WININ+1:
+		//Window 1 In Enable Flags - Engine B
+		case NDS_WININ_B+1:
 			memory_map[address] = value;
 			break;
 
-		//Window 0 Out Enable Flags
-		case NDS_WINOUT:
+		//Window 0 Out Enable Flags - Engine B
+		case NDS_WINOUT_B:
 			memory_map[address] = value;
 			break;
 
-		//Window 1 Out Enable Flags
-		case NDS_WINOUT+1:
+		//Window 1 Out Enable Flags - Engine B
+		case NDS_WINOUT_B+1:
 			memory_map[address] = value;
 			break;
 

@@ -200,6 +200,7 @@ void NTR_LCD::reset()
 	}
 
 	//BG2/3 affine parameters + bitmap base addrs
+	//Window coordinates
 	for(int x = 0; x < 2; x++)
 	{
 		lcd_stat.bg_affine_a[x].overflow = false;
@@ -216,6 +217,18 @@ void NTR_LCD::reset()
 
 		lcd_stat.bg_bitmap_base_addr_a[x] = 0x6000000;
 		lcd_stat.bg_bitmap_base_addr_b[x] = 0x6000000;
+
+		lcd_stat.window_x_a[0][x] = 0;
+		lcd_stat.window_x_a[1][x] = 0;
+
+		lcd_stat.window_x_b[0][x] = 0;
+		lcd_stat.window_x_b[1][x] = 0;
+
+		lcd_stat.window_y_a[0][x] = 0;
+		lcd_stat.window_y_a[1][x] = 0;
+
+		lcd_stat.window_y_b[0][x] = 0;
+		lcd_stat.window_y_b[1][x] = 0;
 	}
 
 	//OBJ affine parameters

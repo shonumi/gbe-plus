@@ -153,6 +153,12 @@ struct ntr_lcd_data
 	double brightness_coef_a;
 	double brightness_coef_b;
 
+	u16 window_x_a[2][2];
+	u16 window_x_b[2][2];
+
+	u16 window_y_a[2][2];
+	u16 window_y_b[2][2];
+
 	bool vblank_irq_enable_a;
 	bool hblank_irq_enable_a;
 	bool vcount_irq_enable_a;
