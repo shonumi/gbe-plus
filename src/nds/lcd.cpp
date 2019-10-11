@@ -229,6 +229,24 @@ void NTR_LCD::reset()
 
 		lcd_stat.window_y_b[0][x] = 0;
 		lcd_stat.window_y_b[1][x] = 0;
+
+		lcd_stat.window_enable_a[x] = false;
+		lcd_stat.window_enable_b[x] = false;
+
+		lcd_stat.obj_win_enable_a = false;
+		lcd_stat.obj_win_enable_b = false;
+
+		for(int y = 0; y < 6; y++)
+		{
+			lcd_stat.window_in_enable_a[y][x] = false;
+			lcd_stat.window_in_enable_b[y][x] = false;
+
+			lcd_stat.window_out_enable_a[y][x] = false;
+			lcd_stat.window_out_enable_b[y][x] = false;
+		}
+
+		lcd_stat.current_window_a = 0;
+		lcd_stat.current_window_b = 0;
 	}
 
 	//OBJ affine parameters

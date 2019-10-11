@@ -2399,22 +2399,46 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 		//Window 0 In Enable Flags - Engine A
 		case NDS_WININ_A:
-			memory_map[address] = value;
+			memory_map[address] = (value & 0x3F);
+			lcd_stat->window_in_enable_a[0][0] = (value & 0x1) ? true : false;
+			lcd_stat->window_in_enable_a[1][0] = (value & 0x2) ? true : false;
+			lcd_stat->window_in_enable_a[2][0] = (value & 0x4) ? true : false;
+			lcd_stat->window_in_enable_a[3][0] = (value & 0x8) ? true : false;
+			lcd_stat->window_in_enable_a[4][0] = (value & 0x10) ? true : false;
+			lcd_stat->window_in_enable_a[5][0] = (value & 0x20) ? true : false;
 			break;
 
 		//Window 1 In Enable Flags - Engine A
 		case NDS_WININ_A+1:
-			memory_map[address] = value;
+			memory_map[address] = (value & 0x3F);
+			lcd_stat->window_in_enable_a[0][1] = (value & 0x1) ? true : false;
+			lcd_stat->window_in_enable_a[1][1] = (value & 0x2) ? true : false;
+			lcd_stat->window_in_enable_a[2][1] = (value & 0x4) ? true : false;
+			lcd_stat->window_in_enable_a[3][1] = (value & 0x8) ? true : false;
+			lcd_stat->window_in_enable_a[4][1] = (value & 0x10) ? true : false;
+			lcd_stat->window_in_enable_a[5][1] = (value & 0x20) ? true : false;
 			break;
 
 		//Window 0 Out Enable Flags - Engine A
 		case NDS_WINOUT_A:
-			memory_map[address] = value;
+			memory_map[address] = (value & 0x3F);
+			lcd_stat->window_out_enable_a[0][0] = (value & 0x1) ? true : false;
+			lcd_stat->window_out_enable_a[1][0] = (value & 0x2) ? true : false;
+			lcd_stat->window_out_enable_a[2][0] = (value & 0x4) ? true : false;
+			lcd_stat->window_out_enable_a[3][0] = (value & 0x8) ? true : false;
+			lcd_stat->window_out_enable_a[4][0] = (value & 0x10) ? true : false;
+			lcd_stat->window_out_enable_a[5][0] = (value & 0x20) ? true : false;
 			break;
 
 		//Window 1 Out Enable Flags - Engine A
 		case NDS_WINOUT_A+1:
-			memory_map[address] = value;
+			memory_map[address] = (value & 0x3F);
+			lcd_stat->window_out_enable_a[0][1] = (value & 0x1) ? true : false;
+			lcd_stat->window_out_enable_a[1][1] = (value & 0x2) ? true : false;
+			lcd_stat->window_out_enable_a[2][1] = (value & 0x4) ? true : false;
+			lcd_stat->window_out_enable_a[3][1] = (value & 0x8) ? true : false;
+			lcd_stat->window_out_enable_a[4][1] = (value & 0x10) ? true : false;
+			lcd_stat->window_out_enable_a[5][1] = (value & 0x20) ? true : false;
 			break;
 
 		//Window 0 Horizontal Coordinates - Engine B
@@ -2467,22 +2491,46 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 		//Window 0 In Enable Flags - Engine B
 		case NDS_WININ_B:
-			memory_map[address] = value;
+			memory_map[address] = (value & 0x3F);
+			lcd_stat->window_in_enable_b[0][0] = (value & 0x1) ? true : false;
+			lcd_stat->window_in_enable_b[1][0] = (value & 0x2) ? true : false;
+			lcd_stat->window_in_enable_b[2][0] = (value & 0x4) ? true : false;
+			lcd_stat->window_in_enable_b[3][0] = (value & 0x8) ? true : false;
+			lcd_stat->window_in_enable_b[4][0] = (value & 0x10) ? true : false;
+			lcd_stat->window_in_enable_b[5][0] = (value & 0x20) ? true : false;
 			break;
 
 		//Window 1 In Enable Flags - Engine B
 		case NDS_WININ_B+1:
-			memory_map[address] = value;
+			memory_map[address] = (value & 0x3F);
+			lcd_stat->window_in_enable_b[0][1] = (value & 0x1) ? true : false;
+			lcd_stat->window_in_enable_b[1][1] = (value & 0x2) ? true : false;
+			lcd_stat->window_in_enable_b[2][1] = (value & 0x4) ? true : false;
+			lcd_stat->window_in_enable_b[3][1] = (value & 0x8) ? true : false;
+			lcd_stat->window_in_enable_b[4][1] = (value & 0x10) ? true : false;
+			lcd_stat->window_in_enable_b[5][1] = (value & 0x20) ? true : false;
 			break;
 
 		//Window 0 Out Enable Flags - Engine B
 		case NDS_WINOUT_B:
-			memory_map[address] = value;
+			memory_map[address] = (value & 0x3F);
+			lcd_stat->window_out_enable_b[0][0] = (value & 0x1) ? true : false;
+			lcd_stat->window_out_enable_b[1][0] = (value & 0x2) ? true : false;
+			lcd_stat->window_out_enable_b[2][0] = (value & 0x4) ? true : false;
+			lcd_stat->window_out_enable_b[3][0] = (value & 0x8) ? true : false;
+			lcd_stat->window_out_enable_b[4][0] = (value & 0x10) ? true : false;
+			lcd_stat->window_out_enable_b[5][0] = (value & 0x20) ? true : false;
 			break;
 
 		//Window 1 Out Enable Flags - Engine B
 		case NDS_WINOUT_B+1:
-			memory_map[address] = value;
+			memory_map[address] = (value & 0x3F);
+			lcd_stat->window_out_enable_b[0][1] = (value & 0x1) ? true : false;
+			lcd_stat->window_out_enable_b[1][1] = (value & 0x2) ? true : false;
+			lcd_stat->window_out_enable_b[2][1] = (value & 0x4) ? true : false;
+			lcd_stat->window_out_enable_b[3][1] = (value & 0x8) ? true : false;
+			lcd_stat->window_out_enable_b[4][1] = (value & 0x10) ? true : false;
+			lcd_stat->window_out_enable_b[5][1] = (value & 0x20) ? true : false;
 			break;
 
 		//SFX Control - Engine A

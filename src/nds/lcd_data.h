@@ -159,6 +159,21 @@ struct ntr_lcd_data
 	u16 window_y_a[2][2];
 	u16 window_y_b[2][2];
 
+	bool window_enable_a[2];
+	bool window_enable_b[2];
+
+	bool obj_win_enable_a;
+	bool obj_win_enable_b;
+
+	bool window_in_enable_a[6][2];
+	bool window_in_enable_b[6][2];
+
+	bool window_out_enable_a[6][2];
+	bool window_out_enable_b[6][2];
+
+	u8 current_window_a;
+	u8 current_window_b;
+
 	bool vblank_irq_enable_a;
 	bool hblank_irq_enable_a;
 	bool vcount_irq_enable_a;
