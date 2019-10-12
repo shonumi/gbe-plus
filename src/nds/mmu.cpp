@@ -1262,6 +1262,11 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			lcd_stat->bg_enable_a[2] = (lcd_stat->display_control_a & 0x400) ? true : false;
 			lcd_stat->bg_enable_a[3] = (lcd_stat->display_control_a & 0x800) ? true : false;
 
+			//Enable or disable windows
+			lcd_stat->window_enable_a[0] = (lcd_stat->display_control_a & 0x2000) ? true : false;
+			lcd_stat->window_enable_a[1] = (lcd_stat->display_control_a & 0x4000) ? true : false;
+			lcd_stat->obj_win_enable_a = (lcd_stat->display_control_a & 0x8000) ? true : false;
+
 			//Extended palettes
 			lcd_stat->ext_pal_a = lcd_stat->display_control_a >> 30;
 
@@ -1293,6 +1298,11 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			lcd_stat->bg_enable_b[1] = (lcd_stat->display_control_b & 0x200) ? true : false;
 			lcd_stat->bg_enable_b[2] = (lcd_stat->display_control_b & 0x400) ? true : false;
 			lcd_stat->bg_enable_b[3] = (lcd_stat->display_control_b & 0x800) ? true : false;
+
+			//Enable or disable windows
+			lcd_stat->window_enable_b[0] = (lcd_stat->display_control_b & 0x2000) ? true : false;
+			lcd_stat->window_enable_b[1] = (lcd_stat->display_control_b & 0x4000) ? true : false;
+			lcd_stat->obj_win_enable_b = (lcd_stat->display_control_b & 0x8000) ? true : false;
 
 			//Extended palettes
 			lcd_stat->ext_pal_b = lcd_stat->display_control_b >> 30;
