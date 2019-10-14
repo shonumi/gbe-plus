@@ -110,19 +110,29 @@ AEQ	AFG		Wooden Japanese Chestnut Living Room Furniture
 AER	AFH		Wajima Lacquer Living Room Furniture
 AES	AFI		Cozy Living Room Furniture
 AET	AFJ		Checkered Living Room Furniture
-AEU	AFK		Pop Living Room Furniture
-AEV	AFL		Old Living Room Furniture
-AEW	AFM		Old-fashioned Living Room Furniture
-AEX	AFN		Antique Living Room Furniture
-AEY	AFO		Heart-themed Living Room Furniture
-AEZ	AFP		Apple-themed Living Room Furniture
+AEU	AFK	AGA	Pop Living Room Furniture
+AEV	AFL	AGB	Old Living Room Furniture
+AEW	AFM	AGC	Old-fashioned Living Room Furniture
+AEX	AFN	AGD	Antique Living Room Furniture
+AEY	AFO	AGE	Heart-themed Living Room Furniture
+AEZ	AFP	AGF	Apple-themed Living Room Furniture
 AFQ	AGG		Flower-themed Living Room Furniture
 AFR	AGH		Red Kotatsu
 AFS	AGI		Blue Kotatsu
 AFT	AGJ		Yellow Kotatsu
-AFU	AGK	AGA	Extravagant Living Room Furniture
-AFV	AGL	AGB	Elegant Living Room Furniture
-AFW	AGM	AGC	Hello Kitty-themed Living Room Furniture
-AFX	AGN	AGD	Red Art Studio
-AFY	AGO	AGE	Blue Art Studio
-AFZ	AGP	AGF	Elegant Art Studio
+AFU	AGK	AHA	Extravagant Living Room Furniture
+AFV	AGL	AHB	Elegant Living Room Furniture
+AFW	AGM	AHC	Hello Kitty-themed Living Room Furniture
+AFX	AGN	AHD	Red Art Studio
+AFY	AGO	AHE	Blue Art Studio
+AFZ	AGP	AHF	Elegant Art Studio
+AGQ	AHG		Model Train
+AGR	AHH		Toy Blocks
+AGS	AHI		Playing House Set
+AGT	AHJ		Standing Table
+AGU	AHK	AIA	Flower-pattern Table
+AGV	AHL	AIB	Glass Table
+AGW	AHM	AIC	Japanese Flower Arranged Desk
+AGX	AHN	AID	Flower Arrangement
+AGY	AHO	AIE	Bonsai
+AGZ	AHP	AIF	Red Carpet
