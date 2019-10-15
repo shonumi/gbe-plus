@@ -136,3 +136,13 @@ AGW	AHM	AIC	Japanese Flower Arranged Desk
 AGX	AHN	AID	Flower Arrangement
 AGY	AHO	AIE	Bonsai
 AGZ	AHP	AIF	Red Carpet
+AHQ	AIG		Green Carpet
+AHR	AIH		Blue Carpet (says blue, looks purple)
+AHS	AII		Blue Playground Slide
+AHT	AIJ		Red Playground Slide (says red, looks pink)
+AHU	AIK	AJA	White Playground Slide
+AHV	AIL	AJB	Easy Chair
+AHW	AIM	AJC	Tranquil Chair
+AHX	AIN	AJD	Relaxing Chair
+AHY	AIO	AJE	Gold Tearoom
+AHZ	AIP	AJF	Silver Tearoom
