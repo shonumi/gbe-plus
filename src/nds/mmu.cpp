@@ -227,6 +227,16 @@ void NTR_MMU::reset()
 	dtcm.clear();
 	dtcm.resize(0x4000, 0);
 
+	pal_a_slot_0 = 0x6880000;
+	pal_a_slot_1 = 0x6890000;
+	pal_a_slot_2 = 0x6894000;
+	pal_a_slot_3 = 0x6894000;
+
+	pal_b_slot_0 = 0x6898000;
+	pal_b_slot_1 = 0x6898000;
+	pal_b_slot_2 = 0x6898000;
+	pal_b_slot_3 = 0x6898000;
+
 	access_mode = 1;
 	wram_mode = 3;
 	do_save = false;
@@ -2782,6 +2792,24 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 							case 0x3:
 								lcd_stat->vram_bank_addr[3] = 0x6600000;
 								break;
+
+							case 0x4:
+								pal_a_slot_0 = lcd_stat->vram_bank_addr[4];
+								pal_a_slot_1 = lcd_stat->vram_bank_addr[4];
+								pal_a_slot_2 = lcd_stat->vram_bank_addr[4];
+								pal_a_slot_3 = lcd_stat->vram_bank_addr[4];
+								break;
+
+							case 0x5:
+								if(!offset) { pal_a_slot_0 = lcd_stat->vram_bank_addr[5]; }
+								else { pal_a_slot_2 = lcd_stat->vram_bank_addr[5]; }
+								break;
+
+							case 0x6:
+								if(!offset) { pal_a_slot_1 = lcd_stat->vram_bank_addr[6]; }
+								else { pal_a_slot_3 = lcd_stat->vram_bank_addr[6]; }
+								break;
+								
 						}
 
 						break;
@@ -4342,9 +4370,8 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 	}
 
 	//Trigger Extended BG palette update in LCD - Engine A
-	else if((address >= 0x6880000) && (address <= 0x6887FFF))
+	else if((address >= pal_a_slot_0) && (address < (pal_a_slot_0 + 0x8000)))
 	{
- 
 		lcd_stat->bg_ext_pal_update_a = true;
 		lcd_stat->bg_ext_pal_update_list_a[(address & 0x7FFF) >> 1] = true;
 	}
@@ -4357,7 +4384,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 	}
 
 	//Trigger Extended OBJ palette update in LCD - Engine A, VRAM Bank F
-	else if((address >= 0x6890000) && (address <= 0x6891FFF) && (lcd_stat->vram_bank_enable[5]))
+	else if((address >= 0x6880000) && (address <= 0x6891FFF) && (lcd_stat->vram_bank_enable[5]))
 	{
 		lcd_stat->obj_ext_pal_update_a = true;
 		lcd_stat->obj_ext_pal_update_list_a[(address & 0x1FFF) >> 1] = true;
