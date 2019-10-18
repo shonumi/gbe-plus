@@ -728,7 +728,7 @@ void NTR_LCD::update_palettes()
 			{
 				lcd_stat.bg_ext_pal_update_list_b[x] = false;
 
-				u16 color_bytes = mem->read_u16_fast(0x6898000 + (x << 1));
+				u16 color_bytes = mem->read_u16_fast(mem->pal_b_slot_0 + (x << 1));
 				lcd_stat.raw_bg_ext_pal_b[x] = color_bytes;
 
 				u8 red = ((color_bytes & 0x1F) << 3);

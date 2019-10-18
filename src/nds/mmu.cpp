@@ -2774,6 +2774,12 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 								lcd_stat->vram_bank_addr[bank_id] = 0x6400000 + (0x4000 * (offset & 0x1)) + (0x10000 * (offset & 0x2));
 								break;
 
+							case 0x7:
+								pal_b_slot_0 = lcd_stat->vram_bank_addr[7];
+								pal_b_slot_1 = lcd_stat->vram_bank_addr[7] + 0x2000;
+								pal_b_slot_2 = lcd_stat->vram_bank_addr[7] + 0x4000;
+								pal_b_slot_3 = lcd_stat->vram_bank_addr[7] + 0x6000;
+
 							case 0x8:
 								lcd_stat->vram_bank_addr[8] = 0x6600000;
 								break;
@@ -2795,9 +2801,9 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 							case 0x4:
 								pal_a_slot_0 = lcd_stat->vram_bank_addr[4];
-								pal_a_slot_1 = lcd_stat->vram_bank_addr[4];
-								pal_a_slot_2 = lcd_stat->vram_bank_addr[4];
-								pal_a_slot_3 = lcd_stat->vram_bank_addr[4];
+								pal_a_slot_1 = lcd_stat->vram_bank_addr[4] + 0x2000;
+								pal_a_slot_2 = lcd_stat->vram_bank_addr[4] + 0x4000;
+								pal_a_slot_3 = lcd_stat->vram_bank_addr[4] + 0x6000;
 								break;
 
 							case 0x5:
@@ -4377,7 +4383,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 	}
 
 	//Trigger Extended BG palette update in LCD - Engine B
-	else if((address >= 0x6898000) && (address <= 0x689FFFF))
+	else if((address >= pal_b_slot_0) && (address < (pal_b_slot_0 + 0x8000)))
 	{
 		lcd_stat->bg_ext_pal_update_b = true;
 		lcd_stat->bg_ext_pal_update_list_b[(address & 0x7FFF) >> 1] = true;
