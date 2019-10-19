@@ -2787,6 +2787,17 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 						break;
 
+					//MST 3
+					case 0x3:
+						switch(bank_id)
+						{
+							case 0x8:
+								pal_b_slot_0 = lcd_stat->vram_bank_addr[7];
+								break;
+						}
+
+						break;
+
 					//MST 4
 					case 0x4:
 						switch(bank_id)
@@ -2816,6 +2827,21 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 								else { pal_a_slot_3 = lcd_stat->vram_bank_addr[6]; }
 								break;
 								
+						}
+
+						break;
+
+					//MST 5
+					case 0x5:
+						switch(bank_id)
+						{
+							case 0x5:
+								pal_a_slot_0 = lcd_stat->vram_bank_addr[5];
+								break;
+
+							case 0x6:
+								pal_a_slot_0 = lcd_stat->vram_bank_addr[6];
+								break;
 						}
 
 						break;
