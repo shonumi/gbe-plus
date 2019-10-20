@@ -1325,6 +1325,14 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 				sio_stat->shifts_left = 8;
 				sio_stat->shift_counter = 0;
 			}
+
+			//Special handling for Turbo File GB
+			else if(config::sio_device == 16)
+			{
+				sio_stat->active_transfer = true;
+				sio_stat->shifts_left = 8;
+				sio_stat->shift_counter = 0;
+			}
 		}
 
 		memory_map[address] = value | 0x7C;

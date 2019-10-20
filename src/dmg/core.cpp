@@ -470,6 +470,11 @@ void DMG_core::run_core()
 							case GB_SINGER_IZEK:
 								core_cpu.controllers.serial_io.singer_izek_process();
 								break;
+
+							//Process Turbo File GB communications
+							case GB_ASCII_TURBO_FILE:
+								core_cpu.controllers.serial_io.turbo_file_process();
+								break;
 						}
 
 						switch(core_cpu.controllers.serial_io.sio_stat.ir_type)
@@ -731,6 +736,11 @@ void DMG_core::step()
 						//Process Singer IZEK communications
 						case GB_SINGER_IZEK:
 							core_cpu.controllers.serial_io.singer_izek_process();
+							break;
+
+						//Process Turbo File GB communications
+						case GB_ASCII_TURBO_FILE:
+							core_cpu.controllers.serial_io.turbo_file_process();
 							break;
 					}
 

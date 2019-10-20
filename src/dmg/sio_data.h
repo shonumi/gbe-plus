@@ -26,6 +26,7 @@ enum sio_types
 	GB_FOUR_PLAYER_ADAPTER,
 	GB_POWER_ANTENNA,
 	GB_SINGER_IZEK,
+	GB_ASCII_TURBO_FILE,
 };
 
 //Infrared device-type enumeration
@@ -88,6 +89,14 @@ enum singer_izek_state
 	SINGER_PING,
 	SINGER_SEND_DATA,
 	SINGER_STATUS,
+};
+
+enum turbo_file_state
+{
+	TURBO_FILE_PACKET_START,
+	TURBO_FILE_PACKET_BODY,
+	TURBO_FILE_PACKET_END,
+	TURBO_FILE_DATA,
 };
 
 enum full_changer_state
