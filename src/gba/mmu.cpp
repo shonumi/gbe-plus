@@ -2796,6 +2796,14 @@ void AGB_MMU::process_sio()
 				sio_stat->transfer_data = memory_map[SIO_DATA_8];
 			}
 		}
+
+		//Start transfer - Special case for Turbo File Advance
+		if((sio_stat->cnt & 0x80) && (sio_stat->sio_type == GBA_TURBO_FILE))
+		{
+			sio_stat->emu_device_ready = true;
+			sio_stat->active_transfer = true;
+			sio_stat->transfer_data = memory_map[SIO_DATA_8];
+		}
 	}
 }
 

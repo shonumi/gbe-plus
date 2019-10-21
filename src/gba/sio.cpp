@@ -102,6 +102,13 @@ AGB_SIO::~AGB_SIO()
 	//Save any new Legendz data for updated Soul Doll
 	soul_doll_adapter_save_data();
 
+	//Save Turbo File GB data
+	if(sio_stat.sio_type == GBA_TURBO_FILE)
+	{
+		std::string turbo_save = config::data_path + "turbo_file_advance.sav";
+		turbo_file_save_data(turbo_save);
+	}
+
 	std::cout<<"SIO::Shutdown\n";
 }
 
@@ -249,6 +256,11 @@ void AGB_SIO::reset()
 			sio_stat.sio_type = GBA_MULTI_PLUST_ON_SYSTEM;
 			break;
 
+		//Turbo File Advance
+		case 16:
+			sio_stat.sio_type = GBA_TURBO_FILE;
+			break;
+
 		//Always wait until netplay connection is established to change to GBA_LINK
 		default:
 			sio_stat.sio_type = NO_GBA_DEVICE;
@@ -332,6 +344,22 @@ void AGB_SIO::reset()
 		case 0xB: chip_gate.unit_code = 0xFFC7; break;
 		case 0xC: chip_gate.unit_code = 0xFFC4; break;
 		default: chip_gate.unit_code = 0;
+	}
+
+	//Turbo File Advance
+	turbo_file.data.clear();
+	turbo_file.in_packet.clear();
+	turbo_file.out_packet.clear();
+	turbo_file.counter = 0;
+	turbo_file.current_state = AGB_TBF_PACKET_START;
+	turbo_file.device_status = 0x3;
+	turbo_file.mem_card_status = 0x5;
+	turbo_file.bank = 0x0;
+
+	if(config::sio_device == 16)
+	{
+		std::string turbo_save = config::data_path + "turbo_file_advance.sav";
+		turbo_file_load_data(turbo_save);
 	}
 
 	#ifdef GBE_NETPLAY
@@ -1218,4 +1246,356 @@ void AGB_SIO::mpos_generate_data()
 	//Last 2 responses from hardware do not change
 	mpos.data.push_back(0x80B8);
 	mpos.data.push_back(0x80BA);
+}
+
+/****** Processes data sent from the Turbo File to the Game Boy ******/
+void AGB_SIO::turbo_file_process()
+{
+	switch(turbo_file.current_state)
+	{
+		//Begin packet, wait for first sync signal 0x6C from GBA
+		case AGB_TBF_PACKET_START:
+			if(sio_stat.transfer_data == 0x6C)
+			{
+				mem->memory_map[SIO_DATA_8] = 0xC6;
+				turbo_file.current_state = AGB_TBF_PACKET_BODY;
+				turbo_file.counter = 0;
+				turbo_file.in_packet.clear();
+			}
+
+			else { mem->memory_map[SIO_DATA_8] = 0x00; }
+
+			break;
+
+		//Receive packet body - command, parameters, checksum
+		case AGB_TBF_PACKET_BODY:
+			mem->memory_map[SIO_DATA_8] = 0x00;
+			turbo_file.in_packet.push_back(sio_stat.transfer_data);
+
+			//Grab command
+			if(turbo_file.counter == 1) { turbo_file.command = sio_stat.transfer_data; }
+
+			//End packet body after given length, depending on command
+			if(turbo_file.counter >= 1)
+			{
+				switch(turbo_file.command)
+				{
+					//Get Status
+					case 0x10:
+						if(turbo_file.counter == 2)
+						{
+							turbo_file.current_state = AGB_TBF_PACKET_END;
+							turbo_file.sync_1 = false;
+							turbo_file.sync_2 = false;
+
+							//Build response packet
+							turbo_file.out_packet.clear();
+							turbo_file.out_packet.push_back(0x10);
+							turbo_file.out_packet.push_back(0x00);
+							turbo_file.out_packet.push_back(turbo_file.device_status);
+							turbo_file.out_packet.push_back(turbo_file.mem_card_status);
+							turbo_file.out_packet.push_back(0x00);
+							turbo_file.out_packet.push_back(turbo_file.bank & 0x100);
+							turbo_file.out_packet.push_back(turbo_file.bank & 0xFF);
+							turbo_file.out_packet.push_back(0x00);
+
+							//Calculate checksum
+							turbo_file_calculate_checksum();
+
+							//Calculate packet length
+							turbo_file.out_length = turbo_file.out_packet.size() + 1;
+						}
+
+						break;
+
+					//Init
+					case 0x20:
+						
+						if(turbo_file.counter == 3)
+						{
+							turbo_file.current_state = AGB_TBF_PACKET_END;
+							turbo_file.sync_1 = false;
+							turbo_file.sync_2 = false;
+
+							//Build response packet
+							turbo_file.out_packet.clear();
+							turbo_file.out_packet.push_back(0x20);
+							turbo_file.out_packet.push_back(0x00);
+							turbo_file.out_packet.push_back(turbo_file.device_status);
+
+							//Calculate checksum
+							turbo_file_calculate_checksum();
+
+							//Calculate packet length
+							turbo_file.out_length = turbo_file.out_packet.size() + 1;
+						}
+
+						break;
+
+					//Set Read Bank
+					case 0x23:
+						if(turbo_file.counter == 3)
+						{
+							turbo_file.current_state = AGB_TBF_PACKET_END;
+							turbo_file.sync_1 = false;
+							turbo_file.sync_2 = false;
+							turbo_file.device_status |= 0x08;
+							turbo_file.bank = (turbo_file.in_packet[2] << 7) | turbo_file.in_packet[3];
+
+							//Build response packet
+							turbo_file.out_packet.clear();
+							turbo_file.out_packet.push_back(0x23);
+							turbo_file.out_packet.push_back(0x00);
+							turbo_file.out_packet.push_back(turbo_file.device_status);
+
+							//Calculate checksum
+							turbo_file_calculate_checksum();
+
+							//Calculate packet length
+							turbo_file.out_length = turbo_file.out_packet.size() + 1;
+						}
+
+						break;
+
+					//Set Write Bank
+					case 0x22:
+						if(turbo_file.counter == 3)
+						{
+							turbo_file.current_state = AGB_TBF_PACKET_END;
+							turbo_file.sync_1 = false;
+							turbo_file.sync_2 = false;
+							turbo_file.device_status |= 0x08;
+							turbo_file.bank = (turbo_file.in_packet[2] << 7) | turbo_file.in_packet[3];
+
+							//Build response packet
+							turbo_file.out_packet.clear();
+							turbo_file.out_packet.push_back(0x22);
+							turbo_file.out_packet.push_back(0x00);
+							turbo_file.out_packet.push_back(turbo_file.device_status);
+
+							//Calculate checksum
+							turbo_file_calculate_checksum();
+
+							//Calculate packet length
+							turbo_file.out_length = turbo_file.out_packet.size() + 1;
+						}
+
+						break;
+
+					//Finish write operation
+					case 0x24:
+						if(turbo_file.counter == 2)
+						{
+							turbo_file.current_state = AGB_TBF_PACKET_END;
+							turbo_file.sync_1 = false;
+							turbo_file.sync_2 = false;
+
+							//Build response packet
+							turbo_file.out_packet.clear();
+							turbo_file.out_packet.push_back(0x24);
+							turbo_file.out_packet.push_back(0x00);
+							turbo_file.out_packet.push_back(turbo_file.device_status);
+
+							//Calculate checksum
+							turbo_file_calculate_checksum();
+
+							//Calculate packet length
+							turbo_file.out_length = turbo_file.out_packet.size() + 1;
+						}
+
+						break;
+
+					//Write Data
+					case 0x30:
+						if(turbo_file.counter == 68)
+						{
+							turbo_file.current_state = AGB_TBF_PACKET_END;
+							turbo_file.sync_1 = false;
+							turbo_file.sync_2 = false;
+
+							//Build response packet
+							turbo_file.out_packet.clear();
+							turbo_file.out_packet.push_back(0x30);
+							turbo_file.out_packet.push_back(0x00);
+							turbo_file.out_packet.push_back(turbo_file.device_status);
+
+							//Update Turbo File data
+							u32 offset = (turbo_file.bank * 0x2000) + (turbo_file.in_packet[2] * 256) + turbo_file.in_packet[3];
+
+							for(u32 x = 4; x < 68; x++) { turbo_file.data[offset++] = turbo_file.in_packet[x]; } 
+			
+							//Calculate checksum
+							turbo_file_calculate_checksum();
+
+							//Calculate packet length
+							turbo_file.out_length = turbo_file.out_packet.size() + 1;
+						}
+
+						break;
+
+					//Read Data
+					case 0x40:
+						if(turbo_file.counter == 4)
+						{
+							turbo_file.current_state = AGB_TBF_PACKET_END;
+							turbo_file.sync_1 = false;
+							turbo_file.sync_2 = false;
+
+							//Build response packet
+							turbo_file.out_packet.clear();
+							turbo_file.out_packet.push_back(0x40);
+							turbo_file.out_packet.push_back(0x00);
+							turbo_file.out_packet.push_back(turbo_file.device_status);
+
+							u32 offset = (turbo_file.bank * 0x2000) + (turbo_file.in_packet[2] * 256) + turbo_file.in_packet[3];
+
+							for(u32 x = 0; x < 64; x++) { turbo_file.out_packet.push_back(turbo_file.data[offset++]); }
+
+							//Calculate checksum
+							turbo_file_calculate_checksum();
+
+							//Calculate packet length
+							turbo_file.out_length = turbo_file.out_packet.size() + 1;
+						}
+						
+						break;
+
+					//Unknown command
+					default:
+						std::cout<<"SIO::Warning - Unknown Turbo File command 0x" << (u32)turbo_file.command << "\n";
+						turbo_file.current_state = AGB_TBF_PACKET_END;
+						turbo_file.command = 0x10;
+						break;
+				}
+			}
+
+			turbo_file.counter++;
+
+			break;
+
+		//End packet, wait for second sync signal 0xF1 0x7E from GBC
+		case AGB_TBF_PACKET_END:
+
+			switch(sio_stat.transfer_data)
+			{
+				//2nd byte of sync signal - Enter data response mode
+				case 0x7E:
+					mem->memory_map[SIO_DATA_8] = 0xA5;
+					if(turbo_file.sync_1) { turbo_file.sync_2 = true; }
+					break;
+				
+				//1st byte of sync signal
+				case 0xF1:
+					mem->memory_map[SIO_DATA_8] = 0xE7;
+					turbo_file.sync_1 = true;
+					break;
+			}
+
+			//Wait until both sync signals have been sent, then enter data response mode
+			if(turbo_file.sync_1 && turbo_file.sync_2)
+			{
+				turbo_file.current_state = AGB_TBF_DATA;
+				turbo_file.counter = 0;
+			}
+
+			break;
+
+		//Respond to command with data
+		case AGB_TBF_DATA:
+			mem->memory_map[SIO_DATA_8] = turbo_file.out_packet[turbo_file.counter++];
+			
+			if(turbo_file.counter == turbo_file.out_length)
+			{
+				turbo_file.counter = 0;
+				turbo_file.current_state = AGB_TBF_PACKET_START;
+			}
+
+			break;
+	}
+
+	mem->memory_map[REG_IF] |= 0x80;
+
+	sio_stat.emu_device_ready = false;
+	sio_stat.active_transfer = false;
+
+	//Clear Bit 7 of SIOCNT
+	sio_stat.cnt &= ~0x80;
+	mem->write_u16_fast(0x4000128, sio_stat.cnt);
+}
+
+/****** Calculates the checksum for a packet sent by the Turbo File ******/
+void AGB_SIO::turbo_file_calculate_checksum()
+{
+	u8 sum = 0;
+	sum -= 0xA5;
+
+	for(u32 x = 0; x < turbo_file.out_packet.size(); x++)
+	{
+		sum -= turbo_file.out_packet[x];
+	}
+
+	turbo_file.out_packet.push_back(sum);
+}
+
+/****** Loads Turbo File data ******/
+bool AGB_SIO::turbo_file_load_data(std::string filename)
+{
+	//Resize to 2MB, 1MB for internal storage and 1MB for memory card
+	turbo_file.data.resize(0x200000, 0xFF);
+
+	std::ifstream t_file(filename.c_str(), std::ios::binary);
+
+	if(!t_file.is_open()) 
+	{ 
+		std::cout<<"SIO::Turbo File Advance data could not be read. Check file path or permissions. \n";
+		return false;
+	}
+
+	//Get file size
+	t_file.seekg(0, t_file.end);
+	u32 t_file_size = t_file.tellg();
+	t_file.seekg(0, t_file.beg);
+
+	//Incorrect sizes should be non-fatal
+	if(t_file_size < 0x200000)
+	{
+		std::cout<<"SIO::Warning - Turbo File Advance data smaller than expected and may be corrupt. \n";
+	}
+	
+	else if(t_file_size > 0x200000)
+	{
+		std::cout<<"SIO::Warning - Turbo File Advance data larger than expected and may be corrupt. \n";
+		t_file_size = 0x200000;
+	}
+
+	u8* ex_data = &turbo_file.data[0];
+
+	t_file.read((char*)ex_data, t_file_size); 
+	t_file.close();
+
+	std::cout<<"SIO::Loaded Turbo File Advance data.\n";
+	return true;
+}
+
+/****** Saves Turbo File data ******/
+bool AGB_SIO::turbo_file_save_data(std::string filename)
+{
+	std::ofstream t_file(filename.c_str(), std::ios::binary);
+
+	if(!t_file.is_open()) 
+	{ 
+		std::cout<<"SIO::Turbo File Advance data could not be saved. Check file path or permissions. \n";
+		return false;
+	}
+
+	//Get file size
+	u32 t_file_size = turbo_file.data.size();
+
+	u8* ex_data = &turbo_file.data[0];
+
+	t_file.write((char*)ex_data, t_file_size); 
+	t_file.close();
+
+	std::cout<<"SIO::Saved Turbo File Advance data.\n";
+	return true;
 }

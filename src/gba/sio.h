@@ -138,6 +138,23 @@ class AGB_SIO
 		u16 id;
 	} mpos;
 
+	//Turbo File advance
+	struct turbo_file_advance
+	{
+		std::vector<u8> data;
+		std::vector<u8> in_packet;
+		std::vector<u8> out_packet;
+		u32 counter;
+		u32 out_length;
+		u8 command;
+		u8 device_status;
+		u8 mem_card_status;
+		u16 bank;
+		turbo_file_advance_state current_state;
+		bool sync_1;
+		bool sync_2;
+	} turbo_file;
+
 	AGB_SIO();
 	~AGB_SIO();
 
@@ -167,6 +184,11 @@ class AGB_SIO
 
 	void mpos_process();
 	void mpos_generate_data();
+
+	void turbo_file_process();
+	void turbo_file_calculate_checksum();
+	bool turbo_file_load_data(std::string filename);
+	bool turbo_file_save_data(std::string filename);
 };
 
 #endif // GBA_SIO

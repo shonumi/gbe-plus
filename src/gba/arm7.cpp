@@ -1575,6 +1575,18 @@ void ARM7::clock_emulated_sio_device()
 			controllers.serial_io.mpos_process();
 			break;
 
+		case 0x10:
+			//Process Turbo File Advance
+			if(controllers.serial_io.sio_stat.sio_mode == NORMAL_8BIT)
+			{
+				controllers.serial_io.turbo_file_process();
+			}
+
+			controllers.serial_io.sio_stat.emu_device_ready = false;
+			controllers.serial_io.sio_stat.active_transfer = false;
+
+			break;
+
 		//Clock everything else normally
 		default: break;
 	}

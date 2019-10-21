@@ -26,6 +26,7 @@ enum agb_sio_types
 	GBA_POWER_ANTENNA,
 	GBA_MOBILE_ADAPTER,
 	GBA_MULTI_PLUST_ON_SYSTEM,
+	GBA_TURBO_FILE,
 };
 
 //Serial Input-Output device mode enumeration
@@ -77,6 +78,14 @@ enum agb_mpos_state
 {
 	AGB_MPOS_INIT,
 	AGB_MPOS_SEND_DATA,
+};
+
+enum turbo_file_advance_state
+{
+	AGB_TBF_PACKET_START,
+	AGB_TBF_PACKET_BODY,
+	AGB_TBF_PACKET_END,
+	AGB_TBF_DATA,
 };
 
 struct agb_sio_data

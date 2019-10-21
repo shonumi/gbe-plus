@@ -1847,6 +1847,8 @@ void DMG_SIO::singer_izek_draw_line()
 /****** Processes data sent from the Turbo File to the Game Boy ******/
 void DMG_SIO::turbo_file_process()
 {
+	std::cout<<"RECV -> 0x" << (u32)sio_stat.transfer_byte << "\n";
+
 	switch(turbo_file.current_state)
 	{
 		//Begin packet, wait for first sync signal 0x6C from GBC
@@ -1989,6 +1991,8 @@ void DMG_SIO::turbo_file_process()
 							//Build response packet
 							turbo_file.out_packet.clear();
 							turbo_file.out_packet.push_back(0x24);
+							turbo_file.out_packet.push_back(0x00);
+							turbo_file.out_packet.push_back(turbo_file.device_status);
 
 							//Calculate checksum
 							turbo_file_calculate_checksum();
