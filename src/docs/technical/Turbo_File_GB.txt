@@ -69,6 +69,16 @@ The checksum is calculated as such: 0x100 - (Sum of Packet Body Bytes)
 
 After the entire packet has been sent, the GBC will wait with the value 0xF2 for several transfers, the length of which depends on the given command. During that time, the Turbo File responds with the appropiate data. This data is formatted as a packet as well, however, it does not use sync signals.
 
+The basic flow of commands goes something like this:
+
+1. Command 0x10			Get status (called often in-between other commands)
+2. Command 0x20			Begin session
+3. Command 0x23 or 0x22		Switch bank for read/write mode
+4. Command 0x40 or 0x30		Read/write 64 bytes from/to memory
+5. ...				Repeat 3 and 4 as needed
+6. Command 0x24			End session
+
+
 ***************************************************
 5. Commands
 ***************************************************
@@ -108,7 +118,7 @@ Bit 7			| Read-Only Physical Switch On/Off
 
 
 
-[[Command 0x20 - Initialization]]
+[[Command 0x20 - Begin Session]]
 Parameters: 1 byte of unknown significance
 Response Data: 4 byte echo packet
 
@@ -128,10 +138,10 @@ Byte 0x03		| Checksum = 0x100 - 0xA5 - (Sum of Bytes 0 through 2)
 
 
 [[Command 0x22 - Set Write Bank]]
-Parameters: 2 bytes forming a 16-bit bank number (MSB first) 
+Parameters: 2 bytes forming an 8-bit bank number (MSB first) 
 Response Data: 4 byte echo packet
 
-This command sets the bank for write operations. It also sets Bit 3 of the Device Status flag for all future Get Status commands. The response packet for this command is an echo of the previous packet from the GBC.
+This command sets the bank for write operations. The 1st parameter is Bit 7 and the 2nd parameter is Bit 0-6. This command also sets Bit 3 of the Device Status flag for all future Get Status commands. The response packet for this command is an echo of the previous packet from the GBC.
 
 -------------------------------------------------
 Command 0x22 Response Packet Bytes
@@ -147,10 +157,10 @@ Byte 0x03		| Checksum = 0x100 - 0xA5 - (Sum of Bytes 0 through 2)
 
 
 [[Command 0x23 - Set Read Bank]]
-Parameters: 2 bytes forming a 16-bit bank number (MSB first) 
+Parameters: 2 bytes forming an 8-bit bank number (MSB first) 
 Response Data: 4 byte echo packet
 
-This command sets the bank for read operations. It also sets Bit 3 of the Device Status flag for all future Get Status commands. The response packet for this command is an echo of the previous packet from the GBC.
+This command sets the bank for read operations. The 1st parameter is Bit 7 and the 2nd parameter is Bit 0-6. This command also sets Bit 3 of the Device Status flag for all future Get Status commands. The response packet for this command is an echo of the previous packet from the GBC.
 
 -------------------------------------------------
 Command 0x23 Response Packet Bytes
@@ -165,17 +175,19 @@ Byte 0x03		| Checksum = 0x100 - 0xA5 - (Sum of Bytes 0 through 2)
 
 
 
-[[Command 0x24 - End Write]]
+[[Command 0x24 - End Session]]
 Parameters: None 
-Response Data: 2 byte echo packet
+Response Data: 4 byte echo packet
 
-This command is called after the game has finished writing all necessary data.
+This command is called after the game has finished reading or writing all necessary data. The response packet is like all of the echo packets for other commands, however, it technically isn't a copy of the original packet (which is only 2 bytes: a command and a checksum).
 
 -------------------------------------------------
 Command 0x24 Response Packet Bytes
 -------------------------------------------------
 Byte 0x00		| 0x24
-Byte 0x01		| Checksum = 0x100 - 0xA5 - 0x24
+Byte 0x01		| 0x00
+Byte 0x02		| Device Status
+Byte 0x03		| Checksum = 0x100 - 0xA5 - 0x24
 -------------------------------------------------
 
 
@@ -183,10 +195,10 @@ Byte 0x01		| Checksum = 0x100 - 0xA5 - 0x24
 
 
 [[Command 0x30 - Write Data]]
-Parameters: 2 bytes forming a 16-bit offset (MSB first) and 64 bytes of data to write
+Parameters: 2 bytes forming a 13-bit offset (MSB first) and 64 bytes of data to write
 Response Data: 4 byte echo packet
 
-The two parameters are the 16-bit offset where to write data. Data will be written to the bank specified by Command 0x23. Only 64 bytes can be written at a time. The response packet for this command is an echo of the previous packet from the GBC.
+The two parameters are the 13-bit offset where to write data. The 1st parameter is Bit 8-12  and the 2nd parameter is Bit 0-7. Data will be written to the bank specified by Command 0x23. Only 64 bytes can be written at a time. The response packet for this command is an echo of the previous packet from the GBC.
 
 -------------------------------------------------
 Command 0x30 Response Packet Bytes
@@ -202,10 +214,10 @@ Byte 0x03		| Checksum = 0x100 - 0xA5 - (Sum of Bytes 0 through 2)
 
 
 [[Command 0x40 - Read Data]]
-Parameters: 2 bytes forming a 16-bit offset (MSB first)
+Parameters: 2 bytes forming a 13-bit offset (MSB first)
 Response Data: 69 bytes for the file header
 
-The two parameters are the 16-bit offset to read data from. Data will be read from the bank specified by Command 0x23. Only 64 bytes can be read at a time. The response packet follows this format:
+The two parameters are the 13-bit offset to read data from. The 1st parameter is Bit 8-12  and the 2nd parameter is Bit 0-7. Data will be read from the bank specified by Command 0x23. Only 64 bytes can be read at a time. The response packet follows this format:
 
 -------------------------------------------------
 Command 0x40 Response Packet Bytes
@@ -222,16 +234,13 @@ Byte 0x43		| Checksum = 0x100 - 0xA5 - (Sum of Bytes 0x00 through 0x42)
 6. Turbo File GB File Structure
 ***************************************************
 
-Bank 0x7F (for internal storage) and Bank 0x17F (for memory card storage) contain the file headers for each file. These identify the name of the file and how many blocks it occupies. With this information, games can know where each file is within the lower banks and correctly access them. Each header occupies 64 bytes. The format is described below:
+Bank 0x7F (for internal storage) and Bank 0xFF (for memory card storage) contain the file headers for each file. These identify the name of the file and how many blocks it occupies. With this information, games can know where each file is within the lower banks and correctly access them. Each header occupies 64 bytes. The format is described below:
 
 -------------------------------------------------
 File Header
 -------------------------------------------------
 Byte 0x00		| 0x5A
-Byte 0x01		| 0x41 or 0x42
-Byte 0x02		| 0x32 or 0x33
-Byte 0x03		| 0x51
-Byte 0x04		| 0x4A
+Byte 0x01 - 0x04	| Game ID
 Byte 0x05 - 0x10	| ASCII String for filename (12 characters max)
 Byte 0x11 - 0x15 	| Should all be 0x20
 Byte 0x16		| Current block ranging from 0 to (Total - 1)
@@ -239,15 +248,15 @@ Byte 0x17		| Total number of blocks for save
 Byte 0x18 - 0x3F	| Should all be 0x00	
 -------------------------------------------------
 
-Each 8KB block a file occupies is given its own header, hence the need for a byte detailing the current block. Since the very last 32KB on both internal storage and the memory card are reserved for these file headers, the maximum number of available blocks on either will be 119, enough for 30 different files.
+Each 8KB block a file occupies is given its own header, hence the need for a byte detailing the current block. The smallest file saved by games is 4 blocks, thus it has 4 separate headers. Since the very last 32KB on both internal storage and the memory card are reserved for these file headers, the maximum number of available blocks on either will be 120 (displayed as 119 in compatible games), enough for 30 different files.
 
-Bytes 0x01 and 0x02 act as IDs for RPG Tsukuru and Uchuu Nin Tanaka Tarou De RPG Tsukuru GB2. Whereas the former uses 0x41 0x32, the latter uses 0x42 0x33. As both games can save to the Turbo File GB, this prevents incompatibilities when trying to load a file. Each game ignores reading files from the other, however, both can freely erase any file on the device.
+Bytes 0x01 through 0x04 act as IDs. They are the same bytes found in the game's ROM header, specifically right after the ASCII-encoded title (bytes 0x13F through 0x142). Interestingly enough, these header bytes are supposed to be the new manufacturer code Nintendo specified for GBC games. As both RPG Tsukuru GB and Uchuu Nin Tanaka Tarou De RPG Tsukuru GB2 can save to the Turbo File GB, using an ID prevents incompatibilities when trying to load a file. Each game ignores reading files from the other, however, both can freely erase any file on the device.
 
 
 ***************************************************
 7. Memory Card
 ***************************************************
 
-The Turbo File GB's memory cards can be accessed by setting Bit 0 of the 1st parameter byte for commands 0x22 and 0x23. The memory cards effectively act as expanded storage, and thus the parameters from commands 0x22 and 0x23 form a 16-bit bank number. Banks 0x00 through 0x7F represent data stored internally on the Turbo File. Banks 0x100 through 0x17F represent data stored on the memory card.
+The Turbo File GB's memory cards can be accessed by setting Bit 0 of the 1st parameter byte for commands 0x22 and 0x23. The memory cards effectively act as expanded storage, and thus the parameters from commands 0x22 and 0x23 form an 8-bit bank number. Banks 0x00 through 0x7F represent data stored internally on the Turbo File. Banks 0x80 through 0xFF represent data stored on the memory card.
 
 To detect whether a memory card is present, games must check Bit 2 of Byte 3 of the 0x10 command. If that is set, a memory card has been inserted, otherwise, nothing has been slotted in.

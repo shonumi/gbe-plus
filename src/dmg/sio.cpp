@@ -1847,8 +1847,6 @@ void DMG_SIO::singer_izek_draw_line()
 /****** Processes data sent from the Turbo File to the Game Boy ******/
 void DMG_SIO::turbo_file_process()
 {
-	std::cout<<"RECV -> 0x" << (u32)sio_stat.transfer_byte << "\n";
-
 	switch(turbo_file.current_state)
 	{
 		//Begin packet, wait for first sync signal 0x6C from GBC
