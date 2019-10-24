@@ -1,4 +1,4 @@
-Turbo File GB Technical Documentation 0.1
+Turbo File GB Technical Documentation 0.2
 October 19th, 2019
 Shonumi aka D.S. Baxter
 
@@ -17,7 +17,7 @@ Developed by ASCII Corporation and released in March of 2000, the Turbo File GB 
 - Data is transmitted via the Link Cable and Serial Input/Output.
 - It has a slot at the top for accepting memory cards.
 - The unit requires 4 AAA batteries to power on.
-- Save data is flash-based and therefore is not erased when removing batteries.
+- Save data is flash-based (LH28F800BVE-TTL10 by Sharp) and therefore is not erased when removing batteries.
 - The Turbo File GB comes with 1MB of internal storage separated into 8KB blocks.
 - Each memory card is also 1MB of storage separated into 8KB blocks.
 - A small red LED indicates R/W activity.
@@ -85,7 +85,7 @@ The basic flow of commands goes something like this:
 
 [[Command 0x10 - Get Status]]
 Parameters: None
-Response Data: 10 bytes detailing the status of the Turbo File GB.
+Response Data: 9 bytes detailing the status of the Turbo File GB.
 
 Returns various bits of information about the Turbo File GB. Called frequently before and after many other commands. The response packet for this command follows this format:
 
@@ -228,6 +228,13 @@ Byte 0x02		| Device Status
 Byte 0x03 - 0x42	| Data
 Byte 0x43		| Checksum = 0x100 - 0xA5 - (Sum of Bytes 0x00 through 0x42)
 -------------------------------------------------
+
+
+
+
+Even though the Turbo File GB uses flash memory, these commands do not correspond to ones generally used by other devices. The Turbo File GB may be using an additional microprocessor (an M38034M4 by Mitsubishi) to handle and translate the GBC's packets into valid flash commands.
+
+Although the flash memory inside the Turbo File GB supports block erase commands, the Turbo File GB has not been verified to process such a command from the Game Boy. Whereas the Turbo File Advance uses the 0x34 command to erase blocks, no GBC games make use of such a command, nor have limited hardware tests succeeded in executing that command. If the Turbo File GB's microprocessor does translate input from the Game Boy, it may not have been programmed to handle command 0x34 at all.
 
 
 ***************************************************
