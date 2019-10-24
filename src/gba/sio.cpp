@@ -1433,6 +1433,34 @@ void AGB_SIO::turbo_file_process()
 
 						break;
 
+					//Block Write
+					case 0x34:
+						if(turbo_file.counter == 5)
+						{
+							turbo_file.current_state = AGB_TBF_PACKET_END;
+							turbo_file.sync_1 = false;
+							turbo_file.sync_2 = false;
+
+							//Build response packet
+							turbo_file.out_packet.clear();
+							turbo_file.out_packet.push_back(0x34);
+							turbo_file.out_packet.push_back(0x00);
+							turbo_file.out_packet.push_back(turbo_file.device_status);
+
+							//Update Turbo File data
+							u32 offset = (turbo_file.bank * 0x2000) + (turbo_file.in_packet[2] * 256) + turbo_file.in_packet[3];
+
+							for(u32 x = 0; x < 64; x++) { turbo_file.data[offset++] = turbo_file.in_packet[4]; } 
+
+							//Calculate checksum
+							turbo_file_calculate_checksum();
+
+							//Calculate packet length
+							turbo_file.out_length = turbo_file.out_packet.size() + 1;
+						}
+
+						break;
+
 					//Read Data
 					case 0x40:
 						if(turbo_file.counter == 4)
