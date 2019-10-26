@@ -1,0 +1,91 @@
+Turbo File Advance Technical Documentation 0.1
+October 25th, 2019
+Shonumi aka D.S. Baxter
+
+***************************************************
+1. Introduction
+***************************************************
+
+Developed by Sammy Corporation and released in April of 2002, the Turbo File Advance is an external storage device designed to hold large amounts of save data. Following in the footsteps of ASCII Corporarions Turbo File GB, the Turbo File Advance came out two years later, with the key difference between the two being support for GBA software. Only select games specifically programmed to take advantage of the Turbo File Advance were compatible. The accessory made use of memory cards as well, one of only two instances where this happened on the Game Boy.
+
+
+***************************************************
+2. General Hardware Information
+***************************************************
+
+- The Turbo File Advance is a rectangular, white device a little smaller than an AGB-001.
+- Data is transmitted via the Link Cable and Serial Input/Output.
+- It has a slot at the top for accepting memory cards.
+- The unit requires 4 AAA batteries to power on.
+- Save data is flash-based (LH28F800BVE-TTL10 by Sharp) and therefore is not erased when removing batteries.
+- The Turbo File Advance comes with 1MB of internal storage separated into 8KB blocks.
+- Each memory card is also 1MB of storage separated into 8KB blocks. Turbo File Advance memory cards are now blue instead of yellow.
+- A small red LED indicates R/W activity.
+- Like other previous ASCII Turbo File products, Sammy's Turbo File Advance has a physical Write-Protect switch.
+- The product code for the Turbo File GB is SMY-1701TA
+- The product code for the memory card is SMY-1703EM
+
+The Turbo File Advance is pretty much an exact copy of the Turbo File GB. The PCB even still has "TURBO FILE GB" printed on it, and one microprocessor still says "ASCII".
+
+
+***************************************************
+3. Compatible Games
+***************************************************
+
+- Derby Stallion Advance
+- RPG Tsukuru Advance
+
+Although the manual explicitly claims that the previous Turbo File GB games are not compatible, it is actually unknown if that is the case. In theory, the Link Cable on the Turbo File Advance would be capable of handling 3.3v instead of the 5v used on the Turbo File GB, which would be one source of incompatibility. Whether or not the Turbo File Advance would function when using the GBA's backward compatibility or if the Turbo File Advance itself was just a marketing ploy to sell more hardware remains uncertain.
+
+
+***************************************************
+4. Communication Protocol
+***************************************************
+
+The Turbo File Advance has exactly the same protocol as the Turbo File GB. The GBA communicates over an external clock in 8-bit Normal mode, mirroring how a GBC would generally work with the device. The sync signal, packet format, banking, use of memory cards, and commands have not been changed in the Turbo File Advance. Reference existing Turbo File GB documentation for further information.
+
+
+***************************************************
+5. Commands
+***************************************************
+
+Only one new command is used by the Turbo File Advance (and only one game, Derby Stallion, executes it). The other commands are the exact same as the previous Turbo File GB commands.
+
+
+[[Command 0x34 - Block Write]]
+Parameters: 2 bytes forming a 13-bit offset (MSB first) and 1 byte with value to fill block with
+Response Data: 4 byte echo packet
+
+The two parameters are the 13-bit offset to read data from. The 1st parameter is Bit 8-12 and the 2nd parameter is Bit 0-7. The 3rd parameter is the value to write into the next 64 bytes of the block. The response packet is like all of the echo packets for other commands, however, it technically isn't a copy of the original packet.
+
+-------------------------------------------------
+Command 0x34 Response Packet Bytes
+-------------------------------------------------
+Byte 0x00		| 0x34
+Byte 0x01		| 0x00
+Byte 0x02		| Device Status
+Byte 0x43		| Checksum = 0x100 - 0xA5 - (Sum of Bytes 0x00 through 0x02)
+-------------------------------------------------
+
+
+***************************************************
+6. Turbo File Advance File Structure
+***************************************************
+
+The banking in the Turbo File Advance is the same as the Turbo File GB. Bank 0x7F (for internal storage) and Bank 0xFF (for memory card storage) contain the file headers for each file; these headers identify the name of the file and how many blocks it occupies. The format is described below:
+
+-------------------------------------------------
+File Header
+-------------------------------------------------
+Byte 0x00		| 0x5A
+Byte 0x01 - 0x04	| Game ID
+Byte 0x05 - 0x13	| ASCII String for filename (16 characters max)
+Byte 0x14 - 0x15 	| Should all be 0x20
+Byte 0x16		| Current block ranging from 0 to (Total - 1)
+Byte 0x17		| Total number of blocks for save
+Byte 0x18 - 0x3F	| Should all be 0xFF	
+-------------------------------------------------
+
+Games generally write in 8 blocks (meaning 15 saves total for internal storage or the memory card). However, Derby Stallion can write 1 or 7 blocks of data. Even so, without expanding the memory capacity from the Turbo File GB, the Turbo File Advance generally ends up holding fewer saves.
+
+Bytes 0x01 through 0x04 act as IDs. They are the same bytes found in the game's ROM header, specifically the ASCII-encoded "Game Code" (bytes 0xAC through 0xAF). Once again, the use of IDs prevents incompatibilities between games when reading data.
