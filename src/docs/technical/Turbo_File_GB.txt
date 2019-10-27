@@ -198,7 +198,7 @@ Byte 0x03		| Checksum = 0x100 - 0xA5 - 0x24
 Parameters: 2 bytes forming a 13-bit offset (MSB first) and 64 bytes of data to write
 Response Data: 4 byte echo packet
 
-The two parameters are the 13-bit offset where to write data. The 1st parameter is Bit 8-12  and the 2nd parameter is Bit 0-7. Data will be written to the bank specified by Command 0x23. Only 64 bytes can be written at a time. The response packet for this command is an echo of the previous packet from the GBC.
+The two parameters are the 13-bit offset where to write data. The 1st parameter is Bit 8-12  and the 2nd parameter is Bit 0-7. Data will be written to the bank specified by Command 0x22. Only 64 bytes can be written at a time. The response packet for this command is an echo of the previous packet from the GBC.
 
 -------------------------------------------------
 Command 0x30 Response Packet Bytes
@@ -215,7 +215,7 @@ Byte 0x03		| Checksum = 0x100 - 0xA5 - (Sum of Bytes 0 through 2)
 
 [[Command 0x40 - Read Data]]
 Parameters: 2 bytes forming a 13-bit offset (MSB first)
-Response Data: 69 bytes for the file header
+Response Data: 69 bytes for a data packet
 
 The two parameters are the 13-bit offset to read data from. The 1st parameter is Bit 8-12  and the 2nd parameter is Bit 0-7. Data will be read from the bank specified by Command 0x23. Only 64 bytes can be read at a time. The response packet follows this format:
 
