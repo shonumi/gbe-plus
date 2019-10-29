@@ -207,6 +207,9 @@ namespace config
 	//Default Battle Chip IDs
 	u16 chip_list[6] = { 0, 0, 0, 0, 0, 0 };
 
+	//Turbo File options flags
+	u8 turbo_file_options = 0;
+
 	//On-screen display settings
 	bool use_osd = false;
 	std::vector <u32> osd_font;
@@ -779,6 +782,12 @@ bool parse_cli_args()
 			//Set system type - SGB2
 			else if(config::cli_args[x] == "--sys-sgb2") { config::gb_type = 6; }
 
+			//Enable Turbo File memory card
+			else if(config::cli_args[x] == "--turbo-file-memcard") { config::turbo_file_options |= 0x1; }
+
+			//Enable Turbo File write protection
+			else if(config::cli_args[x] == "--turbo-file-protect") { config::turbo_file_options |= 0x2; }
+
 			//Print Help
 			else if((config::cli_args[x] == "-h") || (config::cli_args[x] == "--help")) 
 			{
@@ -815,6 +824,8 @@ bool parse_cli_args()
 				std::cout<<"--save-eeprom \t\t\t\t Force the GBA save type to EEPROM\n";
 				std::cout<<"--save-flash64 \t\t\t\t Force the GBA save type to FLASH 64KB\n";
 				std::cout<<"--save-flash128 \t\t\t Force the GBA save type to FLASH 128KB\n";
+				std::cout<<"--turbo-file-memcard \t\t\t Enable memory card for Turbo File\n";
+				std::cout<<"--turbo-file-protect \t\t\t Enable write-proection for Turbo File\n";
 				std::cout<<"-h, --help \t\t\t\t Print these help messages\n";
 				return false;
 			}

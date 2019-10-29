@@ -177,6 +177,8 @@ namespace config
 	extern u16 battle_chip_id;
 	extern u16 chip_list[6];
 
+	extern u8 turbo_file_options;
+
 	extern bool use_osd;
 	extern std::vector <u32> osd_font;
 	extern std::string osd_message;

@@ -22,8 +22,8 @@ Developed by ASCII Corporation and released in March of 2000, the Turbo File GB 
 - Each memory card is also 1MB of storage separated into 8KB blocks.
 - A small red LED indicates R/W activity.
 - Like other ASCII Turbo File Products, the Turbo File GB has a physical Write-Protect switch.
-- The product code for the Turbo File GB is ASC-1501T
-- The product code for the memory card is ASC-1502C
+- The product code for the Turbo File GB is ASC-1501T.
+- The product code for the memory card is ASC-1502C.
 
 ***************************************************
 3. Compatible Games
