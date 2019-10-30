@@ -18,6 +18,7 @@ set(SRCS
 	con_ir_menu.cpp
 	ps_menu.cpp
 	mpos_menu.cpp
+	tbf_menu.cpp
 	)
 
 set(HEADERS
@@ -37,6 +38,7 @@ set(HEADERS
 	con_ir_menu.h
 	ps_menu.h
 	mpos_menu.h
+	tbf_menu.h
 	)
 
 add_executable(gbe_plus_qt ${SRCS} ${HEADERS})

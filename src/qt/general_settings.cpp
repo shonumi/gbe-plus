@@ -168,6 +168,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	sio_dev->addItem("Power Antenna");
 	sio_dev->addItem("Singer IZEK 1500");
 	sio_dev->addItem("Multi Plust On System");
+	sio_dev->addItem("Turbo File GB/Advance");
 
 	config_sio = new QPushButton("Configure");
 
@@ -1548,6 +1549,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	chalien_menu = new con_ir_menu;
 
 	multi_plust_menu = new mpos_menu;
+	turbo_file_menu = new tbf_menu;
 
 	get_chip_list();
 
@@ -1576,6 +1578,7 @@ void gen_settings::set_ini_options()
 		case 11:
 		case 12:
 		case 15:
+		case 16:
 			config_sio->setEnabled(true);
 			break;
 
@@ -1854,6 +1857,7 @@ void gen_settings::sio_dev_change()
 		case 11:
 		case 12:
 		case 15:
+		case 16:
 			config_sio->setEnabled(true);
 			break;
 
@@ -1921,6 +1925,7 @@ void gen_settings::show_sio_config()
 		case 11: tabs->setCurrentIndex(3); controls_combo->setCurrentIndex(3); chip_gate_type->setCurrentIndex(1); break;
 		case 12: tabs->setCurrentIndex(3); controls_combo->setCurrentIndex(3); chip_gate_type->setCurrentIndex(2); break;
 		case 15: multi_plust_menu->show(); break;
+		case 16: turbo_file_menu->show(); break;
 	}
 }
 

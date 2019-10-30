@@ -31,6 +31,7 @@
 #include "zzh_menu.h"
 #include "con_ir_menu.h"
 #include "mpos_menu.h"
+#include "tbf_menu.h"
 
 class gen_settings : public QDialog
 {
@@ -197,6 +198,7 @@ class gen_settings : public QDialog
 	zzh_menu* full_changer_menu;
 	con_ir_menu* chalien_menu;
 	mpos_menu* multi_plust_menu;
+	tbf_menu* turbo_file_menu;
 	QMessageBox* warning_box;
 
 	void update_volume();
