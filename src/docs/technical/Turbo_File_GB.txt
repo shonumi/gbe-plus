@@ -267,3 +267,12 @@ Bytes 0x01 through 0x04 act as IDs. They are the same bytes found in the game's 
 The Turbo File GB's memory cards can be accessed by setting Bit 0 of the 1st parameter byte for commands 0x22 and 0x23. The memory cards effectively act as expanded storage, and thus the parameters from commands 0x22 and 0x23 form an 8-bit bank number. Banks 0x00 through 0x7F represent data stored internally on the Turbo File. Banks 0x80 through 0xFF represent data stored on the memory card.
 
 To detect whether a memory card is present, games must check Bit 2 of Byte 3 of the 0x10 command. If that is set, a memory card has been inserted, otherwise, nothing has been slotted in.
+
+
+***************************************************
+8. Unused Space
+***************************************************
+
+While the last block of internal storage or the memory card is reserved for file headers, a number of blocks before that deemed off-limits by game software. This empty space acts as a buffer against any errant writes, with the idea being the last 8 blocks should not be touched for anything but file header access. Thus the maximum usable space on the Turbo File GB should be 120 blocks, as advertized on the product's box.
+
+Unfortunately, due to a programming error in RPG Tsukuru GB and Uchuu Nin Tanaka Tarou De RPG Tsukuru GB2, an additional 4 blocks are rendered inaccessible. Instead of having 1 block for file headers and 7 blocks as padding, they use 1 block for file headers and 8 blocks as padding. This results in 119 blocks as the maximum usable space. After filling up 116 (for 29 saves), only 3 blocks remain, which is too small for one last save. This off-by-one counting error does not exist in Derby Stallion Advance or RPG Tsukuru Advance when using the Turbo File Advance.
