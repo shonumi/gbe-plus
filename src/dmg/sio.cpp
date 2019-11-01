@@ -2139,8 +2139,7 @@ void DMG_SIO::turbo_file_process()
 /****** Calculates the checksum for a packet sent by the Turbo File ******/
 void DMG_SIO::turbo_file_calculate_checksum()
 {
-	u8 sum = 0;
-	sum -= 0xA5;
+	u8 sum = 0x5B;
 
 	for(u32 x = 0; x < turbo_file.out_packet.size(); x++)
 	{
