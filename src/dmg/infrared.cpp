@@ -18,10 +18,10 @@ void DMG_SIO::full_changer_process()
 	if(mem->ir_trigger == 2)
 	{
 		//Validate IR database index
-		if(config::ir_db_index > 0) { config::ir_db_index = 0; }
+		if(config::ir_db_index > 0x45) { config::ir_db_index = 0; }
 
 		mem->ir_trigger = 0;
-		full_changer.delay_counter = (config::ir_db_index * 0x48);
+		full_changer.delay_counter = (config::ir_db_index * 0x24);
 		full_changer.current_state = FULL_CHANGER_SEND_SIGNAL;
 		full_changer.light_on = true;
 	}
@@ -42,7 +42,7 @@ void DMG_SIO::full_changer_process()
 	}
 
 	//Schedule the next on-off pulse
-	if(full_changer.delay_counter != full_changer.data.size())
+	if(full_changer.delay_counter != ((config::ir_db_index + 1) * 0x24))
 	{
 		sio_stat.shift_counter = 0;
 		sio_stat.shift_clock = full_changer.data[full_changer.delay_counter];
