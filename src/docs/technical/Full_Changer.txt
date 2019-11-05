@@ -132,9 +132,10 @@ The current database GBE+ uses recreates ON/OFF pulses that generally run for th
 7. Cosmic Characters
 ***************************************************
 
+
 There are a total of 70 "Cosmic Characters" available in Zok Zok Heroes, and by extension, there are 70 unique transformations. This Cosmic Character is simply an 8-bit ID generated from the ON and OFF pulses from the Full Changer. Using the delays stored in the 18 WRAM bytes, the game software uses the following logic to determine an ID.
 
-The first pulse is checked to ensure that it has a delay greater than 0x20, signaling a long pulse, otherwise processing for the Cosmic Character does not continue. Afterwards, the next 16 pulses are examined to build two separate 8-bit values. These values are constructed LSB. A short pulse (any value from 0x00 to 0x13) translates into a "1", and a long pulse (any value from 0x14 to 0x20) translates into a "0". The 1st 8-bit value built from these pulses is used for a checksum of a sort, and the 2nd 8-bit value is complemented to form an ID. IDs range from 0x01 to 0x46 and correspond to the 70 Cosmic Characters.
+The first pulse is checked to ensure that it has a delay greater than 0x20, signaling a long pulse, otherwise processing for the Cosmic Character does not continue. Afterwards, the next 16 pulses are examined to build two separate 8-bit values. These values are constructed LSB. A short pulse (any value from 0x00 to 0x13) translates into a "0", and a long pulse (any value from 0x14 to 0x20) translates into a "1". The 1st 8-bit value built from these pulses is used for a checksum of a sort, and the 2nd 8-bit value is complemented to form an ID. IDs range from 0x01 to 0x46 and correspond to the 70 Cosmic Characters. Note that while the 18th IR pulse is required by the software, it isn't used for the ID or checksum.
 
 Checksum Calculation:
 Pulse Byte 1 + Pulse Byte 2 = 0xFF
@@ -147,3 +148,17 @@ Pulse Byte 1 = 0xFF - (~Cosmic Character ID)
 
 Pulse Byte 2 Calculation (using an arbitrary ID of one's choosing):
 Pulse Byte 2 = ~Cosmic Character ID
+
+--------------------------------------------------------------------------------------------
+ID	| Japanese Name		| English Name			| Cosmic Character Movements
+--------------------------------------------------------------------------------------------
+01 (あ)	| アルカリパワード		| Alkaline Powered		| Up, Down, Up
+02 (い)	| イン ウォーター 		| In Water			| Right, Left, Right
+03 (う)	| ウルトランナー		| Ultra Runner			| Down, Up, Down
+04 (え)	| エアロ パワー 		| Aero Power			| Left, Right, Left
+05 (お)	| オチャッパ		| Ochaapa (Tea Man)		| Down+Left, Right, Left
+06 (か)	| カイザーエッジ		| Kaizer Edge			| Up, Right, Down
+07 (き)	| キングバッター		| King Batter			| Right, Down, Left
+08 (く)	| クラッシッカー		| Crash Car			| Down, Left, Up
+09 (け)	| ケイタイがー		| Cellphone Tiger		| Left, Up, Right
+10 (こ)	| コップエース		| Cup Ace			| Down+Left, Up, Rights
