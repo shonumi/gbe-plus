@@ -1319,7 +1319,7 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 			else if((!sio_stat->internal_clock) && (sio_stat->sio_type == 6)) { sio_stat->send_data = true; }
 
 			//Special handling for Singer IZEK 1500
-			else if((config::sio_device == 14) && (sio_stat->transfer_byte & 0x80))
+			else if(config::sio_device == 14)
 			{
 				sio_stat->active_transfer = true;
 				sio_stat->shifts_left = 8;
