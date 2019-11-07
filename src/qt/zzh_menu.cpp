@@ -22,7 +22,16 @@ zzh_menu::zzh_menu(QWidget *parent) : QDialog(parent)
 	QLabel* cosmic_character_label = new QLabel("Cosmic Character : ");
  	
 	cosmic_character = new QComboBox;
-	cosmic_character->addItem("A - Alukaripawaado");
+	cosmic_character->addItem("A - Alkaline Powered");
+	cosmic_character->addItem("I - In Water");
+	cosmic_character->addItem("U - Ultra Runner");
+	cosmic_character->addItem("E - Aero Power");
+	cosmic_character->addItem("O - Ochaapa");
+	cosmic_character->addItem("Ka - Kaizer Edge");
+	cosmic_character->addItem("Ki - King Batter");
+	cosmic_character->addItem("Ku - Crash Car");
+	cosmic_character->addItem("Ke - Cellphone Tiger");
+	cosmic_character->addItem("Ko - Cup Ace");
 
 	QHBoxLayout* cosmic_character_layout = new QHBoxLayout;
 	cosmic_character_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
