@@ -150,15 +150,35 @@ Pulse Byte 2 Calculation (using an arbitrary ID of one's choosing):
 Pulse Byte 2 = ~Cosmic Character ID
 
 --------------------------------------------------------------------------------------------
-ID	| Japanese Name		| English Name			| Cosmic Character Movements
+ID	| Japanese Name		| Translated Name		| Cosmic Character Movements
 --------------------------------------------------------------------------------------------
 01 (あ)	| アルカリパワード		| Alkaline Powered		| Up, Down, Up
 02 (い)	| イン ウォーター 		| In Water			| Right, Left, Right
 03 (う)	| ウルトランナー		| Ultra Runner			| Down, Up, Down
 04 (え)	| エアロ パワー 		| Aero Power			| Left, Right, Left
-05 (お)	| オチャッパ		| Ochaapa (Tea Man)		| Down+Left, Right, Left
+05 (お)	| オチャッパ		| Ochaapa			| Down+Left, Right, Left
 06 (か)	| カイザーエッジ		| Kaizer Edge			| Up, Right, Down
 07 (き)	| キングバッター		| King Batter			| Right, Down, Left
 08 (く)	| クラッシッカー		| Crash Car			| Down, Left, Up
 09 (け)	| ケイタイがー		| Cellphone Tiger		| Left, Up, Right
-10 (こ)	| コップエース		| Cup Ace			| Down+Left, Up, Rights
+10 (こ)	| コップエース		| Cup Ace			| Down+Left, Up, Right
+11 (さ)	| サカナード		| Sakanard			| Up, Left, Down
+12 (し)	| シンデルター		| Thin Delta			| Right, Up, Left
+13 (す)	| スケボーライダー		| Skateboard Rider		| Down, Right, Up
+14 (せ)	| セロリスター		| Celery Star			| Left, Down, Right
+15 (そ)	| ソウジキラー		| Cleaning Killer		| Down+Left, Short Down, Right
+16 (た)	| タコアキッド		| Takoyaki Kid			| Short Up, Right, Short Up
+17 (ち)	| チンコーマン		| Chinkoman			| Short Right, Down, Short Right
+18 (つ)	| ツカイステイター		| Tsukai Stater			| Short Down, Left, Short Down
+19 (て)	| テッパンガー		| Teppangar			| Short Left, Up, Short Left
+20 (と)	| トンガラリン		| Tongararin			| Short Down+Left, Up, Short Left
+21 (な)	| ナガシマン		| Nagashiman			| Short Up, Right, Left
+22 (に)	| ニンジャーノン		| Ninja Non			| Short Right, Down, Up
+23 (ぬ)	| ぬいぬいちゃん		| Plushy-chan			| Short Down, Left, Right
+24 (ね)	| ネジレイザー		| Screw Razor			| Short Left, Up, Down
+25 (の)	| ノーベルブレイン		| Nobel Brain			| Short Down+Left, Up, Down
+26 (は)	| ハードハンマー		| Hard Hammer			| Short Up, Left, Short Up
+27 (ひ)	| ヒートマン		| Heat Man			| Short Right, Up, Short Right
+28 (ふ)	| フレイムグルメ		| Flame Gourmet			| Short Down, Right, Short Down
+29 (へ)	| ヘラクレスアーミー	| Hercules Army			| Short Left, Down, Short Left
+30 (ほ)	| ホットカード		| Hot Card			| Short Down+Left, Short Down, Short Left
