@@ -173,7 +173,7 @@ ID	| Japanese Name		| Translated Name		| Cosmic Character Movements
 19 (て)	| テッパンガー		| Teppangar			| Short Left, Up, Short Left
 20 (と)	| トンガラリン		| Tongararin			| Short Down+Left, Up, Short Left
 21 (な)	| ナガシマン		| Nagashiman			| Short Up, Right, Left
-22 (に)	| ニンジャーノン		| Ninja Non			| Short Right, Down, Up
+22 (に)	| ニンジャーノン		| Ninja				| Short Right, Down, Up
 23 (ぬ)	| ぬいぬいちゃん		| Plushy-chan			| Short Down, Left, Right
 24 (ね)	| ネジレイザー		| Screw Razor			| Short Left, Up, Down
 25 (の)	| ノーベルブレイン		| Nobel Brain			| Short Down+Left, Up, Down
@@ -182,3 +182,23 @@ ID	| Japanese Name		| Translated Name		| Cosmic Character Movements
 28 (ふ)	| フレイムグルメ		| Flame Gourmet			| Short Down, Right, Short Down
 29 (へ)	| ヘラクレスアーミー	| Hercules Army			| Short Left, Down, Short Left
 30 (ほ)	| ホットカード		| Hot Card			| Short Down+Left, Short Down, Short Left
+31 (ま)	| マッスルさん		| Mr. Muscle			| Short Up, Left, Right
+32 (み)	| ミストウォーター		| Mist Water			| Short Right, Up, Down
+33 (む)	| ムシムシマン		| Mushimushi Man			| Short Down, Right, Left
+34 (め)	| メガーテン		| Megaaten			| Short Left, Down, Up
+35 (も)	| モビルロボX		| Mobile Robot X		| Down+Left, Down, Up
+36 (や)	| ヤキバード		| Yaki Bird			| Up, Down, Left
+37 (ゆ)	| ユートロン		| Utron				| Down, Up, Right
+38 (よ)	| ヨーヨーマスク		| Yo-Yo Mask			| Down+Left, Right, Down
+39 (ら)	| ラジアルロード		| Radial Road			| Up, Down, Right
+40 (り)	| リモコンマン		| Remote-Control Man		| Right, Left, Down
+41 (る)	| ルビーフック		| Ruby Hook			| Down, Up, Left
+42 (れ)	| レトロサウンダー		| Retro Sounder			| Left, Right, Up
+43 (ろ)	| ロケットやろう		| Rocket				| Down+Left, Right, Short Up
+44 (わ)	| ワイルドソード		| Wild Sword			| Up, Down, Up+Left
+45 (が)	| ガッツラゴー		| Guts Lago			| Up, Down+Right, Short Left
+46 (ぎ)	| ギーニウン		| Giniun				| Right, Down+Left, Short Up
+47 (ぐ)	| グレートファイヤー	| Great Fire			| Down, Up+Left, Short Right
+48 (げ)	| ゲーマルク		| Gamemark			| Left, Up+Right, Short Down
+49 (ご)	| ゴウリキラー		| Gorilla Killa			| Down+Left, Up+Right, Short Down
+50 (ざ)	| ザ・クライマー		| The Climber			| Up, Down+Right, Short Right
