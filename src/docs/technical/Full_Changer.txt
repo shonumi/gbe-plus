@@ -202,3 +202,23 @@ ID	| Japanese Name		| Translated Name		| Cosmic Character Movements
 48 (げ)	| ゲーマルク		| Gamemark			| Left, Up+Right, Short Down
 49 (ご)	| ゴウリキラー		| Gorilla Killa			| Down+Left, Up+Right, Short Down
 50 (ざ)	| ザ・クライマー		| The Climber			| Up, Down+Right, Short Right
+51 (じ)	| Gシャーク		| G Shark			| Right, Up+Left, Short Down
+52 (ず)	| ズームレーザー		| Zoom Laser			| Down, Up+Right, Short Left
+53 (ぜ)	| ゼンマイン		| Zenmai				| Left, Down+right, Short Up
+54 (ぞ)	| ゾウシャワー		| Elephant Shower		| Short Down+Left, Short Down+Right, Short Up
+55 (だ)	| ダイヤモール		| Diamond Mall			| Up, Down+Right, Up
+56 (ぢ)	| ヂグロニャン		| Digronyan			| Right, Down+Left, Right
+57 (づ)	| ヅィザーワン		| Ziza One			| Down, Up+Left, Down
+58 (で)	| デンジャレッド		| Danger Red			| Left, Up+Right, Left
+59 (ど)	| ドハツテン		| Dohatsuten			| Down+Left, Up+Right, Left 
+60 (ば)	| バルバルーン		| Balloon			| Up, Down+Left, Up
+61 (び)	| ビデオージャ		| Videoja			| Right, Up+Left, Right
+62 (ぶ)	| ブーブーウー		| Boo Boo			| Down, Up+Right, Down
+63 (べ)	| ベルトジャイン		| Belt Jain			| Left, Down+Right, Left
+64 (ぼ)	| ボートロン		| Boat Ron			| Short Down+Left, Down+Right, Left
+65 (ぱ)	| パーフェクトサン		| Perfect Sun			| Up, Down+Left, Up+Left
+66 (ぴ)	| ピンスポーン		| Pinspawn			| Right, Up+Left, Up+Right
+67 (ぷ)	| プレスアーム		| Press Arm			| Down, Up+Right, Down+Right
+68 (ぺ)	| ペガサスボーイ		| Pegasus Boy			| Left, Down+Right, Down+Left
+69 (ぽ)	| ポップサンダー		| Pop Thunder			| Short Down+Left, Short Down+Right, Short Down+Left
+70 (ん)	| ンジャメナス		| Ndjamenas			| Right, Down+Left, Down+Right
