@@ -657,6 +657,7 @@ P4_byte_4	P4_byte_4	P4_byte_4	P4_byte_4	31</code>
 	<p class="list_item"><a href="#zzh_com">IR Communication</a></p>
 	<p class="list_item"><a href="#zzh_cap">Capturing IR Data</a></p>
 	<p class="list_item"><a href="#zzh_emu">Emulation</a></p>
+	<p class="list_item"><a href="#zzh_cos">Cosmic Characters</a></p>
 
 	<a name="zzh_gen"></a>
 	<p class="gray_title">[Full Changer] : General Hardware Information</p>
@@ -763,6 +764,99 @@ OFF pulse length			38 + (20 * (LENGTH-2))</code>
 	<p>The LENGTH is number of times the CPU register D is incremented at 0x575E or 0x576C. The sum two LENGTHs from one ON pulse and one OFF pulse must be equal to the delay data in WRAM. For example, say the delay data contains 0x30. This means that the TOTAL amount of times D was incremented is 0x30. In a perfect world, the Full Changer would probably turn on the IR light so that D is incremented 0x18 times, then turn off the IR light so that D is incremented again 0x18 times. In reality, however, the length of the ON&#47;OFF pulses could run a bit longer or shorter. As far as Zok Zok Heroes is concerned, the total amount of time the IR light is ON then OFF is what matters, so the ON&#47;OFF pulse timings ultimately have to add up.</p>
 
 	<p>The current database GBE+ uses recreates ON&#47;OFF pulses that generally run for the same amount of cycles. However, based on hardware tests, the ON pulses have variable lengths, while the OFF pulses are typically constant. Again, Zok Zok Heroes won&#39;t care, as long as the total time of the ON&#47;OFF pulses meets whatever value it expects.</p>
+
+	<a name="zzh_cos"></a>
+	<p class="gray_title">[Full Changer] : Cosmic Characters</p>
+
+	<p>There are a total of 70 &#34;Cosmic Characters&#34; available in Zok Zok Heroes, and by extension, there are 70 unique transformations. This Cosmic Character is simply an 8-bit ID generated from the ON and OFF pulses from the Full Changer. Using the delays stored in the 18 WRAM bytes, the game software uses the following logic to determine an ID.</p>
+
+	<p>The first pulse is checked to ensure that it has a delay greater than 0x20, signaling a long pulse, otherwise processing for the Cosmic Character does not continue. Afterwards, the next 16 pulses are examined to build two separate 8-bit values. These values are constructed LSB. A short pulse (any value from 0x00 to 0x13) translates into a &#34;0&#34;, and a long pulse (any value from 0x14 to 0x20) translates into a &#34;1&#34;. The 1st 8-bit value built from these pulses is used for a checksum of a sort, and the 2nd 8-bit value is complemented to form an ID. IDs range from 0x01 to 0x46 and correspond to the 70 Cosmic Characters. Note that while the 18th IR pulse is required by the software, it isn&#39;t used for the ID or checksum.</p>
+
+<code>Checksum Calculation:
+Pulse Byte 1 + Pulse Byte 2 = 0xFF
+
+Cosmic Character ID Calculation:
+~Pulse Byte 2 = Cosmic Character ID
+
+Pulse Byte 1 Calculation (using an arbitrary ID of one&#39;s choosing):
+Pulse Byte 1 = 0xFF - (~Cosmic Character ID)
+
+Pulse Byte 2 Calculation (using an arbitrary ID of one&#39;s choosing):
+Pulse Byte 2 = ~Cosmic Character ID
+
+--------------------------------------------------------------------------------------------
+ID	| Japanese Name		| Translated Name		| Cosmic Character Movements
+--------------------------------------------------------------------------------------------
+01 (あ)	| アルカリパワード		| Alkaline Powered		| Up, Down, Up
+02 (い)	| イン ウォーター 	| In Water			| Right, Left, Right
+03 (う)	| ウルトランナー		| Ultra Runner			| Down, Up, Down
+04 (え)	| エアロ パワー 		| Aero Power			| Left, Right, Left
+05 (お)	| オチャッパ		| Ochaapa			| Down+Left, Right, Left
+06 (か)	| カイザーエッジ		| Kaizer Edge			| Up, Right, Down
+07 (き)	| キングバッター		| King Batter			| Right, Down, Left
+08 (く)	| クラッシッカー		| Crash Car			| Down, Left, Up
+09 (け)	| ケイタイがー		| Cellphone Tiger		| Left, Up, Right
+10 (こ)	| コップエース		| Cup Ace			| Down+Left, Up, Right
+11 (さ)	| サカナード		| Sakanard			| Up, Left, Down
+12 (し)	| シンデルター		| Thin Delta			| Right, Up, Left
+13 (す)	| スケボーライダー		| Skateboard Rider		| Down, Right, Up
+14 (せ)	| セロリスター		| Celery Star			| Left, Down, Right
+15 (そ)	| ソウジキラー		| Cleaning Killer		| Down+Left, Short Down, Right
+16 (た)	| タコアキッド		| Takoyaki Kid			| Short Up, Right, Short Up
+17 (ち)	| チンコーマン		| Chinkoman			| Short Right, Down, Short Right
+18 (つ)	| ツカイステイター		| Tsukai Stater			| Short Down, Left, Short Down
+19 (て)	| テッパンガー		| Teppangar			| Short Left, Up, Short Left
+20 (と)	| トンガラリン		| Tongararin			| Short Down+Left, Up, Short Left
+21 (な)	| ナガシマン		| Nagashiman			| Short Up, Right, Left
+22 (に)	| ニンジャーノン		| Ninja				| Short Right, Down, Up
+23 (ぬ)	| ぬいぬいちゃん		| Plushy-chan			| Short Down, Left, Right
+24 (ね)	| ネジレイザー		| Screw Razor			| Short Left, Up, Down
+25 (の)	| ノーベルブレイン		| Nobel Brain			| Short Down+Left, Up, Down
+26 (は)	| ハードハンマー		| Hard Hammer			| Short Up, Left, Short Up
+27 (ひ)	| ヒートマン		| Heat Man			| Short Right, Up, Short Right
+28 (ふ)	| フレイムグルメ		| Flame Gourmet			| Short Down, Right, Short Down
+29 (へ)	| ヘラクレスアーミー	| Hercules Army			| Short Left, Down, Short Left
+30 (ほ)	| ホットカード		| Hot Card			| Short Down+Left, Short Down, Short Left
+31 (ま)	| マッスルさん		| Mr. Muscle			| Short Up, Left, Right
+32 (み)	| ミストウォーター		| Mist Water			| Short Right, Up, Down
+33 (む)	| ムシムシマン		| Mushimushi Man		| Short Down, Right, Left
+34 (め)	| メガーテン		| Megaaten			| Short Left, Down, Up
+35 (も)	| モビルロボX		| Mobile Robot X		| Down+Left, Down, Up
+36 (や)	| ヤキバード		| Yaki Bird			| Up, Down, Left
+37 (ゆ)	| ユートロン		| Utron				| Down, Up, Right
+38 (よ)	| ヨーヨーマスク		| Yo-Yo Mask			| Down+Left, Right, Down
+39 (ら)	| ラジアルロード		| Radial Road			| Up, Down, Right
+40 (り)	| リモコンマン		| Remote-Control Man		| Right, Left, Down
+41 (る)	| ルビーフック		| Ruby Hook			| Down, Up, Left
+42 (れ)	| レトロサウンダー		| Retro Sounder			| Left, Right, Up
+43 (ろ)	| ロケットやろう		| Rocket			| Down+Left, Right, Short Up
+44 (わ)	| ワイルドソード		| Wild Sword			| Up, Down, Up+Left
+45 (が)	| ガッツラゴー		| Guts Lago			| Up, Down+Right, Short Left
+46 (ぎ)	| ギーニウン		| Giniun			| Right, Down+Left, Short Up
+47 (ぐ)	| グレートファイヤー	| Great Fire			| Down, Up+Left, Short Right
+48 (げ)	| ゲーマルク		| Gamemark			| Left, Up+Right, Short Down
+49 (ご)	| ゴウリキラー		| Gorilla Killa			| Down+Left, Up+Right, Short Down
+50 (ざ)	| ザ・クライマー		| The Climber			| Up, Down+Right, Short Right
+51 (じ)	| Gシャーク		| G Shark			| Right, Up+Left, Short Down
+52 (ず)	| ズームレーザー		| Zoom Laser			| Down, Up+Right, Short Left
+53 (ぜ)	| ゼンマイン		| Zenmai			| Left, Down+right, Short Up
+54 (ぞ)	| ゾウシャワー		| Elephant Shower		| Short Down+Left, Short Down+Right, Short Up
+55 (だ)	| ダイヤモール		| Diamond Mall			| Up, Down+Right, Up
+56 (ぢ)	| ヂグロニャン		| Digronyan			| Right, Down+Left, Right
+57 (づ)	| ヅィザーワン		| Ziza One			| Down, Up+Left, Down
+58 (で)	| デンジャレッド		| Danger Red			| Left, Up+Right, Left
+59 (ど)	| ドハツテン		| Dohatsuten			| Down+Left, Up+Right, Left 
+60 (ば)	| バルバルーン		| Balloon			| Up, Down+Left, Up
+61 (び)	| ビデオージャ		| Videoja			| Right, Up+Left, Right
+62 (ぶ)	| ブーブーウー		| Boo Boo			| Down, Up+Right, Down
+63 (べ)	| ベルトジャイン		| Belt Jain			| Left, Down+Right, Left
+64 (ぼ)	| ボートロン		| Boat Ron			| Short Down+Left, Down+Right, Left
+65 (ぱ)	| パーフェクトサン		| Perfect Sun			| Up, Down+Left, Up+Left
+66 (ぴ)	| ピンスポーン		| Pinspawn			| Right, Up+Left, Up+Right
+67 (ぷ)	| プレスアーム		| Press Arm			| Down, Up+Right, Down+Right
+68 (ぺ)	| ペガサスボーイ		| Pegasus Boy			| Left, Down+Right, Down+Left
+69 (ぽ)	| ポップサンダー		| Pop Thunder			| Short Down+Left, Short Down+Right, Short Down+Left
+70 (ん)	| ンジャメナス		| Ndjamenas			| Right, Down+Left, Down+Right</code>
 
 	<!-- GBC IR -->
 
