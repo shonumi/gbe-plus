@@ -32,6 +32,7 @@ This list represents all the games that have been verified to use the DMG-07. Th
 - Faceball 2000
 - F1 Race
 - F1 Pole Position
+- Jinsei Game Densetsu
 - Nekketsu Koukou Dodge Ball-Bu
 - Super R.C. Pro-Am
 - Top Rank Tennis

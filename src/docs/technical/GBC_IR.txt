@@ -26,40 +26,48 @@ The Game Boy Color came with an infrared port on the very top of the handheld. P
 
 This list represents all the games that have been verified to use the IR port. While exhaustive, this list is probably not complete. Some "Ubi Key" games have not been confirmed (Hype: The Time Quest, Inspector Gadget), and there are likely more Japanese exclusives that need to be added. It's dubious whether or not Animorphs actually is a "Ubi Key" game. The back boxart doesn't have the "IR Compatible" logo, and the manual makes no mention of IR communication.
 
-- Bomberman Max: Blue Champion			Combine Charaboms/Trade completed levels/Unlock hidden areas
-- Bomberman Max: Red Challenger			Combine Charaboms/Trade completed levels/Unlock hidden areas
-- Carl Lewis Alhletics 2000			Ubi Key
-- Chee-Chai Alien				Enhances IR sensor to detect artificial light sources. Catch/trade Chaliens
-- Dancing Furby					Sends signal to Furby doll, Furby reacts based on dance performance
-- Donkey Kong Country				Transfer pictures to stickerbook
-- Game Boy Wars 3				Wireless multiplayer
-- Harry Potter and the Sorceror's Stone		Trade "Famous Witches and Wizards" cards 
-- Harry Potter and the Chamber of Secrets	Trade "Famous Witches and Wizards" cards 
-- Kaijin Zona					Receive randomized puzzles via IR signals
-- Laura						Ubi Key
-- Mary-Kate and Ashley Pocket Planner		Send and receive "G-mail" messages
-- Mickey's Racing Adventure			Send and receive messages. Unlocks ??? in Mickey's Speedway USA
-- Mickey's Speedway USA				???
-- Mission Impossible				Send and receive messages, notes, addresses + custom TV remote
-- Papyrus					Ubi Key
-- Perfect Dark					Trade multiplayer maps and other unlockables
-- Playmobil Interactive: Laura			Ubi Key
-- Pocket Family GB 2				Transfer characters and data
-- Pokemon Pinball				Trade/combine Top Scores
-- Pokemon Gold					Mystery Gift + Send trainer data to Viridian City Trainer House
-- Pokemon Silver				Mystery Gift + Send trainer data to Viridian City Trainer House
-- Pokemon Crystal				Mystery Gift + Send trainer data to Viridian City Trainer House
-- Pokemon Trading Card Game			"Card Pop" to generate random cards. Trade individual cards. Trade deck configurations
-- Pokemon Card GB2: Here Comes Team GR!		"Card Pop" to generate random cards. Trade individual cards. Trade deck configurations
-- Rayman					Ubi Key
-- The Road to El Dorado				Ubi Key
-- Robopon Sun Version				Boost stats via infrared signals. Open certain chests
-- Sakura Taisen GB				Send step-based "Points" to GBC from Pocket Sakura, or between two GBCs
-- Shin Megami Tensei Devil Children White	Used for "Infrared Fusion" to strengthen some demons, obtain rare ones
-- Super Mario Bros. DX				Trade/combine Top Scores
-- Toonsylvania					Ubi Key
-- Warlocked					Trade wizards
-- Zok Zok Heroes				Transmit "Cosmic Characters" from Full Changer accessory to transform hero
+- Austin Powers: Oh Behave!				Trade items and messages		
+- Austin Powers: Welcome to My Underground Lair!	Trade items and messages
+- Bomberman Max: Blue Champion				Combine Charaboms/Trade completed levels/Unlock hidden areas
+- Bomberman Max: Red Challenger				Combine Charaboms/Trade completed levels/Unlock hidden areas
+- Carl Lewis Alhletics 2000				Ubi Key
+- Catz							Trade Petz and Toyz
+- Chee-Chai Alien					Enhances IR sensor to detect artificial light sources. Catch/trade Chaliens
+- Dancing Furby						Sends signal to Furby doll, Furby reacts based on dance performance
+- Disney's Aladdin					Ubi Key (possibly)				
+- Dogz							Trade Petz and Toyz
+- Donkey Kong Country					Transfer pictures to stickerbook
+- Game Boy Wars 3					Wireless multiplayer
+- Hamtaro: Ham-Hams Unite!				Trade Hamtaro's clothes
+- Harry Potter and the Sorceror's Stone			Trade "Famous Witches and Wizards" cards 
+- Harry Potter and the Chamber of Secrets		Trade "Famous Witches and Wizards" cards 
+- Kaijin Zona						Receive randomized puzzles via IR signals
+- Laura							Ubi Key
+- Mary-Kate and Ashley Pocket Planner			Send and receive "G-mail" messages
+- Mickey's Racing Adventure				Send and receive messages. Unlocks ??? in Mickey's Speedway USA
+- Mickey's Speedway USA					???
+- Mission Impossible					Send and receive messages, notes, addresses + custom TV remote
+- Papyrus						Ubi Key
+- Perfect Dark						Trade multiplayer maps and other unlockables
+- Playmobil Interactive: Laura				Ubi Key
+- Pocket Family GB 2					Transfer characters and data
+- Pokemon Pinball					Trade/combine Top Scores
+- Pokemon Gold						Mystery Gift + Send trainer data to Viridian City Trainer House
+- Pokemon Silver					Mystery Gift + Send trainer data to Viridian City Trainer House
+- Pokemon Crystal					Mystery Gift + Send trainer data to Viridian City Trainer House
+- Pokemon Trading Card Game				"Card Pop" to generate random cards. Trade individual cards. Trade deck configurations
+- Pokemon Card GB2: Here Comes Team GR!			"Card Pop" to generate random cards. Trade individual cards. Trade deck configurations
+- Rayman						Ubi Key
+- Return of the Ninja					Trade "Ninja Cards"
+- The Road to El Dorado					Ubi Key
+- Robopon Sun Version					Boost stats via infrared signals. Open certain chests
+- Sakura Taisen GB					Send step-based "Points" to GBC from Pocket Sakura, or between two GBCs
+- Shin Megami Tensei Devil Children White		Used for "Infrared Fusion" to strengthen some demons, obtain rare ones
+- Spirou: The Robot Invasion				Ubi Key
+- Super Mario Bros. DX					Trade/combine Top Scores
+- Toonsylvania						Ubi Key
+- Warlocked						Trade wizards
+- Zok Zok Heroes					Transmit "Cosmic Characters" from Full Changer accessory to transform hero
 
 It should be noted that a few games that use HuC-3 MBC are not in fact "GB KISS" games. Instead, they use the GBC's built-in IR hardware. Robopon Sun Version (US version only) and Pocket Family GB 2 are such examples. While the other Robopon games use the HuC-3's IR capabilities, these were lost when the game went overseas. A similar phenomenon can be seen with the Japanese release of Pokemon TCG (which used the HuC-1) versus releases for any other region (which use the GBC's native IR). Pocket Family GB 2 abandons the IR diodes on the HuC-3 PCB. At this point in time, Hudson may have finally decided to abandon GB KISS and the HuC-1 and HuC-3's IR features as they were redundant, especially for games designed to run exclusively on the GBC.
 
