@@ -42,7 +42,7 @@ void DMG_SIO::full_changer_process()
 	}
 
 	//Schedule the next on-off pulse
-	if(full_changer.delay_counter != ((config::ir_db_index + 1) * 0x24))
+	if(full_changer.delay_counter != ((config::ir_db_index + 1) * 0x24) - 1)
 	{
 		sio_stat.shift_counter = 0;
 		sio_stat.shift_clock = full_changer.data[full_changer.delay_counter];

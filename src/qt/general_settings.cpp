@@ -1617,7 +1617,7 @@ void gen_settings::set_ini_options()
 	real_time_clock_menu->days_offset->setValue(config::rtc_offset[3]);
 
 	//Full Changer
-	if(config::ir_db_index < 1) { full_changer_menu->cosmic_character->setCurrentIndex(config::ir_db_index); }
+	if(config::ir_db_index < 70) { full_changer_menu->cosmic_character->setCurrentIndex(config::ir_db_index); }
 	else { full_changer_menu->cosmic_character->setCurrentIndex(0); }
 
 	//Pokemon Pikachu 2
