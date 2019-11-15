@@ -245,6 +245,12 @@ void NTR_LCD::reset()
 			lcd_stat.window_out_enable_b[y][x] = false;
 		}
 
+		for(int y = 0; y < 256; y++)
+		{
+			lcd_stat.window_status_a[y][x] = false;
+			lcd_stat.window_status_b[y][x] = false;
+		}
+			
 		lcd_stat.current_window_a = 0;
 		lcd_stat.current_window_b = 0;
 	}
@@ -3087,6 +3093,104 @@ void NTR_LCD::adjust_master_brightness()
 		}
 	}
 }	
+
+/****** Calculates what coordinates of a scanline are within a Window ******/
+void NTR_LCD::calculate_window_on_scanline()
+{
+	//Clear previous calculations
+	for(u32 y = 0; y < 2; y++)
+	{
+		for(int x = 0; x < 256; y++)
+		{
+			lcd_stat.window_status_a[x][y] = false;
+			lcd_stat.window_status_b[x][y] = false;
+		}
+	}
+
+	u32 line = lcd_stat.current_scanline;
+
+	//Calculate Engine A
+	for(u32 win_id = 0; win_id < 2; win_id++)
+	{
+		for(u32 pixel = 0; pixel < 256; pixel++)
+		{
+			bool check_x = false;
+			bool check_y = false;
+
+			//Determine window status of this pixel
+			if(lcd_stat.window_enable_a[win_id])
+			{
+				if((lcd_stat.window_x_a[0][win_id] <= lcd_stat.window_x_a[1][win_id]) && (pixel >= lcd_stat.window_x_a[0][win_id]) && (pixel <= lcd_stat.window_x_a[1][win_id]))
+				{
+					check_x = true;
+				}
+
+				else if((lcd_stat.window_x_a[0][win_id] > lcd_stat.window_x_a[1][win_id]) && (pixel >= lcd_stat.window_x_a[0][win_id]) || (pixel <= lcd_stat.window_x_a[1][win_id]))
+				{
+					check_x = true;
+				}
+
+				if((lcd_stat.window_y_a[0][win_id] <= lcd_stat.window_y_a[1][win_id]) && (line >= lcd_stat.window_y_a[0][win_id]) && (line <= lcd_stat.window_y_a[1][win_id]))
+				{
+					check_y = true;
+				}
+
+				else if((lcd_stat.window_y_a[0][win_id] > lcd_stat.window_y_a[1][win_id]) && (line >= lcd_stat.window_y_a[0][win_id]) || (line <= lcd_stat.window_y_a[1][win_id]))
+				{
+					check_y = true;
+				}
+		
+				//Set window status and ID
+				if(check_x && check_y && !lcd_stat.window_status_a[pixel][win_id])
+				{
+					lcd_stat.window_status_a[pixel][win_id] = true;
+					lcd_stat.window_id_a[pixel] = win_id;
+				}
+			}
+		}
+	}
+
+	//Calculate Engine B
+	for(u32 win_id = 0; win_id < 2; win_id++)
+	{	
+		for(u32 pixel = 0; pixel < 256; pixel++)
+		{
+			bool check_x = false;
+			bool check_y = false;
+
+			//Determine window status of this pixel
+			if(lcd_stat.window_enable_b[win_id])
+			{
+				if((lcd_stat.window_x_b[0][win_id] <= lcd_stat.window_x_b[1][win_id]) && (pixel >= lcd_stat.window_x_b[0][win_id]) && (pixel <= lcd_stat.window_x_b[1][win_id]))
+				{
+					check_x = true;
+				}
+
+				else if((lcd_stat.window_x_b[0][win_id] > lcd_stat.window_x_b[1][win_id]) && (pixel >= lcd_stat.window_x_b[0][win_id]) || (pixel <= lcd_stat.window_x_b[1][win_id]))
+				{
+					check_x = true;
+				}
+
+				if((lcd_stat.window_y_b[0][win_id] <= lcd_stat.window_y_b[1][win_id]) && (line >= lcd_stat.window_y_b[0][win_id]) && (line <= lcd_stat.window_y_b[1][win_id]))
+				{
+					check_y = true;
+				}
+
+				else if((lcd_stat.window_y_b[0][win_id] > lcd_stat.window_y_b[1][win_id]) && (line >= lcd_stat.window_y_b[0][win_id]) || (line <= lcd_stat.window_y_b[1][win_id]))
+				{
+					check_y = true;
+				}
+		
+				//Set window status and ID
+				if(check_x && check_y && !lcd_stat.window_status_b[pixel][win_id])
+				{
+					lcd_stat.window_status_b[pixel][win_id] = true;
+					lcd_stat.window_id_b[pixel] = win_id;
+				}
+			}
+		}
+	}
+}
 		
 /****** Immediately draw current buffer to the screen ******/
 void NTR_LCD::update()

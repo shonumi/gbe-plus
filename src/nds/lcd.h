@@ -198,6 +198,9 @@ class NTR_LCD
 	void brightness_up(u32 bg_control);
 	void brightness_down(u32 bg_control);
 	void adjust_master_brightness();
+
+	//Window functions
+	void calculate_window_on_scanline();
 };
 
 #endif // NDS_LCD

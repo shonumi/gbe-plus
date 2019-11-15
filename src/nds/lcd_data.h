@@ -171,6 +171,12 @@ struct ntr_lcd_data
 	bool window_out_enable_a[6][2];
 	bool window_out_enable_b[6][2];
 
+	bool window_status_a[256][2];
+	bool window_status_b[256][2];
+	
+	bool window_id_a[256];
+	bool window_id_b[256];
+
 	u8 current_window_a;
 	u8 current_window_b;
 
