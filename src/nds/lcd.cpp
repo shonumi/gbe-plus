@@ -903,6 +903,9 @@ void NTR_LCD::render_bg_scanline(u32 bg_control)
 	u8 bg_render_list[4];
 	u8 bg_id = 0;
 
+	//Calculate window status for Engine A and Engine B for current scanline
+	calculate_window_on_scanline();
+
 	//Render Engine A
 	if((bg_control & 0x1000) == 0)
 	{
@@ -1481,6 +1484,8 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 		u16 ext_pal_id;
 		u8 pal_id;
 		u8 flip;
+		bool in_window;
+		u8 win_id;
 
 		u16 scanline_pixel_counter = 0;
 		u8 current_screen_line = (lcd_stat.current_scanline + lcd_stat.bg_offset_y_a[bg_id]);
@@ -1505,6 +1510,12 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 
 			//Determine meta Y-coordinate of rendered BG pixel
 			u16 meta_y = ((lcd_stat.current_scanline + lcd_stat.bg_offset_y_a[bg_id]) & lcd_stat.text_height_a[bg_id]);
+
+			//Determine if pixel can be drawn inside an active window
+			win_id = lcd_stat.window_id_a[x];
+
+			if(lcd_stat.window_status_a[x][win_id] && !lcd_stat.window_in_enable_a[bg_id][win_id]) { in_window = false; }
+			else { in_window = true; }
 
 			//Determine the address offset for the screen
 			switch(lcd_stat.bg_size_a[bg_id])
@@ -1563,7 +1574,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 					if(!render_buffer_a[scanline_pixel_counter] || (bg_priority < render_buffer_a[scanline_pixel_counter]))
 					{
 						//Only draw colors if not transparent
-						if(raw_color)
+						if(raw_color && in_window)
 						{
 							scanline_buffer_a[scanline_pixel_counter] = (lcd_stat.ext_pal_a) ? lcd_stat.bg_ext_pal_a[ext_pal_id + raw_color]  : lcd_stat.bg_pal_a[raw_color];
 							render_buffer_a[scanline_pixel_counter] = bg_priority;
@@ -1595,7 +1606,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 					if(!render_buffer_a[scanline_pixel_counter] || (bg_priority < render_buffer_a[scanline_pixel_counter]))
 					{
 						//Only draw colors if not transparent
-						if(raw_color & 0xF)
+						if((raw_color & 0xF) && (in_window))
 						{
 							scanline_buffer_a[scanline_pixel_counter] = lcd_stat.bg_pal_a[pal_1];
 							render_buffer_a[scanline_pixel_counter] = bg_priority;
@@ -1616,7 +1627,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 					if(!render_buffer_a[scanline_pixel_counter] || (bg_priority < render_buffer_a[scanline_pixel_counter]))
 					{
 						//Only draw colors if not transparent
-						if(raw_color >> 4)
+						if((raw_color >> 4) && (in_window))
 						{
 							scanline_buffer_a[scanline_pixel_counter] = lcd_stat.bg_pal_a[pal_2];
 							render_buffer_a[scanline_pixel_counter] = bg_priority;
@@ -1666,6 +1677,8 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 		u16 ext_pal_id;
 		u8 pal_id;
 		u8 flip;
+		bool in_window;
+		u8 win_id;
 
 		u16 scanline_pixel_counter = 0;
 		u8 current_screen_line = (lcd_stat.current_scanline + lcd_stat.bg_offset_y_b[bg_id]);
@@ -1690,6 +1703,12 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 
 			//Determine meta Y-coordinate of rendered BG pixel
 			u16 meta_y = ((lcd_stat.current_scanline + lcd_stat.bg_offset_y_b[bg_id]) & lcd_stat.text_height_b[bg_id]);
+
+			//Determine if pixel can be drawn inside an active window
+			win_id = lcd_stat.window_id_b[x];
+
+			if(lcd_stat.window_status_b[x][win_id] && !lcd_stat.window_in_enable_b[bg_id][win_id]) { in_window = false; }
+			else { in_window = true; }
 
 			//Determine the address offset for the screen
 			switch(lcd_stat.bg_size_b[bg_id])
@@ -1748,7 +1767,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 					if(!render_buffer_b[scanline_pixel_counter] || (bg_priority < render_buffer_b[scanline_pixel_counter]))
 					{
 						//Only draw colors if not transparent
-						if(raw_color)
+						if(raw_color && in_window)
 						{
 							scanline_buffer_b[scanline_pixel_counter] = (lcd_stat.ext_pal_b) ? lcd_stat.bg_ext_pal_b[ext_pal_id + raw_color]  : lcd_stat.bg_pal_b[raw_color];
 							render_buffer_b[scanline_pixel_counter] = bg_priority;
@@ -1780,7 +1799,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 					if(!render_buffer_b[scanline_pixel_counter] || (bg_priority < render_buffer_b[scanline_pixel_counter]))
 					{
 						//Only draw colors if not transparent
-						if(raw_color & 0xF)
+						if((raw_color & 0xF) && (in_window))
 						{
 							scanline_buffer_b[scanline_pixel_counter] = lcd_stat.bg_pal_b[pal_1];
 							render_buffer_b[scanline_pixel_counter] = bg_priority;
@@ -1801,7 +1820,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 					if(!render_buffer_b[scanline_pixel_counter] || (bg_priority < render_buffer_b[scanline_pixel_counter]))
 					{
 						//Only draw colors if not transparent
-						if(raw_color >> 4)
+						if((raw_color >> 4) && (in_window))
 						{
 							scanline_buffer_b[scanline_pixel_counter] = lcd_stat.bg_pal_b[pal_2];
 							render_buffer_b[scanline_pixel_counter] = bg_priority;
@@ -3100,7 +3119,7 @@ void NTR_LCD::calculate_window_on_scanline()
 	//Clear previous calculations
 	for(u32 y = 0; y < 2; y++)
 	{
-		for(int x = 0; x < 256; y++)
+		for(int x = 0; x < 256; x++)
 		{
 			lcd_stat.window_status_a[x][y] = false;
 			lcd_stat.window_status_b[x][y] = false;
