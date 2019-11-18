@@ -2586,10 +2586,18 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		//SFX Alpha Control - Engine A
 		case NDS_BLDALPHA_A:
 			memory_map[address] = value;
+
+			if(value & 0x10) { lcd_stat->alpha_coef_a[0] = 1.0; }
+			else { lcd_stat->alpha_coef_a[0] = (value & 0xF) / 16.0; }
+			
 			break;
 
 		case NDS_BLDALPHA_A+1:
 			memory_map[address] = value;
+
+			if(value & 0x10) { lcd_stat->alpha_coef_a[1] = 1.0; }
+			else { lcd_stat->alpha_coef_a[1] = (value & 0xF) / 16.0; }
+
 			break;
 
 		//SFX Brightness Control - Engine A
@@ -2597,8 +2605,9 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			if(memory_map[address] == value) { return ; }
 
 			memory_map[address] = value;
-			if(value > 0xF) { value = 0x10; }
-			lcd_stat->brightness_coef_a = (value & 0x1F) / 16.0;
+			if(value & 0x10) { lcd_stat->brightness_coef_a = 1.0; }
+			else { lcd_stat->brightness_coef_a = (value & 0xF) / 16.0; }
+
 			break;
 
 		//SFX Control - Engine A
@@ -2634,10 +2643,18 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		//SFX Alpha Control - Engine A
 		case NDS_BLDALPHA_B:
 			memory_map[address] = value;
+
+			if(value & 0x10) { lcd_stat->alpha_coef_b[0] = 1.0; }
+			else { lcd_stat->alpha_coef_b[0] = (value & 0xF) / 16.0; }
+
 			break;
 
 		case NDS_BLDALPHA_B+1:
 			memory_map[address] = value;
+
+			if(value & 0x10) { lcd_stat->alpha_coef_b[1] = 1.0; }
+			else { lcd_stat->alpha_coef_b[1] = (value & 0xF) / 16.0; }
+
 			break;
 
 		//SFX Brightness Control - Engine A
@@ -2645,8 +2662,9 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			if(memory_map[address] == value) { return ; }
 
 			memory_map[address] = value;
-			if(value > 0xF) { value = 0x10; }
-			lcd_stat->brightness_coef_b = (value & 0x1F) / 16.0;
+			if(value & 0x10) { lcd_stat->brightness_coef_b = 1.0; }
+			else { lcd_stat->brightness_coef_b = (value & 0xF) / 16.0; }
+
 			break;
 
 		//WRAM Control

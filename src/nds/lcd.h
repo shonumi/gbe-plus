@@ -197,6 +197,7 @@ class NTR_LCD
 	void apply_sfx(u32 bg_control);
 	void brightness_up(u32 bg_control);
 	void brightness_down(u32 bg_control);
+	void alpha_blend(u32 bg_control);
 	void adjust_master_brightness();
 
 	//Window functions
