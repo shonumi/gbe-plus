@@ -42,7 +42,6 @@ This list represents all the games that have been verified to use the IR port. W
 - Harry Potter and the Sorceror's Stone			Trade "Famous Witches and Wizards" cards 
 - Harry Potter and the Chamber of Secrets		Trade "Famous Witches and Wizards" cards 
 - Kaijin Zona						Receive randomized puzzles via IR signals
-- Laura							Ubi Key
 - Mary-Kate and Ashley Pocket Planner			Send and receive "G-mail" messages
 - Mickey's Racing Adventure				Send and receive messages. Unlocks ??? in Mickey's Speedway USA
 - Mickey's Speedway USA					???
@@ -127,6 +126,7 @@ At about 3.0 to 3.5 inches (7.62 to 8.89cm) signal fade time appears to be aroun
 ***************************************************
 8. Obscure Behavior
 ***************************************************
+
 
 The RP register has one very strange quirk. Disabling Bits 6 and 7 and then subsequently re-enabling them causes Bit 1 to go to zero under certain conditions. In other words, the IR sensor will act as if it is detecting a signal if reading the signal is disabled then enabled. It seems this behavior happens in the presence of any light; covering up the sensor during the read signal disable/enable causes the sensor to act normally. It's possible that the sensor resets itself (to its lowest level of detection???) and immediately detects any infrared sources, even from ambient/environmental light. The presence of any noise may temporarily trick the sensor into "seeing" IR light. By abusing this behavior, the GBC has some rudimentary ability to gauge the type of nearby lighting:
 
