@@ -153,6 +153,9 @@ struct ntr_lcd_data
 	double brightness_coef_a;
 	double brightness_coef_b;
 
+	double alpha_coef_a[2];
+	double alpha_coef_b[2];
+
 	u16 window_x_a[2][2];
 	u16 window_x_b[2][2];
 
