@@ -3102,7 +3102,7 @@ void NTR_LCD::alpha_blend(u32 bg_control)
 			if(line_buffer[target_id + 4][x])
 			{
 				found_target_1 = true;
-				target_1 = target_id;
+				target_1 = (line_buffer[target_id + 4][x] & 0x80) ? 4 : target_id;
 				next_bg = y + 1;
 				break;
 			}
@@ -3116,7 +3116,7 @@ void NTR_LCD::alpha_blend(u32 bg_control)
 			if(line_buffer[target_id + 4][x])
 			{
 				found_target_2 = true;
-				target_2 = target_id;
+				target_2 = (line_buffer[target_id + 4][x] & 0x80) ? 4 : target_id;
 				break;
 			}
 		}
