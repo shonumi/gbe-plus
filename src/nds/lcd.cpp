@@ -1404,6 +1404,7 @@ void NTR_LCD::render_obj_scanline(u32 bg_control)
 							scanline_buffer_a[scanline_pixel_counter] = (ext_pal) ? lcd_stat.obj_ext_pal_a[(pal_id * 256) + raw_color] : lcd_stat.obj_pal_a[(pal_id * 16) + raw_color];
 							render_buffer_a[scanline_pixel_counter] = (obj[obj_id].bg_priority + 1);
 							sfx_buffer[scanline_pixel_counter] = (render_buffer_a[scanline_pixel_counter] | 0x80);
+							line_buffer[obj[obj_id].bg_priority + 4][scanline_pixel_counter] |= 0x80;
 						}
 
 						//Draw for Engine B
@@ -1412,6 +1413,7 @@ void NTR_LCD::render_obj_scanline(u32 bg_control)
 							scanline_buffer_b[scanline_pixel_counter] = (ext_pal) ? lcd_stat.obj_ext_pal_b[(pal_id * 256) + raw_color] : lcd_stat.obj_pal_b[(pal_id * 16) + raw_color];
 							render_buffer_b[scanline_pixel_counter] = (obj[obj_id].bg_priority + 1);
 							sfx_buffer[scanline_pixel_counter] = (render_buffer_b[scanline_pixel_counter] | 0x80);
+							line_buffer[obj[obj_id].bg_priority + 4][scanline_pixel_counter] |= 0x80;
 						}
 					}
 
@@ -1443,6 +1445,7 @@ void NTR_LCD::render_obj_scanline(u32 bg_control)
 							scanline_buffer_a[scanline_pixel_counter] = get_rgb15(raw_pixel);
 							render_buffer_a[scanline_pixel_counter] = (obj[obj_id].bg_priority + 1);
 							sfx_buffer[scanline_pixel_counter] = (render_buffer_a[scanline_pixel_counter] | 0x80);
+							line_buffer[obj[obj_id].bg_priority + 4][scanline_pixel_counter] |= 0x80;
 						}
 
 						//Draw for Engine B
@@ -1451,6 +1454,7 @@ void NTR_LCD::render_obj_scanline(u32 bg_control)
 							scanline_buffer_b[scanline_pixel_counter] = get_rgb15(raw_pixel);
 							render_buffer_b[scanline_pixel_counter] = (obj[obj_id].bg_priority + 1);
 							sfx_buffer[scanline_pixel_counter] = (render_buffer_b[scanline_pixel_counter] | 0x80);
+							line_buffer[obj[obj_id].bg_priority + 4][scanline_pixel_counter] |= 0x80;
 						}
 					}
 						
@@ -1597,8 +1601,8 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 
 					//SFX and line buffer
 					sfx_buffer[scanline_pixel_counter] = render_buffer_a[scanline_pixel_counter];
-					line_buffer[bg_id][scanline_pixel_counter] = (lcd_stat.ext_pal_a) ? lcd_stat.bg_ext_pal_a[ext_pal_id + raw_color]  : lcd_stat.bg_pal_a[raw_color];
-					if(raw_color && in_window && out_window) { line_buffer[bg_id + 4][scanline_pixel_counter] = 1; }
+					if(!line_buffer[bg_id][scanline_pixel_counter]) { line_buffer[bg_id][scanline_pixel_counter] = (lcd_stat.ext_pal_a) ? lcd_stat.bg_ext_pal_a[ext_pal_id + raw_color]  : lcd_stat.bg_pal_a[raw_color]; }
+					if(raw_color && in_window && out_window) { line_buffer[bg_id + 4][scanline_pixel_counter] |= 1; }
 
 					//Draw 256 pixels max
 					scanline_pixel_counter++;
@@ -1630,8 +1634,8 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 
 					//SFX and line buffer
 					sfx_buffer[scanline_pixel_counter] = (render_buffer_a[scanline_pixel_counter]);
-					line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_a[pal_1];
-					if((raw_color & 0xF) && (in_window) && (out_window)) { line_buffer[bg_id + 4][scanline_pixel_counter] = 1; }
+					if(!line_buffer[bg_id][scanline_pixel_counter]) { line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_a[pal_1]; }
+					if((raw_color & 0xF) && (in_window) && (out_window)) { line_buffer[bg_id + 4][scanline_pixel_counter] |= 1; }
 
 					//Draw 256 pixels max
 					scanline_pixel_counter++;
@@ -1653,8 +1657,8 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 
 					//SFX and line buffer
 					sfx_buffer[scanline_pixel_counter] = (render_buffer_a[scanline_pixel_counter]);
-					line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_a[pal_2];
-					if((raw_color >> 4) && (in_window) && (out_window)) { line_buffer[bg_id + 4][scanline_pixel_counter] = 1; }
+					if(!line_buffer[bg_id][scanline_pixel_counter]) { line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_a[pal_2]; }
+					if((raw_color >> 4) && (in_window) && (out_window)) { line_buffer[bg_id + 4][scanline_pixel_counter] |= 1; }
 
 					//Draw 256 pixels max
 					scanline_pixel_counter++;
@@ -1800,8 +1804,8 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 
 					//SFX and line buffer
 					sfx_buffer[scanline_pixel_counter] = (render_buffer_b[scanline_pixel_counter]);
-					line_buffer[bg_id][scanline_pixel_counter] = (lcd_stat.ext_pal_b) ? lcd_stat.bg_ext_pal_b[ext_pal_id + raw_color]  : lcd_stat.bg_pal_b[raw_color];
-					if(raw_color && in_window && out_window) { line_buffer[bg_id + 4][scanline_pixel_counter] = 1; }
+					if(!line_buffer[bg_id][scanline_pixel_counter]) { line_buffer[bg_id][scanline_pixel_counter] = (lcd_stat.ext_pal_b) ? lcd_stat.bg_ext_pal_b[ext_pal_id + raw_color]  : lcd_stat.bg_pal_b[raw_color]; }
+					if(raw_color && in_window && out_window) { line_buffer[bg_id + 4][scanline_pixel_counter] |= 1; }
 
 					//Draw 256 pixels max
 					scanline_pixel_counter++;
@@ -1833,8 +1837,8 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 
 					//SFX and line buffer
 					sfx_buffer[scanline_pixel_counter] = (render_buffer_b[scanline_pixel_counter]);
-					line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_b[pal_1];
-					if((raw_color & 0xF) && (in_window) && (out_window)) { line_buffer[bg_id + 4][scanline_pixel_counter] = 1; }
+					if(!line_buffer[bg_id][scanline_pixel_counter]) { line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_b[pal_1]; }
+					if((raw_color & 0xF) && (in_window) && (out_window)) { line_buffer[bg_id + 4][scanline_pixel_counter] |= 1; }
 
 					//Draw 256 pixels max
 					scanline_pixel_counter++;
@@ -1855,8 +1859,8 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 
 					//SFX and line buffer
 					sfx_buffer[scanline_pixel_counter] = (render_buffer_b[scanline_pixel_counter]);
-					line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_b[pal_2];
-					if((raw_color >> 4) && (in_window) && (out_window)) { line_buffer[bg_id + 4][scanline_pixel_counter] = 1; }
+					if(!line_buffer[bg_id][scanline_pixel_counter]) { line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_b[pal_2]; }
+					if((raw_color >> 4) && (in_window) && (out_window)) { line_buffer[bg_id + 4][scanline_pixel_counter] |= 1; }
 
 					//Draw 256 pixels max
 					scanline_pixel_counter++;
