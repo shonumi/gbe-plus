@@ -3165,6 +3165,7 @@ void NTR_LCD::adjust_master_brightness()
 	u8 r = 0;
 	u8 g = 0;
 	u8 b = 0;
+	s16 result = 0;
 
 	//Master Brightness Up
 	if((lcd_stat.master_bright >> 14) == 0x1)
@@ -3174,16 +3175,19 @@ void NTR_LCD::adjust_master_brightness()
 		{
 			color = scanline_buffer_a[x];
 
-			r = (color >> 19) & 0x1F;
-			r = r + ((63 - r) * factor);
+			r = (color >> 18) & 0x3F;
+			result = r + ((63 - r) * factor);
+			r = (result > 63) ? 63 : result;
 
-			g = (color >> 11) & 0x1F;
-			g = g + ((63 - g) * factor);
+			g = (color >> 10) & 0x3F;
+			result = g + ((63 - g) * factor);
+			g = (result > 63) ? 63 : result;
 
-			b = (color >> 3) & 0x1F;
-			b = b + ((63 - b) * factor);
+			b = (color >> 2) & 0x3F;
+			result = b + ((63 - b) * factor);
+			b = (result > 63) ? 63 : result;
 
-			scanline_buffer_a[x] = 0xFF000000 | (r << 19) | (g << 11) | (b << 3);
+			scanline_buffer_a[x] = 0xFF000000 | (r << 18) | (g << 10) | (b << 2);
 		}
 
 		//Engine B pixels
@@ -3191,16 +3195,19 @@ void NTR_LCD::adjust_master_brightness()
 		{
 			color = scanline_buffer_b[x];
 
-			r = (color >> 19) & 0x1F;
-			r = r + ((63 - r) * factor);
+			r = (color >> 18) & 0x3F;
+			result = r + ((63 - r) * factor);
+			r = (result > 63) ? 63 : result;
 
-			g = (color >> 11) & 0x1F;
-			g = g + ((63 - g) * factor);
+			g = (color >> 10) & 0x3F;
+			result = g + ((63 - g) * factor);
+			g = (result > 63) ? 63 : result;
 
-			b = (color >> 3) & 0x1F;
-			b = b + ((63 - b) * factor);
+			b = (color >> 2) & 0x3F;
+			result = b + ((63 - b) * factor);
+			b = (result > 63) ? 63 : result;
 
-			scanline_buffer_b[x] = 0xFF000000 | (r << 19) | (g << 11) | (b << 3);
+			scanline_buffer_b[x] = 0xFF000000 | (r << 18) | (g << 10) | (b << 2);
 		}
 	}
 
@@ -3212,16 +3219,19 @@ void NTR_LCD::adjust_master_brightness()
 		{
 			color = scanline_buffer_a[x];
 
-			r = (color >> 19) & 0x1F;
-			r = r - (r * factor);
+			r = ((color >> 18) & 0x3F);
+			result = r - (r * factor);
+			r = (result < 0) ? 0 : result;
 
-			g = (color >> 11) & 0x1F;
-			g = g - (g * factor);
+			g = ((color >> 10) & 0x3F);
+			result = g - (g * factor);
+			g = (result < 0) ? 0 : result;
 
-			b = (color >> 3) & 0x1F;
-			b = b - (b * factor);
+			b = ((color >> 2) & 0x3F);
+			result = b - (b * factor);
+			b = (result < 0) ? 0 : result;
 
-			scanline_buffer_a[x] = 0xFF000000 | (r << 19) | (g << 11) | (b << 3);
+			scanline_buffer_a[x] = 0xFF000000 | (r << 18) | (g << 10) | (b << 2);
 		}
 
 		//Engine B pixels
@@ -3229,19 +3239,22 @@ void NTR_LCD::adjust_master_brightness()
 		{
 			color = scanline_buffer_b[x];
 
-			r = (color >> 19) & 0x1F;
-			r = r - (r * factor);
+			r = ((color >> 18) & 0x3F);
+			result = r - (r * factor);
+			r = (result < 0) ? 0 : result;
 
-			g = (color >> 11) & 0x1F;
-			g = g - (g * factor);
+			g = ((color >> 10) & 0x3F);
+			result = g - (g * factor);
+			g = (result < 0) ? 0 : result;
 
-			b = (color >> 3) & 0x1F;
-			b = b - (b * factor);
+			b = ((color >> 2) & 0x3F);
+			result = b - (b * factor);
+			b = (result < 0) ? 0 : result;
 
-			scanline_buffer_b[x] = 0xFF000000 | (r << 19) | (g << 11) | (b << 3);
+			scanline_buffer_b[x] = 0xFF000000 | (r << 18) | (g << 10) | (b << 2);
 		}
 	}
-}	
+}
 
 /****** Calculates what coordinates of a scanline are within a Window ******/
 void NTR_LCD::calculate_window_on_scanline()
@@ -3469,7 +3482,7 @@ void NTR_LCD::step()
 			render_scanline();
 
 			//Apply Master Brightness if necessary
-			if(lcd_stat.master_bright != lcd_stat.old_master_bright) { adjust_master_brightness(); }
+			if(lcd_stat.master_bright & 0xC000) { adjust_master_brightness(); }
 
 			u32 render_position = (lcd_stat.current_scanline * config::sys_width);
 
@@ -3713,9 +3726,6 @@ void NTR_LCD::step()
 
 				//Start Display Sync DMA
 				mem->start_dma(3);
-
-				//Reset master brightness flag
-				lcd_stat.master_bright = lcd_stat.old_master_bright;
 			}
 		}
 	}
