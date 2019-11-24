@@ -297,16 +297,11 @@ class NTR_MMU
 	u32 dtcm_addr;
 	u32 itcm_addr;
 
-	u32 pal_a_slot_0;
-	u32 pal_a_slot_1;
-	u32 pal_a_slot_2;
-	u32 pal_a_slot_3;
+	u32 pal_a_bg_slot[4];
+	u32 pal_a_obj_slot[4];
 
-	u32 pal_b_slot_0;
-	u32 pal_b_slot_1;
-	u32 pal_b_slot_2;
-	u32 pal_b_slot_3;
-
+	u32 pal_b_bg_slot[4];
+	u32 pal_b_obj_slot[4];
 	//Advanced debugging
 	#ifdef GBE_DEBUG
 	bool debug_write;

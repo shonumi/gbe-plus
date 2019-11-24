@@ -227,15 +227,15 @@ void NTR_MMU::reset()
 	dtcm.clear();
 	dtcm.resize(0x4000, 0);
 
-	pal_a_slot_0 = 0x6880000;
-	pal_a_slot_1 = 0x6890000;
-	pal_a_slot_2 = 0x6894000;
-	pal_a_slot_3 = 0x6894000;
+	pal_a_bg_slot[0] = 0x6880000;
+	pal_a_bg_slot[1] = 0x6890000;
+	pal_a_bg_slot[2] = 0x6894000;
+	pal_a_bg_slot[3] = 0x6894000;
 
-	pal_b_slot_0 = 0x6898000;
-	pal_b_slot_1 = 0x6898000;
-	pal_b_slot_2 = 0x6898000;
-	pal_b_slot_3 = 0x6898000;
+	pal_b_bg_slot[0] = 0x6898000;
+	pal_b_bg_slot[1] = 0x6898000;
+	pal_b_bg_slot[2] = 0x6898000;
+	pal_b_bg_slot[3] = 0x6898000;
 
 	access_mode = 1;
 	wram_mode = 3;
@@ -2793,10 +2793,10 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 								break;
 
 							case 0x7:
-								pal_b_slot_0 = lcd_stat->vram_bank_addr[7];
-								pal_b_slot_1 = lcd_stat->vram_bank_addr[7] + 0x2000;
-								pal_b_slot_2 = lcd_stat->vram_bank_addr[7] + 0x4000;
-								pal_b_slot_3 = lcd_stat->vram_bank_addr[7] + 0x6000;
+								pal_b_bg_slot[0] = lcd_stat->vram_bank_addr[7];
+								pal_b_bg_slot[1] = lcd_stat->vram_bank_addr[7] + 0x2000;
+								pal_b_bg_slot[2] = lcd_stat->vram_bank_addr[7] + 0x4000;
+								pal_b_bg_slot[3] = lcd_stat->vram_bank_addr[7] + 0x6000;
 
 							case 0x8:
 								lcd_stat->vram_bank_addr[8] = 0x6600000;
@@ -2810,7 +2810,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 						switch(bank_id)
 						{
 							case 0x8:
-								pal_b_slot_0 = lcd_stat->vram_bank_addr[7];
+								pal_b_obj_slot[0] = lcd_stat->vram_bank_addr[7];
 								break;
 						}
 
@@ -2829,20 +2829,20 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 								break;
 
 							case 0x4:
-								pal_a_slot_0 = lcd_stat->vram_bank_addr[4];
-								pal_a_slot_1 = lcd_stat->vram_bank_addr[4] + 0x2000;
-								pal_a_slot_2 = lcd_stat->vram_bank_addr[4] + 0x4000;
-								pal_a_slot_3 = lcd_stat->vram_bank_addr[4] + 0x6000;
+								pal_a_bg_slot[0] = lcd_stat->vram_bank_addr[4];
+								pal_a_bg_slot[1] = lcd_stat->vram_bank_addr[4] + 0x2000;
+								pal_a_bg_slot[2] = lcd_stat->vram_bank_addr[4] + 0x4000;
+								pal_a_bg_slot[3] = lcd_stat->vram_bank_addr[4] + 0x6000;
 								break;
 
 							case 0x5:
-								if(!offset) { pal_a_slot_0 = lcd_stat->vram_bank_addr[5]; }
-								else { pal_a_slot_2 = lcd_stat->vram_bank_addr[5]; }
+								if(!offset) { pal_a_bg_slot[0] = lcd_stat->vram_bank_addr[5]; }
+								else { pal_a_bg_slot[2] = lcd_stat->vram_bank_addr[5]; }
 								break;
 
 							case 0x6:
-								if(!offset) { pal_a_slot_1 = lcd_stat->vram_bank_addr[6]; }
-								else { pal_a_slot_3 = lcd_stat->vram_bank_addr[6]; }
+								if(!offset) { pal_a_bg_slot[1] = lcd_stat->vram_bank_addr[6]; }
+								else { pal_a_bg_slot[3] = lcd_stat->vram_bank_addr[6]; }
 								break;
 								
 						}
@@ -2854,11 +2854,11 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 						switch(bank_id)
 						{
 							case 0x5:
-								pal_a_slot_0 = lcd_stat->vram_bank_addr[5];
+								pal_a_obj_slot[0] = lcd_stat->vram_bank_addr[5];
 								break;
 
 							case 0x6:
-								pal_a_slot_0 = lcd_stat->vram_bank_addr[6];
+								pal_a_obj_slot[0] = lcd_stat->vram_bank_addr[6];
 								break;
 						}
 
@@ -4420,14 +4420,14 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 	}
 
 	//Trigger Extended BG palette update in LCD - Engine A
-	else if((address >= pal_a_slot_0) && (address < (pal_a_slot_0 + 0x8000)))
+	else if((address >= pal_a_bg_slot[0]) && (address < (pal_a_bg_slot[0] + 0x8000)))
 	{
 		lcd_stat->bg_ext_pal_update_a = true;
 		lcd_stat->bg_ext_pal_update_list_a[(address & 0x7FFF) >> 1] = true;
 	}
 
 	//Trigger Extended BG palette update in LCD - Engine B
-	else if((address >= pal_b_slot_0) && (address < (pal_b_slot_0 + 0x8000)))
+	else if((address >= pal_b_bg_slot[0]) && (address < (pal_b_bg_slot[0] + 0x8000)))
 	{
 		lcd_stat->bg_ext_pal_update_b = true;
 		lcd_stat->bg_ext_pal_update_list_b[(address & 0x7FFF) >> 1] = true;
