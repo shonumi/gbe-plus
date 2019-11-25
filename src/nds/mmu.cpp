@@ -233,9 +233,9 @@ void NTR_MMU::reset()
 	pal_a_bg_slot[3] = 0x6894000;
 
 	pal_b_bg_slot[0] = 0x6898000;
-	pal_b_bg_slot[1] = 0x6898000;
-	pal_b_bg_slot[2] = 0x6898000;
-	pal_b_bg_slot[3] = 0x6898000;
+	pal_b_bg_slot[1] = 0x689A000;
+	pal_b_bg_slot[2] = 0x689C000;
+	pal_b_bg_slot[3] = 0x689E000;
 
 	access_mode = 1;
 	wram_mode = 3;
@@ -2836,13 +2836,19 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 								break;
 
 							case 0x5:
-								if(!offset) { pal_a_bg_slot[0] = lcd_stat->vram_bank_addr[5]; }
-								else { pal_a_bg_slot[2] = lcd_stat->vram_bank_addr[5]; }
-								break;
-
 							case 0x6:
-								if(!offset) { pal_a_bg_slot[1] = lcd_stat->vram_bank_addr[6]; }
-								else { pal_a_bg_slot[3] = lcd_stat->vram_bank_addr[6]; }
+								if(!offset)
+								{
+									pal_a_bg_slot[0] = lcd_stat->vram_bank_addr[bank_id];
+									pal_a_bg_slot[1] = lcd_stat->vram_bank_addr[bank_id] + 0x2000;
+								}
+
+								else
+								{
+									pal_a_bg_slot[2] = lcd_stat->vram_bank_addr[bank_id];
+									pal_a_bg_slot[3] = lcd_stat->vram_bank_addr[bank_id] + 0x2000;
+								}
+
 								break;
 								
 						}
@@ -4419,14 +4425,21 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		lcd_stat->obj_pal_update_list_b[(address & 0x1FF) >> 1] = true;
 	}
 
-	//Trigger Extended BG palette update in LCD - Engine A
-	else if((address >= pal_a_bg_slot[0]) && (address < (pal_a_bg_slot[0] + 0x8000)))
+	//Trigger Extended BG palette update in LCD - Engine A Slots 0 and 1
+	else if((address >= pal_a_bg_slot[0]) && (address < (pal_a_bg_slot[0] + 0x4000)))
 	{
 		lcd_stat->bg_ext_pal_update_a = true;
-		lcd_stat->bg_ext_pal_update_list_a[(address & 0x7FFF) >> 1] = true;
+		lcd_stat->bg_ext_pal_update_list_a[(address & 0x3FFF) >> 1] = true;
 	}
 
-	//Trigger Extended BG palette update in LCD - Engine B
+	//Trigger Extended BG palette update in LCD - Engine A Slots 2 and 3
+	else if((address >= pal_a_bg_slot[2]) && (address < (pal_a_bg_slot[2] + 0x4000)))
+	{
+		lcd_stat->bg_ext_pal_update_a = true;
+		lcd_stat->bg_ext_pal_update_list_a[((address & 0x3FFF) >> 1) + 0x2000] = true;
+	}
+
+	//Trigger Extended BG palette update in LCD - Engine B Slots 0-3
 	else if((address >= pal_b_bg_slot[0]) && (address < (pal_b_bg_slot[0] + 0x8000)))
 	{
 		lcd_stat->bg_ext_pal_update_b = true;

@@ -705,7 +705,11 @@ void NTR_LCD::update_palettes()
 			{
 				lcd_stat.bg_ext_pal_update_list_a[x] = false;
 
-				u16 color_bytes = mem->read_u16_fast(mem->pal_a_bg_slot[0] + (x << 1));
+				u16 color_bytes;
+
+				if(x < 0x2000) { color_bytes = mem->read_u16_fast(mem->pal_a_bg_slot[0] + (x << 1)); }
+				else { color_bytes = mem->read_u16_fast(mem->pal_a_bg_slot[2] + ((x - 0x2000) << 1)); }
+
 				lcd_stat.raw_bg_ext_pal_a[x] = color_bytes;
 
 				u8 red = ((color_bytes & 0x1F) << 3);
@@ -1499,6 +1503,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 		bool out_window;
 		bool can_winout = lcd_stat.display_control_a & 0x6000;
 		u8 win_id;
+		u8 slot;
 
 		u16 scanline_pixel_counter = 0;
 		u8 current_screen_line = (lcd_stat.current_scanline + lcd_stat.bg_offset_y_a[bg_id]);
@@ -1514,6 +1519,10 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 		u32 tile_addr = 0x6000000 + lcd_stat.bg_base_tile_addr_a[bg_id];
 		u32 map_addr_base = 0x6000000 + lcd_stat.bg_base_map_addr_a[bg_id];
 		u32 map_addr = 0;
+
+		//Grab slot for extended palettes
+		if((lcd_stat.bg_control_a[bg_id] & 0x2000) && (bg_id < 2)) { slot = bg_id + 2; }
+		else { slot = bg_id; }
  
 		//Cycle through all tiles on this scanline
 		for(u32 x = 0; x < 256;)
@@ -1569,7 +1578,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 			//Get tile, palette number, and flipping parameters
 			tile_id = (map_data & 0x3FF);
 			pal_id = (map_data >> 12) & 0xF;
-			ext_pal_id = (bg_id << 12) + (pal_id << 8);
+			ext_pal_id = (slot << 12) + (pal_id << 8);
 			flip = (map_data >> 10) & 0x3;
 
 			//Calculate VRAM address to start pulling up tile data
@@ -1592,7 +1601,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 						//Only draw colors if not transparent
 						if(raw_color && in_window && out_window)
 						{
-							scanline_buffer_a[scanline_pixel_counter] = (lcd_stat.ext_pal_a) ? lcd_stat.bg_ext_pal_a[ext_pal_id + raw_color]  : lcd_stat.bg_pal_a[raw_color];
+							scanline_buffer_a[scanline_pixel_counter] = (lcd_stat.ext_pal_a & 0x1) ? lcd_stat.bg_ext_pal_a[ext_pal_id + raw_color]  : lcd_stat.bg_pal_a[raw_color];
 							render_buffer_a[scanline_pixel_counter] = bg_priority;
 						}
 
@@ -1601,7 +1610,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 
 					//SFX and line buffer
 					sfx_buffer[scanline_pixel_counter] = render_buffer_a[scanline_pixel_counter];
-					if(!line_buffer[bg_id][scanline_pixel_counter]) { line_buffer[bg_id][scanline_pixel_counter] = (lcd_stat.ext_pal_a) ? lcd_stat.bg_ext_pal_a[ext_pal_id + raw_color]  : lcd_stat.bg_pal_a[raw_color]; }
+					if(!line_buffer[bg_id][scanline_pixel_counter]) { line_buffer[bg_id][scanline_pixel_counter] = (lcd_stat.ext_pal_a & 0x1) ? lcd_stat.bg_ext_pal_a[ext_pal_id + raw_color]  : lcd_stat.bg_pal_a[raw_color]; }
 					if(raw_color && in_window && out_window) { line_buffer[bg_id + 4][scanline_pixel_counter] |= 1; }
 
 					//Draw 256 pixels max
@@ -1702,6 +1711,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 		bool out_window;
 		bool can_winout = lcd_stat.display_control_b & 0x6000;
 		u8 win_id;
+		u8 slot;
 
 		u16 scanline_pixel_counter = 0;
 		u8 current_screen_line = (lcd_stat.current_scanline + lcd_stat.bg_offset_y_b[bg_id]);
@@ -1717,6 +1727,10 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 		u32 tile_addr = 0x6200000 + lcd_stat.bg_base_tile_addr_b[bg_id];
 		u32 map_addr_base = 0x6200000 + lcd_stat.bg_base_map_addr_b[bg_id];
 		u32 map_addr = 0;
+
+		//Grab slot for extended palettes
+		if((lcd_stat.bg_control_b[bg_id] & 0x2000) && (bg_id < 2)) { slot = bg_id + 2; }
+		else { slot = bg_id; }
 
 		//Cycle through all tiles on this scanline
 		for(u32 x = 0; x < 256;)
@@ -1772,7 +1786,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 			//Get tile, palette number, and flipping parameters
 			tile_id = (map_data & 0x3FF);
 			pal_id = (map_data >> 12) & 0xF;
-			ext_pal_id = (bg_id << 12) + (pal_id << 8);
+			ext_pal_id = (slot << 12) + (pal_id << 8);
 			flip = (map_data >> 10) & 0x3;
 
 			//Calculate VRAM address to start pulling up tile data
@@ -1795,7 +1809,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 						//Only draw colors if not transparent
 						if(raw_color && in_window && out_window)
 						{
-							scanline_buffer_b[scanline_pixel_counter] = (lcd_stat.ext_pal_b) ? lcd_stat.bg_ext_pal_b[ext_pal_id + raw_color]  : lcd_stat.bg_pal_b[raw_color];
+							scanline_buffer_b[scanline_pixel_counter] = (lcd_stat.ext_pal_b & 0x1) ? lcd_stat.bg_ext_pal_b[ext_pal_id + raw_color]  : lcd_stat.bg_pal_b[raw_color];
 							render_buffer_b[scanline_pixel_counter] = bg_priority;
 						}
 
@@ -1804,7 +1818,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 
 					//SFX and line buffer
 					sfx_buffer[scanline_pixel_counter] = (render_buffer_b[scanline_pixel_counter]);
-					if(!line_buffer[bg_id][scanline_pixel_counter]) { line_buffer[bg_id][scanline_pixel_counter] = (lcd_stat.ext_pal_b) ? lcd_stat.bg_ext_pal_b[ext_pal_id + raw_color]  : lcd_stat.bg_pal_b[raw_color]; }
+					if(!line_buffer[bg_id][scanline_pixel_counter]) { line_buffer[bg_id][scanline_pixel_counter] = (lcd_stat.ext_pal_b & 0x1) ? lcd_stat.bg_ext_pal_b[ext_pal_id + raw_color]  : lcd_stat.bg_pal_b[raw_color]; }
 					if(raw_color && in_window && out_window) { line_buffer[bg_id + 4][scanline_pixel_counter] |= 1; }
 
 					//Draw 256 pixels max
