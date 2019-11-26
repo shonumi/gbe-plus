@@ -90,6 +90,12 @@ void NTR_ARM9::process_swi(u32 comment)
 			swi_bitunpack();
 			break;
 
+		//LZ77UnCompWram
+		case 0x11:
+			std::cout<<"ARM9::SWI::LZ77UnCompWram \n";
+			swi_lz77uncompvram();
+			break;
+
 		//LZ77UnCompReadByCallback
 		case 0x12:
 			std::cout<<"ARM9::SWI::LZ77UnCompReadByCallback \n";
@@ -538,6 +544,8 @@ void NTR_ARM9::swi_bitunpack()
 /****** HLE implementation of LZ77UnCompReadByCallback - NDS9 ******/
 void NTR_ARM9::swi_lz77uncompvram()
 {
+	std::cout<<"REG -> 0x" << reg.r15 << "\n";
+
 	//Grab source address - R0
 	u32 src_addr = get_reg(0);
 
