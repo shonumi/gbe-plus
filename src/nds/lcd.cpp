@@ -2926,7 +2926,6 @@ void NTR_LCD::apply_sfx(u32 bg_control)
 		else if((bg_control == NDS_DISPCNT_B) && (!sfx_buffer[x])) { sfx_buffer[x] = render_buffer_b[x]; }
 	}
 
-	//TODO - Use Window coordinates to determine if SFX is applicable here
 	//TODO - Determine is SFX can be applied here based on various other conditions
 
 	nds_sfx_types temp_type = (bg_control == NDS_DISPCNT_A) ? lcd_stat.current_sfx_type_a : lcd_stat.current_sfx_type_b;
@@ -2951,57 +2950,73 @@ void NTR_LCD::apply_sfx(u32 bg_control)
 /****** SFX - Adjust scanline brightness up ******/
 void NTR_LCD::brightness_up(u32 bg_control)
 {
-	u8 target = 0;
-	u8 red = 0;
-	u8 green = 0;
-	u8 blue = 0;
-	u8 layer = 0;
-	u16 result = 0;
-	u32 color = 0;
+	u8 bg_render_list[4];
 
-	bool sfx_target = false;
+	u8 bg_priority_0 = (bg_control == NDS_DISPCNT_A) ? lcd_stat.bg_priority_a[0] : lcd_stat.bg_priority_b[0];
+	u8 bg_priority_1 = (bg_control == NDS_DISPCNT_A) ? lcd_stat.bg_priority_a[1] : lcd_stat.bg_priority_b[1];
+	u8 bg_priority_2 = (bg_control == NDS_DISPCNT_A) ? lcd_stat.bg_priority_a[2] : lcd_stat.bg_priority_b[2];
+	u8 bg_priority_3 = (bg_control == NDS_DISPCNT_A) ? lcd_stat.bg_priority_a[3] : lcd_stat.bg_priority_b[3];
+
 	double coef = (bg_control == NDS_DISPCNT_A) ? lcd_stat.brightness_coef_a : lcd_stat.brightness_coef_b;
+
+	//Determine BG priority
+	for(int x = 0, list_length = 0; x < 4; x++)
+	{
+		if(bg_priority_0 == x) { bg_render_list[list_length++] = 0; }
+		if(bg_priority_1 == x) { bg_render_list[list_length++] = 1; }
+		if(bg_priority_2 == x) { bg_render_list[list_length++] = 2; }
+		if(bg_priority_3 == x) { bg_render_list[list_length++] = 3; }
+	}
 
 	for(u16 x = 0; x < 256; x++)
 	{
-		//Determine if target is valid
-		switch(sfx_buffer[x])
-		{
-			case 0x0: target = 5; break;
-			case 0x1: target = 0; break;
-			case 0x2: target = 1; break;
-			case 0x3: target = 2; break;
-			case 0x4: target = 3; break;
+		u8 target = 0;
+		u8 target_id = 0;
 
-			case 0x81:
-			case 0x82:
-			case 0x83:
-			case 0x84:
-				target = 4; break;
+		bool found_target = false;
+		bool target_enable = false;
+
+		//Search for 1st target
+		for(int y = 0; y < 4; y++)
+		{
+			target_id = bg_render_list[y];
+
+			if(line_buffer[target_id + 4][x])
+			{
+				found_target = true;
+				target = (line_buffer[target_id + 4][x] & 0x80) ? 4 : target_id;
+				break;
+			}
 		}
 
-		sfx_target = (bg_control == NDS_DISPCNT_A) ? lcd_stat.sfx_target_a[target][0] : lcd_stat.sfx_target_b[target][0];
-		layer = sfx_buffer[x] - 1;
+		//If no target is found, use backdrop as layer
+		if(!found_target) { target = 5; }
+
+		//Check to see if target is enabled
+		target_enable = (bg_control == NDS_DISPCNT_A) ? lcd_stat.sfx_target_a[target][0] : lcd_stat.sfx_target_b[target][0];
 
 		//Proceed with SFX
-		if(sfx_target)
+		if(target_enable)
 		{
+			u32 color = 0;
+			u8 result = 0;
+
 			//Pull color from backdrop
-			if(layer == 0xFF) { color = (bg_control == NDS_DISPCNT_A) ? lcd_stat.bg_pal_a[0] : lcd_stat.bg_pal_b[0]; }
+			if(target == 5) { color = (bg_control == NDS_DISPCNT_A) ? lcd_stat.bg_pal_a[0] : lcd_stat.bg_pal_b[0]; }
 
 			//Pull color from BG layers
-			else { color = line_buffer[layer][x]; }
+			else { color = line_buffer[target_id][x]; }
 
 			//Increase RGB intensities
-			red = ((color >> 19) & 0x1F);
+			u8 red = ((color >> 19) & 0x1F);
 			result = red + ((0x1F - red) * coef);
 			red = (result > 0x1F) ? 0x1F : result;
 
-			green = ((color >> 11) & 0x1F);
+			u8 green = ((color >> 11) & 0x1F);
 			result = green + ((0x1F - green) * coef);
 			green = (result > 0x1F) ? 0x1F : result;
 
-			blue = ((color >> 3) & 0x1F);
+			u8 blue = ((color >> 3) & 0x1F);
 			result = blue + ((0x1F - blue) * coef);
 			blue = (result > 0x1F) ? 0x1F : result;
 
@@ -3015,56 +3030,75 @@ void NTR_LCD::brightness_up(u32 bg_control)
 /****** SFX - Adjust scanline brightness down ******/
 void NTR_LCD::brightness_down(u32 bg_control)
 {
-	u8 target = 0;
-	u8 red = 0;
-	u8 green = 0;
-	u8 blue = 0;
-	u8 layer = 0;
-	u16 result = 0;
-	u32 color = 0;
+	u8 bg_render_list[4];
 
-	bool sfx_target = false;
+	u8 bg_priority_0 = (bg_control == NDS_DISPCNT_A) ? lcd_stat.bg_priority_a[0] : lcd_stat.bg_priority_b[0];
+	u8 bg_priority_1 = (bg_control == NDS_DISPCNT_A) ? lcd_stat.bg_priority_a[1] : lcd_stat.bg_priority_b[1];
+	u8 bg_priority_2 = (bg_control == NDS_DISPCNT_A) ? lcd_stat.bg_priority_a[2] : lcd_stat.bg_priority_b[2];
+	u8 bg_priority_3 = (bg_control == NDS_DISPCNT_A) ? lcd_stat.bg_priority_a[3] : lcd_stat.bg_priority_b[3];
+
 	double coef = (bg_control == NDS_DISPCNT_A) ? lcd_stat.brightness_coef_a : lcd_stat.brightness_coef_b;
+
+	//Determine BG priority
+	for(int x = 0, list_length = 0; x < 4; x++)
+	{
+		if(bg_priority_0 == x) { bg_render_list[list_length++] = 0; }
+		if(bg_priority_1 == x) { bg_render_list[list_length++] = 1; }
+		if(bg_priority_2 == x) { bg_render_list[list_length++] = 2; }
+		if(bg_priority_3 == x) { bg_render_list[list_length++] = 3; }
+	}
 
 	for(u16 x = 0; x < 256; x++)
 	{
-		//Determine if target is valid
-		switch(sfx_buffer[x])
-		{
-			case 0x0: target = 5; break;
-			case 0x1: target = 0; break;
-			case 0x2: target = 1; break;
-			case 0x3: target = 2; break;
-			case 0x4: target = 3; break;
+		u8 target = 0;
+		u8 target_id = 0;
 
-			case 0x81:
-			case 0x82:
-			case 0x83:
-			case 0x84:
-				target = 4; break;
+		bool found_target = false;
+		bool target_enable = false;
+
+		//Search for 1st target
+		for(int y = 0; y < 4; y++)
+		{
+			target_id = bg_render_list[y];
+
+			if(line_buffer[target_id + 4][x])
+			{
+				found_target = true;
+				target = (line_buffer[target_id + 4][x] & 0x80) ? 4 : target_id;
+				break;
+			}
 		}
 
-		sfx_target = (bg_control == NDS_DISPCNT_A) ? lcd_stat.sfx_target_a[target][0] : lcd_stat.sfx_target_b[target][0];
-		layer = sfx_buffer[x] - 1;
+		//If no target is found, use backdrop as layer
+		if(!found_target) { target = 5; }
+
+		//Check to see if target is enabled
+		target_enable = (bg_control == NDS_DISPCNT_A) ? lcd_stat.sfx_target_a[target][0] : lcd_stat.sfx_target_b[target][0];
 
 		//Proceed with SFX
-		if(sfx_target)
+		if(target_enable)
 		{
+			u32 color = 0;
+			s16 result = 0;
+
 			//Pull color from backdrop
-			if(layer == 0xFF) { color = (bg_control == NDS_DISPCNT_A) ? lcd_stat.bg_pal_a[0] : lcd_stat.bg_pal_b[0]; }
+			if(target == 5) { color = (bg_control == NDS_DISPCNT_A) ? lcd_stat.bg_pal_a[0] : lcd_stat.bg_pal_b[0]; }
 
 			//Pull color from BG layers
-			else { color = line_buffer[layer][x]; }
+			else { color = line_buffer[target_id][x]; }
 
 			//Decrease RGB intensities 
-			red = ((color >> 19) & 0x1F);
-			red -= (red * coef);
+			u8 red = ((color >> 19) & 0x1F);
+			result = red - (red * coef);
+			red = (result < 0) ? 0 : result;
 
-			green = ((color >> 11) & 0x1F);
-			green -= (green * coef);
+			u8 green = ((color >> 11) & 0x1F);
+			result = green - (green * coef);
+			green = (result < 0) ? 0 : result;
 
-			blue = ((color >> 3) & 0x1F);
-			blue -= (blue * coef);
+			u8 blue = ((color >> 3) & 0x1F);
+			result = (blue * coef);
+			blue = (result < 0) ? 0 : result;
 
 			//Copy 32-bit color to scanline buffer
 			if(bg_control == NDS_DISPCNT_A) { scanline_buffer_a[x] = 0xFF000000 | (red << 19) | (green << 11) | (blue << 3); }
