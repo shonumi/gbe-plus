@@ -4461,7 +4461,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 	}
 
 	//Trigger Extended OBJ palette update in LCD - Engine B, VRAM Bank I
-	else if((address >= 0x68A0000) && (address <= 0x68A1FFF) && (lcd_stat->vram_bank_enable[8]))
+	else if((address >= 0x68A0000) && (address <= 0x68A1FFF))
 	{
 		lcd_stat->obj_ext_pal_update_b = true;
 		lcd_stat->obj_ext_pal_update_list_b[(address & 0x1FFF) >> 1] = true;
