@@ -94,12 +94,33 @@ void NTR_MMU::process_card_bus()
 			//Get Data
 			else if((nds_card.cmd_lo >> 24) == 0xB7)
 			{
-				nds_card.state = 0x10;
+				bool do_dma = false;
 
-				nds_card.transfer_src = (nds_card.cmd_lo << 8);
-				nds_card.transfer_src |= (nds_card.cmd_hi >> 24);
-				nds_card.transfer_src &= (cart_data.size() - 1);
-				nds_card.transfer_size += 4;
+				//Check if Cart DMA is necessary, if so do it now
+				for(u32 x = 0; x < 8; x++)
+				{
+					u8 dma_mode = ((dma[x].control >> 27) & 0x7);
+					
+					//Signal that the Cart DMA should happen now
+					if((dma_mode == 5) && (dma[x].enable) && (!dma[x].started))
+					{
+						do_dma = true;
+						dma[x].started = true;
+					}
+				}
+
+				//Do normal transfer if no DMA detected
+				if(!do_dma)
+				{
+					nds_card.state = 0x10;
+
+					nds_card.transfer_src = (nds_card.cmd_lo << 8);
+					nds_card.transfer_src |= (nds_card.cmd_hi >> 24);
+					nds_card.transfer_src &= (cart_data.size() - 1);
+					nds_card.transfer_size += 4;
+				}
+
+				else { return; }
 			}
 
 			//Get ROM ID 3

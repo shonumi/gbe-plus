@@ -37,6 +37,7 @@ void NTR_ARM9::nds9_dma(u8 index)
 		case 0x1:
 		case 0x2:
 		case 0x3:
+		case 0x5:
 			if(!mem->dma[index].started) { return; }
 	}
 
@@ -105,6 +106,8 @@ void NTR_ARM9::nds9_dma(u8 index)
 
 	else if(dma_mode == 5)
 	{
+		std::cout<<"CART DMA\n";
+
 		mem->dma[index].destination_address &= ~0x3;
 		mem->dma[index].word_count = 0x200;
 
