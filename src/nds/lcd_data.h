@@ -49,8 +49,8 @@ struct ntr_lcd_data
 	u8 ext_pal_a;
 	u8 ext_pal_b;
 
-	u8 obj_boundary_a;
-	u8 obj_boundary_b;
+	u16 obj_boundary_a;
+	u16 obj_boundary_b;
 
 	u16 bg_control_a[4];
 	u16 bg_control_b[4];

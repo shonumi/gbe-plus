@@ -512,7 +512,7 @@ void NTR_LCD::update_oam()
 			else { obj[x].y_wrap = false; }
 
 			//Precalculate OBJ base address
-			u8 boundary = (x < 128) ? lcd_stat.obj_boundary_a : lcd_stat.obj_boundary_b;
+			u16 boundary = (x < 128) ? lcd_stat.obj_boundary_a : lcd_stat.obj_boundary_b;
 			u32 base = (x < 128) ? 0x6400000 : 0x6600000;
 
 			//Tiled OBJ address calculation
