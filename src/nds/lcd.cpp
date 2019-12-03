@@ -3139,6 +3139,9 @@ void NTR_LCD::alpha_blend(u32 bg_control)
 			}
 		}
 
+		//If no target is found, use backdrop as layer
+		if(!found_target_2) { target_2 = 5; }
+
 		bool target_1_enable = (bg_control == NDS_DISPCNT_A) ? lcd_stat.sfx_target_a[target_1][0] : lcd_stat.sfx_target_b[target_1][0];
 		bool target_2_enable = (bg_control == NDS_DISPCNT_A) ? lcd_stat.sfx_target_a[target_2][1] : lcd_stat.sfx_target_b[target_2][1];
 
@@ -3147,7 +3150,13 @@ void NTR_LCD::alpha_blend(u32 bg_control)
 		{
 			u8 result = 0;
 			u32 color_1 = line_buffer[target_1][x];
-			u32 color_2 = line_buffer[target_2][x];
+			u32 color_2 = 0;
+
+			//Pull color from backdrop
+			if(target_2 == 5) { color_2 = (bg_control == NDS_DISPCNT_A) ? lcd_stat.bg_pal_a[0] : lcd_stat.bg_pal_b[0]; }
+
+			//Pull color from BG layers
+			else { color_2 = line_buffer[target_2][x]; }
 
 			//Grab RGB15 values of both targets
 			r1 = (color_1 >> 19) & 0x1F;
