@@ -1594,7 +1594,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 						else { full_render = false; }
 					}
 
-					//SFX and line buffer
+					//Line buffer
 					if(!line_buffer[bg_id][scanline_pixel_counter]) { line_buffer[bg_id][scanline_pixel_counter] = (lcd_stat.ext_pal_a & 0x1) ? lcd_stat.bg_ext_pal_a[ext_pal_id + raw_color]  : lcd_stat.bg_pal_a[raw_color]; }
 					if(raw_color && in_window && out_window) { line_buffer[bg_id + 4][scanline_pixel_counter] |= 1; }
 
@@ -1626,7 +1626,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 						else { full_render = false; }
 					}
 
-					//SFX and line buffer
+					//Line buffer
 					if(!line_buffer[bg_id][scanline_pixel_counter]) { line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_a[pal_1]; }
 					if((raw_color & 0xF) && (in_window) && (out_window)) { line_buffer[bg_id + 4][scanline_pixel_counter] |= 1; }
 
@@ -1648,7 +1648,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 						else { full_render = false; }
 					}
 
-					//SFX and line buffer
+					//Line buffer
 					if(!line_buffer[bg_id][scanline_pixel_counter]) { line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_a[pal_2]; }
 					if((raw_color >> 4) && (in_window) && (out_window)) { line_buffer[bg_id + 4][scanline_pixel_counter] |= 1; }
 
@@ -1799,7 +1799,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 						else { full_render = false; }
 					}
 
-					//SFX and line buffer
+					//Line buffer
 					if(!line_buffer[bg_id][scanline_pixel_counter]) { line_buffer[bg_id][scanline_pixel_counter] = (lcd_stat.ext_pal_b & 0x1) ? lcd_stat.bg_ext_pal_b[ext_pal_id + raw_color]  : lcd_stat.bg_pal_b[raw_color]; }
 					if(raw_color && in_window && out_window) { line_buffer[bg_id + 4][scanline_pixel_counter] |= 1; }
 
@@ -1831,7 +1831,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 						else { full_render = false; }
 					}
 
-					//SFX and line buffer
+					//Line buffer
 					if(!line_buffer[bg_id][scanline_pixel_counter]) { line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_b[pal_1]; }
 					if((raw_color & 0xF) && (in_window) && (out_window)) { line_buffer[bg_id + 4][scanline_pixel_counter] |= 1; }
 
@@ -1852,7 +1852,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 						else { full_render = false; }
 					}
 
-					//SFX and line buffer
+					//Line buffer
 					if(!line_buffer[bg_id][scanline_pixel_counter]) { line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_b[pal_2]; }
 					if((raw_color >> 4) && (in_window) && (out_window)) { line_buffer[bg_id + 4][scanline_pixel_counter] |= 1; }
 
@@ -2133,6 +2133,11 @@ void NTR_LCD::render_bg_mode_affine_ext(u32 bg_control)
 		u8 affine_id = (bg_id & 0x1);
 		u8 bg_priority = lcd_stat.bg_priority_a[bg_id] + 1;
 
+		u8 win_id = 0;
+		bool in_window;
+		bool out_window;
+		bool can_winout = lcd_stat.display_control_a & 0x6000;
+
 		//Reload X-Y references at start of frame
 		if(lcd_stat.current_scanline == 0) { reload_affine_references(bg_control); }
 
@@ -2165,6 +2170,15 @@ void NTR_LCD::render_bg_mode_affine_ext(u32 bg_control)
 		//Cycle through all tiles on this scanline
 		for(u32 x = 0; x < 256; x++, scanline_pixel_counter++)
 		{
+			//Determine if pixel can be drawn inside or outside an active window
+			win_id = lcd_stat.window_id_a[x];
+
+			if(lcd_stat.window_status_a[x][win_id] && !lcd_stat.window_in_enable_a[bg_id][win_id]) { in_window = false; }
+			else { in_window = true; }
+
+			if(can_winout && !lcd_stat.window_status_a[x][0] && !lcd_stat.window_status_a[x][1] && !lcd_stat.window_out_enable_a[bg_id][0]) { out_window = false; }
+			else { out_window = true; } 
+
 			bool render_pixel = true;
 
 			//Update texture position with DX and DY
@@ -2220,7 +2234,7 @@ void NTR_LCD::render_bg_mode_affine_ext(u32 bg_control)
 					u8 raw_color = mem->memory_map[tile_addr];
 
 					//Only draw BG color if not transparent
-					if(raw_color != 0)
+					if(raw_color && in_window && out_window)
 					{
 						scanline_buffer_a[scanline_pixel_counter] = lcd_stat.bg_pal_a[raw_color];
 						render_buffer_a[scanline_pixel_counter] = bg_priority;
@@ -2247,6 +2261,11 @@ void NTR_LCD::render_bg_mode_affine_ext(u32 bg_control)
 		u8 bg_id = (bg_control - 0x4001008) >> 1;
 		u8 affine_id = (bg_id & 0x1);
 		u8 bg_priority = lcd_stat.bg_priority_b[bg_id] + 1;
+
+		u8 win_id = 0;
+		bool in_window;
+		bool out_window;
+		bool can_winout = lcd_stat.display_control_b & 0x6000;
 
 		//Reload X-Y references at start of frame
 		if(lcd_stat.current_scanline == 0) { reload_affine_references(bg_control); }
@@ -2280,6 +2299,15 @@ void NTR_LCD::render_bg_mode_affine_ext(u32 bg_control)
 		//Cycle through all tiles on this scanline
 		for(u32 x = 0; x < 256; x++, scanline_pixel_counter++)
 		{
+			//Determine if pixel can be drawn inside or outside an active window
+			win_id = lcd_stat.window_id_b[x];
+
+			if(lcd_stat.window_status_b[x][win_id] && !lcd_stat.window_in_enable_b[bg_id][win_id]) { in_window = false; }
+			else { in_window = true; }
+
+			if(can_winout && !lcd_stat.window_status_b[x][0] && !lcd_stat.window_status_b[x][1] && !lcd_stat.window_out_enable_b[bg_id][0]) { out_window = false; }
+			else { out_window = true; } 
+
 			bool render_pixel = true;
 
 			//Update texture position with DX and DY
@@ -2335,7 +2363,7 @@ void NTR_LCD::render_bg_mode_affine_ext(u32 bg_control)
 					u8 raw_color = mem->memory_map[tile_addr];
 
 					//Only draw BG color if not transparent
-					if(raw_color != 0)
+					if(raw_color && in_window && out_window)
 					{
 						scanline_buffer_b[scanline_pixel_counter] = lcd_stat.bg_pal_b[raw_color];
 						render_buffer_b[scanline_pixel_counter] = bg_priority;
