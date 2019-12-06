@@ -1883,6 +1883,15 @@ void NTR_LCD::render_bg_mode_affine(u32 bg_control)
 		u8 affine_id = (bg_id & 0x1);
 		u8 bg_priority = lcd_stat.bg_priority_a[bg_id] + 1;
 
+		//If this BG is used for SFX, make sure to render line buffer
+		bool force_render = (lcd_stat.sfx_target_a[bg_id][0] || lcd_stat.sfx_target_a[bg_id][1]);
+
+		//Abort rendering if this BG is disabled
+		//Abort rendering if BGs with high priority have already completely rendered a scanline
+		if((!force_render) && (!lcd_stat.bg_enable_a[bg_id] || full_scanline_render_a)) { return; }
+
+		bool full_render = true;
+
 		u8 win_id = 0;
 		bool in_window;
 		bool out_window;
@@ -1890,14 +1899,6 @@ void NTR_LCD::render_bg_mode_affine(u32 bg_control)
 
 		//Reload X-Y references at start of frame
 		if(lcd_stat.current_scanline == 0) { reload_affine_references(bg_control); }
-
-		//Abort rendering if this bg is disabled
-		if(!lcd_stat.bg_enable_a[bg_id]) { return; }
-
-		//Abort rendering if BGs with high priority have already completely rendered a scanline
-		if(full_scanline_render_a) { return; }
-
-		bool full_render = true;
 
 		//Get BG size in tiles, pixels
 		//0 - 128x128, 1 - 256x256, 2 - 512x512, 3 - 1024x1024
@@ -1929,6 +1930,7 @@ void NTR_LCD::render_bg_mode_affine(u32 bg_control)
 			else { out_window = true; } 
 
 			bool render_pixel = true;
+			u8 raw_color = 0;
 
 			//Update texture position with DX and DY
 			lcd_stat.bg_affine_a[affine_id].x_pos += lcd_stat.bg_affine_a[affine_id].dx;
@@ -1975,7 +1977,7 @@ void NTR_LCD::render_bg_mode_affine(u32 bg_control)
 
 					//Grab the byte corresponding to (current_tile_pixel), render it as ARGB - 8-bit version
 					tile_addr += current_tile_pixel;
-					u8 raw_color = mem->memory_map[tile_addr];
+					raw_color = mem->memory_map[tile_addr];
 
 					//Only draw BG color if not transparent
 					if(raw_color && in_window && out_window)
@@ -1989,6 +1991,10 @@ void NTR_LCD::render_bg_mode_affine(u32 bg_control)
 
 				else { full_render = false; }
 			}
+
+			//Line buffer
+			if(!line_buffer[bg_id][scanline_pixel_counter]) { line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_a[raw_color]; }
+			if(raw_color && in_window && out_window) { line_buffer[bg_id + 4][scanline_pixel_counter] |= 1; }
 		}
 
 		//Update XREF and YREF for next line
@@ -2006,6 +2012,15 @@ void NTR_LCD::render_bg_mode_affine(u32 bg_control)
 		u8 affine_id = (bg_id & 0x1);
 		u8 bg_priority = lcd_stat.bg_priority_b[bg_id] + 1;
 
+		//If this BG is used for SFX, make sure to render line buffer
+		bool force_render = (lcd_stat.sfx_target_b[bg_id][0] || lcd_stat.sfx_target_b[bg_id][1]);
+
+		//Abort rendering if this BG is disabled
+		//Abort rendering if BGs with high priority have already completely rendered a scanline
+		if((!force_render) && (!lcd_stat.bg_enable_b[bg_id] || full_scanline_render_b)) { return; }
+
+		bool full_render = true;
+
 		u8 win_id = 0;
 		bool in_window;
 		bool out_window;
@@ -2013,14 +2028,6 @@ void NTR_LCD::render_bg_mode_affine(u32 bg_control)
 
 		//Reload X-Y references at start of frame
 		if(lcd_stat.current_scanline == 0) { reload_affine_references(bg_control); }
-
-		//Abort rendering if this bg is disabled
-		if(!lcd_stat.bg_enable_b[bg_id]) { return; }
-
-		//Abort rendering if BGs with high priority have already completely rendered a scanline
-		if(full_scanline_render_b) { return; }
-
-		bool full_render = true;
 
 		//Get BG size in tiles, pixels
 		//0 - 128x128, 1 - 256x256, 2 - 512x512, 3 - 1024x1024
@@ -2052,6 +2059,7 @@ void NTR_LCD::render_bg_mode_affine(u32 bg_control)
 			else { out_window = true; } 
 
 			bool render_pixel = true;
+			u8 raw_color = 0;
 
 			//Update texture position with DX and DY
 			lcd_stat.bg_affine_b[affine_id].x_pos += lcd_stat.bg_affine_b[affine_id].dx;
@@ -2098,7 +2106,7 @@ void NTR_LCD::render_bg_mode_affine(u32 bg_control)
 
 					//Grab the byte corresponding to (current_tile_pixel), render it as ARGB - 8-bit version
 					tile_addr += current_tile_pixel;
-					u8 raw_color = mem->memory_map[tile_addr];
+					raw_color = mem->memory_map[tile_addr];
 
 					//Only draw BG color if not transparent
 					if(raw_color && in_window && out_window)
@@ -2112,6 +2120,10 @@ void NTR_LCD::render_bg_mode_affine(u32 bg_control)
 
 				else { full_render = false; }
 			}
+
+			//Line buffer
+			if(!line_buffer[bg_id][scanline_pixel_counter]) { line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_b[raw_color]; }
+			if(raw_color && in_window && out_window) { line_buffer[bg_id + 4][scanline_pixel_counter] |= 1; }
 		}
 
 		//Update XREF and YREF for next line
@@ -2133,6 +2145,15 @@ void NTR_LCD::render_bg_mode_affine_ext(u32 bg_control)
 		u8 affine_id = (bg_id & 0x1);
 		u8 bg_priority = lcd_stat.bg_priority_a[bg_id] + 1;
 
+		//If this BG is used for SFX, make sure to render line buffer
+		bool force_render = (lcd_stat.sfx_target_a[bg_id][0] || lcd_stat.sfx_target_a[bg_id][1]);
+
+		//Abort rendering if this BG is disabled
+		//Abort rendering if BGs with high priority have already completely rendered a scanline
+		if((!force_render) && (!lcd_stat.bg_enable_a[bg_id] || full_scanline_render_a)) { return; }
+
+		bool full_render = true;
+
 		u8 win_id = 0;
 		bool in_window;
 		bool out_window;
@@ -2140,14 +2161,6 @@ void NTR_LCD::render_bg_mode_affine_ext(u32 bg_control)
 
 		//Reload X-Y references at start of frame
 		if(lcd_stat.current_scanline == 0) { reload_affine_references(bg_control); }
-
-		//Abort rendering if this bg is disabled
-		if(!lcd_stat.bg_enable_a[bg_id]) { return; }
-
-		//Abort rendering if BGs with high priority have already completely rendered a scanline
-		if(full_scanline_render_a) { return; }
-
-		bool full_render = true;
 
 		//Get BG size in tiles, pixels
 		//0 - 128x128, 1 - 256x256, 2 - 512x512, 3 - 1024x1024
@@ -2180,6 +2193,7 @@ void NTR_LCD::render_bg_mode_affine_ext(u32 bg_control)
 			else { out_window = true; } 
 
 			bool render_pixel = true;
+			u8 raw_color = 0;
 
 			//Update texture position with DX and DY
 			lcd_stat.bg_affine_a[affine_id].x_pos += lcd_stat.bg_affine_a[affine_id].dx;
@@ -2231,7 +2245,7 @@ void NTR_LCD::render_bg_mode_affine_ext(u32 bg_control)
 
 					//Grab the byte corresponding to (current_tile_pixel), render it as ARGB - 8-bit version
 					tile_addr += current_tile_pixel;
-					u8 raw_color = mem->memory_map[tile_addr];
+					raw_color = mem->memory_map[tile_addr];
 
 					//Only draw BG color if not transparent
 					if(raw_color && in_window && out_window)
@@ -2245,6 +2259,10 @@ void NTR_LCD::render_bg_mode_affine_ext(u32 bg_control)
 
 				else { full_render = false; }	
 			}
+
+			//Line buffer
+			if(!line_buffer[bg_id][scanline_pixel_counter]) { line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_a[raw_color]; }
+			if(raw_color && in_window && out_window) { line_buffer[bg_id + 4][scanline_pixel_counter] |= 1; }
 		}
 
 		//Update XREF and YREF for next line
@@ -2262,6 +2280,15 @@ void NTR_LCD::render_bg_mode_affine_ext(u32 bg_control)
 		u8 affine_id = (bg_id & 0x1);
 		u8 bg_priority = lcd_stat.bg_priority_b[bg_id] + 1;
 
+		//If this BG is used for SFX, make sure to render line buffer
+		bool force_render = (lcd_stat.sfx_target_b[bg_id][0] || lcd_stat.sfx_target_b[bg_id][1]);
+
+		//Abort rendering if this BG is disabled
+		//Abort rendering if BGs with high priority have already completely rendered a scanline
+		if((!force_render) && (!lcd_stat.bg_enable_b[bg_id] || full_scanline_render_b)) { return; }
+
+		bool full_render = true;
+
 		u8 win_id = 0;
 		bool in_window;
 		bool out_window;
@@ -2269,14 +2296,6 @@ void NTR_LCD::render_bg_mode_affine_ext(u32 bg_control)
 
 		//Reload X-Y references at start of frame
 		if(lcd_stat.current_scanline == 0) { reload_affine_references(bg_control); }
-
-		//Abort rendering if this bg is disabled
-		if(!lcd_stat.bg_enable_b[bg_id]) { return; }
-
-		//Abort rendering if BGs with high priority have already completely rendered a scanline
-		if(full_scanline_render_b) { return; }
-
-		bool full_render = true;
 
 		//Get BG size in tiles, pixels
 		//0 - 128x128, 1 - 256x256, 2 - 512x512, 3 - 1024x1024
@@ -2309,6 +2328,7 @@ void NTR_LCD::render_bg_mode_affine_ext(u32 bg_control)
 			else { out_window = true; } 
 
 			bool render_pixel = true;
+			u8 raw_color = 0;
 
 			//Update texture position with DX and DY
 			lcd_stat.bg_affine_b[affine_id].x_pos += lcd_stat.bg_affine_b[affine_id].dx;
@@ -2360,7 +2380,7 @@ void NTR_LCD::render_bg_mode_affine_ext(u32 bg_control)
 
 					//Grab the byte corresponding to (current_tile_pixel), render it as ARGB - 8-bit version
 					tile_addr += current_tile_pixel;
-					u8 raw_color = mem->memory_map[tile_addr];
+					raw_color = mem->memory_map[tile_addr];
 
 					//Only draw BG color if not transparent
 					if(raw_color && in_window && out_window)
@@ -2374,6 +2394,10 @@ void NTR_LCD::render_bg_mode_affine_ext(u32 bg_control)
 
 				else { full_render = false; }	
 			}
+
+			//Line buffer
+			if(!line_buffer[bg_id][scanline_pixel_counter]) { line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_b[raw_color]; }
+			if(raw_color && in_window && out_window) { line_buffer[bg_id + 4][scanline_pixel_counter] |= 1; }
 		}
 
 		//Update XREF and YREF for next line
