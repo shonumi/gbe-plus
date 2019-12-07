@@ -1289,7 +1289,7 @@ void NTR_LCD::render_obj_scanline(u32 bg_control)
 			u8 meta_width = obj[obj_id].width / 8;
 			u8 bit_depth = obj[obj_id].bit_depth * 8;
 			u8 pixel_shift = (bit_depth == 32) ? 1 : 0;
-			u16 draw_width = (obj[obj_id].affine_enable) ? (obj[obj_id].width * 2) : obj[obj_id].width;
+			u16 draw_width = (obj[obj_id].affine_enable && obj[obj_id].type) ? (obj[obj_id].width * 2) : obj[obj_id].width;
 
 			u8 bitmap_mask_a = (lcd_stat.display_control_a & 0x20) ? 0x1F : 0xF;
 			u8 bitmap_mask_b = (lcd_stat.display_control_b & 0x20) ? 0x1F : 0xF; 
