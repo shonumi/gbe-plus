@@ -5062,6 +5062,8 @@ void NTR_MMU::parse_header()
 
 	write_u32(0x27FFC00, chip_id);
 	write_u32(0x27FF800, chip_id);
+	write_u32(0x27FFC04, chip_id);
+	write_u32(0x27FF804, chip_id);
 
 	nds_card.chip_id = chip_id;
 }
