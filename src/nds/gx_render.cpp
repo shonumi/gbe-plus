@@ -405,8 +405,11 @@ void NTR_LCD::process_gx_command()
 
 				case 0x1:
 				case 0x2:
-					gx_position_stack[position_sp++] = gx_position_matrix;
-					gx_vector_stack[vector_sp++] = gx_vector_matrix;
+					if(position_sp < 30) { gx_position_stack[position_sp++] = gx_position_matrix; }
+					else { gx_position_stack[position_sp] = gx_position_matrix; }
+
+					if(vector_sp < 30) { gx_vector_stack[vector_sp++] = gx_vector_matrix; }
+					else { gx_vector_stack[vector_sp] = gx_vector_matrix; }
 
 					break;
 
