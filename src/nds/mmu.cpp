@@ -4115,10 +4115,8 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			//Only initialize transfer if SPI bus is enabled, and there is no active transfer
 			if((nds7_spi.cnt & 0x8000) && ((nds7_spi.cnt & 0x80) == 0))
 			{
-				nds7_spi.active_transfer = true;
-				nds7_spi.transfer_clock = nds7_spi.baud_rate;
-				nds7_spi.cnt |= 0x80;
 				nds7_spi.data = value;
+				process_spi_bus();
 			}
 
 			break;
