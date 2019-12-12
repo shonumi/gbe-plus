@@ -5322,15 +5322,32 @@ void NTR_MMU::process_aux_spi_bus()
 /****** Handles read and write data operations to the firmware ******/
 void NTR_MMU::process_firmware()
 {
-	//Check to see if a new command has been sent
-	switch(nds7_spi.data)
-	{
-		//Read Data
-		case 0x3:
-			firmware_state = 0x0300;
-			firmware_index = 0;
-			return;
+	bool new_command = false;
 
+	switch(firmware_state)
+	{
+		case 0x0000:
+		case 0x0303:
+			new_command = true;
+			break;
+	}
+
+	//Check to see if a new command has been sent
+	if((new_command) && (nds7_spi.data))
+	{
+		switch(nds7_spi.data)
+		{
+			//Read Data
+			case 0x3:
+				firmware_state = 0x0300;
+				firmware_index = 0;
+				return;
+
+			//Unknown
+			default:
+				std::cout<<"MMU::Warning - Unknown Firmware command 0x" << (u32)nds7_spi.data << "\n";
+				return;
+		}
 	}
 
 	//Process various firmware states
@@ -5545,7 +5562,7 @@ void NTR_MMU::setup_default_firmware()
 	//Copy firmware user settings to RAM
 	for(u32 x = 0; x < 0x6C; x++)
 	{
-		write_u8((0x27FFC80 + x), firmware[0x3FE00 + x]);
+		memory_map[(0x23FFC80 + x)] = firmware[0x3FE00 + x];
 	}
 
 	//Setup touchscreen calibration
