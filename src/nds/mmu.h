@@ -287,6 +287,7 @@ class NTR_MMU
 	u16 power_cnt2;
 	u16 nds7_exmem;
 
+	u8 firmware_status;
 	u16 firmware_state;
 	u32 firmware_index;
 	bool in_firmware;

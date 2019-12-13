@@ -421,28 +421,28 @@ void NTR_ARM9::swi_getcrc16()
 	//R2 = Length of data to look at in bytes
 	u16 crc = get_reg(0);
 	u32 data_addr = get_reg(1) & ~0x1;
-	u32 length = get_reg(2) & ~0x1;
+	u32 length = get_reg(2) >> 1;
 
 	//LUT for CRC
-	u16 table[] = { 0xC0C1, 0xC181, 0xC301, 0xC601, 0xCC01, 0xD801, 0xF001, 0xA001 };
+	u16 table[] = { 0x0000, 0xCC01, 0xD801, 0x1400, 0xF001, 0x3C00, 0x2800, 0xE401, 0xA001, 0x6C00, 0x7800, 0xB401, 0x5000, 0x9C01, 0x8801, 0x4400 };
+	u16 crc_val;
 
 	//Cycle through all the data to get the CRC16
 	for(u32 x = 0; x < length; x++)
 	{
-		u16 data_byte = mem->memory_map[data_addr++];
-		crc = crc ^ data_byte;
+		crc_val = mem->read_u16(data_addr);
 
-		for(u32 y = 0; y < 8; y++)
+		for(u32 y = 0; y < 4; y++)
 		{
-			
-			if(crc & 0x1)
-			{
-				crc >>= 1;
-				crc = crc ^ (table[y] << (7 - y));
-			}
+			u16 lut_val = table[crc & 0xF];
+			crc >>= 4;
+			crc ^= lut_val;
 
-			else { crc >>= 1; }
+			u16 temp = crc_val >> (4 * y);
+			crc ^= table[temp & 0xF];
 		}
+
+		data_addr += 2;
 	}
 
 	set_reg(0, crc);
@@ -544,8 +544,6 @@ void NTR_ARM9::swi_bitunpack()
 /****** HLE implementation of LZ77UnCompReadByCallback - NDS9 ******/
 void NTR_ARM9::swi_lz77uncompvram()
 {
-	std::cout<<"REG -> 0x" << reg.r15 << "\n";
-
 	//Grab source address - R0
 	u32 src_addr = get_reg(0);
 
@@ -849,28 +847,28 @@ void NTR_ARM7::swi_getcrc16()
 	//R2 = Length of data to look at in bytes
 	u16 crc = get_reg(0);
 	u32 data_addr = get_reg(1) & ~0x1;
-	u32 length = get_reg(2) & ~0x1;
+	u32 length = get_reg(2) >> 1;
 
 	//LUT for CRC
-	u16 table[] = { 0xC0C1, 0xC181, 0xC301, 0xC601, 0xCC01, 0xD801, 0xF001, 0xA001 };
+	u16 table[] = { 0x0000, 0xCC01, 0xD801, 0x1400, 0xF001, 0x3C00, 0x2800, 0xE401, 0xA001, 0x6C00, 0x7800, 0xB401, 0x5000, 0x9C01, 0x8801, 0x4400 };
+	u16 crc_val;
 
 	//Cycle through all the data to get the CRC16
 	for(u32 x = 0; x < length; x++)
 	{
-		u16 data_byte = mem->memory_map[data_addr++];
-		crc = crc ^ data_byte;
+		crc_val = mem->read_u16(data_addr);
 
-		for(u32 y = 0; y < 8; y++)
+		for(u32 y = 0; y < 4; y++)
 		{
-			
-			if(crc & 0x1)
-			{
-				crc >>= 1;
-				crc = crc ^ (table[y] << (7 - y));
-			}
+			u16 lut_val = table[crc & 0xF];
+			crc >>= 4;
+			crc ^= lut_val;
 
-			else { crc >>= 1; }
+			u16 temp = crc_val >> (4 * y);
+			crc ^= table[temp & 0xF];
 		}
+
+		data_addr += 2;
 	}
 
 	set_reg(0, crc);
