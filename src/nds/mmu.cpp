@@ -271,10 +271,12 @@ u8 NTR_MMU::read_u8(u32 address)
 	#endif
 
 	//Check DTCM first
-	if((access_mode) && (address >= dtcm_addr) && (address <= (dtcm_addr + 0x3FFF)))
+	if((access_mode) && (!fetch_request) && (address >= dtcm_addr) && (address <= (dtcm_addr + 0x3FFF)))
 	{
 		return dtcm[address - dtcm_addr];
 	}
+
+	fetch_request = false;
 
 	//Mirror memory address if applicable
 	switch(address >> 24)

@@ -317,6 +317,8 @@ void NTR_ARM9::set_spsr(u32 value)
 /****** Fetch ARM instruction ******/
 void NTR_ARM9::fetch()
 {
+	mem->fetch_request = true;
+
 	//Fetch THUMB instructions
 	if(arm_mode == THUMB)
 	{

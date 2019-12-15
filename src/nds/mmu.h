@@ -224,6 +224,7 @@ class NTR_MMU
 	u8 wram_mode;
 
 	bool do_save;
+	bool fetch_request;
 
 	//Structure for handling DS cart headers
 	struct cart_header
