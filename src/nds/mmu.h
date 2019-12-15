@@ -146,6 +146,11 @@ class NTR_MMU
 		u8 transfer_count;
 		u32 chip_id;
 
+		u32 seed_0_lo;
+		u16 seed_0_hi;
+		u32 seed_1_lo;
+		u16 seed_1_hi;
+
 		//ROM data
 		u32 cmd_lo;
 		u32 cmd_hi;

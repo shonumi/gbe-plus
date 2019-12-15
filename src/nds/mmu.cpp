@@ -184,6 +184,10 @@ void NTR_MMU::reset()
 	nds_card.cmd_lo = 0;
 	nds_card.cmd_hi = 0;
 	nds_card.chip_id = 0xFC2;
+	nds_card.seed_0_lo = 0;
+	nds_card.seed_0_hi = 0;
+	nds_card.seed_1_lo = 0;
+	nds_card.seed_1_hi = 0;
 
 	nds7_rtc.cnt = 0;
 	nds7_rtc.data = 0;
@@ -4048,7 +4052,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 					nds_card.transfer_count = 0;
 
 					//Decrypt gamecard command
-					if(key_level) { key1_decrypt(nds_card.cmd_lo, nds_card.cmd_hi); }
+					//if(key_level) { key1_decrypt(nds_card.cmd_lo, nds_card.cmd_hi); }
 
 					//std::cout<<"CART TRANSFER -> 0x" << nds_card.cnt << " -- SIZE -> 0x" << nds_card.transfer_size << " -- CMD -> 0x" << nds_card.cmd_lo << nds_card.cmd_hi << "\n";
 					process_card_bus();
@@ -4056,6 +4060,15 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 				if((nds_card.cnt >> 24) & 0x7) { nds_card.cnt |= 0x800000; }
 				else { nds_card.cnt &= ~0x800000; }
+
+				//Apply Seeds
+				if(nds_card.cnt & 0x8000)
+				{
+					write_u32_fast(NDS_SEED_0_LO, nds_card.seed_0_lo);
+					write_u16_fast(NDS_SEED_0_HI, nds_card.seed_0_hi);
+					write_u32_fast(NDS_SEED_1_LO, nds_card.seed_1_lo);
+					write_u16_fast(NDS_SEED_1_HI, nds_card.seed_1_hi);
+				}
 			}
 
 			break;
@@ -4080,6 +4093,50 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			{
 				memory_map[address] = value;
 				nds_card.cmd_hi = ((memory_map[NDS_CARDCMD_HI] << 24) | (memory_map[NDS_CARDCMD_HI+1] << 16) | (memory_map[NDS_CARDCMD_HI+2] << 8) | memory_map[NDS_CARDCMD_HI+3]);
+			}
+
+			break;
+
+		case NDS_SEED_0_LO:
+		case NDS_SEED_0_LO+1:
+		case NDS_SEED_0_LO+2:
+		case NDS_SEED_0_LO+3:
+			if((access_mode && ((nds9_exmem & 0x800) == 0)) || (!access_mode && (nds7_exmem & 0x800)))
+			{
+				nds_card.seed_0_lo &= ~(0xFF << ((address & 0x3) << 3));
+				nds_card.seed_0_lo |= (value << ((address & 0x3) << 3));
+			}
+
+			break;
+
+		case NDS_SEED_0_HI:
+		case NDS_SEED_0_HI+1:
+			if((access_mode && ((nds9_exmem & 0x800) == 0)) || (!access_mode && (nds7_exmem & 0x800)))
+			{
+				nds_card.seed_0_hi = (value << ((address & 0x1) << 3));
+				nds_card.seed_0_hi &= 0x7F;
+			}
+
+			break;
+
+		case NDS_SEED_1_LO:
+		case NDS_SEED_1_LO+1:
+		case NDS_SEED_1_LO+2:
+		case NDS_SEED_1_LO+3:
+			if((access_mode && ((nds9_exmem & 0x800) == 0)) || (!access_mode && (nds7_exmem & 0x800)))
+			{
+				nds_card.seed_1_lo &= ~(0xFF << ((address & 0x3) << 3));
+				nds_card.seed_1_lo |= (value << ((address & 0x3) << 3));
+			}
+
+			break;
+
+		case NDS_SEED_1_HI:
+		case NDS_SEED_1_HI+1:
+			if((access_mode && ((nds9_exmem & 0x800) == 0)) || (!access_mode && (nds7_exmem & 0x800)))
+			{
+				nds_card.seed_1_hi = (value << ((address & 0x1) << 3));
+				nds_card.seed_1_hi &= 0x7F;
 			}
 
 			break;
