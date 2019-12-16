@@ -295,6 +295,7 @@ class NTR_MMU
 
 	u8 firmware_status;
 	u16 firmware_state;
+	u16 firmware_count;
 	u32 firmware_index;
 	bool in_firmware;
 

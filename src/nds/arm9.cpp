@@ -338,6 +338,8 @@ void NTR_ARM9::fetch()
 		//Set the operation to perform as UNDEFINED until decoded
 		instruction_operation[pipeline_pointer] = UNDEFINED;
 	}
+
+	mem->fetch_request = false;
 }
 
 /****** Decode ARM instruction ******/

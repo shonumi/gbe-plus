@@ -276,8 +276,6 @@ u8 NTR_MMU::read_u8(u32 address)
 		return dtcm[address - dtcm_addr];
 	}
 
-	fetch_request = false;
-
 	//Mirror memory address if applicable
 	switch(address >> 24)
 	{
@@ -916,6 +914,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 	if((access_mode) && (address >= dtcm_addr) && (address <= (dtcm_addr + 0x3FFF)))
 	{
 		dtcm[address - dtcm_addr] = value;
+		return;
 	}
 
 	//Mirror memory address if applicable
@@ -5388,6 +5387,8 @@ void NTR_MMU::process_firmware()
 		case 0x0000:
 		case 0x0303:
 		case 0x0501:
+		case 0x0600:
+		case 0x0A04:
 			new_command = true;
 			break;
 	}
@@ -5408,9 +5409,21 @@ void NTR_MMU::process_firmware()
 				firmware_state = 0x0500;
 				return;
 
+			//Set Write Enable
+			case 0x6:
+				firmware_state = 0x0600;
+				firmware_status = 0x2;
+				return;
+
+			//Page Write
+			case 0xA:
+				firmware_state = 0x0A00;
+				firmware_index = 0;
+				return;
+
 			//Unknown
 			default:
-				std::cout<<"MMU::Warning - Unknown Firmware command 0x" << (u32)nds7_spi.data << "\n";
+				std::cout<<"MMU::Warning - Unknown Firmware command 0x" << std::hex << (u32)nds7_spi.data << "\n";
 				return;
 		}
 	}
@@ -5445,6 +5458,38 @@ void NTR_MMU::process_firmware()
 		case 0x0500:
 			nds7_spi.data = firmware_status;
 			firmware_state++;
+			break;
+
+		//Set write address byte 1
+		case 0x0A00:
+			firmware_index |= ((nds7_spi.data & 0xFF) << 16);
+			firmware_state++;
+			break;
+
+		//Set write address byte 2
+		case 0x0A01:
+			firmware_index |= ((nds7_spi.data & 0xFF) << 8);
+			firmware_state++;
+			break;
+
+		//Set write address byte 3
+		case 0x0A02:
+			firmware_index |= (nds7_spi.data & 0xFF);
+			firmware_count = 0;
+			firmware_state++;
+			break;
+
+		//Write byte to firmware index
+		//TODO - Limit this to 256 bytes
+		case 0x0A03:
+			if(firmware_index < 0x40000)
+			{
+				firmware[firmware_index++] = nds7_spi.data;
+				firmware_count++;
+
+				if(firmware_count == 256) { firmware_state = 0x0A04; }
+			}
+
 			break;
 	}
 }
