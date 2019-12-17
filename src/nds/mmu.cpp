@@ -5347,6 +5347,7 @@ void NTR_MMU::process_aux_spi_bus()
 			//Write enable
 			case 0x6:
 				nds_aux_spi.data = 0xFF;
+				nds_aux_spi.eeprom_stat |= 0x2;
 				break;
 
 			//Write to EEPROM high
@@ -5368,6 +5369,12 @@ void NTR_MMU::process_aux_spi_bus()
 				nds_aux_spi.data = 0xFF;
 				nds_aux_spi.state = 0x9F;
 				break;
+
+			//Unknown command
+			default:
+				std::cout<<"MMU::Warning - Unknown save command 0x" << std::hex << (u32)nds_aux_spi.backup_cmd << "\n";
+				nds_aux_spi.data = 0xFF;
+				break;
 		}
 	}
 
@@ -5386,6 +5393,7 @@ void NTR_MMU::process_firmware()
 	{
 		case 0x0000:
 		case 0x0303:
+		case 0x0400:
 		case 0x0501:
 		case 0x0600:
 		case 0x0A04:
@@ -5402,6 +5410,12 @@ void NTR_MMU::process_firmware()
 			case 0x3:
 				firmware_state = 0x0300;
 				firmware_index = 0;
+				return;
+
+			//Disable Writes
+			case 0x4:
+				firmware_state = 0x0400;
+				firmware_status = 0;
 				return;
 
 			//Read Status Register
@@ -5480,9 +5494,8 @@ void NTR_MMU::process_firmware()
 			break;
 
 		//Write byte to firmware index
-		//TODO - Limit this to 256 bytes
 		case 0x0A03:
-			if(firmware_index < 0x40000)
+			if((firmware_index < 0x40000) && (firmware_status & 0x2))
 			{
 				firmware[firmware_index++] = nds7_spi.data;
 				firmware_count++;
