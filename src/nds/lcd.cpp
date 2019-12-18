@@ -1397,7 +1397,7 @@ void NTR_LCD::render_obj_scanline(u32 bg_control)
 						{
 							scanline_buffer_a[scanline_pixel_counter] = (ext_pal) ? lcd_stat.obj_ext_pal_a[(pal_id * 256) + raw_color] : lcd_stat.obj_pal_a[(pal_id * 16) + raw_color];
 							render_buffer_a[scanline_pixel_counter] = (obj[obj_id].bg_priority + 1);
-							line_buffer[obj[obj_id].bg_priority + 4][scanline_pixel_counter] |= 0x80;
+							line_buffer[obj[obj_id].bg_priority][scanline_pixel_counter] = scanline_buffer_a[scanline_pixel_counter];
 						}
 
 						//Draw for Engine B
@@ -1405,8 +1405,11 @@ void NTR_LCD::render_obj_scanline(u32 bg_control)
 						{
 							scanline_buffer_b[scanline_pixel_counter] = (ext_pal) ? lcd_stat.obj_ext_pal_b[(pal_id * 256) + raw_color] : lcd_stat.obj_pal_b[(pal_id * 16) + raw_color];
 							render_buffer_b[scanline_pixel_counter] = (obj[obj_id].bg_priority + 1);
-							line_buffer[obj[obj_id].bg_priority + 4][scanline_pixel_counter] |= 0x80;
+							line_buffer[obj[obj_id].bg_priority][scanline_pixel_counter] = scanline_buffer_b[scanline_pixel_counter];
 						}
+
+						//Line buffer
+						if(raw_color && render_obj) { line_buffer[obj[obj_id].bg_priority + 4][scanline_pixel_counter] |= 0x80; }
 					}
 
 					//Draw direct bitmap OBJs
@@ -1436,7 +1439,7 @@ void NTR_LCD::render_obj_scanline(u32 bg_control)
 						{
 							scanline_buffer_a[scanline_pixel_counter] = get_rgb15(raw_pixel);
 							render_buffer_a[scanline_pixel_counter] = (obj[obj_id].bg_priority + 1);
-							line_buffer[obj[obj_id].bg_priority + 4][scanline_pixel_counter] |= 0x80;
+							line_buffer[obj[obj_id].bg_priority][scanline_pixel_counter] = scanline_buffer_a[scanline_pixel_counter];
 						}
 
 						//Draw for Engine B
@@ -1444,8 +1447,11 @@ void NTR_LCD::render_obj_scanline(u32 bg_control)
 						{
 							scanline_buffer_b[scanline_pixel_counter] = get_rgb15(raw_pixel);
 							render_buffer_b[scanline_pixel_counter] = (obj[obj_id].bg_priority + 1);
-							line_buffer[obj[obj_id].bg_priority + 4][scanline_pixel_counter] |= 0x80;
+							line_buffer[obj[obj_id].bg_priority][scanline_pixel_counter] = scanline_buffer_b[scanline_pixel_counter];
 						}
+
+						//Line buffer
+						if((raw_pixel & 0x8000) && render_obj) { line_buffer[obj[obj_id].bg_priority + 4][scanline_pixel_counter] |= 0x80; }
 					}
 						
 				}
@@ -3225,6 +3231,8 @@ void NTR_LCD::alpha_blend(u32 bg_control)
 	{
 		u8 target_1 = 0;
 		u8 target_2 = 0;
+		u8 layer_1 = 0;
+		u8 layer_2 = 0;
 		u8 next_bg = 0;
 
 		bool found_target_1 = false;
@@ -3239,6 +3247,7 @@ void NTR_LCD::alpha_blend(u32 bg_control)
 			{
 				found_target_1 = true;
 				target_1 = (line_buffer[target_id + 4][x] & 0x80) ? 4 : target_id;
+				layer_1 = target_id;
 				next_bg = y + 1;
 				break;
 			}
@@ -3253,6 +3262,7 @@ void NTR_LCD::alpha_blend(u32 bg_control)
 			{
 				found_target_2 = true;
 				target_2 = (line_buffer[target_id + 4][x] & 0x80) ? 4 : target_id;
+				layer_2 = target_id;
 				break;
 			}
 		}
@@ -3267,19 +3277,19 @@ void NTR_LCD::alpha_blend(u32 bg_control)
 		if(found_target_1 && found_target_2 && target_1_enable && target_2_enable)
 		{
 			u8 result = 0;
-			u32 color_1 = line_buffer[target_1][x];
+			u32 color_1 = line_buffer[layer_1][x];
 			u32 color_2 = 0;
 
 			//Pull color from backdrop
 			if(target_2 == 5) { color_2 = (bg_control == NDS_DISPCNT_A) ? lcd_stat.bg_pal_a[0] : lcd_stat.bg_pal_b[0]; }
 
 			//Pull color from BG layers
-			else { color_2 = line_buffer[target_2][x]; }
+			else { color_2 = line_buffer[layer_2][x]; }
 
 			//Grab RGB15 values of both targets
 			r1 = (color_1 >> 19) & 0x1F;
 			g1 = (color_1 >> 11) & 0x1F;
-			b1 = (target_1 >> 3) & 0x1F;
+			b1 = (color_1 >> 3) & 0x1F;
 
 			r2 = (color_2 >> 19) & 0x1F;
 			g2 = (color_2 >> 11) & 0x1F;
