@@ -2160,10 +2160,13 @@ void NTR_LCD::render_bg_mode_affine_ext(u32 bg_control)
 
 		bool full_render = true;
 
+		u8 pal_id;
+		u16 ext_pal_id;
 		u8 win_id = 0;
 		bool in_window;
 		bool out_window;
 		bool can_winout = lcd_stat.display_control_a & 0x6000;
+		u8 slot;
 
 		//Reload X-Y references at start of frame
 		if(lcd_stat.current_scanline == 0) { reload_affine_references(bg_control); }
@@ -2185,6 +2188,10 @@ void NTR_LCD::render_bg_mode_affine_ext(u32 bg_control)
 		//Get tile and map addresses
 		u32 tile_base = 0x6000000 + lcd_stat.bg_base_tile_addr_a[bg_id];
 		u32 map_base = 0x6000000 + lcd_stat.bg_base_map_addr_a[bg_id];
+
+		//Grab slot for extended palettes
+		if((lcd_stat.bg_control_a[bg_id] & 0x2000) && (bg_id < 2)) { slot = bg_id + 2; }
+		else { slot = bg_id; }
 
 		//Cycle through all tiles on this scanline
 		for(u32 x = 0; x < 256; x++, scanline_pixel_counter++)
@@ -2244,6 +2251,10 @@ void NTR_LCD::render_bg_mode_affine_ext(u32 bg_control)
 					src_x = (flip & 0x1) ? inv_lut[src_x % 8] : (src_x % 8);
 					src_y = (flip & 0x2) ? inv_lut[src_y % 8] : (src_y % 8);
 
+					//Grab palettes
+					pal_id = (map_entry >> 12) & 0xF;
+					ext_pal_id = (slot << 12) + (pal_id << 8);
+
 					//Get address of Tile #(map_entry)
 					u32 tile_addr = tile_base + ((map_entry & 0x3FF) * 64);
 
@@ -2256,7 +2267,7 @@ void NTR_LCD::render_bg_mode_affine_ext(u32 bg_control)
 					//Only draw BG color if not transparent
 					if(raw_color && in_window && out_window)
 					{
-						scanline_buffer_a[scanline_pixel_counter] = lcd_stat.bg_pal_a[raw_color];
+						scanline_buffer_a[scanline_pixel_counter] = (lcd_stat.ext_pal_a & 0x1) ? lcd_stat.bg_ext_pal_a[ext_pal_id + raw_color] : lcd_stat.bg_pal_a[raw_color];
 						render_buffer_a[scanline_pixel_counter] = bg_priority;
 					}
 
@@ -2295,10 +2306,13 @@ void NTR_LCD::render_bg_mode_affine_ext(u32 bg_control)
 
 		bool full_render = true;
 
+		u8 pal_id;
+		u16 ext_pal_id;
 		u8 win_id = 0;
 		bool in_window;
 		bool out_window;
 		bool can_winout = lcd_stat.display_control_b & 0x6000;
+		u8 slot;
 
 		//Reload X-Y references at start of frame
 		if(lcd_stat.current_scanline == 0) { reload_affine_references(bg_control); }
@@ -2320,6 +2334,10 @@ void NTR_LCD::render_bg_mode_affine_ext(u32 bg_control)
 		//Get tile and map addresses
 		u32 tile_base = 0x6200000 + lcd_stat.bg_base_tile_addr_b[bg_id];
 		u32 map_base = 0x6200000 + lcd_stat.bg_base_map_addr_b[bg_id];
+
+		//Grab slot for extended palettes
+		if((lcd_stat.bg_control_a[bg_id] & 0x2000) && (bg_id < 2)) { slot = bg_id + 2; }
+		else { slot = bg_id; }
 
 		//Cycle through all tiles on this scanline
 		for(u32 x = 0; x < 256; x++, scanline_pixel_counter++)
@@ -2379,6 +2397,10 @@ void NTR_LCD::render_bg_mode_affine_ext(u32 bg_control)
 					src_x = (flip & 0x1) ? inv_lut[src_x % 8] : (src_x % 8);
 					src_y = (flip & 0x2) ? inv_lut[src_y % 8] : (src_y % 8);
 
+					//Grab palettes
+					pal_id = (map_entry >> 12) & 0xF;
+					ext_pal_id = (slot << 12) + (pal_id << 8);
+
 					//Get address of Tile #(map_entry)
 					u32 tile_addr = tile_base + ((map_entry & 0x3FF) * 64);
 
@@ -2391,7 +2413,7 @@ void NTR_LCD::render_bg_mode_affine_ext(u32 bg_control)
 					//Only draw BG color if not transparent
 					if(raw_color && in_window && out_window)
 					{
-						scanline_buffer_b[scanline_pixel_counter] = lcd_stat.bg_pal_b[raw_color];
+						scanline_buffer_b[scanline_pixel_counter] = (lcd_stat.ext_pal_b & 0x1) ? lcd_stat.bg_ext_pal_b[ext_pal_id + raw_color] : lcd_stat.bg_pal_b[raw_color];
 						render_buffer_b[scanline_pixel_counter] = bg_priority;
 					}
 
