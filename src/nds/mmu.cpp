@@ -2698,7 +2698,10 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 				u8 mst = value & 0x7;
 				u8 offset = (value >> 3) & 0x3;
-				u32 bank_id = (address - 0x4000240); 
+				u32 bank_id = (address - 0x4000240);
+
+				//Properly get banks H and I
+				if(address > 0x4000247) { bank_id--; }
 
 				//Bit 2 of MST is unused by banks A, B, H, and I
 				if((bank_id < 2) || (bank_id > 6)) { mst &= 0x3; }
