@@ -1264,9 +1264,31 @@ void NTR_LCD::render_obj_scanline(u32 bg_control)
 	bool ext_pal = false;
 	bool render_obj;
 	bool direct_bitmap = false;
+	bool vram_bank_enabled = false;
 	s16 h_flip, v_flip = 0;
 	u16 obj_x, obj_y = 0;
 	u32 disp_cnt = engine_id ? lcd_stat.display_control_b : lcd_stat.display_control_a;
+
+	//Check OBJ VRAM bank status
+	if((!engine_id) &&
+	((((lcd_stat.vram_bank_addr[0] >> 20) == 0x64) && (lcd_stat.vram_bank_enable[0])) ||
+	(((lcd_stat.vram_bank_addr[1] >> 20) == 0x64) && (lcd_stat.vram_bank_enable[1])) ||
+	(((lcd_stat.vram_bank_addr[4] >> 20) == 0x64) && (lcd_stat.vram_bank_enable[4])) ||
+	(((lcd_stat.vram_bank_addr[5] >> 20) == 0x64) && (lcd_stat.vram_bank_enable[5])) ||
+	(((lcd_stat.vram_bank_addr[6] >> 20) == 0x64) && (lcd_stat.vram_bank_enable[6]))))
+	{
+		vram_bank_enabled = true;
+	}
+
+	else if ((engine_id) &&
+	((((lcd_stat.vram_bank_addr[3] >> 20) == 0x66) && (lcd_stat.vram_bank_enable[3])) ||
+	(((lcd_stat.vram_bank_addr[8] >> 20) == 0x66) && (lcd_stat.vram_bank_enable[8]))))
+	{
+		vram_bank_enabled = true;
+	}
+
+	//Abort all OBJ rendering if no VRAM banks are allocated
+	if(!vram_bank_enabled) { return; }
 
 	//Cycle through all current OBJ and render them based on their priority
 	for(int x = 0; x < obj_render_length; x++)
