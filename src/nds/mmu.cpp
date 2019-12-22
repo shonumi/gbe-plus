@@ -3836,6 +3836,9 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 				//Mode 0 32-bit - 32-bit
 				if(div_mode == 0)
 				{
+					nds9_math.div_numer &= 0xFFFFFFFF;
+					nds9_math.div_denom &= 0xFFFFFFFF;
+
 					u32 result = 0;
 					u32 remainder = 0;					
 
@@ -3879,6 +3882,8 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 				//Mode 1 64-bit - 32-bit
 				else if((div_mode == 1) || (div_mode == 3))
 				{
+					nds9_math.div_denom &= 0xFFFFFFFF;
+
 					u64 result = 0;
 					u32 remainder = 0;					
 
@@ -5322,7 +5327,7 @@ void NTR_MMU::process_aux_spi_bus()
 		{
 			//Write to status register
 			case 0x1:
-				if((current_save_type == EEPROM) || (current_save_type == AUTO)) { nds_aux_spi.data = nds_aux_spi.eeprom_stat; }
+				if((current_save_type == EEPROM) || (current_save_type == FRAM) || (current_save_type == AUTO)) { nds_aux_spi.data = nds_aux_spi.eeprom_stat; }
 				else if(current_save_type == EEPROM_512) { nds_aux_spi.data = (nds_aux_spi.eeprom_stat | 0xF0); }
 				nds_aux_spi.data = 0xFF;
 				nds_aux_spi.state = 0x1;
