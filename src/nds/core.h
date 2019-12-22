@@ -48,6 +48,7 @@ class NTR_core : virtual public core_emu
 		void debug_display() const;
 		void debug_process_command();
 		std::string debug_get_mnemonic(u32 addr);
+		std::string debug_get_mnemonic(u32 data, bool is_addr);
 
 		//CPU related functions
 		u32 ex_get_reg(u8 reg_index);

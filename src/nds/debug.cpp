@@ -28,7 +28,7 @@ void NTR_core::debug_step()
 	if((nds9_debug) && (core_cpu_nds9.arm_mode == NTR_ARM9::ARM)) { arm_debug = true; }
 	else if((!nds9_debug) && (core_cpu_nds7.arm_mode == NTR_ARM7::ARM)) { arm_debug = true; }
 
-	u32 op_addr = (pc - 0x0C);
+	u32 debug_code = (nds9_debug) ? core_cpu_nds9.debug_code : core_cpu_nds7.debug_code;
 
 	//In continue mode, if breakpoints exist, try to stop on one
 	if((db_unit.breakpoints.size() > 0) && (db_unit.last_command == "c"))
@@ -38,7 +38,7 @@ void NTR_core::debug_step()
 			//When a BP is matched, display info, wait for next input command
 			if(pc == db_unit.breakpoints[x])
 			{
-				db_unit.last_mnemonic = debug_get_mnemonic(op_addr);
+				db_unit.last_mnemonic = debug_get_mnemonic(debug_code, false);
 
 				debug_display();
 				debug_process_command();
@@ -59,7 +59,7 @@ void NTR_core::debug_step()
 			{
 				std::cout<<"Watchpoint Triggered: 0x" << std::hex << db_unit.watchpoint_addr[x] << " -- Value: 0x" << (u16)db_unit.watchpoint_val[x] << "\n";
 
-				db_unit.last_mnemonic = debug_get_mnemonic(op_addr);
+				db_unit.last_mnemonic = debug_get_mnemonic(debug_code, false);
 
 				debug_display();
 				debug_process_command();
@@ -73,7 +73,7 @@ void NTR_core::debug_step()
 	//When in next instruction mode, simply display info, wait for next input command
 	else if(db_unit.last_command == "n")
 	{
-		db_unit.last_mnemonic = debug_get_mnemonic(op_addr);
+		db_unit.last_mnemonic = debug_get_mnemonic(debug_code, false);
 
 		debug_display();
 		debug_process_command();
@@ -156,7 +156,7 @@ void NTR_core::debug_step()
 	//Display every instruction when print all is enabled
 	if((!printed) && (db_unit.print_all))
 	{
-		db_unit.last_mnemonic = debug_get_mnemonic(op_addr);
+		db_unit.last_mnemonic = debug_get_mnemonic(debug_code, false);
 		debug_display();
 	}
 
@@ -315,10 +315,16 @@ void NTR_core::debug_display() const
 }
 
 /****** Returns a string with the mnemonic assembly instruction ******/
-std::string NTR_core::debug_get_mnemonic(u32 addr)
+std::string NTR_core::debug_get_mnemonic(u32 addr) { return " "; }
+
+/****** Returns a string with the mnemonic assembly instruction ******/
+std::string NTR_core::debug_get_mnemonic(u32 data, bool is_addr)
 {
-	u32 opcode = (arm_debug) ? core_mmu.read_u32(addr) : core_mmu.read_u16(addr);
 	std::string instr = "";
+	u32 opcode = 0;
+	u32 addr = data;
+	if(is_addr) { opcode = (arm_debug) ? core_mmu.read_u32(addr) : core_mmu.read_u16(addr); }
+	else { opcode = data; }
 
 	//Get ARM mnemonic
 	if(arm_debug)
