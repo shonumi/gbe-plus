@@ -57,6 +57,8 @@ void NTR_MMU::process_card_bus()
 				nds_card.state = 0x40;
 
 				init_key_code(1, 8);
+
+				std::cout<<"MMU::Game Card Bus Active Key 1 Encryption \n";
 			}
 
 			//Activate Key 2 Encryption
@@ -162,7 +164,7 @@ void NTR_MMU::process_card_bus()
 	}
 
 	//Prepare for next transfer, if any
-	nds_card.transfer_size -= 4;
+	if(nds_card.transfer_size) { nds_card.transfer_size -= 4; }
 
 	//Finish card transfer, raise IRQ if necessary
 	if(!nds_card.transfer_size)

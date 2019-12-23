@@ -491,7 +491,7 @@ std::string NTR_core::debug_get_mnemonic(u32 data, bool is_addr)
 
 				else { immediate = "R" + util::to_str(opcode & 0xF); }
 
-				instr = "MSR " + psr + ", " + immediate;
+				instr = "MSR" + cond_code + " " + psr + ", " + immediate;
 			}
 		}
 
@@ -1720,7 +1720,10 @@ void NTR_core::debug_process_command()
 
 				for(u32 x = 0; x < 16; x++)
 				{
-					std::cout<<"0x" << (mem_location + (x * 4)) << "\t" << debug_get_mnemonic(mem_location + (x * 4)) << "\n";
+					u32 addr = (mem_location + (x * 4));
+					u32 opcode = core_mmu.read_u32(addr);
+
+					std::cout<<"0x" << addr << "\t" << debug_get_mnemonic(addr, true) << "\n";
 				}
 
 				db_unit.last_command = "da";
