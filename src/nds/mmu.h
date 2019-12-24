@@ -146,10 +146,10 @@ class NTR_MMU
 		u8 transfer_count;
 		u32 chip_id;
 
-		u32 seed_0_lo;
-		u16 seed_0_hi;
-		u32 seed_1_lo;
-		u16 seed_1_hi;
+		u32 seed_0_lo[2];
+		u16 seed_0_hi[2];
+		u32 seed_1_lo[2];
+		u16 seed_1_hi[2];
 
 		//ROM data
 		u32 cmd_lo;
@@ -277,6 +277,10 @@ class NTR_MMU
 	//Encryption key level and ID
 	u8 key_level;
 	u32 key_id;
+
+	//KEY2
+	u64 key_2_x;
+	u64 key_2_y;
 
 	//NDS9 and NDS7 have separate IE, IF, and other registers (accessed at the same address)
 	u32 nds9_ie;

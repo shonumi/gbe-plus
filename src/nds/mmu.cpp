@@ -184,10 +184,14 @@ void NTR_MMU::reset()
 	nds_card.cmd_lo = 0;
 	nds_card.cmd_hi = 0;
 	nds_card.chip_id = 0xFC2;
-	nds_card.seed_0_lo = 0;
-	nds_card.seed_0_hi = 0;
-	nds_card.seed_1_lo = 0;
-	nds_card.seed_1_hi = 0;
+
+	for(u32 x = 0; x < 2; x++)
+	{
+		nds_card.seed_0_lo[x] = 0;
+		nds_card.seed_0_hi[x] = 0;
+		nds_card.seed_1_lo[x] = 0;
+		nds_card.seed_1_hi[x] = 0;
+	}
 
 	nds7_rtc.cnt = 0;
 	nds7_rtc.data = 0;
@@ -644,6 +648,38 @@ u8 NTR_MMU::read_u8(u32 address)
 
 			return ret_val;
 		}
+	}
+
+	//Check for NDS_SEED_0_LO
+	else if((address & ~0x3) == NDS_SEED_0_LO)
+	{
+		u8 id = (access_mode) ? 0 : 1;
+		u8 addr_shift = (address & 0x3) << 3;
+		return ((nds_card.seed_0_lo[id] >> addr_shift) & 0xFF);
+	}
+
+	//Check for NDS_SEED_1_LO
+	else if((address & ~0x3) == NDS_SEED_1_LO)
+	{
+		u8 id = (access_mode) ? 0 : 1;
+		u8 addr_shift = (address & 0x3) << 3;
+		return ((nds_card.seed_1_lo[id] >> addr_shift) & 0xFF);
+	}
+
+	//Check for NDS_SEED_0_HI
+	else if((address & ~0x1) == NDS_SEED_0_HI)
+	{
+		u8 id = (access_mode) ? 0 : 1;
+		u8 addr_shift = (address & 0x1) << 3;
+		return ((nds_card.seed_0_hi[id] >> addr_shift) & 0xFF);
+	}
+
+	//Check for NDS_SEED_1_HI
+	else if((address & ~0x1) == NDS_SEED_1_HI)
+	{
+		u8 id = (access_mode) ? 0 : 1;
+		u8 addr_shift = (address & 0x1) << 3;
+		return ((nds_card.seed_1_hi[id] >> addr_shift) & 0xFF);
 	}
 
 	//Check for SPICNT
@@ -4043,6 +4079,9 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			{
 				memory_map[address] = value;
 
+				//If AUX SPI is disabled, do nothing
+				if((nds_aux_spi.cnt & 0x8000) == 0) { return; }
+
 				u8 transfer_bit = (nds_card.cnt & 0x80000000) ? 1 : 0;
 				nds_card.cnt = ((memory_map[NDS_ROMCNT+3] << 24) | (memory_map[NDS_ROMCNT+2] << 16) | (memory_map[NDS_ROMCNT+1] << 8) | memory_map[NDS_ROMCNT]);
 
@@ -4074,10 +4113,24 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 				//Apply Seeds
 				if(nds_card.cnt & 0x8000)
 				{
-					write_u32_fast(NDS_SEED_0_LO, nds_card.seed_0_lo);
-					write_u16_fast(NDS_SEED_0_HI, nds_card.seed_0_hi);
-					write_u32_fast(NDS_SEED_1_LO, nds_card.seed_1_lo);
-					write_u16_fast(NDS_SEED_1_HI, nds_card.seed_1_hi);
+					u8 id;
+					u64 s = 1;
+
+					if((nds9_exmem & 0x800) == 0) { id = 0; }
+					else { id = 1; }
+
+					key_2_x = 0;
+					key_2_y = 0;
+
+					u64 seed_0 = nds_card.seed_0_lo[id] | ((u64)nds_card.seed_0_hi[id] << 32);
+					u64 seed_1 = nds_card.seed_1_lo[id] | ((u64)nds_card.seed_1_hi[id] << 32);
+
+					//Reverse bit order of 39-bit seeds
+					for(u32 x = 0; x < 39; x++)
+					{
+						if(seed_0 & (s << x)) { key_2_x |= (s << (38 - x)); }
+						if(seed_1 & (s << x)) { key_2_y |= (s << (38 - x)); }
+					}
 				}
 			}
 
@@ -4111,20 +4164,20 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		case NDS_SEED_0_LO+1:
 		case NDS_SEED_0_LO+2:
 		case NDS_SEED_0_LO+3:
-			if((access_mode && ((nds9_exmem & 0x800) == 0)) || (!access_mode && (nds7_exmem & 0x800)))
 			{
-				nds_card.seed_0_lo &= ~(0xFF << ((address & 0x3) << 3));
-				nds_card.seed_0_lo |= (value << ((address & 0x3) << 3));
+				u8 id = (access_mode) ? 0 : 1;
+				nds_card.seed_0_lo[id] &= ~(0xFF << ((address & 0x3) << 3));
+				nds_card.seed_0_lo[id] |= (value << ((address & 0x3) << 3));
 			}
 
 			break;
 
 		case NDS_SEED_0_HI:
 		case NDS_SEED_0_HI+1:
-			if((access_mode && ((nds9_exmem & 0x800) == 0)) || (!access_mode && (nds7_exmem & 0x800)))
 			{
-				nds_card.seed_0_hi = (value << ((address & 0x1) << 3));
-				nds_card.seed_0_hi &= 0x7F;
+				u8 id = (access_mode) ? 0 : 1;
+				nds_card.seed_0_hi[id] = (value << ((address & 0x1) << 3));
+				nds_card.seed_0_hi[id] &= 0x7F;
 			}
 
 			break;
@@ -4133,20 +4186,20 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		case NDS_SEED_1_LO+1:
 		case NDS_SEED_1_LO+2:
 		case NDS_SEED_1_LO+3:
-			if((access_mode && ((nds9_exmem & 0x800) == 0)) || (!access_mode && (nds7_exmem & 0x800)))
 			{
-				nds_card.seed_1_lo &= ~(0xFF << ((address & 0x3) << 3));
-				nds_card.seed_1_lo |= (value << ((address & 0x3) << 3));
+				u8 id = (access_mode) ? 0 : 1;
+				nds_card.seed_1_lo[id] &= ~(0xFF << ((address & 0x3) << 3));
+				nds_card.seed_1_lo[id] |= (value << ((address & 0x3) << 3));
 			}
 
 			break;
 
 		case NDS_SEED_1_HI:
 		case NDS_SEED_1_HI+1:
-			if((access_mode && ((nds9_exmem & 0x800) == 0)) || (!access_mode && (nds7_exmem & 0x800)))
 			{
-				nds_card.seed_1_hi = (value << ((address & 0x1) << 3));
-				nds_card.seed_1_hi &= 0x7F;
+				u8 id = (access_mode) ? 0 : 1;
+				nds_card.seed_1_hi[id] = (value << ((address & 0x1) << 3));
+				nds_card.seed_1_hi[id] &= 0x7F;
 			}
 
 			break;
