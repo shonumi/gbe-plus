@@ -19,6 +19,7 @@ set(SRCS
 	apu.cpp
 	debug.cpp
 	gx_render.cpp
+	slot2.cpp
 	)
 
 set(HEADERS

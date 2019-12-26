@@ -41,7 +41,8 @@ void NTR_MMU::reset()
 		case 0: current_slot2_device = SLOT2_AUTO; break;
 		case 1: current_slot2_device = SLOT2_NONE; break;
 		case 2: current_slot2_device = SLOT2_PASSME; break;
-		case 3: current_slot2_device = SLOT2_GBA_CART; break;
+		case 3: current_slot2_device = SLOT2_RUMBLE_PAK; break;
+		case 4: current_slot2_device = SLOT2_GBA_CART; break;
 	}	
 
 	memory_map.clear();
@@ -345,14 +346,7 @@ u8 NTR_MMU::read_u8(u32 address)
 			break;
 
 		case 0x8:
-			if(current_slot2_device == SLOT2_PASSME)
-			{
-				if((address & 0x7FFFFFF) < cart_data.size()) { return cart_data[address & 0x7FFFFFF]; }
-				else { return 0xFF; }
-			}
-
-			else { return 0xFF; }
-
+			return read_slot2_device(address);
 			break;
 
 		case 0xFF:

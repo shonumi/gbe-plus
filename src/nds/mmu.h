@@ -366,6 +366,8 @@ class NTR_MMU
 	u8 read_rtc();
 	void setup_default_firmware();
 
+	u8 read_slot2_device(u32 address);
+
 	void key1_encrypt(u32 &lo, u32 &hi);
 	void key1_decrypt(u32 &lo, u32 &hi);
 	void init_key_code(u8 level, u32 mod);
