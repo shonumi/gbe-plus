@@ -724,7 +724,7 @@ void NTR_ARM7::multiply(u32 current_arm_instruction)
 	}
 
 	//ARMv4 destorys Carry Flag after all supported multiply operations
-	reg.cpsr &= ~CPSR_C_FLAG;
+	//reg.cpsr &= ~CPSR_C_FLAG;
 }
 			
 /****** ARM.9 Single Data Transfer ******/
