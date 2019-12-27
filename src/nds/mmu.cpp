@@ -249,6 +249,7 @@ void NTR_MMU::reset()
 
 	access_mode = 1;
 	wram_mode = 3;
+	rumble_state = 0;
 	do_save = false;
 
 	//Advanced debugging
@@ -1274,6 +1275,10 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		case 0x7:
 			if(access_mode) { address &= 0x7007FFF; }
 			break;
+
+		case 0x8:
+			write_slot2_device(address, value);
+			return;
 	}
 
 	//Check for unused memory first

@@ -34,6 +34,9 @@ class NTR_GamePad
 	void process_joystick(int pad, bool pressed);
 	void process_mouse(int pad, bool pressed);
 
+	void start_rumble(s32 len);
+	void stop_rumble();
+
 	int pad;
 	u8 sdl_fs_ratio;
 	u16 key_input;

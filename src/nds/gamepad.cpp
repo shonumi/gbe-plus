@@ -671,6 +671,26 @@ void NTR_GamePad::process_mouse(int pad, bool pressed)
 	}
 }
 
+/****** Start haptic force-feedback on joypad ******/
+void NTR_GamePad::start_rumble(s32 len)
+{
+	if((jstick != NULL) && (rumble != NULL) && (is_rumbling == false))
+	{
+		SDL_HapticRumblePlay(rumble, 1, len);
+		is_rumbling = true;
+	}
+}
+
+/****** Stop haptic force-feedback on joypad ******/
+void NTR_GamePad::stop_rumble()
+{
+	if((jstick != NULL) && (rumble != NULL) && (is_rumbling == true))
+	{
+		SDL_HapticRumbleStop(rumble);
+       		is_rumbling = false;
+	}
+}
+
 /****** Clears any existing input - Primarily used for the SoftReset SWI ******/
 void NTR_GamePad::clear_input()
 {

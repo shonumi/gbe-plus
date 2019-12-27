@@ -223,6 +223,8 @@ class NTR_MMU
 
 	u8 wram_mode;
 
+	u8 rumble_state;
+
 	bool do_save;
 	bool fetch_request;
 
@@ -367,6 +369,7 @@ class NTR_MMU
 	void setup_default_firmware();
 
 	u8 read_slot2_device(u32 address);
+	void write_slot2_device(u32 address, u8 value);
 
 	void key1_encrypt(u32 &lo, u32 &hi);
 	void key1_decrypt(u32 &lo, u32 &hi);
