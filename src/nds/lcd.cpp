@@ -3470,6 +3470,12 @@ void NTR_LCD::calculate_window_on_scanline()
 
 	u32 line = lcd_stat.current_scanline;
 
+	bool win_stat[2];
+
+	//Check if windows are enabled and if they are usable
+	win_stat[0] = ((lcd_stat.window_enable_a[0]) && (lcd_stat.window_x_a[0][0] != lcd_stat.window_x_a[1][0]));
+	win_stat[1] = ((lcd_stat.window_enable_a[1]) && (lcd_stat.window_x_a[0][1] != lcd_stat.window_x_a[1][1]));
+
 	//Calculate Engine A
 	for(u32 win_id = 0; win_id < 2; win_id++)
 	{
@@ -3479,7 +3485,7 @@ void NTR_LCD::calculate_window_on_scanline()
 			bool check_y = false;
 
 			//Determine window status of this pixel
-			if(lcd_stat.window_enable_a[win_id])
+			if(win_stat[win_id])
 			{
 				if((lcd_stat.window_x_a[0][win_id] <= lcd_stat.window_x_a[1][win_id]) && (pixel >= lcd_stat.window_x_a[0][win_id]) && (pixel <= lcd_stat.window_x_a[1][win_id]))
 				{
@@ -3511,6 +3517,10 @@ void NTR_LCD::calculate_window_on_scanline()
 		}
 	}
 
+	//Check if windows are enabled and if they are usable
+	win_stat[0] = ((lcd_stat.window_enable_b[0]) && (lcd_stat.window_x_b[0][0] != lcd_stat.window_x_b[1][0]));
+	win_stat[1] = ((lcd_stat.window_enable_b[1]) && (lcd_stat.window_x_b[0][1] != lcd_stat.window_x_b[1][1]));
+
 	//Calculate Engine B
 	for(u32 win_id = 0; win_id < 2; win_id++)
 	{	
@@ -3520,7 +3530,7 @@ void NTR_LCD::calculate_window_on_scanline()
 			bool check_y = false;
 
 			//Determine window status of this pixel
-			if(lcd_stat.window_enable_b[win_id])
+			if(win_stat[win_id])
 			{
 				if((lcd_stat.window_x_b[0][win_id] <= lcd_stat.window_x_b[1][win_id]) && (pixel >= lcd_stat.window_x_b[0][win_id]) && (pixel <= lcd_stat.window_x_b[1][win_id]))
 				{
