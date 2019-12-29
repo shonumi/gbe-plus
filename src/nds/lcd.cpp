@@ -445,7 +445,11 @@ void NTR_LCD::update_oam()
 			obj[x].v_flip = (attribute & 0x2000) ? true : false;
 			obj[x].size = (attribute >> 14);
 
-			if(obj[x].affine_enable) { obj[x].affine_group = (attribute >> 9) & 0x1F; }
+			if(obj[x].affine_enable)
+			{
+				obj[x].affine_group = (attribute >> 9) & 0x1F;
+				if(x >= 128) { obj[x].affine_group += 0x20; }
+			}
 
 			//Read and parse Attribute 2
 			attribute = mem->read_u16_fast(oam_ptr);
