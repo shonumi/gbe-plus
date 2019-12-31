@@ -1324,6 +1324,7 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 				sio_stat->active_transfer = true;
 				sio_stat->shifts_left = 8;
 				sio_stat->shift_counter = 0;
+				sio_stat->last_transfer = sio_stat->transfer_byte;
 			}
 
 			//Special handling for Turbo File GB

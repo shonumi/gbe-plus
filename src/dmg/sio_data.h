@@ -87,6 +87,7 @@ enum four_player_state
 enum singer_izek_state
 {
 	SINGER_PING,
+	SINGER_SEND_HEADER,
 	SINGER_SEND_DATA,
 	SINGER_STATUS,
 };
@@ -128,6 +129,7 @@ struct dmg_sio_data
 	bool send_data;
 	u8 shifts_left;
 	u8 transfer_byte;
+	u8 last_transfer;
 	u8 network_id;
 	u8 ping_count;
 	u32 shift_counter;
