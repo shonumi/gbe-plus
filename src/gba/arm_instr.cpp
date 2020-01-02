@@ -284,7 +284,7 @@ void ARM7::data_processing(u32 current_arm_instruction)
 			set_reg(dest_reg, result);
 
 			//Update condtion codes
-			if(set_condition) { update_condition_arithmetic(input, operand, result, true); }
+			if(set_condition) { update_condition_arithmetic(input, (operand + shift_out), result, true); }
 			break;
 
 		//SBC
