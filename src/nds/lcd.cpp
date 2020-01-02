@@ -3465,7 +3465,7 @@ void NTR_LCD::calculate_window_on_scanline()
 	//Clear previous calculations
 	for(u32 y = 0; y < 2; y++)
 	{
-		for(int x = 0; x < 256; x++)
+		for(u32 x = 0; x < 256; x++)
 		{
 			lcd_stat.window_status_a[x][y] = false;
 			lcd_stat.window_status_b[x][y] = false;
@@ -3475,10 +3475,32 @@ void NTR_LCD::calculate_window_on_scanline()
 	u32 line = lcd_stat.current_scanline;
 
 	bool win_stat[2];
+	u16 temp_y_a[2][2];
+	u16 temp_y_b[2][2];
+
+	//Store temporary Y values for windows
+	for(u32 y = 0; y < 2; y++)
+	{
+		for(u32 x = 0; x < 2; x++)
+		{
+			temp_y_a[x][y] = lcd_stat.window_y_a[x][y];
+			temp_y_b[x][y] = lcd_stat.window_y_b[x][y];
+		}
+	}
 
 	//Check if windows are enabled and if they are usable
 	win_stat[0] = ((lcd_stat.window_enable_a[0]) && (lcd_stat.window_x_a[0][0] != lcd_stat.window_x_a[1][0]));
 	win_stat[1] = ((lcd_stat.window_enable_a[1]) && (lcd_stat.window_x_a[0][1] != lcd_stat.window_x_a[1][1]));
+
+	if((win_stat[0]) && (lcd_stat.window_y_a[0][0] == lcd_stat.window_y_a[1][0]) && (!lcd_stat.window_y_a[0][0]))
+	{
+		lcd_stat.window_y_a[1][0] = 256;
+	}
+
+	if((win_stat[1]) && (lcd_stat.window_y_a[0][1] == lcd_stat.window_y_a[1][1]) && (!lcd_stat.window_y_a[0][1]))
+	{
+		lcd_stat.window_y_a[1][1] = 256;
+	}
 
 	//Calculate Engine A
 	for(u32 win_id = 0; win_id < 2; win_id++)
@@ -3525,6 +3547,16 @@ void NTR_LCD::calculate_window_on_scanline()
 	win_stat[0] = ((lcd_stat.window_enable_b[0]) && (lcd_stat.window_x_b[0][0] != lcd_stat.window_x_b[1][0]));
 	win_stat[1] = ((lcd_stat.window_enable_b[1]) && (lcd_stat.window_x_b[0][1] != lcd_stat.window_x_b[1][1]));
 
+	if((win_stat[0]) && (lcd_stat.window_y_b[0][0] == lcd_stat.window_y_b[1][0]) && (!lcd_stat.window_y_b[0][0]))
+	{
+		lcd_stat.window_y_b[1][0] = 256;
+	}
+
+	if((win_stat[1]) && (lcd_stat.window_y_b[0][1] == lcd_stat.window_y_b[1][1]) && (!lcd_stat.window_y_b[0][1]))
+	{
+		lcd_stat.window_y_b[1][1] = 256;
+	}
+
 	//Calculate Engine B
 	for(u32 win_id = 0; win_id < 2; win_id++)
 	{	
@@ -3563,6 +3595,16 @@ void NTR_LCD::calculate_window_on_scanline()
 					lcd_stat.window_id_b[pixel] = win_id;
 				}
 			}
+		}
+	}
+
+	//Restore original Y values for windows
+	for(u32 y = 0; y < 2; y++)
+	{
+		for(u32 x = 0; x < 2; x++)
+		{
+			lcd_stat.window_y_a[x][y] = temp_y_a[x][y];
+			lcd_stat.window_y_b[x][y] = temp_y_b[x][y];
 		}
 	}
 }

@@ -2416,9 +2416,6 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			lcd_stat->window_x_a[0][1] = memory_map[NDS_WIN0H_A+1];
 			lcd_stat->window_x_a[0][0] = memory_map[NDS_WIN0H_A];
 
-			//If the two X coordinates are the same, window should fail to draw
-			//Set both to a pixel that the NDS cannot draw so the LCD won't render it
-			if(lcd_stat->window_x_a[0][0] == lcd_stat->window_x_a[0][1]) { lcd_stat->window_x_a[0][0] = lcd_stat->window_x_a[0][1] = 256; }
 			break;
 
 		//Window 1 Horizontal Coordinates - Engine A
@@ -2428,9 +2425,6 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			lcd_stat->window_x_a[1][1] = memory_map[NDS_WIN1H_A+1];
 			lcd_stat->window_x_a[1][0] = memory_map[NDS_WIN1H_A];
 
-			//If the two X coordinates are the same, window should fail to draw
-			//Set both to a pixel that the NDS cannot draw so the LCD won't render it
-			if(lcd_stat->window_x_a[1][0] == lcd_stat->window_x_a[1][1]) { lcd_stat->window_x_a[1][0] = lcd_stat->window_x_a[1][1] = 256; }
 			break;
 
 		//Window 0 Vertical Coordinates - Engine A
@@ -2440,9 +2434,6 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			lcd_stat->window_y_a[0][1] = memory_map[NDS_WIN0V_A+1];
 			lcd_stat->window_y_a[0][0] = memory_map[NDS_WIN0V_A];
 
-			//If the two Y coordinates are the same, window should fail to draw
-			//Set both to a pixel that the NDS cannot draw so the LCD won't render it
-			if(lcd_stat->window_y_a[0][0] == lcd_stat->window_y_a[0][1]) { lcd_stat->window_y_a[0][0] = lcd_stat->window_y_a[0][1] = 256; }
 			break;
 
 		//Window 1 Vertical Coordinates - Engine A
@@ -2452,9 +2443,6 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			lcd_stat->window_y_a[1][1] = memory_map[NDS_WIN1V_A+1];
 			lcd_stat->window_y_a[1][0] = memory_map[NDS_WIN1V_A];
 
-			//If the two X coordinates are the same, window should fail to draw
-			//Set both to a pixel that the NDS cannot draw so the LCD won't render it
-			if(lcd_stat->window_y_a[1][0] == lcd_stat->window_y_a[1][1]) { lcd_stat->window_y_a[1][0] = lcd_stat->window_y_a[1][1] = 256; }
 			break;
 
 		//Window 0 In Enable Flags - Engine A
@@ -2508,9 +2496,6 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			lcd_stat->window_x_b[0][1] = memory_map[NDS_WIN0H_B+1];
 			lcd_stat->window_x_b[0][0] = memory_map[NDS_WIN0H_B];
 
-			//If the two X coordinates are the same, window should fail to draw
-			//Set both to a pixel that the NDS cannot draw so the LCD won't render it
-			if(lcd_stat->window_x_b[0][0] == lcd_stat->window_x_b[0][1]) { lcd_stat->window_x_b[0][0] = lcd_stat->window_x_b[0][1] = 256; }
 			break;
 
 		//Window 1 Horizontal Coordinates - Engine B
@@ -2520,9 +2505,6 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			lcd_stat->window_x_b[1][1] = memory_map[NDS_WIN1H_B+1];
 			lcd_stat->window_x_b[1][0] = memory_map[NDS_WIN1H_B];
 
-			//If the two X coordinates are the same, window should fail to draw
-			//Set both to a pixel that the NDS cannot draw so the LCD won't render it
-			if(lcd_stat->window_x_b[1][0] == lcd_stat->window_x_b[1][1]) { lcd_stat->window_x_b[1][0] = lcd_stat->window_x_b[1][1] = 256; }
 			break;
 
 		//Window 0 Vertical Coordinates - Engine B
@@ -2532,9 +2514,6 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			lcd_stat->window_y_b[0][1] = memory_map[NDS_WIN0V_B+1];
 			lcd_stat->window_y_b[0][0] = memory_map[NDS_WIN0V_B];
 
-			//If the two Y coordinates are the same, window should fail to draw
-			//Set both to a pixel that the NDS cannot draw so the LCD won't render it
-			if(lcd_stat->window_y_b[0][0] == lcd_stat->window_y_b[0][1]) { lcd_stat->window_y_b[0][0] = lcd_stat->window_y_b[0][1] = 256; }
 			break;
 
 		//Window 1 Vertical Coordinates - Engine B
@@ -2544,9 +2523,6 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			lcd_stat->window_y_b[1][1] = memory_map[NDS_WIN1V_B+1];
 			lcd_stat->window_y_b[1][0] = memory_map[NDS_WIN1V_B];
 
-			//If the two X coordinates are the same, window should fail to draw
-			//Set both to a pixel that the NDS cannot draw so the LCD won't render it
-			if(lcd_stat->window_y_b[1][0] == lcd_stat->window_y_b[1][1]) { lcd_stat->window_y_b[1][0] = lcd_stat->window_y_b[1][1] = 256; }
 			break;
 
 		//Window 0 In Enable Flags - Engine B
