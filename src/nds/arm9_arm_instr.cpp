@@ -863,7 +863,7 @@ void NTR_ARM9::single_data_transfer(u32 current_arm_instruction)
 
 	//Increment or decrement before transfer if pre-indexing
 	if(pre_post == 1) 
-	{ 
+	{
 		if(up_down == 1) { base_addr += base_offset; }
 		else { base_addr -= base_offset; } 
 	}
@@ -906,7 +906,13 @@ void NTR_ARM9::single_data_transfer(u32 current_arm_instruction)
 			clock();
 
 			//Clock CPU and controllers - 1N
-			if(dest_reg == 15) { clock((reg.r15 + 4), DATA_N16); } 
+			if(dest_reg == 15)
+			{
+				//Check for PLD. Treat as NOP.
+				if(((current_arm_instruction >> 28) == 0xF) && (pre_post)) { return; }
+
+				clock((reg.r15 + 4), DATA_N16);
+			} 
 
 			set_reg(dest_reg, value);
 		}
