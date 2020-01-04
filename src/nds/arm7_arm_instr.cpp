@@ -383,7 +383,7 @@ void NTR_ARM7::data_processing(u32 current_arm_instruction)
 	if(dest_reg == 15) 
 	{
 		//Switch to THUMB mode if necessary
-		if(reg.r15 & 0x1) 
+		if((reg.r15 & 0x1) || (arm_mode == THUMB))
 		{	 
 			arm_mode = THUMB;
 			reg.cpsr |= 0x20;
