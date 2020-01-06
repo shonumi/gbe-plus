@@ -3872,6 +3872,8 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 						nds9_math.div_denom &= 0xFFFFFFFF;
 					}
 
+					if(!nds9_math.div_denom) { return; }
+
 					result = nds9_math.div_numer / nds9_math.div_denom;
 					remainder = nds9_math.div_numer % nds9_math.div_denom;
 
@@ -3916,6 +3918,8 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 						nds9_math.div_denom &= 0xFFFFFFFF;
 					}
 
+					if(!nds9_math.div_denom) { return; }
+
 					result = nds9_math.div_numer / nds9_math.div_denom;
 					remainder = nds9_math.div_numer % nds9_math.div_denom;
 
@@ -3956,6 +3960,8 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 						nds9_math.div_denom = ~nds9_math.div_denom;
 						nds9_math.div_denom++;
 					}
+
+					if(!nds9_math.div_denom) { return; }
 
 					result = nds9_math.div_numer / nds9_math.div_denom;
 					remainder = nds9_math.div_numer % nds9_math.div_denom;
