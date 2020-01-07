@@ -1499,6 +1499,7 @@ void ARM7::conditional_branch(u16 current_thumb_instruction)
 			//Process SWIs via HLE
 			//TODO: Make and LLE version
 			process_swi((current_thumb_instruction & 0xFF));
+			if(config::use_bios) { return; }
 			break;
 	}
 

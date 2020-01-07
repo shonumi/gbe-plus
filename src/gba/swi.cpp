@@ -51,6 +51,34 @@ s16 sine_lut[256] =
 /****** Process Software Interrupts ******/
 void ARM7::process_swi(u32 comment)
 {
+	//Emulate SWI using actual GBA BIOS
+	if(config::use_bios)
+	{
+		current_cpu_mode = SVC;
+
+		if(arm_mode == THUMB) { set_reg(14, (reg.r15 - 2)); }
+		else { set_reg(14, (reg.r15 - 4)); }
+
+		//Set SPSR
+		set_spsr(reg.cpsr);
+
+		//Alter CPSR bits, turn off THUMB and IRQ flags, set mode bits
+		reg.cpsr &= ~0x20;
+		reg.cpsr |= CPSR_IRQ;
+		reg.cpsr &= ~0x1F;
+		reg.cpsr |= CPSR_MODE_IRQ;
+
+		//Set PC to 0x08
+		reg.r15 = 0x08;
+
+		//Request pipeline flush, signal interrupt handling, and go to ARM mode
+		needs_flush = true;
+		arm_mode = ARM;
+
+		return;
+	}
+
+	//Emulate using HLE implementation
 	switch(comment)
 	{
 		//SoftReset

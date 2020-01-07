@@ -297,7 +297,6 @@ void AGB_core::run_core()
 			//Reset system cycles for next instruction
 			core_cpu.system_cycles = 0;
 
-			if(core_mmu.memory_map[0x3008000] == 0xFE) { db_unit.debug_mode = true; }
 			if(db_unit.debug_mode) { debug_step(); }
 
 			core_cpu.fetch();
