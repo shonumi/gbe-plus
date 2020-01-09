@@ -261,6 +261,11 @@ void AGB_SIO::reset()
 			sio_stat.sio_type = GBA_TURBO_FILE;
 			break;
 
+		//AGB-006
+		case 17:
+			sio_stat.sio_type = GBA_IR_ADAPTER;
+			break;
+
 		//Always wait until netplay connection is established to change to GBA_LINK
 		default:
 			sio_stat.sio_type = NO_GBA_DEVICE;
@@ -361,6 +366,10 @@ void AGB_SIO::reset()
 		std::string turbo_save = config::data_path + "turbo_file_advance.sav";
 		turbo_file_load_data(turbo_save);
 	}
+
+	//AGB-006
+	ir_adapter.cycles = 0;
+	ir_adapter.on = false;
 
 	#ifdef GBE_NETPLAY
 
@@ -1625,4 +1634,14 @@ bool AGB_SIO::turbo_file_save_data(std::string filename)
 
 	std::cout<<"SIO::Saved Turbo File Advance data.\n";
 	return true;
+}
+
+/****** Processes data sent to the AGB-006 ******/
+void AGB_SIO::ir_adapter_process()
+{
+	//Pull SI line LOW to trigger SIO IRQ
+	if(sio_stat.r_cnt == 0x81B6) { mem->memory_map[REG_IF] |= 0x80; }
+
+	sio_stat.emu_device_ready = false;
+	sio_stat.active_transfer = false;
 }

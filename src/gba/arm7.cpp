@@ -1585,6 +1585,9 @@ void ARM7::clock_emulated_sio_device()
 			controllers.serial_io.sio_stat.emu_device_ready = false;
 			controllers.serial_io.sio_stat.active_transfer = false;
 
+		case 0x11:
+			//Process AGB-006
+			controllers.serial_io.ir_adapter_process();
 			break;
 
 		//Clock everything else normally

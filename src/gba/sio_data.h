@@ -27,6 +27,7 @@ enum agb_sio_types
 	GBA_MOBILE_ADAPTER,
 	GBA_MULTI_PLUST_ON_SYSTEM,
 	GBA_TURBO_FILE,
+	GBA_IR_ADAPTER,
 };
 
 //Serial Input-Output device mode enumeration

@@ -155,6 +155,13 @@ class AGB_SIO
 		bool sync_2;
 	} turbo_file;
 
+	//AGB-006
+	struct agb_006
+	{
+		u32 cycles;
+		bool on;
+	} ir_adapter;
+
 	AGB_SIO();
 	~AGB_SIO();
 
@@ -189,6 +196,8 @@ class AGB_SIO
 	void turbo_file_calculate_checksum();
 	bool turbo_file_load_data(std::string filename);
 	bool turbo_file_save_data(std::string filename);
+
+	void ir_adapter_process();
 };
 
 #endif // GBA_SIO
