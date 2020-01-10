@@ -368,7 +368,9 @@ void AGB_SIO::reset()
 	}
 
 	//AGB-006
+	ir_adapter.delay_data.clear();
 	ir_adapter.cycles = 0;
+	ir_adapter.prev_data = 0;
 	ir_adapter.on = false;
 
 	#ifdef GBE_NETPLAY
@@ -1639,9 +1641,42 @@ bool AGB_SIO::turbo_file_save_data(std::string filename)
 /****** Processes data sent to the AGB-006 ******/
 void AGB_SIO::ir_adapter_process()
 {
-	//Pull SI line LOW to trigger SIO IRQ
-	if(sio_stat.r_cnt == 0x81B6) { mem->memory_map[REG_IF] |= 0x80; }
+	//Automatically timeout if IR light is kept on too long
+	if((ir_adapter.cycles >= 0x10000) && (ir_adapter.on))
+	{
+		ir_adapter.on = false;
+		ir_adapter.delay_data.push_back(ir_adapter.cycles);
+		ir_adapter.off_cycles = 0x10000;
+		std::cout<<"IR TIMEOUT\n";
+	}
 
-	sio_stat.emu_device_ready = false;
-	sio_stat.active_transfer = false;
+	//Trigger SIO IRQ for IR light on when SO goes from LOW to HIGH
+	if((sio_stat.r_cnt & 0x0108) && ((ir_adapter.prev_data & 0x8) == 0)) { mem->memory_map[REG_IF] |= 0x80; }
+
+	//When turning IR light on, prepare cycles for recording
+	if((sio_stat.r_cnt & 0x8) && ((ir_adapter.prev_data & 0x8) == 0) && (!ir_adapter.on))
+	{
+		ir_adapter.cycles = 0;
+		ir_adapter.on = true;
+		std::cout<<"IR ON\n";
+	}
+
+	//When turning IR light off, record number of cycles passed since IR light was turned on
+	else if(((sio_stat.r_cnt & 0x8) == 0) && (ir_adapter.prev_data & 0x8) && (ir_adapter.on))
+	{
+		ir_adapter.off_cycles = 0;
+		ir_adapter.delay_data.push_back(ir_adapter.cycles);
+		ir_adapter.on = false;
+		std::cout<<"IR OFF -> 0x" << ir_adapter.cycles << "\n";
+	}
+		
+	//Keep track of old writes
+	ir_adapter.prev_data = sio_stat.r_cnt;
+
+	//If IR light is turned on, keep emulated serial device active to collect cycles
+	if((!ir_adapter.on) && (ir_adapter.off_cycles < 0x10000))
+	{
+		sio_stat.emu_device_ready = false;
+		sio_stat.active_transfer = false;
+	}
 }

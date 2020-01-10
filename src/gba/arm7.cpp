@@ -1587,6 +1587,8 @@ void ARM7::clock_emulated_sio_device()
 
 		case 0x11:
 			//Process AGB-006
+			if(controllers.serial_io.ir_adapter.on) { controllers.serial_io.ir_adapter.cycles += system_cycles; }
+			else { controllers.serial_io.ir_adapter.off_cycles += system_cycles; }
 			controllers.serial_io.ir_adapter_process();
 			break;
 

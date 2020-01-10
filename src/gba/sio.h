@@ -158,7 +158,10 @@ class AGB_SIO
 	//AGB-006
 	struct agb_006
 	{
+		std::vector<u32> delay_data;
 		u32 cycles;
+		u32 off_cycles;
+		u16 prev_data;
 		bool on;
 	} ir_adapter;
 
