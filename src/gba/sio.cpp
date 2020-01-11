@@ -1647,7 +1647,6 @@ void AGB_SIO::ir_adapter_process()
 		ir_adapter.on = false;
 		ir_adapter.delay_data.push_back(ir_adapter.cycles);
 		ir_adapter.off_cycles = 0x10000;
-		std::cout<<"IR TIMEOUT\n";
 	}
 
 	//Trigger SIO IRQ for IR light on when SO goes from LOW to HIGH
@@ -1658,7 +1657,6 @@ void AGB_SIO::ir_adapter_process()
 	{
 		ir_adapter.cycles = 0;
 		ir_adapter.on = true;
-		std::cout<<"IR ON\n";
 	}
 
 	//When turning IR light off, record number of cycles passed since IR light was turned on
@@ -1667,14 +1665,13 @@ void AGB_SIO::ir_adapter_process()
 		ir_adapter.off_cycles = 0;
 		ir_adapter.delay_data.push_back(ir_adapter.cycles);
 		ir_adapter.on = false;
-		std::cout<<"IR OFF -> 0x" << ir_adapter.cycles << "\n";
 	}
 		
 	//Keep track of old writes
 	ir_adapter.prev_data = sio_stat.r_cnt;
 
 	//If IR light is turned on, keep emulated serial device active to collect cycles
-	if((!ir_adapter.on) && (ir_adapter.off_cycles < 0x10000))
+	if((!ir_adapter.on) && (ir_adapter.off_cycles >= 0x10000))
 	{
 		sio_stat.emu_device_ready = false;
 		sio_stat.active_transfer = false;
