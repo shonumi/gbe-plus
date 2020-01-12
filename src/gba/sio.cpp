@@ -1645,25 +1645,29 @@ void AGB_SIO::ir_adapter_process()
 	if((ir_adapter.cycles >= 0x10000) && (ir_adapter.on))
 	{
 		ir_adapter.on = false;
-		ir_adapter.delay_data.push_back(ir_adapter.cycles);
 		ir_adapter.off_cycles = 0x10000;
 	}
 
 	//Trigger SIO IRQ for IR light on when SO goes from LOW to HIGH
 	if((sio_stat.r_cnt & 0x0108) && ((ir_adapter.prev_data & 0x8) == 0)) { mem->memory_map[REG_IF] |= 0x80; }
 
-	//When turning IR light on, prepare cycles for recording
+	//When turning IR light on, record number of cycles passed since IR light was turned on, prepare cycles for recording
 	if((sio_stat.r_cnt & 0x8) && ((ir_adapter.prev_data & 0x8) == 0) && (!ir_adapter.on))
 	{
+		//Record ON-OFF duration
+		if(ir_adapter.off_cycles > 0x1000)
+		{
+			ir_adapter.delay_data.push_back(ir_adapter.off_cycles + ir_adapter.cycles);
+		}
+
 		ir_adapter.cycles = 0;
 		ir_adapter.on = true;
 	}
 
-	//When turning IR light off, record number of cycles passed since IR light was turned on
+	//When turning IR light off, prepare cycles for recording
 	else if(((sio_stat.r_cnt & 0x8) == 0) && (ir_adapter.prev_data & 0x8) && (ir_adapter.on))
 	{
 		ir_adapter.off_cycles = 0;
-		ir_adapter.delay_data.push_back(ir_adapter.cycles);
 		ir_adapter.on = false;
 	}
 		
@@ -1675,5 +1679,10 @@ void AGB_SIO::ir_adapter_process()
 	{
 		sio_stat.emu_device_ready = false;
 		sio_stat.active_transfer = false;
+
+		//Process Zoid commands if IR device is CDZ model
+		
+		//Clear IR delay data
+		ir_adapter.delay_data.clear();
 	}
 }
