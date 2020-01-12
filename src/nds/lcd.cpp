@@ -1502,7 +1502,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 		u8 bg_priority = lcd_stat.bg_priority_a[bg_id] + 1;
 
 		//If this BG is used for SFX, make sure to render line buffer
-		bool force_render = (lcd_stat.sfx_target_a[bg_id][0] || lcd_stat.sfx_target_a[bg_id][1]);
+		bool force_render = ((lcd_stat.sfx_target_a[bg_id][0] || lcd_stat.sfx_target_a[bg_id][1]) && (lcd_stat.bg_enable_a[bg_id]));
 
 		//Abort rendering if this BG is disabled
 		//Abort rendering if BGs with high priority have already completely rendered a scanline
@@ -1707,7 +1707,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 		u8 bg_priority = lcd_stat.bg_priority_b[bg_id] + 1;
 
 		//If this BG is used for SFX, make sure to render line buffer
-		bool force_render = (lcd_stat.sfx_target_b[bg_id][0] || lcd_stat.sfx_target_b[bg_id][1]);
+		bool force_render = ((lcd_stat.sfx_target_b[bg_id][0] || lcd_stat.sfx_target_b[bg_id][1]) && (lcd_stat.bg_enable_b[bg_id]));
 
 		//Abort rendering if this BG is disabled
 		//Abort rendering if BGs with high priority have already completely rendered a scanline
@@ -1916,7 +1916,7 @@ void NTR_LCD::render_bg_mode_affine(u32 bg_control)
 		u8 bg_priority = lcd_stat.bg_priority_a[bg_id] + 1;
 
 		//If this BG is used for SFX, make sure to render line buffer
-		bool force_render = (lcd_stat.sfx_target_a[bg_id][0] || lcd_stat.sfx_target_a[bg_id][1]);
+		bool force_render = ((lcd_stat.sfx_target_a[bg_id][0] || lcd_stat.sfx_target_a[bg_id][1]) && (lcd_stat.bg_enable_a[bg_id]));
 
 		//Abort rendering if this BG is disabled
 		//Abort rendering if BGs with high priority have already completely rendered a scanline
@@ -2045,7 +2045,7 @@ void NTR_LCD::render_bg_mode_affine(u32 bg_control)
 		u8 bg_priority = lcd_stat.bg_priority_b[bg_id] + 1;
 
 		//If this BG is used for SFX, make sure to render line buffer
-		bool force_render = (lcd_stat.sfx_target_b[bg_id][0] || lcd_stat.sfx_target_b[bg_id][1]);
+		bool force_render = ((lcd_stat.sfx_target_b[bg_id][0] || lcd_stat.sfx_target_b[bg_id][1]) && (lcd_stat.bg_enable_b[bg_id]));
 
 		//Abort rendering if this BG is disabled
 		//Abort rendering if BGs with high priority have already completely rendered a scanline
@@ -2178,7 +2178,7 @@ void NTR_LCD::render_bg_mode_affine_ext(u32 bg_control)
 		u8 bg_priority = lcd_stat.bg_priority_a[bg_id] + 1;
 
 		//If this BG is used for SFX, make sure to render line buffer
-		bool force_render = (lcd_stat.sfx_target_a[bg_id][0] || lcd_stat.sfx_target_a[bg_id][1]);
+		bool force_render = ((lcd_stat.sfx_target_a[bg_id][0] || lcd_stat.sfx_target_a[bg_id][1]) && (lcd_stat.bg_enable_a[bg_id]));
 
 		//Abort rendering if this BG is disabled
 		//Abort rendering if BGs with high priority have already completely rendered a scanline
@@ -2324,7 +2324,7 @@ void NTR_LCD::render_bg_mode_affine_ext(u32 bg_control)
 		u8 bg_priority = lcd_stat.bg_priority_b[bg_id] + 1;
 
 		//If this BG is used for SFX, make sure to render line buffer
-		bool force_render = (lcd_stat.sfx_target_b[bg_id][0] || lcd_stat.sfx_target_b[bg_id][1]);
+		bool force_render = ((lcd_stat.sfx_target_b[bg_id][0] || lcd_stat.sfx_target_b[bg_id][1]) && (lcd_stat.bg_enable_b[bg_id]));
 
 		//Abort rendering if this BG is disabled
 		//Abort rendering if BGs with high priority have already completely rendered a scanline
@@ -2474,7 +2474,7 @@ void NTR_LCD::render_bg_mode_bitmap(u32 bg_control)
 		u8 bg_priority = lcd_stat.bg_priority_a[bg_id] + 1;
 
 		//If this BG is used for SFX, make sure to render line buffer
-		bool force_render = (lcd_stat.sfx_target_a[bg_id][0] || lcd_stat.sfx_target_a[bg_id][1]);
+		bool force_render = ((lcd_stat.sfx_target_a[bg_id][0] || lcd_stat.sfx_target_a[bg_id][1]) && (lcd_stat.bg_enable_a[bg_id]));
 
 		//Abort rendering if this BG is disabled
 		//Abort rendering if BGs with high priority have already completely rendered a scanline
@@ -2609,7 +2609,7 @@ void NTR_LCD::render_bg_mode_bitmap(u32 bg_control)
 		u8 bg_priority = lcd_stat.bg_priority_b[bg_id] + 1;
 
 		//If this BG is used for SFX, make sure to render line buffer
-		bool force_render = (lcd_stat.sfx_target_b[bg_id][0] || lcd_stat.sfx_target_b[bg_id][1]);
+		bool force_render = ((lcd_stat.sfx_target_b[bg_id][0] || lcd_stat.sfx_target_b[bg_id][1]) && (lcd_stat.bg_enable_b[bg_id]));
 
 		//Abort rendering if this BG is disabled
 		//Abort rendering if BGs with high priority have already completely rendered a scanline
