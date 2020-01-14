@@ -225,6 +225,7 @@ struct ntr_lcd_data
 struct ntr_lcd_3D_data
 {
 	u32 display_control;
+	u32 gx_stat;
 
 	u8 current_gx_command;
 	u8 command_parameters[128];

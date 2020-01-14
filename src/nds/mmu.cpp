@@ -853,6 +853,15 @@ u8 NTR_MMU::read_u8(u32 address)
 		else { return 0; }
 	}
 
+	//Check for GXSTAT
+	else if((address & ~0x3) == NDS_GXSTAT)
+	{
+		u8 addr_shift = (address & 0x3) << 3;
+
+		if(access_mode) { return ((lcd_3D_stat->gx_stat >> addr_shift) & 0xFF); }
+		else { return 0; }
+	}
+
 	//Check for RAMCOUNT
 	else if((address & ~0x3) == NDS_GXRAM_COUNT)
 	{
@@ -996,6 +1005,9 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			//Process NDS9 stuff here
 			if((access_mode) && (address >= 0x4000400) && (address < 0x4000520) && (power_cnt1 & 0x8))
 			{
+				//Mirror GXFIFO from 0x4000400 to 0x400043F
+				if(address <= 0x400043F) { address &= 0x4000403; }
+
 				switch(address)
 				{
 					//3D GX FIFO
@@ -1003,7 +1015,6 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 					case NDS_GXFIFO+1:
 					case NDS_GXFIFO+2:
 					case NDS_GXFIFO+3:
-						
 						if(nds9_gx_fifo.size() == 1280) { nds9_gx_fifo.pop(); }
 						nds9_gx_fifo.push(value);
 
@@ -1263,6 +1274,13 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 						if(lcd_3D_stat->parameter_index == 4) { lcd_3D_stat->process_command = true; }
 						//std::cout<<"GX - END_VTXS\n";
 						break;
+
+					//GXSTAT
+					case NDS_GXSTAT+3:
+						lcd_3D_stat->gx_stat &= ~0xC0000000;
+						lcd_3D_stat->gx_stat |= ((value & 0xC0) << 24);
+						break;
+						
 				}
 			}
 
