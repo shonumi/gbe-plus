@@ -762,7 +762,7 @@ void NTR_ARM9::multiply(u32 current_arm_instruction)
 			if(current_arm_instruction & 0x20) { Rm >>= 16; }
 			else { Rm &= 0xFFFF; }
 
-			value_32 = (Rm * Rs);
+			value_32 = ((s16)Rm * (s16)Rs);
 			value_32 += Rn;
 			set_reg(dest_reg, value_32);
 
@@ -778,7 +778,7 @@ void NTR_ARM9::multiply(u32 current_arm_instruction)
 			if(current_arm_instruction & 0x20) { Rm >>= 16; }
 			else { Rm &= 0xFFFF; }
 
-			value_32 = (Rm * Rs);
+			value_32 = ((s16)Rm * (s16)Rs);
 			set_reg(dest_reg, value_32);
 
 			break;
