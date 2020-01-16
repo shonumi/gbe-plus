@@ -23,7 +23,7 @@ The AGB-006 is an accessory released in conjunction with Cyber Drive Zoids: Kiju
 3. Device Detection
 ***************************************************
 
-The AGB-006 can be detected in software by generating an interrupt request in General Purpose mode whenever sending an OFF/ON pulse. When no AGB-006 is plugged in, no interrupts are triggered, so checking Bit 7 of the Interrupt Request Flags is sufficient to verify whether or not the adapter is present. At a minimum, two writes are necessary. The first sets the SO line LOW (turning the IR signal off). The second sets the SO line HIGH (turning the IR signal on) and enables interrupts. The following values are sent by Cyber Drive Zoids to trigger an interrupt request:
+The AGB-006 can be detected in software by generating an interrupt request in General Purpose mode whenever sending an OFF/ON pulse. When no AGB-006 is plugged in, no interrupts are triggered, so checking Bit 7 of the Interrupt Request Flags is sufficient to verify whether or not the adapter is present. At a minimum, two writes are necessary. The first sets the SO line LOW (turning the IR signal off). The second sets the SO line HIGH (turning the IR signal on) and enables interrupts. The following RCNT values are sent by Cyber Drive Zoids to trigger an interrupt request:
 
 0x80B2		//Turn IR light off
 0x81BA		//Turn IR light on and enable Serial I/O interrupts

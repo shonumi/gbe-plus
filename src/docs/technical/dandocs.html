@@ -128,6 +128,7 @@
 			<p class="list_item"><a href="#bcg">Battle Chip Gate</a></p>
 			<p class="list_item"><a href="#mpos">Multi Plust On System</a></p>
 			<p class="list_item"><a href="#tbfa">Turbo File Advance</a></p>
+			<p class="list_item"><a href="#agb006">AGB-006</a></p>
 			
 		</div>
 
@@ -2176,6 +2177,113 @@ Byte 0x18 - 0x3F	| Should all be 0xFF
 	<p>Games generally write in 8 blocks (meaning 15 saves total for internal storage or the memory card). However, Derby Stallion can write 1 or 7 blocks of data. Even so, without expanding the memory capacity from the Turbo File GB, the Turbo File Advance generally ends up holding fewer saves.</p>
 
 	<p>Bytes 0x01 through 0x04 act as IDs. They are the same bytes found in the game&#39;s ROM header, specifically the ASCII-encoded &#34;Game Code&#34; (bytes 0xAC through 0xAF). Once again, the use of IDs prevents incompatibilities between games when reading data.</p>
+
+	<!-- AGB-006 -->
+	<a name="agb006"></a>
+	<p class="gray_title">Turbo File Advance</p>
+	<p class="list_item"><a href="#gbair_gen">General Hardware Information</a></p>
+	<p class="list_item"><a href="#gbair_dev">Device Detection</a></p>
+	<p class="list_item"><a href="#gbair_opr">IR Operation</a></p>
+	<p class="list_item"><a href="#gbair_cmp">Comparison to GBC IR</a></p>
+	<p class="list_item"><a href="#gbair_cmd">Zoid Commands</a></p>
+	<p class="list_item"><a href="#gbair_pro">Prototype IR Port</a></p>
+
+	<a name="gbair_gen"></a>
+	<p class="gray_title">[AGB-006] : General Hardware Information</p>
+
+	<p>The AGB-006 is an accessory released in conjunction with Cyber Drive Zoids: Kiju no Senshi Hyuu on July 18, 2003. It serves as an infrared adapter, coming as a bundle with each game. Using IR signals, players can turn their GBAs into remote controls to pilot three toy model Zoids. Although the GBA removed the GBC&#39;s IR port, the AGB-006 officially restored that functionality as an add-on. Unfortunately Cyber Drive Zoids was the only game to take adavantage of the AGB-006.</p>
+
+	<ul>
+		<li class="list_item">The AGB-006 is a small attachment that fits into the GBA serial port providing IR functionalities</li>
+		<li class="list_item">Has 2 IR diodes, one for receiving and one for transmitting</li>
+		<li class="list_item">Very similar in size and shape to the connecting end of a DOL-011 (Gamecube-to-GBA cable)</li>
+		<li class="list_item">Compatible with CDZ-01 Diablotiger, CDZ-02 Cyclops, and CDZ-EX Diablotiger B</li>
+	</ul>
+
+	<a name="gbair_dev"></a>
+	<p class="gray_title">[AGB-006] : Device Detection</p>
+
+	<p>The AGB-006 can be detected in software by generating an interrupt request in General Purpose mode whenever sending an OFF/ON pulse. When no AGB-006 is plugged in, no interrupts are triggered, so checking Bit 7 of the Interrupt Request Flags is sufficient to verify whether or not the adapter is present. At a minimum, two writes are necessary. The first sets the SO line LOW (turning the IR signal off). The second sets the SO line HIGH (turning the IR signal on) and enables interrupts. The following RCNT values are sent by Cyber Drive Zoids to trigger an interrupt request:</p>
+
+<code>0x80B2		//Turn IR light off
+0x81BA		//Turn IR light on and enable Serial I/O interrupts</code>
+
+	<p>For this example, after the interrupt is generated, RCNT should hold the value 0x2004 at that time.</p>
+
+	<a name="gbair_opr"></a>
+	<p class="gray_title">[AGB-006] : IR Operation</p>
+
+	<p>The following values of RCNT can be used for various IR-related functions:</p>
+
+<code>----------------------------------------
+Value		| Usage
+----------------------------------------
+0x80BA		| Turns IR signal on
+0x80B2		| Turns IR signal off
+0x8190		| Receive IR signal</code>
+
+	<p>For turning the IR signal on, set the SO line HIGH. For turning the IR light off, set the SO line LOW.</p>
+
+	<p>For receiving IR signals, set SI&#39;s direction as input. An interrupt will be requested once the signal arrives. This interrupt is only generated when the IR sensor begins detecting light when it previously detected none. Essentially it comes when transitioning from a "no light" to "light" state. There doesn&#39;t appear to be a way to get an interrupt once the signal goes off. It should be noted that Cyberdrive Zoids, the only officially supported game for the AGB-006, is not programmed to receive IR signals. This feature was thus never used in commercial software.</p>
+
+	<p>Both sending and receiving signals can trigger an interrupt if Bit 8 of RCNT is set. For receiving IR signals, interrupts are the most effective method of detecting an incoming signal, as simply waiting for RCNT to change its read value is unreliable (unlike the device detection phase). Writing the value 0x8190 to RCNT, for example, instantly changes its read value to 0x8196, even when no AGB-006 is connected. For this reason, interrupts are all but required for properly receiving IR signals. Requesting interrupts while sending IR signals is optional but of limited use.</p>
+
+	<p>When receiving an IR signal, software should in theory measure the delay until the next IR signal to get the total ON/OFF pulse duration. Once RCNT is set, IR interrupts are continuously generated whenever a new IR signal is detected, as long as Bit 7 of the Interrupt Request Flags is cleared after each pulse. The so-called "signal fade" present in GBC IR hardware is not evident in the AGB-006, so the accessory will not automatically stop receiving an IR signal after a set amount of time. Software should set a cut-off threshold for pulse durations to decide when one side has stopped sending, especially as the AGB-006 does not have any apparent feedback to manually check.</p>
+
+	<a name="gbair_cmp"></a>
+	<p class="gray_title">[AGB-006] : Comparison to GBC IR</p>
+
+	<p>The biggest difference between the AGB-006 and the GBC&#39;s native IR hardware are interrupts. While prototype GBAs originally were designed to have IR ports with their own associated interrupts, the AGB-006 repurposes the existing serial interrupt. Interrupts potentially simplify the task of detecting IR light. Depending on the communication protocol, however, actually servicing an interrupt may be too slow for rapid data transfer. In such cases, a tight loop that merely continuously reads the Interrupt Request Flags may be more effecient. The AGB-006&#39;s interrupts excel in convenience over the GBC when detecting the next IR signal, as they eliminate the need to check any OFF status of the IR signal. The only thing a program needs to do is maintain a maximum allowed duration for pulses to see when communications should stop (something GBC software does anyway to check for errors mid-transmission).</p>
+
+	<p>Physically speaking, the AGB-006 has a far wider range of reception. It is capable of receiving signals at a maximum distance roughly between 1.7 and 1.8 meters. Furthermore, it can receive signals approximately within 150 degrees horizontally, and approximately 165 degrees vertically (IR light is only undetectable from very extreme angles beneath the unit). This stands in contrast to the GBC, which mostly needs line-of-sight to communicate via IR, or even detect IR sources.</p>
+
+	<p>Finally, while the GBC IR hardware is receptive to incandescent light sources, the AGB-006 largely ignores them.</p>
+
+	<a name="gbair_cmd"></a>
+	<p class="gray_title">[AGB-006] : Zoid Commands</p>
+
+	<p>Officially, the AGB-006 is exclusively used to control motorized minature models from the Zoids franchise. This communication is always one-way, with the GBA blasting IR signals repeatedly once a button is pressed. The protocol is fairly simple. A number of IR pulses (total ON and OFF time) are sent with only a few specific lengths. Their exact timing seems to vary and may not be entirely consistent, so relative duration must be used. The ON phase of the pulse accounts for a very miniscule amount time, while the OFF phase accounts for the majority of the delay.</p>
+
+<code>Mini Pulse		Smallest pulse. Very short and very numerous
+Short Pulse		Roughly 16x the length of a Mini Pulse
+Medium Pulse		Roughly 40x the length of a Mini Pulse
+Long Pulse		The longest pulse. Easily around 6000x the length of a Mini Pulse</code>
+
+	<p>Mini Pulses appear to last anywhere from 18.1us to 20us. There are dozens of them in between every other type of pulse, and they seem to act as a sort of "keep-alive" for IR transmission. Below are the specific transfers used to manipulate the Zoids. There are two separate "channels" for ID1 and ID2. The goal was to have two players compete against each other, so two distinct versions of each command exist to avoid interference. For brevity, the Mini Pulses are omitted.</p>
+
+<code>S = Short Pulse
+M = Medium Pulse
+L = Long Pulse
+
+-----------------------------------------------------------
+ID	| Command		| Sequence
+-----------------------------------------------------------
+1	| A (Fire weapon)	| M S S S S S S S M S M S L
+1	| B (Jump/Sway)		| M S S S S S S S M S S M L
+1	| UP (Move foward)	| M S S S M S M S S S S S L
+1	| DOWN (Move backward)	| M S S S M S S S S S S M L
+	|			|
+2	| A (Fire weapon)	| M S M S S S S S M S M M L
+2	| B (Jump/Sway)		| M S M S S S S S M S S S L
+2	| UP (Move forward)	| M S M S M S M S S S S M L
+2	| DOWN (Move backward)	| M S M S M S S S S S S S L
+-----------------------------------------------------------</code>
+
+	<p>The only differences between the two channels are the 3rd and 12th pulses. The 3rd pulses are Short Pulses on ID1 and Medium Pulses on ID2. The 12th pulses are alternating Small and Medium Pulses on ID1 and alternating Medium and Small Pulses on ID2. All commands occupy 13 pulses, with a Long Pulse marking the end. These patterns are repeated for as long as the button is pressed.</p>
+
+	<p>At the beginning of a communication session between a GBA+AGB-006 and a CDZ Zoids model, another pattern is transmitted, conceivably to start or syncronize the toy with the video game. ID1 and ID2 have separate startup signals. Their format is exactly like the button commands.</p>
+
+<code>-----------------------------------------------------------
+ID	| Sync Signal Sequence
+-----------------------------------------------------------
+1	| M S S M S S M M S S M S L
+2	| M S M M S S M M S S M M L
+-----------------------------------------------------------</code>
+
+	<a name="gbair_pro"></a>
+	<p class="gray_title">[AGB-006] : Prototype IR Port</p>
+
+	<p>Cyber Drive Zoids appears to frequently read from the memory location 0x4000136 which was supposed to have been the MMIO register for the IR port on prototype GBAs. The AGB-006 does not cause the 16-bit value of that location to change at all, however, and all reads do in fact return zero. The purpose of that bit of code is currently unclear. It may be a remnant of earlier code long made before the AGB-006 was fully realized.</p>
 
 	<!-- Mobile Adapter GB -->
 	<a name="magb"></a>
