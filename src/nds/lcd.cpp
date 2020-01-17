@@ -924,9 +924,6 @@ void NTR_LCD::render_bg_scanline(u32 bg_control)
 		//Clear scanline with backdrop
 		for(u16 x = 0; x < 256; x++) { scanline_buffer_a[x] = lcd_stat.bg_pal_a[0]; }
 
-		//Render OBJs if possible
-		if(lcd_stat.display_control_a & 0x1000) { render_obj_scanline(bg_control); }
-
 		//Determine BG priority
 		for(int x = 0, list_length = 0; x < 4; x++)
 		{
@@ -935,6 +932,9 @@ void NTR_LCD::render_bg_scanline(u32 bg_control)
 			if(lcd_stat.bg_priority_a[2] == x) { bg_order[2] = list_length; bg_render_list[list_length++] = 2; }
 			if(lcd_stat.bg_priority_a[3] == x) { bg_order[3] = list_length; bg_render_list[list_length++] = 3; }
 		}
+
+		//Render OBJs if possible
+		if(lcd_stat.display_control_a & 0x1000) { render_obj_scanline(bg_control); }
 
 		//Render BGs based on priority (3 is the 'lowest', 0 is the 'highest')
 		for(int x = 0; x < 4; x++)
@@ -1098,9 +1098,6 @@ void NTR_LCD::render_bg_scanline(u32 bg_control)
 		//Clear scanline with backdrop
 		for(u16 x = 0; x < 256; x++) { scanline_buffer_b[x] = lcd_stat.bg_pal_b[0]; }
 
-		//Render OBJs if possible
-		if(lcd_stat.display_control_b & 0x1000) { render_obj_scanline(bg_control); }
-
 		//Determine BG priority
 		for(int x = 0, list_length = 0; x < 4; x++)
 		{
@@ -1109,6 +1106,9 @@ void NTR_LCD::render_bg_scanline(u32 bg_control)
 			if(lcd_stat.bg_priority_b[2] == x) { bg_order[2] = list_length; bg_render_list[list_length++] = 2; }
 			if(lcd_stat.bg_priority_b[3] == x) { bg_order[3] = list_length; bg_render_list[list_length++] = 3; }
 		}
+
+		//Render OBJs if possible
+		if(lcd_stat.display_control_b & 0x1000) { render_obj_scanline(bg_control); }
 
 		//Render BGs based on priority (3 is the 'lowest', 0 is the 'highest')
 		for(int x = 0; x < 4; x++)
@@ -1629,7 +1629,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 					}
 
 					//Line buffer
-					if(!line_buffer[bg_layer][scanline_pixel_counter]) { line_buffer[bg_id][scanline_pixel_counter] = (lcd_stat.ext_pal_a & 0x1) ? lcd_stat.bg_ext_pal_a[ext_pal_id + raw_color]  : lcd_stat.bg_pal_a[raw_color]; }
+					if(!line_buffer[bg_id][scanline_pixel_counter]) { line_buffer[bg_id][scanline_pixel_counter] = (lcd_stat.ext_pal_a & 0x1) ? lcd_stat.bg_ext_pal_a[ext_pal_id + raw_color]  : lcd_stat.bg_pal_a[raw_color]; }
 					if(raw_color && in_window && out_window) { line_buffer[bg_layer + 4][scanline_pixel_counter] |= 1; }
 
 					//Draw 256 pixels max
@@ -1661,7 +1661,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 					}
 
 					//Line buffer
-					if(!line_buffer[bg_layer][scanline_pixel_counter]) { line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_a[pal_1]; }
+					if(!line_buffer[bg_id][scanline_pixel_counter]) { line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_a[pal_1]; }
 					if((raw_color & 0xF) && (in_window) && (out_window)) { line_buffer[bg_layer + 4][scanline_pixel_counter] |= 1; }
 
 					//Draw 256 pixels max
@@ -1683,7 +1683,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 					}
 
 					//Line buffer
-					if(!line_buffer[bg_layer][scanline_pixel_counter]) { line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_a[pal_2]; }
+					if(!line_buffer[bg_id][scanline_pixel_counter]) { line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_a[pal_2]; }
 					if((raw_color >> 4) && (in_window) && (out_window)) { line_buffer[bg_layer + 4][scanline_pixel_counter] |= 1; }
 
 					//Draw 256 pixels max
@@ -1835,7 +1835,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 					}
 
 					//Line buffer
-					if(!line_buffer[bg_layer][scanline_pixel_counter]) { line_buffer[bg_id][scanline_pixel_counter] = (lcd_stat.ext_pal_b & 0x1) ? lcd_stat.bg_ext_pal_b[ext_pal_id + raw_color]  : lcd_stat.bg_pal_b[raw_color]; }
+					if(!line_buffer[bg_id][scanline_pixel_counter]) { line_buffer[bg_id][scanline_pixel_counter] = (lcd_stat.ext_pal_b & 0x1) ? lcd_stat.bg_ext_pal_b[ext_pal_id + raw_color]  : lcd_stat.bg_pal_b[raw_color]; }
 					if(raw_color && in_window && out_window) { line_buffer[bg_layer + 4][scanline_pixel_counter] |= 1; }
 
 					//Draw 256 pixels max
@@ -1867,7 +1867,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 					}
 
 					//Line buffer
-					if(!line_buffer[bg_layer][scanline_pixel_counter]) { line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_b[pal_1]; }
+					if(!line_buffer[bg_id][scanline_pixel_counter]) { line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_b[pal_1]; }
 					if((raw_color & 0xF) && (in_window) && (out_window)) { line_buffer[bg_layer + 4][scanline_pixel_counter] |= 1; }
 
 					//Draw 256 pixels max
@@ -1888,7 +1888,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 					}
 
 					//Line buffer
-					if(!line_buffer[bg_layer][scanline_pixel_counter]) { line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_b[pal_2]; }
+					if(!line_buffer[bg_id][scanline_pixel_counter]) { line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_b[pal_2]; }
 					if((raw_color >> 4) && (in_window) && (out_window)) { line_buffer[bg_layer + 4][scanline_pixel_counter] |= 1; }
 
 					//Draw 256 pixels max
@@ -2029,7 +2029,7 @@ void NTR_LCD::render_bg_mode_affine(u32 bg_control)
 			}
 
 			//Line buffer
-			if(!line_buffer[bg_layer][scanline_pixel_counter]) { line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_a[raw_color]; }
+			if(!line_buffer[bg_id][scanline_pixel_counter]) { line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_a[raw_color]; }
 			if(raw_color && in_window && out_window) { line_buffer[bg_layer + 4][scanline_pixel_counter] |= 1; }
 		}
 
@@ -2159,7 +2159,7 @@ void NTR_LCD::render_bg_mode_affine(u32 bg_control)
 			}
 
 			//Line buffer
-			if(!line_buffer[bg_layer][scanline_pixel_counter]) { line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_b[raw_color]; }
+			if(!line_buffer[bg_id][scanline_pixel_counter]) { line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_b[raw_color]; }
 			if(raw_color && in_window && out_window) { line_buffer[bg_layer + 4][scanline_pixel_counter] |= 1; }
 		}
 
@@ -2310,7 +2310,7 @@ void NTR_LCD::render_bg_mode_affine_ext(u32 bg_control)
 			}
 
 			//Line buffer
-			if(!line_buffer[bg_layer][scanline_pixel_counter]) { line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_a[raw_color]; }
+			if(!line_buffer[bg_id][scanline_pixel_counter]) { line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_a[raw_color]; }
 			if(raw_color && in_window && out_window) { line_buffer[bg_layer + 4][scanline_pixel_counter] |= 1; }
 		}
 
@@ -2457,7 +2457,7 @@ void NTR_LCD::render_bg_mode_affine_ext(u32 bg_control)
 			}
 
 			//Line buffer
-			if(!line_buffer[bg_layer][scanline_pixel_counter]) { line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_b[raw_color]; }
+			if(!line_buffer[bg_id][scanline_pixel_counter]) { line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_b[raw_color]; }
 			if(raw_color && in_window && out_window) { line_buffer[bg_layer + 4][scanline_pixel_counter] |= 1; }
 		}
 
@@ -2591,7 +2591,7 @@ void NTR_LCD::render_bg_mode_bitmap(u32 bg_control)
 			}
 
 			//Line buffer
-			if(!line_buffer[bg_layer][scanline_pixel_counter]) { line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_a[raw_color]; }
+			if(!line_buffer[bg_id][scanline_pixel_counter]) { line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_a[raw_color]; }
 			if(raw_color && in_window && out_window) { line_buffer[bg_layer + 4][scanline_pixel_counter] |= 1; }
 
 			scanline_pixel_counter++;
@@ -2727,7 +2727,7 @@ void NTR_LCD::render_bg_mode_bitmap(u32 bg_control)
 			}
 
 			//Line buffer
-			if(!line_buffer[bg_layer][scanline_pixel_counter]) { line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_b[raw_color]; }
+			if(!line_buffer[bg_id][scanline_pixel_counter]) { line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_b[raw_color]; }
 			if(raw_color && in_window && out_window) { line_buffer[bg_layer + 4][scanline_pixel_counter] |= 1; }
 
 			scanline_pixel_counter++;
@@ -3132,10 +3132,20 @@ void NTR_LCD::brightness_up(u32 bg_control)
 		{
 			target_id = bg_render_list[y];
 
-			if(line_buffer[target_id + 4][x])
+			if(line_buffer[y + 4][x])
 			{
 				found_target = true;
-				target = (line_buffer[target_id + 4][x] & 0x80) ? 4 : target_id;
+
+				//If 1st target is OBJ, check SFX Target 4 and pull data from regular layer
+				if(line_buffer[y + 4][x] & 0x80)
+				{
+					target = 4;
+					target_id = y;
+				}
+
+				//If 1st target is BG, check SFX Targets 0-3 and pull data from ordered layer
+				else { target = target_id; }
+
 				break;
 			}
 		}
@@ -3212,10 +3222,20 @@ void NTR_LCD::brightness_down(u32 bg_control)
 		{
 			target_id = bg_render_list[y];
 
-			if(line_buffer[target_id + 4][x])
+			if(line_buffer[y + 4][x])
 			{
 				found_target = true;
-				target = (line_buffer[target_id + 4][x] & 0x80) ? 4 : target_id;
+
+				//If 1st target is OBJ, check SFX Target 4 and pull data from regular layer
+				if(line_buffer[y + 4][x] & 0x80)
+				{
+					target = 4;
+					target_id = y;
+				}
+
+				//If 1st target is BG, check SFX Targets 0-3 and pull data from ordered layer
+				else { target = target_id; }
+
 				break;
 			}
 		}
@@ -3300,11 +3320,24 @@ void NTR_LCD::alpha_blend(u32 bg_control)
 		{
 			u8 target_id = bg_render_list[y];
 
-			if(line_buffer[target_id + 4][x])
+			if(line_buffer[y + 4][x])
 			{
 				found_target_1 = true;
-				target_1 = (line_buffer[target_id + 4][x] & 0x80) ? 4 : target_id;
-				layer_1 = target_id;
+
+				//If 1st target is OBJ, check SFX Target 4 and pull data from regular layer
+				if(line_buffer[y + 4][x] & 0x80)
+				{
+					target_1 = 4;
+					layer_1 = y;
+				}
+
+				//If 1st target is BG, check SFX Targets 0-3 and pull data from ordered layer
+				else
+				{
+					target_1 = target_id;
+					layer_1 = target_id;
+				}
+
 				next_bg = y + 1;
 				break;
 			}
@@ -3315,11 +3348,24 @@ void NTR_LCD::alpha_blend(u32 bg_control)
 		{
 			u8 target_id = bg_render_list[y];
 
-			if(line_buffer[target_id + 4][x])
+			if(line_buffer[y + 4][x])
 			{
 				found_target_2 = true;
-				target_2 = (line_buffer[target_id + 4][x] & 0x80) ? 4 : target_id;
-				layer_2 = target_id;
+
+				//If 2nd target is OBJ, check SFX Target 4 and pull data from regular layer
+				if(line_buffer[y + 4][x] & 0x80)
+				{
+					target_2 = 4;
+					layer_2 = y;
+				}
+
+				//If 2nd target is BG, check SFX Targets 0-3 and pull data from ordered layer
+				else
+				{
+					target_2 = target_id;
+					layer_2 = target_id;
+				}
+
 				break;
 			}
 		}
