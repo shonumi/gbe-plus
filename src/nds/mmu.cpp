@@ -172,6 +172,7 @@ void NTR_MMU::reset()
 	nds_aux_spi.backup_cmd_ready = true;
 	nds_aux_spi.state = 0;
 	nds_aux_spi.last_state = 0;
+	nds_aux_spi.hold_state = 0;
 
 	nds_card.cnt = 0x800000;
 	nds_card.data = 0;
@@ -5227,155 +5228,22 @@ void NTR_MMU::process_spi_bus()
 /****** Handles various AUXSPI Bus interactions ******/
 void NTR_MMU::process_aux_spi_bus()
 {
-	bool do_command = true;
+	bool new_command = false;
+	bool cs_hold = (nds_aux_spi.cnt & 0x40);
 
-	//Exit read or write mode
-	switch(nds_aux_spi.state)
+	//Check Chip Select Hold State
+	if(cs_hold != nds_aux_spi.hold_state)
 	{
-		case 0x05:
-			//Continue Write Mode in certain cases when writing 0x5
-			if(((nds_aux_spi.last_state == 0x82) || (nds_aux_spi.last_state == 0x8A)) && (nds_aux_spi.data != 0))
-			{
-				nds_aux_spi.state = nds_aux_spi.last_state;
-				save_data[nds_aux_spi.access_addr++] = 0x5;
-			}
+		nds_aux_spi.hold_state = cs_hold;
 
-			break;
-
-		case 0x82:
-		case 0x83:
-		case 0x8A:
-		case 0x8B:
-			if(nds_aux_spi.data == 0x5)
-			{
-				//Auto-detect save type
-				if((current_save_type == AUTO) && (nds_aux_spi.state == 0x83) && (nds_aux_spi.access_index == 1))
-				{
-					current_save_type = EEPROM_512;
-					std::cout<<"MMU::Save Type Autodetected: EEPROM_512\n";
-				}
-
-				else if((current_save_type == AUTO) && (nds_aux_spi.state == 0x83) && (nds_aux_spi.access_index == 2))
-				{
-					current_save_type = EEPROM;
-					std::cout<<"MMU::Save Type Autodetected: EEPROM\n";
-				}
-
-				else if((current_save_type == AUTO) && (nds_aux_spi.state == 0x83) && (nds_aux_spi.access_index == 3))
-				{
-					current_save_type = FRAM;
-					std::cout<<"MMU::Save Type Autodetected: FRAM\n";
-				}
-
-				nds_aux_spi.last_state = nds_aux_spi.state;
-				nds_aux_spi.state = 0;
-			}
-
-			break;
+		//If CS Hold goes from LOW to HIGH, the previous command is finished. Start next command
+		if(cs_hold) { new_command = true; }
 	}
-
-	//Handle AUX SPI state - Command parameters or data 
-	switch(nds_aux_spi.state)
-	{
-		//Write to status
-		case 0x1:
-			nds_aux_spi.eeprom_stat &= ~0xC;
-			nds_aux_spi.eeprom_stat |= (nds_aux_spi.data & 0xC) | 0x2;
-			nds_aux_spi.state = 0;
-			do_command = false;
-			break;
-
-		//Write to EEPROM
-		case 0x2:
-		case 0xA:
-			if((current_save_type == EEPROM_512) || (current_save_type == AUTO))
-			{
-				nds_aux_spi.access_addr = nds_aux_spi.data;
-				nds_aux_spi.access_addr |= (nds_aux_spi.state == 0xA) ? 0x100 : 0;
-				nds_aux_spi.state |= 0x80;
-			}
-
-			else
-			{
-				nds_aux_spi.access_index++;
-
-				if(nds_aux_spi.access_index == 1) { nds_aux_spi.access_addr = (nds_aux_spi.data << 8); }
-
-				else if(nds_aux_spi.access_index == 2)
-				{
-					nds_aux_spi.access_addr |= nds_aux_spi.data;
-					nds_aux_spi.access_index = 0;
-					nds_aux_spi.state |= 0x80;
-				}
-
-			}
-
-			nds_aux_spi.data = 0xFF;
-
-			do_command = false;
-			do_save = true;
-			break;
-
-		//Read from EEPROM low
-		case 0x3:
-		case 0xB:
-			if((current_save_type == EEPROM_512) || (current_save_type == AUTO))
-			{
-				nds_aux_spi.access_addr = nds_aux_spi.data;
-				nds_aux_spi.access_addr |= (nds_aux_spi.state == 0xB) ? 0x100 : 0;
-				nds_aux_spi.state |= 0x80;
-			}
-
-			else
-			{
-				nds_aux_spi.access_index++;
-
-				if(nds_aux_spi.access_index == 1) { nds_aux_spi.access_addr = (nds_aux_spi.data << 8); }
-
-				else if(nds_aux_spi.access_index == 2)
-				{
-					nds_aux_spi.access_addr |= nds_aux_spi.data;
-					nds_aux_spi.access_index = 0;
-					nds_aux_spi.state |= 0x80;
-				}
-
-			}
-
-			nds_aux_spi.data = 0xFF;
-
-			do_command = false;
-			break;
-
-		//Read from status register
-		case 0x5:
-			nds_aux_spi.data = nds_aux_spi.eeprom_stat;
-			nds_aux_spi.state = 0;
-			do_command = false;
-			break;
-
-		//Write EEPROM data low
-		case 0x82:
-		case 0x8A:
-			save_data[nds_aux_spi.access_addr++] = nds_aux_spi.data;
-			nds_aux_spi.access_index++;
-			do_command = false;
-			break;
-
-		//Read EEPROM data low
-		case 0x83:
-		case 0x8B:
-			nds_aux_spi.data = save_data[nds_aux_spi.access_addr++];
-			nds_aux_spi.access_index++;
-			do_command = false;
-			break;
-	}
-
-	nds_aux_spi.backup_cmd = nds_aux_spi.data;
-
+	
 	//Handle AUX SPI save memory commands
-	if(do_command)
+	if(new_command)
 	{
-		switch(nds_aux_spi.backup_cmd)
+		switch(nds_aux_spi.data)
 		{
 			//Write to status register
 			case 0x1:
@@ -5401,6 +5269,25 @@ void NTR_MMU::process_aux_spi_bus()
 
 			//Read from status register
 			case 0x5:
+				//Auto-detect save type
+				if((current_save_type == AUTO) && (nds_aux_spi.state == 0x83) && (nds_aux_spi.access_index == 1))
+				{
+					current_save_type = EEPROM_512;
+					std::cout<<"MMU::Save Type Autodetected: EEPROM_512\n";
+				}
+
+				else if((current_save_type == AUTO) && (nds_aux_spi.state == 0x83) && (nds_aux_spi.access_index == 2))
+				{
+					current_save_type = EEPROM;
+					std::cout<<"MMU::Save Type Autodetected: EEPROM\n";
+				}
+
+				else if((current_save_type == AUTO) && (nds_aux_spi.state == 0x83) && (nds_aux_spi.access_index == 3))
+				{
+					current_save_type = FRAM;
+					std::cout<<"MMU::Save Type Autodetected: FRAM\n";
+				}
+
 				nds_aux_spi.data = 0xFF;
 				nds_aux_spi.state = 0x5;
 				break;
@@ -5435,6 +5322,97 @@ void NTR_MMU::process_aux_spi_bus()
 			default:
 				std::cout<<"MMU::Warning - Unknown save command 0x" << std::hex << (u32)nds_aux_spi.backup_cmd << "\n";
 				nds_aux_spi.data = 0xFF;
+				break;
+		}
+	}
+
+	//Handle AUX SPI state - Command parameters or data 
+	else
+	{
+		switch(nds_aux_spi.state)
+		{
+			//Write to status
+			case 0x1:
+				nds_aux_spi.eeprom_stat &= ~0xC;
+				nds_aux_spi.eeprom_stat |= (nds_aux_spi.data & 0xC) | 0x2;
+				nds_aux_spi.state = 0;
+				break;
+
+			//Write to EEPROM
+			case 0x2:
+			case 0xA:
+				if((current_save_type == EEPROM_512) || (current_save_type == AUTO))
+				{
+					nds_aux_spi.access_addr = nds_aux_spi.data;
+					nds_aux_spi.access_addr |= (nds_aux_spi.state == 0xA) ? 0x100 : 0;
+					nds_aux_spi.state |= 0x80;
+				}
+
+				else
+				{
+					nds_aux_spi.access_index++;
+
+					if(nds_aux_spi.access_index == 1) { nds_aux_spi.access_addr = (nds_aux_spi.data << 8); }
+
+					else if(nds_aux_spi.access_index == 2)
+					{
+						nds_aux_spi.access_addr |= nds_aux_spi.data;
+						nds_aux_spi.access_index = 0;
+						nds_aux_spi.state |= 0x80;
+					}
+
+				}
+
+				nds_aux_spi.data = 0xFF;
+				do_save = true;
+				break;
+
+			//Read from EEPROM low
+			case 0x3:
+			case 0xB:
+				if((current_save_type == EEPROM_512) || (current_save_type == AUTO))
+				{
+					nds_aux_spi.access_addr = nds_aux_spi.data;
+					nds_aux_spi.access_addr |= (nds_aux_spi.state == 0xB) ? 0x100 : 0;
+					nds_aux_spi.state |= 0x80;
+				}
+
+				else
+				{
+					nds_aux_spi.access_index++;
+
+					if(nds_aux_spi.access_index == 1) { nds_aux_spi.access_addr = (nds_aux_spi.data << 8); }
+
+					else if(nds_aux_spi.access_index == 2)
+					{
+						nds_aux_spi.access_addr |= nds_aux_spi.data;
+						nds_aux_spi.access_index = 0;
+						nds_aux_spi.state |= 0x80;
+					}
+
+				}
+
+				nds_aux_spi.data = 0xFF;
+				break;
+
+			//Read from status register
+			case 0x5:
+				nds_aux_spi.data = nds_aux_spi.eeprom_stat;
+				nds_aux_spi.state = 0;
+				break;
+
+			//Write EEPROM data low
+			case 0x82:
+			case 0x8A:
+				save_data[nds_aux_spi.access_addr++] = nds_aux_spi.data;
+				nds_aux_spi.access_index++;
+				break;
+
+			//Read EEPROM data low
+			case 0x83:
+			case 0x8B:
+				nds_aux_spi.data = save_data[nds_aux_spi.access_addr++];
+				nds_aux_spi.access_index++;
 				break;
 		}
 	}

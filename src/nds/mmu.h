@@ -123,6 +123,7 @@ class NTR_MMU
 		u16 access_addr;
 		u8 state;
 		u8 last_state;
+		u8 hold_state;
 
 		//EEPROM
 		u8 eeprom_stat;
