@@ -5282,7 +5282,7 @@ void NTR_MMU::process_aux_spi_bus()
 					std::cout<<"MMU::Save Type Autodetected: EEPROM\n";
 				}
 
-				else if((current_save_type == AUTO) && (nds_aux_spi.state == 0x83) && (nds_aux_spi.access_index == 3))
+				else if((current_save_type == AUTO) && (nds_aux_spi.state == 0x83) && (nds_aux_spi.access_index >= 3))
 				{
 					current_save_type = FRAM;
 					std::cout<<"MMU::Save Type Autodetected: FRAM\n";
