@@ -201,6 +201,7 @@ class AGB_SIO
 	bool turbo_file_save_data(std::string filename);
 
 	void ir_adapter_process();
+	void zoids_cdz_process();
 };
 
 #endif // GBA_SIO

@@ -1681,8 +1681,112 @@ void AGB_SIO::ir_adapter_process()
 		sio_stat.active_transfer = false;
 
 		//Process Zoid commands if IR device is CDZ model
+		zoids_cdz_process();
 		
 		//Clear IR delay data
 		ir_adapter.delay_data.clear();
+	}
+}
+
+/****** Interprets IR commands for Zoids CDZ model from AGB-006 ******/
+void AGB_SIO::zoids_cdz_process()
+{
+	//Short Pulse = ~0x1xxx cycles
+	//Medium Pulse = ~0x3xxx cycles
+	//Long Pulse = ~0x1xxxx cycles
+
+	u32 ir_index = 0;
+	u32 ir_size = ir_adapter.delay_data.size();
+	u16 ir_code = 0;
+
+	for(u32 x = 0; x < ir_size; x++)
+	{
+		u32 delay = ir_adapter.delay_data[x];
+
+		//Find Long Pulse in data stream
+		if((delay >= 0x10000) && (delay < 0x20000) && ((x + 12) < ir_size))
+		{
+			ir_index = x + 1;
+			ir_code = 0;
+			
+			u8 ir_shift = 11;
+			bool abort = false;
+
+			//Grab 12 next pulses and form a 12-bit number from them
+			for(u32 y = 0; y < 12; y++)
+			{
+				delay = ir_adapter.delay_data[ir_index + y];
+				
+				//Short Pulse = 0, Medium Pulse = 1
+				//Here, only Medium Pulses need to be accounted for the IR code
+				if((delay >= 0x3000) && (delay <= 0x4000)) { ir_code |= (1 << ir_shift); }
+
+				//If pulse is not a Short Pulse, abort processing
+				else if(delay >= 0x2000)
+				{
+					abort = true;
+					break;
+				}
+
+				ir_shift--;
+			}
+
+			//Check for valid command, then process each one
+			if(!abort)
+			{
+				switch(ir_code)
+				{
+					//Sync Signal - ID1
+					case 0x932:
+						std::cout<<"SIO::CDZ Sync Signal - ID1\n";
+						break;
+
+					//Fire Weapon - ID1
+					case 0x80A:
+						std::cout<<"SIO::CDZ Fire Weapon - ID1\n";
+						break;
+
+					//Jump - ID1
+					case 0x809:
+						std::cout<<"SIO::CDZ Jump - ID1\n";
+						break;
+
+					//Move Forward - ID1
+					case 0x8A0:
+						std::cout<<"SIO::CDZ Move Forward - ID1\n";
+						break;
+
+					//Move Backward - ID1
+					case 0x881:
+						std::cout<<"SIO::CDZ Move Backward - ID1\n";
+						break;
+
+					//Sync Signal - ID2
+					case 0xB33:
+						std::cout<<"SIO::CDZ Sync Signal - ID2\n";
+						break;
+
+					//Fire Weapon - ID2
+					case 0xA0B:
+						std::cout<<"SIO::CDZ Fire Weapon - ID2\n";
+						break;
+
+					//Jump - ID2
+					case 0xA08:
+						std::cout<<"SIO::CDZ Jump - ID2\n";
+						break;
+
+					//Move Forward - ID2
+					case 0xAA1:
+						std::cout<<"SIO::CDZ Move Forward - ID2\n";
+						break;
+
+					//Move Backward - ID2
+					case 0xA80:
+						std::cout<<"SIO::CDZ Move Backward - ID2\n";
+						break;
+				}
+			}
+		}
 	}
 }
