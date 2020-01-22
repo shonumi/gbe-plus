@@ -1756,9 +1756,29 @@ void AGB_SIO::zoids_cdz_process()
 						std::cout<<"SIO::CDZ Move Forward - ID1\n";
 						break;
 
+					//Move Forward + Fire Weapon - ID1
+					case 0x8AA:
+						std::cout<<"SIO:CDZ Move Forward + Fire Weapon - ID1\n";
+						break;
+
+					//Move Forward + Jump - ID1
+					case 0x8A9:
+						std::cout<<"SIO:CDZ Move Forward + Jump - ID1\n";
+						break;
+
 					//Move Backward - ID1
 					case 0x881:
 						std::cout<<"SIO::CDZ Move Backward - ID1\n";
+						break;
+
+					//Move Backward + Fire Weapon - ID1
+					case 0x88B:
+						std::cout<<"SIO::CDZ Move Backward + Fire - ID1\n";
+						break;
+
+					//Move Backward + Jump - ID1
+					case 0x888:
+						std::cout<<"SIO::CDZ Move Backward + Jump - ID1\n";
 						break;
 
 					//Sync Signal - ID2
@@ -1781,9 +1801,29 @@ void AGB_SIO::zoids_cdz_process()
 						std::cout<<"SIO::CDZ Move Forward - ID2\n";
 						break;
 
+					//Move Forward + Fire Weapon - ID2
+					case 0xAAB:
+						std::cout<<"SIO::CDZ Move Forward + Fire - ID2\n";
+						break;
+
+					//Move Forward + Jump - ID2
+					case 0xAA8:
+						std::cout<<"SIO::CDZ Move Forward + Jump - ID2\n";
+						break;
+
 					//Move Backward - ID2
 					case 0xA80:
 						std::cout<<"SIO::CDZ Move Backward - ID2\n";
+						break;
+
+					//Move Backward + Fire Weapon - ID2
+					case 0xA8A:
+						std::cout<<"SIO::CDZ Move Backward + Fire - ID2\n";
+						break;
+
+					//Move Backward + Jump - ID2
+					case 0xA89:
+						std::cout<<"SIO::CDZ Move Backward + Jump - ID2\n";
 						break;
 				}
 			}
