@@ -2180,7 +2180,7 @@ Byte 0x18 - 0x3F	| Should all be 0xFF
 
 	<!-- AGB-006 -->
 	<a name="agb006"></a>
-	<p class="gray_title">Turbo File Advance</p>
+	<p class="gray_title">AGB-006</p>
 	<p class="list_item"><a href="#gbair_gen">General Hardware Information</a></p>
 	<p class="list_item"><a href="#gbair_dev">Device Detection</a></p>
 	<p class="list_item"><a href="#gbair_opr">IR Operation</a></p>
@@ -2270,6 +2270,22 @@ ID	| Command		| Sequence
 -----------------------------------------------------------</code>
 
 	<p>The only differences between the two channels are the 3rd and 12th pulses. The 3rd pulses are Short Pulses on ID1 and Medium Pulses on ID2. The 12th pulses are alternating Small and Medium Pulses on ID1 and alternating Medium and Small Pulses on ID2. All commands occupy 13 pulses, with a Long Pulse marking the end. These patterns are repeated for as long as the button is pressed.</p>
+
+	<p>The forward/backward commands can be also be combined with the fire/jump commands to perform two actions at the same time. In those instances, a separate pattern of IR pulses is sent.</p>
+
+<code>-----------------------------------------------------------
+ID	| Combined Command	| Sequence
+-----------------------------------------------------------
+1	| Forward + Fire	| M S S S M S M S M S M S L
+1	| Forward + Jump	| M S S S M S M S M S S M L
+1	| Backward + Fire	| M S S S M S S S M S M M L
+1	| Backward + Jump	| M S S S M S S S M S S S L
+	|			|
+2	| Forward + Fire	| M S M S M S M S M S M M L
+2	| Forward + Jump	| M S M S M S S S M S S S L
+2	| Backward + Fire	| M S M S M S S S M S M S L
+2	| Backward + Jump	| M S M S M S S S M S S M L
+-----------------------------------------------------------</code>
 
 	<p>At the beginning of a communication session between a GBA+AGB-006 and a CDZ Zoids model, another pattern is transmitted, conceivably to start or syncronize the toy with the video game. ID1 and ID2 have separate startup signals. Their format is exactly like the button commands.</p>
 
