@@ -118,8 +118,14 @@ void NTR_MMU::process_card_bus()
 
 					nds_card.transfer_src = (nds_card.cmd_lo << 8);
 					nds_card.transfer_src |= (nds_card.cmd_hi >> 24);
-					nds_card.transfer_src &= (cart_data.size() - 1);
 					nds_card.transfer_size += 4;
+
+					//Make sure not to read non-existent data
+					if(nds_card.transfer_src + nds_card.transfer_size > cart_data.size())
+					{
+						nds_card.transfer_size = cart_data.size() - nds_card.transfer_src;
+						std::cout<<"MMU::Warning - Cart transfer address is too big\n";
+					}
 				}
 
 				else { return; }
