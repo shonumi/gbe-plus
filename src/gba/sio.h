@@ -165,6 +165,22 @@ class AGB_SIO
 		bool on;
 	} ir_adapter;
 
+	//CDZ-E
+	struct cdz
+	{
+		u16 x;
+		u16 y;
+		u8 command_id;
+		u8 state;
+		u8 frame_counter;
+		bool active;
+		
+		std::vector<u32> sub_screen_buffer;
+		std::vector< std::vector<u32> > sprite_buffer;
+		std::vector<u32> sprite_width;
+		std::vector<u32> sprite_height;
+	} cdz_e;
+
 	AGB_SIO();
 	~AGB_SIO();
 
@@ -202,6 +218,7 @@ class AGB_SIO
 
 	void ir_adapter_process();
 	void zoids_cdz_process();
+	bool zoids_cdz_load_data();
 };
 
 #endif // GBA_SIO

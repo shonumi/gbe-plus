@@ -373,6 +373,15 @@ void AGB_SIO::reset()
 	ir_adapter.prev_data = 0;
 	ir_adapter.on = false;
 
+	//Emulated Zoids model aka CDZ-E
+	cdz_e.x = 0;
+	cdz_e.y = 0;
+	cdz_e.command_id = 0;
+	cdz_e.state = 0;
+	cdz_e.frame_counter = 0;
+
+	if(config::ir_device == 6) { cdz_e.active = zoids_cdz_load_data(); }
+
 	#ifdef GBE_NETPLAY
 
 	//Close any current connections
@@ -1743,41 +1752,49 @@ void AGB_SIO::zoids_cdz_process()
 
 					//Fire Weapon - ID1
 					case 0x80A:
+						cdz_e.state = 1;
 						std::cout<<"SIO::CDZ Fire Weapon - ID1\n";
 						break;
 
 					//Jump - ID1
 					case 0x809:
+						cdz_e.state = 2;
 						std::cout<<"SIO::CDZ Jump - ID1\n";
 						break;
 
 					//Move Forward - ID1
 					case 0x8A0:
+						cdz_e.state = 3;
 						std::cout<<"SIO::CDZ Move Forward - ID1\n";
 						break;
 
 					//Move Forward + Fire Weapon - ID1
 					case 0x8AA:
+						cdz_e.state = 4;
 						std::cout<<"SIO:CDZ Move Forward + Fire Weapon - ID1\n";
 						break;
 
 					//Move Forward + Jump - ID1
 					case 0x8A9:
+						cdz_e.state = 5;
 						std::cout<<"SIO:CDZ Move Forward + Jump - ID1\n";
 						break;
 
 					//Move Backward - ID1
 					case 0x881:
+						cdz_e.state = 6;
 						std::cout<<"SIO::CDZ Move Backward - ID1\n";
 						break;
 
 					//Move Backward + Fire Weapon - ID1
 					case 0x88B:
+						cdz_e.state = 7;
 						std::cout<<"SIO::CDZ Move Backward + Fire - ID1\n";
 						break;
 
 					//Move Backward + Jump - ID1
 					case 0x888:
+						cdz_e.state = 8;
 						std::cout<<"SIO::CDZ Move Backward + Jump - ID1\n";
 						break;
 
@@ -1788,45 +1805,102 @@ void AGB_SIO::zoids_cdz_process()
 
 					//Fire Weapon - ID2
 					case 0xA0B:
+						cdz_e.state = 1;
 						std::cout<<"SIO::CDZ Fire Weapon - ID2\n";
 						break;
 
 					//Jump - ID2
 					case 0xA08:
+						cdz_e.state = 2;
 						std::cout<<"SIO::CDZ Jump - ID2\n";
 						break;
 
 					//Move Forward - ID2
 					case 0xAA1:
+						cdz_e.state = 3;
 						std::cout<<"SIO::CDZ Move Forward - ID2\n";
 						break;
 
 					//Move Forward + Fire Weapon - ID2
 					case 0xAAB:
+						cdz_e.state = 4;
 						std::cout<<"SIO::CDZ Move Forward + Fire - ID2\n";
 						break;
 
 					//Move Forward + Jump - ID2
 					case 0xAA8:
+						cdz_e.state = 5;
 						std::cout<<"SIO::CDZ Move Forward + Jump - ID2\n";
 						break;
 
 					//Move Backward - ID2
 					case 0xA80:
+						cdz_e.state = 6;
 						std::cout<<"SIO::CDZ Move Backward - ID2\n";
 						break;
 
 					//Move Backward + Fire Weapon - ID2
 					case 0xA8A:
+						cdz_e.state = 7;
 						std::cout<<"SIO::CDZ Move Backward + Fire - ID2\n";
 						break;
 
 					//Move Backward + Jump - ID2
 					case 0xA89:
+						cdz_e.state = 8;
 						std::cout<<"SIO::CDZ Move Backward + Jump - ID2\n";
 						break;
 				}
 			}
 		}
 	}
+}
+
+/****** Loads sprite data for CDZ-E ******/
+bool AGB_SIO::zoids_cdz_load_data()
+{
+	std::vector<std::string> file_list;
+
+	file_list.push_back(config::data_path + "misc/Z1.bmp");
+	file_list.push_back(config::data_path + "misc/Z2.bmp");
+	file_list.push_back(config::data_path + "misc/Z3.bmp");
+
+	cdz_e.sprite_buffer.clear();
+	cdz_e.sprite_width.clear();
+	cdz_e.sprite_height.clear();
+
+	//Open each BMP from data folder
+	for(u32 index = 0; index < file_list.size(); index++)
+	{
+		SDL_Surface* source = SDL_LoadBMP(file_list[index].c_str());
+		std::vector<u32> temp_pixels;
+
+		//Check if file could be opened
+		if(source == NULL)
+		{
+			std::cout<<"SIO::Error - Could not load CDZ sprite data file " << file_list[index] << "\n";
+			return false;
+		}
+
+		//Check if file is 24bpp
+		if(source->format->BitsPerPixel != 24)
+		{
+			std::cout<<"SIO::Error - CDZ sprite data file " << file_list[index] << " is not 24bpp\n";
+			return false;
+		}
+
+		u8* pixel_data = (u8*)source->pixels;
+
+		//Copy 32-bit pixel data to buffers
+		for(int a = 0, b = 0; a < (source->w * source->h); a++, b+=3)
+		{
+			temp_pixels.push_back(0xFF000000 | (pixel_data[b+2] << 16) | (pixel_data[b+1] << 8) | (pixel_data[b]));
+		}
+
+		cdz_e.sprite_buffer.push_back(temp_pixels);
+		cdz_e.sprite_width.push_back(source->w);
+		cdz_e.sprite_height.push_back(source->h);
+	}
+
+	return true;
 }
