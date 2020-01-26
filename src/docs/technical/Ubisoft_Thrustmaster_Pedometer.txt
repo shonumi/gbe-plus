@@ -1,0 +1,49 @@
+Ubisoft Thrustmaster Pedometer Documentation 0.1
+January 25th, 2020
+Shonumi aka D.S. Baxter
+
+***************************************************
+1. Introduction
+***************************************************  
+
+The Ubisoft Thrustmaster Pedometer is a Slot-2 NDS device that came bundled with My Weight Loss Coach / My Health Coach: Manage Your Weight. It simply counts the user's steps and transfers that number to the software.
+
+
+***************************************************
+2. General Hardware Information
+***************************************************
+
+* The Ubisoft Thrustmaster Pedometer is relatively large and bulky. Designed to be compatible with the original NDS model, so it sticks out a bit on NDS Lite units.
+* Has a 5-digit LCD screen to display current steps. When plugged into an NDS, the numbers are upside-down (despite boxart showing them flipped correctly).
+* Takes a single CR2032 battery that can be replaced from a slot on the side.
+* Has a physical RESET button to set step count to zero.
+
+
+***************************************************
+3. Device Detection
+***************************************************
+
+The software will read some values from the GBA cart space between 0x8000000 and 0x801FFFF. Those values are somewhat difficult to accurately and consistently map out byte-by-byte; one explanation is that open bus behavior may affect reading. However, the following psuedo-code will allow the software to properly detect the presence of the pedometer:
+
+//Read individual bytes from GBA cart space
+if address AND 1
+	return 0xF0 OR ((address AND 0x1F) SHIFT RIGHT 1)
+else
+	return 0xF7
+
+
+***************************************************
+4. Reading Steps
+***************************************************
+
+Steps are stored in the area where the DS would normally access SRAM/FRAM/Flash in GBA carts. 5 bytes are used, one for each displayable digit:
+
+0xA000000	Ones
+0xA000001	Tens
+0xA000002	Hundreds
+0xA000003	Thousands
+0xA000004	Ten Thousands
+
+The values range from 0xF0 to 0xF9, with only the lower half of the byte being relevant. The maximum number of steps the pedometer can track is 99999. To properly access each value, the memory location should be read at least 4 times with a brief delay in between, such as one frame (~16ms). If the delays are not used, the pedometer returns 0xF0. These locations appear to be read-only, so software cannot manually set the pedometer's step count.
+
+However, if the memory location 0xA00000C is read, the pedometer resets the step count. The supported software does this whenever it records data from the pedometer.
