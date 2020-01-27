@@ -1744,7 +1744,7 @@ void AGB_SIO::zoids_cdz_process()
 			//Check for valid command, then process each one
 			if(!abort)
 			{
-				cdz_e.state = 0xFF;
+				bool update = true;
 
 				switch(ir_code)
 				{
@@ -1763,6 +1763,7 @@ void AGB_SIO::zoids_cdz_process()
 
 					//Jump - ID1
 					case 0x809:
+						if(cdz_e.state != 2) { cdz_e.frame_counter = 0; }
 						cdz_e.state = 2;
 						std::cout<<"SIO::CDZ Jump - ID1\n";
 						break;
@@ -1818,6 +1819,7 @@ void AGB_SIO::zoids_cdz_process()
 
 					//Jump - ID2
 					case 0xA08:
+						if(cdz_e.state != 2) { cdz_e.frame_counter = 0; }
 						cdz_e.state = 2;
 						std::cout<<"SIO::CDZ Jump - ID2\n";
 						break;
@@ -1857,10 +1859,15 @@ void AGB_SIO::zoids_cdz_process()
 						cdz_e.state = 8;
 						std::cout<<"SIO::CDZ Move Backward + Jump - ID2\n";
 						break;
+
+					//Do nothing
+					default:
+						update = false;
+						break;
 				}
 
 				//Update subscreen
-				zoids_cdz_update();
+				if(update) { zoids_cdz_update(); }
 			}
 		}
 	}
@@ -1957,6 +1964,13 @@ void AGB_SIO::zoids_cdz_update()
 
 	w = cdz_e.sprite_width[sprite_id];
 	h = cdz_e.sprite_height[sprite_id];
+
+	if(s16(cdz_e.y - (h/2)) < 0) { cdz_e.y += 160; }
+	if(s16(cdz_e.y - (h/2)) >= 160) { cdz_e.y -= 160; }
+
+	if(s16(cdz_e.x - (w/2)) < 0) { cdz_e.x += 240; }
+	if(s16(cdz_e.x - (w/2)) >= 240) { cdz_e.x -= 240; }
+
 	tx = cdz_e.x - (w/2);
 	ty = cdz_e.y - (h/2); 
 
@@ -1974,6 +1988,13 @@ void AGB_SIO::zoids_cdz_update()
 
 			float fx = ((sx - cdz_e.x) * ct) - ((sy - cdz_e.y) * st) + cdz_e.x;
 			float fy = ((sx - cdz_e.x) * st) + ((sy - cdz_e.y) * ct) + cdz_e.y;
+
+			//Wrap coordinates
+			if(fx > 240) { fx -= 240; }
+			else if(fx < 0) { fx += 240; }
+			
+			if(fy > 160) { fy -= 160; }
+			else if(fy < 0) { fy += 160; }
 
 			//Calculate target (subscreen) pixel
 			target_index = ((u32)fy * 240) + (u32)fx;
