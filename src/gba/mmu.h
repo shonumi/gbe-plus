@@ -120,6 +120,7 @@ class AGB_MMU
 	u8 gsa_patch_count;
 
 	bool sio_emu_device_ready;
+	std::vector<u32> sub_screen_buffer;
 
 	//Advanced debugging
 	#ifdef GBE_DEBUG

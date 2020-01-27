@@ -1589,7 +1589,17 @@ void ARM7::clock_emulated_sio_device()
 			//Process AGB-006
 			if(controllers.serial_io.ir_adapter.on) { controllers.serial_io.ir_adapter.cycles += system_cycles; }
 			else { controllers.serial_io.ir_adapter.off_cycles += system_cycles; }
+
 			controllers.serial_io.ir_adapter_process();
+
+			//Request screen resize for CDZ sub-screen
+			if(controllers.serial_io.cdz_e.setup_sub_screen)
+			{
+				config::request_resize = true;
+				config::resize_mode = 1;
+				controllers.serial_io.cdz_e.setup_sub_screen = false;
+			}
+
 			break;
 
 		//Clock everything else normally

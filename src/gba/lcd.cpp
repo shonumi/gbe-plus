@@ -148,6 +148,10 @@ void AGB_LCD::reset()
 	config::sys_width = 240;
 	config::sys_height = 160;
 
+	//Initialize GBA subscreen as normal
+	config::resize_mode = 0;
+	config::request_resize = false;
+
 	max_fullscreen_ratio = 2;
 	power_antenna_osd = false;
 }
@@ -1494,6 +1498,20 @@ void AGB_LCD::step()
 		{
 			lcd_mode = 2;
 
+			//Check for screen resize - CDZ sub screen
+			if((config::request_resize) && (config::resize_mode > 0))
+			{
+				config::sys_width = 240;
+				config::sys_height = 320;
+				screen_buffer.clear();
+				screen_buffer.resize(0x12C00, 0xFFFFFFFF);
+					
+				if((window != NULL) && (config::sdl_render)) { SDL_DestroyWindow(window); }
+				init();
+					
+				if(config::sdl_render) { config::request_resize = false; }
+			}
+
 			//Toggle HBlank flag OFF
 			mem->memory_map[DISPSTAT] &= ~0x2;
 
@@ -1530,7 +1548,11 @@ void AGB_LCD::step()
 					if(SDL_MUSTLOCK(original_screen)){ SDL_LockSurface(original_screen); }
 					u32* out_pixel_data = (u32*)original_screen->pixels;
 
-					for(int a = 0; a < 0x9600; a++) { out_pixel_data[a] = screen_buffer[a]; }
+					for(int a = 0; a < 0x9600; a++)
+					{
+						out_pixel_data[a] = screen_buffer[a];
+						if(mem->sub_screen_buffer.size()) { out_pixel_data[0x9600 + a] = mem->sub_screen_buffer[a]; }
+					}
 
 					//Unlock source surface
 					if(SDL_MUSTLOCK(original_screen)){ SDL_UnlockSurface(original_screen); }
@@ -1553,7 +1575,11 @@ void AGB_LCD::step()
 					if(SDL_MUSTLOCK(final_screen)){ SDL_LockSurface(final_screen); }
 					u32* out_pixel_data = (u32*)final_screen->pixels;
 
-					for(int a = 0; a < 0x9600; a++) { out_pixel_data[a] = screen_buffer[a]; }
+					for(int a = 0; a < 0x9600; a++)
+					{
+						out_pixel_data[a] = screen_buffer[a];
+						if(mem->sub_screen_buffer.size()) { out_pixel_data[0x9600 + a] = mem->sub_screen_buffer[a]; }
+					}
 
 					//Unlock source surface
 					if(SDL_MUSTLOCK(final_screen)){ SDL_UnlockSurface(final_screen); }
@@ -1580,7 +1606,11 @@ void AGB_LCD::step()
 					if(SDL_MUSTLOCK(final_screen)){ SDL_LockSurface(final_screen); }
 					u32* out_pixel_data = (u32*)final_screen->pixels;
 
-					for(int a = 0; a < 0x9600; a++) { out_pixel_data[a] = screen_buffer[a]; }
+					for(int a = 0; a < 0x9600; a++)
+					{
+						out_pixel_data[a] = screen_buffer[a];
+						if(mem->sub_screen_buffer.size()) { out_pixel_data[0x9600 + a] = mem->sub_screen_buffer[a]; }
+					}
 
 					//Unlock source surface
 					if(SDL_MUSTLOCK(final_screen)){ SDL_UnlockSurface(final_screen); }

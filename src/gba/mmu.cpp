@@ -125,6 +125,7 @@ void AGB_MMU::reset()
 	gsa_patch_count = 0;
 
 	sio_emu_device_ready = false;
+	sub_screen_buffer.clear();
 
 	g_pad = NULL;
 	timer = NULL;

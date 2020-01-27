@@ -379,6 +379,7 @@ void AGB_SIO::reset()
 	cdz_e.command_id = 0;
 	cdz_e.state = 0;
 	cdz_e.frame_counter = 0;
+	cdz_e.setup_sub_screen = false;
 
 	if(config::ir_device == 6) { cdz_e.active = zoids_cdz_load_data(); }
 
@@ -1690,7 +1691,7 @@ void AGB_SIO::ir_adapter_process()
 		sio_stat.active_transfer = false;
 
 		//Process Zoid commands if IR device is CDZ model
-		zoids_cdz_process();
+		if((config::ir_device == 6) && (cdz_e.active)) { zoids_cdz_process(); }
 		
 		//Clear IR delay data
 		ir_adapter.delay_data.clear();
@@ -1743,10 +1744,14 @@ void AGB_SIO::zoids_cdz_process()
 			//Check for valid command, then process each one
 			if(!abort)
 			{
+				cdz_e.state = 0xFF;
+
 				switch(ir_code)
 				{
 					//Sync Signal - ID1
 					case 0x932:
+						cdz_e.state = 0;
+						cdz_e.setup_sub_screen = true;
 						std::cout<<"SIO::CDZ Sync Signal - ID1\n";
 						break;
 
@@ -1800,6 +1805,8 @@ void AGB_SIO::zoids_cdz_process()
 
 					//Sync Signal - ID2
 					case 0xB33:
+						cdz_e.state = 0;
+						cdz_e.setup_sub_screen = true;
 						std::cout<<"SIO::CDZ Sync Signal - ID2\n";
 						break;
 
@@ -1851,10 +1858,135 @@ void AGB_SIO::zoids_cdz_process()
 						std::cout<<"SIO::CDZ Move Backward + Jump - ID2\n";
 						break;
 				}
+
+				//Update subscreen
+				zoids_cdz_update();
 			}
 		}
 	}
 }
+
+/****** Updates subscreen for CDZ-E ******/
+void AGB_SIO::zoids_cdz_update()
+{
+	u8 sprite_id = 0;
+	u32 src_index = 0;
+	s32 target_index = 0;
+
+	u32 w = 0;
+	u32 h = 0;
+
+	float sx = 0;
+	float sy = 0;
+	float tx = 0;
+	float ty = 0;
+
+	//Determine draw status
+	switch(cdz_e.state)
+	{
+		//Init - Place at bottom center of screen
+		case 0x0:
+			cdz_e.x = 120;
+			cdz_e.y = 100;
+			sprite_id = 0;
+			break;
+
+		//Jump
+		case 0x2:
+			sprite_id = (cdz_e.frame_counter & 0x1) ? 1 : 2;
+
+			switch(cdz_e.frame_counter % 4)
+			{
+				case 0: cdz_e.angle += 10; break;
+				case 1: cdz_e.angle -= 10; break;
+				case 2: cdz_e.angle -= 10; break;
+				case 3: cdz_e.angle += 10; break;
+			}
+
+			while(cdz_e.angle < 0) { cdz_e.angle += 360; }
+
+			cdz_e.frame_counter++;
+			break;
+
+		//Move forward
+		case 0x3:
+			//Calculate next X/Y based on current angle
+			{
+				float angle = (cdz_e.angle * 3.14159265) / 180.0;
+				sx = cdz_e.x;
+				sy = cdz_e.y - 5;
+
+				float fx = ((sx - cdz_e.x) * cos(angle)) - ((sy - cdz_e.y) * sin(angle)) + cdz_e.x;
+				float fy = ((sx - cdz_e.x) * sin(angle)) + ((sy - cdz_e.y) * cos(angle)) + cdz_e.y;
+
+				cdz_e.x = (u32)fx;
+				cdz_e.y = (u32)fy;
+			}
+				
+			sprite_id = (cdz_e.frame_counter & 0x1) ? 1 : 2;
+			cdz_e.frame_counter++;
+			break;
+
+		//Move backward
+		case 0x6:
+			//Calculate next X/Y based on current angle
+			{
+				float angle = (cdz_e.angle * 3.14159265) / 180.0;
+				sx = cdz_e.x;
+				sy = cdz_e.y + 5;
+
+				float fx = ((sx - cdz_e.x) * cos(angle)) - ((sy - cdz_e.y) * sin(angle)) + cdz_e.x;
+				float fy = ((sx - cdz_e.x) * sin(angle)) + ((sy - cdz_e.y) * cos(angle)) + cdz_e.y;
+
+				cdz_e.x = (u32)fx;
+				cdz_e.y = (u32)fy;
+			}
+
+			sprite_id = (cdz_e.frame_counter & 0x1) ? 1 : 2;
+			cdz_e.frame_counter++;
+			break;
+
+		//Do nothing
+		default:
+			return;
+	}
+
+	//Draw selected sprite
+	mem->sub_screen_buffer.clear();
+	mem->sub_screen_buffer.resize(0x9600, 0xFFFFFFFF);
+
+	w = cdz_e.sprite_width[sprite_id];
+	h = cdz_e.sprite_height[sprite_id];
+	tx = cdz_e.x - (w/2);
+	ty = cdz_e.y - (h/2); 
+
+	double theta = (cdz_e.angle * 3.14159265) / 180.0;
+	float st = sin(theta);
+	float ct = cos(theta);
+	
+	for(u32 y = 0; y < h; y++)
+	{
+		for(u32 x = 0; x < w; x++)
+		{
+			//Calculate rotated pixel position
+			sx = tx + x;
+			sy = ty + y;
+
+			float fx = ((sx - cdz_e.x) * ct) - ((sy - cdz_e.y) * st) + cdz_e.x;
+			float fy = ((sx - cdz_e.x) * st) + ((sy - cdz_e.y) * ct) + cdz_e.y;
+
+			//Calculate target (subscreen) pixel
+			target_index = ((u32)fy * 240) + (u32)fx;
+
+			if((target_index < 0x9600) && (target_index >= 0))
+			{	
+				mem->sub_screen_buffer[target_index] = cdz_e.sprite_buffer[sprite_id][src_index];
+			}
+
+			src_index++;
+		}
+	}
+}		
 
 /****** Loads sprite data for CDZ-E ******/
 bool AGB_SIO::zoids_cdz_load_data()
@@ -1902,5 +2034,6 @@ bool AGB_SIO::zoids_cdz_load_data()
 		cdz_e.sprite_height.push_back(source->h);
 	}
 
+	std::cout<<"SIO::CDZ-E sprite data loaded\n";
 	return true;
 }
