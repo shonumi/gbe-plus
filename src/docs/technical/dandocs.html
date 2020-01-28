@@ -129,6 +129,9 @@
 			<p class="list_item"><a href="#mpos">Multi Plust On System</a></p>
 			<p class="list_item"><a href="#tbfa">Turbo File Advance</a></p>
 			<p class="list_item"><a href="#agb006">AGB-006</a></p>
+
+			<p class="list_head"><strong>NDS</strong></p>
+			<p class="list_item"><a href="#utp">Ubisoft Thrustmaster Pedometer</a></p>
 			
 		</div>
 
@@ -2300,6 +2303,51 @@ ID	| Sync Signal Sequence
 	<p class="gray_title">[AGB-006] : Prototype IR Port</p>
 
 	<p>Cyber Drive Zoids appears to frequently read from the memory location 0x4000136 which was supposed to have been the MMIO register for the IR port on prototype GBAs. The AGB-006 does not cause the 16-bit value of that location to change at all, however, and all reads do in fact return zero. The purpose of that bit of code is currently unclear. It may be a remnant of earlier code long made before the AGB-006 was fully realized.</p>
+
+	<!-- Ubisoft Thrustmaster Pedometer -->
+	<a name="utp"></a>
+	<p class="gray_title">Ubisoft Thrustmaster Pedometer</p>
+	<p class="list_item"><a href="#utp_gen">General Hardware Information</a></p>
+	<p class="list_item"><a href="#utp_dev">Device Detection</a></p>
+	<p class="list_item"><a href="#utp_stp">Reading Steps</a></p>
+
+	<a name="utp_gen"></a>
+	<p class="gray_title">[Ubisoft Thrustmaster Pedometer] : General Hardware Information</p>
+
+	<p>The Ubisoft Thrustmaster Pedometer is a Slot-2 NDS device that came bundled with My Weight Loss Coach / My Health Coach: Manage Your Weight. It simply counts the user&#39;s steps and transfers that number to the software.</p>
+
+	<ul>
+		<li class="list_item">The Ubisoft Thrustmaster Pedometer is relatively large and bulky. Designed to be compatible with the original NDS model, so it sticks out a bit on NDS Lite units.</li>
+		<li class="list_item">Has a 5-digit LCD screen to display current steps. When plugged into an NDS, the numbers are upside-down (despite boxart showing them flipped correctly).</li>
+		<li class="list_item">Takes a single CR2032 battery that can be replaced from a slot on the side.</li>
+		<li class="list_item">Has a physical RESET button to set step count to zero.</li>
+	</ul>
+
+	<a name="utp_dev"></a>
+	<p class="gray_title">[Ubisoft Thrustmaster Pedometer] : Device Detection</p>
+
+	<p>The software will read some values from the GBA cart space between 0x8000000 and 0x801FFFF. Those values are somewhat difficult to accurately and consistently map out byte-by-byte; one explanation is that open bus behavior may affect reading. However, the following psuedo-code will allow the software to properly detect the presence of the pedometer:</p>
+
+<code>//Read individual bytes from GBA cart space
+if address AND 1
+	return 0xF0 OR ((address AND 0x1F) SHIFT RIGHT 1)
+else
+	return 0xF7</code>
+
+	<a name="utp_stp"></a>
+	<p class="gray_title">[Ubisoft Thrustmaster Pedometer] : Reading Steps</p>
+
+	<p>Steps are stored in the area where the DS would normally access SRAM/FRAM/Flash in GBA carts. 5 bytes are used, one for each displayable digit:</p>
+
+<code>0xA000000	Ones
+0xA000001	Tens
+0xA000002	Hundreds
+0xA000003	Thousands
+0xA000004	Ten Thousands</code>
+
+	<p>The values range from 0xF0 to 0xF9, with only the lower half of the byte being relevant. The maximum number of steps the pedometer can track is 99999. To properly access each value, the memory location should be read at least 4 times with a brief delay in between, such as one frame (~16ms). If the delays are not used, the pedometer returns 0xF0. These locations appear to be read-only, so software cannot manually set the pedometer&#39;s step count.</p>
+
+	<p>However, if the memory location 0xA00000C is read, the pedometer resets the step count. The supported software does this whenever it records data from the pedometer.</p>
 
 	<!-- Mobile Adapter GB -->
 	<a name="magb"></a>
