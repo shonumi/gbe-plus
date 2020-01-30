@@ -169,6 +169,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	sio_dev->addItem("Singer IZEK 1500");
 	sio_dev->addItem("Multi Plust On System");
 	sio_dev->addItem("Turbo File GB/Advance");
+	sio_dev->addItem("AGB-006");
 
 	config_sio = new QPushButton("Configure");
 
@@ -189,6 +190,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	ir_dev->addItem("Pocket Sakura");
 	ir_dev->addItem("TV Remote");
 	ir_dev->addItem("Constant IR Light");
+	ir_dev->addItem("Zoids CDZ Model");
 
 	config_ir = new QPushButton("Configure");
 
