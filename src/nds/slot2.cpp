@@ -24,6 +24,28 @@ u8 NTR_MMU::read_slot2_device(u32 address)
 			//Reading is used for detection
 			slot_byte = (address & 0x1) ? 0xFF : 0xFD;
 			break;
+
+		case SLOT2_UBISOFT_PEDOMETER:
+			//Reading these cart addresses is for detection
+			if(address < 0x8020000)
+			{
+				u8 data = 0xF0 | ((address & 0x1F) >> 1);
+				slot_byte = (address & 0x1) ? 0xF7 : data;
+			}
+
+			//0xA000000 through 0xA000004 = step values
+			//0xA00000C resets step count
+			switch(address)
+			{
+				case 0xA000000: slot_byte = config::utp_steps & 0xF; break;
+				case 0xA000001: slot_byte = (config::utp_steps >> 4) & 0xF; break;
+				case 0xA000002: slot_byte = (config::utp_steps >> 8) & 0xF; break;
+				case 0xA000003: slot_byte = (config::utp_steps >> 12) & 0xF; break;
+				case 0xA000004: slot_byte = (config::utp_steps >> 16) & 0xF; break;
+				case 0xA00000C: slot_byte = 0; config::utp_steps = 0; break;
+			}
+
+			break;
 	}
 
 	return slot_byte;

@@ -99,6 +99,7 @@ namespace config
 	u32 sio_device = 0;
 	u32 ir_device = 0;
 	u16 mpos_id = 0;
+	u32 utp_steps = 0;
 	bool use_opengl = false;
 	bool turbo = false;
 
@@ -676,7 +677,7 @@ bool parse_cli_args()
 					config::nds_slot2_device = 4;
 					config::nds_slot2_file = config::cli_args[x];
 				}
-			}	
+			}
 
 			//Load Firmware (NDS)
 			else if((config::cli_args[x] == "-fw") || (config::cli_args[x] == "--firmware"))
@@ -1057,7 +1058,7 @@ bool parse_ini_file()
 			{
 				util::from_str(ini_opts[++x], output);
 
-				if((output >= 0) && (output <= 4)) { config::nds_slot2_device = output; }
+				if((output >= 0) && (output <= 5)) { config::nds_slot2_device = output; }
 			}
 
 			else 
@@ -2283,6 +2284,35 @@ bool parse_ini_file()
 			}
 		}
 
+		//Ubisoft Thrustmaster Pedometer steps
+		else if(ini_item == "#utp_steps")
+		{
+			if((x + 1) < size)
+			{
+				ini_item = ini_opts[++x];
+
+				//Make sure only 5 characters max are used
+				if(ini_item.size() > 5) { ini_item = ini_item.substr(0, 5); }
+
+				u32 steps = 0;
+
+				//Parse the string into hex
+				if(!util::from_hex_str(ini_item, steps))
+				{
+					std::cout<<"GBE::Error - Could not parse gbe.ini (#utp_steps) \n";
+					return false;
+				}
+
+				config::utp_steps = steps;
+			}
+
+			else
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#utp_steps) \n";
+				return false;
+			}
+		}
+
 		//Recent files
 		else if(ini_item == "#recent_files")
 		{
@@ -2423,6 +2453,14 @@ bool save_ini_file()
 			line_pos = output_count[x];
 
 			output_lines[line_pos] = "[#slot2_device:" + util::to_str(config::nds_slot2_device) + "]";
+		}
+
+		//Ubisoft Thrustmaster Steps
+		if(ini_item == "#utp_steps")
+		{
+			line_pos = output_count[x];
+
+			output_lines[line_pos] = "[#utp_steps:" + util::to_str(config::utp_steps) + "]";
 		}
 
 		//Set emulated system type

@@ -56,7 +56,8 @@ class NTR_MMU
 		SLOT2_NONE,
 		SLOT2_PASSME,
 		SLOT2_RUMBLE_PAK,
-		SLOT2_GBA_CART
+		SLOT2_GBA_CART,
+		SLOT2_UBISOFT_PEDOMETER,
 	};
 
 	backup_types current_save_type;

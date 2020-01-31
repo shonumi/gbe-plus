@@ -43,6 +43,7 @@ void NTR_MMU::reset()
 		case 2: current_slot2_device = SLOT2_PASSME; break;
 		case 3: current_slot2_device = SLOT2_RUMBLE_PAK; break;
 		case 4: current_slot2_device = SLOT2_GBA_CART; break;
+		case 5: current_slot2_device = SLOT2_UBISOFT_PEDOMETER; break;
 	}	
 
 	memory_map.clear();
@@ -348,6 +349,7 @@ u8 NTR_MMU::read_u8(u32 address)
 			break;
 
 		case 0x8:
+		case 0xA:
 			return read_slot2_device(address);
 			break;
 
@@ -1296,6 +1298,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			break;
 
 		case 0x8:
+		case 0xA:
 			write_slot2_device(address, value);
 			return;
 	}
