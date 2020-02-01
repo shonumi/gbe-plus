@@ -379,6 +379,7 @@ void AGB_SIO::reset()
 	cdz_e.command_id = 0;
 	cdz_e.state = 0;
 	cdz_e.frame_counter = 0;
+	cdz_e.turn = 0;
 	cdz_e.setup_sub_screen = false;
 
 	if(config::ir_device == 6) { cdz_e.active = zoids_cdz_load_data(); }
@@ -1904,9 +1905,9 @@ void AGB_SIO::zoids_cdz_update()
 
 			switch(cdz_e.frame_counter % 4)
 			{
-				case 0: cdz_e.angle += 10; break;
+				case 0: cdz_e.angle += 10; cdz_e.turn = 0; break;
 				case 1: cdz_e.angle -= 10; break;
-				case 2: cdz_e.angle -= 10; break;
+				case 2: cdz_e.angle -= 10; cdz_e.turn = 1; break;
 				case 3: cdz_e.angle += 10; break;
 			}
 
@@ -1915,8 +1916,16 @@ void AGB_SIO::zoids_cdz_update()
 			cdz_e.frame_counter++;
 			break;
 
-		//Move forward
+		//Move forward, Move forward + jump
 		case 0x3:
+		case 0x5:
+			//If also jumping, calculate next angle, continuing previous turn
+			if(cdz_e.state == 0x5)
+			{
+				if(cdz_e.turn) { cdz_e.angle -= 10; }
+				else { cdz_e.angle += 10; }
+			}
+
 			//Calculate next X/Y based on current angle
 			{
 				float angle = (cdz_e.angle * 3.14159265) / 180.0;
@@ -1934,8 +1943,16 @@ void AGB_SIO::zoids_cdz_update()
 			cdz_e.frame_counter++;
 			break;
 
-		//Move backward
+		//Move backward, Move backware + jump
 		case 0x6:
+		case 0x8:
+			//If also jumping, calculate next angle, continuing previous turn
+			if(cdz_e.state == 0x8)
+			{
+				if(cdz_e.turn) { cdz_e.angle -= 10; }
+				else { cdz_e.angle += 10; }
+			}
+
 			//Calculate next X/Y based on current angle
 			{
 				float angle = (cdz_e.angle * 3.14159265) / 180.0;

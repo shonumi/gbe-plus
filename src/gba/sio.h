@@ -174,6 +174,7 @@ class AGB_SIO
 		u8 command_id;
 		u8 state;
 		u8 frame_counter;
+		u8 turn;
 		bool active;
 		bool setup_sub_screen;
 		
