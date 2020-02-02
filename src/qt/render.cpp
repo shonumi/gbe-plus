@@ -34,8 +34,8 @@ void render_screen_sw(std::vector<u32>& image)
 
 	//Determine the dimensions of the source image
 	//GBA = 240x160, GB-GBC = 160x144, NDS = 256x384, SGB = 256x224
-	if(config::gb_type == 3) { width = 240; height = 160; }
-	else { width = config::sys_width; height = config::sys_height; }
+	width = config::sys_width;
+	height = config::sys_height;
 
 	//Fill in image with pixels from the emulated LCD
 	for(int y = 0; y < height; y++)

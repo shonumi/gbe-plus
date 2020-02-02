@@ -1341,7 +1341,11 @@ void AGB_LCD::update()
 		if(SDL_MUSTLOCK(final_screen)){ SDL_LockSurface(final_screen); }
 		u32* out_pixel_data = (u32*)final_screen->pixels;
 
-		for(int a = 0; a < 0x9600; a++) { out_pixel_data[a] = screen_buffer[a]; }
+		for(int a = 0; a < 0x9600; a++)
+		{
+			out_pixel_data[a] = screen_buffer[a];
+			if(mem->sub_screen_buffer.size()) { out_pixel_data[0x9600 + a] = mem->sub_screen_buffer[a]; }
+		}
 
 		//Unlock source surface
 		if(SDL_MUSTLOCK(final_screen)){ SDL_UnlockSurface(final_screen); }
@@ -1359,7 +1363,15 @@ void AGB_LCD::update()
 	//Use external rendering method (GUI)
 	else
 	{
-		if(!config::use_opengl) { config::render_external_sw(screen_buffer); }
+		if(!config::use_opengl)
+		{
+			if(mem->sub_screen_buffer.size())
+			{
+				for(int a = 0; a < 0x9600; a++) { screen_buffer[0x9600 + a] = mem->sub_screen_buffer[a]; }
+			}
+
+			config::render_external_sw(screen_buffer);
+		}
 
 		else
 		{
@@ -1367,7 +1379,11 @@ void AGB_LCD::update()
 			if(SDL_MUSTLOCK(final_screen)){ SDL_LockSurface(final_screen); }
 			u32* out_pixel_data = (u32*)final_screen->pixels;
 
-			for(int a = 0; a < 0x9600; a++) { out_pixel_data[a] = screen_buffer[a]; }
+			for(int a = 0; a < 0x9600; a++)
+			{
+				out_pixel_data[a] = screen_buffer[a];
+				if(mem->sub_screen_buffer.size()) { out_pixel_data[0x9600 + a] = mem->sub_screen_buffer[a]; }
+			}
 
 			//Unlock source surface
 			if(SDL_MUSTLOCK(final_screen)){ SDL_UnlockSurface(final_screen); }
@@ -1598,7 +1614,15 @@ void AGB_LCD::step()
 			//Use external rendering method (GUI)
 			else
 			{
-				if(!config::use_opengl) { config::render_external_sw(screen_buffer); }
+				if(!config::use_opengl)
+				{
+					if(mem->sub_screen_buffer.size())
+					{
+						for(int a = 0; a < 0x9600; a++) { screen_buffer[0x9600 + a] = mem->sub_screen_buffer[a]; }
+					}
+
+					config::render_external_sw(screen_buffer);
+				}
 
 				else
 				{
