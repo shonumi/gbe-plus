@@ -1554,6 +1554,9 @@ void AGB_LCD::step()
 				draw_osd_msg(std::string("***"), screen_buffer, x_offset, y_offset);
 			}
 
+			//Update subscreen per frame
+			if(mem->sub_screen_update) { mem->sub_screen_lock = false; }
+
 			//Use SDL
 			if(config::sdl_render)
 			{

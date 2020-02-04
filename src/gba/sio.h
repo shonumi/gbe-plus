@@ -178,6 +178,9 @@ class AGB_SIO
 		u8 boost;
 		bool active;
 		bool setup_sub_screen;
+
+		s16 shot_x;
+		s16 shot_y;
 		
 		std::vector< std::vector<u32> > sprite_buffer;
 		std::vector<u32> sprite_width;

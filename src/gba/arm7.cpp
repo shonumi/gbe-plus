@@ -1587,6 +1587,20 @@ void ARM7::clock_emulated_sio_device()
 
 		case 0x11:
 			//Process AGB-006
+			if(mem->sub_screen_update)
+			{
+				if(!mem->sub_screen_lock)
+				{
+					mem->sub_screen_update--;
+					mem->sub_screen_lock = true;
+					controllers.serial_io.zoids_cdz_update();
+
+					if(mem->sub_screen_update == 0) { controllers.serial_io.sio_stat.emu_device_ready = false; }
+				}
+
+				return;
+			}
+
 			if(controllers.serial_io.ir_adapter.on) { controllers.serial_io.ir_adapter.cycles += system_cycles; }
 			else { controllers.serial_io.ir_adapter.off_cycles += system_cycles; }
 

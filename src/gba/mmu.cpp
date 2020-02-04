@@ -126,6 +126,8 @@ void AGB_MMU::reset()
 
 	sio_emu_device_ready = false;
 	sub_screen_buffer.clear();
+	sub_screen_update = 0;
+	sub_screen_lock = false;
 
 	g_pad = NULL;
 	timer = NULL;

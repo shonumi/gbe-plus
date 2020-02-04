@@ -376,6 +376,8 @@ void AGB_SIO::reset()
 	//Emulated Zoids model aka CDZ-E
 	cdz_e.x = 0;
 	cdz_e.y = 0;
+	cdz_e.shot_x = 0;
+	cdz_e.shot_y = 0;
 	cdz_e.command_id = 0;
 	cdz_e.state = 0;
 	cdz_e.frame_counter = 0;
@@ -1748,10 +1750,13 @@ void AGB_SIO::zoids_cdz_process()
 			{
 				bool update = true;
 
+				//Catch Sync Signals
+				if(((ir_code & 0xFF0) == 0x930) || ((ir_code & 0xFF0) == 0xB30)) { ir_code &= 0xFF0; } 
+
 				switch(ir_code)
 				{
 					//Sync Signal - ID1
-					case 0x932:
+					case 0x930:
 						cdz_e.state = 0;
 						cdz_e.setup_sub_screen = true;
 						std::cout<<"SIO::CDZ Sync Signal - ID1\n";
@@ -1761,6 +1766,9 @@ void AGB_SIO::zoids_cdz_process()
 					case 0x80A:
 						cdz_e.state = 1;
 						cdz_e.boost = 0;
+						mem->sub_screen_update = 60;
+						mem->sub_screen_lock = true;
+						sio_stat.emu_device_ready = true;
 						std::cout<<"SIO::CDZ Fire Weapon - ID1\n";
 						break;
 
@@ -1768,7 +1776,16 @@ void AGB_SIO::zoids_cdz_process()
 					case 0x80C:
 						cdz_e.state = 1;
 						cdz_e.boost = 2;
+
+						cdz_e.shot_x = cdz_e.x;
+						cdz_e.shot_y = cdz_e.y;
+
+						mem->sub_screen_update = 60;
+						mem->sub_screen_lock = true;
+						sio_stat.emu_device_ready = true;
+
 						std::cout<<"SIO::CDZ Fire Weapon (Boost 1) - ID1\n";
+
 						break;
 
 					//Jump - ID1
@@ -1876,7 +1893,7 @@ void AGB_SIO::zoids_cdz_process()
 						break;
 
 					//Sync Signal - ID2
-					case 0xB33:
+					case 0xB30:
 						cdz_e.state = 0;
 						cdz_e.setup_sub_screen = true;
 						std::cout<<"SIO::CDZ Sync Signal - ID2\n";
@@ -1972,6 +1989,26 @@ void AGB_SIO::zoids_cdz_update()
 			sprite_id = 0;
 			break;
 
+		//Fire
+		case 0x1:
+			//Calculate next X/Y based on current angle
+			{
+				delta = 1 + (60 - mem->sub_screen_update);
+				delta *= 2;
+
+				float angle = (cdz_e.angle * 3.14159265) / 180.0;
+				sx = cdz_e.x;
+				sy = cdz_e.y - delta;
+
+				float fx = ((sx - cdz_e.x) * cos(angle)) - ((sy - cdz_e.y) * sin(angle)) + cdz_e.x;
+				float fy = ((sx - cdz_e.x) * sin(angle)) + ((sy - cdz_e.y) * cos(angle)) + cdz_e.y;
+
+				cdz_e.shot_x = (u32)fx;
+				cdz_e.shot_y = (u32)fy;
+			}
+
+			break;
+
 		//Jump
 		case 0x2:
 			sprite_id = (cdz_e.frame_counter & 0x1) ? 1 : 2;
@@ -2021,7 +2058,7 @@ void AGB_SIO::zoids_cdz_update()
 			cdz_e.frame_counter++;
 			break;
 
-		//Move backward, Move backware + jump
+		//Move backward, Move backward + jump
 		case 0x6:
 		case 0x8:
 			//If also jumping, calculate next angle, continuing previous turn
@@ -2077,6 +2114,7 @@ void AGB_SIO::zoids_cdz_update()
 	float st = sin(theta);
 	float ct = cos(theta);
 	
+	//Draw CDZ sprite
 	for(u32 y = 0; y < h; y++)
 	{
 		for(u32 x = 0; x < w; x++)
@@ -2104,6 +2142,24 @@ void AGB_SIO::zoids_cdz_update()
 			}
 
 			src_index++;
+		}
+	}
+
+	//Draw CDZ shot
+	if(mem->sub_screen_update)
+	{
+		for(u32 y = 0; y < 4; y++)
+		{
+			for(u32 x = 0; x < 4; x++)
+			{
+				//Calculate target (subscreen) pixel
+				target_index = ((cdz_e.shot_y + y) * 240) + (cdz_e.shot_x + x);
+
+				if((target_index < 0x9600) && (target_index >= 0))
+				{	
+					mem->sub_screen_buffer[target_index] = 0xFF000000;
+				}
+			}
 		}
 	}
 }		
