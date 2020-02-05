@@ -1748,215 +1748,163 @@ void AGB_SIO::zoids_cdz_process()
 			//Check for valid command, then process each one
 			if(!abort)
 			{
-				bool update = true;
+				bool update = false;
 
-				//Catch Sync Signals
-				if(((ir_code & 0xFF0) == 0x930) || ((ir_code & 0xFF0) == 0xB30)) { ir_code &= 0xFF0; } 
+				std::string channel_str = "";
+				std::string speed_str = "";
+				std::string action_str = "";
 
-				switch(ir_code)
+				u8 b2 = ((ir_code >> 8) & 0xF);
+				u8 b1 = ((ir_code >> 4) & 0xF);
+				u8 b0 = (ir_code & 0xF);
+
+				u8 motion = 0;
+				u8 sub_action = 0;
+
+				std::cout<<"S -> 0x" << std::hex << ir_code << "\n";
+
+				//Special actions
+				if((b2 == 0x9) || (b2 == 0xB))
 				{
-					//Sync Signal - ID1
-					case 0x930:
+					channel_str = ((b2 == 9) ? " :: ID1" : " :: ID2");
+
+					//Sync Signal
+					if((b1 == 3) && (b0 < 6))
+					{
+						update = true;
 						cdz_e.state = 0;
 						cdz_e.setup_sub_screen = true;
-						std::cout<<"SIO::CDZ Sync Signal - ID1\n";
-						break;
+						action_str = "Sync Signal" + channel_str;
+					}
+				}
 
-					//Fire Weapon - ID1
-					case 0x80A:
-						cdz_e.state = 1;
-						cdz_e.boost = 0;
-						mem->sub_screen_update = 60;
-						mem->sub_screen_lock = true;
-						sio_stat.emu_device_ready = true;
-						std::cout<<"SIO::CDZ Fire Weapon - ID1\n";
-						break;
+				//Main actions
+				if((b2 == 0x8) || (b2 == 0xA))
+				{
+					channel_str = ((b2 == 8) ? " :: ID1" : " :: ID2");
 
-					//Fire Weapon (Boost 1) - ID1
-					case 0x80C:
-						cdz_e.state = 1;
-						cdz_e.boost = 2;
+					//Motion
+					switch(b1)
+					{
+						case 0x4: motion = 2; speed_str = " :: Speed 2"; break;
+						case 0x6: motion = 2; speed_str = " :: Speed 1"; break;
+						case 0x8: motion = 2; speed_str = " :: Speed 0"; break;
+						case 0xA: motion = 1; speed_str = " :: Speed 0"; break;
+						case 0xC: motion = 1; speed_str = " :: Speed 1"; break;
+						case 0xE: motion = 1; speed_str = " :: Speed 2"; break;
+					}
 
-						cdz_e.shot_x = cdz_e.x;
-						cdz_e.shot_y = cdz_e.y;
+					//Sub-action
+					switch(b0)
+					{
+						case 0x4:
+						case 0x5:
+						case 0x6:
+						case 0x8:
+						case 0x9:
+							sub_action = 2;
+							break;
 
-						mem->sub_screen_update = 60;
-						mem->sub_screen_lock = true;
-						sio_stat.emu_device_ready = true;
+						case 0xA:
+						case 0xB:
+						case 0xC:
+						case 0xD:
+							sub_action = 1;
+							break;
+					}
 
-						std::cout<<"SIO::CDZ Fire Weapon (Boost 1) - ID1\n";
+					//Set CDZ state
+					switch((motion << 4) | sub_action)
+					{
+						//Fire
+						case 0x1:
+							update = true;
+							cdz_e.state = 1;
+							action_str = "Fire" + speed_str + channel_str;
 
-						break;
+							cdz_e.shot_x = cdz_e.x;
+							cdz_e.shot_y = cdz_e.y;
 
-					//Jump - ID1
-					case 0x809:
-						if(cdz_e.state != 2) { cdz_e.frame_counter = 0; }
-						cdz_e.state = 2;
-						cdz_e.boost = 0;
-						std::cout<<"SIO::CDZ Jump - ID1\n";
-						break;
+							mem->sub_screen_update = 60;
+							mem->sub_screen_lock = true;
+							sio_stat.emu_device_ready = true;
 
-					//Jump (Boost 1) - ID1
-					case 0x806:
-						if(cdz_e.state != 2) { cdz_e.frame_counter = 0; }
-						cdz_e.state = 2;
-						cdz_e.boost = 2;
-						std::cout<<"SIO::CDZ Jump (Boost 1) - ID1\n";
-						break;
+							break;
 
-					//ID1 Forward Combos
+						//Jump
+						case 0x2:
+							update = true;
+							if(cdz_e.state != 2) { cdz_e.frame_counter = 0; }
+							cdz_e.state = 2;
+							action_str = "Jump" + speed_str + channel_str;
+							break;
 
-					//Move Forward - ID1
-					case 0x8A0:
-						cdz_e.state = 3;
-						cdz_e.boost = 0;
-						std::cout<<"SIO::CDZ Move Forward - ID1\n";
-						break;
+						//Forward
+						case 0x10:
+							update = true;
+							cdz_e.state = 3;
+							action_str = "Forward" + speed_str + channel_str;
+							break;
 
-					//Move Forward (Boost 1) - ID1
-					case 0x8C0:
-						cdz_e.state = 3;
-						cdz_e.boost = 2;
-						std::cout<<"SIO::CDZ Move Forward (Boost 1) - ID1\n";
-						break;
-					
-					//Move Forward + Fire Weapon - ID1
-					case 0x8AA:
-						cdz_e.state = 4;
-						cdz_e.boost = 0;
-						std::cout<<"SIO:CDZ Move Forward + Fire Weapon - ID1\n";
-						break;
+						//Forward + Fire
+						case 0x11:
+							update = true;
+							cdz_e.state = 4;
+							action_str = "Foward + Fire" + speed_str + channel_str;
 
-					//Move Forward + Fire Weapon (Boost 1) - ID1
-					case 0x8CC:
-						cdz_e.state = 4;
-						cdz_e.boost = 2;
-						std::cout<<"SIO:CDZ Move Forward + Fire Weapon (Boost 1) - ID1\n";
-						break;
-					
-					//Move Forward + Jump - ID1
-					case 0x8A9:
-						cdz_e.state = 5;
-						cdz_e.boost = 0;
-						std::cout<<"SIO:CDZ Move Forward + Jump - ID1\n";
-						break;
+							cdz_e.shot_x = cdz_e.x;
+							cdz_e.shot_y = cdz_e.y;
 
-					//Move Forward + Jump (Boost 1) - ID1
-					case 0x8C6:
-						cdz_e.state = 5;
-						cdz_e.boost = 2;
-						std::cout<<"SIO:CDZ Move Forward + Jump (Boost 1) - ID1\n";
-						break;
+							mem->sub_screen_update = 60;
+							mem->sub_screen_lock = true;
+							sio_stat.emu_device_ready = true;
 
-					//ID1 Backward Combos
+							break;
 
-					//Move Backward - ID1
-					case 0x881:
-						cdz_e.state = 6;
-						cdz_e.boost = 0;
-						std::cout<<"SIO::CDZ Move Backward - ID1\n";
-						break;
+						//Forward + Jump
+						case 0x12:
+							update = true;
+							cdz_e.state = 5;
+							action_str = "Forward + Jump" + speed_str + channel_str;
+							break;
 
-					//Move Backward (Boost 1) - ID1
-					case 0x860:
-						cdz_e.state = 6;
-						cdz_e.boost = 2;
-						std::cout<<"SIO::CDZ Move Backward (Boost 1) - ID1\n";
-						break;
+						//Backward
+						case 0x20:
+							update = true;
+							cdz_e.state = 6;
+							action_str = "Backward" + speed_str + channel_str;
+							break;
 
-					//Move Backward + Fire Weapon - ID1
-					case 0x88B:
-						cdz_e.state = 7;
-						cdz_e.boost = 0;
-						std::cout<<"SIO::CDZ Move Backward + Fire - ID1\n";
-						break;
+						//Backward + Fire
+						case 0x21:
+							update = true;
+							cdz_e.state = 7;
+							action_str = "Backward + Fire" + speed_str + channel_str;
 
-					//Move Backward + Fire Weapon (Boost 1) - ID1
-					case 0x86C:
-						cdz_e.state = 7;
-						cdz_e.boost = 2;
-						std::cout<<"SIO::CDZ Move Backward + Fire (Boost 1) - ID1\n";
-						break;
+							cdz_e.shot_x = cdz_e.x;
+							cdz_e.shot_y = cdz_e.y;
 
-					//Move Backward + Jump - ID1
-					case 0x888:
-						cdz_e.state = 8;
-						cdz_e.boost = 0;
-						std::cout<<"SIO::CDZ Move Backward + Jump - ID1\n";
-						break;
+							mem->sub_screen_update = 60;
+							mem->sub_screen_lock = true;
+							sio_stat.emu_device_ready = true;
 
-					//Move Backward + Jump (Boost 1) - ID1
-					case 0x866:
-						cdz_e.state = 8;
-						cdz_e.boost = 2;
-						std::cout<<"SIO::CDZ Move Backward + Jump (Boost 1) - ID1\n";
-						break;
+							break;
 
-					//Sync Signal - ID2
-					case 0xB30:
-						cdz_e.state = 0;
-						cdz_e.setup_sub_screen = true;
-						std::cout<<"SIO::CDZ Sync Signal - ID2\n";
-						break;
-
-					//Fire Weapon - ID2
-					case 0xA0B:
-						cdz_e.state = 1;
-						std::cout<<"SIO::CDZ Fire Weapon - ID2\n";
-						break;
-
-					//Jump - ID2
-					case 0xA08:
-						if(cdz_e.state != 2) { cdz_e.frame_counter = 0; }
-						cdz_e.state = 2;
-						std::cout<<"SIO::CDZ Jump - ID2\n";
-						break;
-
-					//Move Forward - ID2
-					case 0xAA1:
-						cdz_e.state = 3;
-						std::cout<<"SIO::CDZ Move Forward - ID2\n";
-						break;
-
-					//Move Forward + Fire Weapon - ID2
-					case 0xAAB:
-						cdz_e.state = 4;
-						std::cout<<"SIO::CDZ Move Forward + Fire - ID2\n";
-						break;
-
-					//Move Forward + Jump - ID2
-					case 0xAA8:
-						cdz_e.state = 5;
-						std::cout<<"SIO::CDZ Move Forward + Jump - ID2\n";
-						break;
-
-					//Move Backward - ID2
-					case 0xA80:
-						cdz_e.state = 6;
-						std::cout<<"SIO::CDZ Move Backward - ID2\n";
-						break;
-
-					//Move Backward + Fire Weapon - ID2
-					case 0xA8A:
-						cdz_e.state = 7;
-						std::cout<<"SIO::CDZ Move Backward + Fire - ID2\n";
-						break;
-
-					//Move Backward + Jump - ID2
-					case 0xA89:
-						cdz_e.state = 8;
-						std::cout<<"SIO::CDZ Move Backward + Jump - ID2\n";
-						break;
-
-					//Do nothing
-					default:
-						std::cout<<"S -> 0x" << std::hex << ir_code << "\n";
-						update = false;
-						break;
+						//Backward + Jump
+						case 0x22:
+							update = true;
+							cdz_e.state = 8;
+							action_str = "Backward + Jump" + speed_str + channel_str;
+							break;
+					}
 				}
 
 				//Update subscreen
-				if(update) { zoids_cdz_update(); }
+				if(update)
+				{
+					std::cout<< action_str << "\n";
+					zoids_cdz_update();
+				}
 			}
 		}
 	}
@@ -2027,8 +1975,9 @@ void AGB_SIO::zoids_cdz_update()
 			cdz_e.frame_counter++;
 			break;
 
-		//Move forward, Move forward + jump
+		//Move forward, Move forward + jump, Move forward + fire
 		case 0x3:
+		case 0x4:
 		case 0x5:
 			//If also jumping, calculate next angle, continuing previous turn
 			if(cdz_e.state == 0x5)
@@ -2039,7 +1988,25 @@ void AGB_SIO::zoids_cdz_update()
 				else { cdz_e.angle += delta; }
 			}
 
+			//If also firing, calculate next angle for projectile
+			if(cdz_e.state == 0x4)
+			{
+				delta = 1 + (60 - mem->sub_screen_update);
+				delta *= 2;
+
+				float angle = (cdz_e.angle * 3.14159265) / 180.0;
+				sx = cdz_e.x;
+				sy = cdz_e.y - delta;
+
+				float fx = ((sx - cdz_e.x) * cos(angle)) - ((sy - cdz_e.y) * sin(angle)) + cdz_e.x;
+				float fy = ((sx - cdz_e.x) * sin(angle)) + ((sy - cdz_e.y) * cos(angle)) + cdz_e.y;
+
+				cdz_e.shot_x = (u32)fx;
+				cdz_e.shot_y = (u32)fy;
+			}
+
 			//Calculate next X/Y based on current angle
+			if((cdz_e.state != 0x4) || ((mem->sub_screen_update % 10) == 0))
 			{
 				delta = 5 + (cdz_e.boost);
 
@@ -2052,14 +2019,16 @@ void AGB_SIO::zoids_cdz_update()
 
 				cdz_e.x = (u32)fx;
 				cdz_e.y = (u32)fy;
+
+				sprite_id = (cdz_e.frame_counter & 0x1) ? 1 : 2;
+				cdz_e.frame_counter++;
 			}
-				
-			sprite_id = (cdz_e.frame_counter & 0x1) ? 1 : 2;
-			cdz_e.frame_counter++;
+
 			break;
 
 		//Move backward, Move backward + jump
 		case 0x6:
+		case 0x7:
 		case 0x8:
 			//If also jumping, calculate next angle, continuing previous turn
 			if(cdz_e.state == 0x8)
@@ -2070,7 +2039,25 @@ void AGB_SIO::zoids_cdz_update()
 				else { cdz_e.angle += delta; }
 			}
 
+			//If also firing, calculate next angle for projectile
+			if(cdz_e.state == 0x7)
+			{
+				delta = 1 + (60 - mem->sub_screen_update);
+				delta *= 2;
+
+				float angle = (cdz_e.angle * 3.14159265) / 180.0;
+				sx = cdz_e.x;
+				sy = cdz_e.y - delta;
+
+				float fx = ((sx - cdz_e.x) * cos(angle)) - ((sy - cdz_e.y) * sin(angle)) + cdz_e.x;
+				float fy = ((sx - cdz_e.x) * sin(angle)) + ((sy - cdz_e.y) * cos(angle)) + cdz_e.y;
+
+				cdz_e.shot_x = (u32)fx;
+				cdz_e.shot_y = (u32)fy;
+			}
+
 			//Calculate next X/Y based on current angle
+			if((cdz_e.state != 0x7) || ((mem->sub_screen_update % 10) == 0))
 			{
 				delta = 5 + (cdz_e.boost);
 
@@ -2083,10 +2070,11 @@ void AGB_SIO::zoids_cdz_update()
 
 				cdz_e.x = (u32)fx;
 				cdz_e.y = (u32)fy;
+
+				sprite_id = (cdz_e.frame_counter & 0x1) ? 1 : 2;
+				cdz_e.frame_counter++;
 			}
 
-			sprite_id = (cdz_e.frame_counter & 0x1) ? 1 : 2;
-			cdz_e.frame_counter++;
 			break;
 
 		//Do nothing
