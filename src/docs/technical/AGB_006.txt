@@ -1,4 +1,4 @@
-AGB-006 Documentation 0.2
+AGB-006 Documentation 0.3
 January 8th, 2020
 Shonumi aka D.S. Baxter
 
@@ -75,52 +75,72 @@ Short Pulse		Roughly 16x the length of a Mini Pulse
 Medium Pulse		Roughly 40x the length of a Mini Pulse
 Long Pulse		The longest pulse. Easily around 6000x the length of a Mini Pulse
 
-Mini Pulses appear to last anywhere from 18.1us to 20us. There are dozens of them in between every other type of pulse, and they seem to act as a sort of "keep-alive" for IR transmission. Below are the specific transfers used to manipulate the Zoids. There are two separate "channels" for ID1 and ID2. The goal was to have two players compete against each other, so two distinct versions of each command exist to avoid interference. For brevity, the Mini Pulses are omitted.
+Mini Pulses appear to last anywhere from 18.1us to 20us. There are dozens of them in between every other type of pulse, and they seem to act as a sort of "keep-alive" for IR transmission. Below are the specific transfers used to manipulate the Zoids. There are two separate "channels" for ID1 and ID2. The goal was to have two players compete against each other, so two distinct versions of each command exist to avoid interference.
 
-S = Short Pulse
-M = Medium Pulse
-L = Long Pulse
+When omitting Mini Pulses, each IR command is 12 Short or Medium Pulses followed by 1 Long Pulse. The order of Short and Medium Pulses determines the exact command, while the Long Pulse functions as a stop signal. Each command can be converted into binary by treating a Medium Pulse a "1", and a Short Pulse as a "0". Commands can then be parsed by examining every 4-bit segment. Below describes how each segment affects the command. Note that the values used use the first pulse as the MSB and the last pulse as the LSB.
 
 -----------------------------------------------------------
-ID	| Command		| Sequence
+Bits 8-11 - Channel + Action Category
 -----------------------------------------------------------
-1	| A (Fire weapon)	| M S S S S S S S M S M S L
-1	| B (Jump/Sway)		| M S S S S S S S M S S M L
-1	| UP (Move foward)	| M S S S M S M S S S S S L
-1	| DOWN (Move backward)	| M S S S M S S S S S S M L
-	|			|
-2	| A (Fire weapon)	| M S M S S S S S M S M M L
-2	| B (Jump/Sway)		| M S M S S S S S M S S S L
-2	| UP (Move forward)	| M S M S M S M S S S S M L
-2	| DOWN (Move backward)	| M S M S M S S S S S S S L
+0x8		Perform "Main Actions" for ID1
+0x9		Perform "Misc. Actions" for ID1
+0xA		Perform "Main Actions" for ID2
+0xB		Perform "Misc. Actions" for ID2
 -----------------------------------------------------------
 
-The only differences between the two channels are the 3rd and 12th pulses. The 3rd pulses are Short Pulses on ID1 and Medium Pulses on ID2. The 12th pulses are alternating Small and Medium Pulses on ID1 and alternating Medium and Small Pulses on ID2. All commands occupy 13 pulses, with a Long Pulse marking the end. These patterns are repeated for as long as the button is pressed.
-
-The forward/backward commands can be also be combined with the fire/jump commands to perform two actions at the same time. In those instances, a separate pattern of IR pulses is sent.
+Bits 8-11 determine which channel the command belongs to, as well as the over category of action the CDZ model should perform. Main Actions describe things such as moving forward/backward, firing the cannon, and turning. Misc. Actions describe a variety of things such as syncing/initializing the GBA and CDZ model, roaring, and retreating. It is also used for some actions during the "boost" mode. A number of these actions are not listed in the game's manual.
 
 -----------------------------------------------------------
-ID	| Combined Command	| Sequence
+Bits 4-7 - Motion Type
 -----------------------------------------------------------
-1	| Forward + Fire	| M S S S M S M S M S M S L
-1	| Forward + Jump	| M S S S M S M S M S S M L
-1	| Backward + Fire	| M S S S M S S S M S M M L
-1	| Backward + Jump	| M S S S M S S S M S S S L
-	|			|
-2	| Forward + Fire	| M S M S M S M S M S M M L
-2	| Forward + Jump	| M S M S M S S S M S S S L
-2	| Backward + Fire	| M S M S M S S S M S M S L
-2	| Backward + Jump	| M S M S M S S S M S S M L
+For Misc. Actions
+
+0x3		Sync Signal
+
+For Main Actions
+
+
+
+0x4		Backward Speed 2
+0x6		Backward Speed 1
+0x8		Backward Speed 0
+0xA		Forward Speed 0
+0xC		Forward Speed 1
+0xE		Forward Speed 2
 -----------------------------------------------------------
 
-At the beginning of a communication session between a GBA+AGB-006 and a CDZ Zoids model, another pattern is transmitted, conceivably to start or syncronize the toy with the video game. ID1 and ID2 have separate startup signals. Their format is exactly like the button commands.
+The Cyber Drive Zoids game can use the save data from the single-player mode to enhance the actions performed by the CDZ model, chiefly in regards to speed, HP, and the ability to boost. Once sufficient progress is made in the single-player mode, the CDZ model can shift gears up and down to alter speed. The regular IR controller that comes packaged by default with CDZ models does not offer these advantages. The sync signal is used on startup to activate the CDZ model for a match.  
 
 -----------------------------------------------------------
-ID	| Sync Signal Sequence
+Bits 0-3 - Action Type
 -----------------------------------------------------------
-1	| M S S M S S M M S S M S L
-2	| M S M M S S M M S S M M L
+
+For Main Actions
+
+0x0		Walk
+0x1		Walk
+0x4		Jump
+0x5		Jump
+0x6		Jump
+0x7		Jump
+0x8		Jump
+0x9		Jump
+0xA		Fire
+0xB		Fire
+0xC		Fire
+0xD		Fire
+
+For Misc. Actions - Sync Signal
+
+0x2		Sync ID1, Boost Level 0
+0x3		Sync ID2, Boost Level 0
+0x4		Sync ID1, Boost Level 1
+0x5		Sync ID2, Boost Level 1
 -----------------------------------------------------------
+
+For Main Actions, if the Motion Type is not one of the above specified values (e.g. a 0), and the Action Type is jumping or firing, then the Zoid will move not forward or backward . Instead, it will remain stationary while performing that action. In this same manner, it's possible to simultaneously combine jumping or firing with moving by properly setting the Motion Type. Walking should always specify one of the listed Motion Types, however.
+
+The CDZ model has a "boost" mode where the toy is temporarily invulnerable to damage and shifts into the highest gear. This mode lasts for 10 seconds. The sync signals specify how many boosts are available per match for that CDZ model.
 
 
 ***************************************************
