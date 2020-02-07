@@ -1712,6 +1712,7 @@ void AGB_SIO::zoids_cdz_process()
 	u32 ir_index = 0;
 	u32 ir_size = ir_adapter.delay_data.size();
 	u16 ir_code = 0;
+	bool boost_mode = false;
 
 	for(u32 x = 0; x < ir_size; x++)
 	{
@@ -1763,7 +1764,7 @@ void AGB_SIO::zoids_cdz_process()
 
 				std::cout<<"S -> 0x" << std::hex << ir_code << "\n";
 
-				//Special actions
+				//Misc. actions
 				if((b2 == 0x9) || (b2 == 0xB))
 				{
 					channel_str = ((b2 == 9) ? " :: ID1" : " :: ID2");
@@ -1776,6 +1777,51 @@ void AGB_SIO::zoids_cdz_process()
 						cdz_e.setup_sub_screen = true;
 						action_str = "Sync Signal" + channel_str;
 					}
+
+					//Boost Mode
+					else if(b1 <= 1)
+					{
+						//Set CDZ State
+						switch(b0)
+						{
+							//Forward or Forward + Fire
+							case 0x0:
+							case 0x1:
+								//Forward + Fire
+								if(b1)
+								{
+									update = true;
+									cdz_e.state = 4;
+									action_str = "Boost Foward + Fire" + channel_str;
+
+									cdz_e.shot_x = cdz_e.x;
+									cdz_e.shot_y = cdz_e.y;
+
+									mem->sub_screen_update = 60;
+									mem->sub_screen_lock = true;
+									sio_stat.emu_device_ready = true;
+								}
+
+								//Forward
+								else
+								{
+									update = true;
+									cdz_e.state = 3;
+									action_str = "Boost Forward" + channel_str;
+								}
+
+								break;
+
+							//Forward + Jump
+							case 0x2:
+							case 0x3:
+								update = true;
+								cdz_e.state = 5;
+								action_str = "Boost Forward + Jump" + channel_str;
+								break;
+						}
+									
+					}
 				}
 
 				//Main actions
@@ -1786,6 +1832,12 @@ void AGB_SIO::zoids_cdz_process()
 					//Motion
 					switch(b1)
 					{
+						case 0x2:
+						case 0x3:
+							boost_mode = true;
+							motion = 2;
+							break;
+
 						case 0x4: motion = 2; speed_str = " :: Speed 2"; break;
 						case 0x6: motion = 2; speed_str = " :: Speed 1"; break;
 						case 0x8: motion = 2; speed_str = " :: Speed 0"; break;
@@ -1797,9 +1849,22 @@ void AGB_SIO::zoids_cdz_process()
 					//Sub-action
 					switch(b0)
 					{
+						case 0x0:
+						case 0x1:
+							if((b1 == 1) || (b1 == 3)) { sub_action = 1; }
+							boost_mode = true;
+							break;
+
+						case 0x2:
+						case 0x3:
+							sub_action = 2;
+							boost_mode = true;
+							break;
+
 						case 0x4:
 						case 0x5:
 						case 0x6:
+						case 0x7:
 						case 0x8:
 						case 0x9:
 							sub_action = 2;
@@ -1820,7 +1885,9 @@ void AGB_SIO::zoids_cdz_process()
 						case 0x1:
 							update = true;
 							cdz_e.state = 1;
-							action_str = "Fire" + speed_str + channel_str;
+							
+							if(boost_mode) { action_str = "Boost Fire" + channel_str; }
+							else { action_str = "Fire" + speed_str + channel_str; }
 
 							cdz_e.shot_x = cdz_e.x;
 							cdz_e.shot_y = cdz_e.y;
@@ -1836,7 +1903,9 @@ void AGB_SIO::zoids_cdz_process()
 							update = true;
 							if(cdz_e.state != 2) { cdz_e.frame_counter = 0; }
 							cdz_e.state = 2;
-							action_str = "Jump" + speed_str + channel_str;
+
+							if(boost_mode) { action_str = "Boost Jump" + channel_str; }
+							else { action_str = "Jump" + speed_str + channel_str; }
 							break;
 
 						//Forward
@@ -1872,14 +1941,18 @@ void AGB_SIO::zoids_cdz_process()
 						case 0x20:
 							update = true;
 							cdz_e.state = 6;
-							action_str = "Backward" + speed_str + channel_str;
+
+							if(boost_mode) { action_str = "Boost Backward" + channel_str; }
+							else { action_str = "Backward" + speed_str + channel_str; }
 							break;
 
 						//Backward + Fire
 						case 0x21:
 							update = true;
 							cdz_e.state = 7;
-							action_str = "Backward + Fire" + speed_str + channel_str;
+
+							if(boost_mode) { action_str = "Boost Backward + Fire" + channel_str; } 
+							else { action_str = "Backward + Fire" + speed_str + channel_str; }
 
 							cdz_e.shot_x = cdz_e.x;
 							cdz_e.shot_y = cdz_e.y;
@@ -1894,7 +1967,9 @@ void AGB_SIO::zoids_cdz_process()
 						case 0x22:
 							update = true;
 							cdz_e.state = 8;
-							action_str = "Backward + Jump" + speed_str + channel_str;
+
+							if(boost_mode) { action_str = "Boost Backward + Jump" + channel_str; }
+							else { action_str = "Backward + Jump" + speed_str + channel_str; }
 							break;
 					}
 				}
