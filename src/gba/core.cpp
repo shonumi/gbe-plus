@@ -388,6 +388,16 @@ void AGB_core::handle_hotkey(SDL_Event& event)
 		load_state(0);
 	}
 
+	//Cancel sub screen on F3
+	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F3)) 
+	{
+		if(config::resize_mode == 1)
+		{
+			config::request_resize = true;
+			config::resize_mode = 0;
+		}
+	}
+
 	//Pause and wait for netplay connection on F5
 	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F5))
 	{

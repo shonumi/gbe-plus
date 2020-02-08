@@ -1528,6 +1528,22 @@ void AGB_LCD::step()
 				if(config::sdl_render) { config::request_resize = false; }
 			}
 
+			//Check for screen resize - Exit sub screen
+			else if(config::request_resize)
+			{
+				config::sys_width = 240;
+				config::sys_height = 160;
+				screen_buffer.clear();
+				screen_buffer.resize(0x9600, 0xFFFFFFFF);
+					
+				if((window != NULL) && (config::sdl_render)) { SDL_DestroyWindow(window); }
+				init();
+					
+				if(config::sdl_render) { config::request_resize = false; }
+
+				mem->sub_screen_buffer.clear();
+			}
+
 			//Toggle HBlank flag OFF
 			mem->memory_map[DISPSTAT] &= ~0x2;
 

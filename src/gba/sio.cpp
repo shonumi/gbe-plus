@@ -1762,8 +1762,6 @@ void AGB_SIO::zoids_cdz_process()
 				u8 motion = 0;
 				u8 sub_action = 0;
 
-				std::cout<<"S -> 0x" << std::hex << ir_code << "\n";
-
 				//Misc. actions
 				if((b2 == 0x9) || (b2 == 0xB))
 				{
@@ -2009,7 +2007,11 @@ void AGB_SIO::zoids_cdz_update()
 		case 0x0:
 			cdz_e.x = 120;
 			cdz_e.y = 100;
+			cdz_e.angle = 0;
 			sprite_id = 0;
+
+			mem->sub_screen_buffer.clear();
+			mem->sub_screen_buffer.resize(0x9600, 0xFFFFFFFF);
 			break;
 
 		//Fire
@@ -2156,6 +2158,8 @@ void AGB_SIO::zoids_cdz_update()
 		default:
 			return;
 	}
+
+	if(!mem->sub_screen_buffer.size()) { return; }
 
 	//Draw selected sprite
 	mem->sub_screen_buffer.clear();
