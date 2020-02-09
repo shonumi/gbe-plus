@@ -576,6 +576,13 @@ void AGB_core::handle_hotkey(int input, bool pressed)
 				
 				break;
 		}
+
+		//Close any open sub screen
+		if(config::resize_mode == 1)
+		{
+			config::request_resize = true;
+			config::resize_mode = 0;
+		}
 	}
 }
 
