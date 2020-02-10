@@ -77,7 +77,7 @@ Long Pulse		The longest pulse. Easily around 6000x the length of a Mini Pulse
 
 Mini Pulses appear to last anywhere from 18.1us to 20us. There are dozens of them in between every other type of pulse, and they seem to act as a sort of "keep-alive" for IR transmission. Below are the specific transfers used to manipulate the Zoids. There are two separate "channels" for ID1 and ID2. The goal was to have two players compete against each other, so two distinct versions of each command exist to avoid interference.
 
-When omitting Mini Pulses, each IR command is 12 Short or Medium Pulses followed by 1 Long Pulse. The order of Short and Medium Pulses determines the exact command, while the Long Pulse functions as a stop signal. Each command can be converted into binary by treating a Medium Pulse a "1", and a Short Pulse as a "0". Commands can then be parsed by examining every 4-bit segment. Below describes how each segment affects the command. Note that the values used use the first pulse as the MSB and the last pulse as the LSB.
+When omitting Mini Pulses, each IR command is 12 Short or Medium Pulses followed by 1 Long Pulse. The order of Short and Medium Pulses determines the exact command, while the Long Pulse functions as a stop signal. Each command can be converted into binary by treating a Medium Pulse as "1", and a Short Pulse as a "0". Commands can then be parsed by examining every 4-bit segment. Below describes how each segment affects the command. Note that the values use the first pulse as the MSB and the last pulse as the LSB.
 
 -----------------------------------------------------------
 Bits 8-11 - Channel + Action Category
@@ -88,25 +88,29 @@ Bits 8-11 - Channel + Action Category
 0xB		Perform "Misc. Actions" for ID2
 -----------------------------------------------------------
 
-Bits 8-11 determine which channel the command belongs to, as well as the over category of action the CDZ model should perform. Main Actions describe things such as moving forward/backward, firing the cannon, and turning. Misc. Actions describe a variety of things such as syncing/initializing the GBA and CDZ model, roaring, and retreating. It is also used for some actions during the "boost" mode. A number of these actions are not listed in the game's manual.
+Bits 8-11 determine which channel the command belongs to, as well as the overall category of action the CDZ model should perform. Main Actions describe things such as moving forward/backward, firing the cannon, and turning. Misc. Actions describe a variety of things such as syncing/initializing the GBA and CDZ model, roaring, and retreating. It is also used for some actions during the "boost" mode. A number of these actions are not listed in the game's manual.
 
 -----------------------------------------------------------
 Bits 4-7 - Motion Type
 -----------------------------------------------------------
-For Misc. Actions
-
-0x3		Sync Signal
 
 For Main Actions
 
-
-
+0x2		Boost Backward
+0x3		Boost Backward
 0x4		Backward Speed 2
 0x6		Backward Speed 1
 0x8		Backward Speed 0
 0xA		Forward Speed 0
 0xC		Forward Speed 1
 0xE		Forward Speed 2
+
+For Misc. Actions
+
+0x0		Boost Forward
+0x1		Boost Forward + Fire (optionally)
+0x3		Sync Signal/Hidden Moves
+0x5		Hidden Moves
 -----------------------------------------------------------
 
 The Cyber Drive Zoids game can use the save data from the single-player mode to enhance the actions performed by the CDZ model, chiefly in regards to speed, HP, and the ability to boost. Once sufficient progress is made in the single-player mode, the CDZ model can shift gears up and down to alter speed. The regular IR controller that comes packaged by default with CDZ models does not offer these advantages. The sync signal is used on startup to activate the CDZ model for a match.  
@@ -117,8 +121,10 @@ Bits 0-3 - Action Type
 
 For Main Actions
 
-0x0		Walk
-0x1		Walk
+0x0		Walk OR Fire if Motion Type == 1 or 3
+0x1		Walk OR Fire if Motion Type == 1 or 3
+0x2		Jump (typically for Boost Mode)
+0x3		Jump (typically for Boost Mode)
 0x4		Jump
 0x5		Jump
 0x6		Jump
@@ -130,17 +136,36 @@ For Main Actions
 0xC		Fire
 0xD		Fire
 
-For Misc. Actions - Sync Signal
+For Misc. Actions
 
-0x2		Sync ID1, Boost Level 0
-0x3		Sync ID2, Boost Level 0
-0x4		Sync ID1, Boost Level 1
-0x5		Sync ID2, Boost Level 1
+0x0		If Motion Type == 1 -> Fire
+0x1		If Motion Type == 1 -> Fire
+
+0x2		If Motion Type == 0 -> Jump 
+		If Motion Type == 3 -> Sync ID1, Boost Level 0 
+		If Motion Type == 5 -> Intimidate
+
+
+0x3		If Motion Type == 0 -> Jump
+		If Motion Type == 3 -> Sync ID2, Boost Level 0
+		If Motion Type == 5 -> Intimidate		
+
+0x4		If Motion Type == 3 -> Sync ID1, Boost Level 1 
+		If Motion Type == 5 -> Swing Hips	
+
+
+0x5		If Motion Type == 3 -> Sync ID2, Boost Level 1 
+		If Motion Type == 5 -> Swing Hips
+
+0xA		War Cry
+0xB		War Cry
+0xE		Escape
+0xF		Escape
 -----------------------------------------------------------
 
 For Main Actions, if the Motion Type is not one of the above specified values (e.g. a 0), and the Action Type is jumping or firing, then the Zoid will move not forward or backward . Instead, it will remain stationary while performing that action. In this same manner, it's possible to simultaneously combine jumping or firing with moving by properly setting the Motion Type. Walking should always specify one of the listed Motion Types, however.
 
-The CDZ model has a "boost" mode where the toy is temporarily invulnerable to damage and shifts into the highest gear. This mode lasts for 10 seconds. The sync signals specify how many boosts are available per match for that CDZ model.
+The CDZ model has a boost mode where the toy is temporarily invulnerable to damage and shifts into the highest gear. This mode lasts for 10 seconds. The sync signals specify how many boosts are available per match for that CDZ model. The boost mode commands are spread across Main Actions and Misc. Operations such as firing and jumping are often conditional, requiring the Motion Type to be Boost Forward or Boost Backward.
 
 
 ***************************************************
