@@ -2012,6 +2012,10 @@ void AGB_SIO::zoids_cdz_update()
 
 			mem->sub_screen_buffer.clear();
 			mem->sub_screen_buffer.resize(0x9600, 0xFFFFFFFF);
+
+			config::osd_message = "CDZ MODEL INIT";
+			config::osd_count = 180;
+			
 			break;
 
 		//Fire
