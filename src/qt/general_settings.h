@@ -59,6 +59,7 @@ class gen_settings : public QDialog
 	QPushButton* config_ir;
 	QComboBox* sio_dev;
 	QComboBox* ir_dev;
+	QComboBox* slot2_dev;
 	QCheckBox* auto_patch;
 
 	//Display tab widgets
@@ -214,6 +215,7 @@ class gen_settings : public QDialog
 	void set_firmware();
 	void sio_dev_change();
 	void ir_dev_change();
+	void slot2_dev_change();
 	void overclock_change();
 	void set_patches();
 	void show_cheats();

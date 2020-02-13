@@ -200,6 +200,23 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	ir_layout->addWidget(config_ir, 0, Qt::AlignRight);
 	ir_set->setLayout(ir_layout);
 
+	//General settings - Emulated Slot-2 device
+	QWidget* slot2_set = new QWidget(general);
+	QLabel* slot2_label = new QLabel("Slot-2 Device", slot2_set);
+	slot2_dev = new QComboBox(slot2_set);
+	slot2_dev->setToolTip("Changes the emulated Slot-2 device inserted into an NDS");
+	slot2_dev->addItem("Auto");
+	slot2_dev->addItem("None");
+	slot2_dev->addItem("PassMe");
+	slot2_dev->addItem("Rumble Cart");
+	slot2_dev->addItem("GBA Cart");
+	slot2_dev->addItem("Ubisoft Pedometer");
+
+	QHBoxLayout* slot2_layout = new QHBoxLayout;
+	slot2_layout->addWidget(slot2_label, 0, Qt::AlignLeft);
+	slot2_layout->addWidget(slot2_dev, 1, Qt::AlignLeft);
+	slot2_set->setLayout(slot2_layout);
+
 	//General settings - Emulated CPU Speed
 	QWidget* overclock_set = new QWidget(general);
 	QLabel* overclock_label = new QLabel("Emulated CPU Speed", overclock_set);
@@ -233,6 +250,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	gen_layout->addWidget(sys_type_set);
 	gen_layout->addWidget(sio_set);
 	gen_layout->addWidget(ir_set);
+	gen_layout->addWidget(slot2_set);
 	gen_layout->addWidget(special_cart_set);
 	gen_layout->addWidget(overclock_set);
 	gen_layout->addWidget(bios_set);
@@ -1265,6 +1283,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(firmware, SIGNAL(stateChanged(int)), this, SLOT(set_firmware()));
 	connect(sio_dev, SIGNAL(currentIndexChanged(int)), this, SLOT(sio_dev_change()));
 	connect(ir_dev, SIGNAL(currentIndexChanged(int)), this, SLOT(ir_dev_change()));
+	connect(slot2_dev, SIGNAL(currentIndexChanged(int)), this, SLOT(slot2_dev_change()));
 	connect(overclock, SIGNAL(currentIndexChanged(int)), this, SLOT(overclock_change()));
 	connect(auto_patch, SIGNAL(stateChanged(int)), this, SLOT(set_patches()));
 	connect(edit_cheats, SIGNAL(clicked()), this, SLOT(show_cheats()));
@@ -1593,6 +1612,9 @@ void gen_settings::set_ini_options()
 	if((config::ir_device == 1) || (config::ir_device == 2) || (config::ir_device == 3) || (config::ir_device == 5)) { config_ir->setEnabled(true); }
 	else { config_ir->setEnabled(false); }
 
+	//Emulated Slot-2 device
+	slot2_dev->setCurrentIndex(config::nds_slot2_device);
+
 	//Emulated CPU speed
 	overclock->setCurrentIndex(config::oc_flags);
 
@@ -1884,6 +1906,12 @@ void gen_settings::ir_dev_change()
 
 	if((config::ir_device == 1) || (config::ir_device == 2) || (config::ir_device == 3) || config::ir_device == 5) { config_ir->setEnabled(true); }
 	else { config_ir->setEnabled(false); }
+}
+
+/****** Changes the emulated Slot-2 device ******/
+void gen_settings::slot2_dev_change()
+{
+	config::nds_slot2_device = slot2_dev->currentIndex();
 }
 
 /****** Changes the emulated CPU speed ******/
