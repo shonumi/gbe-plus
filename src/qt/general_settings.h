@@ -57,6 +57,7 @@ class gen_settings : public QDialog
 	QPushButton* edit_cheats;
 	QPushButton* config_sio;
 	QPushButton* config_ir;
+	QPushButton* config_slot2;
 	QComboBox* sio_dev;
 	QComboBox* ir_dev;
 	QComboBox* slot2_dev;
@@ -222,6 +223,7 @@ class gen_settings : public QDialog
 	void show_rtc();
 	void show_sio_config();
 	void show_ir_config();
+	void show_slot2_config();
 	void set_ogl();
 	void screen_scale_change();
 	void aspect_ratio_change();

@@ -212,9 +212,12 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	slot2_dev->addItem("GBA Cart");
 	slot2_dev->addItem("Ubisoft Pedometer");
 
+	config_slot2 = new QPushButton("Configure");
+
 	QHBoxLayout* slot2_layout = new QHBoxLayout;
 	slot2_layout->addWidget(slot2_label, 0, Qt::AlignLeft);
 	slot2_layout->addWidget(slot2_dev, 1, Qt::AlignLeft);
+	slot2_layout->addWidget(config_slot2, 0, Qt::AlignRight);
 	slot2_set->setLayout(slot2_layout);
 
 	//General settings - Emulated CPU Speed
@@ -1290,6 +1293,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(edit_rtc, SIGNAL(clicked()), this, SLOT(show_rtc()));
 	connect(config_sio, SIGNAL(clicked()), this, SLOT(show_sio_config()));
 	connect(config_ir, SIGNAL(clicked()), this, SLOT(show_ir_config()));
+	connect(config_slot2, SIGNAL(clicked()), this, SLOT(show_slot2_config()));
 	connect(ogl, SIGNAL(stateChanged(int)), this, SLOT(set_ogl()));
 	connect(screen_scale, SIGNAL(currentIndexChanged(int)), this, SLOT(screen_scale_change()));
 	connect(aspect_ratio, SIGNAL(stateChanged(int)), this, SLOT(aspect_ratio_change()));
@@ -1615,6 +1619,9 @@ void gen_settings::set_ini_options()
 	//Emulated Slot-2 device
 	slot2_dev->setCurrentIndex(config::nds_slot2_device);
 
+	if((config::nds_slot2_device == 3) || (config::nds_slot2_device == 5)) { config_slot2->setEnabled(true); }
+	else { config_slot2->setEnabled(false); }
+
 	//Emulated CPU speed
 	overclock->setCurrentIndex(config::oc_flags);
 
@@ -1912,6 +1919,9 @@ void gen_settings::ir_dev_change()
 void gen_settings::slot2_dev_change()
 {
 	config::nds_slot2_device = slot2_dev->currentIndex();
+
+	if((config::nds_slot2_device == 3) || (config::nds_slot2_device == 5)) { config_slot2->setEnabled(true); }
+	else { config_slot2->setEnabled(false); }
 }
 
 /****** Changes the emulated CPU speed ******/
@@ -1969,6 +1979,15 @@ void gen_settings::show_ir_config()
 		case 0x3: pocket_sakura_menu->show(); break;
 		case 0x5: chalien_menu->show(); break;
 	}	
+}
+
+/****** Displays relevant Slot-2 configuration window ******/
+void gen_settings::show_slot2_config()
+{
+	switch(config::nds_slot2_device)
+	{
+		case 3: tabs->setCurrentIndex(3); controls_combo->setCurrentIndex(1); break;
+	}
 }
 
 /****** Toggles enabling or disabling the fragment and vertex shader widgets when setting OpenGL ******/
