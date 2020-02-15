@@ -32,6 +32,7 @@
 #include "con_ir_menu.h"
 #include "mpos_menu.h"
 #include "tbf_menu.h"
+#include "utp_menu.h"
 
 class gen_settings : public QDialog
 {
@@ -201,6 +202,7 @@ class gen_settings : public QDialog
 	con_ir_menu* chalien_menu;
 	mpos_menu* multi_plust_menu;
 	tbf_menu* turbo_file_menu;
+	utp_menu* ubisoft_pedometer_menu;
 	QMessageBox* warning_box;
 
 	void update_volume();

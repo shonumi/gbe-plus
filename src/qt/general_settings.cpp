@@ -1576,6 +1576,8 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	multi_plust_menu = new mpos_menu;
 	turbo_file_menu = new tbf_menu;
 
+	ubisoft_pedometer_menu = new utp_menu;
+
 	get_chip_list();
 
 	resize(450, 450);
@@ -1662,6 +1664,10 @@ void gen_settings::set_ini_options()
 	//Constant IR Light
 	if(config::ir_db_index < 2) { chalien_menu->ir_mode->setCurrentIndex(config::ir_db_index); }
 	else { chalien_menu->ir_mode->setCurrentIndex(0); }
+
+	//Ubisoft Pedometer
+	if(config::utp_steps < 99999) { ubisoft_pedometer_menu->qt_steps->setValue(config::utp_steps); }
+	else { ubisoft_pedometer_menu->qt_steps->setValue(0); }
 
 	//Screen scale options
 	screen_scale->setCurrentIndex(config::scaling_factor - 1);
@@ -1987,6 +1993,7 @@ void gen_settings::show_slot2_config()
 	switch(config::nds_slot2_device)
 	{
 		case 3: tabs->setCurrentIndex(3); controls_combo->setCurrentIndex(1); break;
+		case 5: ubisoft_pedometer_menu->show(); break;
 	}
 }
 
