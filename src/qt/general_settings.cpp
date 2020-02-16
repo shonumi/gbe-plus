@@ -1666,7 +1666,17 @@ void gen_settings::set_ini_options()
 	else { chalien_menu->ir_mode->setCurrentIndex(0); }
 
 	//Ubisoft Pedometer
-	if(config::utp_steps < 99999) { ubisoft_pedometer_menu->qt_steps->setValue(config::utp_steps); }
+	if(config::utp_steps < 0x99999)
+	{
+		u32 temp_val = config::utp_steps;
+		std::string temp_str = util::to_hex_str(temp_val);
+
+		temp_str = temp_str.substr(3);
+		util::from_str(temp_str, temp_val);
+
+		ubisoft_pedometer_menu->qt_steps->setValue(temp_val);
+	}
+
 	else { ubisoft_pedometer_menu->qt_steps->setValue(0); }
 
 	//Screen scale options

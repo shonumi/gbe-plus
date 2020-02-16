@@ -11,6 +11,7 @@
 #include "utp_menu.h"
 
 #include "common/config.h"
+#include "common/util.h"
 
 /****** UTP menu constructor ******/
 utp_menu::utp_menu(QWidget *parent) : QDialog(parent)
@@ -49,5 +50,9 @@ utp_menu::utp_menu(QWidget *parent) : QDialog(parent)
 /****** Update number of steps ******/
 void utp_menu::update_steps()
 {
-	config::utp_steps = qt_steps->value();
+	u32 temp_val = qt_steps->value();
+	std::string temp_str = util::to_str(temp_val);
+
+	util::from_hex_str(temp_str, temp_val);
+	config::utp_steps = temp_val;
 }

@@ -2460,7 +2460,11 @@ bool save_ini_file()
 		{
 			line_pos = output_count[x];
 
-			output_lines[line_pos] = "[#utp_steps:" + util::to_str(config::utp_steps) + "]";
+			u32 temp_val = config::utp_steps;
+			std::string val = util::to_hex_str(temp_val);
+			val = val.substr(3);
+
+			output_lines[line_pos] = "[#utp_steps:" + val + "]";
 		}
 
 		//Set emulated system type
