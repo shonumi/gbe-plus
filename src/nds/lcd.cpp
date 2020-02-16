@@ -89,6 +89,9 @@ void NTR_LCD::reset()
 	line_buffer.resize(8);
 	for(u32 x = 0; x < 8; x++) { line_buffer[x].resize(0x100); }
 
+	obj_line_buffer.resize(8);
+	for(u32 x = 0; x < 8; x++) { obj_line_buffer[x].resize(0x100); }
+
 	full_scanline_render_a = false;
 	full_scanline_render_b = false;
 
@@ -919,7 +922,11 @@ void NTR_LCD::render_bg_scanline(u32 bg_control)
 		render_buffer_a.assign(0x100, 0);
 
 		//Reset line buffers
-		for(u32 x = 0; x < 8; x++) { line_buffer[x].assign(0x100, 0x00); }
+		for(u32 x = 0; x < 8; x++)
+		{
+			line_buffer[x].assign(0x100, 0x00);
+			obj_line_buffer[x].assign(0x100, 0x00);
+		}
 
 		//Clear scanline with backdrop
 		for(u16 x = 0; x < 256; x++) { scanline_buffer_a[x] = lcd_stat.bg_pal_a[0]; }
@@ -927,10 +934,10 @@ void NTR_LCD::render_bg_scanline(u32 bg_control)
 		//Determine BG priority
 		for(int x = 0, list_length = 0; x < 4; x++)
 		{
-			if(lcd_stat.bg_priority_a[0] == x) { bg_order[0] = list_length; bg_render_list[list_length++] = 0; }
-			if(lcd_stat.bg_priority_a[1] == x) { bg_order[1] = list_length; bg_render_list[list_length++] = 1; }
-			if(lcd_stat.bg_priority_a[2] == x) { bg_order[2] = list_length; bg_render_list[list_length++] = 2; }
-			if(lcd_stat.bg_priority_a[3] == x) { bg_order[3] = list_length; bg_render_list[list_length++] = 3; }
+			if(lcd_stat.bg_priority_a[0] == x) { bg_render_list[list_length++] = 0; }
+			if(lcd_stat.bg_priority_a[1] == x) { bg_render_list[list_length++] = 1; }
+			if(lcd_stat.bg_priority_a[2] == x) { bg_render_list[list_length++] = 2; }
+			if(lcd_stat.bg_priority_a[3] == x) { bg_render_list[list_length++] = 3; }
 		}
 
 		//Render OBJs if possible
@@ -1093,7 +1100,11 @@ void NTR_LCD::render_bg_scanline(u32 bg_control)
 		render_buffer_b.assign(0x100, 0);
 
 		//Reset line buffers
-		for(u32 x = 0; x < 8; x++) { line_buffer[x].assign(0x100, 0x00); }
+		for(u32 x = 0; x < 8; x++)
+		{
+			line_buffer[x].assign(0x100, 0x00);
+			obj_line_buffer[x].assign(0x100, 0x00);
+		}
 
 		//Clear scanline with backdrop
 		for(u16 x = 0; x < 256; x++) { scanline_buffer_b[x] = lcd_stat.bg_pal_b[0]; }
@@ -1101,10 +1112,10 @@ void NTR_LCD::render_bg_scanline(u32 bg_control)
 		//Determine BG priority
 		for(int x = 0, list_length = 0; x < 4; x++)
 		{
-			if(lcd_stat.bg_priority_b[0] == x) { bg_order[0] = list_length; bg_render_list[list_length++] = 0; }
-			if(lcd_stat.bg_priority_b[1] == x) { bg_order[1] = list_length; bg_render_list[list_length++] = 1; }
-			if(lcd_stat.bg_priority_b[2] == x) { bg_order[2] = list_length; bg_render_list[list_length++] = 2; }
-			if(lcd_stat.bg_priority_b[3] == x) { bg_order[3] = list_length; bg_render_list[list_length++] = 3; }
+			if(lcd_stat.bg_priority_b[0] == x) { bg_render_list[list_length++] = 0; }
+			if(lcd_stat.bg_priority_b[1] == x) { bg_render_list[list_length++] = 1; }
+			if(lcd_stat.bg_priority_b[2] == x) { bg_render_list[list_length++] = 2; }
+			if(lcd_stat.bg_priority_b[3] == x) { bg_render_list[list_length++] = 3; }
 		}
 
 		//Render OBJs if possible
@@ -1424,7 +1435,7 @@ void NTR_LCD::render_obj_scanline(u32 bg_control)
 						{
 							scanline_buffer_a[scanline_pixel_counter] = (ext_pal) ? lcd_stat.obj_ext_pal_a[(pal_id * 256) + raw_color] : lcd_stat.obj_pal_a[(pal_id * 16) + raw_color];
 							render_buffer_a[scanline_pixel_counter] = (obj[obj_id].bg_priority + 1);
-							line_buffer[obj[obj_id].bg_priority][scanline_pixel_counter] = scanline_buffer_a[scanline_pixel_counter];
+							obj_line_buffer[obj[obj_id].bg_priority][scanline_pixel_counter] = scanline_buffer_a[scanline_pixel_counter];
 						}
 
 						//Draw for Engine B
@@ -1432,11 +1443,11 @@ void NTR_LCD::render_obj_scanline(u32 bg_control)
 						{
 							scanline_buffer_b[scanline_pixel_counter] = (ext_pal) ? lcd_stat.obj_ext_pal_b[(pal_id * 256) + raw_color] : lcd_stat.obj_pal_b[(pal_id * 16) + raw_color];
 							render_buffer_b[scanline_pixel_counter] = (obj[obj_id].bg_priority + 1);
-							line_buffer[obj[obj_id].bg_priority][scanline_pixel_counter] = scanline_buffer_b[scanline_pixel_counter];
+							obj_line_buffer[obj[obj_id].bg_priority][scanline_pixel_counter] = scanline_buffer_b[scanline_pixel_counter];
 						}
 
 						//Line buffer
-						if(raw_color && render_obj) { line_buffer[obj[obj_id].bg_priority + 4][scanline_pixel_counter] |= 0x80; }
+						if(raw_color && render_obj) { obj_line_buffer[obj[obj_id].bg_priority + 4][scanline_pixel_counter] |= 0x80; }
 					}
 
 					//Draw direct bitmap OBJs
@@ -1466,7 +1477,7 @@ void NTR_LCD::render_obj_scanline(u32 bg_control)
 						{
 							scanline_buffer_a[scanline_pixel_counter] = get_rgb15(raw_pixel);
 							render_buffer_a[scanline_pixel_counter] = (obj[obj_id].bg_priority + 1);
-							line_buffer[obj[obj_id].bg_priority][scanline_pixel_counter] = scanline_buffer_a[scanline_pixel_counter];
+							obj_line_buffer[obj[obj_id].bg_priority][scanline_pixel_counter] = scanline_buffer_a[scanline_pixel_counter];
 						}
 
 						//Draw for Engine B
@@ -1474,11 +1485,11 @@ void NTR_LCD::render_obj_scanline(u32 bg_control)
 						{
 							scanline_buffer_b[scanline_pixel_counter] = get_rgb15(raw_pixel);
 							render_buffer_b[scanline_pixel_counter] = (obj[obj_id].bg_priority + 1);
-							line_buffer[obj[obj_id].bg_priority][scanline_pixel_counter] = scanline_buffer_b[scanline_pixel_counter];
+							obj_line_buffer[obj[obj_id].bg_priority][scanline_pixel_counter] = scanline_buffer_b[scanline_pixel_counter];
 						}
 
 						//Line buffer
-						if((raw_pixel & 0x8000) && render_obj) { line_buffer[obj[obj_id].bg_priority + 4][scanline_pixel_counter] |= 0x80; }
+						if((raw_pixel & 0x8000) && render_obj) { obj_line_buffer[obj[obj_id].bg_priority + 4][scanline_pixel_counter] |= 0x80; }
 					}
 						
 				}
@@ -1501,7 +1512,6 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 		//Grab BG ID
 		u8 bg_id = (bg_control - 0x4000008) >> 1;
 		u8 bg_priority = lcd_stat.bg_priority_a[bg_id] + 1;
-		u8 bg_layer = bg_order[bg_id];
 
 		//If this BG is used for SFX, make sure to render line buffer
 		bool force_render = ((lcd_stat.sfx_target_a[bg_id][0] || lcd_stat.sfx_target_a[bg_id][1]) && (lcd_stat.bg_enable_a[bg_id]));
@@ -1522,6 +1532,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 		bool in_window;
 		bool out_window;
 		bool can_winout = lcd_stat.display_control_a & 0x6000;
+		bool enable = lcd_stat.bg_enable_a[bg_id];
 		u8 win_id;
 		u8 slot;
 
@@ -1629,8 +1640,8 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 					}
 
 					//Line buffer
-					if(!line_buffer[bg_id][scanline_pixel_counter]) { line_buffer[bg_id][scanline_pixel_counter] = (lcd_stat.ext_pal_a & 0x1) ? lcd_stat.bg_ext_pal_a[ext_pal_id + raw_color]  : lcd_stat.bg_pal_a[raw_color]; }
-					if(raw_color && in_window && out_window) { line_buffer[bg_layer + 4][scanline_pixel_counter] |= 1; }
+					line_buffer[bg_id][scanline_pixel_counter] = (lcd_stat.ext_pal_a & 0x1) ? lcd_stat.bg_ext_pal_a[ext_pal_id + raw_color]  : lcd_stat.bg_pal_a[raw_color];
+					if(raw_color && in_window && out_window && enable) { line_buffer[bg_id + 4][scanline_pixel_counter] |= 1; }
 
 					//Draw 256 pixels max
 					scanline_pixel_counter++;
@@ -1661,8 +1672,8 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 					}
 
 					//Line buffer
-					if(!line_buffer[bg_id][scanline_pixel_counter]) { line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_a[pal_1]; }
-					if((raw_color & 0xF) && (in_window) && (out_window)) { line_buffer[bg_layer + 4][scanline_pixel_counter] |= 1; }
+					line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_a[pal_1];
+					if((raw_color & 0xF) && (in_window) && (out_window) && (enable)) { line_buffer[bg_id + 4][scanline_pixel_counter] |= 1; }
 
 					//Draw 256 pixels max
 					scanline_pixel_counter++;
@@ -1683,8 +1694,8 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 					}
 
 					//Line buffer
-					if(!line_buffer[bg_id][scanline_pixel_counter]) { line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_a[pal_2]; }
-					if((raw_color >> 4) && (in_window) && (out_window)) { line_buffer[bg_layer + 4][scanline_pixel_counter] |= 1; }
+					line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_a[pal_2];
+					if((raw_color >> 4) && (in_window) && (out_window) && (enable)) { line_buffer[bg_id + 4][scanline_pixel_counter] |= 1; }
 
 					//Draw 256 pixels max
 					scanline_pixel_counter++;
@@ -1707,7 +1718,6 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 		//Grab BG ID
 		u8 bg_id = (bg_control - 0x4001008) >> 1;
 		u8 bg_priority = lcd_stat.bg_priority_b[bg_id] + 1;
-		u8 bg_layer = bg_order[bg_id];
 
 		//If this BG is used for SFX, make sure to render line buffer
 		bool force_render = ((lcd_stat.sfx_target_b[bg_id][0] || lcd_stat.sfx_target_b[bg_id][1]) && (lcd_stat.bg_enable_b[bg_id]));
@@ -1728,6 +1738,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 		bool in_window;
 		bool out_window;
 		bool can_winout = lcd_stat.display_control_b & 0x6000;
+		bool enable = lcd_stat.bg_enable_b[bg_id];
 		u8 win_id;
 		u8 slot;
 
@@ -1835,8 +1846,8 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 					}
 
 					//Line buffer
-					if(!line_buffer[bg_id][scanline_pixel_counter]) { line_buffer[bg_id][scanline_pixel_counter] = (lcd_stat.ext_pal_b & 0x1) ? lcd_stat.bg_ext_pal_b[ext_pal_id + raw_color]  : lcd_stat.bg_pal_b[raw_color]; }
-					if(raw_color && in_window && out_window) { line_buffer[bg_layer + 4][scanline_pixel_counter] |= 1; }
+					line_buffer[bg_id][scanline_pixel_counter] = (lcd_stat.ext_pal_b & 0x1) ? lcd_stat.bg_ext_pal_b[ext_pal_id + raw_color]  : lcd_stat.bg_pal_b[raw_color];
+					if(raw_color && in_window && out_window && enable) { line_buffer[bg_id + 4][scanline_pixel_counter] |= 1; }
 
 					//Draw 256 pixels max
 					scanline_pixel_counter++;
@@ -1867,8 +1878,8 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 					}
 
 					//Line buffer
-					if(!line_buffer[bg_id][scanline_pixel_counter]) { line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_b[pal_1]; }
-					if((raw_color & 0xF) && (in_window) && (out_window)) { line_buffer[bg_layer + 4][scanline_pixel_counter] |= 1; }
+					line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_b[pal_1];
+					if((raw_color & 0xF) && (in_window) && (out_window) && (enable)) { line_buffer[bg_id + 4][scanline_pixel_counter] |= 1; }
 
 					//Draw 256 pixels max
 					scanline_pixel_counter++;
@@ -1888,8 +1899,8 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 					}
 
 					//Line buffer
-					if(!line_buffer[bg_id][scanline_pixel_counter]) { line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_b[pal_2]; }
-					if((raw_color >> 4) && (in_window) && (out_window)) { line_buffer[bg_layer + 4][scanline_pixel_counter] |= 1; }
+					line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_b[pal_2]; 
+					if((raw_color >> 4) && (in_window) && (out_window) && (enable)) { line_buffer[bg_id + 4][scanline_pixel_counter] |= 1; }
 
 					//Draw 256 pixels max
 					scanline_pixel_counter++;
@@ -1917,7 +1928,6 @@ void NTR_LCD::render_bg_mode_affine(u32 bg_control)
 		u8 bg_id = (bg_control - 0x4000008) >> 1;
 		u8 affine_id = (bg_id & 0x1);
 		u8 bg_priority = lcd_stat.bg_priority_a[bg_id] + 1;
-		u8 bg_layer = bg_order[bg_id];
 
 		//If this BG is used for SFX, make sure to render line buffer
 		bool force_render = ((lcd_stat.sfx_target_a[bg_id][0] || lcd_stat.sfx_target_a[bg_id][1]) && (lcd_stat.bg_enable_a[bg_id]));
@@ -1932,6 +1942,7 @@ void NTR_LCD::render_bg_mode_affine(u32 bg_control)
 		bool in_window;
 		bool out_window;
 		bool can_winout = lcd_stat.display_control_a & 0x6000;
+		bool enable = lcd_stat.bg_enable_a[bg_id];
 
 		//Reload X-Y references at start of frame
 		if(lcd_stat.current_scanline == 0) { reload_affine_references(bg_control); }
@@ -2029,8 +2040,8 @@ void NTR_LCD::render_bg_mode_affine(u32 bg_control)
 			}
 
 			//Line buffer
-			if(!line_buffer[bg_id][scanline_pixel_counter]) { line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_a[raw_color]; }
-			if(raw_color && in_window && out_window) { line_buffer[bg_layer + 4][scanline_pixel_counter] |= 1; }
+			line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_a[raw_color];
+			if(raw_color && in_window && out_window && enable) { line_buffer[bg_id + 4][scanline_pixel_counter] |= 1; }
 		}
 
 		//Update XREF and YREF for next line
@@ -2047,7 +2058,6 @@ void NTR_LCD::render_bg_mode_affine(u32 bg_control)
 		u8 bg_id = (bg_control - 0x4001008) >> 1;
 		u8 affine_id = (bg_id & 0x1);
 		u8 bg_priority = lcd_stat.bg_priority_b[bg_id] + 1;
-		u8 bg_layer = bg_order[bg_id];
 
 		//If this BG is used for SFX, make sure to render line buffer
 		bool force_render = ((lcd_stat.sfx_target_b[bg_id][0] || lcd_stat.sfx_target_b[bg_id][1]) && (lcd_stat.bg_enable_b[bg_id]));
@@ -2062,6 +2072,7 @@ void NTR_LCD::render_bg_mode_affine(u32 bg_control)
 		bool in_window;
 		bool out_window;
 		bool can_winout = lcd_stat.display_control_b & 0x6000;
+		bool enable = lcd_stat.bg_enable_b[bg_id];
 
 		//Reload X-Y references at start of frame
 		if(lcd_stat.current_scanline == 0) { reload_affine_references(bg_control); }
@@ -2159,8 +2170,8 @@ void NTR_LCD::render_bg_mode_affine(u32 bg_control)
 			}
 
 			//Line buffer
-			if(!line_buffer[bg_id][scanline_pixel_counter]) { line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_b[raw_color]; }
-			if(raw_color && in_window && out_window) { line_buffer[bg_layer + 4][scanline_pixel_counter] |= 1; }
+			line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_b[raw_color];
+			if(raw_color && in_window && out_window && enable) { line_buffer[bg_id + 4][scanline_pixel_counter] |= 1; }
 		}
 
 		//Update XREF and YREF for next line
@@ -2181,7 +2192,6 @@ void NTR_LCD::render_bg_mode_affine_ext(u32 bg_control)
 		u8 bg_id = (bg_control - 0x4000008) >> 1;
 		u8 affine_id = (bg_id & 0x1);
 		u8 bg_priority = lcd_stat.bg_priority_a[bg_id] + 1;
-		u8 bg_layer = bg_order[bg_id];
 
 		//If this BG is used for SFX, make sure to render line buffer
 		bool force_render = ((lcd_stat.sfx_target_a[bg_id][0] || lcd_stat.sfx_target_a[bg_id][1]) && (lcd_stat.bg_enable_a[bg_id]));
@@ -2198,6 +2208,7 @@ void NTR_LCD::render_bg_mode_affine_ext(u32 bg_control)
 		bool in_window;
 		bool out_window;
 		bool can_winout = lcd_stat.display_control_a & 0x6000;
+		bool enable = lcd_stat.bg_enable_a[bg_id];
 		u8 slot;
 
 		//Reload X-Y references at start of frame
@@ -2310,8 +2321,8 @@ void NTR_LCD::render_bg_mode_affine_ext(u32 bg_control)
 			}
 
 			//Line buffer
-			if(!line_buffer[bg_id][scanline_pixel_counter]) { line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_a[raw_color]; }
-			if(raw_color && in_window && out_window) { line_buffer[bg_layer + 4][scanline_pixel_counter] |= 1; }
+			line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_a[raw_color];
+			if(raw_color && in_window && out_window && enable) { line_buffer[bg_id + 4][scanline_pixel_counter] |= 1; }
 		}
 
 		//Update XREF and YREF for next line
@@ -2328,7 +2339,6 @@ void NTR_LCD::render_bg_mode_affine_ext(u32 bg_control)
 		u8 bg_id = (bg_control - 0x4001008) >> 1;
 		u8 affine_id = (bg_id & 0x1);
 		u8 bg_priority = lcd_stat.bg_priority_b[bg_id] + 1;
-		u8 bg_layer = bg_order[bg_id];
 
 		//If this BG is used for SFX, make sure to render line buffer
 		bool force_render = ((lcd_stat.sfx_target_b[bg_id][0] || lcd_stat.sfx_target_b[bg_id][1]) && (lcd_stat.bg_enable_b[bg_id]));
@@ -2345,6 +2355,7 @@ void NTR_LCD::render_bg_mode_affine_ext(u32 bg_control)
 		bool in_window;
 		bool out_window;
 		bool can_winout = lcd_stat.display_control_b & 0x6000;
+		bool enable = lcd_stat.bg_enable_b[bg_id];
 		u8 slot;
 
 		//Reload X-Y references at start of frame
@@ -2457,8 +2468,8 @@ void NTR_LCD::render_bg_mode_affine_ext(u32 bg_control)
 			}
 
 			//Line buffer
-			if(!line_buffer[bg_id][scanline_pixel_counter]) { line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_b[raw_color]; }
-			if(raw_color && in_window && out_window) { line_buffer[bg_layer + 4][scanline_pixel_counter] |= 1; }
+			line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_b[raw_color];
+			if(raw_color && in_window && out_window && enable) { line_buffer[bg_id + 4][scanline_pixel_counter] |= 1; }
 		}
 
 		//Update XREF and YREF for next line
@@ -2479,7 +2490,6 @@ void NTR_LCD::render_bg_mode_bitmap(u32 bg_control)
 		u8 bg_id = (bg_control - 0x4000008) >> 1;
 		u8 affine_id = (bg_id & 0x1);
 		u8 bg_priority = lcd_stat.bg_priority_a[bg_id] + 1;
-		u8 bg_layer = bg_order[bg_id];
 
 		//If this BG is used for SFX, make sure to render line buffer
 		bool force_render = ((lcd_stat.sfx_target_a[bg_id][0] || lcd_stat.sfx_target_a[bg_id][1]) && (lcd_stat.bg_enable_a[bg_id]));
@@ -2494,6 +2504,7 @@ void NTR_LCD::render_bg_mode_bitmap(u32 bg_control)
 		bool in_window;
 		bool out_window;
 		bool can_winout = lcd_stat.display_control_a & 0x6000;
+		bool enable = lcd_stat.bg_enable_a[bg_id];
 
 		//Reload X-Y references at start of frame
 		if(lcd_stat.current_scanline == 0) { reload_affine_references(bg_control); }
@@ -2591,8 +2602,8 @@ void NTR_LCD::render_bg_mode_bitmap(u32 bg_control)
 			}
 
 			//Line buffer
-			if(!line_buffer[bg_id][scanline_pixel_counter]) { line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_a[raw_color]; }
-			if(raw_color && in_window && out_window) { line_buffer[bg_layer + 4][scanline_pixel_counter] |= 1; }
+			line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_a[raw_color];
+			if(raw_color && in_window && out_window && enable) { line_buffer[bg_id + 4][scanline_pixel_counter] |= 1; }
 
 			scanline_pixel_counter++;
 
@@ -2615,7 +2626,6 @@ void NTR_LCD::render_bg_mode_bitmap(u32 bg_control)
 		u8 bg_id = (bg_control - 0x4001008) >> 1;
 		u8 affine_id = (bg_id & 0x1);
 		u8 bg_priority = lcd_stat.bg_priority_b[bg_id] + 1;
-		u8 bg_layer = bg_order[bg_id];
 
 		//If this BG is used for SFX, make sure to render line buffer
 		bool force_render = ((lcd_stat.sfx_target_b[bg_id][0] || lcd_stat.sfx_target_b[bg_id][1]) && (lcd_stat.bg_enable_b[bg_id]));
@@ -2630,6 +2640,7 @@ void NTR_LCD::render_bg_mode_bitmap(u32 bg_control)
 		bool in_window;
 		bool out_window;
 		bool can_winout = lcd_stat.display_control_b & 0x6000;
+		bool enable = lcd_stat.bg_enable_b[bg_id];
 
 		//Reload X-Y references at start of frame
 		if(lcd_stat.current_scanline == 0) { reload_affine_references(bg_control); }
@@ -2727,8 +2738,8 @@ void NTR_LCD::render_bg_mode_bitmap(u32 bg_control)
 			}
 
 			//Line buffer
-			if(!line_buffer[bg_id][scanline_pixel_counter]) { line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_b[raw_color]; }
-			if(raw_color && in_window && out_window) { line_buffer[bg_layer + 4][scanline_pixel_counter] |= 1; }
+			line_buffer[bg_id][scanline_pixel_counter] = lcd_stat.bg_pal_b[raw_color];
+			if(raw_color && in_window && out_window && enable) { line_buffer[bg_id + 4][scanline_pixel_counter] |= 1; }
 
 			scanline_pixel_counter++;
 
@@ -3282,6 +3293,7 @@ void NTR_LCD::brightness_down(u32 bg_control)
 void NTR_LCD::alpha_blend(u32 bg_control)
 {
 	u8 bg_render_list[4];
+	u8 bg_layer[4];
 
 	u8 r1, r2;
 	u8 g1, g2;
@@ -3298,10 +3310,10 @@ void NTR_LCD::alpha_blend(u32 bg_control)
 	//Determine BG priority
 	for(int x = 0, list_length = 0; x < 4; x++)
 	{
-		if(bg_priority_0 == x) { bg_render_list[list_length++] = 0; }
-		if(bg_priority_1 == x) { bg_render_list[list_length++] = 1; }
-		if(bg_priority_2 == x) { bg_render_list[list_length++] = 2; }
-		if(bg_priority_3 == x) { bg_render_list[list_length++] = 3; }
+		if(bg_priority_0 == x) { bg_layer[list_length] = x; bg_render_list[list_length++] = 0; }
+		if(bg_priority_1 == x) { bg_layer[list_length] = x; bg_render_list[list_length++] = 1; }
+		if(bg_priority_2 == x) { bg_layer[list_length] = x; bg_render_list[list_length++] = 2; }
+		if(bg_priority_3 == x) { bg_layer[list_length] = x; bg_render_list[list_length++] = 3; }
 	}
 
 	for(u16 x = 0; x < 256; x++)
@@ -3314,57 +3326,118 @@ void NTR_LCD::alpha_blend(u32 bg_control)
 
 		bool found_target_1 = false;
 		bool found_target_2 = false;
+		bool is_obj_1 = false;
+		bool is_obj_2 = false;
 
 		//Search for 1st target
 		for(int y = 0; y < 4; y++)
 		{
-			u8 target_id = bg_render_list[y];
+			//If 1st target is OBJ, check SFX Target 4 and pull data from regular layer
+			if(obj_line_buffer[y + 4][x])
+			{
+				found_target_1 = true;
+				is_obj_1 = true;
 
-			if(line_buffer[y + 4][x])
+				target_1 = 4;
+				layer_1 = y;
+
+				break;
+			}
+
+			//If 1st target is BG, check SFX Targets 0-3 and pull data from ordered layer
+			else if((bg_layer[0] == y) && (line_buffer[bg_render_list[0] + 4][x]))
 			{
 				found_target_1 = true;
 
-				//If 1st target is OBJ, check SFX Target 4 and pull data from regular layer
-				if(line_buffer[y + 4][x] & 0x80)
-				{
-					target_1 = 4;
-					layer_1 = y;
-				}
+				target_1 = bg_render_list[0];
+				layer_1 = target_1;
 
-				//If 1st target is BG, check SFX Targets 0-3 and pull data from ordered layer
-				else
-				{
-					target_1 = target_id;
-					layer_1 = target_id;
-				}
+				break;
+			}
 
-				next_bg = y + 1;
+			else if((bg_layer[1] == y) && (line_buffer[bg_render_list[1] + 4][x]))
+			{
+				found_target_1 = true;
+
+				target_1 = bg_render_list[1];
+				layer_1 = target_1;
+
+				break;
+			}
+
+			else if((bg_layer[2] == y) && (line_buffer[bg_render_list[2] + 4][x]))
+			{
+				found_target_1 = true;
+
+				target_1 = bg_render_list[2];
+				layer_1 = target_1;
+
+				break;
+			}
+
+			else if((bg_layer[3] == y) && (line_buffer[bg_render_list[3] + 4][x]))
+			{
+				found_target_1 = true;
+
+				target_1 = bg_render_list[3];
+				layer_1 = target_1;
+
 				break;
 			}
 		}
 
 		//Search for 2nd target
-		for(int y = next_bg; y < 4; y++)
+		for(int y = 0; y < 4; y++)
 		{
-			u8 target_id = bg_render_list[y];
+			//If 2nd target is OBJ, check SFX Target 4 and pull data from regular layer
+			if((obj_line_buffer[y + 4][x] & 0x80) && (layer_1 != y))
+			{
+				found_target_2 = true;
+				is_obj_2 = true;
 
-			if(line_buffer[y + 4][x])
+				target_2 = 4;
+				layer_2 = y;
+
+				break;
+			}
+
+			//If 2nd target is BG, check SFX Targets 0-3 and pull data from ordered layer
+			else if((bg_layer[0] == y) && (line_buffer[bg_render_list[0] + 4][x]) && (layer_1 != bg_render_list[0]))
 			{
 				found_target_2 = true;
 
-				//If 2nd target is OBJ, check SFX Target 4 and pull data from regular layer
-				if(line_buffer[y + 4][x] & 0x80)
-				{
-					target_2 = 4;
-					layer_2 = y;
-				}
+				target_2 = bg_render_list[0];
+				layer_2 = target_2;
 
-				//If 2nd target is BG, check SFX Targets 0-3 and pull data from ordered layer
-				else
-				{
-					target_2 = target_id;
-					layer_2 = target_id;
-				}
+				break;
+			}
+
+			else if((bg_layer[1] == y) && (line_buffer[bg_render_list[1] + 4][x]) && (layer_1 != bg_render_list[1]))
+			{
+				found_target_2 = true;
+
+				target_2 = bg_render_list[1];
+				layer_2 = target_2;
+
+				break;
+			}
+
+			else if((bg_layer[2] == y) && (line_buffer[bg_render_list[2] + 4][x]) && (layer_1 != bg_render_list[2]))
+			{
+				found_target_2 = true;
+
+				target_2 = bg_render_list[2];
+				layer_2 = target_2;
+
+				break;
+			}
+
+			else if((bg_layer[3] == y) && (line_buffer[bg_render_list[3] + 4][x]) && (layer_1 != bg_render_list[3]))
+			{
+				found_target_2 = true;
+
+				target_2 = bg_render_list[3];
+				layer_2 = target_2;
 
 				break;
 			}
@@ -3380,14 +3453,14 @@ void NTR_LCD::alpha_blend(u32 bg_control)
 		if(found_target_1 && found_target_2 && target_1_enable && target_2_enable)
 		{
 			u8 result = 0;
-			u32 color_1 = line_buffer[layer_1][x];
+			u32 color_1 = (is_obj_1) ? obj_line_buffer[layer_1][x] : line_buffer[layer_1][x];
 			u32 color_2 = 0;
 
 			//Pull color from backdrop
 			if(target_2 == 5) { color_2 = (bg_control == NDS_DISPCNT_A) ? lcd_stat.bg_pal_a[0] : lcd_stat.bg_pal_b[0]; }
 
-			//Pull color from BG layers
-			else { color_2 = line_buffer[layer_2][x]; }
+			//Pull color from layers
+			else { color_2 = (is_obj_2) ? obj_line_buffer[layer_2][x] : line_buffer[layer_2][x]; }
 
 			//Grab RGB15 values of both targets
 			r1 = (color_1 >> 19) & 0x1F;

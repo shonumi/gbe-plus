@@ -121,9 +121,6 @@ class NTR_LCD
 	u8 obj_render_list_b[128];
 	u8 obj_render_length_b;
 
-	//BG rendering
-	u8 bg_order[4];
-
 	//Screen pixel buffer
 	std::vector<u32> scanline_buffer_a;
 	std::vector<u32> scanline_buffer_b;
@@ -138,6 +135,7 @@ class NTR_LCD
 
 	//Other buffers
 	std::vector< std::vector<u32> > line_buffer;
+	std::vector< std::vector<u32> > obj_line_buffer;
 
 	bool full_scanline_render_a;
 	bool full_scanline_render_b;
