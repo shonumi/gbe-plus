@@ -208,7 +208,9 @@ class NTR_MMU
 	} touchscreen;
 
 	//NDS9 3D GX FIFO
-	std::queue <u8> nds9_gx_fifo;
+	std::queue <u32> nds9_gx_fifo;
+	u32 gx_fifo_entry;
+	u32 gx_fifo_param_length;
 
 	//Memory access timings (Nonsequential and Sequential)
 	u8 n_clock;
@@ -379,6 +381,8 @@ class NTR_MMU
 	void apply_key_code(u32 mod);
 	u32 key1_read_u32(u32 index);
 	u32 key_code_read_u32(u32 index);
+
+	void get_gx_fifo_param_length();
 
 	void set_lcd_data(ntr_lcd_data* ex_lcd_stat);
 	void set_lcd_3D_data(ntr_lcd_3D_data* ex_lcd_3D_stat);

@@ -293,6 +293,7 @@ void NTR_LCD::reset()
 	lcd_3D_stat.display_control = 0;
 	lcd_3D_stat.gx_stat = 0;
 	lcd_3D_stat.current_gx_command = 0;
+	lcd_3D_stat.current_packed_command = 0;
 	lcd_3D_stat.parameter_index = 0;
 	lcd_3D_stat.buffer_id = 0;
 	lcd_3D_stat.gx_state = 0;

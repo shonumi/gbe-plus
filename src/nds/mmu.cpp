@@ -79,6 +79,9 @@ void NTR_MMU::reset()
 	nds9_exmem = 0;
 	power_cnt1 = 0;
 
+	gx_fifo_entry = 0;
+	gx_fifo_param_length = 0;
+
 	//HLE MMIO stuff
 	if(!config::use_bios || !config::use_firmware)
 	{
@@ -1018,22 +1021,89 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 					case NDS_GXFIFO+1:
 					case NDS_GXFIFO+2:
 					case NDS_GXFIFO+3:
-						if(nds9_gx_fifo.size() == 1280) { nds9_gx_fifo.pop(); }
-						nds9_gx_fifo.push(value);
+						memory_map[address] = value;
+						gx_fifo_entry = ((memory_map[NDS_GXFIFO+3] << 24) | (memory_map[NDS_GXFIFO+2] << 16) | (memory_map[NDS_GXFIFO+1] << 8) | memory_map[NDS_GXFIFO]);
 
-						//Determine if new command is packed or unpacked
-						if((!lcd_3D_stat->process_command) && (address & 0x3))
+						if(address == NDS_GXFIFO)
 						{
-							lcd_3D_stat->packed_command = (value) ? true : false;
-							lcd_3D_stat->process_command = true;
-						}
+							bool delay_state = false;
 
-						//TODO - Break down parameters
-						//TODO - Actually process commands
-						
-						if((address & 0x3) == 0)
-						{
-							lcd_3D_stat->process_command = false;
+							//Determine if new command is packed or unpacked
+							if((lcd_3D_stat->gx_state & 0x1) == 0)
+							{
+								lcd_3D_stat->current_gx_command = 0;
+
+								//Begin processing packed commands
+								if(gx_fifo_entry & 0xFF000000)
+								{
+									lcd_3D_stat->packed_command = true;
+									delay_state = true;
+
+									nds9_gx_fifo.push(gx_fifo_entry);
+									lcd_3D_stat->current_packed_command = gx_fifo_entry;
+									lcd_3D_stat->current_gx_command = gx_fifo_entry & 0xFF;
+									lcd_3D_stat->parameter_index = 0;
+								}
+
+								//Begin processing unpacked commands
+								else if(gx_fifo_entry & 0xFF)
+								{
+									lcd_3D_stat->packed_command = false;
+									delay_state = true;
+
+									nds9_gx_fifo.push(gx_fifo_entry);
+									lcd_3D_stat->current_gx_command = gx_fifo_entry & 0xFF;
+									lcd_3D_stat->parameter_index = 0;
+								}
+
+								//Determine command parameter length
+								get_gx_fifo_param_length();
+							}
+
+							//Gather parameters
+							else
+							{
+								lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = memory_map[NDS_GXFIFO+3];
+								lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = memory_map[NDS_GXFIFO+2];
+								lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = memory_map[NDS_GXFIFO+1];
+								lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = memory_map[NDS_GXFIFO];
+								gx_fifo_param_length--;
+
+								//Process command if all parameters gathered
+								if(!gx_fifo_param_length)
+								{
+									lcd_3D_stat->process_command = true;
+
+									//For packed commands, set next command and grab next parameters
+									if(lcd_3D_stat->packed_command)
+									{
+										lcd_3D_stat->current_packed_command >>= 8;
+
+										//Grab next command if packed FIFO entry is not finished
+										if(lcd_3D_stat->current_packed_command)
+										{
+											lcd_3D_stat->current_gx_command = lcd_3D_stat->current_packed_command & 0xFF;
+											lcd_3D_stat->parameter_index = 0;
+											get_gx_fifo_param_length();
+										}
+
+										//Packed FIFO entry is finished
+										else { lcd_3D_stat->gx_state &= ~0x1; }
+									}
+
+									//Unpacked FIFO entry is finished 
+									else { lcd_3D_stat->gx_state &= ~0x1; }
+								}
+							}
+
+							if(delay_state) { lcd_3D_stat->gx_state |= 0x1; }
+
+							//Set GX_STAT Geometry Engine busy flag
+							lcd_3D_stat->gx_stat &= ~0x8000000;
+
+							//Set GX_STAT FIFO empty flag
+							if(nds9_gx_fifo.size()) { lcd_3D_stat->gx_stat |= 0x4000000; }
+							else { lcd_3D_stat->gx_stat &= ~0x4000000; }
 						}
 
 						break;
@@ -5764,6 +5834,52 @@ void NTR_MMU::setup_default_firmware()
 	touchscreen.adc_y2 = read_u16(0x27FFCE0) & 0x1FFF;
 	touchscreen.scr_x2 = read_u8(0x27FFCE2);
 	touchscreen.scr_y2 = read_u8(0x27FFCE3);
+}
+
+/****** Calculates parameter length (in words) for a given GX command ******/
+void NTR_MMU::get_gx_fifo_param_length()
+{
+	switch(lcd_3D_stat->current_gx_command)
+	{
+		case 0x10: gx_fifo_param_length = 1; break;
+		case 0x11: gx_fifo_param_length = 0; break;
+		case 0x12: gx_fifo_param_length = 1; break;
+		case 0x13: gx_fifo_param_length = 1; break;
+		case 0x14: gx_fifo_param_length = 1; break;
+		case 0x15: gx_fifo_param_length = 0; break;
+		case 0x16: gx_fifo_param_length = 16; break;
+		case 0x17: gx_fifo_param_length = 12; break;
+		case 0x18: gx_fifo_param_length = 16; break;
+		case 0x19: gx_fifo_param_length = 12; break;
+		case 0x1A: gx_fifo_param_length = 9; break;
+		case 0x1B: gx_fifo_param_length = 3; break;
+		case 0x1C: gx_fifo_param_length = 3; break;
+		case 0x20: gx_fifo_param_length = 1; break;
+		case 0x21: gx_fifo_param_length = 1; break;
+		case 0x22: gx_fifo_param_length = 1; break;
+		case 0x23: gx_fifo_param_length = 2; break;
+		case 0x24: gx_fifo_param_length = 1; break;
+		case 0x25: gx_fifo_param_length = 1; break;
+		case 0x26: gx_fifo_param_length = 1; break;
+		case 0x27: gx_fifo_param_length = 1; break;
+		case 0x28: gx_fifo_param_length = 1; break;
+		case 0x29: gx_fifo_param_length = 1; break;
+		case 0x2A: gx_fifo_param_length = 1; break;
+		case 0x2B: gx_fifo_param_length = 1; break;
+		case 0x30: gx_fifo_param_length = 1; break;
+		case 0x31: gx_fifo_param_length = 1; break;
+		case 0x32: gx_fifo_param_length = 1; break;
+		case 0x33: gx_fifo_param_length = 1; break;
+		case 0x34: gx_fifo_param_length = 32; break;
+		case 0x40: gx_fifo_param_length = 1; break;
+		case 0x41: gx_fifo_param_length = 0; break;
+		case 0x50: gx_fifo_param_length = 1; break;
+		case 0x60: gx_fifo_param_length = 1; break;
+		case 0x70: gx_fifo_param_length = 3; break;
+		case 0x71: gx_fifo_param_length = 2; break;
+		case 0x72: gx_fifo_param_length = 1; break;
+		default: gx_fifo_param_length = 0;
+	}
 }
 	
 /****** Points the MMU to an lcd_data structure (FROM THE LCD ITSELF) ******/
