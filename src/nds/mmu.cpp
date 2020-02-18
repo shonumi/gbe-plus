@@ -1034,7 +1034,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 								lcd_3D_stat->current_gx_command = 0;
 
 								//Begin processing packed commands
-								if(gx_fifo_entry & 0xFF000000)
+								if(gx_fifo_entry & 0xFFFFFF00)
 								{
 									lcd_3D_stat->packed_command = true;
 									delay_state = true;
@@ -1085,6 +1085,12 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 											lcd_3D_stat->current_gx_command = lcd_3D_stat->current_packed_command & 0xFF;
 											lcd_3D_stat->parameter_index = 0;
 											get_gx_fifo_param_length();
+
+											//If last packed command does not take parameters, packed FIFO entry is finished
+											if(((lcd_3D_stat->current_packed_command >> 8) == 0) && (!gx_fifo_param_length))
+											{
+												lcd_3D_stat->gx_state &= ~0x1;
+											}	
 										}
 
 										//Packed FIFO entry is finished
