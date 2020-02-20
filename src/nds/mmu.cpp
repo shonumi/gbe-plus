@@ -1107,9 +1107,17 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 							//Set GX_STAT Geometry Engine busy flag
 							lcd_3D_stat->gx_stat &= ~0x8000000;
 
+							//Set GX_STAT FIFO less than half full flag
+							lcd_3D_stat->gx_stat |= 0x2000000;
+
 							//Set GX_STAT FIFO empty flag
 							if(nds9_gx_fifo.size()) { lcd_3D_stat->gx_stat |= 0x4000000; }
-							else { lcd_3D_stat->gx_stat &= ~0x4000000; }
+
+							else
+							{
+								lcd_3D_stat->gx_stat &= ~0x4000000;
+								if(lcd_3D_stat->gx_stat & 0x80000000) { nds9_if |= 0x200000; }
+							}
 						}
 
 						break;
@@ -1353,13 +1361,6 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 						if(lcd_3D_stat->parameter_index == 4) { lcd_3D_stat->process_command = true; }
 						//std::cout<<"GX - END_VTXS\n";
 						break;
-
-					//GXSTAT
-					case NDS_GXSTAT+3:
-						lcd_3D_stat->gx_stat &= ~0xC0000000;
-						lcd_3D_stat->gx_stat |= ((value & 0xC0) << 24);
-						break;
-						
 				}
 			}
 
@@ -2779,6 +2780,13 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			if(value & 0x10) { lcd_stat->brightness_coef_b = 1.0; }
 			else { lcd_stat->brightness_coef_b = (value & 0xF) / 16.0; }
 
+			break;
+
+
+		//GXSTAT
+		case NDS_GXSTAT+3:
+			lcd_3D_stat->gx_stat &= ~0xC0000000;
+			lcd_3D_stat->gx_stat |= ((value & 0xC0) << 24);
 			break;
 
 		//WRAM Control
