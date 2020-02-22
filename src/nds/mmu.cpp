@@ -177,6 +177,7 @@ void NTR_MMU::reset()
 	nds_aux_spi.state = 0;
 	nds_aux_spi.last_state = 0;
 	nds_aux_spi.hold_state = 0;
+	nds_aux_spi.cmd_wait = false;
 
 	nds_card.cnt = 0x800000;
 	nds_card.data = 0;
@@ -5321,10 +5322,17 @@ void NTR_MMU::process_aux_spi_bus()
 	//Check Chip Select Hold State
 	if(cs_hold != nds_aux_spi.hold_state)
 	{
-		nds_aux_spi.hold_state = cs_hold;
+		//Wait for new command if CS goes from LOW to HIGH
+		if(!nds_aux_spi.hold_state && cs_hold) { nds_aux_spi.cmd_wait = true; }
 
-		//If CS Hold goes from LOW to HIGH, the previous command is finished. Start next command
-		if(cs_hold) { new_command = true; }
+		nds_aux_spi.hold_state = cs_hold;
+	}
+
+	//Check if new command is incoming
+	if(nds_aux_spi.cmd_wait && nds_aux_spi.data)
+	{
+		new_command = true;
+		nds_aux_spi.cmd_wait = false;
 	}
 	
 	//Handle AUX SPI save memory commands
@@ -5352,6 +5360,12 @@ void NTR_MMU::process_aux_spi_bus()
 				nds_aux_spi.data = 0xFF;
 				nds_aux_spi.access_index = 0;
 				nds_aux_spi.state = 0x3;
+				break;
+
+			//Write disable
+			case 0x4:
+				nds_aux_spi.data = 0xFF;
+				nds_aux_spi.eeprom_stat &= ~0x2;
 				break;
 
 			//Read from status register

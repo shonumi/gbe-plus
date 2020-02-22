@@ -388,10 +388,6 @@ void NTR_LCD::process_gx_command()
 {
 	gx_matrix temp_matrix(4, 4);
 
-		std::cout<<"GX COMMAND -> 0x" << std::hex << (u32)lcd_3D_stat.current_gx_command << "\n";
-		std::cout<<"MODE -> 0x" << (int)lcd_3D_stat.vertex_mode << "\n";
-				std::cout<<"INDEX -> 0x" << (int)lcd_3D_stat.vertex_list_index << "\n\n";
-
 	switch(lcd_3D_stat.current_gx_command)
 	{
 		//MTX_MODE
@@ -782,7 +778,6 @@ void NTR_LCD::process_gx_command()
 			if(lcd_3D_stat.vertex_list_index == 0)
 			{
 				if(!poly_push(temp_matrix)) { return; }
-				else { std::cout<<"POLY PUSH BRO\n"; }
 			}
 
 			{
@@ -807,8 +802,6 @@ void NTR_LCD::process_gx_command()
 					temp_result[a/2] = result;
 					a += 2;
 				}
-
-				std::cout<<"HERE -> 0x" << gx_triangles.size() << " :: " << gx_quads.size() << " :: " << (u32)lcd_3D_stat.vertex_mode << "\n";
 
 				switch(lcd_3D_stat.vertex_mode)
 				{

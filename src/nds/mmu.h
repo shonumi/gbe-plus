@@ -125,6 +125,7 @@ class NTR_MMU
 		u8 state;
 		u8 last_state;
 		u8 hold_state;
+		bool cmd_wait;
 
 		//EEPROM
 		u8 eeprom_stat;
