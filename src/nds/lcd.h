@@ -192,6 +192,7 @@ class NTR_LCD
 	u32 read_param_u32(u8 index);
 	u16 read_param_u16(u8 index);
 	u32 get_rgb15(u16 color_bytes);
+	u32 interpolate_rgb(u32 color_1, u32 color_2, float ratio);
 
 	//SFX functions
 	void apply_sfx(u32 bg_control);

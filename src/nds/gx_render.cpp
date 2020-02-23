@@ -154,6 +154,11 @@ void NTR_LCD::render_geometry()
 		s32 xy_end = 0;
 		s32 xy_inc = 0;
 
+		u32 c1 = vert_colors[x];
+		u32 c2 = vert_colors[next_index];
+		float c_ratio = 0.0;
+		float c_inc = 0.0;
+
 		if((x_dist != 0) && (y_dist != 0))
 		{
 			float s = (y_dist / x_dist);
@@ -207,7 +212,11 @@ void NTR_LCD::render_geometry()
 		xy_inc = (xy_start < xy_end) ? 1 : -1;
 		xy_end += (xy_inc > 0) ? 1 : -1;
 
-		if((xy_end - xy_start) != 0) { z_inc = (plot_z[next_index] - plot_z[x]) / abs(xy_end - xy_start); }
+		if((xy_end - xy_start) != 0)
+		{
+			z_inc = (plot_z[next_index] - plot_z[x]) / abs(xy_end - xy_start);
+			c_inc = 1.0 / abs(xy_end - xy_start);
+		}
 
 		while(xy_start != xy_end)
 		{
@@ -219,8 +228,8 @@ void NTR_LCD::render_geometry()
 
 				//Check Z buffer if drawing is applicable
 				if(z_coord < gx_z_buffer[buffer_index])
-				{ 
-					gx_screen_buffer[lcd_3D_stat.buffer_id][buffer_index] = vert_colors[x];
+				{
+					gx_screen_buffer[lcd_3D_stat.buffer_id][buffer_index] = interpolate_rgb(c1, c2, c_ratio);
 					gx_render_buffer[buffer_index] = 1;
 					gx_z_buffer[buffer_index] = z_coord;
 				}
@@ -253,6 +262,7 @@ void NTR_LCD::render_geometry()
 			y_coord += y_inc;
 			z_coord += z_inc;
 			xy_start += xy_inc;
+			c_ratio += c_inc;
 		}
 	}
 
@@ -1128,4 +1138,22 @@ u32 NTR_LCD::get_rgb15(u16 color_bytes)
 	blue <<= 2;
 
 	return 0xFF000000 | (red << 16) | (green << 8) | (blue);
+}
+
+/****** Interpolates 2 32-bit colors ******/
+u32 NTR_LCD::interpolate_rgb(u32 color_1, u32 color_2, float ratio)
+{
+	u8 r1 = (color_1 >> 16);
+	u8 r2 = (color_2 >> 16);
+	int r = ((r2 - r1) * ratio) + r1;
+
+	u8 g1 = (color_1 >> 8);
+	u8 g2 = (color_2 >> 8);
+	int g = ((g2 - g1) * ratio) + g1; 
+
+	u8 b1 = (color_1 & 0xFF);
+	u8 b2 = (color_2 & 0xFF);
+	int b = ((b2 - b1) * ratio) + b1; 
+	
+	return 0xFF000000 | (r << 16) | (g << 8) | (b);
 }

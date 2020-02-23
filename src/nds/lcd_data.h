@@ -248,6 +248,9 @@ struct ntr_lcd_3D_data
 	u8 hi_fill[256];
 	u8 lo_fill[256];
 
+	u32 hi_color[256];
+	u32 lo_color[256];
+
 	float hi_line_z[256];
 	float lo_line_z[256];
 
