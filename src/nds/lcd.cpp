@@ -84,7 +84,7 @@ void NTR_LCD::reset()
 	render_buffer_a.resize(0x100, 0);
 	render_buffer_b.resize(0x100, 0);
 	gx_render_buffer.resize(0xC000, 0);
-	gx_z_buffer.resize(0xC000, -4096);
+	gx_z_buffer.resize(0xC000, 4096);
 
 	line_buffer.resize(8);
 	for(u32 x = 0; x < 8; x++) { line_buffer[x].resize(0x100); }
@@ -4063,7 +4063,7 @@ void NTR_LCD::step()
 				else { gx_render_buffer.assign(0xC000, 1); }
 
 				//Clear z-buffer
-				gx_z_buffer.assign(0xC000, -4096);
+				gx_z_buffer.assign(0xC000, 4096);
 			}
 
 			//Start VBlank DMA

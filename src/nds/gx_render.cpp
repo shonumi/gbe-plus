@@ -108,7 +108,8 @@ void NTR_LCD::render_geometry()
   		plot_y[x] = round(((-temp_matrix.data[1][0] + temp_matrix.data[3][0]) * viewport_height) / ((2 * temp_matrix.data[3][0]) + lcd_3D_stat.view_port_y1));
 
 		//Get Z coordinate, use existing data from vertex
-		plot_z[x] = vert_matrix.data[x][2];
+		plot_z[x] = temp_matrix.data[2][0];
+		if(temp_matrix.data[3][0]) { plot_z[x] /= temp_matrix.data[3][0]; }
 
 		//Check for wonky coordinates
 		if(std::isnan(plot_x[x])) { lcd_3D_stat.render_polygon = false; return; }
@@ -139,10 +140,15 @@ void NTR_LCD::render_geometry()
 
 		float x_dist = (plot_x[next_index] - plot_x[x]);
 		float y_dist = (plot_y[next_index] - plot_y[x]);
+		float z_dist = (plot_z[next_index] - plot_z[x]);
+
 		float x_inc = 0.0;
 		float y_inc = 0.0;
+		float z_inc = 0.0;
+
 		float x_coord = plot_x[x];
 		float y_coord = plot_y[x];
+		float z_coord = plot_z[x];
 
 		s32 xy_start = 0;
 		s32 xy_end = 0;
@@ -201,8 +207,7 @@ void NTR_LCD::render_geometry()
 		xy_inc = (xy_start < xy_end) ? 1 : -1;
 		xy_end += (xy_inc > 0) ? 1 : -1;
 
-		float z_coord = plot_z[x];
-		float z_inc = (plot_z[next_index] - plot_z[x]) / (xy_end / xy_inc);
+		if((xy_end - xy_start) != 0) { z_inc = (plot_z[next_index] - plot_z[x]) / abs(xy_end - xy_start); }
 
 		while(xy_start != xy_end)
 		{
@@ -213,7 +218,7 @@ void NTR_LCD::render_geometry()
 				buffer_index = (round(y_coord) * 256) + round(x_coord);
 
 				//Check Z buffer if drawing is applicable
-				if(z_coord > gx_z_buffer[buffer_index])
+				if(z_coord < gx_z_buffer[buffer_index])
 				{ 
 					gx_screen_buffer[lcd_3D_stat.buffer_id][buffer_index] = vert_colors[x];
 					gx_render_buffer[buffer_index] = 1;
@@ -294,11 +299,11 @@ void NTR_LCD::fill_poly_solid()
 		float z_inc = 0.0;
 
 		//Calculate Z start and end fill coordinates
-		z_start = gx_z_buffer[(lcd_3D_stat.hi_fill[x] * 256) + x];
-		z_end = gx_z_buffer[(lcd_3D_stat.lo_fill[x] * 256) + x];
+		z_start = lcd_3D_stat.hi_line_z[x];
+		z_end = lcd_3D_stat.lo_line_z[x];
 		
 		z_inc = z_end - z_start;
-		if((lcd_3D_stat.hi_fill[x] - lcd_3D_stat.lo_fill[x]) != 0) { z_inc /= float(lcd_3D_stat.hi_fill[x] - lcd_3D_stat.lo_fill[x]); }
+		if((lcd_3D_stat.lo_fill[x] - lcd_3D_stat.hi_fill[x]) != 0) { z_inc /= float(lcd_3D_stat.lo_fill[x] - lcd_3D_stat.hi_fill[x]); }
 
 		y_coord = lcd_3D_stat.hi_fill[x];
 
@@ -308,8 +313,8 @@ void NTR_LCD::fill_poly_solid()
 			buffer_index = (y_coord * 256) + x;
 
 			//Check Z buffer if drawing is applicable
-			if(z_start > gx_z_buffer[buffer_index])
-			{ 
+			if(z_start < gx_z_buffer[buffer_index])
+			{
 				gx_screen_buffer[lcd_3D_stat.buffer_id][buffer_index] = vert_colors[0];
 				gx_render_buffer[buffer_index] = 1;
 				gx_z_buffer[buffer_index] = z_start;
@@ -832,8 +837,6 @@ void NTR_LCD::process_gx_command()
 						break;
 
 				}
-
-				std::cout<<"ALSO HERE\n";
 
 				//Set vertex color
 				vert_colors[lcd_3D_stat.vertex_list_index] = lcd_3D_stat.vertex_color;
