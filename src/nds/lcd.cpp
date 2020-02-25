@@ -312,7 +312,7 @@ void NTR_LCD::reset()
 
 	lcd_3D_stat.rear_plane_color = 0;
 	lcd_3D_stat.rear_plane_alpha = 0;
-	lcd_3D_stat.vertex_color = 0;
+	lcd_3D_stat.vertex_color = 0xFF000000;
 	lcd_3D_stat.clip_flags = 0;
 
 	lcd_3D_stat.last_x = 0;

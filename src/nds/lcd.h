@@ -188,6 +188,7 @@ class NTR_LCD
 	void render_geometry();
 	void process_gx_command();
 	void fill_poly_solid();
+	void fill_poly_interpolated();
 	bool poly_push(gx_matrix &current_matrix);
 	u32 read_param_u32(u8 index);
 	u16 read_param_u16(u8 index);

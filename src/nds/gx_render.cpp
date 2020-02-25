@@ -130,6 +130,9 @@ void NTR_LCD::render_geometry()
 	{
 		lcd_3D_stat.hi_fill[x] = 0xFF;
 		lcd_3D_stat.lo_fill[x] = 0;
+
+		lcd_3D_stat.hi_color[x] = 0;
+		lcd_3D_stat.lo_color[x] = 0;
 	}
 
 	//Draw lines for all polygons
@@ -156,6 +159,7 @@ void NTR_LCD::render_geometry()
 
 		u32 c1 = vert_colors[x];
 		u32 c2 = vert_colors[next_index];
+		u32 c3 = 0;
 		float c_ratio = 0.0;
 		float c_inc = 0.0;
 
@@ -220,6 +224,8 @@ void NTR_LCD::render_geometry()
 
 		while(xy_start != xy_end)
 		{
+			c3 = interpolate_rgb(c1, c2, c_ratio);
+
 			//Only draw on-screen objects
 			if((x_coord >= 0) && (x_coord <= 255) && (y_coord >= 0) && (y_coord <= 191))
 			{
@@ -229,7 +235,7 @@ void NTR_LCD::render_geometry()
 				//Check Z buffer if drawing is applicable
 				if(z_coord < gx_z_buffer[buffer_index])
 				{
-					gx_screen_buffer[lcd_3D_stat.buffer_id][buffer_index] = interpolate_rgb(c1, c2, c_ratio);
+					gx_screen_buffer[lcd_3D_stat.buffer_id][buffer_index] = c3;
 					gx_render_buffer[buffer_index] = 1;
 					gx_z_buffer[buffer_index] = z_coord;
 				}
@@ -249,12 +255,14 @@ void NTR_LCD::render_geometry()
 				{
 					lcd_3D_stat.hi_fill[temp_x] = temp_y;
 					lcd_3D_stat.hi_line_z[temp_x] = z_coord;
+					lcd_3D_stat.hi_color[temp_x] = c3;
 				}
 
 				if(lcd_3D_stat.lo_fill[temp_x] < temp_y)
 				{
 					lcd_3D_stat.lo_fill[temp_x] = temp_y;
 					lcd_3D_stat.lo_line_z[temp_x] = z_coord;
+					lcd_3D_stat.lo_color[temp_x] = c3;
 				}
 			} 
 
@@ -273,12 +281,20 @@ void NTR_LCD::render_geometry()
 		case 0x0:
 			//Solid color fill
 			if((vert_colors[0] == vert_colors[1]) && (vert_colors[0] == vert_colors[2])) { fill_poly_solid(); }
+			
+			//Interpolated color fill
+			else { fill_poly_interpolated(); }
+
 			break;
 
 		//Quads
 		case 0x1:
 			//Solid color fill
 			if((vert_colors[0] == vert_colors[1]) && (vert_colors[0] == vert_colors[2]) && (vert_colors[0] == vert_colors[3])) { fill_poly_solid(); }
+
+			//Interpolated color fill
+			else { fill_poly_interpolated(); }
+
 			break;
 
 		//Triangle Strips
@@ -332,6 +348,58 @@ void NTR_LCD::fill_poly_solid()
 
 			y_coord++;
 			z_start += z_inc; 
+		}
+	}
+}
+
+/****** NDS 3D Software Renderer - Fills a given poly with interpolated colors from its vertices ******/
+void NTR_LCD::fill_poly_interpolated()
+{
+	u8 y_coord = 0;
+	u32 buffer_index = 0;
+
+
+	for(u32 x = 0; x < 256; x++)
+	{
+		float z_start = 0.0;
+		float z_end = 0.0;
+		float z_inc = 0.0;
+
+		u32 c1 = lcd_3D_stat.hi_color[x];
+		u32 c2 = lcd_3D_stat.lo_color[x];
+		float c_inc = 0;
+		float c_ratio = 0;
+
+		//Calculate Z start and end fill coordinates
+		z_start = lcd_3D_stat.hi_line_z[x];
+		z_end = lcd_3D_stat.lo_line_z[x];
+		
+		z_inc = z_end - z_start;
+
+		if((lcd_3D_stat.lo_fill[x] - lcd_3D_stat.hi_fill[x]) != 0)
+		{
+			z_inc /= float(lcd_3D_stat.lo_fill[x] - lcd_3D_stat.hi_fill[x]);
+			c_inc = 1.0 / (lcd_3D_stat.lo_fill[x] - lcd_3D_stat.hi_fill[x]);
+		}
+
+		y_coord = lcd_3D_stat.hi_fill[x];
+
+		while(y_coord < lcd_3D_stat.lo_fill[x])
+		{
+			//Convert plot points to buffer index
+			buffer_index = (y_coord * 256) + x;
+
+			//Check Z buffer if drawing is applicable
+			if(z_start < gx_z_buffer[buffer_index])
+			{
+				gx_screen_buffer[lcd_3D_stat.buffer_id][buffer_index] = interpolate_rgb(c1, c2, c_ratio);
+				gx_render_buffer[buffer_index] = 1;
+				gx_z_buffer[buffer_index] = z_start;
+			}
+
+			y_coord++;
+			z_start += z_inc;
+			c_ratio += c_inc;
 		}
 	}
 }
