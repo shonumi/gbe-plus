@@ -1138,6 +1138,30 @@ void NTR_LCD::process_gx_command()
 
 			break;
 
+		//TEXIMAGE_PARAM
+		case 0x2A:
+			{
+				u32 raw_value = read_param_u32(0);
+				
+				lcd_3D_stat.tex_offset = ((raw_value & 0xFFFF) >> 3);
+				lcd_3D_stat.tex_src_width = 8 << ((raw_value >> 20) & 0x7);
+				lcd_3D_stat.tex_src_height = 8 << ((raw_value >> 23) & 0x7);
+				lcd_3D_stat.tex_format = ((raw_value >> 26) & 0x7);
+				lcd_3D_stat.tex_transformation = (raw_value >> 30);
+
+				//Calculate VRAM address of texture
+				u8 tex_bank = (lcd_3D_stat.tex_offset / 0x20000);
+				u32 tex_addr = lcd_stat.vram_bank_addr[tex_bank] + (lcd_3D_stat.tex_offset - (0x20000 * tex_bank));
+
+				//Generate pixel data from VRAM
+				switch(lcd_3D_stat.tex_format)
+				{
+					case 0x7: gen_tex_7(tex_addr); break;
+				}
+			}
+
+			break;
+
 		//BEGIN_VTXS:
 		case 0x40:
 			//If, for some reason a polygon was not completed, start over now
@@ -1224,4 +1248,20 @@ u32 NTR_LCD::interpolate_rgb(u32 color_1, u32 color_2, float ratio)
 	int b = ((b2 - b1) * ratio) + b1; 
 	
 	return 0xFF000000 | (r << 16) | (g << 8) | (b);
+}
+
+/****** Generates pixel data from VRAM for Direct Color textures ******/
+void NTR_LCD::gen_tex_7(u32 address)
+{
+	lcd_3D_stat.tex_data.clear();
+	u32 tex_size = (lcd_3D_stat.tex_src_width * lcd_3D_stat.tex_src_height);
+
+	while(tex_size)
+	{
+		u16 color = mem->read_u16_fast(address);
+		lcd_3D_stat.tex_data.push_back(get_rgb15(color));
+
+		address += 2;
+		tex_size--;
+	}
 }

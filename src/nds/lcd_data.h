@@ -266,6 +266,13 @@ struct ntr_lcd_3D_data
 	float last_x;
 	float last_y;
 	float last_z;
+
+	u32 tex_offset;
+	u16 tex_src_width;
+	u16 tex_src_height;
+	u8 tex_format;
+	u8 tex_transformation;
+	std::vector <u32> tex_data;
 };
 
 #endif // NDS_LCD_DATA
