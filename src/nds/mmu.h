@@ -58,6 +58,7 @@ class NTR_MMU
 		SLOT2_RUMBLE_PAK,
 		SLOT2_GBA_CART,
 		SLOT2_UBISOFT_PEDOMETER,
+		SLOT2_HCV_1000,
 	};
 
 	backup_types current_save_type;
@@ -207,6 +208,13 @@ class NTR_MMU
 		u8 scr_x1, scr_x2;
 		u8 scr_y1, scr_y2;
 	} touchscreen;
+
+	//HCV-1000
+	struct hcv_1000
+	{
+		u8 cnt;
+		std::vector <u8> data;
+	} hcv;
 
 	//NDS9 3D GX FIFO
 	std::queue <u32> nds9_gx_fifo;
@@ -390,6 +398,8 @@ class NTR_MMU
 	void set_apu_data(ntr_apu_data* ex_apu_stat);
 	void set_nds7_pc(u32* ex_pc);
 	void set_nds9_pc(u32* ex_pc);
+
+	bool slot2_hcv_load_barcode(std::string filename);
 
 	void parse_header();
 

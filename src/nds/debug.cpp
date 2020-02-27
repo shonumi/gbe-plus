@@ -161,7 +161,17 @@ void NTR_core::debug_step()
 	}
 
 	//Display current PC when print PC is enabled
-	if(db_unit.print_pc) { std::cout<<"PC -> 0x" << ((nds9_debug) ? core_cpu_nds9.reg.r15 : core_cpu_nds7.reg.r15) << "\n"; }
+	if(db_unit.print_pc)
+	{
+		u8 last_access = core_mmu.access_mode;
+		core_mmu.access_mode = nds9_debug;
+
+		u32 opcode = arm_debug ? core_mmu.read_u32(pc) : core_mmu.read_u16(pc);
+
+		core_mmu.access_mode = last_access;
+
+		std::cout<<"PC -> 0x" << ((nds9_debug) ? core_cpu_nds9.reg.r15 : core_cpu_nds7.reg.r15) << " :: " << debug_get_mnemonic(opcode, false) << "\n";
+	}
 }
 
 /****** Debugger - Display relevant info to the screen ******/
@@ -1720,10 +1730,15 @@ void NTR_core::debug_process_command()
 
 				for(u32 x = 0; x < 16; x++)
 				{
+					u8 last_access = core_mmu.access_mode;
+					core_mmu.access_mode = nds9_debug;
+
 					u32 addr = (mem_location + (x * 4));
 					u32 opcode = core_mmu.read_u32(addr);
 
-					std::cout<<"0x" << addr << "\t" << debug_get_mnemonic(addr, true) << "\n";
+					std::cout<<"0x" << addr << "\t" << debug_get_mnemonic(opcode, false) << "\n";
+
+					core_mmu.access_mode = last_access;
 				}
 
 				db_unit.last_command = "da";
@@ -1760,7 +1775,15 @@ void NTR_core::debug_process_command()
 
 				for(u32 x = 0; x < 16; x++)
 				{
-					std::cout<<"0x" << (mem_location + (x * 2)) << "\t" << debug_get_mnemonic(mem_location + (x * 2)) << "\n";
+					u8 last_access = core_mmu.access_mode;
+					core_mmu.access_mode = nds9_debug;
+
+					u32 addr = (mem_location + (x * 2));
+					u32 opcode = core_mmu.read_u16(addr);
+
+					std::cout<<"0x" << addr << "\t" << debug_get_mnemonic(opcode, false) << "\n";
+
+					core_mmu.access_mode = last_access;
 				}
 
 				db_unit.last_command = "dt";

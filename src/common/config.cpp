@@ -1058,7 +1058,7 @@ bool parse_ini_file()
 			{
 				util::from_str(ini_opts[++x], output);
 
-				if((output >= 0) && (output <= 5)) { config::nds_slot2_device = output; }
+				if((output >= 0) && (output <= 6)) { config::nds_slot2_device = output; }
 			}
 
 			else 

@@ -10,6 +10,7 @@
 
 #include "mmu.h"
 
+/****** Reads from Slot-2 device ******/
 u8 NTR_MMU::read_slot2_device(u32 address)
 {
 	u8 slot_byte = 0xFF;
@@ -46,11 +47,32 @@ u8 NTR_MMU::read_slot2_device(u32 address)
 			}
 
 			break;
+
+		case SLOT2_HCV_1000:
+			//Reading these cart addresses is for detection
+			if(address < 0x8020000)
+			{
+				u8 data = 0xF0 | ((address & 0x1F) >> 1);
+				slot_byte = (address & 0x1) ? 0xFD : data;
+			}
+
+			//HCV_CNT
+			else if(address == 0xA000000) { slot_byte = hcv.cnt; }
+
+			//HCV_DATA
+			else if((address >= 0xA000010) && (address <= 0xA00001F))
+			{
+				slot_byte = hcv.data[address & 0xF];
+				std::cout<<"READING 0x" << std::hex << address << " :: 0x" << (u32)slot_byte << "\n";
+			}
+
+			break;
 	}
 
 	return slot_byte;
 }
 
+/****** Writes to Slot-2 device ******/
 void NTR_MMU::write_slot2_device(u32 address, u8 value)
 {
 	switch(current_slot2_device)
@@ -65,5 +87,42 @@ void NTR_MMU::write_slot2_device(u32 address, u8 value)
 			}
 
 			break;
+
+		case SLOT2_HCV_1000:
+			//HCV_CNT
+			if(address == 0xA000000) { hcv.cnt = (value & 0x83); }
+
+			break;
 	}
+}
+
+/****** Reads external barcode file for HCV-1000 ******/
+bool NTR_MMU::slot2_hcv_load_barcode(std::string filename)
+{
+	std::ifstream barcode(filename.c_str(), std::ios::binary);
+
+	if(!barcode.is_open()) 
+	{ 
+		std::cout<<"MMU::HCV-1000 barcode data could not be read. Check file path or permissions. \n";
+		return false;
+	}
+
+	//Get file size
+	barcode.seekg(0, barcode.end);
+	u32 barcode_size = barcode.tellg();
+	barcode.seekg(0, barcode.beg);
+
+	hcv.data.clear();
+	hcv.data.resize(barcode_size, 0x0);
+
+	u8* ex_data = &hcv.data[0];
+
+	barcode.read((char*)ex_data, barcode_size); 
+	barcode.close();
+
+	//Fill empty data with 0x5F
+	while(hcv.data.size() < 16) { hcv.data.push_back(0x5F); }
+
+	std::cout<<"SIO::Loaded HCV-1000 barcode data.\n";
+	return true;
 }

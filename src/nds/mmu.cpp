@@ -44,6 +44,13 @@ void NTR_MMU::reset()
 		case 3: current_slot2_device = SLOT2_RUMBLE_PAK; break;
 		case 4: current_slot2_device = SLOT2_GBA_CART; break;
 		case 5: current_slot2_device = SLOT2_UBISOFT_PEDOMETER; break;
+
+		case 6:
+			current_slot2_device = SLOT2_HCV_1000;
+			hcv.data.clear();
+			hcv.data.resize(0x10, 0x5F);
+			slot2_hcv_load_barcode(config::external_card_file);
+			break;
 	}	
 
 	memory_map.clear();
@@ -227,6 +234,7 @@ void NTR_MMU::reset()
 	nds9_math.sqrt_result = 0;
 
 	touchscreen_state = 0;
+	hcv.cnt = 0;
 
 	key1_table.clear();
 	key_code.clear();

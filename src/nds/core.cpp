@@ -863,6 +863,18 @@ void NTR_core::handle_hotkey(SDL_Event& event)
 		if(config::lcd_config & 0x1) { config::lcd_config &= ~0x1; }
 		else { config::lcd_config |= 0x1; }
 	}
+
+	//Initiate various communication functions
+	//HCV-1000 - Swipe barcode
+	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F11))
+	{
+		switch(core_mmu.current_slot2_device)
+		{
+			case NTR_MMU::SLOT2_HCV_1000:
+				core_mmu.hcv.cnt &= ~0x80;
+				break;
+		}
+	}
 }
 
 /****** Process hotkey input - Use exsternally when not using SDL ******/
@@ -881,13 +893,25 @@ void NTR_core::handle_hotkey(int input, bool pressed)
 		else { config::lcd_config |= 0x1; }
 	}
 
-	//Toggle vertical or horizontal mode on F3
-	else if((input == SDLK_F3) && (pressed))
+	//Toggle vertical or horizontal mode
+	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == config::hotkey_shift_screen))
 	{
 		if(config::lcd_config & 0x2) { config::resize_mode = 0; }
 		else { config::resize_mode = 1; }
 		
 		config::request_resize = true;
+	}
+
+	//Initiate various communication functions
+	//HCV-1000 - Swipe barcode
+	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F11))
+	{
+		switch(core_mmu.current_slot2_device)
+		{
+			case NTR_MMU::SLOT2_HCV_1000:
+				core_mmu.hcv.cnt &= ~0x80;
+				break;
+		}
 	}
 }
 
