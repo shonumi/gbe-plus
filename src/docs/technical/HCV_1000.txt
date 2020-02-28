@@ -1,0 +1,106 @@
+HCV-1000 Documentation 0.1
+February 25th, 2020
+Shonumi aka D.S. Baxter
+
+***************************************************
+1. Introduction
+***************************************************  
+
+The HCV-1000 is a Slot-2 NDS device designed to read barcodes from cards. Produced by Sega and released in 2006, it came bundled with Oshare Majo Love and Berry: DS Collection, Kouchuu Ouja Mushiking Super Collection, Card de Asobu! Hajimete no DS. By scanning various cards, certain items/characters were unlocked in each of the games.
+
+
+***************************************************
+2. General Hardware Information
+***************************************************
+
+* The HCV-1000 is a white add-on that sticks out of Slot-2. It has a thin gap where cards slide through
+* A red light inside the gap turns on when the scanner is activated by software
+* A small guard can be added or removed to better suit an NDS Lite or original NDS Slot-2
+* The HCV-1001 variant is pink instead of white, the only difference being its status as a limited edition
+
+
+***************************************************
+3. Compatible Games
+***************************************************
+
+Oshare Majo Love and Berry: DS Collection			Unlocks various clothes/outfits before playing minigames
+Kouchuu Ouja Mushiking Super Collection				Unlocks different beetles used for battles
+Card de Asobu! Hajimete no DS					Selects Japanese kana/object used for educational games
+
+Card de Asobu! is the only title that absolutely requires the HCV-1000 to play. Without the device, the game will not reach the main screen and will stall with an error message/animation. The other two games are still playable without the HCV-1000 and without the bonuses it provides, thereby limiting some aspects of gameplay.
+
+
+***************************************************
+4. Device Detection
+***************************************************
+
+The software will read some values from the GBA cart space between 0x8000000 and 0x801FFFF. The following psuedo-code will allow software to properly detect the presence of the HCV-1000:
+
+//Read individual bytes from GBA cart space
+if address AND 1
+	return 0xF0 OR ((address AND 0x1F) SHIFT RIGHT 1)
+else
+	return 0xFD
+
+
+***************************************************
+5. I/O Registers
+***************************************************
+
+-------------------------------------
+HCV_CNT (R/W)	0xA000000
+-------------------------------------
+Bit 0		(R) Camera status, 1 = On, 0 = Off		(W) Turn camera on = 1, Turn camera off = 0 		
+Bit 1		(R) Current barcode strip, 1 = Gap, 0 = Bar	(W) ???
+Bit 2		N/A
+Bit 3		N/A
+Bit 4		(R) Barcode processing flag			(W) 0 = Clear flag
+Bit 5		(R) Barcode orientation flag			(W) 0 = Clear flag
+Bit 6		(R) Scan error flag				(W) 0 = Clear flag
+Bit 7		(R) Scanning status, 1 = In progess, 0 = Done	(W) Start scanning = 1, Stop scanning = 0
+
+Camera Status: When scanning cards, this must be set high. Doing this turns on the red light and the camera. If needed, this bit can be read to determine whether the camera is on or off.
+
+Current Barcode Strip: A "1" indicates a gap, while a "0" indicates a bar. Although this data is exposed to software, reading Bit 1 is not necessary to obtain barcode data. The HCV-1000 automatically outputs that information to HCV_DATA. It's possible to write to this bit, but its affect is unknown. 
+
+Barcode Processing Flag: This flag is set to "1" whenever the HCV-1000 begins processing barcode data for HCV_DATA. It is not set to "0" when all of the data is finished. Reading Bit 7 should be used to determine if scanning is complete.
+
+Barcode Orientation Flag: Describes the format of the data in HCV_DATA. If this flag is "0" this means the barcode data is meant to be read in ascending order (0xA000010, 0xA000011, 0xA000012, etc). If this flag is "1", that means the barcode data is meant to be read in descending order (0xA00001F, 0xA00001E, 0xA00001D, etc).
+
+Scan Error Flag: If this flag is "1", it indicates a problem occurred at some point while a card was scanned. Any bytes in HCV_DATA may be unreliable.
+
+Scanning Status: It must be set high to start the scanning process. It will remain high until the HCV-1000 has finished processing the barcode. At that point, Bit 7 is automatically set low and the bytes in HCV_DATA will represent barcode data.
+
+Bits 2 and 3 are not used. While all of the other bits are writable, Bits 4-6 may not be set high by NDS software. Writing "0" to those bits will set them low, however, in effect clearing them. 
+
+-------------------------------------
+HCV_DATA (R)	0xA000010 - 0xA00001F
+-------------------------------------
+0xA000010
+...
+0xA00001F	1 byte of processed barcode data
+
+16 bytes are set at this location for incoming barcode data in the form of an ASCII encoded string. Once Bit 0 and Bit 7 in HCV_CNT are both set high, the HCV-1000 continually attempts to grab any barcode data on its own and puts the results here.
+
+All barcodes must be in Code39 with a maximum length of 16 characters. The ASCII string in HCV_DATA is the human-readable form of the barcode, e.g. *12345-ABCDEFG*. If a barcode has less than 16 characters, HCV_DATA fills in any missing spaces with the value 0x5F. The barcode data may come in "reversed" depending on which direction the card was swiped, therefore Bit 5 of HCV_CNT can be referenced.
+
+
+***************************************************
+6. Operation
+***************************************************
+
+The NDS must use proper memory timings in order to correctly access the HCV-1000. Compatible games set EXMEMCNT to 0xE877. When using incorrect timings, the I/O registers become inaccessible (reading zero constantly).
+
+While it is possible to continually read Bit 1 of HCV_CNT and measure the delays between each transition and manually calculate barcode values, the HCV-1000 provides built-in decoding. NDS software need only perform the following steps:
+
+1) Set HCV_CNT to 0x81 (turn on camera + start scanning).
+
+2) Read HCV_CNT and wait for the HCV-1000 to clear Bit 7 of that register.
+
+3) Check Bit 6 of HCV_CNT for errors and abort if any detected.
+
+4) Read 16 bytes from HCV_DATA.
+
+5) Set HCV_CNT to 0x00 (turn off camera + clear flags).
+
+6) Repeat as necessary
