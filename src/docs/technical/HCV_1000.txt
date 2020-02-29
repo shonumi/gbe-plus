@@ -38,9 +38,9 @@ The software will read some values from the GBA cart space between 0x8000000 and
 
 //Read individual bytes from GBA cart space
 if address AND 1
-	return 0xF0 OR ((address AND 0x1F) SHIFT RIGHT 1)
-else
 	return 0xFD
+else
+	return 0xF0 OR ((address AND 0x1F) SHIFT RIGHT 1)
 
 
 ***************************************************
@@ -58,6 +58,7 @@ Bit 4		(R) Barcode processing flag			(W) 0 = Clear flag
 Bit 5		(R) Barcode orientation flag			(W) 0 = Clear flag
 Bit 6		(R) Scan error flag				(W) 0 = Clear flag
 Bit 7		(R) Scanning status, 1 = In progess, 0 = Done	(W) Start scanning = 1, Stop scanning = 0
+-------------------------------------
 
 Camera Status: When scanning cards, this must be set high. Doing this turns on the red light and the camera. If needed, this bit can be read to determine whether the camera is on or off.
 
@@ -79,10 +80,13 @@ HCV_DATA (R)	0xA000010 - 0xA00001F
 0xA000010
 ...
 0xA00001F	1 byte of processed barcode data
+-------------------------------------
 
 16 bytes are set at this location for incoming barcode data in the form of an ASCII encoded string. Once Bit 0 and Bit 7 in HCV_CNT are both set high, the HCV-1000 continually attempts to grab any barcode data on its own and puts the results here.
 
-All barcodes must be in Code39 with a maximum length of 16 characters. The ASCII string in HCV_DATA is the human-readable form of the barcode, e.g. *12345-ABCDEFG*. If a barcode has less than 16 characters, HCV_DATA fills in any missing spaces with the value 0x5F. The barcode data may come in "reversed" depending on which direction the card was swiped, therefore Bit 5 of HCV_CNT can be referenced.
+All barcodes must be in Code39 with a maximum length of 16 characters. The ASCII string in HCV_DATA is the human-readable form of the barcode, e.g. *12345-ABCDEFG*. If a barcode has less than 16 characters, HCV_DATA appends the value 0x5F to the string for the rest of the length.
+
+The barcode data may come in "reversed" depending on which direction the card was swiped, therefore Bit 5 of HCV_CNT can be referenced to read the bytes in the correct order. Alternatively, NDS software can simply read the bytes in any order and check for both barcodes. Whether or not the barcode data is reversed, any 0x5F values in HCV_DATA will always appear at the end (0xA00001F, 0xA00001E, 0xA00001D, ... for example).
 
 
 ***************************************************

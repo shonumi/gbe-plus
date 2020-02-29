@@ -27,10 +27,9 @@ The software will read some values from the GBA cart space between 0x8000000 and
 
 //Read individual bytes from GBA cart space
 if address AND 1
-	return 0xF0 OR ((address AND 0x1F) SHIFT RIGHT 1)
-else
 	return 0xF7
-
+else
+	return 0xF0 OR ((address AND 0x1F) SHIFT RIGHT 1)
 
 ***************************************************
 4. Reading Steps
