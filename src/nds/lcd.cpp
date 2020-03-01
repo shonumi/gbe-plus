@@ -323,7 +323,13 @@ void NTR_LCD::reset()
 	for(int x = 0; x < 128; x++) { lcd_3D_stat.command_parameters[x] = 0; }
 	
 	//Vertex colors
-	for(int x = 0; x < 4; x++) { vert_colors[x] = 0xFFFFFFFF; }
+	//Texture coordinates
+	for(int x = 0; x < 4; x++)
+	{
+		vert_colors[x] = 0xFFFFFFFF;
+		lcd_3D_stat.tex_coord_x[x] = 0.0;
+		lcd_3D_stat.tex_coord_y[x] = 0.0;
+	}
 
 	//Polygon fill coordinates
 	for(int x = 0; x < 256; x++) { lcd_3D_stat.hi_fill[x] = lcd_3D_stat.lo_fill[x] = 0xFF; }

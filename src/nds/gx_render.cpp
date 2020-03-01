@@ -854,7 +854,45 @@ void NTR_LCD::process_gx_command()
 			}
 
 			break;
-			
+
+		//TEXCOORD
+		case 0x22:
+			{
+				float result = 0.0;
+
+				//Texture X
+				u16 tx = read_param_u16(0);
+
+				if(tx & 0x8000)
+				{
+					u16 p = ((tx >> 4) - 1);
+					p = (~p & 0xF);
+					result = -1.0 * p;
+				}
+
+				else { result = (tx >> 4); }
+				if((tx & 0xF) != 0) { result += (tx & 0xF) / 16.0; }
+
+				lcd_3D_stat.tex_coord_x[lcd_3D_stat.vertex_list_index] = result;
+
+				//Texture Y
+				u16 ty = read_param_u16(1);
+
+				if(ty & 0x8000)
+				{
+					u16 p = ((ty >> 4) - 1);
+					p = (~p & 0xF);
+					result = -1.0 * p;
+				}
+
+				else { result = (ty >> 4); }
+				if((ty & 0xF) != 0) { result += (ty & 0xF) / 16.0; }
+
+				lcd_3D_stat.tex_coord_y[lcd_3D_stat.vertex_list_index] = result;
+			}
+
+			break;
+
 		//VTX_16
 		case 0x23:
 			//Push new polygon if necessary

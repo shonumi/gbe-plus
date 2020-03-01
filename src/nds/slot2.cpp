@@ -63,7 +63,6 @@ u8 NTR_MMU::read_slot2_device(u32 address)
 			else if((address >= 0xA000010) && (address <= 0xA00001F))
 			{
 				slot_byte = hcv.data[address & 0xF];
-				std::cout<<"READING 0x" << std::hex << address << " :: 0x" << (u32)slot_byte << "\n";
 			}
 
 			break;

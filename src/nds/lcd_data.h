@@ -273,6 +273,10 @@ struct ntr_lcd_3D_data
 	u8 tex_format;
 	u8 tex_transformation;
 	std::vector <u32> tex_data;
+
+	float tex_coord_x[4];
+	float tex_coord_y[4];
+	
 };
 
 #endif // NDS_LCD_DATA
