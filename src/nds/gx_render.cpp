@@ -876,7 +876,7 @@ void NTR_LCD::process_gx_command()
 				lcd_3D_stat.tex_coord_x[lcd_3D_stat.vertex_list_index] = result;
 
 				//Texture Y
-				u16 ty = read_param_u16(1);
+				u16 ty = read_param_u16(2);
 
 				if(ty & 0x8000)
 				{
@@ -1213,6 +1213,8 @@ void NTR_LCD::process_gx_command()
 
 				lcd_3D_stat.vertex_list_index = 0;
 			}
+
+			std::cout<<"\n";
 
 			lcd_3D_stat.vertex_mode = (lcd_3D_stat.command_parameters[3] & 0x3);
 
