@@ -255,6 +255,7 @@ struct ntr_lcd_3D_data
 	float lo_line_z[256];
 
 	bool render_polygon;
+	bool use_texture;
 
 	u32 rear_plane_color;
 	u8 rear_plane_alpha;
@@ -276,7 +277,12 @@ struct ntr_lcd_3D_data
 
 	float tex_coord_x[4];
 	float tex_coord_y[4];
-	
+
+	float hi_tx[256];
+	float lo_tx[256];
+
+	float hi_ty[256];
+	float lo_ty[256];
 };
 
 #endif // NDS_LCD_DATA

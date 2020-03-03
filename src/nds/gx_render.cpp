@@ -133,6 +133,12 @@ void NTR_LCD::render_geometry()
 
 		lcd_3D_stat.hi_color[x] = 0;
 		lcd_3D_stat.lo_color[x] = 0;
+
+		lcd_3D_stat.hi_tx[x] = 0;
+		lcd_3D_stat.lo_tx[x] = 0;
+
+		lcd_3D_stat.hi_ty[x] = 0;
+		lcd_3D_stat.lo_ty[x] = 0;
 	}
 
 	//Draw lines for all polygons
@@ -162,6 +168,12 @@ void NTR_LCD::render_geometry()
 		u32 c3 = 0;
 		float c_ratio = 0.0;
 		float c_inc = 0.0;
+
+		float tx_inc = 0.0;
+		float ty_inc = 0.0;
+
+		float tx = lcd_3D_stat.tex_coord_x[x];
+		float ty = lcd_3D_stat.tex_coord_y[x];
 
 		if((x_dist != 0) && (y_dist != 0))
 		{
@@ -220,6 +232,9 @@ void NTR_LCD::render_geometry()
 		{
 			z_inc = (plot_z[next_index] - plot_z[x]) / abs(xy_end - xy_start);
 			c_inc = 1.0 / abs(xy_end - xy_start);
+
+			tx_inc = (lcd_3D_stat.tex_coord_x[next_index] - lcd_3D_stat.tex_coord_x[x]) / abs(xy_end - xy_start);
+			ty_inc = (lcd_3D_stat.tex_coord_y[next_index] - lcd_3D_stat.tex_coord_y[x]) / abs(xy_end - xy_start);
 		}
 
 		while(xy_start != xy_end)
@@ -256,6 +271,9 @@ void NTR_LCD::render_geometry()
 					lcd_3D_stat.hi_fill[temp_x] = temp_y;
 					lcd_3D_stat.hi_line_z[temp_x] = z_coord;
 					lcd_3D_stat.hi_color[temp_x] = c3;
+
+					lcd_3D_stat.hi_tx[temp_x] = tx;
+					lcd_3D_stat.hi_ty[temp_x] = ty;
 				}
 
 				if(lcd_3D_stat.lo_fill[temp_x] < temp_y)
@@ -263,6 +281,9 @@ void NTR_LCD::render_geometry()
 					lcd_3D_stat.lo_fill[temp_x] = temp_y;
 					lcd_3D_stat.lo_line_z[temp_x] = z_coord;
 					lcd_3D_stat.lo_color[temp_x] = c3;
+
+					lcd_3D_stat.lo_tx[temp_x] = tx;
+					lcd_3D_stat.lo_ty[temp_x] = ty;
 				}
 			} 
 
@@ -271,6 +292,9 @@ void NTR_LCD::render_geometry()
 			z_coord += z_inc;
 			xy_start += xy_inc;
 			c_ratio += c_inc;
+
+			tx += tx_inc;
+			ty += ty_inc;
 		}
 	}
 
@@ -289,8 +313,11 @@ void NTR_LCD::render_geometry()
 
 		//Quads
 		case 0x1:
+			//Textured color fill
+			if(lcd_3D_stat.use_texture) { fill_poly_textured(); }
+
 			//Solid color fill
-			if((vert_colors[0] == vert_colors[1]) && (vert_colors[0] == vert_colors[2]) && (vert_colors[0] == vert_colors[3])) { fill_poly_solid(); }
+			else if((vert_colors[0] == vert_colors[1]) && (vert_colors[0] == vert_colors[2]) && (vert_colors[0] == vert_colors[3])) { fill_poly_solid(); }
 
 			//Interpolated color fill
 			else { fill_poly_interpolated(); }
@@ -400,6 +427,74 @@ void NTR_LCD::fill_poly_interpolated()
 			y_coord++;
 			z_start += z_inc;
 			c_ratio += c_inc;
+		}
+	}
+}
+
+/****** NDS 3D Software Renderer - Fills a given poly with color from a texture ******/
+void NTR_LCD::fill_poly_textured()
+{
+	u8 y_coord = 0;
+	u32 buffer_index = 0;
+	u32 texel_index = 0;
+
+	u32 tex_size = lcd_3D_stat.tex_data.size();
+	u32 tw = lcd_3D_stat.tex_src_width;
+
+	gen_tex_7(0x6800000);
+
+	for(u32 x = 0; x < 256; x++)
+	{
+		float z_start = 0.0;
+		float z_end = 0.0;
+		float z_inc = 0.0;
+
+		float tx1 = lcd_3D_stat.hi_tx[x];
+		float tx2 = lcd_3D_stat.lo_tx[x];
+
+		float ty1 = lcd_3D_stat.hi_ty[x];
+		float ty2 = lcd_3D_stat.lo_ty[x];
+
+		float tx_inc = tx2 - tx1;
+		float ty_inc = ty2 - ty1;
+
+		//Calculate Z start and end fill coordinates
+		z_start = lcd_3D_stat.hi_line_z[x];
+		z_end = lcd_3D_stat.lo_line_z[x];
+		
+		z_inc = z_end - z_start;
+
+		if((lcd_3D_stat.lo_fill[x] - lcd_3D_stat.hi_fill[x]) != 0)
+		{
+			z_inc /= float(lcd_3D_stat.lo_fill[x] - lcd_3D_stat.hi_fill[x]);
+			tx_inc /= float(lcd_3D_stat.lo_fill[x] - lcd_3D_stat.hi_fill[x]);
+			ty_inc /= float(lcd_3D_stat.lo_fill[x] - lcd_3D_stat.hi_fill[x]);
+		}
+
+		y_coord = lcd_3D_stat.hi_fill[x];
+
+		while(y_coord < lcd_3D_stat.lo_fill[x])
+		{
+			//Convert plot points to buffer index
+			buffer_index = (y_coord * 256) + x;
+
+			//Calculate texel postion
+			texel_index = u32(u32(ty1) * tw) + u32(tx1);
+
+			//Check Z buffer if drawing is applicable
+			//Make sure texel exists as well
+			if((z_start < gx_z_buffer[buffer_index]) && (texel_index < tex_size))
+			{
+				gx_screen_buffer[lcd_3D_stat.buffer_id][buffer_index] = lcd_3D_stat.tex_data[texel_index];
+				gx_render_buffer[buffer_index] = 1;
+				gx_z_buffer[buffer_index] = z_start;
+			}
+
+			y_coord++;
+			z_start += z_inc;
+
+			tx1 += tx_inc;
+			ty1 += ty_inc;
 		}
 	}
 }
@@ -889,6 +984,9 @@ void NTR_LCD::process_gx_command()
 				if((ty & 0xF) != 0) { result += (ty & 0xF) / 16.0; }
 
 				lcd_3D_stat.tex_coord_y[lcd_3D_stat.vertex_list_index] = result;
+
+				//Set texture status
+				lcd_3D_stat.use_texture = true;
 			}
 
 			break;
@@ -1214,7 +1312,8 @@ void NTR_LCD::process_gx_command()
 				lcd_3D_stat.vertex_list_index = 0;
 			}
 
-			std::cout<<"\n";
+			//Reset texture status
+			lcd_3D_stat.use_texture = false;
 
 			lcd_3D_stat.vertex_mode = (lcd_3D_stat.command_parameters[3] & 0x3);
 

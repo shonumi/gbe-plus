@@ -1288,6 +1288,17 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 						break;
 
+					//TEXCOORD
+					case 0x4000488:
+					case 0x4000489:
+					case 0x400048A:
+					case 0x400048B:
+						lcd_3D_stat->current_gx_command = 0x22;
+						lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = value;
+						if(lcd_3D_stat->parameter_index == 4) { lcd_3D_stat->process_command = true; }
+
+						break;
+
 					//VTX_16
 					case 0x400048C:
 					case 0x400048D:
@@ -5335,6 +5346,8 @@ void NTR_MMU::process_spi_bus()
 /****** Handles various AUXSPI Bus interactions ******/
 void NTR_MMU::process_aux_spi_bus()
 {
+	std::cout<<"AUX -> 0x" << std::hex << (u32)nds_aux_spi.data << "\n";
+
 	bool new_command = false;
 	bool cs_hold = (nds_aux_spi.cnt & 0x40);
 
