@@ -385,7 +385,6 @@ void NTR_LCD::fill_poly_interpolated()
 	u8 y_coord = 0;
 	u32 buffer_index = 0;
 
-
 	for(u32 x = 0; x < 256; x++)
 	{
 		float z_start = 0.0;
@@ -1287,7 +1286,7 @@ void NTR_LCD::process_gx_command()
 
 				//Calculate VRAM address of texture
 				u8 tex_bank = (lcd_3D_stat.tex_offset / 0x20000);
-				u32 tex_addr = lcd_stat.vram_bank_addr[tex_bank] + (lcd_3D_stat.tex_offset - (0x20000 * tex_bank));
+				u32 tex_addr = (0x6800000 + (0x20000 * tex_bank)) + (lcd_3D_stat.tex_offset - (0x20000 * tex_bank));
 
 				//Generate pixel data from VRAM
 				switch(lcd_3D_stat.tex_format)
