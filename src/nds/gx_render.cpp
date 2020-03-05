@@ -955,7 +955,7 @@ void NTR_LCD::process_gx_command()
 				float result = 0.0;
 
 				//Texture X
-				u16 tx = read_param_u16(0);
+				u16 tx = read_param_u16(2);
 
 				if(tx & 0x8000)
 				{
@@ -970,7 +970,7 @@ void NTR_LCD::process_gx_command()
 				lcd_3D_stat.tex_coord_x[lcd_3D_stat.vertex_list_index] = result;
 
 				//Texture Y
-				u16 ty = read_param_u16(2);
+				u16 ty = read_param_u16(0);
 
 				if(ty & 0x8000)
 				{
