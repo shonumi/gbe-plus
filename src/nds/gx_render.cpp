@@ -1291,11 +1291,18 @@ void NTR_LCD::process_gx_command()
 				//Generate pixel data from VRAM
 				switch(lcd_3D_stat.tex_format)
 				{
+					case 0x4: gen_tex_4(tex_addr); break;
 					case 0x7: gen_tex_7(tex_addr); break;
+					//default: std::cout<<"Unhandled texture format: 0x" << std::hex << (u32)lcd_3D_stat.tex_format << "\n";
 				}
 			}
 
 			break;
+
+		//PLTT_BASE
+		case 0x2B:
+			lcd_3D_stat.pal_base = read_param_u32(0) & 0x1FFF;
+			break;	
 
 		//BEGIN_VTXS:
 		case 0x40:
@@ -1386,6 +1393,30 @@ u32 NTR_LCD::interpolate_rgb(u32 color_1, u32 color_2, float ratio)
 	int b = ((b2 - b1) * ratio) + b1; 
 	
 	return 0xFF000000 | (r << 16) | (g << 8) | (b);
+}
+
+/****** Generates pixel data from VRAM for 256 color textures ******/
+void NTR_LCD::gen_tex_4(u32 address)
+{
+	lcd_3D_stat.tex_data.clear();
+	u32 tex_size = (lcd_3D_stat.tex_src_width * lcd_3D_stat.tex_src_height);
+
+	//Generate temporary palette
+	u32 pal_addr = 0x6890000 + (lcd_3D_stat.pal_base * 0x10);
+	u32 tex_pal[256];
+
+	for(u32 x = 0; x < 256; x++)
+	{
+		tex_pal[x] = get_rgb15(mem->read_u16_fast(pal_addr));
+		pal_addr += 2;
+	}
+
+	while(tex_size)
+	{
+		u8 index = mem->memory_map[address++];
+		lcd_3D_stat.tex_data.push_back(tex_pal[index]);
+		tex_size--;
+	}
 }
 
 /****** Generates pixel data from VRAM for Direct Color textures ******/

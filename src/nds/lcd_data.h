@@ -269,6 +269,7 @@ struct ntr_lcd_3D_data
 	float last_z;
 
 	u32 tex_offset;
+	u32 pal_base;
 	u16 tex_src_width;
 	u16 tex_src_height;
 	u8 tex_format;
