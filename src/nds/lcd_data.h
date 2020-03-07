@@ -270,6 +270,7 @@ struct ntr_lcd_3D_data
 
 	u32 tex_offset;
 	u32 pal_base;
+	u32 pal_bank_addr;
 	u16 tex_src_width;
 	u16 tex_src_height;
 	u8 tex_format;

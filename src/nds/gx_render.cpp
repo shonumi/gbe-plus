@@ -1402,7 +1402,7 @@ void NTR_LCD::gen_tex_4(u32 address)
 	u32 tex_size = (lcd_3D_stat.tex_src_width * lcd_3D_stat.tex_src_height);
 
 	//Generate temporary palette
-	u32 pal_addr = 0x6890000 + (lcd_3D_stat.pal_base * 0x10);
+	u32 pal_addr = lcd_3D_stat.pal_bank_addr + (lcd_3D_stat.pal_base * 0x10);
 	u32 tex_pal[256];
 
 	for(u32 x = 0; x < 256; x++)
