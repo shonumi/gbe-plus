@@ -211,6 +211,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	slot2_dev->addItem("Rumble Cart");
 	slot2_dev->addItem("GBA Cart");
 	slot2_dev->addItem("Ubisoft Pedometer");
+	slot2_dev->addItem("HCV-1000");
 
 	config_slot2 = new QPushButton("Configure");
 
@@ -1936,7 +1937,7 @@ void gen_settings::slot2_dev_change()
 {
 	config::nds_slot2_device = slot2_dev->currentIndex();
 
-	if((config::nds_slot2_device == 3) || (config::nds_slot2_device == 5)) { config_slot2->setEnabled(true); }
+	if((config::nds_slot2_device == 3) || (config::nds_slot2_device == 5) || (config::nds_slot_2_device == 6)) { config_slot2->setEnabled(true); }
 	else { config_slot2->setEnabled(false); }
 }
 
@@ -2002,8 +2003,9 @@ void gen_settings::show_slot2_config()
 {
 	switch(config::nds_slot2_device)
 	{
-		case 3: tabs->setCurrentIndex(3); controls_combo->setCurrentIndex(1); break;
-		case 5: ubisoft_pedometer_menu->show(); break;
+		case 0x3: tabs->setCurrentIndex(3); controls_combo->setCurrentIndex(1); break;
+		case 0x5: ubisoft_pedometer_menu->show(); break;
+		case 0x6: qt_gui::draw_surface->set_card_file(); break;
 	}
 }
 
