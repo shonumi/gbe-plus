@@ -250,7 +250,6 @@ void NTR_LCD::render_geometry()
 				//Check Z buffer if drawing is applicable
 				if(z_coord < gx_z_buffer[buffer_index])
 				{
-					gx_screen_buffer[lcd_3D_stat.buffer_id][buffer_index] = c3;
 					gx_render_buffer[buffer_index] = 1;
 					gx_z_buffer[buffer_index] = z_coord;
 				}
@@ -446,6 +445,7 @@ void NTR_LCD::fill_poly_textured()
 	//Generate pixel data from VRAM
 	switch(lcd_3D_stat.tex_format)
 	{
+		case 0x3: gen_tex_3(tex_addr); break;
 		case 0x4: gen_tex_4(tex_addr); break;
 		case 0x7: gen_tex_7(tex_addr); break;
 		//default: std::cout<<"Unhandled texture format: 0x" << std::hex << (u32)lcd_3D_stat.tex_format << "\n";
@@ -1299,6 +1299,7 @@ void NTR_LCD::process_gx_command()
 				//Generate pixel data from VRAM
 				switch(lcd_3D_stat.tex_format)
 				{
+					case 0x3: gen_tex_3(tex_addr); break;
 					case 0x4: gen_tex_4(tex_addr); break;
 					case 0x7: gen_tex_7(tex_addr); break;
 					//default: std::cout<<"Unhandled texture format: 0x" << std::hex << (u32)lcd_3D_stat.tex_format << "\n";
@@ -1401,6 +1402,31 @@ u32 NTR_LCD::interpolate_rgb(u32 color_1, u32 color_2, float ratio)
 	int b = ((b2 - b1) * ratio) + b1; 
 	
 	return 0xFF000000 | (r << 16) | (g << 8) | (b);
+}
+
+/****** Generates pixel data from VRAM for 16 color textures ******/
+void NTR_LCD::gen_tex_3(u32 address)
+{
+	lcd_3D_stat.tex_data.clear();
+	u32 tex_size = (lcd_3D_stat.tex_src_width * lcd_3D_stat.tex_src_height);
+
+	//Generate temporary palette
+	u32 pal_addr = lcd_3D_stat.pal_bank_addr + (lcd_3D_stat.pal_base * 0x10);
+	u32 tex_pal[16];
+
+	for(u32 x = 0; x < 16; x++)
+	{
+		tex_pal[x] = get_rgb15(mem->read_u16_fast(pal_addr));
+		pal_addr += 2;
+	}
+
+	while(tex_size)
+	{
+		u8 index = mem->memory_map[address++];
+		lcd_3D_stat.tex_data.push_back(tex_pal[index & 0xF]);
+		lcd_3D_stat.tex_data.push_back(tex_pal[index >> 4]);
+		tex_size -= 2;
+	}
 }
 
 /****** Generates pixel data from VRAM for 256 color textures ******/

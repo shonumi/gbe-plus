@@ -197,6 +197,7 @@ class NTR_LCD
 	u32 interpolate_rgb(u32 color_1, u32 color_2, float ratio);
 
 	//Texture functions
+	void gen_tex_3(u32 address);
 	void gen_tex_4(u32 address);
 	void gen_tex_7(u32 address);
 
