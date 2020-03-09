@@ -1937,7 +1937,7 @@ void gen_settings::slot2_dev_change()
 {
 	config::nds_slot2_device = slot2_dev->currentIndex();
 
-	if((config::nds_slot2_device == 3) || (config::nds_slot2_device == 5) || (config::nds_slot_2_device == 6)) { config_slot2->setEnabled(true); }
+	if((config::nds_slot2_device == 3) || (config::nds_slot2_device == 5) || (config::nds_slot2_device == 6)) { config_slot2->setEnabled(true); }
 	else { config_slot2->setEnabled(false); }
 }
 

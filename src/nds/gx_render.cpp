@@ -440,7 +440,16 @@ void NTR_LCD::fill_poly_textured()
 	u32 tex_size = lcd_3D_stat.tex_data.size();
 	u32 tw = lcd_3D_stat.tex_src_width;
 
-	gen_tex_7(0x6800000);
+	//Calculate VRAM address of texture
+	u32 tex_addr = (0x6800000 + lcd_3D_stat.tex_offset);
+
+	//Generate pixel data from VRAM
+	switch(lcd_3D_stat.tex_format)
+	{
+		case 0x4: gen_tex_4(tex_addr); break;
+		case 0x7: gen_tex_7(tex_addr); break;
+		//default: std::cout<<"Unhandled texture format: 0x" << std::hex << (u32)lcd_3D_stat.tex_format << "\n";
+	}
 
 	for(u32 x = 0; x < 256; x++)
 	{
@@ -1278,15 +1287,14 @@ void NTR_LCD::process_gx_command()
 			{
 				u32 raw_value = read_param_u32(0);
 				
-				lcd_3D_stat.tex_offset = ((raw_value & 0xFFFF) >> 3);
+				lcd_3D_stat.tex_offset = ((raw_value & 0xFFFF) << 3);
 				lcd_3D_stat.tex_src_width = 8 << ((raw_value >> 20) & 0x7);
 				lcd_3D_stat.tex_src_height = 8 << ((raw_value >> 23) & 0x7);
 				lcd_3D_stat.tex_format = ((raw_value >> 26) & 0x7);
 				lcd_3D_stat.tex_transformation = (raw_value >> 30);
 
 				//Calculate VRAM address of texture
-				u8 tex_bank = (lcd_3D_stat.tex_offset / 0x20000);
-				u32 tex_addr = (0x6800000 + (0x20000 * tex_bank)) + (lcd_3D_stat.tex_offset - (0x20000 * tex_bank));
+				u32 tex_addr = (0x6800000 + lcd_3D_stat.tex_offset);
 
 				//Generate pixel data from VRAM
 				switch(lcd_3D_stat.tex_format)
