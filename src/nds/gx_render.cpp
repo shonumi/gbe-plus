@@ -302,8 +302,11 @@ void NTR_LCD::render_geometry()
 	{
 		//Triangles
 		case 0x0:
+			//Textured color fill
+			if(lcd_3D_stat.use_texture) { fill_poly_textured(); }
+
 			//Solid color fill
-			if((vert_colors[0] == vert_colors[1]) && (vert_colors[0] == vert_colors[2])) { fill_poly_solid(); }
+			else if((vert_colors[0] == vert_colors[1]) && (vert_colors[0] == vert_colors[2])) { fill_poly_solid(); }
 			
 			//Interpolated color fill
 			else { fill_poly_interpolated(); }
@@ -435,6 +438,7 @@ void NTR_LCD::fill_poly_textured()
 	u8 y_coord = 0;
 	u32 buffer_index = 0;
 	u32 texel_index = 0;
+	u32 texel = 0;
 
 	u32 tex_size = lcd_3D_stat.tex_data.size();
 	u32 tw = lcd_3D_stat.tex_src_width;
@@ -493,9 +497,15 @@ void NTR_LCD::fill_poly_textured()
 			//Make sure texel exists as well
 			if((z_start < gx_z_buffer[buffer_index]) && (texel_index < tex_size))
 			{
-				gx_screen_buffer[lcd_3D_stat.buffer_id][buffer_index] = lcd_3D_stat.tex_data[texel_index];
-				gx_render_buffer[buffer_index] = 1;
-				gx_z_buffer[buffer_index] = z_start;
+				texel = lcd_3D_stat.tex_data[texel_index];
+
+				//Draw texel if not transparent
+				if(texel & 0xFF000000)
+				{
+					gx_screen_buffer[lcd_3D_stat.buffer_id][buffer_index] = lcd_3D_stat.tex_data[texel_index];
+					gx_render_buffer[buffer_index] = 1;
+					gx_z_buffer[buffer_index] = z_start;
+				}
 			}
 
 			y_coord++;
@@ -1420,6 +1430,9 @@ void NTR_LCD::gen_tex_3(u32 address)
 		pal_addr += 2;
 	}
 
+	//First palette color is used for transparency
+	tex_pal[0] &= ~0xFF000000;
+
 	while(tex_size)
 	{
 		u8 index = mem->memory_map[address++];
@@ -1445,6 +1458,9 @@ void NTR_LCD::gen_tex_4(u32 address)
 		pal_addr += 2;
 	}
 
+	//First palette color is used for transparency
+	tex_pal[0] &= ~0xFF000000;
+
 	while(tex_size)
 	{
 		u8 index = mem->memory_map[address++];
@@ -1462,7 +1478,8 @@ void NTR_LCD::gen_tex_7(u32 address)
 	while(tex_size)
 	{
 		u16 color = mem->read_u16_fast(address);
-		lcd_3D_stat.tex_data.push_back(get_rgb15(color));
+		u32 final_color = (color & 0x8000) ? get_rgb15(color) : (get_rgb15(color) & ~0xFF000000);
+		lcd_3D_stat.tex_data.push_back(final_color);
 
 		address += 2;
 		tex_size--;
