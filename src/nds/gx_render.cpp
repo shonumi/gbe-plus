@@ -362,13 +362,13 @@ void NTR_LCD::fill_poly_solid()
 
 		y_coord = lcd_3D_stat.hi_fill[x];
 
-		while(y_coord < lcd_3D_stat.lo_fill[x])
+		while(y_coord <= lcd_3D_stat.lo_fill[x])
 		{
 			//Convert plot points to buffer index
 			buffer_index = (y_coord * 256) + x;
 
 			//Check Z buffer if drawing is applicable
-			if(z_start < gx_z_buffer[buffer_index])
+			if(z_start <= gx_z_buffer[buffer_index])
 			{
 				gx_screen_buffer[lcd_3D_stat.buffer_id][buffer_index] = vert_colors[0];
 				gx_render_buffer[buffer_index] = 1;
@@ -412,13 +412,13 @@ void NTR_LCD::fill_poly_interpolated()
 
 		y_coord = lcd_3D_stat.hi_fill[x];
 
-		while(y_coord < lcd_3D_stat.lo_fill[x])
+		while(y_coord <= lcd_3D_stat.lo_fill[x])
 		{
 			//Convert plot points to buffer index
 			buffer_index = (y_coord * 256) + x;
 
 			//Check Z buffer if drawing is applicable
-			if(z_start < gx_z_buffer[buffer_index])
+			if(z_start <= gx_z_buffer[buffer_index])
 			{
 				gx_screen_buffer[lcd_3D_stat.buffer_id][buffer_index] = interpolate_rgb(c1, c2, c_ratio);
 				gx_render_buffer[buffer_index] = 1;
@@ -449,6 +449,7 @@ void NTR_LCD::fill_poly_textured()
 	//Generate pixel data from VRAM
 	switch(lcd_3D_stat.tex_format)
 	{
+		case 0x2: gen_tex_2(tex_addr); break;
 		case 0x3: gen_tex_3(tex_addr); break;
 		case 0x4: gen_tex_4(tex_addr); break;
 		case 0x7: gen_tex_7(tex_addr); break;
@@ -485,7 +486,7 @@ void NTR_LCD::fill_poly_textured()
 
 		y_coord = lcd_3D_stat.hi_fill[x];
 
-		while(y_coord < lcd_3D_stat.lo_fill[x])
+		while(y_coord <= lcd_3D_stat.lo_fill[x])
 		{
 			//Convert plot points to buffer index
 			buffer_index = (y_coord * 256) + x;
@@ -495,7 +496,7 @@ void NTR_LCD::fill_poly_textured()
 
 			//Check Z buffer if drawing is applicable
 			//Make sure texel exists as well
-			if((z_start < gx_z_buffer[buffer_index]) && (texel_index < tex_size))
+			if((z_start <= gx_z_buffer[buffer_index]) && (texel_index < tex_size))
 			{
 				texel = lcd_3D_stat.tex_data[texel_index];
 
@@ -1309,6 +1310,7 @@ void NTR_LCD::process_gx_command()
 				//Generate pixel data from VRAM
 				switch(lcd_3D_stat.tex_format)
 				{
+					case 0x2: gen_tex_2(tex_addr); break;
 					case 0x3: gen_tex_3(tex_addr); break;
 					case 0x4: gen_tex_4(tex_addr); break;
 					case 0x7: gen_tex_7(tex_addr); break;
@@ -1412,6 +1414,36 @@ u32 NTR_LCD::interpolate_rgb(u32 color_1, u32 color_2, float ratio)
 	int b = ((b2 - b1) * ratio) + b1; 
 	
 	return 0xFF000000 | (r << 16) | (g << 8) | (b);
+}
+
+/****** Generates pixel data from VRAM for 4 color textures ******/
+void NTR_LCD::gen_tex_2(u32 address)
+{
+	lcd_3D_stat.tex_data.clear();
+	u32 tex_size = (lcd_3D_stat.tex_src_width * lcd_3D_stat.tex_src_height);
+
+	//Generate temporary palette
+	u32 pal_addr = lcd_3D_stat.pal_bank_addr + (lcd_3D_stat.pal_base * 0x8);
+	u32 tex_pal[4];
+
+	for(u32 x = 0; x < 4; x++)
+	{
+		tex_pal[x] = get_rgb15(mem->read_u16_fast(pal_addr));
+		pal_addr += 2;
+	}
+
+	//First palette color is used for transparency
+	tex_pal[0] &= ~0xFF000000;
+
+	while(tex_size)
+	{
+		u8 index = mem->memory_map[address++];
+		lcd_3D_stat.tex_data.push_back(tex_pal[index & 0x3]);
+		lcd_3D_stat.tex_data.push_back(tex_pal[(index >> 2) & 0x3]);
+		lcd_3D_stat.tex_data.push_back(tex_pal[(index >> 4) & 0x3]);
+		lcd_3D_stat.tex_data.push_back(tex_pal[(index >> 6) & 0x3]);
+		tex_size -= 4;
+	}
 }
 
 /****** Generates pixel data from VRAM for 16 color textures ******/
