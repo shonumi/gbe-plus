@@ -368,7 +368,7 @@ void NTR_LCD::fill_poly_solid()
 			buffer_index = (y_coord * 256) + x;
 
 			//Check Z buffer if drawing is applicable
-			if(z_start <= gx_z_buffer[buffer_index])
+			if(z_start < gx_z_buffer[buffer_index])
 			{
 				gx_screen_buffer[lcd_3D_stat.buffer_id][buffer_index] = vert_colors[0];
 				gx_render_buffer[buffer_index] = 1;
@@ -412,13 +412,13 @@ void NTR_LCD::fill_poly_interpolated()
 
 		y_coord = lcd_3D_stat.hi_fill[x];
 
-		while(y_coord <= lcd_3D_stat.lo_fill[x])
+		while(y_coord < lcd_3D_stat.lo_fill[x])
 		{
 			//Convert plot points to buffer index
 			buffer_index = (y_coord * 256) + x;
 
 			//Check Z buffer if drawing is applicable
-			if(z_start <= gx_z_buffer[buffer_index])
+			if(z_start < gx_z_buffer[buffer_index])
 			{
 				gx_screen_buffer[lcd_3D_stat.buffer_id][buffer_index] = interpolate_rgb(c1, c2, c_ratio);
 				gx_render_buffer[buffer_index] = 1;
@@ -449,11 +449,12 @@ void NTR_LCD::fill_poly_textured()
 	//Generate pixel data from VRAM
 	switch(lcd_3D_stat.tex_format)
 	{
+		case 0x1: gen_tex_1(tex_addr); break;
 		case 0x2: gen_tex_2(tex_addr); break;
 		case 0x3: gen_tex_3(tex_addr); break;
 		case 0x4: gen_tex_4(tex_addr); break;
+		case 0x6: gen_tex_6(tex_addr); break;
 		case 0x7: gen_tex_7(tex_addr); break;
-		//default: std::cout<<"Unhandled texture format: 0x" << std::hex << (u32)lcd_3D_stat.tex_format << "\n";
 	}
 
 	for(u32 x = 0; x < 256; x++)
@@ -496,7 +497,7 @@ void NTR_LCD::fill_poly_textured()
 
 			//Check Z buffer if drawing is applicable
 			//Make sure texel exists as well
-			if((z_start <= gx_z_buffer[buffer_index]) && (texel_index < tex_size))
+			if((z_start < gx_z_buffer[buffer_index]) && (texel_index < tex_size))
 			{
 				texel = lcd_3D_stat.tex_data[texel_index];
 
@@ -1310,11 +1311,12 @@ void NTR_LCD::process_gx_command()
 				//Generate pixel data from VRAM
 				switch(lcd_3D_stat.tex_format)
 				{
+					case 0x1: gen_tex_1(tex_addr); break;
 					case 0x2: gen_tex_2(tex_addr); break;
 					case 0x3: gen_tex_3(tex_addr); break;
 					case 0x4: gen_tex_4(tex_addr); break;
+					case 0x6: gen_tex_6(tex_addr); break;
 					case 0x7: gen_tex_7(tex_addr); break;
-					//default: std::cout<<"Unhandled texture format: 0x" << std::hex << (u32)lcd_3D_stat.tex_format << "\n";
 				}
 			}
 
@@ -1416,6 +1418,33 @@ u32 NTR_LCD::interpolate_rgb(u32 color_1, u32 color_2, float ratio)
 	return 0xFF000000 | (r << 16) | (g << 8) | (b);
 }
 
+/****** Generates pixel data fram VRAM for A3I5 textures ******/
+void NTR_LCD::gen_tex_1(u32 address)
+{
+	lcd_3D_stat.tex_data.clear();
+	u32 tex_size = (lcd_3D_stat.tex_src_width * lcd_3D_stat.tex_src_height);
+
+	//Generate temporary palette
+	u32 pal_addr = lcd_3D_stat.pal_bank_addr + (lcd_3D_stat.pal_base * 0x8);
+	u32 tex_pal[32];
+
+	for(u32 x = 0; x < 32; x++)
+	{
+		tex_pal[x] = get_rgb15(mem->read_u16_fast(pal_addr));
+		pal_addr += 2;
+	}
+
+	//First palette color is used for transparency
+	tex_pal[0] &= ~0xFF000000;
+
+	while(tex_size)
+	{
+		u8 index = mem->memory_map[address++];
+		lcd_3D_stat.tex_data.push_back(tex_pal[index & 0x1F]);
+		tex_size--;
+	}
+}
+
 /****** Generates pixel data from VRAM for 4 color textures ******/
 void NTR_LCD::gen_tex_2(u32 address)
 {
@@ -1497,6 +1526,33 @@ void NTR_LCD::gen_tex_4(u32 address)
 	{
 		u8 index = mem->memory_map[address++];
 		lcd_3D_stat.tex_data.push_back(tex_pal[index]);
+		tex_size--;
+	}
+}
+
+/****** Generates pixel data fram VRAM for A5I3 textures ******/
+void NTR_LCD::gen_tex_6(u32 address)
+{
+	lcd_3D_stat.tex_data.clear();
+	u32 tex_size = (lcd_3D_stat.tex_src_width * lcd_3D_stat.tex_src_height);
+
+	//Generate temporary palette
+	u32 pal_addr = lcd_3D_stat.pal_bank_addr + (lcd_3D_stat.pal_base * 0x8);
+	u32 tex_pal[8];
+
+	for(u32 x = 0; x < 8; x++)
+	{
+		tex_pal[x] = get_rgb15(mem->read_u16_fast(pal_addr));
+		pal_addr += 2;
+	}
+
+	//First palette color is used for transparency
+	tex_pal[0] &= ~0xFF000000;
+
+	while(tex_size)
+	{
+		u8 index = mem->memory_map[address++];
+		lcd_3D_stat.tex_data.push_back(tex_pal[index & 0x7]);
 		tex_size--;
 	}
 }
