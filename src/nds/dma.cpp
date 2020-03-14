@@ -128,6 +128,27 @@ void NTR_ARM9::nds9_dma(u8 index)
 		if((mem->nds9_exmem & 0x800) == 0) { mem->nds9_if |= 0x80000; }
 	}
 
+	else if(dma_mode == 7)
+	{
+		std::cout<<"GX FIFO DMA\n";
+
+		//Align addresses to word
+		mem->dma[index].start_address &= ~0x3;
+
+		while(mem->dma[index].word_count != 0)
+		{
+			temp_value = mem->read_u32(mem->dma[index].start_address);
+			mem->write_u32(NDS_GXFIFO, temp_value);
+
+			//Update DMA Start Address
+			if(mem->dma[index].src_addr_ctrl == 0) { mem->dma[index].start_address += 4; }
+			else if(mem->dma[index].src_addr_ctrl == 1) { mem->dma[index].start_address -= 4; }
+			else if(mem->dma[index].src_addr_ctrl == 3) { mem->dma[index].start_address += 4; }
+
+			mem->dma[index].word_count--;
+		}
+	}
+
 	mem->dma[index].control &= ~0x801FFFFF;
 	mem->write_u32(cnt_addr, mem->dma[index].control);
 
@@ -141,7 +162,6 @@ void NTR_ARM9::nds9_dma(u8 index)
 	{
 		case 0x4: std::cout<<"NDS9 DMA" << std::dec << (u16)index << " - Main Mem Display\n"; running = false; break;
 		case 0x6: std::cout<<"NDS9 DMA" << std::dec << (u16)index << " - GBA Cart\n"; running = false; break;
-		case 0x7: std::cout<<"NDS9 DMA" << std::dec << (u16)index << " - Geometry Command FIFO\n"; running = false; break;
 	}
 }
 
