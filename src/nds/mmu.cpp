@@ -362,7 +362,13 @@ u8 NTR_MMU::read_u8(u32 address)
 
 		case 0x8:
 		case 0xA:
-			return read_slot2_device(address);
+			if((access_mode && ((nds9_exmem & 0x80) == 0)) || (!access_mode && (nds9_exmem & 0x80)))
+			{
+				return read_slot2_device(address);
+			}
+
+			else { return 0x00; }
+
 			break;
 
 		case 0xFF:
@@ -1418,7 +1424,11 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 		case 0x8:
 		case 0xA:
-			write_slot2_device(address, value);
+			if((access_mode && ((nds9_exmem & 0x80) == 0)) || (!access_mode && (nds9_exmem & 0x80)))
+			{
+				write_slot2_device(address, value);
+			}
+
 			return;
 	}
 
