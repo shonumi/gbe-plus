@@ -189,10 +189,10 @@ void NTR_LCD::reset()
 		lcd_stat.text_height_b[x] = 0;
 
 		lcd_stat.bg_base_tile_addr_a[x] = 0x6000000;
-		lcd_stat.bg_base_tile_addr_b[x] = 0x6000000;
+		lcd_stat.bg_base_tile_addr_b[x] = 0x6200000;
 
 		lcd_stat.bg_base_map_addr_a[x] = 0x6000000;
-		lcd_stat.bg_base_map_addr_b[x] = 0x6000000;
+		lcd_stat.bg_base_map_addr_b[x] = 0x6200000;
 
 		lcd_stat.bg_enable_a[x] = false;
 		lcd_stat.bg_enable_b[x] = false;
@@ -215,7 +215,7 @@ void NTR_LCD::reset()
 		lcd_stat.bg_affine_b[x].x_pos = lcd_stat.bg_affine_b[x].y_pos = 0.0;
 
 		lcd_stat.bg_bitmap_base_addr_a[x] = 0x6000000;
-		lcd_stat.bg_bitmap_base_addr_b[x] = 0x6000000;
+		lcd_stat.bg_bitmap_base_addr_b[x] = 0x6200000;
 
 		lcd_stat.window_x_a[0][x] = 0;
 		lcd_stat.window_x_a[1][x] = 0;
