@@ -188,11 +188,11 @@ void NTR_LCD::reset()
 		lcd_stat.text_height_a[x] = 0;
 		lcd_stat.text_height_b[x] = 0;
 
-		lcd_stat.bg_base_tile_addr_a[x] = 0x6000000;
-		lcd_stat.bg_base_tile_addr_b[x] = 0x6200000;
+		lcd_stat.bg_base_tile_addr_a[x] = 0;
+		lcd_stat.bg_base_tile_addr_b[x] = 0;
 
-		lcd_stat.bg_base_map_addr_a[x] = 0x6000000;
-		lcd_stat.bg_base_map_addr_b[x] = 0x6200000;
+		lcd_stat.bg_base_map_addr_a[x] = 0;
+		lcd_stat.bg_base_map_addr_b[x] = 0;
 
 		lcd_stat.bg_enable_a[x] = false;
 		lcd_stat.bg_enable_b[x] = false;
@@ -215,7 +215,7 @@ void NTR_LCD::reset()
 		lcd_stat.bg_affine_b[x].x_pos = lcd_stat.bg_affine_b[x].y_pos = 0.0;
 
 		lcd_stat.bg_bitmap_base_addr_a[x] = 0x6000000;
-		lcd_stat.bg_bitmap_base_addr_b[x] = 0x6200000;
+		lcd_stat.bg_bitmap_base_addr_b[x] = 0x6000000;
 
 		lcd_stat.window_x_a[0][x] = 0;
 		lcd_stat.window_x_a[1][x] = 0;
@@ -3121,6 +3121,7 @@ void NTR_LCD::apply_sfx(u32 bg_control)
 void NTR_LCD::brightness_up(u32 bg_control)
 {
 	u8 bg_render_list[4];
+	u8 bg_layer[4];
 
 	u8 bg_priority_0 = (bg_control == NDS_DISPCNT_A) ? lcd_stat.bg_priority_a[0] : lcd_stat.bg_priority_b[0];
 	u8 bg_priority_1 = (bg_control == NDS_DISPCNT_A) ? lcd_stat.bg_priority_a[1] : lcd_stat.bg_priority_b[1];
@@ -3132,38 +3133,70 @@ void NTR_LCD::brightness_up(u32 bg_control)
 	//Determine BG priority
 	for(int x = 0, list_length = 0; x < 4; x++)
 	{
-		if(bg_priority_0 == x) { bg_render_list[list_length++] = 0; }
-		if(bg_priority_1 == x) { bg_render_list[list_length++] = 1; }
-		if(bg_priority_2 == x) { bg_render_list[list_length++] = 2; }
-		if(bg_priority_3 == x) { bg_render_list[list_length++] = 3; }
+		if(bg_priority_0 == x) { bg_layer[list_length] = x; bg_render_list[list_length++] = 0; }
+		if(bg_priority_1 == x) { bg_layer[list_length] = x; bg_render_list[list_length++] = 1; }
+		if(bg_priority_2 == x) { bg_layer[list_length] = x; bg_render_list[list_length++] = 2; }
+		if(bg_priority_3 == x) { bg_layer[list_length] = x; bg_render_list[list_length++] = 3; }
 	}
 
 	for(u16 x = 0; x < 256; x++)
 	{
 		u8 target = 0;
-		u8 target_id = 0;
+		u8 layer = 0;
 
 		bool found_target = false;
 		bool target_enable = false;
+		bool is_obj = false;
 
 		//Search for 1st target
 		for(int y = 0; y < 4; y++)
 		{
-			target_id = bg_render_list[y];
+			target = bg_render_list[y];
 
-			if(line_buffer[y + 4][x])
+			if(obj_line_buffer[y + 4][x])
 			{
 				found_target = true;
+				is_obj = true;
 
-				//If 1st target is OBJ, check SFX Target 4 and pull data from regular layer
-				if(line_buffer[y + 4][x] & 0x80)
-				{
-					target = 4;
-					target_id = y;
-				}
+				target = 4;
+				layer = y;
 
-				//If 1st target is BG, check SFX Targets 0-3 and pull data from ordered layer
-				else { target = target_id; }
+				break;
+			}
+
+			//If 1st target is BG, check SFX Targets 0-3 and pull data from ordered layer
+			else if((bg_layer[0] == y) && (line_buffer[bg_render_list[0] + 4][x]))
+			{
+				found_target = true;
+				target = bg_render_list[0];
+				layer = target;
+
+				break;
+			}
+
+			else if((bg_layer[1] == y) && (line_buffer[bg_render_list[1] + 4][x]))
+			{
+				found_target = true;
+				target = bg_render_list[1];
+				layer = target;
+
+				break;
+			}
+
+			else if((bg_layer[2] == y) && (line_buffer[bg_render_list[2] + 4][x]))
+			{
+				found_target = true;
+				target = bg_render_list[2];
+				layer = target;
+
+				break;
+			}
+
+			else if((bg_layer[3] == y) && (line_buffer[bg_render_list[3] + 4][x]))
+			{
+				found_target = true;
+				target = bg_render_list[3];
+				layer = target;
 
 				break;
 			}
@@ -3179,13 +3212,13 @@ void NTR_LCD::brightness_up(u32 bg_control)
 		if(target_enable)
 		{
 			u32 color = 0;
-			u8 result = 0;
+			s16 result = 0;
 
 			//Pull color from backdrop
 			if(target == 5) { color = (bg_control == NDS_DISPCNT_A) ? lcd_stat.bg_pal_a[0] : lcd_stat.bg_pal_b[0]; }
 
-			//Pull color from BG layers
-			else { color = line_buffer[target_id][x]; }
+			//Pull color from layers
+			else { color = (is_obj) ? obj_line_buffer[layer][x] : line_buffer[layer][x]; }
 
 			//Increase RGB intensities
 			u8 red = ((color >> 19) & 0x1F);
