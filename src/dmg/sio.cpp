@@ -1637,87 +1637,63 @@ void DMG_SIO::singer_izek_fill_buffer()
 void DMG_SIO::singer_izek_stitch(u8 index)
 {
 	//X0 = Previous X, X1 = Current X, X2 = Next X
-	u8 x0 = (index >= 1) ? singer_izek.x_plot[index-1] : 0;
-	u8 x1 = singer_izek.x_plot[index];
-	u8 x2 = ((index + 1) < singer_izek.x_plot.size()) ? singer_izek.x_plot[index+1] : singer_izek.x_plot[0];
+	u16 x0 = (index >= 1) ? singer_izek.x_plot[index-1] : 0;
+	u16 x1 = singer_izek.x_plot[index];
+	u16 x2 = ((index + 1) < singer_izek.x_plot.size()) ? singer_izek.x_plot[index+1] : singer_izek.x_plot[0];
 
 	//Y0 = Previous Y, Y1 = Current Y, Y2 = Next Y
-	u8 y0 = (index >= 1) ? singer_izek.y_plot[index-1] : 0;
-	u8 y1 = singer_izek.y_plot[index];
-	u8 y2 = ((index + 1) < singer_izek.y_plot.size()) ? singer_izek.y_plot[index+1] : singer_izek.y_plot[0];
+	u16 y0 = (index >= 1) ? singer_izek.y_plot[index-1] : 0;
+	u16 y1 = singer_izek.y_plot[index];
+	u16 y2 = ((index + 1) < singer_izek.y_plot.size()) ? singer_izek.y_plot[index+1] : singer_izek.y_plot[0];
+
+	u16 stitch_id = 0;
+
+	if(x0 == x1) { stitch_id |= 0x04; }
+	if(x1 == x2) { stitch_id |= 0x02; }
+	if(x2 == x0) { stitch_id |= 0x01; }
+
+	stitch_id <<= 4;
+
+	if(y0 == y1) { stitch_id |= 0x04; }
+	if(y1 == y2) { stitch_id |= 0x02; }
+	if(y2 == y0) { stitch_id |= 0x01; }
 
 	//For 1st coordinates, use starting X-Y values
 	//Otherwise calculate new ones
 	if(index != 0)
 	{
-		//D1
-		if((x0 != x1) && (x1 != x2) && (x2 != x0) && (y0 != y1) && (y1 != y2) && (y2 == y0))
+		switch(stitch_id)
 		{
-			singer_izek.current_x = x1;
-			singer_izek.current_y += y1;
-		}
+			//Diagonal stitching rules
+			case 0x01:
+			case 0x00:
+			case 0x14:
+			case 0x17:
+			case 0x22:
+			case 0x27:
+				singer_izek.current_x = x1;
+				singer_izek.current_y += y1;
+				break;
 
-		//D2
-		else if((x0 != x1) && (x1 != x2) && (x2 == x0) && (y0 == y1) && (y1 != y2) && (y2 != y0))
-		{
-			singer_izek.current_x = x1;
-			singer_izek.current_y += y1;
-		}
+			//Vertical stitching rules
+			case 0x41:
+			case 0x42:
+			case 0x47:
+			case 0x71:
+			case 0x74:
+			case 0x77:
+				singer_izek.current_y += y1;
+				break;
 
-		//D3
-		else if((x0 != x1) && (x1 == x2) && (x2 != x0) && (y0 == y1) && (y1 == y2) && (y2 == y0))
-		{
-			singer_izek.current_x = x1;
-			singer_izek.current_y += y1;
-		}
+			//Horizontal stitching rules
+			case 0x02:
+			case 0x21:
+				singer_izek.current_x = x1;
+				break;
 
-		//D4
-		else if((x0 != x1) && (x1 != x2) && (x2 == x0) && (y0 == y1) && (y1 == y2) && (y2 == y0))
-		{
-			singer_izek.current_x = x1;
-			singer_izek.current_y += y1;
-		}
-
-		//H1
-		else if((x0 != x1) && (x1 != x2) && (x2 != x0) && (y0 != y1) && (y1 == y2) && (y2 != y0))
-		{
-			singer_izek.current_x = x1;
-		}
-
-		//V1
-		else if((x0 == x1) && (x1 == x2) && (x2 == x0) && (y0 == y1) && (y1 == y2) && (y2 == y0))
-		{
-			singer_izek.current_y += y1;
-		}
-
-		//V2
-		else if((x0 == x1) && (x1 != x2) && (x2 != x0) && (y0 == y1) && (y1 == y2) && (y2 == y0))
-		{
-			singer_izek.current_y += y1;
-		}
-
-		//V3
-		else if((x0 == x1) && (x1 == x2) && (x2 == x0) && (y0 == y1) && (y1 != y2) && (y2 != y0))
-		{
-			singer_izek.current_y += y1;
-		}
-
-		//V4
-		else if((x0 == x1) && (x1 == x2) && (x2 == x0) && (y0 != y1) && (y1 != y2) && (y2 == y0))
-		{
-			singer_izek.current_y += y1;
-		}
-
-		//V5
-		else if((x0 == x1) && (x1 != x2) && (x2 != x0) && (y0 != y1) && (y1 == y2) && (y2 != y0))
-		{
-			singer_izek.current_y += y1;
-		}
-
-		//Unknown stitching rule
-		else
-		{
-			std::cout<<"SIO::Warning - Unknown stitching rule for coordinate " << (u32)index << "\n";
+			//Unknown rules
+			default:
+				std::cout<<"Unknown stitching rules: 0x" << stitch_id << "\n";
 		}
 	}
 }
