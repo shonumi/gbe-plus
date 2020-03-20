@@ -1647,6 +1647,8 @@ void DMG_SIO::singer_izek_stitch(u8 index)
 	u16 y2 = ((index + 1) < singer_izek.y_plot.size()) ? singer_izek.y_plot[index+1] : singer_izek.y_plot[0];
 
 	u16 stitch_id = 0;
+	u16 condition_x = 0;
+	u16 condition_y = 0;
 
 	if(x0 == x1) { stitch_id |= 0x04; }
 	if(x1 == x2) { stitch_id |= 0x02; }
@@ -1657,6 +1659,14 @@ void DMG_SIO::singer_izek_stitch(u8 index)
 	if(y0 == y1) { stitch_id |= 0x04; }
 	if(y1 == y2) { stitch_id |= 0x02; }
 	if(y2 == y0) { stitch_id |= 0x01; }
+
+	if(x0 > x1) { condition_x |= 0x04; }
+	if(x1 > x2) { condition_x |= 0x02; }
+	if(x2 > x0) { condition_x |= 0x01; } 
+
+	if(y0 > y1) { condition_y |= 0x04; }
+	if(y1 > y2) { condition_y |= 0x02; }
+	if(y2 > y0) { condition_y |= 0x01; } 
 
 	//For 1st coordinates, use starting X-Y values
 	//Otherwise calculate new ones
@@ -1669,7 +1679,6 @@ void DMG_SIO::singer_izek_stitch(u8 index)
 			case 0x00:
 			case 0x14:
 			case 0x17:
-			case 0x22:
 			case 0x27:
 				singer_izek.current_x = x1;
 				singer_izek.current_y += y1;
@@ -1686,14 +1695,45 @@ void DMG_SIO::singer_izek_stitch(u8 index)
 				break;
 
 			//Horizontal stitching rules
-			case 0x02:
 			case 0x21:
 				singer_izek.current_x = x1;
 				break;
 
+			//Mixed case - Apply more conditions to determine correct stitching rules
+			case 0x02:
+				//Diagonal
+				if((condition_x == 0x03) || (condition_x == 0x04))
+				{
+					singer_izek.current_x = x1;
+					singer_izek.current_y += y1;
+				}
+
+				//Horizontal
+				else if((condition_x == 0x01) || (condition_x == 0x06)) { singer_izek.current_x = x1; }
+
+				else { std::cout<<"SIO::Unknown stitching condition: 0x" << condition_x << "\n"; }
+				
+				break;
+
+
+			case 0x22:
+				//Diagonal
+				if(condition_y == 0x01)
+				{
+					singer_izek.current_x = x1;
+					singer_izek.current_y += y1;
+				}
+
+				//Horizontal
+				else if(condition_y == 0x04) { singer_izek.current_x = x1; }
+
+				else { std::cout<<"SIO::Unknown stitching condition: 0x" << condition_y << "\n"; }
+				
+				break;
+					
 			//Unknown rules
 			default:
-				std::cout<<"Unknown stitching rules: 0x" << stitch_id << "\n";
+				std::cout<<"SIO::Unknown stitching rules: 0x" << stitch_id << "\n";
 		}
 	}
 }
