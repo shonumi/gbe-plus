@@ -1688,6 +1688,7 @@ void DMG_SIO::singer_izek_stitch(u8 index)
 			case 0x41:
 			case 0x42:
 			case 0x47:
+			case 0x70:
 			case 0x71:
 			case 0x74:
 			case 0x77:
@@ -1729,6 +1730,17 @@ void DMG_SIO::singer_izek_stitch(u8 index)
 
 				else { std::cout<<"SIO::Unknown stitching condition: 0x" << condition_y << "\n"; }
 				
+				break;
+
+			case 0x40:
+				//Vertical Down
+				if((condition_y == 0x01) || (condition_y == 0x03)) { singer_izek.current_y += y1; }
+
+				//Vertical Up
+				else if(condition_y == 0x06) { singer_izek.current_y -= y1; }
+
+				else { std::cout<<"SIO::Unknown stitching condition: 0x" << condition_y << "\n"; }
+
 				break;
 					
 			//Unknown rules
