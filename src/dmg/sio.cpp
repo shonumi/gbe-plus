@@ -415,6 +415,7 @@ void DMG_SIO::reset()
 	singer_izek.plot_count = 0;
 	singer_izek.current_state = SINGER_PING;
 	singer_izek.counter = 0;
+	singer_izek.last_line = 0;
 
 	//Turbo File GB
 	turbo_file.data.clear();
@@ -1682,6 +1683,7 @@ void DMG_SIO::singer_izek_stitch(u8 index)
 			case 0x27:
 				singer_izek.current_x = x1;
 				singer_izek.current_y += y1;
+				singer_izek.last_line = 1;
 				break;
 
 			//Vertical stitching rules
@@ -1693,11 +1695,13 @@ void DMG_SIO::singer_izek_stitch(u8 index)
 			case 0x74:
 			case 0x77:
 				singer_izek.current_y += y1;
+				singer_izek.last_line = 2;
 				break;
 
 			//Horizontal stitching rules
 			case 0x21:
 				singer_izek.current_x = x1;
+				singer_izek.last_line = 3;
 				break;
 
 			//Mixed case - Apply more conditions to determine correct stitching rules
@@ -1707,10 +1711,15 @@ void DMG_SIO::singer_izek_stitch(u8 index)
 				{
 					singer_izek.current_x = x1;
 					singer_izek.current_y += y1;
+					singer_izek.last_line = 1;
 				}
 
 				//Horizontal
-				else if((condition_x == 0x01) || (condition_x == 0x06)) { singer_izek.current_x = x1; }
+				else if((condition_x == 0x01) || (condition_x == 0x06))
+				{
+					singer_izek.current_x = x1;
+					singer_izek.last_line = 3;
+				}
 
 				else { std::cout<<"SIO::Unknown stitching condition: 0x" << condition_x << "\n"; }
 				
@@ -1718,15 +1727,24 @@ void DMG_SIO::singer_izek_stitch(u8 index)
 
 
 			case 0x22:
-				//Diagonal
-				if(condition_y == 0x01)
+				//Diagonal 
+				if(singer_izek.last_line == 1)
 				{
 					singer_izek.current_x = x1;
-					singer_izek.current_y += y1;
+					singer_izek.last_line = 1;
+
+					//Diagonal Up
+					if(condition_y == 0x04) { singer_izek.current_y -= y1; }
+
+					//Diagonal Down
+					else { singer_izek.current_y += y1; }
 				}
 
 				//Horizontal
-				else if(condition_y == 0x04) { singer_izek.current_x = x1; }
+				else if(singer_izek.last_line == 2)
+				{
+					singer_izek.current_x = x1;
+				}
 
 				else { std::cout<<"SIO::Unknown stitching condition: 0x" << condition_y << "\n"; }
 				
@@ -1734,10 +1752,18 @@ void DMG_SIO::singer_izek_stitch(u8 index)
 
 			case 0x40:
 				//Vertical Down
-				if((condition_y == 0x01) || (condition_y == 0x03)) { singer_izek.current_y += y1; }
+				if((condition_y == 0x01) || (condition_y == 0x03))
+				{
+					singer_izek.current_y += y1;
+					singer_izek.last_line = 2;
+				}
 
 				//Vertical Up
-				else if(condition_y == 0x06) { singer_izek.current_y -= y1; }
+				else if(condition_y == 0x06)
+				{
+					singer_izek.current_y -= y1;
+					singer_izek.last_line = 2;
+				}
 
 				else { std::cout<<"SIO::Unknown stitching condition: 0x" << condition_y << "\n"; }
 
