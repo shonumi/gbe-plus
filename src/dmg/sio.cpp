@@ -1676,8 +1676,9 @@ void DMG_SIO::singer_izek_stitch(u8 index)
 		switch(stitch_id)
 		{
 			//Diagonal stitching rules
-			case 0x01:
 			case 0x00:
+			case 0x01:
+			case 0x07:
 			case 0x14:
 			case 0x17:
 			case 0x27:
@@ -1692,6 +1693,7 @@ void DMG_SIO::singer_izek_stitch(u8 index)
 			case 0x47:
 			case 0x70:
 			case 0x71:
+			case 0x72:
 			case 0x74:
 			case 0x77:
 				singer_izek.current_y += y1;
@@ -1773,6 +1775,7 @@ void DMG_SIO::singer_izek_stitch(u8 index)
 			default:
 				std::cout<<"SIO::Unknown stitching rules: 0x" << stitch_id << "\n";
 		}
+
 	}
 }
 
