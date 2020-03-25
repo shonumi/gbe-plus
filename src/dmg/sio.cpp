@@ -1679,7 +1679,7 @@ void DMG_SIO::singer_izek_stitch(u8 index)
 			case 0x00:
 			case 0x01:
 			case 0x07:
-			case 0x14:
+			case 0x11:
 			case 0x17:
 			case 0x27:
 				singer_izek.current_x = x1;
@@ -1690,13 +1690,15 @@ void DMG_SIO::singer_izek_stitch(u8 index)
 			//Vertical stitching rules
 			case 0x41:
 			case 0x42:
+			case 0x44:
 			case 0x47:
 			case 0x70:
 			case 0x71:
 			case 0x72:
 			case 0x74:
 			case 0x77:
-				singer_izek.current_y += y1;
+				if(condition_y == 0x04) { singer_izek.current_y -= y1; }
+				else { singer_izek.current_y += y1; }
 				singer_izek.last_line = 2;
 				break;
 
@@ -1723,6 +1725,26 @@ void DMG_SIO::singer_izek_stitch(u8 index)
 				
 				break;
 
+			case 0x14:
+				//Diagonal
+				if(condition_y == 0x01)
+				{
+					singer_izek.current_x = x1;
+					singer_izek.current_y += y1;
+					singer_izek.last_line = 1;
+				}
+
+				//Horizontal
+				else if(condition_y == 0x02)
+				{
+					singer_izek.current_x = x1;
+					singer_izek.last_line = 3;
+				}
+
+				else { std::cout<<"SIO::Unknown stitching condition: 0x" << condition_y << "\n"; }
+
+				break;
+
 			case 0x21:
 			case 0x22:
 				//Diagonal 
@@ -1739,7 +1761,7 @@ void DMG_SIO::singer_izek_stitch(u8 index)
 				}
 
 				//Horizontal
-				else if(singer_izek.last_line == 2)
+				else if((singer_izek.last_line == 2) || (singer_izek.last_line == 3))
 				{
 					singer_izek.current_x = x1;
 					singer_izek.last_line = 3;
