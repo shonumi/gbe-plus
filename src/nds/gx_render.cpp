@@ -1461,9 +1461,6 @@ void NTR_LCD::gen_tex_2(u32 address)
 		pal_addr += 2;
 	}
 
-	//First palette color is used for transparency
-	tex_pal[0] &= ~0xFF000000;
-
 	while(tex_size)
 	{
 		u8 index = mem->memory_map[address++];
