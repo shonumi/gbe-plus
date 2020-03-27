@@ -1697,8 +1697,13 @@ void DMG_SIO::singer_izek_stitch(u8 index)
 			case 0x72:
 			case 0x74:
 			case 0x77:
-				if(condition_y == 0x04) { singer_izek.current_y -= y1; }
+				if(condition_y == 0x04)
+				{
+					if(y0 >= 0x1A) { singer_izek.current_y -= y1; }
+				}
+
 				else { singer_izek.current_y += y1; }
+
 				singer_izek.last_line = 2;
 				break;
 
