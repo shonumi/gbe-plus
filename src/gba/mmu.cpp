@@ -1995,6 +1995,12 @@ bool AGB_MMU::read_file(std::string filename)
 
 	file.close();
 
+	for(u32 x = 0; x < file_size; x++)
+	{
+		memory_map[0xA000000 + x] = memory_map[0x8000000 + x];
+		memory_map[0xC000000 + x] = memory_map[0x8000000 + x];
+	}
+
 	std::string title = "";
 	for(u32 x = 0; x < 12; x++) { title += memory_map[0x80000A0 + x]; }
 
