@@ -1669,6 +1669,9 @@ void DMG_SIO::singer_izek_stitch(u8 index)
 	if(y1 > y2) { condition_y |= 0x02; }
 	if(y2 > y0) { condition_y |= 0x01; } 
 
+	//Adjust Y coordinate
+	if(y1 >= 0x1A) { y1 -= 0x10; }
+
 	//For 1st coordinates, use starting X-Y values
 	//Otherwise calculate new ones
 	if(index != 0)
