@@ -10,6 +10,7 @@
 // Emulates GBA-to-GBA data transfers
 
 #include <ctime>
+#include <cmath>
 #include <cstdlib>
 
 #include "sio.h"
