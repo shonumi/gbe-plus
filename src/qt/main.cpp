@@ -14,7 +14,7 @@
 
 int main(int argc, char* args[]) 
 {
-	std::cout<<"GBE+ 1.3 [Qt]\n";
+	std::cout<<"GBE+ 1.4 [Qt]\n";
 
 	config::use_external_interfaces = true;
 

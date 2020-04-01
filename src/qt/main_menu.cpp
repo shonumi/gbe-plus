@@ -292,7 +292,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	QDialogButtonBox* about_button = new QDialogButtonBox(QDialogButtonBox::Close);
 	connect(about_button->button(QDialogButtonBox::Close), SIGNAL(clicked()), about_box, SLOT(close()));
 
-	QLabel* emu_title = new QLabel("GBE+ 1.3");
+	QLabel* emu_title = new QLabel("GBE+ 1.4");
 	QFont font = emu_title->font();
 	font.setPointSize(18);
 	font.setBold(true);
