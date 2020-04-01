@@ -208,7 +208,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	slot2_dev->addItem("Auto");
 	slot2_dev->addItem("None");
 	slot2_dev->addItem("PassMe");
-	slot2_dev->addItem("Rumble Cart");
+	slot2_dev->addItem("Rumble Pak");
 	slot2_dev->addItem("GBA Cart");
 	slot2_dev->addItem("Ubisoft Pedometer");
 	slot2_dev->addItem("HCV-1000");

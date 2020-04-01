@@ -807,7 +807,7 @@ bool parse_cli_args()
 				std::cout<<"--agb_solar_sensor \t\t\t Use GBA Solar Sensor cart\n";
 				std::cout<<"--agb_rumble \t\t\t\t Use GBA Rumble cart\n";
 				std::cout<<"--agb_gyro_sensor \t\t\t Use GBA Gyro Sensor cart\n";
-				std::cout<<"--agb_tile_sensor \t\t\t Use GBA Tilt Sensor cart\n";
+				std::cout<<"--agb_tilt_sensor \t\t\t Use GBA Tilt Sensor cart\n";
 				std::cout<<"--opengl \t\t\t\t Use OpenGL for screen drawing and scaling\n";
 				std::cout<<"--cheats \t\t\t\t Use Gameshark or Game Genie cheats\n";
 				std::cout<<"--patch \t\t\t\t Use a patch file for the ROM\n";
