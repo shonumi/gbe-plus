@@ -161,7 +161,6 @@ class DMG_SIO
 		u8 next_y_plot;
 		u8 start_flag;
 		u8 plot_count;
-		u8 last_line;
 		u16 counter;
 		singer_izek_state current_state;
 	} singer_izek;
