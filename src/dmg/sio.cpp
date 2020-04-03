@@ -1574,7 +1574,7 @@ void DMG_SIO::singer_izek_process()
 				if((sio_stat.last_transfer & 0xC0) == 0)
 				{
 					//Grab X coordinate
-					if((singer_izek.counter & 0x1) && (sio_stat.last_transfer)) { singer_izek.x_plot.push_back(sio_stat.last_transfer); }
+					if(singer_izek.counter & 0x1) { singer_izek.x_plot.push_back(sio_stat.last_transfer); }
 
 					//Grab Y coordinate
 					else if((sio_stat.last_transfer)) { singer_izek.y_plot.push_back(sio_stat.last_transfer); }
@@ -1646,27 +1646,20 @@ void DMG_SIO::singer_izek_stitch(u8 index)
 	u16 y1 = singer_izek.y_plot[index];
 	u16 y2 = ((index + 1) < singer_izek.y_plot.size()) ? singer_izek.y_plot[index+1] : singer_izek.y_plot[0];
 
-	u16 stitch_id = 0;
-
-	if(x0 == x1) { stitch_id |= 0x04; }
-	if(x1 == x2) { stitch_id |= 0x02; }
-	if(x2 == x0) { stitch_id |= 0x01; }
-
-	stitch_id <<= 4;
-
-	if(y0 == y1) { stitch_id |= 0x04; }
-	if(y1 == y2) { stitch_id |= 0x02; }
-	if(y2 == y0) { stitch_id |= 0x01; }
-
 	//Adjust Y coordinate
 	if(y1 >= 0x1A) { y1 -= 0x10; }
 
-	//For 1st coordinates, use starting X-Y values
-	//Otherwise calculate new ones
+	if((y1 >= 0x10) && (y1 <= 0x14))
+	{
+		int temp_y = ((y1 - 0x10) - 4) * -1;
+		y1 = temp_y;
+	}
+
+	//Move to next coordinate
 	if(index != 0)
 	{
 		//Move Down
-		if(y0 <= 0xF) { singer_izek.current_y += y1; }
+		if(y0 <= 0x14) { singer_izek.current_y += y1; }
 
 		//Move Up
 		else if(y0 >= 0x1A) { singer_izek.current_y -= y1; }
@@ -1691,6 +1684,7 @@ void DMG_SIO::singer_izek_draw_line()
 	s32 xy_inc = 0;
 	
 	u32 buffer_pos = 0;
+	u32 buffer_size = 0x5A00;
 
 	if((x_dist != 0) && (y_dist != 0))
 	{
@@ -1747,11 +1741,12 @@ void DMG_SIO::singer_izek_draw_line()
 
 	while(xy_start != xy_end)
 	{
+		//Convert plot points to buffer index
+		buffer_pos = (round(y_coord) * 160) + round(x_coord);
+
 		//Only draw on-screen objects
-		if((x_coord >= 0) && (x_coord <= 160) && (y_coord >= 0) && (y_coord <= 144))
+		if(buffer_pos < buffer_size)
 		{
-			//Convert plot points to buffer index
-			buffer_pos = (round(y_coord) * 160) + round(x_coord);
 			singer_izek.stitch_buffer[buffer_pos] = 0xFF000000;
 		}
 
