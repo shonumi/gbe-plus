@@ -157,8 +157,8 @@ class DMG_SIO
 		u32 current_y;
 		u32 last_x;
 		u32 last_y;
-		u8 next_x_plot;
-		u8 next_y_plot;
+		u32 start_x;
+		u32 start_y;
 		u8 start_flag;
 		u8 plot_count;
 		u16 counter;
