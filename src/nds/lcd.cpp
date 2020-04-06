@@ -963,6 +963,8 @@ void NTR_LCD::render_bg_scanline(u32 bg_control)
 				render_bg_3D();
 				x++;
 
+				if(x == 4) { break; }
+
 				bg_id = bg_render_list[x];
 				bg_control = NDS_BG0CNT_A + (bg_id << 1);
 			}
