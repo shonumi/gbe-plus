@@ -1637,18 +1637,15 @@ void DMG_SIO::singer_izek_stitch(u8 index)
 	u16 y0 = (index >= 1) ? singer_izek.y_plot[index-1] : singer_izek.start_y;
 	u16 y1 = singer_izek.y_plot[index];
 
-		std::cout<<"X -> " << std::hex << x0 << " :: " << x1 << "\n";
-		std::cout<<"Y -> " << std::hex << y0 << " :: " << y1 << "\n";
-
 	u8 y_shift = y0;
 
 	//Adjust Y coordinate
-	if((y0 >= 0x1A) && (index >= 0x1))
+	if((y0 >= 0x18) && (index >= 0x1))
 	{
 		y_shift = (y0 - 0x10);
 	}
 
-	else if((y1 >= 0x1A) && (index == 0))
+	else if((y1 >= 0x18) && (index == 0))
 	{
 		y_shift = (y1 - 0x10);
 	}
@@ -1660,10 +1657,10 @@ void DMG_SIO::singer_izek_stitch(u8 index)
 	}
 
 	//Move Down
-	if(y0 <= 0x14) { singer_izek.current_y += y_shift; std::cout<<"Y SHIFT DOWN" << std::dec << (u32)y_shift << "\n";  }
+	if(y0 <= 0x14) { singer_izek.current_y += y_shift;  }
 
 	//Move Up
-	else if(y0 >= 0x1A) { singer_izek.current_y -= y_shift; std::cout<<"Y SHIFT UP" << std::dec << (u32)y_shift << "\n"; }
+	else if(y0 >= 0x18) { singer_izek.current_y -= y_shift; }
 
 	//Move Left or Right
 	singer_izek.current_x = x1;
@@ -1678,10 +1675,6 @@ void DMG_SIO::singer_izek_draw_line()
 	float y_inc = 0.0;
 	float x_coord = singer_izek.last_x;
 	float y_coord = singer_izek.last_y;
-
-		std::cout<<"Y DIFF -> " << std::dec << y_dist << "\n";
-		std::cout<<"XX -> " << std::dec << singer_izek.last_x << " :: " << singer_izek.last_y << "\n";
-		std::cout<<"YY -> " << std::dec << singer_izek.current_x << " :: " << singer_izek.current_y << "\n\n";
 
 	s32 xy_start = 0;
 	s32 xy_end = 0;
