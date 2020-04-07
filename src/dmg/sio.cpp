@@ -1640,12 +1640,12 @@ void DMG_SIO::singer_izek_stitch(u8 index)
 	u8 y_shift = y0;
 
 	//Adjust Y coordinate
-	if((y0 >= 0x18) && (index >= 0x1))
+	if((y0 >= 0x1A) && (index >= 0x1))
 	{
 		y_shift = (y0 - 0x10);
 	}
 
-	else if((y1 >= 0x18) && (index == 0))
+	else if((y1 >= 0x1A) && (index == 0))
 	{
 		y_shift = (y1 - 0x10);
 	}
@@ -1654,6 +1654,11 @@ void DMG_SIO::singer_izek_stitch(u8 index)
 	{
 		int temp_y = ((y0 - 0x10) - 4) * -1;
 		y_shift = temp_y;
+	}
+
+	else if((y0 >= 0x15) && (y0 <= 0x18))
+	{
+		y_shift = (y0 - 0x14);
 	}
 
 	//Move Down
