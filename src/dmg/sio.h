@@ -269,6 +269,7 @@ class DMG_SIO
 	void singer_izek_fill_buffer();
 	void singer_izek_draw_line();
 	void singer_izek_stitch(u8 index);
+	u8 singer_izek_adjust_y(u8 y_val);
 
 	void full_changer_process();
 	bool full_changer_load_db(std::string filename);
