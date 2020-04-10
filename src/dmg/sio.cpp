@@ -1644,7 +1644,7 @@ void DMG_SIO::singer_izek_stitch(u8 index)
 	else { y_shift = singer_izek_adjust_y(y0); }
 
 	//Move Down
-	if(y0 <= 0x14) { singer_izek.current_y += y_shift;  }
+	if((y0 <= 0x14) || (y0 >= 0x1F)) { singer_izek.current_y += y_shift;  }
 
 	//Move Up
 	else if(y0 >= 0x15) { singer_izek.current_y -= y_shift; }
@@ -1690,9 +1690,9 @@ u8 DMG_SIO::singer_izek_adjust_y(u8 y_val)
 		case 0x1D: return 9;
 		case 0x1E: return 10;
 		case 0x1F: return 9;
-		case 0x20: return 8;
-		case 0x21: return 7;
-		case 0x22: return 6;
+		case 0x20: return 0;
+		case 0x21: return 1;
+		case 0x22: return 2;
 	}
 
 	return y_val;
