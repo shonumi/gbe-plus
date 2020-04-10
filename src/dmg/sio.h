@@ -161,6 +161,7 @@ class DMG_SIO
 		u32 start_y;
 		u8 start_flag;
 		u8 plot_count;
+		u8 idle_count;
 		u16 counter;
 		singer_izek_state current_state;
 	} singer_izek;

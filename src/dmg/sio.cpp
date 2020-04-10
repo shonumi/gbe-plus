@@ -1560,6 +1560,7 @@ void DMG_SIO::singer_izek_process()
 				{
 					singer_izek.current_state = SINGER_SEND_DATA;
 					singer_izek.counter = 0;
+					singer_izek.idle_count = 0;
 				}
 					
 				break;
@@ -1567,20 +1568,45 @@ void DMG_SIO::singer_izek_process()
 			case SINGER_SEND_DATA:
 				singer_izek.counter++;
 
-				if((sio_stat.last_transfer & 0xC0) == 0)
+				//Receive data (checksums usually)
+				if(singer_izek.idle_count)
+				{
+					singer_izek.idle_count--;
+				}
+
+				//End one data packet and receive another. Next 2 bytes are checksums
+				else if(sio_stat.last_transfer == 0xBB)
+				{
+					singer_izek.idle_count = 2;
+				}
+
+				//Start new data packet
+				else if(sio_stat.last_transfer == 0xB9)
+				{
+					singer_izek.counter = 0;
+				}
+
+				//Receive ??? next 4 bytes
+				else if(sio_stat.last_transfer == 0xC7)
+				{
+					singer_izek.idle_count = 4;
+				}
+
+				//Stitch data is finished. Draw and switch back to ping mode
+				else if((sio_stat.last_transfer == 0xBC) || (sio_stat.last_transfer == 0xBF))
+				{
+					singer_izek_fill_buffer();
+					singer_izek.current_state = SINGER_PING;
+				}
+
+				//Grab stitch coordinate data
+				else
 				{
 					//Grab X coordinate
 					if(singer_izek.counter & 0x1) { singer_izek.x_plot.push_back(sio_stat.last_transfer); }
 
 					//Grab Y coordinate
 					else { singer_izek.y_plot.push_back(sio_stat.last_transfer); }
-				}
-
-				//Draw stitch data and switch back to ping mode
-				else
-				{
-					singer_izek_fill_buffer();
-					singer_izek.current_state = SINGER_PING;
 				}
 
 				break;
