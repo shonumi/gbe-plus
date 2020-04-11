@@ -1670,7 +1670,7 @@ void DMG_SIO::singer_izek_stitch(u8 index)
 	else { y_shift = singer_izek_adjust_y(y0); }
 
 	//Move Down
-	if((y0 <= 0x14) || (y0 >= 0x1F)) { singer_izek.current_y += y_shift;  }
+	if((y0 <= 0x14) || (y0 >= 0x21)) { singer_izek.current_y += y_shift;  }
 
 	//Move Up
 	else if(y0 >= 0x15) { singer_izek.current_y -= y_shift; }
@@ -1684,16 +1684,16 @@ u8 DMG_SIO::singer_izek_adjust_y(u8 y_val)
 {
 	switch(y_val)
 	{
-		case 0x00: return 0;
-		case 0x01: return 1;
-		case 0x02: return 2;
-		case 0x03: return 3;
-		case 0x04: return 4;
-		case 0x05: return 5;
-		case 0x06: return 6;
-		case 0x07: return 7;
-		case 0x08: return 8;
-		case 0x09: return 9;
+		case 0x00: return 20;
+		case 0x01: return 19;
+		case 0x02: return 18;
+		case 0x03: return 17;
+		case 0x04: return 16;
+		case 0x05: return 15;
+		case 0x06: return 14;
+		case 0x07: return 13;
+		case 0x08: return 12;
+		case 0x09: return 11;
 		case 0x0A: return 10;
 		case 0x0B: return 9;
 		case 0x0C: return 8;
@@ -1715,10 +1715,10 @@ u8 DMG_SIO::singer_izek_adjust_y(u8 y_val)
 		case 0x1C: return 8;
 		case 0x1D: return 9;
 		case 0x1E: return 10;
-		case 0x1F: return 9;
-		case 0x20: return 0;
-		case 0x21: return 1;
-		case 0x22: return 2;
+		case 0x1F: return 11;
+		case 0x20: return 12;
+		case 0x21: return 13;
+		case 0x22: return 14;
 	}
 
 	return y_val;
@@ -1727,6 +1727,9 @@ u8 DMG_SIO::singer_izek_adjust_y(u8 y_val)
 /****** Draws a line in the stitch buffer between 2 points ******/
 void DMG_SIO::singer_izek_draw_line()
 {
+	s32 x_base = 20;
+	s32 y_base = 32;
+
 	s32 x_dist = (singer_izek.current_x - singer_izek.last_x);
 	s32 y_dist = (singer_izek.current_y - singer_izek.last_y);
 	float x_inc = 0.0;
@@ -1740,9 +1743,6 @@ void DMG_SIO::singer_izek_draw_line()
 	
 	u32 buffer_pos = 0;
 	u32 buffer_size = 0x5A00;
-
-	u32 x_base = 20;
-	u32 y_base = 32;
 
 	if((x_dist != 0) && (y_dist != 0))
 	{
@@ -1800,10 +1800,7 @@ void DMG_SIO::singer_izek_draw_line()
 	while(xy_start != xy_end)
 	{
 		//Convert plot points to buffer index
-		buffer_pos = (round(y_coord) * 160) + round(x_coord);
-
-		//Add offset
-		buffer_pos += (y_base * 160) + x_base;
+		buffer_pos = (round(y_coord + y_base) * 160) + round(x_coord + x_base);
 
 		//Only draw on-screen objects
 		if(buffer_pos < buffer_size)

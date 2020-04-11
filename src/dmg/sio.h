@@ -153,12 +153,12 @@ class DMG_SIO
 		std::vector<u8> x_plot;
 		std::vector<u8> y_plot;
 		std::vector<u32> stitch_buffer;
-		u32 current_x;
-		u32 current_y;
-		u32 last_x;
-		u32 last_y;
-		u32 start_x;
-		u32 start_y;
+		s32 current_x;
+		s32 current_y;
+		s32 last_x;
+		s32 last_y;
+		s32 start_x;
+		s32 start_y;
 		u8 start_flag;
 		u8 plot_count;
 		u8 idle_count;
