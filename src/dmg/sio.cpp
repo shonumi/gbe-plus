@@ -1580,8 +1580,8 @@ void DMG_SIO::singer_izek_process()
 					singer_izek.idle_count = 2;
 				}
 
-				//Start new data packet
-				else if(sio_stat.last_transfer == 0xB9)
+				//Start new data packet or new coordinate data
+				else if((sio_stat.last_transfer == 0xB9) || (sio_stat.last_transfer == 0xBC) || (sio_stat.last_transfer == 0xBD))
 				{
 					singer_izek.counter = 0;
 				}
@@ -1593,8 +1593,11 @@ void DMG_SIO::singer_izek_process()
 				}
 
 				//Stitch data is finished. Draw and switch back to ping mode
-				else if((sio_stat.last_transfer == 0xBC) || (sio_stat.last_transfer == 0xBF))
+				else if((sio_stat.last_transfer == 0xBA) || (sio_stat.last_transfer == 0xBF))
 				{
+					//Clean up coordinates if necessary
+					if(singer_izek.x_plot.size() != singer_izek.y_plot.size()) { singer_izek.x_plot.pop_back(); }
+
 					singer_izek_fill_buffer();
 					singer_izek.current_state = SINGER_PING;
 				}
@@ -1606,7 +1609,18 @@ void DMG_SIO::singer_izek_process()
 					if(singer_izek.counter & 0x1) { singer_izek.x_plot.push_back(sio_stat.last_transfer); }
 
 					//Grab Y coordinate
-					else { singer_izek.y_plot.push_back(sio_stat.last_transfer); }
+					else
+					{
+						//Ignore invalid 0, 0 coordinates
+						if((singer_izek.x_plot.back() == 0) && (sio_stat.last_transfer == 0))
+						{
+							//Remove old X coordinate
+							singer_izek.x_plot.pop_back();
+							std::cout<<"ME\n";
+						}
+
+						else { singer_izek.y_plot.push_back(sio_stat.last_transfer); }
+					}
 				}
 
 				break;
