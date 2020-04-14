@@ -21,6 +21,7 @@ DMG_GamePad::DMG_GamePad()
 	up_shadow = down_shadow = left_shadow = right_shadow = false;
 	sensor_x = sensor_y = 2047;
 	ir_delay = 0;
+	con_flags = 0;
 	joypad_irq = false;
 	joy_init = false;
 }
@@ -361,6 +362,18 @@ void DMG_GamePad::process_keyboard(int pad, bool pressed)
 
 		if(config::resize_mode > 2) { config::resize_mode = 2; }
 	}
+
+	//Misc Context Key 1 press
+	else if((pad == config::con_key_1) && (pressed)) { con_flags |= 0x10; }
+	
+	//Misc Context Key 1 release
+	else if((pad == config::con_key_1) && (!pressed)) { con_flags &= ~0x10; }
+
+	//Misc Context Key 2 press
+	else if((pad == config::con_key_2) && (pressed)) { con_flags |= 0x20; }
+	
+	//Misc Context Key 2 release
+	else if((pad == config::con_key_2) && (!pressed)) { con_flags &= ~0x20; }
 }
 
 /****** Processes input based on unique pad # for joysticks ******/
@@ -462,6 +475,18 @@ void DMG_GamePad::process_joystick(int pad, bool pressed)
 
 		if(config::resize_mode > 2) { config::resize_mode = 2; }
 	}
+
+	//Misc Context Key 1 press
+	else if((pad == config::con_joy_1) && (pressed)) { con_flags |= 0x10; }
+	
+	//Misc Context Key 1 release
+	else if((pad == config::con_joy_1) && (!pressed)) { con_flags &= ~0x10; }
+
+	//Misc Context Key 2 press
+	else if((pad == config::con_joy_2) && (pressed)) { con_flags |= 0x20; }
+	
+	//Misc Context Key 2 release
+	else if((pad == config::con_joy_2) && (!pressed)) { con_flags &= ~0x20; }
 }
 
 /****** Process gyroscope sensors - Only used for MBC7 ******/

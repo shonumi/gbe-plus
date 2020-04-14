@@ -159,8 +159,8 @@ class DMG_SIO
 		s32 last_y;
 		s32 start_x;
 		s32 start_y;
-		u8 start_flag;
-		u8 plot_count;
+		u8 status;
+		u8 last_internal_transfer;
 		u8 idle_count;
 		u16 counter;
 		singer_izek_state current_state;

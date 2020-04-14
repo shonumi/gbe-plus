@@ -19,6 +19,7 @@ SGB_GamePad::SGB_GamePad()
 	p15 = 0xEF;
 	column_id = 0;
 	pad = 0;
+	con_flags = 0;
 	joypad_irq = false;
 	joy_init = false;
 	up_shadow = down_shadow = left_shadow = right_shadow = false;

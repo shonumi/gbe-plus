@@ -409,8 +409,8 @@ void DMG_SIO::reset()
 	singer_izek.x_plot.clear();
 	singer_izek.y_plot.clear();
 	singer_izek.stitch_buffer.clear();
-	singer_izek.start_flag = 0;
-	singer_izek.plot_count = 0;
+	singer_izek.status = 0;
+	singer_izek.last_internal_transfer = 0;
 	singer_izek.current_state = SINGER_PING;
 	singer_izek.counter = 0;
 
@@ -1516,10 +1516,16 @@ bool DMG_SIO::barcode_boy_load_barcode(std::string filename)
 /****** Processes data sent from the Singer Izek to the Game Boy ******/
 void DMG_SIO::singer_izek_process()
 {
+	//Handle input - Start or stop Stitching
+	if(mem->g_pad->con_flags & 0x10) { singer_izek.status = 0x40; }
+	else { singer_izek.status = 0x00; }
+
 	if(sio_stat.internal_clock) { std::cout<<"0x" << std::hex << (u16)sio_stat.last_transfer << " :: " << (sio_stat.internal_clock ? "I" : "E") << "\n"; }
 
 	if(sio_stat.internal_clock)
 	{
+		singer_izek.last_internal_transfer = sio_stat.last_transfer;
+
 		switch(singer_izek.current_state)
 		{
 			case SINGER_PING:
@@ -1534,12 +1540,6 @@ void DMG_SIO::singer_izek_process()
 
 			case SINGER_SEND_HEADER:
 				singer_izek.counter++;
-
-				//Grab number of plot points
-				if(singer_izek.counter == 3)
-				{
-					singer_izek.plot_count = sio_stat.last_transfer;
-				}
 
 				//Grab first X stitch offset
 				if(singer_izek.counter == 5)
@@ -1616,7 +1616,6 @@ void DMG_SIO::singer_izek_process()
 						{
 							//Remove old X coordinate
 							singer_izek.x_plot.pop_back();
-							std::cout<<"ME\n";
 						}
 
 						else { singer_izek.y_plot.push_back(sio_stat.last_transfer); }
@@ -1627,9 +1626,14 @@ void DMG_SIO::singer_izek_process()
 		}
 	}
 
-	//Respond with 0x00 for external clock transfers
+	//Respond with current status for external clock transfers
 	//Respond with 0xFF for internal clock transfers
-	if(!sio_stat.internal_clock) { mem->memory_map[REG_SB] = 0x00; }
+	if(!sio_stat.internal_clock)
+	{
+		if((singer_izek.status) && (singer_izek.last_internal_transfer == 0x80)) { mem->memory_map[REG_SB] = singer_izek.status; }
+		else { mem->memory_map[REG_SB] = 0x00; }
+	}
+	
 	else { mem->memory_map[REG_SB] = 0xFF; }
 
 	mem->memory_map[IF_FLAG] |= 0x08;
