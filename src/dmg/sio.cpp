@@ -1517,7 +1517,7 @@ bool DMG_SIO::barcode_boy_load_barcode(std::string filename)
 void DMG_SIO::singer_izek_process()
 {
 	//Handle input - Start or stop Stitching
-	if(mem->g_pad->con_flags & 0x10) { singer_izek.status = 0x40; }
+	if(mem->g_pad->con_flags & 0x100) { singer_izek.status = 0x40; }
 	else { singer_izek.status = 0x00; }
 
 	if(sio_stat.internal_clock) { std::cout<<"0x" << std::hex << (u16)sio_stat.last_transfer << " :: " << (sio_stat.internal_clock ? "I" : "E") << "\n"; }

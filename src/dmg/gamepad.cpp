@@ -267,15 +267,20 @@ void DMG_GamePad::process_keyboard(int pad, bool pressed)
 	}
 
 	//Emulate Gyroscope Left tilt press
+	//Shift sewing point left
 	else if((pad == config::con_key_left) && (pressed))
 	{
 		gyro_flags |= 0x1;
 		gyro_flags |= 0x10;
-
 		gyro_flags &= ~0x2;
+
+		con_flags |= 0x1;
+		con_flags |= 0x10;
+		con_flags &= ~0x2;
 	}
 
 	//Emulate Gyroscope Left tilt release
+	//Shift sewing point left
 	else if((pad == config::con_key_left) && (!pressed))
 	{
 		gyro_flags &= ~0x1;
@@ -283,18 +288,29 @@ void DMG_GamePad::process_keyboard(int pad, bool pressed)
 
 		if(gyro_flags & 0x20) { gyro_flags |= 0x2; }
 		else { gyro_flags &= ~0x2; }
+
+		con_flags &= ~0x1;
+		con_flags &= ~0x10;
+
+		if(con_flags & 0x20) { con_flags |= 0x2; }
+		else { con_flags &= ~0x2; }
 	}
 
 	//Emulate Gyroscope Right tilt press
+	//Shift sewing point right
 	else if((pad == config::con_key_right) && (pressed))
 	{
 		gyro_flags |= 0x2;
 		gyro_flags |= 0x20;
-
 		gyro_flags &= ~0x1;
+
+		con_flags |= 0x2;
+		con_flags |= 0x20;
+		con_flags &= ~0x1;
 	}
 
 	//Emulate Gyroscope Right tilt release
+	//Shift sewing point right
 	else if((pad == config::con_key_right) && (!pressed))
 	{
 		gyro_flags &= ~0x2;
@@ -302,21 +318,32 @@ void DMG_GamePad::process_keyboard(int pad, bool pressed)
 
 		if(gyro_flags & 0x10) { gyro_flags |= 0x1; }
 		else { gyro_flags &= ~0x1; }
+
+		con_flags &= ~0x2;
+		con_flags &= ~0x20;
+
+		if(con_flags & 0x10) { con_flags |= 0x1; }
+		else { con_flags &= ~0x1; }
 	}
 
 	//Emulate Gyroscope Up tilt press
+	//Shift sewing point up
 	else if((pad == config::con_key_up) && (pressed))
 	{
 		gyro_flags |= 0x4;
 		gyro_flags |= 0x40;
-
 		gyro_flags &= ~0x8;
+
+		con_flags |= 0x4;
+		con_flags |= 0x40;
+		con_flags &= ~0x8;
 
 		//Reset constant IR light source
 		if((config::ir_device == 5) && (ir_delay == 0)) { ir_delay = 10; }
 	}
 
 	//Emulate Gyroscope Up tilt release
+	//Shift sewing point up
 	else if((pad == config::con_key_up) && (!pressed))
 	{
 		gyro_flags &= ~0x4;
@@ -324,18 +351,29 @@ void DMG_GamePad::process_keyboard(int pad, bool pressed)
 
 		if(gyro_flags & 0x80) { gyro_flags |= 0x8; }
 		else { gyro_flags &= ~0x8; }
+
+		con_flags &= ~0x4;
+		con_flags &= ~0x40;
+
+		if(con_flags & 0x80) { con_flags |= 0x8; }
+		else { con_flags &= ~0x8; }
 	}
 
 	//Emulate Gyroscope Down tilt press
+	//Shift sewing point down
 	else if((pad == config::con_key_down) && (pressed))
 	{
 		gyro_flags |= 0x8;
 		gyro_flags |= 0x80;
-
 		gyro_flags &= ~0x4;
+
+		con_flags |= 0x8;
+		con_flags |= 0x80;
+		con_flags &= ~0x4;
 	}
 
 	//Emulate Gyroscope Down tilt release
+	//Shift sewing point down
 	else if((pad == config::con_key_down) && (!pressed))
 	{
 		gyro_flags &= ~0x8;
@@ -343,6 +381,12 @@ void DMG_GamePad::process_keyboard(int pad, bool pressed)
 
 		if(gyro_flags & 0x40) { gyro_flags |= 0x4; }
 		else { gyro_flags &= ~0x4; }
+
+		con_flags &= ~0x8;
+		con_flags &= ~0x80;
+
+		if(con_flags & 0x40) { con_flags |= 0x4; }
+		else { con_flags &= ~0x4; }
 	}
 
 	//Emulate R Trigger press - DMG/GBC on GBA ONLY
@@ -364,16 +408,16 @@ void DMG_GamePad::process_keyboard(int pad, bool pressed)
 	}
 
 	//Misc Context Key 1 press
-	else if((pad == config::con_key_1) && (pressed)) { con_flags |= 0x10; }
+	else if((pad == config::con_key_1) && (pressed)) { con_flags |= 0x100; }
 	
 	//Misc Context Key 1 release
-	else if((pad == config::con_key_1) && (!pressed)) { con_flags &= ~0x10; }
+	else if((pad == config::con_key_1) && (!pressed)) { con_flags &= ~0x100; }
 
 	//Misc Context Key 2 press
-	else if((pad == config::con_key_2) && (pressed)) { con_flags |= 0x20; }
+	else if((pad == config::con_key_2) && (pressed)) { con_flags |= 0x200; }
 	
 	//Misc Context Key 2 release
-	else if((pad == config::con_key_2) && (!pressed)) { con_flags &= ~0x20; }
+	else if((pad == config::con_key_2) && (!pressed)) { con_flags &= ~0x200; }
 }
 
 /****** Processes input based on unique pad # for joysticks ******/
@@ -428,35 +472,83 @@ void DMG_GamePad::process_joystick(int pad, bool pressed)
 	else if((pad == config::gbe_joy_down) && (!pressed)) { p15 |= 0x8; p15 |= 0x4; }
 
 	//Emulate Gyroscope Left tilt press
-	else if((pad == config::con_joy_left) && (pressed)) { gyro_flags |= 0x1; gyro_flags &= ~0x2; }
+	//Shift sewing point left
+	else if((pad == config::con_joy_left) && (pressed))
+	{
+		gyro_flags |= 0x1;
+		gyro_flags &= ~0x2;
+
+		con_flags |= 0x1;
+		con_flags &= ~0x2;
+	}
 
 	//Emulate Gyroscope Left tilt release
-	else if((pad == config::con_joy_left) && (!pressed)) { gyro_flags &= ~0x1; }
+	//Shift sewing point left
+	else if((pad == config::con_joy_left) && (!pressed))
+	{
+		gyro_flags &= ~0x1;
+		con_flags &= ~0x1;
+	}
 
 	//Emulate Gyroscope Right tilt press
-	else if((pad == config::con_joy_right) && (pressed)) { gyro_flags |= 0x2; gyro_flags &= ~0x1; }
+	//Shift sewing point right
+	else if((pad == config::con_joy_right) && (pressed))
+	{
+		gyro_flags |= 0x2;
+		gyro_flags &= ~0x1;
+
+		con_flags |= 0x2;
+		con_flags &= ~0x1;
+	}
 
 	//Emulate Gyroscope Right tilt release
-	else if((pad == config::con_joy_right) && (!pressed)) { gyro_flags &= ~0x2; }
+	//Shift sewing point right
+	else if((pad == config::con_joy_right) && (!pressed))
+	{
+		gyro_flags &= ~0x2;
+		con_flags &= ~0x2;
+	}
 
 	//Emulate Gyroscope Up tilt press
+	//Shift sewing point up
 	else if((pad == config::con_joy_up) && (pressed))
 	{
 		gyro_flags |= 0x4;
 		gyro_flags &= ~0x8;
+
+		con_flags |= 0x4;
+		con_flags &= ~0x8;
 
 		//Reset constant IR light source
 		if((config::ir_device == 5) && (ir_delay == 0)) { ir_delay = 10; }
 	}
 
 	//Emulate Gyroscope Up tilt release
-	else if((pad == config::con_joy_up) && (!pressed)) { gyro_flags &= ~0x4; }
+	//Shift sewing point up
+	else if((pad == config::con_joy_up) && (!pressed))
+	{
+		gyro_flags &= ~0x4;
+		con_flags &= ~0x4;
+	}
 
 	//Emulate Gyroscope Down tilt press
-	else if((pad == config::con_joy_down) && (pressed)) { gyro_flags |= 0x8; gyro_flags &= ~0x4; }
+	//Shift sewing point down
+	else if((pad == config::con_joy_down) && (pressed))
+	{
+		gyro_flags |= 0x8;
+		gyro_flags &= ~0x4;
+
+		con_flags |= 0x8;
+		con_flags &= ~0x4;
+	}
 
 	//Emulate Gyroscope Down tilt release
-	else if((pad == config::con_joy_down) && (!pressed)) { gyro_flags &= ~0x8; }
+	//Shift sewing point down
+	else if((pad == config::con_joy_down) && (!pressed))
+	{
+		gyro_flags &= ~0x8;
+		con_flags &= ~0x8;
+	}
 
 	//Emulate R Trigger press - DMG/GBC on GBA ONLY
 	else if((pad == config::gbe_joy_r_trigger) && (pressed) && (config::gba_enhance))
@@ -477,16 +569,16 @@ void DMG_GamePad::process_joystick(int pad, bool pressed)
 	}
 
 	//Misc Context Key 1 press
-	else if((pad == config::con_joy_1) && (pressed)) { con_flags |= 0x10; }
+	else if((pad == config::con_joy_1) && (pressed)) { con_flags |= 0x100; }
 	
 	//Misc Context Key 1 release
-	else if((pad == config::con_joy_1) && (!pressed)) { con_flags &= ~0x10; }
+	else if((pad == config::con_joy_1) && (!pressed)) { con_flags &= ~0x100; }
 
 	//Misc Context Key 2 press
-	else if((pad == config::con_joy_2) && (pressed)) { con_flags |= 0x20; }
+	else if((pad == config::con_joy_2) && (pressed)) { con_flags |= 0x200; }
 	
 	//Misc Context Key 2 release
-	else if((pad == config::con_joy_2) && (!pressed)) { con_flags &= ~0x20; }
+	else if((pad == config::con_joy_2) && (!pressed)) { con_flags &= ~0x200; }
 }
 
 /****** Process gyroscope sensors - Only used for MBC7 ******/

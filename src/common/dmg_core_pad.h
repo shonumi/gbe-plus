@@ -29,7 +29,7 @@ class dmg_core_pad
 	u16 sensor_x;
 	u16 sensor_y;
 	u8 gyro_flags;
-	u8 con_flags;
+	u16 con_flags;
 	u16 ir_delay;
 
 	int pad;
