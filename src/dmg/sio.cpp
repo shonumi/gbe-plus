@@ -1580,12 +1580,6 @@ void DMG_SIO::singer_izek_process()
 					singer_izek.idle_count = 2;
 				}
 
-				//Receive ??? next 4 bytes
-				else if(sio_stat.last_transfer == 0xC7)
-				{
-					singer_izek.idle_count = 4;
-				}
-
 				//Start new data packet or new coordinate data
 				else if((sio_stat.last_transfer == 0xB9) || (sio_stat.last_transfer == 0xBC) || (sio_stat.last_transfer == 0xBD)
 				|| ((sio_stat.last_transfer & 0xF0) == 0xC0))
