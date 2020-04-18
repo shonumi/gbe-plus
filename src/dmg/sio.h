@@ -160,6 +160,7 @@ class DMG_SIO
 		s32 start_x;
 		s32 start_y;
 		u8 status;
+		u8 device_mode;
 		u8 last_internal_transfer;
 		u8 idle_count;
 		u16 counter;
