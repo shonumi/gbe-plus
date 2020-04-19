@@ -343,7 +343,7 @@ void DMG_SIO::reset()
 
 	//GB Printer
 	printer.scanline_buffer.clear();
-	printer.scanline_buffer.resize(0x5A00, 0x0);
+	printer.scanline_buffer.resize(0x16800, 0x0);
 	printer.packet_buffer.clear();
 	printer.packet_size = 0;
 	printer.current_state = GBP_AWAITING_PACKET;
@@ -1548,26 +1548,56 @@ void DMG_SIO::singer_izek_process()
 			case SINGER_SEND_HEADER:
 				singer_izek.counter++;
 
-				//Grab first X stitch offset
-				if(singer_izek.counter == 5)
+				//Grab header data for normal stitching
+				if(singer_izek.device_mode == 0)
 				{
-					singer_izek.x_plot.clear();
-					singer_izek.start_x = sio_stat.last_transfer;
+					//Grab first X stitch offset
+					if(singer_izek.counter == 5)
+					{
+						singer_izek.x_plot.clear();
+						singer_izek.start_x = sio_stat.last_transfer;
+					}
+
+					//Grab first Y stitch offset
+					if(singer_izek.counter == 7)
+					{
+						singer_izek.y_plot.clear();
+						singer_izek.start_y = sio_stat.last_transfer;
+					}
+
+					//Switch to data mode
+					else if(singer_izek.counter == 8)
+					{
+						singer_izek.current_state = SINGER_SEND_DATA;
+						singer_izek.counter = 0;
+						singer_izek.idle_count = 0;
+					}
 				}
 
-				//Grab first Y stitch offset
-				if(singer_izek.counter == 7)
+				//Grab header data for embroidery
+				else if(singer_izek.device_mode == 1)
 				{
-					singer_izek.y_plot.clear();
-					singer_izek.start_y = sio_stat.last_transfer;
-				}
+					//Grab first X stitch offset
+					if(singer_izek.counter == 6)
+					{
+						singer_izek.x_plot.clear();
+						singer_izek.start_x = 0;
+					}
 
-				//Switch to data mode
-				else if(singer_izek.counter == 8)
-				{
-					singer_izek.current_state = SINGER_SEND_DATA;
-					singer_izek.counter = 0;
-					singer_izek.idle_count = 0;
+					//Grab first Y stitch offset
+					if(singer_izek.counter == 8)
+					{
+						singer_izek.y_plot.clear();
+						singer_izek.start_y = 0;
+					}
+
+					//Switch to data mode
+					else if(singer_izek.counter == 10)
+					{
+						singer_izek.current_state = SINGER_SEND_DATA;
+						singer_izek.counter = 0;
+						singer_izek.idle_count = 0;
+					}
 				}
 					
 				break;
@@ -1589,9 +1619,15 @@ void DMG_SIO::singer_izek_process()
 
 				//Start new data packet or new coordinate data
 				else if((sio_stat.last_transfer == 0xB9) || (sio_stat.last_transfer == 0xBC) || (sio_stat.last_transfer == 0xBD)
-				|| ((sio_stat.last_transfer & 0xF0) == 0xC0))
+				|| ((sio_stat.last_transfer & 0xF0) == 0xC0) || ((sio_stat.last_transfer & 0xF0) == 0xE0))
 				{
 					singer_izek.counter = 0;
+				}
+
+				//Start new section of embroidery
+				else if(sio_stat.last_transfer == 0xBE)
+				{
+					singer_izek.idle_count = 14;
 				}
 
 				//Stitch data is finished. Draw and switch back to ping mode
@@ -1646,28 +1682,39 @@ void DMG_SIO::singer_izek_fill_buffer()
 {
 	//Use plots to create stitch buffer for visual output
 	singer_izek.stitch_buffer.clear();
-	singer_izek.stitch_buffer.resize(0x5A00, 0xFFFFFFFF);
+	singer_izek.stitch_buffer.resize(0x16800, 0xFFFFFFFF);
 
-	singer_izek.last_x = singer_izek.start_x;
-	singer_izek.last_y = 0;
+	if(singer_izek.device_mode == 0)
+	{
+		singer_izek.last_x = singer_izek.start_x;
+		singer_izek.last_y = 0;
 
-	singer_izek.current_x = singer_izek.x_plot[0];
-	singer_izek.current_y = 0;
+		singer_izek.current_x = singer_izek.x_plot[0];
+		singer_izek.current_y = 0;
+	}
+
+	else if(singer_izek.device_mode == 1)
+	{
+		singer_izek.last_x = 0;
+		singer_izek.last_y = 0;
+
+		singer_izek.current_x = 0;
+		singer_izek.current_y = 0;
+	}
 
 	for(u32 i = 0; i < singer_izek.x_plot.size(); i++)
 	{
 		singer_izek_stitch(i);
 
-		//Draw line between stitch coordinates
 		singer_izek_draw_line();
 
 		singer_izek.last_x = singer_izek.current_x;
 		singer_izek.last_y = singer_izek.current_y;
 	}
 
-	SDL_Surface* tmp_s = SDL_CreateRGBSurface(SDL_SWSURFACE, 160, 144, 32, 0, 0, 0, 0);
+	SDL_Surface* tmp_s = SDL_CreateRGBSurface(SDL_SWSURFACE, 320, 288, 32, 0, 0, 0, 0);
 	u32* out_pixel_data = (u32*)tmp_s->pixels;
-	for(u32 x = 0; x < 0x5A00; x++) { out_pixel_data[x] = singer_izek.stitch_buffer[x]; }
+	for(u32 x = 0; x < 0x16800; x++) { out_pixel_data[x] = singer_izek.stitch_buffer[x]; }
 	SDL_SaveBMP(tmp_s, "YO.bmp");
 
 }
@@ -1675,28 +1722,53 @@ void DMG_SIO::singer_izek_fill_buffer()
 /****** Plots points for stitching******/
 void DMG_SIO::singer_izek_stitch(u8 index)
 {
-	//X0 = Previous X, X1 = Current X, X2 = Next X
-	u16 x0 = (index >= 1) ? singer_izek.x_plot[index-1] : singer_izek.start_x;
-	u16 x1 = singer_izek.x_plot[index];
+	u16 x0, x1;
+	u16 y0, y1;
 
-	//Y0 = Previous Y, Y1 = Current Y, Y2 = Next Y
-	u16 y0 = (index >= 1) ? singer_izek.y_plot[index-1] : singer_izek.start_y;
-	u16 y1 = singer_izek.y_plot[index];
+	//Handle regular stitching
+	if(singer_izek.device_mode == 0)
+	{
+		//X0 = Previous X, X1 = Current X, X2 = Next X
+		x0 = (index >= 1) ? singer_izek.x_plot[index-1] : singer_izek.start_x;
+		x1 = singer_izek.x_plot[index];
 
-	u8 y_shift = y0;
+		//Y0 = Previous Y, Y1 = Current Y, Y2 = Next Y
+		y0 = (index >= 1) ? singer_izek.y_plot[index-1] : singer_izek.start_y;
+		y1 = singer_izek.y_plot[index];
 
-	//Adjust Y coordinate
-	if((y1 >= 0x1A) && (index == 0)) { y_shift = singer_izek_adjust_y(y1); }
-	else { y_shift = singer_izek_adjust_y(y0); }
+		u8 y_shift = y0;
 
-	//Move Down
-	if((y0 <= 0x14) || (y0 >= 0x21)) { singer_izek.current_y += y_shift;  }
+		//Adjust Y coordinate
+		if((y1 >= 0x1A) && (index == 0)) { y_shift = singer_izek_adjust_y(y1); }
+		else { y_shift = singer_izek_adjust_y(y0); }
 
-	//Move Up
-	else if(y0 >= 0x15) { singer_izek.current_y -= y_shift; }
+		//Move Down
+		if((y0 <= 0x14) || (y0 >= 0x21)) { singer_izek.current_y += y_shift;  }
 
-	//Move Left or Right
-	singer_izek.current_x = x1;
+		//Move Up
+		else if(y0 >= 0x15) { singer_izek.current_y -= y_shift; }
+
+		//Move Left or Right
+		singer_izek.current_x = x1;
+	}
+
+	//Handle embroidery
+	else if(singer_izek.device_mode == 1)
+	{
+		x0 = singer_izek.x_plot[index];
+		y0 = singer_izek.y_plot[index];
+
+		//Move left or right
+		if(x0 & 0x40) { singer_izek.current_x -= (x0 & 0xF); }
+		else { singer_izek.current_x += x0; }
+
+		//Move up or down
+		if(y0 & 0x40) { singer_izek.current_y += (y0 & 0xF); }
+		else { singer_izek.current_y -= y0; }
+
+	std::cout<<"X -> " << std::hex << x0 << " :: " << x1 << "\n";
+	std::cout<<"Y -> " << std::hex << y0 << " :: " << y1 << "\n\n";
+	}
 }
 
 /****** Adjusts Y coordinate when stitching ******/
@@ -1747,8 +1819,8 @@ u8 DMG_SIO::singer_izek_adjust_y(u8 y_val)
 /****** Draws a line in the stitch buffer between 2 points ******/
 void DMG_SIO::singer_izek_draw_line()
 {
-	s32 x_base = 20;
-	s32 y_base = 32;
+	s32 x_base = 150;
+	s32 y_base = 100;
 
 	s32 x_dist = (singer_izek.current_x - singer_izek.last_x);
 	s32 y_dist = (singer_izek.current_y - singer_izek.last_y);
@@ -1762,7 +1834,7 @@ void DMG_SIO::singer_izek_draw_line()
 	s32 xy_inc = 0;
 	
 	u32 buffer_pos = 0;
-	u32 buffer_size = 0x5A00;
+	u32 buffer_size = 0x16800;
 
 	if((x_dist != 0) && (y_dist != 0))
 	{
@@ -1820,7 +1892,7 @@ void DMG_SIO::singer_izek_draw_line()
 	while(xy_start != xy_end)
 	{
 		//Convert plot points to buffer index
-		buffer_pos = (round(y_coord + y_base) * 160) + round(x_coord + x_base);
+		buffer_pos = (round(y_coord + y_base) * 320) + round(x_coord + x_base);
 
 		//Only draw on-screen objects
 		if(buffer_pos < buffer_size)
