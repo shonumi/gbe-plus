@@ -1720,7 +1720,7 @@ void DMG_SIO::singer_izek_fill_buffer()
 }
 
 /****** Plots points for stitching******/
-void DMG_SIO::singer_izek_stitch(u8 index)
+void DMG_SIO::singer_izek_stitch(u32 index)
 {
 	u16 x0, x1;
 	u16 y0, y1;
@@ -1765,9 +1765,6 @@ void DMG_SIO::singer_izek_stitch(u8 index)
 		//Move up or down
 		if(y0 & 0x40) { singer_izek.current_y += (y0 & 0xF); }
 		else { singer_izek.current_y -= y0; }
-
-	std::cout<<"X -> " << std::hex << x0 << " :: " << x1 << "\n";
-	std::cout<<"Y -> " << std::hex << y0 << " :: " << y1 << "\n\n";
 	}
 }
 
