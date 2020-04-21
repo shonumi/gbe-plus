@@ -90,6 +90,7 @@ enum singer_izek_state
 	SINGER_SEND_HEADER,
 	SINGER_SEND_DATA,
 	SINGER_STATUS,
+	SINGER_GET_COORDINATES,
 };
 
 enum turbo_file_state

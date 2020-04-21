@@ -1624,10 +1624,12 @@ void DMG_SIO::singer_izek_process()
 					singer_izek.counter = 0;
 				}
 
-				//Start new section of embroidery
+				//Start new section of embroidery - Grab coordinates
 				else if(sio_stat.last_transfer == 0xBE)
 				{
-					singer_izek.idle_count = 14;
+					singer_izek.idle_count = 0;
+					singer_izek.counter = 0;
+					singer_izek.current_state = SINGER_GET_COORDINATES;
 				}
 
 				//Stitch data is finished. Draw and switch back to ping mode
@@ -1658,6 +1660,29 @@ void DMG_SIO::singer_izek_process()
 
 						else { singer_izek.y_plot.push_back(sio_stat.last_transfer); }
 					}
+				}
+
+				break;
+
+			case SINGER_GET_COORDINATES:
+				singer_izek.counter++;
+
+				//Wait for 4 0x00 bytes to switch back to send data mode
+				if(sio_stat.last_transfer == 0x00)
+				{
+					singer_izek.idle_count++;
+					
+					if(singer_izek.idle_count == 4)
+					{
+						singer_izek.counter = 0;
+						singer_izek.idle_count = 0;
+						singer_izek.current_state = SINGER_SEND_DATA;
+					}
+				}
+
+				else
+				{
+					singer_izek.idle_count = 0;
 				}
 
 				break;
