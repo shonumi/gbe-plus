@@ -1753,11 +1753,11 @@ void DMG_SIO::singer_izek_stitch(u32 index)
 	//Handle regular stitching
 	if(singer_izek.device_mode == 0)
 	{
-		//X0 = Previous X, X1 = Current X, X2 = Next X
+		//X0 = Previous X, X1 = Current X
 		x0 = (index >= 1) ? singer_izek.x_plot[index-1] : singer_izek.start_x;
 		x1 = singer_izek.x_plot[index];
 
-		//Y0 = Previous Y, Y1 = Current Y, Y2 = Next Y
+		//Y0 = Previous Y, Y1 = Current Y
 		y0 = (index >= 1) ? singer_izek.y_plot[index-1] : singer_izek.start_y;
 		y1 = singer_izek.y_plot[index];
 
@@ -1768,7 +1768,7 @@ void DMG_SIO::singer_izek_stitch(u32 index)
 		else { y_shift = singer_izek_adjust_y(y0); }
 
 		//Move Down
-		if((y0 <= 0x14) || (y0 >= 0x21)) { singer_izek.current_y += y_shift;  }
+		if(y0 <= 0x14) { singer_izek.current_y += y_shift;  }
 
 		//Move Up
 		else if(y0 >= 0x15) { singer_izek.current_y -= y_shift; }
