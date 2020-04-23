@@ -410,7 +410,7 @@ void DMG_SIO::reset()
 	singer_izek.y_plot.clear();
 	singer_izek.stitch_buffer.clear();
 	singer_izek.status = 0;
-	singer_izek.device_mode = 1;
+	singer_izek.device_mode = 0;
 	singer_izek.last_internal_transfer = 0;
 	singer_izek.current_state = SINGER_PING;
 	singer_izek.counter = 0;
@@ -1652,7 +1652,7 @@ void DMG_SIO::singer_izek_process()
 					else
 					{
 						//Ignore invalid 0, 0 coordinates
-						if((singer_izek.x_plot.back() == 0) && (sio_stat.last_transfer == 0))
+						if((singer_izek.x_plot.back() == 0) && (sio_stat.last_transfer == 0) && (singer_izek.device_mode == 0))
 						{
 							//Remove old X coordinate
 							singer_izek.x_plot.pop_back();
@@ -1667,22 +1667,12 @@ void DMG_SIO::singer_izek_process()
 			case SINGER_GET_COORDINATES:
 				singer_izek.counter++;
 
-				//Wait for 4 0x00 bytes to switch back to send data mode
-				if(sio_stat.last_transfer == 0x00)
+				//Wait for 0xBD to switch
+				if(sio_stat.last_transfer == 0xBD)
 				{
-					singer_izek.idle_count++;
-					
-					if(singer_izek.idle_count == 4)
-					{
-						singer_izek.counter = 0;
-						singer_izek.idle_count = 0;
-						singer_izek.current_state = SINGER_SEND_DATA;
-					}
-				}
-
-				else
-				{
+					singer_izek.counter = 0;
 					singer_izek.idle_count = 0;
+					singer_izek.current_state = SINGER_SEND_DATA;
 				}
 
 				break;
