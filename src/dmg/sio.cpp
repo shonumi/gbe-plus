@@ -1645,6 +1645,9 @@ void DMG_SIO::singer_izek_process()
 				//Grab stitch coordinate data
 				else
 				{
+					//Maintain consistent XY pairs in case control codes interfere
+					if(singer_izek.x_plot.size() > singer_izek.y_plot.size()) { singer_izek.counter = 0; }
+
 					//Grab X coordinate
 					if(singer_izek.counter & 0x1) { singer_izek.x_plot.push_back(sio_stat.last_transfer); }
 
@@ -1774,11 +1777,11 @@ void DMG_SIO::singer_izek_stitch(u32 index)
 		y0 = singer_izek.y_plot[index];
 
 		//Move left or right
-		if(x0 & 0x40) { singer_izek.current_x -= (x0 & 0xF); }
+		if(x0 & 0x40) { singer_izek.current_x -= (x0 - 0x40); }
 		else { singer_izek.current_x += x0; }
 
 		//Move up or down
-		if(y0 & 0x40) { singer_izek.current_y += (y0 & 0xF); }
+		if(y0 & 0x40) { singer_izek.current_y += (y0 - 0x40); }
 		else { singer_izek.current_y -= y0; }
 	}
 }
