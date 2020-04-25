@@ -1829,26 +1829,42 @@ void DMG_SIO::singer_izek_stitch(u32 index)
 /****** Calculates new start coordinates when doing embroidery ******/
 void DMG_SIO::singer_izek_calculate_coordinates()
 {
-	if(singer_izek.coord_buffer.size() >= 4)
+	//Parse buffer to make sure no control codes interfere
+	std::vector <u8> c_buffer;
+	c_buffer.clear();
+
+	for(u32 i = 0; i < singer_izek.coord_buffer.size(); i++)
 	{
-		u16 x = (singer_izek.coord_buffer[1] << 8) | singer_izek.coord_buffer[0];
-		u16 y = (singer_izek.coord_buffer[3] << 8) | singer_izek.coord_buffer[2];
-
-		//Move left
-		if((x & 0xFF00) == 0xFF00) { singer_izek.current_x -= (0x10000 - x); std::cout<<"MOVE LEFT " << std::dec << (0x10000 - x) << "\n"; }
-		
-		//Move right
-		else { singer_izek.current_x += (x & 0xFF); std::cout<<"MOVE RIGHT " << std::dec << (x & 0xFF) << "\n"; }
-
-		//Move down
-		if((y & 0xFF00) == 0xFF00) { singer_izek.current_y += (0x10000 - y); std::cout<<"MOVE DOWN " << std::dec << (0x10000 - y) << "\n"; }
-
-		//Move up
-		else { singer_izek.current_y -= (y & 0xFF); std::cout<<"MOVE UP " << std::dec << (y & 0xFF) << "\n"; }
-
-		singer_izek.last_x = singer_izek.current_x;
-		singer_izek.last_y = singer_izek.current_y;
+		if(singer_izek.coord_buffer[i] == 0xBB) { i += 3; }
+		else { c_buffer.push_back(singer_izek.coord_buffer[i]); }
 	}
+	
+
+	for(u32 i = 0; i < c_buffer.size();)
+	{
+		if((i - c_buffer.size()) >= 4)
+		{
+			u16 x = (c_buffer[i+1] << 8) | c_buffer[i];
+			u16 y = (c_buffer[i+3] << 8) | c_buffer[i+2];
+
+			//Move left
+			if((x & 0xFF00) == 0xFF00) { singer_izek.current_x -= (0x10000 - x); }
+		
+			//Move right
+			else { singer_izek.current_x += (x & 0xFF); }
+
+			//Move down
+			if((y & 0xFF00) == 0xFF00) { singer_izek.current_y += (0x10000 - y); }
+
+			//Move up
+			else { singer_izek.current_y -= (y & 0xFF); }
+		}
+
+		i += 5;
+	}
+
+	singer_izek.last_x = singer_izek.current_x;
+	singer_izek.last_y = singer_izek.current_y;
 }
 
 /****** Adjusts Y coordinate when stitching ******/
