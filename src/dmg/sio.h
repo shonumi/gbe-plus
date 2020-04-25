@@ -152,7 +152,10 @@ class DMG_SIO
 		std::vector<u8> data;
 		std::vector<u8> x_plot;
 		std::vector<u8> y_plot;
+		std::vector<u8> coord_buffer;
 		std::vector<u32> stitch_buffer;
+		u32 current_index;
+		u32 last_index;
 		s32 current_x;
 		s32 current_y;
 		s32 last_x;
@@ -268,9 +271,10 @@ class DMG_SIO
 	bool barcode_boy_load_barcode(std::string filename);
 
 	void singer_izek_process();
-	void singer_izek_fill_buffer();
+	void singer_izek_fill_buffer(u32 index_start, u32 index_end);
 	void singer_izek_draw_line();
 	void singer_izek_stitch(u32 index);
+	void singer_izek_calculate_coordinates();
 	u8 singer_izek_adjust_y(u8 y_val);
 
 	void full_changer_process();

@@ -410,7 +410,7 @@ void DMG_SIO::reset()
 	singer_izek.y_plot.clear();
 	singer_izek.stitch_buffer.clear();
 	singer_izek.status = 0;
-	singer_izek.device_mode = 0;
+	singer_izek.device_mode = 1;
 	singer_izek.last_internal_transfer = 0;
 	singer_izek.current_state = SINGER_PING;
 	singer_izek.counter = 0;
@@ -1541,6 +1541,9 @@ void DMG_SIO::singer_izek_process()
 				{
 					singer_izek.current_state = SINGER_SEND_HEADER;
 					singer_izek.counter = 0;
+
+					singer_izek.current_index = 0;
+					singer_izek.last_index = 0;
 				}
 
 				break;
@@ -1630,6 +1633,7 @@ void DMG_SIO::singer_izek_process()
 					singer_izek.idle_count = 0;
 					singer_izek.counter = 0;
 					singer_izek.current_state = SINGER_GET_COORDINATES;
+					singer_izek.coord_buffer.clear();
 				}
 
 				//Stitch data is finished. Draw and switch back to ping mode
@@ -1638,7 +1642,18 @@ void DMG_SIO::singer_izek_process()
 					//Clean up coordinates if necessary
 					if(singer_izek.x_plot.size() != singer_izek.y_plot.size()) { singer_izek.x_plot.pop_back(); }
 
-					singer_izek_fill_buffer();
+					//Fill buffer for normal stitching
+					if(singer_izek.device_mode == 0)
+					{
+						singer_izek_fill_buffer(0, singer_izek.y_plot.size());
+					}
+
+					//Fill buffer for embroidery stitching
+					else if(singer_izek.device_mode == 1)
+					{
+						singer_izek_fill_buffer(singer_izek.last_index, singer_izek.current_index);
+					}
+
 					singer_izek.current_state = SINGER_PING;
 				}
 
@@ -1661,7 +1676,11 @@ void DMG_SIO::singer_izek_process()
 							singer_izek.x_plot.pop_back();
 						}
 
-						else { singer_izek.y_plot.push_back(sio_stat.last_transfer); }
+						else
+						{
+							singer_izek.y_plot.push_back(sio_stat.last_transfer);
+							singer_izek.current_index++;
+						}
 					}
 				}
 
@@ -1676,7 +1695,19 @@ void DMG_SIO::singer_izek_process()
 					singer_izek.counter = 0;
 					singer_izek.idle_count = 0;
 					singer_izek.current_state = SINGER_SEND_DATA;
+
+					//Fill buffer with current data
+					singer_izek_fill_buffer(singer_izek.last_index, singer_izek.current_index);
+
+					//Calculate new start coordinates
+					singer_izek_calculate_coordinates();
+
+					//Update index
+					singer_izek.last_index = singer_izek.current_index;
 				}
+
+				//Add data to buffer
+				else { singer_izek.coord_buffer.push_back(sio_stat.last_transfer); }
 
 				break;
 		}
@@ -1696,31 +1727,41 @@ void DMG_SIO::singer_izek_process()
 }
 
 /****** Applies stitch coordinates to the stitch buffer ******/
-void DMG_SIO::singer_izek_fill_buffer()
+void DMG_SIO::singer_izek_fill_buffer(u32 index_start, u32 index_end)
 {
+	//Sanity checks
+	if(index_end < index_start) { return; }
+	if(index_end > singer_izek.y_plot.size()) { return; }
+
+	//Clear buffer when drawing first
+	if(index_start == 0)
+	{
+		singer_izek.stitch_buffer.clear();
+		singer_izek.stitch_buffer.resize(0x16800, 0xFFFFFFFF);
+
+		//Set default position for normal stitching
+		if(singer_izek.device_mode == 0)
+		{
+			singer_izek.last_x = singer_izek.start_x;
+			singer_izek.last_y = 0;
+
+			singer_izek.current_x = singer_izek.x_plot[0];
+			singer_izek.current_y = 0;
+		}
+
+		//Set default position for embroidery
+		else if(singer_izek.device_mode == 1)
+		{
+			singer_izek.last_x = 0;
+			singer_izek.last_y = 0;
+
+			singer_izek.current_x = 0;
+			singer_izek.current_y = 0;
+		}
+	}
+
 	//Use plots to create stitch buffer for visual output
-	singer_izek.stitch_buffer.clear();
-	singer_izek.stitch_buffer.resize(0x16800, 0xFFFFFFFF);
-
-	if(singer_izek.device_mode == 0)
-	{
-		singer_izek.last_x = singer_izek.start_x;
-		singer_izek.last_y = 0;
-
-		singer_izek.current_x = singer_izek.x_plot[0];
-		singer_izek.current_y = 0;
-	}
-
-	else if(singer_izek.device_mode == 1)
-	{
-		singer_izek.last_x = 0;
-		singer_izek.last_y = 0;
-
-		singer_izek.current_x = 0;
-		singer_izek.current_y = 0;
-	}
-
-	for(u32 i = 0; i < singer_izek.x_plot.size(); i++)
+	for(u32 i = index_start; i < index_end; i++)
 	{
 		singer_izek_stitch(i);
 
@@ -1734,7 +1775,6 @@ void DMG_SIO::singer_izek_fill_buffer()
 	u32* out_pixel_data = (u32*)tmp_s->pixels;
 	for(u32 x = 0; x < 0x16800; x++) { out_pixel_data[x] = singer_izek.stitch_buffer[x]; }
 	SDL_SaveBMP(tmp_s, "YO.bmp");
-
 }
 
 /****** Plots points for stitching******/
@@ -1783,6 +1823,31 @@ void DMG_SIO::singer_izek_stitch(u32 index)
 		//Move up or down
 		if(y0 & 0x40) { singer_izek.current_y += (y0 - 0x40); }
 		else { singer_izek.current_y -= y0; }
+	}
+}
+
+/****** Calculates new start coordinates when doing embroidery ******/
+void DMG_SIO::singer_izek_calculate_coordinates()
+{
+	if(singer_izek.coord_buffer.size() >= 4)
+	{
+		u16 x = (singer_izek.coord_buffer[1] << 8) | singer_izek.coord_buffer[0];
+		u16 y = (singer_izek.coord_buffer[3] << 8) | singer_izek.coord_buffer[2];
+
+		//Move left
+		if((x & 0xFF00) == 0xFF00) { singer_izek.current_x -= (0x10000 - x); std::cout<<"MOVE LEFT " << std::dec << (0x10000 - x) << "\n"; }
+		
+		//Move right
+		else { singer_izek.current_x += (x & 0xFF); std::cout<<"MOVE RIGHT " << std::dec << (x & 0xFF) << "\n"; }
+
+		//Move down
+		if((y & 0xFF00) == 0xFF00) { singer_izek.current_y += (0x10000 - y); std::cout<<"MOVE DOWN " << std::dec << (0x10000 - y) << "\n"; }
+
+		//Move up
+		else { singer_izek.current_y -= (y & 0xFF); std::cout<<"MOVE UP " << std::dec << (y & 0xFF) << "\n"; }
+
+		singer_izek.last_x = singer_izek.current_x;
+		singer_izek.last_y = singer_izek.current_y;
 	}
 }
 
