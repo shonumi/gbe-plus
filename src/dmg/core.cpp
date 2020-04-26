@@ -498,6 +498,12 @@ void DMG_core::run_core()
 						}
 					}
 				}
+
+				//Process Singer IZEK data communications on external transfers
+				if((core_cpu.controllers.serial_io.sio_stat.sio_type == GB_SINGER_IZEK) && (core_cpu.controllers.serial_io.sio_stat.ping_count == 0x02))
+				{
+					core_cpu.controllers.serial_io.singer_izek_data_process();
+				}
 			}
 		}
 

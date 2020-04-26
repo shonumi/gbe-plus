@@ -164,6 +164,7 @@ class DMG_SIO
 		s32 start_y;
 		u8 status;
 		u8 device_mode;
+		u8 last_external_transfer;
 		u8 last_internal_transfer;
 		u8 idle_count;
 		u16 counter;
@@ -271,6 +272,7 @@ class DMG_SIO
 	bool barcode_boy_load_barcode(std::string filename);
 
 	void singer_izek_process();
+	void singer_izek_data_process();
 	void singer_izek_fill_buffer(u32 index_start, u32 index_end);
 	void singer_izek_draw_line();
 	void singer_izek_stitch(u32 index);

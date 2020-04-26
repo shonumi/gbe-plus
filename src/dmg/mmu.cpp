@@ -1304,6 +1304,9 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 				sio_stat->active_transfer = true;
 				sio_stat->shifts_left = 8;
 				sio_stat->shift_counter = 0;
+
+				//Keep track of internal transfers for sewing machines
+				if(config::sio_device == 14) { sio_stat->ping_count = 0; }
 			}
 
 			//Special handling for 4 Player Adapter - Player 1
@@ -1325,6 +1328,9 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 				sio_stat->shifts_left = 8;
 				sio_stat->shift_counter = 0;
 				sio_stat->last_transfer = sio_stat->transfer_byte;
+
+				//Keep track of external transfers for sewing machines
+				sio_stat->ping_count++;
 			}
 
 			//Special handling for Turbo File GB
