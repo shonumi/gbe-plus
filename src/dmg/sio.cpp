@@ -1529,9 +1529,7 @@ void DMG_SIO::singer_izek_process()
 	}
 
 	//Set status when EM-2000 is attached
-	else if(singer_izek.device_mode == 1) { singer_izek.status = 0x06; }
-
-	if(sio_stat.internal_clock) { std::cout<<"0x" << std::hex << (u16)sio_stat.last_transfer << " :: " << (sio_stat.internal_clock ? "I" : "E") << "\n"; }
+	else if(singer_izek.device_mode == 1) { singer_izek.status = 0x07; }
 
 	//Respond with current status for external clock transfers
 	//Respond with 0xFF for internal clock transfers
@@ -1641,10 +1639,11 @@ void DMG_SIO::singer_izek_data_process()
 
 			//Start new data packet or new coordinate data
 			else if((sio_data == 0xB9) || (sio_data == 0xBC) || (sio_data == 0xBD)
-			|| ((sio_data & 0xF0) == 0xC0) || ((sio_data & 0xF0) == 0xE0))
+			|| ((sio_data & 0xF0) == 0xC0) || ((sio_data & 0xF0) == 0xE0) || ((sio_data & 0xF0) == 0xF0))
 			{
 				singer_izek.counter = 0;
 
+				if((sio_data == 0xF7) && (singer_izek.x_plot.size() != singer_izek.y_plot.size())) { singer_izek.x_plot.pop_back(); }
 				if((sio_data == 0xE7) && (singer_izek.x_plot.size() != singer_izek.y_plot.size())) { singer_izek.x_plot.pop_back(); }
 			}
 
@@ -1843,10 +1842,23 @@ void DMG_SIO::singer_izek_calculate_coordinates()
 	std::vector <u8> c_buffer;
 	c_buffer.clear();
 
-	for(u32 i = 0; i < singer_izek.coord_buffer.size(); i++)
+	bool bb_parse = false;
+	u32 buffer_size = singer_izek.coord_buffer.size();
+
+	for(u32 i = 0; i < buffer_size; i++)
 	{
-		if(singer_izek.coord_buffer[i] == 0xBB) { i += 2; }
-		else if(singer_izek.coord_buffer[i] == 0xB9) { i += 0; }
+		if((i < buffer_size - 1) && (singer_izek.coord_buffer[i] == 0xBB) && (singer_izek.coord_buffer[i+1] != 0x00) && (singer_izek.coord_buffer[i+1] != 0xFF)) 
+		{
+			i += 2;
+			bb_parse = true;
+		}
+		
+		else if((singer_izek.coord_buffer[i] == 0xB9) && (bb_parse))
+		{
+			i += 0;
+			bb_parse = false;
+		}
+
 		else { c_buffer.push_back(singer_izek.coord_buffer[i]); }
 	}
 	

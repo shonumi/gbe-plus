@@ -167,6 +167,7 @@ class DMG_SIO
 		u8 last_external_transfer;
 		u8 last_internal_transfer;
 		u8 idle_count;
+		u8 packet_count;
 		u16 counter;
 		singer_izek_state current_state;
 	} singer_izek;
