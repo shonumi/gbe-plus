@@ -1550,6 +1550,8 @@ void DMG_SIO::singer_izek_data_process()
 	u8 sio_data = sio_stat.last_transfer;
 	singer_izek.last_internal_transfer = sio_data;
 
+	std::cout<<"DATA -> 0x" << std::hex << (u32)sio_data << "\n";
+
 	switch(singer_izek.current_state)
 	{
 		case SINGER_PING:
@@ -1597,18 +1599,37 @@ void DMG_SIO::singer_izek_data_process()
 			//Grab header data for embroidery
 			else if(singer_izek.device_mode == 1)
 			{
-				//Grab first X stitch offset
+
+				//Grab X stitch offset LSB
 				if(singer_izek.counter == 6)
 				{
 					singer_izek.x_plot.clear();
-					singer_izek.start_x = 0;
+					singer_izek.start_x = sio_data;
 				}
 
-				//Grab first Y stitch offset
-				if(singer_izek.counter == 8)
+				//Grab X stitch offset MSB
+				else if(singer_izek.counter == 7)
+				{
+					singer_izek.start_x |= (sio_data << 8);
+					
+					if(singer_izek.start_x >= 0xFE00) { singer_izek.start_x = 500 - (0xFFFF - singer_izek.start_x);  }
+					else { singer_izek.start_x = 0; }
+				}
+
+				//Grab Y stitch offset LSB
+				else if(singer_izek.counter == 8)
 				{
 					singer_izek.y_plot.clear();
-					singer_izek.start_y = 0;
+					singer_izek.start_y = sio_data;
+				}
+
+				//Grab Y stitch offset MSB
+				else if(singer_izek.counter == 9)
+				{
+					singer_izek.start_y |= (sio_data << 8);
+
+					if(singer_izek.start_y >= 0xFE00) { singer_izek.start_y = (0xFFFF - singer_izek.start_y);  }
+					else { singer_izek.start_y = 0; }
 				}
 
 				//Switch to data mode
@@ -1746,7 +1767,7 @@ void DMG_SIO::singer_izek_fill_buffer(u32 index_start, u32 index_end)
 	if(index_start == 0)
 	{
 		singer_izek.stitch_buffer.clear();
-		singer_izek.stitch_buffer.resize(0x16800, 0xFFFFFFFF);
+		singer_izek.stitch_buffer.resize(0x3D090, 0xFFFFFFFF);
 
 		//Set default position for normal stitching
 		if(singer_izek.device_mode == 0)
@@ -1761,11 +1782,11 @@ void DMG_SIO::singer_izek_fill_buffer(u32 index_start, u32 index_end)
 		//Set default position for embroidery
 		else if(singer_izek.device_mode == 1)
 		{
-			singer_izek.last_x = 0;
-			singer_izek.last_y = 0;
+			singer_izek.last_x = singer_izek.start_x;
+			singer_izek.last_y = singer_izek.start_y;
 
-			singer_izek.current_x = 0;
-			singer_izek.current_y = 0;
+			singer_izek.current_x = singer_izek.start_x;
+			singer_izek.current_y = singer_izek.start_y;
 		}
 	}
 
@@ -1780,9 +1801,9 @@ void DMG_SIO::singer_izek_fill_buffer(u32 index_start, u32 index_end)
 		singer_izek.last_y = singer_izek.current_y;
 	}
 
-	SDL_Surface* tmp_s = SDL_CreateRGBSurface(SDL_SWSURFACE, 320, 288, 32, 0, 0, 0, 0);
+	SDL_Surface* tmp_s = SDL_CreateRGBSurface(SDL_SWSURFACE, 500, 500, 32, 0, 0, 0, 0);
 	u32* out_pixel_data = (u32*)tmp_s->pixels;
-	for(u32 x = 0; x < 0x16800; x++) { out_pixel_data[x] = singer_izek.stitch_buffer[x]; }
+	for(u32 x = 0; x < 0x3D090; x++) { out_pixel_data[x] = singer_izek.stitch_buffer[x]; }
 	SDL_SaveBMP(tmp_s, "YO.bmp");
 }
 
@@ -1870,20 +1891,17 @@ void DMG_SIO::singer_izek_calculate_coordinates()
 			u16 x = (c_buffer[i+1] << 8) | c_buffer[i];
 			u16 y = (c_buffer[i+3] << 8) | c_buffer[i+2];
 
-			std::cout<<"X -> 0x" << std::hex << x << "\n";
-			std::cout<<"Y -> 0x" << std::hex << y << "\n";
-
 			//Move left
-			if((x & 0xFF00) == 0xFF00) { singer_izek.current_x -= (0x10000 - x); std::cout<<"MOVE LEFT " << std::dec << (0x10000 - x) << "\n";  }
+			if((x & 0xFF00) == 0xFF00) { singer_izek.current_x -= (0x10000 - x);  }
 		
 			//Move right
-			else { singer_izek.current_x += (x & 0xFF); std::cout<<"MOVE RIGHT " << std::dec << (x & 0xFF) << "\n"; }
+			else { singer_izek.current_x += (x & 0xFF); }
 
 			//Move down
-			if((y & 0xFF00) == 0xFF00) { singer_izek.current_y += (0x10000 - y); std::cout<<"MOVE DOWN " << std::dec << (0x10000 - y) << "\n"; }
+			if((y & 0xFF00) == 0xFF00) { singer_izek.current_y += (0x10000 - y); }
 
 			//Move up
-			else { singer_izek.current_y -= (y & 0xFF); std::cout<<"MOVE UP " << std::dec << (y & 0xFF) << "\n"; }
+			else { singer_izek.current_y -= (y & 0xFF); }
 		}
 
 		i += 5;
@@ -1941,8 +1959,8 @@ u8 DMG_SIO::singer_izek_adjust_y(u8 y_val)
 /****** Draws a line in the stitch buffer between 2 points ******/
 void DMG_SIO::singer_izek_draw_line()
 {
-	s32 x_base = 150;
-	s32 y_base = 100;
+	s32 x_base = 0;
+	s32 y_base = 0;
 
 	s32 x_dist = (singer_izek.current_x - singer_izek.last_x);
 	s32 y_dist = (singer_izek.current_y - singer_izek.last_y);
@@ -1956,7 +1974,7 @@ void DMG_SIO::singer_izek_draw_line()
 	s32 xy_inc = 0;
 	
 	u32 buffer_pos = 0;
-	u32 buffer_size = 0x16800;
+	u32 buffer_size = 0x3D090;
 
 	if((x_dist != 0) && (y_dist != 0))
 	{
@@ -2014,7 +2032,7 @@ void DMG_SIO::singer_izek_draw_line()
 	while(xy_start != xy_end)
 	{
 		//Convert plot points to buffer index
-		buffer_pos = (round(y_coord + y_base) * 320) + round(x_coord + x_base);
+		buffer_pos = (round(y_coord + y_base) * 500) + round(x_coord + x_base);
 
 		//Only draw on-screen objects
 		if(buffer_pos < buffer_size)
