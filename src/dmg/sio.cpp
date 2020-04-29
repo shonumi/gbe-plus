@@ -410,7 +410,7 @@ void DMG_SIO::reset()
 	singer_izek.y_plot.clear();
 	singer_izek.stitch_buffer.clear();
 	singer_izek.status = 0;
-	singer_izek.device_mode = 0;
+	singer_izek.device_mode = 1;
 	singer_izek.current_index = 0;
 	singer_izek.last_index = 0;
 	singer_izek.last_external_transfer = 0;
@@ -1529,7 +1529,12 @@ void DMG_SIO::singer_izek_process()
 	}
 
 	//Set status when EM-2000 is attached
-	else if(singer_izek.device_mode == 1) { singer_izek.status = 0x07; }
+	else if(singer_izek.device_mode == 1)
+	{
+		//Starts new section
+		if(mem->g_pad->con_flags & 0x100) { singer_izek.status = 0x27; }
+		else { singer_izek.status = 0x07; }
+	}
 
 	//Respond with current status for external clock transfers
 	//Respond with 0xFF for internal clock transfers
