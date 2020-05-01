@@ -389,22 +389,24 @@ void DMG_GamePad::process_keyboard(int pad, bool pressed)
 		else { con_flags &= ~0x4; }
 	}
 
-	//Emulate R Trigger press - DMG/GBC on GBA ONLY
-	else if((pad == config::gbe_key_r_trigger) && (pressed) && (config::gba_enhance))
+	//Emulate R Trigger press - DMG/GBC on GBA or sewing machine ONLY
+	else if((pad == config::gbe_key_r_trigger) && (pressed) && (config::gba_enhance || (config::sio_device == 14)))
 	{
 		config::request_resize = true;
 		config::resize_mode--;
 		
 		if(config::resize_mode < 0) { config::resize_mode = 0; }
+		if(config::sio_device == 14) { config::resize_mode = 0; }
 	}
 
-	//Emulate L Trigger press - DMG/GBC on GBA ONLY
-	else if((pad == config::gbe_key_l_trigger) && (pressed) && (config::gba_enhance))
+	//Emulate L Trigger press - DMG/GBC on GBA or sewing machine ONLY
+	else if((pad == config::gbe_key_l_trigger) && (pressed) && (config::gba_enhance || (config::sio_device == 14)))
 	{
 		config::request_resize = true;
 		config::resize_mode++;
 
 		if(config::resize_mode > 2) { config::resize_mode = 2; }
+		if(config::sio_device == 14) { config::resize_mode = 3; }
 	}
 
 	//Misc Context Key 1 press

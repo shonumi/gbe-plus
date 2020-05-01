@@ -119,6 +119,10 @@ void DMG_MMU::reset()
 
 	g_pad = NULL;
 
+	sub_screen_buffer.clear();
+	sub_screen_update = 0;
+	sub_screen_lock = false;
+
 	//Advanced debugging
 	#ifdef GBE_DEBUG
 	debug_write = false;

@@ -1867,13 +1867,28 @@ void DMG_LCD::step(int cpu_clock)
 				//Unset frame delay
 				lcd_stat.frame_delay = 0;
 
-				//Check for screen resize - DMG/GBC stretch
+				//Check for screen resize - DMG/GBC stretch or sewing subscreen
 				if((config::request_resize) && (config::resize_mode > 0))
 				{
-					config::sys_width = 240;
-					config::sys_height = 160;
-					screen_buffer.clear();
-					screen_buffer.resize(0x9600, 0xFFFFFFFF);
+					//DMG/GBC stretch
+					if(config::sio_device != 14)
+					{
+						config::sys_width = 240;
+						config::sys_height = 160;
+						screen_buffer.clear();
+						screen_buffer.resize(0x9600, 0xFFFFFFFF);
+					}
+
+					else
+					{
+						config::resize_mode = 0;
+						config::sys_width = 160;
+						config::sys_height = 288;
+						screen_buffer.clear();
+						screen_buffer.resize(0xB400, 0xFFFFFFFF);
+						mem->sub_screen_buffer.clear();
+						mem->sub_screen_buffer.resize(0x5A00, 0xFFFFFFFF);
+					}
 					
 					if((window != NULL) && (config::sdl_render)) { SDL_DestroyWindow(window); }
 					init();
@@ -1888,6 +1903,7 @@ void DMG_LCD::step(int cpu_clock)
 					config::sys_height = 144;
 					screen_buffer.clear();
 					screen_buffer.resize(0x5A00, 0xFFFFFFFF);
+					mem->sub_screen_buffer.clear();
 
 					if((window != NULL) && (config::sdl_render)) { SDL_DestroyWindow(window); }
 					init();
@@ -1931,6 +1947,15 @@ void DMG_LCD::step(int cpu_clock)
 				//Render final screen buffer
 				if(lcd_stat.lcd_enable)
 				{
+					//Copy sub-screen to screen buffer
+					if(mem->sub_screen_buffer.size())
+					{
+						for(u32 x = 0; x < 0x5A00; x++)
+						{
+							screen_buffer[0x5A00 + x] = mem->sub_screen_buffer[x];
+						}
+					}
+
 					//Use SDL
 					if(config::sdl_render)
 					{

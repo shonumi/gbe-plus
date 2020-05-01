@@ -137,6 +137,10 @@ class DMG_MMU
 
 	dmg_core_pad* g_pad;
 
+	std::vector<u32> sub_screen_buffer;
+	u32 sub_screen_update;
+	bool sub_screen_lock;
+
 	//Advanced debugging
 	#ifdef GBE_DEBUG
 	bool debug_write;

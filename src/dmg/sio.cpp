@@ -410,7 +410,7 @@ void DMG_SIO::reset()
 	singer_izek.y_plot.clear();
 	singer_izek.stitch_buffer.clear();
 	singer_izek.status = 0;
-	singer_izek.device_mode = 1;
+	singer_izek.device_mode = 0;
 	singer_izek.current_index = 0;
 	singer_izek.last_index = 0;
 	singer_izek.last_external_transfer = 0;
@@ -1806,6 +1806,34 @@ void DMG_SIO::singer_izek_fill_buffer(u32 index_start, u32 index_end)
 		singer_izek.last_y = singer_izek.current_y;
 	}
 
+	//Copy stitch buffer to subscreen buffer
+	if(mem->sub_screen_buffer.size())
+	{
+		u32 src_buffer_pos = 0;
+		u32 dst_buffer_pos = 0;
+
+		u32 offset_x = 0;
+		u32 offset_y = 0;
+
+		u32 color = 0;
+
+		for(u32 y = 0; y < 144; y++)
+		{
+			for(u32 x = 0; x < 160; x++)
+			{
+				src_buffer_pos = ((y + offset_y) * 500) + (x + offset_x);
+				dst_buffer_pos = (y * 160) + x;
+
+				//Grab color from stitch buffer
+				if(src_buffer_pos < singer_izek.stitch_buffer.size()) { color = singer_izek.stitch_buffer[src_buffer_pos]; }
+				else { color = 0xFF000000; }
+
+				//Copy from stitch buffer
+				if(dst_buffer_pos < mem->sub_screen_buffer.size()) { mem->sub_screen_buffer[dst_buffer_pos] = color; }
+			}
+		}
+	} 
+				
 	SDL_Surface* tmp_s = SDL_CreateRGBSurface(SDL_SWSURFACE, 500, 500, 32, 0, 0, 0, 0);
 	u32* out_pixel_data = (u32*)tmp_s->pixels;
 	for(u32 x = 0; x < 0x3D090; x++) { out_pixel_data[x] = singer_izek.stitch_buffer[x]; }
