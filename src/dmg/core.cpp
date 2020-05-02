@@ -229,6 +229,9 @@ void DMG_core::run_core()
 
 				//Trigger Joypad Interrupt if necessary
 				if(core_pad.joypad_irq) { core_mmu.memory_map[IF_FLAG] |= 0x10; }
+
+				//Update subscreen if necessary
+				if((config::sio_device == 14) && (core_pad.con_update)) { core_cpu.controllers.serial_io.singer_izek_update(); }
 			}
 
 			//Hotplug joypad

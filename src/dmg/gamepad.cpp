@@ -22,6 +22,7 @@ DMG_GamePad::DMG_GamePad()
 	sensor_x = sensor_y = 2047;
 	ir_delay = 0;
 	con_flags = 0;
+	con_update = false;
 	joypad_irq = false;
 	joy_init = false;
 }
@@ -420,6 +421,10 @@ void DMG_GamePad::process_keyboard(int pad, bool pressed)
 	
 	//Misc Context Key 2 release
 	else if((pad == config::con_key_2) && (!pressed)) { con_flags &= ~0x200; }
+
+	//Alert core of context key changes
+	if(con_flags) { con_update = true; }
+	else { con_update = false; }
 }
 
 /****** Processes input based on unique pad # for joysticks ******/
@@ -552,22 +557,24 @@ void DMG_GamePad::process_joystick(int pad, bool pressed)
 		con_flags &= ~0x8;
 	}
 
-	//Emulate R Trigger press - DMG/GBC on GBA ONLY
-	else if((pad == config::gbe_joy_r_trigger) && (pressed) && (config::gba_enhance))
+	//Emulate R Trigger press - DMG/GBC on GBA or sewing machine ONLY
+	else if((pad == config::gbe_joy_r_trigger) && (pressed) && (config::gba_enhance || (config::sio_device == 14)))
 	{
 		config::request_resize = true;
 		config::resize_mode--;
 		
 		if(config::resize_mode < 0) { config::resize_mode = 0; }
+		if(config::sio_device == 14) { config::resize_mode = 0; }
 	}
 
-	//Emulate L Trigger press - DMG/GBC on GBA ONLY
-	else if((pad == config::gbe_joy_l_trigger) && (pressed) && (config::gba_enhance))
+	//Emulate L Trigger press - DMG/GBC on GBA or sewing machine ONLY
+	else if((pad == config::gbe_joy_l_trigger) && (pressed) && (config::gba_enhance || (config::sio_device == 14)))
 	{
 		config::request_resize = true;
 		config::resize_mode++;
 
 		if(config::resize_mode > 2) { config::resize_mode = 2; }
+		if(config::sio_device == 14) { config::resize_mode = 3; }
 	}
 
 	//Misc Context Key 1 press
@@ -581,6 +588,10 @@ void DMG_GamePad::process_joystick(int pad, bool pressed)
 	
 	//Misc Context Key 2 release
 	else if((pad == config::con_joy_2) && (!pressed)) { con_flags &= ~0x200; }
+
+	//Alert core of context key changes
+	if(con_flags) { con_update = true; }
+	else { con_update = false; }
 }
 
 /****** Process gyroscope sensors - Only used for MBC7 ******/

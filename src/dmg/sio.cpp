@@ -413,11 +413,14 @@ void DMG_SIO::reset()
 	singer_izek.device_mode = 0;
 	singer_izek.current_index = 0;
 	singer_izek.last_index = 0;
-	singer_izek.last_external_transfer = 0;
 	singer_izek.last_internal_transfer = 0;
 	singer_izek.current_state = SINGER_PING;
 	singer_izek.idle_count = 0;
 	singer_izek.counter = 0;
+
+	singer_izek.frame_counter = 0;
+	singer_izek.x_offset = 0;
+	singer_izek.y_offset = 0;
 
 	//Turbo File GB
 	turbo_file.data.clear();
@@ -1555,8 +1558,6 @@ void DMG_SIO::singer_izek_data_process()
 	u8 sio_data = sio_stat.last_transfer;
 	singer_izek.last_internal_transfer = sio_data;
 
-	std::cout<<"DATA -> 0x" << std::hex << (u32)sio_data << "\n";
-
 	switch(singer_izek.current_state)
 	{
 		case SINGER_PING:
@@ -1822,7 +1823,7 @@ void DMG_SIO::singer_izek_fill_buffer(u32 index_start, u32 index_end)
 			for(u32 x = 0; x < 160; x++)
 			{
 				src_buffer_pos = ((y + offset_y) * 500) + (x + offset_x);
-				dst_buffer_pos = (y * 160) + x;
+				dst_buffer_pos = ((y + singer_izek.y_offset) * 160) + (x + singer_izek.x_offset);
 
 				//Grab color from stitch buffer
 				if(src_buffer_pos < singer_izek.stitch_buffer.size()) { color = singer_izek.stitch_buffer[src_buffer_pos]; }
@@ -1832,7 +1833,7 @@ void DMG_SIO::singer_izek_fill_buffer(u32 index_start, u32 index_end)
 				if(dst_buffer_pos < mem->sub_screen_buffer.size()) { mem->sub_screen_buffer[dst_buffer_pos] = color; }
 			}
 		}
-	} 
+	}
 				
 	SDL_Surface* tmp_s = SDL_CreateRGBSurface(SDL_SWSURFACE, 500, 500, 32, 0, 0, 0, 0);
 	u32* out_pixel_data = (u32*)tmp_s->pixels;
@@ -1942,6 +1943,70 @@ void DMG_SIO::singer_izek_calculate_coordinates()
 
 	singer_izek.last_x = singer_izek.current_x;
 	singer_izek.last_y = singer_izek.current_y;
+}
+
+/****** Updates sewing machine subscreen on input ******/
+void DMG_SIO::singer_izek_update()
+{
+	//Wait every 10 frames before updating
+	singer_izek.frame_counter++;
+
+	if((singer_izek.frame_counter % 10) == 0)
+	{
+		//Move stitching focus left
+		if(mem->g_pad->con_flags & 0x1) { singer_izek.x_offset--; }
+
+		//Move stitching focus right
+		else if(mem->g_pad->con_flags & 0x2) { singer_izek.x_offset++; }
+
+		//Move stitching focus up
+		if(mem->g_pad->con_flags & 0x4) { singer_izek.y_offset--; }
+
+		//Move stitching focus down
+		else if(mem->g_pad->con_flags & 0x8) { singer_izek.y_offset++; }
+
+		//Make sure X-Y offsets don't leave 500x500 internal buffer
+		if(singer_izek.x_offset > 499) { singer_izek.x_offset = 499; }
+		else if(singer_izek.x_offset < 0) { singer_izek.x_offset = 0; }
+
+		if(singer_izek.y_offset > 499) { singer_izek.y_offset = 499; }
+		else if(singer_izek.y_offset < 0) { singer_izek.y_offset = 0; }
+	}
+
+	//Copy stitch buffer to subscreen buffer
+	if(mem->sub_screen_buffer.size())
+	{
+		u32 src_buffer_pos = 0;
+		u32 dst_buffer_pos = 0;
+
+		u32 offset_x = 0;
+		u32 offset_y = 0;
+
+		u32 color = 0;
+
+		for(u32 y = 0; y < 144; y++)
+		{
+			for(u32 x = 0; x < 160; x++)
+			{
+				src_buffer_pos = ((y + offset_y) * 500) + (x + offset_x);
+				dst_buffer_pos = ((y + singer_izek.y_offset) * 160) + (x + singer_izek.x_offset);
+
+				//Grab color from stitch buffer
+				if(src_buffer_pos < singer_izek.stitch_buffer.size()) { color = singer_izek.stitch_buffer[src_buffer_pos]; }
+				else { color = 0xFF000000; }
+
+				//Copy from stitch buffer
+				if(dst_buffer_pos < mem->sub_screen_buffer.size()) { mem->sub_screen_buffer[dst_buffer_pos] = color; }
+			}
+		}
+	}
+
+	//Add a psuedo event to keep calling this update function from core
+	SDL_Event p_event;
+	p_event.type = SDL_KEYUP;
+	p_event.key.keysym.sym = config::gbe_key_x;
+
+	SDL_PushEvent(&p_event);
 }
 
 /****** Adjusts Y coordinate when stitching ******/

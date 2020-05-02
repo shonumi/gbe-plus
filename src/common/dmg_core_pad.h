@@ -36,6 +36,7 @@ class dmg_core_pad
 
 	bool joypad_irq;
 	bool joy_init;
+	bool con_update;
 
 	//Shadow status for keyboard input
 	bool up_shadow, down_shadow, left_shadow, right_shadow;

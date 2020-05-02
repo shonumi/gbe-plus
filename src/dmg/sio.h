@@ -164,12 +164,15 @@ class DMG_SIO
 		s32 start_y;
 		u8 status;
 		u8 device_mode;
-		u8 last_external_transfer;
 		u8 last_internal_transfer;
 		u8 idle_count;
-		u8 packet_count;
 		u16 counter;
 		singer_izek_state current_state;
+
+		//Subscreen stuff
+		u8 frame_counter;
+		s32 x_offset;
+		s32 y_offset;		
 	} singer_izek;
 
 	//Turbo File GB
@@ -278,6 +281,7 @@ class DMG_SIO
 	void singer_izek_draw_line();
 	void singer_izek_stitch(u32 index);
 	void singer_izek_calculate_coordinates();
+	void singer_izek_update();
 	u8 singer_izek_adjust_y(u8 y_val);
 
 	void full_changer_process();
