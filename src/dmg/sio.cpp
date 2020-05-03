@@ -1810,24 +1810,26 @@ void DMG_SIO::singer_izek_fill_buffer(u32 index_start, u32 index_end)
 	//Copy stitch buffer to subscreen buffer
 	if(mem->sub_screen_buffer.size())
 	{
-		u32 src_buffer_pos = 0;
-		u32 dst_buffer_pos = 0;
+		u32 size = mem->sub_screen_buffer.size();
+		mem->sub_screen_buffer.clear();
+		mem->sub_screen_buffer.resize(size, 0xFFFFFFFF);
 
-		u32 offset_x = 0;
-		u32 offset_y = 0;
+		s32 src_buffer_pos = 0;
+		s32 dst_buffer_pos = 0;
 
 		u32 color = 0;
 
-		for(u32 y = 0; y < 144; y++)
+		for(s32 y = 0; y < 144; y++)
 		{
-			for(u32 x = 0; x < 160; x++)
+			for(s32 x = 0; x < 160; x++)
 			{
-				src_buffer_pos = ((y + offset_y) * 500) + (x + offset_x);
-				dst_buffer_pos = ((y + singer_izek.y_offset) * 160) + (x + singer_izek.x_offset);
+				src_buffer_pos = ((y + singer_izek.y_offset - 72) * 500) + (x + singer_izek.x_offset - 80);
+				dst_buffer_pos = (y * 160) + x;
 
 				//Grab color from stitch buffer
-				if(src_buffer_pos < singer_izek.stitch_buffer.size()) { color = singer_izek.stitch_buffer[src_buffer_pos]; }
-				else { color = 0xFF000000; }
+				if(((x + singer_izek.x_offset - 80) < 0) || ((y + singer_izek.y_offset - 72) < 0)) { color = 0xFF808080; }
+				else if(((x + singer_izek.x_offset - 80) > 500) || ((y + singer_izek.y_offset - 72) > 500)) { color = 0xFF808080; }
+				else if((src_buffer_pos < singer_izek.stitch_buffer.size()) && (src_buffer_pos >= 0)) { color = singer_izek.stitch_buffer[src_buffer_pos]; }
 
 				//Copy from stitch buffer
 				if(dst_buffer_pos < mem->sub_screen_buffer.size()) { mem->sub_screen_buffer[dst_buffer_pos] = color; }
@@ -1976,24 +1978,26 @@ void DMG_SIO::singer_izek_update()
 	//Copy stitch buffer to subscreen buffer
 	if(mem->sub_screen_buffer.size())
 	{
-		u32 src_buffer_pos = 0;
-		u32 dst_buffer_pos = 0;
+		u32 size = mem->sub_screen_buffer.size();
+		mem->sub_screen_buffer.clear();
+		mem->sub_screen_buffer.resize(size, 0xFFFFFFFF);
 
-		u32 offset_x = 0;
-		u32 offset_y = 0;
+		s32 src_buffer_pos = 0;
+		s32 dst_buffer_pos = 0;
 
 		u32 color = 0;
 
-		for(u32 y = 0; y < 144; y++)
+		for(s32 y = 0; y < 144; y++)
 		{
-			for(u32 x = 0; x < 160; x++)
+			for(s32 x = 0; x < 160; x++)
 			{
-				src_buffer_pos = ((y + offset_y) * 500) + (x + offset_x);
-				dst_buffer_pos = ((y + singer_izek.y_offset) * 160) + (x + singer_izek.x_offset);
+				src_buffer_pos = ((y + singer_izek.y_offset - 72) * 500) + (x + singer_izek.x_offset - 80);
+				dst_buffer_pos = (y * 160) + x;
 
 				//Grab color from stitch buffer
-				if(src_buffer_pos < singer_izek.stitch_buffer.size()) { color = singer_izek.stitch_buffer[src_buffer_pos]; }
-				else { color = 0xFF000000; }
+				if(((x + singer_izek.x_offset - 80) < 0) || ((y + singer_izek.y_offset - 72) < 0)) { color = 0xFF808080; }
+				else if(((x + singer_izek.x_offset - 80) > 500) || ((y + singer_izek.y_offset - 72) > 500)) { color = 0xFF808080; }
+				else if((src_buffer_pos < singer_izek.stitch_buffer.size()) && (src_buffer_pos >= 0)) { color = singer_izek.stitch_buffer[src_buffer_pos]; }
 
 				//Copy from stitch buffer
 				if(dst_buffer_pos < mem->sub_screen_buffer.size()) { mem->sub_screen_buffer[dst_buffer_pos] = color; }
@@ -2057,8 +2061,8 @@ u8 DMG_SIO::singer_izek_adjust_y(u8 y_val)
 /****** Draws a line in the stitch buffer between 2 points ******/
 void DMG_SIO::singer_izek_draw_line()
 {
-	s32 x_base = 0;
-	s32 y_base = 0;
+	s32 x_base = singer_izek.x_offset;
+	s32 y_base = singer_izek.y_offset;
 
 	s32 x_dist = (singer_izek.current_x - singer_izek.last_x);
 	s32 y_dist = (singer_izek.current_y - singer_izek.last_y);
