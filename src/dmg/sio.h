@@ -171,6 +171,7 @@ class DMG_SIO
 
 		//Subscreen stuff
 		u8 frame_counter;
+		u32 current_animation_index;
 		s32 x_offset;
 		s32 y_offset;		
 	} singer_izek;

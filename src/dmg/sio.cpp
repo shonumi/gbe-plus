@@ -419,6 +419,7 @@ void DMG_SIO::reset()
 	singer_izek.counter = 0;
 
 	singer_izek.frame_counter = 0;
+	singer_izek.current_animation_index = 0;
 	singer_izek.x_offset = 0;
 	singer_izek.y_offset = 0;
 
@@ -1689,6 +1690,7 @@ void DMG_SIO::singer_izek_data_process()
 				//Clean up coordinates if necessary
 				if(singer_izek.x_plot.size() != singer_izek.y_plot.size()) { singer_izek.x_plot.pop_back(); }
 
+				/*
 				//Fill buffer for normal stitching
 				if(singer_izek.device_mode == 0)
 				{
@@ -1700,7 +1702,9 @@ void DMG_SIO::singer_izek_data_process()
 				{
 					singer_izek_fill_buffer(singer_izek.last_index, singer_izek.current_index);
 				}
+				*/
 
+				singer_izek.current_animation_index = 0;
 				singer_izek.current_state = SINGER_PING;
 			}
 
@@ -1836,11 +1840,13 @@ void DMG_SIO::singer_izek_fill_buffer(u32 index_start, u32 index_end)
 			}
 		}
 	}
-				
+
+	/*		
 	SDL_Surface* tmp_s = SDL_CreateRGBSurface(SDL_SWSURFACE, 500, 500, 32, 0, 0, 0, 0);
 	u32* out_pixel_data = (u32*)tmp_s->pixels;
 	for(u32 x = 0; x < 0x3D090; x++) { out_pixel_data[x] = singer_izek.stitch_buffer[x]; }
 	SDL_SaveBMP(tmp_s, "YO.bmp");
+	*/
 }
 
 /****** Plots points for stitching******/
@@ -1950,9 +1956,9 @@ void DMG_SIO::singer_izek_calculate_coordinates()
 /****** Updates sewing machine subscreen on input ******/
 void DMG_SIO::singer_izek_update()
 {
-	//Wait every 10 frames before updating
 	singer_izek.frame_counter++;
 
+	//Wait every 10 frames before updating positions
 	if((singer_izek.frame_counter % 10) == 0)
 	{
 		//Move stitching focus left
@@ -1973,6 +1979,22 @@ void DMG_SIO::singer_izek_update()
 
 		if(singer_izek.y_offset > 499) { singer_izek.y_offset = 499; }
 		else if(singer_izek.y_offset < 0) { singer_izek.y_offset = 0; }
+
+		//Wait every 30 frames before updating stitching animation
+		if((singer_izek.frame_counter % 1000) == 0)
+		{
+			//Animate stitching
+			if(mem->g_pad->con_flags & 0x100)
+			{
+				u32 next_index = singer_izek.current_animation_index + 1;
+
+				if(next_index <= singer_izek.y_plot.size())
+				{
+					singer_izek_fill_buffer(singer_izek.current_animation_index, next_index);
+					singer_izek.current_animation_index++;
+				}
+			}
+		}
 	}
 
 	//Copy stitch buffer to subscreen buffer
