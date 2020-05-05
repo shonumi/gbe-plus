@@ -1774,7 +1774,7 @@ void DMG_SIO::singer_izek_fill_buffer(u32 index_start, u32 index_end)
 	if(index_end > singer_izek.y_plot.size()) { return; }
 
 	//Clear buffer when drawing first
-	if(index_start == 0)
+	if((index_start == 0) && (singer_izek.reset_stitching))
 	{
 		singer_izek.stitch_buffer.clear();
 		singer_izek.stitch_buffer.resize(0x3D090, 0xFFFFFFFF);
@@ -1992,6 +1992,13 @@ void DMG_SIO::singer_izek_update()
 				{
 					singer_izek_fill_buffer(singer_izek.current_animation_index, next_index);
 					singer_izek.current_animation_index++;
+				}
+
+				//Reset animation
+				if(singer_izek.current_animation_index == singer_izek.y_plot.size())
+				{
+					singer_izek.current_animation_index = 0;
+					singer_izek.reset_stitching = false;
 				}
 			}
 		}

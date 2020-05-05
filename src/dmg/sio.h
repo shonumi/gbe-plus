@@ -173,7 +173,8 @@ class DMG_SIO
 		u8 frame_counter;
 		u32 current_animation_index;
 		s32 x_offset;
-		s32 y_offset;		
+		s32 y_offset;
+		bool reset_stitching;	
 	} singer_izek;
 
 	//Turbo File GB
