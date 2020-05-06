@@ -422,6 +422,10 @@ void DMG_SIO::reset()
 	singer_izek.current_animation_index = 0;
 	singer_izek.x_offset = 0;
 	singer_izek.y_offset = 0;
+	singer_izek.cam_x = 0;
+	singer_izek.cam_y = 0;
+	singer_izek.reset_stitching = true;
+	singer_izek.is_stitching = false;
 
 	//Turbo File GB
 	turbo_file.data.clear();
@@ -1958,27 +1962,75 @@ void DMG_SIO::singer_izek_update()
 {
 	singer_izek.frame_counter++;
 
+	//Start stitching
+	if((mem->g_pad->con_flags & 0x100) && (!singer_izek.is_stitching)) { singer_izek.is_stitching = true; }
+
+	//Stop stitching
+	else if(((mem->g_pad->con_flags & 0x100) == 0) && (singer_izek.is_stitching)) { singer_izek.is_stitching = false; }
+
 	//Wait every 10 frames before updating positions
 	if((singer_izek.frame_counter % 10) == 0)
 	{
 		//Move stitching focus left
-		if(mem->g_pad->con_flags & 0x1) { singer_izek.x_offset--; }
+		if(mem->g_pad->con_flags & 0x1)
+		{
+			singer_izek.cam_x--;
+
+			//Reset internal stitching positions
+			singer_izek.last_x = 0;
+			singer_izek.current_x = 0;
+			singer_izek.last_y = 0;
+			singer_izek.current_y = 0;
+		}
 
 		//Move stitching focus right
-		else if(mem->g_pad->con_flags & 0x2) { singer_izek.x_offset++; }
+		else if(mem->g_pad->con_flags & 0x2)
+		{
+			singer_izek.cam_x++;
+
+			//Reset internal stitching positions
+			singer_izek.last_x = 0;
+			singer_izek.current_x = 0;
+			singer_izek.last_y = 0;
+			singer_izek.current_y = 0;
+		}
 
 		//Move stitching focus up
-		if(mem->g_pad->con_flags & 0x4) { singer_izek.y_offset--; }
+		if(mem->g_pad->con_flags & 0x4)
+		{
+			singer_izek.cam_y--;
+
+			//Reset internal stitching positions
+			singer_izek.last_x = 0;
+			singer_izek.current_x = 0;
+			singer_izek.last_y = 0;
+			singer_izek.current_y = 0;
+		}
 
 		//Move stitching focus down
-		else if(mem->g_pad->con_flags & 0x8) { singer_izek.y_offset++; }
+		else if(mem->g_pad->con_flags & 0x8)
+		{
+			singer_izek.cam_y++;
+
+			//Reset internal stitching positions
+			singer_izek.last_x = 0;
+			singer_izek.current_x = 0;
+			singer_izek.last_y = 0;
+			singer_izek.current_y = 0;
+		}
 
 		//Make sure X-Y offsets don't leave 500x500 internal buffer
-		if(singer_izek.x_offset > 499) { singer_izek.x_offset = 499; }
-		else if(singer_izek.x_offset < 0) { singer_izek.x_offset = 0; }
+		if(singer_izek.cam_x > 499) { singer_izek.cam_x = 499; }
+		else if(singer_izek.cam_x < 0) { singer_izek.cam_x = 0; }
 
-		if(singer_izek.y_offset > 499) { singer_izek.y_offset = 499; }
-		else if(singer_izek.y_offset < 0) { singer_izek.y_offset = 0; }
+		if(singer_izek.cam_y > 499) { singer_izek.cam_y = 499; }
+		else if(singer_izek.cam_y < 0) { singer_izek.cam_y = 0; }
+
+		if(!singer_izek.is_stitching)
+		{
+			singer_izek.x_offset = singer_izek.cam_x;
+			singer_izek.y_offset = singer_izek.cam_y;
+		}
 
 		//Wait every 30 frames before updating stitching animation
 		if((singer_izek.frame_counter % 1000) == 0)
@@ -2014,18 +2066,21 @@ void DMG_SIO::singer_izek_update()
 		s32 src_buffer_pos = 0;
 		s32 dst_buffer_pos = 0;
 
+		s32 cx = singer_izek.cam_x - 80;
+		s32 cy = singer_izek.cam_y - 72;
+
 		u32 color = 0;
 
 		for(s32 y = 0; y < 144; y++)
 		{
 			for(s32 x = 0; x < 160; x++)
 			{
-				src_buffer_pos = ((y + singer_izek.y_offset - 72) * 500) + (x + singer_izek.x_offset - 80);
+				src_buffer_pos = ((y + cy) * 500) + (x + cx);
 				dst_buffer_pos = (y * 160) + x;
 
 				//Grab color from stitch buffer
-				if(((x + singer_izek.x_offset - 80) < 0) || ((y + singer_izek.y_offset - 72) < 0)) { color = 0xFF808080; }
-				else if(((x + singer_izek.x_offset - 80) > 500) || ((y + singer_izek.y_offset - 72) > 500)) { color = 0xFF808080; }
+				if(((x + cx) < 0) || ((y + cy) < 0)) { color = 0xFF808080; }
+				else if(((x + cx) > 500) || ((y + cy) > 500)) { color = 0xFF808080; }
 				else if((src_buffer_pos < singer_izek.stitch_buffer.size()) && (src_buffer_pos >= 0)) { color = singer_izek.stitch_buffer[src_buffer_pos]; }
 
 				//Copy from stitch buffer
@@ -2103,9 +2158,12 @@ void DMG_SIO::singer_izek_draw_line()
 	s32 xy_start = 0;
 	s32 xy_end = 0;
 	s32 xy_inc = 0;
+
+	singer_izek.cam_x += x_dist;
+	singer_izek.cam_y += y_dist;
 	
 	u32 buffer_pos = 0;
-	u32 buffer_size = 0x3D090;
+	u32 buffer_size = singer_izek.stitch_buffer.size();
 
 	if((x_dist != 0) && (y_dist != 0))
 	{
@@ -2166,7 +2224,7 @@ void DMG_SIO::singer_izek_draw_line()
 		buffer_pos = (round(y_coord + y_base) * 500) + round(x_coord + x_base);
 
 		//Only draw on-screen objects
-		if(buffer_pos < buffer_size)
+		if((buffer_pos < buffer_size) && (buffer_pos >= 0))
 		{
 			singer_izek.stitch_buffer[buffer_pos] = 0xFF000000;
 		}

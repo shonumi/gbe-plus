@@ -191,6 +191,8 @@ void DMG_GamePad::handle_input(SDL_Event &event)
 /****** Processes input based on unique pad # for keyboards ******/
 void DMG_GamePad::process_keyboard(int pad, bool pressed)
 {
+	u16 old_con_flags = con_flags;
+
 	//Emulate A button press
 	if((pad == config::gbe_key_a) && (pressed)) { p14 &= ~0x1; }
 
@@ -423,13 +425,16 @@ void DMG_GamePad::process_keyboard(int pad, bool pressed)
 	else if((pad == config::con_key_2) && (!pressed)) { con_flags &= ~0x200; }
 
 	//Alert core of context key changes
-	if(con_flags) { con_update = true; }
+	if(con_flags != old_con_flags) { con_update = true; }
+	else if(con_flags) { con_update = true; }
 	else { con_update = false; }
 }
 
 /****** Processes input based on unique pad # for joysticks ******/
 void DMG_GamePad::process_joystick(int pad, bool pressed)
 {
+	u16 old_con_flags = con_flags;
+
 	//Emulate A button press
 	if((pad == config::gbe_joy_a) && (pressed)) { p14 &= ~0x1; }
 
@@ -590,7 +595,8 @@ void DMG_GamePad::process_joystick(int pad, bool pressed)
 	else if((pad == config::con_joy_2) && (!pressed)) { con_flags &= ~0x200; }
 
 	//Alert core of context key changes
-	if(con_flags) { con_update = true; }
+	if(con_flags != old_con_flags) { con_update = true; }
+	else if(con_flags) { con_update = true; }
 	else { con_update = false; }
 }
 
