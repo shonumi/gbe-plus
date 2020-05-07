@@ -1977,10 +1977,12 @@ void DMG_SIO::singer_izek_update()
 			singer_izek.cam_x--;
 
 			//Reset internal stitching positions
-			singer_izek.last_x = 0;
-			singer_izek.current_x = 0;
-			singer_izek.last_y = 0;
-			singer_izek.current_y = 0;
+			if(singer_izek.device_mode == 0)
+			{
+				singer_izek.last_x = singer_izek.current_x;
+				singer_izek.last_y = 0;
+				singer_izek.current_y = 0;
+			}
 		}
 
 		//Move stitching focus right
@@ -1989,10 +1991,12 @@ void DMG_SIO::singer_izek_update()
 			singer_izek.cam_x++;
 
 			//Reset internal stitching positions
-			singer_izek.last_x = 0;
-			singer_izek.current_x = 0;
-			singer_izek.last_y = 0;
-			singer_izek.current_y = 0;
+			if(singer_izek.device_mode == 0)
+			{
+				singer_izek.last_x = singer_izek.current_x;
+				singer_izek.last_y = 0;
+				singer_izek.current_y = 0;
+			}
 		}
 
 		//Move stitching focus up
@@ -2001,10 +2005,12 @@ void DMG_SIO::singer_izek_update()
 			singer_izek.cam_y--;
 
 			//Reset internal stitching positions
-			singer_izek.last_x = 0;
-			singer_izek.current_x = 0;
-			singer_izek.last_y = 0;
-			singer_izek.current_y = 0;
+			if(singer_izek.device_mode == 0)
+			{
+				singer_izek.last_x = singer_izek.current_x;
+				singer_izek.last_y = 0;
+				singer_izek.current_y = 0;
+			}
 		}
 
 		//Move stitching focus down
@@ -2013,10 +2019,12 @@ void DMG_SIO::singer_izek_update()
 			singer_izek.cam_y++;
 
 			//Reset internal stitching positions
-			singer_izek.last_x = 0;
-			singer_izek.current_x = 0;
-			singer_izek.last_y = 0;
-			singer_izek.current_y = 0;
+			if(singer_izek.device_mode == 0)
+			{
+				singer_izek.last_x = singer_izek.current_x;
+				singer_izek.last_y = 0;
+				singer_izek.current_y = 0;
+			}
 		}
 
 		//Make sure X-Y offsets don't leave 500x500 internal buffer
