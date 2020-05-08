@@ -426,6 +426,7 @@ void DMG_SIO::reset()
 	singer_izek.cam_y = 0;
 	singer_izek.reset_stitching = true;
 	singer_izek.is_stitching = false;
+	singer_izek.new_stitching = false;
 
 	//Turbo File GB
 	turbo_file.data.clear();
@@ -1708,6 +1709,7 @@ void DMG_SIO::singer_izek_data_process()
 				}
 				*/
 
+				singer_izek.new_stitching = true;
 				singer_izek.current_animation_index = 0;
 				singer_izek.current_state = SINGER_PING;
 			}
@@ -1782,7 +1784,11 @@ void DMG_SIO::singer_izek_fill_buffer(u32 index_start, u32 index_end)
 	{
 		singer_izek.stitch_buffer.clear();
 		singer_izek.stitch_buffer.resize(0x3D090, 0xFFFFFFFF);
+	}
 
+	//Reset positions
+	if(singer_izek.new_stitching)
+	{
 		//Set default position for normal stitching
 		if(singer_izek.device_mode == 0)
 		{
@@ -1825,18 +1831,21 @@ void DMG_SIO::singer_izek_fill_buffer(u32 index_start, u32 index_end)
 		s32 src_buffer_pos = 0;
 		s32 dst_buffer_pos = 0;
 
+		s32 cx = singer_izek.cam_x - 80;
+		s32 cy = singer_izek.cam_y - 72;
+
 		u32 color = 0;
 
 		for(s32 y = 0; y < 144; y++)
 		{
 			for(s32 x = 0; x < 160; x++)
 			{
-				src_buffer_pos = ((y + singer_izek.y_offset - 72) * 500) + (x + singer_izek.x_offset - 80);
+				src_buffer_pos = ((y + cy) * 500) + (x + cx);
 				dst_buffer_pos = (y * 160) + x;
 
 				//Grab color from stitch buffer
-				if(((x + singer_izek.x_offset - 80) < 0) || ((y + singer_izek.y_offset - 72) < 0)) { color = 0xFF808080; }
-				else if(((x + singer_izek.x_offset - 80) > 500) || ((y + singer_izek.y_offset - 72) > 500)) { color = 0xFF808080; }
+				if(((x + cx) < 0) || ((y + cy) < 0)) { color = 0xFF808080; }
+				else if(((x + cx) > 500) || ((y + cy) > 500)) { color = 0xFF808080; }
 				else if((src_buffer_pos < singer_izek.stitch_buffer.size()) && (src_buffer_pos >= 0)) { color = singer_izek.stitch_buffer[src_buffer_pos]; }
 
 				//Copy from stitch buffer
@@ -1966,7 +1975,10 @@ void DMG_SIO::singer_izek_update()
 	if((mem->g_pad->con_flags & 0x100) && (!singer_izek.is_stitching)) { singer_izek.is_stitching = true; }
 
 	//Stop stitching
-	else if(((mem->g_pad->con_flags & 0x100) == 0) && (singer_izek.is_stitching)) { singer_izek.is_stitching = false; }
+	else if(((mem->g_pad->con_flags & 0x100) == 0) && (singer_izek.is_stitching))
+	{
+		singer_izek.is_stitching = false;
+	}
 
 	//Wait every 10 frames before updating positions
 	if((singer_izek.frame_counter % 10) == 0)
@@ -1977,7 +1989,7 @@ void DMG_SIO::singer_izek_update()
 			singer_izek.cam_x--;
 
 			//Reset internal stitching positions
-			if(singer_izek.device_mode == 0)
+			if((singer_izek.device_mode == 0) && (!singer_izek.new_stitching))
 			{
 				singer_izek.last_x = singer_izek.current_x;
 				singer_izek.last_y = 0;
@@ -1991,7 +2003,7 @@ void DMG_SIO::singer_izek_update()
 			singer_izek.cam_x++;
 
 			//Reset internal stitching positions
-			if(singer_izek.device_mode == 0)
+			if((singer_izek.device_mode == 0) && (!singer_izek.new_stitching))
 			{
 				singer_izek.last_x = singer_izek.current_x;
 				singer_izek.last_y = 0;
@@ -2005,7 +2017,7 @@ void DMG_SIO::singer_izek_update()
 			singer_izek.cam_y--;
 
 			//Reset internal stitching positions
-			if(singer_izek.device_mode == 0)
+			if((singer_izek.device_mode == 0) && (!singer_izek.new_stitching))
 			{
 				singer_izek.last_x = singer_izek.current_x;
 				singer_izek.last_y = 0;
@@ -2019,7 +2031,7 @@ void DMG_SIO::singer_izek_update()
 			singer_izek.cam_y++;
 
 			//Reset internal stitching positions
-			if(singer_izek.device_mode == 0)
+			if((singer_izek.device_mode == 0) && (!singer_izek.new_stitching))
 			{
 				singer_izek.last_x = singer_izek.current_x;
 				singer_izek.last_y = 0;
@@ -2033,12 +2045,6 @@ void DMG_SIO::singer_izek_update()
 
 		if(singer_izek.cam_y > 499) { singer_izek.cam_y = 499; }
 		else if(singer_izek.cam_y < 0) { singer_izek.cam_y = 0; }
-
-		if(!singer_izek.is_stitching)
-		{
-			singer_izek.x_offset = singer_izek.cam_x;
-			singer_izek.y_offset = singer_izek.cam_y;
-		}
 
 		//Wait every 30 frames before updating stitching animation
 		if((singer_izek.frame_counter % 1000) == 0)
@@ -2060,8 +2066,17 @@ void DMG_SIO::singer_izek_update()
 					singer_izek.current_animation_index = 0;
 					singer_izek.reset_stitching = false;
 				}
+
+				singer_izek.new_stitching = false;
 			}
 		}
+	}
+
+	//Reset XY offsets to match camera
+	if(((!singer_izek.is_stitching) && (mem->g_pad->con_flags & 0xF)) || (singer_izek.new_stitching))
+	{
+		singer_izek.x_offset = singer_izek.cam_x;
+		singer_izek.y_offset = singer_izek.cam_y;
 	}
 
 	//Copy stitch buffer to subscreen buffer

@@ -177,7 +177,8 @@ class DMG_SIO
 		s32 cam_x;
 		s32 cam_y;
 		bool reset_stitching;
-		bool is_stitching;	
+		bool is_stitching;
+		bool new_stitching;
 	} singer_izek;
 
 	//Turbo File GB
