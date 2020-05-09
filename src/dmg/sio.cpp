@@ -1984,7 +1984,7 @@ void DMG_SIO::singer_izek_update()
 	if((singer_izek.frame_counter % 10) == 0)
 	{
 		//Move stitching focus left
-		if(mem->g_pad->con_flags & 0x1)
+		if((mem->g_pad->con_flags & 0x1) && ((mem->g_pad->con_flags & 0x100) == 0))
 		{
 			singer_izek.cam_x--;
 
@@ -1998,7 +1998,7 @@ void DMG_SIO::singer_izek_update()
 		}
 
 		//Move stitching focus right
-		else if(mem->g_pad->con_flags & 0x2)
+		else if((mem->g_pad->con_flags & 0x2) && ((mem->g_pad->con_flags & 0x100) == 0))
 		{
 			singer_izek.cam_x++;
 
@@ -2012,7 +2012,7 @@ void DMG_SIO::singer_izek_update()
 		}
 
 		//Move stitching focus up
-		if(mem->g_pad->con_flags & 0x4)
+		if((mem->g_pad->con_flags & 0x4) && ((mem->g_pad->con_flags & 0x100) == 0))
 		{
 			singer_izek.cam_y--;
 
@@ -2026,7 +2026,7 @@ void DMG_SIO::singer_izek_update()
 		}
 
 		//Move stitching focus down
-		else if(mem->g_pad->con_flags & 0x8)
+		else if((mem->g_pad->con_flags & 0x8) && ((mem->g_pad->con_flags & 0x100) == 0))
 		{
 			singer_izek.cam_y++;
 
@@ -2116,7 +2116,6 @@ void DMG_SIO::singer_izek_update()
 	SDL_Event p_event;
 	p_event.type = SDL_KEYUP;
 	p_event.key.keysym.sym = config::gbe_key_x;
-
 	SDL_PushEvent(&p_event);
 }
 
