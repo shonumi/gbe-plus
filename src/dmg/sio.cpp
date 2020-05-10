@@ -409,10 +409,10 @@ void DMG_SIO::reset()
 	singer_izek.x_plot.clear();
 	singer_izek.y_plot.clear();
 	singer_izek.stitch_buffer.clear();
+	singer_izek.stitch_buffer.resize(0x3D090, 0xFFFFFFFF);
 	singer_izek.status = 0;
 	singer_izek.device_mode = 0;
 	singer_izek.current_index = 0;
-	singer_izek.last_index = 0;
 	singer_izek.last_internal_transfer = 0;
 	singer_izek.current_state = SINGER_PING;
 	singer_izek.idle_count = 0;
@@ -427,6 +427,11 @@ void DMG_SIO::reset()
 	singer_izek.reset_stitching = true;
 	singer_izek.is_stitching = false;
 	singer_izek.new_stitching = false;
+	singer_izek.auto_stitching = false;
+
+	singer_izek.x_shift.clear();
+	singer_izek.y_shift.clear();
+	singer_izek.shift_index.clear();
 
 	//Turbo File GB
 	turbo_file.data.clear();
@@ -1574,7 +1579,10 @@ void DMG_SIO::singer_izek_data_process()
 				singer_izek.counter = 0;
 
 				singer_izek.current_index = 0;
-				singer_izek.last_index = 0;
+				singer_izek.plot_index = 0;
+				singer_izek.x_shift.clear();
+				singer_izek.y_shift.clear();
+				singer_izek.shift_index.clear();
 			}
 
 			break;
@@ -1687,6 +1695,10 @@ void DMG_SIO::singer_izek_data_process()
 				singer_izek.counter = 0;
 				singer_izek.current_state = SINGER_GET_COORDINATES;
 				singer_izek.coord_buffer.clear();
+
+				singer_izek.x_shift.push_back(0);
+				singer_izek.y_shift.push_back(0);
+				singer_izek.shift_index.push_back(singer_izek.plot_index);
 			}
 
 			//Stitch data is finished. Draw and switch back to ping mode
@@ -1695,23 +1707,17 @@ void DMG_SIO::singer_izek_data_process()
 				//Clean up coordinates if necessary
 				if(singer_izek.x_plot.size() != singer_izek.y_plot.size()) { singer_izek.x_plot.pop_back(); }
 
-				/*
-				//Fill buffer for normal stitching
-				if(singer_izek.device_mode == 0)
-				{
-					singer_izek_fill_buffer(0, singer_izek.y_plot.size());
-				}
-
-				//Fill buffer for embroidery stitching
-				else if(singer_izek.device_mode == 1)
-				{
-					singer_izek_fill_buffer(singer_izek.last_index, singer_izek.current_index);
-				}
-				*/
-
 				singer_izek.new_stitching = true;
 				singer_izek.current_animation_index = 0;
+				singer_izek.current_index = 0;
 				singer_izek.current_state = SINGER_PING;
+
+				if(singer_izek.device_mode == 1)
+				{
+					singer_izek.cam_x = singer_izek.start_x;
+					singer_izek.cam_y = singer_izek.start_y;
+					singer_izek_update();
+				}
 			}
 
 			//Grab stitch coordinate data
@@ -1736,7 +1742,7 @@ void DMG_SIO::singer_izek_data_process()
 					else
 					{
 						singer_izek.y_plot.push_back(sio_data);
-						singer_izek.current_index++;
+						singer_izek.plot_index++;
 					}
 				}
 			}
@@ -1753,14 +1759,10 @@ void DMG_SIO::singer_izek_data_process()
 				singer_izek.idle_count = 0;
 				singer_izek.current_state = SINGER_SEND_DATA;
 
-				//Fill buffer with current data
-				singer_izek_fill_buffer(singer_izek.last_index, singer_izek.current_index);
-
 				//Calculate new start coordinates
 				singer_izek_calculate_coordinates();
 
-				//Update index
-				singer_izek.last_index = singer_izek.current_index;
+				singer_izek.current_index++;
 			}
 
 			//Add data to buffer
@@ -1808,6 +1810,18 @@ void DMG_SIO::singer_izek_fill_buffer(u32 index_start, u32 index_end)
 			singer_izek.current_x = singer_izek.start_x;
 			singer_izek.current_y = singer_izek.start_y;
 		}
+	}
+
+	//Check for repositioning during embroidery
+	if((singer_izek.current_index < singer_izek.shift_index.size()) && (index_start == singer_izek.shift_index[singer_izek.current_index]))
+	{
+		singer_izek.current_x += singer_izek.x_shift[singer_izek.current_index];
+		singer_izek.current_y += singer_izek.y_shift[singer_izek.current_index];
+
+		singer_izek.last_x = singer_izek.current_x;
+		singer_izek.last_y = singer_izek.current_y;
+
+		singer_izek.current_index++;
 	}
 
 	//Use plots to create stitch buffer for visual output
@@ -1920,6 +1934,10 @@ void DMG_SIO::singer_izek_calculate_coordinates()
 
 	bool bb_parse = false;
 	u32 buffer_size = singer_izek.coord_buffer.size();
+	u32 index = singer_izek.current_index;
+
+	s32 dx = singer_izek.x_shift[index];
+	s32 dy = singer_izek.y_shift[index];
 
 	for(u32 i = 0; i < buffer_size; i++)
 	{
@@ -1947,23 +1965,23 @@ void DMG_SIO::singer_izek_calculate_coordinates()
 			u16 y = (c_buffer[i+3] << 8) | c_buffer[i+2];
 
 			//Move left
-			if((x & 0xFF00) == 0xFF00) { singer_izek.current_x -= (0x10000 - x);  }
+			if((x & 0xFF00) == 0xFF00) { dx -= (0x10000 - x);  }
 		
 			//Move right
-			else { singer_izek.current_x += (x & 0xFF); }
+			else { dx += (x & 0xFF); }
 
 			//Move down
-			if((y & 0xFF00) == 0xFF00) { singer_izek.current_y += (0x10000 - y); }
+			if((y & 0xFF00) == 0xFF00) { dy += (0x10000 - y); }
 
 			//Move up
-			else { singer_izek.current_y -= (y & 0xFF); }
+			else { dy -= (y & 0xFF); }
 		}
 
 		i += 5;
 	}
 
-	singer_izek.last_x = singer_izek.current_x;
-	singer_izek.last_y = singer_izek.current_y;
+	singer_izek.x_shift[index] = dx;
+	singer_izek.y_shift[index] = dy;
 }
 
 /****** Updates sewing machine subscreen on input ******/
@@ -2054,6 +2072,7 @@ void DMG_SIO::singer_izek_update()
 			{
 				u32 next_index = singer_izek.current_animation_index + 1;
 
+				//Animate normally
 				if(next_index <= singer_izek.y_plot.size())
 				{
 					singer_izek_fill_buffer(singer_izek.current_animation_index, next_index);
@@ -2064,6 +2083,7 @@ void DMG_SIO::singer_izek_update()
 				if(singer_izek.current_animation_index == singer_izek.y_plot.size())
 				{
 					singer_izek.current_animation_index = 0;
+					singer_izek.current_index = 0;
 					singer_izek.reset_stitching = false;
 				}
 
@@ -2075,8 +2095,11 @@ void DMG_SIO::singer_izek_update()
 	//Reset XY offsets to match camera
 	if(((!singer_izek.is_stitching) && (mem->g_pad->con_flags & 0xF)) || (singer_izek.new_stitching))
 	{
-		singer_izek.x_offset = singer_izek.cam_x;
-		singer_izek.y_offset = singer_izek.cam_y;
+		if(singer_izek.device_mode == 0)
+		{
+			singer_izek.x_offset = singer_izek.cam_x;
+			singer_izek.y_offset = singer_izek.cam_y;
+		}
 	}
 
 	//Copy stitch buffer to subscreen buffer

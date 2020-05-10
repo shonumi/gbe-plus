@@ -428,6 +428,8 @@ void DMG_GamePad::process_keyboard(int pad, bool pressed)
 	if(con_flags != old_con_flags) { con_update = true; }
 	else if(con_flags) { con_update = true; }
 	else { con_update = false; }
+
+	con_flags &= ~0x800;
 }
 
 /****** Processes input based on unique pad # for joysticks ******/
@@ -598,6 +600,8 @@ void DMG_GamePad::process_joystick(int pad, bool pressed)
 	if(con_flags != old_con_flags) { con_update = true; }
 	else if(con_flags) { con_update = true; }
 	else { con_update = false; }
+	
+	con_flags &= ~0x800;
 }
 
 /****** Process gyroscope sensors - Only used for MBC7 ******/

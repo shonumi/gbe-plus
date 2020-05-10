@@ -1888,6 +1888,12 @@ void DMG_LCD::step(int cpu_clock)
 						screen_buffer.resize(0xB400, 0xFFFFFFFF);
 						mem->sub_screen_buffer.clear();
 						mem->sub_screen_buffer.resize(0x5A00, 0xFFFFFFFF);
+						mem->g_pad->con_flags |= 0x800;
+
+						SDL_Event p_event;
+						p_event.type = SDL_KEYUP;
+						p_event.key.keysym.sym = config::gbe_key_x;
+						SDL_PushEvent(&p_event);
 					}
 					
 					if((window != NULL) && (config::sdl_render)) { SDL_DestroyWindow(window); }

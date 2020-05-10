@@ -155,7 +155,7 @@ class DMG_SIO
 		std::vector<u8> coord_buffer;
 		std::vector<u32> stitch_buffer;
 		u32 current_index;
-		u32 last_index;
+		u32 plot_index;
 		s32 current_x;
 		s32 current_y;
 		s32 last_x;
@@ -179,6 +179,12 @@ class DMG_SIO
 		bool reset_stitching;
 		bool is_stitching;
 		bool new_stitching;
+		bool auto_stitching;
+
+		std::vector<s32> x_shift;
+		std::vector<s32> y_shift;
+		std::vector<u32> shift_index;
+		
 	} singer_izek;
 
 	//Turbo File GB
