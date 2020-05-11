@@ -1818,6 +1818,9 @@ void DMG_SIO::singer_izek_fill_buffer(u32 index_start, u32 index_end)
 		singer_izek.current_x += singer_izek.x_shift[singer_izek.current_index];
 		singer_izek.current_y += singer_izek.y_shift[singer_izek.current_index];
 
+		singer_izek.cam_x += singer_izek.x_shift[singer_izek.current_index];
+		singer_izek.cam_y += singer_izek.y_shift[singer_izek.current_index];
+
 		singer_izek.last_x = singer_izek.current_x;
 		singer_izek.last_y = singer_izek.current_y;
 
@@ -1990,7 +1993,13 @@ void DMG_SIO::singer_izek_update()
 	singer_izek.frame_counter++;
 
 	//Start stitching
-	if((mem->g_pad->con_flags & 0x100) && (!singer_izek.is_stitching)) { singer_izek.is_stitching = true; }
+	if((mem->g_pad->con_flags & 0x100) && (!singer_izek.is_stitching))
+	{
+		singer_izek.is_stitching = true;
+
+		//Use auto-stitching for EM-2000
+		if(singer_izek.device_mode == 1) { singer_izek.auto_stitching = true; }
+	}
 
 	//Stop stitching
 	else if(((mem->g_pad->con_flags & 0x100) == 0) && (singer_izek.is_stitching))
@@ -2068,7 +2077,7 @@ void DMG_SIO::singer_izek_update()
 		if((singer_izek.frame_counter % 1000) == 0)
 		{
 			//Animate stitching
-			if(mem->g_pad->con_flags & 0x100)
+			if((mem->g_pad->con_flags & 0x100) || (singer_izek.auto_stitching))
 			{
 				u32 next_index = singer_izek.current_animation_index + 1;
 
@@ -2079,12 +2088,22 @@ void DMG_SIO::singer_izek_update()
 					singer_izek.current_animation_index++;
 				}
 
-				//Reset animation
+				//Reset animation if necessary
 				if(singer_izek.current_animation_index == singer_izek.y_plot.size())
 				{
-					singer_izek.current_animation_index = 0;
-					singer_izek.current_index = 0;
-					singer_izek.reset_stitching = false;
+					//Reset if doing regular stitching
+					if(singer_izek.device_mode == 0)
+					{
+						singer_izek.current_animation_index = 0;
+						singer_izek.current_index = 0;
+						singer_izek.reset_stitching = false;
+					}
+
+					//Stop if doing auto-stitching for EM-2000
+					else if(singer_izek.device_mode == 1)
+					{
+						singer_izek.auto_stitching = false;
+					}
 				}
 
 				singer_izek.new_stitching = false;
@@ -2140,6 +2159,9 @@ void DMG_SIO::singer_izek_update()
 	p_event.type = SDL_KEYUP;
 	p_event.key.keysym.sym = config::gbe_key_x;
 	SDL_PushEvent(&p_event);
+
+	//Handle auto-stitching
+	if(singer_izek.auto_stitching) { mem->g_pad->con_flags |= 0x800; }
 }
 
 /****** Adjusts Y coordinate when stitching ******/
