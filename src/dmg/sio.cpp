@@ -1714,6 +1714,9 @@ void DMG_SIO::singer_izek_data_process()
 
 				if(singer_izek.device_mode == 1)
 				{
+					singer_izek.auto_stitching = true;
+					singer_izek.is_stitching = true;
+
 					singer_izek.cam_x = singer_izek.start_x;
 					singer_izek.cam_y = singer_izek.start_y;
 					singer_izek_update();
@@ -1996,9 +1999,6 @@ void DMG_SIO::singer_izek_update()
 	if((mem->g_pad->con_flags & 0x100) && (!singer_izek.is_stitching))
 	{
 		singer_izek.is_stitching = true;
-
-		//Use auto-stitching for EM-2000
-		if(singer_izek.device_mode == 1) { singer_izek.auto_stitching = true; }
 	}
 
 	//Stop stitching
@@ -2103,6 +2103,7 @@ void DMG_SIO::singer_izek_update()
 					else if(singer_izek.device_mode == 1)
 					{
 						singer_izek.auto_stitching = false;
+						singer_izek.is_stitching = false;
 					}
 				}
 
