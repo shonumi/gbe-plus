@@ -154,6 +154,7 @@ class DMG_SIO
 		std::vector<u8> y_plot;
 		std::vector<u8> coord_buffer;
 		std::vector<u32> stitch_buffer;
+		std::vector<u32> temp_buffer;
 		u32 current_index;
 		u32 plot_index;
 		s32 current_x;
@@ -180,6 +181,7 @@ class DMG_SIO
 		bool is_stitching;
 		bool new_stitching;
 		bool auto_stitching;
+		u8 sub_screen_status;
 
 		std::vector<s32> x_shift;
 		std::vector<s32> y_shift;

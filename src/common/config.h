@@ -32,6 +32,7 @@ bool save_cheats_file();
 
 bool load_osd_font();
 void draw_osd_msg(std::string osd_text, std::vector <u32> &osd_surface, u8 x_offset, u8 y_offset);
+void draw_osd_msg(std::string osd_text, std::vector <u32> &osd_surface, u8 x_offset, u8 y_offset, u32 width);
 
 enum special_cart_types
 {

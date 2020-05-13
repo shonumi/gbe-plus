@@ -428,6 +428,7 @@ void DMG_SIO::reset()
 	singer_izek.is_stitching = false;
 	singer_izek.new_stitching = false;
 	singer_izek.auto_stitching = false;
+	singer_izek.sub_screen_status = 0;
 
 	singer_izek.x_shift.clear();
 	singer_izek.y_shift.clear();
@@ -1536,18 +1537,21 @@ bool DMG_SIO::barcode_boy_load_barcode(std::string filename)
 void DMG_SIO::singer_izek_process()
 {
 	//Handle input - Start or stop Stitching
-	if(singer_izek.device_mode == 0)
+	if((singer_izek.sub_screen_status & 0x80) == 0)
 	{
-		if(mem->g_pad->con_flags & 0x100) { singer_izek.status = 0x40; }
-		else { singer_izek.status = 0x00; }
-	}
+		if(singer_izek.device_mode == 0)
+		{
+			if(mem->g_pad->con_flags & 0x100) { singer_izek.status = 0x40; }
+			else { singer_izek.status = 0x00; }
+		}
 
-	//Set status when EM-2000 is attached
-	else if(singer_izek.device_mode == 1)
-	{
-		//Starts new section
-		if(mem->g_pad->con_flags & 0x100) { singer_izek.status = 0x27; }
-		else { singer_izek.status = 0x07; }
+		//Set status when EM-2000 is attached
+		else if(singer_izek.device_mode == 1)
+		{
+			//Starts new section
+			if(mem->g_pad->con_flags & 0x100) { singer_izek.status = 0x27; }
+			else { singer_izek.status = 0x07; }
+		}
 	}
 
 	//Respond with current status for external clock transfers
@@ -2007,118 +2011,206 @@ void DMG_SIO::singer_izek_update()
 		singer_izek.is_stitching = false;
 	}
 
+	//Switch subscreen to menu
+	if(((singer_izek.sub_screen_status & 0x80) == 0) && (mem->g_pad->con_flags & 0x200))
+	{
+		singer_izek.sub_screen_status |= 0x80;
+
+		//Clear stitch buffer
+		singer_izek.temp_buffer = singer_izek.stitch_buffer;
+		singer_izek.stitch_buffer.clear();
+		singer_izek.stitch_buffer.resize(0x3D090, 0xFFFFFFFF);
+	}
+
 	//Wait every 10 frames before updating positions
 	if((singer_izek.frame_counter % 10) == 0)
 	{
-		//Move stitching focus left
-		if((mem->g_pad->con_flags & 0x1) && ((mem->g_pad->con_flags & 0x100) == 0))
+		//Handle drawing stitching
+		if((singer_izek.sub_screen_status & 0x80) == 0)
 		{
-			singer_izek.cam_x--;
-
-			//Reset internal stitching positions
-			if((singer_izek.device_mode == 0) && (!singer_izek.new_stitching))
+			//Move stitching focus left
+			if((mem->g_pad->con_flags & 0x1) && ((mem->g_pad->con_flags & 0x100) == 0))
 			{
-				singer_izek.last_x = singer_izek.current_x;
-				singer_izek.last_y = 0;
-				singer_izek.current_y = 0;
-			}
-		}
+				singer_izek.cam_x--;
 
-		//Move stitching focus right
-		else if((mem->g_pad->con_flags & 0x2) && ((mem->g_pad->con_flags & 0x100) == 0))
-		{
-			singer_izek.cam_x++;
-
-			//Reset internal stitching positions
-			if((singer_izek.device_mode == 0) && (!singer_izek.new_stitching))
-			{
-				singer_izek.last_x = singer_izek.current_x;
-				singer_izek.last_y = 0;
-				singer_izek.current_y = 0;
-			}
-		}
-
-		//Move stitching focus up
-		if((mem->g_pad->con_flags & 0x4) && ((mem->g_pad->con_flags & 0x100) == 0))
-		{
-			singer_izek.cam_y--;
-
-			//Reset internal stitching positions
-			if((singer_izek.device_mode == 0) && (!singer_izek.new_stitching))
-			{
-				singer_izek.last_x = singer_izek.current_x;
-				singer_izek.last_y = 0;
-				singer_izek.current_y = 0;
-			}
-		}
-
-		//Move stitching focus down
-		else if((mem->g_pad->con_flags & 0x8) && ((mem->g_pad->con_flags & 0x100) == 0))
-		{
-			singer_izek.cam_y++;
-
-			//Reset internal stitching positions
-			if((singer_izek.device_mode == 0) && (!singer_izek.new_stitching))
-			{
-				singer_izek.last_x = singer_izek.current_x;
-				singer_izek.last_y = 0;
-				singer_izek.current_y = 0;
-			}
-		}
-
-		//Make sure X-Y offsets don't leave 500x500 internal buffer
-		if(singer_izek.cam_x > 499) { singer_izek.cam_x = 499; }
-		else if(singer_izek.cam_x < 0) { singer_izek.cam_x = 0; }
-
-		if(singer_izek.cam_y > 499) { singer_izek.cam_y = 499; }
-		else if(singer_izek.cam_y < 0) { singer_izek.cam_y = 0; }
-
-		//Wait every 30 frames before updating stitching animation
-		if((singer_izek.frame_counter % 1000) == 0)
-		{
-			//Animate stitching
-			if((mem->g_pad->con_flags & 0x100) || (singer_izek.auto_stitching))
-			{
-				u32 next_index = singer_izek.current_animation_index + 1;
-
-				//Animate normally
-				if(next_index <= singer_izek.y_plot.size())
+				//Reset internal stitching positions
+				if((singer_izek.device_mode == 0) && (!singer_izek.new_stitching))
 				{
-					singer_izek_fill_buffer(singer_izek.current_animation_index, next_index);
-					singer_izek.current_animation_index++;
+					singer_izek.last_x = singer_izek.current_x;
+					singer_izek.last_y = 0;
+					singer_izek.current_y = 0;
 				}
+			}
 
-				//Reset animation if necessary
-				if(singer_izek.current_animation_index == singer_izek.y_plot.size())
+			//Move stitching focus right
+			else if((mem->g_pad->con_flags & 0x2) && ((mem->g_pad->con_flags & 0x100) == 0))
+			{
+				singer_izek.cam_x++;
+
+				//Reset internal stitching positions
+				if((singer_izek.device_mode == 0) && (!singer_izek.new_stitching))
 				{
-					//Reset if doing regular stitching
-					if(singer_izek.device_mode == 0)
+					singer_izek.last_x = singer_izek.current_x;
+					singer_izek.last_y = 0;
+					singer_izek.current_y = 0;
+				}
+			}
+
+			//Move stitching focus up
+			if((mem->g_pad->con_flags & 0x4) && ((mem->g_pad->con_flags & 0x100) == 0))
+			{
+				singer_izek.cam_y--;
+
+				//Reset internal stitching positions
+				if((singer_izek.device_mode == 0) && (!singer_izek.new_stitching))
+				{
+					singer_izek.last_x = singer_izek.current_x;
+					singer_izek.last_y = 0;
+					singer_izek.current_y = 0;
+				}
+			}
+
+			//Move stitching focus down
+			else if((mem->g_pad->con_flags & 0x8) && ((mem->g_pad->con_flags & 0x100) == 0))
+			{
+				singer_izek.cam_y++;
+
+				//Reset internal stitching positions
+				if((singer_izek.device_mode == 0) && (!singer_izek.new_stitching))
+				{
+					singer_izek.last_x = singer_izek.current_x;
+					singer_izek.last_y = 0;
+					singer_izek.current_y = 0;
+				}
+			}
+
+			//Make sure X-Y offsets don't leave 500x500 internal buffer
+			if(singer_izek.cam_x > 499) { singer_izek.cam_x = 499; }
+			else if(singer_izek.cam_x < 0) { singer_izek.cam_x = 0; }
+
+			if(singer_izek.cam_y > 499) { singer_izek.cam_y = 499; }
+			else if(singer_izek.cam_y < 0) { singer_izek.cam_y = 0; }
+
+			//Wait every 30 frames before updating stitching animation
+			if((singer_izek.frame_counter % 1000) == 0)
+			{
+				//Animate stitching
+				if((mem->g_pad->con_flags & 0x100) || (singer_izek.auto_stitching))
+				{
+					u32 next_index = singer_izek.current_animation_index + 1;
+
+					//Animate normally
+					if(next_index <= singer_izek.y_plot.size())
 					{
-						singer_izek.current_animation_index = 0;
-						singer_izek.current_index = 0;
-						singer_izek.reset_stitching = false;
+						singer_izek_fill_buffer(singer_izek.current_animation_index, next_index);
+						singer_izek.current_animation_index++;
 					}
 
-					//Stop if doing auto-stitching for EM-2000
-					else if(singer_izek.device_mode == 1)
+					//Reset animation if necessary
+					if(singer_izek.current_animation_index == singer_izek.y_plot.size())
 					{
-						singer_izek.auto_stitching = false;
-						singer_izek.is_stitching = false;
+						//Reset if doing regular stitching
+						if(singer_izek.device_mode == 0)
+						{
+							singer_izek.current_animation_index = 0;
+							singer_izek.current_index = 0;
+							singer_izek.reset_stitching = false;
 					}
-				}
 
-				singer_izek.new_stitching = false;
+						//Stop if doing auto-stitching for EM-2000
+						else if(singer_izek.device_mode == 1)
+						{
+							singer_izek.auto_stitching = false;
+							singer_izek.is_stitching = false;
+						}
+					}
+
+					singer_izek.new_stitching = false;
+				}
+			}
+
+			//Reset XY offsets to match camera
+			if(((!singer_izek.is_stitching) && (mem->g_pad->con_flags & 0xF)) || (singer_izek.new_stitching))
+			{
+				if(singer_izek.device_mode == 0)
+				{
+					singer_izek.x_offset = singer_izek.cam_x;
+					singer_izek.y_offset = singer_izek.cam_y;
+				}
 			}
 		}
-	}
 
-	//Reset XY offsets to match camera
-	if(((!singer_izek.is_stitching) && (mem->g_pad->con_flags & 0xF)) || (singer_izek.new_stitching))
-	{
-		if(singer_izek.device_mode == 0)
+		//Handle drawing menu
+		else
 		{
-			singer_izek.x_offset = singer_izek.cam_x;
-			singer_izek.y_offset = singer_izek.cam_y;
+			u8 stat = (singer_izek.sub_screen_status & 0xF);
+
+			//Draw options
+			std::string op_name = "";
+
+			op_name = "THREAD RED";
+			draw_osd_msg(op_name, singer_izek.stitch_buffer, 1, 0, 500);
+
+			op_name = "THREAD BLUE";
+			draw_osd_msg(op_name, singer_izek.stitch_buffer, 1, 1, 500);
+
+			op_name = "THREAD GREEN";
+			draw_osd_msg(op_name, singer_izek.stitch_buffer, 1, 2, 500);
+
+			op_name = "RETURN";
+			draw_osd_msg(op_name, singer_izek.stitch_buffer, 1, 3, 500);
+
+			//Draw cursor
+			op_name = "*";
+			draw_osd_msg(op_name, singer_izek.stitch_buffer, 0, stat, 500);
+
+			//Correct colors
+			for(u32 x = 0; x < singer_izek.stitch_buffer.size(); x++)
+			{
+				u32 color = singer_izek.stitch_buffer[x];
+
+				//Swap black for white
+				if(color == 0xFF000000)
+				{
+					color = 0xFFFFFFFF;
+					singer_izek.stitch_buffer[x] = color;
+				}
+				
+				//Swap yellow for black
+				else if(color == 0xFFFFE500)
+				{
+					color = 0xFF000000;
+					singer_izek.stitch_buffer[x] = color;
+				}
+			}
+
+			if((singer_izek.frame_counter % 1000) == 0)
+			{
+				//Move cursor up
+				if((mem->g_pad->con_flags & 0x4) && ((mem->g_pad->con_flags & 0x100) == 0))
+				{
+					if(stat > 0) { stat--; }
+				}
+
+				//Move cursor down
+				else if((mem->g_pad->con_flags & 0x8) && ((mem->g_pad->con_flags & 0x100) == 0))
+				{
+					if(stat < 3) { stat++; }
+				}
+
+				//Exit menu
+				if((stat == 3) && (mem->g_pad->con_flags & 0x100))
+				{
+					stat = 0;
+					singer_izek.sub_screen_status = 0;
+
+					//Restore stitch buffer
+					singer_izek.stitch_buffer = singer_izek.temp_buffer;
+				}	
+			}
+
+			singer_izek.sub_screen_status &= ~0xF;
+			singer_izek.sub_screen_status |= stat;
 		}
 	}
 
@@ -2132,8 +2224,14 @@ void DMG_SIO::singer_izek_update()
 		s32 src_buffer_pos = 0;
 		s32 dst_buffer_pos = 0;
 
-		s32 cx = singer_izek.cam_x - 80;
-		s32 cy = singer_izek.cam_y - 72;
+		s32 cx = 0;
+		s32 cy = 0;
+
+		if((singer_izek.sub_screen_status & 0x80) == 0)
+		{
+			cx = singer_izek.cam_x - 80;
+			cy = singer_izek.cam_y - 72;
+		}
 
 		u32 color = 0;
 
