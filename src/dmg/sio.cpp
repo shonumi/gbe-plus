@@ -411,7 +411,7 @@ void DMG_SIO::reset()
 	singer_izek.stitch_buffer.clear();
 	singer_izek.stitch_buffer.resize(0x3D090, 0xFFFFFFFF);
 	singer_izek.status = 0;
-	singer_izek.device_mode = 0;
+	singer_izek.device_mode = 1;
 	singer_izek.current_index = 0;
 	singer_izek.last_internal_transfer = 0;
 	singer_izek.current_state = SINGER_PING;
@@ -419,6 +419,8 @@ void DMG_SIO::reset()
 	singer_izek.counter = 0;
 
 	singer_izek.frame_counter = 0;
+	singer_izek.speed = 0;
+	singer_izek.thread_color = 0xFF000000;
 	singer_izek.current_animation_index = 0;
 	singer_izek.x_offset = 0;
 	singer_izek.y_offset = 0;
@@ -2015,6 +2017,7 @@ void DMG_SIO::singer_izek_update()
 	if(((singer_izek.sub_screen_status & 0x80) == 0) && (mem->g_pad->con_flags & 0x200))
 	{
 		singer_izek.sub_screen_status |= 0x80;
+		singer_izek.frame_counter = 0;
 
 		//Clear stitch buffer
 		singer_izek.temp_buffer = singer_izek.stitch_buffer;
@@ -2025,6 +2028,18 @@ void DMG_SIO::singer_izek_update()
 	//Wait every 10 frames before updating positions
 	if((singer_izek.frame_counter % 10) == 0)
 	{
+		u32 speed = 300;
+
+		//Calculate animation speed
+		if((singer_izek.auto_stitching) || ((singer_izek.is_stitching) && (singer_izek.device_mode == 0)
+		&& ((singer_izek.sub_screen_status & 0x80) == 0)))
+		{
+			if((singer_izek.device_mode == 0) && (singer_izek.speed)) { speed = 300 - (singer_izek.speed * 30); } 
+			else if((singer_izek.device_mode == 1) && (singer_izek.speed)) { speed = 300 - (singer_izek.speed * 60); }
+
+			if(speed == 0) { speed = 1; }
+		}
+
 		//Handle drawing stitching
 		if((singer_izek.sub_screen_status & 0x80) == 0)
 		{
@@ -2092,7 +2107,7 @@ void DMG_SIO::singer_izek_update()
 			else if(singer_izek.cam_y < 0) { singer_izek.cam_y = 0; }
 
 			//Wait every 30 frames before updating stitching animation
-			if((singer_izek.frame_counter % 1000) == 0)
+			if((singer_izek.frame_counter % speed) == 0)
 			{
 				//Animate stitching
 				if((mem->g_pad->con_flags & 0x100) || (singer_izek.auto_stitching))
@@ -2115,13 +2130,14 @@ void DMG_SIO::singer_izek_update()
 							singer_izek.current_animation_index = 0;
 							singer_izek.current_index = 0;
 							singer_izek.reset_stitching = false;
-					}
+						}
 
 						//Stop if doing auto-stitching for EM-2000
 						else if(singer_izek.device_mode == 1)
 						{
 							singer_izek.auto_stitching = false;
 							singer_izek.is_stitching = false;
+							singer_izek.reset_stitching = false;
 						}
 					}
 
@@ -2150,15 +2166,26 @@ void DMG_SIO::singer_izek_update()
 
 			op_name = "THREAD RED";
 			draw_osd_msg(op_name, singer_izek.stitch_buffer, 1, 0, 500);
-
-			op_name = "THREAD BLUE";
-			draw_osd_msg(op_name, singer_izek.stitch_buffer, 1, 1, 500);
+			op_name = util::to_str((singer_izek.thread_color >> 16) & 0xFF);
+			draw_osd_msg(op_name, singer_izek.stitch_buffer, 16, 0, 500);
 
 			op_name = "THREAD GREEN";
+			draw_osd_msg(op_name, singer_izek.stitch_buffer, 1, 1, 500);
+			op_name = util::to_str((singer_izek.thread_color >> 8) & 0xFF);
+			draw_osd_msg(op_name, singer_izek.stitch_buffer, 16, 1, 500);
+
+			op_name = "THREAD BLUE";
 			draw_osd_msg(op_name, singer_izek.stitch_buffer, 1, 2, 500);
+			op_name = util::to_str(singer_izek.thread_color & 0xFF);
+			draw_osd_msg(op_name, singer_izek.stitch_buffer, 16, 2, 500);
+
+			op_name = "SPEED";
+			draw_osd_msg(op_name, singer_izek.stitch_buffer, 1, 3, 500);
+			op_name = util::to_str(singer_izek.speed);
+			draw_osd_msg(op_name, singer_izek.stitch_buffer, 16, 3, 500);
 
 			op_name = "RETURN";
-			draw_osd_msg(op_name, singer_izek.stitch_buffer, 1, 3, 500);
+			draw_osd_msg(op_name, singer_izek.stitch_buffer, 1, 4, 500);
 
 			//Draw cursor
 			op_name = "*";
@@ -2184,8 +2211,12 @@ void DMG_SIO::singer_izek_update()
 				}
 			}
 
-			if((singer_izek.frame_counter % 1000) == 0)
+			if((singer_izek.frame_counter % speed) == 0)
 			{
+				u8 red = (singer_izek.thread_color >> 16) & 0xFF;
+				u8 green = (singer_izek.thread_color >> 8) & 0xFF;
+				u8 blue = singer_izek.thread_color & 0xFF;
+
 				//Move cursor up
 				if((mem->g_pad->con_flags & 0x4) && ((mem->g_pad->con_flags & 0x100) == 0))
 				{
@@ -2195,18 +2226,45 @@ void DMG_SIO::singer_izek_update()
 				//Move cursor down
 				else if((mem->g_pad->con_flags & 0x8) && ((mem->g_pad->con_flags & 0x100) == 0))
 				{
-					if(stat < 3) { stat++; }
+					if(stat < 4) { stat++; }
 				}
 
+				//Decrease thread red value
+				if((stat == 0) && (mem->g_pad->con_flags & 0x1) && (red > 0)) { red--; }
+
+				//Increase thread red value
+				else if((stat == 0) && (mem->g_pad->con_flags & 0x2) && (red < 255)) { red++; }
+
+				//Decrease thread green value
+				else if((stat == 1) && (mem->g_pad->con_flags & 0x1) && (green > 0)) { green--; }
+
+				//Increase thread green value
+				else if((stat == 1) && (mem->g_pad->con_flags & 0x2) && (green < 255)) { green++; }
+
+				//Decrease thread blue value
+				else if((stat == 2) && (mem->g_pad->con_flags & 0x1) && (blue > 0)) { blue--; }
+
+				//Increase thread blue value
+				else if((stat == 2) && (mem->g_pad->con_flags & 0x2) && (blue < 255)) { blue++; }
+
+				//Decrease sewing speed
+				else if((stat == 3) && (mem->g_pad->con_flags & 0x1) && (singer_izek.speed > 0)) { singer_izek.speed--; }
+
+				//Increase thread blue value
+				else if((stat == 3) && (mem->g_pad->con_flags & 0x2) && (singer_izek.speed < 5)) { singer_izek.speed++; }
+
 				//Exit menu
-				if((stat == 3) && (mem->g_pad->con_flags & 0x100))
+				else if((stat == 4) && (mem->g_pad->con_flags & 0x100))
 				{
 					stat = 0;
 					singer_izek.sub_screen_status = 0;
+					singer_izek.frame_counter = 0;
 
 					//Restore stitch buffer
 					singer_izek.stitch_buffer = singer_izek.temp_buffer;
-				}	
+				}
+
+				singer_izek.thread_color = 0xFF000000 | (red << 16) | (green << 8) | blue;
 			}
 
 			singer_izek.sub_screen_status &= ~0xF;
@@ -2392,7 +2450,7 @@ void DMG_SIO::singer_izek_draw_line()
 		//Only draw on-screen objects
 		if((buffer_pos < buffer_size) && (buffer_pos >= 0))
 		{
-			singer_izek.stitch_buffer[buffer_pos] = 0xFF000000;
+			singer_izek.stitch_buffer[buffer_pos] = singer_izek.thread_color;
 		}
 
 		x_coord += x_inc;

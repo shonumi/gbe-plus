@@ -171,8 +171,10 @@ class DMG_SIO
 		singer_izek_state current_state;
 
 		//Subscreen stuff
-		u8 frame_counter;
+		u8 speed;
+		u16 frame_counter;
 		u32 current_animation_index;
+		u32 thread_color;
 		s32 x_offset;
 		s32 y_offset;
 		s32 cam_x;
