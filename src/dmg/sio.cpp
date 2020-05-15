@@ -1879,13 +1879,6 @@ void DMG_SIO::singer_izek_fill_buffer(u32 index_start, u32 index_end)
 			}
 		}
 	}
-
-	/*		
-	SDL_Surface* tmp_s = SDL_CreateRGBSurface(SDL_SWSURFACE, 500, 500, 32, 0, 0, 0, 0);
-	u32* out_pixel_data = (u32*)tmp_s->pixels;
-	for(u32 x = 0; x < 0x3D090; x++) { out_pixel_data[x] = singer_izek.stitch_buffer[x]; }
-	SDL_SaveBMP(tmp_s, "YO.bmp");
-	*/
 }
 
 /****** Plots points for stitching******/
@@ -1999,6 +1992,7 @@ void DMG_SIO::singer_izek_calculate_coordinates()
 /****** Updates sewing machine subscreen on input ******/
 void DMG_SIO::singer_izek_update()
 {
+	std::cout<<"UPDATE 2\n\n";
 	singer_izek.frame_counter++;
 
 	//Start stitching
@@ -2184,8 +2178,14 @@ void DMG_SIO::singer_izek_update()
 			op_name = util::to_str(singer_izek.speed);
 			draw_osd_msg(op_name, singer_izek.stitch_buffer, 16, 3, 500);
 
-			op_name = "RETURN";
+			op_name = "CLEAR SCREEN";
 			draw_osd_msg(op_name, singer_izek.stitch_buffer, 1, 4, 500);
+
+			op_name = "SAVE SCREEN";
+			draw_osd_msg(op_name, singer_izek.stitch_buffer, 1, 5, 500);
+
+			op_name = "RETURN";
+			draw_osd_msg(op_name, singer_izek.stitch_buffer, 1, 6, 500);
 
 			//Draw cursor
 			op_name = "*";
@@ -2211,7 +2211,7 @@ void DMG_SIO::singer_izek_update()
 				}
 			}
 
-			if((singer_izek.frame_counter % speed) == 0)
+			if((singer_izek.frame_counter % 300) == 0)
 			{
 				u8 red = (singer_izek.thread_color >> 16) & 0xFF;
 				u8 green = (singer_izek.thread_color >> 8) & 0xFF;
@@ -2226,7 +2226,7 @@ void DMG_SIO::singer_izek_update()
 				//Move cursor down
 				else if((mem->g_pad->con_flags & 0x8) && ((mem->g_pad->con_flags & 0x100) == 0))
 				{
-					if(stat < 4) { stat++; }
+					if(stat < 6) { stat++; }
 				}
 
 				//Decrease thread red value
@@ -2253,8 +2253,37 @@ void DMG_SIO::singer_izek_update()
 				//Increase thread blue value
 				else if((stat == 3) && (mem->g_pad->con_flags & 0x2) && (singer_izek.speed < 5)) { singer_izek.speed++; }
 
-				//Exit menu
+				//Clear screen
 				else if((stat == 4) && (mem->g_pad->con_flags & 0x100))
+				{
+					singer_izek.temp_buffer.clear();
+					singer_izek.temp_buffer.resize(0x3D090, 0xFFFFFFFF);
+				}
+
+				//Save screen
+				else if((stat == 5) && (mem->g_pad->con_flags & 0x100))
+				{
+					std::string save_name = config::ss_path;
+
+					//Prefix SDL Ticks to screenshot name
+					save_name += util::to_str(SDL_GetTicks());
+
+					//Append random number to screenshot name
+					srand(SDL_GetTicks());
+					save_name += util::to_str(rand() % 1024);
+					save_name += util::to_str(rand() % 1024);
+					save_name += util::to_str(rand() % 1024);
+					save_name += util::to_str(rand() % 1024);
+					save_name += ".bmp";
+
+					SDL_Surface* tmp_s = SDL_CreateRGBSurface(SDL_SWSURFACE, 500, 500, 32, 0, 0, 0, 0);
+					u32* out_pixel_data = (u32*)tmp_s->pixels;
+					for(u32 x = 0; x < singer_izek.temp_buffer.size(); x++) { out_pixel_data[x] = singer_izek.temp_buffer[x]; }
+					SDL_SaveBMP(tmp_s, save_name.c_str());
+				}
+
+				//Exit menu
+				else if((stat == 6) && (mem->g_pad->con_flags & 0x100))
 				{
 					stat = 0;
 					singer_izek.sub_screen_status = 0;
