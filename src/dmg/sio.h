@@ -172,6 +172,7 @@ class DMG_SIO
 
 		//Subscreen stuff
 		u8 speed;
+		u8 thickness;
 		u16 frame_counter;
 		u32 current_animation_index;
 		u32 thread_color;
