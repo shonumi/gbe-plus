@@ -2172,14 +2172,19 @@ void DMG_SIO::singer_izek_update()
 		op_name = (singer_izek.thickness) ? "2PX" : "1PX";
 		draw_osd_msg(op_name, singer_izek.stitch_buffer, 16, 4, 500);
 
-		op_name = "CLEAR SCREEN";
+		op_name = "EM 2000";
 		draw_osd_msg(op_name, singer_izek.stitch_buffer, 1, 5, 500);
+		op_name = (singer_izek.device_mode) ? "ON" : "OFF";
+		draw_osd_msg(op_name, singer_izek.stitch_buffer, 16, 5, 500);
 
-		op_name = "SAVE SCREEN";
+		op_name = "CLEAR SCREEN";
 		draw_osd_msg(op_name, singer_izek.stitch_buffer, 1, 6, 500);
 
-		op_name = "RETURN";
+		op_name = "SAVE SCREEN";
 		draw_osd_msg(op_name, singer_izek.stitch_buffer, 1, 7, 500);
+
+		op_name = "RETURN";
+		draw_osd_msg(op_name, singer_izek.stitch_buffer, 1, 8, 500);
 
 		//Draw cursor
 		op_name = "*";
@@ -2220,7 +2225,7 @@ void DMG_SIO::singer_izek_update()
 			//Move cursor down
 			else if((mem->g_pad->con_flags & 0x8) && ((mem->g_pad->con_flags & 0x100) == 0))
 			{
-				if(stat < 7) { stat++; }
+				if(stat < 8) { stat++; }
 			}
 
 			//Decrease thread red value
@@ -2253,15 +2258,21 @@ void DMG_SIO::singer_izek_update()
 			//Increase thread thickness
 			else if((stat == 4) && (mem->g_pad->con_flags & 0x2) && (!singer_izek.thickness)) { singer_izek.thickness++; }
 
+			//Detach EM-2000
+			else if((stat == 5) && (mem->g_pad->con_flags & 0x1) && (singer_izek.device_mode)) { singer_izek.device_mode--; }
+
+			//Attach EM-2000
+			else if((stat == 5) && (mem->g_pad->con_flags & 0x2) && (!singer_izek.device_mode)) { singer_izek.device_mode++; }
+
 			//Clear screen
-			else if((stat == 5) && (mem->g_pad->con_flags & 0x100))
+			else if((stat == 6) && (mem->g_pad->con_flags & 0x100))
 			{
 				singer_izek.temp_buffer.clear();
 				singer_izek.temp_buffer.resize(0x3D090, 0xFFFFFFFF);
 			}
 
 			//Save screen
-			else if((stat == 6) && (mem->g_pad->con_flags & 0x100))
+			else if((stat == 7) && (mem->g_pad->con_flags & 0x100))
 			{
 				std::string save_name = config::ss_path;
 
@@ -2283,7 +2294,7 @@ void DMG_SIO::singer_izek_update()
 			}
 
 			//Exit menu
-			else if((stat == 7) && (mem->g_pad->con_flags & 0x100))
+			else if((stat == 8) && (mem->g_pad->con_flags & 0x100))
 			{
 				stat = 0;
 				singer_izek.sub_screen_status = 0;
