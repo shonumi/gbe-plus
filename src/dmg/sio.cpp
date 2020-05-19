@@ -421,6 +421,7 @@ void DMG_SIO::reset()
 	singer_izek.frame_counter = 0;
 	singer_izek.speed = 0;
 	singer_izek.thickness = 0;
+	singer_izek.old_flags = 0;
 	singer_izek.thread_color = 0xFF000000;
 	singer_izek.current_animation_index = 0;
 	singer_izek.x_offset = 0;
@@ -2272,8 +2273,10 @@ void DMG_SIO::singer_izek_update()
 			}
 
 			//Save screen
-			else if((stat == 7) && (mem->g_pad->con_flags & 0x100))
+			else if((stat == 7) && (mem->g_pad->con_flags & 0x100) && ((singer_izek.old_flags & 0x100) == 0))
 			{
+				std::cout<<"SAVE\n";
+
 				std::string save_name = config::ss_path;
 
 				//Prefix SDL Ticks to screenshot name
@@ -2305,6 +2308,7 @@ void DMG_SIO::singer_izek_update()
 			}
 
 			singer_izek.thread_color = 0xFF000000 | (red << 16) | (green << 8) | blue;
+			singer_izek.old_flags = mem->g_pad->con_flags;
 		}
 
 		singer_izek.sub_screen_status &= ~0xF;
@@ -2351,8 +2355,19 @@ void DMG_SIO::singer_izek_update()
 	}
 
 	//Continue updating
-	if((singer_izek.auto_stitching) || (mem->g_pad->con_flags & 0x1FF)) { mem->g_pad->con_flags |= 0x800; }
-	else { mem->g_pad->con_update &= ~0x800; }
+	if((singer_izek.auto_stitching) || (mem->g_pad->con_flags & 0x1FF))
+	{
+		mem->g_pad->con_flags |= 0x800;
+	}
+
+	else
+	{
+		mem->g_pad->con_flags &= ~0x800;
+		singer_izek.old_flags = 0;
+	}
+
+	std::cout<<"OLD FLAGS -> 0x" << std::hex << singer_izek.old_flags << "\n";
+	std::cout<<"CON FLAGS -> 0x" << std::hex << mem->g_pad->con_flags << "\n";
 
 	mem->g_pad->con_update = false;
 }
