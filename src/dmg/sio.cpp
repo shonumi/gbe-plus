@@ -2352,6 +2352,22 @@ void DMG_SIO::singer_izek_update()
 				if(dst_buffer_pos < mem->sub_screen_buffer.size()) { mem->sub_screen_buffer[dst_buffer_pos] = color; }
 			}
 		}
+
+		//Draw cursor
+		if((singer_izek.sub_screen_status & 0x80) == 0)
+		{
+			for(u32 z = 0; z < 9; z++)
+			{
+				s32 zx = 76 + z;
+				s32 zy = 68 + z;
+
+				u32 buffer_pos_x = (72 * 160) + zx;
+				u32 buffer_pos_y = (zy * 160) + 80; 
+			
+				if(buffer_pos_x < mem->sub_screen_buffer.size()) { mem->sub_screen_buffer[buffer_pos_x] = 0xFF000000; }
+				if(buffer_pos_y < mem->sub_screen_buffer.size()) { mem->sub_screen_buffer[buffer_pos_y] = 0xFF000000; }
+			}
+		}
 	}
 
 	//Continue updating
@@ -2365,9 +2381,6 @@ void DMG_SIO::singer_izek_update()
 		mem->g_pad->con_flags &= ~0x800;
 		singer_izek.old_flags = 0;
 	}
-
-	std::cout<<"OLD FLAGS -> 0x" << std::hex << singer_izek.old_flags << "\n";
-	std::cout<<"CON FLAGS -> 0x" << std::hex << mem->g_pad->con_flags << "\n";
 
 	mem->g_pad->con_update = false;
 }
