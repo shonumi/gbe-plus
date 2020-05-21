@@ -2260,10 +2260,20 @@ void DMG_SIO::singer_izek_update()
 			else if((stat == 4) && (mem->g_pad->con_flags & 0x2) && (!singer_izek.thickness)) { singer_izek.thickness++; }
 
 			//Detach EM-2000
-			else if((stat == 5) && (mem->g_pad->con_flags & 0x1) && (singer_izek.device_mode)) { singer_izek.device_mode--; }
+			else if((stat == 5) && (mem->g_pad->con_flags & 0x1) && (singer_izek.device_mode))
+			{
+				singer_izek.device_mode--;
+				singer_izek.x_offset = singer_izek.cam_x;
+				singer_izek.y_offset = singer_izek.cam_y;
+			}
 
 			//Attach EM-2000
-			else if((stat == 5) && (mem->g_pad->con_flags & 0x2) && (!singer_izek.device_mode)) { singer_izek.device_mode++; }
+			else if((stat == 5) && (mem->g_pad->con_flags & 0x2) && (!singer_izek.device_mode))
+			{
+				singer_izek.device_mode++;
+				singer_izek.x_offset = 0;
+				singer_izek.y_offset = 0;
+			}
 
 			//Clear screen
 			else if((stat == 6) && (mem->g_pad->con_flags & 0x100))
