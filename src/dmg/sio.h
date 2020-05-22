@@ -175,6 +175,7 @@ class DMG_SIO
 		u8 thickness;
 		u16 old_flags;
 		u16 frame_counter;
+		u32 last_animation_index;
 		u32 current_animation_index;
 		u32 thread_color;
 		s32 x_offset;

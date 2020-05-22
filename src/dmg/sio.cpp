@@ -417,6 +417,8 @@ void DMG_SIO::reset()
 	singer_izek.current_state = SINGER_PING;
 	singer_izek.idle_count = 0;
 	singer_izek.counter = 0;
+	singer_izek.start_x = 0;
+	singer_izek.start_y = 0;
 
 	singer_izek.frame_counter = 0;
 	singer_izek.speed = 0;
@@ -1727,8 +1729,9 @@ void DMG_SIO::singer_izek_data_process()
 
 					singer_izek.cam_x = singer_izek.start_x;
 					singer_izek.cam_y = singer_izek.start_y;
-					singer_izek_update();
 				}
+
+				singer_izek_update();
 			}
 
 			//Grab stitch coordinate data
@@ -2101,6 +2104,7 @@ void DMG_SIO::singer_izek_update()
 				//Animate normally
 				if(next_index <= singer_izek.y_plot.size())
 				{
+					singer_izek.last_animation_index = singer_izek.current_animation_index;
 					singer_izek_fill_buffer(singer_izek.current_animation_index, next_index);
 					singer_izek.current_animation_index++;
 				}
@@ -2285,8 +2289,6 @@ void DMG_SIO::singer_izek_update()
 			//Save screen
 			else if((stat == 7) && (mem->g_pad->con_flags & 0x100) && ((singer_izek.old_flags & 0x100) == 0))
 			{
-				std::cout<<"SAVE\n";
-
 				std::string save_name = config::ss_path;
 
 				//Prefix SDL Ticks to screenshot name
@@ -2370,9 +2372,10 @@ void DMG_SIO::singer_izek_update()
 			{
 				s32 zx = 76 + z;
 				s32 zy = 68 + z;
+				u8 x_inc = singer_izek.device_mode ? 0 : singer_izek.start_x;
 
-				u32 buffer_pos_x = (72 * 160) + zx;
-				u32 buffer_pos_y = (zy * 160) + 80; 
+				u32 buffer_pos_x = (72 * 160) + zx + x_inc;
+				u32 buffer_pos_y = (zy * 160) + 80 + x_inc; 
 			
 				if(buffer_pos_x < mem->sub_screen_buffer.size()) { mem->sub_screen_buffer[buffer_pos_x] = 0xFF000000; }
 				if(buffer_pos_y < mem->sub_screen_buffer.size()) { mem->sub_screen_buffer[buffer_pos_y] = 0xFF000000; }
