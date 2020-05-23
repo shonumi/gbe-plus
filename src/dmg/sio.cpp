@@ -417,6 +417,10 @@ void DMG_SIO::reset()
 	singer_izek.current_state = SINGER_PING;
 	singer_izek.idle_count = 0;
 	singer_izek.counter = 0;
+	singer_izek.current_x = 0;
+	singer_izek.current_y = 0;
+	singer_izek.last_x = 0;
+	singer_izek.last_y = 0;
 	singer_izek.start_x = 0;
 	singer_izek.start_y = 0;
 
@@ -1722,7 +1726,17 @@ void DMG_SIO::singer_izek_data_process()
 				singer_izek.current_index = 0;
 				singer_izek.current_state = SINGER_PING;
 
-				if(singer_izek.device_mode == 1)
+				if(singer_izek.device_mode == 0)
+				{
+					singer_izek.last_x = singer_izek.current_x;
+					singer_izek.last_y = 0;
+					singer_izek.current_y = 0;
+
+					singer_izek.x_offset = (singer_izek.cam_x + singer_izek.start_x) - singer_izek.current_x;
+					singer_izek.y_offset = singer_izek.cam_y;
+				}
+
+				else if(singer_izek.device_mode == 1)
 				{
 					singer_izek.auto_stitching = true;
 					singer_izek.is_stitching = true;
@@ -2138,7 +2152,7 @@ void DMG_SIO::singer_izek_update()
 		{
 			if(singer_izek.device_mode == 0)
 			{
-				singer_izek.x_offset = singer_izek.cam_x;
+				singer_izek.x_offset = (singer_izek.cam_x + singer_izek.start_x) - singer_izek.current_x;
 				singer_izek.y_offset = singer_izek.cam_y;
 			}
 		}
