@@ -42,7 +42,7 @@ void AGB_SIO::mobile_adapter_process()
 			}
 
 			//Send data back to GBA + IRQ
-			mem->memory_map[SIO_DATA_8] = 0x4B;
+			mem->memory_map[SIO_DATA_8] = 0xD2;
 			if(sio_stat.cnt & 0x4000) { mem->memory_map[REG_IF] |= 0x80; }
 			sio_stat.cnt &= ~0x80;
 			
@@ -69,7 +69,7 @@ void AGB_SIO::mobile_adapter_process()
 			}
 			
 			//Send data back to GBA + IRQ
-			mem->memory_map[SIO_DATA_8] = 0x4B;
+			mem->memory_map[SIO_DATA_8] = 0xD2;
 			if(sio_stat.cnt & 0x4000) { mem->memory_map[REG_IF] |= 0x80; }
 			sio_stat.cnt &= ~0x80;
 			
@@ -90,7 +90,7 @@ void AGB_SIO::mobile_adapter_process()
 			}
 
 			//Send data back to GBA + IRQ
-			mem->memory_map[SIO_DATA_8] = 0x4B;
+			mem->memory_map[SIO_DATA_8] = 0xD2;
 			if(sio_stat.cnt & 0x4000) { mem->memory_map[REG_IF] |= 0x80; }
 			sio_stat.cnt &= ~0x80;
 
@@ -109,7 +109,7 @@ void AGB_SIO::mobile_adapter_process()
 				mobile_adapter.checksum = (sio_stat.transfer_data << 8);
 
 				//Send data back to GBA + IRQ
-				mem->memory_map[SIO_DATA_8] = 0x4B;
+				mem->memory_map[SIO_DATA_8] = 0xD2;
 				if(sio_stat.cnt & 0x4000) { mem->memory_map[REG_IF] |= 0x80; }
 				sio_stat.cnt &= ~0x80;
 			}
@@ -134,7 +134,7 @@ void AGB_SIO::mobile_adapter_process()
 					mobile_adapter.current_state = AGB_GBMA_ACKNOWLEDGE_PACKET;
 
 					//Send data back to GBA + IRQ
-					mem->memory_map[SIO_DATA_8] = 0x4B;
+					mem->memory_map[SIO_DATA_8] = 0xD2;
 					if(sio_stat.cnt & 0x4000) { mem->memory_map[REG_IF] |= 0x80; }
 					sio_stat.cnt &= ~0x80;
 				}
@@ -176,7 +176,7 @@ void AGB_SIO::mobile_adapter_process()
 				else
 				{
 					mobile_adapter.packet_size = 0;
-					mem->memory_map[SIO_DATA_8] = 0x4B;
+					mem->memory_map[SIO_DATA_8] = 0xD2;
 					if(sio_stat.cnt & 0x4000) { mem->memory_map[REG_IF] |= 0x80; }
 					sio_stat.cnt &= ~0x80;
 				}	

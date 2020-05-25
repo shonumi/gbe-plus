@@ -42,7 +42,7 @@ void DMG_SIO::mobile_adapter_process()
 			}
 
 			//Send data back to GB + IRQ
-			mem->memory_map[REG_SB] = 0x4B;
+			mem->memory_map[REG_SB] = 0xD2;
 			mem->memory_map[IF_FLAG] |= 0x08;
 			
 			break;
@@ -68,7 +68,7 @@ void DMG_SIO::mobile_adapter_process()
 			}
 			
 			//Send data back to GB + IRQ
-			mem->memory_map[REG_SB] = 0x4B;
+			mem->memory_map[REG_SB] = 0xD2;
 			mem->memory_map[IF_FLAG] |= 0x08;
 			
 			break;
@@ -88,7 +88,7 @@ void DMG_SIO::mobile_adapter_process()
 			}
 
 			//Send data back to GB + IRQ
-			mem->memory_map[REG_SB] = 0x4B;
+			mem->memory_map[REG_SB] = 0xD2;
 			mem->memory_map[IF_FLAG] |= 0x08;
 
 			break;
@@ -106,7 +106,7 @@ void DMG_SIO::mobile_adapter_process()
 				mobile_adapter.checksum = (sio_stat.transfer_byte << 8);
 
 				//Send data back to GB + IRQ
-				mem->memory_map[REG_SB] = 0x4B;
+				mem->memory_map[REG_SB] = 0xD2;
 				mem->memory_map[IF_FLAG] |= 0x08;
 			}
 
@@ -130,7 +130,7 @@ void DMG_SIO::mobile_adapter_process()
 					mobile_adapter.current_state = GBMA_ACKNOWLEDGE_PACKET;
 
 					//Send data back to GB + IRQ
-					mem->memory_map[REG_SB] = 0x4B;
+					mem->memory_map[REG_SB] = 0xD2;
 					mem->memory_map[IF_FLAG] |= 0x08;
 				}
 
@@ -169,7 +169,7 @@ void DMG_SIO::mobile_adapter_process()
 				else
 				{
 					mobile_adapter.packet_size = 0;
-					mem->memory_map[REG_SB] = 0x4B;
+					mem->memory_map[REG_SB] = 0xD2;
 					mem->memory_map[IF_FLAG] |= 0x08;
 				}	
 			}
