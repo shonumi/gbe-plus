@@ -1,0 +1,351 @@
+Game Boy Sewing Machine Documentation 0.1
+April 11th, 2020
+Shonumi aka D.S. Baxter
+
+***************************************************
+1. Introduction
+***************************************************  
+
+In 2000, 3 different sewing machines were released that featured connectivity with the Nintendo Game Boy. The Jaguar JN-100 and later the Jaguar JN-2000 were released in Japan, while the Singer IZEK-1500 was released in the US later. Presumably a Jaguar JN-100 model of some sort was also released in Europe. Each machine comes with a built-in Link Cable that allows a Game Boy running specialty software to send various stitching commands. With this, the Game Boy dictates sewing for patterns, buttonholes, and embroidery. Aside from their novelty, these devices mark one of the first attempts at pushing afforable programmable sewing machines to average consumers.
+
+
+***************************************************
+2. General Hardware Information
+***************************************************
+
+Singer IZEK-1500
+---------------------------------------------------
+* Released for Singer's 150th anniversary.
+* Has a compartment near the back to hold the Link Cable.
+* Nearly identical to the Jaguar JN-100 in all physical aspects.
+* Unlike the JN-2000, the IZEK 1500 lacks a connection for an embroidery arm. The power cable is also detachable.
+* Comes in only 1 color (blue/teal).
+
+Jaguar JN-100
+---------------------------------------------------
+* Nearly identical to the Singer IZEK-1500 in all physical aspects.
+* Unlike the JN-2000, the JN-100 lacks a connection for an embroidery arm. The power cable is built in.
+* Comes in 4 colors (pink, clear, pale green, blue) with 2 additional colors possibly planned but never released (violet, orange)
+
+Jaguar JN-2000
+---------------------------------------------------
+* Different body style from the JN-100 or IZEK-1500. Very similar to the Jaguar SP-3000 series or the Singer CE-200.
+* Link Cable is not inside a compartment. It sits as part of a slot where the Game Boy is supposed to rest. Power cable is built in.
+* Comes with an embroidery arm, the EM-2000.
+* Comes in 1 color (red).
+
+
+***************************************************
+3. Compatible Software
+***************************************************
+
+[-] = Not compatible
+[x] = Compatible
+[!] = Compatible ONLY with an embroidery arm
+
+- Sewing Machine Operation Software
+	[x] IZEK-1500
+	[x] JN-100
+	[x] JN-2000
+
+- Raku x Raku Mishin
+	[x] IZEK-1500
+	[x] JN-100
+	[x] JN-2000
+
+- Raku x Raku Moji
+	[-] IZEK-1500
+	[-] JN-100
+	[!] JN-2000
+
+- Raku x Raku Cut Shuu
+	[-] IZEK-1500
+	[-] JN-100
+	[!] JN-2000
+
+- Jaguar Mishin Sashi Senyou Soft: Mario Family
+	[-] IZEK-1500
+	[-] JN-100
+	[!] JN-2000
+
+A majority of the software was released exclusively to take advantage of the EM-2000 embroidery arm. Sewing Machine Operation Software and Raku x Raku Mishin are functionally identical, save for some cosmetic differences and offering Latin character stitching instead of kana. Otherwise, an IZEK-1500 can use a the Japanese version of the software without issue and vice versa. The IZEK-1500 and the JN-100 cannot use Moji, Cut Shuu, or Mario Family as they have no slot to accept an embroidery arm. The JN-2000 is the ONLY sewing machine that can do embroidery. The general functionality of each piece of software is detailed below:
+
+Sewing Machine Operation Software
+* Stitches preset patterns, custom patterns, buttonholes, and Latin characters.
+
+Raku x Raku Mishin
+* Stitches preset patterns, custom patterns, buttonholes, and some Latin characters, and kana.
+
+Raku x Raku Moji
+* Embroiders kana, some Latin characters, and some kanji.
+
+Raku x Raku Cut Shuu
+* Embroiders designs (e.g. rocket ship, flowers, a dog, etc).
+
+Jaguar Mishin Sashi Senyou Soft: Mario Family
+* Embroiders various Mario-themed designs (mushroom, super star, Yoshi, etc).
+
+
+***************************************************
+4. Transmission Protocol
+***************************************************
+
+All communication between the sewing machines and the Game Boy happens via the attached Link Cable. The Game Boy and the sewing machine, however, alternate between which side uses an internal clock or an external clock. The general pattern is 2 external transfers followed by 1 internal transfer. On the first external transfer, the Game Boy sends a value of 0x00. Presumably before such a transfer can complete (literally a few CPU instuctions later), the Game Boy sends another external transfer, this time with actual data for the sewing machine. This transfer does finish, however, the clock rate provided by the sewing machine is currently unknown. On this transfer, the sewing machine sends back a single byte reporting its status. Finally the last transfer is sent by the Game Boy via an internal clock. The Game Boy sends 0x00 and the sewing machine responds with 0xFF.
+
+-------------------------------------------------
+Transfer Flow
+-------------------------------------------------
+External Transfer 1		| Short "dummy" transfer with 0x00. Quickly cancelled by next transfer
+External Transfer 2		| Payload data sent to sewing machine. Machine status may be returned
+Internal Transfer 1		| Send 0x00, receive 0xFF. Signals end of transfer for 1 byte
+-------------------------------------------------
+
+
+***************************************************
+5. Packet Format
+***************************************************
+
+For regular stitching and embroidery, data is transferred to each sewing machine in 128-byte packets containing stitch coordinate data. The format is described below:
+
+-------------------------------------------------
+Packet Format
+-------------------------------------------------
+Header				| 1st packet = 8 or 9 bytes, Other packets = 0 Bytes
+Real Coordinate Data		| 1st packet = 118 bytes, Other packets = 126 Bytes
+Checksum			| 2 Bytes
+-------------------------------------------------
+
+Headers only appear on the first packet sent to the machine when defining what to sew. Until the operating software finishes that definition, subsequent packets are headerless. Regular stitching and embroidery use two different headers. Each format is as follows:
+
+-------------------------------------------------
+Packet Header Bytes - Regular Stitching
+-------------------------------------------------
+0x00 - New Packet Control Code	| 0xB9
+0x01 - Checksum Seed LSB	| 0x00 - 0xFF
+0x02 - Checksum Seed MSB	| 0x00 - 0xFF
+0x03 - N/A			| 0x00
+0x04 - Virtual X Coordinate	| 0x00 - 0x20
+0x05 - N/A			| 0x00
+0x06 - Virtual Y Coordinate	| 0x00 - 0x20
+0x07 - N/A			| 0x00
+-------------------------------------------------
+
+
+-------------------------------------------------
+Packet Header Bytes - Embroidery
+-------------------------------------------------
+0x00 - New Packet Control Code	| 0xB9
+0x01 - Checksum Seed LSB	| 0x00 - 0xFF
+0x02 - Checksum Seed MSB	| 0x00 - 0xFF
+0x03 - N/A			| 0x00
+0x04 - N/A			| 0x00
+0x05 - X Offset LSB		| 0x00 - 0xFF
+0x06 - X Offset MSB		| 0x00 - 0xFF
+0x07 - Y Offset LSB		| 0x00 - 0xFF
+0x08 - Y Offset MSB		| 0x00 - 0xFF
+-------------------------------------------------
+
+The checksum is a 16-bit sum of all the previous packet bytes, including the header. The header appears to contain seeds as a means to influence the checksum.
+
+For regular stitching, the header contains two bytes that determine starting coordinates for stitching. The machines treat these as virtual coordinates that determine how to move towards the first pair of real coordinates where stitching actually begins. When repeating a pattern, the virtual coordinate data is ignored, and instead the machines begin processing at the start of real coordinate data.
+
+For embroidery, the header contains two 16-bit values that determine the initial offset where the machine will begin the pattern. The effective stitching area for embroidery ranges from 0xFED0 to 0xFFFF horizontally and from 0xFFFF to 0xFE30 vertically:
+
+0xFFFF = Right boundary
+0xFED0 = Left boundary
+
+0xFFFF = Top boundary
+0xFE30 = Bottom boundary
+
+Real coordinate data always comes in XY pairs. The values represent how far left/right or up/down the machine needs to shift the material when sewing. The format differs between regular stitching and embroidery. Both formats are as follows:
+
+-------------------------------------------------
+Real Coordinate Data - Regular Stitching
+-------------------------------------------------
+X Coordinate			| 0x00 - 0x1F
+Y Coordinate			| 0x00 - 0x20
+-------------------------------------------------
+
+
+-------------------------------------------------
+Real Coordinate Data - Embroidery
+-------------------------------------------------
+X Coordinate			| 0x00 - 0x10 and 0x40 - 0x50
+Y Coordinate			| 0x00 - 0x10 and 0x40 - 0x50
+-------------------------------------------------
+
+Each format's data has its own meaning and need to be interpreted separately; the logic for both are described later in the sections below. Real coordinate data contains a few bytes in between these pairs that signal what type of data the sewing machine can next expect from the Game Boy. These control codes are as follows:
+
+-------------------------------------------------
+Packet Control Codes
+-------------------------------------------------
+0xC1	| 1st byte after header. Signals start of a path.
+0xC2	| 1st byte after header. Signals start of a path.
+0xC3	| 1st byte after header. Signals start of a path.
+0xC4	| 1st byte after header. Signals start of a path.
+0xC7	| Signals a path end after next 4 bytes.
+0xB9	| Signals start of a new packet.
+0xBA	| Signals end of session (no more data, no more packets). Generally appears right before the checksum.
+0xBB	| Signals end of one packet in a multi-packet session. Appears right before the checksum
+0xBC	| Signals Real Coordinate Data has ended. The rest of the packet data is zero-filled.
+0xBE	| Signals start of Shift Coordinate Data for moving EM-2000 to new positions.
+0xBD	| Signals end of Shift Coordinate Data for moving EM-2000 to new positions.
+0xBF	| Signals end of session (no more data, no more packets). Generally appears right before the checksum.
+0xE7	| Signals a path end after next 4 bytes.
+0xF7	| Signals a path end after next 4 bytes.
+-------------------------------------------------
+
+
+A typical single-session packet might look like this:
+
+------------------------
+Header
+0xC1
+X Data
+Y Data
+...
+0xBC
+Zero-filled
+0xBF
+Checksum
+------------------------
+
+A typical multi-session might look like this:
+
+------------------------
+Header
+0xC1
+X Data
+Y Data
+...
+0xBB
+Checksum
+
+
+
+0xB9
+X Data
+Y Data
+...
+0xBC
+Zero-filled
+0xBF
+Checksum
+------------------------
+
+
+***************************************************
+6. Stitching Logic - Regular Stitching
+***************************************************
+
+X coordinates range from 0x00 (farthest point left) to 0x1F (farthest point right). Whenever the X coordinate changes, the machine will adjust the needle accordindly. Y coordinates are more complicated however, with regards to shifting up or down. The below chart details what values will shift the actual fabric (not the needle) vertically and how far:
+
+-------------------------------------------------
+0x00				Shift Down 1.25mm
+0x01				Shift Down 1.1875mm
+0x02				Shift Down 1.125mm
+0x03				Shift Down 1.0625mm
+0x04				Shift Down 1.0mm
+0x05				Shift Down 0.9375mm
+0x06				Shift Down 0.875mm
+0x07				Shift Down 0.8125mm
+0x08				Shift Down 0.75mm
+0x09				Shift Down 0.6875mm
+0x0A				Shift Down 0.625mm
+0x0B				Shift Down 0.5625mm
+0x0C				Shift Down 0.5mm
+0x0D				Shift Down 0.4375mm
+0x0E				Shift Down 0.375mm
+0x0F				Shift Down 0.3125mm
+0x10				Shift Down 0.25mm
+0x11				Shift Down 0.1875mm
+0x12				Shift Down 0.125mm
+0x13				Shift Down 0.0625mm
+0x14				No Change
+0x15				Shift Up 0.0625mm
+0x16				Shift Up 0.125mm
+0x17				Shift Up 0.1875mm
+0x18				Shift Up 0.25mm
+0x19				Shift Up 0.3125mm
+0x1A				Shift Up 0.375mm
+0x1B				Shift Up 0.4375mm
+0x1C				Shift Up 0.5mm
+0x1D				Shift Up 0.5625mm
+0x1E				Shift Up 0.625mm
+0x1F				Shift Up 0.6875mm
+0x20				Shift Up 0.75mm
+-------------------------------------------------
+
+Ultimately, the sewing machines can program stitching to move vertically in 0.0625 increments and horizontally in 0.25 increments. Horizontal movement is limited to a set "window", e.g. setting multiple X coordinates to 0x1F keeps the stitching at farthest point right. Vertical movement is unlimited, as the machines will move the fabric up or down like a feed.
+
+
+***************************************************
+7. Stitching Logic - Embroidery
+***************************************************
+
+X and Y coordinates use Bit 6 to determine whether the embroidery arm must move in a positive or negative direction, after which the machine will stitch once. The distance of each movement can be calculated as such:
+
+IF X COORDINATE AND 0x40
+	THEN X -= (X COORDINATE - 0x40)
+ELSE
+	X += X COORDINATE
+
+
+IF Y COORDINATE AND 0x40
+	THEN Y -= (Y COORDINATE - 0x40)
+ELSE
+	Y += Y COORDINATE
+
+At certain point during embroidery, the embroidery arm must shift to a different area. The designs themselves are broken into multiple parts that are stitched continuously. When a new section that is not continuous with the current one must be stitched, the machine receives Shift Coordinate Data that dictate where to move next. This data always begins with the control code 0xBE and ends with the control code 0xBD. Typically, the path also ends (control code 0xE7 or 0xC7) right before the Shift Coordinate Data is sent. Shift Coordinate Data has the following format:
+
+-------------------------------------------------
+Shift Coordinate Data
+-------------------------------------------------
+0xBE				| Data Start
+X Shift LSB			| 0x00 - 0xFF
+X Shift MSB			| 0x00 - 0xFF
+Y Shift LSB			| 0x00 - 0xFF
+Y Shift MSB			| 0x00 - 0xFF
+0xFF				| Signals additional 16-bit XY shifts if applicable
+...				|
+Additional XY shifts		|
+...				|
+0xBD				| Data End
+-------------------------------------------------
+
+The distance shifted horizontally or vertically comes in 16-bit XY pairs. Note that these These values are very different from 16-bit offsets found in the header. While the 16-bit XY pair in the header represents an absolute position, the Shift Coordinate Data operates on relative positioning. That is to say, the embroidery arm will shift up/down/left/right from the last position that was previously stitched. The 16-bit XY pairs for Shift Coordinate Data are calculated as such:
+
+IF X SHIFT >= 0xFF00
+	THEN X -= (0x10000 - X SHIFT)
+ELSE
+	X += (X SHIFT & 0xFF)
+
+
+IF Y SHIFT >= 0xFF00
+	THEN Y += (0x10000 - Y SHIFT)
+ELSE
+	Y -= (Y SHIFT & 0xFF)
+
+Multiple, additional shifts can be made. In that case, after each 16-bit XY pair, a 0xFF byte must follow along with the next 16-bit XY pair. The final XY pair, however, is simply terminated by the 0xBD control code.
+
+Note that sometimes the software sends shifts that result in no movement. These appear to be dummy shifts, perhaps for the sake of consistency when everything was programmed. These dummy shifts are often the last shifts to be made (and at times the only ones made).
+
+
+***************************************************
+8. Sewing Machine Status
+***************************************************
+
+The sewing machines report their status whenever the Game Boy sends the value 0x80 via external transfer. This byte describes various aspect of the machine during operation.
+
+-------------------------------------------------
+Status Byte
+-------------------------------------------------
+Bit 0 - Large Embroidery Hoop	| Used for EM-2000. If set, Bit 2 must also be set.
+Bit 1 - EM-2000 Attached	| 0 = Not attached, 1 = Attached,
+Bit 2 - Small Embroidery Hoop	| Must be set to use EM-2000 at all. If Bit 0 not set, defaults to small embroidery hoop.
+Bit 3 - N/A			| 
+Bit 4 - N/A			|
+Bit 5 - "SW" Button		| Used for EM-2000. Alerts software to advance to next segment of embroidery.
+Bit 6 - Foot Pedal		| 0 = Foot pedal is up, 1 = Foot pedal is pressed down.
+Bit 7 - Pause Operation		| Alerts software when sewing operations are immediately paused.
+-------------------------------------------------
