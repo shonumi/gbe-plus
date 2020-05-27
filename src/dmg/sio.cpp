@@ -2147,7 +2147,6 @@ void DMG_SIO::singer_izek_update()
 		{
 			if(singer_izek.device_mode == 0)
 			{
-				std::cout<<"UPDATE MATE\n";
 				singer_izek.x_offset = (singer_izek.cam_x + singer_izek.start_x) - singer_izek.current_x;
 				singer_izek.y_offset = singer_izek.cam_y;
 			}
@@ -2201,6 +2200,9 @@ void DMG_SIO::singer_izek_update()
 		op_name = "RETURN";
 		draw_osd_msg(op_name, singer_izek.stitch_buffer, 1, 8, 500);
 
+		op_name = "COLOR";
+		draw_osd_msg(op_name, singer_izek.stitch_buffer, 1, 10, 500);
+
 		//Draw cursor
 		op_name = "*";
 		draw_osd_msg(op_name, singer_izek.stitch_buffer, 0, stat, 500);
@@ -2222,6 +2224,16 @@ void DMG_SIO::singer_izek_update()
 			{
 				color = 0xFF000000;
 				singer_izek.stitch_buffer[x] = color;
+			}
+		}
+
+		//Display preview of thread color
+		for(u32 x = 0; x < 16; x++)
+		{
+			for(u32 y = 0; y < 16; y++)
+			{
+				u32 color_pos = ((80 + y) * 500) + (56 + x);
+				singer_izek.stitch_buffer[color_pos] = singer_izek.thread_color;
 			}
 		}
 
