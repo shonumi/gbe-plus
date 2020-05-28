@@ -25,7 +25,7 @@ Jaguar JN-100
 ---------------------------------------------------
 * Nearly identical to the Singer IZEK-1500 in all physical aspects.
 * Unlike the JN-2000, the JN-100 lacks a connection for an embroidery arm. The power cable is built in.
-* Comes in 4 colors (pink, clear, pale green, blue) with 2 additional colors possibly planned but never released (violet, orange)
+* Comes in 6 colors (pink, clear, pale green, blue, violet, orange)
 
 Jaguar JN-2000
 ---------------------------------------------------
@@ -39,31 +39,37 @@ Jaguar JN-2000
 3. Compatible Software
 ***************************************************
 
+System Compatibility
+[#] = DMG and GBC compatible
+[*] = GBC only 
+
+Sewing Machine Compatibility
 [-] = Not compatible
 [x] = Compatible
 [!] = Compatible ONLY with an embroidery arm
 
-- Sewing Machine Operation Software
+
+[#] Sewing Machine Operation Software
 	[x] IZEK-1500
 	[x] JN-100
 	[x] JN-2000
 
-- Raku x Raku Mishin
+[#] Raku x Raku Mishin
 	[x] IZEK-1500
 	[x] JN-100
 	[x] JN-2000
 
-- Raku x Raku Moji
+[*] Raku x Raku Moji
 	[-] IZEK-1500
 	[-] JN-100
 	[!] JN-2000
 
-- Raku x Raku Cut Shuu
+[*] Raku x Raku Cut Shuu
 	[-] IZEK-1500
 	[-] JN-100
 	[!] JN-2000
 
-- Jaguar Mishin Sashi Senyou Soft: Mario Family
+[*] Jaguar Mishin Sashi Senyou Soft: Mario Family
 	[-] IZEK-1500
 	[-] JN-100
 	[!] JN-2000
