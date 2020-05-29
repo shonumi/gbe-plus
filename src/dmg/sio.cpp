@@ -438,6 +438,7 @@ void DMG_SIO::reset()
 	singer_izek.is_stitching = false;
 	singer_izek.new_stitching = false;
 	singer_izek.auto_stitching = false;
+	singer_izek.repeat_stitching = true;
 	singer_izek.sub_screen_status = 0;
 
 	singer_izek.x_shift.clear();
@@ -1551,16 +1552,16 @@ void DMG_SIO::singer_izek_process()
 	{
 		if(singer_izek.device_mode == 0)
 		{
-			if(mem->g_pad->con_flags & 0x100) { singer_izek.status = 0x40; }
-			else { singer_izek.status = 0x00; }
+			if(mem->g_pad->con_flags & 0x100) { singer_izek.status |= 0x40; }
+			else { singer_izek.status &= ~0x40; }
 		}
 
 		//Set status when EM-2000 is attached
 		else if(singer_izek.device_mode == 1)
 		{
 			//Starts new section
-			if(mem->g_pad->con_flags & 0x100) { singer_izek.status = 0x27; }
-			else { singer_izek.status = 0x07; }
+			if(mem->g_pad->con_flags & 0x100) { singer_izek.status |= 0x20; }
+			else { singer_izek.status &= ~0x20; }
 		}
 	}
 
@@ -1591,6 +1592,7 @@ void DMG_SIO::singer_izek_data_process()
 			{
 				singer_izek.current_state = SINGER_SEND_HEADER;
 				singer_izek.counter = 0;
+				singer_izek.repeat_stitching = true;
 
 				singer_izek.current_index = 0;
 				singer_izek.plot_index = 0;
@@ -1697,6 +1699,9 @@ void DMG_SIO::singer_izek_data_process()
 			|| ((sio_data & 0xF0) == 0xC0) || ((sio_data & 0xF0) == 0xE0) || ((sio_data & 0xF0) == 0xF0))
 			{
 				singer_izek.counter = 0;
+
+				//End path
+				if((sio_data == 0xC7) || (sio_data == 0xE7) || (sio_data == 0xF7)) { singer_izek.repeat_stitching = false; }
 
 				if((sio_data == 0xF7) && (singer_izek.x_plot.size() != singer_izek.y_plot.size())) { singer_izek.x_plot.pop_back(); }
 				if((sio_data == 0xE7) && (singer_izek.x_plot.size() != singer_izek.y_plot.size())) { singer_izek.x_plot.pop_back(); }
@@ -2018,6 +2023,7 @@ void DMG_SIO::singer_izek_update()
 	else if(((mem->g_pad->con_flags & 0x100) == 0) && (singer_izek.is_stitching))
 	{
 		singer_izek.is_stitching = false;
+		
 	}
 
 	//Switch subscreen to menu
@@ -2121,16 +2127,16 @@ void DMG_SIO::singer_izek_update()
 				//Reset animation if necessary
 				if(singer_izek.current_animation_index == singer_izek.y_plot.size())
 				{
-					//Reset if doing regular stitching
-					if(singer_izek.device_mode == 0)
+					//Reset
+					if(singer_izek.repeat_stitching)
 					{
 						singer_izek.current_animation_index = 0;
 						singer_izek.current_index = 0;
 						singer_izek.reset_stitching = false;
 					}
 
-					//Stop if doing auto-stitching for EM-2000
-					else if(singer_izek.device_mode == 1)
+					//Stop
+					else
 					{
 						singer_izek.auto_stitching = false;
 						singer_izek.is_stitching = false;
@@ -2291,6 +2297,7 @@ void DMG_SIO::singer_izek_update()
 				singer_izek.device_mode--;
 				singer_izek.x_offset = singer_izek.cam_x;
 				singer_izek.y_offset = singer_izek.cam_y;
+				singer_izek.status = 0;
 			}
 
 			//Attach EM-2000
@@ -2299,6 +2306,7 @@ void DMG_SIO::singer_izek_update()
 				singer_izek.device_mode++;
 				singer_izek.x_offset = 0;
 				singer_izek.y_offset = 0;
+				singer_izek.status = 0x07;
 			}
 
 			//Clear screen

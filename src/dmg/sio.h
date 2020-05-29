@@ -186,6 +186,7 @@ class DMG_SIO
 		bool is_stitching;
 		bool new_stitching;
 		bool auto_stitching;
+		bool repeat_stitching;
 		u8 sub_screen_status;
 
 		std::vector<s32> x_shift;
