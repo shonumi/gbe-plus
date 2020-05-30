@@ -284,6 +284,24 @@ X coordinates range from 0x00 (farthest point left) to 0x1F (farthest point righ
 
 Ultimately, the sewing machines can program stitching to move vertically in 0.0625 increments and horizontally in 0.25 increments. Horizontal movement is limited to a set "window", e.g. setting multiple X coordinates to 0x1F keeps the stitching at farthest point right. Vertical movement is unlimited, as the machines will move the fabric up or down like a feed.
 
+While the X and Y coordinates come in pair, it is important to note how each affects the movement of the needle and fabric. The below example demonstrates how X and Y coordinates actually dictate movement, assuming there are only 4 sets of Real Coordinate data.
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+Data	| Location				| X movement			| Y movement
+----------------------------------------------------------------------------------------------------------------------------------------------------
+X0, Y0	| Virtual Coordinates from header	| Start at X0, move to X1	| IF Y1 >= 0x1A THEN Move fabric by Y1, ELSE Move fabric by Y0
+X1, Y1	| 1st set of Real Coordinates in packet	| Move needle from X1 to X2	| Move fabric by Y1
+X2, Y2	| 2nd set of Real Coordinates in packet	| Move needle from X2 to X3	| Move fabric by Y2
+X3, Y3	| 3rd set of Real Coordinates in packet | Move needle from X3 to X4	| Move fabric by Y3
+X4, Y4	| 4th set of Real Coordinates in packet	| Move needle from X4 to X1	| Move fabric by Y4
+----------------------------------------------------------------------------------------------------------------------------------------------------
+If the control codes 0xC7, 0xE7, or 0xF7 are not sent in one of the packets, the pattern continually loops as such:
+----------------------------------------------------------------------------------------------------------------------------------------------------
+X1, Y1	| 1st set of Real Coordinates in packet	| Move needle from X1 to X2	| Move fabric by Y1
+X2, Y2	| 2nd set of Real Coordinates in packet	| Move needle from X2 to X3	| Move fabric by Y2
+X3, Y3	| 3rd set of Real Coordinates in packet | Move needle from X3 to X4	| Move fabric by Y3
+X4, Y4	| 4th set of Real Coordinates in packet	| Move needle from X4 to X1	| Move fabric by Y4
+----------------------------------------------------------------------------------------------------------------------------------------------------
 
 ***************************************************
 7. Stitching Logic - Embroidery
