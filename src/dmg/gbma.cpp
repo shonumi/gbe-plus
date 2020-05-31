@@ -1001,7 +1001,11 @@ void DMG_SIO::mobile_adapter_process_http()
 			else
 			{
 				//Open TCP connection
-				if(!mobile_adapter_open_tcp(config::gbma_server_http_port)) { return; }
+				if(!mobile_adapter_open_tcp(config::gbma_server_http_port))
+				{
+					mobile_adapter.transfer_state = 1;
+					not_found = true;
+				}
 
 				#ifdef GBE_NETPLAY
 
@@ -1010,7 +1014,7 @@ void DMG_SIO::mobile_adapter_process_http()
 				std::string req_str = "";
 				std::string rep_str = "";
 				
-				if(req_start != std::string::npos)
+				if((req_start != std::string::npos) && (!not_found))
 				{
 					req_str = mobile_adapter.http_data.substr(req_start + 4);
 					std::size_t req_end = req_str.find(" ");
@@ -1031,7 +1035,7 @@ void DMG_SIO::mobile_adapter_process_http()
 				}
 
 				//Make HTTP request if a URL was parsed
-				if(!req_str.empty() && sender.host_init)
+				if(!req_str.empty() && sender.host_init && !not_found)
 				{
 					std::cout<<"SIO::Requesting URI from GB Mobile Adapter server - " << req_str << "\n";
 
