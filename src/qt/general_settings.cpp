@@ -166,7 +166,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	sio_dev->addItem("Progress Chip Gate");
 	sio_dev->addItem("Beast Link Gate");
 	sio_dev->addItem("Power Antenna");
-	sio_dev->addItem("Singer IZEK 1500");
+	sio_dev->addItem("Sewing Machine");
 	sio_dev->addItem("Multi Plust On System");
 	sio_dev->addItem("Turbo File GB/Advance");
 	sio_dev->addItem("AGB-006");
