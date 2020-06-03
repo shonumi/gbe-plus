@@ -42,6 +42,8 @@ This list represents all the games that have been verified to use the DMG-07. Th
 - Wave Race
 - Yoshi's Cookie
 
+Several games are claimed to be compatible but actual support for the DMG-07 remains dubious at best for those titles. Gauntlet II advertises 4-player action via the Link Cable, but this may simply refer to 2-player mode with each Game Boy controlling 2 characters (and switching among friends when appropiate). Micro Machines 1 claims to support the DMG-07 in its instruction manual, but it does not appear to work; it may have been a planned but unfinished feature. Micro Machines 2 has no indication of 4-player support outside of other versions, such as the PC edition.
+
 ***************************************************
 4. DMG-07 Protocol
 ***************************************************
