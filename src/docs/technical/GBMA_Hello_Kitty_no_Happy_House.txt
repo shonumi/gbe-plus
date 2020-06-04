@@ -59,7 +59,7 @@ AAF			Pop Art Painting
 AAG			Kitty Elastomer
 AAH			Bronze Angel Statue
 AAI 			Bronze Goddess Statue
-AAJ			Broze Kitty Statue
+AAJ			Bronze Kitty Statue
 AAK	ABA		Hanging Scroll
 AAL	ABB		Dragon Pennant
 AAM	ABC		Noble Pennant
