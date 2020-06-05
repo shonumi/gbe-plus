@@ -1588,6 +1588,237 @@ void NTR_core::debug_process_command()
 			}
 		}
 
+		//Write to register - ARM9
+		else if(command.substr(0, 3) == "reg9")
+		{
+			valid_command = true;
+			bool valid_value = false;
+			u32 reg_index = 0;
+			u32 reg_value = 0;
+			std::string reg_string = command.substr(4);
+
+			//Convert string into a usable u32
+			valid_command = util::from_str(reg_string, reg_index);
+
+			//Request valid input again
+			if((!valid_command) || (reg_index > 0x24))
+			{
+				std::cout<<"\nInvalid register : " << command << "\n";
+				std::cout<<": ";
+				std::getline(std::cin, command);
+			}
+
+			else
+			{
+				//Request value
+				while(!valid_value)
+				{
+					std::cout<<"\nInput value: ";
+					std::getline(std::cin, command);
+				
+					valid_value = util::from_hex_str(command.substr(2), reg_value);
+				
+					if(!valid_value)
+					{
+						std::cout<<"\nInvalid value : " << command << "\n";
+					}
+				}
+
+				switch(reg_index)
+				{
+					case 0x0:
+						std::cout<<"\nSetting Register R0 to 0x" << std::hex << reg_value << "\n";
+						core_cpu_nds9.reg.r0 = reg_value;
+						break;
+
+					case 0x1:
+						std::cout<<"\nSetting Register R1 to 0x" << std::hex << reg_value << "\n";
+						core_cpu_nds9.reg.r1 = reg_value;
+						break;
+
+					case 0x2:
+						std::cout<<"\nSetting Register R2 to 0x" << std::hex << reg_value << "\n";
+						core_cpu_nds9.reg.r2 = reg_value;
+						break;
+
+					case 0x3:
+						std::cout<<"\nSetting Register R3 to 0x" << std::hex << reg_value << "\n";
+						core_cpu_nds9.reg.r3 = reg_value;
+						break;
+
+					case 0x4:
+						std::cout<<"\nSetting Register R4 to 0x" << std::hex << reg_value << "\n";
+						core_cpu_nds9.reg.r4 = reg_value;
+						break;
+
+					case 0x5:
+						std::cout<<"\nSetting Register R5 to 0x" << std::hex << reg_value << "\n";
+						core_cpu_nds9.reg.r5 = reg_value;
+						break;
+
+					case 0x6:
+						std::cout<<"\nSetting Register R6 to 0x" << std::hex << reg_value << "\n";
+						core_cpu_nds9.reg.r6 = reg_value;
+						break;
+
+					case 0x7:
+						std::cout<<"\nSetting Register R7 to 0x" << std::hex << reg_value << "\n";
+						core_cpu_nds9.reg.r7 = reg_value;
+						break;
+
+					case 0x8:
+						std::cout<<"\nSetting Register R8 to 0x" << std::hex << reg_value << "\n";
+						core_cpu_nds9.reg.r8 = reg_value;
+						break;
+
+					case 0x9:
+						std::cout<<"\nSetting Register R9 to 0x" << std::hex << reg_value << "\n";
+						core_cpu_nds9.reg.r9 = reg_value;
+						break;
+
+					case 0xA:
+						std::cout<<"\nSetting Register R10 to 0x" << std::hex << reg_value << "\n";
+						core_cpu_nds9.reg.r10 = reg_value;
+						break;
+
+					case 0xB:
+						std::cout<<"\nSetting Register R11 to 0x" << std::hex << reg_value << "\n";
+						core_cpu_nds9.reg.r11 = reg_value;
+						break;
+
+					case 0xC:
+						std::cout<<"\nSetting Register R12 to 0x" << std::hex << reg_value << "\n";
+						core_cpu_nds9.reg.r12 = reg_value;
+						break;
+
+					case 0xD:
+						std::cout<<"\nSetting Register R13 to 0x" << std::hex << reg_value << "\n";
+						core_cpu_nds9.reg.r13 = reg_value;
+						break;
+
+					case 0xE:
+						std::cout<<"\nSetting Register R14 to 0x" << std::hex << reg_value << "\n";
+						core_cpu_nds9.reg.r14 = reg_value;
+						break;
+
+					case 0xF:
+						std::cout<<"\nSetting Register R15 to 0x" << std::hex << reg_value << "\n";
+						core_cpu_nds9.reg.r15 = reg_value;
+						break;
+
+					case 0x10:
+						std::cout<<"\nSetting Register CPSR to 0x" << std::hex << reg_value << "\n";
+						core_cpu_nds9.reg.cpsr = reg_value;
+						break;
+
+					case 0x11:
+						std::cout<<"\nSetting Register R8 (FIQ) to 0x" << std::hex << reg_value << "\n";
+						core_cpu_nds9.reg.r8_fiq = reg_value;
+						break;
+
+					case 0x12:
+						std::cout<<"\nSetting Register R9 (FIQ) to 0x" << std::hex << reg_value << "\n";
+						core_cpu_nds9.reg.r9_fiq = reg_value;
+						break;
+
+					case 0x13:
+						std::cout<<"\nSetting Register R10 (FIQ) to 0x" << std::hex << reg_value << "\n";
+						core_cpu_nds9.reg.r10_fiq = reg_value;
+						break;
+
+					case 0x14:
+						std::cout<<"\nSetting Register R11 (FIQ) to 0x" << std::hex << reg_value << "\n";
+						core_cpu_nds9.reg.r11_fiq = reg_value;
+						break;
+
+					case 0x15:
+						std::cout<<"\nSetting Register R12 (FIQ) to 0x" << std::hex << reg_value << "\n";
+						core_cpu_nds9.reg.r12_fiq = reg_value;
+						break;
+
+					case 0x16:
+						std::cout<<"\nSetting Register R13 (FIQ) to 0x" << std::hex << reg_value << "\n";
+						core_cpu_nds9.reg.r13_fiq = reg_value;
+						break;
+
+					case 0x17:
+						std::cout<<"\nSetting Register R14 (FIQ) to 0x" << std::hex << reg_value << "\n";
+						core_cpu_nds9.reg.r14_fiq = reg_value;
+						break;
+
+					case 0x18:
+						std::cout<<"\nSetting Register SPSR (FIQ) to 0x" << std::hex << reg_value << "\n";
+						core_cpu_nds9.reg.spsr_fiq = reg_value;
+						break;
+
+					case 0x19:
+						std::cout<<"\nSetting Register R13 (SVC) to 0x" << std::hex << reg_value << "\n";
+						core_cpu_nds9.reg.r13_svc = reg_value;
+						break;
+
+					case 0x1A:
+						std::cout<<"\nSetting Register R14 (SVC) to 0x" << std::hex << reg_value << "\n";
+						core_cpu_nds9.reg.r14_svc = reg_value;
+						break;
+
+					case 0x1B:
+						std::cout<<"\nSetting Register SPSR (SVC) to 0x" << std::hex << reg_value << "\n";
+						core_cpu_nds9.reg.spsr_svc = reg_value;
+						break;
+
+					case 0x1C:
+						std::cout<<"\nSetting Register R13 (ABT) to 0x" << std::hex << reg_value << "\n";
+						core_cpu_nds9.reg.r13_abt = reg_value;
+						break;
+
+					case 0x1D:
+						std::cout<<"\nSetting Register R14 (ABT) to 0x" << std::hex << reg_value << "\n";
+						core_cpu_nds9.reg.r14_abt = reg_value;
+						break;
+
+					case 0x1E:
+						std::cout<<"\nSetting Register SPSR (ABT) to 0x" << std::hex << reg_value << "\n";
+						core_cpu_nds9.reg.spsr_abt = reg_value;
+						break;
+
+					case 0x1F:
+						std::cout<<"\nSetting Register R13 (IRQ) to 0x" << std::hex << reg_value << "\n";
+						core_cpu_nds9.reg.r13_irq = reg_value;
+						break;
+
+					case 0x20:
+						std::cout<<"\nSetting Register R14 (IRQ) to 0x" << std::hex << reg_value << "\n";
+						core_cpu_nds9.reg.r14_irq = reg_value;
+						break;
+
+					case 0x21:
+						std::cout<<"\nSetting Register SPSR (IRQ) to 0x" << std::hex << reg_value << "\n";
+						core_cpu_nds9.reg.spsr_irq = reg_value;
+						break;
+
+					case 0x22:
+						std::cout<<"\nSetting Register R13 (UND) to 0x" << std::hex << reg_value << "\n";
+						core_cpu_nds9.reg.r13_und = reg_value;
+						break;
+
+					case 0x23:
+						std::cout<<"\nSetting Register R14 (UND) to 0x" << std::hex << reg_value << "\n";
+						core_cpu_nds9.reg.r14_und = reg_value;
+						break;
+
+					case 0x24:
+						std::cout<<"\nSetting Register SPSR (UND) to 0x" << std::hex << reg_value << "\n";
+						core_cpu_nds9.reg.spsr_und = reg_value;
+						break;
+				}
+				
+
+				db_unit.last_command = "reg9";
+				debug_display();
+				debug_process_command();
+			}
+		}
+
 		//Break on memory change
 		else if((command.substr(0, 2) == "bc") && (command.substr(3, 2) == "0x"))
 		{
