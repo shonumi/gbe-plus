@@ -2577,7 +2577,7 @@ Green	-> Would have been used to connect PHS phones, but this version was never 
 	<a name="magb_pak"></a>
 	<p class="gray_title">[Mobile Adapter GB] : Protocol - Packet Format</p>
 
-	<p>On the GBC, the Mobile Adapter operates using the fastest available setting (64KB/s) by setting Bits 0 and 1 of the SC register (0xFF02) high. It also uses an internal clock for all transfers. Communication is comparable to that of the Game Boy Printer, where the Game Boy sends packets with header, data, command, and checksum sections. Below is are charts breaking down the Mobile Adapter packet format:</p>
+	<p>On the GBC, the Mobile Adapter operates using the fastest available setting (64KB/s) by setting Bits 0 and 1 of the SC register (0xFF02) high. It also uses an internal clock for all transfers. Communication is comparable to that of the Game Boy Printer, where the Game Boy sends packets with header, data, command, and checksum sections. On the GBA, the Mobile Adapter operates in NORMAL8 mode using a shift clock of 256KHz. Below is a chart breaking down the Mobile Adapter packet format used by the Game Boy or Mobile Adapter when acting as the sender. For response data sent by the receiver, refer to the next section.</p>
 
 <code>-------------------------------------------------
 Section			| Length		
@@ -2616,24 +2616,21 @@ Byte 2			| Low byte of 16-bit sum
 
 
 -------------------------------------------------
-Awknowledgement Signal
+Acknowledgement Signal
 -------------------------------------------------
-Byte 1			| Device ID (sender)
-			| Device ID OR 0x80 (receiver)
-			|
-Byte 2			| Command ID (sender)
-			| Command ID OR 0x80 (receiver)
+Byte 1			| Device ID
+Byte 2			| Command ID
 -------------------------------------------------</code>
 
-	<p>The magic bytes are simply a pair of bytes used to identify the start of a Mobile Adapter packet. When one side starts receiving these magic bytes, the other should return the same to begin and sync communications.</p>
+	<p>The magic bytes are simply a pair of bytes used to identify the start of a Mobile Adapter packet.</p>
 
 	<p>Packet Data is arbitrary data and varies in length and content. On the Game Boy Color, it has a maximum size of 254 bytes. This restriction may be applied via software and appears to come from the fact that the Packet Data and Packet Checksum are lumped together, thus their total lengths must not exceed 256 bytes. Attempting to send more than 254 bytes of packet data causes communications errors in all supported GBC games. Evidence suggests GBA games can use Bytes 3 and 4 of the Packet Header to specify Packet Data size (possibly up to 64KB). </p>
 
 	<p>On the GBC, data greater than 254 bytes may be broken up into multiple packets, however. For example, when sending a large binary file such as an image or executable code, multiple packets are transferred from the Mobile Adapter to the Game Boy while the TCP transfer is ongoing.</p>
 
-	<p>The Packet Checksum is simply the 16-bit sum of all previous header bytes and all previous packet data bytes. It does not include the magic bytes. The checksum is transmitted big-endian. After the checksum, a simple 2-byte Acknowledgement Signal is sent.</p>
+	<p>The Packet Checksum is simply the 16-bit sum of all previous header bytes and all previous packet data bytes. It does not include the magic bytes. The checksum is transmitted big-endian.</p>
 
-	<p>Bit 7 of any of these bytes will be set high if the device is the receiver of packet, and Bit 7 will be set low for the sender of the packet. This essentially confirms what role the Game Boy is acting in. If it is the receiver, it is expecting to read information from the from the Packet Data from the Mobile Adapter. For exmple, with Command 0x19, the Game Boy is explicitly requesting data from the adapter, and with Command 0x1A the Game Boy is explicitly sending data to the adapter. When acting as the receiver, the device fills its Packet Data with 0x4B bytes. If the Game Boy is the sender, it is expecting to push information from its own Packet Data to the Mobile Adapter. In this case, the Packet Data the Mobile Adapter sends in response is filled with 0xD2 bytes. </p>
+	<p>After the checksum, a simple 2-byte Acknowledgement Signal is sent. The first byte is the Device ID OR'ed with the value 0x80. The second byte is 0x00 for the sender. The receiver transfers the Command ID from the Packet Header XOR&#39;ed by 0x80. This essentially confirms what role the Game Boy is acting in. If it is the receiver, it is expecting to read information from the Packet Data from the Mobile Adapter. If it is the sender, it is pushing information from its own Packet Data to the Mobile Adapter. For example, with Command 0x19, the Game Boy is explicitly requesting data from the adapter, and with Command 0x1A the Game Boy is explicitly sending data to the adapter.</p>
 
 	<p>If the checksum fails, the receiving side typically immediately sends 0xF1 to indicate an error. 0xF0, and 0xF2 also appear to be failure codes, however, their meaning is currently unknown. 0xEE indicates a specific error from a previously issued command.</p>
 
@@ -2653,20 +2650,23 @@ Device ID	| OR Value	| Device Type
 	<a name="magb_flo"></a>
 	<p class="gray_title">[Mobile Adapter GB] : Protocol - Flow of Communication</p>
 
-	<p>Even though the protocol effectively enables 2-way communication between the Game Boy and a remote server, the handheld is expected to oversee all transmissions to the adapter itself. That is to say, the typical "master-slave" model often used for Game Boy serial I/O still applies in some sense. Once the server starts responding, the Game Boy has to continually initiate another transfer to the adapter (setting Bit 7 of 0xFF02 high) to keep reading any additional bytes that were sent.</p>
+	<p>Even though the protocol effectively enables 2-way communication between the Game Boy and a remote server, the handheld is expected to oversee all transmissions to the adapter itself. That is to say, the typical &#34;master-slave&#34; model often used for Game Boy serial I/O still applies in some sense. Once the server starts responding, the Game Boy has to continually initiate another transfer to the adapter (setting Bit 7 of 0xFF02 high) to keep reading any additional bytes that were sent.</p>
 
-	<p>It is up to the game software itself to handle secondary protocols (such as HTTP, POP3, or SMTP) which involve one side specifically acting as the sender or receiver. For example, after opening a TCP connection to an HTTP server and issuing the 0x15 command (Data Transfer), the software will determine whether the Game Boy is acting as a sender (making an HTTP request) or a receiver (receiving an HTTP response). Generally, this goes back and forth. The Game Boy sends information via its Packet Data, while the Mobile Adapter's Packet Data is filled with 0xD2 bytes at this time until the Game Boy finishes its TCP transfer. When the Game Boy's TCP transfer is done, the adapter sends any information from the server in its Packet Data while that same part of packet from the Game Boy is filled with 0x4B bytes. The chart below illustrates this concept:</p>
+	<p>It is up to the game software itself to handle secondary protocols (such as HTTP, POP3, or SMTP) which involve one side specifically acting as the sender or receiver. For example, after opening a TCP connection to an HTTP server and issuing the 0x15 command (Data Transfer), the software will determine whether the Game Boy is acting as a sender (making an HTTP request) or a receiver (receiving an HTTP response). Generally, this goes back and forth. The Game Boy sends information via its Packet Data, while the Mobile Adapter responds with 0xD2 &#34;wait&#34; bytes until the Game Boy finishes its TCP transfer. When the Game Boy's TCP transfer is done, the adapter sends any information from the server in its Packet Data while the Game Boy responds with 0x4B &#34;wait&#34; bytes. The chart below illustrates this concept and details what bytes are transferred by each side depending on their current role:</p>
 
-<code>--------------------------------------------------------------------------
-Device		| Role		| Packet Data	| Acknowledgement Signal
---------------------------------------------------------------------------
-Game Boy	| Sender	| Arbitrary	| Device ID + Command ID
-Game Boy	| Receiver	| 0x4B 0x4B ... | Device ID OR 0x80 + Command ID OR 0x80
-Mobile Adapter	| Sender	| Arbitrary	| Device ID + Command ID
-Mobile Adapter	| Receiver	| 0xD2 0xD2 ... | Device ID OR 0x80 + Command ID OR 0x80
---------------------------------------------------------------------------</code>
+<code>-------------------------------------------------------------------------------------------------------------------------------------------------
+Device		| Role		| Magic Bytes	| Packet Header | Packet Checksum	| Packet Data	| Acknowledgement Signal
+-------------------------------------------------------------------------------------------------------------------------------------------------
+Game Boy	| Sender	| 0x96 0x66	| Arbitrary	| Arbitrary		| Arbitrary	| Device ID OR 0x80 + 0x00
+Mobile Adapter	| Receiver	| 0xD2 0xD2	| 0xD2 0xD2 ... | 0xD2 0xD2 ... ... ...	| 0xD2 0xD2 ...	| Device ID OR 0x80 + Command ID XOR 0x80
+-------------------------------------------------------------------------------------------------------------------------------------------------
+Game Boy	| Receiver	| 0x4B 0x4B	| 0x4B 0x4B ... | 0x4B 0x4B ... ... ...	| 0x4B 0x4B ...	| Device ID OR 0x80 + Command ID XOR 0x80
+Mobile Adapter	| Sender	| 0x96 0x66	| Arbitrary	| Arbitrary		| Arbitrary	| Device ID OR 0x80 + 0x00
+-------------------------------------------------------------------------------------------------------------------------------------------------</code>
 
-	<p>Many games appear to an follow a certain order of commands initially. This may have been part of some kind of standard library available to developers in order to connect to an ISP. The commands most commonly look like this:</p>
+	<p>When beginning communications with the Mobile Adapter, the Game Boy typically assumes the role of sender first.</p>
+
+	<p>Many games appear to follow a certain order of commands initially. This may have been part of some kind of standard library available to developers in order to connect to an ISP. The commands most commonly look like this:</p>
 
 <code>------------
 Command 0x10		Begin Session. First is perhaps to test the presence of the Mobile Adapter

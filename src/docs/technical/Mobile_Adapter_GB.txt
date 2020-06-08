@@ -110,7 +110,7 @@ Byte 2			| Low byte of 16-bit sum
 
 
 -------------------------------------------------
-Awknowledgement Signal
+Acknowledgement Signal
 -------------------------------------------------
 Byte 1			| Device ID
 Byte 2			| Command ID
