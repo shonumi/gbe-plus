@@ -56,6 +56,10 @@ class NTR_LCD
 
 	int max_fullscreen_ratio;
 
+
+	//Needs to be called by ARM9 when performing GXFIFO DMA, so not private
+	void process_gx_command();
+
 	private:
 
 	struct oam_entries
@@ -186,7 +190,6 @@ class NTR_LCD
 	//3D functions
 	void render_bg_3D();
 	void render_geometry();
-	void process_gx_command();
 	void fill_poly_solid();
 	void fill_poly_interpolated();
 	void fill_poly_textured();

@@ -88,6 +88,7 @@ void NTR_MMU::reset()
 
 	gx_fifo_entry = 0;
 	gx_fifo_param_length = 0;
+	gx_command = false;
 
 	//HLE MMIO stuff
 	if(!config::use_bios || !config::use_firmware)
@@ -311,6 +312,7 @@ u8 NTR_MMU::read_u8(u32 address)
 			break;
 
 		case 0x2:
+			if((address == 0x02192b08) || (address == 0x2192B0C) || (address == 0x0218a198)) { return 0; }
 			address &= 0x23FFFFF;
 			break;
 
@@ -1088,6 +1090,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 								if(!gx_fifo_param_length)
 								{
 									lcd_3D_stat->process_command = true;
+									gx_command = true;
 
 									//For packed commands, set next command and grab next parameters
 									if(lcd_3D_stat->packed_command)

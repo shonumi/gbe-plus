@@ -132,6 +132,8 @@ void NTR_ARM9::nds9_dma(u8 index)
 	{
 		std::cout<<"GX FIFO DMA\n";
 
+		mem->gx_command = false;
+
 		//Align addresses to word
 		mem->dma[index].start_address &= ~0x3;
 
@@ -140,12 +142,21 @@ void NTR_ARM9::nds9_dma(u8 index)
 			temp_value = mem->read_u32(mem->dma[index].start_address);
 			mem->write_u32(NDS_GXFIFO, temp_value);
 
+			std::cout<<"GX DATA -> 0x" << std::hex << temp_value << "\n";
+
 			//Update DMA Start Address
 			if(mem->dma[index].src_addr_ctrl == 0) { mem->dma[index].start_address += 4; }
 			else if(mem->dma[index].src_addr_ctrl == 1) { mem->dma[index].start_address -= 4; }
 			else if(mem->dma[index].src_addr_ctrl == 3) { mem->dma[index].start_address += 4; }
 
 			mem->dma[index].word_count--;
+
+			//Force LCD to process GX commands
+			if(mem->gx_command)
+			{
+				controllers.video.process_gx_command();
+				mem->gx_command = false;
+			}
 		}
 	}
 
