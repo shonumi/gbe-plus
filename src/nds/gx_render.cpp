@@ -1361,6 +1361,20 @@ void NTR_LCD::process_gx_command()
 			break;
 	}
 
+	//Process GXFIFO commands
+	if(!mem->nds9_gx_fifo.empty())
+	{
+		mem->nds9_gx_fifo.pop();
+		
+		if(!mem->nds9_gx_fifo.empty())
+		{
+			lcd_3D_stat.current_gx_command = mem->nds9_gx_fifo.front();
+			lcd_3D_stat.parameter_index += 4;
+			
+			process_gx_command();
+		}
+	}
+
 	lcd_3D_stat.parameter_index = 0;
 	lcd_3D_stat.current_gx_command = 0;
 	lcd_3D_stat.process_command = false;

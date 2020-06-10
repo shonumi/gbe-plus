@@ -1053,13 +1053,19 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 								//Begin processing packed commands
 								if(gx_fifo_entry & 0xFFFFFF00)
 								{
+									lcd_3D_stat->current_packed_command = gx_fifo_entry;
 									lcd_3D_stat->packed_command = true;
 									delay_state = true;
 
-									nds9_gx_fifo.push(gx_fifo_entry);
-									lcd_3D_stat->current_packed_command = gx_fifo_entry;
-									lcd_3D_stat->current_gx_command = gx_fifo_entry & 0xFF;
+									while(gx_fifo_entry)
+									{
+										nds9_gx_fifo.push(gx_fifo_entry & 0xFF);
+										gx_fifo_entry >>= 8;
+									}
+
+									lcd_3D_stat->current_gx_command = nds9_gx_fifo.front();
 									lcd_3D_stat->parameter_index = 0;
+									lcd_3D_stat->gx_state |= 0x1;
 								}
 
 								//Begin processing unpacked commands
@@ -1071,52 +1077,33 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 									nds9_gx_fifo.push(gx_fifo_entry);
 									lcd_3D_stat->current_gx_command = gx_fifo_entry & 0xFF;
 									lcd_3D_stat->parameter_index = 0;
+									lcd_3D_stat->gx_state |= 0x1;
 								}
 
 								//Determine command parameter length
 								get_gx_fifo_param_length();
+
+								std::cout<<"PARAM LENGTH -> 0x" << (u32)gx_fifo_param_length << "\n";
 							}
 
 							//Gather parameters
 							else
 							{
-								lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = memory_map[NDS_GXFIFO+3];
-								lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = memory_map[NDS_GXFIFO+2];
-								lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = memory_map[NDS_GXFIFO+1];
-								lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = memory_map[NDS_GXFIFO];
-								gx_fifo_param_length--;
+								if(gx_fifo_param_length)
+								{
+									lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = memory_map[NDS_GXFIFO+3];
+									lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = memory_map[NDS_GXFIFO+2];
+									lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = memory_map[NDS_GXFIFO+1];
+									lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = memory_map[NDS_GXFIFO];
+									gx_fifo_param_length--;
+								}
 
-								//Process command if all parameters gathered
+								//FIFO entry is finished - Process command if all parameters gathered
 								if(!gx_fifo_param_length)
 								{
 									lcd_3D_stat->process_command = true;
+									lcd_3D_stat->gx_state &= ~0x1;
 									gx_command = true;
-
-									//For packed commands, set next command and grab next parameters
-									if(lcd_3D_stat->packed_command)
-									{
-										lcd_3D_stat->current_packed_command >>= 8;
-
-										//Grab next command if packed FIFO entry is not finished
-										if(lcd_3D_stat->current_packed_command)
-										{
-											lcd_3D_stat->current_gx_command = lcd_3D_stat->current_packed_command & 0xFF;
-											lcd_3D_stat->parameter_index = 0;
-											get_gx_fifo_param_length();
-
-											//If last packed command does not take parameters, packed FIFO entry is finished
-											if(((lcd_3D_stat->current_packed_command >> 8) == 0) && (!gx_fifo_param_length))
-											{
-												lcd_3D_stat->gx_state &= ~0x1;
-											}	
-										}
-
-										//Packed FIFO entry is finished
-										else { lcd_3D_stat->gx_state &= ~0x1; }
-									}
-
-									//Unpacked FIFO entry is finished 
-									else { lcd_3D_stat->gx_state &= ~0x1; }
 								}
 							}
 
@@ -5930,49 +5917,57 @@ void NTR_MMU::setup_default_firmware()
 	touchscreen.scr_y2 = read_u8(0x27FFCE3);
 }
 
-/****** Calculates parameter length (in words) for a given GX command ******/
+/****** Calculates parameter length (in words) for a given GX packed or unpacked command ******/
 void NTR_MMU::get_gx_fifo_param_length()
 {
-	switch(lcd_3D_stat->current_gx_command)
+	gx_fifo_param_length = 0;
+	u32 command = (nds9_gx_fifo.size() > 1) ? lcd_3D_stat->current_packed_command : nds9_gx_fifo.front();
+
+	while(command)
 	{
-		case 0x10: gx_fifo_param_length = 1; break;
-		case 0x11: gx_fifo_param_length = 0; break;
-		case 0x12: gx_fifo_param_length = 1; break;
-		case 0x13: gx_fifo_param_length = 1; break;
-		case 0x14: gx_fifo_param_length = 1; break;
-		case 0x15: gx_fifo_param_length = 0; break;
-		case 0x16: gx_fifo_param_length = 16; break;
-		case 0x17: gx_fifo_param_length = 12; break;
-		case 0x18: gx_fifo_param_length = 16; break;
-		case 0x19: gx_fifo_param_length = 12; break;
-		case 0x1A: gx_fifo_param_length = 9; break;
-		case 0x1B: gx_fifo_param_length = 3; break;
-		case 0x1C: gx_fifo_param_length = 3; break;
-		case 0x20: gx_fifo_param_length = 1; break;
-		case 0x21: gx_fifo_param_length = 1; break;
-		case 0x22: gx_fifo_param_length = 1; break;
-		case 0x23: gx_fifo_param_length = 2; break;
-		case 0x24: gx_fifo_param_length = 1; break;
-		case 0x25: gx_fifo_param_length = 1; break;
-		case 0x26: gx_fifo_param_length = 1; break;
-		case 0x27: gx_fifo_param_length = 1; break;
-		case 0x28: gx_fifo_param_length = 1; break;
-		case 0x29: gx_fifo_param_length = 1; break;
-		case 0x2A: gx_fifo_param_length = 1; break;
-		case 0x2B: gx_fifo_param_length = 1; break;
-		case 0x30: gx_fifo_param_length = 1; break;
-		case 0x31: gx_fifo_param_length = 1; break;
-		case 0x32: gx_fifo_param_length = 1; break;
-		case 0x33: gx_fifo_param_length = 1; break;
-		case 0x34: gx_fifo_param_length = 32; break;
-		case 0x40: gx_fifo_param_length = 1; break;
-		case 0x41: gx_fifo_param_length = 0; break;
-		case 0x50: gx_fifo_param_length = 1; break;
-		case 0x60: gx_fifo_param_length = 1; break;
-		case 0x70: gx_fifo_param_length = 3; break;
-		case 0x71: gx_fifo_param_length = 2; break;
-		case 0x72: gx_fifo_param_length = 1; break;
-		default: gx_fifo_param_length = 0;
+		switch(command & 0xFF)
+		{
+			case 0x10: gx_fifo_param_length += 1; break;
+			case 0x11: gx_fifo_param_length += 0; break;
+			case 0x12: gx_fifo_param_length += 1; break;
+			case 0x13: gx_fifo_param_length += 1; break;
+			case 0x14: gx_fifo_param_length += 1; break;
+			case 0x15: gx_fifo_param_length += 0; break;
+			case 0x16: gx_fifo_param_length += 16; break;
+			case 0x17: gx_fifo_param_length += 12; break;
+			case 0x18: gx_fifo_param_length += 16; break;
+			case 0x19: gx_fifo_param_length += 12; break;
+			case 0x1A: gx_fifo_param_length += 9; break;
+			case 0x1B: gx_fifo_param_length += 3; break;
+			case 0x1C: gx_fifo_param_length += 3; break;
+			case 0x20: gx_fifo_param_length += 1; break;
+			case 0x21: gx_fifo_param_length += 1; break;
+			case 0x22: gx_fifo_param_length += 1; break;
+			case 0x23: gx_fifo_param_length += 2; break;
+			case 0x24: gx_fifo_param_length += 1; break;
+			case 0x25: gx_fifo_param_length += 1; break;
+			case 0x26: gx_fifo_param_length += 1; break;
+			case 0x27: gx_fifo_param_length += 1; break;
+			case 0x28: gx_fifo_param_length += 1; break;
+			case 0x29: gx_fifo_param_length += 1; break;
+			case 0x2A: gx_fifo_param_length += 1; break;
+			case 0x2B: gx_fifo_param_length += 1; break;
+			case 0x30: gx_fifo_param_length += 1; break;
+			case 0x31: gx_fifo_param_length += 1; break;
+			case 0x32: gx_fifo_param_length += 1; break;
+			case 0x33: gx_fifo_param_length += 1; break;
+			case 0x34: gx_fifo_param_length += 32; break;
+			case 0x40: gx_fifo_param_length += 1; break;
+			case 0x41: gx_fifo_param_length += 0; break;
+			case 0x50: gx_fifo_param_length += 1; break;
+			case 0x60: gx_fifo_param_length += 1; break;
+			case 0x70: gx_fifo_param_length += 3; break;
+			case 0x71: gx_fifo_param_length += 2; break;
+			case 0x72: gx_fifo_param_length += 1; break;
+			default: gx_fifo_param_length += 0;
+		}
+
+		command >>= 8;
 	}
 }
 	
