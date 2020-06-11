@@ -229,6 +229,7 @@ struct ntr_lcd_3D_data
 
 	u8 current_gx_command;
 	u32 current_packed_command;
+	u32 fifo_params;
 	u8 command_parameters[1280];
 	u8 parameter_index;
 	u8 buffer_id;

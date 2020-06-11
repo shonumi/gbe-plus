@@ -312,7 +312,6 @@ u8 NTR_MMU::read_u8(u32 address)
 			break;
 
 		case 0x2:
-			if((address == 0x02192b08) || (address == 0x2192B0C) || (address == 0x0218a198)) { return 0; }
 			address &= 0x23FFFFF;
 			break;
 
@@ -1049,6 +1048,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 							if((lcd_3D_stat->gx_state & 0x1) == 0)
 							{
 								lcd_3D_stat->current_gx_command = 0;
+								lcd_3D_stat->fifo_params = 0;
 
 								//Begin processing packed commands
 								if(gx_fifo_entry & 0xFFFFFF00)
@@ -1082,8 +1082,6 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 								//Determine command parameter length
 								get_gx_fifo_param_length();
-
-								std::cout<<"PARAM LENGTH -> 0x" << (u32)gx_fifo_param_length << "\n";
 							}
 
 							//Gather parameters
@@ -1103,6 +1101,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 								{
 									lcd_3D_stat->process_command = true;
 									lcd_3D_stat->gx_state &= ~0x1;
+									lcd_3D_stat->parameter_index = (lcd_3D_stat->fifo_params & 0xFF) * 4;
 									gx_command = true;
 								}
 							}
@@ -5922,51 +5921,57 @@ void NTR_MMU::get_gx_fifo_param_length()
 {
 	gx_fifo_param_length = 0;
 	u32 command = (nds9_gx_fifo.size() > 1) ? lcd_3D_stat->current_packed_command : nds9_gx_fifo.front();
+	u8 length = 0;
+	u8 pos = 0;
 
 	while(command)
 	{
 		switch(command & 0xFF)
 		{
-			case 0x10: gx_fifo_param_length += 1; break;
-			case 0x11: gx_fifo_param_length += 0; break;
-			case 0x12: gx_fifo_param_length += 1; break;
-			case 0x13: gx_fifo_param_length += 1; break;
-			case 0x14: gx_fifo_param_length += 1; break;
-			case 0x15: gx_fifo_param_length += 0; break;
-			case 0x16: gx_fifo_param_length += 16; break;
-			case 0x17: gx_fifo_param_length += 12; break;
-			case 0x18: gx_fifo_param_length += 16; break;
-			case 0x19: gx_fifo_param_length += 12; break;
-			case 0x1A: gx_fifo_param_length += 9; break;
-			case 0x1B: gx_fifo_param_length += 3; break;
-			case 0x1C: gx_fifo_param_length += 3; break;
-			case 0x20: gx_fifo_param_length += 1; break;
-			case 0x21: gx_fifo_param_length += 1; break;
-			case 0x22: gx_fifo_param_length += 1; break;
-			case 0x23: gx_fifo_param_length += 2; break;
-			case 0x24: gx_fifo_param_length += 1; break;
-			case 0x25: gx_fifo_param_length += 1; break;
-			case 0x26: gx_fifo_param_length += 1; break;
-			case 0x27: gx_fifo_param_length += 1; break;
-			case 0x28: gx_fifo_param_length += 1; break;
-			case 0x29: gx_fifo_param_length += 1; break;
-			case 0x2A: gx_fifo_param_length += 1; break;
-			case 0x2B: gx_fifo_param_length += 1; break;
-			case 0x30: gx_fifo_param_length += 1; break;
-			case 0x31: gx_fifo_param_length += 1; break;
-			case 0x32: gx_fifo_param_length += 1; break;
-			case 0x33: gx_fifo_param_length += 1; break;
-			case 0x34: gx_fifo_param_length += 32; break;
-			case 0x40: gx_fifo_param_length += 1; break;
-			case 0x41: gx_fifo_param_length += 0; break;
-			case 0x50: gx_fifo_param_length += 1; break;
-			case 0x60: gx_fifo_param_length += 1; break;
-			case 0x70: gx_fifo_param_length += 3; break;
-			case 0x71: gx_fifo_param_length += 2; break;
-			case 0x72: gx_fifo_param_length += 1; break;
-			default: gx_fifo_param_length += 0;
+			case 0x10: length = 1; break;
+			case 0x11: length = 0; break;
+			case 0x12: length = 1; break;
+			case 0x13: length = 1; break;
+			case 0x14: length = 1; break;
+			case 0x15: length = 0; break;
+			case 0x16: length = 16; break;
+			case 0x17: length = 12; break;
+			case 0x18: length = 16; break;
+			case 0x19: length = 12; break;
+			case 0x1A: length = 9; break;
+			case 0x1B: length = 3; break;
+			case 0x1C: length = 3; break;
+			case 0x20: length = 1; break;
+			case 0x21: length = 1; break;
+			case 0x22: length = 1; break;
+			case 0x23: length = 2; break;
+			case 0x24: length = 1; break;
+			case 0x25: length = 1; break;
+			case 0x26: length = 1; break;
+			case 0x27: length = 1; break;
+			case 0x28: length = 1; break;
+			case 0x29: length = 1; break;
+			case 0x2A: length = 1; break;
+			case 0x2B: length = 1; break;
+			case 0x30: length = 1; break;
+			case 0x31: length = 1; break;
+			case 0x32: length = 1; break;
+			case 0x33: length = 1; break;
+			case 0x34: length = 32; break;
+			case 0x40: length = 1; break;
+			case 0x41: length = 0; break;
+			case 0x50: length = 1; break;
+			case 0x60: length = 1; break;
+			case 0x70: length = 3; break;
+			case 0x71: length = 2; break;
+			case 0x72: length = 1; break;
+			default: length = 0;
 		}
 
+		gx_fifo_param_length += length;
+		lcd_3D_stat->fifo_params |= (length << pos);
+
+		pos += 8;
 		command >>= 8;
 	}
 }
