@@ -5213,6 +5213,16 @@ void NTR_MMU::start_vblank_dma()
 	}
 }
 
+/****** Start DMA channels for GXFIFO ******/
+void NTR_MMU::start_gxfifo_dma()
+{
+	for(u32 x = 0; x < 4; x++)
+	{
+		u8 dma_type = ((dma[x].control >> 27) & 0x7);
+		if(dma_type == 7) { dma[x].started = true; }
+	}
+}
+
 /****** Start the DMA channels depending on timed conditions ******/
 void NTR_MMU::start_dma(u8 dma_bits)
 {

@@ -34,10 +34,12 @@ void NTR_ARM9::nds9_dma(u8 index)
 		//VBlank
 		//HBlank
 		//Display Sync
+		//GXFIFO
 		case 0x1:
 		case 0x2:
 		case 0x3:
 		case 0x5:
+		case 0x7:
 			if(!mem->dma[index].started) { return; }
 	}
 
@@ -141,8 +143,6 @@ void NTR_ARM9::nds9_dma(u8 index)
 		{
 			temp_value = mem->read_u32(mem->dma[index].start_address);
 			mem->write_u32(NDS_GXFIFO, temp_value);
-
-			std::cout<<"GX DATA -> 0x" << std::hex << temp_value << "\n";
 
 			//Update DMA Start Address
 			if(mem->dma[index].src_addr_ctrl == 0) { mem->dma[index].start_address += 4; }

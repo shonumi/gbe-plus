@@ -343,6 +343,7 @@ class NTR_MMU
 
 	void start_hblank_dma();
 	void start_vblank_dma();
+	void start_gxfifo_dma();
 	void start_dma(u8 dma_bits);
 
 	u8 read_u8(u32 address);

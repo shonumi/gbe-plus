@@ -4144,6 +4144,9 @@ void NTR_LCD::step()
 
 			//Start VBlank DMA
 			mem->start_vblank_dma();
+
+			//Start GXFIFO DMA
+			mem->start_gxfifo_dma();
 		}
 
 		//Increment scanline after HBlank starts
