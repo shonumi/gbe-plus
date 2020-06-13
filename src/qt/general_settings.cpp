@@ -155,7 +155,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	sio_dev->addItem("None");
 	sio_dev->addItem("GB Link Cable");
 	sio_dev->addItem("GB Printer");
-	sio_dev->addItem("GB Mobile Adapter");
+	sio_dev->addItem("Mobile Adapter GB");
 	sio_dev->addItem("Bardigun Barcode Scanner");
 	sio_dev->addItem("Barcode Boy");
 	sio_dev->addItem("DMG-07");
