@@ -303,6 +303,8 @@ X3, Y3	| 3rd set of Real Coordinates in packet | Move needle from X3 to X4	| Mov
 X4, Y4	| 4th set of Real Coordinates in packet	| Move needle from X4 to X1	| Move fabric by Y4
 ----------------------------------------------------------------------------------------------------------------------------------------------------
 
+Ideally, repeating patterns would have the same data for the Virtual Coordinates and the very last Real Coordinate pair. When the pattern begins looping, the Virtual Coordinates are ignored.
+
 ***************************************************
 7. Stitching Logic - Embroidery
 ***************************************************
