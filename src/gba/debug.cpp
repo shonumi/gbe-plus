@@ -123,46 +123,6 @@ void AGB_core::debug_step()
 
 	#endif
 
-	//Disassembles 16 THUMB instructions from specified address
-	else if((command.substr(0, 2) == "dt") && (command.substr(3, 2) == "0x"))
-	{
-		valid_command = true;
-		bool valid_value = false;
-		u32 mem_location = 0;
-		std::string hex_string = command.substr(5);
-
-		//Convert hex string into usable u32
-		valid_command = util::from_hex_str(hex_string, mem_location);
-
-		//Request valid input again
-		if(!valid_command)
-		{
-			std::cout<<"\nInvalid memory address : " << command << "\n";
-			std::cout<<": ";
-			std::getline(std::cin, command);
-		}
-
-		else
-		{
-			u8 dbg_msg = core_cpu.debug_message;
-			core_cpu.debug_message = 0x00;
-
-			for(u32 x = 0; x < 16; x++)
-			{
-
-				u32 addr = (mem_location + (x * 2));
-				u32 opcode = core_mmu.read_u16(addr);
-
-				std::cout<<"0x" << addr << "\t" << debug_get_mnemonic(opcode, false) << "\n";
-			}
-
-			db_unit.last_command = "dt";
-			debug_process_command();
-
-			core_cpu.debug_message = dbg_msg;
-		}
-	}
-
 	//Display every instruction when print all is enabled
 	if((!printed) && (db_unit.print_all))
 	{
@@ -1032,6 +992,84 @@ void AGB_core::debug_process_command()
 		}
 
 		#endif
+
+		//Disassembles 16 THUMB instructions from specified address
+		else if((command.substr(0, 2) == "dt") && (command.substr(3, 2) == "0x"))
+		{
+			valid_command = true;
+			bool valid_value = false;
+			u32 mem_location = 0;
+			std::string hex_string = command.substr(5);
+
+			//Convert hex string into usable u32
+			valid_command = util::from_hex_str(hex_string, mem_location);
+
+			//Request valid input again
+			if(!valid_command)
+			{
+				std::cout<<"\nInvalid memory address : " << command << "\n";
+				std::cout<<": ";
+				std::getline(std::cin, command);
+			}
+
+			else
+			{
+				u8 dbg_msg = core_cpu.debug_message;
+				core_cpu.debug_message = 0x00;
+
+				for(u32 x = 0; x < 16; x++)
+				{
+					u32 addr = (mem_location + (x * 2));
+					u32 opcode = core_mmu.read_u16(addr);
+
+					std::cout<<"0x" << addr << "\t" << debug_get_mnemonic(opcode, false) << "\n";
+				}
+
+				db_unit.last_command = "dt";
+				debug_process_command();
+
+				core_cpu.debug_message = dbg_msg;
+			}
+		}
+
+		//Disassembles 16 ARM instructions from specified address
+		else if((command.substr(0, 2) == "da") && (command.substr(3, 2) == "0x"))
+		{
+			valid_command = true;
+			bool valid_value = false;
+			u32 mem_location = 0;
+			std::string hex_string = command.substr(5);
+
+			//Convert hex string into usable u32
+			valid_command = util::from_hex_str(hex_string, mem_location);
+
+			//Request valid input again
+			if(!valid_command)
+			{
+				std::cout<<"\nInvalid memory address : " << command << "\n";
+				std::cout<<": ";
+				std::getline(std::cin, command);
+			}
+
+			else
+			{
+				u8 dbg_msg = core_cpu.debug_message;
+				core_cpu.debug_message = 0xFF;
+
+				for(u32 x = 0; x < 16; x++)
+				{
+					u32 addr = (mem_location + (x * 4));
+					u32 opcode = core_mmu.read_u32(addr);
+
+					std::cout<<"0x" << addr << "\t" << debug_get_mnemonic(opcode, false) << "\n";
+				}
+
+				db_unit.last_command = "da";
+				debug_process_command();
+
+				core_cpu.debug_message = dbg_msg;
+			}
+		}
 
 		//Toggle display of CPU cycles
 		else if(command == "dc")
