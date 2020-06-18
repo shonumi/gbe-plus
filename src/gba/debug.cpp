@@ -1775,8 +1775,8 @@ std::string AGB_core::debug_get_mnemonic(u32 data, bool is_addr)
 			instr = "ADD SP, ";
 			u16 offset = ((opcode & 0x7F) << 2);
 			
-			if(opcode & 0x80) { instr += util::to_hex_str(offset); }
-			else { instr += "-" + util::to_hex_str(offset); }
+			if(opcode & 0x80) {instr += "-" + util::to_hex_str(offset); }
+			else { instr += util::to_hex_str(offset); }
 		}
 
 		//THUMB.14 PUSH-POP opcodes
