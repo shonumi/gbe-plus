@@ -6,7 +6,7 @@ Shonumi aka D.S. Baxter
 1. Introduction
 ***************************************************  
 
-In 2000, 3 different sewing machines were released that featured connectivity with the Nintendo Game Boy. The Jaguar JN-100 and later the Jaguar JN-2000 were released in Japan, while the Singer IZEK-1500 was released in the US later. Presumably a Jaguar JN-100 model of some sort was also released in Europe. Each machine comes with a built-in Link Cable that allows a Game Boy running specialty software to send various stitching commands. With this, the Game Boy dictates sewing for patterns, buttonholes, and embroidery. Aside from their novelty, these devices mark one of the first attempts at pushing afforable programmable sewing machines to average consumers.
+In 2000, 3 different sewing machines were released that featured connectivity with the Nintendo Game Boy. The Jaguar JN-100 and later the Jaguar JN-2000 were released in Japan, while the Singer IZEK-1500 was released in the US later. Presumably a Jaguar JN-100 model of some sort was also released in Europe. Each machine comes with a built-in Link Cable that allows a Game Boy running specialty software to send various stitching commands. With this, the Game Boy dictates sewing for patterns, buttonholes, and embroidery. Aside from their novelty, these devices mark one of the first attempts at pushing affordable programmable sewing machines to average consumers.
 
 
 ***************************************************
@@ -74,13 +74,13 @@ Sewing Machine Compatibility
 	[-] JN-100
 	[!] JN-2000
 
-A majority of the software was released exclusively to take advantage of the EM-2000 embroidery arm. Sewing Machine Operation Software and Raku x Raku Mishin are functionally identical, save for some cosmetic differences and offering Latin character stitching instead of kana. Otherwise, an IZEK-1500 can use a the Japanese version of the software without issue and vice versa. The IZEK-1500 and the JN-100 cannot use Moji, Cut Shuu, or Mario Family as they have no slot to accept an embroidery arm. The JN-2000 is the ONLY sewing machine that can do embroidery. The general functionality of each piece of software is detailed below:
+A majority of the software was released exclusively to take advantage of the EM-2000 embroidery arm. Sewing Machine Operation Software and Raku x Raku Mishin are functionally identical, save for some cosmetic differences and offering Latin character stitching instead of kana. Otherwise, an IZEK-1500 can use the Japanese version of the software without issue and vice versa. The IZEK-1500 and the JN-100 cannot use Moji, Cut Shuu, or Mario Family as they have no slot to accept an embroidery arm. The JN-2000 is the ONLY sewing machine that can do embroidery. The general functionality of each piece of software is detailed below:
 
 Sewing Machine Operation Software
 * Stitches preset patterns, custom patterns, buttonholes, and Latin characters.
 
 Raku x Raku Mishin
-* Stitches preset patterns, custom patterns, buttonholes, and some Latin characters, and kana.
+* Stitches preset patterns, custom patterns, buttonholes, some Latin characters, and kana.
 
 Raku x Raku Moji
 * Embroiders kana, some Latin characters, and some kanji.
@@ -180,7 +180,7 @@ X Coordinate			| 0x00 - 0x10 and 0x40 - 0x50
 Y Coordinate			| 0x00 - 0x10 and 0x40 - 0x50
 -------------------------------------------------
 
-Each format's data has its own meaning and need to be interpreted separately; the logic for both are described later in the sections below. Real coordinate data contains a few bytes in between these pairs that signal what type of data the sewing machine can next expect from the Game Boy. These control codes are as follows:
+Each format's data has its own meaning and needs to be interpreted separately; the logic for both are described later in the sections below. Real coordinate data contains a few bytes in between these pairs that signal what type of data the sewing machine can next expect from the Game Boy. These control codes are as follows:
 
 -------------------------------------------------
 Packet Control Codes

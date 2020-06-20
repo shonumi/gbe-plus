@@ -67,6 +67,13 @@
 				margin-bottom: 0px;
 			}
 
+			.list_item_none
+			{
+				margin-top: 0px;
+				margin-bottom: 0px;
+				list-style-type: none;
+			}
+
 			.list_tab
 			{
 				margin-top: 0px;
@@ -1597,7 +1604,7 @@ Byte 0x18 - 0x3F	| Should all be 0x00
 	<a name="sew_gen"></a>
 	<p class="gray_title">[Sewing Machines] : General Hardware Information</a></p>
 
-	<p>In 2000, 3 different sewing machines were released that featured connectivity with the Nintendo Game Boy. The Jaguar JN-100 and later the Jaguar JN-2000 were released in Japan, while the Singer IZEK-1500 was released in the US later. Presumably a Jaguar JN-100 model of some sort was also released in Europe. Each machine comes with a built-in Link Cable that allows a Game Boy running specialty software to send various stitching commands. With this, the Game Boy dictates sewing for patterns, buttonholes, and embroidery. Aside from their novelty, these devices mark one of the first attempts at pushing afforable programmable sewing machines to average consumers.</p>
+	<p>In 2000, 3 different sewing machines were released that featured connectivity with the Nintendo Game Boy. The Jaguar JN-100 and later the Jaguar JN-2000 were released in Japan, while the Singer IZEK-1500 was released in the US later. Presumably a Jaguar JN-100 model of some sort was also released in Europe. Each machine comes with a built-in Link Cable that allows a Game Boy running specialty software to send various stitching commands. With this, the Game Boy dictates sewing for patterns, buttonholes, and embroidery. Aside from their novelty, these devices mark one of the first attempts at pushing affordable programmable sewing machines to average consumers.</p>
 
 	<p class="list_item"><strong>Singer IZEK-1500</strong></p>
 
@@ -1629,48 +1636,72 @@ Byte 0x18 - 0x3F	| Should all be 0x00
 	<a name="sew_com"></a>
 	<p class="gray_title">[Sewing Machines] : Compatible Software</a></p>
 
-<code>System Compatibility
-[#] = DMG and GBC compatible
-[*] = GBC only 
+	<p class="list_item"><strong>System Compatibility</strong></p>
+	<p class="list_item">[#] = DMG and GBC compatible</p>
+	<p class="list_item">[*] = GBC only</p>
 
-Sewing Machine Compatibility
-[-] = Not compatible
-[x] = Compatible
-[!] = Compatible ONLY with an embroidery arm
+	<p></p> 
+
+	<p class="list_item"><strong>Sewing Machine Compatibility</strong></p>
+	<p class="list_item">[-] = Not compatible</p>
+	<p class="list_item">[x] = Compatible</p>
+	<p class="list_item">[!] = Compatible ONLY with an embroidery arm</p>
+
+	<p></p> 
 
 
-[#] Sewing Machine Operation Software
-	[x] IZEK-1500
-	[x] JN-100
-	[x] JN-2000
+	<p class="list_item"><strong>[#] Sewing Machine Operation Software</strong></p>
+	<ul class="list_item">
+		<li class="list_item_none">[x] IZEK-1500</li>
+		<li class="list_item_none">[x] JN-100</li>
+		<li class="list_item_none">[x] JN-2000</li>
+	</ul>
 
-[#] Raku x Raku Mishin
-	[x] IZEK-1500
-	[x] JN-100
-	[x] JN-2000
+	<p></p> 
 
-[*] Raku x Raku Moji
-	[-] IZEK-1500
-	[-] JN-100
-	[!] JN-2000
+	<p class="list_item"><strong>[#] Raku x Raku Mishin</strong></p>
+	<ul class="list_item">
+		<li class="list_item_none">[x] IZEK-1500</li>
+		<li class="list_item_none">[x] JN-100</li>
+		<li class="list_item_none">[x] JN-2000</li>
+	</ul>
 
-[*] Raku x Raku Cut Shuu
-	[-] IZEK-1500
-	[-] JN-100
-	[!] JN-2000
+	<p></p> 
 
-[*] Jaguar Mishin Sashi Senyou Soft: Mario Family
-	[-] IZEK-1500
-	[-] JN-100
-	[!] JN-2000</code>
+	<p class="list_item"><strong>[*] Raku x Raku Moji</strong></p>
+	<ul class="list_item">
+		<li class="list_item_none">[-] IZEK-1500</li>
+		<li class="list_item_none">[-] JN-100</li>
+		<li class="list_item_none">[!] JN-2000</li>
+	</ul>
 
-	<p>A majority of the software was released exclusively to take advantage of the EM-2000 embroidery arm. Sewing Machine Operation Software and Raku x Raku Mishin are functionally identical, save for some cosmetic differences and offering Latin character stitching instead of kana. Otherwise, an IZEK-1500 can use a the Japanese version of the software without issue and vice versa. The IZEK-1500 and the JN-100 cannot use Moji, Cut Shuu, or Mario Family as they have no slot to accept an embroidery arm. The JN-2000 is the ONLY sewing machine that can do embroidery. The general functionality of each piece of software is detailed below:</p>
+	<p></p> 
+
+	<p class="list_item"><strong>[*] Raku x Raku Cut Shuu</strong></p>
+	<ul class="list_item">
+		<li class="list_item_none">[-] IZEK-1500</li>
+		<li class="list_item_none">[-] JN-100</li>
+		<li class="list_item_none">[!] JN-2000</li>
+	</ul>
+
+	<p></p> 
+
+	<p class="list_item"><strong>[*] Jaguar Mishin Sashi Senyou Soft: Mario Family</strong></p>
+	<ul class="list_item">
+		<li class="list_item_none">[-] IZEK-1500</li>
+		<li class="list_item_none">[-] JN-100</li>
+		<li class="list_item_none">[!] JN-2000</li>
+	</ul>
+
+	<p></p> 
+
+	<p>A majority of the software was released exclusively to take advantage of the EM-2000 embroidery arm. Sewing Machine Operation Software and Raku x Raku Mishin are functionally identical, save for some cosmetic differences and offering Latin character stitching instead of kana. Otherwise, an IZEK-1500 can use the Japanese version of the software without issue and vice versa. The IZEK-1500 and the JN-100 cannot use Moji, Cut Shuu, or Mario Family as they have no slot to accept an embroidery arm. The JN-2000 is the ONLY sewing machine that can do embroidery. The general functionality of each piece of software is detailed below:</p>
 
 	<p class="list_item"><strong>Sewing Machine Operation Software</strong></p>
 	<ul class="list_item"><li class="list_item">Stitches preset patterns, custom patterns, buttonholes, and Latin characters.</li></ul><p></p>
 
 	<p class="list_item"><strong>Raku x Raku Mishin</strong></p>
-	<ul class="list_item"><li class="list_item">Stitches preset patterns, custom patterns, buttonholes, and some Latin characters, and kana.</li></ul><p></p>
+	<ul class="list_item"><li class="list_item">Stitches preset patterns, custom patterns, buttonholes, some Latin characters, and kana.</li></ul><p></p>
 
 	<p class="list_item"><strong>Raku x Raku Moji</strong></p>
 	<ul class="list_item"><li class="list_item">Embroiders kana, some Latin characters, and some kanji.</li></ul><p></p>
@@ -1766,7 +1797,7 @@ X Coordinate			| 0x00 - 0x10 and 0x40 - 0x50
 Y Coordinate			| 0x00 - 0x10 and 0x40 - 0x50
 -------------------------------------------------</code>
 
-	<p>Each format&#39;s data has its own meaning and need to be interpreted separately; the logic for both are described later in the sections below. Real coordinate data contains a few bytes in between these pairs that signal what type of data the sewing machine can next expect from the Game Boy. These control codes are as follows:</p>
+	<p>Each format&#39;s data has its own meaning and needs to be interpreted separately; the logic for both are described later in the sections below. Real coordinate data contains a few bytes in between these pairs that signal what type of data the sewing machine can next expect from the Game Boy. These control codes are as follows:</p>
 
 <code>-------------------------------------------------
 Packet Control Codes
