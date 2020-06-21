@@ -1602,7 +1602,7 @@ Byte 0x18 - 0x3F	| Should all be 0x00
 	<p class="list_item"><a href="#sew_sta">Sewing Machine Status</a></p>
 
 	<a name="sew_gen"></a>
-	<p class="gray_title">[Sewing Machines] : General Hardware Information</a></p>
+	<p class="gray_title">[Sewing Machines] : General Hardware Information</p>
 
 	<p>In 2000, 3 different sewing machines were released that featured connectivity with the Nintendo Game Boy. The Jaguar JN-100 and later the Jaguar JN-2000 were released in Japan, while the Singer IZEK-1500 was released in the US later. Presumably a Jaguar JN-100 model of some sort was also released in Europe. Each machine comes with a built-in Link Cable that allows a Game Boy running specialty software to send various stitching commands. With this, the Game Boy dictates sewing for patterns, buttonholes, and embroidery. Aside from their novelty, these devices mark one of the first attempts at pushing affordable programmable sewing machines to average consumers.</p>
 
@@ -1634,7 +1634,7 @@ Byte 0x18 - 0x3F	| Should all be 0x00
 	</ul>
 
 	<a name="sew_com"></a>
-	<p class="gray_title">[Sewing Machines] : Compatible Software</a></p>
+	<p class="gray_title">[Sewing Machines] : Compatible Software</p>
 
 	<p class="list_item"><strong>System Compatibility</strong></p>
 	<p class="list_item">[#] = DMG and GBC compatible</p>
@@ -1713,7 +1713,7 @@ Byte 0x18 - 0x3F	| Should all be 0x00
 	<ul class="list_item"><li class="list_item">Embroiders various Mario-themed designs (mushroom, super star, Yoshi, etc).</li></ul><p></p>
 
 	<a name="sew_pro"></a>
-	<p class="gray_title">[Sewing Machines] : Transmission Protocol</a></p>
+	<p class="gray_title">[Sewing Machines] : Transmission Protocol</p>
 
 	<p>All communication between the sewing machines and the Game Boy happens via the attached Link Cable. The Game Boy and the sewing machine, however, alternate between which side uses an internal clock or an external clock. The general pattern is 2 external transfers followed by 1 internal transfer. On the first external transfer, the Game Boy sends a value of 0x00. Presumably before such a transfer can complete (literally a few CPU instuctions later), the Game Boy sends another external transfer, this time with actual data for the sewing machine. This transfer does finish, however, the clock rate provided by the sewing machine is currently unknown. On this transfer, the sewing machine sends back a single byte reporting its status. Finally the last transfer is sent by the Game Boy via an internal clock. The Game Boy sends 0x00 and the sewing machine responds with 0xFF.</p>
 
@@ -1726,7 +1726,7 @@ Internal Transfer 1		| Send 0x00, receive 0xFF. Signals end of transfer for 1 by
 -------------------------------------------------</code>
 
 	<a name="sew_fmt"></a>
-	<p class="gray_title">[Sewing Machines] : Packet Format</a></p>
+	<p class="gray_title">[Sewing Machines] : Packet Format</p>
 
 	<p>For regular stitching and embroidery, data is transferred to each sewing machine in 128-byte packets containing stitch coordinate data. The format is described below:</p>
 
@@ -1857,7 +1857,7 @@ Checksum
 ------------------------</code>
 
 	<a name="sew_reg"></a>
-	<p class="gray_title">[Sewing Machines] : Stitching Logic - Regular Stitching</a></p>
+	<p class="gray_title">[Sewing Machines] : Stitching Logic - Regular Stitching</p>
 
 <p>X coordinates range from 0x00 (farthest point left) to 0x1F (farthest point right). Whenever the X coordinate changes, the machine will adjust the needle accordindly. Y coordinates are more complicated however, with regards to shifting up or down. The below chart details what values will shift the actual fabric (not the needle) vertically and how far:</p>
 
@@ -1921,7 +1921,7 @@ X4, Y4	| 4th set of Real Coordinates in packet	| Move needle from X4 to X1	| Mov
 	<p>Ideally, repeating patterns would have the same data for the Virtual Coordinates and the very last Real Coordinate pair. When the pattern begins looping, the Virtual Coordinates are ignored.</p>
 
 	<a name="sew_emb"></a>
-	<p class="gray_title">[Sewing Machines] : Stitching Logic - Embroidery</a></p>
+	<p class="gray_title">[Sewing Machines] : Stitching Logic - Embroidery</p>
 
 	<p>X and Y coordinates use Bit 6 to determine whether the embroidery arm must move in a positive or negative direction, after which the machine will stitch once. The distance of each movement can be calculated as such:</p>
 
@@ -1971,7 +1971,7 @@ ELSE
 	<p>Note that sometimes the software sends shifts that result in no movement. These appear to be dummy shifts, perhaps for the sake of consistency when everything was programmed. These dummy shifts are often the last shifts to be made (and at times the only ones made).</p>
 
 	<a name="sew_sta"></a>
-	<p class="gray_title">[Sewing Machines] : Sewing Machine Status</a></p>
+	<p class="gray_title">[Sewing Machines] : Sewing Machine Status</p>
 
 	<p>The sewing machines report their status whenever the Game Boy sends the value 0x80 via external transfer. This byte describes various aspect of the machine during operation.</p>
 
@@ -2014,7 +2014,7 @@ Bit 7 - Pause Operation		| Alerts software when sewing operations are immediatel
 	<p>*Ones made after Yomigaeru Shiren no Shima was released may not be "recognized" in that game. If the data sent to the adapter is correct but the Soul Doll is not in the game&#39;s internal database, it is categorized as &#34;unknown&#34;.</p>
 
 	<a name="sda_sig"></a>
-	<p class="gray_title">[Soul Doll Adapter] : Communication Protocol - Start Signal</a></p>
+	<p class="gray_title">[Soul Doll Adapter] : Communication Protocol - Start Signal</p>
 
 	<p>The GBA and the Soul Doll Adapter communicate via the serial port using General Purpose Mode. The protocol is essentially bit-banging. For most of the protocol, the GBA sets both SC and SI high. To begin any communications with the Soul Doll Adapter, the GBA writes to following &#34;device start signal&#34; to RCNT:</p>
 
@@ -2039,7 +2039,7 @@ Bit 7 - Pause Operation		| Alerts software when sewing operations are immediatel
 	<p>These signals determine when one command ends and another begins or when data is read or written.</p>
 
 	<a name="sda_out"></a>
-	<p class="gray_title">[Soul Doll Adapter] : Communication Protocol - Read Operations</a></p>
+	<p class="gray_title">[Soul Doll Adapter] : Communication Protocol - Read Operations</p>
 
 	<p>The 24LC08 allows for random access at any given address. To do so, the EEPROM controller must receive the following 3 pieces of information:</p>
 
@@ -2091,7 +2091,7 @@ Bit 7               | Bit 6               | Bit 5               | Bit 4         
 	<p>It isn&#39;t until another command is issued that the start signals swap. Generally, both Isle of Trial and Sign of Nekrom tend to read EEPROM in chunks of 128 bytes of 256 bytes. If the internal pointer for the EEPROM address is incremented past 0x3FF, it rolls over to 0x000. Apparently, when this happens, another device start signal must be issued.</p>
 
 	<a name="sda_inp"></a>
-	<p class="gray_title">[Soul Doll Adapter] : Communication Protocol - Write Operations</a></p>
+	<p class="gray_title">[Soul Doll Adapter] : Communication Protocol - Write Operations</p>
 
 	<p>Writing shares many of the same conventions as reading. The EEPROM controller needs 2 pieces of information:</p>
 
@@ -2326,7 +2326,7 @@ Player 2 Battle Chip Gate	Child 3</code></p>
 		<li class="list_item">Internally, the MPOS uses two Texas Instruments HC165 parallel load-shift registers to output data to the GBA serially</li>
 	</ul>
 
-	<a name="mpos_gam">
+	<a name="mpos_gam"></a>
 	<p class="gray_title">[Multi Plust On System] : Compatible Games</p>
 
 	<ul>
@@ -2337,7 +2337,7 @@ Player 2 Battle Chip Gate	Child 3</code></p>
 
 	<p>All 3 games are more or less unplayable with the MPOS. A few minigames can be played in Densetsu no Plust Gate EX, but in both that game and the regular Densetsu no Plust Gate, starting the main RPG requires the MPOS be attached with a Pluster Figure inserted. In Pluston GP, many of the menus can be navigated, but beginning a race also require the accessory and an inserted figurine.</p>
 
-	<a name="mpos_com">
+	<a name="mpos_com"></a>
 	<p class="gray_title">[Multi Plust On System] : Communication Protocol</p>
 
 	<p>Communication between the MPOS and the GBA is very simple. The role of the MPOS is to provide a single 16-bit number. Depending on which spokes the plastic model uses to put on the MPOS&#39; array of pressure pads, a different number is sent to the GBA. The number effectively acts as an ID for the Pluster figurine. Using General Purpose Mode, both sides send a total of 37 transfers. At the beginning, of a session, the games will set all lines (SC, SD, SI, SO) as output with the RCNT value 0x80F0. Afterwards the 37 transfers keep looping indefinitely. The first 4 transfer appear to act as a start signal. The start signal is the following:</p>
@@ -2411,7 +2411,7 @@ RCNT		|SC	| SD	| SI	| SO 	| Bit
 
 	<p>The ID is received serially, MSB first. Essentially, a &#34;1&#34; bit is transferred whenever both SD and SI go high, and a &#34;0&#34; bit is transferred whenever SD is high, but SI is low.</p>
 
-	<a name="mpos_fig">
+	<a name="mpos_fig"></a>
 	<p class="gray_title">[Multi Plust On System] : Pluster IDs</p>
 
 	<p>Currently, there are 22 identified Pluster figurines along with some 16-bit IDs that will generate that character in the games. There are multiple variants of figurines, therefore Plusters have multiple valid IDs, since the configuration of their spokes is different. The electronic toys may treat them differently, yet the GBA games do not.</p>
@@ -2911,12 +2911,12 @@ HCV_DATA (R)	0xA000010 - 0xA00001F
 	<!-- Mobile Adapter GB -->
 	<a name="magb"></a>
 	<p class="gray_title">Mobile Adapter GB</p>
-	<p class="list_item"><a href="#magb_gen">General Hardware Information</p>
-	<p class="list_item"><a href="#magb_gam">Compatible Games</p>
-	<p class="list_item"><a href="#magb_pak">Protocol - Packet Format</p>
-	<p class="list_item"><a href="#magb_flo">Protocol - Flow of Communication</p>
-	<p class="list_item"><a href="#magb_com">Protocol - Commands</p>
-	<p class="list_item"><a href="#magb_cfg">Configuration Data</p>
+	<p class="list_item"><a href="#magb_gen">General Hardware Information</a></p>
+	<p class="list_item"><a href="#magb_gam">Compatible Games</a></p>
+	<p class="list_item"><a href="#magb_pak">Protocol - Packet Format</a></p>
+	<p class="list_item"><a href="#magb_flo">Protocol - Flow of Communication</a></p>
+	<p class="list_item"><a href="#magb_com">Protocol - Commands</a></p>
+	<p class="list_item"><a href="#magb_cfg">Configuration Data</a></p>
 
 	<a name="magb_gen"></a>
 	<p class="gray_title">[Mobile Adapter GB] : General Hardware Information</p>
@@ -3532,8 +3532,8 @@ Unit IDs
 
 	<p>Email can be sent and received in Hello Kitty no Happy House, much like Mobile Trainer. The game offers similar tools to write the email, helping users fill out subjects, addresses, and content, and viewing the mailbox for received items. The game also sends &#34;presents&#34; to another user via email. The standard email format looks something like this (note that xxxx, yyyy, and zzzz parts are not exact lengths, consider them as variables):</p>
 
-<code>From: =?ISO-2022-JP?xxxxxxxxxxxxxxxxxxxxxxxx <yyyy@zzzz.dion.ne.jp>
-To: =?ISO-2022-JP?xxxxxxxxxxxxxxxxxxxxxxxx <yyyyyyyyy>
+<code>From: =?ISO-2022-JP?xxxxxxxxxxxxxxxxxxxxxxxx &#60;yyyy@zzzz.dion.ne.jp&#62;
+To: =?ISO-2022-JP?xxxxxxxxxxxxxxxxxxxxxxxx &#60;yyyyyyyyy&#62;
 Subject: =?ISO-2022-JP?xxxxxxxxxxxxxxxxxxxxxxxx
 MIME-Version: 1.0
 Content-Type: text/plain; charset=&#34;ISO-2022-JP&#34;
