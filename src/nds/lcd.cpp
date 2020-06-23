@@ -3718,26 +3718,26 @@ void NTR_LCD::calculate_window_on_scanline()
 			//Determine window status of this pixel
 			if(win_stat[win_id])
 			{
-				if((lcd_stat.window_x_a[0][win_id] <= lcd_stat.window_x_a[1][win_id]) && (pixel >= lcd_stat.window_x_a[0][win_id]) && (pixel <= lcd_stat.window_x_a[1][win_id]))
+				if((lcd_stat.window_x_a[win_id][0] <= lcd_stat.window_x_a[win_id][1]) && (pixel >= lcd_stat.window_x_a[win_id][0]) && (pixel <= lcd_stat.window_x_a[win_id][1]))
 				{
 					check_x = true;
 				}
 
-				else if((lcd_stat.window_x_a[0][win_id] > lcd_stat.window_x_a[1][win_id]) && (pixel >= lcd_stat.window_x_a[0][win_id]) || (pixel <= lcd_stat.window_x_a[1][win_id]))
+				else if((lcd_stat.window_x_a[win_id][0] > lcd_stat.window_x_a[win_id][1]) && (pixel >= lcd_stat.window_x_a[win_id][0]) || (pixel <= lcd_stat.window_x_a[win_id][1]))
 				{
 					check_x = true;
 				}
 
-				if((lcd_stat.window_y_a[0][win_id] <= lcd_stat.window_y_a[1][win_id]) && (line >= lcd_stat.window_y_a[0][win_id]) && (line <= lcd_stat.window_y_a[1][win_id]))
+				if((lcd_stat.window_y_a[win_id][0] <= lcd_stat.window_y_a[win_id][1]) && (line >= lcd_stat.window_y_a[win_id][0]) && (line <= lcd_stat.window_y_a[win_id][1]))
 				{
 					check_y = true;
 				}
 
-				else if((lcd_stat.window_y_a[0][win_id] > lcd_stat.window_y_a[1][win_id]) && (line >= lcd_stat.window_y_a[0][win_id]) || (line <= lcd_stat.window_y_a[1][win_id]))
+				else if((lcd_stat.window_y_a[win_id][0] > lcd_stat.window_y_a[win_id][1]) && (line >= lcd_stat.window_y_a[win_id][0]) || (line <= lcd_stat.window_y_a[win_id][1]))
 				{
 					check_y = true;
 				}
-		
+
 				//Set window status and ID
 				if(check_x && check_y && !lcd_stat.window_status_a[pixel][win_id])
 				{
@@ -3773,22 +3773,22 @@ void NTR_LCD::calculate_window_on_scanline()
 			//Determine window status of this pixel
 			if(win_stat[win_id])
 			{
-				if((lcd_stat.window_x_b[0][win_id] <= lcd_stat.window_x_b[1][win_id]) && (pixel >= lcd_stat.window_x_b[0][win_id]) && (pixel <= lcd_stat.window_x_b[1][win_id]))
+				if((lcd_stat.window_x_b[win_id][0] <= lcd_stat.window_x_b[win_id][1]) && (pixel >= lcd_stat.window_x_b[win_id][0]) && (pixel <= lcd_stat.window_x_b[win_id][1]))
 				{
 					check_x = true;
 				}
 
-				else if((lcd_stat.window_x_b[0][win_id] > lcd_stat.window_x_b[1][win_id]) && (pixel >= lcd_stat.window_x_b[0][win_id]) || (pixel <= lcd_stat.window_x_b[1][win_id]))
+				else if((lcd_stat.window_x_b[win_id][0] > lcd_stat.window_x_b[win_id][1]) && (pixel >= lcd_stat.window_x_b[win_id][0]) || (pixel <= lcd_stat.window_x_b[win_id][1]))
 				{
 					check_x = true;
 				}
 
-				if((lcd_stat.window_y_b[0][win_id] <= lcd_stat.window_y_b[1][win_id]) && (line >= lcd_stat.window_y_b[0][win_id]) && (line <= lcd_stat.window_y_b[1][win_id]))
+				if((lcd_stat.window_y_b[win_id][0] <= lcd_stat.window_y_b[win_id][1]) && (line >= lcd_stat.window_y_b[win_id][0]) && (line <= lcd_stat.window_y_b[win_id][1]))
 				{
 					check_y = true;
 				}
 
-				else if((lcd_stat.window_y_b[0][win_id] > lcd_stat.window_y_b[1][win_id]) && (line >= lcd_stat.window_y_b[0][win_id]) || (line <= lcd_stat.window_y_b[1][win_id]))
+				else if((lcd_stat.window_y_b[win_id][0] > lcd_stat.window_y_b[win_id][1]) && (line >= lcd_stat.window_y_b[win_id][0]) || (line <= lcd_stat.window_y_b[win_id][1]))
 				{
 					check_y = true;
 				}

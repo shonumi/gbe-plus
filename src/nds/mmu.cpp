@@ -2553,8 +2553,8 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		case NDS_WIN0H_A:
 		case NDS_WIN0H_A+1:
 			memory_map[address] = value;
-			lcd_stat->window_x_a[0][1] = memory_map[NDS_WIN0H_A+1];
-			lcd_stat->window_x_a[0][0] = memory_map[NDS_WIN0H_A];
+			lcd_stat->window_x_a[0][0] = memory_map[NDS_WIN0H_A+1];
+			lcd_stat->window_x_a[0][1] = memory_map[NDS_WIN0H_A];
 
 			break;
 
@@ -2562,8 +2562,8 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		case NDS_WIN1H_A:
 		case NDS_WIN1H_A+1:
 			memory_map[address] = value;
-			lcd_stat->window_x_a[1][1] = memory_map[NDS_WIN1H_A+1];
-			lcd_stat->window_x_a[1][0] = memory_map[NDS_WIN1H_A];
+			lcd_stat->window_x_a[1][0] = memory_map[NDS_WIN1H_A+1];
+			lcd_stat->window_x_a[1][1] = memory_map[NDS_WIN1H_A];
 
 			break;
 
@@ -2571,8 +2571,8 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		case NDS_WIN0V_A:
 		case NDS_WIN0V_A+1:
 			memory_map[address] = value;
-			lcd_stat->window_y_a[0][1] = memory_map[NDS_WIN0V_A+1];
-			lcd_stat->window_y_a[0][0] = memory_map[NDS_WIN0V_A];
+			lcd_stat->window_y_a[0][0] = memory_map[NDS_WIN0V_A+1];
+			lcd_stat->window_y_a[0][1] = memory_map[NDS_WIN0V_A];
 
 			break;
 
@@ -2580,8 +2580,8 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		case NDS_WIN1V_A:
 		case NDS_WIN1V_A+1:
 			memory_map[address] = value;
-			lcd_stat->window_y_a[1][1] = memory_map[NDS_WIN1V_A+1];
-			lcd_stat->window_y_a[1][0] = memory_map[NDS_WIN1V_A];
+			lcd_stat->window_y_a[1][0] = memory_map[NDS_WIN1V_A+1];
+			lcd_stat->window_y_a[1][1] = memory_map[NDS_WIN1V_A];
 
 			break;
 
@@ -2633,8 +2633,8 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		case NDS_WIN0H_B:
 		case NDS_WIN0H_B+1:
 			memory_map[address] = value;
-			lcd_stat->window_x_b[0][1] = memory_map[NDS_WIN0H_B+1];
-			lcd_stat->window_x_b[0][0] = memory_map[NDS_WIN0H_B];
+			lcd_stat->window_x_b[0][0] = memory_map[NDS_WIN0H_B+1];
+			lcd_stat->window_x_b[0][1] = memory_map[NDS_WIN0H_B];
 
 			break;
 
@@ -2642,8 +2642,8 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		case NDS_WIN1H_B:
 		case NDS_WIN1H_B+1:
 			memory_map[address] = value;
-			lcd_stat->window_x_b[1][1] = memory_map[NDS_WIN1H_B+1];
-			lcd_stat->window_x_b[1][0] = memory_map[NDS_WIN1H_B];
+			lcd_stat->window_x_b[1][0] = memory_map[NDS_WIN1H_B+1];
+			lcd_stat->window_x_b[1][1] = memory_map[NDS_WIN1H_B];
 
 			break;
 
@@ -2651,8 +2651,8 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		case NDS_WIN0V_B:
 		case NDS_WIN0V_B+1:
 			memory_map[address] = value;
-			lcd_stat->window_y_b[0][1] = memory_map[NDS_WIN0V_B+1];
-			lcd_stat->window_y_b[0][0] = memory_map[NDS_WIN0V_B];
+			lcd_stat->window_y_b[0][0] = memory_map[NDS_WIN0V_B+1];
+			lcd_stat->window_y_b[0][1] = memory_map[NDS_WIN0V_B];
 
 			break;
 
@@ -2660,8 +2660,8 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		case NDS_WIN1V_B:
 		case NDS_WIN1V_B+1:
 			memory_map[address] = value;
-			lcd_stat->window_y_b[1][1] = memory_map[NDS_WIN1V_B+1];
-			lcd_stat->window_y_b[1][0] = memory_map[NDS_WIN1V_B];
+			lcd_stat->window_y_b[1][0] = memory_map[NDS_WIN1V_B+1];
+			lcd_stat->window_y_b[1][1] = memory_map[NDS_WIN1V_B];
 
 			break;
 
