@@ -3356,7 +3356,7 @@ void NTR_LCD::brightness_down(u32 bg_control)
 			green = (result < 0) ? 0 : result;
 
 			u8 blue = ((color >> 3) & 0x1F);
-			result = (blue * coef);
+			result = blue - (blue * coef);
 			blue = (result < 0) ? 0 : result;
 
 			//Copy 32-bit color to scanline buffer
