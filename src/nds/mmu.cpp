@@ -93,7 +93,6 @@ void NTR_MMU::reset()
 	//HLE MMIO stuff
 	if(!config::use_bios || !config::use_firmware)
 	{
-		memory_map[NDS_DISPCNT_A] = 0x80;
 		memory_map[NDS_POSTFLG] = 0x1;
 
 		write_u16_fast(NDS_BG2PA_A, 0x100);
