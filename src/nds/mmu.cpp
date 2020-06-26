@@ -261,6 +261,11 @@ void NTR_MMU::reset()
 	pal_b_bg_slot[2] = 0x689C000;
 	pal_b_bg_slot[3] = 0x689E000;
 
+	vram_tex_slot[0] = 0;
+	vram_tex_slot[1] = 0;
+	vram_tex_slot[2] = 0;
+	vram_tex_slot[3] = 0;
+
 	access_mode = 1;
 	wram_mode = 3;
 	rumble_state = 0;
@@ -2971,10 +2976,26 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 						break;
 
-					//MST 3
+					//MST 3 - 3D Graphics Engine Texture Data and Texture Palettes
 					case 0x3:
 						switch(bank_id)
 						{
+							case 0x0:
+								vram_tex_slot[offset] = 0x6800000;
+								break;
+
+							case 0x1:
+								vram_tex_slot[offset] = 0x6820000;
+								break;
+
+							case 0x2:
+								vram_tex_slot[offset] = 0x6840000;
+								break;
+
+							case 0x3:
+								vram_tex_slot[offset] = 0x6860000;
+								break;
+
 							case 0x4:
 								lcd_3D_stat->pal_bank_addr = 0x6880000;
 								break;
