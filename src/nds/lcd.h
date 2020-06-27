@@ -56,7 +56,6 @@ class NTR_LCD
 
 	int max_fullscreen_ratio;
 
-
 	//Needs to be called by ARM9 when performing GXFIFO DMA, so not private
 	void process_gx_command();
 

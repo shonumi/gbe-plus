@@ -162,6 +162,8 @@ void NTR_LCD::reset()
 	lcd_stat.hblank_irq_enable_b = false;
 	lcd_stat.vcount_irq_enable_b = false;
 
+	lcd_stat.cap_cnt = 0;
+
 	//Misc BG initialization
 	for(int x = 0; x < 4; x++)
 	{
@@ -3044,6 +3046,39 @@ void NTR_LCD::render_scanline()
 
 		//Display Mode 2 - VRAM
 		case 0x2:
+			//Perform display capture if necessary
+			if((lcd_stat.cap_cnt & 0xE0000000) == 0x80000000)
+			{
+				u8 slot = ((lcd_stat.cap_cnt >> 16) & 0x3);
+				u16 vram_color = 0;
+				u32 temp_line[256];
+				u32 addr = lcd_stat.vram_bank_addr[slot] + (((lcd_stat.cap_cnt >> 18) & 0x3) * 0x8000) + (512 * lcd_stat.current_scanline);
+
+				//Copy existing scanline data
+				for(u32 x = 0; x < 256; x++) { temp_line[x] = scanline_buffer_a[x]; }
+
+				render_bg_scanline(NDS_DISPCNT_A);
+
+				for(u32 x = 0; x < 256; x++)
+				{
+					//Convert 32-bit ARGB to 15-bit ARGB
+					u32 color = scanline_buffer_a[x];
+
+					u8 r = (color >> 19) & 0x1F;
+					u8 g = (color >> 11) & 0x1F;
+					u8 b = (color >> 3) & 0x1F;
+
+					vram_color = 0x8000 | (r << 10) | (g << 5) | (b);
+					mem->write_u16_fast(addr, vram_color);
+					
+					addr += 2;
+				}
+
+					
+				//Restore scanline data
+				for(u32 x = 0; x < 256; x++) { scanline_buffer_a[x] = temp_line[x]; }
+			}
+
 			{
 				u8 vram_block = ((lcd_stat.display_control_a >> 18) & 0x3);
 				u32 vram_addr = lcd_stat.vram_bank_addr[vram_block] + (lcd_stat.current_scanline * 256 * 2);

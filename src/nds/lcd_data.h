@@ -183,6 +183,8 @@ struct ntr_lcd_data
 	u8 current_window_a;
 	u8 current_window_b;
 
+	u32 cap_cnt;
+
 	bool vblank_irq_enable_a;
 	bool hblank_irq_enable_a;
 	bool vcount_irq_enable_a;

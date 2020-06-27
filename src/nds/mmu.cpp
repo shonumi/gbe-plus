@@ -3083,6 +3083,16 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 			break;
 
+		//Display Capture:
+		case NDS_CAPCNT:
+		case NDS_CAPCNT+1:
+		case NDS_CAPCNT+2:
+		case NDS_CAPCNT+3:
+			memory_map[address] = value;
+			lcd_stat->cap_cnt = ((memory_map[NDS_CAPCNT+3] << 24) | (memory_map[NDS_CAPCNT+2] << 16) | (memory_map[NDS_CAPCNT+1] << 8) | memory_map[NDS_CAPCNT]);
+
+			break;
+
 		//Master Brightness
 		case NDS_MASTER_BRIGHT:
 		case NDS_MASTER_BRIGHT+1:
