@@ -3068,7 +3068,7 @@ void NTR_LCD::render_scanline()
 					u8 g = (color >> 11) & 0x1F;
 					u8 b = (color >> 3) & 0x1F;
 
-					vram_color = 0x8000 | (r << 10) | (g << 5) | (b);
+					vram_color = 0x8000 | (b << 10) | (g << 5) | (r);
 					mem->write_u16_fast(addr, vram_color);
 					
 					addr += 2;
