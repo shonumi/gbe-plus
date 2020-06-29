@@ -5177,13 +5177,24 @@ bool NTR_MMU::load_backup(std::string filename)
 		return false;
 	}
 
+	//Get the file size
+	file.seekg(0, file.end);
+	u32 file_size = file.tellg();
+	file.seekg(0, file.beg);
+
+	u32 final_file_size = 0x10000;
+
+	if((file_size != 0x200) && (file_size != 0x10000)) { final_file_size = file_size; }
+
 	//Clear save data
 	save_data.clear();
-	save_data.resize(0x10000, 0xFF);
+	save_data.resize(final_file_size, 0xFF);
 
 	//Read data from file
-	file.read(reinterpret_cast<char*> (&save_data[0]), 0x10000);
+	file.read(reinterpret_cast<char*> (&save_data[0]), file_size);
 	file.close();
+
+	std::cout<<"MMU::Loaded save data file " << filename <<  "\n";
 
 	return true;
 }
@@ -5209,7 +5220,7 @@ bool NTR_MMU::save_backup(std::string filename)
 	}
 
 	//Write the data to a file
-	file.write(reinterpret_cast<char*> (&save_data[0]), 0x10000);
+	file.write(reinterpret_cast<char*> (&save_data[0]), save_data.size());
 	file.close();
 
 	std::cout<<"MMU::Wrote save data file " << filename <<  "\n";
@@ -5426,10 +5437,29 @@ void NTR_MMU::process_aux_spi_bus()
 		new_command = true;
 		nds_aux_spi.cmd_wait = false;
 	}
-	
+
 	//Handle AUX SPI save memory commands
 	if(new_command)
 	{
+		//Auto-detect save type
+		if((current_save_type == AUTO) && (nds_aux_spi.state == 0x83) && (nds_aux_spi.access_index == 1))
+		{
+			current_save_type = EEPROM_512;
+			std::cout<<"MMU::Save Type Autodetected: EEPROM_512\n";
+		}
+
+		else if((current_save_type == AUTO) && (nds_aux_spi.state == 0x83) && (nds_aux_spi.access_index == 2))
+		{
+			current_save_type = EEPROM;
+			std::cout<<"MMU::Save Type Autodetected: EEPROM\n";
+		}
+
+		else if((current_save_type == AUTO) && (nds_aux_spi.state == 0x83) && (nds_aux_spi.access_index >= 3))
+		{
+			current_save_type = FRAM;
+			std::cout<<"MMU::Save Type Autodetected: FRAM\n";
+		}
+
 		switch(nds_aux_spi.data)
 		{
 			//Write to status register
@@ -5462,25 +5492,6 @@ void NTR_MMU::process_aux_spi_bus()
 
 			//Read from status register
 			case 0x5:
-				//Auto-detect save type
-				if((current_save_type == AUTO) && (nds_aux_spi.state == 0x83) && (nds_aux_spi.access_index == 1))
-				{
-					current_save_type = EEPROM_512;
-					std::cout<<"MMU::Save Type Autodetected: EEPROM_512\n";
-				}
-
-				else if((current_save_type == AUTO) && (nds_aux_spi.state == 0x83) && (nds_aux_spi.access_index == 2))
-				{
-					current_save_type = EEPROM;
-					std::cout<<"MMU::Save Type Autodetected: EEPROM\n";
-				}
-
-				else if((current_save_type == AUTO) && (nds_aux_spi.state == 0x83) && (nds_aux_spi.access_index >= 3))
-				{
-					current_save_type = FRAM;
-					std::cout<<"MMU::Save Type Autodetected: FRAM\n";
-				}
-
 				nds_aux_spi.data = 0xFF;
 				nds_aux_spi.state = 0x5;
 				break;
@@ -5545,15 +5556,30 @@ void NTR_MMU::process_aux_spi_bus()
 				{
 					nds_aux_spi.access_index++;
 
-					if(nds_aux_spi.access_index == 1) { nds_aux_spi.access_addr = (nds_aux_spi.data << 8); }
+					if(nds_aux_spi.access_index == 1)
+					{
+						u8 shift = (current_save_type == FRAM) ? 16 : 8;
+						nds_aux_spi.access_addr = (nds_aux_spi.data << shift);
+					}
 
 					else if(nds_aux_spi.access_index == 2)
+					{
+						u8 shift = (current_save_type == FRAM) ? 8 : 0;
+						nds_aux_spi.access_addr |= (nds_aux_spi.data << shift);
+
+						if(!shift)
+						{
+							nds_aux_spi.access_index = 0;
+							nds_aux_spi.state |= 0x80;
+						}
+					}
+
+					else if(nds_aux_spi.access_index == 3)
 					{
 						nds_aux_spi.access_addr |= nds_aux_spi.data;
 						nds_aux_spi.access_index = 0;
 						nds_aux_spi.state |= 0x80;
 					}
-
 				}
 
 				nds_aux_spi.data = 0xFF;
@@ -5574,15 +5600,30 @@ void NTR_MMU::process_aux_spi_bus()
 				{
 					nds_aux_spi.access_index++;
 
-					if(nds_aux_spi.access_index == 1) { nds_aux_spi.access_addr = (nds_aux_spi.data << 8); }
+					if(nds_aux_spi.access_index == 1)
+					{
+						u8 shift = (current_save_type == FRAM) ? 16 : 8;
+						nds_aux_spi.access_addr = (nds_aux_spi.data << shift);
+					}
 
 					else if(nds_aux_spi.access_index == 2)
+					{
+						u8 shift = (current_save_type == FRAM) ? 8 : 0;
+						nds_aux_spi.access_addr |= (nds_aux_spi.data << shift);
+
+						if(!shift)
+						{
+							nds_aux_spi.access_index = 0;
+							nds_aux_spi.state |= 0x80;
+						}
+					}
+
+					else if(nds_aux_spi.access_index == 3)
 					{
 						nds_aux_spi.access_addr |= nds_aux_spi.data;
 						nds_aux_spi.access_index = 0;
 						nds_aux_spi.state |= 0x80;
 					}
-
 				}
 
 				nds_aux_spi.data = 0xFF;

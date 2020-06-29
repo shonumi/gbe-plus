@@ -122,7 +122,7 @@ class NTR_MMU
 		//SPI data
 		u32 transfer_count;
 		u32 access_index;
-		u16 access_addr;
+		u32 access_addr;
 		u8 state;
 		u8 last_state;
 		u8 hold_state;
