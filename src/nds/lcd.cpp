@@ -3053,6 +3053,34 @@ void NTR_LCD::render_scanline()
 				u16 vram_color = 0;
 				u32 temp_line[256];
 				u32 addr = lcd_stat.vram_bank_addr[slot] + (((lcd_stat.cap_cnt >> 18) & 0x3) * 0x8000) + (512 * lcd_stat.current_scanline);
+				u32 color = 0;
+
+				u8 h = 0;
+				u8 w = 0;
+
+				//Calculate capture dimensions
+				switch((lcd_stat.cap_cnt >> 20) & 0x3))
+				{
+					case 0x0:
+						h = 128;
+						w = 128;
+						break;
+
+					case 0x1:
+						h = 64;
+						w = 256;
+						break;
+
+					case 0x2:
+						h = 128;
+						w = 256;
+						break;
+
+					case 0x3:
+						h = 192;
+						w = 256;
+						break;
+				}
 
 				//Copy existing scanline data
 				for(u32 x = 0; x < 256; x++) { temp_line[x] = scanline_buffer_a[x]; }
@@ -3061,16 +3089,21 @@ void NTR_LCD::render_scanline()
 
 				for(u32 x = 0; x < 256; x++)
 				{
-					//Convert 32-bit ARGB to 15-bit ARGB
-					u32 color = scanline_buffer_a[x];
+					if((x < w) && (lcd_stat.current_scanline < h))
+					{
+						//Convert 32-bit ARGB to 15-bit ARGB
+						color = scanline_buffer_a[x];
 
-					u8 r = (color >> 19) & 0x1F;
-					u8 g = (color >> 11) & 0x1F;
-					u8 b = (color >> 3) & 0x1F;
+						u8 r = (color >> 19) & 0x1F;
+						u8 g = (color >> 11) & 0x1F;
+						u8 b = (color >> 3) & 0x1F;
 
-					vram_color = 0x8000 | (b << 10) | (g << 5) | (r);
+						vram_color = 0x8000 | (b << 10) | (g << 5) | (r);
+					}
+
+					else { vram_color = 0; }
+
 					mem->write_u16_fast(addr, vram_color);
-					
 					addr += 2;
 				}
 
