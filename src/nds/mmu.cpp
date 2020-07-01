@@ -5638,6 +5638,12 @@ void NTR_MMU::process_aux_spi_bus()
 			//Write EEPROM data low
 			case 0x82:
 			case 0x8A:
+				//Expand FRAM save if necessary
+				if((nds_aux_spi.access_addr >= save_data.size()) && (current_save_type == FRAM))
+				{
+					while(save_data.size() < nds_aux_spi.access_addr) { save_data.resize(save_data.size() << 1); }
+				}
+
 				save_data[nds_aux_spi.access_addr++] = nds_aux_spi.data;
 				nds_aux_spi.access_index++;
 				break;
@@ -5645,6 +5651,12 @@ void NTR_MMU::process_aux_spi_bus()
 			//Read EEPROM data low
 			case 0x83:
 			case 0x8B:
+				//Expand FRAM save if necessary
+				if((nds_aux_spi.access_addr >= save_data.size()) && (current_save_type == FRAM))
+				{
+					while(save_data.size() < nds_aux_spi.access_addr) { save_data.resize(save_data.size() << 1); }
+				}
+
 				nds_aux_spi.data = save_data[nds_aux_spi.access_addr++];
 				nds_aux_spi.access_index++;
 				break;

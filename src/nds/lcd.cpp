@@ -3055,11 +3055,11 @@ void NTR_LCD::render_scanline()
 				u32 addr = lcd_stat.vram_bank_addr[slot] + (((lcd_stat.cap_cnt >> 18) & 0x3) * 0x8000) + (512 * lcd_stat.current_scanline);
 				u32 color = 0;
 
-				u8 h = 0;
-				u8 w = 0;
+				u16 h = 0;
+				u16 w = 0;
 
 				//Calculate capture dimensions
-				switch((lcd_stat.cap_cnt >> 20) & 0x3))
+				switch((lcd_stat.cap_cnt >> 20) & 0x3)
 				{
 					case 0x0:
 						h = 128;
