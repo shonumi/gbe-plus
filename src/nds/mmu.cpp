@@ -5296,6 +5296,11 @@ void NTR_MMU::parse_header()
 	std::cout<<"MMU::Game Code - " << util::make_ascii_printable(header.game_code) << "\n";
 	std::cout<<"MMU::Maker Code - " << util::make_ascii_printable(header.maker_code) << "\n";
 
+	if(cart_data.size() < 0x100000) { std::cout<<"MMU::ROM Size: " << std::dec << (cart_data.size() / 1024) << "KB\n"; }
+	else { std::cout<<"MMU::ROM Size: " << std::dec << (cart_data.size() / 0x100000) << "MB\n"; }
+
+	std::cout<<"MMU::ROM CRC32: " << std::hex << util::get_crc32(&cart_data[0], cart_data.size()) << "\n";
+
 	//ARM9 ROM Offset
 	header.arm9_rom_offset = 0;
 	for(int x = 0; x < 4; x++) 
