@@ -3110,6 +3110,9 @@ void NTR_LCD::render_scanline()
 					
 				//Restore scanline data
 				for(u32 x = 0; x < 256; x++) { scanline_buffer_a[x] = temp_line[x]; }
+
+				//Reset busy flag before entering VBlank
+				if(lcd_stat.current_scanline == 191) { lcd_stat.cap_cnt &= ~0x80000000; }
 			}
 
 			{
