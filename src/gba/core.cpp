@@ -268,7 +268,7 @@ void AGB_core::run_core()
 				handle_hotkey(event);
 
 				//Trigger Joypad Interrupt if necessary
-				if(core_pad.joypad_irq) { core_mmu.memory_map[REG_IF] |= 0x1000; }
+				if(core_pad.joypad_irq) { core_mmu.memory_map[REG_IF + 1] |= 0x10; }
 			}
 
 			//Hotplug joypad
