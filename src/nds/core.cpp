@@ -221,7 +221,11 @@ void NTR_core::run_core()
 				handle_hotkey(event);
 
 				//Trigger Joypad Interrupt if necessary
-				if(core_pad.joypad_irq) { core_mmu.memory_map[NDS_IF] |= 0x1000; }
+				if(core_pad.joypad_irq)
+				{
+					core_mmu.nds9_if |= 0x1000;
+					core_mmu.nds7_if |= 0x1000;
+				}
 			}
 
 			//Hotplug joypad
