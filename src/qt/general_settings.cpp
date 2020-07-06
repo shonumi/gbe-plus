@@ -1058,6 +1058,18 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	net_gate_layout->addWidget(net_gate_label);
 	net_gate_set->setLayout(net_gate_layout);
 
+	//Netplay - Enable Real GBMA servers
+	QWidget* real_server_set = new QWidget(netplay);
+	QLabel* real_server_label = new QLabel("Use Real Mobile Adapter GB Servers");
+	real_server = new QCheckBox(netplay);
+	real_server->setToolTip("Allows GBE+ to connect to Mobile Adapter GB servers via TCP");
+
+	QHBoxLayout* real_server_layout = new QHBoxLayout;
+	real_server_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	real_server_layout->addWidget(real_server);
+	real_server_layout->addWidget(real_server_label);
+	real_server_set->setLayout(real_server_layout);
+
 	//Netplay - Sync Threshold
 	QWidget* sync_threshold_set = new QWidget(netplay);
 	QLabel* sync_threshold_label = new QLabel("Sync threshold");
@@ -1117,6 +1129,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	netplay_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	netplay_layout->addWidget(enable_netplay_set);
 	netplay_layout->addWidget(net_gate_set);
+	netplay_layout->addWidget(real_server_set);
 	netplay_layout->addWidget(hard_sync_set);
 	netplay_layout->addWidget(sync_threshold_set);
 	netplay_layout->addWidget(server_port_set);
@@ -1312,6 +1325,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(enable_netplay, SIGNAL(stateChanged(int)), this, SLOT(set_netplay()));
 	connect(hard_sync, SIGNAL(stateChanged(int)), this, SLOT(set_hard_sync()));
 	connect(net_gate, SIGNAL(stateChanged(int)), this, SLOT(set_net_gate()));
+	connect(real_server, SIGNAL(stateChanged(int)), this, SLOT(set_real_server()));
 	connect(chip_gate_type, SIGNAL(currentIndexChanged(int)), this, SLOT(get_chip_list()));
 	connect(battle_chip_1, SIGNAL(currentIndexChanged(int)), this, SLOT(set_battle_chip()));
 	connect(battle_chip_2, SIGNAL(currentIndexChanged(int)), this, SLOT(set_battle_chip()));
@@ -1842,6 +1856,10 @@ void gen_settings::set_ini_options()
 	//Net Gate
 	if(config::use_net_gate) { net_gate->setChecked(true); }
 	else { net_gate->setChecked(false); }
+
+	//Real Mobile Adapter GB Server
+	if(config::use_real_gbma_server) { real_server->setChecked(true); }
+	else { real_server->setChecked(false); }
 
 	//Battle Gate Type
 	if(config::sio_device == 11) { chip_gate_type->setCurrentIndex(1); }
@@ -2441,6 +2459,13 @@ void gen_settings::set_net_gate()
 {
 	if(net_gate->isChecked()) { config::use_net_gate = true; }
 	else { config::use_net_gate = false; }
+}
+
+/****** Sets the Real Mobile Adapter GB Server option ******/
+void gen_settings::set_real_server()
+{
+	if(real_server->isChecked()) { config::use_real_gbma_server = true; }
+	else { config::use_real_gbma_server = false; }
 }
 
 /****** Updates the current Battle Chip list ******/

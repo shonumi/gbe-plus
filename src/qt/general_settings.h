@@ -187,6 +187,7 @@ class gen_settings : public QDialog
 	QCheckBox* enable_netplay;
 	QCheckBox* hard_sync;
 	QCheckBox* net_gate;
+	QCheckBox* real_server;
 	QSpinBox* sync_threshold;
 	QSpinBox* server_port;
 	QSpinBox* client_port;
@@ -244,6 +245,7 @@ class gen_settings : public QDialog
 	void set_netplay();
 	void set_hard_sync();
 	void set_net_gate();
+	void set_real_server();
 	void get_chip_list();
 	void set_battle_chip();
 	void update_sync_threshold();
