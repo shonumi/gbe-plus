@@ -193,6 +193,8 @@ class gen_settings : public QDialog
 	QSpinBox* client_port;
 	QLineEdit* ip_address;
 	QPushButton* ip_update;
+	QLineEdit* gbma_address;
+	QPushButton* gbma_update;
 
 	//Misc widgets
 	cheat_menu* dmg_cheat_menu;
@@ -252,6 +254,7 @@ class gen_settings : public QDialog
 	void update_server_port();
 	void update_client_port();
 	void update_ip_addr();
+	void update_gbma_addr();
 	void configure_button(int button);
 	void close_input();
 	void close_settings();

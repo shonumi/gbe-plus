@@ -1111,7 +1111,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	client_port_layout->addWidget(client_port);
 	client_port_set->setLayout(client_port_layout);
 
-	//Netplay - IP address
+	//Netplay - Client IP address
 	QWidget* ip_address_set = new QWidget(netplay);
 	QLabel* ip_address_label = new QLabel("Client IP Address : ");
 	ip_address = new QLineEdit(netplay);
@@ -1125,6 +1125,20 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	ip_address_layout->addWidget(ip_update);
 	ip_address_set->setLayout(ip_address_layout);
 
+	//Netplay - Mobile Adapter GB server IP address
+	QWidget* gbma_address_set = new QWidget(netplay);
+	QLabel* gbma_address_label = new QLabel("MAGB IP Address : ");
+	gbma_address = new QLineEdit(netplay);
+	gbma_address->setToolTip("IP address of Mobile Adapter GB server");
+	gbma_update = new QPushButton("Update IP");
+
+	QHBoxLayout* gbma_address_layout = new QHBoxLayout;
+	gbma_address_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	gbma_address_layout->addWidget(gbma_address_label);
+	gbma_address_layout->addWidget(gbma_address);
+	gbma_address_layout->addWidget(gbma_update);
+	gbma_address_set->setLayout(gbma_address_layout);
+
 	QVBoxLayout* netplay_layout = new QVBoxLayout;
 	netplay_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	netplay_layout->addWidget(enable_netplay_set);
@@ -1135,6 +1149,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	netplay_layout->addWidget(server_port_set);
 	netplay_layout->addWidget(client_port_set);
 	netplay_layout->addWidget(ip_address_set);
+	netplay_layout->addWidget(gbma_address_set);
 	netplay->setLayout(netplay_layout);
 
 	//Path settings - DMG BIOS
@@ -1335,6 +1350,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(server_port, SIGNAL(valueChanged(int)), this, SLOT(update_server_port()));
 	connect(client_port, SIGNAL(valueChanged(int)), this, SLOT(update_client_port()));
 	connect(ip_update, SIGNAL(clicked()), this, SLOT(update_ip_addr()));
+	connect(gbma_update, SIGNAL(clicked()), this, SLOT(update_gbma_addr()));
 	connect(data_folder, SIGNAL(accepted()), this, SLOT(select_folder()));
 	connect(data_folder, SIGNAL(rejected()), this, SLOT(reject_folder()));
 
@@ -1879,6 +1895,7 @@ void gen_settings::set_ini_options()
 	server_port->setValue(config::netplay_server_port);
 	client_port->setValue(config::netplay_client_port);
 	ip_address->setText(QString::fromStdString(config::netplay_client_ip));
+	gbma_address->setText(QString::fromStdString(config::gbma_server));
 
 	dmg_bios->setText(path_1);
 	gbc_bios->setText(path_2);
@@ -2558,6 +2575,23 @@ void gen_settings::update_ip_addr()
 	else
 	{
 		config::netplay_client_ip = temp;
+	}
+}
+
+/****** Sets the Mobile Adapter GB IP address ******/
+void gen_settings::update_gbma_addr()
+{
+	std::string temp = gbma_address->text().toStdString();
+	u32 check = 0;
+
+	if(!util::ip_to_u32(temp, check))
+	{
+		gbma_address->setText(QString::fromStdString(config::gbma_server));
+	}
+
+	else
+	{
+		config::gbma_server = temp;
 	}
 }
 
@@ -3250,6 +3284,9 @@ void gen_settings::closeEvent(QCloseEvent* event)
 
 	//Restore old text for netplay IP address if it hasn't been updated
 	ip_address->setText(QString::fromStdString(config::netplay_client_ip));
+
+	//Restore old text for MAGB server IP address if it hasn't been updated
+	gbma_address->setText(QString::fromStdString(config::gbma_server));
 }
 
 /****** Closes the settings window - Used for the Close tab button ******/
@@ -3260,6 +3297,9 @@ void gen_settings::close_settings()
 
 	//Restore old text for netplay IP address if it hasn't been updated
 	ip_address->setText(QString::fromStdString(config::netplay_client_ip));
+
+	//Restore old text for MAGB server IP address if it hasn't been updated
+	gbma_address->setText(QString::fromStdString(config::gbma_server));
 }
 
 /****** Handle keypress input ******/
