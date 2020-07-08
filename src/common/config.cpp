@@ -2190,7 +2190,7 @@ bool parse_ini_file()
 
 
 		//Real Mobile Adapter GB IP address
-		else if(ini_item == "#gbma_server")
+		else if(ini_item == "#gbma_server_ip")
 		{
 			if((x + 1) < size) 
 			{
