@@ -4189,8 +4189,6 @@ void NTR_LCD::step()
 			//3D - Swap Buffers command
 			if((lcd_3D_stat.gx_state & 0x80) && (lcd_stat.display_stat_nds9 & 0x1))
 			{
-				lcd_3D_stat.buffer_id += 1;
-				lcd_3D_stat.buffer_id &= 0x1;
 				lcd_3D_stat.vertex_list_index = 0;
 				lcd_3D_stat.gx_state &= ~0x80;
 				lcd_3D_stat.render_polygon = false;
@@ -4204,6 +4202,9 @@ void NTR_LCD::step()
 				//Clear 3D buffer and fill with rear plane
 				gx_screen_buffer[lcd_3D_stat.buffer_id].clear();
 				gx_screen_buffer[lcd_3D_stat.buffer_id].resize(0xC000, lcd_3D_stat.rear_plane_color);
+
+				lcd_3D_stat.buffer_id += 1;
+				lcd_3D_stat.buffer_id &= 0x1;
 
 				//Clear render buffer
 				if(!lcd_3D_stat.rear_plane_alpha) { gx_render_buffer.assign(0xC000, 0); }

@@ -29,8 +29,8 @@ void NTR_LCD::render_bg_3D()
 	u8 bg_priority = lcd_stat.bg_priority_a[0] + 1;
 
 	//Grab data from the previous buffer
-	u16 current_buffer = (lcd_3D_stat.buffer_id + 1);
-	current_buffer &= 0x1;
+	u16 current_buffer = (lcd_3D_stat.buffer_id);
+
 
 	//Push 3D screen buffer data to scanline buffer
 	u16 gx_index = (256 * lcd_stat.current_scanline);
@@ -41,8 +41,8 @@ void NTR_LCD::render_bg_3D()
 		{
 			if(gx_render_buffer[gx_index + x])
 			{
-				scanline_buffer_a[x] = gx_screen_buffer[current_buffer][gx_index + x];
 				render_buffer_a[x] = bg_priority;
+				scanline_buffer_a[x] = gx_screen_buffer[current_buffer][gx_index + x];
 			}
 		}
 	} 
@@ -370,7 +370,7 @@ void NTR_LCD::fill_poly_solid()
 			//Check Z buffer if drawing is applicable
 			if(z_start < gx_z_buffer[buffer_index])
 			{
-				gx_screen_buffer[lcd_3D_stat.buffer_id][buffer_index] = vert_colors[0];
+				gx_screen_buffer[(lcd_3D_stat.buffer_id + 1) & 0x1][buffer_index] = vert_colors[0];
 				gx_render_buffer[buffer_index] = 1;
 				gx_z_buffer[buffer_index] = z_start;
 			}
@@ -420,7 +420,7 @@ void NTR_LCD::fill_poly_interpolated()
 			//Check Z buffer if drawing is applicable
 			if(z_start < gx_z_buffer[buffer_index])
 			{
-				gx_screen_buffer[lcd_3D_stat.buffer_id][buffer_index] = interpolate_rgb(c1, c2, c_ratio);
+				gx_screen_buffer[(lcd_3D_stat.buffer_id + 1) & 0x1][buffer_index] = interpolate_rgb(c1, c2, c_ratio);
 				gx_render_buffer[buffer_index] = 1;
 				gx_z_buffer[buffer_index] = z_start;
 			}
@@ -506,7 +506,7 @@ void NTR_LCD::fill_poly_textured()
 				//Draw texel if not transparent
 				if(texel & 0xFF000000)
 				{
-					gx_screen_buffer[lcd_3D_stat.buffer_id][buffer_index] = lcd_3D_stat.tex_data[texel_index];
+					gx_screen_buffer[(lcd_3D_stat.buffer_id + 1) & 0x1][buffer_index] = lcd_3D_stat.tex_data[texel_index];
 					gx_render_buffer[buffer_index] = 1;
 					gx_z_buffer[buffer_index] = z_start;
 				}
