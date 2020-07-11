@@ -39,7 +39,7 @@ void NTR_LCD::render_bg_3D()
 	{
 		if(!render_buffer_a[x] || (bg_priority < render_buffer_a[x]))
 		{
-			if(gx_render_buffer[gx_index + x])
+			if(gx_render_buffer[current_buffer][gx_index + x])
 			{
 				render_buffer_a[x] = bg_priority;
 				scanline_buffer_a[x] = gx_screen_buffer[current_buffer][gx_index + x];
@@ -250,7 +250,7 @@ void NTR_LCD::render_geometry()
 				//Check Z buffer if drawing is applicable
 				if(z_coord < gx_z_buffer[buffer_index])
 				{
-					gx_render_buffer[buffer_index] = 1;
+					gx_render_buffer[(lcd_3D_stat.buffer_id + 1) & 0x1][buffer_index] = 1;
 					gx_z_buffer[buffer_index] = z_coord;
 				}
 			}
@@ -371,7 +371,7 @@ void NTR_LCD::fill_poly_solid()
 			if(z_start < gx_z_buffer[buffer_index])
 			{
 				gx_screen_buffer[(lcd_3D_stat.buffer_id + 1) & 0x1][buffer_index] = vert_colors[0];
-				gx_render_buffer[buffer_index] = 1;
+				gx_render_buffer[(lcd_3D_stat.buffer_id + 1) & 0x1][buffer_index] = 1;
 				gx_z_buffer[buffer_index] = z_start;
 			}
 
@@ -421,7 +421,7 @@ void NTR_LCD::fill_poly_interpolated()
 			if(z_start < gx_z_buffer[buffer_index])
 			{
 				gx_screen_buffer[(lcd_3D_stat.buffer_id + 1) & 0x1][buffer_index] = interpolate_rgb(c1, c2, c_ratio);
-				gx_render_buffer[buffer_index] = 1;
+				gx_render_buffer[(lcd_3D_stat.buffer_id + 1) & 0x1][buffer_index] = 1;
 				gx_z_buffer[buffer_index] = z_start;
 			}
 
@@ -507,7 +507,7 @@ void NTR_LCD::fill_poly_textured()
 				if(texel & 0xFF000000)
 				{
 					gx_screen_buffer[(lcd_3D_stat.buffer_id + 1) & 0x1][buffer_index] = lcd_3D_stat.tex_data[texel_index];
-					gx_render_buffer[buffer_index] = 1;
+					gx_render_buffer[(lcd_3D_stat.buffer_id + 1) & 0x1][buffer_index] = 1;
 					gx_z_buffer[buffer_index] = z_start;
 				}
 			}

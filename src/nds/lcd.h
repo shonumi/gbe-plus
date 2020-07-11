@@ -133,7 +133,7 @@ class NTR_LCD
 	//Render buffer
 	std::vector<u8> render_buffer_a;
 	std::vector<u8> render_buffer_b;
-	std::vector<u8> gx_render_buffer;
+	std::vector< std::vector<u8> > gx_render_buffer;
 	std::vector<float> gx_z_buffer;
 
 	//Other buffers

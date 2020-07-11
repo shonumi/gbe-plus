@@ -83,7 +83,9 @@ void NTR_LCD::reset()
 
 	render_buffer_a.resize(0x100, 0);
 	render_buffer_b.resize(0x100, 0);
-	gx_render_buffer.resize(0xC000, 0);
+	gx_render_buffer.resize(2);
+	gx_render_buffer[0].resize(0xC000, 0);
+	gx_render_buffer[1].resize(0xC000, 0);
 	gx_z_buffer.resize(0xC000, 4096);
 
 	line_buffer.resize(8);
@@ -4203,12 +4205,12 @@ void NTR_LCD::step()
 				gx_screen_buffer[lcd_3D_stat.buffer_id].clear();
 				gx_screen_buffer[lcd_3D_stat.buffer_id].resize(0xC000, lcd_3D_stat.rear_plane_color);
 
+				//Clear render buffer
+				if(!lcd_3D_stat.rear_plane_alpha) { gx_render_buffer[lcd_3D_stat.buffer_id].assign(0xC000, 0); }
+				else { gx_render_buffer[lcd_3D_stat.buffer_id].assign(0xC000, 1); }
+
 				lcd_3D_stat.buffer_id += 1;
 				lcd_3D_stat.buffer_id &= 0x1;
-
-				//Clear render buffer
-				if(!lcd_3D_stat.rear_plane_alpha) { gx_render_buffer.assign(0xC000, 0); }
-				else { gx_render_buffer.assign(0xC000, 1); }
 
 				//Clear z-buffer
 				gx_z_buffer.assign(0xC000, 4096);
