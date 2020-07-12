@@ -111,7 +111,7 @@ Internal Transfer 1		| Send 0x00, receive 0xFF. Signals end of transfer for 1 by
 5. Packet Format
 ***************************************************
 
-For regular stitching and embroidery, data is transferred to each sewing machine in 128-byte packets containing stitch coordinate data. The format is described below:
+For regular stitching and embroidery, data is transferred to each sewing machine in packets containing stitch coordinate data. Each packet is at most 128 bytes. The format is described below:
 
 -------------------------------------------------
 Packet Format
@@ -179,6 +179,8 @@ Real Coordinate Data - Embroidery
 X Coordinate			| 0x00 - 0x10 and 0x40 - 0x50
 Y Coordinate			| 0x00 - 0x10 and 0x40 - 0x50
 -------------------------------------------------
+
+For embroidery, some XY pairs may be split across multiple packets. The X coordinate in these cases is the last byte of real coordinate data one packet, while the Y coordinate is the first byte of real coordinate data in the next. These situations occur due to the odd number of bytes used for the packet header or shift coordinate data. Regular stitching avoids this problem by always having an even number of bytes for all data. Software working with embroidery packets can also avoid this by limiting the size to 127 bytes when necessary.
 
 Each format's data has its own meaning and needs to be interpreted separately; the logic for both are described later in the sections below. Real coordinate data contains a few bytes in between these pairs that signal what type of data the sewing machine can next expect from the Game Boy. These control codes are as follows:
 
