@@ -319,7 +319,12 @@ void NTR_ARM9::data_processing(u32 current_arm_instruction)
 			set_reg(dest_reg, result);
 
 			//Update condtion codes
-			if(set_condition) { update_condition_arithmetic(input, (operand + shift_out), result, true); }
+			if(set_condition)
+			{
+				update_condition_arithmetic(input, (operand + shift_out), result, true);
+				if(shift_out && ((input == 0xFFFFFFFF) || (operand == 0xFFFFFFFF))) { reg.cpsr |= CPSR_C_FLAG; }
+			}
+
 			break;
 
 		//SBC
