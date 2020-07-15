@@ -987,7 +987,12 @@ u8 ARM7::logical_shift_left(u32& input, u8 offset)
 		u32 carry_test = input << (offset - 1);
 		carry_out = (carry_test & 0x80000000) ? 1 : 0;
 
-		if(offset >= 32) { input = 0; }
+		if(offset >= 32)
+		{
+			input = 0;
+			carry_out = 0;
+		}
+
 		else { input <<= offset; }
 	}
 
@@ -1010,7 +1015,12 @@ u8 ARM7::logical_shift_right(u32& input, u8 offset)
 		u32 carry_test = input >> (offset - 1);
 		carry_out = (carry_test & 0x1) ? 1 : 0;
 
-		if(offset >= 32) { input = 0; }
+		if(offset >= 32)
+		{
+			input = 0;
+			carry_out = 0;
+		}
+
 		else { input >>= offset; }
 	}
 
