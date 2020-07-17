@@ -90,6 +90,8 @@ Every 8 pixels should be approximately 15 bits worth of data sent to the Game Bo
 
 Number of Pixels @ 600dpi * 1.875 = Approximate bit count.
 
+The physical barcode format on the actual cards is EAN13.
+
 
 ***************************************************
 5. Card Dumping
