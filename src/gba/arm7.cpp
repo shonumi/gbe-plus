@@ -929,8 +929,14 @@ void ARM7::update_condition_logical(u32 result, u8 shift_out)
 }
 
 /****** Updates the condition codes in the CPSR register after arithmetic operations ******/
-void ARM7::update_condition_arithmetic(u32 input, u32 operand, u32 result, bool addition)
+void ARM7::update_condition_arithmetic(u32 input, u64 operand, u32 result, bool addition)
 {
+	if(operand == 0x100000001)
+	{
+		addition = true;
+		operand = 1;
+	}
+
 	//Negative flag
 	if(result & 0x80000000) { reg.cpsr |= CPSR_N_FLAG; }
 	else { reg.cpsr &= ~CPSR_N_FLAG; }
@@ -940,12 +946,18 @@ void ARM7::update_condition_arithmetic(u32 input, u32 operand, u32 result, bool 
 	else { reg.cpsr &= ~CPSR_Z_FLAG; }
 
 	//Carry flag - Addition
-	if((operand > (0xFFFFFFFF - input)) && (addition)) { reg.cpsr |= CPSR_C_FLAG; }
+	if(addition)
+	{
+		if(operand > (0xFFFFFFFF - input)) { reg.cpsr |= CPSR_C_FLAG; }
+		else { reg.cpsr &= ~CPSR_C_FLAG; }
+	}
 
 	//Carry flag - Subtraction
-	else if((operand <= input) && (!addition)) { reg.cpsr |= CPSR_C_FLAG; }
-
-	else { reg.cpsr &= ~CPSR_C_FLAG; }
+	else if(!addition)
+	{
+		if(operand > input) { reg.cpsr &= ~CPSR_C_FLAG; }
+		else { reg.cpsr |= CPSR_C_FLAG; }
+	}
 
 	//Overflow flag
 	u8 input_msb = (input & 0x80000000) ? 1 : 0;
