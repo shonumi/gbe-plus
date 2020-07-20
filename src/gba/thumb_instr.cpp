@@ -330,7 +330,7 @@ void ARM7::alu_ops(u16 current_thumb_instruction)
 		//ADC
 		case 0x5:
 			result = (input + operand + carry_out);
-			update_condition_arithmetic(input, operand, result, true);
+			update_condition_arithmetic(input, (operand + carry_out), result, true);
 
 			set_reg(dest_reg, result);
 
