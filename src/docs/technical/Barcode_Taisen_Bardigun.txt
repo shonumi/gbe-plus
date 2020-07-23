@@ -109,3 +109,17 @@ The second method involves using a hacked version of the Barcode Taisen Bardigun
 
 
 Barcode Taisen Bardigun has two known ROMs, DMG-ABEJ-JPN and DMG-ABEJ-JPN-1. The later version polishes many rough edges found in the first release (e.g. including a text box when barcode scanning fails). Currently, both games appear to be largely the same besides these UI and UX enhancements. Barcode scanning is exactly the same in each.
+
+
+***************************************************
+7. Barcodes
+***************************************************
+
+* ラルフ			"Ralph"
+* 4900758340136
+
+* タマッピ		"Tamapi"
+* 4900269429252
+
+* チビッシー		"Chibisshii"
+* 4900287167419
