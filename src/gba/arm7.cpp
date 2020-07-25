@@ -1109,19 +1109,23 @@ u8 ARM7::rotate_right(u32& input, u8 offset)
 }
 
 /****** Performs 32-bit rotate right - For ARM.5 Data Processing when Bit 25 is 1 ******/
-void ARM7::rotate_right_special(u32& input, u8 offset)
+u8 ARM7::rotate_right_special(u32& input, u8 offset)
 {
+	u8 carry_out = (reg.cpsr & CPSR_C_FLAG) ? 1 : 0;
+
 	if(offset > 0)
 	{
 		//Perform ROR shift on immediate
 		for(int x = 0; x < (offset * 2); x++)
 		{
-			u8 carry_out = input & 0x1;
+			carry_out = input & 0x1;
 			input >>= 1;
 
 			if(carry_out) { input |= 0x80000000; }
 		}
 	}
+
+	return carry_out;
 }			
 
 /****** Checks address before 32-bit reading/writing for special case scenarios ******/

@@ -137,8 +137,8 @@ void ARM7::data_processing(u32 current_arm_instruction)
 		operand = (current_arm_instruction & 0xFF);
 		u8 offset = (current_arm_instruction >> 8) & 0xF;
 		
-		//Shift immediate - ROR special case - Carry flag not affected
-		rotate_right_special(operand, offset);
+		//Shift immediate - ROR special case - ROR #0 not translated to RRX #1
+		shift_out = rotate_right_special(operand, offset);
 	}
 
 	//Use register as operand
