@@ -72,12 +72,24 @@ void NTR_LCD::render_geometry()
 	{
 		//Triangles
 		case 0x0:
+			if(gx_triangles.empty())
+			{
+				lcd_3D_stat.render_polygon = false;
+				return;
+			}
+
 			vert_matrix = gx_triangles.back();
 			vert_count = 3;
 			break;
 
 		//Quads
 		case 0x1:
+			if(gx_quads.empty())
+			{
+				lcd_3D_stat.render_polygon = false;
+				return;
+			}
+
 			vert_matrix = gx_quads.back();
 			vert_count = 4;
 			break;
