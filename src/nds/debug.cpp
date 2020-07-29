@@ -84,21 +84,21 @@ void NTR_core::debug_step()
 	#ifdef GBE_DEBUG
 
 	//In continue mode, if a write-breakpoint is triggered, try to stop on one
-	else if((db_unit.write_addr.size() > 0) && (db_unit.last_command == "c") && (core_mmu.debug_write))
+	if((db_unit.write_addr.size() > 0) && (db_unit.last_command == "c") && (core_mmu.debug_write))
 	{
 		for(int x = 0; x < db_unit.write_addr.size(); x++)
 		{
-			for(int y = 0; y < 4; y++)
+			for(int y = 0; y < 8; y++)
 			{
 				if(db_unit.write_addr[x] == core_mmu.debug_addr[y])
 				{
-					if((core_mmu.debug_access == 0) && (!nds9_debug))
+					if(y < 4)
 					{
 						std::cout<<"Write Breakpoint on NDS9\n";
 						nds9_debug = true;
 					}
 
-					else if((core_mmu.debug_access == 1) && (nds9_debug))
+					else
 					{
 						std::cout<<"Write Breakpoint on NDS7\n";
 						nds9_debug = false;
@@ -114,21 +114,21 @@ void NTR_core::debug_step()
 	}
 
 	//In continue mode, if a read-breakpoint is triggered, try to stop on one
-	else if((db_unit.read_addr.size() > 0) && (db_unit.last_command == "c") && (core_mmu.debug_read))
+	if((db_unit.read_addr.size() > 0) && (db_unit.last_command == "c") && (core_mmu.debug_read))
 	{
 		for(int x = 0; x < db_unit.read_addr.size(); x++)
 		{
-			for(int y = 0; y < 4; y++)
+			for(int y = 0; y < 8; y++)
 			{
 				if(db_unit.read_addr[x] == core_mmu.debug_addr[y])
 				{
-					if((core_mmu.debug_access == 0) && (!nds9_debug))
+					if(y < 4)
 					{
 						std::cout<<"Read Breakpoint on NDS9\n";
 						nds9_debug = true;
 					}
 
-					else if((core_mmu.debug_access == 1) && (nds9_debug))
+					else
 					{
 						std::cout<<"Read Breakpoint on NDS7\n";
 						nds9_debug = false;
@@ -150,6 +150,10 @@ void NTR_core::debug_step()
 	core_mmu.debug_addr[1] = 0;
 	core_mmu.debug_addr[2] = 0;
 	core_mmu.debug_addr[3] = 0;
+	core_mmu.debug_addr[4] = 0;
+	core_mmu.debug_addr[5] = 0;
+	core_mmu.debug_addr[6] = 0;
+	core_mmu.debug_addr[7] = 0;
 
 	#endif
 

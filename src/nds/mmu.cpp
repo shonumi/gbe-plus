@@ -279,6 +279,10 @@ void NTR_MMU::reset()
 	debug_addr[1] = 0;
 	debug_addr[2] = 0;
 	debug_addr[3] = 0;
+	debug_addr[4] = 0;
+	debug_addr[5] = 0;
+	debug_addr[6] = 0;
+	debug_addr[7] = 0;
 	debug_access = 0;
 	#endif
 
@@ -291,8 +295,8 @@ u8 NTR_MMU::read_u8(u32 address)
 	//Advanced debugging
 	#ifdef GBE_DEBUG
 	debug_read = true;
-	debug_addr[address & 0x3] = address;
 	debug_access = (access_mode) ? 0 : 1;
+	debug_addr[(address & 0x3) + (access_mode << 2)] = address;
 	#endif
 
 	//Check DTCM first
@@ -972,8 +976,8 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 	//Advanced debugging
 	#ifdef GBE_DEBUG
 	debug_write = true;
-	debug_addr[address & 0x3] = address;
 	debug_access = (access_mode) ? 0 : 1;
+	debug_addr[(address & 0x3) + (access_mode << 2)] = address;
 	#endif
 
 	//Check DTCM first

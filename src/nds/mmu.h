@@ -335,7 +335,7 @@ class NTR_MMU
 	#ifdef GBE_DEBUG
 	bool debug_write;
 	bool debug_read;
-	u32 debug_addr[4];
+	u32 debug_addr[8];
 	u8 debug_access;
 	#endif
 
