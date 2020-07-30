@@ -77,7 +77,7 @@ void AGB_GamePad::init()
 
 		//Emulate GB Player detection if rumble is enabled
 		//Masks bits 4-7 of KEYINPUT until player gives input
-		is_gb_player = true;
+		if(config::sio_device == 8) { is_gb_player = true; }
 	}
 }
 
