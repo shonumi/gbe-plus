@@ -24,7 +24,7 @@ The Game Boy Color came with an infrared port on the very top of the handheld. P
 ***************************************************
 
 
-This list represents all the games that have been verified to use the IR port. While exhaustive, this list is probably not complete. Some "Ubi Key" games have not been confirmed (Hype: The Time Quest, Inspector Gadget), and there are likely more Japanese exclusives that need to be added. It's dubious whether or not Animorphs actually is a "Ubi Key" game. The back boxart doesn't have the "IR Compatible" logo, and the manual makes no mention of IR communication.
+This list represents all the games that have been verified to use the IR port. While exhaustive, this list is probably not complete. Some "Ubi Key" games have not been confirmed (Hype: The Time Quest), and there are likely more Japanese exclusives that need to be added. It's dubious whether or not Animorphs actually is a "Ubi Key" game. The back boxart doesn't have the "IR Compatible" logo, and the manual makes no mention of IR communication.
 
 - Austin Powers: Oh Behave!				Trade items and messages		
 - Austin Powers: Welcome to My Underground Lair!	Trade items and messages
@@ -41,6 +41,7 @@ This list represents all the games that have been verified to use the IR port. W
 - Hamtaro: Ham-Hams Unite!				Trade Hamtaro's clothes
 - Harry Potter and the Sorceror's Stone			Trade "Famous Witches and Wizards" cards 
 - Harry Potter and the Chamber of Secrets		Trade "Famous Witches and Wizards" cards 
+- Inspector Gadget: Operation Madkactus			Ubi Key
 - Kaijin Zona						Receive randomized puzzles via IR signals
 - Mary-Kate and Ashley Pocket Planner			Send and receive "G-mail" messages
 - Mickey's Racing Adventure				Send and receive messages. Unlocks a secret race track in Mickey's Speedway USA
@@ -56,7 +57,7 @@ This list represents all the games that have been verified to use the IR port. W
 - Pokemon Crystal					Mystery Gift + Send trainer data to Viridian City Trainer House
 - Pokemon Trading Card Game				"Card Pop" to generate random cards. Trade individual cards. Trade deck configurations
 - Pokemon Card GB2: Here Comes Team GR!			"Card Pop" to generate random cards. Trade individual cards. Trade deck configurations
-- Rayman						Ubi Key
+- Rayman						Ubi Key -> Unlocks secret level Ubi Cliff
 - Return of the Ninja					Trade "Ninja Cards"
 - The Road to El Dorado					Ubi Key
 - Robopon Sun Version					Boost stats via infrared signals. Open certain chests
