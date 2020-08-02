@@ -24,7 +24,7 @@ The Game Boy Color came with an infrared port on the very top of the handheld. P
 ***************************************************
 
 
-This list represents all the games that have been verified to use the IR port. While exhaustive, this list is probably not complete. Some "Ubi Key" games have not been confirmed (Hype: The Time Quest), and there are likely more Japanese exclusives that need to be added. It's dubious whether or not Animorphs actually is a "Ubi Key" game. The back boxart doesn't have the "IR Compatible" logo, and the manual makes no mention of IR communication.
+This list represents all the games that have been verified to use the IR port. While exhaustive, this list is probably not complete. There are likely more Japanese exclusives that need to be added. It's dubious whether or not Animorphs actually is a "Ubi Key" game. The back boxart doesn't have the "IR Compatible" logo, and the manual makes no mention of IR communication. V.I.P. also does not seem
 
 - Austin Powers: Oh Behave!				Trade items and messages		
 - Austin Powers: Welcome to My Underground Lair!	Trade items and messages
@@ -34,13 +34,15 @@ This list represents all the games that have been verified to use the IR port. W
 - Catz							Trade Petz and Toyz
 - Chee-Chai Alien					Enhances IR sensor to detect artificial light sources. Catch/trade Chaliens
 - Dancing Furby						Sends signal to Furby doll, Furby reacts based on dance performance
-- Disney's Aladdin					Ubi Key (possibly)				
+- Disney's Aladdin					Ubi Key				
 - Dogz							Trade Petz and Toyz
 - Donkey Kong Country					Transfer pictures to stickerbook
+- Flipper & Lopaka					Ubi Key
 - Game Boy Wars 3					Wireless multiplayer
 - Hamtaro: Ham-Hams Unite!				Trade Hamtaro's clothes
 - Harry Potter and the Sorceror's Stone			Trade "Famous Witches and Wizards" cards 
 - Harry Potter and the Chamber of Secrets		Trade "Famous Witches and Wizards" cards 
+- Hype: The Time Quest					Ubi Key
 - Inspector Gadget: Operation Madkactus			Ubi Key
 - Kaijin Zona						Receive randomized puzzles via IR signals
 - Mary-Kate and Ashley Pocket Planner			Send and receive "G-mail" messages
@@ -65,7 +67,10 @@ This list represents all the games that have been verified to use the IR port. W
 - Shin Megami Tensei Devil Children White		Used for "Infrared Fusion" to strengthen some demons, obtain rare ones
 - Spirou: The Robot Invasion				Ubi Key
 - Super Mario Bros. DX					Trade/combine Top Scores
+- Suzuki Alstare Extreme Racing				Ubi Key
+- Tonic Trouble						Ubi Key
 - Toonsylvania						Ubi Key
+- V.I.P.						Ubi Key
 - Warlocked						Trade wizards
 - Zok Zok Heroes					Transmit "Cosmic Characters" from Full Changer accessory to transform hero
 
