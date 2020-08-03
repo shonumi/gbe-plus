@@ -24,7 +24,7 @@ The Game Boy Color came with an infrared port on the very top of the handheld. P
 ***************************************************
 
 
-This list represents all the games that have been verified to use the IR port. While exhaustive, this list is probably not complete. There are likely more Japanese exclusives that need to be added. It's dubious whether or not Animorphs actually is a "Ubi Key" game. The back boxart doesn't have the "IR Compatible" logo, and the manual makes no mention of IR communication. V.I.P. also does not seem
+This list represents all the games that have been verified to use the IR port. While exhaustive, this list is probably not complete. There are likely more Japanese exclusives that need to be added. It's dubious whether or not Animorphs actually is a "Ubi Key" game. The back boxart doesn't have the "IR Compatible" logo, and the manual makes no mention of IR communication.
 
 - Austin Powers: Oh Behave!				Trade items and messages		
 - Austin Powers: Welcome to My Underground Lair!	Trade items and messages
