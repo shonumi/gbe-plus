@@ -59,6 +59,7 @@ class NTR_MMU
 		SLOT2_GBA_CART,
 		SLOT2_UBISOFT_PEDOMETER,
 		SLOT2_HCV_1000,
+		SLOT2_MAGIC_READER,
 	};
 
 	backup_types current_save_type;
@@ -215,6 +216,19 @@ class NTR_MMU
 		u8 cnt;
 		std::vector <u8> data;
 	} hcv;
+
+	//Magic Reader
+	struct konami_magic_reader
+	{
+		u8 command;
+		u8 in_data;
+		u8 counter;
+		u8 out_byte;
+		u8 state;
+		u8 sck;
+		u32 out_data;
+		bool oid_reset;
+	} magic_reader;
 
 	//NDS9 3D GX FIFO
 	std::queue <u32> nds9_gx_fifo;
@@ -403,6 +417,7 @@ class NTR_MMU
 	void set_nds9_pc(u32* ex_pc);
 
 	bool slot2_hcv_load_barcode(std::string filename);
+	void magic_reader_process();
 
 	void parse_header();
 

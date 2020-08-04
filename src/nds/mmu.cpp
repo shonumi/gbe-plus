@@ -51,6 +51,18 @@ void NTR_MMU::reset()
 			hcv.data.resize(0x10, 0x5F);
 			slot2_hcv_load_barcode(config::external_card_file);
 			break;
+
+		case 7:
+			current_slot2_device = SLOT2_MAGIC_READER;
+			magic_reader.command = 0;
+			magic_reader.in_data = 0;
+			magic_reader.counter = 0;
+			magic_reader.out_byte = 0;
+			magic_reader.state = 0;
+			magic_reader.sck = 0;
+			magic_reader.out_data = 0xFB;
+			magic_reader.oid_reset = true;
+			break;
 	}	
 
 	memory_map.clear();

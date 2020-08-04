@@ -66,6 +66,22 @@ u8 NTR_MMU::read_slot2_device(u32 address)
 			}
 
 			break;
+
+		case SLOT2_MAGIC_READER:
+			switch(address)
+			{
+				//Two-wire interface to OID
+				case 0xA000000:
+					slot_byte = magic_reader.out_byte;
+					break;
+
+				//Reading these cart addresses is for detection
+				default:
+					slot_byte = (address & 0x1) ? 0xFB : 0xFF;
+					break;
+			}
+
+			break;
 	}
 
 	return slot_byte;
@@ -90,6 +106,16 @@ void NTR_MMU::write_slot2_device(u32 address, u8 value)
 		case SLOT2_HCV_1000:
 			//HCV_CNT
 			if(address == 0xA000000) { hcv.cnt = (value & 0x83); }
+
+			break;
+
+		case SLOT2_MAGIC_READER:
+			//Konami Magic Reader
+			if(address == 0xA000000)
+			{
+				magic_reader.in_data = value;
+				magic_reader_process();
+			}
 
 			break;
 	}
@@ -124,4 +150,143 @@ bool NTR_MMU::slot2_hcv_load_barcode(std::string filename)
 
 	std::cout<<"SIO::Loaded HCV-1000 barcode data.\n";
 	return true;
+}
+
+/****** Processes data for the Magic Reader ******/
+void NTR_MMU::magic_reader_process()
+{
+	//Reset state
+	if(magic_reader.in_data == 0x42)
+	{
+		magic_reader.state = 0;
+		magic_reader.oid_reset = true;
+		magic_reader.out_byte = 0xFF;
+	}
+
+	//Grab Serial Clock aka SCK from Bit 0
+	u8 new_sck = magic_reader.in_data & 0x1;
+
+	//Grab data bit from SDIO aka Bit 1
+	u8 sd = (magic_reader.in_data & 0x2) ? 1 : 0;
+
+	//Process Magic Reader I/O
+	switch(magic_reader.state)
+	{
+		//State 0 - Wait for LO to HI transition after reset
+		case 0x00:
+			//Test for SCK transition from LO to HI
+			if((magic_reader.sck == 0) && (new_sck == 1)) { magic_reader.state = 1; }
+
+			//Set SDIO low. Signal to NDS to read OIDCmd_PowerOn
+			magic_reader.out_byte = 0xFB;
+			break;
+
+		//State 1 - Wait for Write or Read command
+		case 0x01:
+			if((g_pad->key_input & 0x200) == 0) { magic_reader.out_byte = 0xFB; }
+
+			//SDIO going LO signals new RW phase
+			if(sd == 0) { magic_reader.state = 2; }
+			break;
+
+		//State 2 - Check RW bit
+		case 0x02:
+			if((magic_reader.sck == 0) && (new_sck == 1))
+			{
+				//RW high means write
+				if(sd == 1)
+				{
+					magic_reader.state = 3;
+					magic_reader.command = 0;
+					magic_reader.counter = 0;
+				}
+
+				//RW low means read
+				else
+				{
+					magic_reader.state = 4;
+					magic_reader.counter = 0;
+
+					//Set data to read
+					if(magic_reader.oid_reset)
+					{
+						magic_reader.out_data = 0x60FFF7;
+						magic_reader.oid_reset = false;
+					}
+
+					else
+					{
+						magic_reader.out_data = (g_pad->key_input & 0x200) ? 0x53FFFB : 0x500001;
+					}
+				}
+			}
+
+			break;
+
+		//State 3 - Receive 8 bits from NDS via SD when SCK is HI
+		case 0x03:
+			//Test for SCK transition from LO to HI
+			if((magic_reader.sck == 0) && (new_sck == 1) && (magic_reader.counter < 7))
+			{
+				//Build command byte MSB first
+				if(sd)
+				{
+					magic_reader.command |= (1 << (7 - magic_reader.counter));
+				}
+
+				magic_reader.counter++;
+			}
+
+			//Wait for SCK to go low for a while to finish command
+			else if((magic_reader.sck == 0) && (new_sck == 0) && (magic_reader.counter == 7))
+			{
+				magic_reader.state = 1;
+
+				switch(magic_reader.command)
+				{
+					//Unknown command 0x24
+					case 0x24:
+						magic_reader.out_byte = 0xFF;
+						break;
+
+					//Request read status (CheckOIDStatus)
+					case 0x30:
+						magic_reader.out_byte = 0xFB;
+						break;
+
+					//Power Down (PowerDownOID)
+					case 0x56:
+						magic_reader.out_byte = 0xFB;
+						magic_reader.oid_reset = true;
+						break;
+
+					default:
+						magic_reader.out_byte = 0xFF;
+						break;
+				}
+			}
+
+			break;
+
+		//State 4 - Send 23 bits to NDS via SD when SCK is HI
+		case 0x04:
+			//Test for SCK transition from LO to HI
+			if((magic_reader.sck == 0) && (new_sck == 1) && (magic_reader.counter < 22))
+			{
+				//Send response MSB first
+				u32 test_bit = magic_reader.out_data & (1 << (22 - magic_reader.counter));
+				magic_reader.out_byte = (test_bit) ? 0xFF : 0xFB;
+				magic_reader.counter++;
+			}
+
+			//Wait for SCK to go low for a while to finish command
+			else if((magic_reader.sck == 0) && (new_sck == 0) && (magic_reader.counter == 22))
+			{
+				magic_reader.out_byte = 0xFF;
+				magic_reader.state = 1;
+			}
+	}
+
+	//Update new SCK in Magic Reader structure
+	magic_reader.sck = new_sck;
 }
