@@ -70,6 +70,7 @@ This list represents all the games that have been verified to use the IR port. W
 - Suzuki Alstare Extreme Racing				Ubi Key
 - Tonic Trouble						Ubi Key
 - Toonsylvania						Ubi Key
+- Tottoko Hamtaro: Tomodachi Daisakusen Dechu		???
 - V.I.P.						Ubi Key
 - Warlocked						Trade wizards
 - Zok Zok Heroes					Transmit "Cosmic Characters" from Full Changer accessory to transform hero
