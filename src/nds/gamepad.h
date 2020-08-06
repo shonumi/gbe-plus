@@ -52,6 +52,7 @@ class NTR_GamePad
 	bool joypad_irq;
 	bool joy_init;
 	u16 key_cnt;
+	u16 con_flags;
 
 	private:
 

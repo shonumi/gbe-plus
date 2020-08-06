@@ -24,6 +24,7 @@ NTR_GamePad::NTR_GamePad()
 	touch_hold = false;
 	touch_by_mouse = false;
 	is_rumbling = false;
+	con_flags = 0;
 
 	nds7_input_irq = NULL;
 	nds9_input_irq = NULL;
@@ -492,6 +493,18 @@ void NTR_GamePad::process_keyboard(int pad, bool pressed)
 	//Emulate L Trigger release
 	else if((pad == config::gbe_key_l_trigger) && (!pressed)) { key_input |= 0x200; }
 
+	//Misc Context Key 1 press
+	else if((pad == config::con_key_1) && (pressed)) { con_flags |= 0x100; }
+	
+	//Misc Context Key 1 release
+	else if((pad == config::con_key_1) && (!pressed)) { con_flags &= ~0x100; }
+
+	//Misc Context Key 2 press
+	else if((pad == config::con_key_2) && (pressed)) { con_flags |= 0x200; }
+	
+	//Misc Context Key 2 release
+	else if((pad == config::con_key_2) && (!pressed)) { con_flags &= ~0x200; }
+
 	//Emulate Lid Close
 	else if((pad == config::con_key_down) && (pressed))
 	{
@@ -608,6 +621,18 @@ void NTR_GamePad::process_joystick(int pad, bool pressed)
 
 	//Emulate L Trigger release
 	else if((pad == config::gbe_joy_l_trigger) && (!pressed)) { key_input |= 0x200; }
+
+	//Misc Context Key 1 press
+	else if((pad == config::con_joy_1) && (pressed)) { con_flags |= 0x100; }
+	
+	//Misc Context Key 1 release
+	else if((pad == config::con_joy_1) && (!pressed)) { con_flags &= ~0x100; }
+
+	//Misc Context Key 2 press
+	else if((pad == config::con_joy_2) && (pressed)) { con_flags |= 0x200; }
+	
+	//Misc Context Key 2 release
+	else if((pad == config::con_joy_2) && (!pressed)) { con_flags &= ~0x200; }
 }
 
 /****** Processes input based on the mouse ******/

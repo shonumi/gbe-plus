@@ -227,6 +227,7 @@ class NTR_MMU
 		u8 state;
 		u8 sck;
 		u32 out_data;
+		u32 index;
 		bool oid_reset;
 	} magic_reader;
 

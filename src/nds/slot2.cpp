@@ -183,7 +183,7 @@ void NTR_MMU::magic_reader_process()
 
 		//State 1 - Wait for Write or Read command
 		case 0x01:
-			if((g_pad->key_input & 0x200) == 0) { magic_reader.out_byte = 0xFB; }
+			if(g_pad->con_flags & 0x100) { magic_reader.out_byte = 0xFB; }
 
 			//SDIO going LO signals new RW phase
 			if(sd == 0) { magic_reader.state = 2; }
@@ -207,16 +207,18 @@ void NTR_MMU::magic_reader_process()
 					magic_reader.state = 4;
 					magic_reader.counter = 0;
 
-					//Set data to read
+					//Return OIDCmd_PowerDown if necessary
 					if(magic_reader.oid_reset)
 					{
 						magic_reader.out_data = 0x60FFF7;
 						magic_reader.oid_reset = false;
 					}
 
+					//Otherwise, return null data or valid index
 					else
 					{
-						magic_reader.out_data = (g_pad->key_input & 0x200) ? 0x53FFFB : 0x500001;
+						magic_reader.out_data = (g_pad->con_flags & 0x100) ? magic_reader.index : 0x53FFFB;
+						std::cout<<"DATA -> 0x" << std::hex << magic_reader.out_data << "\n";
 					}
 				}
 			}
