@@ -218,7 +218,6 @@ void NTR_MMU::magic_reader_process()
 					else
 					{
 						magic_reader.out_data = (g_pad->con_flags & 0x100) ? magic_reader.index : 0x53FFFB;
-						std::cout<<"DATA -> 0x" << std::hex << magic_reader.out_data << "\n";
 					}
 				}
 			}

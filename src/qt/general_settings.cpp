@@ -212,6 +212,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	slot2_dev->addItem("GBA Cart");
 	slot2_dev->addItem("Ubisoft Pedometer");
 	slot2_dev->addItem("HCV-1000");
+	slot2_dev->addItem("Magic Reader");
 
 	config_slot2 = new QPushButton("Configure");
 
