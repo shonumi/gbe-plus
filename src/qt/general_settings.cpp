@@ -1609,6 +1609,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	turbo_file_menu = new tbf_menu;
 
 	ubisoft_pedometer_menu = new utp_menu;
+	magic_reader_menu = new mr_menu;
 
 	get_chip_list();
 
@@ -1653,7 +1654,7 @@ void gen_settings::set_ini_options()
 	//Emulated Slot-2 device
 	slot2_dev->setCurrentIndex(config::nds_slot2_device);
 
-	if((config::nds_slot2_device == 3) || (config::nds_slot2_device == 5)) { config_slot2->setEnabled(true); }
+	if((config::nds_slot2_device == 3) || (config::nds_slot2_device == 5) || (config::nds_slot2_device == 7)) { config_slot2->setEnabled(true); }
 	else { config_slot2->setEnabled(false); }
 
 	//Emulated CPU speed
@@ -1973,7 +1974,7 @@ void gen_settings::slot2_dev_change()
 {
 	config::nds_slot2_device = slot2_dev->currentIndex();
 
-	if((config::nds_slot2_device == 3) || (config::nds_slot2_device == 5) || (config::nds_slot2_device == 6)) { config_slot2->setEnabled(true); }
+	if((config::nds_slot2_device == 3) || (config::nds_slot2_device == 5) || (config::nds_slot2_device == 6) || (config::nds_slot2_device == 7)) { config_slot2->setEnabled(true); }
 	else { config_slot2->setEnabled(false); }
 }
 
@@ -2042,6 +2043,7 @@ void gen_settings::show_slot2_config()
 		case 0x3: tabs->setCurrentIndex(3); controls_combo->setCurrentIndex(1); break;
 		case 0x5: ubisoft_pedometer_menu->show(); break;
 		case 0x6: qt_gui::draw_surface->set_card_file(); break;
+		case 0x7: magic_reader_menu->show(); break;
 	}
 }
 

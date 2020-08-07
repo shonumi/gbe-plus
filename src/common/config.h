@@ -124,6 +124,7 @@ namespace config
 	extern u8 dmg_gbc_pal;
 	extern u16 mpos_id;
 	extern u32 utp_steps;
+	extern u32 magic_reader_id;
 
 	extern u8 nds_slot2_device;
 	extern std::string nds_slot2_file;

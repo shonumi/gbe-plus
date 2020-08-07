@@ -100,6 +100,7 @@ namespace config
 	u32 ir_device = 0;
 	u16 mpos_id = 0;
 	u32 utp_steps = 0;
+	u32 magic_reader_id = 0x500000;
 	bool use_opengl = false;
 	bool turbo = false;
 
