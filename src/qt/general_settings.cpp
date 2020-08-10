@@ -1654,7 +1654,7 @@ void gen_settings::set_ini_options()
 	//Emulated Slot-2 device
 	slot2_dev->setCurrentIndex(config::nds_slot2_device);
 
-	if((config::nds_slot2_device == 3) || (config::nds_slot2_device == 5) || (config::nds_slot_device == 6) || (config::nds_slot2_device == 7)) { config_slot2->setEnabled(true); }
+	if((config::nds_slot2_device == 3) || (config::nds_slot2_device == 5) || (config::nds_slot2_device == 6) || (config::nds_slot2_device == 7)) { config_slot2->setEnabled(true); }
 	else { config_slot2->setEnabled(false); }
 
 	//Emulated CPU speed
