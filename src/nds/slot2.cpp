@@ -286,6 +286,8 @@ void NTR_MMU::magic_reader_process()
 				magic_reader.out_byte = 0xFF;
 				magic_reader.state = 1;
 			}
+
+			break;
 	}
 
 	//Update new SCK in Magic Reader structure
