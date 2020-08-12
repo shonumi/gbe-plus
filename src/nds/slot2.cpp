@@ -210,15 +210,12 @@ void NTR_MMU::magic_reader_process()
 					//Return OIDCmd_PowerDown if necessary
 					if(magic_reader.oid_reset)
 					{
-						magic_reader.out_data = 0x60FFF7;
+						magic_reader.oid_status = 0x60FFF8;
 						magic_reader.oid_reset = false;
 					}
 
-					//Otherwise, return null data or valid index
-					else
-					{
-						magic_reader.out_data = (g_pad->con_flags & 0x100) ? magic_reader.index : 0x53FFFB;
-					}
+					//Return null data, status, or valid index
+					magic_reader.out_data = (g_pad->con_flags & 0x100) ? magic_reader.index : magic_reader.oid_status;
 				}
 			}
 
@@ -227,7 +224,7 @@ void NTR_MMU::magic_reader_process()
 		//State 3 - Receive 8 bits from NDS via SD when SCK is HI
 		case 0x03:
 			//Test for SCK transition from LO to HI
-			if((magic_reader.sck == 0) && (new_sck == 1) && (magic_reader.counter < 7))
+			if((magic_reader.sck == 0) && (new_sck == 1) && (magic_reader.counter < 8))
 			{
 				//Build command byte MSB first
 				if(sd)
@@ -239,7 +236,7 @@ void NTR_MMU::magic_reader_process()
 			}
 
 			//Wait for SCK to go low for a while to finish command
-			else if((magic_reader.sck == 0) && (new_sck == 0) && (magic_reader.counter == 7))
+			else if((magic_reader.sck == 0) && (new_sck == 0) && (magic_reader.counter == 8))
 			{
 				magic_reader.state = 1;
 
@@ -247,6 +244,12 @@ void NTR_MMU::magic_reader_process()
 				{
 					//Unknown command 0x24
 					case 0x24:
+						magic_reader.out_byte = 0xFF;
+						magic_reader.oid_status = 0x53FFFB;
+						break;
+
+					//Disable Auto-Sleep
+					case 0xA3:
 						magic_reader.out_byte = 0xFF;
 						break;
 
@@ -258,7 +261,7 @@ void NTR_MMU::magic_reader_process()
 					//Power Down (PowerDownOID)
 					case 0x56:
 						magic_reader.out_byte = 0xFB;
-						magic_reader.oid_reset = true;
+						magic_reader.oid_status = 0x60FFF7;
 						break;
 
 					default:

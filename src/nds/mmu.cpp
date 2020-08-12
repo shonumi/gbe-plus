@@ -59,6 +59,7 @@ void NTR_MMU::reset()
 			magic_reader.counter = 0;
 			magic_reader.out_byte = 0;
 			magic_reader.index = 0x500000;
+			magic_reader.oid_status = 0x53FFFB;
 			magic_reader.state = 0;
 			magic_reader.sck = 0;
 			magic_reader.out_data = 0xFB;
