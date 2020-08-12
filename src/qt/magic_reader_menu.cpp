@@ -50,9 +50,5 @@ mr_menu::mr_menu(QWidget *parent) : QDialog(parent)
 /****** Update Magic Reader ID ******/
 void mr_menu::update_mr_id()
 {
-	u32 temp_val = qt_id->value() | 0x500000;
-	std::string temp_str = util::to_str(temp_val);
-
-	util::from_hex_str(temp_str, temp_val);
-	config::magic_reader_id = temp_val;
+	config::magic_reader_id = qt_id->value() | 0x500000;
 }

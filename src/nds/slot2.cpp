@@ -215,6 +215,7 @@ void NTR_MMU::magic_reader_process()
 					}
 
 					//Return null data, status, or valid index
+					magic_reader.index = config::magic_reader_id;
 					magic_reader.out_data = (g_pad->con_flags & 0x100) ? magic_reader.index : magic_reader.oid_status;
 				}
 			}
