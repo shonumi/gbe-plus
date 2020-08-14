@@ -45,14 +45,14 @@ Bit 2	(W) 	NDS Read (1) or Write (0) Flag
 Bit 3	N/A
 Bit 4	N/A
 Bit 5	N/A
-Bit 6	(W)	Power Down Optical ID?	
+Bit 6	(W)	Power On Optical ID?	
 Bit 7	N/A
 
 SCK and SDIO are used for the so-called "two-wire interface" between the NDS and the Optical ID decoder. Using those two bits, the NDS communicates with the Magic Reader to send commands as well as retrieve image data. SCK must be pulsed from LOW to HIGH (0 to 1) by the NDS to start or continue receiving or sending data. The Magic Reader can signal to the NDS that it has data available to read by setting SDIO LOW, however.
 
-Although the two-wire interface's protocol makes read and write operations explicitly different, MR_CNT appears to use Bit 2 to indicate the direction I/O direction. For reads, this bit is set HIGH, but for writes it is set LOW. Oddly enough, this is the inverse of the SDIO bit used for the two-wire interface.
+Although the two-wire interface's protocol makes read and write operations explicitly different, MR_CNT appears to use Bit 2 to indicate the direction I/O direction. For reads, this bit is set HIGH, but for writes it is set LOW. Oddly enough, this is the inverse of SDIO when sending the Read/Write bit used for the two-wire interface.
 
-Bit 6 appears to be set by the NDS before powering down the Optical ID decoder, effectively putting it into sleep mode. In that case, the Magic Reader should set SDIO low to indicate it has data for the NDS to read (the OIDCmd_PowerDown command).
+Bit 6 appears to be set by the NDS before powering on the Optical ID decoder, effectively waking it from sleep mode. In that case, the Magic Reader should set SDIO low to indicate it has data for the NDS to read (the OIDCmd_PowerOn value).
 
 It is important to note that when reading MR_CNT, all bits except for Bit 1 are always set HIGH. In effect, when reading MR_CNT, only two values are ever returned: 0xFB or 0xFF.
 
@@ -114,9 +114,9 @@ The NDS must set SDIO LOW to indicate to the Magic Reader that is has a command 
 
 1) NDS sets Bit 2 of MR_CNT LOW for the duration of the transfer.
 
-2) NDS sets SCK LOW, then HIGH. When setting SCK HIGH, SDIO should be set HIGH to indicate a write operation for the two-wire interface.
+2) NDS sets SCK and SDIO LOW. Afterwards, the NDS sets SCK HIGH, and additionally sets SDIO HIGH to indicate a write operation for the two-wire interface. NDS keeps SDIO HIGH while pulling SCK LOW before starting the transfer sequence.
 
-3) NDS sets SCK LOW, then HIGH. When setting SCK HIGH, the NDS must set the SDIO bit accordingly to transmit a command MSB first. This step is done a total of 8 times to send an 8-bit command to the Magic Reader.
+3) NDS sets SCK HIGH, then LOW. When setting SCK HIGH, the NDS must set the SDIO bit accordingly to transmit a command MSB first. When setting SCK LOW, the NDS keeps SDIO HIGH or LOW depending on the last level. These steps are done a total of 8 times to send an 8-bit command to the Magic Reader.
 
 4) NDS sets SCK LOW and the transfer ends.
 
@@ -125,7 +125,7 @@ Like reading on the two-wire interface, switching SCK from LOW to HIGH while wri
 Depending on the command sent, the Magic Reader may immediately reply with its own data (setting SDIO LOW to indicate a read request). Below are the supported commands for the Magic Reader:
 
 Command 0x24 - Unknown Command
-This appears after another unknown command (0xA2). It does not appear to expect a response from the Magic Reader.
+This appears after UserCMD_AutoSleepFunDisable (0xA3). It does not appear to expect a response from the Magic Reader.
 
 Command 0x30 - UserCmd_CheckOIDStatus
 Instructs the Optical ID to return its status. Magic Reader will typically reply with OIDCmd_PowerOn, OIDCmd_PowerDown, OIDCmd_SystemReset, a valid index, or a null response.
@@ -138,9 +138,6 @@ Instructs the Optical ID to enter sleep mode.
 
 Command 0xA0 - UserCMD_AutoSleepFunEnable
 Instructs the Optical ID to enable the auto-sleep timer.
-
-Command 0xA2 - Unknown Command
-Appears right before another unknown command (0x24). It does not appear to expect a response from the Magic Reader.
 
 Command 0xA3 - UserCMD_AutoSleepFunDisable
 Instructs the Optical ID to disable the auto-sleep timer.
@@ -156,16 +153,29 @@ Instructs the Optical ID to clear the auto-sleep timer when reading and index.
 8. Control Flow
 ***************************************************
 
-Below is the general control flow used for Ultimate Beast Battlers. Note that the full functionality of the SN9P701FG-005 is not necessarily used.
+Below is the general control flow used for Ultimate Beast Battlers. Note that the full functionality of the SN9P701FG-005 is not necessarily used. There are generally 2 phases: 1 for the initial startup (shortly after the game boots) and the other used when reading cards.
 
-1) NDS writes 0x42 to MR_CNT to force Power Down.
+-------------------------------------
+Initial Startup Sequence
+-------------------------------------
+1) NDS writes 0x42 to MR_CNT to force Power On.
 
-2) Magic Reader sets SDIO LOW to indicate a read request. NDS reads OIDCmd_PowerDown from Magic Reader.
+2) Magic Reader sets SDIO LOW to indicate a read request. NDS reads OIDCmd_PowerOn from Magic Reader.
 
-3) NDS sends UserCmd_CheckOIDStatus and Magic Reader again responds with OIDCmd_PowerDown.
+3) NDS sends UserCMD_AutoSleepFunDisable and unknown command 0x24.
 
-4) NDS sends unknown commands 0xA2 and 0x24.
+4) NDS continually sends UserCMD_PowerDownOID and waits for Magic Reader to respond with OIDCmd_PowerDown.
 
-5) NDS continually reads MR_CNT for incoming read requests from the Magic Reader. A 23-bit index value is then read.
 
-6) NDS should compare the last index from the last read request and validate it the value.
+-------------------------------------
+Card Reading Sequence
+-------------------------------------
+1) NDS writes 0x42 to MR_CNT to force Power On.
+
+2) Magic Reader sets SDIO LOW to indicate a read request. NDS reads OIDCmd_PowerOn from Magic Reader.
+
+3) NDS sends UserCMD_AutoSleepFunDisable and unknown command 0x24.
+
+4) NDS continually reads MR_CNT for incoming read requests from the Magic Reader. A 23-bit index value is then read.
+
+5) NDS should compare the last index from the last read request and validate the value.
