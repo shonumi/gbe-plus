@@ -1,5 +1,5 @@
-Magic Reader Documentation 0.1
-August 4thth, 2020
+Magic Reader Documentation 0.2
+August 4th, 2020
 Shonumi aka D.S. Baxter
 
 ***************************************************
@@ -63,13 +63,54 @@ It is important to note that when reading MR_CNT, all bits except for Bit 1 are 
 
 The Magic Reader must set SDIO LOW to indicate to the NDS that data is available to read. This is often in response to a command sent by the NDS, or in some cases by setting Bit 6 of MR_CNT. Once the NDS recognizes that the Magic Reader is requesting a read, the following happens:
 
-1) NDS sets Bit 2 of MR_CNT HIGH for the duration of the transfer.
+1) NDS sets SCK and SDIO LOW and sets Bit 2 of MR_CNT HIGH for the duration of the transfer.
 
-2) NDS sets SCK LOW, then HIGH. When setting SCK HIGH, SDIO should be set LOW to indicate a read operation for the two-wire interface.
+2) NDS sets SCK HIGH and sets SDIO LOW to indicate a read operation for the two-wire interface.
 
-3) NDS sets SCK LOW, then HIGH, then reads MR_CNT. The SDIO bit indicates incoming data from the Magic Reader arriving MSB first. This step is done a total of 23 times to receive a 23-bit value from the Magic Reader.
+3) NDS sets SCK and SDIO LOW to begin data transmission.
 
-4) NDS sets Bit 2 of MR_CNT LOW indicating that the transfer is complete. SCK is set LOW as well.
+4) NDS sets SCK and SDIO HIGH, then reads MR_CNT. The SDIO bit indicates incoming data from the Magic Reader arriving MSB first.
+
+5) NDS sets SCK LOW and SDIO HIGH. Steps 5-6 are done a total of 23 times to receive a 23-bit value from the Magic Reader.
+
+6) NDS sets SCK LOW and SDIO HIGH and sets Bit 2 of MR_CNT LOW to indicate that the transfer is complete.
+
+Below is an example of how the NDS would read data from the Magic Reader:
+
+-------------------------------------
+INIT TRANSFER
+-------------------------------------
+READ  -> 0xFB	//SDIO = LOW, Magic Reader has data to send
+WRITE -> 0x04	//SCK = LOW, SDIO = LOW, Bit 2 set HIGH for duration of transfer
+WRITE -> 0x05	//SCK = HIGH, SDIO = LOW, sets R/W bit
+WRITE -> 0x04	//SCK = LOW, SDIO = LOW, transfer data now
+-------------------------------------
+TRANSFER DATA
+-------------------------------------
+WRITE -> 0x07	//SCK = HIGH, SDIO = HIGH, data is available now
+READ  -> xxxx	//SDIO = Bit 22
+WRITE -> 0x06	//SCK = LOW, SDIO = HIGH
+
+WRITE -> 0x07	//SCK = HIGH, SDIO = HIGH, data is available now
+READ  -> xxxx	//SDIO = Bit 21
+WRITE -> 0x06	//SCK = LOW, SDIO = HIGH
+
+...
+
+WRITE -> 0x07	//SCK = HIGH, SDIO = HIGH, data is available now
+READ  -> xxxx	//SDIO = Bit 1
+WRITE -> 0x06	//SCK = LOW, SDIO = HIGH
+
+WRITE -> 0x07	//SCK = HIGH, SDIO = HIGH, data is available now
+READ  -> xxxx	//SDIO = Bit 0
+WRITE -> 0x06	//SCK = LOW, SDIO = HIGH
+-------------------------------------
+END TRANSFER
+-------------------------------------
+Write -> 0x02	//SCK = LOW, SDIO = HIGH, end communications
+-------------------------------------
+
+The data for each bit is available after clocking SCK HIGH. The value of SDIO is valid until SCK is set HIGH again. Even after setting SCK LOW, MR_CNT can still be read and SDIO will reflect the serial 23-bit data. Juushinden, the only official software that uses the Magic Reader, reads MR_CNT after setting SCK LOW, for example. 
 
 Switching SCK from LOW to HIGH has several timing conditions. SCK should be set LOW for a minimum of 2μs during the transfer and should ideally not exceed 64μs. Going further than 64μs stops the transfer. SCK should be set HIGH for a minimum of 2μs. The 23-bit data format is described below:
 
@@ -110,15 +151,59 @@ Command Responses
 7. Two-Wire Interface: Writing
 ***************************************************
 
-The NDS must set SDIO LOW to indicate to the Magic Reader that is has a command to send. Afterwards, the following happens:
+The NDS can transfer a command to the Magic Reader like such:
 
-1) NDS sets Bit 2 of MR_CNT LOW for the duration of the transfer.
+1) NDS sets SCK and SDIO LOW and sets Bit 2 of MR_CNT LOW for the duration of the transfer.
 
-2) NDS sets SCK and SDIO LOW. Afterwards, the NDS sets SCK HIGH, and additionally sets SDIO HIGH to indicate a write operation for the two-wire interface. NDS keeps SDIO HIGH while pulling SCK LOW before starting the transfer sequence.
+2) NDS sets SCK and SDIO HIGH to indicate a write operation for the two-wire interface.
 
-3) NDS sets SCK HIGH, then LOW. When setting SCK HIGH, the NDS must set the SDIO bit accordingly to transmit a command MSB first. When setting SCK LOW, the NDS keeps SDIO HIGH or LOW depending on the last level. These steps are done a total of 8 times to send an 8-bit command to the Magic Reader.
+3) NDS sets SCK LOW and sets SDIO HIGH to begin data transmission.
 
-4) NDS sets SCK LOW and the transfer ends.
+4) NDS sets SCK HIGH and sets SDIO accordindly to trasmit 1 bit of the command MSB first.
+
+5) NDS sets SCK LOW and maintains the same SDIO level from Step 4. Steps 4-5 are done a total of 8 times to send an 8-bit command to the Magic Reader.
+
+6) NDS sets SCK LOW and SDIO HIGH and sets Bit 2 of MR_CNT LOW to indicate that the transfer is complete.
+
+Below is an example of how the NDS would send the 0xA3 command:
+
+-------------------------------------
+INIT TRANSFER
+-------------------------------------
+Write -> 0x00	//SCK = LOW, SDIO = LOW, signals start of operation
+Write -> 0x03	//SCK = HIGH, SDIO = HIGH, sets R/W bit 
+Write -> 0x02	//SCK = LOW, SDIO = HIGH, transfer data now
+-------------------------------------
+TRANSFER DATA
+-------------------------------------
+Write -> 0x03	//SCK = HIGH, SDIO = Bit 7 (1)
+Write -> 0x02	//SCK = LOW
+
+Write -> 0x01	//SCK = HIGH, SDIO = Bit 6 (0)
+Write -> 0x00	//SCK = LOW
+
+Write -> 0x03	//SCK = HIGH, SDIO = Bit 5 (1)
+Write -> 0x02	//SCK = LOW
+
+Write -> 0x01	//SCK = HIGH, SDIO = Bit 4 (0)
+Write -> 0x00	//SCK = LOW
+
+Write -> 0x01	//SCK = HIGH, SDIO = Bit 3 (0)
+Write -> 0x00	//SCK = LOW
+
+Write -> 0x01	//SCK = HIGH, SDIO = Bit 2 (0)
+Write -> 0x00	//SCK = LOW
+
+Write -> 0x03	//SCK = HIGH, SDIO = Bit 1 (1)
+Write -> 0x02	//SCK = LOW
+
+Write -> 0x03	//SCK = HIGH, SDIO = Bit 0 (1)
+Write -> 0x02	//SCK = LOW
+-------------------------------------
+END TRANSFER
+-------------------------------------
+Write -> 0x02	//SCK = LOW, SDIO = HIGH, end communications
+-------------------------------------
 
 Like reading on the two-wire interface, switching SCK from LOW to HIGH while writing has several timing conditions. SCK should be set LOW for a minimum of 2μs during the transfer and should ideally not exceed 64μs. Going further than 64μs stops the transfer. SCK should be set HIGH for a minimum of 2μs.
 
