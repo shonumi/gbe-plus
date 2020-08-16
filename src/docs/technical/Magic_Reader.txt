@@ -238,7 +238,7 @@ Instructs the Optical ID to clear the auto-sleep timer when reading and index.
 8. Control Flow
 ***************************************************
 
-Below is the general control flow used for Ultimate Beast Battlers. Note that the full functionality of the SN9P701FG-005 is not necessarily used. There are generally 2 phases: 1 for the initial startup (shortly after the game boots) and the other used when reading cards.
+Below is the general control flow used for Juushinden. Note that the full functionality of the SN9P701FG-005 is not necessarily used. There are generally 2 phases: 1 for the initial startup (shortly after the game boots) and the other used when reading cards.
 
 -------------------------------------
 Initial Startup Sequence
@@ -264,3 +264,33 @@ Card Reading Sequence
 4) NDS continually reads MR_CNT for incoming read requests from the Magic Reader. A 23-bit index value is then read.
 
 5) NDS should compare the last index from the last read request and validate the value.
+
+
+***************************************************
+9. Card List and Index Values
+***************************************************
+
+There are total of 240 cards for Juushinden released in 4 sets of 60. There are also an unknown amount promotional cards. For the regular sets, the index values returned by the Magic Reader roughly matches the number printed on the card itself.
+
+-------------------------------------
+Set 1 - 第一弾「大いなる覚醒の時」
+-------------------------------------
+Card #	| Name		| Index
+-------------------------------------
+JS1-07 	| タコ力士  	| 0006
+JS1-09 	| イーグルカンフー	| 0008	
+JS1-13	| ガオー		| 000C
+JS1-14	| 剛力獣神ガオー	| 000D	
+JS1-18	| ダイバクハーン	| 0011
+JS1-20	| ソードザック	| 0013	
+JS1-23	| カワ・ウソン 	| 0016	
+JS1-25	| クワガイアス	| 0018
+JS1-26	| スカルドレイン 	| 0019
+JS1-28	| ヨロイガエル 	| 001B
+JS1-38	| ソードブレイク 	| 0025
+JS1-39	| 聖なる闘技場	| 0026
+JS1-41	| ポメ剣士	| 0028	
+JS1-43	| アチョーモンキー	| 002A
+JS1-49	| ブルドクター	| 0030	
+JS1-52	| 怪力エレファン	| 0033
+JS1-57	| いでよ鋼の盾 	| 0038
