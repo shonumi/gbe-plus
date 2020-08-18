@@ -7,7 +7,7 @@ Free Open Source Software available under the GPLv2. See license.txt for full de
 
 ## Overview
 
-Game Boy Enhanced (GBE for short) aims to be a fully functional Game Boy emulator. The goal is to create a highly portable emulator using C++ and SDL, document the Game Boy's functions through clear code, and add as many enhancements (scaling filters, cheats, custom graphics) as reasonably possible. Additionally GBE+ strives to emulate everything about the Game Boy, including obscure accessories.
+GB Enhanced+ (GBE+ for short) aims to be a fully functional Game Boy emulator. The goal is to create a highly portable emulator using C++ and SDL, document the Game Boy's functions through clear code, and add as many enhancements (scaling filters, cheats, custom graphics) as reasonably possible. Additionally GBE+ strives to emulate everything about the Game Boy, including obscure accessories.
 
 ## Compiling GBE+
 
