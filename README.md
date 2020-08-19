@@ -3,7 +3,9 @@
 GB Enhanced+ is a DMG/GBC/GBA emulator and experimental NDS emulator. It is the successor to the original GB Enhanced project with a focus on enhancements and emulating as much of the Game Boy as possible.
 
 ## License
-Free Open Source Software available under the GPLv2. See license.txt for full details
+GB Enhanced+ as an emulator is Free Open Source Software available under the GPLv2. See license.txt for full details.
+
+Technical documentation and Dan Docs are Public Domain.
 
 ## Overview
 
