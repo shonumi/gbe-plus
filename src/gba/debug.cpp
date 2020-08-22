@@ -1378,7 +1378,7 @@ std::string AGB_core::debug_get_mnemonic(u32 data, bool is_addr)
 					immediate = util::to_hex_str(opcode & 0xFF) + " ROR #" + util::to_str(ror);
 				}
 
-				else { immediate = "R" + util::to_str(opcode & 0xF); }
+				else { immediate = "R" + util::to_str((opcode >> 12) & 0xF); }
 
 				instr = "MSR " + psr + ", " + immediate;
 			}
