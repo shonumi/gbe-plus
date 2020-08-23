@@ -384,6 +384,7 @@ u8 NTR_MMU::read_u8(u32 address)
 			break;
 
 		case 0x8:
+		case 0x9:
 		case 0xA:
 			if((access_mode && ((nds9_exmem & 0x80) == 0)) || (!access_mode && (nds9_exmem & 0x80)))
 			{
