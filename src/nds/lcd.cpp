@@ -165,6 +165,7 @@ void NTR_LCD::reset()
 	lcd_stat.vcount_irq_enable_b = false;
 
 	lcd_stat.cap_cnt = 0;
+	lcd_stat.capture_on = false;
 
 	//Misc BG initialization
 	for(int x = 0; x < 4; x++)
