@@ -215,6 +215,9 @@ class NTR_LCD
 
 	//Window functions
 	void calculate_window_on_scanline();
+
+	//Misc functions
+	void copy_capture_buffer();
 };
 
 #endif // NDS_LCD

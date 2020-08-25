@@ -166,6 +166,7 @@ void NTR_LCD::reset()
 
 	lcd_stat.cap_cnt = 0;
 	lcd_stat.capture_on = false;
+	lcd_stat.capture_buffer.resize(0xC000, 0);
 
 	//Misc BG initialization
 	for(int x = 0; x < 4; x++)
@@ -3029,6 +3030,70 @@ void NTR_LCD::render_bg_mode_direct(u32 bg_control)
 /****** Render pixels for a given scanline (per-pixel) ******/
 void NTR_LCD::render_scanline()
 {
+	//Perform Engine A display capture if necessary
+	if((lcd_stat.cap_cnt & 0xE0000000) == 0x80000000)
+	{
+		lcd_stat.capture_on = true;
+
+		u16 vram_color = 0;
+		u16 addr = lcd_stat.current_scanline * 256;
+		u32 color = 0;
+
+		u16 h = 0;
+		u16 w = 0;
+
+		//Calculate capture dimensions
+		switch((lcd_stat.cap_cnt >> 20) & 0x3)
+		{
+			case 0x0:
+				h = 128;
+				w = 128;
+				break;
+
+			case 0x1:
+				h = 64;
+				w = 256;
+				break;
+
+			case 0x2:
+				h = 128;
+				w = 256;
+				break;
+
+			case 0x3:
+				h = 192;
+				w = 256;
+				break;
+		}
+
+		render_bg_scanline(NDS_DISPCNT_A);
+
+		//Store captured pixel data in buffer for later transfer to VRAM
+		for(u32 x = 0; x < 256; x++)
+		{
+			if((x < w) && (lcd_stat.current_scanline < h))
+			{
+				//Convert 32-bit ARGB to 15-bit ARGB
+				color = scanline_buffer_a[x];
+
+				u8 r = (color >> 19) & 0x1F;
+				u8 g = (color >> 11) & 0x1F;
+				u8 b = (color >> 3) & 0x1F;
+
+				vram_color = 0x8000 | (b << 10) | (g << 5) | (r);
+			}
+
+			else { vram_color = 0; }
+
+			lcd_stat.capture_buffer[addr++] = vram_color;
+
+			mem->write_u16_fast(addr, vram_color);
+		}
+
+		//Reset busy flag before entering VBlank
+		if(lcd_stat.current_scanline == 191) { lcd_stat.cap_cnt &= ~0x80000000; }
+	}
+
 	//Engine A - Render based on display modes
 	switch(lcd_stat.display_mode_a)
 	{
@@ -3049,75 +3114,6 @@ void NTR_LCD::render_scanline()
 
 		//Display Mode 2 - VRAM
 		case 0x2:
-			//Perform display capture if necessary
-			if((lcd_stat.cap_cnt & 0xE0000000) == 0x80000000)
-			{
-				u8 slot = ((lcd_stat.cap_cnt >> 16) & 0x3);
-				u16 vram_color = 0;
-				u32 temp_line[256];
-				u32 addr = lcd_stat.vram_bank_addr[slot] + (((lcd_stat.cap_cnt >> 18) & 0x3) * 0x8000) + (512 * lcd_stat.current_scanline);
-				u32 color = 0;
-
-				u16 h = 0;
-				u16 w = 0;
-
-				//Calculate capture dimensions
-				switch((lcd_stat.cap_cnt >> 20) & 0x3)
-				{
-					case 0x0:
-						h = 128;
-						w = 128;
-						break;
-
-					case 0x1:
-						h = 64;
-						w = 256;
-						break;
-
-					case 0x2:
-						h = 128;
-						w = 256;
-						break;
-
-					case 0x3:
-						h = 192;
-						w = 256;
-						break;
-				}
-
-				//Copy existing scanline data
-				for(u32 x = 0; x < 256; x++) { temp_line[x] = scanline_buffer_a[x]; }
-
-				render_bg_scanline(NDS_DISPCNT_A);
-
-				for(u32 x = 0; x < 256; x++)
-				{
-					if((x < w) && (lcd_stat.current_scanline < h))
-					{
-						//Convert 32-bit ARGB to 15-bit ARGB
-						color = scanline_buffer_a[x];
-
-						u8 r = (color >> 19) & 0x1F;
-						u8 g = (color >> 11) & 0x1F;
-						u8 b = (color >> 3) & 0x1F;
-
-						vram_color = 0x8000 | (b << 10) | (g << 5) | (r);
-					}
-
-					else { vram_color = 0; }
-
-					mem->write_u16_fast(addr, vram_color);
-					addr += 2;
-				}
-
-					
-				//Restore scanline data
-				for(u32 x = 0; x < 256; x++) { scanline_buffer_a[x] = temp_line[x]; }
-
-				//Reset busy flag before entering VBlank
-				if(lcd_stat.current_scanline == 191) { lcd_stat.cap_cnt &= ~0x80000000; }
-			}
-
 			{
 				u8 vram_block = ((lcd_stat.display_control_a >> 18) & 0x3);
 				u32 vram_addr = lcd_stat.vram_bank_addr[vram_block] + (lcd_stat.current_scanline * 256 * 2);
@@ -4397,6 +4393,24 @@ void NTR_LCD::reload_affine_references(u32 bg_control)
 	if(engine_a) { lcd_stat.bg_affine_a[aff_id].y_pos = lcd_stat.bg_affine_a[aff_id].y_ref; }
 	else { lcd_stat.bg_affine_b[aff_id].y_pos = lcd_stat.bg_affine_b[aff_id].y_ref; }
 }
+
+/****** Copies captured buffer to VRAM bank ******/
+void NTR_LCD::copy_capture_buffer()
+{
+	u8 slot = ((lcd_stat.cap_cnt >> 16) & 0x3);
+
+	for(u32 y = 0; y < 192; y++)
+	{
+		u16 src_addr = y * 256;
+		u32 dest_addr = lcd_stat.vram_bank_addr[slot] + (((lcd_stat.cap_cnt >> 18) & 0x3) * 0x8000) + (512 * y);
+
+		for(u32 x = 0; x < 256; x++)
+		{
+			mem->write_u16_fast(dest_addr, lcd_stat.capture_buffer[src_addr++]);
+			dest_addr += 2;
+		}
+	}
+} 
 
 /****** Generates the game icon (non-animated) from NDS cart header ******/
 bool NTR_LCD::get_cart_icon(SDL_Surface* nds_icon)
