@@ -88,6 +88,10 @@ void NTR_LCD::reset()
 	gx_render_buffer[1].resize(0xC000, 0);
 	gx_z_buffer.resize(0xC000, 4096);
 
+	capture_on = false;
+	capture_buffer.resize(0xC000, 0);
+	capture_slot = 0;
+
 	line_buffer.resize(8);
 	for(u32 x = 0; x < 8; x++) { line_buffer[x].resize(0x100); }
 
@@ -165,8 +169,6 @@ void NTR_LCD::reset()
 	lcd_stat.vcount_irq_enable_b = false;
 
 	lcd_stat.cap_cnt = 0;
-	lcd_stat.capture_on = false;
-	lcd_stat.capture_buffer.resize(0xC000, 0);
 
 	//Misc BG initialization
 	for(int x = 0; x < 4; x++)
@@ -3033,7 +3035,7 @@ void NTR_LCD::render_scanline()
 	//Perform Engine A display capture if necessary
 	if((lcd_stat.cap_cnt & 0xE0000000) == 0x80000000)
 	{
-		lcd_stat.capture_on = true;
+		capture_on = true;
 
 		u16 vram_color = 0;
 		u16 addr = lcd_stat.current_scanline * 256;
@@ -3085,10 +3087,13 @@ void NTR_LCD::render_scanline()
 
 			else { vram_color = 0; }
 
-			lcd_stat.capture_buffer[addr++] = vram_color;
+			capture_buffer[addr++] = vram_color;
 
 			mem->write_u16_fast(addr, vram_color);
 		}
+
+		//Set VRAM bank for capture
+		if(lcd_stat.current_scanline == 0) { capture_slot = ((lcd_stat.cap_cnt >> 16) & 0x3); }
 
 		//Reset busy flag before entering VBlank
 		if(lcd_stat.current_scanline == 191) { lcd_stat.cap_cnt &= ~0x80000000; }
@@ -4260,6 +4265,9 @@ void NTR_LCD::step()
 
 				//Start Display Sync DMA
 				mem->start_dma(3);
+
+				//Copy capture buffer to designated VRAM bank
+				if(capture_on) { copy_capture_buffer(); }
 			}
 		}
 	}
@@ -4397,19 +4405,19 @@ void NTR_LCD::reload_affine_references(u32 bg_control)
 /****** Copies captured buffer to VRAM bank ******/
 void NTR_LCD::copy_capture_buffer()
 {
-	u8 slot = ((lcd_stat.cap_cnt >> 16) & 0x3);
-
 	for(u32 y = 0; y < 192; y++)
 	{
 		u16 src_addr = y * 256;
-		u32 dest_addr = lcd_stat.vram_bank_addr[slot] + (((lcd_stat.cap_cnt >> 18) & 0x3) * 0x8000) + (512 * y);
+		u32 dest_addr = lcd_stat.vram_bank_addr[capture_slot] + (((lcd_stat.cap_cnt >> 18) & 0x3) * 0x8000) + (512 * y);
 
 		for(u32 x = 0; x < 256; x++)
 		{
-			mem->write_u16_fast(dest_addr, lcd_stat.capture_buffer[src_addr++]);
+			mem->write_u16_fast(dest_addr, capture_buffer[src_addr++]);
 			dest_addr += 2;
 		}
 	}
+
+	capture_on = false;
 } 
 
 /****** Generates the game icon (non-animated) from NDS cart header ******/

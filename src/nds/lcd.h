@@ -140,6 +140,11 @@ class NTR_LCD
 	std::vector< std::vector<u32> > line_buffer;
 	std::vector< std::vector<u32> > obj_line_buffer;
 
+	//Display Capture
+	bool capture_on;
+	u8 capture_slot;
+	std::vector<u16> capture_buffer;
+
 	bool full_scanline_render_a;
 	bool full_scanline_render_b;
 
