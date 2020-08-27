@@ -3032,10 +3032,13 @@ void NTR_LCD::render_bg_mode_direct(u32 bg_control)
 /****** Render pixels for a given scanline (per-pixel) ******/
 void NTR_LCD::render_scanline()
 {
+	bool recent_cap = false;
+
 	//Perform Engine A display capture if necessary
 	if((lcd_stat.cap_cnt & 0xE0000000) == 0x80000000)
 	{
 		capture_on = true;
+		recent_cap = true;
 
 		u16 vram_color = 0;
 		u16 addr = lcd_stat.current_scanline * 256;
@@ -3114,7 +3117,7 @@ void NTR_LCD::render_scanline()
 
 		//Display Mode 1 - Tiled BG and OBJ
 		case 0x1:
-			render_bg_scanline(NDS_DISPCNT_A);
+			if(!recent_cap) { render_bg_scanline(NDS_DISPCNT_A); }
 			break;
 
 		//Display Mode 2 - VRAM
