@@ -1409,3 +1409,138 @@ void NTR_ARM7::handle_interrupt()
 		}
 	}
 }
+
+/****** Read CPU data from save state ******/
+bool NTR_ARM7::cpu_read(u32 offset, std::string filename)
+{
+	std::ifstream file(filename.c_str(), std::ios::binary);
+	
+	if(!file.is_open()) { return false; }
+
+	//Go to offset
+	file.seekg(offset);
+
+	//Serialize CPU registers data from file stream
+	file.read((char*)&reg, sizeof(reg));
+
+	//Serialize misc CPU data to save state
+	file.read((char*)&current_cpu_mode, sizeof(current_cpu_mode));
+	file.read((char*)&arm_mode, sizeof(arm_mode));
+	file.read((char*)&running, sizeof(running));
+	file.read((char*)&needs_flush, sizeof(needs_flush));
+	file.read((char*)&in_interrupt, sizeof(in_interrupt));
+	file.read((char*)&idle_state, sizeof(idle_state));
+	file.read((char*)&last_idle_state, sizeof(last_idle_state));
+	file.read((char*)&thumb_long_branch, sizeof(thumb_long_branch));
+	file.read((char*)&last_instr_branch, sizeof(last_instr_branch));
+	file.read((char*)&swi_waitbyloop_count, sizeof(swi_waitbyloop_count));
+	file.read((char*)&instruction_pipeline[0], sizeof(instruction_pipeline[0]));
+	file.read((char*)&instruction_pipeline[1], sizeof(instruction_pipeline[1]));
+	file.read((char*)&instruction_pipeline[2], sizeof(instruction_pipeline[2]));
+	file.read((char*)&instruction_operation[0], sizeof(instruction_operation[0]));
+	file.read((char*)&instruction_operation[1], sizeof(instruction_operation[1]));
+	file.read((char*)&instruction_operation[2], sizeof(instruction_operation[2]));
+	file.read((char*)&pipeline_pointer, sizeof(pipeline_pointer));
+	file.read((char*)&debug_message, sizeof(debug_message));
+	file.read((char*)&debug_code, sizeof(debug_code));
+	file.read((char*)&debug_cycles, sizeof(debug_cycles));
+	file.read((char*)&debug_addr, sizeof(debug_addr));
+	file.read((char*)&sync_cycles, sizeof(sync_cycles));
+	file.read((char*)&system_cycles, sizeof(system_cycles));
+	file.read((char*)&re_sync, sizeof(re_sync));
+
+
+	//Serialize timers to save state
+	file.read((char*)&controllers.timer[0], sizeof(controllers.timer[0]));
+	file.read((char*)&controllers.timer[1], sizeof(controllers.timer[1]));
+	file.read((char*)&controllers.timer[2], sizeof(controllers.timer[2]));
+	file.read((char*)&controllers.timer[3], sizeof(controllers.timer[3]));
+
+	file.close();
+	return true;
+}
+
+/****** Write CPU data to save state ******/
+bool NTR_ARM7::cpu_write(std::string filename)
+{
+	std::ofstream file(filename.c_str(), std::ios::binary | std::ios::trunc);
+	
+	if(!file.is_open()) { return false; }
+
+	//Serialize CPU registers data to save state
+	file.write((char*)&reg, sizeof(reg));
+
+	//Serialize misc CPU data to save state
+	file.write((char*)&current_cpu_mode, sizeof(current_cpu_mode));
+	file.write((char*)&arm_mode, sizeof(arm_mode));
+	file.write((char*)&running, sizeof(running));
+	file.write((char*)&needs_flush, sizeof(needs_flush));
+	file.write((char*)&in_interrupt, sizeof(in_interrupt));
+	file.write((char*)&idle_state, sizeof(idle_state));
+	file.write((char*)&last_idle_state, sizeof(last_idle_state));
+	file.write((char*)&thumb_long_branch, sizeof(thumb_long_branch));
+	file.write((char*)&last_instr_branch, sizeof(last_instr_branch));
+	file.write((char*)&swi_waitbyloop_count, sizeof(swi_waitbyloop_count));
+	file.write((char*)&instruction_pipeline[0], sizeof(instruction_pipeline[0]));
+	file.write((char*)&instruction_pipeline[1], sizeof(instruction_pipeline[1]));
+	file.write((char*)&instruction_pipeline[2], sizeof(instruction_pipeline[2]));
+	file.write((char*)&instruction_operation[0], sizeof(instruction_operation[0]));
+	file.write((char*)&instruction_operation[1], sizeof(instruction_operation[1]));
+	file.write((char*)&instruction_operation[2], sizeof(instruction_operation[2]));
+	file.write((char*)&pipeline_pointer, sizeof(pipeline_pointer));
+	file.write((char*)&debug_message, sizeof(debug_message));
+	file.write((char*)&debug_code, sizeof(debug_code));
+	file.write((char*)&debug_cycles, sizeof(debug_cycles));
+	file.write((char*)&debug_addr, sizeof(debug_addr));
+	file.write((char*)&sync_cycles, sizeof(sync_cycles));
+	file.write((char*)&system_cycles, sizeof(system_cycles));
+	file.write((char*)&re_sync, sizeof(re_sync));
+
+
+	//Serialize timers to save state
+	file.write((char*)&controllers.timer[0], sizeof(controllers.timer[0]));
+	file.write((char*)&controllers.timer[1], sizeof(controllers.timer[1]));
+	file.write((char*)&controllers.timer[2], sizeof(controllers.timer[2]));
+	file.write((char*)&controllers.timer[3], sizeof(controllers.timer[3]));
+
+	file.close();
+	return true;
+}
+
+/****** Gets the size of CPU data for serialization ******/
+u32 NTR_ARM7::size()
+{
+	u32 cpu_size = 0;
+
+	cpu_size += sizeof(reg);
+	cpu_size += sizeof(current_cpu_mode);
+	cpu_size += sizeof(arm_mode);
+	cpu_size += sizeof(running);
+	cpu_size += sizeof(needs_flush);
+	cpu_size += sizeof(in_interrupt);
+	cpu_size += sizeof(idle_state);
+	cpu_size += sizeof(last_idle_state);
+	cpu_size += sizeof(thumb_long_branch);
+	cpu_size += sizeof(last_instr_branch);
+	cpu_size += sizeof(swi_waitbyloop_count);
+	cpu_size += sizeof(instruction_pipeline[0]);
+	cpu_size += sizeof(instruction_pipeline[1]);
+	cpu_size += sizeof(instruction_pipeline[2]);
+	cpu_size += sizeof(instruction_operation[0]);
+	cpu_size += sizeof(instruction_operation[1]);
+	cpu_size += sizeof(instruction_operation[2]);
+	cpu_size += sizeof(pipeline_pointer);
+	cpu_size += sizeof(debug_message);
+	cpu_size += sizeof(debug_code);
+	cpu_size += sizeof(debug_cycles);
+	cpu_size += sizeof(debug_addr);
+	cpu_size += sizeof(controllers.timer[0]);
+	cpu_size += sizeof(controllers.timer[1]);
+	cpu_size += sizeof(controllers.timer[2]);
+	cpu_size += sizeof(controllers.timer[3]);
+	cpu_size += sizeof(sync_cycles);
+	cpu_size += sizeof(system_cycles);
+	cpu_size += sizeof(re_sync);
+
+	return cpu_size;
+}

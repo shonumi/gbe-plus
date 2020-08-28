@@ -310,6 +310,11 @@ class NTR_ARM7
 	void swi_getsinetable();
 	void swi_getpitchtable();
 	void swi_getvolumetable();
+
+	//Serialize data for save state loading/saving
+	bool cpu_read(u32 offset, std::string filename);
+	bool cpu_write(std::string filename);
+	u32 size();
 };
 		
 #endif // NDS7_CPU
