@@ -1449,7 +1449,6 @@ bool NTR_ARM7::cpu_read(u32 offset, std::string filename)
 	file.read((char*)&system_cycles, sizeof(system_cycles));
 	file.read((char*)&re_sync, sizeof(re_sync));
 
-
 	//Serialize timers to save state
 	file.read((char*)&controllers.timer[0], sizeof(controllers.timer[0]));
 	file.read((char*)&controllers.timer[1], sizeof(controllers.timer[1]));
@@ -1495,7 +1494,6 @@ bool NTR_ARM7::cpu_write(std::string filename)
 	file.write((char*)&sync_cycles, sizeof(sync_cycles));
 	file.write((char*)&system_cycles, sizeof(system_cycles));
 	file.write((char*)&re_sync, sizeof(re_sync));
-
 
 	//Serialize timers to save state
 	file.write((char*)&controllers.timer[0], sizeof(controllers.timer[0]));

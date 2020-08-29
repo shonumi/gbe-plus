@@ -309,6 +309,11 @@ class NTR_ARM9
 	void swi_waitbyloop();
 	void swi_getcrc16();
 	void swi_custompost();
+
+	//Serialize data for save state loading/saving
+	bool cpu_read(u32 offset, std::string filename);
+	bool cpu_write(std::string filename);
+	u32 size();
 };
 		
 #endif // NDS9_CPU 
