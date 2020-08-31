@@ -6107,3 +6107,75 @@ void NTR_MMU::set_nds7_pc(u32* ex_pc) { nds7_pc = ex_pc; }
 
 /****** Points the MMU to the NDS9 Program Counter ******/
 void NTR_MMU::set_nds9_pc(u32* ex_pc) { nds9_pc = ex_pc; }
+
+/****** Read MMU data from save state ******/
+bool NTR_MMU::mmu_read(u32 offset, std::string filename)
+{
+	std::ifstream file(filename.c_str(), std::ios::binary);
+	
+	if(!file.is_open()) { return false; }
+
+	//Go to offset
+	file.seekg(offset);
+
+	//Serialize WRAM from save state
+	u8* ex_mem = &memory_map[0x2000000];
+	file.read((char*)ex_mem, 0x400000);
+
+	//Serialize WRAM from save state
+	ex_mem = &memory_map[0x3000000];
+	file.read((char*)ex_mem, 0x8000);
+
+	//Serialize WRAM from save state
+	ex_mem = &memory_map[0x3800000];
+	file.read((char*)ex_mem, 0x10000);
+
+	//Serialize ARM9 IO registers from save state
+	ex_mem = &memory_map[0x4000000];
+	file.read((char*)ex_mem, 0x700);
+
+	ex_mem = &memory_map[0x4001000];
+	file.read((char*)ex_mem, 0x70);
+
+	ex_mem = &memory_map[0x4100000];
+	file.read((char*)ex_mem, 0x4);
+
+	ex_mem = &memory_map[0x4100010];
+	file.read((char*)ex_mem, 0x4);
+	
+	//Serialize palettes from save state
+	ex_mem = &memory_map[0x5000000];
+	file.read((char*)ex_mem, 0x800);
+
+	//Serialize VRAM from save state
+	ex_mem = &memory_map[0x6000000];
+	file.read((char*)ex_mem, 0x80000);
+
+	ex_mem = &memory_map[0x6200000];
+	file.read((char*)ex_mem, 0x20000);
+
+	ex_mem = &memory_map[0x6400000];
+	file.read((char*)ex_mem, 0x40000);
+
+	ex_mem = &memory_map[0x6600000];
+	file.read((char*)ex_mem, 0x20000);
+
+	ex_mem = &memory_map[0x6800000];
+	file.read((char*)ex_mem, 0xA4000);
+
+	//Serialize OAM from save state
+	ex_mem = &memory_map[0x7000000];
+	file.read((char*)ex_mem, 0x800);
+
+	//Serialize DTCM
+	ex_mem = &dtcm[0];
+	file.read((char*)ex_mem, 0x4000);
+
+	//Serialize misc data from MMU from save state
+	file.read((char*)&current_save_type, sizeof(current_save_type));
+	file.read((char*)&gba_save_type, sizeof(gba_save_type));
+	file.read((char*)&current_slot2_device, sizeof(current_slot2_device));
+
+	file.close();
+	return true;
+}

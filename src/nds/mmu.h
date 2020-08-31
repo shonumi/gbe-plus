@@ -427,6 +427,9 @@ class NTR_MMU
 	std::vector<nds_timer>* nds7_timer;
 	std::vector<nds_timer>* nds9_timer;
 
+	//Serialize data for save state loading/saving
+	bool mmu_read(u32 offset, std::string filename);
+
 	private:
 
 	//Only the MMU and LCD should communicate through this structure
