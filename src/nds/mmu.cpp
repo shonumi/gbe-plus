@@ -6176,6 +6176,80 @@ bool NTR_MMU::mmu_read(u32 offset, std::string filename)
 	file.read((char*)&gba_save_type, sizeof(gba_save_type));
 	file.read((char*)&current_slot2_device, sizeof(current_slot2_device));
 
+	//Serialize IPC from save state
+	file.read((char*)&nds7_ipc.sync, sizeof(nds7_ipc.sync));
+	file.read((char*)&nds7_ipc.cnt, sizeof(nds7_ipc.cnt));
+	file.read((char*)&nds7_ipc.fifo, sizeof(nds7_ipc.fifo));
+	file.read((char*)&nds7_ipc.fifo_latest, sizeof(nds7_ipc.fifo_latest));
+	file.read((char*)&nds7_ipc.fifo_incoming, sizeof(nds7_ipc.fifo_incoming));
+
+	file.read((char*)&nds9_ipc.sync, sizeof(nds9_ipc.sync));
+	file.read((char*)&nds9_ipc.cnt, sizeof(nds9_ipc.cnt));
+	file.read((char*)&nds9_ipc.fifo, sizeof(nds9_ipc.fifo));
+	file.read((char*)&nds9_ipc.fifo_latest, sizeof(nds9_ipc.fifo_latest));
+	file.read((char*)&nds9_ipc.fifo_incoming, sizeof(nds9_ipc.fifo_incoming));
+
+	//Serialize SPI, AUX_SPI, Game Card, RTC, NDS9 Math, and Touchscreen from save state
+	file.read((char*)&nds7_spi, sizeof(nds7_spi));
+	file.read((char*)&nds_aux_spi, sizeof(nds_aux_spi));
+	file.read((char*)&nds_card, sizeof(nds_card));
+	file.read((char*)&nds7_rtc, sizeof(nds7_rtc));
+	file.read((char*)&nds9_math, sizeof(nds9_math));
+	file.read((char*)&touchscreen, sizeof(touchscreen));
+
+	//Serialize GX data from save state
+	file.read((char*)&nds9_gx_fifo, sizeof(nds9_gx_fifo));
+	file.read((char*)&gx_fifo_entry, sizeof(gx_fifo_entry));
+	file.read((char*)&gx_fifo_param_length, sizeof(gx_fifo_param_length));
+
+	//Serialize more misc data from MMU from save state
+	file.read((char*)&n_clock, sizeof(n_clock));
+	file.read((char*)&s_clock, sizeof(s_clock));
+	file.read((char*)&nds9_bios_vector, sizeof(nds9_bios_vector));
+	file.read((char*)&nds9_irq_handler, sizeof(nds9_irq_handler));
+	file.read((char*)&nds7_bios_vector, sizeof(nds7_bios_vector));
+	file.read((char*)&nds7_irq_handler, sizeof(nds7_irq_handler));
+	file.read((char*)&access_mode, sizeof(access_mode));
+	file.read((char*)&wram_mode, sizeof(wram_mode));
+	file.read((char*)&rumble_state, sizeof(rumble_state));
+	file.read((char*)&do_save, sizeof(do_save));
+	file.read((char*)&fetch_request, sizeof(fetch_request));
+	file.read((char*)&gx_command, sizeof(gx_command));
+	file.read((char*)&header, sizeof(header));
+
+	//Serialize DMA data from save state
+	for(u32 x = 0; x < 8; x++) { file.read((char*)&dma[x], sizeof(dma[x])); }
+
+	//Serialize even more misc data from MMU from save state
+	file.read((char*)&nds9_ie, sizeof(nds9_ie));
+	file.read((char*)&nds9_if, sizeof(nds9_if));
+	file.read((char*)&nds9_temp_if, sizeof(nds9_temp_if));
+	file.read((char*)&nds9_ime, sizeof(nds9_ime));
+	file.read((char*)&power_cnt1, sizeof(power_cnt1));
+	file.read((char*)&nds9_exmem, sizeof(nds9_exmem));
+
+	file.read((char*)&nds7_ie, sizeof(nds7_ie));
+	file.read((char*)&nds7_if, sizeof(nds7_if));
+	file.read((char*)&nds7_temp_if, sizeof(nds7_temp_if));
+	file.read((char*)&nds7_ime, sizeof(nds7_ime));
+	file.read((char*)&power_cnt2, sizeof(power_cnt2));
+	file.read((char*)&nds7_exmem, sizeof(nds7_exmem));
+
+	file.read((char*)&firmware_status, sizeof(firmware_status));
+	file.read((char*)&firmware_state, sizeof(firmware_state));
+	file.read((char*)&firmware_count, sizeof(firmware_count));
+	file.read((char*)&firmware_index, sizeof(firmware_index));
+	file.read((char*)&in_firmware, sizeof(in_firmware));
+	file.read((char*)&touchscreen_state, sizeof(touchscreen_state));
+	file.read((char*)&apu_io_id, sizeof(apu_io_id));
+	file.read((char*)&dtcm_addr, sizeof(dtcm_addr));
+	file.read((char*)&itcm_addr, sizeof(itcm_addr));
+	file.read((char*)&pal_a_bg_slot, sizeof(pal_a_bg_slot));
+	file.read((char*)&pal_a_obj_slot, sizeof(pal_a_obj_slot));
+	file.read((char*)&pal_b_bg_slot, sizeof(pal_b_bg_slot));
+	file.read((char*)&pal_b_obj_slot, sizeof(pal_b_obj_slot));
+	file.read((char*)&vram_tex_slot, sizeof(vram_tex_slot));
+
 	file.close();
 	return true;
 }
