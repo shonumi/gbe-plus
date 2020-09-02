@@ -6253,3 +6253,226 @@ bool NTR_MMU::mmu_read(u32 offset, std::string filename)
 	file.close();
 	return true;
 }
+
+/****** Write MMU data to save state ******/
+bool NTR_MMU::mmu_write(std::string filename)
+{
+	std::ofstream file(filename.c_str(), std::ios::binary | std::ios::app);
+	
+	if(!file.is_open()) { return false; }
+
+	//Serialize WRAM to save state
+	u8* ex_mem = &memory_map[0x2000000];
+	file.write((char*)ex_mem, 0x400000);
+
+	//Serialize WRAM to save state
+	ex_mem = &memory_map[0x3000000];
+	file.write((char*)ex_mem, 0x8000);
+
+	//Serialize WRAM to save state
+	ex_mem = &memory_map[0x3800000];
+	file.write((char*)ex_mem, 0x10000);
+
+	//Serialize ARM9 IO registers to save state
+	ex_mem = &memory_map[0x4000000];
+	file.write((char*)ex_mem, 0x700);
+
+	ex_mem = &memory_map[0x4001000];
+	file.write((char*)ex_mem, 0x70);
+
+	ex_mem = &memory_map[0x4100000];
+	file.write((char*)ex_mem, 0x4);
+
+	ex_mem = &memory_map[0x4100010];
+	file.write((char*)ex_mem, 0x4);
+	
+	//Serialize palettes to save state
+	ex_mem = &memory_map[0x5000000];
+	file.write((char*)ex_mem, 0x800);
+
+	//Serialize VRAM to save state
+	ex_mem = &memory_map[0x6000000];
+	file.write((char*)ex_mem, 0x80000);
+
+	ex_mem = &memory_map[0x6200000];
+	file.write((char*)ex_mem, 0x20000);
+
+	ex_mem = &memory_map[0x6400000];
+	file.write((char*)ex_mem, 0x40000);
+
+	ex_mem = &memory_map[0x6600000];
+	file.write((char*)ex_mem, 0x20000);
+
+	ex_mem = &memory_map[0x6800000];
+	file.write((char*)ex_mem, 0xA4000);
+
+	//Serialize OAM to save state
+	ex_mem = &memory_map[0x7000000];
+	file.write((char*)ex_mem, 0x800);
+
+	//Serialize DTCM
+	ex_mem = &dtcm[0];
+	file.write((char*)ex_mem, 0x4000);
+
+	//Serialize misc data to MMU to save state
+	file.write((char*)&current_save_type, sizeof(current_save_type));
+	file.write((char*)&gba_save_type, sizeof(gba_save_type));
+	file.write((char*)&current_slot2_device, sizeof(current_slot2_device));
+
+	//Serialize IPC to save state
+	file.write((char*)&nds7_ipc.sync, sizeof(nds7_ipc.sync));
+	file.write((char*)&nds7_ipc.cnt, sizeof(nds7_ipc.cnt));
+	file.write((char*)&nds7_ipc.fifo, sizeof(nds7_ipc.fifo));
+	file.write((char*)&nds7_ipc.fifo_latest, sizeof(nds7_ipc.fifo_latest));
+	file.write((char*)&nds7_ipc.fifo_incoming, sizeof(nds7_ipc.fifo_incoming));
+
+	file.write((char*)&nds9_ipc.sync, sizeof(nds9_ipc.sync));
+	file.write((char*)&nds9_ipc.cnt, sizeof(nds9_ipc.cnt));
+	file.write((char*)&nds9_ipc.fifo, sizeof(nds9_ipc.fifo));
+	file.write((char*)&nds9_ipc.fifo_latest, sizeof(nds9_ipc.fifo_latest));
+	file.write((char*)&nds9_ipc.fifo_incoming, sizeof(nds9_ipc.fifo_incoming));
+
+	//Serialize SPI, AUX_SPI, Game Card, RTC, NDS9 Math, and Touchscreen to save state
+	file.write((char*)&nds7_spi, sizeof(nds7_spi));
+	file.write((char*)&nds_aux_spi, sizeof(nds_aux_spi));
+	file.write((char*)&nds_card, sizeof(nds_card));
+	file.write((char*)&nds7_rtc, sizeof(nds7_rtc));
+	file.write((char*)&nds9_math, sizeof(nds9_math));
+	file.write((char*)&touchscreen, sizeof(touchscreen));
+
+	//Serialize GX data to save state
+	file.write((char*)&nds9_gx_fifo, sizeof(nds9_gx_fifo));
+	file.write((char*)&gx_fifo_entry, sizeof(gx_fifo_entry));
+	file.write((char*)&gx_fifo_param_length, sizeof(gx_fifo_param_length));
+
+	//Serialize more misc data from MMU to save state
+	file.write((char*)&n_clock, sizeof(n_clock));
+	file.write((char*)&s_clock, sizeof(s_clock));
+	file.write((char*)&nds9_bios_vector, sizeof(nds9_bios_vector));
+	file.write((char*)&nds9_irq_handler, sizeof(nds9_irq_handler));
+	file.write((char*)&nds7_bios_vector, sizeof(nds7_bios_vector));
+	file.write((char*)&nds7_irq_handler, sizeof(nds7_irq_handler));
+	file.write((char*)&access_mode, sizeof(access_mode));
+	file.write((char*)&wram_mode, sizeof(wram_mode));
+	file.write((char*)&rumble_state, sizeof(rumble_state));
+	file.write((char*)&do_save, sizeof(do_save));
+	file.write((char*)&fetch_request, sizeof(fetch_request));
+	file.write((char*)&gx_command, sizeof(gx_command));
+	file.write((char*)&header, sizeof(header));
+
+	//Serialize DMA data to save state
+	for(u32 x = 0; x < 8; x++) { file.write((char*)&dma[x], sizeof(dma[x])); }
+
+	//Serialize even more misc data to MMU to save state
+	file.write((char*)&nds9_ie, sizeof(nds9_ie));
+	file.write((char*)&nds9_if, sizeof(nds9_if));
+	file.write((char*)&nds9_temp_if, sizeof(nds9_temp_if));
+	file.write((char*)&nds9_ime, sizeof(nds9_ime));
+	file.write((char*)&power_cnt1, sizeof(power_cnt1));
+	file.write((char*)&nds9_exmem, sizeof(nds9_exmem));
+
+	file.write((char*)&nds7_ie, sizeof(nds7_ie));
+	file.write((char*)&nds7_if, sizeof(nds7_if));
+	file.write((char*)&nds7_temp_if, sizeof(nds7_temp_if));
+	file.write((char*)&nds7_ime, sizeof(nds7_ime));
+	file.write((char*)&power_cnt2, sizeof(power_cnt2));
+	file.write((char*)&nds7_exmem, sizeof(nds7_exmem));
+
+	file.write((char*)&firmware_status, sizeof(firmware_status));
+	file.write((char*)&firmware_state, sizeof(firmware_state));
+	file.write((char*)&firmware_count, sizeof(firmware_count));
+	file.write((char*)&firmware_index, sizeof(firmware_index));
+	file.write((char*)&in_firmware, sizeof(in_firmware));
+	file.write((char*)&touchscreen_state, sizeof(touchscreen_state));
+	file.write((char*)&apu_io_id, sizeof(apu_io_id));
+	file.write((char*)&dtcm_addr, sizeof(dtcm_addr));
+	file.write((char*)&itcm_addr, sizeof(itcm_addr));
+	file.write((char*)&pal_a_bg_slot, sizeof(pal_a_bg_slot));
+	file.write((char*)&pal_a_obj_slot, sizeof(pal_a_obj_slot));
+	file.write((char*)&pal_b_bg_slot, sizeof(pal_b_bg_slot));
+	file.write((char*)&pal_b_obj_slot, sizeof(pal_b_obj_slot));
+	file.write((char*)&vram_tex_slot, sizeof(vram_tex_slot));
+
+	file.close();
+	return true;
+}
+
+/****** Gets the size of MMU data for serialization ******/
+u32 NTR_MMU::size()
+{
+	u32 mmu_size = 0x5C1778;
+
+	mmu_size += sizeof(current_save_type);
+	mmu_size += sizeof(gba_save_type);
+	mmu_size += sizeof(current_slot2_device);
+
+	mmu_size += sizeof(nds7_ipc.sync);
+	mmu_size += sizeof(nds7_ipc.cnt);
+	mmu_size += sizeof(nds7_ipc.fifo);
+	mmu_size += sizeof(nds7_ipc.fifo_latest);
+	mmu_size += sizeof(nds7_ipc.fifo_incoming);
+
+	mmu_size += sizeof(nds9_ipc.sync);
+	mmu_size += sizeof(nds9_ipc.cnt);
+	mmu_size += sizeof(nds9_ipc.fifo);
+	mmu_size += sizeof(nds9_ipc.fifo_latest);
+	mmu_size += sizeof(nds9_ipc.fifo_incoming);
+
+	mmu_size += sizeof(nds7_spi);
+	mmu_size += sizeof(nds_aux_spi);
+	mmu_size += sizeof(nds_card);
+	mmu_size += sizeof(nds7_rtc);
+	mmu_size += sizeof(nds9_math);
+	mmu_size += sizeof(touchscreen);
+
+	mmu_size += sizeof(nds9_gx_fifo);
+	mmu_size += sizeof(gx_fifo_entry);
+	mmu_size += sizeof(gx_fifo_param_length);
+
+	mmu_size += sizeof(n_clock);
+	mmu_size += sizeof(s_clock);
+	mmu_size += sizeof(nds9_bios_vector);
+	mmu_size += sizeof(nds9_irq_handler);
+	mmu_size += sizeof(nds7_bios_vector);
+	mmu_size += sizeof(nds7_irq_handler);
+	mmu_size += sizeof(access_mode);
+	mmu_size += sizeof(wram_mode);
+	mmu_size += sizeof(rumble_state);
+	mmu_size += sizeof(do_save);
+	mmu_size += sizeof(fetch_request);
+	mmu_size += sizeof(gx_command);
+	mmu_size += sizeof(header);
+
+	for(u32 x = 0; x < 8; x++) { mmu_size += sizeof(dma[x]); }
+
+	mmu_size += sizeof(nds9_ie);
+	mmu_size += sizeof(nds9_if);
+	mmu_size += sizeof(nds9_temp_if);
+	mmu_size += sizeof(nds9_ime);
+	mmu_size += sizeof(power_cnt1);
+	mmu_size += sizeof(nds9_exmem);
+
+	mmu_size += sizeof(nds7_ie);
+	mmu_size += sizeof(nds7_if);
+	mmu_size += sizeof(nds7_temp_if);
+	mmu_size += sizeof(nds7_ime);
+	mmu_size += sizeof(power_cnt2);
+	mmu_size += sizeof(nds7_exmem);
+
+	mmu_size += sizeof(firmware_status);
+	mmu_size += sizeof(firmware_state);
+	mmu_size += sizeof(firmware_count);
+	mmu_size += sizeof(firmware_index);
+	mmu_size += sizeof(in_firmware);
+	mmu_size += sizeof(touchscreen_state);
+	mmu_size += sizeof(apu_io_id);
+	mmu_size += sizeof(dtcm_addr);
+	mmu_size += sizeof(itcm_addr);
+	mmu_size += sizeof(pal_a_bg_slot);
+	mmu_size += sizeof(pal_a_obj_slot);
+	mmu_size += sizeof(pal_b_bg_slot);
+	mmu_size += sizeof(pal_b_obj_slot);
+	mmu_size += sizeof(vram_tex_slot);
+
+	return mmu_size;
+}
