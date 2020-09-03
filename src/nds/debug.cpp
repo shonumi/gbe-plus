@@ -94,14 +94,14 @@ void NTR_core::debug_step()
 				{
 					if(y < 4)
 					{
-						std::cout<<"Write Breakpoint on NDS9\n";
-						nds9_debug = true;
+						std::cout<<"Write Breakpoint on NDS7\n";
+						nds9_debug = false;
 					}
 
 					else
 					{
-						std::cout<<"Write Breakpoint on NDS7\n";
-						nds9_debug = false;
+						std::cout<<"Write Breakpoint on NDS9\n";
+						nds9_debug = true;
 					}
 
 					debug_display();
@@ -124,14 +124,14 @@ void NTR_core::debug_step()
 				{
 					if(y < 4)
 					{
-						std::cout<<"Read Breakpoint on NDS9\n";
-						nds9_debug = true;
+						std::cout<<"Read Breakpoint on NDS7\n";
+						nds9_debug = false;
 					}
 
 					else
 					{
-						std::cout<<"Read Breakpoint on NDS7\n";
-						nds9_debug = false;
+						std::cout<<"Read Breakpoint on NDS9\n";
+						nds9_debug = true;
 					}
 
 					debug_display();
