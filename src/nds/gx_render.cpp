@@ -612,7 +612,14 @@ void NTR_LCD::process_gx_command()
 			switch(lcd_3D_stat.matrix_mode)
 			{
 				case 0x0:
-					gx_projection_stack[0] = gx_projection_matrix;
+					if(projection_sp < 1)
+					{
+						gx_projection_stack[projection_sp++] = gx_projection_matrix;
+						lcd_3D_stat.gx_stat |= 0x2000;
+					}
+
+					else { gx_projection_stack[projection_sp] = gx_projection_matrix; }
+
 					break;
 
 				case 0x1:
@@ -637,7 +644,14 @@ void NTR_LCD::process_gx_command()
 			switch(lcd_3D_stat.matrix_mode)
 			{
 				case 0x0:
-					gx_projection_matrix = gx_projection_stack[0];
+					if(projection_sp == 1)
+					{
+						gx_projection_matrix = gx_projection_stack[projection_sp--];
+						lcd_3D_stat.gx_stat &= ~0x2000;
+					}
+
+					else { gx_projection_matrix = gx_projection_stack[projection_sp]; }
+
 					break;
 
 				case 0x1:

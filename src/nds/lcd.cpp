@@ -358,14 +358,15 @@ void NTR_LCD::reset()
 	gx_texture_matrix.resize(4, 4);
 
 	//GX Matrix Stacks
-	gx_projection_stack.resize(1);
-	gx_position_stack.resize(31);
-	gx_vector_stack.resize(31);
-	gx_texture_stack.resize(1);
+	gx_projection_stack.resize(2);
+	gx_position_stack.resize(32);
+	gx_vector_stack.resize(32);
+	gx_texture_stack.resize(2);
 
 	//Matrix Stack Pointers
 	position_sp = 0;
 	vector_sp = 0;
+	projection_sp = 0;
 
 	//Initialize system screen dimensions
 	config::sys_width = 256;

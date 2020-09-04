@@ -170,6 +170,7 @@ class NTR_LCD
 
 	u8 position_sp;
 	u8 vector_sp;
+	u8 projection_sp;
 
 	//Vertex properties and attributes
 	u32 vert_colors[4];
