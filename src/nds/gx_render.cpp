@@ -1109,6 +1109,9 @@ void NTR_LCD::process_gx_command()
 				{
 					lcd_3D_stat.vertex_list_index = 0;
 					lcd_3D_stat.render_polygon = true;
+
+					//Render geometry now if command was sent by GX FIFO
+					if(mem->gx_command) { render_geometry(); }
 				}
 			}
 
@@ -1185,6 +1188,9 @@ void NTR_LCD::process_gx_command()
 				{
 					lcd_3D_stat.vertex_list_index = 0;
 					lcd_3D_stat.render_polygon = true;
+
+					//Render geometry now if command was sent by GX FIFO
+					if(mem->gx_command) { render_geometry(); }
 				}
 			}
 
@@ -1317,6 +1323,9 @@ void NTR_LCD::process_gx_command()
 				{
 					lcd_3D_stat.vertex_list_index = 0;
 					lcd_3D_stat.render_polygon = true;
+
+					//Render geometry now if command was sent by GX FIFO
+					if(mem->gx_command) { render_geometry(); }
 				}
 			}
 
