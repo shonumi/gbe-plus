@@ -259,6 +259,7 @@ struct ntr_lcd_3D_data
 
 	bool render_polygon;
 	bool use_texture;
+	bool begin_strips;
 
 	u32 rear_plane_color;
 	u8 rear_plane_alpha;

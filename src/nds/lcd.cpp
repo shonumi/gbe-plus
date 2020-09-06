@@ -310,6 +310,7 @@ void NTR_LCD::reset()
 	lcd_3D_stat.packed_command = false;
 	lcd_3D_stat.render_polygon = false;
 	lcd_3D_stat.use_texture = false;
+	lcd_3D_stat.begin_strips = false;
 
 	lcd_3D_stat.view_port_x1 = 0;
 	lcd_3D_stat.view_port_x2 = 0;
@@ -350,6 +351,7 @@ void NTR_LCD::reset()
 	//Polygon vertices
 	gx_triangles.clear();
 	gx_quads.clear();
+	gx_quad_strips.clear();
 
 	//GX Matrices
 	gx_projection_matrix.resize(4, 4);

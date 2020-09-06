@@ -101,8 +101,15 @@ void NTR_LCD::render_geometry()
 
 		//Quad Strips
 		case 0x3:
-			lcd_3D_stat.render_polygon = false;
-			return;
+			if(gx_quad_strips.empty())
+			{
+				lcd_3D_stat.render_polygon = false;
+				return;
+			}
+
+			vert_matrix = gx_quad_strips.back();
+			vert_count = 4;
+			break;
 	}
 
 	//Translate all vertices to screen coordinates
@@ -326,7 +333,9 @@ void NTR_LCD::render_geometry()
 			break;
 
 		//Quads
+		//Quad Strips
 		case 0x1:
+		case 0x3:
 			//Textured color fill
 			if(lcd_3D_stat.use_texture) { fill_poly_textured(); }
 
@@ -340,11 +349,6 @@ void NTR_LCD::render_geometry()
 
 		//Triangle Strips
 		case 0x2:
-			lcd_3D_stat.render_polygon = false;
-			return;
-
-		//Quad Strips
-		case 0x3:
 			lcd_3D_stat.render_polygon = false;
 			return;
 	}
@@ -577,10 +581,21 @@ bool NTR_LCD::poly_push(gx_matrix &current_matrix)
 
 
 			//Triangle Strips
-			//Quad Strips
 			case 0x2:
+
+			//Quad Strips
 			case 0x3:
-				status = false;
+				if(((lcd_3D_stat.poly_count + 1) < 2048) && ((lcd_3D_stat.vert_count + 4) < 6144))
+				{
+					current_matrix.resize(4, 4);
+					gx_quad_strips.push_back(current_matrix);
+					lcd_3D_stat.poly_count++;
+					lcd_3D_stat.vert_count += 4;
+					status = true;
+				}
+
+				else { status = false; }
+
 				break;
 		}		
 	}
@@ -1098,6 +1113,48 @@ void NTR_LCD::process_gx_command()
 
 						break;
 
+					//Quad Strips
+					case 0x3:
+						{
+							//Calculate last Quad Strip position in vector
+							u16 last_quad = gx_quad_strips.size() - 2;
+
+							//When starting a new Quad Strip, use previous 2 vertices from last defined strip if necessary
+							if(lcd_3D_stat.begin_strips && !lcd_3D_stat.vertex_list_index)
+							{
+								//V0 = V3
+								gx_quad_strips.back().data[0][0] = gx_quad_strips[last_quad].data[3][0];
+								gx_quad_strips.back().data[0][1] = gx_quad_strips[last_quad].data[3][1];
+								gx_quad_strips.back().data[0][2] = gx_quad_strips[last_quad].data[3][2];
+
+								//V1 = V2
+								gx_quad_strips.back().data[1][0] = gx_quad_strips[last_quad].data[2][0];
+								gx_quad_strips.back().data[1][1] = gx_quad_strips[last_quad].data[2][1];
+								gx_quad_strips.back().data[1][2] = gx_quad_strips[last_quad].data[2][2];
+
+								lcd_3D_stat.vertex_list_index = 2;
+							}
+
+							lcd_3D_stat.begin_strips = true;
+
+							//Calculate correct internal vertex index for quad strips (V2 is last vertex, V3 is 2nd to last)
+							u8 real_index = lcd_3D_stat.vertex_list_index;
+
+							if(real_index == 2) { real_index = 3; }
+							else if(real_index == 3) { real_index = 2; }
+
+							gx_quad_strips.back().data[real_index][0] = temp_result[0];
+							gx_quad_strips.back().data[real_index][1] = temp_result[1];
+							gx_quad_strips.back().data[real_index][2] = temp_result[2];
+							list_size = 4;
+
+							lcd_3D_stat.last_x = gx_quad_strips.back().data[real_index][0];
+							lcd_3D_stat.last_y = gx_quad_strips.back().data[real_index][1];
+							lcd_3D_stat.last_z = gx_quad_strips.back().data[real_index][2];
+						}
+
+						break;
+
 				}
 
 				//Set vertex color
@@ -1177,6 +1234,47 @@ void NTR_LCD::process_gx_command()
 
 						break;
 
+					//Quad Strips
+					case 0x3:
+						{
+							//Calculate last Quad Strip position in vector
+							u16 last_quad = gx_quad_strips.size() - 2;
+
+							//When starting a new Quad Strip, use previous 2 vertices from last defined strip if necessary
+							if(lcd_3D_stat.begin_strips && !lcd_3D_stat.vertex_list_index)
+							{
+								//V0 = V3
+								gx_quad_strips.back().data[0][0] = gx_quad_strips[last_quad].data[3][0];
+								gx_quad_strips.back().data[0][1] = gx_quad_strips[last_quad].data[3][1];
+								gx_quad_strips.back().data[0][2] = gx_quad_strips[last_quad].data[3][2];
+
+								//V1 = V2
+								gx_quad_strips.back().data[1][0] = gx_quad_strips[last_quad].data[2][0];
+								gx_quad_strips.back().data[1][1] = gx_quad_strips[last_quad].data[2][1];
+								gx_quad_strips.back().data[1][2] = gx_quad_strips[last_quad].data[2][2];
+
+								lcd_3D_stat.vertex_list_index = 2;
+							}
+
+							lcd_3D_stat.begin_strips = true;
+
+							//Calculate correct internal vertex index for quad strips (V2 is last vertex, V3 is 2nd to last)
+							u8 real_index = lcd_3D_stat.vertex_list_index;
+
+							if(real_index == 2) { real_index = 3; }
+							else if(real_index == 3) { real_index = 2; }
+
+							gx_quad_strips.back().data[real_index][0] = temp_result[0];
+							gx_quad_strips.back().data[real_index][1] = temp_result[1];
+							gx_quad_strips.back().data[real_index][2] = temp_result[2];
+							list_size = 4;
+
+							lcd_3D_stat.last_x = gx_quad_strips.back().data[real_index][0];
+							lcd_3D_stat.last_y = gx_quad_strips.back().data[real_index][1];
+							lcd_3D_stat.last_z = gx_quad_strips.back().data[real_index][2];
+						}
+
+						break;
 				}
 
 				//Set vertex color
@@ -1312,6 +1410,73 @@ void NTR_LCD::process_gx_command()
 
 						break;
 
+					//Quad Strips
+					case 0x3:
+						{
+							//Calculate last Quad Strip position in vector
+							u16 last_quad = gx_quad_strips.size() - 2;
+
+							//When starting a new Quad Strip, use previous 2 vertices from last defined strip if necessary
+							if(lcd_3D_stat.begin_strips && !lcd_3D_stat.vertex_list_index)
+							{
+								//V0 = V3
+								gx_quad_strips.back().data[0][0] = gx_quad_strips[last_quad].data[3][0];
+								gx_quad_strips.back().data[0][1] = gx_quad_strips[last_quad].data[3][1];
+								gx_quad_strips.back().data[0][2] = gx_quad_strips[last_quad].data[3][2];
+
+								//V1 = V2
+								gx_quad_strips.back().data[1][0] = gx_quad_strips[last_quad].data[2][0];
+								gx_quad_strips.back().data[1][1] = gx_quad_strips[last_quad].data[2][1];
+								gx_quad_strips.back().data[1][2] = gx_quad_strips[last_quad].data[2][2];
+
+								lcd_3D_stat.vertex_list_index = 2;
+							}
+
+							lcd_3D_stat.begin_strips = true;
+
+							//Calculate correct internal vertex index for quad strips (V2 is last vertex, V3 is 2nd to last)
+							u8 real_index = lcd_3D_stat.vertex_list_index;
+
+							if(real_index == 2) { real_index = 3; }
+							else if(real_index == 3) { real_index = 2; }
+
+							list_size = 4;
+
+							//XY
+							if(lcd_3D_stat.current_gx_command == 0x25)
+							{
+								gx_quad_strips.back().data[real_index][0] = temp_result[0];
+								gx_quad_strips.back().data[real_index][1] = temp_result[1];
+								gx_quad_strips.back().data[real_index][2] = lcd_3D_stat.last_z;
+
+								lcd_3D_stat.last_x = gx_quad_strips.back().data[real_index][0];
+								lcd_3D_stat.last_y = gx_quad_strips.back().data[real_index][1];
+							}
+
+							//XZ
+							if(lcd_3D_stat.current_gx_command == 0x26)
+							{
+								gx_quad_strips.back().data[real_index][0] = temp_result[0];
+								gx_quad_strips.back().data[real_index][1] = lcd_3D_stat.last_y;
+								gx_quad_strips.back().data[real_index][2] = temp_result[1];
+
+								lcd_3D_stat.last_x = gx_quad_strips.back().data[real_index][0];
+								lcd_3D_stat.last_z = gx_quad_strips.back().data[real_index][1];
+							}
+
+							//YZ
+							if(lcd_3D_stat.current_gx_command == 0x27)
+							{
+								gx_quad_strips.back().data[real_index][0] = lcd_3D_stat.last_x;
+								gx_quad_strips.back().data[real_index][1] = temp_result[0];
+								gx_quad_strips.back().data[real_index][2] = temp_result[1];
+
+								lcd_3D_stat.last_y = gx_quad_strips.back().data[real_index][0];
+								lcd_3D_stat.last_z = gx_quad_strips.back().data[real_index][1];
+							}
+						}
+
+						break;
 				}
 
 				//Set vertex color
@@ -1375,6 +1540,7 @@ void NTR_LCD::process_gx_command()
 				{
 					case 0x0: gx_triangles.pop_back(); break;
 					case 0x1: gx_quads.pop_back(); break;
+					case 0x3: gx_quad_strips.pop_back(); break;
 				}
 
 				lcd_3D_stat.vertex_list_index = 0;
@@ -1389,6 +1555,7 @@ void NTR_LCD::process_gx_command()
 
 		//END_VTXS:
 		case 0x41:
+			lcd_3D_stat.begin_strips = false;
 			break;
 
 		//VIEWPORT
