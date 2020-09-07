@@ -1143,9 +1143,9 @@ void NTR_LCD::process_gx_command()
 							if(real_index == 2) { real_index = 3; }
 							else if(real_index == 3) { real_index = 2; }
 
-							gx_quad_strips.back().data[real_index][0] = temp_result[0];
-							gx_quad_strips.back().data[real_index][1] = temp_result[1];
-							gx_quad_strips.back().data[real_index][2] = temp_result[2];
+							gx_quad_strips.back().data[real_index][0] = temp_result[1];
+							gx_quad_strips.back().data[real_index][1] = temp_result[0];
+							gx_quad_strips.back().data[real_index][2] = temp_result[3];
 							list_size = 4;
 
 							lcd_3D_stat.last_x = gx_quad_strips.back().data[real_index][0];
@@ -1264,9 +1264,9 @@ void NTR_LCD::process_gx_command()
 							if(real_index == 2) { real_index = 3; }
 							else if(real_index == 3) { real_index = 2; }
 
-							gx_quad_strips.back().data[real_index][0] = temp_result[0];
-							gx_quad_strips.back().data[real_index][1] = temp_result[1];
-							gx_quad_strips.back().data[real_index][2] = temp_result[2];
+							gx_quad_strips.back().data[real_index][0] = temp_result[1];
+							gx_quad_strips.back().data[real_index][1] = temp_result[0];
+							gx_quad_strips.back().data[real_index][2] = temp_result[3];
 							list_size = 4;
 
 							lcd_3D_stat.last_x = gx_quad_strips.back().data[real_index][0];
