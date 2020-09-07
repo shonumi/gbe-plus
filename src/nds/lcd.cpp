@@ -3102,7 +3102,11 @@ void NTR_LCD::render_scanline()
 		if(lcd_stat.current_scanline == 0) { capture_slot = ((lcd_stat.cap_cnt >> 16) & 0x3); }
 
 		//Reset busy flag before entering VBlank
-		if(lcd_stat.current_scanline == 191) { lcd_stat.cap_cnt &= ~0x80000000; }
+		if(lcd_stat.current_scanline == 191)
+		{
+			lcd_stat.cap_cnt &= ~0x80000000;
+			mem->write_u32_fast(0x4000064, lcd_stat.cap_cnt);
+		}
 	}
 
 	//Engine A - Render based on display modes
