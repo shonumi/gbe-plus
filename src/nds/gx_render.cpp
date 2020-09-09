@@ -274,11 +274,7 @@ void NTR_LCD::render_geometry()
 				buffer_index = (round(y_coord) * 256) + round(x_coord);
 
 				//Check Z buffer if drawing is applicable
-				if(z_coord < gx_z_buffer[buffer_index])
-				{
-					gx_render_buffer[(lcd_3D_stat.buffer_id + 1) & 0x1][buffer_index] = 1;
-					gx_z_buffer[buffer_index] = z_coord;
-				}
+				if(z_coord < gx_z_buffer[buffer_index]) { gx_z_buffer[buffer_index] = z_coord; }
 			}
 
 			//Set fill coordinates

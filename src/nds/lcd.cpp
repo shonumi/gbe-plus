@@ -4212,7 +4212,9 @@ void NTR_LCD::step()
 
 				//Clear polygons (and vertices as well)
 				gx_triangles.clear();
+				gx_tri_strips.clear();
 				gx_quads.clear();
+				gx_quad_strips.clear();
 
 				//Clear 3D buffer and fill with rear plane
 				gx_screen_buffer[lcd_3D_stat.buffer_id].clear();
