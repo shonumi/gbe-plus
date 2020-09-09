@@ -351,6 +351,7 @@ void NTR_LCD::reset()
 	//Polygon vertices
 	gx_triangles.clear();
 	gx_quads.clear();
+	gx_tri_strips.clear();
 	gx_quad_strips.clear();
 
 	//GX Matrices

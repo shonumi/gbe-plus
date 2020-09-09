@@ -161,6 +161,7 @@ class NTR_LCD
 	//3D Polygons
 	std::vector<gx_matrix> gx_triangles;
 	std::vector<gx_matrix> gx_quads;
+	std::vector<gx_matrix> gx_tri_strips;
 	std::vector<gx_matrix> gx_quad_strips;
 
 	//Matrix Stacks

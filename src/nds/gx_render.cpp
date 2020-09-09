@@ -96,8 +96,15 @@ void NTR_LCD::render_geometry()
 
 		//Triangle Strips
 		case 0x2:
-			lcd_3D_stat.render_polygon = false;
-			return;
+			if(gx_tri_strips.empty())
+			{
+				lcd_3D_stat.render_polygon = false;
+				return;
+			}
+
+			vert_matrix = gx_tri_strips.back();
+			vert_count = 3;
+			break;
 
 		//Quad Strips
 		case 0x3:
@@ -320,7 +327,9 @@ void NTR_LCD::render_geometry()
 	switch(lcd_3D_stat.vertex_mode)
 	{
 		//Triangles
+		//Triangle Strips
 		case 0x0:
+		case 0x2:
 			//Textured color fill
 			if(lcd_3D_stat.use_texture) { fill_poly_textured(); }
 
@@ -346,11 +355,6 @@ void NTR_LCD::render_geometry()
 			else { fill_poly_interpolated(); }
 
 			break;
-
-		//Triangle Strips
-		case 0x2:
-			lcd_3D_stat.render_polygon = false;
-			return;
 	}
 
 	lcd_3D_stat.render_polygon = false;
@@ -582,6 +586,16 @@ bool NTR_LCD::poly_push(gx_matrix &current_matrix)
 
 			//Triangle Strips
 			case 0x2:
+				if(((lcd_3D_stat.poly_count + 1) < 2048) && ((lcd_3D_stat.vert_count + 3) < 6144))
+				{
+					current_matrix.resize(3, 3);
+					gx_tri_strips.push_back(current_matrix);
+					lcd_3D_stat.poly_count++;
+					lcd_3D_stat.vert_count += 3;
+					status = true;
+				}
+
+				else { status = false; }
 
 			//Quad Strips
 			case 0x3:
@@ -1113,6 +1127,42 @@ void NTR_LCD::process_gx_command()
 
 						break;
 
+					//Triangle Strips
+					case 0x2:
+						{
+							//Calculate last Triangle Strip position in vector
+							u16 last_tri = gx_tri_strips.size() - 2;
+
+							//When starting a new Triangle Strip, use previous 2 vertices from last defined strip if necessary
+							if(lcd_3D_stat.begin_strips && !lcd_3D_stat.vertex_list_index)
+							{
+								//New V0 = Old V1 
+								gx_quad_strips.back().data[0][0] = gx_quad_strips[last_tri].data[1][0];
+								gx_quad_strips.back().data[0][1] = gx_quad_strips[last_tri].data[1][1];
+								gx_quad_strips.back().data[0][2] = gx_quad_strips[last_tri].data[1][2];
+
+								//New V1 = Old V2
+								gx_quad_strips.back().data[1][0] = gx_quad_strips[last_tri].data[2][0];
+								gx_quad_strips.back().data[1][1] = gx_quad_strips[last_tri].data[2][1];
+								gx_quad_strips.back().data[1][2] = gx_quad_strips[last_tri].data[2][2];
+
+								lcd_3D_stat.vertex_list_index = 2;
+							}
+
+							lcd_3D_stat.begin_strips = true;
+
+							gx_tri_strips.back().data[lcd_3D_stat.vertex_list_index][0] = temp_result[1];
+							gx_tri_strips.back().data[lcd_3D_stat.vertex_list_index][1] = temp_result[0];
+							gx_tri_strips.back().data[lcd_3D_stat.vertex_list_index][2] = temp_result[3];
+							list_size = 3;
+
+							lcd_3D_stat.last_x = gx_tri_strips.back().data[lcd_3D_stat.vertex_list_index][0];
+							lcd_3D_stat.last_y = gx_tri_strips.back().data[lcd_3D_stat.vertex_list_index][1];
+							lcd_3D_stat.last_z = gx_tri_strips.back().data[lcd_3D_stat.vertex_list_index][2];
+						}
+
+						break;
+
 					//Quad Strips
 					case 0x3:
 						{
@@ -1122,12 +1172,12 @@ void NTR_LCD::process_gx_command()
 							//When starting a new Quad Strip, use previous 2 vertices from last defined strip if necessary
 							if(lcd_3D_stat.begin_strips && !lcd_3D_stat.vertex_list_index)
 							{
-								//V0 = V3
+								//New V0 = Old V3
 								gx_quad_strips.back().data[0][0] = gx_quad_strips[last_quad].data[3][0];
 								gx_quad_strips.back().data[0][1] = gx_quad_strips[last_quad].data[3][1];
 								gx_quad_strips.back().data[0][2] = gx_quad_strips[last_quad].data[3][2];
 
-								//V1 = V2
+								//New V1 = Old V2
 								gx_quad_strips.back().data[1][0] = gx_quad_strips[last_quad].data[2][0];
 								gx_quad_strips.back().data[1][1] = gx_quad_strips[last_quad].data[2][1];
 								gx_quad_strips.back().data[1][2] = gx_quad_strips[last_quad].data[2][2];
@@ -1231,6 +1281,42 @@ void NTR_LCD::process_gx_command()
 						lcd_3D_stat.last_x = gx_quads.back().data[lcd_3D_stat.vertex_list_index][0];
 						lcd_3D_stat.last_y = gx_quads.back().data[lcd_3D_stat.vertex_list_index][1];
 						lcd_3D_stat.last_z = gx_quads.back().data[lcd_3D_stat.vertex_list_index][2];
+
+						break;
+
+					//Triangle Strips
+					case 0x2:
+						{
+							//Calculate last Triangle Strip position in vector
+							u16 last_tri = gx_tri_strips.size() - 2;
+
+							//When starting a new Triangle Strip, use previous 2 vertices from last defined strip if necessary
+							if(lcd_3D_stat.begin_strips && !lcd_3D_stat.vertex_list_index)
+							{
+								//New V0 = Old V1 
+								gx_quad_strips.back().data[0][0] = gx_quad_strips[last_tri].data[1][0];
+								gx_quad_strips.back().data[0][1] = gx_quad_strips[last_tri].data[1][1];
+								gx_quad_strips.back().data[0][2] = gx_quad_strips[last_tri].data[1][2];
+
+								//New V1 = Old V2
+								gx_quad_strips.back().data[1][0] = gx_quad_strips[last_tri].data[2][0];
+								gx_quad_strips.back().data[1][1] = gx_quad_strips[last_tri].data[2][1];
+								gx_quad_strips.back().data[1][2] = gx_quad_strips[last_tri].data[2][2];
+
+								lcd_3D_stat.vertex_list_index = 2;
+							}
+
+							lcd_3D_stat.begin_strips = true;
+
+							gx_tri_strips.back().data[lcd_3D_stat.vertex_list_index][0] = temp_result[1];
+							gx_tri_strips.back().data[lcd_3D_stat.vertex_list_index][1] = temp_result[0];
+							gx_tri_strips.back().data[lcd_3D_stat.vertex_list_index][2] = temp_result[3];
+							list_size = 3;
+
+							lcd_3D_stat.last_x = gx_tri_strips.back().data[lcd_3D_stat.vertex_list_index][0];
+							lcd_3D_stat.last_y = gx_tri_strips.back().data[lcd_3D_stat.vertex_list_index][1];
+							lcd_3D_stat.last_z = gx_tri_strips.back().data[lcd_3D_stat.vertex_list_index][2];
+						}
 
 						break;
 
@@ -1406,6 +1492,67 @@ void NTR_LCD::process_gx_command()
 
 							lcd_3D_stat.last_y = gx_quads.back().data[lcd_3D_stat.vertex_list_index][0];
 							lcd_3D_stat.last_z = gx_quads.back().data[lcd_3D_stat.vertex_list_index][1];
+						}
+
+						break;
+
+					//Triangle Strips
+					case 0x2:
+						{
+							//Calculate last Triangle Strip position in vector
+							u16 last_tri = gx_tri_strips.size() - 2;
+
+							//When starting a new Triangle Strip, use previous 2 vertices from last defined strip if necessary
+							if(lcd_3D_stat.begin_strips && !lcd_3D_stat.vertex_list_index)
+							{
+								//New V0 = Old V1 
+								gx_quad_strips.back().data[0][0] = gx_quad_strips[last_tri].data[1][0];
+								gx_quad_strips.back().data[0][1] = gx_quad_strips[last_tri].data[1][1];
+								gx_quad_strips.back().data[0][2] = gx_quad_strips[last_tri].data[1][2];
+
+								//New V1 = Old V2
+								gx_quad_strips.back().data[1][0] = gx_quad_strips[last_tri].data[2][0];
+								gx_quad_strips.back().data[1][1] = gx_quad_strips[last_tri].data[2][1];
+								gx_quad_strips.back().data[1][2] = gx_quad_strips[last_tri].data[2][2];
+
+								lcd_3D_stat.vertex_list_index = 2;
+							}
+
+							lcd_3D_stat.begin_strips = true;
+							list_size = 3;
+
+							//XY
+							if(lcd_3D_stat.current_gx_command == 0x25)
+							{
+								gx_tri_strips.back().data[lcd_3D_stat.vertex_list_index][0] = temp_result[0];
+								gx_tri_strips.back().data[lcd_3D_stat.vertex_list_index][1] = temp_result[1];
+								gx_tri_strips.back().data[lcd_3D_stat.vertex_list_index][2] = lcd_3D_stat.last_z;
+
+								lcd_3D_stat.last_x = gx_tri_strips.back().data[lcd_3D_stat.vertex_list_index][0];
+								lcd_3D_stat.last_y = gx_tri_strips.back().data[lcd_3D_stat.vertex_list_index][1];
+							}
+
+							//XZ
+							if(lcd_3D_stat.current_gx_command == 0x26)
+							{
+								gx_tri_strips.back().data[lcd_3D_stat.vertex_list_index][0] = temp_result[0];
+								gx_tri_strips.back().data[lcd_3D_stat.vertex_list_index][1] = lcd_3D_stat.last_y;
+								gx_tri_strips.back().data[lcd_3D_stat.vertex_list_index][2] = temp_result[1];
+
+								lcd_3D_stat.last_x = gx_tri_strips.back().data[lcd_3D_stat.vertex_list_index][0];
+								lcd_3D_stat.last_z = gx_tri_strips.back().data[lcd_3D_stat.vertex_list_index][1];
+							}
+
+							//YZ
+							if(lcd_3D_stat.current_gx_command == 0x27)
+							{
+								gx_tri_strips.back().data[lcd_3D_stat.vertex_list_index][0] = lcd_3D_stat.last_x;
+								gx_tri_strips.back().data[lcd_3D_stat.vertex_list_index][1] = temp_result[0];
+								gx_tri_strips.back().data[lcd_3D_stat.vertex_list_index][2] = temp_result[1];
+
+								lcd_3D_stat.last_y = gx_tri_strips.back().data[lcd_3D_stat.vertex_list_index][0];
+								lcd_3D_stat.last_z = gx_tri_strips.back().data[lcd_3D_stat.vertex_list_index][1];
+							}
 						}
 
 						break;
