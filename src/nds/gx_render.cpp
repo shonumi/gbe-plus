@@ -272,9 +272,6 @@ void NTR_LCD::render_geometry()
 			{
 				//Convert plot points to buffer index
 				buffer_index = (round(y_coord) * 256) + round(x_coord);
-
-				//Check Z buffer if drawing is applicable
-				if(z_coord < gx_z_buffer[buffer_index]) { gx_z_buffer[buffer_index] = z_coord; }
 			}
 
 			//Set fill coordinates
