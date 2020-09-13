@@ -1587,8 +1587,11 @@ void DMG_SIO::singer_izek_data_process()
 	switch(singer_izek.current_state)
 	{
 		case SINGER_PING:
+			//Wait to receive at least 3 0x80 bytes
+			if((sio_data == 0x80) && (singer_izek.counter < 3)) { singer_izek.counter++; }
+
 			//Wait for new start flag to appear
-			if(sio_data == 0x86)
+			else if((singer_izek.counter == 3) && (sio_data == 0x86))
 			{
 				singer_izek.current_state = SINGER_SEND_HEADER;
 				singer_izek.counter = 0;
@@ -1694,6 +1697,9 @@ void DMG_SIO::singer_izek_data_process()
 				singer_izek.idle_count = 2;
 			}
 
+			//Start Shift Coordinate Data after next 4 bytes - Current byte should be ignored
+			else if((sio_data == 0xCF) || (sio_data == 0xDF)) { singer_izek.counter--; }
+
 			//Start new data packet or new coordinate data
 			else if((sio_data == 0xB9) || (sio_data == 0xBC) || (sio_data == 0xBD)
 			|| ((sio_data & 0xF0) == 0xC0) || ((sio_data & 0xF0) == 0xE0) || ((sio_data & 0xF0) == 0xF0))
@@ -1717,7 +1723,17 @@ void DMG_SIO::singer_izek_data_process()
 
 				singer_izek.x_shift.push_back(0);
 				singer_izek.y_shift.push_back(0);
-				singer_izek.shift_index.push_back(singer_izek.plot_index);
+
+				//Account for Shift Coordinate Data appearing in the middle of XY coordinate data
+				if(singer_izek.x_plot.size() != singer_izek.y_plot.size())
+				{
+					singer_izek.shift_index.push_back(singer_izek.plot_index - 1);
+				}
+
+				else
+				{
+					singer_izek.shift_index.push_back(singer_izek.plot_index);
+				}
 			}
 
 			//Stitch data is finished. Draw and switch back to ping mode
@@ -1730,6 +1746,7 @@ void DMG_SIO::singer_izek_data_process()
 				singer_izek.current_animation_index = 0;
 				singer_izek.current_index = 0;
 				singer_izek.current_state = SINGER_PING;
+				singer_izek.counter = 0;
 
 				if(singer_izek.device_mode == 0)
 				{
@@ -1740,6 +1757,7 @@ void DMG_SIO::singer_izek_data_process()
 				{
 					singer_izek.auto_stitching = true;
 					singer_izek.is_stitching = true;
+					singer_izek.repeat_stitching = false;
 
 					singer_izek.cam_x = singer_izek.start_x;
 					singer_izek.cam_y = singer_izek.start_y;
