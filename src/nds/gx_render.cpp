@@ -252,7 +252,6 @@ void NTR_LCD::render_geometry()
 		}
 
 		xy_inc = (xy_start < xy_end) ? 1 : -1;
-		xy_end += (xy_inc > 0) ? 1 : -1;
 
 		if((xy_end - xy_start) != 0)
 		{
@@ -589,6 +588,8 @@ bool NTR_LCD::poly_push(gx_matrix &current_matrix)
 				}
 
 				else { status = false; }
+
+				break;
 
 			//Quad Strips
 			case 0x3:
