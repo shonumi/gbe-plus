@@ -188,6 +188,7 @@ void NTR_LCD::render_geometry()
 		s32 xy_start = 0;
 		s32 xy_end = 0;
 		s32 xy_inc = 0;
+		s32 xy_len = 0;
 
 		u32 c1 = vert_colors[x];
 		u32 c2 = vert_colors[next_index];
@@ -252,17 +253,18 @@ void NTR_LCD::render_geometry()
 		}
 
 		xy_inc = (xy_start < xy_end) ? 1 : -1;
+		xy_len = abs(xy_end - xy_start);
 
-		if((xy_end - xy_start) != 0)
+		if((xy_len != 0)
 		{
-			z_inc = (plot_z[next_index] - plot_z[x]) / abs(xy_end - xy_start);
-			c_inc = 1.0 / abs(xy_end - xy_start);
+			z_inc = (plot_z[next_index] - plot_z[x]) / xy_len;
+			c_inc = 1.0 / xy_len;
 
-			tx_inc = (lcd_3D_stat.tex_coord_x[next_index] - lcd_3D_stat.tex_coord_x[x]) / abs(xy_end - xy_start);
-			ty_inc = (lcd_3D_stat.tex_coord_y[next_index] - lcd_3D_stat.tex_coord_y[x]) / abs(xy_end - xy_start);
+			tx_inc = (lcd_3D_stat.tex_coord_x[next_index] - lcd_3D_stat.tex_coord_x[x]) / xy_len;
+			ty_inc = (lcd_3D_stat.tex_coord_y[next_index] - lcd_3D_stat.tex_coord_y[x]) / xy_len;
 		}
 
-		while(xy_start != xy_end)
+		while(xy_len)
 		{
 			c3 = interpolate_rgb(c1, c2, c_ratio);
 
@@ -307,11 +309,12 @@ void NTR_LCD::render_geometry()
 			x_coord += x_inc;
 			y_coord += y_inc;
 			z_coord += z_inc;
-			xy_start += xy_inc;
 			c_ratio += c_inc;
 
 			tx += tx_inc;
 			ty += ty_inc;
+
+			xy_len--;
 		}
 	}
 
