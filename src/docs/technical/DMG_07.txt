@@ -1,4 +1,4 @@
-DMG-07 Technical Documentation 0.4
+DMG-07 Technical Documentation 0.5
 November 23, 2017
 Shonumi aka D.S. Baxter
 
@@ -33,16 +33,23 @@ This list represents all the games that have been verified to use the DMG-07. Th
 - F1 Race
 - F1 Pole Position
 - Jinsei Game Densetsu
+- Janshirou
+- Janshirou II
 - Nekketsu Koukou Dodge Ball-Bu
 - Super R.C. Pro-Am
 - Top Rank Tennis
 - Trax
 - Trump Boy II
+- Uno: Small World
 - Uno: Small World 2
 - Wave Race
 - Yoshi's Cookie
 
-Several games are claimed to be compatible but actual support for the DMG-07 remains dubious at best for those titles. Gauntlet II advertises 4-player action via the Link Cable, but this may simply refer to 2-player mode with each Game Boy controlling 2 characters (and switching among friends when appropiate). Micro Machines 1 claims to support the DMG-07 in its instruction manual, but it does not appear to work; it may have been a planned but unfinished feature. Micro Machines 2 has no indication of 4-player support outside of other versions, such as the PC edition.
+Several games are claimed to be compatible but actual support for the DMG-07 remains dubious at best for those titles. Gauntlet II advertises 4-player action via the Link Cable, but this may simply refer to 2-player mode with each Game Boy controlling 2 characters (and switching among friends when appropiate).
+
+Micro Machines 1 claims to support the DMG-07 in its instruction manual, but it does not appear to work; it may have been a planned but unfinished feature. Although the game initially tries to handle the DMG-07 Ping Phase, the acknowledgement signal is malformed. Based on hardware tests the game does not properly follow the DMG-07 protocol. If a DMG-07 is plugged in while booting the game, the software may ignore all input from Player 1 if the title screen runs for a few seconds. Unplugging the DMG-07 restores input from Player 1. The main game can be accessed by pressing buttons quickly on the title screen, however, various glitches occur with the DMG-07 plugged in. Most immediately return to the title screen after choosing a race course.
+
+Micro Machines 2 has no indication of 4-player support outside of other versions, such as the PC edition.
 
 ***************************************************
 4. DMG-07 Protocol
