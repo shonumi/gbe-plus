@@ -276,7 +276,7 @@ void NTR_MMU::magic_reader_process()
 		//State 4 - Send 23 bits to NDS via SD when SCK is HI
 		case 0x04:
 			//Test for SCK transition from LO to HI
-			if((magic_reader.sck == 0) && (new_sck == 1) && (magic_reader.counter < 22))
+			if((magic_reader.sck == 0) && (new_sck == 1) && (magic_reader.counter < 23))
 			{
 				//Send response MSB first
 				u32 test_bit = magic_reader.out_data & (1 << (22 - magic_reader.counter));
@@ -285,7 +285,7 @@ void NTR_MMU::magic_reader_process()
 			}
 
 			//Wait for SCK to go low for a while to finish command
-			else if((magic_reader.sck == 0) && (new_sck == 0) && (magic_reader.counter == 22))
+			else if((magic_reader.sck == 0) && (new_sck == 0) && (magic_reader.counter == 23))
 			{
 				magic_reader.out_byte = 0xFF;
 				magic_reader.state = 1;
