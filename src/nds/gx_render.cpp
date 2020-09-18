@@ -167,29 +167,24 @@ void NTR_LCD::render_geometry()
 		lcd_3D_stat.lo_ty[x] = 0;
 	}
 
-	//X and Y max values used for rendering polygons
+	float x_min = plot_x[0];
 	float x_max = plot_x[0];
-	float y_max = plot_y[0];
 
-	//X and Y max values used for rendering textures
-	float tx_max = lcd_3D_stat.tex_coord_x[0];
-	float ty_max = lcd_3D_stat.tex_coord_y[0];
-
-	//Find X and Y max values
+	//Find minimum and maximum X values for polygon
 	for(u8 x = 1; x < vert_count; x++)
 	{
+		if(plot_x[x] < x_min) { x_min = plot_x[x]; }
 		if(plot_x[x] > x_max) { x_max = plot_x[x]; }
-		if(plot_y[x] > y_max) { y_max = plot_y[x]; }
-
-		if(lcd_3D_stat.tex_coord_x[x] > tx_max) { tx_max = lcd_3D_stat.tex_coord_x[x]; }
-		if(lcd_3D_stat.tex_coord_y[x] > ty_max) { ty_max = lcd_3D_stat.tex_coord_y[x]; }
 	}
 
-	x_max--;
-	y_max--;
+	lcd_3D_stat.poly_min_x = round(x_min);
+	lcd_3D_stat.poly_max_x = round(x_max);
 
-	tx_max--;
-	ty_max--;
+	if(lcd_3D_stat.poly_min_x < 0) { lcd_3D_stat.poly_min_x = 0; }
+	if(lcd_3D_stat.poly_max_x < 0) { lcd_3D_stat.poly_max_x = 0; }
+
+	if(lcd_3D_stat.poly_min_x > 255) { lcd_3D_stat.poly_min_x = 255; }
+	if(lcd_3D_stat.poly_max_x > 255) { lcd_3D_stat.poly_max_x = 255; }
 
 	//Draw lines for all polygons
 	for(u8 x = 0; x < vert_count; x++)
@@ -209,9 +204,6 @@ void NTR_LCD::render_geometry()
 		float y_coord = plot_y[x];
 		float z_coord = plot_z[x];
 
-		if(x_coord > x_max) { x_coord = x_max; }
-		if(y_coord > y_max) { y_coord = y_max; }
-
 		s32 xy_start = 0;
 		s32 xy_end = 0;
 		s32 xy_len = 0;
@@ -227,9 +219,6 @@ void NTR_LCD::render_geometry()
 
 		float tx = lcd_3D_stat.tex_coord_x[x];
 		float ty = lcd_3D_stat.tex_coord_y[x];
-
-		if(tx > tx_max) { tx = tx_max; }
-		if(ty > ty_max) { ty = ty_max; }
 
 		if((x_dist != 0) && (y_dist != 0))
 		{
@@ -390,7 +379,7 @@ void NTR_LCD::fill_poly_solid()
 	u8 y_coord = 0;
 	u32 buffer_index = 0;
 
-	for(u32 x = 0; x < 256; x++)
+	for(u32 x = lcd_3D_stat.poly_min_x; x < lcd_3D_stat.poly_max_x; x++)
 	{
 		float z_start = 0.0;
 		float z_end = 0.0;
@@ -405,7 +394,7 @@ void NTR_LCD::fill_poly_solid()
 
 		y_coord = lcd_3D_stat.hi_fill[x];
 
-		while(y_coord <= lcd_3D_stat.lo_fill[x])
+		while(y_coord < lcd_3D_stat.lo_fill[x])
 		{
 			//Convert plot points to buffer index
 			buffer_index = (y_coord * 256) + x;
@@ -430,7 +419,7 @@ void NTR_LCD::fill_poly_interpolated()
 	u8 y_coord = 0;
 	u32 buffer_index = 0;
 
-	for(u32 x = 0; x < 256; x++)
+	for(u32 x = lcd_3D_stat.poly_min_x; x < lcd_3D_stat.poly_max_x; x++)
 	{
 		float z_start = 0.0;
 		float z_end = 0.0;
@@ -455,7 +444,7 @@ void NTR_LCD::fill_poly_interpolated()
 
 		y_coord = lcd_3D_stat.hi_fill[x];
 
-		while(y_coord <= lcd_3D_stat.lo_fill[x])
+		while(y_coord < lcd_3D_stat.lo_fill[x])
 		{
 			//Convert plot points to buffer index
 			buffer_index = (y_coord * 256) + x;
@@ -502,7 +491,7 @@ void NTR_LCD::fill_poly_textured()
 		case 0x7: gen_tex_7(tex_addr); break;
 	}
 
-	for(u32 x = 0; x < 256; x++)
+	for(u32 x = lcd_3D_stat.poly_min_x; x < lcd_3D_stat.poly_max_x; x++)
 	{
 		float z_start = 0.0;
 		float z_end = 0.0;
@@ -532,7 +521,7 @@ void NTR_LCD::fill_poly_textured()
 
 		y_coord = lcd_3D_stat.hi_fill[x];
 
-		while(y_coord <= lcd_3D_stat.lo_fill[x])
+		while(y_coord < lcd_3D_stat.lo_fill[x])
 		{
 			//Convert plot points to buffer index
 			buffer_index = (y_coord * 256) + x;
@@ -542,7 +531,7 @@ void NTR_LCD::fill_poly_textured()
 
 			//Check Z buffer if drawing is applicable
 			//Make sure texel exists as well
-			if((z_start <= gx_z_buffer[buffer_index]) && (texel_index < tex_size))
+			if((z_start <= gx_z_buffer[buffer_index]) && (texel_index < tex_size) && (texel_index >= 0))
 			{
 				texel = lcd_3D_stat.tex_data[texel_index];
 
@@ -1636,6 +1625,7 @@ void NTR_LCD::process_gx_command()
 				lcd_3D_stat.command_parameters[y + 3] = lcd_3D_stat.command_parameters[lcd_3D_stat.parameter_index++];
 			}
 
+			//std::cout<<"SIZE -> " << mem->nds9_gx_fifo.size() << "\n";
 			lcd_3D_stat.current_gx_command = mem->nds9_gx_fifo.front();
 			process_gx_command();
 		}

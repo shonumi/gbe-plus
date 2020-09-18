@@ -272,6 +272,9 @@ struct ntr_lcd_3D_data
 	float last_y;
 	float last_z;
 
+	s32 poly_min_x;
+	s32 poly_max_x;
+
 	u32 tex_offset;
 	u32 pal_base;
 	u32 pal_bank_addr;
