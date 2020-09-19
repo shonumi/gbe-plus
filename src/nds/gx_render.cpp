@@ -167,10 +167,10 @@ void NTR_LCD::render_geometry()
 		lcd_3D_stat.lo_ty[x] = 0;
 	}
 
+	//Find minimum and maximum X values for polygon
 	float x_min = plot_x[0];
 	float x_max = plot_x[0];
 
-	//Find minimum and maximum X values for polygon
 	for(u8 x = 1; x < vert_count; x++)
 	{
 		if(plot_x[x] < x_min) { x_min = plot_x[x]; }
@@ -1146,11 +1146,13 @@ void NTR_LCD::process_gx_command()
 								gx_tri_strips.back().data[0][0] = gx_tri_strips[last_tri].data[1][0];
 								gx_tri_strips.back().data[0][1] = gx_tri_strips[last_tri].data[1][1];
 								gx_tri_strips.back().data[0][2] = gx_tri_strips[last_tri].data[1][2];
+								vert_colors[0] = vert_colors[1];
 
 								//New V1 = Old V2
 								gx_tri_strips.back().data[1][0] = gx_tri_strips[last_tri].data[2][0];
 								gx_tri_strips.back().data[1][1] = gx_tri_strips[last_tri].data[2][1];
 								gx_tri_strips.back().data[1][2] = gx_tri_strips[last_tri].data[2][2];
+								vert_colors[1] = vert_colors[2];
 
 								real_index = 2;
 								lcd_3D_stat.vertex_list_index = 2;
@@ -1177,11 +1179,13 @@ void NTR_LCD::process_gx_command()
 								gx_quad_strips.back().data[0][0] = gx_quad_strips[last_quad].data[3][0];
 								gx_quad_strips.back().data[0][1] = gx_quad_strips[last_quad].data[3][1];
 								gx_quad_strips.back().data[0][2] = gx_quad_strips[last_quad].data[3][2];
+								vert_colors[0] = vert_colors[3];
 
 								//New V1 = Old V2
 								gx_quad_strips.back().data[1][0] = gx_quad_strips[last_quad].data[2][0];
 								gx_quad_strips.back().data[1][1] = gx_quad_strips[last_quad].data[2][1];
 								gx_quad_strips.back().data[1][2] = gx_quad_strips[last_quad].data[2][2];
+								vert_colors[1] = vert_colors[2];
 
 								real_index = 2;
 								lcd_3D_stat.vertex_list_index = 2;
@@ -1287,11 +1291,13 @@ void NTR_LCD::process_gx_command()
 								gx_tri_strips.back().data[0][0] = gx_tri_strips[last_tri].data[1][0];
 								gx_tri_strips.back().data[0][1] = gx_tri_strips[last_tri].data[1][1];
 								gx_tri_strips.back().data[0][2] = gx_tri_strips[last_tri].data[1][2];
+								vert_colors[0] = vert_colors[1];
 
 								//New V1 = Old V2
 								gx_tri_strips.back().data[1][0] = gx_tri_strips[last_tri].data[2][0];
 								gx_tri_strips.back().data[1][1] = gx_tri_strips[last_tri].data[2][1];
 								gx_tri_strips.back().data[1][2] = gx_tri_strips[last_tri].data[2][2];
+								vert_colors[1] = vert_colors[2];
 
 								real_index = 2;
 								lcd_3D_stat.vertex_list_index = 2;
@@ -1318,11 +1324,13 @@ void NTR_LCD::process_gx_command()
 								gx_quad_strips.back().data[0][0] = gx_quad_strips[last_quad].data[3][0];
 								gx_quad_strips.back().data[0][1] = gx_quad_strips[last_quad].data[3][1];
 								gx_quad_strips.back().data[0][2] = gx_quad_strips[last_quad].data[3][2];
+								vert_colors[0] = vert_colors[3];
 
 								//New V1 = Old V2
 								gx_quad_strips.back().data[1][0] = gx_quad_strips[last_quad].data[2][0];
 								gx_quad_strips.back().data[1][1] = gx_quad_strips[last_quad].data[2][1];
 								gx_quad_strips.back().data[1][2] = gx_quad_strips[last_quad].data[2][2];
+								vert_colors[1] = vert_colors[2];
 
 								real_index = 2;
 								lcd_3D_stat.vertex_list_index = 2;
@@ -1432,11 +1440,13 @@ void NTR_LCD::process_gx_command()
 								gx_tri_strips.back().data[0][0] = gx_tri_strips[last_tri].data[1][0];
 								gx_tri_strips.back().data[0][1] = gx_tri_strips[last_tri].data[1][1];
 								gx_tri_strips.back().data[0][2] = gx_tri_strips[last_tri].data[1][2];
+								vert_colors[0] = vert_colors[1];
 
 								//New V1 = Old V2
 								gx_tri_strips.back().data[1][0] = gx_tri_strips[last_tri].data[2][0];
 								gx_tri_strips.back().data[1][1] = gx_tri_strips[last_tri].data[2][1];
 								gx_tri_strips.back().data[1][2] = gx_tri_strips[last_tri].data[2][2];
+								vert_colors[1] = vert_colors[2];
 
 								real_index = 2;
 								lcd_3D_stat.vertex_list_index = 2;
@@ -1463,11 +1473,13 @@ void NTR_LCD::process_gx_command()
 								gx_quad_strips.back().data[0][0] = gx_quad_strips[last_quad].data[3][0];
 								gx_quad_strips.back().data[0][1] = gx_quad_strips[last_quad].data[3][1];
 								gx_quad_strips.back().data[0][2] = gx_quad_strips[last_quad].data[3][2];
+								vert_colors[0] = vert_colors[3];
 
 								//New V1 = Old V2
 								gx_quad_strips.back().data[1][0] = gx_quad_strips[last_quad].data[2][0];
 								gx_quad_strips.back().data[1][1] = gx_quad_strips[last_quad].data[2][1];
 								gx_quad_strips.back().data[1][2] = gx_quad_strips[last_quad].data[2][2];
+								vert_colors[1] = vert_colors[2];
 
 								real_index = 2;
 								lcd_3D_stat.vertex_list_index = 2;
