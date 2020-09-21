@@ -1105,6 +1105,13 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 								//Determine command parameter length
 								get_gx_fifo_param_length();
+
+								//If unpacked command has no parameters, wait for next command instead of waiting for parameters
+								if(!lcd_3D_stat->packed_command && !gx_fifo_param_length)
+								{
+									delay_state = false;
+									lcd_3D_stat->gx_state &= ~0x1;
+								}	
 							}
 
 							//Gather parameters
