@@ -1147,12 +1147,16 @@ void NTR_LCD::process_gx_command()
 								gx_tri_strips.back().data[0][1] = gx_tri_strips[last_tri].data[1][1];
 								gx_tri_strips.back().data[0][2] = gx_tri_strips[last_tri].data[1][2];
 								vert_colors[0] = vert_colors[1];
+								lcd_3D_stat.tex_coord_x[0] = lcd_3D_stat.tex_coord_x[1]; 
+								lcd_3D_stat.tex_coord_y[0] = lcd_3D_stat.tex_coord_y[1]; 
 
 								//New V1 = Old V2
 								gx_tri_strips.back().data[1][0] = gx_tri_strips[last_tri].data[2][0];
 								gx_tri_strips.back().data[1][1] = gx_tri_strips[last_tri].data[2][1];
 								gx_tri_strips.back().data[1][2] = gx_tri_strips[last_tri].data[2][2];
 								vert_colors[1] = vert_colors[2];
+								lcd_3D_stat.tex_coord_x[1] = lcd_3D_stat.tex_coord_x[2]; 
+								lcd_3D_stat.tex_coord_y[1] = lcd_3D_stat.tex_coord_y[2]; 
 
 								real_index = 2;
 								lcd_3D_stat.vertex_list_index = 2;
@@ -1180,12 +1184,16 @@ void NTR_LCD::process_gx_command()
 								gx_quad_strips.back().data[0][1] = gx_quad_strips[last_quad].data[3][1];
 								gx_quad_strips.back().data[0][2] = gx_quad_strips[last_quad].data[3][2];
 								vert_colors[0] = vert_colors[3];
+								lcd_3D_stat.tex_coord_x[0] = lcd_3D_stat.tex_coord_x[3]; 
+								lcd_3D_stat.tex_coord_y[0] = lcd_3D_stat.tex_coord_y[3]; 
 
 								//New V1 = Old V2
 								gx_quad_strips.back().data[1][0] = gx_quad_strips[last_quad].data[2][0];
 								gx_quad_strips.back().data[1][1] = gx_quad_strips[last_quad].data[2][1];
 								gx_quad_strips.back().data[1][2] = gx_quad_strips[last_quad].data[2][2];
 								vert_colors[1] = vert_colors[2];
+								lcd_3D_stat.tex_coord_x[1] = lcd_3D_stat.tex_coord_x[2]; 
+								lcd_3D_stat.tex_coord_y[1] = lcd_3D_stat.tex_coord_y[2]; 
 
 								real_index = 2;
 								lcd_3D_stat.vertex_list_index = 2;
@@ -1292,12 +1300,16 @@ void NTR_LCD::process_gx_command()
 								gx_tri_strips.back().data[0][1] = gx_tri_strips[last_tri].data[1][1];
 								gx_tri_strips.back().data[0][2] = gx_tri_strips[last_tri].data[1][2];
 								vert_colors[0] = vert_colors[1];
+								lcd_3D_stat.tex_coord_x[0] = lcd_3D_stat.tex_coord_x[1]; 
+								lcd_3D_stat.tex_coord_y[0] = lcd_3D_stat.tex_coord_y[1]; 
 
 								//New V1 = Old V2
 								gx_tri_strips.back().data[1][0] = gx_tri_strips[last_tri].data[2][0];
 								gx_tri_strips.back().data[1][1] = gx_tri_strips[last_tri].data[2][1];
 								gx_tri_strips.back().data[1][2] = gx_tri_strips[last_tri].data[2][2];
 								vert_colors[1] = vert_colors[2];
+								lcd_3D_stat.tex_coord_x[1] = lcd_3D_stat.tex_coord_x[2]; 
+								lcd_3D_stat.tex_coord_y[1] = lcd_3D_stat.tex_coord_y[2]; 
 
 								real_index = 2;
 								lcd_3D_stat.vertex_list_index = 2;
@@ -1325,12 +1337,16 @@ void NTR_LCD::process_gx_command()
 								gx_quad_strips.back().data[0][1] = gx_quad_strips[last_quad].data[3][1];
 								gx_quad_strips.back().data[0][2] = gx_quad_strips[last_quad].data[3][2];
 								vert_colors[0] = vert_colors[3];
+								lcd_3D_stat.tex_coord_x[0] = lcd_3D_stat.tex_coord_x[3]; 
+								lcd_3D_stat.tex_coord_y[0] = lcd_3D_stat.tex_coord_y[3]; 
 
 								//New V1 = Old V2
 								gx_quad_strips.back().data[1][0] = gx_quad_strips[last_quad].data[2][0];
 								gx_quad_strips.back().data[1][1] = gx_quad_strips[last_quad].data[2][1];
 								gx_quad_strips.back().data[1][2] = gx_quad_strips[last_quad].data[2][2];
 								vert_colors[1] = vert_colors[2];
+								lcd_3D_stat.tex_coord_x[1] = lcd_3D_stat.tex_coord_x[2]; 
+								lcd_3D_stat.tex_coord_y[1] = lcd_3D_stat.tex_coord_y[2]; 
 
 								real_index = 2;
 								lcd_3D_stat.vertex_list_index = 2;
@@ -1441,12 +1457,16 @@ void NTR_LCD::process_gx_command()
 								gx_tri_strips.back().data[0][1] = gx_tri_strips[last_tri].data[1][1];
 								gx_tri_strips.back().data[0][2] = gx_tri_strips[last_tri].data[1][2];
 								vert_colors[0] = vert_colors[1];
+								lcd_3D_stat.tex_coord_x[0] = lcd_3D_stat.tex_coord_x[1]; 
+								lcd_3D_stat.tex_coord_y[0] = lcd_3D_stat.tex_coord_y[1];
 
 								//New V1 = Old V2
 								gx_tri_strips.back().data[1][0] = gx_tri_strips[last_tri].data[2][0];
 								gx_tri_strips.back().data[1][1] = gx_tri_strips[last_tri].data[2][1];
 								gx_tri_strips.back().data[1][2] = gx_tri_strips[last_tri].data[2][2];
 								vert_colors[1] = vert_colors[2];
+								lcd_3D_stat.tex_coord_x[1] = lcd_3D_stat.tex_coord_x[2]; 
+								lcd_3D_stat.tex_coord_y[1] = lcd_3D_stat.tex_coord_y[2]; 
 
 								real_index = 2;
 								lcd_3D_stat.vertex_list_index = 2;
@@ -1474,12 +1494,16 @@ void NTR_LCD::process_gx_command()
 								gx_quad_strips.back().data[0][1] = gx_quad_strips[last_quad].data[3][1];
 								gx_quad_strips.back().data[0][2] = gx_quad_strips[last_quad].data[3][2];
 								vert_colors[0] = vert_colors[3];
+								lcd_3D_stat.tex_coord_x[0] = lcd_3D_stat.tex_coord_x[3]; 
+								lcd_3D_stat.tex_coord_y[0] = lcd_3D_stat.tex_coord_y[3];
 
 								//New V1 = Old V2
 								gx_quad_strips.back().data[1][0] = gx_quad_strips[last_quad].data[2][0];
 								gx_quad_strips.back().data[1][1] = gx_quad_strips[last_quad].data[2][1];
 								gx_quad_strips.back().data[1][2] = gx_quad_strips[last_quad].data[2][2];
 								vert_colors[1] = vert_colors[2];
+								lcd_3D_stat.tex_coord_x[1] = lcd_3D_stat.tex_coord_x[2]; 
+								lcd_3D_stat.tex_coord_y[1] = lcd_3D_stat.tex_coord_y[2]; 
 
 								real_index = 2;
 								lcd_3D_stat.vertex_list_index = 2;
