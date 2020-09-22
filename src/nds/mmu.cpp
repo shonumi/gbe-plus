@@ -1110,7 +1110,9 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 								if(!lcd_3D_stat->packed_command && !gx_fifo_param_length)
 								{
 									delay_state = false;
+									lcd_3D_stat->process_command = true;
 									lcd_3D_stat->gx_state &= ~0x1;
+									gx_command = true;
 								}	
 							}
 
