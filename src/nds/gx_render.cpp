@@ -628,13 +628,6 @@ bool NTR_LCD::poly_push(gx_matrix &current_matrix)
 		}		
 	}
 
-	if(!status)
-	{
-		lcd_3D_stat.parameter_index = 0;
-		lcd_3D_stat.current_gx_command = 0;
-		lcd_3D_stat.process_command = false;
-	}
-
 	return status;
 }	
 
@@ -642,6 +635,7 @@ bool NTR_LCD::poly_push(gx_matrix &current_matrix)
 void NTR_LCD::process_gx_command()
 {
 	gx_matrix temp_matrix(4, 4);
+	bool poly_draw = true;
 
 	switch(lcd_3D_stat.current_gx_command)
 	{
@@ -1087,9 +1081,10 @@ void NTR_LCD::process_gx_command()
 			//Push new polygon if necessary
 			if(lcd_3D_stat.vertex_list_index == 0)
 			{
-				if(!poly_push(temp_matrix)) { return; }
+				if(!poly_push(temp_matrix)) { poly_draw = false; }
 			}
 
+			if(poly_draw)
 			{
 				float temp_result[4];
 				u8 list_size = 0;
@@ -1239,9 +1234,10 @@ void NTR_LCD::process_gx_command()
 			//Push new polygon if necessary
 			if(lcd_3D_stat.vertex_list_index == 0)
 			{
-				if(!poly_push(temp_matrix)) { return; }
+				if(!poly_push(temp_matrix)) { poly_draw = false; }
 			}
 
+			if(poly_draw)
 			{
 				float temp_result[3];
 				u8 list_size = 0;
@@ -1396,9 +1392,10 @@ void NTR_LCD::process_gx_command()
 			//Push new polygon if necessary
 			if(lcd_3D_stat.vertex_list_index == 0)
 			{
-				if(!poly_push(temp_matrix)) { return; }
+				if(!poly_push(temp_matrix)) { poly_draw = false; }
 			}
 
+			if(poly_draw)
 			{
 				float temp_result[2];
 				u8 list_size = 0;
@@ -1661,7 +1658,6 @@ void NTR_LCD::process_gx_command()
 				lcd_3D_stat.command_parameters[y + 3] = lcd_3D_stat.command_parameters[lcd_3D_stat.parameter_index++];
 			}
 
-			//std::cout<<"SIZE -> " << mem->nds9_gx_fifo.size() << "\n";
 			lcd_3D_stat.current_gx_command = mem->nds9_gx_fifo.front();
 			process_gx_command();
 		}
