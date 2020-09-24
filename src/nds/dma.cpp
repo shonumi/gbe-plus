@@ -102,6 +102,14 @@ void NTR_ARM9::nds9_dma(u8 index)
 				else if(mem->dma[index].dest_addr_ctrl == 3) { mem->dma[index].destination_address += 4; }
 
 				mem->dma[index].word_count--;
+
+				//Force LCD to process GX commands if necessary
+				//Some games manually use an NDS9 DMA to GXFIFO (fixed destination, 32-bit, inc/dec source)
+				if(mem->gx_command)
+				{
+					controllers.video.process_gx_command();
+					mem->gx_command = false;
+				}
 			}
 		}
 	}
