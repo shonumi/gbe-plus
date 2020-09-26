@@ -1072,6 +1072,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 							{
 								lcd_3D_stat->current_gx_command = 0;
 								lcd_3D_stat->fifo_params = 0;
+								gx_command = false;
 
 								//Begin processing packed commands
 								if(gx_fifo_entry & 0xFFFFFF00)
