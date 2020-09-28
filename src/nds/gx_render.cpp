@@ -65,7 +65,7 @@ void NTR_LCD::render_geometry()
 	u8 vert_count = 0;
 	gx_matrix temp_matrix;
 	gx_matrix vert_matrix;
-	gx_matrix clip_matrix = gx_position_matrix * gx_projection_matrix;
+	gx_matrix clip_matrix;
 
 	//Determine what kind of polygon to render
 	switch(lcd_3D_stat.vertex_mode)
@@ -122,6 +122,8 @@ void NTR_LCD::render_geometry()
 	//Translate all vertices to screen coordinates
 	for(u8 x = 0; x < vert_count; x++)
 	{
+		clip_matrix = last_pos_matrix[x] * gx_projection_matrix;
+
 		temp_matrix.resize(4, 1);
 		temp_matrix.data[0][0] = vert_matrix.data[x][0];
 		temp_matrix.data[1][0] = vert_matrix.data[x][1];
@@ -1212,6 +1214,8 @@ void NTR_LCD::process_gx_command()
 				lcd_3D_stat.last_y = temp_result[0];
 				lcd_3D_stat.last_z = temp_result[3];
 
+				last_pos_matrix[real_index] = gx_position_matrix;
+
 				//Set vertex color
 				vert_colors[lcd_3D_stat.vertex_list_index] = lcd_3D_stat.vertex_color;
 
@@ -1365,6 +1369,8 @@ void NTR_LCD::process_gx_command()
 				lcd_3D_stat.last_x = temp_result[1];
 				lcd_3D_stat.last_y = temp_result[0];
 				lcd_3D_stat.last_z = temp_result[3];
+
+				last_pos_matrix[real_index] = gx_position_matrix;
 
 				//Set vertex color
 				vert_colors[lcd_3D_stat.vertex_list_index] = lcd_3D_stat.vertex_color;
@@ -1548,6 +1554,8 @@ void NTR_LCD::process_gx_command()
 					lcd_3D_stat.last_y = temp_result[0];
 					lcd_3D_stat.last_z = temp_result[1];
 				}
+
+				last_pos_matrix[real_index] = gx_position_matrix;
 
 				//Set vertex color
 				vert_colors[lcd_3D_stat.vertex_list_index] = lcd_3D_stat.vertex_color;

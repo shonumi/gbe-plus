@@ -183,6 +183,8 @@ class NTR_LCD
 	gx_matrix gx_vector_matrix;
 	gx_matrix gx_texture_matrix;
 
+	gx_matrix last_pos_matrix[4];
+
 	void render_scanline();
 	void render_bg_scanline(u32 bg_control);
 	void render_bg_mode_text(u32 bg_control);
