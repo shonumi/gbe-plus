@@ -1671,6 +1671,18 @@ void NTR_LCD::process_gx_command()
 		}
 	}
 
+	//GXFIFO half empty IRQ
+	if((lcd_3D_stat.gx_stat & 0xC0000000) == 0x40000000) { mem->nds9_if |= 0x200000; }
+
+	//GXFIFO empty status
+	if(mem->nds9_gx_fifo.empty())
+	{
+		lcd_3D_stat.gx_stat |= 0x4000000;
+						
+		//GXFIFO empty IRQ
+		if((lcd_3D_stat.gx_stat & 0xC0000000) == 0x80000000) { mem->nds9_if |= 0x200000; }
+	}
+
 	lcd_3D_stat.parameter_index = 0;
 	lcd_3D_stat.current_gx_command = 0;
 	lcd_3D_stat.process_command = false;

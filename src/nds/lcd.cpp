@@ -299,7 +299,7 @@ void NTR_LCD::reset()
 	}
 
 	lcd_3D_stat.display_control = 0;
-	lcd_3D_stat.gx_stat = 0;
+	lcd_3D_stat.gx_stat = 0x6000000;
 	lcd_3D_stat.current_gx_command = 0;
 	lcd_3D_stat.current_packed_command = 0;
 	lcd_3D_stat.fifo_params = 0;

@@ -1066,6 +1066,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 						if(address == NDS_GXFIFO)
 						{
 							bool delay_state = false;
+							bool nop = false;
 
 							//Determine if new command is packed or unpacked
 							if((lcd_3D_stat->gx_state & 0x1) == 0)
@@ -1104,11 +1105,14 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 									lcd_3D_stat->gx_state |= 0x1;
 								}
 
+								//Ignore NOPs
+								else { nop = true; }
+
 								//Determine command parameter length
 								get_gx_fifo_param_length();
 
 								//If unpacked command has no parameters, wait for next command instead of waiting for parameters
-								if(!lcd_3D_stat->packed_command && !gx_fifo_param_length)
+								if(!lcd_3D_stat->packed_command && !gx_fifo_param_length && !nop)
 								{
 									delay_state = false;
 									lcd_3D_stat->process_command = true;
@@ -1147,13 +1151,21 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 							//Set GX_STAT FIFO less than half full flag
 							lcd_3D_stat->gx_stat |= 0x2000000;
 
+							//GXFIFO half empty IRQ
+							if((lcd_3D_stat->gx_stat & 0xC0000000) == 0x40000000) { nds9_if |= 0x200000; }
+
 							//Set GX_STAT FIFO empty flag
-							if(nds9_gx_fifo.size()) { lcd_3D_stat->gx_stat |= 0x4000000; }
+							if(nds9_gx_fifo.empty())
+							{
+								lcd_3D_stat->gx_stat |= 0x4000000;
+								
+								//GXFIFO empty IRQ
+								if((lcd_3D_stat->gx_stat & 0xC0000000) == 0x80000000) { nds9_if |= 0x200000; }
+							}
 
 							else
 							{
 								lcd_3D_stat->gx_stat &= ~0x4000000;
-								if(lcd_3D_stat->gx_stat & 0x80000000) { nds9_if |= 0x200000; }
 							}
 						}
 
@@ -4790,6 +4802,8 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		lcd_stat->oam_update = true;
 		lcd_stat->oam_update_list[(address & 0x7FF) >> 3] = true;
 	}
+
+	memory_map[0x0213051C] = 0; 
 }
 
 /****** Write 2 bytes into memory ******/
