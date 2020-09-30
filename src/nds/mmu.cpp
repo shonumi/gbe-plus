@@ -95,6 +95,7 @@ void NTR_MMU::reset()
 	nds9_irq_handler = 0x0;
 	nds9_ie = 0x0;
 	nds9_if = 0x0;
+	gx_if = 0;
 	nds9_temp_if = 0x0;
 	nds9_ime = 0;
 	nds9_exmem = 0;
@@ -2873,6 +2874,19 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		case NDS_GXSTAT+3:
 			lcd_3D_stat->gx_stat &= ~0xC0000000;
 			lcd_3D_stat->gx_stat |= ((value & 0xC0) << 24);
+			
+			if(value & 0xC0)
+			{
+				nds9_if |= 0x200000;
+				gx_if = 1;
+			}
+
+			else
+			{
+				nds9_if &= ~0x200000;
+				gx_if = 0;
+			}			
+
 			break;
 
 		//WRAM Control
@@ -3506,7 +3520,11 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		case NDS_IF+2:
 		case NDS_IF+3:
 			//Write to NDS9 IF
-			if(access_mode) { nds9_if &= ~(value << ((address & 0x3) << 3)); }
+			if(access_mode)
+			{
+				nds9_if &= ~(value << ((address & 0x3) << 3));
+				if(gx_if) { nds9_if |= 0x200000; }
+			}
 
 			//Write to NDS7 IF
 			else { nds7_if &= ~(value << ((address & 0x3) << 3)); }
@@ -4802,8 +4820,6 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		lcd_stat->oam_update = true;
 		lcd_stat->oam_update_list[(address & 0x7FF) >> 3] = true;
 	}
-
-	memory_map[0x0213051C] = 0; 
 }
 
 /****** Write 2 bytes into memory ******/
