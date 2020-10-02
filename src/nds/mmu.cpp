@@ -1174,10 +1174,13 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 					//MTX_MODE
 					case 0x4000440:
+					case 0x4000441:
+					case 0x4000442:
+					case 0x4000443:
 						//std::cout<<"GX - MTX_MODE\n";
 						lcd_3D_stat->current_gx_command = 0x10;
 						lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = value;
-						if(lcd_3D_stat->parameter_index == 1) { lcd_3D_stat->process_command = true; }
+						if(lcd_3D_stat->parameter_index == 4) { lcd_3D_stat->process_command = true; }
 
 						break;
 

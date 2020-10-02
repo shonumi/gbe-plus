@@ -643,7 +643,7 @@ void NTR_LCD::process_gx_command()
 	{
 		//MTX_MODE
 		case 0x10:
-			lcd_3D_stat.matrix_mode = (lcd_3D_stat.command_parameters[0] & 0x3);
+			lcd_3D_stat.matrix_mode = (read_param_u32(0) & 0x3);
 			break;
 
 		//MTX_PUSH
