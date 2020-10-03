@@ -1370,13 +1370,13 @@ void NTR_LCD::process_gx_command()
 						break;
 				}
 
-				poly_list->back().data[real_index][0] = temp_result[1];
-				poly_list->back().data[real_index][1] = temp_result[0];
-				poly_list->back().data[real_index][2] = temp_result[3];
+				poly_list->back().data[real_index][0] = temp_result[0];
+				poly_list->back().data[real_index][1] = temp_result[1];
+				poly_list->back().data[real_index][2] = temp_result[2];
 
-				lcd_3D_stat.last_x = temp_result[1];
-				lcd_3D_stat.last_y = temp_result[0];
-				lcd_3D_stat.last_z = temp_result[3];
+				lcd_3D_stat.last_x = temp_result[0];
+				lcd_3D_stat.last_y = temp_result[1];
+				lcd_3D_stat.last_z = temp_result[2];
 
 				last_pos_matrix[real_index] = gx_position_matrix;
 
