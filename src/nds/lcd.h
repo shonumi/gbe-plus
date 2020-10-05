@@ -202,6 +202,7 @@ class NTR_LCD
 	void fill_poly_solid();
 	void fill_poly_interpolated();
 	void fill_poly_textured();
+	void build_verts(std::vector<gx_matrix>*& list, u8 &l_size, u8 &index);
 	bool poly_push(gx_matrix &current_matrix);
 	u32 read_param_u32(u8 index);
 	u16 read_param_u16(u8 index);
