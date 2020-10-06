@@ -1739,6 +1739,9 @@ void NTR_LCD::build_verts(std::vector<gx_matrix>*& p_list, u8 &l_size, u8 &r_ind
 				//When starting a new Triangle Strip, use previous 2 vertices from last defined strip if necessary
 				if(lcd_3D_stat.begin_strips && !r_index)
 				{
+					float temp_x = lcd_3D_stat.tex_coord_x[0];
+					float temp_y = lcd_3D_stat.tex_coord_y[0];
+
 					//New V0 = Old V1 
 					gx_tri_strips.back().data[0][0] = gx_tri_strips[last_tri].data[1][0];
 					gx_tri_strips.back().data[0][1] = gx_tri_strips[last_tri].data[1][1];
@@ -1756,6 +1759,9 @@ void NTR_LCD::build_verts(std::vector<gx_matrix>*& p_list, u8 &l_size, u8 &r_ind
 					lcd_3D_stat.tex_coord_x[1] = lcd_3D_stat.tex_coord_x[2]; 
 					lcd_3D_stat.tex_coord_y[1] = lcd_3D_stat.tex_coord_y[2];
 					last_pos_matrix[1] = last_pos_matrix[2];
+
+					lcd_3D_stat.tex_coord_x[2] = temp_x;
+					lcd_3D_stat.tex_coord_y[2] = temp_y;
 
 					r_index = 2;
 					lcd_3D_stat.vertex_list_index = 2;
