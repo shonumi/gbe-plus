@@ -708,6 +708,7 @@ void NTR_LCD::process_gx_command()
 			switch(lcd_3D_stat.matrix_mode)
 			{
 				case 0x0:
+
 					if(projection_sp == 1)
 					{
 						gx_projection_matrix = gx_projection_stack[--projection_sp];
@@ -716,6 +717,7 @@ void NTR_LCD::process_gx_command()
 
 					else { gx_projection_matrix = gx_projection_stack[projection_sp]; }
 
+					lcd_3D_stat.update_clip_matrix = true;
 					break;
 
 				case 0x1:
@@ -739,6 +741,7 @@ void NTR_LCD::process_gx_command()
 						}
 					}
 
+					lcd_3D_stat.update_clip_matrix = true;
 					break;
 
 				case 0x3:
@@ -783,6 +786,7 @@ void NTR_LCD::process_gx_command()
 			{
 				case 0x0:
 					gx_projection_matrix = gx_projection_stack[0];
+					lcd_3D_stat.update_clip_matrix = true;
 					break;
 
 				case 0x1:
@@ -797,6 +801,7 @@ void NTR_LCD::process_gx_command()
 						}
 					}
 
+					lcd_3D_stat.update_clip_matrix = true;
 					break;
 
 				case 0x3:
@@ -812,15 +817,18 @@ void NTR_LCD::process_gx_command()
 			{
 				case 0x0:
 					gx_projection_matrix.make_identity(4);
+					lcd_3D_stat.update_clip_matrix = true;
 					break;
 
 				case 0x1:
 					gx_position_matrix.make_identity(4);
+					lcd_3D_stat.update_clip_matrix = true;
 					break;
 
 				case 0x2:
 					gx_position_matrix.make_identity(4);
 					gx_vector_matrix.make_identity(4);
+					lcd_3D_stat.update_clip_matrix = true;
 					break;
 
 				case 0x3:
@@ -861,11 +869,13 @@ void NTR_LCD::process_gx_command()
 				case 0x0:
 					if(lcd_3D_stat.current_gx_command == 0x16) { gx_projection_matrix = temp_matrix; }
 					else { gx_projection_matrix = temp_matrix * gx_projection_matrix; }
+					lcd_3D_stat.update_clip_matrix = true;
 					break;
 
 				case 0x1:
 					if(lcd_3D_stat.current_gx_command == 0x16) { gx_position_matrix = temp_matrix; }
 					else { gx_position_matrix = temp_matrix * gx_position_matrix; }
+					lcd_3D_stat.update_clip_matrix = true;
 					break;
 
 				case 0x2:
@@ -881,6 +891,7 @@ void NTR_LCD::process_gx_command()
 						gx_vector_matrix = temp_matrix * gx_vector_matrix;
 					}
 
+					lcd_3D_stat.update_clip_matrix = true;
 					break;
 
 				case 0x3:
@@ -924,11 +935,13 @@ void NTR_LCD::process_gx_command()
 				case 0x0:
 					if(lcd_3D_stat.current_gx_command == 0x17) { gx_projection_matrix = temp_matrix; }
 					else { gx_projection_matrix = temp_matrix * gx_projection_matrix; }
+					lcd_3D_stat.update_clip_matrix = true;
 					break;
 
 				case 0x1:
 					if(lcd_3D_stat.current_gx_command == 0x17) { gx_position_matrix = temp_matrix; }
 					else { gx_position_matrix = temp_matrix * gx_position_matrix; }
+					lcd_3D_stat.update_clip_matrix = true;
 					break;
 
 				case 0x2:
@@ -944,6 +957,7 @@ void NTR_LCD::process_gx_command()
 						gx_vector_matrix = temp_matrix * gx_vector_matrix;
 					}
 
+					lcd_3D_stat.update_clip_matrix = true;
 					break;
 
 				case 0x3:
@@ -984,15 +998,18 @@ void NTR_LCD::process_gx_command()
 			{
 				case 0x0:
 					gx_projection_matrix = temp_matrix * gx_projection_matrix;
+					lcd_3D_stat.update_clip_matrix = true;
 					break;
 
 				case 0x1:
 					gx_position_matrix = temp_matrix * gx_position_matrix;
+					lcd_3D_stat.update_clip_matrix = true;
 					break;
 
 				case 0x2:
 					gx_position_matrix = temp_matrix * gx_position_matrix;
 					gx_vector_matrix = temp_matrix * gx_vector_matrix;
+					lcd_3D_stat.update_clip_matrix = true;
 					break;
 
 				case 0x3:
@@ -1035,15 +1052,18 @@ void NTR_LCD::process_gx_command()
 			{
 				case 0x0:
 					gx_projection_matrix = temp_matrix * gx_projection_matrix;
+					lcd_3D_stat.update_clip_matrix = true;
 					break;
 
 				case 0x1:
 					gx_position_matrix = temp_matrix * gx_position_matrix;
+					lcd_3D_stat.update_clip_matrix = true;
 					break;
 
 				case 0x2:
 					gx_position_matrix = temp_matrix * gx_position_matrix;
 					if(lcd_3D_stat.current_gx_command == 0x1C) { gx_vector_matrix = temp_matrix * gx_vector_matrix; }
+					lcd_3D_stat.update_clip_matrix = true;
 					break;
 
 				case 0x3:
@@ -1500,6 +1520,9 @@ void NTR_LCD::process_gx_command()
 		if((lcd_3D_stat.gx_stat & 0xC0000000) == 0x80000000) { mem->nds9_if |= 0x200000; }
 	}
 
+	//Update clip matrix results
+	if(lcd_3D_stat.update_clip_matrix) { update_clip_matrix(); }
+
 	lcd_3D_stat.parameter_index = 0;
 	lcd_3D_stat.current_gx_command = 0;
 	lcd_3D_stat.process_command = false;
@@ -1816,5 +1839,54 @@ void NTR_LCD::build_verts(std::vector<gx_matrix>*& p_list, u8 &l_size, u8 &r_ind
 			}
 
 			break;
+	}
+}
+
+/****** Updates the clip matrix results ******/
+void NTR_LCD::update_clip_matrix()
+{
+	gx_matrix clip_matrix = gx_position_matrix * gx_projection_matrix;
+
+	u32 integral = 0;
+	u32 fractal = 0;
+	float sub_fractal = 0.0;
+
+	for(u32 y = 0; y < 4; y++)
+	{
+		for(u32 x = 0; x < 4; x++)
+		{
+			float raw_value = clip_matrix.data[x][y];
+			u32 index = 4 * ((y * 4) + x);
+			
+			integral = abs(raw_value);
+
+			//Negative values
+			if(raw_value < 0)
+			{
+				sub_fractal = fabs(raw_value) - integral;
+
+				if(raw_value != -1.0) { integral++; }
+				integral = (0x100000 - integral) << 12;
+
+				if(sub_fractal != 0)
+				{
+					sub_fractal = 1 - sub_fractal;
+					sub_fractal *= 4096.0;
+				}
+
+				fractal = sub_fractal;
+			}
+
+			//Positive values
+			else
+			{
+				integral <<= 12;
+				sub_fractal = fabs(raw_value) - u32(raw_value);
+				sub_fractal *= 4096.0;
+				fractal = sub_fractal;
+			}
+
+			mem->write_u32_fast((0x4000640 + index), (integral | fractal));
+		}
 	}
 }

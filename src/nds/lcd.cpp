@@ -311,6 +311,7 @@ void NTR_LCD::reset()
 	lcd_3D_stat.render_polygon = false;
 	lcd_3D_stat.use_texture = false;
 	lcd_3D_stat.begin_strips = false;
+	lcd_3D_stat.update_clip_matrix = false;
 
 	lcd_3D_stat.view_port_x1 = 0;
 	lcd_3D_stat.view_port_x2 = 0;
