@@ -1420,22 +1420,6 @@ void NTR_LCD::process_gx_command()
 				lcd_3D_stat.tex_src_height = 8 << ((raw_value >> 23) & 0x7);
 				lcd_3D_stat.tex_format = ((raw_value >> 26) & 0x7);
 				lcd_3D_stat.tex_transformation = (raw_value >> 30);
-
-				u8 slot = (lcd_3D_stat.tex_offset >> 17);
-
-				//Calculate VRAM address of texture
-				u32 tex_addr = (mem->vram_tex_slot[slot] + (lcd_3D_stat.tex_offset & 0x1FFFF));
-
-				//Generate pixel data from VRAM
-				switch(lcd_3D_stat.tex_format)
-				{
-					case 0x1: gen_tex_1(tex_addr); break;
-					case 0x2: gen_tex_2(tex_addr); break;
-					case 0x3: gen_tex_3(tex_addr); break;
-					case 0x4: gen_tex_4(tex_addr); break;
-					case 0x6: gen_tex_6(tex_addr); break;
-					case 0x7: gen_tex_7(tex_addr); break;
-				}
 			}
 
 			break;
@@ -1587,7 +1571,7 @@ void NTR_LCD::gen_tex_1(u32 address)
 	u32 tex_size = (lcd_3D_stat.tex_src_width * lcd_3D_stat.tex_src_height);
 
 	//Generate temporary palette
-	u32 pal_addr = lcd_3D_stat.pal_bank_addr + (lcd_3D_stat.pal_base * 0x8);
+	u32 pal_addr = lcd_3D_stat.pal_bank_addr + (lcd_3D_stat.pal_base * 0x10);
 	u32 tex_pal[32];
 
 	for(u32 x = 0; x < 32; x++)
@@ -1696,7 +1680,7 @@ void NTR_LCD::gen_tex_6(u32 address)
 	u32 tex_size = (lcd_3D_stat.tex_src_width * lcd_3D_stat.tex_src_height);
 
 	//Generate temporary palette
-	u32 pal_addr = lcd_3D_stat.pal_bank_addr + (lcd_3D_stat.pal_base * 0x8);
+	u32 pal_addr = lcd_3D_stat.pal_bank_addr + (lcd_3D_stat.pal_base * 0x10);
 	u32 tex_pal[8];
 
 	for(u32 x = 0; x < 8; x++)
