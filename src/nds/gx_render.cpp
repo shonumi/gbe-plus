@@ -499,9 +499,6 @@ void NTR_LCD::fill_poly_textured()
 	u32 texel_index = 0;
 	u32 texel = 0;
 
-	u32 tex_size = lcd_3D_stat.tex_data.size();
-	u32 tw = lcd_3D_stat.tex_src_width;
-
 	u8 slot = (lcd_3D_stat.tex_offset >> 17);
 
 	//Calculate VRAM address of texture
@@ -517,6 +514,9 @@ void NTR_LCD::fill_poly_textured()
 		case 0x6: gen_tex_6(tex_addr); break;
 		case 0x7: gen_tex_7(tex_addr); break;
 	}
+
+	u32 tex_size = lcd_3D_stat.tex_data.size();
+	u32 tw = lcd_3D_stat.tex_src_width;
 
 	for(u32 x = lcd_3D_stat.poly_min_x; x < lcd_3D_stat.poly_max_x; x++)
 	{
