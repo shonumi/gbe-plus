@@ -1569,6 +1569,7 @@ void NTR_LCD::gen_tex_1(u32 address)
 {
 	lcd_3D_stat.tex_data.clear();
 	u32 tex_size = (lcd_3D_stat.tex_src_width * lcd_3D_stat.tex_src_height);
+	u32 color = 0;
 
 	//Generate temporary palette
 	u32 pal_addr = lcd_3D_stat.pal_bank_addr + (lcd_3D_stat.pal_base * 0x10);
@@ -1586,7 +1587,21 @@ void NTR_LCD::gen_tex_1(u32 address)
 	while(tex_size)
 	{
 		u8 index = mem->memory_map[address++];
-		lcd_3D_stat.tex_data.push_back(tex_pal[index & 0x1F]);
+		color = (tex_pal[index & 0x1F] & ~0xFF000000);
+		
+		//Calculate alpha value
+		switch(index >> 5)
+		{
+			case 1: color |= 0x20000000; break;
+			case 2: color |= 0x48000000; break;
+			case 3: color |= 0x68000000; break;
+			case 4: color |= 0x90000000; break;
+			case 5: color |= 0xB0000000; break;
+			case 6: color |= 0xD8000000; break;
+			case 7: color |= 0xFF000000; break;
+		}
+
+		lcd_3D_stat.tex_data.push_back(color);
 		tex_size--;
 	}
 }
@@ -1678,6 +1693,7 @@ void NTR_LCD::gen_tex_6(u32 address)
 {
 	lcd_3D_stat.tex_data.clear();
 	u32 tex_size = (lcd_3D_stat.tex_src_width * lcd_3D_stat.tex_src_height);
+	u32 color = 0;
 
 	//Generate temporary palette
 	u32 pal_addr = lcd_3D_stat.pal_bank_addr + (lcd_3D_stat.pal_base * 0x10);
@@ -1695,7 +1711,45 @@ void NTR_LCD::gen_tex_6(u32 address)
 	while(tex_size)
 	{
 		u8 index = mem->memory_map[address++];
-		lcd_3D_stat.tex_data.push_back(tex_pal[index & 0x7]);
+		color = (tex_pal[index & 0x7] & ~0xFF000000);
+		
+		//Calculate alpha value
+		switch(index >> 3)
+		{
+			case 1: color |= 0x08000000; break;
+			case 2: color |= 0x10000000; break;
+			case 3: color |= 0x18000000; break;
+			case 4: color |= 0x20000000; break;
+			case 5: color |= 0x28000000; break;
+			case 6: color |= 0x30000000; break;
+			case 7: color |= 0x38000000; break;
+			case 8: color |= 0x40000000; break;
+			case 9: color |= 0x48000000; break;
+			case 10: color |= 0x50000000; break;
+			case 11: color |= 0x58000000; break;
+			case 12: color |= 0x60000000; break;
+			case 13: color |= 0x68000000; break;
+			case 14: color |= 0x70000000; break;
+			case 15: color |= 0x78000000; break;
+			case 16: color |= 0x80000000; break;
+			case 17: color |= 0x88000000; break;
+			case 18: color |= 0x90000000; break;
+			case 19: color |= 0x98000000; break;
+			case 20: color |= 0xA0000000; break;
+			case 21: color |= 0xA8000000; break;
+			case 22: color |= 0xB0000000; break;
+			case 23: color |= 0xB8000000; break;
+			case 24: color |= 0xC0000000; break;
+			case 25: color |= 0xC8000000; break;
+			case 26: color |= 0xD0000000; break;
+			case 27: color |= 0xD8000000; break;
+			case 28: color |= 0xE0000000; break;
+			case 29: color |= 0xE8000000; break;
+			case 30: color |= 0xF0000000; break;
+			case 31: color |= 0xFF000000; break;
+		}
+
+		lcd_3D_stat.tex_data.push_back(color);
 		tex_size--;
 	}
 }
