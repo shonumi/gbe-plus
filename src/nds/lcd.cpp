@@ -1487,10 +1487,11 @@ void NTR_LCD::render_obj_scanline(u32 bg_control)
 					else
 					{
 						//1D addressing
-						if(disp_cnt & 0x10)
+						if(disp_cnt & 0x40)
 						{
-							obj_addr += (((meta_y * meta_width) + meta_x) * 128);
-							obj_addr += (((obj_y % 8) * 8) + (obj_x % 8)) >> 1;
+							u8 boundary = (disp_cnt & 0x400000) ? 256 : 128;
+							obj_addr = base + (obj[obj_id].tile_number * boundary);
+							obj_addr += ((obj_y * obj[obj_id].width) + obj_x) << 1;
 						}
 
 						//2D addressing
