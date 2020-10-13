@@ -558,7 +558,7 @@ void NTR_LCD::fill_poly_textured()
 
 			//Check Z buffer if drawing is applicable
 			//Make sure texel exists as well
-			if((z_start <= gx_z_buffer[buffer_index]) && (texel_index < tex_size) && (texel_index >= 0))
+			if((z_start < gx_z_buffer[buffer_index]) && (texel_index < tex_size) && (texel_index >= 0))
 			{
 				texel = lcd_3D_stat.tex_data[texel_index];
 
