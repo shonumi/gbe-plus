@@ -517,6 +517,7 @@ void NTR_LCD::fill_poly_textured()
 
 	u32 tex_size = lcd_3D_stat.tex_data.size();
 	u32 tw = lcd_3D_stat.tex_src_width;
+	u32 th = lcd_3D_stat.tex_src_height;
 
 	for(u32 x = lcd_3D_stat.poly_min_x; x < lcd_3D_stat.poly_max_x; x++)
 	{
@@ -550,6 +551,20 @@ void NTR_LCD::fill_poly_textured()
 
 		while(y_coord < lcd_3D_stat.lo_fill[x])
 		{
+			//Wrap along X axis, if necessary
+			if(lcd_3D_stat.repeat_tex_x)
+			{
+				if(tx1 < 0) { tx1 += (tw * (abs(s32(tx1 / tw)) + 1)); }
+				else if(tx1 >= tw) { tx1 -= (tw * (s32(tx1 / tw))); }
+			}
+
+			//Wrap along Y axis, if necessary
+			if(lcd_3D_stat.repeat_tex_y)
+			{
+				if(ty1 < 0) { ty1 += (th * (abs(s32(ty1 / th)) + 1)); }
+				else if(ty1 >= th) { ty1 -= (th * s32(ty1 / th)); }
+			}
+
 			//Convert plot points to buffer index
 			buffer_index = (y_coord * 256) + x;
 
@@ -1420,6 +1435,8 @@ void NTR_LCD::process_gx_command()
 				lcd_3D_stat.tex_src_height = 8 << ((raw_value >> 23) & 0x7);
 				lcd_3D_stat.tex_format = ((raw_value >> 26) & 0x7);
 				lcd_3D_stat.tex_transformation = (raw_value >> 30);
+				lcd_3D_stat.repeat_tex_x = (raw_value & 0x10000) ? true : false;
+				lcd_3D_stat.repeat_tex_y = (raw_value & 0x20000) ? true : false;
 			}
 
 			break;

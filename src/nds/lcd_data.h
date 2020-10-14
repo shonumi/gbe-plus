@@ -283,6 +283,8 @@ struct ntr_lcd_3D_data
 	u16 tex_src_height;
 	u8 tex_format;
 	u8 tex_transformation;
+	bool repeat_tex_x;
+	bool repeat_tex_y;
 	std::vector <u32> tex_data;
 
 	float tex_coord_x[4];
