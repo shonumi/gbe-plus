@@ -580,7 +580,10 @@ void NTR_LCD::fill_poly_textured()
 				//Draw texel if not transparent
 				if(texel & 0xFF000000)
 				{
-					gx_screen_buffer[(lcd_3D_stat.buffer_id + 1) & 0x1][buffer_index] = lcd_3D_stat.tex_data[texel_index];
+					//Alpha-blend if necessary
+					if((texel >> 24) != 0xFF) { texel = alpha_blend_texel(texel, gx_screen_buffer[(lcd_3D_stat.buffer_id + 1) & 0x1][buffer_index]); }
+
+					gx_screen_buffer[(lcd_3D_stat.buffer_id + 1) & 0x1][buffer_index] = texel;
 					gx_render_buffer[(lcd_3D_stat.buffer_id + 1) & 0x1][buffer_index] = 1;
 					gx_z_buffer[buffer_index] = z_start;
 				}
@@ -1581,7 +1584,31 @@ u32 NTR_LCD::interpolate_rgb(u32 color_1, u32 color_2, float ratio)
 	return 0xFF000000 | (r << 16) | (g << 8) | (b);
 }
 
-/****** Generates pixel data fram VRAM for A3I5 textures ******/
+/****** Alpha blends given texel with 3D framebuffer ******/
+u32 NTR_LCD::alpha_blend_texel(u32 color_1, u32 color_2)
+{
+	u8 poly_alpha = (color_1 >> 24) & 0x1F;
+	if(poly_alpha == 0) { return color_2; }
+
+	u8 poly_min = 0x1F - poly_alpha;
+	u8 poly_max = poly_alpha + 1;
+
+	u16 poly_r = (color_1 >> 19) & 0x1F;
+	u16 poly_g = (color_1 >> 11) & 0x1F;
+	u16 poly_b = (color_1 >> 3) & 0x1F;
+
+	u16 frame_r = (color_2 >> 19) & 0x1F;
+	u16 frame_g = (color_2 >> 11) & 0x1F;
+	u16 frame_b = (color_2 >> 3) & 0x1F;
+
+	frame_r = ((poly_r * poly_max) + (frame_r * poly_min)) >> 5;
+	frame_g = ((poly_g * poly_max) + (frame_g * poly_min)) >> 5;
+	frame_b = ((poly_b * poly_max) + (frame_b * poly_min)) >> 5;
+
+	return 0xFF000000 | (frame_r << 19) | (frame_g << 11) | (frame_b << 3);
+}
+
+/****** Generates pixel data fram VRAM for A315 textures ******/
 void NTR_LCD::gen_tex_1(u32 address)
 {
 	lcd_3D_stat.tex_data.clear();
@@ -1605,18 +1632,11 @@ void NTR_LCD::gen_tex_1(u32 address)
 	{
 		u8 index = mem->memory_map[address++];
 		color = (tex_pal[index & 0x1F] & ~0xFF000000);
-		
-		//Calculate alpha value
-		switch(index >> 5)
-		{
-			case 1: color |= 0x20000000; break;
-			case 2: color |= 0x48000000; break;
-			case 3: color |= 0x68000000; break;
-			case 4: color |= 0x90000000; break;
-			case 5: color |= 0xB0000000; break;
-			case 6: color |= 0xD8000000; break;
-			case 7: color |= 0xFF000000; break;
-		}
+		index >>= 5;
+
+		//Calculate alpha value - Expand 3-bit alpha to 5-bit alpha
+		if(index < 7) { color |= (((index << 2) + (index >> 1)) << 24); }
+		else { color |= 0xFF000000; }
 
 		lcd_3D_stat.tex_data.push_back(color);
 		tex_size--;
@@ -1705,7 +1725,7 @@ void NTR_LCD::gen_tex_4(u32 address)
 	}
 }
 
-/****** Generates pixel data fram VRAM for A5I3 textures ******/
+/****** Generates pixel data fram VRAM for A513 textures ******/
 void NTR_LCD::gen_tex_6(u32 address)
 {
 	lcd_3D_stat.tex_data.clear();
@@ -1729,42 +1749,11 @@ void NTR_LCD::gen_tex_6(u32 address)
 	{
 		u8 index = mem->memory_map[address++];
 		color = (tex_pal[index & 0x7] & ~0xFF000000);
-		
+		index >>= 3;
+
 		//Calculate alpha value
-		switch(index >> 3)
-		{
-			case 1: color |= 0x08000000; break;
-			case 2: color |= 0x10000000; break;
-			case 3: color |= 0x18000000; break;
-			case 4: color |= 0x20000000; break;
-			case 5: color |= 0x28000000; break;
-			case 6: color |= 0x30000000; break;
-			case 7: color |= 0x38000000; break;
-			case 8: color |= 0x40000000; break;
-			case 9: color |= 0x48000000; break;
-			case 10: color |= 0x50000000; break;
-			case 11: color |= 0x58000000; break;
-			case 12: color |= 0x60000000; break;
-			case 13: color |= 0x68000000; break;
-			case 14: color |= 0x70000000; break;
-			case 15: color |= 0x78000000; break;
-			case 16: color |= 0x80000000; break;
-			case 17: color |= 0x88000000; break;
-			case 18: color |= 0x90000000; break;
-			case 19: color |= 0x98000000; break;
-			case 20: color |= 0xA0000000; break;
-			case 21: color |= 0xA8000000; break;
-			case 22: color |= 0xB0000000; break;
-			case 23: color |= 0xB8000000; break;
-			case 24: color |= 0xC0000000; break;
-			case 25: color |= 0xC8000000; break;
-			case 26: color |= 0xD0000000; break;
-			case 27: color |= 0xD8000000; break;
-			case 28: color |= 0xE0000000; break;
-			case 29: color |= 0xE8000000; break;
-			case 30: color |= 0xF0000000; break;
-			case 31: color |= 0xFF000000; break;
-		}
+		if(index < 0x1F) { color |= (index << 24); }
+		else { color |= 0xFF000000; }
 
 		lcd_3D_stat.tex_data.push_back(color);
 		tex_size--;
