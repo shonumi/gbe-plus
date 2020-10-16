@@ -276,6 +276,8 @@ void NTR_MMU::reset()
 	pal_b_bg_slot[2] = 0x689C000;
 	pal_b_bg_slot[3] = 0x689E000;
 
+	pal_a_obj_slot[0] = 0x6890000;
+
 	vram_tex_slot[0] = 0;
 	vram_tex_slot[1] = 0;
 	vram_tex_slot[2] = 0;
