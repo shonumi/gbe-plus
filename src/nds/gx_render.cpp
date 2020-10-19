@@ -534,6 +534,9 @@ void NTR_LCD::fill_poly_textured()
 		float tx_inc = tx2 - tx1;
 		float ty_inc = ty2 - ty1;
 
+		float real_tx = 0.0;
+		float real_ty = 0.0;
+
 		//Calculate Z start and end fill coordinates
 		z_start = lcd_3D_stat.hi_line_z[x];
 		z_end = lcd_3D_stat.lo_line_z[x];
@@ -551,25 +554,54 @@ void NTR_LCD::fill_poly_textured()
 
 		while(y_coord < lcd_3D_stat.lo_fill[x])
 		{
-			//Wrap along X axis, if necessary
+			real_tx = tx1;
+			real_ty = ty1;
+
+			//Wrap horizontally, if necessary
 			if(lcd_3D_stat.repeat_tex_x)
 			{
-				if(tx1 < 0) { tx1 += (tw * (abs(s32(tx1 / tw)) + 1)); }
-				else if(tx1 >= tw) { tx1 -= (tw * (s32(tx1 / tw))); }
+				u8 x_flip = u32(abs(tx1 / tw)) & 0x1;
+
+				//No flipping horizontally
+				if(!lcd_3D_stat.flip_tex_x || !x_flip)
+				{
+					if(tx1 < 0) { real_tx = (tx1 + (tw * (abs(s32(tx1 / tw)) + 1))); }
+					else if(tx1 >= tw) { real_tx = (tx1 - (tw * (s32(tx1 / tw)))); }
+				}
+
+				//Flip horizontally
+				else
+				{
+					if(tx1 < 0) { real_tx = tw - (tx1 + (tw * (abs(s32(tx1 / tw)) + 1))); }
+					else if(tx1 >= tw) { real_tx = tw - (tx1 - (tw * (s32(tx1 / tw)))); }
+				}
 			}
 
-			//Wrap along Y axis, if necessary
+			//Wrap vertically, if necessary
 			if(lcd_3D_stat.repeat_tex_y)
 			{
-				if(ty1 < 0) { ty1 += (th * (abs(s32(ty1 / th)) + 1)); }
-				else if(ty1 >= th) { ty1 -= (th * s32(ty1 / th)); }
+				u8 y_flip = u32(abs(ty1 / th)) & 0x1;
+
+				//No flipping vertically
+				if(!lcd_3D_stat.flip_tex_y || !y_flip)
+				{
+					if(ty1 < 0) { real_ty = (ty1 + (th * (abs(s32(ty1 / th)) + 1))); }
+					else if(ty1 >= th) { real_ty = (ty1 - (th * s32(ty1 / th))); }
+				}
+
+				//Flip vertically
+				else
+				{
+					if(ty1 < 0) { real_ty = th - (ty1 + (th * (abs(s32(ty1 / th)) + 1))); }
+					else if(ty1 >= th) { real_ty = th - (ty1 - (th * s32(ty1 / th))); }
+				}
 			}
 
 			//Convert plot points to buffer index
 			buffer_index = (y_coord * 256) + x;
 
 			//Calculate texel postion
-			texel_index = u32(u32(ty1) * tw) + u32(tx1);
+			texel_index = u32(u32(real_ty) * tw) + u32(real_tx);
 
 			//Check Z buffer if drawing is applicable
 			//Make sure texel exists as well
@@ -1467,6 +1499,8 @@ void NTR_LCD::process_gx_command()
 				lcd_3D_stat.tex_transformation = (raw_value >> 30);
 				lcd_3D_stat.repeat_tex_x = (raw_value & 0x10000) ? true : false;
 				lcd_3D_stat.repeat_tex_y = (raw_value & 0x20000) ? true : false;
+				lcd_3D_stat.flip_tex_x = (raw_value & 0x40000) ? true : false;
+				lcd_3D_stat.flip_tex_y = (raw_value & 0x80000) ? true : false;
 			}
 
 			break;

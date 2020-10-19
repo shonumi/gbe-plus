@@ -285,6 +285,8 @@ struct ntr_lcd_3D_data
 	u8 tex_transformation;
 	bool repeat_tex_x;
 	bool repeat_tex_y;
+	bool flip_tex_x;
+	bool flip_tex_y;
 	std::vector <u32> tex_data;
 
 	float tex_coord_x[4];
