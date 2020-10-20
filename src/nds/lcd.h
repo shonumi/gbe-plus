@@ -216,6 +216,7 @@ class NTR_LCD
 	void gen_tex_2(u32 address);
 	void gen_tex_3(u32 address);
 	void gen_tex_4(u32 address);
+	void gen_tex_5(u32 address);
 	void gen_tex_6(u32 address);
 	void gen_tex_7(u32 address);
 

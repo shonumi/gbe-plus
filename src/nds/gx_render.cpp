@@ -511,6 +511,7 @@ void NTR_LCD::fill_poly_textured()
 		case 0x2: gen_tex_2(tex_addr); break;
 		case 0x3: gen_tex_3(tex_addr); break;
 		case 0x4: gen_tex_4(tex_addr); break;
+		case 0x5: gen_tex_5(tex_addr); break;
 		case 0x6: gen_tex_6(tex_addr); break;
 		case 0x7: gen_tex_7(tex_addr); break;
 	}
@@ -1786,7 +1787,73 @@ void NTR_LCD::gen_tex_4(u32 address)
 	}
 }
 
-/****** Generates pixel data fram VRAM for A513 textures ******/
+/****** Generates pixel data from VRAM for 4x4 texel compressed textures ******/
+void NTR_LCD::gen_tex_5(u32 address)
+{
+	u8 slot = (lcd_3D_stat.tex_offset >> 17);
+
+	lcd_3D_stat.tex_data.clear();
+	u32 tex_size = (lcd_3D_stat.tex_src_width * lcd_3D_stat.tex_src_height);
+	u32 color = 0;
+	u32 slot_addr = mem->vram_tex_slot[1] + ((lcd_3D_stat.tex_offset & 0x1FFFF) >> 1);
+	u32 pal_addr = 0;
+	u8 pal_mode = 0;
+
+	u32 texel_data = 0;
+	u32 texel_index = 0;
+	u32 texel_block = 0;
+	u32 block_width = lcd_3D_stat.tex_src_width >> 2;
+	u32 block_height = lcd_3D_stat.tex_src_height >> 2;
+	u8 texel_row = 0;
+
+	u32 tex_pal[4];
+
+	if(slot) { slot_addr += 0x10000; }
+
+	while(tex_size)
+	{
+		//Calculate buffer position for texels
+		u32 index_x = (texel_block % block_width) << 2;
+		u32 index_y = (texel_block / block_height) << 2;
+		texel_index = (index_y * lcd_3D_stat.tex_src_width) + index_x;
+
+		//Grab palette data for 4x4 block
+		u32 pal_addr = lcd_3D_stat.pal_bank_addr + ((mem->read_u16_fast(slot_addr) & 0x3FFF) << 2) + (lcd_3D_stat.pal_base * 0x10);
+		slot_addr += 2;
+
+
+		for(u32 x = 0; x < 4; x++)
+		{
+			tex_pal[x] = get_rgb15(mem->read_u16_fast(pal_addr));
+			pal_addr += 2;
+		}
+
+		//Grab 4x4 compressed texel data in 32-bits
+		texel_data = mem->read_u32_fast(address);
+
+		//Parse Rows
+		for(u32 y = 0; y < 4; y++)
+		{
+			texel_row = (texel_data & 0xFF);
+
+			for(u32 x = 0; x < 4; x++)
+			{
+				color = tex_pal[texel_row & 0x3];
+				texel_row >>= 2;
+				lcd_3D_stat.tex_data[texel_index + x] = color;
+			}
+
+			texel_data >>= 8;
+			texel_index += lcd_3D_stat.tex_src_width;
+		}
+
+		address += 4;
+		tex_size -= 16;
+		texel_block++;
+	}
+}
+
+/****** Generates pixel data from VRAM for A513 textures ******/
 void NTR_LCD::gen_tex_6(u32 address)
 {
 	lcd_3D_stat.tex_data.clear();
