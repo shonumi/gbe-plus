@@ -1819,12 +1819,34 @@ void NTR_LCD::gen_tex_5(u32 address)
 
 		//Grab palette data for 4x4 block
 		u32 pal_addr = lcd_3D_stat.pal_bank_addr + ((mem->read_u16_fast(slot_addr) & 0x3FFF) << 2) + (lcd_3D_stat.pal_base * 0x10);
+
+		//Grab palette mode for 4x4 block
+		pal_mode = (mem->read_u16_fast(slot_addr) >> 14);
+
 		slot_addr += 2;
 
 		for(u32 x = 0; x < 4; x++)
 		{
 			tex_pal[x] = get_rgb15(mem->read_u16_fast(pal_addr));
 			pal_addr += 2;
+		}
+
+		//Adjust colors depending on palette mode
+		switch(pal_mode)
+		{
+			case 0x0:
+				tex_pal[3] &= ~0xFF000000;
+				break;
+
+			case 0x1:
+				tex_pal[2] = interpolate_rgb(tex_pal[0], tex_pal[1], 0.5);
+				tex_pal[3] &= ~0xFF000000;
+				break;
+
+			case 0x3:
+				tex_pal[2] = interpolate_rgb(tex_pal[0], tex_pal[1], 0.625);
+				tex_pal[3] = interpolate_rgb(tex_pal[0], tex_pal[1], 0.325);
+				break;
 		}
 
 		//Grab 4x4 compressed texel data in 32-bits
