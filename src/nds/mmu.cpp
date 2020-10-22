@@ -1051,7 +1051,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 			//Some 3D on NDS9 and sound on NDS7 share I/O addresses
 			//Process NDS9 stuff here
-			if((access_mode) && (address >= 0x4000400) && (address < 0x4000520) && (power_cnt1 & 0x8))
+			if((access_mode) && (address >= 0x4000400) && (address < 0x40005D0) && (power_cnt1 & 0x8))
 			{
 				//Mirror GXFIFO from 0x4000400 to 0x400043F
 				if(address <= 0x400043F) { address &= 0x4000403; }
@@ -1459,6 +1459,16 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 						lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = value;
 						if(lcd_3D_stat->parameter_index == 4) { lcd_3D_stat->process_command = true; }
 						//std::cout<<"GX - END_VTXS\n";
+						break;
+
+					//POS TEST
+					case 0x40005C4:
+					case 0x40005C5:
+					case 0x40005C6:
+					case 0x40005C7:
+						lcd_3D_stat->current_gx_command = 0x71;
+						lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = value;
+						if(lcd_3D_stat->parameter_index == 8) { lcd_3D_stat->process_command = true; }
 						break;
 				}
 			}

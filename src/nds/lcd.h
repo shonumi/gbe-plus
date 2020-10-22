@@ -210,6 +210,8 @@ class NTR_LCD
 	u32 interpolate_rgb(u32 color_1, u32 color_2, float ratio);
 	u32 alpha_blend_texel(u32 color_1, u32 color_2);
 	void update_clip_matrix();
+	float get_u16_float(u16 value);
+	u32 get_u32_fixed(float raw_value);
 
 	//Texture functions
 	void gen_tex_1(u32 address);

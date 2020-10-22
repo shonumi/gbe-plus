@@ -1546,6 +1546,30 @@ void NTR_LCD::process_gx_command()
 			lcd_3D_stat.view_port_y1 = (lcd_3D_stat.command_parameters[2] & 0xBF);
 			lcd_3D_stat.view_port_x1 = lcd_3D_stat.command_parameters[3];
 			break;
+
+		//POS_TEST
+		case 0x71:
+			temp_matrix.resize(4, 1);
+			temp_matrix[0][0] = get_u16_float(read_param_u16(0));
+			temp_matrix[1][0] = get_u16_float(read_param_u16(2));
+			temp_matrix[2][0] = get_u16_float(read_param_u16(4));
+			temp_matrix[3][0] = 1.0;
+			temp_matrix = temp_matrix * (gx_position_matrix * gx_projection_matrix);
+
+			//Write results to IO
+			mem->write_u32_fast(0x4000620, get_u32_fixed(temp_matrix[0][0]));
+			mem->write_u32_fast(0x4000624, get_u32_fixed(temp_matrix[1][0]));
+			mem->write_u32_fast(0x4000628, get_u32_fixed(temp_matrix[2][0]));
+			mem->write_u32_fast(0x400062C, get_u32_fixed(temp_matrix[3][0]));
+
+			lcd_3D_stat.last_x = temp_matrix[0][0];
+			lcd_3D_stat.last_y = temp_matrix[1][0];
+			lcd_3D_stat.last_z = temp_matrix[2][0];
+
+			//Force unset of Bit 0 of GXSTAT
+			lcd_3D_stat.gx_stat &= ~0x1;
+
+			break;
 	}
 
 	//Process GXFIFO commands
@@ -2082,4 +2106,60 @@ void NTR_LCD::update_clip_matrix()
 			mem->write_u32_fast((0x4000640 + index), (integral | fractal));
 		}
 	}
+}
+
+/****** Converts 16-bit fixed point value into floating point ******/
+float NTR_LCD::get_u16_float(u16 value)
+{
+	float result = 0.0;
+				
+	if(value & 0x8000) 
+	{ 
+		u16 p = ((value >> 12) - 1);
+		p = (~p & 0x7);
+		result = -1.0 * p;
+	}
+
+	else { result = (value >> 12); }
+	if((value & 0xFFF) != 0) { result += (value & 0xFFF) / 4096.0; }
+
+	return result;
+}
+
+/****** Converts floating point 19-bit fixed point ******/
+u32 NTR_LCD::get_u32_fixed(float raw_value)
+{
+	u32 integral = 0;
+	u32 fractal = 0;
+	float sub_fractal = 0.0;
+
+	integral = abs(raw_value);
+
+	//Negative values
+	if(raw_value < 0)
+	{
+		sub_fractal = fabs(raw_value) - integral;
+
+		if(raw_value != -1.0) { integral++; }
+		integral = (0x100000 - integral) << 12;
+
+		if(sub_fractal != 0)
+		{
+			sub_fractal = 1 - sub_fractal;
+			sub_fractal *= 4096.0;
+		}
+
+		fractal = sub_fractal;
+	}
+
+	//Positive values
+	else
+	{
+		integral <<= 12;
+		sub_fractal = fabs(raw_value) - u32(raw_value);
+		sub_fractal *= 4096.0;
+		fractal = sub_fractal;
+	}
+
+	return (integral | fractal);
 }
