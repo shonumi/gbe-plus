@@ -1549,22 +1549,22 @@ void NTR_LCD::process_gx_command()
 
 		//POS_TEST
 		case 0x71:
-			temp_matrix.resize(4, 1);
-			temp_matrix[0][0] = get_u16_float(read_param_u16(0));
-			temp_matrix[1][0] = get_u16_float(read_param_u16(2));
-			temp_matrix[2][0] = get_u16_float(read_param_u16(4));
-			temp_matrix[3][0] = 1.0;
-			temp_matrix = temp_matrix * (gx_position_matrix * gx_projection_matrix);
+			gx_vector temp_vec(4);
+			temp_vec[0] = get_u16_float(read_param_u16(0));
+			temp_vec[1] = get_u16_float(read_param_u16(2));
+			temp_vec[2] = get_u16_float(read_param_u16(4));
+			temp_vec[3] = 1.0;
+			temp_vec = temp_vec * (gx_position_matrix * gx_projection_matrix);
 
 			//Write results to IO
-			mem->write_u32_fast(0x4000620, get_u32_fixed(temp_matrix[0][0]));
-			mem->write_u32_fast(0x4000624, get_u32_fixed(temp_matrix[1][0]));
-			mem->write_u32_fast(0x4000628, get_u32_fixed(temp_matrix[2][0]));
-			mem->write_u32_fast(0x400062C, get_u32_fixed(temp_matrix[3][0]));
+			mem->write_u32_fast(0x4000620, get_u32_fixed(temp_vec[0]));
+			mem->write_u32_fast(0x4000624, get_u32_fixed(temp_vec[1]));
+			mem->write_u32_fast(0x4000628, get_u32_fixed(temp_vec[2]));
+			mem->write_u32_fast(0x400062C, get_u32_fixed(temp_vec[3]));
 
-			lcd_3D_stat.last_x = temp_matrix[0][0];
-			lcd_3D_stat.last_y = temp_matrix[1][0];
-			lcd_3D_stat.last_z = temp_matrix[2][0];
+			lcd_3D_stat.last_x = temp_vec[0];
+			lcd_3D_stat.last_y = temp_vec[1];
+			lcd_3D_stat.last_z = temp_vec[2];
 
 			//Force unset of Bit 0 of GXSTAT
 			lcd_3D_stat.gx_stat &= ~0x1;

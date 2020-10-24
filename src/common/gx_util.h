@@ -81,8 +81,8 @@ class gx_matrix
 gx_matrix operator*(float scalar, const gx_matrix &input_matrix);
 gx_matrix operator*(const gx_matrix &input_matrix, float scalar);
 
-//Matrix-Vector multiplication - Non-member binary operators
-gx_vector operator* (const gx_matrix &input_matrix, const gx_vector &input_vector);
+//Vector-Matrix multiplication - Non-member binary operators
+gx_vector operator* (const gx_vector &input_vector, const gx_matrix &input_matrix);
 
 //Projection matrix
 gx_matrix ortho_matrix(float width, float height, float z_far, float z_near);

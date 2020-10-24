@@ -221,22 +221,22 @@ gx_matrix gx_matrix::operator*(const gx_matrix &input_matrix)
 }
 
 /****** OpenGL Matrix multiplication operator - Matrix-Vector ******/
-gx_vector operator* (const gx_matrix &input_matrix, const gx_vector &input_vector)
+gx_vector operator* (const gx_vector &input_vector, const gx_matrix &input_matrix)
 {
-	//IMPORTANT - Matrix * Vector = VECTOR
+	//IMPORTANT - Vector * Matrix = VECTOR
 	gx_vector output_vector(input_vector.size);
 
 	//Determine if matrix can be multiplied
 	if(input_matrix.columns == input_vector.size)
 	{
-		//This is essentially multiplying the input matrix by a 1-column matrix
-		for(u32 y = 0; y < input_matrix.rows; y++)
+		//This is essentially multiplying a 1-column matrix by the input matrix
+		for(u32 y = 0; y < input_vector.size; y++)
 		{
 			float dot_product = 0.0;
 
 			for(u32 x = 0; x < input_matrix.columns; x++)
 			{
-				dot_product += (input_matrix.data[x][y] * input_vector.data[x]);
+				dot_product += (input_vector.data[x] * input_matrix.data[y][x]);
 			}
 
 			output_vector.data[y] = dot_product;
