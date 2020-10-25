@@ -1461,6 +1461,16 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 						//std::cout<<"GX - END_VTXS\n";
 						break;
 
+					//BOX TEST
+					case 0x40005C0:
+					case 0x40005C1:
+					case 0x40005C2:
+					case 0x40005C3:
+						lcd_3D_stat->current_gx_command = 0x70;
+						lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = value;
+						if(lcd_3D_stat->parameter_index == 12) { lcd_3D_stat->process_command = true; }
+						break;
+
 					//POS TEST
 					case 0x40005C4:
 					case 0x40005C5:

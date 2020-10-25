@@ -1547,6 +1547,10 @@ void NTR_LCD::process_gx_command()
 			lcd_3D_stat.view_port_x1 = lcd_3D_stat.command_parameters[3];
 			break;
 
+		//BOX_TEST
+		case 0x70:
+			break;
+
 		//POS_TEST
 		case 0x71:
 			gx_vector temp_vec(4);
