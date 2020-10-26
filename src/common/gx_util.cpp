@@ -227,19 +227,19 @@ gx_vector operator* (const gx_vector &input_vector, const gx_matrix &input_matri
 	gx_vector output_vector(input_vector.size);
 
 	//Determine if matrix can be multiplied
-	if(input_matrix.columns == input_vector.size)
+	if(input_vector.size == input_matrix.rows)
 	{
 		//This is essentially multiplying a 1-column matrix by the input matrix
-		for(u32 y = 0; y < input_vector.size; y++)
+		for(u32 dot_product_count = 0; dot_product_count < input_matrix.columns; dot_product_count++)
 		{
 			float dot_product = 0.0;
 
-			for(u32 x = 0; x < input_matrix.columns; x++)
+			for(u32 x = 0; x < input_vector.size; x++)
 			{
-				dot_product += (input_vector.data[x] * input_matrix.data[y][x]);
+				dot_product += (input_vector.data[x] * input_matrix.data[dot_product_count][x]);
 			}
 
-			output_vector.data[y] = dot_product;
+			output_vector.data[dot_product_count] = dot_product;
 		}
 	}
 

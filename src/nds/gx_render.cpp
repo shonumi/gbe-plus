@@ -1171,11 +1171,11 @@ void NTR_LCD::process_gx_command()
 				//Transform TX and TY by texture matrix
 				if(lcd_3D_stat.tex_transformation == 0x1)
 				{
-					gx_matrix tm_src(4, 1);
-					tm_src.data[0][0] = lcd_3D_stat.tex_coord_x[lcd_3D_stat.vertex_list_index];
-					tm_src.data[1][0] = lcd_3D_stat.tex_coord_y[lcd_3D_stat.vertex_list_index];
-					tm_src.data[2][0] = 0.0625;
-					tm_src.data[3][0] = 0.0625;
+					gx_vector tm_src(4);
+					tm_src[0] = lcd_3D_stat.tex_coord_x[lcd_3D_stat.vertex_list_index];
+					tm_src[1] = lcd_3D_stat.tex_coord_y[lcd_3D_stat.vertex_list_index];
+					tm_src[2] = 0.0625;
+					tm_src[3] = 0.0625;
 
 					gx_matrix tm_global(2, 4);
 					tm_global.data[0][0] = gx_texture_matrix.data[0][0];
@@ -1191,8 +1191,8 @@ void NTR_LCD::process_gx_command()
 					tm_global.data[1][3] = gx_texture_matrix.data[1][3];
 
 					tm_src = tm_src * tm_global;
-					lcd_3D_stat.tex_coord_x[lcd_3D_stat.vertex_list_index] = tm_src.data[0][0];
-					lcd_3D_stat.tex_coord_y[lcd_3D_stat.vertex_list_index] = tm_src.data[1][0];
+					lcd_3D_stat.tex_coord_x[lcd_3D_stat.vertex_list_index] = tm_src[0];
+					lcd_3D_stat.tex_coord_y[lcd_3D_stat.vertex_list_index] = tm_src[1];
 				}
 
 				//Set texture status
