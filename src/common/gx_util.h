@@ -39,6 +39,8 @@ class gx_vector
 
 	u32 size;
 
+	void resize(u32 input_size);
+
 	//Vector data
 	std::vector<float> data;
 };

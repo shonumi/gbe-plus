@@ -139,6 +139,13 @@ float &gx_vector::operator[](u32 index)
 	return data[index];
 }
 
+/****** Resizes a vector to given dimensions ******/
+void gx_vector::resize(u32 input_size)
+{
+	data.resize(input_size, 0.0);
+	size = input_size;
+}
+
 /****** OpenGL Matrix Constructor ******/
 gx_matrix::gx_matrix()
 {
