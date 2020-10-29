@@ -1549,6 +1549,58 @@ void NTR_LCD::process_gx_command()
 
 		//BOX_TEST
 		case 0x70:
+			{
+				bool in_view_volume = true;
+
+				float x = get_u16_float(read_param_u16(0));
+				float y = get_u16_float(read_param_u16(2)); 
+				float z = get_u16_float(read_param_u16(4));
+
+				float w = get_u16_float(read_param_u16(6));
+				float h = get_u16_float(read_param_u16(8)); 
+				float d = get_u16_float(read_param_u16(10));
+
+				gx_vector cuboid[8];
+				for(u32 x = 0; x < 8; x++) { cuboid[x].resize(4); }
+
+				//Generate cuboid XYZ coordinates
+				cuboid[0][0] = x;		cuboid[0][1] = y;	 	cuboid[0][2] = z;		cuboid[0][3] = 1.0;
+				cuboid[1][0] = (x + w); 	cuboid[1][1] = y; 		cuboid[1][2] = z;		cuboid[1][3] = 1.0;
+				cuboid[2][0] = (x + w); 	cuboid[2][1] = (y + h); 	cuboid[2][2] = z;		cuboid[2][3] = 1.0;
+				cuboid[3][0] = x; 		cuboid[3][1] = (y + h); 	cuboid[3][2] = z;		cuboid[3][3] = 1.0;
+
+				cuboid[4][0] = x;		cuboid[4][1] = y;	 	cuboid[4][2] = (z + d);		cuboid[4][3] = 1.0;
+				cuboid[5][0] = (x + w); 	cuboid[5][1] = y; 		cuboid[5][2] = (z + d);		cuboid[5][3] = 1.0;
+				cuboid[6][0] = (x + w); 	cuboid[6][1] = (y + h); 	cuboid[6][2] = (z + d);		cuboid[6][3] = 1.0;
+				cuboid[7][0] = x; 		cuboid[7][1] = (y + h); 	cuboid[7][2] = (z + d);		cuboid[7][3] = 1.0;
+
+				gx_matrix cmat = (gx_position_matrix * gx_projection_matrix);
+
+				float test_x = 0.0;
+				float test_y = 0.0;
+				float test_z = 0.0;
+
+				u32 viewport_width = lcd_3D_stat.view_port_x2 - lcd_3D_stat.view_port_x1;
+				u32 viewport_height = lcd_3D_stat.view_port_y2 - lcd_3D_stat.view_port_y1;
+
+				//Test all cuboid points
+				for(u32 x = 0; x < 8; x++)
+				{
+					//Generate NDS XY screen coordinate from clip matrix
+					cuboid[x] = cuboid[x] * cmat;
+
+ 					test_x = round(((cuboid[x][0] + cuboid[x][3]) * viewport_width) / ((2 * cuboid[x][3]) + lcd_3D_stat.view_port_x1));
+  					test_y = round(((-cuboid[x][1] + cuboid[x][3]) * viewport_height) / ((2 * cuboid[x][3]) + lcd_3D_stat.view_port_y1));
+
+					if((test_x < lcd_3D_stat.view_port_x1) || (test_x > lcd_3D_stat.view_port_x2) ||
+					(test_y < lcd_3D_stat.view_port_y1) || (test_y > lcd_3D_stat.view_port_y2))
+					{
+						in_view_volume = false;
+						break;
+					}
+				}
+			}
+
 			break;
 
 		//POS_TEST
