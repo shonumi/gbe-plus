@@ -74,7 +74,17 @@ Sewing Machine Compatibility
 	[-] JN-100
 	[!] JN-2000
 
-A majority of the software was released exclusively to take advantage of the EM-2000 embroidery arm. Sewing Machine Operation Software and Raku x Raku Mishin are functionally identical, save for some cosmetic differences and offering Latin character stitching instead of kana. Otherwise, an IZEK-1500 can use the Japanese version of the software without issue and vice versa. The IZEK-1500 and the JN-100 cannot use Moji, Cut Shuu, or Mario Family as they have no slot to accept an embroidery arm. The JN-2000 is the ONLY sewing machine that can do embroidery. The general functionality of each piece of software is detailed below:
+[*] Kanji Shishuu
+	[-] IZEK-1500
+	[-] JN-100
+	[!] JN-2000
+
+[*] Kirby Family
+	[-] IZEK-1500
+	[-] JN-100
+	[!] JN-2000
+
+A majority of the software was released exclusively to take advantage of the EM-2000 embroidery arm. Sewing Machine Operation Software and Raku x Raku Mishin are functionally identical, save for some cosmetic differences and offering Latin character stitching instead of kana. Otherwise, an IZEK-1500 can use the Japanese version of the software without issue and vice versa. The IZEK-1500 and the JN-100 cannot use Moji, Cut Shuu, Kanji Shishuu, Mario Family, or Kirby Family as they have no slot to accept an embroidery arm. The JN-2000 is the ONLY sewing machine that can do embroidery. The general functionality of each piece of software is detailed below:
 
 Sewing Machine Operation Software
 * Stitches preset patterns, custom patterns, buttonholes, and Latin characters.
@@ -90,6 +100,14 @@ Raku x Raku Cut Shuu
 
 Jaguar Mishin Sashi Senyou Soft: Mario Family
 * Embroiders various Mario-themed designs (mushroom, super star, Yoshi, etc).
+
+Kanji Shishuu
+* Embroiders kana, some Latin characters, and a wide range of kanji.
+
+Kirby Family
+* Embroiders various Kirby-themed designs (Waddle Dee, King DeDeDe, Adeleine, etc).
+
+Kanji Shishuu and Kirby Family were never commercially released, thus out of the 7 known compatible titles, only 5 sold to the public. Kanji Shishuu is very similar to Moji except it is has a vastly larger pool of available kanji. Kirby Family is very similar to Cut Shuu and Mario Family, with embroidery patterns that appear largely inspired by Kirby 64. 
 
 
 ***************************************************
