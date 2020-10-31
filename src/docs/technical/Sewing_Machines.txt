@@ -1,4 +1,4 @@
-Game Boy Sewing Machine Documentation 0.2
+Game Boy Sewing Machine Documentation 0.3
 April 11th, 2020
 Shonumi aka D.S. Baxter
 
@@ -123,6 +123,8 @@ External Transfer 1		| Short "dummy" transfer with 0x00. Quickly cancelled by ne
 External Transfer 2		| Payload data sent to sewing machine. Machine status may be returned
 Internal Transfer 1		| Send 0x00, receive 0xFF. Signals end of transfer for 1 byte
 -------------------------------------------------
+
+When transferring a pattern to the sewing machine, the first few bytes of payload data are as follows: [0x80, 0x80, 0x80, 0x86]. This acts as a start signal, after which the Game Boy starts trasmitting packets. After all packets for a pattern have been sent to the machine, the Game Boy sends 0x80 endlessly until the next pattern is submitted. During that time, it's possible for the Game Boy to check the current status of machine.
 
 
 ***************************************************
