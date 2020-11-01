@@ -1725,7 +1725,25 @@ Byte 0x18 - 0x3F	| Should all be 0x00
 
 	<p></p> 
 
-	<p>A majority of the software was released exclusively to take advantage of the EM-2000 embroidery arm. Sewing Machine Operation Software and Raku x Raku Mishin are functionally identical, save for some cosmetic differences and offering Latin character stitching instead of kana. Otherwise, an IZEK-1500 can use the Japanese version of the software without issue and vice versa. The IZEK-1500 and the JN-100 cannot use Moji, Cut Shuu, or Mario Family as they have no slot to accept an embroidery arm. The JN-2000 is the ONLY sewing machine that can do embroidery. The general functionality of each piece of software is detailed below:</p>
+	<p class="list_item"><strong>[*] Kanji Shishuu</strong></p>
+	<ul class="list_item">
+		<li class="list_item_none">[-] IZEK-1500</li>
+		<li class="list_item_none">[-] JN-100</li>
+		<li class="list_item_none">[!] JN-2000</li>
+	</ul>
+
+	<p></p> 
+
+	<p class="list_item"><strong>[*] Kirby Family</strong></p>
+	<ul class="list_item">
+		<li class="list_item_none">[-] IZEK-1500</li>
+		<li class="list_item_none">[-] JN-100</li>
+		<li class="list_item_none">[!] JN-2000</li>
+	</ul>
+
+	<p></p> 
+
+	<p>A majority of the software was released exclusively to take advantage of the EM-2000 embroidery arm. Sewing Machine Operation Software and Raku x Raku Mishin are functionally identical, save for some cosmetic differences and offering Latin character stitching instead of kana. Otherwise, an IZEK-1500 can use the Japanese version of the software without issue and vice versa. The IZEK-1500 and the JN-100 cannot use Moji, Cut Shuu, Kanji Shishuu, Mario Family, or Kirby Family as they have no slot to accept an embroidery arm. The JN-2000 is the ONLY sewing machine that can do embroidery. The general functionality of each piece of software is detailed below:</p>
 
 	<p class="list_item"><strong>Sewing Machine Operation Software</strong></p>
 	<ul class="list_item"><li class="list_item">Stitches preset patterns, custom patterns, buttonholes, and Latin characters.</li></ul><p></p>
@@ -1742,6 +1760,14 @@ Byte 0x18 - 0x3F	| Should all be 0x00
 	<p class="list_item"><strong>Jaguar Mishin Sashi Senyou Soft: Mario Family</strong></p>
 	<ul class="list_item"><li class="list_item">Embroiders various Mario-themed designs (mushroom, super star, Yoshi, etc).</li></ul><p></p>
 
+	<p class="list_item"><strong>Kanji Shishuu</strong></p>
+	<ul class="list_item"><li class="list_item">Embroiders kana, some Latin characters, and a wide range of kanji.</li></ul><p></p>
+
+	<p class="list_item"><strong>Kirby Family</strong></p>
+	<ul class="list_item"><li class="list_item">Embroiders various Kirby-themed designs (Waddle Dee, King DeDeDe, Adeleine, etc).</li></ul><p></p>
+
+	<p>Kanji Shishuu and Kirby Family were never commercially released, thus out of the 7 known compatible titles, only 5 were sold to the public. Kanji Shishuu is very similar to Moji except it has a vastly larger pool of available kanji. Kirby Family is very similar to Cut Shuu and Mario Family, with embroidery patterns that appear largely inspired by Kirby 64.</p>
+
 	<a name="sew_pro"></a>
 	<p class="gray_title">[Sewing Machines] : Transmission Protocol</p>
 
@@ -1754,6 +1780,8 @@ External Transfer 1		| Short &#34;dummy&#34; transfer with 0x00. Quickly cancell
 External Transfer 2		| Payload data sent to sewing machine. Machine status may be returned
 Internal Transfer 1		| Send 0x00, receive 0xFF. Signals end of transfer for 1 byte
 -------------------------------------------------</code>
+
+	<p>When transferring a pattern to the sewing machine, the first few bytes of payload data are as follows: [0x80, 0x80, 0x80, 0x86]. This acts as a start signal, after which the Game Boy starts trasmitting packets. After all packets for a pattern have been sent to the machine, the Game Boy sends 0x80 endlessly until the next pattern is submitted. During that time, it&#39;s possible for the Game Boy to check the current status of machine.</p>
 
 	<a name="sew_fmt"></a>
 	<p class="gray_title">[Sewing Machines] : Packet Format</p>
