@@ -426,8 +426,8 @@ u8 NTR_MMU::read_u8(u32 address)
 	//Check for unused memory first
 	if(address >= 0x10000000)
 	{
-		if(access_mode) { std::cout<<"ARM9::Out of bounds read : 0x" << std::hex << address << "\n"; }
-		else { std::cout<<"ARM7::Out of bounds read : 0x" << std::hex << address << "\n"; }
+		if(access_mode) { std::cout<<"ARM9::Out of bounds read : 0x" << std::hex << address << " @ 0x" << *nds9_pc << "\n"; }
+		else { std::cout<<"ARM7::Out of bounds read : 0x" << std::hex << address << " @ 0x" << *nds7_pc << "\n"; }
 
 		return 0;
 	}
@@ -1506,8 +1506,8 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 	//Check for unused memory first
 	if(address >= 0x10000000)
 	{
-		if(access_mode) { std::cout<<"ARM9::Out of bounds write : 0x" << std::hex << address << "\n"; }
-		else { std::cout<<"ARM7::Out of bounds write : 0x" << std::hex << address << "\n"; }
+		if(access_mode) { std::cout<<"ARM9::Out of bounds write : 0x" << std::hex << address << " @ 0x" << *nds9_pc << "\n"; }
+		else { std::cout<<"ARM7::Out of bounds write : 0x" << std::hex << address << " @ 0x" << *nds7_pc << "\n"; }
 
 		return;
 	}
