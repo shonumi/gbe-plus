@@ -274,6 +274,94 @@ void NTR_ARM7::set_reg(u8 s_reg, u32 value)
 	}
 }
 
+/****** CPU register setter for specific CPU modes ******/
+void NTR_ARM7::set_reg(u8 s_reg, u32 value, cpu_modes t_mode)
+{
+	switch(s_reg)
+	{
+		case 0: reg.r0 = value; break;
+		case 1: reg.r1 = value; break;
+		case 2: reg.r2 = value; break;
+		case 3: reg.r3 = value; break;
+		case 4: reg.r4 = value; break;
+		case 5: reg.r5 = value; break;
+		case 6: reg.r6 = value; break;
+		case 7: reg.r7 = value; break;
+		
+		case 8: 
+			switch(t_mode)
+			{
+				case FIQ: reg.r8_fiq = value; break;
+				default: reg.r8 = value; break;
+			}
+			break;
+
+		case 9: 
+			switch(t_mode)
+			{
+				case FIQ: reg.r9_fiq = value; break;
+				default: reg.r9 = value; break;
+			}
+			break;
+
+		case 10: 
+			switch(t_mode)
+			{
+				case FIQ: reg.r10_fiq = value; break;
+				default: reg.r10 = value; break;
+			}
+			break;
+
+		case 11: 
+			switch(t_mode)
+			{
+				case FIQ: reg.r11_fiq = value; break;
+				default: reg.r11 = value; break;
+			}
+			break;
+
+		case 12: 
+			switch(t_mode)
+			{
+				case FIQ: reg.r12_fiq = value; break;
+				default: reg.r12 = value; break;
+			}
+			break;
+
+		case 13: 
+			switch(t_mode)
+			{
+				case USR:
+				case SYS: reg.r13 = value; break;
+				case FIQ: reg.r13_fiq = value; break;
+				case SVC: reg.r13_svc = value; break;
+				case ABT: reg.r13_abt = value; break;
+				case IRQ: reg.r13_irq = value; break;
+				case UND: reg.r13_und = value; break;
+			}
+			break;
+
+		case 14: 
+			switch(t_mode)
+			{
+				case USR:
+				case SYS: reg.r14 = value; break;
+				case FIQ: reg.r14_fiq = value; break;
+				case SVC: reg.r14_svc = value; break;
+				case ABT: reg.r14_abt = value; break;
+				case IRQ: reg.r14_irq = value; break;
+				case UND: reg.r14_und = value; break;
+			}
+			break;
+
+		case 15: reg.r15 = value; break;
+
+		//This should not happen
+		default:
+			std::cout<<"CPU::Error - ARM7 tried to access invalid general purpose register: " << (int)s_reg << "\n"; break;
+	}
+}
+
 /****** Saved Program Status Register getter ******/
 u32 NTR_ARM7::get_spsr() const
 {

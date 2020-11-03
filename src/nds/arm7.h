@@ -220,6 +220,7 @@ class NTR_ARM7
 	//Get and set ARM registers
 	u32 get_reg(u8 g_reg) const;
 	void set_reg(u8 s_reg, u32 value);
+	void set_reg(u8 s_reg, u32 value, cpu_modes t_mode);
 	u32 get_spsr() const;
 	void set_spsr(u32 value);
 
