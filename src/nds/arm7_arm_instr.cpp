@@ -1059,13 +1059,15 @@ void NTR_ARM7::block_data_transfer(u32 current_arm_instruction)
 	//Warnings
 	if(base_reg == 15) { std::cout<<"CPU::ARM7::Warning - ARM.11 R15 used as Base Register \n"; }
 
+	u32 base_addr = get_reg(base_reg);
+	u32 old_base = base_addr;
+	u8 transfer_reg = 0xFF;
+
 	//Force USR mode if PSR bit is set
 	cpu_modes temp_mode = current_cpu_mode;
 	if(psr) { current_cpu_mode = USR; }
 
-	u32 base_addr = get_reg(base_reg);
-	u32 old_base = base_addr;
-	u8 transfer_reg = 0xFF;
+	bool diff_bank = (temp_mode != current_cpu_mode);
 
 	//Find out the first register in the Register List
 	for(int x = 0; x < 16; x++)
@@ -1091,7 +1093,7 @@ void NTR_ARM7::block_data_transfer(u32 current_arm_instruction)
 				//Store registers
 				if(load_store == 0) 
 				{
-					if((x == transfer_reg) && (base_reg == transfer_reg)) { mem->write_u32(base_addr, old_base); }
+					if((x == transfer_reg) && (base_reg == transfer_reg) && (!diff_bank)) { mem->write_u32(base_addr, old_base); }
 					else { mem->write_u32(base_addr, get_reg(x)); }
 				}
 			
@@ -1125,7 +1127,7 @@ void NTR_ARM7::block_data_transfer(u32 current_arm_instruction)
 				//Store registers
 				if(load_store == 0) 
 				{ 
-					if((x == transfer_reg) && (base_reg == transfer_reg)) { mem->write_u32(base_addr, old_base); }
+					if((x == transfer_reg) && (base_reg == transfer_reg) && (!diff_bank)) { mem->write_u32(base_addr, old_base); }
 					else { mem->write_u32(base_addr, get_reg(x)); }
 				}
 			
