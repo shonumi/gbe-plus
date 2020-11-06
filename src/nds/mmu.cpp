@@ -5542,22 +5542,31 @@ void NTR_MMU::process_aux_spi_bus()
 	if(new_command)
 	{
 		//Auto-detect save type
-		if((current_save_type == AUTO) && (nds_aux_spi.state == 0x83) && (nds_aux_spi.access_index == 1))
+		if((current_save_type == AUTO) && (nds_aux_spi.state == 0x83))
 		{
-			current_save_type = EEPROM_512;
-			std::cout<<"MMU::Save Type Autodetected: EEPROM_512\n";
-		}
+			if(nds_aux_spi.access_index >= 4)
+			{
+				nds_aux_spi.access_index &= 0x3;
+				nds_aux_spi.access_index++;
+			}
 
-		else if((current_save_type == AUTO) && (nds_aux_spi.state == 0x83) && (nds_aux_spi.access_index == 2))
-		{
-			current_save_type = EEPROM;
-			std::cout<<"MMU::Save Type Autodetected: EEPROM\n";
-		}
+			switch(nds_aux_spi.access_index)
+			{
+				case 1:
+					current_save_type = EEPROM_512;
+					std::cout<<"MMU::Save Type Autodetected: EEPROM_512\n";
+					break;
 
-		else if((current_save_type == AUTO) && (nds_aux_spi.state == 0x83) && (nds_aux_spi.access_index >= 3))
-		{
-			current_save_type = FRAM;
-			std::cout<<"MMU::Save Type Autodetected: FRAM\n";
+				case 2:
+					current_save_type = EEPROM;
+					std::cout<<"MMU::Save Type Autodetected: EEPROM\n";
+					break;
+
+				case 3:
+					current_save_type = FRAM;
+					std::cout<<"MMU::Save Type Autodetected: FRAM\n";
+					break;
+			}
 		}
 
 		switch(nds_aux_spi.data)
