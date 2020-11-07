@@ -73,6 +73,7 @@ class NTR_MMU
 	std::vector <u8> firmware;
  	std::vector <u8> dtcm;
 	std::vector <u8> save_data;
+	std::vector <u8> nds7_vwram;
 	
 	//NDS7 IPC FIFO
 	struct nds7_interprocess

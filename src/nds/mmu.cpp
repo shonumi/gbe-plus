@@ -78,6 +78,9 @@ void NTR_MMU::reset()
 	save_data.clear();
 	save_data.resize(0x10000, 0xFF);
 
+	nds7_vwram.clear();
+	nds7_vwram.resize(0x40000, 0);
+
 	nds7_bios.clear();
 	nds7_bios.resize(0x4000, 0);
 	nds7_bios_vector = 0x0;
@@ -380,6 +383,11 @@ u8 NTR_MMU::read_u8(u32 address)
 
 		case 0x5:
 			if(access_mode) { address &= 0x5007FFF; }
+			break;
+
+		case 0x6:
+			//ARM7 VRAM mapped as WRAM
+			if(!access_mode) { return nds7_vwram[address & 0x3FFFF]; }
 			break;
 
 		case 0x7:
@@ -1487,6 +1495,16 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 		case 0x5:
 			if(access_mode) { address &= 0x5007FFF; }
+			break;
+
+		case 0x6:
+			//ARM7 VRAM mapped as WRAM
+			if(!access_mode)
+			{
+				nds7_vwram[address & 0x3FFFF] = value;
+				return;
+			}
+
 			break;
 
 		case 0x7:
