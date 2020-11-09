@@ -2996,7 +2996,21 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 					}
 				}
 
-				else { lcd_stat->vram_bank_enable[bank_id] = false; }
+				else
+				{
+					lcd_stat->vram_bank_enable[bank_id] = false;
+
+					//Deallocate VRAM data when disabling a bank
+					switch(bank_id)
+					{
+						case 0x0:
+						case 0x1:
+						case 0x2:
+						case 0x3:
+							for(u32 x = 0; x < 0x20000; x++) { memory_map[lcd_stat->vram_bank_addr[bank_id] + x] = 0; }
+							break;
+					}
+				}
 
 				switch(mst)
 				{
