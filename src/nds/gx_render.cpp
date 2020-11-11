@@ -1896,7 +1896,7 @@ void NTR_LCD::gen_tex_5(u32 address)
 	{
 		//Calculate buffer position for texels
 		u32 index_x = (texel_block % block_width) << 2;
-		u32 index_y = (texel_block / block_height) << 2;
+		u32 index_y = (texel_block / block_width) << 2;
 		texel_index = (index_y * lcd_3D_stat.tex_src_width) + index_x;
 
 		//Grab palette data for 4x4 block
