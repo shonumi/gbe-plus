@@ -353,10 +353,8 @@ void NTR_LCD::reset()
 	for(int x = 0; x < 256; x++) { lcd_3D_stat.hi_line_z[x] = lcd_3D_stat.lo_line_z[x] = 0.0; }
 
 	//Polygon vertices
-	gx_triangles.clear();
-	gx_quads.clear();
-	gx_tri_strips.clear();
-	gx_quad_strips.clear();
+	current_poly.make_identity(4);
+	last_poly.make_identity(4);
 
 	//GX Matrices
 	gx_projection_matrix.resize(4, 4);
@@ -4220,12 +4218,6 @@ void NTR_LCD::step()
 				lcd_3D_stat.render_polygon = false;
 				lcd_3D_stat.poly_count = 0;
 				lcd_3D_stat.vert_count = 0;
-
-				//Clear polygons (and vertices as well)
-				gx_triangles.clear();
-				gx_tri_strips.clear();
-				gx_quads.clear();
-				gx_quad_strips.clear();
 
 				//Clear 3D buffer and fill with rear plane
 				gx_screen_buffer[lcd_3D_stat.buffer_id].clear();

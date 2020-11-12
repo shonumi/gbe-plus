@@ -67,61 +67,12 @@ void NTR_LCD::render_geometry()
 	float plot_ty[4];
 	s32 buffer_index = 0;
 	u8 vert_count = 0;
+	gx_matrix vert_matrix = current_poly;
 	gx_matrix temp_matrix;
-	gx_matrix vert_matrix;
 	gx_matrix clip_matrix;
 
 	//Determine what kind of polygon to render
-	switch(lcd_3D_stat.vertex_mode)
-	{
-		//Triangles
-		case 0x0:
-			if(gx_triangles.empty())
-			{
-				lcd_3D_stat.render_polygon = false;
-				return;
-			}
-
-			vert_matrix = gx_triangles.back();
-			vert_count = 3;
-			break;
-
-		//Quads
-		case 0x1:
-			if(gx_quads.empty())
-			{
-				lcd_3D_stat.render_polygon = false;
-				return;
-			}
-
-			vert_matrix = gx_quads.back();
-			vert_count = 4;
-			break;
-
-		//Triangle Strips
-		case 0x2:
-			if(gx_tri_strips.empty())
-			{
-				lcd_3D_stat.render_polygon = false;
-				return;
-			}
-
-			vert_matrix = gx_tri_strips.back();
-			vert_count = 3;
-			break;
-
-		//Quad Strips
-		case 0x3:
-			if(gx_quad_strips.empty())
-			{
-				lcd_3D_stat.render_polygon = false;
-				return;
-			}
-
-			vert_matrix = gx_quad_strips.back();
-			vert_count = 4;
-			break;
-	}
+	vert_count = (lcd_3D_stat.vertex_mode & 0x1) ? 4 : 3;
 
 	//Vertex order
 	u8 vert_order[4];
@@ -152,19 +103,19 @@ void NTR_LCD::render_geometry()
 		clip_matrix = last_pos_matrix[x] * gx_projection_matrix;
 
 		temp_matrix.resize(4, 1);
-		temp_matrix.data[0][0] = vert_matrix.data[x][0];
-		temp_matrix.data[1][0] = vert_matrix.data[x][1];
-		temp_matrix.data[2][0] = vert_matrix.data[x][2];
-		temp_matrix.data[3][0] = 1.0;
+		temp_matrix[0] = vert_matrix[x];
+		temp_matrix[1] = vert_matrix[(4 + x)];
+		temp_matrix[2] = vert_matrix[(8 + x)];
+		temp_matrix[3] = 1.0;
 
 		//Generate NDS XY screen coordinate from clip matrix
 		temp_matrix = temp_matrix * clip_matrix;
- 		plot_x[a] = round(((temp_matrix.data[0][0] + temp_matrix.data[3][0]) * viewport_width) / ((2 * temp_matrix.data[3][0]) + lcd_3D_stat.view_port_x1));
-  		plot_y[a] = round(((-temp_matrix.data[1][0] + temp_matrix.data[3][0]) * viewport_height) / ((2 * temp_matrix.data[3][0]) + lcd_3D_stat.view_port_y1));
+ 		plot_x[a] = round(((temp_matrix[0] + temp_matrix[3]) * viewport_width) / ((2 * temp_matrix[3]) + lcd_3D_stat.view_port_x1));
+  		plot_y[a] = round(((-temp_matrix[1] + temp_matrix[3]) * viewport_height) / ((2 * temp_matrix[3]) + lcd_3D_stat.view_port_y1));
 
 		//Get Z coordinate, use existing data from vertex
-		plot_z[a] = temp_matrix.data[2][0];
-		if(temp_matrix.data[3][0]) { plot_z[a] /= temp_matrix.data[3][0]; }
+		plot_z[a] = temp_matrix[2];
+		if(temp_matrix[3]) { plot_z[a] /= temp_matrix[3]; }
 
 		//Check for wonky coordinates
 		if(std::isnan(plot_x[a])) { lcd_3D_stat.render_polygon = false; return; }
@@ -634,7 +585,7 @@ void NTR_LCD::fill_poly_textured()
 }
 
 /****** Determines if a polygon can be pushed to internal rendering list ******/
-bool NTR_LCD::poly_push(gx_matrix &current_matrix)
+bool NTR_LCD::poly_push()
 {
 	bool status = false;
 
@@ -649,8 +600,8 @@ bool NTR_LCD::poly_push(gx_matrix &current_matrix)
 			case 0x0:
 				if(((lcd_3D_stat.poly_count + 1) < 2048) && ((lcd_3D_stat.vert_count + 3) < 6144))
 				{
-					current_matrix.resize(3, 3);
-					gx_triangles.push_back(current_matrix);
+					current_poly.make_identity(4);
+					current_poly.resize(3, 3);
 					lcd_3D_stat.poly_count++;
 					lcd_3D_stat.vert_count += 3;
 					status = true;
@@ -664,8 +615,8 @@ bool NTR_LCD::poly_push(gx_matrix &current_matrix)
 			case 0x1:
 				if(((lcd_3D_stat.poly_count + 1) < 2048) && ((lcd_3D_stat.vert_count + 4) < 6144))
 				{
-					current_matrix.resize(4, 4);
-					gx_quads.push_back(current_matrix);
+					current_poly.make_identity(4);
+					current_poly.resize(4, 4);
 					lcd_3D_stat.poly_count++;
 					lcd_3D_stat.vert_count += 4;
 					status = true;
@@ -680,8 +631,8 @@ bool NTR_LCD::poly_push(gx_matrix &current_matrix)
 			case 0x2:
 				if(((lcd_3D_stat.poly_count + 1) < 2048) && ((lcd_3D_stat.vert_count + 3) < 6144))
 				{
-					current_matrix.resize(3, 3);
-					gx_tri_strips.push_back(current_matrix);
+					current_poly.make_identity(4);
+					current_poly.resize(3, 3);
 					lcd_3D_stat.poly_count++;
 					lcd_3D_stat.vert_count += 3;
 					status = true;
@@ -695,8 +646,8 @@ bool NTR_LCD::poly_push(gx_matrix &current_matrix)
 			case 0x3:
 				if(((lcd_3D_stat.poly_count + 1) < 2048) && ((lcd_3D_stat.vert_count + 4) < 6144))
 				{
-					current_matrix.resize(4, 4);
-					gx_quad_strips.push_back(current_matrix);
+					current_poly.make_identity(4);
+					current_poly.resize(4, 4);
 					lcd_3D_stat.poly_count++;
 					lcd_3D_stat.vert_count += 4;
 					status = true;
@@ -913,7 +864,7 @@ void NTR_LCD::process_gx_command()
 				u8 x = ((a / 4) % 4);
 				u8 y = (a / 16);
 
-				temp_matrix.data[x][y] = result;
+				temp_matrix[(y << 2) + x] = result;
 				a += 4;
 			}
 
@@ -979,7 +930,7 @@ void NTR_LCD::process_gx_command()
 				u8 x = ((a / 4) % 3);
 				u8 y = (a / 12);
 
-				temp_matrix.data[x][y] = result;
+				temp_matrix[(y << 2) + x] = result;
 				a += 4;
 			}
 
@@ -1043,7 +994,7 @@ void NTR_LCD::process_gx_command()
 				u8 x = ((a / 4) % 3);
 				u8 y = (a / 12);
 
-				temp_matrix.data[x][y] = result;
+				temp_matrix[(y << 2) + x] = result;
 				a += 4;
 			}
 
@@ -1095,8 +1046,8 @@ void NTR_LCD::process_gx_command()
 
 				u8 x = (a / 4);
 
-				if(lcd_3D_stat.current_gx_command == 0x1B) { temp_matrix.data[x][x] = result; }
-				else { temp_matrix.data[x][3] = result; }
+				if(lcd_3D_stat.current_gx_command == 0x1B) { temp_matrix[(x << 2) + x] = result; }
+				else { temp_matrix[12 + x] = result; }
 
 				a += 4;
 			}
@@ -1173,24 +1124,24 @@ void NTR_LCD::process_gx_command()
 				//Transform TX and TY by texture matrix
 				if(lcd_3D_stat.tex_transformation == 0x1)
 				{
-					gx_vector tm_src(4);
+					gx_matrix tm_src(4, 1);
 					tm_src[0] = lcd_3D_stat.tex_coord_x[lcd_3D_stat.vertex_list_index];
 					tm_src[1] = lcd_3D_stat.tex_coord_y[lcd_3D_stat.vertex_list_index];
 					tm_src[2] = 0.0625;
 					tm_src[3] = 0.0625;
 
 					gx_matrix tm_global(2, 4);
-					tm_global.data[0][0] = gx_texture_matrix.data[0][0];
-					tm_global.data[1][0] = gx_texture_matrix.data[1][0];
+					tm_global.data[0] = gx_texture_matrix.data[0];
+					tm_global.data[1] = gx_texture_matrix.data[1];
 
-					tm_global.data[0][1] = gx_texture_matrix.data[0][1];
-					tm_global.data[1][1] = gx_texture_matrix.data[1][1];
+					tm_global.data[4] = gx_texture_matrix.data[4];
+					tm_global.data[5] = gx_texture_matrix.data[5];
 
-					tm_global.data[0][2] = gx_texture_matrix.data[0][2];
-					tm_global.data[1][2] = gx_texture_matrix.data[1][2];
+					tm_global.data[8] = gx_texture_matrix.data[8];
+					tm_global.data[9] = gx_texture_matrix.data[9];
 
-					tm_global.data[0][3] = gx_texture_matrix.data[0][3];
-					tm_global.data[1][3] = gx_texture_matrix.data[1][3];
+					tm_global.data[12] = gx_texture_matrix.data[12];
+					tm_global.data[13] = gx_texture_matrix.data[13];
 
 					tm_src = tm_src * tm_global;
 					lcd_3D_stat.tex_coord_x[lcd_3D_stat.vertex_list_index] = tm_src[0];
@@ -1208,7 +1159,7 @@ void NTR_LCD::process_gx_command()
 			//Push new polygon if necessary
 			if(lcd_3D_stat.vertex_list_index == 0)
 			{
-				if(!poly_push(temp_matrix)) { poly_draw = false; }
+				if(!poly_push()) { poly_draw = false; }
 			}
 
 			if(poly_draw)
@@ -1235,14 +1186,12 @@ void NTR_LCD::process_gx_command()
 					a += 2;
 				}
 
-				std::vector<gx_matrix>* poly_list = NULL;
 				u8 real_index = lcd_3D_stat.vertex_list_index;
+				build_verts(list_size, real_index);
 
-				build_verts(poly_list, list_size, real_index);
-
-				poly_list->back().data[real_index][0] = temp_result[1];
-				poly_list->back().data[real_index][1] = temp_result[0];
-				poly_list->back().data[real_index][2] = temp_result[3];
+				current_poly[real_index] = temp_result[1];
+				current_poly[(4 + real_index)] = temp_result[0];
+				current_poly[(8 + real_index)] = temp_result[3];
 
 				lcd_3D_stat.last_x = temp_result[1];
 				lcd_3D_stat.last_y = temp_result[0];
@@ -1260,6 +1209,8 @@ void NTR_LCD::process_gx_command()
 					lcd_3D_stat.vertex_list_index = 0;
 					lcd_3D_stat.render_polygon = true;
 
+					last_poly = current_poly;
+
 					//Render geometry now if command was sent by GX FIFO
 					if(mem->gx_command) { render_geometry(); }
 				}
@@ -1272,7 +1223,7 @@ void NTR_LCD::process_gx_command()
 			//Push new polygon if necessary
 			if(lcd_3D_stat.vertex_list_index == 0)
 			{
-				if(!poly_push(temp_matrix)) { poly_draw = false; }
+				if(!poly_push()) { poly_draw = false; }
 			}
 
 			if(poly_draw)
@@ -1300,14 +1251,12 @@ void NTR_LCD::process_gx_command()
 					temp_result[a] = result;
 				}
 
-				std::vector<gx_matrix>* poly_list = NULL;
 				u8 real_index = lcd_3D_stat.vertex_list_index;
+				build_verts(list_size, real_index);
 
-				build_verts(poly_list, list_size, real_index);
-
-				poly_list->back().data[real_index][0] = temp_result[0];
-				poly_list->back().data[real_index][1] = temp_result[1];
-				poly_list->back().data[real_index][2] = temp_result[2];
+				current_poly[real_index] = temp_result[0];
+				current_poly[(4 + real_index)] = temp_result[1];
+				current_poly[(8 + real_index)] = temp_result[2];
 
 				lcd_3D_stat.last_x = temp_result[0];
 				lcd_3D_stat.last_y = temp_result[1];
@@ -1325,6 +1274,8 @@ void NTR_LCD::process_gx_command()
 					lcd_3D_stat.vertex_list_index = 0;
 					lcd_3D_stat.render_polygon = true;
 
+					last_poly = current_poly;
+
 					//Render geometry now if command was sent by GX FIFO
 					if(mem->gx_command) { render_geometry(); }
 				}
@@ -1341,7 +1292,7 @@ void NTR_LCD::process_gx_command()
 			//Push new polygon if necessary
 			if(lcd_3D_stat.vertex_list_index == 0)
 			{
-				if(!poly_push(temp_matrix)) { poly_draw = false; }
+				if(!poly_push()) { poly_draw = false; }
 			}
 
 			if(poly_draw)
@@ -1369,17 +1320,16 @@ void NTR_LCD::process_gx_command()
 					temp_result[a] = result;
 				}
 
-				std::vector<gx_matrix>* poly_list = NULL;
 				u8 real_index = lcd_3D_stat.vertex_list_index;
-
-				build_verts(poly_list, list_size, real_index);
+				build_verts(list_size, real_index);
 
 				//XY
 				if(lcd_3D_stat.current_gx_command == 0x25)
 				{
-					poly_list->back().data[real_index][0] = temp_result[0];
-					poly_list->back().data[real_index][1] = temp_result[1];
-					poly_list->back().data[real_index][2] = lcd_3D_stat.last_z;
+
+					current_poly[real_index] = temp_result[0];
+					current_poly[(4 + real_index)] = temp_result[1];
+					current_poly[(8 + real_index)] = lcd_3D_stat.last_z;
 
 					lcd_3D_stat.last_x = temp_result[0];
 					lcd_3D_stat.last_y = temp_result[1];
@@ -1388,9 +1338,9 @@ void NTR_LCD::process_gx_command()
 				//XZ
 				if(lcd_3D_stat.current_gx_command == 0x26)
 				{
-					poly_list->back().data[real_index][0] = temp_result[0];
-					poly_list->back().data[real_index][1] = lcd_3D_stat.last_y;
-					poly_list->back().data[real_index][2] = temp_result[1];
+					current_poly[real_index] = temp_result[0];
+					current_poly[(4 + real_index)] = lcd_3D_stat.last_y;
+					current_poly[(8 + real_index)] = temp_result[1];
 
 					lcd_3D_stat.last_x = temp_result[0];
 					lcd_3D_stat.last_z = temp_result[1];
@@ -1399,9 +1349,9 @@ void NTR_LCD::process_gx_command()
 				//YZ
 				if(lcd_3D_stat.current_gx_command == 0x27)
 				{
-					poly_list->back().data[real_index][0] = lcd_3D_stat.last_x;
-					poly_list->back().data[real_index][1] = temp_result[0];
-					poly_list->back().data[real_index][2] = temp_result[1];
+					current_poly[real_index] = lcd_3D_stat.last_x;
+					current_poly[(4 + real_index)] = temp_result[0];
+					current_poly[(8 + real_index)] = temp_result[1];
 
 					lcd_3D_stat.last_y = temp_result[0];
 					lcd_3D_stat.last_z = temp_result[1];
@@ -1419,6 +1369,8 @@ void NTR_LCD::process_gx_command()
 					lcd_3D_stat.vertex_list_index = 0;
 					lcd_3D_stat.render_polygon = true;
 
+					last_poly = current_poly;
+
 					//Render geometry now if command was sent by GX FIFO
 					if(mem->gx_command) { render_geometry(); }
 				}
@@ -1431,7 +1383,7 @@ void NTR_LCD::process_gx_command()
 			//Push new polygon if necessary
 			if(lcd_3D_stat.vertex_list_index == 0)
 			{
-				if(!poly_push(temp_matrix)) { poly_draw = false; }
+				if(!poly_push()) { poly_draw = false; }
 			}
 
 			if(poly_draw)
@@ -1458,18 +1410,16 @@ void NTR_LCD::process_gx_command()
 					temp_result[a] = result;
 				}
 
-				std::vector<gx_matrix>* poly_list = NULL;
 				u8 real_index = lcd_3D_stat.vertex_list_index;
-
-				build_verts(poly_list, list_size, real_index);
+				build_verts(list_size, real_index);
 
 				lcd_3D_stat.last_x += temp_result[0];
 				lcd_3D_stat.last_y += temp_result[1];
 				lcd_3D_stat.last_z += temp_result[2];
 
-				poly_list->back().data[real_index][0] = lcd_3D_stat.last_x;
-				poly_list->back().data[real_index][1] = lcd_3D_stat.last_y;
-				poly_list->back().data[real_index][2] = lcd_3D_stat.last_z;
+				current_poly[real_index] = lcd_3D_stat.last_x;
+				current_poly[(4 + real_index)] = lcd_3D_stat.last_y;
+				current_poly[(8 + real_index)] = lcd_3D_stat.last_z;
 
 				last_pos_matrix[real_index] = gx_position_matrix;
 
@@ -1482,6 +1432,8 @@ void NTR_LCD::process_gx_command()
 				{
 					lcd_3D_stat.vertex_list_index = 0;
 					lcd_3D_stat.render_polygon = true;
+
+					last_poly = current_poly;
 
 					//Render geometry now if command was sent by GX FIFO
 					if(mem->gx_command) { render_geometry(); }
@@ -1518,14 +1470,7 @@ void NTR_LCD::process_gx_command()
 			//If, for some reason a polygon was not completed, start over now
 			if(lcd_3D_stat.vertex_list_index)
 			{
-				switch(lcd_3D_stat.vertex_mode)
-				{
-					case 0x0: gx_triangles.pop_back(); break;
-					case 0x1: gx_quads.pop_back(); break;
-					case 0x2: gx_tri_strips.pop_back(); break;
-					case 0x3: gx_quad_strips.pop_back(); break;
-				}
-
+				current_poly.make_identity(4);
 				lcd_3D_stat.vertex_list_index = 0;
 			}
 
@@ -1552,6 +1497,7 @@ void NTR_LCD::process_gx_command()
 		//BOX_TEST
 		case 0x70:
 			{
+				/*
 				bool in_view_volume = true;
 
 				float x = get_u16_float(read_param_u16(0));
@@ -1601,13 +1547,14 @@ void NTR_LCD::process_gx_command()
 						break;
 					}
 				}
+				*/
 			}
 
 			break;
 
 		//POS_TEST
 		case 0x71:
-			gx_vector temp_vec(4);
+			gx_matrix temp_vec(4, 1);
 			temp_vec[0] = get_u16_float(read_param_u16(0));
 			temp_vec[1] = get_u16_float(read_param_u16(2));
 			temp_vec[2] = get_u16_float(read_param_u16(4));
@@ -1892,7 +1839,9 @@ void NTR_LCD::gen_tex_5(u32 address)
 
 	if(slot) { slot_addr += 0x10000; }
 
-	while(tex_size)
+	u32 ttex_size = tex_size;
+
+	while(ttex_size)
 	{
 		//Calculate buffer position for texels
 		u32 index_x = (texel_block % block_width) << 2;
@@ -1951,7 +1900,7 @@ void NTR_LCD::gen_tex_5(u32 address)
 		}
 
 		address += 4;
-		tex_size -= 16;
+		ttex_size -= 16;
 		texel_block++;
 	}
 }
@@ -2009,30 +1958,24 @@ void NTR_LCD::gen_tex_7(u32 address)
 }
 
 /****** Builds vertices for new polygons - Mostly special handling for polygon strips ******/
-void NTR_LCD::build_verts(std::vector<gx_matrix>*& p_list, u8 &l_size, u8 &r_index)
+void NTR_LCD::build_verts(u8 &l_size, u8 &r_index)
 {
 	switch(lcd_3D_stat.vertex_mode)
 	{
 		//Triangles
 		case 0x0:
 			l_size = 3;
-			p_list = &gx_triangles;
 			break;
 
 		//Quads
 		case 0x1:
 			l_size = 4;
-			p_list = &gx_quads;
 			break;
 
 		//Triangle Strips
 		case 0x2:
 			{
 				l_size = 3;
-				p_list = &gx_tri_strips;
-
-				//Calculate last Triangle Strip position in vector
-				u16 last_tri = gx_tri_strips.size() - 2;
 
 				//When starting a new Triangle Strip, use previous 2 vertices from last defined strip if necessary
 				if(lcd_3D_stat.begin_strips && !r_index)
@@ -2041,18 +1984,18 @@ void NTR_LCD::build_verts(std::vector<gx_matrix>*& p_list, u8 &l_size, u8 &r_ind
 					float temp_y = lcd_3D_stat.tex_coord_y[0];
 
 					//New V0 = Old V1 
-					gx_tri_strips.back().data[0][0] = gx_tri_strips[last_tri].data[1][0];
-					gx_tri_strips.back().data[0][1] = gx_tri_strips[last_tri].data[1][1];
-					gx_tri_strips.back().data[0][2] = gx_tri_strips[last_tri].data[1][2];
+					current_poly[0] = last_poly[1];
+					current_poly[4] = last_poly[5];
+					current_poly[8] = last_poly[9];
 					vert_colors[0] = vert_colors[1];
 					lcd_3D_stat.tex_coord_x[0] = lcd_3D_stat.tex_coord_x[1]; 
 					lcd_3D_stat.tex_coord_y[0] = lcd_3D_stat.tex_coord_y[1];
 					last_pos_matrix[0] = last_pos_matrix[1];
 
 					//New V1 = Old V2
-					gx_tri_strips.back().data[1][0] = gx_tri_strips[last_tri].data[2][0];
-					gx_tri_strips.back().data[1][1] = gx_tri_strips[last_tri].data[2][1];
-					gx_tri_strips.back().data[1][2] = gx_tri_strips[last_tri].data[2][2];
+					current_poly[1] = last_poly[2];
+					current_poly[5] = last_poly[6];
+					current_poly[9] = last_poly[10];
 					vert_colors[1] = vert_colors[2];
 					lcd_3D_stat.tex_coord_x[1] = lcd_3D_stat.tex_coord_x[2]; 
 					lcd_3D_stat.tex_coord_y[1] = lcd_3D_stat.tex_coord_y[2];
@@ -2074,10 +2017,6 @@ void NTR_LCD::build_verts(std::vector<gx_matrix>*& p_list, u8 &l_size, u8 &r_ind
 		case 0x3:
 			{
 				l_size = 4;
-				p_list = &gx_quad_strips;
-
-				//Calculate last Quad Strip position in vector
-				u16 last_quad = gx_quad_strips.size() - 2;
 
 				//When starting a new Quad Strip, use previous 2 vertices from last defined strip if necessary
 				if(lcd_3D_stat.begin_strips && !r_index)
@@ -2086,18 +2025,18 @@ void NTR_LCD::build_verts(std::vector<gx_matrix>*& p_list, u8 &l_size, u8 &r_ind
 					float temp_y = lcd_3D_stat.tex_coord_y[0];
 
 					//New V0 = Old V2
-					gx_quad_strips.back().data[0][0] = gx_quad_strips[last_quad].data[2][0];
-					gx_quad_strips.back().data[0][1] = gx_quad_strips[last_quad].data[2][1];
-					gx_quad_strips.back().data[0][2] = gx_quad_strips[last_quad].data[2][2];
+					current_poly[0] = last_poly[2];
+					current_poly[4] = last_poly[6];
+					current_poly[8] = last_poly[10];
 					vert_colors[0] = vert_colors[2];
 					lcd_3D_stat.tex_coord_x[0] = lcd_3D_stat.tex_coord_x[2];
 					lcd_3D_stat.tex_coord_y[0] = lcd_3D_stat.tex_coord_y[2];
 					last_pos_matrix[0] = last_pos_matrix[2];
 
 					//New V1 = Old V3
-					gx_quad_strips.back().data[1][0] = gx_quad_strips[last_quad].data[3][0];
-					gx_quad_strips.back().data[1][1] = gx_quad_strips[last_quad].data[3][1];
-					gx_quad_strips.back().data[1][2] = gx_quad_strips[last_quad].data[3][2];
+					current_poly[1] = last_poly[3];
+					current_poly[5] = last_poly[7];
+					current_poly[9] = last_poly[11];
 					vert_colors[1] = vert_colors[3];
 					lcd_3D_stat.tex_coord_x[1] = lcd_3D_stat.tex_coord_x[3]; 
 					lcd_3D_stat.tex_coord_y[1] = lcd_3D_stat.tex_coord_y[3];
@@ -2130,7 +2069,7 @@ void NTR_LCD::update_clip_matrix()
 	{
 		for(u32 x = 0; x < 4; x++)
 		{
-			float raw_value = clip_matrix.data[x][y];
+			float raw_value = clip_matrix[(y << 2) + x];
 			u32 index = 4 * ((y * 4) + x);
 			
 			integral = abs(raw_value);

@@ -159,10 +159,8 @@ class NTR_LCD
 	u16 screen_offset_lut[512];
 
 	//3D Polygons
-	std::vector<gx_matrix> gx_triangles;
-	std::vector<gx_matrix> gx_quads;
-	std::vector<gx_matrix> gx_tri_strips;
-	std::vector<gx_matrix> gx_quad_strips;
+	gx_matrix last_poly;
+	gx_matrix current_poly;
 
 	//Matrix Stacks
 	std::vector<gx_matrix> gx_projection_stack;
@@ -202,8 +200,8 @@ class NTR_LCD
 	void fill_poly_solid();
 	void fill_poly_interpolated();
 	void fill_poly_textured();
-	void build_verts(std::vector<gx_matrix>*& list, u8 &l_size, u8 &index);
-	bool poly_push(gx_matrix &current_matrix);
+	void build_verts(u8 &l_size, u8 &index);
+	bool poly_push();
 	u32 read_param_u32(u8 index);
 	u16 read_param_u16(u8 index);
 	u32 get_rgb15(u16 color_bytes);

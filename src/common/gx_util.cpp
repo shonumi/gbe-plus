@@ -27,140 +27,17 @@
 
 #include "gx_util.h"
 
-/****** OpenGL Vector Constructor ******/
-gx_vector::gx_vector()
-{
-	//When no arguments are given, generate a vector with 4 elements
-	data.resize(4, 0.0);
-
-	size = 4;
-}
-
-/****** OpenGL Vector Constructor ******/
-gx_vector::gx_vector(u32 input_size)
-{
-	data.resize(input_size, 0.0);
-
-	size = input_size;
-}
-
-/****** OpenGL Vector Destructor ******/
-gx_vector::~gx_vector()
-{
-	data.clear();
-}
-
-/****** OpenGL Vector addition operator ******/
-gx_vector gx_vector::operator+ (const gx_vector &input_vector)
-{
-	gx_vector output_vector(size);
-
-	if(size == input_vector.size)
-	{
-		for(u32 x = 0; x < size; x++) { output_vector.data[x] = data[x] + input_vector.data[x]; }
-	}
-
-	//If the vectors are different sizes, just return the 1st one
-	else
-	{
-		for(u32 x = 0; x < size; x++) { output_vector.data[x] = data[x]; }
-	}
-
-	return output_vector;
-}
-
-/****** OpenGL Vector subtraction operator ******/
-gx_vector gx_vector::operator- (const gx_vector &input_vector)
-{
-	gx_vector output_vector(size);
-
-	if(size == input_vector.size)
-	{
-		for(u32 x = 0; x < size; x++) { output_vector.data[x] = data[x] - input_vector.data[x]; }
-	}
-
-	//If the vectors are different sizes, just return the 1st one
-	else
-	{
-		for(u32 x = 0; x < size; x++) { output_vector.data[x] = data[x]; }
-	}
-
-	return output_vector;
-}
-
-/****** OpenGL Vector multiplication operator - Vector-Vector ******/
-gx_vector gx_vector::operator* (const gx_vector &input_vector)
-{
-	gx_vector output_vector(size);
-
-	if(size == input_vector.size)
-	{
-		for(u32 x = 0; x < size; x++) { output_vector.data[x] = data[x] * input_vector.data[x]; }
-	}
-
-	//If the vectors are different sizes, just return the 1st one
-	else
-	{
-		for(u32 x = 0; x < size; x++) { output_vector.data[x] = data[x]; }
-	}
-
-	return output_vector;
-}
-
-/****** OpenGL Vector multiplication operator - Scalar ******/
-gx_vector operator* (float scalar, const gx_vector &input_vector)
-{
-	gx_vector output_vector(input_vector.size);
-
-	for(u32 x = 0; x < output_vector.size; x++) { output_vector.data[x] = input_vector.data[x] * scalar; }
-
-	return output_vector;
-}
-
-/****** OpenGL Vector multiplication operator - Scalar ******/
-gx_vector operator* (const gx_vector &input_vector, float scalar)
-{
-	gx_vector output_vector(input_vector.size);
-
-	for(u32 x = 0; x < output_vector.size; x++) { output_vector.data[x] = input_vector.data[x] * scalar; }
-
-	return output_vector;
-}
-
-/****** OpenGL Vector bracket operator - Getter ******/
-float gx_vector::operator[](u32 index) const
-{
-	return data[index];
-}
-
-/****** OpenGL Vector bracket operator - Setter ******/
-float &gx_vector::operator[](u32 index)
-{
-	return data[index];
-}
-
-/****** Resizes a vector to given dimensions ******/
-void gx_vector::resize(u32 input_size)
-{
-	data.resize(input_size, 0.0);
-	size = input_size;
-}
 
 /****** OpenGL Matrix Constructor ******/
 gx_matrix::gx_matrix()
 {
 	//When no arguments are given, generate a 4x4 identity matrix
-	data.resize(4);
+	for(u32 x = 0; x < 16; x++) { data[x] = 0; }
 
-	for(u32 x = 0; x < 4; x++)
-	{
-		data[x].resize(4, 0.0);
-	}
-
-	data[0][0] = 1;
-	data[1][1] = 1;
-	data[2][2] = 1;
-	data[3][3] = 1;
+	data[0] = 1.0;
+	data[5] = 1.0;
+	data[10] = 1.0;
+	data[15] = 1.0;
 
 	rows = 4;
 	columns = 4;
@@ -169,14 +46,10 @@ gx_matrix::gx_matrix()
 /****** OpenGL Matrix Constructor ******/
 gx_matrix::gx_matrix(u32 input_columns, u32 input_rows)
 {
-	//Generate the columns
-	data.resize(input_columns);
+	if(input_columns > 4) { input_columns = 4; }
+	if(input_rows > 4) { input_rows = 4; }
 
-	//Generate the rows
-	for(u32 x = 0; x < input_columns; x++)
-	{
-		data[x].resize(input_rows);
-	}
+	for(u32 x = 0; x < 16; x++) { data[x] = 0; }
 
 	rows = input_rows;
 	columns = input_columns;
@@ -185,7 +58,9 @@ gx_matrix::gx_matrix(u32 input_columns, u32 input_rows)
 /****** OpenGL Matrix Destructor ******/
 gx_matrix::~gx_matrix()
 {
-	data.clear();
+	for(u32 x = 0; x < 16; x++) { data[x] = 0; }
+	rows = 0;
+	columns = 0;
 }
 
 /****** OpenGL Matrix multiplication operator - Matrix-Matrix ******/
@@ -209,10 +84,10 @@ gx_matrix gx_matrix::operator*(const gx_matrix &input_matrix)
 
 				for(u32 x = 0; x < columns; x++)
 				{
-					dot_product += (data[x][y] * input_matrix.data[dot_product_count][x]);
+					dot_product += (data[(y << 2) + x] * input_matrix[(x << 2) + dot_product_count]);
 				}
 
-				output_matrix.data[dot_product_count][y] = dot_product;
+				output_matrix.data[(y << 2) + dot_product_count] = dot_product;
 			}
 		}
 	
@@ -227,131 +102,16 @@ gx_matrix gx_matrix::operator*(const gx_matrix &input_matrix)
 	}
 }
 
-/****** OpenGL Matrix multiplication operator - Matrix-Vector ******/
-gx_vector operator* (const gx_vector &input_vector, const gx_matrix &input_matrix)
-{
-	//Determine if matrix can be multiplied
-	if(input_vector.size == input_matrix.rows)
-	{
-		gx_vector output_vector(input_matrix.columns);
-
-		//This is essentially multiplying a 1-column matrix by the input matrix
-		for(u32 dot_product_count = 0; dot_product_count < input_matrix.columns; dot_product_count++)
-		{
-			float dot_product = 0.0;
-
-			for(u32 x = 0; x < input_vector.size; x++)
-			{
-				dot_product += (input_vector.data[x] * input_matrix.data[dot_product_count][x]);
-			}
-
-			output_vector.data[dot_product_count] = dot_product;
-		}
-
-		return output_vector;
-	}
-
-	//Otherwise, return original vector
-	else
-	{
-		return input_vector;
-	}
-}
-
-/****** OpenGL Matrix multiplication operator - Scalar ******/
-gx_matrix operator*(float scalar, const gx_matrix &input_matrix)
-{
-	gx_matrix output_matrix(input_matrix.rows, input_matrix.columns);
-
-	for(u32 y = 0; y < output_matrix.rows; y++)
-	{
-		for(u32 x = 0; x < output_matrix.columns; x++)
-		{
-			output_matrix.data[x][y] = input_matrix.data[x][y];
-			output_matrix.data[x][y] *= scalar;
-		}
-	}
-
-	return output_matrix;
-}
-
-/****** OpenGL Matrix multiplication operator - Scalar ******/
-gx_matrix operator*(const gx_matrix &input_matrix, float scalar)
-{
-	gx_matrix output_matrix(input_matrix.rows, input_matrix.columns);
-
-	for(u32 y = 0; y < output_matrix.rows; y++)
-	{
-		for(u32 x = 0; x < output_matrix.columns; x++)
-		{
-			output_matrix.data[x][y] = input_matrix.data[x][y];
-			output_matrix.data[x][y] *= scalar;
-		}
-	}
-
-	return output_matrix;
-}
-
 /****** OpenGL Matrix bracket operator - Getter ******/
-std::vector<float> gx_matrix::operator[](u32 index) const
+float gx_matrix::operator[](u32 index) const
 {
-	return data[index];
+	return data[index & 0xF];
 }
 
 /****** OpenGL Matrix bracket operator - Setter ******/
-std::vector<float> &gx_matrix::operator[](u32 index)
+float &gx_matrix::operator[](u32 index)
 {
-	return data[index];
-}
-
-/****** Generates an orthogonal projection matrix ******/
-gx_matrix ortho_matrix(float width, float height, float z_far, float z_near)
-{
-	gx_matrix output_matrix(4, 4);
-
-	output_matrix[0][0] = 2.0 / width;
-	output_matrix[3][0] = -1.0;
-
-	output_matrix[1][1] = 2.0 / height;
-	output_matrix[3][1] = 1.0;
-
-	output_matrix[2][2] = -2.0 /(z_far - z_near);
-	output_matrix[2][3] = -1.0 * ((z_far + z_near)/(z_far - z_near));
-
-	output_matrix[3][3] = 1.0; 
-
-	return output_matrix;
-}
-
-/****** Inverts a 2x2 matrix if applicable ******/
-bool gx_matrix::invert_2x2()
-{
-	//Check matrix size first - Do nothing if this is not a 2x2 matrix
-	if((rows != 2) || (columns != 2)) { return false; }
-
-	//Check determinant (AD - BC) - Do nothing if zero
-	float determinant = (data[0][0] * data[1][1]) - (data[1][0] * data[0][1]);
-	if(determinant == 0) { return false; }
-
-	determinant = 1.0 / determinant;
-
-	float a = data[0][0];
-	float b = data[1][0];
-	float c = data[0][1];
-	float d = data[1][1];
-
-	data[0][0] = d;
-	data[1][0] = -b;
-	data[0][1] = -c;
-	data[1][1] = a;
-
-	//Multiply matrix values
-	data[0][0] *= determinant;
-	data[1][0] *= determinant;
-	data[0][1] *= determinant;
-	data[1][1] *= determinant;
-
-	return true;
+	return data[index & 0xF];
 }
 
 /****** Makes an identity matrix of a given size ******/
@@ -361,34 +121,18 @@ void gx_matrix::make_identity(u32 size)
 
 	resize(size, size);
 
-	//Zero out matrix
-	clear();
+	for(u32 x = 0; x < 16; x++) { data[x] = 0; }
 
-	//Make identity
-	for(int x = 0; x < size; x++) { data[x][x] = 1.0; }
-}
-
-/****** Clears all of the matrix data (sets everything to zero) ******/
-void gx_matrix::clear()
-{
-	//This does not delete the matrix, just the data inside
-	for(u32 y = 0; y < rows; y++)
-	{
-		for(u32 x = 0; x < columns; x++)
-		{
-			data[x][y] = 0;
-		}
-	}
+	data[0] = 1.0;
+	data[5] = 1.0;
+	data[10] = 1.0;
+	data[15] = 1.0;
 }
 
 /****** Clears a matrix and resizes to given dimensions ******/
 void gx_matrix::resize(u32 input_columns, u32 input_rows)
 {
 	if(!input_columns || !input_rows) { return; }
-
-	data.resize(input_columns);
-
-	for(u32 x = 0; x < input_columns; x++) { data[x].resize(input_rows, 0.0); }
 
 	columns = input_columns;
 	rows = input_rows;

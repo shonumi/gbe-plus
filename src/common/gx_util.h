@@ -19,35 +19,6 @@
 
 #include "common.h"
 
-//Vector class
-class gx_vector
-{
-	public:
-	
-	gx_vector();
-	gx_vector(u32 input_size);
-	~gx_vector();
-
-	//Vector-Vector addition, subtraction, multiplication
-	gx_vector operator+ (const gx_vector &input_vector);
-	gx_vector operator- (const gx_vector &input_vector);
-	gx_vector operator* (const gx_vector &input_vector);
-
-	//Access vector data
-	float operator[](u32 index) const;
-	float &operator[](u32 index);
-
-	u32 size;
-
-	void resize(u32 input_size);
-
-	//Vector data
-	std::vector<float> data;
-};
-
-//Scalar multiplication - Non-member binary operators
-gx_vector operator*(float scalar, const gx_vector &input_vector);
-gx_vector operator*(const gx_vector &input_vector, float scalar);
 
 //Matrix class
 class gx_matrix
@@ -61,14 +32,10 @@ class gx_matrix
 	//Matrix-Matrix multiplication
 	gx_matrix operator* (const gx_matrix &input_matrix);
 
-	//Matrix 2x2 Inversion
-	bool invert_2x2();
-
 	//Access matrix data
-	std::vector<float> operator[](u32 index) const;
-	std::vector<float> &operator[](u32 index);
+	float operator[](u32 index) const;
+	float &operator[](u32 index);
 
-	void clear();
 	void resize(u32 input_columns, u32 input_rows);
 	void make_identity(u32 size);	
 
@@ -76,18 +43,8 @@ class gx_matrix
 	u32 columns;
 
 	//Matrix data
-	std::vector< std::vector<float> > data;
+	float data[16];
 };
-
-//Scalar multiplication - Non-member binary operators
-gx_matrix operator*(float scalar, const gx_matrix &input_matrix);
-gx_matrix operator*(const gx_matrix &input_matrix, float scalar);
-
-//Vector-Matrix multiplication - Non-member binary operators
-gx_vector operator* (const gx_vector &input_vector, const gx_matrix &input_matrix);
-
-//Projection matrix
-gx_matrix ortho_matrix(float width, float height, float z_far, float z_near);
 
 #ifdef GBE_OGL
 
