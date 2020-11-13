@@ -3479,6 +3479,11 @@ void NTR_LCD::alpha_blend(u32 bg_control)
 	u8 bg_priority_2 = (bg_control == NDS_DISPCNT_A) ? lcd_stat.bg_priority_a[2] : lcd_stat.bg_priority_b[2];
 	u8 bg_priority_3 = (bg_control == NDS_DISPCNT_A) ? lcd_stat.bg_priority_a[3] : lcd_stat.bg_priority_b[3];
 
+	bool bg0_is_3D = false;
+	bool target_3D = false;
+
+	if((bg_control == NDS_DISPCNT_A) && (lcd_stat.display_control_a & 0x8)) { bg0_is_3D = true; }
+
 	//Determine BG priority
 	for(int x = 0, list_length = 0; x < 4; x++)
 	{
@@ -3621,8 +3626,11 @@ void NTR_LCD::alpha_blend(u32 bg_control)
 		bool target_1_enable = (bg_control == NDS_DISPCNT_A) ? lcd_stat.sfx_target_a[target_1][0] : lcd_stat.sfx_target_b[target_1][0];
 		bool target_2_enable = (bg_control == NDS_DISPCNT_A) ? lcd_stat.sfx_target_a[target_2][1] : lcd_stat.sfx_target_b[target_2][1];
 
+		//If 1st target is 3D BG0, a separate alpha-blending formula must be used
+		target_3D = ((bg0_is_3D) && (target_1 == 0));
+
 		//Proceed with alpha blending if conditions met
-		if(found_target_1 && found_target_2 && target_1_enable && target_2_enable)
+		if(found_target_1 && found_target_2 && target_1_enable && target_2_enable && !target_3D)
 		{
 			u8 result = 0;
 			u32 color_1 = (is_obj_1) ? obj_line_buffer[layer_1][x] : line_buffer[layer_1][x];
