@@ -848,7 +848,13 @@ void NTR_core::handle_hotkey(SDL_Event& event)
 		config::turbo = false;
 		if((config::sdl_render) && (config::use_opengl)) { SDL_GL_SetSwapInterval(1); }
 	}
-		
+
+	//Start IR communications
+	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F3))
+	{
+		core_mmu.ntr_027.start_comms = true;
+	}
+
 	//Reset emulation on F8
 	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F8)) { reset(); }
 

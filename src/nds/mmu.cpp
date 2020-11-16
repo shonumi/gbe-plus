@@ -36,6 +36,28 @@ void NTR_MMU::reset()
 	current_save_type = AUTO;
 	gba_save_type = GBA_NONE;
 
+	switch(config::nds_slot1_device)
+	{
+		case 0: current_slot1_device = SLOT1_NORMAL; break;
+		case 1:
+			current_slot1_device = SLOT1_NTR_031;
+
+			//Setup NTR-027
+			if(config::ir_device == 7)
+			{
+				ntr_027.data.clear();
+				ntr_027.data.resize(0x10000, 0x00);
+				ntr_027.ir_stream.clear();
+				ntr_027.command = 0;
+				ntr_027.state = 0;
+				ntr_027.ir_counter = 0;
+				ntr_027.connected = false;
+				ntr_027.start_comms = false;
+			}
+
+			break;
+	}
+
 	switch(config::nds_slot2_device)
 	{
 		case 0: current_slot2_device = SLOT2_AUTO; break;
@@ -5680,12 +5702,35 @@ void NTR_MMU::process_aux_spi_bus()
 			case 0x1:
 				nds_aux_spi.eeprom_stat &= ~0xC;
 				nds_aux_spi.eeprom_stat |= (nds_aux_spi.data & 0xC) | 0x2;
-				nds_aux_spi.state = 0;
+
+				//Process NTR-027 IR communications
+				if((current_slot1_device == SLOT1_NTR_031) && (config::ir_device == 7))
+				{
+					if((ntr_027.connected) && (ntr_027.state == 0))
+					{
+						ntr_027.state = 1;
+						ntr_027_process();
+						ntr_027.state = 2;
+					}
+
+					ntr_027_process();
+				}
+
+				else { nds_aux_spi.state = 0; }
+
 				break;
 
 			//Write to EEPROM
 			case 0x2:
 			case 0xA:
+				//Process NTR-027 IR communications
+				if((current_slot1_device == SLOT1_NTR_031) && (config::ir_device == 7) && (nds_aux_spi.state == 2) && (ntr_027.connected))
+				{
+					ntr_027.state = 0;
+					ntr_027_process();
+					break;
+				}
+
 				if((current_save_type == EEPROM_512) || (current_save_type == AUTO))
 				{
 					nds_aux_spi.access_addr = nds_aux_spi.data;

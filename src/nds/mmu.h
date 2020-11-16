@@ -49,6 +49,13 @@ class NTR_MMU
 		GBA_SRAM
 	};
 
+	//Slot-1 enumerations
+	enum slot1_types
+	{
+		SLOT1_NORMAL,
+		SLOT1_NTR_031,
+	};
+
 	//Slot-2 enumerations
 	enum slot2_types
 	{
@@ -64,6 +71,8 @@ class NTR_MMU
 
 	backup_types current_save_type;
 	gba_backup_types gba_save_type;
+
+	slot1_types current_slot1_device;
 	slot2_types current_slot2_device;
 
 	std::vector <u8> memory_map;
@@ -232,6 +241,19 @@ class NTR_MMU
 		u32 oid_status;
 		bool oid_reset;
 	} magic_reader;
+
+	//NTR-027
+	struct activity_meter
+	{
+		u8 command;
+		u8 state;
+		u16 eeprom_addr;
+		u32 ir_counter;
+		bool connected;
+		bool start_comms;
+		std::vector <u8> data;
+		std::vector <u8> ir_stream;
+	} ntr_027;
 
 	//NDS9 3D GX FIFO
 	std::queue <u32> nds9_gx_fifo;
@@ -420,6 +442,11 @@ class NTR_MMU
 	void set_nds7_pc(u32* ex_pc);
 	void set_nds9_pc(u32* ex_pc);
 
+	//Slot-1 device functions
+	u16 get_checksum();
+	void ntr_027_process();
+
+	//Slot-2 device functions
 	bool slot2_hcv_load_barcode(std::string filename);
 	void magic_reader_process();
 

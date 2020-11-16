@@ -1452,7 +1452,7 @@ void NTR_LCD::process_gx_command()
 				lcd_3D_stat.tex_src_height = 8 << ((raw_value >> 23) & 0x7);
 				lcd_3D_stat.tex_format = ((raw_value >> 26) & 0x7);
 				lcd_3D_stat.tex_transformation = (raw_value >> 30);
-				lcd_3D_stat.tex_color_zero = (raw_value & 0x2000000) ? true : false;
+				lcd_3D_stat.tex_color_zero = (raw_value & 0x20000000) ? true : false;
 				lcd_3D_stat.repeat_tex_x = (raw_value & 0x10000) ? true : false;
 				lcd_3D_stat.repeat_tex_y = (raw_value & 0x20000) ? true : false;
 				lcd_3D_stat.flip_tex_x = (raw_value & 0x40000) ? true : false;

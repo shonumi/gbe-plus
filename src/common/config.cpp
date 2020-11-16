@@ -191,6 +191,7 @@ namespace config
 	};
 
 	//NDS Slot-2 device and file
+	u8 nds_slot1_device = 0;
 	u8 nds_slot2_device = 0;
 	std::string nds_slot2_file = "";
 
@@ -1042,12 +1043,29 @@ bool parse_ini_file()
 			{
 				util::from_str(ini_opts[++x], output);
 
-				if((output >= 0) && (output <= 6)) { config::ir_device = output; }
+				if((output >= 0) && (output <= 7)) { config::ir_device = output; }
 			}
 
 			else 
 			{ 
 				std::cout<<"GBE::Error - Could not parse gbe.ini (#ir_device) \n";
+				return false;
+			}
+		}
+
+		//Emulated Slot1 device
+		if(ini_item == "#slot1_device")
+		{
+			if((x + 1) < size) 
+			{
+				util::from_str(ini_opts[++x], output);
+
+				if((output >= 0) && (output <= 1)) { config::nds_slot1_device = output; }
+			}
+
+			else 
+			{ 
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#slot1_device) \n";
 				return false;
 			}
 		}
@@ -2446,6 +2464,14 @@ bool save_ini_file()
 			line_pos = output_count[x];
 
 			output_lines[line_pos] = "[#ir_device:" + util::to_str(config::ir_device) + "]";
+		}
+
+		//Emulated Slot1 device
+		if(ini_item == "#slot1_device")
+		{
+			line_pos = output_count[x];
+
+			output_lines[line_pos] = "[#slot1_device:" + util::to_str(config::nds_slot1_device) + "]";
 		}
 
 		//Emulated Slot2 device

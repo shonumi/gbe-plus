@@ -20,6 +20,7 @@ set(SRCS
 	debug.cpp
 	gx_render.cpp
 	slot2.cpp
+	ntr_027.cpp
 	)
 
 set(HEADERS
