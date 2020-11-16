@@ -283,6 +283,7 @@ struct ntr_lcd_3D_data
 	u16 tex_src_height;
 	u8 tex_format;
 	u8 tex_transformation;
+	bool tex_color_zero;
 	bool repeat_tex_x;
 	bool repeat_tex_y;
 	bool flip_tex_x;

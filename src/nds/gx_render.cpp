@@ -1452,6 +1452,7 @@ void NTR_LCD::process_gx_command()
 				lcd_3D_stat.tex_src_height = 8 << ((raw_value >> 23) & 0x7);
 				lcd_3D_stat.tex_format = ((raw_value >> 26) & 0x7);
 				lcd_3D_stat.tex_transformation = (raw_value >> 30);
+				lcd_3D_stat.tex_color_zero = (raw_value & 0x2000000) ? true : false;
 				lcd_3D_stat.repeat_tex_x = (raw_value & 0x10000) ? true : false;
 				lcd_3D_stat.repeat_tex_y = (raw_value & 0x20000) ? true : false;
 				lcd_3D_stat.flip_tex_x = (raw_value & 0x40000) ? true : false;
@@ -1751,7 +1752,7 @@ void NTR_LCD::gen_tex_2(u32 address)
 	}
 
 	//First palette color is used for transparency
-	tex_pal[0] &= ~0xFF000000;
+	if(lcd_3D_stat.tex_color_zero) { tex_pal[0] &= ~0xFF000000; }
 
 	while(tex_size)
 	{
@@ -1781,7 +1782,7 @@ void NTR_LCD::gen_tex_3(u32 address)
 	}
 
 	//First palette color is used for transparency
-	tex_pal[0] &= ~0xFF000000;
+	if(lcd_3D_stat.tex_color_zero) { tex_pal[0] &= ~0xFF000000; }
 
 	while(tex_size)
 	{
@@ -1809,7 +1810,7 @@ void NTR_LCD::gen_tex_4(u32 address)
 	}
 
 	//First palette color is used for transparency
-	tex_pal[0] &= ~0xFF000000;
+	if(lcd_3D_stat.tex_color_zero) { tex_pal[0] &= ~0xFF000000; }
 
 	while(tex_size)
 	{
