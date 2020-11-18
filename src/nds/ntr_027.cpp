@@ -127,9 +127,9 @@ void NTR_MMU::ntr_027_process()
 		case 2:
 			nds_aux_spi.data = ntr_027.ir_stream[ntr_027.ir_counter++];
 			
-			if(ntr_027.ir_counter == ntr_027.ir_stream.size())
+			if(ntr_027.ir_counter >= ntr_027.ir_stream.size())
 			{
-				ntr_027.state = 0;
+				ntr_027.state = 3;
 				ntr_027.ir_stream.clear();
 			}
 
