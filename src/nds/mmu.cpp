@@ -3031,6 +3031,20 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 						case 0x3:
 							for(u32 x = 0; x < 0x20000; x++) { memory_map[lcd_stat->vram_bank_addr[bank_id] + x] = 0; }
 							break;
+
+						case 0x4:
+							for(u32 x = 0; x < 0x10000; x++) { memory_map[lcd_stat->vram_bank_addr[bank_id] + x] = 0; }
+							break;
+
+						case 0x5:
+						case 0x6:
+						case 0x8:
+							for(u32 x = 0; x < 0x4000; x++) { memory_map[lcd_stat->vram_bank_addr[bank_id] + x] = 0; }
+							break;
+
+						case 0x7:
+							for(u32 x = 0; x < 0x8000; x++) { memory_map[lcd_stat->vram_bank_addr[bank_id] + x] = 0; }
+							break;
 					}
 				}
 
