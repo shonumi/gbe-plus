@@ -46,6 +46,7 @@ enum special_cart_types
 	AGB_RUMBLE,
 	AGB_GYRO_SENSOR,
 	AGB_TILT_SENSOR,
+	NDS_IR_CART,
 };
 
 enum gba_save_types

@@ -653,6 +653,7 @@ void main_menu::boot_game()
 		case 0x7: config::cart_type = AGB_RUMBLE; break;
 		case 0x8: config::cart_type = AGB_GYRO_SENSOR; break;
 		case 0x9: config::cart_type = AGB_TILT_SENSOR; break;
+		case 0xA: config::cart_type = NDS_IR_CART; break;
 	}
 
 	//Check rumble status

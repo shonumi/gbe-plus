@@ -116,6 +116,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	special_cart->addItem("AGB - Rumble");
 	special_cart->addItem("AGB - Gyro Sensor");
 	special_cart->addItem("AGB - Tilt Sensor");
+	special_cart->addItem("NDS - IR Cart");
 
 	QHBoxLayout* special_cart_layout = new QHBoxLayout;
 	special_cart_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
