@@ -10,6 +10,60 @@
 
 #include "mmu.h"
 
+/****** Sets up initial NTR-027 state ******/
+void NTR_MMU::setup_ntr_027()
+{
+	ntr_027.data.clear();
+	ntr_027.data.resize(0x10000, 0x00);
+	ntr_027.ir_stream.clear();
+	ntr_027.command = 0;
+	ntr_027.state = 0;
+	ntr_027.ir_counter = 0;
+	ntr_027.connected = false;
+	ntr_027.start_comms = false;
+
+	//Default 40-byte unique ID data - Different for each NTR-027, extracted from a real unit
+	ntr_027.data[0xFB9C] = 0x63;
+	ntr_027.data[0xFB9D] = 0x74;
+	ntr_027.data[0xFB9E] = 0xF4;
+	ntr_027.data[0xFB9F] = 0x05;
+	ntr_027.data[0xFBA0] = 0x01;
+	ntr_027.data[0xFBA1] = 0xC6;
+	ntr_027.data[0xFBA2] = 0x1E;
+	ntr_027.data[0xFBA3] = 0xAC;
+	ntr_027.data[0xFBA4] = 0x9E;
+	ntr_027.data[0xFBA5] = 0x45;
+	ntr_027.data[0xFBA6] = 0xC7;
+	ntr_027.data[0xFBA7] = 0x47;
+	ntr_027.data[0xFBA8] = 0xE0;
+	ntr_027.data[0xFBA9] = 0x00;
+	ntr_027.data[0xFBAA] = 0x10;
+	ntr_027.data[0xFBAB] = 0x08;
+	ntr_027.data[0xFBAC] = 0x00;
+	ntr_027.data[0xFBAD] = 0x01;
+	ntr_027.data[0xFBAE] = 0x42;
+	ntr_027.data[0xFBAF] = 0x06;
+	ntr_027.data[0xFBB0] = 0x00;
+	ntr_027.data[0xFBB1] = 0x00;
+	ntr_027.data[0xFBB2] = 0x00;
+	ntr_027.data[0xFBB3] = 0x00;
+	ntr_027.data[0xFBB4] = 0x00;
+	ntr_027.data[0xFBB5] = 0x00;
+	ntr_027.data[0xFBB6] = 0x00;
+	ntr_027.data[0xFBB7] = 0x00;
+	ntr_027.data[0xFBB8] = 0x00;
+	ntr_027.data[0xFBB9] = 0xFF;
+	ntr_027.data[0xFBBA] = 0x2F;
+	//Rest is zero
+
+	//Other data - Extracted from a real unit
+	ntr_027.data[0x1EE9] = 0x2;
+	ntr_027.data[0x1EEA] = 0x9F;
+
+	ntr_027.data[0xFCE2] = 0x2;
+	ntr_027.data[0xFCE3] = 0xF4;
+}
+
 /****** Calculates Checksum for IR data sent from NTR-027 ******/
 u16 NTR_MMU::get_checksum()
 {

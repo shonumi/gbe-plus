@@ -43,17 +43,7 @@ void NTR_MMU::reset()
 			current_slot1_device = SLOT1_NTR_031;
 
 			//Setup NTR-027
-			if(config::ir_device == 7)
-			{
-				ntr_027.data.clear();
-				ntr_027.data.resize(0x10000, 0x00);
-				ntr_027.ir_stream.clear();
-				ntr_027.command = 0;
-				ntr_027.state = 0;
-				ntr_027.ir_counter = 0;
-				ntr_027.connected = false;
-				ntr_027.start_comms = false;
-			}
+			if(config::ir_device == 7) { setup_ntr_027(); }
 
 			break;
 	}

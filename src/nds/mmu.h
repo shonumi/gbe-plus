@@ -444,6 +444,7 @@ class NTR_MMU
 
 	//Slot-1 device functions
 	u16 get_checksum();
+	void setup_ntr_027();
 	void ntr_027_process();
 
 	//Slot-2 device functions
