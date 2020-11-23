@@ -28,7 +28,7 @@ The Multi Plust On System (MPOS) is an accessory for the Bouken Yuuki Pluster Wo
 - Bouken Yuuki Pluster World: Densetsu no Plust Gate EX
 - Bouken Yuuki Pluster World: Pluston GP
 
-All 3 games are more or less unplayable with the MPOS. A few minigames can be played in Densetsu no Plust Gate EX, but in both that game and the regular Densetsu no Plust Gate, starting the main RPG requires the MPOS be attached with a Pluster Figure inserted. In Pluston GP, many of the menus can be navigated, but beginning a race also require the accessory and an inserted figurine.
+All 3 games are more or less unplayable without the MPOS. A few minigames can be played in Densetsu no Plust Gate EX, but in both that game and the regular Densetsu no Plust Gate, starting the main RPG requires the MPOS be attached with a Pluster Figure inserted. In Pluston GP, many of the menus can be navigated, but beginning a race also requires the accessory and an inserted figurine.
 
 ***************************************************
 4. Communication Protocol

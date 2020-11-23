@@ -15,7 +15,7 @@ Starting with Mega Man Battle Network 4, Capcom along with Takara introduced GBA
 ***************************************************
 
 - Battle Chip Gates come in 3 hardware revisions: the original Battle Chip Gate, Progress Gate, and Beast Link Gate (Battle Network 4, 5, and 6 respectively).
-- Each Battle Chip Gate accepts physical Battle Chip into a slot on the top or side of the unit (Progress Chip Gate and Beast Link Gate do the latter).
+- Each Battle Chip Gate accepts physical Battle Chips into a slot on the top or side of the unit (Progress Chip Gate and Beast Link Gate do the latter).
 - Each Battle Chip Gate exposes a Link Cable port on its side, allowing for multiplayer while using the device.
 - Each Battle Chip Gate uses semi-retractable clamps (similar the the GBA-GCN cable) to keep the unit stable and in place.
 - Internally, Battle Chips are essentially simple electronic circuits. Their configuration effectively represents a numerical ID to the Battle Chip Gates, which the games then use.
