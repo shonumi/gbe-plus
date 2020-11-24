@@ -1498,7 +1498,6 @@ void NTR_LCD::process_gx_command()
 		//BOX_TEST
 		case 0x70:
 			{
-				/*
 				bool in_view_volume = true;
 
 				float x = get_u16_float(read_param_u16(0));
@@ -1509,8 +1508,8 @@ void NTR_LCD::process_gx_command()
 				float h = get_u16_float(read_param_u16(8)); 
 				float d = get_u16_float(read_param_u16(10));
 
-				gx_vector cuboid[8];
-				for(u32 x = 0; x < 8; x++) { cuboid[x].resize(4); }
+				gx_matrix cuboid[8];
+				for(u32 x = 0; x < 8; x++) { cuboid[x].resize(4, 1); }
 
 				//Generate cuboid XYZ coordinates
 				cuboid[0][0] = x;		cuboid[0][1] = y;	 	cuboid[0][2] = z;		cuboid[0][3] = 1.0;
@@ -1548,7 +1547,6 @@ void NTR_LCD::process_gx_command()
 						break;
 					}
 				}
-				*/
 			}
 
 			break;
