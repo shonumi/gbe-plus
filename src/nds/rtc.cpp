@@ -130,7 +130,7 @@ void NTR_MMU::write_rtc()
 									tm* current_time = localtime(&system_time);
 
 									//Year
-									nds7_rtc.serial_data[0] = current_time->tm_year + 2;
+									nds7_rtc.serial_data[0] = current_time->tm_year;
 									nds7_rtc.serial_data[0] += config::rtc_offset[5];
 									nds7_rtc.serial_data[0] = (nds7_rtc.serial_data[0] % 100);
 									nds7_rtc.serial_data[0] = util::get_bcd(nds7_rtc.serial_data[0]);
