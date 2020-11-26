@@ -1487,6 +1487,11 @@ void NTR_LCD::process_gx_command()
 			lcd_3D_stat.begin_strips = false;
 			break;
 
+		//SWAPBUFFERS
+		case 0x50:
+			lcd_3D_stat.gx_state |= 0x80;
+			break;
+
 		//VIEWPORT
 		case 0x60:
 			lcd_3D_stat.view_port_y2 = (lcd_3D_stat.command_parameters[0] & 0xBF);
@@ -1547,6 +1552,9 @@ void NTR_LCD::process_gx_command()
 						break;
 					}
 				}
+
+				if(in_view_volume) { lcd_3D_stat.gx_stat |= 0x2; }
+				else { lcd_3D_stat.gx_stat &= 0x2; }
 			}
 
 			break;
