@@ -1481,6 +1481,12 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 						//std::cout<<"GX - END_VTXS\n";
 						break;
 
+					//SWAP_BUFFERS
+					case 0x4000540:
+						lcd_3D_stat->current_gx_command = 0x50;
+						lcd_3D_stat->process_command = true;
+						break;
+
 					//BOX TEST
 					case 0x40005C0:
 					case 0x40005C1:
@@ -4805,16 +4811,6 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 				//Grab alpha value separately
 				lcd_3D_stat->rear_plane_alpha = (memory_map[0x4000352] & 0x1F);
-			}
-
-			break;
-
-		//SWAP_BUFFERS
-		case 0x4000540:
-			if(access_mode)
-			{
-				//std::cout<<"GX - SWAP BUFFERS\n";
-				lcd_3D_stat->gx_state |= 0x80;
 			}
 
 			break;
