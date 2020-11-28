@@ -88,10 +88,6 @@ void NTR_LCD::reset()
 	gx_render_buffer[1].resize(0xC000, 0);
 	gx_z_buffer.resize(0xC000, 4096);
 
-	capture_on = false;
-	capture_buffer.resize(0xC000, 0);
-	capture_slot = 0;
-
 	line_buffer.resize(8);
 	for(u32 x = 0; x < 8; x++) { line_buffer[x].resize(0x100); }
 
@@ -169,6 +165,9 @@ void NTR_LCD::reset()
 	lcd_stat.vcount_irq_enable_b = false;
 
 	lcd_stat.cap_cnt = 0;
+	lcd_stat.capture_slot = 0;
+	lcd_stat.cap_started = false;
+	lcd_stat.cap_finished = true;
 
 	//Misc BG initialization
 	for(int x = 0; x < 4; x++)
@@ -3045,80 +3044,6 @@ void NTR_LCD::render_bg_mode_direct(u32 bg_control)
 /****** Render pixels for a given scanline (per-pixel) ******/
 void NTR_LCD::render_scanline()
 {
-	bool recent_cap = false;
-
-	//Perform Engine A display capture if necessary
-	if((lcd_stat.cap_cnt & 0xE0000000) == 0x80000000)
-	{
-		capture_on = true;
-		recent_cap = true;
-
-		u16 vram_color = 0;
-		u16 addr = lcd_stat.current_scanline * 256;
-		u32 color = 0;
-
-		u16 h = 0;
-		u16 w = 0;
-
-		//Calculate capture dimensions
-		switch((lcd_stat.cap_cnt >> 20) & 0x3)
-		{
-			case 0x0:
-				h = 128;
-				w = 128;
-				break;
-
-			case 0x1:
-				h = 64;
-				w = 256;
-				break;
-
-			case 0x2:
-				h = 128;
-				w = 256;
-				break;
-
-			case 0x3:
-				h = 192;
-				w = 256;
-				break;
-		}
-
-		render_bg_scanline(NDS_DISPCNT_A);
-
-		//Store captured pixel data in buffer for later transfer to VRAM
-		for(u32 x = 0; x < 256; x++)
-		{
-			if((x < w) && (lcd_stat.current_scanline < h))
-			{
-				//Convert 32-bit ARGB to 15-bit ARGB
-				color = scanline_buffer_a[x];
-
-				u8 r = (color >> 19) & 0x1F;
-				u8 g = (color >> 11) & 0x1F;
-				u8 b = (color >> 3) & 0x1F;
-
-				vram_color = 0x8000 | (b << 10) | (g << 5) | (r);
-			}
-
-			else { vram_color = 0; }
-
-			capture_buffer[addr++] = vram_color;
-
-			mem->write_u16_fast(addr, vram_color);
-		}
-
-		//Set VRAM bank for capture
-		if(lcd_stat.current_scanline == 0) { capture_slot = ((lcd_stat.cap_cnt >> 16) & 0x3); }
-
-		//Reset busy flag before entering VBlank
-		if(lcd_stat.current_scanline == 191)
-		{
-			lcd_stat.cap_cnt &= ~0x80000000;
-			mem->write_u32_fast(0x4000064, lcd_stat.cap_cnt);
-		}
-	}
-
 	//Engine A - Render based on display modes
 	switch(lcd_stat.display_mode_a)
 	{
@@ -3134,7 +3059,7 @@ void NTR_LCD::render_scanline()
 
 		//Display Mode 1 - Tiled BG and OBJ
 		case 0x1:
-			if(!recent_cap) { render_bg_scanline(NDS_DISPCNT_A); }
+			render_bg_scanline(NDS_DISPCNT_A);
 			break;
 
 		//Display Mode 2 - VRAM
@@ -4247,6 +4172,14 @@ void NTR_LCD::step()
 
 			//Start GXFIFO DMA
 			mem->start_gxfifo_dma();
+
+			//Reset Display Capture busy flag when entering VBlank
+			if(lcd_stat.cap_started)
+			{
+				lcd_stat.cap_started = false;
+				lcd_stat.cap_cnt &= ~0x80000000;
+				mem->write_u32_fast(0x4000064, lcd_stat.cap_cnt);
+			}
 		}
 
 		//Increment scanline after HBlank starts
@@ -4289,9 +4222,6 @@ void NTR_LCD::step()
 
 				//Start Display Sync DMA
 				mem->start_dma(3);
-
-				//Copy capture buffer to designated VRAM bank
-				if(capture_on) { copy_capture_buffer(); }
 			}
 		}
 	}
@@ -4425,24 +4355,6 @@ void NTR_LCD::reload_affine_references(u32 bg_control)
 	if(engine_a) { lcd_stat.bg_affine_a[aff_id].y_pos = lcd_stat.bg_affine_a[aff_id].y_ref; }
 	else { lcd_stat.bg_affine_b[aff_id].y_pos = lcd_stat.bg_affine_b[aff_id].y_ref; }
 }
-
-/****** Copies captured buffer to VRAM bank ******/
-void NTR_LCD::copy_capture_buffer()
-{
-	for(u32 y = 0; y < 192; y++)
-	{
-		u16 src_addr = y * 256;
-		u32 dest_addr = lcd_stat.vram_bank_addr[capture_slot] + (((lcd_stat.cap_cnt >> 18) & 0x3) * 0x8000) + (512 * y);
-
-		for(u32 x = 0; x < 256; x++)
-		{
-			mem->write_u16_fast(dest_addr, capture_buffer[src_addr++]);
-			dest_addr += 2;
-		}
-	}
-
-	capture_on = false;
-} 
 
 /****** Generates the game icon (non-animated) from NDS cart header ******/
 bool NTR_LCD::get_cart_icon(SDL_Surface* nds_icon)

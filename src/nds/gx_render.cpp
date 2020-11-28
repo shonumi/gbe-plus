@@ -1490,6 +1490,21 @@ void NTR_LCD::process_gx_command()
 		//SWAPBUFFERS
 		case 0x50:
 			lcd_3D_stat.gx_state |= 0x80;
+
+			//Copy current buffer into final 3D buffer for capture unit
+			if(lcd_stat.cap_started)
+			{
+				mem->capture_buffer.clear();
+				mem->capture_buffer.resize(0xC000, 0);
+		
+				u16 current_buffer = lcd_3D_stat.buffer_id;
+
+				for(u32 x = 0; x < gx_screen_buffer[current_buffer].size(); x++)
+				{
+					mem->capture_buffer[x] = gx_screen_buffer[current_buffer][x];
+				}
+			}
+
 			break;
 
 		//VIEWPORT

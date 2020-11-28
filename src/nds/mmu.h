@@ -83,6 +83,8 @@ class NTR_MMU
  	std::vector <u8> dtcm;
 	std::vector <u8> save_data;
 	std::vector <u8> nds7_vwram;
+
+	std::vector<u32> capture_buffer;
 	
 	//NDS7 IPC FIFO
 	struct nds7_interprocess
@@ -435,6 +437,7 @@ class NTR_MMU
 	u32 key_code_read_u32(u32 index);
 
 	void get_gx_fifo_param_length();
+	void copy_capture_buffer(u32 capture_addr);
 
 	void set_lcd_data(ntr_lcd_data* ex_lcd_stat);
 	void set_lcd_3D_data(ntr_lcd_3D_data* ex_lcd_3D_stat);

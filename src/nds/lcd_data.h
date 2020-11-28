@@ -184,6 +184,9 @@ struct ntr_lcd_data
 	u8 current_window_b;
 
 	u32 cap_cnt;
+	u8 capture_slot;
+	bool cap_started;
+	bool cap_finished;
 
 	bool vblank_irq_enable_a;
 	bool hblank_irq_enable_a;

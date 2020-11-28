@@ -142,7 +142,6 @@ class NTR_LCD
 
 	//Display Capture
 	bool capture_on;
-	u8 capture_slot;
 	std::vector<u16> capture_buffer;
 
 	bool full_scanline_render_a;
@@ -229,9 +228,6 @@ class NTR_LCD
 
 	//Window functions
 	void calculate_window_on_scanline();
-
-	//Misc functions
-	void copy_capture_buffer();
 };
 
 #endif // NDS_LCD

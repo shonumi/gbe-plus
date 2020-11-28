@@ -93,6 +93,9 @@ void NTR_MMU::reset()
 	nds7_vwram.clear();
 	nds7_vwram.resize(0x40000, 0);
 
+	capture_buffer.clear();
+	capture_buffer.resize(0xC000, 0);
+
 	nds7_bios.clear();
 	nds7_bios.resize(0x4000, 0);
 	nds7_bios_vector = 0x0;
@@ -3224,6 +3227,13 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 						break;
 				}
+
+				//Finish display capture when switching VRAM slot from LCDC to another mode
+				if((bank_id == lcd_stat->capture_slot) && (!lcd_stat->cap_finished) && (mst))
+				{
+					copy_capture_buffer(lcd_stat->vram_bank_addr[bank_id]);
+					lcd_stat->cap_finished = true;
+				}
 			}
 
 			break;
@@ -3245,6 +3255,13 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		case NDS_CAPCNT+3:
 			memory_map[address] = value;
 			lcd_stat->cap_cnt = ((memory_map[NDS_CAPCNT+3] << 24) | (memory_map[NDS_CAPCNT+2] << 16) | (memory_map[NDS_CAPCNT+1] << 8) | memory_map[NDS_CAPCNT]);
+
+			if(lcd_stat->cap_cnt & 0x80000000)
+			{
+				lcd_stat->capture_slot = ((lcd_stat->cap_cnt >> 16) & 0x3);
+				lcd_stat->cap_started = true;
+				lcd_stat->cap_finished = false;
+			}
 
 			break;
 
@@ -6252,6 +6269,67 @@ void NTR_MMU::get_gx_fifo_param_length()
 
 		pos += 8;
 		command >>= 8;
+	}
+}
+
+/****** Updates Display Capture Unit data ******/
+void NTR_MMU::copy_capture_buffer(u32 capture_addr)
+{
+	u16 vram_color = 0;
+	u32 color = 0;
+
+	u16 h = 0;
+	u16 w = 0;
+
+	//Calculate capture dimensions
+	switch((lcd_stat->cap_cnt >> 20) & 0x3)
+	{
+		case 0x0:
+			h = 128;
+			w = 128;
+			break;
+
+		case 0x1:
+			h = 64;
+			w = 256;
+			break;
+
+		case 0x2:
+			h = 128;
+			w = 256;
+			break;
+
+		case 0x3:
+			h = 192;
+			w = 256;
+			break;
+	}
+
+	//Copy captured pixel data in buffer, convert colors, and transfer to VRAM
+	for(u32 y = 0; y < 192; y++)
+	{
+		u32 dest_addr = capture_addr + (((lcd_stat->cap_cnt >> 18) & 0x3) * 0x8000) + (512 * y);
+
+		for(u32 x = 0; x < 256; x++)
+		{
+			if((x < w) && (y < h))
+			{
+				//Convert 32-bit ARGB to 15-bit ARGB
+				color = capture_buffer[(y * 256) + x];
+
+
+				u32 r = (color >> 19) & 0x1F;
+				u32 g = (color >> 11) & 0x1F;
+				u32 b = (color >> 3) & 0x1F;
+
+				vram_color = 0x8000 | (b << 10) | (g << 5) | (r);
+			}
+
+			else { vram_color = 0; }
+
+			write_u16_fast(dest_addr, vram_color);
+			dest_addr += 2;
+		}
 	}
 }
 	
