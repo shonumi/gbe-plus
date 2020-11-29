@@ -561,7 +561,7 @@ void NTR_LCD::update_oam()
 				else if(x < 128) { obj[x].addr = base + ((obj[x].tile_number & bitmap_mask_a) * 0x10) + ((obj[x].tile_number & ~bitmap_mask_a) * 0x80); }
 
 				//Engine B - 2D
-				else { obj[x].addr = base + ((obj[x].tile_number & bitmap_mask_a) * 0x10) + ((obj[x].tile_number & ~bitmap_mask_a) * 0x80); }
+				else { obj[x].addr = base + ((obj[x].tile_number & bitmap_mask_a) * 0x20) + ((obj[x].tile_number & ~bitmap_mask_a) * 0x80); }
 			}
 
 			//Read and parse OAM affine attribute
@@ -1494,11 +1494,14 @@ void NTR_LCD::render_obj_scanline(u32 bg_control)
 						//2D addressing
 						else
 						{
-							u8 target_tile = (obj[obj_id].tile_number + meta_x + (meta_y << (disp_cnt & 0x20) ? 5 : 4));
+							u8 meta_shift = (disp_cnt & 0x20) ? 5 : 4;
+							u8 obj_shift = (disp_cnt & 0x20) ? 9 : 8;
+
+							u16 target_tile = obj[obj_id].tile_number + meta_x + (meta_y << meta_shift);
 							u8 mask = (engine_id) ? bitmap_mask_b : bitmap_mask_a;
 							
 							obj_addr = base + ((target_tile & mask) * 0x10) + ((target_tile & ~mask) * 0x80);
-							obj_addr += (((obj_y % 8) * 8) + (obj_x % 8)) >> 1;
+							obj_addr += ((obj_x % 8) << 1) + ((obj_y % 8) << obj_shift);
 						}
 
 						raw_pixel = mem->read_u16(obj_addr);
