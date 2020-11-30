@@ -1492,7 +1492,7 @@ void NTR_LCD::process_gx_command()
 			lcd_3D_stat.gx_state |= 0x80;
 
 			//Copy current buffer into final 3D buffer for capture unit
-			if(lcd_stat.cap_started)
+			if(!lcd_stat.cap_finished)
 			{
 				mem->capture_buffer.clear();
 				mem->capture_buffer.resize(0xC000, 0);
