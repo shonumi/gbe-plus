@@ -301,6 +301,14 @@ void NTR_MMU::reset()
 	vram_tex_slot[2] = 0;
 	vram_tex_slot[3] = 0;
 
+	for(u32 y = 0; y < 4; y++)
+	{
+		for(u32 x = 0; x < 9; x++)
+		{
+			vram_bank_log[x][y] = 0;
+		}
+	}
+
 	access_mode = 1;
 	wram_mode = 3;
 	rumble_state = 0;
@@ -3017,34 +3025,46 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 					}
 				}
 
+				//Deallocate VRAM data when disabling a bank
 				else
 				{
 					lcd_stat->vram_bank_enable[bank_id] = false;
 
-					//Deallocate VRAM data when disabling a bank
-					switch(bank_id)
+					for(u32 y = 0; y < 5; y++)
 					{
-						case 0x0:
-						case 0x1:
-						case 0x2:
-						case 0x3:
-							for(u32 x = 0; x < 0x20000; x++) { memory_map[lcd_stat->vram_bank_addr[bank_id] + x] = 0; }
-							break;
+						u32 v_addr = vram_bank_log[bank_id][y];
 
-						case 0x4:
-							for(u32 x = 0; x < 0x10000; x++) { memory_map[lcd_stat->vram_bank_addr[bank_id] + x] = 0; }
-							break;
+						if(v_addr)
+						{
+							switch(bank_id)
+							{
+								case 0x0:
+								case 0x1:
+								case 0x2:
+								case 0x3:
+									for(u32 x = 0; x < 0x20000; x++) { memory_map[v_addr + x] = 0; }
+									break;
 
-						case 0x5:
-						case 0x6:
-						case 0x8:
-							for(u32 x = 0; x < 0x4000; x++) { memory_map[lcd_stat->vram_bank_addr[bank_id] + x] = 0; }
-							break;
+								case 0x4:
+									for(u32 x = 0; x < 0x10000; x++) { memory_map[v_addr + x] = 0; }
+									break;
 
-						case 0x7:
-							for(u32 x = 0; x < 0x8000; x++) { memory_map[lcd_stat->vram_bank_addr[bank_id] + x] = 0; }
-							break;
+								case 0x5:
+								case 0x6:
+								case 0x8:
+									for(u32 x = 0; x < 0x4000; x++) { memory_map[v_addr + x] = 0; }
+									break;
+
+								case 0x7:
+									for(u32 x = 0; x < 0x8000; x++) { memory_map[v_addr + x] = 0; }
+									break;
+							}
+						}
+
+						vram_bank_log[bank_id][y] = 0;
 					}
+
+					return;
 				}
 
 				switch(mst)
@@ -3063,6 +3083,8 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 							case 0x7: lcd_stat->vram_bank_addr[7] = 0x6898000; break;
 							case 0x8: lcd_stat->vram_bank_addr[8] = 0x68A0000; break;
 						}
+
+						vram_bank_log[bank_id][mst] = lcd_stat->vram_bank_addr[bank_id];
 		
 						break;
 
@@ -3094,6 +3116,8 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 								lcd_stat->vram_bank_addr[8] = 0x6208000;
 								break;
 						}
+
+						vram_bank_log[bank_id][mst] = lcd_stat->vram_bank_addr[bank_id];
 							
 						break;
 
@@ -3131,6 +3155,8 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 								lcd_stat->vram_bank_addr[8] = 0x6600000;
 								break;
 						}
+
+						if(bank_id != 7) { vram_bank_log[bank_id][mst] = lcd_stat->vram_bank_addr[bank_id]; }
 
 						break;
 
@@ -3171,6 +3197,8 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 								break;
 						}
 
+						if(bank_id < 7) { vram_bank_log[bank_id][mst] = lcd_stat->vram_bank_addr[bank_id]; }
+
 						break;
 
 					//MST 4
@@ -3179,10 +3207,12 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 						{
 							case 0x2:
 								lcd_stat->vram_bank_addr[2] = 0x6200000;
+								vram_bank_log[2][4] = 0x6200000;
 								break;
 
 							case 0x3:
 								lcd_stat->vram_bank_addr[3] = 0x6600000;
+								vram_bank_log[3][4] = 0x6600000;
 								break;
 
 							case 0x4:

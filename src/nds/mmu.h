@@ -372,6 +372,7 @@ class NTR_MMU
 	u32 pal_b_obj_slot[4];
 
 	u32 vram_tex_slot[4];
+	u32 vram_bank_log[9][5];
 
 	//Advanced debugging
 	#ifdef GBE_DEBUG
