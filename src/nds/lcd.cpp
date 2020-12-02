@@ -333,6 +333,10 @@ void NTR_LCD::reset()
 	lcd_3D_stat.poly_min_x = 0;
 	lcd_3D_stat.poly_max_x = 0;
 
+	lcd_3D_stat.poly_mode = 0;
+	lcd_3D_stat.poly_alpha = 0;
+	lcd_3D_stat.poly_id = 0;
+
 	//3D GFX command parameters
 	for(int x = 0; x < 128; x++) { lcd_3D_stat.command_parameters[x] = 0; }
 	

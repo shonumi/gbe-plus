@@ -279,6 +279,7 @@ struct ntr_lcd_3D_data
 	s32 poly_min_x;
 	s32 poly_max_x;
 
+	//Texture Attribute
 	u32 tex_offset;
 	u32 pal_base;
 	u32 pal_bank_addr;
@@ -292,6 +293,11 @@ struct ntr_lcd_3D_data
 	bool flip_tex_x;
 	bool flip_tex_y;
 	std::vector <u32> tex_data;
+
+	//Polygon Attribute
+	u8 poly_id;
+	u8 poly_alpha;
+	u8 poly_mode;
 
 	float tex_coord_x[4];
 	float tex_coord_y[4];

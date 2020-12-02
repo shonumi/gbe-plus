@@ -1442,6 +1442,18 @@ void NTR_LCD::process_gx_command()
 
 			break;
 
+		//POLYGON_ATTR
+		case 0x29:
+			{
+				u32 raw_value = read_param_u32(0);
+
+				lcd_3D_stat.poly_mode = ((raw_value >> 4) & 0x3);
+				lcd_3D_stat.poly_alpha = ((raw_value >> 16) & 0x1F);
+				lcd_3D_stat.poly_id = ((raw_value >> 24) & 0x3F);
+			}
+
+			break;
+
 		//TEXIMAGE_PARAM
 		case 0x2A:
 			{

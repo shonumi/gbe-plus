@@ -1447,6 +1447,17 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 						break;
 
+					//POLYGON_ATTR
+					case 0x40004A4:
+					case 0x40004A5:
+					case 0x40004A6:
+					case 0x40004A7:
+						lcd_3D_stat->current_gx_command = 0x29;
+						lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = value;
+						if(lcd_3D_stat->parameter_index == 4) { lcd_3D_stat->process_command = true; }
+
+						break;
+
 					//TEXIMAGE_PARAM
 					case 0x40004A8:
 					case 0x40004A9:
