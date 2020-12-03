@@ -357,7 +357,9 @@ void NTR_LCD::render_geometry()
 void NTR_LCD::fill_poly_solid()
 {
 	u8 y_coord = 0;
+	u8 buffer_id = (lcd_3D_stat.buffer_id + 1) & 0x1;
 	u32 buffer_index = 0;
+	u32 vert_color = 0;
 
 	for(u32 x = lcd_3D_stat.poly_min_x; x < lcd_3D_stat.poly_max_x; x++)
 	{
@@ -376,14 +378,19 @@ void NTR_LCD::fill_poly_solid()
 
 		while(y_coord < lcd_3D_stat.lo_fill[x])
 		{
+			vert_color = vert_colors[0];
+
 			//Convert plot points to buffer index
 			buffer_index = (y_coord * 256) + x;
 
 			//Check Z buffer if drawing is applicable
 			if(z_start < gx_z_buffer[buffer_index])
 			{
-				gx_screen_buffer[(lcd_3D_stat.buffer_id + 1) & 0x1][buffer_index] = vert_colors[0];
-				gx_render_buffer[(lcd_3D_stat.buffer_id + 1) & 0x1][buffer_index] = 1;
+				//Do alpha-blending if necessary
+				if(lcd_3D_stat.poly_alpha) { vert_color = alpha_blend_pixel(vert_color, gx_screen_buffer[buffer_id][buffer_index], lcd_3D_stat.poly_alpha); }
+
+				gx_screen_buffer[buffer_id][buffer_index] = vert_color;
+				gx_render_buffer[buffer_id][buffer_index] = 1;
 				gx_z_buffer[buffer_index] = z_start;
 			}
 
@@ -1497,6 +1504,12 @@ void NTR_LCD::process_gx_command()
 		//END_VTXS:
 		case 0x41:
 			lcd_3D_stat.begin_strips = false;
+
+			//Reset polygon attributes
+			lcd_3D_stat.poly_mode = 0;
+			lcd_3D_stat.poly_alpha = 0;
+			lcd_3D_stat.poly_id = 0;
+
 			break;
 
 		//SWAPBUFFERS
@@ -1707,6 +1720,29 @@ u32 NTR_LCD::interpolate_rgb(u32 color_1, u32 color_2, float ratio)
 	int b = ((b2 - b1) * ratio) + b1; 
 	
 	return 0xFF000000 | (r << 16) | (g << 8) | (b);
+}
+
+/****** Alpha blends given RGB value with 3D framebuffer ******/
+u32 NTR_LCD::alpha_blend_pixel(u32 color_1, u32 color_2, u8 poly_alpha)
+{
+	if(poly_alpha == 0) { return color_2; }
+
+	u8 poly_min = 0x1F - poly_alpha;
+	u8 poly_max = poly_alpha + 1;
+
+	u16 poly_r = (color_1 >> 19) & 0x1F;
+	u16 poly_g = (color_1 >> 11) & 0x1F;
+	u16 poly_b = (color_1 >> 3) & 0x1F;
+
+	u16 frame_r = (color_2 >> 19) & 0x1F;
+	u16 frame_g = (color_2 >> 11) & 0x1F;
+	u16 frame_b = (color_2 >> 3) & 0x1F;
+
+	frame_r = ((poly_r * poly_max) + (frame_r * poly_min)) >> 5;
+	frame_g = ((poly_g * poly_max) + (frame_g * poly_min)) >> 5;
+	frame_b = ((poly_b * poly_max) + (frame_b * poly_min)) >> 5;
+
+	return 0xFF000000 | (frame_r << 19) | (frame_g << 11) | (frame_b << 3);
 }
 
 /****** Alpha blends given texel with 3D framebuffer ******/

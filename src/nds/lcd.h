@@ -206,6 +206,7 @@ class NTR_LCD
 	u32 get_rgb15(u16 color_bytes);
 	u32 interpolate_rgb(u32 color_1, u32 color_2, float ratio);
 	u32 alpha_blend_texel(u32 color_1, u32 color_2);
+	u32 alpha_blend_pixel(u32 color_1, u32 color_2, u8 poly_alpha);
 	void update_clip_matrix();
 	float get_u16_float(u16 value);
 	u32 get_u32_fixed(float raw_value);
