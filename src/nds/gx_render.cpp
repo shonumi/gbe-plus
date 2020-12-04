@@ -391,7 +391,9 @@ void NTR_LCD::fill_poly_solid()
 
 				gx_screen_buffer[buffer_id][buffer_index] = vert_color;
 				gx_render_buffer[buffer_id][buffer_index] = 1;
-				gx_z_buffer[buffer_index] = z_start;
+
+				//Update Z-buffer if necessary
+				if(lcd_3D_stat.poly_new_depth) { gx_z_buffer[buffer_index] = z_start; }
 			}
 
 			y_coord++;
@@ -404,6 +406,7 @@ void NTR_LCD::fill_poly_solid()
 void NTR_LCD::fill_poly_interpolated()
 {
 	u8 y_coord = 0;
+	u8 buffer_id = (lcd_3D_stat.buffer_id + 1) & 0x1;
 	u32 buffer_index = 0;
 
 	for(u32 x = lcd_3D_stat.poly_min_x; x < lcd_3D_stat.poly_max_x; x++)
@@ -439,9 +442,11 @@ void NTR_LCD::fill_poly_interpolated()
 			//Check Z buffer if drawing is applicable
 			if(z_start < gx_z_buffer[buffer_index])
 			{
-				gx_screen_buffer[(lcd_3D_stat.buffer_id + 1) & 0x1][buffer_index] = interpolate_rgb(c1, c2, c_ratio);
-				gx_render_buffer[(lcd_3D_stat.buffer_id + 1) & 0x1][buffer_index] = 1;
-				gx_z_buffer[buffer_index] = z_start;
+				gx_screen_buffer[buffer_id][buffer_index] = interpolate_rgb(c1, c2, c_ratio);
+				gx_render_buffer[buffer_id][buffer_index] = 1;
+
+				//Update Z-buffer if necessary
+				if(lcd_3D_stat.poly_new_depth) { gx_z_buffer[buffer_index] = z_start; }
 			}
 
 			y_coord++;
@@ -455,6 +460,7 @@ void NTR_LCD::fill_poly_interpolated()
 void NTR_LCD::fill_poly_textured()
 {
 	u8 y_coord = 0;
+	u8 buffer_id = (lcd_3D_stat.buffer_id + 1) & 0x1;
 	u32 buffer_index = 0;
 	u32 texel_index = 0;
 	u32 texel = 0;
@@ -574,11 +580,13 @@ void NTR_LCD::fill_poly_textured()
 				if(texel & 0xFF000000)
 				{
 					//Alpha-blend if necessary
-					if((texel >> 24) != 0xFF) { texel = alpha_blend_texel(texel, gx_screen_buffer[(lcd_3D_stat.buffer_id + 1) & 0x1][buffer_index]); }
+					if((texel >> 24) != 0xFF) { texel = alpha_blend_texel(texel, gx_screen_buffer[buffer_id][buffer_index]); }
 
-					gx_screen_buffer[(lcd_3D_stat.buffer_id + 1) & 0x1][buffer_index] = texel;
-					gx_render_buffer[(lcd_3D_stat.buffer_id + 1) & 0x1][buffer_index] = 1;
-					gx_z_buffer[buffer_index] = z_start;
+					gx_screen_buffer[buffer_id][buffer_index] = texel;
+					gx_render_buffer[buffer_id][buffer_index] = 1;
+
+					//Update Z-buffer if necessary
+					if(lcd_3D_stat.poly_new_depth) { gx_z_buffer[buffer_index] = z_start; }
 				}
 			}
 
@@ -1457,6 +1465,7 @@ void NTR_LCD::process_gx_command()
 				lcd_3D_stat.poly_mode = ((raw_value >> 4) & 0x3);
 				lcd_3D_stat.poly_alpha = ((raw_value >> 16) & 0x1F);
 				lcd_3D_stat.poly_id = ((raw_value >> 24) & 0x3F);
+				lcd_3D_stat.poly_new_depth = ((raw_value & 0x800) || (lcd_3D_stat.poly_alpha == 0x1F)) ? true : false;
 			}
 
 			break;
@@ -1509,6 +1518,7 @@ void NTR_LCD::process_gx_command()
 			lcd_3D_stat.poly_mode = 0;
 			lcd_3D_stat.poly_alpha = 0;
 			lcd_3D_stat.poly_id = 0;
+			lcd_3D_stat.poly_new_depth = true;
 
 			break;
 
@@ -1748,7 +1758,7 @@ u32 NTR_LCD::alpha_blend_pixel(u32 color_1, u32 color_2, u8 poly_alpha)
 /****** Alpha blends given texel with 3D framebuffer ******/
 u32 NTR_LCD::alpha_blend_texel(u32 color_1, u32 color_2)
 {
-	u8 poly_alpha = (color_1 >> 24) & 0x1F;
+	u8 poly_alpha = (lcd_3D_stat.poly_alpha) ? lcd_3D_stat.poly_alpha : ((color_1 >> 24) & 0x1F);
 	if(poly_alpha == 0) { return color_2; }
 
 	u8 poly_min = 0x1F - poly_alpha;
