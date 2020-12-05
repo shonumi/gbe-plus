@@ -408,6 +408,7 @@ void NTR_LCD::fill_poly_interpolated()
 	u8 y_coord = 0;
 	u8 buffer_id = (lcd_3D_stat.buffer_id + 1) & 0x1;
 	u32 buffer_index = 0;
+	u32 color = 0;
 
 	for(u32 x = lcd_3D_stat.poly_min_x; x < lcd_3D_stat.poly_max_x; x++)
 	{
@@ -442,7 +443,12 @@ void NTR_LCD::fill_poly_interpolated()
 			//Check Z buffer if drawing is applicable
 			if(z_start < gx_z_buffer[buffer_index])
 			{
-				gx_screen_buffer[buffer_id][buffer_index] = interpolate_rgb(c1, c2, c_ratio);
+				color = interpolate_rgb(c1, c2, c_ratio);
+
+				//Do alpha-blending if necessary
+				if(lcd_3D_stat.poly_alpha) { color = alpha_blend_pixel(color, gx_screen_buffer[buffer_id][buffer_index], lcd_3D_stat.poly_alpha); }
+
+				gx_screen_buffer[buffer_id][buffer_index] = color;
 				gx_render_buffer[buffer_id][buffer_index] = 1;
 
 				//Update Z-buffer if necessary
