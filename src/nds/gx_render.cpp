@@ -618,37 +618,8 @@ bool NTR_LCD::poly_push()
 		switch(lcd_3D_stat.vertex_mode)
 		{
 			//Triangles
-			case 0x0:
-				if(((lcd_3D_stat.poly_count + 1) < 2048) && ((lcd_3D_stat.vert_count + 3) < 6144))
-				{
-					current_poly.make_identity(4);
-					current_poly.resize(3, 3);
-					lcd_3D_stat.poly_count++;
-					lcd_3D_stat.vert_count += 3;
-					status = true;
-				}
-
-				else { status = false; }
-
-				break;
-
-			//Quads
-			case 0x1:
-				if(((lcd_3D_stat.poly_count + 1) < 2048) && ((lcd_3D_stat.vert_count + 4) < 6144))
-				{
-					current_poly.make_identity(4);
-					current_poly.resize(4, 4);
-					lcd_3D_stat.poly_count++;
-					lcd_3D_stat.vert_count += 4;
-					status = true;
-				}
-
-				else { status = false; }
-
-				break;
-
-
 			//Triangle Strips
+			case 0x0:
 			case 0x2:
 				if(((lcd_3D_stat.poly_count + 1) < 2048) && ((lcd_3D_stat.vert_count + 3) < 6144))
 				{
@@ -663,7 +634,9 @@ bool NTR_LCD::poly_push()
 
 				break;
 
+			//Quads
 			//Quad Strips
+			case 0x1:
 			case 0x3:
 				if(((lcd_3D_stat.poly_count + 1) < 2048) && ((lcd_3D_stat.vert_count + 4) < 6144))
 				{
