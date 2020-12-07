@@ -264,6 +264,7 @@ struct ntr_lcd_3D_data
 	bool use_texture;
 	bool begin_strips;
 	bool update_clip_matrix;
+	bool update_vector_matrix;
 
 	u32 rear_plane_color;
 	u8 rear_plane_alpha;
