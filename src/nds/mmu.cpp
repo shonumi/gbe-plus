@@ -4873,6 +4873,44 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 			break;
 
+		//GX - EDGE_COLOR
+		case 0x4000330:
+		case 0x4000331:
+		case 0x4000332:
+		case 0x4000333:
+		case 0x4000334:
+		case 0x4000335:
+		case 0x4000336:
+		case 0x4000337:
+		case 0x4000338:
+		case 0x4000339:
+		case 0x400033A:
+		case 0x400033B:
+		case 0x400033C:
+		case 0x400033D:
+		case 0x400033E:
+		case 0x400033F:
+			if(access_mode)
+			{
+				memory_map[address] = value;
+
+				u8 edge_id = (address & 0xF) >> 1;
+				u32 color_addr = (address & ~0x1);
+				u16 color_bytes = (memory_map[color_addr + 1] << 8) | memory_map[color_addr];
+
+				u8 red = ((color_bytes & 0x1F) << 3);
+				color_bytes >>= 5;
+
+				u8 green = ((color_bytes & 0x1F) << 3);
+				color_bytes >>= 5;
+
+				u8 blue = ((color_bytes & 0x1F) << 3);
+
+				lcd_3D_stat->edge_color[edge_id] = 0xFF000000 | (red << 16) | (green << 8) | (blue);
+			}
+
+			break;
+
 		//VIEWPORT
 		case 0x4000580:
 		case 0x4000581:

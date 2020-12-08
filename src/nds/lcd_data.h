@@ -273,6 +273,8 @@ struct ntr_lcd_3D_data
 	u16 poly_count;
 	u16 vert_count;
 
+	u32 edge_color[8];
+
 	float last_x;
 	float last_y;
 	float last_z;
