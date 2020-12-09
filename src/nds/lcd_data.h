@@ -282,6 +282,9 @@ struct ntr_lcd_3D_data
 	s32 poly_min_x;
 	s32 poly_max_x;
 
+	//Display Control
+	bool edge_marking;
+
 	//Texture Attribute
 	u32 tex_offset;
 	u32 pal_base;

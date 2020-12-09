@@ -3286,6 +3286,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		case NDS_DISP3DCNT+3:
 			memory_map[address] = value;
 			lcd_3D_stat->display_control = ((memory_map[NDS_DISP3DCNT+3] << 24) | (memory_map[NDS_DISP3DCNT+2] << 16) | (memory_map[NDS_DISP3DCNT+1] << 8) | memory_map[NDS_DISP3DCNT]);
+			lcd_3D_stat->edge_marking = (lcd_3D_stat->display_control & 0x20) ? true : false;
 
 			break;
 

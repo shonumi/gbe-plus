@@ -361,11 +361,21 @@ void NTR_LCD::fill_poly_solid()
 	u32 buffer_index = 0;
 	u32 vert_color = 0;
 
+	bool use_alpha = (lcd_3D_stat.poly_alpha <= 30) ? true : false;
+
+	bool use_edge = lcd_3D_stat.edge_marking;
+	u32 edge_color = lcd_3D_stat.edge_color[lcd_3D_stat.poly_id >> 3];
+	u8 edge_x1 = lcd_3D_stat.poly_min_x;
+	u8 edge_x2 = lcd_3D_stat.poly_max_x - 1;
+
 	for(u32 x = lcd_3D_stat.poly_min_x; x < lcd_3D_stat.poly_max_x; x++)
 	{
 		float z_start = 0.0;
 		float z_end = 0.0;
 		float z_inc = 0.0;
+
+		u8 edge_y1 = lcd_3D_stat.hi_fill[x];
+		u8 edge_y2 = lcd_3D_stat.lo_fill[x] - 1;
 
 		//Calculate Z start and end fill coordinates
 		z_start = lcd_3D_stat.hi_line_z[x];
@@ -387,7 +397,10 @@ void NTR_LCD::fill_poly_solid()
 			if(z_start < gx_z_buffer[buffer_index])
 			{
 				//Do alpha-blending if necessary
-				if(lcd_3D_stat.poly_alpha) { vert_color = alpha_blend_pixel(vert_color, gx_screen_buffer[buffer_id][buffer_index], lcd_3D_stat.poly_alpha); }
+				if(use_alpha) { vert_color = alpha_blend_pixel(vert_color, gx_screen_buffer[buffer_id][buffer_index], lcd_3D_stat.poly_alpha); }
+
+				//Do edge coloring if necessary
+				else if((use_edge) && ((x == edge_x1) || (x == edge_x2) || (y_coord == edge_y1) || (y_coord == edge_y2))) { vert_color = edge_color; }
 
 				gx_screen_buffer[buffer_id][buffer_index] = vert_color;
 				gx_render_buffer[buffer_id][buffer_index] = 1;
