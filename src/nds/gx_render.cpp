@@ -499,6 +499,13 @@ void NTR_LCD::fill_poly_textured()
 
 	u8 slot = (lcd_3D_stat.tex_offset >> 17);
 
+	bool use_alpha = (lcd_3D_stat.poly_alpha <= 30) ? true : false;
+
+	bool use_edge = lcd_3D_stat.edge_marking;
+	u32 edge_color = lcd_3D_stat.edge_color[lcd_3D_stat.poly_id >> 3];
+	u8 edge_x1 = lcd_3D_stat.poly_min_x;
+	u8 edge_x2 = lcd_3D_stat.poly_max_x - 1;
+
 	//Calculate VRAM address of texture
 	u32 tex_addr = (mem->vram_tex_slot[slot] + (lcd_3D_stat.tex_offset & 0x1FFFF));
 
@@ -523,6 +530,9 @@ void NTR_LCD::fill_poly_textured()
 		float z_start = 0.0;
 		float z_end = 0.0;
 		float z_inc = 0.0;
+
+		u8 edge_y1 = lcd_3D_stat.hi_fill[x];
+		u8 edge_y2 = lcd_3D_stat.lo_fill[x] - 1;
 
 		float tx1 = lcd_3D_stat.hi_tx[x];
 		float tx2 = lcd_3D_stat.lo_tx[x];
@@ -612,7 +622,10 @@ void NTR_LCD::fill_poly_textured()
 				if(texel & 0xFF000000)
 				{
 					//Alpha-blend if necessary
-					if((texel >> 24) != 0xFF) { texel = alpha_blend_texel(texel, gx_screen_buffer[buffer_id][buffer_index]); }
+					if(((texel >> 24) != 0xFF) || (use_alpha)) { texel = alpha_blend_texel(texel, gx_screen_buffer[buffer_id][buffer_index]); }
+
+					//Do edge coloring if necessary
+					else if((use_edge) && ((x == edge_x1) || (x == edge_x2) || (y_coord == edge_y1) || (y_coord == edge_y2))) { texel = edge_color; }
 
 					gx_screen_buffer[buffer_id][buffer_index] = texel;
 					gx_render_buffer[buffer_id][buffer_index] = 1;
