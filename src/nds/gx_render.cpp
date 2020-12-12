@@ -27,6 +27,7 @@ void NTR_LCD::render_bg_3D()
 	bool full_render = true;
 
 	u8 bg_priority = lcd_stat.bg_priority_a[0] + 1;
+	u16 x_offset = lcd_stat.bg_offset_x_a[0];
 
 	//Grab data from the previous buffer
 	u16 current_buffer = (lcd_3D_stat.buffer_id);
@@ -34,14 +35,16 @@ void NTR_LCD::render_bg_3D()
 	//Push 3D screen buffer data to scanline buffer
 	u16 gx_index = (256 * lcd_stat.current_scanline);
 
-	for(u32 x = 0; x < 256; x++)
+	for(u32 x = 0, i = x_offset; x < 256; x++, i++)
 	{
-		if(!render_buffer_a[x] || (bg_priority < render_buffer_a[x]))
+		i &= 0x1FF;
+
+		if((!render_buffer_a[x] || (bg_priority < render_buffer_a[x])) && (i < 0x100))
 		{
-			if(gx_render_buffer[current_buffer][gx_index + x])
+			if(gx_render_buffer[current_buffer][gx_index + i])
 			{
 				render_buffer_a[x] = bg_priority;
-				scanline_buffer_a[x] = gx_screen_buffer[current_buffer][gx_index + x];
+				scanline_buffer_a[x] = gx_screen_buffer[current_buffer][gx_index + i];
 				line_buffer[4][x] |= 1;
 			}
 		}
