@@ -325,8 +325,11 @@ void NTR_LCD::render_geometry()
 		//Triangle Strips
 		case 0x0:
 		case 0x2:
+			//Shadow polygons
+			if(lcd_3D_stat.poly_mode == 3) { }
+
 			//Textured color fill
-			if(lcd_3D_stat.use_texture) { fill_poly_textured(); }
+			else if(lcd_3D_stat.use_texture) { fill_poly_textured(); }
 
 			//Solid color fill
 			else if((vert_colors[0] == vert_colors[1]) && (vert_colors[0] == vert_colors[2])) { fill_poly_solid(); }
@@ -340,8 +343,11 @@ void NTR_LCD::render_geometry()
 		//Quad Strips
 		case 0x1:
 		case 0x3:
+			//Shadow polygons
+			if(lcd_3D_stat.poly_mode == 3) { }
+
 			//Textured color fill
-			if(lcd_3D_stat.use_texture) { fill_poly_textured(); }
+			else if(lcd_3D_stat.use_texture) { fill_poly_textured(); }
 
 			//Solid color fill
 			else if((vert_colors[0] == vert_colors[1]) && (vert_colors[0] == vert_colors[2]) && (vert_colors[0] == vert_colors[3])) { fill_poly_solid(); }
@@ -1550,7 +1556,8 @@ void NTR_LCD::process_gx_command()
 			lcd_3D_stat.begin_strips = false;
 
 			//Reset polygon attributes
-			lcd_3D_stat.poly_mode = 0;
+			if(lcd_3D_stat.poly_mode != 3) { lcd_3D_stat.poly_mode = 0; }
+
 			lcd_3D_stat.poly_alpha = 0;
 			lcd_3D_stat.poly_id = 0;
 			lcd_3D_stat.poly_new_depth = true;
