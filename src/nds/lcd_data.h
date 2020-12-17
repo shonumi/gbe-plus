@@ -305,6 +305,7 @@ struct ntr_lcd_3D_data
 	u8 poly_alpha;
 	u8 poly_mode;
 	bool poly_new_depth;
+	bool poly_depth_test;
 
 	float tex_coord_x[4];
 	float tex_coord_y[4];

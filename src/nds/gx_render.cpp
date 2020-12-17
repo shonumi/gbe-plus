@@ -509,6 +509,10 @@ void NTR_LCD::fill_poly_textured()
 	u8 slot = (lcd_3D_stat.tex_offset >> 17);
 
 	bool use_alpha = (lcd_3D_stat.poly_alpha <= 30) ? true : false;
+	bool use_new_z = false;
+	bool texel_depth_test;
+
+	if((use_alpha && lcd_3D_stat.poly_new_depth) || (!use_alpha)) { use_new_z = true; }
 
 	bool use_edge = lcd_3D_stat.edge_marking;
 	u32 edge_color = lcd_3D_stat.edge_color[lcd_3D_stat.poly_id >> 3];
@@ -621,9 +625,12 @@ void NTR_LCD::fill_poly_textured()
 			//Calculate texel postion
 			texel_index = u32(u32(real_ty) * tw) + u32(real_tx);
 
+			//Calculate depth test
+			texel_depth_test = (lcd_3D_stat.poly_depth_test) ? (z_start <= gx_z_buffer[buffer_index]) : (z_start < gx_z_buffer[buffer_index]);
+
 			//Check Z buffer if drawing is applicable
 			//Make sure texel exists as well
-			if((z_start < gx_z_buffer[buffer_index]) && (texel_index < tex_size) && (texel_index >= 0))
+			if((texel_depth_test) && (texel_index < tex_size) && (texel_index >= 0))
 			{
 				texel = lcd_3D_stat.tex_data[texel_index];
 
@@ -640,7 +647,7 @@ void NTR_LCD::fill_poly_textured()
 					gx_render_buffer[buffer_id][buffer_index] = 1;
 
 					//Update Z-buffer if necessary
-					if(lcd_3D_stat.poly_new_depth) { gx_z_buffer[buffer_index] = z_start; }
+					if(use_new_z) { gx_z_buffer[buffer_index] = z_start; }
 				}
 			}
 
@@ -1507,6 +1514,7 @@ void NTR_LCD::process_gx_command()
 				lcd_3D_stat.poly_alpha = ((raw_value >> 16) & 0x1F);
 				lcd_3D_stat.poly_id = ((raw_value >> 24) & 0x3F);
 				lcd_3D_stat.poly_new_depth = ((raw_value & 0x800) || (lcd_3D_stat.poly_alpha == 0x1F)) ? true : false;
+				lcd_3D_stat.poly_depth_test = (raw_value & 0x4000) ? true : false;
 			}
 
 			break;
@@ -1554,14 +1562,6 @@ void NTR_LCD::process_gx_command()
 		//END_VTXS:
 		case 0x41:
 			lcd_3D_stat.begin_strips = false;
-
-			//Reset polygon attributes
-			if(lcd_3D_stat.poly_mode != 3) { lcd_3D_stat.poly_mode = 0; }
-
-			lcd_3D_stat.poly_alpha = 0;
-			lcd_3D_stat.poly_id = 0;
-			lcd_3D_stat.poly_new_depth = true;
-
 			break;
 
 		//SWAPBUFFERS
