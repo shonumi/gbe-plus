@@ -63,7 +63,7 @@ const u32 NDS_BLDY_A = 0x4000054;
 
 const u32 NDS_CAPCNT = 0x4000064;
 
-const u32 NDS_MASTER_BRIGHT = 0x400006C;
+const u32 NDS_MASTER_BRIGHT_A = 0x400006C;
 
 //Timers
 const u32 NDS_TM0CNT_L = 0x4000100;
@@ -120,6 +120,8 @@ const u32 NDS_WINOUT_B = 0x400104A;
 const u32 NDS_BLDCNT_B = 0x4001050;
 const u32 NDS_BLDALPHA_B = 0x4001052;
 const u32 NDS_BLDY_B = 0x4001054;
+
+const u32 NDS_MASTER_BRIGHT_B = 0x400106C;
 
 //Misc Display registers
 const u32 NDS_VRAMCNT_A = 0x4000240;

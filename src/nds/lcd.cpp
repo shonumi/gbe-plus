@@ -150,8 +150,8 @@ void NTR_LCD::reset()
 	lcd_stat.bg_mode_b = 0;
 	lcd_stat.hblank_interval_free = false;
 
-	lcd_stat.master_bright = 0;
-	lcd_stat.old_master_bright = 0;
+	lcd_stat.master_bright_a = 0;
+	lcd_stat.master_bright_b = 0;
 
 	lcd_stat.forced_blank_a = false;
 	lcd_stat.forced_blank_b = false;
@@ -3605,9 +3605,11 @@ void NTR_LCD::alpha_blend(u32 bg_control)
 }
 
 /****** Adjusts master brightness before final scanline output ******/
-void NTR_LCD::adjust_master_brightness()
+void NTR_LCD::adjust_master_brightness(u8 engine_id)
 {
-	double factor = (lcd_stat.master_bright & 0xF) / 16.0;
+	u16 master_bright = (engine_id) ? lcd_stat.master_bright_a : lcd_stat.master_bright_b;
+
+	double factor = (master_bright & 0x1F) / 16.0;
 	u32 color = 0;
 	
 	u8 r = 0;
@@ -3616,90 +3618,102 @@ void NTR_LCD::adjust_master_brightness()
 	s16 result = 0;
 
 	//Master Brightness Up
-	if((lcd_stat.master_bright >> 14) == 0x1)
+	if((master_bright >> 14) == 0x1)
 	{
 		//Engine A pixels
-		for(u32 x = 0; x < 256; x++)
+		if(engine_id)
 		{
-			color = scanline_buffer_a[x];
+			for(u32 x = 0; x < 256; x++)
+			{
+				color = scanline_buffer_a[x];
 
-			r = (color >> 18) & 0x3F;
-			result = r + ((63 - r) * factor);
-			r = (result > 63) ? 63 : result;
+				r = (color >> 18) & 0x3F;
+				result = r + ((63 - r) * factor);
+				r = (result > 63) ? 63 : result;
 
-			g = (color >> 10) & 0x3F;
-			result = g + ((63 - g) * factor);
-			g = (result > 63) ? 63 : result;
+				g = (color >> 10) & 0x3F;
+				result = g + ((63 - g) * factor);
+				g = (result > 63) ? 63 : result;
 
-			b = (color >> 2) & 0x3F;
-			result = b + ((63 - b) * factor);
-			b = (result > 63) ? 63 : result;
+				b = (color >> 2) & 0x3F;
+				result = b + ((63 - b) * factor);
+				b = (result > 63) ? 63 : result;
 
-			scanline_buffer_a[x] = 0xFF000000 | (r << 18) | (g << 10) | (b << 2);
+				scanline_buffer_a[x] = 0xFF000000 | (r << 18) | (g << 10) | (b << 2);
+			}
 		}
 
 		//Engine B pixels
-		for(u32 x = 0; x < 256; x++)
+		else
 		{
-			color = scanline_buffer_b[x];
+			for(u32 x = 0; x < 256; x++)
+			{
+				color = scanline_buffer_b[x];
 
-			r = (color >> 18) & 0x3F;
-			result = r + ((63 - r) * factor);
-			r = (result > 63) ? 63 : result;
+				r = (color >> 18) & 0x3F;
+				result = r + ((63 - r) * factor);
+				r = (result > 63) ? 63 : result;
 
-			g = (color >> 10) & 0x3F;
-			result = g + ((63 - g) * factor);
-			g = (result > 63) ? 63 : result;
+				g = (color >> 10) & 0x3F;
+				result = g + ((63 - g) * factor);
+				g = (result > 63) ? 63 : result;
 
-			b = (color >> 2) & 0x3F;
-			result = b + ((63 - b) * factor);
-			b = (result > 63) ? 63 : result;
+				b = (color >> 2) & 0x3F;
+				result = b + ((63 - b) * factor);
+				b = (result > 63) ? 63 : result;
 
-			scanline_buffer_b[x] = 0xFF000000 | (r << 18) | (g << 10) | (b << 2);
+				scanline_buffer_b[x] = 0xFF000000 | (r << 18) | (g << 10) | (b << 2);
+			}
 		}
 	}
 
 	//Master Bright Down
-	if((lcd_stat.master_bright >> 14) == 0x2)
+	if((master_bright >> 14) == 0x2)
 	{
 		//Engine A pixels
-		for(u32 x = 0; x < 256; x++)
+		if(engine_id)
 		{
-			color = scanline_buffer_a[x];
+			for(u32 x = 0; x < 256; x++)
+			{
+				color = scanline_buffer_a[x];
 
-			r = ((color >> 18) & 0x3F);
-			result = r - (r * factor);
-			r = (result < 0) ? 0 : result;
+				r = ((color >> 18) & 0x3F);
+				result = r - (r * factor);
+				r = (result < 0) ? 0 : result;
 
-			g = ((color >> 10) & 0x3F);
-			result = g - (g * factor);
-			g = (result < 0) ? 0 : result;
+				g = ((color >> 10) & 0x3F);
+				result = g - (g * factor);
+				g = (result < 0) ? 0 : result;
 
-			b = ((color >> 2) & 0x3F);
-			result = b - (b * factor);
-			b = (result < 0) ? 0 : result;
+				b = ((color >> 2) & 0x3F);
+				result = b - (b * factor);
+				b = (result < 0) ? 0 : result;
 
-			scanline_buffer_a[x] = 0xFF000000 | (r << 18) | (g << 10) | (b << 2);
+				scanline_buffer_a[x] = 0xFF000000 | (r << 18) | (g << 10) | (b << 2);
+			}
 		}
 
 		//Engine B pixels
-		for(u32 x = 0; x < 256; x++)
+		else
 		{
-			color = scanline_buffer_b[x];
+			for(u32 x = 0; x < 256; x++)
+			{
+				color = scanline_buffer_b[x];
 
-			r = ((color >> 18) & 0x3F);
-			result = r - (r * factor);
-			r = (result < 0) ? 0 : result;
+				r = ((color >> 18) & 0x3F);
+				result = r - (r * factor);
+				r = (result < 0) ? 0 : result;
 
-			g = ((color >> 10) & 0x3F);
-			result = g - (g * factor);
-			g = (result < 0) ? 0 : result;
+				g = ((color >> 10) & 0x3F);
+				result = g - (g * factor);
+				g = (result < 0) ? 0 : result;
 
-			b = ((color >> 2) & 0x3F);
-			result = b - (b * factor);
-			b = (result < 0) ? 0 : result;
+				b = ((color >> 2) & 0x3F);
+				result = b - (b * factor);
+				b = (result < 0) ? 0 : result;
 
-			scanline_buffer_b[x] = 0xFF000000 | (r << 18) | (g << 10) | (b << 2);
+				scanline_buffer_b[x] = 0xFF000000 | (r << 18) | (g << 10) | (b << 2);
+			}
 		}
 	}
 }
@@ -3981,8 +3995,9 @@ void NTR_LCD::step()
 			//Render scanline data
 			render_scanline();
 
-			//Apply Master Brightness if necessary
-			if(lcd_stat.master_bright & 0xC000) { adjust_master_brightness(); }
+			//Apply Master Brightness on Engine A and/or Engine B if necessary
+			if(lcd_stat.master_bright_a & 0xC000) { adjust_master_brightness(1); }
+			if(lcd_stat.master_bright_b & 0xC000) { adjust_master_brightness(0); }
 
 			u32 render_position = (lcd_stat.current_scanline * config::sys_width);
 

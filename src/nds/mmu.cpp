@@ -2906,7 +2906,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 			break;
 
-		//SFX Control - Engine A
+		//SFX Control - Engine B
 		case NDS_BLDCNT_B:
 			memory_map[address] = value;
 			lcd_stat->sfx_target_b[0][0] = (value & 0x1) ? true : false;
@@ -2936,7 +2936,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			lcd_stat->sfx_target_b[5][1] = (value & 0x20) ? true : false;
 			break;
 
-		//SFX Alpha Control - Engine A
+		//SFX Alpha Control - Engine B
 		case NDS_BLDALPHA_B:
 			memory_map[address] = value;
 
@@ -2953,7 +2953,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 			break;
 
-		//SFX Brightness Control - Engine A
+		//SFX Brightness Control - Engine B
 		case NDS_BLDY_B:
 			if(memory_map[address] == value) { return ; }
 
@@ -3300,11 +3300,19 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 			break;
 
-		//Master Brightness
-		case NDS_MASTER_BRIGHT:
-		case NDS_MASTER_BRIGHT+1:
+		//Master Brightness - Engine A
+		case NDS_MASTER_BRIGHT_A:
+		case NDS_MASTER_BRIGHT_A+1:
 			memory_map[address] = value;
-			lcd_stat->master_bright = ((memory_map[NDS_MASTER_BRIGHT+1] << 8) | memory_map[NDS_MASTER_BRIGHT]);
+			lcd_stat->master_bright_a = ((memory_map[NDS_MASTER_BRIGHT_A+1] << 8) | memory_map[NDS_MASTER_BRIGHT_A]);
+
+			break;
+
+		//Master Brightness - Engine B
+		case NDS_MASTER_BRIGHT_B:
+		case NDS_MASTER_BRIGHT_B+1:
+			memory_map[address] = value;
+			lcd_stat->master_bright_b = ((memory_map[NDS_MASTER_BRIGHT_B+1] << 8) | memory_map[NDS_MASTER_BRIGHT_B]);
 
 			break;
 

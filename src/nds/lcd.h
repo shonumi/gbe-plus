@@ -226,7 +226,7 @@ class NTR_LCD
 	void brightness_up(u32 bg_control);
 	void brightness_down(u32 bg_control);
 	void alpha_blend(u32 bg_control);
-	void adjust_master_brightness();
+	void adjust_master_brightness(u8 engine_id);
 
 	//Window functions
 	void calculate_window_on_scanline();
