@@ -301,6 +301,9 @@ void NTR_MMU::reset()
 	vram_tex_slot[2] = 0;
 	vram_tex_slot[3] = 0;
 
+	bg_vram_bank_enable_a = false;
+	bg_vram_bank_enable_b = false;
+
 	for(u32 y = 0; y < 4; y++)
 	{
 		for(u32 x = 0; x < 9; x++)
@@ -3260,6 +3263,22 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 						}
 
 						break;
+				}
+
+				//Check if any banks for Engine A BG are enabled for use
+				bg_vram_bank_enable_a = false;
+				
+				for(u32 x = 0; x < 7; x++)
+				{
+					if((memory_map[NDS_VRAMCNT_A + x] & 0x7) == 0x1) { bg_vram_bank_enable_a = true; }
+				}
+
+				//Check if any banks for Engine B BG are enabled for use
+				bg_vram_bank_enable_b = false;
+				
+				if(((memory_map[NDS_VRAMCNT_C] & 0x7) == 0x4) || ((memory_map[NDS_VRAMCNT_H] & 0x7) == 0x1) || ((memory_map[NDS_VRAMCNT_I] & 0x7) == 0x4))
+				{
+					bg_vram_bank_enable_b = true;
 				}
 
 				//Finish display capture when switching VRAM slot from LCDC to another mode

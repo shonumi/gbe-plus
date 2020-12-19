@@ -374,6 +374,9 @@ class NTR_MMU
 	u32 vram_tex_slot[4];
 	u32 vram_bank_log[9][5];
 
+	bool bg_vram_bank_enable_a;
+	bool bg_vram_bank_enable_b;
+
 	//Advanced debugging
 	#ifdef GBE_DEBUG
 	bool debug_write;
