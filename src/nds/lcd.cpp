@@ -992,6 +992,9 @@ void NTR_LCD::render_bg_scanline(u32 bg_control)
 				bg_control = NDS_BG0CNT_A + (bg_id << 1);
 			}
 
+			//Verify VRAM Bank availibility 
+			if(!mem->bg_vram_bank_enable_a)  { break; }
+
 			switch(lcd_stat.bg_mode_a)
 			{
 				//BG Mode 0
@@ -1159,6 +1162,9 @@ void NTR_LCD::render_bg_scanline(u32 bg_control)
 		{
 			bg_id = bg_render_list[x];
 			bg_control = NDS_BG0CNT_B + (bg_id << 1);
+
+			//Verify VRAM Bank availibility 
+			if(!mem->bg_vram_bank_enable_b)  { break; }
 
 			switch(lcd_stat.bg_mode_b)
 			{
@@ -1563,9 +1569,6 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 		//Abort rendering if BGs with high priority have already completely rendered a scanline
 		if((!force_render) && (!lcd_stat.bg_enable_a[bg_id] || full_scanline_render_a)) { return; }
 
-		//Verify VRAM Bank availibility 
-		if(!mem->bg_vram_bank_enable_a)  { return; }
-
 		bool full_render = true;
 
 		//Grab tile offsets
@@ -1771,9 +1774,6 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 		//Abort rendering if this BG is disabled
 		//Abort rendering if BGs with high priority have already completely rendered a scanline
 		if((!force_render) && (!lcd_stat.bg_enable_b[bg_id] || full_scanline_render_b)) { return; }
-
-		//Verify VRAM Bank availibility 
-		if(!mem->bg_vram_bank_enable_b)  { return; }
 
 		bool full_render = true;
 
