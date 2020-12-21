@@ -51,7 +51,7 @@ This list represents all the games that have been verified to use the IR port. W
 - Mission Impossible					Send and receive messages, notes, addresses + custom TV remote
 - Papyrus						Ubi Key
 - Perfect Dark						Trade multiplayer maps and other unlockables
-- Playmobil Interactive: Laura				Ubi Key
+- Playmobil Interactive: Laura				Ubi Key -> Unlocks "Catch the Hazelnuts" minigame
 - Pocket Family GB 2					Transfer characters and data
 - Pokemon Pinball					Trade/combine Top Scores
 - Pokemon Gold						Mystery Gift + Send trainer data to Viridian City Trainer House
@@ -61,7 +61,7 @@ This list represents all the games that have been verified to use the IR port. W
 - Pokemon Card GB2: Here Comes Team GR!			"Card Pop" to generate random cards. Trade individual cards. Trade deck configurations
 - Rayman						Ubi Key -> Unlocks secret level Ubi Cliff
 - Return of the Ninja					Trade "Ninja Cards"
-- The Road to El Dorado					Ubi Key
+- The Road to El Dorado					Ubi Key -> Unlocks a secret level similar to Levels 6 and 7
 - Robopon Sun Version					Boost stats via infrared signals. Open certain chests
 - Sakura Taisen GB					Send step-based "Points" to GBC from Pocket Sakura, or between two GBCs
 - Shin Megami Tensei Devil Children White		Used for "Infrared Fusion" to strengthen some demons, obtain rare ones
@@ -69,7 +69,7 @@ This list represents all the games that have been verified to use the IR port. W
 - Super Mario Bros. DX					Trade/combine Top Scores
 - Suzuki Alstare Extreme Racing				Ubi Key
 - Tonic Trouble						Ubi Key
-- Toonsylvania						Ubi Key
+- Toonsylvania						Ubi Key -> Unlocks a bonus level with extra lives and items
 - Tottoko Hamtaro: Tomodachi Daisakusen Dechu		???
 - V.I.P.						Ubi Key
 - Warlocked						Trade wizards
