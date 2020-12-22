@@ -30,7 +30,7 @@ This list represents all the games that have been verified to use the IR port. W
 - Austin Powers: Welcome to My Underground Lair!	Trade items and messages
 - Bomberman Max: Blue Champion				Combine Charaboms/Trade completed levels/Unlock hidden areas
 - Bomberman Max: Red Challenger				Combine Charaboms/Trade completed levels/Unlock hidden areas
-- Carl Lewis Alhletics 2000				Ubi Key
+- Carl Lewis Alhletics 2000				Ubi Key -> Unlocks Decathalon mode
 - Catz							Trade Petz and Toyz
 - Chee-Chai Alien					Enhances IR sensor to detect artificial light sources. Catch/trade Chaliens
 - Dancing Furby						Sends signal to Furby doll, Furby reacts based on dance performance
@@ -65,13 +65,13 @@ This list represents all the games that have been verified to use the IR port. W
 - Robopon Sun Version					Boost stats via infrared signals. Open certain chests
 - Sakura Taisen GB					Send step-based "Points" to GBC from Pocket Sakura, or between two GBCs
 - Shin Megami Tensei Devil Children White		Used for "Infrared Fusion" to strengthen some demons, obtain rare ones
-- Spirou: The Robot Invasion				Ubi Key
+- Spirou: The Robot Invasion				Ubi Key -> Unlocks a bonus level 
 - Super Mario Bros. DX					Trade/combine Top Scores
-- Suzuki Alstare Extreme Racing				Ubi Key
-- Tonic Trouble						Ubi Key
+- Suzuki Alstare Extreme Racing				Ubi Key -> Unlocks the Extreme Championship mode
+- Tonic Trouble						Ubi Key -> Unlocks a bonus level/demo
 - Toonsylvania						Ubi Key -> Unlocks a bonus level with extra lives and items
 - Tottoko Hamtaro: Tomodachi Daisakusen Dechu		???
-- V.I.P.						Ubi Key
+- V.I.P.						Ubi Key -> Unlocks a bonus "Ubi Key Level"
 - Warlocked						Trade wizards
 - Zok Zok Heroes					Transmit "Cosmic Characters" from Full Changer accessory to transform hero
 
