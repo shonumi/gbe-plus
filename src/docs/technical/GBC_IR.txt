@@ -1,4 +1,4 @@
-GBC Infrared Port Technical Documentation 0.1
+GBC Infrared Port Technical Documentation 0.2
 July 16th, 2017
 Shonumi aka D.S. Baxter
 
@@ -26,6 +26,8 @@ The Game Boy Color came with an infrared port on the very top of the handheld. P
 
 This list represents all the games that have been verified to use the IR port. While exhaustive, this list is probably not complete. There are likely more Japanese exclusives that need to be added. It's dubious whether or not Animorphs actually is a "Ubi Key" game. The back boxart doesn't have the "IR Compatible" logo, and the manual makes no mention of IR communication.
 
+The North American version of Disney's Aladdin claims to have infrared support on the box, supposedly for Ubi Key functionality, however, no such option is accessible in the game. Additionally, European variants omit the GBC IR logo from their boxes. It's possible that like Animorphs, Aladdin had its IR features stripped.
+
 - Austin Powers: Oh Behave!				Trade items and messages		
 - Austin Powers: Welcome to My Underground Lair!	Trade items and messages
 - Bomberman Max: Blue Champion				Combine Charaboms/Trade completed levels/Unlock hidden areas
@@ -34,22 +36,21 @@ This list represents all the games that have been verified to use the IR port. W
 - Catz							Trade Petz and Toyz
 - Chee-Chai Alien					Enhances IR sensor to detect artificial light sources. Catch/trade Chaliens
 - Dancing Furby						Sends signal to Furby doll, Furby reacts based on dance performance
-- Disney's Aladdin					Ubi Key				
 - Dogz							Trade Petz and Toyz
 - Donkey Kong Country					Transfer pictures to stickerbook
-- Flipper & Lopaka					Ubi Key
+- Flipper & Lopaka					Ubi Key -> Unlocks a bonus "Ubi Key Level"
 - Game Boy Wars 3					Wireless multiplayer
 - Hamtaro: Ham-Hams Unite!				Trade Hamtaro's clothes
 - Harry Potter and the Sorceror's Stone			Trade "Famous Witches and Wizards" cards 
 - Harry Potter and the Chamber of Secrets		Trade "Famous Witches and Wizards" cards 
-- Hype: The Time Quest					Ubi Key
-- Inspector Gadget: Operation Madkactus			Ubi Key
+- Hype: The Time Quest					Ubi Key -> Unlocks a bonus level
+- Inspector Gadget: Operation Madkactus			Ubi Key -> Unlocks a bonus level
 - Kaijin Zona						Receive randomized puzzles via IR signals
 - Mary-Kate and Ashley Pocket Planner			Send and receive "G-mail" messages
 - Mickey's Racing Adventure				Send and receive messages. Unlocks a secret race track in Mickey's Speedway USA
 - Mickey's Speedway USA					???
 - Mission Impossible					Send and receive messages, notes, addresses + custom TV remote
-- Papyrus						Ubi Key
+- Papyrus						Ubi Key -> Unlocks a bonus level
 - Perfect Dark						Trade multiplayer maps and other unlockables
 - Playmobil Interactive: Laura				Ubi Key -> Unlocks "Catch the Hazelnuts" minigame
 - Pocket Family GB 2					Transfer characters and data
