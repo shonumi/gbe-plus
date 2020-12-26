@@ -736,47 +736,104 @@ P4_byte_4	P4_byte_4	P4_byte_4	P4_byte_4	31</code>
 	<a name="zzh_cap"></a>
 	<p class="gray_title">[Full Changer] : Capturing IR Data</p>
 
-	<p>Below is the disassembled GBZ80 code Zok Zok Heroes uses to grab the 18 bytes:</p>
+	<p>Below is psuedo-code representing how Zok Zok Heroes grabs the 18 bytes:</p>
 
-<code>&#47;&#47;This all happens at ROM Bank 1
-&#47;&#47;Wait for IR light to come on (Bit 1 of 0xFF46 goes to zero)
-&#47;&#47;D is set to 0xFF, timeout if it reaches zero
-DEC D
-RET Z
-LDH A, (0xFF56)
-BIT 1, A
-JR NZ, 0xF9
+<code>==================================
+LABEL CHECK_ON_LOOP:
+==================================
 
-&#47;&#47;E acts as a counter for total number of bytes processed from Full Changer
-LD E 0x12
-LD HL, 0xD005
+	&#47;&#47;Use an 8-bit CPU register as a Time-Out Counter, initially set to 0xFF, exit if it hits zero
+	TIMEOUT_COUNTER--
+	
+	IF(TIMEOUT_COUNTER == 0)
+	{
+		RETURN
+	}
 
-&#47;&#47;Wait for IR light to go off (Bit 1 of 0xFF46 goes to one)
-LD D, 0x00
-CALL 0x575E
-	INC D
-	RET Z
-	LDH A, (0xFF56)
-	BIT 1, A
-	JR Z, 0xF9
-	RET
+	&#47;&#47;Load A from 16-bit immediate address for RP register
+	A = [0xFF56]
 
-&#47;&#47;Wait for IR light to go on (Bit 1 of 0xFF46 goes to one)
-CALL 0x576C
-	INC D
-	RET Z
-	LDH A, (0xFF56)
-	BIT 1, A
-	JR NZ, 0xF9
-	RET
+	&#47;&#47;Wait for IR light to come on (Bit 1 of 0xFF46 goes to zero)
+	IF(A AND 0x1)
+	{
+		GOTO CHECK_ON_LOOP
+	}
 
-&#47;&#47;Save results to 0xD005 - 0xD017
-LD (HL), D
-INC HL
-DEC E
+	&#47;&#47;Use another 8-bit CPU register to act as a counter for total number of bytes processed from Full Changer
+	TOTAL_BYTES = 0x12
 
-&#47;&#47;Jump back to LD, 0x00. Repeat loop until E is zero.
-JR NZ, 0xF3</code>
+	&#47;&#47;Set a 16-bit CPU register pair as the destination address (0xD005+) to write IR data
+	DEST_ADDR = 0xD005
+
+==================================
+LABEL GRAB_IR_BYTES:
+==================================
+
+	&#47;&#47;Wait for IR light to go off (Bit 1 of 0xFF46 goes to one)
+	&#47;&#47;Set an 8-bit CPU register to act as an IR pulse length counter, initialized to 0x00
+	PULSE_LENGTH = 0x00
+
+	CALL WAIT_FOR_OFF
+	CALL WAIT_FOR_ON
+
+	&#47;&#47;Save pulse length results to 0xD005 - 0xD017
+	[DEST_ADDR] = PULSE_LENGTH
+
+	DEST_ADDR++
+	TOTAL_BYTES--
+
+	IF(TOTAL_BYTES != 0)
+	{
+		GOTO GRAB_IR_BYTES
+	}
+	
+	...
+
+	&#47;&#47;IR handling code ends here
+
+==================================
+FUNCTION WAIT_FOR_OFF:
+==================================
+
+	PULSE_LENGTH++
+	
+	IF(PULSE_LENGTH == 0)
+	{
+		RETURN
+	}
+
+	&#47;&#47;Load A from 16-bit immediate address for RP register
+	A = [0xFF56]
+
+	&#47;&#47;Wait for IR light to come on (Bit 1 of 0xFF46 goes to one)
+	IF((A AND 0x1) == 0x00)
+	{
+		GOTO WAIT_FOR_OFF
+	}
+
+	RETURN
+
+==================================
+FUNCTION WAIT_FOR_ON:
+==================================
+
+	PULSE_LENGTH++
+	
+	IF(PULSE_LENGTH == 0)
+	{
+		RETURN
+	}
+
+	&#47;&#47;Load A from 16-bit immediate address for RP register
+	A = [0xFF56]
+
+	&#47;&#47;Wait for IR light to come on (Bit 1 of 0xFF46 goes to zero)
+	IF(A AND 0x1)
+	{
+		GOTO WAIT_FOR_ON
+	}
+
+	RETURN</code>
 
 	<p>Once all 18 bytes have been stored in WRAM, it&#39;s possible to read them and save them using a ROM hack. Alternatively, homebrew software can use code with the same timing to accurately capture IR data from the Full Changer.</p>
 
@@ -785,15 +842,22 @@ JR NZ, 0xF3</code>
 
 	<p>The Full Changer can be successfully emulated by setting Bit 1 of RP register (located at 0xFF56) to 0 or 1 at the appropiate times. To do so requires accurate timing and knowing the amount of cycles it takes to generate the delays represented by those 18 bytes in WRAM. When activating the Full Changer, GBE+ always fires the 1st &#34;ON&#34; IR signal at a specific time to get consistent timings:</p>
 
-<code>DEC D
-RET Z
-LDH A, (0xFF56)
+<code>TIMEOUT_COUNTER--
+	
+IF(TIMEOUT_COUNTER == 0)
+{
+	RETURN
+}
+
+A = [0xFF56]
 
 &lt;---- After the CPU reads 0xFF56 and the user activates the Full Changer, IR light is turned on here
-&lt;---- This happens after the actual instruction is executed, so the loop runs once more
+&lt;---- This happens after the actual read instruction is executed, so the loop runs once more
 
-BIT 1, A
-JR NZ, 0xF9</code>
+IF(A AND 0x1)
+{
+	GOTO CHECK_ON_LOOP
+}</code>
 
 	<p>Afterwards, the timings for ON and OFF pulses can be calculated as such (ALL TIMING IS IN DOUBLE SPEED):</p>
 
