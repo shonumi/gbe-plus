@@ -128,7 +128,7 @@ void DMG_MMU::mbc6_write(u16 address, u8 value)
 					cart.flash_cmd = 0;
 					cart.flash_io_bank = bank;
 
-					for(u32 x = 0; x < 0x2000; x++) { flash[cart.flash_io_bank][x] = 0xFF; }
+					for(u32 x = 0; x < 0x2000; x++) { flash[cart.flash_io_bank][x] = 0x00; }
 
 					break;
 
