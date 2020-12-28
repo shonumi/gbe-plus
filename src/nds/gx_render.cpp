@@ -1595,15 +1595,15 @@ void NTR_LCD::process_gx_command()
 		//BOX_TEST
 		case 0x70:
 			{
-				bool in_view_volume = true;
+				bool in_view_volume = false;
 
-				float x = get_u16_float(read_param_u16(0));
-				float y = get_u16_float(read_param_u16(2)); 
-				float z = get_u16_float(read_param_u16(4));
+				float x = get_u16_float(read_param_u16(2));
+				float y = get_u16_float(read_param_u16(0)); 
+				float z = get_u16_float(read_param_u16(6));
 
-				float w = get_u16_float(read_param_u16(6));
-				float h = get_u16_float(read_param_u16(8)); 
-				float d = get_u16_float(read_param_u16(10));
+				float w = get_u16_float(read_param_u16(4));
+				float h = get_u16_float(read_param_u16(10)); 
+				float d = get_u16_float(read_param_u16(8));
 
 				gx_matrix cuboid[8];
 				for(u32 x = 0; x < 8; x++) { cuboid[x].resize(4, 1); }
@@ -1636,17 +1636,26 @@ void NTR_LCD::process_gx_command()
 
  					test_x = round(((cuboid[x][0] + cuboid[x][3]) * viewport_width) / ((2 * cuboid[x][3]) + lcd_3D_stat.view_port_x1));
   					test_y = round(((-cuboid[x][1] + cuboid[x][3]) * viewport_height) / ((2 * cuboid[x][3]) + lcd_3D_stat.view_port_y1));
-
+					
+					//Verify if test point is outside view volume
 					if((test_x < lcd_3D_stat.view_port_x1) || (test_x > lcd_3D_stat.view_port_x2) ||
 					(test_y < lcd_3D_stat.view_port_y1) || (test_y > lcd_3D_stat.view_port_y2))
 					{
-						in_view_volume = false;
+						continue;
+					}
+
+					//Verify if test point is inside view volume
+					else
+					{
+						in_view_volume = true;
 						break;
 					}
 				}
 
 				if(in_view_volume) { lcd_3D_stat.gx_stat |= 0x2; }
-				else { lcd_3D_stat.gx_stat &= 0x2; }
+				else { lcd_3D_stat.gx_stat &= ~0x2; }
+
+				lcd_3D_stat.gx_stat &= ~0x1;
 			}
 
 			break;
