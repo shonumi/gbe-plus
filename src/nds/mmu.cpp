@@ -3223,10 +3223,10 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 								break;
 
 							case 0x4:
-								pal_a_bg_slot[0] = lcd_stat->vram_bank_addr[4];
-								pal_a_bg_slot[1] = lcd_stat->vram_bank_addr[4] + 0x2000;
-								pal_a_bg_slot[2] = lcd_stat->vram_bank_addr[4] + 0x4000;
-								pal_a_bg_slot[3] = lcd_stat->vram_bank_addr[4] + 0x6000;
+								pal_a_bg_slot[0] = 0x6880000;
+								pal_a_bg_slot[1] = 0x6882000;
+								pal_a_bg_slot[2] = 0x6884000;
+								pal_a_bg_slot[3] = 0x6886000;
 								break;
 
 							case 0x5:
