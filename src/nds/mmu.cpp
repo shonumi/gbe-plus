@@ -3037,233 +3037,187 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 						lcd_stat->obj_ext_pal_update_b = true;
 						lcd_stat->obj_ext_pal_update_list_b.resize(0x1000, true);
 					}
-				}
 
-				//Deallocate VRAM data when disabling a bank
-				else
-				{
-					lcd_stat->vram_bank_enable[bank_id] = false;
-
-					for(u32 y = 0; y < 5; y++)
+					switch(mst)
 					{
-						u32 v_addr = vram_bank_log[bank_id][y];
+						//MST 0 - LCDC Mode
+						case 0x0:
 
-						if(v_addr)
-						{
+							//Deallocate VRAM previously mapped to non-LCDC mode addresses 
+							if((lcd_stat->vram_bank_addr[bank_id] >> 20) != 0x68) { deallocate_vram(bank_id); }
+
+							switch(bank_id)
+							{
+								case 0x0: lcd_stat->vram_bank_addr[0] = 0x6800000; break;
+								case 0x1: lcd_stat->vram_bank_addr[1] = 0x6820000; break;
+								case 0x2: lcd_stat->vram_bank_addr[2] = 0x6840000; break;
+								case 0x3: lcd_stat->vram_bank_addr[3] = 0x6860000; break;
+								case 0x4: lcd_stat->vram_bank_addr[4] = 0x6880000; break;
+								case 0x5: lcd_stat->vram_bank_addr[5] = 0x6890000; break;
+								case 0x6: lcd_stat->vram_bank_addr[6] = 0x6894000; break;
+								case 0x7: lcd_stat->vram_bank_addr[7] = 0x6898000; break;
+								case 0x8: lcd_stat->vram_bank_addr[8] = 0x68A0000; break;
+							}
+		
+							break;
+
+						//MST 1 - 2D Graphics Engine A and B (BG VRAM)
+						case 0x1:
 							switch(bank_id)
 							{
 								case 0x0:
 								case 0x1:
 								case 0x2:
 								case 0x3:
-									for(u32 x = 0; x < 0x20000; x++) { memory_map[v_addr + x] = 0; }
+									lcd_stat->vram_bank_addr[bank_id] = (0x6000000 + (0x20000 * offset));
 									break;
 
 								case 0x4:
-									for(u32 x = 0; x < 0x10000; x++) { memory_map[v_addr + x] = 0; }
+									lcd_stat->vram_bank_addr[4] = 0x6000000;
 									break;
 
 								case 0x5:
 								case 0x6:
-								case 0x8:
-									for(u32 x = 0; x < 0x4000; x++) { memory_map[v_addr + x] = 0; }
+									lcd_stat->vram_bank_addr[bank_id] = 0x6000000 + (0x4000 * (offset & 0x1)) + (0x10000 * (offset & 0x2));
 									break;
 
 								case 0x7:
-									for(u32 x = 0; x < 0x8000; x++) { memory_map[v_addr + x] = 0; }
+									lcd_stat->vram_bank_addr[7] = 0x6200000;
+									break;
+
+								case 0x8:
+									lcd_stat->vram_bank_addr[8] = 0x6208000;
 									break;
 							}
-						}
-
-						vram_bank_log[bank_id][y] = 0;
-					}
-
-					return;
-				}
-
-				switch(mst)
-				{
-					//MST 0 - LCDC Mode
-					case 0x0:
-						switch(bank_id)
-						{
-							case 0x0: lcd_stat->vram_bank_addr[0] = 0x6800000; break;
-							case 0x1: lcd_stat->vram_bank_addr[1] = 0x6820000; break;
-							case 0x2: lcd_stat->vram_bank_addr[2] = 0x6840000; break;
-							case 0x3: lcd_stat->vram_bank_addr[3] = 0x6860000; break;
-							case 0x4: lcd_stat->vram_bank_addr[4] = 0x6880000; break;
-							case 0x5: lcd_stat->vram_bank_addr[5] = 0x6890000; break;
-							case 0x6: lcd_stat->vram_bank_addr[6] = 0x6894000; break;
-							case 0x7: lcd_stat->vram_bank_addr[7] = 0x6898000; break;
-							case 0x8: lcd_stat->vram_bank_addr[8] = 0x68A0000; break;
-						}
-
-						vram_bank_log[bank_id][mst] = lcd_stat->vram_bank_addr[bank_id];
-		
-						break;
-
-					//MST 1 - 2D Graphics Engine A and B (BG VRAM)
-					case 0x1:
-						switch(bank_id)
-						{
-							case 0x0:
-							case 0x1:
-							case 0x2:
-							case 0x3:
-								lcd_stat->vram_bank_addr[bank_id] = (0x6000000 + (0x20000 * offset));
-								break;
-
-							case 0x4:
-								lcd_stat->vram_bank_addr[4] = 0x6000000;
-								break;
-
-							case 0x5:
-							case 0x6:
-								lcd_stat->vram_bank_addr[bank_id] = 0x6000000 + (0x4000 * (offset & 0x1)) + (0x10000 * (offset & 0x2));
-								break;
-
-							case 0x7:
-								lcd_stat->vram_bank_addr[7] = 0x6200000;
-								break;
-
-							case 0x8:
-								lcd_stat->vram_bank_addr[8] = 0x6208000;
-								break;
-						}
-
-						vram_bank_log[bank_id][mst] = lcd_stat->vram_bank_addr[bank_id];
 							
-						break;
+							break;
 
-					//MST 2 - 2D Graphics Engine A and B (OBJ VRAM)
-					case 0x2:
-						switch(bank_id)
-						{
-							case 0x0:
-							case 0x1:
-								lcd_stat->vram_bank_addr[bank_id] = 0x6400000 + (0x20000 * (offset & 0x1));
-								break;
+						//MST 2 - 2D Graphics Engine A and B (OBJ VRAM)
+						case 0x2:
+							switch(bank_id)
+							{
+								case 0x0:
+								case 0x1:
+									lcd_stat->vram_bank_addr[bank_id] = 0x6400000 + (0x20000 * (offset & 0x1));
+									break;
 
-							case 0x2:
-							case 0x3:
-								lcd_stat->vram_bank_addr[bank_id] = 0x6000000 + (0x20000 * (offset & 0x1));
-								break;
+								case 0x2:
+								case 0x3:
+									lcd_stat->vram_bank_addr[bank_id] = 0x6000000 + (0x20000 * (offset & 0x1));
+									break;
 
-							case 0x4:
-								lcd_stat->vram_bank_addr[4] = 0x6400000;
-								break;
+								case 0x4:
+									lcd_stat->vram_bank_addr[4] = 0x6400000;
+									break;
 
-							case 0x5:
-							case 0x6:
-								lcd_stat->vram_bank_addr[bank_id] = 0x6400000 + (0x4000 * (offset & 0x1)) + (0x10000 * (offset & 0x2));
-								break;
+								case 0x5:
+								case 0x6:
+									lcd_stat->vram_bank_addr[bank_id] = 0x6400000 + (0x4000 * (offset & 0x1)) + (0x10000 * (offset & 0x2));
+									break;
 
-							case 0x8:
-								lcd_stat->vram_bank_addr[8] = 0x6600000;
-								break;
-						}
+								case 0x8:
+									lcd_stat->vram_bank_addr[8] = 0x6600000;
+									break;
+							}
 
-						if(bank_id != 7) { vram_bank_log[bank_id][mst] = lcd_stat->vram_bank_addr[bank_id]; }
+							break;
 
-						break;
+						//MST 3 - 3D Graphics Engine Texture Data and Texture Palettes
+						case 0x3:
+							switch(bank_id)
+							{
+								case 0x0:
+									vram_tex_slot[offset] = 0x6800000;
+									break;
 
-					//MST 3 - 3D Graphics Engine Texture Data and Texture Palettes
-					case 0x3:
-						switch(bank_id)
-						{
-							case 0x0:
-								vram_tex_slot[offset] = 0x6800000;
-								break;
+								case 0x1:
+									vram_tex_slot[offset] = 0x6820000;
+									break;
 
-							case 0x1:
-								vram_tex_slot[offset] = 0x6820000;
-								break;
+								case 0x2:
+									vram_tex_slot[offset] = 0x6840000;
+									break;
 
-							case 0x2:
-								vram_tex_slot[offset] = 0x6840000;
-								break;
+								case 0x3:
+									vram_tex_slot[offset] = 0x6860000;
+									break;
 
-							case 0x3:
-								vram_tex_slot[offset] = 0x6860000;
-								break;
+								case 0x4:
+									lcd_3D_stat->pal_bank_addr = 0x6880000;
+									break;
 
-							case 0x4:
-								lcd_3D_stat->pal_bank_addr = 0x6880000;
-								break;
+								case 0x5:
+									lcd_3D_stat->pal_bank_addr = 0x6890000;
+									break;
 
-							case 0x5:
-								lcd_3D_stat->pal_bank_addr = 0x6890000;
-								break;
+								case 0x6:
+									lcd_3D_stat->pal_bank_addr = 0x6894000;
+									break;
 
-							case 0x6:
-								lcd_3D_stat->pal_bank_addr = 0x6894000;
-								break;
+								case 0x8:
+									pal_b_obj_slot[0] = lcd_stat->vram_bank_addr[7];
+									break;
+							}
 
-							case 0x8:
-								pal_b_obj_slot[0] = lcd_stat->vram_bank_addr[7];
-								break;
-						}
+							break;
 
-						if(bank_id < 7) { vram_bank_log[bank_id][mst] = lcd_stat->vram_bank_addr[bank_id]; }
+						//MST 4
+						case 0x4:
+							switch(bank_id)
+							{
+								case 0x2:
+									lcd_stat->vram_bank_addr[2] = 0x6200000;
+									break;
 
-						break;
+								case 0x3:
+									lcd_stat->vram_bank_addr[3] = 0x6600000;
+									break;
 
-					//MST 4
-					case 0x4:
-						switch(bank_id)
-						{
-							case 0x2:
-								lcd_stat->vram_bank_addr[2] = 0x6200000;
-								vram_bank_log[2][4] = 0x6200000;
-								break;
+								case 0x4:
+									pal_a_bg_slot[0] = 0x6880000;
+									pal_a_bg_slot[1] = 0x6882000;
+									pal_a_bg_slot[2] = 0x6884000;
+									pal_a_bg_slot[3] = 0x6886000;
+									break;
 
-							case 0x3:
-								lcd_stat->vram_bank_addr[3] = 0x6600000;
-								vram_bank_log[3][4] = 0x6600000;
-								break;
+								case 0x5:
+								case 0x6:
+									if(!offset)
+									{
+										pal_a_bg_slot[0] = lcd_stat->vram_bank_addr[bank_id];
+										pal_a_bg_slot[1] = lcd_stat->vram_bank_addr[bank_id] + 0x2000;
+									}
 
-							case 0x4:
-								pal_a_bg_slot[0] = 0x6880000;
-								pal_a_bg_slot[1] = 0x6882000;
-								pal_a_bg_slot[2] = 0x6884000;
-								pal_a_bg_slot[3] = 0x6886000;
-								break;
+									else
+									{
+										pal_a_bg_slot[2] = lcd_stat->vram_bank_addr[bank_id];
+										pal_a_bg_slot[3] = lcd_stat->vram_bank_addr[bank_id] + 0x2000;
+									}
 
-							case 0x5:
-							case 0x6:
-								if(!offset)
-								{
-									pal_a_bg_slot[0] = lcd_stat->vram_bank_addr[bank_id];
-									pal_a_bg_slot[1] = lcd_stat->vram_bank_addr[bank_id] + 0x2000;
-								}
-
-								else
-								{
-									pal_a_bg_slot[2] = lcd_stat->vram_bank_addr[bank_id];
-									pal_a_bg_slot[3] = lcd_stat->vram_bank_addr[bank_id] + 0x2000;
-								}
-
-								break;
+									break;
 								
-						}
+							}
 
-						break;
+							break;
 
-					//MST 5
-					case 0x5:
-						switch(bank_id)
-						{
-							case 0x5:
-								pal_a_obj_slot[0] = lcd_stat->vram_bank_addr[5];
-								break;
+						//MST 5
+						case 0x5:
+							switch(bank_id)
+							{
+								case 0x5:
+									pal_a_obj_slot[0] = lcd_stat->vram_bank_addr[5];
+									break;
 
-							case 0x6:
-								pal_a_obj_slot[0] = lcd_stat->vram_bank_addr[6];
-								break;
-						}
+								case 0x6:
+									pal_a_obj_slot[0] = lcd_stat->vram_bank_addr[6];
+									break;
+							}
 
-						break;
+							break;
+					}
 				}
+
+				else { lcd_stat->vram_bank_enable[bank_id] = false; }
 
 				//Check if any banks for Engine A BG are enabled for use
 				bg_vram_bank_enable_a = false;
@@ -6432,7 +6386,40 @@ void NTR_MMU::copy_capture_buffer(u32 capture_addr)
 		}
 	}
 }
-	
+
+/****** Deallocates VRAM when switching a bank back to LCDC mode ******/
+void NTR_MMU::deallocate_vram(u8 bank_id)
+{
+	u32 v_addr = lcd_stat->vram_bank_addr[bank_id];
+
+	if(v_addr)
+	{
+		switch(bank_id)
+		{
+			case 0x0:
+			case 0x1:
+			case 0x2:
+			case 0x3:
+				for(u32 x = 0; x < 0x20000; x++) { memory_map[v_addr + x] = 0; }
+				break;
+
+			case 0x4:
+				for(u32 x = 0; x < 0x10000; x++) { memory_map[v_addr + x] = 0; }
+				break;
+
+			case 0x5:
+			case 0x6:
+			case 0x8:
+				for(u32 x = 0; x < 0x4000; x++) { memory_map[v_addr + x] = 0; }
+				break;
+
+			case 0x7:
+				for(u32 x = 0; x < 0x8000; x++) { memory_map[v_addr + x] = 0; }
+				break;
+		}
+	}
+}
+
 /****** Points the MMU to an lcd_data structure (FROM THE LCD ITSELF) ******/
 void NTR_MMU::set_lcd_data(ntr_lcd_data* ex_lcd_stat) { lcd_stat = ex_lcd_stat; }
 
