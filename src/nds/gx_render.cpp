@@ -1663,9 +1663,9 @@ void NTR_LCD::process_gx_command()
 		//POS_TEST
 		case 0x71:
 			gx_matrix temp_vec(4, 1);
-			temp_vec[0] = get_u16_float(read_param_u16(0));
-			temp_vec[1] = get_u16_float(read_param_u16(2));
-			temp_vec[2] = get_u16_float(read_param_u16(4));
+			temp_vec[0] = get_u16_float(read_param_u16(2));
+			temp_vec[1] = get_u16_float(read_param_u16(0));
+			temp_vec[2] = get_u16_float(read_param_u16(6));
 			temp_vec[3] = 1.0;
 			temp_vec = temp_vec * (gx_position_matrix * gx_projection_matrix);
 
