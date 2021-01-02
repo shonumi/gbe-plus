@@ -1531,6 +1531,17 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 						lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = value;
 						if(lcd_3D_stat->parameter_index == 8) { lcd_3D_stat->process_command = true; }
 						break;
+
+					//VEC TEST
+					case 0x40005C8:
+					case 0x40005C9:
+					case 0x40005CA:
+					case 0x40005CB:
+						lcd_3D_stat->current_gx_command = 0x72;
+						lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = value;
+						if(lcd_3D_stat->parameter_index == 4) { lcd_3D_stat->process_command = true; }
+						break;
+						
 				}
 			}
 

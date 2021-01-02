@@ -1662,27 +1662,63 @@ void NTR_LCD::process_gx_command()
 
 		//POS_TEST
 		case 0x71:
-			gx_matrix temp_vec(4, 1);
-			temp_vec[0] = get_u16_float(read_param_u16(2));
-			temp_vec[1] = get_u16_float(read_param_u16(0));
-			temp_vec[2] = get_u16_float(read_param_u16(6));
-			temp_vec[3] = 1.0;
-			temp_vec = temp_vec * (gx_position_matrix * gx_projection_matrix);
+			{
+				gx_matrix temp_vec(4, 1);
+				temp_vec[0] = get_u16_float(read_param_u16(2));
+				temp_vec[1] = get_u16_float(read_param_u16(0));
+				temp_vec[2] = get_u16_float(read_param_u16(6));
+				temp_vec[3] = 1.0;
+				temp_vec = temp_vec * (gx_position_matrix * gx_projection_matrix);
 
-			//Write results to IO
-			mem->write_u32_fast(0x4000620, get_u32_fixed(temp_vec[0]));
-			mem->write_u32_fast(0x4000624, get_u32_fixed(temp_vec[1]));
-			mem->write_u32_fast(0x4000628, get_u32_fixed(temp_vec[2]));
-			mem->write_u32_fast(0x400062C, get_u32_fixed(temp_vec[3]));
+				//Write results to IO
+				mem->write_u32_fast(0x4000620, get_u32_fixed(temp_vec[0]));
+				mem->write_u32_fast(0x4000624, get_u32_fixed(temp_vec[1]));
+				mem->write_u32_fast(0x4000628, get_u32_fixed(temp_vec[2]));
+				mem->write_u32_fast(0x400062C, get_u32_fixed(temp_vec[3]));
 
-			lcd_3D_stat.last_x = temp_vec[0];
-			lcd_3D_stat.last_y = temp_vec[1];
-			lcd_3D_stat.last_z = temp_vec[2];
+				lcd_3D_stat.last_x = temp_vec[0];
+				lcd_3D_stat.last_y = temp_vec[1];
+				lcd_3D_stat.last_z = temp_vec[2];
 
-			//Force unset of Bit 0 of GXSTAT
-			lcd_3D_stat.gx_stat &= ~0x1;
+				//Force unset of Bit 0 of GXSTAT
+				lcd_3D_stat.gx_stat &= ~0x1;
+			}
 
 			break;
+
+		//VEC_TEST
+		case 0x72:
+			{
+				gx_matrix temp_vec(4, 1);
+				u32 raw_value = read_param_u32(0);
+
+				//Grab 10-bit XYZ components
+				for(u32 x = 0; x < 3; x++)
+				{
+					u16 value = (raw_value >> (10 * x)) & 0x3FF;
+					
+					float result = 0.0;
+				
+					if(value & 0x200) 
+					{ 
+						u16 p = ((value >> 6) - 1);
+						p = (~p & 0x7);
+						result = -1.0 * p;
+					}
+
+					else { result = (value >> 6); }
+					if((value & 0x3F) != 0) { result += (value & 0x3F) / 64.0; }
+
+					temp_vec[x] = result;
+				}
+
+				gx_matrix vmat = temp_vec * gx_vector_matrix;
+
+				//Force unset of Bit 0 of GXSTAT
+				lcd_3D_stat.gx_stat &= ~0x1;
+			}
+
+			break;				
 	}
 
 	//Process GXFIFO commands
