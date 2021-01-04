@@ -1238,6 +1238,10 @@ void ARM7::mem_check_16(u32 addr, u32& value, bool load_store)
 
 			//Force alignment by halfword
 			value = mem->read_u16(addr & ~0x1);
+
+			u16 temp_val = ((value << 8) & 0xFF);
+			value >>= 8;
+			value |= temp_val;
 		}
 
 		//Out of bounds unused memory
