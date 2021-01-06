@@ -187,6 +187,14 @@ class AGB_SIO
 		std::vector<u32> sprite_height;
 	} cdz_e;
 
+	//Virtual Racing System
+	struct virt_rs
+	{
+		u16 command;
+		u16 status;
+		virtual_racing_system_state current_state;
+	} vrs;
+
 	AGB_SIO();
 	~AGB_SIO();
 
@@ -226,6 +234,8 @@ class AGB_SIO
 	void zoids_cdz_process();
 	void zoids_cdz_update();
 	bool zoids_cdz_load_data();
+
+	void vrs_process();
 };
 
 #endif // GBA_SIO

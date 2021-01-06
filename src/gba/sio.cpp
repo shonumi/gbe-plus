@@ -267,6 +267,11 @@ void AGB_SIO::reset()
 			sio_stat.sio_type = GBA_IR_ADAPTER;
 			break;
 
+		//Virtual Racing System
+		case 18:
+			sio_stat.sio_type = GBA_VRS;
+			break;
+
 		//Always wait until netplay connection is established to change to GBA_LINK
 		default:
 			sio_stat.sio_type = NO_GBA_DEVICE;
@@ -385,6 +390,11 @@ void AGB_SIO::reset()
 	cdz_e.turn = 0;
 	cdz_e.boost = 0;
 	cdz_e.setup_sub_screen = false;
+
+	//Virtual Racing System
+	vrs.current_state = VRS_STANDBY;
+	vrs.command = 0;
+	vrs.status = 0xFF00;
 
 	if(config::ir_device == 6) { cdz_e.active = zoids_cdz_load_data(); }
 
@@ -2285,3 +2295,24 @@ bool AGB_SIO::zoids_cdz_load_data()
 	std::cout<<"SIO::CDZ-E sprite data loaded\n";
 	return true;
 }
+
+/****** Process commands from GBA to Virtual Racing System ******/
+void AGB_SIO::vrs_process()
+{
+	vrs.command = sio_stat.transfer_data;
+
+	//Process commands sent from the GBA
+
+	mem->memory_map[REG_IF] |= 0x80;
+
+	sio_stat.emu_device_ready = false;
+	sio_stat.active_transfer = false;
+
+	//Clear Bit 7 of SIOCNT
+	sio_stat.cnt &= ~0x80;
+	mem->write_u16_fast(0x4000128, sio_stat.cnt);
+
+	//Set Player 2 data as
+	mem->write_u16_fast(0x4000122, vrs.status);
+}
+	
