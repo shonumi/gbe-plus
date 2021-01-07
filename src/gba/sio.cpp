@@ -393,6 +393,8 @@ void AGB_SIO::reset()
 
 	//Virtual Racing System
 	vrs.current_state = VRS_STANDBY;
+	vrs.slot_speed = 0;
+	vrs.slot_lane = 0;
 	vrs.command = 0;
 	vrs.status = 0xFF00;
 
@@ -2301,7 +2303,24 @@ void AGB_SIO::vrs_process()
 {
 	vrs.command = sio_stat.transfer_data;
 
-	//Process commands sent from the GBA
+	switch(vrs.current_state)
+	{
+		case VRS_STANDBY:
+			break;
+
+		case VRS_RACING:
+			//Parse lane and slot car speed sent from GBA
+			vrs.slot_speed = vrs.command & 0xF;
+
+			if((vrs.command & 0xF0) == 0xC0) || ((vrs.command & 0xF0) == 0x40))
+			{
+				vrs.slot_lane = 1;
+			}
+
+			else { vrs.slot_lane = 2; }
+
+			break;
+	}
 
 	mem->memory_map[REG_IF] |= 0x80;
 
