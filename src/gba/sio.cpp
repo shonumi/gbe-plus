@@ -393,10 +393,13 @@ void AGB_SIO::reset()
 
 	//Virtual Racing System
 	vrs.current_state = VRS_STANDBY;
-	vrs.slot_speed = 0;
-	vrs.slot_lane = 0;
 	vrs.command = 0;
 	vrs.status = 0xFF00;
+
+	vrs.slot_speed = 0;
+	vrs.slot_lane = 0;
+	vrs.slot_x_pos = 0;
+	vrs.slot_y_pos = 0;
 
 	if(config::ir_device == 6) { cdz_e.active = zoids_cdz_load_data(); }
 
@@ -2331,7 +2334,7 @@ void AGB_SIO::vrs_process()
 	sio_stat.cnt &= ~0x80;
 	mem->write_u16_fast(0x4000128, sio_stat.cnt);
 
-	//Set Player 2 data as
+	//Set SIOMULTI1 data as Player 1 status
 	mem->write_u16_fast(0x4000122, vrs.status);
 }
 	

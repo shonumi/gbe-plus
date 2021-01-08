@@ -190,12 +190,15 @@ class AGB_SIO
 	//Virtual Racing System
 	struct virt_rs
 	{
-		u8 slot_speed;
-		u8 slot_lane;
-
 		u16 command;
 		u16 status;
 		virtual_racing_system_state current_state;
+
+		//Emulated slot-car properties
+		u8 slot_speed;
+		u8 slot_lane;
+		u8 slot_x_pos;
+		u8 slot_y_pos;
 	} vrs;
 
 	AGB_SIO();
