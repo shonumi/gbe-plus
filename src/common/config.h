@@ -107,6 +107,7 @@ namespace config
 	extern bool pause_emu;
 	extern bool use_bios;
 	extern bool use_firmware;
+	extern bool no_cart;
 
 	extern special_cart_types cart_type;
 	extern gba_save_types agb_save_type;

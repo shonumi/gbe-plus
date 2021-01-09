@@ -2315,7 +2315,7 @@ void AGB_SIO::vrs_process()
 			//Parse lane and slot car speed sent from GBA
 			vrs.slot_speed = vrs.command & 0xF;
 
-			if((vrs.command & 0xF0) == 0xC0) || ((vrs.command & 0xF0) == 0x40))
+			if(((vrs.command & 0xF0) == 0xC0) || ((vrs.command & 0xF0) == 0x40))
 			{
 				vrs.slot_lane = 1;
 			}

@@ -74,7 +74,7 @@ int main(int argc, char* args[])
 	{
 		gbe_plus = new NTR_core();
 	}
-	
+
 	//Read BIOS file optionally
 	if(config::use_bios) 
 	{

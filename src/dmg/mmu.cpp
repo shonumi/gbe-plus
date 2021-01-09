@@ -1612,6 +1612,20 @@ void DMG_MMU::hdma()
 /****** Read binary file to memory ******/
 bool DMG_MMU::read_file(std::string filename)
 {
+	//No cart inserted
+	if(config::no_cart)
+	{
+		//Abort if no BIOS provided
+		if(!config::use_bios)
+		{
+			std::cout<<"MMU::Error - Emulating no cart inserted without BIOS\n";
+			return false;
+		}
+		
+		std::cout<<"MMU::No cart inserted\n";
+		return true;
+	}
+
 	std::ifstream file(filename.c_str(), std::ios::binary);
 
 	if(!file.is_open()) 

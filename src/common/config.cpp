@@ -92,6 +92,7 @@ namespace config
 	bool pause_emu = false;
 	bool use_bios = false;
 	bool use_firmware = false;
+	bool no_cart = false;
 
 	special_cart_types cart_type = NORMAL_CART;
 	gba_save_types agb_save_type = AGB_AUTO_DETECT;
@@ -538,6 +539,7 @@ void set_dmg_colors(u8 color_type)
 void validate_system_type()
 {
 	if(config::rom_file.empty()) { return; }
+	if((config::rom_file == "NOCART") || config::no_cart) { return; }
 	if((config::rom_file == "-h") || (config::rom_file == "--help")) { config::cli_args.push_back(config::rom_file); return; } 
 
 	//Determine Gameboy type based on file name
@@ -572,6 +574,13 @@ void validate_system_type()
 /****** Returns the emulated system type from a given filename ******/
 u8 get_system_type_from_file(std::string filename)
 {
+	//Determine if no cart is inserted
+	if(filename == "NOCART")
+	{
+		config::no_cart = true;
+		return config::gb_type;
+	}
+
 	//Determine Gameboy type based on file name
 	std::size_t dot = filename.find_last_of(".");
 
