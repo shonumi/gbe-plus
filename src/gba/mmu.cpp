@@ -1975,6 +1975,20 @@ void AGB_MMU::write_u32_fast(u32 address, u32 value)
 /****** Read binary file to memory ******/
 bool AGB_MMU::read_file(std::string filename)
 {
+	//No cart inserted
+	if(config::no_cart)
+	{
+		//Abort if no BIOS provided
+		if(!config::use_bios)
+		{
+			std::cout<<"MMU::Error - Emulating no cart inserted without BIOS\n";
+			return false;
+		}
+		
+		std::cout<<"MMU::No cart inserted\n";
+		return true;
+	}
+
 	std::ifstream file(filename.c_str(), std::ios::binary);
 
 	if(!file.is_open()) 
@@ -2721,6 +2735,8 @@ void AGB_MMU::process_sio()
 			sio_stat->shifts_left = 16;
 			sio_stat->shift_counter = 0;
 			sio_stat->transfer_data = (memory_map[SIO_DATA_8 + 1] << 8) | memory_map[SIO_DATA_8];
+
+			std::cout<<"MULTI16 SEND -> 0x" << sio_stat->transfer_data << "\n";
 
 			//Reset incoming data
 			write_u16_fast(0x4000120, (sio_stat->transfer_data & 0xFFFF));
