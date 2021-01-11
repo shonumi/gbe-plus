@@ -267,7 +267,7 @@ void AGB_SIO::reset()
 			sio_stat.sio_type = GBA_IR_ADAPTER;
 			break;
 
-		//Virtual Racing System
+		//Virtureal Racing System
 		case 18:
 			sio_stat.sio_type = GBA_VRS;
 			break;
@@ -391,7 +391,9 @@ void AGB_SIO::reset()
 	cdz_e.boost = 0;
 	cdz_e.setup_sub_screen = false;
 
-	//Virtual Racing System
+	if(config::ir_device == 6) { cdz_e.active = zoids_cdz_load_data(); }
+
+	//Virtureal Racing System
 	vrs.current_state = VRS_STANDBY;
 	vrs.command = 0;
 	vrs.status = 0xFF00;
@@ -401,7 +403,7 @@ void AGB_SIO::reset()
 	vrs.slot_x_pos = 0;
 	vrs.slot_y_pos = 0;
 
-	if(config::ir_device == 6) { cdz_e.active = zoids_cdz_load_data(); }
+	if(config::sio_device == 18) { vrs.active = vrs_load_data(); }
 
 	#ifdef GBE_NETPLAY
 
@@ -2301,7 +2303,7 @@ bool AGB_SIO::zoids_cdz_load_data()
 	return true;
 }
 
-/****** Process commands from GBA to Virtual Racing System ******/
+/****** Process commands from GBA to Virtureal Racing System ******/
 void AGB_SIO::vrs_process()
 {
 	vrs.command = sio_stat.transfer_data;
@@ -2337,4 +2339,53 @@ void AGB_SIO::vrs_process()
 	//Set SIOMULTI1 data as Player 1 status
 	mem->write_u16_fast(0x4000122, vrs.status);
 }
-	
+
+/****** Loads sprite data for Virtureal Racing System ******/
+bool AGB_SIO::vrs_load_data()
+{
+	std::vector<std::string> file_list;
+
+	file_list.push_back(config::data_path + "misc/VRS_car_1.bmp");
+	file_list.push_back(config::data_path + "misc/VRS_car_2.bmp");
+	file_list.push_back(config::data_path + "misc/VRS_track.bmp");
+
+	vrs.sprite_buffer.clear();
+	vrs.sprite_width.clear();
+	vrs.sprite_height.clear();
+
+	//Open each BMP from data folder
+	for(u32 index = 0; index < file_list.size(); index++)
+	{
+		SDL_Surface* source = SDL_LoadBMP(file_list[index].c_str());
+		std::vector<u32> temp_pixels;
+
+		//Check if file could be opened
+		if(source == NULL)
+		{
+			std::cout<<"SIO::Error - Could not load VRS sprite data file " << file_list[index] << "\n";
+			return false;
+		}
+
+		//Check if file is 24bpp
+		if(source->format->BitsPerPixel != 24)
+		{
+			std::cout<<"SIO::Error - VRS sprite data file " << file_list[index] << " is not 24bpp\n";
+			return false;
+		}
+
+		u8* pixel_data = (u8*)source->pixels;
+
+		//Copy 32-bit pixel data to buffers
+		for(int a = 0, b = 0; a < (source->w * source->h); a++, b+=3)
+		{
+			temp_pixels.push_back(0xFF000000 | (pixel_data[b+2] << 16) | (pixel_data[b+1] << 8) | (pixel_data[b]));
+		}
+
+		vrs.sprite_buffer.push_back(temp_pixels);
+		vrs.sprite_width.push_back(source->w);
+		vrs.sprite_height.push_back(source->h);
+	}
+
+	std::cout<<"SIO::VRS sprite data loaded\n";
+	return true;
+}
