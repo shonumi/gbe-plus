@@ -706,6 +706,9 @@ void AGB_SIO::process_network_communication()
 		{
 			sio_stat.connected = true;
 			sio_stat.sio_type = GBA_LINK;
+
+			sio_stat.connection_ready = true;
+			mem->process_sio();
 		}
 	}
 
