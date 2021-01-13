@@ -288,7 +288,7 @@ void AGB_core::run_core()
 				core_cpu.controllers.serial_io.receive_byte();
 
 				//Clock SIO
-				//core_cpu.clock_sio();
+				core_cpu.clock_sio();
 			}
 
 			//Otherwise, try to run any emulate SIO devices attached to GBE+

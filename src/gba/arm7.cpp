@@ -1533,7 +1533,8 @@ void ARM7::clock_sio()
 				if((controllers.serial_io.sio_stat.sio_type == GBA_LINK) && (controllers.serial_io.sio_stat.sio_mode == MULTIPLAY_16BIT))
 				{
 					//Reset Bit 7 in SIO_CNT
-					mem->memory_map[SIO_CNT] &= ~0x80;
+					controllers.serial_io.sio_stat.cnt &= ~0x80;
+					mem->write_u16_fast(SIO_CNT, controllers.serial_io.sio_stat.cnt);
 
 					//Transfer data over network
 					controllers.serial_io.send_data();
