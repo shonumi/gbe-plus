@@ -171,6 +171,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	sio_dev->addItem("Multi Plust On System");
 	sio_dev->addItem("Turbo File GB/Advance");
 	sio_dev->addItem("AGB-006");
+	sio_dev->addItem("V.R.S.");
 
 	config_sio = new QPushButton("Configure");
 
