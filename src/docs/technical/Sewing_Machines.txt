@@ -304,7 +304,7 @@ X coordinates range from 0x00 (farthest point left) to 0x1F (farthest point righ
 0x20				Shift Up 0.75mm
 -------------------------------------------------
 
-Ultimately, the sewing machines can program stitching to move vertically in 0.0625 increments and horizontally in 0.25 increments. Horizontal movement is limited to a set "window", e.g. setting multiple X coordinates to 0x1F keeps the stitching at farthest point right. Vertical movement is unlimited, as the machines will move the fabric up or down like a feed.
+Ultimately, the sewing machines can program stitching to move vertically in 0.0625mm increments and horizontally in 0.25mm increments. Horizontal movement is limited to a set "window", e.g. setting multiple X coordinates to 0x1F keeps the stitching at farthest point right. Vertical movement is unlimited, as the machines will move the fabric up or down like a feed.
 
 While the X and Y coordinates come in pair, it is important to note how each affects the movement of the needle and fabric. The below example demonstrates how X and Y coordinates actually dictate movement, assuming there are only 4 sets of Real Coordinate data.
 
