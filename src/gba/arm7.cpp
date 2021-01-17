@@ -1514,6 +1514,12 @@ void ARM7::clock_dma()
 /****** Runs Serial IO for some cycles ******/
 void ARM7::clock_sio()
 {
+	//In Multi16 mode, these steps are not necessary for child GBAs
+	if((controllers.serial_io.sio_stat.sio_type == GBA_LINK) && (controllers.serial_io.sio_stat.player_id)) { return; }
+
+	//If there is no active transfer, these steps are not necessary
+	if(!controllers.serial_io.sio_stat.active_transfer) { return; }	
+
 	if(controllers.serial_io.sio_stat.shifts_left != 0)
 	{
 		controllers.serial_io.sio_stat.shift_counter += system_cycles;
