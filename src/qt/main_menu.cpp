@@ -22,6 +22,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 {
 	//Setup actions
 	QAction* open = new QAction("Open...", this);
+	QAction* boot_no_cart = new QAction("Boot Empty Slot", this);
 	QAction* select_card = new QAction("Select Card File", this);
 	QAction* select_cam = new QAction("Select GB Camera Photo", this);
 	QAction* select_img = new QAction("Select Image File", this);
@@ -78,6 +79,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 
 	file = new QMenu(tr("File"), this);
 	file->addAction(open);
+	file->addAction(boot_no_cart);
 	file->addSeparator();
 	recent_list = file->addMenu(tr("Recent Files"));
 	file->addAction(select_card);
@@ -138,6 +140,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	//Setup signals
 	connect(quit, SIGNAL(triggered()), this, SLOT(quit()));
 	connect(open, SIGNAL(triggered()), this, SLOT(open_file()));
+	connect(boot_no_cart, SIGNAL(triggered()), this, SLOT(open_no_cart()));
 	connect(select_card, SIGNAL(triggered()), this, SLOT(select_card_file()));
 	connect(select_cam, SIGNAL(triggered()), this, SLOT(select_cam_file()));
 	connect(select_img, SIGNAL(triggered()), this, SLOT(select_img_file()));
@@ -413,6 +416,29 @@ void main_menu::open_file()
 
 		connect(list_mapper, SIGNAL(mapped(int)), this, SLOT(load_recent(int)));
 	}
+
+	boot_game();
+}
+
+/****** Boots system without a cartridge ******/
+void main_menu::open_no_cart()
+{
+	//Close the core
+	if(main_menu::gbe_plus != NULL) 
+	{
+		main_menu::gbe_plus->shutdown();
+		main_menu::gbe_plus->core_emu::~core_emu();
+	}
+
+	config::sdl_render = false;
+	config::render_external_sw = render_screen_sw;
+	config::render_external_hw = render_screen_hw;
+	config::sample_rate = settings->sample_rate;
+
+	if(qt_gui::screen != NULL) { delete qt_gui::screen; }
+	qt_gui::screen = NULL;
+
+	config::rom_file = "NOCART";
 
 	boot_game();
 }
