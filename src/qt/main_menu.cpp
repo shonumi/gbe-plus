@@ -570,7 +570,7 @@ void main_menu::boot_game()
 	//Check to see if the ROM file actually exists
 	QFile test_file(QString::fromStdString(config::rom_file));
 	
-	if(!test_file.exists())
+	if((config::rom_file != "NOCART") && (!test_file.exists()))
 	{
 		std::string mesg_text = "The specified file: '" + config::rom_file + "' could not be loaded"; 
 		warning_box->setText(QString::fromStdString(mesg_text));
@@ -692,17 +692,20 @@ void main_menu::boot_game()
 
 	//Determine Gameboy type based on file name
 	//Note, DMG and GBC games are automatically detected in the Gameboy MMU, so only check for GBA and NDS types here
-	std::size_t dot = config::rom_file.find_last_of(".");
-	std::string ext = config::rom_file.substr(dot);
+	if(config::rom_file != "NOCART")
+	{
+		std::size_t dot = config::rom_file.find_last_of(".");
+		std::string ext = config::rom_file.substr(dot);
 
-	config::gb_type = settings->sys_type->currentIndex();
+		config::gb_type = settings->sys_type->currentIndex();
 	
-	if(ext == ".gba") { config::gb_type = 3; }
-	else if(ext == ".nds") { config::gb_type = 4; }
-	else if((ext != ".gba") && (config::gb_type == 3)) { config::gb_type = 2; config::gba_enhance = true; }
-	else { config::gba_enhance = false; }
+		if(ext == ".gba") { config::gb_type = 3; }
+		else if(ext == ".nds") { config::gb_type = 4; }
+		else if((ext != ".gba") && (config::gb_type == 3)) { config::gb_type = 2; config::gba_enhance = true; }
+		else { config::gba_enhance = false; }
 
-	if((config::gb_type == 5) || (config::gb_type == 6)) { config::gb_type = get_system_type_from_file(config::rom_file); }
+		if((config::gb_type == 5) || (config::gb_type == 6)) { config::gb_type = get_system_type_from_file(config::rom_file); }
+	}
 
 	//Determine CGFX scaling factor
 	cgfx::scaling_factor = (settings->cgfx_scale->currentIndex() + 1);
