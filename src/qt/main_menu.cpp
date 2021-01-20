@@ -592,6 +592,14 @@ void main_menu::boot_game()
 
 	test_file.setFileName(QString::fromStdString(test_bios_path));
 
+	if((config::rom_file == "NOCART") && (!config::use_bios))
+	{
+		std::string mesg_text = "A BIOS/Boot ROM file must be used when booting without a cartridge\n";
+		warning_box->setText(QString::fromStdString(mesg_text));
+		warning_box->show();
+		return;
+	}
+
 	if(!test_file.exists() && config::use_bios)
 	{
 		std::string mesg_text;
