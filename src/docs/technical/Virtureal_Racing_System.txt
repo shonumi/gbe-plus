@@ -19,6 +19,7 @@ The Virtureal Racing System, also known as the VRS, is a specialized Carrera GO!
 * Accepts 2 standard Carrera GO!!! hand controls.
 * Must be powered externally, as opposed to many later Carrera connection tracks that use batteries.
 * Uses a red LED light to indicate power-on and data transfer modes.
+* Officially referred to as the Carrera 20802.
 
 
 ***************************************************
@@ -92,7 +93,7 @@ Speed Level 14 - Lane 2			| 0xFFDE
 Speed Level 15 - Lane 2			| 0xFF5F
 -------------------------------------------------
 
-Slot car speeds span 16 different levels. The lower the level, the slower the car moves. Technically, any speed less than or equal to Level 3 results in the slot car not moving at all. This is used when enabling the fuel levels during races. In that scenario, Power Slide keeps track of how long it has been sending commands to move the slot car and constantly decreases a virtual amount of fuel. When the software sees that there is no more virtual fuel, it forcibly limits the slot car by setting the speed to Level 3. The racer must then perform a pit stop via the software to recover virtual fuel and continue running the track.
+Slot car speeds span 16 different levels. The lower the level, the slower the car moves. Technically, any speed less than or equal to Level 3 results in the slot car not moving at all. This is used when enabling fuel levels during races. In that scenario, Power Slide keeps track of how long it has been sending commands to move the slot car and constantly decreases a virtual amount of fuel. When the software sees that there is no more virtual fuel, it forcibly limits the slot car by setting the speed to Level 3. The racer must then perform a pit stop via the software to recover virtual fuel and continue running the track.
 
 Similar to the virtual fuel, slot cars on the VRS can simulate damage from crashes or collisions. This is entirely a feature of Power Slide's software. When damage is enabled for a race, a "crash" is registered whenever a slot car stops moving for a certain period of time. In the event of a crash, a racer would normally stop input on their GBA and move around to put the slot car back on the track. If a racer takes too much damage, the software limits the speed to Level 3. Racers must then perform a pit stop to repair the car. Unfortunately, the software registers any and all stops (outside of pit stops) as damage, even if no crash physically occurred. The VRS itself has no method to detect when a slot car has left the track, so this software solution based on human behavior works as an approximation.
 
@@ -106,7 +107,7 @@ Not used - Set Low		| Bits 4 - 7
 Not used - Set High		| Bits 8 - 15
 -------------------------------------------------
 
-The lap count is merely a value of 0xFF00 through 0xFF07. Every time a slot car moves through one of the physical switches built into the VRS' two lanes, Bits 0 - 3 increment. Once these 4 bits overflow, it begins again at zero. Power Slide constantly monitors this value for any changes, at which point it update the time for a finished lap. By comparing lap times and the total number of laps completed, the software can determine which racer is in first place as well.
+The lap count is merely a value of 0xFF00 through 0xFF07. Every time a slot car moves through one of the physical switches built into the VRS' two lanes, Bits 0 - 3 increment. Once these 4 bits overflow, it begins again at zero. Power Slide constantly monitors this value for any changes, at which point it updates the time for a finished lap. By comparing lap times and the total number of laps completed, the software can determine which racer is in first place as well.
 
 When the VRS and GBAs are connected, Child 1 and Child 3 Multi16 data both read 0xFFFF when the power is off. When the power is on, Child 1 and Child 3 Multi16 data both read 0x0000. These values can be used by software to determine whether the VRS is attached and whether or not it is active. If Child 2 Multi16 data reads 0xFFFF, this normally indicates that there is no second GBA attached.
 
