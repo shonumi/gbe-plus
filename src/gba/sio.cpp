@@ -402,6 +402,8 @@ void AGB_SIO::reset()
 	vrs.slot_lane = 0;
 	vrs.slot_x_pos = 0;
 	vrs.slot_y_pos = 0;
+	vrs.lane_1_start = 0;
+	vrs.lane_2_start = 0;
 
 	if(config::sio_device == 18) { vrs.active = vrs_load_data(); }
 
@@ -2410,6 +2412,31 @@ bool AGB_SIO::vrs_load_data()
 		vrs.sprite_buffer.push_back(temp_pixels);
 		vrs.sprite_width.push_back(source->w);
 		vrs.sprite_height.push_back(source->h);
+	}
+
+	//Parse Lane 1 and Lane 2 track data - All red and blue pixels respectively
+	//Also find starting positions
+	vrs.lane_1_data.clear();
+	vrs.lane_2_data.clear();
+
+	vrs.lane_1_start = 0;
+	vrs.lane_2_start = 0;
+
+	for(u32 x = 0; x < vrs.sprite_buffer[2].size(); x++)
+	{
+		//Lane 1 track
+		if(vrs.sprite_buffer[2][x] == 0xFFFF0000) { vrs.lane_1_data.push_back(1); }
+		else { vrs.lane_1_data.push_back(0); }
+
+		//Lane 2 track
+		if(vrs.sprite_buffer[2][x] == 0xFF0000FF) { vrs.lane_2_data.push_back(2); }
+		else { vrs.lane_2_data.push_back(0); }
+
+		//Lane 1 start
+		if(vrs.sprite_buffer[2][x] == 0xFF800000) { vrs.lane_1_start = x; }
+
+		//Lane 2 start
+		if(vrs.sprite_buffer[2][x] == 0xFF000080) { vrs.lane_2_start = x; }
 	}
 
 	std::cout<<"SIO::VRS sprite data loaded\n";

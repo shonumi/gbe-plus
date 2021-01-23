@@ -204,6 +204,12 @@ class AGB_SIO
 		std::vector< std::vector<u32> > sprite_buffer;
 		std::vector<u32> sprite_width;
 		std::vector<u32> sprite_height;
+
+		std::vector<u8> lane_1_data;
+		std::vector<u8> lane_2_data;
+
+		u32 lane_1_start;
+		u32 lane_2_start;
 	} vrs;
 
 	AGB_SIO();
