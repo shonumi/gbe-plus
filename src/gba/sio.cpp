@@ -397,11 +397,13 @@ void AGB_SIO::reset()
 	vrs.current_state = VRS_STANDBY;
 	vrs.command = 0;
 	vrs.status = 0xFF00;
+	vrs.active = false;
+	vrs.setup_sub_screen = false;
 
 	vrs.slot_speed = 0;
 	vrs.slot_lane = 0;
-	vrs.slot_x_pos = 0;
-	vrs.slot_y_pos = 0;
+	vrs.lane_1_pos = 0;
+	vrs.lane_2_pos = 0;
 	vrs.lane_1_start = 0;
 	vrs.lane_2_start = 0;
 
@@ -2339,6 +2341,18 @@ void AGB_SIO::vrs_process()
 	switch(vrs.current_state)
 	{
 		case VRS_STANDBY:
+			if(sio_stat.transfer_data == 0xFF00)
+			{
+				vrs.current_state = VRS_RACING;
+				vrs.setup_sub_screen = true;
+
+				mem->sub_screen_buffer.clear();
+				mem->sub_screen_buffer.resize(0x9600, 0xFFFFFFFF);
+
+				config::osd_message = "VRS INIT";
+				config::osd_count = 180;
+			}
+ 
 			break;
 
 		case VRS_RACING:
@@ -2366,6 +2380,58 @@ void AGB_SIO::vrs_process()
 
 	//Set SIOMULTI1 data as Player 1 status
 	mem->write_u16_fast(0x4000122, vrs.status);
+}
+
+/****** Updates subscreen for VRS ******/
+void AGB_SIO::vrs_update()
+{
+	mem->sub_screen_buffer.clear();
+	mem->sub_screen_buffer.resize(0x9600, 0xFFFFFFFF);
+
+	u8 sprite_id = 0;
+	u32 src_index = 0;
+	s32 target_index = 0;
+
+	u32 w = 0;
+	u32 h = 0;
+
+	float sx = 0;
+	float sy = 0;
+	float tx = 0;
+	float ty = 0;
+
+	s32 cam_x = 0;
+	s32 cam_y = 0;
+	s32 vx = 0;
+	s32 vy = 0;
+
+	float delta = 0;
+
+	//Draw track
+	cam_x = vrs.lane_1_pos % 240;
+	cam_y = vrs.lane_1_pos / 240;
+
+	cam_x = 120 - cam_x;
+	cam_y = 80 - cam_y;
+
+	for(u32 x = 0; x < vrs.sprite_buffer[2].size(); x++)
+	{
+		vx = x % 240;
+		vy = x / 240;
+
+		vx += cam_x;
+		vx += cam_y;
+
+		if((vx >= 0) && (vy >= 0) && (vx < 240) && (vy < 160))
+		{
+			target_index = (vy * 240) + (vx);
+		
+			if((target_index >= 0) && (target_index < 0x9600))
+			{
+				mem->sub_screen_buffer[target_index] = vrs.sprite_buffer[2][x];
+			}
+		}
+	}
 }
 
 /****** Loads sprite data for Virtureal Racing System ******/
@@ -2438,6 +2504,9 @@ bool AGB_SIO::vrs_load_data()
 		//Lane 2 start
 		if(vrs.sprite_buffer[2][x] == 0xFF000080) { vrs.lane_2_start = x; }
 	}
+
+	vrs.lane_1_pos = vrs.lane_1_start;
+	vrs.lane_2_pos = vrs.lane_2_start;
 
 	std::cout<<"SIO::VRS sprite data loaded\n";
 	return true;

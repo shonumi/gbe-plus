@@ -1654,8 +1654,25 @@ void ARM7::clock_emulated_sio_device()
 			break;
 
 		case 0x12:
+			if(!controllers.serial_io.vrs.active) { return; }
+
 			//Process Virtual Racing System
-			controllers.serial_io.vrs_process();
+			if(mem->sub_screen_update && !mem->sub_screen_lock)
+			{
+				mem->sub_screen_lock = true;
+				controllers.serial_io.vrs_update();
+			}
+
+			if(controllers.serial_io.sio_stat.active_transfer) { controllers.serial_io.vrs_process(); }
+
+			//Request screen resize for VRS sub-screen
+			if(controllers.serial_io.vrs.setup_sub_screen)
+			{
+				config::request_resize = true;
+				config::resize_mode = 1;
+				controllers.serial_io.vrs.setup_sub_screen = false;
+			}
+
 			break;
 
 		//Clock everything else normally

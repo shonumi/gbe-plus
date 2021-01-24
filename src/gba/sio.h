@@ -194,12 +194,13 @@ class AGB_SIO
 		u16 status;
 		virtual_racing_system_state current_state;
 		bool active;
+		bool setup_sub_screen;
 
 		//Emulated slot-car properties
 		u8 slot_speed;
 		u8 slot_lane;
-		u8 slot_x_pos;
-		u8 slot_y_pos;
+		u8 lane_1_pos;
+		u8 lane_2_pos;
 
 		std::vector< std::vector<u32> > sprite_buffer;
 		std::vector<u32> sprite_width;
@@ -253,6 +254,7 @@ class AGB_SIO
 	bool zoids_cdz_load_data();
 
 	void vrs_process();
+	void vrs_update();
 	bool vrs_load_data();
 };
 
