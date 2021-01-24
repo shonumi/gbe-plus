@@ -404,6 +404,8 @@ void AGB_SIO::reset()
 	vrs.slot_lane = 0;
 	vrs.lane_1_pos = 0;
 	vrs.lane_2_pos = 0;
+	vrs.lane_1_last_pos = 0;
+	vrs.lane_2_last_pos = 0;
 	vrs.lane_1_start = 0;
 	vrs.lane_2_start = 0;
 
@@ -2348,6 +2350,7 @@ void AGB_SIO::vrs_process()
 
 				mem->sub_screen_buffer.clear();
 				mem->sub_screen_buffer.resize(0x9600, 0xFFFFFFFF);
+				mem->sub_screen_update = 1;
 
 				config::osd_message = "VRS INIT";
 				config::osd_count = 180;
@@ -2371,7 +2374,7 @@ void AGB_SIO::vrs_process()
 
 	mem->memory_map[REG_IF] |= 0x80;
 
-	sio_stat.emu_device_ready = false;
+	if(vrs.current_state == VRS_STANDBY) { sio_stat.emu_device_ready = false; }
 	sio_stat.active_transfer = false;
 
 	//Clear Bit 7 of SIOCNT
@@ -2390,6 +2393,7 @@ void AGB_SIO::vrs_update()
 
 	u8 sprite_id = 0;
 	u32 src_index = 0;
+	u32 size = 0;
 	s32 target_index = 0;
 
 	u32 w = 0;
@@ -2407,31 +2411,109 @@ void AGB_SIO::vrs_update()
 
 	float delta = 0;
 
+	//Update lane position
+	if(vrs.slot_speed >= 4)
+	{
+		w = vrs.sprite_width[2];
+		size = vrs.sprite_buffer[2].size();
+		s32 check[8];
+		s32 index;
+
+		for(u32 x = 0; x < vrs.slot_speed; x++)
+		{
+			//Find next track pixel
+			check[0] = vrs.lane_1_pos - w;
+			check[1] = vrs.lane_1_pos - w + 1;
+			check[2] = vrs.lane_1_pos + 1;
+			check[3] = vrs.lane_1_pos + w + 1;
+			check[4] = vrs.lane_1_pos + w;
+			check[5] = vrs.lane_1_pos + w - 1;
+			check[6] = vrs.lane_1_pos - 1;
+			check[7] = vrs.lane_1_pos - w - 1;
+			
+			for(u32 y = 0; y < 8; y++)
+			{
+				index = check[y];
+
+				//Match color for track
+				if((index >= 0) && (index < size) && (index != vrs.lane_1_last_pos) && (vrs.sprite_buffer[2][index] == 0xFFFF0000))
+				{
+					vrs.lane_1_last_pos = vrs.lane_1_pos;
+					vrs.lane_1_pos = index;
+					break;
+				}
+
+				//Match color for start position
+				else if((index >= 0) && (index < size) && (index != vrs.lane_1_last_pos) && (vrs.sprite_buffer[2][index] == 0xFF800000))
+				{
+					//Update VRS status for laps
+					vrs.status++;
+					vrs.status &= 0x7;
+					vrs.status |= 0xFF00;
+
+					vrs.lane_1_last_pos = vrs.lane_1_pos;
+					vrs.lane_1_pos = index;
+					break;
+				}
+			}
+		}
+	}
+
 	//Draw track
-	cam_x = vrs.lane_1_pos % 240;
-	cam_y = vrs.lane_1_pos / 240;
+	w = vrs.sprite_width[2];
+	h = vrs.sprite_height[2];
+	size = vrs.sprite_buffer[2].size();
 
-	cam_x = 120 - cam_x;
-	cam_y = 80 - cam_y;
+	cam_x = vrs.lane_1_pos % w;
+	cam_y = vrs.lane_1_pos / w;
 
-	for(u32 x = 0; x < vrs.sprite_buffer[2].size(); x++)
+	cam_x = cam_x - 120;
+	cam_y = cam_y - 80;
+
+	for(u32 x = 0; x < mem->sub_screen_buffer.size(); x++)
 	{
 		vx = x % 240;
 		vy = x / 240;
 
 		vx += cam_x;
-		vx += cam_y;
+		vy += cam_y;
 
-		if((vx >= 0) && (vy >= 0) && (vx < 240) && (vy < 160))
+		if((vx >= 0) && (vy >= 0) && (vx < w) && (vy < h))
 		{
-			target_index = (vy * 240) + (vx);
+			src_index = (vy * w) + (vx);
 		
-			if((target_index >= 0) && (target_index < 0x9600))
+			if((src_index >= 0) && (src_index < size))
 			{
-				mem->sub_screen_buffer[target_index] = vrs.sprite_buffer[2][x];
+				mem->sub_screen_buffer[x] = vrs.sprite_buffer[2][src_index];
 			}
 		}
 	}
+
+	//Draw cars
+	w = vrs.sprite_width[0];
+	h = vrs.sprite_height[0];
+	size = vrs.sprite_buffer[0].size();
+
+	cam_x = 120 - (w/2);
+	cam_y = 80 - (h/2);
+
+	for(u32 x = 0; x < size; x++)
+	{
+		u32 color = vrs.sprite_buffer[0][x];
+
+		vx = x % w;
+		vy = x / w;
+
+		vx += cam_x;
+		vy += cam_y;
+
+		if((vx >= 0) && (vy >= 0) && (vx < 240) && (vy < 160) && (color != 0xFFFFFFFF))
+		{
+			target_index = (vy * 240) + (vx);
+			mem->sub_screen_buffer[target_index] = vrs.sprite_buffer[0][x];
+		}
+	}
+	
 }
 
 /****** Loads sprite data for Virtureal Racing System ******/

@@ -199,8 +199,10 @@ class AGB_SIO
 		//Emulated slot-car properties
 		u8 slot_speed;
 		u8 slot_lane;
-		u8 lane_1_pos;
-		u8 lane_2_pos;
+		u32 lane_1_pos;
+		u32 lane_2_pos;
+		u32 lane_1_last_pos;
+		u32 lane_2_last_pos;
 
 		std::vector< std::vector<u32> > sprite_buffer;
 		std::vector<u32> sprite_width;
