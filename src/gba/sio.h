@@ -204,6 +204,11 @@ class AGB_SIO
 		u32 lane_1_last_pos;
 		u32 lane_2_last_pos;
 
+		u16 lane_1_angle;
+		u16 lane_2_angle;
+		u8 lane_1_delta;
+		u8 lane_2_delta;
+
 		std::vector< std::vector<u32> > sprite_buffer;
 		std::vector<u32> sprite_width;
 		std::vector<u32> sprite_height;

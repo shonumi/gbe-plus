@@ -409,6 +409,11 @@ void AGB_SIO::reset()
 	vrs.lane_1_start = 0;
 	vrs.lane_2_start = 0;
 
+	vrs.lane_1_angle = 0;
+	vrs.lane_2_angle = 0;
+	vrs.lane_1_delta = 0;
+	vrs.lane_2_delta = 0;
+
 	if(config::sio_device == 18) { vrs.active = vrs_load_data(); }
 
 	#ifdef GBE_NETPLAY
@@ -2409,8 +2414,6 @@ void AGB_SIO::vrs_update()
 	s32 vx = 0;
 	s32 vy = 0;
 
-	float delta = 0;
-
 	//Update lane position
 	if(vrs.slot_speed >= 4)
 	{
@@ -2440,6 +2443,7 @@ void AGB_SIO::vrs_update()
 				{
 					vrs.lane_1_last_pos = vrs.lane_1_pos;
 					vrs.lane_1_pos = index;
+					vrs.lane_1_delta = y;
 					break;
 				}
 
@@ -2453,9 +2457,39 @@ void AGB_SIO::vrs_update()
 
 					vrs.lane_1_last_pos = vrs.lane_1_pos;
 					vrs.lane_1_pos = index;
+					vrs.lane_1_delta = y;
 					break;
 				}
 			}
+
+			//Calculate new angle
+			u16 next_angle = vrs.lane_1_delta * 45;
+			u16 last_angle = vrs.lane_1_angle;
+
+			if((next_angle == 0) && (last_angle > 180)) { next_angle = 360; }
+			s16 dist = next_angle - last_angle;
+
+			s16 inc = 0;
+
+			//Clockwise
+			if(dist > 0) { inc = 15; }
+
+			//Counter-clockwise
+			else if(dist < 0) { inc = -15; }
+
+			if(next_angle == 360) { next_angle = 0; }
+
+			if(vrs.lane_1_angle != next_angle)
+			{
+				vrs.lane_1_angle += inc;
+				if(vrs.lane_1_angle == 360) { vrs.lane_1_angle = 0; }
+			}
+
+
+			//std::cout<<"NEXT ANGLE -> " << std::dec << next_angle << "\n";
+			//std::cout<<"LAST ANGLE -> " << std::dec << last_angle << "\n";
+			//std::cout<<"DIST -> " << std::dec << dist << "\n";
+			//std::cout<<"FINAL ANGLE -> " << std::dec << vrs.lane_1_angle << "\n\n";
 		}
 	}
 
@@ -2493,27 +2527,40 @@ void AGB_SIO::vrs_update()
 	w = vrs.sprite_width[0];
 	h = vrs.sprite_height[0];
 	size = vrs.sprite_buffer[0].size();
+	src_index = 0;
 
-	cam_x = 120 - (w/2);
-	cam_y = 80 - (h/2);
+	tx = 120 - (w/2);
+	ty = 80 - (h/2);
 
-	for(u32 x = 0; x < size; x++)
+	double theta = (vrs.lane_1_angle * 3.14159265) / 180.0;
+	float st = sin(theta);
+	float ct = cos(theta);
+
+	for(u32 y = 0; y < h; y++)
 	{
-		u32 color = vrs.sprite_buffer[0][x];
-
-		vx = x % w;
-		vy = x / w;
-
-		vx += cam_x;
-		vy += cam_y;
-
-		if((vx >= 0) && (vy >= 0) && (vx < 240) && (vy < 160) && (color != 0xFFFFFFFF))
+		for(u32 x = 0; x < w; x++)
 		{
-			target_index = (vy * 240) + (vx);
-			mem->sub_screen_buffer[target_index] = vrs.sprite_buffer[0][x];
+			//Calculate rotated pixel position
+			sx = tx + x;
+			sy = ty + y;
+
+			float fx = ((sx - 120) * ct) - ((sy - 80) * st) + 120;
+			float fy = ((sx - 120) * st) + ((sy - 80) * ct) + 80;
+
+			if((fx >= 0) && (fy >= 0) && (fx < 240) && (fy < 160))
+			{
+				//Calculate target (subscreen) pixel
+				target_index = ((u32)fy * 240) + (u32)fx;
+
+				if((target_index < 0x9600) && (target_index >= 0))
+				{	
+					mem->sub_screen_buffer[target_index] = vrs.sprite_buffer[0][src_index];
+				}
+			}
+
+			src_index++;
 		}
 	}
-	
 }
 
 /****** Loads sprite data for Virtureal Racing System ******/
@@ -2589,6 +2636,9 @@ bool AGB_SIO::vrs_load_data()
 
 	vrs.lane_1_pos = vrs.lane_1_start;
 	vrs.lane_2_pos = vrs.lane_2_start;
+
+	vrs.lane_1_angle = 90;
+	vrs.lane_2_angle = 90;
 
 	std::cout<<"SIO::VRS sprite data loaded\n";
 	return true;
