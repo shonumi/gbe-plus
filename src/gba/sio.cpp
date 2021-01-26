@@ -400,19 +400,20 @@ void AGB_SIO::reset()
 	vrs.active = false;
 	vrs.setup_sub_screen = false;
 
-	vrs.slot_speed = 0;
 	vrs.slot_lane = 0;
-	vrs.lane_1_pos = 0;
-	vrs.lane_2_pos = 0;
-	vrs.lane_1_last_pos = 0;
-	vrs.lane_2_last_pos = 0;
-	vrs.lane_1_start = 0;
-	vrs.lane_2_start = 0;
+	vrs.slot_speed[0] = 0;
+	vrs.slot_speed[1] = 0;
+	vrs.lane_pos[0] = 0;
+	vrs.lane_pos[1] = 0;
+	vrs.lane_last_pos[0] = 0;
+	vrs.lane_last_pos[1] = 0;
+	vrs.lane_start[0] = 0;
+	vrs.lane_start[1] = 0;
 
-	vrs.lane_1_angle = 0;
-	vrs.lane_2_angle = 0;
-	vrs.lane_1_delta = 0;
-	vrs.lane_2_delta = 0;
+	vrs.lane_angle[0] = 0;
+	vrs.lane_angle[1] = 0;
+	vrs.lane_delta[0] = 0;
+	vrs.lane_delta[1] = 0;
 
 	if(config::sio_device == 18) { vrs.active = vrs_load_data(); }
 
@@ -2365,7 +2366,7 @@ void AGB_SIO::vrs_process()
 
 		case VRS_RACING:
 			//Parse lane and slot car speed sent from GBA
-			vrs.slot_speed = vrs.command & 0xF;
+			vrs.slot_speed[0] = vrs.command & 0xF;
 
 			if(((vrs.command & 0xF0) == 0xC0) || ((vrs.command & 0xF0) == 0x40))
 			{
@@ -2413,83 +2414,83 @@ void AGB_SIO::vrs_update()
 	s32 cam_y = 0;
 	s32 vx = 0;
 	s32 vy = 0;
-
-	//Update lane position
-	if(vrs.slot_speed >= 4)
+	
+	for(u32 i = 0; i < 2; i++)
 	{
-		w = vrs.sprite_width[2];
-		size = vrs.sprite_buffer[2].size();
-		s32 check[8];
-		s32 index;
-
-		for(u32 x = 0; x < vrs.slot_speed; x++)
+		//Update lane positions
+		if(vrs.slot_speed[i] >= 4)
 		{
-			//Find next track pixel
-			check[0] = vrs.lane_1_pos - w;
-			check[1] = vrs.lane_1_pos - w + 1;
-			check[2] = vrs.lane_1_pos + 1;
-			check[3] = vrs.lane_1_pos + w + 1;
-			check[4] = vrs.lane_1_pos + w;
-			check[5] = vrs.lane_1_pos + w - 1;
-			check[6] = vrs.lane_1_pos - 1;
-			check[7] = vrs.lane_1_pos - w - 1;
-			
-			for(u32 y = 0; y < 8; y++)
-			{
-				index = check[y];
+			w = vrs.sprite_width[2];
+			size = vrs.sprite_buffer[2].size();
+			s32 check[8];
+			s32 index;
 
-				//Match color for track
-				if((index >= 0) && (index < size) && (index != vrs.lane_1_last_pos) && (vrs.sprite_buffer[2][index] == 0xFFFF0000))
+			u32 track_color = i ? 0xFF0000FF : 0xFFFF0000;
+			u32 start_color = i ? 0xFF000080 : 0xFF800000;
+
+			for(u32 x = 0; x < vrs.slot_speed[i]; x++)
+			{
+				//Find next track pixel
+				check[0] = vrs.lane_pos[i] - w;
+				check[1] = vrs.lane_pos[i] - w + 1;
+				check[2] = vrs.lane_pos[i] + 1;
+				check[3] = vrs.lane_pos[i] + w + 1;
+				check[4] = vrs.lane_pos[i] + w;
+				check[5] = vrs.lane_pos[i] + w - 1;
+				check[6] = vrs.lane_pos[i] - 1;
+				check[7] = vrs.lane_pos[i] - w - 1;
+
+				for(u32 y = 0; y < 8; y++)
 				{
-					vrs.lane_1_last_pos = vrs.lane_1_pos;
-					vrs.lane_1_pos = index;
-					vrs.lane_1_delta = y;
-					break;
+					index = check[y];
+
+					//Match color for track
+					if((index >= 0) && (index < size) && (index != vrs.lane_last_pos[i]) && (vrs.sprite_buffer[2][index] == track_color))
+					{
+						vrs.lane_last_pos[i] = vrs.lane_pos[i];
+						vrs.lane_pos[i] = index;
+						vrs.lane_delta[i] = y;
+						break;
+					}
+
+					//Match color for start position
+					else if((index >= 0) && (index < size) && (index != vrs.lane_last_pos[i]) && (vrs.sprite_buffer[2][index] == start_color))
+					{
+						//Update VRS status for laps
+						vrs.status++;
+						vrs.status &= 0x7;
+						vrs.status |= 0xFF00;
+
+						vrs.lane_last_pos[i] = vrs.lane_pos[i];
+						vrs.lane_pos[i] = index;
+						vrs.lane_delta[i] = y;
+						break;
+					}
 				}
 
-				//Match color for start position
-				else if((index >= 0) && (index < size) && (index != vrs.lane_1_last_pos) && (vrs.sprite_buffer[2][index] == 0xFF800000))
-				{
-					//Update VRS status for laps
-					vrs.status++;
-					vrs.status &= 0x7;
-					vrs.status |= 0xFF00;
+				//Calculate new angle
+				u16 next_angle = vrs.lane_delta[i] * 45;
+				u16 last_angle = vrs.lane_angle[i];
 
-					vrs.lane_1_last_pos = vrs.lane_1_pos;
-					vrs.lane_1_pos = index;
-					vrs.lane_1_delta = y;
-					break;
+				if((next_angle == 0) && (last_angle > 180)) { next_angle = 360; }
+				s16 dist = next_angle - last_angle;
+
+				s16 inc = 0;
+
+				//Clockwise
+				if(dist > 0) { inc = 15; }
+
+				//Counter-clockwise
+				else if(dist < 0) { inc = -15; }
+
+				if(next_angle == 360) { next_angle = 0; }
+
+				if(vrs.lane_angle[i] != next_angle)
+				{
+					vrs.lane_angle[i] += inc;
+					if(vrs.lane_angle[i] == 360) { vrs.lane_angle[i] = 0; }
 				}
 			}
-
-			//Calculate new angle
-			u16 next_angle = vrs.lane_1_delta * 45;
-			u16 last_angle = vrs.lane_1_angle;
-
-			if((next_angle == 0) && (last_angle > 180)) { next_angle = 360; }
-			s16 dist = next_angle - last_angle;
-
-			s16 inc = 0;
-
-			//Clockwise
-			if(dist > 0) { inc = 15; }
-
-			//Counter-clockwise
-			else if(dist < 0) { inc = -15; }
-
-			if(next_angle == 360) { next_angle = 0; }
-
-			if(vrs.lane_1_angle != next_angle)
-			{
-				vrs.lane_1_angle += inc;
-				if(vrs.lane_1_angle == 360) { vrs.lane_1_angle = 0; }
-			}
-
-
-			//std::cout<<"NEXT ANGLE -> " << std::dec << next_angle << "\n";
-			//std::cout<<"LAST ANGLE -> " << std::dec << last_angle << "\n";
-			//std::cout<<"DIST -> " << std::dec << dist << "\n";
-			//std::cout<<"FINAL ANGLE -> " << std::dec << vrs.lane_1_angle << "\n\n";
 		}
 	}
 
@@ -2498,8 +2499,8 @@ void AGB_SIO::vrs_update()
 	h = vrs.sprite_height[2];
 	size = vrs.sprite_buffer[2].size();
 
-	cam_x = vrs.lane_1_pos % w;
-	cam_y = vrs.lane_1_pos / w;
+	cam_x = vrs.lane_pos[0] % w;
+	cam_y = vrs.lane_pos[0] / w;
 
 	cam_x = cam_x - 120;
 	cam_y = cam_y - 80;
@@ -2523,7 +2524,7 @@ void AGB_SIO::vrs_update()
 		}
 	}
 
-	//Draw cars
+	//Draw Lane 1 car
 	w = vrs.sprite_width[0];
 	h = vrs.sprite_height[0];
 	size = vrs.sprite_buffer[0].size();
@@ -2532,9 +2533,12 @@ void AGB_SIO::vrs_update()
 	tx = 120 - (w/2);
 	ty = 80 - (h/2);
 
-	double theta = (vrs.lane_1_angle * 3.14159265) / 180.0;
+	double theta = (vrs.lane_angle[0] * 3.14159265) / 180.0;
 	float st = sin(theta);
 	float ct = cos(theta);
+
+	float fx;
+	float fy;
 
 	for(u32 y = 0; y < h; y++)
 	{
@@ -2551,15 +2555,48 @@ void AGB_SIO::vrs_update()
 			{
 				//Calculate target (subscreen) pixel
 				target_index = ((u32)fy * 240) + (u32)fx;
+				u32 target_color = vrs.sprite_buffer[0][src_index];
 
-				if((target_index < 0x9600) && (target_index >= 0))
+				if((target_index < 0x9600) && (target_index >= 0) && (target_color != 0xFFFFFFFF))
 				{	
-					mem->sub_screen_buffer[target_index] = vrs.sprite_buffer[0][src_index];
+					mem->sub_screen_buffer[target_index] = target_color;
 				}
 			}
 
 			src_index++;
 		}
+	}
+
+	//Draw Lane 2 car
+	w = vrs.sprite_width[1];
+	h = vrs.sprite_height[1];
+	size = vrs.sprite_buffer[1].size();
+	src_index = 0;
+
+	for(u32 y = 0; y < h; y++)
+	{
+		for(u32 x = 0; x < w; x++)
+		{
+			vx = (vrs.lane_pos[1] % vrs.sprite_width[2]) - (w/2) + x;
+			vy = (vrs.lane_pos[1] / vrs.sprite_width[2]) - (h/2) + y;
+
+			if((vx >= cam_x) && (vy >= cam_y) && (vx < (cam_x + 240)) && (vy < (cam_y + 160)))
+			{
+				vx -= cam_x;
+				vy -= cam_y;
+
+				target_index = ((vy * 240) + vx);
+				u32 target_color = vrs.sprite_buffer[1][src_index];
+
+				if((target_index < 0x9600) && (target_index >= 0) && (target_color != 0xFFFFFFFF))
+				{		
+					mem->sub_screen_buffer[target_index] = target_color;
+				}
+			}
+
+			src_index++;
+		}
+
 	}
 }
 
@@ -2609,36 +2646,24 @@ bool AGB_SIO::vrs_load_data()
 		vrs.sprite_height.push_back(source->h);
 	}
 
-	//Parse Lane 1 and Lane 2 track data - All red and blue pixels respectively
-	//Also find starting positions
-	vrs.lane_1_data.clear();
-	vrs.lane_2_data.clear();
-
-	vrs.lane_1_start = 0;
-	vrs.lane_2_start = 0;
+	//Parse Lane 1 and Lane 2 starting positions
+	vrs.lane_start[0] = 0;
+	vrs.lane_start[1] = 0;
 
 	for(u32 x = 0; x < vrs.sprite_buffer[2].size(); x++)
 	{
-		//Lane 1 track
-		if(vrs.sprite_buffer[2][x] == 0xFFFF0000) { vrs.lane_1_data.push_back(1); }
-		else { vrs.lane_1_data.push_back(0); }
-
-		//Lane 2 track
-		if(vrs.sprite_buffer[2][x] == 0xFF0000FF) { vrs.lane_2_data.push_back(2); }
-		else { vrs.lane_2_data.push_back(0); }
-
 		//Lane 1 start
-		if(vrs.sprite_buffer[2][x] == 0xFF800000) { vrs.lane_1_start = x; }
+		if(vrs.sprite_buffer[2][x] == 0xFF800000) { vrs.lane_start[0] = x; }
 
 		//Lane 2 start
-		if(vrs.sprite_buffer[2][x] == 0xFF000080) { vrs.lane_2_start = x; }
+		if(vrs.sprite_buffer[2][x] == 0xFF000080) { vrs.lane_start[1] = x; }
 	}
 
-	vrs.lane_1_pos = vrs.lane_1_start;
-	vrs.lane_2_pos = vrs.lane_2_start;
+	vrs.lane_pos[0] = vrs.lane_start[0];
+	vrs.lane_pos[1] = vrs.lane_start[1];
 
-	vrs.lane_1_angle = 90;
-	vrs.lane_2_angle = 90;
+	vrs.lane_angle[0] = 90;
+	vrs.lane_angle[1] = 90;
 
 	std::cout<<"SIO::VRS sprite data loaded\n";
 	return true;

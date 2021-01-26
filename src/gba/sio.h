@@ -197,27 +197,17 @@ class AGB_SIO
 		bool setup_sub_screen;
 
 		//Emulated slot-car properties
-		u8 slot_speed;
 		u8 slot_lane;
-		u32 lane_1_pos;
-		u32 lane_2_pos;
-		u32 lane_1_last_pos;
-		u32 lane_2_last_pos;
-
-		u16 lane_1_angle;
-		u16 lane_2_angle;
-		u8 lane_1_delta;
-		u8 lane_2_delta;
+		u8 slot_speed[2];
+		u32 lane_pos[2];
+		u32 lane_last_pos[2];
+		u32 lane_angle[2];
+		u32 lane_delta[2];
+		u32 lane_start[2];
 
 		std::vector< std::vector<u32> > sprite_buffer;
 		std::vector<u32> sprite_width;
 		std::vector<u32> sprite_height;
-
-		std::vector<u8> lane_1_data;
-		std::vector<u8> lane_2_data;
-
-		u32 lane_1_start;
-		u32 lane_2_start;
 	} vrs;
 
 	AGB_SIO();
