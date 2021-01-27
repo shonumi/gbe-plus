@@ -2502,8 +2502,8 @@ void AGB_SIO::vrs_update()
 	cam_x = vrs.lane_pos[0] % w;
 	cam_y = vrs.lane_pos[0] / w;
 
-	cam_x = cam_x - 120;
-	cam_y = cam_y - 80;
+	cam_x -= 120;
+	cam_y -= 80;
 
 	for(u32 x = 0; x < mem->sub_screen_buffer.size(); x++)
 	{
@@ -2537,9 +2537,6 @@ void AGB_SIO::vrs_update()
 	float st = sin(theta);
 	float ct = cos(theta);
 
-	float fx;
-	float fy;
-
 	for(u32 y = 0; y < h; y++)
 	{
 		for(u32 x = 0; x < w; x++)
@@ -2554,7 +2551,7 @@ void AGB_SIO::vrs_update()
 			if((fx >= 0) && (fy >= 0) && (fx < 240) && (fy < 160))
 			{
 				//Calculate target (subscreen) pixel
-				target_index = ((u32)fy * 240) + (u32)fx;
+				target_index = ((s32)fy * 240) + (s32)fx;
 				u32 target_color = vrs.sprite_buffer[0][src_index];
 
 				if((target_index < 0x9600) && (target_index >= 0) && (target_color != 0xFFFFFFFF))
@@ -2573,6 +2570,13 @@ void AGB_SIO::vrs_update()
 	size = vrs.sprite_buffer[1].size();
 	src_index = 0;
 
+	tx = (vrs.lane_pos[1] % vrs.sprite_width[2]);
+	ty = (vrs.lane_pos[1] / vrs.sprite_width[2]);
+
+	theta = (vrs.lane_angle[1] * 3.14159265) / 180.0;
+	st = sin(theta);
+	ct = cos(theta);
+
 	for(u32 y = 0; y < h; y++)
 	{
 		for(u32 x = 0; x < w; x++)
@@ -2580,12 +2584,16 @@ void AGB_SIO::vrs_update()
 			vx = (vrs.lane_pos[1] % vrs.sprite_width[2]) - (w/2) + x;
 			vy = (vrs.lane_pos[1] / vrs.sprite_width[2]) - (h/2) + y;
 
-			if((vx >= cam_x) && (vy >= cam_y) && (vx < (cam_x + 240)) && (vy < (cam_y + 160)))
-			{
-				vx -= cam_x;
-				vy -= cam_y;
+			//Calculate rotated pixel position
+			float fx = ((vx - tx) * ct) - ((vy - ty) * st) + tx;
+			float fy = ((vx - tx) * st) + ((vy - ty) * ct) + ty;
 
-				target_index = ((vy * 240) + vx);
+			if((fx >= cam_x) && (fy >= cam_y) && (fx < (cam_x + 240)) && (fy < (cam_y + 160)))
+			{
+				fx -= cam_x;
+				fy -= cam_y;
+
+				target_index = ((s32)fy * 240) + (s32)fx;
 				u32 target_color = vrs.sprite_buffer[1][src_index];
 
 				if((target_index < 0x9600) && (target_index >= 0) && (target_color != 0xFFFFFFFF))
@@ -2596,7 +2604,6 @@ void AGB_SIO::vrs_update()
 
 			src_index++;
 		}
-
 	}
 }
 
