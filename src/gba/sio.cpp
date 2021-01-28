@@ -400,7 +400,8 @@ void AGB_SIO::reset()
 	vrs.active = false;
 	vrs.setup_sub_screen = false;
 
-	vrs.slot_lane = 0;
+	vrs.slot_lane = 1;
+	vrs.last_lane = 1;
 	vrs.slot_speed[0] = 0;
 	vrs.slot_speed[1] = 0;
 	vrs.lane_pos[0] = 0;
@@ -2366,14 +2367,21 @@ void AGB_SIO::vrs_process()
 
 		case VRS_RACING:
 			//Parse lane and slot car speed sent from GBA
-			vrs.slot_speed[0] = vrs.command & 0xF;
-
 			if(((vrs.command & 0xF0) == 0xC0) || ((vrs.command & 0xF0) == 0x40))
 			{
 				vrs.slot_lane = 1;
+				vrs.slot_speed[0] = vrs.command & 0xF;
+
+				if(vrs.slot_speed[0]) { vrs.last_lane = 1; }
 			}
 
-			else { vrs.slot_lane = 2; }
+			else if(((vrs.command & 0xF0) == 0xD0) || ((vrs.command & 0xF0) == 0x50))
+			{
+				vrs.slot_lane = 2;
+				vrs.slot_speed[1] = vrs.command & 0xF;
+
+				if(vrs.slot_speed[1]) { vrs.last_lane = 2; }
+			}
 
 			break;
 	}
@@ -2387,8 +2395,11 @@ void AGB_SIO::vrs_process()
 	sio_stat.cnt &= ~0x80;
 	mem->write_u16_fast(0x4000128, sio_stat.cnt);
 
-	//Set SIOMULTI1 data as Player 1 status
+	//Set SIOMULTI1 data as race status
 	mem->write_u16_fast(0x4000122, vrs.status);
+
+	//Set SIOMULTI3 data as echo for 2nd player handshake
+	mem->write_u16_fast(0x4000124, sio_stat.transfer_data);
 }
 
 /****** Updates subscreen for VRS ******/
@@ -2396,6 +2407,10 @@ void AGB_SIO::vrs_update()
 {
 	mem->sub_screen_buffer.clear();
 	mem->sub_screen_buffer.resize(0x9600, 0xFFFFFFFF);
+
+	//If no lane is updating speed, default camera to focus on last lane that was updated
+	//Prevents camera from rapidly shifting before starting a race
+	if(!vrs.slot_speed[0] && !vrs.slot_speed[1]) { vrs.slot_lane = vrs.last_lane; }
 
 	u8 sprite_id = 0;
 	u32 src_index = 0;
@@ -2414,6 +2429,22 @@ void AGB_SIO::vrs_update()
 	s32 cam_y = 0;
 	s32 vx = 0;
 	s32 vy = 0;
+
+	u8 c0;
+	u8 c1;
+
+	//Select which lane the camera will focus on
+	if(vrs.slot_lane == 1)
+	{
+		c0 = 0;
+		c1 = 1;
+	}
+
+	else
+	{
+		c0 = 1;
+		c1 = 0;
+	}
 	
 	for(u32 i = 0; i < 2; i++)
 	{
@@ -2457,9 +2488,25 @@ void AGB_SIO::vrs_update()
 					else if((index >= 0) && (index < size) && (index != vrs.lane_last_pos[i]) && (vrs.sprite_buffer[2][index] == start_color))
 					{
 						//Update VRS status for laps
-						vrs.status++;
-						vrs.status &= 0x7;
-						vrs.status |= 0xFF00;
+						if((vrs.slot_lane == 2) || ((c0 == 0) && (i == 1)))
+						{
+							u16 stat = (vrs.status >> 3) & 0x7;
+							stat++;
+							stat &= 0x7;
+							stat <<= 3;
+							
+							vrs.status &= ~0x38;
+							vrs.status |= stat;
+						}
+
+						else
+						{
+							u16 stat = vrs.status & 0x7;
+							stat++;
+							
+							vrs.status &= ~0x7;
+							vrs.status |= stat;
+						}
 
 						vrs.lane_last_pos[i] = vrs.lane_pos[i];
 						vrs.lane_pos[i] = index;
@@ -2499,8 +2546,8 @@ void AGB_SIO::vrs_update()
 	h = vrs.sprite_height[2];
 	size = vrs.sprite_buffer[2].size();
 
-	cam_x = vrs.lane_pos[0] % w;
-	cam_y = vrs.lane_pos[0] / w;
+	cam_x = vrs.lane_pos[c0] % w;
+	cam_y = vrs.lane_pos[c0] / w;
 
 	cam_x -= 120;
 	cam_y -= 80;
@@ -2525,15 +2572,15 @@ void AGB_SIO::vrs_update()
 	}
 
 	//Draw Lane 1 car
-	w = vrs.sprite_width[0];
-	h = vrs.sprite_height[0];
-	size = vrs.sprite_buffer[0].size();
+	w = vrs.sprite_width[c0];
+	h = vrs.sprite_height[c0];
+	size = vrs.sprite_buffer[c0].size();
 	src_index = 0;
 
 	tx = 120 - (w/2);
 	ty = 80 - (h/2);
 
-	double theta = (vrs.lane_angle[0] * 3.14159265) / 180.0;
+	double theta = (vrs.lane_angle[c0] * 3.14159265) / 180.0;
 	float st = sin(theta);
 	float ct = cos(theta);
 
@@ -2552,7 +2599,7 @@ void AGB_SIO::vrs_update()
 			{
 				//Calculate target (subscreen) pixel
 				target_index = ((s32)fy * 240) + (s32)fx;
-				u32 target_color = vrs.sprite_buffer[0][src_index];
+				u32 target_color = vrs.sprite_buffer[c0][src_index];
 
 				if((target_index < 0x9600) && (target_index >= 0) && (target_color != 0xFFFFFFFF))
 				{	
@@ -2565,15 +2612,15 @@ void AGB_SIO::vrs_update()
 	}
 
 	//Draw Lane 2 car
-	w = vrs.sprite_width[1];
-	h = vrs.sprite_height[1];
-	size = vrs.sprite_buffer[1].size();
+	w = vrs.sprite_width[c1];
+	h = vrs.sprite_height[c1];
+	size = vrs.sprite_buffer[c1].size();
 	src_index = 0;
 
-	tx = (vrs.lane_pos[1] % vrs.sprite_width[2]);
-	ty = (vrs.lane_pos[1] / vrs.sprite_width[2]);
+	tx = (vrs.lane_pos[c1] % vrs.sprite_width[2]);
+	ty = (vrs.lane_pos[c1] / vrs.sprite_width[2]);
 
-	theta = (vrs.lane_angle[1] * 3.14159265) / 180.0;
+	theta = (vrs.lane_angle[c1] * 3.14159265) / 180.0;
 	st = sin(theta);
 	ct = cos(theta);
 
@@ -2581,8 +2628,8 @@ void AGB_SIO::vrs_update()
 	{
 		for(u32 x = 0; x < w; x++)
 		{
-			vx = (vrs.lane_pos[1] % vrs.sprite_width[2]) - (w/2) + x;
-			vy = (vrs.lane_pos[1] / vrs.sprite_width[2]) - (h/2) + y;
+			vx = (vrs.lane_pos[c1] % vrs.sprite_width[2]) - (w/2) + x;
+			vy = (vrs.lane_pos[c1] / vrs.sprite_width[2]) - (h/2) + y;
 
 			//Calculate rotated pixel position
 			float fx = ((vx - tx) * ct) - ((vy - ty) * st) + tx;
@@ -2594,7 +2641,7 @@ void AGB_SIO::vrs_update()
 				fy -= cam_y;
 
 				target_index = ((s32)fy * 240) + (s32)fx;
-				u32 target_color = vrs.sprite_buffer[1][src_index];
+				u32 target_color = vrs.sprite_buffer[c1][src_index];
 
 				if((target_index < 0x9600) && (target_index >= 0) && (target_color != 0xFFFFFFFF))
 				{		

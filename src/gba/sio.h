@@ -198,6 +198,7 @@ class AGB_SIO
 
 		//Emulated slot-car properties
 		u8 slot_lane;
+		u8 last_lane;
 		u8 slot_speed[2];
 		u32 lane_pos[2];
 		u32 lane_last_pos[2];
