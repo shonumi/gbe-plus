@@ -35,7 +35,7 @@ The VRS lets 2 GBAs connect to the motor driver to move slot cars along the trac
 * Ghost Race: Records 1 lap for a lane. The lap can be "played back" on that same lane while racing against it on another.
 * Stop Watch: GBA acts as a stop watch, recording detailed lap time results.
 
-Stop Watch is the only mode that does not use the GBA to control a slot car. Instead, the GBA is used to record lap times. The Carrera GO!!! hand controls must be used instead. For all other modes, the GBA controls the slot car, even if hand controls are plugged in. Also note that only the first GBA is required for Carrera Racing. The second racer may use an additional GBA or (if such a GBA is absent) hand controls. If hand controls are used for the second racer, however, Power Slide only recognizes the first racer for the above 2-player modes.
+Stop Watch is the only mode that does not use the GBA to control a slot car. Instead, the GBA is used to record lap times, and The Carrera GO!!! hand controls must be used. For all other modes, the GBA controls the slot car, even if hand controls are plugged in. Also note that only the first GBA is required for Carrera Racing. The second racer may use an additional GBA or (if such a GBA is absent) hand controls. If hand controls are used for the second racer, however, Power Slide only recognizes the first racer for the above 2-player modes.
 
 When using a second GBA, the first GBA running Power Slide will send data and code via MultiBoot. Once downloaded, the second GBA will feature an near-exact copy of the Carrera Racing interface, except without the ability to select the "Real Racing" modes or set any options (this is the role of the first GBA).
 
