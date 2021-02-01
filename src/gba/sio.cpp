@@ -2400,7 +2400,10 @@ void AGB_SIO::vrs_process()
 	mem->write_u16_fast(0x4000122, vrs.status);
 
 	//Set SIOMULTI3 data as echo for 2nd player handshake
-	mem->write_u16_fast(0x4000124, sio_stat.transfer_data);
+	if(vrs.options & 0x1)
+	{
+		mem->write_u16_fast(0x4000124, sio_stat.transfer_data);
+	}
 }
 
 /****** Updates subscreen for VRS ******/
@@ -2413,7 +2416,7 @@ void AGB_SIO::vrs_update()
 	if((mem->g_pad->con_flags & 0x200) && ((vrs.sub_screen_status & 0x80) == 0))
 	{
 		vrs.frame_counter = 0;
-		vrs.sub_screen_status |= 0x80;
+		vrs.sub_screen_status = 0x80;
 	}
 
 	//Draw menu
@@ -2456,12 +2459,18 @@ void AGB_SIO::vrs_draw_track()
 	{
 		c0 = 0;
 		c1 = 1;
+
+		//If Player 2 CPU is not enabled, make speed zero
+		if((vrs.options & 0x1) == 0) { vrs.slot_speed[1] = 0; }
 	}
 
 	else
 	{
 		c0 = 1;
 		c1 = 0;
+
+		//If Player 2 CPU is not enabled, make speed zero
+		if((vrs.options & 0x1) == 0) { vrs.slot_speed[0] = 0; }
 	}
 	
 	for(u32 i = 0; i < 2; i++)
@@ -2628,6 +2637,9 @@ void AGB_SIO::vrs_draw_track()
 			src_index++;
 		}
 	}
+
+	//If Player 2 CPU is not enabled, skip drawing
+	if((vrs.options & 0x1) == 0) { return; }
 
 	//Draw Lane 2 car
 	w = vrs.sprite_width[c1];
