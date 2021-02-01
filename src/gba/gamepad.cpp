@@ -22,6 +22,8 @@ AGB_GamePad::AGB_GamePad()
 	is_rumbling = false;
 	is_gb_player = false;
 
+	con_flags = 0;
+
 	gyro_value = 0x6C0;
 	gyro_flags = 0;
 
@@ -315,6 +317,10 @@ void AGB_GamePad::process_keyboard(int pad, bool pressed)
 
 		//Emulate Battle Chip insertion
 		else if((config::sio_device >= 10) && (config::sio_device <= 12)) { config::battle_chip_id = config::chip_list[0]; }
+
+		con_flags |= 0x1;
+		con_flags |= 0x10;
+		con_flags &= ~0x2;
 	}
 
 	//Context Left release
@@ -332,6 +338,12 @@ void AGB_GamePad::process_keyboard(int pad, bool pressed)
 
 		//Emulate Battle Chip extraction
 		else if((config::sio_device >= 10) && (config::sio_device <= 12)) { config::battle_chip_id = 0; }
+
+		con_flags &= ~0x1;
+		con_flags &= ~0x10;
+
+		if(con_flags & 0x20) { con_flags |= 0x2; }
+		else { con_flags &= ~0x2; }
 	}
 
 	//Context Right press
@@ -351,6 +363,10 @@ void AGB_GamePad::process_keyboard(int pad, bool pressed)
 
 		//Emulate Battle Chip insertion
 		else if((config::sio_device >= 10) && (config::sio_device <= 12)) { config::battle_chip_id = config::chip_list[1]; }
+
+		con_flags |= 0x2;
+		con_flags |= 0x20;
+		con_flags &= ~0x1;
 	}
 
 	//Context Right release
@@ -368,6 +384,12 @@ void AGB_GamePad::process_keyboard(int pad, bool pressed)
 
 		//Emulate Battle Chip extraction
 		else if((config::sio_device >= 10) && (config::sio_device <= 12)) { config::battle_chip_id = 0; }
+
+		con_flags &= ~0x2;
+		con_flags &= ~0x20;
+
+		if(con_flags & 0x10) { con_flags |= 0x1; }
+		else { con_flags &= ~0x1; }
 	}
 
 	//Context Up press
@@ -395,6 +417,10 @@ void AGB_GamePad::process_keyboard(int pad, bool pressed)
 
 		//Emulate Battle Chip insertion
 		else if((config::sio_device >= 10) && (config::sio_device <= 12)) { config::battle_chip_id = config::chip_list[2]; }
+
+		con_flags |= 0x4;
+		con_flags |= 0x40;
+		con_flags &= ~0x8;
 	}
 
 	//Context Up release
@@ -412,6 +438,12 @@ void AGB_GamePad::process_keyboard(int pad, bool pressed)
 
 		//Emulate Battle Chip extraction
 		else if((config::sio_device >= 10) && (config::sio_device <= 12)) { config::battle_chip_id = 0; }
+
+		con_flags &= ~0x4;
+		con_flags &= ~0x40;
+
+		if(con_flags & 0x80) { con_flags |= 0x8; }
+		else { con_flags &= ~0x8; }
 	}
 
 	//Context Down press
@@ -439,6 +471,10 @@ void AGB_GamePad::process_keyboard(int pad, bool pressed)
 
 		//Emulate Battle Chip insertion
 		else if((config::sio_device >= 10) && (config::sio_device <= 12)) { config::battle_chip_id = config::chip_list[3]; }
+
+		con_flags |= 0x8;
+		con_flags |= 0x80;
+		con_flags &= ~0x4;
 	}
 
 	//Context Down release
@@ -456,7 +492,25 @@ void AGB_GamePad::process_keyboard(int pad, bool pressed)
 
 		//Emulate Battle Chip extraction
 		else if((config::sio_device >= 10) && (config::sio_device <= 12)) { config::battle_chip_id = 0; }
+
+		con_flags &= ~0x8;
+		con_flags &= ~0x80;
+
+		if(con_flags & 0x40) { con_flags |= 0x4; }
+		else { con_flags &= ~0x4; }
 	}
+
+	//Misc Context Key 1 press
+	else if((pad == config::con_key_1) && (pressed)) { con_flags |= 0x100; }
+	
+	//Misc Context Key 1 release
+	else if((pad == config::con_key_1) && (!pressed)) { con_flags &= ~0x100; }
+
+	//Misc Context Key 2 press
+	else if((pad == config::con_key_2) && (pressed)) { con_flags |= 0x200; }
+	
+	//Misc Context Key 2 release
+	else if((pad == config::con_key_2) && (!pressed)) { con_flags &= ~0x200; }
 
 	is_gb_player = false;
 }
@@ -540,6 +594,9 @@ void AGB_GamePad::process_joystick(int pad, bool pressed)
 
 		//Emulate Battle Chip insertion
 		else if((config::sio_device >= 10) && (config::sio_device <= 12)) { config::battle_chip_id = config::chip_list[0]; }
+
+		con_flags |= 0x1;
+		con_flags &= ~0x2;
 	}
 
 	//Context Left release
@@ -557,6 +614,8 @@ void AGB_GamePad::process_joystick(int pad, bool pressed)
 
 		//Emulate Battle Chip extraction
 		else if((config::sio_device >= 10) && (config::sio_device <= 12)) { config::battle_chip_id = 0; }
+
+		con_flags &= ~0x1;
 	}
 
 	//Context Right press
@@ -575,6 +634,9 @@ void AGB_GamePad::process_joystick(int pad, bool pressed)
 
 		//Emulate Battle Chip insertion
 		else if((config::sio_device >= 10) && (config::sio_device <= 12)) { config::battle_chip_id = config::chip_list[1]; }
+
+		con_flags |= 0x2;
+		con_flags &= ~0x1;
 	}
 
 	//Context Right release
@@ -592,6 +654,8 @@ void AGB_GamePad::process_joystick(int pad, bool pressed)
 
 		//Emulate Battle Chip extraction
 		else if((config::sio_device >= 10) && (config::sio_device <= 12)) { config::battle_chip_id = 0; }
+
+		con_flags &= ~0x2;
 	}
 
 	//Context Up press
@@ -619,6 +683,9 @@ void AGB_GamePad::process_joystick(int pad, bool pressed)
 
 		//Emulate Battle Chip insertion
 		else if((config::sio_device >= 10) && (config::sio_device <= 12)) { config::battle_chip_id = config::chip_list[2]; }
+
+		con_flags |= 0x4;
+		con_flags &= ~0x8;
 	}
 
 	//Context Up release
@@ -636,6 +703,8 @@ void AGB_GamePad::process_joystick(int pad, bool pressed)
 
 		//Emulate Battle Chip extraction
 		else if((config::sio_device >= 10) && (config::sio_device <= 12)) { config::battle_chip_id = 0; }
+
+		con_flags &= ~0x4;
 	}
 
 	//Context Down press
@@ -663,6 +732,9 @@ void AGB_GamePad::process_joystick(int pad, bool pressed)
 
 		//Emulate Battle Chip insertion
 		else if((config::sio_device >= 10) && (config::sio_device <= 12)) { config::battle_chip_id = config::chip_list[3]; }
+
+		con_flags |= 0x8;
+		con_flags &= ~0x4;
 	}
 
 	//Context Down release
@@ -680,7 +752,21 @@ void AGB_GamePad::process_joystick(int pad, bool pressed)
 
 		//Emulate Battle Chip extraction
 		else if((config::sio_device >= 10) && (config::sio_device <= 12)) { config::battle_chip_id = 0; }
+
+		con_flags &= ~0x8;
 	}
+
+	//Misc Context Key 1 press
+	else if((pad == config::con_joy_1) && (pressed)) { con_flags |= 0x100; }
+	
+	//Misc Context Key 1 release
+	else if((pad == config::con_joy_1) && (!pressed)) { con_flags &= ~0x100; }
+
+	//Misc Context Key 2 press
+	else if((pad == config::con_joy_2) && (pressed)) { con_flags |= 0x200; }
+	
+	//Misc Context Key 2 release
+	else if((pad == config::con_joy_2) && (!pressed)) { con_flags &= ~0x200; }
 
 	is_gb_player = false;
 }

@@ -192,6 +192,9 @@ class AGB_SIO
 	{
 		u16 command;
 		u16 status;
+		u8 sub_screen_status;
+		u8 frame_counter;
+		u8 options;
 		virtual_racing_system_state current_state;
 		bool active;
 		bool setup_sub_screen;
@@ -253,6 +256,8 @@ class AGB_SIO
 
 	void vrs_process();
 	void vrs_update();
+	void vrs_draw_menu();
+	void vrs_draw_track();
 	bool vrs_load_data();
 };
 

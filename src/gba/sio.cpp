@@ -397,6 +397,7 @@ void AGB_SIO::reset()
 	vrs.current_state = VRS_STANDBY;
 	vrs.command = 0;
 	vrs.status = 0xFF00;
+	vrs.sub_screen_status = 0;
 	vrs.active = false;
 	vrs.setup_sub_screen = false;
 
@@ -2408,6 +2409,23 @@ void AGB_SIO::vrs_update()
 	mem->sub_screen_buffer.clear();
 	mem->sub_screen_buffer.resize(0x9600, 0xFFFFFFFF);
 
+	//Check context input to enter subscreen menu
+	if((mem->g_pad->con_flags & 0x200) && ((vrs.sub_screen_status & 0x80) == 0))
+	{
+		vrs.frame_counter = 0;
+		vrs.sub_screen_status |= 0x80;
+	}
+
+	//Draw menu
+	if(vrs.sub_screen_status & 0x80) { vrs_draw_menu(); }
+
+	//Draw and updates tracks + cars
+	else { vrs_draw_track(); }
+}
+
+/****** Draws and updates tracks + cars ******/
+void AGB_SIO::vrs_draw_track()
+{
 	//If no lane is updating speed, default camera to focus on last lane that was updated
 	//Prevents camera from rapidly shifting before starting a race
 	if(!vrs.slot_speed[0] && !vrs.slot_speed[1]) { vrs.slot_lane = vrs.last_lane; }
@@ -2652,6 +2670,104 @@ void AGB_SIO::vrs_update()
 			src_index++;
 		}
 	}
+}
+
+/****** Draws subscreen menu for VRS ******/
+void AGB_SIO::vrs_draw_menu()
+{
+	u8 stat = (vrs.sub_screen_status & 0xF);
+
+	//Draw options
+	std::string op_name = "";
+
+	op_name = "RACER 2 CPU ENABLE";
+	draw_osd_msg(op_name, mem->sub_screen_buffer, 1, 0, 240);
+	op_name = (vrs.options & 0x1) ? "ON" : "OFF";
+	draw_osd_msg(op_name, mem->sub_screen_buffer, 27, 0, 240);
+
+	op_name = "RACER 2 DIFFICULTY";
+	draw_osd_msg(op_name, mem->sub_screen_buffer, 1, 1, 240);
+	op_name = util::to_str((vrs.options >> 1) & 0x3);
+	draw_osd_msg(op_name, mem->sub_screen_buffer, 27, 1, 240);
+
+	op_name = "RESET SLOT CARS";
+	draw_osd_msg(op_name, mem->sub_screen_buffer, 1, 2, 240);
+
+	op_name = "EXIT MENU";
+	draw_osd_msg(op_name, mem->sub_screen_buffer, 1, 3, 240);
+
+	//Draw cursor
+	op_name = "*";
+	draw_osd_msg(op_name, mem->sub_screen_buffer, 0, stat, 240);
+
+	//Correct colors
+	for(u32 x = 0; x < mem->sub_screen_buffer.size(); x++)
+	{
+		u32 color = mem->sub_screen_buffer[x];
+
+		//Swap black for white
+		if(color == 0xFF000000)
+		{
+			color = 0xFFFFFFFF;
+			mem->sub_screen_buffer[x] = color;
+		}
+				
+		//Swap yellow for black
+		else if(color == 0xFFFFE500)
+		{
+			color = 0xFF000000;
+			mem->sub_screen_buffer[x] = color;
+		}
+	}
+
+	if((vrs.frame_counter % 5) == 0)
+	{
+		u8 cpu_level = (vrs.options >> 1) & 0x3;
+
+		//Move cursor up
+		if((mem->g_pad->con_flags & 0x4) && ((mem->g_pad->con_flags & 0x100) == 0))
+		{
+			if(stat > 0) { stat--; }
+		}
+
+		//Move cursor down
+		else if((mem->g_pad->con_flags & 0x8) && ((mem->g_pad->con_flags & 0x100) == 0))
+		{
+			if(stat < 3) { stat++; }
+		}
+
+		//Disable 2nd Player as CPU
+		else if((stat == 0) && (mem->g_pad->con_flags & 0x1)) { vrs.options &= ~0x1; }
+
+		//Enable 2nd Player as CPU
+		else if((stat == 0) && (mem->g_pad->con_flags & 0x2)) { vrs.options |= 0x1; }
+
+		//Decrease CPU level
+		else if((stat == 1) && (mem->g_pad->con_flags & 0x1) && (cpu_level > 0))
+		{
+			cpu_level--;
+			vrs.options &= ~0x6;
+			vrs.options |= (cpu_level << 1);
+		}
+
+		//Increase CPU level
+		else if((stat == 1) && (mem->g_pad->con_flags & 0x2) && (cpu_level < 3))
+		{
+			cpu_level++;
+			vrs.options &= ~0x6;
+			vrs.options |= (cpu_level << 1);
+		}
+
+		//Exit menu
+		else if((stat == 3) && (mem->g_pad->con_flags & 0x100))
+		{
+			vrs.sub_screen_status &= ~0x80;
+		}
+	}
+
+	vrs.sub_screen_status &= ~0xF;
+	vrs.sub_screen_status |= stat;
+	vrs.frame_counter++;
 }
 
 /****** Loads sprite data for Virtureal Racing System ******/

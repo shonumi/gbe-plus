@@ -42,6 +42,8 @@ class AGB_GamePad
 	bool is_rumbling;
 	bool is_gb_player;
 
+	u16 con_flags;
+
 	u16 gyro_value;
 	u8 gyro_flags;
 
