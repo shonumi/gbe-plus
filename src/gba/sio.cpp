@@ -397,6 +397,7 @@ void AGB_SIO::reset()
 	vrs.current_state = VRS_STANDBY;
 	vrs.command = 0;
 	vrs.status = 0xFF00;
+	vrs.options = 0x81;
 	vrs.sub_screen_status = 0;
 	vrs.active = false;
 	vrs.setup_sub_screen = false;
@@ -2400,10 +2401,7 @@ void AGB_SIO::vrs_process()
 	mem->write_u16_fast(0x4000122, vrs.status);
 
 	//Set SIOMULTI3 data as echo for 2nd player handshake
-	if(vrs.options & 0x1)
-	{
-		mem->write_u16_fast(0x4000124, sio_stat.transfer_data);
-	}
+	mem->write_u16_fast(0x4000124, sio_stat.transfer_data);
 }
 
 /****** Updates subscreen for VRS ******/
@@ -2472,7 +2470,21 @@ void AGB_SIO::vrs_draw_track()
 		//If Player 2 CPU is not enabled, make speed zero
 		if((vrs.options & 0x1) == 0) { vrs.slot_speed[0] = 0; }
 	}
-	
+
+	//Wait until Player 1 starts race for Player 2 CPU to begin as well
+	if((vrs.options & 0x81) && (vrs.lane_pos[c0] != vrs.lane_start[c0]))
+	{
+		switch((vrs.options >> 1) & 0x3)
+		{
+			case 0: vrs.slot_speed[c1] = 4; break;
+			case 1: vrs.slot_speed[c1] = 5; break;
+			case 2: vrs.slot_speed[c1] = 6; break;
+			case 3: vrs.slot_speed[c1] = 7;	break;
+		}
+
+		vrs.options &= ~0x80;
+	}
+
 	for(u32 i = 0; i < 2; i++)
 	{
 		//Update lane positions
@@ -2770,6 +2782,21 @@ void AGB_SIO::vrs_draw_menu()
 			vrs.options |= (cpu_level << 1);
 		}
 
+		//Reset cars
+		else if((stat == 2) && (mem->g_pad->con_flags & 0x100))
+		{
+			vrs.slot_speed[0] = 0;
+			vrs.slot_speed[1] = 0;
+
+			vrs.lane_pos[0] = vrs.lane_start[0];
+			vrs.lane_pos[1] = vrs.lane_start[1];
+
+			vrs.lane_angle[0] = 90;
+			vrs.lane_angle[1] = 90;
+
+			vrs.options |= 0x80;
+		}
+		
 		//Exit menu
 		else if((stat == 3) && (mem->g_pad->con_flags & 0x100))
 		{
