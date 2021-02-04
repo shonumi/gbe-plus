@@ -2527,7 +2527,7 @@ void AGB_SIO::vrs_draw_track()
 					else if((index >= 0) && (index < size) && (index != vrs.lane_last_pos[i]) && (vrs.sprite_buffer[2][index] == start_color))
 					{
 						//Update VRS status for laps
-						if((vrs.slot_lane == 2) || ((c0 == 0) && (i == 1)))
+						if(start_color == 0xFF000080)
 						{
 							u16 stat = (vrs.status >> 3) & 0x7;
 							stat++;
