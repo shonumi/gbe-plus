@@ -2352,19 +2352,28 @@ void AGB_SIO::vrs_process()
 	switch(vrs.current_state)
 	{
 		case VRS_STANDBY:
+			//Switch to racing mode once part of the 2-player echo is detected
 			if(sio_stat.transfer_data == 0xFF00)
 			{
 				vrs.current_state = VRS_RACING;
-				vrs.setup_sub_screen = true;
-
-				mem->sub_screen_buffer.clear();
-				mem->sub_screen_buffer.resize(0x9600, 0xFFFFFFFF);
-				mem->sub_screen_update = 1;
+				vrs.sub_screen_status &= ~0x80;
 
 				config::osd_message = "VRS INIT";
 				config::osd_count = 180;
 			}
- 
+
+			//Enable subscreen when MultiBoot protocol first starts
+			//Allows user to configure options before racing
+			else if((sio_stat.transfer_data == 0x6200) && ((vrs.sub_screen_status & 0x80) == 0))
+			{
+				vrs.setup_sub_screen = true;
+				vrs.sub_screen_status |= 0x80;
+
+				mem->sub_screen_buffer.clear();
+				mem->sub_screen_buffer.resize(0x9600, 0xFFFFFFFF);
+				mem->sub_screen_update = 1;
+			}
+
 			break;
 
 		case VRS_RACING:
@@ -2401,7 +2410,7 @@ void AGB_SIO::vrs_process()
 	mem->write_u16_fast(0x4000122, vrs.status);
 
 	//Set SIOMULTI3 data as echo for 2nd player handshake
-	mem->write_u16_fast(0x4000124, sio_stat.transfer_data);
+	if(vrs.options & 0x40) { mem->write_u16_fast(0x4000124, sio_stat.transfer_data); }
 }
 
 /****** Updates subscreen for VRS ******/
@@ -2761,10 +2770,18 @@ void AGB_SIO::vrs_draw_menu()
 		}
 
 		//Disable 2nd Player as CPU
-		else if((stat == 0) && (mem->g_pad->con_flags & 0x1)) { vrs.options &= ~0x1; }
+		else if((stat == 0) && (mem->g_pad->con_flags & 0x1))
+		{
+			vrs.options &= ~0x1;
+			if(vrs.current_state == VRS_STANDBY) { vrs.options &= ~0x40; }
+		}
 
 		//Enable 2nd Player as CPU
-		else if((stat == 0) && (mem->g_pad->con_flags & 0x2)) { vrs.options |= 0x1; }
+		else if((stat == 0) && (mem->g_pad->con_flags & 0x2))
+		{
+			vrs.options |= 0x1;
+			if(vrs.current_state == VRS_STANDBY) { vrs.options |= 0x40; }
+		}
 
 		//Decrease CPU level
 		else if((stat == 1) && (mem->g_pad->con_flags & 0x1) && (cpu_level > 0))
