@@ -397,7 +397,7 @@ void AGB_SIO::reset()
 	vrs.current_state = VRS_STANDBY;
 	vrs.command = 0;
 	vrs.status = 0xFF00;
-	vrs.options = 0x81;
+	vrs.options = 0xC1;
 	vrs.sub_screen_status = 0;
 	vrs.active = false;
 	vrs.setup_sub_screen = false;
@@ -417,6 +417,16 @@ void AGB_SIO::reset()
 	vrs.lane_angle[1] = 0;
 	vrs.lane_delta[0] = 0;
 	vrs.lane_delta[1] = 0;
+
+	vrs.crashed[0] = false;
+	vrs.crashed[1] = false;
+	vrs.pre_crash_pos[0] = 0;
+	vrs.pre_crash_pos[1] = 0;
+	vrs.pre_crash_angle[0] = 0;
+	vrs.pre_crash_angle[1] = 0;
+	vrs.crash_duration[0] = 0;
+	vrs.crash_duration[1] = 0;
+
 
 	if(config::sio_device == 18) { vrs.active = vrs_load_data(); }
 
@@ -2497,7 +2507,7 @@ void AGB_SIO::vrs_draw_track()
 	for(u32 i = 0; i < 2; i++)
 	{
 		//Update lane positions
-		if(vrs.slot_speed[i] >= 4)
+		if((vrs.slot_speed[i] >= 4) && (!vrs.crashed[i]))
 		{
 			w = vrs.sprite_width[2];
 			size = vrs.sprite_buffer[2].size();
@@ -2506,6 +2516,8 @@ void AGB_SIO::vrs_draw_track()
 
 			u32 track_color = i ? 0xFF0000FF : 0xFFFF0000;
 			u32 start_color = i ? 0xFF000080 : 0xFF800000;
+
+			s16 angle_delta = 0;
 
 			for(u32 x = 0; x < vrs.slot_speed[i]; x++)
 			{
@@ -2583,8 +2595,40 @@ void AGB_SIO::vrs_draw_track()
 				if(vrs.lane_angle[i] != next_angle)
 				{
 					vrs.lane_angle[i] += inc;
+					angle_delta += (dist > 0) ? 15 : -15;
 					if(vrs.lane_angle[i] == 360) { vrs.lane_angle[i] = 0; }
 				}
+			}
+
+			//Calculate crash
+			if((angle_delta >= 45) && (vrs.slot_speed[i] >= 9))
+			{
+				vrs.crashed[i] = true;
+				vrs.crash_duration[i] = 180;
+				vrs.pre_crash_pos[i] = vrs.lane_pos[i];
+				vrs.pre_crash_angle[i] = vrs.lane_angle[i];
+			}
+		}
+
+		//Handle crashes
+		else if(vrs.crashed[i])
+		{
+			mem->g_pad->key_input |= 0x1;
+
+			//Spin car for crash duration
+			if(vrs.crash_duration[i])
+			{
+				vrs.crash_duration[i]--;
+				vrs.lane_angle[i] += 15;
+				if(vrs.lane_angle[i] == 360) { vrs.lane_angle[i] = 0; }
+			}
+
+			//Exit crash
+			else
+			{
+				vrs.crashed[i] = false;
+				vrs.lane_pos[i] = vrs.pre_crash_pos[i];
+				vrs.lane_angle[i] = vrs.pre_crash_angle[i];
 			}
 		}
 	}

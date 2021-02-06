@@ -208,6 +208,11 @@ class AGB_SIO
 		u32 lane_angle[2];
 		u32 lane_delta[2];
 		u32 lane_start[2];
+		
+		bool crashed[2];
+		u32 pre_crash_pos[2];
+		u32 pre_crash_angle[2];
+		u32 crash_duration[2];
 
 		std::vector< std::vector<u32> > sprite_buffer;
 		std::vector<u32> sprite_width;
