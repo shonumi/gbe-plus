@@ -666,7 +666,7 @@ bool DMG_SIO::receive_byte()
 
 	if(sio_stat.sio_type == GB_FOUR_PLAYER_ADAPTER) { return four_player_receive_byte(); }
 
-	u8 temp_buffer[1];
+	u8 temp_buffer[2];
 	temp_buffer[0] = temp_buffer[1] = 0;
 
 	//Check the status of connection
