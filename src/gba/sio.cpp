@@ -2613,7 +2613,9 @@ void AGB_SIO::vrs_draw_track()
 		//Handle crashes
 		else if(vrs.crashed[i])
 		{
-			mem->g_pad->key_input |= 0x1;
+			mem->g_pad->key_input |= 0x41;
+			mem->g_pad->key_input &= ~0x80;
+			mem->g_pad->disable_input = true;
 
 			//Spin car for crash duration
 			if(vrs.crash_duration[i])
@@ -2629,6 +2631,7 @@ void AGB_SIO::vrs_draw_track()
 				vrs.crashed[i] = false;
 				vrs.lane_pos[i] = vrs.pre_crash_pos[i];
 				vrs.lane_angle[i] = vrs.pre_crash_angle[i];
+				mem->g_pad->disable_input = false;
 			}
 		}
 	}

@@ -21,6 +21,7 @@ AGB_GamePad::AGB_GamePad()
 	up_shadow = down_shadow = left_shadow = right_shadow = false;
 	is_rumbling = false;
 	is_gb_player = false;
+	disable_input = false;
 
 	con_flags = 0;
 
@@ -89,6 +90,8 @@ AGB_GamePad::~AGB_GamePad() { }
 /****** Handle input from keyboard or joystick for processing ******/
 void AGB_GamePad::handle_input(SDL_Event &event)
 {
+	if(disable_input) { return; }
+
 	u16 last_input = key_input;
 	u16 key_mask = (key_cnt & 0x3FF);
 
