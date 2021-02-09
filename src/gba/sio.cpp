@@ -2613,9 +2613,13 @@ void AGB_SIO::vrs_draw_track()
 		//Handle crashes
 		else if(vrs.crashed[i])
 		{
-			mem->g_pad->key_input |= 0x41;
-			mem->g_pad->key_input &= ~0x80;
-			mem->g_pad->disable_input = true;
+			//Disable input when Player 1 crashes
+			if(vrs.crashed[c0])
+			{
+				mem->g_pad->key_input |= 0x41;
+				mem->g_pad->key_input &= ~0x80;
+				mem->g_pad->disable_input = true;
+			}
 
 			//Spin car for crash duration
 			if(vrs.crash_duration[i])
