@@ -399,6 +399,8 @@ void AGB_SIO::reset()
 	vrs.status = 0xFF00;
 	vrs.options = 0xC1;
 	vrs.sub_screen_status = 0;
+	vrs.track_number = 0;
+	vrs.old_track = 0;
 	vrs.active = false;
 	vrs.setup_sub_screen = false;
 
@@ -2774,11 +2776,16 @@ void AGB_SIO::vrs_draw_menu()
 	op_name = util::to_str((vrs.options >> 1) & 0x3);
 	draw_osd_msg(op_name, mem->sub_screen_buffer, 27, 1, 240);
 
-	op_name = "RESET SLOT CARS";
+	op_name = "TRACK NUMBER";
 	draw_osd_msg(op_name, mem->sub_screen_buffer, 1, 2, 240);
+	op_name = util::to_str(vrs.track_number);
+	draw_osd_msg(op_name, mem->sub_screen_buffer, 27, 2, 240);
+
+	op_name = "RESET SLOT CARS";
+	draw_osd_msg(op_name, mem->sub_screen_buffer, 1, 3, 240);
 
 	op_name = "EXIT MENU";
-	draw_osd_msg(op_name, mem->sub_screen_buffer, 1, 3, 240);
+	draw_osd_msg(op_name, mem->sub_screen_buffer, 1, 4, 240);
 
 	//Draw cursor
 	op_name = "*";
@@ -2817,7 +2824,7 @@ void AGB_SIO::vrs_draw_menu()
 		//Move cursor down
 		else if((mem->g_pad->con_flags & 0x8) && ((mem->g_pad->con_flags & 0x100) == 0))
 		{
-			if(stat < 3) { stat++; }
+			if(stat < 4) { stat++; }
 		}
 
 		//Disable 2nd Player as CPU
@@ -2850,8 +2857,20 @@ void AGB_SIO::vrs_draw_menu()
 			vrs.options |= (cpu_level << 1);
 		}
 
+		//Decrease track number
+		else if((stat == 2) && (mem->g_pad->con_flags & 0x1) && (vrs.track_number > 0))
+		{
+			vrs.track_number--;
+		}
+
+		//Increase track number
+		else if((stat == 2) && (mem->g_pad->con_flags & 0x2) && (vrs.track_number < 1))
+		{
+			vrs.track_number++;
+		}
+
 		//Reset cars
-		else if((stat == 2) && (mem->g_pad->con_flags & 0x100))
+		else if((stat == 3) && (mem->g_pad->con_flags & 0x100))
 		{
 			vrs.slot_speed[0] = 0;
 			vrs.slot_speed[1] = 0;
@@ -2866,9 +2885,27 @@ void AGB_SIO::vrs_draw_menu()
 		}
 		
 		//Exit menu
-		else if((stat == 3) && (mem->g_pad->con_flags & 0x100))
+		else if((stat == 4) && (mem->g_pad->con_flags & 0x100))
 		{
 			vrs.sub_screen_status &= ~0x80;
+
+			//Load data and reset cars if new track is selected
+			if(vrs.old_track != vrs.track_number)
+			{
+				vrs.old_track = vrs.track_number;
+				vrs_load_data();
+
+				vrs.slot_speed[0] = 0;
+				vrs.slot_speed[1] = 0;
+
+				vrs.lane_pos[0] = vrs.lane_start[0];
+				vrs.lane_pos[1] = vrs.lane_start[1];
+
+				vrs.lane_angle[0] = 90;
+				vrs.lane_angle[1] = 90;
+
+				vrs.options |= 0x80;
+			}
 		}
 	}
 
@@ -2882,9 +2919,11 @@ bool AGB_SIO::vrs_load_data()
 {
 	std::vector<std::string> file_list;
 
+	std::string track_file = config::data_path + "misc/VRS_track_" + util::to_str(vrs.track_number) + ".bmp";
+
 	file_list.push_back(config::data_path + "misc/VRS_car_1.bmp");
 	file_list.push_back(config::data_path + "misc/VRS_car_2.bmp");
-	file_list.push_back(config::data_path + "misc/VRS_track.bmp");
+	file_list.push_back(track_file);
 
 	vrs.sprite_buffer.clear();
 	vrs.sprite_width.clear();

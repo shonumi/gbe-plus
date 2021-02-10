@@ -195,6 +195,8 @@ class AGB_SIO
 		u8 sub_screen_status;
 		u8 frame_counter;
 		u8 options;
+		u8 track_number;
+		u8 old_track;
 		virtual_racing_system_state current_state;
 		bool active;
 		bool setup_sub_screen;
