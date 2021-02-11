@@ -2893,7 +2893,18 @@ void AGB_SIO::vrs_draw_menu()
 			if(vrs.old_track != vrs.track_number)
 			{
 				vrs.old_track = vrs.track_number;
-				vrs_load_data();
+				
+				if(vrs_load_data())
+				{
+					config::osd_message = "VRS LOADING TRACK " + util::to_str(vrs.track_number);
+					config::osd_count = 180;
+				}
+
+				else
+				{
+					config::osd_message = "VRS LOADING TRACK FAILED";
+					config::osd_count = 180;
+				}
 
 				vrs.slot_speed[0] = 0;
 				vrs.slot_speed[1] = 0;
