@@ -2587,23 +2587,23 @@ void AGB_SIO::vrs_draw_track()
 				s16 inc = 0;
 
 				//Clockwise
-				if(dist > 0) { inc = 15; }
+				if(dist > 0) { inc = 10; }
 
 				//Counter-clockwise
-				else if(dist < 0) { inc = -15; }
+				else if(dist < 0) { inc = -10; }
 
 				if(next_angle == 360) { next_angle = 0; }
 
 				if(vrs.lane_angle[i] != next_angle)
 				{
 					vrs.lane_angle[i] += inc;
-					angle_delta += (dist > 0) ? 15 : -15;
+					angle_delta += (dist > 0) ? 10 : -10;
 					if(vrs.lane_angle[i] == 360) { vrs.lane_angle[i] = 0; }
 				}
 			}
 
 			//Calculate crash
-			if((angle_delta >= 45) && (vrs.slot_speed[i] >= 9))
+			if((angle_delta >= 30) && (vrs.slot_speed[i] >= 9))
 			{
 				vrs.crashed[i] = true;
 				vrs.crash_duration[i] = 180;
@@ -2627,7 +2627,7 @@ void AGB_SIO::vrs_draw_track()
 			if(vrs.crash_duration[i])
 			{
 				vrs.crash_duration[i]--;
-				vrs.lane_angle[i] += 15;
+				vrs.lane_angle[i] += 10;
 				if(vrs.lane_angle[i] == 360) { vrs.lane_angle[i] = 0; }
 			}
 
@@ -2864,7 +2864,7 @@ void AGB_SIO::vrs_draw_menu()
 		}
 
 		//Increase track number
-		else if((stat == 2) && (mem->g_pad->con_flags & 0x2) && (vrs.track_number < 1))
+		else if((stat == 2) && (mem->g_pad->con_flags & 0x2) && (vrs.track_number < 2))
 		{
 			vrs.track_number++;
 		}
