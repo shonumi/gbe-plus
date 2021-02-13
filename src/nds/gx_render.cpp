@@ -1541,9 +1541,42 @@ void NTR_LCD::process_gx_command()
 		//PLTT_BASE
 		case 0x2B:
 			lcd_3D_stat.pal_base = read_param_u32(0) & 0x1FFF;
-			break;	
+			break;
 
-		//BEGIN_VTXS:
+		//LIGHT_VECTOR
+		case 0x32:
+			{
+				u32 raw_value = read_param_u32(0);
+				u8 id = (raw_value >> 30);
+
+				gx_matrix temp_vec(4, 1);
+
+				//Grab 10-bit XYZ components
+				for(u32 x = 0; x < 3; x++)
+				{
+					u16 value = (raw_value >> (10 * x)) & 0x3FF;
+					
+					float result = 0.0;
+				
+					if(value & 0x200) 
+					{ 
+						u16 p = ((value >> 6) - 1);
+						p = (~p & 0x7);
+						result = -1.0 * p;
+					}
+
+					else { result = (value >> 6); }
+					if((value & 0x3F) != 0) { result += (value & 0x3F) / 64.0; }
+
+					temp_vec[x] = result;
+				}
+
+				light_vector[id] = temp_vec * gx_vector_matrix;
+			}
+
+			break;
+
+		//BEGIN_VTXS
 		case 0x40:
 			//If, for some reason a polygon was not completed, start over now
 			if(lcd_3D_stat.vertex_list_index)
@@ -1559,7 +1592,7 @@ void NTR_LCD::process_gx_command()
 
 			break;
 
-		//END_VTXS:
+		//END_VTXS
 		case 0x41:
 			lcd_3D_stat.begin_strips = false;
 			break;
