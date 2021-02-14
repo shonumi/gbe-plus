@@ -182,8 +182,9 @@ class NTR_LCD
 
 	gx_matrix last_pos_matrix[4];
 
-	//Light vectors
+	//Light vectors, properties, and colors
 	gx_matrix light_vector[4];
+	u32 light_colors[4];
 
 	void render_scanline();
 	void render_bg_scanline(u32 bg_control);

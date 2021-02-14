@@ -1576,6 +1576,17 @@ void NTR_LCD::process_gx_command()
 
 			break;
 
+		//LIGHT_COLOR:
+		case 0x33:
+			{
+				u32 color_bytes = read_param_u32(0);
+				u8 id = (color_bytes >> 30);
+				light_colors[id] = get_rgb15(color_bytes);
+			}
+
+			break;
+				
+
 		//BEGIN_VTXS
 		case 0x40:
 			//If, for some reason a polygon was not completed, start over now
