@@ -1543,6 +1543,21 @@ void NTR_LCD::process_gx_command()
 			lcd_3D_stat.pal_base = read_param_u32(0) & 0x1FFF;
 			break;
 
+		//DIF_AMB
+		case 0x30:
+			{
+				u32 raw_value = read_param_u32(0);
+
+				//Diffuse Reflection is Color 0, Ambient Reflection = Color 1
+				material_colors[0] = get_rgb15(raw_value);
+				material_colors[1] = get_rgb15(raw_value >> 16);
+
+				//Set vertex color
+				if(raw_value & 0x8000) { lcd_3D_stat.vertex_color = material_colors[0]; }
+			}
+
+			break;
+
 		//LIGHT_VECTOR
 		case 0x32:
 			{

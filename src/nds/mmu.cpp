@@ -1483,6 +1483,17 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 						break;
 
+					//DIF_AMB
+					case 0x40004C0:
+					case 0x40004C1:
+					case 0x40004C2:
+					case 0x40004C3:
+						lcd_3D_stat->current_gx_command = 0x30;
+						lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = value;
+						if(lcd_3D_stat->parameter_index == 4) { lcd_3D_stat->process_command = true; }
+
+						break;
+
 					//LIGHT_VECTOR
 					case 0x40004C8:
 					case 0x40004C9:
