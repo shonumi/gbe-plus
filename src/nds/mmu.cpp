@@ -1494,6 +1494,17 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 						break;
 
+					//SPE_EMI
+					case 0x40004C4:
+					case 0x40004C5:
+					case 0x40004C6:
+					case 0x40004C7:
+						lcd_3D_stat->current_gx_command = 0x31;
+						lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = value;
+						if(lcd_3D_stat->parameter_index == 4) { lcd_3D_stat->process_command = true; }
+
+						break;
+
 					//LIGHT_VECTOR
 					case 0x40004C8:
 					case 0x40004C9:

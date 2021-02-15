@@ -1558,6 +1558,18 @@ void NTR_LCD::process_gx_command()
 
 			break;
 
+		//SPE_EMI
+		case 0x31:
+			{
+				u32 raw_value = read_param_u32(0);
+
+				//Specular Reflection is Color 2,  Emission = Color 3
+				material_colors[2] = get_rgb15(raw_value);
+				material_colors[3] = get_rgb15(raw_value >> 16);
+			}
+
+			break;
+
 		//LIGHT_VECTOR
 		case 0x32:
 			{
