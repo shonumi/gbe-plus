@@ -1612,7 +1612,14 @@ void NTR_LCD::process_gx_command()
 			}
 
 			break;
-				
+
+		//SHININESS
+		case 0x34:
+			shine_table[0] = 0.125 * lcd_3D_stat.command_parameters[0];
+			shine_table[1] = 0.125 * lcd_3D_stat.command_parameters[1];
+			shine_table[2] = 0.125 * lcd_3D_stat.command_parameters[2];
+			shine_table[3] = 0.125 * lcd_3D_stat.command_parameters[3];
+			break;
 
 		//BEGIN_VTXS
 		case 0x40:
