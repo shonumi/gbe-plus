@@ -1149,6 +1149,39 @@ void NTR_LCD::process_gx_command()
 
 			break;
 
+		//NORMAL
+		case 0x21:
+			{
+				u32 raw_value = read_param_u32(0);
+
+				gx_matrix temp_vec(4, 1);
+
+				//Grab 10-bit XYZ components
+				for(u32 x = 0; x < 3; x++)
+				{
+					u16 value = (raw_value >> (10 * x)) & 0x3FF;
+					
+					float result = 0.0;
+				
+					if(value & 0x200) 
+					{ 
+						u16 p = ((value >> 6) - 1);
+						p = (~p & 0x7);
+						result = -1.0 * p;
+					}
+
+					else { result = (value >> 6); }
+					if((value & 0x3F) != 0) { result += (value & 0x3F) / 64.0; }
+
+					temp_vec[x] = result;
+				}
+
+				current_normal[lcd_3D_stat.vertex_list_index] = temp_vec * gx_vector_matrix;
+			}
+
+			break;
+			
+
 		//TEXCOORD
 		case 0x22:
 			{

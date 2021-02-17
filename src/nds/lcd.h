@@ -182,8 +182,9 @@ class NTR_LCD
 
 	gx_matrix last_pos_matrix[4];
 
-	//Light vectors, properties, and colors
+	//Normals, light vectors, properties, and colors
 	gx_matrix light_vector[4];
+	gx_matrix current_normal[4];
 	u32 light_colors[4];
 	u32 material_colors[4];
 	float shine_table[4];

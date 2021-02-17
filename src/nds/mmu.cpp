@@ -1368,6 +1368,17 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 						break;
 
+					//NORMAL
+					case 0x4000484:
+					case 0x4000485:
+					case 0x4000486:
+					case 0x4000487:
+						lcd_3D_stat->current_gx_command = 0x21;
+						lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = value;
+						if(lcd_3D_stat->parameter_index == 4) { lcd_3D_stat->process_command = true; }
+
+						break;
+
 					//TEXCOORD
 					case 0x4000488:
 					case 0x4000489:
