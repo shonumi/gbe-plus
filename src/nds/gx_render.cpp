@@ -140,6 +140,9 @@ void NTR_LCD::render_geometry()
 		lcd_3D_stat.hi_fill[x] = 0xFF;
 		lcd_3D_stat.lo_fill[x] = 0;
 
+		lcd_3D_stat.hi_overflow[x] = 0;
+		lcd_3D_stat.lo_overflow[x] = 0;
+
 		lcd_3D_stat.hi_color[x] = 0;
 		lcd_3D_stat.lo_color[x] = 0;
 
@@ -202,6 +205,8 @@ void NTR_LCD::render_geometry()
 
 		float tx = plot_tx[x];
 		float ty = plot_ty[x];
+
+		u32 overflow = 0;
 
 		if((x_dist != 0) && (y_dist != 0))
 		{
@@ -281,9 +286,20 @@ void NTR_LCD::render_geometry()
 				s32 temp_y = round(y_coord);
 				s32 temp_x = round(x_coord);
 
+				overflow = 0;
+
 				//Keep fill coordinates on-screen if they extend vertically				
-				if(temp_y > 0xC0) { temp_y = 0xC0; }
-				else if(temp_y < 0) { temp_y = 0; }
+				if(temp_y > 0xC0)
+				{
+					overflow = temp_y;
+					temp_y = 0xC0;
+				}
+				
+				else if(temp_y < 0)
+				{
+					overflow = temp_y;
+					temp_y = 0;
+				}
 
 				if(lcd_3D_stat.hi_fill[temp_x] > temp_y)
 				{
@@ -293,6 +309,8 @@ void NTR_LCD::render_geometry()
 
 					lcd_3D_stat.hi_tx[temp_x] = tx;
 					lcd_3D_stat.hi_ty[temp_x] = ty;
+
+					lcd_3D_stat.hi_overflow[temp_x] = overflow;
 				}
 
 				if(lcd_3D_stat.lo_fill[temp_x] < temp_y)
@@ -303,6 +321,8 @@ void NTR_LCD::render_geometry()
 
 					lcd_3D_stat.lo_tx[temp_x] = tx;
 					lcd_3D_stat.lo_ty[temp_x] = ty;
+
+					lcd_3D_stat.lo_overflow[temp_x] = overflow;
 				}
 			} 
 
@@ -436,8 +456,6 @@ void NTR_LCD::fill_poly_interpolated()
 
 	bool use_edge = lcd_3D_stat.edge_marking;
 	u32 edge_color = lcd_3D_stat.edge_color[lcd_3D_stat.poly_id >> 3];
-	u8 edge_x1 = lcd_3D_stat.poly_min_x;
-	u8 edge_x2 = lcd_3D_stat.poly_max_x - 1;
 
 	for(u32 x = lcd_3D_stat.poly_min_x; x < lcd_3D_stat.poly_max_x; x++)
 	{
@@ -445,8 +463,8 @@ void NTR_LCD::fill_poly_interpolated()
 		float z_end = 0.0;
 		float z_inc = 0.0;
 
-		u8 edge_y1 = lcd_3D_stat.hi_fill[x];
-		u8 edge_y2 = lcd_3D_stat.lo_fill[x] - 1;
+		s16 hi_fill = lcd_3D_stat.hi_overflow[x] ? (lcd_3D_stat.hi_overflow[x]) : lcd_3D_stat.hi_fill[x];
+		s16 lo_fill = lcd_3D_stat.lo_overflow[x] ? (lcd_3D_stat.lo_overflow[x]) : lcd_3D_stat.lo_fill[x];
 
 		u32 c1 = lcd_3D_stat.hi_color[x];
 		u32 c2 = lcd_3D_stat.lo_color[x];
@@ -459,13 +477,20 @@ void NTR_LCD::fill_poly_interpolated()
 		
 		z_inc = z_end - z_start;
 
-		if((lcd_3D_stat.lo_fill[x] - lcd_3D_stat.hi_fill[x]) != 0)
+		if((lo_fill - hi_fill) != 0)
 		{
-			z_inc /= float(lcd_3D_stat.lo_fill[x] - lcd_3D_stat.hi_fill[x]);
-			c_inc = 1.0 / (lcd_3D_stat.lo_fill[x] - lcd_3D_stat.hi_fill[x]);
+			z_inc /= float(lo_fill - hi_fill);
+			c_inc = 1.0 / (lo_fill - hi_fill);
 		}
 
 		y_coord = lcd_3D_stat.hi_fill[x];
+
+		//Handle coordinates that extend vertically
+		if(lcd_3D_stat.hi_overflow[x])
+		{
+			z_start += (-lcd_3D_stat.hi_overflow[x] * z_inc);
+			c_ratio += (-lcd_3D_stat.hi_overflow[x] * c_inc);
+		}
 
 		while(y_coord < lcd_3D_stat.lo_fill[x])
 		{
@@ -479,9 +504,6 @@ void NTR_LCD::fill_poly_interpolated()
 
 				//Do alpha-blending if necessary
 				if(use_alpha) { color = alpha_blend_pixel(color, gx_screen_buffer[buffer_id][buffer_index], lcd_3D_stat.poly_alpha); }
-
-				//Do edge coloring if necessary
-				else if((use_edge) && ((x == edge_x1) || (x == edge_x2) || (y_coord == edge_y1) || (y_coord == edge_y2))) { color = edge_color; }
 
 				gx_screen_buffer[buffer_id][buffer_index] = color;
 				gx_render_buffer[buffer_id][buffer_index] = 1;
@@ -516,8 +538,6 @@ void NTR_LCD::fill_poly_textured()
 
 	bool use_edge = lcd_3D_stat.edge_marking;
 	u32 edge_color = lcd_3D_stat.edge_color[lcd_3D_stat.poly_id >> 3];
-	u8 edge_x1 = lcd_3D_stat.poly_min_x;
-	u8 edge_x2 = lcd_3D_stat.poly_max_x - 1;
 
 	//Calculate VRAM address of texture
 	u32 tex_addr = (mem->vram_tex_slot[slot] + (lcd_3D_stat.tex_offset & 0x1FFFF));
@@ -544,8 +564,8 @@ void NTR_LCD::fill_poly_textured()
 		float z_end = 0.0;
 		float z_inc = 0.0;
 
-		u8 edge_y1 = lcd_3D_stat.hi_fill[x];
-		u8 edge_y2 = lcd_3D_stat.lo_fill[x] - 1;
+		s16 hi_fill = lcd_3D_stat.hi_overflow[x] ? lcd_3D_stat.hi_overflow[x] : lcd_3D_stat.hi_fill[x];
+		s16 lo_fill = lcd_3D_stat.lo_overflow[x] ? lcd_3D_stat.lo_overflow[x] : lcd_3D_stat.lo_fill[x];
 
 		float tx1 = lcd_3D_stat.hi_tx[x];
 		float tx2 = lcd_3D_stat.lo_tx[x];
@@ -565,14 +585,22 @@ void NTR_LCD::fill_poly_textured()
 		
 		z_inc = z_end - z_start;
 
-		if((lcd_3D_stat.lo_fill[x] - lcd_3D_stat.hi_fill[x]) != 0)
+		if((lo_fill - hi_fill) != 0)
 		{
-			z_inc /= float(lcd_3D_stat.lo_fill[x] - lcd_3D_stat.hi_fill[x]);
-			tx_inc /= float(lcd_3D_stat.lo_fill[x] - lcd_3D_stat.hi_fill[x]);
-			ty_inc /= float(lcd_3D_stat.lo_fill[x] - lcd_3D_stat.hi_fill[x]);
+			z_inc /= float(lo_fill - hi_fill);
+			tx_inc /= float(lo_fill - hi_fill);
+			ty_inc /= float(lo_fill - hi_fill);
 		}
 
 		y_coord = lcd_3D_stat.hi_fill[x];
+
+		//Handle coordinates that extend vertically
+		if(lcd_3D_stat.hi_overflow[x])
+		{
+			z_start += (-lcd_3D_stat.hi_overflow[x] * z_inc);
+			tx1 += (-lcd_3D_stat.hi_overflow[x] * tx_inc);
+			ty1 += (-lcd_3D_stat.hi_overflow[x] * ty_inc);
+		}
 
 		while(y_coord < lcd_3D_stat.lo_fill[x])
 		{
@@ -639,9 +667,6 @@ void NTR_LCD::fill_poly_textured()
 				{
 					//Alpha-blend if necessary
 					if(((texel >> 24) != 0xFF) || (use_alpha)) { texel = alpha_blend_texel(texel, gx_screen_buffer[buffer_id][buffer_index]); }
-
-					//Do edge coloring if necessary
-					else if((use_edge) && ((x == edge_x1) || (x == edge_x2) || (y_coord == edge_y1) || (y_coord == edge_y2))) { texel = edge_color; }
 
 					gx_screen_buffer[buffer_id][buffer_index] = texel;
 					gx_render_buffer[buffer_id][buffer_index] = 1;

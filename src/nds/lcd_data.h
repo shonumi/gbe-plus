@@ -251,8 +251,11 @@ struct ntr_lcd_3D_data
 	u8 vertex_mode;
 	u8 vertex_list_index;
 
-	u8 hi_fill[256];
-	u8 lo_fill[256];
+	s16 hi_fill[256];
+	s16 lo_fill[256];
+
+	u32 hi_overflow[256];
+	u32 lo_overflow[256];
 
 	u32 hi_color[256];
 	u32 lo_color[256];
