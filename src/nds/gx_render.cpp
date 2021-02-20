@@ -403,17 +403,23 @@ void NTR_LCD::fill_poly_solid()
 		float z_end = 0.0;
 		float z_inc = 0.0;
 
-		u8 edge_y1 = lcd_3D_stat.hi_fill[x];
-		u8 edge_y2 = lcd_3D_stat.lo_fill[x] - 1;
+		s16 hi_fill = lcd_3D_stat.hi_overflow[x] ? (lcd_3D_stat.hi_overflow[x]) : lcd_3D_stat.hi_fill[x];
+		s16 lo_fill = lcd_3D_stat.lo_overflow[x] ? (lcd_3D_stat.lo_overflow[x]) : lcd_3D_stat.lo_fill[x];
 
 		//Calculate Z start and end fill coordinates
 		z_start = lcd_3D_stat.hi_line_z[x];
 		z_end = lcd_3D_stat.lo_line_z[x];
 		
 		z_inc = z_end - z_start;
-		if((lcd_3D_stat.lo_fill[x] - lcd_3D_stat.hi_fill[x]) != 0) { z_inc /= float(lcd_3D_stat.lo_fill[x] - lcd_3D_stat.hi_fill[x]); }
+		if((lcd_3D_stat.lo_fill[x] - lcd_3D_stat.hi_fill[x]) != 0) { z_inc /= float(lo_fill - hi_fill); }
 
 		y_coord = lcd_3D_stat.hi_fill[x];
+
+		//Handle coordinates that extend vertically
+		if(lcd_3D_stat.hi_overflow[x])
+		{
+			z_start += (-lcd_3D_stat.hi_overflow[x] * z_inc);
+		}
 
 		while(y_coord < lcd_3D_stat.lo_fill[x])
 		{
@@ -427,9 +433,6 @@ void NTR_LCD::fill_poly_solid()
 			{
 				//Do alpha-blending if necessary
 				if(use_alpha) { vert_color = alpha_blend_pixel(vert_color, gx_screen_buffer[buffer_id][buffer_index], lcd_3D_stat.poly_alpha); }
-
-				//Do edge coloring if necessary
-				else if((use_edge) && ((x == edge_x1) || (x == edge_x2) || (y_coord == edge_y1) || (y_coord == edge_y2))) { vert_color = edge_color; }
 
 				gx_screen_buffer[buffer_id][buffer_index] = vert_color;
 				gx_render_buffer[buffer_id][buffer_index] = 1;
