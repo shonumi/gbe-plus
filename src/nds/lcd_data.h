@@ -287,6 +287,7 @@ struct ntr_lcd_3D_data
 
 	//Display Control
 	bool edge_marking;
+	bool z_buffering;
 
 	//Texture Attribute
 	u32 tex_offset;

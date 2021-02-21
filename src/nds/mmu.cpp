@@ -1575,6 +1575,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 					//SWAP_BUFFERS
 					case 0x4000540:
 						lcd_3D_stat->current_gx_command = 0x50;
+						lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = value;
 						lcd_3D_stat->process_command = true;
 						break;
 

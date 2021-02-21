@@ -335,6 +335,7 @@ void NTR_LCD::reset()
 	lcd_3D_stat.poly_max_x = 0;
 
 	lcd_3D_stat.edge_marking = false;
+	lcd_3D_stat.z_buffering = true;
 
 	lcd_3D_stat.poly_mode = 0;
 	lcd_3D_stat.poly_alpha = 0;

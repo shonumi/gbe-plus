@@ -1721,6 +1721,9 @@ void NTR_LCD::process_gx_command()
 				}
 			}
 
+			//Determine if Z-buffering or W-buffering should be used
+			lcd_3D_stat.z_buffering = (lcd_3D_stat.command_parameters[0] & 0x2) ? false : true;
+
 			break;
 
 		//VIEWPORT
