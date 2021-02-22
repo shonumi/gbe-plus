@@ -117,8 +117,22 @@ void NTR_LCD::render_geometry()
   		plot_y[a] = round(((-temp_matrix[1] + temp_matrix[3]) * viewport_height) / ((2 * temp_matrix[3]) + lcd_3D_stat.view_port_y1));
 
 		//Get Z coordinate, use existing data from vertex
-		plot_z[a] = temp_matrix[2];
-		if(temp_matrix[3]) { plot_z[a] /= temp_matrix[3]; }
+		if(lcd_3D_stat.z_buffering)
+		{
+			plot_z[a] = temp_matrix[2];
+			if(temp_matrix[3]) { plot_z[a] /= temp_matrix[3]; }
+		}
+
+		//Otherwise, use W value for depth
+		else
+		{
+			plot_z[a] = temp_matrix[3];
+		}
+
+		//if(mem->read_u32_fast(0x8000000) == 0)
+		//{
+		//	std::cout<<"W VALUE -> " << temp_matrix[3] << "\n";
+		//}
 
 		//Check for wonky coordinates
 		if(std::isnan(plot_x[a])) { lcd_3D_stat.render_polygon = false; return; }
@@ -377,6 +391,9 @@ void NTR_LCD::render_geometry()
 
 			break;
 	}
+
+	u32 t = mem->read_u32_fast(0x8000000) + 1;
+	mem->write_u32_fast(0x8000000, t);
 
 	lcd_3D_stat.render_polygon = false;
 	lcd_3D_stat.clip_flags = 0;
@@ -1723,6 +1740,8 @@ void NTR_LCD::process_gx_command()
 
 			//Determine if Z-buffering or W-buffering should be used
 			lcd_3D_stat.z_buffering = (lcd_3D_stat.command_parameters[0] & 0x2) ? false : true;
+
+			mem->write_u32_fast(0x8000000, 0);
 
 			break;
 
