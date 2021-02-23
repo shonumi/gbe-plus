@@ -5059,6 +5059,25 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		lcd_stat->oam_update = true;
 		lcd_stat->oam_update_list[(address & 0x7FF) >> 3] = true;
 	}
+
+	//Toon Table
+	else if((address >= 0x4000380) && (address <= 0x400003BF) && (access_mode))
+	{
+		u8 toon_id = (address & 0x3F) >> 1;
+
+		u32 color_addr = (address & ~0x1);
+		u16 color_bytes = (memory_map[color_addr + 1] << 8) | memory_map[color_addr];
+
+		u8 red = ((color_bytes & 0x1F) << 3);
+		color_bytes >>= 5;
+
+		u8 green = ((color_bytes & 0x1F) << 3);
+		color_bytes >>= 5;
+
+		u8 blue = ((color_bytes & 0x1F) << 3);
+
+		lcd_3D_stat->toon_table[toon_id] = 0xFF000000 | (red << 16) | (green << 8) | (blue);
+	}
 }
 
 /****** Write 2 bytes into memory ******/
