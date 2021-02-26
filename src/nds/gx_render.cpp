@@ -282,19 +282,12 @@ void NTR_LCD::render_geometry()
 		{
 			c3 = interpolate_rgb(c1, c2, c_ratio);
 
-			//Only draw on-screen objects
-			if((x_coord >= 0) && (x_coord <= 255) && (y_coord >= 0) && (y_coord <= 191))
-			{
-				//Convert plot points to buffer index
-				buffer_index = (round(y_coord) * 256) + round(x_coord);
-			}
+			s32 temp_y = round(y_coord);
+			s32 temp_x = round(x_coord);
 
 			//Set fill coordinates
-			if((x_coord >= 0) && (x_coord <= 255))
+			if((temp_x >= 0) && (temp_x <= 255))
 			{
-				s32 temp_y = round(y_coord);
-				s32 temp_x = round(x_coord);
-
 				overflow = 0;
 
 				//Keep fill coordinates on-screen if they extend vertically				
@@ -406,7 +399,7 @@ void NTR_LCD::fill_poly_solid()
 	u8 edge_x1 = lcd_3D_stat.poly_min_x;
 	u8 edge_x2 = lcd_3D_stat.poly_max_x - 1;
 
-	for(u32 x = lcd_3D_stat.poly_min_x; x < lcd_3D_stat.poly_max_x; x++)
+	for(u32 x = lcd_3D_stat.poly_min_x; x <= lcd_3D_stat.poly_max_x; x++)
 	{
 		float z_start = 0.0;
 		float z_end = 0.0;
@@ -469,7 +462,7 @@ void NTR_LCD::fill_poly_interpolated()
 	bool use_edge = lcd_3D_stat.edge_marking;
 	u32 edge_color = lcd_3D_stat.edge_color[lcd_3D_stat.poly_id >> 3];
 
-	for(u32 x = lcd_3D_stat.poly_min_x; x < lcd_3D_stat.poly_max_x; x++)
+	for(u32 x = lcd_3D_stat.poly_min_x; x <= lcd_3D_stat.poly_max_x; x++)
 	{
 		float z_start = 0.0;
 		float z_end = 0.0;
@@ -570,7 +563,7 @@ void NTR_LCD::fill_poly_textured()
 	u32 tw = lcd_3D_stat.tex_src_width;
 	u32 th = lcd_3D_stat.tex_src_height;
 
-	for(u32 x = lcd_3D_stat.poly_min_x; x < lcd_3D_stat.poly_max_x; x++)
+	for(u32 x = lcd_3D_stat.poly_min_x; x <= lcd_3D_stat.poly_max_x; x++)
 	{
 		float z_start = 0.0;
 		float z_end = 0.0;
