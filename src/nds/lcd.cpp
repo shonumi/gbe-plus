@@ -3758,12 +3758,12 @@ void NTR_LCD::calculate_window_on_scanline()
 	win_stat[0] = ((lcd_stat.window_enable_a[0]) && (lcd_stat.window_x_a[0][0] != lcd_stat.window_x_a[0][1]));
 	win_stat[1] = ((lcd_stat.window_enable_a[1]) && (lcd_stat.window_x_a[1][0] != lcd_stat.window_x_a[1][1]));
 
-	if((win_stat[0]) && (lcd_stat.window_y_a[0][0] == lcd_stat.window_y_a[1][0]) && (!lcd_stat.window_y_a[0][0]))
+	if((win_stat[0]) && (lcd_stat.window_y_a[0][0] == lcd_stat.window_y_a[0][1]) && (!lcd_stat.window_y_a[0][0]))
 	{
-		lcd_stat.window_y_a[1][0] = 256;
+		lcd_stat.window_y_a[0][1] = 256;
 	}
 
-	if((win_stat[1]) && (lcd_stat.window_y_a[0][1] == lcd_stat.window_y_a[1][1]) && (!lcd_stat.window_y_a[0][1]))
+	if((win_stat[1]) && (lcd_stat.window_y_a[1][0] == lcd_stat.window_y_a[1][1]) && (!lcd_stat.window_y_a[1][0]))
 	{
 		lcd_stat.window_y_a[1][1] = 256;
 	}
@@ -3813,12 +3813,12 @@ void NTR_LCD::calculate_window_on_scanline()
 	win_stat[0] = ((lcd_stat.window_enable_b[0]) && (lcd_stat.window_x_b[0][0] != lcd_stat.window_x_b[0][1]));
 	win_stat[1] = ((lcd_stat.window_enable_b[1]) && (lcd_stat.window_x_b[1][0] != lcd_stat.window_x_b[1][1]));
 
-	if((win_stat[0]) && (lcd_stat.window_y_b[0][0] == lcd_stat.window_y_b[1][0]) && (!lcd_stat.window_y_b[0][0]))
+	if((win_stat[0]) && (lcd_stat.window_y_b[0][0] == lcd_stat.window_y_b[0][1]) && (!lcd_stat.window_y_b[0][0]))
 	{
-		lcd_stat.window_y_b[1][0] = 256;
+		lcd_stat.window_y_b[0][1] = 256;
 	}
 
-	if((win_stat[1]) && (lcd_stat.window_y_b[0][1] == lcd_stat.window_y_b[1][1]) && (!lcd_stat.window_y_b[0][1]))
+	if((win_stat[1]) && (lcd_stat.window_y_b[1][0] == lcd_stat.window_y_b[1][1]) && (!lcd_stat.window_y_b[1][0]))
 	{
 		lcd_stat.window_y_b[1][1] = 256;
 	}
