@@ -17,6 +17,7 @@ void NTR_MMU::setup_ntr_027()
 	ntr_027.data.resize(0x10000, 0x00);
 	ntr_027.ir_stream.clear();
 	ntr_027.command = 0;
+	ntr_027.packet_parameter = 0;
 	ntr_027.state = 0;
 	ntr_027.ir_counter = 0;
 	ntr_027.connected = false;
@@ -115,13 +116,13 @@ void NTR_MMU::ntr_027_process()
 
 			switch(ntr_027.command)
 			{
-				//EEPROM Read #1
-				//EEPROM Read #2
+				//EEPROM Read
+				//RAM Read
 				case 0x0A:
 				case 0x22:
 					{
-						ntr_027.eeprom_addr = (ntr_027.ir_stream[5] ^ 0xAA);
-						ntr_027.eeprom_addr |= ((ntr_027.ir_stream[4] ^ 0xAA) << 8);
+						ntr_027.mem_addr = (ntr_027.ir_stream[5] ^ 0xAA);
+						ntr_027.mem_addr |= ((ntr_027.ir_stream[4] ^ 0xAA) << 8);
 						u8 read_length = (ntr_027.ir_stream[6] ^ 0xAA);
 
 						//Build IR response
@@ -129,13 +130,13 @@ void NTR_MMU::ntr_027_process()
 
 						ntr_027.ir_stream.push_back(read_length + 4);
 						ntr_027.ir_stream.push_back(ntr_027.command ^ 0xAA);
-						ntr_027.ir_stream.push_back(0x00 ^ 0xAA);
+						ntr_027.ir_stream.push_back(ntr_027.packet_parameter++ ^ 0xAA);
 						ntr_027.ir_stream.push_back(0x00 ^ 0xAA);
 						ntr_027.ir_stream.push_back(0x00 ^ 0xAA);
 
 						for(u32 x = 0; x < read_length; x++)
 						{
-							ntr_027.ir_stream.push_back(ntr_027.data[ntr_027.eeprom_addr++] ^ 0xAA);
+							ntr_027.ir_stream.push_back(ntr_027.data[ntr_027.mem_addr++] ^ 0xAA);
 						}
 
 						u16 ir_sum = get_checksum();

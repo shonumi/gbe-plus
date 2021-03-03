@@ -249,7 +249,8 @@ class NTR_MMU
 	{
 		u8 command;
 		u8 state;
-		u16 eeprom_addr;
+		u8 packet_parameter;
+		u16 mem_addr;
 		u32 ir_counter;
 		bool connected;
 		bool start_comms;
