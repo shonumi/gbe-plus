@@ -152,7 +152,7 @@ void NTR_MMU::ntr_027_process()
 				//EEPROM Write
 				//RAM Write
 				case 0x08:
-				case 0x24:
+				case 0x20:
 					{
 						ntr_027.mem_addr = (ntr_027.ir_stream[5] ^ 0xAA);
 						ntr_027.mem_addr |= ((ntr_027.ir_stream[4] ^ 0xAA) << 8);
@@ -175,6 +175,26 @@ void NTR_MMU::ntr_027_process()
 					}
 
 					break;
+
+				//Set RTC
+				case 0x24:
+					{
+						ntr_027.ir_stream.push_back(4);
+						ntr_027.ir_stream.push_back(ntr_027.command ^ 0xAA);
+						ntr_027.ir_stream.push_back(ntr_027.packet_parameter++ ^ 0xAA);
+						ntr_027.ir_stream.push_back(0x00 ^ 0xAA);
+						ntr_027.ir_stream.push_back(0x00 ^ 0xAA);
+
+						u16 ir_sum = get_checksum();
+						ntr_027.ir_stream[3] = (ir_sum & 0xFF) ^ 0xAA;
+						ntr_027.ir_stream[4] = ((ir_sum >> 8) & 0xFF) ^ 0xAA;
+
+						ntr_027.ir_counter = 0;
+						ntr_027.state = 2;
+					}
+
+					break;
+
 
 				//IR Handshake
 				case 0xFA:
