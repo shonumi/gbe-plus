@@ -80,6 +80,22 @@ void NTR_core::debug_step()
 		printed = true;
 	}
 
+	//When running for a given amount of instructions, stop when done.
+	else if(db_unit.run_count)
+	{
+		db_unit.run_count--;
+
+		//Stop run count and re-enter debugging mode
+		if(!db_unit.run_count)
+		{
+			db_unit.last_mnemonic = debug_get_mnemonic(debug_code, false);
+
+			debug_display();
+			debug_process_command();
+			printed = true;
+		}
+	}
+
 	//Advanced debugging
 	#ifdef GBE_DEBUG
 
@@ -2111,6 +2127,34 @@ void NTR_core::debug_process_command()
 			db_unit.last_command = "rs";
 			debug_process_command();
 		}
+
+		//Run emulation for a given amount of instructions before halting
+		else if((command.substr(0, 2) == "ri") && (command.substr(3, 2) == "0x"))
+		{
+			valid_command = true;
+			bool valid_value = false;
+			u32 instruction_count = 0;
+			std::string hex_string = command.substr(5);
+
+			//Convert hex string into usable u32
+			valid_command = util::from_hex_str(hex_string, instruction_count);
+
+			//Request valid input again
+			if(!valid_command)
+			{
+				std::cout<<"\nInvalid memory address : " << command << "\n";
+				std::cout<<": ";
+				std::getline(std::cin, command);
+			}
+
+			else
+			{
+				std::cout<<"\n";
+				db_unit.run_count = instruction_count;
+				valid_command = true;
+				db_unit.last_command = "ri";
+			}
+		}	
 
 		//Print all instructions to the screen
 		else if(command == "pa")
