@@ -192,6 +192,13 @@ namespace config
 
 	extern bool use_external_interfaces;
 
+	extern bool vc_enable;
+	extern std::string vc_file;
+	extern std::vector <u32> vc_data;
+	extern u32 vc_wait;
+	extern u32 vc_timeout;
+	extern u8 vc_opacity;
+
 	//Function pointer for external software rendering
 	//This function is provided by frontends that will not rely on SDL
 	extern void (*render_external_sw)(std::vector<u32>&);

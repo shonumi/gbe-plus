@@ -164,6 +164,14 @@ namespace config
 	bool mute = false;
 	bool use_stereo = false;
 
+	//Virtual Cursor parameters for NDS
+	bool vc_enable = false;
+	std::string vc_file = "";
+	std::vector <u32> vc_data;
+	u32 vc_wait = 15;
+	u32 vc_timeout = 180;
+	u8 vc_opacity = 255;
+
 	//System screen sizes
 	u32 sys_width = 0;
 	u32 sys_height = 0;
@@ -1931,6 +1939,42 @@ bool parse_ini_file()
 			}
 		}
 
+		//NDS virtual cursor enable
+		else if(ini_item == "#virtual_cursor_enable")
+		{
+			if((x + 1) < size) 
+			{
+				util::from_str(ini_opts[++x], output);
+
+				if(output == 1) { config::vc_enable = true; }
+				else { config::vc_enable = false; }
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#virtual_cursor_enable) \n";
+				return false;
+			}
+		}
+
+		//NDS virtual cursor file
+		else if(ini_item == "virtual_cursor_file")
+		{
+			if((x + 1) < size) 
+			{
+				ini_item = ini_opts[++x];
+				std::string first_char = "";
+				first_char = ini_item[0];
+				
+				//When left blank, don't parse the next line item
+				if(first_char != "#") { config::vc_file = ini_item; }
+				else { config::vc_file = ""; x--;}
+ 
+			}
+
+			else { config::vc_file = ""; }
+		}
+
 		//Use CGFX
 		else if(ini_item == "#use_cgfx")
 		{
@@ -3061,6 +3105,24 @@ bool save_ini_file()
 			std::string val = util::to_str(config::touch_mode);
 
 			output_lines[line_pos] = "[#nds_touch_mode:" + val + "]";
+		}
+
+		//NDS virtual cursor enable
+		else if(ini_item == "#virtual_cursor_enable")
+		{
+			line_pos = output_count[x];
+			std::string val = (config::vc_enable) ? "1" : "0";
+
+			output_lines[line_pos] = "[#virtual_cursor_enable:" + val + "]";
+		}
+
+		//NDS virtual cursor file
+		else if(ini_item == "#virtual_cursor_file")
+		{
+			line_pos = output_count[x];
+			std::string val = (config::vc_file == "") ? "" : (":'" + config::vc_file + "'");
+
+			output_lines[line_pos] = "[#virtual_cursor_file" + val + "]";
 		}
 
 		else if(ini_item == "#recent_files")

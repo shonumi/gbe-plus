@@ -78,7 +78,7 @@ void AGB_core::debug_step()
 		//Stop run count and re-enter debugging mode
 		if(!db_unit.run_count)
 		{
-			db_unit.last_mnemonic = debug_get_mnemonic(debug_code, false);
+			db_unit.last_mnemonic = debug_get_mnemonic(core_cpu.debug_code, false);
 
 			debug_display();
 			debug_process_command();
