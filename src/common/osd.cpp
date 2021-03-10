@@ -7,6 +7,7 @@
 // Description : GBE+ On-Screen Display
 //
 // Loads font for OSD messages. Draws OSD messages to a given SDL surface
+// Also loads virtual cursor used for NDS input
 
 #include <iostream>
 #include <fstream>
@@ -160,4 +161,49 @@ void draw_osd_msg(std::string osd_text, std::vector <u32> &osd_surface, u8 x_off
 			}
 		}
 	}
+}
+
+/****** Loads an 8x8 BMP used as the NDS virtual cursor ******/
+bool load_virtual_cursor(std::string filename)
+{
+	//Should be called after parse_ini_file() to get correct data path
+	SDL_Surface* source = SDL_LoadBMP(config::vc_file.c_str());
+
+	if(source == NULL)
+	{
+		//If the user-specified virtual cursor file cannot be opened, use the default
+		std::string cursor_file = config::data_path + "misc/vc_default.bmp";
+		source = SDL_LoadBMP(cursor_file.c_str());
+
+		//If virtual cursor file still cannot be opened, abort
+		if(source == NULL)
+		{
+			std::cout<<"GBE::Could not load any Virtual Cursor files\n";
+			config::vc_enable = false;
+			return false;
+		}
+	}
+
+	//Reset Virtual Cursor data
+	config::vc_data.clear();
+
+	u8* pixel_data = (u8*)source->pixels;
+
+	//Copy 32-bit pixel data to VC data
+	for(int a = 0, b = 0; a < (source->w * source->h); a++, b+=3)
+	{
+		config::vc_data.push_back(0xFF000000 | (pixel_data[b+2] << 16) | (pixel_data[b+1] << 8) | (pixel_data[b]));
+	}
+
+	//Check final size
+	if(config::vc_data.size() != 64)
+	{
+		std::cout<<"GBE::Virtual Cursor image is incorrect size\n";
+		config::vc_enable = false;
+		return false;
+	}
+
+	std::cout<<"GBE::Loaded Virtual Cursor file\n";
+
+	return true;
 }
