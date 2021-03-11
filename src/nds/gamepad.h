@@ -33,6 +33,7 @@ class NTR_GamePad
 	void process_keyboard(int pad, bool pressed);
 	void process_joystick(int pad, bool pressed);
 	void process_mouse(int pad, bool pressed);
+	void process_virtual_cursor();
 
 	void start_rumble(s32 len);
 	void stop_rumble();
@@ -45,6 +46,12 @@ class NTR_GamePad
 	bool touch_hold;
 	bool touch_by_mouse;
 	bool is_rumbling;
+
+	u32 vc_x;
+	u32 vc_y;
+	u32 vc_counter;
+	s32 vc_delta_x;
+	s32 vc_delta_y;
 
 	u32* nds7_input_irq;
 	u32* nds9_input_irq;

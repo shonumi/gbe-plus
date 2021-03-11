@@ -26,6 +26,9 @@ NTR_GamePad::NTR_GamePad()
 	is_rumbling = false;
 	con_flags = 0;
 
+	vc_x = 128;
+	vc_y = 96;
+
 	nds7_input_irq = NULL;
 	nds9_input_irq = NULL;
 
@@ -494,16 +497,134 @@ void NTR_GamePad::process_keyboard(int pad, bool pressed)
 	else if((pad == config::gbe_key_l_trigger) && (!pressed)) { key_input |= 0x200; }
 
 	//Misc Context Key 1 press
-	else if((pad == config::con_key_1) && (pressed)) { con_flags |= 0x100; }
+	else if((pad == config::con_key_1) && (pressed))
+	{
+		//Virtual Cursor - Emulate Stylus Down
+		if(config::vc_enable)
+		{
+			ext_key_input &= ~0x40;
+			mouse_x = vc_x;
+			mouse_y = vc_y;
+		}
+
+		con_flags |= 0x100;
+	}
 	
 	//Misc Context Key 1 release
-	else if((pad == config::con_key_1) && (!pressed)) { con_flags &= ~0x100; }
+	else if((pad == config::con_key_1) && (!pressed))
+	{
+		//Virtual Cursor - Emulate Stylus Up
+		if(config::vc_enable)
+		{
+			ext_key_input |= 0x40;
+			mouse_x = 0;
+			mouse_y = 0xFFF;
+		}
+
+		con_flags &= ~0x100;
+	}
 
 	//Misc Context Key 2 press
 	else if((pad == config::con_key_2) && (pressed)) { con_flags |= 0x200; }
 	
 	//Misc Context Key 2 release
 	else if((pad == config::con_key_2) && (!pressed)) { con_flags &= ~0x200; }
+
+	//Misc Context Left press
+	else if((pad == config::con_key_left) && (pressed))
+	{
+		//Adjust Virtual Cursor X coordinate
+		vc_delta_x = -8;
+
+		con_flags |= 0x1;
+		con_flags |= 0x10;
+		con_flags &= ~0x2;
+	}
+
+	//Context Left release
+	else if((pad == config::con_key_left) && (!pressed))
+	{
+		//Adjust Virtual Cursor X coordinate
+		vc_delta_x = 0;
+
+		con_flags &= ~0x1;
+		con_flags &= ~0x10;
+
+		if(con_flags & 0x20) { con_flags |= 0x2; }
+		else { con_flags &= ~0x2; }
+	}
+
+	//Context Right press
+	else if((pad == config::con_key_right) && (pressed))
+	{
+		//Adjust Virtual Cursor X coordinate
+		vc_delta_x = 8;
+
+		con_flags |= 0x2;
+		con_flags |= 0x20;
+		con_flags &= ~0x1;
+	}
+
+	//Context Right release
+	else if((pad == config::con_key_right) && (!pressed))
+	{
+		//Adjust Virtual Cursor X coordinate
+		vc_delta_x = 0;
+
+		con_flags &= ~0x2;
+		con_flags &= ~0x20;
+
+		if(con_flags & 0x10) { con_flags |= 0x1; }
+		else { con_flags &= ~0x1; }
+	}
+
+	//Context Up press
+	else if((pad == config::con_key_up) && (pressed))
+	{
+		//Adjust Virtual Cursor Y coordinate
+		vc_delta_y = -8;
+
+		con_flags |= 0x4;
+		con_flags |= 0x40;
+		con_flags &= ~0x8;
+	}
+
+	//Context Up release
+	else if((pad == config::con_key_up) && (!pressed))
+	{
+		//Adjust Virtual Cursor Y coordinate
+		vc_delta_y = 0;
+
+		con_flags &= ~0x4;
+		con_flags &= ~0x40;
+
+		if(con_flags & 0x80) { con_flags |= 0x8; }
+		else { con_flags &= ~0x8; }
+	}
+
+	//Context Down press
+	else if((pad == config::con_key_down) && (pressed))
+	{
+		//Adjust Virtual Cursor Y coordinate
+		vc_delta_y = 8;
+
+		con_flags |= 0x8;
+		con_flags |= 0x80;
+		con_flags &= ~0x4;
+	}
+
+	//Context Down release
+	else if((pad == config::con_key_down) && (!pressed))
+	{
+		//Adjust Virtual Cursor Y coordinate
+		vc_delta_y = 0;
+
+		con_flags &= ~0x8;
+		con_flags &= ~0x80;
+
+		if(con_flags & 0x40) { con_flags |= 0x4; }
+		else { con_flags &= ~0x4; }
+	}
 
 	//Emulate Lid Close
 	else if((pad == config::con_key_down) && (pressed))
@@ -623,10 +744,32 @@ void NTR_GamePad::process_joystick(int pad, bool pressed)
 	else if((pad == config::gbe_joy_l_trigger) && (!pressed)) { key_input |= 0x200; }
 
 	//Misc Context Key 1 press
-	else if((pad == config::con_joy_1) && (pressed)) { con_flags |= 0x100; }
+	else if((pad == config::con_joy_1) && (pressed))
+	{
+		//Virtual Cursor - Emulate Stylus Down
+		if(config::vc_enable)
+		{
+			ext_key_input &= ~0x40;
+			mouse_x = vc_x;
+			mouse_y = vc_y;
+		}
+
+		con_flags |= 0x100;
+	}
 	
 	//Misc Context Key 1 release
-	else if((pad == config::con_joy_1) && (!pressed)) { con_flags &= ~0x100; }
+	else if((pad == config::con_joy_1) && (!pressed))
+	{
+		//Virtual Cursor - Emulate Stylus Up
+		if(config::vc_enable)
+		{
+			ext_key_input |= 0x40;
+			mouse_x = 0;
+			mouse_y = 0xFFF;
+		}
+
+		con_flags &= ~0x100;
+	}
 
 	//Misc Context Key 2 press
 	else if((pad == config::con_joy_2) && (pressed)) { con_flags |= 0x200; }
@@ -695,6 +838,21 @@ void NTR_GamePad::process_mouse(int pad, bool pressed)
 		mouse_y = 0xFFF;
 	}
 }
+
+/****** Updates Virtual Cursor coordinates ******/
+void NTR_GamePad::process_virtual_cursor()
+{
+	vc_counter++;
+
+	//Update cursor X and Y after set number of frames
+	if(vc_counter >= config::vc_wait)
+	{
+		vc_counter = 0;
+		vc_x += vc_delta_x;
+		vc_y += vc_delta_y;
+	}
+}
+		
 
 /****** Start haptic force-feedback on joypad ******/
 void NTR_GamePad::start_rumble(s32 len)
