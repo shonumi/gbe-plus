@@ -219,6 +219,9 @@ class NTR_LCD
 	float get_u16_float(u16 value);
 	u32 get_u32_fixed(float raw_value);
 
+	//Virtual Cursor
+	void render_virtual_cursor();
+
 	//Texture functions
 	void gen_tex_1(u32 address);
 	void gen_tex_2(u32 address);

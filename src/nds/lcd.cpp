@@ -4072,6 +4072,13 @@ void NTR_LCD::step()
 				draw_osd_msg(config::osd_message, screen_buffer, 0, 0);
 			}
 
+			//Update and draw virtual cursor
+			if(config::vc_enable)
+			{
+				mem->g_pad->process_virtual_cursor();
+				render_virtual_cursor();
+			}
+
 			//Use SDL
 			if(config::sdl_render)
 			{
@@ -4508,4 +4515,38 @@ bool NTR_LCD::save_cart_icon(std::string nds_icon_file)
 	SDL_SaveBMP(nds_icon, nds_icon_file.c_str());
 
 	return true;
+}
+
+/****** Draws virtual cursor on final screen ******/
+void NTR_LCD::render_virtual_cursor()
+{
+	u32 buffer_pos = 0;
+	u8 src_pos = 0;
+
+	u32 w = (config::lcd_config & 0x2) ? 512 : 256;
+	u32 h = (config::lcd_config & 0x2) ? 192 : 384;
+
+	bool horizontal = (config::lcd_config & 0x2) ? true : false;
+
+	s32 vx = 0;
+	s32 vy = 0;
+
+	for(u32 y = 0; y < 8; y++)
+	{
+		for(u32 x = 0; x < 8; x++)
+		{
+			if(horizontal) { buffer_pos = 0x100; }
+			else { buffer_pos = 0xC000; }
+
+			vx = mem->g_pad->vc_x + x;
+			vy = mem->g_pad->vc_y + y;
+
+			if((vx >= 0) && (vx <= w) && (vy >= 0) && (vy <= h))
+			{ 
+				buffer_pos += (vy * w) + (vx);
+				src_pos = (y * 8) + x;
+				screen_buffer[buffer_pos] = config::vc_data[src_pos];
+			}
+		}
+	}
 }
