@@ -168,7 +168,7 @@ namespace config
 	bool vc_enable = false;
 	std::string vc_file = "";
 	std::vector <u32> vc_data;
-	u32 vc_wait = 15;
+	u32 vc_wait = 1;
 	u32 vc_timeout = 180;
 	u8 vc_opacity = 255;
 

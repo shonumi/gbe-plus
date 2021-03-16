@@ -534,7 +534,7 @@ void NTR_GamePad::process_keyboard(int pad, bool pressed)
 	else if((pad == config::con_key_left) && (pressed))
 	{
 		//Adjust Virtual Cursor X coordinate
-		vc_delta_x = -8;
+		vc_delta_x = -2;
 
 		con_flags |= 0x1;
 		con_flags |= 0x10;
@@ -558,7 +558,7 @@ void NTR_GamePad::process_keyboard(int pad, bool pressed)
 	else if((pad == config::con_key_right) && (pressed))
 	{
 		//Adjust Virtual Cursor X coordinate
-		vc_delta_x = 8;
+		vc_delta_x = 2;
 
 		con_flags |= 0x2;
 		con_flags |= 0x20;
@@ -582,7 +582,7 @@ void NTR_GamePad::process_keyboard(int pad, bool pressed)
 	else if((pad == config::con_key_up) && (pressed))
 	{
 		//Adjust Virtual Cursor Y coordinate
-		vc_delta_y = -8;
+		vc_delta_y = -2;
 
 		con_flags |= 0x4;
 		con_flags |= 0x40;
@@ -606,7 +606,7 @@ void NTR_GamePad::process_keyboard(int pad, bool pressed)
 	else if((pad == config::con_key_down) && (pressed))
 	{
 		//Adjust Virtual Cursor Y coordinate
-		vc_delta_y = 8;
+		vc_delta_y = 2;
 
 		con_flags |= 0x8;
 		con_flags |= 0x80;
@@ -781,7 +781,7 @@ void NTR_GamePad::process_joystick(int pad, bool pressed)
 	else if((pad == config::con_joy_left) && (pressed))
 	{
 		//Adjust Virtual Cursor X coordinate
-		vc_delta_x = -8;
+		vc_delta_x = -2;
 
 		con_flags |= 0x1;
 		con_flags |= 0x10;
@@ -805,7 +805,7 @@ void NTR_GamePad::process_joystick(int pad, bool pressed)
 	else if((pad == config::con_joy_right) && (pressed))
 	{
 		//Adjust Virtual Cursor X coordinate
-		vc_delta_x = 8;
+		vc_delta_x = 2;
 
 		con_flags |= 0x2;
 		con_flags |= 0x20;
@@ -829,7 +829,7 @@ void NTR_GamePad::process_joystick(int pad, bool pressed)
 	else if((pad == config::con_joy_up) && (pressed))
 	{
 		//Adjust Virtual Cursor Y coordinate
-		vc_delta_y = -8;
+		vc_delta_y = -2;
 
 		con_flags |= 0x4;
 		con_flags |= 0x40;
@@ -853,7 +853,7 @@ void NTR_GamePad::process_joystick(int pad, bool pressed)
 	else if((pad == config::con_joy_down) && (pressed))
 	{
 		//Adjust Virtual Cursor Y coordinate
-		vc_delta_y = 8;
+		vc_delta_y = 2;
 
 		con_flags |= 0x8;
 		con_flags |= 0x80;
