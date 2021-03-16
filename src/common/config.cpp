@@ -1958,7 +1958,7 @@ bool parse_ini_file()
 		}
 
 		//NDS virtual cursor file
-		else if(ini_item == "virtual_cursor_file")
+		else if(ini_item == "#virtual_cursor_file")
 		{
 			if((x + 1) < size) 
 			{
