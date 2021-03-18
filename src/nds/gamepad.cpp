@@ -948,7 +948,10 @@ void NTR_GamePad::process_virtual_cursor()
 		vc_y += vc_delta_y;
 
 		if(vc_x >= 252) { vc_x = 252; }
+		if(vc_x <= 4) { vc_x = 4; }
+
 		if(vc_y >= 188) { vc_y = 188; }
+		if(vc_y <= 4) { vc_y = 4; }
 	}
 }
 		
