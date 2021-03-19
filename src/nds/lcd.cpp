@@ -4545,7 +4545,11 @@ void NTR_LCD::render_virtual_cursor()
 			{ 
 				buffer_pos += (vy * w) + (vx);
 				src_pos = (y * 8) + x;
-				screen_buffer[buffer_pos] = config::vc_data[src_pos];
+				
+				if(config::vc_data[src_pos] != 0xFF00FF00)
+				{
+					screen_buffer[buffer_pos] = config::vc_data[src_pos];
+				}
 			}
 		}
 	}
