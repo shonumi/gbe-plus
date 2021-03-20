@@ -28,6 +28,9 @@ NTR_GamePad::NTR_GamePad()
 
 	vc_x = 128;
 	vc_y = 96;
+	vc_counter = 0;
+	vc_delta_x = 0;
+	vc_delta_y = 0;
 
 	nds7_input_irq = NULL;
 	nds9_input_irq = NULL;
