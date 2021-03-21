@@ -4076,7 +4076,7 @@ void NTR_LCD::step()
 			if(config::vc_enable)
 			{
 				mem->g_pad->process_virtual_cursor();
-				render_virtual_cursor();
+				if(mem->g_pad->vc_pause < config::vc_timeout) { render_virtual_cursor(); }
 			}
 
 			//Use SDL

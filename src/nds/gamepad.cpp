@@ -31,6 +31,7 @@ NTR_GamePad::NTR_GamePad()
 	vc_counter = 0;
 	vc_delta_x = 0;
 	vc_delta_y = 0;
+	vc_pause = 0;
 
 	nds7_input_irq = NULL;
 	nds9_input_irq = NULL;
@@ -542,6 +543,8 @@ void NTR_GamePad::process_keyboard(int pad, bool pressed)
 		con_flags |= 0x1;
 		con_flags |= 0x10;
 		con_flags &= ~0x2;
+
+		vc_pause = 0;
 	}
 
 	//Context Left release
@@ -555,6 +558,8 @@ void NTR_GamePad::process_keyboard(int pad, bool pressed)
 
 		if(con_flags & 0x20) { con_flags |= 0x2; }
 		else { con_flags &= ~0x2; }
+
+		vc_pause = 0;
 	}
 
 	//Context Right press
@@ -566,6 +571,8 @@ void NTR_GamePad::process_keyboard(int pad, bool pressed)
 		con_flags |= 0x2;
 		con_flags |= 0x20;
 		con_flags &= ~0x1;
+
+		vc_pause = 0;
 	}
 
 	//Context Right release
@@ -579,6 +586,8 @@ void NTR_GamePad::process_keyboard(int pad, bool pressed)
 
 		if(con_flags & 0x10) { con_flags |= 0x1; }
 		else { con_flags &= ~0x1; }
+
+		vc_pause = 0;
 	}
 
 	//Context Up press
@@ -590,6 +599,8 @@ void NTR_GamePad::process_keyboard(int pad, bool pressed)
 		con_flags |= 0x4;
 		con_flags |= 0x40;
 		con_flags &= ~0x8;
+
+		vc_pause = 0;
 	}
 
 	//Context Up release
@@ -603,6 +614,8 @@ void NTR_GamePad::process_keyboard(int pad, bool pressed)
 
 		if(con_flags & 0x80) { con_flags |= 0x8; }
 		else { con_flags &= ~0x8; }
+
+		vc_pause = 0;
 	}
 
 	//Context Down press
@@ -614,6 +627,8 @@ void NTR_GamePad::process_keyboard(int pad, bool pressed)
 		con_flags |= 0x8;
 		con_flags |= 0x80;
 		con_flags &= ~0x4;
+
+		vc_pause = 0;
 	}
 
 	//Context Down release
@@ -627,6 +642,8 @@ void NTR_GamePad::process_keyboard(int pad, bool pressed)
 
 		if(con_flags & 0x40) { con_flags |= 0x4; }
 		else { con_flags &= ~0x4; }
+
+		vc_pause = 0;
 	}
 
 	//Emulate Lid Close
@@ -789,6 +806,8 @@ void NTR_GamePad::process_joystick(int pad, bool pressed)
 		con_flags |= 0x1;
 		con_flags |= 0x10;
 		con_flags &= ~0x2;
+
+		vc_pause = 0;
 	}
 
 	//Context Left release
@@ -802,6 +821,8 @@ void NTR_GamePad::process_joystick(int pad, bool pressed)
 
 		if(con_flags & 0x20) { con_flags |= 0x2; }
 		else { con_flags &= ~0x2; }
+
+		vc_pause = 0;
 	}
 
 	//Context Right press
@@ -813,6 +834,8 @@ void NTR_GamePad::process_joystick(int pad, bool pressed)
 		con_flags |= 0x2;
 		con_flags |= 0x20;
 		con_flags &= ~0x1;
+
+		vc_pause = 0;
 	}
 
 	//Context Right release
@@ -826,6 +849,8 @@ void NTR_GamePad::process_joystick(int pad, bool pressed)
 
 		if(con_flags & 0x10) { con_flags |= 0x1; }
 		else { con_flags &= ~0x1; }
+
+		vc_pause = 0;
 	}
 
 	//Context Up press
@@ -837,6 +862,8 @@ void NTR_GamePad::process_joystick(int pad, bool pressed)
 		con_flags |= 0x4;
 		con_flags |= 0x40;
 		con_flags &= ~0x8;
+
+		vc_pause = 0;
 	}
 
 	//Context Up release
@@ -850,6 +877,8 @@ void NTR_GamePad::process_joystick(int pad, bool pressed)
 
 		if(con_flags & 0x80) { con_flags |= 0x8; }
 		else { con_flags &= ~0x8; }
+
+		vc_pause = 0;
 	}
 
 	//Context Down press
@@ -861,6 +890,8 @@ void NTR_GamePad::process_joystick(int pad, bool pressed)
 		con_flags |= 0x8;
 		con_flags |= 0x80;
 		con_flags &= ~0x4;
+
+		vc_pause = 0;
 	}
 
 	//Context Down release
@@ -874,6 +905,8 @@ void NTR_GamePad::process_joystick(int pad, bool pressed)
 
 		if(con_flags & 0x40) { con_flags |= 0x4; }
 		else { con_flags &= ~0x4; }
+
+		vc_pause = 0;
 	}
 }
 
@@ -942,19 +975,24 @@ void NTR_GamePad::process_mouse(int pad, bool pressed)
 void NTR_GamePad::process_virtual_cursor()
 {
 	vc_counter++;
+	vc_pause++;
 
 	//Update cursor X and Y after set number of frames
 	if(vc_counter >= config::vc_wait)
 	{
 		vc_counter = 0;
-		vc_x += vc_delta_x;
-		vc_y += vc_delta_y;
 
-		if(vc_x >= 252) { vc_x = 252; }
-		if(vc_x <= 4) { vc_x = 4; }
+		if(vc_pause < config::vc_timeout)
+		{
+			vc_x += vc_delta_x;
+			vc_y += vc_delta_y;
 
-		if(vc_y >= 188) { vc_y = 188; }
-		if(vc_y <= 4) { vc_y = 4; }
+			if(vc_x >= 252) { vc_x = 252; }
+			if(vc_x <= 4) { vc_x = 4; }
+
+			if(vc_y >= 188) { vc_y = 188; }
+			if(vc_y <= 4) { vc_y = 4; }
+		}
 	}
 }
 		

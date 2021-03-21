@@ -50,6 +50,7 @@ class NTR_GamePad
 	u32 vc_x;
 	u32 vc_y;
 	u32 vc_counter;
+	u32 vc_pause;
 	s32 vc_delta_x;
 	s32 vc_delta_y;
 
