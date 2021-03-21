@@ -4548,7 +4548,17 @@ void NTR_LCD::render_virtual_cursor()
 				
 				if(config::vc_data[src_pos] != 0xFF00FF00)
 				{
-					screen_buffer[buffer_pos] = config::vc_data[src_pos];
+					//Alpha blend
+					if(config::vc_opacity != 255)
+					{
+						screen_buffer[buffer_pos] = alpha_blend_pixel(config::vc_data[src_pos], screen_buffer[buffer_pos], (config::vc_opacity >> 3));
+					}
+
+					//Render normally
+					else
+					{
+						screen_buffer[buffer_pos] = config::vc_data[src_pos];
+					}
 				}
 			}
 		}
