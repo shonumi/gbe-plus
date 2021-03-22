@@ -170,7 +170,7 @@ namespace config
 	std::vector <u32> vc_data;
 	u32 vc_wait = 1;
 	u32 vc_timeout = 180;
-	u8 vc_opacity = 255;
+	u8 vc_opacity = 31;
 
 	//System screen sizes
 	u32 sys_width = 0;
@@ -1975,6 +1975,24 @@ bool parse_ini_file()
 			else { config::vc_file = ""; }
 		}
 
+		//NDS virtual opacity
+		else if(ini_item == "#virtual_cursor_opacity")
+		{
+			if((x + 1) < size) 
+			{
+				util::from_str(ini_opts[++x], output);
+
+				if((output >= 0) && (output <= 31)) { config::vc_opacity = output; }
+				else { config::vc_opacity = output; }
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#virtual_cursor_enable) \n";
+				return false;
+			}
+		}
+
 		//Use CGFX
 		else if(ini_item == "#use_cgfx")
 		{
@@ -3123,6 +3141,15 @@ bool save_ini_file()
 			std::string val = (config::vc_file == "") ? "" : (":'" + config::vc_file + "'");
 
 			output_lines[line_pos] = "[#virtual_cursor_file" + val + "]";
+		}
+
+		//NDS virtual cursor opacity
+		else if(ini_item == "#vc_opacity")
+		{
+			line_pos = output_count[x];
+			std::string val = util::to_str(config::vc_opacity);
+
+			output_lines[line_pos] = "[#vc_opacity:" + val + "]";
 		}
 
 		else if(ini_item == "#recent_files")

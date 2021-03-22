@@ -4551,7 +4551,7 @@ void NTR_LCD::render_virtual_cursor()
 					//Alpha blend
 					if(config::vc_opacity != 255)
 					{
-						screen_buffer[buffer_pos] = alpha_blend_pixel(config::vc_data[src_pos], screen_buffer[buffer_pos], (config::vc_opacity >> 3));
+						screen_buffer[buffer_pos] = alpha_blend_pixel(config::vc_data[src_pos], screen_buffer[buffer_pos], config::vc_opacity);
 					}
 
 					//Render normally
