@@ -51,6 +51,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	controls_combo->addItem("Advanced Controls");
 	controls_combo->addItem("Hotkey Controls");
 	controls_combo->addItem("Battle Chip Gate Controls");
+	controls_combo->addItem("Virtual Cursor Controls");
 
 	QHBoxLayout* button_layout = new QHBoxLayout;
 	button_layout->setAlignment(Qt::AlignTop | Qt::AlignRight);
@@ -962,6 +963,17 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	bcg_chip_4_layout->setContentsMargins(6, 0, 0, 0);
 	bcg_chip_4_set->setLayout(bcg_chip_4_layout);
 
+	//Virtual Cursor Settings - Enable VC
+	vc_enable_set = new QWidget(controls);
+	QLabel* vc_enable_label = new QLabel("Enable Virtual Cusor", vc_enable_set);
+	vc_on = new QCheckBox(vc_enable_set);
+
+	QHBoxLayout* vc_enable_layout = new QHBoxLayout;
+	vc_enable_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	vc_enable_layout->addWidget(vc_on);
+	vc_enable_layout->addWidget(vc_enable_label);
+	vc_enable_set->setLayout(vc_enable_layout);
+
 	controls_layout = new QVBoxLayout;
 	controls_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	controls_layout->addWidget(input_device_set);
@@ -1005,6 +1017,10 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	bcg_controls_layout->addWidget(bcg_chip_2_set);
 	bcg_controls_layout->addWidget(bcg_chip_3_set);
 	bcg_controls_layout->addWidget(bcg_chip_4_set);
+
+	vc_controls_layout = new QVBoxLayout;
+	vc_controls_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	vc_controls_layout->addWidget(vc_enable_set);
 	
 	rumble_set->setVisible(false);
 	con_up_set->setVisible(false);
@@ -1025,6 +1041,8 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	bcg_chip_2_set->setVisible(false);
 	bcg_chip_3_set->setVisible(false);
 	bcg_chip_4_set->setVisible(false);
+
+	vc_enable_set->setVisible(false);
 
 	//Netplay - Enable Netplay
 	QWidget* enable_netplay_set = new QWidget(netplay);
@@ -1857,6 +1875,10 @@ void gen_settings::set_ini_options()
 	//Rumble
 	if(config::use_haptics) { rumble_on->setChecked(true); }
 	else { rumble_on->setChecked(false); }
+
+	//Virtual Cursor Enable
+	if(config::vc_enable) { vc_on->setChecked(true); }
+	else { vc_on->setChecked(false); }
 
 	//Netplay
 	if(config::use_netplay) { enable_netplay->setChecked(true); }
@@ -3096,6 +3118,12 @@ void gen_settings::switch_control_layout()
 			bcg_controls_layout->itemAt(x)->widget()->setVisible(false);
 		}
 
+		//Set all Virtual Cusor control widgets to invisible
+		for(int x = 0; x < vc_controls_layout->count(); x++)
+		{
+			vc_controls_layout->itemAt(x)->widget()->setVisible(false);
+		}
+
 		delete controls->layout();
 		advanced_controls_layout->insertWidget(0, input_device_set);
 		controls->setLayout(advanced_controls_layout);
@@ -3131,6 +3159,12 @@ void gen_settings::switch_control_layout()
 			bcg_controls_layout->itemAt(x)->widget()->setVisible(false);
 		}
 
+		//Set all Virtual Cusor control widgets to invisible
+		for(int x = 0; x < vc_controls_layout->count(); x++)
+		{
+			vc_controls_layout->itemAt(x)->widget()->setVisible(false);
+		}
+
 		delete controls->layout();
 		controls_layout->insertWidget(0, input_device_set);
 		controls->setLayout(controls_layout);
@@ -3164,6 +3198,12 @@ void gen_settings::switch_control_layout()
 		for(int x = 0; x < bcg_controls_layout->count(); x++)
 		{
 			bcg_controls_layout->itemAt(x)->widget()->setVisible(false);
+		}
+
+		//Set all Virtual Cusor control widgets to invisible
+		for(int x = 0; x < vc_controls_layout->count(); x++)
+		{
+			vc_controls_layout->itemAt(x)->widget()->setVisible(false);
 		}
 
 		delete controls->layout();
@@ -3202,9 +3242,57 @@ void gen_settings::switch_control_layout()
 			hotkey_controls_layout->itemAt(x)->widget()->setVisible(false);
 		}
 
+		//Set all Virtual Cusor control widgets to invisible
+		for(int x = 0; x < vc_controls_layout->count(); x++)
+		{
+			vc_controls_layout->itemAt(x)->widget()->setVisible(false);
+		}
+
 		delete controls->layout();
 		bcg_controls_layout->insertWidget(0, input_device_set);
 		controls->setLayout(bcg_controls_layout);
+
+		input_device_set->setVisible(true);
+		input_device_set->setEnabled(false);
+		input_device->setCurrentIndex(0);
+	}
+
+	//Switch to Virtual Cursor layout
+	else if(controls_combo->currentIndex() == 4)
+	{
+		//Set all advanced control widgets to invisible
+		for(int x = 0; x < advanced_controls_layout->count(); x++)
+		{
+			advanced_controls_layout->itemAt(x)->widget()->setVisible(false);
+		}
+
+		//Set all standard control widgets to invisible
+		for(int x = 0; x < controls_layout->count(); x++)
+		{
+			controls_layout->itemAt(x)->widget()->setVisible(false);
+		}
+
+		//Set all Battle Chip Gate control widgets to visible
+		for(int x = 0; x < bcg_controls_layout->count(); x++)
+		{
+			bcg_controls_layout->itemAt(x)->widget()->setVisible(false);
+		}
+
+		//Set all hotkey control widgets to invisible
+		for(int x = 0; x < hotkey_controls_layout->count(); x++)
+		{
+			hotkey_controls_layout->itemAt(x)->widget()->setVisible(false);
+		}
+
+		//Set all Virtual Cusor control widgets to invisible
+		for(int x = 0; x < vc_controls_layout->count(); x++)
+		{
+			vc_controls_layout->itemAt(x)->widget()->setVisible(true);
+		}
+
+		delete controls->layout();
+		vc_controls_layout->insertWidget(0, input_device_set);
+		controls->setLayout(vc_controls_layout);
 
 		input_device_set->setVisible(true);
 		input_device_set->setEnabled(false);
@@ -3262,6 +3350,12 @@ void gen_settings::switch_control_layout()
 			bcg_controls_layout->addWidget(bcg_chip_2_set);
 			bcg_controls_layout->addWidget(bcg_chip_3_set);
 			bcg_controls_layout->addWidget(bcg_chip_4_set);
+			break;
+
+		case 4:
+			vc_controls_layout = new QVBoxLayout;
+			vc_controls_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+			vc_controls_layout->addWidget(vc_enable_set);
 			break;
 	}
 

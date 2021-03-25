@@ -535,6 +535,7 @@ void main_menu::quit()
 	config::use_stereo = (settings->stereo_enable->isChecked()) ? true : false;
 	config::volume = settings->volume->value();
 	config::use_haptics = (settings->rumble_on->isChecked()) ? true : false;
+	config::vc_enable = (settings->vc_on->isChecked()) ? true : false;
 
 	config::dmg_bios_path = settings->dmg_bios->text().toStdString();
 	config::gbc_bios_path = settings->gbc_bios->text().toStdString();
@@ -693,6 +694,10 @@ void main_menu::boot_game()
 	//Check rumble status
 	if(settings->rumble_on->isChecked()) { config::use_haptics = true; }
 	else { config::use_haptics = false; }
+
+	//Check Virtual Cursor enable
+	if(settings->vc_on->isChecked()) { config::vc_enable = true; }
+	else { config::vc_enable = false; }
 
 	findChild<QAction*>("pause_action")->setChecked(false);
 
@@ -900,6 +905,7 @@ void main_menu::closeEvent(QCloseEvent* event)
 	config::volume = settings->volume->value();
 	config::use_opengl = (settings->ogl->isChecked()) ? true : false;
 	config::use_haptics = (settings->rumble_on->isChecked()) ? true : false;
+	config::vc_enable = (settings->vc_on->isChecked()) ? true : false;
 	
 	config::dmg_bios_path = settings->dmg_bios->text().toStdString();
 	config::gbc_bios_path = settings->gbc_bios->text().toStdString();

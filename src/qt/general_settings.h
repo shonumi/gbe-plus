@@ -95,6 +95,7 @@ class gen_settings : public QDialog
 	QVBoxLayout* advanced_controls_layout;
 	QVBoxLayout* hotkey_controls_layout;
 	QVBoxLayout* bcg_controls_layout;
+	QVBoxLayout* vc_controls_layout;
 
 	QSlider* dead_zone;
 
@@ -183,6 +184,9 @@ class gen_settings : public QDialog
 	QComboBox* battle_chip_2;
 	QComboBox* battle_chip_3;
 	QComboBox* battle_chip_4;
+
+	//Virtual Cursor controls tab widgets
+	QCheckBox* vc_on;
 
 	//Netplay tab widgets
 	QCheckBox* enable_netplay;
@@ -306,6 +310,8 @@ class gen_settings : public QDialog
 	QWidget* bcg_chip_2_set;
 	QWidget* bcg_chip_3_set;
 	QWidget* bcg_chip_4_set;
+
+	QWidget* vc_enable_set;
 
 	void process_joystick_event();
 	void input_delay(QPushButton* input_button); 
