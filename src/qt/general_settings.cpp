@@ -974,6 +974,19 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	vc_enable_layout->addWidget(vc_enable_label);
 	vc_enable_set->setLayout(vc_enable_layout);
 
+	//Virtual Cursor Settings - Opacity
+	vc_opacity_set = new QWidget(controls);
+	QLabel* vc_opacity_label = new QLabel("Virtual Cursor Opacity", vc_opacity_set);
+	vc_opacity = new QSpinBox(vc_opacity_set);
+	vc_opacity->setMinimum(0);
+	vc_opacity->setMaximum(31);
+
+	QHBoxLayout* vc_opacity_layout = new QHBoxLayout;
+	vc_opacity_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	vc_opacity_layout->addWidget(vc_opacity);
+	vc_opacity_layout->addWidget(vc_opacity_label);
+	vc_opacity_set->setLayout(vc_opacity_layout);
+
 	controls_layout = new QVBoxLayout;
 	controls_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	controls_layout->addWidget(input_device_set);
@@ -1021,6 +1034,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	vc_controls_layout = new QVBoxLayout;
 	vc_controls_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	vc_controls_layout->addWidget(vc_enable_set);
+	vc_controls_layout->addWidget(vc_opacity_set);
 	
 	rumble_set->setVisible(false);
 	con_up_set->setVisible(false);
@@ -1043,6 +1057,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	bcg_chip_4_set->setVisible(false);
 
 	vc_enable_set->setVisible(false);
+	vc_opacity_set->setVisible(false);
 
 	//Netplay - Enable Netplay
 	QWidget* enable_netplay_set = new QWidget(netplay);
@@ -1879,6 +1894,9 @@ void gen_settings::set_ini_options()
 	//Virtual Cursor Enable
 	if(config::vc_enable) { vc_on->setChecked(true); }
 	else { vc_on->setChecked(false); }
+
+	//Virtual Cursor Opacity
+	vc_opacity->setValue(config::vc_opacity);
 
 	//Netplay
 	if(config::use_netplay) { enable_netplay->setChecked(true); }
@@ -3356,6 +3374,7 @@ void gen_settings::switch_control_layout()
 			vc_controls_layout = new QVBoxLayout;
 			vc_controls_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 			vc_controls_layout->addWidget(vc_enable_set);
+			vc_controls_layout->addWidget(vc_opacity_set);
 			break;
 	}
 

@@ -187,6 +187,7 @@ class gen_settings : public QDialog
 
 	//Virtual Cursor controls tab widgets
 	QCheckBox* vc_on;
+	QSpinBox* vc_opacity;
 
 	//Netplay tab widgets
 	QCheckBox* enable_netplay;
@@ -312,6 +313,7 @@ class gen_settings : public QDialog
 	QWidget* bcg_chip_4_set;
 
 	QWidget* vc_enable_set;
+	QWidget* vc_opacity_set;
 
 	void process_joystick_event();
 	void input_delay(QPushButton* input_button); 
