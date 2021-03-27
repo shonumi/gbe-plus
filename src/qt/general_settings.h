@@ -257,6 +257,7 @@ class gen_settings : public QDialog
 	void set_real_server();
 	void get_chip_list();
 	void set_battle_chip();
+	void update_vc_opacity();
 	void update_sync_threshold();
 	void update_server_port();
 	void update_client_port();

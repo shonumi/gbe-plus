@@ -3144,12 +3144,12 @@ bool save_ini_file()
 		}
 
 		//NDS virtual cursor opacity
-		else if(ini_item == "#vc_opacity")
+		else if(ini_item == "#virtual_cursor_opacity")
 		{
 			line_pos = output_count[x];
 			std::string val = util::to_str(config::vc_opacity);
 
-			output_lines[line_pos] = "[#vc_opacity:" + val + "]";
+			output_lines[line_pos] = "[#virtual_cursor_opacity:" + val + "]";
 		}
 
 		else if(ini_item == "#recent_files")

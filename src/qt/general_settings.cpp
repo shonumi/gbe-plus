@@ -1383,6 +1383,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(battle_chip_2, SIGNAL(currentIndexChanged(int)), this, SLOT(set_battle_chip()));
 	connect(battle_chip_3, SIGNAL(currentIndexChanged(int)), this, SLOT(set_battle_chip()));
 	connect(battle_chip_4, SIGNAL(currentIndexChanged(int)), this, SLOT(set_battle_chip()));
+	connect(vc_opacity, SIGNAL(valueChanged(int)), this, SLOT(update_vc_opacity()));
 	connect(sync_threshold, SIGNAL(valueChanged(int)), this, SLOT(update_sync_threshold()));
 	connect(server_port, SIGNAL(valueChanged(int)), this, SLOT(update_server_port()));
 	connect(client_port, SIGNAL(valueChanged(int)), this, SLOT(update_client_port()));
@@ -2587,6 +2588,12 @@ void gen_settings::set_battle_chip()
 
 	index = battle_chip_4->currentIndex();
 	config::chip_list[3] = chip_list[index];
+}
+
+/****** Sets the Virtual Cursor Opacity ******/
+void gen_settings::update_vc_opacity()
+{
+	config::vc_opacity = vc_opacity->value();
 }
 
 /****** Sets the netplay sync threshold ******/
