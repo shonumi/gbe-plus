@@ -987,6 +987,19 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	vc_opacity_layout->addWidget(vc_opacity_label);
 	vc_opacity_set->setLayout(vc_opacity_layout);
 
+	//Virtual Cursor Settings - Virtual Cursor Bitmap File
+	QWidget* vc_path_set = new QWidget(controls);
+	vc_path_label = new QLabel("Cursor File :  ");
+	QPushButton* vc_path_button = new QPushButton("Browse");
+	vc_path = new QLineEdit(controls);
+
+	QHBoxLayout* vc_path_layout = new QHBoxLayout;
+	vc_path_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	vc_path_layout->addWidget(vc_path_label);
+	vc_path_layout->addWidget(vc_path);
+	vc_path_layout->addWidget(vc_path_button);
+	vc_path_set->setLayout(vc_path_layout);
+
 	controls_layout = new QVBoxLayout;
 	controls_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	controls_layout->addWidget(input_device_set);
@@ -1035,6 +1048,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	vc_controls_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	vc_controls_layout->addWidget(vc_enable_set);
 	vc_controls_layout->addWidget(vc_opacity_set);
+	vc_controls_layout->addWidget(vc_path_set);
 	
 	rumble_set->setVisible(false);
 	con_up_set->setVisible(false);
@@ -1058,6 +1072,8 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 
 	vc_enable_set->setVisible(false);
 	vc_opacity_set->setVisible(false);
+	vc_path_set->setVisible(false);
+
 
 	//Netplay - Enable Netplay
 	QWidget* enable_netplay_set = new QWidget(netplay);
@@ -1403,6 +1419,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(screenshot_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
 	connect(game_saves_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
 	connect(cheats_path_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
+	connect(vc_path_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
 
 	paths_mapper->setMapping(dmg_bios_button, 0);
 	paths_mapper->setMapping(gbc_bios_button, 1);
@@ -1414,6 +1431,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	paths_mapper->setMapping(dump_obj_button, 7);
 	paths_mapper->setMapping(game_saves_button, 8);
 	paths_mapper->setMapping(cheats_path_button, 9);
+	paths_mapper->setMapping(vc_path_button, 10);
 	connect(paths_mapper, SIGNAL(mapped(int)), this, SLOT(set_paths(int)));
 
 	QSignalMapper* button_config = new QSignalMapper(this);
@@ -1887,6 +1905,7 @@ void gen_settings::set_ini_options()
 	QString path_8(QString::fromStdString(cgfx::dump_obj_path));
 	QString path_9(QString::fromStdString(config::save_path));
 	QString path_10(QString::fromStdString(config::cheats_path));
+	QString path_11(QString::fromStdString(config::vc_file));
 
 	//Rumble
 	if(config::use_haptics) { rumble_on->setChecked(true); }
@@ -1953,6 +1972,7 @@ void gen_settings::set_ini_options()
 	dump_obj->setText(path_8);
 	game_saves->setText(path_9);
 	cheats_path->setText(path_10);
+	vc_path->setText(path_11);
 }
 
 /****** Toggles whether to use the Boot ROM or BIOS ******/
@@ -2310,7 +2330,7 @@ void gen_settings::set_paths(int index)
 	QString path;
 
 	//Open file browser for Boot ROMs, BIOS, Firmware, cheats, and manifests
-	if((index < 5) || (index == 9))
+	if((index < 5) || (index >= 9))
 	{
 		path = QFileDialog::getOpenFileName(this, tr("Open"), "", tr("All files (*)"));
 		if(path.isNull()) { return; }
@@ -2401,6 +2421,11 @@ void gen_settings::set_paths(int index)
 			if(!dmg_cheat_menu->empty_cheats) { dmg_cheat_menu->empty_cheats = parse_cheats_file(true); }
 			else { parse_cheats_file(false); }
 
+			break;
+
+		case 10:
+			config::vc_file = path.toStdString();
+			vc_path->setText(path);
 			break;
 	}
 }
@@ -3382,6 +3407,7 @@ void gen_settings::switch_control_layout()
 			vc_controls_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 			vc_controls_layout->addWidget(vc_enable_set);
 			vc_controls_layout->addWidget(vc_opacity_set);
+			vc_controls_layout->addWidget(vc_path_set);
 			break;
 	}
 
@@ -3400,6 +3426,7 @@ void gen_settings::paintEvent(QPaintEvent* event)
 	screenshot_label->setMinimumWidth(dmg_bios_label->width());
 	game_saves_label->setMinimumWidth(dmg_bios_label->width());
 	cheats_path_label->setMinimumWidth(dmg_bios_label->width());
+	vc_path_label->setMinimumWidth(dmg_bios_label->width());
 }
 
 /****** Closes the settings window ******/
