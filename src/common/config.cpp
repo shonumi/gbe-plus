@@ -1975,7 +1975,7 @@ bool parse_ini_file()
 			else { config::vc_file = ""; }
 		}
 
-		//NDS virtual opacity
+		//NDS virtual cursor opacity
 		else if(ini_item == "#virtual_cursor_opacity")
 		{
 			if((x + 1) < size) 
@@ -1988,7 +1988,24 @@ bool parse_ini_file()
 
 			else 
 			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#virtual_cursor_enable) \n";
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#virtual_cursor_opacity) \n";
+				return false;
+			}
+		}
+
+		//NDS virtual cursor timeout
+		else if(ini_item == "#virtual_cursor_timeout")
+		{
+			if((x + 1) < size) 
+			{
+				util::from_str(ini_opts[++x], output);
+				config::vc_timeout = output;
+
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#virtual_cursor_timeout) \n";
 				return false;
 			}
 		}
@@ -3150,6 +3167,15 @@ bool save_ini_file()
 			std::string val = util::to_str(config::vc_opacity);
 
 			output_lines[line_pos] = "[#virtual_cursor_opacity:" + val + "]";
+		}
+
+		//NDS virtual cursor timeout
+		else if(ini_item == "#virtual_cursor_timeout")
+		{
+			line_pos = output_count[x];
+			std::string val = util::to_str(config::vc_timeout);
+
+			output_lines[line_pos] = "[#virtual_cursor_timeout:" + val + "]";
 		}
 
 		else if(ini_item == "#recent_files")
