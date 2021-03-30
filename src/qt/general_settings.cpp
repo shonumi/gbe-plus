@@ -987,6 +987,19 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	vc_opacity_layout->addWidget(vc_opacity_label);
 	vc_opacity_set->setLayout(vc_opacity_layout);
 
+	//Virtual Cursor Settings - Timeout
+	vc_timeout_set = new QWidget(controls);
+	QLabel* vc_timeout_label = new QLabel("Virtual Cursor Timeout", vc_timeout_set);
+	vc_timeout = new QSpinBox(vc_timeout_set);
+	vc_timeout->setMinimum(0);
+	vc_timeout->setMaximum(1800);
+
+	QHBoxLayout* vc_timeout_layout = new QHBoxLayout;
+	vc_timeout_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	vc_timeout_layout->addWidget(vc_timeout);
+	vc_timeout_layout->addWidget(vc_timeout_label);
+	vc_timeout_set->setLayout(vc_timeout_layout);
+
 	//Virtual Cursor Settings - Virtual Cursor Bitmap File
 	QWidget* vc_path_set = new QWidget(controls);
 	vc_path_label = new QLabel("Cursor File :  ");
@@ -1048,6 +1061,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	vc_controls_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	vc_controls_layout->addWidget(vc_enable_set);
 	vc_controls_layout->addWidget(vc_opacity_set);
+	vc_controls_layout->addWidget(vc_timeout_set);
 	vc_controls_layout->addWidget(vc_path_set);
 	
 	rumble_set->setVisible(false);
@@ -1072,6 +1086,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 
 	vc_enable_set->setVisible(false);
 	vc_opacity_set->setVisible(false);
+	vc_timeout_set->setVisible(false);
 	vc_path_set->setVisible(false);
 
 
@@ -1400,6 +1415,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(battle_chip_3, SIGNAL(currentIndexChanged(int)), this, SLOT(set_battle_chip()));
 	connect(battle_chip_4, SIGNAL(currentIndexChanged(int)), this, SLOT(set_battle_chip()));
 	connect(vc_opacity, SIGNAL(valueChanged(int)), this, SLOT(update_vc_opacity()));
+	connect(vc_timeout, SIGNAL(valueChanged(int)), this, SLOT(update_vc_timeout()));
 	connect(sync_threshold, SIGNAL(valueChanged(int)), this, SLOT(update_sync_threshold()));
 	connect(server_port, SIGNAL(valueChanged(int)), this, SLOT(update_server_port()));
 	connect(client_port, SIGNAL(valueChanged(int)), this, SLOT(update_client_port()));
@@ -1917,6 +1933,9 @@ void gen_settings::set_ini_options()
 
 	//Virtual Cursor Opacity
 	vc_opacity->setValue(config::vc_opacity);
+
+	//Virtual Cursor Timeout
+	vc_timeout->setValue(config::vc_timeout);
 
 	//Netplay
 	if(config::use_netplay) { enable_netplay->setChecked(true); }
@@ -2619,6 +2638,12 @@ void gen_settings::set_battle_chip()
 void gen_settings::update_vc_opacity()
 {
 	config::vc_opacity = vc_opacity->value();
+}
+
+/****** Sets the Virtual Cursor Timeout ******/
+void gen_settings::update_vc_timeout()
+{
+	config::vc_timeout = vc_timeout->value();
 }
 
 /****** Sets the netplay sync threshold ******/
@@ -3407,6 +3432,7 @@ void gen_settings::switch_control_layout()
 			vc_controls_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 			vc_controls_layout->addWidget(vc_enable_set);
 			vc_controls_layout->addWidget(vc_opacity_set);
+			vc_controls_layout->addWidget(vc_timeout_set);
 			vc_controls_layout->addWidget(vc_path_set);
 			break;
 	}

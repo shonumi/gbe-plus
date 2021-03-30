@@ -537,6 +537,7 @@ void main_menu::quit()
 	config::use_haptics = (settings->rumble_on->isChecked()) ? true : false;
 	config::vc_enable = (settings->vc_on->isChecked()) ? true : false;
 	config::vc_opacity = settings->vc_opacity->value();
+	config::vc_timeout = settings->vc_timeout->value();
 
 	config::dmg_bios_path = settings->dmg_bios->text().toStdString();
 	config::gbc_bios_path = settings->gbc_bios->text().toStdString();
@@ -702,6 +703,9 @@ void main_menu::boot_game()
 
 	//Virtual Cursor Opacity
 	config::vc_opacity = settings->vc_opacity->value();
+
+	//Virtual Cursor Timeout
+	config::vc_timeout = settings->vc_timeout->value();
 
 	findChild<QAction*>("pause_action")->setChecked(false);
 
@@ -911,6 +915,7 @@ void main_menu::closeEvent(QCloseEvent* event)
 	config::use_haptics = (settings->rumble_on->isChecked()) ? true : false;
 	config::vc_enable = (settings->vc_on->isChecked()) ? true : false;
 	config::vc_opacity = settings->vc_opacity->value();
+	config::vc_timeout = settings->vc_timeout->value();
 	
 	config::dmg_bios_path = settings->dmg_bios->text().toStdString();
 	config::gbc_bios_path = settings->gbc_bios->text().toStdString();

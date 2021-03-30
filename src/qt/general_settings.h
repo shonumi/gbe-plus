@@ -188,6 +188,7 @@ class gen_settings : public QDialog
 	//Virtual Cursor controls tab widgets
 	QCheckBox* vc_on;
 	QSpinBox* vc_opacity;
+	QSpinBox* vc_timeout;
 	QLineEdit* vc_path;
 
 	QLabel* vc_path_label;
@@ -261,6 +262,7 @@ class gen_settings : public QDialog
 	void get_chip_list();
 	void set_battle_chip();
 	void update_vc_opacity();
+	void update_vc_timeout();
 	void update_sync_threshold();
 	void update_server_port();
 	void update_client_port();
@@ -318,6 +320,7 @@ class gen_settings : public QDialog
 
 	QWidget* vc_enable_set;
 	QWidget* vc_opacity_set;
+	QWidget* vc_timeout_set;
 	QWidget* vc_path_set;
 
 	void process_joystick_event();
