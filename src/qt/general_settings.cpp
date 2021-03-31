@@ -965,7 +965,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 
 	//Virtual Cursor Settings - Enable VC
 	vc_enable_set = new QWidget(controls);
-	QLabel* vc_enable_label = new QLabel("Enable Virtual Cusor", vc_enable_set);
+	QLabel* vc_enable_label = new QLabel("Enable Virtual Cursor", vc_enable_set);
 	vc_on = new QCheckBox(vc_enable_set);
 
 	QHBoxLayout* vc_enable_layout = new QHBoxLayout;
@@ -3193,7 +3193,7 @@ void gen_settings::switch_control_layout()
 			bcg_controls_layout->itemAt(x)->widget()->setVisible(false);
 		}
 
-		//Set all Virtual Cusor control widgets to invisible
+		//Set all Virtual Cursor control widgets to invisible
 		for(int x = 0; x < vc_controls_layout->count(); x++)
 		{
 			vc_controls_layout->itemAt(x)->widget()->setVisible(false);
@@ -3234,7 +3234,7 @@ void gen_settings::switch_control_layout()
 			bcg_controls_layout->itemAt(x)->widget()->setVisible(false);
 		}
 
-		//Set all Virtual Cusor control widgets to invisible
+		//Set all Virtual Cursor control widgets to invisible
 		for(int x = 0; x < vc_controls_layout->count(); x++)
 		{
 			vc_controls_layout->itemAt(x)->widget()->setVisible(false);
@@ -3275,7 +3275,7 @@ void gen_settings::switch_control_layout()
 			bcg_controls_layout->itemAt(x)->widget()->setVisible(false);
 		}
 
-		//Set all Virtual Cusor control widgets to invisible
+		//Set all Virtual Cursor control widgets to invisible
 		for(int x = 0; x < vc_controls_layout->count(); x++)
 		{
 			vc_controls_layout->itemAt(x)->widget()->setVisible(false);
@@ -3317,7 +3317,7 @@ void gen_settings::switch_control_layout()
 			hotkey_controls_layout->itemAt(x)->widget()->setVisible(false);
 		}
 
-		//Set all Virtual Cusor control widgets to invisible
+		//Set all Virtual Cursor control widgets to invisible
 		for(int x = 0; x < vc_controls_layout->count(); x++)
 		{
 			vc_controls_layout->itemAt(x)->widget()->setVisible(false);
@@ -3359,7 +3359,7 @@ void gen_settings::switch_control_layout()
 			hotkey_controls_layout->itemAt(x)->widget()->setVisible(false);
 		}
 
-		//Set all Virtual Cusor control widgets to invisible
+		//Set all Virtual Cursor control widgets to invisible
 		for(int x = 0; x < vc_controls_layout->count(); x++)
 		{
 			vc_controls_layout->itemAt(x)->widget()->setVisible(true);
