@@ -267,7 +267,7 @@ void NTR_LCD::render_geometry()
 			xy_end = plot_x[next_index];
 		}
 
-		xy_len = abs(xy_end - xy_start);
+		xy_len = std::abs(xy_end - xy_start);
 
 		if(xy_len != 0)
 		{
@@ -615,19 +615,19 @@ void NTR_LCD::fill_poly_textured()
 			//Wrap horizontally, if necessary
 			if(lcd_3D_stat.repeat_tex_x)
 			{
-				u8 x_flip = u32(abs(tx1 / tw)) & 0x1;
+				u8 x_flip = u32(std::abs(tx1 / tw)) & 0x1;
 
 				//No flipping horizontally
 				if(!lcd_3D_stat.flip_tex_x || !x_flip)
 				{
-					if(tx1 < 0) { real_tx = (tx1 + (tw * (abs(s32(tx1 / tw)) + 1))); }
+					if(tx1 < 0) { real_tx = (tx1 + (tw * (std::abs(s32(tx1 / tw)) + 1))); }
 					else if(tx1 >= tw) { real_tx = (tx1 - (tw * (s32(tx1 / tw)))); }
 				}
 
 				//Flip horizontally
 				else
 				{
-					if(tx1 < 0) { real_tx = tw - (tx1 + (tw * (abs(s32(tx1 / tw)) + 1))); }
+					if(tx1 < 0) { real_tx = tw - (tx1 + (tw * (std::abs(s32(tx1 / tw)) + 1))); }
 					else if(tx1 >= tw) { real_tx = tw - (tx1 - (tw * (s32(tx1 / tw)))); }
 				}
 			}
@@ -635,19 +635,19 @@ void NTR_LCD::fill_poly_textured()
 			//Wrap vertically, if necessary
 			if(lcd_3D_stat.repeat_tex_y)
 			{
-				u8 y_flip = u32(abs(ty1 / th)) & 0x1;
+				u8 y_flip = u32(std::abs(ty1 / th)) & 0x1;
 
 				//No flipping vertically
 				if(!lcd_3D_stat.flip_tex_y || !y_flip)
 				{
-					if(ty1 < 0) { real_ty = (ty1 + (th * (abs(s32(ty1 / th)) + 1))); }
+					if(ty1 < 0) { real_ty = (ty1 + (th * (std::abs(s32(ty1 / th)) + 1))); }
 					else if(ty1 >= th) { real_ty = (ty1 - (th * s32(ty1 / th))); }
 				}
 
 				//Flip vertically
 				else
 				{
-					if(ty1 < 0) { real_ty = th - (ty1 + (th * (abs(s32(ty1 / th)) + 1))); }
+					if(ty1 < 0) { real_ty = th - (ty1 + (th * (std::abs(s32(ty1 / th)) + 1))); }
 					else if(ty1 >= th) { real_ty = th - (ty1 - (th * s32(ty1 / th))); }
 				}
 			}
@@ -2389,7 +2389,7 @@ void NTR_LCD::update_clip_matrix()
 			float raw_value = clip_matrix[(y << 2) + x];
 			u32 index = 4 * ((y * 4) + x);
 			
-			integral = abs(raw_value);
+			integral = std::abs(raw_value);
 
 			//Negative values
 			if(raw_value < 0)
@@ -2438,7 +2438,7 @@ void NTR_LCD::update_vector_matrix()
 			float raw_value = gx_vector_matrix[(y << 2) + x];
 			u32 index = 4 * ((y * 4) + x);
 			
-			integral = abs(raw_value);
+			integral = std::abs(raw_value);
 
 			//Negative values
 			if(raw_value < 0)
@@ -2498,7 +2498,7 @@ u32 NTR_LCD::get_u32_fixed(float raw_value)
 	u32 fractal = 0;
 	float sub_fractal = 0.0;
 
-	integral = abs(raw_value);
+	integral = std::abs(raw_value);
 
 	//Negative values
 	if(raw_value < 0)
