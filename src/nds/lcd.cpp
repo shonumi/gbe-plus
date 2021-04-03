@@ -4338,6 +4338,7 @@ void NTR_LCD::reload_affine_references(u32 bg_control)
 		case NDS_BG3CNT_B:
 			x_raw = mem->read_u32_fast(NDS_BG3X_B);
 			y_raw = mem->read_u32_fast(NDS_BG3Y_B);
+			engine_a = false;
 			aff_id = 1;
 			break;
 
