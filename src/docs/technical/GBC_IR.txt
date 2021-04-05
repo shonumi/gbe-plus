@@ -69,7 +69,7 @@ The North American version of Disney's Aladdin claims to have infrared support o
 - Qui Qui						???
 - Rayman						Ubi Key -> Unlocks secret level Ubi Cliff
 - Return of the Ninja					Trade "Ninja Cards"
-- Rugrats: Totally Angelica				???
+- Rugrats: Totally Angelica				Send/Receive messages, clothes, hairstyles, and accessories
 - The Road to El Dorado					Ubi Key -> Unlocks a secret level similar to Levels 6 and 7
 - Robopon Sun Version					Boost stats via infrared signals. Open certain chests
 - Sakura Taisen GB					Send step-based "Points" to GBC from Pocket Sakura, or between two GBCs
