@@ -54,6 +54,8 @@ struct dmg_lcd_data
 
 	bool on_off;
 
+	bool lock_window_y;
+
 	bool update_bg_colors;
 	bool update_obj_colors;
 	bool hdma_in_progress;

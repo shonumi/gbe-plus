@@ -1126,7 +1126,7 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	else if(address == REG_WY)
 	{
 		memory_map[address] = value;
-		lcd_stat->window_y = value;
+		if(!lcd_stat->lock_window_y) { lcd_stat->window_y = value; std::cout<<"NEW WINDOW Y -> 0x" << (u32)lcd_stat->window_y << "\n"; }
 	}
 
 	//Window X
