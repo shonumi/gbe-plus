@@ -37,11 +37,13 @@ The North American version of Disney's Aladdin claims to have infrared support o
 - Catz							Trade Petz and Toyz
 - Chee-Chai Alien					Enhances IR sensor to detect artificial light sources. Catch/trade Chaliens
 - Dancing Furby						Sends signal to Furby doll, Furby reacts based on dance performance
+- Data Navi Pro Yakyuu					Send/Receive baseball team data
 - Dogz							Trade Petz and Toyz
 - Donkey Kong Country					Transfer pictures to stickerbook
 - Dungeon Savior					Transfer a Guardian from one game to another
 - Flipper & Lopaka					Ubi Key -> Unlocks a bonus "Ubi Key Level"
 - Game Boy Wars 3					Wireless multiplayer
+- GB Harobots						Create new Robo Data via infrared signals
 - Hamtaro: Ham-Hams Unite!				Trade Hamtaro's clothes
 - Harry Potter and the Sorceror's Stone			Trade "Famous Witches and Wizards" cards 
 - Harry Potter and the Chamber of Secrets		Trade "Famous Witches and Wizards" cards 
@@ -86,6 +88,7 @@ The North American version of Disney's Aladdin claims to have infrared support o
 - Tsuri Sensei 2					Trade items with other players
 - V.I.P.						Ubi Key -> Unlocks a bonus "Ubi Key Level"
 - Warlocked						Trade wizards
+- Yu-Gi-Oh! Duel Monsters II: Dark Duel Stories		Connect to other players via "D-Trans" and receive special cards
 - Zok Zok Heroes					Transmit "Cosmic Characters" from Full Changer accessory to transform hero
 
 It should be noted that a few games that use HuC-3 MBC are not in fact "GB KISS" games. Instead, they use the GBC's built-in IR hardware. Robopon Sun Version (US version only) and Pocket Family GB 2 are such examples. While the other Robopon games use the HuC-3's IR capabilities, these were lost when the game went overseas. A similar phenomenon can be seen with the Japanese release of Pokemon TCG (which used the HuC-1) versus releases for any other region (which use the GBC's native IR). Pocket Family GB 2 abandons the IR diodes on the HuC-3 PCB. At this point in time, Hudson may have finally decided to abandon GB KISS and the HuC-1 and HuC-3's IR features as they were redundant, especially for games designed to run exclusively on the GBC.
