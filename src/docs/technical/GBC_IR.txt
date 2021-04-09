@@ -70,7 +70,7 @@ The North American version of Disney's Aladdin claims to have infrared support o
 - Pokemon Crystal					Mystery Gift + Send trainer data to Viridian City Trainer House
 - Pokemon Trading Card Game				"Card Pop" to generate random cards. Trade individual cards. Trade deck configurations
 - Pokemon Card GB2: Here Comes Team GR!			"Card Pop" to generate random cards. Trade individual cards. Trade deck configurations
-- Qui Qui						???
+- Qui Qui						Battle against another opponent
 - Rayman						Ubi Key -> Unlocks secret level Ubi Cliff
 - Return of the Ninja					Trade "Ninja Cards"
 - Rugrats: Totally Angelica				Send/Receive messages, clothes, hairstyles, and accessories
