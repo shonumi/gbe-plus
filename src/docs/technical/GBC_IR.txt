@@ -80,6 +80,7 @@ The North American version of Disney's Aladdin claims to have infrared support o
 - Sakura Taisen GB					Send step-based "Points" to GBC from Pocket Sakura, or between two GBCs
 - Shin Megami Tensei Devil Children White		Used for "Infrared Fusion" to strengthen some demons, obtain rare ones
 - Spirou: The Robot Invasion				Ubi Key -> Unlocks a bonus level 
+- Super Doll Licca-chan: Kisekae Daisakusen		Send/Receive clothes
 - Super Mario Bros. DX					Trade/combine Top Scores
 - Suzuki Alstare Extreme Racing				Ubi Key -> Unlocks the Extreme Championship mode
 - Sweet Ange						Send/Receive mail, commemorative photos, cards, and recipes
