@@ -56,6 +56,7 @@ The North American version of Disney's Aladdin claims to have infrared support o
 - Inspector Gadget: Operation Madkactus			Ubi Key -> Unlocks a bonus level
 - Kaijin Zona						Receive randomized puzzles via IR signals
 - Karkurenbo Battle Monster Tactics			Send/Receive Montaku. Wager Montaku via "takupon" game against another player
+- Konchuu Hakase 2					Exchange collectible insects 
 - Lego Island 2						Swap trading cards
 - Lemmings VS						View Win/Loss records with other players
 - Mary-Kate and Ashley Pocket Planner			Send and receive "G-mail" messages
