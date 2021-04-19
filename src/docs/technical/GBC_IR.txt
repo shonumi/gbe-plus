@@ -48,8 +48,9 @@ The North American version of Disney's Aladdin claims to have infrared support o
 - Flipper & Lopaka					Ubi Key -> Unlocks a bonus "Ubi Key Level"
 - Game Boy Wars 3					Wireless multiplayer
 - GB Harobots						Create new Robo Data via infrared signals
-- Gyouten Ningen Batseelor: Doctor Gai no Yabo		Exchange collectible stickers
+- Gyouten Ningen Batseelor: Dakutoru Gai no Yabo	Exchange collectible stickers
 - Hamster Paradise 3 (Churi)				Exchange e-mail
+- Hamster Paradise 4					Exchange hamsters
 - Hamtaro: Ham-Hams Unite!				Trade Hamtaro's clothes
 - Harry Potter and the Sorceror's Stone			Trade "Famous Witches and Wizards" cards 
 - Harry Potter and the Chamber of Secrets		Trade "Famous Witches and Wizards" cards 
