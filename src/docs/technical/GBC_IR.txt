@@ -103,7 +103,7 @@ The North American version of Disney's Aladdin claims to have infrared support o
 - Sweet Ange						Send/Receive mail, commemorative photos, cards, and recipes
 - Tonic Trouble						Ubi Key -> Unlocks a bonus level/demo
 - Toonsylvania						Ubi Key -> Unlocks a bonus level with extra lives and items
-- Tottoko Hamtaro: Tomodachi Daisakusen Dechu		???
+- Tottoko Hamtaro: Tomodachi Daisakusen Dechu		Used for a "friend finding" feature, matches other players to different hamsters
 - Tsuri Sensei 2					Trade items with other players
 - V.I.P.						Ubi Key -> Unlocks a bonus "Ubi Key Level"
 - Warlocked						Trade wizards
