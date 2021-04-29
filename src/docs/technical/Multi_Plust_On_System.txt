@@ -118,15 +118,16 @@ The ID is received serially, MSB first. Essentially, a "1" bit is transferred wh
 
 Currently, there are 22 identified Pluster figurines along with some 16-bit IDs that will generate that character in the games. There are multiple variants of figurines, therefore Plusters have multiple valid IDs, since the configuration of their spokes is different. The electronic toys may treat them differently, yet the GBA games do not.
 
-IMPORTANT: These IDs were generated artificially by testing them against the games, so with the exception of Wyburst (0x16A0) none of these represent actual IDs directly captured from a MPOS. They are, however, sufficient for the purposes of emulation or using homebrew on a second GBA to fake a connected MPOS.
+IMPORTANT: Most of these IDs were generated artificially by testing them against the games. Entries marked with a "!" represent actual IDs directly captured from a MPOS. The artificially generated ones are, however, sufficient for the purposes of emulation or using homebrew on a second GBA to fake a connected MPOS.
 
 PF001 :: Beetma
+	! 0x1780
 	* 0x16C0
 	* 0x1682
 	* 0x1642
 
 PF002 :: Wyburst
-	* 0x16A0
+	! 0x16A0
 	* 0x1660
 	* 0x1622
 
