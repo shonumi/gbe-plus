@@ -191,7 +191,7 @@ PF-EX002 :: Varouze
 	* 0x1636
 
 PF-EX003 :: Gigajoule
-	* 0x164E
+	! 0x164E
 
 PF-EX004 :: Badnick
 	* 0x161E
