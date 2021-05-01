@@ -185,7 +185,7 @@ PF016 :: Dorastorm
 	* 0x16FC
 
 PF-EX001 :: Beetma EX
-	* 0x1666
+	! 0x1666
 
 PF-EX002 :: Varouze
 	* 0x1636
