@@ -79,6 +79,7 @@ namespace util
 	bool from_hex_str(std::string input, u32 &result);
 
 	std::string to_str(u32);
+	std::string to_sstr(s32);
 	bool from_str(std::string input, u32 &result);
 
 	std::string ip_to_str(u32 ip_addr);
@@ -92,6 +93,7 @@ namespace util
 	std::string get_filename_from_path(std::string path);
 
 	u32 get_bcd(u32 input);
+	u32 get_bcd_int(u32 input);
 
 	u32 bswap(u32 input);
 

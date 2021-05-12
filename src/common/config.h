@@ -70,6 +70,7 @@ namespace config
 	extern std::string nds7_bios_path;
 	extern std::string nds9_bios_path;
 	extern std::string nds_firmware_path;
+	extern std::string min_bios_path;
 	extern std::string save_path;
 	extern std::string ss_path;
 	extern std::string cfg_path;

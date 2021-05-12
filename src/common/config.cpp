@@ -28,6 +28,7 @@ namespace config
 	std::string nds7_bios_path = "";
 	std::string nds9_bios_path = "";
 	std::string nds_firmware_path = "";
+	std::string min_bios_path = "";
 	std::string save_path = "";
 	std::string ss_path = "";
 	std::string cfg_path = "";
@@ -560,6 +561,7 @@ void validate_system_type()
 
 	if(ext == ".gba") { config::gb_type = 3; }
 	else if(ext == ".nds") { config::gb_type = 4; }
+	else if(ext == ".min") { config::gb_type = 7; }
 
 	//Force GBC mode if system type is set to GBA, but a GB/GBC game is loaded
 	else if((ext != ".gba") && (config::gb_type == 3)) 
@@ -589,6 +591,7 @@ u8 get_system_type_from_file(std::string filename)
 
 	if(ext == ".gba") { gb_type = 3; }
 	else if(ext == ".nds") { gb_type = 4; }
+	else if(ext == ".min") { gb_type = 7; }
 	else if((ext != ".gba") && (gb_type == 3)) { gb_type = 2; }
 
 	//For Auto or GBC mode, determine what the CGB Flag is
@@ -784,6 +787,9 @@ bool parse_cli_args()
 
 			//Set system type - SGB2
 			else if(config::cli_args[x] == "--sys-sgb2") { config::gb_type = 6; }
+
+			//Set system type - MIN
+			else if(config::cli_args[x] == "--sys-min") { config::gb_type = 7; }
 
 			//Enable Turbo File memory card
 			else if(config::cli_args[x] == "--turbo-file-memcard") { config::turbo_file_options |= 0x1; }
@@ -1094,7 +1100,7 @@ bool parse_ini_file()
 			{
 				util::from_str(ini_opts[++x], output);
 
-				if((output >= 0) && (output <= 6)) 
+				if((output >= 0) && (output <= 7)) 
 				{
 					config::gb_type = output;
 					validate_system_type();
@@ -1268,6 +1274,24 @@ bool parse_ini_file()
 			}
 
 			else { config::nds_firmware_path = ""; }
+		}
+
+		//MIN BIOS path
+		else if(ini_item == "#min_bios_path")
+		{
+			if((x + 1) < size) 
+			{
+				ini_item = ini_opts[++x];
+				std::string first_char = "";
+				first_char = ini_item[0];
+				
+				//When left blank, don't parse the next line item
+				if(first_char != "#") { config::min_bios_path = ini_item; }
+				else { config::min_bios_path = ""; x--;}
+ 
+			}
+
+			else { config::min_bios_path = ""; }
 		}
 
 		//Game save path
@@ -2581,6 +2605,15 @@ bool save_ini_file()
 			std::string val = (config::nds_firmware_path == "") ? "" : (":'" + config::nds_firmware_path + "'");
 
 			output_lines[line_pos] = "[#nds_firmware_path" + val + "]";
+		}
+
+		//MIN BIOS path
+		else if(ini_item == "#min_bios_path")
+		{
+			line_pos = output_count[x];
+			std::string val = (config::min_bios_path == "") ? "" : (":'" + config::min_bios_path + "'");
+
+			output_lines[line_pos] = "[#min_bios_path" + val + "]";
 		}
 
 		//Game save path

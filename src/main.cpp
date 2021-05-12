@@ -12,6 +12,7 @@
 #include "dmg/core.h"
 #include "sgb/core.h"
 #include "nds/core.h"
+#include "min/core.h"
 #include "common/config.h"
 
 #include <SDL2/SDL_main.h>
@@ -69,6 +70,12 @@ int main(int argc, char* args[])
 		gbe_plus = new SGB_core();
 	}
 
+	//Pokemon Mini core
+	else if(config::gb_type == 7)
+	{
+		gbe_plus = new MIN_core();
+	}
+
 	//NDS core
 	else
 	{
@@ -83,9 +90,10 @@ int main(int argc, char* args[])
 		{
 			switch(config::gb_type)
 			{
-				case 0x1 : config::bios_file = config::dmg_bios_path; break;
-				case 0x2 : config::bios_file = config::gbc_bios_path; break;
-				case 0x3 : config::bios_file = config::agb_bios_path; break;
+				case 0x1: config::bios_file = config::dmg_bios_path; break;
+				case 0x2: config::bios_file = config::gbc_bios_path; break;
+				case 0x3: config::bios_file = config::agb_bios_path; break;
+				case 0x7: config::bios_file = config::min_bios_path; break;
 			}
 		}
 
