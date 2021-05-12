@@ -267,6 +267,11 @@ void AGB_SIO::reset()
 			sio_stat.sio_type = GBA_IR_ADAPTER;
 			break;
 
+		//Virtureal Racing System
+		case 18:
+			sio_stat.sio_type = GBA_VRS;
+			break;
+
 		//Always wait until netplay connection is established to change to GBA_LINK
 		default:
 			sio_stat.sio_type = NO_GBA_DEVICE;
@@ -388,6 +393,45 @@ void AGB_SIO::reset()
 
 	if(config::ir_device == 6) { cdz_e.active = zoids_cdz_load_data(); }
 
+	//Virtureal Racing System
+	vrs.current_state = VRS_STANDBY;
+	vrs.command = 0;
+	vrs.status = 0xFF00;
+	vrs.options = 0xC1;
+	vrs.sub_screen_status = 0;
+	vrs.track_number = 0;
+	vrs.old_track = 0;
+	vrs.active = false;
+	vrs.setup_sub_screen = false;
+
+	vrs.slot_lane = 1;
+	vrs.last_lane = 1;
+	vrs.slot_speed[0] = 0;
+	vrs.slot_speed[1] = 0;
+	vrs.lane_pos[0] = 0;
+	vrs.lane_pos[1] = 0;
+	vrs.lane_last_pos[0] = 0;
+	vrs.lane_last_pos[1] = 0;
+	vrs.lane_start[0] = 0;
+	vrs.lane_start[1] = 0;
+
+	vrs.lane_angle[0] = 0;
+	vrs.lane_angle[1] = 0;
+	vrs.lane_delta[0] = 0;
+	vrs.lane_delta[1] = 0;
+
+	vrs.crashed[0] = false;
+	vrs.crashed[1] = false;
+	vrs.pre_crash_pos[0] = 0;
+	vrs.pre_crash_pos[1] = 0;
+	vrs.pre_crash_angle[0] = 0;
+	vrs.pre_crash_angle[1] = 0;
+	vrs.crash_duration[0] = 0;
+	vrs.crash_duration[1] = 0;
+
+
+	if(config::sio_device == 18) { vrs.active = vrs_load_data(); }
+
 	#ifdef GBE_NETPLAY
 
 	//Close any current connections
@@ -429,6 +473,23 @@ bool AGB_SIO::send_data()
 	temp_buffer[3] = ((sio_stat.transfer_data >> 24) & 0xFF);
 	temp_buffer[4] = (0x40 | sio_stat.player_id);
 
+	//Set Bits 2-3 of status byte to SIO mode
+	//UART and General Purpose not supported atm
+	switch(sio_stat.sio_mode)
+	{
+		case NORMAL_32BIT:
+			temp_buffer[4] |= 0x4;
+			break;
+
+		case MULTIPLAY_16BIT:
+			temp_buffer[4] |= 0x8;
+			break;
+
+		case JOY_BUS:
+			temp_buffer[4] |= 0xC;
+			break;
+	}
+
 	if(SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 5) < 5)
 	{
 		std::cout<<"SIO::Error - Host failed to send data to client\n";
@@ -447,7 +508,7 @@ bool AGB_SIO::send_data()
 			//16-bit Multiplayer
 			if(sio_stat.sio_mode == MULTIPLAY_16BIT)
 			{
-				switch(temp_buffer[4])
+				switch(temp_buffer[4] & 0x3)
 				{
 					case 0x0:
 						mem->memory_map[0x4000120] = temp_buffer[0];
@@ -478,6 +539,10 @@ bool AGB_SIO::send_data()
 
 				//Set SC and SO HIGH on master
 				mem->write_u8(R_CNT, (mem->memory_map[R_CNT] | 0x9));
+
+				sio_stat.active_transfer = false;
+				sio_stat.shifts_left = 0;
+				sio_stat.shift_counter = 0;
 			}
 		}
 
@@ -548,7 +613,6 @@ bool AGB_SIO::receive_byte()
 			//Disconnect netplay
 			else if(temp_buffer[4] == 0x80)
 			{
-				std::cout<<"SIO::Netplay connection terminated. Restart to reconnect.\n";
 				sio_stat.connected = false;
 				sio_stat.sync = false;
 
@@ -556,13 +620,13 @@ bool AGB_SIO::receive_byte()
 			}
 
 			//Process GBA SIO communications
-			else if((temp_buffer[4] >= 0x40) && (temp_buffer[4] <= 0x43))
+			else if((temp_buffer[4] >= 0x40) && (temp_buffer[4] <= 0x4F))
 			{
 				if(sio_stat.connection_ready)
 				{
 					//Reset transfer data
-					mem->write_u16_fast(0x4000124, 0xFFFF);
-					mem->write_u16_fast(0x4000126, 0xFFFF);
+					mem->write_u32_fast(0x4000120, 0xFFFFFFFF);
+					mem->write_u32_fast(0x4000124, 0xFFFFFFFF);
 
 					//Raise SIO IRQ after sending byte
 					if(sio_stat.cnt & 0x4000) { mem->memory_map[REG_IF] |= 0x80; }
@@ -571,32 +635,35 @@ bool AGB_SIO::receive_byte()
 					mem->write_u8(R_CNT, (mem->memory_map[R_CNT] | 0x8));
 
 					//Store byte from transfer into SIO data registers - 16-bit Multiplayer
-					if(sio_stat.sio_mode == MULTIPLAY_16BIT)
+					if((sio_stat.sio_mode == MULTIPLAY_16BIT) && ((temp_buffer[4] & 0xC) == 0x8))
 					{
-						switch(temp_buffer[4])
+						switch(temp_buffer[4] & 0x3)
 						{
-							case 0x40:
+							case 0x0:
 								mem->memory_map[0x4000120] = temp_buffer[0];
 								mem->memory_map[0x4000121] = temp_buffer[1];
 								break;
 
-							case 0x41:
+							case 0x1:
 								mem->memory_map[0x4000122] = temp_buffer[0];
 								mem->memory_map[0x4000123] = temp_buffer[1];
 								break; 
 
-							case 0x42:
+							case 0x2:
 								mem->memory_map[0x4000124] = temp_buffer[0];
 								mem->memory_map[0x4000125] = temp_buffer[1];
 								break; 
 
-							case 0x43:
+							case 0x3:
 								mem->memory_map[0x4000126] = temp_buffer[0];
 								mem->memory_map[0x4000127] = temp_buffer[1];
 								break;
 						}
 
 						sio_stat.transfer_data = (mem->memory_map[SIO_DATA_8 + 1] << 8) | mem->memory_map[SIO_DATA_8];
+
+						//Set own multiplayer data based on SIOMLT_SEND
+						mem->write_u16_fast((0x4000120 + (sio_stat.player_id << 1)), sio_stat.transfer_data);
 
 						temp_buffer[0] = (sio_stat.transfer_data & 0xFF);
 						temp_buffer[1] = ((sio_stat.transfer_data >> 8) & 0xFF);
@@ -689,6 +756,9 @@ void AGB_SIO::process_network_communication()
 		{
 			sio_stat.connected = true;
 			sio_stat.sio_type = GBA_LINK;
+
+			sio_stat.connection_ready = true;
+			mem->process_sio();
 		}
 	}
 
@@ -2283,5 +2353,645 @@ bool AGB_SIO::zoids_cdz_load_data()
 	}
 
 	std::cout<<"SIO::CDZ-E sprite data loaded\n";
+	return true;
+}
+
+/****** Process commands from GBA to Virtureal Racing System ******/
+void AGB_SIO::vrs_process()
+{
+	vrs.command = sio_stat.transfer_data;
+
+	switch(vrs.current_state)
+	{
+		case VRS_STANDBY:
+			//Switch to racing mode once part of the 2-player echo is detected
+			if(sio_stat.transfer_data == 0xFF00)
+			{
+				vrs.current_state = VRS_RACING;
+				vrs.sub_screen_status &= ~0x80;
+
+				config::osd_message = "VRS INIT";
+				config::osd_count = 180;
+			}
+
+			//Enable subscreen when MultiBoot protocol first starts
+			//Allows user to configure options before racing
+			else if((sio_stat.transfer_data == 0x6200) && ((vrs.sub_screen_status & 0x80) == 0))
+			{
+				vrs.setup_sub_screen = true;
+				vrs.sub_screen_status |= 0x80;
+
+				mem->sub_screen_buffer.clear();
+				mem->sub_screen_buffer.resize(0x9600, 0xFFFFFFFF);
+				mem->sub_screen_update = 1;
+			}
+
+			break;
+
+		case VRS_RACING:
+			//Parse lane and slot car speed sent from GBA
+			if(((vrs.command & 0xF0) == 0xC0) || ((vrs.command & 0xF0) == 0x40))
+			{
+				vrs.slot_lane = 1;
+				vrs.slot_speed[0] = vrs.command & 0xF;
+
+				if(vrs.slot_speed[0]) { vrs.last_lane = 1; }
+			}
+
+			else if(((vrs.command & 0xF0) == 0xD0) || ((vrs.command & 0xF0) == 0x50))
+			{
+				vrs.slot_lane = 2;
+				vrs.slot_speed[1] = vrs.command & 0xF;
+
+				if(vrs.slot_speed[1]) { vrs.last_lane = 2; }
+			}
+
+			break;
+	}
+
+	mem->memory_map[REG_IF] |= 0x80;
+
+	if(vrs.current_state == VRS_STANDBY) { sio_stat.emu_device_ready = false; }
+	sio_stat.active_transfer = false;
+
+	//Clear Bit 7 of SIOCNT
+	sio_stat.cnt &= ~0x80;
+	mem->write_u16_fast(0x4000128, sio_stat.cnt);
+
+	//Set SIOMULTI1 data as race status
+	mem->write_u16_fast(0x4000122, vrs.status);
+
+	//Set SIOMULTI3 data as echo for 2nd player handshake
+	if(vrs.options & 0x40) { mem->write_u16_fast(0x4000124, sio_stat.transfer_data); }
+}
+
+/****** Updates subscreen for VRS ******/
+void AGB_SIO::vrs_update()
+{
+	mem->sub_screen_buffer.clear();
+	mem->sub_screen_buffer.resize(0x9600, 0xFFFFFFFF);
+
+	//Check context input to enter subscreen menu
+	if((mem->g_pad->con_flags & 0x200) && ((vrs.sub_screen_status & 0x80) == 0))
+	{
+		vrs.frame_counter = 0;
+		vrs.sub_screen_status = 0x80;
+	}
+
+	//Draw menu
+	if(vrs.sub_screen_status & 0x80) { vrs_draw_menu(); }
+
+	//Draw and updates tracks + cars
+	else { vrs_draw_track(); }
+}
+
+/****** Draws and updates tracks + cars ******/
+void AGB_SIO::vrs_draw_track()
+{
+	//If no lane is updating speed, default camera to focus on last lane that was updated
+	//Prevents camera from rapidly shifting before starting a race
+	if(!vrs.slot_speed[0] && !vrs.slot_speed[1]) { vrs.slot_lane = vrs.last_lane; }
+
+	u8 sprite_id = 0;
+	u32 src_index = 0;
+	u32 size = 0;
+	s32 target_index = 0;
+
+	u32 w = 0;
+	u32 h = 0;
+
+	float sx = 0;
+	float sy = 0;
+	float tx = 0;
+	float ty = 0;
+
+	s32 cam_x = 0;
+	s32 cam_y = 0;
+	s32 vx = 0;
+	s32 vy = 0;
+
+	u8 c0;
+	u8 c1;
+
+	//Select which lane the camera will focus on
+	if(vrs.slot_lane == 1)
+	{
+		c0 = 0;
+		c1 = 1;
+
+		//If Player 2 CPU is not enabled, make speed zero
+		if((vrs.options & 0x1) == 0) { vrs.slot_speed[1] = 0; }
+	}
+
+	else
+	{
+		c0 = 1;
+		c1 = 0;
+
+		//If Player 2 CPU is not enabled, make speed zero
+		if((vrs.options & 0x1) == 0) { vrs.slot_speed[0] = 0; }
+	}
+
+	//Wait until Player 1 starts race for Player 2 CPU to begin as well
+	if((vrs.options & 0x81) && (vrs.lane_pos[c0] != vrs.lane_start[c0]))
+	{
+		switch((vrs.options >> 1) & 0x3)
+		{
+			case 0: vrs.slot_speed[c1] = 4; break;
+			case 1: vrs.slot_speed[c1] = 5; break;
+			case 2: vrs.slot_speed[c1] = 6; break;
+			case 3: vrs.slot_speed[c1] = 7;	break;
+		}
+
+		vrs.options &= ~0x80;
+	}
+
+	for(u32 i = 0; i < 2; i++)
+	{
+		//Update lane positions
+		if((vrs.slot_speed[i] >= 4) && (!vrs.crashed[i]))
+		{
+			w = vrs.sprite_width[2];
+			size = vrs.sprite_buffer[2].size();
+			s32 check[8];
+			s32 index;
+
+			u32 track_color = i ? 0xFF0000FF : 0xFFFF0000;
+			u32 start_color = i ? 0xFF000080 : 0xFF800000;
+
+			s16 angle_delta = 0;
+
+			for(u32 x = 0; x < vrs.slot_speed[i]; x++)
+			{
+				//Find next track pixel
+				check[0] = vrs.lane_pos[i] - w;
+				check[1] = vrs.lane_pos[i] - w + 1;
+				check[2] = vrs.lane_pos[i] + 1;
+				check[3] = vrs.lane_pos[i] + w + 1;
+				check[4] = vrs.lane_pos[i] + w;
+				check[5] = vrs.lane_pos[i] + w - 1;
+				check[6] = vrs.lane_pos[i] - 1;
+				check[7] = vrs.lane_pos[i] - w - 1;
+
+				for(u32 y = 0; y < 8; y++)
+				{
+					index = check[y];
+
+					//Match color for track
+					if((index >= 0) && (index < size) && (index != vrs.lane_last_pos[i]) && (vrs.sprite_buffer[2][index] == track_color))
+					{
+						vrs.lane_last_pos[i] = vrs.lane_pos[i];
+						vrs.lane_pos[i] = index;
+						vrs.lane_delta[i] = y;
+						break;
+					}
+
+					//Match color for start position
+					else if((index >= 0) && (index < size) && (index != vrs.lane_last_pos[i]) && (vrs.sprite_buffer[2][index] == start_color))
+					{
+						//Update VRS status for laps
+						if(start_color == 0xFF000080)
+						{
+							u16 stat = (vrs.status >> 3) & 0x7;
+							stat++;
+							stat &= 0x7;
+							stat <<= 3;
+							
+							vrs.status &= ~0x38;
+							vrs.status |= stat;
+						}
+
+						else
+						{
+							u16 stat = vrs.status & 0x7;
+							stat++;
+							
+							vrs.status &= ~0x7;
+							vrs.status |= stat;
+						}
+
+						vrs.lane_last_pos[i] = vrs.lane_pos[i];
+						vrs.lane_pos[i] = index;
+						vrs.lane_delta[i] = y;
+						break;
+					}
+				}
+
+				//Calculate new angle
+				u16 next_angle = vrs.lane_delta[i] * 45;
+				u16 last_angle = vrs.lane_angle[i];
+
+				if((next_angle == 0) && (last_angle > 180)) { next_angle = 360; }
+				s16 dist = next_angle - last_angle;
+
+				s16 inc = 0;
+
+				//Clockwise
+				if(dist > 0) { inc = 10; }
+
+				//Counter-clockwise
+				else if(dist < 0) { inc = -10; }
+
+				if(next_angle == 360) { next_angle = 0; }
+
+				if(vrs.lane_angle[i] != next_angle)
+				{
+					vrs.lane_angle[i] += inc;
+					angle_delta += (dist > 0) ? 10 : -10;
+					if(vrs.lane_angle[i] == 360) { vrs.lane_angle[i] = 0; }
+				}
+			}
+
+			//Calculate crash
+			if((angle_delta >= 30) && (vrs.slot_speed[i] >= 9))
+			{
+				vrs.crashed[i] = true;
+				vrs.crash_duration[i] = 180;
+				vrs.pre_crash_pos[i] = vrs.lane_pos[i];
+				vrs.pre_crash_angle[i] = vrs.lane_angle[i];
+			}
+		}
+
+		//Handle crashes
+		else if(vrs.crashed[i])
+		{
+			//Disable input when Player 1 crashes
+			if(vrs.crashed[c0])
+			{
+				mem->g_pad->key_input |= 0x41;
+				mem->g_pad->key_input &= ~0x80;
+				mem->g_pad->disable_input = true;
+			}
+
+			//Spin car for crash duration
+			if(vrs.crash_duration[i])
+			{
+				vrs.crash_duration[i]--;
+				vrs.lane_angle[i] += 10;
+				if(vrs.lane_angle[i] == 360) { vrs.lane_angle[i] = 0; }
+			}
+
+			//Exit crash
+			else
+			{
+				vrs.crashed[i] = false;
+				vrs.lane_pos[i] = vrs.pre_crash_pos[i];
+				vrs.lane_angle[i] = vrs.pre_crash_angle[i];
+				mem->g_pad->disable_input = false;
+			}
+		}
+	}
+
+	//Draw track
+	w = vrs.sprite_width[2];
+	h = vrs.sprite_height[2];
+	size = vrs.sprite_buffer[2].size();
+
+	cam_x = vrs.lane_pos[c0] % w;
+	cam_y = vrs.lane_pos[c0] / w;
+
+	cam_x -= 120;
+	cam_y -= 80;
+
+	for(u32 x = 0; x < mem->sub_screen_buffer.size(); x++)
+	{
+		vx = x % 240;
+		vy = x / 240;
+
+		vx += cam_x;
+		vy += cam_y;
+
+		if((vx >= 0) && (vy >= 0) && (vx < w) && (vy < h))
+		{
+			src_index = (vy * w) + (vx);
+		
+			if((src_index >= 0) && (src_index < size))
+			{
+				mem->sub_screen_buffer[x] = vrs.sprite_buffer[2][src_index];
+			}
+		}
+	}
+
+	//Draw Lane 1 car
+	w = vrs.sprite_width[c0];
+	h = vrs.sprite_height[c0];
+	size = vrs.sprite_buffer[c0].size();
+	src_index = 0;
+
+	tx = 120 - (w/2);
+	ty = 80 - (h/2);
+
+	double theta = (vrs.lane_angle[c0] * 3.14159265) / 180.0;
+	float st = sin(theta);
+	float ct = cos(theta);
+
+	for(u32 y = 0; y < h; y++)
+	{
+		for(u32 x = 0; x < w; x++)
+		{
+			//Calculate rotated pixel position
+			sx = tx + x;
+			sy = ty + y;
+
+			float fx = ((sx - 120) * ct) - ((sy - 80) * st) + 120;
+			float fy = ((sx - 120) * st) + ((sy - 80) * ct) + 80;
+
+			if((fx >= 0) && (fy >= 0) && (fx < 240) && (fy < 160))
+			{
+				//Calculate target (subscreen) pixel
+				target_index = ((s32)fy * 240) + (s32)fx;
+				u32 target_color = vrs.sprite_buffer[c0][src_index];
+
+				if((target_index < 0x9600) && (target_index >= 0) && (target_color != 0xFFFFFFFF))
+				{	
+					mem->sub_screen_buffer[target_index] = target_color;
+				}
+			}
+
+			src_index++;
+		}
+	}
+
+	//If Player 2 CPU is not enabled, skip drawing
+	if((vrs.options & 0x1) == 0) { return; }
+
+	//Draw Lane 2 car
+	w = vrs.sprite_width[c1];
+	h = vrs.sprite_height[c1];
+	size = vrs.sprite_buffer[c1].size();
+	src_index = 0;
+
+	tx = (vrs.lane_pos[c1] % vrs.sprite_width[2]);
+	ty = (vrs.lane_pos[c1] / vrs.sprite_width[2]);
+
+	theta = (vrs.lane_angle[c1] * 3.14159265) / 180.0;
+	st = sin(theta);
+	ct = cos(theta);
+
+	for(u32 y = 0; y < h; y++)
+	{
+		for(u32 x = 0; x < w; x++)
+		{
+			vx = (vrs.lane_pos[c1] % vrs.sprite_width[2]) - (w/2) + x;
+			vy = (vrs.lane_pos[c1] / vrs.sprite_width[2]) - (h/2) + y;
+
+			//Calculate rotated pixel position
+			float fx = ((vx - tx) * ct) - ((vy - ty) * st) + tx;
+			float fy = ((vx - tx) * st) + ((vy - ty) * ct) + ty;
+
+			if((fx >= cam_x) && (fy >= cam_y) && (fx < (cam_x + 240)) && (fy < (cam_y + 160)))
+			{
+				fx -= cam_x;
+				fy -= cam_y;
+
+				target_index = ((s32)fy * 240) + (s32)fx;
+				u32 target_color = vrs.sprite_buffer[c1][src_index];
+
+				if((target_index < 0x9600) && (target_index >= 0) && (target_color != 0xFFFFFFFF))
+				{		
+					mem->sub_screen_buffer[target_index] = target_color;
+				}
+			}
+
+			src_index++;
+		}
+	}
+}
+
+/****** Draws subscreen menu for VRS ******/
+void AGB_SIO::vrs_draw_menu()
+{
+	u8 stat = (vrs.sub_screen_status & 0xF);
+
+	//Draw options
+	std::string op_name = "";
+
+	op_name = "RACER 2 CPU ENABLE";
+	draw_osd_msg(op_name, mem->sub_screen_buffer, 1, 0, 240);
+	op_name = (vrs.options & 0x1) ? "ON" : "OFF";
+	draw_osd_msg(op_name, mem->sub_screen_buffer, 27, 0, 240);
+
+	op_name = "RACER 2 DIFFICULTY";
+	draw_osd_msg(op_name, mem->sub_screen_buffer, 1, 1, 240);
+	op_name = util::to_str((vrs.options >> 1) & 0x3);
+	draw_osd_msg(op_name, mem->sub_screen_buffer, 27, 1, 240);
+
+	op_name = "TRACK NUMBER";
+	draw_osd_msg(op_name, mem->sub_screen_buffer, 1, 2, 240);
+	op_name = util::to_str(vrs.track_number);
+	draw_osd_msg(op_name, mem->sub_screen_buffer, 27, 2, 240);
+
+	op_name = "RESET SLOT CARS";
+	draw_osd_msg(op_name, mem->sub_screen_buffer, 1, 3, 240);
+
+	op_name = "EXIT MENU";
+	draw_osd_msg(op_name, mem->sub_screen_buffer, 1, 4, 240);
+
+	//Draw cursor
+	op_name = "*";
+	draw_osd_msg(op_name, mem->sub_screen_buffer, 0, stat, 240);
+
+	//Correct colors
+	for(u32 x = 0; x < mem->sub_screen_buffer.size(); x++)
+	{
+		u32 color = mem->sub_screen_buffer[x];
+
+		//Swap black for white
+		if(color == 0xFF000000)
+		{
+			color = 0xFFFFFFFF;
+			mem->sub_screen_buffer[x] = color;
+		}
+				
+		//Swap yellow for black
+		else if(color == 0xFFFFE500)
+		{
+			color = 0xFF000000;
+			mem->sub_screen_buffer[x] = color;
+		}
+	}
+
+	if((vrs.frame_counter % 5) == 0)
+	{
+		u8 cpu_level = (vrs.options >> 1) & 0x3;
+
+		//Move cursor up
+		if((mem->g_pad->con_flags & 0x4) && ((mem->g_pad->con_flags & 0x100) == 0))
+		{
+			if(stat > 0) { stat--; }
+		}
+
+		//Move cursor down
+		else if((mem->g_pad->con_flags & 0x8) && ((mem->g_pad->con_flags & 0x100) == 0))
+		{
+			if(stat < 4) { stat++; }
+		}
+
+		//Disable 2nd Player as CPU
+		else if((stat == 0) && (mem->g_pad->con_flags & 0x1))
+		{
+			vrs.options &= ~0x1;
+			if(vrs.current_state == VRS_STANDBY) { vrs.options &= ~0x40; }
+		}
+
+		//Enable 2nd Player as CPU
+		else if((stat == 0) && (mem->g_pad->con_flags & 0x2))
+		{
+			vrs.options |= 0x1;
+			if(vrs.current_state == VRS_STANDBY) { vrs.options |= 0x40; }
+		}
+
+		//Decrease CPU level
+		else if((stat == 1) && (mem->g_pad->con_flags & 0x1) && (cpu_level > 0))
+		{
+			cpu_level--;
+			vrs.options &= ~0x6;
+			vrs.options |= (cpu_level << 1);
+		}
+
+		//Increase CPU level
+		else if((stat == 1) && (mem->g_pad->con_flags & 0x2) && (cpu_level < 3))
+		{
+			cpu_level++;
+			vrs.options &= ~0x6;
+			vrs.options |= (cpu_level << 1);
+		}
+
+		//Decrease track number
+		else if((stat == 2) && (mem->g_pad->con_flags & 0x1) && (vrs.track_number > 0))
+		{
+			vrs.track_number--;
+		}
+
+		//Increase track number
+		else if((stat == 2) && (mem->g_pad->con_flags & 0x2) && (vrs.track_number < 2))
+		{
+			vrs.track_number++;
+		}
+
+		//Reset cars
+		else if((stat == 3) && (mem->g_pad->con_flags & 0x100))
+		{
+			vrs.slot_speed[0] = 0;
+			vrs.slot_speed[1] = 0;
+
+			vrs.lane_pos[0] = vrs.lane_start[0];
+			vrs.lane_pos[1] = vrs.lane_start[1];
+
+			vrs.lane_angle[0] = 90;
+			vrs.lane_angle[1] = 90;
+
+			vrs.options |= 0x80;
+		}
+		
+		//Exit menu
+		else if((stat == 4) && (mem->g_pad->con_flags & 0x100))
+		{
+			vrs.sub_screen_status &= ~0x80;
+
+			//Load data and reset cars if new track is selected
+			if(vrs.old_track != vrs.track_number)
+			{
+				vrs.old_track = vrs.track_number;
+				
+				if(vrs_load_data())
+				{
+					config::osd_message = "VRS LOADING TRACK " + util::to_str(vrs.track_number);
+					config::osd_count = 180;
+				}
+
+				else
+				{
+					config::osd_message = "VRS LOADING TRACK FAILED";
+					config::osd_count = 180;
+				}
+
+				vrs.slot_speed[0] = 0;
+				vrs.slot_speed[1] = 0;
+
+				vrs.lane_pos[0] = vrs.lane_start[0];
+				vrs.lane_pos[1] = vrs.lane_start[1];
+
+				vrs.lane_angle[0] = 90;
+				vrs.lane_angle[1] = 90;
+
+				vrs.options |= 0x80;
+			}
+		}
+	}
+
+	vrs.sub_screen_status &= ~0xF;
+	vrs.sub_screen_status |= stat;
+	vrs.frame_counter++;
+}
+
+/****** Loads sprite data for Virtureal Racing System ******/
+bool AGB_SIO::vrs_load_data()
+{
+	std::vector<std::string> file_list;
+
+	std::string track_file = config::data_path + "misc/VRS_track_" + util::to_str(vrs.track_number) + ".bmp";
+
+	file_list.push_back(config::data_path + "misc/VRS_car_1.bmp");
+	file_list.push_back(config::data_path + "misc/VRS_car_2.bmp");
+	file_list.push_back(track_file);
+
+	vrs.sprite_buffer.clear();
+	vrs.sprite_width.clear();
+	vrs.sprite_height.clear();
+
+	//Open each BMP from data folder
+	for(u32 index = 0; index < file_list.size(); index++)
+	{
+		SDL_Surface* source = SDL_LoadBMP(file_list[index].c_str());
+		std::vector<u32> temp_pixels;
+
+		//Check if file could be opened
+		if(source == NULL)
+		{
+			std::cout<<"SIO::Error - Could not load VRS sprite data file " << file_list[index] << "\n";
+			return false;
+		}
+
+		//Check if file is 24bpp
+		if(source->format->BitsPerPixel != 24)
+		{
+			std::cout<<"SIO::Error - VRS sprite data file " << file_list[index] << " is not 24bpp\n";
+			return false;
+		}
+
+		u8* pixel_data = (u8*)source->pixels;
+
+		//Copy 32-bit pixel data to buffers
+		for(int a = 0, b = 0; a < (source->w * source->h); a++, b+=3)
+		{
+			temp_pixels.push_back(0xFF000000 | (pixel_data[b+2] << 16) | (pixel_data[b+1] << 8) | (pixel_data[b]));
+		}
+
+		vrs.sprite_buffer.push_back(temp_pixels);
+		vrs.sprite_width.push_back(source->w);
+		vrs.sprite_height.push_back(source->h);
+	}
+
+	//Parse Lane 1 and Lane 2 starting positions
+	vrs.lane_start[0] = 0;
+	vrs.lane_start[1] = 0;
+
+	for(u32 x = 0; x < vrs.sprite_buffer[2].size(); x++)
+	{
+		//Lane 1 start
+		if(vrs.sprite_buffer[2][x] == 0xFF800000) { vrs.lane_start[0] = x; }
+
+		//Lane 2 start
+		if(vrs.sprite_buffer[2][x] == 0xFF000080) { vrs.lane_start[1] = x; }
+	}
+
+	vrs.lane_pos[0] = vrs.lane_start[0];
+	vrs.lane_pos[1] = vrs.lane_start[1];
+
+	vrs.lane_angle[0] = 90;
+	vrs.lane_angle[1] = 90;
+
+	std::cout<<"SIO::VRS sprite data loaded\n";
 	return true;
 }

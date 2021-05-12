@@ -115,7 +115,7 @@ void DMG_MMU::reset()
 	for(int x = 0; x < 0x2; x++) { video_ram[x].resize(0x2000, 0); }
 
 	flash.resize(0x80);
-	for(int x = 0; x < 0x80; x++) { flash[x].resize(0x2000, 0xFF); }
+	for(int x = 0; x < 0x80; x++) { flash[x].resize(0x2000, 0x00); }
 
 	g_pad = NULL;
 
@@ -1126,7 +1126,7 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	else if(address == REG_WY)
 	{
 		memory_map[address] = value;
-		lcd_stat->window_y = value;
+		if(!lcd_stat->lock_window_y) { lcd_stat->window_y = value; std::cout<<"NEW WINDOW Y -> 0x" << (u32)lcd_stat->window_y << "\n"; }
 	}
 
 	//Window X
@@ -1612,6 +1612,20 @@ void DMG_MMU::hdma()
 /****** Read binary file to memory ******/
 bool DMG_MMU::read_file(std::string filename)
 {
+	//No cart inserted
+	if(config::no_cart)
+	{
+		//Abort if no BIOS provided
+		if(!config::use_bios)
+		{
+			std::cout<<"MMU::Error - Emulating no cart inserted without BIOS\n";
+			return false;
+		}
+		
+		std::cout<<"MMU::No cart inserted\n";
+		return true;
+	}
+
 	std::ifstream file(filename.c_str(), std::ios::binary);
 
 	if(!file.is_open()) 

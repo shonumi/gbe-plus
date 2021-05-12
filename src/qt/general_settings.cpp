@@ -51,6 +51,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	controls_combo->addItem("Advanced Controls");
 	controls_combo->addItem("Hotkey Controls");
 	controls_combo->addItem("Battle Chip Gate Controls");
+	controls_combo->addItem("Virtual Cursor Controls");
 
 	QHBoxLayout* button_layout = new QHBoxLayout;
 	button_layout->setAlignment(Qt::AlignTop | Qt::AlignRight);
@@ -171,6 +172,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	sio_dev->addItem("Multi Plust On System");
 	sio_dev->addItem("Turbo File GB/Advance");
 	sio_dev->addItem("AGB-006");
+	sio_dev->addItem("V.R.S.");
 
 	config_sio = new QPushButton("Configure");
 
@@ -961,6 +963,56 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	bcg_chip_4_layout->setContentsMargins(6, 0, 0, 0);
 	bcg_chip_4_set->setLayout(bcg_chip_4_layout);
 
+	//Virtual Cursor Settings - Enable VC
+	vc_enable_set = new QWidget(controls);
+	QLabel* vc_enable_label = new QLabel("Enable Virtual Cursor", vc_enable_set);
+	vc_on = new QCheckBox(vc_enable_set);
+
+	QHBoxLayout* vc_enable_layout = new QHBoxLayout;
+	vc_enable_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	vc_enable_layout->addWidget(vc_on);
+	vc_enable_layout->addWidget(vc_enable_label);
+	vc_enable_set->setLayout(vc_enable_layout);
+
+	//Virtual Cursor Settings - Opacity
+	vc_opacity_set = new QWidget(controls);
+	QLabel* vc_opacity_label = new QLabel("Virtual Cursor Opacity", vc_opacity_set);
+	vc_opacity = new QSpinBox(vc_opacity_set);
+	vc_opacity->setMinimum(0);
+	vc_opacity->setMaximum(31);
+
+	QHBoxLayout* vc_opacity_layout = new QHBoxLayout;
+	vc_opacity_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	vc_opacity_layout->addWidget(vc_opacity);
+	vc_opacity_layout->addWidget(vc_opacity_label);
+	vc_opacity_set->setLayout(vc_opacity_layout);
+
+	//Virtual Cursor Settings - Timeout
+	vc_timeout_set = new QWidget(controls);
+	QLabel* vc_timeout_label = new QLabel("Virtual Cursor Timeout", vc_timeout_set);
+	vc_timeout = new QSpinBox(vc_timeout_set);
+	vc_timeout->setMinimum(0);
+	vc_timeout->setMaximum(1800);
+
+	QHBoxLayout* vc_timeout_layout = new QHBoxLayout;
+	vc_timeout_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	vc_timeout_layout->addWidget(vc_timeout);
+	vc_timeout_layout->addWidget(vc_timeout_label);
+	vc_timeout_set->setLayout(vc_timeout_layout);
+
+	//Virtual Cursor Settings - Virtual Cursor Bitmap File
+	QWidget* vc_path_set = new QWidget(controls);
+	vc_path_label = new QLabel("Cursor File :  ");
+	QPushButton* vc_path_button = new QPushButton("Browse");
+	vc_path = new QLineEdit(controls);
+
+	QHBoxLayout* vc_path_layout = new QHBoxLayout;
+	vc_path_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	vc_path_layout->addWidget(vc_path_label);
+	vc_path_layout->addWidget(vc_path);
+	vc_path_layout->addWidget(vc_path_button);
+	vc_path_set->setLayout(vc_path_layout);
+
 	controls_layout = new QVBoxLayout;
 	controls_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	controls_layout->addWidget(input_device_set);
@@ -1004,6 +1056,13 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	bcg_controls_layout->addWidget(bcg_chip_2_set);
 	bcg_controls_layout->addWidget(bcg_chip_3_set);
 	bcg_controls_layout->addWidget(bcg_chip_4_set);
+
+	vc_controls_layout = new QVBoxLayout;
+	vc_controls_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	vc_controls_layout->addWidget(vc_enable_set);
+	vc_controls_layout->addWidget(vc_opacity_set);
+	vc_controls_layout->addWidget(vc_timeout_set);
+	vc_controls_layout->addWidget(vc_path_set);
 	
 	rumble_set->setVisible(false);
 	con_up_set->setVisible(false);
@@ -1024,6 +1083,12 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	bcg_chip_2_set->setVisible(false);
 	bcg_chip_3_set->setVisible(false);
 	bcg_chip_4_set->setVisible(false);
+
+	vc_enable_set->setVisible(false);
+	vc_opacity_set->setVisible(false);
+	vc_timeout_set->setVisible(false);
+	vc_path_set->setVisible(false);
+
 
 	//Netplay - Enable Netplay
 	QWidget* enable_netplay_set = new QWidget(netplay);
@@ -1349,6 +1414,8 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(battle_chip_2, SIGNAL(currentIndexChanged(int)), this, SLOT(set_battle_chip()));
 	connect(battle_chip_3, SIGNAL(currentIndexChanged(int)), this, SLOT(set_battle_chip()));
 	connect(battle_chip_4, SIGNAL(currentIndexChanged(int)), this, SLOT(set_battle_chip()));
+	connect(vc_opacity, SIGNAL(valueChanged(int)), this, SLOT(update_vc_opacity()));
+	connect(vc_timeout, SIGNAL(valueChanged(int)), this, SLOT(update_vc_timeout()));
 	connect(sync_threshold, SIGNAL(valueChanged(int)), this, SLOT(update_sync_threshold()));
 	connect(server_port, SIGNAL(valueChanged(int)), this, SLOT(update_server_port()));
 	connect(client_port, SIGNAL(valueChanged(int)), this, SLOT(update_client_port()));
@@ -1368,6 +1435,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(screenshot_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
 	connect(game_saves_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
 	connect(cheats_path_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
+	connect(vc_path_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
 
 	paths_mapper->setMapping(dmg_bios_button, 0);
 	paths_mapper->setMapping(gbc_bios_button, 1);
@@ -1379,6 +1447,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	paths_mapper->setMapping(dump_obj_button, 7);
 	paths_mapper->setMapping(game_saves_button, 8);
 	paths_mapper->setMapping(cheats_path_button, 9);
+	paths_mapper->setMapping(vc_path_button, 10);
 	connect(paths_mapper, SIGNAL(mapped(int)), this, SLOT(set_paths(int)));
 
 	QSignalMapper* button_config = new QSignalMapper(this);
@@ -1852,10 +1921,21 @@ void gen_settings::set_ini_options()
 	QString path_8(QString::fromStdString(cgfx::dump_obj_path));
 	QString path_9(QString::fromStdString(config::save_path));
 	QString path_10(QString::fromStdString(config::cheats_path));
+	QString path_11(QString::fromStdString(config::vc_file));
 
 	//Rumble
 	if(config::use_haptics) { rumble_on->setChecked(true); }
 	else { rumble_on->setChecked(false); }
+
+	//Virtual Cursor Enable
+	if(config::vc_enable) { vc_on->setChecked(true); }
+	else { vc_on->setChecked(false); }
+
+	//Virtual Cursor Opacity
+	vc_opacity->setValue(config::vc_opacity);
+
+	//Virtual Cursor Timeout
+	vc_timeout->setValue(config::vc_timeout);
 
 	//Netplay
 	if(config::use_netplay) { enable_netplay->setChecked(true); }
@@ -1911,6 +1991,7 @@ void gen_settings::set_ini_options()
 	dump_obj->setText(path_8);
 	game_saves->setText(path_9);
 	cheats_path->setText(path_10);
+	vc_path->setText(path_11);
 }
 
 /****** Toggles whether to use the Boot ROM or BIOS ******/
@@ -2268,7 +2349,7 @@ void gen_settings::set_paths(int index)
 	QString path;
 
 	//Open file browser for Boot ROMs, BIOS, Firmware, cheats, and manifests
-	if((index < 5) || (index == 9))
+	if((index < 5) || (index >= 9))
 	{
 		path = QFileDialog::getOpenFileName(this, tr("Open"), "", tr("All files (*)"));
 		if(path.isNull()) { return; }
@@ -2359,6 +2440,11 @@ void gen_settings::set_paths(int index)
 			if(!dmg_cheat_menu->empty_cheats) { dmg_cheat_menu->empty_cheats = parse_cheats_file(true); }
 			else { parse_cheats_file(false); }
 
+			break;
+
+		case 10:
+			config::vc_file = path.toStdString();
+			vc_path->setText(path);
 			break;
 	}
 }
@@ -2546,6 +2632,18 @@ void gen_settings::set_battle_chip()
 
 	index = battle_chip_4->currentIndex();
 	config::chip_list[3] = chip_list[index];
+}
+
+/****** Sets the Virtual Cursor Opacity ******/
+void gen_settings::update_vc_opacity()
+{
+	config::vc_opacity = vc_opacity->value();
+}
+
+/****** Sets the Virtual Cursor Timeout ******/
+void gen_settings::update_vc_timeout()
+{
+	config::vc_timeout = vc_timeout->value();
 }
 
 /****** Sets the netplay sync threshold ******/
@@ -3095,6 +3193,12 @@ void gen_settings::switch_control_layout()
 			bcg_controls_layout->itemAt(x)->widget()->setVisible(false);
 		}
 
+		//Set all Virtual Cursor control widgets to invisible
+		for(int x = 0; x < vc_controls_layout->count(); x++)
+		{
+			vc_controls_layout->itemAt(x)->widget()->setVisible(false);
+		}
+
 		delete controls->layout();
 		advanced_controls_layout->insertWidget(0, input_device_set);
 		controls->setLayout(advanced_controls_layout);
@@ -3130,6 +3234,12 @@ void gen_settings::switch_control_layout()
 			bcg_controls_layout->itemAt(x)->widget()->setVisible(false);
 		}
 
+		//Set all Virtual Cursor control widgets to invisible
+		for(int x = 0; x < vc_controls_layout->count(); x++)
+		{
+			vc_controls_layout->itemAt(x)->widget()->setVisible(false);
+		}
+
 		delete controls->layout();
 		controls_layout->insertWidget(0, input_device_set);
 		controls->setLayout(controls_layout);
@@ -3163,6 +3273,12 @@ void gen_settings::switch_control_layout()
 		for(int x = 0; x < bcg_controls_layout->count(); x++)
 		{
 			bcg_controls_layout->itemAt(x)->widget()->setVisible(false);
+		}
+
+		//Set all Virtual Cursor control widgets to invisible
+		for(int x = 0; x < vc_controls_layout->count(); x++)
+		{
+			vc_controls_layout->itemAt(x)->widget()->setVisible(false);
 		}
 
 		delete controls->layout();
@@ -3201,9 +3317,57 @@ void gen_settings::switch_control_layout()
 			hotkey_controls_layout->itemAt(x)->widget()->setVisible(false);
 		}
 
+		//Set all Virtual Cursor control widgets to invisible
+		for(int x = 0; x < vc_controls_layout->count(); x++)
+		{
+			vc_controls_layout->itemAt(x)->widget()->setVisible(false);
+		}
+
 		delete controls->layout();
 		bcg_controls_layout->insertWidget(0, input_device_set);
 		controls->setLayout(bcg_controls_layout);
+
+		input_device_set->setVisible(true);
+		input_device_set->setEnabled(false);
+		input_device->setCurrentIndex(0);
+	}
+
+	//Switch to Virtual Cursor layout
+	else if(controls_combo->currentIndex() == 4)
+	{
+		//Set all advanced control widgets to invisible
+		for(int x = 0; x < advanced_controls_layout->count(); x++)
+		{
+			advanced_controls_layout->itemAt(x)->widget()->setVisible(false);
+		}
+
+		//Set all standard control widgets to invisible
+		for(int x = 0; x < controls_layout->count(); x++)
+		{
+			controls_layout->itemAt(x)->widget()->setVisible(false);
+		}
+
+		//Set all Battle Chip Gate control widgets to visible
+		for(int x = 0; x < bcg_controls_layout->count(); x++)
+		{
+			bcg_controls_layout->itemAt(x)->widget()->setVisible(false);
+		}
+
+		//Set all hotkey control widgets to invisible
+		for(int x = 0; x < hotkey_controls_layout->count(); x++)
+		{
+			hotkey_controls_layout->itemAt(x)->widget()->setVisible(false);
+		}
+
+		//Set all Virtual Cursor control widgets to invisible
+		for(int x = 0; x < vc_controls_layout->count(); x++)
+		{
+			vc_controls_layout->itemAt(x)->widget()->setVisible(true);
+		}
+
+		delete controls->layout();
+		vc_controls_layout->insertWidget(0, input_device_set);
+		controls->setLayout(vc_controls_layout);
 
 		input_device_set->setVisible(true);
 		input_device_set->setEnabled(false);
@@ -3262,6 +3426,15 @@ void gen_settings::switch_control_layout()
 			bcg_controls_layout->addWidget(bcg_chip_3_set);
 			bcg_controls_layout->addWidget(bcg_chip_4_set);
 			break;
+
+		case 4:
+			vc_controls_layout = new QVBoxLayout;
+			vc_controls_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+			vc_controls_layout->addWidget(vc_enable_set);
+			vc_controls_layout->addWidget(vc_opacity_set);
+			vc_controls_layout->addWidget(vc_timeout_set);
+			vc_controls_layout->addWidget(vc_path_set);
+			break;
 	}
 
 	last_control_id = controls_combo->currentIndex();
@@ -3279,6 +3452,7 @@ void gen_settings::paintEvent(QPaintEvent* event)
 	screenshot_label->setMinimumWidth(dmg_bios_label->width());
 	game_saves_label->setMinimumWidth(dmg_bios_label->width());
 	cheats_path_label->setMinimumWidth(dmg_bios_label->width());
+	vc_path_label->setMinimumWidth(dmg_bios_label->width());
 }
 
 /****** Closes the settings window ******/

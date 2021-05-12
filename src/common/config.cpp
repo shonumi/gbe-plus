@@ -93,6 +93,7 @@ namespace config
 	bool pause_emu = false;
 	bool use_bios = false;
 	bool use_firmware = false;
+	bool no_cart = false;
 
 	special_cart_types cart_type = NORMAL_CART;
 	gba_save_types agb_save_type = AGB_AUTO_DETECT;
@@ -163,6 +164,14 @@ namespace config
 	double sample_rate = 44100.0;
 	bool mute = false;
 	bool use_stereo = false;
+
+	//Virtual Cursor parameters for NDS
+	bool vc_enable = false;
+	std::string vc_file = "";
+	std::vector <u32> vc_data;
+	u32 vc_wait = 1;
+	u32 vc_timeout = 180;
+	u8 vc_opacity = 31;
 
 	//System screen sizes
 	u32 sys_width = 0;
@@ -539,6 +548,7 @@ void set_dmg_colors(u8 color_type)
 void validate_system_type()
 {
 	if(config::rom_file.empty()) { return; }
+	if((config::rom_file == "NOCART") || config::no_cart) { return; }
 	if((config::rom_file == "-h") || (config::rom_file == "--help")) { config::cli_args.push_back(config::rom_file); return; } 
 
 	//Determine Gameboy type based on file name
@@ -574,6 +584,13 @@ void validate_system_type()
 /****** Returns the emulated system type from a given filename ******/
 u8 get_system_type_from_file(std::string filename)
 {
+	//Determine if no cart is inserted
+	if(filename == "NOCART")
+	{
+		config::no_cart = true;
+		return config::gb_type;
+	}
+
 	//Determine Gameboy type based on file name
 	std::size_t dot = filename.find_last_of(".");
 
@@ -1032,7 +1049,7 @@ bool parse_ini_file()
 			{
 				util::from_str(ini_opts[++x], output);
 
-				if((output >= 0) && (output <= 17)) { config::sio_device = output; }
+				if((output >= 0) && (output <= 18)) { config::sio_device = output; }
 			}
 
 			else 
@@ -1942,6 +1959,77 @@ bool parse_ini_file()
 			else
 			{
 				std::cout<<"GBE::Error - Could not parse gbe.ini (#touch_mode) \n";
+				return false;
+			}
+		}
+
+		//NDS virtual cursor enable
+		else if(ini_item == "#virtual_cursor_enable")
+		{
+			if((x + 1) < size) 
+			{
+				util::from_str(ini_opts[++x], output);
+
+				if(output == 1) { config::vc_enable = true; }
+				else { config::vc_enable = false; }
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#virtual_cursor_enable) \n";
+				return false;
+			}
+		}
+
+		//NDS virtual cursor file
+		else if(ini_item == "#virtual_cursor_file")
+		{
+			if((x + 1) < size) 
+			{
+				ini_item = ini_opts[++x];
+				std::string first_char = "";
+				first_char = ini_item[0];
+				
+				//When left blank, don't parse the next line item
+				if(first_char != "#") { config::vc_file = ini_item; }
+				else { config::vc_file = ""; x--;}
+ 
+			}
+
+			else { config::vc_file = ""; }
+		}
+
+		//NDS virtual cursor opacity
+		else if(ini_item == "#virtual_cursor_opacity")
+		{
+			if((x + 1) < size) 
+			{
+				util::from_str(ini_opts[++x], output);
+
+				if((output >= 0) && (output <= 31)) { config::vc_opacity = output; }
+				else { config::vc_opacity = output; }
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#virtual_cursor_opacity) \n";
+				return false;
+			}
+		}
+
+		//NDS virtual cursor timeout
+		else if(ini_item == "#virtual_cursor_timeout")
+		{
+			if((x + 1) < size) 
+			{
+				util::from_str(ini_opts[++x], output);
+				config::vc_timeout = output;
+
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#virtual_cursor_timeout) \n";
 				return false;
 			}
 		}
@@ -3085,6 +3173,42 @@ bool save_ini_file()
 			std::string val = util::to_str(config::touch_mode);
 
 			output_lines[line_pos] = "[#nds_touch_mode:" + val + "]";
+		}
+
+		//NDS virtual cursor enable
+		else if(ini_item == "#virtual_cursor_enable")
+		{
+			line_pos = output_count[x];
+			std::string val = (config::vc_enable) ? "1" : "0";
+
+			output_lines[line_pos] = "[#virtual_cursor_enable:" + val + "]";
+		}
+
+		//NDS virtual cursor file
+		else if(ini_item == "#virtual_cursor_file")
+		{
+			line_pos = output_count[x];
+			std::string val = (config::vc_file == "") ? "" : (":'" + config::vc_file + "'");
+
+			output_lines[line_pos] = "[#virtual_cursor_file" + val + "]";
+		}
+
+		//NDS virtual cursor opacity
+		else if(ini_item == "#virtual_cursor_opacity")
+		{
+			line_pos = output_count[x];
+			std::string val = util::to_str(config::vc_opacity);
+
+			output_lines[line_pos] = "[#virtual_cursor_opacity:" + val + "]";
+		}
+
+		//NDS virtual cursor timeout
+		else if(ini_item == "#virtual_cursor_timeout")
+		{
+			line_pos = output_count[x];
+			std::string val = util::to_str(config::vc_timeout);
+
+			output_lines[line_pos] = "[#virtual_cursor_timeout:" + val + "]";
 		}
 
 		else if(ini_item == "#recent_files")

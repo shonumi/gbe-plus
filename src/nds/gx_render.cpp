@@ -27,6 +27,7 @@ void NTR_LCD::render_bg_3D()
 	bool full_render = true;
 
 	u8 bg_priority = lcd_stat.bg_priority_a[0] + 1;
+	u16 x_offset = lcd_stat.bg_offset_x_a[0];
 
 	//Grab data from the previous buffer
 	u16 current_buffer = (lcd_3D_stat.buffer_id);
@@ -34,14 +35,16 @@ void NTR_LCD::render_bg_3D()
 	//Push 3D screen buffer data to scanline buffer
 	u16 gx_index = (256 * lcd_stat.current_scanline);
 
-	for(u32 x = 0; x < 256; x++)
+	for(u32 x = 0, i = x_offset; x < 256; x++, i++)
 	{
-		if(!render_buffer_a[x] || (bg_priority < render_buffer_a[x]))
+		i &= 0x1FF;
+
+		if((!render_buffer_a[x] || (bg_priority < render_buffer_a[x])) && (i < 0x100))
 		{
-			if(gx_render_buffer[current_buffer][gx_index + x])
+			if(gx_render_buffer[current_buffer][gx_index + i])
 			{
 				render_buffer_a[x] = bg_priority;
-				scanline_buffer_a[x] = gx_screen_buffer[current_buffer][gx_index + x];
+				scanline_buffer_a[x] = gx_screen_buffer[current_buffer][gx_index + i];
 				line_buffer[4][x] |= 1;
 			}
 		}
@@ -114,8 +117,17 @@ void NTR_LCD::render_geometry()
   		plot_y[a] = round(((-temp_matrix[1] + temp_matrix[3]) * viewport_height) / ((2 * temp_matrix[3]) + lcd_3D_stat.view_port_y1));
 
 		//Get Z coordinate, use existing data from vertex
-		plot_z[a] = temp_matrix[2];
-		if(temp_matrix[3]) { plot_z[a] /= temp_matrix[3]; }
+		if(lcd_3D_stat.z_buffering)
+		{
+			plot_z[a] = temp_matrix[2];
+			if(temp_matrix[3]) { plot_z[a] /= temp_matrix[3]; }
+		}
+
+		//Otherwise, use W value for depth
+		else
+		{
+			plot_z[a] = temp_matrix[3];
+		}
 
 		//Check for wonky coordinates
 		if(std::isnan(plot_x[a])) { lcd_3D_stat.render_polygon = false; return; }
@@ -136,6 +148,9 @@ void NTR_LCD::render_geometry()
 	{
 		lcd_3D_stat.hi_fill[x] = 0xFF;
 		lcd_3D_stat.lo_fill[x] = 0;
+
+		lcd_3D_stat.hi_overflow[x] = 0;
+		lcd_3D_stat.lo_overflow[x] = 0;
 
 		lcd_3D_stat.hi_color[x] = 0;
 		lcd_3D_stat.lo_color[x] = 0;
@@ -200,6 +215,8 @@ void NTR_LCD::render_geometry()
 		float tx = plot_tx[x];
 		float ty = plot_ty[x];
 
+		u32 overflow = 0;
+
 		if((x_dist != 0) && (y_dist != 0))
 		{
 			float s = (y_dist / x_dist);
@@ -250,7 +267,7 @@ void NTR_LCD::render_geometry()
 			xy_end = plot_x[next_index];
 		}
 
-		xy_len = abs(xy_end - xy_start);
+		xy_len = std::abs(xy_end - xy_start);
 
 		if(xy_len != 0)
 		{
@@ -265,22 +282,26 @@ void NTR_LCD::render_geometry()
 		{
 			c3 = interpolate_rgb(c1, c2, c_ratio);
 
-			//Only draw on-screen objects
-			if((x_coord >= 0) && (x_coord <= 255) && (y_coord >= 0) && (y_coord <= 191))
-			{
-				//Convert plot points to buffer index
-				buffer_index = (round(y_coord) * 256) + round(x_coord);
-			}
+			s32 temp_y = round(y_coord);
+			s32 temp_x = round(x_coord);
 
 			//Set fill coordinates
-			if((x_coord >= 0) && (x_coord <= 255))
+			if((temp_x >= 0) && (temp_x <= 255))
 			{
-				s32 temp_y = round(y_coord);
-				s32 temp_x = round(x_coord);
+				overflow = 0;
 
 				//Keep fill coordinates on-screen if they extend vertically				
-				if(temp_y > 0xC0) { temp_y = 0xC0; }
-				else if(temp_y < 0) { temp_y = 0; }
+				if(temp_y > 0xC0)
+				{
+					overflow = temp_y;
+					temp_y = 0xC0;
+				}
+				
+				else if(temp_y < 0)
+				{
+					overflow = temp_y;
+					temp_y = 0;
+				}
 
 				if(lcd_3D_stat.hi_fill[temp_x] > temp_y)
 				{
@@ -290,6 +311,8 @@ void NTR_LCD::render_geometry()
 
 					lcd_3D_stat.hi_tx[temp_x] = tx;
 					lcd_3D_stat.hi_ty[temp_x] = ty;
+
+					lcd_3D_stat.hi_overflow[temp_x] = overflow;
 				}
 
 				if(lcd_3D_stat.lo_fill[temp_x] < temp_y)
@@ -300,6 +323,8 @@ void NTR_LCD::render_geometry()
 
 					lcd_3D_stat.lo_tx[temp_x] = tx;
 					lcd_3D_stat.lo_ty[temp_x] = ty;
+
+					lcd_3D_stat.lo_overflow[temp_x] = overflow;
 				}
 			} 
 
@@ -322,8 +347,11 @@ void NTR_LCD::render_geometry()
 		//Triangle Strips
 		case 0x0:
 		case 0x2:
+			//Shadow polygons
+			if(lcd_3D_stat.poly_mode == 3) { }
+
 			//Textured color fill
-			if(lcd_3D_stat.use_texture) { fill_poly_textured(); }
+			else if(lcd_3D_stat.use_texture) { fill_poly_textured(); }
 
 			//Solid color fill
 			else if((vert_colors[0] == vert_colors[1]) && (vert_colors[0] == vert_colors[2])) { fill_poly_solid(); }
@@ -337,8 +365,11 @@ void NTR_LCD::render_geometry()
 		//Quad Strips
 		case 0x1:
 		case 0x3:
+			//Shadow polygons
+			if(lcd_3D_stat.poly_mode == 3) { }
+
 			//Textured color fill
-			if(lcd_3D_stat.use_texture) { fill_poly_textured(); }
+			else if(lcd_3D_stat.use_texture) { fill_poly_textured(); }
 
 			//Solid color fill
 			else if((vert_colors[0] == vert_colors[1]) && (vert_colors[0] == vert_colors[2]) && (vert_colors[0] == vert_colors[3])) { fill_poly_solid(); }
@@ -357,34 +388,59 @@ void NTR_LCD::render_geometry()
 void NTR_LCD::fill_poly_solid()
 {
 	u8 y_coord = 0;
+	u8 buffer_id = (lcd_3D_stat.buffer_id + 1) & 0x1;
 	u32 buffer_index = 0;
+	u32 vert_color = 0;
 
-	for(u32 x = lcd_3D_stat.poly_min_x; x < lcd_3D_stat.poly_max_x; x++)
+	bool use_alpha = (lcd_3D_stat.poly_alpha <= 30) ? true : false;
+
+	bool use_edge = lcd_3D_stat.edge_marking;
+	u32 edge_color = lcd_3D_stat.edge_color[lcd_3D_stat.poly_id >> 3];
+	u8 edge_x1 = lcd_3D_stat.poly_min_x;
+	u8 edge_x2 = lcd_3D_stat.poly_max_x - 1;
+
+	for(u32 x = lcd_3D_stat.poly_min_x; x <= lcd_3D_stat.poly_max_x; x++)
 	{
 		float z_start = 0.0;
 		float z_end = 0.0;
 		float z_inc = 0.0;
+
+		s16 hi_fill = lcd_3D_stat.hi_overflow[x] ? (lcd_3D_stat.hi_overflow[x]) : lcd_3D_stat.hi_fill[x];
+		s16 lo_fill = lcd_3D_stat.lo_overflow[x] ? (lcd_3D_stat.lo_overflow[x]) : lcd_3D_stat.lo_fill[x];
 
 		//Calculate Z start and end fill coordinates
 		z_start = lcd_3D_stat.hi_line_z[x];
 		z_end = lcd_3D_stat.lo_line_z[x];
 		
 		z_inc = z_end - z_start;
-		if((lcd_3D_stat.lo_fill[x] - lcd_3D_stat.hi_fill[x]) != 0) { z_inc /= float(lcd_3D_stat.lo_fill[x] - lcd_3D_stat.hi_fill[x]); }
+		if((lcd_3D_stat.lo_fill[x] - lcd_3D_stat.hi_fill[x]) != 0) { z_inc /= float(lo_fill - hi_fill); }
 
 		y_coord = lcd_3D_stat.hi_fill[x];
 
+		//Handle coordinates that extend vertically
+		if(lcd_3D_stat.hi_overflow[x])
+		{
+			z_start += (-lcd_3D_stat.hi_overflow[x] * z_inc);
+		}
+
 		while(y_coord < lcd_3D_stat.lo_fill[x])
 		{
+			vert_color = vert_colors[0];
+
 			//Convert plot points to buffer index
 			buffer_index = (y_coord * 256) + x;
 
 			//Check Z buffer if drawing is applicable
 			if(z_start < gx_z_buffer[buffer_index])
 			{
-				gx_screen_buffer[(lcd_3D_stat.buffer_id + 1) & 0x1][buffer_index] = vert_colors[0];
-				gx_render_buffer[(lcd_3D_stat.buffer_id + 1) & 0x1][buffer_index] = 1;
-				gx_z_buffer[buffer_index] = z_start;
+				//Do alpha-blending if necessary
+				if(use_alpha) { vert_color = alpha_blend_pixel(vert_color, gx_screen_buffer[buffer_id][buffer_index], lcd_3D_stat.poly_alpha); }
+
+				gx_screen_buffer[buffer_id][buffer_index] = vert_color;
+				gx_render_buffer[buffer_id][buffer_index] = 1;
+
+				//Update Z-buffer if necessary
+				if(lcd_3D_stat.poly_new_depth) { gx_z_buffer[buffer_index] = z_start; }
 			}
 
 			y_coord++;
@@ -397,13 +453,23 @@ void NTR_LCD::fill_poly_solid()
 void NTR_LCD::fill_poly_interpolated()
 {
 	u8 y_coord = 0;
+	u8 buffer_id = (lcd_3D_stat.buffer_id + 1) & 0x1;
 	u32 buffer_index = 0;
+	u32 color = 0;
 
-	for(u32 x = lcd_3D_stat.poly_min_x; x < lcd_3D_stat.poly_max_x; x++)
+	bool use_alpha = (lcd_3D_stat.poly_alpha <= 30) ? true : false;
+
+	bool use_edge = lcd_3D_stat.edge_marking;
+	u32 edge_color = lcd_3D_stat.edge_color[lcd_3D_stat.poly_id >> 3];
+
+	for(u32 x = lcd_3D_stat.poly_min_x; x <= lcd_3D_stat.poly_max_x; x++)
 	{
 		float z_start = 0.0;
 		float z_end = 0.0;
 		float z_inc = 0.0;
+
+		s16 hi_fill = lcd_3D_stat.hi_overflow[x] ? (lcd_3D_stat.hi_overflow[x]) : lcd_3D_stat.hi_fill[x];
+		s16 lo_fill = lcd_3D_stat.lo_overflow[x] ? (lcd_3D_stat.lo_overflow[x]) : lcd_3D_stat.lo_fill[x];
 
 		u32 c1 = lcd_3D_stat.hi_color[x];
 		u32 c2 = lcd_3D_stat.lo_color[x];
@@ -416,13 +482,20 @@ void NTR_LCD::fill_poly_interpolated()
 		
 		z_inc = z_end - z_start;
 
-		if((lcd_3D_stat.lo_fill[x] - lcd_3D_stat.hi_fill[x]) != 0)
+		if((lo_fill - hi_fill) != 0)
 		{
-			z_inc /= float(lcd_3D_stat.lo_fill[x] - lcd_3D_stat.hi_fill[x]);
-			c_inc = 1.0 / (lcd_3D_stat.lo_fill[x] - lcd_3D_stat.hi_fill[x]);
+			z_inc /= float(lo_fill - hi_fill);
+			c_inc = 1.0 / (lo_fill - hi_fill);
 		}
 
 		y_coord = lcd_3D_stat.hi_fill[x];
+
+		//Handle coordinates that extend vertically
+		if(lcd_3D_stat.hi_overflow[x])
+		{
+			z_start += (-lcd_3D_stat.hi_overflow[x] * z_inc);
+			c_ratio += (-lcd_3D_stat.hi_overflow[x] * c_inc);
+		}
 
 		while(y_coord < lcd_3D_stat.lo_fill[x])
 		{
@@ -432,9 +505,16 @@ void NTR_LCD::fill_poly_interpolated()
 			//Check Z buffer if drawing is applicable
 			if(z_start < gx_z_buffer[buffer_index])
 			{
-				gx_screen_buffer[(lcd_3D_stat.buffer_id + 1) & 0x1][buffer_index] = interpolate_rgb(c1, c2, c_ratio);
-				gx_render_buffer[(lcd_3D_stat.buffer_id + 1) & 0x1][buffer_index] = 1;
-				gx_z_buffer[buffer_index] = z_start;
+				color = interpolate_rgb(c1, c2, c_ratio);
+
+				//Do alpha-blending if necessary
+				if(use_alpha) { color = alpha_blend_pixel(color, gx_screen_buffer[buffer_id][buffer_index], lcd_3D_stat.poly_alpha); }
+
+				gx_screen_buffer[buffer_id][buffer_index] = color;
+				gx_render_buffer[buffer_id][buffer_index] = 1;
+
+				//Update Z-buffer if necessary
+				if(lcd_3D_stat.poly_new_depth) { gx_z_buffer[buffer_index] = z_start; }
 			}
 
 			y_coord++;
@@ -448,11 +528,21 @@ void NTR_LCD::fill_poly_interpolated()
 void NTR_LCD::fill_poly_textured()
 {
 	u8 y_coord = 0;
+	u8 buffer_id = (lcd_3D_stat.buffer_id + 1) & 0x1;
 	u32 buffer_index = 0;
 	u32 texel_index = 0;
 	u32 texel = 0;
 
 	u8 slot = (lcd_3D_stat.tex_offset >> 17);
+
+	bool use_alpha = (lcd_3D_stat.poly_alpha <= 30) ? true : false;
+	bool use_new_z = false;
+	bool texel_depth_test;
+
+	if((use_alpha && lcd_3D_stat.poly_new_depth) || (!use_alpha)) { use_new_z = true; }
+
+	bool use_edge = lcd_3D_stat.edge_marking;
+	u32 edge_color = lcd_3D_stat.edge_color[lcd_3D_stat.poly_id >> 3];
 
 	//Calculate VRAM address of texture
 	u32 tex_addr = (mem->vram_tex_slot[slot] + (lcd_3D_stat.tex_offset & 0x1FFFF));
@@ -473,11 +563,14 @@ void NTR_LCD::fill_poly_textured()
 	u32 tw = lcd_3D_stat.tex_src_width;
 	u32 th = lcd_3D_stat.tex_src_height;
 
-	for(u32 x = lcd_3D_stat.poly_min_x; x < lcd_3D_stat.poly_max_x; x++)
+	for(u32 x = lcd_3D_stat.poly_min_x; x <= lcd_3D_stat.poly_max_x; x++)
 	{
 		float z_start = 0.0;
 		float z_end = 0.0;
 		float z_inc = 0.0;
+
+		s16 hi_fill = lcd_3D_stat.hi_overflow[x] ? lcd_3D_stat.hi_overflow[x] : lcd_3D_stat.hi_fill[x];
+		s16 lo_fill = lcd_3D_stat.lo_overflow[x] ? lcd_3D_stat.lo_overflow[x] : lcd_3D_stat.lo_fill[x];
 
 		float tx1 = lcd_3D_stat.hi_tx[x];
 		float tx2 = lcd_3D_stat.lo_tx[x];
@@ -497,14 +590,22 @@ void NTR_LCD::fill_poly_textured()
 		
 		z_inc = z_end - z_start;
 
-		if((lcd_3D_stat.lo_fill[x] - lcd_3D_stat.hi_fill[x]) != 0)
+		if((lo_fill - hi_fill) != 0)
 		{
-			z_inc /= float(lcd_3D_stat.lo_fill[x] - lcd_3D_stat.hi_fill[x]);
-			tx_inc /= float(lcd_3D_stat.lo_fill[x] - lcd_3D_stat.hi_fill[x]);
-			ty_inc /= float(lcd_3D_stat.lo_fill[x] - lcd_3D_stat.hi_fill[x]);
+			z_inc /= float(lo_fill - hi_fill);
+			tx_inc /= float(lo_fill - hi_fill);
+			ty_inc /= float(lo_fill - hi_fill);
 		}
 
 		y_coord = lcd_3D_stat.hi_fill[x];
+
+		//Handle coordinates that extend vertically
+		if(lcd_3D_stat.hi_overflow[x])
+		{
+			z_start += (-lcd_3D_stat.hi_overflow[x] * z_inc);
+			tx1 += (-lcd_3D_stat.hi_overflow[x] * tx_inc);
+			ty1 += (-lcd_3D_stat.hi_overflow[x] * ty_inc);
+		}
 
 		while(y_coord < lcd_3D_stat.lo_fill[x])
 		{
@@ -514,19 +615,19 @@ void NTR_LCD::fill_poly_textured()
 			//Wrap horizontally, if necessary
 			if(lcd_3D_stat.repeat_tex_x)
 			{
-				u8 x_flip = u32(abs(tx1 / tw)) & 0x1;
+				u8 x_flip = u32(std::abs(tx1 / tw)) & 0x1;
 
 				//No flipping horizontally
 				if(!lcd_3D_stat.flip_tex_x || !x_flip)
 				{
-					if(tx1 < 0) { real_tx = (tx1 + (tw * (abs(s32(tx1 / tw)) + 1))); }
+					if(tx1 < 0) { real_tx = (tx1 + (tw * (std::abs(s32(tx1 / tw)) + 1))); }
 					else if(tx1 >= tw) { real_tx = (tx1 - (tw * (s32(tx1 / tw)))); }
 				}
 
 				//Flip horizontally
 				else
 				{
-					if(tx1 < 0) { real_tx = tw - (tx1 + (tw * (abs(s32(tx1 / tw)) + 1))); }
+					if(tx1 < 0) { real_tx = tw - (tx1 + (tw * (std::abs(s32(tx1 / tw)) + 1))); }
 					else if(tx1 >= tw) { real_tx = tw - (tx1 - (tw * (s32(tx1 / tw)))); }
 				}
 			}
@@ -534,19 +635,19 @@ void NTR_LCD::fill_poly_textured()
 			//Wrap vertically, if necessary
 			if(lcd_3D_stat.repeat_tex_y)
 			{
-				u8 y_flip = u32(abs(ty1 / th)) & 0x1;
+				u8 y_flip = u32(std::abs(ty1 / th)) & 0x1;
 
 				//No flipping vertically
 				if(!lcd_3D_stat.flip_tex_y || !y_flip)
 				{
-					if(ty1 < 0) { real_ty = (ty1 + (th * (abs(s32(ty1 / th)) + 1))); }
+					if(ty1 < 0) { real_ty = (ty1 + (th * (std::abs(s32(ty1 / th)) + 1))); }
 					else if(ty1 >= th) { real_ty = (ty1 - (th * s32(ty1 / th))); }
 				}
 
 				//Flip vertically
 				else
 				{
-					if(ty1 < 0) { real_ty = th - (ty1 + (th * (abs(s32(ty1 / th)) + 1))); }
+					if(ty1 < 0) { real_ty = th - (ty1 + (th * (std::abs(s32(ty1 / th)) + 1))); }
 					else if(ty1 >= th) { real_ty = th - (ty1 - (th * s32(ty1 / th))); }
 				}
 			}
@@ -557,9 +658,12 @@ void NTR_LCD::fill_poly_textured()
 			//Calculate texel postion
 			texel_index = u32(u32(real_ty) * tw) + u32(real_tx);
 
+			//Calculate depth test
+			texel_depth_test = (lcd_3D_stat.poly_depth_test) ? (z_start <= gx_z_buffer[buffer_index]) : (z_start < gx_z_buffer[buffer_index]);
+
 			//Check Z buffer if drawing is applicable
 			//Make sure texel exists as well
-			if((z_start < gx_z_buffer[buffer_index]) && (texel_index < tex_size) && (texel_index >= 0))
+			if((texel_depth_test) && (texel_index < tex_size) && (texel_index >= 0))
 			{
 				texel = lcd_3D_stat.tex_data[texel_index];
 
@@ -567,11 +671,13 @@ void NTR_LCD::fill_poly_textured()
 				if(texel & 0xFF000000)
 				{
 					//Alpha-blend if necessary
-					if((texel >> 24) != 0xFF) { texel = alpha_blend_texel(texel, gx_screen_buffer[(lcd_3D_stat.buffer_id + 1) & 0x1][buffer_index]); }
+					if(((texel >> 24) != 0xFF) || (use_alpha)) { texel = alpha_blend_texel(texel, gx_screen_buffer[buffer_id][buffer_index]); }
 
-					gx_screen_buffer[(lcd_3D_stat.buffer_id + 1) & 0x1][buffer_index] = texel;
-					gx_render_buffer[(lcd_3D_stat.buffer_id + 1) & 0x1][buffer_index] = 1;
-					gx_z_buffer[buffer_index] = z_start;
+					gx_screen_buffer[buffer_id][buffer_index] = texel;
+					gx_render_buffer[buffer_id][buffer_index] = 1;
+
+					//Update Z-buffer if necessary
+					if(use_new_z) { gx_z_buffer[buffer_index] = z_start; }
 				}
 			}
 
@@ -597,37 +703,8 @@ bool NTR_LCD::poly_push()
 		switch(lcd_3D_stat.vertex_mode)
 		{
 			//Triangles
-			case 0x0:
-				if(((lcd_3D_stat.poly_count + 1) < 2048) && ((lcd_3D_stat.vert_count + 3) < 6144))
-				{
-					current_poly.make_identity(4);
-					current_poly.resize(3, 3);
-					lcd_3D_stat.poly_count++;
-					lcd_3D_stat.vert_count += 3;
-					status = true;
-				}
-
-				else { status = false; }
-
-				break;
-
-			//Quads
-			case 0x1:
-				if(((lcd_3D_stat.poly_count + 1) < 2048) && ((lcd_3D_stat.vert_count + 4) < 6144))
-				{
-					current_poly.make_identity(4);
-					current_poly.resize(4, 4);
-					lcd_3D_stat.poly_count++;
-					lcd_3D_stat.vert_count += 4;
-					status = true;
-				}
-
-				else { status = false; }
-
-				break;
-
-
 			//Triangle Strips
+			case 0x0:
 			case 0x2:
 				if(((lcd_3D_stat.poly_count + 1) < 2048) && ((lcd_3D_stat.vert_count + 3) < 6144))
 				{
@@ -642,7 +719,9 @@ bool NTR_LCD::poly_push()
 
 				break;
 
+			//Quads
 			//Quad Strips
+			case 0x1:
 			case 0x3:
 				if(((lcd_3D_stat.poly_count + 1) < 2048) && ((lcd_3D_stat.vert_count + 4) < 6144))
 				{
@@ -746,6 +825,7 @@ void NTR_LCD::process_gx_command()
 					}
 
 					lcd_3D_stat.update_clip_matrix = true;
+					lcd_3D_stat.update_vector_matrix = true;
 					break;
 
 				case 0x3:
@@ -806,6 +886,7 @@ void NTR_LCD::process_gx_command()
 					}
 
 					lcd_3D_stat.update_clip_matrix = true;
+					lcd_3D_stat.update_vector_matrix = true;
 					break;
 
 				case 0x3:
@@ -832,7 +913,9 @@ void NTR_LCD::process_gx_command()
 				case 0x2:
 					gx_position_matrix.make_identity(4);
 					gx_vector_matrix.make_identity(4);
+
 					lcd_3D_stat.update_clip_matrix = true;
+					lcd_3D_stat.update_vector_matrix = true;
 					break;
 
 				case 0x3:
@@ -896,6 +979,7 @@ void NTR_LCD::process_gx_command()
 					}
 
 					lcd_3D_stat.update_clip_matrix = true;
+					lcd_3D_stat.update_vector_matrix = true;
 					break;
 
 				case 0x3:
@@ -962,6 +1046,7 @@ void NTR_LCD::process_gx_command()
 					}
 
 					lcd_3D_stat.update_clip_matrix = true;
+					lcd_3D_stat.update_vector_matrix = true;
 					break;
 
 				case 0x3:
@@ -1013,7 +1098,9 @@ void NTR_LCD::process_gx_command()
 				case 0x2:
 					gx_position_matrix = temp_matrix * gx_position_matrix;
 					gx_vector_matrix = temp_matrix * gx_vector_matrix;
+
 					lcd_3D_stat.update_clip_matrix = true;
+					lcd_3D_stat.update_vector_matrix = true;
 					break;
 
 				case 0x3:
@@ -1066,7 +1153,13 @@ void NTR_LCD::process_gx_command()
 
 				case 0x2:
 					gx_position_matrix = temp_matrix * gx_position_matrix;
-					if(lcd_3D_stat.current_gx_command == 0x1C) { gx_vector_matrix = temp_matrix * gx_vector_matrix; }
+
+					if(lcd_3D_stat.current_gx_command == 0x1C)
+					{
+						gx_vector_matrix = temp_matrix * gx_vector_matrix;
+						lcd_3D_stat.update_vector_matrix = true;
+					}
+					
 					lcd_3D_stat.update_clip_matrix = true;
 					break;
 
@@ -1085,6 +1178,39 @@ void NTR_LCD::process_gx_command()
 			}
 
 			break;
+
+		//NORMAL
+		case 0x21:
+			{
+				u32 raw_value = read_param_u32(0);
+
+				gx_matrix temp_vec(4, 1);
+
+				//Grab 10-bit XYZ components
+				for(u32 x = 0; x < 3; x++)
+				{
+					u16 value = (raw_value >> (10 * x)) & 0x3FF;
+					
+					float result = 0.0;
+				
+					if(value & 0x200) 
+					{ 
+						u16 p = ((value >> 6) - 1);
+						p = (~p & 0x7);
+						result = -1.0 * p;
+					}
+
+					else { result = (value >> 6); }
+					if((value & 0x3F) != 0) { result += (value & 0x3F) / 64.0; }
+
+					temp_vec[x] = result;
+				}
+
+				current_normal[lcd_3D_stat.vertex_list_index] = temp_vec * gx_vector_matrix;
+			}
+
+			break;
+			
 
 		//TEXCOORD
 		case 0x22:
@@ -1442,6 +1568,20 @@ void NTR_LCD::process_gx_command()
 
 			break;
 
+		//POLYGON_ATTR
+		case 0x29:
+			{
+				u32 raw_value = read_param_u32(0);
+
+				lcd_3D_stat.poly_mode = ((raw_value >> 4) & 0x3);
+				lcd_3D_stat.poly_alpha = ((raw_value >> 16) & 0x1F);
+				lcd_3D_stat.poly_id = ((raw_value >> 24) & 0x3F);
+				lcd_3D_stat.poly_new_depth = ((raw_value & 0x800) || (lcd_3D_stat.poly_alpha == 0x1F)) ? true : false;
+				lcd_3D_stat.poly_depth_test = (raw_value & 0x4000) ? true : false;
+			}
+
+			break;
+
 		//TEXIMAGE_PARAM
 		case 0x2A:
 			{
@@ -1464,9 +1604,87 @@ void NTR_LCD::process_gx_command()
 		//PLTT_BASE
 		case 0x2B:
 			lcd_3D_stat.pal_base = read_param_u32(0) & 0x1FFF;
-			break;	
+			break;
 
-		//BEGIN_VTXS:
+		//DIF_AMB
+		case 0x30:
+			{
+				u32 raw_value = read_param_u32(0);
+
+				//Diffuse Reflection is Color 0, Ambient Reflection = Color 1
+				material_colors[0] = get_rgb15(raw_value);
+				material_colors[1] = get_rgb15(raw_value >> 16);
+
+				//Set vertex color
+				if(raw_value & 0x8000) { lcd_3D_stat.vertex_color = material_colors[0]; }
+			}
+
+			break;
+
+		//SPE_EMI
+		case 0x31:
+			{
+				u32 raw_value = read_param_u32(0);
+
+				//Specular Reflection is Color 2,  Emission = Color 3
+				material_colors[2] = get_rgb15(raw_value);
+				material_colors[3] = get_rgb15(raw_value >> 16);
+			}
+
+			break;
+
+		//LIGHT_VECTOR
+		case 0x32:
+			{
+				u32 raw_value = read_param_u32(0);
+				u8 id = (raw_value >> 30);
+
+				gx_matrix temp_vec(4, 1);
+
+				//Grab 10-bit XYZ components
+				for(u32 x = 0; x < 3; x++)
+				{
+					u16 value = (raw_value >> (10 * x)) & 0x3FF;
+					
+					float result = 0.0;
+				
+					if(value & 0x200) 
+					{ 
+						u16 p = ((value >> 6) - 1);
+						p = (~p & 0x7);
+						result = -1.0 * p;
+					}
+
+					else { result = (value >> 6); }
+					if((value & 0x3F) != 0) { result += (value & 0x3F) / 64.0; }
+
+					temp_vec[x] = result;
+				}
+
+				light_vector[id] = temp_vec * gx_vector_matrix;
+			}
+
+			break;
+
+		//LIGHT_COLOR:
+		case 0x33:
+			{
+				u32 color_bytes = read_param_u32(0);
+				u8 id = (color_bytes >> 30);
+				light_colors[id] = get_rgb15(color_bytes);
+			}
+
+			break;
+
+		//SHININESS
+		case 0x34:
+			shine_table[0] = 0.125 * lcd_3D_stat.command_parameters[0];
+			shine_table[1] = 0.125 * lcd_3D_stat.command_parameters[1];
+			shine_table[2] = 0.125 * lcd_3D_stat.command_parameters[2];
+			shine_table[3] = 0.125 * lcd_3D_stat.command_parameters[3];
+			break;
+
+		//BEGIN_VTXS
 		case 0x40:
 			//If, for some reason a polygon was not completed, start over now
 			if(lcd_3D_stat.vertex_list_index)
@@ -1482,7 +1700,7 @@ void NTR_LCD::process_gx_command()
 
 			break;
 
-		//END_VTXS:
+		//END_VTXS
 		case 0x41:
 			lcd_3D_stat.begin_strips = false;
 			break;
@@ -1492,7 +1710,7 @@ void NTR_LCD::process_gx_command()
 			lcd_3D_stat.gx_state |= 0x80;
 
 			//Copy current buffer into final 3D buffer for capture unit
-			if(lcd_stat.cap_started)
+			if(!lcd_stat.cap_finished)
 			{
 				mem->capture_buffer.clear();
 				mem->capture_buffer.resize(0xC000, 0);
@@ -1504,6 +1722,9 @@ void NTR_LCD::process_gx_command()
 					mem->capture_buffer[x] = gx_screen_buffer[current_buffer][x];
 				}
 			}
+
+			//Determine if Z-buffering or W-buffering should be used
+			lcd_3D_stat.z_buffering = (lcd_3D_stat.command_parameters[0] & 0x2) ? false : true;
 
 			break;
 
@@ -1518,15 +1739,15 @@ void NTR_LCD::process_gx_command()
 		//BOX_TEST
 		case 0x70:
 			{
-				bool in_view_volume = true;
+				bool in_view_volume = false;
 
-				float x = get_u16_float(read_param_u16(0));
-				float y = get_u16_float(read_param_u16(2)); 
-				float z = get_u16_float(read_param_u16(4));
+				float x = get_u16_float(read_param_u16(2));
+				float y = get_u16_float(read_param_u16(0)); 
+				float z = get_u16_float(read_param_u16(6));
 
-				float w = get_u16_float(read_param_u16(6));
-				float h = get_u16_float(read_param_u16(8)); 
-				float d = get_u16_float(read_param_u16(10));
+				float w = get_u16_float(read_param_u16(4));
+				float h = get_u16_float(read_param_u16(10)); 
+				float d = get_u16_float(read_param_u16(8));
 
 				gx_matrix cuboid[8];
 				for(u32 x = 0; x < 8; x++) { cuboid[x].resize(4, 1); }
@@ -1559,44 +1780,89 @@ void NTR_LCD::process_gx_command()
 
  					test_x = round(((cuboid[x][0] + cuboid[x][3]) * viewport_width) / ((2 * cuboid[x][3]) + lcd_3D_stat.view_port_x1));
   					test_y = round(((-cuboid[x][1] + cuboid[x][3]) * viewport_height) / ((2 * cuboid[x][3]) + lcd_3D_stat.view_port_y1));
-
+					
+					//Verify if test point is outside view volume
 					if((test_x < lcd_3D_stat.view_port_x1) || (test_x > lcd_3D_stat.view_port_x2) ||
 					(test_y < lcd_3D_stat.view_port_y1) || (test_y > lcd_3D_stat.view_port_y2))
 					{
-						in_view_volume = false;
+						continue;
+					}
+
+					//Verify if test point is inside view volume
+					else
+					{
+						in_view_volume = true;
 						break;
 					}
 				}
 
 				if(in_view_volume) { lcd_3D_stat.gx_stat |= 0x2; }
-				else { lcd_3D_stat.gx_stat &= 0x2; }
+				else { lcd_3D_stat.gx_stat &= ~0x2; }
+
+				lcd_3D_stat.gx_stat &= ~0x1;
 			}
 
 			break;
 
 		//POS_TEST
 		case 0x71:
-			gx_matrix temp_vec(4, 1);
-			temp_vec[0] = get_u16_float(read_param_u16(0));
-			temp_vec[1] = get_u16_float(read_param_u16(2));
-			temp_vec[2] = get_u16_float(read_param_u16(4));
-			temp_vec[3] = 1.0;
-			temp_vec = temp_vec * (gx_position_matrix * gx_projection_matrix);
+			{
+				gx_matrix temp_vec(4, 1);
+				temp_vec[0] = get_u16_float(read_param_u16(2));
+				temp_vec[1] = get_u16_float(read_param_u16(0));
+				temp_vec[2] = get_u16_float(read_param_u16(6));
+				temp_vec[3] = 1.0;
+				temp_vec = temp_vec * (gx_position_matrix * gx_projection_matrix);
 
-			//Write results to IO
-			mem->write_u32_fast(0x4000620, get_u32_fixed(temp_vec[0]));
-			mem->write_u32_fast(0x4000624, get_u32_fixed(temp_vec[1]));
-			mem->write_u32_fast(0x4000628, get_u32_fixed(temp_vec[2]));
-			mem->write_u32_fast(0x400062C, get_u32_fixed(temp_vec[3]));
+				//Write results to IO
+				mem->write_u32_fast(0x4000620, get_u32_fixed(temp_vec[0]));
+				mem->write_u32_fast(0x4000624, get_u32_fixed(temp_vec[1]));
+				mem->write_u32_fast(0x4000628, get_u32_fixed(temp_vec[2]));
+				mem->write_u32_fast(0x400062C, get_u32_fixed(temp_vec[3]));
 
-			lcd_3D_stat.last_x = temp_vec[0];
-			lcd_3D_stat.last_y = temp_vec[1];
-			lcd_3D_stat.last_z = temp_vec[2];
+				lcd_3D_stat.last_x = temp_vec[0];
+				lcd_3D_stat.last_y = temp_vec[1];
+				lcd_3D_stat.last_z = temp_vec[2];
 
-			//Force unset of Bit 0 of GXSTAT
-			lcd_3D_stat.gx_stat &= ~0x1;
+				//Force unset of Bit 0 of GXSTAT
+				lcd_3D_stat.gx_stat &= ~0x1;
+			}
 
 			break;
+
+		//VEC_TEST
+		case 0x72:
+			{
+				gx_matrix temp_vec(4, 1);
+				u32 raw_value = read_param_u32(0);
+
+				//Grab 10-bit XYZ components
+				for(u32 x = 0; x < 3; x++)
+				{
+					u16 value = (raw_value >> (10 * x)) & 0x3FF;
+					
+					float result = 0.0;
+				
+					if(value & 0x200) 
+					{ 
+						u16 p = ((value >> 6) - 1);
+						p = (~p & 0x7);
+						result = -1.0 * p;
+					}
+
+					else { result = (value >> 6); }
+					if((value & 0x3F) != 0) { result += (value & 0x3F) / 64.0; }
+
+					temp_vec[x] = result;
+				}
+
+				gx_matrix vmat = temp_vec * gx_vector_matrix;
+
+				//Force unset of Bit 0 of GXSTAT
+				lcd_3D_stat.gx_stat &= ~0x1;
+			}
+
+			break;				
 	}
 
 	//Process GXFIFO commands
@@ -1639,6 +1905,9 @@ void NTR_LCD::process_gx_command()
 
 	//Update clip matrix results
 	if(lcd_3D_stat.update_clip_matrix) { update_clip_matrix(); }
+
+	//Update vector matrix results
+	if(lcd_3D_stat.update_vector_matrix) { update_vector_matrix(); }
 
 	lcd_3D_stat.parameter_index = 0;
 	lcd_3D_stat.current_gx_command = 0;
@@ -1697,10 +1966,33 @@ u32 NTR_LCD::interpolate_rgb(u32 color_1, u32 color_2, float ratio)
 	return 0xFF000000 | (r << 16) | (g << 8) | (b);
 }
 
+/****** Alpha blends given RGB value with 3D framebuffer ******/
+u32 NTR_LCD::alpha_blend_pixel(u32 color_1, u32 color_2, u8 poly_alpha)
+{
+	if(poly_alpha == 0) { return color_2; }
+
+	u8 poly_min = 0x1F - poly_alpha;
+	u8 poly_max = poly_alpha + 1;
+
+	u16 poly_r = (color_1 >> 19) & 0x1F;
+	u16 poly_g = (color_1 >> 11) & 0x1F;
+	u16 poly_b = (color_1 >> 3) & 0x1F;
+
+	u16 frame_r = (color_2 >> 19) & 0x1F;
+	u16 frame_g = (color_2 >> 11) & 0x1F;
+	u16 frame_b = (color_2 >> 3) & 0x1F;
+
+	frame_r = ((poly_r * poly_max) + (frame_r * poly_min)) >> 5;
+	frame_g = ((poly_g * poly_max) + (frame_g * poly_min)) >> 5;
+	frame_b = ((poly_b * poly_max) + (frame_b * poly_min)) >> 5;
+
+	return 0xFF000000 | (frame_r << 19) | (frame_g << 11) | (frame_b << 3);
+}
+
 /****** Alpha blends given texel with 3D framebuffer ******/
 u32 NTR_LCD::alpha_blend_texel(u32 color_1, u32 color_2)
 {
-	u8 poly_alpha = (color_1 >> 24) & 0x1F;
+	u8 poly_alpha = (lcd_3D_stat.poly_alpha) ? lcd_3D_stat.poly_alpha : ((color_1 >> 24) & 0x1F);
 	if(poly_alpha == 0) { return color_2; }
 
 	u8 poly_min = 0x1F - poly_alpha;
@@ -2097,7 +2389,7 @@ void NTR_LCD::update_clip_matrix()
 			float raw_value = clip_matrix[(y << 2) + x];
 			u32 index = 4 * ((y * 4) + x);
 			
-			integral = abs(raw_value);
+			integral = std::abs(raw_value);
 
 			//Negative values
 			if(raw_value < 0)
@@ -2128,6 +2420,57 @@ void NTR_LCD::update_clip_matrix()
 			mem->write_u32_fast((0x4000640 + index), (integral | fractal));
 		}
 	}
+
+	lcd_3D_stat.update_clip_matrix = false;
+}
+
+/****** Updates the vector matrix results ******/
+void NTR_LCD::update_vector_matrix()
+{
+	u32 integral = 0;
+	u32 fractal = 0;
+	float sub_fractal = 0.0;
+
+	for(u32 y = 0; y < 3; y++)
+	{
+		for(u32 x = 0; x < 3; x++)
+		{
+			float raw_value = gx_vector_matrix[(y << 2) + x];
+			u32 index = 4 * ((y * 4) + x);
+			
+			integral = std::abs(raw_value);
+
+			//Negative values
+			if(raw_value < 0)
+			{
+				sub_fractal = fabs(raw_value) - integral;
+
+				if(raw_value != -1.0) { integral++; }
+				integral = (0x100000 - integral) << 12;
+
+				if(sub_fractal != 0)
+				{
+					sub_fractal = 1 - sub_fractal;
+					sub_fractal *= 4096.0;
+				}
+
+				fractal = sub_fractal;
+			}
+
+			//Positive values
+			else
+			{
+				integral <<= 12;
+				sub_fractal = fabs(raw_value) - u32(raw_value);
+				sub_fractal *= 4096.0;
+				fractal = sub_fractal;
+			}
+
+			mem->write_u32_fast((0x4000680 + index), (integral | fractal));
+		}
+	}
+
+	lcd_3D_stat.update_vector_matrix = false;
 }
 
 /****** Converts 16-bit fixed point value into floating point ******/
@@ -2155,7 +2498,7 @@ u32 NTR_LCD::get_u32_fixed(float raw_value)
 	u32 fractal = 0;
 	float sub_fractal = 0.0;
 
-	integral = abs(raw_value);
+	integral = std::abs(raw_value);
 
 	//Negative values
 	if(raw_value < 0)

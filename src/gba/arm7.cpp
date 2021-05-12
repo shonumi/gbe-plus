@@ -1238,6 +1238,10 @@ void ARM7::mem_check_16(u32 addr, u32& value, bool load_store)
 
 			//Force alignment by halfword
 			value = mem->read_u16(addr & ~0x1);
+
+			u16 temp_val = ((value << 8) & 0xFF);
+			value >>= 8;
+			value |= temp_val;
 		}
 
 		//Out of bounds unused memory
@@ -1510,6 +1514,12 @@ void ARM7::clock_dma()
 /****** Runs Serial IO for some cycles ******/
 void ARM7::clock_sio()
 {
+	//In Multi16 mode, these steps are not necessary for child GBAs
+	if((controllers.serial_io.sio_stat.sio_type == GBA_LINK) && (controllers.serial_io.sio_stat.player_id)) { return; }
+
+	//If there is no active transfer, these steps are not necessary
+	if(!controllers.serial_io.sio_stat.active_transfer) { return; }	
+
 	if(controllers.serial_io.sio_stat.shifts_left != 0)
 	{
 		controllers.serial_io.sio_stat.shift_counter += system_cycles;
@@ -1529,7 +1539,8 @@ void ARM7::clock_sio()
 				if((controllers.serial_io.sio_stat.sio_type == GBA_LINK) && (controllers.serial_io.sio_stat.sio_mode == MULTIPLAY_16BIT))
 				{
 					//Reset Bit 7 in SIO_CNT
-					mem->memory_map[SIO_CNT] &= ~0x80;
+					controllers.serial_io.sio_stat.cnt &= ~0x80;
+					mem->write_u16_fast(SIO_CNT, controllers.serial_io.sio_stat.cnt);
 
 					//Transfer data over network
 					controllers.serial_io.send_data();
@@ -1638,6 +1649,28 @@ void ARM7::clock_emulated_sio_device()
 				config::request_resize = true;
 				config::resize_mode = 1;
 				controllers.serial_io.cdz_e.setup_sub_screen = false;
+			}
+
+			break;
+
+		case 0x12:
+			if(!controllers.serial_io.vrs.active) { return; }
+
+			//Process Virtual Racing System
+			if(mem->sub_screen_update && !mem->sub_screen_lock)
+			{
+				mem->sub_screen_lock = true;
+				controllers.serial_io.vrs_update();
+			}
+
+			if(controllers.serial_io.sio_stat.active_transfer) { controllers.serial_io.vrs_process(); }
+
+			//Request screen resize for VRS sub-screen
+			if(controllers.serial_io.vrs.setup_sub_screen)
+			{
+				config::request_resize = true;
+				config::resize_mode = 1;
+				controllers.serial_io.vrs.setup_sub_screen = false;
 			}
 
 			break;

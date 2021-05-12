@@ -95,6 +95,7 @@ class gen_settings : public QDialog
 	QVBoxLayout* advanced_controls_layout;
 	QVBoxLayout* hotkey_controls_layout;
 	QVBoxLayout* bcg_controls_layout;
+	QVBoxLayout* vc_controls_layout;
 
 	QSlider* dead_zone;
 
@@ -184,6 +185,14 @@ class gen_settings : public QDialog
 	QComboBox* battle_chip_3;
 	QComboBox* battle_chip_4;
 
+	//Virtual Cursor controls tab widgets
+	QCheckBox* vc_on;
+	QSpinBox* vc_opacity;
+	QSpinBox* vc_timeout;
+	QLineEdit* vc_path;
+
+	QLabel* vc_path_label;
+
 	//Netplay tab widgets
 	QCheckBox* enable_netplay;
 	QCheckBox* hard_sync;
@@ -252,6 +261,8 @@ class gen_settings : public QDialog
 	void set_real_server();
 	void get_chip_list();
 	void set_battle_chip();
+	void update_vc_opacity();
+	void update_vc_timeout();
 	void update_sync_threshold();
 	void update_server_port();
 	void update_client_port();
@@ -306,6 +317,11 @@ class gen_settings : public QDialog
 	QWidget* bcg_chip_2_set;
 	QWidget* bcg_chip_3_set;
 	QWidget* bcg_chip_4_set;
+
+	QWidget* vc_enable_set;
+	QWidget* vc_opacity_set;
+	QWidget* vc_timeout_set;
+	QWidget* vc_path_set;
 
 	void process_joystick_event();
 	void input_delay(QPushButton* input_button); 

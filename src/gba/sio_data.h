@@ -28,6 +28,7 @@ enum agb_sio_types
 	GBA_MULTI_PLUST_ON_SYSTEM,
 	GBA_TURBO_FILE,
 	GBA_IR_ADAPTER,
+	GBA_VRS,
 };
 
 //Serial Input-Output device mode enumeration
@@ -87,6 +88,12 @@ enum turbo_file_advance_state
 	AGB_TBF_PACKET_BODY,
 	AGB_TBF_PACKET_END,
 	AGB_TBF_DATA,
+};
+
+enum virtual_racing_system_state
+{
+	VRS_STANDBY,
+	VRS_RACING,
 };
 
 struct agb_sio_data

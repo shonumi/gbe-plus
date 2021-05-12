@@ -249,7 +249,8 @@ class NTR_MMU
 	{
 		u8 command;
 		u8 state;
-		u16 eeprom_addr;
+		u8 packet_parameter;
+		u16 mem_addr;
 		u32 ir_counter;
 		bool connected;
 		bool start_comms;
@@ -372,6 +373,10 @@ class NTR_MMU
 	u32 pal_b_obj_slot[4];
 
 	u32 vram_tex_slot[4];
+	u32 vram_bank_log[9][5];
+
+	bool bg_vram_bank_enable_a;
+	bool bg_vram_bank_enable_b;
 
 	//Advanced debugging
 	#ifdef GBE_DEBUG
@@ -438,6 +443,7 @@ class NTR_MMU
 
 	void get_gx_fifo_param_length();
 	void copy_capture_buffer(u32 capture_addr);
+	void deallocate_vram(u8 bank_id);
 
 	void set_lcd_data(ntr_lcd_data* ex_lcd_stat);
 	void set_lcd_3D_data(ntr_lcd_3D_data* ex_lcd_3D_stat);

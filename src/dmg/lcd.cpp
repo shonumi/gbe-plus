@@ -962,6 +962,8 @@ void DMG_LCD::render_dmg_win_scanline()
 	u8 rendered_scanline = lcd_stat.current_scanline - lcd_stat.window_y;
 	lcd_stat.scanline_pixel_counter = lcd_stat.window_x;
 
+	if(!rendered_scanline) { lcd_stat.lock_window_y = true; }
+
 	//Determine which tiles we should generate to get the scanline data - integer division ftw :p
 	u16 tile_lower_range = (rendered_scanline / 8) * 32;
 	u16 tile_upper_range = tile_lower_range + 32;
@@ -1059,6 +1061,8 @@ void DMG_LCD::render_gbc_win_scanline()
 	//Determine where to start drawing
 	u8 rendered_scanline = lcd_stat.current_scanline - lcd_stat.window_y;
 	lcd_stat.scanline_pixel_counter = lcd_stat.window_x;
+
+	if(!rendered_scanline) { lcd_stat.lock_window_y = true; }
 
 	//Determine which tiles we should generate to get the scanline data - integer division ftw :p
 	u16 tile_lower_range = (rendered_scanline / 8) * 32;
@@ -1863,6 +1867,7 @@ void DMG_LCD::step(int cpu_clock)
 				//Restore Window parameters
 				lcd_stat.last_y = 0;
 				lcd_stat.window_y = mem->memory_map[REG_WY];
+				lcd_stat.lock_window_y = false;
 
 				//Unset frame delay
 				lcd_stat.frame_delay = 0;

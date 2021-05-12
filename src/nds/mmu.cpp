@@ -301,6 +301,17 @@ void NTR_MMU::reset()
 	vram_tex_slot[2] = 0;
 	vram_tex_slot[3] = 0;
 
+	bg_vram_bank_enable_a = false;
+	bg_vram_bank_enable_b = false;
+
+	for(u32 y = 0; y < 4; y++)
+	{
+		for(u32 x = 0; x < 9; x++)
+		{
+			vram_bank_log[x][y] = 0;
+		}
+	}
+
 	access_mode = 1;
 	wram_mode = 3;
 	rumble_state = 0;
@@ -1202,7 +1213,6 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 					case 0x4000441:
 					case 0x4000442:
 					case 0x4000443:
-						//std::cout<<"GX - MTX_MODE\n";
 						lcd_3D_stat->current_gx_command = 0x10;
 						lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = value;
 						if(lcd_3D_stat->parameter_index == 4) { lcd_3D_stat->process_command = true; }
@@ -1211,7 +1221,6 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 					//MTX_PUSH
 					case 0x4000444:
-						//std::cout<<"GX - MTX_PUSH -> " << (u16)lcd_3D_stat->matrix_mode << "\n";
 						lcd_3D_stat->current_gx_command = 0x11;
 						lcd_3D_stat->process_command = true;
 
@@ -1222,7 +1231,6 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 					case 0x4000449:
 					case 0x400044A:
 					case 0x400044B:
-						//std::cout<<"GX - MTX_POP -> " << (u16)lcd_3D_stat->matrix_mode << "\n";
 						lcd_3D_stat->current_gx_command = 0x12;
 						lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = value;
 						if(lcd_3D_stat->parameter_index == 4) { lcd_3D_stat->process_command = true; }
@@ -1234,7 +1242,6 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 					case 0x400044D:
 					case 0x400044E:
 					case 0x400044F:
-						//std::cout<<"GX - MTX_STORE -> " << (u16)lcd_3D_stat->matrix_mode << "\n";
 						lcd_3D_stat->current_gx_command = 0x13;
 						lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = value;
 						if(lcd_3D_stat->parameter_index == 4) { lcd_3D_stat->process_command = true; }
@@ -1246,7 +1253,6 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 					case 0x4000451:
 					case 0x4000452:
 					case 0x4000453:
-						//std::cout<<"GX - MTX_RESTORE -> " << (u16)lcd_3D_stat->matrix_mode << "\n";
 						lcd_3D_stat->current_gx_command = 0x14;
 						lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = value;
 						if(lcd_3D_stat->parameter_index == 4) { lcd_3D_stat->process_command = true; }
@@ -1255,7 +1261,6 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 						
 					//MTX_IDENTITY:
 					case 0x4000454:
-						//std::cout<<"GX - MTX_IDENTITY\n";
 						lcd_3D_stat->current_gx_command = 0x15;
 						lcd_3D_stat->process_command = true;
 
@@ -1266,7 +1271,6 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 					case 0x4000459:
 					case 0x400045A:
 					case 0x400045B:
-						//std::cout<<"GX - MTX_LOAD_4x4\n";
 						lcd_3D_stat->current_gx_command = 0x16;
 						lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = value;
 						if(lcd_3D_stat->parameter_index == 64) { lcd_3D_stat->process_command = true; }
@@ -1278,7 +1282,6 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 					case 0x400045D:
 					case 0x400045E:
 					case 0x400045F:
-						//std::cout<<"GX - MTX_LOAD_4x3\n";
 						lcd_3D_stat->current_gx_command = 0x17;
 						lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = value;
 						if(lcd_3D_stat->parameter_index == 48) { lcd_3D_stat->process_command = true; }
@@ -1290,7 +1293,6 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 					case 0x4000461:
 					case 0x4000462:
 					case 0x4000463:
-						//std::cout<<"GX - MTX_MULT_4x4\n";
 						lcd_3D_stat->current_gx_command = 0x18;
 						lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = value;
 						if(lcd_3D_stat->parameter_index == 64) { lcd_3D_stat->process_command = true; }
@@ -1302,7 +1304,6 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 					case 0x4000465:
 					case 0x4000466:
 					case 0x4000467:
-						//std::cout<<"GX - MTX_MULT_4x3\n";
 						lcd_3D_stat->current_gx_command = 0x19;
 						lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = value;
 						if(lcd_3D_stat->parameter_index == 48) { lcd_3D_stat->process_command = true; }
@@ -1314,7 +1315,6 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 					case 0x4000469:
 					case 0x400046A:
 					case 0x400046B:
-						//std::cout<<"GX - MTX_MULT_3x3\n";
 						lcd_3D_stat->current_gx_command = 0x1A;
 						lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = value;
 						if(lcd_3D_stat->parameter_index == 36) { lcd_3D_stat->process_command = true; }
@@ -1326,7 +1326,6 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 					case 0x400046D:
 					case 0x400046E:
 					case 0x400046F:
-						//std::cout<<"GX - MTX_SCALE\n";
 						lcd_3D_stat->current_gx_command = 0x1B;
 						lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = value;
 						if(lcd_3D_stat->parameter_index == 12) { lcd_3D_stat->process_command = true; }
@@ -1338,7 +1337,6 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 					case 0x4000471:
 					case 0x4000472:
 					case 0x4000473:
-						//std::cout<<"GX - MTX_TRANS ->" << (u16)lcd_3D_stat->matrix_mode << "\n";
 						lcd_3D_stat->current_gx_command = 0x1C;
 						lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = value;
 						if(lcd_3D_stat->parameter_index == 12) { lcd_3D_stat->process_command = true; }
@@ -1350,8 +1348,18 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 					case 0x4000481:
 					case 0x4000482:
 					case 0x4000483:
-						//std::cout<<"GX - VERT_COLOR -> " << (u16)value << "\n";
 						lcd_3D_stat->current_gx_command = 0x20;
+						lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = value;
+						if(lcd_3D_stat->parameter_index == 4) { lcd_3D_stat->process_command = true; }
+
+						break;
+
+					//NORMAL
+					case 0x4000484:
+					case 0x4000485:
+					case 0x4000486:
+					case 0x4000487:
+						lcd_3D_stat->current_gx_command = 0x21;
 						lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = value;
 						if(lcd_3D_stat->parameter_index == 4) { lcd_3D_stat->process_command = true; }
 
@@ -1373,7 +1381,6 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 					case 0x400048D:
 					case 0x400048E:
 					case 0x400048F:
-						//std::cout<<"GX - VTX_16\n";
 						lcd_3D_stat->current_gx_command = 0x23;
 						lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = value;
 						if(lcd_3D_stat->parameter_index == 8) { lcd_3D_stat->process_command = true; }
@@ -1385,7 +1392,6 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 					case 0x4000491:
 					case 0x4000492:
 					case 0x4000493:
-						//std::cout<<"GX - VTX_10\n";
 						lcd_3D_stat->current_gx_command = 0x24;
 						lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = value;
 						if(lcd_3D_stat->parameter_index == 4) { lcd_3D_stat->process_command = true; }
@@ -1397,7 +1403,6 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 					case 0x4000495:
 					case 0x4000496:
 					case 0x4000497:
-						//std::cout<<"GX - VTX_XY\n";
 						lcd_3D_stat->current_gx_command = 0x25;
 						lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = value;
 						if(lcd_3D_stat->parameter_index == 4) { lcd_3D_stat->process_command = true; }
@@ -1409,7 +1414,6 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 					case 0x4000499:
 					case 0x400049A:
 					case 0x400049B:
-						//std::cout<<"GX - VTX_XZ\n";
 						lcd_3D_stat->current_gx_command = 0x26;
 						lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = value;
 						if(lcd_3D_stat->parameter_index == 4) { lcd_3D_stat->process_command = true; }
@@ -1421,7 +1425,6 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 					case 0x400049D:
 					case 0x400049E:
 					case 0x400049F:
-						//std::cout<<"GX - VTX_YZ\n";
 						lcd_3D_stat->current_gx_command = 0x27;
 						lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = value;
 						if(lcd_3D_stat->parameter_index == 4) { lcd_3D_stat->process_command = true; }
@@ -1434,6 +1437,17 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 					case 0x40004A2:
 					case 0x40004A3:
 						lcd_3D_stat->current_gx_command = 0x28;
+						lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = value;
+						if(lcd_3D_stat->parameter_index == 4) { lcd_3D_stat->process_command = true; }
+
+						break;
+
+					//POLYGON_ATTR
+					case 0x40004A4:
+					case 0x40004A5:
+					case 0x40004A6:
+					case 0x40004A7:
+						lcd_3D_stat->current_gx_command = 0x29;
 						lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = value;
 						if(lcd_3D_stat->parameter_index == 4) { lcd_3D_stat->process_command = true; }
 
@@ -1461,12 +1475,66 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 						break;
 
+					//DIF_AMB
+					case 0x40004C0:
+					case 0x40004C1:
+					case 0x40004C2:
+					case 0x40004C3:
+						lcd_3D_stat->current_gx_command = 0x30;
+						lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = value;
+						if(lcd_3D_stat->parameter_index == 4) { lcd_3D_stat->process_command = true; }
+
+						break;
+
+					//SPE_EMI
+					case 0x40004C4:
+					case 0x40004C5:
+					case 0x40004C6:
+					case 0x40004C7:
+						lcd_3D_stat->current_gx_command = 0x31;
+						lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = value;
+						if(lcd_3D_stat->parameter_index == 4) { lcd_3D_stat->process_command = true; }
+
+						break;
+
+					//LIGHT_VECTOR
+					case 0x40004C8:
+					case 0x40004C9:
+					case 0x40004CA:
+					case 0x40004CB:
+						lcd_3D_stat->current_gx_command = 0x32;
+						lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = value;
+						if(lcd_3D_stat->parameter_index == 4) { lcd_3D_stat->process_command = true; }
+
+						break;
+
+					//LIGHT_COLOR
+					case 0x40004CC:
+					case 0x40004CD:
+					case 0x40004CE:
+					case 0x40004CF:
+						lcd_3D_stat->current_gx_command = 0x33;
+						lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = value;
+						if(lcd_3D_stat->parameter_index == 4) { lcd_3D_stat->process_command = true; }
+
+						break;
+
+					//SHININESS
+					case 0x40004D0:
+					case 0x40004D1:
+					case 0x40004D2:
+					case 0x40004D3:
+						lcd_3D_stat->current_gx_command = 0x34;
+						lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = value;
+						if(lcd_3D_stat->parameter_index == 4) { lcd_3D_stat->process_command = true; }
+
+						break;
+
 					//BEGIN_VTXS
 					case 0x4000500:
 					case 0x4000501:
 					case 0x4000502:
 					case 0x4000503:
-						//std::cout<<"GX - BEGIN_VTXS -> " << (value & 0x3) << "\n";
 						lcd_3D_stat->current_gx_command = 0x40;
 						lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = value;
 						if(lcd_3D_stat->parameter_index == 4) { lcd_3D_stat->process_command = true; }
@@ -1481,12 +1549,12 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 						lcd_3D_stat->current_gx_command = 0x41;
 						lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = value;
 						if(lcd_3D_stat->parameter_index == 4) { lcd_3D_stat->process_command = true; }
-						//std::cout<<"GX - END_VTXS\n";
 						break;
 
 					//SWAP_BUFFERS
 					case 0x4000540:
 						lcd_3D_stat->current_gx_command = 0x50;
+						lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = value;
 						lcd_3D_stat->process_command = true;
 						break;
 
@@ -1509,6 +1577,17 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 						lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = value;
 						if(lcd_3D_stat->parameter_index == 8) { lcd_3D_stat->process_command = true; }
 						break;
+
+					//VEC TEST
+					case 0x40005C8:
+					case 0x40005C9:
+					case 0x40005CA:
+					case 0x40005CB:
+						lcd_3D_stat->current_gx_command = 0x72;
+						lcd_3D_stat->command_parameters[lcd_3D_stat->parameter_index++] = value;
+						if(lcd_3D_stat->parameter_index == 4) { lcd_3D_stat->process_command = true; }
+						break;
+						
 				}
 			}
 
@@ -2887,7 +2966,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 			break;
 
-		//SFX Control - Engine A
+		//SFX Control - Engine B
 		case NDS_BLDCNT_B:
 			memory_map[address] = value;
 			lcd_stat->sfx_target_b[0][0] = (value & 0x1) ? true : false;
@@ -2917,7 +2996,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			lcd_stat->sfx_target_b[5][1] = (value & 0x20) ? true : false;
 			break;
 
-		//SFX Alpha Control - Engine A
+		//SFX Alpha Control - Engine B
 		case NDS_BLDALPHA_B:
 			memory_map[address] = value;
 
@@ -2934,7 +3013,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 			break;
 
-		//SFX Brightness Control - Engine A
+		//SFX Brightness Control - Engine B
 		case NDS_BLDY_B:
 			if(memory_map[address] == value) { return ; }
 
@@ -3015,217 +3094,202 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 						lcd_stat->obj_ext_pal_update_b = true;
 						lcd_stat->obj_ext_pal_update_list_b.resize(0x1000, true);
 					}
-				}
 
-				else
-				{
-					lcd_stat->vram_bank_enable[bank_id] = false;
-
-					//Deallocate VRAM data when disabling a bank
-					switch(bank_id)
+					switch(mst)
 					{
+						//MST 0 - LCDC Mode
 						case 0x0:
+
+							//Deallocate VRAM previously mapped to non-LCDC mode addresses 
+							if((lcd_stat->vram_bank_addr[bank_id] >> 20) != 0x68) { deallocate_vram(bank_id); }
+
+							switch(bank_id)
+							{
+								case 0x0: lcd_stat->vram_bank_addr[0] = 0x6800000; break;
+								case 0x1: lcd_stat->vram_bank_addr[1] = 0x6820000; break;
+								case 0x2: lcd_stat->vram_bank_addr[2] = 0x6840000; break;
+								case 0x3: lcd_stat->vram_bank_addr[3] = 0x6860000; break;
+								case 0x4: lcd_stat->vram_bank_addr[4] = 0x6880000; break;
+								case 0x5: lcd_stat->vram_bank_addr[5] = 0x6890000; break;
+								case 0x6: lcd_stat->vram_bank_addr[6] = 0x6894000; break;
+								case 0x7: lcd_stat->vram_bank_addr[7] = 0x6898000; break;
+								case 0x8: lcd_stat->vram_bank_addr[8] = 0x68A0000; break;
+							}
+		
+							break;
+
+						//MST 1 - 2D Graphics Engine A and B (BG VRAM)
 						case 0x1:
+							switch(bank_id)
+							{
+								case 0x0:
+								case 0x1:
+								case 0x2:
+								case 0x3:
+									lcd_stat->vram_bank_addr[bank_id] = (0x6000000 + (0x20000 * offset));
+									break;
+
+								case 0x4:
+									lcd_stat->vram_bank_addr[4] = 0x6000000;
+									break;
+
+								case 0x5:
+								case 0x6:
+									lcd_stat->vram_bank_addr[bank_id] = 0x6000000 + (0x4000 * (offset & 0x1)) + (0x10000 * (offset & 0x2));
+									break;
+
+								case 0x7:
+									lcd_stat->vram_bank_addr[7] = 0x6200000;
+									break;
+
+								case 0x8:
+									lcd_stat->vram_bank_addr[8] = 0x6208000;
+									break;
+							}
+							
+							break;
+
+						//MST 2 - 2D Graphics Engine A and B (OBJ VRAM)
 						case 0x2:
+							switch(bank_id)
+							{
+								case 0x0:
+								case 0x1:
+									lcd_stat->vram_bank_addr[bank_id] = 0x6400000 + (0x20000 * (offset & 0x1));
+									break;
+
+								case 0x2:
+								case 0x3:
+									lcd_stat->vram_bank_addr[bank_id] = 0x6000000 + (0x20000 * (offset & 0x1));
+									break;
+
+								case 0x4:
+									lcd_stat->vram_bank_addr[4] = 0x6400000;
+									break;
+
+								case 0x5:
+								case 0x6:
+									lcd_stat->vram_bank_addr[bank_id] = 0x6400000 + (0x4000 * (offset & 0x1)) + (0x10000 * (offset & 0x2));
+									break;
+
+								case 0x8:
+									lcd_stat->vram_bank_addr[8] = 0x6600000;
+									break;
+							}
+
+							break;
+
+						//MST 3 - 3D Graphics Engine Texture Data and Texture Palettes
 						case 0x3:
-							for(u32 x = 0; x < 0x20000; x++) { memory_map[lcd_stat->vram_bank_addr[bank_id] + x] = 0; }
+							switch(bank_id)
+							{
+								case 0x0:
+									vram_tex_slot[offset] = 0x6800000;
+									break;
+
+								case 0x1:
+									vram_tex_slot[offset] = 0x6820000;
+									break;
+
+								case 0x2:
+									vram_tex_slot[offset] = 0x6840000;
+									break;
+
+								case 0x3:
+									vram_tex_slot[offset] = 0x6860000;
+									break;
+
+								case 0x4:
+									lcd_3D_stat->pal_bank_addr = 0x6880000;
+									break;
+
+								case 0x5:
+									lcd_3D_stat->pal_bank_addr = 0x6890000;
+									break;
+
+								case 0x6:
+									lcd_3D_stat->pal_bank_addr = 0x6894000;
+									break;
+
+								case 0x8:
+									pal_b_obj_slot[0] = lcd_stat->vram_bank_addr[7];
+									break;
+							}
+
 							break;
 
+						//MST 4
 						case 0x4:
-							for(u32 x = 0; x < 0x10000; x++) { memory_map[lcd_stat->vram_bank_addr[bank_id] + x] = 0; }
+							switch(bank_id)
+							{
+								case 0x2:
+									lcd_stat->vram_bank_addr[2] = 0x6200000;
+									break;
+
+								case 0x3:
+									lcd_stat->vram_bank_addr[3] = 0x6600000;
+									break;
+
+								case 0x4:
+									pal_a_bg_slot[0] = 0x6880000;
+									pal_a_bg_slot[1] = 0x6882000;
+									pal_a_bg_slot[2] = 0x6884000;
+									pal_a_bg_slot[3] = 0x6886000;
+									break;
+
+								case 0x5:
+								case 0x6:
+									if(!offset)
+									{
+										pal_a_bg_slot[0] = lcd_stat->vram_bank_addr[bank_id];
+										pal_a_bg_slot[1] = lcd_stat->vram_bank_addr[bank_id] + 0x2000;
+									}
+
+									else
+									{
+										pal_a_bg_slot[2] = lcd_stat->vram_bank_addr[bank_id];
+										pal_a_bg_slot[3] = lcd_stat->vram_bank_addr[bank_id] + 0x2000;
+									}
+
+									break;
+								
+							}
+
 							break;
 
+						//MST 5
 						case 0x5:
-						case 0x6:
-						case 0x8:
-							for(u32 x = 0; x < 0x4000; x++) { memory_map[lcd_stat->vram_bank_addr[bank_id] + x] = 0; }
-							break;
+							switch(bank_id)
+							{
+								case 0x5:
+									pal_a_obj_slot[0] = lcd_stat->vram_bank_addr[5];
+									break;
 
-						case 0x7:
-							for(u32 x = 0; x < 0x8000; x++) { memory_map[lcd_stat->vram_bank_addr[bank_id] + x] = 0; }
+								case 0x6:
+									pal_a_obj_slot[0] = lcd_stat->vram_bank_addr[6];
+									break;
+							}
+
 							break;
 					}
 				}
 
-				switch(mst)
+				else { lcd_stat->vram_bank_enable[bank_id] = false; }
+
+				//Check if any banks for Engine A BG are enabled for use
+				bg_vram_bank_enable_a = false;
+				
+				for(u32 x = 0; x < 7; x++)
 				{
-					//MST 0 - LCDC Mode
-					case 0x0:
-						switch(bank_id)
-						{
-							case 0x0: lcd_stat->vram_bank_addr[0] = 0x6800000; break;
-							case 0x1: lcd_stat->vram_bank_addr[1] = 0x6820000; break;
-							case 0x2: lcd_stat->vram_bank_addr[2] = 0x6840000; break;
-							case 0x3: lcd_stat->vram_bank_addr[3] = 0x6860000; break;
-							case 0x4: lcd_stat->vram_bank_addr[4] = 0x6880000; break;
-							case 0x5: lcd_stat->vram_bank_addr[5] = 0x6890000; break;
-							case 0x6: lcd_stat->vram_bank_addr[6] = 0x6894000; break;
-							case 0x7: lcd_stat->vram_bank_addr[7] = 0x6898000; break;
-							case 0x8: lcd_stat->vram_bank_addr[8] = 0x68A0000; break;
-						}
-		
-						break;
+					if((memory_map[NDS_VRAMCNT_A + x] & 0x7) == 0x1) { bg_vram_bank_enable_a = true; }
+				}
 
-					//MST 1 - 2D Graphics Engine A and B (BG VRAM)
-					case 0x1:
-						switch(bank_id)
-						{
-							case 0x0:
-							case 0x1:
-							case 0x2:
-							case 0x3:
-								lcd_stat->vram_bank_addr[bank_id] = (0x6000000 + (0x20000 * offset));
-								break;
-
-							case 0x4:
-								lcd_stat->vram_bank_addr[4] = 0x6000000;
-								break;
-
-							case 0x5:
-							case 0x6:
-								lcd_stat->vram_bank_addr[bank_id] = 0x6000000 + (0x4000 * (offset & 0x1)) + (0x10000 * (offset & 0x2));
-								break;
-
-							case 0x7:
-								lcd_stat->vram_bank_addr[7] = 0x6200000;
-								break;
-
-							case 0x8:
-								lcd_stat->vram_bank_addr[8] = 0x6208000;
-								break;
-						}
-							
-						break;
-
-					//MST 2 - 2D Graphics Engine A and B (OBJ VRAM)
-					case 0x2:
-						switch(bank_id)
-						{
-							case 0x0:
-							case 0x1:
-								lcd_stat->vram_bank_addr[bank_id] = 0x6400000 + (0x20000 * (offset & 0x1));
-								break;
-
-							case 0x2:
-							case 0x3:
-								lcd_stat->vram_bank_addr[bank_id] = 0x6000000 + (0x20000 * (offset & 0x1));
-								break;
-
-							case 0x4:
-								lcd_stat->vram_bank_addr[4] = 0x6400000;
-								break;
-
-							case 0x5:
-							case 0x6:
-								lcd_stat->vram_bank_addr[bank_id] = 0x6400000 + (0x4000 * (offset & 0x1)) + (0x10000 * (offset & 0x2));
-								break;
-
-							case 0x7:
-								pal_b_bg_slot[0] = lcd_stat->vram_bank_addr[7];
-								pal_b_bg_slot[1] = lcd_stat->vram_bank_addr[7] + 0x2000;
-								pal_b_bg_slot[2] = lcd_stat->vram_bank_addr[7] + 0x4000;
-								pal_b_bg_slot[3] = lcd_stat->vram_bank_addr[7] + 0x6000;
-								break;
-
-							case 0x8:
-								lcd_stat->vram_bank_addr[8] = 0x6600000;
-								break;
-						}
-
-						break;
-
-					//MST 3 - 3D Graphics Engine Texture Data and Texture Palettes
-					case 0x3:
-						switch(bank_id)
-						{
-							case 0x0:
-								vram_tex_slot[offset] = 0x6800000;
-								break;
-
-							case 0x1:
-								vram_tex_slot[offset] = 0x6820000;
-								break;
-
-							case 0x2:
-								vram_tex_slot[offset] = 0x6840000;
-								break;
-
-							case 0x3:
-								vram_tex_slot[offset] = 0x6860000;
-								break;
-
-							case 0x4:
-								lcd_3D_stat->pal_bank_addr = 0x6880000;
-								break;
-
-							case 0x5:
-								lcd_3D_stat->pal_bank_addr = 0x6890000;
-								break;
-
-							case 0x6:
-								lcd_3D_stat->pal_bank_addr = 0x6894000;
-								break;
-
-							case 0x8:
-								pal_b_obj_slot[0] = lcd_stat->vram_bank_addr[7];
-								break;
-						}
-
-						break;
-
-					//MST 4
-					case 0x4:
-						switch(bank_id)
-						{
-							case 0x2:
-								lcd_stat->vram_bank_addr[2] = 0x6200000;
-								break;
-
-							case 0x3:
-								lcd_stat->vram_bank_addr[3] = 0x6600000;
-								break;
-
-							case 0x4:
-								pal_a_bg_slot[0] = lcd_stat->vram_bank_addr[4];
-								pal_a_bg_slot[1] = lcd_stat->vram_bank_addr[4] + 0x2000;
-								pal_a_bg_slot[2] = lcd_stat->vram_bank_addr[4] + 0x4000;
-								pal_a_bg_slot[3] = lcd_stat->vram_bank_addr[4] + 0x6000;
-								break;
-
-							case 0x5:
-							case 0x6:
-								if(!offset)
-								{
-									pal_a_bg_slot[0] = lcd_stat->vram_bank_addr[bank_id];
-									pal_a_bg_slot[1] = lcd_stat->vram_bank_addr[bank_id] + 0x2000;
-								}
-
-								else
-								{
-									pal_a_bg_slot[2] = lcd_stat->vram_bank_addr[bank_id];
-									pal_a_bg_slot[3] = lcd_stat->vram_bank_addr[bank_id] + 0x2000;
-								}
-
-								break;
-								
-						}
-
-						break;
-
-					//MST 5
-					case 0x5:
-						switch(bank_id)
-						{
-							case 0x5:
-								pal_a_obj_slot[0] = lcd_stat->vram_bank_addr[5];
-								break;
-
-							case 0x6:
-								pal_a_obj_slot[0] = lcd_stat->vram_bank_addr[6];
-								break;
-						}
-
-						break;
+				//Check if any banks for Engine B BG are enabled for use
+				bg_vram_bank_enable_b = false;
+				
+				if(((memory_map[NDS_VRAMCNT_C] & 0x7) == 0x4) || ((memory_map[NDS_VRAMCNT_H] & 0x7) == 0x1) || ((memory_map[NDS_VRAMCNT_I] & 0x7) == 0x4))
+				{
+					bg_vram_bank_enable_b = true;
 				}
 
 				//Finish display capture when switching VRAM slot from LCDC to another mode
@@ -3245,6 +3309,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		case NDS_DISP3DCNT+3:
 			memory_map[address] = value;
 			lcd_3D_stat->display_control = ((memory_map[NDS_DISP3DCNT+3] << 24) | (memory_map[NDS_DISP3DCNT+2] << 16) | (memory_map[NDS_DISP3DCNT+1] << 8) | memory_map[NDS_DISP3DCNT]);
+			lcd_3D_stat->edge_marking = (lcd_3D_stat->display_control & 0x20) ? true : false;
 
 			break;
 
@@ -3265,11 +3330,19 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 			break;
 
-		//Master Brightness
-		case NDS_MASTER_BRIGHT:
-		case NDS_MASTER_BRIGHT+1:
+		//Master Brightness - Engine A
+		case NDS_MASTER_BRIGHT_A:
+		case NDS_MASTER_BRIGHT_A+1:
 			memory_map[address] = value;
-			lcd_stat->master_bright = ((memory_map[NDS_MASTER_BRIGHT+1] << 8) | memory_map[NDS_MASTER_BRIGHT]);
+			lcd_stat->master_bright_a = ((memory_map[NDS_MASTER_BRIGHT_A+1] << 8) | memory_map[NDS_MASTER_BRIGHT_A]);
+
+			break;
+
+		//Master Brightness - Engine B
+		case NDS_MASTER_BRIGHT_B:
+		case NDS_MASTER_BRIGHT_B+1:
+			memory_map[address] = value;
+			lcd_stat->master_bright_b = ((memory_map[NDS_MASTER_BRIGHT_B+1] << 8) | memory_map[NDS_MASTER_BRIGHT_B]);
 
 			break;
 
@@ -4832,6 +4905,44 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 			break;
 
+		//GX - EDGE_COLOR
+		case 0x4000330:
+		case 0x4000331:
+		case 0x4000332:
+		case 0x4000333:
+		case 0x4000334:
+		case 0x4000335:
+		case 0x4000336:
+		case 0x4000337:
+		case 0x4000338:
+		case 0x4000339:
+		case 0x400033A:
+		case 0x400033B:
+		case 0x400033C:
+		case 0x400033D:
+		case 0x400033E:
+		case 0x400033F:
+			if(access_mode)
+			{
+				memory_map[address] = value;
+
+				u8 edge_id = (address & 0xF) >> 1;
+				u32 color_addr = (address & ~0x1);
+				u16 color_bytes = (memory_map[color_addr + 1] << 8) | memory_map[color_addr];
+
+				u8 red = ((color_bytes & 0x1F) << 3);
+				color_bytes >>= 5;
+
+				u8 green = ((color_bytes & 0x1F) << 3);
+				color_bytes >>= 5;
+
+				u8 blue = ((color_bytes & 0x1F) << 3);
+
+				lcd_3D_stat->edge_color[edge_id] = 0xFF000000 | (red << 16) | (green << 8) | (blue);
+			}
+
+			break;
+
 		//VIEWPORT
 		case 0x4000580:
 		case 0x4000581:
@@ -4926,6 +5037,25 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 	{
 		lcd_stat->oam_update = true;
 		lcd_stat->oam_update_list[(address & 0x7FF) >> 3] = true;
+	}
+
+	//Toon Table
+	else if((address >= 0x4000380) && (address <= 0x400003BF) && (access_mode))
+	{
+		u8 toon_id = (address & 0x3F) >> 1;
+
+		u32 color_addr = (address & ~0x1);
+		u16 color_bytes = (memory_map[color_addr + 1] << 8) | memory_map[color_addr];
+
+		u8 red = ((color_bytes & 0x1F) << 3);
+		color_bytes >>= 5;
+
+		u8 green = ((color_bytes & 0x1F) << 3);
+		color_bytes >>= 5;
+
+		u8 blue = ((color_bytes & 0x1F) << 3);
+
+		lcd_3D_stat->toon_table[toon_id] = 0xFF000000 | (red << 16) | (green << 8) | (blue);
 	}
 }
 
@@ -6332,7 +6462,40 @@ void NTR_MMU::copy_capture_buffer(u32 capture_addr)
 		}
 	}
 }
-	
+
+/****** Deallocates VRAM when switching a bank back to LCDC mode ******/
+void NTR_MMU::deallocate_vram(u8 bank_id)
+{
+	u32 v_addr = lcd_stat->vram_bank_addr[bank_id];
+
+	if(v_addr)
+	{
+		switch(bank_id)
+		{
+			case 0x0:
+			case 0x1:
+			case 0x2:
+			case 0x3:
+				for(u32 x = 0; x < 0x20000; x++) { memory_map[v_addr + x] = 0; }
+				break;
+
+			case 0x4:
+				for(u32 x = 0; x < 0x10000; x++) { memory_map[v_addr + x] = 0; }
+				break;
+
+			case 0x5:
+			case 0x6:
+			case 0x8:
+				for(u32 x = 0; x < 0x4000; x++) { memory_map[v_addr + x] = 0; }
+				break;
+
+			case 0x7:
+				for(u32 x = 0; x < 0x8000; x++) { memory_map[v_addr + x] = 0; }
+				break;
+		}
+	}
+}
+
 /****** Points the MMU to an lcd_data structure (FROM THE LCD ITSELF) ******/
 void NTR_MMU::set_lcd_data(ntr_lcd_data* ex_lcd_stat) { lcd_stat = ex_lcd_stat; }
 

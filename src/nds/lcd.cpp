@@ -150,8 +150,8 @@ void NTR_LCD::reset()
 	lcd_stat.bg_mode_b = 0;
 	lcd_stat.hblank_interval_free = false;
 
-	lcd_stat.master_bright = 0;
-	lcd_stat.old_master_bright = 0;
+	lcd_stat.master_bright_a = 0;
+	lcd_stat.master_bright_b = 0;
 
 	lcd_stat.forced_blank_a = false;
 	lcd_stat.forced_blank_b = false;
@@ -311,6 +311,7 @@ void NTR_LCD::reset()
 	lcd_3D_stat.use_texture = false;
 	lcd_3D_stat.begin_strips = false;
 	lcd_3D_stat.update_clip_matrix = false;
+	lcd_3D_stat.update_vector_matrix = false;
 
 	lcd_3D_stat.view_port_x1 = 0;
 	lcd_3D_stat.view_port_x2 = 0;
@@ -332,6 +333,15 @@ void NTR_LCD::reset()
 
 	lcd_3D_stat.poly_min_x = 0;
 	lcd_3D_stat.poly_max_x = 0;
+
+	lcd_3D_stat.edge_marking = false;
+	lcd_3D_stat.z_buffering = true;
+
+	lcd_3D_stat.poly_mode = 0;
+	lcd_3D_stat.poly_alpha = 0;
+	lcd_3D_stat.poly_id = 0;
+	lcd_3D_stat.poly_new_depth = true;
+	lcd_3D_stat.poly_depth_test = false;
 
 	//3D GFX command parameters
 	for(int x = 0; x < 128; x++) { lcd_3D_stat.command_parameters[x] = 0; }
@@ -983,6 +993,9 @@ void NTR_LCD::render_bg_scanline(u32 bg_control)
 				bg_control = NDS_BG0CNT_A + (bg_id << 1);
 			}
 
+			//Verify VRAM Bank availibility 
+			if(!mem->bg_vram_bank_enable_a)  { break; }
+
 			switch(lcd_stat.bg_mode_a)
 			{
 				//BG Mode 0
@@ -1150,6 +1163,9 @@ void NTR_LCD::render_bg_scanline(u32 bg_control)
 		{
 			bg_id = bg_render_list[x];
 			bg_control = NDS_BG0CNT_B + (bg_id << 1);
+
+			//Verify VRAM Bank availibility 
+			if(!mem->bg_vram_bank_enable_b)  { break; }
 
 			switch(lcd_stat.bg_mode_b)
 			{
@@ -3596,9 +3612,11 @@ void NTR_LCD::alpha_blend(u32 bg_control)
 }
 
 /****** Adjusts master brightness before final scanline output ******/
-void NTR_LCD::adjust_master_brightness()
+void NTR_LCD::adjust_master_brightness(u8 engine_id)
 {
-	double factor = (lcd_stat.master_bright & 0xF) / 16.0;
+	u16 master_bright = (engine_id) ? lcd_stat.master_bright_a : lcd_stat.master_bright_b;
+
+	double factor = (master_bright & 0x1F) / 16.0;
 	u32 color = 0;
 	
 	u8 r = 0;
@@ -3607,90 +3625,102 @@ void NTR_LCD::adjust_master_brightness()
 	s16 result = 0;
 
 	//Master Brightness Up
-	if((lcd_stat.master_bright >> 14) == 0x1)
+	if((master_bright >> 14) == 0x1)
 	{
 		//Engine A pixels
-		for(u32 x = 0; x < 256; x++)
+		if(engine_id)
 		{
-			color = scanline_buffer_a[x];
+			for(u32 x = 0; x < 256; x++)
+			{
+				color = scanline_buffer_a[x];
 
-			r = (color >> 18) & 0x3F;
-			result = r + ((63 - r) * factor);
-			r = (result > 63) ? 63 : result;
+				r = (color >> 18) & 0x3F;
+				result = r + ((63 - r) * factor);
+				r = (result > 63) ? 63 : result;
 
-			g = (color >> 10) & 0x3F;
-			result = g + ((63 - g) * factor);
-			g = (result > 63) ? 63 : result;
+				g = (color >> 10) & 0x3F;
+				result = g + ((63 - g) * factor);
+				g = (result > 63) ? 63 : result;
 
-			b = (color >> 2) & 0x3F;
-			result = b + ((63 - b) * factor);
-			b = (result > 63) ? 63 : result;
+				b = (color >> 2) & 0x3F;
+				result = b + ((63 - b) * factor);
+				b = (result > 63) ? 63 : result;
 
-			scanline_buffer_a[x] = 0xFF000000 | (r << 18) | (g << 10) | (b << 2);
+				scanline_buffer_a[x] = 0xFF000000 | (r << 18) | (g << 10) | (b << 2);
+			}
 		}
 
 		//Engine B pixels
-		for(u32 x = 0; x < 256; x++)
+		else
 		{
-			color = scanline_buffer_b[x];
+			for(u32 x = 0; x < 256; x++)
+			{
+				color = scanline_buffer_b[x];
 
-			r = (color >> 18) & 0x3F;
-			result = r + ((63 - r) * factor);
-			r = (result > 63) ? 63 : result;
+				r = (color >> 18) & 0x3F;
+				result = r + ((63 - r) * factor);
+				r = (result > 63) ? 63 : result;
 
-			g = (color >> 10) & 0x3F;
-			result = g + ((63 - g) * factor);
-			g = (result > 63) ? 63 : result;
+				g = (color >> 10) & 0x3F;
+				result = g + ((63 - g) * factor);
+				g = (result > 63) ? 63 : result;
 
-			b = (color >> 2) & 0x3F;
-			result = b + ((63 - b) * factor);
-			b = (result > 63) ? 63 : result;
+				b = (color >> 2) & 0x3F;
+				result = b + ((63 - b) * factor);
+				b = (result > 63) ? 63 : result;
 
-			scanline_buffer_b[x] = 0xFF000000 | (r << 18) | (g << 10) | (b << 2);
+				scanline_buffer_b[x] = 0xFF000000 | (r << 18) | (g << 10) | (b << 2);
+			}
 		}
 	}
 
 	//Master Bright Down
-	if((lcd_stat.master_bright >> 14) == 0x2)
+	if((master_bright >> 14) == 0x2)
 	{
 		//Engine A pixels
-		for(u32 x = 0; x < 256; x++)
+		if(engine_id)
 		{
-			color = scanline_buffer_a[x];
+			for(u32 x = 0; x < 256; x++)
+			{
+				color = scanline_buffer_a[x];
 
-			r = ((color >> 18) & 0x3F);
-			result = r - (r * factor);
-			r = (result < 0) ? 0 : result;
+				r = ((color >> 18) & 0x3F);
+				result = r - (r * factor);
+				r = (result < 0) ? 0 : result;
 
-			g = ((color >> 10) & 0x3F);
-			result = g - (g * factor);
-			g = (result < 0) ? 0 : result;
+				g = ((color >> 10) & 0x3F);
+				result = g - (g * factor);
+				g = (result < 0) ? 0 : result;
 
-			b = ((color >> 2) & 0x3F);
-			result = b - (b * factor);
-			b = (result < 0) ? 0 : result;
+				b = ((color >> 2) & 0x3F);
+				result = b - (b * factor);
+				b = (result < 0) ? 0 : result;
 
-			scanline_buffer_a[x] = 0xFF000000 | (r << 18) | (g << 10) | (b << 2);
+				scanline_buffer_a[x] = 0xFF000000 | (r << 18) | (g << 10) | (b << 2);
+			}
 		}
 
 		//Engine B pixels
-		for(u32 x = 0; x < 256; x++)
+		else
 		{
-			color = scanline_buffer_b[x];
+			for(u32 x = 0; x < 256; x++)
+			{
+				color = scanline_buffer_b[x];
 
-			r = ((color >> 18) & 0x3F);
-			result = r - (r * factor);
-			r = (result < 0) ? 0 : result;
+				r = ((color >> 18) & 0x3F);
+				result = r - (r * factor);
+				r = (result < 0) ? 0 : result;
 
-			g = ((color >> 10) & 0x3F);
-			result = g - (g * factor);
-			g = (result < 0) ? 0 : result;
+				g = ((color >> 10) & 0x3F);
+				result = g - (g * factor);
+				g = (result < 0) ? 0 : result;
 
-			b = ((color >> 2) & 0x3F);
-			result = b - (b * factor);
-			b = (result < 0) ? 0 : result;
+				b = ((color >> 2) & 0x3F);
+				result = b - (b * factor);
+				b = (result < 0) ? 0 : result;
 
-			scanline_buffer_b[x] = 0xFF000000 | (r << 18) | (g << 10) | (b << 2);
+				scanline_buffer_b[x] = 0xFF000000 | (r << 18) | (g << 10) | (b << 2);
+			}
 		}
 	}
 }
@@ -3725,15 +3755,15 @@ void NTR_LCD::calculate_window_on_scanline()
 	}
 
 	//Check if windows are enabled and if they are usable
-	win_stat[0] = ((lcd_stat.window_enable_a[0]) && (lcd_stat.window_x_a[0][0] != lcd_stat.window_x_a[1][0]));
-	win_stat[1] = ((lcd_stat.window_enable_a[1]) && (lcd_stat.window_x_a[0][1] != lcd_stat.window_x_a[1][1]));
+	win_stat[0] = ((lcd_stat.window_enable_a[0]) && (lcd_stat.window_x_a[0][0] != lcd_stat.window_x_a[0][1]));
+	win_stat[1] = ((lcd_stat.window_enable_a[1]) && (lcd_stat.window_x_a[1][0] != lcd_stat.window_x_a[1][1]));
 
-	if((win_stat[0]) && (lcd_stat.window_y_a[0][0] == lcd_stat.window_y_a[1][0]) && (!lcd_stat.window_y_a[0][0]))
+	if((win_stat[0]) && (lcd_stat.window_y_a[0][0] == lcd_stat.window_y_a[0][1]) && (!lcd_stat.window_y_a[0][0]))
 	{
-		lcd_stat.window_y_a[1][0] = 256;
+		lcd_stat.window_y_a[0][1] = 256;
 	}
 
-	if((win_stat[1]) && (lcd_stat.window_y_a[0][1] == lcd_stat.window_y_a[1][1]) && (!lcd_stat.window_y_a[0][1]))
+	if((win_stat[1]) && (lcd_stat.window_y_a[1][0] == lcd_stat.window_y_a[1][1]) && (!lcd_stat.window_y_a[1][0]))
 	{
 		lcd_stat.window_y_a[1][1] = 256;
 	}
@@ -3780,15 +3810,15 @@ void NTR_LCD::calculate_window_on_scanline()
 	}
 
 	//Check if windows are enabled and if they are usable
-	win_stat[0] = ((lcd_stat.window_enable_b[0]) && (lcd_stat.window_x_b[0][0] != lcd_stat.window_x_b[1][0]));
-	win_stat[1] = ((lcd_stat.window_enable_b[1]) && (lcd_stat.window_x_b[0][1] != lcd_stat.window_x_b[1][1]));
+	win_stat[0] = ((lcd_stat.window_enable_b[0]) && (lcd_stat.window_x_b[0][0] != lcd_stat.window_x_b[0][1]));
+	win_stat[1] = ((lcd_stat.window_enable_b[1]) && (lcd_stat.window_x_b[1][0] != lcd_stat.window_x_b[1][1]));
 
-	if((win_stat[0]) && (lcd_stat.window_y_b[0][0] == lcd_stat.window_y_b[1][0]) && (!lcd_stat.window_y_b[0][0]))
+	if((win_stat[0]) && (lcd_stat.window_y_b[0][0] == lcd_stat.window_y_b[0][1]) && (!lcd_stat.window_y_b[0][0]))
 	{
-		lcd_stat.window_y_b[1][0] = 256;
+		lcd_stat.window_y_b[0][1] = 256;
 	}
 
-	if((win_stat[1]) && (lcd_stat.window_y_b[0][1] == lcd_stat.window_y_b[1][1]) && (!lcd_stat.window_y_b[0][1]))
+	if((win_stat[1]) && (lcd_stat.window_y_b[1][0] == lcd_stat.window_y_b[1][1]) && (!lcd_stat.window_y_b[1][0]))
 	{
 		lcd_stat.window_y_b[1][1] = 256;
 	}
@@ -3972,8 +4002,9 @@ void NTR_LCD::step()
 			//Render scanline data
 			render_scanline();
 
-			//Apply Master Brightness if necessary
-			if(lcd_stat.master_bright & 0xC000) { adjust_master_brightness(); }
+			//Apply Master Brightness on Engine A and/or Engine B if necessary
+			if(lcd_stat.master_bright_a & 0xC000) { adjust_master_brightness(1); }
+			if(lcd_stat.master_bright_b & 0xC000) { adjust_master_brightness(0); }
 
 			u32 render_position = (lcd_stat.current_scanline * config::sys_width);
 
@@ -4039,6 +4070,13 @@ void NTR_LCD::step()
 			{
 				config::osd_count--;
 				draw_osd_msg(config::osd_message, screen_buffer, 0, 0);
+			}
+
+			//Update and draw virtual cursor
+			if(config::vc_enable)
+			{
+				mem->g_pad->process_virtual_cursor();
+				if(mem->g_pad->vc_pause < config::vc_timeout) { render_virtual_cursor(); }
 			}
 
 			//Use SDL
@@ -4300,6 +4338,7 @@ void NTR_LCD::reload_affine_references(u32 bg_control)
 		case NDS_BG3CNT_B:
 			x_raw = mem->read_u32_fast(NDS_BG3X_B);
 			y_raw = mem->read_u32_fast(NDS_BG3Y_B);
+			engine_a = false;
 			aff_id = 1;
 			break;
 
@@ -4477,4 +4516,52 @@ bool NTR_LCD::save_cart_icon(std::string nds_icon_file)
 	SDL_SaveBMP(nds_icon, nds_icon_file.c_str());
 
 	return true;
+}
+
+/****** Draws virtual cursor on final screen ******/
+void NTR_LCD::render_virtual_cursor()
+{
+	u32 buffer_pos = 0;
+	u8 src_pos = 0;
+
+	u32 w = (config::lcd_config & 0x2) ? 512 : 256;
+	u32 h = (config::lcd_config & 0x2) ? 192 : 384;
+
+	bool horizontal = (config::lcd_config & 0x2) ? true : false;
+
+	s32 vx = 0;
+	s32 vy = 0;
+
+	for(u32 y = 0; y < 8; y++)
+	{
+		for(u32 x = 0; x < 8; x++)
+		{
+			if(horizontal) { buffer_pos = 0x100; }
+			else { buffer_pos = 0xC000; }
+
+			vx = mem->g_pad->vc_x + x;
+			vy = mem->g_pad->vc_y + y;
+
+			if((vx >= 0) && (vx <= w) && (vy >= 0) && (vy <= h))
+			{ 
+				buffer_pos += (vy * w) + (vx);
+				src_pos = (y * 8) + x;
+				
+				if(config::vc_data[src_pos] != 0xFF00FF00)
+				{
+					//Alpha blend
+					if(config::vc_opacity != 255)
+					{
+						screen_buffer[buffer_pos] = alpha_blend_pixel(config::vc_data[src_pos], screen_buffer[buffer_pos], config::vc_opacity);
+					}
+
+					//Render normally
+					else
+					{
+						screen_buffer[buffer_pos] = config::vc_data[src_pos];
+					}
+				}
+			}
+		}
+	}
 }

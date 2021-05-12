@@ -57,8 +57,8 @@ struct ntr_lcd_data
 
 	bool hblank_interval_free;
 	
-	u16 master_bright;
-	u16 old_master_bright;
+	u16 master_bright_a;
+	u16 master_bright_b;
 
 	bool forced_blank_a;
 	bool forced_blank_b;
@@ -251,8 +251,11 @@ struct ntr_lcd_3D_data
 	u8 vertex_mode;
 	u8 vertex_list_index;
 
-	u8 hi_fill[256];
-	u8 lo_fill[256];
+	s16 hi_fill[256];
+	s16 lo_fill[256];
+
+	u32 hi_overflow[256];
+	u32 lo_overflow[256];
 
 	u32 hi_color[256];
 	u32 lo_color[256];
@@ -264,6 +267,7 @@ struct ntr_lcd_3D_data
 	bool use_texture;
 	bool begin_strips;
 	bool update_clip_matrix;
+	bool update_vector_matrix;
 
 	u32 rear_plane_color;
 	u8 rear_plane_alpha;
@@ -272,6 +276,9 @@ struct ntr_lcd_3D_data
 	u16 poly_count;
 	u16 vert_count;
 
+	u32 edge_color[8];
+	u32 toon_table[32];
+
 	float last_x;
 	float last_y;
 	float last_z;
@@ -279,6 +286,11 @@ struct ntr_lcd_3D_data
 	s32 poly_min_x;
 	s32 poly_max_x;
 
+	//Display Control
+	bool edge_marking;
+	bool z_buffering;
+
+	//Texture Attribute
 	u32 tex_offset;
 	u32 pal_base;
 	u32 pal_bank_addr;
@@ -292,6 +304,13 @@ struct ntr_lcd_3D_data
 	bool flip_tex_x;
 	bool flip_tex_y;
 	std::vector <u32> tex_data;
+
+	//Polygon Attribute
+	u8 poly_id;
+	u8 poly_alpha;
+	u8 poly_mode;
+	bool poly_new_depth;
+	bool poly_depth_test;
 
 	float tex_coord_x[4];
 	float tex_coord_y[4];

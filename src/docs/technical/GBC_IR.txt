@@ -1,4 +1,4 @@
-GBC Infrared Port Technical Documentation 0.1
+GBC Infrared Port Technical Documentation 0.2
 July 16th, 2017
 Shonumi aka D.S. Baxter
 
@@ -26,53 +26,91 @@ The Game Boy Color came with an infrared port on the very top of the handheld. P
 
 This list represents all the games that have been verified to use the IR port. While exhaustive, this list is probably not complete. There are likely more Japanese exclusives that need to be added. It's dubious whether or not Animorphs actually is a "Ubi Key" game. The back boxart doesn't have the "IR Compatible" logo, and the manual makes no mention of IR communication.
 
+The North American version of Disney's Aladdin claims to have infrared support on the box, supposedly for Ubi Key functionality, however, no such option is accessible in the game. Additionally, European variants omit the GBC IR logo from their boxes. It's possible that like Animorphs, Aladdin had its IR features stripped.
+
+- Animal Breeder 3					Matchmaking between animals raised by the player
+- Animal Breeder 4					Exchange animals or have them marry
 - Austin Powers: Oh Behave!				Trade items and messages		
 - Austin Powers: Welcome to My Underground Lair!	Trade items and messages
+- Bakuten Shoot Beyblade				Engage in 1-on-1 battles
+- Beyblade: Fighting Tournament				???
+- Boku no Camp-jou					Exchange money earned from hunting and fishing
 - Bomberman Max: Blue Champion				Combine Charaboms/Trade completed levels/Unlock hidden areas
 - Bomberman Max: Red Challenger				Combine Charaboms/Trade completed levels/Unlock hidden areas
-- Carl Lewis Alhletics 2000				Ubi Key
+- Carl Lewis Alhletics 2000				Ubi Key -> Unlocks Decathalon mode
 - Catz							Trade Petz and Toyz
 - Chee-Chai Alien					Enhances IR sensor to detect artificial light sources. Catch/trade Chaliens
 - Dancing Furby						Sends signal to Furby doll, Furby reacts based on dance performance
-- Disney's Aladdin					Ubi Key				
+- Data Navi Pro Yakyuu					Send/Receive baseball team data
+- Data Navi Pro Yakyuu 2				Send/Receive baseball team data
 - Dogz							Trade Petz and Toyz
+- Doki Doki Densetsu: Mahoujin Guru Guru		Fight card battles using magic circles from the game
 - Donkey Kong Country					Transfer pictures to stickerbook
-- Flipper & Lopaka					Ubi Key
+- Dr. Rin Ni Kiitemite!					Do fortune-telling with a friend and exchange stickers
+- Dungeon Savior					Transfer a Guardian from one game to another
+- Flipper & Lopaka					Ubi Key -> Unlocks a bonus "Ubi Key Level"
 - Game Boy Wars 3					Wireless multiplayer
+- GB Harobots						Create new Robo Data via infrared signals
+- Gran Duel: Shinki Dungeon no Hihou			???
+- Gyouten Ningen Batseelor: Dakutoru Gai no Yabo	Exchange collectible stickers
+- Hamster Paradise 3 (Churi)				Exchange e-mail
+- Hamster Paradise 4					Exchange hamsters
 - Hamtaro: Ham-Hams Unite!				Trade Hamtaro's clothes
 - Harry Potter and the Sorceror's Stone			Trade "Famous Witches and Wizards" cards 
 - Harry Potter and the Chamber of Secrets		Trade "Famous Witches and Wizards" cards 
-- Hype: The Time Quest					Ubi Key
-- Inspector Gadget: Operation Madkactus			Ubi Key
+- Herohero-kun						Exchange personal profiles
+- Hunter x Hunter: Hunter no Keifu			Use "D-Trans" from Yu-Gi-Oh to meet Card Hunter Augu and unlock a hidden "Muuou" scenario
+- Hype: The Time Quest					Ubi Key -> Unlocks a bonus level
+- Inspector Gadget: Operation Madkactus			Ubi Key -> Unlocks a bonus level
+- Jisedai Begoma Battle Beyblade			Trade Beyblades
 - Kaijin Zona						Receive randomized puzzles via IR signals
+- Karkurenbo Battle Monster Tactics			Send/Receive Montaku. Wager Montaku via "takupon" game against another player
+- Konchuu Hakase 2					Exchange collectible insects 
+- Lego Island 2						Swap trading cards
+- Lemmings VS						View Win/Loss records with other players
+- Love Hina Pocket					???
 - Mary-Kate and Ashley Pocket Planner			Send and receive "G-mail" messages
 - Mickey's Racing Adventure				Send and receive messages. Unlocks a secret race track in Mickey's Speedway USA
 - Mickey's Speedway USA					???
 - Mission Impossible					Send and receive messages, notes, addresses + custom TV remote
-- Papyrus						Ubi Key
+- NHL Blades of Steel					Trade individual hockey players
+- NHL Blades of Steel 2000				Trade individual hockey players
+- Papyrus						Ubi Key -> Unlocks a bonus level
 - Perfect Dark						Trade multiplayer maps and other unlockables
-- Playmobil Interactive: Laura				Ubi Key
+- Playmobil Interactive: Laura				Ubi Key -> Unlocks "Catch the Hazelnuts" minigame
+- Pocket Cooking					Exchange original dishes
 - Pocket Family GB 2					Transfer characters and data
+- Pocket Soccer						Trade individual soccer players
 - Pokemon Pinball					Trade/combine Top Scores
 - Pokemon Gold						Mystery Gift + Send trainer data to Viridian City Trainer House
 - Pokemon Silver					Mystery Gift + Send trainer data to Viridian City Trainer House
 - Pokemon Crystal					Mystery Gift + Send trainer data to Viridian City Trainer House
 - Pokemon Trading Card Game				"Card Pop" to generate random cards. Trade individual cards. Trade deck configurations
 - Pokemon Card GB2: Here Comes Team GR!			"Card Pop" to generate random cards. Trade individual cards. Trade deck configurations
+- Qui Qui						Battle against another opponent
 - Rayman						Ubi Key -> Unlocks secret level Ubi Cliff
 - Return of the Ninja					Trade "Ninja Cards"
-- The Road to El Dorado					Ubi Key
+- Rugrats: Totally Angelica				Send/Receive messages, clothes, hairstyles, and accessories
+- The Road to El Dorado					Ubi Key -> Unlocks a secret level similar to Levels 6 and 7
 - Robopon Sun Version					Boost stats via infrared signals. Open certain chests
 - Sakura Taisen GB					Send step-based "Points" to GBC from Pocket Sakura, or between two GBCs
 - Shin Megami Tensei Devil Children White		Used for "Infrared Fusion" to strengthen some demons, obtain rare ones
-- Spirou: The Robot Invasion				Ubi Key
+- Soukoban Densetsu: Hikari to Yami no Yuni		Send/Receive custom-made levels/puzzles
+- Spirou: The Robot Invasion				Ubi Key -> Unlocks a bonus level 
+- Super Black Bass: Real Fight				Exchange items like lures and tackles
+- Super Doll Licca-chan: Kisekae Daisakusen		Send/Receive clothes
+- Super GALS! Juran					Exchange "sign cards" with personal information and messages written on them
 - Super Mario Bros. DX					Trade/combine Top Scores
-- Suzuki Alstare Extreme Racing				Ubi Key
-- Tonic Trouble						Ubi Key
-- Toonsylvania						Ubi Key
-- Tottoko Hamtaro: Tomodachi Daisakusen Dechu		???
-- V.I.P.						Ubi Key
+- Super Mimel GB: Mimel Bear no Happy Town		Send e-mails to other players from Mimel Bear and gain extra points
+- Suzuki Alstare Extreme Racing				Ubi Key -> Unlocks the Extreme Championship mode
+- Sweet Ange						Send/Receive mail, commemorative photos, cards, and recipes
+- Tonic Trouble						Ubi Key -> Unlocks a bonus level/demo
+- Toonsylvania						Ubi Key -> Unlocks a bonus level with extra lives and items
+- Tottoko Hamtaro: Tomodachi Daisakusen Dechu		Used for a "friend finding" feature, matches other players to different hamsters
+- Tsuri Sensei 2					Trade items with other players
+- V.I.P.						Ubi Key -> Unlocks a bonus "Ubi Key Level"
 - Warlocked						Trade wizards
+- Yu-Gi-Oh! Duel Monsters II: Dark Duel Stories		Connect to other players via "D-Trans" and receive special cards
 - Zok Zok Heroes					Transmit "Cosmic Characters" from Full Changer accessory to transform hero
 
 It should be noted that a few games that use HuC-3 MBC are not in fact "GB KISS" games. Instead, they use the GBC's built-in IR hardware. Robopon Sun Version (US version only) and Pocket Family GB 2 are such examples. While the other Robopon games use the HuC-3's IR capabilities, these were lost when the game went overseas. A similar phenomenon can be seen with the Japanese release of Pokemon TCG (which used the HuC-1) versus releases for any other region (which use the GBC's native IR). Pocket Family GB 2 abandons the IR diodes on the HuC-3 PCB. At this point in time, Hudson may have finally decided to abandon GB KISS and the HuC-1 and HuC-3's IR features as they were redundant, especially for games designed to run exclusively on the GBC.

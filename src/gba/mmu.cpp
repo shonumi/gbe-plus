@@ -1975,6 +1975,20 @@ void AGB_MMU::write_u32_fast(u32 address, u32 value)
 /****** Read binary file to memory ******/
 bool AGB_MMU::read_file(std::string filename)
 {
+	//No cart inserted
+	if(config::no_cart)
+	{
+		//Abort if no BIOS provided
+		if(!config::use_bios)
+		{
+			std::cout<<"MMU::Error - Emulating no cart inserted without BIOS\n";
+			return false;
+		}
+		
+		std::cout<<"MMU::No cart inserted\n";
+		return true;
+	}
+
 	std::ifstream file(filename.c_str(), std::ios::binary);
 
 	if(!file.is_open()) 
@@ -2709,7 +2723,7 @@ void AGB_MMU::process_sio()
 		if(sio_stat->player_id != 0) { sio_stat->cnt |= 0x4; }
 
 		//Determine connection status
-		if(sio_stat->connection_ready || (sio_stat->sio_type == GBA_BATTLE_CHIP_GATE)) { sio_stat->cnt |= 0x8; }
+		if(sio_stat->connection_ready || ((sio_stat->sio_type == GBA_VRS) || (sio_stat->sio_type == GBA_BATTLE_CHIP_GATE))) { sio_stat->cnt |= 0x8; }
 
 		//Determine Player ID
 		sio_stat->cnt |= ((sio_stat->player_id & 0x3) << 4);
@@ -2727,8 +2741,11 @@ void AGB_MMU::process_sio()
 			write_u16_fast(0x4000122, 0xFFFF);
 			write_u32_fast(0x4000124, 0xFFFFFFFF);
 
-			//Initiate transfer to emulated Battle Chip Gate
-			if(sio_stat->sio_type == GBA_BATTLE_CHIP_GATE) { sio_stat->emu_device_ready = true; }
+			//Initiate transfer to emulated Battle Chip Gate or VRS
+			if((sio_stat->sio_type == GBA_BATTLE_CHIP_GATE) || (sio_stat->sio_type == GBA_VRS))
+			{
+				sio_stat->emu_device_ready = true;
+			}
 		}
 	}
 

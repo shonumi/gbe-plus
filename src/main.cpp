@@ -19,7 +19,7 @@
 
 int main(int argc, char* args[])
 {
-	std::cout<<"GBE+ 1.4 [SDL]\n";
+	std::cout<<"GBE+ 1.5 [SDL]\n";
 
 	core_emu* gbe_plus = NULL;
 
@@ -81,7 +81,7 @@ int main(int argc, char* args[])
 	{
 		gbe_plus = new NTR_core();
 	}
-	
+
 	//Read BIOS file optionally
 	if(config::use_bios) 
 	{

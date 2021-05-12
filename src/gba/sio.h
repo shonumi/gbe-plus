@@ -187,6 +187,40 @@ class AGB_SIO
 		std::vector<u32> sprite_height;
 	} cdz_e;
 
+	//Virtureal Racing System
+	struct virt_rs
+	{
+		u16 command;
+		u16 status;
+		u8 sub_screen_status;
+		u8 frame_counter;
+		u8 options;
+		u8 track_number;
+		u8 old_track;
+		virtual_racing_system_state current_state;
+		bool active;
+		bool setup_sub_screen;
+
+		//Emulated slot-car properties
+		u8 slot_lane;
+		u8 last_lane;
+		u8 slot_speed[2];
+		u32 lane_pos[2];
+		u32 lane_last_pos[2];
+		u32 lane_angle[2];
+		u32 lane_delta[2];
+		u32 lane_start[2];
+		
+		bool crashed[2];
+		u32 pre_crash_pos[2];
+		u32 pre_crash_angle[2];
+		u32 crash_duration[2];
+
+		std::vector< std::vector<u32> > sprite_buffer;
+		std::vector<u32> sprite_width;
+		std::vector<u32> sprite_height;
+	} vrs;
+
 	AGB_SIO();
 	~AGB_SIO();
 
@@ -226,6 +260,12 @@ class AGB_SIO
 	void zoids_cdz_process();
 	void zoids_cdz_update();
 	bool zoids_cdz_load_data();
+
+	void vrs_process();
+	void vrs_update();
+	void vrs_draw_menu();
+	void vrs_draw_track();
+	bool vrs_load_data();
 };
 
 #endif // GBA_SIO

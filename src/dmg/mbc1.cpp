@@ -337,7 +337,7 @@ bool DMG_MMU::mbc1s_load_sonar_data(std::string filename)
 		for(u32 y = 0; y < output_h; y++)
 		{
 			index = (output_w * y) + x;
-			u8 s_byte;			
+			u8 s_byte = 0;			
 
 			//Update ground detection
 			if(!is_ground)

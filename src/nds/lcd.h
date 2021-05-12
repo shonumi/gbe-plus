@@ -182,6 +182,13 @@ class NTR_LCD
 
 	gx_matrix last_pos_matrix[4];
 
+	//Normals, light vectors, properties, and colors
+	gx_matrix light_vector[4];
+	gx_matrix current_normal[4];
+	u32 light_colors[4];
+	u32 material_colors[4];
+	float shine_table[4];
+
 	void render_scanline();
 	void render_bg_scanline(u32 bg_control);
 	void render_bg_mode_text(u32 bg_control);
@@ -206,9 +213,14 @@ class NTR_LCD
 	u32 get_rgb15(u16 color_bytes);
 	u32 interpolate_rgb(u32 color_1, u32 color_2, float ratio);
 	u32 alpha_blend_texel(u32 color_1, u32 color_2);
+	u32 alpha_blend_pixel(u32 color_1, u32 color_2, u8 poly_alpha);
 	void update_clip_matrix();
+	void update_vector_matrix();
 	float get_u16_float(u16 value);
 	u32 get_u32_fixed(float raw_value);
+
+	//Virtual Cursor
+	void render_virtual_cursor();
 
 	//Texture functions
 	void gen_tex_1(u32 address);
@@ -224,7 +236,7 @@ class NTR_LCD
 	void brightness_up(u32 bg_control);
 	void brightness_down(u32 bg_control);
 	void alpha_blend(u32 bg_control);
-	void adjust_master_brightness();
+	void adjust_master_brightness(u8 engine_id);
 
 	//Window functions
 	void calculate_window_on_scanline();

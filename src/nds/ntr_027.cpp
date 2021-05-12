@@ -17,32 +17,33 @@ void NTR_MMU::setup_ntr_027()
 	ntr_027.data.resize(0x10000, 0x00);
 	ntr_027.ir_stream.clear();
 	ntr_027.command = 0;
+	ntr_027.packet_parameter = 0;
 	ntr_027.state = 0;
 	ntr_027.ir_counter = 0;
 	ntr_027.connected = false;
 	ntr_027.start_comms = false;
 
 	//Default 40-byte unique ID data - Different for each NTR-027, extracted from a real unit
-	ntr_027.data[0xFB9C] = 0x63;
-	ntr_027.data[0xFB9D] = 0x74;
-	ntr_027.data[0xFB9E] = 0xF4;
-	ntr_027.data[0xFB9F] = 0x05;
-	ntr_027.data[0xFBA0] = 0x01;
-	ntr_027.data[0xFBA1] = 0xC6;
-	ntr_027.data[0xFBA2] = 0x1E;
-	ntr_027.data[0xFBA3] = 0xAC;
-	ntr_027.data[0xFBA4] = 0x9E;
-	ntr_027.data[0xFBA5] = 0x45;
-	ntr_027.data[0xFBA6] = 0xC7;
-	ntr_027.data[0xFBA7] = 0x47;
-	ntr_027.data[0xFBA8] = 0xE0;
-	ntr_027.data[0xFBA9] = 0x00;
-	ntr_027.data[0xFBAA] = 0x10;
-	ntr_027.data[0xFBAB] = 0x08;
-	ntr_027.data[0xFBAC] = 0x00;
-	ntr_027.data[0xFBAD] = 0x01;
-	ntr_027.data[0xFBAE] = 0x42;
-	ntr_027.data[0xFBAF] = 0x06;
+	ntr_027.data[0xFB9C] = 0x14;
+	ntr_027.data[0xFB9D] = 0xF4;
+	ntr_027.data[0xFB9E] = 0x05;
+	ntr_027.data[0xFB9F] = 0x01;
+	ntr_027.data[0xFBA0] = 0xC6;
+	ntr_027.data[0xFBA1] = 0x1E;
+	ntr_027.data[0xFBA2] = 0xAC;
+	ntr_027.data[0xFBA3] = 0x9E;
+	ntr_027.data[0xFBA4] = 0x75;
+	ntr_027.data[0xFBA5] = 0xC7;
+	ntr_027.data[0xFBA6] = 0x47;
+	ntr_027.data[0xFBA7] = 0xE0;
+	ntr_027.data[0xFBA8] = 0x00;
+	ntr_027.data[0xFBA9] = 0x10;
+	ntr_027.data[0xFBAA] = 0x08;
+	ntr_027.data[0xFBAB] = 0x00;
+	ntr_027.data[0xFBAC] = 0x01;
+	ntr_027.data[0xFBAD] = 0x42;
+	ntr_027.data[0xFBAE] = 0x06;
+	ntr_027.data[0xFBAF] = 0x00;
 	ntr_027.data[0xFBB0] = 0x00;
 	ntr_027.data[0xFBB1] = 0x00;
 	ntr_027.data[0xFBB2] = 0x00;
@@ -51,9 +52,8 @@ void NTR_MMU::setup_ntr_027()
 	ntr_027.data[0xFBB5] = 0x00;
 	ntr_027.data[0xFBB6] = 0x00;
 	ntr_027.data[0xFBB7] = 0x00;
-	ntr_027.data[0xFBB8] = 0x00;
-	ntr_027.data[0xFBB9] = 0xFF;
-	ntr_027.data[0xFBBA] = 0x2F;
+	ntr_027.data[0xFBB8] = 0xFF;
+	ntr_027.data[0xFBB9] = 0x2F;
 	//Rest is zero
 
 	//Other data - Extracted from a real unit
@@ -116,13 +116,13 @@ void NTR_MMU::ntr_027_process()
 
 			switch(ntr_027.command)
 			{
-				//EEPROM Read #1
-				//EEPROM Read #2
+				//EEPROM Read
+				//RAM Read
 				case 0x0A:
 				case 0x22:
 					{
-						ntr_027.eeprom_addr = (ntr_027.ir_stream[5] ^ 0xAA);
-						ntr_027.eeprom_addr |= ((ntr_027.ir_stream[4] ^ 0xAA) << 8);
+						ntr_027.mem_addr = (ntr_027.ir_stream[5] ^ 0xAA);
+						ntr_027.mem_addr |= ((ntr_027.ir_stream[4] ^ 0xAA) << 8);
 						u8 read_length = (ntr_027.ir_stream[6] ^ 0xAA);
 
 						//Build IR response
@@ -130,13 +130,13 @@ void NTR_MMU::ntr_027_process()
 
 						ntr_027.ir_stream.push_back(read_length + 4);
 						ntr_027.ir_stream.push_back(ntr_027.command ^ 0xAA);
-						ntr_027.ir_stream.push_back(0x00 ^ 0xAA);
+						ntr_027.ir_stream.push_back(ntr_027.packet_parameter++ ^ 0xAA);
 						ntr_027.ir_stream.push_back(0x00 ^ 0xAA);
 						ntr_027.ir_stream.push_back(0x00 ^ 0xAA);
 
 						for(u32 x = 0; x < read_length; x++)
 						{
-							ntr_027.ir_stream.push_back(ntr_027.data[ntr_027.eeprom_addr++] ^ 0xAA);
+							ntr_027.ir_stream.push_back(ntr_027.data[ntr_027.mem_addr++] ^ 0xAA);
 						}
 
 						u16 ir_sum = get_checksum();
@@ -148,6 +148,53 @@ void NTR_MMU::ntr_027_process()
 					}
 					
 					break;
+
+				//EEPROM Write
+				//RAM Write
+				case 0x08:
+				case 0x20:
+					{
+						ntr_027.mem_addr = (ntr_027.ir_stream[5] ^ 0xAA);
+						ntr_027.mem_addr |= ((ntr_027.ir_stream[4] ^ 0xAA) << 8);
+
+						//Copy data from IR stream to NTR-027 memory
+						for(u16 x = 6; x < ntr_027.ir_stream.size(); x++) { ntr_027.data[ntr_027.mem_addr++] = ntr_027.ir_stream[x]; }
+
+						ntr_027.ir_stream.push_back(4);
+						ntr_027.ir_stream.push_back(ntr_027.command ^ 0xAA);
+						ntr_027.ir_stream.push_back(ntr_027.packet_parameter++ ^ 0xAA);
+						ntr_027.ir_stream.push_back(0x00 ^ 0xAA);
+						ntr_027.ir_stream.push_back(0x00 ^ 0xAA);
+
+						u16 ir_sum = get_checksum();
+						ntr_027.ir_stream[3] = (ir_sum & 0xFF) ^ 0xAA;
+						ntr_027.ir_stream[4] = ((ir_sum >> 8) & 0xFF) ^ 0xAA;
+
+						ntr_027.ir_counter = 0;
+						ntr_027.state = 2;
+					}
+
+					break;
+
+				//Set RTC
+				case 0x24:
+					{
+						ntr_027.ir_stream.push_back(4);
+						ntr_027.ir_stream.push_back(ntr_027.command ^ 0xAA);
+						ntr_027.ir_stream.push_back(ntr_027.packet_parameter++ ^ 0xAA);
+						ntr_027.ir_stream.push_back(0x00 ^ 0xAA);
+						ntr_027.ir_stream.push_back(0x00 ^ 0xAA);
+
+						u16 ir_sum = get_checksum();
+						ntr_027.ir_stream[3] = (ir_sum & 0xFF) ^ 0xAA;
+						ntr_027.ir_stream[4] = ((ir_sum >> 8) & 0xFF) ^ 0xAA;
+
+						ntr_027.ir_counter = 0;
+						ntr_027.state = 2;
+					}
+
+					break;
+
 
 				//IR Handshake
 				case 0xFA:

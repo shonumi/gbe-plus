@@ -41,6 +41,9 @@ class AGB_GamePad
 	u16 key_input;
 	bool is_rumbling;
 	bool is_gb_player;
+	bool disable_input;
+
+	u16 con_flags;
 
 	u16 gyro_value;
 	u8 gyro_flags;

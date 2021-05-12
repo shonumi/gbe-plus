@@ -1,0 +1,129 @@
+Virtureal Racing System Documentation 0.2
+January 6th, 2021
+Shonumi aka D.S. Baxter
+
+***************************************************
+1. Introduction
+***************************************************   
+
+The Virtureal Racing System, also known as the VRS, is a specialized Carrera GO!!! connection track designed to communicate with GBAs. It was introduced exclusively in European markets in 2003. Described as a "motor driver", it replaces the standard connection section for 1:43 Carrera GO!!! tracks and allows players digital control of their slot cars via the GBA. The VRS is used in conjunction with the game Carrera Power Slide, which provides the interface through the Carrera Racing mode.
+
+
+***************************************************
+2. General Hardware Information
+***************************************************
+
+* The VRS is similar to other connection tracks like the Carrera 61512. It adds a bulkier hub, however.
+* Uses 2 switches built into the each lane to provide digital lap counting.
+* Uses 2 built-in Link Cables for GBA connectivity.
+* Accepts 2 standard Carrera GO!!! hand controls.
+* Must be powered externally, as opposed to many later Carrera connection tracks that use batteries.
+* Uses a red LED light to indicate power-on and data transfer modes.
+* Officially referred to as the Carrera 20802.
+
+
+***************************************************
+3. Carrera Racing
+***************************************************
+
+The VRS lets 2 GBAs connect to the motor driver to move slot cars along the track and/or to monitor conditions of the race such as number of laps, total race duration, damage, and fuel level. Power Slide uses a dedicated software mode called "Carrera Racing" for this purpose. The first GBA acts as master and requires a Power Slide cart. The second downloads data from the first via MultiBoot. Power Slide offers several modes of "Real Racing" play through Carrera Racing:
+
+* Free Run: Used as a practice mode.
+* Timed Run: 2-player race. Player with the most laps in a given time limits wins.
+* Lap Race: 2-player race. Complete a given amount of laps. Player with lowest total time wins.
+* Catch-Up: 2-player race. Players compete to lap one another.
+* Ghost Race: Records 1 lap for a lane. The lap can be "played back" on that same lane while racing against it on another.
+* Stop Watch: GBA acts as a stop watch, recording detailed lap time results.
+
+Stop Watch is the only mode that does not use the GBA to control a slot car. Instead, the GBA is used to record lap times, and The Carrera GO!!! hand controls must be used. For all other modes, the GBA controls the slot car, even if hand controls are plugged in. Also note that only the first GBA is required for Carrera Racing. The second racer may use an additional GBA or (if such a GBA is absent) hand controls. If hand controls are used for the second racer, however, Power Slide only recognizes the first racer for the above 2-player modes.
+
+When using a second GBA, the first GBA running Power Slide will send data and code via MultiBoot. Once downloaded, the second GBA will feature an near-exact copy of the Carrera Racing interface, except without the ability to select the "Real Racing" modes or set any options (this is the role of the first GBA).
+
+
+***************************************************
+4. VRS Protocol
+***************************************************
+
+All communication with the VRS uses the GBA's Multi16 mode with a baud rate of 115200bps. The first GBA acts as the Parent, while the second GBA acts as the Child 2. Even though the VRS has only two Link Cables, the entire setup behaves as if an additional GBA is connected as Child 1. This extra connection reports the status for each racer. The entire multiplayer model works as follows:
+
+Racer 1 Input		 	Parent
+Race Status			Child 1
+Racer 2 Input			Child 2
+Unused				Child 3
+
+Each GBA writes to their own input, which in turn controls the speed of the slot car. The VRS is responsible for updating the racers' status which simply consists of counting laps. Because of the nature of Multi16 mode, the first GBA must continually transfer data, even if that racer is not actively sending input to their slot car, otherwise input from the second GBA would not reach the VRS. The format for input and status are described below:
+
+-------------------------------------------------
+Input
+-------------------------------------------------
+Speed Level 0 - Lane 1			| 0xFFC0
+Speed Level 1 - Lane 1			| 0xFF41
+Speed Level 2 - Lane 1			| 0xFF42
+Speed Level 3 - Lane 1			| 0xFFC3
+Speed Level 4 - Lane 1			| 0xFF44
+Speed Level 5 - Lane 1			| 0xFFC5
+Speed Level 6 - Lane 1			| 0xFFC6
+Speed Level 7 - Lane 1			| 0xFF47
+Speed Level 8 - Lane 1			| 0xFF48
+Speed Level 9 - Lane 1			| 0xFFC9
+Speed Level 10 - Lane 1			| 0xFFCA
+Speed Level 11 - Lane 1			| 0xFF4B
+Speed Level 12 - Lane 1			| 0xFFCC
+Speed Level 13 - Lane 1			| 0xFF4D
+Speed Level 14 - Lane 1			| 0xFF4E
+Speed Level 15 - Lane 1			| 0xFFCF
+-------------------------------------------------
+Speed Level 0 - Lane 2			| 0xFF50
+Speed Level 1 - Lane 2			| 0xFFD1
+Speed Level 2 - Lane 2			| 0xFFD2
+Speed Level 3 - Lane 2			| 0xFF53
+Speed Level 4 - Lane 2			| 0xFFD4
+Speed Level 5 - Lane 2			| 0xFF55
+Speed Level 6 - Lane 2			| 0xFF56
+Speed Level 7 - Lane 2			| 0xFFD7
+Speed Level 8 - Lane 2			| 0xFFD8
+Speed Level 9 - Lane 2			| 0xFF59
+Speed Level 10 - Lane 2			| 0xFF5A
+Speed Level 11 - Lane 2			| 0xFFDB
+Speed Level 12 - Lane 2			| 0xFF5C
+Speed Level 13 - Lane 2			| 0xFFDD
+Speed Level 14 - Lane 2			| 0xFFDE
+Speed Level 15 - Lane 2			| 0xFF5F
+-------------------------------------------------
+
+Slot car speeds span 16 different levels. The lower the level, the slower the car moves. Technically, any speed less than or equal to Level 3 results in the slot car not moving at all. This is used when enabling fuel levels during races. In that scenario, Power Slide keeps track of how long it has been sending commands to move the slot car and constantly decreases a virtual amount of fuel. When the software sees that there is no more virtual fuel, it forcibly limits the slot car by setting the speed to Level 3. The racer must then perform a pit stop via the software to recover virtual fuel and continue running the track.
+
+Similar to the virtual fuel, slot cars on the VRS can simulate damage from crashes or collisions. This is entirely a feature of Power Slide's software. When damage is enabled for a race, a "crash" is registered whenever a slot car stops moving for a certain period of time. In the event of a crash, a racer would normally stop input on their GBA and move around to put the slot car back on the track. If a racer takes too much damage, the software limits the speed to Level 3. Racers must then perform a pit stop to repair the car. Unfortunately, the software registers any and all stops (outside of pit stops) as damage, even if no crash physically occurred. The VRS itself has no method to detect when a slot car has left the track, so this software solution based on human behavior works as an approximation.
+
+Either GBA may use Lane 1 or Lane 2; this is not hardwired. Depending on the input received, the VRS will control the slot car for that lane.
+
+-------------------------------------------------
+Status
+-------------------------------------------------
+Current Lap Count - Lane 1	| Bits 0 - 2
+Current Lap Count - Lane 2	| Bits 3 - 6
+Not used - Set Low		| Bit  7
+Not used - Set High		| Bits 8 - 15
+-------------------------------------------------
+
+The lap count is merely a 3-bit value of 0 through 7. Every time a slot car moves through one of the physical switches built into the VRS' two lanes, Bits 0 - 2 or Bits 3 - 6 increment. Once these either of these 3 bits overflow, they begin again at zero. Power Slide constantly monitors these value for any changes, at which point it updates the time for a finished lap. By comparing lap times and the total number of laps completed, the software can determine which racer is in first place as well.
+
+When the VRS and GBAs are connected, Child 1 Multi16 data reads 0xFFFF when the power is off. When the power is on, Child 1 returns the status in the form 0xFF--, where Bit 7 must be low. These values can be used by software to determine whether the VRS is attached and whether or not it is active. If Child 2 Multi16 data reads 0xFFFF, this normally indicates that there is no second GBA attached.
+
+
+***************************************************
+5. LED Indicator
+***************************************************
+
+The LED built into the VRS generally signals whether or not the unit has any external power. However, while the first GBA transmits MultiBoot data to the second GBA prior to racing, the light will temporarily turn off. It will stay off until the MultiBoot process is complete, at which point it comes back on again. The LED appears to shut off whenever a large series of transfers occurs, followed by a pause (presumably of 1/16 seconds or greater), followed by another large series of transfers. Power Slide likely achieves this when calling the MultiBoot Software Interrupt, as that function in the GBA BIOS does contain a brief delay before sending more transfers. Afterwards, the LED will remain off for approximately 54 seconds. Power Slide finishes all MultiBoot transfers by that time. There does not appear to be a way to shut the LED off via software again until the power button is released.
+
+Even when the VRS has no external power, or when external power is provided but the power button is released, serial input/output can cause the LED to come on at a lower brightness. Any time the GBA sets SO as LOW the LED goes dark, while any time the GBA sets SO as HIGH the LED lights up. If both GBAs set their SO values as HIGH, this causes the LED to become slightly brighter than when only one GBA sets SO as HIGH. When the power button is pressed down, the LED reaches its brightest level constantly, and all such traces of serial input/output activity are no longer observable.
+
+
+***************************************************
+6. Multiplayer Protocol
+***************************************************
+
+When using the Carrera Racing interface, any time first GBA sends a value not listed in the VRS protocol, the second GBA running the MultiBoot program is expected to eventually echo what was sent. The first GBA sends specific values in groups of three. If it receives an echo, it knows that the MultiBoot program is running and will enable 2-player functionality in the various racing modes. If no second GBA with the MultiBoot program is detected, Power Slide restricts Carrera Racing to 1-player. Even though a second racer can join in without a GBA by using the standard hand controls, Power Slide will not recognize them via software.
+
+If the first GBA is powered off or reset, the MultiBoot program running on the second GBA does not need to be downloaded again. As long as the second GBA continues running, it will successfully echo any bytes to establish contact.

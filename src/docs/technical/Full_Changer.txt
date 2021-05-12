@@ -1,4 +1,4 @@
-Full Changer Technical Documentation 0.3
+Full Changer Technical Documentation 0.4
 August 10th, 2017
 Shonumi aka D.S. Baxter
 
@@ -45,54 +45,113 @@ Full Changer has a series of status lights and blinks/beeps when swung correctly
 ***************************************************
 
 
-The Full Changer sends a total of 18 IR pulses (on then off periods) when transmitting data. The length of these pulses varies and determines what values the Full Changer is trying to send. Zok Zok Heroes runs in a couple of loops while the pulse takes place. Each iteration, it increments a counter to get an idea of the overall "delay" it takes for the IR light to turn on then turn off. That counter is then placed in WRAM as a single byte (anything greater than 0xFF causes a timeout) and verified later. In this way, Zok Zok Heroes can view data from the Full Changer as a series of bytes rather than light pulses. These 18 bytes do not appear to have to be especially strict values (e.g. changing them +1 or -1 should still yield the same Bright Hero transformation). The overall data format, if any, is currently unknown, making it difficult to determine what those 18 bytes should be without intercepting an actual transmission from the Full Changer (this could change in the future with more analysis).
+The Full Changer sends a total of 18 IR pulses (on then off periods) when transmitting data. The length of these pulses varies and determines what values the Full Changer is trying to send. Zok Zok Heroes runs in a couple of loops while the pulse takes place. Each iteration, it increments a counter to get an idea of the overall "delay" it takes for the IR light to turn on then turn off. That counter is then placed in WRAM as a single byte (anything greater than 0xFF causes a timeout) and verified later. In this way, Zok Zok Heroes can view data from the Full Changer as a series of bytes rather than light pulses. These 18 bytes do not have especially strict values, rather they are expected to fall within a certain range to indicate long or short pulses.
 
 ***************************************************
 5. Capturing IR Data From Full Changer
 ***************************************************
 
 
-Below is the disassembled GBZ80 code Zok Zok Heroes uses to grab the 18 bytes:
+Below is psuedo-code representing how Zok Zok Heroes grabs the 18 bytes:
 
-//This all happens at ROM Bank 1
-//Wait for IR light to come on (Bit 1 of 0xFF46 goes to zero)
-//D is set to 0xFF, timeout if it reaches zero
-DEC D
-RET Z
-LDH A, (0xFF56)
-BIT 1, A
-JR NZ, 0xF9
+==================================
+LABEL CHECK_ON_LOOP:
+==================================
 
-//E acts as a counter for total number of bytes processed from Full Changer
-LD E 0x12
-LD HL, 0xD005
+	//Use an 8-bit CPU register as a Time-Out Counter, initially set to 0xFF, exit if it hits zero
+	TIMEOUT_COUNTER--
+	
+	IF(TIMEOUT_COUNTER == 0)
+	{
+		RETURN
+	}
 
-//Wait for IR light to go off (Bit 1 of 0xFF46 goes to one)
-LD D, 0x00
-CALL 0x575E
-	INC D
-	RET Z
-	LDH A, (0xFF56)
-	BIT 1, A
-	JR Z, 0xF9
-	RET
+	//Load A from 16-bit immediate address for RP register
+	A = [0xFF56]
 
-//Wait for IR light to go on (Bit 1 of 0xFF46 goes to one)
-CALL 0x576C
-	INC D
-	RET Z
-	LDH A, (0xFF56)
-	BIT 1, A
-	JR NZ, 0xF9
-	RET
+	//Wait for IR light to come on (Bit 1 of 0xFF46 goes to zero)
+	IF(A AND 0x1)
+	{
+		GOTO CHECK_ON_LOOP
+	}
 
-//Save results to 0xD005 - 0xD017
-LD (HL), D
-INC HL
-DEC E
+	//Use another 8-bit CPU register to act as a counter for total number of bytes processed from Full Changer
+	TOTAL_BYTES = 0x12
 
-//Jump back to LD, 0x00. Repeat loop until E is zero.
-JR NZ, 0xF3
+	//Set a 16-bit CPU register pair as the destination address (0xD005+) to write IR data
+	DEST_ADDR = 0xD005
+
+==================================
+LABEL GRAB_IR_BYTES:
+==================================
+
+	//Wait for IR light to go off (Bit 1 of 0xFF46 goes to one)
+	//Set an 8-bit CPU register to act as an IR pulse length counter, initialized to 0x00
+	PULSE_LENGTH = 0x00
+
+	CALL WAIT_FOR_OFF
+	CALL WAIT_FOR_ON
+
+	//Save pulse length results to 0xD005 - 0xD017
+	[DEST_ADDR] = PULSE_LENGTH
+
+	DEST_ADDR++
+	TOTAL_BYTES--
+
+	IF(TOTAL_BYTES != 0)
+	{
+		GOTO GRAB_IR_BYTES
+	}
+	
+	...
+
+	//IR handling code ends here
+
+==================================
+FUNCTION WAIT_FOR_OFF:
+==================================
+
+	PULSE_LENGTH++
+	
+	IF(PULSE_LENGTH == 0)
+	{
+		RETURN
+	}
+
+	LOAD_RP_ON:
+		//Load A from 16-bit immediate address for RP register
+		A = [0xFF56]
+
+		//Wait for IR light to come on (Bit 1 of 0xFF46 goes to one)
+		IF((A AND 0x1) == 0x00)
+		{
+			GOTO WAIT_FOR_OFF
+		}
+
+	RETURN
+
+==================================
+FUNCTION WAIT_FOR_ON:
+==================================
+
+	PULSE_LENGTH++
+	
+	IF(PULSE_LENGTH == 0)
+	{
+		RETURN
+	}
+
+	LOAD_RP_OFF:
+		//Load A from 16-bit immediate address for RP register
+		A = [0xFF56]
+
+		//Wait for IR light to come on (Bit 1 of 0xFF46 goes to zero)
+		IF(A AND 0x1)
+		{
+			GOTO WAIT_FOR_ON
+		}
+
+	RETURN
 
 Once all 18 bytes have been stored in WRAM, it's possible to read them and save them using a ROM hack. Alternatively, homebrew software can use code with the same timing to accurately capture IR data from the Full Changer.
 
@@ -104,15 +163,22 @@ Once all 18 bytes have been stored in WRAM, it's possible to read them and save 
 The Full Changer can be successfully emulated by setting Bit 1 of RP register (located at 0xFF56) to 0 or 1 at the appropiate times. To do so requires accurate timing and knowing the amount of cycles it takes to generate the delays represented by those 18 bytes in WRAM. When activating the Full Changer, GBE+ always fires the 1st "ON" IR signal at a specific time to get consistent timings:
 
 
-DEC D
-RET Z
-LDH A, (0xFF56)
+TIMEOUT_COUNTER--
+	
+IF(TIMEOUT_COUNTER == 0)
+{
+	RETURN
+}
+
+A = [0xFF56]
 
 <---- After the CPU reads 0xFF56 and the user activates the Full Changer, IR light is turned on here
-<---- This happens after the actual instruction is executed, so the loop runs once more
+<---- This happens after the actual read instruction is executed, so the loop runs once more
 
-BIT 1, A
-JR NZ, 0xF9
+IF(A AND 0x1)
+{
+	GOTO CHECK_ON_LOOP
+}
 
 
 Afterwards, the timings for ON and OFF pulses can be calculated as such (ALL TIMING IS IN DOUBLE SPEED):
@@ -123,7 +189,7 @@ Every other ON pulse length		78 + (20 * (LENGTH-2))
 
 OFF pulse length			38 + (20 * (LENGTH-2))
 
-The LENGTH is number of times the CPU register D is incremented at 0x575E or 0x576C. The sum two LENGTHs from one ON pulse and one OFF pulse must be equal to the delay data in WRAM. For example, say the delay data contains 0x30. This means that the TOTAL amount of times D was incremented is 0x30. In a perfect world, the Full Changer would probably turn on the IR light so that D is incremented 0x18 times, then turn off the IR light so that D is incremented again 0x18 times. In reality, however, the length of the ON/OFF pulses could run a bit longer or shorter. As far as Zok Zok Heroes is concerned, the total amount of time the IR light is ON then OFF is what matters, so the ON/OFF pulse timings ultimately have to add up.
+The LENGTH is number of times the 8-bit CPU register is incremented in the WAIT_FOR_OFF or WAIT_FOR_ON functions. The sum of two LENGTHs from one ON pulse and one OFF pulse must be equal to the delay data in WRAM. For example, say the delay data contains 0x20. This means that the TOTAL amount of times the 8-bit register was incremented is 0x20. In a perfect world, the Full Changer would probably turn on the IR light so that this 8-bit register is incremented 0x10 times, then turn off the IR light so that D is incremented again 0x10 times. In reality, however, the length of the ON/OFF pulses could run a bit longer or shorter. As far as Zok Zok Heroes is concerned, the total amount of time the IR light is ON then OFF is what matters, so the ON/OFF pulse timings ultimately have to add up.
 
 The current database GBE+ uses recreates ON/OFF pulses that generally run for the same amount of cycles. However, based on hardware tests, the ON pulses have variable lengths, while the OFF pulses are typically constant. Again, Zok Zok Heroes won't care, as long as the total time of the ON/OFF pulses meets whatever value it expects.
 

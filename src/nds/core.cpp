@@ -70,6 +70,9 @@ NTR_core::NTR_core()
 	nds9_debug = true;
 	arm_debug = true;
 
+	//Load Virtual Cursor
+	if(config::vc_enable) { load_virtual_cursor(); }
+
 	std::cout<<"GBE::Launching NDS core\n";
 
 	//OSD

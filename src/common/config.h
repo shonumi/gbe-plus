@@ -34,6 +34,8 @@ bool load_osd_font();
 void draw_osd_msg(std::string osd_text, std::vector <u32> &osd_surface, u8 x_offset, u8 y_offset);
 void draw_osd_msg(std::string osd_text, std::vector <u32> &osd_surface, u8 x_offset, u8 y_offset, u32 width);
 
+bool load_virtual_cursor();
+
 enum special_cart_types
 {
 	NORMAL_CART,
@@ -108,6 +110,7 @@ namespace config
 	extern bool pause_emu;
 	extern bool use_bios;
 	extern bool use_firmware;
+	extern bool no_cart;
 
 	extern special_cart_types cart_type;
 	extern gba_save_types agb_save_type;
@@ -191,6 +194,13 @@ namespace config
 	extern u32 osd_count;
 
 	extern bool use_external_interfaces;
+
+	extern bool vc_enable;
+	extern std::string vc_file;
+	extern std::vector <u32> vc_data;
+	extern u32 vc_wait;
+	extern u32 vc_timeout;
+	extern u8 vc_opacity;
 
 	//Function pointer for external software rendering
 	//This function is provided by frontends that will not rely on SDL

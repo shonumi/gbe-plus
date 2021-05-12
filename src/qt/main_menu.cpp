@@ -22,6 +22,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 {
 	//Setup actions
 	QAction* open = new QAction("Open...", this);
+	QAction* boot_no_cart = new QAction("Boot Empty Slot", this);
 	QAction* select_card = new QAction("Select Card File", this);
 	QAction* select_cam = new QAction("Select GB Camera Photo", this);
 	QAction* select_img = new QAction("Select Image File", this);
@@ -78,6 +79,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 
 	file = new QMenu(tr("File"), this);
 	file->addAction(open);
+	file->addAction(boot_no_cart);
 	file->addSeparator();
 	recent_list = file->addMenu(tr("Recent Files"));
 	file->addAction(select_card);
@@ -138,6 +140,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	//Setup signals
 	connect(quit, SIGNAL(triggered()), this, SLOT(quit()));
 	connect(open, SIGNAL(triggered()), this, SLOT(open_file()));
+	connect(boot_no_cart, SIGNAL(triggered()), this, SLOT(open_no_cart()));
 	connect(select_card, SIGNAL(triggered()), this, SLOT(select_card_file()));
 	connect(select_cam, SIGNAL(triggered()), this, SLOT(select_cam_file()));
 	connect(select_img, SIGNAL(triggered()), this, SLOT(select_img_file()));
@@ -292,7 +295,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	QDialogButtonBox* about_button = new QDialogButtonBox(QDialogButtonBox::Close);
 	connect(about_button->button(QDialogButtonBox::Close), SIGNAL(clicked()), about_box, SLOT(close()));
 
-	QLabel* emu_title = new QLabel("GBE+ 1.4");
+	QLabel* emu_title = new QLabel("GBE+ 1.5");
 	QFont font = emu_title->font();
 	font.setPointSize(18);
 	font.setBold(true);
@@ -301,8 +304,8 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	QImage logo(QString::fromStdString(config::cfg_path + "data/icons/gbe_plus.png"));
 	logo = logo.scaled(128, 128);
 	QLabel* emu_desc = new QLabel("A GB/GBC/GBA/NDS emulator with enhancements");
-	QLabel* emu_copyright = new QLabel("Copyright D.S. Baxter 2014-2020");
-	QLabel* emu_proj_copyright = new QLabel("Copyright GBE+ Team 2014-2020");
+	QLabel* emu_copyright = new QLabel("Copyright D.S. Baxter 2014-2021");
+	QLabel* emu_proj_copyright = new QLabel("Copyright GBE+ Team 2014-2021");
 	QLabel* emu_license = new QLabel("This program is licensed under the GNU GPLv2");
 	QLabel* emu_site = new QLabel("<a href=\"https://github.com/shonumi/gbe-plus/\">GBE+ on GitHub</a>");
 	emu_site->setOpenExternalLinks(true);
@@ -417,6 +420,29 @@ void main_menu::open_file()
 	boot_game();
 }
 
+/****** Boots system without a cartridge ******/
+void main_menu::open_no_cart()
+{
+	//Close the core
+	if(main_menu::gbe_plus != NULL) 
+	{
+		main_menu::gbe_plus->shutdown();
+		main_menu::gbe_plus->core_emu::~core_emu();
+	}
+
+	config::sdl_render = false;
+	config::render_external_sw = render_screen_sw;
+	config::render_external_hw = render_screen_hw;
+	config::sample_rate = settings->sample_rate;
+
+	if(qt_gui::screen != NULL) { delete qt_gui::screen; }
+	qt_gui::screen = NULL;
+
+	config::rom_file = "NOCART";
+
+	boot_game();
+}
+
 /****** Public function for setting card file ******/
 void main_menu::set_card_file() { select_card_file(); }
 
@@ -509,6 +535,9 @@ void main_menu::quit()
 	config::use_stereo = (settings->stereo_enable->isChecked()) ? true : false;
 	config::volume = settings->volume->value();
 	config::use_haptics = (settings->rumble_on->isChecked()) ? true : false;
+	config::vc_enable = (settings->vc_on->isChecked()) ? true : false;
+	config::vc_opacity = settings->vc_opacity->value();
+	config::vc_timeout = settings->vc_timeout->value();
 
 	config::dmg_bios_path = settings->dmg_bios->text().toStdString();
 	config::gbc_bios_path = settings->gbc_bios->text().toStdString();
@@ -544,7 +573,7 @@ void main_menu::boot_game()
 	//Check to see if the ROM file actually exists
 	QFile test_file(QString::fromStdString(config::rom_file));
 	
-	if(!test_file.exists())
+	if((config::rom_file != "NOCART") && (!test_file.exists()))
 	{
 		std::string mesg_text = "The specified file: '" + config::rom_file + "' could not be loaded"; 
 		warning_box->setText(QString::fromStdString(mesg_text));
@@ -565,6 +594,14 @@ void main_menu::boot_game()
 	}
 
 	test_file.setFileName(QString::fromStdString(test_bios_path));
+
+	if((config::rom_file == "NOCART") && (!config::use_bios))
+	{
+		std::string mesg_text = "A BIOS/Boot ROM file must be used when booting without a cartridge\n";
+		warning_box->setText(QString::fromStdString(mesg_text));
+		warning_box->show();
+		return;
+	}
 
 	if(!test_file.exists() && config::use_bios)
 	{
@@ -660,23 +697,36 @@ void main_menu::boot_game()
 	if(settings->rumble_on->isChecked()) { config::use_haptics = true; }
 	else { config::use_haptics = false; }
 
+	//Check Virtual Cursor enable
+	if(settings->vc_on->isChecked()) { config::vc_enable = true; }
+	else { config::vc_enable = false; }
+
+	//Virtual Cursor Opacity
+	config::vc_opacity = settings->vc_opacity->value();
+
+	//Virtual Cursor Timeout
+	config::vc_timeout = settings->vc_timeout->value();
+
 	findChild<QAction*>("pause_action")->setChecked(false);
 
 	menu_height = menu_bar->height();
 
 	//Determine Gameboy type based on file name
 	//Note, DMG and GBC games are automatically detected in the Gameboy MMU, so only check for GBA and NDS types here
-	std::size_t dot = config::rom_file.find_last_of(".");
-	std::string ext = config::rom_file.substr(dot);
+	if(config::rom_file != "NOCART")
+	{
+		std::size_t dot = config::rom_file.find_last_of(".");
+		std::string ext = config::rom_file.substr(dot);
 
-	config::gb_type = settings->sys_type->currentIndex();
+		config::gb_type = settings->sys_type->currentIndex();
 	
-	if(ext == ".gba") { config::gb_type = 3; }
-	else if(ext == ".nds") { config::gb_type = 4; }
-	else if((ext != ".gba") && (config::gb_type == 3)) { config::gb_type = 2; config::gba_enhance = true; }
-	else { config::gba_enhance = false; }
+		if(ext == ".gba") { config::gb_type = 3; }
+		else if(ext == ".nds") { config::gb_type = 4; }
+		else if((ext != ".gba") && (config::gb_type == 3)) { config::gb_type = 2; config::gba_enhance = true; }
+		else { config::gba_enhance = false; }
 
-	if((config::gb_type == 5) || (config::gb_type == 6)) { config::gb_type = get_system_type_from_file(config::rom_file); }
+		if((config::gb_type == 5) || (config::gb_type == 6)) { config::gb_type = get_system_type_from_file(config::rom_file); }
+	}
 
 	//Determine CGFX scaling factor
 	cgfx::scaling_factor = (settings->cgfx_scale->currentIndex() + 1);
@@ -863,6 +913,9 @@ void main_menu::closeEvent(QCloseEvent* event)
 	config::volume = settings->volume->value();
 	config::use_opengl = (settings->ogl->isChecked()) ? true : false;
 	config::use_haptics = (settings->rumble_on->isChecked()) ? true : false;
+	config::vc_enable = (settings->vc_on->isChecked()) ? true : false;
+	config::vc_opacity = settings->vc_opacity->value();
+	config::vc_timeout = settings->vc_timeout->value();
 	
 	config::dmg_bios_path = settings->dmg_bios->text().toStdString();
 	config::gbc_bios_path = settings->gbc_bios->text().toStdString();

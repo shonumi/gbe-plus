@@ -137,6 +137,7 @@
 			<p class="list_item"><a href="#mpos">Multi Plust On System</a></p>
 			<p class="list_item"><a href="#tbfa">Turbo File Advance</a></p>
 			<p class="list_item"><a href="#agb006">AGB-006</a></p>
+			<p class="list_item"><a href="#vrs">Virtureal Racing System</a></p>
 
 			<p class="list_head"><strong>NDS</strong></p>
 			<p class="list_item"><a href="#utp">Ubisoft Thrustmaster Pedometer</a></p>
@@ -731,52 +732,109 @@ P4_byte_4	P4_byte_4	P4_byte_4	P4_byte_4	31</code>
 	<a name="zzh_com"></a>
 	<p class="gray_title">[Full Changer] : IR Communication</p>
 
-	<p>The Full Changer sends a total of 18 IR pulses (ON then OFF periods) when transmitting data. The length of these pulses varies and determines what values the Full Changer is trying to send. Zok Zok Heroes runs in a couple of loops while the pulse takes place. Each iteration, it increments a counter to get an idea of the overall &#34;delay&#34; it takes for the IR light to turn on then turn off. That counter is then placed in WRAM as a single byte (anything greater than 0xFF causes a timeout) and verified later. In this way, Zok Zok Heroes can view data from the Full Changer as a series of bytes rather than light pulses. These 18 bytes do not appear to have to be especially strict values (e.g. changing them +1 or -1 should still yield the same Bright Hero transformation). The overall data format, if any, is currently unknown, making it difficult to determine what those 18 bytes should be without intercepting an actual transmission from the Full Changer (this could change in the future with more analysis).</p>
+	<p>The Full Changer sends a total of 18 IR pulses (ON then OFF periods) when transmitting data. The length of these pulses varies and determines what values the Full Changer is trying to send. Zok Zok Heroes runs in a couple of loops while the pulse takes place. Each iteration, it increments a counter to get an idea of the overall &#34;delay&#34; it takes for the IR light to turn on then turn off. That counter is then placed in WRAM as a single byte (anything greater than 0xFF causes a timeout) and verified later. In this way, Zok Zok Heroes can view data from the Full Changer as a series of bytes rather than light pulses. These 18 bytes do not have especially strict values, rather they are expected to fall within a certain range to indicate long or short pulses.</p>
 
 	<a name="zzh_cap"></a>
 	<p class="gray_title">[Full Changer] : Capturing IR Data</p>
 
-	<p>Below is the disassembled GBZ80 code Zok Zok Heroes uses to grab the 18 bytes:</p>
+	<p>Below is psuedo-code representing how Zok Zok Heroes grabs the 18 bytes:</p>
 
-<code>&#47;&#47;This all happens at ROM Bank 1
-&#47;&#47;Wait for IR light to come on (Bit 1 of 0xFF46 goes to zero)
-&#47;&#47;D is set to 0xFF, timeout if it reaches zero
-DEC D
-RET Z
-LDH A, (0xFF56)
-BIT 1, A
-JR NZ, 0xF9
+<code>==================================
+LABEL CHECK_ON_LOOP:
+==================================
 
-&#47;&#47;E acts as a counter for total number of bytes processed from Full Changer
-LD E 0x12
-LD HL, 0xD005
+	&#47;&#47;Use an 8-bit CPU register as a Time-Out Counter, initially set to 0xFF, exit if it hits zero
+	TIMEOUT_COUNTER--
+	
+	IF(TIMEOUT_COUNTER == 0)
+	{
+		RETURN
+	}
 
-&#47;&#47;Wait for IR light to go off (Bit 1 of 0xFF46 goes to one)
-LD D, 0x00
-CALL 0x575E
-	INC D
-	RET Z
-	LDH A, (0xFF56)
-	BIT 1, A
-	JR Z, 0xF9
-	RET
+	&#47;&#47;Load A from 16-bit immediate address for RP register
+	A = [0xFF56]
 
-&#47;&#47;Wait for IR light to go on (Bit 1 of 0xFF46 goes to one)
-CALL 0x576C
-	INC D
-	RET Z
-	LDH A, (0xFF56)
-	BIT 1, A
-	JR NZ, 0xF9
-	RET
+	&#47;&#47;Wait for IR light to come on (Bit 1 of 0xFF46 goes to zero)
+	IF(A AND 0x1)
+	{
+		GOTO CHECK_ON_LOOP
+	}
 
-&#47;&#47;Save results to 0xD005 - 0xD017
-LD (HL), D
-INC HL
-DEC E
+	&#47;&#47;Use another 8-bit CPU register to act as a counter for total number of bytes processed from Full Changer
+	TOTAL_BYTES = 0x12
 
-&#47;&#47;Jump back to LD, 0x00. Repeat loop until E is zero.
-JR NZ, 0xF3</code>
+	&#47;&#47;Set a 16-bit CPU register pair as the destination address (0xD005+) to write IR data
+	DEST_ADDR = 0xD005
+
+==================================
+LABEL GRAB_IR_BYTES:
+==================================
+
+	&#47;&#47;Wait for IR light to go off (Bit 1 of 0xFF46 goes to one)
+	&#47;&#47;Set an 8-bit CPU register to act as an IR pulse length counter, initialized to 0x00
+	PULSE_LENGTH = 0x00
+
+	CALL WAIT_FOR_OFF
+	CALL WAIT_FOR_ON
+
+	&#47;&#47;Save pulse length results to 0xD005 - 0xD017
+	[DEST_ADDR] = PULSE_LENGTH
+
+	DEST_ADDR++
+	TOTAL_BYTES--
+
+	IF(TOTAL_BYTES != 0)
+	{
+		GOTO GRAB_IR_BYTES
+	}
+	
+	...
+
+	&#47;&#47;IR handling code ends here
+
+==================================
+FUNCTION WAIT_FOR_OFF:
+==================================
+
+	PULSE_LENGTH++
+	
+	IF(PULSE_LENGTH == 0)
+	{
+		RETURN
+	}
+
+	&#47;&#47;Load A from 16-bit immediate address for RP register
+	A = [0xFF56]
+
+	&#47;&#47;Wait for IR light to come on (Bit 1 of 0xFF46 goes to one)
+	IF((A AND 0x1) == 0x00)
+	{
+		GOTO WAIT_FOR_OFF
+	}
+
+	RETURN
+
+==================================
+FUNCTION WAIT_FOR_ON:
+==================================
+
+	PULSE_LENGTH++
+	
+	IF(PULSE_LENGTH == 0)
+	{
+		RETURN
+	}
+
+	&#47;&#47;Load A from 16-bit immediate address for RP register
+	A = [0xFF56]
+
+	&#47;&#47;Wait for IR light to come on (Bit 1 of 0xFF46 goes to zero)
+	IF(A AND 0x1)
+	{
+		GOTO WAIT_FOR_ON
+	}
+
+	RETURN</code>
 
 	<p>Once all 18 bytes have been stored in WRAM, it&#39;s possible to read them and save them using a ROM hack. Alternatively, homebrew software can use code with the same timing to accurately capture IR data from the Full Changer.</p>
 
@@ -785,15 +843,22 @@ JR NZ, 0xF3</code>
 
 	<p>The Full Changer can be successfully emulated by setting Bit 1 of RP register (located at 0xFF56) to 0 or 1 at the appropiate times. To do so requires accurate timing and knowing the amount of cycles it takes to generate the delays represented by those 18 bytes in WRAM. When activating the Full Changer, GBE+ always fires the 1st &#34;ON&#34; IR signal at a specific time to get consistent timings:</p>
 
-<code>DEC D
-RET Z
-LDH A, (0xFF56)
+<code>TIMEOUT_COUNTER--
+	
+IF(TIMEOUT_COUNTER == 0)
+{
+	RETURN
+}
+
+A = [0xFF56]
 
 &lt;---- After the CPU reads 0xFF56 and the user activates the Full Changer, IR light is turned on here
-&lt;---- This happens after the actual instruction is executed, so the loop runs once more
+&lt;---- This happens after the actual read instruction is executed, so the loop runs once more
 
-BIT 1, A
-JR NZ, 0xF9</code>
+IF(A AND 0x1)
+{
+	GOTO CHECK_ON_LOOP
+}</code>
 
 	<p>Afterwards, the timings for ON and OFF pulses can be calculated as such (ALL TIMING IS IN DOUBLE SPEED):</p>
 
@@ -803,7 +868,7 @@ Every other ON pulse length		78 + (20 * (LENGTH-2))
 
 OFF pulse length			38 + (20 * (LENGTH-2))</code>
 
-	<p>The LENGTH is number of times the CPU register D is incremented at 0x575E or 0x576C. The sum two LENGTHs from one ON pulse and one OFF pulse must be equal to the delay data in WRAM. For example, say the delay data contains 0x30. This means that the TOTAL amount of times D was incremented is 0x30. In a perfect world, the Full Changer would probably turn on the IR light so that D is incremented 0x18 times, then turn off the IR light so that D is incremented again 0x18 times. In reality, however, the length of the ON&#47;OFF pulses could run a bit longer or shorter. As far as Zok Zok Heroes is concerned, the total amount of time the IR light is ON then OFF is what matters, so the ON&#47;OFF pulse timings ultimately have to add up.</p>
+	<p>The LENGTH is number of times the 8-bit CPU register is incremented in the WAIT_FOR_OFF or WAIT_FOR_ON functions. The sum of two LENGTHs from one ON pulse and one OFF pulse must be equal to the delay data in WRAM. For example, say the delay data contains 0x20. This means that the TOTAL amount of times the 8-bit register was incremented is 0x20. In a perfect world, the Full Changer would probably turn on the IR light so that this 8-bit register is incremented 0x10 times, then turn off the IR light so that D is incremented again 0x10 times. In reality, however, the length of the ON&#47OFF pulses could run a bit longer or shorter. As far as Zok Zok Heroes is concerned, the total amount of time the IR light is ON then OFF is what matters, so the ON&#47OFF pulse timings ultimately have to add up</p>
 
 	<p>The current database GBE+ uses recreates ON&#47;OFF pulses that generally run for the same amount of cycles. However, based on hardware tests, the ON pulses have variable lengths, while the OFF pulses are typically constant. Again, Zok Zok Heroes won&#39;t care, as long as the total time of the ON&#47;OFF pulses meets whatever value it expects.</p>
 
@@ -928,55 +993,80 @@ ID	| Japanese Name		| Translated Name		| Cosmic Character Movements
 	<a name="ir_gam"></a>
 	<p class="gray_title">[GBC Infrared] : Compatible Games</p>
 
-	<p>This list represents all the games that have been verified to use the IR port. While exhaustive, this list is probably not complete. There are likely more Japanese exclusives that need to be added. It's dubious whether or not Animorphs actually is a "Ubi Key" game. The back boxart doesn't have the "IR Compatible" logo, and the manual makes no mention of IR communication.</p>
+	<p>This list represents all the games that have been verified to use the IR port. While exhaustive, this list is probably not complete. There are likely more Japanese exclusives that need to be added. It&#39;s dubious whether or not Animorphs actually is a &#34;Ubi Key&#34; game. The back boxart doesn&#39;t have the &#34;IR Compatible&#34; logo, and the manual makes no mention of IR communication.</p>
+
+	<p>The North American version of Disney&#39;s Aladdin claims to have infrared support on the box, supposedly for Ubi Key functionality, however, no such option is accessible in the game. Additionally, European variants omit the GBC IR logo from their boxes. It's possible that like Animorphs, Aladdin had its IR features stripped.</p>
 
 	<ul>
+		<li class="list_tab"><div class="x">Animal Breeder 3</div><div class="y">Matchmaking between animals raised by the player</div></li>
+		<li class="list_tab"><div class="x">Animal Breeder 4</div><div class="y">Exchange animals or have them marry</div></li>
 		<li class="list_tab"><div class="x">Austin Powers: Oh Behave!</div><div class="y">Trade items and messages</div></li>
 		<li class="list_tab"><div class="x">Austin Powers: Welcome to My Underground Lair!</div><div class="y">Trade items and messages</div></li>
+		<li class="list_tab"><div class="x">Bakuten Shoot Beyblade</div><div class="y">Engage in 1-on-1 battles</div></li>
+		<li class="list_tab"><div class="x">Beyblade: Fighting Tournament</div><div class="y">???</div></li>
+		<li class="list_tab"><div class="x">Boku no Camp-jou</div><div class="y">Exchange money earned from hunting and fishing</div></li>
 		<li class="list_tab"><div class="x">Bomberman Max: Blue Champion</div><div class="y">Combine Charaboms&#47;Trade completed levels&#47;Unlock hidden areas</div></li>
 		<li class="list_tab"><div class="x">Bomberman Max: Red Challenger</div><div class="y">Combine Charaboms&#47;Trade completed levels&#47;Unlock hidden areas</div></li>
-		<li class="list_tab"><div class="x">Carl Lewis Alhletics 2000</div><div class="y">Ubi Key</div></li>
+		<li class="list_tab"><div class="x">Data Navi Pro Yakyuu</div><div class="y">Send/Receive baseball team data</div></li>
+		<li class="list_tab"><div class="x">Data Navi Pro Yakyuu 2</div><div class="y">Send/Receive baseball team data</div></li>
+		<li class="list_tab"><div class="x">Carl Lewis Alhletics 2000</div><div class="y">Ubi Key -> Unlocks Decathalon mode</div></li>
 		<li class="list_tab"><div class="x">Catz</div><div class="y">Trade Petz and Toyz</div></li>
 		<li class="list_tab"><div class="x">Chee-Chai Alien</div><div class="y">Enhances IR sensor to detect artificial light sources. Catch&#47;trade Chaliens</div></li>
 		<li class="list_tab"><div class="x">Dancing Furby</div><div class="y">Sends signal to Furby doll, Furby reacts based on dance performance</div></li>
-		<li class="list_tab"><div class="x">Disney&#39;s Aladdin</div><div class="y">Ubi Key</div></li>
 		<li class="list_tab"><div class="x">Dogz</div><div class="y">Trade Petz and Toyz</div></li>
+		<li class="list_tab"><div class="x">Doki Doki Densetsu: Mahoujin Guru Guru</div><div class="y">Fight card battles using magic circles from the game</div></li>
 		<li class="list_tab"><div class="x">Donkey Kong Country</div><div class="y">Transfer pictures to stickerbook</div></li>
-		<li class="list_tab"><div class="x">Flipper &#38; Lopaka</div><div class="y">Ubi Key</div></li>
+		<li class="list_tab"><div class="x">Dr. Rin Ni Kiitemite!</div><div class="y">Do fortune-telling with a friend and exchange stickers</div></li>
+		<li class="list_tab"><div class="x">Dungeon Savior</div><div class="y">Transfer a Guardian from one game to another</div></li>
+		<li class="list_tab"><div class="x">Flipper &#38; Lopaka</div><div class="y">Ubi Key -> Unlocks a bonus &#34;Ubi Key Level&#34;</div></li>
 		<li class="list_tab"><div class="x">Game Boy Wars 3</div><div class="y">Wireless multiplayer</div></li>
+		<li class="list_tab"><div class="x">GB Harobots</div><div class="y">Create new Robo Data via infrared signals</div></li>
+		<li class="list_tab"><div class="x">Gran Duel: Shinki Dungeon no Hihou</div><div class="y">???</div></li>
+		<li class="list_tab"><div class="x">Gyouten Ningen Batseelor: Dakutoru Gai no Yabo</div><div class="y">Exchange collectible stickers</div></li>
+		<li class="list_tab"><div class="x">Hamster Paradise 3 (Churi)</div><div class="y">Exchange e-mail</div></li>
+		<li class="list_tab"><div class="x">Hamster Paradise 4</div><div class="y">Exchange hamsters</div></li>
 		<li class="list_tab"><div class="x">Hamtaro: Ham-Hams Unite!</div><div class="y">Trade Hamtaro&#39;s clothes</div></li>
 		<li class="list_tab"><div class="x">Harry Potter and the Sorceror&#39;s Stone</div><div class="y">Trade &#34;Famous Witches and Wizards&#34; cards</div></li>
 		<li class="list_tab"><div class="x">Harry Potter and the Chamber of Secrets</div><div class="y">Trade &#34;Famous Witches and Wizards&#34; cards</div></li>
-		<li class="list_tab"><div class="x">Hype: The Time Quest</div><div class="y">Ubi Key</div></li>
-		<li class="list_tab"><div class="x">Inspector Gadget: Operation Madkactus</div><div class="y">Ubi Key</div></li>
+		<li class="list_tab"><div class="x">Herohero-kun</div><div class="y">Exchange personal profiles</div></li>
+		<li class="list_tab"><div class="x">Hunter x Hunter: Hunter no Keifu</div><div class="y">Use "D-Trans" from Yu-Gi-Oh to meet Card Hunter Augu and unlock a hidden &#34;Muuou&#34; scenario</div></li>
+		<li class="list_tab"><div class="x">Hype: The Time Quest</div><div class="y">Ubi Key -> Unlocks a bonus level</div></li>
+		<li class="list_tab"><div class="x">Inspector Gadget: Operation Madkactus</div><div class="y">Ubi Key -> Unlocks a bonus level</div></li>
 		<li class="list_tab"><div class="x">Kaijin Zona</div><div class="y">Receive randomized puzzles via IR signals</div></li>
+		<li class="list_tab"><div class="x">Lego Island 2</div><div class="y">Swap trading cards</div></li>
+		<li class="list_tab"><div class="x">Lemmings VS</div><div class="y">View Win/Loss records with other players</div></li>
 		<li class="list_tab"><div class="x">Mary-Kate and Ashley Pocket Planner</div><div class="y">Send and receive &#34;G-mail&#34; messages</div></li>
 		<li class="list_tab"><div class="x">Mickey&#39;s Racing Adventure</div><div class="y">Send and receive messages. Unlocks a secret race track in Mickey&#39;s Speedway USA</div></li>
 		<li class="list_tab"><div class="x">Mickey&#39;s Speedway USA</div><div class="y">???</div></li>
 		<li class="list_tab"><div class="x">Mission Impossible</div><div class="y">Send and receive messages, notes, addresses + custom TV remote</div></li>
-		<li class="list_tab"><div class="x">Papyrus</div><div class="y">Ubi Key</div></li>
+		<li class="list_tab"><div class="x">NHL Blades of Steel</div><div class="y">Trade individual hockey players</div></li>
+		<li class="list_tab"><div class="x">NHL Blades of Steel 2000</div><div class="y">Trade individual hockey players</div></li>
+		<li class="list_tab"><div class="x">Papyrus</div><div class="y">Ubi Key -> Unlocks a bonus level</div></li>
 		<li class="list_tab"><div class="x">Perfect Dark</div><div class="y">Trade multiplayer maps and other unlockables</div></li>
-		<li class="list_tab"><div class="x">Playmobil Interactive: Laura</div><div class="y">Ubi Key</div></li>
+		<li class="list_tab"><div class="x">Playmobil Interactive: Laura</div><div class="y">Ubi Key -> Unlocks &#34;Catch the Hazelnuts&#34; minigame</div></li>
 		<li class="list_tab"><div class="x">Pocket Family GB 2</div><div class="y">Transfer characters and data</div></li>
+		<li class="list_tab"><div class="x">Pocket Soccer</div><div class="y">Transfer individual soccer players</div></li>
 		<li class="list_tab"><div class="x">Pokemon Pinball</div><div class="y">Trade/combine Top Scores</div></li>
 		<li class="list_tab"><div class="x">Pokemon Gold</div><div class="y">Mystery Gift + Send trainer data to Viridian City Trainer House</div></li>
 		<li class="list_tab"><div class="x">Pokemon Silver</div><div class="y">Mystery Gift + Send trainer data to Viridian City Trainer House</div></li>
 		<li class="list_tab"><div class="x">Pokemon Crystal</div><div class="y">Mystery Gift + Send trainer data to Viridian City Trainer House</div></li>
 		<li class="list_tab"><div class="x">Pokemon Trading Card Game</div><div class="y">&#34;Card Pop&#34; to generate random cards. Trade individual cards. Trade deck configurations</div></li>
 		<li class="list_tab"><div class="x">Pokemon Card GB2: Here Comes Team GR!</div><div class="y">&#34;Card Pop&#34; to generate random cards. Trade individual cards. Trade deck configurations</div></li>
-		<li class="list_tab"><div class="x">Return of the Ninja</div><div class="y">Trade &#34;Ninja Cards&#34;</div></li>
+		<li class="list_tab"><div class="x">Qui Qui</div><div class="y">???</div></li>
 		<li class="list_tab"><div class="x">Rayman</div><div class="y">Ubi Key -> Unlocks secret level Ubi Cliff</div></li>
+		<li class="list_tab"><div class="x">Return of the Ninja</div><div class="y">Trade &#34;Ninja Cards&#34;</div></li>
+		<li class="list_tab"><div class="x">Rugrats: Totally Angelica</div><div class="y">???</div></li>
 		<li class="list_tab"><div class="x">Robopon Sun Version</div><div class="y">Boost stats via infrared signals. Open certain chests</div></li>
-		<li class="list_tab"><div class="x">The Road to El Dorado</div><div class="y">Ubi Key</div></li>
+		<li class="list_tab"><div class="x">The Road to El Dorado</div><div class="y">Ubi Key -> Unlocks a secret level similar to Levels 6 and 7</div></li>
 		<li class="list_tab"><div class="x">Sakura Taisen GB</div><div class="y">Send step-based &#34;Points&#34; to GBC from Pocket Sakura, or between two GBCs</div></li>
 		<li class="list_tab"><div class="x">Shin Megami Tensei Devil Children White</div><div class="y">Used for &#34;Infrared Fusion&#34; to strengthen some demons, obtain rare ones</div></li>
-		<li class="list_tab"><div class="x">Spirou: The Robot Invasion</div><div class="y">Ubi Key</div></li>
+		<li class="list_tab"><div class="x">Spirou: The Robot Invasion</div><div class="y">Ubi Key -> Unlocks a bonus level</div></li>
 		<li class="list_tab"><div class="x">Super Mario Bros. DX</div><div class="y">Trade/combine Top Scores</div></li>
-		<li class="list_tab"><div class="x">Suzuki Alstare Extreme Racing</div><div class="y">Ubi Key</div></li>
-		<li class="list_tab"><div class="x">Tonic Trouble</div><div class="y">Ubi Key</div></li>
-		<li class="list_tab"><div class="x">Toonsylvania</div><div class="y">Ubi Key</div></li>
+		<li class="list_tab"><div class="x">Suzuki Alstare Extreme Racing</div><div class="y">Ubi Key -> Unlocks the Extreme Championship mode</div></li>
+		<li class="list_tab"><div class="x">Tonic Trouble</div><div class="y">Ubi Key -> Unlocks a bonus level/demo</div></li>
+		<li class="list_tab"><div class="x">Toonsylvania</div><div class="y">Ubi Key -> Unlocks a bonus level with extra lives and items</div></li>
 		<li class="list_tab"><div class="x">Tottoko Hamtaro: Tomodachi Daisakusen Dechu</div><div class="y">???</div></li>
-		<li class="list_tab"><div class="x">V.I.P.</div><div class="y">Ubi Key</div></li>
+		<li class="list_tab"><div class="x">V.I.P.</div><div class="y">Ubi Key -> Unlocks a bonus &#34;Ubi Key Level&#34;</div></li>
 		<li class="list_tab"><div class="x">Warlocked</div><div class="y">Trade wizards</div></li>
 		<li class="list_tab"><div class="x">Zok Zok Heroes</div><div class="y">Transmit &#34;Cosmic Characters&#34; from Full Changer accessory to transform hero</div></li>
 	</ul>
@@ -1958,7 +2048,7 @@ Checksum
 0x20				Shift Up 0.75mm
 -------------------------------------------------</code>
 
-	<p>Ultimately, the sewing machines can program stitching to move vertically in 0.0625 increments and horizontally in 0.25 increments. Horizontal movement is limited to a set &#34;window&#34;, e.g. setting multiple X coordinates to 0x1F keeps the stitching at farthest point right. Vertical movement is unlimited, as the machines will move the fabric up or down like a feed.</p>
+	<p>Ultimately, the sewing machines can program stitching to move vertically in 0.0625mm increments and horizontally in 0.25mm increments. Horizontal movement is limited to a set &#34;window&#34;, e.g. setting multiple X coordinates to 0x1F keeps the stitching at farthest point right. Vertical movement is unlimited, as the machines will move the fabric up or down like a feed.</p>
 
 	<p>While the X and Y coordinates come in pair, it is important to note how each affects the movement of the needle and fabric. The below example demonstrates how X and Y coordinates actually dictate movement, assuming there are only 4 sets of Real Coordinate data.</p>
 
@@ -2477,15 +2567,16 @@ RCNT		|SC	| SD	| SI	| SO 	| Bit
 
 	<p>Currently, there are 22 identified Pluster figurines along with some 16-bit IDs that will generate that character in the games. There are multiple variants of figurines, therefore Plusters have multiple valid IDs, since the configuration of their spokes is different. The electronic toys may treat them differently, yet the GBA games do not.</p>
 
-	<p><strong>IMPORTANT:</strong> These IDs were generated artificially by testing them against the games, so with the exception of Wyburst (0x16A0) none of these represent actual IDs captured from a MPOS. They are, however, sufficient for the purposes of emulation or using homebrew on a second GBA to fake a connected MPOS.</p>
+	<p><strong>IMPORTANT:</strong> Most of these IDs were generated artificially by testing them against the games. Entries marked with a &#34;!&#34; represent actual IDs directly captured from a MPOS. The artificially generated ones are, however, sufficient for the purposes of emulation or using homebrew on a second GBA to fake a connected MPOS.</p>
 
 <code>PF001 :: Beetma
+	! 0x1780
 	* 0x16C0
 	* 0x1682
 	* 0x1642
 
 PF002 :: Wyburst
-	* 0x16A0
+	! 0x16A0
 	* 0x1660
 	* 0x1622
 
@@ -2543,7 +2634,7 @@ PF016 :: Dorastorm
 	* 0x16FC
 
 PF-EX001 :: Beetma EX
-	* 0x1666
+	! 0x1666
 
 PF-EX002 :: Varouze
 	* 0x1636
@@ -2817,6 +2908,131 @@ For Misc. Actions
 	<p class="gray_title">[AGB-006] : Prototype IR Port</p>
 
 	<p>Cyber Drive Zoids appears to frequently read from the memory location 0x4000136 which was supposed to have been the MMIO register for the IR port on prototype GBAs. The AGB-006 does not cause the 16-bit value of that location to change at all, however, and all reads do in fact return zero. The purpose of that bit of code is currently unclear. It may be a remnant of earlier code long made before the AGB-006 was fully realized.</p>
+
+	<!-- Virtureal Racing System -->
+	<a name="vrs"></a>
+	<p class="gray_title">Virtureal Racing System</p>
+	<p class="list_item"><a href="#vrs_gen">General Hardware Information</a></p>
+	<p class="list_item"><a href="#vrs_car">Carrera Racing</a></p>
+	<p class="list_item"><a href="#vrs_pro">VRS Protocol</a></p>
+	<p class="list_item"><a href="#vrs_led">LED Indicator</a></p>
+	<p class="list_item"><a href="#vrs_mlt">Multiplayer Protocol</a></p>
+
+	<a name="vrs_gen"></a>
+	<p class="gray_title">[Virtureal Racing System] : General Hardware Information</p>
+
+	<p>The Virtureal Racing System, also known as the VRS, is a specialized Carrera GO!!! connection track designed to communicate with GBAs. It was introduced exclusively in European markets in 2003. Described as a &#34;motor driver&#34;, it replaces the standard connection section for 1:43 Carrera GO!!! tracks and allows players digital control of their slot cars via the GBA. The VRS is used in conjunction with the game Carrera Power Slide, which provides the interface through the Carrera Racing mode.</p>
+
+	<ul>
+		<li class="list_item">The VRS is similar to other connection tracks like the Carrera 61512. It adds a bulkier hub, however.</li>
+		<li class="list_item">Uses 2 switches built into the each lane to provide digital lap counting.</li>
+		<li class="list_item">Uses 2 built-in Link Cables for GBA connectivity.</li>
+		<li class="list_item">Accepts 2 standard Carrera GO!!! hand controls.</li>
+		<li class="list_item">Must be powered externally, as opposed to many later Carrera connection tracks that use batteries.</li>
+		<li class="list_item">Uses a red LED light to indicate power-on and data transfer modes.</li>
+		<li class="list_item">Officially referred to as the Carrera 20802.</li>
+	</ul>
+
+	<a name="vrs_car"></a>
+	<p class="gray_title">[Virtureal Racing System] : Carrera Racing</p>
+
+	<p>The VRS lets 2 GBAs connect to the motor driver to move slot cars along the track and/or to monitor conditions of the race such as number of laps, total race duration, damage, and fuel level. Power Slide uses a dedicated software mode called &#34;Carrera Racing&#34; for this purpose. The first GBA acts as master and requires a Power Slide cart. The second downloads data from the first via MultiBoot. Power Slide offers several modes of &#34;Real Racing&#34; play through Carrera Racing:</p>
+
+	<ul>
+		<li class="list_item">Free Run: Used as a practice mode.</li>
+		<li class="list_item">Timed Run: 2-player race. Player with the most laps in a given time limits wins.</li>
+		<li class="list_item">Lap Race: 2-player race. Complete a given amount of laps. Player with lowest total time wins.</li>
+		<li class="list_item">Catch-Up: 2-player race. Players compete to lap one another.</li>
+		<li class="list_item">Ghost Race: Records 1 lap for a lane. The lap can be &#34;played back&#34; on that same lane while racing against it on another.</li>
+		<li class="list_item">Stop Watch: GBA acts as a stop watch, recording detailed lap time results.</li>
+	</ul>
+
+	<p>Stop Watch is the only mode that does not use the GBA to control a slot car. Instead, the GBA is used to record lap times, and The Carrera GO!!! hand controls must be used instead. For all other modes, the GBA controls the slot car, even if hand controls are plugged in. Also note that only the first GBA is required for Carrera Racing. The second racer may use an additional GBA or (if such a GBA is absent) hand controls. If hand controls are used for the second racer, however, Power Slide only recognizes the first racer for the above 2-player modes.</p>
+
+	<p>When using a second GBA, the first GBA running Power Slide will send data and code via MultiBoot. Once downloaded, the second GBA will feature an near-exact copy of the Carrera Racing interface, except without the ability to select the &#34;Real Racing&#34; modes or set any options (this is the role of the first GBA).</p>
+
+	<a name="vrs_pro"></a>
+	<p class="gray_title">[Virtureal Racing System] : VRS Protocol</p>
+
+	</p>All communication with the VRS uses the GBA&#39;s Multi16 mode with a baud rate of 115200bps. The first GBA acts as the Parent, while the second GBA acts as the Child 2. Even though the VRS has only two Link Cables, the entire setup behaves as if an additional GBA is connected as Child 1. This extra connection reports the status for each racer. The entire multiplayer model works as follows</p>
+
+<code>Racer 1 Input		 	Parent
+Race Status			Child 1
+Racer 2 Input			Child 2
+Unused				Child 3</code>
+
+	<p>Each GBA writes to their own input, which in turn controls the speed of the slot car. The VRS is responsible for updating the racers&#39; status which simply consists of counting laps. Because of the nature of Multi16 mode, the first GBA must continually transfer data, even if that racer is not actively sending input to their slot car, otherwise input from the second GBA would not reach the VRS. The format for input and status are described below:</p>
+
+<code>-------------------------------------------------
+Input
+-------------------------------------------------
+Speed Level 0 - Lane 1			| 0xFFC0
+Speed Level 1 - Lane 1			| 0xFF41
+Speed Level 2 - Lane 1			| 0xFF42
+Speed Level 3 - Lane 1			| 0xFFC3
+Speed Level 4 - Lane 1			| 0xFF44
+Speed Level 5 - Lane 1			| 0xFFC5
+Speed Level 6 - Lane 1			| 0xFFC6
+Speed Level 7 - Lane 1			| 0xFF47
+Speed Level 8 - Lane 1			| 0xFF48
+Speed Level 9 - Lane 1			| 0xFFC9
+Speed Level 10 - Lane 1			| 0xFFCA
+Speed Level 11 - Lane 1			| 0xFF4B
+Speed Level 12 - Lane 1			| 0xFFCC
+Speed Level 13 - Lane 1			| 0xFF4D
+Speed Level 14 - Lane 1			| 0xFF4E
+Speed Level 15 - Lane 1			| 0xFFCF
+-------------------------------------------------
+Speed Level 0 - Lane 2			| 0xFF50
+Speed Level 1 - Lane 2			| 0xFFD1
+Speed Level 2 - Lane 2			| 0xFFD2
+Speed Level 3 - Lane 2			| 0xFF53
+Speed Level 4 - Lane 2			| 0xFFD4
+Speed Level 5 - Lane 2			| 0xFF55
+Speed Level 6 - Lane 2			| 0xFF56
+Speed Level 7 - Lane 2			| 0xFFD7
+Speed Level 8 - Lane 2			| 0xFFD8
+Speed Level 9 - Lane 2			| 0xFF59
+Speed Level 10 - Lane 2			| 0xFF5A
+Speed Level 11 - Lane 2			| 0xFFDB
+Speed Level 12 - Lane 2			| 0xFF5C
+Speed Level 13 - Lane 2			| 0xFFDD
+Speed Level 14 - Lane 2			| 0xFFDE
+Speed Level 15 - Lane 2			| 0xFF5F
+-------------------------------------------------</code>
+
+	<p>Slot car speeds span 16 different levels. The higher the level, the faster the car moves. The lower the level, the slower the car moves. Normally, the maximum is Level 7, however turbo boosts temporarily allow cars to reach the upper levels.  Technically, any speed less than or equal to Level 3 results in the slot car not moving at all. This is used when enabling fuel levels during races. In that scenario, Power Slide keeps track of how long it has been sending commands to move the slot car and constantly decreases a virtual amount of fuel. When the software sees that there is no more virtual fuel, it forcibly limits the slot car by setting the speed to Level 3. The racer must then perform a pit stop via the software to recover virtual fuel and continue running the track.</p>
+
+	<p>Similar to the virtual fuel, slot cars on the VRS can simulate damage from crashes or collisions. This is entirely a feature of Power Slide&#39;s software. When damage is enabled for a race, a &#34;crash&#34; is registered whenever a slot car stops moving for a certain period of time. In the event of a crash, a racer would normally stop input on their GBA and move around to put the slot car back on the track. If a racer takes too much damage, the software limits the speed to Level 3. Racers must then perform a pit stop to repair the car. Unfortunately, the software registers any and all stops (outside of pit stops) as damage, even if no crash physically occurred. The VRS itself has no method to detect when a slot car has left the track, so this software solution based on human behavior works as an approximation.</p>
+
+	<p>Either GBA may use Lane 1 or Lane 2; this is not hardwired. Depending on the input received, the VRS will control the slot car for that lane.</p>
+
+<code>-------------------------------------------------
+Status
+-------------------------------------------------
+Current Lap Count - Lane 1	| Bits 0 - 2
+Current Lap Count - Lane 2	| Bits 3 - 6
+Not used - Set Low		| Bit  7
+Not used - Set High		| Bits 8 - 15
+-------------------------------------------------</code>
+
+	<p>The lap count is merely a 3-bit value of 0 through 7. Every time a slot car moves through one of the physical switches built into the VRS&#39; two lanes, Bits 0 - 2 or Bits 3 - 6 increment. Once these either of these 3 bits overflow, they begin again at zero. Power Slide constantly monitors these value for any changes, at which point it updates the time for a finished lap. By comparing lap times and the total number of laps completed, the software can determine which racer is in first place as well.</p>
+
+	<p>When the VRS and GBAs are connected, Child 1 Multi16 data reads 0xFFFF when the power is off. When the power is on, Child 1 returns the status in the form 0xFF--, where Bit 7 must be low. These values can be used by software to determine whether the VRS is attached and whether or not it is active. If Child 2 Multi16 data reads 0xFFFF, this normally indicates that there is no second GBA attached.</p>
+
+	<a name="vrs_led"></a>
+	<p class="gray_title">[Virtureal Racing System] : LED Indicator</p>
+
+	<p>The LED built into the VRS generally signals whether or not the unit has any external power. However, while the first GBA transmits MultiBoot data to the second GBA prior to racing, the light will temporarily turn off. It will stay off until the MultiBoot process is complete, at which point it comes back on again. The LED appears to shut off whenever a large series of transfers occurs, followed by a pause (presumably of 1/16 seconds or greater), followed by another large series of transfers. Power Slide likely achieves this when calling the MultiBoot Software Interrupt, as that function in the GBA BIOS does contain a brief delay before sending more transfers. Afterwards, the LED will remain off for approximately 54 seconds. Power Slide finishes all MultiBoot transfers by that time. There does not appear to be a way to shut the LED off via software again until the power button is released.</p>
+
+	<p>Even when the VRS has no external power, or when external power is provided but the power button is released, serial input/output can cause the LED to come on at a lower brightness. Any time the GBA sets SO as LOW the LED goes dark, while any time the GBA sets SO as HIGH the LED lights up. If both GBAs set their SO values as HIGH, this causes the LED to become slightly brighter than when only one GBA sets SO as HIGH. When the power button is pressed down, the LED reaches its brightest level constantly, and all such traces of serial input/output activity are no longer observable.</p>
+
+	<a name="vrs_mlt"></a>
+	<p class="gray_title">[Virtureal Racing System] : Multiplayer Protocol</p>
+
+	<p>When using the Carrera Racing interface, any time first GBA sends a value not listed in the VRS protocol, the second GBA running the MultiBoot program is expected to eventually echo what was sent. The first GBA sends specific values in groups of three. If it receives an echo, it knows that the MultiBoot program is running and will enable 2-player functionality in the various racing modes. If no second GBA with the MultiBoot program is detected, Power Slide restricts Carrera Racing to 1-player. Even though a second racer can join in without a GBA by using the standard hand controls, Power Slide will not recognize them via software.</p>
+
+	<p>If the first GBA is powered off or reset, the MultiBoot program running on the second GBA does not need to be downloaded again. As long as the second GBA continues running, it will successfully echo any bytes to establish contact.</p>
 
 	<!-- Ubisoft Thrustmaster Pedometer -->
 	<a name="utp"></a>
@@ -4114,7 +4330,17 @@ Offset + 0x08 ...		::	Minigame data (as described below in Minigame Format).</co
 
 	<p>The minigame is copied to various RAM locations (SRAM and WRAM) until it is finally written to Flash. A maximum of 0x200 bytes is copied at a time. The wrapper, however, expects a 0x100 &#34;footer&#34; to be inserted after each of the 0x200 chunks. This is only necessary if the minigame size is greater than 0x200 bytes. For example, if a minigame is only 0x100 bytes, then the footer can be ignored, although such a small size is rather impractical. Additionally, only the last footer technically needs to be correctly formatted. The default footer is as follows:</p>
 
-	<p>0x00, 0x00, 0x01, 0x00, 0x02, 0x03, 0x00, 0x04, 0x00, 0x05, 0x00, 0x06, 0x00, 0x07, 0x00, 0x08, 0x00, 0x09, 0x00, 0x0A, 0x00, 0x0B, 0x0C, 0x00, 0x0D, 0x00, 0x0E, 0x00, 0xFF ... (the remaining 225 bytes should be 0x00).</p>
+<code>
+0x00, 0x00, 0x01, 0x00,
+0x02, 0x00, 0x03, 0x00,
+0x04, 0x00, 0x05, 0x00,
+0x06, 0x00, 0x07, 0x00,
+0x08, 0x00, 0x09, 0x00,
+0x0A, 0x00, 0x0B, 0x00,
+0x0C, 0x00, 0x0D, 0x00,
+0x0E, 0x00, 0xFF, 0x00,
+... (the remaining 224 bytes should be 0x00).
+</code>
 
 	<p>So in summary, the wrapper effectively looks like this:</p>
 
