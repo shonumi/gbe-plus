@@ -252,6 +252,26 @@ void MIN_core::handle_hotkey(SDL_Event& event)
 		}
 	}
 
+	//Pause emulation
+	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_PAUSE))
+	{
+		config::pause_emu = true;
+		SDL_PauseAudio(1);
+		std::cout<<"EMU::Paused\n";
+
+		//Delay until pause key is hit again
+		while(config::pause_emu)
+		{
+			SDL_Delay(50);
+			if((SDL_PollEvent(&event)) && (event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_PAUSE))
+			{
+				config::pause_emu = false;
+				SDL_PauseAudio(0);
+				std::cout<<"EMU::Unpaused\n";
+			}
+		}
+	}
+
 	//Toggle turbo on
 	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == config::hotkey_turbo))
 	{
