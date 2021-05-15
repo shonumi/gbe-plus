@@ -174,7 +174,7 @@ void MIN_core::run_core()
 		if(core_cpu.running)
 		{
 			//Receive byte from another instance of GBE+ via netplay - Manage sync
-			if(core_mmu.ir_stat.connected)
+			if(core_mmu.ir_stat.connected[core_mmu.ir_stat.network_id])
 			{
 				//Perform syncing operations when hard sync is enabled
 				if((config::netplay_hard_sync) && (core_mmu.ir_stat.sync_timeout > 0)) { hard_sync(); }
@@ -229,6 +229,19 @@ void MIN_core::handle_hotkey(SDL_Event& event)
 	{
 		running = false; 
 		SDL_Quit();
+	}
+
+	//Switch current netplay connection on F3 (Player 1 only) 
+	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F3)
+	&& (config::netplay_id == 0) && (core_mmu.ir_stat.sync_timeout == 0))
+	{
+		core_mmu.ir_stat.network_id++;
+		if(core_mmu.ir_stat.network_id == 4) { core_mmu.ir_stat.network_id = 0; }
+		core_mmu.ir_stat.sync_balance = 4;
+
+		//OSD
+		config::osd_message = "P" + util::to_str(core_mmu.ir_stat.network_id + 2) + " LINKED";
+		config::osd_count = 180;
 	}
 
 	//Pause and wait for netplay connection on F5
@@ -442,10 +455,10 @@ void MIN_core::start_netplay()
 		core_mmu.process_network_communication();
 
 		//Check again if the GBE+ instances connected, exit waiting if not
-		if(core_mmu.ir_stat.connected) { break; }
+		if(core_mmu.ir_stat.connected[core_mmu.ir_stat.network_id]) { break; }
 	}
 
-	if(!core_mmu.ir_stat.connected) { std::cout<<"IR::No netplay connection established\n"; }
+	if(!core_mmu.ir_stat.connected[core_mmu.ir_stat.network_id]) { std::cout<<"IR::No netplay connection established\n"; }
 	else { std::cout<<"IR::Netplay connection established\n"; }
 }
 
@@ -488,7 +501,7 @@ void MIN_core::hard_sync()
 void MIN_core::stop_netplay()
 {
 	//Only attempt to disconnect if connected at all
-	if(core_mmu.ir_stat.connected)
+	if(core_mmu.ir_stat.connected[core_mmu.ir_stat.network_id])
 	{
 		core_mmu.disconnect_ir();
 		std::cout<<"IR::Netplay connection terminated. Restart to reconnect.\n";
