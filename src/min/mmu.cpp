@@ -503,6 +503,10 @@ void MIN_MMU::write_u8(u32 address, u8 value)
 			if(value & 0x2) { memory_map[PM_IO_DATA] |= 0x1; }
 			else { process_ir(); }
 
+			//Update Rumble operations
+			if((memory_map[PM_IO_DATA] & 0x10) && (memory_map[PM_IO_DIR] & 0x10)) { g_pad->start_rumble(); }
+			else if(g_pad->is_rumbling) { g_pad->stop_rumble(); }
+
 			break;
 
 		//Audio Volume
