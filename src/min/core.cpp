@@ -232,15 +232,15 @@ void MIN_core::handle_hotkey(SDL_Event& event)
 	}
 
 	//Switch current netplay connection on F3 (Player 1 only) 
-	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F3)
-	&& (config::netplay_id == 0) && (core_mmu.ir_stat.sync_timeout == 0))
+	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F3) && (core_mmu.ir_stat.sync_timeout == 0))
 	{
 		core_mmu.ir_stat.network_id++;
-		if(core_mmu.ir_stat.network_id == 4) { core_mmu.ir_stat.network_id = 0; }
+		if(core_mmu.ir_stat.network_id >= 6) { core_mmu.ir_stat.network_id = 0; }
+		
 		core_mmu.ir_stat.sync_balance = 4;
 
 		//OSD
-		config::osd_message = "P" + util::to_str(core_mmu.ir_stat.network_id + 2) + " LINKED";
+		config::osd_message = "P" + util::to_str(core_mmu.ir_stat.network_id + 1) + " LINKED";
 		config::osd_count = 180;
 	}
 

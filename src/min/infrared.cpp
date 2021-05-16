@@ -26,11 +26,7 @@ bool MIN_MMU::init_ir()
 	ir_stat.sync_balance = 0;
 	ir_stat.debug_cycles = 0xDEADBEEF;
 
-	ir_stat.connected[0] = false;
-	ir_stat.connected[1] = false;
-	ir_stat.connected[2] = false;
-	ir_stat.connected[3] = false;
-	ir_stat.connected[4] = false;
+	for(u32 x = 0; x < 6; x++) { ir_stat.connected[x] = false; }
 
 	#ifdef GBE_NETPLAY
 
@@ -52,33 +48,22 @@ bool MIN_MMU::init_ir()
 	ir_stat.network_id = config::netplay_id;
 
 	//Server info
-	for(u32 x = 0; x < 5; x++)
+	for(u32 x = 0; x < 6; x++)
 	{
 		server[x].host_socket = NULL;
 		server[x].host_init = false;
 		server[x].remote_socket = NULL;
 		server[x].remote_init = false;
 		server[x].connected = false;
-		server[x].port = config::netplay_server_port + (x * 2);
+		server[x].port = config::netplay_server_port + (10 * config::netplay_id) + x;
 			
 		//Client info
 		sender[x].host_socket = NULL;
 		sender[x].host_init = false;
 		sender[x].connected = false;
-		sender[x].port = config::netplay_client_port + (x * 2);
+		sender[x].port = config::netplay_server_port + (10 * x) + config::netplay_id;
 
-		//Adjust port numbers on P2-P5 to match P1
-		if(config::netplay_id)
-		{
-			server[x].port -= 2;
-			sender[x].port -= 2;
-		}
-	}
-
-	//Player 1 - Setup all servers and clients
-	if(config::netplay_id == 0)
-	{
-		for(u32 x = 0; x < 4; x++)
+		if(x != config::netplay_id)
 		{
 			//Setup server, resolve the server with NULL as the hostname, the server will now listen for connections
 			if(SDLNet_ResolveHost(&server[x].host_ip, NULL, server[x].port) < 0)
@@ -106,38 +91,6 @@ bool MIN_MMU::init_ir()
 			//Create sockets sets
 			tcp_sockets[x] = SDLNet_AllocSocketSet(3);
 		}
-	}
-
-	//Player 2-5 - Setup 1 server and 1 client corresponding to network ID
-	else
-	{
-		u8 id = config::netplay_id;
- 
-		//Setup server, resolve the server with NULL as the hostname, the server will now listen for connections
-		if(SDLNet_ResolveHost(&server[id].host_ip, NULL, server[id].port) < 0)
-		{
-			std::cout<<"IR::Error - Server could not resolve hostname\n";
-			return false;
-		}
-
-		//Open a connection to listen on host's port
-		if(!(server[id].host_socket = SDLNet_TCP_Open(&server[id].host_ip)))
-		{
-			std::cout<<"IR::Error - Server could not open a connection on Port " << server[id].port << "\n";
-			return false;
-		}
-
-		server[id].host_init = true;
-
-		//Setup client, listen on another port
-		if(SDLNet_ResolveHost(&sender[id].host_ip, config::netplay_client_ip.c_str(), sender[id].port) < 0)
-		{
-			std::cout<<"IR::Error - Client could not resolve hostname\n";
-			return false;
-		}
-
-		//Create sockets sets
-		tcp_sockets[id] = SDLNet_AllocSocketSet(3);
 	}
 
 	//Initialize hard syncing
