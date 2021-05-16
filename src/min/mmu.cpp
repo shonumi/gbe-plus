@@ -283,14 +283,14 @@ void MIN_MMU::write_u8(u32 address, u8 value)
 
 		//Interrupt Active 1
 		case IRQ_ACT_1:
-			master_irq_flags &= (value & 0x80) ? ~0x08 : 0;
-			master_irq_flags &= (value & 0x40) ? ~0x10 : 0;
-			master_irq_flags &= (value & 0x20) ? ~0x20 : 0;
-			master_irq_flags &= (value & 0x10) ? ~0x40 : 0;
-			master_irq_flags &= (value & 0x08) ? ~0x80 : 0;
-			master_irq_flags &= (value & 0x04) ? ~0x100 : 0;
-			master_irq_flags &= (value & 0x02) ? ~0x200 : 0;
-			master_irq_flags &= (value & 0x01) ? ~0x400 : 0;
+			master_irq_flags &= (value & 0x80) ? ~0x08 : master_irq_flags;
+			master_irq_flags &= (value & 0x40) ? ~0x10 : master_irq_flags;
+			master_irq_flags &= (value & 0x20) ? ~0x20 : master_irq_flags;
+			master_irq_flags &= (value & 0x10) ? ~0x40 : master_irq_flags;
+			master_irq_flags &= (value & 0x08) ? ~0x80 : master_irq_flags;
+			master_irq_flags &= (value & 0x04) ? ~0x100 : master_irq_flags;
+			master_irq_flags &= (value & 0x02) ? ~0x200 : master_irq_flags;
+			master_irq_flags &= (value & 0x01) ? ~0x400 : master_irq_flags;
 
 			memory_map[IRQ_ACT_1] = memory_map[IRQ_ACT_1] & ~value;
 
@@ -298,12 +298,12 @@ void MIN_MMU::write_u8(u32 address, u8 value)
 
 		//Interrupt Active 2
 		case IRQ_ACT_2:
-			master_irq_flags &= (value & 0x20) ? ~0x800 : 0;
-			master_irq_flags &= (value & 0x10) ? ~0x1000 : 0;
-			master_irq_flags &= (value & 0x08) ? ~0x2000 : 0;
-			master_irq_flags &= (value & 0x04) ? ~0x4000 : 0;
-			master_irq_flags &= (value & 0x02) ? ~0x80000 : 0;
-			master_irq_flags &= (value & 0x01) ? ~0x100000 : 0;
+			master_irq_flags &= (value & 0x20) ? ~0x800 : master_irq_flags;
+			master_irq_flags &= (value & 0x10) ? ~0x1000 : master_irq_flags;
+			master_irq_flags &= (value & 0x08) ? ~0x2000 : master_irq_flags;
+			master_irq_flags &= (value & 0x04) ? ~0x4000 : master_irq_flags;
+			master_irq_flags &= (value & 0x02) ? ~0x80000 : master_irq_flags;
+			master_irq_flags &= (value & 0x01) ? ~0x100000 : master_irq_flags;
 
 			memory_map[IRQ_ACT_2] = memory_map[IRQ_ACT_2] & ~value;
 
@@ -311,14 +311,14 @@ void MIN_MMU::write_u8(u32 address, u8 value)
 
 		//Interrupt Active 3
 		case IRQ_ACT_3:
-			master_irq_flags &= (value & 0x80) ? ~0x200000 : 0;
-			master_irq_flags &= (value & 0x40) ? ~0x400000 : 0;
-			master_irq_flags &= (value & 0x20) ? ~0x800000 : 0;
-			master_irq_flags &= (value & 0x10) ? ~0x1000000 : 0;
-			master_irq_flags &= (value & 0x08) ? ~0x2000000 : 0;
-			master_irq_flags &= (value & 0x04) ? ~0x4000000 : 0;
-			master_irq_flags &= (value & 0x02) ? ~0x8000000 : 0;
-			master_irq_flags &= (value & 0x01) ? ~0x10000000 : 0;
+			master_irq_flags &= (value & 0x80) ? ~0x200000 : master_irq_flags;
+			master_irq_flags &= (value & 0x40) ? ~0x400000 : master_irq_flags;
+			master_irq_flags &= (value & 0x20) ? ~0x800000 : master_irq_flags;
+			master_irq_flags &= (value & 0x10) ? ~0x1000000 : master_irq_flags;
+			master_irq_flags &= (value & 0x08) ? ~0x2000000 : master_irq_flags;
+			master_irq_flags &= (value & 0x04) ? ~0x4000000 : master_irq_flags;
+			master_irq_flags &= (value & 0x02) ? ~0x8000000 : master_irq_flags;
+			master_irq_flags &= (value & 0x01) ? ~0x10000000 : master_irq_flags;
 
 			memory_map[IRQ_ACT_3] = memory_map[IRQ_ACT_3] & ~value;
 
@@ -326,11 +326,11 @@ void MIN_MMU::write_u8(u32 address, u8 value)
 
 		//Interrupt Active 4
 		case IRQ_ACT_4:
-			master_irq_flags &= (value & 0x80) ? ~0x8000 : 0;
-			master_irq_flags &= (value & 0x40) ? ~0x10000 : 0;
-			master_irq_flags &= (value & 0x04) ? ~0x20000000 : 0;
-			master_irq_flags &= (value & 0x02) ? ~0x40000000 : 0;
-			master_irq_flags &= (value & 0x01) ? ~0x80000000 : 0;
+			master_irq_flags &= (value & 0x80) ? ~0x8000 : master_irq_flags;
+			master_irq_flags &= (value & 0x40) ? ~0x10000 : master_irq_flags;
+			master_irq_flags &= (value & 0x04) ? ~0x20000000 : master_irq_flags;
+			master_irq_flags &= (value & 0x02) ? ~0x40000000 : master_irq_flags;
+			master_irq_flags &= (value & 0x01) ? ~0x80000000 : master_irq_flags;
 
 			memory_map[IRQ_ACT_4] = memory_map[IRQ_ACT_4] & ~value;
 

@@ -41,7 +41,10 @@ void MIN_LCD::reset()
 	window = NULL;
 
 	screen_buffer.clear();
-	screen_buffer.resize(0x1800, 0);
+	screen_buffer.resize(0x1800, 0xFFFFFFFF);
+
+	old_buffer.clear();
+	old_buffer.resize(0x1800, 0xFFFFFFFF);
 
 	new_frame = false;
 
@@ -59,6 +62,8 @@ void MIN_LCD::reset()
 	//Initialize system screen dimensions
 	config::sys_width = 96;
 	config::sys_height = 64;
+
+	config::lcd_config = 0x1;
 
 	max_fullscreen_ratio = 2;
 }
@@ -536,7 +541,9 @@ void MIN_LCD::render_obj()
 void MIN_LCD::render_frame()
 {
 	u32 on_pixel = 0xFF000000;
+	u32 mid_pixel = 0xFF808080;
 	u32 off_pixel = 0xFFFFFFFF;
+	u32 temp_pixel = 0;
 
 	u32 px = 0;
 	u32 py = 0;
@@ -555,6 +562,20 @@ void MIN_LCD::render_frame()
 		{
 			if(pix_byte & pix_mask) { screen_buffer[buffer_pos] = on_pixel; }
 			else { screen_buffer[buffer_pos] = off_pixel; }
+
+			//3-color blending
+			if(config::lcd_config & 0x1)
+			{
+				temp_pixel = screen_buffer[buffer_pos];
+
+				if(((temp_pixel == off_pixel) && (old_buffer[buffer_pos] == on_pixel))
+				|| ((temp_pixel == on_pixel) && (old_buffer[buffer_pos] == off_pixel)))
+				{
+					screen_buffer[buffer_pos] = mid_pixel;
+				}
+
+				old_buffer[buffer_pos] = temp_pixel;
+			}
 
 			pix_mask <<= 1;
 			buffer_pos += 96;

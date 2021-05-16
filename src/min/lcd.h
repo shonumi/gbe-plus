@@ -63,6 +63,7 @@ class MIN_LCD
 
 	//Screen pixel buffer
 	std::vector<u32> screen_buffer;
+	std::vector<u32> old_buffer;
 
 	int frame_start_time;
 	int frame_current_time;
