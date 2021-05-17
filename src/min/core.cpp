@@ -343,6 +343,28 @@ void MIN_core::handle_hotkey(SDL_Event& event)
 		config::osd_message = "SAVED SCREENSHOT";
 		config::osd_count = 180;
 	}
+
+	//Change between static and dynamic IR linking modes on F10
+	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F10)) 
+	{
+		if(!core_mmu.ir_stat.static_mode)
+		{
+			core_mmu.ir_stat.static_mode = true;
+
+			//OSD
+			config::osd_message = "STATIC MODE";
+			config::osd_count = 180;
+		}
+
+		else
+		{
+			core_mmu.ir_stat.static_mode = false;
+
+			//OSD
+			config::osd_message = "DYNAMIC MODE";
+			config::osd_count = 180;
+		}
+	}
 }
 
 /****** Process hotkey input - Use exsternally when not using SDL ******/
@@ -490,7 +512,7 @@ void MIN_core::hard_sync()
 	{
 		core_mmu.ir_stat.sync_timeout = 0;
 		core_mmu.stop_sync();
-		core_mmu.ir_stat.network_id = config::netplay_id;
+		if(!core_mmu.ir_stat.static_mode) { core_mmu.ir_stat.network_id = config::netplay_id; }
 		return;
 	}
 
