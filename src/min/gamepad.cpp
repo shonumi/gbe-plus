@@ -18,6 +18,7 @@ MIN_GamePad::MIN_GamePad()
 	jstick = NULL;
 	up_shadow = down_shadow = left_shadow = right_shadow = false;
 	is_rumbling = false;
+	send_shock_irq = true;
 
 	joy_init = false;
 }
@@ -196,10 +197,10 @@ void MIN_GamePad::process_keyboard(int pad, bool pressed)
 	else if((pad == config::gbe_key_select) && (!pressed)) { key_input |= 0x80; }
 
 	//Emulate C button press
-	else if((pad == config::gbe_key_start) && (pressed)) { key_input &= ~0x4; }
+	else if((pad == config::gbe_key_x) && (pressed)) { key_input &= ~0x4; }
 
 	//Emulate C button release
-	else if((pad == config::gbe_key_start) && (!pressed)) { key_input |= 0x4; }
+	else if((pad == config::gbe_key_x) && (!pressed)) { key_input |= 0x4; }
 
 	//Emulate Right DPad press
 	else if((pad == config::gbe_key_right) && (pressed)) { key_input &= ~0x40; key_input |= 0x20; right_shadow = true; }
@@ -252,6 +253,9 @@ void MIN_GamePad::process_keyboard(int pad, bool pressed)
 		if(up_shadow) { key_input &= ~0x8; }
 		else { key_input |= 0x8; } 
 	}
+
+	//Emulate Shock Sensor activate
+	else if((pad == config::gbe_key_y) && (pressed)) { send_shock_irq = true; }
 }
 
 /****** Processes input based on unique pad # for joysticks ******/
@@ -276,10 +280,10 @@ void MIN_GamePad::process_joystick(int pad, bool pressed)
 	else if((pad == config::gbe_joy_select) && (!pressed)) { key_input |= 0x80; }
 
 	//Emulate C button press
-	else if((pad == config::gbe_joy_start) && (pressed)) { key_input &= ~0x4; }
+	else if((pad == config::gbe_joy_x) && (pressed)) { key_input &= ~0x4; }
 
 	//Emulate C button release
-	else if((pad == config::gbe_joy_start) && (!pressed)) { key_input |= 0x4; }
+	else if((pad == config::gbe_joy_x) && (!pressed)) { key_input |= 0x4; }
 
 	//Emulate Right DPad press
 	else if((pad == config::gbe_joy_right) && (pressed)) { key_input &= ~0x40; key_input |= 0x20; }
@@ -304,6 +308,9 @@ void MIN_GamePad::process_joystick(int pad, bool pressed)
 
 	//Emulate Down DPad release
 	else if((pad == config::gbe_joy_down) && (!pressed)) { key_input |= 0x10; key_input |= 0x8; }
+
+	//Emulate Shock Sensor activate
+	else if((pad == config::gbe_joy_y) && (pressed)) { send_shock_irq = true; }
 }
 
 /****** Start haptic force-feedback on joypad ******/

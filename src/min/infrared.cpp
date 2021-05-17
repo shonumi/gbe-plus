@@ -118,6 +118,8 @@ void MIN_MMU::disconnect_ir()
 
 	u8 id = ir_stat.network_id;
 
+	if(id == config::netplay_id) { return; }
+
 	#ifdef GBE_NETPLAY
 
 	//Close SDL_net and any current connections
@@ -167,9 +169,10 @@ void MIN_MMU::disconnect_ir()
 /****** Sets up netplay for IR communications ******/
 void MIN_MMU::process_network_communication()
 {
-	if(!ir_stat.init) { return; }
-
 	u8 id = ir_stat.network_id;
+
+	if(!ir_stat.init) { return; }
+	if(id == config::netplay_id) { return; }
 
 	#ifdef GBE_NETPLAY
 
@@ -218,6 +221,7 @@ bool MIN_MMU::process_ir()
 
 	if(!ir_stat.init || !ir_stat.connected[id]) { return true; }
 	if(memory_map[PM_IO_DATA] & 0x20) { return true; }
+	if(id == config::netplay_id) { return true; }
 
 	#ifdef GBE_NETPLAY
 
@@ -262,6 +266,7 @@ bool MIN_MMU::recv_byte()
 	u8 id = ir_stat.network_id;
 
 	if(!ir_stat.init || !ir_stat.connected[id]) { return true; }
+	if(id == config::netplay_id) { return true; }
 
 	#ifdef GBE_NETPLAY
 
@@ -290,6 +295,7 @@ bool MIN_MMU::recv_byte()
 			{
 				ir_stat.sync_timeout = 0;
 				ir_stat.sync = false;
+				ir_stat.network_id = config::netplay_id;
 				return true;
 			}
 
@@ -365,6 +371,7 @@ bool MIN_MMU::request_sync()
 	u8 id = ir_stat.network_id;
 
 	if(!ir_stat.init || !ir_stat.connected[id]) { return true; }
+	if(id == config::netplay_id) { return true; }
 
 	#ifdef GBE_NETPLAY
 
@@ -398,6 +405,7 @@ bool MIN_MMU::stop_sync()
 	u8 id = ir_stat.network_id;
 
 	if(!ir_stat.init || !ir_stat.connected[id]) { return true; }
+	if(id == config::netplay_id) { return true; }
 
 	#ifdef GBE_NETPLAY
 

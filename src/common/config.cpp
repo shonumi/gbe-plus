@@ -2342,9 +2342,7 @@ bool parse_ini_file()
 			if((x + 1) < size) 
 			{
 				util::from_str(ini_opts[++x], output);
-
-				if(output <= 3) { config::netplay_id = output; }
-				else { config::netplay_id = 0; }
+				config::netplay_id = output;
 			}
 
 			else 

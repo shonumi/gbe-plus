@@ -100,7 +100,7 @@ class MIN_MMU
 		u8 signal;
 		s16 fade;
 
-		bool connected[6];
+		bool connected[7];
 		bool sync;
 		bool init;
 		bool send_signal;

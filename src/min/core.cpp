@@ -164,6 +164,13 @@ void MIN_core::run_core()
 				core_pad.handle_input(event);
 				handle_hotkey(event);
 				process_keypad_irqs();
+
+				//Handle Shock Sensor
+				if(core_pad.send_shock_irq)
+				{
+					core_mmu.update_irq_flags(SHOCK_SENSOR_IRQ);
+					core_pad.send_shock_irq = false;
+				}
 			}
 
 			//Hotplug joypad
@@ -240,7 +247,16 @@ void MIN_core::handle_hotkey(SDL_Event& event)
 		core_mmu.ir_stat.sync_balance = 4;
 
 		//OSD
-		config::osd_message = "P" + util::to_str(core_mmu.ir_stat.network_id + 1) + " LINKED";
+		if(core_mmu.ir_stat.network_id != config::netplay_id)
+		{
+			config::osd_message = "P" + util::to_str(core_mmu.ir_stat.network_id + 1) + " LINKED";
+		}
+
+		else
+		{
+			config::osd_message = "NO LINK";
+		}
+
 		config::osd_count = 180;
 	}
 
@@ -472,9 +488,9 @@ void MIN_core::hard_sync()
 	//Stop Hard Sync
 	if(core_mmu.ir_stat.sync_timeout <= 0)
 	{
-		std::cout<<"STOP SYNC\n";
 		core_mmu.ir_stat.sync_timeout = 0;
 		core_mmu.stop_sync();
+		core_mmu.ir_stat.network_id = config::netplay_id;
 		return;
 	}
 

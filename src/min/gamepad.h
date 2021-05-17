@@ -24,6 +24,7 @@ class MIN_GamePad
 	int pad;
 	u8 key_input;
 	bool is_rumbling;
+	bool send_shock_irq;
 
 	bool joy_init;
 
