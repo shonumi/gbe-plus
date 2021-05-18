@@ -9,6 +9,8 @@
 // Handles reading and writing bytes to memory locations
 // Also loads ROM and BIOS files
 
+#include <ctime>
+
 #include "mmu.h"
 
 /****** MMU Constructor ******/
@@ -22,8 +24,10 @@ MIN_MMU::MIN_MMU()
 MIN_MMU::~MIN_MMU() 
 {
 	if(save_eeprom) { save_backup(config::save_file); }
+	
 	memory_map.clear();
 	disconnect_ir();
+	
 	std::cout<<"MMU::Shutdown\n";
 }
 
@@ -53,6 +57,9 @@ void MIN_MMU::reset()
 
 	osc_1_enable = false;
 	osc_2_enable = false;
+
+	enable_rtc = true;
+	rtc_cycles = 0;
 
 	eeprom.data.clear();
 	eeprom.data.resize(0x2000, 0xFF);
@@ -98,6 +105,15 @@ u8 MIN_MMU::read_u8(u32 address)
 	//Process MMIO registers
 	switch(address)
 	{
+		case RTC_SEC_LO:
+			return rtc & 0xFF;
+
+		case RTC_SEC_MID:
+			return (rtc >> 8);
+
+		case RTC_SEC_HI:
+			return (rtc >> 16);
+
 		case TIMER1_COUNT_LO:
 			return timer->at(0).counter & 0xFF;
 
@@ -190,6 +206,15 @@ void MIN_MMU::write_u8(u32 address, u8 value)
 	//Process MMIO registers
 	switch(address)
 	{
+		//RTC Control
+		case SEC_CNT:
+			enable_rtc = (value & 0x1) ? true : false;
+			if(value & 0x2) { rtc = 0; }
+
+			memory_map[SEC_CNT] = (value & 0x1);
+
+			break;
+
 		//Interrupt Priority 1
 		case IRQ_PRI_1:
 			irq_priority[3] = (value >> 6) & 0x3;

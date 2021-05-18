@@ -6256,5 +6256,17 @@ void S1C88::clock_system()
 		}
 	}
 
+	//Update RTC
+	if(mem->enable_rtc)
+	{
+		mem->rtc_cycles += system_cycles;
+		
+		if(mem->rtc_cycles >= 4000000)
+		{
+			mem->rtc_cycles -= 4000000;
+			mem->rtc++;
+		}
+	}
+			
 	if(mem->ir_stat.debug_cycles != 0xDEADBEEF) { mem->ir_stat.debug_cycles += system_cycles; }
 }

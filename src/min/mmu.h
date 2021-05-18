@@ -74,6 +74,9 @@ class MIN_MMU
 
 	bool save_eeprom;
 
+	u32 rtc;
+	u32 rtc_cycles;
+	bool enable_rtc;
 
 	struct eeprom_save
 	{
