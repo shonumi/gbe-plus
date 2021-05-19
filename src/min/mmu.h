@@ -77,6 +77,7 @@ class MIN_MMU
 	u32 rtc;
 	u32 rtc_cycles;
 	bool enable_rtc;
+	bool use_host_time;
 
 	struct eeprom_save
 	{

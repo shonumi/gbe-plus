@@ -62,6 +62,10 @@ const u32 B_KEY_IRQ = 0x8000000;
 const u32 A_KEY_IRQ = 0x10000000;
 
 //MMIO Registers
+const u16 SYS_CNT1 = 0x2000;
+const u16 SYS_CNT2 = 0x2001;
+const u16 SYS_CNT3 = 0x2002;
+
 const u16 SEC_CNT = 0x2008;
 const u16 RTC_SEC_LO = 0x2009;
 const u16 RTC_SEC_MID = 0x200A;

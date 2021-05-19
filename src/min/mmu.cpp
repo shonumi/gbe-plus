@@ -59,7 +59,9 @@ void MIN_MMU::reset()
 	osc_2_enable = false;
 
 	enable_rtc = true;
+	use_host_time = true;
 	rtc_cycles = 0;
+	rtc = 0;
 
 	eeprom.data.clear();
 	eeprom.data.resize(0x2000, 0xFF);
@@ -105,6 +107,10 @@ u8 MIN_MMU::read_u8(u32 address)
 	//Process MMIO registers
 	switch(address)
 	{
+		case SYS_CNT3:
+			if(use_host_time) { return memory_map[SYS_CNT3] | 0x2; }
+			return memory_map[SYS_CNT3];
+
 		case RTC_SEC_LO:
 			return rtc & 0xFF;
 
@@ -722,6 +728,41 @@ bool MIN_MMU::load_backup(std::string filename)
 	//Read data from file
 	file.read(reinterpret_cast<char*> (&eeprom.data[0]), file_size);
 	file.close();
+
+	//Adjust RTC to match host time, if necessary
+	if(use_host_time)
+	{
+		//Grab local time
+		time_t system_time = time(0);
+		tm* current_time = localtime(&system_time);
+
+		u8 year = (current_time->tm_year % 100);
+		u8 month = (current_time->tm_mon + 1);
+		u8 day = current_time->tm_mday;
+
+		u8 hour = current_time->tm_hour;
+		u8 minute = current_time->tm_min;
+		u8 second = (current_time->tm_sec > 59) ? 59 : current_time->tm_sec;
+
+		eeprom.data[0x1FF6] = 0;
+		eeprom.data[0x1FF7] = 0;
+		eeprom.data[0x1FF8] = 0;
+		eeprom.data[0x1FF9] = year;
+		eeprom.data[0x1FFA] = month;
+		eeprom.data[0x1FFB] = day;
+		eeprom.data[0x1FFC] = hour;
+		eeprom.data[0x1FFD] = minute;
+		eeprom.data[0x1FFE] = second;
+		eeprom.data[0x1FFF] = 0;
+
+		//Calculate RTC checksum - 8-bit sum
+		for(u32 x = 0x1FF6; x < 0x1FFF; x++)
+		{
+			eeprom.data[0x1FFF] += eeprom.data[x];
+		}
+
+		save_eeprom = true;
+	}
 
 	std::cout<<"MMU::Loaded save data file " << filename <<  "\n";
 
