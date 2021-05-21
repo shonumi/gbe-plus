@@ -135,6 +135,8 @@ namespace config
 	extern u8 nds_slot2_device;
 	extern std::string nds_slot2_file;
 
+	extern u8 min_config;
+
 	extern bool use_cheats;
 	extern std::vector <u32> gs_cheats;
 	extern std::vector <std::string> gg_cheats;

@@ -63,8 +63,6 @@ void MIN_LCD::reset()
 	config::sys_width = 96;
 	config::sys_height = 64;
 
-	config::lcd_config = 0x1;
-
 	max_fullscreen_ratio = 2;
 }
 
@@ -564,7 +562,7 @@ void MIN_LCD::render_frame()
 			else { screen_buffer[buffer_pos] = off_pixel; }
 
 			//3-color blending
-			if(config::lcd_config & 0x1)
+			if(config::min_config & 0x1)
 			{
 				temp_pixel = screen_buffer[buffer_pos];
 

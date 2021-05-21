@@ -58,8 +58,7 @@ void MIN_MMU::reset()
 	osc_1_enable = false;
 	osc_2_enable = false;
 
-	enable_rtc = true;
-	use_host_time = true;
+	enable_rtc = (config::min_config & 0x2) ? true : false;
 	rtc_cycles = 0;
 	rtc = 0;
 
@@ -108,7 +107,7 @@ u8 MIN_MMU::read_u8(u32 address)
 	switch(address)
 	{
 		case SYS_CNT3:
-			if(use_host_time) { return memory_map[SYS_CNT3] | 0x2; }
+			if(enable_rtc) { return memory_map[SYS_CNT3] | 0x2; }
 			return memory_map[SYS_CNT3];
 
 		case RTC_SEC_LO:
@@ -730,7 +729,7 @@ bool MIN_MMU::load_backup(std::string filename)
 	file.close();
 
 	//Adjust RTC to match host time, if necessary
-	if(use_host_time)
+	if(enable_rtc)
 	{
 		//Grab local time
 		time_t system_time = time(0);
@@ -762,6 +761,14 @@ bool MIN_MMU::load_backup(std::string filename)
 		}
 
 		save_eeprom = true;
+	}
+
+	else
+	{
+		for(u32 x = 0x1FF6; x <= 0x1FFF; x++)
+		{
+			eeprom.data[x] = 0;
+		}
 	}
 
 	std::cout<<"MMU::Loaded save data file " << filename <<  "\n";
