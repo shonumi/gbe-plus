@@ -143,6 +143,9 @@ const u16 PRC_SPR_MID = 0x2088;
 const u16 PRC_SPR_HI = 0x2089;
 const u16 PRC_CNT = 0x208A;
 
+const u16 MIN_LCD_CNT = 0x20FE;
+const u16 MIN_LCD_DATA = 0x20FF;
+
 const float PRC_COUNT_TIME = 55634 / 65.0;
 
 #endif // PM_COMMON 

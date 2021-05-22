@@ -28,6 +28,20 @@
 #include "lcd_data.h"
 #include "apu_data.h"
 
+enum min_lcd_commands
+{ 
+	SED1565_NOP,
+	SED1565_RESET,
+	SED1565_END,
+	SET_COLUMN_HI,
+	SET_COLUMN_LO,
+	DISPLAY_LINE_START,
+	SET_PAGE,
+	SET_CONTRAST,
+	SEGMENT_DRIVER_SELECTION,
+	READ_MODIFY_WRITE,
+};
+
 class MIN_MMU
 {
 	public:
@@ -54,6 +68,7 @@ class MIN_MMU
 
 	void update_irq_flags(u32 irq);
 	void process_eeprom();
+	void process_sed1565();
 
 	//Network stuff for IR comms
 	bool init_ir();
@@ -96,6 +111,16 @@ class MIN_MMU
 		bool start_cond;
 		bool stop_cond;
 	} eeprom;
+
+	struct sed1565_controller
+	{
+		u8 cmd;
+		u8 data;
+		u8 lcd_x;
+		u8 lcd_y;
+		bool run_cmd;
+		min_lcd_commands current_cmd;
+	} sed;
 
 	struct ir_status
 	{

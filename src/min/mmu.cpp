@@ -81,6 +81,12 @@ void MIN_MMU::reset()
 
 	save_eeprom = false;
 
+	sed.cmd = 0;
+	sed.data = 0;
+	sed.lcd_x = 0;
+	sed.lcd_y = 0;
+	sed.run_cmd = false;
+
 	//Advanced debugging
 	#ifdef GBE_DEBUG
 	debug_write = false;
@@ -602,6 +608,22 @@ void MIN_MMU::write_u8(u32 address, u8 value)
 		case PRC_SPR_HI:
 			lcd_stat->obj_addr = (memory_map[PRC_SPR_HI] << 16) | (memory_map[PRC_SPR_MID] << 8) | memory_map[PRC_SPR_LO];
 			lcd_stat->obj_addr &= 0x1FFFC0;
+			break;
+
+		//LCD Control
+		case MIN_LCD_CNT:
+			std::cout<<"LCD CNT -> 0x" << (u32)value << "\n";
+			sed.cmd = value;
+			sed.run_cmd = false;
+			process_sed1565();
+			break;
+
+		//LCD Data
+		case MIN_LCD_DATA:
+			std::cout<<"LCD DATA -> 0x" << (u32)value << "\n";
+			sed.data = value;
+			sed.run_cmd = true;
+			process_sed1565();
 			break;
 
 	}
@@ -1262,6 +1284,66 @@ void MIN_MMU::process_eeprom()
 
 	eeprom.last_clk = eeprom.clk;
 	eeprom.last_sda = eeprom.sda;
+}
+
+/****** Updated GDDRAM when directly accessing the SED1565 controller ******/
+void MIN_MMU::process_sed1565()
+{
+	//Determine command type
+	if(!sed.run_cmd)
+	{
+		if(sed.cmd == 0xE3) { sed.current_cmd = SED1565_NOP; }
+		else if(sed.cmd == 0xE2) { sed.current_cmd = SED1565_RESET; }
+		else if(sed.cmd == 0xEE) { sed.current_cmd = SED1565_END; }
+		else if(sed.cmd == 0xE0) { sed.current_cmd = READ_MODIFY_WRITE; }
+		else if(sed.cmd == 0x81) { sed.current_cmd = SET_CONTRAST; }
+		else if((sed.cmd & 0xC0) == 0x40) { sed.current_cmd = DISPLAY_LINE_START; }
+
+		else if((sed.cmd & 0xF0) == 0xB0)
+		{
+			sed.current_cmd = SET_PAGE;
+			sed.lcd_y = ((sed.cmd & 0xF) << 3);
+		}
+
+		else if((sed.cmd & 0xF8) == 0x10)
+		{
+			sed.current_cmd = SET_COLUMN_HI;
+			sed.lcd_x &= ~0xF0;
+			sed.lcd_x |= ((sed.cmd & 0xF) << 4);
+		}
+
+		else if((sed.cmd & 0xF0) == 0x00)
+		{
+			sed.current_cmd = SET_COLUMN_LO;
+			sed.lcd_x &= 0x0F;
+			sed.lcd_x |= (sed.cmd & 0xF);
+		}
+
+		else
+		{
+			sed.current_cmd = SED1565_NOP;
+			std::cout<<"MMU::Warning - Unsupported LCD command -> 0x" << sed.cmd << "\n";
+		}
+	}
+
+	//Write data to GDDRAM
+	else
+	{
+		switch(sed.current_cmd)
+		{
+			SED1565_NOP:
+			SED1565_RESET:
+			SED1565_END:
+				return;
+
+			default:
+				if((sed.lcd_x < 96) && (sed.lcd_y < 64))
+				{
+					memory_map[0x1000 + (sed.lcd_y * 0x300) + sed.lcd_x] = sed.data;
+					sed.lcd_x++;
+				}
+		}
+	}
 }
 
 /****** Points the MMU to an lcd_data structure (FROM THE LCD ITSELF) ******/
