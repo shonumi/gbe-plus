@@ -16,6 +16,9 @@
 /****** MMU Constructor ******/
 MIN_MMU::MIN_MMU() 
 {
+	//Use shared EEPROM if necessary
+	if((config::min_config & 0x4) == 0) { config::save_file = config::data_path + "min_shared.sav"; }
+
 	reset();
 	init_ir();
 }

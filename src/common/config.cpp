@@ -206,7 +206,7 @@ namespace config
 	std::string nds_slot2_file = "";
 
 	//Pokemon Mini flags
-	u8 min_config = 0x3;
+	u8 min_config = 0x7;
 
 	//Real-time clock offsets
 	u16 rtc_offset[6] = { 0, 0, 0, 0, 0, 0 };
@@ -770,6 +770,9 @@ bool parse_cli_args()
 			//Disable Pokemon Mini RTC
 			else if(config::cli_args[x] == "--min-disable-rtc") { config::min_config &= ~0x2; }
 
+			//Enable shared EEPROM
+			else if(config::cli_args[x] == "--min-shared-eeprom") { config::min_config &= ~0x4; }
+			
 			//Use OpenGL for screen drawing
 			else if(config::cli_args[x] == "--opengl") { config::use_opengl = true; }
 
