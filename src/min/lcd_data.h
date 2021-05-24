@@ -35,6 +35,8 @@ struct min_lcd_data
 	bool enable_obj;
 	bool enable_copy;
 	bool force_update;
+
+	bool sed_enabled;
 };
 
 #endif // PM_LCD_DATA

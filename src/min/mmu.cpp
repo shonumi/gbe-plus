@@ -1302,6 +1302,27 @@ void MIN_MMU::process_sed1565()
 		else if(sed.cmd == 0x81) { sed.current_cmd = SET_CONTRAST; }
 		else if((sed.cmd & 0xC0) == 0x40) { sed.current_cmd = DISPLAY_LINE_START; }
 
+		else if((sed.cmd & 0xFE) == 0xA4)
+		{
+			sed.current_cmd = SET_ENTIRE_DISPLAY;
+			
+			if(sed.cmd & 0x1)
+			{
+				for(u32 x = 0; x < 0x300; x++) { memory_map[0x1000 + x] = 0xFF; }
+			}
+		}
+
+		else if((sed.cmd & 0xFE) == 0xAE)
+		{
+			sed.current_cmd = SET_DISPLAY_ON_OFF;
+			lcd_stat->sed_enabled = (sed.cmd & 0x1) ? true : false;
+			
+			if(!lcd_stat->sed_enabled)
+			{
+				for(u32 x = 0; x < 0x300; x++) { memory_map[0x1000 + x] = 0x00; }
+			}
+		}		
+
 		else if((sed.cmd & 0xF0) == 0xB0)
 		{
 			sed.current_cmd = SET_PAGE;
@@ -1325,7 +1346,7 @@ void MIN_MMU::process_sed1565()
 		else
 		{
 			sed.current_cmd = SED1565_NOP;
-			std::cout<<"MMU::Warning - Unsupported LCD command -> 0x" << sed.cmd << "\n";
+			std::cout<<"MMU::Warning - Unsupported LCD command -> 0x" << (u32)sed.cmd << "\n";
 		}
 	}
 
@@ -1340,9 +1361,9 @@ void MIN_MMU::process_sed1565()
 				return;
 
 			default:
-				if((sed.lcd_x < 96) && (sed.lcd_y < 64))
+				if((sed.lcd_x < 96) && (sed.lcd_y < 8))
 				{
-					memory_map[0x1000 + (sed.lcd_y * 0x300) + sed.lcd_x] = sed.data;
+					memory_map[0x1000 + (sed.lcd_y * 0x60) + sed.lcd_x] = sed.data;
 					sed.lcd_x++;
 				}
 		}

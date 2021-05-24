@@ -53,6 +53,7 @@ void MIN_LCD::reset()
 	lcd_stat.prc_copy_wait = 0;
 
 	lcd_stat.force_update = false;
+	lcd_stat.sed_enabled = true;
 
 	frame_start_time = 0;
 	frame_current_time = 0;
@@ -116,6 +117,9 @@ bool MIN_LCD::init()
 /****** Update LCD and render pixels ******/
 void MIN_LCD::update()
 {
+	//Only render if SED1565 is enabled
+	if(!lcd_stat.sed_enabled) { return; }
+
 	//Render map
 	if(lcd_stat.enable_map || lcd_stat.force_update) { render_map(); }
 
