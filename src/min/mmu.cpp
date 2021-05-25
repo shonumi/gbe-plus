@@ -618,7 +618,7 @@ void MIN_MMU::write_u8(u32 address, u8 value)
 			//Grab new contrast
 			if(sed.current_cmd == SET_CONTRAST)
 			{
-				lcd_stat->sed_contrast = value;
+				lcd_stat->sed_contrast = (value & 0x3F);
 				sed.current_cmd = SED1565_NOP;
 				return;
 			} 
@@ -635,7 +635,7 @@ void MIN_MMU::write_u8(u32 address, u8 value)
 			//Grab new contrast
 			if(sed.current_cmd == SET_CONTRAST)
 			{
-				lcd_stat->sed_contrast = value;
+				lcd_stat->sed_contrast = (value & 0x3F);
 				sed.current_cmd = SED1565_NOP;
 				return;
 			} 

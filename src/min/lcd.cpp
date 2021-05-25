@@ -60,6 +60,36 @@ void MIN_LCD::reset()
 	fps_count = 0;
 	fps_time = 0;
 
+	//Define LCD ON, OFF, and mixed colors for all contrast levels
+	float r1 = 255.0 / 31.0;
+	float r2 = 255.0 / 63.0;
+
+	for(u32 x = 0; x < 64; x++)
+	{
+		u8 color_byte = 0xFF;
+
+		if(x < 32)
+		{
+			color_byte -= (r1 * x);
+
+			on_colors[x] = 0xFF000000 | (color_byte << 16) | (color_byte << 8) | color_byte;
+			off_colors[x] = 0xFFFFFFF;
+		}
+
+		else
+		{
+			color_byte -= (r1 * (x - 31));
+
+			on_colors[x] = 0xFF000000;
+			off_colors[x] = 0xFF000000 | (color_byte << 16) | (color_byte << 8) | color_byte;
+
+		}
+
+		u8 mix_byte = 0xFF;
+		mix_byte -= (r2 * x);
+		mix_colors[x] = 0xFF000000 | (mix_byte << 16) | (mix_byte << 8) | mix_byte;
+	}
+
 	//Initialize system screen dimensions
 	config::sys_width = 96;
 	config::sys_height = 64;
@@ -542,9 +572,9 @@ void MIN_LCD::render_obj()
 /****** Renders the final framebuffer for the Pokemon Mini ******/
 void MIN_LCD::render_frame()
 {
-	u32 on_pixel = 0xFF000000;
-	u32 mid_pixel = 0xFF808080;
-	u32 off_pixel = 0xFFFFFFFF;
+	u32 on_pixel = on_colors[lcd_stat.sed_contrast];
+	u32 mid_pixel = mix_colors[lcd_stat.sed_contrast];
+	u32 off_pixel = off_colors[lcd_stat.sed_contrast];
 	u32 temp_pixel = 0;
 
 	u32 px = 0;

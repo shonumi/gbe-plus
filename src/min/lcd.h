@@ -53,6 +53,10 @@ class MIN_LCD
 	bool new_frame;
 	int max_fullscreen_ratio;
 
+	u32 on_colors[64];
+	u32 off_colors[64];
+	u32 mix_colors[64];
+
 	private:
 
 	void render_map();
