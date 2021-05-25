@@ -615,7 +615,16 @@ void MIN_MMU::write_u8(u32 address, u8 value)
 
 		//LCD Control
 		case MIN_LCD_CNT:
+			//Grab new contrast
+			if(sed.current_cmd == SET_CONTRAST)
+			{
+				lcd_stat->sed_contrast = value;
+				sed.current_cmd = SED1565_NOP;
+				return;
+			} 
+
 			std::cout<<"LCD CNT -> 0x" << (u32)value << "\n";
+
 			sed.cmd = value;
 			sed.run_cmd = false;
 			process_sed1565();
@@ -623,7 +632,16 @@ void MIN_MMU::write_u8(u32 address, u8 value)
 
 		//LCD Data
 		case MIN_LCD_DATA:
+			//Grab new contrast
+			if(sed.current_cmd == SET_CONTRAST)
+			{
+				lcd_stat->sed_contrast = value;
+				sed.current_cmd = SED1565_NOP;
+				return;
+			} 
+
 			std::cout<<"LCD DATA -> 0x" << (u32)value << "\n";
+
 			sed.data = value;
 			sed.run_cmd = true;
 			process_sed1565();

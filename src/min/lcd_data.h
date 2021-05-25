@@ -37,6 +37,7 @@ struct min_lcd_data
 	bool force_update;
 
 	bool sed_enabled;
+	u8 sed_contrast;
 };
 
 #endif // PM_LCD_DATA
