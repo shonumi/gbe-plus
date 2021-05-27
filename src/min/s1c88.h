@@ -91,7 +91,6 @@ class S1C88
 
 	//CPU flags
 	bool running;
-	bool interrupt_in_progress;
 	bool skip_irq;
 
 	//Audio-Video and other controllers
@@ -157,6 +156,11 @@ class S1C88
 	s16 comp16(u16 reg_one);
 
 	void update_regs();
+
+	//Serialize data for save state loading/saving
+	bool cpu_read(u32 offset, std::string filename);
+	bool cpu_write(std::string filename);
+	u32 size();
 };
 		
 #endif // PM_CPU 

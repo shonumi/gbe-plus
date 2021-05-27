@@ -139,10 +139,62 @@ void MIN_core::reset()
 }
 
 /****** Loads a save state ******/
-void MIN_core::load_state(u8 slot) { }
+void MIN_core::load_state(u8 slot)
+{
+	std::string id = (slot > 0) ? util::to_str(slot) : "";
+
+	std::string state_file = config::rom_file + ".ss";
+	state_file += id;
+
+	u32 offset = 0;
+
+	//Check if save state is accessible
+	std::ifstream test(state_file.c_str());
+	
+	if(!test.good())
+	{
+		config::osd_message = "NO SS " + util::to_str(slot);
+		config::osd_count = 180;
+		return;
+	}
+
+	if(!core_cpu.cpu_read(offset, state_file)) { return; }
+	offset += core_cpu.size();
+
+	if(!core_mmu.mmu_read(offset, state_file)) { return; }
+	offset += core_mmu.size();
+
+	//if(!core_cpu.controllers.audio.apu_read(offset, state_file)) { return; }
+	//offset += core_cpu.controllers.audio.size();
+
+	//if(!core_cpu.controllers.video.lcd_read(offset, state_file)) { return; }
+
+	std::cout<<"GBE::Loaded state " << state_file << "\n";
+
+	//OSD
+	config::osd_message = "LOADED SS " + util::to_str(slot);
+	config::osd_count = 180;
+}
 
 /****** Saves a save state ******/
-void MIN_core::save_state(u8 slot) { }
+void MIN_core::save_state(u8 slot)
+{
+	std::string id = (slot > 0) ? util::to_str(slot) : "";
+
+	std::string state_file = config::rom_file + ".ss";
+	state_file += id;
+
+	if(!core_cpu.cpu_write(state_file)) { return; }
+	if(!core_mmu.mmu_write(state_file)) { return; }
+	//if(!core_cpu.controllers.audio.apu_write(state_file)) { return; }
+	//if(!core_cpu.controllers.video.lcd_write(state_file)) { return; }
+
+	std::cout<<"GBE::Saved state " << state_file << "\n";
+
+	//OSD
+	config::osd_message = "SAVE SS " + util::to_str(slot);
+	config::osd_count = 180;
+}
 
 /****** Run the core in a loop until exit ******/
 void MIN_core::run_core()

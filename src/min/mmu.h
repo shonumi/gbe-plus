@@ -97,7 +97,7 @@ class MIN_MMU
 
 	struct eeprom_save
 	{
-		std::vector <u8> data;
+		u8 data[0x2000];
 		u8 clk;
 		u8 last_clk;
 		u8 sda;
@@ -187,6 +187,11 @@ class MIN_MMU
 	~MIN_MMU();
 
 	void reset();
+
+	//Serialize data for save state loading/saving
+	bool mmu_read(u32 offset, std::string filename);
+	bool mmu_write(std::string filename);
+	u32 size();
 
 	private:
 

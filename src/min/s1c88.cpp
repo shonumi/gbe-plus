@@ -6270,3 +6270,90 @@ void S1C88::clock_system()
 			
 	if(mem->ir_stat.debug_cycles != 0xDEADBEEF) { mem->ir_stat.debug_cycles += system_cycles; }
 }
+
+/****** Read CPU data from save state ******/
+bool S1C88::cpu_read(u32 offset, std::string filename)
+{
+	std::ifstream file(filename.c_str(), std::ios::binary);
+	
+	if(!file.is_open()) { return false; }
+
+	//Go to offset
+	file.seekg(offset);
+
+	//Serialize CPU registers data from file stream
+	file.read((char*)&reg, sizeof(reg));
+
+	//Serialize misc CPU data from file stream
+	file.read((char*)&opcode, sizeof(opcode));
+	file.read((char*)&log_addr, sizeof(log_addr));
+	file.read((char*)&system_cycles, sizeof(system_cycles));
+	file.read((char*)&debug_cycles, sizeof(debug_cycles));
+	file.read((char*)&halt, sizeof(halt));
+	file.read((char*)&debug_opcode, sizeof(debug_opcode));
+	file.read((char*)&running, sizeof(running));
+	file.read((char*)&skip_irq, sizeof(skip_irq));
+
+	//Serialize timers from file stream
+	file.read((char*)&controllers.timer[0], sizeof(controllers.timer[0]));
+	file.read((char*)&controllers.timer[1], sizeof(controllers.timer[1]));
+	file.read((char*)&controllers.timer[2], sizeof(controllers.timer[2]));
+	file.read((char*)&controllers.timer[3], sizeof(controllers.timer[3]));
+
+	file.close();
+	return true;
+}
+
+/****** Write CPU data to save state ******/
+bool S1C88::cpu_write(std::string filename)
+{
+	std::ofstream file(filename.c_str(), std::ios::binary | std::ios::trunc);
+	
+	if(!file.is_open()) { return false; }
+
+	//Serialize CPU registers data to save state
+	file.write((char*)&reg, sizeof(reg));
+
+	//Serialize misc CPU data to save state
+	file.write((char*)&opcode, sizeof(opcode));
+	file.write((char*)&log_addr, sizeof(log_addr));
+	file.write((char*)&system_cycles, sizeof(system_cycles));
+	file.write((char*)&debug_cycles, sizeof(debug_cycles));
+	file.write((char*)&halt, sizeof(halt));
+	file.write((char*)&debug_opcode, sizeof(debug_opcode));
+	file.write((char*)&running, sizeof(running));
+	file.write((char*)&skip_irq, sizeof(skip_irq));
+
+	//Serialize timers from file stream
+	file.write((char*)&controllers.timer[0], sizeof(controllers.timer[0]));
+	file.write((char*)&controllers.timer[1], sizeof(controllers.timer[1]));
+	file.write((char*)&controllers.timer[2], sizeof(controllers.timer[2]));
+	file.write((char*)&controllers.timer[3], sizeof(controllers.timer[3]));
+
+	file.close();
+	return true;
+}
+
+/****** Gets the size of CPU data for serialization ******/
+u32 S1C88::size()
+{
+	u32 cpu_size = 0;
+
+	cpu_size += sizeof(reg);
+	cpu_size += sizeof(opcode);
+	cpu_size += sizeof(log_addr);
+	cpu_size += sizeof(system_cycles);
+	cpu_size += sizeof(debug_cycles);
+	cpu_size += sizeof(halt);
+	cpu_size += sizeof(debug_opcode);
+	cpu_size += sizeof(running);
+	cpu_size += sizeof(skip_irq);
+
+	//Serialize timers from file stream
+	cpu_size += sizeof(controllers.timer[0]);
+	cpu_size += sizeof(controllers.timer[1]);
+	cpu_size += sizeof(controllers.timer[2]);
+	cpu_size += sizeof(controllers.timer[3]);
+
+	return cpu_size;
+}
