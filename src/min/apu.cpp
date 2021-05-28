@@ -195,3 +195,44 @@ void min_audio_callback(void* _apu, u8 *_stream, int _length)
 		stream[x] = out_sample;
 	}
 }
+
+/****** Read APU data from save state ******/
+bool MIN_APU::apu_read(u32 offset, std::string filename)
+{
+	std::ifstream file(filename.c_str(), std::ios::binary);
+	
+	if(!file.is_open()) { return false; }
+
+	//Go to offset
+	file.seekg(offset);
+
+	//Serialize misc APU data from save state
+	file.read((char*)&apu_stat, sizeof(apu_stat));
+
+	file.close();
+	return true;
+}
+
+/****** Read MMU data from save state ******/
+bool MIN_APU::apu_write(std::string filename)
+{
+	std::ofstream file(filename.c_str(), std::ios::binary | std::ios::app);
+	
+	if(!file.is_open()) { return false; }
+
+	//Serialize misc APU data from save state
+	file.write((char*)&apu_stat, sizeof(apu_stat));
+
+	file.close();
+	return true;
+}
+
+/****** Gets the size of MMU data for serialization ******/
+u32 MIN_APU::size()
+{
+	u32 apu_size = 0;
+
+	apu_size += sizeof(apu_stat);
+
+	return apu_size;
+}

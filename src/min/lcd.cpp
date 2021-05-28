@@ -622,3 +622,50 @@ void MIN_LCD::render_frame()
 		}
 	}
 }
+
+/****** Read LCD data from save state ******/
+bool MIN_LCD::lcd_read(u32 offset, std::string filename)
+{
+	std::ifstream file(filename.c_str(), std::ios::binary);
+	
+	if(!file.is_open()) { return false; }
+
+	//Go to offset
+	file.seekg(offset);
+
+	//Serialize misc LCD data from save state
+	file.read((char*)&lcd_stat, sizeof(lcd_stat));
+	file.read((char*)&new_frame, sizeof(new_frame));
+
+	//Serialize screen buffers from save state
+	for(u32 x = 0; x < 0x1800; x++)
+	{
+		file.read((char*)&screen_buffer[x], sizeof(screen_buffer[x]));
+		file.read((char*)&old_buffer[x], sizeof(old_buffer[x]));
+	}
+
+	file.close();
+	return true;
+}
+
+/****** Write LCD data to save state ******/
+bool MIN_LCD::lcd_write(std::string filename)
+{
+	std::ofstream file(filename.c_str(), std::ios::binary | std::ios::app);
+	
+	if(!file.is_open()) { return false; }
+
+	//Serialize misc LCD data from save state
+	file.write((char*)&lcd_stat, sizeof(lcd_stat));
+	file.write((char*)&new_frame, sizeof(new_frame));
+
+	//Serialize screen buffers from save state
+	for(u32 x = 0; x < 0x1800; x++)
+	{
+		file.write((char*)&screen_buffer[x], sizeof(screen_buffer[x]));
+		file.write((char*)&old_buffer[x], sizeof(old_buffer[x]));
+	}
+
+	file.close();
+	return true;
+}

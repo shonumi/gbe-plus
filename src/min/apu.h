@@ -35,6 +35,11 @@ class MIN_APU
 
 	void buffer_channel();
 	void generate_samples(s16* stream, int length);
+
+	//Serialize data for save state loading/saving
+	bool apu_read(u32 offset, std::string filename);
+	bool apu_write(std::string filename);
+	u32 size();
 };
 
 /****** SDL Audio Callback ******/ 

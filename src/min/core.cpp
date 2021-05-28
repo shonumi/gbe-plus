@@ -164,10 +164,10 @@ void MIN_core::load_state(u8 slot)
 	if(!core_mmu.mmu_read(offset, state_file)) { return; }
 	offset += core_mmu.size();
 
-	//if(!core_cpu.controllers.audio.apu_read(offset, state_file)) { return; }
-	//offset += core_cpu.controllers.audio.size();
+	if(!core_cpu.controllers.audio.apu_read(offset, state_file)) { return; }
+	offset += core_cpu.controllers.audio.size();
 
-	//if(!core_cpu.controllers.video.lcd_read(offset, state_file)) { return; }
+	if(!core_cpu.controllers.video.lcd_read(offset, state_file)) { return; }
 
 	std::cout<<"GBE::Loaded state " << state_file << "\n";
 
@@ -186,8 +186,8 @@ void MIN_core::save_state(u8 slot)
 
 	if(!core_cpu.cpu_write(state_file)) { return; }
 	if(!core_mmu.mmu_write(state_file)) { return; }
-	//if(!core_cpu.controllers.audio.apu_write(state_file)) { return; }
-	//if(!core_cpu.controllers.video.lcd_write(state_file)) { return; }
+	if(!core_cpu.controllers.audio.apu_write(state_file)) { return; }
+	if(!core_cpu.controllers.video.lcd_write(state_file)) { return; }
 
 	std::cout<<"GBE::Saved state " << state_file << "\n";
 
@@ -290,7 +290,19 @@ void MIN_core::handle_hotkey(SDL_Event& event)
 		SDL_Quit();
 	}
 
-	//Switch current netplay connection on F3 (Player 1 only) 
+	//Quick save state on F1
+	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F1)) 
+	{
+		save_state(0);
+	}
+
+	//Quick load save state on F2
+	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F2)) 
+	{
+		load_state(0);
+	}
+
+	//Switch current netplay connection on F3 
 	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F3) && (core_mmu.ir_stat.sync_timeout == 0))
 	{
 		core_mmu.ir_stat.network_id++;

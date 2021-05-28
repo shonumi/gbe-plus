@@ -57,6 +57,10 @@ class MIN_LCD
 	u32 off_colors[64];
 	u32 mix_colors[64];
 
+	//Serialize data for save state loading/saving
+	bool lcd_read(u32 offset, std::string filename);
+	bool lcd_write(std::string filename);
+
 	private:
 
 	void render_map();

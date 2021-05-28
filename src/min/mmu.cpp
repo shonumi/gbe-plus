@@ -1393,40 +1393,6 @@ void MIN_MMU::set_lcd_data(min_lcd_data* ex_lcd_stat) { lcd_stat = ex_lcd_stat; 
 void MIN_MMU::set_apu_data(min_apu_data* ex_apu_stat) { apu_stat = ex_apu_stat; }
 
 /****** Read MMU data from save state ******/
-bool MIN_MMU::mmu_write(std::string filename)
-{
-	std::ofstream file(filename.c_str(), std::ios::binary | std::ios::app);
-	
-	if(!file.is_open()) { return false; }
-
-	//Serialize RAM and hardware MMIO registers to save state
-	u8* ex_mem = &memory_map[0x1000];
-	file.write((char*)ex_mem, 0x1100);
-
-	//Serialize IRQ stuff to save state
-	for(u32 x = 0; x < 32; x++)
-	{
-		file.write((char*)&irq_priority[x], sizeof(irq_priority[x]));
-		file.write((char*)&irq_enable[x], sizeof(irq_enable[x]));
-		file.write((char*)&irq_vectors[x], sizeof(irq_vectors[x]));
-	}
-
-	//Serialize misc data from MMU to save state
-	file.write((char*)&master_irq_flags, sizeof(master_irq_flags));
-	file.write((char*)&osc_1_enable, sizeof(osc_1_enable));
-	file.write((char*)&osc_2_enable, sizeof(osc_2_enable));
-	file.write((char*)&save_eeprom, sizeof(save_eeprom));
-	file.write((char*)&rtc, sizeof(rtc));
-	file.write((char*)&enable_rtc, sizeof(enable_rtc));
-	file.write((char*)&eeprom, sizeof(eeprom));
-	file.write((char*)&sed, sizeof(sed));
-	file.write((char*)&ir_stat, sizeof(ir_stat));
-
-	file.close();
-	return true;
-}
-
-/****** Read MMU data from save state ******/
 bool MIN_MMU::mmu_read(u32 offset, std::string filename)
 {
 	std::ifstream file(filename.c_str(), std::ios::binary);
@@ -1458,6 +1424,40 @@ bool MIN_MMU::mmu_read(u32 offset, std::string filename)
 	file.read((char*)&eeprom, sizeof(eeprom));
 	file.read((char*)&sed, sizeof(sed));
 	file.read((char*)&ir_stat, sizeof(ir_stat));
+
+	file.close();
+	return true;
+}
+
+/****** Write MMU data to save state ******/
+bool MIN_MMU::mmu_write(std::string filename)
+{
+	std::ofstream file(filename.c_str(), std::ios::binary | std::ios::app);
+	
+	if(!file.is_open()) { return false; }
+
+	//Serialize RAM and hardware MMIO registers to save state
+	u8* ex_mem = &memory_map[0x1000];
+	file.write((char*)ex_mem, 0x1100);
+
+	//Serialize IRQ stuff to save state
+	for(u32 x = 0; x < 32; x++)
+	{
+		file.write((char*)&irq_priority[x], sizeof(irq_priority[x]));
+		file.write((char*)&irq_enable[x], sizeof(irq_enable[x]));
+		file.write((char*)&irq_vectors[x], sizeof(irq_vectors[x]));
+	}
+
+	//Serialize misc data from MMU to save state
+	file.write((char*)&master_irq_flags, sizeof(master_irq_flags));
+	file.write((char*)&osc_1_enable, sizeof(osc_1_enable));
+	file.write((char*)&osc_2_enable, sizeof(osc_2_enable));
+	file.write((char*)&save_eeprom, sizeof(save_eeprom));
+	file.write((char*)&rtc, sizeof(rtc));
+	file.write((char*)&enable_rtc, sizeof(enable_rtc));
+	file.write((char*)&eeprom, sizeof(eeprom));
+	file.write((char*)&sed, sizeof(sed));
+	file.write((char*)&ir_stat, sizeof(ir_stat));
 
 	file.close();
 	return true;
