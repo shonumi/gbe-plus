@@ -290,6 +290,21 @@ void MIN_core::handle_hotkey(SDL_Event& event)
 		SDL_Quit();
 	}
 
+	//Mute or unmute sound on M
+	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == config::hotkey_mute) && (!config::use_external_interfaces))
+	{
+		if(config::volume == 0)
+		{
+			update_volume(config::old_volume);
+		}
+
+		else
+		{
+			config::old_volume = config::volume;
+			update_volume(0);
+		}
+	}
+
 	//Quick save state on F1
 	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F1)) 
 	{
@@ -477,6 +492,7 @@ void MIN_core::process_keypad_irqs()
 void MIN_core::update_volume(u8 volume)
 {
 	config::volume = volume;
+	core_cpu.controllers.audio.apu_stat.channel_master_volume = config::volume;
 }
 
 /****** Feeds key input from an external source (useful for TAS) ******/
