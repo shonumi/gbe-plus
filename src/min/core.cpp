@@ -498,7 +498,7 @@ void MIN_core::update_volume(u8 volume)
 /****** Feeds key input from an external source (useful for TAS) ******/
 void MIN_core::feed_key_input(int sdl_key, bool pressed)
 {
-	//core_pad.process_keyboard(sdl_key, pressed);
+	core_pad.process_keyboard(sdl_key, pressed);
 	handle_hotkey(sdl_key, pressed);
 }
 
