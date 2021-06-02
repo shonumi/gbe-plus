@@ -1076,6 +1076,68 @@ void MIN_core::debug_process_command()
 			}
 		}
 
+		//Load save state
+		else if(command.substr(0, 2) == "ls")
+		{
+			bool valid_value = false;
+			u32 slot = 0;
+			std::string slot_string = command.substr(3);
+
+			//Convert string into a usable u32
+			valid_value = util::from_str(slot_string, slot);
+
+			if(!valid_value)
+			{
+				std::cout<<"\nInvalid save state slot : " << slot_string << "\n";
+			}
+
+			else
+			{
+				if(slot >= 10) { std::cout<<"Save state slot too high\n"; }
+
+				else
+				{
+					std::cout<<"Loading Save State " << slot_string << "\n";
+					load_state(slot);
+				}
+			}
+
+			valid_command = true;
+			db_unit.last_command = "ls";
+			debug_process_command();
+		}
+
+		//Make save state
+		else if(command.substr(0, 2) == "ss")
+		{
+			bool valid_value = false;
+			u32 slot = 0;
+			std::string slot_string = command.substr(3);
+
+			//Convert string into a usable u32
+			valid_value = util::from_str(slot_string, slot);
+
+			if(!valid_value)
+			{
+				std::cout<<"\nInvalid save state slot : " << slot_string << "\n";
+			}
+
+			else
+			{
+				if(slot >= 10) { std::cout<<"Save state slot too high\n"; }
+
+				else
+				{
+					std::cout<<"Saving State " << slot_string << "\n";
+					save_state(slot);
+				}
+			}
+
+			valid_command = true;
+			db_unit.last_command = "ss";
+			debug_process_command();
+		}
+
 		//Break on memory change
 		else if((command.substr(0, 2) == "bc") && (command.substr(3, 2) == "0x"))
 		{
