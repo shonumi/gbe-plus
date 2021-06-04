@@ -1396,9 +1396,12 @@ void MIN_core::debug_process_command()
 			std::cout<<"w8 \t\t Write BYTE @ memory, format 0x1234 for addr, 0x12 for value\n";
 			std::cout<<"w16 \t\t Write WORD @ memory, format 0x1234 for addr, 0x1234 for value\n";
 			std::cout<<"dq \t\t Quit the debugger\n";
+			std::cout<<"ri \t\t Runs CPU for specified number of instructions, format 0x1234ABCD\n";
 			std::cout<<"rs \t\t Reset emulation\n";
 			std::cout<<"pa \t\t Toggles printing all instructions to screen\n";
-			std::cout<<"pc \t\t Toggles printing all Program Counter values to screen\n"; 
+			std::cout<<"pc \t\t Toggles printing all Program Counter values to screen\n";
+			std::cout<<"ls \t\t Loads a given save state (0-9)\n";
+			std::cout<<"ss \t\t Saves a given save state (0-9)\n";  
 			std::cout<<"q \t\t Quit GBE+\n\n";
 
 			valid_command = true;
