@@ -130,6 +130,8 @@ bool MIN_LCD::init()
 			config::scaling_factor = 1;
 		}
 
+		if(final_screen == NULL) { return false; }
+
 		SDL_SetWindowIcon(window, util::load_icon(config::data_path + "icons/gbe_plus.bmp"));
 	}
 

@@ -353,7 +353,7 @@ void main_menu::open_file()
 
 	if(config::cli_args.empty())
 	{
-		QString filename = QFileDialog::getOpenFileName(this, tr("Open"), "", tr("GBx/NDS files (*.gb *.gbc *.gba *.nds)"));
+		QString filename = QFileDialog::getOpenFileName(this, tr("Open"), "", tr("GBx/NDS/MIN files (*.gb *.gbc *.gba *.nds *.min)"));
 		if(filename.isNull()) { SDL_PauseAudio(0); return; }
 
 		config::rom_file = filename.toStdString();
@@ -590,6 +590,7 @@ void main_menu::boot_game()
 		case 0x2: test_bios_path = config::gbc_bios_path; break;
 		case 0x3: test_bios_path = config::agb_bios_path; break;
 		case 0x4: test_bios_path = config::nds7_bios_path; break;
+		case 0x7: test_bios_path = config::min_bios_path; break;
 		case 0x5: config::use_bios = false;
 	}
 
@@ -732,7 +733,7 @@ void main_menu::boot_game()
 	cgfx::scaling_factor = (settings->cgfx_scale->currentIndex() + 1);
 	if(!cgfx::load_cgfx) { cgfx::scaling_factor = 1; }
 
-	//Start the appropiate system core - DMG, GBC, GBA, or NDS
+	//Start the appropiate system core - DMG, GBC, GBA, NDS, or MIN
 	if(config::gb_type == 3) 
 	{
 		base_width = 240;
@@ -771,7 +772,27 @@ void main_menu::boot_game()
 
 		//Disable debugging menu
 		findChild<QAction*>("debugging_action")->setEnabled(false);
-	}	
+	}
+
+	if(config::gb_type == 7) 
+	{
+		base_width = 96;
+		base_height = 64;
+
+		main_menu::gbe_plus = new MIN_core();
+		resize((base_width * config::scaling_factor), (base_height * config::scaling_factor) + menu_height);
+		qt_gui::screen = new QImage(240, 160, QImage::Format_ARGB32);
+
+		//Resize drawing screens
+		if(config::use_opengl) { hw_screen->resize((base_width * config::scaling_factor), (base_height * config::scaling_factor)); }
+		else { sw_screen->resize((base_width * config::scaling_factor), (base_height * config::scaling_factor)); }
+
+		//Disable CGFX menu
+		findChild<QAction*>("custom_gfx_action")->setEnabled(false);
+
+		//Disable debugging menu
+		findChild<QAction*>("debugging_action")->setEnabled(false);
+	}
 
 	else 
 	{
@@ -826,6 +847,7 @@ void main_menu::boot_game()
 			case 0x1 : config::bios_file = config::dmg_bios_path; reset_dmg_colors(); break;
 			case 0x2 : config::bios_file = config::gbc_bios_path; reset_dmg_colors(); break;
 			case 0x3 : config::bios_file = config::agb_bios_path; break;
+			case 0x7 : config::bios_file = config::min_bios_path; break;
 		}
 
 		if(!main_menu::gbe_plus->read_bios(config::bios_file)) { return; } 
@@ -1291,6 +1313,7 @@ void main_menu::reset()
 			case 0x2: test_bios_path = config::gbc_bios_path; break;
 			case 0x3: test_bios_path = config::agb_bios_path; break;
 			case 0x4: test_bios_path = config::nds7_bios_path; break;
+			case 0x7: test_bios_path = config::min_bios_path; break;
 			case 0x5: config::use_bios = false;
 		}
 
@@ -1580,6 +1603,7 @@ void main_menu::load_recent(int file_id)
 		case 0x2: test_bios_path = config::gbc_bios_path; break;
 		case 0x3: test_bios_path = config::agb_bios_path; break;
 		case 0x4: test_bios_path = config::nds7_bios_path; break;
+		case 0x7: test_bios_path = config::min_bios_path; break;
 		case 0x5: config::use_bios = false;
 	}
 
