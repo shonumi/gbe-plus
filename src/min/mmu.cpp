@@ -660,6 +660,20 @@ void MIN_MMU::write_u16(u32 address, u16 value)
 /****** Reads ROM file into emulated memory ******/
 bool MIN_MMU::read_file(std::string filename)
 {
+	//No cart inserted
+	if(config::no_cart)
+	{
+		//Abort if no BIOS provided
+		if(!config::use_bios)
+		{
+			std::cout<<"MMU::Error - Emulating no cart inserted without BIOS\n";
+			return false;
+		}
+		
+		std::cout<<"MMU::No cart inserted\n";
+		return true;
+	}
+
 	std::ifstream file(filename.c_str(), std::ios::binary);
 
 	if(!file.is_open()) 

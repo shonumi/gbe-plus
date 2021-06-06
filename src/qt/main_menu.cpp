@@ -781,7 +781,7 @@ void main_menu::boot_game()
 
 		main_menu::gbe_plus = new MIN_core();
 		resize((base_width * config::scaling_factor), (base_height * config::scaling_factor) + menu_height);
-		qt_gui::screen = new QImage(240, 160, QImage::Format_ARGB32);
+		qt_gui::screen = new QImage(96, 64, QImage::Format_ARGB32);
 
 		//Resize drawing screens
 		if(config::use_opengl) { hw_screen->resize((base_width * config::scaling_factor), (base_height * config::scaling_factor)); }

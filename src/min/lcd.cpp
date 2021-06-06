@@ -73,7 +73,7 @@ void MIN_LCD::reset()
 			color_byte -= (r1 * x);
 
 			on_colors[x] = 0xFF000000 | (color_byte << 16) | (color_byte << 8) | color_byte;
-			off_colors[x] = 0xFFFFFFF;
+			off_colors[x] = 0xFFFFFFFF;
 		}
 
 		else
