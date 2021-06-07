@@ -798,6 +798,14 @@ bool MIN_MMU::load_backup(std::string filename)
 		u8 minute = current_time->tm_min;
 		u8 second = (current_time->tm_sec > 59) ? 59 : current_time->tm_sec;
 
+		//Add RTC offsets if necessary
+		year = ((year + config::rtc_offset[5]) % 100);
+		month = ((month + config::rtc_offset[4]) % 12);
+
+		hour = ((hour + config::rtc_offset[2]) % 24);
+		minute = ((minute + config::rtc_offset[1]) % 60);
+		second = ((second + config::rtc_offset[0]) % 60);
+
 		eeprom.data[0x1FF6] = 0;
 		eeprom.data[0x1FF7] = 0;
 		eeprom.data[0x1FF8] = 0;
