@@ -667,8 +667,16 @@ bool from_hex_str(std::string input, u32 &result)
 	return true;
 }
 
-/****** Convert an intger into a C++ string ******/
+/****** Convert an unsigned integer into a C++ string ******/
 std::string to_str(u32 input)
+{
+	std::stringstream temp;
+	temp << input;
+	return temp.str();
+}
+
+/****** Convert a signed integer into a C++ string ******/
+std::string to_sstr(s32 input)
 {
 	std::stringstream temp;
 	temp << input;
@@ -899,6 +907,19 @@ u32 get_bcd(u32 input)
 
 	//Convert string back into an int
 	from_hex_str(temp, input);
+
+	return input;
+}
+
+/****** Converts a BCD into an integer ******/
+u32 get_bcd_int(u32 input)
+{
+	//Convert to a string
+	std::string temp = to_hex_str(input);
+	temp = temp.substr(2);
+
+	//Convert string back into an int
+	from_str(temp, input);
 
 	return input;
 }

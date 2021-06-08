@@ -72,6 +72,7 @@ namespace config
 	extern std::string nds7_bios_path;
 	extern std::string nds9_bios_path;
 	extern std::string nds_firmware_path;
+	extern std::string min_bios_path;
 	extern std::string save_path;
 	extern std::string ss_path;
 	extern std::string cfg_path;
@@ -133,6 +134,8 @@ namespace config
 	extern u8 nds_slot1_device;
 	extern u8 nds_slot2_device;
 	extern std::string nds_slot2_file;
+
+	extern u8 min_config;
 
 	extern bool use_cheats;
 	extern std::vector <u32> gs_cheats;

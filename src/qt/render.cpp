@@ -33,7 +33,7 @@ void render_screen_sw(std::vector<u32>& image)
 	int width, height = 0;
 
 	//Determine the dimensions of the source image
-	//GBA = 240x160, GB-GBC = 160x144, NDS = 256x384, SGB = 256x224
+	//GBA = 240x160, GB-GBC = 160x144, NDS = 256x384, SGB = 256x224, MIN = 96x64
 	width = config::sys_width;
 	height = config::sys_height;
 

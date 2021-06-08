@@ -28,6 +28,7 @@ namespace config
 	std::string nds7_bios_path = "";
 	std::string nds9_bios_path = "";
 	std::string nds_firmware_path = "";
+	std::string min_bios_path = "";
 	std::string save_path = "";
 	std::string ss_path = "";
 	std::string cfg_path = "";
@@ -203,6 +204,9 @@ namespace config
 	u8 nds_slot1_device = 0;
 	u8 nds_slot2_device = 0;
 	std::string nds_slot2_file = "";
+
+	//Pokemon Mini flags
+	u8 min_config = 0x7;
 
 	//Real-time clock offsets
 	u16 rtc_offset[6] = { 0, 0, 0, 0, 0, 0 };
@@ -570,6 +574,7 @@ void validate_system_type()
 
 	if(ext == ".gba") { config::gb_type = 3; }
 	else if(ext == ".nds") { config::gb_type = 4; }
+	else if(ext == ".min") { config::gb_type = 7; }
 
 	//Force GBC mode if system type is set to GBA, but a GB/GBC game is loaded
 	else if((ext != ".gba") && (config::gb_type == 3)) 
@@ -606,6 +611,7 @@ u8 get_system_type_from_file(std::string filename)
 
 	if(ext == ".gba") { gb_type = 3; }
 	else if(ext == ".nds") { gb_type = 4; }
+	else if(ext == ".min") { gb_type = 7; }
 	else if((ext != ".gba") && (gb_type == 3)) { gb_type = 2; }
 
 	//For Auto or GBC mode, determine what the CGB Flag is
@@ -726,19 +732,19 @@ bool parse_cli_args()
 			else if(config::cli_args[x] == "--mbc30") { config::cart_type = DMG_MBC30; }
 
 			//Use GBA RTC for a given ROM
-			else if(config::cli_args[x] == "--agb_rtc") { config::cart_type = AGB_RTC; }
+			else if(config::cli_args[x] == "--agb-rtc") { config::cart_type = AGB_RTC; }
 			
 			//Use GBA solar sensor for a given ROM
-			else if(config::cli_args[x] == "--agb_solar_sensor") { config::cart_type = AGB_SOLAR_SENSOR; }
+			else if(config::cli_args[x] == "--agb-solar-sensor") { config::cart_type = AGB_SOLAR_SENSOR; }
 
 			//Use GBA rumble for Drill Dozer
-			else if(config::cli_args[x] == "--agb_rumble") { config::cart_type = AGB_RUMBLE; }
+			else if(config::cli_args[x] == "--agb-rumble") { config::cart_type = AGB_RUMBLE; }
 
 			//Use GBA gyro sensor for WarioWare: Twisted
-			else if(config::cli_args[x] == "--agb_gyro_sensor") { config::cart_type = AGB_GYRO_SENSOR; }
+			else if(config::cli_args[x] == "--agb-gyro-sensor") { config::cart_type = AGB_GYRO_SENSOR; }
 
 			//Use GBA tilt sensor for Yoshi Topsy Turvy aka Universal Gravitation
-			else if(config::cli_args[x] == "--agb_tilt_sensor") { config::cart_type = AGB_TILT_SENSOR; }
+			else if(config::cli_args[x] == "--agb-tilt-sensor") { config::cart_type = AGB_TILT_SENSOR; }
 
 			//Use Auto-Detect for GBA saves
 			else if(config::cli_args[x] == "--save-auto") { config::agb_save_type = AGB_AUTO_DETECT; }
@@ -758,6 +764,15 @@ bool parse_cli_args()
 			//Force FLASH 128KB GBA saves
 			else if(config::cli_args[x] == "--save-auto") { config::agb_save_type = AGB_FLASH128; }
 
+			//Disable Pokemon Mini 3-color Mode
+			else if(config::cli_args[x] == "--min-disable-colors") { config::min_config &= ~0x1; }
+
+			//Disable Pokemon Mini RTC
+			else if(config::cli_args[x] == "--min-disable-rtc") { config::min_config &= ~0x2; }
+
+			//Enable shared EEPROM
+			else if(config::cli_args[x] == "--min-shared-eeprom") { config::min_config &= ~0x4; }
+			
 			//Use OpenGL for screen drawing
 			else if(config::cli_args[x] == "--opengl") { config::use_opengl = true; }
 
@@ -802,6 +817,9 @@ bool parse_cli_args()
 			//Set system type - SGB2
 			else if(config::cli_args[x] == "--sys-sgb2") { config::gb_type = 6; }
 
+			//Set system type - MIN
+			else if(config::cli_args[x] == "--sys-min") { config::gb_type = 7; }
+
 			//Enable Turbo File memory card
 			else if(config::cli_args[x] == "--turbo-file-memcard") { config::turbo_file_options |= 0x1; }
 
@@ -822,11 +840,11 @@ bool parse_cli_args()
 				std::cout<<"--mmm01 \t\t\t\t Use MMM01 multicart mode if applicable\n";
 				std::cout<<"--mbc1s \t\t\t\t Use MBC1S sonar cart\n";
 				std::cout<<"--mbc30 \t\t\t\t Use MBC30 for Pocket Monsters Crystal\n";
-				std::cout<<"--agb_rtc \t\t\t\t Use GBA RTC cart\n";
-				std::cout<<"--agb_solar_sensor \t\t\t Use GBA Solar Sensor cart\n";
-				std::cout<<"--agb_rumble \t\t\t\t Use GBA Rumble cart\n";
-				std::cout<<"--agb_gyro_sensor \t\t\t Use GBA Gyro Sensor cart\n";
-				std::cout<<"--agb_tilt_sensor \t\t\t Use GBA Tilt Sensor cart\n";
+				std::cout<<"--agb-rtc \t\t\t\t Use GBA RTC cart\n";
+				std::cout<<"--agb-solar-sensor \t\t\t Use GBA Solar Sensor cart\n";
+				std::cout<<"--agb-rumble \t\t\t\t Use GBA Rumble cart\n";
+				std::cout<<"--agb-gyro-sensor \t\t\t Use GBA Gyro Sensor cart\n";
+				std::cout<<"--agb-tilt-sensor \t\t\t Use GBA Tilt Sensor cart\n";
 				std::cout<<"--opengl \t\t\t\t Use OpenGL for screen drawing and scaling\n";
 				std::cout<<"--cheats \t\t\t\t Use Gameshark or Game Genie cheats\n";
 				std::cout<<"--patch \t\t\t\t Use a patch file for the ROM\n";
@@ -1111,7 +1129,7 @@ bool parse_ini_file()
 			{
 				util::from_str(ini_opts[++x], output);
 
-				if((output >= 0) && (output <= 6)) 
+				if((output >= 0) && (output <= 7)) 
 				{
 					config::gb_type = output;
 					validate_system_type();
@@ -1285,6 +1303,24 @@ bool parse_ini_file()
 			}
 
 			else { config::nds_firmware_path = ""; }
+		}
+
+		//MIN BIOS path
+		else if(ini_item == "#min_bios_path")
+		{
+			if((x + 1) < size) 
+			{
+				ini_item = ini_opts[++x];
+				std::string first_char = "";
+				first_char = ini_item[0];
+				
+				//When left blank, don't parse the next line item
+				if(first_char != "#") { config::min_bios_path = ini_item; }
+				else { config::min_bios_path = ""; x--;}
+ 
+			}
+
+			else { config::min_bios_path = ""; }
 		}
 
 		//Game save path
@@ -2318,9 +2354,7 @@ bool parse_ini_file()
 			if((x + 1) < size) 
 			{
 				util::from_str(ini_opts[++x], output);
-
-				if(output <= 3) { config::netplay_id = output; }
-				else { config::netplay_id = 0; }
+				config::netplay_id = output;
 			}
 
 			else 
@@ -2669,6 +2703,15 @@ bool save_ini_file()
 			std::string val = (config::nds_firmware_path == "") ? "" : (":'" + config::nds_firmware_path + "'");
 
 			output_lines[line_pos] = "[#nds_firmware_path" + val + "]";
+		}
+
+		//MIN BIOS path
+		else if(ini_item == "#min_bios_path")
+		{
+			line_pos = output_count[x];
+			std::string val = (config::min_bios_path == "") ? "" : (":'" + config::min_bios_path + "'");
+
+			output_lines[line_pos] = "[#min_bios_path" + val + "]";
 		}
 
 		//Game save path

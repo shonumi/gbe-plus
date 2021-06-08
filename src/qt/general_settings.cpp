@@ -71,6 +71,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	sys_type->addItem("Nintendo DS [NDS]");
 	sys_type->addItem("Super Game Boy [SGB]");
 	sys_type->addItem("Super Game Boy 2 [SGB2]");
+	sys_type->addItem("Pokemon Mini [MIN]");
 
 	QHBoxLayout* sys_type_layout = new QHBoxLayout;
 	sys_type_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
