@@ -723,6 +723,7 @@ void main_menu::boot_game()
 	
 		if(ext == ".gba") { config::gb_type = 3; }
 		else if(ext == ".nds") { config::gb_type = 4; }
+		else if(ext == ".min") { config::gb_type = 7; }
 		else if((ext != ".gba") && (config::gb_type == 3)) { config::gb_type = 2; config::gba_enhance = true; }
 		else { config::gba_enhance = false; }
 
