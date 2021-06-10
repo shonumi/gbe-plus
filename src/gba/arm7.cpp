@@ -1894,6 +1894,12 @@ bool ARM7::cpu_read(u32 offset, std::string filename)
 	file.read((char*)&debug_code, sizeof(debug_code));
 	file.read((char*)&debug_cycles, sizeof(debug_cycles));
 
+	//Serialize timers from save state
+	file.read((char*)&controllers.timer[0], sizeof(controllers.timer[0]));
+	file.read((char*)&controllers.timer[1], sizeof(controllers.timer[1]));
+	file.read((char*)&controllers.timer[2], sizeof(controllers.timer[2]));
+	file.read((char*)&controllers.timer[3], sizeof(controllers.timer[3]));
+
 	file.close();
 	return true;
 }
