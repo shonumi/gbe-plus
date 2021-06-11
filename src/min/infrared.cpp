@@ -117,50 +117,54 @@ void MIN_MMU::disconnect_ir()
 		return;
 	}
 
-	u8 id = ir_stat.network_id;
-
-	if(id == config::netplay_id) { return; }
-
 	#ifdef GBE_NETPLAY
 
-	//Close SDL_net and any current connections
-	if(server[id].host_socket != NULL)
+	for(u8 x = 0; x < 6; x++)
 	{
-		SDLNet_TCP_DelSocket(tcp_sockets[id], server[id].host_socket);
-		if(server[id].host_init) { SDLNet_TCP_Close(server[id].host_socket); }
-	}
 
-	if(server[id].remote_socket != NULL)
-	{
-		SDLNet_TCP_DelSocket(tcp_sockets[id], server[id].remote_socket);
-		if(server[id].remote_init) { SDLNet_TCP_Close(server[id].remote_socket); }
-	}
+		if(x == config::netplay_id) { continue; }
 
-	if(sender[id].host_socket != NULL)
-	{
-		//Send disconnect byte to another system
-		u8 temp_buffer[2];
-		temp_buffer[0] = 0;
-		temp_buffer[1] = 0x80;
+
+		//Close SDL_net and any current connections
+		if(server[x].host_socket != NULL)
+		{
+			SDLNet_TCP_DelSocket(tcp_sockets[x], server[x].host_socket);
+			if(server[x].host_init) { SDLNet_TCP_Close(server[x].host_socket); }
+		}
+
+		if(server[x].remote_socket != NULL)
+		{
+			SDLNet_TCP_DelSocket(tcp_sockets[x], server[x].remote_socket);
+			if(server[x].remote_init) { SDLNet_TCP_Close(server[x].remote_socket); }
+		}
+
+		if(sender[x].host_socket != NULL)
+		{
+			//Send disconnect byte to another system
+			u8 temp_buffer[2];
+			temp_buffer[0] = 0;
+			temp_buffer[1] = 0x80;
 		
-		SDLNet_TCP_Send(sender[id].host_socket, (void*)temp_buffer, 2);
+			SDLNet_TCP_Send(sender[x].host_socket, (void*)temp_buffer, 2);
 
-		SDLNet_TCP_DelSocket(tcp_sockets[id], sender[id].host_socket);
-		if(sender[id].host_init) { SDLNet_TCP_Close(sender[id].host_socket); }
+			SDLNet_TCP_DelSocket(tcp_sockets[x], sender[x].host_socket);
+			if(sender[x].host_init) { SDLNet_TCP_Close(sender[x].host_socket); }
+		}
+
+		server[x].connected = false;
+		sender[x].connected = false;
+
+		server[x].host_init = false;
+		server[x].remote_init = false;
+		sender[x].host_init = false;
+
+		ir_stat.connected[x] = false;
 	}
-
-	server[id].connected = false;
-	sender[id].connected = false;
-
-	server[id].host_init = false;
-	server[id].remote_init = false;
-	sender[id].host_init = false;
 
 	SDLNet_Quit();
 
 	#endif
 
-	ir_stat.connected[id] = false;
 	ir_stat.sync_timeout = 0;
 	ir_stat.sync = false;
 
