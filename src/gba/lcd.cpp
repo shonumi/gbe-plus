@@ -250,7 +250,7 @@ void AGB_LCD::update_oam()
 			attribute = mem->read_u16_fast(oam_ptr);
 			oam_ptr += 4;
 
-			obj[x].tile_number = (obj[x].bit_depth == 4) ? (attribute & 0x3FF) : (attribute & 0x3FE);
+			obj[x].tile_number = (attribute & 0x3FF);
 			obj[x].bg_priority = ((attribute >> 10) & 0x3);
 			obj[x].palette_number = ((attribute >> 12) & 0xF); 
 
