@@ -775,7 +775,7 @@ void main_menu::boot_game()
 		findChild<QAction*>("debugging_action")->setEnabled(false);
 	}
 
-	if(config::gb_type == 7) 
+	else if(config::gb_type == 7) 
 	{
 		base_width = 96;
 		base_height = 64;
