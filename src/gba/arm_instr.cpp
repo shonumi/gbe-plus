@@ -1086,15 +1086,15 @@ void ARM7::block_data_transfer(u32 current_arm_instruction)
 				//Store registers
 				if(load_store == 0) 
 				{
-					if((x == transfer_reg) && (base_reg == transfer_reg)) { mem->write_u32(base_addr, old_base); }
-					else { mem->write_u32(base_addr, get_reg(x)); }
+					if((x == transfer_reg) && (base_reg == transfer_reg)) { mem->write_u32((base_addr & ~0x3), old_base); }
+					else { mem->write_u32((base_addr & ~0x3), get_reg(x)); }
 				}
 			
 				//Load registers
 				else 
 				{
 					if((x == transfer_reg) && (base_reg == transfer_reg)) { write_back = 0; }
-					set_reg(x, mem->read_u32(base_addr));
+					set_reg(x, mem->read_u32(base_addr & ~0x3));
 					if(x == 15) { needs_flush = true; } 
 				}
 
@@ -1120,15 +1120,15 @@ void ARM7::block_data_transfer(u32 current_arm_instruction)
 				//Store registers
 				if(load_store == 0) 
 				{ 
-					if((x == transfer_reg) && (base_reg == transfer_reg)) { mem->write_u32(base_addr, old_base); }
-					else { mem->write_u32(base_addr, get_reg(x)); }
+					if((x == transfer_reg) && (base_reg == transfer_reg)) { mem->write_u32((base_addr & ~0x3), old_base); }
+					else { mem->write_u32((base_addr & ~0x3), get_reg(x)); }
 				}
 			
 				//Load registers
 				else 
 				{
 					if((x == transfer_reg) && (base_reg == transfer_reg)) { write_back = 0; }
-					set_reg(x, mem->read_u32(base_addr));
+					set_reg(x, mem->read_u32(base_addr & ~0x3));
 					if(x == 15) { needs_flush = true; } 
 				}
 
@@ -1145,12 +1145,12 @@ void ARM7::block_data_transfer(u32 current_arm_instruction)
 	else
 	{
 		//Load R15
-		if(load_store == 0){ mem->write_u32(base_addr, reg.r15); }
+		if(load_store == 0){ mem->write_u32((base_addr & ~0x3), reg.r15); }
 		
 		//Store R15
 		else
 		{
-			reg.r15 = mem->read_u32(base_addr);
+			reg.r15 = mem->read_u32(base_addr & ~0x3);
 			needs_flush = true;
 		}
 
