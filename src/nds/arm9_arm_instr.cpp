@@ -1207,10 +1207,10 @@ void NTR_ARM9::block_data_transfer(u32 current_arm_instruction)
 				if(load_store == 0) 
 				{
 					//If Base Register is included in the Register List, store the old base address
-					if((x == base_reg) && (write_back == 1) && (!diff_bank)) { mem->write_u32(base_addr, old_base); }
+					if((x == base_reg) && (write_back == 1) && (!diff_bank)) { mem->write_u32((base_addr & ~0x3), old_base); }
 
 					//Otherwise store the register normally
-					else { mem->write_u32(base_addr, get_reg(x)); }
+					else { mem->write_u32((base_addr & ~0x3), get_reg(x)); }
 				}
 			
 				//Load registers
@@ -1222,7 +1222,7 @@ void NTR_ARM9::block_data_transfer(u32 current_arm_instruction)
 						if((list_size != 1) && (x == last_reg)) { write_back = 0; }
 					}
 
-					set_reg(x, mem->read_u32(base_addr));
+					set_reg(x, mem->read_u32(base_addr & ~0x3));
 
 					if(x == 15) { needs_flush = true; } 
 				}
@@ -1250,10 +1250,10 @@ void NTR_ARM9::block_data_transfer(u32 current_arm_instruction)
 				if(load_store == 0) 
 				{
 					//If Base Register is included in the Register List, store the old base address
-					if((x == base_reg) && (write_back == 1) && (!diff_bank)) { mem->write_u32(base_addr, old_base); }
+					if((x == base_reg) && (write_back == 1) && (!diff_bank)) { mem->write_u32((base_addr & ~0x3), old_base); }
 
 					//Otherwise store the register normally
-					else { mem->write_u32(base_addr, get_reg(x)); }
+					else { mem->write_u32((base_addr & ~0x3), get_reg(x)); }
 				}
 			
 				//Load registers
@@ -1265,7 +1265,7 @@ void NTR_ARM9::block_data_transfer(u32 current_arm_instruction)
 						if((list_size != 1) && (x == last_reg)) { write_back = 0; }
 					}
 					
-					set_reg(x, mem->read_u32(base_addr));
+					set_reg(x, mem->read_u32(base_addr & ~0x3));
 					if(x == 15) { needs_flush = true; } 
 				}
 
