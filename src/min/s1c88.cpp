@@ -4893,7 +4893,7 @@ void S1C88::execute()
 				case 0x77:
 					s_temp = mem->read_s8(reg.pc_ex++);
 					temp_val = reg.sp + s_temp;
-					mem->write_u16(temp_val, reg.ba);
+					mem->write_u16(temp_val, reg.iy);
 					system_cycles = 24;
 
 					reg.pc++;

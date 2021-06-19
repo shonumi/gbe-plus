@@ -248,7 +248,7 @@ std::string MIN_core::debug_get_mnemonic(u32 addr)
 		case 0x47: return "LD A, [IY]";
 		case 0x48: return "LD B, A";
 		case 0x49: return "LD B, B";
-		case 0x4A: return "LD B, " + util::to_hex_str(op1);
+		case 0x4A: return "LD B, L";
 		case 0x4B: return "LD B, [HL]";
 		case 0x4C: return "LD B, [BR + " + util::to_hex_str(op1) + "]";
 		case 0x4D: return "LD B, [" + util::to_hex_str(op2) + "]";
