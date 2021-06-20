@@ -1358,6 +1358,7 @@ void MIN_MMU::process_sed1565()
 			if(!lcd_stat->sed_enabled)
 			{
 				for(u32 x = 0; x < 0x300; x++) { memory_map[0x1000 + x] = 0x00; }
+				lcd_stat->sed_update = true;
 			}
 		}		
 
@@ -1399,10 +1400,11 @@ void MIN_MMU::process_sed1565()
 				return;
 
 			default:
-				if((sed.lcd_x < 96) && (sed.lcd_y < 8))
+				if((sed.lcd_x < 96) && (sed.lcd_y < 8) && (lcd_stat->sed_enabled))
 				{
 					memory_map[0x1000 + (sed.lcd_y * 0x60) + sed.lcd_x] = sed.data;
 					sed.lcd_x++;
+					lcd_stat->sed_update = true;
 				}
 		}
 	}

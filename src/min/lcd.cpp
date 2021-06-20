@@ -150,16 +150,17 @@ bool MIN_LCD::init()
 void MIN_LCD::update()
 {
 	//Only render if SED1565 is enabled
-	if(!lcd_stat.sed_enabled) { return; }
+	if(lcd_stat.sed_enabled)
+	{
+		//Render map
+		if(lcd_stat.enable_map || lcd_stat.force_update) { render_map(); }
 
-	//Render map
-	if(lcd_stat.enable_map || lcd_stat.force_update) { render_map(); }
-
-	//Render sprites
-	if(lcd_stat.enable_obj) { render_obj(); }
+		//Render sprites
+		if(lcd_stat.enable_obj) { render_obj(); }
+	}
 
 	//Render pixel for a new frame if necessary
-	if(new_frame) { render_frame(); }
+	if(new_frame || lcd_stat.sed_update) { render_frame(); }
 
 	//Display any OSD messages
 	if(config::osd_count)
@@ -623,6 +624,8 @@ void MIN_LCD::render_frame()
 			py += 8;
 		}
 	}
+
+	lcd_stat.sed_update = false;
 }
 
 /****** Read LCD data from save state ******/

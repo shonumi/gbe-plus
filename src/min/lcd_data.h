@@ -37,6 +37,7 @@ struct min_lcd_data
 	bool force_update;
 
 	bool sed_enabled;
+	bool sed_update;
 	u8 sed_contrast;
 };
 
