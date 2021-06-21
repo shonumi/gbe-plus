@@ -1347,6 +1347,7 @@ void MIN_MMU::process_sed1565()
 			if(sed.cmd & 0x1)
 			{
 				for(u32 x = 0; x < 0x300; x++) { memory_map[0x1000 + x] = 0xFF; }
+				lcd_stat->sed_update = true;
 			}
 		}
 
