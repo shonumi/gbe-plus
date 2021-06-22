@@ -1366,7 +1366,7 @@ void MIN_MMU::process_sed1565()
 		else if((sed.cmd & 0xF0) == 0xB0)
 		{
 			sed.current_cmd = SET_PAGE;
-			sed.lcd_y = ((sed.cmd & 0xF) << 3);
+			sed.lcd_y = (sed.cmd & 0xF);
 		}
 
 		else if((sed.cmd & 0xF8) == 0x10)
@@ -1379,7 +1379,7 @@ void MIN_MMU::process_sed1565()
 		else if((sed.cmd & 0xF0) == 0x00)
 		{
 			sed.current_cmd = SET_COLUMN_LO;
-			sed.lcd_x &= 0x0F;
+			sed.lcd_x &= ~0x0F;
 			sed.lcd_x |= (sed.cmd & 0xF);
 		}
 
