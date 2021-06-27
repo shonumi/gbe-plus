@@ -443,7 +443,7 @@ class NTR_MMU
 
 	void get_gx_fifo_param_length();
 	void copy_capture_buffer(u32 capture_addr);
-	void deallocate_vram(u8 bank_id);
+	void deallocate_vram(u8 bank_id, u8 mst);
 
 	void set_lcd_data(ntr_lcd_data* ex_lcd_stat);
 	void set_lcd_3D_data(ntr_lcd_3D_data* ex_lcd_3D_stat);

@@ -3065,9 +3065,10 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		case NDS_VRAMCNT_I:
 			if(access_mode)
 			{
+				u8 old_mst = (memory_map[address] & 0x7);
 				memory_map[address] = value;
 
-				u8 mst = value & 0x7;
+				u8 mst = (value & 0x7);
 				u8 offset = (value >> 3) & 0x3;
 				u32 bank_id = (address - 0x4000240);
 
@@ -3101,7 +3102,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 						case 0x0:
 
 							//Deallocate VRAM previously mapped to non-LCDC mode addresses 
-							if((lcd_stat->vram_bank_addr[bank_id] >> 20) != 0x68) { deallocate_vram(bank_id); }
+							if((lcd_stat->vram_bank_addr[bank_id] >> 20) != 0x68) { deallocate_vram(bank_id, old_mst); }
 
 							switch(bank_id)
 							{
@@ -6464,7 +6465,7 @@ void NTR_MMU::copy_capture_buffer(u32 capture_addr)
 }
 
 /****** Deallocates VRAM when switching a bank back to LCDC mode ******/
-void NTR_MMU::deallocate_vram(u8 bank_id)
+void NTR_MMU::deallocate_vram(u8 bank_id, u8 mst)
 {
 	u32 v_addr = lcd_stat->vram_bank_addr[bank_id];
 
@@ -6480,6 +6481,9 @@ void NTR_MMU::deallocate_vram(u8 bank_id)
 				break;
 
 			case 0x4:
+				//Only try to deallocate memory VRAM not mapped to CPU space
+				if(mst == 4) { return; }
+
 				for(u32 x = 0; x < 0x10000; x++) { memory_map[v_addr + x] = 0; }
 				break;
 
