@@ -540,6 +540,7 @@ void NTR_LCD::fill_poly_textured()
 	bool texel_depth_test;
 
 	if((use_alpha && lcd_3D_stat.poly_new_depth) || (!use_alpha)) { use_new_z = true; }
+	bool skip_tex_blending = ((lcd_3D_stat.poly_mode == 0) && (!use_alpha) && (lcd_3D_stat.vertex_color == 0xFFFCFCFC));
 
 	bool use_edge = lcd_3D_stat.edge_marking;
 	u32 edge_color = lcd_3D_stat.edge_color[lcd_3D_stat.poly_id >> 3];
@@ -670,6 +671,9 @@ void NTR_LCD::fill_poly_textured()
 				//Draw texel if not transparent
 				if(texel & 0xFF000000)
 				{
+					//Apply texture blending if necessary
+					if(!skip_tex_blending) { texel = blend_texel(texel); }
+
 					//Alpha-blend if necessary
 					if(((texel >> 24) != 0xFF) || (use_alpha)) { texel = alpha_blend_texel(texel, gx_screen_buffer[buffer_id][buffer_index]); }
 
@@ -2011,6 +2015,58 @@ u32 NTR_LCD::alpha_blend_texel(u32 color_1, u32 color_2)
 	frame_b = ((poly_b * poly_max) + (frame_b * poly_min)) >> 5;
 
 	return 0xFF000000 | (frame_r << 19) | (frame_g << 11) | (frame_b << 3);
+}
+
+/****** Blends texel via modulation, decal mode, toon shading, or highlight shading ******/
+u32 NTR_LCD::blend_texel(u32 color_1)
+{
+	u16 poly_r = (color_1 >> 18) & 0x3F;
+	u16 poly_g = (color_1 >> 10) & 0x3F;
+	u16 poly_b = (color_1 >> 2) & 0x3F;
+
+	u16 poly_a = (lcd_3D_stat.poly_alpha) ? lcd_3D_stat.poly_alpha : ((color_1 >> 24) & 0x1F);
+	poly_a <<= 1;
+
+	u16 blend_r;
+	u16 blend_g;
+	u16 blend_b;
+	u16 blend_a;
+
+	u16 frame_r;
+	u16 frame_g;
+	u16 frame_b;
+	u16 frame_a;
+
+	u32 final_color = color_1;
+
+	switch(lcd_3D_stat.poly_mode)
+	{
+		//Modulation
+		case 0:
+			blend_r = (lcd_3D_stat.vertex_color >> 18) & 0x3F;
+			blend_g = (lcd_3D_stat.vertex_color >> 10) & 0x3F;
+			blend_b = (lcd_3D_stat.vertex_color >> 2) & 0x3F;
+			blend_a = (lcd_3D_stat.poly_alpha << 1);
+
+			frame_r = (((poly_r + 1) * (blend_r + 1)) - 1) / 64;
+			frame_g = (((poly_g + 1) * (blend_g + 1)) - 1) / 64;
+			frame_b = (((poly_b + 1) * (blend_b + 1)) - 1) / 64;
+			frame_a = (((poly_r + 1) * (blend_a + 1)) - 1) / 64;
+
+			if(frame_a == 63)
+			{
+				final_color = 0xFF000000 | (frame_r << 18) | (frame_g << 10) | (frame_b << 2);
+			}
+
+			else
+			{
+				final_color = (frame_a << 26) | (frame_r << 18) | (frame_g << 10) | (frame_b << 2);
+			}
+
+			break;
+	}
+
+	return final_color;
 }
 
 /****** Generates pixel data fram VRAM for A315 textures ******/
