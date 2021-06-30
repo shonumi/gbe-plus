@@ -2039,7 +2039,7 @@ u32 NTR_LCD::blend_texel(u32 color_1)
 
 	u32 final_color = color_1;
 
-	switch(lcd_3D_stat.poly_mode)
+	switch(lcd_3D_stat.poly_mode & 0x3)
 	{
 		//Modulation
 		case 0:
@@ -2063,6 +2063,18 @@ u32 NTR_LCD::blend_texel(u32 color_1)
 				final_color = (frame_a << 26) | (frame_r << 18) | (frame_g << 10) | (frame_b << 2);
 			}
 
+			break;
+
+		//Decal Mode
+		case 1:
+			break;
+
+		//Toon Shading
+		case 2:
+			break;
+
+		//Highlight Shading
+		case 3:
 			break;
 	}
 
