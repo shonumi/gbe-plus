@@ -1179,6 +1179,14 @@ void NTR_LCD::process_gx_command()
 			{
 				u32 color_bytes = read_param_u32(0);
 				lcd_3D_stat.vertex_color = get_rgb15(color_bytes);
+
+				if((lcd_3D_stat.vertex_list_index == 0) || (lcd_3D_stat.begin_strips == false))
+				{
+					vert_colors[0] = lcd_3D_stat.vertex_color;
+					vert_colors[1] = lcd_3D_stat.vertex_color;
+					vert_colors[2] = lcd_3D_stat.vertex_color;
+					vert_colors[3] = lcd_3D_stat.vertex_color;
+				}
 			}
 
 			break;
@@ -2025,7 +2033,7 @@ u32 NTR_LCD::blend_texel(u32 color_1)
 	u16 poly_b = (color_1 >> 2) & 0x3F;
 
 	u16 poly_a = (lcd_3D_stat.poly_alpha) ? lcd_3D_stat.poly_alpha : ((color_1 >> 24) & 0x1F);
-	poly_a <<= 1;
+	poly_a = (poly_a == 31) ? 63 : (poly_a << 1);
 
 	u16 blend_r;
 	u16 blend_g;
@@ -2046,12 +2054,13 @@ u32 NTR_LCD::blend_texel(u32 color_1)
 			blend_r = (lcd_3D_stat.vertex_color >> 18) & 0x3F;
 			blend_g = (lcd_3D_stat.vertex_color >> 10) & 0x3F;
 			blend_b = (lcd_3D_stat.vertex_color >> 2) & 0x3F;
-			blend_a = (lcd_3D_stat.poly_alpha << 1);
+			blend_a = lcd_3D_stat.poly_alpha;
+			blend_a = (blend_a == 31) ? 63 : (blend_a << 1);
 
 			frame_r = (((poly_r + 1) * (blend_r + 1)) - 1) / 64;
 			frame_g = (((poly_g + 1) * (blend_g + 1)) - 1) / 64;
 			frame_b = (((poly_b + 1) * (blend_b + 1)) - 1) / 64;
-			frame_a = (((poly_r + 1) * (blend_a + 1)) - 1) / 64;
+			frame_a = (((poly_a + 1) * (blend_a + 1)) - 1) / 64;
 
 			if(frame_a == 63)
 			{
