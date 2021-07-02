@@ -6477,12 +6477,15 @@ void NTR_MMU::deallocate_vram(u8 bank_id, u8 mst)
 			case 0x1:
 			case 0x2:
 			case 0x3:
+				//Only try to deallocate memory VRAM mapped to CPU space
+				if(mst == 3) { return; }
+
 				for(u32 x = 0; x < 0x20000; x++) { memory_map[v_addr + x] = 0; }
 				break;
 
 			case 0x4:
 				//Only try to deallocate memory VRAM mapped to CPU space
-				if(mst == 4) { return; }
+				if((mst == 3) || (mst == 4)) { return; }
 
 				for(u32 x = 0; x < 0x10000; x++) { memory_map[v_addr + x] = 0; }
 				break;
