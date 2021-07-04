@@ -224,6 +224,7 @@ class NTR_LCD
 	void render_virtual_cursor();
 
 	//Texture functions
+	void gen_tex_0();
 	void gen_tex_1(u32 address);
 	void gen_tex_2(u32 address);
 	void gen_tex_3(u32 address);

@@ -551,6 +551,7 @@ void NTR_LCD::fill_poly_textured()
 	//Generate pixel data from VRAM
 	switch(lcd_3D_stat.tex_format)
 	{
+		case 0x0: gen_tex_0(); break;
 		case 0x1: gen_tex_1(tex_addr); break;
 		case 0x2: gen_tex_2(tex_addr); break;
 		case 0x3: gen_tex_3(tex_addr); break;
@@ -2113,6 +2114,14 @@ u32 NTR_LCD::blend_texel(u32 color_1)
 	}
 
 	return final_color;
+}
+
+/****** Generates pixel data from vertex colors ******/
+void NTR_LCD::gen_tex_0()
+{
+	lcd_3D_stat.tex_data.clear();
+	u32 tex_size = (lcd_3D_stat.tex_src_width * lcd_3D_stat.tex_src_height);
+	lcd_3D_stat.tex_data.resize(tex_size, lcd_3D_stat.vertex_color);
 }
 
 /****** Generates pixel data fram VRAM for A315 textures ******/
