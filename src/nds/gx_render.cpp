@@ -393,6 +393,7 @@ void NTR_LCD::fill_poly_solid()
 	u32 vert_color = 0;
 
 	bool use_alpha = (lcd_3D_stat.poly_alpha <= 30) ? true : false;
+	bool target = false; 
 
 	bool use_edge = lcd_3D_stat.edge_marking;
 	u32 edge_color = lcd_3D_stat.edge_color[lcd_3D_stat.poly_id >> 3];
@@ -426,12 +427,16 @@ void NTR_LCD::fill_poly_solid()
 		while(y_coord < lcd_3D_stat.lo_fill[x])
 		{
 			vert_color = vert_colors[0];
+			bool depth_check = false;
 
 			//Convert plot points to buffer index
 			buffer_index = (y_coord * 256) + x;
 
+			if(lcd_3D_stat.z_buffering) { depth_check = (z_start < gx_z_buffer[buffer_index]); }
+			else { depth_check = (get_u32_fixed(z_start) < get_u32_fixed(gx_z_buffer[buffer_index])); }
+
 			//Check Z buffer if drawing is applicable
-			if(z_start < gx_z_buffer[buffer_index])
+			if(depth_check)
 			{
 				//Do alpha-blending if necessary
 				if(use_alpha) { vert_color = alpha_blend_pixel(vert_color, gx_screen_buffer[buffer_id][buffer_index], lcd_3D_stat.poly_alpha); }
@@ -499,11 +504,16 @@ void NTR_LCD::fill_poly_interpolated()
 
 		while(y_coord < lcd_3D_stat.lo_fill[x])
 		{
+			bool depth_check = false;
+
 			//Convert plot points to buffer index
 			buffer_index = (y_coord * 256) + x;
 
+			if(lcd_3D_stat.z_buffering) { depth_check = (z_start < gx_z_buffer[buffer_index]); }
+			else { depth_check = (get_u32_fixed(z_start) < get_u32_fixed(gx_z_buffer[buffer_index])); }
+
 			//Check Z buffer if drawing is applicable
-			if(z_start < gx_z_buffer[buffer_index])
+			if(depth_check)
 			{
 				color = interpolate_rgb(c1, c2, c_ratio);
 
@@ -551,7 +561,6 @@ void NTR_LCD::fill_poly_textured()
 	//Generate pixel data from VRAM
 	switch(lcd_3D_stat.tex_format)
 	{
-		case 0x0: gen_tex_0(); break;
 		case 0x1: gen_tex_1(tex_addr); break;
 		case 0x2: gen_tex_2(tex_addr); break;
 		case 0x3: gen_tex_3(tex_addr); break;
@@ -560,8 +569,6 @@ void NTR_LCD::fill_poly_textured()
 		case 0x6: gen_tex_6(tex_addr); break;
 		case 0x7: gen_tex_7(tex_addr); break;
 	}
-
-	if(lcd_3D_stat.tex_format == 0) { std::cout<<"ALPHA -> 0x" << (u32)lcd_3D_stat.poly_alpha << "\n"; }
 
 	u32 tex_size = lcd_3D_stat.tex_data.size();
 	u32 tw = lcd_3D_stat.tex_src_width;
@@ -663,7 +670,15 @@ void NTR_LCD::fill_poly_textured()
 			texel_index = u32(u32(real_ty) * tw) + u32(real_tx);
 
 			//Calculate depth test
-			texel_depth_test = (lcd_3D_stat.poly_depth_test) ? (z_start <= gx_z_buffer[buffer_index]) : (z_start < gx_z_buffer[buffer_index]);
+			if(lcd_3D_stat.z_buffering)
+			{
+				texel_depth_test = (lcd_3D_stat.poly_depth_test) ? (z_start <= gx_z_buffer[buffer_index]) : (z_start < gx_z_buffer[buffer_index]);
+			}
+
+			else
+			{
+				texel_depth_test = (lcd_3D_stat.poly_depth_test) ? (get_u32_fixed(z_start) <= get_u32_fixed(gx_z_buffer[buffer_index])) : (u32(z_start) < u32(gx_z_buffer[buffer_index]));
+			}
 
 			//Check Z buffer if drawing is applicable
 			//Make sure texel exists as well
@@ -1288,6 +1303,9 @@ void NTR_LCD::process_gx_command()
 					lcd_3D_stat.tex_coord_x[lcd_3D_stat.vertex_list_index] = tm_src[0];
 					lcd_3D_stat.tex_coord_y[lcd_3D_stat.vertex_list_index] = tm_src[1];
 				}
+
+				//Set texture status
+				lcd_3D_stat.use_texture = true;
 			}
 
 			break;
@@ -1609,9 +1627,6 @@ void NTR_LCD::process_gx_command()
 				lcd_3D_stat.repeat_tex_y = (raw_value & 0x20000) ? true : false;
 				lcd_3D_stat.flip_tex_x = (raw_value & 0x40000) ? true : false;
 				lcd_3D_stat.flip_tex_y = (raw_value & 0x80000) ? true : false;
-
-				//Set texture status
-				lcd_3D_stat.use_texture = true;
 			}
 
 			break;
@@ -2116,14 +2131,6 @@ u32 NTR_LCD::blend_texel(u32 color_1)
 	}
 
 	return final_color;
-}
-
-/****** Generates pixel data from vertex colors ******/
-void NTR_LCD::gen_tex_0()
-{
-	lcd_3D_stat.tex_data.clear();
-	u32 tex_size = (lcd_3D_stat.tex_src_width * lcd_3D_stat.tex_src_height);
-	lcd_3D_stat.tex_data.resize(tex_size, lcd_3D_stat.vertex_color);
 }
 
 /****** Generates pixel data fram VRAM for A315 textures ******/
