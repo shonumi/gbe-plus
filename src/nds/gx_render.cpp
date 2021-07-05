@@ -561,6 +561,8 @@ void NTR_LCD::fill_poly_textured()
 		case 0x7: gen_tex_7(tex_addr); break;
 	}
 
+	if(lcd_3D_stat.tex_format == 0) { std::cout<<"ALPHA -> 0x" << (u32)lcd_3D_stat.poly_alpha << "\n"; }
+
 	u32 tex_size = lcd_3D_stat.tex_data.size();
 	u32 tw = lcd_3D_stat.tex_src_width;
 	u32 th = lcd_3D_stat.tex_src_height;
@@ -1286,9 +1288,6 @@ void NTR_LCD::process_gx_command()
 					lcd_3D_stat.tex_coord_x[lcd_3D_stat.vertex_list_index] = tm_src[0];
 					lcd_3D_stat.tex_coord_y[lcd_3D_stat.vertex_list_index] = tm_src[1];
 				}
-
-				//Set texture status
-				lcd_3D_stat.use_texture = true;
 			}
 
 			break;
@@ -1610,6 +1609,9 @@ void NTR_LCD::process_gx_command()
 				lcd_3D_stat.repeat_tex_y = (raw_value & 0x20000) ? true : false;
 				lcd_3D_stat.flip_tex_x = (raw_value & 0x40000) ? true : false;
 				lcd_3D_stat.flip_tex_y = (raw_value & 0x80000) ? true : false;
+
+				//Set texture status
+				lcd_3D_stat.use_texture = true;
 			}
 
 			break;
