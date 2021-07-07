@@ -393,7 +393,6 @@ void NTR_LCD::fill_poly_solid()
 	u32 vert_color = 0;
 
 	bool use_alpha = (lcd_3D_stat.poly_alpha <= 30) ? true : false;
-	bool target = false; 
 
 	bool use_edge = lcd_3D_stat.edge_marking;
 	u32 edge_color = lcd_3D_stat.edge_color[lcd_3D_stat.poly_id >> 3];
@@ -427,16 +426,12 @@ void NTR_LCD::fill_poly_solid()
 		while(y_coord < lcd_3D_stat.lo_fill[x])
 		{
 			vert_color = vert_colors[0];
-			bool depth_check = false;
 
 			//Convert plot points to buffer index
 			buffer_index = (y_coord * 256) + x;
 
-			if(lcd_3D_stat.z_buffering) { depth_check = (z_start < gx_z_buffer[buffer_index]); }
-			else { depth_check = (get_u32_fixed(z_start) < get_u32_fixed(gx_z_buffer[buffer_index])); }
-
 			//Check Z buffer if drawing is applicable
-			if(depth_check)
+			if(z_start < gx_z_buffer[buffer_index])
 			{
 				//Do alpha-blending if necessary
 				if(use_alpha) { vert_color = alpha_blend_pixel(vert_color, gx_screen_buffer[buffer_id][buffer_index], lcd_3D_stat.poly_alpha); }
@@ -504,16 +499,11 @@ void NTR_LCD::fill_poly_interpolated()
 
 		while(y_coord < lcd_3D_stat.lo_fill[x])
 		{
-			bool depth_check = false;
-
 			//Convert plot points to buffer index
 			buffer_index = (y_coord * 256) + x;
 
-			if(lcd_3D_stat.z_buffering) { depth_check = (z_start < gx_z_buffer[buffer_index]); }
-			else { depth_check = (get_u32_fixed(z_start) < get_u32_fixed(gx_z_buffer[buffer_index])); }
-
 			//Check Z buffer if drawing is applicable
-			if(depth_check)
+			if(z_start < gx_z_buffer[buffer_index])
 			{
 				color = interpolate_rgb(c1, c2, c_ratio);
 
@@ -670,15 +660,7 @@ void NTR_LCD::fill_poly_textured()
 			texel_index = u32(u32(real_ty) * tw) + u32(real_tx);
 
 			//Calculate depth test
-			if(lcd_3D_stat.z_buffering)
-			{
-				texel_depth_test = (lcd_3D_stat.poly_depth_test) ? (z_start <= gx_z_buffer[buffer_index]) : (z_start < gx_z_buffer[buffer_index]);
-			}
-
-			else
-			{
-				texel_depth_test = (lcd_3D_stat.poly_depth_test) ? (get_u32_fixed(z_start) <= get_u32_fixed(gx_z_buffer[buffer_index])) : (u32(z_start) < u32(gx_z_buffer[buffer_index]));
-			}
+			texel_depth_test = (lcd_3D_stat.poly_depth_test) ? (z_start <= gx_z_buffer[buffer_index]) : (z_start < gx_z_buffer[buffer_index]);
 
 			//Check Z buffer if drawing is applicable
 			//Make sure texel exists as well
@@ -2072,8 +2054,7 @@ u32 NTR_LCD::blend_texel(u32 color_1)
 			blend_r = (lcd_3D_stat.vertex_color >> 18) & 0x3F;
 			blend_g = (lcd_3D_stat.vertex_color >> 10) & 0x3F;
 			blend_b = (lcd_3D_stat.vertex_color >> 2) & 0x3F;
-			blend_a = lcd_3D_stat.poly_alpha;
-			blend_a = (blend_a == 31) ? 63 : (blend_a << 1);
+			blend_a = (lcd_3D_stat.poly_alpha << 1);
 
 			frame_r = (((poly_r + 1) * (blend_r + 1)) - 1) / 64;
 			frame_g = (((poly_g + 1) * (blend_g + 1)) - 1) / 64;
