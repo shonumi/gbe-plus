@@ -2054,12 +2054,12 @@ u32 NTR_LCD::blend_texel(u32 color_1)
 			blend_r = (lcd_3D_stat.vertex_color >> 18) & 0x3F;
 			blend_g = (lcd_3D_stat.vertex_color >> 10) & 0x3F;
 			blend_b = (lcd_3D_stat.vertex_color >> 2) & 0x3F;
-			blend_a = (lcd_3D_stat.poly_alpha << 1);
+			blend_a = (lcd_3D_stat.poly_alpha == 31) ? 63 : (lcd_3D_stat.poly_alpha << 1);
 
-			frame_r = (((poly_r + 1) * (blend_r + 1)) - 1) / 64;
-			frame_g = (((poly_g + 1) * (blend_g + 1)) - 1) / 64;
-			frame_b = (((poly_b + 1) * (blend_b + 1)) - 1) / 64;
-			frame_a = (((poly_a + 1) * (blend_a + 1)) - 1) / 64;
+			frame_r = modulation_lut[(poly_r << 6) | blend_r];
+			frame_g = modulation_lut[(poly_g << 6) | blend_g];
+			frame_b = modulation_lut[(poly_b << 6) | blend_b];
+			frame_a = modulation_lut[(poly_a << 6) | blend_a];
 
 			if(frame_a == 63)
 			{

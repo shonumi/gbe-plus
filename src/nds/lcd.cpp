@@ -297,6 +297,16 @@ void NTR_LCD::reset()
 		screen_offset_lut[x] = (x > 255) ? 0x800 : 0x0;
 	}
 
+	//Texture Blending Modulation LUT
+	for(u16 y = 0; y < 64; y++)
+	{
+		for(u16 x = 0; x < 64; x++)
+		{
+			u16 val = (((x + 1) * (y + 1)) - 1) / 64;
+			modulation_lut[(x << 6) | y] = val;
+		}
+	}
+
 	lcd_3D_stat.display_control = 0;
 	lcd_3D_stat.gx_stat = 0x6000000;
 	lcd_3D_stat.current_gx_command = 0;

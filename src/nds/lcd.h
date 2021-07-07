@@ -156,6 +156,7 @@ class NTR_LCD
 
 	u8 inv_lut[8];
 	u16 screen_offset_lut[512];
+	u8 modulation_lut[4096];
 
 	//3D Polygons
 	gx_matrix last_poly;
