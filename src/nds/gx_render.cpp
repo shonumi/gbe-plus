@@ -675,7 +675,10 @@ void NTR_LCD::fill_poly_textured()
 					if(!skip_tex_blending) { texel = blend_texel(texel); }
 
 					//Alpha-blend if necessary
-					if(((texel >> 24) != 0xFF) || (use_alpha)) { texel = alpha_blend_texel(texel, gx_screen_buffer[buffer_id][buffer_index]); }
+					if(((texel >> 24) != 0xFF) || (use_alpha))
+					{
+						texel = alpha_blend_texel(texel, gx_screen_buffer[buffer_id][buffer_index]);
+					}
 
 					gx_screen_buffer[buffer_id][buffer_index] = texel;
 					gx_render_buffer[buffer_id][buffer_index] = 1;
@@ -2004,7 +2007,11 @@ u32 NTR_LCD::alpha_blend_pixel(u32 color_1, u32 color_2, u8 poly_alpha)
 /****** Alpha blends given texel with 3D framebuffer ******/
 u32 NTR_LCD::alpha_blend_texel(u32 color_1, u32 color_2)
 {
-	u8 poly_alpha = (lcd_3D_stat.poly_alpha) ? lcd_3D_stat.poly_alpha : ((color_1 >> 24) & 0x1F);
+	u8 poly_alpha = 0;
+
+	if((color_1 >> 24) != 0xFF) { poly_alpha = (color_1 >> 24); }
+	else { poly_alpha = lcd_3D_stat.poly_alpha; }
+
 	if(poly_alpha == 0) { return color_2; }
 
 	u8 poly_min = 0x1F - poly_alpha;
@@ -2031,8 +2038,11 @@ u32 NTR_LCD::blend_texel(u32 color_1)
 	u16 poly_r = (color_1 >> 18) & 0x3F;
 	u16 poly_g = (color_1 >> 10) & 0x3F;
 	u16 poly_b = (color_1 >> 2) & 0x3F;
+	u16 poly_a = 0;
 
-	u16 poly_a = (lcd_3D_stat.poly_alpha) ? lcd_3D_stat.poly_alpha : ((color_1 >> 24) & 0x1F);
+	if((color_1 >> 24) != 0xFF) { poly_a = ((color_1 >> 23) + 1); }
+	else { poly_a = lcd_3D_stat.poly_alpha; }
+
 	poly_a = (poly_a == 31) ? 63 : (poly_a << 1);
 
 	u16 blend_r;
@@ -2060,15 +2070,16 @@ u32 NTR_LCD::blend_texel(u32 color_1)
 			frame_g = modulation_lut[(poly_g << 6) | blend_g];
 			frame_b = modulation_lut[(poly_b << 6) | blend_b];
 			frame_a = modulation_lut[(poly_a << 6) | blend_a];
+			frame_a >>= 1;
 
-			if(frame_a == 63)
+			if(frame_a == 31)
 			{
 				final_color = 0xFF000000 | (frame_r << 18) | (frame_g << 10) | (frame_b << 2);
 			}
 
 			else
 			{
-				final_color = (frame_a << 26) | (frame_r << 18) | (frame_g << 10) | (frame_b << 2);
+				final_color = (frame_a << 24) | (frame_r << 18) | (frame_g << 10) | (frame_b << 2);
 			}
 
 			break;
