@@ -2040,7 +2040,7 @@ u32 NTR_LCD::blend_texel(u32 color_1)
 	u16 poly_b = (color_1 >> 2) & 0x3F;
 	u16 poly_a = 0;
 
-	if((color_1 >> 24) != 0xFF) { poly_a = ((color_1 >> 23) + 1); }
+	if((color_1 >> 24) != 0xFF) { poly_a = (color_1 >> 24); }
 	else { poly_a = lcd_3D_stat.poly_alpha; }
 
 	poly_a = (poly_a == 31) ? 63 : (poly_a << 1);
@@ -2053,6 +2053,7 @@ u32 NTR_LCD::blend_texel(u32 color_1)
 	u16 frame_r;
 	u16 frame_g;
 	u16 frame_b;
+
 	u16 frame_a;
 
 	u32 final_color = color_1;
