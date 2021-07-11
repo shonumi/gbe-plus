@@ -2091,16 +2091,15 @@ u32 NTR_LCD::blend_texel(u32 color_1)
 			blend_g = (lcd_3D_stat.vertex_color >> 10) & 0x3F;
 			blend_b = (lcd_3D_stat.vertex_color >> 2) & 0x3F;
 			blend_a = lcd_3D_stat.poly_alpha;
-			blend_a = (blend_a == 31) ? 0xFF : (blend_a << 3);
 
 			if(poly_a == 63)
 			{
-				final_color = (blend_a << 26) | (blend_r << 18) | (blend_g << 10) | (blend_b << 2);
+				final_color = (blend_a << 24) | (blend_r << 18) | (blend_g << 10) | (blend_b << 2);
 			}
 
 			else if(poly_a == 0)
 			{
-				final_color = (blend_a << 26) | (poly_r << 18) | (poly_g << 10) | (poly_b << 2);
+				final_color = (blend_a << 24) | (poly_r << 18) | (poly_g << 10) | (poly_b << 2);
 			}
 
 			else
@@ -2109,7 +2108,7 @@ u32 NTR_LCD::blend_texel(u32 color_1)
 				frame_g = ((poly_g * poly_a) + (blend_g * (63 - poly_a))) / 64;
 				frame_b = ((poly_b * poly_a) + (blend_b * (63 - poly_a))) / 64;
 
-				final_color = (blend_a << 26) | (frame_r << 18) | (frame_g << 10) | (frame_b << 2);
+				final_color = (blend_a << 24) | (frame_r << 18) | (frame_g << 10) | (frame_b << 2);
 			}
 
 			break;
