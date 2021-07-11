@@ -1927,6 +1927,7 @@ void NTR_LCD::process_gx_command()
 	lcd_3D_stat.parameter_index = 0;
 	lcd_3D_stat.current_gx_command = 0;
 	lcd_3D_stat.process_command = false;
+	mem->gx_command = false;
 }
 
 /****** Reads GX command parameters as a 32-bit value *****/
