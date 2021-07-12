@@ -1222,6 +1222,7 @@ void NTR_LCD::process_gx_command()
 				}
 
 				current_normal[lcd_3D_stat.vertex_list_index] = temp_vec * gx_vector_matrix;
+				lcd_3D_stat.vertex_color = material_colors[0];
 			}
 
 			break;
