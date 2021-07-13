@@ -86,6 +86,7 @@ class core_emu
 		std::string last_mnemonic;
 		u32 last_pc;
 		u32 run_count;
+		u8 vb_count;
 
 		//Advanced debugging
 		#ifdef GBE_DEBUG
