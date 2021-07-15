@@ -28,8 +28,25 @@ void DMG_core::debug_step()
 	//Use CLI for all debugging
 	bool printed = false;
 
+	//When running until next VBlank, stop when done
+	if((db_unit.vb_count) || (db_unit.last_command == "vb"))
+	{
+		if((db_unit.vb_count == 2) && (core_cpu.controllers.video.lcd_stat.current_scanline < 0x90)) { db_unit.vb_count--; }
+
+		if((db_unit.vb_count == 1) && (core_cpu.controllers.video.lcd_stat.current_scanline == 0x90))
+		{
+			db_unit.vb_count = 0;
+			db_unit.last_mnemonic = debug_get_mnemonic(core_cpu.reg.pc);
+			db_unit.last_command = "n";
+
+			debug_display();
+			debug_process_command();
+			printed = true;
+		}
+	}
+
 	//In continue mode, if breakpoints exist, try to stop on one
-	if((db_unit.breakpoints.size() > 0) && (db_unit.last_command == "c"))
+	else if((db_unit.breakpoints.size() > 0) && (db_unit.last_command == "c"))
 	{
 		for(int x = 0; x < db_unit.breakpoints.size(); x++)
 		{
@@ -86,22 +103,6 @@ void DMG_core::debug_step()
 		//Stop run count and re-enter debugging mode
 		if(!db_unit.run_count)
 		{
-			db_unit.last_mnemonic = debug_get_mnemonic(core_cpu.reg.pc);
-
-			debug_display();
-			debug_process_command();
-			printed = true;
-		}
-	}
-
-	//When running until next VBlank, stop when done
-	else if(db_unit.vb_count)
-	{
-		if((db_unit.vb_count == 2) && (core_cpu.controllers.video.lcd_stat.current_scanline < 0x90)) { db_unit.vb_count--; }
-
-		if((db_unit.vb_count == 1) && (core_cpu.controllers.video.lcd_stat.current_scanline == 0x90))
-		{
-			db_unit.vb_count--;
 			db_unit.last_mnemonic = debug_get_mnemonic(core_cpu.reg.pc);
 
 			debug_display();
@@ -908,7 +909,6 @@ void DMG_core::debug_process_command()
 			
 			valid_command = true;
 			db_unit.last_command = "vb";
-			debug_process_command();
 		}
 
 		//Print all instructions to the screen

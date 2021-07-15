@@ -48,6 +48,7 @@ DMG_core::DMG_core()
 	db_unit.last_command = "n";
 	db_unit.last_mnemonic = "";
 	db_unit.last_pc = 0;
+	db_unit.vb_count = 0;
 
 	db_unit.breakpoints.clear();
 	db_unit.watchpoint_addr.clear();
