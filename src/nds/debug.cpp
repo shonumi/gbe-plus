@@ -30,8 +30,25 @@ void NTR_core::debug_step()
 
 	u32 debug_code = (nds9_debug) ? core_cpu_nds9.debug_code : core_cpu_nds7.debug_code;
 
+	//When running until next VBlank, stop when done
+	if((db_unit.vb_count) || (db_unit.last_command == "vb"))
+	{
+		if((db_unit.vb_count == 2) && (core_cpu_nds9.controllers.video.lcd_stat.current_scanline < 0xC0)) { db_unit.vb_count--; }
+
+		if((db_unit.vb_count == 1) && (core_cpu_nds9.controllers.video.lcd_stat.current_scanline == 0xC0))
+		{
+			db_unit.vb_count = 0;
+			db_unit.last_mnemonic = debug_get_mnemonic(debug_code, false);
+			db_unit.last_command = "n";
+
+			debug_display();
+			debug_process_command();
+			printed = true;
+		}
+	}
+
 	//In continue mode, if breakpoints exist, try to stop on one
-	if((db_unit.breakpoints.size() > 0) && (db_unit.last_command == "c"))
+	else if((db_unit.breakpoints.size() > 0) && (db_unit.last_command == "c"))
 	{
 		for(int x = 0; x < db_unit.breakpoints.size(); x++)
 		{
@@ -2154,6 +2171,15 @@ void NTR_core::debug_process_command()
 				valid_command = true;
 				db_unit.last_command = "ri";
 			}
+		}
+
+		//Run emulation until next system VBlank
+		else if(command == "vb")
+		{
+			db_unit.vb_count = 2;
+			
+			valid_command = true;
+			db_unit.last_command = "vb";
 		}	
 
 		//Print all instructions to the screen

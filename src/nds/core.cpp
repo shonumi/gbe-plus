@@ -51,6 +51,7 @@ NTR_core::NTR_core()
 	db_unit.print_all = false;
 	db_unit.print_pc = false;
 	db_unit.last_command = "n";
+	db_unit.vb_count = 0;
 
 	db_unit.breakpoints.clear();
 	db_unit.watchpoint_addr.clear();
