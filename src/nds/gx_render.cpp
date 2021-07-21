@@ -66,6 +66,7 @@ void NTR_LCD::render_geometry()
 	float plot_x[4];
 	float plot_y[4];
 	float plot_z[4];
+	float plot_w[4];
 	float plot_tx[4];
 	float plot_ty[4];
 	s32 buffer_index = 0;
@@ -128,6 +129,8 @@ void NTR_LCD::render_geometry()
 		{
 			plot_z[a] = temp_matrix[3];
 		}
+
+		plot_w[a] = temp_matrix[3];
 
 		//Check for wonky coordinates
 		if(std::isnan(plot_x[a])) { lcd_3D_stat.render_polygon = false; return; }
@@ -198,6 +201,7 @@ void NTR_LCD::render_geometry()
 		float x_coord = plot_x[x];
 		float y_coord = plot_y[x];
 		float z_coord = plot_z[x];
+		float w_coord = plot_w[x];
 
 		s32 xy_start = 0;
 		s32 xy_end = 0;
@@ -286,7 +290,7 @@ void NTR_LCD::render_geometry()
 			s32 temp_x = round(x_coord);
 
 			//Set fill coordinates
-			if((temp_x >= 0) && (temp_x <= 255))
+			if((temp_x >= 0) && (temp_x <= 255) && (z_coord > -w_coord) && (z_coord < w_coord))
 			{
 				overflow = 0;
 
@@ -1183,7 +1187,7 @@ void NTR_LCD::process_gx_command()
 				u32 color_bytes = read_param_u32(0);
 				lcd_3D_stat.vertex_color = get_rgb15(color_bytes);
 
-				if((lcd_3D_stat.vertex_list_index == 0) || (lcd_3D_stat.begin_strips == false))
+				if(lcd_3D_stat.vertex_list_index == 0)
 				{
 					vert_colors[0] = lcd_3D_stat.vertex_color;
 					vert_colors[1] = lcd_3D_stat.vertex_color;
