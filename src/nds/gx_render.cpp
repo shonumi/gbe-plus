@@ -290,7 +290,7 @@ void NTR_LCD::render_geometry()
 			s32 temp_x = round(x_coord);
 
 			//Set fill coordinates
-			if((temp_x >= 0) && (temp_x <= 255) && (z_coord > -w_coord) && (z_coord < w_coord))
+			if((temp_x >= 0) && (temp_x <= 255) && (z_coord >= -w_coord) && (z_coord <= w_coord))
 			{
 				overflow = 0;
 
