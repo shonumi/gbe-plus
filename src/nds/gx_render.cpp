@@ -2609,6 +2609,25 @@ float NTR_LCD::get_u16_float(u16 value)
 	return result;
 }
 
+/****** Converts 24-bit fixed point value into floating point ******/
+float NTR_LCD::get_u32_float(u32 value)
+{
+	value &= 0xFFFFFF;
+	float result = 0.0;
+				
+	if(value & 0x800000) 
+	{ 
+		u32 p = ((value >> 12) - 1);
+		p = (~p & 0x7FF);
+		result = -1.0 * p;
+	}
+
+	else { result = (value >> 12); }
+	if((value & 0xFFF) != 0) { result += (value & 0xFFF) / 4096.0; }
+
+	return result;
+}
+
 /****** Converts floating point 19-bit fixed point ******/
 u32 NTR_LCD::get_u32_fixed(float raw_value)
 {
