@@ -121,7 +121,16 @@ void NTR_LCD::render_geometry()
 		if(lcd_3D_stat.z_buffering)
 		{
 			plot_z[a] = temp_matrix[2];
-			if(temp_matrix[3]) { plot_z[a] /= temp_matrix[3]; }
+			
+			if(temp_matrix[3])
+			{
+				u64 z = get_u32_fixed(temp_matrix[2]);
+				u32 w = get_u32_fixed(temp_matrix[3]);
+				z = ((((z << 14) / w) + 0x3FFF) << 9) & 0xFFFFFF;
+				plot_z[a] = get_u32_float(z);
+				std::cout<<"Z -> " << z << "\n";
+				std::cout<<"Real Z -> " << plot_z[a] << "\n";
+			}
 		}
 
 		//Otherwise, use W value for depth
