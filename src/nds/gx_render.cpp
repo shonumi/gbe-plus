@@ -128,8 +128,6 @@ void NTR_LCD::render_geometry()
 				u32 w = get_u32_fixed(temp_matrix[3]);
 				z = ((((z << 14) / w) + 0x3FFF) << 9) & 0xFFFFFF;
 				plot_z[a] = get_u32_float(z);
-				std::cout<<"Z -> " << z << "\n";
-				std::cout<<"Real Z -> " << plot_z[a] << "\n";
 			}
 		}
 
@@ -299,7 +297,7 @@ void NTR_LCD::render_geometry()
 			s32 temp_x = round(x_coord);
 
 			//Set fill coordinates
-			if((temp_x >= 0) && (temp_x <= 255) && (z_coord >= -w_coord) && (z_coord <= w_coord))
+			if((temp_x >= 0) && (temp_x <= 255))
 			{
 				overflow = 0;
 
@@ -2604,18 +2602,19 @@ void NTR_LCD::update_vector_matrix()
 float NTR_LCD::get_u16_float(u16 value)
 {
 	float result = 0.0;
+	float sign = 1.0;
 				
 	if(value & 0x8000) 
 	{ 
 		u16 p = ((value >> 12) - 1);
 		p = (~p & 0x7);
-		result = -1.0 * p;
+		sign = -1.0;
 	}
 
 	else { result = (value >> 12); }
 	if((value & 0xFFF) != 0) { result += (value & 0xFFF) / 4096.0; }
 
-	return result;
+	return (result * sign);
 }
 
 /****** Converts 24-bit fixed point value into floating point ******/
@@ -2623,18 +2622,19 @@ float NTR_LCD::get_u32_float(u32 value)
 {
 	value &= 0xFFFFFF;
 	float result = 0.0;
+	float sign = 1.0;
 				
 	if(value & 0x800000) 
 	{ 
 		u32 p = ((value >> 12) - 1);
 		p = (~p & 0x7FF);
-		result = -1.0 * p;
+		sign = -1.0;
 	}
 
 	else { result = (value >> 12); }
 	if((value & 0xFFF) != 0) { result += (value & 0xFFF) / 4096.0; }
 
-	return result;
+	return (result * sign);
 }
 
 /****** Converts floating point 19-bit fixed point ******/
