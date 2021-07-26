@@ -2607,7 +2607,7 @@ float NTR_LCD::get_u16_float(u16 value)
 	if(value & 0x8000) 
 	{ 
 		u16 p = ((value >> 12) - 1);
-		p = (~p & 0x7);
+		result = (~p & 0x7);
 		sign = -1.0;
 	}
 
@@ -2627,7 +2627,7 @@ float NTR_LCD::get_u32_float(u32 value)
 	if(value & 0x800000) 
 	{ 
 		u32 p = ((value >> 12) - 1);
-		p = (~p & 0x7FF);
+		result = (~p & 0x7FF);
 		sign = -1.0;
 	}
 
