@@ -128,6 +128,8 @@ void NTR_LCD::render_geometry()
 				u32 w = get_u32_fixed(temp_matrix[3]);
 				z = ((((z << 14) / w) + 0x3FFF) << 9) & 0xFFFFFF;
 				plot_z[a] = get_u32_float(z);
+
+				std::cout<<"Z ME -> " << plot_z[a] << "\n";
 			}
 		}
 
@@ -2622,19 +2624,24 @@ float NTR_LCD::get_u32_float(u32 value)
 {
 	value &= 0xFFFFFF;
 	float result = 0.0;
-	float sign = 1.0;
-				
+
+	//Negative values
 	if(value & 0x800000) 
-	{ 
-		u32 p = ((value >> 12) - 1);
-		result = (~p & 0x7FF);
-		sign = -1.0;
+	{
+		result = ((value >> 12) & 0x7FF);
+		result = (result == 0) ? 0 : (2048.0 - result);
+		result += (1.0 - ((value & 0xFFF) / 4096.0)); 
+		result *= -1.0;
 	}
 
-	else { result = (value >> 12); }
-	if((value & 0xFFF) != 0) { result += (value & 0xFFF) / 4096.0; }
+	//Positive values
+	else
+	{
+		result = (value >> 12);
+		result += ((value & 0xFFF) / 4096.0);
+	}
 
-	return (result * sign);
+	return result;
 }
 
 /****** Converts floating point 19-bit fixed point ******/
