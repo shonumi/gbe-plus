@@ -219,7 +219,6 @@ class NTR_LCD
 	void update_clip_matrix();
 	void update_vector_matrix();
 	float get_u16_float(u16 value);
-	float get_u32_float(u32 value);
 	u32 get_u32_fixed(float raw_value);
 
 	//Virtual Cursor
