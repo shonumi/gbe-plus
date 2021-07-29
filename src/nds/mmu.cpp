@@ -1043,6 +1043,11 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 	//Or narrow down certain I/O regs (sound)
 	switch(address >> 24)
 	{
+		case 0x0:
+			if(access_mode) { address &= 0x7FFF; }
+			else { return; }
+			break;
+
 		case 0x2:
 			address &= 0x23FFFFF;
 			break;
