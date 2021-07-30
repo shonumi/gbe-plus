@@ -694,7 +694,7 @@ void ARM7::execute()
 
 			default:
 				debug_message = 0x13; debug_code = instruction_pipeline[pipeline_id];
-				running = false;
+				if(!config::ignore_illegal_opcodes) { running = false; }
 				break;
 		}
 	}
@@ -760,7 +760,7 @@ void ARM7::execute()
 
 				default:
 					debug_message = 0x1E; debug_code = instruction_pipeline[pipeline_id];
-					running = false;
+					if(!config::ignore_illegal_opcodes) { running = false; }
 					break;
 			}
 		}

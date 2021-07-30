@@ -4411,7 +4411,7 @@ void S1C88::execute()
 
 				default:
 					std::cout<<"CPU::Error - Unknown 0xCE opcode -> 0x" << std::hex << opcode << " @ 0x" << reg.pc << "\n";
-					running = false;
+					if(!config::ignore_illegal_opcodes) { running = false; }
 			}
 
 			break;
@@ -5316,7 +5316,7 @@ void S1C88::execute()
 
 				default:
 				std::cout<<"CPU::Error - Unknown 0xCF opcode -> 0x" << std::hex << opcode << "\n";
-				running = false;
+				if(!config::ignore_illegal_opcodes) { running = false; }
 			}
 
 			break;
@@ -5906,7 +5906,7 @@ void S1C88::execute()
 
 		default:
 			std::cout<<"CPU::Error - Unknown opcode -> 0x" << std::hex << opcode << "\n";
-			running = false;
+			if(!config::ignore_illegal_opcodes) { running = false; }
 	}
 
 	//Update logical PC address

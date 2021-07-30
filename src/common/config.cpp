@@ -94,6 +94,7 @@ namespace config
 	bool use_bios = false;
 	bool use_firmware = false;
 	bool no_cart = false;
+	bool ignore_illegal_opcodes = true;
 
 	special_cart_types cart_type = NORMAL_CART;
 	gba_save_types agb_save_type = AGB_AUTO_DETECT;

@@ -2362,7 +2362,7 @@ void SGB_Z80::exec_op(u8 opcode)
 			
 		default :
 			std::cout<<"CPU::Error - Unknown Opcode : 0x" << std::hex << (int) opcode << "\n";
-			running = false;
+			if(!config::ignore_illegal_opcodes) { running = false; }
 	}
 }
 
@@ -3940,7 +3940,7 @@ void SGB_Z80::exec_op(u16 opcode)
 			break;
 
 		default : 
-			running = false;
 			std::cout<<"CPU::Error - Unknown Opcode : 0xCB" << std::hex << (int) opcode << "\n";
+			if(!config::ignore_illegal_opcodes) { running = false; }
 	}
 }

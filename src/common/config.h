@@ -111,6 +111,7 @@ namespace config
 	extern bool use_bios;
 	extern bool use_firmware;
 	extern bool no_cart;
+	extern bool ignore_illegal_opcodes;
 
 	extern special_cart_types cart_type;
 	extern gba_save_types agb_save_type;

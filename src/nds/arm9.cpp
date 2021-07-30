@@ -751,7 +751,7 @@ void NTR_ARM9::execute()
 			default:
 				debug_message = 0x13; debug_code = instruction_pipeline[pipeline_id];
 				std::cout<<"CPU::NTR_ARM9::Error - Unknown THUMB instruction -> 0x" << std::hex << debug_code << "\n";
-				running = false;
+				if(!config::ignore_illegal_opcodes) { running = false; }
 				break;
 		}
 	}
@@ -847,7 +847,7 @@ void NTR_ARM9::execute()
 				default:
 					debug_message = 0x23; debug_code = instruction_pipeline[pipeline_id];
 					std::cout<<"CPU::ARM9::Error - Unknown ARM instruction -> 0x" << std::hex << debug_code << "\n";
-					running = false;
+					if(!config::ignore_illegal_opcodes) { running = false; }
 					break;
 			}
 		}
