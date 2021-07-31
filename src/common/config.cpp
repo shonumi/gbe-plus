@@ -827,6 +827,9 @@ bool parse_cli_args()
 			//Enable Turbo File write protection
 			else if(config::cli_args[x] == "--turbo-file-protect") { config::turbo_file_options |= 0x2; }
 
+			//Ignore Illegal Opcodes
+			else if(config::cli_args[x] == "--ignore-illegal-opcodes") { config::ignore_illegal_opcodes = true; }
+
 			//Print Help
 			else if((config::cli_args[x] == "-h") || (config::cli_args[x] == "--help")) 
 			{
