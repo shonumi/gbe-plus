@@ -1093,7 +1093,7 @@ void ARM7::block_data_transfer(u32 current_arm_instruction)
 				//Load registers
 				else 
 				{
-					if((x == transfer_reg) && (base_reg == transfer_reg)) { write_back = 0; }
+					if(x == base_reg) { write_back = 0; }
 					set_reg(x, mem->read_u32(base_addr & ~0x3));
 					if(x == 15) { needs_flush = true; } 
 				}
@@ -1127,7 +1127,7 @@ void ARM7::block_data_transfer(u32 current_arm_instruction)
 				//Load registers
 				else 
 				{
-					if((x == transfer_reg) && (base_reg == transfer_reg)) { write_back = 0; }
+					if(x == base_reg) { write_back = 0; }
 					set_reg(x, mem->read_u32(base_addr & ~0x3));
 					if(x == 15) { needs_flush = true; } 
 				}
