@@ -1027,7 +1027,7 @@ void ARM7::halfword_signed_transfer(u32 current_arm_instruction)
 
 /****** ARM.11 Block Data Transfer ******/
 void ARM7::block_data_transfer(u32 current_arm_instruction)
-{
+{	
 	//TODO - Clock cycles
 
 	//Grab Pre-Post bit - Bit 24
@@ -1057,6 +1057,8 @@ void ARM7::block_data_transfer(u32 current_arm_instruction)
 	//Force USR mode if PSR bit is set
 	cpu_modes temp_mode = current_cpu_mode;
 	if(psr) { current_cpu_mode = USR; }
+
+	bool diff_bank = (temp_mode != current_cpu_mode);
 
 	u32 base_addr = get_reg(base_reg);
 	u32 old_base = base_addr;

@@ -385,9 +385,11 @@ u8 NTR_MMU::read_u8(u32 address)
 			//ARM7 WRAM reading
 			else if((!access_mode) && (address <= 0x37FFFFF))
 			{
+				std::cout<<"ARM7 MODE -> 0x" << u32(wram_mode) << "\n";
+
 				switch(wram_mode)
 				{
-					case 0x0: address = 0x380FFFF | (address & 0xFFFF); break;
+					case 0x0: address = 0x3800000 | (address & 0xFFFF); break;
 					case 0x1: address = 0x3000000 | (address & 0x3FFF); break;
 					case 0x2: address = 0x3004000 | (address & 0x3FFF); break;
 					case 0x3: address &= 0x3007FFF; break;
@@ -1070,7 +1072,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			{
 				switch(wram_mode)
 				{
-					case 0x0: address = 0x380FFFF | (address & 0xFFFF); break;
+					case 0x0: address = 0x3800000 | (address & 0xFFFF); break;
 					case 0x1: address = 0x3000000 | (address & 0x3FFF); break;
 					case 0x2: address = 0x3004000 | (address & 0x3FFF); break;
 					case 0x3: address &= 0x3007FFF; break;
