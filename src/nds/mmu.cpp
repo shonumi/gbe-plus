@@ -385,8 +385,6 @@ u8 NTR_MMU::read_u8(u32 address)
 			//ARM7 WRAM reading
 			else if((!access_mode) && (address <= 0x37FFFFF))
 			{
-				std::cout<<"ARM7 MODE -> 0x" << u32(wram_mode) << "\n";
-
 				switch(wram_mode)
 				{
 					case 0x0: address = 0x3800000 | (address & 0xFFFF); break;
@@ -955,9 +953,16 @@ u8 NTR_MMU::read_u8(u32 address)
 		else { return 0; }
 	}
 
+	//Check for RTC access
 	else if(address == NDS_RTC)
 	{
 		return (access_mode) ? 0 : read_rtc();
+	}
+
+	//Check for WRAMSTAT on ARM7
+	else if((!access_mode) && (address == NDS_VRAMCNT_B))
+	{
+		return wram_mode;
 	}
 	
 	return memory_map[address];
