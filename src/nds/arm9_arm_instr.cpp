@@ -1799,7 +1799,27 @@ void NTR_ARM9::sticky_math(u32 current_arm_instruction)
 		case 0x6:
 			input_1 = get_reg(src1_reg);
 			input_2 = get_reg(src2_reg);
-			result = input_1 - (input_2 * 2);
+
+			//Clamp results of Rn * 2 if necessary to max positive 32-bit signed int
+			//Set Q flag as well
+			if((input_2 <= 0x7FFFFFFF) && (input_2 >= 0x40000000))
+			{
+				input_2n = 0x7FFFFFFF;
+				reg.cpsr |= CPSR_Q_FLAG;
+			}
+
+			//Clamp results of Rn * 2 if necessary to max negative 32-bit signed int
+			//Set Q flag as well
+			else if((input_2 >= 0x80000000) && (input_2 < 0xC0000000))
+			{
+				input_2n = 0x80000000;
+				reg.cpsr |= CPSR_Q_FLAG;
+			}
+			
+			//Use Rn * 2 as is
+			else { input_2n = input_2 + input_2; }
+
+			result = input_1 - input_2n;
 			
 			//Saturate result if necessary
 			sat_code = update_sticky_overflow(input_1, input_2, result, false);
