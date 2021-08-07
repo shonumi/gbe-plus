@@ -771,7 +771,7 @@ void NTR_ARM9::multiply(u32 current_arm_instruction)
 			value_32 += Rn;
 			set_reg(dest_reg, value_32);
 
-			update_sticky_overflow((Rm * Rs), Rn, value_32, true);
+			update_sticky_overflow(((s16)Rm * (s16)Rs), Rn, value_32, true);
 
 			break;
 
