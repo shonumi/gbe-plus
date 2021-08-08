@@ -775,6 +775,28 @@ void NTR_ARM9::multiply(u32 current_arm_instruction)
 
 			break;
 
+		//SMLAWy
+		//SMULWy
+		case 0x9:
+			if(current_arm_instruction & 0x40) { Rs >>= 16; }
+			else { Rs &= 0xFFFF; }
+
+			value_32 = ((s32)Rm * (s16)Rs) / 0x10000;
+
+			if(current_arm_instruction & 0x20)
+			{
+				set_reg(dest_reg, value_32);
+			}
+
+			else
+			{
+				update_sticky_overflow(value_32, Rn, (value_32 + Rn), true);
+				value_32 += Rn;
+				set_reg(dest_reg, value_32);
+			}
+
+			break;
+
 		//SMULxy
 		case 0xB:
 			if(current_arm_instruction & 0x40) { Rs >>= 16; }
