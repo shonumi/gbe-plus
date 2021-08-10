@@ -797,6 +797,33 @@ void NTR_ARM9::multiply(u32 current_arm_instruction)
 
 			break;
 
+		//SMLALxy
+		case 0xA:
+			//This looks weird, but it is a workaround for compilers that support 64-bit unsigned ints, but complain about shifts greater than 32
+			hi_lo = Rd;
+			hi_lo <<= 16;
+			hi_lo <<= 16;
+			hi_lo |= Rn;
+
+			if(current_arm_instruction & 0x40) { Rs >>= 16; }
+			else { Rs &= 0xFFFF; }
+
+			if(current_arm_instruction & 0x20) { Rm >>= 16; }
+			else { Rm &= 0xFFFF; }
+
+			//Messy C++ casting... It works though, and this is what we need
+			value_s64 = (value_s64 * (s16)Rm * (s16)Rs) + hi_lo;
+			value_64 = value_s64;
+
+			//Set Rn to low 32-bits, Rd to high 32-bits
+			Rn = (value_s64 & 0xFFFFFFFF);
+			Rd = (value_s64 >> 32);
+
+			set_reg(accu_reg, Rn);
+			set_reg(dest_reg, Rd);
+
+			break;
+
 		//SMULxy
 		case 0xB:
 			if(current_arm_instruction & 0x40) { Rs >>= 16; }
