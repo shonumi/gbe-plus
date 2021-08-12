@@ -94,7 +94,7 @@ void CP15::set_dtcm_size_base()
 {
 	//std::cout<<"CP15::C9,C1,0\n";
 
-	regs[CP15_TEMP] = regs[C9_C1_0] &= ~0xFFF;
+	regs[CP15_TEMP] = regs[C9_C1_0] & ~0xFFF;
 
 	//std::cout<<"DTCM BASE -> 0x" << std::hex << regs[CP15_TEMP] << "\n";
 }
