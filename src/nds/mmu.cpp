@@ -279,6 +279,7 @@ void NTR_MMU::reset()
 	nds7_timer = NULL;
 
 	dtcm_addr = 0xDEADC0DE;
+	dtcm_end = 0xDEADC0DE;
 	itcm_addr = 0;
 
 	dtcm.clear();
@@ -346,9 +347,9 @@ u8 NTR_MMU::read_u8(u32 address)
 	#endif
 
 	//Check DTCM first
-	if((access_mode) && (!fetch_request) && (address >= dtcm_addr) && (address <= (dtcm_addr + 0x3FFF)))
+	if((access_mode) && (!fetch_request) && (address >= dtcm_addr) && (address <= dtcm_end))
 	{
-		return dtcm[address - dtcm_addr];
+		return dtcm[(address - dtcm_addr) & 0x3FFF];
 	}
 
 	//Mirror memory address if applicable
@@ -1040,9 +1041,9 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 	#endif
 
 	//Check DTCM first
-	if((access_mode) && (address >= dtcm_addr) && (address <= (dtcm_addr + 0x3FFF)))
+	if((access_mode) && (address >= dtcm_addr) && (address <= dtcm_end))
 	{
-		dtcm[address - dtcm_addr] = value;
+		dtcm[(address - dtcm_addr) & 0x3FFF] = value;
 		return;
 	}
 

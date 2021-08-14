@@ -364,6 +364,7 @@ class NTR_MMU
 	u8 apu_io_id;
 
 	u32 dtcm_addr;
+	u32 dtcm_end;
 	u32 itcm_addr;
 
 	u32 pal_a_bg_slot[4];
