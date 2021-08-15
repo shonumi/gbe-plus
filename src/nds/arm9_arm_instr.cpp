@@ -1573,10 +1573,10 @@ void NTR_ARM9::coprocessor_register_transfer(u32 current_instruction)
 			co_proc.cache_replacement = (co_proc.regs[CP15::C1_C0_0] & 0x4000) ? true : false;
 			co_proc.pre_armv5 = (co_proc.regs[CP15::C1_C0_0] & 0x8000) ? true : false;
 			co_proc.dtcm_enable = (co_proc.regs[CP15::C1_C0_0] & 0x10000) ? true : false;
-			co_proc.dtcm_read_mode = (co_proc.regs[CP15::C1_C0_0] & 0x20000) ? true : false;
 			co_proc.itcm_enable = (co_proc.regs[CP15::C1_C0_0] & 0x40000) ? true : false;
-			co_proc.itcm_read_mode = (co_proc.regs[CP15::C1_C0_0] & 0x80000) ? true : false;
 			
+			mem->dtcm_load_mode = (co_proc.regs[CP15::C1_C0_0] & 0x20000) ? true : false;
+			mem->itcm_load_mode = (co_proc.regs[CP15::C1_C0_0] & 0x80000) ? true : false;
 		}
 
 		//Move ARM register to C2,C0,0

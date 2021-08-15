@@ -41,9 +41,7 @@ void CP15::reset()
 	cache_replacement = false;
 	pre_armv5 = false;
 	dtcm_enable = false;
-	dtcm_read_mode = false;
 	itcm_enable = false;
-	itcm_read_mode = false;
 }		
 
 

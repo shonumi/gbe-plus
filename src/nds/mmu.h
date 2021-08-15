@@ -365,7 +365,10 @@ class NTR_MMU
 
 	u32 dtcm_addr;
 	u32 dtcm_end;
+	bool dtcm_load_mode;
+	
 	u32 itcm_addr;
+	bool itcm_load_mode;
 
 	u32 pal_a_bg_slot[4];
 	u32 pal_a_obj_slot[4];

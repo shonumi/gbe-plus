@@ -72,9 +72,7 @@ class CP15
 	bool cache_replacement;
 	bool pre_armv5;
 	bool dtcm_enable;
-	bool dtcm_read_mode;
 	bool itcm_enable;
-	bool itcm_read_mode;
 
 	void reset();
 

@@ -280,7 +280,9 @@ void NTR_MMU::reset()
 
 	dtcm_addr = 0xDEADC0DE;
 	dtcm_end = 0xDEADC0DE;
+	dtcm_load_mode = false;
 	itcm_addr = 0;
+	itcm_load_mode = false;
 
 	dtcm.clear();
 	dtcm.resize(0x4000, 0);
@@ -347,7 +349,7 @@ u8 NTR_MMU::read_u8(u32 address)
 	#endif
 
 	//Check DTCM first
-	if((access_mode) && (!fetch_request) && (address >= dtcm_addr) && (address <= dtcm_end))
+	if((access_mode) && (!fetch_request) && (address >= dtcm_addr) && (address <= dtcm_end) && (!dtcm_load_mode))
 	{
 		return dtcm[(address - dtcm_addr) & 0x3FFF];
 	}
