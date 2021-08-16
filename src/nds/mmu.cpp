@@ -4342,7 +4342,9 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 					}
 
 					//Write results and remainder
-					write_u64_fast(NDS_DIVRESULT, result);
+					if(result & 0x80000000) { write_u64_fast(NDS_DIVRESULT, (0xFFFFFFFF00000000 | result)); }
+					else { write_u64_fast(NDS_DIVRESULT, result); }
+
 					write_u64_fast(NDS_DIVREMAIN, remainder);
 				}
 
