@@ -4342,10 +4342,12 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 					}
 
 					//Write results and remainder
+					//Sign-extend both to 64-bits
 					if(result & 0x80000000) { write_u64_fast(NDS_DIVRESULT, (0xFFFFFFFF00000000 | result)); }
 					else { write_u64_fast(NDS_DIVRESULT, result); }
 
-					write_u64_fast(NDS_DIVREMAIN, remainder);
+					if(remainder & 0x80000000) { write_u64_fast(NDS_DIVREMAIN, (0xFFFFFFFF00000000 | remainder)); }
+					else { write_u64_fast(NDS_DIVREMAIN, remainder); }
 				}
 
 				//Mode 1 64-bit - 32-bit
