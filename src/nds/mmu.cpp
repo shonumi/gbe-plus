@@ -4307,6 +4307,15 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 					u32 raw_numer = nds9_math.div_numer;
 					u32 raw_denom = nds9_math.div_denom;
 
+					//Check for -MAX/-1
+					if((raw_numer == 0x80000000) && (raw_denom == 0xFFFFFFFF))
+					{
+						write_u64_fast(NDS_DIVRESULT, 0x80000000);
+						write_u64_fast(NDS_DIVREMAIN, 0);
+						return;
+					}
+						
+
 					u32 result = 0;
 					u32 remainder = 0;					
 
