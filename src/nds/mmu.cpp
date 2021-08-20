@@ -4383,10 +4383,13 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 				//Mode 1 64-bit - 32-bit
 				else if((div_mode == 1) || (div_mode == 3))
 				{
-					nds9_math.div_denom &= 0xFFFFFFFF;
-
 					u64 result = 0;
 					u32 remainder = 0;					
+
+					nds9_math.div_denom &= 0xFFFFFFFF;
+
+					u32 raw_numer = nds9_math.div_numer;
+					u32 raw_denom = nds9_math.div_denom;
 
 					//Determine signs
 					numer_sign = (nds9_math.div_numer & 0x8000000000000000) ? 1 : 0;
@@ -4411,19 +4414,22 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 					result = nds9_math.div_numer / nds9_math.div_denom;
 					remainder = nds9_math.div_numer % nds9_math.div_denom;
 
-					//Convert result and remainder to 2s complement if necessary
+					//Convert to result 2s complement if necessary
 					if(numer_sign != denom_sign)
 					{
 						result--;
 						result = ~result;
-
-						remainder--;
-						remainder = ~remainder;
 					}
 
+					//Calculate remainder
+					remainder = raw_numer - (raw_denom * result);
+
 					//Write results and remainder
+					//Sign-extend remainder to 64-bits
 					write_u64_fast(NDS_DIVRESULT, result);
-					write_u64_fast(NDS_DIVREMAIN, remainder);
+
+					if(remainder & 0x80000000) { write_u64_fast(NDS_DIVREMAIN, (0xFFFFFFFF00000000 | remainder)); }
+					else { write_u64_fast(NDS_DIVREMAIN, remainder); }
 				}
 
 				//Mode 2 64-bit - 64-bit
