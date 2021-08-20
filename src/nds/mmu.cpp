@@ -4265,6 +4265,11 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 				nds9_math.div_denom |= read_u32_fast(NDS_DIVDENOM);
 
 				//Set division by zero flag
+				if(!nds9_math.div_denom) { memory_map[NDS_DIVCNT+1] |= 0x40; }
+				else { memory_map[NDS_DIVCNT+1] &= ~0x40; }
+
+				/*
+				//Set division by zero flag
 				if(!nds9_math.div_denom)
 				{
 					memory_map[NDS_DIVCNT+1] |= 0x40;
@@ -4295,29 +4300,45 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 					return;
 				}
-
-				else { memory_map[NDS_DIVCNT+1] &= ~0x40; }
+				*/
 
 				//Mode 0 32-bit - 32-bit
 				if(div_mode == 0)
 				{
+					u32 result = 0;
+					u32 remainder = 0;
+
+					//Calculate division by zero
+					if(!(nds9_math.div_denom & 0xFFFFFFFF))
+					{
+						if(nds9_math.div_numer & 0x80000000)
+						{
+							write_u64_fast(NDS_DIVRESULT, 0xFFFFFFFF00000001);
+							write_u64_fast(NDS_DIVREMAIN, (0xFFFFFFFF00000000 | nds9_math.div_numer));
+						}
+
+						else
+						{
+							write_u64_fast(NDS_DIVRESULT, 0xFFFFFFFF);
+							write_u64_fast(NDS_DIVREMAIN, nds9_math.div_numer);
+						}
+
+						return;
+					}
+
 					nds9_math.div_numer &= 0xFFFFFFFF;
 					nds9_math.div_denom &= 0xFFFFFFFF;
 
 					u32 raw_numer = nds9_math.div_numer;
 					u32 raw_denom = nds9_math.div_denom;
-
+					 
 					//Check for -MAX/-1
 					if((raw_numer == 0x80000000) && (raw_denom == 0xFFFFFFFF))
 					{
 						write_u64_fast(NDS_DIVRESULT, 0x80000000);
 						write_u64_fast(NDS_DIVREMAIN, 0);
 						return;
-					}
-						
-
-					u32 result = 0;
-					u32 remainder = 0;					
+					}					
 
 					//Determine signs
 					numer_sign = (nds9_math.div_numer & 0x80000000) ? 1 : 0;
@@ -4337,8 +4358,6 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 						nds9_math.div_denom++;
 						nds9_math.div_denom &= 0xFFFFFFFF;
 					}
-
-					if(!nds9_math.div_denom) { return; }
 
 					result = nds9_math.div_numer / nds9_math.div_denom;
 
