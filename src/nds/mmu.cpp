@@ -4386,6 +4386,17 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 					u64 result = 0;
 					u32 remainder = 0;					
 
+					//Calculate division by zero
+					if(!(nds9_math.div_denom & 0xFFFFFFFF))
+					{
+						if(nds9_math.div_numer & 0x8000000000000000) { write_u64_fast(NDS_DIVRESULT, 0x01); }
+						else { write_u64_fast(NDS_DIVRESULT, 0xFFFFFFFFFFFFFFFF); }
+
+						write_u64_fast(NDS_DIVREMAIN, nds9_math.div_numer);
+
+						return;
+					}
+
 					nds9_math.div_denom &= 0xFFFFFFFF;
 
 					u32 raw_numer = nds9_math.div_numer;
