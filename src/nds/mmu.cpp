@@ -4268,40 +4268,6 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 				if(!nds9_math.div_denom) { memory_map[NDS_DIVCNT+1] |= 0x40; }
 				else { memory_map[NDS_DIVCNT+1] &= ~0x40; }
 
-				/*
-				//Set division by zero flag
-				if(!nds9_math.div_denom)
-				{
-					memory_map[NDS_DIVCNT+1] |= 0x40;
-
-					//Remainder = numerator
-					write_u64_fast(NDS_DIVREMAIN, nds9_math.div_numer);
-					
-					u32 result_32 = nds9_math.div_numer;
-					u64 result_64 = nds9_math.div_numer;
-	
-					switch(div_mode)
-					{
-						//32-bit result is positive or negative 1
-						case 0x00:
-							if(nds9_math.div_numer & 0x80000000) { result_32 = 0x1; }
-							else { result_32 = 0xFFFFFFFF; }
-							write_u64_fast(NDS_DIVRESULT, result_32);
-							break;
-
-						//64-bit result is positive or negative 1
-						case 0x1:
-						case 0x2:
-							if(nds9_math.div_numer & 0x8000000000000000) { result_64 = 0x1; }
-							else { result_64 = 0xFFFFFFFFFFFFFFFF; }
-							write_u64_fast(NDS_DIVRESULT, result_64);
-							break;
-					}
-
-					return;
-				}
-				*/
-
 				//Mode 0 32-bit - 32-bit
 				if(div_mode == 0)
 				{
@@ -4449,6 +4415,20 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 					u64 result = 0;
 					u64 remainder = 0;					
 
+					//Calculate division by zero
+					if(!nds9_math.div_denom)
+					{
+						if(nds9_math.div_numer & 0x8000000000000000) { write_u64_fast(NDS_DIVRESULT, 0x01); }
+						else { write_u64_fast(NDS_DIVRESULT, 0xFFFFFFFFFFFFFFFF); }
+
+						write_u64_fast(NDS_DIVREMAIN, nds9_math.div_numer);
+
+						return;
+					}
+
+					u64 raw_numer = nds9_math.div_numer;
+					u64 raw_denom = nds9_math.div_denom;
+
 					//Determine signs
 					numer_sign = (nds9_math.div_numer & 0x8000000000000000) ? 1 : 0;
 					denom_sign = (nds9_math.div_denom & 0x8000000000000000) ? 1 : 0;
@@ -4471,15 +4451,15 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 					result = nds9_math.div_numer / nds9_math.div_denom;
 					remainder = nds9_math.div_numer % nds9_math.div_denom;
 
-					//Convert result and remainder to 2s complement if necessary
+					//Convert to result 2s complement if necessary
 					if(numer_sign != denom_sign)
 					{
 						result--;
 						result = ~result;
-
-						remainder--;
-						remainder = ~remainder;
 					}
+
+					//Calculate remainder
+					remainder = raw_numer - (raw_denom * result);
 
 					//Write results and remainder
 					write_u64_fast(NDS_DIVRESULT, result);
