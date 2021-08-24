@@ -4041,8 +4041,8 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			if(access_mode)
 			{
 				//Acknowledge IPCFIFO error bit
-				if((value & 0x40) && (nds9_ipc.cnt & 0x4000)) { value &= ~0x40; }
-				else if((value & 0x40) && ((nds9_ipc.cnt & 0x4000) == 0)) { value &= ~0x40; }
+				if(value & 0x40) { value &= ~0x40; }
+				else if(nds9_ipc.cnt & 0x4000) { value |= 0x40; }
 
 				u16 irq_trigger = (nds9_ipc.cnt & 0x500);
 
