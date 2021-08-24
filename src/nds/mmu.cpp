@@ -4365,7 +4365,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 					nds9_math.div_denom &= 0xFFFFFFFF;
 
-					u32 raw_numer = nds9_math.div_numer;
+					u64 raw_numer = nds9_math.div_numer;
 					u32 raw_denom = nds9_math.div_denom;
 
 					//Determine signs
@@ -4389,7 +4389,6 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 					if(!nds9_math.div_denom) { return; }
 
 					result = nds9_math.div_numer / nds9_math.div_denom;
-					remainder = nds9_math.div_numer % nds9_math.div_denom;
 
 					//Convert to result 2s complement if necessary
 					if(numer_sign != denom_sign)
@@ -4449,7 +4448,6 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 					if(!nds9_math.div_denom) { return; }
 
 					result = nds9_math.div_numer / nds9_math.div_denom;
-					remainder = nds9_math.div_numer % nds9_math.div_denom;
 
 					//Convert to result 2s complement if necessary
 					if(numer_sign != denom_sign)
