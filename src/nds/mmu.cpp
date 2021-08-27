@@ -4485,6 +4485,11 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 				memory_map[address] = value;
 
 				u8 sqrt_mode = memory_map[NDS_SQRTCNT] & 0x1;
+				u8 bit_length = 0;
+				u32 mask = 0;
+				u64 check_val = 0;
+
+				nds9_math.sqrt_result = 0;
 				
 				//Grab SQRT parameter
 				if(sqrt_mode)
@@ -4493,11 +4498,24 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 					nds9_math.sqrt_param <<= 16;
 					nds9_math.sqrt_param <<= 16;
 					nds9_math.sqrt_param |= read_u32_fast(NDS_SQRTPARAM);
+					bit_length = 32;
+					mask = 0x80000000;
 				}
 
-				else { nds9_math.sqrt_param = read_u32_fast(NDS_SQRTPARAM); }
+				else
+				{
+					nds9_math.sqrt_param = read_u32_fast(NDS_SQRTPARAM);
+					bit_length = 16;
+					mask = 0x8000;
+				}
 
-				nds9_math.sqrt_result = sqrt(nds9_math.sqrt_param);
+				for(int x = 0; x < bit_length; x++)
+				{
+					check_val = (mask | nds9_math.sqrt_result);
+					if((check_val * check_val) <= nds9_math.sqrt_param) { nds9_math.sqrt_result |= mask; }
+					mask >>= 1;
+				}
+
 				write_u32_fast(NDS_SQRTRESULT, nds9_math.sqrt_result);
 			}
 
