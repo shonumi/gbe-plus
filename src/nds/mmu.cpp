@@ -4481,7 +4481,6 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		case NDS_SQRTPARAM+7:
 			if(access_mode)
 			{
-				//TODO - 64-bit SQRT ops via sqrt() will have issues, but only with ridiculously large numbers
 				memory_map[address] = value;
 
 				u8 sqrt_mode = memory_map[NDS_SQRTCNT] & 0x1;
@@ -4509,6 +4508,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 					mask = 0x8000;
 				}
 
+				//Manually calculate square root -> Use largest value that is less than or equal to parameter when squared
 				for(int x = 0; x < bit_length; x++)
 				{
 					check_val = (mask | nds9_math.sqrt_result);
