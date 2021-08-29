@@ -17,7 +17,6 @@ Appearing around 1992, the Barcode Boy is the earliest form of card-scanning on 
 
 Barcode Boy is a rather bulky add-on that snaps on top of the original DMG (the gray "brick")
 Barcode Boy requires 2 AA batteries (with a DMG-01, that brings the total to 6 AA necessary to play any Barcode Boy game)
-Barcode Boy WILL NOT WORK WITH OTHER GAME BOYS! For whatever reason using the Universal Link Cable (MGB-010) will not work.
 Barcode Boy games are always labeled with a "B.B." logo with a little card.
 Includes a very, very short Link Cable
 Unlike the Barcode Taisen Bardigun reader, the Barcode Boy has no button. It is always "ON" when switched on, thus draining batteries even while not scanning
