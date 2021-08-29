@@ -6,7 +6,7 @@ Shonumi aka D.S. Baxter
 1. Introduction
 ***************************************************
 
-Net de Get is a Game Boy Color game published by Konami and released on June 12, 2001. In addition to being one of the select few GBC games to support the GB Mobile Adapter, it is the only known game to use the MBC6. This special cartridge allowed the Game Boy to download minigames online and save them locally to flash memory for offline play. Players earn points based on their performance in minigames. Once enough points have been accumulated, they can be exchanged for downloadable minigames. 
+Net de Get is a Game Boy Color game published by Konami and released on June 12, 2001. In addition to being one of the select few GBC games to support the GB Mobile Adapter, it is the only known game to use the MBC6. This special cartridge allowed the Game Boy to download minigames from the internet and save them locally to flash memory for offline play. Players could browse an online list of available software and purchase them. 
 
 
 ***************************************************
@@ -26,7 +26,7 @@ Although a few other URLs are present within the ROM, the above are the only one
 3. h0000.cgb
 ***************************************************
 
-After some points are earned through the base set of minigames, players unlock the "セーバ" or "Server" option from the main menu. After the user's password is given, this file is then downloaded via HTTP GET. The purpose of h0000.cgb is simply to display the text "ミニゲームリスト" Or "Minigame List". Selecting this downloads RomList.cgb via HTTP GET. The format of h0000.cgb is described below:
+Once some of the default minigames have been played, the "セーバ" or "Server" option in the main menu unlocks. After the user's password is given, this file is then downloaded via HTTP GET. The purpose of h0000.cgb is simply to display the text "ミニゲームリスト" Or "Minigame List". Selecting this downloads RomList.cgb via HTTP GET. The format of h0000.cgb is described below:
 
 ----------------------------------
 Header - 4 bytes
@@ -53,7 +53,7 @@ As far as anyone knows, this file only had one menu item, and the "ミニゲー�
 4. RomList.cgb
 ***************************************************
 
-After h0000.cgb is downloaded, next comes RomList.cgb. This file contains a list of all available minigames the server has to offer. It also displays how many points it costs to download, as well as the type of minigame being downloaded.
+After downloading h0000.cgb, the next file is RomList.cgb. This file contains a list of all available minigames the server has to offer. It also displays how many 8KB blocks of flash memory are required for the  download, as well as the type of minigame being downloaded.
 
 ----------------------------------
 Entry Count - 1 byte
@@ -70,7 +70,7 @@ Data Offsets - 2 bytes each
 ----------------------------------
 Data Structure
 ----------------------------------
-0x00	 			::	Number of points necessary for download (modulus 100). Should be 0x00 - 0x63 ideally.
+0x00	 			::	Number of memory blocks necessary for the download (modulus 100). Should be 0x00 - 0x63 ideally.
 0x01				::	Mini-game icon type. See Icon Type below for details.
 0x02 - 0x05			::	Game ID, simply in the format "Gxyz" where "xyz" are three numbers. E.g. the first minigame ID in the Net de Get ROM is "G000"
 0x08 - 0x0A			::	Disables download (grayed out text). All 3 must be zero, otherwise download is disabled.
@@ -165,7 +165,7 @@ Note that the footer is written to SRAM later on, not flash. Improperly formatte
 The minigame format is essentially the same as that found on the MBC6 ROM. Using the base address of the flash ROM bank, minigames look like so:
 
 0x00 - 0x02			::	Typically contains a JR or JP instuction.
-0x05 				::	Points required to play the minigame.
+0x05 				::	Number of memory blocks used by the minigame.
 0x06				::	Primary minigame icon.
 0x07				::	Secondary minigame icon.
 0x09 - 0x0C			::	Game ID, simply in the format "Gxyz" where "xyz" are three numbers. E.g. the first minigame ID in the Net de Get ROM is "G000"
