@@ -26,7 +26,7 @@ Although a few other URLs are present within the ROM, the above are the only one
 3. h0000.cgb
 ***************************************************
 
-Once some of the default minigames have been played, the "セーバ" or "Server" option in the main menu unlocks. After the user's password is given, this file is then downloaded via HTTP GET. The purpose of h0000.cgb is simply to display the text "ミニゲームリスト" Or "Minigame List". Selecting this downloads RomList.cgb via HTTP GET. The format of h0000.cgb is described below:
+Once some of the default minigames have been played, the "セーバ" or "Server" option in the main menu unlocks. After the user's password is given, this file is then downloaded via HTTP GET. The purpose of h0000.cgb is simply to display the text "ミニゲームリスト" or "Minigame List". Selecting this downloads RomList.cgb via HTTP GET. The format of h0000.cgb is described below:
 
 ----------------------------------
 Header - 4 bytes
