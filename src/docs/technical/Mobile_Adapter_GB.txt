@@ -126,7 +126,7 @@ The Packet Checksum is simply the 16-bit sum of all previous header bytes and al
 
 After the checksum, a simple 2-byte Acknowledgement Signal is sent. The first byte is the Device ID OR'ed with the value 0x80. The second byte is 0x00 for the sender. The receiver transfers the Command ID from the Packet Header XOR'ed by 0x80. This essentially confirms what role the Game Boy is acting in. If it is the receiver, it is expecting to read information from the Packet Data from the Mobile Adapter. If it is the sender, it is pushing information from its own Packet Data to the Mobile Adapter. For example, with Command 0x19, the Game Boy is explicitly requesting data from the adapter, and with Command 0x1A the Game Boy is explicitly sending data to the adapter. 
 
-The Command ID byte in the Acknowledgement Signal may also be used for the receiver to indicate an error. If the checksum verification fails, the receiving side will send error 0xF1. This causes the sender to inmediately re-attempt sending the packet up to 4 times. If the command isn't implemented/supported by the receiving Mobile Adapter, error 0xF0 will be sent. Error 0xF2 indicates an internal error, such as the Mobile Adapter's TCP/telephone transfer buffer being full.
+The Command ID byte in the Acknowledgement Signal may also be used for the receiver to indicate an error. If the checksum verification fails, the receiving side will send error 0xF1. This causes the sender to immediately re-attempt sending the packet up to 4 times. If the command isn't implemented/supported by the receiving Mobile Adapter, error 0xF0 will be sent. Error 0xF2 indicates an internal error, such as the Mobile Adapter's TCP/telephone transfer buffer being full.
 
 The device ID determines what kind of hardware each side is communicating with. Below are the possible values and their meaning:
 
@@ -244,7 +244,9 @@ Data Sent: Connection ID + Arbitrary Data (optional)
 Data Received: Connection ID + Arbitrary Data (optional)
 
 Used to transfer data over TCP after command 0x23 (Open TCP Connection), transfer data over UDP after command 0x25 (Open UDP connection), or transfer data over the phone line after either 0x12 (Dial Telephone) or 0x14 (Wait For Telephone Call) have successfully been called. Only TCP/UDP communication is possible after a 0x21 (ISP Login) command, and the first byte indicates the connection that's being transferred over, as multiple can be opened simultaneously. If it's a mobile connection, the first byte is ignored, usually being set to 0xFF.
+
 Generally, additional data is appended, although it is not required, such as when waiting for the server/other phone to send a reply. Large chunks of data greater than 254 bytes must be broken down into separate packets. While a connection is active, the Command ID in the Reply is 0x15 for the sender and 0x95 for the receiver. When a TCP connection is closed by the remote server (e.g. when an HTTP response has finished), and there's no leftover data to be received by the gameboy, the Command ID in the Reply becomes 0x1F for the sender and 0x9F for the receiver, with a packet length of 0. Additionally, for TCP connections, if no data is sent, this command will wait for data to be received up to 1 second, before sending a reply.
+
 During a phone-to-phone communication, no disconnection is detected, instead being indicated by the 0x17 (Telephone Status) command. However, most games implement this instead through a timeout during which no data has been received.
 
 ----------
@@ -263,6 +265,7 @@ Data Received: 3 bytes
 
 Typically sent to the adapter before dialing. Also used to test the telephone status before opening a TCP connection, or to constantly ping the phone to make sure it's still active. 
 The reply is 3 bytes. The first byte indicates the phone's status, where 0xFF is returned if the phone is disconnected. If the phone isn't disconnected, bit 2 indicates whether the phone line is "busy" (i.e. in a call/picked up), and bit 0 indicates the presence of an incoming call (this remains if the incoming call is picked up). As such, the valid values are 0, 1, 4 and 5. Software may check bit 2 to know if the phone line is still connected. Most software doesn't seem to care about bit 0, but Net de Get: Mini Game @ 100 refuses to work with bit 0 set (value 5).
+
 The second byte is related to the adapter type, where the blue/PDC adapter returns 0x4D, and the red/DDI and yellow/cdmaOne adapters return 0x48, though the actual meaning is unknown. The third byte is unknown, and usually hardcoded to 0. However, Pokémon Crystal reacts to the third byte being 0xF0 by allowing the player to bypass the 10 min/day battle time limit.
 
 ----------
@@ -272,7 +275,9 @@ Data Sent: 1 byte
 Data Received: N/A. Empty Packet Data
 
 This command is generally sent after Command 0x10. It enables/disables SIO32 Mode, which is useful for GBA games to be able to send more data, faster. The sent byte must be 1 to enable SIO32 mode, and 0 to disable it. SIO32 mode implies that any transmission will happen in chunks of 4 bytes instead of 1, which has implications with respect to the alignment of the communication.
+
 When SIO32 mode is on, the packet data will be aligned to a multiple of 4 bytes, padding the remaining bytes with 0, and this won't be reflected in the packet length field. Similarly, the Acknowledgement Signal gains 2 padding bytes (hardcoded 0, not verified) at the end. Since the entire transmission (including Magic Bytes) is sent in chunks of 4, this means that the checksum is sent along with either the packet length (if length is 0) or the last 2 bytes of the packet (if length is not 0), and the acknowledgement signal is sent in the next chunk.
+
 SIO32 Mode will only be toggled after the reply to this packet has been sent. The adapter should be allowed at least 100ms to toggle, as it might otherwise start sending garbage.
 
 ----------
