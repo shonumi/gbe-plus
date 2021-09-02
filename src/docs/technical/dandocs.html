@@ -103,7 +103,7 @@
 
 			.spc
 			{
-				margin-bottom: 40px;
+				margin-bottom: 50px;
 			}
 
 		</style>
@@ -174,6 +174,7 @@
 	<p class="list_item">ClawGrip - Scans of all known Barcode Boy cards</p>
 	<p class="list_item">endrift - MBC6 documentation. Collaboration on Battle Chip Gate documentation (especially Progress Chip Gate) + testing + verification of results.</p>
 	<p class="list_item">Háčky - Mobile Adapter GB documentation</p>
+	<p class="list_item">mid-kid - Mobile Adapter GB documentation</p>
 	<p class="list_item">pfero - Mobile Adapter GB documentation</p>
 	<p class="list_item">Robert Abel (Tauwasser) - Net de Get translation help</p>
 	
@@ -3576,8 +3577,8 @@ Packet Header
 -------------------------------------------------
 Byte 1			| Command ID
 Byte 2			| Unknown/Unused (0x00)
-Byte 3			| Unknown/Unused (0x00)
-Byte 4			| Length of Packet Data
+Byte 3			| High byte of Packet Data length
+Byte 4			| Low byte of Packet Data length
 -------------------------------------------------
 
 
@@ -3605,15 +3606,15 @@ Byte 2			| Command ID
 
 	<p>The magic bytes are simply a pair of bytes used to identify the start of a Mobile Adapter packet.</p>
 
-	<p>Packet Data is arbitrary data and varies in length and content. On the Game Boy Color, it has a maximum size of 254 bytes. This restriction may be applied via software and appears to come from the fact that the Packet Data and Packet Checksum are lumped together, thus their total lengths must not exceed 256 bytes. Attempting to send more than 254 bytes of packet data causes communications errors in all supported GBC games. Evidence suggests GBA games can use Bytes 3 and 4 of the Packet Header to specify Packet Data size (possibly up to 64KB). </p>
+	<p>Packet Data is arbitrary data and varies in length and content. On the Game Boy Color, it has a maximum size of 254 bytes. This restriction may be applied via software and appears to come from the fact that the Packet Data and Packet Checksum are lumped together, thus their total lengths must not exceed 256 bytes. Attempting to send more than 254 bytes of packet data causes communications errors in all supported GBC games. Evidence suggests GBA games can use Bytes 3 and 4 of the Packet Header to specify Packet Data size (possibly up to 64KB). The Mobile Adapter discards any packets bigger than 255 bytes, effectively forcing the high byte of the packet data length to be 0.</p>
 
-	<p>On the GBC, data greater than 254 bytes may be broken up into multiple packets, however. For example, when sending a large binary file such as an image or executable code, multiple packets are transferred from the Mobile Adapter to the Game Boy while the TCP transfer is ongoing.</p>
+	<p>Data greater than the maximum packet length may be broken up into multiple packets, however. For example, when sending a large binary file such as an image or executable code, multiple packets are transferred from the Mobile Adapter to the Game Boy while the TCP transfer is ongoing.</p>
 
 	<p>The Packet Checksum is simply the 16-bit sum of all previous header bytes and all previous packet data bytes. It does not include the magic bytes. The checksum is transmitted big-endian.</p>
 
 	<p>After the checksum, a simple 2-byte Acknowledgement Signal is sent. The first byte is the Device ID OR'ed with the value 0x80. The second byte is 0x00 for the sender. The receiver transfers the Command ID from the Packet Header XOR&#39;ed by 0x80. This essentially confirms what role the Game Boy is acting in. If it is the receiver, it is expecting to read information from the Packet Data from the Mobile Adapter. If it is the sender, it is pushing information from its own Packet Data to the Mobile Adapter. For example, with Command 0x19, the Game Boy is explicitly requesting data from the adapter, and with Command 0x1A the Game Boy is explicitly sending data to the adapter.</p>
 
-	<p>If the checksum fails, the receiving side typically immediately sends 0xF1 to indicate an error. 0xF0, and 0xF2 also appear to be failure codes, however, their meaning is currently unknown. 0xEE indicates a specific error from a previously issued command.</p>
+	<p>The Command ID byte in the Acknowledgement Signal may also be used for the receiver to indicate an error. If the checksum verification fails, the receiving side will send error 0xF1. This causes the sender to immediately re-attempt sending the packet up to 4 times. If the command isn't implemented/supported by the receiving Mobile Adapter, error 0xF0 will be sent. Error 0xF2 indicates an internal error, such as the Mobile Adapter's TCP/telephone transfer buffer being full.</p>
 
 	<p>The device ID determines what kind of hardware each side is communicating with. Below are the possible values and their meaning:</p>
 
@@ -3669,8 +3670,15 @@ Command 0x28		DNS Query
 
 	<p>From there, the software decides what next (if anything) needs to be done after successfully connecting to the internet.</p>
 
+	<p>When the GBC or GBA first start communicating with the Mobile Adapter, the first byte sent in response will be garbage data. Sending this first byte causes the Mobile Adapter to exit sleep mode, and the GBC or GBA will then have to wait a short interval (around 100ms) before starting communications proper. If it doesn&#39;t, the Mobile Adapter might send more garbage. Afterwards, however, it will reply with 0xD2 as its &#34;idle&#34; byte until a command is finished being sent. The Mobile Adapter enters sleep mode after 3 seconds since the last serial byte was transmitted. This implicitly cancels the command currently being processed, closes all connections currently open and ends the session.</p>
+
 	<a name="magb_com"></a>
 	<p class="gray_title">[Mobile Adapter GB] : Protocol - Commands</p>
+
+	<p class="list_item"><strong>Command 0x0F - Empty</strong></p>
+	<p class="list_item">Data Sent: N/A. Empty Packet Data</p>
+
+	<p class="spc">Doesn&#39;t incite a reply from the adapter at all, aside from the Acknowledgement Signal. Presumably used to ping the adapter, not seen in any games in the wild.</p>
 
 	<p class="list_item"><strong>Command 0x10 - Begin Session</strong></p>
 	<p class="list_item">Data Sent: &#34;NINTENDO&#34; ASCII string. 8 bytes only, not null-terminated</p>
@@ -3682,87 +3690,123 @@ Command 0x28		DNS Query
 	<p class="list_item">Data Sent: N/A. Empty Packet Data</p>
 	<p class="list_item">Data Received: N/A. Empty Packet Data</p>
 
-	<p class="spc">Sent to the adapter at the end of a session. The Packet Data is empty, and the length is zero bytes.</p>
+	<p class="spc">Sent to the adapter at the end of a session. The Packet Data is empty, and the length is zero bytes. This command causes all connections to be closed, and the phone to be hung up.</p>
 
 	<p class="list_item"><strong>Command 0x12 - Dial Telephone</strong></p>
 	<p class="list_item">Data Sent: 1 unknown byte + telephone number</p>
 	<p class="list_item">Data Received: N/A. Empty Packet Data</p>
 
-	<p class="spc">Instructs the adapter to dial a telephone number. The first byte&#39;s purpose is unknown. The second byte is &#34;#&#34; in ASCII, and following data is the telephone number represented in ASCII values.</p>
+	<p class="spc">Instructs the adapter to dial a telephone number. The first byte&#39;s purpose is unknown, but seems to vary depending on the adapter type. 0 is sent for the blue/PDC adapter, 1 is sent for the green/PHS or red/DDI adapters, and 2 for the yellow/cdmaOne adapter. For unknown reasons, the blue adapter also accepts 16, the red adapter also accepts 9, and the yellow adapter doesn't actually verify this value. The following data is the telephone number represented in ASCII values, consisting of decimal numbers &#34;0&#34; through &#34;9&#34;, as well as &#34;#&#34; and &#34;*&#34;. Any ASCII values not within this range are ignored. The maximum length of the phone number is 32 bytes.</p>
 	
 	<p class="list_item"><strong>Command 0x13 - Hang Up Telephone</strong></p>
 	<p class="list_item">Data Sent: N/A. Empty Packet Data</p>
 	<p class="list_item">Data Received: N/A. Empty Packet Data</p>
 
-	<p class="spc">Instructs the adapter to close a telephone connection. The Packet Data is empty, and the length is zero bytes.</p>
+	<p class="spc">Instructs the adapter to close a telephone connection. This implicitly disconnects any open TCP/UDP connections. The Packet Data is empty, and the length is zero bytes.</p>
 
 	<p class="list_item"><strong>Command 0x14 - Wait For Telephone Call</strong></p>
 	<p class="list_item">Data Sent: N/A. Empty Packet Data</p>
 	<p class="list_item">Data Received: N/A. Empty Packet Data</p>
 
-	<p class="spc">Instructs the adapter to wait for a telephone call. The Packet Data is empty, and the length is zero bytes.</p>
+	<p class="spc">Instructs the adapter to wait for and pick up an incoming call. This returns inmediately if there is no call to pick up, with an error packet with code 0. The Packet Data is empty, and the length is zero bytes.</p>
 
 	<p class="list_item"><strong>Command 0x15 - Transfer Data</strong></p>
-	<p class="list_item">Data Sent: 1 unknown byte + Arbitrary Data (optional)</p>
-	<p class="list_item">Data Received: 1 unknown byte + Arbitrary Data (optional)</p>
+	<p class="list_item">Data Sent: Connection ID + Arbitrary Data (optional)</p>
+	<p class="list_item">Data Received: Connection ID + Arbitrary Data (optional)</p>
 
-	<p class="spc">Used to transfer data over TCP after the command 0x23 (Open TCP Connection) has been called. This command can communicate with a remote server or another Mobile Adapter. The Packet Data is a minimum length of 1 byte. That first byte&#39;s purpose is unknown. Generally, additional data is appended, although it is not required, such as when closing a connection. Large chunks of data greater than 254 bytes must be broken down into separate packets. While a connection is active (e.g. an HTTP request/response is in progress), the Command ID in the Acknowledgement Signal is 0x15 for the sender and 0x95 for the receiver. When a connection is closed (e.g. when an HTTP response has finished), the Command ID in the Acknowledgement Signal becomes 0x1F for the sender and 0x9F for the receiver.</p>
+	<p>Used to transfer data over TCP after command 0x23 (Open TCP Connection), transfer data over UDP after command 0x25 (Open UDP connection), or transfer data over the phone line after either 0x12 (Dial Telephone) or 0x14 (Wait For Telephone Call) have successfully been called. Only TCP/UDP communication is possible after a 0x21 (ISP Login) command, and the first byte indicates the connection that's being transferred over, as multiple can be opened simultaneously. If it&#39;s a mobile connection, the first byte is ignored, usually being set to 0xFF.</p>
+
+	<p>Generally, additional data is appended, although it is not required, such as when waiting for the server/other phone to send a reply. Large chunks of data greater than 254 bytes must be broken down into separate packets. While a connection is active, the Command ID in the Reply is 0x15 for the sender and 0x95 for the receiver. When a TCP connection is closed by the remote server (e.g. when an HTTP response has finished), and there's no leftover data to be received by the gameboy, the Command ID in the Reply becomes 0x1F for the sender and 0x9F for the receiver, with a packet length of 0. Additionally, for TCP connections, if no data is sent, this command will wait for data to be received up to 1 second, before sending a reply.</p>
+
+	<p class="spc">During a phone-to-phone communication, no disconnection is detected, instead being indicated by the 0x17 (Telephone Status) command. However, most games implement this instead through a timeout during which no data has been received.</p>
+
+	<p class="list_item"><strong>Command 0x16 - Reset</strong></p>
+	<p class="list_item">Data Sent: N/A. Empty Packet Data</p>
+	<p class="list_item">Data Received: N/A. Empty Packet Data</p>
+
+	<p class="spc">This command does the same as sending commands 0x11 (End Session), followed by 0x10 (Begin Session). Additionally, it resets SIO32 Mode to the default state. Presumably used to reset the adapter, though not seen in any games in the wild.</p>
 
 	<p class="list_item"><strong>Command 0x17 - Telephone Status</strong></p>
 	<p class="list_item">Data Sent: N/A. Empty Packet Data</p>
-	<p class="list_item">Data Received: 1 byte for current telephone status + 2 unknown bytes</p>
+	<p class="list_item">Data Received: 3 bytes</p>
 
-	<p>Typically sent to the adapter before dialing. Also used to test the telephone status before opening a TCP connection, or to constantly ping the phone to make sure it&#39;s still active. The reply is 1 byte. 0x00 means the phone is ready to make a call or connection. 0xFF indicates a disconnected phone. 0x04 and 0x05 indicate that the line is busy (presumably set after a command like 0x12). The difference between the two line-busy values is unknown. Most software does not seem to care which one is sent, but Net de Get: Mini Game @ 100 refuses to work with 0x05.</p>
+	<p>Typically sent to the adapter before dialing. Also used to test the telephone status before opening a TCP connection, or to constantly ping the phone to make sure it&#39;s still active.</p>
 
-	<p class="spc">Additionally, the Game Boy seem to set Bits 0 - 4 high for the Command ID in the Acknowledgement Signal, thus sending 0x1F to the Mobile Adapter.</p>
+	<p>The reply is 3 bytes. The first byte indicates the phone's status, where 0xFF is returned if the phone is disconnected. If the phone isn&#39;t disconnected, bit 2 indicates whether the phone line is &#34;busy&#34; (i.e. in a call/picked up), and bit 0 indicates the presence of an incoming call (this remains if the incoming call is picked up). As such, the valid values are 0, 1, 4 and 5. Software may check bit 2 to know if the phone line is still connected. Most software doesn&#39;t seem to care about bit 0, but Net de Get: Mini Game @ 100 refuses to work with bit 0 set (value 5).</p>
 
-	<p class="list_item"><strong>Command 0x18 - Unknown Command</strong></p>
-	<p class="list_item">Data Sent: 1 unknown byte</p>
+	<p class="spc">The second byte is related to the adapter type, where the blue/PDC adapter returns 0x4D, and the red/DDI and yellow/cdmaOne adapters return 0x48, though the actual meaning is unknown. The third byte is unknown, and usually hardcoded to 0. However, Pokemon Crystal reacts to the third byte being 0xF0 by allowing the player to bypass the 10 min/day battle time limit.</p>
+
+	<p class="list_item"><strong>Command 0x18 - SIO32 Mode</strong></p>
+	<p class="list_item">Data Sent: 1 byte</p>
 	<p class="list_item">Data Received: N/A. Empty Packet Data</p>
 
-	<p class="spc">This command is generally sent after Command 0x10. Only GBA games have been known to use this command. The GBA sends 1 unknown byte. The response Packet Data is empty, and the length is zero bytes.</p>
+	<p>This command is generally sent after Command 0x10. It enables/disables SIO32 Mode, which is useful for GBA games to be able to send more data, faster. The sent byte must be 1 to enable SIO32 mode, and 0 to disable it. SIO32 mode implies that any transmission will happen in chunks of 4 bytes instead of 1, which has implications with respect to the alignment of the communication.</p>
+
+	<p>When SIO32 mode is on, the packet data will be aligned to a multiple of 4 bytes, padding the remaining bytes with 0, and this won't be reflected in the packet length field. Similarly, the Acknowledgement Signal gains 2 padding bytes (hardcoded 0, not verified) at the end. Since the entire transmission (including Magic Bytes) is sent in chunks of 4, this means that the checksum is sent along with either the packet length (if length is 0) or the last 2 bytes of the packet (if length is not 0), and the acknowledgement signal is sent in the next chunk.</p>
+
+	<p class="spc">SIO32 Mode will only be toggled after the reply to this packet has been sent. The adapter should be allowed at least 100ms to toggle, as it might otherwise start sending garbage.</p>
 
 	<p class="list_item"><strong>Command 0x19 - Read Configuration Data</strong></p>
 	<p class="list_item">Data Sent: 1 byte offset + 1 byte read length</p>
-	<p class="list_item">Data Received: 1 unknown byte + Requested Configuration Data</p>
+	<p class="list_item">Data Received: 1 byte offset + Requested Configuration Data</p>
 
-	<p class="spc">Requests data from the adapter&#39;s 192-byte configuration memory. The first byte sent to the adapter is the offset. The second byte sent is the length of data to read. The adapter responds with 1 unknown byte followed by configuration data from the adapter&#39;s internal memory. Although it should be possible to read the entire configuration data with one packet, most software send 2 of these commands to read 96-byte chunks.</p>
+	<p class="spc">Requests data from the adapter&#39;s 256-byte configuration memory. The first byte sent to the adapter is the offset. The second byte sent is the length of data to read. The adapter responds with the same offset byte followed by configuration data from the adapter&#39;s internal memory. The maximum amount of data that can be requested at once is 128 bytes, and the adapter may return an error if the game requests more data. Most software send 2 of these commands to read 96-byte chunks, for a total of 192 bytes, which is the area of this memory that is actually used.</p>
 
 	<p class="list_item"><strong>Command 0x1A - Write Configuration Data</strong></p>
-	<p class="list_item">Data Sent: 1 unknown + Configuration Data to Write</p>
-	<p class="list_item">Data Received: N/A. Empty Packet Data</p>
+	<p class="list_item">Data Sent: 1 byte offset + Configuration Data to Write</p>
+	<p class="list_item">Data Received: 1 byte offset</p>
 
-	<p class="spc">Writes data to the adapter&#39;s 192-byte configuration memory. The first byte sent to the adapter unknown. The following bytes are the data to be written in the adapters internal memory.</p>
+	<p class="spc">Writes data to the adapter&#39;s 256-byte configuration memory. The first byte sent to the adapter is the offset. The following bytes are the data to be written in the adapters internal memory. A maximum of 128 bytes may be written at once.</p>
 
 	<p class="list_item"><strong>Command 0x21 - ISP Login</strong></p>
 	<p class="list_item">Data Sent: 1 byte Login ID Length + Login ID + 1 byte Password Length + Password + 4 bytes DNS Address #1 + 4 bytes DNS Address #2</p>
-	<p class="list_item">Data Received: 4 bytes possibly representing IP address assigned to adapter</p>
+	<p class="list_item">Data Received: 4 bytes assigned IP + 4 bytes assigned DNS Address #1 + 4 bytes assigned DNS Address #2 /p>
 
-	<p class="spc">Logs into the DION service, which in turn connects to an internet server. Both the Login ID and Password are prefixed with bytes declaring their lengths. The IPv4 DNS addresses are 4 bytes each, with a single byte representing one octet.</p>
+	<p class="spc">Logs into the DION dial-up service, after calling it with command 0x12 (Dial Telephone), allowing the adapter to connect to the internet. Both the Login ID and Password are prefixed with bytes declaring their lengths, with a maximum length of 0x20. The IPv4 DNS addresses are 4 bytes each, with a single byte representing one octet. The reply contains the assigned IP address and DNS addresses. If the game sets either of the DNS addresses to 0, the adapter may assign the DNS address on its own, and return that in the reply, otherwise, the reply's DNS addresses are 0.0.0.0.</p>
 
 	<p class="list_item"><strong>Command 0x22 - ISP Logout</strong></p>
 	<p class="list_item">Data Sent: N/A. Empty Packet Data</p>
 	<p class="list_item">Data Received: N/A. Empty Packet Data</p>
 
-	<p class="spc">Logs out of the DION service.</p>
+	<p class="spc">Logs out of the DION service. This command causes all connections to be closed.</p>
 
 	<p class="list_item"><strong>Command 0x23 - Open TCP Connection</strong></p>
 	<p class="list_item">Data Sent: 4 bytes for IP Address + 2 Bytes for Port Number</p>
-	<p class="list_item">Data Received: 1 unknown byte</p>
+	<p class="list_item">Data Received: 1 byte Connection ID</p>
 
-	<p class="spc">Opens a TCP connection at the given IP address on the given port. The IPv4 IP address is 4 bytes, with a single byte representing one octet. The port number is big-endian. Depending on which port the TCP connection opens (25, 80, 110), different protocols can be accessed on a server (SMTP, HTTP, and POP respectively). Handling the details of the protocol itself depends on software. The Mobile Adapter is merely responsible for opening the connection and handling TCP transfers such as when using Command 0x15.</p>
+	<p class="spc">Opens a TCP connection at the given IP address on the given port, after logging into the DION dial-up service. The IPv4 IP address is 4 bytes, with a single byte representing one octet. The port number is big-endian. Depending on which port the TCP connection opens (25, 80, 110), different protocols can be accessed on a server (SMTP, HTTP, and POP respectively). Handling the details of the protocol itself depends on the software and the server. The Mobile Adapter is merely responsible for opening the connection and handling TCP transfers such as when using Command 0x15. The reply contains the Connection ID, which must be used when using Command 0x15 (Transfer Data). The maximum amount of connections on a real adapter is 2.</p>
 
 	<p class="list_item"><strong>Command 0x24 - Close TCP Connection</strong></p>
-	<p class="list_item">Data Sent: 1 unknown byte</p>
-	<p class="list_item">Data Received: 1 unknown byte</p>
+	<p class="list_item">Data Sent: 1 byte Connection ID</p>
+	<p class="list_item">Data Received: 1 byte Connection ID</p>
 
 	<p class="spc">Closes an active TCP connection.</p>
+
+	<p class="list_item"><strong>Command 0x25 - Open UDP Connection</strong></p>
+	<p class="list_item">Data Sent: 4 bytes for IP Address + 2 Bytes for Port Number</p>
+	<p class="list_item">Data Received: 1 byte Connection ID</p>
+
+	<p class="spc">Opens a UDP connection at the given IP address on the given port, after logging into the DION dial-up service. It&#39;s an analog of Command 0x23 (Open TCP Connection), but opens a UDP connection instead. This UDP connection is bound to the specified IP address and Port until it's closed. When using Command 0x15 (Transfer Data) with a UDP connection, it&#39;s impossible to know the sender of any received data, as it isn&#39;t verified.</p>
+
+	<p class="list_item"><strong>Command 0x26 - Close UDP Connection</strong></p>
+	<p class="list_item">Data Sent: 1 byte Connection ID</p>
+	<p class="list_item">Data Received: 1 byte Connection ID</p>
+
+	<p class="spc">Closes an active UDP connection.</p>
 
 	<p class="list_item"><strong>Command 0x28 - DNS Query</strong></p>
 	<p class="list_item">Data Sent: Domain Name</p>
 	<p class="list_item">Data Received: 4 bytes for IP Address</p>
 
-	<p class="spc">Looks up the IP address for a domain name, presumably using the DNS server addresses sent in Command 0x21</p>
+	<p class="spc">Looks up the IP address for a domain name, using the DNS server addresses sent in Command 0x21. This command also accepts an ASCII IPv4 address (as parsed by the inet_addr(3) function of POSIX), converting it into a 4-byte IPv4 address instead of querying the DNS server. The domain name is in ASCII and may contain zeroes, which truncate the name.</p>
+
+	<p class="list_item"><strong>Command 0x3F - Firmware Version</strong></p>
+	<p class="list_item">Data Sent: N/A. Empty Packet Data</p>
+	<p class="list_item">Data Received: N/A. Empty Packet Data</p>
+
+	<p>On a real Mobile Adapter, this causes it to send firmware version information through the serial pins on the phone connector, and enter a state in which no other commands can be used. Presumably, this enters a test mode of some kind. Likely not used by any games.</p>
+
+	<p class="spc">This command may not be used if the phone line is in use. The only way to resume sending commands after this one is sent, is sending Command 0x16 (Reset), or, exclusively on the blue adapter, Command 0x11 (End Session) may also be used.</p>
 
 	<p class="list_item"><strong>Command 0x6E - Error Status</strong></p>
 	<p class="list_item">Data Sent: N/A. Adapter sends this in response to a failed command</p>
@@ -3772,12 +3816,60 @@ Command 0x28		DNS Query
 
 <code>0x10: Error Code 0x01 - Sent twice
 0x10: Error Code 0x02 - Invalid contents
-0x12: Error Code 0x03 - Dial telephone with telephone disconnected
-0x14: Error Code 0x00 - Wait for call with telephone disconnected
-0x15: Error Code 0x01 - Transfer data without being connected
-0x19: Error Code 0x02 - Read outside of config area
-0x1A: Error Code 0x02 - Write outside of config area
-0x21: Error Code 0x01 - ISP login with disconnected phone</code>
+
+0x11: Error Code 0x02 - Still connected/failed to disconnect(?)
+
+0x12: Error Code 0x00 - Telephone line is busy
+0x12: Error Code 0x01 - Invalid use (already connected)
+0x12: Error Code 0x02 - Invalid contents (first byte isn't correct)
+0x12: Error Code 0x03 - Communication failed/phone not connected
+0x12: Error Code 0x04 - Call not established, redial
+
+0x13: Error Code 0x01 - Invalid use (already hung up/phone not connected)
+
+0x14: Error Code 0x00 - No call received/phone not connected
+0x14: Error Code 0x01 - Invalid use (already calling)
+0x14: Error Code 0x03 - Internal error (ringing but picking up fails)
+
+0x15: Error Code 0x00 - Invalid connection/communication failed
+0x15: Error Code 0x01 - Invalid use (Call was ended/never made)
+
+0x16: Error Code 0x00 - Still connected/failed to disconnect(?)
+
+0x18: Error Code 0x02 - Invalid contents (first byte not either 1 or 0)
+
+0x19: Error Code 0x00 - Internal error (Failed to read config)
+0x19: Error Code 0x02 - Read outside of config area/too big a chunk
+
+0x1A: Error Code 0x00 - Internal error (Failed to write config)
+0x1A: Error Code 0x02 - Write outside of config area/too big a chunk
+
+0x21: Error Code 0x01 - Invalid use (Not in a call)
+0x21: Error Code 0x02 - Unknown error (some kind of timeout?)
+0x21: Error Code 0x03 - Unknown error (internal error?)
+
+0x22: Error Code 0x00 - Invalid use (Not logged in)
+0x22: Error Code 0x01 - Invalid use (Not in a call)
+0x22: Error Code 0x02 - Unknown error (some kind of timeout?)
+
+0x23: Error Code 0x00 - Too many connections
+0x23: Error Code 0x01 - Invalid use (Not logged in)
+0x23: Error Code 0x03 - Connection failed
+
+0x24: Error Code 0x00 - Invalid connection (Not connected)
+0x24: Error Code 0x01 - Invalid use (Not logged in)
+0x24: Error Code 0x02 - Unknown error (???)
+
+0x25: Error Code 0x00 - Too many connections
+0x25: Error Code 0x01 - Invalid use (Not logged in)
+0x25: Error Code 0x03 - Connection failed (though this can&#39;t happen)
+
+0x26: Error Code 0x00 - Invalid connection (Not connected)
+0x26: Error Code 0x01 - Invalid use (Not logged in)
+0x26: Error Code 0x02 - Unknown error (???)
+
+0x28: Error Code 0x01 - Invalid use (not logged in)
+0x28: Error Code 0x02 - Invalid contents/lookup failed</code>
 
 	<p class="spc"></p>
 
@@ -3807,9 +3899,9 @@ Command 0x28		DNS Query
 
 	<p>The checksum is simply the 16-bit sum of bytes 0x00 - 0xBD.</p>
 
-	<p>All software compatible with the Mobile Adapter appears to read the configuration data first and foremost. If the data cannot be read or if there is a problem with the data, they will refuse to even attempt making an online connection. Generally, they return the error code 25-000 in that situation.</p>
+	<p>All software compatible with the Mobile Adapter appears to read the configuration data first and foremost. If the data cannot be read or if there is a problem with the data, they will refuse to even attempt logging in to the DION dial-up service. Generally, they return the error code 25-000 in that situation.</p>
 
-	<p>If any compatible software attempts to read or write configuration data outside the allotted 192 bytes via commands 0x19 and 0x1A, the entire I/O operation is cancelled. No data is written even if the initial offset is within the 192 bytes. No data is returned either, as both commands respond with Error Status packets.</p>
+	<p>If any compatible software attempts to read or write configuration data outside the allotted 256 bytes via commands 0x19 and 0x1A, the entire I/O operation is cancelled. No data is written even if the initial offset is within the 256 bytes. No data is returned either, as both commands respond with Error Status packets.</p>
 
 
 	<!-- Game Boy Wars 3 -->
