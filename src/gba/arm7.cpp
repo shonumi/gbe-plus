@@ -1675,6 +1675,9 @@ void ARM7::clock_emulated_sio_device()
 
 			break;
 
+		case 0x13:
+			break;
+
 		//Clock everything else normally
 		default: break;
 	}

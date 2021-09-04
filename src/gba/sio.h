@@ -266,6 +266,8 @@ class AGB_SIO
 	void vrs_draw_menu();
 	void vrs_draw_track();
 	bool vrs_load_data();
+
+	void magic_watch_process();
 };
 
 #endif // GBA_SIO

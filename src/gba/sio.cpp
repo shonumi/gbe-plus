@@ -272,6 +272,11 @@ void AGB_SIO::reset()
 			sio_stat.sio_type = GBA_VRS;
 			break;
 
+		//Magic Watch
+		case 19:
+			sio_stat.sio_type = GBA_MAGIC_WATCH;
+			break;
+
 		//Always wait until netplay connection is established to change to GBA_LINK
 		default:
 			sio_stat.sio_type = NO_GBA_DEVICE;
@@ -2994,4 +2999,10 @@ bool AGB_SIO::vrs_load_data()
 
 	std::cout<<"SIO::VRS sprite data loaded\n";
 	return true;
+}
+
+/****** Process commands from GBA to Magic Watch ******/
+void AGB_SIO::magic_watch_process()
+{
+
 }

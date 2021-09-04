@@ -29,6 +29,7 @@ enum agb_sio_types
 	GBA_TURBO_FILE,
 	GBA_IR_ADAPTER,
 	GBA_VRS,
+	GBA_MAGIC_WATCH,
 };
 
 //Serial Input-Output device mode enumeration
