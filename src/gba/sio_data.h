@@ -97,6 +97,15 @@ enum virtual_racing_system_state
 	VRS_RACING,
 };
 
+enum magic_watch_state
+{
+	MW_INIT_A,
+	MW_INIT_B,
+	MW_TRANSFER_DATA,
+	MW_END_A,
+	MW_END_B,
+};
+
 struct agb_sio_data
 {
 	bool connected;
