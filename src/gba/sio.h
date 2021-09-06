@@ -221,18 +221,7 @@ class AGB_SIO
 		std::vector<u32> sprite_height;
 	} vrs;
 
-	//Magic Watch
-	struct mag_watch
-	{
-		std::vector<u8> data;
-		magic_watch_state current_state;
-		u8 recv_mask;
-		u8 recv_byte;
-		u8 send_mask;
-		u8 send_byte;
-		u8 counter;
-		u8 index;
-	} magic_watch;
+	mag_watch magic_watch;
 
 	AGB_SIO();
 	~AGB_SIO();
@@ -281,7 +270,6 @@ class AGB_SIO
 	bool vrs_load_data();
 
 	void magic_watch_process();
-	void magic_watch_recv();
 };
 
 #endif // GBA_SIO

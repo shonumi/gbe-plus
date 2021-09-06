@@ -180,6 +180,8 @@ class AGB_MMU
 	void process_sio();
 	void process_player_rumble();
 
+	void magic_watch_recv();
+
 	//Cheat code functions
 	void decrypt_gsa(u32 &addr, u32 &val, bool v1);
 	void set_cheats();
@@ -188,6 +190,7 @@ class AGB_MMU
 	void set_lcd_data(agb_lcd_data* ex_lcd_stat);
 	void set_apu_data(agb_apu_data* ex_apu_stat);
 	void set_sio_data(agb_sio_data* ex_sio_stat);
+	void set_mw_data(mag_watch* ex_mw_data);
 
 	AGB_GamePad* g_pad;
 	std::vector<gba_timer>* timer;
@@ -207,6 +210,9 @@ class AGB_MMU
 
 	//Only the MMU and SIO should communicate through this structure
 	agb_sio_data* sio_stat;
+
+	//Only the MMU and SIO should communicate through this structure
+	mag_watch* mw;
 };
 
 #endif // GBA_MMU

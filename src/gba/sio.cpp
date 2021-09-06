@@ -3030,6 +3030,7 @@ void AGB_SIO::magic_watch_process()
 				{
 					magic_watch.current_state = MW_INIT_B;
 					magic_watch.counter = 0;
+					std::cout<<"INIT B\n";
 				}
 			}
 
@@ -3045,6 +3046,15 @@ void AGB_SIO::magic_watch_process()
 				{
 					magic_watch.current_state = MW_TRANSFER_DATA;
 					magic_watch.counter = 0;
+
+					magic_watch.send_mask = 0x80;
+					magic_watch.send_byte = 0;
+
+					magic_watch.recv_mask = 0x80;
+					magic_watch.recv_byte = magic_watch.data[magic_watch.index];
+					magic_watch.dummy_reads = 1;
+
+					std::cout<<"TRANSFER DATA\n";
 				}
 			}
 
@@ -3058,12 +3068,7 @@ void AGB_SIO::magic_watch_process()
 				magic_watch.current_state = MW_INIT_A;
 				magic_watch.counter++;
 				magic_watch.index = 0;
-
-				magic_watch.send_mask = 0x80;
-				magic_watch.send_byte = 0;
-
-				magic_watch.recv_mask = 0x80;
-				magic_watch.recv_byte = magic_watch.data[magic_watch.index];
+				std::cout<<"RESET INIT\n";
 			}
 
 			break;
@@ -3078,6 +3083,7 @@ void AGB_SIO::magic_watch_process()
 				{
 					magic_watch.current_state = MW_END_B;
 					magic_watch.counter = 0;
+					std::cout<<"END B\n";
 				}
 			}
 
@@ -3093,36 +3099,11 @@ void AGB_SIO::magic_watch_process()
 				{
 					magic_watch.current_state = MW_INIT_A;
 					magic_watch.counter = 0;
+					std::cout<<"REAL RESET\n";
 				}
 			}
 
 			break;
 	}
 
-}
-
-/****** Receives data from Magic Watch to GBA ******/
-void AGB_SIO::magic_watch_recv()
-{
-	//Transfer data via RCNT Bit 2 (SI Line), MSB first
-	//SI High = 1, SI Low = 0
-	if(magic_watch.recv_byte & magic_watch.recv_mask) { sio_stat.r_cnt |= 0x04; }
-	else { sio_stat.r_cnt &= ~0x04; }
-
-	magic_watch.recv_mask >>= 1;
-
-	if(!magic_watch.recv_mask)
-	{
-		magic_watch.index++;
-
-		//Grab next byte to transfer
-		if(magic_watch.index <= 9)
-		{
-			magic_watch.recv_mask = 0x80;
-			magic_watch.recv_byte = magic_watch.data[magic_watch.index];
-		}
-
-		//Finish transfer
-		else { magic_watch.current_state = MW_END_B; }
-	}		
 }

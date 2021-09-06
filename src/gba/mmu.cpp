@@ -284,6 +284,9 @@ u8 AGB_MMU::read_u8(u32 address)
 			break;
 
 		case R_CNT:
+			//Receive data from Magic Watch if necessary
+			if(config::sio_device == 19) { magic_watch_recv(); }
+
 			return (sio_stat->r_cnt & 0xFF);
 			break;
 
@@ -1721,6 +1724,9 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			//Trigger transfer to emulated AGB-006 if necessary
 			else if((config::sio_device == 17) && (address == R_CNT+1)) { sio_stat->emu_device_ready = true; }
 
+			//Trigger transfer to emulated Magic Watch if necessary
+			else if((config::sio_device == 19) && (address == R_CNT)) { sio_stat->emu_device_ready = true; }
+
 			break;
 			
 
@@ -2847,6 +2853,56 @@ void AGB_MMU::process_player_rumble()
 	}
 }
 
+/****** Receives data from Magic Watch to GBA ******/
+void AGB_MMU::magic_watch_recv()
+{
+	if(mw->index >= 9) { return; }
+
+	if(mw->dummy_reads)
+	{
+		mw->dummy_reads--;
+		return;
+	}
+
+	//Transfer data via RCNT Bit 2 (SI Line), MSB first
+	//SI High = 1, SI Low = 0
+	if(mw->recv_byte & mw->recv_mask)
+	{
+		sio_stat->r_cnt |= 0x04;
+		std::cout<<"BYTE " << (u32)mw->index << " :: 1\n";
+	}
+
+	else
+	{
+		sio_stat->r_cnt &= ~0x04;
+		std::cout<<"BYTE " << (u32)mw->index << " :: 0\n";
+	}
+
+
+	mw->recv_mask >>= 1;
+
+	if(!mw->recv_mask)
+	{
+		mw->index++;
+
+		//Grab next byte to transfer
+		if(mw->index <= 8)
+		{
+			mw->recv_mask = 0x80;
+			mw->recv_byte = mw->data[mw->index];
+			mw->dummy_reads = 2;
+		}
+
+		//Finish transfer
+		else
+		{
+			mw->current_state = MW_END_A;
+			mw->dummy_reads = 0;
+			std::cout<<"TRANSFER DONE\n";
+		}
+	}		
+}
+
 /****** Applies an IPS patch to a ROM loaded in memory ******/
 bool AGB_MMU::patch_ips(std::string filename)
 {
@@ -3078,6 +3134,9 @@ void AGB_MMU::set_apu_data(agb_apu_data* ex_apu_stat) { apu_stat = ex_apu_stat; 
 
 /****** Points the MMU to an apu_data structure (FROM SIO ITSELF) ******/
 void AGB_MMU::set_sio_data(agb_sio_data* ex_sio_stat) { sio_stat = ex_sio_stat; }
+
+/****** Points the MMU to a mag_watch structure (FROM SIO ITSELF) ******/
+void AGB_MMU::set_mw_data(mag_watch* ex_mw_data) { mw = ex_mw_data; }
 
 /****** Read MMU data from save state ******/
 bool AGB_MMU::mmu_read(u32 offset, std::string filename)

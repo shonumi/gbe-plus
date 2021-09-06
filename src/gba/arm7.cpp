@@ -1675,6 +1675,13 @@ void ARM7::clock_emulated_sio_device()
 
 			break;
 
+		case 0x13:
+			controllers.serial_io.magic_watch_process();
+			controllers.serial_io.sio_stat.emu_device_ready = false;
+			controllers.serial_io.sio_stat.active_transfer = false;
+
+			break;
+
 		//Clock everything else normally
 		default: break;
 	}

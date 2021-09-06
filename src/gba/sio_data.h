@@ -106,6 +106,21 @@ enum magic_watch_state
 	MW_END_B,
 };
 
+
+struct mag_watch
+{
+	std::vector<u8> data;
+	magic_watch_state current_state;
+	bool active;
+	u8 recv_mask;
+	u8 recv_byte;
+	u8 send_mask;
+	u8 send_byte;
+	u8 counter;
+	u8 index;
+	u8 dummy_reads;
+};
+
 struct agb_sio_data
 {
 	bool connected;
