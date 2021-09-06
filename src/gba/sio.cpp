@@ -3066,10 +3066,30 @@ void AGB_SIO::magic_watch_process()
 			if(sio_stat.r_cnt == 0x80B4)
 			{
 				magic_watch.current_state = MW_INIT_A;
-				magic_watch.counter++;
+				magic_watch.counter = 1;
 				magic_watch.index = 0;
 				std::cout<<"RESET INIT\n";
 			}
+
+			//Build bytes sent from GBA to Magical Watch
+			else
+			{
+				magic_watch.counter++;
+
+				if((magic_watch.counter > 6) && (magic_watch.counter < 15))
+				{
+					if(sio_stat.r_cnt & 0x2) { magic_watch.send_byte |= magic_watch.send_mask; }
+					magic_watch.send_mask >>= 1;
+				}
+
+				else if(magic_watch.counter == 17)
+				{
+					std::cout<<"GBA SENDS 0x" << (u32)magic_watch.send_byte << "\n";
+					magic_watch.send_byte = 0;
+					magic_watch.send_mask = 0x80;
+					magic_watch.counter = 6;
+				}
+			}		
 
 			break;
 
