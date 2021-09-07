@@ -3119,6 +3119,7 @@ void AGB_SIO::magic_watch_process()
 				{
 					magic_watch.current_state = MW_INIT_A;
 					magic_watch.counter = 0;
+					magic_watch.index = 0;
 					std::cout<<"REAL RESET\n";
 				}
 			}
