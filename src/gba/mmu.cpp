@@ -285,7 +285,7 @@ u8 AGB_MMU::read_u8(u32 address)
 
 		case R_CNT:
 			//Receive data from Magic Watch if necessary
-			if(config::sio_device == 19) { magic_watch_recv(); }
+			if((config::sio_device == 19) && (mw->active)) { magic_watch_recv(); }
 
 			return (sio_stat->r_cnt & 0xFF);
 			break;
@@ -2898,6 +2898,8 @@ void AGB_MMU::magic_watch_recv()
 		{
 			mw->current_state = MW_END_A;
 			mw->dummy_reads = 0;
+			mw->active_count = 0;
+			mw->active = false;
 			std::cout<<"TRANSFER DONE\n";
 		}
 	}		

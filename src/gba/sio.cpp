@@ -437,6 +437,7 @@ void AGB_SIO::reset()
 	if(config::sio_device == 18) { vrs.active = vrs_load_data(); }
 
 	//Magic Watch
+	magic_watch.active = false;
 	magic_watch.data.clear();
 	magic_watch.current_state = MW_INIT_A;
 	magic_watch.recv_mask = 0;
@@ -444,6 +445,9 @@ void AGB_SIO::reset()
 	magic_watch.send_mask = 0;
 	magic_watch.send_byte = 0;
 	magic_watch.counter = 0;
+	magic_watch.index = 0;
+	magic_watch.dummy_reads = 0;
+	magic_watch.active_count = 0;
 
 	if(config::sio_device == 19)
 	{
@@ -3044,8 +3048,10 @@ void AGB_SIO::magic_watch_process()
 
 				if(magic_watch.counter == 100)
 				{
+					magic_watch.active = false;
 					magic_watch.current_state = MW_TRANSFER_DATA;
 					magic_watch.counter = 0;
+					magic_watch.active_count = 0;
 
 					magic_watch.send_mask = 0x80;
 					magic_watch.send_byte = 0;
@@ -3076,14 +3082,23 @@ void AGB_SIO::magic_watch_process()
 			{
 				magic_watch.counter++;
 
+				//Ignore sync signal and build byte
 				if((magic_watch.counter > 6) && (magic_watch.counter < 15))
 				{
 					if(sio_stat.r_cnt & 0x2) { magic_watch.send_byte |= magic_watch.send_mask; }
 					magic_watch.send_mask >>= 1;
 				}
 
+				//Wait for next sync signal and build next byte
 				else if(magic_watch.counter == 17)
 				{
+					//Check for last byte GBA should send to Magic Watch before switching to receiving data
+					if(magic_watch.send_byte == 0x06)
+					{
+						magic_watch.active_count++;
+						if(magic_watch.active_count == 10) { magic_watch.active = true; }
+					}
+
 					std::cout<<"GBA SENDS 0x" << (u32)magic_watch.send_byte << "\n";
 					magic_watch.send_byte = 0;
 					magic_watch.send_mask = 0x80;

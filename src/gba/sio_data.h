@@ -112,6 +112,7 @@ struct mag_watch
 	std::vector<u8> data;
 	magic_watch_state current_state;
 	bool active;
+	u8 active_count;
 	u8 recv_mask;
 	u8 recv_byte;
 	u8 send_mask;
