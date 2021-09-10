@@ -3060,6 +3060,11 @@ void AGB_SIO::magic_watch_process()
 					magic_watch.recv_byte = magic_watch.data[magic_watch.index];
 					magic_watch.dummy_reads = 1;
 
+					//Calculate checksum for Magic Watch data
+					u8 sum = 0;
+					for(u32 x = 0; x < 8; x++) { sum += magic_watch.data[x]; }
+					magic_watch.data[8] = sum;
+
 					std::cout<<"TRANSFER DATA\n";
 				}
 			}
