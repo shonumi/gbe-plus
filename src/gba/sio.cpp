@@ -451,8 +451,15 @@ void AGB_SIO::reset()
 
 	if(config::sio_device == 19)
 	{
-		magic_watch.data.resize(8, 0xFF);
-		magic_watch.data.push_back(0xF8);
+		magic_watch.data.resize(9, 0x00);
+		magic_watch.data[0] = 0x01;
+		magic_watch.data[1] = 0x02;
+		magic_watch.data[2] = 0x03;
+		magic_watch.data[3] = 0xFF;
+		magic_watch.data[4] = 0x00;
+		magic_watch.data[5] = 0x00;
+		magic_watch.data[6] = 0x00;
+		magic_watch.data[7] = 0x00;
 	}
 
 	#ifdef GBE_NETPLAY
@@ -3034,7 +3041,6 @@ void AGB_SIO::magic_watch_process()
 				{
 					magic_watch.current_state = MW_INIT_B;
 					magic_watch.counter = 0;
-					std::cout<<"INIT B\n";
 				}
 			}
 
@@ -3064,8 +3070,6 @@ void AGB_SIO::magic_watch_process()
 					u8 sum = 0;
 					for(u32 x = 0; x < 8; x++) { sum += magic_watch.data[x]; }
 					magic_watch.data[8] = sum;
-
-					std::cout<<"TRANSFER DATA\n";
 				}
 			}
 
@@ -3079,7 +3083,6 @@ void AGB_SIO::magic_watch_process()
 				magic_watch.current_state = MW_INIT_A;
 				magic_watch.counter = 1;
 				magic_watch.index = 0;
-				std::cout<<"RESET INIT\n";
 			}
 
 			//Build bytes sent from GBA to Magical Watch
@@ -3104,7 +3107,6 @@ void AGB_SIO::magic_watch_process()
 						if(magic_watch.active_count == 10) { magic_watch.active = true; }
 					}
 
-					std::cout<<"GBA SENDS 0x" << (u32)magic_watch.send_byte << "\n";
 					magic_watch.send_byte = 0;
 					magic_watch.send_mask = 0x80;
 					magic_watch.counter = 6;
@@ -3123,7 +3125,6 @@ void AGB_SIO::magic_watch_process()
 				{
 					magic_watch.current_state = MW_END_B;
 					magic_watch.counter = 0;
-					std::cout<<"END B\n";
 				}
 			}
 
@@ -3140,7 +3141,6 @@ void AGB_SIO::magic_watch_process()
 					magic_watch.current_state = MW_INIT_A;
 					magic_watch.counter = 0;
 					magic_watch.index = 0;
-					std::cout<<"REAL RESET\n";
 				}
 			}
 

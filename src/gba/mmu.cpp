@@ -1725,7 +1725,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			else if((config::sio_device == 17) && (address == R_CNT+1)) { sio_stat->emu_device_ready = true; }
 
 			//Trigger transfer to emulated Magic Watch if necessary
-			else if((config::sio_device == 19) && (address == R_CNT)) { sio_stat->emu_device_ready = true; }
+			else if((config::sio_device == 19) && (address == R_CNT)) { sio_stat->emu_device_ready = true; std::cout<<"WRITE -> 0x" << (u32)sio_stat->r_cnt << "\n"; }
 
 			break;
 			
@@ -2858,26 +2858,18 @@ void AGB_MMU::magic_watch_recv()
 {
 	if(mw->index >= 9) { return; }
 
+	//Drive SI line HIGH for Stop Bit
 	if(mw->dummy_reads)
 	{
+		sio_stat->r_cnt |= 0x04;
 		mw->dummy_reads--;
 		return;
 	}
 
 	//Transfer data via RCNT Bit 2 (SI Line), MSB first
 	//SI High = 1, SI Low = 0
-	if(mw->recv_byte & mw->recv_mask)
-	{
-		sio_stat->r_cnt |= 0x04;
-		std::cout<<"BYTE " << (u32)mw->index << " :: 1\n";
-	}
-
-	else
-	{
-		sio_stat->r_cnt &= ~0x04;
-		std::cout<<"BYTE " << (u32)mw->index << " :: 0\n";
-	}
-
+	if(mw->recv_byte & mw->recv_mask) { sio_stat->r_cnt |= 0x04; }
+	else { sio_stat->r_cnt &= ~0x04; }
 
 	mw->recv_mask >>= 1;
 
@@ -2900,7 +2892,6 @@ void AGB_MMU::magic_watch_recv()
 			mw->dummy_reads = 0;
 			mw->active_count = 0;
 			mw->active = false;
-			std::cout<<"TRANSFER DONE\n";
 		}
 	}		
 }
