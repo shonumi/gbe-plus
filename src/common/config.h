@@ -191,6 +191,8 @@ namespace config
 
 	extern u8 turbo_file_options;
 
+	extern u8 mw_data[6];
+
 	extern bool use_osd;
 	extern std::vector <u32> osd_font;
 	extern std::string osd_message;

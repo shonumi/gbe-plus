@@ -227,6 +227,9 @@ namespace config
 	//Turbo File options flags
 	u8 turbo_file_options = 0;
 
+	//Magical Watch Data
+	u8 mw_data[6] = { 0, 0, 0, 0, 0, 0 };
+
 	//On-screen display settings
 	bool use_osd = false;
 	std::vector <u32> osd_font;
@@ -1894,6 +1897,20 @@ bool parse_ini_file()
 				}
 			}
 		}
+
+		//Magical Watch Data
+		else if(ini_item == "#mw_data")
+		{
+			if((x + 6) < size)
+			{
+				for(u32 y = 0; y < 6; y++)
+				{
+					u32 val = 0;
+					util::from_str(ini_opts[++x], val);
+					config::chip_list[y] = val;
+				}
+			}
+		}
 			
 		//Hotkeys
 		else if(ini_item == "#hotkeys")
@@ -3007,6 +3024,20 @@ bool save_ini_file()
 			val += util::to_str(config::chip_list[5]);
 
 			output_lines[line_pos] = "[#chip_list:" + val + "]";
+		}
+
+		//Magical Watch Data
+		else if(ini_item == "#mw_data")
+		{
+			line_pos = output_count[x];
+			std::string val = util::to_str(config::mw_data[0]) + ":";
+			val += util::to_str(config::mw_data[1]) + ":";
+			val += util::to_str(config::mw_data[2]) + ":";
+			val += util::to_str(config::mw_data[3]) + ":";
+			val += util::to_str(config::mw_data[4]) + ":";
+			val += util::to_str(config::mw_data[5]);
+
+			output_lines[line_pos] = "[#mw_data:" + val + "]";
 		}
 
 		//Hotkeys
