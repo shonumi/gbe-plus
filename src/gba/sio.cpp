@@ -452,14 +452,12 @@ void AGB_SIO::reset()
 	if(config::sio_device == 19)
 	{
 		magic_watch.data.resize(9, 0x00);
-		magic_watch.data[0] = 0x01;
-		magic_watch.data[1] = 0x02;
-		magic_watch.data[2] = 0x03;
-		magic_watch.data[3] = 0xFF;
-		magic_watch.data[4] = 0x00;
-		magic_watch.data[5] = 0x00;
-		magic_watch.data[6] = 0x00;
-		magic_watch.data[7] = 0x00;
+		magic_watch.data[0] = (config::mw_data[0] < 0x63) ? config::mw_data[0] : 0x63;
+		magic_watch.data[1] = (config::mw_data[1] < 0x63) ? config::mw_data[1] : 0x63;
+		magic_watch.data[2] = (config::mw_data[2] < 0x63) ? config::mw_data[2] : 0x63;
+		magic_watch.data[6] = (config::mw_data[6] < 0x63) ? config::mw_data[3] : 0x63;
+
+		for(u32 x = 0; x < 9; x++) { std::cout<<"MW DATA -> 0x" << (u32)magic_watch.data[x] << "\n"; }
 	}
 
 	#ifdef GBE_NETPLAY

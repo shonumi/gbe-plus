@@ -1907,7 +1907,7 @@ bool parse_ini_file()
 				{
 					u32 val = 0;
 					util::from_str(ini_opts[++x], val);
-					config::chip_list[y] = val;
+					config::mw_data[y] = val;
 				}
 			}
 		}
