@@ -457,7 +457,19 @@ void AGB_SIO::reset()
 		magic_watch.data[2] = (config::mw_data[2] < 0x63) ? config::mw_data[2] : 0x63;
 		magic_watch.data[6] = (config::mw_data[6] < 0x63) ? config::mw_data[3] : 0x63;
 
-		for(u32 x = 0; x < 9; x++) { std::cout<<"MW DATA -> 0x" << (u32)magic_watch.data[x] << "\n"; }
+		//Set 2.5 hour max if necessary
+		if((config::mw_data[4] >= 2) && (config::mw_data[5] >= 30)) { magic_watch.data[5] = 0x1; }
+
+		//Calculate times less than 2.5 hours
+		else
+		{
+			u8 hour = config::mw_data[4];
+			u8 min = (config::mw_data[5] > 59) ? 59 : config::mw_data[5];
+			u32 total_min = (hour * 60) + min;
+
+			magic_watch.data[4] = total_min >> 6;
+			magic_watch.data[3] = (total_min - (config::mw_data[4] * 64)) << 2;
+		}
 	}
 
 	#ifdef GBE_NETPLAY
