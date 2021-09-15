@@ -174,6 +174,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	sio_dev->addItem("Turbo File GB/Advance");
 	sio_dev->addItem("AGB-006");
 	sio_dev->addItem("V.R.S.");
+	sio_dev->addItem("Magical Watch");
 
 	config_sio = new QPushButton("Configure");
 
@@ -1711,6 +1712,7 @@ void gen_settings::set_ini_options()
 		case 12:
 		case 15:
 		case 16:
+		case 19:
 			config_sio->setEnabled(true);
 			break;
 
@@ -2027,6 +2029,7 @@ void gen_settings::sio_dev_change()
 		case 12:
 		case 15:
 		case 16:
+		case 19:
 			config_sio->setEnabled(true);
 			break;
 
