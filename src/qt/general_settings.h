@@ -34,6 +34,7 @@
 #include "tbf_menu.h"
 #include "utp_menu.h"
 #include "magic_reader_menu.h"
+#include "mw_menu.h"
 
 class gen_settings : public QDialog
 {
@@ -217,6 +218,7 @@ class gen_settings : public QDialog
 	tbf_menu* turbo_file_menu;
 	utp_menu* ubisoft_pedometer_menu;
 	mr_menu* magic_reader_menu;
+	mw_menu* magical_watch_menu;
 	QMessageBox* warning_box;
 
 	void update_volume();

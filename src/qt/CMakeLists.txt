@@ -21,6 +21,7 @@ set(SRCS
 	tbf_menu.cpp
 	utp_menu.cpp
 	magic_reader_menu.cpp
+	mw_menu.cpp
 	)
 
 set(HEADERS
@@ -43,6 +44,7 @@ set(HEADERS
 	tbf_menu.h
 	utp_menu.h
 	magic_reader_menu.h
+	mw_menu.h
 	)
 
 add_executable(gbe_plus_qt ${SRCS} ${HEADERS})
