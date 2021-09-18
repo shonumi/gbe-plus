@@ -57,7 +57,7 @@ Before sending any bytes, a brief sync signal must be issued. After the first by
 -----------------------------------------------------------
 Value	| Delay in ms 	| Description
 -----------------------------------------------------------
-0x8031	| N/A		| Initial Sync 
+0x8031	| N/A		| Initial Command Sync 
 0x8033	| 0.65ms	| Sets SD LOW, HIGH, LOW, HIGH, LOW
 0x8031	| 6.50ms	|
 0x8033	| 1.30ms	|
@@ -89,7 +89,7 @@ xxxx	| 0.65ms	| Bit 0 of Next Byte to Send
 -----------------------------------------------------------
 ... Send Next Byte ...
 -----------------------------------------------------------
-0x8033	| 0.65ms	| Final Sync
+0x8033	| 0.65ms	| Final Command Sync
 0x8033	| 0.65ms	|
 0x8033	| 0.65ms	|
 0x8033	| 0.65ms	|
@@ -123,15 +123,15 @@ After sending the commands mentioned above, the GBA will receive a total of 9 by
 -----------------------------------------------------------
 Read #	| Delay in ms 	| Description
 -----------------------------------------------------------
-Read 0	| ~1.95ms	| Stop Bit
-Read 1	| ~1.95ms	| Receive Bit 7
-Read 2	| ~1.95ms	| Receive Bit 6
-Read 3	| ~1.95ms	| Receive Bit 5
-Read 4	| ~1.95ms	| Receive Bit 4
-Read 5	| ~1.95ms	| Receive Bit 3
-Read 6	| ~1.95ms	| Receive Bit 2
-Read 7	| ~1.95ms	| Receive Bit 1
-Read 8	| ~1.95ms	| Receive Bit 0
+Read 0	| 1.95ms	| Stop Bit
+Read 1	| 1.95ms	| Receive Bit 7
+Read 2	| 1.95ms	| Receive Bit 6
+Read 3	| 1.95ms	| Receive Bit 5
+Read 4	| 1.95ms	| Receive Bit 4
+Read 5	| 1.95ms	| Receive Bit 3
+Read 6	| 1.95ms	| Receive Bit 2
+Read 7	| 1.95ms	| Receive Bit 1
+Read 8	| 1.95ms	| Receive Bit 0
 -----------------------------------------------------------
 
 The received bytes can then be converted into the following in-game items depending on their values.
@@ -154,27 +154,29 @@ When transferring Time to the game, Bytes 3, 4, and 5 are used as a total sum. T
 
 The checksum is simply the sum of Bytes 0 - 7. Mirumo de Pon! Hachinin no Toki no Yousei validates this upon receiving all 9 bytes from the Magical Watch.
 
+After all 9 bytes have been read, a sync signal is sent from the GBA:
+
+-----------------------------------------------------------
+Value	| Delay in ms 	| Description
+-----------------------------------------------------------
+0x8031	| 1.95ms	| Data Transfer Sync
+0x8031	| 6.50ms	|
+0x8033	| 0.65ms	|
+0x8031	| 0.65ms	|
+0x8031	| 0.65ms	|
+0x8033	| 0.65ms	|
+0x8031	| 0.65ms	|
+0x8033	| 0.65ms	|
+0x8031	| 0.65ms	|
+0x8033	| 0.65ms	|
+0x8031	| 0.65ms	|
+0x8033	| 0.65ms	|
+0x8031	| 0.65ms	|
+-----------------------------------------------------------
+
 
 ***************************************************
 7. Communication Protocol - Stop Signal
 ***************************************************
 
-Once all the bytes have been received by the GBA, the following signal is sent ~1.95ms later:
-
------------------------------------------------------------
-Value	| Delay in ms 	| Description
------------------------------------------------------------
-0x8031	| ~1.95ms	| Stop Sync
-0x8031	| ~6.50ms	|
-0x8033	| ~0.65ms	|
-0x8031	| ~0.65ms	|
-0x8031	| ~0.65ms	|
-0x8033	| ~0.65ms	|
-0x8031	| ~0.65ms	|
-0x8033	| ~0.65ms	|
-0x8031	| ~0.65ms	|
-0x8033	| ~0.65ms	|
-0x8031	| ~0.65ms	|
-0x8033	| ~0.65ms	|
-0x8031	| ~0.65ms	|
------------------------------------------------------------ 
+Once the Data Transfer is complete, a brief delay (slightly greater than 5ms) occurs before sending the Stop Signal. Like the Start Signal, Mirumo de Pon! Hachinin no Toki no Yousei switches the serial port into UART mode for ~0.77ms. Afterwards, it re-enters General Purpose Mode for ~0.77ms, writing the value 0x8031 to RCNT 100 times. Again, it switches to UART mode for ~0.77ms. Finally, it re-enters General Purpose mode, writing the value 0x80B0 to RCNT 100 times, and then writing the value 0x8000 to RCNT 100 times, with each duration lasting ~0.77ms.
