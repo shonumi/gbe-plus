@@ -45,6 +45,16 @@ When sending a Start Signal, the transition between these two values may alert t
 
 Before Mirumo de Pon! Hachinin no Toki no Yousei issues a Start Signal, it temporarily switches to the serial port to UART mode for ~0.77ms. This, however, is not necessary to begin communicating with the Magical Watch. At the end of the Start Signal, before transitioning to the Command Upload phase, the game also temporarily switches to Normal 8-bit mode, however this too is likely irrelevant to properly link with the Magical Watch. In either case, no data is transferred when the game enters UART or Normal 8-bit mode.
 
+Ultimately the Start Signal looks something like this:
+
+-----------------------------------------------------------
+Description			| Duration in ms 
+-----------------------------------------------------------
+UART Switch			| 0.77ms
+General Purpose: RCNT = 0x80B0	| 0.77ms
+General Purpose: RCNT = 0x8000	| 0.77ms
+-----------------------------------------------------------
+
 
 ***************************************************
 5. Communication Protocol - Command Upload
@@ -179,4 +189,16 @@ Value	| Delay in ms 	| Description
 7. Communication Protocol - Stop Signal
 ***************************************************
 
-Once the Data Transfer is complete, a brief delay (slightly greater than 5ms) occurs before sending the Stop Signal. Like the Start Signal, Mirumo de Pon! Hachinin no Toki no Yousei switches the serial port into UART mode for ~0.77ms. Afterwards, it re-enters General Purpose Mode for ~0.77ms, writing the value 0x8031 to RCNT 100 times. Again, it switches to UART mode for ~0.77ms. Finally, it re-enters General Purpose mode, writing the value 0x80B0 to RCNT 100 times, and then writing the value 0x8000 to RCNT 100 times, with each duration lasting ~0.77ms.
+Once the Data Transfer is complete, a brief delay (slightly greater than 5ms) occurs before sending the Stop Signal. Like the Start Signal, Mirumo de Pon! Hachinin no Toki no Yousei switches the serial port into UART mode for ~0.77ms. Afterwards, it re-enters General Purpose Mode for ~0.77ms, writing the value 0x8031 to RCNT 100 times. Again, it switches to UART mode for ~0.77ms. Just like the Start Signal, no data is actually transferred when the game switches to UART mode. Finally, it re-enters General Purpose mode, writing the value 0x80B0 to RCNT 100 times, and then writing the value 0x8000 to RCNT 100 times, with each duration lasting ~0.77ms.
+
+Ultimately, the Stop Signal looks something like this:
+
+-----------------------------------------------------------
+Description			| Duration in ms 
+-----------------------------------------------------------
+UART Switch			| 0.77ms
+General Purpose: RCNT = 0x8031	| 0.77ms
+UART Switch			| 0.77ms
+General Purpose: RCNT = 0x80B0	| 0.77ms
+General Purpose: RCNT = 0x8000	| 0.77ms
+-----------------------------------------------------------
