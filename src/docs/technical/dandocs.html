@@ -138,6 +138,7 @@
 			<p class="list_item"><a href="#tbfa">Turbo File Advance</a></p>
 			<p class="list_item"><a href="#agb006">AGB-006</a></p>
 			<p class="list_item"><a href="#vrs">Virtureal Racing System</a></p>
+			<p class="list_item"><a href="#maw">Magical Watch</a></p>
 
 			<p class="list_head"><strong>NDS</strong></p>
 			<p class="list_item"><a href="#utp">Ubisoft Thrustmaster Pedometer</a></p>
@@ -3048,6 +3049,205 @@ Not used - Set High		| Bits 8 - 15
 	<p>When using the Carrera Racing interface, any time first GBA sends a value not listed in the VRS protocol, the second GBA running the MultiBoot program is expected to eventually echo what was sent. The first GBA sends specific values in groups of three. If it receives an echo, it knows that the MultiBoot program is running and will enable 2-player functionality in the various racing modes. If no second GBA with the MultiBoot program is detected, Power Slide restricts Carrera Racing to 1-player. Even though a second racer can join in without a GBA by using the standard hand controls, Power Slide will not recognize them via software.</p>
 
 	<p>If the first GBA is powered off or reset, the MultiBoot program running on the second GBA does not need to be downloaded again. As long as the second GBA continues running, it will successfully echo any bytes to establish contact.</p>
+
+	<!-- Magical Watch -->
+	<a name="maw"></a>
+	<p class="gray_title">Magical Watch</p>
+	<p class="list_item"><a href="#maw_gen">General Hardware Information</a></p>
+	<p class="list_item"><a href="#maw_ovr">Communication Protocol - Overview</a></p>
+	<p class="list_item"><a href="#maw_sta">Communication Protocol - Start Signal</a></p>
+	<p class="list_item"><a href="#maw_cmd">Communication Protocol - Command Upload</a></p>
+	<p class="list_item"><a href="#maw_dat">Communication Protocol - Data Transfer</a></p>
+	<p class="list_item"><a href="#maw_stp">Communication Protocol - Stop Signal</a></p>
+
+	<a name="maw_gen"></a>
+	<p class="gray_title">[Magical Watch] : General Hardware Information</p>
+
+	<p>The Magical Watch is a digital watch bundled with the GBA game Wagamama☆Fairy: Mirumo de Pon! Hachinin no Toki no Yousei. It was released on December 11, 2003 by Konami. This device allowed users to play various minigames and activities on the watch itself through the use of its LCD screen and buttons. A Link Cable port lets players transfer data to the game and unlock special items.</p>
+	
+	<ul>
+		<li class="list_item">Runs on a CR2032 battery. Appears sensitive to battery charge levels, and even alerts players when battery is low/unusable.</li>
+		<li class="list_item">Has one 3rd Generation Link Cable port to communicate with a GBA.</li>
+		<li class="list_item">Features a small LCD dot matrix display for minor graphics.</li>
+		<li class="list_item">Uses 3 buttons (forward, back, select) for menu navigation and playing minigames.</li>
+		<li class="list_item">Produces sounds via built-in speaker.</li>
+		<li class="list_item">Functions as a regular watch with time of day, current calendar date, and alarms.</li>
+	</ul>
+
+	<a name="maw_ovr"></a>
+	<p class="gray_title">[Magical Watch] : Communication Protocol - Overview</p>
+
+	<p>The GBA sets its serial port to General Purpose mode to send or receive data with the Magical Watch. Its protocol consists of four distinct phases as listed below:</p>
+
+	<ul>
+		<li class="list_item">Start Signal</li>
+		<li class="list_item">Command Upload</li>
+		<li class="list_item">Data Transfer</li>
+		<li class="list_item">Stop Signal</li>
+	</ul>
+
+	<p>Because the Magical Watch uses unknown components, a chip-on-board design encapsulated by a glob top, timing information for most transfers is also documented below. These are rough approximations based on how Mirumo de Pon! Hachinin no Toki no Yousei&#39;s code communicates with the Magical Watch.</p>
+
+	<a name="maw_sta"></a>
+	<p class="gray_title">[Magical Watch] : Communication Protocol - Start Signal</p>
+
+	<p>The Start Signal involves writing 2 specific values to the RCNT register over a set number of iterations. The value 0x80B0 is written 100 times; following that, the value 0x8000 is written 100 times as well. Mirumo de Pon! Hachinin no Toki no Yousei enters into a fairly small loop and cycles through these writes relatively quickly.</p>
+
+	<p>When sending a Start Signal, the transition between these two values may alert the Magical Watch that the GBA is ready to begin communications. It may not be necessary to perform exactly 100 writes of each value, but rather the Magical Watch may simply need sufficient time to detect when the SC, SD, and SO lines switch from HIGH to LOW. The 0x80B0 and 0x8000 writes both last ~0.77ms. Between the end of the Start Signal and the beginning of the Command Upload, there is a ~15.87ms gap before the GBA resumes communication.</p>
+
+	<p>Before Mirumo de Pon! Hachinin no Toki no Yousei issues a Start Signal, it temporarily switches to the serial port to UART mode for ~0.77ms. This, however, is not necessary to begin communicating with the Magical Watch. At the end of the Start Signal, before transitioning to the Command Upload phase, the game also temporarily switches to Normal 8-bit mode, however this too is likely irrelevant to properly link with the Magical Watch. In either case, no data is transferred when the game enters UART or Normal 8-bit mode.</p>
+
+	<p>Ultimately the Start Signal looks something like this:</p>
+
+<code>-----------------------------------------------------------
+Description			| Duration in ms 
+-----------------------------------------------------------
+UART Switch			| 0.77ms
+General Purpose: RCNT = 0x80B0	| 0.77ms
+General Purpose: RCNT = 0x8000	| 0.77ms
+-----------------------------------------------------------</code>
+
+	<a name="maw_cmd"></a>
+	<p class="gray_title">[Magical Watch] : Communication Protocol - Command Upload</p>
+
+	<p>The GBA sends 80 bytes serially to the Magical Watch instructing the device to return data that is later used to generate in-game items. During this phase, the GBA sets the direction of SC and SD as Output. SC is constantly set HIGH, and SD changes to represent the current bit being sent. Essentially, the GBA will write 0x8033 to RCNT to transmit a value of &#34;1&#34; and 0x8031 to transmit a value of &#34;0&#34;. Bytes are sent MSB first.</p>
+
+	<p>Before sending any bytes, a brief sync signal must be issued. After the first byte is sent, additional syncs must be sent in between each subsequent byte. After the last byte, the GBA sends a final sync signal. Typical transmissions look like this:</p>
+
+<code>-----------------------------------------------------------
+Value	| Delay in ms 	| Description
+-----------------------------------------------------------
+0x8031	| N/A		| Initial Command Sync 
+0x8033	| 0.65ms	| Sets SD LOW, HIGH, LOW, HIGH, LOW
+0x8031	| 6.50ms	|
+0x8033	| 1.30ms	|
+0x8031	| 0.65ms	|
+-----------------------------------------------------------
+xxxx	| 0.65ms	| Bit 7 of Byte to Send
+xxxx	| 0.65ms	| Bit 6 of Byte to Send
+xxxx	| 0.65ms	| Bit 5 of Byte to Send
+xxxx	| 0.65ms	| Bit 4 of Byte to Send
+xxxx	| 0.65ms	| Bit 3 of Byte to Send
+xxxx	| 0.65ms	| Bit 2 of Byte to Send
+xxxx	| 0.65ms	| Bit 1 of Byte to Send
+xxxx	| 0.65ms	| Bit 0 of Byte to Send
+-----------------------------------------------------------
+0x8031	| 0.65ms	| Recurring Sync
+0x8033	| 1.30ms	| Sets SD LOW, HIGH, LOW
+0x8031	| 0.65ms	|
+-----------------------------------------------------------
+xxxx	| 0.65ms	| Bit 7 of Next Byte to Send
+xxxx	| 0.65ms	| Bit 6 of Next Byte to Send
+xxxx	| 0.65ms	| Bit 5 of Next Byte to Send
+xxxx	| 0.65ms	| Bit 4 of Next Byte to Send
+xxxx	| 0.65ms	| Bit 3 of Next Byte to Send
+xxxx	| 0.65ms	| Bit 2 of Next Byte to Send
+xxxx	| 0.65ms	| Bit 1 of Next Byte to Send
+xxxx	| 0.65ms	| Bit 0 of Next Byte to Send
+-----------------------------------------------------------
+... Repeat Recurring Sync ...
+-----------------------------------------------------------
+... Send Next Byte ...
+-----------------------------------------------------------
+0x8033	| 0.65ms	| Final Command Sync
+0x8033	| 0.65ms	|
+0x8033	| 0.65ms	|
+0x8033	| 0.65ms	|
+0x8031	| 0.65ms	|
+0x8033	| 0.65ms	|
+0x8033	| 0.65ms	|
+0x8031	| 0.65ms	|
+0x8031	| 0.65ms	|
+-----------------------------------------------------------</code>
+
+	<p>Mirumo de Pon! Hachinin no Toki no Yousei appears to send a specific set of commands to the Magical Watch. It is currently unknown what these commands are or how they control what data the GBA receives. These same 80 bytes are transferred to the watch:</p>
+
+<code>0x1F 0x14 0x1E 0x40 0x81 0x00 0x3C 0x00
+0x58 0x40 0x88 0x48 0x70 0x40 0x50 0x00
+0x00 0x01 0x00 0x01 0x58 0x40 0x88 0x48
+0x70 0x40 0x50 0x00 0x19 0x06 0x19 0x06
+0x58 0x40 0x88 0x48 0x70 0x40 0x50 0x00
+0x19 0x06 0x19 0x06 0x58 0x40 0x88 0x48
+0x70 0x40 0x50 0x00 0x19 0x06 0x19 0x06
+0x58 0x40 0x88 0x48 0x70 0x40 0x50 0x00
+0x19 0x06 0x19 0x06 0x58 0x40 0x88 0x48
+0x70 0x40 0x50 0x00 0x19 0x06 0x19 0x06</code>
+
+	<a name="maw_dat"></a>
+	<p class="gray_title">[Magical Watch] : Communication Protocol - Data Transfer</p>
+
+	<p>After sending the commands mentioned above, the GBA will receive a total of 9 bytes from the Magical Watch. Mirumo de Pon! Hachinin no Toki no Yousei waits ~1.95ms after the Final Sync has completed. From there, bytes can be read serially, MSB first. The SI line is used to indicate the individual bits as well as a Stop Bit. The game follows this convention when reading the RCNT register for each byte:</p>
+
+<code>-----------------------------------------------------------
+Read #	| Delay in ms 	| Description
+-----------------------------------------------------------
+Read 0	| 1.95ms	| Stop Bit
+Read 1	| 1.95ms	| Receive Bit 7
+Read 2	| 1.95ms	| Receive Bit 6
+Read 3	| 1.95ms	| Receive Bit 5
+Read 4	| 1.95ms	| Receive Bit 4
+Read 5	| 1.95ms	| Receive Bit 3
+Read 6	| 1.95ms	| Receive Bit 2
+Read 7	| 1.95ms	| Receive Bit 1
+Read 8	| 1.95ms	| Receive Bit 0
+-----------------------------------------------------------</code>
+
+	<p>The received bytes can then be converted into the following in-game items depending on their values.</p>
+
+<code>-----------------------------------------------------------
+Byte 0		| Small Drop of Time (0 - 99)
+Byte 1		| Large Drop of Time (0 - 99)
+Byte 2		| Lucky Jewel (0 - 99)
+Byte 3		| Add 15 seconds
+Byte 4		| Add 1 hour + 4 minutes
+Byte 5		| Add 2 hours + 30 Minutes
+Byte 6		| Screw of Time (0 - 99)
+Byte 7		| N/A
+Byte 8		| 8-bit checksum
+-----------------------------------------------------------</code>
+
+	<p>For Bytes 0, 1, 2, and 6, the game only permits players to have 99 items. Even if the Magical Watch sends values above 0x63, the game will only recognize 99 as the absolute maximum.</p>
+
+	<p>When transferring Time to the game, Bytes 3, 4, and 5 are used as a total sum. The absolute maximum value the game recognizes is 2 hours and 30 minutes. Byte 3 is used to add individual minutes, essentially by dividing its raw binary value by 4 (e.g. 0x8 = add 2 minutes). Byte 4 adds 1 hour and 4 minutes multiplied by its raw binary value (e.g. 0x2 = add 2 hours and 8 minutes). Byte 5 is used to set Time to its maximum value with any non-zero value.</p>
+
+	<p>The checksum is simply the sum of Bytes 0 - 7. Mirumo de Pon! Hachinin no Toki no Yousei validates this upon receiving all 9 bytes from the Magical Watch.</p>
+
+	<p>After all 9 bytes have been read, a sync signal is sent from the GBA:</p>
+
+<code>-----------------------------------------------------------
+Value	| Delay in ms 	| Description
+-----------------------------------------------------------
+0x8031	| 1.95ms	| Data Transfer Sync
+0x8031	| 6.50ms	|
+0x8033	| 0.65ms	|
+0x8031	| 0.65ms	|
+0x8031	| 0.65ms	|
+0x8033	| 0.65ms	|
+0x8031	| 0.65ms	|
+0x8033	| 0.65ms	|
+0x8031	| 0.65ms	|
+0x8033	| 0.65ms	|
+0x8031	| 0.65ms	|
+0x8033	| 0.65ms	|
+0x8031	| 0.65ms	|
+-----------------------------------------------------------</code>
+
+	<a name="maw_stp"></a>
+	<p class="gray_title">[Magical Watch] : Communication Protocol - Stop Signal</p>
+
+	<p>Once the Data Transfer is complete, a brief delay (slightly greater than 5ms) occurs before sending the Stop Signal. Like the Start Signal, Mirumo de Pon! Hachinin no Toki no Yousei switches the serial port into UART mode for ~0.77ms. Afterwards, it re-enters General Purpose Mode for ~0.77ms, writing the value 0x8031 to RCNT 100 times. Again, it switches to UART mode for ~0.77ms. Just like the Start Signal, no data is actually transferred when the game switches to UART mode. Finally, it re-enters General Purpose mode, writing the value 0x80B0 to RCNT 100 times, and then writing the value 0x8000 to RCNT 100 times, with each duration lasting ~0.77ms.</p>
+
+	<p>Ultimately, the Stop Signal looks something like this:</p>
+
+<code>-----------------------------------------------------------
+Description			| Duration in ms 
+-----------------------------------------------------------
+UART Switch			| 0.77ms
+General Purpose: RCNT = 0x8031	| 0.77ms
+UART Switch			| 0.77ms
+General Purpose: RCNT = 0x80B0	| 0.77ms
+General Purpose: RCNT = 0x8000	| 0.77ms
+-----------------------------------------------------------</code>
 
 	<!-- Ubisoft Thrustmaster Pedometer -->
 	<a name="utp"></a>
