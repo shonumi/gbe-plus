@@ -1725,7 +1725,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			else if((config::sio_device == 17) && (address == R_CNT+1)) { sio_stat->emu_device_ready = true; }
 
 			//Trigger transfer to emulated Magic Watch if necessary
-			else if((config::sio_device == 19) && (address == R_CNT)) { sio_stat->emu_device_ready = true; std::cout<<"WRITE -> 0x" << (u32)sio_stat->r_cnt << "\n"; }
+			else if((config::sio_device == 19) && (address == R_CNT)) { sio_stat->emu_device_ready = true; }
 
 			break;
 			
