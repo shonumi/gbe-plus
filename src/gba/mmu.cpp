@@ -237,6 +237,8 @@ u8 AGB_MMU::read_u8(u32 address)
 			//Disable this memory region if not using SRAM or FLASH RAM.
 			//Used in some game protection schemes (NES Classics and Top Gun: Combat Zones)
 			default:
+				//Make an exception for GBA Tilt Carts
+				if(config::cart_type == AGB_TILT_SENSOR) { return memory_map[address]; }
 				return 0;
 		}
 	}
