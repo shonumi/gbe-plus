@@ -213,7 +213,9 @@ void DMG_core::debug_display() const
 
 	flag_stats += ")";
 
-	std::cout<< std::hex <<"FLAGS : 0x" << std::setw(2) << std::setfill('0') << (u32)core_cpu.reg.f << "\t" << flag_stats << "\n";
+	std::string ime_status = (core_cpu.interrupt) ? "IME = ON" : "IME = OFF";
+
+	std::cout<< std::hex <<"FLAGS : 0x" << std::setw(2) << std::setfill('0') << (u32)core_cpu.reg.f << "\t" << flag_stats  << "\t" << ime_status << "\n";
 
 	if(db_unit.display_cycles) { std::cout<<"CYCLES : " << std::dec << core_cpu.debug_cycles << "\n"; }
 
