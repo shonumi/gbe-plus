@@ -252,6 +252,7 @@ class DMG_SIO
 		u8 wait_flags;
 		u8 buffer_pos;
 		u8 packet_size;
+		u8 quit_count;
 		u32 clock;
 		bool begin_network_sync;
 		bool restart_network;

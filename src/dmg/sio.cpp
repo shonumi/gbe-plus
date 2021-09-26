@@ -591,6 +591,7 @@ void DMG_SIO::reset()
 	four_player.buffer.clear();
 	four_player.packet_size = 0;
 	four_player.clock = 0;
+	four_player.quit_count = 0;
 }
 
 /****** Transfers one byte to another system ******/

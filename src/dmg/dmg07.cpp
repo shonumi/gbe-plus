@@ -586,6 +586,8 @@ u8 DMG_SIO::four_player_request(u8 data_one, u8 data_two, u8 id)
 /****** Processes data sent to the Game Boy via 4 Player Adapter ******/
 void DMG_SIO::four_player_process()
 {
+	std::cout<<"INPUT -> 0x" << u32(sio_stat.transfer_byte) << " :: 0x" << u32(sio_stat.ping_count) << "\n"; 
+
 	if(sio_stat.internal_clock) { four_player.current_state = FOUR_PLAYER_INACTIVE; }
 	
 	//Start Link Cable sync
@@ -603,7 +605,8 @@ void DMG_SIO::four_player_process()
 	//End network comms and start ping again
 	else if((four_player.current_state == FOUR_PLAYER_PROCESS_NETWORK) && (sio_stat.transfer_byte == 0xFF) && (!four_player.restart_network))
 	{
-		four_player.restart_network = true;
+		four_player.quit_count++;
+		if(four_player.quit_count == 2) { four_player.restart_network = true; }
 	}
 
 	u8 req_byte[3] = {0, 0, 0};
@@ -750,6 +753,9 @@ void DMG_SIO::four_player_process()
 				p_data = four_player_request(0, 0xFB, 2);
 				four_player.buffer[temp_pos + (four_player.packet_size * 3)] = p_data;
 			}
+
+			//Watch for quit session signal
+			if(sio_stat.ping_count == 1) { four_player.quit_count = 0; }
 
 			sio_stat.ping_count++;
 			sio_stat.ping_count = sio_stat.ping_count % (four_player.packet_size * 4);
