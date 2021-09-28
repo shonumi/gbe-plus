@@ -855,6 +855,15 @@ void DMG_SIO::process_network_communication()
 /****** Processes data sent to the GB Printer ******/
 void DMG_SIO::printer_process()
 {
+	//Check for magic bytes at any time during initial transfer
+	if((sio_stat.last_transfer == 0x88) && (sio_stat.transfer_byte == 0x33) && (printer.packet_size <= 6))
+	{
+		printer.current_state = GBP_AWAITING_PACKET;
+		printer.packet_buffer.clear();
+		printer.packet_buffer.push_back(0x88);
+		printer.packet_size = 1;
+	}
+
 	switch(printer.current_state)
 	{
 		//Receive packet data
@@ -897,7 +906,7 @@ void DMG_SIO::printer_process()
 			printer.command = printer.packet_buffer.back();
 
 			//Abort if invalid command, wait for a new packet
-			if((printer.command != 0x1) && (printer.command != 0x2) && (printer.command != 0x4) && (printer.command != 0xF))
+			if((printer.command != 0x1) && (printer.command != 0x2) && (printer.command != 0x4) && (printer.command != 0xF) && (printer.command != 0x88))
 			{
 				std::cout<<"SIO::Warning - Invalid command sent to GB Printer -> 0x" << std::hex << (u32)printer.command << "\n";
 				printer.current_state = GBP_AWAITING_PACKET;
@@ -1058,6 +1067,8 @@ void DMG_SIO::printer_process()
 
 			break;
 	}
+
+	sio_stat.last_transfer = sio_stat.transfer_byte;
 }
 
 /****** Executes commands send to the GB Printer ******/
