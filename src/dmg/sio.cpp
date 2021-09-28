@@ -856,7 +856,8 @@ void DMG_SIO::process_network_communication()
 void DMG_SIO::printer_process()
 {
 	//Check for magic bytes at any time during initial transfer
-	if((sio_stat.last_transfer == 0x88) && (sio_stat.transfer_byte == 0x33) && (printer.packet_size <= 6))
+	//Pokemon Pinball sometimes sends 0x10 0x33. Needs hardware verification on how this works. Treat it as valid for now.
+	if(((sio_stat.last_transfer == 0x88) || (sio_stat.last_transfer == 0x10)) && (sio_stat.transfer_byte == 0x33) && (printer.packet_size <= 6))
 	{
 		printer.current_state = GBP_AWAITING_PACKET;
 		printer.packet_buffer.clear();
@@ -906,7 +907,8 @@ void DMG_SIO::printer_process()
 			printer.command = printer.packet_buffer.back();
 
 			//Abort if invalid command, wait for a new packet
-			if((printer.command != 0x1) && (printer.command != 0x2) && (printer.command != 0x4) && (printer.command != 0xF) && (printer.command != 0x88))
+			if((printer.command != 0x1) && (printer.command != 0x2) && (printer.command != 0x4) && (printer.command != 0xF)
+			&& (printer.command != 0x88) && (printer.command != 0x10))
 			{
 				std::cout<<"SIO::Warning - Invalid command sent to GB Printer -> 0x" << std::hex << (u32)printer.command << "\n";
 				printer.current_state = GBP_AWAITING_PACKET;
