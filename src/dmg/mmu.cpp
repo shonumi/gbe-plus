@@ -806,6 +806,15 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 
 		if(value & 0x80)
 		{
+			//Duration
+			if(!apu_stat->channel[2].length_flag) { apu_stat->channel[2].duration = 5000; }
+		
+			else 
+			{
+				apu_stat->channel[2].duration = memory_map[NR31];
+				apu_stat->channel[2].duration = ((256 - apu_stat->channel[2].duration) / 256.0) * 1000.0;
+			}
+
 			//Internal APU time-keeping
 			apu_stat->channel[2].frequency_distance = 0;
 			apu_stat->channel[2].sample_length = (apu_stat->channel[2].duration * apu_stat->sample_rate)/1000;
