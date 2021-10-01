@@ -269,7 +269,7 @@ void DMG_APU::generate_channel_1_samples(s16* stream, int length)
 				//Generate high wave form if duty cycle is on AND volume is not muted
 				if((apu_stat.channel[0].frequency_distance >= (frequency_samples/8) * apu_stat.channel[0].duty_cycle_start) 
 				&& (apu_stat.channel[0].frequency_distance < (frequency_samples/8) * apu_stat.channel[0].duty_cycle_end)
-				&& (apu_stat.channel[0].volume != 0))
+				&& (apu_stat.channel[0].volume != 0) && (apu_stat.channel[0].volume <= 0xF))
 				{
 					stream[x] = output_status ? (-32768 + (4369 * apu_stat.channel[0].volume)) : -32768;
 				}
@@ -345,7 +345,7 @@ void DMG_APU::generate_channel_2_samples(s16* stream, int length)
 				//Generate high wave form if duty cycle is on AND volume is not muted
 				if((apu_stat.channel[1].frequency_distance >= (frequency_samples/8) * apu_stat.channel[1].duty_cycle_start) 
 				&& (apu_stat.channel[1].frequency_distance < (frequency_samples/8) * apu_stat.channel[1].duty_cycle_end)
-				&& (apu_stat.channel[1].volume != 0))
+				&& (apu_stat.channel[1].volume != 0) && (apu_stat.channel[1].volume <= 0xF))
 				{
 					stream[x] = output_status ? (-32768 + (4369 * apu_stat.channel[1].volume)) : -32768;;
 				}

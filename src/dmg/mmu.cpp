@@ -489,6 +489,12 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 			apu_stat->channel[0].playing = false;
 			memory_map[NR52] &= ~0x1;
 		}
+
+		//Zombie Mode Behavior - If envolope mode is changed while sound is playing, set volume to 16 (0x10)
+		if((apu_stat->channel[0].playing) && (next_direction != apu_stat->channel[0].envelope_direction))
+		{
+			apu_stat->channel[0].volume = 0x10;
+		}
 	}
 
 	//NR13 - Frequency LO
@@ -646,6 +652,12 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		{
 			apu_stat->channel[1].playing = false;
 			memory_map[NR52] &= ~0x2;
+		}
+
+		//Zombie Mode Behavior - If envolope mode is changed while sound is playing, set volume to 16 (0x10)
+		if((apu_stat->channel[1].playing) && (next_direction != apu_stat->channel[1].envelope_direction))
+		{
+			apu_stat->channel[1].volume = 0x10;
 		}
 	}
 
