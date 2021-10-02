@@ -87,6 +87,7 @@ class DMG_SIO
 	struct gb_printer
 	{
 		std::vector <u32> scanline_buffer;
+		std::vector <u32> full_buffer;
 		std::vector <u8> packet_buffer;
 		u32 packet_size;
 		printer_state current_state;

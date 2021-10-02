@@ -344,6 +344,7 @@ void DMG_SIO::reset()
 	//GB Printer
 	printer.scanline_buffer.clear();
 	printer.scanline_buffer.resize(0x16800, 0x0);
+	printer.full_buffer.clear();
 	printer.packet_buffer.clear();
 	printer.packet_size = 0;
 	printer.current_state = GBP_AWAITING_PACKET;
@@ -1268,6 +1269,13 @@ void DMG_SIO::print_image()
 	u32 height = (16 * printer.strip_count);
 	u32 img_size = 160 * height;
 
+	u8 margin_top = (printer.packet_buffer[7] & 0xF0);
+	u8 margin_bottom = (printer.packet_buffer[7] & 0x0F);
+	bool print_full_pix = (!margin_top && margin_bottom) ? true : false;
+	
+	//Clear full printer buffer if new strip detected or it gets way too large (50 160x144 strips)
+	if((margin_top && !margin_bottom) || (printer.full_buffer.size() >= 0x119400)) { printer.full_buffer.clear(); }
+
 	//Set up printing palette
 	u8 data_pal = printer.packet_buffer[8];
 
@@ -1321,6 +1329,9 @@ void DMG_SIO::print_image()
 		}
 			
 		out_pixel_data[x] = printer.scanline_buffer[x];
+
+		//Fill full print buffer continuously
+		printer.full_buffer.push_back(printer.scanline_buffer[x]);
 	}
 
 	//Unlock source surface
@@ -1330,6 +1341,27 @@ void DMG_SIO::print_image()
 	SDL_FreeSurface(print_screen);
 
 	printer.strip_count = 0;
+
+	//Print full combined strip if detected
+	if(print_full_pix)
+	{
+		height = printer.full_buffer.size() / 160;
+		SDL_Surface *full_screen = SDL_CreateRGBSurface(SDL_SWSURFACE, 160, height, 32, 0, 0, 0, 0);
+
+		if(SDL_MUSTLOCK(full_screen)){ SDL_LockSurface(full_screen); }
+		u32* full_pixel_data = (u32*)full_screen->pixels;
+
+		for(u32 x = 0; x < printer.full_buffer.size(); x++) { full_pixel_data[x] = printer.full_buffer[x]; }
+		printer.full_buffer.clear();
+
+		//Unlock source surface
+		if(SDL_MUSTLOCK(full_screen)){ SDL_UnlockSurface(full_screen); }
+
+		filename = "full_" + filename;
+
+		SDL_SaveBMP(full_screen, filename.c_str());
+		SDL_FreeSurface(full_screen);
+	}
 
 	//OSD
 	config::osd_message = "SAVED GB PRINTER IMG";
