@@ -534,12 +534,12 @@ void DMG_APU::generate_channel_4_samples(s16* stream, int length)
 				}
 
 				//Generate high wave if LSFR returns 1 from first byte and volume is not muted
-				if((apu_stat.noise_stages == 15) && (apu_stat.noise_15_stage_lsfr & 0x1) && (apu_stat.channel[3].volume >= 1)) 
+				if((apu_stat.noise_stages == 15) && (apu_stat.noise_15_stage_lsfr & 0x1) && (apu_stat.channel[3].volume >= 1) && (apu_stat.channel[3].volume <= 0xF)) 
 				{ 
 					stream[x] = output_status ? (-32768 + (4369 * apu_stat.channel[3].volume)) : -32768; 
 				}
 
-				else if((apu_stat.noise_stages == 7) && (apu_stat.noise_7_stage_lsfr & 0x1) && (apu_stat.channel[3].volume >= 1)) 
+				else if((apu_stat.noise_stages == 7) && (apu_stat.noise_7_stage_lsfr & 0x1) && (apu_stat.channel[3].volume >= 1) && (apu_stat.channel[3].volume <= 0xF)) 
 				{ 
 					stream[x] = output_status ? (-32768 + (4369 * apu_stat.channel[3].volume)) : -32768; 
 				}

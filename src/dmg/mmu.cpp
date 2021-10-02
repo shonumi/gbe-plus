@@ -862,6 +862,12 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 			apu_stat->channel[3].playing = false;
 			memory_map[NR52] &= ~0x8;
 		}
+
+		//Zombie Mode Behavior - If envolope mode is changed while sound is playing, set volume to 16 (0x10)
+		if((apu_stat->channel[3].playing) && (next_direction != apu_stat->channel[3].envelope_direction))
+		{
+			apu_stat->channel[3].volume = 0x10;
+		}
 	}
 
 	//NR43 - Polynomial Counter
