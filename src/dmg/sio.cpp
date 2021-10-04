@@ -1274,7 +1274,7 @@ void DMG_SIO::print_image()
 	bool print_full_pix = (!margin_top && margin_bottom) ? true : false;
 	
 	//Clear full printer buffer if new strip detected or it gets way too large (50 160x144 strips)
-	if((margin_top && !margin_bottom) || (printer.full_buffer.size() >= 0x119400)) { printer.full_buffer.clear(); }
+	if((margin_top) || (printer.full_buffer.size() >= 0x119400)) { printer.full_buffer.clear(); }
 
 	//Set up printing palette
 	u8 data_pal = printer.packet_buffer[8];
