@@ -1284,6 +1284,36 @@ void DMG_SIO::print_image()
 	printer.pal[2] = (data_pal >> 4) & 0x3;
 	printer.pal[3] = (data_pal >> 6) & 0x3;
 
+	//Calculate printing exposure (contrast for final pixels) and set color accordingly
+	s16 exposure = (printer.packet_buffer[9] & 0x7F);
+	u32 print_color_0 = (config::DMG_BG_PAL[0] & 0xFF);
+	u32 print_color_1 = (config::DMG_BG_PAL[1] & 0xFF);
+	u32 print_color_2 = (config::DMG_BG_PAL[2] & 0xFF);
+	u32 print_color_3 = (config::DMG_BG_PAL[3] & 0xFF);
+
+	double diff = (0x40 - exposure) * (25.0 / 64);
+	diff = ((100 + diff) / 100);
+
+	if((print_color_0 * diff) > 255) { print_color_0 = 255; }
+	else if((print_color_0 * diff) < 0) { print_color_0 = 0; }
+	else { print_color_0 *= diff; }
+	print_color_0 = 0xFF000000 | (print_color_0 << 16) | (print_color_0 << 8) | print_color_0;
+
+	if((print_color_1 * diff) > 255) { print_color_1 = 255; }
+	else if((print_color_1 * diff) < 0) { print_color_1 = 0; }
+	else { print_color_1 *= diff; }
+	print_color_1 = 0xFF000000 | (print_color_1 << 16) | (print_color_1 << 8) | print_color_1;
+
+	if((print_color_2 * diff) > 255) { print_color_2 = 255; }
+	else if((print_color_2 * diff) < 0) { print_color_2 = 0; }
+	else { print_color_2 *= diff; }
+	print_color_2 = 0xFF000000 | (print_color_2 << 16) | (print_color_2 << 8) | print_color_2;
+
+	if((print_color_3 * diff) > 255) { print_color_3 = 255; }
+	else if((print_color_3 * diff) < 0) { print_color_3 = 0; }
+	else { print_color_3 *= diff; }
+	print_color_3 = 0xFF000000 | (print_color_3 << 16) | (print_color_3 << 8) | print_color_3;
+
 	srand(SDL_GetTicks());
 
 	std::string filename = config::ss_path + "gb_print_";
@@ -1312,19 +1342,19 @@ void DMG_SIO::print_image()
 		switch(printer.pal[tile_pixel])
 		{
 			case 0: 
-				printer.scanline_buffer[x] = config::DMG_BG_PAL[0];
+				printer.scanline_buffer[x] = print_color_0;
 				break;
 
 			case 1: 
-				printer.scanline_buffer[x] = config::DMG_BG_PAL[1];
+				printer.scanline_buffer[x] = print_color_1;
 				break;
 
 			case 2:
-				printer.scanline_buffer[x] = config::DMG_BG_PAL[2];
+				printer.scanline_buffer[x] = print_color_2;
 				break;
 
 			case 3: 
-				printer.scanline_buffer[x] = config::DMG_BG_PAL[3];
+				printer.scanline_buffer[x] = print_color_3;
 				break;
 		}
 			
