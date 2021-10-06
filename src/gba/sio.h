@@ -223,6 +223,12 @@ class AGB_SIO
 
 	mag_watch magic_watch;
 
+	//GBA Wireless Adapter
+	struct wla
+	{
+		wireless_adapter_state current_state;
+	} wireless_adapter;
+
 	AGB_SIO();
 	~AGB_SIO();
 

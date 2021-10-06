@@ -30,6 +30,7 @@ enum agb_sio_types
 	GBA_IR_ADAPTER,
 	GBA_VRS,
 	GBA_MAGIC_WATCH,
+	GBA_WIRELESS_ADAPTER,
 };
 
 //Serial Input-Output device mode enumeration
@@ -106,6 +107,11 @@ enum magic_watch_state
 	MW_END_B,
 };
 
+enum wireless_adapter_state
+{
+	AGB_WLA_INACTIVE,
+	AGB_WLA_LOGIN,
+};
 
 struct mag_watch
 {
