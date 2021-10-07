@@ -477,6 +477,10 @@ void AGB_SIO::reset()
 		}
 	}
 
+	//Wireless Adapter
+	wireless_adapter.activation_counter = 0;
+	wireless_adapter.current_state = AGB_WLA_INACTIVE;
+
 	#ifdef GBE_NETPLAY
 
 	//Close any current connections
@@ -3163,3 +3167,57 @@ void AGB_SIO::magic_watch_process()
 	}
 
 }
+
+/****** Process GBA Wireless Adapter input and output ******/
+void AGB_SIO::wireless_adapter_process()
+{
+	//Reset activation if necessary
+	if(sio_stat.sio_mode == GENERAL_PURPOSE)
+	{
+		//Reset activation
+		if(sio_stat.r_cnt == 0x800F)
+		{
+			wireless_adapter.activation_counter = 0;
+			wireless_adapter.current_state = AGB_WLA_INACTIVE;
+		}
+	}
+
+	switch(wireless_adapter.current_state)
+	{
+		//Wait for activation
+		case AGB_WLA_INACTIVE:
+			//Make sure the mode is General Purpose
+			if(sio_stat.sio_mode == GENERAL_PURPOSE)
+			{	
+				switch(wireless_adapter.activation_counter)
+				{
+					//1st transfer R_CNT = 0x800F (already checked above)
+					case 0:
+						wireless_adapter.activation_counter++;
+						break;
+
+					//2nd transfer R_CNT = 0x80A5
+					case 1:
+						if(sio_stat.r_cnt == 0x80A5) { wireless_adapter.activation_counter++; }
+						break;
+
+					//3rd transfer R_CNT = 0x80A7
+					case 2:
+						if(sio_stat.r_cnt == 0x80A7) { wireless_adapter.activation_counter++; }
+						break;
+
+					//4th transfer R_CNT = 0x80A5
+					case 3:
+						if(sio_stat.r_cnt == 0x80A5) { wireless_adapter.current_state = AGB_WLA_LOGIN; }
+						break;
+				}
+			}
+
+			break;
+
+		//Process login
+		case AGB_WLA_LOGIN:
+			break;
+	}
+}
+

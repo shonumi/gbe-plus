@@ -1715,6 +1715,8 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			memory_map[address] = value;
 			sio_stat->r_cnt = ((memory_map[R_CNT+1] << 8) | memory_map[R_CNT]);
 
+			std::cout<<"RCNT WRITE -> 0x" << sio_stat->r_cnt << "\n";
+
 			process_sio();
 
 			//Trigger transfer to emulated Soul Doll Adapter if necessary
@@ -1728,6 +1730,9 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 
 			//Trigger transfer to emulated Magic Watch if necessary
 			else if((config::sio_device == 19) && (address == R_CNT)) { sio_stat->emu_device_ready = true; }
+
+			//Trigger transfer to emulated GBA Wireless Adapter if necessary
+			else if((config::sio_device == 20) && (address == R_CNT)) { sio_stat->emu_device_ready = true; }
 
 			break;
 			
@@ -2773,7 +2778,8 @@ void AGB_MMU::process_sio()
 		if((sio_stat->player_id == 0) && (!sio_stat->active_transfer) && (sio_stat->internal_clock) && (sio_stat->cnt & 0x80))
 		{
 			//Initiate transfer to emulated Battle Chip Gate
-			if(sio_stat->sio_type == GBA_BATTLE_CHIP_GATE)
+			//Initiate transfer to emulated GBA Wireless Adapter
+			if((sio_stat->sio_type == GBA_BATTLE_CHIP_GATE) || (sio_stat->sio_type == GBA_WIRELESS_ADAPTER))
 			{
 				sio_stat->transfer_data = read_u32_fast(SIO_DATA_32_L);
 				sio_stat->emu_device_ready = true;

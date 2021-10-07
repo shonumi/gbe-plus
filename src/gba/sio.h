@@ -226,6 +226,7 @@ class AGB_SIO
 	//GBA Wireless Adapter
 	struct wla
 	{
+		u8 activation_counter;
 		wireless_adapter_state current_state;
 	} wireless_adapter;
 
@@ -276,6 +277,8 @@ class AGB_SIO
 	bool vrs_load_data();
 
 	void magic_watch_process();
+
+	void wireless_adapter_process();
 };
 
 #endif // GBA_SIO
