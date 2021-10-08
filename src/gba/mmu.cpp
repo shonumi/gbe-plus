@@ -1715,8 +1715,6 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			memory_map[address] = value;
 			sio_stat->r_cnt = ((memory_map[R_CNT+1] << 8) | memory_map[R_CNT]);
 
-			std::cout<<"RCNT WRITE -> 0x" << sio_stat->r_cnt << "\n";
-
 			process_sio();
 
 			//Trigger transfer to emulated Soul Doll Adapter if necessary

@@ -586,8 +586,6 @@ u8 DMG_SIO::four_player_request(u8 data_one, u8 data_two, u8 id)
 /****** Processes data sent to the Game Boy via 4 Player Adapter ******/
 void DMG_SIO::four_player_process()
 {
-	std::cout<<"INPUT -> 0x" << u32(sio_stat.transfer_byte) << " :: 0x" << u32(sio_stat.ping_count) << "\n"; 
-
 	if(sio_stat.internal_clock) { four_player.current_state = FOUR_PLAYER_INACTIVE; }
 	
 	//Start Link Cable sync

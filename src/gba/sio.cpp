@@ -478,7 +478,8 @@ void AGB_SIO::reset()
 	}
 
 	//Wireless Adapter
-	wireless_adapter.activation_counter = 0;
+	wireless_adapter.counter = 0;
+	wireless_adapter.reply_data = 0;
 	wireless_adapter.current_state = AGB_WLA_INACTIVE;
 
 	#ifdef GBE_NETPLAY
@@ -3177,7 +3178,7 @@ void AGB_SIO::wireless_adapter_process()
 		//Reset activation
 		if(sio_stat.r_cnt == 0x800F)
 		{
-			wireless_adapter.activation_counter = 0;
+			wireless_adapter.counter = 0;
 			wireless_adapter.current_state = AGB_WLA_INACTIVE;
 		}
 	}
@@ -3189,26 +3190,27 @@ void AGB_SIO::wireless_adapter_process()
 			//Make sure the mode is General Purpose
 			if(sio_stat.sio_mode == GENERAL_PURPOSE)
 			{	
-				switch(wireless_adapter.activation_counter)
+				switch(wireless_adapter.counter)
 				{
 					//1st transfer R_CNT = 0x800F (already checked above)
 					case 0:
-						wireless_adapter.activation_counter++;
+						wireless_adapter.counter++;
 						break;
 
 					//2nd transfer R_CNT = 0x80A5
 					case 1:
-						if(sio_stat.r_cnt == 0x80A5) { wireless_adapter.activation_counter++; }
+						if(sio_stat.r_cnt == 0x80A5) { wireless_adapter.counter++; }
 						break;
 
 					//3rd transfer R_CNT = 0x80A7
 					case 2:
-						if(sio_stat.r_cnt == 0x80A7) { wireless_adapter.activation_counter++; }
+						if(sio_stat.r_cnt == 0x80A7) { wireless_adapter.counter++; }
 						break;
 
 					//4th transfer R_CNT = 0x80A5
 					case 3:
 						if(sio_stat.r_cnt == 0x80A5) { wireless_adapter.current_state = AGB_WLA_LOGIN; }
+
 						break;
 				}
 			}
@@ -3217,6 +3219,27 @@ void AGB_SIO::wireless_adapter_process()
 
 		//Process login
 		case AGB_WLA_LOGIN:
+			//Make sure mode is Normal 32-bit
+			if(sio_stat.sio_mode == NORMAL_32BIT)
+			{
+				u16 hi_reply = (sio_stat.transfer_data & 0xFFFF);
+				u16 lo_reply = (sio_stat.transfer_data);
+				wireless_adapter.reply_data = (hi_reply << 16) | lo_reply;
+
+				//Write back response data and raise SIO IRQ
+				mem->write_u32_fast(SIO_DATA_32_L, wireless_adapter.reply_data);
+				mem->memory_map[REG_IF] |= 0x80;
+
+				sio_stat.emu_device_ready = false;
+				sio_stat.active_transfer = false;
+
+				//Clear Bit 7 of SIOCNT
+				sio_stat.cnt &= ~0x80;
+				mem->write_u16_fast(0x4000128, sio_stat.cnt);
+
+				if(hi_reply == 0x8001) {  }
+			}
+
 			break;
 	}
 }

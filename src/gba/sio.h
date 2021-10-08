@@ -226,7 +226,8 @@ class AGB_SIO
 	//GBA Wireless Adapter
 	struct wla
 	{
-		u8 activation_counter;
+		u8 counter;
+		u32 reply_data;
 		wireless_adapter_state current_state;
 	} wireless_adapter;
 
