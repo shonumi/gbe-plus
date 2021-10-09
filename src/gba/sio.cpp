@@ -3207,9 +3207,13 @@ void AGB_SIO::wireless_adapter_process()
 						if(sio_stat.r_cnt == 0x80A7) { wireless_adapter.counter++; }
 						break;
 
-					//4th transfer R_CNT = 0x80A5
+					//4th transfer R_CNT = 0x80A5 - Jump to login phase
 					case 3:
-						if(sio_stat.r_cnt == 0x80A5) { wireless_adapter.current_state = AGB_WLA_LOGIN; }
+						if(sio_stat.r_cnt == 0x80A5)
+						{
+							wireless_adapter.counter = 0;
+							wireless_adapter.current_state = AGB_WLA_LOGIN;
+						}
 
 						break;
 				}
@@ -3222,9 +3226,13 @@ void AGB_SIO::wireless_adapter_process()
 			//Make sure mode is Normal 32-bit
 			if(sio_stat.sio_mode == NORMAL_32BIT)
 			{
+				if((sio_stat.transfer_data & 0xFFFF) == 0x494E) { wireless_adapter.counter++; }
+
 				u16 hi_reply = (sio_stat.transfer_data & 0xFFFF);
-				u16 lo_reply = (sio_stat.transfer_data);
-				wireless_adapter.reply_data = (hi_reply << 16) | lo_reply;
+				u16 lo_reply = (sio_stat.transfer_data >> 16);
+
+				if(wireless_adapter.counter == 1) { wireless_adapter.reply_data = 0xDEADBEEF; }
+				else { wireless_adapter.reply_data = (hi_reply << 16) | lo_reply; }
 
 				//Write back response data and raise SIO IRQ
 				mem->write_u32_fast(SIO_DATA_32_L, wireless_adapter.reply_data);
@@ -3237,9 +3245,14 @@ void AGB_SIO::wireless_adapter_process()
 				sio_stat.cnt &= ~0x80;
 				mem->write_u16_fast(0x4000128, sio_stat.cnt);
 
-				if(hi_reply == 0x8001) {  }
+				//Once login process is complete, move onto processing incoming commands
+				if(hi_reply == 0x8001) { wireless_adapter.current_state = AGB_WLA_COMMAND; }
 			}
 
+			break;
+
+		//Process commands
+		case AGB_WLA_COMMAND:
 			break;
 	}
 }
