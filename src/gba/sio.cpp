@@ -3172,6 +3172,8 @@ void AGB_SIO::magic_watch_process()
 /****** Process GBA Wireless Adapter input and output ******/
 void AGB_SIO::wireless_adapter_process()
 {
+	std::cout<<"ME -> 0x" << sio_stat.transfer_data << "\n";
+
 	//Reset activation if necessary
 	if(sio_stat.sio_mode == GENERAL_PURPOSE)
 	{
@@ -3181,6 +3183,12 @@ void AGB_SIO::wireless_adapter_process()
 			wireless_adapter.counter = 0;
 			wireless_adapter.current_state = AGB_WLA_INACTIVE;
 		}
+	}
+
+	//Sometimes the game may send the last data for login multiple times. Make sure to revert to the login phase as necessary until a real command is sent.
+	if((wireless_adapter.current_state == AGB_WLA_COMMAND) && (!wireless_adapter.cmd) && ((sio_stat.transfer_data & 0xFFFF) == 0x8001))
+	{
+		wireless_adapter.current_state = AGB_WLA_LOGIN;
 	}
 
 	switch(wireless_adapter.current_state)
@@ -3226,6 +3234,8 @@ void AGB_SIO::wireless_adapter_process()
 			//Make sure mode is Normal 32-bit
 			if(sio_stat.sio_mode == NORMAL_32BIT)
 			{
+				std::cout<<"WLA32 -> 0x" << sio_stat.transfer_data << "\n";
+
 				if((sio_stat.transfer_data & 0xFFFF) == 0x494E) { wireless_adapter.counter++; }
 
 				u16 hi_reply = (sio_stat.transfer_data & 0xFFFF);
@@ -3246,14 +3256,71 @@ void AGB_SIO::wireless_adapter_process()
 				mem->write_u16_fast(0x4000128, sio_stat.cnt);
 
 				//Once login process is complete, move onto processing incoming commands
-				if(hi_reply == 0x8001) { wireless_adapter.current_state = AGB_WLA_COMMAND; }
+				if(hi_reply == 0x8001)
+				{
+					std::cout<<"LOGIN COMPLETE\n";
+					wireless_adapter.cmd = 0;
+					wireless_adapter.parameter_length = 0;
+					wireless_adapter.current_state = AGB_WLA_COMMAND;
+				}
 			}
 
 			break;
 
 		//Process commands
 		case AGB_WLA_COMMAND:
+			//Make sure mode is Normal 32-bit
+			if(sio_stat.sio_mode == NORMAL_32BIT)
+			{
+				std::cout<<"WLA32 CMD -> 0x" << sio_stat.transfer_data << "\n";
+
+				//Write back response data and raise SIO IRQ
+				mem->write_u32_fast(SIO_DATA_32_L, 0x80000000);
+				mem->memory_map[REG_IF] |= 0x80;
+
+				sio_stat.emu_device_ready = false;
+				sio_stat.active_transfer = false;
+
+				//Clear Bit 7 of SIOCNT
+				sio_stat.cnt &= ~0x80;
+				sio_stat.cnt |= 0x04;
+				mem->write_u16_fast(0x4000128, sio_stat.cnt);
+
+				//Grab parameters for incoming command
+				if(wireless_adapter.parameter_length)
+				{
+					wireless_adapter.parameters.push_back(sio_stat.transfer_data);
+					wireless_adapter.parameter_length--;
+
+					//Once all parameters collected, execute command
+					wireless_adapter_exec_cmd();
+				}
+
+				//Check for incoming command
+				if((sio_stat.transfer_data >> 16) == 0x9966)
+				{
+					wireless_adapter.counter = 0;
+					wireless_adapter.parameters.clear();
+					wireless_adapter.parameter_length = ((sio_stat.transfer_data >> 8) & 0xFF);
+					wireless_adapter.cmd = (sio_stat.transfer_data & 0xFF);
+
+					//If no parameters, execute command immediately
+					if(!wireless_adapter.parameter_length) { wireless_adapter_exec_cmd(); }
+				}
+			}
+
 			break;
 	}
 }
 
+/****** Executes specific Wireless Adapter commands ******/
+void AGB_SIO::wireless_adapter_exec_cmd()
+{
+	//Setup command before running anything
+	if(!wireless_adapter.counter)
+	{
+		std::cout<<"CMD -> 0x" << u32(wireless_adapter.cmd) << " :: PARAMS -> 0x" << wireless_adapter.parameters.size() << "\n";
+		wireless_adapter.counter = 1;
+		wireless_adapter.current_state = AGB_WLA_EXEC;
+	}
+}

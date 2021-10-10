@@ -112,6 +112,7 @@ enum wireless_adapter_state
 	AGB_WLA_INACTIVE,
 	AGB_WLA_LOGIN,
 	AGB_WLA_COMMAND,
+	AGB_WLA_EXEC,
 };
 
 struct mag_watch

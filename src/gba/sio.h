@@ -227,6 +227,9 @@ class AGB_SIO
 	struct wla
 	{
 		u8 counter;
+		u8 cmd;
+		u8 parameter_length;
+		std::vector<u32> parameters;
 		u32 reply_data;
 		wireless_adapter_state current_state;
 	} wireless_adapter;
@@ -280,6 +283,7 @@ class AGB_SIO
 	void magic_watch_process();
 
 	void wireless_adapter_process();
+	void wireless_adapter_exec_cmd();
 };
 
 #endif // GBA_SIO
