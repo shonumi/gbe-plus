@@ -3310,6 +3310,11 @@ void AGB_SIO::wireless_adapter_process()
 			}
 
 			break;
+
+		//Execute commands
+		case AGB_WLA_EXEC:
+			wireless_adapter_exec_cmd();
+			break;
 	}
 }
 
@@ -3322,5 +3327,65 @@ void AGB_SIO::wireless_adapter_exec_cmd()
 		std::cout<<"CMD -> 0x" << u32(wireless_adapter.cmd) << " :: PARAMS -> 0x" << wireless_adapter.parameters.size() << "\n";
 		wireless_adapter.counter = 1;
 		wireless_adapter.current_state = AGB_WLA_EXEC;
+	}
+
+	//Execute actual commands
+	else
+	{
+		u8 num_of_params = 0;
+
+		switch(wireless_adapter.cmd)
+		{
+			//Begin Session
+			case 0x10:
+				break;
+
+			//Acknowledge Info
+			case 0x16:
+				break;
+
+			//Config
+			case 0x17:
+				break;
+
+			//Get Info
+			case 0x1D:
+			case 0x1E:
+				break;
+
+			//Select Game
+			case 0x1F:
+				break;
+
+			//Begin Download
+			case 0x27:
+				break;
+
+			//End Session
+			case 0x3D:
+				wireless_adapter.current_state = AGB_WLA_COMMAND;
+				break;
+
+			default:
+				std::cout<<"SIO::Warning - Unknown Wireless Adapter Command 0x" << u32(wireless_adapter.cmd) << "\n";
+				wireless_adapter.current_state = AGB_WLA_COMMAND;
+		}
+
+		//Return 1st response (command + number of response words)
+		wireless_adapter.reply_data = 0x99660000 | (num_of_params << 8) | (wireless_adapter.cmd ^ 0x80);
+
+		//Write back response data and raise SIO IRQ
+		mem->write_u32_fast(SIO_DATA_32_L, wireless_adapter.reply_data);
+		mem->memory_map[REG_IF] |= 0x80;
+
+		sio_stat.emu_device_ready = false;
+		sio_stat.active_transfer = false;
+
+		//Clear Bit 7 of SIOCNT, also set Bit 2
+		sio_stat.cnt &= ~0x80;
+		sio_stat.cnt |= 0x04;
+		mem->write_u16_fast(0x4000128, sio_stat.cnt);
+
+		std::cout<<"SENDING -> 0x" << wireless_adapter.reply_data << "\n";
 	}
 }
