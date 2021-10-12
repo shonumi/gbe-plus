@@ -3172,7 +3172,7 @@ void AGB_SIO::magic_watch_process()
 /****** Process GBA Wireless Adapter input and output ******/
 void AGB_SIO::wireless_adapter_process()
 {
-	std::cout<<"ME -> 0x" << sio_stat.transfer_data << "\n";
+	std::cout<<"ME -> 0x" << sio_stat.transfer_data << " :: 0x" << u32(wireless_adapter.current_state) << "\n";
 
 	//Reset activation if necessary
 	if(sio_stat.sio_mode == GENERAL_PURPOSE)
@@ -3186,8 +3186,17 @@ void AGB_SIO::wireless_adapter_process()
 	}
 
 	//Sometimes the game may send the last data for login multiple times. Make sure to revert to the login phase as necessary until a real command is sent.
-	if((wireless_adapter.current_state == AGB_WLA_COMMAND) && (!wireless_adapter.cmd) && ((sio_stat.transfer_data & 0xFFFF) == 0x8001))
+	else if((wireless_adapter.current_state != AGB_WLA_LOGIN) && (!wireless_adapter.cmd)
+	&& ((sio_stat.transfer_data & 0xFFFF) == 0x494E) && (sio_stat.sio_mode == NORMAL_32BIT))
 	{
+		wireless_adapter.counter = 0;
+		wireless_adapter.current_state = AGB_WLA_LOGIN;
+	}
+
+	else if((wireless_adapter.current_state != AGB_WLA_LOGIN) && (!wireless_adapter.cmd)
+	&& ((sio_stat.transfer_data & 0xFFFF) == 0x8001) && (sio_stat.sio_mode == NORMAL_32BIT))
+	{
+		wireless_adapter.counter = 0;
 		wireless_adapter.current_state = AGB_WLA_LOGIN;
 	}
 
@@ -3259,6 +3268,7 @@ void AGB_SIO::wireless_adapter_process()
 				if(hi_reply == 0x8001)
 				{
 					std::cout<<"LOGIN COMPLETE\n";
+					wireless_adapter.counter = 0;
 					wireless_adapter.cmd = 0;
 					wireless_adapter.parameter_length = 0;
 					wireless_adapter.current_state = AGB_WLA_COMMAND;
@@ -3293,7 +3303,7 @@ void AGB_SIO::wireless_adapter_process()
 					wireless_adapter.parameter_length--;
 
 					//Once all parameters collected, execute command
-					wireless_adapter_exec_cmd();
+					if(!wireless_adapter.parameter_length) { wireless_adapter_exec_cmd(); }
 				}
 
 				//Check for incoming command
@@ -3338,14 +3348,38 @@ void AGB_SIO::wireless_adapter_exec_cmd()
 		{
 			//Begin Session
 			case 0x10:
+				//Return 1st response (command + number of response words)
+				wireless_adapter.reply_data = 0x99660000 | (num_of_params << 8) | (wireless_adapter.cmd ^ 0x80);
+
+				wireless_adapter.counter = 0;
+				wireless_adapter.cmd = 0;
+				wireless_adapter.parameter_length = 0;
+				wireless_adapter.current_state = AGB_WLA_COMMAND;
+				
 				break;
 
 			//Acknowledge Info
 			case 0x16:
+				//Return 1st response (command + number of response words)
+				wireless_adapter.reply_data = 0x99660000 | (num_of_params << 8) | (wireless_adapter.cmd ^ 0x80);
+
+				wireless_adapter.counter = 0;
+				wireless_adapter.cmd = 0;
+				wireless_adapter.parameter_length = 0;
+				wireless_adapter.current_state = AGB_WLA_COMMAND;
+
 				break;
 
 			//Config
 			case 0x17:
+				//Return 1st response (command + number of response words)
+				wireless_adapter.reply_data = 0x99660000 | (num_of_params << 8) | (wireless_adapter.cmd ^ 0x80);
+
+				wireless_adapter.counter = 0;
+				wireless_adapter.cmd = 0;
+				wireless_adapter.parameter_length = 0;
+				wireless_adapter.current_state = AGB_WLA_COMMAND;
+
 				break;
 
 			//Get Info
@@ -3363,16 +3397,22 @@ void AGB_SIO::wireless_adapter_exec_cmd()
 
 			//End Session
 			case 0x3D:
+				//Return 1st response (command + number of response words)
+				wireless_adapter.reply_data = 0x99660000 | (num_of_params << 8) | (wireless_adapter.cmd ^ 0x80);
+
+				wireless_adapter.counter = 0;
+				wireless_adapter.cmd = 0;
+				wireless_adapter.parameter_length = 0;
 				wireless_adapter.current_state = AGB_WLA_COMMAND;
+
 				break;
 
 			default:
 				std::cout<<"SIO::Warning - Unknown Wireless Adapter Command 0x" << u32(wireless_adapter.cmd) << "\n";
+				wireless_adapter.reply_data = 0;
 				wireless_adapter.current_state = AGB_WLA_COMMAND;
+				wireless_adapter.cmd = 0;
 		}
-
-		//Return 1st response (command + number of response words)
-		wireless_adapter.reply_data = 0x99660000 | (num_of_params << 8) | (wireless_adapter.cmd ^ 0x80);
 
 		//Write back response data and raise SIO IRQ
 		mem->write_u32_fast(SIO_DATA_32_L, wireless_adapter.reply_data);
