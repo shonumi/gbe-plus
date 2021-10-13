@@ -847,6 +847,7 @@ bool parse_cli_args()
 				std::cout<<"--mmm01 \t\t\t\t Use MMM01 multicart mode if applicable\n";
 				std::cout<<"--mbc1s \t\t\t\t Use MBC1S sonar cart\n";
 				std::cout<<"--mbc30 \t\t\t\t Use MBC30 for Pocket Monsters Crystal\n";
+				std::cout<<"--gbmem \t\t\t\t Use GB Memory Cartridge mapper\n";
 				std::cout<<"--agb-rtc \t\t\t\t Use GBA RTC cart\n";
 				std::cout<<"--agb-solar-sensor \t\t\t Use GBA Solar Sensor cart\n";
 				std::cout<<"--agb-rumble \t\t\t\t Use GBA Rumble cart\n";
