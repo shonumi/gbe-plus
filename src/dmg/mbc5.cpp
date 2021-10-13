@@ -24,11 +24,71 @@ void DMG_MMU::mbc5_write(u16 address, u8 value)
 	//MBC register - Enable or Disable RAM Banking
 	if(address <= 0x1FFF)
 	{
-		if((value & 0xF) == 0xA) 
-		{ 
-			if(cart.ram) { ram_banking_enabled = true; } 
+		//Normal MBC5 operations
+		if(config::cart_type != DMG_GBMEM)
+		{
+			if((value & 0xF) == 0xA) 
+			{ 
+				if(cart.ram) { ram_banking_enabled = true; } 
+			}
+			else { ram_banking_enabled = false; }
 		}
-		else { ram_banking_enabled = false; }
+
+		//GB Memory Cartridge flash commands + parameters
+		else if((address >= 0x120) && (address <= 0x13F))
+		{
+			switch(address)
+			{
+				//Grab flash command
+				case 0x120:
+					cart.flash_cmd = value;
+					cart.flash_stat = 0;
+					break;
+
+				//Equivalent to 0x2AAA
+				case 0x121:
+					cart.flash_stat |= 0x01;
+					break;
+
+				//Equivalent to 0x5555
+				case 0x122:
+					cart.flash_stat |= 0x02;
+					break;
+
+				//Execute flash command
+				case 0x13F:
+					if(value == 0xA5)
+					{
+						switch(cart.flash_cmd)
+						{
+							//Map Entire Cartridge
+							case 0x04:
+								std::cout<<"MMU::GB Memory Cartridge - Map Entire\n";
+								break;
+
+							//Map Menu
+							case 0x05:
+								std::cout<<"MMU::GB Memory Cartridge - Map Menu\n";
+								break;
+
+							//Undo Wakeup
+							case 0x08:
+								std::cout<<"MMU::GB Memory Cartridge - Undo Wakeup\n";
+								break;
+
+							//Wake Up
+							case 0x09:
+								std::cout<<"MMU::GB Memory Cartridge - Wakeup\n";
+								break;
+
+							default:
+								std::cout<<"MMU::Warning - Unhandled flash command for GB Memory Cartridge :: 0x" << u32(cart.flash_cmd) << "\n";
+						}
+					}
+
+					break;
+			}
+		}			
 	}
 
 	//MBC register - Select ROM bank - Lower 8 bits

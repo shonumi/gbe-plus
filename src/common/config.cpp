@@ -735,6 +735,9 @@ bool parse_cli_args()
 			//Use MBC30 (double SRAM) for Pocket Monsters Crystal
 			else if(config::cli_args[x] == "--mbc30") { config::cart_type = DMG_MBC30; }
 
+			//Use GB Memory Cartridge mapper
+			else if(config::cli_args[x] == "--gbmem") { config::cart_type = DMG_GBMEM; }
+
 			//Use GBA RTC for a given ROM
 			else if(config::cli_args[x] == "--agb-rtc") { config::cart_type = AGB_RTC; }
 			
