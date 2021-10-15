@@ -59,6 +59,27 @@ void DMG_MMU::mbc5_write(u16 address, u8 value)
 				case 0x13F:
 					if(value == 0xA5)
 					{
+
+						//Map in ROM with index (GBC/GBA) with reset
+						if((cart.flash_cmd >= 0x80) && (cart.flash_cmd <= 0xBF))
+						{
+							cart.flash_io_bank = (cart.flash_cmd - 0x80);
+							cart.flash_stat |= 0x80;
+
+							std::cout<<"MMU::GB Memory Cartridge - Map Index 0x" << u32(cart.flash_io_bank) << " - Reset\n";
+							break;
+						}
+
+						//Map in ROM with index (DMG/SGB) without reset
+						else if((cart.flash_cmd >= 0xC0) && (cart.flash_cmd <= 0xFF))
+						{
+							cart.flash_io_bank = (cart.flash_cmd - 0xC0);
+							cart.flash_stat |= 0xC0;
+
+							std::cout<<"MMU::GB Memory Cartridge - Map Index 0x" << u32(cart.flash_io_bank) << " - No Reset\n";
+							break;
+						}
+
 						switch(cart.flash_cmd)
 						{
 							//Map Entire Cartridge
@@ -80,6 +101,8 @@ void DMG_MMU::mbc5_write(u16 address, u8 value)
 							case 0x09:
 								std::cout<<"MMU::GB Memory Cartridge - Wakeup\n";
 								break;
+
+
 
 							default:
 								std::cout<<"MMU::Warning - Unhandled flash command for GB Memory Cartridge :: 0x" << u32(cart.flash_cmd) << "\n";
