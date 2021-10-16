@@ -219,6 +219,8 @@ class DMG_MMU
 	void tama5_write(u16 address, u8 value);
 	u8 tama5_read(u16 address);
 
+	void gb_mem_remap();
+
 	void set_gs_cheats();
 	void set_gg_cheats();
 

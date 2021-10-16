@@ -37,8 +37,15 @@ DMG_MMU::~DMG_MMU()
 /****** MMU Reset ******/
 void DMG_MMU::reset()
 {
-	memory_map.clear();
-	memory_map.resize(0x10000, 0);
+	//Remap ROM when resetting GB Memory Cartridge
+	if((config::cart_type == DMG_GBMEM) && (cart.flash_stat & 0x80)) { gb_mem_remap(); }
+
+	//Otherwise, clear memory map as usual
+	else
+	{		
+		memory_map.clear();
+		memory_map.resize(0x10000, 0);
+	}
 
 	rom_bank = 1;
 	ram_bank = 0;
@@ -2346,6 +2353,36 @@ bool DMG_MMU::save_backup(std::string filename)
 
 	return true;
 }
+
+/****** Remaps GB Memory Cartridge and loads ROM stored in flash ******/
+void DMG_MMU::gb_mem_remap()
+{
+	//Search entries for index
+	u32 addr = 0;
+	bool found_entry = false;
+
+	//Make sure GB Memory Cartridge ROM with menu is at least 128KB
+	if(read_only_bank.size() < 8) { return; }
+	
+	//Search for the menu entry that was supposed to have triggered the reset from the core
+	while((!found_entry) && (addr < 0x1000))
+	{
+		if(read_only_bank[5][addr] == cart.flash_io_bank) { found_entry = true; }
+		else { addr += 0x200; }
+	}
+
+	//If that entry exists, parse data and dynamically remap the memory map
+	if(found_entry)
+	{
+		std::cout<<"MMU::Launching entry ROM entry @ 0x" << (0x1C000 + addr) << "\n";
+	}
+
+	//Otherwise, just reset the GB Memory Cartridge menu program as a safe fallback option
+	else
+	{
+		std::cout<<"MMU::Error - No index found in GB Memory Cartridge menu data\n";
+	}
+} 
 
 /****** Writes values to RAM as specified by the Gameshark code - Called by LCD during VBlank ******/
 void DMG_MMU::set_gs_cheats()
