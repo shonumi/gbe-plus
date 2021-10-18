@@ -2359,21 +2359,44 @@ void DMG_MMU::gb_mem_remap()
 {
 	//Search entries for index
 	u32 addr = 0;
+	u32 offset = 0;
 	bool found_entry = false;
 
-	//Make sure GB Memory Cartridge ROM with menu is at least 128KB
-	if(read_only_bank.size() < 8) { return; }
+	//Make sure GB Memory Cartridge ROM with menu is at least 1024KB
+	if(read_only_bank.size() < 64)
+	{
+		std::cout<<"MMU::Error - GB Memory Cartridge file is less than 1024KB\n";
+		return;
+	}
 	
 	//Search for the menu entry that was supposed to have triggered the reset from the core
 	while((!found_entry) && (addr < 0x1000))
 	{
-		if(read_only_bank[5][addr] == cart.flash_io_bank) { found_entry = true; }
-		else { addr += 0x200; }
+		if(read_only_bank[5][addr] == cart.flash_io_bank)
+		{
+			found_entry = true;
+		}
+		
+		//Jump to next entry, calculate offset based on size of previous entry
+		else
+		{
+			//Make sure the entry is valid and doesn't point to the menu program
+			if((read_only_bank[5][addr + 3] != 0xFF) && (addr) && (read_only_bank[5][addr] != 0x07))
+			{
+				offset += (0x20000 * read_only_bank[5][addr + 3]);
+			}
+
+			addr += 0x200;
+		}
 	}
 
 	//If that entry exists, parse data and dynamically remap the memory map
 	if(found_entry)
 	{
+		//Calculate offset, translate that into 16KB banks
+		offset /= 0x4000;
+		offset += 6;
+
 		std::cout<<"MMU::Launching entry ROM entry @ 0x" << (0x1C000 + addr) << "\n";
 	}
 
