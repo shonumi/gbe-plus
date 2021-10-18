@@ -242,7 +242,7 @@ void DMG_core::run_core()
 			if((core_pad.con_update) && (config::sio_device == 14)) { core_cpu.controllers.serial_io.singer_izek_update(); }
 
 			//Perform reset for GB Memory Cartridge
-			if((config::cart_type == DMG_GBMEM) && (core_mmu.cart.flash_stat & 0x80)) { reset(); }
+			if((config::cart_type == DMG_GBMEM) && (core_mmu.cart.flash_stat == 0xF0)) { reset(); }
 		}
 
 		//Run the CPU

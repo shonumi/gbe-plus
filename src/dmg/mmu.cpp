@@ -38,7 +38,10 @@ DMG_MMU::~DMG_MMU()
 void DMG_MMU::reset()
 {
 	//Remap ROM when resetting GB Memory Cartridge
-	if((config::cart_type == DMG_GBMEM) && (cart.flash_stat & 0x80)) { gb_mem_remap(); }
+	if((config::cart_type == DMG_GBMEM) && (cart.flash_stat == 0xF0)) { gb_mem_remap(); }
+
+	//If ROM has already been remapped for GB Memory Cartridge, do nothing
+	if((config::cart_type == DMG_GBMEM) && (cart.flash_stat == 0x40)) { }
 
 	//Otherwise, clear memory map as usual
 	else
@@ -74,7 +77,7 @@ void DMG_MMU::reset()
 
 	cart.flash_cnt = 0;
 	cart.flash_cmd = 0;
-	cart.flash_stat = 0x6;
+	if(cart.flash_stat != 0x40) { cart.flash_stat = 0x6; }
 	cart.flash_io_bank = 0;
 	cart.flash_get_id = false;
 
@@ -1667,7 +1670,7 @@ bool DMG_MMU::read_file(std::string filename)
 		std::cout<<"MMU::" << filename << " could not be opened. Check file path or permissions. \n";
 		return false;
 	}
-
+	
 	//Get the file size
 	file.seekg(0, file.end);
 	u32 file_size = file.tellg();
@@ -1686,33 +1689,37 @@ bool DMG_MMU::read_file(std::string filename)
 	//Grab CRC32
 	u32 crc32 = util::get_crc32(&rom_file[0], file_size);
 
-	ex_mem = &memory_map[0];
-
-	//Read MMM01 cart - Bank 0 is last 32KB of ROM
-	if(config::cart_type == DMG_MMM01)
+	//Skip these steps entirely for the GB Memory Cartridge when loading a game from flash
+	if(cart.flash_stat != 0x40)
 	{
-		s32 pos = (file_size - 0x8000);
-		
-		if (pos > 0)
+		ex_mem = &memory_map[0];
+	
+		//Read MMM01 cart - Bank 0 is last 32KB of ROM
+		if(config::cart_type == DMG_MMM01)
 		{
-			//Read the last 32KB and put it as Bank 0
-			file.seekg(pos);
-			file.read((char*)ex_mem, 0x8000);
-			file.seekg(0, file.beg);
+			s32 pos = (file_size - 0x8000);
+		
+			if (pos > 0)
+			{
+				//Read the last 32KB and put it as Bank 0
+				file.seekg(pos);
+				file.read((char*)ex_mem, 0x8000);
+				file.seekg(0, file.beg);
+			}
+
+			else
+			{
+				std::cout<<"MMU::Error - MMM01 cart file size is too small (less than < 32KB)\n";
+				return false;
+			}
 		}
 
+		//Read every other MBC - Bank 0 is 1st 32KB of ROM
 		else
 		{
-			std::cout<<"MMU::Error - MMM01 cart file size is too small (less than < 32KB)\n";
-			return false;
+			//Read 32KB worth of data from ROM file
+			file.read((char*)ex_mem, 0x8000);
 		}
-	}
-
-	//Read every other MBC - Bank 0 is 1st 32KB of ROM
-	else
-	{
-		//Read 32KB worth of data from ROM file
-		file.read((char*)ex_mem, 0x8000);
 	}
 
 	std::string title = "";
@@ -1987,6 +1994,12 @@ bool DMG_MMU::read_file(std::string filename)
 			return false;
 	}
 
+	//When initially loading GB Memory Cartridge, read full 1MB if available
+	if((config::cart_type == DMG_GBMEM) && (cart.flash_stat != 0x40) && (file_size >= 0x100000))
+	{
+		cart.rom_size = 1024;
+	}
+
 	//Let MBC1S access cart RAM area for MBC registers
 	if(cart.sonar) { cart.ram = true; }
 
@@ -2004,7 +2017,7 @@ bool DMG_MMU::read_file(std::string filename)
 	}
 
 	//Read additional ROM data to banks
-	if(cart.mbc_type != ROM_ONLY)
+	if((cart.mbc_type != ROM_ONLY) && (cart.flash_stat != 0x40))
 	{
 		//Use a file positioner
 		u32 file_pos = 0x8000;
@@ -2360,6 +2373,7 @@ void DMG_MMU::gb_mem_remap()
 	//Search entries for index
 	u32 addr = 0;
 	u32 offset = 0;
+	u32 max_bank = 0; 
 	bool found_entry = false;
 
 	//Make sure GB Memory Cartridge ROM with menu is at least 1024KB
@@ -2375,6 +2389,7 @@ void DMG_MMU::gb_mem_remap()
 		if(read_only_bank[5][addr] == cart.flash_io_bank)
 		{
 			found_entry = true;
+			max_bank = (read_only_bank[5][addr + 3] * 8) - 2;
 		}
 		
 		//Jump to next entry, calculate offset based on size of previous entry
@@ -2396,6 +2411,21 @@ void DMG_MMU::gb_mem_remap()
 		//Calculate offset, translate that into 16KB banks
 		offset /= 0x4000;
 		offset += 6;
+
+		//Copy first 32KB into memory map
+		for(u32 x = 0; x < 0x4000; x++) { memory_map[x] = read_only_bank[offset][x]; }
+		for(u32 x = 0; x < 0x4000; x++) { memory_map[x + 0x4000] = read_only_bank[offset + 1][x]; }
+
+		//Copy rest of the banks
+		for(u32 x = 0; x < max_bank; x++)
+		{
+			for(u32 y = 0; y < 0x4000; y++)
+			{
+				read_only_bank[x][y] = read_only_bank[offset + x + 2][y];
+			}
+		}
+		
+		cart.flash_stat = 0x40;
 
 		std::cout<<"MMU::Launching entry ROM entry @ 0x" << (0x1C000 + addr) << "\n";
 	}

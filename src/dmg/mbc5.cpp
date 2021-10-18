@@ -64,7 +64,7 @@ void DMG_MMU::mbc5_write(u16 address, u8 value)
 						if((cart.flash_cmd >= 0x80) && (cart.flash_cmd <= 0xBF))
 						{
 							cart.flash_io_bank = (cart.flash_cmd - 0x80);
-							cart.flash_stat |= 0x80;
+							cart.flash_stat = 0xF0;
 
 							//Forces reset in core
 							lcd_stat->current_scanline = 144;
@@ -77,7 +77,7 @@ void DMG_MMU::mbc5_write(u16 address, u8 value)
 						else if((cart.flash_cmd >= 0xC0) && (cart.flash_cmd <= 0xFF))
 						{
 							cart.flash_io_bank = (cart.flash_cmd - 0xC0);
-							cart.flash_stat |= 0x80;
+							cart.flash_stat |= 0xF0;
 
 							//Forces reset in core
 							lcd_stat->current_scanline = 144;
