@@ -956,7 +956,13 @@ void DMG_core::handle_hotkey(SDL_Event& event)
 	}
 		
 	//Reset emulation on F8
-	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F8)) { reset(); }
+	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F8))
+	{
+		//If running GB Memory Cartridge, make sure this is a true reset, i.e. boot to the menu program
+		core_mmu.cart.flash_stat = 0;
+
+		reset();
+	}
 
 	//GB Camera load/unload external picture into VRAM
 	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == config::hotkey_camera))
