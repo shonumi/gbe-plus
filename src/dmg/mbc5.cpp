@@ -65,6 +65,7 @@ void DMG_MMU::mbc5_write(u16 address, u8 value)
 						{
 							cart.flash_io_bank = (cart.flash_cmd - 0x80);
 							cart.flash_stat = 0xF0;
+							cart.flash_cnt = config::gb_type;
 
 							//Forces reset in core
 							lcd_stat->current_scanline = 144;
@@ -78,6 +79,7 @@ void DMG_MMU::mbc5_write(u16 address, u8 value)
 						{
 							cart.flash_io_bank = (cart.flash_cmd - 0xC0);
 							cart.flash_stat |= 0xF0;
+							cart.flash_cnt = config::gb_type;
 
 							//Forces reset in core
 							lcd_stat->current_scanline = 144;

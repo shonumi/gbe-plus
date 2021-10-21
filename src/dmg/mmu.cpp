@@ -75,7 +75,7 @@ void DMG_MMU::reset()
 	cart.rtc_enabled = false;
 	cart.rtc_latch_1 = cart.rtc_latch_2 = 0xFF;
 
-	cart.flash_cnt = 0;
+	if(cart.flash_stat != 0x40) { cart.flash_cnt = 0x0; }
 	cart.flash_cmd = 0;
 	if(cart.flash_stat != 0x40) { cart.flash_stat = 0x6; }
 	cart.flash_io_bank = 0;

@@ -959,7 +959,11 @@ void DMG_core::handle_hotkey(SDL_Event& event)
 	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F8))
 	{
 		//If running GB Memory Cartridge, make sure this is a true reset, i.e. boot to the menu program
-		core_mmu.cart.flash_stat = 0;
+		if(core_mmu.cart.flash_stat == 0x40)
+		{
+			core_mmu.cart.flash_stat = 0;
+			config::gb_type = core_mmu.cart.flash_cnt;
+		}
 
 		reset();
 	}
