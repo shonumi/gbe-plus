@@ -227,6 +227,9 @@ void SGB_core::run_core()
 
 			//Hotplug joypad
 			else if((event.type == SDL_JOYDEVICEADDED) && (!core_pad.joy_init)) { core_pad.init(); }
+
+			//Perform reset for GB Memory Cartridge
+			if((config::cart_type == DMG_GBMEM) && (core_mmu.cart.flash_stat == 0xF0)) { reset(); }
 		}
 
 		//Run the CPU
@@ -762,7 +765,17 @@ void SGB_core::handle_hotkey(SDL_Event& event)
 	}
 		
 	//Reset emulation on F8
-	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F8)) { reset(); }
+	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F8))
+	{
+		//If running GB Memory Cartridge, make sure this is a true reset, i.e. boot to the menu program
+		if(core_mmu.cart.flash_stat == 0x40)
+		{
+			core_mmu.cart.flash_stat = 0;
+			config::gb_type = core_mmu.cart.flash_cnt;
+		}
+
+		reset();
+	}
 
 	//GB Camera load/unload external picture into VRAM
 	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == config::hotkey_camera))
