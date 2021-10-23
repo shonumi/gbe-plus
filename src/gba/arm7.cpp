@@ -1592,15 +1592,32 @@ void ARM7::clock_emulated_sio_device()
 
 		case 0xD:
 			//Turn on Power Antenna
-			if((controllers.serial_io.sio_stat.cnt & 0x88) == 0x88)
+			if((controllers.serial_io.sio_stat.sio_mode == NORMAL_8BIT) || (controllers.serial_io.sio_stat.sio_mode == NORMAL_32BIT))
 			{
-				controllers.video.power_antenna_osd = true;
+				if((controllers.serial_io.sio_stat.cnt & 0x88) == 0x88)
+				{
+					controllers.video.power_antenna_osd = true;
+				}
+
+				//Turn off Power Antenna
+				else if((controllers.serial_io.sio_stat.cnt & 0x88) == 0x80)
+				{
+					controllers.video.power_antenna_osd = false;
+				}
 			}
 
-			//Turn off Power Antenna
-			else if((controllers.serial_io.sio_stat.cnt & 0x88) == 0x80)
+			else if(controllers.serial_io.sio_stat.sio_mode == GENERAL_PURPOSE)
 			{
-				controllers.video.power_antenna_osd = false;
+				if((controllers.serial_io.sio_stat.r_cnt & 0x88) == 0x88)
+				{
+					controllers.video.power_antenna_osd = true;
+				}
+
+				//Turn off Power Antenna
+				else
+				{
+					controllers.video.power_antenna_osd = false;
+				}
 			}
 
 			controllers.serial_io.sio_stat.emu_device_ready = false;
