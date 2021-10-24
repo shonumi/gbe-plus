@@ -1302,6 +1302,13 @@ void main_menu::reset()
 {
 	if(main_menu::gbe_plus != NULL) 
 	{
+		//When emulating the GB Memory Cartridge, let the DMG-GBC or SGB cores handle resetting
+		if((config::cart_type == DMG_GBMEM) && (config::gb_type != 3) && (config::gb_type != 4) && (config::gb_type != 7))
+		{
+			main_menu::gbe_plus->reset();
+			return;
+		}
+
 		main_menu::gbe_plus->shutdown();
 		main_menu::gbe_plus->core_emu::~core_emu();
 
