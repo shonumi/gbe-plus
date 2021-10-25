@@ -208,29 +208,33 @@ void SGB_core::run_core()
 	while(running)
 	{
 		//Handle SDL Events
-		if((core_cpu.controllers.video.lcd_stat.current_scanline == 144) && SDL_PollEvent(&event))
+		if(core_cpu.controllers.video.lcd_stat.current_scanline == 144)
 		{
-			//X out of a window
-			if(event.type == SDL_QUIT) { stop(); SDL_Quit(); }
-
-			//Process gamepad or hotkey
-			else if((event.type == SDL_KEYDOWN) || (event.type == SDL_KEYUP) 
-			|| (event.type == SDL_JOYBUTTONDOWN) || (event.type == SDL_JOYBUTTONUP)
-			|| (event.type == SDL_JOYAXISMOTION) || (event.type == SDL_JOYHATMOTION))
+			if(SDL_PollEvent(&event))
 			{
-				core_pad.handle_input(event);
-				handle_hotkey(event);
+				//X out of a window
+				if(event.type == SDL_QUIT) { stop(); SDL_Quit(); }
 
-				//Trigger Joypad Interrupt if necessary
-				if(core_pad.joypad_irq) { core_mmu.memory_map[IF_FLAG] |= 0x10; }
+				//Process gamepad or hotkey
+				else if((event.type == SDL_KEYDOWN) || (event.type == SDL_KEYUP) 
+				|| (event.type == SDL_JOYBUTTONDOWN) || (event.type == SDL_JOYBUTTONUP)
+				|| (event.type == SDL_JOYAXISMOTION) || (event.type == SDL_JOYHATMOTION))
+				{
+					core_pad.handle_input(event);
+					handle_hotkey(event);
+
+					//Trigger Joypad Interrupt if necessary
+					if(core_pad.joypad_irq) { core_mmu.memory_map[IF_FLAG] |= 0x10; }
+				}
+
+				//Hotplug joypad
+				else if((event.type == SDL_JOYDEVICEADDED) && (!core_pad.joy_init)) { core_pad.init(); }
 			}
-
-			//Hotplug joypad
-			else if((event.type == SDL_JOYDEVICEADDED) && (!core_pad.joy_init)) { core_pad.init(); }
 
 			//Perform reset for GB Memory Cartridge
 			if((config::cart_type == DMG_GBMEM) && (core_mmu.cart.flash_stat == 0xF0)) { reset(); }
 		}
+
 
 		//Run the CPU
 		if(core_cpu.running)
