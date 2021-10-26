@@ -841,7 +841,7 @@ void SGB_core::handle_hotkey(SDL_Event& event)
 	}
 }
 
-/****** Process hotkey input - Use exsternally when not using SDL ******/
+/****** Process hotkey input - Use externally when not using SDL ******/
 void SGB_core::handle_hotkey(int input, bool pressed)
 {
 	//Toggle turbo on
@@ -907,6 +907,20 @@ void SGB_core::handle_hotkey(int input, bool pressed)
 
 				break;
 		}
+	}
+
+	//Reset emulation on F8
+	//Only done when using GB Memory Cartridge via GUI
+	else if((input == SDLK_F8) && (pressed) && (config::cart_type == DMG_GBMEM) && (config::use_external_interfaces))
+	{
+		//If running GB Memory Cartridge, make sure this is a true reset, i.e. boot to the menu program
+		if(core_mmu.cart.flash_stat == 0x40)
+		{
+			core_mmu.cart.flash_stat = 0;
+			config::gb_type = core_mmu.cart.flash_cnt;
+		}
+
+		reset();
 	}
 }
 
