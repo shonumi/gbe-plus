@@ -480,6 +480,8 @@ void AGB_SIO::reset()
 	//Wireless Adapter
 	wireless_adapter.counter = 0;
 	wireless_adapter.reply_data = 0;
+	wireless_adapter.rfu_id = 0x61F1;
+	wireless_adapter.in_session = false;
 	wireless_adapter.current_state = AGB_WLA_INACTIVE;
 
 	#ifdef GBE_NETPLAY
@@ -3172,7 +3174,7 @@ void AGB_SIO::magic_watch_process()
 /****** Process GBA Wireless Adapter input and output ******/
 void AGB_SIO::wireless_adapter_process()
 {
-	std::cout<<"ME -> 0x" << sio_stat.transfer_data << " :: 0x" << u32(wireless_adapter.current_state) << "\n";
+	std::cout<<"DATA IN -> 0x" << sio_stat.transfer_data << " :: 0x" << u32(wireless_adapter.current_state) << "\n";
 
 	//Reset activation if necessary
 	if(sio_stat.sio_mode == GENERAL_PURPOSE)
@@ -3358,6 +3360,35 @@ void AGB_SIO::wireless_adapter_exec_cmd()
 				
 				break;
 
+			//System Status
+			case 0x13:
+				if(wireless_adapter.counter == 1)
+				{
+					//Return 1st response (command + number of response words)
+					num_of_params = 1;
+					wireless_adapter.reply_data = 0x99660000 | (num_of_params << 8) | (wireless_adapter.cmd ^ 0x80);
+					wireless_adapter.counter++;
+				}
+
+				else
+				{
+
+					wireless_adapter.reply_data = wireless_adapter.rfu_id;
+					wireless_adapter.counter = 0;
+					wireless_adapter.cmd = 0;
+					wireless_adapter.parameter_length = 0;
+					wireless_adapter.current_state = AGB_WLA_COMMAND;
+
+					//Update RFU ID when connected with other AGB-015 units
+					//Temporarily fake it for debugging purposes
+					if((wireless_adapter.rfu_id & 0xFFFF0000) == 0)
+					{
+						wireless_adapter.rfu_id |= (sio_stat.player_id + 1) << 16;
+					}
+				}
+
+				break;
+				
 			//Acknowledge Info
 			case 0x16:
 				//Return 1st response (command + number of response words)
@@ -3381,6 +3412,20 @@ void AGB_SIO::wireless_adapter_exec_cmd()
 				wireless_adapter.current_state = AGB_WLA_COMMAND;
 
 				break;
+
+			//TODO
+			case 0x19:
+			case 0x1A:
+				//Return 1st response (command + number of response words)
+				wireless_adapter.reply_data = 0x99660000 | (num_of_params << 8) | (wireless_adapter.cmd ^ 0x80);
+
+				wireless_adapter.counter = 0;
+				wireless_adapter.cmd = 0;
+				wireless_adapter.parameter_length = 0;
+				wireless_adapter.current_state = AGB_WLA_COMMAND;
+
+				break;
+
 
 			//Get Info
 			case 0x1D:
@@ -3426,6 +3471,6 @@ void AGB_SIO::wireless_adapter_exec_cmd()
 		sio_stat.cnt |= 0x04;
 		mem->write_u16_fast(0x4000128, sio_stat.cnt);
 
-		std::cout<<"SENDING -> 0x" << wireless_adapter.reply_data << "\n";
+		std::cout<<"DATA OUT -> 0x" << wireless_adapter.reply_data << "\n";
 	}
 }
