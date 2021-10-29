@@ -232,8 +232,10 @@ class AGB_SIO
 		std::vector<u32> parameters;
 		u32 reply_data;
 		u32 rfu_id;
+		u32 cycles;
 		wireless_adapter_state current_state;
 		bool in_session;
+		bool is_sending;
 	} wireless_adapter;
 
 	AGB_SIO();

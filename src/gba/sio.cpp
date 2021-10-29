@@ -482,6 +482,7 @@ void AGB_SIO::reset()
 	wireless_adapter.reply_data = 0;
 	wireless_adapter.rfu_id = 0x61F1;
 	wireless_adapter.in_session = false;
+	wireless_adapter.is_sending = false;
 	wireless_adapter.current_state = AGB_WLA_INACTIVE;
 
 	#ifdef GBE_NETPLAY
@@ -3174,8 +3175,6 @@ void AGB_SIO::magic_watch_process()
 /****** Process GBA Wireless Adapter input and output ******/
 void AGB_SIO::wireless_adapter_process()
 {
-	std::cout<<"DATA IN -> 0x" << sio_stat.transfer_data << " :: 0x" << u32(wireless_adapter.current_state) << "\n";
-
 	//Reset activation if necessary
 	if(sio_stat.sio_mode == GENERAL_PURPOSE)
 	{
@@ -3187,6 +3186,7 @@ void AGB_SIO::wireless_adapter_process()
 		}
 	}
 
+	/*
 	//Sometimes the game may send the last data for login multiple times. Make sure to revert to the login phase as necessary until a real command is sent.
 	else if((wireless_adapter.current_state != AGB_WLA_LOGIN) && (!wireless_adapter.cmd)
 	&& ((sio_stat.transfer_data & 0xFFFF) == 0x494E) && (sio_stat.sio_mode == NORMAL_32BIT))
@@ -3200,6 +3200,33 @@ void AGB_SIO::wireless_adapter_process()
 	{
 		wireless_adapter.counter = 0;
 		wireless_adapter.current_state = AGB_WLA_LOGIN;
+	}
+	*/
+
+	//Wait for given amount of cycles before finishing transmission
+	if((wireless_adapter.is_sending) && (wireless_adapter.current_state != AGB_WLA_INACTIVE))
+	{
+		//Write back response data and raise SIO IRQ
+		if(wireless_adapter.cycles >= 160)
+		{
+			mem->write_u32_fast(SIO_DATA_32_L, wireless_adapter.reply_data);
+			mem->memory_map[REG_IF] |= 0x80;
+
+			sio_stat.emu_device_ready = false;
+			sio_stat.active_transfer = false;
+
+			//Clear Bit 7 of SIOCNT, also set Bit 2
+			sio_stat.cnt &= ~0x80;
+			sio_stat.cnt |= 0x04;
+			mem->write_u16_fast(0x4000128, sio_stat.cnt);
+
+			wireless_adapter.is_sending = false;
+			wireless_adapter.cycles = 0;
+
+			std::cout<<"SENDING DATA -> 0x" << wireless_adapter.reply_data << "\n";
+		}
+
+		return;
 	}
 
 	switch(wireless_adapter.current_state)
@@ -3238,6 +3265,9 @@ void AGB_SIO::wireless_adapter_process()
 				}
 			}
 
+			sio_stat.emu_device_ready = false;
+			sio_stat.active_transfer = false;
+
 			break;
 
 		//Process login
@@ -3255,16 +3285,8 @@ void AGB_SIO::wireless_adapter_process()
 				if(wireless_adapter.counter == 1) { wireless_adapter.reply_data = 0xDEADBEEF; }
 				else { wireless_adapter.reply_data = (hi_reply << 16) | lo_reply; }
 
-				//Write back response data and raise SIO IRQ
-				mem->write_u32_fast(SIO_DATA_32_L, wireless_adapter.reply_data);
-				mem->memory_map[REG_IF] |= 0x80;
-
-				sio_stat.emu_device_ready = false;
-				sio_stat.active_transfer = false;
-
-				//Clear Bit 7 of SIOCNT
-				sio_stat.cnt &= ~0x80;
-				mem->write_u16_fast(0x4000128, sio_stat.cnt);
+				wireless_adapter.is_sending = true;
+				wireless_adapter.cycles = 0;
 
 				//Once login process is complete, move onto processing incoming commands
 				if(hi_reply == 0x8001)
@@ -3286,17 +3308,9 @@ void AGB_SIO::wireless_adapter_process()
 			{
 				std::cout<<"WLA32 CMD -> 0x" << sio_stat.transfer_data << "\n";
 
-				//Write back response data and raise SIO IRQ
-				mem->write_u32_fast(SIO_DATA_32_L, 0x80000000);
-				mem->memory_map[REG_IF] |= 0x80;
-
-				sio_stat.emu_device_ready = false;
-				sio_stat.active_transfer = false;
-
-				//Clear Bit 7 of SIOCNT
-				sio_stat.cnt &= ~0x80;
-				sio_stat.cnt |= 0x04;
-				mem->write_u16_fast(0x4000128, sio_stat.cnt);
+				wireless_adapter.reply_data = 0x80000000;
+				wireless_adapter.is_sending = true;
+				wireless_adapter.cycles = 0;
 
 				//Grab parameters for incoming command
 				if(wireless_adapter.parameter_length)
@@ -3372,7 +3386,6 @@ void AGB_SIO::wireless_adapter_exec_cmd()
 
 				else
 				{
-
 					wireless_adapter.reply_data = wireless_adapter.rfu_id;
 					wireless_adapter.counter = 0;
 					wireless_adapter.cmd = 0;
@@ -3449,6 +3462,7 @@ void AGB_SIO::wireless_adapter_exec_cmd()
 				wireless_adapter.cmd = 0;
 				wireless_adapter.parameter_length = 0;
 				wireless_adapter.current_state = AGB_WLA_COMMAND;
+				wireless_adapter.rfu_id = 0x61F1;
 
 				break;
 
@@ -3459,17 +3473,8 @@ void AGB_SIO::wireless_adapter_exec_cmd()
 				wireless_adapter.cmd = 0;
 		}
 
-		//Write back response data and raise SIO IRQ
-		mem->write_u32_fast(SIO_DATA_32_L, wireless_adapter.reply_data);
-		mem->memory_map[REG_IF] |= 0x80;
-
-		sio_stat.emu_device_ready = false;
-		sio_stat.active_transfer = false;
-
-		//Clear Bit 7 of SIOCNT, also set Bit 2
-		sio_stat.cnt &= ~0x80;
-		sio_stat.cnt |= 0x04;
-		mem->write_u16_fast(0x4000128, sio_stat.cnt);
+		wireless_adapter.is_sending = true;
+		wireless_adapter.cycles = 0;
 
 		std::cout<<"DATA OUT -> 0x" << wireless_adapter.reply_data << "\n";
 	}

@@ -1700,10 +1700,8 @@ void ARM7::clock_emulated_sio_device()
 			break;
 
 		case 0x14:
+			if(controllers.serial_io.wireless_adapter.is_sending) { controllers.serial_io.wireless_adapter.cycles += system_cycles; }
 			controllers.serial_io.wireless_adapter_process();
-			controllers.serial_io.sio_stat.emu_device_ready = false;
-			controllers.serial_io.sio_stat.active_transfer = false;
-
 			break;
 
 		//Clock everything else normally
