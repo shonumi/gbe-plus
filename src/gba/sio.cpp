@@ -3206,8 +3206,10 @@ void AGB_SIO::wireless_adapter_process()
 	//Wait for given amount of cycles before finishing transmission
 	if((wireless_adapter.is_sending) && (wireless_adapter.current_state != AGB_WLA_INACTIVE))
 	{
+		u32 delay = (sio_stat.cnt & 0x2) ? 256 : 2048;
+
 		//Write back response data and raise SIO IRQ
-		if(wireless_adapter.cycles >= 160)
+		if(wireless_adapter.cycles >= delay)
 		{
 			mem->write_u32_fast(SIO_DATA_32_L, wireless_adapter.reply_data);
 			mem->memory_map[REG_IF] |= 0x80;
@@ -3223,7 +3225,7 @@ void AGB_SIO::wireless_adapter_process()
 			wireless_adapter.is_sending = false;
 			wireless_adapter.cycles = 0;
 
-			std::cout<<"SENDING DATA -> 0x" << wireless_adapter.reply_data << "\n";
+			std::cout<<"SENDING DATA -> 0x" << wireless_adapter.reply_data << " :: 0x" << u32(sio_stat.cnt & 0x2) << "\n";
 		}
 
 		return;
