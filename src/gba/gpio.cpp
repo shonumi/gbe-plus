@@ -287,6 +287,8 @@ void AGB_MMU::process_rtc()
 //Handles GPIO for the Solar Sensor
 void AGB_MMU::process_solar_sensor()
 {
+	process_rtc();
+
 	//Reset internal counter when Bit 1 clocked high
 	if(gpio.data & 0x2) { gpio.solar_counter = 0; }
 
