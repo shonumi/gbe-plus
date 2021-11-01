@@ -103,6 +103,7 @@ void DMG_MMU::reset()
 	cart.depth = 0;
 
 	for(u32 x = 0; x < 13; x++) { cart.tama_reg[x] = 0; }
+	for(u32 x = 0; x < 256; x++) { cart.tama_ram[x] = 0; }
 
 	ir_signal = 0;
 	ir_send = false;
@@ -2241,7 +2242,7 @@ bool DMG_MMU::load_backup(std::string filename)
 			sram.seekg(0, sram.beg);
 
 			//Read MBC RAM
-			if((cart.mbc_type != ROM_ONLY) && (cart.mbc_type != MBC7))
+			if((cart.mbc_type != ROM_ONLY) && (cart.mbc_type != MBC7) && (cart.mbc_type != TAMA5))
 			{
 				for(int x = 0; x < 0x10; x++)
 				{
@@ -2254,6 +2255,13 @@ bool DMG_MMU::load_backup(std::string filename)
 			else if(cart.mbc_type == MBC7)
 			{
 				u8* ex_ram = &memory_map[0xA000];
+				sram.read((char*)ex_ram, 0x100);
+			}
+
+			//Read TAMA5 RAM
+			else if(cart.mbc_type == TAMA5)
+			{
+				u8* ex_ram = &cart.tama_ram[0];
 				sram.read((char*)ex_ram, 0x100);
 			}
 
@@ -2305,7 +2313,7 @@ bool DMG_MMU::save_backup(std::string filename)
 		else 
 		{
 			//Save MBC RAM
-			if((cart.mbc_type != ROM_ONLY) && (cart.mbc_type != MBC7))
+			if((cart.mbc_type != ROM_ONLY) && (cart.mbc_type != MBC7) && (cart.mbc_type != TAMA5))
 			{
 				for(int x = 0; x < 0x10; x++)
 				{
@@ -2317,6 +2325,12 @@ bool DMG_MMU::save_backup(std::string filename)
 			else if(cart.mbc_type == MBC7)
 			{
 				sram.write(reinterpret_cast<char*> (&memory_map[0xA000]), 0x100);
+			}
+
+			//Save TAMA5 RAM
+			else if(cart.mbc_type == TAMA5)
+			{
+				sram.write(reinterpret_cast<char*> (&cart.tama_ram[0]), 0x100);
 			}
 
 			//Save 8KB Cart RAM

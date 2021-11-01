@@ -126,6 +126,7 @@ class DMG_MMU
 
 		//TAMA5
 		u8 tama_reg[13];
+		u8 tama_ram[256];
 	} cart;
 
 	u8 ir_signal;
