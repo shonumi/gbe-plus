@@ -20,7 +20,8 @@ void DMG_MMU::tama5_write(u16 address, u8 value)
 		//Initial 0xA001 write
 		if((address == 0xA001) && (value == 0xA) && (!bank_mode))
 		{
-			cart.tama_reg[0xA] = 0xF1;
+			cart.tama_reg[0x0A] = 0xF1;
+			cart.tama_out = 0xF1;
 			bank_mode |= 0x80;
 		}
 
@@ -28,14 +29,29 @@ void DMG_MMU::tama5_write(u16 address, u8 value)
 		else if((bank_mode & 0x80) && (address == 0xA001))
 		{
 			//Store TAMA5 MBC register as single byte in lower halfbyte
-			bank_mode &= ~0xF;
-			bank_mode |= (value & 0xF);
+			cart.tama_cmd &= ~0xF;
+			cart.tama_cmd |= (value & 0xF);
+
+			//Return Data Out for TAMA RAM
+			if(cart.tama_cmd == 0x0C)
+			{
+				u8 ram_addr = (cart.tama_reg[7] << 4) | cart.tama_reg[6];
+				cart.tama_reg[0x0C] = (cart.tama_reg[ram_addr] & 0xF);
+			}
+
+			else if(cart.tama_cmd == 0x0D)
+			{
+				u8 ram_addr = (cart.tama_reg[7] << 4) | cart.tama_reg[6];
+				cart.tama_reg[0x0D] = (cart.tama_reg[ram_addr] >> 4);
+			}
 		}
 
 		//Write register data
 		else if((bank_mode & 0x80) && (address == 0xA000))
 		{
-			switch(bank_mode & 0xF)
+			cart.tama_reg[(cart.tama_cmd) & 0xF] = (value & 0xF);
+
+			switch(cart.tama_cmd & 0xF)
 			{
 				//ROM Bank Low
 				case 0x0:
@@ -49,42 +65,29 @@ void DMG_MMU::tama5_write(u16 address, u8 value)
 					rom_bank |= ((value & 0xF) << 4);
 					break;
 
-				//RAM Write or RAM access - Perform write on last register access
+				//RAM Write, save data and RTC data
 				case 0x7:
-					//Write
-					if((cart.tama_reg[0x6] == 2) || (cart.tama_reg[0x6] == 3))
 					{
-						u8 addr = (cart.tama_reg[0x06] << 4);
-						addr |= (value & 0xF);
+						u8 ram_val = (cart.tama_reg[5] << 4) | cart.tama_reg[4];
+						u8 ram_addr = (cart.tama_reg[7] << 4) | cart.tama_reg[6];
 
-						u8 ram_val = cart.tama_reg[0x4];
-						ram_val |= (cart.tama_reg[0x5] << 4);
+						//Write last latched time to RTC data
+						if(ram_val == 0x08) { }
 
-						random_access_bank[0][addr] = ram_val;
-					}
+						//Latch time and write time to RTC data
+						else if(ram_val == 0x18) { }
 
-					//Read
-					else if(cart.tama_reg[0x6] < 2)
-					{
-						u8 addr = (cart.tama_reg[0x06] << 4);
-						addr |= (value & 0xF);
-
-						u8 ram_val = random_access_bank[0][addr];
-						
-						cart.tama_reg[0xC] = 0xF0 | (ram_val & 0xF);
-						cart.tama_reg[0xD] = 0xF0 | ((ram_val >> 4) & 0xF);
+						//Write to TAMA5 RAM
+						else { cart.tama_ram[ram_addr] = ram_val; }
 					}
 
 					break;
 
 				//Constant Value = 0xA1
 				case 0xA:
-					value = 0xA1;
+					cart.tama_reg[0x0A] = 0x1;
 					break;
 			}
-
-			//Save data to internal MBC registers
-			if((bank_mode & 0xF) <= 0xD) { cart.tama_reg[bank_mode & 0xF] = (value & 0xF); }
 		}
 	}
 }
@@ -113,14 +116,7 @@ u8 DMG_MMU::tama5_read(u16 address)
 	else if((address >= 0xA000) && (address <= 0xBFFF))
 	{
 		//Read register data
-		if((bank_mode & 0x80) && (address == 0xA000))
-		{			
-			if((bank_mode & 0xF) <= 0xD)
-			{
-				return cart.tama_reg[bank_mode & 0xF];
-			}
-		}
-
+		if((bank_mode & 0x80) && (address == 0xA000)) { return cart.tama_reg[cart.tama_cmd]; }
 		return 0;
 	}
 

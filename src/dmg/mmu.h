@@ -125,8 +125,10 @@ class DMG_MMU
 		u32 frame_count;
 
 		//TAMA5
-		u8 tama_reg[13];
+		u8 tama_reg[16];
 		u8 tama_ram[256];
+		u8 tama_cmd;
+		u8 tama_out;
 	} cart;
 
 	u8 ir_signal;

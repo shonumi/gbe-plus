@@ -102,8 +102,10 @@ void DMG_MMU::reset()
 	cart.frame_count = 0;
 	cart.depth = 0;
 
-	for(u32 x = 0; x < 13; x++) { cart.tama_reg[x] = 0; }
+	for(u32 x = 0; x < 16; x++) { cart.tama_reg[x] = 0; }
 	for(u32 x = 0; x < 256; x++) { cart.tama_ram[x] = 0; }
+	cart.tama_cmd = 0;
+	cart.tama_out = 0;
 
 	ir_signal = 0;
 	ir_send = false;
