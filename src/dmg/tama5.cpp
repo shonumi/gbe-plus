@@ -39,13 +39,13 @@ void DMG_MMU::tama5_write(u16 address, u8 value)
 			if(cart.tama_cmd == 0x0C)
 			{
 				u8 ram_addr = (cart.tama_reg[7] << 4) | cart.tama_reg[6];
-				cart.tama_reg[0x0C] = (cart.tama_reg[ram_addr] & 0xF);
+				cart.tama_reg[0x0C] = (cart.tama_ram[ram_addr] & 0xF);
 			}
 
 			else if(cart.tama_cmd == 0x0D)
 			{
 				u8 ram_addr = (cart.tama_reg[7] << 4) | cart.tama_reg[6];
-				cart.tama_reg[0x0D] = (cart.tama_reg[ram_addr] >> 4);
+				cart.tama_reg[0x0D] = (cart.tama_ram[ram_addr] >> 4);
 			}
 		}
 
@@ -75,13 +75,20 @@ void DMG_MMU::tama5_write(u16 address, u8 value)
 						u8 ram_addr = (cart.tama_reg[7] << 4) | cart.tama_reg[6];
 
 						//Write last latched time to RTC data
-						if(ram_val == 0x08) { std::cout<<"OR THIS\n"; }
+						if((ram_addr == 0x08) || (ram_addr == 0x28)) { grab_tama5_time(ram_val); }
 
 						//Latch time and write time to RTC data
-						else if(ram_val == 0x18) { grab_tama5_time(); std::cout<<"THIS\n"; }
+						else if((ram_addr == 0x18) || (ram_addr == 0x54) || (ram_addr == 0x64)
+						|| (ram_addr == 0x74) || (ram_addr == 0x84) || (ram_addr == 0x94))
+						{
+							grab_tama5_time(ram_val);
+						}
 
 						//Write to TAMA5 RAM
-						else { cart.tama_ram[ram_addr] = ram_val; }
+						else if(ram_addr <= 0x10)
+						{
+							cart.tama_ram[ram_addr] = ram_val;
+						}
 					}
 
 					break;
@@ -128,8 +135,10 @@ u8 DMG_MMU::tama5_read(u16 address)
 }
 
 /****** Grab current system time for Real-Time Clock ******/
-void DMG_MMU::grab_tama5_time()
+void DMG_MMU::grab_tama5_time(u8 index)
 {
+	index &= 0xF;
+
 	//Grab local time
 	time_t system_time = time(0);
 	tm* current_time = localtime(&system_time);
@@ -150,31 +159,55 @@ void DMG_MMU::grab_tama5_time()
 	current_time->tm_mday += config::rtc_offset[3];
 	current_time->tm_mday = (current_time->tm_mday % 366);
 
+	current_time->tm_mon++;
 	if((current_time->tm_mon + config::rtc_offset[4]) >= 12) { current_time->tm_year++; }
 	current_time->tm_mon += config::rtc_offset[4];
 	current_time->tm_mon = (current_time->tm_mon % 12);
+	if(current_time->tm_mon == 0) { current_time->tm_mon++; }
 
-	//Set Seconds
-	cart.tama_reg[0x00] = (util::get_bcd(current_time->tm_sec) & 0xF);
-	cart.tama_reg[0x01] = ((util::get_bcd(current_time->tm_sec) >> 4) & 0xF);
+	//Set time based on index
+	switch(index)
+	{
+		//Set Seconds LO
+		case 0x00: cart.tama_ram[0x18] = (util::get_bcd(current_time->tm_sec) & 0xF); break;
+		
+		//Set Seconds HI
+		case 0x01: cart.tama_ram[0x18] = ((util::get_bcd(current_time->tm_sec) >> 4) & 0xF); break;
 
-	//Set Minutes
-	cart.tama_reg[0x02] = (util::get_bcd(current_time->tm_min) & 0xF);
-	cart.tama_reg[0x03] = ((util::get_bcd(current_time->tm_min) >> 4) & 0xF);
+		//Set Minutes LO
+		case 0x02: cart.tama_ram[0x18] = (util::get_bcd(current_time->tm_min) & 0xF); break;
+		
+		//Set Minutes HI
+		case 0x03: cart.tama_ram[0x18] = ((util::get_bcd(current_time->tm_min) >> 4) & 0xF); break;
 
-	//Set Hours
-	cart.tama_reg[0x04] = (util::get_bcd(current_time->tm_hour) & 0xF);
-	cart.tama_reg[0x05] = ((util::get_bcd(current_time->tm_hour) >> 4) & 0xF);
+		//Set Hours LO
+		case 0x04: cart.tama_ram[0x18] = (util::get_bcd(current_time->tm_hour) & 0xF); break;
+		
+		//Set Hours HI
+		case 0x05: cart.tama_ram[0x18] = ((util::get_bcd(current_time->tm_hour) >> 4) & 0xF); break;
 
-	//Set Days
-	cart.tama_reg[0x07] = (util::get_bcd(current_time->tm_mday) & 0xF);
-	cart.tama_reg[0x08] = ((util::get_bcd(current_time->tm_mday) >> 4) & 0xF);
+		//Set Days LO
+		case 0x07: cart.tama_ram[0x18] = (util::get_bcd(current_time->tm_mday) & 0xF); break;
+		
+		//Set Days HI
+		case 0x08: cart.tama_ram[0x18] = ((util::get_bcd(current_time->tm_mday) >> 4) & 0xF); break;
 
-	//Set Months
-	cart.tama_reg[0x09] = (util::get_bcd(current_time->tm_mon) & 0xF);
-	cart.tama_reg[0x0A] = ((util::get_bcd(current_time->tm_mon) >> 4) & 0xF);
+		//Set Months LO
+		case 0x09: cart.tama_ram[0x18] = (util::get_bcd(current_time->tm_mon) & 0xF); break;
+		
+		//Set Months HI
+		case 0x0A: cart.tama_ram[0x18] = ((util::get_bcd(current_time->tm_mon) >> 4) & 0xF); break;
 
-	//Set Years
-	cart.tama_reg[0x0B] = ((util::get_bcd(current_time->tm_year) >> 4) & 0xF);
-	cart.tama_reg[0x0C] = (util::get_bcd(current_time->tm_year) & 0xF);
+		//Set Years - Digit 3
+		case 0x0B: cart.tama_ram[0x18] = ((util::get_bcd(current_time->tm_year) >> 4) & 0xF); break;
+
+		//Set Years - Digit 4
+		case 0x0C: cart.tama_ram[0x18] = (util::get_bcd(current_time->tm_year) & 0xF); break;
+	}
+
+	cart.tama_ram[0x54] = util::get_bcd(current_time->tm_sec);
+	cart.tama_ram[0x64] = util::get_bcd(current_time->tm_min);
+	cart.tama_ram[0x74] = util::get_bcd(current_time->tm_hour);
+	cart.tama_ram[0x84] = util::get_bcd(current_time->tm_mday);
+	cart.tama_ram[0x94] = util::get_bcd(current_time->tm_mon);
 }
