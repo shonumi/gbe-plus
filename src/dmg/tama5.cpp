@@ -39,12 +39,20 @@ void DMG_MMU::tama5_write(u16 address, u8 value)
 			if(cart.tama_cmd == 0x0C)
 			{
 				u8 ram_addr = (cart.tama_reg[7] << 4) | cart.tama_reg[6];
+
+				//Check if TAMA RAM is being accessed
+				if(((ram_addr & 0x0F) <= 0x03) && (ram_addr & 0x2)) { ram_addr &= ~0x02; }
+
 				cart.tama_reg[0x0C] = (cart.tama_ram[ram_addr] & 0xF);
 			}
 
 			else if(cart.tama_cmd == 0x0D)
 			{
 				u8 ram_addr = (cart.tama_reg[7] << 4) | cart.tama_reg[6];
+
+				//Check if TAMA RAM is being accessed
+				if(((ram_addr & 0x0F) <= 0x03) && (ram_addr & 0x2)) { ram_addr &= ~0x02; }
+
 				cart.tama_reg[0x0D] = (cart.tama_ram[ram_addr] >> 4);
 			}
 		}
@@ -85,9 +93,10 @@ void DMG_MMU::tama5_write(u16 address, u8 value)
 						}
 
 						//Write to TAMA5 RAM
-						else if(ram_addr <= 0x10)
+						else if((ram_addr & 0x0F) <= 0x03)
 						{
-							cart.tama_ram[ram_addr] = ram_val;
+							//Only write when Bit 1 of the address is zero
+							if((ram_addr & 0x02) == 0) { cart.tama_ram[ram_addr] = ram_val; }
 						}
 					}
 
