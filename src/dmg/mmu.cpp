@@ -2253,18 +2253,22 @@ bool DMG_MMU::load_backup(std::string filename)
 				}
 			}
 
-			//Read MBC7 RAM
+			//Read MBC7 EEPROM
 			else if(cart.mbc_type == MBC7)
 			{
 				u8* ex_ram = &memory_map[0xA000];
 				sram.read((char*)ex_ram, 0x100);
 			}
 
-			//Read TAMA5 RAM
+			//Read TAMA5 EEPROM
 			else if(cart.mbc_type == TAMA5)
 			{
-				u8* ex_ram = &cart.tama_ram[0];
-				sram.read((char*)ex_ram, 0x100);
+				//Read 32-bits dedicated to save data
+				for(u32 x = 0; x < 16; x++)
+				{
+					sram.read((char*)&cart.tama_ram[(x << 4)], 0x01);
+					sram.read((char*)&cart.tama_ram[(x << 4) + 1], 0x01);
+				}
 			}
 
 			//Read 8KB Cart RAM
@@ -2323,16 +2327,21 @@ bool DMG_MMU::save_backup(std::string filename)
 				}
 			}
 
-			//Save MBC7 RAM
+			//Save MBC7 EEPROM
 			else if(cart.mbc_type == MBC7)
 			{
 				sram.write(reinterpret_cast<char*> (&memory_map[0xA000]), 0x100);
 			}
 
-			//Save TAMA5 RAM
+			//Save TAMA5 EEPROM
 			else if(cart.mbc_type == TAMA5)
 			{
-				sram.write(reinterpret_cast<char*> (&cart.tama_ram[0]), 0x100);
+				//Save 32-bits dedicated to save data
+				for(u32 x = 0; x < 16; x++)
+				{
+					sram.write(reinterpret_cast<char*> (&cart.tama_ram[(x << 4)]), 0x01);
+					sram.write(reinterpret_cast<char*> (&cart.tama_ram[(x << 4) + 1]), 0x01);
+				}
 			}
 
 			//Save 8KB Cart RAM
