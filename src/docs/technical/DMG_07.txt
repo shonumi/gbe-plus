@@ -27,6 +27,7 @@ DMG-07 uses a Motorola 402038 for multiplexing stuff.
 
 This list represents all the games that have been verified to use the DMG-07. This list is probably not complete as there are likely more Japanese exclusives that need to be added.
 
+- America Oudan Ultra Quiz
 - Chachamaru Panic
 - Downtown Nekketsu Koushinkyoku: Dokodemo Daiundoukai
 - Faceball 2000
