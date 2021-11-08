@@ -35,6 +35,7 @@ This list represents all the games that have been verified to use the DMG-07. Th
 - F1 Pole Position
 - Janshirou
 - Janshirou II
+- Jantaku Boy
 - Jinsei Game Densetsu
 - Nakajima Satoru F-1 Hero GB World Championship '91
 - Nekketsu Koukou Dodge Ball-Bu
