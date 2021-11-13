@@ -1122,11 +1122,11 @@ void AGB_LCD::apply_sfx()
 {
 	lcd_stat.temp_sfx_type = lcd_stat.current_sfx_type;
 
-	//If doing brightness up/down and the last pixel drawn is not a target, abort SFX
-	if((!lcd_stat.sfx_target[last_bg_priority][0]) && (lcd_stat.current_sfx_type != ALPHA_BLEND)) { return; }
-
 	//If doing brightness up/down and the OBJ mode is Semi-Transparent, force alpha blending
 	if((last_bg_priority == 4) && (lcd_stat.current_sfx_type != ALPHA_BLEND) && (last_obj_mode == 1)) { lcd_stat.current_sfx_type = ALPHA_BLEND;  }
+
+	//If doing brightness up/down and the last pixel drawn is not a target, abort SFX
+	if((!lcd_stat.sfx_target[last_bg_priority][0]) && (lcd_stat.current_sfx_type != ALPHA_BLEND)) { return; }
 
 	//If doing alpha blending outside of the OBJ Window and the last pixel drawn is not a target, abort SFX 
 	if((!lcd_stat.sfx_target[last_bg_priority][0]) && (lcd_stat.current_sfx_type == ALPHA_BLEND) && (!obj_win_pixel) && (last_obj_mode != 1)) { return; }
