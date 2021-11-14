@@ -115,6 +115,7 @@ class AGB_MMU
 		u8 rtc_control;
 
 		u8 solar_counter;
+		u8 adc_clear;
 	} gpio;
 
 	std::vector<u32> cheat_bytes;

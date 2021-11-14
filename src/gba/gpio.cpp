@@ -290,15 +290,25 @@ void AGB_MMU::process_solar_sensor()
 	process_rtc();
 
 	//Reset internal counter when Bit 1 clocked high
-	if((gpio.data & 0x2) && ((gpio.prev_data & 0x2) == 0)) { gpio.solar_counter = 0; }
+	if((gpio.data & 0x2) && ((gpio.prev_data & 0x2) == 0))
+	{
+		gpio.solar_counter = 0x0;
+		gpio.adc_clear = 12;
+	}
+
+	//After resetting the internal counter, wait for 12-bit ADC value to be cleared?
+	else if(((gpio.data & 0x2) == 0) && (gpio.adc_clear != 0))
+	{
+		gpio.adc_clear--;
+	}
 
 	//Increase internal counter when Bit 0 clocked high
-	if(gpio.data & 0x1)
+	if((gpio.data & 0x1) && (gpio.adc_clear == 0))
 	{	
+		gpio.solar_counter++;
+
 		//Set Bit 3 to high if internal counter and internal value match
 		if(gpio.solar_counter == g_pad->solar_value) { gpio.data |= 0x8; }
-
-		gpio.solar_counter++;
 	}
 }
 
