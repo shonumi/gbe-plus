@@ -49,6 +49,7 @@ void AGB_MMU::reset()
 	flash_ram.data[1].resize(0x10000, 0xFF);
 
 	gpio.data = 0;
+	gpio.prev_data = 0;
 	gpio.direction = 0;
 	gpio.control = 0;
 	gpio.state = 0x100;
@@ -1803,6 +1804,8 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 						process_gyro_sensor();
 						break;
 				}
+
+				gpio.prev_data = gpio.data;
 			}
 
 			break;

@@ -101,6 +101,7 @@ class AGB_MMU
 	struct gpio_controller
 	{
 		u8 data;
+		u8 prev_data;
 		u8 direction;
 		u8 control;
 		u16 state;
