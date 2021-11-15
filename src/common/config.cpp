@@ -162,6 +162,7 @@ namespace config
 	//Sound parameters
 	u8 volume = 128;
 	u8 old_volume = 0;
+	u32 sample_size = 0;
 	double sample_rate = 44100.0;
 	bool mute = false;
 	bool use_stereo = false;
@@ -1617,6 +1618,23 @@ bool parse_ini_file()
 			}
 		}
 
+		//Sample size
+		else if(ini_item == "#sample_size")
+		{
+			if((x + 1) < size)
+			{
+				util::from_str(ini_opts[++x], output);
+
+				if(output <= 4096) { config::sample_rate = output; }
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#sample_size) \n";
+				return false;
+			}
+		}
+
 		//Scaling factor
 		else if(ini_item == "#scaling_factor")
 		{
@@ -2860,6 +2878,14 @@ bool save_ini_file()
 			line_pos = output_count[x];
 
 			output_lines[line_pos] = "[#sample_rate:" + util::to_str(config::sample_rate) + "]";
+		}
+
+		//Sample size
+		else if(ini_item == "#sample_size")
+		{
+			line_pos = output_count[x];
+
+			output_lines[line_pos] = "[#sample_size:" + util::to_str(config::sample_size) + "]";
 		}
 
 		//Scaling factor
