@@ -96,7 +96,7 @@ bool NTR_APU::init()
     	desired_spec.freq = apu_stat.sample_rate;
 	desired_spec.format = AUDIO_S16SYS;
     	desired_spec.channels = 1;
-    	desired_spec.samples = 4096;
+    	desired_spec.samples = (config::sample_size) ? config::sample_size : 4096;
     	desired_spec.callback = ntr_audio_callback;
     	desired_spec.userdata = this;
 

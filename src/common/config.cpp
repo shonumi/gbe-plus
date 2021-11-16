@@ -1625,7 +1625,7 @@ bool parse_ini_file()
 			{
 				util::from_str(ini_opts[++x], output);
 
-				if(output <= 4096) { config::sample_rate = output; }
+				if(output <= 4096) { config::sample_size = output; }
 			}
 
 			else 
