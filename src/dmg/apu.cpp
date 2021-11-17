@@ -98,7 +98,7 @@ bool DMG_APU::init()
     	desired_spec.freq = apu_stat.sample_rate;
 	desired_spec.format = AUDIO_S16SYS;
     	desired_spec.channels = (config::use_stereo) ? 2 : 1;
-    	desired_spec.samples = (config::sample_size) ? config::sample_size : 1024;
+    	desired_spec.samples = (config::sample_size) ? config::sample_size : 256;
     	desired_spec.callback = dmg_audio_callback;
     	desired_spec.userdata = this;
 
