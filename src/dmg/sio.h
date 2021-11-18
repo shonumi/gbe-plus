@@ -302,8 +302,8 @@ class DMG_SIO
 	void singer_izek_fill_buffer(u32 index_start, u32 index_end);
 	void singer_izek_draw_line();
 	void singer_izek_stitch(u32 index);
-	void singer_izek_calculate_coordinates();
 	void singer_izek_update();
+	bool singer_izek_calculate_coordinates();
 	u8 singer_izek_adjust_y(u8 y_val);
 
 	void full_changer_process();

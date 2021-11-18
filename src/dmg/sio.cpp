@@ -1877,14 +1877,18 @@ void DMG_SIO::singer_izek_data_process()
 			//Wait for 0xBD to switch
 			if(sio_data == 0xBD)
 			{
-				singer_izek.counter = 0;
-				singer_izek.idle_count = 0;
-				singer_izek.current_state = SINGER_SEND_DATA;
+				//Verify that the coordinate data is correct
+				//If so, return to processing other data in the packet
+				if(singer_izek_calculate_coordinates())
+				{
+					singer_izek.counter = 0;
+					singer_izek.idle_count = 0;
+					singer_izek.current_state = SINGER_SEND_DATA;
+					singer_izek.current_index++;
+				}
 
-				//Calculate new start coordinates
-				singer_izek_calculate_coordinates();
-
-				singer_izek.current_index++;
+				//If coordinate data is marked as invalid, 0xBD byte is meant to be part of coordinate data
+				else { singer_izek.coord_buffer.push_back(sio_data); }
 			}
 
 			//Add data to buffer
@@ -2044,7 +2048,7 @@ void DMG_SIO::singer_izek_stitch(u32 index)
 }
 
 /****** Calculates new start coordinates when doing embroidery ******/
-void DMG_SIO::singer_izek_calculate_coordinates()
+bool DMG_SIO::singer_izek_calculate_coordinates()
 {
 	//Parse buffer to make sure no control codes interfere
 	std::vector <u8> c_buffer;
@@ -2074,10 +2078,11 @@ void DMG_SIO::singer_izek_calculate_coordinates()
 		else { c_buffer.push_back(singer_izek.coord_buffer[i]); }
 	}
 	
-
-	for(u32 i = 0; i < c_buffer.size();)
+	//Cycle through all received coordinates in buffer and determine XY shifts
+	for(s32 i = 0; i < c_buffer.size();)
 	{
-		if((i - c_buffer.size()) >= 4)
+		//Verify that 4 bytes of XY shift data exists
+		if((c_buffer.size() - i) >= 4)
 		{
 			u16 x = (c_buffer[i+1] << 8) | c_buffer[i];
 			u16 y = (c_buffer[i+3] << 8) | c_buffer[i+2];
@@ -2095,11 +2100,16 @@ void DMG_SIO::singer_izek_calculate_coordinates()
 			else { dy -= (y & 0xFF); }
 		}
 
+		//Otherwise, the shift data was collected too soon, try again later
+		else { return false; }
+
 		i += 5;
 	}
 
 	singer_izek.x_shift[index] = dx;
 	singer_izek.y_shift[index] = dy;
+
+	return true;
 }
 
 /****** Updates sewing machine subscreen on input ******/
