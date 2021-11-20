@@ -467,6 +467,20 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	freq_layout->addWidget(freq);
 	freq_set->setLayout(freq_layout);
 
+	//Sound settings - Sound samples
+	QWidget* sample_set = new QWidget(sound);
+	QLabel* sample_label = new QLabel("Sound Samples : ");
+	sound_samples = new QSpinBox(sample_set);
+	sound_samples->setToolTip("Overrides the number of sound samples SDL will use for all cores. This overrides default values.\nUsers are advised to leave this value at zero.");
+	sound_samples->setMaximum(4096);
+	sound_samples->setMinimum(0);
+
+	QHBoxLayout* sample_layout = new QHBoxLayout;
+	sample_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	sample_layout->addWidget(sample_label);
+	sample_layout->addWidget(sound_samples);
+	sample_set->setLayout(sample_layout);
+
 	//Sound settings - Sound on/off
 	QWidget* sound_on_set = new QWidget(sound);
 	QLabel* sound_on_label = new QLabel("Enable Sound");
@@ -512,6 +526,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	QVBoxLayout* audio_layout = new QVBoxLayout;
 	audio_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	audio_layout->addWidget(freq_set);
+	audio_layout->addWidget(sample_set);
 	audio_layout->addWidget(sound_on_set);
 	audio_layout->addWidget(stereo_enable_set);
 	audio_layout->addWidget(volume_set);
@@ -1405,6 +1420,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(load_cgfx, SIGNAL(stateChanged(int)), this, SLOT(set_cgfx()));
 	connect(volume, SIGNAL(valueChanged(int)), this, SLOT(volume_change()));
 	connect(freq, SIGNAL(currentIndexChanged(int)), this, SLOT(sample_rate_change()));
+	connect(sound_samples, SIGNAL(valueChanged(int)), this, SLOT(sample_size_change()));
 	connect(sound_on, SIGNAL(stateChanged(int)), this, SLOT(mute()));
 	connect(dead_zone, SIGNAL(valueChanged(int)), this, SLOT(dead_zone_change()));
 	connect(input_device, SIGNAL(currentIndexChanged(int)), this, SLOT(input_device_change()));
@@ -1866,6 +1882,9 @@ void gen_settings::set_ini_options()
 		case 44100: freq->setCurrentIndex(1); break;
 		case 48000: freq->setCurrentIndex(0); break;
 	}
+
+	//Sample size
+	sound_samples->setValue(config::sample_size);
 
 	//Volume option
 	volume->setValue(config::volume);
@@ -2349,6 +2368,12 @@ void gen_settings::sample_rate_change()
 		case 2: sample_rate = 22050.0; break;
 		case 3: sample_rate = 11025.0; break;
 	}
+}
+
+/****** Changes the core's sample size ******/
+void gen_settings::sample_size_change()
+{
+	config::sample_size = sound_samples->value();
 }
 
 /****** Sets a path via file browser ******/

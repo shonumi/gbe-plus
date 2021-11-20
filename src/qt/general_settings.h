@@ -79,6 +79,7 @@ class gen_settings : public QDialog
 
 	//Sound tab widgets
 	QComboBox* freq;
+	QSpinBox* sound_samples;
 	QSlider* volume;
 	QCheckBox* sound_on;
 	QCheckBox* stereo_enable;
@@ -252,6 +253,7 @@ class gen_settings : public QDialog
 	void set_cgfx();
 	void volume_change();
 	void sample_rate_change();
+	void sample_size_change();
 	void mute();
 	void set_paths(int index);
 	void rebuild_input_index();
