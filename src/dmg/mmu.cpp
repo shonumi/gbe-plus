@@ -2001,6 +2001,10 @@ bool DMG_MMU::read_file(std::string filename)
 	if((config::cart_type == DMG_GBMEM) && (cart.flash_stat != 0x40) && (file_size >= 0x100000))
 	{
 		cart.rom_size = 1024;
+
+		//Read map file for GB Memory Cartridge
+		std::string m_file = filename + ".map";
+		gb_mem_read_map(m_file);
 	}
 
 	//Let MBC1S access cart RAM area for MBC registers
@@ -2404,7 +2408,7 @@ void DMG_MMU::gb_mem_remap()
 	//Make sure GB Memory Cartridge ROM with menu is at least 1024KB
 	if(read_only_bank.size() < 64)
 	{
-		std::cout<<"MMU::Error - GB Memory Cartridge file is less than 1024KB\n";
+		std::cout<<"MMU::Error - GB Memory Cartridge ROM file is less than 1024KB\n";
 		return;
 	}
 	
@@ -2460,7 +2464,27 @@ void DMG_MMU::gb_mem_remap()
 	{
 		std::cout<<"MMU::Error - No index found in GB Memory Cartridge menu data\n";
 	}
-} 
+}
+
+/****** Reads 128-byte map file used for GB Memory Cartridge ******/
+bool DMG_MMU::gb_mem_read_map(std::string filename)
+{
+	std::ifstream map_file(filename.c_str(), std::ios::binary);
+
+	if(!map_file.is_open()) 
+	{ 
+		std::cout<<"MMU::Error - GB Memory Cartridge Map File " << filename << " could not be opened. Check file path or permissions.\n";
+		return false;
+	}
+
+	u8* ex_dat = &cart.gb_mem_map[0];
+	map_file.read((char*)ex_dat, 0x80);
+	map_file.close();
+
+	std::cout<<"MMU::Loaded GB Memory Cartridge Map File " << filename << "\n";
+
+	return true;
+}
 
 /****** Writes values to RAM as specified by the Gameshark code - Called by LCD during VBlank ******/
 void DMG_MMU::set_gs_cheats()

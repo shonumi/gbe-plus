@@ -129,6 +129,9 @@ class DMG_MMU
 		u8 tama_ram[256];
 		u8 tama_cmd;
 		u8 tama_out;
+
+		//GB Memory Cartridge
+		u8 gb_mem_map[128];
 	} cart;
 
 	u8 ir_signal;
@@ -224,6 +227,7 @@ class DMG_MMU
 	void grab_tama5_time(u8 index);
 
 	void gb_mem_remap();
+	bool gb_mem_read_map(std::string filename);
 
 	void set_gs_cheats();
 	void set_gg_cheats();
