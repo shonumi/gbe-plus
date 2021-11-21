@@ -107,6 +107,11 @@ void DMG_MMU::reset()
 	cart.tama_cmd = 0;
 	cart.tama_out = 0;
 
+	if(cart.flash_stat != 0x40)
+	{
+		for(u32 x = 0; x < 128; x++) { cart.gb_mem_map[x] = 0xFF; }
+	} 
+
 	ir_signal = 0;
 	ir_send = false;
 	ir_trigger = false;
@@ -2474,6 +2479,17 @@ bool DMG_MMU::gb_mem_read_map(std::string filename)
 	if(!map_file.is_open()) 
 	{ 
 		std::cout<<"MMU::Error - GB Memory Cartridge Map File " << filename << " could not be opened. Check file path or permissions.\n";
+		return false;
+	}
+
+	//Validate file size
+	map_file.seekg(0, map_file.end);
+	u32 map_size = map_file.tellg();
+	map_file.seekg(0, map_file.beg);
+
+	if(map_size != 128)
+	{
+		std::cout<<"MMU::Error - GB Memory Cartridge Map File size is " << std::dec << map_size << " bytes instead of 128 bytes.\n";
 		return false;
 	}
 
