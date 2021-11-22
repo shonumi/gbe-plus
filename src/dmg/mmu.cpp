@@ -2255,10 +2255,32 @@ bool DMG_MMU::load_backup(std::string filename)
 			//Read MBC RAM
 			if((cart.mbc_type != ROM_ONLY) && (cart.mbc_type != MBC7) && (cart.mbc_type != TAMA5))
 			{
-				for(int x = 0; x < 0x10; x++)
+				//Read GB Memory Cartridge save according to map data
+				if(config::cart_type == DMG_GBMEM)
 				{
-					u8* ex_ram = &random_access_bank[x][0];
-					sram.read((char*)ex_ram, 0x2000); 
+					u8 map_index = (cart.flash_io_bank * 3) & 0xF;
+					u8 sram_index = cart.gb_mem_map[map_index + 2];
+
+					u8 block_size = ((cart.gb_mem_map[map_index] & 0x3) << 1) | ((cart.gb_mem_map[map_index] & 0x80) >> 7);
+					if((block_size != 0) && (block_size != 3)) { block_size = 1; }
+
+					sram.seekg(0x2000 * map_index);
+
+					for(int x = 0; x < block_size; x++)
+					{
+						u8* ex_ram = &random_access_bank[x][0];
+						sram.read((char*)ex_ram, 0x2000); 
+					}
+				}
+				
+				//Read save data normally
+				else
+				{	
+					for(int x = 0; x < 0x10; x++)
+					{
+						u8* ex_ram = &random_access_bank[x][0];
+						sram.read((char*)ex_ram, 0x2000); 
+					}
 				}
 			}
 
@@ -2330,9 +2352,30 @@ bool DMG_MMU::save_backup(std::string filename)
 			//Save MBC RAM
 			if((cart.mbc_type != ROM_ONLY) && (cart.mbc_type != MBC7) && (cart.mbc_type != TAMA5))
 			{
-				for(int x = 0; x < 0x10; x++)
+				//Write GB Memory Cartridge save according to map data
+				if(config::cart_type == DMG_GBMEM)
 				{
-					sram.write(reinterpret_cast<char*> (&random_access_bank[x][0]), 0x2000); 
+					u8 map_index = (cart.flash_io_bank * 3) & 0xF;
+					u8 sram_index = cart.gb_mem_map[map_index + 2];
+
+					u8 block_size = ((cart.gb_mem_map[map_index] & 0x3) << 1) | ((cart.gb_mem_map[map_index] & 0x80) >> 7);
+					if((block_size != 0) && (block_size != 3)) { block_size = 1; }
+
+					sram.seekp(0x2000 * map_index);
+
+					for(int x = 0; x < block_size; x++)
+					{
+						sram.write(reinterpret_cast<char*> (&random_access_bank[x][0]), 0x2000);
+					}
+				}
+
+				//Write save data normally
+				else
+				{
+					for(int x = 0; x < 0x10; x++)
+					{
+						sram.write(reinterpret_cast<char*> (&random_access_bank[x][0]), 0x2000); 
+					}
 				}
 			}
 
@@ -2489,7 +2532,7 @@ bool DMG_MMU::gb_mem_read_map(std::string filename)
 
 	if(map_size != 128)
 	{
-		std::cout<<"MMU::Error - GB Memory Cartridge Map File size is " << std::dec << map_size << " bytes instead of 128 bytes.\n";
+		std::cout<<"MMU::Error - GB Memory Cartridge Map File size is " << std::dec << map_size << " bytes instead of 128 bytes.\n" << std::hex;
 		return false;
 	}
 
