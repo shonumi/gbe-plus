@@ -962,6 +962,7 @@ void DMG_core::handle_hotkey(SDL_Event& event)
 		if(core_mmu.cart.flash_stat == 0x40)
 		{
 			core_mmu.cart.flash_stat = 0;
+			core_mmu.cart.flash_io_bank = 0;
 			config::gb_type = core_mmu.cart.flash_cnt;
 		}
 

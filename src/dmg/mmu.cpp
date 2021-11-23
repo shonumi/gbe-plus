@@ -78,7 +78,7 @@ void DMG_MMU::reset()
 	if(cart.flash_stat != 0x40) { cart.flash_cnt = 0x0; }
 	cart.flash_cmd = 0;
 	if(cart.flash_stat != 0x40) { cart.flash_stat = 0x6; }
-	cart.flash_io_bank = 0;
+	if(cart.flash_stat != 0x40) { cart.flash_io_bank = 0; }
 	cart.flash_get_id = false;
 
 	for(int x = 0; x < 5; x++)
@@ -2258,13 +2258,13 @@ bool DMG_MMU::load_backup(std::string filename)
 				//Read GB Memory Cartridge save according to map data
 				if(config::cart_type == DMG_GBMEM)
 				{
-					u8 map_index = (cart.flash_io_bank * 3) & 0xF;
-					u8 sram_index = cart.gb_mem_map[map_index + 2];
+					u8 map_index = (cart.flash_io_bank * 3);
+					u8 sram_index = cart.gb_mem_map[map_index + 2] & 0xF;
 
-					u8 block_size = ((cart.gb_mem_map[map_index] & 0x3) << 1) | ((cart.gb_mem_map[map_index] & 0x80) >> 7);
+					u8 block_size = ((cart.gb_mem_map[map_index] & 0x3) << 1) | ((cart.gb_mem_map[map_index + 1] & 0x80) >> 7);
 					if((block_size != 0) && (block_size != 3)) { block_size = 1; }
 
-					sram.seekg(0x2000 * map_index);
+					sram.seekg(0x2000 * sram_index);
 
 					for(int x = 0; x < block_size; x++)
 					{
@@ -2355,13 +2355,13 @@ bool DMG_MMU::save_backup(std::string filename)
 				//Write GB Memory Cartridge save according to map data
 				if(config::cart_type == DMG_GBMEM)
 				{
-					u8 map_index = (cart.flash_io_bank * 3) & 0xF;
-					u8 sram_index = cart.gb_mem_map[map_index + 2];
+					u8 map_index = (cart.flash_io_bank * 3);
+					u8 sram_index = cart.gb_mem_map[map_index + 2] & 0xF;
 
-					u8 block_size = ((cart.gb_mem_map[map_index] & 0x3) << 1) | ((cart.gb_mem_map[map_index] & 0x80) >> 7);
+					u8 block_size = ((cart.gb_mem_map[map_index] & 0x3) << 1) | ((cart.gb_mem_map[map_index + 1] & 0x80) >> 7);
 					if((block_size != 0) && (block_size != 3)) { block_size = 1; }
 
-					sram.seekp(0x2000 * map_index);
+					sram.seekp(0x2000 * sram_index);
 
 					for(int x = 0; x < block_size; x++)
 					{
