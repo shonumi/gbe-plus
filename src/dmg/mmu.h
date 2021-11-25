@@ -228,6 +228,7 @@ class DMG_MMU
 
 	void gb_mem_remap();
 	bool gb_mem_read_map(std::string filename);
+	void gb_mem_format_save(std::string filename);
 
 	void set_gs_cheats();
 	void set_gg_cheats();

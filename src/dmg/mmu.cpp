@@ -2339,6 +2339,9 @@ bool DMG_MMU::save_backup(std::string filename)
 
 	if(cart.battery)
 	{
+		//Rearrange GB Memory Cartridge save data into regular a format that can be saved to disk
+		if(config::cart_type == DMG_GBMEM) { gb_mem_format_save(filename); }
+
 		std::ofstream sram(filename.c_str(), std::ios::binary);
 
 		if(!sram.is_open()) 
@@ -2352,30 +2355,9 @@ bool DMG_MMU::save_backup(std::string filename)
 			//Save MBC RAM
 			if((cart.mbc_type != ROM_ONLY) && (cart.mbc_type != MBC7) && (cart.mbc_type != TAMA5))
 			{
-				//Write GB Memory Cartridge save according to map data
-				if(config::cart_type == DMG_GBMEM)
+				for(int x = 0; x < 0x10; x++)
 				{
-					u8 map_index = (cart.flash_io_bank * 3);
-					u8 sram_index = cart.gb_mem_map[map_index + 2] & 0xF;
-
-					u8 block_size = ((cart.gb_mem_map[map_index] & 0x3) << 1) | ((cart.gb_mem_map[map_index + 1] & 0x80) >> 7);
-					if((block_size != 0) && (block_size != 3)) { block_size = 1; }
-
-					sram.seekp(0x2000 * sram_index);
-
-					for(int x = 0; x < block_size; x++)
-					{
-						sram.write(reinterpret_cast<char*> (&random_access_bank[x][0]), 0x2000);
-					}
-				}
-
-				//Write save data normally
-				else
-				{
-					for(int x = 0; x < 0x10; x++)
-					{
-						sram.write(reinterpret_cast<char*> (&random_access_bank[x][0]), 0x2000); 
-					}
+					sram.write(reinterpret_cast<char*> (&random_access_bank[x][0]), 0x2000); 
 				}
 			}
 
@@ -2543,6 +2525,53 @@ bool DMG_MMU::gb_mem_read_map(std::string filename)
 	std::cout<<"MMU::Loaded GB Memory Cartridge Map File " << filename << "\n";
 
 	return true;
+}
+
+/****** Reads existing save data and updates it correctly for games stored on the GB Memory Cartridge ******/
+void DMG_MMU::gb_mem_format_save(std::string filename)
+{
+	u8 map_index = (cart.flash_io_bank * 3);
+	u8 sram_index = cart.gb_mem_map[map_index + 2] & 0xF;
+
+	u8 block_size = ((cart.gb_mem_map[map_index] & 0x3) << 1) | ((cart.gb_mem_map[map_index + 1] & 0x80) >> 7);
+	if((block_size != 0) && (block_size != 3)) { block_size = 1; }
+
+	//Read current save data (32KB max)
+	u8 temp_sram[4][0x2000];
+	std::ifstream temp_file(filename.c_str(), std::ios::binary);
+
+	for(int x = 0; x < block_size; x++)
+	{
+		for(int y = 0; y < 0x2000; y++)
+		{
+			temp_sram[x][y] = random_access_bank[x][y];
+		}
+	}
+
+	//Read existing save data if available
+	random_access_bank.clear();
+	random_access_bank.resize(0x10);
+	for(int x = 0; x < 0x10; x++) { random_access_bank[x].resize(0x2000, 0); }
+
+	if(temp_file.is_open())
+	{
+		for(int x = 0; x < 0x10; x++)
+		{
+			u8* ex_ram = &random_access_bank[x][0];
+			temp_file.read((char*)ex_ram, 0x2000); 
+		}
+	}
+
+	temp_file.close();
+
+	//Merge existing save data with current save data
+	for(int x = 0; x < block_size; x++)
+	{
+		for(int y = 0; y < 0x2000; y++)
+		{
+			random_access_bank[sram_index + x][y] = temp_sram[x][y];
+		}
+	}
 }
 
 /****** Writes values to RAM as specified by the Gameshark code - Called by LCD during VBlank ******/
