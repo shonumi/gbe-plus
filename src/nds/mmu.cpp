@@ -117,7 +117,7 @@ void NTR_MMU::reset()
 	nds9_temp_if = 0x0;
 	nds9_ime = 0;
 	nds9_exmem = 0;
-	power_cnt1 = 0;
+	power_cnt1 = 0x820F;
 
 	gx_fifo_entry = 0;
 	gx_fifo_param_length = 0;
