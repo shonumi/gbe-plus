@@ -105,7 +105,7 @@ void NTR_MMU::reset()
 	nds7_temp_if = 0x0;
 	nds7_ime = 0;
 	nds7_exmem = 0;
-	power_cnt2 = 0;
+	power_cnt2 = 0x1;
 
 	nds9_bios.clear();
 	nds9_bios.resize(0xC00, 0);
