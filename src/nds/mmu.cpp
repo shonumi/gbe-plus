@@ -6387,6 +6387,9 @@ void NTR_MMU::setup_default_firmware()
 		firmware[0x3FF00 + x] = firmware[0x3FE00 + x];
 	}
 
+	//Set Update Counter for User Settings 1 higher than User Settings 0
+	firmware[0x3FF70] = (firmware[0x3FE70] + 1);
+
 	//Copy firmware user settings to RAM
 	for(u32 x = 0; x < 0x6C; x++)
 	{
