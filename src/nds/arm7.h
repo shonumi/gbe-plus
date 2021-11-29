@@ -193,6 +193,7 @@ class NTR_ARM7
 
 	s16 sync_cycles;
 	u16 system_cycles;
+	u8 cpu_timing[16][8];
 	bool re_sync;
 
 	NTR_MMU* mem;
@@ -216,6 +217,7 @@ class NTR_ARM7
 	void flush_pipeline();
 
 	void reset();
+	void setup_cpu_timing();
 
 	//Get and set ARM registers
 	u32 get_reg(u8 g_reg) const;

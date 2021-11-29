@@ -81,6 +81,8 @@ void NTR_ARM7::reset()
 		controllers.timer[x].enable = false;
 	}
 
+	//Setup CPU access timing
+
 	debug_message = 0xFF;
 	debug_code = 0;
 	debug_cycles = 0;
@@ -94,6 +96,77 @@ void NTR_ARM7::reset()
 	mem = NULL;
 
 	std::cout<<"CPU::ARM7 - Initialized\n";
+}
+
+/****** Sets up CPU access timing ******/
+void NTR_ARM7::setup_cpu_timing()
+{
+	//Populate default timings before setting specific timings
+	for(u32 x = 0; x < 16; x++)
+	{
+		for(u32 y = 0; y < 8; y++)
+		{
+			cpu_timing[x][y] = 2;
+		}
+	}
+
+	//Main Memory
+	cpu_timing[2][CODE_N16] = 8;
+	cpu_timing[2][CODE_S16] = 1;
+	cpu_timing[2][CODE_N32] = 9;
+	cpu_timing[2][CODE_S32] = 2;
+	cpu_timing[2][DATA_N16] = 9;
+	cpu_timing[2][DATA_S16] = 1;
+	cpu_timing[2][DATA_N32] = 10;
+	cpu_timing[2][DATA_S32] = 2;
+
+	//WRAM, BIOS, I/O, OAM
+	cpu_timing[3][CODE_N16] = 1;
+	cpu_timing[3][CODE_S16] = 1;
+	cpu_timing[3][CODE_N32] = 1;
+	cpu_timing[3][CODE_S32] = 1;
+	cpu_timing[3][DATA_N16] = 1;
+	cpu_timing[3][DATA_S16] = 1;
+	cpu_timing[3][DATA_N32] = 1;
+	cpu_timing[3][DATA_S32] = 1;
+
+	cpu_timing[4][CODE_N16] = 1;
+	cpu_timing[4][CODE_S16] = 1;
+	cpu_timing[4][CODE_N32] = 1;
+	cpu_timing[4][CODE_S32] = 1;
+	cpu_timing[4][DATA_N16] = 1;
+	cpu_timing[4][DATA_S16] = 1;
+	cpu_timing[4][DATA_N32] = 1;
+	cpu_timing[4][DATA_S32] = 1;
+
+	cpu_timing[7][CODE_N16] = 1;
+	cpu_timing[7][CODE_S16] = 1;
+	cpu_timing[7][CODE_N32] = 1;
+	cpu_timing[7][CODE_S32] = 1;
+	cpu_timing[7][DATA_N16] = 1;
+	cpu_timing[7][DATA_S16] = 1;
+	cpu_timing[7][DATA_N32] = 1;
+	cpu_timing[7][DATA_S32] = 1;
+
+	//VRAM, Palettes
+	cpu_timing[5][CODE_N16] = 1;
+	cpu_timing[5][CODE_S16] = 1;
+	cpu_timing[5][CODE_N32] = 2;
+	cpu_timing[5][CODE_S32] = 2;
+	cpu_timing[5][DATA_N16] = 1;
+	cpu_timing[5][DATA_S16] = 1;
+	cpu_timing[5][DATA_N32] = 2;
+	cpu_timing[5][DATA_S32] = 2;
+
+	//VRAM, Palettes
+	cpu_timing[6][CODE_N16] = 1;
+	cpu_timing[6][CODE_S16] = 1;
+	cpu_timing[6][CODE_N32] = 2;
+	cpu_timing[6][CODE_S32] = 2;
+	cpu_timing[6][DATA_N16] = 1;
+	cpu_timing[6][DATA_S16] = 1;
+	cpu_timing[6][DATA_N32] = 2;
+	cpu_timing[6][DATA_S32] = 2;
 }
 
 /****** CPU register getter ******/
