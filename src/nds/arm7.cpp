@@ -480,6 +480,9 @@ void NTR_ARM7::fetch()
 
 		//Set the operation to perform as UNDEFINED until decoded
 		instruction_operation[pipeline_pointer] = UNDEFINED;
+
+		//Clock CPU when retrieving opcodes - Account for sequential and non-sequential access
+		system_cycles += (instruction_operation[0] == PIPELINE_FILL) ? cpu_timing[reg.r15 >> 24][CODE_N16] : cpu_timing[reg.r15 >> 24][CODE_S16];
 	}
 
 	//Fetch ARM instructions
