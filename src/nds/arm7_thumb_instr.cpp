@@ -992,6 +992,7 @@ void NTR_ARM7::push_pop(u16 current_thumb_instruction)
 	u8 op = (current_thumb_instruction & 0x800) ? 1 : 0;
 	
 	u8 n_count = 0;
+	u8 r_count = 0;
 
 	//Grab n_count
 	for(int x = 0; x < 8; x++)
@@ -1004,18 +1005,17 @@ void NTR_ARM7::push_pop(u16 current_thumb_instruction)
 	{
 		//PUSH
 		case 0x0:
-			//Clock CPU and controllers - 1N
-			clock(reg.r15, CODE_N16);
-
 			//Optionally store LR onto the stack
 			if(pc_lr_bit) 
 			{
 				r13 -= 4;
 				mem_check_32(r13, lr, false);
-				set_reg(14, lr);  
+				set_reg(14, lr);
+				r_count++;
 
-				//Clock CPU and controllers - 1S
-				clock(r13, DATA_S32);
+				//Clock CPU and controllers - 2N
+				system_cycles += cpu_timing[r13 >> 24][DATA_N32];
+				system_cycles += cpu_timing[r13 >> 24][DATA_N32];
 			}
 
 			//Cycle through the register list
@@ -1027,11 +1027,23 @@ void NTR_ARM7::push_pop(u16 current_thumb_instruction)
 					u32 push_value = get_reg(x);
 					mem_check_32(r13, push_value, false);
 
-					//Clock CPU and controllers - (n)S
-					if((n_count - 1) != 0) { clock(r13, DATA_S32); n_count--; }
+					n_count--;
 
-					//Clock CPU and controllers - 1N
-					else { clock(r13, DATA_N32); x = 10; break; }
+					//Clock CPU and controllers - 2N
+					if(!r_count)
+					{
+						system_cycles += cpu_timing[r13 >> 24][DATA_N32];
+						system_cycles += cpu_timing[r13 >> 24][DATA_N32];
+						r_count++;
+					}
+
+					//Clock CPU and controllers - (x)S
+					else
+					{
+						system_cycles += cpu_timing[r13 >> 24][DATA_S32];
+					}
+
+					if(!n_count) { x = 10; break; }
 				}
 			}
 
@@ -1039,9 +1051,6 @@ void NTR_ARM7::push_pop(u16 current_thumb_instruction)
 
 		//POP
 		case 0x1:
-			//Clock CPU and controllers - 1N
-			clock(reg.r15, CODE_N16);
-			
 			//Cycle through the register list
 			for(int x = 0; x < 8; x++)
 			{
@@ -1052,8 +1061,18 @@ void NTR_ARM7::push_pop(u16 current_thumb_instruction)
 					set_reg(x, pop_value);
 					r13 += 4;
 
-					//Clock CPU and controllers - (n)S
-					if(n_count > 1) { clock(r13, DATA_S32); }
+					//Clock CPU and controllers - 1N
+					if(!r_count)
+					{
+						system_cycles += cpu_timing[r13 >> 24][DATA_N32];
+						r_count++;
+					}
+
+					//Clock CPU and controllers - (x)S
+					else
+					{
+						system_cycles += cpu_timing[r13 >> 24][DATA_S32];
+					}
 				}
 
 				r_list >>= 1;
@@ -1062,31 +1081,26 @@ void NTR_ARM7::push_pop(u16 current_thumb_instruction)
 			//Optionally load PC from the stack
 			if(pc_lr_bit) 
 			{
-				//Clock CPU and controllers - 1I
-				clock();
-
 				//Clock CPU and controllers - 1N
-				clock(r13, DATA_N32);
+				if(!r_count)
+				{
+					system_cycles += cpu_timing[r13 >> 24][DATA_N32];
+				}
 
-				//Clock CPU and controllers - 2S
+				//Clock CPU and controllers - (x)S
+				else
+				{
+					system_cycles += cpu_timing[r13 >> 24][DATA_S32];
+				}
+
 				mem_check_32(r13, reg.r15, true);
 				reg.r15 &= ~0x1;
 				r13 += 4;
 				needs_flush = true;
-
-				clock(reg.r15, CODE_S16);
-				clock((reg.r15 + 2), CODE_S16); 
 			}
 
-			//If PC not loaded, last cycles are Internal then Sequential
-			else
-			{
-				//Clock CPU and controllers - 1I
-				clock();
-
-				//Clock CPU and controllers - 1S
-				clock((reg.r15 + 2), CODE_S16);
-			}
+			//Clock CPU and controllers - 1I
+			system_cycles++;
 
 			break;
 	}
