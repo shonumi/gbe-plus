@@ -1124,6 +1124,7 @@ void NTR_ARM7::multiple_load_store(u16 current_thumb_instruction)
 	u32 base_addr = get_reg(base_reg);
 	u32 reg_value = 0;
 	u8 n_count = 0;
+	u8 r_count = 0;
 
 	u32 old_base = base_addr;
 	u8 transfer_reg = 0xFF;
@@ -1171,11 +1172,19 @@ void NTR_ARM7::multiple_load_store(u16 current_thumb_instruction)
 						base_addr += 4;
 						set_reg(base_reg, base_addr);
 
-						//Clock CPU and controllers - (n)S
-						if((n_count - 1) != 0) { clock(base_addr, DATA_S32); n_count--; }
+						//Clock CPU and controllers - 2N
+						if(!r_count)
+						{
+							system_cycles += cpu_timing[base_addr >> 24][DATA_N32];
+							system_cycles += cpu_timing[base_addr >> 24][DATA_N32];
+							r_count++;
+						}
 
-						//Clock CPU and controllers - 1N
-						else { clock(base_addr, DATA_N32); x = 10; break; }
+						//Clock CPU and controllers - (x)S
+						else
+						{
+							system_cycles += cpu_timing[base_addr >> 24][DATA_S32];
+						}
 					}
 
 					r_list >>= 1;
@@ -1218,18 +1227,25 @@ void NTR_ARM7::multiple_load_store(u16 current_thumb_instruction)
 						base_addr += 4;
 						if(write_back) { set_reg(base_reg, base_addr); }
 
-						//Clock CPU and controllers - (n)S
-						if(n_count > 1) { clock(base_addr, DATA_S32); }
+						//Clock CPU and controllers - 1N
+						if(!r_count)
+						{
+							system_cycles += cpu_timing[base_addr >> 24][DATA_N32];
+							r_count++;
+						}
+
+						//Clock CPU and controllers - (x)S
+						else
+						{
+							system_cycles += cpu_timing[base_addr >> 24][DATA_S32];
+						}
 					}
 
 					r_list >>= 1;
 				}
 
 				//Clock CPU and controllers - 1I
-				clock();
-
-				//Clock CPU and controllers - 1S
-				clock((reg.r15 + 2), CODE_S16);
+				system_cycles += 1;
 			}
 
 			//Special case with empty list
