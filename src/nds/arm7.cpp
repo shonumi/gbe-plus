@@ -82,6 +82,7 @@ void NTR_ARM7::reset()
 	}
 
 	//Setup CPU access timing
+	setup_cpu_timing();
 
 	debug_message = 0xFF;
 	debug_code = 0;
