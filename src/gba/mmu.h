@@ -34,7 +34,8 @@ class AGB_MMU
 		EEPROM,
 		FLASH_64,
 		FLASH_128,
-		SRAM
+		SRAM,
+		DACS,
 	};
 
 	//Cartridge GPIO-type enumerations
@@ -96,6 +97,13 @@ class AGB_MMU
 		bool grab_ids;
 		bool next_write;
 	} flash_ram;
+
+	//Structure to handle 8M DACS FLASH commands and writing
+	struct dacs_flash_controller
+	{
+		u8 current_command;
+		u8 status_register;
+	} dacs_flash; 
 
 	//Structure to handle GPIO reading and writing
 	struct gpio_controller
@@ -170,6 +178,9 @@ class AGB_MMU
 	void flash_erase_chip();
 	void flash_erase_sector(u32 sector);
 	void flash_switch_bank();
+
+	u8 read_dacs(u32 address);
+	void write_dacs(u32 address, u8 value);
 
 	//GPIO handling functions
 	void process_rtc();

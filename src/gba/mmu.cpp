@@ -48,6 +48,9 @@ void AGB_MMU::reset()
 	flash_ram.data[0].resize(0x10000, 0xFF);
 	flash_ram.data[1].resize(0x10000, 0xFF);
 
+	dacs_flash.current_command = 0;
+	dacs_flash.status_register = 0x80;
+
 	gpio.data = 0;
 	gpio.prev_data = 0;
 	gpio.direction = 0;
@@ -200,6 +203,7 @@ u8 AGB_MMU::read_u8(u32 address)
 			break;
 
 		case 0xD:
+			if(current_save_type == DACS) { return read_dacs(address); }
 			if(current_save_type != EEPROM) { address -= 0x4000000; }
 			break;
 
@@ -426,6 +430,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			break;
 
 		case 0xD:
+			if(current_save_type == DACS) { write_dacs(address, value); }
 			if(current_save_type != EEPROM) { address -= 0x4000000; }
 			break;
 
@@ -2112,6 +2117,17 @@ bool AGB_MMU::read_file(std::string filename)
 		{
 			switch(memory_map[x])
 			{
+				//8M DACS
+				case 0x41:
+					if((memory_map[x+1] == 0x47) && (memory_map[x+2] == 0x42) && (memory_map[x+3] == 0x38) && (memory_map[x+4] == 0x4D))
+					{
+						std::cout<<"MMU::8M DACS FLASH save type detected\n";
+						current_save_type = DACS;
+						return true;
+					}
+
+					break;
+
 				//EEPROM
 				case 0x45:
 					if((memory_map[x+1] == 0x45) && (memory_map[x+2] == 0x50) && (memory_map[x+3] == 0x52) && (memory_map[x+4] == 0x4F) && (memory_map[x+5] == 0x4D))
@@ -2175,6 +2191,11 @@ bool AGB_MMU::read_file(std::string filename)
 	//Otherwise, use specified save type
 	switch(config::agb_save_type)
 	{
+		case AGB_DACS_FLASH:
+			std::cout<<"MMU::Forcing 8M DACS FLASH save type\n";
+			current_save_type = DACS;
+			return true;
+
 		case AGB_SRAM:
 			std::cout<<"MMU::Forcing SRAM save type\n";
 			current_save_type = SRAM;
@@ -2636,6 +2657,79 @@ void AGB_MMU::flash_erase_sector(u32 sector)
 	for(u32 x = sector; x < (sector + 0x1000); x++) 
 	{ 
 		flash_ram.data[flash_ram.bank][(x & 0xFFFF)] = 0xFF; 
+	}
+}
+
+/****** Read 8-bit data from 8M DACS FLASH cartridge or its commands ******/
+u8 AGB_MMU::read_dacs(u32 address)
+{
+	//Determine if CPU is reading results of a FLASH command
+	if(dacs_flash.current_command)
+	{
+		switch(dacs_flash.current_command)
+		{
+			//Read FLASH IDS + Lock Bits
+			case 0x90:
+				if((address & 0xFFF) <= 0x07) { return 0; }
+				break;
+
+			//Read Status Register
+			default:
+				if((address & 0xFFF) == 0xAAA) { return dacs_flash.status_register;; }
+				else if((address & 0xFFF) == 0xAAB) { return 0; }
+		}
+	}
+
+	//Read from DACS as ROM
+	address -= 0x4000000;
+	return memory_map[address];
+}
+
+/****** Write 8-bit data to 8M DACS FLASH cartridge and send commands ******/
+void AGB_MMU::write_dacs(u32 address, u8 value)
+{
+	//Determine if CPU is sending a command/parameter
+	if((address & 0xFFF) == 0xAAA)
+	{
+		//Set Lock Bit Parameter
+		if((dacs_flash.current_command == 0x60) && ((value == 0x1) || (value == 0x77) || (value == 0xD0))) { dacs_flash.current_command = 0x60; }
+
+		//Block Erase
+		else if((dacs_flash.current_command == 0x20) && (value == 0xD0)) { dacs_flash.current_command = 0x20; }
+	
+		//Clear current command on reset
+		else if(value == 0xFF) { dacs_flash.current_command = 0; }
+
+		//Otherwise set new current command
+		else { dacs_flash.current_command = value; }
+	}
+
+	//Accept command for specific blocks
+	else if((address & 0xFFF) == 0x000)
+	{
+		//Set Lock Bit Parameter
+		if((dacs_flash.current_command == 0x60) && ((value == 0x1) || (value == 0x77) || (value == 0xD0))) { dacs_flash.current_command = 0x60; }
+
+		//Block Erase
+		else if((dacs_flash.current_command == 0x20) && (value == 0xD0)) { dacs_flash.current_command = 0x20; }
+
+		//Otherwise set new current command
+		else if((value == 0x60) || (value == 0x20)) { dacs_flash.current_command = value; }
+	}
+
+	//Process existing command if necessary
+	else
+	{
+		switch(dacs_flash.current_command)
+		{
+			//Write data to 8M DACS FLASH
+			case 0x10:
+			case 0x40:
+				address -= 0x4000000;
+				memory_map[address] = value;
+				break;
+
+		}
 	}
 }
 

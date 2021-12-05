@@ -49,6 +49,7 @@ enum special_cart_types
 	AGB_RUMBLE,
 	AGB_GYRO_SENSOR,
 	AGB_TILT_SENSOR,
+	AGB_8M_DACS,
 	NDS_IR_CART,
 };
 
@@ -60,6 +61,7 @@ enum gba_save_types
 	AGB_EEPROM,
 	AGB_FLASH64,
 	AGB_FLASH128,
+	AGB_DACS_FLASH,
 };
 
 namespace config
