@@ -2707,9 +2707,13 @@ u8 AGB_MMU::read_dacs(u32 address)
 /****** Write 8-bit data to 8M DACS FLASH cartridge and send commands ******/
 void AGB_MMU::write_dacs(u32 address, u8 value)
 {
+	bool do_command = true;
+
 	//Determine if CPU is sending a command/parameter
 	if((address & 0xFFF) == 0xAAA)
 	{
+		do_command = false;
+
 		//Set Lock Bit Parameter
 		if((dacs_flash.current_command == 0x60) && ((value == 0x1) || (value == 0x77) || (value == 0xD0))) { dacs_flash.current_command = 0x60; }
 
@@ -2723,21 +2727,29 @@ void AGB_MMU::write_dacs(u32 address, u8 value)
 		else { dacs_flash.current_command = value; }
 	}
 
+	else if((address & 0xFFF) == 0xAAB) { do_command = false; }
+
 	//Accept command for specific blocks
 	else if((address & 0xFFF) == 0x000)
 	{
+		do_command = false;
+
 		//Set Lock Bit Parameter
 		if((dacs_flash.current_command == 0x60) && ((value == 0x1) || (value == 0x77) || (value == 0xD0))) { dacs_flash.current_command = 0x60; }
 
 		//Block Erase
-		else if((dacs_flash.current_command == 0x20) && (value == 0xD0)) { dacs_flash.current_command = 0x20; }
+		else if((dacs_flash.current_command == 0x20) && (value == 0xD0))
+		{
+			dacs_flash.current_command = 0x20;
+			do_command = true;
+		}
 
 		//Otherwise set new current command
 		else if((value == 0x60) || (value == 0x20)) { dacs_flash.current_command = value; }
 	}
 
 	//Process existing command if necessary
-	else
+	if(do_command)
 	{
 		switch(dacs_flash.current_command)
 		{
@@ -2746,8 +2758,16 @@ void AGB_MMU::write_dacs(u32 address, u8 value)
 			case 0x40:
 				address -= 0x4000000;
 				memory_map[address] = value;
+
 				break;
 
+			//Block Erase 8KB
+			case 0x20:
+				address -= 0x4000000;
+				address &= ~0x1FFF;
+				for(u32 x = 0; x < 0x2000; x++) { memory_map[address++] = 0; }
+
+				break;
 		}
 	}
 }
