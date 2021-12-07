@@ -2123,6 +2123,7 @@ bool AGB_MMU::read_file(std::string filename)
 					{
 						std::cout<<"MMU::8M DACS FLASH save type detected\n";
 						current_save_type = DACS;
+						config::save_file = filename;
 						return true;
 					}
 
@@ -2194,6 +2195,7 @@ bool AGB_MMU::read_file(std::string filename)
 		case AGB_DACS_FLASH:
 			std::cout<<"MMU::Forcing 8M DACS FLASH save type\n";
 			current_save_type = DACS;
+			config::save_file = filename;
 			return true;
 
 		case AGB_SRAM:
@@ -2483,7 +2485,6 @@ bool AGB_MMU::save_backup(std::string filename)
 			return false;
 		}
 
-
 		//Grab data from 0xE000000 to 0xE00FFFF from FLASH RAM
 		for(u32 x = 0; x < 0x10000; x++)
 		{
@@ -2500,6 +2501,24 @@ bool AGB_MMU::save_backup(std::string filename)
 		file.close();
 
 		std::cout<<"MMU::Wrote save data file " << filename <<  "\n";
+	}
+
+	//Save 8M DACS FLASH
+	else if(current_save_type == DACS)
+	{
+		std::ofstream file(filename.c_str(), std::ios::binary);
+
+		if(!file.is_open()) 
+		{
+			std::cout<<"MMU::" << filename << " save data could not be written. Check file path or permissions. \n";
+			return false;
+		}
+
+		//Write the data to a file
+		file.write(reinterpret_cast<char*> (&memory_map[0x8000000]), 0x2000000);
+		file.close();
+
+		std::cout<<"MMU::Updated 8M DACS FLASH file " << filename <<  "\n";
 	}
 
 	return true;
