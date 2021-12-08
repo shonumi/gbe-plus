@@ -57,10 +57,10 @@ General Purpose: RCNT = 0x8000	| 0.77ms
 
 
 ***************************************************
-5. Communication Protocol - Command Upload
+5. Communication Protocol - Data & Command Upload
 ***************************************************
 
-The GBA sends 80 bytes serially to the Magical Watch instructing the device to return data that is later used to generate in-game items. During this phase, the GBA sets the direction of SC and SD as Output. SC is constantly set HIGH, and SD changes to represent the current bit being sent. Essentially, the GBA will write 0x8033 to RCNT to transmit a value of "1" and 0x8031 to transmit a value of "0". Bytes are sent MSB first.
+The GBA sends 80 bytes serially to the Magical Watch. The first portion stores a copy of the "Fairy Picturebook" data that the user has unlocked in the main game. The second portion instructs the device to return data that is later used to generate in-game items. During this phase, the GBA sets the direction of SC and SD as Output. SC is constantly set HIGH, and SD changes to represent the current bit being sent. Essentially, the GBA will write 0x8033 to RCNT to transmit a value of "1" and 0x8031 to transmit a value of "0". Bytes are sent MSB first.
 
 Before sending any bytes, a brief sync signal must be issued. After the first byte is sent, additional syncs must be sent in between each subsequent byte. After the last byte, the GBA sends a final sync signal. Typical transmissions look like this:
 
@@ -110,25 +110,27 @@ xxxx	| 0.65ms	| Bit 0 of Next Byte to Send
 0x8031	| 0.65ms	|
 -----------------------------------------------------------
 
-Mirumo de Pon! Hachinin no Toki no Yousei appears to send a specific set of commands to the Magical Watch. It is currently unknown what these commands are or how they control what data the GBA receives. These same 80 bytes are transferred to the watch:
+The first 8 bytes sent to the Magical Watch represent any entries in the "Fairy Picturebook" obtained by the player. These are gained by interacting with various characters throughout the game, and some are granted automatically as part of the story's progression. Each entry occupies a single bit, with "0" meaning the player has not met that character, and "1" meaning they have. There are a total of 60 entries, so only 7.5 bytes are actually used. The data here corresponds 1:1 to the player's "Fairy Picturebook" when reading the bytes LSB first from Byte 0 to Byte 7.
 
-0x1F 0x14 0x1E 0x40 0x81 0x00 0x3C 0x00
-0x58 0x40 0x88 0x48 0x70 0x40 0x50 0x00
-0x00 0x01 0x00 0x01 0x58 0x40 0x88 0x48
-0x70 0x40 0x50 0x00 0x19 0x06 0x19 0x06
-0x58 0x40 0x88 0x48 0x70 0x40 0x50 0x00
-0x19 0x06 0x19 0x06 0x58 0x40 0x88 0x48
-0x70 0x40 0x50 0x00 0x19 0x06 0x19 0x06
-0x58 0x40 0x88 0x48 0x70 0x40 0x50 0x00
-0x19 0x06 0x19 0x06 0x58 0x40 0x88 0x48
-0x70 0x40 0x50 0x00 0x19 0x06 0x19 0x06
+The other 72 bytes appear to be commands that tell the Magical Watch to retrieve data for several special items. There are evidently 6 commands issued during this time, each consisting of 12 bytes. The exact significance of each individual byte or command is currently unknown.
+
+-----------------------------------------------------------
+Commands 0 - 5
+-----------------------------------------------------------
+0x58 0x40 0x88 0x48 0x70 0x40 0x50 0x00 0x00 0x01 0x00 0x01
+0x58 0x40 0x88 0x48 0x70 0x40 0x50 0x00 0x19 0x06 0x19 0x06
+0x58 0x40 0x88 0x48 0x70 0x40 0x50 0x00 0x19 0x06 0x19 0x06
+0x58 0x40 0x88 0x48 0x70 0x40 0x50 0x00 0x19 0x06 0x19 0x06
+0x58 0x40 0x88 0x48 0x70 0x40 0x50 0x00 0x19 0x06 0x19 0x06
+0x58 0x40 0x88 0x48 0x70 0x40 0x50 0x00 0x19 0x06 0x19 0x06
+-----------------------------------------------------------
 
 
 ***************************************************
 6. Communication Protocol - Data Transfer
 ***************************************************
 
-After sending the commands mentioned above, the GBA will receive a total of 9 bytes from the Magical Watch. Mirumo de Pon! Hachinin no Toki no Yousei waits ~1.95ms after the Final Sync has completed. From there, bytes can be read serially, MSB first. The SI line is used to indicate the individual bits as well as a Stop Bit. The game follows this convention when reading the RCNT register for each byte:
+After sending the data and commands mentioned above, the GBA will receive a total of 9 bytes from the Magical Watch. Mirumo de Pon! Hachinin no Toki no Yousei waits ~1.95ms after the Final Sync has completed. From there, bytes can be read serially, MSB first. The SI line is used to indicate the individual bits as well as a Stop Bit. The game follows this convention when reading the RCNT register for each byte:
 
 -----------------------------------------------------------
 Read #	| Delay in ms 	| Description
