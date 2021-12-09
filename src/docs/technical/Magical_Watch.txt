@@ -15,7 +15,7 @@ The Magical Watch is a digital watch bundled with the GBA game Wagamama☆Fairy:
 
 - Runs on a CR2032 battery. Appears sensitive to battery charge levels, and even alerts players when battery is low/unusable.
 - Has one 3rd Generation Link Cable port to communicate with a GBA.
-- Features a small LCD dot matrix display for minor graphics.
+- Features a small 32x32 LCD dot matrix display for minor graphics.
 - Uses 3 buttons (forward, back, select) for menu navigation and playing minigames.
 - Produces sounds via built-in speaker.
 - Functions as a regular watch with time of day, current calendar date, and alarms.
@@ -28,8 +28,8 @@ The Magical Watch is a digital watch bundled with the GBA game Wagamama☆Fairy:
 The GBA sets its serial port to General Purpose mode to send or receive data with the Magical Watch. Its protocol consists of four distinct phases as listed below:
 
 * Start Signal
-* Command Upload
-* Data Transfer
+* Data & Command Upload
+* Data Download
 * Stop Signal
 
 Because the Magical Watch uses unknown components, a chip-on-board design encapsulated by a glob top, timing information for most transfers is also documented below. These are rough approximations based on how Mirumo de Pon! Hachinin no Toki no Yousei's code communicates with the Magical Watch.
@@ -127,7 +127,7 @@ Commands 0 - 5
 
 
 ***************************************************
-6. Communication Protocol - Data Transfer
+6. Communication Protocol - Data Download
 ***************************************************
 
 After sending the data and commands mentioned above, the GBA will receive a total of 9 bytes from the Magical Watch. Mirumo de Pon! Hachinin no Toki no Yousei waits ~1.95ms after the Final Sync has completed. From there, bytes can be read serially, MSB first. The SI line is used to indicate the individual bits as well as a Stop Bit. The game follows this convention when reading the RCNT register for each byte:

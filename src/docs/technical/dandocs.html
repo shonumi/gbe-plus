@@ -3058,8 +3058,8 @@ Not used - Set High		| Bits 8 - 15
 	<p class="list_item"><a href="#maw_gen">General Hardware Information</a></p>
 	<p class="list_item"><a href="#maw_ovr">Communication Protocol - Overview</a></p>
 	<p class="list_item"><a href="#maw_sta">Communication Protocol - Start Signal</a></p>
-	<p class="list_item"><a href="#maw_cmd">Communication Protocol - Command Upload</a></p>
-	<p class="list_item"><a href="#maw_dat">Communication Protocol - Data Transfer</a></p>
+	<p class="list_item"><a href="#maw_cmd">Communication Protocol - Data &#38; Command Upload</a></p>
+	<p class="list_item"><a href="#maw_dat">Communication Protocol - Data Download</a></p>
 	<p class="list_item"><a href="#maw_stp">Communication Protocol - Stop Signal</a></p>
 
 	<a name="maw_gen"></a>
@@ -3070,7 +3070,7 @@ Not used - Set High		| Bits 8 - 15
 	<ul>
 		<li class="list_item">Runs on a CR2032 battery. Appears sensitive to battery charge levels, and even alerts players when battery is low/unusable.</li>
 		<li class="list_item">Has one 3rd Generation Link Cable port to communicate with a GBA.</li>
-		<li class="list_item">Features a small LCD dot matrix display for minor graphics.</li>
+		<li class="list_item">Features a small 32x32 LCD dot matrix display for minor graphics.</li>
 		<li class="list_item">Uses 3 buttons (forward, back, select) for menu navigation and playing minigames.</li>
 		<li class="list_item">Produces sounds via built-in speaker.</li>
 		<li class="list_item">Functions as a regular watch with time of day, current calendar date, and alarms.</li>
@@ -3083,8 +3083,8 @@ Not used - Set High		| Bits 8 - 15
 
 	<ul>
 		<li class="list_item">Start Signal</li>
-		<li class="list_item">Command Upload</li>
-		<li class="list_item">Data Transfer</li>
+		<li class="list_item">Data &#38; Command Upload</li>
+		<li class="list_item">Data Download</li>
 		<li class="list_item">Stop Signal</li>
 	</ul>
 
@@ -3110,9 +3110,9 @@ General Purpose: RCNT = 0x8000	| 0.77ms
 -----------------------------------------------------------</code>
 
 	<a name="maw_cmd"></a>
-	<p class="gray_title">[Magical Watch] : Communication Protocol - Command Upload</p>
+	<p class="gray_title">[Magical Watch] : Communication Protocol - Data &#38; Command Upload</p>
 
-	<p>The GBA sends 80 bytes serially to the Magical Watch instructing the device to return data that is later used to generate in-game items. During this phase, the GBA sets the direction of SC and SD as Output. SC is constantly set HIGH, and SD changes to represent the current bit being sent. Essentially, the GBA will write 0x8033 to RCNT to transmit a value of &#34;1&#34; and 0x8031 to transmit a value of &#34;0&#34;. Bytes are sent MSB first.</p>
+	<p>The GBA sends 80 bytes serially to the Magical Watch. The first portion stores a copy of the &#34;Fairy Picturebook&#34; data that the user has unlocked in the main game. The second portion instructs the device to return data that is later used to generate in-game items. During this phase, the GBA sets the direction of SC and SD as Output. SC is constantly set HIGH, and SD changes to represent the current bit being sent. Essentially, the GBA will write 0x8033 to RCNT to transmit a value of &#34;1&#34; and 0x8031 to transmit a value of &#34;0&#34;. Bytes are sent MSB first.</p>
 
 	<p>Before sending any bytes, a brief sync signal must be issued. After the first byte is sent, additional syncs must be sent in between each subsequent byte. After the last byte, the GBA sends a final sync signal. Typical transmissions look like this:</p>
 
@@ -3162,18 +3162,20 @@ xxxx	| 0.65ms	| Bit 0 of Next Byte to Send
 0x8031	| 0.65ms	|
 -----------------------------------------------------------</code>
 
-	<p>Mirumo de Pon! Hachinin no Toki no Yousei appears to send a specific set of commands to the Magical Watch. It is currently unknown what these commands are or how they control what data the GBA receives. These same 80 bytes are transferred to the watch:</p>
+	<p>The first 8 bytes sent to the Magical Watch represent any entries in the &#34;Fairy Picturebook&#34; obtained by the player. These are gained by interacting with various characters throughout the game, and some are granted automatically as part of the story&#39;s progression. Each entry occupies a single bit, with &#34;0&#34; meaning the player has not met that character, and &#34;1&#34; meaning they have. There are a total of 60 entries, so only 7.5 bytes are actually used. The data here corresponds 1:1 to the player&#39;s &#34;Fairy Picturebook&#34; when reading the bytes LSB first from Byte 0 to Byte 7.</p>
 
-<code>0x1F 0x14 0x1E 0x40 0x81 0x00 0x3C 0x00
-0x58 0x40 0x88 0x48 0x70 0x40 0x50 0x00
-0x00 0x01 0x00 0x01 0x58 0x40 0x88 0x48
-0x70 0x40 0x50 0x00 0x19 0x06 0x19 0x06
-0x58 0x40 0x88 0x48 0x70 0x40 0x50 0x00
-0x19 0x06 0x19 0x06 0x58 0x40 0x88 0x48
-0x70 0x40 0x50 0x00 0x19 0x06 0x19 0x06
-0x58 0x40 0x88 0x48 0x70 0x40 0x50 0x00
-0x19 0x06 0x19 0x06 0x58 0x40 0x88 0x48
-0x70 0x40 0x50 0x00 0x19 0x06 0x19 0x06</code>
+	<p>The other 72 bytes appear to be commands that tell the Magical Watch to retrieve data for several special items. There are evidently 6 commands issued during this time, each consisting of 12 bytes. The exact significance of each individual byte or command is currently unknown.</p>
+
+<code>-----------------------------------------------------------
+Commands 0 - 5
+-----------------------------------------------------------
+0x58 0x40 0x88 0x48 0x70 0x40 0x50 0x00 0x00 0x01 0x00 0x01
+0x58 0x40 0x88 0x48 0x70 0x40 0x50 0x00 0x19 0x06 0x19 0x06
+0x58 0x40 0x88 0x48 0x70 0x40 0x50 0x00 0x19 0x06 0x19 0x06
+0x58 0x40 0x88 0x48 0x70 0x40 0x50 0x00 0x19 0x06 0x19 0x06
+0x58 0x40 0x88 0x48 0x70 0x40 0x50 0x00 0x19 0x06 0x19 0x06
+0x58 0x40 0x88 0x48 0x70 0x40 0x50 0x00 0x19 0x06 0x19 0x06
+-----------------------------------------------------------</code>
 
 	<a name="maw_dat"></a>
 	<p class="gray_title">[Magical Watch] : Communication Protocol - Data Transfer</p>
