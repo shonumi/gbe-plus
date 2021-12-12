@@ -81,7 +81,7 @@ READ-32 FROM 0xDF00000			//Read 16-bit Manufacture code + 16-bit Lock Bit data
 WRITE-16 0x00FF to 0xDFE0AAA		//Reset, also exits ID Mode
 -----------------------------------------------------------
 
-Note that when entering ID Mode, reading data normallyOther commands don't appear to rely on writing to the 0x----554 addresses. Instead, they're issued as follows:
+Other commands don't appear to rely on writing to the 0x----554 addresses. Instead, they're issued as follows:
 
 -----------------------------------------------------------
 WRITE-16 COMMAND to 0xDFE0AAA
@@ -113,7 +113,7 @@ Bit		| Function
 4		|
 5		|
 6		|
-7		| Write Status, 0 = Ready, 1 = Busy
+7		| Write Status, 0 = Busy, 1 = Ready
 -----------------------------------------------------------
 
 When reading from any 0x----AAA address, it appears to return the Status Register for that block (e.g. if the program needs to determine if a specific block's Lock Bit is set). Otherwise, reading any other address will return data from flash memory or zeroes if the area is outside the mapped 1MB ROM.
