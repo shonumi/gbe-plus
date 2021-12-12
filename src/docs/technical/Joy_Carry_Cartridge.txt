@@ -71,16 +71,17 @@ WRITE-16 0x00F0 to 0xDFE0000		//Terminate ID Mode
 
 WRITE-16 0x0055 to 0xDFE0554
 WRITE-16 0x00AA to 0xDFE0AAA
-WRITE-16 0x00E0 to 0xDFE0AAA		//???
+WRITE-16 0x00E0 to 0xDFE0554		//???
 
 WRITE-16 0x0055 to 0xDFE0554
 WRITE-16 0x00AA to 0xDFE0AAA
-WRITE-16 0x00E0 to 0xDFE0AAA		//???
+WRITE-16 0x00E0 to 0xDFE0554		//???
 
 READ-32 FROM 0xDF00000			//Read 16-bit Manufacture code + 16-bit Lock Bit data
+WRITE-16 0x00FF to 0xDFE0AAA		//Reset, also exits ID Mode
 -----------------------------------------------------------
 
-Other commands don't appear to rely on writing to the 0x----554 addresses. Instead, they're issued as follows:
+Note that when entering ID Mode, reading data normallyOther commands don't appear to rely on writing to the 0x----554 addresses. Instead, they're issued as follows:
 
 -----------------------------------------------------------
 WRITE-16 COMMAND to 0xDFE0AAA
@@ -94,8 +95,29 @@ or
 WRITE-16 PARAMETER to 0xDF-----		//Issues command parameters for specific 8KB block
 -----------------------------------------------------------
 
-When reading from any 0x----AAA address, it will return the Status Register for that block (e.g. if the program needs to determine if a specific block's Lock Bit is set). Otherwise, reading any other address will return data from flash memory or zeroes if the area is outside the mapped 1MB ROM.
-
-It should be noted that the software often issues an unknown parameter (0x77) to the Set Lock Bit command. It is not well understood what this does exactly or how it affects the status register.
-
 The above information is the bare minimum necesary for operating the Joy Carry Cartridge via the Game Boy Advance or GameCube. For more detailed information beyond the scope of this document, refer to other similar Sharp flash components with available datasheets such as the LH28F800BJE.
+
+***************************************************
+6. Status Register
+***************************************************
+
+The Status Register monitors the state of the flash controller. It works on a per-block level, typically reporting on the write or protection status of that block. While the LH28F800BLE should more or less resemble similar controllers, only the following status bits have been verified:
+
+-----------------------------------------------------------
+Bit		| Function
+-----------------------------------------------------------
+0		|
+1		| Device Protection Status, 0 = Unlocked, 1 = Locked
+2		|
+3		|
+4		|
+5		|
+6		|
+7		| Write Status, 0 = Ready, 1 = Busy
+-----------------------------------------------------------
+
+When reading from any 0x----AAA address, it appears to return the Status Register for that block (e.g. if the program needs to determine if a specific block's Lock Bit is set). Otherwise, reading any other address will return data from flash memory or zeroes if the area is outside the mapped 1MB ROM.
+
+It should be noted that the software often issues an unknown parameter (0x77) to the Set Lock Bit command. It is not well understood what this does exactly or how it affects the Status Register.
+
+Also regarding the Status Register, both Igo Mondaishuu and Keitai Magnet Goban check it to assess whether the flash controller responds in a timely fashion. On boot, the software are particularly concerned with the Write Status and will abort initial flash operations such as verifying save data. Failing this part will not stop the programs from attempting to write data to flash memory later on, however. For the rest of flash operations, the programs generally examine whether a block is locked or unlocked. If a block is locked, they will abort writing any new save data.
