@@ -754,6 +754,12 @@ bool parse_cli_args()
 			//Use GBA tilt sensor for Yoshi Topsy Turvy aka Universal Gravitation
 			else if(config::cli_args[x] == "--agb-tilt-sensor") { config::cart_type = AGB_TILT_SENSOR; }
 
+			//Use GBA 8M DACS for Hikaru no Go 3
+			else if(config::cli_args[x] == "--agb-dacs") { config::cart_type = AGB_8M_DACS; }
+
+			//Use GBA AM3 mapper
+			else if(config::cli_args[x] == "--agb-am3") { config::cart_type = AGB_AM3; }
+
 			//Use Auto-Detect for GBA saves
 			else if(config::cli_args[x] == "--save-auto") { config::agb_save_type = AGB_AUTO_DETECT; }
 

@@ -50,6 +50,7 @@ enum special_cart_types
 	AGB_GYRO_SENSOR,
 	AGB_TILT_SENSOR,
 	AGB_8M_DACS,
+	AGB_AM3,
 	NDS_IR_CART,
 };
 
