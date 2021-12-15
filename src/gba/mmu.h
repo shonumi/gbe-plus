@@ -103,7 +103,18 @@ class AGB_MMU
 	{
 		u8 current_command;
 		u8 status_register;
-	} dacs_flash; 
+	} dacs_flash;
+
+	//Structure to handle AM3 SmartMedia cards
+	struct am3_smart_media
+	{
+		u16 blk_size;
+		u16 blk_stat;
+		u32 current_block;
+		u32 blk_addr;
+		u32 blk_size_list[8];
+		std::vector<u8> card_data;
+	} am3;
 
 	//Structure to handle GPIO reading and writing
 	struct gpio_controller
@@ -181,6 +192,8 @@ class AGB_MMU
 
 	u8 read_dacs(u32 address);
 	void write_dacs(u32 address, u8 value);
+
+	void write_am3(u32 address, u8 value);
 
 	//GPIO handling functions
 	void process_rtc();

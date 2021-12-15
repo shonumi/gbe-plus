@@ -51,6 +51,13 @@ void AGB_MMU::reset()
 	dacs_flash.current_command = 0;
 	dacs_flash.status_register = 0x80;
 
+	am3.blk_size = 0x400;
+	am3.blk_stat = 0;
+	am3.current_block = 0;
+	am3.blk_addr = 0x8000000;
+	am3.blk_size_list[0] = 11;
+	am3.card_data.clear();
+
 	gpio.data = 0;
 	gpio.prev_data = 0;
 	gpio.direction = 0;
@@ -349,6 +356,34 @@ u8 AGB_MMU::read_u8(u32 address)
 			else { return memory_map[GPIO_CNT]; }
 			break;
 
+		//AM3 Block Size:
+		case AM_BLK_SIZE: return (config::cart_type == AGB_AM3) ? (am3.blk_size & 0xFF) : memory_map[address]; break;
+		case AM_BLK_SIZE+1: return (config::cart_type == AGB_AM3) ? ((am3.blk_size >> 8) & 0xFF) : memory_map[address]; break;
+
+		//AM3 Block Addr:
+		case AM_BLK_ADDR: return (config::cart_type == AGB_AM3) ? (am3.blk_addr & 0xFF) : memory_map[address]; break;
+		case AM_BLK_ADDR+1: return (config::cart_type == AGB_AM3) ? ((am3.blk_addr >> 8) & 0xFF) : memory_map[address]; break;
+		case AM_BLK_ADDR+2: return (config::cart_type == AGB_AM3) ? ((am3.blk_addr >> 16) & 0xFF) : memory_map[address]; break;
+		case AM_BLK_ADDR+3: return (config::cart_type == AGB_AM3) ? ((am3.blk_addr >> 24) & 0xFF) : memory_map[address]; break;
+
+		//AM3 Block Status
+		case AM_BLK_STAT:
+			if(config::cart_type == AGB_AM3)
+			{
+				//Perform 1KB block switch
+				if(am3.blk_stat == 0x09)
+				{
+					am3.current_block++;
+					for(u32 x = 0; x < 0x400; x++) { memory_map[0x8000000 + x] = am3.card_data[(am3.current_block * 0x400) + x]; }
+					am3.blk_stat = (am3.current_block == am3.blk_size_list[0]) ? 0x100 : 0;
+					write_u16_fast(AM_BLK_STAT,  am3.blk_stat);
+					return 0x09;
+				}
+			}
+
+			return memory_map[address];
+			break;
+
 		default:
 			return memory_map[address];
 	}
@@ -394,7 +429,6 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 		case 0x1:
 		case 0x4:
 		case 0x6:
-		case 0x8:
 		case 0x9:
 			break;
 
@@ -416,6 +450,11 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 		//OAM 32KB mirror
 		case 0x7:
 			address &= 0x7007FFF;
+			break;
+
+		//ROM Waitstate 0
+		case 0x8:
+			if(config::cart_type == AGB_AM3) { write_am3(address, value); }
 			break;
 
 		//ROM Waitstate 1 (mirror of Waitstate 0)
@@ -2028,6 +2067,22 @@ bool AGB_MMU::read_file(std::string filename)
 
 	u8* ex_mem = &memory_map[0x8000000];
 
+	//For AM3 SmartMedia card dumps, only read 1st 1KB
+	//Also, forcibly disable saves for this type of cart
+	if(config::cart_type == AGB_AM3)
+	{
+		//Read in all cart data for AM3 first
+		am3.card_data.clear();
+		am3.card_data.resize(file_size, 0x00);
+
+		u8* am_mem = &am3.card_data[0];
+		file.read((char*)am_mem, file_size);
+		file.seekg(0, file.beg);
+
+		file_size = 0x400;
+		config::agb_save_type = AGB_NO_SAVE;
+	}
+
 	//Read data from the ROM file
 	file.read((char*)ex_mem, file_size);
 
@@ -2771,6 +2826,51 @@ void AGB_MMU::write_dacs(u32 address, u8 value)
 		}
 	}
 }
+
+/****** Writes data to AM3 cartridge I/O ******/
+void AGB_MMU::write_am3(u32 address, u8 value)
+{
+	u16 prev_value = 0;
+
+	switch(address)
+	{
+		case AM_BLK_SIZE:
+		case AM_BLK_SIZE+1:
+			std::cout<<"AM3 BLK SIZE -> 0x" << (u32)value << "\n";
+			break;
+
+		case AM_BLK_ADDR:
+		case AM_BLK_ADDR+1:
+		case AM_BLK_ADDR+2:
+		case AM_BLK_ADDR+3:
+			std::cout<<"AM3 BLK ADDR WRITE -> 0x" << (u32)value << "\n";
+			break;
+
+		case AM_BLK_STAT:
+		case AM_BLK_STAT+1:
+			if(address & 0x1)
+			{
+				am3.blk_stat &= ~0xFF00;
+				am3.blk_stat |= (value << 8);
+			}
+
+			else
+			{
+				am3.blk_stat &= ~0xFF;
+				am3.blk_stat |= value;
+			}
+
+			write_u16_fast(AM_BLK_STAT, am3.blk_stat);
+			std::cout<<"AM3 BLK STAT WRITE -> 0x" << (u32)value << "\n";
+
+			break;
+
+		default:
+			std::cout<<"UNKNOWN AM3 WRITE -> 0x" << address << " :: 0x" << (u32)value << "\n";
+	}
+}
+
+			
 
 /****** Continually processes motion in specialty carts (for use by other components outside MMU like LCD) ******/
 void AGB_MMU::process_motion()
