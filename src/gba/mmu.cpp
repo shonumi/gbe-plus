@@ -51,6 +51,7 @@ void AGB_MMU::reset()
 	dacs_flash.current_command = 0;
 	dacs_flash.status_register = 0x80;
 
+	am3.op_delay = 0;
 	am3.blk_size = 0x400;
 	am3.blk_stat = 0;
 	am3.current_block = 0;
@@ -368,20 +369,56 @@ u8 AGB_MMU::read_u8(u32 address)
 
 		//AM3 Block Status
 		case AM_BLK_STAT:
+			return (am3.blk_stat & 0xFF);
+			break;
+
+		//AM3 Block Status
+		case AM_BLK_STAT+1:
 			if(config::cart_type == AGB_AM3)
 			{
-				//Perform 1KB block switch
-				if(am3.blk_stat == 0x09)
+				//Delay operation (and update AM_BLK_STAT if necessary) - Based on CPU reads in GBE+ instead of execution time
+				if(am3.op_delay)
 				{
-					am3.current_block++;
-					for(u32 x = 0; x < 0x400; x++) { memory_map[0x8000000 + x] = am3.card_data[(am3.current_block * 0x400) + x]; }
-					am3.blk_stat = (am3.current_block == am3.blk_size_list[0]) ? 0x100 : 0;
-					write_u16_fast(AM_BLK_STAT,  am3.blk_stat);
-					return 0x09;
+					am3.op_delay--;
+
+					//Update operation status in AM_BLK_STAT
+					if((am3.blk_stat == 0x0B) && (am3.op_delay == 1))
+					{
+						am3.blk_stat |= 0x4000;
+						write_u16_fast(AM_BLK_STAT,  am3.blk_stat);
+					}
+
+					//Perform operation after delays
+					else if(am3.op_delay == 0)
+					{
+						//Perform 1KB block switch
+						if((am3.blk_stat & 0xFF) == 0x09)
+						{
+							am3.current_block++;						
+							for(u32 x = 0; x < 0x400; x++) { memory_map[0x8000000 + x] = am3.card_data[(am3.current_block * 0x400) + x]; }
+
+							am3.blk_stat = (am3.current_block == am3.blk_size_list[0]) ? 0x100 : 0;
+							write_u16_fast(AM_BLK_STAT,  am3.blk_stat);
+						}
+
+						//Perform some... other operation
+						else if((am3.blk_stat & 0xFF) == 0x0B)
+						{
+							am3.blk_stat = 0;
+							write_u16_fast(AM_BLK_STAT,  am3.blk_stat);
+						}
+
+						//Perform some... other operation
+						else if((am3.blk_stat & 0xFF) == 0x01)
+						{
+							am3.blk_stat = 0;
+							write_u16_fast(AM_BLK_STAT,  am3.blk_stat);
+						}
+					}
 				}
 			}
 
-			return memory_map[address];
+			return ((am3.blk_stat >> 8) & 0xFF);
 			break;
 
 		default:
@@ -2860,7 +2897,12 @@ void AGB_MMU::write_am3(u32 address, u8 value)
 				am3.blk_stat |= value;
 			}
 
+			//Perform specific actions when settings certain bits - Operation is delayed a bit, emulated here based on CPU reads instead of actual execution time
+			if(am3.blk_stat & 0x01) { am3.op_delay = 5; }
+
+			//Update AM_BLK_STAT I/O register
 			write_u16_fast(AM_BLK_STAT, am3.blk_stat);
+
 			std::cout<<"AM3 BLK STAT WRITE -> 0x" << (u32)value << "\n";
 
 			break;

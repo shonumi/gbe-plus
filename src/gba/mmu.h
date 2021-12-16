@@ -108,6 +108,7 @@ class AGB_MMU
 	//Structure to handle AM3 SmartMedia cards
 	struct am3_smart_media
 	{
+		u8 op_delay;
 		u16 blk_size;
 		u16 blk_stat;
 		u32 current_block;
