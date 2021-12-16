@@ -113,7 +113,9 @@ class AGB_MMU
 		u16 blk_stat;
 		u32 current_block;
 		u32 blk_addr;
-		u32 blk_size_list[8];
+		u32 base_addr;
+
+		std::vector<u8> bootstrap_data;
 		std::vector<u8> card_data;
 	} am3;
 

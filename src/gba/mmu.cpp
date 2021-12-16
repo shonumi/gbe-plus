@@ -56,7 +56,8 @@ void AGB_MMU::reset()
 	am3.blk_stat = 0;
 	am3.current_block = 0;
 	am3.blk_addr = 0x8000000;
-	am3.blk_size_list[0] = 11;
+	am3.base_addr = 0;
+	am3.bootstrap_data.clear();
 	am3.card_data.clear();
 
 	gpio.data = 0;
@@ -381,7 +382,7 @@ u8 AGB_MMU::read_u8(u32 address)
 				{
 					am3.op_delay--;
 
-					//Update operation status in AM_BLK_STAT
+					//Update AM_BLK_STAT - AM3 I/O ready to write
 					if((am3.blk_stat == 0x0B) && (am3.op_delay == 1))
 					{
 						am3.blk_stat |= 0x4000;
@@ -391,26 +392,50 @@ u8 AGB_MMU::read_u8(u32 address)
 					//Perform operation after delays
 					else if(am3.op_delay == 0)
 					{
-						//Perform 1KB block switch
+						//Read 1KB from bootstrap
 						if((am3.blk_stat & 0xFF) == 0x09)
 						{
-							am3.current_block++;						
-							for(u32 x = 0; x < 0x400; x++) { memory_map[0x8000000 + x] = am3.card_data[(am3.current_block * 0x400) + x]; }
+							am3.current_block++;
 
-							am3.blk_stat = (am3.current_block == am3.blk_size_list[0]) ? 0x100 : 0;
+							//Copy data blocks from bootstrap
+							for(u32 x = 0; x < 0x400; x++)
+							{
+								memory_map[0x8000000 + x] = am3.bootstrap_data[(am3.current_block * 0x400) + x];
+							}
+
+							//Set flag when all bootstrap blocks have been read
+							if(((am3.current_block + 1) * 0x400) >= am3.bootstrap_data.size())
+							{
+								am3.blk_stat = 0x100;
+								am3.current_block = 0;
+							}
+
+							else
+							{
+								am3.blk_stat = 0;
+							}
+
 							write_u16_fast(AM_BLK_STAT,  am3.blk_stat);
 						}
 
-						//Perform some... other operation
+						//Finish AM3 I/O Write
 						else if((am3.blk_stat & 0xFF) == 0x0B)
 						{
 							am3.blk_stat = 0;
 							write_u16_fast(AM_BLK_STAT,  am3.blk_stat);
 						}
 
-						//Perform some... other operation
+						//Read 1KB from SmartMedia card
 						else if((am3.blk_stat & 0xFF) == 0x01)
 						{
+							//Copy data blocks from SmartMedia
+							for(u32 x = 0; x < 0x400; x++)
+							{
+								memory_map[0x8000000 + x] = am3.card_data[am3.base_addr + (am3.current_block * 0x400) + x];
+							}
+
+							am3.current_block++;
+
 							am3.blk_stat = 0;
 							write_u16_fast(AM_BLK_STAT,  am3.blk_stat);
 						}
