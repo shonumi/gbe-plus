@@ -2133,6 +2133,14 @@ bool AGB_MMU::read_file(std::string filename)
 	//Also, forcibly disable saves for this type of cart
 	if(config::cart_type == AGB_AM3)
 	{
+		//Read bootstrap file first
+		std::string bs_file = config::data_path + "bootstrap.gba";
+		if(!read_bootstrap(bs_file))
+		{
+			file.close();
+			return false;
+		}
+
 		//Read in all cart data for AM3 first
 		am3.card_data.clear();
 		am3.card_data.resize(file_size, 0x00);
@@ -2141,12 +2149,32 @@ bool AGB_MMU::read_file(std::string filename)
 		file.read((char*)am_mem, file_size);
 		file.seekg(0, file.beg);
 
+		bool asig_found = false;
+
+		//Search for base address "ASIG" section
+		for(u32 x = 0; x < file_size; x += 4)
+		{
+			if((am3.card_data[x] == 0x41) && (am3.card_data[x + 1] == 0x53) && (am3.card_data[x + 2] == 0x49) && (am3.card_data[x + 3] == 0x47))
+			{
+				am3.base_addr = x;
+				asig_found = true;
+				break;
+			}
+		}
+
+		if(!asig_found)
+		{
+			std::cout<<"MMU::Error - AM3 SmartMedia card data has no ASIG block\n";
+			file.close();
+			return false;
+		}
+
 		file_size = 0x400;
-		config::agb_save_type = AGB_NO_SAVE;
+		config::agb_save_type = AGB_NO_SAVE;	
 	}
 
 	//Read data from the ROM file
-	file.read((char*)ex_mem, file_size);
+	else { file.read((char*)ex_mem, file_size); }
 
 	file.close();
 
@@ -2375,6 +2403,40 @@ bool AGB_MMU::read_bios(std::string filename)
 
 	file.close();
 	std::cout<<"MMU::BIOS file " << filename << " loaded successfully. \n";
+
+	return true;
+}
+
+/****** Read AM3 bootstrap file into memory ******/
+bool AGB_MMU::read_bootstrap(std::string filename)
+{
+	std::ifstream file(filename.c_str(), std::ios::binary);
+
+	if(!file.is_open()) 
+	{
+		std::cout<<"MMU::BIOS file " << filename << " could not be opened. Check file path or permissions. \n";
+		return false;
+	}
+
+	//Get the file size
+	file.seekg(0, file.end);
+	u32 file_size = file.tellg();
+	file.seekg(0, file.beg);
+
+	am3.bootstrap_data.clear();
+	am3.bootstrap_data.resize(file_size, 0x00);
+	
+	u8* ex_mem = &am3.bootstrap_data[0];
+
+	//Read data from the ROM file
+	file.read((char*)ex_mem, file_size);
+
+	file.close();
+
+	//Copy 1st 1KB of bootstrap to 0x8000000
+	for(u32 x = 0; x < 0x400; x++) { memory_map[0x8000000 + x] = am3.bootstrap_data[x]; }
+
+	std::cout<<"MMU::AM3 bootstrap file " << filename << " loaded successfully. \n";
 
 	return true;
 }

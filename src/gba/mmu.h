@@ -179,6 +179,7 @@ class AGB_MMU
 
 	bool read_file(std::string filename);
 	bool read_bios(std::string filename);
+	bool read_bootstrap(std::string filename);
 	bool save_backup(std::string filename);
 	bool load_backup(std::string filename);
 
