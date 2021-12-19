@@ -164,7 +164,7 @@ void AGB_core::debug_step()
 	}
 
 	//Display current PC when print PC is enabled
-	if(db_unit.print_pc) { std::cout<<"PC -> 0x" << core_cpu.reg.r15 << "\n"; }
+	if(db_unit.print_pc) { std::cout<<"PC -> 0x" << core_cpu.reg.r15 << " :: " << debug_get_mnemonic(core_cpu.reg.r15, true) << "\n"; }
 }
 
 /****** Debugger - Display relevant info to the screen ******/
@@ -1277,7 +1277,7 @@ std::string AGB_core::debug_get_mnemonic(u32 addr) { return " "; }
 /****** Returns a string with the mnemonic assembly instruction ******/
 std::string AGB_core::debug_get_mnemonic(u32 data, bool is_addr)
 {
-	bool arm_debug = (core_cpu.debug_message > 0x13) ? true : false;
+	bool arm_debug = (core_cpu.arm_mode == ARM7::ARM) ? true : false;
 	std::string instr = "";
 
 	u32 opcode = 0;
