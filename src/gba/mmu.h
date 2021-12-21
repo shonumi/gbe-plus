@@ -108,12 +108,20 @@ class AGB_MMU
 	//Structure to handle AM3 SmartMedia cards
 	struct am3_smart_media
 	{
+		bool read_sm_card;
 		u8 op_delay;
-		u16 blk_size;
-		u16 blk_stat;
-		u32 current_block;
-		u32 blk_addr;
 		u32 base_addr;
+
+		u16 blk_stat;
+		u16 blk_size;
+		u32 blk_addr;
+
+		u32 smc_offset;
+		u16 smc_size;
+		u16 smc_base;
+
+		u32 asig_size;
+		u16 unk_size;
 
 		std::vector<u8> bootstrap_data;
 		std::vector<u8> card_data;
