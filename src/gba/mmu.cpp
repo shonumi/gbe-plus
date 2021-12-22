@@ -397,9 +397,6 @@ u8 AGB_MMU::read_u8(u32 address)
 		case AM_SMC_SIZE: return (config::cart_type == AGB_AM3) ? (am3.smc_size & 0xFF) : memory_map[address]; break;
 		case AM_SMC_SIZE+1: return (config::cart_type == AGB_AM3) ? ((am3.smc_size >> 8) & 0xFF) : memory_map[address]; break;
 
-		//AM3 SmartMedia Card Base
-
-
 		//AM3 Block Status
 		case AM_BLK_STAT:
 			return (am3.blk_stat & 0xFF);
@@ -2987,6 +2984,18 @@ void AGB_MMU::write_am3(u32 address, u8 value)
 	{
 		case AM_BLK_SIZE:
 		case AM_BLK_SIZE+1:
+			if(address & 0x1)
+			{
+				am3.blk_size &= ~0xFF00;
+				am3.blk_size |= (value << 8);
+			}
+
+			else
+			{
+				am3.blk_size &= ~0xFF;
+				am3.blk_size |= value;
+			}
+
 			std::cout<<"AM3 BLK SIZE -> 0x" << (u32)value << "\n";
 			break;
 
@@ -2995,6 +3004,25 @@ void AGB_MMU::write_am3(u32 address, u8 value)
 		case AM_BLK_ADDR+2:
 		case AM_BLK_ADDR+3:
 			std::cout<<"AM3 BLK ADDR WRITE -> 0x" << (u32)value << "\n";
+			break;
+
+		case AM_SMC_SIZE:
+		case AM_SMC_SIZE+1:
+			if(address & 0x1)
+			{
+				am3.smc_size &= ~0xFF00;
+				am3.smc_size |= (value << 8);
+			}
+
+			else
+			{
+				am3.smc_size &= ~0xFF;
+				am3.smc_size |= value;
+			}
+
+			am3.unk_size = am3.smc_size;
+
+			std::cout<<"AM3 SMC SIZE -> 0x" << (u32)value << "\n";
 			break;
 
 		case AM_SMC_BASE:
@@ -3016,6 +3044,25 @@ void AGB_MMU::write_am3(u32 address, u8 value)
 			am3.read_sm_card = true;	
 
 			std::cout<<"AM3 BASE WRITE -> 0x" << (u32)value << "\n";
+			break;
+
+		case AM_UNK_SIZE:
+		case AM_UNK_SIZE+1:
+			if(address & 0x1)
+			{
+				am3.unk_size &= ~0xFF00;
+				am3.unk_size |= (value << 8);
+			}
+
+			else
+			{
+				am3.unk_size &= ~0xFF;
+				am3.unk_size |= value;
+			}
+
+			am3.smc_size = am3.unk_size;
+
+			std::cout<<"AM3 UNK SIZE -> 0x" << (u32)value << "\n";
 			break;
 
 		case AM_BLK_STAT:
