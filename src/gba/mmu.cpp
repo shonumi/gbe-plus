@@ -62,6 +62,7 @@ void AGB_MMU::reset()
 	am3.smc_offset = 0;
 	am3.smc_size = 0x400;
 	am3.smc_base = 0;
+	am3.last_offset = 0;
 
 	am3.asig_size = 0x0;
 	am3.unk_size = 0x400;
@@ -460,6 +461,8 @@ u8 AGB_MMU::read_u8(u32 address)
 							{
 								memory_map[0x8000000 + x] = am3.card_data[am3.base_addr++];
 							}
+
+							std::cout<<"NEW SMC BASE ADDR -> 0x" << am3.base_addr << "\n";
 
 							am3.blk_stat = 0;
 							write_u16_fast(AM_BLK_STAT,  am3.blk_stat);
@@ -3023,6 +3026,39 @@ void AGB_MMU::write_am3(u32 address, u8 value)
 			am3.unk_size = am3.smc_size;
 
 			std::cout<<"AM3 SMC SIZE -> 0x" << (u32)value << "\n";
+			break;
+
+		case AM_SMC_OFFS:
+		case AM_SMC_OFFS+1:
+		case AM_SMC_OFFS+2:
+		case AM_SMC_OFFS+3:
+			am3.smc_offset &= ~(0xFF << ((address & 0x3) << 3));
+			am3.smc_offset |= (value << ((address & 0x3) << 3));
+
+			//Reset reading address if a new offset is passed
+			if((address == (AM_SMC_OFFS+3)) && (am3.smc_offset != am3.last_offset))
+			{
+				std::cout<<"OFFSET -> 0x" << am3.smc_offset << " :: " << (am3.smc_offset & 0x80000000) << "\n";
+
+				am3.last_offset = am3.smc_offset;
+
+				//Negative offset
+				if(am3.smc_offset & 0x80000000)
+				{
+					u32 real_offset = (~am3.smc_offset + 1);
+					am3.base_addr -= real_offset;
+					std::cout<<"NEGATIVE OFFSET -> -" << real_offset << " :: 0x" << am3.base_addr << "\n";
+				}
+
+				//Positive offset
+				else
+				{
+					am3.base_addr += am3.smc_offset;
+					std::cout<<"POSITIVE OFFSET -> " << am3.smc_offset << " :: 0x" << am3.base_addr << "\n";
+				}
+			}
+
+			std::cout<<"AM3 SMC OFFS WRITE -> 0x" << (u32)value << "\n";
 			break;
 
 		case AM_SMC_BASE:

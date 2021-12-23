@@ -117,6 +117,7 @@ class AGB_MMU
 		u32 blk_addr;
 
 		u32 smc_offset;
+		u32 last_offset;
 		u16 smc_size;
 		u16 smc_base;
 
