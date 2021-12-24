@@ -448,7 +448,7 @@ u8 AGB_MMU::read_u8(u32 address)
 						//Read correct value of ASIG_SIZE
 						else if((am3.blk_stat & 0xFF) == 0x05)
 						{
-							am3.asig_size = 0x42A8;
+							am3.asig_size = 0xDF30;
 							am3.blk_stat = 0;
 							write_u16_fast(AM_BLK_STAT,  am3.blk_stat);
 						}
@@ -457,7 +457,7 @@ u8 AGB_MMU::read_u8(u32 address)
 						else if(((am3.blk_stat & 0xFF) == 0x01) && (am3.read_sm_card))
 						{
 							//Copy data blocks from SmartMedia
-							for(u32 x = 0; x < 0x400; x++)
+							for(u32 x = 0; x < am3.smc_size; x++)
 							{
 								memory_map[0x8000000 + x] = am3.card_data[am3.base_addr++];
 							}
@@ -3062,7 +3062,6 @@ void AGB_MMU::write_am3(u32 address, u8 value)
 			break;
 
 		case AM_SMC_BASE:
-		case AM_SMC_BASE+1:
 			switch(value)
 			{
 				case 0x9: am3.base_addr = 0x18000; break;
@@ -3079,7 +3078,7 @@ void AGB_MMU::write_am3(u32 address, u8 value)
 
 			am3.read_sm_card = true;	
 
-			std::cout<<"AM3 BASE WRITE -> 0x" << (u32)value << "\n";
+			std::cout<<"AM3 BASE WRITE -> 0x" << (u32)value << " :: 0x" << am3.base_addr << "\n";
 			break;
 
 		case AM_UNK_SIZE:
