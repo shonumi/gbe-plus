@@ -64,7 +64,12 @@ void AGB_MMU::reset()
 	am3.smc_base = 0;
 	am3.last_offset = 0;
 
-	am3.asig_size = 0x0;
+	am3.file_index = 0;
+	am3.file_count = 0;
+	am3.file_size = 0;
+	am3.file_size_list.clear();
+	am3.file_addr_list.clear();
+
 	am3.unk_size = 0x400;
 
 	am3.bootstrap_data.clear();
@@ -382,11 +387,11 @@ u8 AGB_MMU::read_u8(u32 address)
 		case AM_UNK_SIZE: return (config::cart_type == AGB_AM3) ? (am3.unk_size & 0xFF) : memory_map[address]; break;
 		case AM_UNK_SIZE+1: return (config::cart_type == AGB_AM3) ? ((am3.unk_size >> 8) & 0xFF) : memory_map[address]; break;
 
-		//AM3 ASIG Size
-		case AM_ASIG_SIZE: return (config::cart_type == AGB_AM3) ? (am3.asig_size & 0xFF) : memory_map[address]; break;
-		case AM_ASIG_SIZE+1: return (config::cart_type == AGB_AM3) ? ((am3.asig_size >> 8) & 0xFF) : memory_map[address]; break;
-		case AM_ASIG_SIZE+2: return (config::cart_type == AGB_AM3) ? ((am3.asig_size >> 16) & 0xFF) : memory_map[address]; break;
-		case AM_ASIG_SIZE+3: return (config::cart_type == AGB_AM3) ? ((am3.asig_size >> 24) & 0xFF) : memory_map[address]; break;
+		//AM3 File Size
+		case AM_FILE_SIZE: return (config::cart_type == AGB_AM3) ? (am3.file_size & 0xFF) : memory_map[address]; break;
+		case AM_FILE_SIZE+1: return (config::cart_type == AGB_AM3) ? ((am3.file_size >> 8) & 0xFF) : memory_map[address]; break;
+		case AM_FILE_SIZE+2: return (config::cart_type == AGB_AM3) ? ((am3.file_size >> 16) & 0xFF) : memory_map[address]; break;
+		case AM_FILE_SIZE+3: return (config::cart_type == AGB_AM3) ? ((am3.file_size >> 24) & 0xFF) : memory_map[address]; break;
 
 		//AM3 SmartMedia Card Offset
 		case AM_SMC_OFFS: return (config::cart_type == AGB_AM3) ? (am3.smc_offset & 0xFF) : memory_map[address]; break;
@@ -448,7 +453,7 @@ u8 AGB_MMU::read_u8(u32 address)
 						//Read correct value of ASIG_SIZE
 						else if((am3.blk_stat & 0xFF) == 0x05)
 						{
-							am3.asig_size = 0xDF30;
+							am3.file_size = am3.file_size_list[am3.file_index];
 							am3.blk_stat = 0;
 							write_u16_fast(AM_BLK_STAT,  am3.blk_stat);
 						}
@@ -2177,21 +2182,10 @@ bool AGB_MMU::read_file(std::string filename)
 		file.read((char*)am_mem, file_size);
 		file.seekg(0, file.beg);
 
-		bool asig_found = false;
-
-		//Search for base address "ASIG" section
-		for(u32 x = 0; x < file_size; x += 4)
+		//Check the FAT to grab
+		if(!check_am3_fat())
 		{
-			if((am3.card_data[x] == 0x41) && (am3.card_data[x + 1] == 0x53) && (am3.card_data[x + 2] == 0x49) && (am3.card_data[x + 3] == 0x47))
-			{
-				asig_found = true;
-				break;
-			}
-		}
-
-		if(!asig_found)
-		{
-			std::cout<<"MMU::Error - AM3 SmartMedia card data has no ASIG block\n";
+			std::cout<<"MMU::Error - AM3 SmartMedia card data has bad File Allocation Table\n";
 			file.close();
 			return false;
 		}
@@ -3061,21 +3055,10 @@ void AGB_MMU::write_am3(u32 address, u8 value)
 			std::cout<<"AM3 SMC OFFS WRITE -> 0x" << (u32)value << "\n";
 			break;
 
-		case AM_SMC_BASE:
-			switch(value)
-			{
-				case 0x9: am3.base_addr = 0x18000; break;
-				case 0x8: am3.base_addr = 0x1D08000; break;
-				case 0x7: am3.base_addr = 0x1D0C000; break;
-				case 0x6: am3.base_addr = 0x1D10000; break;
-				case 0x5: am3.base_addr = 0x1D14000; break;
-				case 0x4: am3.base_addr = 0x1D1C000; break;
-				case 0x3: am3.base_addr = 0x1D20000; break;
-				case 0x2: am3.base_addr = 0x1D30000; break;
-				case 0x1: am3.base_addr = 0x1D34000; break;
-				default: am3.base_addr = 0x1D3C000; break;
-			}
-
+		case AM_SMC_FILE:
+			am3.file_index = am3.file_count - value;
+			am3.base_addr = am3.file_addr_list[am3.file_index];
+			am3.file_size = am3.file_size_list[am3.file_index];
 			am3.read_sm_card = true;	
 
 			std::cout<<"AM3 BASE WRITE -> 0x" << (u32)value << " :: 0x" << am3.base_addr << "\n";
@@ -3129,7 +3112,11 @@ void AGB_MMU::write_am3(u32 address, u8 value)
 	}
 }
 
-			
+/****** Checks whether a valid FAT exists in the AM3 SmartMedia card file - Extracts basic file data expected by AM3 hardware ******/
+bool AGB_MMU::check_am3_fat()
+{
+	return true;
+}		
 
 /****** Continually processes motion in specialty carts (for use by other components outside MMU like LCD) ******/
 void AGB_MMU::process_motion()

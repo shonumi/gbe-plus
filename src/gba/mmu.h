@@ -121,7 +121,12 @@ class AGB_MMU
 		u16 smc_size;
 		u16 smc_base;
 
-		u32 asig_size;
+		u8 file_index;
+		u32 file_count;
+		u32 file_size;
+		std::vector<u32> file_size_list;
+		std::vector<u32> file_addr_list;
+
 		u16 unk_size;
 
 		std::vector<u8> bootstrap_data;
@@ -207,6 +212,7 @@ class AGB_MMU
 	void write_dacs(u32 address, u8 value);
 
 	void write_am3(u32 address, u8 value);
+	bool check_am3_fat(); 
 
 	//GPIO handling functions
 	void process_rtc();
