@@ -3115,6 +3115,30 @@ void AGB_MMU::write_am3(u32 address, u8 value)
 /****** Checks whether a valid FAT exists in the AM3 SmartMedia card file - Extracts basic file data expected by AM3 hardware ******/
 bool AGB_MMU::check_am3_fat()
 {
+	//Read Master Boot Record to determine location of Volume Boot Record (aka Volume ID)
+	u32 vbr = ((am3.card_data[0x1C9] << 24) | (am3.card_data[0x1C8] << 16) | (am3.card_data[0x1C7] << 8) | am3.card_data[0x1C6]);
+	vbr *= 0x200;
+
+	std::cout<< std::hex << "AM3 -> FAT Volume Boot Record @ 0x" << vbr << "\n";
+
+	//Read various bits of data to determine location of Data Region and Directory Table
+	u16 bytes_per_sector = ((am3.card_data[vbr + 0x0C] << 8) | am3.card_data[vbr + 0x0B]);
+	u16 reserved_sectors = ((am3.card_data[vbr + 0x0F] << 8) | am3.card_data[vbr + 0x0E]);
+	u32 first_fat_addr = vbr + (reserved_sectors * bytes_per_sector);
+
+	std::cout<<"AM3 -> First FAT @ 0x" << first_fat_addr << "\n";
+
+	u8 num_of_fats = am3.card_data[vbr + 0x10];
+	u16 sectors_per_fat = ((am3.card_data[vbr + 0x17] << 8) | am3.card_data[vbr + 0x16]);
+	u16 max_root_dirs = ((am3.card_data[vbr + 0x12] << 8) | am3.card_data[vbr + 0x11]);
+	u8 sectors_per_cluster = am3.card_data[vbr + 0x0D];
+
+	u32 root_dir_addr = first_fat_addr + ((num_of_fats * sectors_per_fat) * bytes_per_sector);
+	u32 data_region_addr = root_dir_addr + (max_root_dirs * 32);
+
+	std::cout<<"AM3 -> Root Directory @ 0x" << root_dir_addr << "\n";
+	std::cout<<"AM3 -> Data Region @ 0x" << data_region_addr << "\n";	
+
 	return true;
 }		
 
