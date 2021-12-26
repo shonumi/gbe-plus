@@ -3056,7 +3056,7 @@ void AGB_MMU::write_am3(u32 address, u8 value)
 			break;
 
 		case AM_SMC_FILE:
-			am3.file_index = am3.file_count - value;
+			am3.file_index = am3.file_count - value - 1;
 			am3.base_addr = am3.file_addr_list[am3.file_index];
 			am3.file_size = am3.file_size_list[am3.file_index];
 			am3.read_sm_card = true;	
@@ -3138,6 +3138,45 @@ bool AGB_MMU::check_am3_fat()
 
 	std::cout<<"AM3 -> Root Directory @ 0x" << root_dir_addr << "\n";
 	std::cout<<"AM3 -> Data Region @ 0x" << data_region_addr << "\n";	
+
+	//Read files from Directory Table
+	u32 t_addr = data_region_addr;
+
+	while(t_addr < (data_region_addr + 0x200))
+	{
+		//Pull filename, check to see if it matches pattern "XX  ", where the 1st 2 characters are ASCII numbers and rest of chars are ASCII spaces
+		if((am3.card_data[t_addr + 3] == 0x20) && (am3.card_data[t_addr + 2] == 0x20))
+		{
+			u8 fn1 = am3.card_data[t_addr];
+			u8 fn2 = am3.card_data[t_addr + 1];
+
+			//1st 2 characters may not both be "0" in ASCII either, apparently for the AM3
+			if((fn1 == fn2) && (fn1 == 0x30)) { }
+
+			else if((fn1 >= 0x30) && (fn1 <= 0x39) && (fn2 >= 0x30) && (fn2 <= 0x39))
+			{
+				//Grab and store file size
+				u32 f_size = ((am3.card_data[t_addr + 0x1F] << 24) | (am3.card_data[t_addr + 0x1E] << 16) | (am3.card_data[t_addr + 0x1D] << 8) | am3.card_data[t_addr + 0x1C]);
+				am3.file_size_list.push_back(f_size);
+				am3.file_count++;
+
+				//Calculate and store file offset in SmartMedia dump
+				u32 f_pos = ((am3.card_data[t_addr + 0x1B] << 8) | (am3.card_data[t_addr + 0x1A]));
+				f_pos = data_region_addr + ((f_pos - 2) * sectors_per_cluster * bytes_per_sector);
+				am3.file_addr_list.push_back(f_pos);
+
+				std::cout<<"AM3 File Found @ 0x" << f_pos << " :: Size 0x" << f_size << "\n";
+			}
+		}
+
+		t_addr += 0x20;
+	}
+
+	if(!am3.file_count)
+	{
+		std::cout<<"Error - No files found in AM3 File Allocation Table \n";
+		return false;
+	}
 
 	return true;
 }		
