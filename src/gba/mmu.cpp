@@ -64,6 +64,7 @@ void AGB_MMU::reset()
 	am3.smc_base = 0;
 	am3.last_offset = 0;
 
+	am3.last_index = 0;
 	am3.file_index = 0;
 	am3.file_count = 0;
 	am3.file_size = 0;
@@ -243,6 +244,8 @@ u8 AGB_MMU::read_u8(u32 address)
 			return 0;
 			
 	}
+
+	if((address >= 0x08010400) && (address < 0x08010440)) { std::cout<<"AM3 IO READ -> 0x" << address << "\n"; }
 
 	//Read from game save data
 	if((address >= 0xE000000) && (address <= 0xE00FFFF))
@@ -454,6 +457,7 @@ u8 AGB_MMU::read_u8(u32 address)
 						else if((am3.blk_stat & 0xFF) == 0x05)
 						{
 							am3.file_size = am3.file_size_list[am3.file_index];
+							std::cout<<"FILE SIZE -> 0x" << am3.file_size << "\n";
 							am3.blk_stat = 0;
 							write_u16_fast(AM_BLK_STAT,  am3.blk_stat);
 						}
@@ -2975,8 +2979,6 @@ void AGB_MMU::write_dacs(u32 address, u8 value)
 /****** Writes data to AM3 cartridge I/O ******/
 void AGB_MMU::write_am3(u32 address, u8 value)
 {
-	u16 prev_value = 0;
-
 	switch(address)
 	{
 		case AM_BLK_SIZE:
@@ -3056,10 +3058,25 @@ void AGB_MMU::write_am3(u32 address, u8 value)
 			break;
 
 		case AM_SMC_FILE:
-			am3.file_index = am3.file_count - value - 1;
-			am3.base_addr = am3.file_addr_list[am3.file_index];
-			am3.file_size = am3.file_size_list[am3.file_index];
-			am3.read_sm_card = true;	
+		case AM_SMC_FILE+1:
+			am3.last_index &= ~(0xFF << ((address & 0x1) << 3));
+			am3.last_index |= (value << ((address & 0x1) << 3));
+
+			if(address == (AM_SMC_FILE+1))
+			{	
+				//If the latest file index is 0xFFFF, reset file index to zero
+				if(am3.last_index == 0xFFFF) { am3.last_index = 0; }
+
+				//Check for valid file
+				if(s32(am3.file_count - am3.last_index - 1) >= 0)
+				{
+					am3.file_index = am3.file_count - am3.last_index - 1;
+				}
+
+				am3.base_addr = am3.file_addr_list[am3.file_index];
+				am3.file_size = am3.file_size_list[am3.file_index];
+				am3.read_sm_card = true;
+			}
 
 			std::cout<<"AM3 BASE WRITE -> 0x" << (u32)value << " :: 0x" << am3.base_addr << "\n";
 			break;

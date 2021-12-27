@@ -121,7 +121,8 @@ class AGB_MMU
 		u16 smc_size;
 		u16 smc_base;
 
-		u8 file_index;
+		u16 file_index;
+		u16 last_index;
 		u32 file_count;
 		u32 file_size;
 		std::vector<u32> file_size_list;
