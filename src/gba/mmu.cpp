@@ -453,11 +453,19 @@ u8 AGB_MMU::read_u8(u32 address)
 							write_u16_fast(AM_BLK_STAT,  am3.blk_stat);
 						}
 
-						//Read correct value of ASIG_SIZE
+						//Update current value of FILE_SIZE
 						else if((am3.blk_stat & 0xFF) == 0x05)
 						{
 							am3.file_size = am3.file_size_list[am3.file_index];
 							std::cout<<"FILE SIZE -> 0x" << am3.file_size << "\n";
+							am3.blk_stat = 0;
+							write_u16_fast(AM_BLK_STAT,  am3.blk_stat);
+						}
+
+						//Unknown command 0x03
+						else if((am3.blk_stat & 0xFF) == 0x03)
+						{
+							std::cout<<"Unknown Command 0x03 \n";
 							am3.blk_stat = 0;
 							write_u16_fast(AM_BLK_STAT,  am3.blk_stat);
 						}
@@ -3064,8 +3072,14 @@ void AGB_MMU::write_am3(u32 address, u8 value)
 
 			if(address == (AM_SMC_FILE+1))
 			{	
-				//If the latest file index is 0xFFFF, reset file index to zero
+				//Special Case - If the latest file index is 0xFFFF, reset file index to zero
 				if(am3.last_index == 0xFFFF) { am3.last_index = 0; }
+
+				//Special Case - Access file "00"
+				else if(am3.last_index == am3.file_count) { am3.file_index = am3.file_count; }
+
+				//Special Case - If the latest file index is 0x4000, access the INFO file
+				else if(am3.last_index == 0x4000) { am3.file_index = am3.file_count + 1; }
 
 				//Check for valid file
 				if(s32(am3.file_count - am3.last_index - 1) >= 0)
@@ -3159,6 +3173,12 @@ bool AGB_MMU::check_am3_fat()
 	//Read files from Directory Table
 	u32 t_addr = data_region_addr;
 
+	u32 info_pos = 0;
+	u32 info_size = 0;
+
+	u32 zero_pos = 0;
+	u32 zero_size = 0;
+
 	while(t_addr < (data_region_addr + 0x200))
 	{
 		//Pull filename, check to see if it matches pattern "XX  ", where the 1st 2 characters are ASCII numbers and rest of chars are ASCII spaces
@@ -3167,8 +3187,15 @@ bool AGB_MMU::check_am3_fat()
 			u8 fn1 = am3.card_data[t_addr];
 			u8 fn2 = am3.card_data[t_addr + 1];
 
-			//1st 2 characters may not both be "0" in ASCII either, apparently for the AM3
-			if((fn1 == fn2) && (fn1 == 0x30)) { }
+			//When 1st 2 characters are both be "0" in ASCII, treat this as a special file
+			if((fn1 == fn2) && (fn1 == 0x30))
+			{
+				zero_size = ((am3.card_data[t_addr + 0x1F] << 24) | (am3.card_data[t_addr + 0x1E] << 16) | (am3.card_data[t_addr + 0x1D] << 8) | am3.card_data[t_addr + 0x1C]);
+				zero_pos = ((am3.card_data[t_addr + 0x1B] << 8) | (am3.card_data[t_addr + 0x1A]));
+				zero_pos = data_region_addr + ((zero_pos - 2) * sectors_per_cluster * bytes_per_sector);
+
+				std::cout<<"AM3 00 File Found @ 0x" << zero_pos << " :: Size 0x" << zero_size << "\n";
+			}
 
 			else if((fn1 >= 0x30) && (fn1 <= 0x39) && (fn2 >= 0x30) && (fn2 <= 0x39))
 			{
@@ -3186,8 +3213,26 @@ bool AGB_MMU::check_am3_fat()
 			}
 		}
 
+		//Check INFO file
+		else if((am3.card_data[t_addr] == 0x49) && (am3.card_data[t_addr + 1] == 0x4E) && (am3.card_data[t_addr + 2] == 0x46) && (am3.card_data[t_addr + 3] == 0x4F))
+		{
+			info_size = ((am3.card_data[t_addr + 0x1F] << 24) | (am3.card_data[t_addr + 0x1E] << 16) | (am3.card_data[t_addr + 0x1D] << 8) | am3.card_data[t_addr + 0x1C]);
+			info_pos = ((am3.card_data[t_addr + 0x1B] << 8) | (am3.card_data[t_addr + 0x1A]));
+			info_pos = data_region_addr + ((info_pos - 2) * sectors_per_cluster * bytes_per_sector);
+
+			std::cout<<"AM3 INFO File Found @ 0x" << info_pos << " :: Size 0x" << info_size << "\n";
+		}	 
+
 		t_addr += 0x20;
 	}
+
+	//Add 00 file data to the end
+	am3.file_size_list.push_back(zero_size);
+	am3.file_addr_list.push_back(zero_pos);
+
+	//Add INFO file data to the end
+	am3.file_size_list.push_back(info_size);
+	am3.file_addr_list.push_back(info_pos);
 
 	if(!am3.file_count)
 	{
