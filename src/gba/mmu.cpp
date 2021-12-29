@@ -51,7 +51,9 @@ void AGB_MMU::reset()
 	dacs_flash.current_command = 0;
 	dacs_flash.status_register = 0x80;
 
+	am3.read_key = true;
 	am3.read_sm_card = false;
+	
 	am3.op_delay = 0;
 	am3.base_addr = 0x400;
 
@@ -245,8 +247,6 @@ u8 AGB_MMU::read_u8(u32 address)
 			
 	}
 
-	if((address >= 0x08010400) && (address < 0x08010440)) { std::cout<<"AM3 IO READ -> 0x" << address << "\n"; }
-
 	//Read from game save data
 	if((address >= 0xE000000) && (address <= 0xE00FFFF))
 	{
@@ -390,11 +390,39 @@ u8 AGB_MMU::read_u8(u32 address)
 		case AM_UNK_SIZE: return (config::cart_type == AGB_AM3) ? (am3.unk_size & 0xFF) : memory_map[address]; break;
 		case AM_UNK_SIZE+1: return (config::cart_type == AGB_AM3) ? ((am3.unk_size >> 8) & 0xFF) : memory_map[address]; break;
 
-		//AM3 File Size
-		case AM_FILE_SIZE: return (config::cart_type == AGB_AM3) ? (am3.file_size & 0xFF) : memory_map[address]; break;
-		case AM_FILE_SIZE+1: return (config::cart_type == AGB_AM3) ? ((am3.file_size >> 8) & 0xFF) : memory_map[address]; break;
-		case AM_FILE_SIZE+2: return (config::cart_type == AGB_AM3) ? ((am3.file_size >> 16) & 0xFF) : memory_map[address]; break;
-		case AM_FILE_SIZE+3: return (config::cart_type == AGB_AM3) ? ((am3.file_size >> 24) & 0xFF) : memory_map[address]; break;
+		//AM3 File Size / DES key Bytes 0 - 3
+		case AM_FILE_SIZE:
+			if(config::cart_type == AGB_AM3) { return (am3.read_key) ? am3.des_key[0] : (am3.file_size & 0xFF); }
+			return memory_map[address];
+
+		case AM_FILE_SIZE+1:
+			if(config::cart_type == AGB_AM3) { return (am3.read_key) ? am3.des_key[1] : ((am3.file_size >> 8) & 0xFF); }
+			return memory_map[address];
+
+		case AM_FILE_SIZE+2:
+			if(config::cart_type == AGB_AM3) { return (am3.read_key) ? am3.des_key[2] : ((am3.file_size >> 16) & 0xFF); }
+			return memory_map[address];
+
+		case AM_FILE_SIZE+3:
+			if(config::cart_type == AGB_AM3) { return (am3.read_key) ? am3.des_key[3] : ((am3.file_size >> 24) & 0xFF); }
+			return memory_map[address];
+
+		//DES key Bytes 4 - 15
+		case AM_FILE_SIZE+4:
+		case AM_FILE_SIZE+5:
+		case AM_FILE_SIZE+6:
+		case AM_FILE_SIZE+7:
+		case AM_FILE_SIZE+8:
+		case AM_FILE_SIZE+9:
+		case AM_FILE_SIZE+10:
+		case AM_FILE_SIZE+11:
+		case AM_FILE_SIZE+12:
+		case AM_FILE_SIZE+13:
+		case AM_FILE_SIZE+14:
+		case AM_FILE_SIZE+15:
+			std::cout<<"KEY READ\n";
+			if(config::cart_type == AGB_AM3) { return (am3.read_key) ? am3.des_key[address - AM_FILE_SIZE] : 0; }
+			return memory_map[address];
 
 		//AM3 SmartMedia Card Offset
 		case AM_SMC_OFFS: return (config::cart_type == AGB_AM3) ? (am3.smc_offset & 0xFF) : memory_map[address]; break;
@@ -456,9 +484,11 @@ u8 AGB_MMU::read_u8(u32 address)
 						//Update current value of FILE_SIZE
 						else if((am3.blk_stat & 0xFF) == 0x05)
 						{
-							am3.file_size = am3.file_size_list[am3.file_index];
 							std::cout<<"FILE SIZE -> 0x" << am3.file_size << "\n";
+
+							am3.file_size = am3.file_size_list[am3.file_index];
 							am3.blk_stat = 0;
+							am3.read_key = false;
 							write_u16_fast(AM_BLK_STAT,  am3.blk_stat);
 						}
 
@@ -467,6 +497,7 @@ u8 AGB_MMU::read_u8(u32 address)
 						{
 							std::cout<<"Unknown Command 0x03 \n";
 							am3.blk_stat = 0;
+							am3.read_key = true;
 							write_u16_fast(AM_BLK_STAT,  am3.blk_stat);
 						}
 
@@ -2186,6 +2217,14 @@ bool AGB_MMU::read_file(std::string filename)
 			return false;
 		}
 
+		//Next read 16-byte DES key from file
+		std::string key_file = filename + ".key";
+		if(!read_des_key(key_file))
+		{
+			file.close();
+			return false;
+		}
+
 		//Read in all cart data for AM3 first
 		am3.card_data.clear();
 		am3.card_data.resize(file_size, 0x00);
@@ -2447,7 +2486,7 @@ bool AGB_MMU::read_bootstrap(std::string filename)
 
 	if(!file.is_open()) 
 	{
-		std::cout<<"MMU::BIOS file " << filename << " could not be opened. Check file path or permissions. \n";
+		std::cout<<"MMU::AM3 Bootstrap file " << filename << " could not be opened. Check file path or permissions. \n";
 		return false;
 	}
 
@@ -2461,7 +2500,7 @@ bool AGB_MMU::read_bootstrap(std::string filename)
 	
 	u8* ex_mem = &am3.bootstrap_data[0];
 
-	//Read data from the ROM file
+	//Read data from the bootstrap file
 	file.read((char*)ex_mem, file_size);
 
 	file.close();
@@ -2470,6 +2509,45 @@ bool AGB_MMU::read_bootstrap(std::string filename)
 	for(u32 x = 0; x < 0x400; x++) { memory_map[0x8000000 + x] = am3.bootstrap_data[x]; }
 
 	std::cout<<"MMU::AM3 bootstrap file " << filename << " loaded successfully. \n";
+
+	return true;
+}
+
+/****** Read AM3 16-byte DES key into memory ******/
+bool AGB_MMU::read_des_key(std::string filename)
+{
+	std::ifstream file(filename.c_str(), std::ios::binary);
+
+	if(!file.is_open()) 
+	{
+		std::cout<<"MMU::AM3 DES key file " << filename << " could not be opened. Check file path or permissions. \n";
+		file.close();
+		return false;
+	}
+
+	//Get the file size
+	file.seekg(0, file.end);
+	u32 file_size = file.tellg();
+	file.seekg(0, file.beg);
+
+	if(file_size != 16)
+	{
+		std::cout<<"MMU::AM3 DES key file is not 16-bytes in size\n";
+		file.close();
+		return false;		
+	}
+		
+	am3.des_key.clear();
+	am3.des_key.resize(16, 0x00);
+	
+	u8* ex_mem = &am3.des_key[0];
+
+	//Read data from the DES key file
+	file.read((char*)ex_mem, file_size);
+
+	file.close();
+
+	std::cout<<"MMU::AM3 DES key file " << filename << " loaded successfully. \n";
 
 	return true;
 }
@@ -3043,23 +3121,8 @@ void AGB_MMU::write_am3(u32 address, u8 value)
 			if((address == (AM_SMC_OFFS+3)) && (am3.smc_offset != am3.last_offset))
 			{
 				std::cout<<"OFFSET -> 0x" << am3.smc_offset << " :: " << (am3.smc_offset & 0x80000000) << "\n";
-
 				am3.last_offset = am3.smc_offset;
-
-				//Negative offset
-				if(am3.smc_offset & 0x80000000)
-				{
-					u32 real_offset = (~am3.smc_offset + 1);
-					am3.base_addr -= real_offset;
-					std::cout<<"NEGATIVE OFFSET -> -" << real_offset << " :: 0x" << am3.base_addr << "\n";
-				}
-
-				//Positive offset
-				else
-				{
-					am3.base_addr += am3.smc_offset;
-					std::cout<<"POSITIVE OFFSET -> " << am3.smc_offset << " :: 0x" << am3.base_addr << "\n";
-				}
+				am3.base_addr += am3.smc_offset;
 			}
 
 			std::cout<<"AM3 SMC OFFS WRITE -> 0x" << (u32)value << "\n";
@@ -3079,7 +3142,7 @@ void AGB_MMU::write_am3(u32 address, u8 value)
 				else if(am3.last_index == am3.file_count) { am3.file_index = am3.file_count; }
 
 				//Special Case - If the latest file index is 0x4000, access the INFO file
-				else if(am3.last_index == 0x4000) { am3.file_index = am3.file_count + 1; }
+				else if(am3.last_index > am3.file_count) { am3.file_index = am3.file_count + 1; }
 
 				//Check for valid file
 				if(s32(am3.file_count - am3.last_index - 1) >= 0)

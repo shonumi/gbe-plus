@@ -109,6 +109,8 @@ class AGB_MMU
 	struct am3_smart_media
 	{
 		bool read_sm_card;
+		bool read_key;
+
 		u8 op_delay;
 		u32 base_addr;
 
@@ -129,6 +131,7 @@ class AGB_MMU
 		std::vector<u32> file_addr_list;
 
 		u16 unk_size;
+		std::vector<u8> des_key;
 
 		std::vector<u8> bootstrap_data;
 		std::vector<u8> card_data;
@@ -195,6 +198,7 @@ class AGB_MMU
 	bool read_file(std::string filename);
 	bool read_bios(std::string filename);
 	bool read_bootstrap(std::string filename);
+	bool read_des_key(std::string filename);
 	bool save_backup(std::string filename);
 	bool load_backup(std::string filename);
 
