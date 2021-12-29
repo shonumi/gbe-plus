@@ -3197,6 +3197,9 @@ void AGB_MMU::write_am3(u32 address, u8 value)
 			//Update AM_BLK_STAT I/O register
 			write_u16_fast(AM_BLK_STAT, am3.blk_stat);
 
+			//Raise GamePak IRQ when AM_BLK_STAT changes to a non-zero value after writing to it
+			if(am3.blk_stat) { memory_map[REG_IF] |= 0x2000; }
+
 			std::cout<<"AM3 BLK STAT WRITE -> 0x" << (u32)value << "\n";
 
 			break;
