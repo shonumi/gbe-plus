@@ -510,6 +510,12 @@ u8 AGB_MMU::read_u8(u32 address)
 								memory_map[0x8000000 + x] = am3.card_data[am3.base_addr++];
 							}
 
+							//Raise Bit 8 if AM_BLK_STAT if reading past current file size
+							if((am3.base_addr - am3.file_addr_list[am3.file_index]) > am3.file_size_list[am3.file_index])
+							{
+								am3.blk_stat = 0x100;
+							}
+
 							std::cout<<"NEW SMC BASE ADDR -> 0x" << am3.base_addr << "\n";
 
 							am3.blk_stat = 0;
