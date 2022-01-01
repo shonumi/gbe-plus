@@ -3075,17 +3075,8 @@ void AGB_MMU::write_am3(u32 address, u8 value)
 	{
 		case AM_BLK_SIZE:
 		case AM_BLK_SIZE+1:
-			if(address & 0x1)
-			{
-				am3.blk_size &= ~0xFF00;
-				am3.blk_size |= (value << 8);
-			}
-
-			else
-			{
-				am3.blk_size &= ~0xFF;
-				am3.blk_size |= value;
-			}
+			am3.blk_size &= ~(0xFF << ((address & 0x1) << 3));
+			am3.blk_size |= (value << ((address & 0x1) << 3));
 
 			std::cout<<"AM3 BLK SIZE -> 0x" << (u32)value << "\n";
 			break;
@@ -3099,17 +3090,8 @@ void AGB_MMU::write_am3(u32 address, u8 value)
 
 		case AM_SMC_SIZE:
 		case AM_SMC_SIZE+1:
-			if(address & 0x1)
-			{
-				am3.smc_size &= ~0xFF00;
-				am3.smc_size |= (value << 8);
-			}
-
-			else
-			{
-				am3.smc_size &= ~0xFF;
-				am3.smc_size |= value;
-			}
+			am3.smc_size &= ~(0xFF << ((address & 0x1) << 3));
+			am3.smc_size |= (value << ((address & 0x1) << 3));
 
 			am3.unk_size = am3.smc_size;
 
@@ -3166,17 +3148,8 @@ void AGB_MMU::write_am3(u32 address, u8 value)
 
 		case AM_UNK_SIZE:
 		case AM_UNK_SIZE+1:
-			if(address & 0x1)
-			{
-				am3.unk_size &= ~0xFF00;
-				am3.unk_size |= (value << 8);
-			}
-
-			else
-			{
-				am3.unk_size &= ~0xFF;
-				am3.unk_size |= value;
-			}
+			am3.unk_size &= ~(0xFF << ((address & 0x1) << 3));
+			am3.unk_size |= (value << ((address & 0x1) << 3));
 
 			am3.smc_size = am3.unk_size;
 
@@ -3185,17 +3158,8 @@ void AGB_MMU::write_am3(u32 address, u8 value)
 
 		case AM_BLK_STAT:
 		case AM_BLK_STAT+1:
-			if(address & 0x1)
-			{
-				am3.blk_stat &= ~0xFF00;
-				am3.blk_stat |= (value << 8);
-			}
-
-			else
-			{
-				am3.blk_stat &= ~0xFF;
-				am3.blk_stat |= value;
-			}
+			am3.blk_stat &= ~(0xFF << ((address & 0x1) << 3));
+			am3.blk_stat |= (value << ((address & 0x1) << 3));
 
 			//Perform specific actions when settings certain bits - Operation is delayed a bit, emulated here based on CPU reads instead of actual execution time
 			if(am3.blk_stat & 0x01) { am3.op_delay = 5; }
