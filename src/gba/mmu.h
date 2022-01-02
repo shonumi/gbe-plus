@@ -130,7 +130,7 @@ class AGB_MMU
 		std::vector<u32> file_size_list;
 		std::vector<u32> file_addr_list;
 
-		u16 unk_size;
+		u16 remaining_size;
 		std::vector<u8> des_key;
 
 		std::vector<u8> bootstrap_data;

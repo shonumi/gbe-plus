@@ -186,6 +186,6 @@ const u32 AM_SMC_SIZE = 0x801040A;
 const u32 AM_SMC_FILE = 0x801040C;
 
 const u32 AM_FILE_SIZE = 0x8010410;
-const u32 AM_UNK_SIZE = 0x801040E;
+const u32 AM_RMN_SIZE = 0x801040E;
 
 #endif // GBA_COMMON

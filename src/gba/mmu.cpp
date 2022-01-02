@@ -73,7 +73,7 @@ void AGB_MMU::reset()
 	am3.file_size_list.clear();
 	am3.file_addr_list.clear();
 
-	am3.unk_size = 0x400;
+	am3.remaining_size = 0x400;
 
 	am3.bootstrap_data.clear();
 	am3.card_data.clear();
@@ -386,9 +386,9 @@ u8 AGB_MMU::read_u8(u32 address)
 		case AM_BLK_ADDR+2: return (config::cart_type == AGB_AM3) ? ((am3.blk_addr >> 16) & 0xFF) : memory_map[address]; break;
 		case AM_BLK_ADDR+3: return (config::cart_type == AGB_AM3) ? ((am3.blk_addr >> 24) & 0xFF) : memory_map[address]; break;
 
-		//AM3 Unknown Size
-		case AM_UNK_SIZE: return (config::cart_type == AGB_AM3) ? (am3.unk_size & 0xFF) : memory_map[address]; break;
-		case AM_UNK_SIZE+1: return (config::cart_type == AGB_AM3) ? ((am3.unk_size >> 8) & 0xFF) : memory_map[address]; break;
+		//AM3 Remaining File Size
+		case AM_RMN_SIZE: return (config::cart_type == AGB_AM3) ? (am3.remaining_size & 0xFF) : memory_map[address]; break;
+		case AM_RMN_SIZE+1: return (config::cart_type == AGB_AM3) ? ((am3.remaining_size >> 8) & 0xFF) : memory_map[address]; break;
 
 		//AM3 File Size / DES key Bytes 0 - 3
 		case AM_FILE_SIZE:
@@ -492,10 +492,10 @@ u8 AGB_MMU::read_u8(u32 address)
 							write_u16_fast(AM_BLK_STAT,  am3.blk_stat);
 						}
 
-						//Unknown command 0x03
+						//Switch to DES Key Reading mode
 						else if((am3.blk_stat & 0xFF) == 0x03)
 						{
-							std::cout<<"Unknown Command 0x03 \n";
+							std::cout<<"DES Key Read 0x03 \n";
 							am3.blk_stat = 0;
 							am3.read_key = true;
 							write_u16_fast(AM_BLK_STAT,  am3.blk_stat);
@@ -510,13 +510,20 @@ u8 AGB_MMU::read_u8(u32 address)
 								memory_map[0x8000000 + x] = am3.card_data[am3.base_addr++];
 							}
 
+							u32 end_addr = am3.file_addr_list[am3.file_index] + am3.file_size_list[am3.file_index];
+							s32 diff_addr = end_addr - am3.base_addr;
+
+							//Update the remaining file size value after reading a block
+							if((diff_addr < 0x400) && (diff_addr >= 0)) { am3.remaining_size = diff_addr; }
+							else { am3.remaining_size = 0x400; } 
+
 							//Raise Bit 8 if AM_BLK_STAT if reading past current file size
 							if((am3.base_addr - am3.file_addr_list[am3.file_index]) > am3.file_size_list[am3.file_index])
 							{
 								am3.blk_stat = 0x100;
 							}
 
-							std::cout<<"NEW SMC BASE ADDR -> 0x" << am3.base_addr << "\n";
+							std::cout<<"NEW SMC BASE ADDR -> 0x" << am3.base_addr << " :: 0x" << am3.remaining_size << "\n";
 
 							am3.blk_stat = 0;
 							write_u16_fast(AM_BLK_STAT,  am3.blk_stat);
@@ -3093,8 +3100,6 @@ void AGB_MMU::write_am3(u32 address, u8 value)
 			am3.smc_size &= ~(0xFF << ((address & 0x1) << 3));
 			am3.smc_size |= (value << ((address & 0x1) << 3));
 
-			am3.unk_size = am3.smc_size;
-
 			std::cout<<"AM3 SMC SIZE -> 0x" << (u32)value << "\n";
 			break;
 
@@ -3146,14 +3151,12 @@ void AGB_MMU::write_am3(u32 address, u8 value)
 			std::cout<<"AM3 BASE WRITE -> 0x" << (u32)value << " :: 0x" << am3.base_addr << "\n";
 			break;
 
-		case AM_UNK_SIZE:
-		case AM_UNK_SIZE+1:
-			am3.unk_size &= ~(0xFF << ((address & 0x1) << 3));
-			am3.unk_size |= (value << ((address & 0x1) << 3));
+		case AM_RMN_SIZE:
+		case AM_RMN_SIZE+1:
+			am3.remaining_size &= ~(0xFF << ((address & 0x1) << 3));
+			am3.remaining_size |= (value << ((address & 0x1) << 3));
 
-			am3.smc_size = am3.unk_size;
-
-			std::cout<<"AM3 UNK SIZE -> 0x" << (u32)value << "\n";
+			std::cout<<"AM3 RMN SIZE -> 0x" << (u32)value << "\n";
 			break;
 
 		case AM_BLK_STAT:
