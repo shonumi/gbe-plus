@@ -247,6 +247,9 @@ u8 AGB_MMU::read_u8(u32 address)
 			
 	}
 
+	//if((address >= 0x8000000) && (address <= 0x8000400)) { std::cout<<"ROM BASE READ -> 0x" << address << "\n"; }
+	//if((address >= 0x08010400) && (address < 0x08010440)) { std::cout<<"AM3 IO READ -> 0x" << address << "\n"; }
+
 	//Read from game save data
 	if((address >= 0xE000000) && (address <= 0xE00FFFF))
 	{
@@ -504,23 +507,24 @@ u8 AGB_MMU::read_u8(u32 address)
 						//Read 1KB from SmartMedia card
 						else if(((am3.blk_stat & 0xFF) == 0x01) && (am3.read_sm_card))
 						{
+							u32 end_addr = am3.file_addr_list[am3.file_index] + am3.file_size_list[am3.file_index];
+							s32 diff_addr = end_addr - am3.base_addr;
+
+							//Update the remaining file size value after reading a block
+							if((diff_addr < am3.smc_size) && (diff_addr > 0)) { am3.remaining_size = diff_addr; }
+							else { am3.remaining_size = am3.smc_size; } 
+
 							//Copy data blocks from SmartMedia
 							for(u32 x = 0; x < am3.smc_size; x++)
 							{
 								memory_map[0x8000000 + x] = am3.card_data[am3.base_addr++];
 							}
 
-							u32 end_addr = am3.file_addr_list[am3.file_index] + am3.file_size_list[am3.file_index];
-							s32 diff_addr = end_addr - am3.base_addr;
-
-							//Update the remaining file size value after reading a block
-							if((diff_addr < 0x400) && (diff_addr >= 0)) { am3.remaining_size = diff_addr; }
-							else { am3.remaining_size = 0x400; } 
-
 							//Raise Bit 8 if AM_BLK_STAT if reading past current file size
-							if((am3.base_addr - am3.file_addr_list[am3.file_index]) > am3.file_size_list[am3.file_index])
+							if(am3.base_addr > end_addr)
 							{
 								am3.blk_stat = 0x100;
+								am3.base_addr = am3.file_addr_list[am3.file_index];
 							}
 
 							std::cout<<"NEW SMC BASE ADDR -> 0x" << am3.base_addr << " :: 0x" << am3.remaining_size << "\n";
@@ -3116,6 +3120,8 @@ void AGB_MMU::write_am3(u32 address, u8 value)
 				std::cout<<"OFFSET -> 0x" << am3.smc_offset << " :: " << (am3.smc_offset & 0x80000000) << "\n";
 				am3.last_offset = am3.smc_offset;
 				am3.base_addr += am3.smc_offset;
+
+				if(am3.base_addr < am3.file_addr_list[am3.file_index]) { am3.base_addr = am3.file_addr_list[am3.file_index]; }
 			}
 
 			std::cout<<"AM3 SMC OFFS WRITE -> 0x" << (u32)value << "\n";
