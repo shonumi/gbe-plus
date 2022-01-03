@@ -55,6 +55,7 @@ void AGB_MMU::reset()
 	am3.read_sm_card = false;
 	
 	am3.op_delay = 0;
+	am3.transfer_delay = 0;
 	am3.base_addr = 0x400;
 
 	am3.blk_stat = 0;
@@ -246,9 +247,6 @@ u8 AGB_MMU::read_u8(u32 address)
 			return 0;
 			
 	}
-
-	//if((address >= 0x8000000) && (address <= 0x8000400)) { std::cout<<"ROM BASE READ -> 0x" << address << "\n"; }
-	//if((address >= 0x08010400) && (address < 0x08010440)) { std::cout<<"AM3 IO READ -> 0x" << address << "\n"; }
 
 	//Read from game save data
 	if((address >= 0xE000000) && (address <= 0xE00FFFF))
@@ -3177,7 +3175,9 @@ void AGB_MMU::write_am3(u32 address, u8 value)
 			write_u16_fast(AM_BLK_STAT, am3.blk_stat);
 
 			//Raise GamePak IRQ when AM_BLK_STAT changes to a non-zero value after writing to it
-			if(am3.blk_stat) { memory_map[REG_IF] |= 0x2000; }
+			if(am3.blk_stat) { memory_map[REG_IF+1] |= 0x20; }
+
+			if(am3.blk_stat == 0x01) { am3.transfer_delay = 16; }
 
 			std::cout<<"AM3 BLK STAT WRITE -> 0x" << (u32)value << "\n";
 

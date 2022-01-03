@@ -301,6 +301,17 @@ void AGB_core::run_core()
 			//Otherwise, try to run any emulate SIO devices attached to GBE+
 			else if(core_cpu.controllers.serial_io.sio_stat.emu_device_ready) { core_cpu.clock_emulated_sio_device(); }
 
+			//Check if a block transfer for an AM3 card is still pending
+			else if(core_mmu.am3.transfer_delay)
+			{
+				core_mmu.am3.transfer_delay--;
+				if((!core_mmu.am3.transfer_delay) && (core_mmu.am3.blk_stat == 0x01))
+				{
+					core_mmu.am3.op_delay = 1;
+					core_mmu.read_u16(AM_BLK_STAT);
+				}
+			}
+
 			//Reset system cycles for next instruction
 			core_cpu.system_cycles = 0;
 

@@ -112,6 +112,7 @@ class AGB_MMU
 		bool read_key;
 
 		u8 op_delay;
+		u32 transfer_delay;
 		u32 base_addr;
 
 		u16 blk_stat;
