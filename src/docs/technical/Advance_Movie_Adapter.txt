@@ -25,7 +25,7 @@ The Advance Movie Adapter is a specialized Game Boy Advance cartridge capable of
 2. Cartridge Mapping
 ***************************************************
 
-Unlike many other GBA cartridge, the Advance Movie Adapter has an unusual method of mapping cartridge data. Only 2KB are addressable at any given time. The lower 1KB (0x8000000 - 0x80003FF) contains data pulled from either the firmware or the SmartMedia card. The upper 1KB (0x8000400 - 0x80007FF) contains memory-mapped I/O registers used to control what data is accessible from the lower half. Data is "swapped" or "banked" dynamically into the lower 1KB in a manner similar to the old memory bank controllers found in DMG/GBC cartridges.
+Unlike many other GBA cartridges, the Advance Movie Adapter has an unusual method of mapping cartridge data. Only 2KB are addressable at any given time. The lower 1KB (0x8000000 - 0x80003FF) contains data pulled from either the firmware or the SmartMedia card. The upper 1KB (0x8000400 - 0x80007FF) contains memory-mapped I/O registers used to control what data is accessible from the lower half. Data is "swapped" or "banked" dynamically into the lower 1KB in a manner similar to the old memory bank controllers found in DMG/GBC cartridges.
 
 These 2KB sections of data and I/O registers are mirrored endlessly across the 32MB of addresses the GBA reserves for the cartridge. Within the 1KB region reserved for the adapter's I/O registers, the registers are mirrored every 64 bytes.
 
@@ -46,7 +46,7 @@ AM_BLK_STAT	(R/W)	0x08010420 	16-bit		Controls block operations / Reports operat
 
 AM_BLK_ADDR determines where any data (from either the firmware or the SmartMedia card) will be mapped to. This is always 0x8000000 as far as the firmware is concerned.
 
-AM_BLK_SIZE determines the size of data to read from the firmware. As the Advance Movie Adapter only maps in a maximum of 1KB for data blocks, this value never greater than 0x400 as far as the firmware is concerned. Note that setting the size of data for SmartMedia card reads is a separate register.
+AM_BLK_SIZE determines the size of data to read from the firmware. As the Advance Movie Adapter only maps in a maximum of 1KB for data blocks, this value is never greater than 0x400 as far as the firmware is concerned. Note that setting the size of data for SmartMedia card reads is a separate register.
 
 AM_BLK_STAT controls the majority of operations on the Advance Movie Adapter. By writing to the register and setting certain bits, it starts the mapping process, switches between firmware and SmartMedia card, and makes the 128-bit DES key readable. It also reserves several bits that report on the status of current operations. See the next section for further details.
 
@@ -62,11 +62,11 @@ AM_SMC_EOF	(R)	0x0801040E	16-bit		Remaining bytes from current read pointer to E
 
 AM_SMC_OFFS adjusts the current read pointer by a signed (2's complement) 32-bit integer, making it possible to shift it forwards or backwards. This is used when a select portion of data or data at a specific location must be read. The read pointer does have some quirks, as detailed in a following section.
 
-AM_SMC_SIZE determines the size of data to read from the SmartMedia card. As the Advance Movie Adapter only maps in a maximum of 1KB for data blocks, this value never greater than 0x400 as far as the firmware is concerned. Note that setting the size of data for firmware reads is a separate register.
+AM_SMC_SIZE determines the size of data to read from the SmartMedia card. As the Advance Movie Adapter only maps in a maximum of 1KB for data blocks, this value is never greater than 0x400 as far as the firmware is concerned. Note that setting the size of data for firmware reads is a separate register.
 
 AM_SMC_FILE selects the current file to begin reading data from. Below in further section, a thorough explanation of the AM3 file hierarchy is provided.
 
-AM_SMC_EOF returns the remaining bytes from the current read pointer until the current End-Of-File is reached. This value normally reports the same 16-bit value as AM_SMC_SIZE at least that many bytes remain between the read pointer and EOF. If the read pointer advances after mapping in new data, and the distance between the read pointer and the EOF is less than AM_SMC_SIZE, AM_SMC_EOF will report the smaller value. Note that AM_SMC_EOF can also change when simply switching to a new file (by writing to AM_SMC_FILE) that is smaller than AM_SMC_SIZE.
+AM_SMC_EOF returns the remaining bytes from the current read pointer until the current End-Of-File is reached. This value normally reports the same 16-bit value as AM_SMC_SIZE when at least that many bytes remain between the read pointer and EOF. If the read pointer advances after mapping in new data, and the distance between the read pointer and the EOF is less than AM_SMC_SIZE, AM_SMC_EOF will report the smaller value. Note that AM_SMC_EOF can also change when simply switching to a new file (by writing to AM_SMC_FILE) that is smaller than AM_SMC_SIZE.
 
 
 ----------------------------------------------------------------------------------------------------------------------
@@ -78,7 +78,7 @@ AM_DES_KEY	(R)	0x08010410	128-bit		16-byte key used for DES decryption
 
 AM_FILE_SIZE returns the current file size as determined by the FAT of the SmartMedia card. Note that this register overlaps with AM_DES_KEY. To switch, the CPU must write the value 0x05 to AM_BLK_STAT.
 
-AM_DES_KEY returns the 128-bit (16-byte) DES key responsible for decrypting data. This key is unique to different SmartMedia cards and in embedded in a region not normally accessible by standard card readers. When no SmartMedia card is inserted in the adapter these bytes return zero. Note that this register partially overlaps with AM_FILE_SIZE. To switch, the CPU must write the value 0x03 to AM_BLK_STAT.
+AM_DES_KEY returns the 128-bit (16-byte) DES key responsible for decrypting data. This key is unique to every SmartMedia cards and is embedded in a region not normally accessible by standard card readers. When no SmartMedia card is inserted in the adapter, these bytes return zero. Note that this register partially overlaps with AM_FILE_SIZE. To switch, the CPU must write the value 0x03 to AM_BLK_STAT.
 
 
 
@@ -86,7 +86,7 @@ AM_DES_KEY returns the 128-bit (16-byte) DES key responsible for decrypting data
 4. AM_BLK_STAT
 ***************************************************
 
-This I/O register is heavily used by the adapter and is central to its operation. It acts a way for the CPU to send commands to the adapter as well as determine the status of firmware or SmartMedia card mapping. Its various bits work as follows:
+This I/O register is heavily used by the adapter and is central to its operation. It acts as a way for the CPU to send commands to the adapter as well as determine the status of firmware or SmartMedia card mapping. Its various bits work as follows:
 
 -----------------------------------------------------------
 Bit 0		(R/W)		Execute Operation
@@ -117,7 +117,7 @@ Writing to an I/O register is exactly that. AM_BLK_STAT needs to signal to the a
 
 Set File Size Mode and Set DES Key Mode refer to the values held in AM_FILE_SIZE and AM_DES_KEY. Since these registers have overlapping addresses, AM_BLK_STAT controls which mode the adapter will use, and which values to return when reading these memory locations. Once the DES key is read, there is usually no need to return to this mode.
 
-These operations can be further divided as being "internal" or "external". The first deals with data that resides on the Advance Movie Adapter itself, such as reading firmware or writing to I/O registers. The second deals with data residing on the SmartMedia card, such as its data, file sizes, and DES keys. A value of "1" chooses internal operations, while a value of "0" chooses external operations. In practice, however, only a few limited values are ever written to AM_BLK_STAT. These can then be seen as single-byte "commands".
+These operations can be further divided as being "internal" or "external". The first deals with data that resides on the Advance Movie Adapter itself, such as reading firmware or writing to I/O registers. The second deals with data residing on the SmartMedia card, such as the files themselves, file sizes, and DES keys. A value of "1" chooses internal operations, while a value of "0" chooses external operations. In practice, however, only a few limited values are ever written to AM_BLK_STAT. These can then be seen as single-byte "commands".
 
 -----------------------------------------------------------
 Command		| Description
