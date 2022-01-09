@@ -527,6 +527,9 @@ bool AGB_LCD::render_sprite_pixel()
 		if((!obj[sprite_id].x_wrap) && ((scanline_pixel_counter < obj[sprite_id].left) || (scanline_pixel_counter > obj[sprite_id].right))) { continue; }
 		else if((obj[sprite_id].x_wrap) && ((scanline_pixel_counter > obj[sprite_id].right) && (scanline_pixel_counter < obj[sprite_id].left))) { continue; }
 
+		//For bitmap BG Modes 3-5, skip rendering tile numbers lower than 512
+		else if((lcd_stat.bg_mode >= 0x3) && (obj[sprite_id].tile_number < 512)) { continue; }
+
 		//Normal sprite rendering
 		if(!obj[sprite_id].affine_enable)
 		{
