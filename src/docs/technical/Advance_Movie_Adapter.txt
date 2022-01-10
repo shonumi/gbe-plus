@@ -351,4 +351,27 @@ The firmware reads the entire 128-bit DES key/SmartMedia ID and then verifies it
 Although this "security" is easily defeated, at the time, it was only meant to deter casual, physical piracy, as SmartMedia card readers and writers were once common. The SmartMedia's 128-bit ID is permanently set at the time of manufacture, so even commercially available blank cards would have a different ID, meaning the AM3 files could not blindly be copied over. Digital solutions, however, such as emulators, are not bound by these constraints.
 
 The key can be legitimately extracted by any GBA ROM dumper or other homebrew by simply trying to read the Advance Movie Adapter as if it were a normal game cartridge. As long as an AM3 SmartMedia card is inserted, the key will appear at the bytes 0x08010410 through 0x0801041F.
-	
+
+
+***************************************************
+9. List of AM3 Cards
+***************************************************
+
+am3-00001		Detective Conan Episode 1: ジェットコースター殺人事件
+am3-00002		Detective Conan Episode 2: 社長令嬢誘拐事件
+am3-00003		Detective Conan Episode 3: アイドル密室殺人事件
+am3-00004		Detective Conan Episode 4: 大都会暗号マップ事件
+am3-00005		Detective Conan Episode 5: 新幹線大爆破事件
+am3-00006		Detective Conan Episode 6: バレンタイン殺人事件
+am3-00007		Detective Conan Episode 7: 月いちプレゼント脅迫事件
+am3-00008		Detective Conan Episode 8: 美術館オーナー殺人事件
+am3-00009		Detective Conan Episode 9: 天下一夜祭殺人事件
+am3-00010		Detective Conan Episode 10: プロサッカー選手脅迫事件
+am3-00011		Detective Conan Episode 11: ピアノソナタ『月光』殺人事件
+am3-00012		Detective Conan Episode 12: 歩美ちゃん誘拐殺人事件
+am3-00013		Detective Conan Episode 13: 奇妙な人捜し殺人事件
+am3-00014		Detective Conan Episode 14: 謎のメッセージ殺人事件
+am3-00144		Crayon Shin-chan Movie: ブリブリ王国の秘宝
+am3-00146		Crayon Shin-chan Blank Gashapon Card
+am3-00147		Crayon Shin-chan Blank Gashapon Card
+am3-00148		Crayon Shin-chan Blank Gashapon Card
