@@ -354,9 +354,12 @@ The key can be legitimately extracted by any GBA ROM dumper or other homebrew by
 
 
 ***************************************************
-9. List of AM3 Cards
+9. List of AM3 Cards and Products
 ***************************************************
 
+-----------------------------------------------------------
+Individual Cards with Video
+-----------------------------------------------------------
 am3-00001		Detective Conan Episode 1: ジェットコースター殺人事件
 am3-00002		Detective Conan Episode 2: 社長令嬢誘拐事件
 am3-00003		Detective Conan Episode 3: アイドル密室殺人事件
@@ -371,7 +374,22 @@ am3-00011		Detective Conan Episode 11: ピアノソナタ『月光』殺人事�
 am3-00012		Detective Conan Episode 12: 歩美ちゃん誘拐殺人事件
 am3-00013		Detective Conan Episode 13: 奇妙な人捜し殺人事件
 am3-00014		Detective Conan Episode 14: 謎のメッセージ殺人事件
+am3-00033		Pokemon Movie: 劇場版ポケットモンスター ピカチュウのなつやすみ
+am3-00034		Pokemon TV Anime Episode 1
+am3-00046		Pokemon TV Anime Episode 2
+am3-00047		Pokemon TV Anime Episode 3
+am3-00067		Pokemon Movie: 劇場版ポケットモンスター ミュウツーの逆襲　完全版
+am3-00069		Pokemon Movie: 劇場版ポケットモンスター ピカチュウたんけんたい
+am3-00085		Pokemon Movie: 劇場版ポケットモンスター ピチューとピカチュウ
+am3-00104		Pokemon Movie: 劇場版ポケットモンスター 幻のポケモン　ルギア爆誕
+am3-00131		Pokemon Movie: 劇場版ポケットモンスター 結晶塔の帝王　エンテイ
 am3-00144		Crayon Shin-chan Movie: ブリブリ王国の秘宝
+am3-00167		Pokemon Movie: 劇場版ポケットモンスターセレビィ～時を超えた遭遇～
+
+
+-----------------------------------------------------------
+Blank Gashapon Cards
+-----------------------------------------------------------
 am3-00146		Crayon Shin-chan Blank Gashapon Card
 am3-00147		Crayon Shin-chan Blank Gashapon Card
 am3-00148		Crayon Shin-chan Blank Gashapon Card
