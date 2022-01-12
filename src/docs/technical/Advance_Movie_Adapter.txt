@@ -373,6 +373,8 @@ am3-00011		Detective Conan Episode 11: ピアノソナタ『月光』殺人事�
 am3-00012		Detective Conan Episode 12: 歩美ちゃん誘拐殺人事件
 am3-00013		Detective Conan Episode 13: 奇妙な人捜し殺人事件
 am3-00014		Detective Conan Episode 14: 謎のメッセージ殺人事件
+am3-00025		Rerere no Tensai Bakabon Vol. 1
+am3-00026		Rerere no Tensai Bakabon Vol. 2
 am3-00033		Pokemon Movie: 劇場版ポケットモンスター ピカチュウのなつやすみ
 am3-00035		Pokemon TV Anime Episode 1
 am3-00046		Pokemon TV Anime Episode 2
@@ -391,12 +393,14 @@ am3-00167		Pokemon Movie: 劇場版ポケットモンスターセレビィ～時
 Individual Cards with Video + Adapter Bundle
 -----------------------------------------------------------
 am3-00001		Detective Conan Episode 1: ジェットコースター殺人事件
+am3-00024		Rerere no Tensai Bakabon Vol. 1
 am3-00031		Pokemon Movie: 劇場版ポケットモンスター ピカチュウのなつやすみ
 am3-00034		Pokemon TV Anime Episode 1
 am3-00065		Pokemon Original Animation: オリジナルアニメーション ピカチュウのふゆやすみ
 am3-00068		Pokemon Movie: 劇場版ポケットモンスター ピカチュウたんけんたい
 am3-00084		Pokemon Movie: 劇場版ポケットモンスター ピチューとピカチュウ
 am3-00090		Akubi-chan: Episode 1 (???)
+am3-00111		Ocha-ken: ちょこっとものがたり vol.1収録
 
 
 -----------------------------------------------------------
@@ -412,6 +416,7 @@ am3-00083		Munchlax Gashapon Card
 am3-00086		Akubi-chan Gashapon Card #1
 am3-00088		Akubi-chan Gashapon Card #2
 am3-00089		Akubi-chan Gashapon Card #3
+am3-00112		Ocha-ken Gashapon Card
 am3-00130		Kyorge Gashapon Card
 am3-00139		Bakusho Mondai no Bakuten Gashapon Card
 am3-00146		Crayon Shin-chan Gashapon Card #1
