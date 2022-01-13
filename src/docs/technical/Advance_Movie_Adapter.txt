@@ -1,4 +1,4 @@
-Advance Movie Adapter Technical Documentation 0.2
+Advance Movie Adapter Technical Documentation 0.3
 January 2, 2021
 Shonumi aka D.S. Baxter
 
@@ -363,18 +363,25 @@ Individual Cards with Video
 am3-00002		Detective Conan Episode 2: 社長令嬢誘拐事件
 am3-00003		Detective Conan Episode 3: アイドル密室殺人事件
 am3-00004		Detective Conan Episode 4: 大都会暗号マップ事件
-am3-00005		Detective Conan Episode 5: 新幹線大爆破事件
-am3-00006		Detective Conan Episode 6: バレンタイン殺人事件
-am3-00007		Detective Conan Episode 7: 月いちプレゼント脅迫事件
-am3-00008		Detective Conan Episode 8: 美術館オーナー殺人事件
-am3-00009		Detective Conan Episode 9: 天下一夜祭殺人事件
-am3-00010		Detective Conan Episode 10: プロサッカー選手脅迫事件
-am3-00011		Detective Conan Episode 11: ピアノソナタ『月光』殺人事件
-am3-00012		Detective Conan Episode 12: 歩美ちゃん誘拐殺人事件
-am3-00013		Detective Conan Episode 13: 奇妙な人捜し殺人事件
-am3-00014		Detective Conan Episode 14: 謎のメッセージ殺人事件
+am3-00007		Time Bokan Episode 1: ｢発進！タイムボカンだペッチャ｣
+am3-00008		Time Bokan Episode 2: ｢ギリシャのズッコケ戦争だペッチャ｣
+am3-00009		Time Bokan Episode 3: ｢恐怖の魔女狩りだペッチャ｣
+am3-00010		Time Bokan Episode 4: ｢へんてこ西遊記だペッチャ｣
+am3-00012		Detective Conan Episode 5: 新幹線大爆破事件
+am3-00013		Detective Conan Episode 6: バレンタイン殺人事件
+am3-00014		Detective Conan Episode 7: 月いちプレゼント脅迫事件
+am3-00015		Time Bokan Episode 5: ｢原始人はやさしいだペッチャ｣
+am3-00016		Time Bokan Episode 6: ｢海賊はオウムが好きだペッチャ｣
+am3-00017		Time Bokan Episode 7: ｢合図はひらけゴマだペッチャ｣
+am3-00018		Detective Conan Episode 8: 美術館オーナー殺人事件
+am3-00019		Detective Conan Episode 9: 天下一夜祭殺人事件
+am3-00020		Detective Conan Episode 10: プロサッカー選手脅迫事件
 am3-00025		Rerere no Tensai Bakabon Vol. 1
 am3-00026		Rerere no Tensai Bakabon Vol. 2
+am3-00027		Detective Conan Episode 12: 歩美ちゃん誘拐殺人事件
+am3-00028		Detective Conan Episode 13: 奇妙な人捜し殺人事件
+am3-00029		Detective Conan Episode 14: 謎のメッセージ殺人事件
+am3-00030		Detective Conan Episode 11: ピアノソナタ『月光』殺人事件
 am3-00033		Pokemon Movie: 劇場版ポケットモンスター ピカチュウのなつやすみ
 am3-00035		Pokemon TV Anime Episode 1
 am3-00046		Pokemon TV Anime Episode 2
@@ -393,6 +400,7 @@ am3-00167		Pokemon Movie: 劇場版ポケットモンスターセレビィ～時
 Individual Cards with Video + Adapter Bundle
 -----------------------------------------------------------
 am3-00001		Detective Conan Episode 1: ジェットコースター殺人事件
+am3-00006		Time Bokan Episode 1: ｢発進！タイムボカンだペッチャ｣
 am3-00024		Rerere no Tensai Bakabon Vol. 1
 am3-00031		Pokemon Movie: 劇場版ポケットモンスター ピカチュウのなつやすみ
 am3-00034		Pokemon TV Anime Episode 1
@@ -417,6 +425,7 @@ am3-00086		Akubi-chan Gashapon Card #1
 am3-00088		Akubi-chan Gashapon Card #2
 am3-00089		Akubi-chan Gashapon Card #3
 am3-00112		Ocha-ken Gashapon Card
+am3-00116		Time Bokan Gashapon Card
 am3-00130		Kyorge Gashapon Card
 am3-00139		Bakusho Mondai no Bakuten Gashapon Card
 am3-00146		Crayon Shin-chan Gashapon Card #1
