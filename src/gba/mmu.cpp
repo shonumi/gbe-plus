@@ -387,9 +387,9 @@ u8 AGB_MMU::read_u8(u32 address)
 		case AM_BLK_ADDR+2: return (config::cart_type == AGB_AM3) ? ((am3.blk_addr >> 16) & 0xFF) : memory_map[address]; break;
 		case AM_BLK_ADDR+3: return (config::cart_type == AGB_AM3) ? ((am3.blk_addr >> 24) & 0xFF) : memory_map[address]; break;
 
-		//AM3 Remaining File Size
-		case AM_RMN_SIZE: return (config::cart_type == AGB_AM3) ? (am3.remaining_size & 0xFF) : memory_map[address]; break;
-		case AM_RMN_SIZE+1: return (config::cart_type == AGB_AM3) ? ((am3.remaining_size >> 8) & 0xFF) : memory_map[address]; break;
+		//AM3 Remaining File Size Until EOF
+		case AM_SMC_EOF: return (config::cart_type == AGB_AM3) ? (am3.remaining_size & 0xFF) : memory_map[address]; break;
+		case AM_SMC_EOF+1: return (config::cart_type == AGB_AM3) ? ((am3.remaining_size >> 8) & 0xFF) : memory_map[address]; break;
 
 		//AM3 File Size / DES key Bytes 0 - 3
 		case AM_FILE_SIZE:
@@ -437,7 +437,7 @@ u8 AGB_MMU::read_u8(u32 address)
 
 		//AM3 Block Status
 		case AM_BLK_STAT:
-			return (am3.blk_stat & 0xFF);
+			return return (config::cart_type == AGB_AM3) ? (am3.blk_stat & 0xFF) : memory_map[address];
 			break;
 
 		//AM3 Block Status
@@ -2252,8 +2252,8 @@ bool AGB_MMU::read_file(std::string filename)
 		if(!check_am3_fat())
 		{
 			std::cout<<"MMU::Error - AM3 SmartMedia card data has bad File Allocation Table\n";
-			file.close();
-			return false;
+			//file.close();
+			//return false;
 		}
 
 		file_size = 0x400;
@@ -3155,8 +3155,8 @@ void AGB_MMU::write_am3(u32 address, u8 value)
 			std::cout<<"AM3 BASE WRITE -> 0x" << (u32)value << " :: 0x" << am3.base_addr << "\n";
 			break;
 
-		case AM_RMN_SIZE:
-		case AM_RMN_SIZE+1:
+		case AM_SMC_EOF:
+		case AM_SMC_EOF+1:
 			am3.remaining_size &= ~(0xFF << ((address & 0x1) << 3));
 			am3.remaining_size |= (value << ((address & 0x1) << 3));
 
