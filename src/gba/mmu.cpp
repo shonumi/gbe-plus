@@ -76,7 +76,7 @@ void AGB_MMU::reset()
 
 	am3.remaining_size = 0x400;
 
-	am3.bootstrap_data.clear();
+	am3.firmware_data.clear();
 	am3.card_data.clear();
 
 	gpio.data = 0;
@@ -437,7 +437,7 @@ u8 AGB_MMU::read_u8(u32 address)
 
 		//AM3 Block Status
 		case AM_BLK_STAT:
-			return return (config::cart_type == AGB_AM3) ? (am3.blk_stat & 0xFF) : memory_map[address];
+			return (config::cart_type == AGB_AM3) ? (am3.blk_stat & 0xFF) : memory_map[address];
 			break;
 
 		//AM3 Block Status
@@ -459,17 +459,17 @@ u8 AGB_MMU::read_u8(u32 address)
 					//Perform operation after delays
 					else if(am3.op_delay == 0)
 					{
-						//Read 1KB from bootstrap
+						//Read 1KB from firmware
 						if(((am3.blk_stat & 0xFF) == 0x09) && (!am3.read_sm_card))
 						{
-							//Copy data blocks from bootstrap
+							//Copy data blocks from firmware
 							for(u32 x = 0; x < 0x400; x++)
 							{
-								memory_map[0x8000000 + x] = am3.bootstrap_data[am3.base_addr++];
+								memory_map[0x8000000 + x] = am3.firmware_data[am3.base_addr++];
 							}
 
-							//Set flag when all bootstrap blocks have been read
-							if(am3.base_addr >= am3.bootstrap_data.size()) { am3.blk_stat = 0x100; }
+							//Set flag when all firmware blocks have been read
+							if(am3.base_addr >= am3.firmware_data.size()) { am3.blk_stat = 0x100; }
 							else { am3.blk_stat = 0; }
 
 							write_u16_fast(AM_BLK_STAT,  am3.blk_stat);
@@ -2224,9 +2224,9 @@ bool AGB_MMU::read_file(std::string filename)
 	//Also, forcibly disable saves for this type of cart
 	if(config::cart_type == AGB_AM3)
 	{
-		//Read bootstrap file first
-		std::string bs_file = config::data_path + "bootstrap.gba";
-		if(!read_bootstrap(bs_file))
+		//Read firmware file first
+		std::string firm_file = config::data_path + "am3_firmware.bin";
+		if(!read_am3_firmware(firm_file))
 		{
 			file.close();
 			return false;
@@ -2252,8 +2252,8 @@ bool AGB_MMU::read_file(std::string filename)
 		if(!check_am3_fat())
 		{
 			std::cout<<"MMU::Error - AM3 SmartMedia card data has bad File Allocation Table\n";
-			//file.close();
-			//return false;
+			file.close();
+			return false;
 		}
 
 		file_size = 0x400;
@@ -2494,8 +2494,8 @@ bool AGB_MMU::read_bios(std::string filename)
 	return true;
 }
 
-/****** Read AM3 bootstrap file into memory ******/
-bool AGB_MMU::read_bootstrap(std::string filename)
+/****** Read AM3 firmware file into memory ******/
+bool AGB_MMU::read_am3_firmware(std::string filename)
 {
 	std::ifstream file(filename.c_str(), std::ios::binary);
 
@@ -2510,20 +2510,20 @@ bool AGB_MMU::read_bootstrap(std::string filename)
 	u32 file_size = file.tellg();
 	file.seekg(0, file.beg);
 
-	am3.bootstrap_data.clear();
-	am3.bootstrap_data.resize(file_size, 0x00);
+	am3.firmware_data.clear();
+	am3.firmware_data.resize(file_size, 0x00);
 	
-	u8* ex_mem = &am3.bootstrap_data[0];
+	u8* ex_mem = &am3.firmware_data[0];
 
-	//Read data from the bootstrap file
+	//Read data from the firmware file
 	file.read((char*)ex_mem, file_size);
 
 	file.close();
 
-	//Copy 1st 1KB of bootstrap to 0x8000000
-	for(u32 x = 0; x < 0x400; x++) { memory_map[0x8000000 + x] = am3.bootstrap_data[x]; }
+	//Copy 1st 1KB of firmware to 0x8000000
+	for(u32 x = 0; x < 0x400; x++) { memory_map[0x8000000 + x] = am3.firmware_data[x]; }
 
-	std::cout<<"MMU::AM3 bootstrap file " << filename << " loaded successfully. \n";
+	std::cout<<"MMU::AM3 firmware file " << filename << " loaded successfully. \n";
 
 	return true;
 }
