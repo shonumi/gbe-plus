@@ -557,7 +557,14 @@ void validate_system_type()
 {
 	if(config::rom_file.empty()) { return; }
 	if((config::rom_file == "NOCART") || config::no_cart) { return; }
-	if((config::rom_file == "-h") || (config::rom_file == "--help")) { config::cli_args.push_back(config::rom_file); return; } 
+	if((config::rom_file == "-h") || (config::rom_file == "--help")) { config::cli_args.push_back(config::rom_file); return; }
+
+	//When loading AM3 files, force system type to GBA
+	if(config::cart_type == AGB_AM3)
+	{
+		config::gb_type = 3;
+		return;
+	}
 
 	//Determine Gameboy type based on file name
 	//Note, DMG and GBC games are automatically detected in the Gameboy MMU, so only check for GBA types here
@@ -596,6 +603,13 @@ u8 get_system_type_from_file(std::string filename)
 	if(filename == "NOCART")
 	{
 		config::no_cart = true;
+		return config::gb_type;
+	}
+
+	//When loading AM3 files, force system type to GBA
+	if(config::cart_type == AGB_AM3)
+	{
+		config::gb_type = 3;
 		return config::gb_type;
 	}
 
