@@ -3861,6 +3861,29 @@ bool AGB_MMU::mmu_read(u32 offset, std::string filename)
 	file.read((char*)&flash_ram.data[0][0], 0x10000);
 	file.read((char*)&flash_ram.data[1][0], 0x10000);
 
+	//Serialize AM3 data from save state
+	file.read((char*)&am3.read_sm_card, sizeof(am3.read_sm_card));
+	file.read((char*)&am3.read_key, sizeof(am3.read_key));
+	file.read((char*)&am3.op_delay, sizeof(am3.op_delay));
+	file.read((char*)&am3.transfer_delay, sizeof(am3.transfer_delay));
+	file.read((char*)&am3.base_addr, sizeof(am3.base_addr));
+	file.read((char*)&am3.blk_stat, sizeof(am3.blk_stat));
+	file.read((char*)&am3.blk_size, sizeof(am3.blk_size));
+	file.read((char*)&am3.blk_addr, sizeof(am3.blk_addr));
+	file.read((char*)&am3.smc_offset, sizeof(am3.smc_offset));
+	file.read((char*)&am3.last_offset, sizeof(am3.last_offset));
+	file.read((char*)&am3.smc_size, sizeof(am3.smc_size));
+	file.read((char*)&am3.smc_base, sizeof(am3.smc_base));
+	file.read((char*)&am3.file_index, sizeof(am3.file_index));
+	file.read((char*)&am3.last_index, sizeof(am3.last_index));
+	file.read((char*)&am3.file_count, sizeof(am3.file_count));
+	file.read((char*)&am3.file_size, sizeof(am3.file_size));
+	file.read((char*)&am3.remaining_size, sizeof(am3.remaining_size));
+	file.read((char*)&am3.file_size_list[0], (sizeof(u32) * am3.file_size_list.size()));
+	file.read((char*)&am3.file_addr_list[0], (sizeof(u32) * am3.file_addr_list.size()));
+	file.read((char*)&am3.des_key[0], 0x10);
+	if(config::cart_type == AGB_AM3) { file.read((char*)&memory_map[0x8000000], 0x400); }
+
 	file.close();
 	return true;
 }
@@ -3929,6 +3952,29 @@ bool AGB_MMU::mmu_write(std::string filename)
 	file.write((char*)&flash_ram.data[0][0], 0x10000);
 	file.write((char*)&flash_ram.data[1][0], 0x10000);
 
+	//Serialize AM3 data to save state
+	file.write((char*)&am3.read_sm_card, sizeof(am3.read_sm_card));
+	file.write((char*)&am3.read_key, sizeof(am3.read_key));
+	file.write((char*)&am3.op_delay, sizeof(am3.op_delay));
+	file.write((char*)&am3.transfer_delay, sizeof(am3.transfer_delay));
+	file.write((char*)&am3.base_addr, sizeof(am3.base_addr));
+	file.write((char*)&am3.blk_stat, sizeof(am3.blk_stat));
+	file.write((char*)&am3.blk_size, sizeof(am3.blk_size));
+	file.write((char*)&am3.blk_addr, sizeof(am3.blk_addr));
+	file.write((char*)&am3.smc_offset, sizeof(am3.smc_offset));
+	file.write((char*)&am3.last_offset, sizeof(am3.last_offset));
+	file.write((char*)&am3.smc_size, sizeof(am3.smc_size));
+	file.write((char*)&am3.smc_base, sizeof(am3.smc_base));
+	file.write((char*)&am3.file_index, sizeof(am3.file_index));
+	file.write((char*)&am3.last_index, sizeof(am3.last_index));
+	file.write((char*)&am3.file_count, sizeof(am3.file_count));
+	file.write((char*)&am3.file_size, sizeof(am3.file_size));
+	file.write((char*)&am3.remaining_size, sizeof(am3.remaining_size));
+	file.write((char*)&am3.file_size_list[0], (sizeof(u32) * am3.file_size_list.size()));
+	file.write((char*)&am3.file_addr_list[0], (sizeof(u32) * am3.file_addr_list.size()));
+	file.write((char*)&am3.des_key[0], 0x10);
+	if(config::cart_type == AGB_AM3) { file.write((char*)&memory_map[0x8000000], 0x400); }
+
 	file.close();
 	return true;
 }
@@ -3962,6 +4008,28 @@ u32 AGB_MMU::size()
 	mmu_size += sizeof(flash_ram.grab_ids);
 	mmu_size += sizeof(flash_ram.next_write);
 	mmu_size += 0x20000;
+
+	mmu_size += sizeof(am3.read_sm_card);
+	mmu_size += sizeof(am3.read_key);
+	mmu_size += sizeof(am3.op_delay);
+	mmu_size += sizeof(am3.transfer_delay);
+	mmu_size += sizeof(am3.base_addr);
+	mmu_size += sizeof(am3.blk_stat);
+	mmu_size += sizeof(am3.blk_size);
+	mmu_size += sizeof(am3.blk_addr);
+	mmu_size += sizeof(am3.smc_offset);
+	mmu_size += sizeof(am3.last_offset);
+	mmu_size += sizeof(am3.smc_size);
+	mmu_size += sizeof(am3.smc_base);
+	mmu_size += sizeof(am3.file_index);
+	mmu_size += sizeof(am3.last_index);
+	mmu_size += sizeof(am3.file_count);
+	mmu_size += sizeof(am3.file_size);
+	mmu_size += sizeof(am3.remaining_size);
+	mmu_size += (sizeof(u32) * am3.file_size_list.size());
+	mmu_size += (sizeof(u32) * am3.file_addr_list.size());
+	mmu_size += 0x10;
+	if(config::cart_type == AGB_AM3) { mmu_size += 0x400; }
 
 	return mmu_size;
 }
