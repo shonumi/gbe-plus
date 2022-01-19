@@ -2234,7 +2234,7 @@ bool AGB_MMU::read_file(std::string filename)
 
 		//Next read 16-byte DES key from file
 		std::string key_file = filename + ".key";
-		if(!read_des_key(key_file))
+		if((!read_des_key(key_file)) && (!config::auto_gen_am3_key))
 		{
 			file.close();
 			return false;
@@ -2531,6 +2531,9 @@ bool AGB_MMU::read_am3_firmware(std::string filename)
 /****** Read AM3 16-byte DES key into memory ******/
 bool AGB_MMU::read_des_key(std::string filename)
 {
+	am3.des_key.clear();
+	am3.des_key.resize(16, 0x00);
+
 	std::ifstream file(filename.c_str(), std::ios::binary);
 
 	if(!file.is_open()) 
@@ -2551,9 +2554,6 @@ bool AGB_MMU::read_des_key(std::string filename)
 		file.close();
 		return false;		
 	}
-		
-	am3.des_key.clear();
-	am3.des_key.resize(16, 0x00);
 	
 	u8* ex_mem = &am3.des_key[0];
 
@@ -3178,6 +3178,7 @@ void AGB_MMU::write_am3(u32 address, u8 value)
 			if(am3.blk_stat) { memory_map[REG_IF+1] |= 0x20; }
 
 			if(am3.blk_stat == 0x01) { am3.transfer_delay = 16; }
+			if(am3.blk_stat == 0x03) { am3.transfer_delay = 1; }
 
 			std::cout<<"AM3 BLK STAT WRITE -> 0x" << (u32)value << "\n";
 

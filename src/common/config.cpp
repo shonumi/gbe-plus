@@ -231,6 +231,9 @@ namespace config
 	//Magical Watch Data
 	u8 mw_data[6] = { 0, 0, 0, 0, 0, 0 };
 
+	//AM3 DES Key Auto Generate Flag
+	bool auto_gen_am3_key = false;
+
 	//On-screen display settings
 	bool use_osd = false;
 	std::vector <u32> osd_font;
@@ -856,6 +859,9 @@ bool parse_cli_args()
 
 			//Ignore Illegal Opcodes
 			else if(config::cli_args[x] == "--ignore-illegal-opcodes") { config::ignore_illegal_opcodes = true; }
+
+			//Auto Generate AM3 DES Key
+			else if(config::cli_args[x] == "--auto-gen-key") { config::auto_gen_am3_key = true; }
 
 			//Print Help
 			else if((config::cli_args[x] == "-h") || (config::cli_args[x] == "--help")) 
