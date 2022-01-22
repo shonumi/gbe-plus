@@ -3127,25 +3127,16 @@ void AGB_MMU::write_am3(u32 address, u8 value)
 
 		case AM_SMC_FILE:
 		case AM_SMC_FILE+1:
-			am3.last_index &= ~(0xFF << ((address & 0x1) << 3));
-			am3.last_index |= (value << ((address & 0x1) << 3));
+			am3.file_index &= ~(0xFF << ((address & 0x1) << 3));
+			am3.file_index |= (value << ((address & 0x1) << 3));
 
 			if(address == (AM_SMC_FILE+1))
 			{	
 				//Special Case - If the latest file index is 0xFFFF, reset file index to zero
-				if(am3.last_index == 0xFFFF) { am3.last_index = 0; }
+				if(am3.file_index == 0xFFFF) { am3.file_index = 0; }
 
-				//Special Case - Access file "00"
-				else if(am3.last_index == am3.file_count) { am3.file_index = am3.file_count; }
-
-				//Special Case - If the latest file index is 0x4000, access the INFO file
-				else if(am3.last_index > am3.file_count) { am3.file_index = am3.file_count + 1; }
-
-				//Check for valid file
-				if(s32(am3.file_count - am3.last_index - 1) >= 0)
-				{
-					am3.file_index = am3.file_count - am3.last_index - 1;
-				}
+				//Special Case - If the latest file index invalid, access the last file (INFO file)
+				if(am3.file_index > am3.file_count) { am3.file_index = am3.file_count - 1; }
 
 				am3.base_addr = am3.file_addr_list[am3.file_index];
 				am3.file_size = am3.file_size_list[am3.file_index];
@@ -3225,60 +3216,101 @@ bool AGB_MMU::check_am3_fat()
 	u32 zero_pos = 0;
 	u32 zero_size = 0;
 
+	u8 fname_size = 0;
+
+	std::vector<std::string> temp_file_list;
+	std::vector<u32> temp_addr_list;
+	std::vector<u32> temp_size_list;
+	std::string current_file = "";
+
+	//Grab filenames, size, and location from Root Directory
 	while(t_addr < (data_region_addr + 0x200))
 	{
-		//Pull filename, check to see if it matches pattern "XX  ", where the 1st 2 characters are ASCII numbers and rest of chars are ASCII spaces
-		if((am3.card_data[t_addr + 3] == 0x20) && (am3.card_data[t_addr + 2] == 0x20))
+		//Pull filename, wait until spaces
+		u8 current_chr = am3.card_data[t_addr + fname_size];
+
+		//Check for a valid filename character
+		if((current_chr != 0x2E) && (current_chr >= 0x20))
 		{
-			u8 fn1 = am3.card_data[t_addr];
-			u8 fn2 = am3.card_data[t_addr + 1];
+			//Make sure filename is not case-sensitive. Convert all lower-case ASCII to uppercase
+			if((current_chr > 0x61) && (current_chr <= 0x7A)) { current_chr -= 0x20; }
 
-			//When 1st 2 characters are both be "0" in ASCII, treat this as a special file
-			if((fn1 == fn2) && (fn1 == 0x30))
+			current_file += current_chr;
+			fname_size++;
+
+			//Add filename to first list found in Root Directory, store file sizes and their addresses
+			if(fname_size == 0x08)
 			{
-				zero_size = ((am3.card_data[t_addr + 0x1F] << 24) | (am3.card_data[t_addr + 0x1E] << 16) | (am3.card_data[t_addr + 0x1D] << 8) | am3.card_data[t_addr + 0x1C]);
-				zero_pos = ((am3.card_data[t_addr + 0x1B] << 8) | (am3.card_data[t_addr + 0x1A]));
-				zero_pos = data_region_addr + ((zero_pos - 2) * sectors_per_cluster * bytes_per_sector);
+				fname_size = 0;
+				temp_file_list.push_back(current_file);
+				current_file = "";
 
-				std::cout<<"AM3 00 File Found @ 0x" << zero_pos << " :: Size 0x" << zero_size << "\n";
-			}
-
-			else if((fn1 >= 0x30) && (fn1 <= 0x39) && (fn2 >= 0x30) && (fn2 <= 0x39))
-			{
 				//Grab and store file size
 				u32 f_size = ((am3.card_data[t_addr + 0x1F] << 24) | (am3.card_data[t_addr + 0x1E] << 16) | (am3.card_data[t_addr + 0x1D] << 8) | am3.card_data[t_addr + 0x1C]);
-				am3.file_size_list.push_back(f_size);
+				temp_size_list.push_back(f_size);
 				am3.file_count++;
 
 				//Calculate and store file offset in SmartMedia dump
 				u32 f_pos = ((am3.card_data[t_addr + 0x1B] << 8) | (am3.card_data[t_addr + 0x1A]));
 				f_pos = data_region_addr + ((f_pos - 2) * sectors_per_cluster * bytes_per_sector);
-				am3.file_addr_list.push_back(f_pos);
+				temp_addr_list.push_back(f_pos);
 
-				std::cout<<"AM3 File Found @ 0x" << f_pos << " :: Size 0x" << f_size << "\n";
+				std::cout<<"AM3 File Found @ 0x" << f_pos << " :: Size 0x" << f_size << " :: " << temp_file_list.back() << "\n";
+
+				t_addr += 0x20;
 			}
 		}
 
-		//Check INFO file
-		else if((am3.card_data[t_addr] == 0x49) && (am3.card_data[t_addr + 1] == 0x4E) && (am3.card_data[t_addr + 2] == 0x46) && (am3.card_data[t_addr + 3] == 0x4F))
+		//For invalid filename character, skip to next file
+		else
 		{
-			info_size = ((am3.card_data[t_addr + 0x1F] << 24) | (am3.card_data[t_addr + 0x1E] << 16) | (am3.card_data[t_addr + 0x1D] << 8) | am3.card_data[t_addr + 0x1C]);
-			info_pos = ((am3.card_data[t_addr + 0x1B] << 8) | (am3.card_data[t_addr + 0x1A]));
-			info_pos = data_region_addr + ((info_pos - 2) * sectors_per_cluster * bytes_per_sector);
-
-			std::cout<<"AM3 INFO File Found @ 0x" << info_pos << " :: Size 0x" << info_size << "\n";
-		}	 
-
-		t_addr += 0x20;
+			fname_size = 0;
+			current_file = "";
+			t_addr += 0x20;
+		}
 	}
 
-	//Add 00 file data to the end
-	am3.file_size_list.push_back(zero_size);
-	am3.file_addr_list.push_back(zero_pos);
+	//Look up "INFO    " and pull filenames from that table
+	for(u32 x = 0; x < temp_file_list.size(); x++)
+	{
+		if(temp_file_list[x] == "INFO    ") { t_addr = temp_addr_list[x] + 0x200; }
+	}
 
-	//Add INFO file data to the end
-	am3.file_size_list.push_back(info_size);
-	am3.file_addr_list.push_back(info_pos);
+	std::cout<<"ADDR -> 0x" << t_addr << "\n";
+
+	u32 info_table = t_addr + 0x200;
+
+	//Grab filenames from INFO file. Compare them to the Root Directory. The order they appear in INFO is how the adapter sorts them
+	while(t_addr < info_table)
+	{
+		//Pull filename
+		u8 current_chr = am3.card_data[t_addr + fname_size + 0x08];
+
+		//Make sure filename is not case-sensitive. Convert all lower-case ASCII to uppercase
+		if((current_chr > 0x61) && (current_chr <= 0x7A)) { current_chr -= 0x20; }
+
+		current_file += current_chr;
+		fname_size++;
+
+		//Check current filename against previous list and add them for the emulated AM3 adapter in the correct order
+		if(fname_size == 0x08)
+		{
+			for(u32 x = 0; x < temp_file_list.size(); x++)
+			{
+				if(temp_file_list[x] == current_file)
+				{
+					am3.file_size_list.push_back(temp_size_list[x]);
+					am3.file_addr_list.push_back(temp_addr_list[x]);
+
+					std::cout<<"FILE " << current_file << " is #" << std::dec << am3.file_size_list.size() << std::hex << "\n";
+				}
+			}
+
+			fname_size = 0;
+			current_file = "";
+			t_addr += 0x20;
+		}
+	}
 
 	if(!am3.file_count)
 	{
