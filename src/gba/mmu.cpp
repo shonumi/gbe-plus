@@ -421,7 +421,6 @@ u8 AGB_MMU::read_u8(u32 address)
 		case AM_FILE_SIZE+13:
 		case AM_FILE_SIZE+14:
 		case AM_FILE_SIZE+15:
-			std::cout<<"KEY READ\n";
 			if(config::cart_type == AGB_AM3) { return (am3.read_key) ? am3.des_key[address - AM_FILE_SIZE] : 0; }
 			return memory_map[address];
 
@@ -485,8 +484,6 @@ u8 AGB_MMU::read_u8(u32 address)
 						//Update current value of FILE_SIZE
 						else if((am3.blk_stat & 0xFF) == 0x05)
 						{
-							std::cout<<"FILE SIZE -> 0x" << am3.file_size << "\n";
-
 							am3.file_size = am3.file_size_list[am3.file_index];
 							am3.blk_stat = 0;
 							am3.read_key = false;
@@ -496,7 +493,6 @@ u8 AGB_MMU::read_u8(u32 address)
 						//Switch to DES Key Reading mode
 						else if((am3.blk_stat & 0xFF) == 0x03)
 						{
-							std::cout<<"DES Key Read 0x03 \n";
 							am3.blk_stat = 0;
 							am3.read_key = true;
 							write_u16_fast(AM_BLK_STAT,  am3.blk_stat);
@@ -524,8 +520,6 @@ u8 AGB_MMU::read_u8(u32 address)
 								am3.blk_stat = 0x100;
 								am3.base_addr = am3.file_addr_list[am3.file_index];
 							}
-
-							std::cout<<"NEW SMC BASE ADDR -> 0x" << am3.base_addr << " :: 0x" << am3.remaining_size << "\n";
 
 							am3.blk_stat = 0;
 							write_u16_fast(AM_BLK_STAT,  am3.blk_stat);
@@ -3086,23 +3080,18 @@ void AGB_MMU::write_am3(u32 address, u8 value)
 		case AM_BLK_SIZE+1:
 			am3.blk_size &= ~(0xFF << ((address & 0x1) << 3));
 			am3.blk_size |= (value << ((address & 0x1) << 3));
-
-			std::cout<<"AM3 BLK SIZE -> 0x" << (u32)value << "\n";
 			break;
 
 		case AM_BLK_ADDR:
 		case AM_BLK_ADDR+1:
 		case AM_BLK_ADDR+2:
 		case AM_BLK_ADDR+3:
-			std::cout<<"AM3 BLK ADDR WRITE -> 0x" << (u32)value << "\n";
 			break;
 
 		case AM_SMC_SIZE:
 		case AM_SMC_SIZE+1:
 			am3.smc_size &= ~(0xFF << ((address & 0x1) << 3));
 			am3.smc_size |= (value << ((address & 0x1) << 3));
-
-			std::cout<<"AM3 SMC SIZE -> 0x" << (u32)value << "\n";
 			break;
 
 		case AM_SMC_OFFS:
@@ -3115,14 +3104,12 @@ void AGB_MMU::write_am3(u32 address, u8 value)
 			//Reset reading address if a new offset is passed
 			if((address == (AM_SMC_OFFS+3)) && (am3.smc_offset != am3.last_offset))
 			{
-				std::cout<<"OFFSET -> 0x" << am3.smc_offset << " :: " << (am3.smc_offset & 0x80000000) << "\n";
 				am3.last_offset = am3.smc_offset;
 				am3.base_addr += am3.smc_offset;
 
 				if(am3.base_addr < am3.file_addr_list[am3.file_index]) { am3.base_addr = am3.file_addr_list[am3.file_index]; }
 			}
 
-			std::cout<<"AM3 SMC OFFS WRITE -> 0x" << (u32)value << "\n";
 			break;
 
 		case AM_SMC_FILE:
@@ -3143,7 +3130,6 @@ void AGB_MMU::write_am3(u32 address, u8 value)
 				am3.read_sm_card = true;
 			}
 
-			std::cout<<"AM3 BASE WRITE -> 0x" << (u32)value << " :: 0x" << am3.base_addr << "\n";
 			break;
 
 		case AM_SMC_EOF:
@@ -3151,7 +3137,6 @@ void AGB_MMU::write_am3(u32 address, u8 value)
 			am3.remaining_size &= ~(0xFF << ((address & 0x1) << 3));
 			am3.remaining_size |= (value << ((address & 0x1) << 3));
 
-			std::cout<<"AM3 RMN SIZE -> 0x" << (u32)value << "\n";
 			break;
 
 		case AM_BLK_STAT:
@@ -3170,8 +3155,6 @@ void AGB_MMU::write_am3(u32 address, u8 value)
 
 			if(am3.blk_stat == 0x01) { am3.transfer_delay = 16; }
 			if(am3.blk_stat == 0x03) { am3.transfer_delay = 1; }
-
-			std::cout<<"AM3 BLK STAT WRITE -> 0x" << (u32)value << "\n";
 
 			break;
 
@@ -3255,7 +3238,7 @@ bool AGB_MMU::check_am3_fat()
 				f_pos = data_region_addr + ((f_pos - 2) * sectors_per_cluster * bytes_per_sector);
 				temp_addr_list.push_back(f_pos);
 
-				std::cout<<"AM3 File Found @ 0x" << f_pos << " :: Size 0x" << f_size << " :: " << temp_file_list.back() << "\n";
+				std::cout<<"AM3 File Found @ 0x" << f_pos << " :: Size 0x" << f_size << "\n";
 
 				t_addr += 0x20;
 			}
@@ -3270,13 +3253,24 @@ bool AGB_MMU::check_am3_fat()
 		}
 	}
 
+	bool found_info = false;
+
 	//Look up "INFO    " and pull filenames from that table
 	for(u32 x = 0; x < temp_file_list.size(); x++)
 	{
-		if(temp_file_list[x] == "INFO    ") { t_addr = temp_addr_list[x] + 0x200; }
+		if(temp_file_list[x] == "INFO    ")
+		{
+			t_addr = temp_addr_list[x] + 0x200;
+			found_info = true;
+		}
 	}
 
-	std::cout<<"ADDR -> 0x" << t_addr << "\n";
+	//Abort if "INFO    " file does not exist
+	if(!found_info)
+	{
+		std::cout<<"Error - AM3 FAT has no INFO.AM3 file\n";
+		return false;
+	}
 
 	u32 info_table = t_addr + 0x200;
 
@@ -3301,8 +3295,6 @@ bool AGB_MMU::check_am3_fat()
 				{
 					am3.file_size_list.push_back(temp_size_list[x]);
 					am3.file_addr_list.push_back(temp_addr_list[x]);
-
-					std::cout<<"FILE " << current_file << " is #" << std::dec << am3.file_size_list.size() << std::hex << "\n";
 				}
 			}
 
