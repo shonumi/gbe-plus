@@ -3216,13 +3216,13 @@ bool AGB_MMU::check_am3_fat()
 		if((current_chr != 0x2E) && (current_chr >= 0x20))
 		{
 			//Make sure filename is not case-sensitive. Convert all lower-case ASCII to uppercase
-			if((current_chr > 0x61) && (current_chr <= 0x7A)) { current_chr -= 0x20; }
+			if((current_chr >= 0x61) && (current_chr <= 0x7A)) { current_chr -= 0x20; }
 
 			current_file += current_chr;
 			fname_size++;
 
 			//Add filename to first list found in Root Directory, store file sizes and their addresses
-			if(fname_size == 0x08)
+			if(fname_size == 0x0B)
 			{
 				fname_size = 0;
 				temp_file_list.push_back(current_file);
@@ -3255,10 +3255,10 @@ bool AGB_MMU::check_am3_fat()
 
 	bool found_info = false;
 
-	//Look up "INFO    " and pull filenames from that table
+	//Look up "INFO    AM3" and pull filenames from that table
 	for(u32 x = 0; x < temp_file_list.size(); x++)
 	{
-		if(temp_file_list[x] == "INFO    ")
+		if(temp_file_list[x] == "INFO    AM3")
 		{
 			t_addr = temp_addr_list[x] + 0x200;
 			found_info = true;
@@ -3281,13 +3281,13 @@ bool AGB_MMU::check_am3_fat()
 		u8 current_chr = am3.card_data[t_addr + fname_size + 0x08];
 
 		//Make sure filename is not case-sensitive. Convert all lower-case ASCII to uppercase
-		if((current_chr > 0x61) && (current_chr <= 0x7A)) { current_chr -= 0x20; }
+		if((current_chr >= 0x61) && (current_chr <= 0x7A)) { current_chr -= 0x20; }
 
 		current_file += current_chr;
 		fname_size++;
 
 		//Check current filename against previous list and add them for the emulated AM3 adapter in the correct order
-		if(fname_size == 0x08)
+		if(fname_size == 0x0B)
 		{
 			for(u32 x = 0; x < temp_file_list.size(); x++)
 			{
