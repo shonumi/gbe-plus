@@ -633,6 +633,8 @@ bool DMG_SIO::send_ir_signal()
 {
 	#ifdef GBE_NETPLAY
 
+	std::cout<<"SENDING IR SINGAL\n";
+
 	u8 temp_buffer[2];
 
 	//For IR signals, flag it properly
@@ -728,6 +730,16 @@ bool DMG_SIO::receive_byte()
 				{
 					mem->memory_map[REG_RP] |= 0x2;
 					mem->ir_counter = 0;
+				}
+
+				//Handle IR signals for HuC-1
+				if(mem->cart.mbc_type == DMG_MMU::HUC1)
+				{
+					//Set to IR cart register to 0xC1 if receiving signal
+					if(temp_buffer[0] == 1) { mem->ir_signal = 0x01; }
+
+					//Set to IR cart register to 0xC0 if receiving no signal
+					else { mem->ir_signal = 0x00; }
 				}
 
 				//Send acknowlegdement
