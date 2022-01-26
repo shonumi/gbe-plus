@@ -633,8 +633,6 @@ bool DMG_SIO::send_ir_signal()
 {
 	#ifdef GBE_NETPLAY
 
-	std::cout<<"SENDING IR SINGAL\n";
-
 	u8 temp_buffer[2];
 
 	//For IR signals, flag it properly

@@ -67,7 +67,6 @@ void AGB_MMU::reset()
 	am3.smc_base = 0;
 	am3.last_offset = 0;
 
-	am3.last_index = 0;
 	am3.file_index = 0;
 	am3.file_count = 0;
 	am3.file_size = 0;
@@ -3900,7 +3899,6 @@ bool AGB_MMU::mmu_read(u32 offset, std::string filename)
 	file.read((char*)&am3.smc_size, sizeof(am3.smc_size));
 	file.read((char*)&am3.smc_base, sizeof(am3.smc_base));
 	file.read((char*)&am3.file_index, sizeof(am3.file_index));
-	file.read((char*)&am3.last_index, sizeof(am3.last_index));
 	file.read((char*)&am3.file_count, sizeof(am3.file_count));
 	file.read((char*)&am3.file_size, sizeof(am3.file_size));
 	file.read((char*)&am3.remaining_size, sizeof(am3.remaining_size));
@@ -3991,7 +3989,6 @@ bool AGB_MMU::mmu_write(std::string filename)
 	file.write((char*)&am3.smc_size, sizeof(am3.smc_size));
 	file.write((char*)&am3.smc_base, sizeof(am3.smc_base));
 	file.write((char*)&am3.file_index, sizeof(am3.file_index));
-	file.write((char*)&am3.last_index, sizeof(am3.last_index));
 	file.write((char*)&am3.file_count, sizeof(am3.file_count));
 	file.write((char*)&am3.file_size, sizeof(am3.file_size));
 	file.write((char*)&am3.remaining_size, sizeof(am3.remaining_size));
@@ -4047,7 +4044,6 @@ u32 AGB_MMU::size()
 	mmu_size += sizeof(am3.smc_size);
 	mmu_size += sizeof(am3.smc_base);
 	mmu_size += sizeof(am3.file_index);
-	mmu_size += sizeof(am3.last_index);
 	mmu_size += sizeof(am3.file_count);
 	mmu_size += sizeof(am3.file_size);
 	mmu_size += sizeof(am3.remaining_size);
