@@ -146,3 +146,13 @@ AHW	AIM	AJC	Tranquil Chair
 AHX	AIN	AJD	Relaxing Chair
 AHY	AIO	AJE	Gold Tearoom
 AHZ	AIP	AJF	Silver Tearoom
+AIQ	AJG		Play Set
+AIR	AJH		Changing-clothes Box
+AIS	AJI		Changing-clothes Case
+AIT	AJJ		Strange Box
+AIU	AJK	AKA	Somersault Platform
+AIV	AJL	AKB	Jump Sheet
+AIW	AJM	AKC	Trampoline
+AIX	AJN	AKD	Pink Refrigerator
+AIY	AJO	AKE	Wood-grain Refrigerator
+AIZ	AJP	AKF	Play Refrigerator
