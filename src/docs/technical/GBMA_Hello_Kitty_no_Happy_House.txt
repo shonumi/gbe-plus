@@ -50,7 +50,6 @@ Below are a list of 3-letter codes and the items they generate when used in the 
 ---------------------------------------------------
 Codes			| Item
 ---------------------------------------------------
-AAA	 		Green Iron
 AAB			Heart Clock
 AAC			Pendulum Clock
 AAD			Futuristic Clock
@@ -156,3 +155,18 @@ AIW	AJM	AKC	Trampoline
 AIX	AJN	AKD	Pink Refrigerator
 AIY	AJO	AKE	Wood-grain Refrigerator
 AIZ	AJP	AKF	Play Refrigerator
+AJQ	AKG		White Iron
+AJR	AKH		Green Iron
+AJS	AKI		Purple Iron
+AJT	AKJ		Brown Builder (workout set)
+AJU	AKK	ALA	Purple Builder (workout set)
+AJV	AKL	ALB	Green Builder (workout set)
+AJW	AKM	ALC	Brown Runner (treadmill)
+AJX	AKN	ALD	Red Runner (treadmill, says red, looks pink)
+AJY	AKO	ALE	Blue Runner (treadmill)
+AJZ	AKP	ALF	Flower Piano
+AKQ	ALG		Star Piano
+AKR	ALH		Classic Piano
+AKS	ALI		Crystal Ball Set
+AKT	ALJ		Fortune-Telling Set
+AKU	ALK	AMA	Tarot Card Divination
