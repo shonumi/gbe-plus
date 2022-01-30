@@ -300,10 +300,12 @@ void AGB_SIO::mobile_adapter_process()
 
 						break;
 
-					//Unknown command 0x18
-					//Sent after 0x10 on GBA games.
-					//Receives 1 byte of unknown purpose. Responds with empty body
+					//SIO32 Mode Switch
 					case 0x18:
+						//Switch to NORMAL32 or NORMAL8 mode depending on data received
+						if(mobile_adapter.packet_buffer[6] == 0x01) { mobile_adapter.s32_mode = true; }
+						else { mobile_adapter.s32_mode = false; }
+
 						//Start building the reply packet - Empty body
 						mobile_adapter.packet_buffer.clear();
 

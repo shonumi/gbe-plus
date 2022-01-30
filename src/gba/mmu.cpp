@@ -3444,7 +3444,7 @@ void AGB_MMU::process_sio()
 	//Normal Mode - 32-bit
 	else if(sio_stat->cnt & 0x1000)
 	{
-		if(sio_stat->sio_mode != NORMAL_32BIT) { sio_stat->active_transfer = false; }
+		if(sio_stat->sio_mode != NORMAL_32BIT) { sio_stat->active_transfer = false; std::cout<<"NORMAL32\n"; }
 		sio_stat->sio_mode = NORMAL_32BIT;
 
 		//Convert transfer speed to GBA CPU cycles
@@ -3491,7 +3491,7 @@ void AGB_MMU::process_sio()
 
 	else
 	{
-		if(sio_stat->sio_mode != NORMAL_8BIT) { sio_stat->active_transfer = false; }
+		if(sio_stat->sio_mode != NORMAL_8BIT) { sio_stat->active_transfer = false; std::cout<<"NORMAL8\n"; }
 		sio_stat->sio_mode = NORMAL_8BIT;
 
 		//Convert transfer speed to GBA CPU cycles

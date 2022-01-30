@@ -127,6 +127,7 @@ class AGB_SIO
 		bool http_session_started;
 		bool smtp_session_started;
 		bool line_busy;
+		bool s32_mode;
 	} mobile_adapter;
 
 	//Multi Plust On System
