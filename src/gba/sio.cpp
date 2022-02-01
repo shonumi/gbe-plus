@@ -349,6 +349,7 @@ void AGB_SIO::reset()
 	mobile_adapter.pop_session_started = false;
 	mobile_adapter.http_session_started = false;
 	mobile_adapter.smtp_session_started = false;
+	mobile_adapter.switch_mode = false;
 	mobile_adapter.s32_mode = false;
 	mobile_adapter.http_data = "";
 

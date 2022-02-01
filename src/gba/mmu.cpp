@@ -3456,6 +3456,7 @@ void AGB_MMU::process_sio()
 		//Start transfer
 		if((sio_stat->player_id == 0) && (!sio_stat->active_transfer) && (sio_stat->internal_clock) && (sio_stat->cnt & 0x80))
 		{
+			//Initiate transfer to Mobile Adapter GB
 			//Initiate transfer to emulated Battle Chip Gate
 			//Initiate transfer to emulated GBA Wireless Adapter
 			if((sio_stat->sio_type == GBA_MOBILE_ADAPTER) || (sio_stat->sio_type == GBA_BATTLE_CHIP_GATE) || (sio_stat->sio_type == GBA_WIRELESS_ADAPTER))

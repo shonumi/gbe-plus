@@ -61,6 +61,12 @@ void AGB_SIO::mobile_adapter_process_08()
 				mobile_adapter.command = mobile_adapter.packet_buffer[2];
 				mobile_adapter.data_length = mobile_adapter.packet_buffer[5];
 
+				//Calculate correct data length for 32-bit mode
+				if((mobile_adapter.s32_mode) && (mobile_adapter.data_length & 0x3))
+				{
+					mobile_adapter.data_length += (4 - (mobile_adapter.data_length & 0x3));
+				}
+
 				//Move to the next state
 				mobile_adapter.packet_size = 0;
 				mobile_adapter.current_state = (mobile_adapter.data_length == 0) ? AGB_GBMA_RECEIVE_CHECKSUM : AGB_GBMA_RECEIVE_DATA;
@@ -220,6 +226,13 @@ void AGB_SIO::mobile_adapter_process_08()
 					mobile_adapter.packet_buffer.clear();
 					mobile_adapter.packet_size = 0;
 					mobile_adapter.current_state = AGB_GBMA_AWAITING_PACKET;
+
+					//Switch to 32-bit mode if necessary
+					if(mobile_adapter.switch_mode)
+					{
+						mobile_adapter.switch_mode = false;
+						mobile_adapter.s32_mode = true;
+					}
 				}
 			}
 
@@ -230,7 +243,40 @@ void AGB_SIO::mobile_adapter_process_08()
 /****** Processes data sent to the GB Mobile Adapter - 32bit Mode ******/
 void AGB_SIO::mobile_adapter_process_32()
 {
-	std::cout<<"STUB\n";
+	std::cout<<"32 IN -> 0x" << sio_stat.transfer_data << "\n";
+
+	u8 original_byte = mem->memory_map[SIO_DATA_8];
+	u8 input_byte = 0x00;
+
+	u32 out_data = 0x00;
+	u32 shift = 24;
+	u32 temp_data = sio_stat.transfer_data;
+
+	//Process 32-bit input the same as 8-bit input, break down byte MSB first
+	for(u32 x = 0; x < 4; x++)
+	{
+		agb_mobile_state start_state = mobile_adapter.current_state;
+
+		input_byte = sio_stat.transfer_data >> shift;
+		sio_stat.transfer_data = input_byte;
+
+		mobile_adapter_process_08();
+		sio_stat.transfer_data = temp_data;
+
+		out_data |= (mem->memory_map[SIO_DATA_8] << shift);
+		shift -= 8;
+
+		//Stop building 32-bit response if necessary
+		if((start_state == AGB_GBMA_ACKNOWLEDGE_PACKET) && (mobile_adapter.current_state == AGB_GBMA_ECHO_PACKET))
+		{
+			break;
+		}
+	}
+
+	mem->memory_map[SIO_DATA_8] = original_byte;
+	mem->write_u32_fast(SIO_DATA_32_L, out_data);
+
+	std::cout<<"32 OUT -> 0x" << out_data << "\n";
 }
 
 /****** Begins execution of Mobile Adapter command ******/
@@ -350,8 +396,9 @@ void AGB_SIO::mobile_adapter_execute_command()
 		//SIO32 Mode Switch
 		case 0x18:
 			//Switch to NORMAL32 or NORMAL8 mode depending on data received
-			if(mobile_adapter.packet_buffer[6] == 0x01) { mobile_adapter.s32_mode = true; }
-			else { mobile_adapter.s32_mode = false; }
+			if((mobile_adapter.packet_buffer[6] == 0x01) && (!mobile_adapter.s32_mode)) { mobile_adapter.switch_mode = true; }
+			else if((mobile_adapter.packet_buffer[6] == 0x00) && (mobile_adapter.s32_mode)) { mobile_adapter.switch_mode = true; }
+			else { mobile_adapter.switch_mode = false; }
 
 			//Start building the reply packet - Empty body
 			mobile_adapter.packet_buffer.clear();
@@ -412,6 +459,13 @@ void AGB_SIO::mobile_adapter_execute_command()
 					else { std::cout<<"SIO::Error - Mobile Adapter trying to read out-of-bounds memory\n"; return; }
 				}
 
+				//Pad data section if necessary
+				if(mobile_adapter.s32_mode)
+				{
+					u8 pad_length = 4 - (mobile_adapter.packet_buffer[5] & 0x3);
+					for(u32 x = 0; x < pad_length; x++) { mobile_adapter.packet_buffer.push_back(0x00); }
+				}
+
 				//Checksum
 				u16 checksum = 0;
 				for(u32 x = 2; x < mobile_adapter.packet_buffer.size(); x++) { checksum += mobile_adapter.packet_buffer[x]; }
@@ -426,6 +480,13 @@ void AGB_SIO::mobile_adapter_execute_command()
 				//Send packet back
 				mobile_adapter.packet_size = 0;
 				mobile_adapter.current_state = AGB_GBMA_ECHO_PACKET;
+
+				//Pad data acknowledgement section if necessary
+				if(mobile_adapter.s32_mode)
+				{
+					u8 pad_length = 4 - (mobile_adapter.packet_buffer.size() & 0x3);
+					for(u32 x = 0; x < pad_length; x++) { mobile_adapter.packet_buffer.push_back(0x00); }
+				}
 			}
 
 			else { std::cout<<"SIO::Error - Mobile Adapter requested unspecified configuration data\n"; return; }

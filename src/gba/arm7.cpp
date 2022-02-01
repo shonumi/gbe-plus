@@ -1566,7 +1566,7 @@ void ARM7::clock_emulated_sio_device()
 	switch(config::sio_device)
 	{
 		case 0x3:
-			if(controllers.serial_io.sio_stat.sio_mode == NORMAL_8BIT)
+			if((controllers.serial_io.sio_stat.sio_mode == NORMAL_8BIT) || (controllers.serial_io.sio_stat.sio_mode == NORMAL_32BIT))
 			{
 				//Reset Bit 7 in SIO_CNT
 				mem->memory_map[SIO_CNT] &= ~0x80;
