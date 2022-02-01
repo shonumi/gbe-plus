@@ -260,7 +260,9 @@ class AGB_SIO
 	void battle_chip_gate_process();
 	void net_gate_process();
 
-	void mobile_adapter_process();
+	void mobile_adapter_process_08();
+	void mobile_adapter_process_32();
+	void mobile_adapter_execute_command();
 	void mobile_adapter_process_pop();
 	void mobile_adapter_process_http();
 	void mobile_adapter_process_smtp();

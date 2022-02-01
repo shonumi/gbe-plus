@@ -3444,7 +3444,7 @@ void AGB_MMU::process_sio()
 	//Normal Mode - 32-bit
 	else if(sio_stat->cnt & 0x1000)
 	{
-		if(sio_stat->sio_mode != NORMAL_32BIT) { sio_stat->active_transfer = false; std::cout<<"NORMAL32\n"; }
+		if(sio_stat->sio_mode != NORMAL_32BIT) { sio_stat->active_transfer = false; }
 		sio_stat->sio_mode = NORMAL_32BIT;
 
 		//Convert transfer speed to GBA CPU cycles
@@ -3458,7 +3458,7 @@ void AGB_MMU::process_sio()
 		{
 			//Initiate transfer to emulated Battle Chip Gate
 			//Initiate transfer to emulated GBA Wireless Adapter
-			if((sio_stat->sio_type == GBA_BATTLE_CHIP_GATE) || (sio_stat->sio_type == GBA_WIRELESS_ADAPTER))
+			if((sio_stat->sio_type == GBA_MOBILE_ADAPTER) || (sio_stat->sio_type == GBA_BATTLE_CHIP_GATE) || (sio_stat->sio_type == GBA_WIRELESS_ADAPTER))
 			{
 				sio_stat->transfer_data = read_u32_fast(SIO_DATA_32_L);
 				sio_stat->emu_device_ready = true;
@@ -3491,7 +3491,7 @@ void AGB_MMU::process_sio()
 
 	else
 	{
-		if(sio_stat->sio_mode != NORMAL_8BIT) { sio_stat->active_transfer = false; std::cout<<"NORMAL8\n"; }
+		if(sio_stat->sio_mode != NORMAL_8BIT) { sio_stat->active_transfer = false; }
 		sio_stat->sio_mode = NORMAL_8BIT;
 
 		//Convert transfer speed to GBA CPU cycles

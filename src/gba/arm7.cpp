@@ -1571,8 +1571,17 @@ void ARM7::clock_emulated_sio_device()
 				//Reset Bit 7 in SIO_CNT
 				mem->memory_map[SIO_CNT] &= ~0x80;
 
-				//Process Mobile Adapter
-				controllers.serial_io.mobile_adapter_process();
+				//Process Mobile Adapter - 8-bit
+				if(!controllers.serial_io.mobile_adapter.s32_mode)
+				{
+					controllers.serial_io.mobile_adapter_process_08();
+				}
+
+				//Process Mobile Adapter - 32-bit
+				else
+				{
+					controllers.serial_io.mobile_adapter_process_32();
+				}
 			}
 
 			controllers.serial_io.sio_stat.emu_device_ready = false;
