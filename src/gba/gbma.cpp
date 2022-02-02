@@ -71,7 +71,7 @@ void AGB_SIO::mobile_adapter_process_08()
 				mobile_adapter.packet_size = 0;
 				mobile_adapter.current_state = (mobile_adapter.data_length == 0) ? AGB_GBMA_RECEIVE_CHECKSUM : AGB_GBMA_RECEIVE_DATA;
 
-				std::cout<<"SIO::Mobile Adapter - Command ID 0x" << std::hex << (u32)mobile_adapter.command << "\n";
+				std::cout<<"\nSIO::Mobile Adapter - Command ID 0x" << std::hex << (u32)mobile_adapter.command << "\n";
 			}
 			
 			//Send data back to GBA + IRQ
@@ -243,8 +243,6 @@ void AGB_SIO::mobile_adapter_process_08()
 /****** Processes data sent to the GB Mobile Adapter - 32bit Mode ******/
 void AGB_SIO::mobile_adapter_process_32()
 {
-	std::cout<<"32 IN -> 0x" << sio_stat.transfer_data << "\n";
-
 	u8 original_byte = mem->memory_map[SIO_DATA_8];
 	u8 input_byte = 0x00;
 
@@ -275,8 +273,6 @@ void AGB_SIO::mobile_adapter_process_32()
 
 	mem->memory_map[SIO_DATA_8] = original_byte;
 	mem->write_u32_fast(SIO_DATA_32_L, out_data);
-
-	std::cout<<"32 OUT -> 0x" << out_data << "\n";
 }
 
 /****** Begins execution of Mobile Adapter command ******/
@@ -298,6 +294,13 @@ void AGB_SIO::mobile_adapter_execute_command()
 
 			//Line busy status
 			mobile_adapter.line_busy = false;
+
+			//Pad data acknowledgement section if necessary
+			if(mobile_adapter.s32_mode)
+			{
+				u8 pad_length = 4 - (mobile_adapter.packet_buffer.size() & 0x3);
+				for(u32 x = 0; x < pad_length; x++) { mobile_adapter.packet_buffer.push_back(0x00); }
+			}
 			
 			break;
 
@@ -340,6 +343,13 @@ void AGB_SIO::mobile_adapter_execute_command()
 			if(mobile_adapter.command == 0x12) { mobile_adapter.line_busy = true; }
 			else if(mobile_adapter.command == 0x13) { mobile_adapter.line_busy = false; }
 
+			//Pad data acknowledgement section if necessary
+			if(mobile_adapter.s32_mode)
+			{
+				u8 pad_length = 4 - (mobile_adapter.packet_buffer.size() & 0x3);
+				for(u32 x = 0; x < pad_length; x++) { mobile_adapter.packet_buffer.push_back(0x00); }
+			}
+
 			break;
 
 		//TCP transfer data
@@ -371,21 +381,38 @@ void AGB_SIO::mobile_adapter_execute_command()
 			mobile_adapter.packet_buffer.push_back(0x97);
 			mobile_adapter.packet_buffer.push_back(0x00);
 			mobile_adapter.packet_buffer.push_back(0x00);
-			mobile_adapter.packet_buffer.push_back(0x01);
+			mobile_adapter.packet_buffer.push_back(0x03);
 
 			//Body
-			if(mobile_adapter.line_busy) { mobile_adapter.packet_buffer.push_back(0x04); }
+			if(mobile_adapter.line_busy) { mobile_adapter.packet_buffer.push_back(0x05); }
 			else { mobile_adapter.packet_buffer.push_back(0x00); }
+			
+			mobile_adapter.packet_buffer.push_back(0x4D);
+			mobile_adapter.packet_buffer.push_back(0x00);
+
+			//Pad data section if necessary
+			if(mobile_adapter.s32_mode)
+			{
+				u8 pad_length = 4 - (mobile_adapter.packet_buffer[5] & 0x3);
+				for(u32 x = 0; x < pad_length; x++) { mobile_adapter.packet_buffer.push_back(0x00); }
+			}
 
 			//Checksum
 			mobile_adapter.packet_buffer.push_back(0x00);
 
-			if(mobile_adapter.line_busy) { mobile_adapter.packet_buffer.push_back(0x9C); }
-			else { mobile_adapter.packet_buffer.push_back(0x98); }
+			if(mobile_adapter.line_busy) { mobile_adapter.packet_buffer.push_back(0xEC); }
+			else { mobile_adapter.packet_buffer.push_back(0xE7); }
 
 			//Acknowledgement handshake
 			mobile_adapter.packet_buffer.push_back(0x88);
 			mobile_adapter.packet_buffer.push_back(0x00);
+
+			//Pad data acknowledgement section if necessary
+			if(mobile_adapter.s32_mode)
+			{
+				u8 pad_length = 4 - (mobile_adapter.packet_buffer.size() & 0x3);
+				for(u32 x = 0; x < pad_length; x++) { mobile_adapter.packet_buffer.push_back(0x00); }
+			}
 
 			//Send packet back
 			mobile_adapter.packet_size = 0;
@@ -555,19 +582,26 @@ void AGB_SIO::mobile_adapter_execute_command()
 			mobile_adapter.packet_buffer.push_back(0x00);
 			mobile_adapter.packet_buffer.push_back(0x04);
 
-			//Body - 127.0.0.1
-			mobile_adapter.packet_buffer.push_back(0x7F);
+			//Body - 0.0.0.0
 			mobile_adapter.packet_buffer.push_back(0x00);
 			mobile_adapter.packet_buffer.push_back(0x00);
-			mobile_adapter.packet_buffer.push_back(0x01);
+			mobile_adapter.packet_buffer.push_back(0x00);
+			mobile_adapter.packet_buffer.push_back(0x00);
 
 			//Checksum
-			mobile_adapter.packet_buffer.push_back(0x01);
-			mobile_adapter.packet_buffer.push_back(0x25);
+			mobile_adapter.packet_buffer.push_back(0x00);
+			mobile_adapter.packet_buffer.push_back(0xA5);
 
 			//Acknowledgement handshake
 			mobile_adapter.packet_buffer.push_back(0x88);
 			mobile_adapter.packet_buffer.push_back(0x00);
+
+			//Pad data acknowledgement section if necessary
+			if(mobile_adapter.s32_mode)
+			{
+				u8 pad_length = 4 - (mobile_adapter.packet_buffer.size() & 0x3);
+				for(u32 x = 0; x < pad_length; x++) { mobile_adapter.packet_buffer.push_back(0x00); }
+			}
 
 			//Send packet back
 			mobile_adapter.packet_size = 0;
