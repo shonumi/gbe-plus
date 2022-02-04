@@ -282,7 +282,7 @@ void AGB_SIO::mobile_adapter_execute_command()
 	switch(mobile_adapter.command)
 	{
 
-		//For certain commands, the mobile adapter echoes the packet it received
+		//For certain commands, the mobile adapter mostly echoes the packet it received
 		case 0x10:
 		case 0x11:
 			mobile_adapter.packet_size = 0;
@@ -291,6 +291,21 @@ void AGB_SIO::mobile_adapter_execute_command()
 			//Echo packet needs to have the proper handshake with the adapter ID and command
 			mobile_adapter.packet_buffer[mobile_adapter.packet_buffer.size() - 2] = 0x88;
 			mobile_adapter.packet_buffer[mobile_adapter.packet_buffer.size() - 1] = 0x00;
+
+			//Set command byte correctly
+			mobile_adapter.packet_buffer[2] ^= 0x80;
+
+			//Set checksum correctly
+			{
+				u16 packet_len = mobile_adapter.packet_buffer.size() - 2;
+				u16 checksum = (mobile_adapter.packet_buffer[packet_len - 2] << 8);
+				
+				checksum |= mobile_adapter.packet_buffer[packet_len - 1];
+				checksum += 0x80;
+
+				mobile_adapter.packet_buffer[packet_len - 2] = ((checksum >> 8) & 0xFF);
+				mobile_adapter.packet_buffer[packet_len - 1] = (checksum & 0xFF);
+			}
 
 			//Line busy status
 			mobile_adapter.line_busy = false;
