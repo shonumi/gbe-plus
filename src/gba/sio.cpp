@@ -337,6 +337,7 @@ void AGB_SIO::reset()
 	mobile_adapter.current_state = AGB_GBMA_AWAITING_PACKET;
 	mobile_adapter.srv_list_in.clear();
 	mobile_adapter.srv_list_out.clear();
+	mobile_adapter.auth_list.clear();
 
 	mobile_adapter.command = 0;
 	mobile_adapter.data_length = 0;
