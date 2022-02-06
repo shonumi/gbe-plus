@@ -1,0 +1,32 @@
+Mario Kart Advance Server Technical Documentation 0.1
+February 06, 2022
+Shonumi aka D.S. Baxter
+
+***************************************************
+1. Introduction
+***************************************************
+
+Mario Kart Advance is the 3rd entry in the famed Mario Kart series. Its debut on the Game Boy Advance supported the Mobile Adapter GB for online connectivity. The game features options such as a Mobile GP where users could compete against others based on their completion times. Players could also download ghost data for specific race tracks.
+
+***************************************************
+2. Server Structure
+***************************************************
+
+Mario Kart Advance is currently known to access the following URLs:
+
+* http://gameboy.datacenter.ne.jp/cgb/download?name=/01/AGB-AMKJ/index.cgb
+
+
+***************************************************
+3. index.cgb
+***************************************************
+
+This file appears to be a method of updating URLs dynamically, perhaps in the event that the underlying server structure changed after the game launched. It prepends data to the URL. For example, if the contents of index.cgb is the string "new_path/" and the original URL is:
+
+/cgb/download?name=/01/AGB-AMKJ/some_file.cgb
+
+then the brand new URL becomes
+
+/cgb/download?name=/01/AGB-AMKJ/new_path/some_file.cgb
+
+If the file is blank when downloaded or contains no detectable ASCII characters, then nothing is prepended to the URL. The string in index.cgb should be 256 bytes or less and the file itself should have a new line or carriage return character.
