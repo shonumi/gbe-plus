@@ -1,0 +1,18 @@
+Zen Nihon GT Senshuken Server Technical Documentation 0.1
+February 07, 2022
+Shonumi aka D.S. Baxter
+
+***************************************************
+1. Introduction
+***************************************************
+
+Zen Nihon GT Senshuken (released as Top Gear GT Championship in the west) is a behind-the-car racing game for the Game Boy Advance. It served as a launch title in Japan and supported the Mobile Adapter GB for several functions including downloading custom racetracks and ghost car data, as well as uploading race result to get ranked.
+
+***************************************************
+2. Server Structure
+***************************************************
+
+Zen Nihon GT Senshuken is currently known to access the following URLs:
+
+* http://gameboy.datacenter.ne.jp/cgb/download?name=/28/AGB-AGTJ/gtconfig.cgb
+
