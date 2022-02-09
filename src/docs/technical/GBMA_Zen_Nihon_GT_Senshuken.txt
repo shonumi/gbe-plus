@@ -15,4 +15,20 @@ Zen Nihon GT Senshuken (released as Top Gear GT Championship in the west) is a b
 Zen Nihon GT Senshuken is currently known to access the following URLs:
 
 * http://gameboy.datacenter.ne.jp/cgb/download?name=/28/AGB-AGTJ/gtconfig.cgb
+* http://gameboy.datacenter.ne.jp/****/gtrkconfig.cgb
 
+
+***************************************************
+3. gtconfig.cgb
+***************************************************
+
+This file reports the overall service status and dynamically points the game to additional resources. gtconfig.cgb is only 200 bytes (0xC8) in size, as the game will not process any data beyond that. The format is as follows:
+
+----------------------------------
+File Structure
+----------------------------------
+0x00	 			::	Service Status. 0x00 = Okay, 0x10 or 0x20 or 0x30 indicate various states of the service being unavailable.
+0x01 - 0xC3			::	Dynamic URL data for other online files used by the game.
+0xC4 - 0xC7			::	A 32-bit checksum for all bytes from 0x00 - 0xC3. All bytes are added, one-by-one. Checksum stored LSB first.
+
+The dynamic URL data are a series of strings, each terminated with a null character (0x00). The first string points the game to the file gtrkconfig.cgb. Apparently, some portions of text are ignored when the game makes the actual HTTP GET request. For example, if the string is "gameboy.datacenter.ne.jp/cgb/", the GET request only appears as "/cgb/". Any text prior to the first "/" character is effectively removed.
