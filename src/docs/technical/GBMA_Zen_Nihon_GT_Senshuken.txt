@@ -15,6 +15,8 @@ Zen Nihon GT Senshuken (released as Top Gear GT Championship in the west) is a b
 Zen Nihon GT Senshuken is currently known to access the following URLs:
 
 * http://gameboy.datacenter.ne.jp/cgb/download?name=/28/AGB-AGTJ/gtconfig.cgb
+* http://gameboy.datacenter.ne.jp/cgb/download?name=/28/AGB-AGTJ/gtgst00.cgb
+* http://gameboy.datacenter.ne.jp/cgb/download?name=/28/AGB-AGTJ/100.gtexcrs***.cgb
 * http://gameboy.datacenter.ne.jp/****/gtrkconfig.cgb
 
 
