@@ -16,7 +16,7 @@ Zen Nihon GT Senshuken is currently known to access the following URLs:
 
 * http://gameboy.datacenter.ne.jp/cgb/download?name=/28/AGB-AGTJ/gtconfig.cgb
 * http://gameboy.datacenter.ne.jp/cgb/download?name=/28/AGB-AGTJ/gtgst00.cgb
-* http://gameboy.datacenter.ne.jp/cgb/download?name=/28/AGB-AGTJ/100.gtexcrs***.cgb
+* http://gameboy.datacenter.ne.jp/cgb/download?name=/28/AGB-AGTJ/100.gtexcrs110.cgb
 * http://gameboy.datacenter.ne.jp/****/gtrkconfig.cgb
 
 
@@ -34,3 +34,16 @@ File Structure
 0xC4 - 0xC7			::	A 32-bit checksum for all bytes from 0x00 - 0xC3. All bytes are added, one-by-one. Checksum stored LSB first.
 
 The dynamic URL data are a series of strings, each terminated with a null character (0x00). The first string points the game to the file gtrkconfig.cgb. Apparently, some portions of text are ignored when the game makes the actual HTTP GET request. For example, if the string is "gameboy.datacenter.ne.jp/cgb/", the GET request only appears as "/cgb/". Any text prior to the first "/" character is effectively removed.
+
+
+***************************************************
+4. gtrkconfig.cgb
+***************************************************
+
+The purpose of this file is currently unknown. The exact URL is specified by the first string in gtconfig.cgb. It is always read from the server by the game after parsing gtconfig.cgb. It has a total length of 8 bytes. The first 4 bytes have some sort of significance, while the last 4 bytes compose a simple additive checksum of the file's first half.
+
+----------------------------------
+File Structure
+----------------------------------
+0x00 - 0x03 			::	Unknown 32-bit value
+0x04 - 0x07			::	A 32-bit checksum for all bytes from 0x00 - 0x03. All bytes are added, one-by-one. Checksum stored LSB first.
