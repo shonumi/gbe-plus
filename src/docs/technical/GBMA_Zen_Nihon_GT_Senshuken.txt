@@ -40,10 +40,28 @@ The dynamic URL data are a series of strings, each terminated with a null charac
 4. gtrkconfig.cgb
 ***************************************************
 
-The purpose of this file is currently unknown. The exact URL is specified by the first string in gtconfig.cgb. It is always read from the server by the game after parsing gtconfig.cgb. It has a total length of 8 bytes. The first 4 bytes have some sort of significance, while the last 4 bytes compose a simple additive checksum of the file's first half.
+The purpose of this file is currently unknown. The exact URL is specified by the first string in gtconfig.cgb. It is always read from the server by the game after parsing gtconfig.cgb. It has a total length of 8 bytes. The first 4 bytes have some sort of significance, while the last 4 bytes compose a simple additive checksum of the file's first half. The format is as follows:
 
 ----------------------------------
 File Structure
 ----------------------------------
 0x00 - 0x03 			::	Unknown 32-bit value
 0x04 - 0x07			::	A 32-bit checksum for all bytes from 0x00 - 0x03. All bytes are added, one-by-one. Checksum stored LSB first.
+
+
+***************************************************
+5. 100.gtexcrs110.cgb
+***************************************************
+
+This file represents a custom racetrack that can be downloaded from the servers and saved on the player's game cartridge. It is available through the Mobile Menu and selecting Course Download. A 100 yen service charge is attached to each download. The "110.cgb" part of the file name is a reference to the size of the file in hexadecimal notation (200 bytes total). The format is as follows:
+
+----------------------------------
+Racetrack Download Format
+----------------------------------
+0x0000 - 0x0003 		::	Unknown 32-bit value. Seems to be ignored.
+0x0004 - 0x001B			::	10 character title plus terminating character. Uses a custom 16-bit character encoding.
+0x001C - 0x010B			::	Racetrack data
+0x010C - 0x010F			::	A 32-bit checksum for all bytes from 0x0000 - 0x010B. All bytes are added, one-by-one. Checksum stored LSB first.
+
+The format of the racetrack data is identical to the same data saved on the cartridge when a user creates their own custom track.
+ 
