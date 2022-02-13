@@ -45,7 +45,7 @@ The purpose of this file is currently unknown. The exact URL is specified by the
 ----------------------------------
 File Structure
 ----------------------------------
-0x00 - 0x03 			::	Unknown 32-bit value
+0x00 - 0x03 			::	Unknown 32-bit value.
 0x04 - 0x07			::	A 32-bit checksum for all bytes from 0x00 - 0x03. All bytes are added, one-by-one. Checksum stored LSB first.
 
 
@@ -60,8 +60,33 @@ Racetrack Download Format
 ----------------------------------
 0x0000 - 0x0003 		::	Unknown 32-bit value. Seems to be ignored.
 0x0004 - 0x001B			::	10 character title plus terminating character. Uses a custom 16-bit character encoding.
-0x001C - 0x010B			::	Racetrack data
+0x001C - 0x010B			::	Racetrack data.
 0x010C - 0x010F			::	A 32-bit checksum for all bytes from 0x0000 - 0x010B. All bytes are added, one-by-one. Checksum stored LSB first.
 
-The format of the racetrack data is identical to the same data saved on the cartridge when a user creates their own custom track.
- 
+The format of the racetrack data is identical to the same data saved on the cartridge when a user creates their own custom track. Each racetrack consists of a 10x6 grid wherein blocks of the track are positioned. The binary data for the racetracks allocates 4 bytes for each block. Blocks are arranged left to right, top to bottom. The format is as follows:
+
+----------------------------------
+Racetrack Block Format
+----------------------------------
+0x00				::	Block Type. 0x01 = Straight Track, 0x02 = Turn, 0x03 = Starting Position.
+0x01				::	Turn Type or Starting Position Type.
+0x02				::	Must be 0x01 to signal a valid block.
+0x03				::	Not used, reads 0x00.
+
+Depending on whether the block is a turn or a starting position, Byte 0x01 has different meanings. They are listed below:
+
+----------------------------------
+Block Turn Types
+----------------------------------
+0x00				::	East-to-South turn.
+0x01				::	South-to-West turn.
+0x02				::	West-to-North turn.
+0x03				::	North-to-East turn.
+
+----------------------------------
+Block Starting Position Types
+----------------------------------
+0x00				::	Start race facing East.
+0x01				::	Start race facing South.
+0x02				::	Start race facing West.
+0x03				::	Start race facing North.
