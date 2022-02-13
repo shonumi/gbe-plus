@@ -17,6 +17,10 @@ Zen Nihon GT Senshuken is currently known to access the following URLs:
 * http://gameboy.datacenter.ne.jp/cgb/download?name=/28/AGB-AGTJ/gtconfig.cgb
 * http://gameboy.datacenter.ne.jp/cgb/download?name=/28/AGB-AGTJ/gtgst00.cgb
 * http://gameboy.datacenter.ne.jp/cgb/download?name=/28/AGB-AGTJ/100.gtexcrs110.cgb
+* http://gameboy.datacenter.ne.jp/cgb/download?name=/28/AGB-AGTJ/gtgst01.cgb
+* http://gameboy.datacenter.ne.jp/cgb/download?name=/28/AGB-AGTJ/gtgst02.cgb
+* http://gameboy.datacenter.ne.jp/cgb/download?name=/28/AGB-AGTJ/gtgst03.cgb
+* http://gameboy.datacenter.ne.jp/cgb/download?name=/28/AGB-AGTJ/gtgst04.cgb
 * http://gameboy.datacenter.ne.jp/****/gtrkconfig.cgb
 
 
@@ -90,3 +94,10 @@ Block Starting Position Types
 0x01				::	Start race facing South.
 0x02				::	Start race facing West.
 0x03				::	Start race facing North.
+
+
+***************************************************
+6. gtgst01.cgb - gtgst04.cgb
+***************************************************
+
+These 4 files represent menus for different ghost data that can be downloaded. From this menu, the player can choose a specific ghost from a specific track and then proceed to save it to the game cartridge. Each file 0x9E4 bytes long. Together, they give the player access to 210 sets of ghost data for each of the 7 race courses available (30 per track).
