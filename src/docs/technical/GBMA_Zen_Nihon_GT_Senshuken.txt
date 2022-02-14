@@ -34,7 +34,7 @@ This file reports the overall service status and dynamically points the game to 
 File Structure
 ----------------------------------
 0x00	 			::	Service Status. 0x00 = Okay, 0x10 or 0x20 or 0x30 indicate various states of the service being unavailable.
-0x01 - 0xC3			::	Dynamic URL data for other online files used by the game.
+0x01 - 0xC3			::	Dynamic URL data for other online files used by the game. Uses ASCII characters.
 0xC4 - 0xC7			::	A 32-bit checksum for all bytes from 0x00 - 0xC3. All bytes are added, one-by-one. Checksum stored LSB first.
 
 The dynamic URL data are a series of strings, each terminated with a null character (0x00). The first string points the game to the file gtrkconfig.cgb. Apparently, some portions of text are ignored when the game makes the actual HTTP GET request. For example, if the string is "gameboy.datacenter.ne.jp/cgb/", the GET request only appears as "/cgb/". Any text prior to the first "/" character is effectively removed.
@@ -100,4 +100,28 @@ Block Starting Position Types
 6. gtgst01.cgb - gtgst04.cgb
 ***************************************************
 
-These 4 files represent menus for different ghost data that can be downloaded. From this menu, the player can choose a specific ghost from a specific track and then proceed to save it to the game cartridge. Each file 0x9E4 bytes long. Together, they give the player access to 210 sets of ghost data for each of the 7 race courses available (30 per track).
+These 4 files represent menus for different ghost data that can be downloaded. From this menu, the player can choose a specific ghost from a specific track and then proceed to save it to the game cartridge. Each file 0x9E4 bytes long. Together, they give the player access to 210 sets of ghost data for each of the 7 race courses available (30 per track). The file for each .cgb file is as follows
+
+----------------------------------
+Ghost Menu File Structure
+----------------------------------
+0x0000 - 0x0001			::	Year of last update, LSB first.
+0x0002				::	Month of last update.
+0x0003				::	Day of last update.
+0x0004 - 0x0009			::	Unknown data.
+0x000A - 0x09DF			::	Ghost Data Entries.
+0x09E0 - 0x09E3			::	A 32-bit checksum for all bytes from 0x0000 - 0x09DF. All bytes are added, one-by-one. Checksum stored LSB first.
+
+
+----------------------------------
+Ghost Data Entries
+----------------------------------
+0x00				::	Car type used for ghost data.
+0x01				::	Car transmission used for ghost data (0 = Automatic, 1 = Manual).
+0x02 - 0x0B			::	Unknown data.
+0x0C - 0x32			::	Ghost Name. Uses a custom 16-bit character encoding.
+0x33 - 0x53			::	URL to download the ghost data. Uses ASCII characters.
+
+Each Ghost Data Entry takes up 84 bytes. Once the player selects an entry, the game goes on to download the file specified by the URL. The URL in the entry is limited to 32 characters. Ultimately, if the URL is something like "myghostfile.cgb", the game ends up downloading from the following address:
+
+http://gameboy.datacenter.ne.jp/cgb/download?name=/28/AGB-AGTJ/myghostfile.cgb 
