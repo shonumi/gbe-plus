@@ -108,7 +108,7 @@ Ghost Menu File Structure
 0x0000 - 0x0001			::	Year of last update, LSB first.
 0x0002				::	Month of last update.
 0x0003				::	Day of last update.
-0x0004 - 0x0009			::	Unknown data.
+0x0004 - 0x0007			::	Unknown data.
 0x000A - 0x09DF			::	Ghost Data Entries.
 0x09E0 - 0x09E3			::	A 32-bit checksum for all bytes from 0x0000 - 0x09DF. All bytes are added, one-by-one. Checksum stored LSB first.
 
@@ -116,12 +116,28 @@ Ghost Menu File Structure
 ----------------------------------
 Ghost Data Entries
 ----------------------------------
-0x00				::	Car type used for ghost data.
-0x01				::	Car transmission used for ghost data (0 = Automatic, 1 = Manual).
-0x02 - 0x0B			::	Unknown data.
-0x0C - 0x32			::	Ghost Name. Uses a custom 16-bit character encoding.
-0x33 - 0x53			::	URL to download the ghost data. Uses ASCII characters.
+0x00				::	Unknown data.
+0x01				::	Weather condition for ghost data (0 = Sunny, 1 = Rain). 
+0x02				::	Car type used for ghost data.
+0x03				::	Car transmission used for ghost data (0 = Automatic, 1 = Manual).
+0x04 - 0x0D			::	Unknown data.
+0x0E - 0x23			::	Ghost Name. 10 characters plus terminating character. Uses a custom 16-bit character encoding.
+0x24 - 0x27			::	Ghost Time. 32-bit value stored LSB first. See notes below on format
+0x28 - 0x33			::	Unknown data.
+0x34 - 0x55			::	URL to download the ghost data. Uses ASCII characters.
 
 Each Ghost Data Entry takes up 84 bytes. Once the player selects an entry, the game goes on to download the file specified by the URL. The URL in the entry is limited to 32 characters. Ultimately, if the URL is something like "myghostfile.cgb", the game ends up downloading from the following address:
 
-http://gameboy.datacenter.ne.jp/cgb/download?name=/28/AGB-AGTJ/myghostfile.cgb 
+http://gameboy.datacenter.ne.jp/cgb/download?name=/28/AGB-AGTJ/myghostfile.cgb
+
+The total time used for the ghost is stored in a 32-bit value. The overall time works based on 1/100s of a second. To calculate the total time, start counting at zero and add according to this table:
+
+----------------------------------
+Ghost Entry Time Format
+----------------------------------
+0x00				::	Time = Time + (1/100) * Byte Value
+0x01				::	Time = Time + (256 * (1/100)) * Byte Value
+0x02				::	Time = Time + (65536 * (1/100)) * Byte Value
+0x03				::	Time = Time + (16777216 * (1/100)) * Byte Value
+
+The maximum time alotted for any Ghost 99 minutes, 99 seconds, and 99 hundreths of a second.
