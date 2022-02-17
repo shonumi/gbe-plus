@@ -22,6 +22,13 @@ Zen Nihon GT Senshuken is currently known to access the following URLs:
 * http://gameboy.datacenter.ne.jp/cgb/download?name=/28/AGB-AGTJ/gtgst03.cgb
 * http://gameboy.datacenter.ne.jp/cgb/download?name=/28/AGB-AGTJ/gtgst04.cgb
 * http://gameboy.datacenter.ne.jp/****/gtrkconfig.cgb
+* http://gameboy.datacenter.ne.jp/****/gtrk00.cgb
+* http://gameboy.datacenter.ne.jp/****/gtrk01.cgb
+* http://gameboy.datacenter.ne.jp/****/gtrk02.cgb
+* http://gameboy.datacenter.ne.jp/****/gtrk03.cgb
+* http://gameboy.datacenter.ne.jp/****/gtrk04.cgb
+* http://gameboy.datacenter.ne.jp/****/gtrk05.cgb
+* http://gameboy.datacenter.ne.jp/****/gtrk06.cgb
 
 
 ***************************************************
@@ -37,19 +44,19 @@ File Structure
 0x01 - 0xC3			::	Dynamic URL data for other online files used by the game. Uses ASCII characters.
 0xC4 - 0xC7			::	A 32-bit checksum for all bytes from 0x00 - 0xC3. All bytes are added, one-by-one. Checksum stored LSB first.
 
-The dynamic URL data are a series of strings, each terminated with a null character (0x00). The first string points the game to the file gtrkconfig.cgb. Apparently, some portions of text are ignored when the game makes the actual HTTP GET request. For example, if the string is "gameboy.datacenter.ne.jp/cgb/", the GET request only appears as "/cgb/". Any text prior to the first "/" character is effectively removed.
+The dynamic URL data are a series of strings, each terminated with a null character (0x00). The first string points the game to the file gtrkconfig.cgb. Apparently, some portions of text are ignored when the game makes the actual HTTP GET request. For example, if the string is "gameboy.datacenter.ne.jp/cgb/", the GET request only appears as "/cgb/". Any text prior to the first "/" character is effectively removed. Only mobile rankings appear to use this feature.
 
 
 ***************************************************
 4. gtrkconfig.cgb
 ***************************************************
 
-The purpose of this file is currently unknown. The exact URL is specified by the first string in gtconfig.cgb. It is always read from the server by the game after parsing gtconfig.cgb. It has a total length of 8 bytes. The first 4 bytes have some sort of significance, while the last 4 bytes compose a simple additive checksum of the file's first half. The format is as follows:
+The purpose of this file is not entirely understood. The exact URL is specified by the first string in gtconfig.cgb. It is sometimes read from the server by the game after parsing gtconfig.cgb. It has a total length of 8 bytes. The first 4 bytes form a 32-bit value which is then used to select a sort of offset (0, 1, or 2) to start reading files for rankings. The last 4 bytes compose a simple additive checksum of the file's first half. The format is as follows:
 
 ----------------------------------
 File Structure
 ----------------------------------
-0x00 - 0x03 			::	Unknown 32-bit value.
+0x00 - 0x03 			::	Rank File Offset
 0x04 - 0x07			::	A 32-bit checksum for all bytes from 0x00 - 0x03. All bytes are added, one-by-one. Checksum stored LSB first.
 
 
@@ -160,7 +167,7 @@ Ghost Data File Format
 0x04 - 0x0B			::	Unknown data.
 0x0C - 0x0D			::	Handicap Weight. 16-bit value stored LSB first. Max value is 990, game displays values as units of 10 (e.g. 10, 20, 30, 40...) May be zero.
 0x0E - 0x23			::	Ghost Name. 10 characters plus terminating character. Uses a custom 16-bit character encoding.
-0x24 - 0x27			::	Ghost Time. 32-bit value stored LSB first. See notes below on format
+0x24 - 0x27			::	Ghost Time. 32-bit value stored LSB first. See notes above on format.
 0x28 - 0x33			::	Unknown data.
 0x34 - EOF			::	Track Movement Data.
 
@@ -173,7 +180,7 @@ Ghost Race Track Values
 0x01				::	Fuji Speedway
 0x02				::	Sportsland Sugo
 0x03				::	Ti Circuit Aida
-0x0				::	Central Park Mine Circuit
+0x04				::	Central Park Mine Circuit
 0x05				::	Suzuka Circuit
 0x06				::	EDIT - 1st custom course name
 0x07				::	EDIT - 2nd custom course name
@@ -193,3 +200,37 @@ Time Trial Ghost Data can apply to custom courses as well, thus allowing players
 The Track Movement Data is a recording of a car's movements along the race course. For the downloaded file, it has the exact same format as regular Time Trial ghosts made locally by the player and saved on the cartridge. Zen Nihon GT essentially copy + pastes this section to Flash RAM as is.
 
 No checksum is need for this file. The Track Movement Data uses 32-bit checksums periodically (approximately once every 4KB) to ensure data integrity, however.
+
+
+***************************************************
+8. gtrk00.cgb - gtrk06.cgb
+***************************************************
+
+These files are the online mobile rankings. Players could sumbit their completion times for a certain race track (in the form of a Time Trial Ghost) and the fastest times would be listed for all to see. It was essentially a somewhat static leaderboard, as it required the player to manually send data to the servers. The exact URL is specified by the first string in gtconfig.cgb. Each file is 0xA34 bytes long. The format is as follows:
+
+----------------------------------
+Mobile Ranking File Format
+----------------------------------
+0x0000 - 0x0001			::	Year of last update, LSB first.
+0x0002				::	Month of last update.
+0x0003				::	Day of last update.
+0x0004				::	Hour of last update.
+0x0005				::	Minute of last update.
+0x0006 - 0x0007			::	Unknown Data.
+0x0008 - 0x0A2F			::	Mobile Rank Entries.
+0x0A30 - 0x0A33			::	A 32-bit checksum for all bytes from 0x0000 - 0x0A2F. All bytes are added, one-by-one. Checksum stored LSB first.
+
+Each file corresponds to a different race track and contains 50 entries. Each entry is 52 bytes long. The format of these entries (nearly identical to Ghost Data Entries) is as specified:
+
+----------------------------------
+Mobile Rank Entry
+----------------------------------
+0x00				::	Unknown Data.
+0x01				::	Weather condition for ghost data (0 = Sunny, 1 = Rain).
+0x02				::	Car type used for the race.
+0x03				::	Car transmission used for the race (0 = Automatic, 1 = Manual).
+0x04 - 0x0B			::	Unknown Data.
+0x0C - 0x0D			::	Handicap Weight. 16-bit value stored LSB first. Max value is 990, game displays values as units of 10 (e.g. 10, 20, 30, 40...) May be zero.
+0x0E - 0x23			::	Player Name
+0x24 - 0x27			::	Course Completion Time. 32-bit value stored LSB first. Same format as Ghost Time, see notes above.
+0x28 - 0x33			::	Unknown Data. Appears to be three 32-bit values that must be non-zero.
