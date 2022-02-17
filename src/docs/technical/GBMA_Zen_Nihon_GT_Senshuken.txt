@@ -120,7 +120,8 @@ Ghost Data Entries
 0x01				::	Weather condition for ghost data (0 = Sunny, 1 = Rain). 
 0x02				::	Car type used for ghost data.
 0x03				::	Car transmission used for ghost data (0 = Automatic, 1 = Manual).
-0x04 - 0x0D			::	Unknown data.
+0x04 - 0x0B			::	Unknown data.
+0x0C - 0x0D			::	Handicap Weight. 16-bit value stored LSB first. Max value is 990, game displays values as units of 10 (e.g. 10, 20, 30, 40...) May be zero.
 0x0E - 0x23			::	Ghost Name. 10 characters plus terminating character. Uses a custom 16-bit character encoding.
 0x24 - 0x27			::	Ghost Time. 32-bit value stored LSB first. See notes below on format
 0x28 - 0x33			::	Unknown data.
@@ -141,3 +142,54 @@ Ghost Entry Time Format
 0x03				::	Time = Time + (16777216 * (1/100)) * Byte Value
 
 The maximum time alotted for any Ghost 99 minutes, 99 seconds, and 99 hundreths of a second.
+
+
+***************************************************
+7. Ghost Data
+***************************************************
+
+The actual Ghost Data downloaded from the servers is saved to Flash RAM inside the cartridge. A fairly large portion of the 64KB of backup data is reserved just for Time Trial ghosts, and out of all the downloadable content, Ghost Data is potentially the largest. The file format is described below.
+
+----------------------------------
+Ghost Data File Format
+----------------------------------
+0x00				::	Race Track.
+0x01				::	Weather condition for ghost data (0 = Sunny, 1 = Rain). 
+0x02				::	Car type used for ghost data.
+0x03				::	Car transmission used for ghost data (0 = Automatic, 1 = Manual).
+0x04 - 0x0B			::	Unknown data.
+0x0C - 0x0D			::	Handicap Weight. 16-bit value stored LSB first. Max value is 990, game displays values as units of 10 (e.g. 10, 20, 30, 40...) May be zero.
+0x0E - 0x23			::	Ghost Name. 10 characters plus terminating character. Uses a custom 16-bit character encoding.
+0x24 - 0x27			::	Ghost Time. 32-bit value stored LSB first. See notes below on format
+0x28 - 0x33			::	Unknown data.
+0x34 - EOF			::	Track Movement Data.
+
+The format for the metadata is largely the same as the ghost menu. Byte 0 is used here, however, to define the specific race track the ghost belongs to. This forces the game to run that exact course, regardless of which menu it was downloaded from online. A list of all possible options follows:
+
+----------------------------------
+Ghost Race Track Values
+----------------------------------
+0x00				::	Twin Ring Motegi
+0x01				::	Fuji Speedway
+0x02				::	Sportsland Sugo
+0x03				::	Ti Circuit Aida
+0x0				::	Central Park Mine Circuit
+0x05				::	Suzuka Circuit
+0x06				::	EDIT - 1st custom course name
+0x07				::	EDIT - 2nd custom course name
+0x08				::	EDIT - 3rd custom course name
+0x09				::	Twin Ring Motegi (Mirror)
+0x0A				::	Fuji Speedway (Mirror)
+0x0B				::	Sportsland Sugo (Mirror)
+0x0C				::	Ti Circuit Aida (Mirror)
+0x0D				::	Central Park Mine Circuit (Mirror)
+0x0E				::	Suzuka Circuit (Mirror)
+0x0F				::	EDIT - (Mirror) 1st custom course name
+0x10				::	EDIT - (Mirror) 2nd custom course name
+0x11				::	EDIT - (Mirror) 3rd custom course name
+
+Time Trial Ghost Data can apply to custom courses as well, thus allowing players of Zen Nihon GT to both download a unique track from the server as well as a ghost for it as well. Mirrored versions of each course is also available.
+
+The Track Movement Data is a recording of a car's movements along the race course. For the downloaded file, it has the exact same format as regular Time Trial ghosts made locally by the player and saved on the cartridge. Zen Nihon GT essentially copy + pastes this section to Flash RAM as is.
+
+No checksum is need for this file. The Track Movement Data uses 32-bit checksums periodically (approximately once every 4KB) to ensure data integrity, however.
