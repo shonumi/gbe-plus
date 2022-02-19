@@ -234,3 +234,36 @@ Mobile Rank Entry
 0x0E - 0x23			::	Player Name
 0x24 - 0x27			::	Course Completion Time. 32-bit value stored LSB first. Same format as Ghost Time, see notes above.
 0x28 - 0x33			::	Unknown Data. Appears to be three 32-bit values that must be non-zero.
+
+
+***************************************************
+9. Rank Entry
+***************************************************
+
+Players could enter their Time Trial Ghosts to participate in online mobile rankings. Zen Nihon GT transfers to Ghost Data to the server and the leaderboard would be updated. It is unknown if the process was manually handled by server administrators or if server-side software automatically parsed and sorted the fastest times. The game transmits the data as part of an email attachment via SMTP. The format of the sent email is as follows:
+
+From: xxxxxxxx@yyyy.dion.ne.jp
+To: 
+Subject: GT-CHAMP-ENTRY
+X-Game-code: AGB-AGTJ-00
+X-Game-title: GT-CHAMP
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="--AGB-AGTJ"
+----AGB-AGTJ
+Content-Type: text/plain; charset=iso-2022-jp
+Context-Transfer-Encoding: 7bit
+-----------------------
+【全日本ＧＴ選手権】でランキング登録が失敗している可能性があります。
+-----------------------
+----AGB-AGTJ
+Content-Type: application/octec-stream; name="gtent**.cgb"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="gtent**.cgb"
+DATA
+DATA
+DATA
+----AGB-AGTJ--
+
+The attached file varies depending on which race track was recorded in the Time Trial Ghost. The server will receive files from gtent00.cgb through gtent06.cgb.
+
+The message, encoded as ISO-2022 JP translates to: "There is a possibility that ranking registration has failed in the [All Japan GT Championship]."
