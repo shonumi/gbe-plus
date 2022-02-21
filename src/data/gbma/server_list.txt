@@ -1,44 +1,44 @@
 /01/CGB-B9AJ/index.html
-gbma/index.html
+gbma/CGB-B9AJ/index.html
 
 gbe_head.bmp
-gbma/gbe_plus_mobile_header.bmp
+gbma/CGB-B9AJ/gbe_plus_mobile_header.bmp
 
 gbe_mail.txt
 gbma/gbe_plus_mail.txt
 
 /A4/CGB-BMVJ/h0000.cgb
-gbma/h0000.cgb
+gbma/CGB-BMVJ/h0000.cgb
 
 /A4/CGB-BMVJ/RomList.cgb
-gbma/RomList.cgb
+gbma/CGB-BMVJ/RomList.cgb
 
 /cgb/download?name=/A4/CGB-BMVJ/
-gbma/minigame.bin
+gbma/CGB-BMVJ/minigame.bin
 
 cgb/download?name=/01/CGB-BXTJ/exchange/index.txt
-gbma/exchange.txt
+gbma/CGB-BXTJ/exchange.txt
 
 */cgb/upload?name=/01/CGB-BXTJ/exchange/10upload.cgi
-gbma/10upload.txt
+gbma/CGB-BXTJ/10upload.txt
 
 /cgb/upload?name=/01/CGB-BXTJ/exchange/cancel.cgi
-gbma/cancel.txt
+gbma/CGB-BXTJ/cancel.txt
 
 cgb/download?name=/18/CGB-BWWJ/0.map_menu.txt
-gbma/map_menu.txt
+gbma/CGB-BWWJ/map_menu.txt
 
 cgb/download?name=/18/CGB-BWWJ/map/
-gbma/map.bin
+gbma/CGB-BWWJ/map.bin
 
 cgb/download?name=/18/CGB-BWWJ/charge/
-gbma/charge.txt
+gbma/CGB-BWWJ/charge.txt
 
 /cgb/download?name=/18/CGB-BWWJ/0.youhei_menu.txt
-gbma/youhei_menu.txt
+gbma/CGB-BWWJ/youhei_menu.txt
 
 /cgb/download?name=/18/CGB-BWWJ/mbox/mbox_serial.txt
-gbma/mbox_serial.txt
+gbma/CGB-BWWJ/mbox_serial.txt
 
 /cgb/download?name=/18/CGB-BWWJ/mbox/mbox_
-gbma/mbox.bin
+gbma/CGB-BWWJ/mbox.bin
