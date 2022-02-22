@@ -75,3 +75,24 @@ gbma/AGB-AGTJ/gtgst06.cgb
 
 cgb/download?name=/28/AGB-AGTJ/ghosttestfile.cgb
 gbma/AGB-AGTJ/ghosttestfile.cgb
+
+rank_data/gtrk00.cgb
+gbma/AGB-AGTJ/gtrk00.cgb
+
+rank_data/gtrk01.cgb
+gbma/AGB-AGTJ/gtrk01.cgb
+
+rank_data/gtrk02.cgb
+gbma/AGB-AGTJ/gtrk02.cgb
+
+rank_data/gtrk03.cgb
+gbma/AGB-AGTJ/gtrk03.cgb
+
+rank_data/gtrk04.cgb
+gbma/AGB-AGTJ/gtrk04.cgb
+
+rank_data/gtrk05.cgb
+gbma/AGB-AGTJ/gtrk05.cgb
+
+rank_data/gtrk06.cgb
+gbma/AGB-AGTJ/gtrk06.cgb
