@@ -15,8 +15,7 @@ Zen Nihon GT Senshuken (released as Top Gear GT Championship in the west) is a b
 Zen Nihon GT Senshuken is currently known to access the following URLs:
 
 * http://gameboy.datacenter.ne.jp/cgb/download?name=/28/AGB-AGTJ/gtconfig.cgb
-* http://gameboy.datacenter.ne.jp/cgb/download?name=/28/AGB-AGTJ/gtgst00.cgb
-* http://gameboy.datacenter.ne.jp/cgb/download?name=/28/AGB-AGTJ/100.gtexcrs110.cgb
+* http://gameboy.datacenter.ne.jp/cgb/download?name=/28/AGB-AGTJ/100.gtexcrs***.cgb
 * http://gameboy.datacenter.ne.jp/cgb/download?name=/28/AGB-AGTJ/gtgst01.cgb
 * http://gameboy.datacenter.ne.jp/cgb/download?name=/28/AGB-AGTJ/gtgst02.cgb
 * http://gameboy.datacenter.ne.jp/cgb/download?name=/28/AGB-AGTJ/gtgst03.cgb
@@ -35,16 +34,23 @@ Zen Nihon GT Senshuken is currently known to access the following URLs:
 3. gtconfig.cgb
 ***************************************************
 
-This file reports the overall service status and dynamically points the game to additional resources. gtconfig.cgb is only 200 bytes (0xC8) in size, as the game will not process any data beyond that. The format is as follows:
+This file configures downloads for additional courses, Time Trial Ghosts, and online mobile rankings. gtconfig.cgb is only 200 bytes (0xC8) in size, as the game will not process any data beyond that. The format is as follows:
 
 ----------------------------------
 File Structure
 ----------------------------------
-0x00	 			::	Service Status. 0x00 = Okay, 0x10 or 0x20 or 0x30 indicate various states of the service being unavailable.
-0x01 - 0xC3			::	Dynamic URL data for other online files used by the game. Uses ASCII characters.
+0x00	 			::	Unknown data.
+0x01				::	Enables Time Trial Ghost downloads for select race tracks.
+0x02				::	Numerical suffix for downloadable course
+0x03				::	Unknown data.
+0x04 - 0xC3			::	Dynamic URL data for mobile rank files. Uses ASCII characters.
 0xC4 - 0xC7			::	A 32-bit checksum for all bytes from 0x00 - 0xC3. All bytes are added, one-by-one. Checksum stored LSB first.
 
-The dynamic URL data are a series of strings, each terminated with a null character (0x00). The first string points the game to the file gtrkconfig.cgb. Apparently, some portions of text are ignored when the game makes the actual HTTP GET request. For example, if the string is "gameboy.datacenter.ne.jp/cgb/", the GET request only appears as "/cgb/". Any text prior to the first "/" character is effectively removed. Only mobile rankings appear to use this feature.
+When downloading Time Trial Ghosts, the game will display 7 menus, 1 for each race track. For Byte 0x01, each of the bits from Bit 0 through Bit 6 controls whether an individual track is enabled. Setting the bit to "0" enables it, while setting the bit to "1" disables it. 
+
+When downloading extra courses, Byte 0x02 is converted to Base 10 (decimal) and appended to the file name as a 3 digit number. For example, if the value of Byte 0x02 is 0x30, the game will download the file "100.gtexcrs048.cgb" for the course.
+
+The dynamic URL data is an ASCII string terminated with a null character (0x00). The string points the game to the file gtrkconfig.cgb as well as the gtrk00.cgb through gtrk06.cgb files. Apparently, some portions of the string are ignored when the game makes the actual HTTP GET request. For example, if the string is "gameboy.datacenter.ne.jp/cgb/", the GET request only appears as "/cgb/". Any text prior to the first "/" character is effectively removed. This string is exclusively used for files related to mobile ranking.
 
 
 ***************************************************
