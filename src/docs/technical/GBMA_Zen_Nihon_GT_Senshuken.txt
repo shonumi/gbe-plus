@@ -57,20 +57,23 @@ The dynamic URL data is an ASCII string terminated with a null character (0x00).
 4. gtrkconfig.cgb
 ***************************************************
 
-The purpose of this file is not entirely understood. The exact URL is specified by the first string in gtconfig.cgb. It is sometimes read from the server by the game after parsing gtconfig.cgb. It has a total length of 8 bytes. The first 4 bytes form a 32-bit value which is then used to select a sort of offset (0, 1, or 2) to start reading files for rankings. The last 4 bytes compose a simple additive checksum of the file's first half. The format is as follows:
+The purpose of this file is similar to gtconfig.cgb. It controls which menus to display for online mobile rankings. It has a total length of 8 bytes. The last 4 bytes compose a simple additive checksum of the file's first half. The format is as follows:
 
 ----------------------------------
 File Structure
 ----------------------------------
-0x00 - 0x03 			::	Rank File Offset
+0x00				::	Enables mobile rankings for select race tracks
+0x01 - 0x03 			::	Unknown data.
 0x04 - 0x07			::	A 32-bit checksum for all bytes from 0x00 - 0x03. All bytes are added, one-by-one. Checksum stored LSB first.
 
+When downloading mobile rankings, the game will display 7 menus, 1 for each race track. For Byte 0x00, each of the bits from Bit 0 through Bit 6 controls whether an individual track is enabled. Setting the bit to "0" enables it, while setting the bit to "1" disables it.
+
 
 ***************************************************
-5. 100.gtexcrs110.cgb
+5. 100.gtexcrs***.cgb
 ***************************************************
 
-This file represents a custom racetrack that can be downloaded from the servers and saved on the player's game cartridge. It is available through the Mobile Menu and selecting Course Download. A 100 yen service charge is attached to each download. The "110.cgb" part of the file name is a reference to the size of the file in hexadecimal notation (200 bytes total). The format is as follows:
+This file represents a custom racetrack that can be downloaded from the servers and saved on the player's game cartridge. It is available through the Mobile Menu and selecting Course Download. A 100 yen service charge is attached to each download. The "***" part of the file name is replaced by Byte 0x02 of gtconfig.cgb when converted into a 3-digit decimal. The file length is 272 bytes total. The format is as follows:
 
 ----------------------------------
 Racetrack Download Format
@@ -110,10 +113,10 @@ Block Starting Position Types
 
 
 ***************************************************
-6. gtgst01.cgb - gtgst04.cgb
+6. gtgst00.cgb - gtgst06.cgb
 ***************************************************
 
-These 4 files represent menus for different ghost data that can be downloaded. From this menu, the player can choose a specific ghost from a specific track and then proceed to save it to the game cartridge. Each file 0x9E4 bytes long. Together, they give the player access to 210 sets of ghost data for each of the 7 race courses available (30 per track). The file for each .cgb file is as follows
+These 7 files represent menus for different ghost data that can be downloaded. From this menu, the player can choose a specific ghost from a specific track and then proceed to save it to the game cartridge. Each file 0x9E4 bytes long. Together, they give the player access to 210 sets of ghost data for each of the 7 race courses available (30 per track). The file for each .cgb file is as follows
 
 ----------------------------------
 Ghost Menu File Structure
