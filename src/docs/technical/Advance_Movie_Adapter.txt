@@ -80,6 +80,7 @@ AM_FILE_SIZE returns the current file size as determined by the FAT of the Smart
 
 AM_DES_KEY returns the 128-bit (16-byte) DES key responsible for decrypting data. This key is unique to every SmartMedia cards and is embedded in a region not normally accessible by standard card readers. When no SmartMedia card is inserted in the adapter, these bytes return zero. Note that this register partially overlaps with AM_FILE_SIZE. To switch, the CPU must write the value 0x03 to AM_BLK_STAT.
 
+To properly access any of the I/O registers, the PHI terminal output should be set to 16.78MHz. On that note, the amount of cycles spent in various waitstates does not appear to affect the overall operation of the adapter. However, slower access, if significant, could potentially degrade the firmware's video playback functions. The firmware should handle a small amount slower access without issue. For example, on the DS Lite, there is a brief pause during the initial setup (before the AM3 logo appears) with a small loading icon. This screen is not shown on an original Game Boy Advance due to apparent timing differences.
 
 
 ***************************************************
