@@ -52,6 +52,10 @@ void DMG_LCD::reset()
 	frame_current_time = 0;
 	fps_count = 0;
 	fps_time = 0;
+	
+	current_frame = 0;
+	frame_ratio = 1000 / 60.0;
+	frame_count = 0.0;
 
 	//Initialize various LCD status variables
 	lcd_stat.lcd_control = 0;
@@ -2075,9 +2079,25 @@ void DMG_LCD::step(int cpu_clock)
 				//Limit framerate
 				if(!config::turbo)
 				{
-					frame_current_time = SDL_GetTicks();
-					if((frame_current_time - frame_start_time) < 16) { SDL_Delay(16 - (frame_current_time - frame_start_time));}
-					frame_start_time = SDL_GetTicks();
+					int start_ticks = SDL_GetTicks();
+					int diff_ticks = start_ticks - frame_start_time;
+					frame_current_time += diff_ticks;
+					if(frame_current_time >= 1000) { frame_current_time = frame_current_time % 1000; }
+
+
+					int next_frame_ticks = int(frame_current_time / frame_ratio) + 1;
+					if(current_frame == next_frame_ticks)
+					{
+						next_frame_ticks++;
+					}
+
+					current_frame = next_frame_ticks;
+
+					next_frame_ticks = round(next_frame_ticks * frame_ratio);
+
+					diff_ticks = next_frame_ticks - frame_current_time;
+					SDL_Delay(diff_ticks);
+					frame_start_time = start_ticks;
 				}
 
 				//Update FPS counter + title

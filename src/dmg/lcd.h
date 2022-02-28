@@ -129,6 +129,10 @@ class DMG_LCD
 	int fps_count;
 	int fps_time;
 
+	int current_frame;
+	double frame_ratio;
+	double frame_count;
+
 	//OAM updates
 	void update_oam();
 	void update_obj_render_list();
