@@ -91,10 +91,11 @@ class SGB_LCD
 	std::vector<u8> scanline_raw;
 	std::vector<u8> scanline_priority;
 
-	int frame_start_time;
-	int frame_current_time;
 	int fps_count;
 	int fps_time;
+	int current_frame;
+	int current_ticks;
+	double frame_ratio;
 
 	//SGB stuff
 	u8 sgb_mask_mode;

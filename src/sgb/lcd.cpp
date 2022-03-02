@@ -47,10 +47,11 @@ void SGB_LCD::reset()
 	scanline_raw.resize(0x100, 0);
 	scanline_priority.resize(0x100, 0);
 
-	frame_start_time = 0;
-	frame_current_time = 0;
 	fps_count = 0;
 	fps_time = 0;
+	current_frame = 0;
+	current_ticks = 0;
+	frame_ratio = 1000 / 60.0;
 
 	//Initialize various LCD status variables
 	lcd_stat.lcd_control = 0;
@@ -1024,9 +1025,27 @@ void SGB_LCD::step(int cpu_clock)
 				//Limit framerate
 				if(!config::turbo)
 				{
-					frame_current_time = SDL_GetTicks();
-					if((frame_current_time - frame_start_time) < 16) { SDL_Delay(16 - (frame_current_time - frame_start_time));}
-					frame_start_time = SDL_GetTicks();
+					//Calculate ticks passed since last frame
+					int start_ticks = SDL_GetTicks();
+					int diff_ticks = start_ticks - current_ticks;
+					current_ticks += diff_ticks;
+
+					//Limit current tick counter to 1ms
+					if(current_ticks >= 1000) { current_ticks = current_ticks % 1000; }
+
+					//Determine what the next frame should be (1 - 60)
+					int next_frame_ticks = int(current_ticks / frame_ratio) + 1;
+
+					//If the next frame is the same as the current (thanks to integer casting), jump to the real next frame
+					if(current_frame == next_frame_ticks) { next_frame_ticks++; }
+
+					//Calculate the amount of ticks until the end of the next frame and delay by that amount
+					current_frame = next_frame_ticks;
+					next_frame_ticks = round(next_frame_ticks * frame_ratio);
+
+					diff_ticks = next_frame_ticks - current_ticks;
+					SDL_Delay(diff_ticks);
+					current_ticks = start_ticks;
 				}
 
 				//Update FPS counter + title
