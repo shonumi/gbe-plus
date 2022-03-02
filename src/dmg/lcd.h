@@ -124,14 +124,12 @@ class DMG_LCD
 	std::vector<u8> scanline_priority;
 	std::vector<u32> stretched_buffer;
 
-	int frame_start_time;
-	int frame_current_time;
+
 	int fps_count;
 	int fps_time;
-
 	int current_frame;
+	int current_ticks;
 	double frame_ratio;
-	double frame_count;
 
 	//OAM updates
 	void update_oam();
