@@ -144,6 +144,7 @@ class AGB_LCD
 	int frame_current_time;
 	int fps_count;
 	int fps_time;
+	int frame_delay[60];
 
 	void render_scanline();
 	bool render_sprite_pixel();

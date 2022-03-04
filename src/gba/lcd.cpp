@@ -51,6 +51,13 @@ void AGB_LCD::reset()
 	fps_count = 0;
 	fps_time = 0;
 
+	for(u32 x = 0; x < 60; x++)
+	{
+		double frame_1 = ((1000.0 / 60) * x);
+		double frame_2 = ((1000.0 / 60) * (x + 1));
+		frame_delay[x] = (round(frame_2) - round(frame_1));
+	}
+
 	current_scanline = 0;
 	scanline_pixel_counter = 0;
 
@@ -1669,7 +1676,8 @@ void AGB_LCD::step()
 			if(!config::turbo)
 			{
 				frame_current_time = SDL_GetTicks();
-				if((frame_current_time - frame_start_time) < 16) { SDL_Delay(16 - (frame_current_time - frame_start_time));}
+				int delay = frame_delay[fps_count % 60];
+				if((frame_current_time - frame_start_time) < delay) { SDL_Delay(delay - (frame_current_time - frame_start_time));}
 				frame_start_time = SDL_GetTicks();
 			}
 
