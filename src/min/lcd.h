@@ -77,6 +77,7 @@ class MIN_LCD
 	int frame_current_time;
 	int fps_count;
 	int fps_time;
+	int frame_delay[72];
 };
 
 #endif // PM_LCD 
