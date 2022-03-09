@@ -72,6 +72,7 @@ hard_screen::hard_screen(QWidget *parent) : QGLWidget(parent)
 	//Set up Qt to use OpenGL 3.3
 	screen_format.setVersion(3, 3);
 	screen_format.setProfile(QGLFormat::CoreProfile);
+	screen_format.setSwapInterval(0);
 	setFormat(screen_format);
 
 	old_aspect_flag = config::maintain_aspect_ratio;
