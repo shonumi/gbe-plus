@@ -604,6 +604,14 @@ void main_menu::boot_game()
 		return;
 	}
 
+	if((system_type == 7) && (!config::use_bios))
+	{
+		std::string mesg_text = "A BIOS file must be used when booting the Pokemon Mini core\n";
+		warning_box->setText(QString::fromStdString(mesg_text));
+		warning_box->show();
+		return;
+	}
+
 	if(!test_file.exists() && config::use_bios)
 	{
 		std::string mesg_text;
