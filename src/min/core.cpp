@@ -503,6 +503,50 @@ void MIN_core::handle_hotkey(int input, bool pressed)
 
 	//Toggle turbo off
 	else if((input == config::hotkey_turbo) && (!pressed)) { config::turbo = false; }
+
+	//Switch current netplay connection on F3 
+	else if((input == SDLK_F3) && (core_mmu.ir_stat.sync_timeout == 0) && (pressed))
+	{
+		core_mmu.ir_stat.network_id++;
+		if(core_mmu.ir_stat.network_id >= 6) { core_mmu.ir_stat.network_id = 0; }
+		
+		core_mmu.ir_stat.sync_balance = 4;
+
+		//OSD
+		if(core_mmu.ir_stat.network_id != config::netplay_id)
+		{
+			config::osd_message = "P" + util::to_str(core_mmu.ir_stat.network_id + 1) + " LINKED";
+		}
+
+		else
+		{
+			config::osd_message = "NO LINK";
+		}
+
+		config::osd_count = 180;
+	}
+
+	//Change between static and dynamic IR linking modes on F10
+	else if((input == SDLK_F10) && (pressed)) 
+	{
+		if(!core_mmu.ir_stat.static_mode)
+		{
+			core_mmu.ir_stat.static_mode = true;
+
+			//OSD
+			config::osd_message = "STATIC MODE";
+			config::osd_count = 180;
+		}
+
+		else
+		{
+			core_mmu.ir_stat.static_mode = false;
+
+			//OSD
+			config::osd_message = "DYNAMIC MODE";
+			config::osd_count = 180;
+		}
+	}
 }
 
 /****** Processs any keypad IRQs that need to fire after user input ******/
