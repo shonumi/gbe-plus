@@ -78,6 +78,13 @@ void AGB_MMU::reset()
 	am3.firmware_data.clear();
 	am3.card_data.clear();
 
+	jukebox.io_regs.clear();
+	jukebox.io_regs.resize(0x200, 0x00);
+	jukebox.io_index = 0;
+	jukebox.status = 0;
+	jukebox.out_hi = 0;
+	jukebox.out_lo = 0;
+
 	gpio.data = 0;
 	gpio.prev_data = 0;
 	gpio.direction = 0;
@@ -221,6 +228,12 @@ u8 AGB_MMU::read_u8(u32 address)
 		//ROM Waitstate 1 (mirror of Waitstate 0)
 		case 0xA:
 		case 0xB:
+			if(config::cart_type == AGB_JUKEBOX)
+			{
+				if(address == JB_REG_0C) { return jukebox.out_hi; }
+				else if(address == JB_REG_0E) { return jukebox.out_lo; }
+			}
+
 			address -= 0x2000000;
 			break;
 
@@ -606,6 +619,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 		//ROM Waitstate 1 (mirror of Waitstate 0)
 		case 0xA:
 		case 0xB:
+			if(config::cart_type == AGB_JUKEBOX) { write_jukebox(address, value); }
 			address -= 0x2000000;
 			break;
 
@@ -3311,6 +3325,61 @@ bool AGB_MMU::check_am3_fat()
 
 	return true;
 }		
+
+/****** Writes data to GBA Jukebox I/O ******/
+void AGB_MMU::write_jukebox(u32 address, u8 value)
+{
+	bool process_data = false;
+
+	switch(address)
+	{
+		//Index High
+		case JB_REG_08:
+			jukebox.io_index &= 0x00FF;
+			jukebox.io_index |= (value << 8);
+			break;
+
+		//Index Low
+		case JB_REG_0A:
+			jukebox.io_index &= 0xFF00;
+			jukebox.io_index |= value;
+			process_data = true;
+			break;
+
+		//Write Status Low
+		case JB_REG_0E:
+			if(jukebox.io_index == 0x80)
+			{
+				jukebox.status &= 0xFF00;
+				jukebox.status |= value;
+			}
+
+			break;
+
+		//Reset Status
+		case JB_REG_12:
+			if(jukebox.status == 0) { jukebox.status = 0x100; }
+			break;
+	}
+
+	//Process data from Jukebox once a specific index has been selected
+	if((process_data) && (jukebox.io_index < 0x200))
+	{
+		switch(jukebox.io_index)
+		{
+			//Read Status
+			case 0x0081:
+				jukebox.out_hi = (jukebox.status >> 8) & 0xFF;
+				jukebox.out_lo = (jukebox.status & 0xFF);
+				break;
+
+			//Default -> Read whatever data at unimplemented I/O
+			default:
+				jukebox.out_hi = (jukebox.io_regs[jukebox.io_index] >> 8) & 0xFF;
+				jukebox.out_lo = (jukebox.io_regs[jukebox.io_index] & 0xFF);
+		}
+	}
+}
 
 /****** Continually processes motion in specialty carts (for use by other components outside MMU like LCD) ******/
 void AGB_MMU::process_motion()

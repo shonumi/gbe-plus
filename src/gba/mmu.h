@@ -137,6 +137,17 @@ class AGB_MMU
 		std::vector<u8> card_data;
 	} am3;
 
+	//Structure to handle GBA Jukebox/Music Recorder
+	struct jukebox_cart
+	{
+		std::vector<u16> io_regs;
+		u16 status;
+		u16 io_index;
+
+		u8 out_hi;
+		u8 out_lo;
+	} jukebox;
+
 	//Structure to handle GPIO reading and writing
 	struct gpio_controller
 	{
@@ -218,6 +229,8 @@ class AGB_MMU
 
 	void write_am3(u32 address, u8 value);
 	bool check_am3_fat(); 
+
+	void write_jukebox(u32 address, u8 value);
 
 	//GPIO handling functions
 	void process_rtc();
