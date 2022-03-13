@@ -51,6 +51,7 @@ enum special_cart_types
 	AGB_TILT_SENSOR,
 	AGB_8M_DACS,
 	AGB_AM3,
+	AGB_JUKEBOX,
 	NDS_IR_CART,
 };
 

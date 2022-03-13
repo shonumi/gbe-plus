@@ -777,6 +777,9 @@ bool parse_cli_args()
 			//Use GBA AM3 mapper
 			else if(config::cli_args[x] == "--agb-am3") { config::cart_type = AGB_AM3; }
 
+			//Use GBA Music Recorder mapper
+			else if(config::cli_args[x] == "--agb-jukebox") { config::cart_type = AGB_JUKEBOX; }
+
 			//Use Auto-Detect for GBA saves
 			else if(config::cli_args[x] == "--save-auto") { config::agb_save_type = AGB_AUTO_DETECT; }
 

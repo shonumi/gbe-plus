@@ -188,4 +188,13 @@ const u32 AM_SMC_EOF = 0x801040E;
 
 const u32 AM_FILE_SIZE = 0x8010410;
 
+/* Jukebox IO */
+const u32 JB_REG_00 = 0xB000000;
+const u32 JB_REG_02 = 0xB020000;
+const u32 JB_REG_04 = 0xB040000;
+const u32 JB_REG_06 = 0xB060000;
+const u32 JB_REG_08 = 0xB080000;
+const u32 JB_REG_10 = 0xB100000;
+const u32 JB_REG_12 = 0xB120000;
+
 #endif // GBA_COMMON
