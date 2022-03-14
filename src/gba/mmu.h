@@ -142,6 +142,7 @@ class AGB_MMU
 	{
 		std::vector<u16> io_regs;
 		u16 status;
+		u16 config;
 		u16 io_index;
 
 		u8 out_hi;

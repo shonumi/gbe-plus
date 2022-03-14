@@ -82,6 +82,7 @@ void AGB_MMU::reset()
 	jukebox.io_regs.resize(0x200, 0x00);
 	jukebox.io_index = 0;
 	jukebox.status = 0;
+	jukebox.config = 0;
 	jukebox.out_hi = 0;
 	jukebox.out_lo = 0;
 
@@ -3346,12 +3347,20 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 			process_data = true;
 			break;
 
-		//Write Status Low
+		//Write IO Register Low
 		case JB_REG_0E:
-			if(jukebox.io_index == 0x80)
+			//Status Register
+			if(jukebox.io_index == 0x0080)
 			{
 				jukebox.status &= 0xFF00;
 				jukebox.status |= value;
+			}
+
+			//User Config Register
+			else if(jukebox.io_index == 0x01C8)
+			{
+				jukebox.config &= 0xFF00;
+				jukebox.config |= value;
 			}
 
 			break;
@@ -3371,6 +3380,12 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 			case 0x0081:
 				jukebox.out_hi = (jukebox.status >> 8) & 0xFF;
 				jukebox.out_lo = (jukebox.status & 0xFF);
+				break;
+
+			//Read User Config
+			case 0x01C8:
+				jukebox.out_hi = (jukebox.config >> 8) & 0xFF;
+				jukebox.out_lo = (jukebox.config & 0xFF);
 				break;
 
 			//Default -> Read whatever data at unimplemented I/O
