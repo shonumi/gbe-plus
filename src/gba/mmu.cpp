@@ -3347,6 +3347,17 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 			process_data = true;
 			break;
 
+		//Write IO Register High
+		case JB_REG_0C:
+			//Status Register
+			if(jukebox.io_index == 0x0080)
+			{
+				jukebox.status &= 0x00FF;
+				jukebox.status |= (value << 8);
+			}
+
+			break;
+
 		//Write IO Register Low
 		case JB_REG_0E:
 			//Status Register
@@ -3367,7 +3378,7 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 
 		//Reset Status
 		case JB_REG_12:
-			if(jukebox.status == 0) { jukebox.status = 0x100; }
+			if(value == 1) { jukebox.status |= 0x100; }
 			break;
 	}
 
