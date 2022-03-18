@@ -86,6 +86,13 @@ void AGB_MMU::reset()
 	jukebox.out_hi = 0;
 	jukebox.out_lo = 0;
 
+	if(config::cart_type == AGB_JUKEBOX)
+	{
+		read_jukebox_file_list((config::data_path + "jukebox/music.txt"), 0);
+		read_jukebox_file_list((config::data_path + "jukebox/voice.txt"), 1);
+		read_jukebox_file_list((config::data_path + "jukebox/karaoke.txt"), 2);
+	}
+
 	gpio.data = 0;
 	gpio.prev_data = 0;
 	gpio.direction = 0;
@@ -3405,6 +3412,41 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 				jukebox.out_lo = (jukebox.io_regs[jukebox.io_index] & 0xFF);
 		}
 	}
+}
+
+/****** Reads a file for list of other audio files to be read by the GBA Music Recorder/Jukebox ******/
+bool AGB_MMU::read_jukebox_file_list(std::string filename, u8 category)
+{
+	std::vector<std::string> *out_list = NULL;
+
+	switch(category)
+	{
+		case 0x00: out_list = &jukebox.music_files; break;
+		case 0x01: out_list = &jukebox.voice_files; break;
+		case 0x02: out_list = &jukebox.karaoke_files; break;
+		default: std::cout<<"MMU::Error - Loading unknown category of audio files for Jukebox\n"; return false;
+	}
+
+	out_list->clear();
+
+	std::string input_line = "";
+	std::ifstream file(filename.c_str(), std::ios::in);
+
+	if(!file.is_open())
+	{
+		std::cout<<"MMU::Error - Could not open list of music files from " << filename << "\n";
+		return false;
+	}
+
+	while(getline(file, input_line))
+	{
+		if(!input_line.empty()) { out_list->push_back(input_line); }
+	}
+
+	std::cout<<"MMU::Loaded audio files for Jukebox from " << filename << "\n";
+
+	file.close();
+	return true;
 }
 
 /****** Continually processes motion in specialty carts (for use by other components outside MMU like LCD) ******/

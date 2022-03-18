@@ -147,6 +147,10 @@ class AGB_MMU
 
 		u8 out_hi;
 		u8 out_lo;
+
+		std::vector<std::string> music_files;
+		std::vector<std::string> voice_files;
+		std::vector<std::string> karaoke_files;
 	} jukebox;
 
 	//Structure to handle GPIO reading and writing
@@ -232,6 +236,7 @@ class AGB_MMU
 	bool check_am3_fat(); 
 
 	void write_jukebox(u32 address, u8 value);
+	bool read_jukebox_file_list(std::string filename, u8 category);
 
 	//GPIO handling functions
 	void process_rtc();
