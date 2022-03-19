@@ -144,6 +144,8 @@ class AGB_MMU
 		u16 status;
 		u16 config;
 		u16 io_index;
+		u8 current_category;
+		u32 current_file;
 
 		u8 out_hi;
 		u8 out_lo;
@@ -237,6 +239,7 @@ class AGB_MMU
 
 	void write_jukebox(u32 address, u8 value);
 	bool read_jukebox_file_list(std::string filename, u8 category);
+	void jukebox_set_file_info();
 
 	//GPIO handling functions
 	void process_rtc();

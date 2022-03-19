@@ -85,12 +85,19 @@ void AGB_MMU::reset()
 	jukebox.config = 0;
 	jukebox.out_hi = 0;
 	jukebox.out_lo = 0;
+	jukebox.current_category = 0;
+	jukebox.current_file = 0;
 
 	if(config::cart_type == AGB_JUKEBOX)
 	{
 		read_jukebox_file_list((config::data_path + "jukebox/music.txt"), 0);
 		read_jukebox_file_list((config::data_path + "jukebox/voice.txt"), 1);
 		read_jukebox_file_list((config::data_path + "jukebox/karaoke.txt"), 2);
+
+		//Set Jukebox I/O flags if files detected
+		if(!jukebox.music_files.empty()) { jukebox.io_regs[0xAC] = 0x01; }
+		if(!jukebox.voice_files.empty()) { jukebox.io_regs[0xAE] = 0x01; }
+		if(!jukebox.karaoke_files.empty()) { jukebox.io_regs[0xAF] = 0x01; }
 	}
 
 	gpio.data = 0;
@@ -3367,11 +3374,22 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 
 		//Write IO Register Low
 		case JB_REG_0E:
-			//Status Register
+			//Status Register - Send Command
 			if(jukebox.io_index == 0x0080)
 			{
 				jukebox.status &= 0xFF00;
 				jukebox.status |= value;
+
+				//Process various commands now
+				switch(jukebox.status)
+				{
+					//Select Music Files
+					case 0x08:
+						jukebox.current_category = 0;
+						jukebox.current_file = 0;
+						jukebox_set_file_info();
+						break;
+				}
 			}
 
 			//User Config Register
@@ -3419,6 +3437,7 @@ bool AGB_MMU::read_jukebox_file_list(std::string filename, u8 category)
 {
 	std::vector<std::string> *out_list = NULL;
 
+	//Grab the correct file list based on category
 	switch(category)
 	{
 		case 0x00: out_list = &jukebox.music_files; break;
@@ -3427,6 +3446,7 @@ bool AGB_MMU::read_jukebox_file_list(std::string filename, u8 category)
 		default: std::cout<<"MMU::Error - Loading unknown category of audio files for Jukebox\n"; return false;
 	}
 
+	//Clear any previosly existing contents, read in each non-blank line from the specified file
 	out_list->clear();
 
 	std::string input_line = "";
@@ -3447,6 +3467,39 @@ bool AGB_MMU::read_jukebox_file_list(std::string filename, u8 category)
 
 	file.close();
 	return true;
+}
+
+/****** Sets the file info when GBA Music Recorder/Jukebox tries to read it ******/
+void AGB_MMU::jukebox_set_file_info()
+{
+	//Clear contents from indices 0xA1 - 0xA6 and 0xB0 - 0xCF
+	for(u32 x = 0; x < 7; x++) { jukebox.io_regs[0xA1 + x] = 0x0000; }
+	for(u32 x = 0; x < 32; x++) { jukebox.io_regs[0xB0 + x] = 0x0000; }
+
+	std::vector<std::string> file_list;
+
+	//Grab the correct file list based on category
+	switch(jukebox.current_category)
+	{
+		case 0x00: file_list = jukebox.music_files; break;
+		case 0x01: file_list = jukebox.voice_files; break;
+		case 0x02: file_list = jukebox.karaoke_files; break;
+	}
+
+	//Nothing to do if list is empty
+	if(file_list.empty()) { return; }
+
+	//Convert filename from list to 8.3 DOS format
+	std::string temp_str = file_list[jukebox.current_file];
+	std::string front = temp_str.substr(0, 8);
+	std::string back = temp_str.substr((temp_str.length() - 4), temp_str.length());
+	temp_str = front + back;
+
+	for(u32 x = 0, y = 0; y < 7; y++, x += 2)
+	{
+		u16 ascii_chrs = ((temp_str[x] << 8) | temp_str[x + 1]);
+		jukebox.io_regs[0xA1 + y] = ascii_chrs;
+	}
 }
 
 /****** Continually processes motion in specialty carts (for use by other components outside MMU like LCD) ******/
