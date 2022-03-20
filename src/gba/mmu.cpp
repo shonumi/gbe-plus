@@ -3489,11 +3489,15 @@ void AGB_MMU::jukebox_set_file_info()
 	//Nothing to do if list is empty
 	if(file_list.empty()) { return; }
 
-	//Convert filename from list to 8.3 DOS format
 	std::string temp_str = file_list[jukebox.current_file];
-	std::string front = temp_str.substr(0, 8);
-	std::string back = temp_str.substr((temp_str.length() - 4), temp_str.length());
-	temp_str = front + back;
+
+	//Convert filename from list to 8.3 DOS format if longer than 12 characters 
+	if(temp_str.length() > 12)
+	{
+		std::string front = temp_str.substr(0, 8);
+		std::string back = temp_str.substr((temp_str.length() - 4), temp_str.length());
+		temp_str = front + back;
+	}
 
 	for(u32 x = 0, y = 0; y < 7; y++, x += 2)
 	{
