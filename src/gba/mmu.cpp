@@ -98,6 +98,10 @@ void AGB_MMU::reset()
 		if(!jukebox.music_files.empty()) { jukebox.io_regs[0xAC] = 0x01; }
 		if(!jukebox.voice_files.empty()) { jukebox.io_regs[0xAE] = 0x01; }
 		if(!jukebox.karaoke_files.empty()) { jukebox.io_regs[0xAF] = 0x01; }
+
+		//Set default file limit
+		jukebox.file_limit = jukebox.music_files.size();
+		jukebox.io_regs[0xAD] = jukebox.file_limit - 1;
 	}
 
 	gpio.data = 0;
@@ -3387,7 +3391,42 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 					case 0x08:
 						jukebox.current_category = 0;
 						jukebox.current_file = 0;
+						jukebox.file_limit = jukebox.music_files.size();
 						jukebox_set_file_info();
+
+						//Update the number of songs in a given category
+						jukebox.io_regs[0xAD] = jukebox.file_limit - 1;
+
+						break;
+
+					//Move Forward 1 File
+					case 0x15:
+						if(jukebox.file_limit)
+						{
+							jukebox.current_file++;
+
+							//Wrap around if current file is past the number of files in the list
+							if(jukebox.current_file >= jukebox.file_limit) { jukebox.current_file = 0; }
+
+							jukebox_set_file_info();
+							jukebox.io_regs[0xA0] = jukebox.current_file;
+						}
+
+						break;
+
+					//Backwar 1 File
+					case 0x16:
+						if(jukebox.file_limit)
+						{
+							//Wrap around if current file is at the beginning of the list in the list
+							if(jukebox.current_file == 0) { jukebox.current_file = jukebox.file_limit; }
+
+							jukebox.current_file--;
+
+							jukebox_set_file_info();
+							jukebox.io_regs[0xA0] = jukebox.current_file;
+						}
+
 						break;
 				}
 			}
@@ -3498,6 +3537,10 @@ void AGB_MMU::jukebox_set_file_info()
 		std::string back = temp_str.substr((temp_str.length() - 4), temp_str.length());
 		temp_str = front + back;
 	}
+
+	while(temp_str.length() < 12) { temp_str = " " + temp_str; }
+
+	std::cout<<"DOS -> " << temp_str << "\n";
 
 	for(u32 x = 0, y = 0; y < 7; y++, x += 2)
 	{

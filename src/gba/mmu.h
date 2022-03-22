@@ -145,7 +145,8 @@ class AGB_MMU
 		u16 config;
 		u16 io_index;
 		u8 current_category;
-		u32 current_file;
+		u16 current_file;
+		u16 file_limit;
 
 		u8 out_hi;
 		u8 out_lo;
