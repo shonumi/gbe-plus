@@ -3401,7 +3401,7 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 						jukebox_set_file_info();
 
 						//Update the number of songs in a given category
-						jukebox.io_regs[0xAD] = jukebox.file_limit - 1;
+						jukebox.io_regs[0xAE] = jukebox.file_limit - 1;
 
 						break;
 
@@ -3412,7 +3412,7 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 						jukebox_set_file_info();
 
 						//Update the number of songs in a given category
-						jukebox.io_regs[0xAD] = jukebox.file_limit - 1;
+						jukebox.io_regs[0xAF] = jukebox.file_limit - 1;
 
 						break;
 
