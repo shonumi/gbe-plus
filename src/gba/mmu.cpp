@@ -80,6 +80,7 @@ void AGB_MMU::reset()
 
 	jukebox.io_regs.clear();
 	jukebox.io_regs.resize(0x200, 0x00);
+	jukebox.io_regs[0x100] = 10;
 	jukebox.io_index = 0;
 	jukebox.status = 0;
 	jukebox.config = 0;
@@ -87,6 +88,7 @@ void AGB_MMU::reset()
 	jukebox.out_lo = 0;
 	jukebox.current_category = 0;
 	jukebox.current_file = 0;
+	jukebox.progress = 0;
 
 	if(config::cart_type == AGB_JUKEBOX)
 	{
@@ -3390,7 +3392,7 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 						jukebox_set_file_info();
 
 						//Update the number of songs in a given category
-						jukebox.io_regs[0xAD] = jukebox.file_limit - 1;
+						jukebox.io_regs[0xAD] = jukebox.file_limit;
 
 						break;
 
@@ -3401,7 +3403,7 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 						jukebox_set_file_info();
 
 						//Update the number of songs in a given category
-						jukebox.io_regs[0xAE] = jukebox.file_limit - 1;
+						jukebox.io_regs[0xAE] = jukebox.file_limit;
 
 						break;
 
@@ -3412,8 +3414,15 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 						jukebox_set_file_info();
 
 						//Update the number of songs in a given category
-						jukebox.io_regs[0xAF] = jukebox.file_limit - 1;
+						jukebox.io_regs[0xAF] = jukebox.file_limit;
 
+						break;
+
+					//Play Audio File
+					case 0x13:
+						//Play dummy audio file for now
+						jukebox.progress = 1;
+						jukebox.io_regs[0x82] = 0x1001;
 						break;
 
 					//Reset Current File
@@ -3451,6 +3460,13 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 						}
 
 						break;
+
+					//Stop Playing Audio File
+					case 0x20:
+						//Reset audio input/output progress
+						jukebox.progress = 0;
+						jukebox.io_regs[0x82] = 0x0;
+						break;
 				}
 			}
 
@@ -3478,6 +3494,12 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 			case 0x0081:
 				jukebox.out_hi = (jukebox.status >> 8) & 0xFF;
 				jukebox.out_lo = (jukebox.status & 0xFF);
+				break;
+
+			//Read Compact Flash Access Progress
+			case 0x0101:
+				jukebox.out_hi = ((jukebox.progress >> 1) >> 8) & 0xFF;
+				jukebox.out_lo = ((jukebox.progress >> 1) & 0xFF);
 				break;
 
 			//Read User Config

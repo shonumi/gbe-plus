@@ -147,6 +147,7 @@ class AGB_MMU
 		u8 current_category;
 		u16 current_file;
 		u16 file_limit;
+		u32 progress;
 
 		u8 out_hi;
 		u8 out_lo;
