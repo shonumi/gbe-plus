@@ -3422,7 +3422,15 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 					case 0x13:
 						//Play dummy audio file for now
 						jukebox.progress = 1;
-						jukebox.io_regs[0x82] = 0x1001;
+						
+						//Set Playback Status
+						switch(jukebox.current_category)
+						{
+							case 0x00: jukebox.io_regs[0x82] = 0x1001; break;
+							case 0x01: jukebox.io_regs[0x82] = 0x1101; break;
+							case 0x02: jukebox.io_regs[0x82] = 0x1201; break;
+						}
+
 						break;
 
 					//Reset Current File
