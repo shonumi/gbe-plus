@@ -81,6 +81,7 @@ void AGB_MMU::reset()
 	jukebox.io_regs.clear();
 	jukebox.io_regs.resize(0x200, 0x00);
 	jukebox.io_regs[0x100] = 10;
+	jukebox.io_regs[0x9A] = 1;
 	jukebox.io_index = 0;
 	jukebox.status = 0;
 	jukebox.config = 0;
@@ -3372,6 +3373,17 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 				jukebox.status |= (value << 8);
 			}
 
+			//Other Writable Indices
+			switch(jukebox.io_index)
+			{
+				case 0x0088:
+				case 0x008C:
+				case 0x008F:
+					jukebox.io_regs[jukebox.io_index] &= 0x00FF;
+					jukebox.io_regs[jukebox.io_index] |= (value << 8);
+					break;
+			}
+
 			break;
 
 		//Write IO Register Low
@@ -3483,6 +3495,17 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 			{
 				jukebox.config &= 0xFF00;
 				jukebox.config |= value;
+			}
+
+			//Other Writable Indices
+			switch(jukebox.io_index)
+			{
+				case 0x0088:
+				case 0x008C:
+				case 0x008F:
+					jukebox.io_regs[jukebox.io_index] &= 0xFF00;
+					jukebox.io_regs[jukebox.io_index] |= value;
+					break;
 			}
 
 			break;
