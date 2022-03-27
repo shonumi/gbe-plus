@@ -241,6 +241,7 @@ class AGB_MMU
 
 	void write_jukebox(u32 address, u8 value);
 	bool read_jukebox_file_list(std::string filename, u8 category);
+	bool jukebox_delete_file();
 	void jukebox_set_file_info();
 
 	//GPIO handling functions

@@ -3481,6 +3481,16 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 
 						break;
 
+					//Delete File
+						if(jukebox.file_limit)
+						{
+							jukebox_delete_file();
+							jukebox_set_file_info();
+						}
+
+						break;
+							
+
 					//Stop Playing Audio File
 					case 0x20:
 						//Reset audio input/output progress
@@ -3553,7 +3563,7 @@ bool AGB_MMU::read_jukebox_file_list(std::string filename, u8 category)
 	std::vector<std::string> *out_list = NULL;
 
 	//Grab the correct file list based on category
-	switch(category)
+	switch(jukebox.current_category)
 	{
 		case 0x00: out_list = &jukebox.music_files; break;
 		case 0x01: out_list = &jukebox.voice_files; break;
@@ -3622,6 +3632,65 @@ void AGB_MMU::jukebox_set_file_info()
 		jukebox.io_regs[0xA1 + y] = ascii_chrs;
 	}
 }
+
+
+/****** Deletes a specific file from the Music Recorder/Jukebox ******/
+bool AGB_MMU::jukebox_delete_file()
+{
+	std::vector<std::string> *out_list = NULL;
+	std::string filename;
+	u16 update_index = 0;
+
+	//Grab the correct file list based on category, also select update file and update index
+	switch(jukebox.current_category)
+	{
+		case 0x00:
+			out_list = &jukebox.music_files;
+			filename = config::data_path + "jukebox/music.txt";
+			update_index = 0xAD;
+			break;
+
+		case 0x01:
+			out_list = &jukebox.voice_files;
+			filename = config::data_path + "jukebox/voice.txt";
+			update_index = 0xAE;
+			break;
+		case 0x02:
+			out_list = &jukebox.karaoke_files;
+			filename = config::data_path + "jukebox/karaoke.txt";
+			update_index = 0xAF;
+			break;
+		
+		default:
+			std::cout<<"MMU::Error - Loading unknown category of audio files for Jukebox\n";
+			return false;
+	}
+
+	//Erase file from list and adjust current file position
+	if(jukebox.current_file < out_list->size()) { out_list->erase(out_list->begin() + jukebox.current_file); }
+	if(jukebox.current_file != 0) { jukebox.current_file--; }
+
+	jukebox.file_limit = out_list->size();
+
+	//Update contents
+	std::ofstream file(filename.c_str(), std::ios::trunc);
+
+	if(!file.is_open())
+	{
+		std::cout<<"MMU::Error - Could not open list of music files from " << filename << "\n";
+		return false;
+	}
+
+	for(u32 x = 0; x < out_list->size(); x++) { file << out_list->at(x) << "\n"; }
+
+	//Update specific indices
+	jukebox.io_regs[update_index] = jukebox.file_limit;
+	jukebox.io_regs[0x00A0] = jukebox.current_file;
+
+	file.close();
+	return true;
+}
+		
 
 /****** Continually processes motion in specialty carts (for use by other components outside MMU like LCD) ******/
 void AGB_MMU::process_motion()
