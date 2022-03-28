@@ -90,6 +90,7 @@ void AGB_MMU::reset()
 	jukebox.current_category = 0;
 	jukebox.current_file = 0;
 	jukebox.progress = 0;
+	jukebox.format_compact_flash = false;
 
 	if(config::cart_type == AGB_JUKEBOX)
 	{
@@ -3397,6 +3398,13 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 				//Process various commands now
 				switch(jukebox.status)
 				{
+					//Format Compact Flash Card
+					case 0x02:
+						jukebox.progress = 0x10;
+						jukebox.status = 0;
+						jukebox.format_compact_flash = true;
+						break;
+
 					//Select Music Files
 					case 0x08:
 						jukebox.current_category = 0;
@@ -3482,6 +3490,7 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 						break;
 
 					//Delete File
+					case 0x19:
 						if(jukebox.file_limit)
 						{
 							jukebox_delete_file();
@@ -3563,7 +3572,7 @@ bool AGB_MMU::read_jukebox_file_list(std::string filename, u8 category)
 	std::vector<std::string> *out_list = NULL;
 
 	//Grab the correct file list based on category
-	switch(jukebox.current_category)
+	switch(category)
 	{
 		case 0x00: out_list = &jukebox.music_files; break;
 		case 0x01: out_list = &jukebox.voice_files; break;
@@ -3690,7 +3699,26 @@ bool AGB_MMU::jukebox_delete_file()
 	file.close();
 	return true;
 }
-		
+
+/****** Updates Music Recorder/Jukebox periodically ******/
+void AGB_MMU::process_jukebox()
+{
+	//Update 0x0101 index while formatting the Compact Flash Card
+	if(jukebox.format_compact_flash)
+	{
+		jukebox.progress += 0x80;
+
+		//Finish formatting
+		if(jukebox.progress >= 0xFF80)
+		{
+			jukebox.progress = 0;
+			jukebox.status = 0x0102;
+		}
+	}
+
+	//Update 0x0101 index while playing music
+	else if(jukebox.progress) { jukebox.progress++; }
+}
 
 /****** Continually processes motion in specialty carts (for use by other components outside MMU like LCD) ******/
 void AGB_MMU::process_motion()

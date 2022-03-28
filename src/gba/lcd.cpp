@@ -1584,7 +1584,7 @@ void AGB_LCD::step()
 			if(mem->sub_screen_update) { mem->sub_screen_lock = false; }
 
 			//Jukebox
-			if((config::cart_type == AGB_JUKEBOX) && (mem->jukebox.progress)) { mem->jukebox.progress++; }
+			if((config::cart_type == AGB_JUKEBOX) && (mem->jukebox.progress)) { mem->process_jukebox(); }
 
 			//Use SDL
 			if(config::sdl_render)

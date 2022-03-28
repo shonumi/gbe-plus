@@ -148,6 +148,7 @@ class AGB_MMU
 		u16 current_file;
 		u16 file_limit;
 		u32 progress;
+		bool format_compact_flash;
 
 		u8 out_hi;
 		u8 out_lo;
@@ -243,6 +244,7 @@ class AGB_MMU
 	bool read_jukebox_file_list(std::string filename, u8 category);
 	bool jukebox_delete_file();
 	void jukebox_set_file_info();
+	void process_jukebox();
 
 	//GPIO handling functions
 	void process_rtc();
