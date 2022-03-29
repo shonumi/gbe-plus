@@ -3711,8 +3711,26 @@ void AGB_MMU::process_jukebox()
 		//Finish formatting
 		if(jukebox.progress >= 0xFF80)
 		{
+			std::string filename = "";
 			jukebox.progress = 0;
 			jukebox.status = 0x0102;
+
+			//Truncate lists and update file info
+			filename = config::data_path + "jukebox/music.txt";
+			std::ofstream file_1(filename.c_str(), std::ios::trunc);
+			jukebox.music_files.clear();
+
+			filename = config::data_path + "jukebox/voice.txt";
+			std::ofstream file_2(filename.c_str(), std::ios::trunc);
+			jukebox.voice_files.clear();
+
+			filename = config::data_path + "jukebox/karaoke.txt";
+			std::ofstream file_3(filename.c_str(), std::ios::trunc);
+			jukebox.karaoke_files.clear();
+
+			jukebox.io_regs[0xAD] = 0;
+			jukebox.io_regs[0xAE] = 0; 
+			jukebox.io_regs[0xAF] = 0; 
 		}
 	}
 
