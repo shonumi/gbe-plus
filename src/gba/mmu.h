@@ -149,6 +149,7 @@ class AGB_MMU
 		u16 file_limit;
 		u32 progress;
 		bool format_compact_flash;
+		bool is_recording;
 
 		u8 out_hi;
 		u8 out_lo;

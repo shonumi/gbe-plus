@@ -80,8 +80,9 @@ void AGB_MMU::reset()
 
 	jukebox.io_regs.clear();
 	jukebox.io_regs.resize(0x200, 0x00);
-	jukebox.io_regs[0x100] = 10;
-	jukebox.io_regs[0x9A] = 1;
+	jukebox.io_regs[0x0100] = 10;
+	jukebox.io_regs[0x009A] = 1;
+	jukebox.io_regs[0x0086] = 1;
 	jukebox.io_index = 0;
 	jukebox.status = 0;
 	jukebox.config = 0;
@@ -91,6 +92,7 @@ void AGB_MMU::reset()
 	jukebox.current_file = 0;
 	jukebox.progress = 0;
 	jukebox.format_compact_flash = false;
+	jukebox.is_recording = false;
 
 	if(config::cart_type == AGB_JUKEBOX)
 	{
@@ -3416,6 +3418,14 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 
 						break;
 
+					//Record Music Files
+					case 0x09:
+						jukebox.current_category = 0;
+						jukebox.is_recording = true;
+						jukebox.io_regs[0x82] = 0x1010;
+						jukebox.progress = 1;
+						break;
+
 					//Select Voice Files
 					case 0x0A:
 						jukebox.current_category = 1;
@@ -3425,6 +3435,13 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 						//Update the number of songs in a given category
 						jukebox.io_regs[0xAE] = jukebox.file_limit;
 
+						break;
+
+					//Record Memo Files
+					case 0x0B:
+						jukebox.current_category = 1;
+						jukebox.is_recording = true;
+						jukebox.progress = 1;
 						break;
 
 					//Select Karaoke Files
@@ -3442,12 +3459,12 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 					case 0x13:
 						//Play dummy audio file for now
 						jukebox.progress = 1;
-						
-						//Set Playback Status
+
+						//Set Playback/Recording Status
 						switch(jukebox.current_category)
 						{
-							case 0x00: jukebox.io_regs[0x82] = 0x1001; break;
-							case 0x01: jukebox.io_regs[0x82] = 0x1101; break;
+							case 0x00: jukebox.io_regs[0x82] = (jukebox.is_recording) ? 0x1012 : 0x1001; break;
+							case 0x01: jukebox.io_regs[0x82] = (jukebox.is_recording) ? 0x1112 : 0x1101; break;
 							case 0x02: jukebox.io_regs[0x82] = 0x1201; break;
 						}
 
@@ -3457,6 +3474,7 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 					case 0x14:
 						jukebox.current_file = 0;
 						jukebox.io_regs[0xA0] = 0;
+						jukebox.is_recording = false;
 						break;
 
 					//Move Forward 1 File
