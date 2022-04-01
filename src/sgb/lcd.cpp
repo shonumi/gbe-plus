@@ -9,6 +9,8 @@
 // Draws background, window, and sprites to screen
 // Responsible for blitting pixel data and limiting frame rate
 
+#include <cmath>
+
 #include "lcd.h"
 #include "common/cgfx_common.h"
 #include "common/util.h"
@@ -56,7 +58,7 @@ void SGB_LCD::reset()
 	{
 		double frame_1 = ((1000.0 / 60) * x);
 		double frame_2 = ((1000.0 / 60) * (x + 1));
-		frame_delay[x] = (round(frame_2) - round(frame_1));
+		frame_delay[x] = (std::round(frame_2) - std::round(frame_1));
 	}
 
 	//Initialize various LCD status variables

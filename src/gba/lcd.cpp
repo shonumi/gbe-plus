@@ -55,7 +55,7 @@ void AGB_LCD::reset()
 	{
 		double frame_1 = ((1000.0 / 60) * x);
 		double frame_2 = ((1000.0 / 60) * (x + 1));
-		frame_delay[x] = (round(frame_2) - round(frame_1));
+		frame_delay[x] = (std::round(frame_2) - std::round(frame_1));
 	}
 
 	current_scanline = 0;
