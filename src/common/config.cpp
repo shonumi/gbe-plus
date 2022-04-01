@@ -888,6 +888,7 @@ bool parse_cli_args()
 				std::cout<<"--agb-tilt-sensor \t\t\t Use GBA Tilt Sensor cart\n";
 				std::cout<<"--agb-dacs \t\t\t Use GBA 8M DACS Flash cart\n";
 				std::cout<<"--agb-am3 \t\t\t Use GBA AM3 SmartCard adapter cart\n";
+				std::cout<<"--agb-jukebox \t\t\t Use GBA Music Recorder/Jukebox cart\n";
 				std::cout<<"--opengl \t\t\t\t Use OpenGL for screen drawing and scaling\n";
 				std::cout<<"--cheats \t\t\t\t Use Gameshark or Game Genie cheats\n";
 				std::cout<<"--patch \t\t\t\t Use a patch file for the ROM\n";
@@ -899,6 +900,7 @@ bool parse_cli_args()
 				std::cout<<"--sys-nds \t\t\t\t Set the emulated system type to NDS\n";
 				std::cout<<"--sys-sgb \t\t\t\t Set the emulated system type to SGB\n";
 				std::cout<<"--sys-sgb2 \t\t\t\t Set the emulated system type to SGB2\n";
+				std::cout<<"--sys-min \t\t\t\t Set the emulated system type to MIN\n";
 				std::cout<<"--save-auto \t\t\t\t Set the GBA save type to Auto Detect\n";
 				std::cout<<"--save-none \t\t\t\t Disables all GBA saves\n";
 				std::cout<<"--save-sram \t\t\t\t Force the GBA save type to SRAM\n";
@@ -907,6 +909,8 @@ bool parse_cli_args()
 				std::cout<<"--save-flash128 \t\t\t Force the GBA save type to FLASH 128KB\n";
 				std::cout<<"--turbo-file-memcard \t\t\t Enable memory card for Turbo File\n";
 				std::cout<<"--turbo-file-protect \t\t\t Enable write-proection for Turbo File\n";
+				std::cout<<"--ignore-illegal-opcodes \t\t\t Ignore Illegal CPU instructions when running\n";
+				std::cout<<"--auto-gen-key \t\t\t\t Automatically generate 16-byte DES key for AM3\n";
 				std::cout<<"-h, --help \t\t\t\t Print these help messages\n";
 				return false;
 			}
