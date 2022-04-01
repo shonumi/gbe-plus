@@ -3455,6 +3455,13 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 
 						break;
 
+					//Record Karaoke Files
+					case 0x0D:
+						jukebox.current_category = 2;
+						jukebox.is_recording = true;
+						jukebox.progress = 1;
+						break;
+
 					//Play Audio File
 					case 0x13:
 						//Play dummy audio file for now
@@ -3465,7 +3472,7 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 						{
 							case 0x00: jukebox.io_regs[0x82] = (jukebox.is_recording) ? 0x1012 : 0x1001; break;
 							case 0x01: jukebox.io_regs[0x82] = (jukebox.is_recording) ? 0x1112 : 0x1101; break;
-							case 0x02: jukebox.io_regs[0x82] = 0x1201; break;
+							case 0x02: jukebox.io_regs[0x82] = (jukebox.is_recording) ? 0x1211 : 0x1201; break;
 						}
 
 						break;
