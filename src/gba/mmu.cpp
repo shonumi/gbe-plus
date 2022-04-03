@@ -2374,9 +2374,11 @@ bool AGB_MMU::read_file(std::string filename)
 	//Also forcibly set save type now
 	if(config::cart_type == AGB_JUKEBOX)
 	{
+		std::cout<<"MMU::Jukebox Config Data save type detected\n";
 		config::agb_save_type == AGB_JUKEBOX_CONFIG;
 		current_save_type = JUKEBOX_CONFIG;
-		std::cout<<"MMU::Jukebox Config Data save type detected\n";
+		load_backup(backup_file);
+		return true;
 	}
 
 	//Try to auto-detect save-type, if any
@@ -2736,7 +2738,7 @@ bool AGB_MMU::load_backup(std::string filename)
 		file.read(reinterpret_cast<char*> (&save_data[0]), file_size);
 
 		//Write data to Jukebox Config data at index 0x1C8
-		jukebox.io_regs[0x1C8] = (save_data[1] << 8) | save_data[0];
+		jukebox.config = (save_data[1] << 8) | save_data[0];
 	}
 
 	file.close();
@@ -2879,6 +2881,29 @@ bool AGB_MMU::save_backup(std::string filename)
 
 		std::cout<<"MMU::Updated 8M DACS FLASH file " << filename <<  "\n";
 	}
+
+	//Save Jukebox Config data
+	else if(current_save_type == JUKEBOX_CONFIG)
+	{
+		std::ofstream file(filename.c_str(), std::ios::binary);
+
+		if(!file.is_open()) 
+		{
+			std::cout<<"MMU::" << filename << " save data could not be written. Check file path or permissions. \n";
+			return false;
+		}
+
+		//Write the data to a file
+		u8 cfg_data[2];
+		cfg_data[0] = jukebox.config & 0xFF;
+		cfg_data[1] = (jukebox.config >> 8) & 0xFF;
+
+		file.write(reinterpret_cast<char*> (&cfg_data[0]), 0x02);
+		file.close();
+
+		std::cout<<"MMU::Wrote save data " << filename <<  "\n";
+	}
+
 
 	return true;
 }
