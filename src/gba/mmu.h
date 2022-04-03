@@ -36,6 +36,7 @@ class AGB_MMU
 		FLASH_128,
 		SRAM,
 		DACS,
+		JUKEBOX_CONFIG,
 	};
 
 	//Cartridge GPIO-type enumerations

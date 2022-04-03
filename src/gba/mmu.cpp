@@ -2286,7 +2286,7 @@ bool AGB_MMU::read_file(std::string filename)
 
 		file_size = 0x400;
 		config::agb_save_type = AGB_NO_SAVE;	
-	}
+	}		
 
 	//Read data from the ROM file
 	else { file.read((char*)ex_mem, file_size); }
@@ -2370,8 +2370,17 @@ bool AGB_MMU::read_file(std::string filename)
 
 	std::string backup_file = filename + ".sav";
 
+	//For GBA Jukebox/Music Recorder, only read 1 byte configuration data
+	//Also forcibly set save type now
+	if(config::cart_type == AGB_JUKEBOX)
+	{
+		config::agb_save_type == AGB_JUKEBOX_CONFIG;
+		current_save_type = JUKEBOX_CONFIG;
+		std::cout<<"MMU::Jukebox Config Data save type detected\n";
+	}
+
 	//Try to auto-detect save-type, if any
-	if(config::agb_save_type == AGB_AUTO_DETECT)
+	else if(config::agb_save_type == AGB_AUTO_DETECT)
 	{
 		for(u32 x = 0x8000000; x < (0x8000000 + file_size); x+=1)
 		{
@@ -2711,6 +2720,23 @@ bool AGB_MMU::load_backup(std::string filename)
 		{
 			flash_ram.data[1][x - 0x10000] = save_data[x];
 		}
+	}
+
+	//Load Jukebox Config data
+	else if(current_save_type == JUKEBOX_CONFIG)
+	{
+		if(file_size < 0x02)
+		{
+			std::cout<<"MMU::Warning - Jukebox Config Data save size too small\n";
+			file.close();
+			return false;
+		}
+
+		//Read data from file
+		file.read(reinterpret_cast<char*> (&save_data[0]), file_size);
+
+		//Write data to Jukebox Config data at index 0x1C8
+		jukebox.io_regs[0x1C8] = (save_data[1] << 8) | save_data[0];
 	}
 
 	file.close();
