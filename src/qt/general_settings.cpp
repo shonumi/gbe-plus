@@ -121,7 +121,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	special_cart->addItem("AGB - Tilt Sensor");
 	special_cart->addItem("AGB - 8M DACS");
 	special_cart->addItem("AGB - AM3");
-	special_cart->addItem("AGB - JUKEBOX");
+	special_cart->addItem("AGB - Jukebox");
 	special_cart->addItem("NDS - IR Cart");
 
 	QHBoxLayout* special_cart_layout = new QHBoxLayout;
