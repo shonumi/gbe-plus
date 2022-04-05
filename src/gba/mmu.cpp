@@ -82,7 +82,6 @@ void AGB_MMU::reset()
 	jukebox.io_regs.resize(0x200, 0x00);
 	jukebox.io_regs[0x0100] = 10;
 	jukebox.io_regs[0x009A] = 1;
-	jukebox.io_regs[0x0086] = 1;
 	jukebox.io_index = 0;
 	jukebox.status = 0;
 	jukebox.config = 0;
@@ -93,6 +92,7 @@ void AGB_MMU::reset()
 	jukebox.progress = 0;
 	jukebox.format_compact_flash = false;
 	jukebox.is_recording = false;
+	jukebox.remaining_recording_time = 120;
 
 	if(config::cart_type == AGB_JUKEBOX)
 	{
@@ -3475,6 +3475,10 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 						jukebox.is_recording = true;
 						jukebox.io_regs[0x82] = 0x1010;
 						jukebox.progress = 1;
+
+						//Set remaining recording time
+						jukebox.io_regs[0x0086] = (jukebox.remaining_recording_time / 60);
+						jukebox.io_regs[0x0087] = (jukebox.remaining_recording_time % 60);
 						break;
 
 					//Select Voice Files
@@ -3493,6 +3497,10 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 						jukebox.current_category = 1;
 						jukebox.is_recording = true;
 						jukebox.progress = 1;
+
+						//Set remaining recording time
+						jukebox.io_regs[0x0086] = (jukebox.remaining_recording_time / 60);
+						jukebox.io_regs[0x0087] = (jukebox.remaining_recording_time % 60);
 						break;
 
 					//Select Karaoke Files
@@ -3511,6 +3519,10 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 						jukebox.current_category = 2;
 						jukebox.is_recording = true;
 						jukebox.progress = 1;
+
+						//Set remaining recording time
+						jukebox.io_regs[0x0086] = (jukebox.remaining_recording_time / 60);
+						jukebox.io_regs[0x0087] = (jukebox.remaining_recording_time % 60);
 						break;
 
 					//Play Audio File
@@ -3810,8 +3822,19 @@ void AGB_MMU::process_jukebox()
 		}
 	}
 
-	//Update 0x0101 index while playing music
-	else if(jukebox.progress) { jukebox.progress++; }
+	//Update 0x0101 index while playing music or recording music
+	else if(jukebox.progress)
+	{
+		jukebox.progress++;
+
+		//When recording music, make sure to decrement remaining time left to record audio
+		if((jukebox.is_recording) && ((jukebox.progress % 60) == 0))
+		{
+			jukebox.remaining_recording_time--;
+			jukebox.io_regs[0x0086] = (jukebox.remaining_recording_time / 60);
+			jukebox.io_regs[0x0087] = (jukebox.remaining_recording_time % 60);
+		}
+	}
 }
 
 /****** Continually processes motion in specialty carts (for use by other components outside MMU like LCD) ******/

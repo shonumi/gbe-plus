@@ -149,6 +149,7 @@ class AGB_MMU
 		u16 current_file;
 		u16 file_limit;
 		u32 progress;
+		u32 remaining_recording_time;
 		bool format_compact_flash;
 		bool is_recording;
 
