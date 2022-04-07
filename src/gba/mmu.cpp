@@ -92,7 +92,7 @@ void AGB_MMU::reset()
 	jukebox.progress = 0;
 	jukebox.format_compact_flash = false;
 	jukebox.is_recording = false;
-	jukebox.remaining_recording_time = 120;
+	jukebox.remaining_recording_time = 10;
 
 	if(config::cart_type == AGB_JUKEBOX)
 	{
@@ -3828,9 +3828,11 @@ void AGB_MMU::process_jukebox()
 		jukebox.progress++;
 
 		//When recording music, make sure to decrement remaining time left to record audio
-		if((jukebox.is_recording) && ((jukebox.progress % 60) == 0) && (jukebox.status == 0x113) && (jukebox.remaining_time))
+		if((jukebox.is_recording) && ((jukebox.progress % 60) == 0) && (jukebox.status == 0x113) && (jukebox.remaining_recording_time))
 		{
 			jukebox.remaining_recording_time--;
+			if(!jukebox.remaining_recording_time) { jukebox.io_regs[0x82] = 0x00; }
+
 			jukebox.io_regs[0x0086] = (jukebox.remaining_recording_time / 60);
 			jukebox.io_regs[0x0087] = (jukebox.remaining_recording_time % 60);
 		}
