@@ -92,7 +92,8 @@ void AGB_MMU::reset()
 	jukebox.progress = 0;
 	jukebox.format_compact_flash = false;
 	jukebox.is_recording = false;
-	jukebox.remaining_recording_time = 10;
+	jukebox.remaining_recording_time = 120;
+	jukebox.remaining_playback_time = 20;
 
 	if(config::cart_type == AGB_JUKEBOX)
 	{
@@ -3467,6 +3468,10 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 						//Update the number of songs in a given category
 						jukebox.io_regs[0xAD] = jukebox.file_limit;
 
+						//Setup remaining playback time if not recording
+						jukebox.io_regs[0x0084] = 0;
+						jukebox.io_regs[0x0085] = 0;
+
 						break;
 
 					//Record Music Files
@@ -3490,6 +3495,10 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 						//Update the number of songs in a given category
 						jukebox.io_regs[0xAE] = jukebox.file_limit;
 
+						//Setup remaining playback time if not recording
+						jukebox.io_regs[0x0084] = 0;
+						jukebox.io_regs[0x0085] = 0;
+
 						break;
 
 					//Record Memo Files
@@ -3511,6 +3520,10 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 
 						//Update the number of songs in a given category
 						jukebox.io_regs[0xAF] = jukebox.file_limit;
+
+						//Setup remaining playback time if not recording
+						jukebox.io_regs[0x0084] = 0;
+						jukebox.io_regs[0x0085] = 0;
 
 						break;
 
@@ -3545,6 +3558,11 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 						jukebox.current_file = 0;
 						jukebox.io_regs[0xA0] = 0;
 						jukebox.is_recording = false;
+
+						//Setup remaining playback time if not recording
+						jukebox.io_regs[0x0084] = 0;
+						jukebox.io_regs[0x0085] = 0;
+
 						break;
 
 					//Move Forward 1 File
@@ -3558,6 +3576,10 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 
 							jukebox_set_file_info();
 							jukebox.io_regs[0xA0] = jukebox.current_file;
+
+							//Setup remaining playback time if not recording
+							jukebox.io_regs[0x0084] = 0;
+							jukebox.io_regs[0x0085] = 0;
 						}
 
 						break;
@@ -3573,6 +3595,10 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 
 							jukebox_set_file_info();
 							jukebox.io_regs[0xA0] = jukebox.current_file;
+
+							//Setup remaining playback time if not recording
+							jukebox.io_regs[0x0084] = 0;
+							jukebox.io_regs[0x0085] = 0;
 						}
 
 						break;
@@ -3593,6 +3619,11 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 						//Reset audio input/output progress
 						jukebox.progress = 0;
 						jukebox.io_regs[0x82] = 0x0;
+
+						//Setup remaining playback time if not recording
+						jukebox.io_regs[0x0084] = 0;
+						jukebox.io_regs[0x0085] = 0;
+
 						break;
 				}
 			}
@@ -3835,6 +3866,16 @@ void AGB_MMU::process_jukebox()
 
 			jukebox.io_regs[0x0086] = (jukebox.remaining_recording_time / 60);
 			jukebox.io_regs[0x0087] = (jukebox.remaining_recording_time % 60);
+		}
+
+		//When playing music, make sure to increment playback time
+		else if((!jukebox.is_recording) && ((jukebox.progress % 60) == 0) && (jukebox.status == 0x113))
+		{
+			u32 current_time = (jukebox.io_regs[0x0084] * 60) + jukebox.io_regs[0x0085] + 1;
+			if(current_time >= jukebox.remaining_playback_time) { jukebox.io_regs[0x82] = 0x00; }
+
+			jukebox.io_regs[0x0084] = (current_time / 60);
+			jukebox.io_regs[0x0085] = (current_time % 60);
 		}
 	}
 }
