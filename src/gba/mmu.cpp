@@ -3555,6 +3555,9 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 
 					//Reset Current File
 					case 0x14:
+						//Save recorded file
+						if(jukebox.is_recording) { jukebox_save_recording(); }
+
 						jukebox.current_file = 0;
 						jukebox.io_regs[0xA0] = 0;
 						jukebox.is_recording = false;
@@ -3878,6 +3881,63 @@ void AGB_MMU::process_jukebox()
 			jukebox.io_regs[0x0085] = (current_time % 60);
 		}
 	}
+}
+
+/****** Saves recording from the Music Recorder/Jukebox ******/
+bool AGB_MMU::jukebox_save_recording()
+{
+	std::vector<std::string> *out_list = NULL;
+	std::string filename;
+	u16 update_index = 0;
+
+	//Grab the correct file list based on category, also select update file and update index
+	switch(jukebox.current_category)
+	{
+		case 0x00:
+			out_list = &jukebox.music_files;
+			filename = config::data_path + "jukebox/music.txt";
+			update_index = 0xAD;
+			break;
+
+		case 0x01:
+			out_list = &jukebox.voice_files;
+			filename = config::data_path + "jukebox/voice.txt";
+			update_index = 0xAE;
+			break;
+		case 0x02:
+			out_list = &jukebox.karaoke_files;
+			filename = config::data_path + "jukebox/karaoke.txt";
+			update_index = 0xAF;
+			break;
+		
+		default:
+			std::cout<<"MMU::Error - Loading unknown category of audio files for Jukebox\n";
+			return false;
+	}
+
+	//Generate new name for recording file
+	std::string converted_name = util::to_str(jukebox.io_regs[update_index] + 1);
+	while(converted_name.length() != 4) { converted_name = "0" + converted_name; }
+
+	converted_name += (jukebox.current_category) ? ".WAV" : ".GB3";
+	out_list->push_back(converted_name);
+
+	//Update contents
+	std::ofstream file(filename.c_str(), std::ios::trunc);
+
+	if(!file.is_open())
+	{
+		std::cout<<"MMU::Error - Could not open list of music files from " << filename << "\n";
+		return false;
+	}
+
+	for(u32 x = 0; x < out_list->size(); x++) { file << out_list->at(x) << "\n"; }
+
+	jukebox.file_limit++;
+	jukebox.io_regs[update_index] = jukebox.file_limit;
+
+	file.close();
+	return true;
 }
 
 /****** Continually processes motion in specialty carts (for use by other components outside MMU like LCD) ******/

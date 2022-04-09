@@ -247,6 +247,7 @@ class AGB_MMU
 	void write_jukebox(u32 address, u8 value);
 	bool read_jukebox_file_list(std::string filename, u8 category);
 	bool jukebox_delete_file();
+	bool jukebox_save_recording();
 	void jukebox_set_file_info();
 	void process_jukebox();
 
