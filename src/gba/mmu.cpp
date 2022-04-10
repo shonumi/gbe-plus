@@ -3477,6 +3477,9 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 					//Record Music Files
 					case 0x09:
 						jukebox.current_category = 0;
+						jukebox.file_limit = jukebox.music_files.size();
+						jukebox_set_file_info();
+
 						jukebox.is_recording = true;
 						jukebox.io_regs[0x82] = 0x1010;
 						jukebox.progress = 1;
@@ -3501,9 +3504,12 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 
 						break;
 
-					//Record Memo Files
+					//Record Voice Files
 					case 0x0B:
 						jukebox.current_category = 1;
+						jukebox.file_limit = jukebox.voice_files.size();
+						jukebox_set_file_info();
+
 						jukebox.is_recording = true;
 						jukebox.progress = 1;
 
@@ -3530,6 +3536,9 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 					//Record Karaoke Files
 					case 0x0D:
 						jukebox.current_category = 2;
+						jukebox.file_limit = jukebox.karaoke_files.size();
+						jukebox_set_file_info();
+
 						jukebox.is_recording = true;
 						jukebox.progress = 1;
 
@@ -3555,9 +3564,6 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 
 					//Reset Current File
 					case 0x14:
-						//Save recorded file
-						if(jukebox.is_recording) { jukebox_save_recording(); }
-
 						jukebox.current_file = 0;
 						jukebox.io_regs[0xA0] = 0;
 						jukebox.is_recording = false;
@@ -3622,6 +3628,13 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 						//Reset audio input/output progress
 						jukebox.progress = 0;
 						jukebox.io_regs[0x82] = 0x0;
+
+						//Save recorded file
+						if(jukebox.is_recording)
+						{
+							jukebox_save_recording();
+							jukebox_set_file_info();
+						}
 
 						//Setup remaining playback time if not recording
 						jukebox.io_regs[0x0084] = 0;
@@ -3933,7 +3946,7 @@ bool AGB_MMU::jukebox_save_recording()
 
 	for(u32 x = 0; x < out_list->size(); x++) { file << out_list->at(x) << "\n"; }
 
-	jukebox.file_limit++;
+	jukebox.file_limit = out_list->size();
 	jukebox.io_regs[update_index] = jukebox.file_limit;
 
 	file.close();
