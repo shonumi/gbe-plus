@@ -93,7 +93,7 @@ void AGB_MMU::reset()
 	jukebox.format_compact_flash = false;
 	jukebox.is_recording = false;
 	jukebox.remaining_recording_time = 120;
-	jukebox.remaining_playback_time = 20;
+	jukebox.remaining_playback_time = 120;
 
 	if(config::cart_type == AGB_JUKEBOX)
 	{
@@ -3482,6 +3482,7 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 
 						jukebox.is_recording = true;
 						jukebox.io_regs[0x82] = 0x1010;
+						jukebox.io_regs[0xA0] = jukebox.file_limit;
 						jukebox.progress = 1;
 
 						//Set remaining recording time
@@ -3511,6 +3512,7 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 						jukebox_set_file_info();
 
 						jukebox.is_recording = true;
+						jukebox.io_regs[0xA0] = jukebox.file_limit;
 						jukebox.progress = 1;
 
 						//Set remaining recording time
@@ -3634,6 +3636,7 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 						{
 							jukebox_save_recording();
 							jukebox_set_file_info();
+							jukebox.io_regs[0xA0] = jukebox.file_limit;
 						}
 
 						//Setup remaining playback time if not recording
