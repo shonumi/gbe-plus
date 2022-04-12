@@ -89,6 +89,9 @@ void AGB_MMU::reset()
 	jukebox.out_lo = 0;
 	jukebox.current_category = 0;
 	jukebox.current_file = 0;
+	jukebox.last_music_file = 0;
+	jukebox.last_voice_file = 0;
+	jukebox.last_karaoke_file = 0;
 	jukebox.progress = 0;
 	jukebox.format_compact_flash = false;
 	jukebox.is_recording = false;
@@ -3468,6 +3471,10 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 						//Update the number of songs in a given category
 						jukebox.io_regs[0xAD] = jukebox.file_limit;
 
+						//Set current file
+						jukebox.current_file = jukebox.last_music_file;
+						jukebox.io_regs[0xA0] = jukebox.current_file;
+
 						//Setup remaining playback time if not recording
 						jukebox.io_regs[0x0084] = 0;
 						jukebox.io_regs[0x0085] = 0;
@@ -3499,6 +3506,10 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 						//Update the number of songs in a given category
 						jukebox.io_regs[0xAE] = jukebox.file_limit;
 
+						//Set current file
+						jukebox.current_file = jukebox.last_voice_file;
+						jukebox.io_regs[0xA0] = jukebox.current_file;
+
 						//Setup remaining playback time if not recording
 						jukebox.io_regs[0x0084] = 0;
 						jukebox.io_regs[0x0085] = 0;
@@ -3528,6 +3539,10 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 
 						//Update the number of songs in a given category
 						jukebox.io_regs[0xAF] = jukebox.file_limit;
+
+						//Set current file
+						jukebox.current_file = jukebox.last_karaoke_file;
+						jukebox.io_regs[0xA0] = jukebox.current_file;
 
 						//Setup remaining playback time if not recording
 						jukebox.io_regs[0x0084] = 0;
@@ -3566,7 +3581,6 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 
 					//Reset Current File
 					case 0x14:
-						jukebox.current_file = 0;
 						jukebox.io_regs[0xA0] = 0;
 						jukebox.is_recording = false;
 
@@ -3644,6 +3658,14 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 						jukebox.io_regs[0x0085] = 0;
 
 						break;
+				}
+
+				//Update last file for each category
+				switch(jukebox.current_category)
+				{
+					case 0x00: jukebox.last_music_file = jukebox.current_file; break;
+					case 0x01: jukebox.last_voice_file = jukebox.current_file; break;
+					case 0x02: jukebox.last_karaoke_file = jukebox.current_file; break;
 				}
 			}
 
