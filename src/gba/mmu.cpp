@@ -2731,7 +2731,7 @@ bool AGB_MMU::load_backup(std::string filename)
 	//Load Jukebox Config data
 	else if(current_save_type == JUKEBOX_CONFIG)
 	{
-		if(file_size < 0x02)
+		if(file_size < 0x08)
 		{
 			std::cout<<"MMU::Warning - Jukebox Config Data save size too small\n";
 			file.close();
@@ -2743,6 +2743,14 @@ bool AGB_MMU::load_backup(std::string filename)
 
 		//Write data to Jukebox Config data at index 0x1C8
 		jukebox.config = (save_data[1] << 8) | save_data[0];
+
+		//Write last files selected for each audio category
+		jukebox.last_music_file = (save_data[3] << 8) | save_data[2];
+		jukebox.last_voice_file = (save_data[5] << 8) | save_data[4];
+		jukebox.last_karaoke_file = (save_data[7] << 8) | save_data[6];
+
+		jukebox.current_file = jukebox.last_music_file;
+		jukebox.io_regs[0x00A0] = jukebox.last_music_file;
 	}
 
 	file.close();
@@ -2898,11 +2906,21 @@ bool AGB_MMU::save_backup(std::string filename)
 		}
 
 		//Write the data to a file
-		u8 cfg_data[2];
+		u8 cfg_data[8];
+
 		cfg_data[0] = jukebox.config & 0xFF;
 		cfg_data[1] = (jukebox.config >> 8) & 0xFF;
 
-		file.write(reinterpret_cast<char*> (&cfg_data[0]), 0x02);
+		cfg_data[2] = jukebox.last_music_file & 0xFF;
+		cfg_data[3] = (jukebox.last_music_file >> 8) & 0xFF;
+
+		cfg_data[4] = jukebox.last_voice_file & 0xFF;
+		cfg_data[5] = (jukebox.last_voice_file >> 8) & 0xFF;
+
+		cfg_data[6] = jukebox.last_karaoke_file & 0xFF;
+		cfg_data[7] = (jukebox.last_karaoke_file >> 8) & 0xFF;
+
+		file.write(reinterpret_cast<char*> (&cfg_data[0]), 0x08);
 		file.close();
 
 		std::cout<<"MMU::Wrote save data " << filename <<  "\n";
@@ -3464,16 +3482,16 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 
 					//Select Music Files
 					case 0x08:
+						//Set current file
+						jukebox.current_file = jukebox.last_music_file;
+						jukebox.io_regs[0xA0] = jukebox.current_file;
+
 						jukebox.current_category = 0;
 						jukebox.file_limit = jukebox.music_files.size();
 						jukebox_set_file_info();
 
 						//Update the number of songs in a given category
 						jukebox.io_regs[0xAD] = jukebox.file_limit;
-
-						//Set current file
-						jukebox.current_file = jukebox.last_music_file;
-						jukebox.io_regs[0xA0] = jukebox.current_file;
 
 						//Setup remaining playback time if not recording
 						jukebox.io_regs[0x0084] = 0;
@@ -3499,16 +3517,16 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 
 					//Select Voice Files
 					case 0x0A:
+						//Set current file
+						jukebox.current_file = jukebox.last_voice_file;
+						jukebox.io_regs[0xA0] = jukebox.current_file;
+
 						jukebox.current_category = 1;
 						jukebox.file_limit = jukebox.voice_files.size();
 						jukebox_set_file_info();
 
 						//Update the number of songs in a given category
 						jukebox.io_regs[0xAE] = jukebox.file_limit;
-
-						//Set current file
-						jukebox.current_file = jukebox.last_voice_file;
-						jukebox.io_regs[0xA0] = jukebox.current_file;
 
 						//Setup remaining playback time if not recording
 						jukebox.io_regs[0x0084] = 0;
@@ -3533,16 +3551,16 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 
 					//Select Karaoke Files
 					case 0x0C:
+						//Set current file
+						jukebox.current_file = jukebox.last_karaoke_file;
+						jukebox.io_regs[0xA0] = jukebox.current_file;
+
 						jukebox.current_category = 2;
 						jukebox.file_limit = jukebox.karaoke_files.size();
 						jukebox_set_file_info();
 
 						//Update the number of songs in a given category
 						jukebox.io_regs[0xAF] = jukebox.file_limit;
-
-						//Set current file
-						jukebox.current_file = jukebox.last_karaoke_file;
-						jukebox.io_regs[0xA0] = jukebox.current_file;
 
 						//Setup remaining playback time if not recording
 						jukebox.io_regs[0x0084] = 0;
@@ -3581,7 +3599,6 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 
 					//Reset Current File
 					case 0x14:
-						jukebox.io_regs[0xA0] = 0;
 						jukebox.is_recording = false;
 
 						//Setup remaining playback time if not recording
