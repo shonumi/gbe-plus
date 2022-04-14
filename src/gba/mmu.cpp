@@ -3570,9 +3570,10 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 
 					//Record Karaoke Files
 					case 0x0D:
-						jukebox.current_category = 2;
-						jukebox.file_limit = jukebox.karaoke_files.size();
+						jukebox.current_category = 0;
+						jukebox.file_limit = jukebox.music_files.size();
 						jukebox_set_file_info();
+						jukebox.current_category = 2;
 
 						jukebox.is_recording = true;
 						jukebox.progress = 1;
@@ -3609,6 +3610,9 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 
 					//Move Forward 1 File
 					case 0x15:
+						//When recording Karaoke files, pull files to play from Music list
+						if((jukebox.current_category == 2) && (jukebox.is_recording)) { jukebox.current_category = 0; }
+
 						if(jukebox.file_limit)
 						{
 							jukebox.current_file++;
@@ -3624,10 +3628,16 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 							jukebox.io_regs[0x0085] = 0;
 						}
 
+						//Restore current category to Karaoke for all other operations
+						if((jukebox.current_category == 0) && (jukebox.is_recording)) { jukebox.current_category = 2; }
+
 						break;
 
 					//Backward 1 File
 					case 0x16:
+						//When recording Karaoke files, pull files to play from Music list
+						if((jukebox.current_category == 2) && (jukebox.is_recording)) { jukebox.current_category = 0; }
+
 						if(jukebox.file_limit)
 						{
 							//Wrap around if current file is at the beginning of the list in the list
@@ -3642,6 +3652,9 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 							jukebox.io_regs[0x0084] = 0;
 							jukebox.io_regs[0x0085] = 0;
 						}
+
+						//Restore current category to Karaoke for all other operations
+						if((jukebox.current_category == 0) && (jukebox.is_recording)) { jukebox.current_category = 2; }
 
 						break;
 
