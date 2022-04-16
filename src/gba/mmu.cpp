@@ -3470,6 +3470,9 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 				jukebox.status &= 0xFF00;
 				jukebox.status |= value;
 
+				bool restore = false;
+				bool was_recording = jukebox.is_recording;
+
 				//Process various commands now
 				switch(jukebox.status)
 				{
@@ -3571,6 +3574,8 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 					//Record Karaoke Files
 					case 0x0D:
 						jukebox.current_category = 0;
+						jukebox.current_file = jukebox.last_music_file;
+						jukebox.io_regs[0xA0] = jukebox.current_file;
 						jukebox.file_limit = jukebox.music_files.size();
 						jukebox_set_file_info();
 						jukebox.current_category = 2;
@@ -3611,7 +3616,11 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 					//Move Forward 1 File
 					case 0x15:
 						//When recording Karaoke files, pull files to play from Music list
-						if((jukebox.current_category == 2) && (jukebox.is_recording)) { jukebox.current_category = 0; }
+						if((jukebox.current_category == 2) && (jukebox.is_recording))
+						{
+							jukebox.current_category = 0;
+							restore = true;
+						}
 
 						if(jukebox.file_limit)
 						{
@@ -3629,14 +3638,22 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 						}
 
 						//Restore current category to Karaoke for all other operations
-						if((jukebox.current_category == 0) && (jukebox.is_recording)) { jukebox.current_category = 2; }
+						if(restore)
+						{
+							jukebox.current_category = 2;
+							restore = false;
+						}
 
 						break;
 
 					//Backward 1 File
 					case 0x16:
 						//When recording Karaoke files, pull files to play from Music list
-						if((jukebox.current_category == 2) && (jukebox.is_recording)) { jukebox.current_category = 0; }
+						if((jukebox.current_category == 2) && (jukebox.is_recording))
+						{
+							jukebox.current_category = 0;
+							restore = true;
+						}
 
 						if(jukebox.file_limit)
 						{
@@ -3654,7 +3671,11 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 						}
 
 						//Restore current category to Karaoke for all other operations
-						if((jukebox.current_category == 0) && (jukebox.is_recording)) { jukebox.current_category = 2; }
+						if(restore)
+						{
+							jukebox.current_category = 2;
+							restore = false;
+						}
 
 						break;
 
@@ -3690,12 +3711,26 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 						break;
 				}
 
+				//When recording Karaoke files, pull files to play from Music list
+				if((jukebox.current_category == 2) && (jukebox.is_recording || was_recording))
+				{
+					jukebox.current_category = 0;
+					restore = true;
+				}
+
 				//Update last file for each category
 				switch(jukebox.current_category)
 				{
 					case 0x00: jukebox.last_music_file = jukebox.current_file; break;
 					case 0x01: jukebox.last_voice_file = jukebox.current_file; break;
 					case 0x02: jukebox.last_karaoke_file = jukebox.current_file; break;
+				}
+
+				//Restore current category to Karaoke for all other operations
+				if(restore)
+				{
+					jukebox.current_category = 2;
+					restore = false;
 				}
 			}
 
@@ -3812,6 +3847,8 @@ void AGB_MMU::jukebox_set_file_info()
 
 	//Nothing to do if list is empty
 	if(file_list.empty()) { return; }
+
+	std::cout<<"CURRENT FILE -> " << jukebox.current_file << " :: SIZE -> " << file_list.size() << "\n";
 
 	std::string temp_str = file_list[jukebox.current_file];
 
