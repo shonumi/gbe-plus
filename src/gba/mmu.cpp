@@ -3442,21 +3442,27 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 
 		//Write IO Register High
 		case JB_REG_0C:
-			//Status Register
-			if(jukebox.io_index == 0x0080)
-			{
-				jukebox.status &= 0x00FF;
-				jukebox.status |= (value << 8);
-			}
-
-			//Other Writable Indices
+			//Write to Indices
 			switch(jukebox.io_index)
 			{
+				//Status Register
+				case 0x0080:
+					jukebox.status &= 0x00FF;
+					jukebox.status |= (value << 8);
+					break;
+
+				//Misc Audio Registers
 				case 0x0088:
 				case 0x008C:
 				case 0x008F:
 					jukebox.io_regs[jukebox.io_index] &= 0x00FF;
 					jukebox.io_regs[jukebox.io_index] |= (value << 8);
+					break;
+
+				//Config Register
+				case 0x01C8:
+					jukebox.config &= 0x00FF;
+					jukebox.config |= (value << 8);
 					break;
 			}
 
@@ -3734,21 +3740,21 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 				}
 			}
 
-			//User Config Register
-			else if(jukebox.io_index == 0x01C8)
-			{
-				jukebox.config &= 0xFF00;
-				jukebox.config |= value;
-			}
-
-			//Other Writable Indices
+			//Write to Indices
 			switch(jukebox.io_index)
 			{
+				//Misc Audio Registers
 				case 0x0088:
 				case 0x008C:
 				case 0x008F:
 					jukebox.io_regs[jukebox.io_index] &= 0xFF00;
 					jukebox.io_regs[jukebox.io_index] |= value;
+					break;
+
+				//Config Register
+				case 0x01C8:
+					jukebox.config &= 0xFF00;
+					jukebox.config |= value;
 					break;
 			}
 
@@ -3847,8 +3853,6 @@ void AGB_MMU::jukebox_set_file_info()
 
 	//Nothing to do if list is empty
 	if(file_list.empty()) { return; }
-
-	std::cout<<"CURRENT FILE -> " << jukebox.current_file << " :: SIZE -> " << file_list.size() << "\n";
 
 	std::string temp_str = file_list[jukebox.current_file];
 
