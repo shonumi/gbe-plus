@@ -3455,6 +3455,8 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 				case 0x0088:
 				case 0x008C:
 				case 0x008F:
+				case 0x009A:
+				case 0x009B:
 					jukebox.io_regs[jukebox.io_index] &= 0x00FF;
 					jukebox.io_regs[jukebox.io_index] |= (value << 8);
 					break;
@@ -3747,6 +3749,8 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 				case 0x0088:
 				case 0x008C:
 				case 0x008F:
+				case 0x009A:
+				case 0x009B:
 					jukebox.io_regs[jukebox.io_index] &= 0xFF00;
 					jukebox.io_regs[jukebox.io_index] |= value;
 					break;
