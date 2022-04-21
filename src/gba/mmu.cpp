@@ -2731,7 +2731,7 @@ bool AGB_MMU::load_backup(std::string filename)
 	//Load Jukebox Config data
 	else if(current_save_type == JUKEBOX_CONFIG)
 	{
-		if(file_size < 0x0E)
+		if(file_size < 0x10)
 		{
 			std::cout<<"MMU::Warning - Jukebox Config Data save size too small\n";
 			file.close();
@@ -2750,8 +2750,9 @@ bool AGB_MMU::load_backup(std::string filename)
 		jukebox.last_karaoke_file = (save_data[7] << 8) | save_data[6];
 
 		jukebox.io_regs[0x0088] = (save_data[9] << 8) | save_data[8];
-		jukebox.io_regs[0x008C] = (save_data[11] << 8) | save_data[10];
-		jukebox.io_regs[0x009B] = (save_data[13] << 8) | save_data[12];
+		jukebox.io_regs[0x008A] = (save_data[11] << 8) | save_data[10];
+		jukebox.io_regs[0x008C] = (save_data[13] << 8) | save_data[12];
+		jukebox.io_regs[0x009B] = (save_data[15] << 8) | save_data[14];
 
 		jukebox.current_file = jukebox.last_music_file;
 		jukebox.io_regs[0x00A0] = jukebox.last_music_file;
@@ -2910,7 +2911,7 @@ bool AGB_MMU::save_backup(std::string filename)
 		}
 
 		//Write the data to a file
-		u8 cfg_data[14];
+		u8 cfg_data[16];
 
 		cfg_data[0] = jukebox.config & 0xFF;
 		cfg_data[1] = (jukebox.config >> 8) & 0xFF;
@@ -2927,13 +2928,16 @@ bool AGB_MMU::save_backup(std::string filename)
 		cfg_data[8] = jukebox.io_regs[0x88] & 0xFF;
 		cfg_data[9] = (jukebox.io_regs[0x88] >> 8) & 0xFF;
 
-		cfg_data[10] = jukebox.io_regs[0x8C] & 0xFF;
-		cfg_data[11] = (jukebox.io_regs[0x8C] >> 8) & 0xFF;
+		cfg_data[10] = jukebox.io_regs[0x8A] & 0xFF;
+		cfg_data[11] = (jukebox.io_regs[0x8A] >> 8) & 0xFF;
 
-		cfg_data[12] = jukebox.io_regs[0x9B] & 0xFF;
-		cfg_data[13] = (jukebox.io_regs[0x9B] >> 8) & 0xFF;
+		cfg_data[12] = jukebox.io_regs[0x8C] & 0xFF;
+		cfg_data[13] = (jukebox.io_regs[0x8C] >> 8) & 0xFF;
 
-		file.write(reinterpret_cast<char*> (&cfg_data[0]), 0x0E);
+		cfg_data[14] = jukebox.io_regs[0x9B] & 0xFF;
+		cfg_data[15] = (jukebox.io_regs[0x9B] >> 8) & 0xFF;
+
+		file.write(reinterpret_cast<char*> (&cfg_data[0]), 0x10);
 		file.close();
 
 		std::cout<<"MMU::Wrote save data " << filename <<  "\n";
@@ -3466,6 +3470,7 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 
 				//Misc Audio Registers
 				case 0x0088:
+				case 0x008A:
 				case 0x008C:
 				case 0x008F:
 				case 0x009A:
@@ -3760,6 +3765,7 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 			{
 				//Misc Audio Registers
 				case 0x0088:
+				case 0x008A:
 				case 0x008C:
 				case 0x008F:
 				case 0x009A:
