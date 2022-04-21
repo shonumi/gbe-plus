@@ -1,0 +1,239 @@
+Music Recorder/Jukebox Technical Documentation 0.1
+March 30, 2022
+Shonumi aka D.S. Baxter
+
+***************************************************
+1. Introduction
+***************************************************
+
+The Game Boy Music Recorder is a cartridge for the Game Boy Advance capable of playing MP3s, recording audio, and performing karaoke. Designed and developed by Kemco, it was released on November 15, 2002 in Japan. A year later, Radica Games became the distributor for the product in North America and released it as the Game Boy Advance Jukebox. It marked the first time an officially licensed product could playback media of the user's choosing on the Game Boy.
+
+
+***************************************************
+2. General Hardware Information
+***************************************************
+
+- Comes in an oversized black or white cartridge that hangs over the backside of a Game Boy Advance.
+- Comes with a red LED at the bottom to indicate activity.
+- Comes with a built-in microphone along with a Line-In port.
+- Requires 1 AA battery to operate.
+- Requires a CompactFlash card to operate.
+- Internally, PCB is split into two main sections connected together.
+- Supports audio output through a headphone jack.
+- Supports playing MP3 files, recording voice memos as WAV files, and recording music/karaoke as custom GB3 files.
+- Capable of operating independently from the Game Boy Advance. Has physical buttons to control playback.
+- 
+
+***************************************************
+3. I/O Registers
+*************************************************** 
+
+All registers for the Music Recorder/Jukebox are 8-bit. They are located in the 0xB------ address range.
+
+-----------------------------------------------------------
+Address		| Register Name
+-----------------------------------------------------------
+0xB000000	| ???
+0xB020000	| ???
+0xB080000	| ZMP_INDEX_HI
+0xB0A0000	| ZMP_INDEX_LO
+0xB0C0000	| ZMP_DATA_HI
+0xB0E0000	| ZMP_DATA_LO
+0xB100000	| ???
+0xB120000	| ZMP_STATUS_RESET
+
+ZMP_INDEX_HI and ZMP_INDEX_LO are used to set the current index. Each index points to specific data from the hardware, such as the current output volume, users settings, battery level, and the time remaining for recording or music playback. Each index is 16-bit and ZMP_INDEX_HI and ZMP_INDEX_LO form two 8-bits components of that value. ZMP_INDEX_HI contains the upper 8-bits and ZMP_INDEX_LO contains the lower 8-bits.
+
+ZMP_DATA_HI and ZMP_DATA_LO are used to read data from or write data to the selected index. Data inside each index is also 16-bit, therefore ZMP_DATA_HI accesses the upper 8-bits and ZMP_DATA_LO accesses the lower 8-bits.
+
+ZMP_STATUS_RESET forcibly resets the current value of cartridge's reported status. To do so, ZMP_STATUS_RESET must first be set to 0x00. After brief delay (approximately 16ms is sufficient) ZMP_STATUS_RESET must then be set to 0x01. The cartridge's status will then reset to zero after a period of about 500ms.
+
+Registers 0xB000000, 0xB020000, and 0xB100000 appear to be used by the software under certain circumstances, however, their purpose is currently unknown.
+
+
+***************************************************
+4. Command Overview & Usage
+***************************************************
+
+The major functions of the Music Recorder/Jukebox are controlled from the software by sending a series of commands. Complex tasks such as reading the Compact Flash memory card or even deciding when to decode MP3 files are largely abstracted away from the CPU by a simple, high-level interface. To issue a command, software must follow the proceedure listed below:
+
+1) Write the value 0x0000 to the index 0x0081, then delay about 16ms.
+
+2) Write the command to the index 0x0080.
+
+3) Write the value 0x0000 to ZMP_STATUS_RESET, delay about 16ms, then write the value 0x0001 to ZMP_STATUS_RESET.
+
+Each command is 16-bits in length. Their values serve as enumerations to various audio and memory related functions. The software has been observed using the below commands:
+
+-----------------------------------------------------------
+Command		| Description
+-----------------------------------------------------------
+0x0101		| ???
+0x0102		| Format Compact Flash Card
+0x0108		| Select Music Files
+0x0109		| Record Music Files
+0x010A		| Select Voice Memo Files
+0x010B		| Record Voice Memo Files
+0x010C		| Select Karaoke Files
+0x010D		| Record Karaoke Files
+0x010E		| ???
+0x0110		| ???
+0x0111		| Commit Title/Artist Changes
+0x0113		| Play Selected Music File	
+0x0114		| Reset Currently Seleced Song
+0x0115		| Move Forward 1 Song
+0x0116		| Move Backward 1 Song
+0x0119		| Delete Current Song
+
+
+***************************************************
+5. Command Usage
+***************************************************
+
+For all commands dealing with audio input/output (0x109, 0x10B, 0x10D, 0x113), refer to the section below for dealing with the actual data transfers.
+
+
+
+
+
+[[Command 0x102 - Format Compact Flash Card]]
+
+This command will format the Compact Flash card inserted into the Music Recorder/Jukebox. Presumably, it also creates several directories used to separate music files into different categories. It also creates the AGB.INFO file in the root directory, which contains a list of all MP3 files detected by the hardware.
+
+Once this command has been sent, the index 0x101 is used to measure the progress of the formatting process. The 16-bit value in that index represent progress in 1 / 32768 units. That is to say, 0% is 0x0000, 25% is 0x2000, 50% is 0x4000, 75% is 0x6000, and 100% is 0x8000. Various percentages can be created using any value in between 0x0000 through 0x8000. For example, ~14.22% would be 0x1234.
+
+The software only displays whole integers, ignoring any decimals results. Surprisingly, it can measure 0% through 199%.
+
+
+
+
+
+[[Command 0x108 - Select Music Files]]
+
+This command is used to read information about MP3 music files or any music recordings via Line-In stored on the Compact Flash card. It is also used to select the Music/Line-In Recordings category when playing files. The command largely affects the output of indices 0x00A1 - 0x00A6 and 0x00B0 - 0x00CF for data relating to the music's filename, formal title, and artist.
+
+
+
+
+
+[[Command 0x109 - Record Music]]
+
+This command begins recording audio data from the Music Recorder/Jukebox's Line-In jack. After sending this command, the software waits for index 0x82 to change to the value 0x1010 to indicate the hardware is ready. Input data from the jack is then stored as a sequentially numbered .GB3 file. The user can optionally turn on a "Silence Detection" feature that splits incoming audio data into seperate files when a period of silence appears in the stream, automatically breaking up songs from CDs or cassette players for example.
+
+
+
+
+
+[[Command 0x10A - Select Voice Memo Files]]
+
+This command is used to read information about Voice Memo files recorded via the built-in microphone and stored on the Compact Flash card. It is also used to select the Voice Memo category when playing files. The command largely affects the output of indices 0x00A1 - 0x00A6 for data relating to the memo's filename.
+
+
+
+***************************************************
+6. Index Overview & Usage
+***************************************************
+
+Each index is mapped to different hardware data, giving the CPU access to information regarding music playback or recording. Below is a list of known indices and their roles:
+
+-----------------------------------------------------------
+Index	| R/W	| Description
+-----------------------------------------------------------
+0x0080	| W	| Write Device Status
+0x0081	| R	| Read Device Status
+0x0082	| R	| Compact Flash Status
+0x0084	| R	| Remaining Playback Time (Minutes)
+0x0085	| R	| Remaining Playback Time (Seconds)
+0x0086	| R	| Remaining Recording Time (Minutes)
+0x0087	| R	| Remaining Recording Time (Seconds)
+0x0088	| R/W	| Music Output Volume (0x3F = Min, 0x00 = Max)
+0x008A	| R/W	| Voice Output Volume (0x3F = Min, 0x00 = Max)
+0x008C	| R/W	| Equalizer Settings
+0x008B	| R	| Recording Volume (0xFFEE = Min, 0x0004 = Max)
+0x008F	| R/W	| Voice Cancellation Settings
+0x009A	| R/W	| Spectrum Analyzer Enabled Flag
+0x009B	| R/W	| GBA Speaker Volume db (0xFFEC = Min, 0x0013 = Max)
+0x009C	| R	| Compact Flash Detection Flag
+0x009D	| R	| Battery Level (Min = 0x02, Max = 0x00)
+0x00A0	| R	| Current File Track Number
+0x00AD	| R	| Current Number of Music Files Detected
+0x00AE	| R	| Current Number of Voice Memo Files Detected
+0x00AF	| R	| Current Number of Karaoke Files Detected
+0x0100	| R	| Audio Index Length
+0x0101	| R	| Compact Flash Format Progress / Compact Flash Access Progress???
+0x01C8	| R/W	| General Configuration Settings
+0x01C9	| R/W	| AUX and Microphone Input Levels
+
+Index 0x0080 - Write Device Status
+Allows the CPU to overwrite the cartridge's 16-bit STATUS value. When STATUS is set to certain values, it acts as a command.
+
+Index 0x0081 - Read Device Status
+Returns the CPU to read the cartridge's 16-bit STATUS value. Primarily used to see if the cartridge is ready to perform certain operations after issuing a command.
+
+Index 0x0082 - Compact Flash Status
+Returns the current state of the Compact Flash card. When recording music, it should read 0x1010.
+
+Index 0x0084 - Remaining Playback Time (Minutes)
+Returns the remaining minutes left when playing a music file or recording. Has a range of 0 - 99. The cartridge's hardware will automatically update the value during playback.
+
+Index 0x0085 - Remaining Playback Time (Seconds)
+Returns the remaining seconds left when playing a music file or recording. Has a range of 0 - 59. The cartridge's hardware will automatically update the value during playback.
+
+Index 0x0086 - Remaining Recording Time (Minutes)
+Returns the remaining minutes left when making any recording. Has a range of 0 - 99. The value is dependent on remaining free space of the Compact Flash card and the audio quality chosen for recording. The cartridge's hardware will automatically update the value during a recording session.
+
+Index 0x0087 - Remaining Recording Time (Seconds)
+Returns the remaining seconds left when making any recording. Has a range of 0 - 59. The value is dependent on remaining free space of the Compact Flash card and the audio quality chosen for recording. The cartridge's hardware will automatically update the value during a recording session.
+
+Index 0x0088 - Output Volume
+Specifies the output volume through either the GBA's speakers or the cartridge's built-in headphone jack. Has a range of 0x3F - 0x00, for minimum to maximum volume.
+
+Index 0x008C - Equalizer Settings
+Specifies the type of equalizer to apply for music playback. Accepts values of 0 - 4 to select the following equalizers respectively: None, Jazz, Pop, Classical, Rock.
+
+Index 0x008B - Recording Volume
+Returns the current volume of input audio from the a recording (via Line-In or the microphone).
+
+Index 0x008F - Voice Cancellation Settings
+Toggles voice cancellation during audio playback. 0 = OFF, 1 = ON.
+
+Index 0x009A - Spectrum Analyzer Enabled Flag
+Toggles the visual spectrum analyzer. 0 = OFF, 1 = ON.
+
+Index 0x009C - Compact Flash Detection Flag
+Determines whether a Compact Flash card has been inserted into the cartridge. Any non-zero value indicates the card cannot be detected.
+
+Index 0x009D - Battery Level
+Returns the current level of the AA battery inside the cartridge. Has 3 levels total with the values 0x02 representing 1 bar, 0x01 representing 2 bars, and 0x00 representing 3 bars.
+
+Index 0x00A0 - Current File Track Number
+Returns the current file track number. This is determined by how the cartridge arranges files, not by any metadata from the file itself.
+
+Index 0x00AC - MP3 Files Detected Flag
+Determines whether any MP3 files are present on the Compact Flash card. 0 = No Files Detected, 1 = Files Detected.
+
+Index 0x00AE - Memo Files Detected Flag
+Determines whether any recorded Voice Memo files are present on the Compact Flash card. 0 = No Files Detected, 1 = Files Detected.
+
+Index 0x00AF - Karaoke Files Detected Flag
+Determines whether any recorded Karaoke files are present on the Compact Flash card. 0 = No Files Detected, 1 = Files Detected.
+
+Index 0x0100 - Audio Index Length
+Determines how many indices to read from 0x102 and beyond for audio input/output data.
+
+Index 0x0101 - Compact Flash Format Progress / Compact Flash Access Progress
+Appears to indicate the progress of certain tasks involving the Compact Flash card. For formatting the card, this index represents the overall progress of that process from 0% to 100% using the range 0x0000 through 0x8000. For playing and recording audio data, it seems to determine when certain chunks are finished using a range of 0x0000 through 0x4000.
+
+
+Some indices have a widespread range and serve as string data or audio input/output
+
+-----------------------------------------------------------
+Index Range	| R/W	| Description
+-----------------------------------------------------------
+0x0090 - 0x0098	| R	| Spectrum Analyzer Level For Bars 1 - 9 (0x00 = Min, 0x13 = Max)
+0x00A1 - 0x00A6	| R/W	| "8.3" DOS-style short name for music file
+0x00B0 - 0x00BF	| R/W	| 30 character song title
+0x00C0 - 0x00CF	| R/W	| 30 character artist name
+0x0102+		| R/W	| Audio in/out data for recording/playing
+
+When reading input/output audio data, the software accesses indices starting at 0x0102 and ends at the length specified by index 0x100. For example, if the Audio Index Length is 0x0004, the CPU reads indices 0x0102 through 0x0105 inclusive. 
