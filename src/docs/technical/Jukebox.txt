@@ -70,6 +70,7 @@ Each command is 8-bits in length and occupy the lower half of the Device Status 
 -----------------------------------------------------------
 Command		| Description
 -----------------------------------------------------------
+0x00		| Unknown
 0x01		| Unknown
 0x02		| Format CompactFlash Card
 0x08		| Select Music Files
@@ -95,9 +96,17 @@ Command		| Description
 
 For all commands dealing with audio input/output (0x109, 0x10B, 0x10D, 0x113), refer to the section below for dealing with the actual data transfers.
 
+[[Command 0x00 - Unknown]]
+
+This is the first command that the software for the Music Recorder/Jukebox issues. The software also sends this command after finishing recording Music Files, indicating that it might reset or initialize functions related to the Line-In jack.
+
+
+
+
+
 [[Command 0x01 - Unknown]]
 
-This is the first command the software that the Music Recorder/Jukebox issues, indicating that it is possibly used to initialize the hardware.
+This is the second command that the software for the Music Recorder/Jukebox issues, indicating that it is possibly used to initialize the hardware.
 
 
 
@@ -125,7 +134,7 @@ This command is used to read information about MP3 music files or any music reco
 
 [[Command 0x09 - Record Music]]
 
-This command begins recording audio data from the Music Recorder/Jukebox's Line-In jack. After sending this command, the software waits for the CompactFlash Status index to change to the value 0x1010 to indicate the hardware is ready. Input data from the jack is then stored as a sequentially numbered .GB3 file. The user can optionally turn on a "Silence Detection" feature that splits incoming audio data into seperate files when a period of silence appears in the stream, automatically breaking up songs from CDs or cassette players for example.
+This command prepares the Music Recorder/Jukebox to record audio data from the Line-In jack. After sending this command, the software waits for the CompactFlash Status index to change to the value 0x1010 to indicate the hardware is ready. Input data from the jack is then stored as a sequentially numbered .GB3 file. The user can optionally turn on a "Silence Detection" feature that splits incoming audio data into seperate files when a period of silence appears in the stream, automatically breaking up songs from CDs or cassette players for example.
 
 
 
@@ -140,7 +149,7 @@ This command is used to read information about Voice Memo files recorded via the
 
 [[Command 0x0B - Record Voice Memo Files]]
 
-This command begins recording audio data from the Music Recorder/Jukebox's microphone. Input data from the microphone is then stored in sequentially numbered .WAV files.
+This command prepares the Music Recorder/Jukebox's to record audio data from the microphone. Input data from the microphone is then stored in sequentially numbered .WAV files.
 
 
 
@@ -154,15 +163,60 @@ This command is used to read information about Karaoke Files stored on the Compa
 
 [[Command 0x0D - Record Karaoke Files]]
 
-This command begins recording audio data from the Music Recorder/Jukebox's microphone on top of an audio samples from one of the Music Files. When recording Karaoke Files, the user is prompted to first select an existing Music File.
+This command prepares the Music Recorder/Jukebox to record audio data from the microphone on top of the unit and by mixing audio samples from one of the Music Files. When recording Karaoke Files, the user is prompted to first select an existing Music File.
 
 
 
 
 
-[[Command 0x0E - Unknown]
+[[Command 0x0E - Unknown]]
 
 This command always follows the 0x01 command. The Music Recorder/Jukebox's software appears to only issue this command at the very beginning when initializing hardware.
+
+
+
+
+
+[[Command 0x10 - Unknown]]
+
+This command always follows a command related to file access (0x08, 0x0A, 0x0C, 0x14, 0x15, 0x16, and 0x19), indicating that it might serve as a means to update the current list of files for a given category. For commands that select a given category (0x08, 0x0A, and 0x0C), the software for the Music Recorder/Jukebox issues this command twice in a row.
+
+
+
+
+
+[[Command 0x11 - Commit Title/Artist Changes]]
+
+For .GB3 files recorded via the Line-In jack, the Music Recorder/Jukebox software allows users to manually input the song's full name as well as the artist. Up to 30 characters can be used for either the title or artist fields. The software writes the data to the relevant indices at 0xB0 - 0xCF and sends this command to save the data.
+
+
+
+
+
+[[Command 0x13 - Play Selected Audio File/Record New Audio File]]
+
+This command either plays a selected audio file or starts recording a new file, depending on which commands were previously issued. All 3 categories of audio - Music, Voice Memo, and Karaoke - use this command to actually output audio. For recording, the commands 0x09, 0x0B, and 0x0D merely prep the hardware for recording a new file, while this command actually instructs the hardware to start grabbing input audio samples. Most importantly, this command affects the value of the CompactFlash Status index, depending on which category of audio has been selected and whether the mode is playing or recording:
+
+-----------------------------------------------------------
+Mode			| CompactFlash Status
+-----------------------------------------------------------
+Music Play		| 0x1001
+Music Record		| 0x1012
+Voice Memo Play 	| 0x1101
+Voice Memo Record	| 0x1112
+Karaoke Play		| 0x1201
+Karaoke Record		| 0x1211
+-----------------------------------------------------------
+
+When the song is finished playing, or when there is no space left on the CompactFlash card, the CompactFlash Status index stops matching those above values.
+
+
+
+
+
+[[Command 0x14 - Reset Currently Selected Audio File]]
+
+This command appears to reset any information regarding the currently selected file. The Music Recorder/Jukebox issues this command on boot and again every time the user exits the "PLAY" or "REC" menus for a given category of audio.
 
 
 ***************************************************
