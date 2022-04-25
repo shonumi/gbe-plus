@@ -87,7 +87,7 @@ Command		| Description
 0x15		| Move Forward 1 Audio File
 0x16		| Move Backward 1 Audio File
 0x19		| Delete Current Audio File
-0x20		| Stop Playing Audio File
+0x20		| Stop Playing/Recording Audio File
 
 
 ***************************************************
@@ -219,6 +219,38 @@ When the song is finished playing, or when there is no space left on the Compact
 This command appears to reset any information regarding the currently selected file. The Music Recorder/Jukebox issues this command on boot and again every time the user exits the "PLAY" or "REC" menus for a given category of audio.
 
 
+
+
+
+[[Command 0x15 - Move Forward 1 Audio File]]
+
+Select the next audio file for playback. If the current file is the last file for a given audio category, the audio file at the beginning of the list is selected instead.
+
+
+
+
+
+[[Command 0x16 - Move Backward 1 Audio File]]
+
+Selects the previous audio file for playback. If the current file is the first file for a given audio category, the audio file at the end of the list is selected instead.
+
+
+
+
+
+[[Command 0x19 - Delete Current Audio File]]
+
+Erases all data for the current audio file from the CompactFlash card.
+
+
+
+
+
+[[Command 0x20 - Stop Playing/Recording Audio File]]
+
+Halts all audio input/output for a given audio file.
+
+
 ***************************************************
 6. Index Overview & Usage
 ***************************************************
@@ -251,7 +283,7 @@ Index	| R/W	| Description
 0x0100	| R	| Audio Index Length
 0x0101	| R	| CompactFlash Format Progress / CompactFlash Access Progress???
 0x01C8	| R/W	| General Configuration Settings
-0x01C9	| R/W	| AUX and Microphone Input Levels
+0x01C9	| R/W	| Line-In and Microphone Input Levels
 
 Index 0x0080 - Write Device Status
 Allows the CPU to overwrite the cartridge's 16-bit STATUS value. When STATUS is set to certain values, it acts as a command.
@@ -274,8 +306,11 @@ Returns the remaining minutes left when making any recording. Has a range of 0 -
 Index 0x0087 - Remaining Recording Time (Seconds)
 Returns the remaining seconds left when making any recording. Has a range of 0 - 59. The value is dependent on remaining free space of the CompactFlash card and the audio quality chosen for recording. The cartridge's hardware will automatically update the value during a recording session.
 
-Index 0x0088 - Output Volume
-Specifies the output volume through either the GBA's speakers or the cartridge's built-in headphone jack. Has a range of 0x3F - 0x00, for minimum to maximum volume.
+Index 0x0088 - Music Output Volume
+Specifies the output volume for Music and Karaoke Files through either the GBA's speakers or the cartridge's built-in headphone jack. Has a range of 0x3F - 0x00, for minimum to maximum volume. Operates separately from the Voice Output Volume index.
+
+Index 0x008A - Voice Output Volume
+Specifies the output volume for Voice Memo Files through either the GBA's speakers or the cartridge's built-in headphone jack. Has a range of 0x3F - 0x00, minimum to maximum volume. Operates separately from the Music Output Volume index, however an apparent software glitch seems to overwrite this index with the other volume index when switching audio categories.
 
 Index 0x008C - Equalizer Settings
 Specifies the type of equalizer to apply for music playback. Accepts values of 0 - 4 to select the following equalizers respectively: None, Jazz, Pop, Classical, Rock.
@@ -289,6 +324,9 @@ Toggles voice cancellation during audio playback. 0 = OFF, 1 = ON.
 Index 0x009A - Spectrum Analyzer Enabled Flag
 Toggles the visual spectrum analyzer. 0 = OFF, 1 = ON.
 
+Index 0x009B - GBA Speaker Volume db
+Adjusts the output volume from the GBA speakers in the range of -20 to +19 db. The index itself goes from 0xFFEC as the minimum to 0x0013 as the maximum.
+
 Index 0x009C - CompactFlash Detection Flag
 Determines whether a CompactFlash card has been inserted into the cartridge. Any non-zero value indicates the card cannot be detected.
 
@@ -298,14 +336,14 @@ Returns the current level of the AA battery inside the cartridge. Has 3 levels t
 Index 0x00A0 - Current File Track Number
 Returns the current file track number. This is determined by how the cartridge arranges files, not by any metadata from the file itself.
 
-Index 0x00AC - MP3 Files Detected Flag
-Determines whether any MP3 files are present on the CompactFlash card. 0 = No Files Detected, 1 = Files Detected.
+Index 0x00AC - Current Number of Music Files Detected
+Returns the current number of Music Files detected on the CompactFlash card.
 
-Index 0x00AE - Memo Files Detected Flag
-Determines whether any recorded Voice Memo files are present on the CompactFlash card. 0 = No Files Detected, 1 = Files Detected.
+Index 0x00AE - Current Number of Voice Memo Files Detected
+Returns the current number of Voice Memo Files detected on the CompactFlash card.
 
-Index 0x00AF - Karaoke Files Detected Flag
-Determines whether any recorded Karaoke files are present on the CompactFlash card. 0 = No Files Detected, 1 = Files Detected.
+Index 0x00AF - Current Number of Karaoke Files Detected
+Returns the current number of Karaoke Files detected on the CompactFlash card.
 
 Index 0x0100 - Audio Index Length
 Determines how many indices to read from 0x102 and beyond for audio input/output data.
@@ -313,6 +351,8 @@ Determines how many indices to read from 0x102 and beyond for audio input/output
 Index 0x0101 - CompactFlash Format Progress / CompactFlash Access Progress
 Appears to indicate the progress of certain tasks involving the CompactFlash card. For formatting the card, this index represents the overall progress of that process from 0% to 100% using the range 0x0000 through 0x8000. For playing and recording audio data, it seems to determine when certain chunks are finished using a range of 0x0000 through 0x4000.
 
+Index 0x01C9 - Line-In and Microphone Input Levels
+Used to calibrate volumes when recording via Line-In or the microphone. The Music Recorder/Jukebox uses an 8-bit value for this calibration. The high byte is used for microphone sensitivity while the low byte is used for Line-In volumes.
 
 Some indices have a widespread range and serve as string data or audio input/output
 
