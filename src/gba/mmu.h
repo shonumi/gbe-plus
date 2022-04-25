@@ -164,6 +164,10 @@ class AGB_MMU
 		std::vector<std::string> music_files;
 		std::vector<std::string> voice_files;
 		std::vector<std::string> karaoke_files;
+
+		std::vector<u16> music_times;
+		std::vector<u16> voice_times;
+		std::vector<u16> karaoke_times;
 	} jukebox;
 
 	//Structure to handle GPIO reading and writing

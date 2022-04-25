@@ -3824,13 +3824,14 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 bool AGB_MMU::read_jukebox_file_list(std::string filename, u8 category)
 {
 	std::vector<std::string> *out_list = NULL;
+	std::vector<u16> *out_time = NULL;
 
 	//Grab the correct file list based on category
 	switch(category)
 	{
-		case 0x00: out_list = &jukebox.music_files; break;
-		case 0x01: out_list = &jukebox.voice_files; break;
-		case 0x02: out_list = &jukebox.karaoke_files; break;
+		case 0x00: out_list = &jukebox.music_files; out_time = &jukebox.music_times; break;
+		case 0x01: out_list = &jukebox.voice_files; out_time = &jukebox.voice_times; break;
+		case 0x02: out_list = &jukebox.karaoke_files; out_time = &jukebox.karaoke_times; break;
 		default: std::cout<<"MMU::Error - Loading unknown category of audio files for Jukebox\n"; return false;
 	}
 
@@ -3846,9 +3847,46 @@ bool AGB_MMU::read_jukebox_file_list(std::string filename, u8 category)
 		return false;
 	}
 
+	//Parse line for filename, time, and any other data. Data is separated by a colon
 	while(getline(file, input_line))
 	{
-		if(!input_line.empty()) { out_list->push_back(input_line); }
+		if(!input_line.empty())
+		{
+			std::size_t parse_symbol;
+			s32 pos = 0;
+
+			std::string out_str;
+			u32 out_sec = 0;
+
+			//Grab filename
+			parse_symbol = input_line.find(":", pos);
+			
+			if(parse_symbol == std::string::npos)
+			{
+				out_str = input_line;
+				out_sec = 0;
+			}
+
+			else
+			{
+				out_str = input_line.substr(pos, parse_symbol);
+				pos += parse_symbol;
+			}
+
+			//Grab time in seconds
+			parse_symbol = input_line.find(":", pos);
+
+			if(parse_symbol == std::string::npos) { out_sec = 0; }
+			
+			else
+			{
+				util::from_str(input_line.substr(pos + 1), out_sec);
+				pos += parse_symbol;
+			}
+
+			out_list->push_back(out_str);
+			out_time->push_back(out_sec);
+		}
 	}
 
 	std::cout<<"MMU::Loaded audio files for Jukebox from " << filename << "\n";
