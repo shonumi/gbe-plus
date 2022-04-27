@@ -96,7 +96,7 @@ void AGB_MMU::reset()
 	jukebox.format_compact_flash = false;
 	jukebox.is_recording = false;
 	jukebox.remaining_recording_time = 120;
-	jukebox.remaining_playback_time = 120;
+	jukebox.remaining_playback_time = 0;
 
 	if(config::cart_type == AGB_JUKEBOX)
 	{
@@ -3903,13 +3903,14 @@ void AGB_MMU::jukebox_set_file_info()
 	for(u32 x = 0; x < 32; x++) { jukebox.io_regs[0xB0 + x] = 0x0000; }
 
 	std::vector<std::string> file_list;
+	std::vector<u16> time_list;
 
 	//Grab the correct file list based on category
 	switch(jukebox.current_category)
 	{
-		case 0x00: file_list = jukebox.music_files; break;
-		case 0x01: file_list = jukebox.voice_files; break;
-		case 0x02: file_list = jukebox.karaoke_files; break;
+		case 0x00: file_list = jukebox.music_files; time_list = jukebox.music_times; break;
+		case 0x01: file_list = jukebox.voice_files; time_list = jukebox.voice_times; break;
+		case 0x02: file_list = jukebox.karaoke_files; time_list = jukebox.karaoke_times; break;
 	}
 
 	//Nothing to do if list is empty
@@ -3932,8 +3933,9 @@ void AGB_MMU::jukebox_set_file_info()
 		u16 ascii_chrs = ((temp_str[x] << 8) | temp_str[x + 1]);
 		jukebox.io_regs[0xA1 + y] = ascii_chrs;
 	}
-}
 
+	jukebox.remaining_playback_time = time_list[jukebox.current_file];
+}
 
 /****** Deletes a specific file from the Music Recorder/Jukebox ******/
 bool AGB_MMU::jukebox_delete_file()
