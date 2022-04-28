@@ -3855,7 +3855,8 @@ bool AGB_MMU::read_jukebox_file_list(std::string filename, u8 category)
 			std::size_t parse_symbol;
 			s32 pos = 0;
 
-			std::string out_str;
+			std::string out_str = "";
+			std::string out_title = "";
 			u32 out_sec = 0;
 
 			//Grab filename
@@ -3880,8 +3881,31 @@ bool AGB_MMU::read_jukebox_file_list(std::string filename, u8 category)
 			
 			else
 			{
-				util::from_str(input_line.substr(pos + 1), out_sec);
-				pos += parse_symbol;
+				s32 end_pos = input_line.find(":", (pos + 1));
+
+				if(end_pos == std::string::npos)
+				{
+					util::from_str(input_line.substr(pos + 1), out_sec);
+				}
+
+				else
+				{
+					util::from_str(input_line.substr((pos + 1), (end_pos - pos - 1)), out_sec);
+					pos += (end_pos - pos);
+				}
+
+			}
+
+			//Grab song title - Music Files Only!
+			if(category == 0)
+			{
+				parse_symbol = input_line.find(":", pos);
+
+				if(parse_symbol != std::string::npos)
+				{
+					out_title = input_line.substr(pos + 1);
+					pos += parse_symbol;
+				}
 			}
 
 			out_list->push_back(out_str);
@@ -4013,14 +4037,18 @@ void AGB_MMU::process_jukebox()
 			filename = config::data_path + "jukebox/music.txt";
 			std::ofstream file_1(filename.c_str(), std::ios::trunc);
 			jukebox.music_files.clear();
+			jukebox.music_times.clear();
+			jukebox.music_titles.clear();
 
 			filename = config::data_path + "jukebox/voice.txt";
 			std::ofstream file_2(filename.c_str(), std::ios::trunc);
 			jukebox.voice_files.clear();
+			jukebox.voice_times.clear();
 
 			filename = config::data_path + "jukebox/karaoke.txt";
 			std::ofstream file_3(filename.c_str(), std::ios::trunc);
 			jukebox.karaoke_files.clear();
+			jukebox.karaoke_times.clear();
 
 			jukebox.io_regs[0xAD] = 0;
 			jukebox.io_regs[0xAE] = 0; 
