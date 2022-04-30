@@ -3816,6 +3816,7 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 			default:
 				jukebox.out_hi = (jukebox.io_regs[jukebox.io_index] >> 8) & 0xFF;
 				jukebox.out_lo = (jukebox.io_regs[jukebox.io_index] & 0xFF);
+				if(jukebox.io_index == 0xAA) { memory_map[0x7007FFF] = 0xFF; jukebox.out_hi = 0xBE; jukebox.out_lo = 0xEF; }
 		}
 	}
 }
@@ -4000,7 +4001,7 @@ void AGB_MMU::jukebox_set_file_info()
 		if(len & 0x1) { jukebox.io_regs[index++] = val; }
 
 		//Set artist
-		index = 0xC0;
+		index = 0xBF;
 		temp_str = jukebox.music_artists[jukebox.current_file];
 		len = (temp_str.length() < 30) ? temp_str.length() : 30;
 

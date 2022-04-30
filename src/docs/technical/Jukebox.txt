@@ -361,8 +361,10 @@ Index Range	| R/W	| Description
 -----------------------------------------------------------
 0x0090 - 0x0098	| R	| Spectrum Analyzer Level For Bars 1 - 9 (0x00 = Min, 0x13 = Max)
 0x00A1 - 0x00A6	| R/W	| "8.3" DOS-style short name for music file
-0x00B0 - 0x00BF	| R/W	| 30 character song title
-0x00C0 - 0x00CF	| R/W	| 30 character artist name
+0x00B0 - 0x00BE	| R/W	| 30 character song title
+0x00BF - 0x00CD	| R/W	| 30 character artist name
 0x0102+		| R/W	| Audio in/out data for recording/playing
+
+For the string data at 0x00A1 through 0x00CD, the string is terminated by a null character (value 0x00). The strings for the Jukebox use ASCII.
 
 When reading input/output audio data, the software accesses indices starting at 0x0102 and ends at the length specified by index 0x100. For example, if the Audio Index Length is 0x0004, the CPU reads indices 0x0102 through 0x0105 inclusive. 
