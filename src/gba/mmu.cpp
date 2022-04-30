@@ -3974,6 +3974,49 @@ void AGB_MMU::jukebox_set_file_info()
 	}
 
 	jukebox.remaining_playback_time = time_list[jukebox.current_file];
+
+	//Music - Set song title and artist
+	if(jukebox.current_category == 0)
+	{
+		u8 len = 0;
+		u32 index = 0xB0;
+		u16 val = 0;
+
+		//Set title
+		temp_str = jukebox.music_titles[jukebox.current_file];
+		len = (temp_str.length() < 30) ? temp_str.length() : 30;
+
+		for(u32 x = 0; x < len; x++)
+		{
+			if(x & 0x01)
+			{
+				val |= temp_str[x];
+				jukebox.io_regs[index++] = val;
+			}
+
+			else { val = (temp_str[x] << 8); }
+		}
+
+		if(len & 0x1) { jukebox.io_regs[index++] = val; }
+
+		//Set artist
+		index = 0xC0;
+		temp_str = jukebox.music_artists[jukebox.current_file];
+		len = (temp_str.length() < 30) ? temp_str.length() : 30;
+
+		for(u32 x = 0; x < len; x++)
+		{
+			if(x & 0x01)
+			{
+				val |= temp_str[x];
+				jukebox.io_regs[index++] = val;
+			}
+
+			else { val = (temp_str[x] << 8); }
+		}
+
+		if(len & 0x1) { jukebox.io_regs[index++] = val; }
+	}
 }
 
 /****** Deletes a specific file from the Music Recorder/Jukebox ******/
