@@ -3612,6 +3612,11 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 						//Set remaining recording time
 						jukebox.io_regs[0x0086] = (jukebox.remaining_recording_time / 60);
 						jukebox.io_regs[0x0087] = (jukebox.remaining_recording_time % 60);
+
+						//Set number of songs (special case for recording Karaoke Files)
+						//jukebox.io_regs[0x0102] = (((jukebox.file_limit + 1) / 100) + 0xA6) & 0xFF;
+						//jukebox.io_regs[0x0103] = (((jukebox.file_limit + 1) % 100) + 0xA8) & 0xFF;
+
 						break;
 
 					//Play Audio File
@@ -3816,7 +3821,6 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 			default:
 				jukebox.out_hi = (jukebox.io_regs[jukebox.io_index] >> 8) & 0xFF;
 				jukebox.out_lo = (jukebox.io_regs[jukebox.io_index] & 0xFF);
-				if(jukebox.io_index == 0xAA) { memory_map[0x7007FFF] = 0xFF; jukebox.out_hi = 0xBE; jukebox.out_lo = 0xEF; }
 		}
 	}
 }
