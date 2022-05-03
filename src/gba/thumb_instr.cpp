@@ -1238,7 +1238,7 @@ void ARM7::multiple_load_store(u16 current_thumb_instruction)
 	//Grab opcode - Bit 11
 	u8 op = (current_thumb_instruction & 0x800) ? 1 : 0;
 
-	u32 base_addr = get_reg(base_reg);
+	u32 base_addr = get_reg(base_reg) & ~0x3;
 	u32 reg_value = 0;
 	u8 n_count = 0;
 
