@@ -3865,6 +3865,8 @@ bool AGB_MMU::read_jukebox_file_list(std::string filename, u8 category)
 			std::string out_artist = "";
 			u32 out_sec = 0;
 
+			bool end_of_string = false;
+
 			//Grab filename
 			parse_symbol = input_line.find(":", pos);
 			
@@ -3872,6 +3874,7 @@ bool AGB_MMU::read_jukebox_file_list(std::string filename, u8 category)
 			{
 				out_str = input_line;
 				out_sec = 0;
+				end_of_string = true;
 			}
 
 			else
@@ -3883,7 +3886,11 @@ bool AGB_MMU::read_jukebox_file_list(std::string filename, u8 category)
 			//Grab time in seconds
 			parse_symbol = input_line.find(":", pos);
 
-			if(parse_symbol == std::string::npos) { out_sec = 0; }
+			if(parse_symbol == std::string::npos)
+			{
+				out_sec = 0;
+				end_of_string = true;
+			}
 			
 			else
 			{
@@ -3892,6 +3899,7 @@ bool AGB_MMU::read_jukebox_file_list(std::string filename, u8 category)
 				if(end_pos == std::string::npos)
 				{
 					util::from_str(input_line.substr(pos + 1), out_sec);
+					end_of_string = true;
 				}
 
 				else
@@ -3905,17 +3913,21 @@ bool AGB_MMU::read_jukebox_file_list(std::string filename, u8 category)
 			//Grab song title - Music Files Only!
 			if(category == 0)
 			{
-				s32 end_pos = input_line.find(":", (pos + 1));
-
-				if(end_pos == std::string::npos)
+				if(!end_of_string)
 				{
-					out_title = input_line.substr(pos + 1);
-				}
+					s32 end_pos = input_line.find(":", (pos + 1));
 
-				else
-				{
-					out_title = input_line.substr((pos + 1), (end_pos - pos - 1));
-					pos += (end_pos - pos);
+					if(end_pos == std::string::npos)
+					{
+						out_title = input_line.substr(pos + 1);
+						end_of_string = true;
+					}
+
+					else
+					{
+						out_title = input_line.substr((pos + 1), (end_pos - pos - 1));
+						pos += (end_pos - pos);
+					}
 				}
 
 				jukebox.music_titles.push_back(out_title);
@@ -3924,7 +3936,7 @@ bool AGB_MMU::read_jukebox_file_list(std::string filename, u8 category)
 			//Grab song artist - Music Files Only!
 			if(category == 0)
 			{
-				if((pos + 1) < input_line.length()) { out_artist = input_line.substr(pos + 1); }
+				if(((pos + 1) < input_line.length()) && (!end_of_string)) { out_artist = input_line.substr(pos + 1); }
 				jukebox.music_artists.push_back(out_artist);
 			}
 
