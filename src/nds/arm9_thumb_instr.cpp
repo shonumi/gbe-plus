@@ -1283,7 +1283,7 @@ void NTR_ARM9::multiple_load_store(u16 current_thumb_instruction)
 	u32 reg_value = 0;
 	u8 n_count = 0;
 
-	u32 old_base = base_addr;
+	u32 old_base = base_addr & ~0x03;
 	u8 transfer_reg = 0xFF;
 	bool write_back = true;
 
