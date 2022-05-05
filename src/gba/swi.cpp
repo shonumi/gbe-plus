@@ -426,7 +426,12 @@ void ARM7::swi_registerramreset()
 	{
 		for(x = 0x4000000; x < 0x4000060; x++) { mem->write_u8(x, 0x0); }
 		for(x = 0x4000100; x < 0x4000110; x++) { mem->write_u8(x, 0x0); }
+		
 		mem->write_u16(DISPCNT, 0x80);
+		mem->write_u16(BG2PA, 0x100);
+		mem->write_u16(BG2PD, 0x100);
+		mem->write_u16(BG3PA, 0x100);
+		mem->write_u16(BG3PD, 0x100);
 	}
 }
 
