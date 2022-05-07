@@ -62,8 +62,9 @@ void MIN_LCD::reset()
 
 	for(u32 x = 0; x < 72; x++)
 	{
-		double frame_1 = ((1000.0 / 72) * x);
-		double frame_2 = ((1000.0 / 72) * (x + 1));
+		u16 max = (config::max_fps) ? config::max_fps : 72;
+		double frame_1 = ((1000.0 / max) * x);
+		double frame_2 = ((1000.0 / max) * (x + 1));
 		frame_delay[x] = (std::round(frame_2) - std::round(frame_1));
 	}
 
