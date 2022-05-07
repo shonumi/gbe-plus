@@ -159,6 +159,9 @@ namespace config
 	//LCD configuration (NDS primarily)
 	u8 lcd_config = 0;
 
+	//Max FPS
+	u16 max_fps = 0;
+
 	//Sound parameters
 	u8 volume = 128;
 	u8 old_volume = 0;
@@ -735,6 +738,19 @@ bool parse_cli_args()
 				{
 					config::use_firmware = true;
 					config::nds_firmware_path = config::cli_args[x];
+				}
+			}
+
+			//Set maximum FPS
+			else if((config::cli_args[x] == "-mf") || (config::cli_args[x] == "--max-fps"))
+			{
+				if((++x) == config::cli_args.size()) { std::cout<<"GBE::Error - No maximum framerate set\n"; }
+
+				else
+				{
+					u32 output = 0;
+					util::from_str(config::cli_args[x], output);
+					config::max_fps = output;
 				}
 			}
 
@@ -1548,6 +1564,23 @@ bool parse_ini_file()
 			}
 
 			else { config::vertex_shader = config::data_path + "shaders/vertex.vs"; }
+		}
+
+		//Max FPS
+		else if(ini_item == "#max_fps")
+		{
+			if((x + 1) < size)
+			{
+				util::from_str(ini_opts[++x], output);
+
+				if(output <= 65535) { config::max_fps = output; }
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#max_fps) \n";
+				return false;
+			}
 		}
 
 		//Use gamepad dead zone
@@ -3007,6 +3040,14 @@ bool save_ini_file()
 			else if(config::vertex_shader == (config::data_path + "shaders/invert_x.vs")) { config::vertex_shader = "invert_x.vs"; }
 
 			output_lines[line_pos] = "[#vertex_shader:'" + config::vertex_shader + "']";
+		}
+
+		//Max FPS
+		else if(ini_item == "#max_fps")
+		{
+			line_pos = output_count[x];
+
+			output_lines[line_pos] = "[#max_fps:" + util::to_str(config::max_fps) + "]";
 		}
 
 		//Keyboard controls
