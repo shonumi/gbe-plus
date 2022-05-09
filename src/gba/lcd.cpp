@@ -1040,12 +1040,12 @@ void AGB_LCD::render_scanline()
 			check_x = true;
 		}
 
-		if((lcd_stat.window_y1[0] <= lcd_stat.window_y2[0]) && (current_scanline >= lcd_stat.window_y1[0]) && (current_scanline <= lcd_stat.window_y2[0]))
+		if((lcd_stat.window_y1[0] <= lcd_stat.window_y2[0]) && (current_scanline >= lcd_stat.window_y1[0]) && (current_scanline < lcd_stat.window_y2[0]))
 		{
 			check_y = true;
 		}
 
-		else if((lcd_stat.window_y1[0] > lcd_stat.window_y2[0]) && ((current_scanline >= lcd_stat.window_y1[0]) || (current_scanline <= lcd_stat.window_y2[0])))
+		else if((lcd_stat.window_y1[0] > lcd_stat.window_y2[0]) && ((current_scanline >= lcd_stat.window_y1[0]) || (current_scanline < lcd_stat.window_y2[0])))
 		{
 			check_y = true;
 		}
@@ -1069,12 +1069,12 @@ void AGB_LCD::render_scanline()
 			check_x = true;
 		}
 
-		if((lcd_stat.window_y1[1] <= lcd_stat.window_y2[1]) && (current_scanline >= lcd_stat.window_y1[1]) && (current_scanline <= lcd_stat.window_y2[1]))
+		if((lcd_stat.window_y1[1] <= lcd_stat.window_y2[1]) && (current_scanline >= lcd_stat.window_y1[1]) && (current_scanline < lcd_stat.window_y2[1]))
 		{
 			check_y = true;
 		}
 
-		else if((lcd_stat.window_y1[1] > lcd_stat.window_y2[1]) && ((current_scanline >= lcd_stat.window_y1[1]) || (current_scanline <= lcd_stat.window_y2[1])))
+		else if((lcd_stat.window_y1[1] > lcd_stat.window_y2[1]) && ((current_scanline >= lcd_stat.window_y1[1]) || (current_scanline < lcd_stat.window_y2[1])))
 		{
 			check_y = true;
 		}
