@@ -3821,12 +3821,12 @@ void NTR_LCD::calculate_window_on_scanline()
 					check_x = true;
 				}
 
-				if((lcd_stat.window_y_a[win_id][0] <= lcd_stat.window_y_a[win_id][1]) && (line >= lcd_stat.window_y_a[win_id][0]) && (line <= lcd_stat.window_y_a[win_id][1]))
+				if((lcd_stat.window_y_a[win_id][0] <= lcd_stat.window_y_a[win_id][1]) && (line >= lcd_stat.window_y_a[win_id][0]) && (line < lcd_stat.window_y_a[win_id][1]))
 				{
 					check_y = true;
 				}
 
-				else if((lcd_stat.window_y_a[win_id][0] > lcd_stat.window_y_a[win_id][1]) && ((line >= lcd_stat.window_y_a[win_id][0]) || (line <= lcd_stat.window_y_a[win_id][1])))
+				else if((lcd_stat.window_y_a[win_id][0] > lcd_stat.window_y_a[win_id][1]) && ((line >= lcd_stat.window_y_a[win_id][0]) || (line < lcd_stat.window_y_a[win_id][1])))
 				{
 					check_y = true;
 				}
@@ -3876,12 +3876,12 @@ void NTR_LCD::calculate_window_on_scanline()
 					check_x = true;
 				}
 
-				if((lcd_stat.window_y_b[win_id][0] <= lcd_stat.window_y_b[win_id][1]) && (line >= lcd_stat.window_y_b[win_id][0]) && (line <= lcd_stat.window_y_b[win_id][1]))
+				if((lcd_stat.window_y_b[win_id][0] <= lcd_stat.window_y_b[win_id][1]) && (line >= lcd_stat.window_y_b[win_id][0]) && (line < lcd_stat.window_y_b[win_id][1]))
 				{
 					check_y = true;
 				}
 
-				else if((lcd_stat.window_y_b[win_id][0] > lcd_stat.window_y_b[win_id][1]) && ((line >= lcd_stat.window_y_b[win_id][0]) || (line <= lcd_stat.window_y_b[win_id][1])))
+				else if((lcd_stat.window_y_b[win_id][0] > lcd_stat.window_y_b[win_id][1]) && ((line >= lcd_stat.window_y_b[win_id][0]) || (line < lcd_stat.window_y_b[win_id][1])))
 				{
 					check_y = true;
 				}
