@@ -6344,6 +6344,7 @@ void NTR_MMU::setup_default_firmware()
 	firmware[0x3C] = 0xFE;
 	firmware[0x3D] = 0x3F;
 
+
 	//User Settings Area 1 - Version - Always 0x5
 	firmware[0x3FE00] = 0x5;
 
@@ -6374,12 +6375,16 @@ void NTR_MMU::setup_default_firmware()
 	firmware[0x3FE62] = 0xFF;
 	firmware[0x3FE63] = 0xBF;
 
+	//User Settings Area 1 - Language Flags
+	firmware[0x3FE64] = 0x01;
+	firmware[0x3FE65] = 0xFC;
+
 	//User Settings Area 1 - Nickname length
 	firmware[0x3FE1A] = 0x4;
 
 	//User Settings CRC16
-	firmware[0x3FE72] = 0xA5;
-	firmware[0x3FE73] = 0x7F;
+	firmware[0x3FE72] = 0x64;
+	firmware[0x3FE73] = 0xEF;
 
 	//Copy User Settings 0 to User Settings 1
 	for(u32 x = 0; x < 0x100; x++)
