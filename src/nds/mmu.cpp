@@ -6199,8 +6199,8 @@ void NTR_MMU::process_touchscreen()
 		touchscreen_state = (channel << 1);
 	}
 
-	u16 touch_x = (g_pad->mouse_x << 4);
-	u16 touch_y = (g_pad->mouse_y << 4);
+	u16 touch_x = ((g_pad->mouse_x) * (3696.0 / 256)) + 0xB0;
+	u16 touch_y = ((g_pad->mouse_y) * (3536.0 / 192)) + 0x100;
 
 	touch_x &= 0xFFF;
 	touch_y &= 0xFFF;
@@ -6362,18 +6362,18 @@ void NTR_MMU::setup_default_firmware()
 	firmware[0x3FE0C] = 0x2B;
 
 	//User Settings Area 1 - Touchscreen calibration points
-	firmware[0x3FE58] = 0x00;
-	firmware[0x3FE59] = 0x00;
-	firmware[0x3FE5A] = 0x00;
-	firmware[0x3FE5B] = 0x00;
-	firmware[0x3FE5C] = 0x00;
-	firmware[0x3FE5D] = 0x00;
-	firmware[0x3FE5E] = 0xF0;
-	firmware[0x3FE5F] = 0x0F;
-	firmware[0x3FE60] = 0xF0;
-	firmware[0x3FE61] = 0x0B;
-	firmware[0x3FE62] = 0xFF;
-	firmware[0x3FE63] = 0xBF;
+	firmware[0x3FE58] = 0xA4;
+	firmware[0x3FE59] = 0x02;
+	firmware[0x3FE5A] = 0xF4;
+	firmware[0x3FE5B] = 0x02;
+	firmware[0x3FE5C] = 0x20;
+	firmware[0x3FE5D] = 0x20;
+	firmware[0x3FE5E] = 0x24;
+	firmware[0x3FE5F] = 0x0D;
+	firmware[0x3FE60] = 0xE0;
+	firmware[0x3FE61] = 0x0C;
+	firmware[0x3FE62] = 0xE0;
+	firmware[0x3FE63] = 0xA0;
 
 	//User Settings Area 1 - Language Flags
 	firmware[0x3FE64] = 0x01;
@@ -6383,8 +6383,8 @@ void NTR_MMU::setup_default_firmware()
 	firmware[0x3FE1A] = 0x4;
 
 	//User Settings CRC16
-	firmware[0x3FE72] = 0x64;
-	firmware[0x3FE73] = 0xEF;
+	firmware[0x3FE72] = 0x42;
+	firmware[0x3FE73] = 0x1A;
 
 	//Copy User Settings 0 to User Settings 1
 	for(u32 x = 0; x < 0x100; x++)
