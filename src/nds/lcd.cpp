@@ -1699,7 +1699,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 				if(bit_depth == 64)
 				{
 					//Grab dot-data, account for horizontal flipping 
-					u8 raw_color = (flip & 0x1) ? mem->read_u8(tile_data_addr--) : mem->read_u8(tile_data_addr++);
+					u8 raw_color = (flip & 0x1) ? mem->memory_map[tile_data_addr--] : mem->memory_map[tile_data_addr++];
 
 					//Only draw if no previous pixel was rendered
 					if(!render_buffer_a[scanline_pixel_counter] || (bg_priority < render_buffer_a[scanline_pixel_counter]))
@@ -1728,7 +1728,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 				else
 				{
 					//Grab dot-data, account for horizontal flipping 
-					u8 raw_color = (flip & 0x1) ? mem->read_u8(tile_data_addr--) : mem->read_u8(tile_data_addr++);
+					u8 raw_color = (flip & 0x1) ? mem->memory_map[tile_data_addr--] : mem->memory_map[tile_data_addr++];
 
 					u8 pal_1 = (flip & 0x1) ? ((pal_id * 16) + (raw_color >> 4)) : ((pal_id * 16) + (raw_color & 0xF));
 					u8 pal_2 = (flip & 0x1) ? ((pal_id * 16) + (raw_color & 0xF)) : ((pal_id * 16) + (raw_color >> 4));
@@ -1912,7 +1912,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 				if(bit_depth == 64)
 				{
 					//Grab dot-data, account for horizontal flipping 
-					u8 raw_color = (flip & 0x1) ? mem->read_u8(tile_data_addr--) : mem->read_u8(tile_data_addr++);
+					u8 raw_color = (flip & 0x1) ? mem->memory_map[tile_data_addr--] : mem->memory_map[tile_data_addr++];
 
 					//Only draw if no previous pixel was rendered
 					if(!render_buffer_b[scanline_pixel_counter] || (bg_priority < render_buffer_b[scanline_pixel_counter]))
@@ -1941,7 +1941,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 				else
 				{
 					//Grab dot-data, account for horizontal flipping 
-					u8 raw_color = (flip & 0x1) ? mem->read_u8(tile_data_addr--) : mem->read_u8(tile_data_addr++);
+					u8 raw_color = (flip & 0x1) ? mem->memory_map[tile_data_addr--] : mem->memory_map[tile_data_addr++];
 
 					u8 pal_1 = (flip & 0x1) ? ((pal_id * 16) + (raw_color >> 4)) : ((pal_id * 16) + (raw_color & 0xF));
 					u8 pal_2 = (flip & 0x1) ? ((pal_id * 16) + (raw_color & 0xF)) : ((pal_id * 16) + (raw_color >> 4));
