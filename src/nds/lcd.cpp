@@ -1679,7 +1679,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 			map_entry += (current_screen_pixel >> 3);
 
 			//Pull map data from current map entry
-			u16 map_data = mem->read_u16(map_addr + (map_entry << 1));
+			u16 map_data = mem->read_u16_fast(map_addr + (map_entry << 1));
 
 			//Get tile, palette number, and flipping parameters
 			tile_id = (map_data & 0x3FF);
@@ -1892,7 +1892,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 			map_entry += (current_screen_pixel >> 3);
 
 			//Pull map data from current map entry
-			u16 map_data = mem->read_u16(map_addr + (map_entry << 1));
+			u16 map_data = mem->read_u16_fast(map_addr + (map_entry << 1));
 
 			//Get tile, palette number, and flipping parameters
 			tile_id = (map_data & 0x3FF);
