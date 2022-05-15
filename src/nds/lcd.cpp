@@ -1489,7 +1489,7 @@ void NTR_LCD::render_obj_scanline(u32 bg_control)
 							obj_addr += (((obj_y % 8) * 8) + (obj_x % 8)) >> pixel_shift; 
 						}
 
-						raw_color = mem->read_u8(obj_addr);
+						raw_color = mem->memory_map[obj_addr];
 
 						//Process 4-bit depth if necessary
 						if((bit_depth == 32) && (!ext_pal)) { raw_color = (obj_x & 0x1) ? (raw_color >> 4) : (raw_color & 0xF); }
@@ -1538,7 +1538,7 @@ void NTR_LCD::render_obj_scanline(u32 bg_control)
 							obj_addr += ((obj_x % 8) << 1) + ((obj_y % 8) << obj_shift);
 						}
 
-						raw_pixel = mem->read_u16(obj_addr);
+						raw_pixel = mem->read_u16_fast(obj_addr);
 
 						//Draw for Engine A
 						if(!engine_id && (raw_pixel & 0x8000) && !render_buffer_a[scanline_pixel_counter] && render_obj)
