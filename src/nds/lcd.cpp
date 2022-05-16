@@ -1368,7 +1368,6 @@ void NTR_LCD::render_obj_scanline(u32 bg_control)
 	for(int x = 0; x < obj_render_length; x++)
 	{
 		obj_id = engine_id ? obj_render_list_b[x] : obj_render_list_a[x];
-		pal_id = obj[obj_id].palette_number;
 
 		//Determine whether or not extended palettes are necessary
 		if((!engine_id) && (lcd_stat.ext_pal_a & 0x2) && (obj[obj_id].bit_depth == 8)) { ext_pal = true; }
@@ -1380,6 +1379,7 @@ void NTR_LCD::render_obj_scanline(u32 bg_control)
 			if(obj[obj_id].bit_depth == 8) { pal_id = 0; }
 		}
 
+		pal_id = (ext_pal) ? (obj[obj_id].palette_number << 8) : (obj[obj_id].palette_number << 4);
 		
 		//Check to see if OBJ is even onscreen
 		if((obj[obj_id].left < 256) || (obj[obj_id].right < 256))
@@ -1497,7 +1497,7 @@ void NTR_LCD::render_obj_scanline(u32 bg_control)
 						//Draw for Engine A
 						if(!engine_id && raw_color && !render_buffer_a[scanline_pixel_counter] && render_obj)
 						{
-							scanline_buffer_a[scanline_pixel_counter] = (ext_pal) ? lcd_stat.obj_ext_pal_a[(pal_id * 256) + raw_color] : lcd_stat.obj_pal_a[(pal_id * 16) + raw_color];
+							scanline_buffer_a[scanline_pixel_counter] = (ext_pal) ? lcd_stat.obj_ext_pal_a[pal_id + raw_color] : lcd_stat.obj_pal_a[pal_id + raw_color];
 							render_buffer_a[scanline_pixel_counter] = (obj[obj_id].bg_priority + 1);
 							obj_line_buffer[obj[obj_id].bg_priority][scanline_pixel_counter] = scanline_buffer_a[scanline_pixel_counter];
 						}
@@ -1505,7 +1505,7 @@ void NTR_LCD::render_obj_scanline(u32 bg_control)
 						//Draw for Engine B
 						else if(engine_id && raw_color && !render_buffer_b[scanline_pixel_counter] && render_obj)
 						{
-							scanline_buffer_b[scanline_pixel_counter] = (ext_pal) ? lcd_stat.obj_ext_pal_b[(pal_id * 256) + raw_color] : lcd_stat.obj_pal_b[(pal_id * 16) + raw_color];
+							scanline_buffer_b[scanline_pixel_counter] = (ext_pal) ? lcd_stat.obj_ext_pal_b[pal_id + raw_color] : lcd_stat.obj_pal_b[pal_id + raw_color];
 							render_buffer_b[scanline_pixel_counter] = (obj[obj_id].bg_priority + 1);
 							obj_line_buffer[obj[obj_id].bg_priority][scanline_pixel_counter] = scanline_buffer_b[scanline_pixel_counter];
 						}
@@ -1686,6 +1686,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 			pal_id = (map_data >> 12) & 0xF;
 			ext_pal_id = (slot << 12) + (pal_id << 8);
 			flip = (map_data >> 10) & 0x3;
+			pal_id <<= 4;
 
 			//Calculate VRAM address to start pulling up tile data
 			line_offset = (flip & 0x2) ? ((bit_depth >> 3) * inv_lut[current_tile_line]) : ((bit_depth >> 3) * current_tile_line);
@@ -1730,8 +1731,8 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 					//Grab dot-data, account for horizontal flipping 
 					u8 raw_color = (flip & 0x1) ? mem->memory_map[tile_data_addr--] : mem->memory_map[tile_data_addr++];
 
-					u8 pal_1 = (flip & 0x1) ? ((pal_id * 16) + (raw_color >> 4)) : ((pal_id * 16) + (raw_color & 0xF));
-					u8 pal_2 = (flip & 0x1) ? ((pal_id * 16) + (raw_color & 0xF)) : ((pal_id * 16) + (raw_color >> 4));
+					u8 pal_1 = (flip & 0x1) ? (pal_id + (raw_color >> 4)) : (pal_id + (raw_color & 0xF));
+					u8 pal_2 = (flip & 0x1) ? (pal_id + (raw_color & 0xF)) : (pal_id + (raw_color >> 4));
 
 					//Only draw if no previous pixel was rendered
 					if(!render_buffer_a[scanline_pixel_counter] || (bg_priority < render_buffer_a[scanline_pixel_counter]))
@@ -1751,8 +1752,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 					if((raw_color & 0xF) && (window_draw[scanline_pixel_counter]) && (enable)) { line_buffer[bg_id + 4][scanline_pixel_counter] |= 1; }
 
 					//Draw 256 pixels max
-					scanline_pixel_counter++;
-					if(scanline_pixel_counter & 0x100) { return; }
+					if(++scanline_pixel_counter & 0x100) { return; }
 
 					//Only draw if no previous pixel was rendered
 					if(!render_buffer_a[scanline_pixel_counter] || (bg_priority < render_buffer_a[scanline_pixel_counter]))
@@ -1773,8 +1773,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 					if((raw_color >> 4) && (window_draw[scanline_pixel_counter]) && (enable)) { line_buffer[bg_id + 4][scanline_pixel_counter] |= 1; }
 
 					//Draw 256 pixels max
-					scanline_pixel_counter++;
-					if(scanline_pixel_counter & 0x100) { return; }
+					if(++scanline_pixel_counter & 0x100) { return; }
 
 					current_screen_pixel += 2;
 					y++;
@@ -1899,6 +1898,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 			pal_id = (map_data >> 12) & 0xF;
 			ext_pal_id = (slot << 12) + (pal_id << 8);
 			flip = (map_data >> 10) & 0x3;
+			pal_id <<= 3;
 
 			//Calculate VRAM address to start pulling up tile data
 			line_offset = (flip & 0x2) ? ((bit_depth >> 3) * inv_lut[current_tile_line]) : ((bit_depth >> 3) * current_tile_line);
@@ -1943,8 +1943,8 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 					//Grab dot-data, account for horizontal flipping 
 					u8 raw_color = (flip & 0x1) ? mem->memory_map[tile_data_addr--] : mem->memory_map[tile_data_addr++];
 
-					u8 pal_1 = (flip & 0x1) ? ((pal_id * 16) + (raw_color >> 4)) : ((pal_id * 16) + (raw_color & 0xF));
-					u8 pal_2 = (flip & 0x1) ? ((pal_id * 16) + (raw_color & 0xF)) : ((pal_id * 16) + (raw_color >> 4));
+					u8 pal_1 = (flip & 0x1) ? (pal_id + (raw_color >> 4)) : (pal_id + (raw_color & 0xF));
+					u8 pal_2 = (flip & 0x1) ? (pal_id + (raw_color & 0xF)) : (pal_id + (raw_color >> 4));
 
 					//Only draw if no previous pixel was rendered
 					if(!render_buffer_b[scanline_pixel_counter] || (bg_priority < render_buffer_b[scanline_pixel_counter]))
@@ -1964,8 +1964,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 					if((raw_color & 0xF) && (window_draw[scanline_pixel_counter]) && (enable)) { line_buffer[bg_id + 4][scanline_pixel_counter] |= 1; }
 
 					//Draw 256 pixels max
-					scanline_pixel_counter++;
-					if(scanline_pixel_counter & 0x100) { return; }
+					if(++scanline_pixel_counter & 0x100) { return; }
 
 					//Only draw if no previous pixel was rendered
 					if(!render_buffer_b[scanline_pixel_counter] || (bg_priority < render_buffer_b[scanline_pixel_counter]))
@@ -1985,8 +1984,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 					if((raw_color >> 4) && (window_draw[scanline_pixel_counter]) && (enable)) { line_buffer[bg_id + 4][scanline_pixel_counter] |= 1; }
 
 					//Draw 256 pixels max
-					scanline_pixel_counter++;
-					if(scanline_pixel_counter & 0x100) { return; }
+					if(++scanline_pixel_counter & 0x100) { return; }
 
 					current_screen_pixel += 2;
 					y++;
