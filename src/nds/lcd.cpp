@@ -2367,7 +2367,7 @@ void NTR_LCD::render_bg_mode_affine_ext(u32 bg_control)
 					u16 tile_number = ((src_y / 8) * bg_tile_size) + (src_x / 8);
 
 					//Look at the Tile Map #(tile_number), see what Tile # it points to
-					u16 map_entry = mem->read_u16(map_base + (tile_number << 1));
+					u16 map_entry = mem->read_u16_fast(map_base + (tile_number << 1));
 
 					//Grab flipping attributes
 					flip = (map_entry >> 10) & 0x3;
@@ -2514,7 +2514,7 @@ void NTR_LCD::render_bg_mode_affine_ext(u32 bg_control)
 					u16 tile_number = ((src_y / 8) * bg_tile_size) + (src_x / 8);
 
 					//Look at the Tile Map #(tile_number), see what Tile # it points to
-					u16 map_entry = mem->read_u16(map_base + (tile_number << 1));
+					u16 map_entry = mem->read_u16_fast(map_base + (tile_number << 1));
 
 					//Grab flipping attributes
 					flip = (map_entry >> 10) & 0x3;
@@ -2927,7 +2927,7 @@ void NTR_LCD::render_bg_mode_direct(u32 bg_control)
 					src_x = new_x;
 					src_y = new_y;
 
-					raw_color = mem->read_u16(bitmap_addr + (((src_y * bg_pixel_width) + src_x) * 2));
+					raw_color = mem->read_u16_fast(bitmap_addr + (((src_y * bg_pixel_width) + src_x) * 2));
 			
 					//Convert 16-bit ARGB to 32-bit ARGB - Bit 15 is alpha transparency
 					if(raw_color & 0x8000)
@@ -3052,7 +3052,7 @@ void NTR_LCD::render_bg_mode_direct(u32 bg_control)
 					src_x = new_x;
 					src_y = new_y;
 
-					raw_color = mem->read_u16(bitmap_addr + (((src_y * bg_pixel_width) + src_x) * 2));
+					raw_color = mem->read_u16_fast(bitmap_addr + (((src_y * bg_pixel_width) + src_x) * 2));
 			
 					//Convert 16-bit ARGB to 32-bit ARGB - Bit 15 is alpha transparency
 					if(raw_color & 0x8000)
