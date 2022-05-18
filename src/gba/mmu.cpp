@@ -97,6 +97,7 @@ void AGB_MMU::reset()
 	jukebox.is_recording = false;
 	jukebox.remaining_recording_time = 120;
 	jukebox.remaining_playback_time = 0;
+	jukebox.current_recording_time = 0;
 
 	if(config::cart_type == AGB_JUKEBOX)
 	{
@@ -3535,6 +3536,7 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 						jukebox_set_file_info();
 
 						jukebox.is_recording = true;
+						jukebox.current_recording_time = 0;
 						jukebox.io_regs[0x82] = 0x1010;
 						jukebox.io_regs[0xA0] = jukebox.file_limit;
 						jukebox.progress = 1;
@@ -3570,6 +3572,7 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 						jukebox_set_file_info();
 
 						jukebox.is_recording = true;
+						jukebox.current_recording_time = 0;
 						jukebox.io_regs[0xA0] = jukebox.file_limit;
 						jukebox.progress = 1;
 
@@ -3600,6 +3603,7 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 					//Record Karaoke Files
 					case 0x0D:
 						jukebox.current_category = 0;
+						jukebox.current_recording_time = 0;
 						jukebox.current_file = jukebox.last_music_file;
 						jukebox.io_regs[0xA0] = jukebox.current_file;
 						jukebox.file_limit = jukebox.music_files.size();
@@ -4141,6 +4145,8 @@ void AGB_MMU::process_jukebox()
 		if((jukebox.is_recording) && ((jukebox.progress % 60) == 0) && (jukebox.status == 0x113) && (jukebox.remaining_recording_time))
 		{
 			jukebox.remaining_recording_time--;
+			jukebox.current_recording_time++;
+
 			if(!jukebox.remaining_recording_time) { jukebox.io_regs[0x82] = 0x00; }
 
 			jukebox.io_regs[0x0086] = (jukebox.remaining_recording_time / 60);
@@ -4196,6 +4202,7 @@ bool AGB_MMU::jukebox_save_recording()
 	while(converted_name.length() != 4) { converted_name = "0" + converted_name; }
 
 	converted_name += (jukebox.current_category) ? ".WAV" : ".GB3";
+	converted_name += (":" + util::to_str(jukebox.current_recording_time)); 
 	out_list->push_back(converted_name);
 
 	//Update contents

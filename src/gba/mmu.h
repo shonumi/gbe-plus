@@ -150,6 +150,7 @@ class AGB_MMU
 		u32 progress;
 		u32 remaining_recording_time;
 		u32 remaining_playback_time;
+		u32 current_recording_time;
 		bool format_compact_flash;
 		bool is_recording;
 
