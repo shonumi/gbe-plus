@@ -4142,7 +4142,7 @@ void AGB_MMU::process_jukebox()
 		jukebox.progress++;
 
 		//When recording music, make sure to decrement remaining time left to record audio
-		if((jukebox.is_recording) && ((jukebox.progress % 60) == 0) && (jukebox.status == 0x113) && (jukebox.remaining_recording_time))
+		if((jukebox.is_recording) && ((jukebox.progress % 60) == 0) && ((jukebox.status == 0x113) || (jukebox.status == 0x121)) && (jukebox.remaining_recording_time))
 		{
 			jukebox.remaining_recording_time--;
 			jukebox.current_recording_time++;
