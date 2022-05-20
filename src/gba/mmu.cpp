@@ -3613,13 +3613,14 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 						jukebox.is_recording = true;
 						jukebox.progress = 1;
 
+						//Set current file for Karaoke recording, uses indices 0x102 and 0x103
+						//0x102 = Hundreds value (000 - 900), 0x103 = Tens value (00 - 99), each has unusual offsets too
+						jukebox.io_regs[0x102] = (((jukebox.file_limit + 1) / 100) + 0xA6) & 0xFF;
+						jukebox.io_regs[0x103] = (((jukebox.file_limit + 1) % 100) + 0xA8) & 0xFF;
+
 						//Set remaining recording time
 						jukebox.io_regs[0x0086] = (jukebox.remaining_recording_time / 60);
 						jukebox.io_regs[0x0087] = (jukebox.remaining_recording_time % 60);
-
-						//Set number of songs (special case for recording Karaoke Files)
-						//jukebox.io_regs[0x0102] = (((jukebox.file_limit + 1) / 100) + 0xA6) & 0xFF;
-						//jukebox.io_regs[0x0103] = (((jukebox.file_limit + 1) % 100) + 0xA8) & 0xFF;
 
 						break;
 
