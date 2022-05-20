@@ -4169,25 +4169,31 @@ void AGB_MMU::process_jukebox()
 bool AGB_MMU::jukebox_save_recording()
 {
 	std::vector<std::string> *out_list = NULL;
+	std::vector<u16> *out_time = NULL;
 	std::string filename;
 	u16 update_index = 0;
+	u16 update_time = jukebox.current_recording_time;
 
 	//Grab the correct file list based on category, also select update file and update index
 	switch(jukebox.current_category)
 	{
 		case 0x00:
 			out_list = &jukebox.music_files;
+			out_time = &jukebox.music_times;
 			filename = config::data_path + "jukebox/music.txt";
 			update_index = 0xAD;
 			break;
 
 		case 0x01:
 			out_list = &jukebox.voice_files;
+			out_time = &jukebox.voice_times;
 			filename = config::data_path + "jukebox/voice.txt";
 			update_index = 0xAE;
 			break;
+
 		case 0x02:
 			out_list = &jukebox.karaoke_files;
+			out_time = &jukebox.karaoke_times;
 			filename = config::data_path + "jukebox/karaoke.txt";
 			update_index = 0xAF;
 			break;
@@ -4202,11 +4208,20 @@ bool AGB_MMU::jukebox_save_recording()
 	while(converted_name.length() != 4) { converted_name = "0" + converted_name; }
 
 	converted_name += (jukebox.current_category) ? ".WAV" : ".GB3";
-	converted_name += (":" + util::to_str(jukebox.current_recording_time)); 
 	out_list->push_back(converted_name);
 
+	//Update GBE+'s Jukebox metadata
+	out_time->push_back(update_time);
+	converted_name += (":" + util::to_str(update_time));
+
+	if(!jukebox.current_category)
+	{
+		jukebox.music_titles.push_back("");
+		jukebox.music_artists.push_back("");
+	}
+
 	//Update contents
-	std::ofstream file(filename.c_str(), std::ios::trunc);
+	std::ofstream file(filename.c_str(), std::ios::app);
 
 	if(!file.is_open())
 	{
@@ -4214,10 +4229,13 @@ bool AGB_MMU::jukebox_save_recording()
 		return false;
 	}
 
-	for(u32 x = 0; x < out_list->size(); x++) { file << out_list->at(x) << "\n"; }
+	file << "\n" << converted_name << "\n";
 
 	jukebox.file_limit = out_list->size();
 	jukebox.io_regs[update_index] = jukebox.file_limit;
+
+	//Update data for a given audio category
+	
 
 	file.close();
 	return true;
