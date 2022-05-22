@@ -3615,8 +3615,8 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 
 						//Set current file for Karaoke recording, uses indices 0x102 and 0x103
 						//0x102 = Hundreds value (000 - 900), 0x103 = Tens value (00 - 99), each has unusual offsets too
-						jukebox.io_regs[0x102] = (((jukebox.file_limit + 1) / 100) + 0xA6) & 0xFF;
-						jukebox.io_regs[0x103] = (((jukebox.file_limit + 1) % 100) + 0xA8) & 0xFF;
+						jukebox.io_regs[0x102] = (((jukebox.karaoke_files.size() + 1) / 100) + 0xA6) & 0xFF;
+						jukebox.io_regs[0x103] = (((jukebox.karaoke_files.size() + 1) % 100) + 0xA8) & 0xFF;
 
 						//Set remaining recording time
 						jukebox.io_regs[0x0086] = (jukebox.remaining_recording_time / 60);
@@ -3737,7 +3737,7 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 						{
 							jukebox_save_recording();
 							jukebox_set_file_info();
-							jukebox.io_regs[0xA0] = jukebox.file_limit;
+							jukebox.io_regs[0xA0] = (jukebox.current_category == 2) ? jukebox.last_music_file : jukebox.file_limit;
 						}
 
 						//Setup remaining playback time if not recording
@@ -4232,11 +4232,16 @@ bool AGB_MMU::jukebox_save_recording()
 
 	file << "\n" << converted_name << "\n";
 
-	jukebox.file_limit = out_list->size();
-	jukebox.io_regs[update_index] = jukebox.file_limit;
+	for(u32 x = 0; x < out_list->size(); x++)
+	{
+		std::string ts = out_list->at(x);
+		if((ts.empty()) || (ts == "\n")) { out_list->erase(out_list->begin() + x); }
+	}
 
-	//Update data for a given audio category
-	
+	//Update currently selected file
+	//Note, after recording karaoke files, switch to browsing music files, so update with music file info
+	jukebox.io_regs[update_index] = out_list->size();
+	jukebox.file_limit = (jukebox.current_category == 2) ? jukebox.music_files.size() : out_list->size();
 
 	file.close();
 	return true;
