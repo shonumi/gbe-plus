@@ -310,8 +310,20 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 						if(jukebox.is_recording)
 						{
 							jukebox_save_recording();
-							jukebox_set_file_info();
-							jukebox.io_regs[0xA0] = (jukebox.current_category == 2) ? jukebox.last_music_file : jukebox.file_limit;
+
+							//When stopping recording for karaoke, set file info for music files
+							if(jukebox.current_category == 2)
+							{
+								jukebox.current_category = 0;
+								jukebox_set_file_info();
+								jukebox.io_regs[0xA0] = jukebox.last_music_file;
+							}
+
+							else
+							{
+								jukebox_set_file_info();
+								jukebox.io_regs[0xA0] = jukebox.file_limit;
+							}
 						}
 
 						//Setup remaining playback time if not recording
