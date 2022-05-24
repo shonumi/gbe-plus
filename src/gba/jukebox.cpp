@@ -317,6 +317,7 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 								jukebox.current_category = 0;
 								jukebox_set_file_info();
 								jukebox.io_regs[0xA0] = jukebox.last_music_file;
+								jukebox.current_category = 2;
 							}
 
 							else
