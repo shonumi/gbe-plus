@@ -892,6 +892,41 @@ void AGB_MMU::jukebox_update_metadata()
 		artist_name += tmp_2;
 	}
 
-	std::cout<<"SONG -> " << song_title << "\n";
-	std::cout<<"ARTIST -> " << artist_name << "\n";
+	jukebox.music_titles[jukebox.current_file] = song_title;
+	jukebox.music_artists[jukebox.current_file] = artist_name;
+
+	//Save data new metadata to file
+	std::string filename = config::data_path + "jukebox/music.txt";
+	std::ofstream file(filename.c_str(), std::ios::trunc);
+
+	if(!file.is_open())
+	{
+		std::cout<<"MMU::Error - Could not open list of music files from " << filename << "\n";
+		return;
+	}
+
+	//Build strings to write to file
+	for(u32 x = 0; x < jukebox.music_files.size(); x++)
+	{
+		bool finish_str = false;
+		std::string out_str = "";
+
+		//Add filename
+		out_str += jukebox.music_files[x];
+
+		//Add duration
+		if(jukebox.music_times[x]) { out_str += (":" + util::to_str(jukebox.music_times[x])); }
+		else { finish_str = true; }
+
+		//Add name
+		if(!jukebox.music_titles[x].empty() && !finish_str) { out_str += (":" + jukebox.music_titles[x]); }
+		else { finish_str = true; }
+
+		//Add artist
+		if(!jukebox.music_artists[x].empty() && !finish_str) { out_str += (":" + jukebox.music_artists[x]); }
+
+		file << out_str  << "\n";
+	}
+	
+	file.close();
 }
