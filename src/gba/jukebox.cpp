@@ -61,6 +61,13 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 					break;
 			}
 
+			//Music File metadata
+			if((jukebox.io_index >= 0xB0) && (jukebox.io_index <= 0xCD))
+			{
+				jukebox.io_regs[jukebox.io_index] &= 0x00FF;
+				jukebox.io_regs[jukebox.io_index] |= (value << 8);
+			}
+
 			break;
 
 		//Write IO Register Low
@@ -195,6 +202,16 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 						//Set remaining recording time
 						jukebox.io_regs[0x0086] = (jukebox.remaining_recording_time / 60);
 						jukebox.io_regs[0x0087] = (jukebox.remaining_recording_time % 60);
+
+						break;
+
+					//Commit Artist/Title Changes - Only applicable for Music Files
+					case 0x11:
+						if(!jukebox.current_category)
+						{
+							jukebox_update_metadata();
+							jukebox_set_file_info();
+						}
 
 						break;
 
@@ -376,6 +393,13 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 					jukebox.config &= 0xFF00;
 					jukebox.config |= value;
 					break;
+			}
+
+			//Music File metadata
+			if((jukebox.io_index >= 0xB0) && (jukebox.io_index <= 0xCD))
+			{
+				jukebox.io_regs[jukebox.io_index] &= 0xFF00;
+				jukebox.io_regs[jukebox.io_index] |= value;
 			}
 
 			break;
@@ -833,3 +857,41 @@ bool AGB_MMU::jukebox_save_recording()
 	file.close();
 	return true;
 } 
+
+/****** Updates metadata for Music Files ******/
+void AGB_MMU::jukebox_update_metadata()
+{
+	std::string song_title = "";
+	std::string artist_name = "";
+
+	//Build strings for song title
+	for(u32 x = 0; x < 15; x++)
+	{
+		u16 str_bytes = jukebox.io_regs[0xB0 + x];
+		char tmp_1 = (str_bytes >> 8) & 0xFF;
+		char tmp_2 = (str_bytes & 0xFF);
+
+		if(!tmp_1) { break; }
+		song_title += tmp_1;
+
+		if(!tmp_2) { break; }
+		song_title += tmp_2;
+	}
+
+	//Build strings for artist name
+	for(u32 x = 0; x < 15; x++)
+	{
+		u16 str_bytes = jukebox.io_regs[0xBF + x];
+		char tmp_1 = (str_bytes >> 8) & 0xFF;
+		char tmp_2 = (str_bytes & 0xFF);
+
+		if(!tmp_1) { break; }
+		artist_name += tmp_1;
+
+		if(!tmp_2) { break; }
+		artist_name += tmp_2;
+	}
+
+	std::cout<<"SONG -> " << song_title << "\n";
+	std::cout<<"ARTIST -> " << artist_name << "\n";
+}
