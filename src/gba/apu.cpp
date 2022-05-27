@@ -22,6 +22,9 @@ AGB_APU::AGB_APU()
 /****** APU Destructor ******/
 AGB_APU::~AGB_APU()
 {
+	//Always free external audio buffer, safe to call this function with NULL pointer!
+	SDL_FreeWAV(apu_stat.ext_audio.buffer);
+
 	SDL_CloseAudio();
 	std::cout<<"APU::Shutdown\n";
 }
@@ -120,6 +123,11 @@ void AGB_APU::reset()
 		apu_stat.dma[0].buffer[x] = -127;
 		apu_stat.dma[1].buffer[x] = -127;
 	}
+
+	apu_stat.ext_audio.frequency = 0;
+	apu_stat.ext_audio.length = 0;
+	apu_stat.ext_audio.buffer = NULL;
+	apu_stat.ext_audio.playing = false;
 }
 
 /****** Initialize APU with SDL ******/

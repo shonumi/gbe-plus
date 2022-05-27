@@ -72,6 +72,16 @@ struct agb_apu_data
 		s8 buffer[0x10000];
 	} dma[2];
 
+	//External audio channel for addittional sources of audio output
+	//For examples, cartriges with headphone jacks
+	struct extra_channels
+	{
+		u32 frequency;
+		u32 length;
+		u8* buffer;
+		bool playing;
+	} ext_audio;
+
 	bool psg_needs_fill;
 	u32 psg_fill_rate;
 

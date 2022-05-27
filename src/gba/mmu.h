@@ -262,6 +262,7 @@ class AGB_MMU
 	bool jukebox_save_recording();
 	void jukebox_set_file_info();
 	void jukebox_update_metadata();
+	bool jukebox_load_audio(std::string filename);
 	void process_jukebox();
 
 	//GPIO handling functions

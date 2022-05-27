@@ -9,6 +9,7 @@
 // Handles I/O for the Jukebox
 // Manages Jukebox metadata files and recording status
 
+#include <SDL2/SDL_audio.h>
 #include "mmu.h"
 #include "common/util.h"
 
@@ -221,11 +222,23 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 						jukebox.progress = 1;
 
 						//Set Playback/Recording Status
+						//Load data from file if possible
 						switch(jukebox.current_category)
 						{
-							case 0x00: jukebox.io_regs[0x82] = (jukebox.is_recording) ? 0x1012 : 0x1001; break;
-							case 0x01: jukebox.io_regs[0x82] = (jukebox.is_recording) ? 0x1112 : 0x1101; break;
-							case 0x02: jukebox.io_regs[0x82] = (jukebox.is_recording) ? 0x1211 : 0x1201; break;
+							case 0x00:
+								jukebox.io_regs[0x82] = (jukebox.is_recording) ? 0x1012 : 0x1001;
+								jukebox_load_audio(jukebox.music_files[jukebox.current_file]);
+								break;
+
+							case 0x01:
+								jukebox.io_regs[0x82] = (jukebox.is_recording) ? 0x1112 : 0x1101;
+								jukebox_load_audio(jukebox.voice_files[jukebox.current_file]);
+								break;
+
+							case 0x02:
+								jukebox.io_regs[0x82] = (jukebox.is_recording) ? 0x1211 : 0x1201;
+								jukebox_load_audio(jukebox.karaoke_files[jukebox.current_file]);
+								break;
 						}
 
 						break;
@@ -929,4 +942,22 @@ void AGB_MMU::jukebox_update_metadata()
 	}
 	
 	file.close();
+}
+
+/****** Loads audio (.WAV) file for playback on Jukebox (GBA speakers or headphones) ******/
+bool AGB_MMU::jukebox_load_audio(std::string filename)
+{
+	//Clear previous buffer if necessary
+	SDL_FreeWAV(apu_stat->ext_audio.buffer);
+
+	SDL_AudioSpec file_spec;
+
+	if(SDL_LoadWAV(filename.c_str(), &file_spec, &apu_stat->ext_audio.buffer, &apu_stat->ext_audio.length) == NULL)
+	{
+		std::cout<<"MMU::Jukebox could not load audio file: " << filename << "\n";
+		return false;
+	}
+
+	std::cout<<"MMU::Jukebox loaded audio file: " << filename << "\n";
+	return true;
 }
