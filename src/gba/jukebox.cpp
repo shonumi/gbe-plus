@@ -227,17 +227,17 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 						{
 							case 0x00:
 								jukebox.io_regs[0x82] = (jukebox.is_recording) ? 0x1012 : 0x1001;
-								jukebox_load_audio(jukebox.music_files[jukebox.current_file]);
+								jukebox_load_audio(config::data_path + "jukebox/" + jukebox.music_files[jukebox.current_file]);
 								break;
 
 							case 0x01:
 								jukebox.io_regs[0x82] = (jukebox.is_recording) ? 0x1112 : 0x1101;
-								jukebox_load_audio(jukebox.voice_files[jukebox.current_file]);
+								jukebox_load_audio(config::data_path + "jukebox/" + jukebox.voice_files[jukebox.current_file]);
 								break;
 
 							case 0x02:
 								jukebox.io_regs[0x82] = (jukebox.is_recording) ? 0x1211 : 0x1201;
-								jukebox_load_audio(jukebox.karaoke_files[jukebox.current_file]);
+								jukebox_load_audio(config::data_path + "jukebox/" + jukebox.karaoke_files[jukebox.current_file]);
 								break;
 						}
 
@@ -954,7 +954,14 @@ bool AGB_MMU::jukebox_load_audio(std::string filename)
 
 	if(SDL_LoadWAV(filename.c_str(), &file_spec, &apu_stat->ext_audio.buffer, &apu_stat->ext_audio.length) == NULL)
 	{
-		std::cout<<"MMU::Jukebox could not load audio file: " << filename << "\n";
+		std::cout<<"MMU::Jukebox could not load audio file: " << filename << " :: " << SDL_GetError() << "\n";
+		return false;
+	}
+
+	//Check format, must be S16 audio, LSB
+	if(file_spec.format != AUDIO_S16)
+	{
+		std::cout<<"MMU::Jukebox loaded file, but format is not Signed 16-bit LSB audio\n";
 		return false;
 	}
 
