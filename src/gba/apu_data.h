@@ -81,6 +81,7 @@ struct agb_apu_data
 		u32 sample_pos;
 		u8* buffer;
 		u8 output_path;
+		u8 channels;
 		bool playing;
 	} ext_audio;
 

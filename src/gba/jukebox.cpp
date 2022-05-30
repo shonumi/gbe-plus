@@ -972,7 +972,15 @@ bool AGB_MMU::jukebox_load_audio(std::string filename)
 		return false;
 	}
 
+	//Check number of channels, max is 2
+	if(file_spec.channels > 2)
+	{
+		std::cout<<"MMU::Jukebox loaded file, but audio uses more than 2 channels\n";
+		return false;
+	}
+
 	apu_stat->ext_audio.frequency = file_spec.freq;
+	apu_stat->ext_audio.channels = file_spec.channels;
 
 	std::cout<<"MMU::Jukebox loaded audio file: " << filename << "\n";
 	return true;
