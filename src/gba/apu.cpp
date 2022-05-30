@@ -126,6 +126,8 @@ void AGB_APU::reset()
 
 	apu_stat.ext_audio.frequency = 0;
 	apu_stat.ext_audio.length = 0;
+	apu_stat.ext_audio.sample_pos = 0;
+	apu_stat.ext_audio.output_path = 0;
 	apu_stat.ext_audio.buffer = NULL;
 	apu_stat.ext_audio.playing = false;
 }
@@ -365,7 +367,37 @@ void AGB_APU::generate_dma_b_samples(s16* stream, int length)
 
 	if(apu_stat.dma[1].length > length) { apu_stat.dma[1].length -= length; }
 	else { apu_stat.dma[1].length = 0; }
-}	
+}
+
+/****** Generate raw samples for playback on external audio channel ******/
+void AGB_APU::generate_ext_audio_hi_samples(s16* stream, int length)
+{
+	double sample_ratio = apu_stat.ext_audio.frequency/apu_stat.sample_rate;
+	u32 last_pos = apu_stat.ext_audio.sample_pos;
+	u32 buffer_pos = 0;
+
+	//Convert existing buffer to S16
+	s16* e_stream = (s16*) apu_stat.ext_audio.buffer;
+
+	for(int x = 0; x < length; x++)
+	{
+		buffer_pos = last_pos + (sample_ratio * x);
+
+		//Pull audio from buffer if possible
+		if(buffer_pos < apu_stat.ext_audio.length)
+		{
+			stream[x] = e_stream[buffer_pos];
+		}
+
+		//Otherwise, generate silence
+		else
+		{
+			stream[x] = -32768;
+		}
+	}
+
+	apu_stat.ext_audio.sample_pos = buffer_pos;
+}
 
 /****** SDL Audio Callback ******/ 
 void agb_audio_callback(void* _apu, u8 *_stream, int _length)
@@ -380,6 +412,8 @@ void agb_audio_callback(void* _apu, u8 *_stream, int _length)
 
 	std::vector<s16> dma_a_stream(length);
 	std::vector<s16> dma_b_stream(length);
+
+	std::vector<s16> ext_stream(length);
 
 	AGB_APU* apu_link = (AGB_APU*) _apu;
 	apu_link->generate_channel_1_samples(&channel_1_stream[0], length);
@@ -406,6 +440,33 @@ void agb_audio_callback(void* _apu, u8 *_stream, int _length)
 		out_sample /= 6;
 
 		stream[x] = out_sample;
+	}
+
+	//Mix in external audio if necessary
+	if(apu_link->apu_stat.ext_audio.playing)
+	{
+		//Generate raw samples (high quality)
+		if(apu_link->apu_stat.ext_audio.output_path)
+		{
+			apu_link->generate_ext_audio_hi_samples(&ext_stream[0], length);
+		}
+
+		//Generate GBA samples (low quality)
+		else
+		{
+			//TODO
+		}
+
+		//Custom software mixing
+		for(u32 x = 0; x < length; x++)
+		{
+			s32 out_sample = stream[x] + ext_stream[x];
+			
+			//Divide final wave by total amount of channels
+			out_sample /= 2;
+
+			stream[x] = out_sample;
+		}
 	}
 }
 
@@ -754,7 +815,6 @@ void AGB_APU::buffer_channel_3()
 		for(int x = 0; x < length; x++) { apu_stat.channel[2].buffer[apu_stat.channel[2].current_index++] = -32768; }
 	}
 }
-
 
 /****** Buffer GBA Channel 4 data ******/
 void AGB_APU::buffer_channel_4()

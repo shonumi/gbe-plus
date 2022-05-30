@@ -78,7 +78,9 @@ struct agb_apu_data
 	{
 		u32 frequency;
 		u32 length;
+		u32 sample_pos;
 		u8* buffer;
+		u8 output_path;
 		bool playing;
 	} ext_audio;
 

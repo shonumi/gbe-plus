@@ -221,6 +221,11 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 						//Play dummy audio file for now
 						jukebox.progress = 1;
 
+						//Set audio output to GBA speaker or headphones via configuration index
+						apu_stat->ext_audio.output_path = (jukebox.config & 0x02) ? 0 : 1;
+						apu_stat->ext_audio.sample_pos = 0;
+						apu_stat->ext_audio.playing = true;
+
 						//Set Playback/Recording Status
 						//Load data from file if possible
 						switch(jukebox.current_category)
@@ -360,6 +365,8 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 						//Setup remaining playback time if not recording
 						jukebox.io_regs[0x0084] = 0;
 						jukebox.io_regs[0x0085] = 0;
+
+						apu_stat->ext_audio.playing = false;
 
 						break;
 				}
@@ -964,6 +971,8 @@ bool AGB_MMU::jukebox_load_audio(std::string filename)
 		std::cout<<"MMU::Jukebox loaded file, but format is not Signed 16-bit LSB audio\n";
 		return false;
 	}
+
+	apu_stat->ext_audio.frequency = file_spec.freq;
 
 	std::cout<<"MMU::Jukebox loaded audio file: " << filename << "\n";
 	return true;
