@@ -82,6 +82,8 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 				bool restore = false;
 				bool was_recording = jukebox.is_recording;
 
+				std::cout<<"CMD -> 0x" << jukebox.status << "\n";
+
 				//Process various commands now
 				switch(jukebox.status)
 				{
@@ -224,7 +226,7 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 						//Set audio output to GBA speaker or headphones via configuration index
 						apu_stat->ext_audio.output_path = (jukebox.config & 0x02) ? 0 : 1;
 						apu_stat->ext_audio.sample_pos = 0;
-						apu_stat->ext_audio.playing = true;
+						
 
 						//Set Playback/Recording Status
 						//Load data from file if possible
@@ -232,17 +234,17 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 						{
 							case 0x00:
 								jukebox.io_regs[0x82] = (jukebox.is_recording) ? 0x1012 : 0x1001;
-								jukebox_load_audio(config::data_path + "jukebox/" + jukebox.music_files[jukebox.current_file]);
+								apu_stat->ext_audio.playing = jukebox_load_audio(config::data_path + "jukebox/" + jukebox.music_files[jukebox.current_file]);
 								break;
 
 							case 0x01:
 								jukebox.io_regs[0x82] = (jukebox.is_recording) ? 0x1112 : 0x1101;
-								jukebox_load_audio(config::data_path + "jukebox/" + jukebox.voice_files[jukebox.current_file]);
+								apu_stat->ext_audio.playing = jukebox_load_audio(config::data_path + "jukebox/" + jukebox.voice_files[jukebox.current_file]);
 								break;
 
 							case 0x02:
 								jukebox.io_regs[0x82] = (jukebox.is_recording) ? 0x1211 : 0x1201;
-								jukebox_load_audio(config::data_path + "jukebox/" + jukebox.karaoke_files[jukebox.current_file]);
+								apu_stat->ext_audio.playing = jukebox_load_audio(config::data_path + "jukebox/" + jukebox.karaoke_files[jukebox.current_file]);
 								break;
 						}
 
@@ -288,6 +290,9 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 							jukebox.current_category = 2;
 							restore = false;
 						}
+
+						//Make sure external audio channel stops playing
+						apu_stat->ext_audio.playing = false;
 
 						break;
 
@@ -789,7 +794,14 @@ void AGB_MMU::process_jukebox()
 		else if((!jukebox.is_recording) && ((jukebox.progress % 60) == 0) && (jukebox.status == 0x113))
 		{
 			u32 current_time = (jukebox.io_regs[0x0084] * 60) + jukebox.io_regs[0x0085] + 1;
-			if(current_time >= jukebox.remaining_playback_time) { jukebox.io_regs[0x82] = 0x00; }
+
+			if(current_time >= jukebox.remaining_playback_time)
+			{
+				jukebox.io_regs[0x82] = 0x00;
+
+				//Make sure external audio channel stops playing
+				apu_stat->ext_audio.playing = false;
+			}
 
 			jukebox.io_regs[0x0084] = (current_time / 60);
 			jukebox.io_regs[0x0085] = (current_time % 60);
