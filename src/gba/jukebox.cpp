@@ -227,7 +227,6 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 						apu_stat->ext_audio.output_path = (jukebox.config & 0x02) ? 0 : 1;
 						apu_stat->ext_audio.sample_pos = 0;
 						
-
 						//Set Playback/Recording Status
 						//Load data from file if possible
 						switch(jukebox.current_category)
@@ -968,6 +967,7 @@ bool AGB_MMU::jukebox_load_audio(std::string filename)
 {
 	//Clear previous buffer if necessary
 	SDL_FreeWAV(apu_stat->ext_audio.buffer);
+	apu_stat->ext_audio.buffer = NULL;
 
 	SDL_AudioSpec file_spec;
 
