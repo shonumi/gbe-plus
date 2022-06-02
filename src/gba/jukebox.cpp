@@ -82,8 +82,6 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 				bool restore = false;
 				bool was_recording = jukebox.is_recording;
 
-				std::cout<<"CMD -> 0x" << jukebox.status << "\n";
-
 				//Process various commands now
 				switch(jukebox.status)
 				{

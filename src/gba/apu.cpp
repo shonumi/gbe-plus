@@ -383,20 +383,20 @@ void AGB_APU::generate_ext_audio_hi_samples(s16* stream, int length)
 	for(int x = 0; x < length; x++)
 	{
 		buffer_pos = last_pos + (sample_ratio * x);
+		u32 temp_pos = (apu_stat.ext_audio.channels == 1) ? buffer_pos : (buffer_pos * 2);
 
 		//Pull audio from buffer if possible
-		if(buffer_pos < apu_stat.ext_audio.length)
+		if((temp_pos << 1) < apu_stat.ext_audio.length)
 		{
 			//Mono Audio
 			if(apu_stat.ext_audio.channels == 1)
 			{
-				stream[x] = e_stream[buffer_pos];
+				stream[x] = e_stream[temp_pos];
 			}
 
 			//Stereo Audio
 			else
 			{
-				u32 temp_pos = (buffer_pos * 2);
 				s32 out_sample = (e_stream[temp_pos] + e_stream[temp_pos + 1]) / 2;
 				stream[x] = out_sample;
 			}	
@@ -405,7 +405,8 @@ void AGB_APU::generate_ext_audio_hi_samples(s16* stream, int length)
 		//Otherwise, generate silence
 		else
 		{
-			stream[x] = -32768;
+			while(x < length) { stream[x++] = -32768; }
+			apu_stat.ext_audio.playing = false;
 		}
 	}
 
