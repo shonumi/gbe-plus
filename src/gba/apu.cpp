@@ -129,6 +129,7 @@ void AGB_APU::reset()
 	apu_stat.ext_audio.sample_pos = 0;
 	apu_stat.ext_audio.output_path = 0;
 	apu_stat.ext_audio.channels = 0;
+	apu_stat.ext_audio.volume = 0;
 	apu_stat.ext_audio.buffer = NULL;
 	apu_stat.ext_audio.playing = false;
 }
@@ -441,6 +442,8 @@ void agb_audio_callback(void* _apu, u8 *_stream, int _length)
 	double dma_a_ratio = apu_link->apu_stat.dma[0].master_volume / 128.0;
 	double dma_b_ratio = apu_link->apu_stat.dma[1].master_volume / 128.0;
 
+	double ext_ratio = apu_link->apu_stat.ext_audio.volume / 63.0;
+
 	//Custom software mixing
 	for(u32 x = 0; x < length; x++)
 	{
@@ -474,7 +477,7 @@ void agb_audio_callback(void* _apu, u8 *_stream, int _length)
 		//Custom software mixing
 		for(u32 x = 0; x < length; x++)
 		{
-			s32 out_sample = stream[x] + ext_stream[x];
+			s32 out_sample = stream[x] + (ext_stream[x] * ext_ratio);
 			
 			//Divide final wave by total amount of channels
 			out_sample /= 2;

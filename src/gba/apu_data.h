@@ -82,6 +82,7 @@ struct agb_apu_data
 		u8* buffer;
 		u8 output_path;
 		u8 channels;
+		u8 volume;
 		bool playing;
 	} ext_audio;
 

@@ -224,6 +224,7 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 						//Set audio output to GBA speaker or headphones via configuration index
 						apu_stat->ext_audio.output_path = (jukebox.config & 0x02) ? 0 : 1;
 						apu_stat->ext_audio.sample_pos = 0;
+						apu_stat->ext_audio.volume = 0x3F - (jukebox.io_regs[0x88] & 0x3F);
 						
 						//Set Playback/Recording Status
 						//Load data from file if possible
@@ -400,7 +401,6 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 			switch(jukebox.io_index)
 			{
 				//Misc Audio Registers
-				case 0x0088:
 				case 0x008A:
 				case 0x008C:
 				case 0x008F:
@@ -408,6 +408,13 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 				case 0x009B:
 					jukebox.io_regs[jukebox.io_index] &= 0xFF00;
 					jukebox.io_regs[jukebox.io_index] |= value;
+					break;
+
+				//Volume:
+				case 0x0088:
+					jukebox.io_regs[jukebox.io_index] &= 0xFF00;
+					jukebox.io_regs[jukebox.io_index] |= value;
+					apu_stat->ext_audio.volume = 0x3F - (value & 0x3F);
 					break;
 
 				//Config Register
