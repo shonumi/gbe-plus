@@ -16,6 +16,7 @@ set(SRCS
 	sio.cpp
 	gbma.cpp
 	jukebox.cpp
+	am3.cpp
 	)
 
 set(HEADERS
