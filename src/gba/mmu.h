@@ -132,7 +132,7 @@ class AGB_MMU
 		std::vector<u32> file_addr_list;
 
 		u16 remaining_size;
-		std::vector<u8> des_key;
+		std::vector<u8> smid;
 
 		std::vector<u8> firmware_data;
 		std::vector<u8> card_data;
@@ -235,7 +235,7 @@ class AGB_MMU
 	bool read_file(std::string filename);
 	bool read_bios(std::string filename);
 	bool read_am3_firmware(std::string filename);
-	bool read_des_key(std::string filename);
+	bool read_smid(std::string filename);
 	bool save_backup(std::string filename);
 	bool load_backup(std::string filename);
 

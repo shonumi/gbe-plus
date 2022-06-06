@@ -23,26 +23,26 @@ void AGB_core::debug_step()
 	//Special Handling - Dump DES key if necessary and restart
 	if((config::auto_gen_am3_key) && (core_cpu.reg.r15 == 0x02002140))
 	{
-		u8 key[0x10];
-		for(u32 x = 0; x < 0x10; x++) { key[x] = core_mmu.memory_map[0x03007D84 + x]; }
+		u8 id[0x10];
+		for(u32 x = 0; x < 0x10; x++) { id[x] = core_mmu.memory_map[0x03007D84 + x]; }
 
-		std::string key_file = config::rom_file + ".key";
-		std::ofstream gen_file(key_file.c_str());
+		std::string smid_file = config::rom_file + ".smid";
+		std::ofstream gen_file(smid_file.c_str());
 
 		if(gen_file.is_open())
 		{
 			std::cout<<"AM3 DES key generated for " << config::rom_file << "\n";
-			gen_file.write(reinterpret_cast<char*> (&key[0]), 0x10);
+			gen_file.write(reinterpret_cast<char*> (&id[0]), 0x10);
 			gen_file.close();
 		}
 
-		//Restart the core with the new DES key
+		//Restart the core with the new SmartMedia ID
 		reset();
 
 		config::auto_gen_am3_key = false;
 		db_unit.debug_mode = false;
 
-		for(u32 x = 0; x < 16; x++) { core_mmu.am3.des_key[x] = key[x]; }
+		for(u32 x = 0; x < 16; x++) { core_mmu.am3.smid[x] = id[x]; }
 
 		return;
 	}

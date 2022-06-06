@@ -45,17 +45,17 @@ bool AGB_MMU::read_am3_firmware(std::string filename)
 	return true;
 }
 
-/****** Read AM3 16-byte DES key into memory ******/
-bool AGB_MMU::read_des_key(std::string filename)
+/****** Read AM3 16-byte SmartMedia ID into memory ******/
+bool AGB_MMU::read_smid(std::string filename)
 {
-	am3.des_key.clear();
-	am3.des_key.resize(16, 0x00);
+	am3.smid.clear();
+	am3.smid.resize(16, 0x00);
 
 	std::ifstream file(filename.c_str(), std::ios::binary);
 
 	if(!file.is_open()) 
 	{
-		std::cout<<"MMU::AM3 DES key file " << filename << " could not be opened. Check file path or permissions. \n";
+		std::cout<<"MMU::AM3 SmartMedia ID file " << filename << " could not be opened. Check file path or permissions. \n";
 		file.close();
 		return false;
 	}
@@ -72,7 +72,7 @@ bool AGB_MMU::read_des_key(std::string filename)
 		return false;		
 	}
 	
-	u8* ex_mem = &am3.des_key[0];
+	u8* ex_mem = &am3.smid[0];
 
 	//Read data from the DES key file
 	file.read((char*)ex_mem, file_size);

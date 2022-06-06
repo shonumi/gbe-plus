@@ -429,24 +429,24 @@ u8 AGB_MMU::read_u8(u32 address)
 		case AM_SMC_EOF: return (config::cart_type == AGB_AM3) ? (am3.remaining_size & 0xFF) : memory_map[address]; break;
 		case AM_SMC_EOF+1: return (config::cart_type == AGB_AM3) ? ((am3.remaining_size >> 8) & 0xFF) : memory_map[address]; break;
 
-		//AM3 File Size / DES key Bytes 0 - 3
+		//AM3 File Size / SmartMedia ID Bytes 0 - 3
 		case AM_FILE_SIZE:
-			if(config::cart_type == AGB_AM3) { return (am3.read_key) ? am3.des_key[0] : (am3.file_size & 0xFF); }
+			if(config::cart_type == AGB_AM3) { return (am3.read_key) ? am3.smid[0] : (am3.file_size & 0xFF); }
 			return memory_map[address];
 
 		case AM_FILE_SIZE+1:
-			if(config::cart_type == AGB_AM3) { return (am3.read_key) ? am3.des_key[1] : ((am3.file_size >> 8) & 0xFF); }
+			if(config::cart_type == AGB_AM3) { return (am3.read_key) ? am3.smid[1] : ((am3.file_size >> 8) & 0xFF); }
 			return memory_map[address];
 
 		case AM_FILE_SIZE+2:
-			if(config::cart_type == AGB_AM3) { return (am3.read_key) ? am3.des_key[2] : ((am3.file_size >> 16) & 0xFF); }
+			if(config::cart_type == AGB_AM3) { return (am3.read_key) ? am3.smid[2] : ((am3.file_size >> 16) & 0xFF); }
 			return memory_map[address];
 
 		case AM_FILE_SIZE+3:
-			if(config::cart_type == AGB_AM3) { return (am3.read_key) ? am3.des_key[3] : ((am3.file_size >> 24) & 0xFF); }
+			if(config::cart_type == AGB_AM3) { return (am3.read_key) ? am3.smid[3] : ((am3.file_size >> 24) & 0xFF); }
 			return memory_map[address];
 
-		//DES key Bytes 4 - 15
+		//SmartMedia ID Bytes 4 - 15
 		case AM_FILE_SIZE+4:
 		case AM_FILE_SIZE+5:
 		case AM_FILE_SIZE+6:
@@ -459,7 +459,7 @@ u8 AGB_MMU::read_u8(u32 address)
 		case AM_FILE_SIZE+13:
 		case AM_FILE_SIZE+14:
 		case AM_FILE_SIZE+15:
-			if(config::cart_type == AGB_AM3) { return (am3.read_key) ? am3.des_key[address - AM_FILE_SIZE] : 0; }
+			if(config::cart_type == AGB_AM3) { return (am3.read_key) ? am3.smid[address - AM_FILE_SIZE] : 0; }
 			return memory_map[address];
 
 		//AM3 SmartMedia Card Offset
@@ -2265,9 +2265,9 @@ bool AGB_MMU::read_file(std::string filename)
 			return false;
 		}
 
-		//Next read 16-byte DES key from file
-		std::string key_file = filename + ".key";
-		if((!read_des_key(key_file)) && (!config::auto_gen_am3_key))
+		//Next read 16-byte SmartMedia ID from file
+		std::string smid_file = filename + ".smid";
+		if((!read_smid(smid_file)) && (!config::auto_gen_am3_key))
 		{
 			file.close();
 			return false;
@@ -3722,7 +3722,7 @@ bool AGB_MMU::mmu_read(u32 offset, std::string filename)
 		file.read((char*)&am3.remaining_size, sizeof(am3.remaining_size));
 		file.read((char*)&am3.file_size_list[0], (sizeof(u32) * am3.file_size_list.size()));
 		file.read((char*)&am3.file_addr_list[0], (sizeof(u32) * am3.file_addr_list.size()));
-		file.read((char*)&am3.des_key[0], 0x10);
+		file.read((char*)&am3.smid[0], 0x10);
 		file.read((char*)&memory_map[0x8000000], 0x400);
 	}
 
@@ -3815,7 +3815,7 @@ bool AGB_MMU::mmu_write(std::string filename)
 		file.write((char*)&am3.remaining_size, sizeof(am3.remaining_size));
 		file.write((char*)&am3.file_size_list[0], (sizeof(u32) * am3.file_size_list.size()));
 		file.write((char*)&am3.file_addr_list[0], (sizeof(u32) * am3.file_addr_list.size()));
-		file.write((char*)&am3.des_key[0], 0x10);
+		file.write((char*)&am3.smid[0], 0x10);
 		file.write((char*)&memory_map[0x8000000], 0x400);
 	}
 
