@@ -234,8 +234,8 @@ namespace config
 	//Magical Watch Data
 	u8 mw_data[6] = { 0, 0, 0, 0, 0, 0 };
 
-	//AM3 DES Key Auto Generate Flag
-	bool auto_gen_am3_key = false;
+	//AM3 SmartMedia ID Auto Generate Flag
+	bool auto_gen_am3_id = false;
 
 	//On-screen display settings
 	bool use_osd = false;
@@ -879,8 +879,8 @@ bool parse_cli_args()
 			//Ignore Illegal Opcodes
 			else if(config::cli_args[x] == "--ignore-illegal-opcodes") { config::ignore_illegal_opcodes = true; }
 
-			//Auto Generate AM3 DES Key
-			else if(config::cli_args[x] == "--auto-gen-key") { config::auto_gen_am3_key = true; }
+			//Auto Generate AM3 SmartMedia ID
+			else if(config::cli_args[x] == "--auto-gen-smid") { config::auto_gen_am3_id = true; }
 
 			//Print Help
 			else if((config::cli_args[x] == "-h") || (config::cli_args[x] == "--help")) 
@@ -926,7 +926,7 @@ bool parse_cli_args()
 				std::cout<<"--turbo-file-memcard \t\t\t Enable memory card for Turbo File\n";
 				std::cout<<"--turbo-file-protect \t\t\t Enable write-proection for Turbo File\n";
 				std::cout<<"--ignore-illegal-opcodes \t\t\t Ignore Illegal CPU instructions when running\n";
-				std::cout<<"--auto-gen-key \t\t\t\t Automatically generate 16-byte DES key for AM3\n";
+				std::cout<<"--auto-gen-smid \t\t\t\t Automatically generate 16-byte SmartMedia ID for AM3\n";
 				std::cout<<"-h, --help \t\t\t\t Print these help messages\n";
 				return false;
 			}

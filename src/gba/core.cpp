@@ -311,7 +311,7 @@ void AGB_core::run_core()
 					core_mmu.read_u16(AM_BLK_STAT);
 				}
 
-				else if((!core_mmu.am3.transfer_delay) && (core_mmu.am3.blk_stat == 0x03) && (config::auto_gen_am3_key))
+				else if((!core_mmu.am3.transfer_delay) && (core_mmu.am3.blk_stat == 0x03) && (config::auto_gen_am3_id))
 				{
 					db_unit.debug_mode = true;
 					db_unit.last_command = "c";

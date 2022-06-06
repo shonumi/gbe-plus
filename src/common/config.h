@@ -201,7 +201,7 @@ namespace config
 
 	extern u8 mw_data[6];
 
-	extern bool auto_gen_am3_key;
+	extern bool auto_gen_am3_id;
 
 	extern bool use_osd;
 	extern std::vector <u32> osd_font;
