@@ -282,6 +282,8 @@ Index	| R/W	| Description
 0x00AF	| R	| Current Number of Karaoke Files Detected
 0x0100	| R	| Audio Index Length
 0x0101	| R	| CompactFlash Format Progress / CompactFlash Access Progress???
+0x0102	| R	| Current Karaoke File Number for Recording (Hundreds Value)
+0x0103	| R	| Current Karaoke File Number for Recording (Tens and Ones Values)
 0x01C8	| R/W	| General Configuration Settings
 0x01C9	| R/W	| Line-In and Microphone Input Levels
 
@@ -334,7 +336,7 @@ Index 0x009D - Battery Level
 Returns the current level of the AA battery inside the cartridge. Has 3 levels total with the values 0x02 representing 1 bar, 0x01 representing 2 bars, and 0x00 representing 3 bars.
 
 Index 0x00A0 - Current File Track Number
-Returns the current file track number. This is determined by how the cartridge arranges files, not by any metadata from the file itself.
+Returns the current file track number. This is determined by how the cartridge arranges files, not by any metadata from the file itself. For Music, Voice Memos, and Karaoke files, this value is used for playback purposes. For Music and Voice Memos, this value is also used during recording. When recording Karaoke files, however, indices 0x0102 and 0x0103 are used instead.
 
 Index 0x00AC - Current Number of Music Files Detected
 Returns the current number of Music Files detected on the CompactFlash card.
@@ -350,6 +352,16 @@ Determines how many indices to read from 0x102 and beyond for audio input/output
 
 Index 0x0101 - CompactFlash Format Progress / CompactFlash Access Progress
 Appears to indicate the progress of certain tasks involving the CompactFlash card. For formatting the card, this index represents the overall progress of that process from 0% to 100% using the range 0x0000 through 0x8000. For playing and recording audio data, it seems to determine when certain chunks are finished using a range of 0x0000 through 0x4000.
+
+Index 0x0102 - Current Karaoke File Number for Recording (Hundreds Value)
+Returns 8-bits representing the current file number (in hundreds) for recording Karaoke files. It has an unusual offset not seen in the 0x00A0 index. It can be calculated as the following:
+
+INDEX = (((CURRENT_FILE / 100) + 0xA6) AND 0xFF)
+
+Index 0x0103 - Current Karaoke File Number for Recording (Tens and Ones Values)
+Returns 8-bits representing the current file number (in tens and ones) for recording Karaoke files. It has an unusual offset not seen in the 0x00A0 index. It can be calculated as the following:
+
+INDEX = (((CURRENT_FILE modulo 100) + 0xA8) AND 0xFF)
 
 Index 0x01C9 - Line-In and Microphone Input Levels
 Used to calibrate volumes when recording via Line-In or the microphone. The Music Recorder/Jukebox uses an 8-bit value for this calibration. The high byte is used for microphone sensitivity while the low byte is used for Line-In volumes.
@@ -367,4 +379,4 @@ Index Range	| R/W	| Description
 
 For the string data at 0x00A1 through 0x00CD, the string is terminated by a null character (value 0x00). The strings for the Jukebox use ASCII.
 
-When reading input/output audio data, the software accesses indices starting at 0x0102 and ends at the length specified by index 0x100. For example, if the Audio Index Length is 0x0004, the CPU reads indices 0x0102 through 0x0105 inclusive. 
+When reading input/output audio data, the software accesses indices starting at 0x0102 and ends at the length specified by index 0x100. For example, if the Audio Index Length is 0x0004, the CPU reads indices 0x0102 through 0x0105 inclusive. Note that the 0x0102 and 0x0103 are also used for other purposes. Depending on the context, it may represent audio sample data or a Karaoke file number.
