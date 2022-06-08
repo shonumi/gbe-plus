@@ -89,6 +89,7 @@ void AGB_MMU::reset()
 	jukebox.out_lo = 0;
 	jukebox.current_category = 0;
 	jukebox.current_file = 0;
+	jukebox.current_frame = 0;
 	jukebox.last_music_file = 0;
 	jukebox.last_voice_file = 0;
 	jukebox.last_karaoke_file = 0;
@@ -98,6 +99,8 @@ void AGB_MMU::reset()
 	jukebox.remaining_recording_time = 120;
 	jukebox.remaining_playback_time = 0;
 	jukebox.current_recording_time = 0;
+
+	for(u32 x = 0; x < 9; x++) { jukebox.spectrum_values[x] = 0; }
 
 	if(config::cart_type == AGB_JUKEBOX)
 	{

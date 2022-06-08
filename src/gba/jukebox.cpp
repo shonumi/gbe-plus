@@ -246,6 +246,11 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 								break;
 						}
 
+						//Set External Audio ID for Jukebox
+						apu_stat->ext_audio.id = 1;
+						apu_stat->ext_audio.set_count = 0;
+						apu_stat->ext_audio.current_set = 0;
+
 						break;
 
 					//Reset Current File

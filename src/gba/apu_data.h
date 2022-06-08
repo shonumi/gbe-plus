@@ -79,10 +79,13 @@ struct agb_apu_data
 		u32 frequency;
 		u32 length;
 		u32 sample_pos;
+		u32 set_count;
+		u32 current_set;
 		u8* buffer;
 		u8 output_path;
 		u8 channels;
 		u8 volume;
+		u8 id;
 		bool playing;
 	} ext_audio;
 

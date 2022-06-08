@@ -146,6 +146,7 @@ class AGB_MMU
 		u16 config;
 		u16 io_index;
 		u8 current_category;
+		u8 current_frame;
 		u16 file_limit;
 		u32 progress;
 		u32 remaining_recording_time;
@@ -172,6 +173,8 @@ class AGB_MMU
 		std::vector<u16> music_times;
 		std::vector<u16> voice_times;
 		std::vector<u16> karaoke_times;
+
+		s32 spectrum_values[9];
 	} jukebox;
 
 	//Structure to handle GPIO reading and writing
