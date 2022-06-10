@@ -174,7 +174,7 @@ class AGB_MMU
 		std::vector<u16> voice_times;
 		std::vector<u16> karaoke_times;
 
-		s32 spectrum_values[9];
+		u32 spectrum_values[9];
 	} jukebox;
 
 	//Structure to handle GPIO reading and writing
