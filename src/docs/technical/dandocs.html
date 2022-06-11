@@ -267,6 +267,8 @@ Handshake	---&gt;
 
 	<p>Once the Barcode Boy sends the handshake [0x10, 0x07] back to the Game Boy, the scanner returns 0xFF anytime the Game Boy tries to send additional data while the handheld is still on its own internal clock. After the Barcode Boy finishes sending back the barcode data to the Game Boy, it requires the handshake again. It appears the handshake can fail for unknown reasons (probably related to the hardware). For example, the Barcode Boy at times may send back [0x90, 0x07], which seems to indicate an error of some sort.</p>
 
+	<p>It should be noted that the barcode data itself is encapsulated by ASCII control codes, where 0x02 represents the Start of Text (STX) and 0x03 represents the End of Text (ETX).</p>
+
 	<a name="bcb_bar"></a>
 	<p class="gray_title">[Barcode Boy] : Barcode Format</p>
 
