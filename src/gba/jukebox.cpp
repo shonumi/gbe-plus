@@ -455,6 +455,13 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 				jukebox.out_lo = (jukebox.status & 0xFF);
 				break;
 
+			//Spectrum Analyzer
+			case 0x009A:
+				if(jukebox.io_regs[0x9A]) { jukebox.io_regs[0x9A]++; }
+				jukebox.out_hi = (jukebox.io_regs[0x9A] >> 8) & 0xFF;
+				jukebox.out_lo = (jukebox.io_regs[0x9A] & 0xFF);
+				break;
+
 			//Read Compact Flash Access Progress
 			case 0x0101:
 				jukebox.out_hi = ((jukebox.progress >> 1) >> 8) & 0xFF;
