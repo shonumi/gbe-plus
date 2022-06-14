@@ -272,7 +272,7 @@ Index	| R/W	| Description
 0x008C	| R/W	| Equalizer Settings
 0x008B	| R	| Recording Volume (0xFFEE = Min, 0x0004 = Max)
 0x008F	| R/W	| Voice Cancellation Settings
-0x009A	| R/W	| Spectrum Analyzer Enabled Flag
+0x009A	| R/W	| Spectrum Analyzer Update Status
 0x009B	| R/W	| GBA Speaker Volume db (0xFFEC = Min, 0x0013 = Max)
 0x009C	| R	| CompactFlash Detection Flag
 0x009D	| R	| Battery Level (Min = 0x02, Max = 0x00)
@@ -323,8 +323,10 @@ Returns the current volume of input audio from the a recording (via Line-In or t
 Index 0x008F - Voice Cancellation Settings
 Toggles voice cancellation during audio playback. 0 = OFF, 1 = ON.
 
-Index 0x009A - Spectrum Analyzer Enabled Flag
-Toggles the visual spectrum analyzer. 0 = OFF, 1 = ON.
+Index 0x009A - Spectrum Analyzer Update Status
+Represents when the spectrum analyzer for Music Files needs to be updated. When this value is zero, the spectrum analyzer is disabled. For any non-zero values, the spectrum analyzer is enabled. When enabled, this index will increase in to indicate the spectrum analyzer needs to be redrawn. The update only happens when the current value of the index is greater than the previously recorded value. If this index overflows 16-bits and reads zero or if the value is frozen, the software will not update the spectrum analyzer.
+
+As it is limited to 16-bit values, the spectrum analyzer can only be updated a certain amount of times before it overflows. The software appears to check this index a maximum of 45 times per-second during playback, so the Music Record/Jukebox can play songs up about 18:30 long without issue.
 
 Index 0x009B - GBA Speaker Volume db
 Adjusts the output volume from the GBA speakers in the range of -20 to +19 db. The index itself goes from 0xFFEC as the minimum to 0x0013 as the maximum.
