@@ -251,6 +251,13 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 						apu_stat->ext_audio.set_count = 0;
 						apu_stat->ext_audio.current_set = 0;
 
+						//Spectrum settings for Music Files
+						if((!jukebox.current_category) && (jukebox.io_regs[0x9A]))
+						{
+							for(u32 x = 0; x < 9; x++) { jukebox.io_regs[0x90 + x] = 0; }
+							jukebox.io_regs[0x9A] = 0x01;
+						}
+
 						break;
 
 					//Reset Current File
@@ -457,7 +464,7 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 
 			//Spectrum Analyzer
 			case 0x009A:
-				if(jukebox.io_regs[0x9A]) { jukebox.io_regs[0x9A]++; }
+				if((jukebox.io_regs[0x9A]) && (jukebox.io_regs[0x9A] < 0xFFFF)) { jukebox.io_regs[0x9A]++; }
 				jukebox.out_hi = (jukebox.io_regs[0x9A] >> 8) & 0xFF;
 				jukebox.out_lo = (jukebox.io_regs[0x9A] & 0xFF);
 				break;
