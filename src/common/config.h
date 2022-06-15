@@ -172,6 +172,7 @@ namespace config
 	extern double sample_rate;
 	extern bool mute;
 	extern bool use_stereo;
+	extern bool use_microphone;
 	
 	extern u32 sys_width;
 	extern u32 sys_height;

@@ -169,6 +169,7 @@ namespace config
 	double sample_rate = 44100.0;
 	bool mute = false;
 	bool use_stereo = false;
+	bool use_microphone = false;
 
 	//Virtual Cursor parameters for NDS
 	bool vc_enable = false;
@@ -1669,6 +1670,23 @@ bool parse_ini_file()
 			}
 		}
 
+		//Enable microphone
+		else if(ini_item == "#use_microphone")
+		{
+			if((x + 1) < size)
+			{
+				util::from_str(ini_opts[++x], output);
+
+				if((output >= 0) && (output <= 1)) { config::use_microphone = output; }
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#use_microphone) \n";
+				return false;
+			}
+		}
+
 		//Sample rate
 		else if(ini_item == "#sample_rate")
 		{
@@ -2938,6 +2956,15 @@ bool save_ini_file()
 			std::string val = (config::use_stereo) ? "1" : "0";
 
 			output_lines[line_pos] = "[#use_stereo:" + val + "]";
+		}
+
+		//Enable microphone
+		else if(ini_item == "#use_microphone")
+		{
+			line_pos = output_count[x];
+			std::string val = (config::use_microphone) ? "1" : "0";
+
+			output_lines[line_pos] = "[#use_microphone:" + val + "]";
 		}
 
 		//Sample rate
