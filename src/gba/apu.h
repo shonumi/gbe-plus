@@ -26,6 +26,7 @@ class AGB_APU
 	agb_apu_data apu_stat;
 
 	SDL_AudioSpec desired_spec;
+	SDL_AudioSpec microphone_spec;
 
 	AGB_APU();
 	~AGB_APU();
@@ -55,5 +56,8 @@ class AGB_APU
 
 /****** SDL Audio Callback ******/ 
 void agb_audio_callback(void* _apu, u8 *_stream, int _length);
+
+/****** SDL Audio Callback - Microphone ******/ 
+void agb_microphone_callback(void* _apu, u8 *_stream, int _length);
 
 #endif // GBA_APU 

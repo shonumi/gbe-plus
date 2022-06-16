@@ -39,6 +39,7 @@ void AGB_APU::reset()
 
 	apu_stat.sound_on = false;
 	apu_stat.stereo = false;
+	apu_stat.mic_init = false;
 
 	apu_stat.sample_rate = config::sample_rate;
 	apu_stat.main_volume = 4;
@@ -140,6 +141,8 @@ void AGB_APU::reset()
 /****** Initialize APU with SDL ******/
 bool AGB_APU::init()
 {
+	bool init_status = false;
+
 	//Initialize audio subsystem
 	if(SDL_InitSubSystem(SDL_INIT_AUDIO) == -1)
 	{
@@ -159,7 +162,7 @@ bool AGB_APU::init()
 	if(SDL_OpenAudio(&desired_spec, NULL) < 0) 
 	{ 
 		std::cout<<"APU::Failed to open audio\n";
-		return false; 
+		init_status = false;
 	}
 
 	else
@@ -171,9 +174,44 @@ bool AGB_APU::init()
 		apu_stat.psg_fill_rate = apu_stat.sample_rate / 60;
 
 		SDL_PauseAudio(0);
+		init_status = true;
 		std::cout<<"APU::Initialized\n";
-		return true;
 	}
+
+	//Open microphone if enabled and if possible
+	if(config::use_microphone)
+	{
+		SDL_AudioSpec final_spec;
+		SDL_AudioDeviceID mic_id = 0;
+		s32 max_devices = SDL_GetNumAudioDevices(1);
+
+		//Setup the desired audio specifications
+    		microphone_spec.freq = apu_stat.sample_rate;
+		microphone_spec.format = AUDIO_S16SYS;
+    		microphone_spec.channels = 1;
+    		microphone_spec.samples = (config::sample_size) ? config::sample_size : 4096;
+    		microphone_spec.callback = agb_microphone_callback;
+    		microphone_spec.userdata = this;
+
+		for(u32 x = 0; x < max_devices; x++)
+		{
+			//Open recording device
+			mic_id = SDL_OpenAudioDevice(SDL_GetAudioDeviceName(x, 1), 1, &microphone_spec, &final_spec, SDL_AUDIO_ALLOW_FORMAT_CHANGE);
+
+			if(mic_id != 0)
+			{
+				std::cout<<"APU::Microphone Recording Device - #" << std::dec << mic_id << " :: " << SDL_GetAudioDeviceName(x, 1) << "\n";
+				apu_stat.mic_init = true;
+			}
+		}
+
+		if(!apu_stat.mic_init)
+		{
+			std::cout<<"APU::No Microphone Recording Device found\n";
+		}
+	}
+
+	return init_status;
 }
 
 /******* Generate samples for GBA sound channel 1 ******/
@@ -513,6 +551,12 @@ void agb_audio_callback(void* _apu, u8 *_stream, int _length)
 			stream[x] = out_sample;
 		}
 	}
+}
+
+/****** SDL Audio Callback - Microphone ******/ 
+void agb_microphone_callback(void* _apu, u8 *_stream, int _length)
+{
+
 }
 
 /****** Fill PSG channels with audio data when buffering ******/

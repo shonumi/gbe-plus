@@ -94,6 +94,7 @@ struct agb_apu_data
 
 	bool sound_on;
 	bool stereo;
+	bool mic_init;
 
 	u8 main_volume;
 	double sample_rate;
