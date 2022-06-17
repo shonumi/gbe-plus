@@ -40,6 +40,8 @@ void AGB_APU::reset()
 	apu_stat.sound_on = false;
 	apu_stat.stereo = false;
 	apu_stat.mic_init = false;
+	apu_stat.is_recording = false;
+	apu_stat.save_recording = false;
 
 	apu_stat.sample_rate = config::sample_rate;
 	apu_stat.main_volume = 4;
@@ -136,6 +138,9 @@ void AGB_APU::reset()
 	apu_stat.ext_audio.current_set = 0;
 	apu_stat.ext_audio.buffer = NULL;
 	apu_stat.ext_audio.playing = false;
+
+	mic_buffer.clear();
+	apu_stat.mic_id = 0;
 }
 
 /****** Initialize APU with SDL ******/
@@ -200,8 +205,19 @@ bool AGB_APU::init()
 
 			if(mic_id != 0)
 			{
-				std::cout<<"APU::Microphone Recording Device - #" << std::dec << mic_id << " :: " << SDL_GetAudioDeviceName(x, 1) << "\n";
-				apu_stat.mic_init = true;
+				if(final_spec.format != AUDIO_S16SYS)
+				{
+					std::cout<<"APU::Microphone Recording Device - #" << std::dec << mic_id << " does not support S16 audio\n";
+				}
+
+				else
+				{
+					std::cout<<"APU::Microphone Recording Device - #" << std::dec << mic_id << " :: " << SDL_GetAudioDeviceName(x, 1) << "\n";
+					std::cout<<"APU::Microphone Channels - " << u32(final_spec.channels) << std::hex << "\n";
+
+					apu_stat.mic_init = true;
+					apu_stat.mic_id = mic_id;
+				}
 			}
 		}
 
@@ -556,7 +572,29 @@ void agb_audio_callback(void* _apu, u8 *_stream, int _length)
 /****** SDL Audio Callback - Microphone ******/ 
 void agb_microphone_callback(void* _apu, u8 *_stream, int _length)
 {
+	s16* stream = (s16*) _stream;
+	int length = _length/2;
 
+	AGB_APU* apu_link = (AGB_APU*) _apu;
+
+	if(apu_link->apu_stat.mic_init)
+	{
+		//Save samples from microphone to file
+		if(apu_link->apu_stat.save_recording)
+		{
+			apu_link->apu_stat.save_recording = false;
+			apu_link->apu_stat.is_recording = false;
+			apu_link->mic_buffer.clear();
+
+			SDL_PauseAudioDevice(apu_link->apu_stat.mic_id, 1);
+		}	
+
+		//Grab samples from microphone and add to the buffer
+		else if(apu_link->apu_stat.is_recording)
+		{
+			for(u32 x = 0; x < length; x++) { apu_link->mic_buffer.push_back(stream[x]); }
+		}
+	}
 }
 
 /****** Fill PSG channels with audio data when buffering ******/

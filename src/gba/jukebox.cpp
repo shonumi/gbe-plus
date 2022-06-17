@@ -258,6 +258,14 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 							jukebox.io_regs[0x9A] = 0x01;
 						}
 
+						//Start recording via microphone if possible
+						if(config::use_microphone && apu_stat->mic_init && jukebox.is_recording)
+						{
+							apu_stat->is_recording = true;
+							apu_stat->save_recording = false;
+							SDL_PauseAudioDevice(apu_stat->mic_id, 0);
+						}
+
 						break;
 
 					//Reset Current File
@@ -382,6 +390,12 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 						jukebox.io_regs[0x0085] = 0;
 
 						apu_stat->ext_audio.playing = false;
+
+						//Stop recording via microphone if possible
+						if(config::use_microphone && apu_stat->mic_init)
+						{
+							apu_stat->save_recording = true;
+						}
 
 						break;
 				}

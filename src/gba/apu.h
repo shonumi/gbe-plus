@@ -28,6 +28,9 @@ class AGB_APU
 	SDL_AudioSpec desired_spec;
 	SDL_AudioSpec microphone_spec;
 
+	//Recording buffer for microphone input
+	std::vector<s16> mic_buffer;
+
 	AGB_APU();
 	~AGB_APU();
 

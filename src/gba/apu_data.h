@@ -95,6 +95,8 @@ struct agb_apu_data
 	bool sound_on;
 	bool stereo;
 	bool mic_init;
+	bool is_recording;
+	bool save_recording;
 
 	u8 main_volume;
 	double sample_rate;
@@ -117,6 +119,8 @@ struct agb_apu_data
 	u8 noise_stages;
 	u8 noise_7_stage_lsfr;
 	u16 noise_15_stage_lsfr;
+
+	u32 mic_id;
 };
 
 #endif // GBA_APU_DATA
