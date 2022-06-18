@@ -582,6 +582,23 @@ void agb_microphone_callback(void* _apu, u8 *_stream, int _length)
 		//Save samples from microphone to file
 		if(apu_link->apu_stat.save_recording)
 		{
+			std::string filename = "test.pcm";
+			std::ofstream file(filename.c_str(), std::ios::binary | std::ios::trunc);
+			u32 file_size = apu_link->mic_buffer.size() * 2;
+
+			if(!file.is_open()) 
+			{
+				std::cout<<"APU::Error - Could not save microphone recording " << filename << "\n";
+				file.close();
+			}
+
+			else
+			{
+				std::cout<<"APU::Writing microphone recording " << filename << "\n";
+				file.write(reinterpret_cast<char*> (&apu_link->mic_buffer[0]), file_size);
+				file.close();
+			}
+
 			apu_link->apu_stat.save_recording = false;
 			apu_link->apu_stat.is_recording = false;
 			apu_link->mic_buffer.clear();
