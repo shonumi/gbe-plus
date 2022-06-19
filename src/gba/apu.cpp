@@ -582,9 +582,11 @@ void agb_microphone_callback(void* _apu, u8 *_stream, int _length)
 		//Save samples from microphone to file
 		if(apu_link->apu_stat.save_recording)
 		{
-			std::string filename = "test.pcm";
+			std::string filename = "test.wav";
 			std::ofstream file(filename.c_str(), std::ios::binary | std::ios::trunc);
 			u32 file_size = apu_link->mic_buffer.size() * 2;
+
+			std::vector <u8> wav_header;
 
 			if(!file.is_open()) 
 			{
@@ -594,7 +596,80 @@ void agb_microphone_callback(void* _apu, u8 *_stream, int _length)
 
 			else
 			{
+				//Build WAV header - Chunk ID - "RIFF" in ASCII
+				wav_header.push_back(0x52);
+				wav_header.push_back(0x49);
+				wav_header.push_back(0x46);
+				wav_header.push_back(0x46);
+
+				//Chunk Size - PCM data + 36
+				wav_header.push_back((file_size + 32) & 0xFF);
+				wav_header.push_back(((file_size + 32) >> 8) & 0xFF);
+				wav_header.push_back(((file_size + 32) >> 16) & 0xFF);
+				wav_header.push_back(((file_size + 32) >> 24) & 0xFF);
+
+				//Wave ID - "WAVE" in ASCII
+				wav_header.push_back(0x57);
+				wav_header.push_back(0x41);
+				wav_header.push_back(0x56);
+				wav_header.push_back(0x45);
+
+				//Chunk ID - "fmt " in ASCII
+				wav_header.push_back(0x66);
+				wav_header.push_back(0x6D);
+				wav_header.push_back(0x74);
+				wav_header.push_back(0x20);
+
+				//Chunk Size - 16
+				wav_header.push_back(0x10);
+				wav_header.push_back(0x00);
+				wav_header.push_back(0x00);
+				wav_header.push_back(0x00);
+
+				//Format Code - 1
+				wav_header.push_back(0x01);
+				wav_header.push_back(0x00);
+
+				//Number of Channels - 1
+				wav_header.push_back(0x01);
+				wav_header.push_back(0x00);
+
+				//Sampling Rate
+				u32 rate = apu_link->apu_stat.sample_rate;
+				wav_header.push_back(rate & 0xFF);
+				wav_header.push_back((rate >> 8) & 0xFF);
+				wav_header.push_back((rate >> 16) & 0xFF);
+				wav_header.push_back((rate >> 24) & 0xFF);
+
+				//Data Rate
+				rate *= 2;
+				wav_header.push_back(rate & 0xFF);
+				wav_header.push_back((rate >> 8) & 0xFF);
+				wav_header.push_back((rate >> 16) & 0xFF);
+				wav_header.push_back((rate >> 24) & 0xFF);
+				
+				//Block Align - 2
+				wav_header.push_back(0x02);
+				wav_header.push_back(0x00);
+
+				//Bits per sample - 16
+				wav_header.push_back(0x10);
+				wav_header.push_back(0x00);
+
+				//Chunk ID - "data" in ASCII
+				wav_header.push_back(0x64);
+				wav_header.push_back(0x61);
+				wav_header.push_back(0x74);
+				wav_header.push_back(0x61);
+
+				//Chunk Size
+				wav_header.push_back(file_size & 0xFF);
+				wav_header.push_back((file_size >> 8) & 0xFF);
+				wav_header.push_back((file_size >> 16) & 0xFF);
+				wav_header.push_back((file_size >> 24) & 0xFF);		
+
 				std::cout<<"APU::Writing microphone recording " << filename << "\n";
+				file.write(reinterpret_cast<char*> (&wav_header[0]), wav_header.size());
 				file.write(reinterpret_cast<char*> (&apu_link->mic_buffer[0]), file_size);
 				file.close();
 			}
