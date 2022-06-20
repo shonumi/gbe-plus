@@ -582,7 +582,7 @@ void agb_microphone_callback(void* _apu, u8 *_stream, int _length)
 		//Save samples from microphone to file
 		if(apu_link->apu_stat.save_recording)
 		{
-			std::string filename = "test.wav";
+			std::string filename = config::data_path + "jukebox/" + apu_link->mem->jukebox.recorded_file;
 			std::ofstream file(filename.c_str(), std::ios::binary | std::ios::trunc);
 			u32 file_size = apu_link->mic_buffer.size() * 2;
 

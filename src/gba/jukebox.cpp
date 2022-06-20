@@ -891,6 +891,8 @@ bool AGB_MMU::jukebox_save_recording()
 	converted_name += (jukebox.current_category) ? ".WAV" : ".GB3";
 	out_list->push_back(converted_name);
 
+	jukebox.recorded_file = converted_name;
+
 	//Update GBE+'s Jukebox metadata
 	out_time->push_back(update_time);
 	converted_name += (":" + util::to_str(update_time));

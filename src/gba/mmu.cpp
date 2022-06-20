@@ -99,6 +99,7 @@ void AGB_MMU::reset()
 	jukebox.remaining_recording_time = 120;
 	jukebox.remaining_playback_time = 0;
 	jukebox.current_recording_time = 0;
+	jukebox.recorded_file = "";
 
 	for(u32 x = 0; x < 9; x++) { jukebox.spectrum_values[x] = 0; }
 

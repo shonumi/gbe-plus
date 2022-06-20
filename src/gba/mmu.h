@@ -174,6 +174,8 @@ class AGB_MMU
 		std::vector<u16> voice_times;
 		std::vector<u16> karaoke_times;
 
+		std::string recorded_file;
+
 		u32 spectrum_values[9];
 	} jukebox;
 
