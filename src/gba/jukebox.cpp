@@ -832,16 +832,18 @@ void AGB_MMU::process_jukebox()
 		{
 			u32 current_time = (jukebox.io_regs[0x0084] * 60) + jukebox.io_regs[0x0085] + 1;
 
+			jukebox.io_regs[0x0084] = (current_time / 60);
+			jukebox.io_regs[0x0085] = (current_time % 60);
+
 			if(current_time >= jukebox.remaining_playback_time)
 			{
-				jukebox.io_regs[0x82] = 0x00;
+				jukebox.io_regs[0x0082] = 0x00;
+				jukebox.io_regs[0x0084] = 0x00;
+				jukebox.io_regs[0x0085] = 0x00;
 
 				//Make sure external audio channel stops playing
 				apu_stat->ext_audio.playing = false;
 			}
-
-			jukebox.io_regs[0x0084] = (current_time / 60);
-			jukebox.io_regs[0x0085] = (current_time % 60);
 		}
 	}
 }
