@@ -258,8 +258,9 @@ class AGB_MMU
 	u8 read_dacs(u32 address);
 	void write_dacs(u32 address, u8 value);
 
+	void am3_reset();
 	void write_am3(u32 address, u8 value);
-	bool check_am3_fat(); 
+	bool check_am3_fat();
 
 	void write_jukebox(u32 address, u8 value);
 	bool read_jukebox_file_list(std::string filename, u8 category);

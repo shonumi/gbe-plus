@@ -11,6 +11,37 @@
 #include "mmu.h"
 #include "common/util.h" 
 
+/****** Resets AM3 data structure ******/
+void AGB_MMU::am3_reset()
+{
+	am3.read_key = true;
+	am3.read_sm_card = false;
+	
+	am3.op_delay = 0;
+	am3.transfer_delay = 0;
+	am3.base_addr = 0x400;
+
+	am3.blk_stat = 0;
+	am3.blk_size = 0x400;
+	am3.blk_addr = 0x8000000;
+
+	am3.smc_offset = 0;
+	am3.smc_size = 0x400;
+	am3.smc_base = 0;
+	am3.last_offset = 0;
+
+	am3.file_index = 0;
+	am3.file_count = 0;
+	am3.file_size = 0;
+	am3.file_size_list.clear();
+	am3.file_addr_list.clear();
+
+	am3.remaining_size = 0x400;
+
+	am3.firmware_data.clear();
+	am3.card_data.clear();
+}
+
 /****** Read AM3 firmware file into memory ******/
 bool AGB_MMU::read_am3_firmware(std::string filename)
 {
