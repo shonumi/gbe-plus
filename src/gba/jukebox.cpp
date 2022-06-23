@@ -13,6 +13,47 @@
 #include "mmu.h"
 #include "common/util.h"
 
+/****** Reset Jukebox data structure ******/
+void AGB_MMU::jukebox_reset()
+{
+	jukebox.io_regs.clear();
+	jukebox.io_regs.resize(0x200, 0x00);
+	jukebox.io_regs[0x0100] = 10;
+	jukebox.io_regs[0x009A] = 1;
+	jukebox.io_index = 0;
+	jukebox.status = 0;
+	jukebox.config = 0;
+	jukebox.out_hi = 0;
+	jukebox.out_lo = 0;
+	jukebox.current_category = 0;
+	jukebox.current_file = 0;
+	jukebox.current_frame = 0;
+	jukebox.last_music_file = 0;
+	jukebox.last_voice_file = 0;
+	jukebox.last_karaoke_file = 0;
+	jukebox.progress = 0;
+	jukebox.format_compact_flash = false;
+	jukebox.is_recording = false;
+	jukebox.remaining_recording_time = 120;
+	jukebox.remaining_playback_time = 0;
+	jukebox.current_recording_time = 0;
+	jukebox.recorded_file = "";
+
+	for(u32 x = 0; x < 9; x++) { jukebox.spectrum_values[x] = 0; }
+
+	if(config::cart_type == AGB_JUKEBOX)
+	{
+		read_jukebox_file_list((config::data_path + "jukebox/music.txt"), 0);
+		read_jukebox_file_list((config::data_path + "jukebox/voice.txt"), 1);
+		read_jukebox_file_list((config::data_path + "jukebox/karaoke.txt"), 2);
+
+		//Set Jukebox I/O flags if files detected
+		if(!jukebox.music_files.empty()) { jukebox.io_regs[0xAD] = jukebox.music_files.size(); }
+		if(!jukebox.voice_files.empty()) { jukebox.io_regs[0xAE] = jukebox.voice_files.size(); }
+		if(!jukebox.karaoke_files.empty()) { jukebox.io_regs[0xAF] = jukebox.karaoke_files.size(); }
+	}
+}
+
 /****** Writes data to GBA Jukebox I/O ******/
 void AGB_MMU::write_jukebox(u32 address, u8 value)
 {
