@@ -576,6 +576,7 @@ void agb_microphone_callback(void* _apu, u8 *_stream, int _length)
 	int length = _length/2;
 
 	AGB_APU* apu_link = (AGB_APU*) _apu;
+	u32 mic_volume = 0;
 
 	if(apu_link->apu_stat.mic_init)
 	{
@@ -684,7 +685,16 @@ void agb_microphone_callback(void* _apu, u8 *_stream, int _length)
 		//Grab samples from microphone and add to the buffer
 		else if(apu_link->apu_stat.is_recording)
 		{
-			for(u32 x = 0; x < length; x++) { apu_link->mic_buffer.push_back(stream[x]); }
+			for(u32 x = 0; x < length; x++)
+			{
+				apu_link->mic_buffer.push_back(stream[x]);
+				mic_volume += std::abs(stream[x]);
+			}
+
+			//Calculate average mic volume
+			mic_volume /= length;
+			double ratio = (mic_volume / 32767.0);
+			apu_link->mem->jukebox.io_regs[0x008B] = 0xFFEE + (22 * ratio);
 		}
 	}
 }
