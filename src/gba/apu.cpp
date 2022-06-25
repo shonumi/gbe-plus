@@ -194,7 +194,7 @@ bool AGB_APU::init()
     		microphone_spec.freq = apu_stat.sample_rate;
 		microphone_spec.format = AUDIO_S16SYS;
     		microphone_spec.channels = 1;
-    		microphone_spec.samples = (config::sample_size) ? config::sample_size : 4096;
+    		microphone_spec.samples = (config::sample_size) ? config::sample_size : 1024;
     		microphone_spec.callback = agb_microphone_callback;
     		microphone_spec.userdata = this;
 
