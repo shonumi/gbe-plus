@@ -40,6 +40,7 @@ void AGB_APU::reset()
 	apu_stat.sound_on = false;
 	apu_stat.stereo = false;
 	apu_stat.mic_init = false;
+	apu_stat.is_mic_on = false;
 	apu_stat.is_recording = false;
 	apu_stat.save_recording = false;
 
@@ -677,17 +678,18 @@ void agb_microphone_callback(void* _apu, u8 *_stream, int _length)
 
 			apu_link->apu_stat.save_recording = false;
 			apu_link->apu_stat.is_recording = false;
+			apu_link->apu_stat.is_mic_on = false;
 			apu_link->mic_buffer.clear();
 
 			SDL_PauseAudioDevice(apu_link->apu_stat.mic_id, 1);
 		}	
 
 		//Grab samples from microphone and add to the buffer
-		else if(apu_link->apu_stat.is_recording)
+		else if(apu_link->apu_stat.is_mic_on)
 		{
 			for(u32 x = 0; x < length; x++)
 			{
-				apu_link->mic_buffer.push_back(stream[x]);
+				if(apu_link->apu_stat.is_recording) { apu_link->mic_buffer.push_back(stream[x]); }
 				mic_volume += std::abs(stream[x]);
 			}
 

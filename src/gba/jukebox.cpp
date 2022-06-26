@@ -123,6 +123,8 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 				bool restore = false;
 				bool was_recording = jukebox.is_recording;
 
+				std::cout<<"YO -> 0x" << jukebox.status << "\n";
+
 				//Process various commands now
 				switch(jukebox.status)
 				{
@@ -154,6 +156,14 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 
 					//Record Music Files
 					case 0x09:
+						//Turn on microphone if possible
+						if(config::use_microphone && apu_stat->mic_init)
+						{
+							apu_stat->is_mic_on = true;
+							apu_stat->save_recording = false;
+							SDL_PauseAudioDevice(apu_stat->mic_id, 0);
+						}
+
 						jukebox.current_category = 0;
 						jukebox.file_limit = jukebox.music_files.size();
 						jukebox_set_file_info();
@@ -190,6 +200,14 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 
 					//Record Voice Files
 					case 0x0B:
+						//Turn on microphone if possible
+						if(config::use_microphone && apu_stat->mic_init)
+						{
+							apu_stat->is_mic_on = true;
+							apu_stat->save_recording = false;
+							SDL_PauseAudioDevice(apu_stat->mic_id, 0);
+						}
+
 						jukebox.current_category = 1;
 						jukebox.file_limit = jukebox.voice_files.size();
 						jukebox_set_file_info();
@@ -225,6 +243,14 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 
 					//Record Karaoke Files
 					case 0x0D:
+						//Turn on microphone if possible
+						if(config::use_microphone && apu_stat->mic_init)
+						{
+							apu_stat->is_mic_on = true;
+							apu_stat->save_recording = false;
+							SDL_PauseAudioDevice(apu_stat->mic_id, 0);
+						}
+
 						jukebox.current_category = 0;
 						jukebox.current_recording_time = 0;
 						jukebox.current_file = jukebox.last_music_file;
@@ -431,6 +457,7 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 						jukebox.io_regs[0x0085] = 0;
 
 						apu_stat->ext_audio.playing = false;
+						apu_stat->is_mic_on = false;
 
 						//Stop recording via microphone if possible
 						if(config::use_microphone && apu_stat->mic_init)

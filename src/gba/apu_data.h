@@ -95,6 +95,7 @@ struct agb_apu_data
 	bool sound_on;
 	bool stereo;
 	bool mic_init;
+	bool is_mic_on;
 	bool is_recording;
 	bool save_recording;
 
