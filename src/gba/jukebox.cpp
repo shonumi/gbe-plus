@@ -35,6 +35,7 @@ void AGB_MMU::jukebox_reset()
 	jukebox.format_compact_flash = false;
 	jukebox.is_recording = false;
 	jukebox.remaining_recording_time = 120;
+	jukebox.saved_recording_time = 120;
 	jukebox.remaining_playback_time = 0;
 	jukebox.current_recording_time = 0;
 	jukebox.recorded_file = "";
@@ -122,8 +123,6 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 
 				bool restore = false;
 				bool was_recording = jukebox.is_recording;
-
-				std::cout<<"YO -> 0x" << jukebox.status << "\n";
 
 				//Process various commands now
 				switch(jukebox.status)
@@ -435,6 +434,7 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 						if(jukebox.is_recording)
 						{
 							jukebox_save_recording();
+							jukebox.saved_recording_time = jukebox.remaining_recording_time;
 
 							//When stopping recording for karaoke, set file info for music files
 							if(jukebox.current_category == 2)
