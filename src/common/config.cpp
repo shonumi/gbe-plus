@@ -238,6 +238,9 @@ namespace config
 	//AM3 SmartMedia ID Auto Generate Flag
 	bool auto_gen_am3_id = false;
 
+	//Total time (in seconds) for Jukebox recording
+	u32 jukebox_total_time = 0;
+
 	//On-screen display settings
 	bool use_osd = false;
 	std::vector <u32> osd_font;
@@ -2583,6 +2586,23 @@ bool parse_ini_file()
 			}
 		}
 
+		//Total time for GBA Jukebox recording
+		else if(ini_item == "#jukebox_total_time")
+		{
+			if((x + 1) < size)
+			{
+				util::from_str(ini_opts[++x], output);
+
+				config::jukebox_total_time = output;
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#jukebox_total_time) \n";
+				return false;
+			}
+		}
+
 		//Recent files
 		else if(ini_item == "#recent_files")
 		{
@@ -3387,6 +3407,14 @@ bool save_ini_file()
 			std::string val = util::to_str(config::vc_timeout);
 
 			output_lines[line_pos] = "[#virtual_cursor_timeout:" + val + "]";
+		}
+
+		//Total time for GBA Jukebox
+		else if(ini_item == "#jukebox_total_time")
+		{
+			line_pos = output_count[x];
+
+			output_lines[line_pos] = "[#jukebox_total_time:" + util::to_str(config::jukebox_total_time) + "]";
 		}
 
 		else if(ini_item == "#recent_files")

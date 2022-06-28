@@ -204,6 +204,8 @@ namespace config
 
 	extern bool auto_gen_am3_id;
 
+	extern u32 jukebox_total_time;
+
 	extern bool use_osd;
 	extern std::vector <u32> osd_font;
 	extern std::string osd_message;
