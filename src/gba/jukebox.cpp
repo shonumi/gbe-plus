@@ -315,17 +315,32 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 						{
 							case 0x00:
 								jukebox.io_regs[0x82] = (jukebox.is_recording) ? 0x1012 : 0x1001;
-								apu_stat->ext_audio.playing = jukebox_load_audio(config::data_path + "jukebox/" + jukebox.music_files[jukebox.current_file]);
+
+								if(!jukebox.music_files.empty())
+								{
+									apu_stat->ext_audio.playing = jukebox_load_audio(config::data_path + "jukebox/" + jukebox.music_files[jukebox.current_file]);
+								}
+
 								break;
 
 							case 0x01:
 								jukebox.io_regs[0x82] = (jukebox.is_recording) ? 0x1112 : 0x1101;
-								apu_stat->ext_audio.playing = jukebox_load_audio(config::data_path + "jukebox/" + jukebox.voice_files[jukebox.current_file]);
+
+								if(!jukebox.voice_files.empty())
+								{
+									apu_stat->ext_audio.playing = jukebox_load_audio(config::data_path + "jukebox/" + jukebox.voice_files[jukebox.current_file]);
+								}
+								
 								break;
 
 							case 0x02:
 								jukebox.io_regs[0x82] = (jukebox.is_recording) ? 0x1211 : 0x1201;
-								apu_stat->ext_audio.playing = jukebox_load_audio(config::data_path + "jukebox/" + jukebox.karaoke_files[jukebox.current_file]);
+
+								if(!jukebox.karaoke_files.empty())
+								{
+									apu_stat->ext_audio.playing = jukebox_load_audio(config::data_path + "jukebox/" + jukebox.karaoke_files[jukebox.current_file]);
+								}
+
 								break;
 						}
 
