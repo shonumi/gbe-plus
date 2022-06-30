@@ -34,14 +34,14 @@ void AGB_MMU::jukebox_reset()
 	jukebox.progress = 0;
 	jukebox.format_compact_flash = false;
 	jukebox.is_recording = false;
-	jukebox.remaining_recording_time = 120;
-	jukebox.saved_recording_time = 120;
+	jukebox.remaining_recording_time = 0;
 	jukebox.remaining_playback_time = 0;
 	jukebox.current_recording_time = 0;
 	jukebox.recorded_file = "";
 
 	for(u32 x = 0; x < 9; x++) { jukebox.spectrum_values[x] = 0; }
 
+	//Read Jukebox data files
 	if(config::cart_type == AGB_JUKEBOX)
 	{
 		read_jukebox_file_list((config::data_path + "jukebox/music.txt"), 0);
@@ -52,6 +52,23 @@ void AGB_MMU::jukebox_reset()
 		if(!jukebox.music_files.empty()) { jukebox.io_regs[0xAD] = jukebox.music_files.size(); }
 		if(!jukebox.voice_files.empty()) { jukebox.io_regs[0xAE] = jukebox.voice_files.size(); }
 		if(!jukebox.karaoke_files.empty()) { jukebox.io_regs[0xAF] = jukebox.karaoke_files.size(); }
+	}
+
+	//Properly calculate remaining recording time based on Jukebox data files
+	u32 data_file_time = 0;
+	
+	for(u32 x = 0; x < jukebox.music_times.size(); x++) { data_file_time += jukebox.music_times[x]; }
+	for(u32 x = 0; x < jukebox.voice_times.size(); x++) { data_file_time += jukebox.voice_times[x]; }
+	for(u32 x = 0; x < jukebox.karaoke_times.size(); x++) { data_file_time += jukebox.karaoke_times[x]; }
+
+	if(data_file_time >= config::jukebox_total_time)
+	{
+		jukebox.remaining_recording_time = 0;
+	}
+
+	else
+	{
+		jukebox.remaining_recording_time = config::jukebox_total_time - data_file_time;
 	}
 }
 
@@ -434,7 +451,6 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 						if(jukebox.is_recording)
 						{
 							jukebox_save_recording();
-							jukebox.saved_recording_time = jukebox.remaining_recording_time;
 
 							//When stopping recording for karaoke, set file info for music files
 							if(jukebox.current_category == 2)
