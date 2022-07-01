@@ -819,6 +819,7 @@ bool AGB_MMU::jukebox_delete_file()
 	std::vector<std::string> *out_list = NULL;
 	std::string filename;
 	u16 update_index = 0;
+	u16 update_time = 0;
 
 	//Grab the correct file list based on category, also select update file and update index
 	switch(jukebox.current_category)
@@ -826,17 +827,20 @@ bool AGB_MMU::jukebox_delete_file()
 		case 0x00:
 			out_list = &jukebox.music_files;
 			filename = config::data_path + "jukebox/music.txt";
+			update_time = jukebox.music_times[jukebox.current_file];
 			update_index = 0xAD;
 			break;
 
 		case 0x01:
 			out_list = &jukebox.voice_files;
 			filename = config::data_path + "jukebox/voice.txt";
+			update_time = jukebox.voice_times[jukebox.current_file];
 			update_index = 0xAE;
 			break;
 		case 0x02:
 			out_list = &jukebox.karaoke_files;
 			filename = config::data_path + "jukebox/karaoke.txt";
+			update_time = jukebox.karaoke_times[jukebox.current_file];
 			update_index = 0xAF;
 			break;
 		
@@ -861,6 +865,9 @@ bool AGB_MMU::jukebox_delete_file()
 	}
 
 	for(u32 x = 0; x < out_list->size(); x++) { file << out_list->at(x) << "\n"; }
+
+	//Update remaining Jukebox time
+	jukebox.remaining_recording_time += update_time;
 
 	//Update specific indices
 	jukebox.io_regs[update_index] = jukebox.file_limit;
