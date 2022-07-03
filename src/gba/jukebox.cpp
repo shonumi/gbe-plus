@@ -626,6 +626,13 @@ bool AGB_MMU::read_jukebox_file_list(std::string filename, u8 category)
 
 	//Clear any previosly existing contents, read in each non-blank line from the specified file
 	out_list->clear();
+	out_time->clear();
+
+	if(category == 0)
+	{
+		jukebox.music_titles.clear();
+		jukebox.music_artists.clear();
+	}
 
 	std::string input_line = "";
 	std::ifstream file(filename.c_str(), std::ios::in);
@@ -823,7 +830,7 @@ void AGB_MMU::jukebox_set_file_info()
 /****** Deletes a specific file from the Music Recorder/Jukebox ******/
 bool AGB_MMU::jukebox_delete_file()
 {
-	std::vector<std::string> *out_list = NULL;
+	std::vector<std::string> final_list;
 	std::string filename;
 	u16 update_index = 0;
 	u16 update_time = 0;
@@ -832,26 +839,18 @@ bool AGB_MMU::jukebox_delete_file()
 	switch(jukebox.current_category)
 	{
 		case 0x00:
-			out_list = &jukebox.music_files;
-			if(out_list->empty()) { return false; }
-
 			filename = config::data_path + "jukebox/music.txt";
 			update_time = jukebox.music_times[jukebox.current_file];
 			update_index = 0xAD;
 			break;
 
 		case 0x01:
-			out_list = &jukebox.voice_files;
-			if(out_list->empty()) { return false; }
-
 			filename = config::data_path + "jukebox/voice.txt";
 			update_time = jukebox.voice_times[jukebox.current_file];
 			update_index = 0xAE;
 			break;
-		case 0x02:
-			out_list = &jukebox.karaoke_files;
-			if(out_list->empty()) { return false; }
 
+		case 0x02:
 			filename = config::data_path + "jukebox/karaoke.txt";
 			update_time = jukebox.karaoke_times[jukebox.current_file];
 			update_index = 0xAF;
@@ -862,22 +861,55 @@ bool AGB_MMU::jukebox_delete_file()
 			return false;
 	}
 
-	//Erase file from list and adjust current file position
-	if(jukebox.current_file < out_list->size()) { out_list->erase(out_list->begin() + jukebox.current_file); }
-	if(jukebox.current_file != 0) { jukebox.current_file--; }
+	//Build new file without current file
+	std::string input_line = "";
+	std::ifstream ifile(filename.c_str(), std::ios::in);
+	u32 line_count = 0;
 
-	jukebox.file_limit = out_list->size();
-
-	//Update contents
-	std::ofstream file(filename.c_str(), std::ios::trunc);
-
-	if(!file.is_open())
+	if(!ifile.is_open())
 	{
 		std::cout<<"MMU::Error - Could not open list of music files from " << filename << "\n";
 		return false;
 	}
 
-	for(u32 x = 0; x < out_list->size(); x++) { file << out_list->at(x) << "\n"; }
+	//Grab all non-empty lines from file
+	while(getline(ifile, input_line))
+	{
+		//Don't grab
+		if((!input_line.empty()) && (input_line != "\n"))
+		{
+
+			if(line_count != jukebox.current_file)
+			{
+				final_list.push_back(input_line);
+			}
+
+			line_count++;
+		}
+	}
+
+	ifile.close();
+
+	//Adjust current file position if necessary
+	if(jukebox.current_file == final_list.size()) { jukebox.current_file--; }
+
+	jukebox.file_limit = final_list.size();
+
+	//Update contents
+	std::ofstream ofile(filename.c_str(), std::ios::trunc);
+
+	if(!ofile.is_open())
+	{
+		std::cout<<"MMU::Error - Could not open list of music files from " << filename << "\n";
+		return false;
+	}
+
+	for(u32 x = 0; x < final_list.size(); x++) { ofile << final_list[x] << "\n"; }
+
+	ofile.close();
+
+	//Update internal Jukebox data with new file
+	read_jukebox_file_list(filename, jukebox.current_category);
 
 	//Update remaining Jukebox time
 	jukebox.remaining_recording_time += update_time;
@@ -886,7 +918,6 @@ bool AGB_MMU::jukebox_delete_file()
 	jukebox.io_regs[update_index] = jukebox.file_limit;
 	jukebox.io_regs[0x00A0] = jukebox.current_file;
 
-	file.close();
 	return true;
 }
 
