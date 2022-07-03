@@ -678,10 +678,7 @@ void agb_microphone_callback(void* _apu, u8 *_stream, int _length)
 
 			apu_link->apu_stat.save_recording = false;
 			apu_link->apu_stat.is_recording = false;
-			apu_link->apu_stat.is_mic_on = false;
 			apu_link->mic_buffer.clear();
-
-			SDL_PauseAudioDevice(apu_link->apu_stat.mic_id, 1);
 		}	
 
 		//Grab samples from microphone and add to the buffer

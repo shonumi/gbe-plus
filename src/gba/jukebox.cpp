@@ -316,7 +316,7 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 							case 0x00:
 								jukebox.io_regs[0x82] = (jukebox.is_recording) ? 0x1012 : 0x1001;
 
-								if(!jukebox.music_files.empty())
+								if(!jukebox.music_files.empty() && (!jukebox.is_recording))
 								{
 									apu_stat->ext_audio.playing = jukebox_load_audio(config::data_path + "jukebox/" + jukebox.music_files[jukebox.current_file]);
 								}
@@ -326,7 +326,7 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 							case 0x01:
 								jukebox.io_regs[0x82] = (jukebox.is_recording) ? 0x1112 : 0x1101;
 
-								if(!jukebox.voice_files.empty())
+								if(!jukebox.voice_files.empty() && (!jukebox.is_recording))
 								{
 									apu_stat->ext_audio.playing = jukebox_load_audio(config::data_path + "jukebox/" + jukebox.voice_files[jukebox.current_file]);
 								}
@@ -369,6 +369,13 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 					//Reset Current File
 					case 0x14:
 						jukebox.is_recording = false;
+
+						//Turn off microphone if possible
+						if(config::use_microphone && apu_stat->mic_init)
+						{
+							apu_stat->is_mic_on = true;
+							SDL_PauseAudioDevice(apu_stat->mic_id, 1);
+						}
 
 						//Setup remaining playback time if not recording
 						jukebox.io_regs[0x0084] = 0;
@@ -466,6 +473,7 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 						if(jukebox.is_recording)
 						{
 							jukebox_save_recording();
+							jukebox.current_recording_time = 0;
 
 							//When stopping recording for karaoke, set file info for music files
 							if(jukebox.current_category == 2)
@@ -488,7 +496,6 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 						jukebox.io_regs[0x0085] = 0;
 
 						apu_stat->ext_audio.playing = false;
-						apu_stat->is_mic_on = false;
 
 						//Stop recording via microphone if possible
 						if(config::use_microphone && apu_stat->mic_init)
@@ -826,6 +833,8 @@ bool AGB_MMU::jukebox_delete_file()
 	{
 		case 0x00:
 			out_list = &jukebox.music_files;
+			if(out_list->empty()) { return false; }
+
 			filename = config::data_path + "jukebox/music.txt";
 			update_time = jukebox.music_times[jukebox.current_file];
 			update_index = 0xAD;
@@ -833,12 +842,16 @@ bool AGB_MMU::jukebox_delete_file()
 
 		case 0x01:
 			out_list = &jukebox.voice_files;
+			if(out_list->empty()) { return false; }
+
 			filename = config::data_path + "jukebox/voice.txt";
 			update_time = jukebox.voice_times[jukebox.current_file];
 			update_index = 0xAE;
 			break;
 		case 0x02:
 			out_list = &jukebox.karaoke_files;
+			if(out_list->empty()) { return false; }
+
 			filename = config::data_path + "jukebox/karaoke.txt";
 			update_time = jukebox.karaoke_times[jukebox.current_file];
 			update_index = 0xAF;
