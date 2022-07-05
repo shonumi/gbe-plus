@@ -533,7 +533,6 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 			switch(jukebox.io_index)
 			{
 				//Misc Audio Registers
-				case 0x008A:
 				case 0x008C:
 				case 0x008F:
 				case 0x009A:
@@ -542,8 +541,10 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 					jukebox.io_regs[jukebox.io_index] |= value;
 					break;
 
-				//Volume:
+				//Music Volume
+				//Voice Volume
 				case 0x0088:
+				case 0x008A:
 					jukebox.io_regs[jukebox.io_index] &= 0xFF00;
 					jukebox.io_regs[jukebox.io_index] |= value;
 					apu_stat->ext_audio.volume = 0x3F - (value & 0x3F);
