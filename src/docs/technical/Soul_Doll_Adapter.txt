@@ -126,7 +126,16 @@ Again, 2nd and 3rd transfers use Bit 3 to determine a "0" or a "1". The above ex
 6. Soul Doll Data Format
 ***************************************************
 
-Most of the 1KB data contained on the 24LC08 appears to be related to the Talispod or Talisdam accessories, e.g. such data as the Legend's preferred humidity and tempurature, and their stats. For the games, however, only bytes 0x300 - 0x3FF are relevant. This area of memory specifies the nickname, the owner's name, and various other flags related to auto-training mode. Most importantly, these bytes determine what kind of Legend is generated from the Soul Doll. Byte 0x302 acts as this ID:
+Most of the 1KB data contained on the 24LC08 appears to be related to the Talispod or Talisdam accessories, e.g. such data as the Legend's preferred humidity and tempurature, and their stats. For the games, however, only bytes 0x300 - 0x3FF are relevant. This area of memory specifies the nickname, the owner's name, and various other flags related to auto-training mode. Most importantly, these bytes determine what kind of Legend is generated from the Soul Doll. The layout of this memory looks like the following:
+
+-----------------------------------------------------------
+Address		| Data Description
+-----------------------------------------------------------
+0x302		| Legend ID
+0x398 - 0x39B	| Owner Name
+-----------------------------------------------------------
+
+Byte 0x302 acts as this ID. Depending on the value of this, the games will produce a different Legend. Their values are as follows
 
 0x01 = Windragon (A)?
 0x03 = Windragon (B)?
