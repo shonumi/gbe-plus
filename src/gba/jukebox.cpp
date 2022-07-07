@@ -967,7 +967,10 @@ void AGB_MMU::process_jukebox()
 
 			jukebox.io_regs[0xAD] = 0;
 			jukebox.io_regs[0xAE] = 0; 
-			jukebox.io_regs[0xAF] = 0; 
+			jukebox.io_regs[0xAF] = 0;
+
+			//Reset remaining recording time to the maximum
+			jukebox.remaining_recording_time = config::jukebox_total_time;
 		}
 	}
 
