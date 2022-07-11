@@ -133,8 +133,10 @@ Address		| Data Description
 -----------------------------------------------------------
 0x302		| Legend ID
 0x398 - 0x39C	| Owner Name
+0x3A1 - 0x3B0	| Message
 0x3B1 - 0x3B9	| Legend Name
 0x3D4		| Legend Level
+0x3EE		| Auto Adventure Flag
 -----------------------------------------------------------
 
 Byte 0x302 acts as the Legend ID. Depending on the value of this, the games will produce a different Legend. Their values are listed below:
@@ -174,6 +176,8 @@ Several IDs appear to be mapped to the same Legend. This may be explained by the
 
 Bytes 0x398 through 0x39C store the owner's name. During the Soul Doll Initialization process, the player's name is registered to the Soul Doll. The games use this to lock the Soul Doll to a particular player. If the owner name written to EEPROM doesn't match the current one from the game's save file, EEPROM must be erased and the Soul Doll reset in order to use it. The player's name is 5 characters at maximum; each byte in EEPROM represents one character. The exact string format is currently unknown.
 
+Bytes 0x3A1 through 0x3B0 store a brief message inside the Soul Doll. This message can be checked during the Reborn process on a Soul Doll that was previously initialized for a given player. It has a maximum length of 16 characters; each byte in EEPROM represents one character. The exact string format is unknown.
+
 Bytes 0x3B1 through 0x3B9 store the Legend's name. It has maximum length of 8 characters; each byte in EEPROM represents one character. The exact string format is currently unknown.
 
 Byte 0x3D4 represents the level of the Legend. Its value ranges from 1 to 99. It uses a somewhat convoluted numbering system. The formulas below can convert a decimal value into the appropiate binary format for the Soul Doll, where NUMBER is the original input:
@@ -185,3 +189,5 @@ Bits		| Formula
 3 - 5		| ((3 - ((NUMBER / 8) AND 0x7)) AND 0x7)
 6 - 7		| (3 - ((0 - (NUMBER / 32)) MOD 3))
 -----------------------------------------------------------
+
+Byte 0x3EE represents the Auto Adventure flag. When the Legend goes on an Auto Adventure, this byte is set to 0x27, otherwise it is set to 0x26.
