@@ -139,6 +139,7 @@ Address		| Data Description
 0x3D4		| Legend Level
 0x3EE		| Auto Adventure Flag
 0x3F1		| Attached Item Type
+0x3FE - 0x3FF	| Checksum
 -----------------------------------------------------------
 
 Byte 0x302 acts as the Legend ID. Depending on the value of this, the games will produce a different Legend. Their values are listed below:
@@ -197,3 +198,5 @@ Bits		| Formula
 Byte 0x3F1 represents the type of attached item for a Soul Doll.
 
 Byte 0x3EE represents the Auto Adventure flag. When the Legend goes on an Auto Adventure, this byte is set to 0x27, otherwise it is set to 0x26.
+
+Bytes 0x3FE through 0x3FF are a 16-bit checksum the data 0x380 through 0x3FD. If the checksum is incorrect, both Legendz games will treat the entire Soul Doll data as invalid, which will require it to be reinitialized.
