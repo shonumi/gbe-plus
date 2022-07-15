@@ -126,19 +126,39 @@ Again, 2nd and 3rd transfers use Bit 3 to determine a "0" or a "1". The above ex
 6. Soul Doll Data Format
 ***************************************************
 
-Most of the 1KB data contained on the 24LC08 appears to be related to the Talispod or Talisdam accessories, e.g. such data as the Legend's preferred humidity and tempurature, and their stats. For the games, however, only bytes 0x300 - 0x3FF are relevant. This area of memory specifies the nickname, the owner's name, and various other flags related to auto-training mode. Most importantly, these bytes determine what kind of Legend is generated from the Soul Doll. The layout of this memory looks like the following:
+Most of the 1KB data contained on the 24LC08 appears to be related to the Talispod or Talisdam accessories, e.g. such data as the Legend's preferred humidity and tempurature, and their stats. For the games, however, only bytes 0x300 - 0x3FF are relevant. This area of memory specifies the nickname, the owner's name, and various other flags related to auto-training mode and attached items. Most importantly, these bytes determine what kind of Legend is generated from the Soul Doll.
+
+The layout of this memory varies depending on which Legendz game is being played. Data for Legendz: Yomigaeru Shiren no Shima and Legendz: Sign of Necrom change the location of the fields. While Sign of Necrom can recognize the format of Yomigaeru Shiren no Shima, data from Sign of Nekrom is incompatible with Yomigaeru Shiren no Shima.
+
+For Yomigaeru Shiren no Shima, EEPROM data is arranged as follows:
 
 -----------------------------------------------------------
 Address		| Data Description
 -----------------------------------------------------------
 0x302		| Legend ID
-0x389 - 0x38B	| Attached Item Quantity
 0x398 - 0x39C	| Owner Name
 0x3A1 - 0x3B0	| Message
 0x3B1 - 0x3B9	| Legend Name
 0x3D4		| Legend Level
 0x3EE		| Auto Adventure Flag
-0x3F1		| Attached Item Type
+0x3F0		| Attached Item Flag
+0x3F1 - 0x3F2	| Attached Item Type & Quantity
+0x3FE - 0x3FF	| Checksum
+-----------------------------------------------------------
+
+For Sign of Nekrom, EEPROM data is arranged as follows:
+
+-----------------------------------------------------------
+Address		| Data Description
+-----------------------------------------------------------
+0x302		| Legend ID
+0x390 - 0x394	| Owner Name
+0x3A1 - 0x3B0	| Message
+0x399 - 0x3A0	| Legend Name
+0x3BD		| Legend Level
+0x3CC		| Auto Adventure Flag
+0x3CE - 0x3CF	| Attached Item Type & Quantity
+0x3FC		| Attached Item Flag
 0x3FE - 0x3FF	| Checksum
 -----------------------------------------------------------
 
@@ -177,26 +197,16 @@ Byte 0x302 acts as the Legend ID. Depending on the value of this, the games will
 
 Several IDs appear to be mapped to the same Legend. This may be explained by the fact that some Soul Dollz were released in A, B, and sometimes C variants. The plastic figurine is different, but the GBA games generate the same sprite and default name for the Soul Doll. All of the potential duplicates are marked with "?" in the list above. Although there are 103 Soul Dollz, the list remains incomplete. The gaps between entries do not generate valid Legendz, which suggests other bytes in EEPROM are also responsible for the ID.
 
-Bytes 0x389 through 0x38B appears to represent the quantity of attached items for a Soul Doll. A Legend can temporarily hold onto items from the player's inventory. Only 1 type of item can be given to a Legend at a time, but its quanitity can vary. Each byte in this region appears to correspond to a digit in the ones, tens, and hundreds values.
+2 bytes represent the quantity and type of attached items for a Soul Doll. A Legend can temporarily hold onto items from the player's inventory. Only 1 type of item can be given to a Legend at a time, but its quanitity can vary (1 = Minimum, 9 = Maximum).
 
-Bytes 0x398 through 0x39C store the owner's name. During the Soul Doll Initialization process, the player's name is registered to the Soul Doll. The games use this to lock the Soul Doll to a particular player. If the owner name written to EEPROM doesn't match the current one from the game's save file, EEPROM must be erased and the Soul Doll reset in order to use it. The player's name is 5 characters at maximum; each byte in EEPROM represents one character. The exact string format is currently unknown.
+5 bytes are used to store the owner's name. During the Soul Doll Initialization process, the player's name is registered to the Soul Doll. The games use this to lock the Soul Doll to a particular player. If the owner name written to EEPROM doesn't match the current one from the game's save file, EEPROM must be erased and the Soul Doll reset in order to use it. Each byte in EEPROM represents one character. The exact string format is currently unknown.
 
-Bytes 0x3A1 through 0x3B0 store a brief message inside the Soul Doll. This message can be checked during the Reborn process on a Soul Doll that was previously initialized for a given player. It has a maximum length of 16 characters; each byte in EEPROM represents one character. The exact string format is unknown.
+16 bytes are used to store a brief message inside the Soul Doll. This message can be checked during the Reborn process on a Soul Doll that was previously initialized for a given player. Each byte in EEPROM represents one character. The exact string format is unknown.
 
-Bytes 0x3B1 through 0x3B9 store the Legend's name. It has maximum length of 8 characters; each byte in EEPROM represents one character. The exact string format is currently unknown.
+8 bytes are used to store the Legend's name. Each byte in EEPROM represents one character. The exact string format is currently unknown.
 
-Byte 0x3D4 represents the level of the Legend. Its value ranges from 1 to 99. It uses a somewhat convoluted numbering system. The formulas below can convert a decimal value into the appropiate binary format for the Soul Doll, where NUMBER is the original input:
+1 byte represents the level of the Legend. Its value ranges from 1 to 99.
 
------------------------------------------------------------
-Bits		| Formula
------------------------------------------------------------
-0 - 2		| ((3 - (NUMBER AND 0x7)) AND 0x7)
-3 - 5		| ((3 - ((NUMBER / 8) AND 0x7)) AND 0x7)
-6 - 7		| (3 - ((0 - (NUMBER / 32)) MOD 3))
------------------------------------------------------------
-
-Byte 0x3F1 represents the type of attached item for a Soul Doll.
-
-Byte 0x3EE represents the Auto Adventure flag. When the Legend goes on an Auto Adventure, this byte is set to 0x27, otherwise it is set to 0x26.
+1 byte represents the Auto Adventure flag. When the Legend goes on an Auto Adventure, this byte is set to a non-zero value, otherwise it is set to 0x00. For Yomigaeru Shiren no Shima, this flag is always 0x01 when set. For Sign of Nekrom, it varies depending on the type of Auto Adventure, acting as a sort of ID.
 
 Bytes 0x3FE through 0x3FF are a 16-bit checksum the data 0x380 through 0x3FD. If the checksum is incorrect, both Legendz games will treat the entire Soul Doll data as invalid, which will require it to be reinitialized.
