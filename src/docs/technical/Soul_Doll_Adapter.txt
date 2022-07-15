@@ -1,4 +1,4 @@
-Soul Doll Adapter Technical Documentation 0.3
+Soul Doll Adapter Technical Documentation 0.4
 December 18th, 2018
 Shonumi aka D.S. Baxter
 
@@ -209,4 +209,16 @@ Several IDs appear to be mapped to the same Legend. This may be explained by the
 
 1 byte represents the Auto Adventure flag. When the Legend goes on an Auto Adventure, this byte is set to a non-zero value, otherwise it is set to 0x00. For Yomigaeru Shiren no Shima, this flag is always 0x01 when set. For Sign of Nekrom, it varies depending on the type of Auto Adventure, acting as a sort of ID.
 
-Bytes 0x3FE through 0x3FF are a 16-bit checksum the data 0x380 through 0x3FD. If the checksum is incorrect, both Legendz games will treat the entire Soul Doll data as invalid, which will require it to be reinitialized.
+Bytes 0x3FE through 0x3FF are a 16-bit checksum the data 0x380 through 0x3FD. The checksum is computed by adding up every byte within that range. If the checksum is incorrect, both Legendz games will treat the entire Soul Doll data as invalid, which will require it to be reinitialized. After calculating the initial checksum, it must be XOR'ed with a separate 16-bit value. Yomigaeru Shiren no Shima uses 0x4832, while Sign of Nekrom uses 0x4C32. Sign of Nekrom can detect both types of checksums and uses this to determine which game last modified EEPROM data.
+
+
+***************************************************
+7. Soul Doll Data Obfuscation
+***************************************************
+
+The EEPROM data is obfuscated with a repeating 32-bit key. This makes the data somewhat inaccessible unless parsed first. The 32-bit is 0xA8262CDB as an LSB first value. Each 32-bit value from EEPROM is simply XOR'ed by the key. Another way to unscramble EEPROM is demonstrated by the following psuedocode:
+
+ARRAY = 0xDB, 0x2C, 0x26, 0xA8
+UNSCRAMBLED VALUE = EEPROM BYTE XOR ARRAY[EEPROM ADDRESS AND 0x03]
+
+This obfuscation only occurs on bytes 0x380 through 0x3FF. The checksum is calculated and XOR'ed by its own 16-bit value before XOR'ing this 128-byte region with the above mentioned 32-bit value.
