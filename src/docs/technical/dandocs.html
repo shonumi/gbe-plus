@@ -2171,6 +2171,8 @@ Bit 7 - Pause Operation		| Alerts software when sewing operations are immediatel
 	<p class="list_item"><a href="#sda_out">Communication Protocol - Read Operations</a></p>
 	<p class="list_item"><a href="#sda_inp">Communication Protocol - Write Operations</a></p>
 	<p class="list_item"><a href="#sda_fmt">Soul Doll Data Format</a></p>
+	<p class="list_item"><a href="#sda_sta">Soul Doll Data Stats</a></p>
+	<p class="list_item"><a href="#sda_enc">Soul Doll Data Obfuscation</a></p>
 
 	<a name="sda_gen"></a>
 	<p class="gray_title">[Soul Doll Adapter] : General Hardware Information</p>
@@ -2287,98 +2289,152 @@ Bit 7               | Bit 6               | Bit 5               | Bit 4         
 	<a name="sda_fmt"></a>
 	<p class="gray_title">[Soul Doll Adapter] : Soul Doll Data Format</p>
 
-	<p>Most of the 1KB data contained on the 24LC08 appears to be related to the Talispod or Talisdam accessories, e.g. such data as the Legend's preferred humidity and tempurature, and their stats. For the games, however, only bytes 0x300 - 0x3FF are relevant. This area of memory specifies the nickname, the owner's name, and various other flags related to auto-training mode. Most importantly, these bytes determine what kind of Legend is generated from the Soul Doll. Byte 0x302 acts as this ID:</p>
+	<p>Most of the 1KB data contained on the 24LC08 appears to be related to the Talispod or Talisdam accessories, e.g. such data as the Legend&#39;s preferred humidity and tempurature, and their stats. For the games, however, only bytes 0x300 - 0x3FF are relevant. This area of memory specifies the nickname, the owner&#39;s name, and various other flags related to auto-training mode and attached items. Most importantly, these bytes determine what kind of Legend is generated from the Soul Doll.</p>
 
-	<p><code>0x01 = Windragon (A)?
-0x03 = Windragon (B)?
-0x04 = Mermaid
-0x05 = Werewolf
-0x06 = Will 'o' Wisp
-0x07 = Tornado Kingdragon
-0x08 = Blaze Dragon (A)?
-0x09 = Goblin
-0x0A = Yeti
-0x0B = Hell Hound
-0x0C = Volcano Kingdragon
-0x0D = Windragon Berserker Mode
-0x0E = Blazedragon Berserker Mode
-0x0F = Fire Giant
-0x10 = Undine
-0x11 = Peryton
-0x12 = Troll
-0x13 = Command Windragon
-0x14 = Manticore
-0x15 = Carbuncle
-0x16 = Command Blazedragon
-0x17 = Dwarf
-0x18 = Skeleton
-0x19 = Earthquake Kingdragon
-0x1A = Storm Kingdragon
-0x1B = Wyvern
-0x1E = Ranshiin (A)?
-0x1F = Ranshiin (B)?
-0x20 = Chibi Shiron
-0x21 = Command Windragon Break Armed
-0x22 = Command Blazedragon Volk Armed
-0x23 = Chimaera
-0x24 = Triton
-0x25 = Gargoyle
-0x26 = Cloud Giant
-0x27 = Command Windragon
-0x28 = Command Blazedragon
-0x2B = Spiritual Windragon
-0x2C = Hexadragon
-0x2D = Windragon Berserker Mode (Growing)?
-0x2E = Blazedradon Berserker Mode (Growing)?
-0x31 = Devour Crocodile (Dandy)
-0x32 = Harpy
-0x33 = Cait Sith
-0x34 = Command Blazedragon Volk Armed
-0x35 = Devour Crocodile
-0x36 = Vampire
-0x37 = Spiritual Kingdragon
-0x38 = Ogre
-0x39 = Spriggan
-0x3A = Command Windragon Break Armed
-0x3B = Bicorn
-0x3C = Centaur
-0x3D = Nekrom Kingdragon
-0x3E = Golem
-0x3F = Ifrit
-0x41 = Gorgon
-0x42 = Kraken
-0x43 = Minotauros
-0x44 = Oberon
-0x45 = Lich
-0x48 = Colonel Windragon Tornado Soul
-0x49 = Pheonix
-0x4A = Behemoth
-0x4B = Jabberwock
-0x4C = Leviathan
-0x4D = Fenrir
-0x4E = Colonel Blazedragon Volcano Soul
-0x4F = Sphinx
-0x50 = Cyclops
-0x54 = Syclla
-0x55 = Titan
-0x56 = Echidna
-0x59 = Ranshiin (B)?
-0x5A = Chibi Shiron (Manga Version)?
-0x5B = Blazedragon (B)?
-0x5C = Windragon (Manga Version)
-0x5D = Griffin
-0x5E = Bigfoot
-0x5F = Tiamat
-0x66 = Wyvern
-0x67 = Storm Kingdragon
-0x68 = Carbuncle
-0x6D = Giant Crab
-0x71 = Hydra
-0x72 = Iron Golem
-0x73 = Valkyrie
-0x74 = Cerberus</code>
+	<p>The layout of this memory varies depending on which Legendz game is being played. Data for Legendz: Yomigaeru Shiren no Shima and Legendz: Sign of Necrom change the location of the fields. While Sign of Necrom can recognize the format of Yomigaeru Shiren no Shima, data from Sign of Nekrom is incompatible with Yomigaeru Shiren no Shima.</p>
+
+	<p>For Yomigaeru Shiren no Shima, EEPROM data is arranged as follows:</p>
+
+<p><code>-----------------------------------------------------------
+Address		| Data Description
+-----------------------------------------------------------
+0x302		| Legend ID
+0x398 - 0x39C	| Owner Name
+0x3A1 - 0x3B0	| Message
+0x3B1 - 0x3B9	| Legend Name
+0x3D4		| Legend Level
+0x3D5 - 0x3DE	| Legend Stats
+0x3EE		| Auto Adventure Flag
+0x3F0		| Attached Item Flag
+0x3F1 - 0x3F2	| Attached Item Type & Quantity
+0x3FE - 0x3FF	| Checksum
+-----------------------------------------------------------</code></p>
+
+	<p>For Sign of Nekrom, EEPROM data is arranged as follows:</p>
+
+<p><code>-----------------------------------------------------------
+Address		| Data Description
+-----------------------------------------------------------
+0x302		| Legend ID
+0x390 - 0x394	| Owner Name
+0x3A1 - 0x3B0	| Message
+0x399 - 0x3A0	| Legend Name
+0x3BD		| Legend Level
+0x3BE - 0x3C7	| Legend Stats
+0x3CC		| Auto Adventure Flag
+0x3CE - 0x3CF	| Attached Item Type & Quantity
+0x3FC		| Attached Item Flag
+0x3FE - 0x3FF	| Checksum
+-----------------------------------------------------------</code></p>
+
+	<p>Byte 0x302 acts as the Legend ID. Depending on the value of this, the games will produce a different Legend. Their values are listed below:</p>
+
+<p><code>0x01 = Windragon (A)?			0x21 = Command Windragon Break Armed		0x43 = Minotauros
+0x03 = Windragon (B)?			0x22 = Command Blazedragon Volk Armed		0x44 = Oberon
+0x04 = Mermaid				0x23 = Chimaera					0x45 = Lich
+0x05 = Werewolf				0x24 = Triton					0x48 = Colonel Windragon Tornado Soul		
+0x06 = Will &#39;o&#39; Wisp			0x25 = Gargoyle					0x49 = Pheonix
+0x07 = Tornado Kingdragon		0x26 = Cloud Giant				0x4A = Behemoth
+0x08 = Blaze Dragon (A)?		0x27 = Command Windragon			0x4B = Jabberwock
+0x09 = Goblin				0x28 = Command Blazedragon			0x4C = Leviathan
+0x0A = Yeti				0x2B = Spiritual Windragon			0x4D = Fenrir
+0x0B = Hell Hound			0x2C = Hexadragon				0x4E = Colonel Blazedragon Volcano Soul
+0x0C = Volcano Kingdragon		0x2D = Windragon Berserker Mode (Growing)?	0x4F = Sphinx
+0x0D = Windragon Berserker Mode		0x2E = Blazedradon Berserker Mode (Growing)?	0x50 = Cyclops
+0x0E = Blazedragon Berserker Mode	0x31 = Devour Crocodile (Dandy)			0x54 = Syclla
+0x0F = Fire Giant			0x32 = Harpy					0x55 = Titan
+0x10 = Undine				0x33 = Cait Sith				0x56 = Echidna
+0x11 = Peryton				0x34 = Command Blazedragon Volk Armed		0x59 = Ranshiin (B)?
+0x12 = Troll				0x35 = Devour Crocodile				0x5A = Chibi Shiron (Manga Version)?
+0x13 = Command Windragon		0x36 = Vampire					0x5B = Blazedragon (B)?
+0x14 = Manticore			0x37 = Spiritual Kingdragon			0x5C = Windragon (Manga Version)
+0x15 = Carbuncle			0x38 = Ogre					0x5D = Griffin
+0x16 = Command Blazedragon		0x39 = Spriggan					0x5E = Bigfoot
+0x17 = Dwarf				0x3A = Command Windragon Break Armed		0x5F = Tiamat
+0x18 = Skeleton				0x3B = Bicorn					0x66 = Wyvern
+0x19 = Earthquake Kingdragon		0x3C = Centaur					0x67 = Storm Kingdragon
+0x1A = Storm Kingdragon			0x3D = Nekrom Kingdragon			0x68 = Carbuncle
+0x1B = Wyvern				0x3E = Golem					0x6D = Giant Crab
+0x1E = Ranshiin (A)?			0x3F = Ifrit					0x71 = Hydra
+0x1F = Ranshiin (B)?			0x41 = Gorgon					0x72 = Iron Golem
+0x20 = Chibi Shiron			0x42 = Kraken					0x73 = Valkyrie
+											0x74 = Cerberus</code></p>
 
 	<p>Several IDs appear to be mapped to the same Legend. This may be explained by the fact that some Soul Dollz were released in A, B, and sometimes C variants. The plastic figurine is different, but the GBA games generate the same sprite and default name for the Soul Doll. All of the potential duplicates are marked with &#34;?&#34; in the list above. Although there are 103 Soul Dollz, the list remains incomplete. The gaps between entries do not generate valid Legendz, which suggests other bytes in EEPROM are also responsible for the ID.</p>
+
+	<p>2 bytes represent the quantity and type of attached items for a Soul Doll. A Legend can temporarily hold onto items from the player&#39;s inventory. Only 1 type of item can be given to a Legend at a time, but its quanitity can vary (1 = Minimum, 9 = Maximum).</p>
+
+	<p>5 bytes are used to store the owner&#39;s name. During the Soul Doll Initialization process, the player&#39;s name is registered to the Soul Doll. The games use this to lock the Soul Doll to a particular player. If the owner name written to EEPROM doesn&#39;t match the current one from the game&#39;s save file, EEPROM must be erased and the Soul Doll reset in order to use it. Each byte in EEPROM represents one character. The exact string format is currently unknown.</p>
+
+	<p>16 bytes are used to store a brief message inside the Soul Doll. This message can be checked during the Reborn process on a Soul Doll that was previously initialized for a given player. Each byte in EEPROM represents one character. The exact string format is unknown.</p>
+
+	<p>8 bytes are used to store the Legend&#39;s name. Each byte in EEPROM represents one character. The exact string format is currently unknown.</p>
+
+	<p>1 byte represents the level of the Legend. Its value ranges from 1 to 99.</p>
+
+	<p>10 bytes represent the various stats about the player&#39;s Legend inside the Soul Doll (HP, Strength, Defense, Magic Power, Magic Defense, and Speed). The size of each value varies in terms of bits, and the same value is usually spread over multiple bytes. See the next section for more information.</p>
+
+	<p>1 byte represents the Auto Adventure flag. When the Legend goes on an Auto Adventure, this byte is set to a non-zero value, otherwise it is set to 0x00. For Yomigaeru Shiren no Shima, this flag is always 0x01 when set. For Sign of Nekrom, it varies depending on the type of Auto Adventure, acting as a sort of ID.</p>
+
+	<p>Bytes 0x3FE through 0x3FF are a 16-bit checksum the data 0x380 through 0x3FD. The checksum is computed by adding up every byte within that range. If the checksum is incorrect, both Legendz games will treat the entire Soul Doll data as invalid, which will require it to be reinitialized. After calculating the initial checksum, it must be XOR&#39;ed with a separate 16-bit value. Yomigaeru Shiren no Shima uses 0x4832, while Sign of Nekrom uses 0x4C32. Sign of Nekrom can detect both types of checksums and uses this to determine which game last modified EEPROM data.</p>
+
+	<a name="sda_sta"></a>
+	<p class="gray_title">[Soul Doll Adapter] : Soul Doll Data Stats</p>
+
+	<p>Use the following psuedocode to obtain the values for each attribute of the Soul Doll&#39;s Legend. Assume that ADDRESS the specified the EEPROM address 0x3D5 (for Yomigaeru Shiren no Shima) or 0x3BE (for Sign of Nekrom).</p>
+
+<p><code>-----------------------------------------------------------
+HP
+-----------------------------------------------------------
+VAL1 = READ 16 BITS FROM (ADDRESS)
+VAL2 = READ 08 BITS FROM (ADDRESS + 2)
+HP = (VAL_1 >> 6) | ((VAL & 0x0F) << 10)
+
+
+-----------------------------------------------------------
+STRENGTH
+-----------------------------------------------------------
+VAL1 = READ 16 BITS FROM (ADDRESS + 2)
+STRENGTH = ((VAL1 << 18) >> 22)
+
+
+-----------------------------------------------------------
+DEFENSE
+-----------------------------------------------------------
+VAL1 = READ 16 BITS FROM (ADDRESS + 6)
+DEFENSE = ((VAL1 << 20) >> 22)
+
+
+-----------------------------------------------------------
+MAGIC POWER
+-----------------------------------------------------------
+VAL1 = READ 32 BITS FROM (ADDRESS + 2)
+MAGIC POWER = ((VAL1 << 8) >> 22)
+
+
+-----------------------------------------------------------
+MAGIC DEFENSE
+-----------------------------------------------------------
+VAL1 = READ 32 BITS FROM (ADDRESS + 6)
+MAGIC DEFENSE = ((VAL1 << 10) >> 22)
+
+
+-----------------------------------------------------------
+SPEED
+-----------------------------------------------------------
+VAL1 = READ 08 BITS FROM (ADDRESS + 6)
+VAL2 = READ 08 BITS FROM (ADDRESS + 5)
+SPEED = ((VAL1 & 0x03) << 8) | VAL2</code></p>
+
+	<a name="sda_enc"></a>
+	<p class="gray_title">[Soul Doll Adapter] : Soul Doll Data Obfuscation</p>
+
+	<p>The EEPROM data is obfuscated with a repeating 32-bit key. This makes the data somewhat inaccessible unless parsed first. The 32-bit key is 0xA8262CDB as an LSB first value. Each 32-bit value from EEPROM is simply XOR&#39;ed by the key. Another way to unscramble EEPROM is demonstrated by the following psuedocode:</p>
+
+<p><code>ARRAY = 0xDB, 0x2C, 0x26, 0xA8
+UNSCRAMBLED VALUE = EEPROM BYTE XOR ARRAY[EEPROM ADDRESS AND 0x03]</code></p>
+
+	<p>This obfuscation only occurs on bytes 0x380 through 0x3FF. The checksum is calculated and XOR&#39;ed by its own 16-bit value before XOR&#39;ing this 128-byte region with the above mentioned 32-bit value.</p>
 
 	<!-- Battle Chip Gate -->
 	<a name="bcg"></a>
