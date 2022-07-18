@@ -1146,6 +1146,9 @@ void AGB_SIO::soul_doll_adapter_process()
 					break;
 			}
 
+			//Limit EEPROM addresses to 1KB
+			sda.eeprom_addr &= 0x3FF;
+
 			sda.stream_word.clear();
 		}
 	}
