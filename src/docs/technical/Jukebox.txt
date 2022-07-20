@@ -22,7 +22,7 @@ The Game Boy Music Recorder is a cartridge for the Game Boy Advance capable of p
 - Supports audio output through a headphone jack.
 - Supports playing MP3 files, recording voice memos as WAV files, and recording music/karaoke as custom GB3 files.
 - Capable of operating independently from the Game Boy Advance. Has physical buttons to control playback.
-- 
+
 
 ***************************************************
 3. I/O Registers
@@ -382,3 +382,12 @@ Index Range	| R/W	| Description
 For the string data at 0x00A1 through 0x00CD, the string is terminated by a null character (value 0x00). The strings for the Jukebox use ASCII.
 
 When reading input/output audio data, the software accesses indices starting at 0x0102 and ends at the length specified by index 0x100. For example, if the Audio Index Length is 0x0004, the CPU reads indices 0x0102 through 0x0105 inclusive. Note that the 0x0102 and 0x0103 are also used for other purposes. Depending on the context, it may represent audio sample data or a Karaoke file number.
+
+
+***************************************************
+7. Recording File Formats
+***************************************************
+
+The Music Recorder/Jukebox uses 2 different file formats for recording. For Voice Memos and Karaoke, the device encodes audio via IMA ADPCM into a WAV file. This format uses a 11025Hz sample rate, 16-bits per sample, and just one channel.
+
+For Music recorded via the Line-In jack, an MP3 file is generated. Depending on the user's settings, it will have a bit-rate of 128Kbps, 96Kbps, or 64Kbps. It uses ID3v1 to store metadata at the very last 128 bytes of the file. Instead of regular MP3 files, the Music Recorder/Jukebox produces "GB3" files. However, these GB3 files appear to be normal MP3s without the a header. This design prevents music from being recorded and copied to a PC and may have been intended to deter piracy.
