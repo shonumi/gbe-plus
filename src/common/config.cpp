@@ -1703,6 +1703,33 @@ bool parse_ini_file()
 			}
 		}
 
+		//Override default audio driver
+		else if(ini_item == "#override_audio_driver")
+		{
+			if((x + 1) < size) 
+			{
+				ini_item = ini_opts[++x];
+				std::string first_char = "";
+				first_char = ini_item[0];
+				
+				//When left blank, don't parse the next line item
+				if(first_char != "#")
+				{
+					config::override_audio_driver = ini_item;
+					setenv("SDL_AUDIODRIVER", config::override_audio_driver.c_str(), 1);
+				}
+
+				else
+				{
+					config::override_audio_driver = "";
+					x--;
+				}
+ 
+			}
+
+			else { config::override_audio_driver = ""; }
+		}
+
 		//Sample rate
 		else if(ini_item == "#sample_rate")
 		{
@@ -2998,6 +3025,15 @@ bool save_ini_file()
 			std::string val = (config::use_microphone) ? "1" : "0";
 
 			output_lines[line_pos] = "[#use_microphone:" + val + "]";
+		}
+
+		//Override default audio driver
+		else if(ini_item == "#override_audio_driver")
+		{
+			line_pos = output_count[x];
+			std::string val = (config::override_audio_driver == "") ? "" : (":'" + config::override_audio_driver + "'");
+
+			output_lines[line_pos] = "[#override_audio_driver" + val + "]";
 		}
 
 		//Sample rate
