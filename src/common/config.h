@@ -161,7 +161,6 @@ namespace config
 	extern u8 netplay_id;
 	extern std::string netplay_client_ip;
 
-
 	extern std::string gbma_server;
 	extern bool use_real_gbma_server;
 	extern u16 gbma_server_http_port;
@@ -173,6 +172,7 @@ namespace config
 	extern bool mute;
 	extern bool use_stereo;
 	extern bool use_microphone;
+	extern std::string override_audio_driver;
 	
 	extern u32 sys_width;
 	extern u32 sys_height;

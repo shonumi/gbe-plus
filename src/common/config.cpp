@@ -170,6 +170,7 @@ namespace config
 	bool mute = false;
 	bool use_stereo = false;
 	bool use_microphone = false;
+	std::string override_audio_driver = "";
 
 	//Virtual Cursor parameters for NDS
 	bool vc_enable = false;
@@ -755,6 +756,18 @@ bool parse_cli_args()
 					u32 output = 0;
 					util::from_str(config::cli_args[x], output);
 					config::max_fps = output;
+				}
+			}
+
+			//Override default audio driver
+			else if((config::cli_args[x] == "-ad") || (config::cli_args[x] == "--audio-driver"))
+			{
+				if((++x) == config::cli_args.size()) { std::cout<<"GBE::Error - No audio driver specified\n"; }
+
+				else
+				{
+					config::override_audio_driver = config::cli_args[x];
+					setenv("SDL_AUDIODRIVER", config::override_audio_driver.c_str(), 1);
 				}
 			}
 
