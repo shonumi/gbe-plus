@@ -33,12 +33,18 @@ class DMG_GamePad : virtual public dmg_core_pad
 	void process_keyboard(int pad, bool pressed);
 	void process_joystick(int pad, bool pressed);
 	void process_gyroscope();
+	void process_gyroscope(float x, float y);
 	void start_rumble();
 	void stop_rumble();
 	u8 read();
 	void write(u8 value);
 	u32 get_pad_data(u32 index);
 	void set_pad_data(u32 index, u32 value);
+
+	private:
+	
+	SDL_GameController* gc_sensor;
+	bool sensor_init;
 };
 
 #endif // GB_GAMEPAD 

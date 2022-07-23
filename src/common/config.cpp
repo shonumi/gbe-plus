@@ -88,7 +88,7 @@ namespace config
 
 	//Default Haptic and Gyro setting
 	bool use_haptics = false;
-	bool use_gyros = false;
+	bool use_motion = false;
 
 	u32 flags = 0x4;
 	bool pause_emu = false;
@@ -1637,19 +1637,19 @@ bool parse_ini_file()
 		}
 
 		//Use controller gyroscopes
-		else if(ini_item == "#use_gyros")
+		else if(ini_item == "#use_motion")
 		{
 			if((x + 1) < size) 
 			{
 				util::from_str(ini_opts[++x], output);
 
-				if(output == 1) { config::use_gyros = true; }
-				else { config::use_gyros = false; }
+				if(output == 1) { config::use_motion = true; }
+				else { config::use_motion = false; }
 			}
 
 			else 
 			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#use_gyros) \n";
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#use_motion) \n";
 				return false;
 			}
 		}
@@ -3012,12 +3012,12 @@ bool save_ini_file()
 		}
 
 		//Use controller gyros
-		else if(ini_item == "#use_gyros")
+		else if(ini_item == "#use_motion")
 		{
 			line_pos = output_count[x];
-			std::string val = (config::use_gyros) ? "1" : "0";
+			std::string val = (config::use_motion) ? "1" : "0";
 
-			output_lines[line_pos] = "[#use_gyros:" + val + "]";
+			output_lines[line_pos] = "[#use_motion:" + val + "]";
 		}
 
 		//Volume settings
