@@ -111,6 +111,7 @@ namespace config
 	extern int joy_id;
 	extern int joy_sdl_id;
 	extern bool use_haptics;
+	extern bool use_gyros;
 
 	extern u32 flags;
 	extern bool pause_emu;
