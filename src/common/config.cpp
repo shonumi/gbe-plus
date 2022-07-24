@@ -90,6 +90,9 @@ namespace config
 	bool use_haptics = false;
 	bool use_motion = false;
 
+	u32 motion_dead_zone = 1;
+	float motion_scaler = 10.0;
+
 	u32 flags = 0x4;
 	bool pause_emu = false;
 	bool use_bios = false;
@@ -1654,6 +1657,38 @@ bool parse_ini_file()
 			}
 		}
 
+		//Motion deadzone
+		else if(ini_item == "#motion_dead_zone")
+		{
+			if((x + 1) < size)
+			{
+				util::from_str(ini_opts[++x], output);
+				config::motion_dead_zone = output;
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#motion_dead_zone) \n";
+				return false;
+			}
+		}
+
+		//Motion scaler
+		else if(ini_item == "#motion_scaler")
+		{
+			if((x + 1) < size)
+			{
+				float out = std::stof(ini_opts[++x]);
+				if(out > 0) { config::motion_scaler = out; }
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#motion_scaler) \n";
+				return false;
+			}
+		}
+
 		//Volume settings
 		else if(ini_item == "#volume")
 		{
@@ -3018,6 +3053,22 @@ bool save_ini_file()
 			std::string val = (config::use_motion) ? "1" : "0";
 
 			output_lines[line_pos] = "[#use_motion:" + val + "]";
+		}
+
+		//Motion deadzone
+		else if(ini_item == "#motion_dead_zone")
+		{
+			line_pos = output_count[x];
+
+			output_lines[line_pos] = "[#motion_dead_zone:" + util::to_str(config::motion_dead_zone) + "]";
+		}
+
+		//Motion scaler
+		else if(ini_item == "#motion_scaler")
+		{
+			line_pos = output_count[x];
+
+			output_lines[line_pos] = "[#motion_scaler:" + util::to_strf(config::motion_scaler) + "]";
 		}
 
 		//Volume settings

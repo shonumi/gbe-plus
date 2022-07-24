@@ -675,6 +675,14 @@ std::string to_str(u32 input)
 	return temp.str();
 }
 
+/****** Convert a float into a C++ string ******/
+std::string to_strf(float input)
+{
+	std::stringstream temp;
+	temp << input;
+	return temp.str();
+}
+
 /****** Convert a signed integer into a C++ string ******/
 std::string to_sstr(s32 input)
 {

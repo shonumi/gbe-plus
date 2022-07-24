@@ -78,8 +78,9 @@ namespace util
 	std::string to_hex_str(u32 input, u8 bit_level);
 	bool from_hex_str(std::string input, u32 &result);
 
-	std::string to_str(u32);
-	std::string to_sstr(s32);
+	std::string to_str(u32 input);
+	std::string to_sstr(s32 input);
+	std::string to_strf(float input);
 	bool from_str(std::string input, u32 &result);
 
 	std::string ip_to_str(u32 ip_addr);

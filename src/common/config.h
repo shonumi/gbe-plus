@@ -111,7 +111,10 @@ namespace config
 	extern int joy_id;
 	extern int joy_sdl_id;
 	extern bool use_haptics;
+
 	extern bool use_motion;
+	extern u32 motion_dead_zone;
+	extern float motion_scaler;
 
 	extern u32 flags;
 	extern bool pause_emu;
