@@ -269,7 +269,8 @@ void AGB_core::run_core()
 			//Process gamepad or hotkey
 			else if((event.type == SDL_KEYDOWN) || (event.type == SDL_KEYUP) 
 			|| (event.type == SDL_JOYBUTTONDOWN) || (event.type == SDL_JOYBUTTONUP)
-			|| (event.type == SDL_JOYAXISMOTION) || (event.type == SDL_JOYHATMOTION))
+			|| (event.type == SDL_JOYAXISMOTION) || (event.type == SDL_JOYHATMOTION)
+			|| (event.type == SDL_CONTROLLERSENSORUPDATE))
 			{
 				core_pad.handle_input(event);
 				handle_hotkey(event);

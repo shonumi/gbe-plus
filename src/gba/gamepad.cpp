@@ -36,6 +36,9 @@ AGB_GamePad::AGB_GamePad()
 	joypad_irq = false;
 	joy_init = false;
 	key_cnt = 0;
+
+	gc_sensor = NULL;
+	sensor_init = false;
 }
 
 /****** Initialize GamePad ******/
@@ -81,6 +84,27 @@ void AGB_GamePad::init()
 		//Emulate GB Player detection if rumble is enabled
 		//Masks bits 4-7 of KEYINPUT until player gives input
 		if(config::sio_device == 8) { is_gb_player = true; }
+	}
+
+	if(config::use_motion)
+	{
+		SDL_Init(SDL_INIT_GAMECONTROLLER | SDL_INIT_SENSOR);
+
+		gc_sensor = SDL_GameControllerOpen(config::joy_id);
+
+		SDL_GameControllerSetSensorEnabled(gc_sensor, SDL_SENSOR_ACCEL, SDL_TRUE);
+
+		if(!SDL_GameControllerHasSensor(gc_sensor, SDL_SENSOR_ACCEL))
+		{
+			std::cout<<"JOY::Controller does not have an accelerometer \n";
+			gc_sensor = NULL;
+		}
+
+		else
+		{
+			std::cout<<"JOY::Controller sensor detected\n";
+			sensor_init = true;
+		}
 	}
 }
 
@@ -195,6 +219,17 @@ void AGB_GamePad::handle_input(SDL_Event &event)
 				process_joystick(pad, false);
 				process_joystick(pad+2, false);
 				break;
+		}
+	}
+
+	//Controller accelerometer
+	else if(event.type == SDL_CONTROLLERSENSORUPDATE)
+	{
+		if(gc_sensor != NULL)
+		{
+			float motion_data[3] = { 0.0, 0.0, 0.0 };
+			SDL_GameControllerGetSensorData(gc_sensor, SDL_SENSOR_ACCEL, motion_data, 3);
+			process_gyroscope(motion_data[0], motion_data[2]);
 		}
 	}
 
@@ -804,6 +839,9 @@ void AGB_GamePad::stop_rumble()
 /******* Processes gryoscope sensors ******/
 void AGB_GamePad::process_gyroscope()
 {
+	//If using real motion controls, abort this function to avoid interference
+	if(sensor_init) { return; }
+
 	//Gyro sensor
 	if(config::cart_type == AGB_GYRO_SENSOR)
 	{
@@ -893,5 +931,50 @@ void AGB_GamePad::process_gyroscope()
 			if(sensor_y > 0x3A0) { sensor_y = 0x3A0; }
 
 		}
+	}
+}
+
+/****** Process gyroscope sensors - Use real controller sensors ******/
+void AGB_GamePad::process_gyroscope(float x, float y)
+{
+	float x_abs = (x < 0) ? -x : x;
+	float y_abs = (y < 0) ? -y : y;
+	float scaler = config::motion_scaler;
+	int deadzone = config::motion_dead_zone;
+
+	//Tilt sensor
+	if(config::cart_type == AGB_TILT_SENSOR)
+	{
+		std::cout<<"X -> " << x << "\n";
+
+		//When not tilting, put the sensors in neutral
+		if((x_abs < deadzone) && (sensor_x > 0x392)) { sensor_x = 0x392; }
+		else if((x_abs < deadzone) && (sensor_x < 0x392)) { sensor_x = 0x392; }
+
+		else if(x_abs >= deadzone)
+		{
+			if(x > 0) { sensor_x = 0x392 + (x_abs * scaler); }
+			else { sensor_x = 0x392 - (x_abs * scaler); }
+
+			//Limit X min-max
+    			if(sensor_x < 0x2AF) { sensor_x = 0x2AF; }
+    			if(sensor_x > 0x477) { sensor_x = 0x477; }
+		}
+
+		//When not tilting, put the sensors in neutral
+		if((y_abs < deadzone) && (sensor_y > 0x3A0)) { sensor_y = 0x3A0; }
+		else if((y_abs < deadzone) && (sensor_y < 0x3A0)) { sensor_y = 0x3A0; }
+
+		else if(y_abs >= deadzone)
+		{
+			if(y > 0) { sensor_y = 0x3A0 + (y_abs * scaler); }
+			else { sensor_y = 0x3A0 - (y_abs * scaler); }
+
+			//Limit Y min-max
+    			if(sensor_y < 0x2C3) { sensor_y = 0x2C3; }
+    			if(sensor_y > 0x480) { sensor_y = 0x480; }
+		}
+
+		std::cout<<"SENSEI -> " << sensor_x << "\n\n";
 	}
 }

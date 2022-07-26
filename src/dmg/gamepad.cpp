@@ -28,6 +28,7 @@ DMG_GamePad::DMG_GamePad()
 	joypad_irq = false;
 	joy_init = false;
 	sensor_init = false;
+	gc_sensor = NULL;
 }
 
 /****** Initialize GamePad ******/
@@ -70,8 +71,6 @@ void DMG_GamePad::init()
 			std::cout<<"JOY::Rumble initialized\n";
 		}
 	}
-
-	gc_sensor = NULL;
 
 	if(config::use_motion)
 	{
@@ -207,7 +206,7 @@ void DMG_GamePad::handle_input(SDL_Event &event)
 		}
 	}
 
-	//Controller gyroscope
+	//Controller accelerometer
 	else if(event.type == SDL_CONTROLLERSENSORUPDATE)
 	{
 		if(gc_sensor != NULL)

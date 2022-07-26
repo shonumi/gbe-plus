@@ -33,6 +33,7 @@ class AGB_GamePad
 	void process_keyboard(int pad, bool pressed);
 	void process_joystick(int pad, bool pressed);
 	void process_gyroscope();
+	void process_gyroscope(float x, float y);
 
 	void start_rumble();
 	void stop_rumble();
@@ -64,6 +65,9 @@ class AGB_GamePad
 
 	SDL_Joystick* jstick;
     	SDL_Haptic* rumble;
+
+	SDL_GameController* gc_sensor;
+	bool sensor_init;
 };
 
 #endif // GBA_GAMEPAD
