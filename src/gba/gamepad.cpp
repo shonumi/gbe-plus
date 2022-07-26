@@ -27,6 +27,7 @@ AGB_GamePad::AGB_GamePad()
 
 	gyro_value = 0x6C0;
 	gyro_flags = 0;
+	gyro_float = 1728.0;
 
 	solar_value = 0xE8;
 
@@ -93,17 +94,36 @@ void AGB_GamePad::init()
 		gc_sensor = SDL_GameControllerOpen(config::joy_id);
 
 		SDL_GameControllerSetSensorEnabled(gc_sensor, SDL_SENSOR_ACCEL, SDL_TRUE);
+		SDL_GameControllerSetSensorEnabled(gc_sensor, SDL_SENSOR_GYRO, SDL_TRUE);
 
-		if(!SDL_GameControllerHasSensor(gc_sensor, SDL_SENSOR_ACCEL))
+		if(config::cart_type == AGB_GYRO_SENSOR)
 		{
-			std::cout<<"JOY::Controller does not have an accelerometer \n";
-			gc_sensor = NULL;
+			if(!SDL_GameControllerHasSensor(gc_sensor, SDL_SENSOR_GYRO))
+			{
+				std::cout<<"JOY::Controller does not have a gyroscope \n";
+				gc_sensor = NULL;
+			}
+
+			else
+			{
+				std::cout<<"JOY::Controller sensor detected\n";
+				sensor_init = true;
+			}
 		}
 
-		else
+		if(config::cart_type == AGB_TILT_SENSOR)
 		{
-			std::cout<<"JOY::Controller sensor detected\n";
-			sensor_init = true;
+			if(!SDL_GameControllerHasSensor(gc_sensor, SDL_SENSOR_ACCEL))
+			{
+				std::cout<<"JOY::Controller does not have an accelerometer \n";
+				gc_sensor = NULL;
+			}
+
+			else
+			{
+				std::cout<<"JOY::Controller sensor detected\n";
+				sensor_init = true;
+			}
 		}
 	}
 }
@@ -228,8 +248,22 @@ void AGB_GamePad::handle_input(SDL_Event &event)
 		if(gc_sensor != NULL)
 		{
 			float motion_data[3] = { 0.0, 0.0, 0.0 };
-			SDL_GameControllerGetSensorData(gc_sensor, SDL_SENSOR_ACCEL, motion_data, 3);
-			process_gyroscope(motion_data[0], motion_data[2]);
+
+			if(config::cart_type == AGB_GYRO_SENSOR)
+			{
+				SDL_GameControllerGetSensorData(gc_sensor, SDL_SENSOR_GYRO, motion_data, 3);
+				process_gyroscope(motion_data[1], 0);
+	
+				//std::cout<<"00 --> " << motion_data[0] << "\n";
+				//std::cout<<"01 --> " << motion_data[1] << "\n\n";
+				//std::cout<<"02 --> " << motion_data[2] << "\n\n";
+			}
+
+			else
+			{
+				SDL_GameControllerGetSensorData(gc_sensor, SDL_SENSOR_ACCEL, motion_data, 3);
+				process_gyroscope(motion_data[0], motion_data[2]);
+			}
 		}
 	}
 
@@ -945,8 +979,6 @@ void AGB_GamePad::process_gyroscope(float x, float y)
 	//Tilt sensor
 	if(config::cart_type == AGB_TILT_SENSOR)
 	{
-		std::cout<<"X -> " << x << "\n";
-
 		//When not tilting, put the sensors in neutral
 		if((x_abs < deadzone) && (sensor_x > 0x392)) { sensor_x = 0x392; }
 		else if((x_abs < deadzone) && (sensor_x < 0x392)) { sensor_x = 0x392; }
@@ -974,7 +1006,20 @@ void AGB_GamePad::process_gyroscope(float x, float y)
     			if(sensor_y < 0x2C3) { sensor_y = 0x2C3; }
     			if(sensor_y > 0x480) { sensor_y = 0x480; }
 		}
+	}
 
-		std::cout<<"SENSEI -> " << sensor_x << "\n\n";
+	//Gyroscope
+	else if(config::cart_type == AGB_GYRO_SENSOR)
+	{
+		if(x_abs >= 0.1)
+		{
+			if(x < 0) { gyro_value = 0x6C0 + (x_abs * scaler); }
+			else { gyro_value = 0x6C0 - (x_abs * scaler); }
+
+    			if(gyro_value < 0x354) { gyro_value = 0x354; }
+    			if(gyro_value > 0x9E3) { gyro_value = 0x9E3; }
+		}
+
+		else { gyro_value = 0x6C0; }
 	}
 }
