@@ -90,7 +90,7 @@ namespace config
 	bool use_haptics = false;
 	bool use_motion = false;
 
-	u32 motion_dead_zone = 1;
+	u32 motion_dead_zone = 1.0;
 	float motion_scaler = 10.0;
 
 	u32 flags = 0x4;
@@ -1662,8 +1662,8 @@ bool parse_ini_file()
 		{
 			if((x + 1) < size)
 			{
-				util::from_str(ini_opts[++x], output);
-				config::motion_dead_zone = output;
+				float out = std::stof(ini_opts[++x]);
+				config::motion_dead_zone = out;
 			}
 
 			else 
@@ -3060,7 +3060,7 @@ bool save_ini_file()
 		{
 			line_pos = output_count[x];
 
-			output_lines[line_pos] = "[#motion_dead_zone:" + util::to_str(config::motion_dead_zone) + "]";
+			output_lines[line_pos] = "[#motion_dead_zone:" + util::to_strf(config::motion_dead_zone) + "]";
 		}
 
 		//Motion scaler

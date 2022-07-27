@@ -974,7 +974,7 @@ void AGB_GamePad::process_gyroscope(float x, float y)
 	float x_abs = (x < 0) ? -x : x;
 	float y_abs = (y < 0) ? -y : y;
 	float scaler = config::motion_scaler;
-	int deadzone = config::motion_dead_zone;
+	float deadzone = config::motion_dead_zone;
 
 	//Tilt sensor
 	if(config::cart_type == AGB_TILT_SENSOR)

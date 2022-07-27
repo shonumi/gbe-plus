@@ -113,7 +113,7 @@ namespace config
 	extern bool use_haptics;
 
 	extern bool use_motion;
-	extern u32 motion_dead_zone;
+	extern float motion_dead_zone;
 	extern float motion_scaler;
 
 	extern u32 flags;

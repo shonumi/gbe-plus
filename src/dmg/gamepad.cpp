@@ -711,7 +711,7 @@ void DMG_GamePad::process_gyroscope(float x, float y)
 	float x_abs = (x < 0) ? -x : x;
 	float y_abs = (y < 0) ? -y : y;
 	float scaler = config::motion_scaler;
-	int deadzone = config::motion_dead_zone;
+	float deadzone = config::motion_dead_zone;
 
 	//When not tilting, put the sensors in neutral
 	if((x_abs < deadzone) && (sensor_x > 2047)) { sensor_x = 2047; }
