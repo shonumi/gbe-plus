@@ -104,11 +104,7 @@ void AGB_GamePad::init()
 				gc_sensor = NULL;
 			}
 
-			else
-			{
-				std::cout<<"JOY::Controller sensor detected\n";
-				sensor_init = true;
-			}
+			else { sensor_init = true; }
 		}
 
 		if(config::cart_type == AGB_TILT_SENSOR)
@@ -119,12 +115,10 @@ void AGB_GamePad::init()
 				gc_sensor = NULL;
 			}
 
-			else
-			{
-				std::cout<<"JOY::Controller sensor detected\n";
-				sensor_init = true;
-			}
+			else { sensor_init = true; }
 		}
+
+		if(sensor_init) { std::cout<<"JOY::Controller sensor detected\n"; }
 	}
 }
 
