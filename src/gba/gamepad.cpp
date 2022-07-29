@@ -27,7 +27,6 @@ AGB_GamePad::AGB_GamePad()
 
 	gyro_value = 0x6C0;
 	gyro_flags = 0;
-	gyro_float = 1728.0;
 
 	solar_value = 0xE8;
 
