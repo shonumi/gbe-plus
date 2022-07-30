@@ -88,36 +88,39 @@ void AGB_GamePad::init()
 
 	if(config::use_motion)
 	{
-		SDL_Init(SDL_INIT_GAMECONTROLLER | SDL_INIT_SENSOR);
-
-		gc_sensor = SDL_GameControllerOpen(config::joy_id);
-
-		SDL_GameControllerSetSensorEnabled(gc_sensor, SDL_SENSOR_ACCEL, SDL_TRUE);
-		SDL_GameControllerSetSensorEnabled(gc_sensor, SDL_SENSOR_GYRO, SDL_TRUE);
-
-		if(config::cart_type == AGB_GYRO_SENSOR)
+		if(SDL_Init(SDL_INIT_GAMECONTROLLER | SDL_INIT_SENSOR) == 0)
 		{
-			if(!SDL_GameControllerHasSensor(gc_sensor, SDL_SENSOR_GYRO))
+			gc_sensor = SDL_GameControllerOpen(config::joy_id);
+
+			SDL_GameControllerSetSensorEnabled(gc_sensor, SDL_SENSOR_ACCEL, SDL_TRUE);
+			SDL_GameControllerSetSensorEnabled(gc_sensor, SDL_SENSOR_GYRO, SDL_TRUE);
+
+			if(config::cart_type == AGB_GYRO_SENSOR)
 			{
-				std::cout<<"JOY::Controller does not have a gyroscope \n";
-				gc_sensor = NULL;
+				if(!SDL_GameControllerHasSensor(gc_sensor, SDL_SENSOR_GYRO))
+				{
+					std::cout<<"JOY::Controller does not have a gyroscope \n";
+					gc_sensor = NULL;
+				}
+
+				else { sensor_init = true; }
 			}
 
-			else { sensor_init = true; }
-		}
-
-		else if(config::cart_type == AGB_TILT_SENSOR)
-		{
-			if(!SDL_GameControllerHasSensor(gc_sensor, SDL_SENSOR_ACCEL))
+			else if(config::cart_type == AGB_TILT_SENSOR)
 			{
-				std::cout<<"JOY::Controller does not have an accelerometer \n";
-				gc_sensor = NULL;
+				if(!SDL_GameControllerHasSensor(gc_sensor, SDL_SENSOR_ACCEL))
+				{
+					std::cout<<"JOY::Controller does not have an accelerometer \n";
+					gc_sensor = NULL;
+				}
+
+				else { sensor_init = true; }
 			}
 
-			else { sensor_init = true; }
+			if(sensor_init) { std::cout<<"JOY::Controller sensor detected\n"; }
 		}
 
-		if(sensor_init) { std::cout<<"JOY::Controller sensor detected\n"; }
+		else { std::cout<<"JOY::Could not initialize SDL sensors\n"; }
 	}
 }
 

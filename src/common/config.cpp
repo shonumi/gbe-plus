@@ -90,7 +90,7 @@ namespace config
 	bool use_haptics = false;
 	bool use_motion = false;
 
-	u32 motion_dead_zone = 1.0;
+	float motion_dead_zone = 1.0;
 	float motion_scaler = 10.0;
 
 	u32 flags = 0x4;

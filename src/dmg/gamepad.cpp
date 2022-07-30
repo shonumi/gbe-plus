@@ -74,23 +74,26 @@ void DMG_GamePad::init()
 
 	if(config::use_motion)
 	{
-		SDL_Init(SDL_INIT_GAMECONTROLLER | SDL_INIT_SENSOR);
-
-		gc_sensor = SDL_GameControllerOpen(config::joy_id);
-
-		SDL_GameControllerSetSensorEnabled(gc_sensor, SDL_SENSOR_ACCEL, SDL_TRUE);
-
-		if(!SDL_GameControllerHasSensor(gc_sensor, SDL_SENSOR_ACCEL))
+		if(SDL_Init(SDL_INIT_GAMECONTROLLER | SDL_INIT_SENSOR) == 0)
 		{
-			std::cout<<"JOY::Controller does not have an accelerometer \n";
-			gc_sensor = NULL;
+			gc_sensor = SDL_GameControllerOpen(config::joy_id);
+
+			SDL_GameControllerSetSensorEnabled(gc_sensor, SDL_SENSOR_ACCEL, SDL_TRUE);
+
+			if(!SDL_GameControllerHasSensor(gc_sensor, SDL_SENSOR_ACCEL))
+			{
+				std::cout<<"JOY::Controller does not have an accelerometer \n";
+				gc_sensor = NULL;
+			}
+
+			else
+			{
+				std::cout<<"JOY::Controller sensor detected\n";
+				sensor_init = true;
+			}
 		}
 
-		else
-		{
-			std::cout<<"JOY::Controller sensor detected\n";
-			sensor_init = true;
-		}
+		else { std::cout<<"JOY::Could not initialize SDL sensors\n"; }
 	}
 }
 
