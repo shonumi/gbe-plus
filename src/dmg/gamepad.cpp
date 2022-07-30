@@ -722,8 +722,7 @@ void DMG_GamePad::process_gyroscope(float x, float y)
 		if(x > 0) { sensor_x = 2047 + (x_abs * scaler); }
 		else { sensor_x = 2047 - (x_abs * scaler); }
 
-		//Limit X to a minimum of 1847
-		//When it's lower than the minimum, bump it up right away 
+		//Limit X min-max
     		if(sensor_x < 1897) { sensor_x = 1897; }
     		if(sensor_x > 2197) { sensor_x = 2197; }
 	}
@@ -737,8 +736,7 @@ void DMG_GamePad::process_gyroscope(float x, float y)
 		if(y > 0) { sensor_y = 2047 + (y_abs * scaler); }
 		else { sensor_y = 2047 - (y_abs * scaler); }
 
-		//Limit X to a minimum of 1847
-		//When it's lower than the minimum, bump it up right away 
+		//Limit Y min-max
     		if(sensor_y < 1897) { sensor_y = 1897; }
     		if(sensor_y > 2197) { sensor_y = 2197; }
 	}

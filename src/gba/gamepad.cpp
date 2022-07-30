@@ -106,7 +106,7 @@ void AGB_GamePad::init()
 			else { sensor_init = true; }
 		}
 
-		if(config::cart_type == AGB_TILT_SENSOR)
+		else if(config::cart_type == AGB_TILT_SENSOR)
 		{
 			if(!SDL_GameControllerHasSensor(gc_sensor, SDL_SENSOR_ACCEL))
 			{
@@ -246,10 +246,6 @@ void AGB_GamePad::handle_input(SDL_Event &event)
 			{
 				SDL_GameControllerGetSensorData(gc_sensor, SDL_SENSOR_GYRO, motion_data, 3);
 				process_gyroscope(motion_data[1], 0);
-	
-				//std::cout<<"00 --> " << motion_data[0] << "\n";
-				//std::cout<<"01 --> " << motion_data[1] << "\n\n";
-				//std::cout<<"02 --> " << motion_data[2] << "\n\n";
 			}
 
 			else
