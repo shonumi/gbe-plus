@@ -1919,11 +1919,34 @@ bool parse_ini_file()
 					config::dmg_gbc_pal = output;
 					set_dmg_colors(config::dmg_gbc_pal);
 				}
+
+				else if(output == 16) { config::dmg_gbc_pal = output; }
 			}
 
 			else 
 			{
 				std::cout<<"GBE::Error - Could not parse gbe.ini (#dmg_on_gbc_pal) \n";
+				return false;
+			}
+		}
+
+		//Custom DMG palette (BG)
+		else if(ini_item == "#dmg_custom_bg_pal")
+		{
+			if((x + 4) < size)
+			{
+				if(config::dmg_gbc_pal == 16)
+				{
+					util::from_hex_str(ini_opts[++x].substr(2), config::DMG_BG_PAL[0]);
+					util::from_hex_str(ini_opts[++x].substr(2), config::DMG_BG_PAL[1]);
+					util::from_hex_str(ini_opts[++x].substr(2), config::DMG_BG_PAL[2]);
+					util::from_hex_str(ini_opts[++x].substr(2), config::DMG_BG_PAL[3]);
+				}
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#dmg_custom_bg_pal) \n";
 				return false;
 			}
 		}
