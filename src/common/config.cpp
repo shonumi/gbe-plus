@@ -1951,6 +1951,31 @@ bool parse_ini_file()
 			}
 		}
 
+		//Custom DMG palette (OBJ)
+		else if(ini_item == "#dmg_custom_obj_pal")
+		{
+			if((x + 8) < size)
+			{
+				if(config::dmg_gbc_pal == 16)
+				{
+					util::from_hex_str(ini_opts[++x].substr(2), config::DMG_OBJ_PAL[0][0]);
+					util::from_hex_str(ini_opts[++x].substr(2), config::DMG_OBJ_PAL[1][0]);
+					util::from_hex_str(ini_opts[++x].substr(2), config::DMG_OBJ_PAL[2][0]);
+					util::from_hex_str(ini_opts[++x].substr(2), config::DMG_OBJ_PAL[3][0]);
+					util::from_hex_str(ini_opts[++x].substr(2), config::DMG_OBJ_PAL[0][1]);
+					util::from_hex_str(ini_opts[++x].substr(2), config::DMG_OBJ_PAL[1][1]);
+					util::from_hex_str(ini_opts[++x].substr(2), config::DMG_OBJ_PAL[2][1]);
+					util::from_hex_str(ini_opts[++x].substr(2), config::DMG_OBJ_PAL[3][1]);
+				}
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#dmg_custom_bg_pal) \n";
+				return false;
+			}
+		}
+
 		//Keyboard controls
 		else if(ini_item == "#gbe_key_controls")
 		{
