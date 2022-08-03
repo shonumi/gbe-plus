@@ -510,6 +510,19 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	stereo_enable_layout->addWidget(stereo_enable_label);
 	stereo_enable_set->setLayout(stereo_enable_layout);
 
+	//Sound settings - Enable microphone recording
+	QWidget* mic_enable_set = new QWidget(sound);
+	QLabel* mic_enable_label = new QLabel("Enable Microphone Recording");
+	mic_enable = new QCheckBox(mic_enable_set);
+	mic_enable->setToolTip("Enables stereo sound output.");
+	mic_enable->setChecked(true);
+
+	QHBoxLayout* mic_enable_layout = new QHBoxLayout;
+	mic_enable_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	mic_enable_layout->addWidget(mic_enable);
+	mic_enable_layout->addWidget(mic_enable_label);
+	mic_enable_set->setLayout(mic_enable_layout);
+
 	//Sound settings - Volume
 	QWidget* volume_set = new QWidget(sound);
 	QLabel* volume_label = new QLabel("Volume : ");
@@ -532,6 +545,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	audio_layout->addWidget(sample_set);
 	audio_layout->addWidget(sound_on_set);
 	audio_layout->addWidget(stereo_enable_set);
+	audio_layout->addWidget(mic_enable_set);
 	audio_layout->addWidget(volume_set);
 	sound->setLayout(audio_layout);
 
@@ -1909,6 +1923,10 @@ void gen_settings::set_ini_options()
 	//Stereo sound option
 	if(config::use_stereo) { stereo_enable->setChecked(true); }
 	else { stereo_enable->setChecked(false); }
+
+	//Microphone recording option
+	if(config::use_microphone) { mic_enable->setChecked(true); }
+	else { mic_enable->setChecked(false); }
 
 	//Dead-zone
 	dead_zone->setValue(config::dead_zone);

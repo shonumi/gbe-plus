@@ -533,6 +533,7 @@ void main_menu::quit()
 	config::use_cheats = (settings->cheats->isChecked()) ? true : false;
 	config::mute = (settings->sound_on->isChecked()) ? false : true;
 	config::use_stereo = (settings->stereo_enable->isChecked()) ? true : false;
+	config::use_microphone = (settings->mic_enable->isChecked()) ? true : false;
 	config::volume = settings->volume->value();
 	config::use_haptics = (settings->rumble_on->isChecked()) ? true : false;
 	config::vc_enable = (settings->vc_on->isChecked()) ? true : false;
@@ -656,6 +657,7 @@ void main_menu::boot_game()
 
 	config::sample_rate = settings->sample_rate;
 	config::use_stereo = (settings->stereo_enable->isChecked()) ? true : false;
+	config::use_microphone = (settings->mic_enable->isChecked()) ? true : false;
 	config::pause_emu = false;
 
 	//Check OpenGL status
@@ -948,6 +950,7 @@ void main_menu::closeEvent(QCloseEvent* event)
 	config::use_cheats = (settings->cheats->isChecked()) ? true : false;
 	config::mute = (settings->sound_on->isChecked()) ? false : true;
 	config::use_stereo = (settings->stereo_enable->isChecked()) ? true : false;
+	config::use_microphone = (settings->mic_enable->isChecked()) ? true : false;
 	config::volume = settings->volume->value();
 	config::use_opengl = (settings->ogl->isChecked()) ? true : false;
 	config::use_haptics = (settings->rumble_on->isChecked()) ? true : false;
