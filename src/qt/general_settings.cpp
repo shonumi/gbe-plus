@@ -523,6 +523,25 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	mic_enable_layout->addWidget(mic_enable_label);
 	mic_enable_set->setLayout(mic_enable_layout);
 
+	//Sound settings - Audio Driver
+	QWidget* audio_driver_set = new QWidget(sound);
+	QLabel* audio_driver_label = new QLabel("Audio Driver : ");
+	audio_driver = new QComboBox(audio_driver_set);
+	audio_driver->setToolTip("Selects the audio driver for SDL.");
+	audio_driver->addItem("Default");
+
+	for(u32 x = 0; x < SDL_GetNumAudioDrivers(); x++)
+	{
+		std::string temp_str = SDL_GetAudioDriver(x);
+		audio_driver->addItem(QString::fromStdString(temp_str));
+	}
+
+	QHBoxLayout* audio_driver_layout = new QHBoxLayout;
+	audio_driver_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	audio_driver_layout->addWidget(audio_driver_label);
+	audio_driver_layout->addWidget(audio_driver);
+	audio_driver_set->setLayout(audio_driver_layout);
+
 	//Sound settings - Volume
 	QWidget* volume_set = new QWidget(sound);
 	QLabel* volume_label = new QLabel("Volume : ");
@@ -546,6 +565,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	audio_layout->addWidget(sound_on_set);
 	audio_layout->addWidget(stereo_enable_set);
 	audio_layout->addWidget(mic_enable_set);
+	audio_layout->addWidget(audio_driver_set);
 	audio_layout->addWidget(volume_set);
 	sound->setLayout(audio_layout);
 
@@ -1438,6 +1458,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(volume, SIGNAL(valueChanged(int)), this, SLOT(volume_change()));
 	connect(freq, SIGNAL(currentIndexChanged(int)), this, SLOT(sample_rate_change()));
 	connect(sound_samples, SIGNAL(valueChanged(int)), this, SLOT(sample_size_change()));
+	connect(audio_driver, SIGNAL(currentIndexChanged(int)), this, SLOT(audio_driver_change()));
 	connect(sound_on, SIGNAL(stateChanged(int)), this, SLOT(mute()));
 	connect(dead_zone, SIGNAL(valueChanged(int)), this, SLOT(dead_zone_change()));
 	connect(input_device, SIGNAL(currentIndexChanged(int)), this, SLOT(input_device_change()));
@@ -1898,6 +1919,24 @@ void gen_settings::set_ini_options()
 		case 22050: freq->setCurrentIndex(2); break;
 		case 44100: freq->setCurrentIndex(1); break;
 		case 48000: freq->setCurrentIndex(0); break;
+	}
+
+	//Audio driver
+	if(config::override_audio_driver.empty()) { audio_driver->setCurrentIndex(0); }
+	
+	else
+	{
+		for(u32 x = 0; x < SDL_GetNumAudioDrivers(); x++)
+		{
+			std::string driver_name = SDL_GetAudioDriver(x);
+
+			if(driver_name == config::override_audio_driver)
+			{
+				u32 index = (x + 1);
+				audio_driver->setCurrentIndex(index);
+				break;
+			}
+		}
 	}
 
 	//Sample size
@@ -2395,6 +2434,18 @@ void gen_settings::sample_rate_change()
 void gen_settings::sample_size_change()
 {
 	config::sample_size = sound_samples->value();
+}
+
+/****** Changes the core's audio driver ******/
+void gen_settings::audio_driver_change()
+{
+	u32 index = audio_driver->currentIndex();
+
+	if(index > 0)
+	{
+		config::override_audio_driver = SDL_GetAudioDriver(index - 1);
+		setenv("SDL_AUDIODRIVER", config::override_audio_driver.c_str(), 1);
+	}
 }
 
 /****** Sets a path via file browser ******/
