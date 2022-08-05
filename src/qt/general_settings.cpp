@@ -2446,6 +2446,12 @@ void gen_settings::audio_driver_change()
 		config::override_audio_driver = SDL_GetAudioDriver(index - 1);
 		setenv("SDL_AUDIODRIVER", config::override_audio_driver.c_str(), 1);
 	}
+
+	else
+	{
+		config::override_audio_driver = "";
+		setenv("SDL_AUDIODRIVER", "", 1);
+	}
 }
 
 /****** Sets a path via file browser ******/
