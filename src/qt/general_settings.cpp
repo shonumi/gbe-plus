@@ -3877,7 +3877,7 @@ bool gen_settings::eventFilter(QObject* target, QEvent* event)
 /****** Selects folder ******/
 void gen_settings::select_folder() { data_folder->finish = true; }
 
-/****** Rejectss folder ******/
+/****** Rejects folder ******/
 void gen_settings::reject_folder()
 {
 	data_folder->finish = true;
