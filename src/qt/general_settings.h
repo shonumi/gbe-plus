@@ -181,6 +181,7 @@ class gen_settings : public QDialog
 
 	//Advanced controls tab widget
 	QCheckBox* rumble_on;
+	QCheckBox* motion_on;
 
 	//Battle Chip Gate tab widgets
 	QComboBox* chip_gate_type;
@@ -312,6 +313,7 @@ class gen_settings : public QDialog
 	QWidget* con_right_set;
 	QWidget* con_1_set;
 	QWidget* con_2_set;
+	QWidget* motion_set;
 
 	QWidget* hotkey_turbo_set;
 	QWidget* hotkey_mute_set;

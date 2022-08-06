@@ -536,6 +536,7 @@ void main_menu::quit()
 	config::use_microphone = (settings->mic_enable->isChecked()) ? true : false;
 	config::volume = settings->volume->value();
 	config::use_haptics = (settings->rumble_on->isChecked()) ? true : false;
+	config::use_motion = (settings->motion_on->isChecked()) ? true : false;
 	config::vc_enable = (settings->vc_on->isChecked()) ? true : false;
 	config::vc_opacity = settings->vc_opacity->value();
 	config::vc_timeout = settings->vc_timeout->value();
@@ -711,6 +712,10 @@ void main_menu::boot_game()
 	//Check rumble status
 	if(settings->rumble_on->isChecked()) { config::use_haptics = true; }
 	else { config::use_haptics = false; }
+
+	//Check motion status
+	if(settings->motion_on->isChecked()) { config::use_haptics = true; }
+	else { config::use_motion = false; }
 
 	//Check Virtual Cursor enable
 	if(settings->vc_on->isChecked()) { config::vc_enable = true; }
@@ -954,6 +959,7 @@ void main_menu::closeEvent(QCloseEvent* event)
 	config::volume = settings->volume->value();
 	config::use_opengl = (settings->ogl->isChecked()) ? true : false;
 	config::use_haptics = (settings->rumble_on->isChecked()) ? true : false;
+	config::use_motion = (settings->motion_on->isChecked()) ? true : false;
 	config::vc_enable = (settings->vc_on->isChecked()) ? true : false;
 	config::vc_opacity = settings->vc_opacity->value();
 	config::vc_timeout = settings->vc_timeout->value();

@@ -791,6 +791,17 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	rumble_layout->addWidget(rumble_label);
 	rumble_set->setLayout(rumble_layout);
 
+	//Advanced control settings - Enable motion controls
+	motion_set = new QWidget(controls);
+	QLabel* motion_label = new QLabel("Enable motion controls", motion_set);
+	motion_on = new QCheckBox(motion_set);
+
+	QHBoxLayout* motion_layout = new QHBoxLayout;
+	motion_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	motion_layout->addWidget(motion_on);
+	motion_layout->addWidget(motion_label);
+	motion_set->setLayout(motion_layout);
+
 	//Advanced control settings - Context left
 	con_left_set = new QWidget(controls);
 	QLabel* con_left_label = new QLabel("Context Left : ");
@@ -1096,6 +1107,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	advanced_controls_layout->addWidget(con_right_set);
 	advanced_controls_layout->addWidget(con_1_set);
 	advanced_controls_layout->addWidget(con_2_set);
+	advanced_controls_layout->addWidget(motion_set);
 
 	hotkey_controls_layout = new QVBoxLayout;
 	hotkey_controls_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -1127,6 +1139,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	con_right_set->setVisible(false);
 	con_1_set->setVisible(false);
 	con_2_set->setVisible(false);
+	motion_set->setVisible(false);
 
 	hotkey_turbo_set->setVisible(false);
 	hotkey_mute_set->setVisible(false);
@@ -1144,7 +1157,6 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	vc_opacity_set->setVisible(false);
 	vc_timeout_set->setVisible(false);
 	vc_path_set->setVisible(false);
-
 
 	//Netplay - Enable Netplay
 	QWidget* enable_netplay_set = new QWidget(netplay);
@@ -2011,6 +2023,10 @@ void gen_settings::set_ini_options()
 	//Rumble
 	if(config::use_haptics) { rumble_on->setChecked(true); }
 	else { rumble_on->setChecked(false); }
+
+	//Motion Controls
+	if(config::use_motion) { motion_on->setChecked(true); }
+	else { motion_on->setChecked(false); }
 
 	//Virtual Cursor Enable
 	if(config::vc_enable) { vc_on->setChecked(true); }
@@ -3516,6 +3532,7 @@ void gen_settings::switch_control_layout()
 			advanced_controls_layout->addWidget(con_right_set);
 			advanced_controls_layout->addWidget(con_1_set);
 			advanced_controls_layout->addWidget(con_2_set);
+			advanced_controls_layout->addWidget(motion_set);
 			break;
 
 		case 2:
