@@ -717,6 +717,12 @@ void main_menu::boot_game()
 	if(settings->motion_on->isChecked()) { config::use_haptics = true; }
 	else { config::use_motion = false; }
 
+	//Motion Controls Dead Zone
+	config::motion_dead_zone = settings->motion_dead_zone->value();
+
+	//Motion Controls Scaler
+	config::motion_scaler = settings->motion_scaler->value();
+
 	//Check Virtual Cursor enable
 	if(settings->vc_on->isChecked()) { config::vc_enable = true; }
 	else { config::vc_enable = false; }

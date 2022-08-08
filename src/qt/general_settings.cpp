@@ -802,6 +802,36 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	motion_layout->addWidget(motion_label);
 	motion_set->setLayout(motion_layout);
 
+	//Control settings - Motion Dead Zone
+	QWidget* motion_dead_zone_set = new QWidget(controls);
+	QLabel* motion_dead_zone_label = new QLabel("Motion Dead Zone : ");
+	motion_dead_zone = new QDoubleSpinBox(motion_dead_zone_set);
+	motion_dead_zone->setToolTip("Specifies minimum amount of motion needed to trigger motion controls\nVaries per-game and per-controller. Adjust as needed");
+	motion_dead_zone->setMinimum(0.0);
+	motion_dead_zone->setSingleStep(0.1);
+	motion_dead_zone->setValue(1.0);
+
+	QHBoxLayout* motion_dead_zone_layout = new QHBoxLayout;
+	motion_dead_zone_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	motion_dead_zone_layout->addWidget(motion_dead_zone_label);
+	motion_dead_zone_layout->addWidget(motion_dead_zone);
+	motion_dead_zone_set->setLayout(motion_dead_zone_layout);
+
+	//Control settings - Motion Scaler
+	QWidget* motion_scaler_set = new QWidget(controls);
+	QLabel* motion_scaler_label = new QLabel("Motion Scaler : ");
+	motion_scaler = new QDoubleSpinBox(motion_scaler_set);
+	motion_scaler->setToolTip("Multiplies input from motion controllers to adjust sensitivity\nVaries per-game and per-controller. Adjust as needed.");
+	motion_scaler->setMinimum(1.0);
+	motion_scaler->setSingleStep(0.1);
+	motion_scaler->setValue(10.0);
+
+	QHBoxLayout* motion_scaler_layout = new QHBoxLayout;
+	motion_scaler_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	motion_scaler_layout->addWidget(motion_scaler_label);
+	motion_scaler_layout->addWidget(motion_scaler);
+	motion_scaler_set->setLayout(motion_scaler_layout);
+
 	//Advanced control settings - Context left
 	con_left_set = new QWidget(controls);
 	QLabel* con_left_label = new QLabel("Context Left : ");
@@ -1108,6 +1138,8 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	advanced_controls_layout->addWidget(con_1_set);
 	advanced_controls_layout->addWidget(con_2_set);
 	advanced_controls_layout->addWidget(motion_set);
+	advanced_controls_layout->addWidget(motion_dead_zone_set);
+	advanced_controls_layout->addWidget(motion_scaler_set);
 
 	hotkey_controls_layout = new QVBoxLayout;
 	hotkey_controls_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -1140,6 +1172,8 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	con_1_set->setVisible(false);
 	con_2_set->setVisible(false);
 	motion_set->setVisible(false);
+	motion_dead_zone_set->setVisible(false);
+	motion_scaler_set->setVisible(false);
 
 	hotkey_turbo_set->setVisible(false);
 	hotkey_mute_set->setVisible(false);
@@ -1484,6 +1518,8 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(battle_chip_2, SIGNAL(currentIndexChanged(int)), this, SLOT(set_battle_chip()));
 	connect(battle_chip_3, SIGNAL(currentIndexChanged(int)), this, SLOT(set_battle_chip()));
 	connect(battle_chip_4, SIGNAL(currentIndexChanged(int)), this, SLOT(set_battle_chip()));
+	connect(motion_dead_zone, SIGNAL(valueChanged(double)), this, SLOT(update_motion_dead_zone()));
+	connect(motion_scaler, SIGNAL(valueChanged(double)), this, SLOT(update_motion_scaler()));
 	connect(vc_opacity, SIGNAL(valueChanged(int)), this, SLOT(update_vc_opacity()));
 	connect(vc_timeout, SIGNAL(valueChanged(int)), this, SLOT(update_vc_timeout()));
 	connect(sync_threshold, SIGNAL(valueChanged(int)), this, SLOT(update_sync_threshold()));
@@ -2027,6 +2063,12 @@ void gen_settings::set_ini_options()
 	//Motion Controls
 	if(config::use_motion) { motion_on->setChecked(true); }
 	else { motion_on->setChecked(false); }
+
+	//Motion Controls Dead Zone
+	motion_dead_zone->setValue(config::motion_dead_zone);
+
+	//Motion Scaler
+	motion_scaler->setValue(config::motion_scaler);
 
 	//Virtual Cursor Enable
 	if(config::vc_enable) { vc_on->setChecked(true); }
@@ -2759,6 +2801,18 @@ void gen_settings::set_battle_chip()
 
 	index = battle_chip_4->currentIndex();
 	config::chip_list[3] = chip_list[index];
+}
+
+/****** Sets the Motion Dead Zone ******/
+void gen_settings::update_motion_dead_zone()
+{
+	config::motion_dead_zone = motion_dead_zone->value();
+}
+
+/****** Sets the Motion Scaler ******/
+void gen_settings::update_motion_scaler()
+{
+	config::motion_scaler = motion_scaler->value();
 }
 
 /****** Sets the Virtual Cursor Opacity ******/
@@ -3533,6 +3587,8 @@ void gen_settings::switch_control_layout()
 			advanced_controls_layout->addWidget(con_1_set);
 			advanced_controls_layout->addWidget(con_2_set);
 			advanced_controls_layout->addWidget(motion_set);
+			advanced_controls_layout->addWidget(motion_dead_zone_set);
+			advanced_controls_layout->addWidget(motion_scaler_set);
 			break;
 
 		case 2:

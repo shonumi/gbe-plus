@@ -182,6 +182,8 @@ class gen_settings : public QDialog
 	//Advanced controls tab widget
 	QCheckBox* rumble_on;
 	QCheckBox* motion_on;
+	QDoubleSpinBox* motion_dead_zone;
+	QDoubleSpinBox* motion_scaler;
 
 	//Battle Chip Gate tab widgets
 	QComboBox* chip_gate_type;
@@ -269,6 +271,8 @@ class gen_settings : public QDialog
 	void set_real_server();
 	void get_chip_list();
 	void set_battle_chip();
+	void update_motion_dead_zone();
+	void update_motion_scaler();
 	void update_vc_opacity();
 	void update_vc_timeout();
 	void update_sync_threshold();
@@ -314,6 +318,8 @@ class gen_settings : public QDialog
 	QWidget* con_1_set;
 	QWidget* con_2_set;
 	QWidget* motion_set;
+	QWidget* motion_dead_zone_set;
+	QWidget* motion_scaler_set;
 
 	QWidget* hotkey_turbo_set;
 	QWidget* hotkey_mute_set;
