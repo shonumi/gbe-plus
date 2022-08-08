@@ -586,7 +586,7 @@ void agb_microphone_callback(void* _apu, u8 *_stream, int _length)
 		{
 			std::string filename = config::data_path + "jukebox/" + apu_link->mem->jukebox.recorded_file;
 			std::ofstream file(filename.c_str(), std::ios::binary | std::ios::trunc);
-			u32 file_size = apu_link->mic_buffer.size() * 2;
+			u32 file_size = 0;
 
 			std::vector <u8> wav_header;
 
@@ -598,6 +598,20 @@ void agb_microphone_callback(void* _apu, u8 *_stream, int _length)
 
 			else
 			{
+				//Resample current microphone buffer at 11025Hz
+				//This matches output from a real GBA Music Recorder/Jukebox
+				double resample_rate = apu_link->apu_stat.sample_rate / 11025.0;
+				u32 temp_pos = 0;
+				std::vector <s16> resampled_buffer;
+
+				for(double x = 0; x < apu_link->mic_buffer.size(); x += resample_rate)
+				{
+					temp_pos = x;
+					resampled_buffer.push_back(apu_link->mic_buffer[temp_pos]);
+				}
+
+				file_size = resampled_buffer.size() * 2;
+					
 				//Build WAV header - Chunk ID - "RIFF" in ASCII
 				wav_header.push_back(0x52);
 				wav_header.push_back(0x49);
@@ -637,7 +651,7 @@ void agb_microphone_callback(void* _apu, u8 *_stream, int _length)
 				wav_header.push_back(0x00);
 
 				//Sampling Rate
-				u32 rate = apu_link->apu_stat.sample_rate;
+				u32 rate = 11025;
 				wav_header.push_back(rate & 0xFF);
 				wav_header.push_back((rate >> 8) & 0xFF);
 				wav_header.push_back((rate >> 16) & 0xFF);
@@ -672,7 +686,7 @@ void agb_microphone_callback(void* _apu, u8 *_stream, int _length)
 
 				std::cout<<"APU::Writing microphone recording " << filename << "\n";
 				file.write(reinterpret_cast<char*> (&wav_header[0]), wav_header.size());
-				file.write(reinterpret_cast<char*> (&apu_link->mic_buffer[0]), file_size);
+				file.write(reinterpret_cast<char*> (&resampled_buffer[0]), file_size);
 				file.close();
 			}
 
