@@ -843,6 +843,7 @@ bool AGB_MMU::jukebox_delete_file()
 {
 	std::vector<std::string> final_list;
 	std::string filename;
+	std::string delete_target;
 	u16 update_index = 0;
 	u16 update_time = 0;
 
@@ -853,18 +854,21 @@ bool AGB_MMU::jukebox_delete_file()
 			filename = config::data_path + "jukebox/music.txt";
 			update_time = jukebox.music_times[jukebox.current_file];
 			update_index = 0xAD;
+			delete_target = config::data_path + "jukebox/" + jukebox.music_files[jukebox.current_file];
 			break;
 
 		case 0x01:
 			filename = config::data_path + "jukebox/voice.txt";
 			update_time = jukebox.voice_times[jukebox.current_file];
 			update_index = 0xAE;
+			delete_target = config::data_path + "jukebox/" + jukebox.voice_files[jukebox.current_file];
 			break;
 
 		case 0x02:
 			filename = config::data_path + "jukebox/karaoke.txt";
 			update_time = jukebox.karaoke_times[jukebox.current_file];
 			update_index = 0xAF;
+			delete_target = config::data_path + "jukebox/" + jukebox.karaoke_files[jukebox.current_file];
 			break;
 		
 		default:
@@ -928,6 +932,17 @@ bool AGB_MMU::jukebox_delete_file()
 	//Update specific indices
 	jukebox.io_regs[update_index] = jukebox.file_limit;
 	jukebox.io_regs[0x00A0] = jukebox.current_file;
+
+	//Delete file from data folder
+	if(std::remove(delete_target.c_str()) == 0)
+	{
+		std::cout<<"MMU::Deleting audio recording file at " << delete_target << "\n";
+	}
+
+	else
+	{
+		std::cout<<"MMU::Error - Could not delete audio recording file at " << delete_target << "\n";
+	}
 
 	return true;
 }

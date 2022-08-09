@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.8.11)
 project(gbe_plus)
 
 if (NOT MSVC)
-	add_definitions(-O3 -funroll-loops -Wno-error -Wno-narrowing -std=c++0x)
+	add_definitions(-O3 -funroll-loops -Wno-error -Wno-narrowing -std=c++17)
 endif()
 
 if (MSVC AND WIN32)
