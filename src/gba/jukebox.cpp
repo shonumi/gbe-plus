@@ -959,8 +959,40 @@ void AGB_MMU::process_jukebox()
 		if(jukebox.progress >= 0xFF80)
 		{
 			std::string filename = "";
+			std::string delete_target = "";
 			jukebox.progress = 0;
 			jukebox.status = 0x0102;
+
+			//Delete all Jukebox recordings - Music, Voice Memos, and Karaoke
+			for(u32 x = 0; x < jukebox.music_files.size(); x++)
+			{
+				delete_target = config::data_path + "jukebox/" + jukebox.music_files[x];
+
+				if(std::remove(delete_target.c_str()) != 0)
+				{
+					std::cout<<"MMU::Error - Could not delete audio recording file at " << delete_target << "\n";
+				}
+			}
+
+			for(u32 x = 0; x < jukebox.voice_files.size(); x++)
+			{
+				delete_target = config::data_path + "jukebox/" + jukebox.voice_files[x];
+
+				if(std::remove(delete_target.c_str()) != 0)
+				{
+					std::cout<<"MMU::Error - Could not delete audio recording file at " << delete_target << "\n";
+				}
+			}
+
+			for(u32 x = 0; x < jukebox.karaoke_files.size(); x++)
+			{
+				delete_target = config::data_path + "jukebox/" + jukebox.karaoke_files[x];
+
+				if(std::remove(delete_target.c_str()) != 0)
+				{
+					std::cout<<"MMU::Error - Could not delete audio recording file at " << delete_target << "\n";
+				}
+			}
 
 			//Truncate lists and update file info
 			filename = config::data_path + "jukebox/music.txt";
