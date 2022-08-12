@@ -346,7 +346,12 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 							case 0x02:
 								jukebox.io_regs[0x82] = (jukebox.is_recording) ? 0x1211 : 0x1201;
 
-								if(!jukebox.karaoke_files.empty())
+								if(!jukebox.music_files.empty() && (jukebox.is_recording))
+								{
+									apu_stat->ext_audio.playing = jukebox_load_audio(config::data_path + "jukebox/" + jukebox.music_files[jukebox.current_file]);
+								}
+
+								else if(!jukebox.karaoke_files.empty())
 								{
 									apu_stat->ext_audio.playing = jukebox_load_audio(config::data_path + "jukebox/" + jukebox.karaoke_files[jukebox.current_file]);
 								}
@@ -906,9 +911,25 @@ bool AGB_MMU::jukebox_delete_file()
 	ifile.close();
 
 	//Adjust current file position if necessary
-	if(jukebox.current_file == final_list.size()) { jukebox.current_file--; }
+	if(final_list.size())
+	{
+		if(jukebox.current_file == final_list.size()) { jukebox.current_file--; }
+		jukebox.file_limit = final_list.size();
+	}
 
-	jukebox.file_limit = final_list.size();
+	//When deleting last file in a category, make sure to zero-out all file positions
+	else
+	{
+		jukebox.file_limit = 0;
+		jukebox.current_file = 0;		
+
+		switch(jukebox.current_category)
+		{
+			case 0: jukebox.last_music_file = 0; break;
+			case 1: jukebox.last_voice_file = 0; break;
+			case 2: jukebox.last_karaoke_file = 0; break;
+		}
+	}
 
 	//Update contents
 	std::ofstream ofile(filename.c_str(), std::ios::trunc);
