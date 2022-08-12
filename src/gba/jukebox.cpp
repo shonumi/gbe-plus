@@ -1102,6 +1102,15 @@ bool AGB_MMU::jukebox_save_recording()
 	while(converted_name.length() != 4) { converted_name = "0" + converted_name; }
 
 	converted_name += (jukebox.current_category) ? ".WAV" : ".GB3";
+
+	//Prepend each file with "M", "V", or "K" depending on the audio category
+	switch(jukebox.current_category)
+	{
+		case 0x00: converted_name = "M" + converted_name; break;
+		case 0x01: converted_name = "V" + converted_name; break;
+		case 0x02: converted_name = "K" + converted_name; break;
+	}
+
 	out_list->push_back(converted_name);
 
 	jukebox.recorded_file = converted_name;
