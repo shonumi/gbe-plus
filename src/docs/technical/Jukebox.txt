@@ -390,4 +390,36 @@ When reading input/output audio data, the software accesses indices starting at 
 
 The Music Recorder/Jukebox uses 2 different file formats for recording. For Voice Memos and Karaoke, the device encodes audio via IMA ADPCM into a WAV file. This format uses a 11025Hz sample rate, 16-bits per sample, and just one channel.
 
-For Music recorded via the Line-In jack, an MP3 file is generated. Depending on the user's settings, it will have a bit-rate of 128Kbps, 96Kbps, or 64Kbps. It uses ID3v1 to store metadata at the very last 128 bytes of the file. Instead of regular MP3 files, the Music Recorder/Jukebox produces "GB3" files. However, these GB3 files appear to be normal MP3s without the a header. This design prevents music from being recorded and copied to a PC and may have been intended to deter piracy.
+For Music recorded via the Line-In jack, an MP3 file is generated. Depending on the user's settings, it will have a bit-rate of 128Kbps, 96Kbps, or 64Kbps. It uses ID3v1 to store metadata at the very last 128 bytes of the file. Instead of regular MP3 files, the Music Recorder/Jukebox produces "GB3" files. However, these GB3 files appear to be normal MP3s without a header. This design prevents music from being recorded and copied to a PC and may have been intended to deter piracy.
+
+
+***************************************************
+8. CompactFlash File & Directory Structure
+***************************************************
+
+The CompactFlash card used by the Music Recorder/Jukebox contains a FAT-12 filesystem. The hardware is capable of formatting the card as necessary without the need of a PC or any other kind of media writing device. By default, it has a volume label that reads "AGB-MP3    ". 4 folders and 1 file in the root directory are created after a formatting the card:
+
+-----------------------------------------------------------
+Name		| Description
+-----------------------------------------------------------
+ADPCM		| Folder - Holds all Voice Memo recordings
+GB3		| Folder - Holds all Music recordings
+MP3		| Folder - Holds all user MP3s for playback
+SONG		| Folder - Holds all Karaoke recordings
+INFO.AGB	| File - Contains filenames for content in the above folders
+
+Despite its name, INFO.AGB contains no executable code intended to run on the GBA. Instead, simply has a list of all the files present for each category of audio. Additionally, it links MP3 and GB3 files to a given Karaoke recording. INFO.AGB is always 15KB exactly and is divided into the following 4 sections:
+
+-----------------------------------------------------------
+Offset 		| Description
+-----------------------------------------------------------
+0x0000		| MP3 + GB3 Folder File List
+0x1800		| ADPCM Folder File List
+0x2400		| Song Folder File List
+0x3000		| Karaoke Link Data
+
+For sections listing filenames, MP3 files use "8.3" DOS-style short names in ASCII. WAV and GB3 files (named sequentially e.g. 0001.WAV or 0002.WAV) use an even shorter "4.3" style in ASCII. Data is stored as strings with no terminating character or padding. The strings are formatted such that they use 16-bit pairs of characters that need to be read LSB first. Do note that the MP3 and GB3 files are listed together rather than separately.
+
+The Karaoke Link Data essentially points to the relevant MP3 or GB3 file that acted as the source of a Karaoke recording. The files here are ordered sequentially according to how the Music Recorder/Jukebox displays Karaoke files for playback. That is to say, the first file listed in INFO.AGB corresponds to the first file viewed from the Karaoke -> Play menu. This seems necessary for the Jukebox as it allows the software to pull up the 30 character song title and artist fields from the MP3 and GB3 files even though it plays the WAV Karaoke recording (which has no such metadata). If the Karaoke Link Data is corrupted or missing, the Music Recorder/Jukebox refuses to play any Karaoke recordings.
+
+The Music Recorder/Jukebox automatically updates INFO.AGB during various operations, such as deleting files. After a reformat, the Music Recorder/Jukebox inserts a blank INFO.AGB in the root directory.
