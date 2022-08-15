@@ -6,7 +6,7 @@ Shonumi aka D.S. Baxter
 1. Introduction
 ***************************************************
 
-The Game Boy Music Recorder is a cartridge for the Game Boy Advance capable of playing MP3s, recording audio, and performing karaoke. Designed and developed by Kemco, it was released on November 15, 2002 in Japan. A year later, Radica Games became the distributor for the product in North America and released it as the Game Boy Advance Jukebox. It marked the first time an officially licensed product could playback media of the user's choosing on the Game Boy.
+The Game Boy Advance Music Recorder is a cartridge for the Game Boy Advance capable of playing MP3s, recording audio, and performing karaoke. Designed and developed by Kemco, it was released on November 15, 2002 in Japan. A year later, Radica Games became the distributor for the product in North America and released it as the Game Boy Advance Jukebox. It marked the first time an officially licensed product could playback media of the user's choosing on the Game Boy.
 
 
 ***************************************************
@@ -52,7 +52,7 @@ Registers 0xB000000, 0xB020000, and 0xB100000 appear to be used by the software 
 
 
 ***************************************************
-4. Command Overview & Usage
+4. Command Overview
 ***************************************************
 
 The major functions of the Music Recorder/Jukebox are controlled from the software by sending a series of commands. Complex tasks such as reading the CompactFlash memory card or even deciding when to decode MP3 files are largely abstracted away from the CPU by a simple, high-level interface. To issue a command, software must follow the proceedure listed below:

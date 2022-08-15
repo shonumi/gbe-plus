@@ -141,6 +141,7 @@
 			<p class="list_item"><a href="#maw">Magical Watch</a></p>
 			<p class="list_item"><a href="#jcc">Joy Carry Cartridge</a></p>
 			<p class="list_item"><a href="#ama">Advance Movie Adapter</a></p>
+			<p class="list_item"><a href="#mus">Music Recorder</a></p>
 
 			<p class="list_head"><strong>NDS</strong></p>
 			<p class="list_item"><a href="#utp">Ubisoft Thrustmaster Pedometer</a></p>
@@ -3448,7 +3449,6 @@ Bit		| Function
 	<p class="list_item"><a href="#ama_lok">00.AM3</a></p>
 	<p class="list_item"><a href="#ama_lst">List of AM3 Cards and Products</a></p>
 
-
 	<a name="ama_gen"></a>
 	<p class="gray_title">[Advance Movie Adapter] : General Hardware Information</p>
 
@@ -3838,6 +3838,193 @@ Blank Gashapon Cards + Adapter Bundle
 am3-00049		Pikachu Gashapon Card
 am3-00081		Lucario Gashapon Card
 am3-00087		Akubi-chan Gashapon Card #1</code>
+
+
+	<!-- Music Recorder -->
+	<a name="mus"></a>
+	<p class="gray_title">Music Recorder</p>
+	<p class="list_item"><a href="#mus_gen">General Hardware Information</a></p>
+	<p class="list_item"><a href="#mus_reg">I/O Registers</a></p>
+	<p class="list_item"><a href="#mus_ovr">Command Overview</a></p>
+	<p class="list_item"><a href="#mus_cmd">Command Usage</a></p>
+	<p class="list_item"><a href="#mus_ind">Index Overview & Usage</a></p>
+	<p class="list_item"><a href="#mus_fmt">Recording File Formats</a></p>
+	<p class="list_item"><a href="#mus_dir">CompactFlash File & Directory Structure</a></p>
+
+
+	<a name="mus_gen"></a>
+	<p class="gray_title">[Music Recorder] : General Hardware Information</p>
+
+	<p>The Game Boy Advance Music Recorder is a cartridge for the Game Boy Advance capable of playing MP3s, recording audio, and performing karaoke. Designed and developed by Kemco, it was released on November 15, 2002 in Japan. A year later, Radica Games became the distributor for the product in North America and released it as the Game Boy Advance Jukebox. It marked the first time an officially licensed product could playback media of the user&#39;s choosing on the Game Boy.</p>
+
+	<ul>
+		<li class="list_item">Comes in an oversized black or white cartridge that hangs over the backside of a Game Boy Advance.</li>
+		<li class="list_item">Comes with a red LED at the bottom to indicate activity.</li>
+		<li class="list_item">Comes with a built-in microphone along with a Line-In port.</li>
+		<li class="list_item">Requires 1 AA battery to operate.</li>
+		<li class="list_item">Requires a CompactFlash card to operate.</li>
+		<li class="list_item">Internally, PCB is split into two main sections connected together.</li>
+		<li class="list_item">Supports audio output through a headphone jack.</li>
+		<li class="list_item">Supports playing MP3 files, recording voice memos as WAV files, and recording music/karaoke as custom GB3 files.</li>
+		<li class="list_item">Capable of operating independently from the Game Boy Advance. Has physical buttons to control playback.</li>
+	</ul>
+
+	<a name="mus_reg"></a>
+	<p class="gray_title">[Music Recorder] : I/O Registers</p>
+
+	<p>All registers for the Music Recorder/Jukebox are 8-bit. They are located in the 0xB------ address range.</p>
+
+<code>-----------------------------------------------------------
+Address		| Register Name
+-----------------------------------------------------------
+0xB000000	| UNKNOWN
+0xB020000	| UNKNOWN
+0xB080000	| ZMP_INDEX_HI
+0xB0A0000	| ZMP_INDEX_LO
+0xB0C0000	| ZMP_DATA_HI
+0xB0E0000	| ZMP_DATA_LO
+0xB100000	| UNKNOWN
+0xB120000	| ZMP_STATUS_RESET</code>
+
+	<p>ZMP_INDEX_HI and ZMP_INDEX_LO are used to set the current index. Each index points to specific data from the hardware, such as the current output volume, users settings, battery level, and the time remaining for recording or music playback. Each index is 16-bit and ZMP_INDEX_HI and ZMP_INDEX_LO form two 8-bits components of that value. ZMP_INDEX_HI contains the upper 8-bits and ZMP_INDEX_LO contains the lower 8-bits.</p>
+
+	<p>ZMP_DATA_HI and ZMP_DATA_LO are used to read data from or write data to the selected index. Data inside each index is also 16-bit, therefore ZMP_DATA_HI accesses the upper 8-bits and ZMP_DATA_LO accesses the lower 8-bits.</p>
+
+	<p>ZMP_STATUS_RESET forcibly resets the current value of cartridge&#39;s reported status. To do so, ZMP_STATUS_RESET must first be set to 0x00. After brief delay (approximately 16ms is sufficient) ZMP_STATUS_RESET must then be set to 0x01. The cartridge&#39;s status will then reset to zero after a period of about 500ms. The status is reported by the Device Status index. The upper-half of the index appears to represent the current audio playback state while lower half represent the current command issued to the cartridge.</p>
+
+	<p>Registers 0xB000000, 0xB020000, and 0xB100000 appear to be used by the software under certain circumstances, however, their purpose is currently unknown.</p>
+
+	<a name="mus_ovr"></a>
+	<p class="gray_title">[Music Recorder] : Command Overview</p>
+
+	<p>The major functions of the Music Recorder/Jukebox are controlled from the software by sending a series of commands. Complex tasks such as reading the CompactFlash memory card or even deciding when to decode MP3 files are largely abstracted away from the CPU by a simple, high-level interface. To issue a command, software must follow the proceedure listed below:</p>
+	
+	<ol>
+		<li class="list_item">Write the value 0x0000 to the index 0x0081, then delay about 16ms.</li>
+		<li class="list_item">Write the command to the index 0x0080.</li>
+		<li class="list_item">Write the value 0x0000 to ZMP_STATUS_RESET, delay about 16ms, then write the value 0x0001 to ZMP_STATUS_RESET.</li>
+	</ol>
+
+	<p>After writing to ZMP_STATUS_RESET, the Device Status index will then return either 0x100 in most cases, or 0x8000 when performing certain audio operations.</p>
+
+	<p>Each command is 8-bits in length and occupy the lower half of the Device Status index. Their values serve as enumerations to various audio and memory related functions. The software has been observed using the below commands:</p>
+
+<code>-----------------------------------------------------------
+Command		| Description
+-----------------------------------------------------------
+0x00		| Unknown
+0x01		| Unknown
+0x02		| Format CompactFlash Card
+0x08		| Select Music Files
+0x09		| Record Music Files
+0x0A		| Select Voice Memo Files
+0x0B		| Record Voice Memo Files
+0x0C		| Select Karaoke Files
+0x0D		| Record Karaoke Files
+0x0E		| Unknown
+0x10		| Unknown
+0x11		| Commit Title/Artist Changes
+0x13		| Play Selected Audio File/Record New Audio File 	
+0x14		| Reset Currently Selected Audio File
+0x15		| Move Forward 1 Audio File
+0x16		| Move Backward 1 Audio File
+0x19		| Delete Current Audio File
+0x20		| Stop Playing/Recording Audio File</code>
+
+	<a name="mus_cmd"></a>
+	<p class="gray_title">[Music Recorder] : Command Usage</p>
+
+	<p>For all commands dealing with audio input/output (0x109, 0x10B, 0x10D, 0x113), refer to the section below for dealing with the actual data transfers.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Command 0x00 - Unknown</strong></p>
+	<p class="list_item">This is the first command that the software for the Music Recorder/Jukebox issues. The software also sends this command after finishing recording Music Files, indicating that it might reset or initialize functions related to the Line-In jack.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Command 0x01 - Unknown</strong></p>
+	<p class="list_item">This is the second command that the software for the Music Recorder/Jukebox issues, indicating that it is possibly used to initialize the hardware.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Command 0x02 - Format CompactFlash Card</strong></p>
+	<p class="list_item">This command will format the CompactFlash card inserted into the Music Recorder/Jukebox. Presumably, it also creates several directories used to separate music files into different categories. It also creates the AGB.INFO file in the root directory, which contains a list of all MP3 files detected by the hardware.</p>
+
+	<p>Once this command has been sent, the index 0x101 is used to measure the progress of the formatting process. The 16-bit value in that index represent progress in 1 / 32768 units. That is to say, 0% is 0x0000, 25% is 0x2000, 50% is 0x4000, 75% is 0x6000, and 100% is 0x8000. Various percentages can be created using any value in between 0x0000 through 0x8000. For example, ~14.22% would be 0x1234.</p>
+
+	<p>The software only displays whole integers, ignoring any decimals results. Surprisingly, it can measure 0% through 199%.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Command 0x08 - Select Music Files</strong></p>
+	<p class="list_item">This command is used to read information about MP3 music files or any music recordings via Line-In stored on the CompactFlash card. It is also used to select the Music/Line-In Recordings category when playing files. The command largely affects the output of indices 0x00A1 - 0x00A6 and 0x00B0 - 0x00CF for data relating to the music&#39;s filename, formal title, and artist.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Command 0x09 - Record Music</strong></p>
+	<p class="list_item">This command prepares the Music Recorder/Jukebox to record audio data from the Line-In jack. After sending this command, the software waits for the CompactFlash Status index to change to the value 0x1010 to indicate the hardware is ready. Input data from the jack is then stored as a sequentially numbered .GB3 file. The user can optionally turn on a &#34;Silence Detection&#34; feature that splits incoming audio data into seperate files when a period of silence appears in the stream, automatically breaking up songs from CDs or cassette players for example.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Command 0x0A - Select Voice Memo Files</strong></p>
+	<p class="list_item">This command is used to read information about Voice Memo files recorded via the built-in microphone and stored on the CompactFlash card. It is also used to select the Voice Memo category when playing files. The command largely affects the output of indices 0x00A1 - 0x00A6 for data relating to the memo&#39;s filename.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Command 0x0B - Record Voice Memo Files</strong></p>
+	<p class="list_item">This command prepares the Music Recorder/Jukebox&#39;s to record audio data from the microphone. Input data from the microphone is then stored in sequentially numbered .WAV files.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Command 0x0C - Select Karaoke Files</strong></p>
+	<p class="list_item">This command is used to read information about Karaoke Files stored on the CompactFlash card and created by playing audio from the Music Files and recording over them with the microphone. The command largely affects the output of indices 0x00A1 - 0x00A6 for data relating to the memo&#39;s filename.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Command 0x0D - Record Karaoke Files</strong></p>
+	<p>This command prepares the Music Recorder/Jukebox to record audio data from the microphone on top of the unit and by mixing audio samples from one of the Music Files. When recording Karaoke Files, the user is prompted to first select an existing Music File.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Command 0x0E - Unknown</strong></p>
+	<p class="list_item">This command always follows the 0x01 command. The Music Recorder/Jukebox&#39;s software appears to only issue this command at the very beginning when initializing hardware.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Command 0x10 - Unknown</strong></p>
+	<p class="list_item">This command always follows a command related to file access (0x08, 0x0A, 0x0C, 0x14, 0x15, 0x16, and 0x19), indicating that it might serve as a means to update the current list of files for a given category. For commands that select a given category (0x08, 0x0A, and 0x0C), the software for the Music Recorder/Jukebox issues this command twice in a row.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Command 0x11 - Commit Title/Artist Changes</strong></p>
+	<p class="list_item">For .GB3 files recorded via the Line-In jack, the Music Recorder/Jukebox software allows users to manually input the song&#39;s full name as well as the artist. Up to 30 characters can be used for either the title or artist fields. The software writes the data to the relevant indices at 0xB0 - 0xCF and sends this command to save the data.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Command 0x13 - Play Selected Audio File/Record New Audio File</strong></p>
+	<p class="list_item">This command either plays a selected audio file or starts recording a new file, depending on which commands were previously issued. All 3 categories of audio - Music, Voice Memo, and Karaoke - use this command to actually output audio. For recording, the commands 0x09, 0x0B, and 0x0D merely prep the hardware for recording a new file, while this command actually instructs the hardware to start grabbing input audio samples. Most importantly, this command affects the value of the CompactFlash Status index, depending on which category of audio has been selected and whether the mode is playing or recording:</p>
+
+<code>
+-----------------------------------------------------------
+Mode			| CompactFlash Status
+-----------------------------------------------------------
+Music Play		| 0x1001
+Music Record		| 0x1012
+Voice Memo Play 	| 0x1101
+Voice Memo Record	| 0x1112
+Karaoke Play		| 0x1201
+Karaoke Record		| 0x1211
+-----------------------------------------------------------</code>
+
+	<p>When the song is finished playing, or when there is no space left on the CompactFlash card, the CompactFlash Status index stops matching those above values.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Command 0x14 - Reset Currently Selected Audio File</strong></p>
+	<p class="list_item">This command appears to reset any information regarding the currently selected file. The Music Recorder/Jukebox issues this command on boot and again every time the user exits the &#34;PLAY&#34; or &#34;REC&#34; menus for a given category of audio.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Command 0x15 - Move Forward 1 Audio File</strong></p>
+	<p class="list_item">Select the next audio file for playback. If the current file is the last file for a given audio category, the audio file at the beginning of the list is selected instead.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Command 0x16 - Move Backward 1 Audio File</strong></p>
+	<p class="list_item">Selects the previous audio file for playback. If the current file is the first file for a given audio category, the audio file at the end of the list is selected instead.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Command 0x19 - Delete Current Audio File</strong></p>
+	<p class="list_item">Erases all data for the current audio file from the CompactFlash card.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Command 0x20 - Stop Playing/Recording Audio File</strong></p>
+	<p class="list_item">Halts all audio input/output for a given audio file.</p>
 
 
 	<!-- Ubisoft Thrustmaster Pedometer -->
