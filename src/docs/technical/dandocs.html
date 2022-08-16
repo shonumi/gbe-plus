@@ -4026,6 +4026,202 @@ Karaoke Record		| 0x1211
 	<p class="list_item"><strong>Command 0x20 - Stop Playing/Recording Audio File</strong></p>
 	<p class="list_item">Halts all audio input/output for a given audio file.</p>
 
+	<a name="mus_ind"></a>
+	<p class="gray_title">[Music Recorder] : Index Overview & Usage</p>
+
+	<p>Each index is mapped to different hardware data, giving the CPU access to information regarding music playback or recording. Below is a list of known indices and their roles:</p>
+
+<code>-----------------------------------------------------------
+Index	| R/W	| Description
+-----------------------------------------------------------
+0x0080	| W	| Write Device Status
+0x0081	| R	| Read Device Status
+0x0082	| R	| CompactFlash Status
+0x0084	| R	| Remaining Playback Time (Minutes)
+0x0085	| R	| Remaining Playback Time (Seconds)
+0x0086	| R	| Remaining Recording Time (Minutes)
+0x0087	| R	| Remaining Recording Time (Seconds)
+0x0088	| R/W	| Music Output Volume (0x3F = Min, 0x00 = Max)
+0x008A	| R/W	| Voice Output Volume (0x3F = Min, 0x00 = Max)
+0x008C	| R/W	| Equalizer Settings
+0x008B	| R	| Recording Volume (0xFFEE = Min, 0x0004 = Max)
+0x008F	| R/W	| Voice Cancellation Settings
+0x009A	| R/W	| Spectrum Analyzer Update Status
+0x009B	| R/W	| GBA Speaker Volume db (0xFFEC = Min, 0x0013 = Max)
+0x009C	| R	| CompactFlash Detection Flag
+0x009D	| R	| Battery Level (Min = 0x02, Max = 0x00)
+0x00A0	| R	| Current File Track Number
+0x00AD	| R	| Current Number of Music Files Detected
+0x00AE	| R	| Current Number of Voice Memo Files Detected
+0x00AF	| R	| Current Number of Karaoke Files Detected
+0x0100	| R	| Audio Index Length
+0x0101	| R	| CompactFlash Format Progress / CompactFlash Access Progress???
+0x0102	| R	| Current Karaoke File Number for Recording (Hundreds Value)
+0x0103	| R	| Current Karaoke File Number for Recording (Tens and Ones Values)
+0x01C8	| R/W	| General Configuration Settings
+0x01C9	| R/W	| Line-In and Microphone Input Levels</code>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0x0080 - Write Device Status</strong></p>
+	<p class="list_item">Allows the CPU to overwrite the cartridge&#39;s 16-bit STATUS value. When STATUS is set to certain values, it acts as a command.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0x0081 - Read Device Status</strong></p>
+	<p class="list_item">Returns the CPU to read the cartridge&#39;s 16-bit STATUS value. Primarily used to see if the cartridge is ready to perform certain operations after issuing a command.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0x0082 - CompactFlash Status</strong></p>
+	<p class="list_item">Returns the current state of the CompactFlash card. When recording music, it should read 0x1010.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0x0084 - Remaining Playback Time (Minutes)</strong></p>
+	<p class="list_item">Returns the remaining minutes left when playing a music file or recording. Has a range of 0 - 99. The cartridge&#39;s hardware will automatically update the value during playback.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0x0085 - Remaining Playback Time (Seconds)</strong></p>
+	<p class="list_item">Returns the remaining seconds left when playing a music file or recording. Has a range of 0 - 59. The cartridge&#39;s hardware will automatically update the value during playback.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0x0086 - Remaining Recording Time (Minutes)</strong></p>
+	<p class="list_item">Returns the remaining minutes left when making any recording. Has a range of 0 - 99. The value is dependent on remaining free space of the CompactFlash card and the audio quality chosen for recording. The cartridge&#39;s hardware will automatically update the value during a recording session.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0x0087 - Remaining Recording Time (Seconds)</strong></p>
+	<p class="list_item">Returns the remaining seconds left when making any recording. Has a range of 0 - 59. The value is dependent on remaining free space of the CompactFlash card and the audio quality chosen for recording. The cartridge&#39;s hardware will automatically update the value during a recording session.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0x0088 - Music Output Volume</strong></p>
+	<p class="list_item">Specifies the output volume for Music and Karaoke Files through either the GBA&#39;s speakers or the cartridge&#39;s built-in headphone jack. Has a range of 0x3F - 0x00, for minimum to maximum volume. Operates separately from the Voice Output Volume index.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0x008A - Voice Output Volume</strong></p>
+	<p class="list_item">Specifies the output volume for Voice Memo Files through either the GBA&#39;s speakers or the cartridge&#39;s built-in headphone jack. Has a range of 0x3F - 0x00, minimum to maximum volume. Operates separately from the Music Output Volume index, however an apparent software glitch seems to overwrite this index with the other volume index when switching audio categories.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0x008C - Equalizer Settings</strong></p>
+	<p class="list_item">Specifies the type of equalizer to apply for music playback. Accepts values of 0 - 4 to select the following equalizers respectively: None, Jazz, Pop, Classical, Rock.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0x008B - Recording Volume</strong></p>
+	<p class="list_item">Returns the current volume of input audio from the a recording (via Line-In or the microphone).</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0x008F - Voice Cancellation Settings</strong></p>
+	<p class="list_item">Toggles voice cancellation during audio playback. 0 = OFF, 1 = ON.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0x009A - Spectrum Analyzer Update Status</strong></p>
+	<p class="list_item">Represents when the spectrum analyzer for Music Files needs to be updated. When this value is zero, the spectrum analyzer is disabled. For any non-zero values, the spectrum analyzer is enabled. When enabled, this index will increase in to indicate the spectrum analyzer needs to be redrawn. The update only happens when the current value of the index is greater than the previously recorded value. If this index overflows 16-bits and reads zero or if the value is frozen, the software will not update the spectrum analyzer.</p>
+
+	<p>As it is limited to 16-bit values, the spectrum analyzer can only be updated a certain amount of times before it overflows. The software appears to check this index a maximum of 45 times per-second during playback, so the Music Record/Jukebox can play songs up about 18:30 long without issue.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0x009B - GBA Speaker Volume db</strong></p>
+	<p class="list_item">Adjusts the output volume from the GBA speakers in the range of -20 to +19 db. The index itself goes from 0xFFEC as the minimum to 0x0013 as the maximum.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0x009C - CompactFlash Detection Flag</strong></p>
+	<p class="list_item">Determines whether a CompactFlash card has been inserted into the cartridge. Any non-zero value indicates the card cannot be detected.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0x009D - Battery Level</strong></p>
+	<p class="list_item">Returns the current level of the AA battery inside the cartridge. Has 3 levels total with the values 0x02 representing 1 bar, 0x01 representing 2 bars, and 0x00 representing 3 bars.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0x00A0 - Current File Track Number</strong></p>
+	<p class="list_item">Returns the current file track number. This is determined by how the cartridge arranges files, not by any metadata from the file itself. For Music, Voice Memos, and Karaoke files, this value is used for playback purposes. For Music and Voice Memos, this value is also used during recording. When recording Karaoke files, however, indices 0x0102 and 0x0103 are used instead.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0x00AC - Current Number of Music Files Detected</strong></p>
+	<p class="list_item">Returns the current number of Music Files detected on the CompactFlash card.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0x00AE - Current Number of Voice Memo Files Detected</strong></p>
+	<p class="list_item">Returns the current number of Voice Memo Files detected on the CompactFlash card.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0x00AF - Current Number of Karaoke Files Detected</strong></p>
+	<p class="list_item">Returns the current number of Karaoke Files detected on the CompactFlash card.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0x0100 - Audio Index Length</strong></p>
+	<p class="list_item">Determines how many indices to read from 0x102 and beyond for audio input/output data.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0x0101 - CompactFlash Format Progress / CompactFlash Access Progress</strong></p>
+	<p class="list_item">Appears to indicate the progress of certain tasks involving the CompactFlash card. For formatting the card, this index represents the overall progress of that process from 0% to 100% using the range 0x0000 through 0x8000. For playing and recording audio data, it seems to determine when certain chunks are finished using a range of 0x0000 through 0x4000.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0x0102 - Current Karaoke File Number for Recording (Hundreds Value)</strong></p>
+	<p class="list_item">Returns 8-bits representing the current file number (in hundreds) for recording Karaoke files. It has an unusual offset not seen in the 0x00A0 index. It can be calculated as the following:</p>
+
+<code>
+INDEX = (((CURRENT_FILE / 100) + 0xA6) AND 0xFF)</code>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0x0103 - Current Karaoke File Number for Recording (Tens and Ones Values)</strong></p>
+	<p class="list_item">Returns 8-bits representing the current file number (in tens and ones) for recording Karaoke files. It has an unusual offset not seen in the 0x00A0 index. It can be calculated as the following:</p>
+
+<code>
+INDEX = (((CURRENT_FILE modulo 100) + 0xA8) AND 0xFF)</code>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0x01C9 - Line-In and Microphone Input Levels</strong></p>
+	<p class="list_item">Used to calibrate volumes when recording via Line-In or the microphone. The Music Recorder/Jukebox uses an 8-bit value for this calibration. The high byte is used for microphone sensitivity while the low byte is used for Line-In volumes.</p>
+
+	<p>Some indices have a widespread range and serve as string data or audio input/output</p>
+
+<code>-----------------------------------------------------------
+Index Range	| R/W	| Description
+-----------------------------------------------------------
+0x0090 - 0x0098	| R	| Spectrum Analyzer Level For Bars 1 - 9 (0x00 = Min, 0x13 = Max)
+0x00A1 - 0x00A6	| R/W	| &#34;8.3&#34; DOS-style short name for music file
+0x00B0 - 0x00BE	| R/W	| 30 character song title
+0x00BF - 0x00CD	| R/W	| 30 character artist name
+0x0102+		| R/W	| Audio in/out data for recording/playing</code>
+
+	<p>For the string data at 0x00A1 through 0x00CD, the string is terminated by a null character (value 0x00). The strings for the Jukebox use ASCII.</p>
+
+	<p>When reading input/output audio data, the software accesses indices starting at 0x0102 and ends at the length specified by index 0x100. For example, if the Audio Index Length is 0x0004, the CPU reads indices 0x0102 through 0x0105 inclusive. Note that the 0x0102 and 0x0103 are also used for other purposes. Depending on the context, it may represent audio sample data or a Karaoke file number.</p>
+
+	<a name="mus_fmt"></a>
+	<p class="gray_title">[Music Recorder] : Recording File Formats</p>
+
+	<p>The Music Recorder/Jukebox uses 2 different file formats for recording. For Voice Memos and Karaoke, the device encodes audio via IMA ADPCM into a WAV file. This format uses a 11025Hz sample rate, 16-bits per sample, and just one channel.</p>
+
+	<p>For Music recorded via the Line-In jack, an MP3 file is generated. Depending on the user&#39;s settings, it will have a bit-rate of 128Kbps, 96Kbps, or 64Kbps. It uses ID3v1 to store metadata at the very last 128 bytes of the file. Instead of regular MP3 files, the Music Recorder/Jukebox produces &#34;GB3&#34; files. However, these GB3 files appear to be normal MP3s without a header. This design prevents music from being recorded and copied to a PC and may have been intended to deter piracy.</p>
+
+	<a name="mus_dir"></a>
+	<p class="gray_title">[Music Recorder] : CompactFlash File & Directory Structure</p>
+
+	<p>The CompactFlash card used by the Music Recorder/Jukebox contains a FAT-12 filesystem. The hardware is capable of formatting the card as necessary without the need of a PC or any other kind of media writing device. By default, it has a volume label that reads &#34;AGB-MP3    &#34;. 4 folders and 1 file in the root directory are created after a formatting the card:</p>
+
+<code>-----------------------------------------------------------
+Name		| Description
+-----------------------------------------------------------
+ADPCM		| Folder - Holds all Voice Memo recordings
+GB3		| Folder - Holds all Music recordings
+MP3		| Folder - Holds all user MP3s for playback
+SONG		| Folder - Holds all Karaoke recordings
+INFO.AGB	| File - Contains filenames for content in the above folders</code>
+
+	<p>Despite its name, INFO.AGB contains no executable code intended to run on the GBA. Instead, simply has a list of all the files present for each category of audio. Additionally, it links MP3 and GB3 files to a given Karaoke recording. INFO.AGB is always 15KB exactly and is divided into the following 4 sections:</p>
+
+<code>-----------------------------------------------------------
+Offset 		| Description
+-----------------------------------------------------------
+0x0000		| MP3 + GB3 Folder File List
+0x1800		| ADPCM Folder File List
+0x2400		| Song Folder File List
+0x3000		| Karaoke Link Data</code>
+
+	<p>For sections listing filenames, MP3 files use &#34;8.3&#34; DOS-style short names in ASCII. WAV and GB3 files (named sequentially e.g. 0001.WAV or 0002.WAV) use an even shorter &#34;4.3&#34; style in ASCII. Data is stored as strings with no terminating character or padding. The strings are formatted such that they use 16-bit pairs of characters that need to be read LSB first. Do note that the MP3 and GB3 files are listed together rather than separately.</p>
+
+	<p>The Karaoke Link Data essentially points to the relevant MP3 or GB3 file that acted as the source of a Karaoke recording. The files here are ordered sequentially according to how the Music Recorder/Jukebox displays Karaoke files for playback. That is to say, the first file listed in INFO.AGB corresponds to the first file viewed from the Karaoke -> Play menu. This seems necessary for the Jukebox as it allows the software to pull up the 30 character song title and artist fields from the MP3 and GB3 files even though it plays the WAV Karaoke recording (which has no such metadata). If the Karaoke Link Data is corrupted or missing, the Music Recorder/Jukebox refuses to play any Karaoke recordings.</p>
+
+	<p>The Music Recorder/Jukebox automatically updates INFO.AGB during various operations, such as deleting files. After a reformat, the Music Recorder/Jukebox inserts a blank INFO.AGB in the root directory.</p>
+
+
 
 	<!-- Ubisoft Thrustmaster Pedometer -->
 	<a name="utp"></a>
