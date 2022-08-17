@@ -600,7 +600,7 @@ void agb_microphone_callback(void* _apu, u8 *_stream, int _length)
 			{
 				//Resample current microphone buffer at 11025Hz
 				//This matches output from a real GBA Music Recorder/Jukebox
-				double resample_rate = apu_link->apu_stat.sample_rate / 11025.0;
+				double resample_rate = apu_link->microphone_spec.freq / 11025.0;
 				u32 temp_pos = 0;
 				std::vector <s16> resampled_buffer;
 
@@ -612,22 +612,24 @@ void agb_microphone_callback(void* _apu, u8 *_stream, int _length)
 
 				file_size = resampled_buffer.size() * 2;
 
-
 				//For Karaoke files, mix in external audio buffer from Music file
-				resample_rate = apu_link->apu_stat.ext_audio.frequency / 11025.0;
-				if(apu_link->apu_stat.ext_audio.channels == 2) { resample_rate *= 2; }
-
-				s16* e_stream = (s16*) apu_link->apu_stat.ext_audio.buffer;
-				s32 temp_sample = 0;
-				double stream_pos = 0;
-				temp_pos = 0;
-
-				for(u32 x = 0; x < resampled_buffer.size(); x++)
+				if(apu_link->mem->jukebox.current_category == 2)
 				{
-					temp_pos = stream_pos;
-					temp_sample = (resampled_buffer[x] + e_stream[temp_pos]) / 2;
-					resampled_buffer[x] = temp_sample;
-					stream_pos += resample_rate;
+					resample_rate = apu_link->apu_stat.ext_audio.frequency / 11025.0;
+					if(apu_link->apu_stat.ext_audio.channels == 2) { resample_rate *= 2; }
+
+					s16* e_stream = (s16*) apu_link->apu_stat.ext_audio.buffer;
+					s32 temp_sample = 0;
+					double stream_pos = 0;
+					temp_pos = 0;
+
+					for(u32 x = 0; x < resampled_buffer.size(); x++)
+					{
+						temp_pos = stream_pos;
+						temp_sample = (resampled_buffer[x] + e_stream[temp_pos]) / 2;
+						resampled_buffer[x] = temp_sample;
+						stream_pos += resample_rate;
+					}
 				}
 					
 				//Build WAV header - Chunk ID - "RIFF" in ASCII
