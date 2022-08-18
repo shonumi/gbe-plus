@@ -600,7 +600,8 @@ void agb_microphone_callback(void* _apu, u8 *_stream, int _length)
 			{
 				//Resample current microphone buffer at 11025Hz
 				//This matches output from a real GBA Music Recorder/Jukebox
-				double resample_rate = apu_link->microphone_spec.freq / 11025.0;
+				double target_freq = (apu_link->mem->jukebox.current_category == 0) ? 44100.0 : 11025.0; 
+				double resample_rate = apu_link->microphone_spec.freq / target_freq;
 				u32 temp_pos = 0;
 				std::vector <s16> resampled_buffer;
 
@@ -671,7 +672,7 @@ void agb_microphone_callback(void* _apu, u8 *_stream, int _length)
 				wav_header.push_back(0x00);
 
 				//Sampling Rate
-				u32 rate = 11025;
+				u32 rate = target_freq;
 				wav_header.push_back(rate & 0xFF);
 				wav_header.push_back((rate >> 8) & 0xFF);
 				wav_header.push_back((rate >> 16) & 0xFF);
