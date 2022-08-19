@@ -52,6 +52,7 @@ enum special_cart_types
 	AGB_8M_DACS,
 	AGB_AM3,
 	AGB_JUKEBOX,
+	AGB_PLAY_YAN,
 	NDS_IR_CART,
 };
 

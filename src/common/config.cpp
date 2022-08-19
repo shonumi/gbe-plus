@@ -817,6 +817,9 @@ bool parse_cli_args()
 			//Use GBA Music Recorder mapper
 			else if(config::cli_args[x] == "--agb-jukebox") { config::cart_type = AGB_JUKEBOX; }
 
+			//Use Play-Yan Cartridge
+			else if(config::cli_args[x] == "--agb-play-yan") { config::cart_type = AGB_PLAY_YAN; }
+
 			//Use Auto-Detect for GBA saves
 			else if(config::cli_args[x] == "--save-auto") { config::agb_save_type = AGB_AUTO_DETECT; }
 

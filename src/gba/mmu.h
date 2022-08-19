@@ -272,6 +272,9 @@ class AGB_MMU
 	bool jukebox_load_audio(std::string filename);
 	void process_jukebox();
 
+	void write_play_yan(u32 address, u8 value);
+	u8 read_play_yan(u32 address);
+
 	//GPIO handling functions
 	void process_rtc();
 	void process_rumble();
