@@ -179,6 +179,20 @@ class AGB_MMU
 		u32 spectrum_values[9];
 	} jukebox;
 
+	//Structure to handle Play-Yan
+	struct ags_006
+	{
+		std::vector<u8> firmware;
+		u32 firmware_addr;
+		u16 firmware_status;
+		u8 firmware_addr_count;
+
+		u8 status;
+
+		u16 access_mode;
+		u16 access_param;
+	} play_yan;
+
 	//Structure to handle GPIO reading and writing
 	struct gpio_controller
 	{
@@ -272,6 +286,7 @@ class AGB_MMU
 	bool jukebox_load_audio(std::string filename);
 	void process_jukebox();
 
+	void play_yan_reset();
 	void write_play_yan(u32 address, u8 value);
 	u8 read_play_yan(u32 address);
 
