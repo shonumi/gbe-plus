@@ -188,9 +188,17 @@ class AGB_MMU
 		u8 firmware_addr_count;
 
 		u8 status;
+		u8 op_state;
 
 		u16 access_mode;
 		u16 access_param;
+
+		u32 irq_count;
+		u32 irq_delay;
+
+		u32 sd_check_data[8];
+		u32 irq_data[8];
+		bool irq_data_in_use;
 	} play_yan;
 
 	//Structure to handle GPIO reading and writing
@@ -289,6 +297,7 @@ class AGB_MMU
 	void play_yan_reset();
 	void write_play_yan(u32 address, u8 value);
 	u8 read_play_yan(u32 address);
+	void process_play_yan_irq();
 
 	//GPIO handling functions
 	void process_rtc();

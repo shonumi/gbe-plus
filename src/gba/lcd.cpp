@@ -1701,6 +1701,9 @@ void AGB_LCD::step()
 
 			//Process GB Player Rumble
 			if((config::sio_device == 8) && (mem->sio_emu_device_ready)) { mem->process_player_rumble(); }
+
+			//Process Play-Yan interrupts
+			if((config::cart_type == AGB_PLAY_YAN) && (mem->play_yan.irq_delay)) { mem->process_play_yan_irq(); }
 		}
 
 		//Setup HBlank

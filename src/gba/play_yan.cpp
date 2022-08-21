@@ -16,7 +16,7 @@
 void AGB_MMU::play_yan_reset()
 {
 	play_yan.firmware.clear();
-	play_yan.firmware.resize(0xFF020, 0x00);
+	play_yan.firmware.resize(0x100000, 0x00);
 
 	play_yan.firmware_addr = 0;
 	play_yan.firmware_status = 0x10;
@@ -26,6 +26,17 @@ void AGB_MMU::play_yan_reset()
 
 	play_yan.access_mode = 0;
 	play_yan.access_param = 0;
+
+	play_yan.irq_count = 0;
+	play_yan.irq_delay = 240;
+
+	play_yan.sd_check_data[0] = 0x80000100;
+	play_yan.sd_check_data[1] = 0x40008000; 
+	play_yan.sd_check_data[2] = 0x40800000;
+	play_yan.sd_check_data[3] = 0x80000100;
+	play_yan.sd_check_data[4] = 0x40000200;
+
+	for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
 }
 
 /****** Writes to Play-Yan I/O ******/
@@ -78,7 +89,6 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 			{
 				play_yan.firmware_addr &= ~0xFF000000;
 				play_yan.firmware_addr |= (value << 24);
-				std::cout<<"#4 FIRMWARE ADDR -> 0x" << play_yan.firmware_addr << "\n";
 			}
 
 			play_yan.firmware_addr_count++;
@@ -100,7 +110,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 	}
 
 	//Write to firmware area
-	if((address >= 0xB000100) && (address < 0xB000300))
+	if((address >= 0xB000100) && (address < 0xB000300) && ((play_yan.access_param == 0x09) || (play_yan.access_param == 0x0A)))
 	{
 		u32 offset = address - 0xB000100;
 		
@@ -109,6 +119,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 			play_yan.firmware[play_yan.firmware_addr + offset] = value;
 		}
 	}
+
 }
 
 /****** Reads from Play-Yan I/O ******/
@@ -149,8 +160,20 @@ u8 AGB_MMU::read_play_yan(u32 address)
 			break;
 	}
 
+	//Read IRQ data
+	if((play_yan.irq_data_in_use) && (address >= 0xB000300) && (address < 0xB000320))
+	{
+		u32 offset = (address - 0xB000300) >> 2;
+		u8 shift = (address & 0x3);
+
+		//Switch back to reading firmware after all IRQ data is read
+		if(address == 0xB00031C) { play_yan.irq_data_in_use = false; }
+
+		result = (play_yan.irq_data[offset] >> (shift << 3));
+	}
+
 	//Read from firmware area
-	if((address >= 0xB000300) && (address < 0xB000500))
+	else if((address >= 0xB000300) && (address < 0xB000500) && ((play_yan.access_param == 0x09) || (play_yan.access_param == 0x0A)))
 	{
 		u32 offset = address - 0xB000300;
 		
@@ -159,11 +182,52 @@ u8 AGB_MMU::read_play_yan(u32 address)
 			result = play_yan.firmware[play_yan.firmware_addr + offset];
 
 			//Update Play-Yan firmware address if necessary
-			if(offset == 0x1FE) { play_yan.firmware_addr += 0x200; std::cout<<"FIRMWARE ADDR UPDATE -> 0x" << play_yan.firmware_addr << "\n"; }
+			if(offset == 0x1FE) { play_yan.firmware_addr += 0x200; }
 		}
 	}
 
 	std::cout<<"PLAY-YAN READ -> 0x" << address << " :: 0x" << (u32)result << "\n";
 
 	return result;
+}
+
+/****** Handles Play-Yan interrupt requests including delays and what data to respond with ******/
+void AGB_MMU::process_play_yan_irq()
+{
+	//Wait for a certain amount of frames to pass to simulate delays in Game Pak IRQs firing
+	if(play_yan.irq_delay)
+	{
+		play_yan.irq_delay--;
+		if(play_yan.irq_delay) { return; }
+	}
+
+	//Process SD card check first and foremost after booting
+	if(!play_yan.op_state)
+	{
+		play_yan.op_state = 1;
+		play_yan.irq_count = 0;
+	}
+
+	switch(play_yan.op_state)
+	{
+		//SD card check
+		case 0x1:
+			//Trigger Game Pak IRQ
+			memory_map[REG_IF+1] |= 0x20;
+
+			if(play_yan.irq_count == 5)
+			{
+				play_yan.op_state = 2;
+				play_yan.irq_delay = 0;
+			}
+
+			else
+			{
+				play_yan.irq_data[0] = play_yan.sd_check_data[play_yan.irq_count++];
+				play_yan.irq_delay = 120;
+				play_yan.irq_data_in_use = true;
+			}
+
+			break;
+	}
 }
