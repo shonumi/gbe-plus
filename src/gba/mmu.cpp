@@ -163,6 +163,8 @@ void AGB_MMU::reset()
 /****** Read byte from memory ******/
 u8 AGB_MMU::read_u8(u32 address)
 {
+	if((address >= 0x2003ddc) && (address < 0x200a5dc) && (play_yan.op_state == 2)) { std::cout<<"YO -> 0x" << address << "\n"; }
+
 	//Advanced debugging
 	#ifdef GBE_DEBUG
 	debug_read = true;
