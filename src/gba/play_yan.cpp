@@ -36,17 +36,13 @@ void AGB_MMU::play_yan_reset()
 	{
 		for(u32 y = 0; y < 8; y++)
 		{
-			if(y == 1) { play_yan.sd_check_data[x][y] = 0; }
-			else { play_yan.sd_check_data[x][y] = 0x55555555; }
+			play_yan.sd_check_data[x][y] = 0x55555555;
 		}
 	}
 
-	for(u32 x = 0; x < 2; x++)
+	for(u32 x = 0; x < 8; x++)
 	{
-		for(u32 y = 0; y < 8; y++)
-		{
-			play_yan.music_check_data[x][y] = 0x0;
-		}
+		play_yan.music_check_data[x] = 0x0;
 	}
 
 	for(u32 x = 0; x < 3; x++)
@@ -58,15 +54,19 @@ void AGB_MMU::play_yan_reset()
 	}
 
 	//Set 32-bit flags for SD Check interrupts
-	play_yan.sd_check_data[0][0] = 0x80000100;
-	play_yan.sd_check_data[1][0] = 0x40008000; 
-	play_yan.sd_check_data[2][0] = 0x40800000;
-	play_yan.sd_check_data[3][0] = 0x80000100;
-	play_yan.sd_check_data[4][0] = 0x40000200;
+	play_yan.sd_check_data[0][0] = 0x80000100; play_yan.sd_check_data[0][1] = 0x00000000;
+	play_yan.sd_check_data[1][0] = 0x40008000; play_yan.sd_check_data[1][1] = 0x00000005; play_yan.sd_check_data[1][2] = 0x00000000;
+	play_yan.sd_check_data[2][0] = 0x40800000; play_yan.sd_check_data[2][1] = 0x00000005; play_yan.sd_check_data[2][2] = 0x00000000;
+	play_yan.sd_check_data[3][0] = 0x80000100; play_yan.sd_check_data[3][1] = 0x00000000;
+	play_yan.sd_check_data[4][0] = 0x40000200; play_yan.sd_check_data[4][1] = 0x00042C78;
 
-	//Set 32-bit flags for retrieving music files
-	play_yan.music_check_data[0][0] = 0x80001000;
+	//Set 32-bit flags for entering/exiting music menu
+	play_yan.music_check_data[0] = 0x80001000;
 
+	//Set 32-bit flags for entering/exiting video menu
+	play_yan.video_check_data[0][0] = 0x40800000;
+	play_yan.video_check_data[1][0] = 0x80000100;
+	play_yan.video_check_data[2][0] = 0x40000200;
 
 	for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
 }
@@ -168,6 +168,13 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 			if((control_cmd == 0x00000400) && (play_yan.op_state == 0xFF))
 			{
 				play_yan.op_state = 2;
+				play_yan.irq_delay = 1;
+			}
+
+			//Trigger Game Pak IRQ for entering/exiting video menu
+			else if((control_cmd == 0x00800000) && (play_yan.op_state == 0xFF))
+			{
+				play_yan.op_state = 3;
 				play_yan.irq_delay = 1;
 			}
 		}
@@ -291,7 +298,7 @@ void AGB_MMU::process_play_yan_irq()
 
 			break;
 
-		//Get music files
+		//Enter/exit music menu
 		case 0x2:
 			//Trigger Game Pak IRQ
 			memory_map[REG_IF+1] |= 0x20;
@@ -309,7 +316,35 @@ void AGB_MMU::process_play_yan_irq()
 			{
 				for(u32 x = 0; x < 8; x++)
 				{
-					play_yan.irq_data[x] = play_yan.music_check_data[play_yan.irq_count][x];
+					play_yan.irq_data[x] = play_yan.music_check_data[play_yan.irq_count];
+				}
+
+				play_yan.irq_count++;
+				play_yan.irq_delay = 10;
+				play_yan.irq_data_in_use = true;
+			}
+
+			break;
+
+		//Enter/exit vieo menu
+		case 0x3:
+			//Trigger Game Pak IRQ
+			memory_map[REG_IF+1] |= 0x20;
+
+			//Wait for next IRQ condition after sending all flags
+			if(play_yan.irq_count == 3)
+			{
+				play_yan.op_state = 0xFF;
+				play_yan.irq_delay = 0;
+				play_yan.irq_count = 0;
+			}
+
+			//Send data for IRQ
+			else
+			{
+				for(u32 x = 0; x < 8; x++)
+				{
+					play_yan.irq_data[x] = play_yan.video_check_data[play_yan.irq_count][x];
 				}
 
 				play_yan.irq_count++;
