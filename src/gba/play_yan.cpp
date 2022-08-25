@@ -23,12 +23,14 @@ void AGB_MMU::play_yan_reset()
 	play_yan.firmware_addr_count = 0;
 
 	play_yan.status = 0x80;
+	play_yan.op_state = 0;
 
 	play_yan.access_mode = 0;
 	play_yan.access_param = 0;
 
 	play_yan.irq_count = 0;
 	play_yan.irq_delay = 240;
+	play_yan.irq_data_in_use = false;
 
 	for(u32 x = 0; x < 12; x++) { play_yan.cnt_data[x] = 0; }
 
