@@ -30,7 +30,11 @@ void AGB_MMU::play_yan_reset()
 
 	play_yan.irq_count = 0;
 	play_yan.irq_delay = 240;
+	play_yan.delay_reload = 120;
 	play_yan.irq_data_in_use = false;
+
+	play_yan.irq_data_ptr = play_yan.sd_check_data[0];
+	play_yan.irq_len = 5;
 
 	for(u32 x = 0; x < 12; x++) { play_yan.cnt_data[x] = 0; }
 
@@ -171,6 +175,9 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 			{
 				play_yan.op_state = 2;
 				play_yan.irq_delay = 1;
+				play_yan.delay_reload = 10;
+				play_yan.irq_data_ptr = play_yan.music_check_data;
+				play_yan.irq_len = 1;
 			}
 
 			//Trigger Game Pak IRQ for entering/exiting video menu
@@ -178,6 +185,9 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 			{
 				play_yan.op_state = 3;
 				play_yan.irq_delay = 1;
+				play_yan.delay_reload = 10;
+				play_yan.irq_data_ptr = play_yan.video_check_data[0];
+				play_yan.irq_len = 3;
 			}
 		}
 	}
@@ -274,67 +284,18 @@ void AGB_MMU::process_play_yan_irq()
 	{
 		//SD card check
 		case 0x1:
-			//Trigger Game Pak IRQ
-			memory_map[REG_IF+1] |= 0x20;
-
-			//Wait for next IRQ condition after sending all flags
-			if(play_yan.irq_count == 5)
-			{
-				play_yan.op_state = 0xFF;
-				play_yan.irq_delay = 0;
-				play_yan.irq_count = 0;
-			}
-
-			//Send data for IRQ
-			else
-			{
-				for(u32 x = 0; x < 8; x++)
-				{
-					play_yan.irq_data[x] = play_yan.sd_check_data[play_yan.irq_count][x];
-				}
-
-				play_yan.irq_count++;
-				play_yan.irq_delay = 120;
-				play_yan.irq_data_in_use = true;
-			}
-
-			break;
 
 		//Enter/exit music menu
 		case 0x2:
-			//Trigger Game Pak IRQ
-			memory_map[REG_IF+1] |= 0x20;
-
-			//Wait for next IRQ condition after sending all flags
-			if(play_yan.irq_count == 1)
-			{
-				play_yan.op_state = 0xFF;
-				play_yan.irq_delay = 0;
-				play_yan.irq_count = 0;
-			}
-
-			//Send data for IRQ
-			else
-			{
-				for(u32 x = 0; x < 8; x++)
-				{
-					play_yan.irq_data[x] = play_yan.music_check_data[play_yan.irq_count];
-				}
-
-				play_yan.irq_count++;
-				play_yan.irq_delay = 10;
-				play_yan.irq_data_in_use = true;
-			}
-
-			break;
 
 		//Enter/exit vieo menu
 		case 0x3:
+
 			//Trigger Game Pak IRQ
 			memory_map[REG_IF+1] |= 0x20;
 
 			//Wait for next IRQ condition after sending all flags
-			if(play_yan.irq_count == 3)
+			if(play_yan.irq_count == play_yan.irq_len)
 			{
 				play_yan.op_state = 0xFF;
 				play_yan.irq_delay = 0;
@@ -344,13 +305,15 @@ void AGB_MMU::process_play_yan_irq()
 			//Send data for IRQ
 			else
 			{
+				//Copy IRQ data from given array pointer
+				//For 2D arrays, also account for multiple IRQs
 				for(u32 x = 0; x < 8; x++)
 				{
-					play_yan.irq_data[x] = play_yan.video_check_data[play_yan.irq_count][x];
+					play_yan.irq_data[x] = *(play_yan.irq_data_ptr + (play_yan.irq_count * 8) + x);
 				}
 
 				play_yan.irq_count++;
-				play_yan.irq_delay = 10;
+				play_yan.irq_delay = play_yan.delay_reload;
 				play_yan.irq_data_in_use = true;
 			}
 
