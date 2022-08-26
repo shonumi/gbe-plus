@@ -15,6 +15,10 @@
 /****** Resets Play-Yan data structure ******/
 void AGB_MMU::play_yan_reset()
 {
+	play_yan.card_data.clear();
+	play_yan.card_data.resize(0x10000, 0x00);
+	play_yan.card_addr = 0;
+
 	play_yan.firmware.clear();
 	play_yan.firmware.resize(0x100000, 0x00);
 
@@ -233,7 +237,7 @@ u8 AGB_MMU::read_play_yan(u32 address)
 	}
 
 	//Read IRQ data
-	if((play_yan.irq_data_in_use) && (address >= 0xB000300) && (address < 0xB000320))
+	if((play_yan.irq_data_in_use) && (address >= 0xB000300) && (address < 0xB000320) && (play_yan.firmware_addr == 0xFF000))
 	{
 		u32 offset = (address - 0xB000300) >> 2;
 		u8 shift = (address & 0x3);
@@ -257,6 +261,21 @@ u8 AGB_MMU::read_play_yan(u32 address)
 			if(offset == 0x1FE) { play_yan.firmware_addr += 0x200; }
 		}
 	}
+
+	//Read from SD card data
+	else if((address >= 0xB000300) && (address < 0xB000500) && (play_yan.access_param == 0x08) && (play_yan.firmware_addr != 0xFF000))
+	{
+		u32 offset = address - 0xB000300;
+		
+		if((play_yan.card_addr + offset) < 0x10000)
+		{
+			result = play_yan.card_data[play_yan.card_addr + offset];
+
+			//Update Play-Yan card address if necessary
+			if(offset == 0x1FE) { play_yan.card_addr += 0x200; }
+		}
+	}
+	
 
 	std::cout<<"PLAY-YAN READ -> 0x" << address << " :: 0x" << (u32)result << "\n";
 

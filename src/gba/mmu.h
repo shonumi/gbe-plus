@@ -207,6 +207,9 @@ class AGB_MMU
 		u32 irq_len;
 
 		u8 cnt_data[12];
+
+		std::vector<u8> card_data;
+		u32 card_addr;
 	} play_yan;
 
 	//Structure to handle GPIO reading and writing
