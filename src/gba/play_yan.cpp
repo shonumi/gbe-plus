@@ -77,6 +77,7 @@ void AGB_MMU::play_yan_reset()
 	play_yan.video_check_data[0][0] = 0x40800000;
 	play_yan.video_check_data[1][0] = 0x80000100;
 	play_yan.video_check_data[2][0] = 0x40000200;
+	play_yan.video_check_data[3][0] = 0x40000500;
 
 	for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
 }
@@ -84,7 +85,7 @@ void AGB_MMU::play_yan_reset()
 /****** Writes to Play-Yan I/O ******/
 void AGB_MMU::write_play_yan(u32 address, u8 value)
 {
-	std::cout<<"PLAY-YAN WRITE -> 0x" << address << " :: 0x" << (u32)value << "\n";
+	//std::cout<<"PLAY-YAN WRITE -> 0x" << address << " :: 0x" << (u32)value << "\n";
 
 	switch(address)
 	{
@@ -116,6 +117,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 
 			play_yan.firmware_addr_count++;
 			play_yan.firmware_addr_count &= 0x3;
+			play_yan.card_addr = 0;
 
 			break;
 
@@ -191,7 +193,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 				play_yan.irq_delay = 1;
 				play_yan.delay_reload = 10;
 				play_yan.irq_data_ptr = play_yan.video_check_data[0];
-				play_yan.irq_len = 3;
+				play_yan.irq_len = 4;
 			}
 		}
 	}
@@ -277,7 +279,7 @@ u8 AGB_MMU::read_play_yan(u32 address)
 	}
 	
 
-	std::cout<<"PLAY-YAN READ -> 0x" << address << " :: 0x" << (u32)result << "\n";
+	//std::cout<<"PLAY-YAN READ -> 0x" << address << " :: 0x" << (u32)result << "\n";
 
 	return result;
 }
