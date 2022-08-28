@@ -40,6 +40,29 @@ void AGB_MMU::play_yan_reset()
 	play_yan.irq_data_ptr = play_yan.sd_check_data[0];
 	play_yan.irq_len = 5;
 
+	//Read Play-Yan data files
+	if(config::cart_type == AGB_PLAY_YAN)
+	{
+		read_play_yan_file_list((config::data_path + "play_yan/music.txt"), 0);
+		read_play_yan_file_list((config::data_path + "play_yan/video.txt"), 1);
+
+		//Set default data pulled from SD card
+		if(!play_yan.music_files.empty())
+		{
+			//Set number of media files present
+			play_yan.card_data[4] = play_yan.music_files.size();
+
+			//Copy filename
+			std::string sd_file = play_yan.music_files[0];
+
+			for(u32 x = 0; x < sd_file.length(); x++)
+			{
+				u8 chr = sd_file[x];
+				play_yan.card_data[8 + x] = chr;
+			}
+		}	
+	}
+
 	for(u32 x = 0; x < 12; x++) { play_yan.cnt_data[x] = 0; }
 
 	for(u32 x = 0; x < 5; x++)
@@ -341,3 +364,99 @@ void AGB_MMU::process_play_yan_irq()
 			break;
 	}
 }
+
+/****** Reads a file for list of audio files to be read by the Play-Yan ******/
+bool AGB_MMU::read_play_yan_file_list(std::string filename, u8 category)
+{
+	std::vector<std::string> *out_list = NULL;
+	std::vector<u32> *out_time = NULL;
+
+	//Grab the correct file list based on category
+	switch(category)
+	{
+		case 0x00: out_list = &play_yan.music_files; out_time = &play_yan.music_times; break;
+		case 0x01: out_list = &play_yan.video_files; out_time = &play_yan.video_times; break;
+		default: std::cout<<"MMU::Error - Loading unknown category of media files for Play Yan\n"; return false;
+	}
+
+	//Clear any previosly existing contents, read in each non-blank line from the specified file
+	out_list->clear();
+	out_time->clear();
+
+	std::string input_line = "";
+	std::ifstream file(filename.c_str(), std::ios::in);
+
+	if(!file.is_open())
+	{
+		std::cout<<"MMU::Error - Could not open list of media files from " << filename << "\n";
+		return false;
+	}
+
+	//Parse line for filename, time, and any other data. Data is separated by a colon
+	while(getline(file, input_line))
+	{
+		if(!input_line.empty())
+		{
+			std::size_t parse_symbol;
+			s32 pos = 0;
+
+			std::string out_str = "";
+			std::string out_title = "";
+			u32 out_sec = 0;
+
+			bool end_of_string = false;
+
+			//Grab filename
+			parse_symbol = input_line.find(":", pos);
+			
+			if(parse_symbol == std::string::npos)
+			{
+				out_str = input_line;
+				out_sec = 0;
+				end_of_string = true;
+			}
+
+			else
+			{
+				out_str = input_line.substr(pos, parse_symbol);
+				pos += parse_symbol;
+			}
+
+			//Grab time in seconds
+			parse_symbol = input_line.find(":", pos);
+
+			if(parse_symbol == std::string::npos)
+			{
+				out_sec = 0;
+				end_of_string = true;
+			}
+			
+			else
+			{
+				s32 end_pos = input_line.find(":", (pos + 1));
+
+				if(end_pos == std::string::npos)
+				{
+					util::from_str(input_line.substr(pos + 1), out_sec);
+					end_of_string = true;
+				}
+
+				else
+				{
+					util::from_str(input_line.substr((pos + 1), (end_pos - pos - 1)), out_sec);
+					pos += (end_pos - pos);
+				}
+
+			}
+
+			out_list->push_back(out_str);
+			out_time->push_back(out_sec);
+		}
+	}
+
+	std::cout<<"MMU::Loaded audio files for Play-Yan from " << filename << "\n";
+
+	file.close();
+	return true;
+}
+
