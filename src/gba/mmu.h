@@ -316,6 +316,8 @@ class AGB_MMU
 	bool read_play_yan_file_list(std::string filename, u8 category);
 	u8 read_play_yan(u32 address);
 	void process_play_yan_irq();
+	void play_yan_set_music_file(u32 index);
+	void play_yan_set_video_file(u32 index);
 
 	//GPIO handling functions
 	void process_rtc();
