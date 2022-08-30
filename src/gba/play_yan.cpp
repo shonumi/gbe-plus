@@ -60,9 +60,12 @@ void AGB_MMU::play_yan_reset()
 		}
 	}
 
-	for(u32 x = 0; x < 8; x++)
+	for(u32 x = 0; x < 2; x++)
 	{
-		play_yan.music_check_data[x] = 0x0;
+		for(u32 y = 0; y < 8; y++)
+		{
+			play_yan.music_check_data[x][y] = 0x0;
+		}
 	}
 
 	for(u32 x = 0; x < 3; x++)
@@ -81,7 +84,8 @@ void AGB_MMU::play_yan_reset()
 	play_yan.sd_check_data[4][0] = 0x40000200; play_yan.sd_check_data[4][1] = 0x00042C78;
 
 	//Set 32-bit flags for entering/exiting music menu
-	play_yan.music_check_data[0] = 0x80001000;
+	play_yan.music_check_data[0][0] = 0x80001000;
+	play_yan.music_check_data[1][0] = 0x40000200;
 
 	//Set 32-bit flags for entering/exiting video menu
 	play_yan.video_check_data[0][0] = 0x40800000;
@@ -186,14 +190,14 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 		{
 			u32 control_cmd = ((play_yan.cnt_data[3] << 24) | (play_yan.cnt_data[2] << 16) | (play_yan.cnt_data[1] << 8) | (play_yan.cnt_data[0]));
 
-			//Trigger Game Pak IRQ for entering/exiting music menu
+			//Trigger Game Pak IRQ for entering/exiting music or video menu
 			if((control_cmd == 0x00000400) && (play_yan.op_state == 0xFF))
 			{
 				play_yan.op_state = 2;
 				play_yan.irq_delay = 1;
 				play_yan.delay_reload = 10;
-				play_yan.irq_data_ptr = play_yan.music_check_data;
-				play_yan.irq_len = 1;
+				play_yan.irq_data_ptr = play_yan.music_check_data[0];
+				play_yan.irq_len = 2;
 			}
 
 			//Trigger Game Pak IRQ for entering/exiting video menu
@@ -214,10 +218,10 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 			u32 control_cmd2 = ((play_yan.cnt_data[7] << 24) | (play_yan.cnt_data[6] << 16) | (play_yan.cnt_data[5] << 8) | (play_yan.cnt_data[4]));
 
 			//Set music file data - Index 0 for first music file
-			if((control_cmd1 == 0x200) && (control_cmd2 == 0x02)) { play_yan_set_music_file(0); }
+			if((control_cmd1 == 0x200) && (control_cmd2 == 0x02) && (play_yan.op_state > 1)) { play_yan_set_music_file(0); }
 
 			//Set video file data - Index 0 for first video file
-			if((control_cmd1 == 0x200) && (control_cmd2 == 0x01)) { play_yan_set_video_file(0); }
+			if((control_cmd1 == 0x200) && (control_cmd2 == 0x01) && (play_yan.op_state > 1)) { play_yan_set_video_file(0); }
 		}
 	}
 }
@@ -462,8 +466,6 @@ bool AGB_MMU::read_play_yan_file_list(std::string filename, u8 category)
 /****** Sets the current SD card data for a given music file via index ******/
 void AGB_MMU::play_yan_set_music_file(u32 index)
 {
-	std::cout<<"MUSIC LOAD\n";
-
 	play_yan.card_data.clear();
 	play_yan.card_data.resize(0x10000, 0x00);
 
@@ -487,8 +489,6 @@ void AGB_MMU::play_yan_set_music_file(u32 index)
 /****** Sets the current SD card data for a given video file via index ******/
 void AGB_MMU::play_yan_set_video_file(u32 index)
 {
-	std::cout<<"VIDEO LOAD\n";
-
 	play_yan.card_data.clear();
 	play_yan.card_data.resize(0x10000, 0x00);
 
