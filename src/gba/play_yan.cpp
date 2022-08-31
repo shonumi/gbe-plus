@@ -48,6 +48,8 @@ void AGB_MMU::play_yan_reset()
 
 		//Set default data pulled from SD card - Index 0 for first music file
 		play_yan_set_music_file(0);
+
+		read_play_yan_thumbnails(config::data_path + "play_yan/thumbnails.txt");
 	}
 
 	for(u32 x = 0; x < 12; x++) { play_yan.cnt_data[x] = 0; }
@@ -94,6 +96,8 @@ void AGB_MMU::play_yan_reset()
 	play_yan.video_check_data[3][0] = 0x40000500;
 
 	for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
+
+	play_yan.video_thumbnails.clear();
 }
 
 /****** Writes to Play-Yan I/O ******/
@@ -460,6 +464,55 @@ bool AGB_MMU::read_play_yan_file_list(std::string filename, u8 category)
 	std::cout<<"MMU::Loaded audio files for Play-Yan from " << filename << "\n";
 
 	file.close();
+	return true;
+}
+
+
+/****** Reads a file for list of video thumbnails files used for Play-Yan video ******/
+bool AGB_MMU::read_play_yan_thumbnails(std::string filename)
+{
+	play_yan.video_thumbnails.clear();
+	u32 thumb_index = 0;
+
+	std::string input_line = "";
+	std::ifstream file(filename.c_str(), std::ios::in);
+
+	if(!file.is_open())
+	{
+		std::cout<<"MMU::Error - Could not open list of media files from " << filename << "\n";
+		return false;
+	}
+
+	//Parse line for filename
+	while(getline(file, input_line))
+	{
+		if(!input_line.empty())
+		{
+			//Grab pixel data of file as a BMP
+			input_line = config::data_path + "play_yan/" + input_line;
+			SDL_Surface* source = SDL_LoadBMP(input_line.c_str());
+
+			if(source == NULL)
+			{
+				std::cout<<"MMU::Error - Could not load thumbnail image for " << input_line << "\n";
+				return false;
+			}
+			
+			std::vector<u8> gba_pixels;
+			u8* pixel_data = (u8*)source->pixels;
+
+			//Convert 32-bit pixel data to RGB15 and push to vector
+			for(int a = 0, b = 0; a < (source->w * source->h); a++, b+=3)
+			{
+				u16 raw_pixel = ((pixel_data[b+2] & 0xF8) << 7) | ((pixel_data[b+1] & 0xF8) << 2) | ((pixel_data[b] & 0xF8) >> 3);
+				gba_pixels.push_back(raw_pixel & 0xFF);
+				gba_pixels.push_back((raw_pixel >> 8) & 0xFF);
+			}
+
+			play_yan.video_thumbnails.push_back(gba_pixels);
+		}
+	}
+
 	return true;
 }
 

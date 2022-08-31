@@ -216,6 +216,8 @@ class AGB_MMU
 
 		std::vector<u32> music_times;
 		std::vector<u32> video_times;
+
+		std::vector< std::vector<u8> > video_thumbnails;
 	} play_yan;
 
 	//Structure to handle GPIO reading and writing
@@ -314,6 +316,7 @@ class AGB_MMU
 	void play_yan_reset();
 	void write_play_yan(u32 address, u8 value);
 	bool read_play_yan_file_list(std::string filename, u8 category);
+	bool read_play_yan_thumbnails(std::string filename);
 	u8 read_play_yan(u32 address);
 	void process_play_yan_irq();
 	void play_yan_set_music_file(u32 index);
