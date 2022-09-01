@@ -207,6 +207,7 @@ class AGB_MMU
 		u32 irq_len;
 
 		u8 cnt_data[12];
+		u32 cmd;
 
 		std::vector<u8> card_data;
 		u32 card_addr;
@@ -218,6 +219,7 @@ class AGB_MMU
 		std::vector<u32> video_times;
 
 		std::vector< std::vector<u8> > video_thumbnails;
+		u16 thumbnail_addr;
 	} play_yan;
 
 	//Structure to handle GPIO reading and writing

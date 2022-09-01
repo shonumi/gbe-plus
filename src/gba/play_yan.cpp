@@ -53,6 +53,7 @@ void AGB_MMU::play_yan_reset()
 	}
 
 	for(u32 x = 0; x < 12; x++) { play_yan.cnt_data[x] = 0; }
+	play_yan.cmd = 0;
 
 	for(u32 x = 0; x < 5; x++)
 	{
@@ -98,6 +99,7 @@ void AGB_MMU::play_yan_reset()
 	for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
 
 	play_yan.video_thumbnails.clear();
+	play_yan.thumbnail_addr = 0;
 }
 
 /****** Writes to Play-Yan I/O ******/
@@ -192,10 +194,10 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 		//Check for control command
 		if(address == 0xB000103)
 		{
-			u32 control_cmd = ((play_yan.cnt_data[3] << 24) | (play_yan.cnt_data[2] << 16) | (play_yan.cnt_data[1] << 8) | (play_yan.cnt_data[0]));
+			play_yan.cmd = ((play_yan.cnt_data[3] << 24) | (play_yan.cnt_data[2] << 16) | (play_yan.cnt_data[1] << 8) | (play_yan.cnt_data[0]));
 
 			//Trigger Game Pak IRQ for entering/exiting music or video menu
-			if((control_cmd == 0x00000400) && (play_yan.op_state == 0xFF))
+			if((play_yan.cmd == 0x400) && (play_yan.op_state == 0xFF))
 			{
 				play_yan.op_state = 2;
 				play_yan.irq_delay = 1;
@@ -205,7 +207,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 			}
 
 			//Trigger Game Pak IRQ for entering/exiting video menu
-			else if((control_cmd == 0x00800000) && (play_yan.op_state == 0xFF))
+			else if((play_yan.cmd == 0x800000) && (play_yan.op_state == 0xFF))
 			{
 				play_yan.op_state = 3;
 				play_yan.irq_delay = 1;
@@ -213,19 +215,24 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 				play_yan.irq_data_ptr = play_yan.video_check_data[0];
 				play_yan.irq_len = 4;
 			}
+
+			//Reset Thumbnail address before pulling new pixel data
+			else if(play_yan.cmd == 0x500)
+			{
+				play_yan.thumbnail_addr = 0;
+			}
 		}
 
 		//Check for control command parameter
 		else if(address == 0xB000107)
 		{
-			u32 control_cmd1 = ((play_yan.cnt_data[3] << 24) | (play_yan.cnt_data[2] << 16) | (play_yan.cnt_data[1] << 8) | (play_yan.cnt_data[0]));
 			u32 control_cmd2 = ((play_yan.cnt_data[7] << 24) | (play_yan.cnt_data[6] << 16) | (play_yan.cnt_data[5] << 8) | (play_yan.cnt_data[4]));
 
 			//Set music file data - Index 0 for first music file
-			if((control_cmd1 == 0x200) && (control_cmd2 == 0x02) && (play_yan.op_state > 1)) { play_yan_set_music_file(0); }
+			if((play_yan.cmd == 0x200) && (control_cmd2 == 0x02) && (play_yan.op_state > 1)) { play_yan_set_music_file(0); }
 
 			//Set video file data - Index 0 for first video file
-			if((control_cmd1 == 0x200) && (control_cmd2 == 0x01) && (play_yan.op_state > 1)) { play_yan_set_video_file(0); }
+			if((play_yan.cmd == 0x200) && (control_cmd2 == 0x01) && (play_yan.op_state > 1)) { play_yan_set_video_file(0); }
 		}
 	}
 }
@@ -307,7 +314,20 @@ u8 AGB_MMU::read_play_yan(u32 address)
 			if(offset == 0x1FE) { play_yan.card_addr += 0x200; }
 		}
 	}
-	
+
+	//Read from video thumbnail data
+	else if((address >= 0xB000500) && (address < 0xB000700))
+	{
+		u32 offset = address - 0xB000500;
+
+		if((play_yan.thumbnail_addr + offset) < 0x12C0)
+		{
+			result = play_yan.video_thumbnails[0][play_yan.thumbnail_addr + offset];
+
+			//Update Play-Yan thubnail address if necessary
+			if(offset == 0x1FE) { play_yan.thumbnail_addr += 0x200; }
+		}
+	}
 
 	//std::cout<<"PLAY-YAN READ -> 0x" << address << " :: 0x" << (u32)result << "\n";
 
