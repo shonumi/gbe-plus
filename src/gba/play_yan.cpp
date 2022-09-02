@@ -98,7 +98,6 @@ void AGB_MMU::play_yan_reset()
 
 	for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
 
-	play_yan.video_thumbnails.clear();
 	play_yan.thumbnail_addr = 0;
 }
 
@@ -492,10 +491,11 @@ bool AGB_MMU::read_play_yan_file_list(std::string filename, u8 category)
 bool AGB_MMU::read_play_yan_thumbnails(std::string filename)
 {
 	play_yan.video_thumbnails.clear();
-	u32 thumb_index = 0;
 
 	std::string input_line = "";
 	std::ifstream file(filename.c_str(), std::ios::in);
+
+	std::vector<std::string> list;
 
 	if(!file.is_open())
 	{
@@ -508,28 +508,35 @@ bool AGB_MMU::read_play_yan_thumbnails(std::string filename)
 	{
 		if(!input_line.empty())
 		{
-			//Grab pixel data of file as a BMP
-			input_line = config::data_path + "play_yan/" + input_line;
-			SDL_Surface* source = SDL_LoadBMP(input_line.c_str());
+			list.push_back(input_line);
+		}
+	}
 
-			if(source == NULL)
-			{
-				std::cout<<"MMU::Error - Could not load thumbnail image for " << input_line << "\n";
-				return false;
-			}
-			
-			std::vector<u8> gba_pixels;
-			u8* pixel_data = (u8*)source->pixels;
+	//Resize thumbnail vector
+	play_yan.video_thumbnails.resize(list.size());
 
-			//Convert 32-bit pixel data to RGB15 and push to vector
-			for(int a = 0, b = 0; a < (source->w * source->h); a++, b+=3)
-			{
-				u16 raw_pixel = ((pixel_data[b+2] & 0xF8) << 7) | ((pixel_data[b+1] & 0xF8) << 2) | ((pixel_data[b] & 0xF8) >> 3);
-				gba_pixels.push_back(raw_pixel & 0xFF);
-				gba_pixels.push_back((raw_pixel >> 8) & 0xFF);
-			}
+	//Grab pixel data for each thumbnale
+	for(u32 x = 0; x < list.size(); x++)
+	{
+		//Grab pixel data of file as a BMP
+		std::string t_file = config::data_path + "play_yan/" + list[x];
+		SDL_Surface* source = SDL_LoadBMP(t_file.c_str());
 
-			play_yan.video_thumbnails.push_back(gba_pixels);
+		if(source == NULL)
+		{
+			std::cout<<"MMU::Error - Could not load thumbnail image for " << input_line << "\n";
+			return false;
+		}
+
+		play_yan.video_thumbnails[x].clear();
+		u8* pixel_data = (u8*)source->pixels;
+
+		//Convert 32-bit pixel data to RGB15 and push to vector
+		for(int a = 0, b = 0; a < (source->w * source->h); a++, b+=3)
+		{
+			u16 raw_pixel = ((pixel_data[b+2] & 0xF8) << 7) | ((pixel_data[b+1] & 0xF8) << 2) | ((pixel_data[b] & 0xF8) >> 3);
+			play_yan.video_thumbnails[x].push_back(raw_pixel & 0xFF);
+			play_yan.video_thumbnails[x].push_back((raw_pixel >> 8) & 0xFF);
 		}
 	}
 
