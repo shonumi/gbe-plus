@@ -151,6 +151,9 @@ void AGB_core::sleep()
 
 	core_cpu.sleep = false;
 	core_cpu.running = true;
+
+	//Wake Play-Yan from sleep mode with Game Pak IRQ
+	if(config::cart_type == AGB_PLAY_YAN) { core_mmu.play_yan_wake(); }
 }
 
 /****** Reset the core ******/

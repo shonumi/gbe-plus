@@ -588,4 +588,13 @@ void AGB_MMU::play_yan_set_video_file(u32 index)
 		}
 	}
 }
-	
+
+/****** Wakes Play-Yan from GBA sleep mode - Fires Game Pak IRQ ******/
+void AGB_MMU::play_yan_wake()
+{
+	play_yan.op_state = 2;
+	play_yan.irq_delay = 60;
+	play_yan.delay_reload = 10;
+	play_yan.irq_data_ptr = play_yan.music_check_data[0];
+	play_yan.irq_len = 1;
+}
