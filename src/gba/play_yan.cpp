@@ -572,7 +572,7 @@ bool AGB_MMU::read_play_yan_thumbnails(std::string filename)
 		//Convert 32-bit pixel data to RGB15 and push to vector
 		for(int a = 0, b = 0; a < (source->w * source->h); a++, b+=3)
 		{
-			u16 raw_pixel = ((pixel_data[b+2] & 0xF8) << 7) | ((pixel_data[b+1] & 0xF8) << 2) | ((pixel_data[b] & 0xF8) >> 3);
+			u16 raw_pixel = ((pixel_data[b] & 0xF8) << 7) | ((pixel_data[b+1] & 0xF8) << 2) | ((pixel_data[b+2] & 0xF8) >> 3);
 			play_yan.video_thumbnails[x].push_back(raw_pixel & 0xFF);
 			play_yan.video_thumbnails[x].push_back((raw_pixel >> 8) & 0xFF);
 		}
