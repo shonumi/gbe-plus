@@ -220,6 +220,10 @@ class AGB_MMU
 
 		std::vector< std::vector<u8> > video_thumbnails;
 		u16 thumbnail_addr;
+
+		u32 music_file_index;
+		u32 video_file_index;
+		u32 thumbnail_index;
 	} play_yan;
 
 	//Structure to handle GPIO reading and writing

@@ -99,6 +99,10 @@ void AGB_MMU::play_yan_reset()
 	for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
 
 	play_yan.thumbnail_addr = 0;
+	play_yan.thumbnail_index = 0;
+
+	play_yan.music_file_index = 0;
+	play_yan.video_file_index = 0;
 }
 
 /****** Writes to Play-Yan I/O ******/
@@ -193,6 +197,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 		//Check for control command
 		if(address == 0xB000103)
 		{
+			u32 prev_cmd = play_yan.cmd;
 			play_yan.cmd = ((play_yan.cnt_data[3] << 24) | (play_yan.cnt_data[2] << 16) | (play_yan.cnt_data[1] << 8) | (play_yan.cnt_data[0]));
 
 			//Trigger Game Pak IRQ for entering/exiting music or video menu
@@ -213,12 +218,22 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 				play_yan.delay_reload = 10;
 				play_yan.irq_data_ptr = play_yan.video_check_data[0];
 				play_yan.irq_len = 4;
+				play_yan.thumbnail_index = 0;
+				play_yan.thumbnail_index = play_yan.video_thumbnails.size();
 			}
 
 			//Reset Thumbnail address before pulling new pixel data
+			//Cycle through to next thumbnail
 			else if(play_yan.cmd == 0x500)
 			{
 				play_yan.thumbnail_addr = 0;
+				play_yan.thumbnail_index--;
+
+				//Make sure only valid thumbnail indices are used - Loop around when coming to the end
+				if(play_yan.thumbnail_index >= play_yan.video_thumbnails.size())
+				{
+					play_yan.thumbnail_index = play_yan.video_thumbnails.size() - 1;
+				}
 			}
 		}
 
@@ -318,13 +333,21 @@ u8 AGB_MMU::read_play_yan(u32 address)
 	else if((address >= 0xB000500) && (address < 0xB000700))
 	{
 		u32 offset = address - 0xB000500;
+		u32 t_index = play_yan.thumbnail_index;
+		u32 t_addr = play_yan.thumbnail_addr + offset;
 
-		if((play_yan.thumbnail_addr + offset) < 0x12C0)
+		if(t_index < play_yan.video_thumbnails.size())
 		{
-			result = play_yan.video_thumbnails[0][play_yan.thumbnail_addr + offset];
+			if(t_addr < 0x12C0)
+			{
+				result = play_yan.video_thumbnails[t_index][t_addr];
 
-			//Update Play-Yan thubnail address if necessary
-			if(offset == 0x1FE) { play_yan.thumbnail_addr += 0x200; }
+				//Update Play-Yan thubnail address if necessary
+				if(offset == 0x1FE) { play_yan.thumbnail_addr += 0x200; }
+			}
+
+			//Move on to next thumbnail
+			if(t_addr == 0x12BE) { play_yan.thumbnail_index--; }
 		}
 	}
 
@@ -361,15 +384,30 @@ void AGB_MMU::process_play_yan_irq()
 		//Enter/exit vieo menu
 		case 0x3:
 
+		case 0x5:
+
 			//Trigger Game Pak IRQ
 			memory_map[REG_IF+1] |= 0x20;
 
 			//Wait for next IRQ condition after sending all flags
 			if(play_yan.irq_count == play_yan.irq_len)
 			{
-				play_yan.op_state = 0xFF;
-				play_yan.irq_delay = 0;
-				play_yan.irq_count = 0;
+
+				if(play_yan.op_state == 0x3)
+				{
+					play_yan.op_state = 5;
+					play_yan.irq_delay = 1;
+					play_yan.delay_reload = 10;
+					play_yan.irq_data_ptr = play_yan.music_check_data[0];
+					play_yan.irq_len = 1;
+				}
+
+				else
+				{
+					play_yan.op_state = 0xFF;
+					play_yan.irq_delay = 0;
+					play_yan.irq_count = 0;
+				}
 			}
 
 			//Send data for IRQ
@@ -593,7 +631,7 @@ void AGB_MMU::play_yan_set_video_file(u32 index)
 void AGB_MMU::play_yan_wake()
 {
 	play_yan.op_state = 2;
-	play_yan.irq_delay = 60;
+	play_yan.irq_delay = 1;
 	play_yan.delay_reload = 10;
 	play_yan.irq_data_ptr = play_yan.music_check_data[0];
 	play_yan.irq_len = 1;
