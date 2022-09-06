@@ -33,6 +33,8 @@ void AGB_MMU::play_yan_reset()
 	play_yan.access_param = 0;
 
 	play_yan.irq_count = 0;
+	play_yan.irq_repeat = 0;
+	play_yan.irq_repeat_id = 0;
 	play_yan.irq_delay = 240;
 	play_yan.delay_reload = 60;
 	play_yan.irq_data_in_use = false;
@@ -384,6 +386,7 @@ void AGB_MMU::process_play_yan_irq()
 		//Enter/exit vieo menu
 		case 0x3:
 
+		//Process video thumbnails
 		case 0x5:
 
 			//Trigger Game Pak IRQ
@@ -392,16 +395,42 @@ void AGB_MMU::process_play_yan_irq()
 			//Wait for next IRQ condition after sending all flags
 			if(play_yan.irq_count == play_yan.irq_len)
 			{
+				//After entering video menu, fire IRQs to process video thumbnails
+				if(play_yan.op_state == 0x03)
+				{
+					if(play_yan.video_files.size() >= 2)
+					{
+						play_yan.op_state = 5;
+						play_yan.irq_delay = 1;
+						play_yan.delay_reload = 10;
+						play_yan.irq_data_ptr = play_yan.video_check_data[0];
+						play_yan.irq_count = 3;
+						play_yan.irq_len = 4;
+						play_yan.irq_repeat = play_yan.video_files.size() - 2;
+					}
 
-				if(play_yan.op_state == 0x3)
+					//Stop IRQs until next trigger condition
+					else
+					{
+						play_yan.op_state = 0xFF;
+						play_yan.irq_delay = 0;
+						play_yan.irq_count = 0;
+					}
+				}
+
+				//Repeat thumbnail IRQs as necessary
+				else if((play_yan.op_state == 0x05) && (play_yan.irq_repeat))
 				{
 					play_yan.op_state = 5;
 					play_yan.irq_delay = 1;
 					play_yan.delay_reload = 10;
-					play_yan.irq_data_ptr = play_yan.music_check_data[0];
-					play_yan.irq_len = 1;
+					play_yan.irq_data_ptr = play_yan.video_check_data[0];
+					play_yan.irq_count = 3;
+					play_yan.irq_len = 4;
+					play_yan.irq_repeat--;
 				}
 
+				//Stop IRQs until next trigger condition
 				else
 				{
 					play_yan.op_state = 0xFF;
