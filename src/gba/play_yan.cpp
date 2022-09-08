@@ -220,22 +220,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 				play_yan.delay_reload = 10;
 				play_yan.irq_data_ptr = play_yan.video_check_data[0];
 				play_yan.irq_len = 4;
-				play_yan.thumbnail_index = 0;
-				play_yan.thumbnail_index = play_yan.video_thumbnails.size();
-			}
-
-			//Reset Thumbnail address before pulling new pixel data
-			//Cycle through to next thumbnail
-			else if(play_yan.cmd == 0x500)
-			{
-				play_yan.thumbnail_addr = 0;
-				play_yan.thumbnail_index--;
-
-				//Make sure only valid thumbnail indices are used - Loop around when coming to the end
-				if(play_yan.thumbnail_index >= play_yan.video_thumbnails.size())
-				{
-					play_yan.thumbnail_index = play_yan.video_thumbnails.size() - 1;
-				}
+				play_yan.thumbnail_index = 0xFFFFFFFF;
 			}
 		}
 
@@ -347,9 +332,6 @@ u8 AGB_MMU::read_play_yan(u32 address)
 				//Update Play-Yan thubnail address if necessary
 				if(offset == 0x1FE) { play_yan.thumbnail_addr += 0x200; }
 			}
-
-			//Move on to next thumbnail
-			if(t_addr == 0x12BE) { play_yan.thumbnail_index--; }
 		}
 	}
 
@@ -447,6 +429,13 @@ void AGB_MMU::process_play_yan_irq()
 				for(u32 x = 0; x < 8; x++)
 				{
 					play_yan.irq_data[x] = *(play_yan.irq_data_ptr + (play_yan.irq_count * 8) + x);
+				}
+
+				//Update video thumbnail index when appropiate
+				if(play_yan.irq_data[0] == 0x40000500)
+				{
+					play_yan.thumbnail_index++;
+					play_yan.thumbnail_addr = 0;
 				}
 
 				play_yan.irq_count++;
