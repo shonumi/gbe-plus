@@ -162,7 +162,7 @@ void AGB_MMU::write_am3(u32 address, u8 value)
 			am3.file_index |= (value << ((address & 0x1) << 3));
 
 			if(address == (AM_SMC_FILE+1))
-			{	
+			{
 				//Special Case - If the latest file index is 0xFFFF, reset file index to zero
 				if(am3.file_index == 0xFFFF) { am3.file_index = 0; }
 
@@ -236,6 +236,7 @@ bool AGB_MMU::check_am3_fat()
 
 	//Read files from Directory Table
 	u32 t_addr = data_region_addr;
+	u32 region_limit = 0x200;
 
 	u32 info_pos = 0;
 	u32 info_size = 0;
@@ -251,7 +252,7 @@ bool AGB_MMU::check_am3_fat()
 	std::string current_file = "";
 
 	//Grab filenames, size, and location from Root Directory
-	while(t_addr < (data_region_addr + 0x200))
+	while(t_addr < (data_region_addr + region_limit))
 	{
 		//Pull filename, wait until spaces
 		u8 current_chr = am3.card_data[t_addr + fname_size];
@@ -275,7 +276,6 @@ bool AGB_MMU::check_am3_fat()
 				//Grab and store file size
 				u32 f_size = ((am3.card_data[t_addr + 0x1F] << 24) | (am3.card_data[t_addr + 0x1E] << 16) | (am3.card_data[t_addr + 0x1D] << 8) | am3.card_data[t_addr + 0x1C]);
 				temp_size_list.push_back(f_size);
-				am3.file_count++;
 
 				//Calculate and store file offset in SmartMedia dump
 				u32 f_pos = ((am3.card_data[t_addr + 0x1B] << 8) | (am3.card_data[t_addr + 0x1A]));
@@ -294,6 +294,13 @@ bool AGB_MMU::check_am3_fat()
 			fname_size = 0;
 			current_file = "";
 			t_addr += 0x20;
+		}
+
+		//Test for more data to read
+		if(t_addr == (data_region_addr + region_limit))
+		{
+			u32 test_val = ((am3.card_data[t_addr+3] << 24) | (am3.card_data[t_addr+2] << 16) | (am3.card_data[t_addr+1] << 8) | am3.card_data[t_addr]);
+			if(test_val) { region_limit += 0x20; }
 		}
 	}
 
@@ -316,10 +323,11 @@ bool AGB_MMU::check_am3_fat()
 		return false;
 	}
 
-	u32 info_table = t_addr + 0x200;
+	u32 info_table = t_addr;
+	region_limit = 0x200;
 
 	//Grab filenames from INFO file. Compare them to the Root Directory. The order they appear in INFO is how the adapter sorts them
-	while(t_addr < info_table)
+	while(t_addr < (info_table + region_limit))
 	{
 		//Pull filename
 		u8 current_chr = am3.card_data[t_addr + fname_size + 0x08];
@@ -339,12 +347,20 @@ bool AGB_MMU::check_am3_fat()
 				{
 					am3.file_size_list.push_back(temp_size_list[x]);
 					am3.file_addr_list.push_back(temp_addr_list[x]);
+					am3.file_count++;
 				}
 			}
 
 			fname_size = 0;
-			current_file = "";
 			t_addr += 0x20;
+
+			//Test for more data to read
+			if(t_addr == (info_table + region_limit))
+			{
+				if((current_file[0] != 0) && (current_file[0] != 0xFF)) { region_limit += 0x20; }
+			}
+
+			current_file = "";
 		}
 	}
 
