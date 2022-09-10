@@ -611,13 +611,16 @@ void AGB_MMU::play_yan_set_music_file(u32 index)
 		//Set number of media files present
 		play_yan.card_data[4] = play_yan.music_files.size();
 
-		//Copy filename
-		std::string sd_file = play_yan.music_files[index];
-
-		for(u32 x = 0; x < sd_file.length(); x++)
+		for(u32 index = 0; index < play_yan.music_files.size(); index++)
 		{
-			u8 chr = sd_file[x];
-			play_yan.card_data[8 + x] = chr;
+			//Copy filename
+			std::string sd_file = play_yan.music_files[index];
+
+			for(u32 x = 0; x < sd_file.length(); x++)
+			{
+				u8 chr = sd_file[x];
+				play_yan.card_data[8 + (index * 268) + x] = chr;
+			}
 		}
 	}
 }
