@@ -2223,26 +2223,35 @@ bool AGB_MMU::read_file(std::string filename)
 
 		//Next read 16-byte SmartMedia ID from file
 		std::string smid_file = filename + ".smid";
-		if((!read_smid(smid_file)) && (!config::auto_gen_am3_id))
+		if((!config::use_am3_folder) && (!read_smid(smid_file)) && (!config::auto_gen_am3_id))
 		{
 			file.close();
 			return false;
 		}
 
-		//Read in all cart data for AM3 first
-		am3.card_data.clear();
-		am3.card_data.resize(file_size, 0x00);
-
-		u8* am_mem = &am3.card_data[0];
-		file.read((char*)am_mem, file_size);
-		file.seekg(0, file.beg);
-
-		//Check the FAT to grab
-		if(!check_am3_fat())
+		//Read AM3 files from folder
+		if(config::use_am3_folder)
 		{
-			std::cout<<"MMU::Error - AM3 SmartMedia card data has bad File Allocation Table\n";
-			file.close();
-			return false;
+			if(!am3_load_folder(filename)) { return false; }
+		}
+
+		//Read in all cart data for AM3 first
+		else
+		{
+			am3.card_data.clear();
+			am3.card_data.resize(file_size, 0x00);
+
+			u8* am_mem = &am3.card_data[0];
+			file.read((char*)am_mem, file_size);
+			file.seekg(0, file.beg);
+
+			//Check the FAT to grab
+			if(!check_am3_fat())
+			{
+				std::cout<<"MMU::Error - AM3 SmartMedia card data has bad File Allocation Table\n";
+				file.close();
+				return false;
+			}
 		}
 
 		file_size = 0x400;

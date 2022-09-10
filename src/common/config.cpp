@@ -243,6 +243,9 @@ namespace config
 	//AM3 SmartMedia ID Auto Generate Flag
 	bool auto_gen_am3_id = false;
 
+	//AM3 Folder flag
+	bool use_am3_folder = false;
+
 	//Total time (in seconds) for Jukebox recording
 	u32 jukebox_total_time = 0;
 
@@ -906,6 +909,9 @@ bool parse_cli_args()
 			//Auto Generate AM3 SmartMedia ID
 			else if(config::cli_args[x] == "--auto-gen-smid") { config::auto_gen_am3_id = true; }
 
+			//Use AM3 Folder
+			else if(config::cli_args[x] == "--am3-folder") { config::use_am3_folder = true; }
+
 			//Print Help
 			else if((config::cli_args[x] == "-h") || (config::cli_args[x] == "--help")) 
 			{
@@ -951,6 +957,7 @@ bool parse_cli_args()
 				std::cout<<"--turbo-file-protect \t\t\t Enable write-proection for Turbo File\n";
 				std::cout<<"--ignore-illegal-opcodes \t\t\t Ignore Illegal CPU instructions when running\n";
 				std::cout<<"--auto-gen-smid \t\t\t\t Automatically generate 16-byte SmartMedia ID for AM3\n";
+				std::cout<<"--use-am3-folder \t\t\t\t Use folder of AM3 files instead of SmartMedia image\n";
 				std::cout<<"-h, --help \t\t\t\t Print these help messages\n";
 				return false;
 			}

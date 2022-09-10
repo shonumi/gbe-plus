@@ -8,6 +8,9 @@
 //
 // Handles I/O and file management for AM3 Advance Movie Adapter emulation
 
+#include <filesystem>
+#include <algorithm>
+
 #include "mmu.h"
 #include "common/util.h" 
 
@@ -160,6 +163,8 @@ void AGB_MMU::write_am3(u32 address, u8 value)
 		case AM_SMC_FILE+1:
 			am3.file_index &= ~(0xFF << ((address & 0x1) << 3));
 			am3.file_index |= (value << ((address & 0x1) << 3));
+
+			std::cout<<"INDEX -> 0x" << am3.file_index << "\n";
 
 			if(address == (AM_SMC_FILE+1))
 			{
@@ -368,6 +373,184 @@ bool AGB_MMU::check_am3_fat()
 	{
 		std::cout<<"Error - No files found in AM3 File Allocation Table \n";
 		return false;
+	}
+
+	return true;
+}
+
+/****** Loads AM3 files from a folder ******/
+bool AGB_MMU::am3_load_folder(std::string folder)
+{
+	std::vector<std::string> file_list;
+	std::vector<std::string> find_list;
+	std::vector<std::string> final_path;
+	std::vector<u32> file_size;
+
+	//Check to see if folder exists, then grab all files there (non-recursive)
+	std::filesystem::path fs_path { folder };
+
+	if(!std::filesystem::exists(fs_path))
+	{
+		std::cout<<"AM3::Error - AM3 Folder at " << folder << "does not exist.\n";
+		return false;
+	}
+
+	//Check to see that the path points to a folder
+	if(!std::filesystem::is_directory(fs_path))
+	{
+		std::cout<<"AM3::Error - " << folder << "is not a folder.\n";
+		return false;
+	}
+
+	bool info_file_found = false;
+	bool smid_file_found = false;
+	u32 info_index = 0;
+	u32 file_count = 0;
+
+	//Cycle through all available files in the folder
+	std::filesystem::directory_iterator fs_files;
+
+	for(fs_files = std::filesystem::directory_iterator(fs_path); fs_files != std::filesystem::directory_iterator(); fs_files++, file_count++)
+	{
+		//Grab name and size
+		std::string f_name = fs_files->path();
+		std::string s_name = fs_files->path().filename();
+		u32 f_size = std::filesystem::file_size(fs_files->path());
+
+		//Convert name to uppercase for searching
+		for(u32 x = 0; x < s_name.length(); x++)
+		{
+			u8 current_chr = s_name[x];
+			if((current_chr >= 0x61) && (current_chr <= 0x7A)) { current_chr -= 0x20; }
+			s_name[x] = current_chr;
+		}
+
+		file_list.push_back(f_name);
+		find_list.push_back(s_name);
+		file_size.push_back(f_size);
+
+		//Check for info.am3
+		if(s_name == "INFO.AM3")
+		{
+			info_file_found = true;
+			info_index = file_count;
+		}
+
+		//Load SMID
+		else if(s_name == "SMID.KEY")
+		{
+			smid_file_found = true;
+
+			if(!read_smid(f_name))
+			{
+				std::cout<<"AM3::Error - Could not open SMID.KEY file " << f_name << "\n";
+				return false;
+			}
+		} 
+	}
+
+	//Abort if info.am3 not found
+	if(!info_file_found)
+	{
+		std::cout<<"AM3::Error - No INFO.AM3 file found in folder " << folder << "\n";
+		return false;
+	}
+
+	//Abort if smid.key not found
+	if(!smid_file_found)
+	{
+		std::cout<<"AM3::Error - No SMID.KEY file found in folder " << folder << "\n";
+		return false;
+	}
+
+	//Open up INFO.AM3 to grab list of relevant files
+	std::ifstream am3_info(file_list[info_index].c_str(), std::ios::binary);
+	
+	if(!am3_info.is_open())
+	{
+		std::cout<<"AM3::Error - Could not open INFO.AM3 file in folder " << folder << "\n";
+		return false;
+	}
+
+	std::vector <u8> info_data;
+	info_data.resize(file_size[info_index], 0x00);
+
+	u8* ex_mem = &info_data[0];
+	am3_info.read((char*)ex_mem, file_size[info_index]);
+	am3_info.close();
+
+	u32 info_addr = 0x200;
+	u32 fname_size = 0;
+	std::string current_file;
+
+	while(info_addr < file_size[info_index])
+	{
+		//Pull filename
+		u8 current_chr = info_data[info_addr + fname_size + 0x08];
+
+		//Make sure filename is not case-sensitive. Convert all lower-case ASCII to uppercase
+		if((current_chr >= 0x61) && (current_chr <= 0x7A)) { current_chr -= 0x20; }
+
+		if(current_chr > 0x20) { current_file += current_chr; }
+		fname_size++;
+
+		//Add period
+		if(fname_size == 0x08) { current_file += "."; }
+
+		//Check current filename against previous list and add them for the emulated AM3 adapter in the correct order
+		if(fname_size == 0x0B)
+		{
+			for(u32 x = 0; x < find_list.size(); x++)
+			{
+				if(find_list[x] == current_file)
+				{
+					am3.file_size_list.push_back(file_size[x]);
+					final_path.push_back(file_list[x]);
+					am3.file_count++;
+				}
+			}
+
+			fname_size = 0;
+			info_addr += 0x20;
+
+			current_file = "";
+		}
+	}
+
+	u32 am3_index = 0;
+	am3.card_data.clear();
+
+	//Pull up all files, read their data, mark file locations
+	for(u32 x = 0; x < am3.file_count; x++)
+	{
+		//Open up AM3 file
+		std::ifstream am3_file(final_path[x].c_str(), std::ios::binary);
+
+		if(!am3_file.is_open())
+		{
+			std::cout<<"AM3::Error - Could not open AM3 file " << final_path[x] << "\n";
+			return false;
+		}
+
+		//Update current file location
+		am3.file_addr_list.push_back(am3_index);
+
+		//Grab and copy binary data
+		std::vector <u8> file_data;
+		file_data.resize(am3.file_size_list[x], 0x00);
+
+		u8* ex_data = &file_data[0];
+		am3_file.read((char*)ex_data, am3.file_size_list[x]);
+		am3_file.close();
+
+		for(u32 y = 0; y < file_data.size(); y++) { am3.card_data.push_back(file_data[y]); }
+		am3_index += file_data.size();
+
+		//Pad card data with zeroes to nearest 0x200 block
+		u32 pad_size = (0x200 - (file_data.size() % 0x200));
+
+		for(u32 y = 0; y < pad_size; y++) { am3.card_data.push_back(0); }
+		am3_index += pad_size;
 	}
 
 	return true;

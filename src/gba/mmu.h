@@ -310,6 +310,7 @@ class AGB_MMU
 	void am3_reset();
 	void write_am3(u32 address, u8 value);
 	bool check_am3_fat();
+	bool am3_load_folder(std::string folder);
 
 	void jukebox_reset();
 	void write_jukebox(u32 address, u8 value);
