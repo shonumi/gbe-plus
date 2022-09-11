@@ -190,7 +190,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 	}
 
 	//Write to ... something else (control structure?)
-	if((address >= 0xB000100) && (address <= 0xB00010B) && (play_yan.access_param == 0x08) && (play_yan.firmware_addr >= 0xFF020))
+	if((address >= 0xB000100) && (address <= 0xB00010B) && (play_yan.firmware_addr >= 0xFF020))
 	{
 		u32 offset = address - 0xB000100;
 
@@ -609,10 +609,13 @@ void AGB_MMU::play_yan_set_music_file(u32 index)
 	if(!play_yan.music_files.empty())
 	{
 		//Set number of media files present
-		play_yan.card_data[4] = play_yan.music_files.size();
+		play_yan.card_data[4 + (index * 268)] = play_yan.music_files.size();
 
 		for(u32 index = 0; index < play_yan.music_files.size(); index++)
 		{
+			//Set number of media files present
+			play_yan.card_data[4 + ((index + 1) * 268)] = 2;
+
 			//Copy filename
 			std::string sd_file = play_yan.music_files[index];
 
