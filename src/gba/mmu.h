@@ -201,7 +201,8 @@ class AGB_MMU
 
 		u32 sd_check_data[5][8];
 		u32 music_check_data[2][8];
-		u32 video_check_data[6][8];
+		u32 music_play_data[3][8];
+		u32 video_check_data[4][8];
 		u32 irq_data[8];
 		bool irq_data_in_use;
 

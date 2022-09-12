@@ -220,7 +220,7 @@ Bytes 0x3FE through 0x3FF are a 16-bit checksum the data 0x380 through 0x3FD. Th
 7. Soul Doll Data Stats
 ***************************************************
 
-Use the following psuedocode to obtain the values for each attribute of the Soul Doll's Legend. Assume that ADDRESS the specified the EEPROM address 0x3D5 (for Yomigaeru Shiren no Shima) or 0x3BE (for Sign of Nekrom).
+Use the following psuedocode to obtain the values for each attribute of the Soul Doll's Legend. Assume that ADDRESS is the specified the EEPROM address 0x3D5 (for Yomigaeru Shiren no Shima) or 0x3BE (for Sign of Nekrom).
 
 -----------------------------------------------------------
 HP

@@ -77,6 +77,14 @@ void AGB_MMU::play_yan_reset()
 	{
 		for(u32 y = 0; y < 8; y++)
 		{
+			play_yan.music_play_data[x][y] = 0x0;
+		}
+	}
+
+	for(u32 x = 0; x < 4; x++)
+	{
+		for(u32 y = 0; y < 8; y++)
+		{
 			play_yan.video_check_data[x][y] = 0x0;
 		}
 	}
@@ -97,6 +105,12 @@ void AGB_MMU::play_yan_reset()
 	play_yan.video_check_data[1][0] = 0x80000100;
 	play_yan.video_check_data[2][0] = 0x40000200;
 	play_yan.video_check_data[3][0] = 0x40000500;
+
+	//Set 32-bit flags for playing music
+	play_yan.music_play_data[0][0] = 0x40000600;
+	play_yan.music_play_data[1][0] = 0x40000800;
+	play_yan.music_play_data[2][0] = 0x80001000;
+
 
 	for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
 
@@ -202,6 +216,8 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 			u32 prev_cmd = play_yan.cmd;
 			play_yan.cmd = ((play_yan.cnt_data[3] << 24) | (play_yan.cnt_data[2] << 16) | (play_yan.cnt_data[1] << 8) | (play_yan.cnt_data[0]));
 
+			//std::cout<<"CMD -> 0x" << play_yan.cmd << "\n";
+
 			//Trigger Game Pak IRQ for entering/exiting music or video menu
 			if((play_yan.cmd == 0x400) && (play_yan.op_state == 0xFF))
 			{
@@ -221,6 +237,16 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 				play_yan.irq_data_ptr = play_yan.video_check_data[0];
 				play_yan.irq_len = 4;
 				play_yan.thumbnail_index = 0xFFFFFFFF;
+			}
+
+			//Trigger Game Pak IRQ for playing music
+			else if((play_yan.cmd == 0x600) && (play_yan.op_state == 0xFF))
+			{
+				play_yan.op_state = 6;
+				play_yan.irq_delay = 1;
+				play_yan.delay_reload = 10;
+				play_yan.irq_data_ptr = play_yan.music_play_data[0];
+				play_yan.irq_len = 3;
 			}
 		}
 
@@ -371,6 +397,12 @@ void AGB_MMU::process_play_yan_irq()
 		//Process video thumbnails
 		case 0x5:
 
+		//Play music
+		case 0x6:
+
+		//Continue playing music
+		case 0x7:
+
 			//Trigger Game Pak IRQ
 			memory_map[REG_IF+1] |= 0x20;
 
@@ -400,6 +432,18 @@ void AGB_MMU::process_play_yan_irq()
 					}
 				}
 
+				//After selecting a music file to play, fire IRQs to process audio
+				else if(play_yan.op_state == 0x06)
+				{
+					play_yan.op_state = 7;
+					play_yan.irq_delay = 1;
+					play_yan.delay_reload = 60;
+					play_yan.irq_data_ptr = play_yan.music_play_data[0];
+					play_yan.irq_count = 2;
+					play_yan.irq_len = 3;
+					play_yan.irq_repeat = 100;
+				}
+
 				//Repeat thumbnail IRQs as necessary
 				else if((play_yan.op_state == 0x05) && (play_yan.irq_repeat))
 				{
@@ -409,6 +453,18 @@ void AGB_MMU::process_play_yan_irq()
 					play_yan.irq_data_ptr = play_yan.video_check_data[0];
 					play_yan.irq_count = 3;
 					play_yan.irq_len = 4;
+					play_yan.irq_repeat--;
+				}
+
+				//Repeat music IRQs as necessary
+				else if((play_yan.op_state == 0x07) && (play_yan.irq_repeat))
+				{
+					play_yan.op_state = 7;
+					play_yan.irq_delay = 1;
+					play_yan.delay_reload = 60;
+					play_yan.irq_data_ptr = play_yan.music_play_data[0];
+					play_yan.irq_count = 2;
+					play_yan.irq_len = 3;
 					play_yan.irq_repeat--;
 				}
 
