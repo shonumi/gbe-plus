@@ -72,6 +72,7 @@ void AGB_MMU::play_yan_reset()
 			play_yan.music_check_data[x][y] = 0x0;
 			play_yan.music_stop_data[x][y] = 0x0;
 			play_yan.video_play_data[x][y] = 0x0;
+			play_yan.video_stop_data[x][y] = 0x0;
 		}
 	}
 
@@ -120,6 +121,10 @@ void AGB_MMU::play_yan_reset()
 	//Set 32-bit flags for playing video
 	play_yan.video_play_data[0][0] = 0x40000700;
 	play_yan.video_play_data[1][0] = 0x80001000; play_yan.video_play_data[1][1] = 0x31AC0; play_yan.video_play_data[1][2] = 0x12C00;
+
+	//Set 32-bit flags for stopping video
+	play_yan.video_stop_data[0][0] = 0x40000701;
+	play_yan.video_stop_data[1][0] = 0x80001000;
 
 	for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
 
@@ -268,6 +273,18 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 				play_yan.delay_reload = 10;
 				play_yan.irq_data_ptr = play_yan.video_play_data[0];
 				play_yan.irq_len = 1;
+				play_yan.irq_repeat = 0;
+				play_yan.irq_count = 0;
+			}
+
+			//Trigger Game Pak IRQ for stopping video
+			else if(play_yan.cmd == 0x701)
+			{
+				play_yan.op_state = 10;
+				play_yan.irq_delay = 1;
+				play_yan.delay_reload = 10;
+				play_yan.irq_data_ptr = play_yan.video_stop_data[0];
+				play_yan.irq_len = 2;
 				play_yan.irq_repeat = 0;
 				play_yan.irq_count = 0;
 			}
@@ -445,6 +462,9 @@ void AGB_MMU::process_play_yan_irq()
 
 		//Play video
 		case 0x9:
+
+		//Stop video
+		case 0xA:
 
 			//Trigger Game Pak IRQ
 			memory_map[REG_IF+1] |= 0x20;
