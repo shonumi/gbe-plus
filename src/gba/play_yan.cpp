@@ -129,7 +129,7 @@ void AGB_MMU::play_yan_reset()
 	for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
 
 	play_yan.thumbnail_addr = 0;
-	play_yan.thumbnail_index = 0;
+	play_yan.thumbnail_index = 0xFFFFFFFF;
 
 	play_yan.music_file_index = 0;
 	play_yan.video_file_index = 0;
@@ -249,8 +249,24 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 				play_yan.irq_delay = 1;
 				play_yan.delay_reload = 10;
 				play_yan.irq_data_ptr = play_yan.video_check_data[0];
+				play_yan.irq_len = 3;
+			}
+
+			//Trigger Game Pak IRQ for video thumbnail data
+			else if(play_yan.cmd == 0x500)
+			{
+				play_yan.op_state = 3;
+				play_yan.irq_delay = 1;
+				play_yan.delay_reload = 10;
+				play_yan.irq_data_ptr = play_yan.video_check_data[0];
 				play_yan.irq_len = 4;
-				play_yan.thumbnail_index = 0xFFFFFFFF;
+				play_yan.irq_count = 3;
+
+				//Update video thumbnail index
+				play_yan.thumbnail_index++;
+				if(play_yan.thumbnail_index >= play_yan.video_thumbnails.size()) { play_yan.thumbnail_index = 0; }
+				
+				play_yan.thumbnail_addr = 0;
 			}
 
 			//Trigger Game Pak IRQ for playing music
@@ -472,31 +488,8 @@ void AGB_MMU::process_play_yan_irq()
 			//Wait for next IRQ condition after sending all flags
 			if(play_yan.irq_count == play_yan.irq_len)
 			{
-				//After entering video menu, fire IRQs to process video thumbnails
-				if(play_yan.op_state == 0x03)
-				{
-					if(play_yan.video_files.size() >= 2)
-					{
-						play_yan.op_state = 5;
-						play_yan.irq_delay = 1;
-						play_yan.delay_reload = 10;
-						play_yan.irq_data_ptr = play_yan.video_check_data[0];
-						play_yan.irq_count = 3;
-						play_yan.irq_len = 4;
-						play_yan.irq_repeat = play_yan.video_files.size() - 2;
-					}
-
-					//Stop IRQs until next trigger condition
-					else
-					{
-						play_yan.op_state = 0xFF;
-						play_yan.irq_delay = 0;
-						play_yan.irq_count = 0;
-					}
-				}
-
 				//After selecting a music file to play, fire IRQs to process audio
-				else if(play_yan.op_state == 0x06)
+				if(play_yan.op_state == 0x06)
 				{
 					play_yan.op_state = 7;
 					play_yan.irq_delay = 1;
@@ -575,13 +568,6 @@ void AGB_MMU::process_play_yan_irq()
 				}
 
 				//std::cout<<"IRQ -> 0x" << play_yan.irq_data[0] << "\n";
-
-				//Update video thumbnail index when appropiate
-				if(play_yan.irq_data[0] == 0x40000500)
-				{
-					play_yan.thumbnail_index++;
-					play_yan.thumbnail_addr = 0;
-				}
 
 				play_yan.irq_count++;
 				play_yan.irq_delay = play_yan.delay_reload;
