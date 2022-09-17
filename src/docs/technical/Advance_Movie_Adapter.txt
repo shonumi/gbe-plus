@@ -1,4 +1,4 @@
-Advance Movie Adapter Technical Documentation 0.3
+Advance Movie Adapter Technical Documentation 0.4
 January 2, 2022
 Shonumi aka D.S. Baxter
 
@@ -16,8 +16,8 @@ The Advance Movie Adapter is a specialized Game Boy Advance cartridge capable of
 - Accepts SmartMedia cards from a slot on the side.
 - The cartridge itself contains no hardware to accelerate audio/video playback. It is strictly for the GBA's CPU to read data.
 - The cartridge has many hardware functions for reading and navigating FAT12 filesystems.
-- The cartridge also contains a 12KB firmware responsible for loading, decrypting, decoding, and playing media.
-- Small "lock files" are encrypted with 128-bit DES as an anti-piracy measure. Each AM3 SmartMedia card has a key that the adapter can retrieve.
+- The cartridge also contains an 11KB firmware responsible for loading, decrypting, decoding, and playing media.
+- Small "lock files" are encrypted with 128-bit DES as an anti-piracy measure. Each AM3 SmartMedia card has an ID that the adapter can retrieve.
 - SmartMedia cards came in 32MB for TV shows/episodes, and 64MB for full-length movies.
 
 
@@ -48,7 +48,7 @@ AM_BLK_ADDR determines where any data (from either the firmware or the SmartMedi
 
 AM_BLK_SIZE determines the size of data to read from the firmware. As the Advance Movie Adapter only maps in a maximum of 1KB for data blocks, this value is never greater than 0x400 as far as the firmware is concerned. Note that setting the size of data for SmartMedia card reads is a separate register.
 
-AM_BLK_STAT controls the majority of operations on the Advance Movie Adapter. By writing to the register and setting certain bits, it starts the mapping process, switches between firmware and SmartMedia card, and makes the 128-bit DES key readable. It also reserves several bits that report on the status of current operations. See the next section for further details.
+AM_BLK_STAT controls the majority of operations on the Advance Movie Adapter. By writing to the register and setting certain bits, it starts the mapping process, switches between firmware and SmartMedia card, and makes the 128-bit SMID readable. It also reserves several bits that report on the status of current operations. See the next section for further details.
 
 
 ----------------------------------------------------------------------------------------------------------------------
@@ -73,12 +73,12 @@ AM_SMC_EOF returns the remaining bytes from the current read pointer until the c
 Misc
 ----------------------------------------------------------------------------------------------------------------------
 AM_FILE_SIZE	(R)	0x08010410	32-bit		Current file size according to FAT
-AM_DES_KEY	(R)	0x08010410	128-bit		16-byte key used for DES decryption
+AM_SMID		(R)	0x08010410	128-bit		16-byte SmartMedia ID used for copy-protection
 ----------------------------------------------------------------------------------------------------------------------
 
-AM_FILE_SIZE returns the current file size as determined by the FAT of the SmartMedia card. Note that this register overlaps with AM_DES_KEY. To switch, the CPU must write the value 0x05 to AM_BLK_STAT.
+AM_FILE_SIZE returns the current file size as determined by the FAT of the SmartMedia card. Note that this register overlaps with AM_SMID. To switch, the CPU must write the value 0x05 to AM_BLK_STAT.
 
-AM_DES_KEY returns the 128-bit (16-byte) DES key responsible for decrypting data. This key is unique to every SmartMedia cards and is embedded in a region not normally accessible by standard card readers. When no SmartMedia card is inserted in the adapter, these bytes return zero. Note that this register partially overlaps with AM_FILE_SIZE. To switch, the CPU must write the value 0x03 to AM_BLK_STAT.
+AM_SMID returns the 128-bit (16-byte) SmartMedia ID (SMID) that the firmware verifies for copy-protection purposes. This ID is unique to every SmartMedia cards and is embedded in a region not normally accessible by standard card readers. When no SmartMedia card is inserted in the adapter, these bytes return zero. Note that this register partially overlaps with AM_FILE_SIZE. To switch, the CPU must write the value 0x03 to AM_BLK_STAT.
 
 To properly access any of the I/O registers, the PHI terminal output should be set to 16.78MHz. On that note, the amount of cycles spent in various waitstates does not appear to affect the overall operation of the adapter. However, slower access, if significant, could potentially degrade the firmware's video playback functions. The firmware should handle a small amount slower access without issue. For example, on the DS Lite, there is a brief pause during the initial setup (before the AM3 logo appears) with a small loading icon. This screen is not shown on an original Game Boy Advance due to apparent timing differences.
 
@@ -109,22 +109,22 @@ Value		| Operation Description
 0		| Read Block
 1		| Write I/O Register
 2		| Set File Size Mode
-3		| Set DES Key Mode
+3		| Set SMID Mode
 -----------------------------------------------------------
 
 The most common operation is "Read Block" which simply copies a data block of a set size from either firmware or the SmartMedia card.
 
 Writing to an I/O register is exactly that. AM_BLK_STAT needs to signal to the adapter that the CPU will update one of its I/O registers.
 
-Set File Size Mode and Set DES Key Mode refer to the values held in AM_FILE_SIZE and AM_DES_KEY. Since these registers have overlapping addresses, AM_BLK_STAT controls which mode the adapter will use, and which values to return when reading these memory locations. Once the DES key is read, there is usually no need to return to this mode.
+Set File Size Mode and Set SMID Mode refer to the values held in AM_FILE_SIZE and AM_SMID. Since these registers have overlapping addresses, AM_BLK_STAT controls which mode the adapter will use, and which values to return when reading these memory locations. Once the SMID is read, there is usually no need to return to this mode.
 
-These operations can be further divided as being "internal" or "external". The first deals with data that resides on the Advance Movie Adapter itself, such as reading firmware or writing to I/O registers. The second deals with data residing on the SmartMedia card, such as the files themselves, file sizes, and DES keys. A value of "1" chooses internal operations, while a value of "0" chooses external operations. In practice, however, only a few limited values are ever written to AM_BLK_STAT. These can then be seen as single-byte "commands".
+These operations can be further divided as being "internal" or "external". The first deals with data that resides on the Advance Movie Adapter itself, such as reading firmware or writing to I/O registers. The second deals with data residing on the SmartMedia card, such as the files themselves, file sizes, and SMID. A value of "1" chooses internal operations, while a value of "0" chooses external operations. In practice, however, only a few limited values are ever written to AM_BLK_STAT. These can then be seen as single-byte "commands".
 
 -----------------------------------------------------------
 Command		| Description
 -----------------------------------------------------------
 0x01		| Read SmartMedia Card Data Block
-0x03		| Set DES Key Mode
+0x03		| Set SMID Mode
 0x05		| Set File Size Mode & Update File Size
 0x09		| Read Firmware Data Block
 0x0B		| Write I/O Register
@@ -148,9 +148,9 @@ This command reads a fixed amount of bytes as specified by AM_SMC_SIZE from the 
 
 
 
-[[Command 0x03 - Set DES Key Mode]]
+[[Command 0x03 - Set SMID Mode]]
 
-After issuing this command, the 16 bytes beginning at AM_DES_KEY (0x08010410 - 0x0801041F) will return the 128-bit DES Key/SmartCard ID whenever read.
+After issuing this command, the 16 bytes beginning at AM_SMID (0x08010410 - 0x0801041F) will return the 128-bit SmartMedia ID whenever read.
 
 
 
@@ -260,17 +260,17 @@ CURRENT_FILE_SIZE = [AM_FILE_SIZE]
 
 
 -----------------------------------------------------------
-Read DES Key in 32-bit Chunks
+Read SMID in 32-bit Chunks
 -----------------------------------------------------------
 [AM_BLK_STAT] = 0x03
 	
 WHILE [AM_BLK_STAT] NOT EQUAL TO 0x03
 	READ [AM_BLK_STAT] AGAIN
 
-DES_KEY_0 = [AM_DES_KEY + 0x00]			//Read 0x08010410 - 0x08010413
-DES_KEY_1 = [AM_DES_KEY + 0x04]			//Read 0x08010414 - 0x08010417
-DES_KEY_2 = [AM_DES_KEY + 0x08]			//Read 0x08010418 - 0x0801041B
-DES_KEY_3 = [AM_DES_KEY + 0x0C]			//Read 0x0801041C - 0x0801041F
+SMID_0 = [AM_SMID + 0x00]			//Read 0x08010410 - 0x08010413
+SMID_1 = [AM_SMID + 0x04]			//Read 0x08010414 - 0x08010417
+SMID_2 = [AM_SMID + 0x08]			//Read 0x08010418 - 0x0801041B
+SMID_3 = [AM_SMID + 0x0C]			//Read 0x0801041C - 0x0801041F
 
 
 ***************************************************
@@ -285,9 +285,9 @@ Read Pointer Value On Boot
 When turning on the Game Boy Advance, the first 1KB of firmware (the bootloader) is loaded into the address space at 0x8000000 - 0x80003FF. As such, it has already advanced by 0x400 bytes by the time the CPU begins executing instructions from that area of memory.
 
 -----------------------------------------------------------
-Reading More Than 12KB of Firmware
+Reading More Than 11KB of Firmware
 -----------------------------------------------------------
-If the CPU should try to read more 12KB of firmware, the read pointer essentially resets itself as zero. Reading a 13th 1KB data block will simply read the 1st 1KB data block (e.g. the bootloader. Note that when reading the 12th 1KB data block of firmware, Bit 8 of AM_BLK_STAT will be set to "1" to indicate that all the data for the firmware has been read, treating the firmware as if it were another file.
+If the CPU should try to read more 11KB of firmware, the read pointer essentially resets itself as zero. Reading a 12th 1KB data block will simply read the 1st 1KB data block (e.g. the bootloader. Note that when reading the 11th 1KB data block of firmware, Bit 8 of AM_BLK_STAT will be set to "1" to indicate that all the data for the firmware has been read, treating the firmware as if it were another file.
 
 -----------------------------------------------------------
 Reading Data Past EOF
@@ -330,9 +330,9 @@ Represents the actual data stored on the medium. At the start of this a single d
 INFO.AM3
 00.AM3
 
-The first set of numbered AM3 files are for audio/video playback. INFO.AM3 contains more metadata that explains which files are mapped to a given index when writing to AM_SMC_FILE. 00.AM3 contains encrypted data. It must be decrypted with the card's DES key/SmartMedia ID, otherwise the firmware fails to boot.
+The first set of numbered AM3 files are for audio/video playback. INFO.AM3 contains more metadata that explains which files are mapped to a given index when writing to AM_SMC_FILE. 00.AM3 contains encrypted data. It must be decrypted internally, then certain data from that file is checked against the card's SMID. The firmware fails to boot if the data from 00.AM3 and the SMID are different.
 
-INFO.AM3 is particularly relevant for the Advance Movie Adapter. It consists of large table offset 512 bytes from the start of the file. Each 32-byte entry merely lists a file name. The first file listed is mapped to index "0" for AM_SMC_FILE; the second file listed in mapped to index "1" for AM_SMC_FILE, so on and so forth. The order that the card's files appear at the start of the Data Region thus does not reflect how the adapter ultimately arranges them internally.
+INFO.AM3 is particularly relevant for the Advance Movie Adapter. It consists of large table offset 512 bytes from the start of the file. Each 32-byte entry merely lists a file name. The first file listed is mapped to index "0" for AM_SMC_FILE; the second file listed in mapped to index "1" for AM_SMC_FILE, so on and so forth. The order that the card's files appear at the start of the Data Region thus does not reflect how the adapter ultimately arranges them internally. Files not listed in INFO.AM3 are inaccessible to the Advance Movie Adapter.
 
 For any invalid index written to AM_SMC_FILE, the adapter will treat it as if the index points to the last file in the list. For example, if there are only a total of 11 files, writing 12 to AM_SMC_FILE will point to the 11th file. The exception to this is when the value 0xFFFF is written to AM_SMC_FILE, in which case it points to the 1st file. Under normal circumstances, the firmware only ever does the first case, typically as a shortcut to read INFO.AM3, which is generally the last file on the card. If an error occurs that interferes with the boot process, the firmware does write 0xFFFF to AM_SMC_FILE before it aborts.
 
@@ -340,22 +340,33 @@ The table entries in the Data Region has fields for File Attributes, Creation Da
 
 Data Region Logical Address + ((File Cluster - 2) * Sectors Per Cluster * Bytes Per Sector)
 
+It is important to note that as AM3 SmartMedia cards use FAT filesystems, they are still vulnerable to file fragmentation. Evidently, some cards were fragmented even when users first purchased them. However, as far as the Advance Movie Adapter is concerned, data can be extracted normally in continuous 1KB segments regardless of fragmentation. The adapter automatically pieces files together as a whole, so the firmware reads them without jumping across clusters.
+
 
 ***************************************************
 8. 00.AM3
 ***************************************************
 
-This acts as a "lock file", a small encrypted portion of the SmartMedia card that determines whether or not the DES key/SmartMedia ID is valid. The rest of the data on the SmartMedia card is apparently unencrypted. That is to say, between two separate copies of the same anime/TV show episode, the 00.AM3 file should be the only difference between them. For example, with multiple copies of Detective Conan Episode 1, the data for all files except 00.AM3 will match.
+This acts as a "lock file", a small encrypted portion of the SmartMedia card that determines whether or not the SMID is valid. The rest of the data on the SmartMedia card is apparently unencrypted. That is to say, between two separate copies of the same anime/TV show episode, the 00.AM3 file should be the only difference between them. For example, with multiple copies of Detective Conan Episode 1, the data for all files except 00.AM3 will match. When the firmware decrypts 00.AM3, a portion of the file contains its own 128-bit ID. This internal ID is compared again the external one from AM_SMID. In order to play any videos, both IDs must match.
 
-The firmware reads the entire 128-bit DES key/SmartMedia ID and then verifies it. However, the firmware appears to calculate what the key/ID should be internally before comparing what the hardware provides it with. At multiple points while the firmware is running, it's possible to intercept a valid key by simply pausing its execution, i.e. through an emulator's debugger and reading select RAM locations. As long as a fake, non-zero key/ID is provided, the firmware generates its own for comparison.
+As the firmware internally calculates what the correct ID should be, at multiple points it's possible to intercept the expected value. This can be done by simply pausing the firmware's execution through a debugger and reading select RAM locations. As long as a fake, non-zero ID is provided when reading AM_SMID, the firmware generates its own for comparison.
 
 Although this "security" is easily defeated, at the time, it was only meant to deter casual, physical piracy, as SmartMedia card readers and writers were once common. The SmartMedia's 128-bit ID is permanently set at the time of manufacture, so even commercially available blank cards would have a different ID, meaning the AM3 files could not blindly be copied over. Digital solutions, however, such as emulators, are not bound by these constraints.
 
-The key can be legitimately extracted by any GBA ROM dumper or other homebrew by simply trying to read the Advance Movie Adapter as if it were a normal game cartridge. As long as an AM3 SmartMedia card is inserted, the key will appear at the bytes 0x08010410 through 0x0801041F.
+The ID can be legitimately extracted by any GBA ROM dumper or other homebrew by simply trying to read the Advance Movie Adapter as if it were a normal game cartridge. As long as an AM3 SmartMedia card is inserted, the ID will appear at the bytes 0x08010410 through 0x0801041F.
 
 
 ***************************************************
-9. List of AM3 Cards and Products
+9. Error Handling
+***************************************************
+
+The Advance Movie Adapter behaves slightly differently when the SmartMedia card cannot be read. While the first 1KB section of the firmware is loaded normally for the initial bootloader, trying to read subsequent 1KB blocks of the firmware returns a repeating 5KB section of code dedicated to error handling. This 5KB section is distinct from the regular firmware 11KB that deals with decoding and playing audio/video files. It can only be accessed when a SmartMedia card related issue occurs. Examples include a missing/improperly inserted card, an unsupported SmartMedia card type, or a damaged SmartMedia card. The error handling code helpfully displays an on-screen message in Japanese and English (with a typo) in such an event.
+
+Additionally, when the adapter needs to handle SmartMedia card errors, Bit 8 of AM_BLK_STAT no longer serves as an EOF flag. The GBA can read an indefinite amount of repeating 1KB blocks from firmware (the 5KB section) without ever changing the status of Bit 8. Lastly, AM_SMID will return zeroes for each of its 16-bytes. These two conditions can be used for software to manually check whether or not a SmartMedia card is inside the adapter.
+
+
+***************************************************
+10. List of AM3 Cards and Products
 ***************************************************
 
 -----------------------------------------------------------
@@ -441,5 +452,3 @@ Blank Gashapon Cards + Adapter Bundle
 am3-00049		Pikachu Gashapon Card
 am3-00081		Lucario Gashapon Card
 am3-00087		Akubi-chan Gashapon Card #1
-
-
