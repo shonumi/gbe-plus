@@ -232,6 +232,8 @@ class AGB_MMU
 		u32 music_file_index;
 		u32 video_file_index;
 		u32 thumbnail_index;
+
+		u8 volume;
 	} play_yan;
 
 	//Structure to handle GPIO reading and writing

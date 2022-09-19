@@ -328,6 +328,9 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 
 			//Set video file data - Index 0 for first video file
 			if((play_yan.cmd == 0x200) && (control_cmd2 == 0x01) && (play_yan.op_state > 1)) { play_yan_set_video_file(0); }
+
+			//Adjust Play-Yan volume settings
+			if(play_yan.cmd == 0xB00) { play_yan.volume = control_cmd2; }
 		}
 
 
