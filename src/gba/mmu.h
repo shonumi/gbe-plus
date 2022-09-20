@@ -235,6 +235,7 @@ class AGB_MMU
 
 		u8 volume;
 		u8 bass_boost;
+		bool use_bass_boost;
 	} play_yan;
 
 	//Structure to handle GPIO reading and writing
