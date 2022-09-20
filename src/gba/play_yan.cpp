@@ -331,6 +331,9 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 
 			//Adjust Play-Yan volume settings
 			if(play_yan.cmd == 0xB00) { play_yan.volume = control_cmd2; }
+
+			//Adjust Play-Yan bass boost settings
+			else if(play_yan.cmd == 0xD00) { play_yan.bass_boost = control_cmd2; }
 		}
 
 

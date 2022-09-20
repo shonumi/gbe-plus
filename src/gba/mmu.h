@@ -234,6 +234,7 @@ class AGB_MMU
 		u32 thumbnail_index;
 
 		u8 volume;
+		u8 bass_boost;
 	} play_yan;
 
 	//Structure to handle GPIO reading and writing
