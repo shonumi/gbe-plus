@@ -35,7 +35,7 @@ void AGB_MMU::play_yan_reset()
 	play_yan.irq_count = 0;
 	play_yan.irq_repeat = 0;
 	play_yan.irq_repeat_id = 0;
-	play_yan.irq_delay = 240;
+	play_yan.irq_delay = (config::use_bios) ? 480 : 240;
 	play_yan.delay_reload = 60;
 	play_yan.irq_data_in_use = false;
 
