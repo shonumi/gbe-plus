@@ -262,6 +262,12 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 				play_yan.irq_len = 3;
 			}
 
+			//Before playing a video, reset thumbnail index based on multiples of 6
+			else if((play_yan.cmd == 0x400) && (prev_cmd == 0x2000))
+			{
+				play_yan.thumbnail_index = (6 * (play_yan.thumbnail_index / 6)) - 1;
+			}
+
 			//Trigger Game Pak IRQ for video thumbnail data
 			else if(play_yan.cmd == 0x500)
 			{
