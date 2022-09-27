@@ -35,9 +35,10 @@ void AGB_MMU::play_yan_reset()
 	play_yan.irq_count = 0;
 	play_yan.irq_repeat = 0;
 	play_yan.irq_repeat_id = 0;
-	play_yan.irq_delay = (config::use_bios) ? 480 : 240;
+	play_yan.irq_delay = 0;
 	play_yan.delay_reload = 60;
 	play_yan.irq_data_in_use = false;
+	play_yan.start_irqs = false;
 
 	play_yan.irq_data_ptr = play_yan.sd_check_data[0];
 	play_yan.irq_len = 5;
@@ -216,6 +217,13 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 		if((play_yan.firmware_addr + offset) < 0xFF020)
 		{
 			play_yan.firmware[play_yan.firmware_addr + offset] = value;
+
+			//Start IRQs automatically after first write to firmware
+			if(!play_yan.start_irqs)
+			{
+				play_yan.start_irqs = true;
+				play_yan.irq_delay = 240;
+			}
 		}
 	}
 

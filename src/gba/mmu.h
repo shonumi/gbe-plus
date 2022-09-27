@@ -210,6 +210,7 @@ class AGB_MMU
 
 		u32 irq_data[8];
 		bool irq_data_in_use;
+		bool start_irqs;
 
 		u32* irq_data_ptr;
 		u32 irq_len;
