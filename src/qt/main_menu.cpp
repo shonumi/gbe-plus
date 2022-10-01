@@ -790,7 +790,7 @@ void main_menu::boot_game()
 		if((config::gb_type == 5) || (config::gb_type == 6)) { config::gb_type = get_system_type_from_file(config::rom_file); }
 
 		//Force GBA system type for AM3 emulation
-		if(config::cart_type == AGB_AM3) { config::gb_type = 3; std::cout<<"HELLO\n"; }
+		if(config::cart_type == AGB_AM3) { config::gb_type = 3; }
 	}
 
 	//Determine CGFX scaling factor

@@ -164,8 +164,6 @@ void AGB_MMU::write_am3(u32 address, u8 value)
 			am3.file_index &= ~(0xFF << ((address & 0x1) << 3));
 			am3.file_index |= (value << ((address & 0x1) << 3));
 
-			std::cout<<"INDEX -> 0x" << am3.file_index << "\n";
-
 			if(address == (AM_SMC_FILE+1))
 			{
 				//Special Case - If the latest file index is 0xFFFF, reset file index to zero
