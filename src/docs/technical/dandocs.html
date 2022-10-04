@@ -570,7 +570,7 @@ Set 2 [14:0] [15:1] [14:0] [45:1] ...</code>
 		<li class="list_item">Yoshi&#39;s Cookie</li>
 	</ul>
 
-	<p>F1 Pole Position is the localization of the Japanese game Nakajima Satoru F-1 Hero GB &#39;92: The Graded Driver. Both versions support the DMG-07. The prequel, Nakajima Satoru F-1 Hero GB World Championship '91, was however a Japanese exclusive.</p>
+	<p>F1 Pole Position is the localization of the Japanese game Nakajima Satoru F-1 Hero GB &#39;92: The Graded Driver. Both versions support the DMG-07. The prequel, Nakajima Satoru F-1 Hero GB World Championship &#39;91, was however a Japanese exclusive.</p>
 
 	<p>Several games are claimed to be compatible but actual support for the DMG-07 remains dubious at best for those titles. Gauntlet II advertises 4-player action via the Link Cable, but this may simply refer to 2-player mode with each Game Boy controlling 2 characters (and switching among friends when appropiate).</p>
 
@@ -1004,7 +1004,7 @@ ID	| Japanese Name		| Translated Name		| Cosmic Character Movements
 
 	<p>This list represents all the games that have been verified to use the IR port. While exhaustive, this list is probably not complete. There are likely more Japanese exclusives that need to be added. It&#39;s dubious whether or not Animorphs actually is a &#34;Ubi Key&#34; game. The back boxart doesn&#39;t have the &#34;IR Compatible&#34; logo, and the manual makes no mention of IR communication.</p>
 
-	<p>The North American version of Disney&#39;s Aladdin claims to have infrared support on the box, supposedly for Ubi Key functionality, however, no such option is accessible in the game. Additionally, European variants omit the GBC IR logo from their boxes. It's possible that like Animorphs, Aladdin had its IR features stripped.</p>
+	<p>The North American version of Disney&#39;s Aladdin claims to have infrared support on the box, supposedly for Ubi Key functionality, however, no such option is accessible in the game. Additionally, European variants omit the GBC IR logo from their boxes. It&#39;s possible that like Animorphs, Aladdin had its IR features stripped.</p>
 
 	<ul>
 		<li class="list_tab"><div class="x">Animal Breeder 3</div><div class="y">Matchmaking between animals raised by the player</div></li>
@@ -4801,9 +4801,9 @@ Byte 2			| Command ID
 
 	<p>The Packet Checksum is simply the 16-bit sum of all previous header bytes and all previous packet data bytes. It does not include the magic bytes. The checksum is transmitted big-endian.</p>
 
-	<p>After the checksum, a simple 2-byte Acknowledgement Signal is sent. The first byte is the Device ID OR'ed with the value 0x80. The second byte is 0x00 for the sender. The receiver transfers the Command ID from the Packet Header XOR&#39;ed by 0x80. This essentially confirms what role the Game Boy is acting in. If it is the receiver, it is expecting to read information from the Packet Data from the Mobile Adapter. If it is the sender, it is pushing information from its own Packet Data to the Mobile Adapter. For example, with Command 0x19, the Game Boy is explicitly requesting data from the adapter, and with Command 0x1A the Game Boy is explicitly sending data to the adapter.</p>
+	<p>After the checksum, a simple 2-byte Acknowledgement Signal is sent. The first byte is the Device ID OR&#39;ed with the value 0x80. The second byte is 0x00 for the sender. The receiver transfers the Command ID from the Packet Header XOR&#39;ed by 0x80. This essentially confirms what role the Game Boy is acting in. If it is the receiver, it is expecting to read information from the Packet Data from the Mobile Adapter. If it is the sender, it is pushing information from its own Packet Data to the Mobile Adapter. For example, with Command 0x19, the Game Boy is explicitly requesting data from the adapter, and with Command 0x1A the Game Boy is explicitly sending data to the adapter.</p>
 
-	<p>The Command ID byte in the Acknowledgement Signal may also be used for the receiver to indicate an error. If the checksum verification fails, the receiving side will send error 0xF1. This causes the sender to immediately re-attempt sending the packet up to 4 times. If the command isn't implemented/supported by the receiving Mobile Adapter, error 0xF0 will be sent. Error 0xF2 indicates an internal error, such as the Mobile Adapter's TCP/telephone transfer buffer being full.</p>
+	<p>The Command ID byte in the Acknowledgement Signal may also be used for the receiver to indicate an error. If the checksum verification fails, the receiving side will send error 0xF1. This causes the sender to immediately re-attempt sending the packet up to 4 times. If the command isn&#39;t implemented/supported by the receiving Mobile Adapter, error 0xF0 will be sent. Error 0xF2 indicates an internal error, such as the Mobile Adapter&#39;s TCP/telephone transfer buffer being full.</p>
 
 	<p>The device ID determines what kind of hardware each side is communicating with. Below are the possible values and their meaning:</p>
 
@@ -4823,7 +4823,7 @@ Device ID	| OR Value	| Device Type
 
 	<p>Even though the protocol effectively enables 2-way communication between the Game Boy and a remote server, the handheld is expected to oversee all transmissions to the adapter itself. That is to say, the typical &#34;master-slave&#34; model often used for Game Boy serial I/O still applies in some sense. Once the server starts responding, the Game Boy has to continually initiate another transfer to the adapter (setting Bit 7 of 0xFF02 high) to keep reading any additional bytes that were sent.</p>
 
-	<p>It is up to the game software itself to handle secondary protocols (such as HTTP, POP3, or SMTP) which involve one side specifically acting as the sender or receiver. For example, after opening a TCP connection to an HTTP server and issuing the 0x15 command (Data Transfer), the software will determine whether the Game Boy is acting as a sender (making an HTTP request) or a receiver (receiving an HTTP response). Generally, this goes back and forth. The Game Boy sends information via its Packet Data, while the Mobile Adapter responds with 0xD2 &#34;wait&#34; bytes until the Game Boy finishes its TCP transfer. When the Game Boy's TCP transfer is done, the adapter sends any information from the server in its Packet Data while the Game Boy responds with 0x4B &#34;wait&#34; bytes. The chart below illustrates this concept and details what bytes are transferred by each side depending on their current role:</p>
+	<p>It is up to the game software itself to handle secondary protocols (such as HTTP, POP3, or SMTP) which involve one side specifically acting as the sender or receiver. For example, after opening a TCP connection to an HTTP server and issuing the 0x15 command (Data Transfer), the software will determine whether the Game Boy is acting as a sender (making an HTTP request) or a receiver (receiving an HTTP response). Generally, this goes back and forth. The Game Boy sends information via its Packet Data, while the Mobile Adapter responds with 0xD2 &#34;wait&#34; bytes until the Game Boy finishes its TCP transfer. When the Game Boy&#39;s TCP transfer is done, the adapter sends any information from the server in its Packet Data while the Game Boy responds with 0x4B &#34;wait&#34; bytes. The chart below illustrates this concept and details what bytes are transferred by each side depending on their current role:</p>
 
 <code>-------------------------------------------------------------------------------------------------------------------------------------------------
 Device		| Role		| Magic Bytes	| Packet Header | Packet Checksum	| Packet Data	| Acknowledgement Signal
@@ -4885,7 +4885,7 @@ Command 0x28		DNS Query
 	<p class="list_item">Data Sent: 1 unknown byte + telephone number</p>
 	<p class="list_item">Data Received: N/A. Empty Packet Data</p>
 
-	<p class="spc">Instructs the adapter to dial a telephone number. The first byte&#39;s purpose is unknown, but seems to vary depending on the adapter type. 0 is sent for the blue/PDC adapter, 1 is sent for the green/PHS or red/DDI adapters, and 2 for the yellow/cdmaOne adapter. For unknown reasons, the blue adapter also accepts 16, the red adapter also accepts 9, and the yellow adapter doesn't actually verify this value. The following data is the telephone number represented in ASCII values, consisting of decimal numbers &#34;0&#34; through &#34;9&#34;, as well as &#34;#&#34; and &#34;*&#34;. Any ASCII values not within this range are ignored. The maximum length of the phone number is 32 bytes.</p>
+	<p class="spc">Instructs the adapter to dial a telephone number. The first byte&#39;s purpose is unknown, but seems to vary depending on the adapter type. 0 is sent for the blue/PDC adapter, 1 is sent for the green/PHS or red/DDI adapters, and 2 for the yellow/cdmaOne adapter. For unknown reasons, the blue adapter also accepts 16, the red adapter also accepts 9, and the yellow adapter doesn&#39;t actually verify this value. The following data is the telephone number represented in ASCII values, consisting of decimal numbers &#34;0&#34; through &#34;9&#34;, as well as &#34;#&#34; and &#34;*&#34;. Any ASCII values not within this range are ignored. The maximum length of the phone number is 32 bytes.</p>
 	
 	<p class="list_item"><strong>Command 0x13 - Hang Up Telephone</strong></p>
 	<p class="list_item">Data Sent: N/A. Empty Packet Data</p>
@@ -4903,9 +4903,9 @@ Command 0x28		DNS Query
 	<p class="list_item">Data Sent: Connection ID + Arbitrary Data (optional)</p>
 	<p class="list_item">Data Received: Connection ID + Arbitrary Data (optional)</p>
 
-	<p>Used to transfer data over TCP after command 0x23 (Open TCP Connection), transfer data over UDP after command 0x25 (Open UDP connection), or transfer data over the phone line after either 0x12 (Dial Telephone) or 0x14 (Wait For Telephone Call) have successfully been called. Only TCP/UDP communication is possible after a 0x21 (ISP Login) command, and the first byte indicates the connection that's being transferred over, as multiple can be opened simultaneously. If it&#39;s a mobile connection, the first byte is ignored, usually being set to 0xFF.</p>
+	<p>Used to transfer data over TCP after command 0x23 (Open TCP Connection), transfer data over UDP after command 0x25 (Open UDP connection), or transfer data over the phone line after either 0x12 (Dial Telephone) or 0x14 (Wait For Telephone Call) have successfully been called. Only TCP/UDP communication is possible after a 0x21 (ISP Login) command, and the first byte indicates the connection that&#39;s being transferred over, as multiple can be opened simultaneously. If it&#39;s a mobile connection, the first byte is ignored, usually being set to 0xFF.</p>
 
-	<p>Generally, additional data is appended, although it is not required, such as when waiting for the server/other phone to send a reply. Large chunks of data greater than 254 bytes must be broken down into separate packets. While a connection is active, the Command ID in the Reply is 0x15 for the sender and 0x95 for the receiver. When a TCP connection is closed by the remote server (e.g. when an HTTP response has finished), and there's no leftover data to be received by the gameboy, the Command ID in the Reply becomes 0x1F for the sender and 0x9F for the receiver, with a packet length of 0. Additionally, for TCP connections, if no data is sent, this command will wait for data to be received up to 1 second, before sending a reply.</p>
+	<p>Generally, additional data is appended, although it is not required, such as when waiting for the server/other phone to send a reply. Large chunks of data greater than 254 bytes must be broken down into separate packets. While a connection is active, the Command ID in the Reply is 0x15 for the sender and 0x95 for the receiver. When a TCP connection is closed by the remote server (e.g. when an HTTP response has finished), and there&#39;s no leftover data to be received by the Game Boy, the Command ID in the Reply becomes 0x1F for the sender and 0x9F for the receiver, with a packet length of 0. Additionally, for TCP connections, if no data is sent, this command will wait for data to be received up to 1 second, before sending a reply.</p>
 
 	<p class="spc">During a phone-to-phone communication, no disconnection is detected, instead being indicated by the 0x17 (Telephone Status) command. However, most games implement this instead through a timeout during which no data has been received.</p>
 
@@ -4921,7 +4921,7 @@ Command 0x28		DNS Query
 
 	<p>Typically sent to the adapter before dialing. Also used to test the telephone status before opening a TCP connection, or to constantly ping the phone to make sure it&#39;s still active.</p>
 
-	<p>The reply is 3 bytes. The first byte indicates the phone's status, where 0xFF is returned if the phone is disconnected. If the phone isn&#39;t disconnected, bit 2 indicates whether the phone line is &#34;busy&#34; (i.e. in a call/picked up), and bit 0 indicates the presence of an incoming call (this remains if the incoming call is picked up). As such, the valid values are 0, 1, 4 and 5. Software may check bit 2 to know if the phone line is still connected. Most software doesn&#39;t seem to care about bit 0, but Net de Get: Mini Game @ 100 refuses to work with bit 0 set (value 5).</p>
+	<p>The reply is 3 bytes. The first byte indicates the phone&#39;s status, where 0xFF is returned if the phone is disconnected. If the phone isn&#39;t disconnected, bit 2 indicates whether the phone line is &#34;busy&#34; (i.e. in a call/picked up), and bit 0 indicates the presence of an incoming call (this remains if the incoming call is picked up). As such, the valid values are 0, 1, 4 and 5. Software may check bit 2 to know if the phone line is still connected. Most software doesn&#39;t seem to care about bit 0, but Net de Get: Mini Game @ 100 refuses to work with bit 0 set (value 5).</p>
 
 	<p class="spc">The second byte is related to the adapter type, where the blue/PDC adapter returns 0x4D, and the red/DDI and yellow/cdmaOne adapters return 0x48, though the actual meaning is unknown. The third byte is unknown, and usually hardcoded to 0. However, Pokemon Crystal reacts to the third byte being 0xF0 by allowing the player to bypass the 10 min/day battle time limit.</p>
 
@@ -4931,7 +4931,7 @@ Command 0x28		DNS Query
 
 	<p>This command is generally sent after Command 0x10. It enables/disables SIO32 Mode, which is useful for GBA games to be able to send more data, faster. The sent byte must be 1 to enable SIO32 mode, and 0 to disable it. SIO32 mode implies that any transmission will happen in chunks of 4 bytes instead of 1, which has implications with respect to the alignment of the communication.</p>
 
-	<p>When SIO32 mode is on, the packet data will be aligned to a multiple of 4 bytes, padding the remaining bytes with 0, and this won't be reflected in the packet length field. Similarly, the Acknowledgement Signal gains 2 padding bytes (hardcoded 0, not verified) at the end. Since the entire transmission (including Magic Bytes) is sent in chunks of 4, this means that the checksum is sent along with either the packet length (if length is 0) or the last 2 bytes of the packet (if length is not 0), and the acknowledgement signal is sent in the next chunk.</p>
+	<p>When SIO32 mode is on, the packet data will be aligned to a multiple of 4 bytes, padding the remaining bytes with 0, and this won&#39;t be reflected in the packet length field. Similarly, the Acknowledgement Signal gains 2 padding bytes (hardcoded 0, not verified) at the end. Since the entire transmission (including Magic Bytes) is sent in chunks of 4, this means that the checksum is sent along with either the packet length (if length is 0) or the last 2 bytes of the packet (if length is not 0), and the acknowledgement signal is sent in the next chunk.</p>
 
 	<p class="spc">SIO32 Mode will only be toggled after the reply to this packet has been sent. The adapter should be allowed at least 100ms to toggle, as it might otherwise start sending garbage.</p>
 
@@ -4951,7 +4951,7 @@ Command 0x28		DNS Query
 	<p class="list_item">Data Sent: 1 byte Login ID Length + Login ID + 1 byte Password Length + Password + 4 bytes DNS Address #1 + 4 bytes DNS Address #2</p>
 	<p class="list_item">Data Received: 4 bytes assigned IP + 4 bytes assigned DNS Address #1 + 4 bytes assigned DNS Address #2 /p>
 
-	<p class="spc">Logs into the DION dial-up service, after calling it with command 0x12 (Dial Telephone), allowing the adapter to connect to the internet. Both the Login ID and Password are prefixed with bytes declaring their lengths, with a maximum length of 0x20. The IPv4 DNS addresses are 4 bytes each, with a single byte representing one octet. The reply contains the assigned IP address and DNS addresses. If the game sets either of the DNS addresses to 0, the adapter may assign the DNS address on its own, and return that in the reply, otherwise, the reply's DNS addresses are 0.0.0.0.</p>
+	<p class="spc">Logs into the DION dial-up service, after calling it with command 0x12 (Dial Telephone), allowing the adapter to connect to the internet. Both the Login ID and Password are prefixed with bytes declaring their lengths, with a maximum length of 0x20. The IPv4 DNS addresses are 4 bytes each, with a single byte representing one octet. The reply contains the assigned IP address and DNS addresses. If the game sets either of the DNS addresses to 0, the adapter may assign the DNS address on its own, and return that in the reply, otherwise, the reply&#39;s DNS addresses are 0.0.0.0.</p>
 
 	<p class="list_item"><strong>Command 0x22 - ISP Logout</strong></p>
 	<p class="list_item">Data Sent: N/A. Empty Packet Data</p>
@@ -4975,7 +4975,7 @@ Command 0x28		DNS Query
 	<p class="list_item">Data Sent: 4 bytes for IP Address + 2 Bytes for Port Number</p>
 	<p class="list_item">Data Received: 1 byte Connection ID</p>
 
-	<p class="spc">Opens a UDP connection at the given IP address on the given port, after logging into the DION dial-up service. It&#39;s an analog of Command 0x23 (Open TCP Connection), but opens a UDP connection instead. This UDP connection is bound to the specified IP address and Port until it's closed. When using Command 0x15 (Transfer Data) with a UDP connection, it&#39;s impossible to know the sender of any received data, as it isn&#39;t verified.</p>
+	<p class="spc">Opens a UDP connection at the given IP address on the given port, after logging into the DION dial-up service. It&#39;s an analog of Command 0x23 (Open TCP Connection), but opens a UDP connection instead. This UDP connection is bound to the specified IP address and Port until it&#39;s closed. When using Command 0x15 (Transfer Data) with a UDP connection, it&#39;s impossible to know the sender of any received data, as it isn&#39;t verified.</p>
 
 	<p class="list_item"><strong>Command 0x26 - Close UDP Connection</strong></p>
 	<p class="list_item">Data Sent: 1 byte Connection ID</p>
@@ -5010,7 +5010,7 @@ Command 0x28		DNS Query
 
 0x12: Error Code 0x00 - Telephone line is busy
 0x12: Error Code 0x01 - Invalid use (already connected)
-0x12: Error Code 0x02 - Invalid contents (first byte isn't correct)
+0x12: Error Code 0x02 - Invalid contents (first byte isn&#39;t correct)
 0x12: Error Code 0x03 - Communication failed/phone not connected
 0x12: Error Code 0x04 - Call not established, redial
 
@@ -5349,7 +5349,7 @@ Unit IDs
 	<a name="gbw_005"></a>
 	<p class="gray_title">[Game Boy Wars 3] : mbox/mbox_**.cgb</p>
 
-	<p>This file contains the message to display from a mailbox. The exact url is determined by mbox_serial.txt. If the first line&#39;s string in mbox_serial.txt is updated, the game downloads mbox_00.cgb. If the second line's string in mbox_serial.txt is updated, the game downloads mbox_01.cgb, and so on. There are only 16 mailboxes available: mbox_00.cgb to mbox_15.cgb.</p>
+	<p>This file contains the message to display from a mailbox. The exact url is determined by mbox_serial.txt. If the first line&#39;s string in mbox_serial.txt is updated, the game downloads mbox_00.cgb. If the second line&#39;s string in mbox_serial.txt is updated, the game downloads mbox_01.cgb, and so on. There are only 16 mailboxes available: mbox_00.cgb to mbox_15.cgb.</p>
 
 	<p>The format appears to be pure text, except that the first 7 characters are ignored. Messages can be displayed in ASCII. Hiragana and katakana are available as well, however, their format is currently unknown. The mbox_**.cgb file MUST end CRLF, otherwise the game does not know to stop parsing data and starts overwriting all kinds of RAM.</p>
 
@@ -5657,7 +5657,7 @@ Content-Type: text&#47;plain; charset=iso-2022-jp
 	<a name="ndg_h00"></a>
 	<p class="gray_title">[Net de Get] : h0000.cgb</p>
 
-	<p>Once some of the default minigames have been played, the &#34;セーバ&#34; or &#34;Server&#34; option in the main menu unlocks. After the user's password is given, this file is then downloaded via HTTP GET. The purpose of h0000.cgb is simply to display the text &#34;ミニゲームリスト&#34; or &#34;Minigame List&#34;. Selecting this downloads RomList.cgb via HTTP GET. The format of h0000.cgb is described below:</p>
+	<p>Once some of the default minigames have been played, the &#34;セーバ&#34; or &#34;Server&#34; option in the main menu unlocks. After the user&#39;s password is given, this file is then downloaded via HTTP GET. The purpose of h0000.cgb is simply to display the text &#34;ミニゲームリスト&#34; or &#34;Minigame List&#34;. Selecting this downloads RomList.cgb via HTTP GET. The format of h0000.cgb is described below:</p>
 
 <code>----------------------------------
 Header - 4 bytes
