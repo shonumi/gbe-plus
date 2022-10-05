@@ -35,7 +35,6 @@
 			{
 				width: 100%;
 				height: 20%;
-				float: top;
 				overflow: auto;
 			}
 
@@ -877,7 +876,7 @@ Every other ON pulse length		78 + (20 * (LENGTH-2))
 
 OFF pulse length			38 + (20 * (LENGTH-2))</code>
 
-	<p>The LENGTH is number of times the 8-bit CPU register is incremented in the WAIT_FOR_OFF or WAIT_FOR_ON functions. The sum of two LENGTHs from one ON pulse and one OFF pulse must be equal to the delay data in WRAM. For example, say the delay data contains 0x20. This means that the TOTAL amount of times the 8-bit register was incremented is 0x20. In a perfect world, the Full Changer would probably turn on the IR light so that this 8-bit register is incremented 0x10 times, then turn off the IR light so that D is incremented again 0x10 times. In reality, however, the length of the ON&#47OFF pulses could run a bit longer or shorter. As far as Zok Zok Heroes is concerned, the total amount of time the IR light is ON then OFF is what matters, so the ON&#47OFF pulse timings ultimately have to add up</p>
+	<p>The LENGTH is number of times the 8-bit CPU register is incremented in the WAIT_FOR_OFF or WAIT_FOR_ON functions. The sum of two LENGTHs from one ON pulse and one OFF pulse must be equal to the delay data in WRAM. For example, say the delay data contains 0x20. This means that the TOTAL amount of times the 8-bit register was incremented is 0x20. In a perfect world, the Full Changer would probably turn on the IR light so that this 8-bit register is incremented 0x10 times, then turn off the IR light so that D is incremented again 0x10 times. In reality, however, the length of the ON&#47;OFF pulses could run a bit longer or shorter. As far as Zok Zok Heroes is concerned, the total amount of time the IR light is ON then OFF is what matters, so the ON&#47;OFF pulse timings ultimately have to add up</p>
 
 	<p>The current database GBE+ uses recreates ON&#47;OFF pulses that generally run for the same amount of cycles. However, based on hardware tests, the ON pulses have variable lengths, while the OFF pulses are typically constant. Again, Zok Zok Heroes won&#39;t care, as long as the total time of the ON&#47;OFF pulses meets whatever value it expects.</p>
 
@@ -2389,35 +2388,35 @@ HP
 -----------------------------------------------------------
 VAL1 = READ 16 BITS FROM (ADDRESS)
 VAL2 = READ 08 BITS FROM (ADDRESS + 2)
-HP = (VAL_1 >> 6) | ((VAL & 0x0F) << 10)
+HP = (VAL_1 &gt;&gt; 6) | ((VAL & 0x0F) &lt;&lt; 10)
 
 
 -----------------------------------------------------------
 STRENGTH
 -----------------------------------------------------------
 VAL1 = READ 16 BITS FROM (ADDRESS + 2)
-STRENGTH = ((VAL1 << 18) >> 22)
+STRENGTH = ((VAL1 &lt;&lt; 18) &gt;&gt; 22)
 
 
 -----------------------------------------------------------
 DEFENSE
 -----------------------------------------------------------
 VAL1 = READ 16 BITS FROM (ADDRESS + 6)
-DEFENSE = ((VAL1 << 20) >> 22)
+DEFENSE = ((VAL1 &lt;&lt; 20) &gt;&gt; 22)
 
 
 -----------------------------------------------------------
 MAGIC POWER
 -----------------------------------------------------------
 VAL1 = READ 32 BITS FROM (ADDRESS + 2)
-MAGIC POWER = ((VAL1 << 8) >> 22)
+MAGIC POWER = ((VAL1 &lt;&lt; 8) &gt;&gt; 22)
 
 
 -----------------------------------------------------------
 MAGIC DEFENSE
 -----------------------------------------------------------
 VAL1 = READ 32 BITS FROM (ADDRESS + 6)
-MAGIC DEFENSE = ((VAL1 << 10) >> 22)
+MAGIC DEFENSE = ((VAL1 &lt;&lt; 10) &gt;&gt; 22)
 
 
 -----------------------------------------------------------
@@ -2425,7 +2424,7 @@ SPEED
 -----------------------------------------------------------
 VAL1 = READ 08 BITS FROM (ADDRESS + 6)
 VAL2 = READ 08 BITS FROM (ADDRESS + 5)
-SPEED = ((VAL1 & 0x03) << 8) | VAL2</code></p>
+SPEED = ((VAL1 & 0x03) &lt;&lt; 8) | VAL2</code></p>
 
 	<a name="sda_enc"></a>
 	<p class="gray_title">[Soul Doll Adapter] : Soul Doll Data Obfuscation</p>
@@ -3034,7 +3033,7 @@ For Misc. Actions
 	<a name="vrs_pro"></a>
 	<p class="gray_title">[Virtureal Racing System] : VRS Protocol</p>
 
-	</p>All communication with the VRS uses the GBA&#39;s Multi16 mode with a baud rate of 115200bps. The first GBA acts as the Parent, while the second GBA acts as the Child 2. Even though the VRS has only two Link Cables, the entire setup behaves as if an additional GBA is connected as Child 1. This extra connection reports the status for each racer. The entire multiplayer model works as follows</p>
+	<p>All communication with the VRS uses the GBA&#39;s Multi16 mode with a baud rate of 115200bps. The first GBA acts as the Parent, while the second GBA acts as the Child 2. Even though the VRS has only two Link Cables, the entire setup behaves as if an additional GBA is connected as Child 1. This extra connection reports the status for each racer. The entire multiplayer model works as follows</p>
 
 <code>Racer 1 Input		 	Parent
 Race Status			Child 1
