@@ -1,4 +1,4 @@
-Barcode Taisen Bardigun Technical Documentation 0.2
+Barcode Taisen Bardigun Technical Documentation 0.3
 May 27th, 2017
 Shonumi aka D.S. Baxter
 
@@ -14,7 +14,7 @@ The game and card reader hardware are now almost 20 years old, so I figured it's
 
 
 ***************************************************
-2. General Cart+Hardware Information
+2. General Cart + Hardware Information
 ***************************************************
 
 
@@ -115,17 +115,15 @@ Barcode Taisen Bardigun has two known ROMs, DMG-ABEJ-JPN and DMG-ABEJ-JPN-1. The
 7. Barcodes
 ***************************************************
 
-* ラルフ			"Ralph"
-* 4900758340136
+Below is a chart with barcodes verified to work with the game. Each barcode will produce a single Bardigun when scanning to hatch an egg. The barcode can also be used to give Bardigun unique attacks when scanned before a battle begins. The names of each are listed in kana as well as Romanji or English when translatable.
 
-* タマッピ		"Tamapi"
-* 4900269429252
+------------------------------------------------------------------------------------------------
+Bardigun Name			| Attack Name				| Barcode
+------------------------------------------------------------------------------------------------
+ラルフ		"Ralph"		| イキカエール 		"Ikikaeeru"	| 4900758340136
+タマッピ		"Tamappi"	| ナンデモナオール 		"Nandemonaooru"	| 4900269429252
+チビッシー	"Chibisshii"	| ソード			"Sword" 		| 4900287167419
+ニャーリー	"Nyaari"		| かえんほうしゃき		"Kaenhoushaki"	| 4900363432103
+ノイヅー		"Noise"		| めからベーム 		"Eye Beam"	| 4900753335663
+------------------------------------------------------------------------------------------------
 
-* チビッシー		"Chibisshii"
-* 4900287167419
-
-* ニャーリー		"Nyaari"
-* 4900363432103
-
-* ノイヅー		"Noizuu"
-* 4900753335663
