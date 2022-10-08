@@ -123,3 +123,9 @@ Barcode Taisen Bardigun has two known ROMs, DMG-ABEJ-JPN and DMG-ABEJ-JPN-1. The
 
 * チビッシー		"Chibisshii"
 * 4900287167419
+
+* ニャーリー		"Nyaari"
+* 4900363432103
+
+* ノイヅー		"Noizuu"
+* 4900753335663
