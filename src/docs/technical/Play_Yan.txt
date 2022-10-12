@@ -1,0 +1,110 @@
+Play-Yan Technical Documentation 0.1
+September 24th, 2022
+Shonumi aka D.S. Baxter
+
+
+***************************************************
+1. Introduction
+***************************************************
+
+On February 21, 2005, Nintendo released their very own video/music player for the Game Boy Advance in the form of a unique cartridge. It was branded the Play-Yan and was designated the product code AGS-006. Sold exclusively in Japan, it handled MP3 audio files as well and MPEG-4 video files. The hardware had a dedicated SD card slot so users could access their own media.
+
+
+***************************************************
+2. General Hardware Information
+***************************************************
+
+- Features a normal-sized SD card reader.
+- Can handle card capacities up to 2GB, depending on the manufacturer.
+- Not compatible with SDHC, SDXC, or SDUC cards.
+- Used hardware decoding for media files via an Alpha Mosiac VC01.
+- Uploads firmware on boot, and can optionally update with the correct files on an SD card.
+- Features a slightly larger than normal cartridge shell.
+- Has a 3.5mm audio jack to output sound and bypass the GBA's speakers.
+- Could generate video thumbnails and parse some ID3 tags.
+- Videos used ASF or MP4 containers with G.726 or AAC as audio codecs, respectively.
+- Maximum of 30 frames-per-second for video.
+- Came with 13 "Garage Games" built into the ROM, unlockable with special video files.
+
+
+***************************************************
+3. Hardware Registers and I/O
+***************************************************
+
+The Play-Yan has a large number of addresses mapped to cartridge ROM that control firmware access, issue playback commands, and retrieve information such as filenames, thumbnails, and other metadata.
+
+
+----------------------------------------------------------------------------------------------------------------------
+Hardware Registers	| R/W	| Address	| Size		| Description
+----------------------------------------------------------------------------------------------------------------------
+PY_INIT_DATA		| (R)	| 0x9000000	| 8-bit		| Appears to be some kind of data stream.
+PY_STAT			| (R)	| 0x9000006	| 8-bit		| Play-Yan Status Register.
+UNKNOWN REGISTER 00	| (w)	| 0xB000000 	| 16-bit	| Unknown. Play-Yan mostly writes zero to this register.
+UNKNOWN REGISTER 02	| (R/W)	| 0xB000002	| 16-bit	| Unknown. Play-Yan mostly writes zero to this register.
+PY_DATA_ADDR		| (R/W)	| 0xB000004	| 16-bit	| Address used to access Play-Yan data.
+PY_DATA_MODE		| (R/W)	| 0xB000006	| 16-bit	| Determines data access mode (e.g. firmware read or firmware write).
+PY_DATA_PARAM		| (R/W)	| 0xB000010	| 16-bit	| Appears to be some kind of parameter for data access.
+PY_FIRM_STAT		| (R/W)	| 0xB000012	| 16-bit	| Play-Yan Firmware Status Register.
+----------------------------------------------------------------------------------------------------------------------
+
+PY_INIT_DATA is read a number of times during the initial boot sequence. It appears to be a data stream of unknown purpose.
+
+PY_STAT acts as the overall status register for the Play-Yan. Its primary purpose appears to be checking whether or not firmware is available accessible. Before uploading any portion of firmware during the initial boot sequence, the Play-Yan checks Bit 7 of PY_STAT, which acts as a busy flag for firmware operations. If Bit 7 is set LOW, the firmware is busy, otherwise if Bit 7 is set HIGH, firmware is ready for more data.
+
+PY_DATA_ADDR determines the address used for data operations for Play-Yan related data. It is used in conjunction with the I/O regions listed below as well as PY_DATA_MODE. Depending on the value of PY_DATA_ADDR, different contexts are used to retrieve data from these regions, e.g. it distinguishes between writing commands for the Play-Yan to execute or writing firmware data. The address is actually 32-bits. The Play-Yan must write to PY_DATA_ADDR twice, with the lower 16-bit first, and the upper 16-bit second.
+
+PY_DATA_MODE determines what kind of data read or write the Play-Yan will perform. Used in conjection with the IO regions listed below as well as PY_DATA_ADDR.
+
+PY_DATA_PARAM appears to be a parameter passed along to the Play-Yan that affects data access. Currently unknown exactly how it functions.
+
+PY_FIRM_STAT appears to be another type of firmware status register. Before reading any portion of firmware, the Play-Yan checks this to make sure Bit 4 is set.
+
+Several regions of memory on the Play-Yan are dedicated to unique purposes. Some of them overlap, and their function often depends on whether data is being written or read. The Play-Yan typically uses these for accessing large amounts of information, such as pixels representing video data, firmware, or commands. 
+
+----------------------------------------------------------------------------------------------------------------------
+I/O Regions		| I/O Direction	| Description
+----------------------------------------------------------------------------------------------------------------------
+0xB000300 - 0xB00031F	| Input		| Play-Yan Command
+0xB000300 - 0xB00031F	| Output	| Game Pak IRQ Data
+0xB000300 - 0xB0004FF	| Input		| Firmware In
+0xB000300 - 0xB0004FF	| Output	| Play-Yan Data
+0xB000500 - 0xB0006FF	| Output	| Play-Yan Thumbnail and Video Data
+----------------------------------------------------------------------------------------------------------------------
+
+
+***************************************************
+4. Reading and Writing Firmware
+***************************************************
+
+To write to the Play-Yan's firmware, the following steps are performed:
+
+-----------------------------------------------------------------------
+PY_DATA_PARAM = 0x0A
+PY_DATA_MODE = 0x68
+PY_DATA_ADDR = LOW 16 BITS OF ADDRESS
+PY_DATA_ADDR = HIGH 16 BITS OF ADDRESS
+UNKNOWN REGISTER 02 = 0x00
+
+WAIT FOR BIT 7 OF PY_STAT TO READ HIGH
+WRITE DATA INTO 0xB000300 THROUGH 0xB0004FF
+-----------------------------------------------------------------------
+
+The address to write the firmware is internal to the Play-Yan. This is evidently any address from 0x00000 - 0xEFFFF. Only 512 bytes can be written at a time, so writing the entire firmware to the Play-Yan requires multiple iterations of the above steps.
+
+The Play-Yan provides its own default firmware in its ROM and uploads this accordingly on every boot. This method ensures that the firmware is never corrupted by a bad update. A similar method is used for the WiiSpeak accessory on the Wii. The Play-Yan can update to a newer firmware if such a file is included on the SD card. For the original Play-Yan, the software looks for the file "playan.fup". Nintendo did release at least one firmware update as well, allowing the original Play-Yan to run MP4 files, something the later Play-Yan Micro version could do out-of-the-box.
+
+To read from the Play-Yan's firmware, the following steps are performed:
+
+-----------------------------------------------------------------------
+PY_DATA_PARAM = 0x08
+PY_DATA_MODE = 0x78
+PY_DATA_ADDR = LOW 16 BITS OF ADDRESS
+PY_DATA_ADDR = HIGH 16 BITS OF ADDRESS
+UNKNOWN REGISTER 02 = 0x00
+PY_DATA_PARAM = 0x09
+
+WAIT FOR BIT 4 OF PY_FIRM_STAT TO READ HIGH
+READ DATA FROM 0xB000300 THROUGH 0xB0004FF
+-----------------------------------------------------------------------
+
+It's possible to read sequential blocks of firmware without repeating all of the above steps. The Play-Yan's ROM, for example, reads a total of 0xA00 bytes at a time. After each 0x200 bytes, only PY_FIRM_STAT needs to be checked before reading the next block. Once a total of 0xA00 bytes have been read, however, all the steps mentioned above are repeated before reading sequentially yet again.
