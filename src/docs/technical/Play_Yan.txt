@@ -64,10 +64,10 @@ Several regions of memory on the Play-Yan are dedicated to unique purposes. Some
 ----------------------------------------------------------------------------------------------------------------------
 I/O Regions		| I/O Direction	| Description
 ----------------------------------------------------------------------------------------------------------------------
-0xB000300 - 0xB00031F	| Input		| Play-Yan Command
+0xB000100 - 0xB00011F	| Input		| Play-Yan Command
+0xB000100 - 0xB0002FF	| Input		| Firmware In
 0xB000300 - 0xB00031F	| Output	| Game Pak IRQ Data
-0xB000300 - 0xB0004FF	| Input		| Firmware In
-0xB000300 - 0xB0004FF	| Output	| Play-Yan Data
+0xB000300 - 0xB0004FF	| Output	| Play-Yan SD Card and Internal Data
 0xB000500 - 0xB0006FF	| Output	| Play-Yan Thumbnail and Video Data
 ----------------------------------------------------------------------------------------------------------------------
 
@@ -108,3 +108,77 @@ READ DATA FROM 0xB000300 THROUGH 0xB0004FF
 -----------------------------------------------------------------------
 
 It's possible to read sequential blocks of firmware without repeating all of the above steps. The Play-Yan's ROM, for example, reads a total of 0xA00 bytes at a time. After each 0x200 bytes, only PY_FIRM_STAT needs to be checked before reading the next block. Once a total of 0xA00 bytes have been read, however, all the steps mentioned above are repeated before reading sequentially yet again.
+
+
+***************************************************
+5. Reading SD Card Data
+***************************************************
+
+The Play-Yan is capable of reading select data from the SD Card. After the software issues a command, the Play-Yan will respond with different kinds of data, for example, a list of all files in a given directory. This means that while the Play-Yan's software does not have direct access to the card, it has a vastly simpler interface to retrieve information. The memory region used overlaps with where firmware is read from, however, the process for accessing is somewhat different. The following steps are performed:
+
+-----------------------------------------------------------------------
+PY_DATA_PARAM = 0x08
+PY_DATA_MODE = 0x78
+PY_DATA_ADDR = 0x00
+PY_DATA_ADDR = 0x00
+UNKNOWN REGISTER 02 = 0x00
+PY_DATA_PARAM = 0x09
+
+WAIT FOR BIT 4 OF PY_FIRM_STAT TO READ HIGH
+PY_DATA_PARAM = 0x08
+READ DATA FROM 0xB000300 THROUGH 0xB0004FF
+-----------------------------------------------------------------------
+
+As with reading firmware, sequential 512-byte blocks can be read at a time. This is once again achieved by checking PY_FIRM_STAT. An additional step, setting PY_DATA_PARAM to 0x08, however, is necessary. The Play-Yan's software does not update the address when sequentially reading SD card data. Typically, the Play-Yan reads around 0x6600 bytes worth of data at a time and later copying that to RAM. Such a large amount of data allows it to process long lists of filenames, video frames, or vast amounts of metadata, depending on the expected response to a command.
+
+
+***************************************************
+6. Play-Yan Commands
+***************************************************
+
+A number of commands may be issued to the Play-Yan. These allow the software to access many of the cartridge's advanced functions surrounding multimedia playback and file handling. Rather than manually processing things, the Play-Yan hands things over to its hardware and firmware through an interface. Each command consists of a series of 12 bytes written to the 0xB000100 - 0xB00011F address range. The structure of a command is as follows:
+
+-----------------------------------------------------------------------
+Address			| Data
+-----------------------------------------------------------------------
+0xB000100 - 0xB000103	| Command 
+0xB000104 - 0xB000107	| Parameter 1
+0xB000108 - 0xB00010B	| Parameter 2
+-----------------------------------------------------------------------
+
+Data for each command is broken into 32-bit chunks, sent LSB first. Essentially, the Play-Yan just sends a command along with 2 parameters, both of which are optional. Below is a list of known or observed commands along with their parameters:
+
+----------------------------------------------------------------------------------------------------------------------------------------------
+Command					| Parameter 1							| Parameter 2
+----------------------------------------------------------------------------------------------------------------------------------------------
+0x200 - Unknown				| N/A								| N/A
+0x300 - Adjust Video Brightness		| Brightness level, Min = 0x101, Max = 0x2C0, 0x40 increments	| N/A
+0x500 - Grab Video Thumbnail Data	| Width of thumbnail (60 pixels)				| Height of thumbnail (40 pixels)
+0x600 - Play Music File			| N/A								| N/A
+0x700 - Play Video/Grab Video Frame	| Width of video (240 pixels)					| Height of video (160 pixels)
+0x701 - Stop Video Playback		| N/A								| N/A
+0x801 - Stop Music Playback		| N/A								| N/A
+0x902 - Pause Music/Video Playback	| N/A								| N/A
+0x904 - Resume Music/Video Playback	| N/A								| N/A
+0xB00 - Adjust Volume			| Volume level, Min = 0x00, Max = 0x38				| N/A
+0xD00 - Adjust Bass Boost		| Bass boost level, Min = 0x00, Max = 0x0F			| N/A
+0xD01 - Enabled/Disable Bass Boost	| ON = 0x800F, OFF = 0x8F0F					| N/A
+0x8000 - Unknown			| N/A								| N/A
+0x800000 - Unknown			| N/A								| N/A
+----------------------------------------------------------------------------------------------------------------------------------------------
+
+The following proceedure is used to issue commands:
+
+-----------------------------------------------------------------------
+PY_DATA_MODE = 0x68
+PY_DATA_ADDR = 0xF020
+PY_DATA_ADDR = 0x000F
+UNKNOWN REGISTER 02 = 0x00
+
+WAIT FOR BIT 7 OF PY_STAT TO READ HIGH
+WRITE DATA INTO 0xB000100 THROUGH 0xB00010B
+PY_DATA_PARAM = 0x0C
+PY_DATA_PARAM = 0x08
+-----------------------------------------------------------------------
+
+Note that the data address specified by PY_DATA_ADDR is 0xFF020. Some commands will trigger a Game Pak IRQ when the Play-Yan responds. See the section below for more details.
