@@ -379,3 +379,40 @@ Data can be read sequentially in 512-byte blocks without the need for writing to
 A 0x500 command must be issued for each thumbnail the Play-Yan needs to process. Each page in the Play-Yan's file browser can only contain 6 videos, therefore, the Play-Yan's software only issues 6 of these commands at a time. If a page has less than 6 entries, only that many 0x500 commands need to be sent. It seems a 0x2000 command is always issued before the first 0x500 command; this may be the mechanism that tells the Play-Yan which videos need thumbnails generated.
 
 
+***************************************************
+9. Garage Games
+***************************************************
+
+The original Play-Yan allowed users to access 13 minigames called "Garage Games". After the Play-Yan launched, Nintendo released them on their website in a weekly fashion. Users downloaded a special .ASF file, and when stored on an SD card, the Play-Yan would start the game. The entire game took place in the 60x40 window dedicated to video thumbnails. Contrary to most available information, these Garage Games are technically not "DLC". Each Garage Game already exists in the Play-Yan ROM and the .ASF files contain no executable code. However, the Garage Games are normally inaccessible without the .ASF files present. The files Nintendo provided act as a sort of key that unlocks the content.
+
+Each .ASF file is a valid video and will generate a thumbnail preview on the Play-Yan. This thumbnail acts as a fingerprint that the Play-Yan can use to identify an individual file. The 0x12C0 bytes of thumbnail data is quickly hashed into a 32-bit number and compared against a list of expected values. Should the thumbnail's hash match that internal list, the Play-Yan recognizes it as a Garage Game.
+
+It should also be noted that the video file's name has to match as well. If the file name is incorrect, the Play-Yan won't bother creating a hash and will simply treat it as a regular video file. This behavior can be reproduced by renaming any of the .ASF files from Nintendo. The names of each Garage Game is case-sensitive as well; they all need to be uppercase in order to work. A list of all the Garage Games and their 32-bit hashes is provided below:
+
+AVOID		0xF8CB9008
+BAT		0xD911FE57
+CREDIT		0x02F86041
+FIRE		0x0D78A9FE
+FISH		0x5741DE47
+INSECT		0x4D5E5AEB
+JUMP		0x748C5BAF
+KEEPER		0x3FEBEFE5
+MEMORY		0x90119AE6
+NEKOROID	0xD839D809
+NOSE		0x86D3BA78
+TRIPLE		0xD5C0A40B
+WAVE		0xE7DCD82B
+
+The hash can be calculated using the following psuedo-code:
+
+-----------------------------------------------------------------------
+HASH = 0
+INDEX = 0
+
+WHILE INDEX NOT EQUAL TO 0x960
+	HASH = HASH + THUMBNAIL_DATA[INDEX]
+	HASH = HASH ROTATE RIGHT 31
+	INCREMENT INDEX BY 1
+-----------------------------------------------------------------------
+
+Although this hashing prevents most ordinary videos from randomly generating a thumbnail that triggers the Garage Game to play, the hashing method is prone to collisions. It is possible, therefore, to specifically create a thumbnail that matches any of the above listed hashes, in effect creating "bootleg" Garage Games.
