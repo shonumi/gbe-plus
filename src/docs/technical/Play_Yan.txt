@@ -165,6 +165,7 @@ Command					| Parameter 1							| Parameter 2
 0xD01 - Enabled/Disable Bass Boost	| ON = 0x800F, OFF = 0x8F0F					| N/A
 0x2000 - Update File Information	| N/A								| N/A
 0x8000 - Get SD Card Status		| N/A								| N/A
+0x10000 - Enter Sleep Mode		| N/A								| N/A
 0x800000 - Unknown			| N/A								| N/A
 ----------------------------------------------------------------------------------------------------------------------------------------------
 
