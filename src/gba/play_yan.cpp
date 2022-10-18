@@ -127,6 +127,9 @@ void AGB_MMU::play_yan_reset()
 	play_yan.video_stop_data[0][0] = 0x40000701;
 	play_yan.video_stop_data[1][0] = 0x80001000;
 
+	//Set 32-bit flags for waking from sleep
+	play_yan.wake_data[0] = 0x80010001;
+
 	for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
 
 	play_yan.thumbnail_addr = 0;
@@ -816,6 +819,6 @@ void AGB_MMU::play_yan_wake()
 	play_yan.op_state = 2;
 	play_yan.irq_delay = 1;
 	play_yan.delay_reload = 10;
-	play_yan.irq_data_ptr = play_yan.music_check_data[0];
+	play_yan.irq_data_ptr = play_yan.wake_data;
 	play_yan.irq_len = 1;
 }
