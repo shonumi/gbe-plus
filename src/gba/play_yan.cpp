@@ -730,28 +730,33 @@ bool AGB_MMU::read_play_yan_thumbnails(std::string filename)
 	//Resize thumbnail vector
 	play_yan.video_thumbnails.resize(list.size());
 
-	//Grab pixel data for each thumbnale
+	//Grab pixel data for each thumbnail
 	for(u32 x = 0; x < list.size(); x++)
 	{
 		//Grab pixel data of file as a BMP
 		std::string t_file = config::data_path + "play_yan/" + list[x];
 		SDL_Surface* source = SDL_LoadBMP(t_file.c_str());
 
+		//Generate blank (all black) thumbnail if source not found
 		if(source == NULL)
 		{
 			std::cout<<"MMU::Error - Could not load thumbnail image for " << input_line << "\n";
-			return false;
+			play_yan.video_thumbnails[x].resize(0x12C0, 0x00);
 		}
 
-		play_yan.video_thumbnails[x].clear();
-		u8* pixel_data = (u8*)source->pixels;
-
-		//Convert 32-bit pixel data to RGB15 and push to vector
-		for(int a = 0, b = 0; a < (source->w * source->h); a++, b+=3)
+		//Otherwise grab pixel data from source
+		else
 		{
-			u16 raw_pixel = ((pixel_data[b] & 0xF8) << 7) | ((pixel_data[b+1] & 0xF8) << 2) | ((pixel_data[b+2] & 0xF8) >> 3);
-			play_yan.video_thumbnails[x].push_back(raw_pixel & 0xFF);
-			play_yan.video_thumbnails[x].push_back((raw_pixel >> 8) & 0xFF);
+			play_yan.video_thumbnails[x].clear();
+			u8* pixel_data = (u8*)source->pixels;
+
+			//Convert 32-bit pixel data to RGB15 and push to vector
+			for(int a = 0, b = 0; a < (source->w * source->h); a++, b+=3)
+			{
+				u16 raw_pixel = ((pixel_data[b] & 0xF8) << 7) | ((pixel_data[b+1] & 0xF8) << 2) | ((pixel_data[b+2] & 0xF8) >> 3);
+				play_yan.video_thumbnails[x].push_back(raw_pixel & 0xFF);
+				play_yan.video_thumbnails[x].push_back((raw_pixel >> 8) & 0xFF);
+			}
 		}
 	}
 
