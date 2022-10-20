@@ -411,7 +411,7 @@ HASH = 0
 INDEX = 0
 
 WHILE INDEX NOT EQUAL TO 0x960
-	HASH = HASH + THUMBNAIL_DATA[INDEX]
+	HASH = HASH + 16-BIT THUMBNAIL PIXEL DATA
 	HASH = HASH ROTATE RIGHT 31
 	INCREMENT INDEX BY 1
 -----------------------------------------------------------------------

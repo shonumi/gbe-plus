@@ -141,6 +141,7 @@
 			<p class="list_item"><a href="#jcc">Joy Carry Cartridge</a></p>
 			<p class="list_item"><a href="#ama">Advance Movie Adapter</a></p>
 			<p class="list_item"><a href="#mus">Music Recorder</a></p>
+			<p class="list_item"><a href="#pyn">Play-Yan</a></p>
 
 			<p class="list_head"><strong>NDS</strong></p>
 			<p class="list_item"><a href="#utp">Ubisoft Thrustmaster Pedometer</a></p>
@@ -4253,6 +4254,393 @@ Offset 		| Description
 	<p>The Karaoke Link Data essentially points to the relevant MP3 or GB3 file that acted as the source of a Karaoke recording. The files here are ordered sequentially according to how the Music Recorder/Jukebox displays Karaoke files for playback. That is to say, the first file listed in INFO.AGB corresponds to the first file viewed from the Karaoke -> Play menu. This seems necessary for the Jukebox as it allows the software to pull up the 30 character song title and artist fields from the MP3 and GB3 files even though it plays the WAV Karaoke recording (which has no such metadata). If the Karaoke Link Data is corrupted or missing, the Music Recorder/Jukebox refuses to play any Karaoke recordings.</p>
 
 	<p>The Music Recorder/Jukebox automatically updates INFO.AGB during various operations, such as deleting files. After a reformat, the Music Recorder/Jukebox inserts a blank INFO.AGB in the root directory.</p>
+
+
+
+
+	<!-- Play-Yan -->
+	<a name="pyn"></a>
+	<p class="gray_title">Play-Yan</p>
+	<p class="list_item"><a href="#pyn_gen">General Hardware Information</a></p>
+	<p class="list_item"><a href="#pyn_reg">Hardware Registers and I/O</a></p>
+	<p class="list_item"><a href="#pyn_frm">Reading and Writing Firmware</a></p>
+	<p class="list_item"><a href="#pyn_sdc">Reading SD Card Data</a></p>
+	<p class="list_item"><a href="#pyn_cmd">Play-Yan Commands</a></p>
+	<p class="list_item"><a href="#pyn_irq">Game Pak IRQs</a></p>
+	<p class="list_item"><a href="#pyn_vtn">Reading Video Thumbnails</a></p>
+	<p class="list_item"><a href="#pyn_gga">Garage Games</a></p>
+
+	<a name="pyn_gen"></a>
+	<p class="gray_title">[Play-Yan] : General Hardware Information</p>
+
+	<p>On February 21, 2005, Nintendo released their very own video/music player for the Game Boy Advance in the form of a unique cartridge. It was branded the Play-Yan and was designated the product code AGS-006. Sold exclusively in Japan, it handled MP3 audio files as well and MPEG-4 video files. The hardware had a dedicated SD card slot so users could access their own media.</p>
+
+	<ul>
+		<li class="list_item">Features a normal-sized SD card reader.</li>
+		<li class="list_item">Can handle card capacities up to 2GB, depending on the manufacturer.</li>
+		<li class="list_item">Not compatible with SDHC, SDXC, or SDUC cards.</li>
+		<li class="list_item">Used hardware decoding for media files via an Alpha Mosiac VC01.</li>
+		<li class="list_item">Uploads firmware on boot, and can optionally update with the correct files on an SD card.</li>
+		<li class="list_item">Features a slightly larger than normal cartridge shell.</li>
+		<li class="list_item">Has a 3.5mm audio jack to output sound and bypass the GBA&#39;s speakers.</li>
+		<li class="list_item">Could generate video thumbnails and parse some ID3 tags.</li>
+		<li class="list_item">Videos used ASF or MP4 containers with G.726 or AAC as audio codecs, respectively.</li>
+		<li class="list_item">Maximum of 30 frames-per-second for video.</li>
+		<li class="list_item">Came with 13 &#34;Garage Games&#34; built into the ROM, unlockable with special video files.</li>
+	</ul>
+
+	<a name="pyn_reg"></a>
+	<p class="gray_title">[Play-Yan] : Hardware Registers and I/O</p>
+
+	<p>The Play-Yan has a large number of addresses mapped to cartridge ROM that control firmware access, issue playback commands, and retrieve information such as filenames, thumbnails, and other metadata.</p>
+
+<code>----------------------------------------------------------------------------------------------------------------------
+Hardware Registers	| R/W	| Address	| Size		| Description
+----------------------------------------------------------------------------------------------------------------------
+PY_INIT_DATA		| (R)	| 0x9000000	| 8-bit		| Appears to be some kind of data stream.
+PY_STAT			| (R)	| 0x9000006	| 8-bit		| Play-Yan Status Register.
+UNKNOWN REGISTER 00	| (w)	| 0xB000000 	| 16-bit	| Unknown. Play-Yan mostly writes zero to this register.
+UNKNOWN REGISTER 02	| (R/W)	| 0xB000002	| 16-bit	| Unknown. Play-Yan mostly writes zero to this register.
+PY_DATA_ADDR		| (R/W)	| 0xB000004	| 16-bit	| Address used to access Play-Yan data.
+PY_DATA_MODE		| (R/W)	| 0xB000006	| 16-bit	| Determines data access mode (e.g. firmware read or firmware write).
+PY_DATA_PARAM		| (R/W)	| 0xB000010	| 16-bit	| Appears to be some kind of parameter for data access.
+PY_FIRM_STAT		| (R/W)	| 0xB000012	| 16-bit	| Play-Yan Firmware Status Register.
+----------------------------------------------------------------------------------------------------------------------</code>
+
+	<p>PY_INIT_DATA is read a number of times during the initial boot sequence. It appears to be a data stream of unknown purpose.</p>
+
+	<p>PY_STAT acts as the overall status register for the Play-Yan. Its primary purpose appears to be checking whether or not firmware is available accessible. Before uploading any portion of firmware during the initial boot sequence, the Play-Yan checks Bit 7 of PY_STAT, which acts as a busy flag for firmware operations. If Bit 7 is set LOW, the firmware is busy, otherwise if Bit 7 is set HIGH, firmware is ready for more data.</p>
+
+	<p>PY_DATA_ADDR determines the address used for data operations for Play-Yan related data. It is used in conjunction with the I/O regions listed below as well as PY_DATA_MODE. Depending on the value of PY_DATA_ADDR, different contexts are used to retrieve data from these regions, e.g. it distinguishes between writing commands for the Play-Yan to execute or writing firmware data. The address is actually 32-bits. The Play-Yan must write to PY_DATA_ADDR twice, with the lower 16-bit first, and the upper 16-bit second.</p>
+
+	<p>PY_DATA_MODE determines what kind of data read or write the Play-Yan will perform. Used in conjection with the IO regions listed below as well as PY_DATA_ADDR.</p>
+
+	<p>PY_DATA_PARAM appears to be a parameter passed along to the Play-Yan that affects data access. Currently unknown exactly how it functions.</p>
+
+	<p>PY_FIRM_STAT appears to be another type of firmware status register. Before reading any portion of firmware, the Play-Yan checks this to make sure Bit 4 is set.</p>
+
+	<p>Several regions of memory on the Play-Yan are dedicated to unique purposes. Some of them overlap, and their function often depends on whether data is being written or read. The Play-Yan typically uses these for accessing large amounts of information, such as pixels representing video data, firmware, or commands.</p> 
+
+<code>----------------------------------------------------------------------------------------------------------------------
+I/O Regions		| I/O Direction	| Description
+----------------------------------------------------------------------------------------------------------------------
+0xB000100 - 0xB00011F	| Input		| Play-Yan Command
+0xB000100 - 0xB0002FF	| Input		| Firmware In
+0xB000300 - 0xB00031F	| Output	| Game Pak IRQ Data
+0xB000300 - 0xB0004FF	| Output	| Play-Yan SD Card and Internal Data
+0xB000500 - 0xB0006FF	| Output	| Play-Yan Thumbnail and Video Data
+----------------------------------------------------------------------------------------------------------------------</code>
+
+	<a name="pyn_frm"></a>
+	<p class="gray_title">[Play-Yan] : Reading and Writing Firmware</p>
+
+	<p>To write to the Play-Yan&#39;s firmware, the following steps are performed:</p>
+
+<code>-----------------------------------------------------------------------
+PY_DATA_PARAM = 0x0A
+PY_DATA_MODE = 0x68
+PY_DATA_ADDR = LOW 16 BITS OF ADDRESS
+PY_DATA_ADDR = HIGH 16 BITS OF ADDRESS
+UNKNOWN REGISTER 02 = 0x00
+
+WAIT FOR BIT 7 OF PY_STAT TO READ HIGH
+WRITE DATA INTO 0xB000300 THROUGH 0xB0004FF
+-----------------------------------------------------------------------</code>
+
+	<p>The address to write the firmware is internal to the Play-Yan. This is evidently any address from 0x00000 - 0xEFFFF. Only 512 bytes can be written at a time, so writing the entire firmware to the Play-Yan requires multiple iterations of the above steps.</p>
+
+	<p>The Play-Yan provides its own default firmware in its ROM and uploads this accordingly on every boot. This method ensures that the firmware is never corrupted by a bad update. A similar method is used for the WiiSpeak accessory on the Wii. The Play-Yan can update to a newer firmware if such a file is included on the SD card. For the original Play-Yan, the software looks for the file &#34;playan.fup&#34;. Nintendo did release at least one firmware update as well, allowing the original Play-Yan to run MP4 files, something the later Play-Yan Micro version could do out-of-the-box.</p>
+
+	<p>To read from the Play-Yan&#39;s firmware, the following steps are performed:</p>
+
+<code>-----------------------------------------------------------------------
+PY_DATA_PARAM = 0x08
+PY_DATA_MODE = 0x78
+PY_DATA_ADDR = LOW 16 BITS OF ADDRESS
+PY_DATA_ADDR = HIGH 16 BITS OF ADDRESS
+UNKNOWN REGISTER 02 = 0x00
+PY_DATA_PARAM = 0x09
+
+WAIT FOR BIT 4 OF PY_FIRM_STAT TO READ HIGH
+READ DATA FROM 0xB000300 THROUGH 0xB0004FF
+-----------------------------------------------------------------------</code>
+
+	<p>It&#39;s possible to read sequential blocks of firmware without repeating all of the above steps. The Play-Yan&#39;s ROM, for example, reads a total of 0xA00 bytes at a time. After each 0x200 bytes, only PY_FIRM_STAT needs to be checked before reading the next block. Once a total of 0xA00 bytes have been read, however, all the steps mentioned above are repeated before reading sequentially yet again.</p>
+
+	<a name="pyn_sdc"></a>
+	<p class="gray_title">[Play-Yan] : Reading SD Card Data</p>
+
+	<p>The Play-Yan is capable of reading select data from the SD Card. After the software issues a command, the Play-Yan will respond with different kinds of data, for example, a list of all files in a given directory. This means that while the Play-Yan&#39;s software does not have direct access to the card, it has a vastly simpler interface to retrieve information. The memory region used overlaps with where firmware is read from, however, the process for accessing is somewhat different. The following steps are performed:</p>
+
+<code>-----------------------------------------------------------------------
+PY_DATA_PARAM = 0x08
+PY_DATA_MODE = 0x78
+PY_DATA_ADDR = 0x00
+PY_DATA_ADDR = 0x00
+UNKNOWN REGISTER 02 = 0x00
+PY_DATA_PARAM = 0x09
+
+WAIT FOR BIT 4 OF PY_FIRM_STAT TO READ HIGH
+PY_DATA_PARAM = 0x08
+READ DATA FROM 0xB000300 THROUGH 0xB0004FF
+-----------------------------------------------------------------------</code>
+
+	<p>As with reading firmware, sequential 512-byte blocks can be read at a time. This is once again achieved by checking PY_FIRM_STAT. An additional step, setting PY_DATA_PARAM to 0x08, however, is necessary. The Play-Yan&#39;s software does not update the address when sequentially reading SD card data. Typically, the Play-Yan reads around 0x6600 bytes worth of data at a time and later copying that to RAM. Such a large amount of data allows it to process long lists of filenames, video frames, or vast amounts of metadata, depending on the expected response to a command.</p>
+
+	<a name="pyn_cmd"></a>
+	<p class="gray_title">[Play-Yan] : Play-Yan Commands</p>
+
+	<p>A number of commands may be issued to the Play-Yan. These allow the software to access many of the cartridge&#39;s advanced functions surrounding multimedia playback and file handling. Rather than manually processing things, the Play-Yan hands things over to its hardware and firmware through an interface. Each command consists of a series of 12 bytes written to the 0xB000100 - 0xB00011F address range. The structure of a command is as follows:</p>
+
+<code>-----------------------------------------------------------------------
+Address			| Data
+-----------------------------------------------------------------------
+0xB000100 - 0xB000103	| Command 
+0xB000104 - 0xB000107	| Parameter 1
+0xB000108 - 0xB00010B	| Parameter 2
+-----------------------------------------------------------------------</code>
+
+	<p>Data for each command is broken into 32-bit chunks, sent LSB first. Essentially, the Play-Yan just sends a command along with 2 parameters, both of which are optional. Below is a list of known or observed commands along with their parameters:</p>
+
+<code>----------------------------------------------------------------------------------------------------------------------------------------------
+Command					| Parameter 1							| Parameter 2
+----------------------------------------------------------------------------------------------------------------------------------------------
+0x200 - Get File Information		| N/A								| N/A
+0x300 - Adjust Video Brightness		| Brightness level, Min = 0x101, Max = 0x2C0, 0x40 increments	| N/A
+0x500 - Grab Video Thumbnail Data*	| Width of thumbnail (60 pixels)				| Height of thumbnail (40 pixels)
+0x600 - Play Music File			| N/A								| N/A
+0x800 - Unknown				| N/A								| N/A
+0x700 - Play Video/Grab Video Frame	| Width of video (240 pixels)					| Height of video (160 pixels)
+0x701 - Stop Video Playback		| N/A								| N/A
+0x801 - Stop Music Playback		| N/A								| N/A
+0x902 - Pause Music/Video Playback	| N/A								| N/A
+0x904 - Resume Music/Video Playback	| N/A								| N/A
+0xB00 - Adjust Volume			| Volume level, Min = 0x00, Max = 0x38				| N/A
+0xD00 - Adjust Bass Boost		| Bass boost level, Min = 0x00, Max = 0x0F			| N/A
+0xD01 - Enabled/Disable Bass Boost	| ON = 0x800F, OFF = 0x8F0F					| N/A
+0x2000 - Update File Information	| N/A								| N/A
+0x8000 - Get SD Card Status		| N/A								| N/A
+0x10000 - Enter Sleep Mode		| N/A								| N/A
+0x800000 - Unknown			| N/A								| N/A
+----------------------------------------------------------------------------------------------------------------------------------------------</code>
+
+	<p>*This command sends additional data beyond a second parameter. Overall, it sends a total of 0x218 bytes, the latter portion of which has an unknown purpose.</p>
+
+	<p>The following proceedure is used to issue commands:</p>
+
+<code>-----------------------------------------------------------------------
+PY_DATA_MODE = 0x68
+PY_DATA_ADDR = 0xF020
+PY_DATA_ADDR = 0x000F
+UNKNOWN REGISTER 02 = 0x00
+
+WAIT FOR BIT 7 OF PY_STAT TO READ HIGH
+WRITE DATA INTO 0xB000100 THROUGH 0xB00010B
+PY_DATA_PARAM = 0x0C
+PY_DATA_PARAM = 0x08
+-----------------------------------------------------------------------</code>
+
+	<p>Note that the data address specified by PY_DATA_ADDR is 0xFF020. Some commands will trigger a Game Pak IRQ when the Play-Yan responds. See the section below for more details.</p>
+
+	<a name="pyn_irq"></a>
+	<p class="gray_title">[Play-Yan] : Game Pak IRQs</p>
+
+	<p>The Play-Yan&#39;s hardware produces a variety of Game Pak IRQs when the software sends certain commands. Not every command will generate an IRQ, however, the ones that do are pivotal to operating the Play-Yan. For example, during the initial boot process, the Play-Yan&#39;s software waits indefinitely until several commands to respond with IRQs, without which the software essentially locks up. Each Game Pak IRQ returns data that can be read at 0xB000300 - 0xB00031F. Some commands may cause multiple IRQs to be generated as well. Use the following process to read the Game Pak IRQ data:</p>
+
+<code>-----------------------------------------------------------------------
+PY_DATA_PARAM = 0x08
+PY_DATA_MODE = 0x78
+PY_DATA_ADDR = 0xF000
+PY_DATA_ADDR = 0x000F
+UNKNOWN REGISTER 02 = 0x00
+PY_DATA_PARAM = 0x09
+
+WAIT FOR BIT 4 OF PY_FIRM_STAT TO READ HIGH
+PY_DATA_PARAM = 0x08
+READ DATA FROM 0xB000300 THROUGH 0xB00031F
+-----------------------------------------------------------------------</code>
+
+	<p>A list of commands and their known IRQs and the IRQ data is shown below:</p>
+
+<code>-----------------------------------------------------------------------
+Command 0x200 - Get File Information - 3 IRQs*
+-----------------------------------------------------------------------
+Bytes 0x00 - 0x03	| 0x80000100 or 0x80001000
+Bytes 0x04 - 0x07	| 0x00
+-----------------------------------------------------------------------
+Bytes 0x00 - 0x03	| 0x40000200
+Bytes 0x04 - 0x07	| Unknown
+-----------------------------------------------------------------------
+Bytes 0x00 - 0x03	| 0x40000201
+-----------------------------------------------------------------------</code>
+
+	<p>This command prompts the Play-Yan to start reading the filesystem on the SD card. It allows the software to grab a list of available files or folders for music, or video files. This apparently needs to be used in conjunction with the 0x2000 command, which is responsible for accessing multimedia files. Prior to executing the 0x2000 command, the 0x200 command seems to be reading some kind of data from the File Allocation Table, e.g. strings like &#34;System Volume Information&#34;.</p>
+
+	<p>The first 32-bit value in the first IRQ differs based on context. During the initial boot section, 0x80000100 is used. It is also used when entering or exiting the video menu. For entering and exiting the music menu, however, the value 0x80001000 is used.</p>
+
+	<p>*The last two IRQs are generated multiple times during the boot process, before the 0x2000 is executed.</p>
+	<p class="spc"></p>
+
+<code>-----------------------------------------------------------------------
+Command 0x500 - Grab Video Thumbnail Data - 1 IRQ
+-----------------------------------------------------------------------
+Bytes 0x00 - 0x03	| 0x40000500
+Bytes 0x04 - 0x07	| Unknown
+Bytes 0x08 - 0x0B	| Unknown
+-----------------------------------------------------------------------</code>
+
+	<p>After the 0x500 command is issued, a corresponding Game Pak IRQ signals that the Play-Yan is ready to provide a 60x40 thumbnail image for a video file. For the specifics regarding reading these thumbnails, refer to the appropiate section below.</p>
+	<p class="spc"></p>
+
+<code>-----------------------------------------------------------------------
+Command 0x600 - Play Music File - 1 IRQ
+-----------------------------------------------------------------------
+Bytes 0x00 - 0x03	| 0x40000500
+-----------------------------------------------------------------------</code>
+
+	<p>After the 0x600 command is issued, a Game Pak IRQ is generated when the Play-Yan hardware begins processing an audio file. A 0x800 command always follows this command.</p>
+	<p class="spc"></p>
+
+<code>-----------------------------------------------------------------------
+Command 0x700 - Play Video/Grab Video Frame - 2 IRQs*
+-----------------------------------------------------------------------
+Bytes 0x00 - 0x03	| 0x40000700
+-----------------------------------------------------------------------
+Bytes 0x00 - 0x03	| 0x80001000
+Bytes 0x04 - 0x07	| Video Length Counter
+Bytes 0x08 - 0x0B	| Frame Size in Bytes
+Bytes 0x14 - 0x18	| Current Video Position
+-----------------------------------------------------------------------</code>
+
+	<p>These interrupts are responsible for alerting the Play-Yan&#39;s software when a new video frame is ready for display, as well as the current position within a video as it is playing. The first IRQ initializes the process, while the second IRQ repeats indefinitely until the end of the video.</p>
+
+	<p>Each time the second IRQ is fired, the Current Video Position is updated. When compared against the Video Length Counter, this value measures how far along video playback is. The Play-Yan software uses this to determine the minutes/seconds timestamp.</p>
+
+	<p>The frame itself is read similarly to video thumbnails. Refers to the appropiate section below for more details. The size of the frame is the video&#39;s resolution (typically 240x160) in 15-bit color pixels. Therefore, this value is usually 0x12C00.</p>
+	<p class="spc"></p>
+
+<code>-----------------------------------------------------------------------
+Command 0x701 - Stop Video Playback - 2 IRQs
+-----------------------------------------------------------------------
+Bytes 0x00 - 0x03	| 0x40000701
+-----------------------------------------------------------------------
+Bytes 0x00 - 0x03	| 0x80001000
+-----------------------------------------------------------------------</code>
+
+	<p>Stops the current video file that is playing.</p>
+	<p class="spc"></p>
+
+<code>-----------------------------------------------------------------------
+Command 0x800 - Unknown - 2 IRQs
+-----------------------------------------------------------------------
+Bytes 0x00 - 0x03	| 0x40000800
+-----------------------------------------------------------------------
+Bytes 0x00 - 0x03	| 0x80001000
+-----------------------------------------------------------------------</code>
+
+	<p>The purpose of the command remain unknown. It always follows the 0x600 command when playing music. Note, however, that it does not appear when playing videos.></p>
+	<p class="spc"></p>
+
+<code>-----------------------------------------------------------------------
+Command 0x801 - Stop Music Playback - 2 IRQs
+-----------------------------------------------------------------------
+Bytes 0x00 - 0x03	| 0x40000801
+-----------------------------------------------------------------------
+Bytes 0x00 - 0x03	| 0x80001000
+-----------------------------------------------------------------------</code>
+
+	<p>Stops the current music file that is playing.</p>
+	<p class="spc"></p>
+
+<code>-----------------------------------------------------------------------
+Command 0x2000 - Update File Information - 1 IRQ
+-----------------------------------------------------------------------
+Bytes 0x00 - 0x03	| 0x80000100
+-----------------------------------------------------------------------</code>
+
+	<p>Only 1 IRQ is fired for this command. It appears to update the current list of available files for videos, and files and folders for music. After executing this command, SD card data will return the appropiate files depending on the category selected.</p>
+	<p class="spc"></p>
+
+<code>-----------------------------------------------------------------------
+Command 0x8000 - Get SD Card Status - 2 IRQs
+-----------------------------------------------------------------------
+Bytes 0x00 - 0x03	| 0x80000100
+-----------------------------------------------------------------------
+Bytes 0x00 - 0x03	| 0x40008000
+Bytes 0x04 - 0x07	| SD Card Status
+-----------------------------------------------------------------------</code>
+
+	<p>A single value is returned for the SD card&#39;s status. This can be used to determine if an appropiate SD card has been inserted. As the SD card is essential for the Play-Yan, this is the first command executed when booting. The status is returned in the second IRQ. If no SD card is detected, this value reads 0x03. If an incompatible card is detected (such as an SDHC card), this value reads 0x02. If a compatible card is detected, this value reads 0x05.</p>
+	<p class="spc"></p>
+
+<code>-----------------------------------------------------------------------
+Command 0x800000 - Unknown - 1 IRQ
+-----------------------------------------------------------------------
+Bytes 0x00 - 0x03	| 0x40800000
+Bytes 0x04 - 0x07	| SD Card Status
+-----------------------------------------------------------------------</code>
+
+	<p>This command is issued shortly after Get SD Card Status. It&#39;s purpose is currently unknown. It generates 1 IRQ, which also returns the card&#39;s status.</p>
+
+	<a name="pyn_vtn"></a>
+	<p class="gray_title">[Play-Yan] : Reading Video Thumbnails</p>
+
+	<p>Use the following process to read thumbnail data after issuing the 0x500 command:</p>
+
+<code>-----------------------------------------------------------------------
+PY_DATA_PARAM = 0x08
+PY_DATA_MODE = 0x78
+PY_DATA_ADDR = 0x0000
+PY_DATA_ADDR = 0x0000
+UNKNOWN REGISTER 02 = 0x00
+PY_DATA_PARAM = 0x09
+
+WAIT FOR BIT 4 OF PY_FIRM_STAT TO READ HIGH
+READ DATA FROM 0xB000500 THROUGH 0xB0006FF
+-----------------------------------------------------------------------</code>
+
+	<p>Data can be read sequentially in 512-byte blocks without the need for writing to other registers. Simply waiting for Bit 4 of PY_FIRM_STAT is sufficient. Each thumbnail will be the size as specified by the 0x500 command, which ordinarily is 60x40. Thumbnails use 15-bit pixels, and their format is an exact match for the Game Boy Advance&#39;s bitmap mode (BG Mode 3). In total, the Play-Yan will typically provide 0x12C0 bytes of data for each thumbnail.</p>
+
+	<p>A 0x500 command must be issued for each thumbnail the Play-Yan needs to process. Each page in the Play-Yan&#39;s file browser can only contain 6 videos, therefore, the Play-Yan&#39;s software only issues 6 of these commands at a time. If a page has less than 6 entries, only that many 0x500 commands need to be sent. It seems a 0x2000 command is always issued before the first 0x500 command; this may be the mechanism that tells the Play-Yan which videos need thumbnails generated.</p>
+
+	<a name="pyn_gga"></a>
+	<p class="gray_title">[Play-Yan] : Garage Games</p>
+
+	<p>The original Play-Yan allowed users to access 13 minigames called &#34;Garage Games&#34;. After the Play-Yan launched, Nintendo released them on their website in a weekly fashion. Users downloaded a special .ASF file, and when stored on an SD card, the Play-Yan would start the game. The entire game took place in the 60x40 window dedicated to video thumbnails. Contrary to most available information, these Garage Games are technically not &#34;DLC&#34;. Each Garage Game already exists in the Play-Yan ROM and the .ASF files contain no executable code. However, the Garage Games are normally inaccessible without the .ASF files present. The files Nintendo provided act as a sort of key that unlocks the content.</p>
+
+	<p>Each .ASF file is a valid video and will generate a thumbnail preview on the Play-Yan. This thumbnail acts as a fingerprint that the Play-Yan can use to identify an individual file. The 0x12C0 bytes of thumbnail data is quickly hashed into a 32-bit number and compared against a list of expected values. Should the thumbnail&#39;s hash match that internal list, the Play-Yan recognizes it as a Garage Game.</p>
+
+	<p>It should also be noted that the video file&#39;s name has to match as well. If the file name is incorrect, the Play-Yan won&#39;t bother creating a hash and will simply treat it as a regular video file. This behavior can be reproduced by renaming any of the .ASF files from Nintendo. The names of each Garage Game is case-sensitive as well; they all need to be uppercase in order to work. A list of all the Garage Games and their 32-bit hashes is provided below:</p>
+
+<code>AVOID		0xF8CB9008
+BAT		0xD911FE57
+CREDIT		0x02F86041
+FIRE		0x0D78A9FE
+FISH		0x5741DE47
+INSECT		0x4D5E5AEB
+JUMP		0x748C5BAF
+KEEPER		0x3FEBEFE5
+MEMORY		0x90119AE6
+NEKOROID	0xD839D809
+NOSE		0x86D3BA78
+TRIPLE		0xD5C0A40B
+WAVE		0xE7DCD82B</code>
+
+	<p>The hash can be calculated using the following psuedo-code:</p>
+
+<code>-----------------------------------------------------------------------
+HASH = 0
+INDEX = 0
+
+WHILE INDEX NOT EQUAL TO 0x960
+	HASH = HASH + 16-BIT THUMBNAIL PIXEL DATA
+	HASH = HASH ROTATE RIGHT 31
+	INCREMENT INDEX BY 1
+-----------------------------------------------------------------------</code>
+
+	<p>Although this hashing prevents most ordinary videos from randomly generating a thumbnail that triggers the Garage Game to play, the hashing method is prone to collisions. It is possible, therefore, to specifically create a thumbnail that matches any of the above listed hashes, in effect creating &#34;bootleg&#34; Garage Games.</p>
+
+
 
 
 
