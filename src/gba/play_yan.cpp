@@ -740,7 +740,7 @@ bool AGB_MMU::read_play_yan_thumbnails(std::string filename)
 		//Generate blank (all black) thumbnail if source not found
 		if(source == NULL)
 		{
-			std::cout<<"MMU::Error - Could not load thumbnail image for " << input_line << "\n";
+			std::cout<<"MMU::Warning - Could not load thumbnail image for " << list[x] << "\n";
 			play_yan.video_thumbnails[x].resize(0x12C0, 0x00);
 		}
 
