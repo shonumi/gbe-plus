@@ -212,6 +212,8 @@ class AGB_MMU
 		u32 irq_data[8];
 		bool irq_data_in_use;
 		bool start_irqs;
+		bool is_video_playing;
+		bool is_music_playing;
 
 		u32* irq_data_ptr;
 		u32 irq_len;
@@ -229,7 +231,9 @@ class AGB_MMU
 		std::vector<u32> video_times;
 
 		std::vector< std::vector<u8> > video_thumbnails;
+		std::vector<u8> video_data;
 		u16 thumbnail_addr;
+		u32 video_data_addr; 
 
 		u32 music_file_index;
 		u32 video_file_index;

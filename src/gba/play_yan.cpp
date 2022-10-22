@@ -19,6 +19,8 @@ void AGB_MMU::play_yan_reset()
 	play_yan.card_data.resize(0x10000, 0x00);
 	play_yan.card_addr = 0;
 
+	play_yan.video_data.resize(0x12C00, 0x3C);
+
 	play_yan.firmware.clear();
 	play_yan.firmware.resize(0x100000, 0x00);
 
@@ -42,6 +44,9 @@ void AGB_MMU::play_yan_reset()
 
 	play_yan.irq_data_ptr = play_yan.sd_check_data[0];
 	play_yan.irq_len = 5;
+
+	play_yan.is_video_playing = false;
+	play_yan.is_music_playing = false;
 
 	//Read Play-Yan data files
 	if(config::cart_type == AGB_PLAY_YAN)
@@ -132,6 +137,7 @@ void AGB_MMU::play_yan_reset()
 
 	for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
 
+	play_yan.video_data_addr = 0;
 	play_yan.thumbnail_addr = 0;
 	play_yan.thumbnail_index = 0xFFFFFFFF;
 
@@ -298,6 +304,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 				play_yan.irq_len = 3;
 				play_yan.irq_repeat = 0;
 				play_yan.irq_count = 0;
+				play_yan.is_music_playing = true;
 			}
 
 			//Trigger Game Pak IRQ for playing video
@@ -310,6 +317,8 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 				play_yan.irq_len = 1;
 				play_yan.irq_repeat = 0;
 				play_yan.irq_count = 0;
+				play_yan.video_data_addr = 0;
+				play_yan.is_video_playing = true;
 			}
 
 			//Trigger Game Pak IRQ for stopping video
@@ -322,6 +331,8 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 				play_yan.irq_len = 2;
 				play_yan.irq_repeat = 0;
 				play_yan.irq_count = 0;
+				play_yan.video_data_addr = 0;
+				play_yan.is_video_playing = false;
 			}
 				
 			//Trigger Game Pak IRQ for stopping music
@@ -334,6 +345,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 				play_yan.irq_len = 2;
 				play_yan.irq_repeat = 0;
 				play_yan.irq_count = 0;
+				play_yan.is_music_playing = false;
 			}
 		}
 
@@ -440,23 +452,42 @@ u8 AGB_MMU::read_play_yan(u32 address)
 		}
 	}
 
-	//Read from video thumbnail data
+	//Read from video thumbnail data or video data
 	else if((address >= 0xB000500) && (address < 0xB000700))
 	{
 		u32 offset = address - 0xB000500;
-		u32 t_index = play_yan.thumbnail_index;
-		u32 t_addr = play_yan.thumbnail_addr + offset;
 
-		if(t_index < play_yan.video_thumbnails.size())
+		//Thumbnail data
+		if(!play_yan.is_video_playing)
 		{
-			if(t_addr < 0x12C0)
-			{
-				result = play_yan.video_thumbnails[t_index][t_addr];
+			u32 t_index = play_yan.thumbnail_index;
+			u32 t_addr = play_yan.thumbnail_addr + offset;
 
-				//Update Play-Yan thubnail address if necessary
-				if(offset == 0x1FE) { play_yan.thumbnail_addr += 0x200; }
+			if(t_index < play_yan.video_thumbnails.size())
+			{
+				if(t_addr < 0x12C0)
+				{
+					result = play_yan.video_thumbnails[t_index][t_addr];
+
+					//Update Play-Yan thubnail address if necessary
+					if(offset == 0x1FE) { play_yan.thumbnail_addr += 0x200; }
+				}
 			}
 		}
+
+		//Video frame data
+		else
+		{
+			u32 v_addr = play_yan.video_data_addr + offset;
+			
+			if(v_addr < 0x12C00)
+			{
+				result = play_yan.video_data[v_addr];
+
+				//Update Play-Yan video data address if necessary
+				if(offset == 0x1FE) { play_yan.video_data_addr += 0x200; }
+			}
+		}	
 	}
 
 	//std::cout<<"PLAY-YAN READ -> 0x" << address << " :: 0x" << (u32)result << "\n";
