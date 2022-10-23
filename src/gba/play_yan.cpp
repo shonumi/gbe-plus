@@ -485,7 +485,16 @@ u8 AGB_MMU::read_play_yan(u32 address)
 				result = play_yan.video_data[v_addr];
 
 				//Update Play-Yan video data address if necessary
-				if(offset == 0x1FE) { play_yan.video_data_addr += 0x200; }
+				if(offset == 0x1FE)
+				{
+					play_yan.video_data_addr += 0x200;
+					
+					//Grab new video frame
+					if(play_yan.video_data_addr == 0x12C00)
+					{
+						play_yan.video_data_addr = 0;
+					}
+				}
 			}
 		}	
 	}
