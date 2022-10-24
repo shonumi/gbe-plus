@@ -235,6 +235,8 @@ class AGB_MMU
 		u16 thumbnail_addr;
 		u32 video_data_addr; 
 
+		u32 video_progress;
+
 		u32 music_file_index;
 		u32 video_file_index;
 		u32 thumbnail_index;
