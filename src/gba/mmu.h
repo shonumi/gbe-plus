@@ -220,6 +220,8 @@ class AGB_MMU
 
 		u8 cnt_data[12];
 		u32 cmd;
+		std::vector <u8> command_stream;
+		bool capture_command_stream;
 
 		std::vector<u8> card_data;
 		u32 card_addr;
@@ -241,6 +243,7 @@ class AGB_MMU
 		u32 music_file_index;
 		u32 video_file_index;
 		u32 thumbnail_index;
+		u32 video_index;
 
 		u8 volume;
 		u8 bass_boost;

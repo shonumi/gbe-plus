@@ -143,11 +143,13 @@ void AGB_MMU::play_yan_reset()
 	play_yan.video_data_addr = 0;
 	play_yan.thumbnail_addr = 0;
 	play_yan.thumbnail_index = 0xFFFFFFFF;
+	play_yan.video_index = 0;
 
 	play_yan.music_file_index = 0;
 	play_yan.video_file_index = 0;
 
 	play_yan.use_bass_boost = false;
+	play_yan.capture_command_stream = false;
 }
 
 /****** Writes to Play-Yan I/O ******/
@@ -324,6 +326,9 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 				play_yan.video_progress = 0;
 				play_yan.video_length = (15 * 0x20 * 30);
 				play_yan.is_video_playing = true;
+
+				play_yan.capture_command_stream = true;
+				play_yan.command_stream.clear();
 			}
 
 			//Trigger Game Pak IRQ for stopping video
@@ -376,6 +381,37 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 			else if(play_yan.cmd == 0xD01) { play_yan.use_bass_boost = (control_cmd2 == 0x8F0F) ? false : true; }
 		}
 	}
+
+	//Grab additional command stream
+	else if((address >= 0xB00010C) && (play_yan.firmware_addr >= 0xFF020) && (play_yan.capture_command_stream))
+	{
+		play_yan.command_stream.push_back(value);
+
+		//Grab string of video filename to play
+		if((value == 0x00) && (play_yan.cmd == 0x700))
+		{
+			play_yan.capture_command_stream = false;
+			play_yan.command_stream.pop_back();
+
+			std::string temp_str = "";
+			
+			for(u32 x = 0; x < play_yan.command_stream.size(); x++)
+			{
+				u8 chr = play_yan.command_stream[x];
+				temp_str += chr;
+			}
+
+			//Search for internal ID associated with video file
+			for(u32 x = 0; x < play_yan.video_files.size(); x++)
+			{
+				if(temp_str == play_yan.video_files[x])
+				{
+					play_yan.video_file_index = x;
+					break;
+				}
+			} 
+		}
+	}	
 }
 
 /****** Reads from Play-Yan I/O ******/
@@ -658,7 +694,7 @@ void AGB_MMU::process_play_yan_irq()
 					play_yan.irq_data[x] = *(play_yan.irq_data_ptr + (play_yan.irq_count * 8) + x);
 				}
 
-				std::cout<<"IRQ -> 0x" << play_yan.irq_data[0] << "\n";
+				//std::cout<<"IRQ -> 0x" << play_yan.irq_data[0] << "\n";
 
 				play_yan.irq_count++;
 				play_yan.irq_delay = play_yan.delay_reload;
