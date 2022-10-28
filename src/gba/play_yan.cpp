@@ -254,7 +254,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 			u32 prev_cmd = play_yan.cmd;
 			play_yan.cmd = ((play_yan.cnt_data[3] << 24) | (play_yan.cnt_data[2] << 16) | (play_yan.cnt_data[1] << 8) | (play_yan.cnt_data[0]));
 
-			//std::cout<<"CMD -> 0x" << play_yan.cmd << "\n";
+			std::cout<<"CMD -> 0x" << play_yan.cmd << "\n";
 
 			//Trigger Game Pak IRQ for entering/exiting music or video menu
 			if((play_yan.cmd == 0x400) && (play_yan.op_state == 0xFF) && (play_yan.irq_data[0] != 0x40000500))
@@ -310,6 +310,9 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 				play_yan.irq_repeat = 0;
 				play_yan.irq_count = 0;
 				play_yan.is_music_playing = true;
+
+				play_yan.capture_command_stream = true;
+				play_yan.command_stream.clear();
 			}
 
 			//Trigger Game Pak IRQ for playing video
@@ -382,34 +385,55 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 		}
 	}
 
-	//Grab additional command stream
-	else if((address >= 0xB00010C) && (play_yan.firmware_addr >= 0xFF020) && (play_yan.capture_command_stream))
+	//Grab entire command stream
+	if((address >= 0xB000100) && (play_yan.firmware_addr >= 0xFF020) && (play_yan.capture_command_stream))
 	{
 		play_yan.command_stream.push_back(value);
 
-		//Grab string of video filename to play
-		if((value == 0x00) && (play_yan.cmd == 0x700))
+		//Grab string of music/video filename to play
+		if((value == 0x00) && ((play_yan.cmd == 0x600) || (play_yan.cmd == 0x700)))
 		{
+			std::string temp_str = "";
+			u32 offset = (play_yan.cmd == 0x600) ? 1 : 9;
+
+			//Don't process if not enough of the command stream for the filename is sent
+			if((play_yan.cmd == 0x600) && (play_yan.command_stream.size() < 4)) { return; }
+			if((play_yan.cmd == 0x700) && (play_yan.command_stream.size() < 12)) { return; }
+
 			play_yan.capture_command_stream = false;
 			play_yan.command_stream.pop_back();
 
-			std::string temp_str = "";
-			
-			for(u32 x = 0; x < play_yan.command_stream.size(); x++)
+			for(u32 x = offset; x < play_yan.command_stream.size(); x++)
 			{
 				u8 chr = play_yan.command_stream[x];
 				temp_str += chr;
 			}
 
-			//Search for internal ID associated with video file
-			for(u32 x = 0; x < play_yan.video_files.size(); x++)
+			//Search for internal ID associated with audio file
+			if(play_yan.cmd == 0x600)
 			{
-				if(temp_str == play_yan.video_files[x])
+				for(u32 x = 0; x < play_yan.music_files.size(); x++)
 				{
-					play_yan.video_file_index = x;
-					break;
+					if(temp_str == play_yan.music_files[x])
+					{
+						play_yan.music_file_index = x;
+						break;
+					}
 				}
-			} 
+			}
+
+			//Search for internal ID associated with video file
+			else
+			{
+				for(u32 x = 0; x < play_yan.video_files.size(); x++)
+				{
+					if(temp_str == play_yan.video_files[x])
+					{
+						play_yan.video_file_index = x;
+						break;
+					}
+				}
+			}
 		}
 	}	
 }
