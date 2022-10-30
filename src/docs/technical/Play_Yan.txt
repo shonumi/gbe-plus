@@ -63,7 +63,7 @@ Several regions of memory on the Play-Yan are dedicated to unique purposes. Some
 ----------------------------------------------------------------------------------------------------------------------
 I/O Regions		| I/O Direction	| Description
 ----------------------------------------------------------------------------------------------------------------------
-0xB000100 - 0xB00011F	| Input		| Play-Yan Command
+0xB000100 - 0xB0002FF	| Input		| Play-Yan Command
 0xB000100 - 0xB0002FF	| Input		| Firmware In
 0xB000300 - 0xB00031F	| Output	| Game Pak IRQ Data
 0xB000300 - 0xB0004FF	| Output	| Play-Yan SD Card and Internal Data
@@ -135,7 +135,7 @@ As with reading firmware, sequential 512-byte blocks can be read at a time. This
 6. Play-Yan Commands
 ***************************************************
 
-A number of commands may be issued to the Play-Yan. These allow the software to access many of the cartridge's advanced functions surrounding multimedia playback and file handling. Rather than manually processing things, the Play-Yan hands things over to its hardware and firmware through an interface. Each command consists of a series of 12 bytes written to the 0xB000100 - 0xB00011F address range. The structure of a command is as follows:
+A number of commands may be issued to the Play-Yan. These allow the software to access many of the cartridge's advanced functions surrounding multimedia playback and file handling. Rather than manually processing things, the Play-Yan hands things over to its hardware and firmware through an interface. Each command typically consists of a series of 12 bytes written to the 0xB000100 - 0xB00011F address range. Some commands may contain additional parameter data beyond this, and not every command follows the same pattern of using 32-bit parameters. In general, however, the structure of a command is as follows:
 
 -----------------------------------------------------------------------
 Address			| Data
@@ -143,9 +143,10 @@ Address			| Data
 0xB000100 - 0xB000103	| Command 
 0xB000104 - 0xB000107	| Parameter 1
 0xB000108 - 0xB00010B	| Parameter 2
+0xB00010C ...		| Parameter 3
 -----------------------------------------------------------------------
 
-Data for each command is broken into 32-bit chunks, sent LSB first. Essentially, the Play-Yan just sends a command along with 2 parameters, both of which are optional. Below is a list of known or observed commands along with their parameters:
+Data for most commands is usually broken into 32-bit chunks, sent LSB first. Essentially, the Play-Yan just sends a command along with 2 parameters, both of which are optional. Below is a list of known or observed commands along with their parameters:
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 Command					| Parameter 1							| Parameter 2
@@ -153,9 +154,9 @@ Command					| Parameter 1							| Parameter 2
 0x200 - Get File Information		| N/A								| N/A
 0x300 - Adjust Video Brightness		| Brightness level, Min = 0x101, Max = 0x2C0, 0x40 increments	| N/A
 0x500 - Grab Video Thumbnail Data*	| Width of thumbnail (60 pixels)				| Height of thumbnail (40 pixels)
-0x600 - Play Music File			| N/A								| N/A
+0x600 - Play Music File*		| Music Filename						| N/A
 0x800 - Unknown				| N/A								| N/A
-0x700 - Play Video/Grab Video Frame	| Width of video (240 pixels)					| Height of video (160 pixels)
+0x700 - Play Video/Grab Video Frame*	| Width of video (240 pixels)					| Height of video (160 pixels)
 0x701 - Stop Video Playback		| N/A								| N/A
 0x801 - Stop Music Playback		| N/A								| N/A
 0x902 - Pause Music/Video Playback	| N/A								| N/A
@@ -169,7 +170,7 @@ Command					| Parameter 1							| Parameter 2
 0x800000 - Unknown			| N/A								| N/A
 ----------------------------------------------------------------------------------------------------------------------------------------------
 
-*This command sends additional data beyond a second parameter. Overall, it sends a total of 0x218 bytes, the latter portion of which has an unknown purpose.
+*These commands send non-standard amounts of data for their parameters. See the end of this sectiond for further details on each. additional data beyond a second parameter. Overall, it sends a total of 0x218 bytes, the latter portion of which has an unknown purpose.
 
 The following proceedure is used to issue commands:
 
@@ -186,6 +187,12 @@ PY_DATA_PARAM = 0x08
 -----------------------------------------------------------------------
 
 Note that the data address specified by PY_DATA_ADDR is 0xFF020. Some commands will trigger a Game Pak IRQ when the Play-Yan responds. See the section below for more details.
+
+The 0x500 Grab Video Thumbnail Data command sends additional unknown data via Parameter 3. Altogether, 0x218 bytes are sent. Since this amount exceeds the 0xB0002FF boundary for parameter input, the last 0x18 bytes are written at the beginning of the section, starting over at 0xB000100.
+
+The 0x600 Play Music File command uses Parameter 1 as a null-terminated string representing the filename of specific music file to play. The Play-Yan software internally keeps track of which song the user has currently highlighted, and it passes the filename's string to the hardware. The string has no fixed length, thus making this an irregular command. The Play-Yan appears to send additional unknown data after the string.
+
+The 0x700 Play Video command uses Parameter 3 as a null-terminated string representing the filename of a specific video file to play. Like music, the Play-Yan software internally monitors which video the user has highlighted and passes the filename's string to the hardware. This string likewise has no fixed length. The Play-Yan appears to send additional unknown data after the string.
 
 
 ***************************************************
