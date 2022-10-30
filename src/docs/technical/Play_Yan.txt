@@ -255,7 +255,7 @@ After the 0x500 command is issued, a corresponding Game Pak IRQ signals that the
 -----------------------------------------------------------------------
 Command 0x600 - Play Music File - 1 IRQ
 -----------------------------------------------------------------------
-Bytes 0x00 - 0x03	| 0x40000500
+Bytes 0x00 - 0x03	| 0x40000600
 -----------------------------------------------------------------------
 
 After the 0x600 command is issued, a Game Pak IRQ is generated when the Play-Yan hardware begins processing an audio file. A 0x800 command always follows this command.
@@ -277,9 +277,11 @@ Bytes 0x14 - 0x18	| Current Video Position
 
 These interrupts are responsible for alerting the Play-Yan's software when a new video frame is ready for display, as well as the current position within a video as it is playing. The first IRQ initializes the process, while the second IRQ repeats indefinitely until the end of the video.
 
-Each time the second IRQ is fired, the Current Video Position is updated. When compared against the Video Length Counter, this value measures how far along video playback is. The Play-Yan software uses this to determine the minutes/seconds timestamp.
+Each time the second IRQ is fired, the Current Video Position is updated. The Play-Yan software uses this to determine the minutes/seconds timestamp. It appears that the value 0x3C0 roughly equates 1 second. This IRQ fires every time a video frame needs to be displayed, therefore it should match the video's framerate. Each increment of the Current Video Position should thus reflect that. E.g. for a video playing at 30 frames-per-second, the Current Video Position updates at roughly 0x20 intervals.
 
 The frame itself is read similarly to video thumbnails. Refers to the appropiate section below for more details. The size of the frame is the video's resolution (typically 240x160) in 15-bit color pixels. Therefore, this value is usually 0x12C00.
+
+*The second IRQ constantly fires for the duration of the video for as many frames need to be updated each second.
 
 
 
