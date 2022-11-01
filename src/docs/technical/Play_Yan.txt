@@ -154,10 +154,10 @@ Command					| Parameter 1							| Parameter 2
 0x200 - Get File Information		| N/A								| N/A
 0x300 - Adjust Video Brightness		| Brightness level, Min = 0x101, Max = 0x2C0, 0x40 increments	| N/A
 0x500 - Grab Video Thumbnail Data*	| Width of thumbnail (60 pixels)				| Height of thumbnail (40 pixels)
-0x600 - Play Music File*		| Music Filename						| N/A
-0x800 - Unknown				| N/A								| N/A
+0x600 - Unknown				| N/A								| N/A
 0x700 - Play Video/Grab Video Frame*	| Width of video (240 pixels)					| Height of video (160 pixels)
 0x701 - Stop Video Playback		| N/A								| N/A
+0x600 - Play Music File*		| Music Filename						| N/A
 0x801 - Stop Music Playback		| N/A								| N/A
 0x902 - Pause Music/Video Playback	| N/A								| N/A
 0x904 - Resume Music/Video Playback	| N/A								| N/A
@@ -253,12 +253,12 @@ After the 0x500 command is issued, a corresponding Game Pak IRQ signals that the
 
 
 -----------------------------------------------------------------------
-Command 0x600 - Play Music File - 1 IRQ
+Command 0x600 - Unknown - 1 IRQ
 -----------------------------------------------------------------------
 Bytes 0x00 - 0x03	| 0x40000600
 -----------------------------------------------------------------------
 
-After the 0x600 command is issued, a Game Pak IRQ is generated when the Play-Yan hardware begins processing an audio file. A 0x800 command always follows this command.
+The purpose of the command remain unknown. It always precedes the 0x800 command when playing music. Note, however, that it does not appear when playing videos.
 
 
 
@@ -302,14 +302,18 @@ Stops the current video file that is playing.
 
 
 -----------------------------------------------------------------------
-Command 0x800 - Unknown - 2 IRQs
+Command 0x800 - Play Music File - 2 IRQs*
 -----------------------------------------------------------------------
 Bytes 0x00 - 0x03	| 0x40000800
 -----------------------------------------------------------------------
 Bytes 0x00 - 0x03	| 0x80001000
+Bytes 0x0C - 0x0F	| Unknown
+Bytes 0x10 - 0x13	| Unknown
 -----------------------------------------------------------------------
 
-The purpose of the command remain unknown. It always follows the 0x600 command when playing music. Note, however, that it does not appear when playing videos.
+After the 0x800 command is issued, a Game Pak IRQ is generated when the Play-Yan hardware begins processing an audio file. This command always follows the 0x600 command.
+
+*The second IRQ constantly fires for the duration of the music.
 
 
 
