@@ -4267,7 +4267,7 @@ Offset 		| Description
 	<p class="list_item"><a href="#pyn_sdc">Reading SD Card Data</a></p>
 	<p class="list_item"><a href="#pyn_cmd">Play-Yan Commands</a></p>
 	<p class="list_item"><a href="#pyn_irq">Game Pak IRQs</a></p>
-	<p class="list_item"><a href="#pyn_vtn">Reading Video Thumbnails</a></p>
+	<p class="list_item"><a href="#pyn_vtn">Reading Video Frames and Video Thumbnails</a></p>
 	<p class="list_item"><a href="#pyn_gga">Garage Games</a></p>
 
 	<a name="pyn_gen"></a>
@@ -4324,7 +4324,7 @@ PY_FIRM_STAT		| (R/W)	| 0xB000012	| 16-bit	| Play-Yan Firmware Status Register.
 <code>----------------------------------------------------------------------------------------------------------------------
 I/O Regions		| I/O Direction	| Description
 ----------------------------------------------------------------------------------------------------------------------
-0xB000100 - 0xB00011F	| Input		| Play-Yan Command
+0xB000100 - 0xB0002FF	| Input		| Play-Yan Command
 0xB000100 - 0xB0002FF	| Input		| Firmware In
 0xB000300 - 0xB00031F	| Output	| Game Pak IRQ Data
 0xB000300 - 0xB0004FF	| Output	| Play-Yan SD Card and Internal Data
@@ -4390,7 +4390,7 @@ READ DATA FROM 0xB000300 THROUGH 0xB0004FF
 	<a name="pyn_cmd"></a>
 	<p class="gray_title">[Play-Yan] : Play-Yan Commands</p>
 
-	<p>A number of commands may be issued to the Play-Yan. These allow the software to access many of the cartridge&#39;s advanced functions surrounding multimedia playback and file handling. Rather than manually processing things, the Play-Yan hands things over to its hardware and firmware through an interface. Each command consists of a series of 12 bytes written to the 0xB000100 - 0xB00011F address range. The structure of a command is as follows:</p>
+	<p>A number of commands may be issued to the Play-Yan. These allow the software to access many of the cartridge&#39;s advanced functions surrounding multimedia playback and file handling. Rather than manually processing things, the Play-Yan hands things over to its hardware and firmware through an interface. Each command typically consists of a series of 12 bytes written to the 0xB000100 - 0xB00011F address range. Some commands may contain additional parameter data beyond this, and not every command follows the same pattern of using 32-bit parameters. In general, however, the structure of a command is as follows:</p>
 
 <code>-----------------------------------------------------------------------
 Address			| Data
@@ -4400,7 +4400,7 @@ Address			| Data
 0xB000108 - 0xB00010B	| Parameter 2
 -----------------------------------------------------------------------</code>
 
-	<p>Data for each command is broken into 32-bit chunks, sent LSB first. Essentially, the Play-Yan just sends a command along with 2 parameters, both of which are optional. Below is a list of known or observed commands along with their parameters:</p>
+	<p>Data for most commands is usually broken into 32-bit chunks, sent LSB first. Essentially, the Play-Yan just sends a command along with 2 parameters, both of which are optional. Below is a list of known or observed commands along with their parameters:</p>
 
 <code>----------------------------------------------------------------------------------------------------------------------------------------------
 Command					| Parameter 1							| Parameter 2
@@ -4408,10 +4408,10 @@ Command					| Parameter 1							| Parameter 2
 0x200 - Get File Information		| N/A								| N/A
 0x300 - Adjust Video Brightness		| Brightness level, Min = 0x101, Max = 0x2C0, 0x40 increments	| N/A
 0x500 - Grab Video Thumbnail Data*	| Width of thumbnail (60 pixels)				| Height of thumbnail (40 pixels)
-0x600 - Play Music File			| N/A								| N/A
-0x800 - Unknown				| N/A								| N/A
-0x700 - Play Video/Grab Video Frame	| Width of video (240 pixels)					| Height of video (160 pixels)
+0x600 - Unknown				| N/A								| N/A
+0x700 - Play Video/Grab Video Frame*	| Width of video (240 pixels)					| Height of video (160 pixels)
 0x701 - Stop Video Playback		| N/A								| N/A
+0x600 - Play Music File*		| Music Filename						| N/A
 0x801 - Stop Music Playback		| N/A								| N/A
 0x902 - Pause Music/Video Playback	| N/A								| N/A
 0x904 - Resume Music/Video Playback	| N/A								| N/A
@@ -4424,7 +4424,7 @@ Command					| Parameter 1							| Parameter 2
 0x800000 - Unknown			| N/A								| N/A
 ----------------------------------------------------------------------------------------------------------------------------------------------</code>
 
-	<p>*This command sends additional data beyond a second parameter. Overall, it sends a total of 0x218 bytes, the latter portion of which has an unknown purpose.</p>
+	<p>*These commands send non-standard amounts of data for their parameters. See the end of this sectiond for further details on each. additional data beyond a second parameter. Overall, it sends a total of 0x218 bytes, the latter portion of which has an unknown purpose.</p>
 
 	<p>The following proceedure is used to issue commands:</p>
 
@@ -4441,6 +4441,12 @@ PY_DATA_PARAM = 0x08
 -----------------------------------------------------------------------</code>
 
 	<p>Note that the data address specified by PY_DATA_ADDR is 0xFF020. Some commands will trigger a Game Pak IRQ when the Play-Yan responds. See the section below for more details.</p>
+
+	<p>The 0x500 Grab Video Thumbnail Data command sends additional unknown data via Parameter 3. Altogether, 0x218 bytes are sent. Since this amount exceeds the 0xB0002FF boundary for parameter input, the last 0x18 bytes are written at the beginning of the section, starting over at 0xB000100.</p>
+
+	<p>The 0x600 Play Music File command uses Parameter 1 as a null-terminated string representing the filename of specific music file to play. The Play-Yan software internally keeps track of which song the user has currently highlighted, and it passes the filename&#39;s string to the hardware. The string has no fixed length, thus making this an irregular command. The Play-Yan appears to send additional unknown data after the string.</p>
+
+	<p>The 0x700 Play Video command uses Parameter 3 as a null-terminated string representing the filename of a specific video file to play. Like music, the Play-Yan software internally monitors which video the user has highlighted and passes the filename&#39;s string to the hardware. This string likewise has no fixed length. The Play-Yan appears to send additional unknown data after the string.</p>
 
 	<a name="pyn_irq"></a>
 	<p class="gray_title">[Play-Yan] : Game Pak IRQs</p>
@@ -4493,12 +4499,12 @@ Bytes 0x08 - 0x0B	| Unknown
 	<p class="spc"></p>
 
 <code>-----------------------------------------------------------------------
-Command 0x600 - Play Music File - 1 IRQ
+Command 0x600 - Unknown - 1 IRQ
 -----------------------------------------------------------------------
-Bytes 0x00 - 0x03	| 0x40000500
+Bytes 0x00 - 0x03	| 0x40000600
 -----------------------------------------------------------------------</code>
 
-	<p>After the 0x600 command is issued, a Game Pak IRQ is generated when the Play-Yan hardware begins processing an audio file. A 0x800 command always follows this command.</p>
+	<p>The purpose of the command remains unknown. It always precedes the 0x800 command when playing music. Note, however, that it does not appear when playing videos.</p>
 	<p class="spc"></p>
 
 <code>-----------------------------------------------------------------------
@@ -4514,9 +4520,11 @@ Bytes 0x14 - 0x18	| Current Video Position
 
 	<p>These interrupts are responsible for alerting the Play-Yan&#39;s software when a new video frame is ready for display, as well as the current position within a video as it is playing. The first IRQ initializes the process, while the second IRQ repeats indefinitely until the end of the video.</p>
 
-	<p>Each time the second IRQ is fired, the Current Video Position is updated. When compared against the Video Length Counter, this value measures how far along video playback is. The Play-Yan software uses this to determine the minutes/seconds timestamp.</p>
+	<p>Each time the second IRQ is fired, the Current Video Position is updated. The Play-Yan software uses this to determine the minutes/seconds timestamp. It appears that the value 0x3C0 roughly equates 1 second. This IRQ fires every time a video frame needs to be displayed, therefore it should match the video&#39;s framerate. Each increment of the Current Video Position should thus reflect that. E.g. for a video playing at 30 frames-per-second, the Current Video Position updates at roughly 0x20 intervals.</p>
 
 	<p>The frame itself is read similarly to video thumbnails. Refers to the appropiate section below for more details. The size of the frame is the video&#39;s resolution (typically 240x160) in 15-bit color pixels. Therefore, this value is usually 0x12C00.</p>
+
+	<p>*The second IRQ constantly fires for the duration of the video for as many frames need to be updated each second.</p>
 	<p class="spc"></p>
 
 <code>-----------------------------------------------------------------------
@@ -4531,14 +4539,18 @@ Bytes 0x00 - 0x03	| 0x80001000
 	<p class="spc"></p>
 
 <code>-----------------------------------------------------------------------
-Command 0x800 - Unknown - 2 IRQs
+Command 0x800 - Play Music File - 2 IRQs*
 -----------------------------------------------------------------------
 Bytes 0x00 - 0x03	| 0x40000800
 -----------------------------------------------------------------------
 Bytes 0x00 - 0x03	| 0x80001000
+Bytes 0x0C - 0x0F	| Unknown
+Bytes 0x10 - 0x13	| Unknown
 -----------------------------------------------------------------------</code>
 
-	<p>The purpose of the command remain unknown. It always follows the 0x600 command when playing music. Note, however, that it does not appear when playing videos.></p>
+	<p>After the 0x800 command is issued, a Game Pak IRQ is generated when the Play-Yan hardware begins processing an audio file. This command always follows the 0x600 command.</p>
+
+	<p>*The second IRQ constantly fires for the duration of the music.</p>
 	<p class="spc"></p>
 
 <code>-----------------------------------------------------------------------
@@ -4583,7 +4595,7 @@ Bytes 0x04 - 0x07	| SD Card Status
 	<p>This command is issued shortly after Get SD Card Status. It&#39;s purpose is currently unknown. It generates 1 IRQ, which also returns the card&#39;s status.</p>
 
 	<a name="pyn_vtn"></a>
-	<p class="gray_title">[Play-Yan] : Reading Video Thumbnails</p>
+	<p class="gray_title">[Play-Yan] : Reading Video Frames and Video Thumbnails</p>
 
 	<p>Use the following process to read thumbnail data after issuing the 0x500 command:</p>
 
@@ -4599,9 +4611,11 @@ WAIT FOR BIT 4 OF PY_FIRM_STAT TO READ HIGH
 READ DATA FROM 0xB000500 THROUGH 0xB0006FF
 -----------------------------------------------------------------------</code>
 
-	<p>Data can be read sequentially in 512-byte blocks without the need for writing to other registers. Simply waiting for Bit 4 of PY_FIRM_STAT is sufficient. Each thumbnail will be the size as specified by the 0x500 command, which ordinarily is 60x40. Thumbnails use 15-bit pixels, and their format is an exact match for the Game Boy Advance&#39;s bitmap mode (BG Mode 3). In total, the Play-Yan will typically provide 0x12C0 bytes of data for each thumbnail.</p>
+	<p>Data can be read sequentially in 512-byte blocks without the need for writing to other registers. Simply waiting for Bit 4 of PY_FIRM_STAT is sufficient. Each frame or thumbnail will be the size as specified by the 0x500 or the 0x700 command, which ordinarily is 60x40 and 240x160, respectively. Both use 15-bit pixels, and their format is an exact match for the Game Boy Advance's bitmap mode (BG Mode 3). In total, the Play-Yan will typically provide 0x12C0 bytes of data for each thumbnail and 0x12C00 for each video frame.</p>
 
-	<p>A 0x500 command must be issued for each thumbnail the Play-Yan needs to process. Each page in the Play-Yan&#39;s file browser can only contain 6 videos, therefore, the Play-Yan&#39;s software only issues 6 of these commands at a time. If a page has less than 6 entries, only that many 0x500 commands need to be sent. It seems a 0x2000 command is always issued before the first 0x500 command; this may be the mechanism that tells the Play-Yan which videos need thumbnails generated.</p>
+	<p>A 0x500 command must be issued for each thumbnail the Play-Yan needs to process. Each page in the Play-Yan's file browser can only contain 6 videos, therefore, the Play-Yan's software only issues 6 of these commands at a time. If a page has less than 6 entries, only that many 0x500 commands need to be sent. It seems a 0x2000 command is always issued before the first 0x500 command; this may be the mechanism that tells the Play-Yan which videos need thumbnails generated.</p>
+
+	<p>For video frames, the 0x700 command is only issued once. Subsequent Game Pak IRQs are automatically generated by the video processing hardware for each frame, at which point the Play-Yan can read back this data and display them using BG Mode 3 for fullscreen bitmap display.</p>
 
 	<a name="pyn_gga"></a>
 	<p class="gray_title">[Play-Yan] : Garage Games</p>
