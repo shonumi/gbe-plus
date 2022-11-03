@@ -2119,6 +2119,11 @@ bool DMG_MMU::read_file(std::string filename)
 
 		if(config::gb_type == 2)
 		{
+
+			memory_map[0xFF51] = 0xFF;
+			memory_map[0xFF52] = 0xFF;
+			memory_map[0xFF53] = 0xFF;
+			memory_map[0xFF54] = 0xFF;
 			memory_map[0xFF55] = 0xFF;
 		}
 	}
