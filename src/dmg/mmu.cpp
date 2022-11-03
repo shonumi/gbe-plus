@@ -2116,6 +2116,11 @@ bool DMG_MMU::read_file(std::string filename)
 
 		//Some sound registers are set, however, don't actually play sound
 		for(int x = 0; x < 4; x++) { apu_stat->channel[x].playing = false; }
+
+		if(config::gb_type == 2)
+		{
+			memory_map[0xFF55] = 0xFF;
+		}
 	}
 
 	//Manually set some I/O registers
