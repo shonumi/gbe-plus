@@ -7,7 +7,7 @@ Shonumi aka D.S. Baxter
 1. Introduction
 ***************************************************  
 
-The Power Antenna are accessories bundled with the Keitai Denjuu Telefang Telefang games for the Game Boy Color and Game Boy Advance. An identical accessory, called the Bug Sensor, was also bundled with the Network Adventure Bugsite games on the GBC. Primarily cosmetic, these devices were essentially LEDs that were programmed to light up depending on certain events in the games.
+The Power Antenna are accessories bundled with the Keitai Denjuu Telefang Telefang games for the Game Boy Color and Game Boy Advance. An identical accessory, called the Bug Sensor, was also bundled with the Network Adventure Bugsite games on the GBC. Although the first versions of Gachasta! Dino Device did not come with any peripherals, they were nonetheless compatible with both the Power Antenna and Bug Sensor. Primarily cosmetic, these devices were essentially LEDs that were programmed to light up depending on certain events in the games.
 
 
 ***************************************************
