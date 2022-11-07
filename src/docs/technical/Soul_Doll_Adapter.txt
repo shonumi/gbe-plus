@@ -136,6 +136,7 @@ For Yomigaeru Shiren no Shima, EEPROM data is arranged as follows:
 Address		| Data Description
 -----------------------------------------------------------
 0x302		| Legend ID
+0x351		| Training Bonus
 0x398 - 0x39C	| Owner Name
 0x3A1 - 0x3B0	| Message
 0x3B1 - 0x3B9	| Legend Name
@@ -153,6 +154,7 @@ For Sign of Nekrom, EEPROM data is arranged as follows:
 Address		| Data Description
 -----------------------------------------------------------
 0x302		| Legend ID
+0x351		| Training Bonus
 0x390 - 0x394	| Owner Name
 0x3A1 - 0x3B0	| Message
 0x399 - 0x3A0	| Legend Name
@@ -198,6 +200,8 @@ Byte 0x302 acts as the Legend ID. Depending on the value of this, the games will
 											0x74 = Cerberus
 
 Several IDs appear to be mapped to the same Legend. This may be explained by the fact that some Soul Dollz were released in A, B, and sometimes C variants. The plastic figurine is different, but the GBA games generate the same sprite and default name for the Soul Doll. All of the potential duplicates are marked with "?" in the list above. Although there are 103 Soul Dollz, the list remains incomplete. The gaps between entries do not generate valid Legendz, which suggests other bytes in EEPROM are also responsible for the ID.
+
+1 byte represents the so called "Training Bonus" granted to a Legend when it is reborn. This adds a certain amount of points to its various base stats, such as HP, Strength, Defense, etc. The larger the value of this byte, the greater the stat boost will be. It has a limited range of valid values (1 = Minimum, 6 = Maximum).
 
 2 bytes represent the quantity and type of attached items for a Soul Doll. A Legend can temporarily hold onto items from the player's inventory. Only 1 type of item can be given to a Legend at a time, but its quanitity can vary (1 = Minimum, 9 = Maximum).
 
