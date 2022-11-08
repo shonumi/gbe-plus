@@ -277,23 +277,27 @@ Set 1 - 第一弾「大いなる覚醒の時」
 -------------------------------------
 Card #	| Name		| Index
 -------------------------------------
+JS1-01	| アバレ ピッグ 	| 0000
 JS1-04	| レッドバンサー	| 0003  
 JS1-06	| イカレコング	| 0005
 JS1-07 	| タコ力士  	| 0006
 JS1-09 	| イーグルカンフー	| 0008
 JS1-10	| バルキー バイソン | 0009 
+JS1-11	| バクルオン	| 000A
 JS1-12	| ブラックドーベル	| 000B	
 JS1-13	| ガオー		| 000C
 JS1-14	| 剛力獣神ガオー	| 000D
 JS1-15	| モドリ玉	| 000E	
 JS1-18	| ダイバクハーン	| 0011
 JS1-20	| ソードザック	| 0013
+JS1-21	| スルメボーイ	| 0014 
 JS1-22	| 八つ裂きバチ	| 0015
 JS1-23	| カワ・ウソン 	| 0016	
 JS1-25	| クワガイアス	| 0018
 JS1-26	| スカルドレイン 	| 0019
 JS1-28	| ヨロイガエル 	| 001B
 JS1-32	| ザバット	| 001F
+JS1-33	| シャア		| 0020
 JS1-37	| シールドブレイク	| 0024
 JS1-38	| ソードブレイク 	| 0025
 JS1-39	| 聖なる闘技場	| 0026
@@ -301,11 +305,13 @@ JS1-41	| ポメ剣士	| 0028
 JS1-42	| シロクマックス	| 0029
 JS1-43	| アチョーモンキー	| 002A
 JS1-47	| ハイエナガード	| 002E
+JS1-48	| ヘビダイル	| 002F
 JS1-49	| ブルドクター	| 0030
 JS1-50	| エンゼルスワン 	| 0031	
 JS1-52	| 怪力エレファン	| 0033
 JS1-53	| タイガ		| 0034
 JS1-57	| いでよ鋼の盾 	| 0038
+JS1-59	| 炎の闘技場	| 003A
 
 
 The cards themselves use tiny carbon dots to produce an index value. According to the OID specification, carbon ink can replace K when using CMYK. Black colors would need to be reproduced by merging CMY dots in close proximity to one another. At any rate, these dots are meant to absorb light rather than reflect it. The CMOS inside the Magic Reader can't detect these dots, so these "empty" spots form a pattern that can be recognized and converted into a number. These dots are not completely invisible to the human eye, however. Ordinary cameras are capable of capturing them. The dots occupy the entire face of the card with the exception of the borders and likely the silver text of some cards.
