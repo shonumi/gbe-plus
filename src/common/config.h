@@ -211,6 +211,7 @@ namespace config
 	extern bool use_am3_folder;
 
 	extern u32 jukebox_total_time;
+	extern std::string temp_media_file;
 
 	extern bool use_osd;
 	extern std::vector <u32> osd_font;

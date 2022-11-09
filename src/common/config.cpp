@@ -249,6 +249,9 @@ namespace config
 	//Total time (in seconds) for Jukebox recording
 	u32 jukebox_total_time = 0;
 
+	//Temporary media file used by GBE+ when converting something to another file format via an external program
+	std::string temp_media_file = "";
+
 	//On-screen display settings
 	bool use_osd = false;
 	std::vector <u32> osd_font;
@@ -1055,6 +1058,9 @@ bool parse_ini_file()
 			}
 		}
 	}
+
+	//After the location of the data directory is known, set path of temporary media file
+	config::temp_media_file = config::data_path + "gbe_plus_temp_media";
 
 	int touch_zone_counter = 0;
 
