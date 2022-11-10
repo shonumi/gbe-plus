@@ -252,6 +252,9 @@ namespace config
 	//Temporary media file used by GBE+ when converting something to another file format via an external program
 	std::string temp_media_file = "";
 
+	//Audio conversion command
+	std::string audio_conversion_cmd = "";
+
 	//On-screen display settings
 	bool use_osd = false;
 	std::vector <u32> osd_font;
@@ -2761,6 +2764,22 @@ bool parse_ini_file()
 			}
 		}
 
+		//Audio Conversion Command
+		else if(ini_item == "#audio_conversion_command")
+		{
+			if((x + 1) < size)
+			{
+				ini_item = ini_opts[++x];
+				config::audio_conversion_cmd = ini_item;
+			}
+
+			else
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#audio_conversion_command) \n";
+				return false;
+			}
+		}
+
 		//Recent files
 		else if(ini_item == "#recent_files")
 		{
@@ -3607,6 +3626,15 @@ bool save_ini_file()
 			line_pos = output_count[x];
 
 			output_lines[line_pos] = "[#jukebox_total_time:" + util::to_str(config::jukebox_total_time) + "]";
+		}
+
+		//Audio Conversion Command
+		else if(ini_item == "#audio_conversion_command")
+		{
+			line_pos = output_count[x];
+
+			std::string val = (config::audio_conversion_cmd == "") ? "" : (":'" + config::audio_conversion_cmd + "'");
+			output_lines[line_pos] = "[#audio_conversion_command" + val + "]";
 		}
 
 		else if(ini_item == "#recent_files")

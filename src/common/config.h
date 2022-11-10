@@ -212,6 +212,7 @@ namespace config
 
 	extern u32 jukebox_total_time;
 	extern std::string temp_media_file;
+	extern std::string audio_conversion_cmd;
 
 	extern bool use_osd;
 	extern std::vector <u32> osd_font;
