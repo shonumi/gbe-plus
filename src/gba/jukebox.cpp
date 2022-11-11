@@ -1254,6 +1254,60 @@ bool AGB_MMU::jukebox_load_audio(std::string filename)
 
 	SDL_AudioSpec file_spec;
 
+	//If specified audio file is not a PCM S16 LE WAV file, attempt to convert it through a temporary audio file
+	//Grab last 4 characters of filename to determine if the conversion should happen
+	std::string ext = filename;
+
+	if(ext.size() >= 4)
+	{
+		ext.substr(ext.size() - 4);
+	}
+
+	if((ext != ".wav") || (ext != ".WAV"))
+	{
+		std::string out_file = config::temp_media_file + ".wav";
+		std::string sys_cmd = config::audio_conversion_cmd;
+
+		//Delete any existing temporary media file in case audio conversion command complains
+		std::remove(out_file.c_str());
+
+		//Replace %in and %out with proper parameters
+		std::string search_str = "%in";
+		std::size_t pos = sys_cmd.find(search_str);
+
+		if(pos != std::string::npos)
+		{
+			std::string start = sys_cmd.substr(0, pos);
+			std::string end = sys_cmd.substr(pos + 3);
+			sys_cmd = start + filename + end;
+		}
+
+		search_str = "%out";
+		pos = sys_cmd.find(search_str);
+
+		if(pos != std::string::npos)
+		{
+			std::string start = sys_cmd.substr(0, pos);
+			std::string end = sys_cmd.substr(pos + 4);
+			sys_cmd = start + out_file + end;
+		}
+		
+		//Check for a command processor on system and run audio conversion command
+		if(system(NULL))
+		{
+			std::cout<<"MMU::Converting audio file " << filename << "\n";
+			system(sys_cmd.c_str());
+			std::cout<<"MMU::Conversion complete\n";
+
+			filename = out_file;
+		}
+
+		else
+		{
+			std::cout<<"Conversion of audio file " << filename << " failed \n";
+		}
+	}
+
 	if(SDL_LoadWAV(filename.c_str(), &file_spec, &apu_stat->ext_audio.buffer, &apu_stat->ext_audio.length) == NULL)
 	{
 		std::cout<<"MMU::Jukebox could not load audio file: " << filename << " :: " << SDL_GetError() << "\n";
