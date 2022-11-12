@@ -1260,10 +1260,10 @@ bool AGB_MMU::jukebox_load_audio(std::string filename)
 
 	if(ext.size() >= 4)
 	{
-		ext.substr(ext.size() - 4);
+		ext = ext.substr(ext.size() - 4);
 	}
 
-	if((ext != ".wav") || (ext != ".WAV"))
+	if((ext != ".wav") && (ext != ".WAV") && (ext != ".gb3") && (ext != ".GB3"))
 	{
 		std::string out_file = config::temp_media_file + ".wav";
 		std::string sys_cmd = config::audio_conversion_cmd;
