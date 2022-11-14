@@ -23,6 +23,7 @@
 			code
 			{
 				white-space: pre;
+				font-family: monospace;
 			}
 
 			.toc_sec
@@ -1446,7 +1447,7 @@ DMG/GBC screen (240x144 pixels, or 30x18 tiles)</code>
 	<a name="pabs_gen"></a>
 	<p class="gray_title">[Power Antenna + Bug Sensor] : General Hardware Information</p>
 
-	<p>The Power Antenna are accessories bundled with the Keitai Denjuu Telefang Telefang games for the Game Boy Color and Game Boy Advance. An identical accessory, called the Bug Sensor, was also bundled with the Network Adventure Bugsite games on the GBC. Primarily cosmetic, these devices were essentially LEDs that were programmed to light up depending on certain events in the games.</p>
+	<p>The Power Antenna are accessories bundled with the Keitai Denjuu Telefang Telefang games for the Game Boy Color and Game Boy Advance. An identical accessory, called the Bug Sensor, was also bundled with the Network Adventure Bugsite games on the GBC. Although the first versions of Gachasta! Dino Device did not come with any peripherals, they were nonetheless compatible with both the Power Antenna and Bug Sensor. Primarily cosmetic, these devices were essentially LEDs that were programmed to light up depending on certain events in the games.</p>
 
 	<ul>
 		<li class="list_item">The Power Antenna + Bug Sensor are small, plastic add-ons that fit into the serial port of a GBC or GBA</li>
@@ -2386,6 +2387,8 @@ Address		| Data Description
 											0x74 = Cerberus</code></p>
 
 	<p>Several IDs appear to be mapped to the same Legend. This may be explained by the fact that some Soul Dollz were released in A, B, and sometimes C variants. The plastic figurine is different, but the GBA games generate the same sprite and default name for the Soul Doll. All of the potential duplicates are marked with &#34;?&#34; in the list above. Although there are 103 Soul Dollz, the list remains incomplete. The gaps between entries do not generate valid Legendz, which suggests other bytes in EEPROM are also responsible for the ID.</p>
+
+	<p>1 byte represents the so called &#34;Training Bonus&#34; granted to a Legend when it is reborn. This adds a certain amount of points to its various base stats, such as HP, Strength, Defense, etc. The larger the value of this byte, the greater the stat boost will be. It has a limited range of valid values (1 = Minimum, 6 = Maximum).</p>
 
 	<p>2 bytes represent the quantity and type of attached items for a Soul Doll. A Legend can temporarily hold onto items from the player&#39;s inventory. Only 1 type of item can be given to a Legend at a time, but its quanitity can vary (1 = Minimum, 9 = Maximum).</p>
 
@@ -5067,23 +5070,29 @@ Set 1 - 第一弾「大いなる覚醒の時」
 -------------------------------------
 Card #	| Name		| Index
 -------------------------------------
+JS1-01	| アバレ ピッグ 	| 0000
+JS1-02	| アダーガニ	| 0001
 JS1-04	| レッドバンサー	| 0003  
 JS1-06	| イカレコング	| 0005
 JS1-07 	| タコ力士  	| 0006
+JS1-08	| ナックルリザード	| 0007  
 JS1-09 	| イーグルカンフー	| 0008
 JS1-10	| バルキー バイソン | 0009 
+JS1-11	| バクルオン	| 000A
 JS1-12	| ブラックドーベル	| 000B	
 JS1-13	| ガオー		| 000C
 JS1-14	| 剛力獣神ガオー	| 000D
 JS1-15	| モドリ玉	| 000E	
 JS1-18	| ダイバクハーン	| 0011
 JS1-20	| ソードザック	| 0013
+JS1-21	| スルメボーイ	| 0014 
 JS1-22	| 八つ裂きバチ	| 0015
 JS1-23	| カワ・ウソン 	| 0016	
 JS1-25	| クワガイアス	| 0018
 JS1-26	| スカルドレイン 	| 0019
 JS1-28	| ヨロイガエル 	| 001B
 JS1-32	| ザバット	| 001F
+JS1-33	| シャア		| 0020
 JS1-37	| シールドブレイク	| 0024
 JS1-38	| ソードブレイク 	| 0025
 JS1-39	| 聖なる闘技場	| 0026
@@ -5091,11 +5100,13 @@ JS1-41	| ポメ剣士	| 0028
 JS1-42	| シロクマックス	| 0029
 JS1-43	| アチョーモンキー	| 002A
 JS1-47	| ハイエナガード	| 002E
+JS1-48	| ヘビダイル	| 002F
 JS1-49	| ブルドクター	| 0030
 JS1-50	| エンゼルスワン 	| 0031	
 JS1-52	| 怪力エレファン	| 0033
 JS1-53	| タイガ		| 0034
-JS1-57	| いでよ鋼の盾 	| 0038</code>
+JS1-57	| いでよ鋼の盾 	| 0038
+JS1-59	| 炎の闘技場	| 003A</code>
 
 	<p>The cards themselves use tiny carbon dots to produce an index value. According to the OID specification, carbon ink can replace K when using CMYK. Black colors would need to be reproduced by merging CMY dots in close proximity to one another. At any rate, these dots are meant to absorb light rather than reflect it. The CMOS inside the Magic Reader can&#39;t detect these dots, so these &#34;empty&#34; spots form a pattern that can be recognized and converted into a number. These dots are not completely invisible to the human eye, however. Ordinary cameras are capable of capturing them. The dots occupy the entire face of the card with the exception of the borders and likely the silver text of some cards.</p>
 
