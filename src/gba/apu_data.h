@@ -87,6 +87,9 @@ struct agb_apu_data
 		u8 volume;
 		u8 id;
 		bool playing;
+
+		u8* karaoke_buffer;
+		u32 karaoke_length;
 	} ext_audio;
 
 	bool psg_needs_fill;

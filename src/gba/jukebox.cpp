@@ -39,6 +39,7 @@ void AGB_MMU::jukebox_reset()
 	jukebox.current_recording_time = 0;
 	jukebox.recorded_file = "";
 	jukebox.last_converted_file = "";
+	jukebox.karaoke_track = "";
 
 	for(u32 x = 0; x < 9; x++) { jukebox.spectrum_values[x] = 0; }
 
@@ -330,6 +331,7 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 								if(!jukebox.music_files.empty() && (!jukebox.is_recording))
 								{
 									apu_stat->ext_audio.playing = jukebox_load_audio(config::data_path + "jukebox/" + jukebox.music_files[jukebox.current_file]);
+									jukebox_load_karaoke_audio();
 								}
 
 								break;
@@ -1249,6 +1251,9 @@ void AGB_MMU::jukebox_update_metadata()
 /****** Loads audio (.WAV) file for playback on Jukebox (GBA speakers or headphones) ******/
 bool AGB_MMU::jukebox_load_audio(std::string filename)
 {
+	//Reset current karaoke track
+	jukebox.karaoke_track = "";
+
 	//Clear previous buffer if necessary
 	SDL_FreeWAV(apu_stat->ext_audio.buffer);
 	apu_stat->ext_audio.buffer = NULL;
@@ -1273,6 +1278,7 @@ bool AGB_MMU::jukebox_load_audio(std::string filename)
 		if(jukebox.last_converted_file == filename)
 		{
 			filename = out_file;
+			jukebox.karaoke_track = out_file;
 		}
 			
 		else
@@ -1310,14 +1316,18 @@ bool AGB_MMU::jukebox_load_audio(std::string filename)
 
 				jukebox.last_converted_file = filename;
 				filename = out_file;
+				jukebox.karaoke_track = out_file;
 			}
 
 			else
 			{
 				std::cout<<"Conversion of audio file " << filename << " failed \n";
+				return false;
 			}
 		}
 	}
+
+	else { jukebox.karaoke_track = filename; }
 
 	if(SDL_LoadWAV(filename.c_str(), &file_spec, &apu_stat->ext_audio.buffer, &apu_stat->ext_audio.length) == NULL)
 	{
@@ -1343,5 +1353,90 @@ bool AGB_MMU::jukebox_load_audio(std::string filename)
 	apu_stat->ext_audio.channels = file_spec.channels;
 
 	std::cout<<"MMU::Jukebox loaded audio file: " << filename << "\n";
+	return true;
+}
+
+/****** Loads a karaoke track (.WAV) file for playback on Jukebox (GBA speakers or headphones) ******/
+bool AGB_MMU::jukebox_load_karaoke_audio()
+{
+	//Clear previous buffer if necessary
+	SDL_FreeWAV(apu_stat->ext_audio.karaoke_buffer);
+	apu_stat->ext_audio.karaoke_buffer = NULL;
+
+	SDL_AudioSpec file_spec;
+
+	//This function MUST be called AFTER jukebox_load_audio() to ensure the audio format conversion was successful
+	//This ensures that the file being loaded is a .WAV file in PCM S16 LE
+	std::string in_file = jukebox.karaoke_track;
+	std::string out_file = config::data_path + "gbe_temp_karaoke.wav";
+	std::string sys_cmd = config::remove_vocals_cmd;
+
+	//Delete any existing temporary media file in case audio conversion command complains
+	std::remove(out_file.c_str());
+
+	//Replace %in and %out with proper parameters
+	std::string search_str = "%in";
+	std::size_t pos = sys_cmd.find(search_str);
+
+	if(pos != std::string::npos)
+	{
+		std::string start = sys_cmd.substr(0, pos);
+		std::string end = sys_cmd.substr(pos + 3);
+		sys_cmd = start + in_file + end;
+	}
+
+	search_str = "%out";
+	pos = sys_cmd.find(search_str);
+
+	if(pos != std::string::npos)
+	{
+		std::string start = sys_cmd.substr(0, pos);
+		std::string end = sys_cmd.substr(pos + 4);
+		sys_cmd = start + out_file + end;
+	}
+		
+	//Check for a command processor on system and run audio conversion command
+	if(system(NULL))
+	{
+		std::cout<<"MMU::Removing vocals from audio file " << in_file << "\n";
+		std::cout<<"CMD -> " << sys_cmd << "\n";
+		system(sys_cmd.c_str());
+		std::cout<<"MMU::Removal complete\n";
+	}
+
+	else
+	{
+		std::cout<<"Conversion of audio file " << in_file << " failed \n";
+		return false;
+	}
+
+	if(SDL_LoadWAV(out_file.c_str(), &file_spec, &apu_stat->ext_audio.karaoke_buffer, &apu_stat->ext_audio.karaoke_length) == NULL)
+	{
+		std::cout<<"MMU::Jukebox could not load audio file: " << out_file << " :: " << SDL_GetError() << "\n";
+		return false;
+	}
+
+	//Check format, must be S16 audio, LSB
+	if(file_spec.format != AUDIO_S16)
+	{
+		std::cout<<"MMU::Jukebox loaded file, but format is not Signed 16-bit LSB audio\n";
+		return false;
+	}
+
+	//Make sure the number of channels matches the original audio
+	if(file_spec.channels != apu_stat->ext_audio.channels)
+	{
+		std::cout<<"MMU::Karaoke track does not have the same amount of channels as the original\n";
+		return false;
+	}
+
+	//Make sure the frequency matches the original audio
+	if(file_spec.freq != apu_stat->ext_audio.frequency)
+	{
+		std::cout<<"MMU::Karaoke track does not have the same frequency as the original\n";
+		return false;
+	}
+
+	std::cout<<"MMU::Jukebox loaded audio file: " << out_file << "\n";
 	return true;
 }

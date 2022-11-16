@@ -176,6 +176,7 @@ class AGB_MMU
 
 		std::string recorded_file;
 		std::string last_converted_file;
+		std::string karaoke_track;
 
 		u32 spectrum_values[9];
 	} jukebox;
@@ -343,6 +344,7 @@ class AGB_MMU
 	void jukebox_set_file_info();
 	void jukebox_update_metadata();
 	bool jukebox_load_audio(std::string filename);
+	bool jukebox_load_karaoke_audio();
 	void process_jukebox();
 
 	void play_yan_reset();

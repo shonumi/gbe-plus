@@ -24,6 +24,7 @@ AGB_APU::~AGB_APU()
 {
 	//Always free external audio buffer, safe to call this function with NULL pointer!
 	SDL_FreeWAV(apu_stat.ext_audio.buffer);
+	SDL_FreeWAV(apu_stat.ext_audio.karaoke_buffer);
 
 	SDL_CloseAudio();
 	std::cout<<"APU::Shutdown\n";
@@ -139,6 +140,9 @@ void AGB_APU::reset()
 	apu_stat.ext_audio.current_set = 0;
 	apu_stat.ext_audio.buffer = NULL;
 	apu_stat.ext_audio.playing = false;
+
+	apu_stat.ext_audio.karaoke_buffer = NULL;
+	apu_stat.ext_audio.karaoke_length = 0;
 
 	mic_buffer.clear();
 	apu_stat.mic_id = 0;
