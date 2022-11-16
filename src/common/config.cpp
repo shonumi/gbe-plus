@@ -252,8 +252,14 @@ namespace config
 	//Temporary media file used by GBE+ when converting something to another file format via an external program
 	std::string temp_media_file = "";
 
+	//Temporary media file used by GBE+ when removing vocals from a karaoke track
+	std::string temp_karaoke_file = "";
+
 	//Audio conversion command
 	std::string audio_conversion_cmd = "";
+
+	//Remove vocals command
+	std::string remove_vocals_cmd = "";
 
 	//On-screen display settings
 	bool use_osd = false;
@@ -1062,8 +1068,9 @@ bool parse_ini_file()
 		}
 	}
 
-	//After the location of the data directory is known, set path of temporary media file
+	//After the location of the data directory is known, set path of temporary media file and karaoke file
 	config::temp_media_file = config::data_path + "gbe_plus_temp_media";
+	config::temp_karaoke_file = config::data_path + "gbe_plus_karaoke";
 
 	int touch_zone_counter = 0;
 
@@ -2780,6 +2787,22 @@ bool parse_ini_file()
 			}
 		}
 
+		//Remove Vocals Command
+		else if(ini_item == "#remove_vocals_command")
+		{
+			if((x + 1) < size)
+			{
+				ini_item = ini_opts[++x];
+				config::remove_vocals_cmd = ini_item;
+			}
+
+			else
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#remove_vocals_command) \n";
+				return false;
+			}
+		}
+
 		//Recent files
 		else if(ini_item == "#recent_files")
 		{
@@ -3635,6 +3658,15 @@ bool save_ini_file()
 
 			std::string val = (config::audio_conversion_cmd == "") ? "" : (":'" + config::audio_conversion_cmd + "'");
 			output_lines[line_pos] = "[#audio_conversion_command" + val + "]";
+		}
+
+		//Remove Vocals Command
+		else if(ini_item == "#remove_vocals_command")
+		{
+			line_pos = output_count[x];
+
+			std::string val = (config::remove_vocals_cmd == "") ? "" : (":'" + config::remove_vocals_cmd + "'");
+			output_lines[line_pos] = "[#remove_vocals_command" + val + "]";
 		}
 
 		else if(ini_item == "#recent_files")
