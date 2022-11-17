@@ -444,6 +444,7 @@ void AGB_APU::generate_ext_audio_hi_samples(s16* stream, int length)
 
 	//Convert existing buffer to S16
 	s16* e_stream = (s16*) apu_stat.ext_audio.buffer;
+	s16* k_stream = (s16*) apu_stat.ext_audio.karaoke_buffer;
 
 	for(int x = 0; x < length; x++)
 	{
@@ -456,14 +457,34 @@ void AGB_APU::generate_ext_audio_hi_samples(s16* stream, int length)
 			//Mono Audio
 			if(apu_stat.ext_audio.channels == 1)
 			{
-				stream[x] = e_stream[temp_pos];
+				//Karaoke Audio
+				if(mem->jukebox.io_regs[0x008F])
+				{
+					stream[x] = k_stream[temp_pos];
+				}
+
+				//Normal Audio
+				{
+					stream[x] = e_stream[temp_pos];
+				}
 			}
 
 			//Stereo Audio
 			else
 			{
-				s32 out_sample = (e_stream[temp_pos] + e_stream[temp_pos + 1]) / 2;
-				stream[x] = out_sample;
+				//Karaoke Audio
+				if(mem->jukebox.io_regs[0x008F])
+				{
+					s32 out_sample = (k_stream[temp_pos] + k_stream[temp_pos + 1]) / 2;
+					stream[x] = out_sample;
+				}
+
+				//Normal Audio
+				else
+				{
+					s32 out_sample = (e_stream[temp_pos] + e_stream[temp_pos + 1]) / 2;
+					stream[x] = out_sample;
+				}
 			}	
 		}
 
