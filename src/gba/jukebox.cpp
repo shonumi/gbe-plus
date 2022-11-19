@@ -331,7 +331,6 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 								if(!jukebox.music_files.empty() && (!jukebox.is_recording))
 								{
 									apu_stat->ext_audio.playing = jukebox_load_audio(config::data_path + "jukebox/" + jukebox.music_files[jukebox.current_file]);
-									jukebox_load_karaoke_audio();
 								}
 
 								break;
@@ -1353,6 +1352,12 @@ bool AGB_MMU::jukebox_load_audio(std::string filename)
 	apu_stat->ext_audio.channels = file_spec.channels;
 
 	std::cout<<"MMU::Jukebox loaded audio file: " << filename << "\n";
+
+	if(jukebox.current_category == 0)
+	{
+		jukebox_load_karaoke_audio();
+	}
+
 	return true;
 }
 
@@ -1399,7 +1404,6 @@ bool AGB_MMU::jukebox_load_karaoke_audio()
 	if(system(NULL))
 	{
 		std::cout<<"MMU::Removing vocals from audio file " << in_file << "\n";
-		std::cout<<"CMD -> " << sys_cmd << "\n";
 		system(sys_cmd.c_str());
 		std::cout<<"MMU::Removal complete\n";
 	}
