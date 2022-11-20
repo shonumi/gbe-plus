@@ -458,9 +458,15 @@ void AGB_APU::generate_ext_audio_hi_samples(s16* stream, int length)
 			if(apu_stat.ext_audio.channels == 1)
 			{
 				//Karaoke Audio
-				if((mem->jukebox.enable_karaoke) && (mem->jukebox.io_regs[0x008F]))
+				if((mem->jukebox.enable_karaoke) && (mem->jukebox.io_regs[0x008F]) && ((temp_pos << 1) < apu_stat.ext_audio.karaoke_length)) 
 				{
 					stream[x] = k_stream[temp_pos];
+
+					//When recording, use the karaoke track samples
+					if((mem->jukebox.current_category == 2) && (mem->jukebox.is_recording))
+					{
+						e_stream[temp_pos] = stream[x];
+					}
 				}
 
 				//Normal Audio
@@ -473,10 +479,16 @@ void AGB_APU::generate_ext_audio_hi_samples(s16* stream, int length)
 			else
 			{
 				//Karaoke Audio
-				if((mem->jukebox.enable_karaoke) && (mem->jukebox.io_regs[0x008F]))
+				if((mem->jukebox.enable_karaoke) && (mem->jukebox.io_regs[0x008F]) && ((temp_pos << 1) < apu_stat.ext_audio.karaoke_length)) 
 				{
 					s32 out_sample = (k_stream[temp_pos] + k_stream[temp_pos + 1]) / 2;
 					stream[x] = out_sample;
+
+					//When recording, use the karaoke track samples
+					if((mem->jukebox.current_category == 2) && (mem->jukebox.is_recording))
+					{
+						e_stream[temp_pos] = stream[x];
+					}
 				}
 
 				//Normal Audio

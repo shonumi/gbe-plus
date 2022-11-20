@@ -1355,7 +1355,7 @@ bool AGB_MMU::jukebox_load_audio(std::string filename)
 	std::cout<<"MMU::Jukebox loaded audio file: " << filename << "\n";
 
 	//Attempt to remove vocals from the audio file if using Music or Karaoke modes
-	if(jukebox.current_category == 0)
+	if((jukebox.current_category == 0) || (jukebox.current_category == 2))
 	{
 		jukebox.enable_karaoke = jukebox_load_karaoke_audio();
 	}
