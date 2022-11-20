@@ -154,6 +154,7 @@ class AGB_MMU
 		u32 current_recording_time;
 		bool format_compact_flash;
 		bool is_recording;
+		bool enable_karaoke;
 
 		u8 out_hi;
 		u8 out_lo;

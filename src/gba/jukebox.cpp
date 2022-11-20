@@ -34,6 +34,7 @@ void AGB_MMU::jukebox_reset()
 	jukebox.progress = 0;
 	jukebox.format_compact_flash = false;
 	jukebox.is_recording = false;
+	jukebox.enable_karaoke = false;
 	jukebox.remaining_recording_time = 0;
 	jukebox.remaining_playback_time = 0;
 	jukebox.current_recording_time = 0;
@@ -1353,9 +1354,10 @@ bool AGB_MMU::jukebox_load_audio(std::string filename)
 
 	std::cout<<"MMU::Jukebox loaded audio file: " << filename << "\n";
 
+	//Attempt to remove vocals from the audio file if using Music or Karaoke modes
 	if(jukebox.current_category == 0)
 	{
-		jukebox_load_karaoke_audio();
+		jukebox.enable_karaoke = jukebox_load_karaoke_audio();
 	}
 
 	return true;
@@ -1370,7 +1372,7 @@ bool AGB_MMU::jukebox_load_karaoke_audio()
 
 	SDL_AudioSpec file_spec;
 
-	//This function MUST be called AFTER jukebox_load_audio() to ensure the audio format conversion was successful
+	//This function MUST be called IMMEDIATELY AFTER the audio format conversion was successful in jukebox_load_audio()
 	//This ensures that the file being loaded is a .WAV file in PCM S16 LE
 	std::string in_file = jukebox.karaoke_track;
 	std::string out_file = config::data_path + "gbe_temp_karaoke.wav";
