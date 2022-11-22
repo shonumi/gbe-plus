@@ -27,6 +27,7 @@ This list represents all the games that have been verified to use the IR port. W
 
 The North American version of Disney's Aladdin claims to have infrared support on the box, supposedly for Ubi Key functionality, however, no such option is accessible in the game. Additionally, European variants omit the GBC IR logo from their boxes. It's possible that games like Animorphs, Aladdin had its IR features stripped.
 
+- Adventures of the Smurfs				Exchange character portraits
 - Animal Breeder 3					Matchmaking between animals raised by the player
 - Animal Breeder 4					Exchange animals or have them marry
 - Austin Powers: Oh Behave!				Trade items and messages		
@@ -34,6 +35,7 @@ The North American version of Disney's Aladdin claims to have infrared support o
 - Bakuten Shoot Beyblade				Engage in 1-on-1 battles
 - Beyblade: Fighting Tournament				???
 - Boku no Camp-jou					Exchange money earned from hunting and fishing
+- Bomberman B-Daman Bakugaiden V: Final Mega Tune	Obtain different armor from TV remote signals	
 - Bomberman Max: Blue Champion				Combine Charaboms/Trade completed levels/Unlock hidden areas
 - Bomberman Max: Red Challenger				Combine Charaboms/Trade completed levels/Unlock hidden areas
 - Carl Lewis Alhletics 2000				Ubi Key -> Unlocks Decathalon mode
@@ -68,6 +70,7 @@ The North American version of Disney's Aladdin claims to have infrared support o
 - Lego Island 2						Swap trading cards
 - Lemmings VS						View Win/Loss records with other players
 - Les Visiteurs						Ubi Key
+- Lode Runner: Dom Dom no Yabou				Exchange custom-made levels
 - Love Hina Pocket					???
 - Mary-Kate and Ashley Pocket Planner			Send and receive "G-mail" messages
 - Mickey's Racing Adventure				Send and receive messages. Unlocks a secret race track in Mickey's Speedway USA
