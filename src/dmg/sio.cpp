@@ -260,6 +260,17 @@ void DMG_SIO::reset()
 	
 	switch(config::sio_device)
 	{
+		//No Link Cable or Device
+		case 0:
+			std::cout<<"NO DEVICE\n";
+			sio_stat.sio_type = NO_GB_DEVICE;
+			break;
+
+		//Link Cable
+		case 1:
+			sio_stat.sio_type = GB_LINK;
+			break;
+
 		//GB Printer
 		case 2:
 			sio_stat.sio_type = GB_PRINTER;
@@ -595,30 +606,37 @@ void DMG_SIO::reset()
 	four_player.quit_count = 0;
 }
 
-/****** Transfers one byte to another system ******/
+/****** Transfers one byte to another system via Link Cable ******/
 bool DMG_SIO::send_byte()
 {
 	#ifdef GBE_NETPLAY
 
-	u8 temp_buffer[2];
-	temp_buffer[0] = sio_stat.transfer_byte;
-	temp_buffer[1] = 0;
-
-	if(SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2) < 2)
+	//Only do any of this if emulating a connected Link Cable
+	if(sio_stat.sio_type == GB_LINK)
 	{
-		std::cout<<"SIO::Error - Host failed to send data to client\n";
-		sio_stat.connected = false;
-		server.connected = false;
-		sender.connected = false;
-		return false;
+		u8 temp_buffer[2];
+		temp_buffer[0] = sio_stat.transfer_byte;
+		temp_buffer[1] = 0;
+
+		if(SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2) < 2)
+		{
+			std::cout<<"SIO::Error - Host failed to send data to client\n";
+			sio_stat.connected = false;
+			server.connected = false;
+			sender.connected = false;
+			return false;
+		}
+
+		//Wait for other Game Boy to send this one its SB
+		//This is blocking, will effectively pause GBE+ until it gets something
+		if(SDLNet_TCP_Recv(server.remote_socket, temp_buffer, 2) > 0)
+		{
+			mem->memory_map[REG_SB] = sio_stat.transfer_byte = temp_buffer[0];
+		}
 	}
 
-	//Wait for other Game Boy to send this one its SB
-	//This is blocking, will effectively pause GBE+ until it gets something
-	if(SDLNet_TCP_Recv(server.remote_socket, temp_buffer, 2) > 0)
-	{
-		mem->memory_map[REG_SB] = sio_stat.transfer_byte = temp_buffer[0];
-	}
+	//Otherwise, emulate a disconnected Link Cable
+	else { mem->memory_map[REG_SB] = 0xFF; }
 
 	//Raise SIO IRQ after sending byte
 	mem->memory_map[IF_FLAG] |= 0x08;
@@ -748,19 +766,27 @@ bool DMG_SIO::receive_byte()
 
 			else if(temp_buffer[1] != 0) { return true; }
 
-			//Raise SIO IRQ after sending byte
-			mem->memory_map[IF_FLAG] |= 0x08;
+			//Send transfer byte back to other Game Boy only if emulating the Link Cable
+			if(sio_stat.sio_type == GB_LINK)
+			{
+				//Raise SIO IRQ after sending byte
+				mem->memory_map[IF_FLAG] |= 0x08;
 
-			//Store byte from transfer into SB
-			sio_stat.transfer_byte = mem->memory_map[REG_SB];
-			mem->memory_map[REG_SB] = temp_buffer[0];
+				//Store byte from transfer into SB
+				sio_stat.transfer_byte = mem->memory_map[REG_SB];
+				mem->memory_map[REG_SB] = temp_buffer[0];
 
-			//Reset Bit 7 of SC
-			mem->memory_map[REG_SC] &= ~0x80;
+				//Reset Bit 7 of SC
+				mem->memory_map[REG_SC] &= ~0x80;
 
-			//Send other Game Boy the old SB value
-			temp_buffer[0] = sio_stat.transfer_byte;
-			sio_stat.transfer_byte = mem->memory_map[REG_SB];
+				//Send other Game Boy the old SB value
+				temp_buffer[0] = sio_stat.transfer_byte;
+				sio_stat.transfer_byte = mem->memory_map[REG_SB];
+			}
+
+			//Otherwise, emulate a disconnected Link Cable
+			//Necessary for situations when connected by IR but not the Link Cable (and the game tries the Link Cable anyway) 
+			else { temp_buffer[0] = 0xFF; }
 
 			if(SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2) < 2)
 			{
@@ -856,7 +882,7 @@ void DMG_SIO::process_network_communication()
 			sio_stat.connected = true;
 
 			//Set the emulated SIO device type
-			if(sio_stat.sio_type != GB_FOUR_PLAYER_ADAPTER) { sio_stat.sio_type = GB_LINK; }
+			if((sio_stat.sio_type != GB_FOUR_PLAYER_ADAPTER) && (sio_stat.sio_type != NO_GB_DEVICE)) { sio_stat.sio_type = GB_LINK; }
 		}
 	}
 
