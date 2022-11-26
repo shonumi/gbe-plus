@@ -211,11 +211,15 @@ GLuint gx_load_shader(std::string vertex_shader_file, std::string fragment_shade
 	//Check vertex shader
 	glGetShaderiv(vertex_shader_id, GL_COMPILE_STATUS, &result);
 	glGetShaderiv(vertex_shader_id, GL_INFO_LOG_LENGTH, &log_length);
-	std::vector<char> vs_error(log_length);
-	glGetShaderInfoLog(vertex_shader_id, log_length, NULL, &vs_error[0]);
 
-	//Print any error messages from compiling vertex shader
-	std::cout<<"OGL::Vertex Shader Error Message Log: " << &vs_error[0] << "\n";
+	if(log_length)
+	{
+		std::vector<char> vs_error(log_length);
+		glGetShaderInfoLog(vertex_shader_id, log_length, NULL, &vs_error[0]);
+
+		//Print any error messages from compiling vertex shader
+		std::cout<<"OGL::Vertex Shader Error Message Log: " << &vs_error[0] << "\n";
+	}
  
 	//Compile fragment shader
 	std::cout<<"OGL::Compiling fragment shader : " << fragment_shader_file << "\n"; 
@@ -226,11 +230,15 @@ GLuint gx_load_shader(std::string vertex_shader_file, std::string fragment_shade
 	//Check fragment Shader
 	glGetShaderiv(fragment_shader_id, GL_COMPILE_STATUS, &result);
 	glGetShaderiv(fragment_shader_id, GL_INFO_LOG_LENGTH, &log_length);
-	std::vector<char> fs_error(log_length);
-	glGetShaderInfoLog(fragment_shader_id, log_length, NULL, &fs_error[0]);
 
-	//Print any error messages from compiling fragment shader
-	std::cout<<"OGL::Fragment Shader Error Message Log: " << &fs_error[0] << "\n";
+	if(log_length)
+	{
+		std::vector<char> fs_error(log_length);
+		glGetShaderInfoLog(fragment_shader_id, log_length, NULL, &fs_error[0]);
+
+		//Print any error messages from compiling fragment shader
+		std::cout<<"OGL::Fragment Shader Error Message Log: " << &fs_error[0] << "\n";
+	}
  
 	//Link the program
 	std::cout<<"OGL::Linking shaders...\n";
@@ -243,11 +251,15 @@ GLuint gx_load_shader(std::string vertex_shader_file, std::string fragment_shade
 	//Check the program
 	glGetProgramiv(program_id, GL_LINK_STATUS, &result);
 	glGetProgramiv(program_id, GL_INFO_LOG_LENGTH, &log_length);
-	std::vector<char> program_error(log_length);
-	glGetProgramInfoLog(program_id, log_length, NULL, &program_error[0]);
 
-	//Print any error messages from the linking process
-	std::cout<<"OGL::Linking Error Message Log: " << &program_error[0] << "\n";
+	if(log_length)
+	{
+		std::vector<char> program_error(log_length);
+		glGetProgramInfoLog(program_id, log_length, NULL, &program_error[0]);
+
+		//Print any error messages from the linking process
+		std::cout<<"OGL::Linking Error Message Log: " << &program_error[0] << "\n";
+	}
 	
 	glDeleteShader(vertex_shader_id);
 	glDeleteShader(fragment_shader_id);
