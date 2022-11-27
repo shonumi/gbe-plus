@@ -129,10 +129,10 @@ void AGB_core::sleep()
 	core_cpu.controllers.video.clear_screen_buffer(0xFFFFFFFF);
 	core_cpu.controllers.video.update();
 
-	//Wait for L+R+Select input
-	bool l_r_select = false;
+	//Wait for exit sleep condition (Joypad, Game Pak, or SIO IRQ)
+	bool exit_sleep = false;
 
-	while(!l_r_select)
+	while(!exit_sleep)
 	{
 		SDL_PollEvent(&event);
 
@@ -143,7 +143,12 @@ void AGB_core::sleep()
 		//Hotplug joypad
 		else if((event.type == SDL_JOYDEVICEADDED) && (!core_pad.joy_init)) { core_pad.init(); }
 
-		if(((core_pad.key_input & 0x4) == 0) && ((core_pad.key_input & 0x100) == 0) && ((core_pad.key_input & 0x200) == 0)) { l_r_select = true; }
+		//Currently only supports Joypad IRQ as an exit condition
+		if(core_pad.joypad_irq)
+		{
+			exit_sleep = true;
+			core_mmu.memory_map[REG_IF + 1] |= 0x10;
+		}
 
 		SDL_Delay(50);
 		core_cpu.controllers.video.update();
