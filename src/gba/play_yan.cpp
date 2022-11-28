@@ -945,7 +945,7 @@ void AGB_MMU::play_yan_set_video_file(u32 index)
 void AGB_MMU::play_yan_wake()
 {
 	play_yan.op_state = 2;
-	play_yan.irq_delay = 1;
+	play_yan.irq_delay = 60;
 	play_yan.delay_reload = 10;
 	play_yan.irq_data_ptr = play_yan.wake_data;
 	play_yan.irq_len = 1;
