@@ -388,10 +388,10 @@ void NTR_GamePad::handle_input(SDL_Event &event)
 	if((last_input != key_input) && (key_input != 0x3FF))
 	{
 		//Logical OR mode
-		if(((key_cnt & 0x8000) == 0) && (key_input & key_mask))  { joypad_irq = true; }
+		if(((key_cnt & 0x8000) == 0) && (~key_input & key_mask))  { joypad_irq = true; }
 
 		//Logical AND mode
-		else if ((key_cnt & 0x8000) && ((key_input & key_mask) == key_mask)) { joypad_irq = true; }
+		else if ((key_cnt & 0x8000) && ((~key_input & key_mask) == key_mask)) { joypad_irq = true; }
 	}
 
 	else { joypad_irq = false; }
