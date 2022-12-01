@@ -361,6 +361,18 @@ A single value is returned for the SD card's status. This can be used to determi
 
 
 -----------------------------------------------------------------------
+Command 0x10000 - Sleep - 1 IRQ
+-----------------------------------------------------------------------
+Bytes 0x00 - 0x03	| 0x80010001
+-----------------------------------------------------------------------
+
+This command is called right before the Play-Yan forces the GBA hardware into low-power STOP mode via a software interrupt. After the 0x10000 command, the Play-Yan itself will evidently enter into some kind of low-power state as well. It seems to wake up automatically when the GBA exits STOP mode. At that time, the Play-Yan will generate a Game Pak IRQ to indicate that the hardware is awake and ready to use.
+
+
+
+
+
+-----------------------------------------------------------------------
 Command 0x800000 - Unknown - 1 IRQ
 -----------------------------------------------------------------------
 Bytes 0x00 - 0x03	| 0x40800000
