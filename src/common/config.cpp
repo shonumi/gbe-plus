@@ -87,8 +87,10 @@ namespace config
 	int joy_sdl_id = 0;
 
 	//Default Haptic and Gyro setting
+	//Default DDR mapping setting
 	bool use_haptics = false;
 	bool use_motion = false;
+	bool use_ddr_mapping = false;
 
 	float motion_dead_zone = 1.0;
 	float motion_scaler = 10.0;
@@ -1715,6 +1717,24 @@ bool parse_ini_file()
 			}
 		}
 
+		//Use DDR mapping
+		else if(ini_item == "#use_ddr_mapping")
+		{
+			if((x + 1) < size) 
+			{
+				util::from_str(ini_opts[++x], output);
+
+				if(output == 1) { config::use_ddr_mapping = true; }
+				else { config::use_ddr_mapping = false; }
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#use_ddr_mapping) \n";
+				return false;
+			}
+		}
+
 		//Volume settings
 		else if(ini_item == "#volume")
 		{
@@ -3175,6 +3195,15 @@ bool save_ini_file()
 			line_pos = output_count[x];
 
 			output_lines[line_pos] = "[#motion_scaler:" + util::to_strf(config::motion_scaler) + "]";
+		}
+
+		//Use DDR mapping
+		else if(ini_item == "#use_ddr_mapping")
+		{
+			line_pos = output_count[x];
+			std::string val = (config::use_ddr_mapping) ? "1" : "0";
+
+			output_lines[line_pos] = "[#use_ddr_mapping:" + val + "]";
 		}
 
 		//Volume settings

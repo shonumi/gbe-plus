@@ -112,6 +112,7 @@ namespace config
 	extern int joy_id;
 	extern int joy_sdl_id;
 	extern bool use_haptics;
+	extern bool use_ddr_mapping;
 
 	extern bool use_motion;
 	extern float motion_dead_zone;
