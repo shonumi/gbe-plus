@@ -155,9 +155,10 @@ Command					| Parameter 1							| Parameter 2
 0x300 - Adjust Video Brightness		| Brightness level, Min = 0x101, Max = 0x2C0, 0x40 increments	| N/A
 0x400 - Unknown				| N/A								| N/A
 0x500 - Grab Video Thumbnail Data*	| Width of thumbnail (60 pixels)				| Height of thumbnail (40 pixels)
-0x600 - Play Music File*		| Music Filename						| N/A
+0x600 - Unknown*			| Music Filename						| N/A
 0x700 - Play Video/Grab Video Frame*	| Width of video (240 pixels)					| Height of video (160 pixels)
 0x701 - Stop Video Playback		| N/A								| N/A
+0x800 - Play Music File*		| Music Filename						| N/A
 0x801 - Stop Music Playback		| N/A								| N/A
 0x902 - Pause Music/Video Playback	| N/A								| N/A
 0x904 - Resume Music/Video Playback	| N/A								| N/A
@@ -192,9 +193,11 @@ Note that the data address specified by PY_DATA_ADDR is 0xFF020. Some commands w
 
 The 0x500 Grab Video Thumbnail Data command sends additional unknown data via Parameter 3. Altogether, 0x218 bytes are sent. Since this amount exceeds the 0xB0002FF boundary for parameter input, the last 0x18 bytes are written at the beginning of the section, starting over at 0xB000100.
 
-The 0x600 Play Music File command uses Parameter 1 as a null-terminated string representing the filename of specific music file to play. The Play-Yan software internally keeps track of which song the user has currently highlighted, and it passes the filename's string to the hardware. The string has no fixed length, thus making this an irregular command. The Play-Yan appears to send additional unknown data after the string.
-
 The 0x700 Play Video command uses Parameter 3 as a null-terminated string representing the filename of a specific video file to play. Like music, the Play-Yan software internally monitors which video the user has highlighted and passes the filename's string to the hardware. This string likewise has no fixed length. The Play-Yan appears to send additional unknown data after the string.
+
+The 0x800 Play Music File command uses Parameter 1 as a null-terminated string representing the filename of specific music file to play. The Play-Yan software internally keeps track of which song the user has currently highlighted, and it passes the filename's string to the hardware. The string has no fixed length, thus making this an irregular command. The Play-Yan appears to send additional unknown data after the string.
+
+The unknown command 0x600 appears to be similar to 0x800 command, using Parameter 1 as a null-terminated string representing the filename of a specific music file to be played.
 
 
 ***************************************************
