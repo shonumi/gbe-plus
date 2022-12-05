@@ -569,6 +569,7 @@ void main_menu::quit()
 	config::use_microphone = (settings->mic_enable->isChecked()) ? true : false;
 	config::volume = settings->volume->value();
 	config::use_haptics = (settings->rumble_on->isChecked()) ? true : false;
+	config::use_ddr_mapping = (settings->ddr_mapping_on->isChecked()) ? true : false;
 	config::use_motion = (settings->motion_on->isChecked()) ? true : false;
 	config::vc_enable = (settings->vc_on->isChecked()) ? true : false;
 	config::vc_opacity = settings->vc_opacity->value();

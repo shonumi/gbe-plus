@@ -184,6 +184,7 @@ class gen_settings : public QDialog
 	QCheckBox* motion_on;
 	QDoubleSpinBox* motion_dead_zone;
 	QDoubleSpinBox* motion_scaler;
+	QCheckBox* ddr_mapping_on;
 
 	//Battle Chip Gate tab widgets
 	QComboBox* chip_gate_type;
@@ -320,6 +321,7 @@ class gen_settings : public QDialog
 	QWidget* motion_set;
 	QWidget* motion_dead_zone_set;
 	QWidget* motion_scaler_set;
+	QWidget* ddr_mapping_set;
 
 	QWidget* hotkey_turbo_set;
 	QWidget* hotkey_mute_set;

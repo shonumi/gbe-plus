@@ -833,6 +833,19 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	motion_scaler_layout->addWidget(motion_scaler);
 	motion_scaler_set->setLayout(motion_scaler_layout);
 
+	//Advanced control settings - Enable DDR Mapping
+	ddr_mapping_set = new QWidget(controls);
+	QLabel* ddr_mapping_label = new QLabel("Enable DDR Mapping", ddr_mapping_set);
+	ddr_mapping_on = new QCheckBox(ddr_mapping_set);
+	ddr_mapping_on->setToolTip("Multiplies input from motion controllers to adjust sensitivity\nVaries per-game and per-controller. Adjust as needed.");
+	ddr_mapping_on->setToolTip("Input will correspond with the DDR Finger-Pad.\nUp/Down/Left/Right inputs should not be mapped to directional pads or joysticks for this option.");
+
+	QHBoxLayout* ddr_mapping_layout = new QHBoxLayout;
+	ddr_mapping_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	ddr_mapping_layout->addWidget(ddr_mapping_on);
+	ddr_mapping_layout->addWidget(ddr_mapping_label);
+	ddr_mapping_set->setLayout(ddr_mapping_layout);
+
 	//Advanced control settings - Context left
 	con_left_set = new QWidget(controls);
 	QLabel* con_left_label = new QLabel("Context Left : ");
@@ -1141,6 +1154,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	advanced_controls_layout->addWidget(motion_set);
 	advanced_controls_layout->addWidget(motion_dead_zone_set);
 	advanced_controls_layout->addWidget(motion_scaler_set);
+	advanced_controls_layout->addWidget(ddr_mapping_set);
 
 	hotkey_controls_layout = new QVBoxLayout;
 	hotkey_controls_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -1175,6 +1189,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	motion_set->setVisible(false);
 	motion_dead_zone_set->setVisible(false);
 	motion_scaler_set->setVisible(false);
+	ddr_mapping_set->setVisible(false);
 
 	hotkey_turbo_set->setVisible(false);
 	hotkey_mute_set->setVisible(false);
@@ -2070,6 +2085,10 @@ void gen_settings::set_ini_options()
 
 	//Motion Scaler
 	motion_scaler->setValue(config::motion_scaler);
+
+	//DDR Mapping
+	if(config::use_ddr_mapping) { ddr_mapping_on->setChecked(true); }
+	else { ddr_mapping_on->setChecked(false); }
 
 	//Virtual Cursor Enable
 	if(config::vc_enable) { vc_on->setChecked(true); }
@@ -3590,6 +3609,7 @@ void gen_settings::switch_control_layout()
 			advanced_controls_layout->addWidget(motion_set);
 			advanced_controls_layout->addWidget(motion_dead_zone_set);
 			advanced_controls_layout->addWidget(motion_scaler_set);
+			advanced_controls_layout->addWidget(ddr_mapping_set);
 			break;
 
 		case 2:
