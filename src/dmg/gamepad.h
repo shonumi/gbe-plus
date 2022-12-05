@@ -45,6 +45,10 @@ class DMG_GamePad : virtual public dmg_core_pad
 	
 	SDL_GameController* gc_sensor;
 	bool sensor_init;
+
+	u32 ddr_key_mapping[3];
+	u32 ddr_joy_mapping[3];
+	bool ddr_was_mapped;
 };
 
 #endif // GB_GAMEPAD 

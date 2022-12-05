@@ -27,8 +27,33 @@ DMG_GamePad::DMG_GamePad()
 	con_update = false;
 	joypad_irq = false;
 	joy_init = false;
+	ddr_was_mapped = false;
 	sensor_init = false;
 	gc_sensor = NULL;
+
+	//Swap inputs when using DDR Finger Pad mode
+	if(config::use_ddr_mapping)
+	{
+		//Save original mappings to restore later
+		ddr_key_mapping[0] = config::gbe_key_a;
+		ddr_key_mapping[1] = config::gbe_key_b;
+		ddr_key_mapping[2] = config::gbe_key_right;
+
+		ddr_joy_mapping[0] = config::gbe_joy_a;
+		ddr_joy_mapping[1] = config::gbe_joy_b;
+		ddr_joy_mapping[2] = config::gbe_joy_right;
+
+		//Switch to new mappings, temporarily, until core shuts down
+		config::gbe_key_a = config::gbe_key_up;
+		config::gbe_key_b = config::gbe_key_right;
+		config::gbe_key_right = config::gbe_key_left;
+
+		config::gbe_joy_a = config::gbe_joy_up;
+		config::gbe_joy_b = config::gbe_joy_right;
+		config::gbe_joy_right = config::gbe_joy_left;
+
+		ddr_was_mapped = true;
+	}	
 }
 
 /****** Initialize GamePad ******/
@@ -98,7 +123,21 @@ void DMG_GamePad::init()
 }
 
 /****** GamePad Destructor *******/
-DMG_GamePad::~DMG_GamePad() { }
+DMG_GamePad::~DMG_GamePad()
+{
+	//When shutting down core, restore keyboard and joystick mappings if using DDR mapping
+	//This is intended for an external interface that calls save_ini_file()
+	if(config::use_ddr_mapping && ddr_was_mapped)
+	{
+		config::gbe_key_a = ddr_key_mapping[0];
+		config::gbe_key_b = ddr_key_mapping[1];
+		config::gbe_key_right = ddr_key_mapping[2];
+
+		config::gbe_joy_a = ddr_joy_mapping[0];
+		config::gbe_joy_b = ddr_joy_mapping[1];
+		config::gbe_joy_right = ddr_joy_mapping[2];
+	}
+}
 
 /****** Handle Input From Keyboard ******/
 void DMG_GamePad::handle_input(SDL_Event &event)
