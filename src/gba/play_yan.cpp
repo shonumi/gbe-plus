@@ -139,6 +139,7 @@ void AGB_MMU::play_yan_reset()
 
 	play_yan.video_progress = 0;
 	play_yan.video_length = 0;
+	play_yan.video_current_fps = 0;
 
 	play_yan.video_data_addr = 0;
 	play_yan.thumbnail_addr = 0;
@@ -729,17 +730,18 @@ void AGB_MMU::process_play_yan_irq()
 	}
 }
 
-/****** Reads a file for list of audio files to be read by the Play-Yan ******/
+/****** Reads a file for list of audio and video files to be read by the Play-Yan ******/
 bool AGB_MMU::read_play_yan_file_list(std::string filename, u8 category)
 {
 	std::vector<std::string> *out_list = NULL;
 	std::vector<u32> *out_time = NULL;
+	std::vector<u32> *out_fps = NULL;
 
 	//Grab the correct file list based on category
 	switch(category)
 	{
 		case 0x00: out_list = &play_yan.music_files; out_time = &play_yan.music_times; break;
-		case 0x01: out_list = &play_yan.video_files; out_time = &play_yan.video_times; break;
+		case 0x01: out_list = &play_yan.video_files; out_time = &play_yan.video_times; out_fps = &play_yan.video_fps; break;
 		default: std::cout<<"MMU::Error - Loading unknown category of media files for Play Yan\n"; return false;
 	}
 
@@ -767,6 +769,7 @@ bool AGB_MMU::read_play_yan_file_list(std::string filename, u8 category)
 			std::string out_str = "";
 			std::string out_title = "";
 			u32 out_sec = 0;
+			u32 out_frm = 0;
 
 			bool end_of_string = false;
 
@@ -815,10 +818,53 @@ bool AGB_MMU::read_play_yan_file_list(std::string filename, u8 category)
 
 			out_list->push_back(out_str);
 			out_time->push_back(out_sec);
+
+			//Grab frames-per-second - Video only
+			if(category == 1)
+			{
+				if(!end_of_string)
+				{
+					//Grab FPS value
+					parse_symbol = input_line.find(":", pos);
+
+					if(parse_symbol == std::string::npos)
+					{
+						out_frm = 0;
+						end_of_string = true;
+					}
+			
+					else
+					{
+						s32 end_pos = input_line.find(":", (pos + 1));
+
+						if(end_pos == std::string::npos)
+						{
+							util::from_str(input_line.substr(pos + 1), out_frm);
+							end_of_string = true;
+						}
+
+						else
+						{
+							util::from_str(input_line.substr((pos + 1), (end_pos - pos - 1)), out_frm);
+							pos += (end_pos - pos);
+						}
+					}
+				}
+
+				out_fps->push_back(out_frm);
+			}
 		}
 	}
 
-	std::cout<<"MMU::Loaded audio files for Play-Yan from " << filename << "\n";
+	if(category == 0)
+	{
+		std::cout<<"MMU::Loaded audio files for Play-Yan from " << filename << "\n";
+	}
+
+	else
+	{
+		std::cout<<"MMU::Loaded video files for Play-Yan from " << filename << "\n";
+	}
 
 	file.close();
 	return true;

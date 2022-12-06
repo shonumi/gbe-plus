@@ -235,6 +235,8 @@ class AGB_MMU
 		std::vector<u32> music_times;
 		std::vector<u32> video_times;
 
+		std::vector<u32> video_fps;
+
 		std::vector< std::vector<u8> > video_thumbnails;
 		std::vector<u8> video_data;
 		u16 thumbnail_addr;
@@ -242,6 +244,7 @@ class AGB_MMU
 
 		u32 video_progress;
 		u32 video_length;
+		u32 video_current_fps;
 
 		u32 music_file_index;
 		u32 video_file_index;
