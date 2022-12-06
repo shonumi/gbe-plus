@@ -749,7 +749,7 @@ void main_menu::boot_game()
 	else { config::use_haptics = false; }
 
 	//Check motion status
-	if(settings->motion_on->isChecked()) { config::use_haptics = true; }
+	if(settings->motion_on->isChecked()) { config::use_motion = true; }
 	else { config::use_motion = false; }
 
 	//Motion Controls Dead Zone
@@ -757,6 +757,10 @@ void main_menu::boot_game()
 
 	//Motion Controls Scaler
 	config::motion_scaler = settings->motion_scaler->value();
+
+	//Check DDR mapping status
+	if(settings->ddr_mapping_on->isChecked()) { config::use_ddr_mapping = true; }
+	else { config::use_ddr_mapping = false; }
 
 	//Check Virtual Cursor enable
 	if(settings->vc_on->isChecked()) { config::vc_enable = true; }
@@ -1003,6 +1007,7 @@ void main_menu::closeEvent(QCloseEvent* event)
 	config::use_opengl = (settings->ogl->isChecked()) ? true : false;
 	config::use_haptics = (settings->rumble_on->isChecked()) ? true : false;
 	config::use_motion = (settings->motion_on->isChecked()) ? true : false;
+	config::use_ddr_mapping = (settings->ddr_mapping_on->isChecked()) ? true : false;
 	config::vc_enable = (settings->vc_on->isChecked()) ? true : false;
 	config::vc_opacity = settings->vc_opacity->value();
 	config::vc_timeout = settings->vc_timeout->value();
