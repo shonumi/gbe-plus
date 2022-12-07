@@ -244,7 +244,9 @@ class AGB_MMU
 
 		u32 video_progress;
 		u32 video_length;
-		u32 video_current_fps;
+		float video_current_fps;
+		float video_frame_count;
+		bool update_video_frame;
 
 		u32 music_file_index;
 		u32 video_file_index;

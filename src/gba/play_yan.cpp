@@ -140,6 +140,8 @@ void AGB_MMU::play_yan_reset()
 	play_yan.video_progress = 0;
 	play_yan.video_length = 0;
 	play_yan.video_current_fps = 0;
+	play_yan.video_frame_count = 0;
+	play_yan.update_video_frame = false;
 
 	play_yan.video_data_addr = 0;
 	play_yan.thumbnail_addr = 0;
@@ -328,6 +330,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 				play_yan.irq_count = 0;
 				play_yan.video_data_addr = 0;
 				play_yan.video_progress = 0;
+				play_yan.video_frame_count = 0;
 				play_yan.is_video_playing = true;
 
 				play_yan.capture_command_stream = true;
@@ -346,6 +349,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 				play_yan.irq_count = 0;
 				play_yan.video_data_addr = 0;
 				play_yan.video_progress = 0;
+				play_yan.video_frame_count = 0;
 				play_yan.is_video_playing = false;
 			}
 				
@@ -431,6 +435,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 					{
 						play_yan.video_file_index = x;
 						play_yan.video_length = (play_yan.video_times[x] * 0x20 * 30);
+						play_yan.video_current_fps = 30.0 / play_yan.video_fps[x];
 						break;
 					}
 				}
@@ -683,6 +688,15 @@ void AGB_MMU::process_play_yan_irq()
 					//Update video progress via IRQ data
 					play_yan.video_progress += 0x20;
 					play_yan.video_play_data[1][6] = play_yan.video_progress;
+
+					//Update video frame counter and grab new video frame if necessary
+					play_yan.video_frame_count += 1.0;
+
+					if(play_yan.video_frame_count >= play_yan.video_current_fps)
+					{
+						play_yan.video_frame_count -= play_yan.video_current_fps;
+						//TODO - Grab new frame data
+					}
 
 					//Stop video when length is complete
 					if(play_yan.video_progress >= play_yan.video_length)
