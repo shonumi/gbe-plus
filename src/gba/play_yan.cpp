@@ -865,6 +865,13 @@ bool AGB_MMU::read_play_yan_file_list(std::string filename, u8 category)
 					}
 				}
 
+				//Enforce maximum FPS
+				if(out_frm > 30)
+				{
+					out_frm = 30;
+					std::cout<<"MMU::Warning - Play-Yan video file " << out_str << " has framerate greater than 30\n";
+				}
+
 				out_fps->push_back(out_frm);
 			}
 		}
