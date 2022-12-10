@@ -73,6 +73,8 @@ namespace config
 	extern std::string rom_file;
 	extern std::string bios_file;
 	extern std::string save_file;
+	extern std::string save_import_path;
+	extern std::string save_export_path;
 	extern std::string dmg_bios_path;
 	extern std::string gbc_bios_path;
 	extern std::string agb_bios_path;

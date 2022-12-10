@@ -22,6 +22,8 @@ namespace config
 	std::string rom_file = "";
 	std::string bios_file = "";
 	std::string save_file = "";
+	std::string save_import_path = "";
+	std::string save_export_path = "";
 	std::string dmg_bios_path = "";
 	std::string gbc_bios_path = "";
 	std::string agb_bios_path = "";
@@ -792,6 +794,28 @@ bool parse_cli_args()
 				}
 			}
 
+			//Save Import Path
+			else if(config::cli_args[x] == "--save-import")
+			{
+				if((++x) == config::cli_args.size()) { std::cout<<"GBE::Error - No path specified for save import\n"; }
+
+				else 
+				{
+					config::save_import_path = config::cli_args[x];
+				}
+			}
+
+			//Save Export Path
+			else if(config::cli_args[x] == "--save-export")
+			{
+				if((++x) == config::cli_args.size()) { std::cout<<"GBE::Error - No path specified for save export\n"; }
+
+				else 
+				{
+					config::save_export_path = config::cli_args[x];
+				}
+			}
+
 			//Enable fullscreen mode
 			else if((config::cli_args[x] == "-f") || (config::cli_args[x] == "--fullscreen")) { config::flags |= SDL_WINDOW_FULLSCREEN_DESKTOP; } 
 
@@ -972,6 +996,8 @@ bool parse_cli_args()
 				std::cout<<"--ignore-illegal-opcodes \t\t\t Ignore Illegal CPU instructions when running\n";
 				std::cout<<"--auto-gen-smid \t\t\t\t Automatically generate 16-byte SmartMedia ID for AM3\n";
 				std::cout<<"--use-am3-folder \t\t\t\t Use folder of AM3 files instead of SmartMedia image\n";
+				std::cout<<"--save-import \t\t\t\t Import save from specified file\n";
+				std::cout<<"--save-export \t\t\t\t Export save to specified file\n";
 				std::cout<<"-h, --help \t\t\t\t Print these help messages\n";
 				return false;
 			}
