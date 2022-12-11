@@ -760,6 +760,9 @@ bool MIN_MMU::load_backup(std::string filename)
 		 filename = config::save_path + util::get_filename_from_path(filename);
 	}
 
+	//Import save if applicable
+	if(!config::save_import_path.empty()) { filename = config::save_import_path; }
+
 	std::ifstream file(filename.c_str(), std::ios::binary);
 
 	if(!file.is_open()) 
