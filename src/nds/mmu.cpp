@@ -5573,6 +5573,9 @@ bool NTR_MMU::save_backup(std::string filename)
 		 filename = config::save_path + util::get_filename_from_path(filename);
 	}
 
+	//Export save if applicable
+	if(!config::save_export_path.empty()) { filename = config::save_export_path; }
+
 	std::ofstream file(filename.c_str(), std::ios::binary);
 
 	if(!file.is_open()) 

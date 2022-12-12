@@ -2670,6 +2670,9 @@ bool AGB_MMU::save_backup(std::string filename)
 		 filename = config::save_path + util::get_filename_from_path(filename);
 	}
 
+	//Export save if applicable
+	if(!config::save_export_path.empty()) { filename = config::save_export_path; }
+
 	//Save SRAM
 	if(current_save_type == SRAM)
 	{

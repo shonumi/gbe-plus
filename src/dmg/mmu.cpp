@@ -2350,6 +2350,9 @@ bool DMG_MMU::save_backup(std::string filename)
 		 filename = config::save_path + util::get_filename_from_path(filename);
 	}
 
+	//Export save if applicable
+	if(!config::save_export_path.empty()) { filename = config::save_export_path; }
+
 	if(cart.battery)
 	{
 		//Rearrange GB Memory Cartridge save data into regular a format that can be saved to disk
