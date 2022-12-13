@@ -238,6 +238,22 @@ Selects the previous audio file for playback. If the current file is the first f
 
 
 
+[[Command 0x17 - Move Audio File 1 Slot Forward]]
+
+This command changes the order of audio files when playing them from the Music category. It will take the currently selected song and move it up one slot, effectively allowing the user to make a customized playlist. For example, if the selected song is #1 in the playlist, this command will move it into slot #2. The previous song that was in slot #2 will also move to slot #1. If the selected song occupies the last slot in the playlist, the Music Recorder/Jukebox's interface prevents the user from executing this command.
+
+
+
+
+
+[[Command 0x18 - Move Audio File 1 Slot Backward]]
+
+This command changes the order of audio files when playing them from the Music category. It will take the currently selected song and move it down one slot, effectively allowing the user to make a customized playlist. For example, if the selected song is #2 in the playlist, this command will move it into slot #1. The previous song that was in slot #1 will also move to slot #2. If the selected song occupies the first slot in the playlist, the Music Recorder/Jukebox's interface prevents the user from executing this command.
+
+
+
+
+
 [[Command 0x19 - Delete Current Audio File]]
 
 Erases all data for the current audio file from the CompactFlash card.
