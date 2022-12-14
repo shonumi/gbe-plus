@@ -144,6 +144,8 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 				bool restore = false;
 				bool was_recording = jukebox.is_recording;
 
+				std::cout<<"STATUS -> 0x" << jukebox.status << "\n";
+
 				//Process various commands now
 				switch(jukebox.status)
 				{
@@ -437,7 +439,7 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 
 						break;
 
-					//Backward 1 File
+					//Move Backward 1 File
 					case 0x16:
 						//When recording Karaoke files, pull files to play from Music list
 						if((jukebox.current_category == 2) && (jukebox.is_recording))
@@ -466,6 +468,44 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 						{
 							jukebox.current_category = 2;
 							restore = false;
+						}
+
+						break;
+
+					//Move 1 File Forward in Playlist
+					case 0x17:
+						if((jukebox.current_category == 0) && ((jukebox.current_file + 1) < jukebox.file_limit))
+						{
+							u32 index = jukebox.current_file;
+
+							//Swap data for current file and current file + 1
+							std::swap(jukebox.music_files[index], jukebox.music_files[index + 1]);
+							std::swap(jukebox.music_titles[index], jukebox.music_titles[index + 1]);
+							std::swap(jukebox.music_artists[index], jukebox.music_artists[index + 1]);
+							std::swap(jukebox.music_times[index], jukebox.music_times[index + 1]);
+
+							jukebox.current_file++;
+							jukebox_set_file_info();
+							jukebox.io_regs[0xA0] = jukebox.current_file;
+						}
+
+						break;
+
+					//Move 1 File Backward in Playlist
+					case 0x18:
+						if((jukebox.current_category == 0) && (jukebox.current_file != 0))
+						{
+							u32 index = jukebox.current_file;
+
+							//Swap data for current file and current file + 1
+							std::swap(jukebox.music_files[index], jukebox.music_files[index - 1]);
+							std::swap(jukebox.music_titles[index], jukebox.music_titles[index - 1]);
+							std::swap(jukebox.music_artists[index], jukebox.music_artists[index - 1]);
+							std::swap(jukebox.music_times[index], jukebox.music_times[index - 1]);
+
+							jukebox.current_file--;
+							jukebox_set_file_info();
+							jukebox.io_regs[0xA0] = jukebox.current_file;
 						}
 
 						break;
