@@ -144,8 +144,6 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 				bool restore = false;
 				bool was_recording = jukebox.is_recording;
 
-				std::cout<<"STATUS -> 0x" << jukebox.status << "\n";
-
 				//Process various commands now
 				switch(jukebox.status)
 				{
@@ -487,6 +485,8 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 							jukebox.current_file++;
 							jukebox_set_file_info();
 							jukebox.io_regs[0xA0] = jukebox.current_file;
+
+							jukebox_update_music_file_list();
 						}
 
 						break;
@@ -506,6 +506,8 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 							jukebox.current_file--;
 							jukebox_set_file_info();
 							jukebox.io_regs[0xA0] = jukebox.current_file;
+
+							jukebox_update_music_file_list();
 						}
 
 						break;
@@ -1486,3 +1488,34 @@ bool AGB_MMU::jukebox_load_karaoke_audio()
 	std::cout<<"MMU::Jukebox loaded audio file: " << out_file << "\n";
 	return true;
 }
+
+/****** Updates the music file list after rearranging the current playlist ******/
+bool AGB_MMU::jukebox_update_music_file_list()
+{
+	//Build new file without current file
+	std::string output_line = "";
+	std::string filename = config::data_path + "jukebox/music.txt";
+	std::ofstream out_file(filename.c_str(), std::ios::trunc);
+
+	if(!out_file.is_open())
+	{
+		std::cout<<"MMU::Error - Could not open list of music files from " << filename << "\n";
+		return false;
+	}
+
+	//Output data for each music file on a separate line
+	for(u32 x = 0; x < jukebox.music_files.size(); x++)
+	{
+		output_line = jukebox.music_files[x] + ":" + util::to_str(jukebox.music_times[x]);		
+		if(!jukebox.music_titles[x].empty()) { output_line = output_line + ":" + jukebox.music_titles[x]; }
+		if(!jukebox.music_artists[x].empty()) { output_line = output_line + ":" + jukebox.music_artists[x]; }
+		output_line += "\n";
+
+		out_file << output_line;
+	}
+
+	out_file.close();
+
+	return true;
+}
+
