@@ -55,10 +55,6 @@ void AGB_MMU::jukebox_reset()
 		if(!jukebox.music_files.empty()) { jukebox.io_regs[0xAD] = jukebox.music_files.size(); }
 		if(!jukebox.voice_files.empty()) { jukebox.io_regs[0xAE] = jukebox.voice_files.size(); }
 		if(!jukebox.karaoke_files.empty()) { jukebox.io_regs[0xAF] = jukebox.karaoke_files.size(); }
-
-		if(jukebox.last_music_file >= jukebox.music_files.size()) { jukebox.last_music_file = 0; jukebox.current_file = 0; }
-		if(jukebox.last_voice_file >= jukebox.voice_files.size()) { jukebox.last_voice_file = 0; }
-		if(jukebox.last_karaoke_file >= jukebox.karaoke_files.size()) { jukebox.last_karaoke_file = 0; }
 	}
 
 	//Properly calculate remaining recording time based on Jukebox data files

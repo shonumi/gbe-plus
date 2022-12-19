@@ -2645,6 +2645,11 @@ bool AGB_MMU::load_backup(std::string filename)
 		jukebox.last_voice_file = (save_data[5] << 8) | save_data[4];
 		jukebox.last_karaoke_file = (save_data[7] << 8) | save_data[6];
 
+		//Verify last audio files accessed
+		if(jukebox.last_music_file >= jukebox.music_files.size()) { jukebox.last_music_file = 0; }
+		if(jukebox.last_voice_file >= jukebox.voice_files.size()) { jukebox.last_voice_file = 0; }
+		if(jukebox.last_karaoke_file >= jukebox.karaoke_files.size()) { jukebox.last_karaoke_file = 0; }
+
 		jukebox.io_regs[0x0088] = (save_data[9] << 8) | save_data[8];
 		jukebox.io_regs[0x008A] = (save_data[11] << 8) | save_data[10];
 		jukebox.io_regs[0x008C] = (save_data[13] << 8) | save_data[12];
