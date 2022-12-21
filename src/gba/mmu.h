@@ -351,6 +351,7 @@ class AGB_MMU
 	void jukebox_update_metadata();
 	bool jukebox_load_audio(std::string filename);
 	bool jukebox_load_karaoke_audio();
+	bool jukebox_update_music_file_list();
 	void process_jukebox();
 
 	void play_yan_reset();
