@@ -686,7 +686,7 @@ void SGB_core::handle_hotkey(SDL_Event& event)
 	}
 
 	//Toggle Fullscreen on F12
-	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F12))
+	else if((event.type == SDL_KEYUP) && (event.key.keysym.sym == SDLK_F12))
 	{
 		//Unset fullscreen
 		if(config::flags & SDL_WINDOW_FULLSCREEN_DESKTOP)
