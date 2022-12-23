@@ -689,16 +689,16 @@ void SGB_core::handle_hotkey(SDL_Event& event)
 	else if((event.type == SDL_KEYUP) && (event.key.keysym.sym == SDLK_F12))
 	{
 		//Unset fullscreen
-		if(config::flags & SDL_WINDOW_FULLSCREEN_DESKTOP)
+		if(config::flags & SDL_WINDOW_FULLSCREEN)
 		{
-			config::flags &= ~SDL_WINDOW_FULLSCREEN_DESKTOP;
+			config::flags &= ~SDL_WINDOW_FULLSCREEN;
 			config::scaling_factor = config::old_scaling_factor;
 		}
 
 		//Set fullscreen
 		else
 		{
-			config::flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+			config::flags |= SDL_WINDOW_FULLSCREEN;
 			config::old_scaling_factor = config::scaling_factor;
 		}
 
@@ -709,11 +709,11 @@ void SGB_core::handle_hotkey(SDL_Event& event)
 		if(!config::use_opengl)
 		{
 			core_cpu.controllers.video.window = SDL_CreateWindow("GBE+", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, config::sys_width, config::sys_height, config::flags);
-			core_cpu.controllers.video.final_screen = SDL_GetWindowSurface(core_cpu.controllers.video.window);
 			SDL_GetWindowSize(core_cpu.controllers.video.window, &config::win_width, &config::win_height);
+			core_cpu.controllers.video.final_screen = SDL_GetWindowSurface(core_cpu.controllers.video.window);
 
 			//Find the maximum fullscreen dimensions that maintain the original aspect ratio
-			if(config::flags & SDL_WINDOW_FULLSCREEN_DESKTOP)
+			if(config::flags & SDL_WINDOW_FULLSCREEN)
 			{
 				double max_width, max_height, ratio = 0.0;
 
