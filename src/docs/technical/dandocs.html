@@ -4215,6 +4215,21 @@ INDEX = (((CURRENT_FILE / 100) + 0xA6) AND 0xFF)</code>
 INDEX = (((CURRENT_FILE modulo 100) + 0xA8) AND 0xFF)</code>
 
 	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0x01C8 - General Configuration Settings</strong></p>
+	<p class="list_item">Stores various flags that represent user-changeable settings such as the software&#39;s wallpaper, whether to use the Game Boy&#39;s speakers vs. headphones, and MP3 recording quality. The bits and the values they affect are listed below:</p>
+
+<code>-----------------------------------------------------------
+Bits		| Description
+-----------------------------------------------------------
+Bits 2-3	| Spectrum Analyzer Type (0 = Analyzer #1, 1 = Analyzer #2, 2 = Analyzer #3)
+Bits 4-5	| Wallpaper Type (0 = Wallpaper #1, 1 = Wallpaper #2, 2 = Wallpaper #3)
+Bit 8		| GBA Speaker Flag (0 = Use Headphones, 1 = Use GBA Speaker)
+Bit 9		| MP3 Recording Silence Detection Flag (0 = Off, 1 = On)
+Bits 10-11	| MP3 Recording Quality (0 = 128Kbps, 1 = 96Kbps, 2 = 64Kbps)
+Bit 14		| Voice Silence Detection Flag (0 = Off, 1 = On)
+Bit 15		| Auto Replay Flag (0 = Off, 1 = On)</code>
+
+	<p class="spc"></p>
 	<p class="list_item"><strong>Index 0x01C9 - Line-In and Microphone Input Levels</strong></p>
 	<p class="list_item">Used to calibrate volumes when recording via Line-In or the microphone. The Music Recorder/Jukebox uses an 8-bit value for this calibration. The high byte is used for microphone sensitivity while the low byte is used for Line-In volumes.</p>
 
