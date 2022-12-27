@@ -861,6 +861,9 @@ bool parse_cli_args()
 			//Use Play-Yan Cartridge
 			else if(config::cli_args[x] == "--agb-play-yan") { config::cart_type = AGB_PLAY_YAN; }
 
+			//Use Campho Cartridge
+			else if(config::cli_args[x] == "--agb-campho") { config::cart_type = AGB_CAMPHO; }
+
 			//Use Auto-Detect for GBA saves
 			else if(config::cli_args[x] == "--save-auto") { config::agb_save_type = AGB_AUTO_DETECT; }
 

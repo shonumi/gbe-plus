@@ -53,6 +53,7 @@ enum special_cart_types
 	AGB_AM3,
 	AGB_JUKEBOX,
 	AGB_PLAY_YAN,
+	AGB_CAMPHO,
 	NDS_IR_CART,
 };
 

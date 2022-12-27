@@ -741,7 +741,8 @@ void main_menu::boot_game()
 		case 0xC: config::cart_type = AGB_AM3; break;
 		case 0xD: config::cart_type = AGB_JUKEBOX; break;
 		case 0xE: config::cart_type = AGB_PLAY_YAN; break;
-		case 0xF: config::cart_type = NDS_IR_CART; break;
+		case 0xF: config::cart_type = AGB_CAMPHO; break;
+		case 0x10: config::cart_type = NDS_IR_CART; break;
 	}
 
 	//Check rumble status
