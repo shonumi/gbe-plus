@@ -179,7 +179,6 @@ u8 AGB_MMU::read_u8(u32 address)
 		case 0x1:
 		case 0x4:
 		case 0x6:
-		case 0x8:
 			break;
 
 		//Slow WRAM 256KB mirror
@@ -203,6 +202,11 @@ u8 AGB_MMU::read_u8(u32 address)
 			break;
 
 		//ROM Waitstate 0
+		case 0x8:
+			if(config::cart_type == AGB_CAMPHO) { return read_campho(address); }
+			break;
+
+		//ROM Waitstate 0
 		case 0x9:
 			if(config::cart_type == AGB_PLAY_YAN) { return read_play_yan(address); }
 			break;
@@ -217,6 +221,7 @@ u8 AGB_MMU::read_u8(u32 address)
 			}
 
 			else if(config::cart_type == AGB_PLAY_YAN) { return read_play_yan(address); }
+			else if(config::cart_type == AGB_CAMPHO) { return read_campho(address); }
 
 			address -= 0x2000000;
 			break;
@@ -598,6 +603,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 		//ROM Waitstate 0
 		case 0x8:
 			if(config::cart_type == AGB_AM3) { write_am3(address, value); }
+			else if(config::cart_type == AGB_CAMPHO) { write_campho(address, value); }
 			break;
 
 		//ROM Waitstate 1 (mirror of Waitstate 0)
@@ -605,6 +611,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 		case 0xB:
 			if(config::cart_type == AGB_JUKEBOX) { write_jukebox(address, value); }
 			else if(config::cart_type == AGB_PLAY_YAN) { write_play_yan(address, value); }
+			else if(config::cart_type == AGB_CAMPHO) { write_campho(address, value); }
 			address -= 0x2000000;
 			break;
 
@@ -2353,6 +2360,9 @@ bool AGB_MMU::read_file(std::string filename)
 		load_backup(backup_file);
 		return true;
 	}
+
+	//Separate handling for Campho save data
+	else if(config::cart_type == AGB_CAMPHO) { return true; }
 
 	//Try to auto-detect save-type, if any
 	else if(config::agb_save_type == AGB_AUTO_DETECT)

@@ -381,6 +381,9 @@ class AGB_MMU
 	void play_yan_wake();
 
 	void campho_reset();
+	u8 read_campho(u32 address);
+	u8 read_campho_seq(u32 address);
+	void write_campho(u32 address, u8 value);
 
 	//GPIO handling functions
 	void process_rtc();

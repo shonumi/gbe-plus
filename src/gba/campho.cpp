@@ -25,3 +25,25 @@ void AGB_MMU::campho_reset()
 	campho.block_stat = 0;
 	campho.bank_state = 0;
 }
+
+/****** Writes data to Campho I/O ******/
+void AGB_MMU::write_campho(u32 address, u8 value)
+{
+
+}
+
+/****** Reads data from Campho I/O ******/
+u8 AGB_MMU::read_campho(u32 address)
+{
+	u8 result = 0;
+
+	return result;
+}
+
+/****** Reads sequential ROM data from Campho ******/
+u8 AGB_MMU::read_campho_seq(u32 address)
+{
+	u8 result = 0;
+
+	return result;
+}
