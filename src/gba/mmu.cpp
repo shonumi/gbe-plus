@@ -60,6 +60,9 @@ void AGB_MMU::reset()
 	//Reset Play-Yan data structure
 	play_yan_reset();
 
+	//Reset Campho Advance data structure
+	campho_reset();
+
 	gpio.data = 0;
 	gpio.prev_data = 0;
 	gpio.direction = 0;

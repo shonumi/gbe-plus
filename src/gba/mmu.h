@@ -258,6 +258,22 @@ class AGB_MMU
 		bool use_bass_boost;
 	} play_yan;
 
+	//Structure to handle Campho Advance
+	struct cam_001
+	{
+		std::vector<std::vector <u8>> data;
+		std::vector<u8> g_stream;
+		u32 bank_index;
+		u32 bank_id;
+		u32 rom_data_1;
+		u32 rom_data_2;
+		u16 rom_stat;
+		u16 rom_cnt;
+		u16 block_len;
+		u16 block_stat;
+		u8 bank_state;
+	} campho;
+
 	//Structure to handle GPIO reading and writing
 	struct gpio_controller
 	{
@@ -363,6 +379,8 @@ class AGB_MMU
 	void play_yan_set_music_file(u32 index);
 	void play_yan_set_video_file(u32 index);
 	void play_yan_wake();
+
+	void campho_reset();
 
 	//GPIO handling functions
 	void process_rtc();

@@ -18,6 +18,7 @@ set(SRCS
 	jukebox.cpp
 	am3.cpp
 	play_yan.cpp
+	campho.cpp
 	)
 
 set(HEADERS
