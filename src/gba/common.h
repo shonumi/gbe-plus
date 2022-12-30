@@ -211,8 +211,13 @@ const u32 PY_FIRM_STAT = 0xB000012;
 const u32 PY_IN = 0xB000100;
 const u32 PY_OUT = 0xB000300;
 
-
 const u32 PY_UNK_00 = 0xB000000;
 const u32 PY_UNK_02 = 0xB000002;
+
+/* Campho Advance IO */
+const u32 CAM_ROM_DATA_1 = 0x8000000;
+const u32 CAM_ROM_DATA_2 = 0x8008000;
+const u32 CAM_ROM_STAT = 0x8010000;
+const u32 CAM_ROM_CNT = 0x8014000;
 
 #endif // GBA_COMMON
