@@ -29,7 +29,57 @@ void AGB_MMU::campho_reset()
 /****** Writes data to Campho I/O ******/
 void AGB_MMU::write_campho(u32 address, u8 value)
 {
+	switch(address)
+	{
+		//Campho ROM Status
+		case CAM_ROM_STAT:
+			campho.rom_stat &= 0xFF00;
+			campho.rom_stat |= value;
+			break;
 
+		case CAM_ROM_STAT+1:
+			campho.rom_stat &= 0xFF;
+			campho.rom_stat |= (value << 8);
+			break;
+
+		//Campho ROM Control
+		case CAM_ROM_CNT:
+			campho.rom_cnt &= 0xFF00;
+			campho.rom_cnt |= value;
+			break;
+
+		case CAM_ROM_CNT+1:
+			campho.rom_cnt &= 0xFF;
+			campho.rom_cnt |= (value << 8);
+
+			//Detect access to main Program ROM
+			if(campho.rom_cnt == 0xA00A)
+			{
+				//Detect reading of first Program ROM bank
+				if(!campho.block_stat)
+				{
+					campho.block_stat = 0xCC00;
+					campho.bank_state = 1;
+					campho.bank_index = 0;
+				}
+
+				//Increment Program ROM bank
+				else
+				{
+					campho.block_stat++;
+					campho.bank_state = 1;
+
+					//Signal end of Program ROM banks
+					if(campho.block_stat == 0xCC10)
+					{
+						campho.block_stat = 0xCD00;
+						campho.bank_state = 1;
+					}
+				}
+			}
+
+			break;
+	}
 }
 
 /****** Reads data from Campho I/O ******/
