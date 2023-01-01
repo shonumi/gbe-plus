@@ -2266,7 +2266,19 @@ bool AGB_MMU::read_file(std::string filename)
 
 		file_size = 0x400;
 		config::agb_save_type = AGB_NO_SAVE;	
-	}		
+	}
+
+	//For Campho Advance, read ROM, then apply a mapper
+	else if(config::cart_type == AGB_CAMPHO)
+	{
+		campho.data.clear();
+		campho.data.resize(file_size);
+
+		ex_mem = &campho.data[0];
+		file.read((char*)ex_mem, file_size);
+
+		campho_map_rom_banks();
+	}	
 
 	//Read data from the ROM file
 	else { file.read((char*)ex_mem, file_size); }

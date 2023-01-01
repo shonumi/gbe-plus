@@ -261,7 +261,7 @@ class AGB_MMU
 	//Structure to handle Campho Advance
 	struct cam_001
 	{
-		std::vector<std::vector <u8>> data;
+		std::vector<u8> data;
 		std::vector<u8> g_stream;
 		u32 bank_index;
 		u32 bank_id;
@@ -272,6 +272,10 @@ class AGB_MMU
 		u16 block_len;
 		u16 block_stat;
 		u8 bank_state;
+
+		std::vector<u32> mapped_bank_id;
+		std::vector<u32> mapped_bank_addr;
+		std::vector<u32> mapped_bank_len;
 	} campho;
 
 	//Structure to handle GPIO reading and writing
@@ -384,6 +388,7 @@ class AGB_MMU
 	u8 read_campho(u32 address);
 	u8 read_campho_seq(u32 address);
 	void write_campho(u32 address, u8 value);
+	void campho_map_rom_banks();
 
 	//GPIO handling functions
 	void process_rtc();

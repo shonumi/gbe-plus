@@ -97,3 +97,44 @@ u8 AGB_MMU::read_campho_seq(u32 address)
 
 	return result;
 }
+
+/****** Maps various ROM banks for the Campho ******/
+void AGB_MMU::campho_map_rom_banks()
+{
+	//Currently it is unknown how much ROM data needs to be dumped from the Campho Advance
+	//Also, the way the hardware maps data is not entirely understood and it's all over the place
+	//Until more research is done, a basic PROVISIONAL mapper is implemented here
+	//GBE+ will accept a ROM with a header that with the following data (MSB first!):
+
+	//HEADER LENGTH			1st 4 bytes
+	//BANK ENTRIES			... rest of the header, see below for Bank Entry format
+
+	//BANK ID			4 bytes
+	//BANK BASE ADDRESS		4 bytes
+	//BANK LENGTH IN BYTES		4 bytes
+
+	//Grab ROM header length
+	if(campho.data.size() < 4) { return; }
+
+	u32 header_len = (campho.data[0] << 24) | (campho.data[1] << 16) | (campho.data[2] << 8) | campho.data[3];
+	u32 rom_pos = 0;
+
+	campho.mapped_bank_id.clear();
+	campho.mapped_bank_addr.clear();
+	campho.mapped_bank_len.clear();
+
+	//Grab bank entries and parse them accordingly
+	for(u32 header_index = 0; header_index < header_len;)
+	{
+		rom_pos = header_index + 4;
+		if((rom_pos + 12) >= campho.data.size()) { break; }
+
+		u32 bank_id = (campho.data[rom_pos] << 24) | (campho.data[rom_pos+1] << 16) | (campho.data[rom_pos+2] << 8) | campho.data[rom_pos+3];
+		u32 bank_addr = (campho.data[rom_pos+4] << 24) | (campho.data[rom_pos+5] << 16) | (campho.data[rom_pos+6] << 8) | campho.data[rom_pos+7];
+		u32 bank_len = (campho.data[rom_pos+8] << 24) | (campho.data[rom_pos+9] << 16) | (campho.data[rom_pos+10] << 8) | campho.data[rom_pos+11];
+
+		campho.mapped_bank_id.push_back(bank_id);
+		campho.mapped_bank_addr.push_back(bank_addr);
+		campho.mapped_bank_len.push_back(bank_len);
+	}	 
+}
