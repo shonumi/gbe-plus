@@ -61,6 +61,7 @@ void AGB_MMU::write_campho(u32 address, u8 value)
 					campho.block_stat = 0xCC00;
 					campho.bank_state = 1;
 					campho.bank_index = 0;
+					campho_set_rom_bank(0xCC00, 0x00);
 				}
 
 				//Increment Program ROM bank
@@ -98,6 +99,24 @@ u8 AGB_MMU::read_campho_seq(u32 address)
 	return result;
 }
 
+/****** Sets the absolute position within the Campho ROM for a bank's base address ******/
+void AGB_MMU::campho_set_rom_bank(u32 bank, u32 address)
+{
+	//Search all known banks for a specific ID
+	for(u32 x = 0; x < campho.mapped_bank_id.size(); x++)
+	{
+		//Match bank ID and base address
+		if((campho.mapped_bank_id[x] == bank) && (campho.mapped_bank_addr[x] == address))
+		{
+			campho.bank_index = campho.mapped_bank_pos[x];
+			campho.block_len = campho.mapped_bank_len[x];
+			return;
+		}
+	}
+
+	std::cout<<"MMU::Warning - Campho Advance ROM position for Bank 0x" << bank << " @ 0x" << address << " was not found\n";
+}
+
 /****** Maps various ROM banks for the Campho ******/
 void AGB_MMU::campho_map_rom_banks()
 {
@@ -106,7 +125,7 @@ void AGB_MMU::campho_map_rom_banks()
 	//Until more research is done, a basic PROVISIONAL mapper is implemented here
 	//GBE+ will accept a ROM with a header that with the following data (MSB first!):
 
-	//HEADER LENGTH			1st 4 bytes
+	//TOTAL HEADER LENGTH		1st 4 bytes
 	//BANK ENTRIES			... rest of the header, see below for Bank Entry format
 
 	//BANK ID			4 bytes
@@ -118,10 +137,12 @@ void AGB_MMU::campho_map_rom_banks()
 
 	u32 header_len = (campho.data[0] << 24) | (campho.data[1] << 16) | (campho.data[2] << 8) | campho.data[3];
 	u32 rom_pos = 0;
+	u32 bank_pos = header_len;
 
 	campho.mapped_bank_id.clear();
 	campho.mapped_bank_addr.clear();
 	campho.mapped_bank_len.clear();
+	campho.mapped_bank_pos.clear();
 
 	//Grab bank entries and parse them accordingly
 	for(u32 header_index = 0; header_index < header_len;)
@@ -136,5 +157,8 @@ void AGB_MMU::campho_map_rom_banks()
 		campho.mapped_bank_id.push_back(bank_id);
 		campho.mapped_bank_addr.push_back(bank_addr);
 		campho.mapped_bank_len.push_back(bank_len);
+		campho.mapped_bank_pos.push_back(bank_pos);
+
+		bank_pos += bank_len;
 	}	 
 }

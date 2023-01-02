@@ -2278,6 +2278,7 @@ bool AGB_MMU::read_file(std::string filename)
 		file.read((char*)ex_mem, file_size);
 
 		campho_map_rom_banks();
+		campho_set_rom_bank(0x8000000, 0x00);
 	}	
 
 	//Read data from the ROM file
