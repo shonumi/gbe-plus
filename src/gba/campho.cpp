@@ -92,19 +92,23 @@ u8 AGB_MMU::read_campho(u32 address)
 	{
 		//Stat 1
 		case CAM_ROM_STAT:
+		case CAM_ROM_STAT_B:
 			result = (campho.rom_stat & 0xFF);
 			break;
 
 		case CAM_ROM_STAT+1:
+		case CAM_ROM_STAT_B+1:
 			result = ((campho.rom_stat >> 8) & 0xFF);
 			break;
 
 		//Stat 2
 		case CAM_ROM_CNT:
+		case CAM_ROM_CNT_B:
 			result = (campho.rom_cnt & 0xFF);
 			break;
 
 		case CAM_ROM_CNT+1:
+		case CAM_ROM_CNT_B+1:
 			result = ((campho.rom_cnt >> 8) & 0xFF);
 			break;
 	}
