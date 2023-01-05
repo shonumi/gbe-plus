@@ -90,7 +90,56 @@ u8 AGB_MMU::read_campho(u32 address)
 
 	switch(address)
 	{
-		//Stat 1
+		//ROM Data Stream
+		CAM_ROM_DATA_1:
+			//Read Program ROM
+			if(campho.bank_state)
+			{
+				//Return STAT LOW on first read
+				if(campho.bank_state == 1)
+				{
+					result = (campho.block_stat & 0xFF);
+				}
+
+				//Return LEN LOW on second read
+				//These 16-bit values should be fixed (0xFFA)
+				else if(campho.bank_state == 2)
+				{
+					result = 0xFA;
+				}
+			}
+
+			//Sequential ROM read
+			else { result = read_campho_seq(address); }
+
+			break;
+
+		CAM_ROM_DATA_1+1:
+			//Read Program ROM
+			if(campho.bank_state)
+			{
+				//Return STAT HIGH on first read
+				if(campho.bank_state == 1)
+				{
+					result = ((campho.block_stat >> 8) & 0xFF);
+					campho.bank_state++;
+				}
+
+				//Return LEN HIGH on second read
+				//These 16-bit values should be fixed (0xFFA)
+				else if(campho.bank_state == 2)
+				{
+					result = 0x0F;
+					campho.bank_state = 0;
+				}
+			}
+
+			//Sequential ROM read
+			else { result = read_campho_seq(address); }
+
+			break;
+		
+		//Campho ROM Status
 		case CAM_ROM_STAT:
 		case CAM_ROM_STAT_B:
 			result = (campho.rom_stat & 0xFF);
@@ -101,7 +150,7 @@ u8 AGB_MMU::read_campho(u32 address)
 			result = ((campho.rom_stat >> 8) & 0xFF);
 			break;
 
-		//Stat 2
+		//Campho ROM Control
 		case CAM_ROM_CNT:
 		case CAM_ROM_CNT_B:
 			result = (campho.rom_cnt & 0xFF);
@@ -111,6 +160,9 @@ u8 AGB_MMU::read_campho(u32 address)
 		case CAM_ROM_CNT_B+1:
 			result = ((campho.rom_cnt >> 8) & 0xFF);
 			break;
+
+		//Sequential ROM read
+		else { result = read_campho_seq(address); }
 	}
 
 	return result;
