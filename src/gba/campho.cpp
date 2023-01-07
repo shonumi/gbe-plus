@@ -91,7 +91,7 @@ u8 AGB_MMU::read_campho(u32 address)
 	switch(address)
 	{
 		//ROM Data Stream
-		CAM_ROM_DATA_1:
+		case CAM_ROM_DATA_LO:
 			//Read Program ROM
 			if(campho.bank_state)
 			{
@@ -114,7 +114,7 @@ u8 AGB_MMU::read_campho(u32 address)
 
 			break;
 
-		CAM_ROM_DATA_1+1:
+		case CAM_ROM_DATA_LO+1:
 			//Read Program ROM
 			if(campho.bank_state)
 			{
@@ -162,7 +162,8 @@ u8 AGB_MMU::read_campho(u32 address)
 			break;
 
 		//Sequential ROM read
-		else { result = read_campho_seq(address); }
+		default:
+			result = read_campho_seq(address);
 	}
 
 	return result;
@@ -172,6 +173,8 @@ u8 AGB_MMU::read_campho(u32 address)
 u8 AGB_MMU::read_campho_seq(u32 address)
 {
 	u8 result = 0;
+
+	result = campho.data[campho.bank_index++];
 
 	return result;
 }

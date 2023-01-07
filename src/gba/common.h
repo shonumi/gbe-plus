@@ -215,8 +215,8 @@ const u32 PY_UNK_00 = 0xB000000;
 const u32 PY_UNK_02 = 0xB000002;
 
 /* Campho Advance IO */
-const u32 CAM_ROM_DATA_1 = 0x8000000;
-const u32 CAM_ROM_DATA_2 = 0x8008000;
+const u32 CAM_ROM_DATA_LO = 0x8000000;
+const u32 CAM_ROM_DATA_HI = 0x8008000;
 const u32 CAM_ROM_STAT = 0x8010000;
 const u32 CAM_ROM_CNT = 0x8014000;
 
