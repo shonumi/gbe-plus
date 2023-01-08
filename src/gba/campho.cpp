@@ -17,7 +17,8 @@ void AGB_MMU::campho_reset()
 	campho.data.clear();
 	campho.g_stream.clear();
 
-	campho.bank_index = 0;
+	campho.bank_index_lo = 0;
+	campho.bank_index_hi = 0;
 	campho.bank_id = 0;
 	campho.rom_stat = 0xA00A;
 	campho.rom_cnt = 0;
@@ -60,7 +61,7 @@ void AGB_MMU::write_campho(u32 address, u8 value)
 				{
 					campho.block_stat = 0xCC00;
 					campho.bank_state = 1;
-					campho.bank_index = 0;
+					campho.bank_index_lo = 0;
 					campho_set_rom_bank(0xCC00, 0x00);
 				}
 
@@ -174,7 +175,23 @@ u8 AGB_MMU::read_campho_seq(u32 address)
 {
 	u8 result = 0;
 
-	result = campho.data[campho.bank_index++];
+	//Read Low ROM Data Stream
+	if(address < 0x8008000)
+	{
+		if((campho.bank_index_lo + 1) < campho.data.size())
+		{
+			result = campho.data[campho.bank_index_lo++];
+		}
+	}
+
+	//Read High ROM Data Stream
+	else
+	{
+		if((campho.bank_index_hi + 1) < campho.data.size())
+		{
+			result = campho.data[campho.bank_index_hi++];
+		}
+	}
 
 	return result;
 }
@@ -188,7 +205,7 @@ void AGB_MMU::campho_set_rom_bank(u32 bank, u32 address)
 		//Match bank ID and base address
 		if((campho.mapped_bank_id[x] == bank) && (campho.mapped_bank_addr[x] == address))
 		{
-			campho.bank_index = campho.mapped_bank_pos[x];
+			campho.bank_index_lo = campho.mapped_bank_pos[x];
 			campho.block_len = campho.mapped_bank_len[x];
 			return;
 		}

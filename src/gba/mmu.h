@@ -263,7 +263,8 @@ class AGB_MMU
 	{
 		std::vector<u8> data;
 		std::vector<u8> g_stream;
-		u32 bank_index;
+		u32 bank_index_lo;
+		u32 bank_index_hi;
 		u32 bank_id;
 		u32 rom_data_1;
 		u32 rom_data_2;
