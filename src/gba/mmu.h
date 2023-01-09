@@ -390,7 +390,7 @@ class AGB_MMU
 	u8 read_campho(u32 address);
 	u8 read_campho_seq(u32 address);
 	void write_campho(u32 address, u8 value);
-	void campho_set_rom_bank(u32 bank, u32 address);
+	void campho_set_rom_bank(u32 bank, u32 address, bool set_hi_bank);
 	void campho_map_rom_banks();
 
 	//GPIO handling functions

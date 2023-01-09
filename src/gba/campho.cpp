@@ -62,7 +62,7 @@ void AGB_MMU::write_campho(u32 address, u8 value)
 					campho.block_stat = 0xCC00;
 					campho.bank_state = 1;
 					campho.bank_index_lo = 0;
-					campho_set_rom_bank(0xCC00, 0x00);
+					campho_set_rom_bank(0xCC00, 0x00, 0);
 				}
 
 				//Increment Program ROM bank
@@ -197,7 +197,7 @@ u8 AGB_MMU::read_campho_seq(u32 address)
 }
 
 /****** Sets the absolute position within the Campho ROM for a bank's base address ******/
-void AGB_MMU::campho_set_rom_bank(u32 bank, u32 address)
+void AGB_MMU::campho_set_rom_bank(u32 bank, u32 address, bool set_hi_bank)
 {
 	//Search all known banks for a specific ID
 	for(u32 x = 0; x < campho.mapped_bank_id.size(); x++)
@@ -205,7 +205,12 @@ void AGB_MMU::campho_set_rom_bank(u32 bank, u32 address)
 		//Match bank ID and base address
 		if((campho.mapped_bank_id[x] == bank) && (campho.mapped_bank_addr[x] == address))
 		{
-			campho.bank_index_lo = campho.mapped_bank_pos[x];
+			//Set High ROM bank
+			if(set_hi_bank) { campho.bank_index_hi = campho.mapped_bank_pos[x]; }
+
+			//Set Low ROM bank
+			else { campho.bank_index_lo = campho.mapped_bank_pos[x]; }
+
 			campho.block_len = campho.mapped_bank_len[x];
 			return;
 		}
