@@ -2224,7 +2224,7 @@ bool parse_ini_file()
 				{
 					u32 val = 0;
 					util::from_str(ini_opts[++x], val);
-					config::gbe_turbo_button[y] = val;
+					config::gbe_turbo_button[y] = (val & 0xFF);
 				}
 			}
 
