@@ -65,6 +65,9 @@ namespace config
 	//Default joystick bindings - Context
 	u32 con_joy_left = 204; u32 con_joy_right = 205; u32 con_joy_up = 206; u32 con_joy_down = 207; u32 con_joy_1 = 109; u32 con_joy_2 = 110;
 
+	//Default turbo button timings
+	u32 gbe_turbo_button[12] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
 	//Default NDS touch zone mappings
 	int touch_zone_x[10] = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
 	int touch_zone_y[10] = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
@@ -2212,6 +2215,26 @@ bool parse_ini_file()
 			}
 		}
 
+		//Turbo button timings
+		else if(ini_item == "#gbe_turbo_button")
+		{
+			if((x + 12) < size)
+			{
+				for(u32 y = 0; y < 12; y++)
+				{
+					u32 val = 0;
+					util::from_str(ini_opts[++x], val);
+					config::gbe_turbo_button[y] = val;
+				}
+			}
+
+			else
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#gbe_turbo_button) \n";
+				return false;
+			}
+		}
+
 		//Battle Chip ID list
 		else if(ini_item == "#chip_list")
 		{
@@ -3455,6 +3478,22 @@ bool save_ini_file()
 			val += util::to_str(config::con_joy_2);
 
 			output_lines[line_pos] = "[#con_joy_controls:" + val + "]";
+		}
+
+		//Turbo Button Timings
+		else if(ini_item == "#gbe_turbo_button")
+		{
+			line_pos = output_count[x];
+			std::string val = "";
+			
+			for(u32 y = 0; y < 11; y++)
+			{
+				val += util::to_str(config::gbe_turbo_button[y]) + ":";
+			}
+
+			val += util::to_str(config::gbe_turbo_button[11]);
+
+			output_lines[line_pos] = "[#gbe_turbo_button:" + val + "]";
 		}
 
 		//Battle Chip List

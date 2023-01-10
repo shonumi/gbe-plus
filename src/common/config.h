@@ -101,6 +101,8 @@ namespace config
 	extern u32 con_key_up, con_key_down, con_key_left, con_key_right, con_key_1, con_key_2;
 	extern u32 con_joy_up, con_joy_down, con_joy_left, con_joy_right, con_joy_1, con_joy_2;
 
+	extern u32 gbe_turbo_button[12];
+
 	extern int touch_zone_x[10];
 	extern int touch_zone_y[10];
 	extern int touch_zone_pad[10];
