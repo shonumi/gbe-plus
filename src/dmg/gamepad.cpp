@@ -63,6 +63,8 @@ DMG_GamePad::DMG_GamePad()
 	{
 		turbo_button_enabled += config::gbe_turbo_button[x];
 		turbo_button_val[x] = 0;
+		turbo_button_stat[x] = false;
+		turbo_button_end[x] = false;
 	}
 }
 
@@ -274,6 +276,9 @@ void DMG_GamePad::handle_input(SDL_Event &event)
 	//Update Joypad Interrupt Flag
 	if((last_input != next_input) && (next_input != 0xDFEF)) { joypad_irq = true; }
 	else { joypad_irq = false; }
+
+	//Process turbo buttons
+	if(turbo_button_enabled) { process_turbo_buttons(); }
 }
 
 /****** Processes input based on unique pad # for keyboards ******/
@@ -512,6 +517,13 @@ void DMG_GamePad::process_keyboard(int pad, bool pressed)
 
 	//Alert core of context key changes
 	if(con_flags & 0x7FF) { con_flags |= 0x800; }
+
+	//Terminate Turbo Buttons
+	if(turbo_button_enabled)
+	{
+		if(pad == config::gbe_key_a) { turbo_button_end[0] = (pressed) ? false : true; }
+		if(pad == config::gbe_key_b) { turbo_button_end[1] = (pressed) ? false : true; }
+	}
 }
 
 /****** Processes input based on unique pad # for joysticks ******/
@@ -678,6 +690,13 @@ void DMG_GamePad::process_joystick(int pad, bool pressed)
 
 	//Alert core of context key changes
 	if(con_flags & 0x7FF) { con_flags |= 0x800; }
+
+	//Terminate Turbo Buttons
+	if(turbo_button_enabled)
+	{
+		if(pad == config::gbe_joy_a) { turbo_button_end[0] = (pressed) ? false : true; }
+		if(pad == config::gbe_joy_b) { turbo_button_end[1] = (pressed) ? false : true; }
+	}
 }
 
 /****** Process gyroscope sensors - Only used for MBC7 ******/
@@ -798,7 +817,64 @@ void DMG_GamePad::process_gyroscope(float x, float y)
 /****** Process turbo button input ******/
 void DMG_GamePad::process_turbo_buttons()
 {
+	//Turbo Button A Start
+	if(((p14 & 0x1) == 0) && (config::gbe_turbo_button[0]) && (!turbo_button_stat[0]))
+	{
+		turbo_button_stat[0] = true;
+		turbo_button_val[0] = 0;
+		p14 |= 0x1;
+	}
 
+	//Turbo Button A Delay
+	else if(turbo_button_stat[0])
+	{
+		turbo_button_val[0]++;
+
+		if(turbo_button_val[0] >= config::gbe_turbo_button[0])
+		{
+			turbo_button_stat[0] = false;
+			p14 &= ~0x1;
+		}
+	}
+
+	//Turbo Button A End
+	if(turbo_button_end[0])
+	{
+		turbo_button_end[0] = false;
+		turbo_button_stat[0] = false;
+		turbo_button_val[0] = 0;
+		p14 |= 0x1;
+	}
+
+	//Turbo Button B Start
+	if(((p14 & 0x2) == 0) && (config::gbe_turbo_button[1]) && (!turbo_button_stat[1]))
+	{
+		turbo_button_stat[1] = true;
+		turbo_button_val[1] = 0;
+		p14 |= 0x2;
+	}
+
+	//Turbo Button B Delay
+	else if(turbo_button_stat[1])
+	{
+		turbo_button_val[1]++;
+
+		if(turbo_button_val[1] >= config::gbe_turbo_button[1])
+		{
+			turbo_button_stat[1] = false;
+			p14 &= ~0x2;
+			std::cout<<"TURBO RESTART\n";
+		}
+	}
+
+	//Turbo Button B End
+	if(turbo_button_end[1])
+	{
+		turbo_button_end[1] = false;
+		turbo_button_stat[1] = false;
+		turbo_button_val[1] = 0;
+		p14 |= 0x2;
+	}	
 }
 
 /****** Start haptic force-feedback on joypad ******/

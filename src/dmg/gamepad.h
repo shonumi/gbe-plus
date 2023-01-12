@@ -43,6 +43,8 @@ class DMG_GamePad : virtual public dmg_core_pad
 	void set_pad_data(u32 index, u32 value);
 
 	u32 turbo_button_enabled;
+	bool turbo_button_stat[12];
+	bool turbo_button_end[12];
 	u32 turbo_button_val[12];
 
 	private:

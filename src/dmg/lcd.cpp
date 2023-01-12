@@ -2118,7 +2118,10 @@ void DMG_LCD::step(int cpu_clock)
 					}
 
 					else { mem->memory_map[REG_RP] |= 0x2; }
-				}	
+				}
+
+				//Process Turbo Buttons
+				if(mem->g_pad->turbo_button_enabled) { mem->g_pad->process_turbo_buttons(); }
 			}
 
 			//Processing VBlank
