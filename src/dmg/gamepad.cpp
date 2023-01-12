@@ -53,7 +53,17 @@ DMG_GamePad::DMG_GamePad()
 		config::gbe_joy_right = config::gbe_joy_left;
 
 		ddr_was_mapped = true;
-	}	
+	}
+
+	//Check for turbo button enabled status by adding all frame delays
+	//As long as the total amount of frame delays is non-zero, enable turbo buttons
+	turbo_button_enabled = 0;
+
+	for(u32 x = 0; x < 12; x++)
+	{
+		turbo_button_enabled += config::gbe_turbo_button[x];
+		turbo_button_val[x] = 0;
+	}
 }
 
 /****** Initialize GamePad ******/
@@ -782,6 +792,12 @@ void DMG_GamePad::process_gyroscope(float x, float y)
     		if(sensor_y < 1897) { sensor_y = 1897; }
     		if(sensor_y > 2197) { sensor_y = 2197; }
 	}
+
+}
+
+/****** Process turbo button input ******/
+void DMG_GamePad::process_turbo_buttons()
+{
 
 }
 

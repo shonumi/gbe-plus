@@ -33,6 +33,16 @@ SGB_GamePad::SGB_GamePad()
 	packet.mult_flag = 0xF0;
 	packet.data.resize(0x80, 0);
 	packet.lcd_command = false;
+
+	//Check for turbo button enabled status by adding all frame delays
+	//As long as the total amount of frame delays is non-zero, enable turbo buttons
+	turbo_button_enabled = 0;
+
+	for(u32 x = 0; x < 12; x++)
+	{
+		turbo_button_enabled += config::gbe_turbo_button[x];
+		turbo_button_val[x] = 0;
+	}
 }
 
 /****** Initialize GamePad ******/
@@ -366,6 +376,9 @@ void SGB_GamePad::process_joystick(int pad, bool pressed)
 
 /****** Process gyroscope sensors - Only used for MBC7 ******/
 void SGB_GamePad::process_gyroscope() { }
+
+/****** Process turbo button input ******/
+void SGB_GamePad::process_turbo_buttons() { }
 
 /****** Start haptic force-feedback on joypad ******/
 void SGB_GamePad::start_rumble()

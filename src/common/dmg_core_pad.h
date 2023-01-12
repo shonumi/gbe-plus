@@ -45,12 +45,16 @@ class dmg_core_pad
     	SDL_Haptic* rumble;
 	bool is_rumbling;
 
+	u32 turbo_button_enabled;
+	u32 turbo_button_val[12];
+
 	virtual void handle_input(SDL_Event &event) = 0;
 	virtual void init() = 0;
 
 	virtual void process_keyboard(int pad, bool pressed) = 0;
 	virtual void process_joystick(int pad, bool pressed) = 0;
 	virtual void process_gyroscope() = 0;
+	virtual void process_turbo_buttons() = 0;
 	virtual void start_rumble() = 0;
 	virtual void stop_rumble() = 0;
 	virtual u8 read() = 0;

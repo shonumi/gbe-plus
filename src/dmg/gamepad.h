@@ -34,12 +34,16 @@ class DMG_GamePad : virtual public dmg_core_pad
 	void process_joystick(int pad, bool pressed);
 	void process_gyroscope();
 	void process_gyroscope(float x, float y);
+	void process_turbo_buttons();
 	void start_rumble();
 	void stop_rumble();
 	u8 read();
 	void write(u8 value);
 	u32 get_pad_data(u32 index);
 	void set_pad_data(u32 index, u32 value);
+
+	u32 turbo_button_enabled;
+	u32 turbo_button_val[12];
 
 	private:
 	
