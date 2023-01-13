@@ -817,63 +817,45 @@ void DMG_GamePad::process_gyroscope(float x, float y)
 /****** Process turbo button input ******/
 void DMG_GamePad::process_turbo_buttons()
 {
-	//Turbo Button A Start
-	if(((p14 & 0x1) == 0) && (config::gbe_turbo_button[0]) && (!turbo_button_stat[0]))
+	for(u32 x = 0; x < 2; x++)
 	{
-		turbo_button_stat[0] = true;
-		turbo_button_val[0] = 0;
-		p14 |= 0x1;
-	}
+		u8 *p1 = NULL;
+		u8 mask = 0;
 
-	//Turbo Button A Delay
-	else if(turbo_button_stat[0])
-	{
-		turbo_button_val[0]++;
-
-		if(turbo_button_val[0] >= config::gbe_turbo_button[0])
+		switch(x)
 		{
-			turbo_button_stat[0] = false;
-			p14 &= ~0x1;
+			case 0: p1 = &p14; mask = 0x01; break;
+			case 1: p1 = &p14; mask = 0x02; break;
 		}
-	}
 
-	//Turbo Button A End
-	if(turbo_button_end[0])
-	{
-		turbo_button_end[0] = false;
-		turbo_button_stat[0] = false;
-		turbo_button_val[0] = 0;
-		p14 |= 0x1;
-	}
-
-	//Turbo Button B Start
-	if(((p14 & 0x2) == 0) && (config::gbe_turbo_button[1]) && (!turbo_button_stat[1]))
-	{
-		turbo_button_stat[1] = true;
-		turbo_button_val[1] = 0;
-		p14 |= 0x2;
-	}
-
-	//Turbo Button B Delay
-	else if(turbo_button_stat[1])
-	{
-		turbo_button_val[1]++;
-
-		if(turbo_button_val[1] >= config::gbe_turbo_button[1])
+		//Turbo Button Start
+		if(((*p1 & mask) == 0) && (config::gbe_turbo_button[x]) && (!turbo_button_stat[x]))
 		{
-			turbo_button_stat[1] = false;
-			p14 &= ~0x2;
-			std::cout<<"TURBO RESTART\n";
+			turbo_button_stat[x] = true;
+			turbo_button_val[x] = 0;
+			*p1 |= mask;
 		}
-	}
 
-	//Turbo Button B End
-	if(turbo_button_end[1])
-	{
-		turbo_button_end[1] = false;
-		turbo_button_stat[1] = false;
-		turbo_button_val[1] = 0;
-		p14 |= 0x2;
+		//Turbo Button Delay
+		else if(turbo_button_stat[x])
+		{
+			turbo_button_val[x]++;
+
+			if(turbo_button_val[x] >= config::gbe_turbo_button[x])
+			{
+				turbo_button_stat[x] = false;
+				*p1 &= ~mask;
+			}
+		}
+
+		//Turbo Button End
+		if(turbo_button_end[x])
+		{
+			turbo_button_end[x] = false;
+			turbo_button_stat[x] = false;
+			turbo_button_val[x] = 0;
+			*p1 |= mask;
+		}
 	}	
 }
 
