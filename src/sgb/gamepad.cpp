@@ -42,6 +42,8 @@ SGB_GamePad::SGB_GamePad()
 	{
 		turbo_button_enabled += config::gbe_turbo_button[x];
 		turbo_button_val[x] = 0;
+		turbo_button_stat[x] = false;
+		turbo_button_end[x] = false;
 	}
 }
 
@@ -204,6 +206,9 @@ void SGB_GamePad::handle_input(SDL_Event &event)
 	//Update Joypad Interrupt Flag
 	if((last_input != next_input) && (next_input != 0xDFEF)) { joypad_irq = true; }
 	else { joypad_irq = false; }
+
+	//Process turbo buttons
+	if(turbo_button_enabled) { process_turbo_buttons(); }
 }
 
 /****** Processes input based on unique pad # for keyboards ******/
@@ -302,6 +307,19 @@ void SGB_GamePad::process_keyboard(int pad, bool pressed)
 
 		if(config::resize_mode > 1) { config::resize_mode = 1; }
 	}
+
+	//Terminate Turbo Buttons
+	if(turbo_button_enabled)
+	{
+		if(pad == config::gbe_key_a) { turbo_button_end[0] = (pressed) ? false : true; }
+		else if(pad == config::gbe_key_b) { turbo_button_end[1] = (pressed) ? false : true; }
+		else if(pad == config::gbe_key_start) { turbo_button_end[4] = (pressed) ? false : true; }
+		else if(pad == config::gbe_key_select) { turbo_button_end[5] = (pressed) ? false : true; }
+		else if(pad == config::gbe_key_left) { turbo_button_end[6] = (pressed) ? false : true; }
+		else if(pad == config::gbe_key_right) { turbo_button_end[7] = (pressed) ? false : true; }
+		else if(pad == config::gbe_key_up) { turbo_button_end[8] = (pressed) ? false : true; }
+		else if(pad == config::gbe_key_down) { turbo_button_end[9] = (pressed) ? false : true; }
+	}
 }
 
 /****** Processes input based on unique pad # for joysticks ******/
@@ -372,13 +390,83 @@ void SGB_GamePad::process_joystick(int pad, bool pressed)
 
 		if(config::resize_mode > 1) { config::resize_mode = 1; }
 	}
+
+	//Terminate Turbo Buttons
+	if(turbo_button_enabled)
+	{
+		if(pad == config::gbe_joy_a) { turbo_button_end[0] = (pressed) ? false : true; }
+		else if(pad == config::gbe_joy_b) { turbo_button_end[1] = (pressed) ? false : true; }
+		else if(pad == config::gbe_joy_start) { turbo_button_end[4] = (pressed) ? false : true; }
+		else if(pad == config::gbe_joy_select) { turbo_button_end[5] = (pressed) ? false : true; }
+		else if(pad == config::gbe_joy_left) { turbo_button_end[6] = (pressed) ? false : true; }
+		else if(pad == config::gbe_joy_right) { turbo_button_end[7] = (pressed) ? false : true; }
+		else if(pad == config::gbe_joy_up) { turbo_button_end[8] = (pressed) ? false : true; }
+		else if(pad == config::gbe_joy_down) { turbo_button_end[9] = (pressed) ? false : true; }
+	}
 }
 
 /****** Process gyroscope sensors - Only used for MBC7 ******/
 void SGB_GamePad::process_gyroscope() { }
 
 /****** Process turbo button input ******/
-void SGB_GamePad::process_turbo_buttons() { }
+void SGB_GamePad::process_turbo_buttons()
+{
+	return;
+
+	for(u32 x = 0; x < 12; x++)
+	{
+		u8 *p1 = NULL;
+		u8 mask = 0;
+
+		//Grab P14 or P15 depending on button
+		//Also grab the appropiate mask for said button
+		//Cycle through all turbo buttons (0 - 11), and only use those that apply to this core
+		switch(x)
+		{
+			case 0: p1 = &p14; mask = 0x01; break;
+			case 1: p1 = &p14; mask = 0x02; break;
+			case 4: p1 = &p14; mask = 0x08; break;
+			case 5: p1 = &p14; mask = 0x04; break;
+			case 6: p1 = &p15; mask = 0x02; break;
+			case 7: p1 = &p15; mask = 0x01; break;
+			case 8: p1 = &p15; mask = 0x04; break;
+			case 9: p1 = &p15; mask = 0x08; break;
+		}
+
+		//Continue only if turbo button is used on this core
+		if(mask)
+		{
+			//Turbo Button Start
+			if(((*p1 & mask) == 0) && (config::gbe_turbo_button[x]) && (!turbo_button_stat[x]))
+			{
+				turbo_button_stat[x] = true;
+				turbo_button_val[x] = 0;
+				*p1 |= mask;
+			}
+
+			//Turbo Button Delay
+			else if(turbo_button_stat[x])
+			{
+				turbo_button_val[x]++;
+
+				if(turbo_button_val[x] >= config::gbe_turbo_button[x])
+				{
+					turbo_button_stat[x] = false;
+					*p1 &= ~mask;
+				}
+			}
+
+			//Turbo Button End
+			if(turbo_button_end[x])
+			{
+				turbo_button_end[x] = false;
+				turbo_button_stat[x] = false;
+				turbo_button_val[x] = 0;
+				*p1 |= mask;
+			}
+		}
+	}	
+}
 
 /****** Start haptic force-feedback on joypad ******/
 void SGB_GamePad::start_rumble()

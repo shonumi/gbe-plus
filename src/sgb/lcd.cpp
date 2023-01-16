@@ -1061,6 +1061,9 @@ void SGB_LCD::step(int cpu_clock)
 				{
 					for(u32 x = 0; x < 0xE000; x++) { screen_buffer[x] = border_buffer[x]; }
 				}
+
+				//Process Turbo Buttons
+				if(mem->g_pad->turbo_button_enabled) { mem->g_pad->process_turbo_buttons(); }
 			}
 
 			//Processing VBlank
