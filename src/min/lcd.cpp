@@ -181,7 +181,7 @@ void MIN_LCD::update()
 	if(config::sdl_render)
 	{
 		//If using SDL and no OpenGL, manually stretch for fullscreen via SDL
-		if((config::flags & SDL_WINDOW_FULLSCREEN_DESKTOP) && (!config::use_opengl))
+		if((config::flags & SDL_WINDOW_FULLSCREEN) && (!config::use_opengl))
 		{
 			//Lock source surface
 			if(SDL_MUSTLOCK(original_screen)){ SDL_LockSurface(original_screen); }
