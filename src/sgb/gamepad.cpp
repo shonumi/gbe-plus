@@ -411,8 +411,6 @@ void SGB_GamePad::process_gyroscope() { }
 /****** Process turbo button input ******/
 void SGB_GamePad::process_turbo_buttons()
 {
-	return;
-
 	for(u32 x = 0; x < 12; x++)
 	{
 		u8 *p1 = NULL;
