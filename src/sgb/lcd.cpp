@@ -218,13 +218,16 @@ bool SGB_LCD::init()
 			SDL_GetWindowSize(window, &config::win_width, &config::win_height);
 			config::scaling_factor = 1;
 
+			std::cout<<"WW " << std::dec << config::win_width << " :: WH" << config::win_height << "\n";
+			std::cout<<"SW " << std::dec << config::sys_width << " :: SH" << config::sys_height << "\n";
+
 			final_screen = SDL_GetWindowSurface(window);
 			original_screen = SDL_CreateRGBSurface(SDL_SWSURFACE, config::sys_width, config::sys_height, 32, 0, 0, 0, 0);
 		}
 
 		if(final_screen == NULL) { return false; }
 
-		SDL_SetWindowIcon(window, util::load_icon(config::data_path + "icons/gbe_plus.bmp"));
+		//SDL_SetWindowIcon(window, util::load_icon(config::data_path + "icons/gbe_plus.bmp"));
 	}
 
 	//Initialize with only a buffer for OpenGL (for external rendering)
@@ -984,7 +987,14 @@ void SGB_LCD::step(int cpu_clock)
 							dest_rect.y = ((config::win_height - dest_rect.h) >> 1);
 							SDL_BlitScaled(original_screen, NULL, final_screen, &dest_rect);
 
-							if(SDL_UpdateWindowSurface(window) != 0) { std::cout<<"LCD::Error - Could not blit\n"; }
+							if(SDL_UpdateWindowSurface(window) != 0)
+							{
+								std::cout<<"LCD::Error - Could not blit\n";
+
+								//Try to make a new the window if the blit failed
+								if((window != NULL) && (config::sdl_render)) { SDL_DestroyWindow(window); }
+								init();
+							}
 						}
 
 						//Otherwise, render normally (SDL 1:1, OpenGL handles its own stretching)
@@ -1005,7 +1015,14 @@ void SGB_LCD::step(int cpu_clock)
 							//Display final screen buffer - SDL
 							else 
 							{
-								if(SDL_UpdateWindowSurface(window) != 0) { std::cout<<"LCD::Error - Could not blit\n"; }
+								if(SDL_UpdateWindowSurface(window) != 0)
+								{
+									std::cout<<"LCD::Error - Could not blit\n";
+
+									//Try to make a new the window if the blit failed
+									if((window != NULL) && (config::sdl_render)) { SDL_DestroyWindow(window); }
+									init();
+								}
 							}
 						}
 					}
