@@ -97,6 +97,8 @@ class SGB_LCD
 	int fps_time;
 	int frame_delay[60];
 
+	bool try_window_rebuild;
+
 	//SGB stuff
 	u8 sgb_mask_mode;
 	u8 sgb_gfx_mode;

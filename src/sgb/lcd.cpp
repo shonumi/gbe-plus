@@ -186,6 +186,8 @@ void SGB_LCD::reset()
 	config::sys_height = 144;
 
 	max_fullscreen_ratio = 2;
+
+	try_window_rebuild = false;
 }
 
 /****** Initialize LCD with SDL ******/
@@ -218,16 +220,13 @@ bool SGB_LCD::init()
 			SDL_GetWindowSize(window, &config::win_width, &config::win_height);
 			config::scaling_factor = 1;
 
-			std::cout<<"WW " << std::dec << config::win_width << " :: WH" << config::win_height << "\n";
-			std::cout<<"SW " << std::dec << config::sys_width << " :: SH" << config::sys_height << "\n";
-
 			final_screen = SDL_GetWindowSurface(window);
 			original_screen = SDL_CreateRGBSurface(SDL_SWSURFACE, config::sys_width, config::sys_height, 32, 0, 0, 0, 0);
 		}
 
 		if(final_screen == NULL) { return false; }
 
-		//SDL_SetWindowIcon(window, util::load_icon(config::data_path + "icons/gbe_plus.bmp"));
+		SDL_SetWindowIcon(window, util::load_icon(config::data_path + "icons/gbe_plus.bmp"));
 	}
 
 	//Initialize with only a buffer for OpenGL (for external rendering)
@@ -992,8 +991,14 @@ void SGB_LCD::step(int cpu_clock)
 								std::cout<<"LCD::Error - Could not blit\n";
 
 								//Try to make a new the window if the blit failed
-								if((window != NULL) && (config::sdl_render)) { SDL_DestroyWindow(window); }
-								init();
+								if(!try_window_rebuild)
+								{
+									try_window_rebuild = true;
+									if((window != NULL) && (config::sdl_render)) { SDL_DestroyWindow(window); }
+									init();
+								}
+
+								else { try_window_rebuild = false; }
 							}
 						}
 
@@ -1020,9 +1025,15 @@ void SGB_LCD::step(int cpu_clock)
 									std::cout<<"LCD::Error - Could not blit\n";
 
 									//Try to make a new the window if the blit failed
-									if((window != NULL) && (config::sdl_render)) { SDL_DestroyWindow(window); }
-									init();
+									if(!try_window_rebuild)
+									{
+										try_window_rebuild = true;
+										if((window != NULL) && (config::sdl_render)) { SDL_DestroyWindow(window); }
+										init();
+									}
 								}
+
+								else { try_window_rebuild = false; }
 							}
 						}
 					}
