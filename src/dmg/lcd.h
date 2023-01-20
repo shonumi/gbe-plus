@@ -130,6 +130,8 @@ class DMG_LCD
 	int fps_time;
 	int frame_delay[60];
 
+	bool try_window_rebuild;
+
 	//OAM updates
 	void update_oam();
 	void update_obj_render_list();
