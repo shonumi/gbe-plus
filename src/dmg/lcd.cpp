@@ -2021,9 +2021,9 @@ void DMG_LCD::step(int cpu_clock)
 									if((window != NULL) && (config::sdl_render)) { SDL_DestroyWindow(window); }
 									init();
 								}
-
-								else { try_window_rebuild = false; }
 							}
+
+							else { try_window_rebuild = false; }
 						}
 
 						//Otherwise, render normally (SDL 1:1, OpenGL handles its own stretching)
