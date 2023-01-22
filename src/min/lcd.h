@@ -78,6 +78,8 @@ class MIN_LCD
 	int fps_count;
 	int fps_time;
 	int frame_delay[72];
+
+	bool try_window_rebuild;
 };
 
 #endif // PM_LCD 

@@ -103,6 +103,8 @@ void MIN_LCD::reset()
 	config::sys_height = 64;
 
 	max_fullscreen_ratio = 2;
+
+	try_window_rebuild = false;
 }
 
 /****** Initialize LCD with SDL ******/
@@ -203,7 +205,20 @@ void MIN_LCD::update()
 			dest_rect.y = ((config::win_height - dest_rect.h) >> 1);
 			SDL_BlitScaled(original_screen, NULL, final_screen, &dest_rect);
 
-			if(SDL_UpdateWindowSurface(window) != 0) { std::cout<<"LCD::Error - Could not blit\n"; }
+			if(SDL_UpdateWindowSurface(window) != 0)
+			{
+				std::cout<<"LCD::Error - Could not blit\n";
+
+				//Try to make a new the window if the blit failed
+				if(!try_window_rebuild)
+				{
+					try_window_rebuild = true;
+					if((window != NULL) && (config::sdl_render)) { SDL_DestroyWindow(window); }
+					init();
+				}
+			}
+
+			else { try_window_rebuild = false; }
 		}
 					
 		//Otherwise, render normally (SDL 1:1, OpenGL handles its own stretching)
@@ -227,7 +242,20 @@ void MIN_LCD::update()
 			//Display final screen buffer - SDL
 			else 
 			{
-				if(SDL_UpdateWindowSurface(window) != 0) { std::cout<<"LCD::Error - Could not blit\n"; }
+				if(SDL_UpdateWindowSurface(window) != 0)
+				{
+					std::cout<<"LCD::Error - Could not blit\n";
+
+					//Try to make a new the window if the blit failed
+					if(!try_window_rebuild)
+					{
+						try_window_rebuild = true;
+						if((window != NULL) && (config::sdl_render)) { SDL_DestroyWindow(window); }
+						init();
+					}
+				}
+
+				else { try_window_rebuild = false; }
 			}
 		}
 	}

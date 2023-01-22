@@ -162,6 +162,8 @@ void AGB_LCD::reset()
 
 	max_fullscreen_ratio = 2;
 	power_antenna_osd = false;
+
+	try_window_rebuild = false;
 }
 
 /****** Initialize LCD with SDL ******/
