@@ -155,6 +155,8 @@ class NTR_LCD
 	int fps_time;
 	int frame_delay[60];
 
+	bool try_window_rebuild;
+
 	u8 inv_lut[8];
 	u16 screen_offset_lut[512];
 	u8 modulation_lut[4096];
