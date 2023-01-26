@@ -1118,4 +1118,3 @@ void AGB_GamePad::process_turbo_buttons()
 		}
 	}	
 }
-

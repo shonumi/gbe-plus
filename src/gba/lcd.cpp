@@ -1602,6 +1602,9 @@ void AGB_LCD::step()
 			//Jukebox
 			if((config::cart_type == AGB_JUKEBOX) && (mem->jukebox.progress)) { mem->process_jukebox(); }
 
+			//Process Turbo Buttons
+			if(mem->g_pad->turbo_button_enabled) { mem->g_pad->process_turbo_buttons(); }
+
 			//Use SDL
 			if(config::sdl_render)
 			{
