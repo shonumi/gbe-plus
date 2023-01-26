@@ -34,6 +34,7 @@ class NTR_GamePad
 	void process_joystick(int pad, bool pressed);
 	void process_mouse(int pad, bool pressed);
 	void process_virtual_cursor();
+	void process_turbo_buttons();
 
 	void start_rumble(s32 len);
 	void stop_rumble();
@@ -61,6 +62,11 @@ class NTR_GamePad
 	bool joy_init;
 	u16 key_cnt;
 	u16 con_flags;
+
+	u32 turbo_button_enabled;
+	bool turbo_button_stat[12];
+	bool turbo_button_end[12];
+	u32 turbo_button_val[12];
 
 	private:
 

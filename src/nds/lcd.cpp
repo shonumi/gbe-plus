@@ -4239,6 +4239,9 @@ void NTR_LCD::step()
 				fps_count = 0; 
 			}
 
+			//Process Turbo Buttons
+			if(mem->g_pad->turbo_button_enabled) { mem->g_pad->process_turbo_buttons(); }
+
 			//Check for screen resize - Horizontal vs Vertical
 			if(config::request_resize)
 			{

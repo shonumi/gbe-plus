@@ -83,6 +83,18 @@ void NTR_GamePad::init()
 			std::cout<<"JOY::Rumble initialized\n";
 		}
 	}
+
+	//Check for turbo button enabled status by adding all frame delays
+	//As long as the total amount of frame delays is non-zero, enable turbo buttons
+	turbo_button_enabled = 0;
+
+	for(u32 x = 0; x < 12; x++)
+	{
+		turbo_button_enabled += config::gbe_turbo_button[x];
+		turbo_button_val[x] = 0;
+		turbo_button_stat[x] = false;
+		turbo_button_end[x] = false;
+	}
 }
 
 /****** GamePad Destructor ******/
@@ -395,6 +407,9 @@ void NTR_GamePad::handle_input(SDL_Event &event)
 	}
 
 	else { joypad_irq = false; }
+
+	//Process turbo buttons
+	if(turbo_button_enabled) { process_turbo_buttons(); }
 }	
 
 /****** Processes input based on unique pad # for keyboards ******/
@@ -686,6 +701,23 @@ void NTR_GamePad::process_keyboard(int pad, bool pressed)
 			}
 		}
 	}
+
+	//Terminate Turbo Buttons
+	if(turbo_button_enabled)
+	{
+		if(pad == config::gbe_key_a) { turbo_button_end[0] = (pressed) ? false : true; }
+		else if(pad == config::gbe_key_b) { turbo_button_end[1] = (pressed) ? false : true; }
+		else if(pad == config::gbe_key_x) { turbo_button_end[2] = (pressed) ? false : true; }
+		else if(pad == config::gbe_key_y) { turbo_button_end[3] = (pressed) ? false : true; }
+		else if(pad == config::gbe_key_start) { turbo_button_end[4] = (pressed) ? false : true; }
+		else if(pad == config::gbe_key_select) { turbo_button_end[5] = (pressed) ? false : true; }
+		else if(pad == config::gbe_key_left) { turbo_button_end[6] = (pressed) ? false : true; }
+		else if(pad == config::gbe_key_right) { turbo_button_end[7] = (pressed) ? false : true; }
+		else if(pad == config::gbe_key_up) { turbo_button_end[8] = (pressed) ? false : true; }
+		else if(pad == config::gbe_key_down) { turbo_button_end[9] = (pressed) ? false : true; }
+		else if(pad == config::gbe_key_l_trigger) { turbo_button_end[10] = (pressed) ? false : true; }
+		else if(pad == config::gbe_key_r_trigger) { turbo_button_end[11] = (pressed) ? false : true; }
+	}
 }
 
 /****** Processes input based on unique pad # for joysticks ******/
@@ -908,6 +940,23 @@ void NTR_GamePad::process_joystick(int pad, bool pressed)
 
 		vc_pause = 0;
 	}
+
+	//Terminate Turbo Buttons
+	if(turbo_button_enabled)
+	{
+		if(pad == config::gbe_joy_a) { turbo_button_end[0] = (pressed) ? false : true; }
+		else if(pad == config::gbe_joy_b) { turbo_button_end[1] = (pressed) ? false : true; }
+		else if(pad == config::gbe_joy_x) { turbo_button_end[2] = (pressed) ? false : true; }
+		else if(pad == config::gbe_joy_y) { turbo_button_end[3] = (pressed) ? false : true; }
+		else if(pad == config::gbe_joy_start) { turbo_button_end[4] = (pressed) ? false : true; }
+		else if(pad == config::gbe_joy_select) { turbo_button_end[5] = (pressed) ? false : true; }
+		else if(pad == config::gbe_joy_left) { turbo_button_end[6] = (pressed) ? false : true; }
+		else if(pad == config::gbe_joy_right) { turbo_button_end[7] = (pressed) ? false : true; }
+		else if(pad == config::gbe_joy_up) { turbo_button_end[8] = (pressed) ? false : true; }
+		else if(pad == config::gbe_joy_down) { turbo_button_end[9] = (pressed) ? false : true; }
+		else if(pad == config::gbe_joy_l_trigger) { turbo_button_end[10] = (pressed) ? false : true; }
+		else if(pad == config::gbe_joy_r_trigger) { turbo_button_end[11] = (pressed) ? false : true; }
+	}
 }
 
 /****** Processes input based on the mouse ******/
@@ -1027,4 +1076,65 @@ void NTR_GamePad::clear_input()
 	mouse_y = 0xFFF;
 	touch_hold = false;
 	touch_by_mouse = false;
+}
+
+/****** Process turbo button input ******/
+void NTR_GamePad::process_turbo_buttons()
+{
+	for(u32 x = 0; x < 12; x++)
+	{
+		u16 *input = NULL;
+		u16 mask = 0;
+
+		//Grab the appropiate mask for each button
+		//Cycle through all turbo buttons (0 - 11), and only use those that apply to this core
+		switch(x)
+		{
+			case 0: input = &key_input; mask = 0x01; break;
+			case 1: input = &key_input; mask = 0x02; break;
+			case 2: input = &ext_key_input; mask = 0x01; break;
+			case 3: input = &ext_key_input; mask = 0x02; break;
+			case 4: input = &key_input; mask = 0x08; break;
+			case 5: input = &key_input; mask = 0x04; break;
+			case 6: input = &key_input; mask = 0x20; break;
+			case 7: input = &key_input; mask = 0x10; break;
+			case 8: input = &key_input; mask = 0x40; break;
+			case 9: input = &key_input; mask = 0x80; break;
+			case 10: input = &key_input; mask = 0x200; break;
+			case 11: input = &key_input; mask = 0x100; break;
+		}
+
+		//Continue only if turbo button is used on this core
+		if(mask)
+		{
+			//Turbo Button Start
+			if(((*input & mask) == 0) && (config::gbe_turbo_button[x]) && (!turbo_button_stat[x]))
+			{
+				turbo_button_stat[x] = true;
+				turbo_button_val[x] = 0;
+				*input |= mask;
+			}
+
+			//Turbo Button Delay
+			else if(turbo_button_stat[x])
+			{
+				turbo_button_val[x]++;
+
+				if(turbo_button_val[x] >= config::gbe_turbo_button[x])
+				{
+					turbo_button_stat[x] = false;
+					*input &= ~mask;
+				}
+			}
+
+			//Turbo Button End
+			if(turbo_button_end[x])
+			{
+				turbo_button_end[x] = false;
+				turbo_button_stat[x] = false;
+				turbo_button_val[x] = 0;
+				*input |= mask;
+			}
+		}
+	}	
 }
