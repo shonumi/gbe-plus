@@ -305,6 +305,9 @@ void MIN_LCD::update()
 		SDL_SetWindowTitle(window, config::title.str().c_str());
 		fps_count = 0; 
 	}
+
+	//Process Turbo Buttons
+	if(mem->g_pad->turbo_button_enabled) { mem->g_pad->process_turbo_buttons(); }
 }
 
 /****** Renders a new frame of the Pokemon Mini PRC map ******/

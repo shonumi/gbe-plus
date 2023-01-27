@@ -36,8 +36,14 @@ class MIN_GamePad
 
 	void process_keyboard(int pad, bool pressed);
 	void process_joystick(int pad, bool pressed);
+	void process_turbo_buttons();
 	void start_rumble();
 	void stop_rumble();
+
+	u32 turbo_button_enabled;
+	bool turbo_button_stat[12];
+	bool turbo_button_end[12];
+	u32 turbo_button_val[12];
 
 	private:
 
