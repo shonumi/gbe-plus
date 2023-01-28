@@ -1141,44 +1141,37 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	controls_layout->addWidget(input_l_set);
 	controls_layout->addWidget(input_r_set);
 	controls_layout->addWidget(dead_zone_set);
-	controls->setLayout(controls_layout);
 
-	advanced_controls_layout = new QVBoxLayout;
-	advanced_controls_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-	advanced_controls_layout->addWidget(rumble_set);
-	advanced_controls_layout->addWidget(con_up_set);
-	advanced_controls_layout->addWidget(con_down_set);
-	advanced_controls_layout->addWidget(con_left_set);
-	advanced_controls_layout->addWidget(con_right_set);
-	advanced_controls_layout->addWidget(con_1_set);
-	advanced_controls_layout->addWidget(con_2_set);
-	advanced_controls_layout->addWidget(motion_set);
-	advanced_controls_layout->addWidget(motion_dead_zone_set);
-	advanced_controls_layout->addWidget(motion_scaler_set);
-	advanced_controls_layout->addWidget(ddr_mapping_set);
+	controls_layout->addWidget(rumble_set);
+	controls_layout->addWidget(con_up_set);
+	controls_layout->addWidget(con_down_set);
+	controls_layout->addWidget(con_left_set);
+	controls_layout->addWidget(con_right_set);
+	controls_layout->addWidget(con_1_set);
+	controls_layout->addWidget(con_2_set);
+	controls_layout->addWidget(motion_set);
+	controls_layout->addWidget(motion_dead_zone_set);
+	controls_layout->addWidget(motion_scaler_set);
+	controls_layout->addWidget(ddr_mapping_set);
 
-	hotkey_controls_layout = new QVBoxLayout;
-	hotkey_controls_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-	hotkey_controls_layout->addWidget(hotkey_turbo_set);
-	hotkey_controls_layout->addWidget(hotkey_mute_set);
-	hotkey_controls_layout->addWidget(hotkey_camera_set);
-	hotkey_controls_layout->addWidget(hotkey_swap_screen_set);
-	hotkey_controls_layout->addWidget(hotkey_shift_screen_set);
+	controls_layout->addWidget(hotkey_turbo_set);
+	controls_layout->addWidget(hotkey_mute_set);
+	controls_layout->addWidget(hotkey_camera_set);
+	controls_layout->addWidget(hotkey_swap_screen_set);
+	controls_layout->addWidget(hotkey_shift_screen_set);
 	
-	bcg_controls_layout = new QVBoxLayout;
-	bcg_controls_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-	bcg_controls_layout->addWidget(bcg_gate_set);
-	bcg_controls_layout->addWidget(bcg_chip_1_set);
-	bcg_controls_layout->addWidget(bcg_chip_2_set);
-	bcg_controls_layout->addWidget(bcg_chip_3_set);
-	bcg_controls_layout->addWidget(bcg_chip_4_set);
+	controls_layout->addWidget(bcg_gate_set);
+	controls_layout->addWidget(bcg_chip_1_set);
+	controls_layout->addWidget(bcg_chip_2_set);
+	controls_layout->addWidget(bcg_chip_3_set);
+	controls_layout->addWidget(bcg_chip_4_set);
 
-	vc_controls_layout = new QVBoxLayout;
-	vc_controls_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-	vc_controls_layout->addWidget(vc_enable_set);
-	vc_controls_layout->addWidget(vc_opacity_set);
-	vc_controls_layout->addWidget(vc_timeout_set);
-	vc_controls_layout->addWidget(vc_path_set);
+	controls_layout->addWidget(vc_enable_set);
+	controls_layout->addWidget(vc_opacity_set);
+	controls_layout->addWidget(vc_timeout_set);
+	controls_layout->addWidget(vc_path_set);
+
+	controls->setLayout(controls_layout);
 	
 	rumble_set->setVisible(false);
 	con_up_set->setVisible(false);
@@ -3368,83 +3361,31 @@ void gen_settings::close_input()
 /****** Changes Qt widget layout - Switches between advanced control configuration mode ******/
 void gen_settings::switch_control_layout()
 {
-	//Switch to Advanced Control layout
-	if(controls_combo->currentIndex() == 1)
+	//Set all advanced control widgets to visible
+	for(int x = 0; x < controls_layout->count(); x++)
 	{
-		//Set all advanced control widgets to visible
-		for(int x = 0; x < advanced_controls_layout->count(); x++)
-		{
-			advanced_controls_layout->itemAt(x)->widget()->setVisible(true);
-		}
+		controls_layout->itemAt(x)->widget()->setVisible(false);
+	}
 
-		//Set all standard control widgets to invisible
-		for(int x = 0; x < controls_layout->count(); x++)
+	//Switch to Standard Control layout
+	if(controls_combo->currentIndex() == 0)
+	{
+		for(int x = 0; x <= 13; x++)
 		{
-			controls_layout->itemAt(x)->widget()->setVisible(false);
+			controls_layout->itemAt(x)->widget()->setVisible(true);
 		}
-
-		//Set all hotkey control widgets to invisible
-		for(int x = 0; x < hotkey_controls_layout->count(); x++)
-		{
-			hotkey_controls_layout->itemAt(x)->widget()->setVisible(false);
-		}
-
-		//Set all Battle Chip Gate control widgets to invisible
-		for(int x = 0; x < bcg_controls_layout->count(); x++)
-		{
-			bcg_controls_layout->itemAt(x)->widget()->setVisible(false);
-		}
-
-		//Set all Virtual Cursor control widgets to invisible
-		for(int x = 0; x < vc_controls_layout->count(); x++)
-		{
-			vc_controls_layout->itemAt(x)->widget()->setVisible(false);
-		}
-
-		delete controls->layout();
-		advanced_controls_layout->insertWidget(0, input_device_set);
-		controls->setLayout(advanced_controls_layout);
 
 		input_device_set->setVisible(true);
 		input_device_set->setEnabled(true);
 	}
 
-	//Switch to Standard Control layout
-	else if(controls_combo->currentIndex() == 0)
+	//Switch to Advanced Control layout
+	else if(controls_combo->currentIndex() == 1)
 	{
-		//Set all advanced control widgets to invisible
-		for(int x = 0; x < advanced_controls_layout->count(); x++)
-		{
-			advanced_controls_layout->itemAt(x)->widget()->setVisible(false);
-		}
-
-		//Set all standard control widgets to visible
-		for(int x = 0; x < controls_layout->count(); x++)
+		for(int x = 14; x <= 24; x++)
 		{
 			controls_layout->itemAt(x)->widget()->setVisible(true);
 		}
-
-		//Set all hotkey control widgets to invisible
-		for(int x = 0; x < hotkey_controls_layout->count(); x++)
-		{
-			hotkey_controls_layout->itemAt(x)->widget()->setVisible(false);
-		}
-
-		//Set all Battle Chip Gate control widgets to invisible
-		for(int x = 0; x < bcg_controls_layout->count(); x++)
-		{
-			bcg_controls_layout->itemAt(x)->widget()->setVisible(false);
-		}
-
-		//Set all Virtual Cursor control widgets to invisible
-		for(int x = 0; x < vc_controls_layout->count(); x++)
-		{
-			vc_controls_layout->itemAt(x)->widget()->setVisible(false);
-		}
-
-		delete controls->layout();
-		controls_layout->insertWidget(0, input_device_set);
-		controls->setLayout(controls_layout);
 
 		input_device_set->setVisible(true);
 		input_device_set->setEnabled(true);
@@ -3453,197 +3394,38 @@ void gen_settings::switch_control_layout()
 	//Switch to Hotkey layout
 	else if(controls_combo->currentIndex() == 2)
 	{
-		//Set all advanced control widgets to invisible
-		for(int x = 0; x < advanced_controls_layout->count(); x++)
+		for(int x = 25; x <= 29; x++)
 		{
-			advanced_controls_layout->itemAt(x)->widget()->setVisible(false);
+			controls_layout->itemAt(x)->widget()->setVisible(true);
 		}
-
-		//Set all standard control widgets to invisible
-		for(int x = 0; x < controls_layout->count(); x++)
-		{
-			controls_layout->itemAt(x)->widget()->setVisible(false);
-		}
-
-		//Set all hotkey control widgets to visible
-		for(int x = 0; x < hotkey_controls_layout->count(); x++)
-		{
-			hotkey_controls_layout->itemAt(x)->widget()->setVisible(true);
-		}
-
-		//Set all Battle Chip Gate control widgets to invisible
-		for(int x = 0; x < bcg_controls_layout->count(); x++)
-		{
-			bcg_controls_layout->itemAt(x)->widget()->setVisible(false);
-		}
-
-		//Set all Virtual Cursor control widgets to invisible
-		for(int x = 0; x < vc_controls_layout->count(); x++)
-		{
-			vc_controls_layout->itemAt(x)->widget()->setVisible(false);
-		}
-
-		delete controls->layout();
-		hotkey_controls_layout->insertWidget(0, input_device_set);
-		controls->setLayout(hotkey_controls_layout);
 
 		input_device_set->setVisible(true);
 		input_device_set->setEnabled(false);
-		input_device->setCurrentIndex(0);
 	}
 
 	//Switch to Battle Chip Gate layout
 	else if(controls_combo->currentIndex() == 3)
 	{
-		//Set all advanced control widgets to invisible
-		for(int x = 0; x < advanced_controls_layout->count(); x++)
+		for(int x = 30; x <= 34; x++)
 		{
-			advanced_controls_layout->itemAt(x)->widget()->setVisible(false);
+			controls_layout->itemAt(x)->widget()->setVisible(true);
 		}
-
-		//Set all standard control widgets to invisible
-		for(int x = 0; x < controls_layout->count(); x++)
-		{
-			controls_layout->itemAt(x)->widget()->setVisible(false);
-		}
-
-		//Set all Battle Chip Gate control widgets to visible
-		for(int x = 0; x < bcg_controls_layout->count(); x++)
-		{
-			bcg_controls_layout->itemAt(x)->widget()->setVisible(true);
-		}
-
-		//Set all hotkey control widgets to invisible
-		for(int x = 0; x < hotkey_controls_layout->count(); x++)
-		{
-			hotkey_controls_layout->itemAt(x)->widget()->setVisible(false);
-		}
-
-		//Set all Virtual Cursor control widgets to invisible
-		for(int x = 0; x < vc_controls_layout->count(); x++)
-		{
-			vc_controls_layout->itemAt(x)->widget()->setVisible(false);
-		}
-
-		delete controls->layout();
-		bcg_controls_layout->insertWidget(0, input_device_set);
-		controls->setLayout(bcg_controls_layout);
 
 		input_device_set->setVisible(true);
 		input_device_set->setEnabled(false);
-		input_device->setCurrentIndex(0);
 	}
 
 	//Switch to Virtual Cursor layout
 	else if(controls_combo->currentIndex() == 4)
 	{
-		//Set all advanced control widgets to invisible
-		for(int x = 0; x < advanced_controls_layout->count(); x++)
+		for(int x = 35; x <= 38; x++)
 		{
-			advanced_controls_layout->itemAt(x)->widget()->setVisible(false);
+			controls_layout->itemAt(x)->widget()->setVisible(true);
 		}
-
-		//Set all standard control widgets to invisible
-		for(int x = 0; x < controls_layout->count(); x++)
-		{
-			controls_layout->itemAt(x)->widget()->setVisible(false);
-		}
-
-		//Set all Battle Chip Gate control widgets to visible
-		for(int x = 0; x < bcg_controls_layout->count(); x++)
-		{
-			bcg_controls_layout->itemAt(x)->widget()->setVisible(false);
-		}
-
-		//Set all hotkey control widgets to invisible
-		for(int x = 0; x < hotkey_controls_layout->count(); x++)
-		{
-			hotkey_controls_layout->itemAt(x)->widget()->setVisible(false);
-		}
-
-		//Set all Virtual Cursor control widgets to invisible
-		for(int x = 0; x < vc_controls_layout->count(); x++)
-		{
-			vc_controls_layout->itemAt(x)->widget()->setVisible(true);
-		}
-
-		delete controls->layout();
-		vc_controls_layout->insertWidget(0, input_device_set);
-		controls->setLayout(vc_controls_layout);
 
 		input_device_set->setVisible(true);
 		input_device_set->setEnabled(false);
-		input_device->setCurrentIndex(0);
 	}
-
-	//Rebuild old layout (was deleted above)
-	switch(last_control_id)
-	{
-		case 0:
-			controls_layout = new QVBoxLayout;
-			controls_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-			controls_layout->addWidget(input_a_set);
-			controls_layout->addWidget(input_b_set);
-			controls_layout->addWidget(input_x_set);
-			controls_layout->addWidget(input_y_set);
-			controls_layout->addWidget(input_start_set);
-			controls_layout->addWidget(input_select_set);
-			controls_layout->addWidget(input_left_set);
-			controls_layout->addWidget(input_right_set);
-			controls_layout->addWidget(input_up_set);
-			controls_layout->addWidget(input_down_set);
-			controls_layout->addWidget(input_l_set);
-			controls_layout->addWidget(input_r_set);
-			controls_layout->addWidget(dead_zone_set);
-			break;
-
-		case 1:
-			advanced_controls_layout = new QVBoxLayout;
-			advanced_controls_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-			advanced_controls_layout->addWidget(rumble_set);
-			advanced_controls_layout->addWidget(con_up_set);
-			advanced_controls_layout->addWidget(con_down_set);
-			advanced_controls_layout->addWidget(con_left_set);
-			advanced_controls_layout->addWidget(con_right_set);
-			advanced_controls_layout->addWidget(con_1_set);
-			advanced_controls_layout->addWidget(con_2_set);
-			advanced_controls_layout->addWidget(motion_set);
-			advanced_controls_layout->addWidget(motion_dead_zone_set);
-			advanced_controls_layout->addWidget(motion_scaler_set);
-			advanced_controls_layout->addWidget(ddr_mapping_set);
-			break;
-
-		case 2:
-			hotkey_controls_layout = new QVBoxLayout;
-			hotkey_controls_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-			hotkey_controls_layout->addWidget(hotkey_turbo_set);
-			hotkey_controls_layout->addWidget(hotkey_mute_set);
-			hotkey_controls_layout->addWidget(hotkey_camera_set);
-			hotkey_controls_layout->addWidget(hotkey_swap_screen_set);
-			hotkey_controls_layout->addWidget(hotkey_shift_screen_set);
-			break;
-
-		case 3:
-			bcg_controls_layout = new QVBoxLayout;
-			bcg_controls_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-			bcg_controls_layout->addWidget(bcg_gate_set);
-			bcg_controls_layout->addWidget(bcg_chip_1_set);
-			bcg_controls_layout->addWidget(bcg_chip_2_set);
-			bcg_controls_layout->addWidget(bcg_chip_3_set);
-			bcg_controls_layout->addWidget(bcg_chip_4_set);
-			break;
-
-		case 4:
-			vc_controls_layout = new QVBoxLayout;
-			vc_controls_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-			vc_controls_layout->addWidget(vc_enable_set);
-			vc_controls_layout->addWidget(vc_opacity_set);
-			vc_controls_layout->addWidget(vc_timeout_set);
-			vc_controls_layout->addWidget(vc_path_set);
-			break;
-	}
-
-	last_control_id = controls_combo->currentIndex();
 }
 
 /****** Updates the settings window ******/
