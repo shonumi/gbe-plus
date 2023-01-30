@@ -48,7 +48,7 @@ class gen_settings : public QDialog
 	QTabWidget* tabs;
 	QDialogButtonBox* tabs_button;
 	QComboBox* controls_combo;
-	u8 last_control_id;
+	u32 control_id_end[5];
 
 	//General tab widgets
 	QComboBox* sys_type;

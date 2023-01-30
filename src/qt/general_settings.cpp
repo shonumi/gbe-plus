@@ -1127,6 +1127,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 
 	controls_layout = new QVBoxLayout;
 	controls_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+
 	controls_layout->addWidget(input_device_set);
 	controls_layout->addWidget(input_a_set);
 	controls_layout->addWidget(input_b_set);
@@ -1141,6 +1142,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	controls_layout->addWidget(input_l_set);
 	controls_layout->addWidget(input_r_set);
 	controls_layout->addWidget(dead_zone_set);
+	control_id_end[0] = controls_layout->count();
 
 	controls_layout->addWidget(rumble_set);
 	controls_layout->addWidget(con_up_set);
@@ -1153,23 +1155,27 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	controls_layout->addWidget(motion_dead_zone_set);
 	controls_layout->addWidget(motion_scaler_set);
 	controls_layout->addWidget(ddr_mapping_set);
+	control_id_end[1] = controls_layout->count();
 
 	controls_layout->addWidget(hotkey_turbo_set);
 	controls_layout->addWidget(hotkey_mute_set);
 	controls_layout->addWidget(hotkey_camera_set);
 	controls_layout->addWidget(hotkey_swap_screen_set);
 	controls_layout->addWidget(hotkey_shift_screen_set);
+	control_id_end[2] = controls_layout->count();
 	
 	controls_layout->addWidget(bcg_gate_set);
 	controls_layout->addWidget(bcg_chip_1_set);
 	controls_layout->addWidget(bcg_chip_2_set);
 	controls_layout->addWidget(bcg_chip_3_set);
 	controls_layout->addWidget(bcg_chip_4_set);
+	control_id_end[3] = controls_layout->count();
 
 	controls_layout->addWidget(vc_enable_set);
 	controls_layout->addWidget(vc_opacity_set);
 	controls_layout->addWidget(vc_timeout_set);
 	controls_layout->addWidget(vc_path_set);
+	control_id_end[4] = controls_layout->count();
 
 	controls->setLayout(controls_layout);
 	
@@ -1782,7 +1788,6 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	resize_screen = false;
 	grab_input = false;
 	input_type = 0;
-	last_control_id = 0;
 	is_sgb_core = false;
 
 	dmg_cheat_menu = new cheat_menu;
@@ -3370,7 +3375,7 @@ void gen_settings::switch_control_layout()
 	//Switch to Standard Control layout
 	if(controls_combo->currentIndex() == 0)
 	{
-		for(int x = 0; x <= 13; x++)
+		for(int x = 0; x < control_id_end[0]; x++)
 		{
 			controls_layout->itemAt(x)->widget()->setVisible(true);
 		}
@@ -3382,7 +3387,7 @@ void gen_settings::switch_control_layout()
 	//Switch to Advanced Control layout
 	else if(controls_combo->currentIndex() == 1)
 	{
-		for(int x = 14; x <= 24; x++)
+		for(int x = control_id_end[0]; x < control_id_end[1]; x++)
 		{
 			controls_layout->itemAt(x)->widget()->setVisible(true);
 		}
@@ -3394,7 +3399,7 @@ void gen_settings::switch_control_layout()
 	//Switch to Hotkey layout
 	else if(controls_combo->currentIndex() == 2)
 	{
-		for(int x = 25; x <= 29; x++)
+		for(int x = control_id_end[1]; x < control_id_end[2]; x++)
 		{
 			controls_layout->itemAt(x)->widget()->setVisible(true);
 		}
@@ -3406,7 +3411,7 @@ void gen_settings::switch_control_layout()
 	//Switch to Battle Chip Gate layout
 	else if(controls_combo->currentIndex() == 3)
 	{
-		for(int x = 30; x <= 34; x++)
+		for(int x = control_id_end[2]; x < control_id_end[3]; x++)
 		{
 			controls_layout->itemAt(x)->widget()->setVisible(true);
 		}
@@ -3418,7 +3423,7 @@ void gen_settings::switch_control_layout()
 	//Switch to Virtual Cursor layout
 	else if(controls_combo->currentIndex() == 4)
 	{
-		for(int x = 35; x <= 38; x++)
+		for(int x = control_id_end[3]; x < control_id_end[4]; x++)
 		{
 			controls_layout->itemAt(x)->widget()->setVisible(true);
 		}
