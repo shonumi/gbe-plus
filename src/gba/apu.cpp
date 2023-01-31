@@ -153,6 +153,13 @@ bool AGB_APU::init()
 {
 	bool init_status = false;
 
+	//Override SDL audio driver if necessary
+	if(!config::override_audio_driver.empty())
+	{
+		std::string env_var = "SDL_AUDIODRIVER=" + config::override_audio_driver;
+		putenv(const_cast<char*>(env_var.c_str()));
+	}
+
 	//Initialize audio subsystem
 	if(SDL_InitSubSystem(SDL_INIT_AUDIO) == -1)
 	{
