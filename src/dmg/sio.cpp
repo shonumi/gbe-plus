@@ -500,20 +500,20 @@ void DMG_SIO::reset()
 	
 	if(config::ir_device == 1)
 	{
-		std::string database = config::data_path + "zzh_db.bin";
+		std::string database = config::data_path + "infrared/zzh_db.bin";
 		full_changer_load_db(database);
 	}
 
 	else if(config::ir_device == 2)
 	{
-		std::string database = config::data_path + "pokemon_pikachu_db.bin";
+		std::string database = config::data_path + "infrared/pokemon_pikachu_db.bin";
 		pocket_ir.db_step = 0x7D7;
 		pocket_ir_load_db(database);
 	}
 
 	else if(config::ir_device == 3)
 	{
-		std::string database = config::data_path + "pocket_sakura_db.bin";
+		std::string database = config::data_path + "infrared/pocket_sakura_db.bin";
 		pocket_ir.db_step = 0x647;
 		pocket_ir_load_db(database);
 	}
