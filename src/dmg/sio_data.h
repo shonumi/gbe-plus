@@ -137,6 +137,7 @@ struct dmg_sio_data
 	u32 shift_clock;
 	u32 sync_counter;
 	u32 sync_clock;
+	u8 sync_delay;
 	u32 dmg07_clock;
 	sio_types sio_type;
 	ir_types ir_type;

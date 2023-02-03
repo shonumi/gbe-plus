@@ -250,6 +250,7 @@ void DMG_SIO::reset()
 	sio_stat.dmg07_clock = 2048;
 	sio_stat.sync_counter = 0;
 	sio_stat.sync_clock = config::netplay_sync_threshold;
+	sio_stat.sync_delay = 0;
 	sio_stat.sync = false;
 	sio_stat.transfer_byte = 0;
 	sio_stat.last_transfer = 0;
@@ -702,6 +703,7 @@ bool DMG_SIO::receive_byte()
 			{
 				sio_stat.sync = false;
 				sio_stat.sync_counter = 0;
+				sio_stat.sync_clock = config::netplay_sync_threshold + temp_buffer[0];
 				return true;
 			}
 
@@ -815,8 +817,12 @@ bool DMG_SIO::request_sync()
 		return true;
 	}
 
+	//Calculate the number of cycles this instance ran beyond the specified hard sync threshold
+	//Next instance will try to catch up to better stay in sync
+	sio_stat.sync_delay = sio_stat.sync_counter - sio_stat.sync_clock;
+	
 	u8 temp_buffer[2];
-	temp_buffer[0] = 0;
+	temp_buffer[0] = sio_stat.sync_delay;
 	temp_buffer[1] = 0xFF;
 
 	//Send the sync code 0xFF
