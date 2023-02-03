@@ -69,6 +69,7 @@ namespace util
 	u32 reflect(u32 src, u8 bit);
 	void init_crc32_table();
 	u32 get_crc32(u8* data, u32 length);
+	u32 get_file_crc32(std::string filename);
 
 	u32 get_addler32(u8* data, u32 length);
 

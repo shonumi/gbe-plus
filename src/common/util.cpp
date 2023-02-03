@@ -555,6 +555,32 @@ u32 get_crc32(u8* data, u32 length)
 	return (crc32 ^ 0xFFFFFFFF);
 }
 
+/****** Returns the CRC32 of a given file ******/
+u32 get_file_crc32(std::string filename)
+{
+	u32 result = 0;
+	std::vector<u8> file_data;
+	std::ifstream file(filename.c_str(), std::ios::binary);
+
+	if(!file.is_open()) 
+	{
+		std::cout<<"Could not get the CRC32 of the file " << filename << "\n";
+		return false;
+	}
+
+	//Get the file size
+	file.seekg(0, file.end);
+	u32 file_size = file.tellg();
+	file.seekg(0, file.beg);
+
+	file_data.resize(file_size);
+	u8* ex_mem = &file_data[0];
+	file.read((char*)ex_mem, file_size);
+
+	result = get_crc32(ex_mem, file_size);
+	return result;
+}
+
 /****** Return Addler32 for given data ******/
 u32 get_addler32(u8* data, u32 length)
 {
