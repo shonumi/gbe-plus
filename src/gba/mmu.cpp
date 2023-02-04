@@ -2224,7 +2224,7 @@ bool AGB_MMU::read_file(std::string filename)
 	if(config::cart_type == AGB_AM3)
 	{
 		//Read firmware file first
-		std::string firm_file = config::data_path + "am3_firmware.bin";
+		std::string firm_file = config::data_path + "firmware/am3_firmware.bin";
 		if(!read_am3_firmware(firm_file))
 		{
 			file.close();
