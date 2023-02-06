@@ -29,6 +29,7 @@ bool parse_ini_file();
 bool parse_cheats_file(bool add_cheats);
 bool save_ini_file();
 bool save_cheats_file();
+void get_firmware_hashes();
 
 bool load_osd_font();
 void draw_osd_msg(std::string osd_text, std::vector <u32> &osd_surface, u8 x_offset, u8 y_offset);
@@ -94,6 +95,8 @@ namespace config
 	extern std::string external_data_file;
 	extern std::vector <std::string> recent_files;
 	extern std::vector <std::string> cli_args;
+	extern std::vector <std::string> bin_files;
+	extern std::vector <u32> bin_hashes;
 
 	extern u32 gbe_key_a, gbe_key_b, gbe_key_x, gbe_key_y, gbe_key_start, gbe_key_select, gbe_key_up, gbe_key_down, gbe_key_left, gbe_key_right, gbe_key_r_trigger, gbe_key_l_trigger;
 	extern u32 gbe_joy_a, gbe_joy_b, gbe_joy_x, gbe_joy_y, gbe_joy_start, gbe_joy_select, gbe_joy_up, gbe_joy_down, gbe_joy_left, gbe_joy_right, gbe_joy_r_trigger, gbe_joy_l_trigger;

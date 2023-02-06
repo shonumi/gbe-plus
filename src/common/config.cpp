@@ -10,6 +10,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <filesystem>
 
 #include <cstdlib>
 
@@ -42,6 +43,8 @@ namespace config
 	std::string external_data_file = "";
 	std::vector <std::string> recent_files;
 	std::vector <std::string> cli_args;
+	std::vector <std::string> bin_files;
+	std::vector <u32> bin_hashes;
 	bool use_debugger = false;
 
 	//Default keyboard bindings
@@ -2894,6 +2897,9 @@ bool parse_ini_file()
 		}
 	}
 
+	//Grab firmware hashes - Must be done AFTER a valid data folder is obtained
+	get_firmware_hashes();
+
 	return true;
 }
 
@@ -4058,4 +4064,51 @@ bool save_cheats_file()
 
 	file.close();
 	return true;
+}
+
+/****** Hashes all files in the 'firmware' folder of the data directory ******/
+void get_firmware_hashes()
+{
+	if(config::data_path.empty()) { return; }
+
+	std::string firmware_folder = config::data_path + "bin/firmware/";
+
+	//Check to see if folder exists, then grab all files there (non-recursive)
+	std::filesystem::path fs_path { firmware_folder };
+
+	if(!std::filesystem::exists(fs_path))
+	{
+		std::cout<<"GBE::Error - Firmware folder at " << firmware_folder << "does not exist.\n";
+		return;
+	}
+
+	//Check to see that the path points to a folder
+	if(!std::filesystem::is_directory(fs_path))
+	{
+		std::cout<<"GBE::Error - " << firmware_folder << "is not a folder.\n";
+		return;
+	}
+
+	//Clear any previous data related to firmware hashes
+	config::bin_files.clear();
+	config::bin_hashes.clear();
+
+	//Cycle through all available files in the folder
+	std::filesystem::directory_iterator fs_files;
+
+	for(fs_files = std::filesystem::directory_iterator(fs_path); fs_files != std::filesystem::directory_iterator(); fs_files++)
+	{
+		//Hash and store data
+		std::string f_name = fs_files->path();
+		u32 crc = util::get_file_crc32(f_name);
+
+		if(crc)
+		{
+			config::bin_files.push_back(f_name);
+			config::bin_hashes.push_back(crc);
+
+			std::cout<<"FILE -> " << f_name << "\n";
+			std::cout<<"HASH -> 0x" << std::hex << crc << "\n\n";
+		}
+	}
 }
