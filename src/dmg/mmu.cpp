@@ -10,6 +10,8 @@
 // Used to switch ROM and RAM banks
 // Also loads ROM and BIOS files
 
+#include <filesystem>
+
 #include "mmu.h"
 #include "common/cgfx_common.h"
 #include "common/util.h"
@@ -2156,6 +2158,27 @@ bool DMG_MMU::read_file(std::string filename)
 /****** Read GB BIOS ******/
 bool DMG_MMU::read_bios(std::string filename)
 {
+	//Check if the preferred file from config::bios_file is even available, otherwise, try opening anything in data/bin/firmware
+	std::filesystem::path bios_file { config::bios_file };
+
+	if(!std::filesystem::exists(bios_file))
+	{
+		u32 hash = 0;
+		u8 rank = 0;
+
+		//Select BIOS is this order: GBC (REV1, REV0), MGB, DMG (REV1, REV0)
+		for(u32 x = 0; x < config::bin_hashes.size(); x++)
+		{
+			hash = config::bin_hashes[x];
+
+			if(hash == 0x41884E46) { filename = config::bin_files[x]; rank = 5; }
+			else if((hash == 0xE8EF5318) && (rank < 4)) { filename = config::bin_files[x]; rank = 4; }
+			else if((hash == 0xE6920754) && (rank < 3)) { filename = config::bin_files[x]; rank = 3; }
+			else if((hash == 0x59C8598E) && (rank < 2)) { filename = config::bin_files[x]; rank = 2; }
+			else if((hash == 0xC2f5CC97) && (rank < 1)) { filename = config::bin_files[x]; rank = 1; }
+		}
+	}		
+
 	std::ifstream file(filename.c_str(), std::ios::binary);
 
 	if(!file.is_open()) 

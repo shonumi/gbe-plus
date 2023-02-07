@@ -4106,9 +4106,6 @@ void get_firmware_hashes()
 		{
 			config::bin_files.push_back(f_name);
 			config::bin_hashes.push_back(crc);
-
-			std::cout<<"FILE -> " << f_name << "\n";
-			std::cout<<"HASH -> 0x" << std::hex << crc << "\n\n";
 		}
 	}
 }
