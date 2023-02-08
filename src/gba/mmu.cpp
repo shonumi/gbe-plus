@@ -8,6 +8,8 @@
 //
 // Handles reading and writing bytes to memory locations
 
+#include <filesystem>
+
 #include "mmu.h"
 #include "common/util.h"
 
@@ -2499,6 +2501,24 @@ bool AGB_MMU::read_file(std::string filename)
 /****** Read BIOS file into memory ******/
 bool AGB_MMU::read_bios(std::string filename)
 {
+	//Check if the preferred file from config::bios_file is even available, otherwise, try opening anything in data/bin/firmware
+	std::filesystem::path bios_file { config::bios_file };
+
+	if(!std::filesystem::exists(bios_file))
+	{
+		u32 hash = 0;
+		u8 rank = 0;
+
+		//Select BIOS is this order: Standard GBA, GameCube version
+		for(u32 x = 0; x < config::bin_hashes.size(); x++)
+		{
+			hash = config::bin_hashes[x];
+
+			if(hash == 0x81977335) { filename = config::bin_files[x]; rank = 2; }
+			else if((hash == 0x3F02EA8F) && (rank < 1)) { filename = config::bin_files[x]; rank = 1; }
+		}
+	}	
+
 	std::ifstream file(filename.c_str(), std::ios::binary);
 
 	if(!file.is_open()) 
