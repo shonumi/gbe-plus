@@ -2509,13 +2509,14 @@ bool AGB_MMU::read_bios(std::string filename)
 		u32 hash = 0;
 		u8 rank = 0;
 
-		//Select BIOS is this order: Standard GBA, GameCube version
+		//Select BIOS is this order: Standard GBA, GameCube version, NDS ARM7TDMI GBA BIOS
 		for(u32 x = 0; x < config::bin_hashes.size(); x++)
 		{
 			hash = config::bin_hashes[x];
 
-			if(hash == 0x81977335) { filename = config::bin_files[x]; rank = 2; }
-			else if((hash == 0x3F02EA8F) && (rank < 1)) { filename = config::bin_files[x]; rank = 1; }
+			if(hash == 0x81977335) { filename = config::bin_files[x]; rank = 3; }
+			else if((hash == 0x3F02EA8F) && (rank < 2)) { filename = config::bin_files[x]; rank = 2; }
+			else if((hash == 0xA6473709) && (rank < 1)) { filename = config::bin_files[x]; rank = 1; }
 		}
 	}	
 
