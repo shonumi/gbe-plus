@@ -9,6 +9,7 @@
 // Handles reading and writing bytes to memory locations
 // Also loads ROM and BIOS files
 
+#include <filesystem>
 #include <ctime>
 
 #include "mmu.h"
@@ -717,6 +718,17 @@ bool MIN_MMU::read_file(std::string filename)
 /****** Reads BIOS file into emulated memory ******/
 bool MIN_MMU::read_bios(std::string filename)
 {
+	//Check if the preferred file from config::bios_file is even available, otherwise, try opening anything in data/bin/firmware
+	std::filesystem::path bios_file { config::bios_file };
+
+	if(!std::filesystem::exists(bios_file))
+	{
+		for(u32 x = 0; x < config::bin_hashes.size(); x++)
+		{
+			if(config::bin_hashes[x] == 0xAED3C14D) { filename = config::bin_files[x]; break; }
+		}
+	}	
+
 	std::ifstream file(filename.c_str(), std::ios::binary);
 
 	if(!file.is_open()) 
