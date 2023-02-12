@@ -11,6 +11,7 @@
 #include "mmu.h"
 #include "common/util.h"
 
+#include <filesystem>
 #include <cmath>
 
 /****** MMU Constructor ******/
@@ -5395,6 +5396,17 @@ bool NTR_MMU::read_slot2_file(std::string filename)
 /****** Read NDS7 BIOS file into memory ******/
 bool NTR_MMU::read_bios_nds7(std::string filename)
 {
+	//Check if the preferred file from config::nds7_bios_path is even available, otherwise, try opening anything in data/bin/firmware
+	std::filesystem::path bios_file { config::nds7_bios_path };
+
+	if(!std::filesystem::exists(bios_file))
+	{
+		for(u32 x = 0; x < config::bin_hashes.size(); x++)
+		{
+			if(config::bin_hashes[x] == 0x1280F0D5) { filename = config::bin_files[x]; break; }
+		}
+	}
+
 	std::ifstream file(filename.c_str(), std::ios::binary);
 
 	if(!file.is_open()) 
@@ -5431,6 +5443,17 @@ bool NTR_MMU::read_bios_nds7(std::string filename)
 /****** Read NDS9 BIOS file into memory ******/
 bool NTR_MMU::read_bios_nds9(std::string filename)
 {
+	//Check if the preferred file from config::nds9_bios_path is even available, otherwise, try opening anything in data/bin/firmware
+	std::filesystem::path bios_file { config::nds9_bios_path };
+
+	if(!std::filesystem::exists(bios_file))
+	{
+		for(u32 x = 0; x < config::bin_hashes.size(); x++)
+		{
+			if(config::bin_hashes[x] == 0x2AB23573) { filename = config::bin_files[x]; break; }
+		}
+	}
+
 	std::ifstream file(filename.c_str(), std::ios::binary);
 
 	if(!file.is_open()) 
