@@ -167,7 +167,7 @@ Command					| Parameter 1							| Parameter 2
 0xB00 - Adjust Volume			| Volume level, Min = 0x00, Max = 0x38				| N/A
 0xD00 - Adjust Bass Boost		| Bass boost level, Min = 0x00, Max = 0x0F			| N/A
 0xD01 - Enabled/Disable Bass Boost	| ON = 0x800F, OFF = 0x8F0F					| N/A
-0x2000 - Update File Information	| N/A								| N/A
+0x2000 - Play Sound Effect		| N/A								| N/A
 0x8000 - Get Cartridge Status		| N/A								| N/A
 0x10000 - Enter Sleep Mode		| N/A								| N/A
 0x800000 - Unknown			| N/A								| N/A
@@ -339,12 +339,12 @@ Stops the current music file that is playing.
 
 
 -----------------------------------------------------------------------
-Command 0x2000 - Update File Information - 1 IRQ
+Command 0x2000 - Play Sound Effect - 1 IRQ
 -----------------------------------------------------------------------
 Bytes 0x00 - 0x03	| 0x80000100
 -----------------------------------------------------------------------
 
-Only 1 IRQ is fired for this command. It appears to update the current list of available files for videos, and files and folders for music. After executing this command, SD card data will return the appropiate files depending on the category selected.
+Only 1 IRQ is fired for this command. It appears to force the Play-Yan to generate certain brief sound effects, typically used for menus or when playing Garage Games. It is necessary for the Play-Yan itself to generate the sound effects rather than the GBA because the Play-Yan may need to push samples through the built-in headphone. The Play-Yan is responsible for generating all sound (music, video, and sound effects), and it decides whether or not to use the headphone jack or the GBA's speakers as output. 
 
 
 
