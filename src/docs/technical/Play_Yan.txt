@@ -168,7 +168,7 @@ Command					| Parameter 1							| Parameter 2
 0xD00 - Adjust Bass Boost		| Bass boost level, Min = 0x00, Max = 0x0F			| N/A
 0xD01 - Enabled/Disable Bass Boost	| ON = 0x800F, OFF = 0x8F0F					| N/A
 0x2000 - Update File Information	| N/A								| N/A
-0x8000 - Get SD Card Status		| N/A								| N/A
+0x8000 - Get Cartridge Status		| N/A								| N/A
 0x10000 - Enter Sleep Mode		| N/A								| N/A
 0x800000 - Unknown			| N/A								| N/A
 ----------------------------------------------------------------------------------------------------------------------------------------------
@@ -351,7 +351,7 @@ Only 1 IRQ is fired for this command. It appears to update the current list of a
 
 
 -----------------------------------------------------------------------
-Command 0x8000 - Get SD Card Status - 2 IRQs
+Command 0x8000 - Get Cartridge Status - 2 IRQs
 -----------------------------------------------------------------------
 Bytes 0x00 - 0x03	| 0x80000100
 -----------------------------------------------------------------------
@@ -359,7 +359,15 @@ Bytes 0x00 - 0x03	| 0x40008000
 Bytes 0x04 - 0x07	| SD Card Status
 -----------------------------------------------------------------------
 
-A single value is returned for the SD card's status. This can be used to determine if an appropiate SD card has been inserted. As the SD card is essential for the Play-Yan, this is the first command executed when booting. The status is returned in the second IRQ. If no SD card is detected, this value reads 0x03. If an incompatible card is detected (such as an SDHC card), this value reads 0x02. If a compatible card is detected, this value reads 0x05.
+A single value is returned for the overall status of the Play-Yan cartridge. This can be used to determine if an appropiate SD card has been inserted or if there are any problems. As the SD card is essential for the Play-Yan, this is the first command executed when booting. The status is returned in the second IRQ. Setting the following bits indicates specific errors, and the Play-Yan will halt booting up and display an appropiate message:
+
+-----------------------------------------------------------------------
+Bit 0	| The cartridge is in bad condition
+Bit 1	| No SD card detected or incompatible card inserted
+Bit 2	| Filesystem error
+-----------------------------------------------------------------------
+
+Setting Bits 0 and 1 together produces the same "cartridge is in bad condition error". Setting Bits 0 and 2 together produces a general error. If no bits are set, this indicates there were no problems.
 
 
 
