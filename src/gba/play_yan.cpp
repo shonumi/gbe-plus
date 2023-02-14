@@ -591,156 +591,130 @@ void AGB_MMU::process_play_yan_irq()
 		play_yan.irq_count = 0;
 	}
 
-	switch(play_yan.op_state)
+	//Process Play-Yan states
+	//1 = SD card check, 2 = Enter/exit music menu, 3 = Enter/exit video menu,
+	//5 = Process video thumbnails, 6 = Play music, 7 = Continue playing music
+	//8 = Stop music, 9 = Play video, 10 = Stop video
+	//TODO - Use an enum instead of magic numbers!
+
+	//Trigger Game Pak IRQ
+	memory_map[REG_IF+1] |= 0x20;
+
+	//Wait for next IRQ condition after sending all flags
+	if(play_yan.irq_count == play_yan.irq_len)
 	{
-		//SD card check
-		case 0x1:
+		//After selecting a music file to play, fire IRQs to process audio
+		if(play_yan.op_state == 0x06)
+		{
+			play_yan.op_state = 7;
+			play_yan.irq_delay = 1;
+			play_yan.delay_reload = 60;
+			play_yan.irq_data_ptr = play_yan.music_play_data[0];
+			play_yan.irq_count = 2;
+			play_yan.irq_len = 3;
+			play_yan.irq_repeat = 100;
+		}
 
-		//Enter/exit music menu
-		case 0x2:
+		//After selecting a video file to play, fire IRQs to process video
+		else if(play_yan.op_state == 0x09)
+		{
+			play_yan.op_state = 8;
+			play_yan.irq_delay = 1;
+			play_yan.delay_reload = 2;
+			play_yan.irq_data_ptr = play_yan.video_play_data[0];
+			play_yan.irq_count = 1;
+			play_yan.irq_len = 2;
+			play_yan.irq_repeat = (play_yan.video_length / 0x20);
+		}
 
-		//Enter/exit vieo menu
-		case 0x3:
+		//Repeat thumbnail IRQs as necessary
+		else if((play_yan.op_state == 0x05) && (play_yan.irq_repeat))
+		{
+			play_yan.op_state = 5;
+			play_yan.irq_delay = 1;
+			play_yan.delay_reload = 10;
+			play_yan.irq_data_ptr = play_yan.video_check_data[0];
+			play_yan.irq_count = 3;
+			play_yan.irq_len = 4;
+			play_yan.irq_repeat--;
+		}
 
-		//Process video thumbnails
-		case 0x5:
+		//Repeat music IRQs as necessary
+		else if((play_yan.op_state == 0x07) && (play_yan.irq_repeat))
+		{
+			play_yan.op_state = 7;
+			play_yan.irq_delay = 1;
+			play_yan.delay_reload = 60;
+			play_yan.irq_data_ptr = play_yan.music_play_data[0];
+			play_yan.irq_count = 2;
+			play_yan.irq_len = 3;
+			play_yan.irq_repeat--;
+		}
 
-		//Play music
-		case 0x6:
+		//Repeat video IRQs as necessary
+		else if((play_yan.op_state == 0x08) && (play_yan.irq_repeat))
+		{
+			play_yan.op_state = 8;
+			play_yan.irq_delay = 1;
+			play_yan.delay_reload = 1;
+			play_yan.irq_data_ptr = play_yan.video_play_data[0];
+			play_yan.irq_count = 1;
+			play_yan.irq_len = 2;
+			play_yan.irq_repeat--;
 
-		//Continue playing music
-		case 0x7:
+			//Update video progress via IRQ data
+			play_yan.video_progress += 0x20;
+			play_yan.video_play_data[1][6] = play_yan.video_progress;
 
-		//Stop playing music
-		case 0x8:
+			//Update video frame counter and grab new video frame if necessary
+			play_yan.video_frame_count += 1.0;
 
-		//Play video
-		case 0x9:
-
-		//Stop video
-		case 0xA:
-
-			//Trigger Game Pak IRQ
-			memory_map[REG_IF+1] |= 0x20;
-
-			//Wait for next IRQ condition after sending all flags
-			if(play_yan.irq_count == play_yan.irq_len)
+			if(play_yan.video_frame_count >= play_yan.video_current_fps)
 			{
-				//After selecting a music file to play, fire IRQs to process audio
-				if(play_yan.op_state == 0x06)
-				{
-					play_yan.op_state = 7;
-					play_yan.irq_delay = 1;
-					play_yan.delay_reload = 60;
-					play_yan.irq_data_ptr = play_yan.music_play_data[0];
-					play_yan.irq_count = 2;
-					play_yan.irq_len = 3;
-					play_yan.irq_repeat = 100;
-				}
-
-				//After selecting a video file to play, fire IRQs to process video
-				else if(play_yan.op_state == 0x09)
-				{
-					play_yan.op_state = 8;
-					play_yan.irq_delay = 1;
-					play_yan.delay_reload = 2;
-					play_yan.irq_data_ptr = play_yan.video_play_data[0];
-					play_yan.irq_count = 1;
-					play_yan.irq_len = 2;
-					play_yan.irq_repeat = (play_yan.video_length / 0x20);
-				}
-
-				//Repeat thumbnail IRQs as necessary
-				else if((play_yan.op_state == 0x05) && (play_yan.irq_repeat))
-				{
-					play_yan.op_state = 5;
-					play_yan.irq_delay = 1;
-					play_yan.delay_reload = 10;
-					play_yan.irq_data_ptr = play_yan.video_check_data[0];
-					play_yan.irq_count = 3;
-					play_yan.irq_len = 4;
-					play_yan.irq_repeat--;
-				}
-
-				//Repeat music IRQs as necessary
-				else if((play_yan.op_state == 0x07) && (play_yan.irq_repeat))
-				{
-					play_yan.op_state = 7;
-					play_yan.irq_delay = 1;
-					play_yan.delay_reload = 60;
-					play_yan.irq_data_ptr = play_yan.music_play_data[0];
-					play_yan.irq_count = 2;
-					play_yan.irq_len = 3;
-					play_yan.irq_repeat--;
-				}
-
-				//Repeat video IRQs as necessary
-				else if((play_yan.op_state == 0x08) && (play_yan.irq_repeat))
-				{
-					play_yan.op_state = 8;
-					play_yan.irq_delay = 1;
-					play_yan.delay_reload = 1;
-					play_yan.irq_data_ptr = play_yan.video_play_data[0];
-					play_yan.irq_count = 1;
-					play_yan.irq_len = 2;
-					play_yan.irq_repeat--;
-
-					//Update video progress via IRQ data
-					play_yan.video_progress += 0x20;
-					play_yan.video_play_data[1][6] = play_yan.video_progress;
-
-					//Update video frame counter and grab new video frame if necessary
-					play_yan.video_frame_count += 1.0;
-
-					if(play_yan.video_frame_count >= play_yan.video_current_fps)
-					{
-						play_yan.video_frame_count -= play_yan.video_current_fps;
-						//TODO - Grab new frame data
-					}
-
-					//Stop video when length is complete
-					if(play_yan.video_progress >= play_yan.video_length)
-					{
-						play_yan.op_state = 10;
-						play_yan.irq_delay = 1;
-						play_yan.delay_reload = 10;
-						play_yan.irq_data_ptr = play_yan.video_stop_data[0];
-						play_yan.irq_len = 2;
-						play_yan.irq_repeat = 0;
-						play_yan.irq_count = 0;
-						play_yan.video_data_addr = 0;
-						play_yan.video_progress = 0;
-						play_yan.is_video_playing = false;
-					}
-				}
-
-				//Stop IRQs until next trigger condition
-				else
-				{
-					play_yan.op_state = 0xFF;
-					play_yan.irq_delay = 0;
-					play_yan.irq_count = 0;
-				}
+				play_yan.video_frame_count -= play_yan.video_current_fps;
+				//TODO - Grab new frame data
 			}
 
-			//Send data for IRQ
-			else
+			//Stop video when length is complete
+			if(play_yan.video_progress >= play_yan.video_length)
 			{
-				//Copy IRQ data from given array pointer
-				//For 2D arrays, also account for multiple IRQs
-				for(u32 x = 0; x < 8; x++)
-				{
-					play_yan.irq_data[x] = *(play_yan.irq_data_ptr + (play_yan.irq_count * 8) + x);
-				}
-
-				//std::cout<<"IRQ -> 0x" << play_yan.irq_data[0] << "\n";
-
-				play_yan.irq_count++;
-				play_yan.irq_delay = play_yan.delay_reload;
-				play_yan.irq_data_in_use = true;
+				play_yan.op_state = 10;
+				play_yan.irq_delay = 1;
+				play_yan.delay_reload = 10;
+				play_yan.irq_data_ptr = play_yan.video_stop_data[0];
+				play_yan.irq_len = 2;
+				play_yan.irq_repeat = 0;
+				play_yan.irq_count = 0;
+				play_yan.video_data_addr = 0;
+				play_yan.video_progress = 0;
+				play_yan.is_video_playing = false;
 			}
+		}
 
-			break;
+		//Stop IRQs until next trigger condition
+		else
+		{
+			play_yan.op_state = 0xFF;
+			play_yan.irq_delay = 0;
+			play_yan.irq_count = 0;
+		}
+	}
+
+	//Send data for IRQ
+	else
+	{
+		//Copy IRQ data from given array pointer
+		//For 2D arrays, also account for multiple IRQs
+		for(u32 x = 0; x < 8; x++)
+		{
+			play_yan.irq_data[x] = *(play_yan.irq_data_ptr + (play_yan.irq_count * 8) + x);
+		}
+
+		//std::cout<<"IRQ -> 0x" << play_yan.irq_data[0] << "\n";
+
+		play_yan.irq_count++;
+		play_yan.irq_delay = play_yan.delay_reload;
+		play_yan.irq_data_in_use = true;
 	}
 }
 
