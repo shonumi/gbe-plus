@@ -591,6 +591,8 @@ void AGB_MMU::process_play_yan_irq()
 		play_yan.irq_count = 0;
 	}
 
+	if(play_yan.op_state == 0xFF) { return; }
+
 	//Process Play-Yan states
 	//1 = SD card check, 2 = Enter/exit music menu, 3 = Enter/exit video menu,
 	//5 = Process video thumbnails, 6 = Play music, 7 = Continue playing music
