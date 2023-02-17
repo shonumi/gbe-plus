@@ -489,7 +489,14 @@ u8 AGB_MMU::read_play_yan(u32 address)
 		u8 shift = (address & 0x3);
 
 		//Switch back to reading firmware after all IRQ data is read
-		if(address == 0xB00031C) { play_yan.irq_data_in_use = false; }
+		if(address == 0xB00031C)
+		{
+			//Most IRQ data is only read once, however, select commands (0x200, 0x700, and 0x800) will read it twice
+			if(!play_yan.is_music_playing && !play_yan.is_video_playing)
+			{
+				play_yan.irq_data_in_use = false;
+			}
+		}
 
 		result = (play_yan.irq_data[offset] >> (shift << 3));
 	}
@@ -712,7 +719,7 @@ void AGB_MMU::process_play_yan_irq()
 			play_yan.irq_data[x] = *(play_yan.irq_data_ptr + (play_yan.irq_count * 8) + x);
 		}
 
-		//std::cout<<"IRQ -> 0x" << play_yan.irq_data[0] << "\n";
+		std::cout<<"IRQ -> 0x" << play_yan.irq_data[0] << "\n";
 
 		play_yan.irq_count++;
 		play_yan.irq_delay = play_yan.delay_reload;
