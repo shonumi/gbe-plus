@@ -248,6 +248,9 @@ class AGB_MMU
 		float video_frame_count;
 		bool update_video_frame;
 
+		u32 tracker_progress;
+		u32 tracker_update_size;
+
 		u32 music_file_index;
 		u32 video_file_index;
 		u32 thumbnail_index;

@@ -137,6 +137,7 @@ void AGB_MMU::play_yan_reset()
 
 	for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
 
+	play_yan.tracker_progress = 0;
 	play_yan.video_progress = 0;
 	play_yan.video_length = 0;
 	play_yan.video_current_fps = 0;
@@ -314,6 +315,10 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 				play_yan.irq_count = 0;
 				play_yan.is_music_playing = true;
 
+				play_yan.tracker_progress = 0;
+				play_yan.tracker_update_size = 0;
+				play_yan.music_play_data[2][5] = play_yan.tracker_progress;
+
 				play_yan.capture_command_stream = true;
 				play_yan.command_stream.clear();
 			}
@@ -332,6 +337,9 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 				play_yan.video_progress = 0;
 				play_yan.video_frame_count = 0;
 				play_yan.is_video_playing = true;
+
+				play_yan.tracker_progress = 0;
+				play_yan.tracker_update_size = 0;
 
 				play_yan.capture_command_stream = true;
 				play_yan.command_stream.clear();
@@ -421,6 +429,12 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 					if(temp_str == play_yan.music_files[x])
 					{
 						play_yan.music_file_index = x;
+
+						if(play_yan.music_times[x])
+						{
+							play_yan.tracker_update_size = (0x6400 / play_yan.music_times[x]);
+						}
+
 						break;
 					}
 				}
@@ -658,6 +672,9 @@ void AGB_MMU::process_play_yan_irq()
 			play_yan.irq_count = 2;
 			play_yan.irq_len = 3;
 			play_yan.irq_repeat--;
+
+			//Update trackbar
+			play_yan.music_play_data[2][5] += play_yan.tracker_update_size;
 		}
 
 		//Repeat video IRQs as necessary
@@ -719,7 +736,7 @@ void AGB_MMU::process_play_yan_irq()
 			play_yan.irq_data[x] = *(play_yan.irq_data_ptr + (play_yan.irq_count * 8) + x);
 		}
 
-		std::cout<<"IRQ -> 0x" << play_yan.irq_data[0] << "\n";
+		//std::cout<<"IRQ -> 0x" << play_yan.irq_data[0] << "\n";
 
 		play_yan.irq_count++;
 		play_yan.irq_delay = play_yan.delay_reload;
