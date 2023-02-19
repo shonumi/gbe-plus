@@ -242,6 +242,7 @@ class AGB_MMU
 		u16 thumbnail_addr;
 		u32 video_data_addr; 
 
+		u32 music_length;
 		u32 video_progress;
 		u32 video_length;
 		float video_current_fps;

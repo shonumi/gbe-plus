@@ -137,6 +137,7 @@ void AGB_MMU::play_yan_reset()
 
 	for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
 
+	play_yan.music_length = 0;
 	play_yan.tracker_progress = 0;
 	play_yan.video_progress = 0;
 	play_yan.video_length = 0;
@@ -318,6 +319,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 				play_yan.tracker_progress = 0;
 				play_yan.tracker_update_size = 0;
 				play_yan.music_play_data[2][5] = play_yan.tracker_progress;
+				play_yan.music_play_data[2][6] = 0;
 
 				play_yan.capture_command_stream = true;
 				play_yan.command_stream.clear();
@@ -675,6 +677,9 @@ void AGB_MMU::process_play_yan_irq()
 
 			//Update trackbar
 			play_yan.music_play_data[2][5] += play_yan.tracker_update_size;
+
+			//Update music progress via IRQ data
+			play_yan.music_play_data[2][6]++;
 		}
 
 		//Repeat video IRQs as necessary
