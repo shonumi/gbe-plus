@@ -344,7 +344,7 @@ Command 0x2000 - Play Sound Effect - 1 IRQ
 Bytes 0x00 - 0x03	| 0x80000100
 -----------------------------------------------------------------------
 
-Only 1 IRQ is fired for this command. It appears to force the Play-Yan to generate certain brief sound effects, typically used for menus or when playing Garage Games. It is necessary for the Play-Yan itself to generate the sound effects rather than the GBA because the Play-Yan may need to push samples through the built-in headphone. The Play-Yan is responsible for generating all sound (music, video, and sound effects), and it decides whether or not to use the headphone jack or the GBA's speakers as output. 
+Only 1 IRQ is fired for this command. It appears to force the Play-Yan to generate a brief sound effect, typically used for menus or when playing Garage Games. The sound effect (something like a chirp) is the same in all instances. It is necessary for the Play-Yan itself to generate the sound effects rather than the GBA because the Play-Yan may need to push samples through the built-in headphone. The Play-Yan is responsible for generating all sound (music, video, and sound effects), and it decides whether or not to use the headphone jack or the GBA's speakers as output. 
 
 
 
