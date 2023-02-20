@@ -314,9 +314,15 @@ Bytes 0x00 - 0x03	| 0x40000800
 Bytes 0x00 - 0x03	| 0x80001000
 Bytes 0x0C - 0x0F	| Unknown
 Bytes 0x10 - 0x13	| Unknown
+Bytes 0x14 - 0x17	| Track Bar Position
+Bytes 0x18 - 0x1B	| Play Time in Seconds 
 -----------------------------------------------------------------------
 
 After the 0x800 command is issued, a Game Pak IRQ is generated when the Play-Yan hardware begins processing an audio file. This command always follows the 0x600 command.
+
+The Track Bar Position indicates how far along the visual slider has moved across the screen for the duration of the song. It seems to work on a scale of 0x0000 to 0x6400. To move the track bar accurately, this value should increment by (0x6400 / Song Length in Seconds) on average every second. When fast-forwarding or rewinding, this value changes accordingly.
+
+The Play Time in Seconds represents the amount of time elapsed while playing the current song. Unlike the Current Video Position for the Play Video command, here the number of seconds passed is directly returned. That is to say, a value of 0x1E represents a time of 00:00:30 (30 seconds), value of 0x3C represents a time of 00:01:00 (1 minute, e.g. 60 seconds), and a value of 0xFF represents a time of 00:04:16 (4 minutes, 16 seconds, e.g. 256 seconds). Again, fast-forwarding or rewinding will change the result returned by the Play-Yan.
 
 *The second IRQ constantly fires for the duration of the music.
 
