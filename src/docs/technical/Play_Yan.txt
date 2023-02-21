@@ -152,6 +152,7 @@ Data for most commands is usually broken into 32-bit chunks, sent LSB first. Ess
 Command					| Parameter 1							| Parameter 2
 ----------------------------------------------------------------------------------------------------------------------------------------------
 0x200 - Get File Information		| N/A								| N/A
+0x201 - Process Folder			| N/A								| N/A
 0x300 - Adjust Video Brightness		| Brightness level, Min = 0x101, Max = 0x2C0, 0x40 increments	| N/A
 0x400 - Unknown				| N/A								| N/A
 0x500 - Grab Video Thumbnail Data*	| Width of thumbnail (60 pixels)				| Height of thumbnail (40 pixels)
@@ -166,7 +167,7 @@ Command					| Parameter 1							| Parameter 2
 0x906 - Unknown				| N/A								| N/A
 0xB00 - Adjust Volume			| Volume level, Min = 0x00, Max = 0x38				| N/A
 0xD00 - Adjust Bass Boost		| Bass boost level, Min = 0x00, Max = 0x0F			| N/A
-0xD01 - Enabled/Disable Bass Boost	| ON = 0x800F, OFF = 0x8F0F					| N/A
+0xD01 - Enable/Disable Bass Boost	| ON = 0x800F, OFF = 0x8F0F					| N/A
 0x2000 - Play Sound Effect		| N/A								| N/A
 0x8000 - Get Cartridge Status		| N/A								| N/A
 0x10000 - Enter Sleep Mode		| N/A								| N/A
