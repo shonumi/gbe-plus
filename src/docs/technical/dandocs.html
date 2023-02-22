@@ -4436,6 +4436,7 @@ Address			| Data
 Command					| Parameter 1							| Parameter 2
 ----------------------------------------------------------------------------------------------------------------------------------------------
 0x200 - Get File Information		| N/A								| N/A
+0x201 - Process Folder			| N/A								| N/A
 0x300 - Adjust Video Brightness		| Brightness level, Min = 0x101, Max = 0x2C0, 0x40 increments	| N/A
 0x400 - Unknown				| N/A								| N/A
 0x500 - Grab Video Thumbnail Data*	| Width of thumbnail (60 pixels)				| Height of thumbnail (40 pixels)
@@ -4450,9 +4451,9 @@ Command					| Parameter 1							| Parameter 2
 0x906 - Unknown				| N/A								| N/A
 0xB00 - Adjust Volume			| Volume level, Min = 0x00, Max = 0x38				| N/A
 0xD00 - Adjust Bass Boost		| Bass boost level, Min = 0x00, Max = 0x0F			| N/A
-0xD01 - Enabled/Disable Bass Boost	| ON = 0x800F, OFF = 0x8F0F					| N/A
-0x2000 - Update File Information	| N/A								| N/A
-0x8000 - Get SD Card Status		| N/A								| N/A
+0xD01 - Enable/Disable Bass Boost	| ON = 0x800F, OFF = 0x8F0F					| N/A
+0x2000 - Play Sound Effect		| N/A								| N/A
+0x8000 - Get SD Cartridge Status	| N/A								| N/A
 0x10000 - Enter Sleep Mode		| N/A								| N/A
 0x800000 - Unknown			| N/A								| N/A
 ----------------------------------------------------------------------------------------------------------------------------------------------</code>
@@ -4581,9 +4582,15 @@ Bytes 0x00 - 0x03	| 0x40000800
 Bytes 0x00 - 0x03	| 0x80001000
 Bytes 0x0C - 0x0F	| Unknown
 Bytes 0x10 - 0x13	| Unknown
+Bytes 0x14 - 0x17	| Track Bar Position
+Bytes 0x18 - 0x1B	| Play Time in Seconds 
 -----------------------------------------------------------------------</code>
 
 	<p>After the 0x800 command is issued, a Game Pak IRQ is generated when the Play-Yan hardware begins processing an audio file. This command always follows the 0x600 command.</p>
+
+	<p>The Track Bar Position indicates how far along the visual slider has moved across the screen for the duration of the song. It seems to work on a scale of 0x0000 to 0x6400. To move the track bar accurately, this value should increment by (0x6400 / Song Length in Seconds) on average every second. When fast-forwarding or rewinding, this value changes accordingly.</p>
+
+	<p>The Play Time in Seconds represents the amount of time elapsed while playing the current song. Unlike the Current Video Position for the Play Video command, here the number of seconds passed is directly returned. That is to say, a value of 0x1E represents a time of 00:00:30 (30 seconds), value of 0x3C represents a time of 00:01:00 (1 minute, e.g. 60 seconds), and a value of 0xFF represents a time of 00:04:16 (4 minutes, 16 seconds, e.g. 256 seconds). Again, fast-forwarding or rewinding will change the result returned by the Play-Yan.</p>
 
 	<p>*The second IRQ constantly fires for the duration of the music.</p>
 	<p class="spc"></p>
@@ -4600,16 +4607,16 @@ Bytes 0x00 - 0x03	| 0x80001000
 	<p class="spc"></p>
 
 <code>-----------------------------------------------------------------------
-Command 0x2000 - Update File Information - 1 IRQ
+Command 0x2000 - Play Sound Effect - 1 IRQ
 -----------------------------------------------------------------------
 Bytes 0x00 - 0x03	| 0x80000100
 -----------------------------------------------------------------------</code>
 
-	<p>Only 1 IRQ is fired for this command. It appears to update the current list of available files for videos, and files and folders for music. After executing this command, SD card data will return the appropiate files depending on the category selected.</p>
+	<p>Only 1 IRQ is fired for this command. It appears to force the Play-Yan to generate a brief sound effect, typically used for menus or when playing Garage Games. The sound effect (something like a chirp) is the same in all instances. It is necessary for the Play-Yan itself to generate the sound effects rather than the GBA because the Play-Yan may need to push samples through the built-in headphone. The Play-Yan is responsible for generating all sound (music, video, and sound effects), and it decides whether or not to use the headphone jack or the GBA&#39;s speakers as output. </p>
 	<p class="spc"></p>
 
 <code>-----------------------------------------------------------------------
-Command 0x8000 - Get SD Card Status - 2 IRQs
+Command 0x8000 - Get SD Cartridge Status - 2 IRQs
 -----------------------------------------------------------------------
 Bytes 0x00 - 0x03	| 0x80000100
 -----------------------------------------------------------------------
@@ -4617,7 +4624,15 @@ Bytes 0x00 - 0x03	| 0x40008000
 Bytes 0x04 - 0x07	| SD Card Status
 -----------------------------------------------------------------------</code>
 
-	<p>A single value is returned for the SD card&#39;s status. This can be used to determine if an appropiate SD card has been inserted. As the SD card is essential for the Play-Yan, this is the first command executed when booting. The status is returned in the second IRQ. If no SD card is detected, this value reads 0x03. If an incompatible card is detected (such as an SDHC card), this value reads 0x02. If a compatible card is detected, this value reads 0x05.</p>
+	<p>A single value is returned for the overall status of the Play-Yan cartridge. This can be used to determine if an appropiate SD card has been inserted or if there are any problems. As the SD card is essential for the Play-Yan, this is the first command executed when booting. The status is returned in the second IRQ. Setting the following bits indicates specific errors, and the Play-Yan will halt booting up and display an appropiate message:</p>
+
+<code>-----------------------------------------------------------------------
+Bit 0	| The cartridge is in bad condition
+Bit 1	| No SD card detected or incompatible card inserted
+Bit 2	| Filesystem error
+-----------------------------------------------------------------------</code>
+
+	<p>Setting Bits 0 and 1 together produces the same "cartridge is in bad condition error". Setting Bits 0 and 2 together produces a general error. If no bits are set, this indicates there were no problems.</p>
 	<p class="spc"></p>
 
 <code>-----------------------------------------------------------------------
