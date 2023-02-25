@@ -828,7 +828,7 @@ void Z80::exec_op(u8 opcode)
 		case 0x0F :
 			reg.a = rotate_right_carry(reg.a);
 			reg.f &= ~0x80;
-			cycles += 8;
+			cycles += 4;
 			break;
 
 		//STOP
@@ -901,7 +901,7 @@ void Z80::exec_op(u8 opcode)
 		case 0x17 :
 			reg.a = rotate_left(reg.a);
 			reg.f &= ~0x80;
-			cycles += 8;
+			cycles += 4;
 			break;
 
 		//JR, n
@@ -950,7 +950,7 @@ void Z80::exec_op(u8 opcode)
 		case 0x1F :
 			reg.a = rotate_right(reg.a);
 			reg.f &= ~0x80;
-			cycles += 8;
+			cycles += 4;
 			break;		
 
 		//JR NZ, n
