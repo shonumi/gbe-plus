@@ -234,7 +234,7 @@ bool Z80::handle_interrupts()
 			reg.sp -= 2;
 			mem->write_u16(reg.sp, reg.pc);
 			reg.pc = 0x40;
-			cycles += 36;
+			cycles += 20;
 			return true;
 		}
 
@@ -247,7 +247,7 @@ bool Z80::handle_interrupts()
 			reg.sp -= 2;
 			mem->write_u16(reg.sp, reg.pc);
 			reg.pc = 0x48;
-			cycles += 36;
+			cycles += 20;
 			return true;
 		}
 
@@ -260,7 +260,7 @@ bool Z80::handle_interrupts()
 			reg.sp -= 2;
 			mem->write_u16(reg.sp, reg.pc);
 			reg.pc = 0x50;
-			cycles += 36;
+			cycles += 20;
 			return true;
 		}
 
@@ -273,7 +273,7 @@ bool Z80::handle_interrupts()
 			reg.sp -= 2;
 			mem->write_u16(reg.sp, reg.pc);
 			reg.pc = 0x58;
-			cycles += 36;
+			cycles += 20;
 			return true;
 		}
 
@@ -286,7 +286,7 @@ bool Z80::handle_interrupts()
 			reg.sp -= 2;
 			mem->write_u16(reg.sp, reg.pc);
 			reg.pc = 0x60;
-			cycles += 36;
+			cycles += 20;
 			return true;
 		}
 
