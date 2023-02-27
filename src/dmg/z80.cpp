@@ -2021,7 +2021,7 @@ void Z80::exec_op(u8 opcode)
 			reg.sp -= 2;
 			mem->write_u16(reg.sp, reg.pc);
 			reg.pc = 0x00;
-			cycles += 32;
+			cycles += 16;
 			break;
 
 		//RET Z
@@ -2092,7 +2092,7 @@ void Z80::exec_op(u8 opcode)
 			reg.sp -= 2;
 			mem->write_u16(reg.sp, reg.pc);
 			reg.pc = 0x08;
-			cycles += 32;
+			cycles += 16;
 			break;
 
 		//RET NC
@@ -2155,7 +2155,7 @@ void Z80::exec_op(u8 opcode)
 			reg.sp -= 2;
 			mem->write_u16(reg.sp, reg.pc);
 			reg.pc = 0x10;
-			cycles += 32;
+			cycles += 16;
 			break;
 
 		//RET C
@@ -2212,7 +2212,7 @@ void Z80::exec_op(u8 opcode)
 			reg.sp -= 2;
 			mem->write_u16(reg.sp, reg.pc);
 			reg.pc = 0x18;
-			cycles += 32;
+			cycles += 16;
 			break;
 
 		//LDH n, A
@@ -2254,7 +2254,7 @@ void Z80::exec_op(u8 opcode)
 			reg.sp -= 2;
 			mem->write_u16(reg.sp, reg.pc);
 			reg.pc = 0x20;
-			cycles += 32;
+			cycles += 16;
 			break;
 
 		//ADD SP, n
@@ -2287,7 +2287,7 @@ void Z80::exec_op(u8 opcode)
 			reg.sp -= 2;
 			mem->write_u16(reg.sp, reg.pc);
 			reg.pc = 0x28;
-			cycles += 32;
+			cycles += 16;
 			break;
 
 		//LDH A, n
@@ -2334,7 +2334,7 @@ void Z80::exec_op(u8 opcode)
 			reg.sp -= 2;
 			mem->write_u16(reg.sp, reg.pc);
 			reg.pc = 0x30;
-			cycles += 32;
+			cycles += 16;
 			break;
 
 		//LDHL SP, n
@@ -2373,7 +2373,7 @@ void Z80::exec_op(u8 opcode)
 			reg.sp -= 2;
 			mem->write_u16(reg.sp, reg.pc);
 			reg.pc = 0x38;
-			cycles += 32;
+			cycles += 16;
 			break;
 			
 		default :
@@ -2826,7 +2826,7 @@ void Z80::exec_op(u16 opcode)
 		//BIT 0, HL
 		case 0xCB46 :
 			bit(mem->read_u8(reg.hl), 0x01);
-			cycles += 16;
+			cycles += 12;
 			break;
 
 		//BIT 0, A
@@ -2874,7 +2874,7 @@ void Z80::exec_op(u16 opcode)
 		//BIT 1, HL
 		case 0xCB4E :
 			bit(mem->read_u8(reg.hl), 0x02);
-			cycles += 16;
+			cycles += 12;
 			break;
 
 		//BIT 1, A
@@ -2922,7 +2922,7 @@ void Z80::exec_op(u16 opcode)
 		//BIT 2, HL
 		case 0xCB56 :
 			bit(mem->read_u8(reg.hl), 0x04);
-			cycles += 16;
+			cycles += 12;
 			break;
 
 		//BIT 2, A
@@ -2970,7 +2970,7 @@ void Z80::exec_op(u16 opcode)
 		//BIT 3, HL
 		case 0xCB5E :
 			bit(mem->read_u8(reg.hl), 0x08);
-			cycles += 16;
+			cycles += 12;
 			break;
 
 		//BIT 3, A
@@ -3018,7 +3018,7 @@ void Z80::exec_op(u16 opcode)
 		//BIT 4, HL
 		case 0xCB66 :
 			bit(mem->read_u8(reg.hl), 0x10);
-			cycles += 16;
+			cycles += 12;
 			break;
 
 		//BIT 4, A
@@ -3066,7 +3066,7 @@ void Z80::exec_op(u16 opcode)
 		//BIT 5, HL
 		case 0xCB6E :
 			bit(mem->read_u8(reg.hl), 0x20);
-			cycles += 16;
+			cycles += 12;
 			break;
 
 		//BIT 5, A
@@ -3114,7 +3114,7 @@ void Z80::exec_op(u16 opcode)
 		//BIT 6, HL
 		case 0xCB76 :
 			bit(mem->read_u8(reg.hl), 0x40);
-			cycles += 16;
+			cycles += 12;
 			break;
 
 		//BIT 6, A
@@ -3162,7 +3162,7 @@ void Z80::exec_op(u16 opcode)
 		//BIT 7, HL
 		case 0xCB7E :
 			bit(mem->read_u8(reg.hl), 0x80);
-			cycles += 16;
+			cycles += 12;
 			break;
 
 		//BIT 7, A
@@ -3456,7 +3456,7 @@ void Z80::exec_op(u16 opcode)
 		case 0xCBAE :
 			temp_byte = res(mem->read_u8(reg.hl), 0x20);
 			mem->write_u8(reg.hl, temp_byte);
-			cycles += 8;
+			cycles += 16;
 			break;
 
 		//RES 5, A
