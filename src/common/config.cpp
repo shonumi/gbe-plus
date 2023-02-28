@@ -176,6 +176,9 @@ namespace config
 	//Max FPS
 	u16 max_fps = 0;
 
+	//Legacy save size
+	bool use_legacy_save_size = false;
+
 	//Sound parameters
 	u8 volume = 128;
 	u8 old_volume = 0;
@@ -957,6 +960,9 @@ bool parse_cli_args()
 
 			//Use AM3 Folder
 			else if(config::cli_args[x] == "--am3-folder") { config::use_am3_folder = true; }
+
+			//Use legacy save size for DMG/GBC games if necessary
+			else if(config::cli_args[x] == "--use-legacy-save-size") { config::use_legacy_save_size = true; }
 
 			//Print Help
 			else if((config::cli_args[x] == "-h") || (config::cli_args[x] == "--help")) 

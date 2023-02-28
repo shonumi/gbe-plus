@@ -135,6 +135,7 @@ namespace config
 
 	extern special_cart_types cart_type;
 	extern gba_save_types agb_save_type;
+	extern bool use_legacy_save_size;
 
 	extern u32 sio_device;
 	extern u32 ir_device;	
