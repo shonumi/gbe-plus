@@ -2394,9 +2394,46 @@ bool DMG_MMU::save_backup(std::string filename)
 			//Save MBC RAM
 			if((cart.mbc_type != ROM_ONLY) && (cart.mbc_type != MBC7) && (cart.mbc_type != TAMA5))
 			{
-				for(int x = 0; x < 0x10; x++)
+				//Legacy GBE+ saves (full 128KB regardless of ROM header)
+				if(config::use_legacy_save_size)
 				{
-					sram.write(reinterpret_cast<char*> (&random_access_bank[x][0]), 0x2000); 
+					for(int x = 0; x < 0x10; x++)
+					{
+						sram.write(reinterpret_cast<char*> (&random_access_bank[x][0]), 0x2000); 
+					}
+				}
+
+				//Adhere to RAM size found in ROM header
+				else
+				{
+					//Manually handle MBC2
+					if(cart.mbc_type == MBC2)
+					{
+						sram.write(reinterpret_cast<char*> (&random_access_bank[0][0]), 0x200); 
+					}
+
+					//Everything else needs to be calculated and broken into 8KB blocks when saving
+					else
+					{
+						u32 ram_size = 0;
+						u32 block_size = 0;
+
+						switch(memory_map[ROM_RAMSIZE])
+						{
+							case 0x02: ram_size = 0x2000; break;
+							case 0x03: ram_size = 0x8000; break;
+							case 0x04: ram_size = 0x20000; break;
+							case 0x05: ram_size = 0x10000; break;
+						}
+
+						block_size = ram_size / 0x2000;
+						if(!block_size) { std::cout<<"MMU::Warning - ROM header does not specify valid backup RAM size\n"; } 
+
+						for(int x = 0; x < block_size; x++)
+						{
+							sram.write(reinterpret_cast<char*> (&random_access_bank[x][0]), 0x2000); 
+						}
+					}	
 				}
 			}
 
