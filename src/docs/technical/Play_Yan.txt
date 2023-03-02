@@ -128,7 +128,7 @@ PY_DATA_PARAM = 0x08
 READ DATA FROM 0xB000300 THROUGH 0xB0004FF
 -----------------------------------------------------------------------
 
-As with reading firmware, sequential 512-byte blocks can be read at a time. This is once again achieved by checking PY_FIRM_STAT. An additional step, setting PY_DATA_PARAM to 0x08, however, is necessary. The Play-Yan's software does not update the address when sequentially reading SD card data. Typically, the Play-Yan reads around 0x6600 bytes worth of data at a time and later copying that to RAM. Such a large amount of data allows it to process long lists of filenames, video frames, or vast amounts of metadata, depending on the expected response to a command.
+As with reading firmware, sequential 512-byte blocks can be read at a time. This is once again achieved by checking PY_FIRM_STAT. An additional step, setting PY_DATA_PARAM to 0x08, however, is necessary. The Play-Yan's software does not update the address when sequentially reading SD card data. Typically, the Play-Yan reads around 0x6800 bytes worth of data at a time and later copying that to RAM. Such a large amount of data allows it to process long lists of filenames, video frames, or vast amounts of metadata, depending on the expected response to a command.
 
 
 ***************************************************
@@ -151,8 +151,8 @@ Data for most commands is usually broken into 32-bit chunks, sent LSB first. Ess
 ----------------------------------------------------------------------------------------------------------------------------------------------
 Command					| Parameter 1							| Parameter 2
 ----------------------------------------------------------------------------------------------------------------------------------------------
-0x200 - Get File Information		| N/A								| N/A
-0x201 - Process Folder			| N/A								| N/A
+0x200 - Get Filesystem Information	| File Type							| N/A
+0x201 - Change Current Directory	| Directory Name						| N/A
 0x300 - Adjust Video Brightness		| Brightness level, Min = 0x101, Max = 0x2C0, 0x40 increments	| N/A
 0x400 - Unknown				| N/A								| N/A
 0x500 - Grab Video Thumbnail Data*	| Width of thumbnail (60 pixels)				| Height of thumbnail (40 pixels)
@@ -223,22 +223,33 @@ READ DATA FROM 0xB000300 THROUGH 0xB00031F
 A list of commands and their known IRQs and the IRQ data is shown below:
 
 -----------------------------------------------------------------------
-Command 0x200 - Get File Information - 3 IRQs*
------------------------------------------------------------------------
-Bytes 0x00 - 0x03	| 0x80000100 or 0x80001000
-Bytes 0x04 - 0x07	| 0x00
+Command 0x200 - Get File Information - 2 IRQs
 -----------------------------------------------------------------------
 Bytes 0x00 - 0x03	| 0x40000200
-Bytes 0x04 - 0x07	| Unknown
+Bytes 0x04 - 0x07	| 0x01 or 0x02
 -----------------------------------------------------------------------
-Bytes 0x00 - 0x03	| 0x40000201
+Bytes 0x00 - 0x03	| 0x80001000
 -----------------------------------------------------------------------
 
-This command prompts the Play-Yan to start reading the filesystem on the SD card. It allows the software to grab a list of available files or folders for music, or video files. This apparently needs to be used in conjunction with the 0x2000 command, which is responsible for accessing multimedia files. Prior to executing the 0x2000 command, the 0x200 command seems to be reading some kind of data from the File Allocation Table, e.g. strings like "System Volume Information".
+This command prompts the Play-Yan to start reading the filesystem on the SD card. It allows the software to grab a list of available files or folders for music, or video files. The Play-Yan will scan the current directory for any files and folders it can find. Afterwards, the software can read the data through the SD Card Data interface described in the section above. The data contains the total number of files and folders within the directory along with 268-byte entries of metadata for each item found. The format of the list returned via SD Card Data is as follows:
 
-The first 32-bit value in the first IRQ differs based on context. During the initial boot section, 0x80000100 is used. It is also used when entering or exiting the video menu. For entering and exiting the music menu, however, the value 0x80001000 is used.
+-----------------------------------------------------------------------
+Bytes 0x0000 - 0x0003	| Unused (zeroes)
+Bytes 0x0004 - 0x0007	| Number of files and folders
+Bytes 0x0008 - 0x67FF	| File/Folder metadata
+-----------------------------------------------------------------------
 
-*The last two IRQs are generated multiple times during the boot process, before the 0x2000 is executed.
+The format for each 268-byte metadata entry for files/folders is as follows:
+
+-----------------------------------------------------------------------
+Bytes 0x0000 - 0x00FF	| Name (ASCII or some other encoding for kana)
+Bytes 0x0100 - 0x0107	| Some kinda hash or checksum
+Bytes 0x0108 - 0x010B	| Entry Type
+-----------------------------------------------------------------------
+
+The Entry Type describes what kind of item was found within the filesystem. If Bit 0 is set, the Play-Yan will register the item as a Video File. If Bit 1 is set, the Play-Yan will register the item as a Music File. If neither Bit 0 nor Bit 1 is set, the Play-Yan will register the item as a Folder.
+
+The second parameter determines what types of files will be returned. If this parameter is set to 0x01, the Play-Yan will only return Video Files when reading entries from SD Card Data. If this parameter is set to 0x02, the Play-Yan will only return Music Files when reading entries from SD Card Data. This parameter does not affect how folders are returned in the list, however.
 
 
 
