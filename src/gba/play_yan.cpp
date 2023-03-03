@@ -43,7 +43,7 @@ void AGB_MMU::play_yan_reset()
 	play_yan.start_irqs = false;
 
 	play_yan.irq_data_ptr = play_yan.sd_check_data[0];
-	play_yan.irq_len = 5;
+	play_yan.irq_len = 1;
 
 	play_yan.is_video_playing = false;
 	play_yan.is_music_playing = false;
@@ -63,7 +63,7 @@ void AGB_MMU::play_yan_reset()
 	for(u32 x = 0; x < 12; x++) { play_yan.cnt_data[x] = 0; }
 	play_yan.cmd = 0;
 
-	for(u32 x = 0; x < 5; x++)
+	for(u32 x = 0; x < 4; x++)
 	{
 		for(u32 y = 0; y < 8; y++)
 		{
@@ -79,6 +79,7 @@ void AGB_MMU::play_yan_reset()
 			play_yan.music_stop_data[x][y] = 0x0;
 			play_yan.video_play_data[x][y] = 0x0;
 			play_yan.video_stop_data[x][y] = 0x0;
+			play_yan.folder_ops_data[x][y] = 0x0;
 		}
 	}
 
@@ -103,7 +104,6 @@ void AGB_MMU::play_yan_reset()
 	play_yan.sd_check_data[1][0] = 0x40008000; play_yan.sd_check_data[1][1] = 0x00000005; play_yan.sd_check_data[1][2] = 0x00000000;
 	play_yan.sd_check_data[2][0] = 0x40800000; play_yan.sd_check_data[2][1] = 0x00000005; play_yan.sd_check_data[2][2] = 0x00000000;
 	play_yan.sd_check_data[3][0] = 0x80000100; play_yan.sd_check_data[3][1] = 0x00000000;
-	play_yan.sd_check_data[4][0] = 0x40000200; play_yan.sd_check_data[4][1] = 0x00042C78;
 
 	//Set 32-bit flags for entering/exiting music menu
 	play_yan.music_check_data[0][0] = 0x80001000;
@@ -134,6 +134,10 @@ void AGB_MMU::play_yan_reset()
 
 	//Set 32-bit flags for waking from sleep
 	play_yan.wake_data[0] = 0x80010001;
+
+	//Set 32-bit flags for folder operations
+	play_yan.folder_ops_data[0][0] = 0x40000200;
+	play_yan.folder_ops_data[1][0] = 0x80001000;
 
 	for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
 
@@ -261,24 +265,15 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 
 			std::cout<<"CMD -> 0x" << play_yan.cmd << "\n";
 
-			//Trigger Game Pak IRQ for entering/exiting music or video menu
-			if((play_yan.cmd == 0x400) && (play_yan.op_state == 0xFF) && (play_yan.irq_data[0] != 0x40000500))
+			//Trigger Game Pak IRQ for Get Filesystem Info command
+			if(play_yan.cmd == 0x200)
 			{
-				play_yan.op_state = 2;
+				play_yan.op_state = 1;
 				play_yan.irq_delay = 1;
+				play_yan.irq_count = 0;
 				play_yan.delay_reload = 10;
-				play_yan.irq_data_ptr = play_yan.music_check_data[0];
+				play_yan.irq_data_ptr = play_yan.folder_ops_data[0];
 				play_yan.irq_len = 2;
-			}
-
-			//Trigger Game Pak IRQ for entering/exiting video menu
-			else if((play_yan.cmd == 0x800000) && (play_yan.op_state == 0xFF))
-			{
-				play_yan.op_state = 3;
-				play_yan.irq_delay = 1;
-				play_yan.delay_reload = 10;
-				play_yan.irq_data_ptr = play_yan.video_check_data[0];
-				play_yan.irq_len = 3;
 			}
 
 			//Before playing a video, reset thumbnail index based on multiples of 6
@@ -375,6 +370,27 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 				play_yan.irq_count = 0;
 				play_yan.is_music_playing = false;
 			}
+
+			//Trigger Game Pak IRQ for cartridge status
+			else if(play_yan.cmd == 0x8000)
+			{
+				play_yan.irq_delay = 60;
+				play_yan.irq_data_ptr = play_yan.sd_check_data[1];
+				play_yan.irq_len = 1;
+				play_yan.irq_repeat = 0;
+				play_yan.irq_count = 0;
+			}
+
+			//Trigger Game Pak IRQ for booting cartridge/status
+			else if(play_yan.cmd == 0x800000)
+			{
+				play_yan.op_state = 1;
+				play_yan.irq_delay = 60;
+				play_yan.irq_data_ptr = play_yan.sd_check_data[2];
+				play_yan.irq_len = 2;
+				play_yan.irq_repeat = 0;
+				play_yan.irq_count = 0;
+			}	
 		}
 
 		//Check for control command parameter
@@ -383,10 +399,10 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 			u32 control_cmd2 = ((play_yan.cnt_data[7] << 24) | (play_yan.cnt_data[6] << 16) | (play_yan.cnt_data[5] << 8) | (play_yan.cnt_data[4]));
 
 			//Set music file data - Index 0 for first music file
-			if((play_yan.cmd == 0x200) && (control_cmd2 == 0x02) && (play_yan.op_state > 1)) { play_yan_set_music_file(0); }
+			if((play_yan.cmd == 0x200) && (control_cmd2 == 0x02)) { play_yan_set_music_file(0); }
 
 			//Set video file data - Index 0 for first video file
-			if((play_yan.cmd == 0x200) && (control_cmd2 == 0x01) && (play_yan.op_state > 1)) { play_yan_set_video_file(0); }
+			if((play_yan.cmd == 0x200) && (control_cmd2 == 0x01)) { play_yan_set_video_file(0); }
 
 			//Adjust Play-Yan volume settings
 			if(play_yan.cmd == 0xB00) { play_yan.volume = control_cmd2; }
