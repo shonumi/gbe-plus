@@ -459,6 +459,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 			if(play_yan.cmd == 0x201)
 			{
 				play_yan.current_dir = temp_str;
+				play_yan_set_folder();
 			}
 
 			//Search for internal ID associated with audio file
@@ -1011,7 +1012,7 @@ void AGB_MMU::play_yan_set_music_file(u32 index)
 		for(u32 index = 0; index < play_yan.music_files.size(); index++)
 		{
 			//Set number of media files present
-			play_yan.card_data[4 + ((index + 1) * 268)] = 0;
+			play_yan.card_data[4 + ((index + 1) * 268)] = 2;
 
 			//Copy filename
 			std::string sd_file = play_yan.music_files[index];
@@ -1049,6 +1050,13 @@ void AGB_MMU::play_yan_set_video_file(u32 index)
 			}
 		}
 	}
+}
+
+/****** Sets the current SD card data for a given folder ******/
+void AGB_MMU::play_yan_set_folder()
+{
+	play_yan.card_data.clear();
+	play_yan.card_data.resize(0x10000, 0x00);
 }
 
 /****** Wakes Play-Yan from GBA sleep mode - Fires Game Pak IRQ ******/

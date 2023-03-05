@@ -390,6 +390,7 @@ class AGB_MMU
 	void process_play_yan_irq();
 	void play_yan_set_music_file(u32 index);
 	void play_yan_set_video_file(u32 index);
+	void play_yan_set_folder();
 	void play_yan_wake();
 
 	void campho_reset();
