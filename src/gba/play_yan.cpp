@@ -68,6 +68,7 @@ void AGB_MMU::play_yan_reset()
 		for(u32 y = 0; y < 8; y++)
 		{
 			play_yan.sd_check_data[x][y] = 0x55555555;
+			play_yan.folder_ops_data[x][y] = 0x0;
 		}
 	}
 
@@ -79,7 +80,6 @@ void AGB_MMU::play_yan_reset()
 			play_yan.music_stop_data[x][y] = 0x0;
 			play_yan.video_play_data[x][y] = 0x0;
 			play_yan.video_stop_data[x][y] = 0x0;
-			play_yan.folder_ops_data[x][y] = 0x0;
 		}
 	}
 
@@ -138,6 +138,8 @@ void AGB_MMU::play_yan_reset()
 	//Set 32-bit flags for folder operations
 	play_yan.folder_ops_data[0][0] = 0x40000200;
 	play_yan.folder_ops_data[1][0] = 0x80001000;
+	play_yan.folder_ops_data[2][0] = 0x40000201;
+	play_yan.folder_ops_data[3][0] = 0x80001000;
 
 	for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
 
@@ -274,6 +276,20 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 				play_yan.delay_reload = 10;
 				play_yan.irq_data_ptr = play_yan.folder_ops_data[0];
 				play_yan.irq_len = 2;
+			}
+
+			//Trigger Game Pak IRQ for Change Current Directory command
+			if(play_yan.cmd == 0x201)
+			{
+				play_yan.op_state = 1;
+				play_yan.irq_delay = 1;
+				play_yan.irq_count = 0;
+				play_yan.delay_reload = 10;
+				play_yan.irq_data_ptr = play_yan.folder_ops_data[2];
+				play_yan.irq_len = 2;
+
+				play_yan.capture_command_stream = true;
+				play_yan.command_stream.clear();
 			}
 
 			//Before playing a video, reset thumbnail index based on multiples of 6
@@ -421,13 +437,13 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 		play_yan.command_stream.push_back(value);
 
 		//Grab string of music/video filename to play
-		if((value == 0x00) && ((play_yan.cmd == 0x600) || (play_yan.cmd == 0x700)))
+		if((value == 0x00) && ((play_yan.cmd == 0x201) || (play_yan.cmd == 0x600) || (play_yan.cmd == 0x700)))
 		{
 			std::string temp_str = "";
-			u32 offset = (play_yan.cmd == 0x600) ? 1 : 9;
+			u32 offset = (play_yan.cmd == 0x700) ? 9 : 1;
 
 			//Don't process if not enough of the command stream for the filename is sent
-			if((play_yan.cmd == 0x600) && (play_yan.command_stream.size() < 4)) { return; }
+			if(((play_yan.cmd == 0x201) || (play_yan.cmd == 0x600)) && (play_yan.command_stream.size() < 4)) { return; }
 			if((play_yan.cmd == 0x700) && (play_yan.command_stream.size() < 12)) { return; }
 
 			play_yan.capture_command_stream = false;
@@ -439,8 +455,14 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 				temp_str += chr;
 			}
 
+			//Set the current directory
+			if(play_yan.cmd == 0x201)
+			{
+				play_yan.current_dir = temp_str;
+			}
+
 			//Search for internal ID associated with audio file
-			if(play_yan.cmd == 0x600)
+			else if(play_yan.cmd == 0x600)
 			{
 				for(u32 x = 0; x < play_yan.music_files.size(); x++)
 				{
@@ -989,7 +1011,7 @@ void AGB_MMU::play_yan_set_music_file(u32 index)
 		for(u32 index = 0; index < play_yan.music_files.size(); index++)
 		{
 			//Set number of media files present
-			play_yan.card_data[4 + ((index + 1) * 268)] = 2;
+			play_yan.card_data[4 + ((index + 1) * 268)] = 0;
 
 			//Copy filename
 			std::string sd_file = play_yan.music_files[index];
