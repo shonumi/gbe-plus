@@ -192,6 +192,8 @@ PY_DATA_PARAM = 0x08
 
 Note that the data address specified by PY_DATA_ADDR is 0xFF020. Some commands will trigger a Game Pak IRQ when the Play-Yan responds. See the section below for more details.
 
+The 0x201 Change Current Directory command uses Parameter 1 as a null-terminated string representing the target folder the Play-Yan will move into. The string has no fixed length, thus making this an irregular command. The Play-Yan appears to send additional unknown data after the string.
+
 The 0x500 Grab Video Thumbnail Data command sends additional unknown data via Parameter 3. Altogether, 0x218 bytes are sent. Since this amount exceeds the 0xB0002FF boundary for parameter input, the last 0x18 bytes are written at the beginning of the section, starting over at 0xB000100.
 
 The 0x700 Play Video command uses Parameter 3 as a null-terminated string representing the filename of a specific video file to play. Like music, the Play-Yan software internally monitors which video the user has highlighted and passes the filename's string to the hardware. This string likewise has no fixed length. The Play-Yan appears to send additional unknown data after the string.
@@ -252,6 +254,20 @@ The name of the file/folder should be null-terminated, otherwise the Play-Yan wi
 The Entry Type describes what kind of item was found within the filesystem. If Bit 0 is set, the Play-Yan will register the item as a Video File. If Bit 1 is set, the Play-Yan will register the item as a Music File. If neither Bit 0 nor Bit 1 is set, the Play-Yan will register the item as a Folder.
 
 The second parameter determines what types of files will be returned. If this parameter is set to 0x01, the Play-Yan will only return Video Files when reading entries from SD Card Data. If this parameter is set to 0x02, the Play-Yan will only return Music Files when reading entries from SD Card Data. This parameter does not affect how folders are returned in the list, however.
+
+
+
+
+
+-----------------------------------------------------------------------
+Command 0x201 - Change Current Directory - 2 IRQs
+-----------------------------------------------------------------------
+Bytes 0x00 - 0x03	| 0x40000201
+-----------------------------------------------------------------------
+Bytes 0x00 - 0x03	| 0x80001000
+-----------------------------------------------------------------------
+
+Changes the current directory the Play-Yan will look for new files and folders. The folder to change into must be passed as a null-terminated string for Parameter 1. The Play-Yan is capable of traversing up and down directories through this mechanism. The Play-Yan software is programmed to automatically search through various folders and sub-folders in order to map out existing music or video files. If the string in Parameter 1 is just "..", the Play-Yan will move upwards by one folder, allowing it to backtrack through previous directories.
 
 
 
