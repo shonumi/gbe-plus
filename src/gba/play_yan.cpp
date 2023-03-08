@@ -337,7 +337,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 				play_yan.command_stream.clear();
 			}
 
-			//Trigger Game Pak IRQ
+			//Trigger Game Pak IRQ for ID3 data retrieval
 			else if(play_yan.cmd == 0x600)
 			{
 				play_yan.op_state = 1;
@@ -452,13 +452,13 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 		play_yan.command_stream.push_back(value);
 
 		//Grab string of music/video filename to play
-		if((value == 0x00) && ((play_yan.cmd == 0x201) || (play_yan.cmd == 0x700) || (play_yan.cmd == 0x800)))
+		if((value == 0x00) && ((play_yan.cmd == 0x201) || (play_yan.cmd == 0x600) || (play_yan.cmd == 0x700) || (play_yan.cmd == 0x800)))
 		{
 			std::string temp_str = "";
 			u32 offset = (play_yan.cmd == 0x700) ? 9 : 1;
 
 			//Don't process if not enough of the command stream for the filename is sent
-			if(((play_yan.cmd == 0x201) || (play_yan.cmd == 0x800)) && (play_yan.command_stream.size() < 4)) { return; }
+			if(((play_yan.cmd == 0x201) || (play_yan.cmd == 0x600) || (play_yan.cmd == 0x800)) && (play_yan.command_stream.size() < 4)) { return; }
 			if((play_yan.cmd == 0x700) && (play_yan.command_stream.size() < 12)) { return; }
 
 			play_yan.capture_command_stream = false;
@@ -475,6 +475,19 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 			{
 				play_yan.current_dir = temp_str;
 				play_yan_set_folder();
+			}
+
+			//Grab ID3 data for a song
+			else if(play_yan.cmd == 0x600)
+			{
+				for(u32 x = 0; x < play_yan.music_files.size(); x++)
+				{
+					if(temp_str == play_yan.music_files[x])
+					{
+						play_yan_set_id3_data(x);
+						break;
+					}
+				}
 			}
 
 			//Search for internal ID associated with audio file
@@ -1073,6 +1086,13 @@ void AGB_MMU::play_yan_set_folder()
 	play_yan.card_data.clear();
 	play_yan.card_data.resize(0x10000, 0x00);
 }
+
+/****** Sets the current ID3 data (Title + Artist) for a given song ******/
+void AGB_MMU::play_yan_set_id3_data(u32 index)
+{
+	play_yan.card_data.clear();
+	play_yan.card_data.resize(0x10000, 0x00);
+} 
 
 /****** Wakes Play-Yan from GBA sleep mode - Fires Game Pak IRQ ******/
 void AGB_MMU::play_yan_wake()
