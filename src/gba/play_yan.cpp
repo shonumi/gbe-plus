@@ -502,6 +502,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 						if(play_yan.music_times[x])
 						{
 							play_yan.tracker_update_size = (0x6400 / play_yan.music_times[x]);
+							play_yan.music_length = play_yan.music_times[x];
 						}
 
 						break;
@@ -747,6 +748,18 @@ void AGB_MMU::process_play_yan_irq()
 
 			//Update music progress via IRQ data
 			play_yan.music_play_data[2][6]++;
+
+			if(play_yan.music_play_data[2][6] > play_yan.music_length)
+			{
+				std::cout<<"DONE\n";
+				play_yan.op_state = 1;
+				play_yan.irq_delay = 1;
+				play_yan.delay_reload = 1;
+				play_yan.irq_data_ptr = play_yan.music_stop_data[0];
+				play_yan.irq_count = 0;
+				play_yan.irq_len = 2;
+				play_yan.irq_repeat = 0;
+			}
 		}
 
 		//Repeat video IRQs as necessary
