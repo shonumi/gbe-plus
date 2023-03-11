@@ -327,6 +327,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 				play_yan.irq_count = 0;
 				play_yan.video_data_addr = 0;
 				play_yan.video_progress = 0;
+				play_yan.video_play_data[1][6] = play_yan.video_progress;
 				play_yan.video_frame_count = 0;
 				play_yan.is_video_playing = true;
 
@@ -355,7 +356,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 			//Trigger Game Pak IRQ for stopping video
 			else if(play_yan.cmd == 0x701)
 			{
-				play_yan.op_state = 10;
+				play_yan.op_state = 1;
 				play_yan.irq_delay = 1;
 				play_yan.delay_reload = 10;
 				play_yan.irq_data_ptr = play_yan.video_stop_data[0];
@@ -392,7 +393,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 			//Trigger Game Pak IRQ for stopping music
 			else if(play_yan.cmd == 0x801)
 			{
-				play_yan.op_state = 8;
+				play_yan.op_state = 1;
 				play_yan.irq_delay = 1;
 				play_yan.delay_reload = 10;
 				play_yan.irq_data_ptr = play_yan.music_stop_data[0];
@@ -751,7 +752,6 @@ void AGB_MMU::process_play_yan_irq()
 
 			if(play_yan.music_play_data[2][6] > play_yan.music_length)
 			{
-				std::cout<<"DONE\n";
 				play_yan.op_state = 1;
 				play_yan.irq_delay = 1;
 				play_yan.delay_reload = 1;
