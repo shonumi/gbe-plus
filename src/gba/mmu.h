@@ -224,6 +224,7 @@ class AGB_MMU
 
 		u8 cnt_data[12];
 		u32 cmd;
+		u32 serial_cmd_index;
 		std::vector <u8> command_stream;
 		bool capture_command_stream;
 
@@ -387,6 +388,7 @@ class AGB_MMU
 	bool read_play_yan_file_list(std::string filename, u8 category);
 	bool read_play_yan_thumbnails(std::string filename);
 	u8 read_play_yan(u32 address);
+	void process_play_yan_cmd();
 	void process_play_yan_irq();
 	void play_yan_set_music_file(u32 index);
 	void play_yan_set_video_file(u32 index);

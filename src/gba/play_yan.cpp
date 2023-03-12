@@ -180,6 +180,8 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 		//Access Mode (determines firmware read/write)
 		case PY_ACCESS_MODE:
 			play_yan.access_mode = value;
+			if(play_yan.access_mode == 0x28) { play_yan.serial_cmd_index = 0; }
+
 			break;
 
 		//Firmware address
@@ -252,8 +254,20 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 		}
 	}
 
-	//Write to ... something else (control structure?)
-	if((address >= 0xB000100) && (address <= 0xB00010B) && (play_yan.firmware_addr >= 0xFF020))
+	//Write command and parameters (serial version)
+	if((address >= 0xB000000) && (address <= 0xB000001) && (play_yan.firmware_addr >= 0xFF020) && (play_yan.access_mode == 0x28))
+	{
+		if(play_yan.serial_cmd_index <= 0x0B) { play_yan.cnt_data[play_yan.serial_cmd_index++] = value; }
+
+		//Check for control command
+		if(play_yan.serial_cmd_index == 4)
+		{
+			process_play_yan_cmd();	
+		}
+	}
+
+	//Write command and parameters (non-serial version)
+	if((address >= 0xB000100) && (address <= 0xB00010B) && (play_yan.firmware_addr >= 0xFF020) && (play_yan.access_mode == 0x68))
 	{
 		u32 offset = address - 0xB000100;
 
@@ -262,167 +276,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 		//Check for control command
 		if(address == 0xB000103)
 		{
-			u32 prev_cmd = play_yan.cmd;
-			play_yan.cmd = ((play_yan.cnt_data[3] << 24) | (play_yan.cnt_data[2] << 16) | (play_yan.cnt_data[1] << 8) | (play_yan.cnt_data[0]));
-
-			std::cout<<"CMD -> 0x" << play_yan.cmd << "\n";
-
-			//Trigger Game Pak IRQ for Get Filesystem Info command
-			if(play_yan.cmd == 0x200)
-			{
-				play_yan.op_state = 1;
-				play_yan.irq_delay = 1;
-				play_yan.irq_count = 0;
-				play_yan.delay_reload = 10;
-				play_yan.irq_data_ptr = play_yan.folder_ops_data[0];
-				play_yan.irq_len = 2;
-			}
-
-			//Trigger Game Pak IRQ for Change Current Directory command
-			if(play_yan.cmd == 0x201)
-			{
-				play_yan.op_state = 1;
-				play_yan.irq_delay = 1;
-				play_yan.irq_count = 0;
-				play_yan.delay_reload = 10;
-				play_yan.irq_data_ptr = play_yan.folder_ops_data[2];
-				play_yan.irq_len = 2;
-
-				play_yan.capture_command_stream = true;
-				play_yan.command_stream.clear();
-			}
-
-			//Before playing a video, reset thumbnail index based on multiples of 6
-			else if((play_yan.cmd == 0x400) && (prev_cmd == 0x2000))
-			{
-				play_yan.thumbnail_index = (6 * (play_yan.thumbnail_index / 6)) - 1;
-			}
-
-			//Trigger Game Pak IRQ for video thumbnail data
-			else if(play_yan.cmd == 0x500)
-			{
-				play_yan.op_state = 3;
-				play_yan.irq_delay = 1;
-				play_yan.delay_reload = 10;
-				play_yan.irq_data_ptr = play_yan.video_check_data[0];
-				play_yan.irq_len = 4;
-				play_yan.irq_count = 3;
-
-				//Update video thumbnail index
-				play_yan.thumbnail_index++;
-				if(play_yan.thumbnail_index >= play_yan.video_thumbnails.size()) { play_yan.thumbnail_index = 0; }
-				
-				play_yan.thumbnail_addr = 0;
-			}
-
-			//Trigger Game Pak IRQ for playing video
-			else if(play_yan.cmd == 0x700)
-			{
-				play_yan.op_state = 9;
-				play_yan.irq_delay = 1;
-				play_yan.delay_reload = 10;
-				play_yan.irq_data_ptr = play_yan.video_play_data[0];
-				play_yan.irq_len = 1;
-				play_yan.irq_repeat = 0;
-				play_yan.irq_count = 0;
-				play_yan.video_data_addr = 0;
-				play_yan.video_progress = 0;
-				play_yan.video_play_data[1][6] = play_yan.video_progress;
-				play_yan.video_frame_count = 0;
-				play_yan.is_video_playing = true;
-
-				play_yan.tracker_progress = 0;
-				play_yan.tracker_update_size = 0;
-
-				play_yan.capture_command_stream = true;
-				play_yan.command_stream.clear();
-			}
-
-			//Trigger Game Pak IRQ for ID3 data retrieval
-			else if(play_yan.cmd == 0x600)
-			{
-				play_yan.op_state = 1;
-				play_yan.irq_delay = 1;
-				play_yan.delay_reload = 10;
-				play_yan.irq_data_ptr = play_yan.music_play_data[0];
-				play_yan.irq_len = 1;
-				play_yan.irq_repeat = 0;
-				play_yan.irq_count = 0;
-
-				play_yan.capture_command_stream = true;
-				play_yan.command_stream.clear();
-			}
-
-			//Trigger Game Pak IRQ for stopping video
-			else if(play_yan.cmd == 0x701)
-			{
-				play_yan.op_state = 1;
-				play_yan.irq_delay = 1;
-				play_yan.delay_reload = 10;
-				play_yan.irq_data_ptr = play_yan.video_stop_data[0];
-				play_yan.irq_len = 2;
-				play_yan.irq_repeat = 0;
-				play_yan.irq_count = 0;
-				play_yan.video_data_addr = 0;
-				play_yan.video_progress = 0;
-				play_yan.video_frame_count = 0;
-				play_yan.is_video_playing = false;
-			}
-
-			//Trigger Game Pak IRQ for playing music
-			else if(play_yan.cmd == 0x800)
-			{
-				play_yan.op_state = 6;
-				play_yan.irq_delay = 1;
-				play_yan.delay_reload = 10;
-				play_yan.irq_data_ptr = play_yan.music_play_data[0];
-				play_yan.irq_len = 3;
-				play_yan.irq_repeat = 0;
-				play_yan.irq_count = 1;
-				play_yan.is_music_playing = true;
-
-				play_yan.tracker_progress = 0;
-				play_yan.tracker_update_size = 0;
-				play_yan.music_play_data[2][5] = play_yan.tracker_progress;
-				play_yan.music_play_data[2][6] = 0;
-
-				play_yan.capture_command_stream = true;
-				play_yan.command_stream.clear();
-			}
-
-			//Trigger Game Pak IRQ for stopping music
-			else if(play_yan.cmd == 0x801)
-			{
-				play_yan.op_state = 1;
-				play_yan.irq_delay = 1;
-				play_yan.delay_reload = 10;
-				play_yan.irq_data_ptr = play_yan.music_stop_data[0];
-				play_yan.irq_len = 2;
-				play_yan.irq_repeat = 0;
-				play_yan.irq_count = 0;
-				play_yan.is_music_playing = false;
-			}
-
-			//Trigger Game Pak IRQ for cartridge status
-			else if(play_yan.cmd == 0x8000)
-			{
-				play_yan.irq_delay = 60;
-				play_yan.irq_data_ptr = play_yan.sd_check_data[1];
-				play_yan.irq_len = 1;
-				play_yan.irq_repeat = 0;
-				play_yan.irq_count = 0;
-			}
-
-			//Trigger Game Pak IRQ for booting cartridge/status
-			else if(play_yan.cmd == 0x800000)
-			{
-				play_yan.op_state = 1;
-				play_yan.irq_delay = 60;
-				play_yan.irq_data_ptr = play_yan.sd_check_data[2];
-				play_yan.irq_len = 2;
-				play_yan.irq_repeat = 0;
-				play_yan.irq_count = 0;
-			}	
+			process_play_yan_cmd();	
 		}
 
 		//Check for control command parameter
@@ -664,6 +518,172 @@ u8 AGB_MMU::read_play_yan(u32 address)
 	//std::cout<<"PLAY-YAN READ -> 0x" << address << " :: 0x" << (u32)result << "\n";
 
 	return result;
+}
+
+/****** Handles Play-Yan command processing ******/
+void AGB_MMU::process_play_yan_cmd()
+{
+	u32 prev_cmd = play_yan.cmd;
+	play_yan.cmd = ((play_yan.cnt_data[3] << 24) | (play_yan.cnt_data[2] << 16) | (play_yan.cnt_data[1] << 8) | (play_yan.cnt_data[0]));
+
+	std::cout<<"CMD -> 0x" << play_yan.cmd << "\n";
+
+	//Trigger Game Pak IRQ for Get Filesystem Info command
+	if(play_yan.cmd == 0x200)
+	{
+		play_yan.op_state = 1;
+		play_yan.irq_delay = 1;
+		play_yan.irq_count = 0;
+		play_yan.delay_reload = 10;
+		play_yan.irq_data_ptr = play_yan.folder_ops_data[0];
+		play_yan.irq_len = 2;
+	}
+
+	//Trigger Game Pak IRQ for Change Current Directory command
+	if(play_yan.cmd == 0x201)
+	{
+		play_yan.op_state = 1;
+		play_yan.irq_delay = 1;
+		play_yan.irq_count = 0;
+		play_yan.delay_reload = 10;
+		play_yan.irq_data_ptr = play_yan.folder_ops_data[2];
+		play_yan.irq_len = 2;
+
+		play_yan.capture_command_stream = true;
+		play_yan.command_stream.clear();
+	}
+
+	//Before playing a video, reset thumbnail index based on multiples of 6
+	else if((play_yan.cmd == 0x400) && (prev_cmd == 0x2000))
+	{
+		play_yan.thumbnail_index = (6 * (play_yan.thumbnail_index / 6)) - 1;
+	}
+
+	//Trigger Game Pak IRQ for video thumbnail data
+	else if(play_yan.cmd == 0x500)
+	{
+		play_yan.op_state = 3;
+		play_yan.irq_delay = 1;
+		play_yan.delay_reload = 10;
+		play_yan.irq_data_ptr = play_yan.video_check_data[0];
+		play_yan.irq_len = 4;
+		play_yan.irq_count = 3;
+
+		//Update video thumbnail index
+		play_yan.thumbnail_index++;
+		if(play_yan.thumbnail_index >= play_yan.video_thumbnails.size()) { play_yan.thumbnail_index = 0; }
+		
+		play_yan.thumbnail_addr = 0;
+	}
+
+	//Trigger Game Pak IRQ for playing video
+	else if(play_yan.cmd == 0x700)
+	{
+		play_yan.op_state = 9;
+		play_yan.irq_delay = 1;
+		play_yan.delay_reload = 10;
+		play_yan.irq_data_ptr = play_yan.video_play_data[0];
+		play_yan.irq_len = 1;
+		play_yan.irq_repeat = 0;
+		play_yan.irq_count = 0;
+		play_yan.video_data_addr = 0;
+		play_yan.video_progress = 0;
+		play_yan.video_play_data[1][6] = play_yan.video_progress;
+		play_yan.video_frame_count = 0;
+		play_yan.is_video_playing = true;
+
+		play_yan.tracker_progress = 0;
+		play_yan.tracker_update_size = 0;
+
+		play_yan.capture_command_stream = true;
+		play_yan.command_stream.clear();
+	}
+
+	//Trigger Game Pak IRQ for ID3 data retrieval
+	else if(play_yan.cmd == 0x600)
+	{
+		play_yan.op_state = 1;
+		play_yan.irq_delay = 1;
+		play_yan.delay_reload = 10;
+		play_yan.irq_data_ptr = play_yan.music_play_data[0];
+		play_yan.irq_len = 1;
+		play_yan.irq_repeat = 0;
+		play_yan.irq_count = 0;
+
+		play_yan.capture_command_stream = true;
+		play_yan.command_stream.clear();
+	}
+
+	//Trigger Game Pak IRQ for stopping video
+	else if(play_yan.cmd == 0x701)
+	{
+		play_yan.op_state = 1;
+		play_yan.irq_delay = 1;
+		play_yan.delay_reload = 10;
+		play_yan.irq_data_ptr = play_yan.video_stop_data[0];
+		play_yan.irq_len = 2;
+		play_yan.irq_repeat = 0;
+		play_yan.irq_count = 0;
+		play_yan.video_data_addr = 0;
+		play_yan.video_progress = 0;
+		play_yan.video_frame_count = 0;
+		play_yan.is_video_playing = false;
+	}
+
+	//Trigger Game Pak IRQ for playing music
+	else if(play_yan.cmd == 0x800)
+	{
+		play_yan.op_state = 6;
+		play_yan.irq_delay = 1;
+		play_yan.delay_reload = 10;
+		play_yan.irq_data_ptr = play_yan.music_play_data[0];
+		play_yan.irq_len = 3;
+		play_yan.irq_repeat = 0;
+		play_yan.irq_count = 1;
+		play_yan.is_music_playing = true;
+
+		play_yan.tracker_progress = 0;
+		play_yan.tracker_update_size = 0;
+		play_yan.music_play_data[2][5] = play_yan.tracker_progress;
+		play_yan.music_play_data[2][6] = 0;
+
+		play_yan.capture_command_stream = true;
+		play_yan.command_stream.clear();
+	}
+
+	//Trigger Game Pak IRQ for stopping music
+	else if(play_yan.cmd == 0x801)
+	{
+		play_yan.op_state = 1;
+		play_yan.irq_delay = 1;
+		play_yan.delay_reload = 10;
+		play_yan.irq_data_ptr = play_yan.music_stop_data[0];
+		play_yan.irq_len = 2;
+		play_yan.irq_repeat = 0;
+		play_yan.irq_count = 0;
+		play_yan.is_music_playing = false;
+	}
+
+	//Trigger Game Pak IRQ for cartridge status
+	else if(play_yan.cmd == 0x8000)
+	{
+		play_yan.irq_delay = 60;
+		play_yan.irq_data_ptr = play_yan.sd_check_data[1];
+		play_yan.irq_len = 1;
+		play_yan.irq_repeat = 0;
+		play_yan.irq_count = 0;
+	}
+
+	//Trigger Game Pak IRQ for booting cartridge/status
+	else if(play_yan.cmd == 0x800000)
+	{
+		play_yan.op_state = 1;
+		play_yan.irq_delay = 60;
+		play_yan.irq_data_ptr = play_yan.sd_check_data[2];
+		play_yan.irq_len = 2;
+		play_yan.irq_repeat = 0;
+		play_yan.irq_count = 0;
+	}	
 }
 
 /****** Handles Play-Yan interrupt requests including delays and what data to respond with ******/
