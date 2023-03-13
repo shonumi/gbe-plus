@@ -213,6 +213,8 @@ class AGB_MMU
 		u32 video_stop_data[2][8];
 		u32 wake_data[8];
 
+		u32 micro[3][8];
+
 		u32 irq_data[8];
 		bool irq_data_in_use;
 		bool start_irqs;

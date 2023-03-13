@@ -141,6 +141,10 @@ void AGB_MMU::play_yan_reset()
 	play_yan.folder_ops_data[2][0] = 0x40000201;
 	play_yan.folder_ops_data[3][0] = 0x80001000;
 
+	play_yan.micro[0][0] = 0x40003000;
+	play_yan.micro[1][0] = 0x40003001;
+	play_yan.micro[2][0] = 0x40003003;
+
 	for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
 
 	play_yan.music_length = 0;
@@ -683,7 +687,40 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.irq_len = 2;
 		play_yan.irq_repeat = 0;
 		play_yan.irq_count = 0;
+	}
+
+	//Trigger unknown Play-Yan Micro Game Pak IRQ 
+	else if(play_yan.cmd == 0x3000)
+	{
+		play_yan.op_state = 1;
+		play_yan.irq_delay = 60;
+		play_yan.irq_data_ptr = play_yan.micro[0];
+		play_yan.irq_len = 1;
+		play_yan.irq_repeat = 0;
+		play_yan.irq_count = 0;
+	}
+
+	//Trigger unknown Play-Yan Micro Game Pak IRQ 
+	else if(play_yan.cmd == 0x3001)
+	{
+		play_yan.op_state = 1;
+		play_yan.irq_delay = 60;
+		play_yan.irq_data_ptr = play_yan.micro[0];
+		play_yan.irq_len = 2;
+		play_yan.irq_repeat = 0;
+		play_yan.irq_count = 1;
 	}	
+
+	//Trigger unknown Play-Yan Micro Game Pak IRQ 
+	else if(play_yan.cmd == 0x3003)
+	{
+		play_yan.op_state = 1;
+		play_yan.irq_delay = 60;
+		play_yan.irq_data_ptr = play_yan.micro[0];
+		play_yan.irq_len = 3;
+		play_yan.irq_repeat = 0;
+		play_yan.irq_count = 2;
+	}		
 }
 
 /****** Handles Play-Yan interrupt requests including delays and what data to respond with ******/
