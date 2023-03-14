@@ -268,6 +268,27 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 		{
 			process_play_yan_cmd();	
 		}
+
+		//Check for control command parameter
+		else if(play_yan.serial_cmd_index == 8)
+		{
+			u16 control_cmd2 = (play_yan.cnt_data[5] << 8) | (play_yan.cnt_data[4]);
+
+			//Set music file data - Index 0 for first music file
+			if((play_yan.cmd == 0x200) && (control_cmd2 == 0x02)) { play_yan_set_music_file(0); std::cout<<"yo\n"; }
+
+			//Set video file data - Index 0 for first video file
+			if((play_yan.cmd == 0x200) && (control_cmd2 == 0x01)) { play_yan_set_video_file(0); }
+
+			//Adjust Play-Yan volume settings
+			if(play_yan.cmd == 0xB00) { play_yan.volume = control_cmd2; }
+
+			//Adjust Play-Yan bass boost settings
+			else if(play_yan.cmd == 0xD00) { play_yan.bass_boost = control_cmd2; }
+
+			//Turn on/off Play-Yan bass boost
+			else if(play_yan.cmd == 0xD01) { play_yan.use_bass_boost = (control_cmd2 == 0x8F0F) ? false : true; }
+		}
 	}
 
 	//Write command and parameters (non-serial version)
