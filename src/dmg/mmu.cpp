@@ -2305,17 +2305,20 @@ bool DMG_MMU::load_backup(std::string filename)
 					for(int x = 0; x < block_size; x++)
 					{
 						u8* ex_ram = &random_access_bank[x][0];
-						sram.read((char*)ex_ram, 0x2000); 
+						sram.read((char*)ex_ram, 0x2000);
 					}
 				}
 				
 				//Read save data normally
 				else
-				{	
-					for(int x = 0; x < 0x10; x++)
+				{
+					u32 block_size = file_size / 0x2000;
+					if(block_size > 0x10) { block_size = 0x10; }
+
+					for(int x = 0; x < block_size; x++)
 					{
 						u8* ex_ram = &random_access_bank[x][0];
-						sram.read((char*)ex_ram, 0x2000); 
+						sram.read((char*)ex_ram, 0x2000);
 					}
 				}
 			}
@@ -2346,7 +2349,7 @@ bool DMG_MMU::load_backup(std::string filename)
 			}
 
 			//Read RTC data
-			if((cart.rtc) && (file_size >= 0x20029)) 
+			if((cart.rtc) && ((file_size & 0x1FFF) == 0x29)) 
 			{
 				int* ex_ram_time = &cart.rtc_last_time[0];
 				sram.read((char*)ex_ram_time, 0x24);
