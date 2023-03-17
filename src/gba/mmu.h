@@ -49,6 +49,14 @@ class AGB_MMU
 		GPIO_GYRO_SENSOR,
 	};
 
+	//Play-Yan type enumerations
+	enum play_yan_types
+	{
+		PLAY_YAN_OG,
+		PLAY_YAN_MICRO,
+		NINTENDO_MP3,
+	};
+
 	backup_types current_save_type;
 
 	std::vector <u8> memory_map;
@@ -265,6 +273,8 @@ class AGB_MMU
 		u8 volume;
 		u8 bass_boost;
 		bool use_bass_boost;
+
+		play_yan_types type;
 	} play_yan;
 
 	//Structure to handle Campho Advance

@@ -165,6 +165,8 @@ void AGB_MMU::play_yan_reset()
 
 	play_yan.use_bass_boost = false;
 	play_yan.capture_command_stream = false;
+
+	play_yan.type = PLAY_YAN_OG;
 }
 
 /****** Writes to Play-Yan I/O ******/
@@ -275,7 +277,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 			u16 control_cmd2 = (play_yan.cnt_data[5] << 8) | (play_yan.cnt_data[4]);
 
 			//Set music file data - Index 0 for first music file
-			if((play_yan.cmd == 0x200) && (control_cmd2 == 0x02)) { play_yan_set_music_file(0); std::cout<<"yo\n"; }
+			if((play_yan.cmd == 0x200) && (control_cmd2 == 0x02)) { play_yan_set_music_file(0); }
 
 			//Set video file data - Index 0 for first video file
 			if((play_yan.cmd == 0x200) && (control_cmd2 == 0x01)) { play_yan_set_video_file(0); }
@@ -719,6 +721,9 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.irq_len = 1;
 		play_yan.irq_repeat = 0;
 		play_yan.irq_count = 0;
+
+		//0x3000 command is unique to Play-Yan Micro. Switch type if command detected
+		play_yan.type = PLAY_YAN_MICRO;
 	}
 
 	//Trigger unknown Play-Yan Micro Game Pak IRQ 
@@ -1122,16 +1127,22 @@ void AGB_MMU::play_yan_set_music_file(u32 index)
 	play_yan.card_data.clear();
 	play_yan.card_data.resize(0x10000, 0x00);
 
+	u32 entry_size = 0;
+
+	if(play_yan.type == PLAY_YAN_OG) { entry_size = 268; }
+	else if(play_yan.type == PLAY_YAN_MICRO) { entry_size = 272; }
+	else { return; }
+
 	//Set data pulled from SD card
 	if(!play_yan.music_files.empty())
 	{
 		//Set number of media files present
-		play_yan.card_data[4 + (index * 268)] = play_yan.music_files.size();
+		play_yan.card_data[4 + (index * entry_size)] = play_yan.music_files.size();
 
 		for(u32 index = 0; index < play_yan.music_files.size(); index++)
 		{
 			//Set number of media files present
-			play_yan.card_data[4 + ((index + 1) * 268)] = 2;
+			play_yan.card_data[4 + ((index + 1) * entry_size)] = 2;
 
 			//Copy filename
 			std::string sd_file = play_yan.music_files[index];
@@ -1139,7 +1150,7 @@ void AGB_MMU::play_yan_set_music_file(u32 index)
 			for(u32 x = 0; x < sd_file.length(); x++)
 			{
 				u8 chr = sd_file[x];
-				play_yan.card_data[8 + (index * 268) + x] = chr;
+				play_yan.card_data[8 + (index * entry_size) + x] = chr;
 			}
 		}
 	}
@@ -1150,6 +1161,12 @@ void AGB_MMU::play_yan_set_video_file(u32 index)
 {
 	play_yan.card_data.clear();
 	play_yan.card_data.resize(0x10000, 0x00);
+
+	u32 entry_size = 0;
+
+	if(play_yan.type == PLAY_YAN_OG) { entry_size = 268; }
+	else if(play_yan.type == PLAY_YAN_MICRO) { entry_size = 272; }
+	else { return; }
 
 	//Set data pulled from SD card
 	if(!play_yan.video_files.empty())
@@ -1165,7 +1182,7 @@ void AGB_MMU::play_yan_set_video_file(u32 index)
 			for(u32 x = 0; x < sd_file.length(); x++)
 			{
 				u8 chr = sd_file[x];
-				play_yan.card_data[8 + (index * 268) + x] = chr;
+				play_yan.card_data[8 + (index * entry_size) + x] = chr;
 			}
 		}
 	}
