@@ -329,7 +329,8 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 	}
 
 	//Grab entire command stream
-	if((address >= 0xB000100) && (play_yan.firmware_addr >= 0xFF020) && (play_yan.capture_command_stream))
+	if(((address >= 0xB000100) && (play_yan.firmware_addr >= 0xFF020) && (play_yan.capture_command_stream) && (play_yan.access_mode == 0x68))
+	|| ((address >= 0xB000000) && (play_yan.firmware_addr >= 0xFF020) && (play_yan.capture_command_stream) && (play_yan.access_mode == 0x28)))
 	{
 		play_yan.command_stream.push_back(value);
 
