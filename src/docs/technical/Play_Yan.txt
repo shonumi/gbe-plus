@@ -9,6 +9,8 @@ Shonumi aka D.S. Baxter
 
 On February 21, 2005, Nintendo released their very own video/music player for the Game Boy Advance in the form of a unique cartridge. It was branded the Play-Yan and was designated the product code AGS-006. Sold exclusively in Japan, it handled MP3 audio files as well and MPEG-4 video files. The hardware had a dedicated SD card slot so users could access their own media.
 
+On September 13, 2005, Nintendo released an updated version called the Play-Yan Micro. It was largely the same as the original Play-Yan, however, it was updated with native support for the MP4 video container, a different interface, and it removed support for the 13 minigames. The Play-Yan Micro was otherwise unchanged.
+
 
 ***************************************************
 2. General Hardware Information
@@ -24,7 +26,7 @@ On February 21, 2005, Nintendo released their very own video/music player for th
 - Could generate video thumbnails and parse some ID3 tags.
 - Videos used ASF or MP4 containers with G.726 or AAC as audio codecs, respectively.
 - Maximum of 30 frames-per-second for video.
-- Came with 13 "Garage Games" built into the ROM, unlockable with special video files.
+- The original version came with 13 "Garage Games" built into the ROM, unlockable with special video files.
 
 
 ***************************************************
@@ -135,15 +137,17 @@ As with reading firmware, sequential 512-byte blocks can be read at a time. This
 6. Play-Yan Commands
 ***************************************************
 
-A number of commands may be issued to the Play-Yan. These allow the software to access many of the cartridge's advanced functions surrounding multimedia playback and file handling. Rather than manually processing things, the Play-Yan hands things over to its hardware and firmware through an interface. Each command typically consists of a series of 12 bytes written to the 0xB000100 - 0xB00011F address range. Some commands may contain additional parameter data beyond this, and not every command follows the same pattern of using 32-bit parameters. In general, however, the structure of a command is as follows:
+A number of commands may be issued to the Play-Yan. These allow the software to access many of the cartridge's advanced functions surrounding multimedia playback and file handling. Rather than manually processing things, the Play-Yan hands things over to its hardware and firmware through an interface. There are two methods of sending commands on the Play-Yan: serial and non-serial. These determine whether the data is written to a single, fixed 16-bit address or across a range of I/O addresses, respectively.
+
+Each command typically consists of 12 bytes written to the 0xB000000 - 0xB00001F address range for serial commands and the 0xB000100 - 0xB00011F address range for non-serial commands. Some commands may contain additional parameter data beyond this, and not every command follows the same pattern of using 32-bit parameters. In general, however, the structure of a command is as follows:
 
 -----------------------------------------------------------------------
 Address			| Data
 -----------------------------------------------------------------------
-0xB000100 - 0xB000103	| Command 
-0xB000104 - 0xB000107	| Parameter 1
-0xB000108 - 0xB00010B	| Parameter 2
-0xB00010C ...		| Parameter 3
+0xB000x00 - 0xB000x03	| Command 
+0xB000x04 - 0xB000x07	| Parameter 1
+0xB000x08 - 0xB000x0B	| Parameter 2
+0xB000x0C ...		| Parameter 3
 -----------------------------------------------------------------------
 
 Data for most commands is usually broken into 32-bit chunks, sent LSB first. Essentially, the Play-Yan just sends a command along with 2 parameters, both of which are optional. Below is a list of known or observed commands along with their parameters:
@@ -169,6 +173,9 @@ Command					| Parameter 1							| Parameter 2
 0xD00 - Adjust Bass Boost		| Bass boost level, Min = 0x00, Max = 0x0F			| N/A
 0xD01 - Enable/Disable Bass Boost	| ON = 0x800F, OFF = 0x8F0F					| N/A
 0x2000 - Play Sound Effect		| N/A								| N/A
+0x3000 - Check For Key File*		| Key File Name							| N/A
+0x3001 - Read Key File Data		| N/A								| N/A
+0x3003 - Close Key File			| N/A								| N/A
 0x8000 - Get Cartridge Status		| N/A								| N/A
 0x10000 - Enter Sleep Mode		| N/A								| N/A
 0x800000 - Unknown			| N/A								| N/A
@@ -176,7 +183,22 @@ Command					| Parameter 1							| Parameter 2
 
 *These commands send non-standard amounts of data for their parameters. See the end of this section for further details on each. additional data beyond a second parameter. Overall, it sends a total of 0x218 bytes, the latter portion of which has an unknown purpose.
 
-The following proceedure is used to issue commands:
+The Play-Yan Micro exclusively uses serial commands and uses the following proceedure to issue them:
+
+-----------------------------------------------------------------------
+PY_DATA_MODE = 0x28
+PY_DATA_ADDR = 0xF020
+PY_DATA_ADDR = 0x000F
+UNKNOWN REGISTER 02 = 0x00
+
+WAIT FOR BIT 7 OF PY_STAT TO READ HIGH
+WRITE 16-BIT DATA INTO 0xB000000
+REPEAT 16-BIT WRITES INTO 0xB000000 AS NEEDED FOR COMMAND LENGTH
+PY_DATA_PARAM = 0x0C
+PY_DATA_PARAM = 0x08
+-----------------------------------------------------------------------
+
+The original Play-Yan exclusively uses non-serial commands and uses the following proceedure to issue them:
 
 -----------------------------------------------------------------------
 PY_DATA_MODE = 0x68
@@ -201,6 +223,8 @@ The 0x600 Grab ID3 Data command uses Parameter 1 as a null-terminated string rep
 The 0x700 Play Video command uses Parameter 3 as a null-terminated string representing the filename of a specific video file to play. Like music, the Play-Yan software internally monitors which video the user has highlighted and passes the filename's string to the hardware. This string likewise has no fixed length. The Play-Yan appears to send additional unknown data after the string.
 
 The 0x800 Play Music File command uses Parameter 1 as a null-terminated string representing the filename of specific music file to play. The Play-Yan software internally keeps track of which song the user has currently highlighted, and it passes the filename's string to the hardware. The string has no fixed length, thus making this an irregular command. The Play-Yan appears to send additional unknown data after the string.
+
+The 0x3000 Check For Key File command uses Parameter 1 as a null-terminated string representing the filename of the "key file", which is a .ini text file containing various settings such as what theme to use, video brightness, and audio volume. This command, as well as all other 0x300x commands, is exclusive to the Play-Yan Micro. The string should have a fixed length, as the software is hardcoded to use "play_yanmicro.ini", however, it can technically be any length.
 
 The unknown command 0x600 appears to be similar to 0x800 command, using Parameter 1 as a null-terminated string representing the filename of a specific music file to be played.
 
