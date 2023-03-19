@@ -88,6 +88,7 @@ void AGB_MMU::play_yan_reset()
 		for(u32 y = 0; y < 8; y++)
 		{
 			play_yan.music_play_data[x][y] = 0x0;
+			play_yan.micro[x][y] = 0x0;
 		}
 	}
 
@@ -141,6 +142,7 @@ void AGB_MMU::play_yan_reset()
 	play_yan.folder_ops_data[2][0] = 0x40000201;
 	play_yan.folder_ops_data[3][0] = 0x80001000;
 
+	//Set 32-bit flags for Play-Yan Micro .ini file handling
 	play_yan.micro[0][0] = 0x40003000;
 	play_yan.micro[1][0] = 0x40003001;
 	play_yan.micro[2][0] = 0x40003003;
@@ -487,6 +489,8 @@ u8 AGB_MMU::read_play_yan(u32 address)
 	{
 		u32 offset = address - 0xB000300;
 		
+
+		if(!(play_yan.card_addr + offset)) { std::cout<<"CARD READ\n"; }
 		if((play_yan.card_addr + offset) < 0x10000)
 		{
 			result = play_yan.card_data[play_yan.card_addr + offset];
@@ -713,7 +717,7 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.irq_count = 0;
 	}
 
-	//Trigger unknown Play-Yan Micro Game Pak IRQ 
+	//Trigger Play-Yan Micro Game Pak IRQ to open .ini file 
 	else if(play_yan.cmd == 0x3000)
 	{
 		play_yan.op_state = 1;
@@ -727,7 +731,7 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.type = PLAY_YAN_MICRO;
 	}
 
-	//Trigger unknown Play-Yan Micro Game Pak IRQ 
+	//Trigger Play-Yan Micro Game Pak IRQ to read .ini file 
 	else if(play_yan.cmd == 0x3001)
 	{
 		play_yan.op_state = 1;
@@ -736,9 +740,11 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.irq_len = 2;
 		play_yan.irq_repeat = 0;
 		play_yan.irq_count = 1;
+
+		play_yan_set_ini_file();
 	}	
 
-	//Trigger unknown Play-Yan Micro Game Pak IRQ 
+	//Trigger Play-Yan Micro Game Pak IRQ to close .ini file??? 
 	else if(play_yan.cmd == 0x3003)
 	{
 		play_yan.op_state = 1;
@@ -1202,6 +1208,41 @@ void AGB_MMU::play_yan_set_id3_data(u32 index)
 	play_yan.card_data.clear();
 	play_yan.card_data.resize(0x10000, 0x00);
 } 
+
+/****** Sets SD card data to read the Play-Yan Micro .ini file ******/
+void AGB_MMU::play_yan_set_ini_file()
+{
+	play_yan.card_data.clear();
+	play_yan.card_data.resize(0x10000, 0x00);
+
+	std::string filename = config::data_path + "play_yan/play_yanmicro.ini";
+	std::ifstream file(filename.c_str(), std::ios::binary);
+	std::vector<u8> ini_data;
+
+	if(!file.is_open()) 
+	{
+		std::cout<<"MMU::" << filename << " Play-Yan Micro .ini file could not be opened. Check file path or permissions. \n";
+		return;
+	}
+
+	//Get the file size
+	file.seekg(0, file.end);
+	u32 file_size = file.tellg();
+	file.seekg(0, file.beg);
+	ini_data.resize(file_size);
+	
+	if(file_size > 0x10000) { file_size = 0x10000; }
+	
+	//Set the parameter for Game Pak IRQ data
+	play_yan.micro[1][2] = file_size;
+
+	//Read data from file and copy to SD card data
+	file.read(reinterpret_cast<char*> (&ini_data[0]), file_size);
+	for(u32 x = 0; x < file_size; x++) { play_yan.card_data[x] = ini_data[x]; }
+	file.close();
+
+	std::cout<<"MMU::Reading Play-Yan Micro.ini file at " << filename << "\n";
+}
 
 /****** Wakes Play-Yan from GBA sleep mode - Fires Game Pak IRQ ******/
 void AGB_MMU::play_yan_wake()
