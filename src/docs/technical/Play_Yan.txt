@@ -226,8 +226,6 @@ The 0x800 Play Music File command uses Parameter 1 as a null-terminated string r
 
 The 0x3000 Check For Key File command uses Parameter 1 as a null-terminated string representing the filename of the "key file", which is a .ini text file containing various settings such as what theme to use, video brightness, and audio volume. This command, as well as all other 0x300x commands, is exclusive to the Play-Yan Micro. The string should have a fixed length, as the software is hardcoded to use "play_yanmicro.ini", however, it can technically be any length.
 
-The unknown command 0x600 appears to be similar to 0x800 command, using Parameter 1 as a null-terminated string representing the filename of a specific music file to be played.
-
 
 ***************************************************
 7. Game Pak IRQs
@@ -416,6 +414,45 @@ Bytes 0x00 - 0x03	| 0x80001000
 -----------------------------------------------------------------------
 
 Only 1 IRQ is fired for this command. It appears to force the Play-Yan to generate a brief sound effect, typically used for menus or when playing Garage Games. The sound effect (something like a chirp) is the same in all instances. It is necessary for the Play-Yan itself to generate the sound effects rather than the GBA because the Play-Yan may need to push samples through the built-in headphone. The Play-Yan is responsible for generating all sound (music, video, and sound effects), and it decides whether or not to use the headphone jack or the GBA's speakers as output. 
+
+
+
+
+
+-----------------------------------------------------------------------
+Command 0x3000 - Check For Key File - 1 IRQ
+-----------------------------------------------------------------------
+Bytes 0x00 - 0x03	| 0x40003000
+Bytes 0x04 - 0x07	| Key File Exists Flag
+-----------------------------------------------------------------------
+
+This command prompts the Play-Yan Micro to check the root directory of the SD card for the presence of a key file. The file should be named "play_yanmicro.ini". If this file exists, it proceeds to open it and try and parse the contents of the text file. If it can't find the file, it will boot up anyway and resort to using default settings. The second 32-bit value returned by this IRQ indicates whether the file was found. A value of zero indicates the file is available, while any non-zero value indicates a problem.
+
+
+
+
+
+-----------------------------------------------------------------------
+Command 0x3001 - Read Key File Data - 1 IRQ
+-----------------------------------------------------------------------
+Bytes 0x00 - 0x03	| 0x40003001
+Bytes 0x04 - 0x07	| Key File Is Open Flag
+Bytes 0x08 - 0x0B	| Key File Size
+-----------------------------------------------------------------------
+
+This command opens and reads the contents of the key file on the Play-Yan Micro. After executing this command, the key file can be read back as SD Card data. The second return value for this IRQ is a flag detailing the file's status. A value of zero indicates it was successfully opened, while any non-zero values indicates a problem. The third return value is the size of the key file in bytes. If the key file cannot be opened during this stage, the Play-Yan Micro will use default settings. After reading the key file, the Play-Yan Micro will parse and validate the results. If there is an issue here, the software will still boot up with default settings, however, it will display an icon representing a bad key file.
+
+
+
+
+
+-----------------------------------------------------------------------
+Command 0x3003 - Close Key File - 1 IRQ
+-----------------------------------------------------------------------
+Bytes 0x00 - 0x03	| 0x40003003
+-----------------------------------------------------------------------
+
+This command presumably closes the key file. The Play Yan Micro only executes this command if the key file was previously opened.
 
 
 
