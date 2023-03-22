@@ -91,8 +91,8 @@ class DMG_MMU
 		bool rtc_enabled;
 		bool rtc_latched;
 		u8 rtc_latch_1, rtc_latch_2, rtc_reg[5];
-		int rtc_last_time[9];
 		u8 latch_reg[5];
+		u64 rtc_timestamp;
 
 		//MBC6
 		u8 flash_cnt;

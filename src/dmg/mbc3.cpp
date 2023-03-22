@@ -11,50 +11,23 @@
 // Also used for RTC functionality if present
 
 #include <ctime>
+#include <chrono>
 
 #include "mmu.h"
 
 /****** Grab current system time for Real-Time Clock ******/
 void DMG_MMU::grab_time()
 {
-	//Grab local time
-	time_t system_time = time(0);
-	tm* current_time = localtime(&system_time);
-	tm last_time;
+	//Grab local time as a seconds since epoch
+	u64 current_timestamp = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 
-	bool first_time = true;
-
-	for(int x = 0; x < 9; x++)
+	if(!cart.rtc_timestamp)
 	{
-		if(cart.rtc_last_time[x]) { first_time = false; }
+		cart.rtc_timestamp = current_timestamp;
 	}
-
-	if(first_time)
-	{
-		cart.rtc_last_time[0] = current_time->tm_sec;
-		cart.rtc_last_time[1] = current_time->tm_min; 
-		cart.rtc_last_time[2] = current_time->tm_hour; 
-		cart.rtc_last_time[3] = current_time->tm_mday; 
-		cart.rtc_last_time[4] = current_time->tm_mon; 
-		cart.rtc_last_time[5] = current_time->tm_year; 
-		cart.rtc_last_time[6] = current_time->tm_wday;
-		cart.rtc_last_time[7] = current_time->tm_yday; 
-		cart.rtc_last_time[8] = current_time->tm_isdst;
-		return;
-	}
-
-	//Manually restore tm structure for previous time
-	last_time.tm_sec = cart.rtc_last_time[0];
-	last_time.tm_min = cart.rtc_last_time[1]; 
-	last_time.tm_hour = cart.rtc_last_time[2]; 
-	last_time.tm_mday = cart.rtc_last_time[3]; 
-	last_time.tm_mon = cart.rtc_last_time[4]; 
-	last_time.tm_year = cart.rtc_last_time[5]; 
-	last_time.tm_wday = cart.rtc_last_time[6];
-	last_time.tm_yday = cart.rtc_last_time[7]; 
-	last_time.tm_isdst = cart.rtc_last_time[8];
 
 	//Add offsets to system time
+	/*
 	if((current_time->tm_sec + config::rtc_offset[0]) >= 60) { current_time->tm_min++; }
 	current_time->tm_sec += config::rtc_offset[0];
 	current_time->tm_sec = (current_time->tm_sec % 60);
@@ -69,9 +42,9 @@ void DMG_MMU::grab_time()
 
 	current_time->tm_mday += config::rtc_offset[3];
 	current_time->tm_mday = (current_time->tm_mday % 366);
+	*/
 
-	//Calculate difference in seconds since last time update
-	double time_passed = difftime(mktime(current_time), mktime(&last_time));
+	s64 time_passed = current_timestamp - cart.rtc_timestamp;
 
 	if(time_passed > 0)
 	{
@@ -160,15 +133,7 @@ void DMG_MMU::grab_time()
 	}
 
 	//Manually set new time
-	cart.rtc_last_time[0] = current_time->tm_sec;
-	cart.rtc_last_time[1] = current_time->tm_min; 
-	cart.rtc_last_time[2] = current_time->tm_hour; 
-	cart.rtc_last_time[3] = current_time->tm_mday; 
-	cart.rtc_last_time[4] = current_time->tm_mon; 
-	cart.rtc_last_time[5] = current_time->tm_year; 
-	cart.rtc_last_time[6] = current_time->tm_wday;
-	cart.rtc_last_time[7] = current_time->tm_yday; 
-	cart.rtc_last_time[8] = current_time->tm_isdst;
+	cart.rtc_timestamp = current_timestamp;
 
 	for(int x = 0; x < 5; x++) { cart.latch_reg[x] = cart.rtc_reg[x]; }
 }

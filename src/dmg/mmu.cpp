@@ -89,7 +89,7 @@ void DMG_MMU::reset()
 		cart.rtc_reg[x] = 0;
 	}
 
-	for(int x = 0; x < 9; x++) { cart.rtc_last_time[x] = 0; }
+	cart.rtc_timestamp = 0;
 
 	cart.idle = false;
 	cart.internal_value = cart.internal_state = cart.cs = cart.sk = cart.buffer_length = cart.command_code = cart.addr = cart.buffer = 0;
@@ -2349,13 +2349,27 @@ bool DMG_MMU::load_backup(std::string filename)
 			}
 
 			//Read RTC data
-			if((cart.rtc) && ((file_size & 0x1FFF) == 0x29)) 
+			if((cart.rtc) && ((file_size & 0x1FFF) == 0x30)) 
 			{
-				int* ex_ram_time = &cart.rtc_last_time[0];
-				sram.read((char*)ex_ram_time, 0x24);
+				u32 temp_rtc_reg[5];
+				u32 temp_latch_reg[5];
 
-				u8* ex_ram_reg = &cart.rtc_reg[0];
-				sram.read((char*)ex_ram_reg, 0x5);
+				//RTC registers
+				u32* ex_ram_reg = &temp_rtc_reg[0];
+				sram.read((char*)temp_rtc_reg, 0x14);
+
+				//Latched RTC registers
+				ex_ram_reg = &temp_latch_reg[0];
+				sram.read((char*)temp_latch_reg, 0x14);
+				
+				for(u32 x = 0; x < 5; x++)
+				{
+					cart.rtc_reg[x] = temp_rtc_reg[x];
+					cart.latch_reg[x] = temp_latch_reg[x];
+				}
+
+				//64-bit UNIX timestamp
+				sram.read((char*)(&cart.rtc_timestamp), 0x08);
 			}
 		}
 
@@ -2469,15 +2483,24 @@ bool DMG_MMU::save_backup(std::string filename)
 			{
 				grab_time();
 
-				for(int x = 0; x < 9; x++)
-				{
-					sram.write(reinterpret_cast<char*> (&cart.rtc_last_time[x]), 0x4);
-				}
-
+				//RTC registers
 				for(int x = 0; x < 5; x++)
 				{
-					sram.write(reinterpret_cast<char*> (&cart.rtc_reg[x]), 0x1);
+					u32 reg = cart.rtc_reg[x];
+					sram.write(reinterpret_cast<char*> (&reg), 0x04);
+					std::cout<<"CART RTC SAVE -> 0x" << std::dec << reg << std::hex << "\n";
 				}
+
+				//RTC latched registers
+				for(int x = 0; x < 5; x++)
+				{
+					u32 reg = cart.latch_reg[x];
+					sram.write(reinterpret_cast<char*> (&reg), 0x04);
+					std::cout<<"CART RTC SAVE -> 0x" << std::dec << reg << std::hex << "\n";
+				}
+
+				//64-bit UNIX timestamp
+				sram.write(reinterpret_cast<char*> (&cart.rtc_timestamp), 0x08);
 			} 
 
 			sram.close();
