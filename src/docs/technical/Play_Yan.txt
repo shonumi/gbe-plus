@@ -573,3 +573,37 @@ WHILE INDEX NOT EQUAL TO 0x960
 -----------------------------------------------------------------------
 
 Although this hashing prevents most ordinary videos from randomly generating a thumbnail that triggers the Garage Game to play, the hashing method is prone to collisions. It is possible, therefore, to specifically create a thumbnail that matches any of the above listed hashes, in effect creating "bootleg" Garage Games.
+
+
+***************************************************
+10. Key File
+***************************************************
+
+The key file is a simple text file the Play-Yan Micro reads on when starting up. The file name must be "play_yanmicro.ini" and must be stored in the SD card's root directory. The Play-Yan Micro uses this to change various settings automatically for the user. Note that the key file is exclusive to the Play-Yan Micro and is not used at all for the original Play-Yan. Below is the default key file provided by Nintendo, along with an explanation of the entries and their values:
+
+-----------------------------------------------------------------------
+PLAY_YAN_Design=1
+PLAY_YAN_StartMode=1
+PLAY_YAN_VolumeAdd=0
+PLAY_YAN_AudioPlayMode=0
+PLAY_YAN_AudioBass=0
+PLAY_YAN_AudioWide=0
+PLAY_YAN_VideoPlayMode=0
+PLAY_YAN_VideoBright=0
+-----------------------------------------------------------------------
+
+PLAY_YAN_Design: Changes the user-interface theme between Pictogram and Mario (values 0 and 1 respectively).
+
+PLAY_YAN_StartMode: Determines whether Videos or Music will be the default selected option on the main menu after booting (values 0 and 1 respectively).
+
+PLAY_YAN_VolumeAdd: Determines the initial level of volume for all media. Uses values -18 to 9 for mute volume to just below the max (does not use the 10 highest levels of volume).
+
+PLAY_YAN_AudioPlayMode: Determines how songs are played, such as loop through all songs, loop over a single song continuously, loop over songs randomly, or play all songs in order once (values 0 through 3 respectively).
+
+PLAY_YAN_AudioBass: Determines whether the bass is left at default levels or amplified (values 0 and 1 respectively).
+
+PLAY_YAN_AudioWide: Determines the level of stereo sound amplification (values 0 through 6).
+
+PLAY_YAN_VideoPlayMode: Determines how videos are played, such as play a single video once, loop over a single video continously, play all videos once, or loop over all videos (values 0 through 3 respectively).
+
+PLAY_YAN_VideoBright: Determines the level of brightness adjustment for video playback (values 0 through 5).
