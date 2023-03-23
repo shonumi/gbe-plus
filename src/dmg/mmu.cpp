@@ -2488,7 +2488,6 @@ bool DMG_MMU::save_backup(std::string filename)
 				{
 					u32 reg = cart.rtc_reg[x];
 					sram.write(reinterpret_cast<char*> (&reg), 0x04);
-					std::cout<<"CART RTC SAVE -> 0x" << std::dec << reg << std::hex << "\n";
 				}
 
 				//RTC latched registers
@@ -2496,7 +2495,6 @@ bool DMG_MMU::save_backup(std::string filename)
 				{
 					u32 reg = cart.latch_reg[x];
 					sram.write(reinterpret_cast<char*> (&reg), 0x04);
-					std::cout<<"CART RTC SAVE -> 0x" << std::dec << reg << std::hex << "\n";
 				}
 
 				//64-bit UNIX timestamp

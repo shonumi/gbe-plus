@@ -26,23 +26,11 @@ void DMG_MMU::grab_time()
 		cart.rtc_timestamp = current_timestamp;
 	}
 
-	//Add offsets to system time
-	/*
-	if((current_time->tm_sec + config::rtc_offset[0]) >= 60) { current_time->tm_min++; }
-	current_time->tm_sec += config::rtc_offset[0];
-	current_time->tm_sec = (current_time->tm_sec % 60);
-
-	if((current_time->tm_min + config::rtc_offset[1]) >= 60) { current_time->tm_hour++; }
-	current_time->tm_min += config::rtc_offset[1];
-	current_time->tm_min = (current_time->tm_min % 60);
-
-	if((current_time->tm_hour + config::rtc_offset[2]) >= 24) { current_time->tm_mday++; }
-	current_time->tm_hour += config::rtc_offset[2];
-	current_time->tm_hour = (current_time->tm_hour % 24);
-
-	current_time->tm_mday += config::rtc_offset[3];
-	current_time->tm_mday = (current_time->tm_mday % 366);
-	*/
+	//Add offsets to timestamp
+	current_timestamp += config::rtc_offset[0];
+	current_timestamp += (config::rtc_offset[1] * 60);
+	current_timestamp += (config::rtc_offset[2] * 3600);
+	current_timestamp += (config::rtc_offset[3] * 86400);
 
 	s64 time_passed = current_timestamp - cart.rtc_timestamp;
 
