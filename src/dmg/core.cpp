@@ -1256,6 +1256,30 @@ void DMG_core::start_netplay()
 	//Wait 10 seconds before timing out
 	u32 time_out = 0;
 
+	if(core_cpu.controllers.serial_io.network_init && !core_cpu.controllers.serial_io.sio_stat.connected
+	&& core_cpu.controllers.serial_io.server.connected && core_cpu.controllers.serial_io.sender.connected)
+	{
+		while(time_out < 10000)
+		{
+			time_out += 100;
+			if((time_out % 1000) == 0) { std::cout<<"SIO::Netplay is waiting to resume remote connection...\n"; }
+
+			SDL_Delay(100);
+
+			//Process network connections
+			core_cpu.controllers.serial_io.resume_network_connection();
+
+			//Check again if the GBE+ instances connected, exit waiting if not the 4-Player adapter
+			if((core_cpu.controllers.serial_io.sio_stat.connected) && (core_cpu.controllers.serial_io.sio_stat.sio_type != GB_FOUR_PLAYER_ADAPTER))
+			{
+				std::cout<<"SIO::Netplay connection resumed.\n";
+				break;
+			}
+		}
+	}
+
+	if(core_cpu.controllers.serial_io.sio_stat.connected) { return; }
+
 	while(time_out < 10000)
 	{
 		time_out += 100;
@@ -1277,11 +1301,11 @@ void DMG_core::start_netplay()
 /****** Stops netplay connection ******/
 void DMG_core::stop_netplay()
 {
-	//Only attempt to disconnect if connected at all
+	//Only attempt to suspend network connection if connected at all
 	if(core_cpu.controllers.serial_io.sio_stat.connected)
 	{
-		core_cpu.controllers.serial_io.reset();
-		std::cout<<"SIO::Netplay connection terminated. Restart to reconnect.\n";
+		core_cpu.controllers.serial_io.suspend_network_connection();
+		std::cout<<"SIO::Netplay connection suspended.\n";
 	}
 }
 

@@ -263,7 +263,6 @@ void DMG_SIO::reset()
 	{
 		//No Link Cable or Device
 		case 0:
-			std::cout<<"NO DEVICE\n";
 			sio_stat.sio_type = NO_GB_DEVICE;
 			break;
 
@@ -721,13 +720,13 @@ bool DMG_SIO::receive_byte()
 				return true;
 			}
 
-			//Disconnect netplay
+			//Suspend netplay
 			else if(temp_buffer[1] == 0x80)
 			{
-				std::cout<<"SIO::Netplay connection terminated. Restart to reconnect.\n";
+				std::cout<<"SIO::Netplay connection suspended.\n";
 				sio_stat.connected = false;
 				sio_stat.sync = false;
-
+				sio_stat.sync_counter = 0;
 				return true;
 			}
 
@@ -893,6 +892,61 @@ void DMG_SIO::process_network_communication()
 	}
 
 	#endif
+}
+
+/****** Temporarily suspends network connections ******/
+void DMG_SIO::suspend_network_connection()
+{
+	#ifdef GBE_NETPLAY
+
+	if(sio_stat.connected)
+	{
+		//Send disconnect byte to another system
+		u8 temp_buffer[2];
+		temp_buffer[0] = 0;
+		temp_buffer[1] = 0x80;
+		
+		SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2);
+	}
+
+	#endif
+
+	sio_stat.connected = false;
+}
+
+/****** Resumes network connections ******/
+void DMG_SIO::resume_network_connection()
+{
+	#ifdef GBE_NETPLAY
+
+	u8 temp_buffer[2];
+	temp_buffer[0] = temp_buffer[1] = 0;
+
+	//Check the status of connection
+	SDLNet_CheckSockets(tcp_sockets, 0);
+
+	//If this socket is active, receive the transfer
+	if(SDLNet_SocketReady(server.remote_socket))
+	{
+		if(SDLNet_TCP_Recv(server.remote_socket, temp_buffer, 2) > 0)
+		{
+			//Stop sync
+			if(temp_buffer[1] == 0x81)
+			{
+				std::cout<<"SIO::Netplay connection resumed.\n";
+				sio_stat.connected = true;
+			}
+		}
+	}
+
+	//Send reconnect byte to another system
+	temp_buffer[0] = 0;
+	temp_buffer[1] = 0x81;
+		
+	SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2);
+
+	#endif
+
 }
 
 /****** Processes data sent to the GB Printer ******/
