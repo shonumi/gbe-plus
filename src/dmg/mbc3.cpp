@@ -59,19 +59,16 @@ void DMG_MMU::grab_time()
 			{
 				cart.rtc_reg[2] = 0;
 
-				if((cart.rtc_reg[3] == 0xFF) && (!cart.rtc_reg[4]))
-				{
-					cart.rtc_reg[3] = 0;
-					cart.rtc_reg[4] = 1;
-				}
+				u16 days = ((cart.rtc_reg[4] << 8) | cart.rtc_reg[3]) & 0x1FF;
+				
+				//Set Days Overflow
+				if(days == 511) { cart.rtc_reg[4] |= 0x80; }
 
-				else if((cart.rtc_reg[3] == 0xFF) && (cart.rtc_reg[4]))
-				{
-					cart.rtc_reg[3] = 0;
-					cart.rtc_reg[4] = 0;
-				}
+				days++;
 
-				else { cart.rtc_reg[3]++; }
+				cart.rtc_reg[4] &= ~0x7F;
+				cart.rtc_reg[4] |= ((days & 0x0100) >> 8);
+				cart.rtc_reg[3] = (days & 0xFF);
 			}
 		}
 	}
@@ -103,19 +100,19 @@ void DMG_MMU::grab_time()
 			{
 				cart.rtc_reg[2] = 23;
 
-				if((!cart.rtc_reg[3]) && (!cart.rtc_reg[4]))
+				u16 days = ((cart.rtc_reg[4] << 8) | cart.rtc_reg[3]) & 0x1FF;
+				
+				//Set Days Underflow
+				if((days == 0) && (cart.rtc_reg[4] & 0x80))
 				{
-					cart.rtc_reg[3] = 0xFF;
-					cart.rtc_reg[4] = 1;
+					cart.rtc_reg[4] &= ~0x80;
 				}
 
-				else if((!cart.rtc_reg[3]) && (cart.rtc_reg[4]))
-				{
-					cart.rtc_reg[3] = 0xFF;
-					cart.rtc_reg[4] = 0;
-				}
+				days--;
 
-				else { cart.rtc_reg[3]--; }
+				cart.rtc_reg[4] &= ~0x7F;
+				cart.rtc_reg[4] |= ((days & 0x0100) >> 8);
+				cart.rtc_reg[3] = (days & 0xFF);
 			}
 		}
 	}
