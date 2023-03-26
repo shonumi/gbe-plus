@@ -2349,7 +2349,7 @@ bool DMG_MMU::load_backup(std::string filename)
 			}
 
 			//Read RTC data
-			if((cart.rtc) && ((file_size & 0x1FFF) == 0x30)) 
+			if((cart.rtc) && (((file_size & 0x1FFF) == 0x30) || ((file_size & 0x1FFF) == 0x2C))) 
 			{
 				u32 temp_rtc_reg[5];
 				u32 temp_latch_reg[5];
