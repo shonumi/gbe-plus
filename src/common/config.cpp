@@ -1055,6 +1055,8 @@ bool parse_ini_file()
 	std::vector <std::string> ini_opts;
 	ini_opts.clear();
 
+	bool result = true;
+
 	if(!file.is_open())
 	{
 		const char* unix_chr = getenv("HOME");
@@ -1070,7 +1072,7 @@ bool parse_ini_file()
 		if((win_chr == NULL) && (unix_chr == NULL))
 		{
 			std::cout<<"GBE::Error - Could not open gbe.ini configuration file. Check file path or permissions. \n";
-			return false;
+			result = false;
 		}
 
 		bool config_result = false;
@@ -1088,7 +1090,7 @@ bool parse_ini_file()
 			if(!file.is_open())
 			{
 				std::cout<<"GBE::Error - Could not open gbe.ini configuration file. Check file path or permissions. \n";
-				return false;
+				result = false;
 			}
 		}
 
@@ -1105,9 +1107,16 @@ bool parse_ini_file()
 			if(!file.is_open())
 			{
 				std::cout<<"GBE::Error - Could not open gbe.ini configuration file. Check file path or permissions. \n";
-				return false;
+				result = false;
 			}
 		}
+	}
+
+	//Generate substitute ini file if necessary
+	if(!result)
+	{
+		result = generate_ini_file();
+		if(!result) { return false; }
 	}
 
 	//After the location of the data directory is known, set path of temporary media file and karaoke file
@@ -3984,6 +3993,124 @@ bool parse_cheats_file(bool add_cheats)
 	}
 
 	if(add_cheats) { save_cheats_file(); }
+
+	return true;
+}
+
+/****** Generates a generic .ini file with default values ******/
+bool generate_ini_file()
+{
+	//Build .ini contents
+	std::string ini_contents = "";
+
+	ini_contents += "[#use_bios]\n\n";
+	ini_contents += "[#use_firmware]\n\n";
+	ini_contents += "[#sio_device]\n\n";
+	ini_contents += "[#ir_device]\n\n";
+	ini_contents += "[#slot1_device]\n\n";
+	ini_contents += "[#slot2_device]\n\n";
+	ini_contents += "[#system_type]\n\n";
+	ini_contents += "[#use_cheats]\n\n";
+	ini_contents += "[#use_patches]\n\n";
+	ini_contents += "[#dmg_on_gbc_pal]\n\n";
+	ini_contents += "[#dmg_custom_bg_pal]\n\n";
+	ini_contents += "[#dmg_custom_obj_pal]\n\n";
+	ini_contents += "[#dmg_bios_path]\n\n";
+	ini_contents += "[#gbc_bios_path]\n\n";
+	ini_contents += "[#agb_bios_path]\n\n";
+	ini_contents += "[#nds9_bios_path]\n\n";
+	ini_contents += "[#nds7_bios_path]\n\n";
+	ini_contents += "[#min_bios_path]\n\n";
+	ini_contents += "[#nds_firmware_path]\n\n";
+	ini_contents += "[#save_path]\n\n";
+	ini_contents += "[#screenshot_path]\n\n";
+	ini_contents += "[#cheats_path]\n\n";
+	ini_contents += "[#camera_file]\n\n";
+	ini_contents += "[#card_file]\n\n";
+	ini_contents += "[#image_file]\n\n";
+	ini_contents += "[#data_file]\n\n";
+	ini_contents += "[#use_opengl]\n\n";
+	ini_contents += "[#vertex_shader]\n\n";
+	ini_contents += "[#fragment_shader]\n\n";
+	ini_contents += "[#scaling_factor]\n\n";
+	ini_contents += "[#maintain_aspect_ratio]\n\n";
+	ini_contents += "[#max_fps]\n\n";
+	ini_contents += "[#rtc_offset]\n\n";
+	ini_contents += "[#oc_flags]\n\n";
+	ini_contents += "[#dead_zone]\n\n";
+	ini_contents += "[#volume]\n\n";
+	ini_contents += "[#mute]\n\n";
+	ini_contents += "[#use_stereo]\n\n";
+	ini_contents += "[#use_microphone]\n\n";
+	ini_contents += "[#override_audio_driver]\n\n";
+	ini_contents += "[#use_osd]\n\n";
+	ini_contents += "[#sample_rate]\n\n";
+	ini_contents += "[#sample_size]\n\n";
+	ini_contents += "[#gbe_key_controls]\n\n";
+	ini_contents += "[#gbe_joy_controls]\n\n";
+	ini_contents += "[#con_key_controls]\n\n";
+	ini_contents += "[#con_joy_controls]\n\n";
+	ini_contents += "[#gbe_turbo_button]\n\n";
+	ini_contents += "[#chip_list]\n\n";
+	ini_contents += "[#use_haptics]\n\n";
+	ini_contents += "[#use_motion]\n\n";
+	ini_contents += "[#motion_dead_zone]\n\n";
+	ini_contents += "[#motion_scaler]\n\n";
+	ini_contents += "[#use_ddr_mapping]\n\n";
+	ini_contents += "[#hotkeys]\n\n";
+	ini_contents += "[#use_cgfx]\n\n";
+	ini_contents += "[#manifest_path]\n\n";
+	ini_contents += "[#dump_bg_path]\n\n";
+	ini_contents += "[#dump_obj_path]\n\n";
+	ini_contents += "[#cgfx_scaling_factor]\n\n";
+	ini_contents += "[#cgfx_transparency]\n\n";
+	ini_contents += "[#use_netplay]\n\n";
+	ini_contents += "[#use_netplay_hard_sync]\n\n";
+	ini_contents += "[#use_net_gate]\n\n";
+	ini_contents += "[#use_real_gbma_server]\n\n";
+	ini_contents += "[#gbma_server_http_port]\n\n";
+	ini_contents += "[#netplay_sync_threshold]\n\n";
+	ini_contents += "[#netplay_server_port]\n\n";
+	ini_contents += "[#netplay_client_port]\n\n";
+	ini_contents += "[#netplay_client_ip]\n\n";
+	ini_contents += "[#gbma_server_ip]\n\n";
+	ini_contents += "[#netplay_id]\n\n";
+	ini_contents += "[#ir_db_index]\n\n";
+	ini_contents += "[#nds_touch_mode]\n\n";
+	ini_contents += "[#virtual_cursor_enable]\n\n";
+	ini_contents += "[#virtual_cursor_file]\n\n";
+	ini_contents += "[#virtual_cursor_opacity]\n\n";
+	ini_contents += "[#virtual_cursor_timeout]\n\n";
+	ini_contents += "[#mpos_id]\n\n";
+	ini_contents += "[#utp_steps]\n\n";
+	ini_contents += "[#mw_data]\n\n";
+	ini_contents += "[#jukebox_total_time]\n\n";
+	ini_contents += "[#audio_conversion_command]\n\n";
+	ini_contents += "[#remove_vocals_command]\n";
+
+	//Save contents to file.
+	std::ofstream file("gbe.ini", std::ios::out);
+
+	if(!file.is_open())
+	{
+		std::cout<<"GBE::Could not create a generic .ini file. Settings will not be saved.\n";
+		return false; 
+	}
+
+	file << ini_contents;
+	file.close();
+
+	//Populate .ini file with defaults and resave
+	std::string temp_path = config::cfg_path;
+	config::cfg_path = "";
+
+	if(!save_ini_file())
+	{
+		std::cout<<"GBE::Could not create a generic .ini file. Settings will not be saved.\n";
+		return false;
+	}
+
+	std::cout<<"Generating generic .ini file\n";
 
 	return true;
 }

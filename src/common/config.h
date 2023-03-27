@@ -28,6 +28,7 @@ void parse_filenames();
 bool parse_ini_file();
 bool parse_cheats_file(bool add_cheats);
 bool save_ini_file();
+bool generate_ini_file();
 bool save_cheats_file();
 void get_firmware_hashes();
 
