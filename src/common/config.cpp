@@ -3759,6 +3759,15 @@ bool save_ini_file()
 			output_lines[line_pos] = "[#virtual_cursor_timeout:" + val + "]";
 		}
 
+		//Multi-Plust On System ID
+		else if(ini_item == "#mpos_id")
+		{
+			line_pos = output_count[x];
+			std::string val = util::to_hex_str(config::mpos_id);
+
+			output_lines[line_pos] = "[#mpos_id:" + val + "]";
+		}
+
 		//Total time for GBA Jukebox
 		else if(ini_item == "#jukebox_total_time")
 		{
