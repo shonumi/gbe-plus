@@ -2366,7 +2366,7 @@ bool AGB_MMU::read_file(std::string filename)
 		}
 	}
 
-	std::string backup_file = filename + ".sav";
+	std::string backup_file = config::save_file;
 
 	//For GBA Jukebox/Music Recorder, only read 1 byte configuration data
 	//Also forcibly set save type now

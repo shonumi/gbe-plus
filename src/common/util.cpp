@@ -906,6 +906,15 @@ std::string get_filename_from_path(std::string path)
 	else { return path; }
 }
 
+/****** Removes the file extension, if any ******/
+std::string get_filename_no_ext(std::string filename)
+{
+	std::size_t match = filename.find_last_of(".");
+
+	if(match != std::string::npos) { return filename.substr(0, match); }
+	else { return filename; }
+}
+
 /****** Loads icon into SDL Surface ******/
 SDL_Surface* load_icon(std::string filename)
 {

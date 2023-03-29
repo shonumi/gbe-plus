@@ -93,6 +93,7 @@ namespace util
 	std::string make_ascii_printable(std::string input);
 
 	std::string get_filename_from_path(std::string path);
+	std::string get_filename_no_ext(std::string filename);
 
 	u32 get_bcd(u32 input);
 	u32 get_bcd_int(u32 input);

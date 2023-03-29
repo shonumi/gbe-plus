@@ -360,7 +360,7 @@ void main_menu::open_file()
 		if(filename.isNull()) { SDL_PauseAudio(0); return; }
 
 		config::rom_file = filename.toStdString();
-		config::save_file = config::rom_file + ".sav";
+		config::save_file = util::get_filename_no_ext(config::rom_file) + ".sav";
 	}
 
 	else
@@ -1740,7 +1740,7 @@ void main_menu::load_recent(int file_id)
 	}
 
 	config::rom_file = config::recent_files[file_id];
-	config::save_file = config::rom_file + ".sav";
+	config::save_file = util::get_filename_no_ext(config::rom_file) + ".sav";
 
 	//Resort recent files list
 	std::string first_entry = config::recent_files[file_id];

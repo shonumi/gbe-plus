@@ -1032,7 +1032,7 @@ void parse_filenames()
 {
 	//ROM file is always first argument
 	config::rom_file = config::cli_args[0];
-	config::save_file = config::rom_file + ".sav";
+	config::save_file = util::get_filename_no_ext(config::rom_file) + ".sav";
 
 	validate_system_type();
 }

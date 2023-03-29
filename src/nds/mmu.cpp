@@ -5258,7 +5258,7 @@ bool NTR_MMU::read_file(std::string filename)
 	}
 
 	//Load cart save data
-	std::string backup_file = filename + ".sav";
+	std::string backup_file = config::save_file;
 	load_backup(backup_file);
 
 	return true;
