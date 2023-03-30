@@ -489,8 +489,6 @@ u8 AGB_MMU::read_play_yan(u32 address)
 	{
 		u32 offset = address - 0xB000300;
 		
-
-		if(!(play_yan.card_addr + offset)) { std::cout<<"CARD READ\n"; }
 		if((play_yan.card_addr + offset) < 0x10000)
 		{
 			result = play_yan.card_data[play_yan.card_addr + offset];
@@ -608,29 +606,6 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.thumbnail_addr = 0;
 	}
 
-	//Trigger Game Pak IRQ for playing video
-	else if(play_yan.cmd == 0x700)
-	{
-		play_yan.op_state = 9;
-		play_yan.irq_delay = 1;
-		play_yan.delay_reload = 10;
-		play_yan.irq_data_ptr = play_yan.video_play_data[0];
-		play_yan.irq_len = 1;
-		play_yan.irq_repeat = 0;
-		play_yan.irq_count = 0;
-		play_yan.video_data_addr = 0;
-		play_yan.video_progress = 0;
-		play_yan.video_play_data[1][6] = play_yan.video_progress;
-		play_yan.video_frame_count = 0;
-		play_yan.is_video_playing = true;
-
-		play_yan.tracker_progress = 0;
-		play_yan.tracker_update_size = 0;
-
-		play_yan.capture_command_stream = true;
-		play_yan.command_stream.clear();
-	}
-
 	//Trigger Game Pak IRQ for ID3 data retrieval
 	else if(play_yan.cmd == 0x600)
 	{
@@ -641,6 +616,29 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.irq_len = 1;
 		play_yan.irq_repeat = 0;
 		play_yan.irq_count = 0;
+
+		play_yan.capture_command_stream = true;
+		play_yan.command_stream.clear();
+	}
+
+	//Trigger Game Pak IRQ for playing video
+	else if(play_yan.cmd == 0x700)
+	{
+		play_yan.op_state = 9;
+		play_yan.irq_delay = 1;
+		play_yan.delay_reload = 10;
+		play_yan.irq_data_ptr = play_yan.video_play_data[0];
+		play_yan.irq_len = 2;
+		play_yan.irq_repeat = 0;
+		play_yan.irq_count = 0;
+		play_yan.video_data_addr = 0;
+		play_yan.video_progress = 0;
+		play_yan.video_play_data[1][6] = play_yan.video_progress;
+		play_yan.video_frame_count = 0;
+		play_yan.is_video_playing = true;
+
+		play_yan.tracker_progress = 0;
+		play_yan.tracker_update_size = 0;
 
 		play_yan.capture_command_stream = true;
 		play_yan.command_stream.clear();
@@ -849,6 +847,7 @@ void AGB_MMU::process_play_yan_irq()
 				play_yan.irq_count = 0;
 				play_yan.irq_len = 2;
 				play_yan.irq_repeat = 0;
+				play_yan.is_music_playing = false;
 			}
 		}
 
@@ -879,7 +878,7 @@ void AGB_MMU::process_play_yan_irq()
 			//Stop video when length is complete
 			if(play_yan.video_progress >= play_yan.video_length)
 			{
-				play_yan.op_state = 10;
+				play_yan.op_state = 1;
 				play_yan.irq_delay = 1;
 				play_yan.delay_reload = 10;
 				play_yan.irq_data_ptr = play_yan.video_stop_data[0];
