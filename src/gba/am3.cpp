@@ -411,8 +411,8 @@ bool AGB_MMU::am3_load_folder(std::string folder)
 	for(fs_files = std::filesystem::directory_iterator(fs_path); fs_files != std::filesystem::directory_iterator(); fs_files++, file_count++)
 	{
 		//Grab name and size
-		std::string f_name = fs_files->path();
-		std::string s_name = fs_files->path().filename();
+		std::string f_name = fs_files->path().string();
+		std::string s_name = fs_files->path().filename().string();
 		u32 f_size = std::filesystem::file_size(fs_files->path());
 
 		//Convert name to uppercase for searching

@@ -2521,13 +2521,15 @@ void gen_settings::audio_driver_change()
 	if(index > 0)
 	{
 		config::override_audio_driver = SDL_GetAudioDriver(index - 1);
-		setenv("SDL_AUDIODRIVER", config::override_audio_driver.c_str(), 1);
+		std::string env_var = "SDL_AUDIODRIVER=" + config::override_audio_driver;
+		putenv(const_cast<char*>(env_var.c_str()));
 	}
 
 	else
 	{
 		config::override_audio_driver = "";
-		setenv("SDL_AUDIODRIVER", "", 1);
+		std::string env_var = "SDL_AUDIODRIVER=" + config::override_audio_driver;
+		putenv(const_cast<char*>(env_var.c_str()));
 	}
 }
 

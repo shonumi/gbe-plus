@@ -2862,33 +2862,37 @@ bool parse_ini_file()
 		//Audio Conversion Command
 		else if(ini_item == "#audio_conversion_command")
 		{
-			if((x + 1) < size)
+			if((x + 1) < size) 
 			{
 				ini_item = ini_opts[++x];
-				config::audio_conversion_cmd = ini_item;
+				std::string first_char = "";
+				first_char = ini_item[0];
+				
+				//When left blank, don't parse the next line item
+				if(first_char != "#") { config::audio_conversion_cmd = ini_item; }
+				else { config::audio_conversion_cmd = ""; x--;}
+ 
 			}
 
-			else
-			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#audio_conversion_command) \n";
-				return false;
-			}
+			else { config::audio_conversion_cmd = ""; }
 		}
 
 		//Remove Vocals Command
 		else if(ini_item == "#remove_vocals_command")
 		{
-			if((x + 1) < size)
+			if((x + 1) < size) 
 			{
 				ini_item = ini_opts[++x];
-				config::remove_vocals_cmd = ini_item;
+				std::string first_char = "";
+				first_char = ini_item[0];
+				
+				//When left blank, don't parse the next line item
+				if(first_char != "#") { config::remove_vocals_cmd = ini_item; }
+				else { config::remove_vocals_cmd = ""; x--;}
+ 
 			}
 
-			else
-			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#remove_vocals_command) \n";
-				return false;
-			}
+			else { config::remove_vocals_cmd = ""; }
 		}
 
 		//Recent files
@@ -4241,7 +4245,7 @@ void get_firmware_hashes()
 	for(fs_files = std::filesystem::directory_iterator(fs_path); fs_files != std::filesystem::directory_iterator(); fs_files++)
 	{
 		//Hash and store data
-		std::string f_name = fs_files->path();
+		std::string f_name = fs_files->path().string();
 		u32 crc = util::get_file_crc32(f_name);
 
 		if(crc)
