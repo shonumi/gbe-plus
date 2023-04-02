@@ -113,7 +113,7 @@ u8 MIN_MMU::read_u8(u32 address)
 	if(address >= 0x200000) { address &= 0x1FFFFF; }
 
 	//Process MMIO registers
-	switch(address)
+	switch(address & 0xFFFFFF)
 	{
 		case SYS_CNT3:
 			if(enable_rtc) { return memory_map[SYS_CNT3] | 0x2; }
@@ -218,7 +218,7 @@ void MIN_MMU::write_u8(u32 address, u8 value)
 	if((address > 0xFFF)  && (address < 0x2100)) { memory_map[address] = value; }
 
 	//Process MMIO registers
-	switch(address)
+	switch(address & 0xFFFFFF)
 	{
 		//RTC Control
 		case SEC_CNT:
@@ -758,7 +758,7 @@ bool MIN_MMU::read_bios(std::string filename)
 	std::cout<<"MMU::BIOS file " << filename << " loaded successfully. \n";
 
 	//Setup IRQ vectors
-	for(u32 x = 0; x < 32; x++) { irq_vectors[x] = read_u16(x << 1); }
+	for(u32 x = 0; x < 32; x++) { irq_vectors[x] = read_u16(x << 1); std::cout<<"VECTOR -> 0x" << std::hex << irq_vectors[x] << "\n"; }
 
 	return true;
 }
