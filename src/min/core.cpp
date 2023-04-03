@@ -270,11 +270,12 @@ void MIN_core::step()
 	{	
 		//Reset system cycles for next instruction
 		core_cpu.system_cycles = 0;
-		
-		if(db_unit.debug_mode) { debug_step(); }
 
-		core_cpu.execute();
 		core_cpu.handle_interrupt();
+		core_cpu.execute();
+		core_cpu.clock_system();
+
+		if(db_unit.debug_mode) { debug_step(); }
 	}
 }
 
