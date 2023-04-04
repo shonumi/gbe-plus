@@ -248,10 +248,11 @@ void MIN_core::run_core()
 			core_cpu.system_cycles = 0;
 
 			core_cpu.handle_interrupt();
-			core_cpu.execute();
-			core_cpu.clock_system();
 
 			if(db_unit.debug_mode) { debug_step(); }
+
+			core_cpu.execute();
+			core_cpu.clock_system();
 		}
 
 		//Stop emulation
@@ -272,10 +273,11 @@ void MIN_core::step()
 		core_cpu.system_cycles = 0;
 
 		core_cpu.handle_interrupt();
-		core_cpu.execute();
-		core_cpu.clock_system();
 
 		if(db_unit.debug_mode) { debug_step(); }
+
+		core_cpu.execute();
+		core_cpu.clock_system();
 	}
 }
 
