@@ -688,7 +688,6 @@ void MIN_core::hard_sync()
 	{
 		core_mmu.ir_stat.sync_timeout = 0;
 		core_mmu.stop_sync();
-		if(!core_mmu.ir_stat.static_mode) { core_mmu.ir_stat.network_id = config::netplay_id; }
 		return;
 	}
 
@@ -706,7 +705,12 @@ void MIN_core::hard_sync()
 			//Timeout if 10 seconds passes
 			timeout = SDL_GetTicks();
 							
-			if((timeout - current_time) >= 10000) { core_mmu.disconnect_ir(); }						
+			if((timeout - current_time) >= 10000)
+			{
+				core_mmu.ir_stat.sync_timeout = 0;
+				core_mmu.stop_sync();
+				return;
+			}						
 		}
 	}
 }

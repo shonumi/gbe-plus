@@ -300,7 +300,6 @@ bool MIN_MMU::recv_byte()
 			{
 				ir_stat.sync_timeout = 0;
 				ir_stat.sync = false;
-				if(!ir_stat.static_mode) { ir_stat.network_id = config::netplay_id; }
 				return true;
 			}
 
