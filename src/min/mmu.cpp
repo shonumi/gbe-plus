@@ -758,7 +758,7 @@ bool MIN_MMU::read_bios(std::string filename)
 	std::cout<<"MMU::BIOS file " << filename << " loaded successfully. \n";
 
 	//Setup IRQ vectors
-	for(u32 x = 0; x < 32; x++) { irq_vectors[x] = read_u16(x << 1); std::cout<<"VECTOR -> 0x" << std::hex << irq_vectors[x] << "\n"; }
+	for(u32 x = 0; x < 32; x++) { irq_vectors[x] = read_u16(x << 1); }
 
 	return true;
 }

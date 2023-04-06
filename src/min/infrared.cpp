@@ -250,14 +250,32 @@ bool MIN_MMU::process_ir()
 	}
 
 	//Wait for other instance of GBE+ to send an acknowledgement
-	//This is blocking, will effectively pause GBE+ until it gets something
-	if(SDLNet_TCP_Recv(server[id].remote_socket, temp_buffer, 2) > 0)
-	{
-		//Reset hard sync timeout at 1/4 emulated second
-		ir_stat.sync_timeout = 524288;
-		ir_stat.send_signal = true;
+	//Only blocks for 1 seconds before timing out
+	u32 current_time = SDL_GetTicks();
+	u32 timeout = 0;
+	bool check_net = false;
 
-		return true;
+	while(!check_net)
+	{
+		check_net = recv_byte();
+
+		if(check_net)
+		{
+			//Reset hard sync timeout at 1/4 emulated second
+			ir_stat.sync_timeout = 524288;
+			ir_stat.send_signal = true;
+			return true;
+		}
+
+		//Timeout if 1 second passes
+		timeout = SDL_GetTicks();
+							
+		if((timeout - current_time) >= 1000)
+		{
+			ir_stat.sync_timeout = 0;
+			ir_stat.sync = false;
+			return false;				
+		}
 	}
 
 	#endif
@@ -357,6 +375,7 @@ bool MIN_MMU::recv_byte()
 				if((last_signal == 0) && (ir_stat.signal == 1)) { update_irq_flags(IR_RECEIVER_IRQ); }
 
 				//Send acknowlegdement
+				temp_buffer[1] = 0x20;
 				SDLNet_TCP_Send(sender[id].host_socket, (void*)temp_buffer, 2);
 
 				return true;
