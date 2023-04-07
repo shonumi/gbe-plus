@@ -702,10 +702,10 @@ void MIN_core::hard_sync()
 		{
 			core_mmu.recv_byte();
 
-			//Timeout if 10 seconds passes
+			//Timeout if 1 second passes
 			timeout = SDL_GetTicks();
 							
-			if((timeout - current_time) >= 10000)
+			if((timeout - current_time) >= 1000)
 			{
 				core_mmu.ir_stat.sync_timeout = 0;
 				core_mmu.stop_sync();
