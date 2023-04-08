@@ -426,28 +426,6 @@ void MIN_core::handle_hotkey(SDL_Event& event)
 		config::osd_count = 180;
 	}
 
-	//Change between static and dynamic IR linking modes on F10
-	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F10)) 
-	{
-		if(!core_mmu.ir_stat.static_mode)
-		{
-			core_mmu.ir_stat.static_mode = true;
-
-			//OSD
-			config::osd_message = "STATIC MODE";
-			config::osd_count = 180;
-		}
-
-		else
-		{
-			core_mmu.ir_stat.static_mode = false;
-
-			//OSD
-			config::osd_message = "DYNAMIC MODE";
-			config::osd_count = 180;
-		}
-	}
-
 	//Toggle Fullscreen on F12
 	else if((event.type == SDL_KEYUP) && (event.key.keysym.sym == SDLK_F12))
 	{
@@ -527,28 +505,6 @@ void MIN_core::handle_hotkey(int input, bool pressed)
 		}
 
 		config::osd_count = 180;
-	}
-
-	//Change between static and dynamic IR linking modes on F10
-	else if((input == SDLK_F10) && (pressed)) 
-	{
-		if(!core_mmu.ir_stat.static_mode)
-		{
-			core_mmu.ir_stat.static_mode = true;
-
-			//OSD
-			config::osd_message = "STATIC MODE";
-			config::osd_count = 180;
-		}
-
-		else
-		{
-			core_mmu.ir_stat.static_mode = false;
-
-			//OSD
-			config::osd_message = "DYNAMIC MODE";
-			config::osd_count = 180;
-		}
 	}
 }
 

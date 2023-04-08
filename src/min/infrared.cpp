@@ -20,7 +20,6 @@ bool MIN_MMU::init_ir()
 	ir_stat.fade = 0;
 	ir_stat.sync = false;
 	ir_stat.send_signal = false;
-	ir_stat.static_mode = true;
 	ir_stat.sync_counter = 0;
 	ir_stat.sync_clock = 0;
 	ir_stat.sync_timeout = 0;
