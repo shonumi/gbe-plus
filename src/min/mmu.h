@@ -130,7 +130,7 @@ class MIN_MMU
 		u8 signal;
 		s16 fade;
 
-		bool connected[7];
+		bool connected[10];
 		bool sync;
 		bool init;
 		bool send_signal;
@@ -153,7 +153,7 @@ class MIN_MMU
 		bool host_init;
 		bool remote_init;
 		u16 port;
-	} server[6];
+	} server[10];
 
 	//Sending client
 	struct tcp_sender
@@ -163,9 +163,9 @@ class MIN_MMU
 		bool connected;
 		bool host_init;
 		u16 port;
-	} sender[6];
+	} sender[10];
 
-	SDLNet_SocketSet tcp_sockets[6];
+	SDLNet_SocketSet tcp_sockets[10];
 
 	#endif
 

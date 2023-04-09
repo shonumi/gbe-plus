@@ -26,7 +26,7 @@ bool MIN_MMU::init_ir()
 	ir_stat.sync_balance = 0;
 	ir_stat.debug_cycles = 0xDEADBEEF;
 
-	for(u32 x = 0; x < 6; x++) { ir_stat.connected[x] = false; }
+	for(u32 x = 0; x < 10; x++) { ir_stat.connected[x] = false; }
 
 	#ifdef GBE_NETPLAY
 
@@ -48,7 +48,7 @@ bool MIN_MMU::init_ir()
 	ir_stat.network_id = config::netplay_id;
 
 	//Server info
-	for(u32 x = 0; x < 6; x++)
+	for(u32 x = 0; x < 10; x++)
 	{
 		server[x].host_socket = NULL;
 		server[x].host_init = false;
@@ -118,7 +118,7 @@ void MIN_MMU::disconnect_ir()
 
 	#ifdef GBE_NETPLAY
 
-	for(u8 x = 0; x < 6; x++)
+	for(u8 x = 0; x < 10; x++)
 	{
 
 		if(x == config::netplay_id) { continue; }

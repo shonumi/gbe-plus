@@ -325,7 +325,7 @@ void MIN_core::handle_hotkey(SDL_Event& event)
 	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F3) && (core_mmu.ir_stat.sync_timeout == 0))
 	{
 		core_mmu.ir_stat.network_id++;
-		if(core_mmu.ir_stat.network_id >= 6) { core_mmu.ir_stat.network_id = 0; }
+		if(core_mmu.ir_stat.network_id >= 10) { core_mmu.ir_stat.network_id = 0; }
 		
 		core_mmu.ir_stat.sync_balance = 4;
 
@@ -489,7 +489,7 @@ void MIN_core::handle_hotkey(int input, bool pressed)
 	else if((input == SDLK_F3) && (core_mmu.ir_stat.sync_timeout == 0) && (pressed))
 	{
 		core_mmu.ir_stat.network_id++;
-		if(core_mmu.ir_stat.network_id >= 6) { core_mmu.ir_stat.network_id = 0; }
+		if(core_mmu.ir_stat.network_id >= 10) { core_mmu.ir_stat.network_id = 0; }
 		
 		core_mmu.ir_stat.sync_balance = 4;
 
