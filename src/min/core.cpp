@@ -606,31 +606,7 @@ u32* MIN_core::get_bg_palette(int pal_index) { return NULL; }
 std::string MIN_core::get_hash(u32 addr, u8 gfx_type) { return ""; }
 
 /****** Starts netplay connection ******/
-void MIN_core::start_netplay()
-{
-	//Do nothing if netplay is not enabled
-	if(!config::use_netplay) { return; }
-
-	//Wait 10 seconds before timing out
-	u32 time_out = 0;
-
-	while(time_out < 10000)
-	{
-		time_out += 100;
-		if((time_out % 1000) == 0) { std::cout<<"IR::Netplay is waiting to establish remote connection...\n"; }
-
-		SDL_Delay(100);
-
-		//Process network connections
-		core_mmu.process_network_communication();
-
-		//Check again if the GBE+ instances connected, exit waiting if not
-		if(core_mmu.ir_stat.connected[core_mmu.ir_stat.network_id]) { break; }
-	}
-
-	if(!core_mmu.ir_stat.connected[core_mmu.ir_stat.network_id]) { std::cout<<"IR::No netplay connection established\n"; }
-	else { std::cout<<"IR::Netplay connection established\n"; }
-}
+void MIN_core::start_netplay() { }
 
 /****** Perform hard sync for netplay ******/
 void MIN_core::hard_sync()

@@ -623,7 +623,7 @@ void MIN_MMU::write_u8(u32 address, u8 value)
 				return;
 			} 
 
-			std::cout<<"LCD CNT -> 0x" << (u32)value << "\n";
+			//std::cout<<"LCD CNT -> 0x" << (u32)value << "\n";
 
 			sed.cmd = value;
 			sed.run_cmd = false;
@@ -640,7 +640,7 @@ void MIN_MMU::write_u8(u32 address, u8 value)
 				return;
 			} 
 
-			std::cout<<"LCD DATA -> 0x" << (u32)value << "\n";
+			//std::cout<<"LCD DATA -> 0x" << (u32)value << "\n";
 
 			sed.data = value;
 			sed.run_cmd = true;

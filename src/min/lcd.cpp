@@ -308,6 +308,9 @@ void MIN_LCD::update()
 
 	//Process Turbo Buttons
 	if(mem->g_pad->turbo_button_enabled) { mem->g_pad->process_turbo_buttons(); }
+
+	//Process Network Communications
+	if(config::use_netplay) { mem->process_network_communication(); }
 }
 
 /****** Renders a new frame of the Pokemon Mini PRC map ******/
