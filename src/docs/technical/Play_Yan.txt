@@ -345,7 +345,7 @@ Bytes 0x18 - 0x1B	| Current Video Position
 
 These interrupts are responsible for alerting the Play-Yan's software when a new video frame is ready for display, as well as the current position within a video as it is playing. The first IRQ initializes the process, while the second IRQ repeats indefinitely until the end of the video.
 
-Each time the second IRQ is fired, the Current Video Position is updated. The Play-Yan software uses this to determine the minutes/seconds timestamp. It appears that the value 0x3C0 roughly equates 1 second. This IRQ fires every time a video frame needs to be displayed, therefore it should match the video's framerate. Each increment of the Current Video Position should thus reflect that. E.g. for a video playing at 30 frames-per-second, the Current Video Position updates at roughly 0x20 intervals.
+Each time the second IRQ is fired, the Current Video Position is updated. The Play-Yan software uses this to determine the minutes/seconds timestamp. Its value is expressed in milliseconds. This IRQ fires every time a video frame needs to be displayed, therefore it should match the video's framerate. Each increment of the Current Video Position should thus reflect that. E.g. for a video playing at 30 frames-per-second, the Current Video Position value increases by approximately 0x21 or 0x22.
 
 The frame itself is read similarly to video thumbnails. Refers to the appropiate section below for more details. The size of the frame is the video's resolution (typically 240x160) in 15-bit color pixels. Therefore, this value is usually 0x12C00.
 
