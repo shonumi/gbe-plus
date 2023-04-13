@@ -340,7 +340,7 @@ Bytes 0x00 - 0x03	| 0x40000700
 Bytes 0x00 - 0x03	| 0x80001000
 Bytes 0x04 - 0x07	| Video Length Counter
 Bytes 0x08 - 0x0B	| Frame Size in Bytes
-Bytes 0x14 - 0x18	| Current Video Position
+Bytes 0x18 - 0x1B	| Current Video Position
 -----------------------------------------------------------------------
 
 These interrupts are responsible for alerting the Play-Yan's software when a new video frame is ready for display, as well as the current position within a video as it is playing. The first IRQ initializes the process, while the second IRQ repeats indefinitely until the end of the video.
