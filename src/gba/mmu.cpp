@@ -2379,6 +2379,13 @@ bool AGB_MMU::read_file(std::string filename)
 		return true;
 	}
 
+	//Play-Yan models do not have saves, force type to NONE now
+	else if(config::cart_type == AGB_PLAY_YAN)
+	{
+		current_save_type = NONE;
+		return true;
+	}
+
 	//Separate handling for Campho save data
 	else if(config::cart_type == AGB_CAMPHO) { return true; }
 
