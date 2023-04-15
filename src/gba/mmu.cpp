@@ -630,6 +630,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 		//SRAM Mirror
 		case 0xE:
 		case 0xF:
+			if(config::cart_type == AGB_PLAY_YAN) { write_play_yan(address, value); }
 			if(current_save_type == SRAM) { address &= 0xF007FFF; }
 			break;
 

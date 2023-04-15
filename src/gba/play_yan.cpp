@@ -176,6 +176,13 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 {
 	//std::cout<<"PLAY-YAN WRITE -> 0x" << address << " :: 0x" << (u32)value << "\n";
 
+	//Detect Nintendo MP3 Player
+	if(((address >> 24) == 0x0E) && (play_yan.type != NINTENDO_MP3))
+	{
+		std::cout<<"MMU::Nintendo MP3 detected\n";
+		play_yan.type = NINTENDO_MP3;
+	}
+
 	switch(address)
 	{
 		//Unknown I/O
@@ -727,6 +734,7 @@ void AGB_MMU::process_play_yan_cmd()
 
 		//0x3000 command is unique to Play-Yan Micro. Switch type if command detected
 		play_yan.type = PLAY_YAN_MICRO;
+		std::cout<<"MMU::Play-Yan Micro detected\n";
 	}
 
 	//Trigger Play-Yan Micro Game Pak IRQ to read .ini file 
