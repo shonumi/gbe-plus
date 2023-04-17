@@ -303,9 +303,12 @@ Command 0x500 - Grab Video Thumbnail Data - 1 IRQ
 Bytes 0x00 - 0x03	| 0x40000500
 Bytes 0x04 - 0x07	| Unknown
 Bytes 0x08 - 0x0B	| Unknown
+Bytes 0x0C - 0x0F	| Video Length in Milliseconds
 -----------------------------------------------------------------------
 
 After the 0x500 command is issued, a corresponding Game Pak IRQ signals that the Play-Yan is ready to provide a 60x40 thumbnail image for a video file. For the specifics regarding reading these thumbnails, refer to the appropiate section below.
+
+The Video Length in Milliseconds is the overall total playtime for a specific video. This data is passed from the Play-Yan to its software when accessing a video's thumbnail. Unlike music, videos do not constantly update the position of the trackbar via Game Pak IRQs while playing. Instead, the Play-Yan's software handles that when the timestamp is updated. It will use the value specified here in conjunction with the Current Video Position (see the 0x700 command) to calculate how far along the video has progressed.
 
 
 
