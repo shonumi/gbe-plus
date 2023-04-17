@@ -611,6 +611,9 @@ void AGB_MMU::process_play_yan_cmd()
 		if(play_yan.thumbnail_index >= play_yan.video_thumbnails.size()) { play_yan.thumbnail_index = 0; }
 		
 		play_yan.thumbnail_addr = 0;
+
+		//Reset video length in ms
+		play_yan.video_check_data[3][3] = (play_yan.video_times[play_yan.thumbnail_index] * 1000);
 	}
 
 	//Trigger Game Pak IRQ for ID3 data retrieval
