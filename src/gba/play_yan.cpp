@@ -159,7 +159,7 @@ void AGB_MMU::play_yan_reset()
 
 	play_yan.video_data_addr = 0;
 	play_yan.thumbnail_addr = 0;
-	play_yan.thumbnail_index = 0xFFFFFFFF;
+	play_yan.thumbnail_index = 0;
 	play_yan.video_index = 0;
 
 	play_yan.music_file_index = 0;
@@ -344,14 +344,16 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 		play_yan.command_stream.push_back(value);
 
 		//Grab string of music/video filename to play
-		if((value == 0x00) && ((play_yan.cmd == 0x201) || (play_yan.cmd == 0x600) || (play_yan.cmd == 0x700) || (play_yan.cmd == 0x800)))
+		if((value == 0x00) && ((play_yan.cmd == 0x201) || (play_yan.cmd == 0x500) || (play_yan.cmd == 0x600) || (play_yan.cmd == 0x700) || (play_yan.cmd == 0x800)))
 		{
 			std::string temp_str = "";
 			u32 offset = (play_yan.cmd == 0x700) ? 9 : 1;
+			if(play_yan.cmd == 0x500) { offset = 17; }
 
 			//Don't process if not enough of the command stream for the filename is sent
 			if(((play_yan.cmd == 0x201) || (play_yan.cmd == 0x600) || (play_yan.cmd == 0x800)) && (play_yan.command_stream.size() < 4)) { return; }
 			if((play_yan.cmd == 0x700) && (play_yan.command_stream.size() < 12)) { return; }
+			if((play_yan.cmd == 0x500) && (play_yan.command_stream.size() < 20)) { return; }
 
 			play_yan.capture_command_stream = false;
 			play_yan.command_stream.pop_back();
@@ -367,6 +369,23 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 			{
 				play_yan.current_dir = temp_str;
 				play_yan_set_folder();
+			}
+
+			//Grab thumbnail index by searching for internal ID associated with video file
+			else if(play_yan.cmd == 0x500)
+			{
+				for(u32 x = 0; x < play_yan.video_files.size(); x++)
+				{
+					if(temp_str == play_yan.video_files[x])
+					{
+						play_yan.thumbnail_index = x;
+
+						//Reset video length in ms
+						play_yan.video_check_data[3][3] = (play_yan.video_times[play_yan.thumbnail_index] * 1000);
+
+						break;
+					}
+				}
 			}
 
 			//Grab ID3 data for a song
@@ -590,12 +609,6 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.command_stream.clear();
 	}
 
-	//Before playing a video, reset thumbnail index based on multiples of 6
-	else if((play_yan.cmd == 0x400) && (prev_cmd == 0x2000))
-	{
-		play_yan.thumbnail_index = (6 * (play_yan.thumbnail_index / 6)) - 1;
-	}
-
 	//Trigger Game Pak IRQ for video thumbnail data
 	else if(play_yan.cmd == 0x500)
 	{
@@ -605,15 +618,10 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.irq_data_ptr = play_yan.video_check_data[0];
 		play_yan.irq_len = 4;
 		play_yan.irq_count = 3;
-
-		//Update video thumbnail index
-		play_yan.thumbnail_index++;
-		if(play_yan.thumbnail_index >= play_yan.video_thumbnails.size()) { play_yan.thumbnail_index = 0; }
-		
 		play_yan.thumbnail_addr = 0;
 
-		//Reset video length in ms
-		play_yan.video_check_data[3][3] = (play_yan.video_times[play_yan.thumbnail_index] * 1000);
+		play_yan.capture_command_stream = true;
+		play_yan.command_stream.clear();
 	}
 
 	//Trigger Game Pak IRQ for ID3 data retrieval

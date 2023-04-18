@@ -242,6 +242,7 @@ u8 AGB_MMU::read_u8(u32 address)
 		case 0xE:
 		case 0xF:
 			if(current_save_type == SRAM) { address &= 0xF007FFF; }
+			else if(config::cart_type == AGB_PLAY_YAN) { return read_play_yan(address); }
 			break;
 
 		//Unused memory at 0x10000000 and above
@@ -630,8 +631,8 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 		//SRAM Mirror
 		case 0xE:
 		case 0xF:
-			if(config::cart_type == AGB_PLAY_YAN) { write_play_yan(address, value); }
 			if(current_save_type == SRAM) { address &= 0xF007FFF; }
+			else if(config::cart_type == AGB_PLAY_YAN) { write_play_yan(address, value); }
 			break;
 
 		//Unused memory at 0x10000000 and above
