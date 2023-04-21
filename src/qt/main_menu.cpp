@@ -482,6 +482,64 @@ void main_menu::set_card_file() { select_card_file(); }
 /****** Public function for setting data file ******/
 void main_menu::set_data_file() { select_data_file(); }
 
+/****** Check existing hashes in data/bin/firmware when testing BIOS files ******/
+bool main_menu::check_firmware_hashes(u8 system_type)
+{
+	bool result = false;
+
+	for(u32 x = 0; x < config::bin_hashes.size(); x++)
+	{
+		u32 hash = config::bin_hashes[x];
+		bool arm7_check = false;
+		bool arm9_check = false;
+
+		//Check if any DMG/GBC BIOS exists
+		if((system_type == 1) || (system_type == 2))
+		{
+			if((hash == 0x41884E46) || (hash == 0xE8EF5318) || (hash == 0xE6920754) || (hash == 0x59C8598E) || (hash == 0xC2F5CC97))
+			{
+				result = true;
+				break;
+			}
+		}
+
+		//Check if any GBA BIOS exists
+		else if(system_type == 3)
+		{
+			if((hash == 0x81977335) || (hash == 0x3F02EA8F) || (hash == 0xA6473709))
+			{
+				result = true;
+				break;
+			}
+		}
+
+		//Check if any NDS BIOS (ARM7 and ARM9) exists
+		else if(system_type == 4)
+		{
+			if(hash == 0x1280F0D5) { arm7_check = true; }
+			else if(hash == 0x2AB23573) { arm9_check = true; }
+
+			if(arm7_check && arm9_check)
+			{
+				result = true;
+				break;
+			}
+		}
+
+		//Check if any Pokemon Mini BIOS exists
+		else if(system_type == 7)
+		{
+			if(hash == 0xAED3C14D)
+			{
+				result = true;
+				break;
+			}
+		}
+	}
+
+	return result;
+}
+
 /****** Opens card file ******/
 void main_menu::select_card_file()
 {
@@ -634,59 +692,7 @@ void main_menu::boot_game()
 	bool bios_exists = test_file.exists();
 
 	//If BIOS file specified by path is not found, look for relevant file in data/bin/firmware
-	if(!bios_exists)
-	{
-		for(u32 x = 0; x < config::bin_hashes.size(); x++)
-		{
-			u32 hash = config::bin_hashes[x];
-			bool arm7_check = false;
-			bool arm9_check = false;
-
-			//Check if any DMG/GBC BIOS exists
-			if((system_type == 1) || (system_type == 2))
-			{
-				if((hash == 0x41884E46) || (hash == 0xE8EF5318) || (hash == 0xE6920754) || (hash == 0x59C8598E) || (hash == 0xC2F5CC97))
-				{
-					bios_exists = true;
-					break;
-				}
-			}
-
-			//Check if any GBA BIOS exists
-			else if(system_type == 3)
-			{
-				if((hash == 0x81977335) || (hash == 0x3F02EA8F) || (hash == 0xA6473709))
-				{
-					bios_exists = true;
-					break;
-				}
-			}
-
-			//Check if any NDS BIOS (ARM7 and ARM9) exists
-			else if(system_type == 4)
-			{
-				if(hash == 0x1280F0D5) { arm7_check = true; }
-				else if(hash == 0x2AB23573) { arm9_check = true; }
-
-				if(arm7_check && arm9_check)
-				{
-					bios_exists = true;
-					break;
-				}
-			}
-
-			//Check if any Pokemon Mini BIOS exists
-			else if(system_type == 7)
-			{
-				if(hash == 0xAED3C14D)
-				{
-					bios_exists = true;
-					break;
-				}
-			}
-		}
-	}
-			
+	if(!bios_exists) { bios_exists = check_firmware_hashes(system_type); }
 
 	if((config::rom_file == "NOCART") && (!config::use_bios))
 	{
@@ -1455,8 +1461,11 @@ void main_menu::reset()
 		}
 
 		test_file.setFileName(QString::fromStdString(test_bios_path));
+		bool bios_exists = test_file.exists();
 
-		if(!test_file.exists() && config::use_bios)
+		if(!bios_exists) { bios_exists = check_firmware_hashes(system_type); }
+
+		if(!bios_exists && config::use_bios)
 		{
 			std::string mesg_text;
 
@@ -1745,8 +1754,11 @@ void main_menu::load_recent(int file_id)
 	}
 
 	test_file.setFileName(QString::fromStdString(test_bios_path));
+	bool bios_exists = test_file.exists();
 
-	if(!test_file.exists() && config::use_bios)
+	if(!bios_exists) { bios_exists = check_firmware_hashes(system_type); }
+
+	if(!bios_exists && config::use_bios)
 	{
 		std::string mesg_text;
 
