@@ -2175,7 +2175,7 @@ bool DMG_MMU::read_bios(std::string filename)
 			else if((hash == 0xE8EF5318) && (rank < 4)) { filename = config::bin_files[x]; rank = 4; }
 			else if((hash == 0xE6920754) && (rank < 3)) { filename = config::bin_files[x]; rank = 3; }
 			else if((hash == 0x59C8598E) && (rank < 2)) { filename = config::bin_files[x]; rank = 2; }
-			else if((hash == 0xC2f5CC97) && (rank < 1)) { filename = config::bin_files[x]; rank = 1; }
+			else if((hash == 0xC2F5CC97) && (rank < 1)) { filename = config::bin_files[x]; rank = 1; }
 		}
 	}		
 
