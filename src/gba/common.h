@@ -214,6 +214,12 @@ const u32 PY_OUT = 0xB000300;
 const u32 PY_UNK_00 = 0xB000000;
 const u32 PY_UNK_02 = 0xB000002;
 
+/* Nintendo MP3 Player IO */
+const u32 PY_NMP_CNT = 0xE000000;
+const u32 PY_NMP_STAT = 0xE008000;
+const u32 PY_NMP_DATA = 0xE004000;
+const u32 PY_NMP_GAMEPAK_DATA = 0xE006000;
+
 /* Campho Advance IO */
 const u32 CAM_ROM_DATA_LO = 0x8000000;
 const u32 CAM_ROM_DATA_HI = 0x8008000;
