@@ -6,7 +6,7 @@
 // Date : August 19, 2022
 // Description : Nintendo Play-Yan
 //
-// Handles I/O for the Nintendo Play-Yan
+// Handles I/O for the AGS-006 family (Play-Yan, Play-Yan Micro, Nintendo MP3 Player)
 // Manages IRQs and firmware reads/writes
 
 #include "mmu.h"
@@ -181,6 +181,13 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 	{
 		std::cout<<"MMU::Nintendo MP3 detected\n";
 		play_yan.type = NINTENDO_MP3;
+	}
+
+	//Handle Nintendo MP3 Player writes separately
+	if(play_yan.type == NINTENDO_MP3)
+	{
+		write_nmp(address, value);
+		return;
 	}
 
 	switch(address)
@@ -439,10 +446,22 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 	}	
 }
 
+/****** Writes to Nintendo MP3 Player I/O ******/
+void AGB_MMU::write_nmp(u32 address, u8 value)
+{
+
+}
+
 /****** Reads from Play-Yan I/O ******/
 u8 AGB_MMU::read_play_yan(u32 address)
 {
 	u8 result = memory_map[address];
+
+	//Handle Nintendo MP3 Player writes separately
+	if(play_yan.type == NINTENDO_MP3)
+	{
+		return read_nmp(address);
+	}
 
 	switch(address)
 	{
@@ -573,6 +592,13 @@ u8 AGB_MMU::read_play_yan(u32 address)
 
 	//std::cout<<"PLAY-YAN READ -> 0x" << address << " :: 0x" << (u32)result << "\n";
 
+	return result;
+}
+
+/****** Reads from Play-Yan I/O ******/
+u8 AGB_MMU::read_nmp(u32 address)
+{
+	result = 0;
 	return result;
 }
 

@@ -409,6 +409,9 @@ class AGB_MMU
 	void play_yan_set_ini_file();
 	void play_yan_wake();
 
+	void write_nmp(u32 address, u8 value);
+	u8 read_nmp(u32 address);
+
 	void campho_reset();
 	u8 read_campho(u32 address);
 	u8 read_campho_seq(u32 address);
