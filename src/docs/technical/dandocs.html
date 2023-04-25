@@ -4502,7 +4502,7 @@ PY_DATA_PARAM = 0x08
 
 	<p>The 0x201 Change Current Directory command uses Parameter 1 as a null-terminated string representing the target folder the Play-Yan will move into. The string has no fixed length, thus making this an irregular command. The Play-Yan appears to send additional unknown data after the string.</p>
 
-	<p>The 0x500 Grab Video Thumbnail Data command sends additional unknown data via Parameter 3. Altogether, 0x218 bytes are sent. Since this amount exceeds the 0xB0002FF boundary for parameter input, the last 0x18 bytes are written at the beginning of the section, starting over at 0xB000100.</p>
+	<p>The 0x500 Grab Video Thumbnail Data command sends additional data via Parameter 3. Some of these bytes are a null-terminated string representing the filename of a specific video to generate thumbnail data. This string begins at 0xB000114. Altogether, 0x218 bytes are sent. Since this amount exceeds the 0xB0002FF boundary for parameter input, the last 0x18 bytes are written at the beginning of the section, starting over at 0xB000100.</p>
 
 	<p>The 0x600 Grab ID3 Data command uses Parameter 1 as a null-terminated string representing the target file to lookup metadata. The string has no fixed length, thus making this an irregular command. The Play-Yan appears to send additional unknown data after the string.</p>
 
@@ -4582,9 +4582,12 @@ Command 0x500 - Grab Video Thumbnail Data - 1 IRQ
 Bytes 0x00 - 0x03	| 0x40000500
 Bytes 0x04 - 0x07	| Unknown
 Bytes 0x08 - 0x0B	| Unknown
+Bytes 0x0C - 0x0F	| Video Length in Milliseconds
 -----------------------------------------------------------------------</code>
 
 	<p>After the 0x500 command is issued, a corresponding Game Pak IRQ signals that the Play-Yan is ready to provide a 60x40 thumbnail image for a video file. For the specifics regarding reading these thumbnails, refer to the appropiate section below.</p>
+
+	<p>The Video Length in Milliseconds is the overall total playtime for a specific video. This data is passed from the Play-Yan to its software when accessing a video&#39;s thumbnail. Unlike music, videos do not constantly update the position of the trackbar via Game Pak IRQs while playing. Instead, the Play-Yan&#39;s software handles that when the timestamp is updated. It will use the value specified here in conjunction with the Current Video Position (see the 0x700 command) to calculate how far along the video has progressed.</p>
 	<p class="spc"></p>
 
 <code>-----------------------------------------------------------------------
@@ -4613,12 +4616,12 @@ Bytes 0x00 - 0x03	| 0x40000700
 Bytes 0x00 - 0x03	| 0x80001000
 Bytes 0x04 - 0x07	| Video Length Counter
 Bytes 0x08 - 0x0B	| Frame Size in Bytes
-Bytes 0x14 - 0x18	| Current Video Position
+Bytes 0x18 - 0x1B	| Current Video Position
 -----------------------------------------------------------------------</code>
 
 	<p>These interrupts are responsible for alerting the Play-Yan&#39;s software when a new video frame is ready for display, as well as the current position within a video as it is playing. The first IRQ initializes the process, while the second IRQ repeats indefinitely until the end of the video.</p>
 
-	<p>Each time the second IRQ is fired, the Current Video Position is updated. The Play-Yan software uses this to determine the minutes/seconds timestamp. It appears that the value 0x3C0 roughly equates 1 second. This IRQ fires every time a video frame needs to be displayed, therefore it should match the video&#39;s framerate. Each increment of the Current Video Position should thus reflect that. E.g. for a video playing at 30 frames-per-second, the Current Video Position updates at roughly 0x20 intervals.</p>
+	<p>Each time the second IRQ is fired, the Current Video Position is updated. The Play-Yan software uses this to determine the minutes/seconds timestamp. Its value is expressed in milliseconds. This IRQ fires every time a video frame needs to be displayed, therefore it should match the video&#39;s framerate. Each increment of the Current Video Position should thus reflect that. E.g. for a video playing at 30 frames-per-second, the Current Video Position value increases by approximately 0x21 or 0x22.</p>
 
 	<p>The frame itself is read similarly to video thumbnails. Refers to the appropiate section below for more details. The size of the frame is the video&#39;s resolution (typically 240x160) in 15-bit color pixels. Therefore, this value is usually 0x12C00.</p>
 
