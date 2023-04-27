@@ -436,7 +436,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 					if(temp_str == play_yan.video_files[x])
 					{
 						play_yan.video_file_index = x;
-						play_yan.video_length = (play_yan.video_times[x] * 0x20 * 30);
+						play_yan.video_length = ((play_yan.video_times[x] + 1) * 0x20 * 30);
 						play_yan.video_current_fps = 30.0 / play_yan.video_fps[x];
 						break;
 					}
