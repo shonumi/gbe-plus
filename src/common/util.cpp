@@ -11,7 +11,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include <vector>
+#include <filesystem>
 
 #include "util.h"
 
@@ -904,6 +904,60 @@ std::string get_filename_from_path(std::string path)
 
 	if(match != std::string::npos) { return path.substr(match + 1); }
 	else { return path; }
+}
+
+/****** Stores a list of all files in a given directory inside the referenced vector ******/
+void get_files_in_dir(std::string dir_src, std::vector<std::string>& file_list)
+{
+	//Check to see if folder exists, then grab all files there (non-recursive)
+	std::filesystem::path fs_path { dir_src };
+
+	if(!std::filesystem::exists(fs_path)) { return; }
+
+	//Check to see that the path points to a folder
+	if(!std::filesystem::is_directory(fs_path)) { return; }
+
+	//Cycle through all available files in the directory
+	std::filesystem::directory_iterator fs_files;
+
+	//Grab filenames
+	for(fs_files = std::filesystem::directory_iterator(fs_path); fs_files != std::filesystem::directory_iterator(); fs_files++)
+	{
+		//Only grab files, not folders
+		if(!fs_files->is_directory() && fs_files->is_regular_file())
+		{
+			file_list.push_back(fs_files->path().filename().string());
+		}
+	}
+
+	return;
+}
+
+/****** Stores a list of all folders in a given directory inside the referenced vector ******/
+void get_folders_in_dir(std::string dir_src, std::vector<std::string>& folder_list)
+{
+	//Check to see if folder exists, then grab all files there (non-recursive)
+	std::filesystem::path fs_path { dir_src };
+
+	if(!std::filesystem::exists(fs_path)) { return; }
+
+	//Check to see that the path points to a folder
+	if(!std::filesystem::is_directory(fs_path)) { return; }
+
+	//Cycle through all available files in the directory
+	std::filesystem::directory_iterator fs_files;
+
+	//Grab filenames
+	for(fs_files = std::filesystem::directory_iterator(fs_path); fs_files != std::filesystem::directory_iterator(); fs_files++)
+	{
+		//Only grab files, not folders
+		if(fs_files->is_directory())
+		{
+			folder_list.push_back(fs_files->path().filename().string());
+		}
+	}
+
+	return;
 }
 
 /****** Removes the file extension, if any ******/
