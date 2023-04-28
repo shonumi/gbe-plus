@@ -839,7 +839,7 @@ void AGB_MMU::process_play_yan_irq()
 			play_yan.irq_data_ptr = play_yan.music_play_data[0];
 			play_yan.irq_count = 2;
 			play_yan.irq_len = 3;
-			play_yan.irq_repeat = 100;
+			play_yan.irq_repeat = play_yan.music_length + 1;
 		}
 
 		//After selecting a video file to play, fire IRQs to process video
