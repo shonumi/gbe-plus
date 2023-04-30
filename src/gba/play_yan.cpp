@@ -53,10 +53,6 @@ void AGB_MMU::play_yan_reset()
 	{
 		read_play_yan_file_list((config::data_path + "play_yan/music.txt"), 0);
 		read_play_yan_file_list((config::data_path + "play_yan/video.txt"), 1);
-
-		//Set default data pulled from SD card - Index 0 for first music file
-		play_yan_set_music_file(0);
-
 		read_play_yan_thumbnails(config::data_path + "play_yan/thumbnails.txt");
 	}
 
@@ -169,6 +165,9 @@ void AGB_MMU::play_yan_reset()
 	play_yan.capture_command_stream = false;
 
 	play_yan.type = PLAY_YAN_OG;
+
+	play_yan.current_dir = config::data_path + "play_yan/";
+	play_yan_set_folder();
 }
 
 /****** Writes to Play-Yan I/O ******/
@@ -293,10 +292,10 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 			u16 control_cmd2 = (play_yan.cnt_data[5] << 8) | (play_yan.cnt_data[4]);
 
 			//Set music file data - Index 0 for first music file
-			if((play_yan.cmd == 0x200) && (control_cmd2 == 0x02)) { play_yan_set_music_file(0); }
+			if((play_yan.cmd == 0x200) && (control_cmd2 == 0x02)) { play_yan_set_music_file(); }
 
 			//Set video file data - Index 0 for first video file
-			if((play_yan.cmd == 0x200) && (control_cmd2 == 0x01)) { play_yan_set_video_file(0); }
+			if((play_yan.cmd == 0x200) && (control_cmd2 == 0x01)) { play_yan_set_video_file(); }
 
 			//Adjust Play-Yan volume settings
 			if(play_yan.cmd == 0xB00) { play_yan.volume = control_cmd2; }
@@ -328,10 +327,10 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 			u32 control_cmd2 = ((play_yan.cnt_data[7] << 24) | (play_yan.cnt_data[6] << 16) | (play_yan.cnt_data[5] << 8) | (play_yan.cnt_data[4]));
 
 			//Set music file data - Index 0 for first music file
-			if((play_yan.cmd == 0x200) && (control_cmd2 == 0x02)) { play_yan_set_music_file(0); }
+			if((play_yan.cmd == 0x200) && (control_cmd2 == 0x02)) { play_yan_set_music_file(); }
 
 			//Set video file data - Index 0 for first video file
-			if((play_yan.cmd == 0x200) && (control_cmd2 == 0x01)) { play_yan_set_video_file(0); }
+			if((play_yan.cmd == 0x200) && (control_cmd2 == 0x01)) { play_yan_set_video_file(); }
 
 			//Adjust Play-Yan volume settings
 			if(play_yan.cmd == 0xB00) { play_yan.volume = control_cmd2; }
@@ -375,7 +374,6 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 			if(play_yan.cmd == 0x201)
 			{
 				play_yan.current_dir = temp_str;
-				play_yan_set_folder();
 			}
 
 			//Grab thumbnail index by searching for internal ID associated with video file
@@ -1173,7 +1171,7 @@ bool AGB_MMU::read_play_yan_thumbnails(std::string filename)
 }
 
 /****** Sets the current SD card data for a given music file via index ******/
-void AGB_MMU::play_yan_set_music_file(u32 index)
+void AGB_MMU::play_yan_set_music_file()
 {
 	play_yan.card_data.clear();
 	play_yan.card_data.resize(0x10000, 0x00);
@@ -1184,31 +1182,38 @@ void AGB_MMU::play_yan_set_music_file(u32 index)
 	else if(play_yan.type == PLAY_YAN_MICRO) { entry_size = 272; }
 	else { return; }
 
-	//Set data pulled from SD card
-	if(!play_yan.music_files.empty())
+	std::vector<std::string> dir_listing;
+
+	//Grab files, then folders, in current directory and add them to SD card data
+	util::get_files_in_dir(play_yan.current_dir, ".mp3", dir_listing);
+	u32 file_count = dir_listing.size();
+	util::get_folders_in_dir(play_yan.current_dir, dir_listing);
+
+	//Write filenames and folder names to SD card data
+	for(u32 x = 0; x < dir_listing.size(); x++)
 	{
-		//Set number of media files present
-		play_yan.card_data[4 + (index * entry_size)] = play_yan.music_files.size();
-
-		for(u32 index = 0; index < play_yan.music_files.size(); index++)
+		//Set filetype meta data for Play-Yan
+		if(x < file_count)
 		{
-			//Set number of media files present
-			play_yan.card_data[4 + ((index + 1) * entry_size)] = 2;
+			play_yan.card_data[4 + ((x + 1) * entry_size)] = 2;
+		}
 
-			//Copy filename
-			std::string sd_file = play_yan.music_files[index];
+		//Copy filename
+		std::string sd_file = dir_listing[x];
 
-			for(u32 x = 0; x < sd_file.length(); x++)
-			{
-				u8 chr = sd_file[x];
-				play_yan.card_data[8 + (index * entry_size) + x] = chr;
-			}
+		for(u32 y = 0; y < sd_file.length(); y++)
+		{
+			u8 chr = sd_file[y];
+			play_yan.card_data[8 + (x * entry_size) + y] = chr;
 		}
 	}
+
+	//Set the total number of files
+	play_yan.card_data[4] = dir_listing.size();
 }
 
 /****** Sets the current SD card data for a given video file via index ******/
-void AGB_MMU::play_yan_set_video_file(u32 index)
+void AGB_MMU::play_yan_set_video_file()
 {
 	play_yan.card_data.clear();
 	play_yan.card_data.resize(0x10000, 0x00);
@@ -1219,24 +1224,28 @@ void AGB_MMU::play_yan_set_video_file(u32 index)
 	else if(play_yan.type == PLAY_YAN_MICRO) { entry_size = 272; }
 	else { return; }
 
-	//Set data pulled from SD card
-	if(!play_yan.video_files.empty())
+	std::vector<std::string> dir_listing;
+
+	//Grab files, then folders, in current directory and add them to SD card data
+	util::get_files_in_dir(play_yan.current_dir, ".asf", dir_listing);
+	u32 file_count = dir_listing.size();
+	util::get_folders_in_dir(play_yan.current_dir, dir_listing);
+
+	//Write filenames and folder names to SD card data
+	for(u32 x = 0; x < dir_listing.size(); x++)
 	{
-		//Set number of media files present
-		play_yan.card_data[4] = play_yan.video_files.size();
+		//Copy filename
+		std::string sd_file = dir_listing[x];
 
-		for(u32 index = 0; index < play_yan.video_files.size(); index++)
+		for(u32 y = 0; y < sd_file.length(); y++)
 		{
-			//Copy filename
-			std::string sd_file = play_yan.video_files[index];
-
-			for(u32 x = 0; x < sd_file.length(); x++)
-			{
-				u8 chr = sd_file[x];
-				play_yan.card_data[8 + (index * entry_size) + x] = chr;
-			}
+			u8 chr = sd_file[y];
+			play_yan.card_data[8 + (x * entry_size) + y] = chr;
 		}
 	}
+
+	//Set the total number of files
+	play_yan.card_data[4] = dir_listing.size();
 }
 
 /****** Sets the current SD card data for a given folder ******/

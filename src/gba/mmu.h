@@ -402,8 +402,8 @@ class AGB_MMU
 	u8 read_play_yan(u32 address);
 	void process_play_yan_cmd();
 	void process_play_yan_irq();
-	void play_yan_set_music_file(u32 index);
-	void play_yan_set_video_file(u32 index);
+	void play_yan_set_music_file();
+	void play_yan_set_video_file();
 	void play_yan_set_folder();
 	void play_yan_set_id3_data(u32 index);
 	void play_yan_set_ini_file();
