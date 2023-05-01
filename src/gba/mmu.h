@@ -269,6 +269,7 @@ class AGB_MMU
 		u32 thumbnail_index;
 		u32 video_index;
 		std::string current_dir;
+		std::string base_dir;
 
 		u8 volume;
 		u8 bass_boost;

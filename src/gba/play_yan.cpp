@@ -166,7 +166,8 @@ void AGB_MMU::play_yan_reset()
 
 	play_yan.type = PLAY_YAN_OG;
 
-	play_yan.current_dir = config::data_path + "play_yan/";
+	play_yan.current_dir = config::data_path + "play_yan";
+	play_yan.base_dir = play_yan.current_dir;
 	play_yan_set_folder();
 }
 
@@ -291,11 +292,11 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 		{
 			u16 control_cmd2 = (play_yan.cnt_data[5] << 8) | (play_yan.cnt_data[4]);
 
-			//Set music file data - Index 0 for first music file
-			if((play_yan.cmd == 0x200) && (control_cmd2 == 0x02)) { play_yan_set_music_file(); }
-
-			//Set video file data - Index 0 for first video file
+			//Set video file data
 			if((play_yan.cmd == 0x200) && (control_cmd2 == 0x01)) { play_yan_set_video_file(); }
+
+			//Set music file data
+			else if(play_yan.cmd == 0x200) { play_yan_set_music_file(); }
 
 			//Adjust Play-Yan volume settings
 			if(play_yan.cmd == 0xB00) { play_yan.volume = control_cmd2; }
@@ -326,11 +327,11 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 		{
 			u32 control_cmd2 = ((play_yan.cnt_data[7] << 24) | (play_yan.cnt_data[6] << 16) | (play_yan.cnt_data[5] << 8) | (play_yan.cnt_data[4]));
 
-			//Set music file data - Index 0 for first music file
-			if((play_yan.cmd == 0x200) && (control_cmd2 == 0x02)) { play_yan_set_music_file(); }
-
-			//Set video file data - Index 0 for first video file
+			//Set video file data
 			if((play_yan.cmd == 0x200) && (control_cmd2 == 0x01)) { play_yan_set_video_file(); }
+
+			//Set music file data
+			else if(play_yan.cmd == 0x200) { play_yan_set_music_file(); }
 
 			//Adjust Play-Yan volume settings
 			if(play_yan.cmd == 0xB00) { play_yan.volume = control_cmd2; }
@@ -373,7 +374,18 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 			//Set the current directory
 			if(play_yan.cmd == 0x201)
 			{
-				play_yan.current_dir = temp_str;
+				//Backtrack one directory up
+				if(temp_str == "..")
+				{
+					std::size_t last_dir = play_yan.current_dir.find_last_of("/");
+					play_yan.current_dir = play_yan.current_dir.substr(0, last_dir);
+				}
+
+				//Jump into new directory
+				else
+				{
+					play_yan.current_dir = play_yan.current_dir + "/" + temp_str;
+				}
 			}
 
 			//Grab thumbnail index by searching for internal ID associated with video file
