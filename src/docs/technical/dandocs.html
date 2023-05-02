@@ -4542,7 +4542,7 @@ Bytes 0x04 - 0x07	| 0x01 or 0x02
 Bytes 0x00 - 0x03	| 0x80001000
 -----------------------------------------------------------------------</code>
 
-	<p>This command prompts the Play-Yan to start reading the filesystem on the SD card. It allows the software to grab a list of available files or folders for music, or video files. The Play-Yan will scan the current directory for any files and folders it can find. Afterwards, the software can read the data through the SD Card Data interface described in the section above. The data contains the total number of files and folders within the directory along with 268-byte entries of metadata for each item found. The format of the list returned via SD Card Data is as follows:</p>
+	<p>This command prompts the Play-Yan to start reading the filesystem on the SD card. It allows the software to grab a list of available files or folders for music, or video files. The Play-Yan will scan for any files and folders it can find. Afterwards, the software can read the data through the SD Card Data interface described in the section above. The data contains the total number of files and folders within the directory along with 268-byte entries of metadata for each item found. The format of the list returned via SD Card Data is as follows:</p>
 
 <code>-----------------------------------------------------------------------
 Bytes 0x0000 - 0x0003	| Unused (zeroes)
@@ -4560,7 +4560,7 @@ Bytes 0x0108 - 0x010B	| Entry Type
 
 	<p>The name of the file/folder should be null-terminated, otherwise the Play-Yan will consider the entry invalid.</p>
 
-	<p>The Entry Type describes what kind of item was found within the filesystem. If Bit 0 is set, the Play-Yan will register the item as a Video File. If Bit 1 is set, the Play-Yan will register the item as a Music File. If neither Bit 0 nor Bit 1 is set, the Play-Yan will register the item as a Folder.</p>
+	<p>The Entry Type describes what kind of item was found within the filesystem. If Bit 0 is set, the Play-Yan will register the item as a Video File. If Bit 1 is set, the Play-Yan will register the item as a Music File. If neither Bit 0 nor Bit 1 is set, the Play-Yan will register the item as a Folder. This behavior is only applicable when reading Music Files, however. When reading Video Files, all videos present on the SD card are returned and folders are ignored. That is to say, the Get Filesystem Information automatically acts recursively for Video Files. When used for Music Files, it acts exclusively on the current directory.</p>
 
 	<p>The second parameter determines what types of files will be returned. If this parameter is set to 0x01, the Play-Yan will only return Video Files when reading entries from SD Card Data. If this parameter is set to 0x02, the Play-Yan will only return Music Files when reading entries from SD Card Data. This parameter does not affect how folders are returned in the list, however.</p>
 	<p class="spc"></p>
