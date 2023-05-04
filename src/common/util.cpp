@@ -934,7 +934,7 @@ void get_files_in_dir(std::string dir_src, std::vector<std::string>& file_list)
 }
 
 /****** Stores a list of all files (with a specific file extension) in a given directory inside the referenced vector ******/
-void get_files_in_dir(std::string dir_src, std::string extension, std::vector<std::string>& file_list, bool recursive)
+void get_files_in_dir(std::string dir_src, std::string extension, std::vector<std::string>& file_list, bool recursive, bool full_path)
 {
 	//Check to see if folder exists, then grab all files there (non-recursive)
 	std::filesystem::path fs_path { dir_src };
@@ -958,7 +958,11 @@ void get_files_in_dir(std::string dir_src, std::string extension, std::vector<st
 			//Only grab files, not folders
 			if(!fs_files->is_directory() && fs_files->is_regular_file() && (ext_check == extension))
 			{
-				file_list.push_back(fs_files->path().filename().string());
+				//Grab full filename
+				if(full_path) { file_list.push_back(fs_files->path().string()); }
+
+				//Grab filename only
+				else { file_list.push_back(fs_files->path().filename().string()); }
 			}
 		}
 	}
@@ -977,7 +981,11 @@ void get_files_in_dir(std::string dir_src, std::string extension, std::vector<st
 			//Only grab files, not folders
 			if(!fs_files->is_directory() && fs_files->is_regular_file() && (ext_check == extension))
 			{
-				file_list.push_back(fs_files->path().filename().string());
+				//Grab full filename
+				if(full_path) { file_list.push_back(fs_files->path().string()); }
+
+				//Grab filename only
+				else { file_list.push_back(fs_files->path().filename().string()); }
 			}
 		}
 	}
