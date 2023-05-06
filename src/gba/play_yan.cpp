@@ -598,7 +598,7 @@ u8 AGB_MMU::read_play_yan(u32 address)
 /****** Reads from Play-Yan I/O ******/
 u8 AGB_MMU::read_nmp(u32 address)
 {
-	result = 0;
+	u8 result = 0;
 	return result;
 }
 
