@@ -95,7 +95,6 @@ namespace util
 
 	std::string get_filename_from_path(std::string path);
 	std::string get_filename_no_ext(std::string filename);
-	void get_files_in_dir(std::string dir_src, std::vector<std::string>& file_list);
 	void get_files_in_dir(std::string dir_src, std::string extension, std::vector<std::string>& file_list, bool recursive, bool full_path);
 	void get_folders_in_dir(std::string dir_src, std::vector<std::string>& folder_list);
 

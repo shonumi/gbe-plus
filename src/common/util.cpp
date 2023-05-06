@@ -907,33 +907,6 @@ std::string get_filename_from_path(std::string path)
 }
 
 /****** Stores a list of all files in a given directory inside the referenced vector ******/
-void get_files_in_dir(std::string dir_src, std::vector<std::string>& file_list)
-{
-	//Check to see if folder exists, then grab all files there (non-recursive)
-	std::filesystem::path fs_path { dir_src };
-
-	if(!std::filesystem::exists(fs_path)) { return; }
-
-	//Check to see that the path points to a folder
-	if(!std::filesystem::is_directory(fs_path)) { return; }
-
-	//Cycle through all available files in the directory
-	std::filesystem::directory_iterator fs_files;
-
-	//Grab filenames
-	for(fs_files = std::filesystem::directory_iterator(fs_path); fs_files != std::filesystem::directory_iterator(); fs_files++)
-	{
-		//Only grab files, not folders
-		if(!fs_files->is_directory() && fs_files->is_regular_file())
-		{
-			file_list.push_back(fs_files->path().filename().string());
-		}
-	}
-
-	return;
-}
-
-/****** Stores a list of all files (with a specific file extension) in a given directory inside the referenced vector ******/
 void get_files_in_dir(std::string dir_src, std::string extension, std::vector<std::string>& file_list, bool recursive, bool full_path)
 {
 	//Check to see if folder exists, then grab all files there (non-recursive)
@@ -953,7 +926,7 @@ void get_files_in_dir(std::string dir_src, std::string extension, std::vector<st
 		//Grab filenames
 		for(fs_files = std::filesystem::recursive_directory_iterator(fs_path); fs_files != std::filesystem::recursive_directory_iterator(); fs_files++)
 		{
-			std::string ext_check = fs_files->path().extension().string();
+			std::string ext_check = (extension.empty()) ? "" : fs_files->path().extension().string();
 
 			//Only grab files, not folders
 			if(!fs_files->is_directory() && fs_files->is_regular_file() && (ext_check == extension))
@@ -976,7 +949,7 @@ void get_files_in_dir(std::string dir_src, std::string extension, std::vector<st
 		//Grab filenames
 		for(fs_files = std::filesystem::directory_iterator(fs_path); fs_files != std::filesystem::directory_iterator(); fs_files++)
 		{
-			std::string ext_check = fs_files->path().extension().string();
+			std::string ext_check = (extension.empty()) ? "" : fs_files->path().extension().string();
 
 			//Only grab files, not folders
 			if(!fs_files->is_directory() && fs_files->is_regular_file() && (ext_check == extension))
