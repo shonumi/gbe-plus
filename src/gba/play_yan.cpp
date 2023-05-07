@@ -53,7 +53,6 @@ void AGB_MMU::play_yan_reset()
 	{
 		read_play_yan_file_list((config::data_path + "play_yan/music.txt"), 0);
 		read_play_yan_file_list((config::data_path + "play_yan/video.txt"), 1);
-		read_play_yan_thumbnails(config::data_path + "play_yan/thumbnails.txt");
 	}
 
 	for(u32 x = 0; x < 12; x++) { play_yan.cnt_data[x] = 0; }
@@ -155,7 +154,6 @@ void AGB_MMU::play_yan_reset()
 
 	play_yan.video_data_addr = 0;
 	play_yan.thumbnail_addr = 0;
-	play_yan.thumbnail_index = 0;
 	play_yan.video_index = 0;
 
 	play_yan.music_file_index = 0;
@@ -397,18 +395,22 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 			//Grab thumbnail index by searching for internal ID associated with video file
 			else if(play_yan.cmd == 0x500)
 			{
-				for(u32 x = 0; x < play_yan.video_files.size(); x++)
+				//Look up .bmp thumbnail, same name as video file, different extension
+				temp_str = util::get_filename_no_ext(temp_str) + ".bmp";
+
+				//Convert backslash to forward slash
+				for(u32 x = 0; x < temp_str.length(); x++)
 				{
-					if(temp_str == play_yan.video_files[x])
-					{
-						play_yan.thumbnail_index = x;
-
-						//Reset video length in ms
-						play_yan.video_check_data[3][3] = (play_yan.video_times[play_yan.thumbnail_index] * 1000);
-
-						break;
-					}
+					if(temp_str[x] == 0x5C) { temp_str[x] = 0x2F; }
 				}
+
+				read_play_yan_thumbnail(temp_str);
+
+				//Reset video length in ms
+				//TODO - Use external conversion program and grab video length. For demo purposes, default to 10 seconds
+				u32 vid_len = 10;
+
+				play_yan.video_check_data[3][3] = (vid_len * 1000);
 			}
 
 			//Grab ID3 data for a song
@@ -567,18 +569,14 @@ u8 AGB_MMU::read_play_yan(u32 address)
 		//Thumbnail data
 		if(!play_yan.is_video_playing)
 		{
-			u32 t_index = play_yan.thumbnail_index;
 			u32 t_addr = play_yan.thumbnail_addr + offset;
 
-			if(t_index < play_yan.video_thumbnails.size())
+			if(t_addr < 0x12C0)
 			{
-				if(t_addr < 0x12C0)
-				{
-					result = play_yan.video_thumbnails[t_index][t_addr];
+				result = play_yan.video_thumbnail[t_addr];
 
-					//Update Play-Yan thubnail address if necessary
-					if(offset == 0x1FE) { play_yan.thumbnail_addr += 0x200; }
-				}
+				//Update Play-Yan thubnail address if necessary
+				if(offset == 0x1FE) { play_yan.thumbnail_addr += 0x200; }
 			}
 		}
 
@@ -1127,61 +1125,31 @@ bool AGB_MMU::read_play_yan_file_list(std::string filename, u8 category)
 }
 
 
-/****** Reads a file for list of video thumbnails files used for Play-Yan video ******/
-bool AGB_MMU::read_play_yan_thumbnails(std::string filename)
+/****** Reads a bitmap file for video thumbnail used for Play-Yan video ******/
+bool AGB_MMU::read_play_yan_thumbnail(std::string filename)
 {
-	play_yan.video_thumbnails.clear();
+	//Grab pixel data of file as a BMP
+	SDL_Surface* source = SDL_LoadBMP(filename.c_str());
 
-	std::string input_line = "";
-	std::ifstream file(filename.c_str(), std::ios::in);
-
-	std::vector<std::string> list;
-
-	if(!file.is_open())
+	//Generate blank (all black) thumbnail if source not found
+	if(source == NULL)
 	{
-		std::cout<<"MMU::Error - Could not open list of media files from " << filename << "\n";
-		return false;
+		std::cout<<"MMU::Warning - Could not load thumbnail image for " << filename << "\n";
+		play_yan.video_thumbnail.resize(0x12C0, 0x00);
 	}
 
-	//Parse line for filename
-	while(getline(file, input_line))
+	//Otherwise grab pixel data from source
+	else
 	{
-		if(!input_line.empty())
+		play_yan.video_thumbnail.clear();
+		u8* pixel_data = (u8*)source->pixels;
+
+		//Convert 32-bit pixel data to RGB15 and push to vector
+		for(int a = 0, b = 0; a < (source->w * source->h); a++, b+=3)
 		{
-			list.push_back(input_line);
-		}
-	}
-
-	//Resize thumbnail vector
-	play_yan.video_thumbnails.resize(list.size());
-
-	//Grab pixel data for each thumbnail
-	for(u32 x = 0; x < list.size(); x++)
-	{
-		//Grab pixel data of file as a BMP
-		std::string t_file = config::data_path + "play_yan/" + list[x];
-		SDL_Surface* source = SDL_LoadBMP(t_file.c_str());
-
-		//Generate blank (all black) thumbnail if source not found
-		if(source == NULL)
-		{
-			std::cout<<"MMU::Warning - Could not load thumbnail image for " << list[x] << "\n";
-			play_yan.video_thumbnails[x].resize(0x12C0, 0x00);
-		}
-
-		//Otherwise grab pixel data from source
-		else
-		{
-			play_yan.video_thumbnails[x].clear();
-			u8* pixel_data = (u8*)source->pixels;
-
-			//Convert 32-bit pixel data to RGB15 and push to vector
-			for(int a = 0, b = 0; a < (source->w * source->h); a++, b+=3)
-			{
-				u16 raw_pixel = ((pixel_data[b] & 0xF8) << 7) | ((pixel_data[b+1] & 0xF8) << 2) | ((pixel_data[b+2] & 0xF8) >> 3);
-				play_yan.video_thumbnails[x].push_back(raw_pixel & 0xFF);
-				play_yan.video_thumbnails[x].push_back((raw_pixel >> 8) & 0xFF);
-			}
+			u16 raw_pixel = ((pixel_data[b] & 0xF8) << 7) | ((pixel_data[b+1] & 0xF8) << 2) | ((pixel_data[b+2] & 0xF8) >> 3);
+			play_yan.video_thumbnail.push_back(raw_pixel & 0xFF);
+			play_yan.video_thumbnail.push_back((raw_pixel >> 8) & 0xFF);
 		}
 	}
 
@@ -1224,6 +1192,9 @@ void AGB_MMU::play_yan_set_music_file()
 		for(u32 y = 0; y < sd_file.length(); y++)
 		{
 			u8 chr = sd_file[y];
+
+			//Convert forward slash to backslash when writing SD card data
+			if(chr == 0x2F) { chr = 0x5C; }
 			play_yan.card_data[8 + (x * entry_size) + y] = chr;
 		}
 	}
@@ -1258,11 +1229,14 @@ void AGB_MMU::play_yan_set_video_file()
 
 		//Copy filename
 		play_yan.video_files.push_back(dir_listing[x]);
-		std::string sd_file = util::get_filename_from_path(dir_listing[x]);
+		std::string sd_file = dir_listing[x];
 
 		for(u32 y = 0; y < sd_file.length(); y++)
 		{
 			u8 chr = sd_file[y];
+
+			//Convert forward slash to backslash when writing SD card data
+			if(chr == 0x2F) { chr = 0x5C; }
 			play_yan.card_data[8 + (x * entry_size) + y] = chr;
 		}
 	}

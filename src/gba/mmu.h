@@ -249,7 +249,7 @@ class AGB_MMU
 
 		std::vector<u32> video_fps;
 
-		std::vector< std::vector<u8> > video_thumbnails;
+		std::vector<u8> video_thumbnail;
 		std::vector<u8> video_data;
 		u16 thumbnail_addr;
 		u32 video_data_addr; 
@@ -266,7 +266,6 @@ class AGB_MMU
 
 		u32 music_file_index;
 		u32 video_file_index;
-		u32 thumbnail_index;
 		u32 video_index;
 		std::string current_dir;
 		std::string base_dir;
@@ -399,7 +398,7 @@ class AGB_MMU
 	void play_yan_reset();
 	void write_play_yan(u32 address, u8 value);
 	bool read_play_yan_file_list(std::string filename, u8 category);
-	bool read_play_yan_thumbnails(std::string filename);
+	bool read_play_yan_thumbnail(std::string filename);
 	u8 read_play_yan(u32 address);
 	void process_play_yan_cmd();
 	void process_play_yan_irq();
