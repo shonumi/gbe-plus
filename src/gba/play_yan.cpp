@@ -560,8 +560,6 @@ u8 AGB_MMU::read_play_yan(u32 address)
 		{
 			result = play_yan.card_data[play_yan.card_addr + offset];
 
-			std::cout<<"YO -> 0x" << (play_yan.card_addr + offset) << " :: 0x" << (u32)result << "\n";
-
 			//Update Play-Yan card address if necessary
 			if(offset == 0x1FE) { play_yan.card_addr += 0x200; }
 		}
@@ -1183,12 +1181,11 @@ void AGB_MMU::play_yan_get_id3_data(std::string filename)
 			if((x + 4) < file_size)
 			{
 				u32 title_len = (mp3_data[x] << 24) | (mp3_data[x + 1] << 16) | (mp3_data[x + 2] << 8) | mp3_data[x + 3];
-				title_len++;
-				x += 4;
+				x += 7;
 
 				if((x + title_len) < file_size)
 				{
-					for(u32 y = 0; y < title_len; y++, x++)
+					for(u32 y = 1; y < title_len; y++, x++)
 					{
 						if(mp3_data[x] > 0x1F) { title += mp3_data[x]; }
 					}
@@ -1209,12 +1206,11 @@ void AGB_MMU::play_yan_get_id3_data(std::string filename)
 			if((x + 4) < file_size)
 			{
 				u32 artist_len = (mp3_data[x] << 24) | (mp3_data[x + 1] << 16) | (mp3_data[x + 2] << 8) | mp3_data[x + 3];
-				artist_len++;
-				x += 4;
+				x += 7;
 
 				if((x + artist_len) < file_size)
 				{
-					for(u32 y = 0; y < artist_len; y++, x++)
+					for(u32 y = 1; y < artist_len; y++, x++)
 					{
 						if(mp3_data[x] > 0x1F) { artist += mp3_data[x]; }
 					}
@@ -1225,11 +1221,14 @@ void AGB_MMU::play_yan_get_id3_data(std::string filename)
 		}
 	}
 
+	std::cout<<"TTT -> " << title << "\n";
+	std::cout<<"REAL LEN -> 0x" << title.length() << "\n";
+
 	//Write song title and artist to SD card data
 	u32 t_len = (title.length() > 0x40) ? 0x40 : title.length();
 	u32 a_len = (artist.length() > 0x46) ? 0x46 : artist.length();
 
-	for(u32 x = 0; x <= t_len; x++)
+	for(u32 x = 0; x < t_len; x++)
 	{
 		u8 data = title[x];
 		play_yan.card_data[0x04 + x] = data;
