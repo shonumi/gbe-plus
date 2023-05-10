@@ -409,14 +409,23 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 			//Grab ID3 data for a song
 			else if(play_yan.cmd == 0x600)
 			{
+				//Convert backslash to forward slash
+				for(u32 x = 0; x < temp_str.length(); x++)
+				{
+					if(temp_str[x] == 0x5C) { temp_str[x] = 0x2F; }
+				}
+
 				for(u32 x = 0; x < play_yan.music_files.size(); x++)
 				{
-					if(temp_str == play_yan.music_files[x])
+					if(util::get_filename_from_path(play_yan.music_files[x]) == temp_str)
 					{
-						play_yan_set_id3_data(x);
+						temp_str = play_yan.music_files[x];
 						break;
 					}
 				}
+
+				//Grab ID3 data
+				play_yan_get_id3_data(temp_str);
 			}
 
 			//Search for internal ID associated with audio file
@@ -437,6 +446,8 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 						break;
 					}
 				}
+
+				play_yan.music_length = 10;
 			}
 
 			//Search for internal ID associated with video file
@@ -548,6 +559,8 @@ u8 AGB_MMU::read_play_yan(u32 address)
 		if((play_yan.card_addr + offset) < 0x10000)
 		{
 			result = play_yan.card_data[play_yan.card_addr + offset];
+
+			std::cout<<"YO -> 0x" << (play_yan.card_addr + offset) << " :: 0x" << (u32)result << "\n";
 
 			//Update Play-Yan card address if necessary
 			if(offset == 0x1FE) { play_yan.card_addr += 0x200; }
@@ -1132,11 +1145,101 @@ void AGB_MMU::play_yan_set_folder()
 	play_yan.card_data[4] = dir_listing.size();
 }
 
-/****** Sets the current ID3 data (Title + Artist) for a given song ******/
-void AGB_MMU::play_yan_set_id3_data(u32 index)
+/****** Gets the current ID3 data (Title + Artist) for a given MP3 file ******/
+void AGB_MMU::play_yan_get_id3_data(std::string filename)
 {
 	play_yan.card_data.clear();
 	play_yan.card_data.resize(0x10000, 0x00);
+
+	std::ifstream file(filename.c_str(), std::ios::binary);
+	std::vector<u8> mp3_data;
+
+	if(!file.is_open()) 
+	{
+		std::cout<<"MMU::" << filename << " could not be opened. Check file path or permissions. \n";
+		return;
+	}
+
+	//Get the file size
+	file.seekg(0, file.end);
+	u32 file_size = file.tellg();
+	file.seekg(0, file.beg);
+	mp3_data.resize(file_size);
+
+	//Read entire MP3 file
+	file.read(reinterpret_cast<char*> (&mp3_data[0]), file_size);
+	file.close();
+
+	std::string title = "";
+	std::string artist = "";
+
+	//Grab song title - ID3v3 and ID3v4
+	for(u32 x = 0; x < (file_size - 4); x++)
+	{
+		if((mp3_data[x] == 0x54) && (mp3_data[x + 1] == 0x49) && (mp3_data[x + 2] == 0x54) && (mp3_data[x + 3] == 0x32))
+		{
+			x += 4;
+
+			if((x + 4) < file_size)
+			{
+				u32 title_len = (mp3_data[x] << 24) | (mp3_data[x + 1] << 16) | (mp3_data[x + 2] << 8) | mp3_data[x + 3];
+				title_len++;
+				x += 4;
+
+				if((x + title_len) < file_size)
+				{
+					for(u32 y = 0; y < title_len; y++, x++)
+					{
+						if(mp3_data[x] > 0x1F) { title += mp3_data[x]; }
+					}
+
+					break;
+				}
+			}
+		}
+	}
+
+	//Grab artist - ID3v3 and ID3v4
+	for(u32 x = 0; x < (file_size - 4); x++)
+	{
+		if((mp3_data[x] == 0x54) && (mp3_data[x + 1] == 0x50) && (mp3_data[x + 2] == 0x45) && (mp3_data[x + 3] == 0x31))
+		{
+			x += 4;
+
+			if((x + 4) < file_size)
+			{
+				u32 artist_len = (mp3_data[x] << 24) | (mp3_data[x + 1] << 16) | (mp3_data[x + 2] << 8) | mp3_data[x + 3];
+				artist_len++;
+				x += 4;
+
+				if((x + artist_len) < file_size)
+				{
+					for(u32 y = 0; y < artist_len; y++, x++)
+					{
+						if(mp3_data[x] > 0x1F) { artist += mp3_data[x]; }
+					}
+
+					break;
+				}
+			}
+		}
+	}
+
+	//Write song title and artist to SD card data
+	u32 t_len = (title.length() > 0x40) ? 0x40 : title.length();
+	u32 a_len = (artist.length() > 0x46) ? 0x46 : artist.length();
+
+	for(u32 x = 0; x <= t_len; x++)
+	{
+		u8 data = title[x];
+		play_yan.card_data[0x04 + x] = data;
+	}
+
+	for(u32 x = 0; x < a_len; x++)
+	{
+		u8 data = artist[x];
+		play_yan.card_data[0x45 + x] = data;
+	}
 } 
 
 /****** Sets SD card data to read the Play-Yan Micro .ini file ******/

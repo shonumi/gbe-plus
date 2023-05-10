@@ -404,7 +404,7 @@ class AGB_MMU
 	void play_yan_set_music_file();
 	void play_yan_set_video_file();
 	void play_yan_set_folder();
-	void play_yan_set_id3_data(u32 index);
+	void play_yan_get_id3_data(std::string filename);
 	void play_yan_set_ini_file();
 	void play_yan_wake();
 
