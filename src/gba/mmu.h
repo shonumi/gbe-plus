@@ -244,9 +244,6 @@ class AGB_MMU
 		std::vector<std::string> music_files;
 		std::vector<std::string> video_files;
 
-		std::vector<u32> music_times;
-		std::vector<u32> video_times;
-
 		std::vector<u32> video_fps;
 
 		std::vector<u8> video_thumbnail;
@@ -264,11 +261,11 @@ class AGB_MMU
 		u32 tracker_progress;
 		u32 tracker_update_size;
 
-		u32 music_file_index;
-		u32 video_file_index;
 		u32 video_index;
 		std::string current_dir;
 		std::string base_dir;
+		std::string current_music_file;
+		std::string current_video_file;
 
 		u8 volume;
 		u8 bass_boost;

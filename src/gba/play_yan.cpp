@@ -149,9 +149,6 @@ void AGB_MMU::play_yan_reset()
 	play_yan.thumbnail_addr = 0;
 	play_yan.video_index = 0;
 
-	play_yan.music_file_index = 0;
-	play_yan.video_file_index = 0;
-
 	play_yan.use_bass_boost = false;
 	play_yan.capture_command_stream = false;
 
@@ -160,6 +157,9 @@ void AGB_MMU::play_yan_reset()
 	play_yan.current_dir = config::data_path + "play_yan";
 	play_yan.base_dir = play_yan.current_dir;
 	play_yan_set_folder();
+
+	play_yan.current_music_file = "";
+	play_yan.current_video_file = "";
 }
 
 /****** Writes to Play-Yan I/O ******/
@@ -419,7 +419,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 				{
 					if(util::get_filename_from_path(play_yan.music_files[x]) == temp_str)
 					{
-						play_yan_load_audio(play_yan.music_files[x]);
+						play_yan.current_music_file = play_yan.music_files[x];
 						temp_str = play_yan.music_files[x];
 						break;
 					}
@@ -429,28 +429,13 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 				play_yan_get_id3_data(temp_str);
 			}
 
-			//Search for internal ID associated with audio file
+			//Load and convert music file
 			else if(play_yan.cmd == 0x800)
 			{
-				for(u32 x = 0; x < play_yan.music_files.size(); x++)
-				{
-					if(temp_str == play_yan.music_files[x])
-					{
-						play_yan.music_file_index = x;
-
-						if(play_yan.music_times[x])
-						{
-							play_yan.tracker_update_size = (0x6400 / play_yan.music_times[x]);
-							play_yan.music_length = play_yan.music_times[x];
-						}
-
-						break;
-					}
-				}
-
-				play_yan.music_length = 10;
+				play_yan_load_audio(play_yan.current_music_file);
 			}
 
+			/*
 			//Search for internal ID associated with video file
 			else
 			{
@@ -465,6 +450,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 					}
 				}
 			}
+			*/
 		}
 	}	
 }
@@ -1363,6 +1349,16 @@ bool AGB_MMU::play_yan_load_audio(std::string filename)
 
 	apu_stat->ext_audio.frequency = file_spec.freq;
 	apu_stat->ext_audio.channels = file_spec.channels;
+
+	//Determine song length in seconds by the amount of samples
+	u32 song_samples = apu_stat->ext_audio.length / 2;
+	if(file_spec.channels == 2) { song_samples /= 2; }
+
+	u32 song_seconds = song_samples / apu_stat->ext_audio.frequency;
+	if(song_samples % (u32)apu_stat->ext_audio.frequency) { song_seconds += 1; }
+	
+	play_yan.music_length = song_seconds;
+	play_yan.tracker_update_size = (0x6400 / play_yan.music_length);
 
 	std::cout<<"MMU::Play-Yan loaded audio file: " << filename << "\n";
 
