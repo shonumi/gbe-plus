@@ -407,6 +407,7 @@ class AGB_MMU
 	void play_yan_get_id3_data(std::string filename);
 	void play_yan_set_ini_file();
 	void play_yan_wake();
+	bool play_yan_load_audio(std::string filename);
 
 	void write_nmp(u32 address, u8 value);
 	u8 read_nmp(u32 address);

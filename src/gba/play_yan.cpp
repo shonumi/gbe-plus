@@ -419,6 +419,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 				{
 					if(util::get_filename_from_path(play_yan.music_files[x]) == temp_str)
 					{
+						play_yan_load_audio(play_yan.music_files[x]);
 						temp_str = play_yan.music_files[x];
 						break;
 					}
@@ -1221,9 +1222,6 @@ void AGB_MMU::play_yan_get_id3_data(std::string filename)
 		}
 	}
 
-	std::cout<<"TTT -> " << title << "\n";
-	std::cout<<"REAL LEN -> 0x" << title.length() << "\n";
-
 	//Write song title and artist to SD card data
 	u32 t_len = (title.length() > 0x40) ? 0x40 : title.length();
 	u32 a_len = (artist.length() > 0x46) ? 0x46 : artist.length();
@@ -1284,4 +1282,89 @@ void AGB_MMU::play_yan_wake()
 	play_yan.delay_reload = 10;
 	play_yan.irq_data_ptr = play_yan.wake_data;
 	play_yan.irq_len = 1;
+}
+
+/****** Loads audio (.MP3) file and then converts it to .WAV for playback ******/
+bool AGB_MMU::play_yan_load_audio(std::string filename)
+{
+	//Abort now if no audio conversion command is specified
+	if(config::audio_conversion_cmd.empty())
+	{
+		std::cout<<"MMU::No audio conversion command specified. Cannot convert file " << filename << "\n";
+		return false;
+	}
+
+	//Clear previous buffer if necessary
+	SDL_FreeWAV(apu_stat->ext_audio.buffer);
+	apu_stat->ext_audio.buffer = NULL;
+
+	SDL_AudioSpec file_spec;
+
+	std::string out_file = config::temp_media_file + ".wav";
+	std::string sys_cmd = config::audio_conversion_cmd;
+
+	//Delete any existing temporary media file in case audio conversion command complains
+	std::remove(out_file.c_str());
+
+	//Replace %in and %out with proper parameters
+	std::string search_str = "%in";
+	std::size_t pos = sys_cmd.find(search_str);
+
+	if(pos != std::string::npos)
+	{
+		std::string start = sys_cmd.substr(0, pos);
+		std::string end = sys_cmd.substr(pos + 3);
+		sys_cmd = start + filename + end;
+	}
+
+	search_str = "%out";
+	pos = sys_cmd.find(search_str);
+
+	if(pos != std::string::npos)
+	{
+		std::string start = sys_cmd.substr(0, pos);
+		std::string end = sys_cmd.substr(pos + 4);
+		sys_cmd = start + out_file + end;
+	}
+		
+	//Check for a command processor on system and run audio conversion command
+	if(system(NULL))
+	{
+		std::cout<<"MMU::Converting audio file " << filename << "\n";
+		system(sys_cmd.c_str());
+		std::cout<<"MMU::Conversion complete\n";
+	}
+
+	else
+	{
+		std::cout<<"Conversion of audio file " << filename << " failed \n";
+		return false;
+	}
+
+	if(SDL_LoadWAV(out_file.c_str(), &file_spec, &apu_stat->ext_audio.buffer, &apu_stat->ext_audio.length) == NULL)
+	{
+		std::cout<<"MMU::Play-Yan could not load audio file: " << out_file << " :: " << SDL_GetError() << "\n";
+		return false;
+	}
+
+	//Check format, must be S16 audio, LSB
+	if(file_spec.format != AUDIO_S16)
+	{
+		std::cout<<"MMU::Jukebox loaded file, but format is not Signed 16-bit LSB audio\n";
+		return false;
+	}
+
+	//Check number of channels, max is 2
+	if(file_spec.channels > 2)
+	{
+		std::cout<<"MMU::Jukebox loaded file, but audio uses more than 2 channels\n";
+		return false;
+	}
+
+	apu_stat->ext_audio.frequency = file_spec.freq;
+	apu_stat->ext_audio.channels = file_spec.channels;
+
+	std::cout<<"MMU::Play-Yan loaded audio file: " << filename << "\n";
+
+	return true;
 }
