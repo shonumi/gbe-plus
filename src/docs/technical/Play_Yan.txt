@@ -277,7 +277,7 @@ The name of the file/folder should be null-terminated, otherwise the Play-Yan wi
 
 The Entry Type describes what kind of item was found within the filesystem. If Bit 0 is set, the Play-Yan will register the item as a Video File. If Bit 1 is set, the Play-Yan will register the item as a Music File. If neither Bit 0 nor Bit 1 is set, the Play-Yan will register the item as a Folder. This behavior is only applicable when reading Music Files, however. When reading Video Files, all videos present on the SD card are returned and folders are ignored. That is to say, the Get Filesystem Information automatically acts recursively for Video Files. When used for Music Files, it acts exclusively on the current directory.
 
-The second parameter determines what types of files will be returned. If this parameter is set to 0x01, the Play-Yan will only return Video Files when reading entries from SD Card Data. If this parameter is set to 0x02, the Play-Yan will only return Music Files when reading entries from SD Card Data. This parameter does not affect how folders are returned in the list, however.
+The second parameter determines what types of files will be returned. If this parameter is set to 0x01, the Play-Yan will only return Video Files when reading entries from SD Card Data. If this parameter is set to 0x02, the Play-Yan will only return Music Files when reading entries from SD Card Data.
 
 
 
