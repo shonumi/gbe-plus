@@ -1158,51 +1158,69 @@ void AGB_MMU::play_yan_get_id3_data(std::string filename)
 	std::string title = "";
 	std::string artist = "";
 
-	//Grab song title - ID3v3 and ID3v4
-	for(u32 x = 0; x < (file_size - 4); x++)
+	//Check for ID3v1 or ID3v2
+	bool is_id3v1 = false;
+	u32 tag_v1_pos = file_size - 128;
+
+	if((file_size >= 128) && (mp3_data[tag_v1_pos] == 0x54) && (mp3_data[tag_v1_pos + 1] == 0x41) && (mp3_data[tag_v1_pos + 2] == 0x47))
 	{
-		if((mp3_data[x] == 0x54) && (mp3_data[x + 1] == 0x49) && (mp3_data[x + 2] == 0x54) && (mp3_data[x + 3] == 0x32))
+		is_id3v1 = true;
+	}
+
+	if(is_id3v1)
+	{
+		//Grab song title - ID3v1
+		//Grab artist - ID3v1
+	}
+
+	else
+	{
+		//Grab song title - ID3v2
+		for(u32 x = 0; x < (file_size - 4); x++)
 		{
-			x += 4;
-
-			if((x + 4) < file_size)
+			if((mp3_data[x] == 0x54) && (mp3_data[x + 1] == 0x49) && (mp3_data[x + 2] == 0x54) && (mp3_data[x + 3] == 0x32))
 			{
-				u32 title_len = (mp3_data[x] << 24) | (mp3_data[x + 1] << 16) | (mp3_data[x + 2] << 8) | mp3_data[x + 3];
-				x += 7;
+				x += 4;
 
-				if((x + title_len) < file_size)
+				if((x + 4) < file_size)
 				{
-					for(u32 y = 1; y < title_len; y++, x++)
-					{
-						if(mp3_data[x] > 0x1F) { title += mp3_data[x]; }
-					}
+					u32 title_len = (mp3_data[x] << 24) | (mp3_data[x + 1] << 16) | (mp3_data[x + 2] << 8) | mp3_data[x + 3];
+					x += 7;
 
-					break;
+					if((x + title_len) < file_size)
+					{
+						for(u32 y = 1; y < title_len; y++, x++)
+						{
+							if(mp3_data[x] > 0x1F) { title += mp3_data[x]; }
+						}
+
+						break;
+					}
 				}
 			}
 		}
-	}
 
-	//Grab artist - ID3v3 and ID3v4
-	for(u32 x = 0; x < (file_size - 4); x++)
-	{
-		if((mp3_data[x] == 0x54) && (mp3_data[x + 1] == 0x50) && (mp3_data[x + 2] == 0x45) && (mp3_data[x + 3] == 0x31))
+		//Grab artist - ID3v2
+		for(u32 x = 0; x < (file_size - 4); x++)
 		{
-			x += 4;
-
-			if((x + 4) < file_size)
+			if((mp3_data[x] == 0x54) && (mp3_data[x + 1] == 0x50) && (mp3_data[x + 2] == 0x45) && (mp3_data[x + 3] == 0x31))
 			{
-				u32 artist_len = (mp3_data[x] << 24) | (mp3_data[x + 1] << 16) | (mp3_data[x + 2] << 8) | mp3_data[x + 3];
-				x += 7;
+				x += 4;
 
-				if((x + artist_len) < file_size)
+				if((x + 4) < file_size)
 				{
-					for(u32 y = 1; y < artist_len; y++, x++)
-					{
-						if(mp3_data[x] > 0x1F) { artist += mp3_data[x]; }
-					}
+					u32 artist_len = (mp3_data[x] << 24) | (mp3_data[x + 1] << 16) | (mp3_data[x + 2] << 8) | mp3_data[x + 3];
+					x += 7;
 
-					break;
+					if((x + artist_len) < file_size)
+					{
+						for(u32 y = 1; y < artist_len; y++, x++)
+						{
+							if(mp3_data[x] > 0x1F) { artist += mp3_data[x]; }
+						}
+
+						break;
+					}
 				}
 			}
 		}
