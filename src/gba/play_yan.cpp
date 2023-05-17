@@ -1175,6 +1175,17 @@ void AGB_MMU::play_yan_get_id3_data(std::string filename)
 		//Grab artist - ID3v1
 		for(u32 x = 0; x < 30; x++) { title += mp3_data[tag_v1_pos++]; }
 		for(u32 x = 0; x < 30; x++) { artist += mp3_data[tag_v1_pos++]; }
+
+		//Prune extra spaces or null characters from ID3v1 song and artist fields
+		for(u32 x = 29; x > 0; x--)
+		{
+			if((title[x] != 0x00) && (title[x] != 0x20)) { title = title.substr(0, (x + 1)); break; }
+		}
+
+		for(u32 x = 29; x > 0; x--)
+		{
+			if((artist[x] != 0x00) && (artist[x] != 0x20)) { artist = artist.substr(0, (x + 1)); break; }
+		}
 	}
 
 	else
