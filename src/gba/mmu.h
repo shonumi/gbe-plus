@@ -228,6 +228,7 @@ class AGB_MMU
 		bool start_irqs;
 		bool is_video_playing;
 		bool is_music_playing;
+		bool pause_media;
 
 		u32* irq_data_ptr;
 		u32 irq_len;

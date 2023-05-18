@@ -47,6 +47,7 @@ void AGB_MMU::play_yan_reset()
 
 	play_yan.is_video_playing = false;
 	play_yan.is_music_playing = false;
+	play_yan.pause_media = false;
 
 	for(u32 x = 0; x < 12; x++) { play_yan.cnt_data[x] = 0; }
 	play_yan.cmd = 0;
@@ -743,6 +744,18 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.is_music_playing = false;
 	}
 
+	//Pause Media Playback
+	else if(play_yan.cmd == 0x902)
+	{
+		play_yan.pause_media = true;
+	}
+
+	//Resume Media Playback
+	else if(play_yan.cmd == 0x904)
+	{
+		play_yan.pause_media = false;
+	}
+
 	//Trigger Game Pak IRQ for cartridge status
 	else if(play_yan.cmd == 0x8000)
 	{
@@ -880,24 +893,28 @@ void AGB_MMU::process_play_yan_irq()
 			play_yan.irq_data_ptr = play_yan.music_play_data[0];
 			play_yan.irq_count = 2;
 			play_yan.irq_len = 3;
-			play_yan.irq_repeat--;
 
-			//Update trackbar
-			play_yan.music_play_data[2][5] += play_yan.tracker_update_size;
-
-			//Update music progress via IRQ data
-			play_yan.music_play_data[2][6]++;
-
-			if(play_yan.music_play_data[2][6] > play_yan.music_length)
+			if(!play_yan.pause_media)
 			{
-				play_yan.op_state = 1;
-				play_yan.irq_delay = 1;
-				play_yan.delay_reload = 1;
-				play_yan.irq_data_ptr = play_yan.music_stop_data[0];
-				play_yan.irq_count = 0;
-				play_yan.irq_len = 2;
-				play_yan.irq_repeat = 0;
-				play_yan.is_music_playing = false;
+				play_yan.irq_repeat--;
+
+				//Update trackbar
+				play_yan.music_play_data[2][5] += play_yan.tracker_update_size;
+
+				//Update music progress via IRQ data
+				play_yan.music_play_data[2][6]++;
+
+				if(play_yan.music_play_data[2][6] > play_yan.music_length)
+				{
+					play_yan.op_state = 1;
+					play_yan.irq_delay = 1;
+					play_yan.delay_reload = 1;
+					play_yan.irq_data_ptr = play_yan.music_stop_data[0];
+					play_yan.irq_count = 0;
+					play_yan.irq_len = 2;
+					play_yan.irq_repeat = 0;
+					play_yan.is_music_playing = false;
+				}
 			}
 		}
 
@@ -910,34 +927,38 @@ void AGB_MMU::process_play_yan_irq()
 			play_yan.irq_data_ptr = play_yan.video_play_data[0];
 			play_yan.irq_count = 1;
 			play_yan.irq_len = 2;
-			play_yan.irq_repeat--;
 
-			//Update video progress via IRQ data
-			play_yan.video_progress += 0x20;
-			play_yan.video_play_data[1][6] = play_yan.video_progress;
-
-			//Update video frame counter and grab new video frame if necessary
-			play_yan.video_frame_count += 1.0;
-
-			if(play_yan.video_frame_count >= play_yan.video_current_fps)
+			if(!play_yan.pause_media)
 			{
-				play_yan.video_frame_count -= play_yan.video_current_fps;
-				//TODO - Grab new frame data
-			}
+				play_yan.irq_repeat--;
 
-			//Stop video when length is complete
-			if(play_yan.video_progress >= play_yan.video_length)
-			{
-				play_yan.op_state = 1;
-				play_yan.irq_delay = 1;
-				play_yan.delay_reload = 10;
-				play_yan.irq_data_ptr = play_yan.video_stop_data[0];
-				play_yan.irq_len = 2;
-				play_yan.irq_repeat = 0;
-				play_yan.irq_count = 0;
-				play_yan.video_data_addr = 0;
-				play_yan.video_progress = 0;
-				play_yan.is_video_playing = false;
+				//Update video progress via IRQ data
+				play_yan.video_progress += 0x20;
+				play_yan.video_play_data[1][6] = play_yan.video_progress;
+
+				//Update video frame counter and grab new video frame if necessary
+				play_yan.video_frame_count += 1.0;
+
+				if(play_yan.video_frame_count >= play_yan.video_current_fps)
+				{
+					play_yan.video_frame_count -= play_yan.video_current_fps;
+					//TODO - Grab new frame data
+				}
+
+				//Stop video when length is complete
+				if(play_yan.video_progress >= play_yan.video_length)
+				{
+					play_yan.op_state = 1;
+					play_yan.irq_delay = 1;
+					play_yan.delay_reload = 10;
+					play_yan.irq_data_ptr = play_yan.video_stop_data[0];
+					play_yan.irq_len = 2;
+					play_yan.irq_repeat = 0;
+					play_yan.irq_count = 0;
+					play_yan.video_data_addr = 0;
+					play_yan.video_progress = 0;
+					play_yan.is_video_playing = false;
+				}
 			}
 		}
 
