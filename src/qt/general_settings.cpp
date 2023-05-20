@@ -16,7 +16,6 @@
 #include "qt_common.h"
 
 #include "common/config.h"
-#include "common/cgfx_common.h"
 #include "common/util.h"
 
 /****** General settings constructor ******/
@@ -300,28 +299,6 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	screen_scale_layout->addWidget(screen_scale);
 	screen_scale_set->setLayout(screen_scale_layout);
 
-	//Display settings - CGFX scale
-	QWidget* cgfx_scale_set = new QWidget(display);
-	QLabel* cgfx_scale_label = new QLabel("Custom Graphics (CGFX) Scale : ");
-	cgfx_scale = new QComboBox(cgfx_scale_set);
-	cgfx_scale->setToolTip("Scaling factor for all custom graphics.\nOnly applies when CGFX are loaded.");
-	cgfx_scale->addItem("1x");
-	cgfx_scale->addItem("2x");
-	cgfx_scale->addItem("3x");
-	cgfx_scale->addItem("4x");
-	cgfx_scale->addItem("5x");
-	cgfx_scale->addItem("6x");
-	cgfx_scale->addItem("7x");
-	cgfx_scale->addItem("8x");
-	cgfx_scale->addItem("9x");
-	cgfx_scale->addItem("10x");
-
-	QHBoxLayout* cgfx_scale_layout = new QHBoxLayout;
-	cgfx_scale_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-	cgfx_scale_layout->addWidget(cgfx_scale_label);
-	cgfx_scale_layout->addWidget(cgfx_scale);
-	cgfx_scale_set->setLayout(cgfx_scale_layout);
-
 	//Display settings - DMG on GBC palette
 	QWidget* dmg_gbc_pal_set = new QWidget(display);
 	QLabel* dmg_gbc_pal_label = new QLabel("DMG Color Palette : ");
@@ -406,18 +383,6 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	ogl_layout->addWidget(ogl_label);
 	ogl_set->setLayout(ogl_layout);
 
-	//Display settings - Use CGFX
-	QWidget* load_cgfx_set = new QWidget(display);
-	QLabel* load_cgfx_label = new QLabel("Load Custom Graphics (CGFX)");
-	load_cgfx = new QCheckBox(load_cgfx_set);
-	load_cgfx->setToolTip("Enables custom graphics and loads them when booting a game");
-
-	QHBoxLayout* load_cgfx_layout = new QHBoxLayout;
-	load_cgfx_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-	load_cgfx_layout->addWidget(load_cgfx);
-	load_cgfx_layout->addWidget(load_cgfx_label);
-	load_cgfx_set->setLayout(load_cgfx_layout);
-
 	//Display settings - Aspect Ratio
 	QWidget* aspect_set = new QWidget(display);
 	QLabel* aspect_label = new QLabel("Maintain Aspect Ratio");
@@ -445,12 +410,10 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	QVBoxLayout* disp_layout = new QVBoxLayout;
 	disp_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	disp_layout->addWidget(screen_scale_set);
-	disp_layout->addWidget(cgfx_scale_set);
 	disp_layout->addWidget(dmg_gbc_pal_set);
 	disp_layout->addWidget(ogl_frag_shader_set);
 	disp_layout->addWidget(ogl_vert_shader_set);
 	disp_layout->addWidget(ogl_set);
-	disp_layout->addWidget(load_cgfx_set);
 	disp_layout->addWidget(aspect_set);
 	disp_layout->addWidget(osd_set);
 	display->setLayout(disp_layout);
@@ -1391,47 +1354,6 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	nds_firmware_layout->addWidget(nds_firmware_button);
 	nds_firmware_set->setLayout(nds_firmware_layout);
 
-	//Path settings - CGFX Manifest
-	QWidget* manifest_set = new QWidget(paths);
-	manifest_label = new QLabel("CGFX Manifest :  ");
-	QPushButton* manifest_button = new QPushButton("Browse");
-	manifest = new QLineEdit(paths);
-
-	QHBoxLayout* manifest_layout = new QHBoxLayout;
-	manifest_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-	manifest_layout->addWidget(manifest_label);
-	manifest_layout->addWidget(manifest);
-	manifest_layout->addWidget(manifest_button);
-	manifest_set->setLayout(manifest_layout);
-
-	//Path settings - CGFX BG Tile Dump Folder
-	QWidget* dump_bg_set = new QWidget(paths);
-	dump_bg_label = new QLabel("BG Dump :  ");
-	QPushButton* dump_bg_button = new QPushButton("Browse");
-	dump_bg = new QLineEdit(paths);
-
-	QHBoxLayout* dump_bg_layout = new QHBoxLayout;
-	dump_bg_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-	dump_bg_layout->addWidget(dump_bg_label);
-	dump_bg_layout->addWidget(dump_bg);
-	dump_bg_layout->addWidget(dump_bg_button);
-	dump_bg_set->setLayout(dump_bg_layout);
-	dump_bg_label->resize(50, dump_bg_label->height());
-
-	//Path settings - CGFX OBJ Tile Dump Folder
-	QWidget* dump_obj_set = new QWidget(paths);
-	dump_obj_label = new QLabel("OBJ Dump :  ");
-	QPushButton* dump_obj_button = new QPushButton("Browse");
-	dump_obj = new QLineEdit(paths);
-
-	QHBoxLayout* dump_obj_layout = new QHBoxLayout;
-	dump_obj_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-	dump_obj_layout->addWidget(dump_obj_label);
-	dump_obj_layout->addWidget(dump_obj);
-	dump_obj_layout->addWidget(dump_obj_button);
-	dump_obj_set->setLayout(dump_obj_layout);
-	dump_obj_label->resize(50, dump_obj_label->height());
-
 	//Path settings - Screenshot
 	QWidget* screenshot_set = new QWidget(paths);
 	screenshot_label = new QLabel("Screenshots :  ");
@@ -1477,9 +1399,6 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	paths_layout->addWidget(gbc_bios_set);
 	paths_layout->addWidget(gba_bios_set);
 	paths_layout->addWidget(nds_firmware_set);
-	paths_layout->addWidget(manifest_set);
-	paths_layout->addWidget(dump_bg_set);
-	paths_layout->addWidget(dump_obj_set);
 	paths_layout->addWidget(screenshot_set);
 	paths_layout->addWidget(game_saves_set);
 	paths_layout->addWidget(cheats_path_set);
@@ -1516,7 +1435,6 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(dmg_gbc_pal, SIGNAL(currentIndexChanged(int)), this, SLOT(dmg_gbc_pal_change()));
 	connect(ogl_frag_shader, SIGNAL(currentIndexChanged(int)), this, SLOT(ogl_frag_change()));
 	connect(ogl_vert_shader, SIGNAL(currentIndexChanged(int)), this, SLOT(ogl_vert_change()));
-	connect(load_cgfx, SIGNAL(stateChanged(int)), this, SLOT(set_cgfx()));
 	connect(volume, SIGNAL(valueChanged(int)), this, SLOT(volume_change()));
 	connect(freq, SIGNAL(currentIndexChanged(int)), this, SLOT(sample_rate_change()));
 	connect(sound_samples, SIGNAL(valueChanged(int)), this, SLOT(sample_size_change()));
@@ -1551,9 +1469,6 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(gbc_bios_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
 	connect(gba_bios_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
 	connect(nds_firmware_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
-	connect(manifest_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
-	connect(dump_bg_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
-	connect(dump_obj_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
 	connect(screenshot_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
 	connect(game_saves_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
 	connect(cheats_path_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
@@ -1563,13 +1478,10 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	paths_mapper->setMapping(gbc_bios_button, 1);
 	paths_mapper->setMapping(gba_bios_button, 2);
 	paths_mapper->setMapping(nds_firmware_button, 3);
-	paths_mapper->setMapping(manifest_button, 4);
-	paths_mapper->setMapping(screenshot_button, 5);
-	paths_mapper->setMapping(dump_bg_button, 6);
-	paths_mapper->setMapping(dump_obj_button, 7);
-	paths_mapper->setMapping(game_saves_button, 8);
-	paths_mapper->setMapping(cheats_path_button, 9);
-	paths_mapper->setMapping(vc_path_button, 10);
+	paths_mapper->setMapping(screenshot_button, 4);
+	paths_mapper->setMapping(game_saves_button, 5);
+	paths_mapper->setMapping(cheats_path_button, 6);
+	paths_mapper->setMapping(vc_path_button, 7);
 	connect(paths_mapper, SIGNAL(mapped(int)), this, SLOT(set_paths(int)));
 
 	QSignalMapper* button_config = new QSignalMapper(this);
@@ -1909,9 +1821,6 @@ void gen_settings::set_ini_options()
 	//Screen scale options
 	screen_scale->setCurrentIndex(config::scaling_factor - 1);
 
-	//CGFX scale options
-	cgfx_scale->setCurrentIndex(cgfx::scaling_factor - 1);
-
 	//DMG-on-GBC palette options
 	dmg_gbc_pal->setCurrentIndex(config::dmg_gbc_pal);
 
@@ -1952,19 +1861,6 @@ void gen_settings::set_ini_options()
 		ogl->setChecked(false);
 		ogl_frag_shader->setEnabled(false);
 		ogl_vert_shader->setEnabled(false);
-	}
-
-	//CGFX option
-	if(cgfx::load_cgfx)
-	{
-		load_cgfx->setChecked(true);
-		cgfx_scale->setEnabled(true);
-	}
-
-	else
-	{
-		load_cgfx->setChecked(false);
-		cgfx_scale->setEnabled(false);
 	}
 
 	//Maintain aspect ratio option
@@ -2058,18 +1954,15 @@ void gen_settings::set_ini_options()
 	input_swap_screen->setText(QString::number(config::hotkey_swap_screen));
 	input_shift_screen->setText(QString::number(config::hotkey_shift_screen));
 
-	//BIOS, Boot ROM and Manifest paths
+	//BIOS, Boot ROM, misc paths
 	QString path_1(QString::fromStdString(config::dmg_bios_path));
 	QString path_2(QString::fromStdString(config::gbc_bios_path));
 	QString path_3(QString::fromStdString(config::agb_bios_path));
 	QString path_4(QString::fromStdString(config::nds_firmware_path));
-	QString path_5(QString::fromStdString(cgfx::manifest_file));
-	QString path_6(QString::fromStdString(config::ss_path));
-	QString path_7(QString::fromStdString(cgfx::dump_bg_path));
-	QString path_8(QString::fromStdString(cgfx::dump_obj_path));
-	QString path_9(QString::fromStdString(config::save_path));
-	QString path_10(QString::fromStdString(config::cheats_path));
-	QString path_11(QString::fromStdString(config::vc_file));
+	QString path_5(QString::fromStdString(config::ss_path));
+	QString path_6(QString::fromStdString(config::save_path));
+	QString path_7(QString::fromStdString(config::cheats_path));
+	QString path_8(QString::fromStdString(config::vc_file));
 
 	//Rumble
 	if(config::use_haptics) { rumble_on->setChecked(true); }
@@ -2147,13 +2040,10 @@ void gen_settings::set_ini_options()
 	gbc_bios->setText(path_2);
 	gba_bios->setText(path_3);
 	nds_firmware->setText(path_4);
-	manifest->setText(path_5);
-	screenshot->setText(path_6);
-	dump_bg->setText(path_7);
-	dump_obj->setText(path_8);
-	game_saves->setText(path_9);
-	cheats_path->setText(path_10);
-	vc_path->setText(path_11);
+	screenshot->setText(path_5);
+	game_saves->setText(path_6);
+	cheats_path->setText(path_7);
+	vc_path->setText(path_8);
 }
 
 /****** Toggles whether to use the Boot ROM or BIOS ******/
@@ -2386,59 +2276,6 @@ void gen_settings::ogl_vert_change()
 	}
 }
 
-/****** Toggles activation of custom graphics ******/
-void gen_settings::set_cgfx()
-{
-	if(load_cgfx->isChecked())
-	{
-		//Test that the manifest file exists before enabling anything
-		QFile test_file(QString::fromStdString(cgfx::manifest_file));
-
-		//Display warning if the file is not there
-		if(!test_file.exists())
-		{
-			load_cgfx->setChecked(false);
-			load_cgfx->setCheckState(Qt::Unchecked);
-
-			std::string mesg_text = "The manifest file: '" + cgfx::manifest_file + "' could not be loaded. Check paths and file permissions. CGFX will not load without a manifest file!"; 
-			warning_box->setText(QString::fromStdString(mesg_text));
-			warning_box->show();
-			return;
-		}
-		
-		cgfx::load_cgfx = true;
-		cgfx_scale->setEnabled(true);
-	}
-
-	else
-	{
-		cgfx::load_cgfx = false;
-		cgfx_scale->setEnabled(false);
-	}
-
-	//Instruct core to invalidate any CGFX when turning option on or off during gameplay
-	if(main_menu::gbe_plus != NULL)
-	{
-		//Prevent SGB core from CGFX actions while running
-		if(is_sgb_core)
-		{
-			load_cgfx->setChecked(false);
-			load_cgfx->setCheckState(Qt::Unchecked);
-			cgfx::load_cgfx = false;
-			cgfx_scale->setEnabled(false);
-		}
-
-		switch(config::gb_type)
-		{
-			case 0:
-			case 1:
-			case 2:	
-				main_menu::gbe_plus->get_core_data(2);
-				break;
-		}
-	}
-}
-
 /****** Dynamically changes the core's volume ******/
 void gen_settings::volume_change() 
 {
@@ -2538,17 +2375,17 @@ void gen_settings::set_paths(int index)
 {
 	QString path;
 
-	//Open file browser for Boot ROMs, BIOS, Firmware, cheats, and manifests
-	if((index < 5) || (index >= 9))
+	//Open file browser for Boot ROMs, BIOS, Firmware, cheats,
+	if((index < 4) || (index >= 6))
 	{
 		path = QFileDialog::getOpenFileName(this, tr("Open"), "", tr("All files (*)"));
 		if(path.isNull()) { return; }
 	}
 
-	//Open folder browser for screenshots, CGFX dumps, game saves
+	//Open folder browser for screenshots, game saves
 	else
 	{
-		//Open the data folder for CGFX dumps
+		//Open the data folder
 		//On Linux or Unix, this is supposed to be a hidden folder, so we need a custom dialog
 		//This uses relative paths, but for game saves we need full path, so ignore if index is 8
 		if((index >= 6) && (index != 8))
@@ -2598,31 +2435,16 @@ void gen_settings::set_paths(int index)
 			break;
 
 		case 4:
-			cgfx::manifest_file = path.toStdString();
-			manifest->setText(path);
-			break;
-
-		case 5:
 			config::ss_path = path.toStdString();
 			screenshot->setText(path);
 			break;
 
-		case 6:
-			cgfx::dump_bg_path = path.toStdString();
-			dump_bg->setText(path);
-			break;
-
-		case 7:
-			cgfx::dump_obj_path = path.toStdString();
-			dump_obj->setText(path);
-			break;
-
-		case 8:
+		case 5:
 			config::save_path = path.toStdString();
 			game_saves->setText(path);
 			break;
 
-		case 9:
+		case 6:
 			config::cheats_path = path.toStdString();
 			cheats_path->setText(path);
 
@@ -2632,7 +2454,7 @@ void gen_settings::set_paths(int index)
 
 			break;
 
-		case 10:
+		case 7:
 			config::vc_file = path.toStdString();
 			vc_path->setText(path);
 			break;
@@ -3441,9 +3263,6 @@ void gen_settings::paintEvent(QPaintEvent* event)
 	gbc_bios_label->setMinimumWidth(dmg_bios_label->width());
 	gba_bios_label->setMinimumWidth(dmg_bios_label->width());
 	nds_firmware_label->setMinimumWidth(dmg_bios_label->width());
-	manifest_label->setMinimumWidth(dmg_bios_label->width());
-	dump_bg_label->setMinimumWidth(dmg_bios_label->width());
-	dump_obj_label->setMinimumWidth(dmg_bios_label->width());
 	screenshot_label->setMinimumWidth(dmg_bios_label->width());
 	game_saves_label->setMinimumWidth(dmg_bios_label->width());
 	cheats_path_label->setMinimumWidth(dmg_bios_label->width());

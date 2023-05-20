@@ -20,6 +20,8 @@
 #include <QtGui>
 #endif
 
+#include "common/common.h"
+
 class dmg_debug : public QDialog
 {
 	Q_OBJECT

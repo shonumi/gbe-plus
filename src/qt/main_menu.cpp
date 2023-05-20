@@ -14,7 +14,6 @@
 #include "render.h"
 
 #include "common/config.h"
-#include "common/cgfx_common.h"
 #include "common/util.h"
 
 /****** Main menu constructor ******/
@@ -45,7 +44,6 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	QAction* netplay = new QAction("Netplay", this);
 	QAction* paths = new QAction("Paths", this);
 
-	QAction* custom_gfx = new QAction("Custom Graphics...", this);
 	QAction* debugging = new QAction("Debugger", this);
 
 	QAction* about = new QAction("About", this);
@@ -67,10 +65,8 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	pause->setObjectName("pause_action");
 	fullscreen->setCheckable(true);
 	fullscreen->setObjectName("fullscreen_action");
-	custom_gfx->setObjectName("custom_gfx_action");
 	debugging->setObjectName("debugging_action");
 
-	custom_gfx->setEnabled(false);
 	debugging->setEnabled(false);
 
 	menu_bar = new QMenuBar(this);
@@ -128,7 +124,6 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	QMenu* advanced;
 
 	advanced = new QMenu(tr("Advanced"), this);
-	advanced->addAction(custom_gfx);
 	advanced->addAction(debugging);
 	menu_bar->addMenu(advanced);
 
@@ -161,7 +156,6 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	connect(controls, SIGNAL(triggered()), this, SLOT(show_control_settings()));
 	connect(netplay, SIGNAL(triggered()), this, SLOT(show_netplay_settings()));
 	connect(paths, SIGNAL(triggered()), this, SLOT(show_paths_settings()));
-	connect(custom_gfx, SIGNAL(triggered()), this, SLOT(show_cgfx()));
 	connect(debugging, SIGNAL(triggered()), this, SLOT(show_debugger()));
 	connect(about, SIGNAL(triggered()), this, SLOT(show_about()));
 
@@ -280,11 +274,6 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	//Set up settings dialog
 	settings = new gen_settings();
 	settings->set_ini_options();
-
-	//Set up custom graphics dialog
-	cgfx = new gbe_cgfx();
-	cgfx->hide();
-	cgfx->advanced->setChecked(true);
 
 	//Set up DMG-GBC debugger
 	main_menu::dmg_debugger = new dmg_debug();
@@ -636,10 +625,7 @@ void main_menu::quit()
 	config::dmg_bios_path = settings->dmg_bios->text().toStdString();
 	config::gbc_bios_path = settings->gbc_bios->text().toStdString();
 	config::agb_bios_path = settings->gba_bios->text().toStdString();
-	cgfx::manifest_file = settings->manifest->text().toStdString();
 	config::ss_path = settings->screenshot->text().toStdString();
-	cgfx::dump_bg_path = settings->dump_bg->text().toStdString();
-	cgfx::dump_obj_path = settings->dump_obj->text().toStdString();
 	config::save_path = settings->game_saves->text().toStdString();
 	config::cheats_path = settings->cheats_path->text().toStdString();
 
@@ -862,10 +848,6 @@ void main_menu::boot_game()
 		if(config::cart_type == AGB_AM3) { config::gb_type = 3; }
 	}
 
-	//Determine CGFX scaling factor
-	cgfx::scaling_factor = (settings->cgfx_scale->currentIndex() + 1);
-	if(!cgfx::load_cgfx) { cgfx::scaling_factor = 1; }
-
 	//Start the appropiate system core - DMG, GBC, GBA, NDS, or MIN
 	if(config::gb_type == 3) 
 	{
@@ -879,9 +861,6 @@ void main_menu::boot_game()
 		//Resize drawing screens
 		if(config::use_opengl) { hw_screen->resize((base_width * config::scaling_factor), (base_height * config::scaling_factor)); }
 		else { sw_screen->resize((base_width * config::scaling_factor), (base_height * config::scaling_factor)); }
-
-		//Disable CGFX menu
-		findChild<QAction*>("custom_gfx_action")->setEnabled(false);
 
 		//Disable debugging menu
 		findChild<QAction*>("debugging_action")->setEnabled(false);
@@ -900,9 +879,6 @@ void main_menu::boot_game()
 		if(config::use_opengl) { hw_screen->resize((base_width * config::scaling_factor), (base_height * config::scaling_factor)); }
 		else { sw_screen->resize((base_width * config::scaling_factor), (base_height * config::scaling_factor)); }
 
-		//Disable CGFX menu
-		findChild<QAction*>("custom_gfx_action")->setEnabled(false);
-
 		//Disable debugging menu
 		findChild<QAction*>("debugging_action")->setEnabled(false);
 	}
@@ -920,9 +896,6 @@ void main_menu::boot_game()
 		if(config::use_opengl) { hw_screen->resize((base_width * config::scaling_factor), (base_height * config::scaling_factor)); }
 		else { sw_screen->resize((base_width * config::scaling_factor), (base_height * config::scaling_factor)); }
 
-		//Disable CGFX menu
-		findChild<QAction*>("custom_gfx_action")->setEnabled(false);
-
 		//Disable debugging menu
 		findChild<QAction*>("debugging_action")->setEnabled(false);
 	}
@@ -934,17 +907,14 @@ void main_menu::boot_game()
 			base_width = 160;
 			base_height = 144;
 
-			//Disable CGFX
-			settings->load_cgfx->setChecked(false);
-
 			main_menu::gbe_plus = new SGB_core();
 			is_sgb_core = true;
 		}
 
 		else
 		{
-			base_width = (160 * cgfx::scaling_factor);
-			base_height = (144 * cgfx::scaling_factor);
+			base_width = 160;
+			base_height = 144;
 
 			main_menu::gbe_plus = new DMG_core();
 			is_sgb_core = false;
@@ -958,9 +928,6 @@ void main_menu::boot_game()
 
 		if(qt_gui::screen != NULL) { delete qt_gui::screen; }
 		qt_gui::screen = new QImage(base_width, base_height, QImage::Format_ARGB32);
-
-		//Enable CGFX menu
-		findChild<QAction*>("custom_gfx_action")->setEnabled(true);
 
 		//Enable debugging menu
 		findChild<QAction*>("debugging_action")->setEnabled(true);
@@ -1078,10 +1045,7 @@ void main_menu::closeEvent(QCloseEvent* event)
 	config::dmg_bios_path = settings->dmg_bios->text().toStdString();
 	config::gbc_bios_path = settings->gbc_bios->text().toStdString();
 	config::agb_bios_path = settings->gba_bios->text().toStdString();
-	cgfx::manifest_file = settings->manifest->text().toStdString();
 	config::ss_path = settings->screenshot->text().toStdString();
-	cgfx::dump_bg_path = settings->dump_bg->text().toStdString();
-	cgfx::dump_obj_path = settings->dump_obj->text().toStdString();
 	config::save_path = settings->game_saves->text().toStdString();
 	config::cheats_path = settings->cheats_path->text().toStdString();
 
@@ -1395,8 +1359,6 @@ void main_menu::pause()
 		//Unpause
 		if(config::pause_emu) 
 		{
-			if(cgfx->pause) { return; }
-
 			config::pause_emu = false; 
 		}
 
@@ -1424,10 +1386,7 @@ void main_menu::pause_emu()
 
 	if(dmg_debugger->pause) { return; }
 
-	//If CGFX is open, continue pause
-	if(cgfx->pause) { pause(); }
-
-	//Continue pause if GUI option is still selected - Check this when closing CGFX or debugger
+	//Continue pause if GUI option is still selected - Check this when closing debugger
 	if(findChild<QAction*>("pause_action")->isChecked()) { pause(); }
 }
 
@@ -1619,81 +1578,6 @@ void main_menu::show_paths_settings()
 	settings->show();
 	settings->tabs->setCurrentIndex(5);
 	settings->controls_combo->setVisible(false);
-}
-
-/****** Shows the Custom Graphics dialog ******/
-void main_menu::show_cgfx() 
-{
-	//Draw GBA layers
-	if(config::gb_type == 3)
-	{
-		//Do nothing for now
-		return;
-	}
-
-	//Do nothing for SGB for now
-	else if(is_sgb_core) { return; }
-
-	findChild<QAction*>("pause_action")->setEnabled(false);
-
-	//Wait until LY equals the selected line to stop on, or LCD is turned off
-	bool spin_emu = (main_menu::gbe_plus == NULL) ? false : true;
-	u8 target_ly = 0;
-	u8 on_status = 0;
-
-	while(spin_emu)
-	{
-		on_status = main_menu::gbe_plus->ex_read_u8(REG_LCDC);
-		target_ly = main_menu::gbe_plus->ex_read_u8(REG_LY);
-
-		if((on_status & 0x80) == 0) { spin_emu = false; }
-		else if(target_ly == cgfx->render_stop_line->value()) { spin_emu = false; }
-		else { main_menu::gbe_plus->step(); }
-	}
-
-	//Draw DMG layers
-	if(config::gb_type < 2)
-	{
-		switch(cgfx->layer_select->currentIndex())
-		{
-			case 0: cgfx->draw_gb_layer(0); break;
-			case 1: cgfx->draw_gb_layer(1); break;
-			case 2: cgfx->draw_gb_layer(2); break;
-		}
-	}
-
-	//Draw GBC layers
-	else
-	{
-		switch(cgfx->layer_select->currentIndex())
-		{
-			case 0: cgfx->draw_gb_layer(3); break;
-			case 1: cgfx->draw_gb_layer(4); break;
-			case 2: cgfx->draw_gb_layer(5); break;
-		}
-	}
-
-	//Setup OBJ meta tile tab
-	if(main_menu::gbe_plus != NULL)
-	{
-		//Setup 8x8 or 8x16 mode
-		u8 obj_height = (main_menu::gbe_plus->ex_read_u8(REG_LCDC) & 0x04) ? 16 : 8;
-
-		if(obj_height == 16) { cgfx->obj_meta_height->setSingleStep(2); }
-		else { cgfx->obj_meta_height->setSingleStep(1); }
-
-		//Also update OBJ meta tile resource
-		int obj_index = cgfx->obj_meta_index->value();
-		QImage selected_img = (obj_height == 16) ? cgfx->grab_obj_data(obj_index).scaled(128, 256) : cgfx->grab_obj_data(obj_index).scaled(256, 256);
-		cgfx->obj_select_img->setPixmap(QPixmap::fromImage(selected_img));
-	}
-
-	cgfx->reset_inputs();
-	cgfx->show();
-	cgfx->parse_manifest_items();
-	cgfx->pause = true;
-	
-	if(!dmg_debugger->pause) { pause(); }
 }
 
 /****** Shows the debugger ******/

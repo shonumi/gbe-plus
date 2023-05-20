@@ -6,7 +6,6 @@ set(SRCS
 	render.cpp
 	general_settings.cpp
 	qt_common.cpp
-	cgfx.cpp
 	debug_dmg.cpp
 	screens.cpp
 	data_dialog.cpp
@@ -29,7 +28,6 @@ set(HEADERS
 	render.h
 	general_settings.h
 	qt_common.h
-	cgfx.h
 	debug_dmg.h
 	screens.h
 	data_dialog.h

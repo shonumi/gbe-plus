@@ -1226,7 +1226,7 @@ void dmg_debug::close_debug()
 {
 	hide();
 
-	if(!qt_gui::draw_surface->cgfx->pause) { qt_gui::draw_surface->findChild<QAction*>("pause_action")->setEnabled(true); }
+	qt_gui::draw_surface->findChild<QAction*>("pause_action")->setEnabled(true);
 
 	if(main_menu::gbe_plus->db_unit.last_command != "c")
 	{
@@ -1606,15 +1606,15 @@ void dmg_debug::refresh()
 	//Update OBJ
 	for(int x = 0; x < 40; x++)
 	{
-		db_obj[x] = qt_gui::draw_surface->cgfx->grab_obj_data(x);
-		db_obj_label[x]->setIcon(QPixmap::fromImage(db_obj[x]));
+		//db_obj[x] = qt_gui::draw_surface->cgfx->grab_obj_data(x);
+		//db_obj_label[x]->setIcon(QPixmap::fromImage(db_obj[x]));
 	}
 
 	//Update BG
 	for(int x = 0; x < 256; x++)
 	{
-		db_bg[x] = qt_gui::draw_surface->cgfx->grab_bg_data(x);
-		db_bg_label[x]->setIcon(QPixmap::fromImage(db_bg[x]));
+		//db_bg[x] = qt_gui::draw_surface->cgfx->grab_bg_data(x);
+		//db_bg_label[x]->setIcon(QPixmap::fromImage(db_bg[x]));
 	}
 }
 
@@ -1793,19 +1793,19 @@ void dmg_debug::show_obj(int obj_id)
 	//Update OBJ size
 	if(temp == 0)
 	{
-		obj_large_preview = qt_gui::draw_surface->cgfx->grab_obj_data(obj_id).scaled(128, 128);
+		//obj_large_preview = qt_gui::draw_surface->cgfx->grab_obj_data(obj_id).scaled(128, 128);
 		obj_text = "Tile Size: 8x8";
 		obj_size->setText(QString::fromStdString(obj_text));
 	}
 
 	else
 	{
-		obj_large_preview = qt_gui::draw_surface->cgfx->grab_obj_data(obj_id).scaled(64, 128);
+		//obj_large_preview = qt_gui::draw_surface->cgfx->grab_obj_data(obj_id).scaled(64, 128);
 		obj_text = "Tile Size: 8x16";
 		obj_size->setText(QString::fromStdString(obj_text));
 	}
 
-	obj_large_label->setPixmap(QPixmap::fromImage(obj_large_preview));
+	//obj_large_label->setPixmap(QPixmap::fromImage(obj_large_preview));
 
 	//Update X/Y coordinate
 	u16 vram_addr = 0xFE00 + (4 * obj_id);
@@ -1870,8 +1870,8 @@ void dmg_debug::show_obj(int obj_id)
 /****** Updates the BG preview ******/
 void dmg_debug::show_bg(int bg_id)
 {
-	bg_large_preview = qt_gui::draw_surface->cgfx->grab_bg_data(bg_id).scaled(128, 128);
-	bg_large_label->setPixmap(QPixmap::fromImage(bg_large_preview));
+	//bg_large_preview = qt_gui::draw_surface->cgfx->grab_bg_data(bg_id).scaled(128, 128);
+	//bg_large_label->setPixmap(QPixmap::fromImage(bg_large_preview));
 }
 
 /****** Automatically refresh display data - Call this publically ******/

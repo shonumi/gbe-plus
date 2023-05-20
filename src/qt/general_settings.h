@@ -68,12 +68,10 @@ class gen_settings : public QDialog
 
 	//Display tab widgets
 	QComboBox* screen_scale;
-	QComboBox* cgfx_scale;
 	QComboBox* dmg_gbc_pal;
 	QComboBox* ogl_frag_shader;
 	QComboBox* ogl_vert_shader;
 	QCheckBox* ogl;
-	QCheckBox* load_cgfx;
 	QCheckBox* aspect_ratio;
 	QCheckBox* osd_enable;
 
@@ -110,9 +108,6 @@ class gen_settings : public QDialog
 	QLineEdit* gbc_bios;
 	QLineEdit* gba_bios;
 	QLineEdit* nds_firmware;
-	QLineEdit* manifest;
-	QLineEdit* dump_bg;
-	QLineEdit* dump_obj;
 	QLineEdit* screenshot;
 	QLineEdit* game_saves;
 	QLineEdit* cheats_path;
@@ -256,7 +251,6 @@ class gen_settings : public QDialog
 	void dmg_gbc_pal_change();
 	void ogl_frag_change();
 	void ogl_vert_change();
-	void set_cgfx();
 	void volume_change();
 	void sample_rate_change();
 	void sample_size_change();

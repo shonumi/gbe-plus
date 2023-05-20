@@ -21,7 +21,6 @@
 #endif
 
 #include "general_settings.h"
-#include "cgfx.h"
 #include "debug_dmg.h"
 #include "screens.h"
 
@@ -41,7 +40,6 @@ class main_menu : public QWidget
 	static core_emu* gbe_plus;
 	static dmg_debug* dmg_debugger;
 
-	gbe_cgfx* cgfx;
 	gen_settings* settings;
 
 	QMenuBar* menu_bar;
@@ -91,7 +89,6 @@ class main_menu : public QWidget
 	void show_control_settings();
 	void show_netplay_settings();
 	void show_paths_settings();
-	void show_cgfx();
 	void show_debugger();
 	void show_about();
 	void load_recent(int file_id);
