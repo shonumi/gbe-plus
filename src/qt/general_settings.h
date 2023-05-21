@@ -116,9 +116,6 @@ class gen_settings : public QDialog
 	QLabel* gbc_bios_label;
 	QLabel* gba_bios_label;
 	QLabel* nds_firmware_label;
-	QLabel* manifest_label;
-	QLabel* dump_bg_label;
-	QLabel* dump_obj_label;
 	QLabel* screenshot_label;
 	QLabel* game_saves_label;
 	QLabel* cheats_path_label;
