@@ -13,7 +13,6 @@
 #include <filesystem>
 
 #include "mmu.h"
-#include "common/cgfx_common.h"
 #include "common/util.h"
 
 /****** MMU Constructor ******/
@@ -1029,7 +1028,6 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	else if(address == REG_BGP)
 	{
 		//Avoid updating DMG BG palette if it's the same value
-		//Some games spam writes to BGP with the same palette, causing a huge load on CGFX
 		if(memory_map[address] == value) { return; }
 
 		memory_map[address] = value;
@@ -1039,17 +1037,6 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		lcd_stat->bgp[1] = (value >> 2) & 0x3;
 		lcd_stat->bgp[2] = (value >> 4) & 0x3;
 		lcd_stat->bgp[3] = (value >> 6) & 0x3;
-
-		//Update CGFX
-		if(cgfx::load_cgfx)
-		{
-			for(int x = 0; x < 384; x++)
-			{
-				cgfx_stat->bg_update_list[x] = true;
-			}
-			
-			cgfx_stat->update_bg = true;
-		}
 	}
 
 	//OBP0
@@ -1431,43 +1418,6 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	}
 
 	else if(address > 0x7FFF) { memory_map[address] = value; }
-
-	//CGFX processing - Check for BG updates
-	if((cgfx::load_cgfx) && (address >= 0x8000) && (address <= 0x9FFF))
-	{
-		//If the last VRAM value is the same, do not update
-		//Some games GBC games will spam VRAM addresses with the same data
-		if(previous_value == value) { return; }
-
-		//DMG BG Tile data update
-		if((config::gb_type == 1) && (address <= 0x97FF))
-		{
-			cgfx_stat->update_bg = true;
-
-			cgfx_stat->bg_update_list[(address & ~0x8000) >> 4] = true;
-		}
-
-		//GBC BG Tile Data update
-		else if((config::gb_type == 2) && (address <= 0x97FF))
-		{
-			cgfx_stat->update_bg = true;
-
-			u8 tile_number = (address - lcd_stat->bg_tile_addr) >> 4;
-				
-			//Convert tile number to signed if necessary
-			if(lcd_stat->bg_tile_addr == 0x8800) { tile_number = lcd_stat->signed_tile_lut[tile_number]; }
-			cgfx_stat->bg_tile_update_list[tile_number] = true;
-		}
-
-		//GBC BG Map Data update
-		else if((config::gb_type == 2) && (address >= 0x9800))
-		{
-			cgfx_stat->update_map = true;
-
-			u16 map_number = address - 0x9800;
-			cgfx_stat->bg_map_update_list[map_number] = true;
-		}
-	}
 }
 
 /****** Write word to memory ******/
@@ -3027,9 +2977,6 @@ bool DMG_MMU::patch_ups(std::string filename)
 
 /****** Points the MMU to an lcd_data structure (FROM THE LCD ITSELF) ******/
 void DMG_MMU::set_lcd_data(dmg_lcd_data* ex_lcd_stat) { lcd_stat = ex_lcd_stat; }
-
-/****** Points the MMU to an cgfx_data structure (FROM THE LCD ITSELF) ******/
-void DMG_MMU::set_cgfx_data(dmg_cgfx_data* ex_cgfx_stat) { cgfx_stat = ex_cgfx_stat; }
 
 /****** Points the MMU to an apu_data structure (FROM THE APU ITSELF) ******/
 void DMG_MMU::set_apu_data(dmg_apu_data* ex_apu_stat) { apu_stat = ex_apu_stat; }

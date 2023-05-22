@@ -17,7 +17,6 @@ set(SRCS
 	mmu.cpp
 	opengl.cpp
 	z80.cpp
-	custom_graphics.cpp
 	sio.cpp
 	infrared.cpp
 	dmg07.cpp
@@ -35,7 +34,6 @@ set(HEADERS
 	lcd_data.h
 	mmu.h
 	z80.h
-	custom_graphics_data.h
 	sio.h
 	sio_data.h
 	)

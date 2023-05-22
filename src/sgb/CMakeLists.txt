@@ -14,7 +14,6 @@ set(SRCS
 	./../dmg/mmu.cpp
 	opengl.cpp
 	z80.cpp
-	./../dmg/custom_graphics.cpp
 	./../dmg/sio.cpp
 	./../dmg/dmg07.cpp
 	./../dmg/gbma.cpp
@@ -31,7 +30,6 @@ set(HEADERS
 	./../dmg/lcd_data.h
 	./../dmg/mmu.h
 	z80.h
-	./../dmg/custom_graphics_data.h
 	./../dmg/sio.h
 	./../dmg/sio_data.h
 	)

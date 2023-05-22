@@ -15,7 +15,6 @@
 #include <sstream>
 
 #include "common/util.h"
-#include "common/cgfx_common.h"
 
 #include "core.h"
 
@@ -28,7 +27,6 @@ DMG_core::DMG_core()
 	//Link LCD and MMU
 	core_cpu.controllers.video.mem = &core_mmu;
 	core_mmu.set_lcd_data(&core_cpu.controllers.video.lcd_stat);
-	core_mmu.set_cgfx_data(&core_cpu.controllers.video.cgfx_stat);
 
 	//Link APU and MMU
 	core_cpu.controllers.audio.mem = &core_mmu;
@@ -177,9 +175,6 @@ void DMG_core::load_state(u8 slot)
 	if(!core_cpu.controllers.video.lcd_read(offset, state_file)) { return; }
 
 	std::cout<<"GBE::Loaded state " << state_file << "\n";
-
-	//Invalidate current CGFX
-	if(cgfx::load_cgfx) { core_cpu.controllers.video.invalidate_cgfx(); }
 
 	//OSD
 	config::osd_message = "LOADED STATE " + util::to_str(slot);
@@ -1210,24 +1205,10 @@ u8 DMG_core::ex_read_u8(u16 address) { return core_mmu.read_u8(address); }
 void DMG_core::ex_write_u8(u16 address, u8 value) { core_mmu.write_u8(address, value); }
 
 /****** Dumps selected OBJ to a file ******/
-void DMG_core::dump_obj(int obj_index)
-{
-	//DMG OBJs
-	if(config::gb_type < 2) { core_cpu.controllers.video.dump_dmg_obj(obj_index); }
-
-	//GBC OBJs
-	else { core_cpu.controllers.video.dump_gbc_obj(obj_index); }
-}
+void DMG_core::dump_obj(int obj_index) { }
 
 /****** Dumps selected BG tile to a file ******/
-void DMG_core::dump_bg(int bg_index)
-{
-	//DMG BG tiles
-	if(config::gb_type < 2) { core_cpu.controllers.video.dump_dmg_bg(bg_index); }
-
-	//GBC BG tiles
-	else { core_cpu.controllers.video.dump_gbc_bg(bg_index); }
-}
+void DMG_core::dump_bg(int bg_index) { }
 
 /****** Grabs the OBJ palette ******/
 u32* DMG_core::get_obj_palette(int pal_index)
@@ -1244,7 +1225,7 @@ u32* DMG_core::get_bg_palette(int pal_index)
 /****** Grabs the hash for a specific tile ******/
 std::string DMG_core::get_hash(u32 addr, u8 gfx_type)
 {
-	return core_cpu.controllers.video.get_hash(addr, gfx_type);
+	return "";
 }
 
 /****** Starts netplay connection ******/
@@ -1336,12 +1317,6 @@ u32 DMG_core::get_core_data(u32 core_index)
 				result = card_result ? 1 : 0;
 			}
 
-			break;
-
-		//Invalidate CGFX
-		case 0x2:
-			core_cpu.controllers.video.invalidate_cgfx();
-			result = 1;
 			break;
 
 		//Grab current scanline pixel
