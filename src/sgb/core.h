@@ -49,13 +49,6 @@ class SGB_core : virtual public core_emu
 		//CPU related functions
 		u32 ex_get_reg(u8 reg_index);
 
-		//CGFX interface
-		void dump_obj(int obj_index);
-		void dump_bg(int bg_index);
-		u32* get_obj_palette(int pal_index);
-		u32* get_bg_palette(int pal_index);
-		std::string get_hash(u32 addr, u8 gfx_type);
-
 		//MMU related functions
 		bool read_file(std::string filename);
 		bool read_bios(std::string filename);

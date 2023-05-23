@@ -1483,6 +1483,7 @@ void dmg_debug::refresh()
 	//GBC Palettes
 	else
 	{
+		/*
 		//BG
 		for(u8 y = 0; y < 8; y++)
 		{
@@ -1514,6 +1515,7 @@ void dmg_debug::refresh()
 				color += 8;
 			}
 		}
+		*/
 	}
 
 	//Memory viewer
