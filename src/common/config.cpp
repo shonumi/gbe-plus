@@ -15,7 +15,6 @@
 #include <cstdlib>
 
 #include "config.h"
-#include "cgfx_common.h"
 #include "util.h"
 
 namespace config
@@ -2434,132 +2433,6 @@ bool parse_ini_file()
 			}
 		}
 
-		//Use CGFX
-		else if(ini_item == "#use_cgfx")
-		{
-			if((x + 1) < size) 
-			{
-				util::from_str(ini_opts[++x], output);
-
-				if(output == 1) { cgfx::load_cgfx = true; }
-				else { cgfx::load_cgfx = false; }
-			}
-
-			else 
-			{ 
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#use_cgfx) \n";
-				return false;
-			}
-		}
-
-		//CGFX manifest path
-		else if(ini_item == "#manifest_path")
-		{
-			if((x + 1) < size) 
-			{
-				ini_item = ini_opts[++x];
-				std::string first_char = "";
-				first_char = ini_item[0];
-				
-				//When left blank, don't parse the next line item
-				if(first_char != "#") { cgfx::manifest_file = ini_item; }
-				else { cgfx::manifest_file = ""; x--;}
- 
-			}
-
-			else { cgfx::manifest_file = ""; }
-		}
-
-		//CGFX BG Tile dump folder
-		else if(ini_item == "#dump_bg_path")
-		{
-			if((x + 1) < size) 
-			{
-				ini_item = ini_opts[++x];
-				std::string first_char = "";
-				first_char = ini_item[0];
-				
-				//When left blank, don't parse the next line item
-				if(first_char != "#") { cgfx::dump_bg_path = ini_item; }
-				else { x--; }
-			}
-		}
-
-		//CGFX OBJ Tile dump folder
-		else if(ini_item == "#dump_obj_path")
-		{
-			if((x + 1) < size) 
-			{
-				ini_item = ini_opts[++x];
-				std::string first_char = "";
-				first_char = ini_item[0];
-				
-				//When left blank, don't parse the next line item
-				if(first_char != "#") { cgfx::dump_obj_path = ini_item; }
-				else { x--; }
-			}
-		}
-
-		//CGFX Scaling factor
-		else if(ini_item == "#cgfx_scaling_factor")
-		{
-			if((x + 1) < size) 
-			{
-				util::from_str(ini_opts[++x], output);
-
-				if((output >= 1) && (output <= 10)) { cgfx::scaling_factor = output; }
-				else { cgfx::scaling_factor = 1; }
-			}
-
-			else 
-			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#cgfx_scaling_factor) \n";
-				return false;
-			}
-		}
-
-		//CGFX Transparency color
-		else if(ini_item == "#cgfx_transparency")
-		{
-			if((x + 1) < size)
-			{
-				ini_item = ini_opts[++x];
-				std::size_t found = ini_item.find("0x");
-				std::string format = ini_item.substr(0, 2);
-
-				//Value must be in hex format with "0x"
-				if(format != "0x")
-				{
-					std::cout<<"GBE::Error - Could not parse gbe.ini (#cgfx_transparency) \n";
-					return false;
-				}
-
-				std::string hex_color = ini_item.substr(found + 2);
-
-				//Value must not be more than 8 characters long for AARRGGBB
-				if(hex_color.size() > 8)
-				{
-					std::cout<<"GBE::Error - Could not parse gbe.ini (#cgfx_transparency) \n";
-					return false;
-				}
-
-				u32 transparency = 0;
-
-				//Parse the string into hex
-				if(!util::from_hex_str(hex_color, transparency))
-				{
-					std::cout<<"GBE::Error - Could not parse gbe.ini (#cgfx_transparency) \n";
-					return false;
-				}
-			}
-
-			else
-			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#cgfx_transparency) \n";
-				return false;
-			}
-		}
-
 		//Use netplay
 		else if(ini_item == "#use_netplay")
 		{
@@ -3558,60 +3431,6 @@ bool save_ini_file()
 			std::string val_5 = util::to_str(config::hotkey_shift_screen);
 
 			output_lines[line_pos] = "[#hotkeys:" + val_1 + ":" + val_2 + ":" + val_3 + ":" + val_4 + ":" + val_5 + "]";
-		}
-
-		//Use CGFX
-		else if(ini_item == "#use_cgfx")
-		{
-			line_pos = output_count[x];
-			std::string val = (cgfx::load_cgfx) ? "1" : "0";
-
-			output_lines[line_pos] = "[#use_cgfx:" + val + "]";
-		}
-
-		//CGFX manifest path
-		else if(ini_item == "#manifest_path")
-		{
-			line_pos = output_count[x];
-			std::string val = (cgfx::manifest_file == "") ? "" : (":'" + cgfx::manifest_file + "'");
-
-			output_lines[line_pos] = "[#manifest_path" + val + "]";
-		}
-
-		//CGFX BG Tile dump folder
-		else if(ini_item == "#dump_bg_path")
-		{
-			line_pos = output_count[x];
-			std::string val = (cgfx::dump_bg_path == "") ? "" : (":'" + cgfx::dump_bg_path + "'");
-
-			output_lines[line_pos] = "[#dump_bg_path" + val + "]";
-		}
-
-		//CGFX OBJ Tile dump folder
-		else if(ini_item == "#dump_obj_path")
-		{
-			line_pos = output_count[x];
-			std::string val = (cgfx::dump_obj_path == "") ? "" : (":'" + cgfx::dump_obj_path + "'");
-
-			output_lines[line_pos] = "[#dump_obj_path" + val + "]";
-		}
-
-		//CGFX Scaling factor
-		else if(ini_item == "#cgfx_scaling_factor")
-		{
-			line_pos = output_count[x];
-			std::string val = util::to_str(cgfx::scaling_factor);
-
-			output_lines[line_pos] = "[#cgfx_scaling_factor:" + val + "]";
-		}
-
-		//CGFX Transparency color
-		else if(ini_item == "#cgfx_transparency")
-		{
-			line_pos = output_count[x];
-			std::string val = util::to_hex_str(cgfx::transparency_color);
-
-			output_lines[line_pos] = "[#cgfx_transparency:" + val + "]";
 		}
 
 		//Use netplay

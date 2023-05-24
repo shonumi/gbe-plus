@@ -12,7 +12,6 @@
 #include <cmath>
 
 #include "lcd.h"
-#include "common/cgfx_common.h"
 #include "common/util.h"
 
 /****** LCD Constructor ******/

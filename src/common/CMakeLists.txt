@@ -3,7 +3,6 @@ set(SRCS
 	hash.cpp
 	util.cpp
 	gx_util.cpp
-	cgfx_common.cpp
 	osd.cpp
 	)
 
@@ -14,7 +13,6 @@ set(HEADERS
 	hash.h
 	util.h
 	gx_util.h
-	cgfx_common.h
 	dmg_core_pad.h
 	)
 
