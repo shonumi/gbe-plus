@@ -3890,12 +3890,9 @@ bool generate_ini_file()
 	ini_contents += "[#motion_scaler]\n\n";
 	ini_contents += "[#use_ddr_mapping]\n\n";
 	ini_contents += "[#hotkeys]\n\n";
-	ini_contents += "[#use_cgfx]\n\n";
 	ini_contents += "[#manifest_path]\n\n";
 	ini_contents += "[#dump_bg_path]\n\n";
 	ini_contents += "[#dump_obj_path]\n\n";
-	ini_contents += "[#cgfx_scaling_factor]\n\n";
-	ini_contents += "[#cgfx_transparency]\n\n";
 	ini_contents += "[#use_netplay]\n\n";
 	ini_contents += "[#use_netplay_hard_sync]\n\n";
 	ini_contents += "[#use_net_gate]\n\n";
