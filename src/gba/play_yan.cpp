@@ -886,18 +886,6 @@ void AGB_MMU::process_play_yan_irq()
 			play_yan.irq_repeat = (play_yan.video_length / 0x20);
 		}
 
-		//Repeat thumbnail IRQs as necessary
-		else if((play_yan.op_state == 0x05) && (play_yan.irq_repeat))
-		{
-			play_yan.op_state = 5;
-			play_yan.irq_delay = 1;
-			play_yan.delay_reload = 10;
-			play_yan.irq_data_ptr = play_yan.video_check_data[0];
-			play_yan.irq_count = 3;
-			play_yan.irq_len = 4;
-			play_yan.irq_repeat--;
-		}
-
 		//Repeat music IRQs as necessary
 		else if((play_yan.op_state == 0x07) && (play_yan.irq_repeat))
 		{
