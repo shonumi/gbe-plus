@@ -11,13 +11,7 @@
 #ifndef MWMENU_GBE_QT
 #define MWMENU_GBE_QT
 
-#ifdef GBE_QT_5
 #include <QtWidgets>
-#endif
-
-#ifdef GBE_QT_4
-#include <QtGui>
-#endif
 
 class mw_menu : public QDialog
 {

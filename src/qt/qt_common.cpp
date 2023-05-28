@@ -8,13 +8,7 @@
 
 #include <SDL2/SDL.h>
 
-#ifdef GBE_QT_5
 #include <QtWidgets>
-#endif
-
-#ifdef GBE_QT_4
-#include <QtGui>
-#endif
 
 #include "qt_common.h"
 

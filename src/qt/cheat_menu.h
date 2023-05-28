@@ -13,13 +13,7 @@
 
 #include <vector>
 
-#ifdef GBE_QT_5
 #include <QtWidgets>
-#endif
-
-#ifdef GBE_QT_4
-#include <QtGui>
-#endif
 
 class cheat_menu : public QDialog
 {

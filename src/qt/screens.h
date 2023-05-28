@@ -11,14 +11,7 @@
 #ifndef SCREENS_GBE_QT
 #define SCREENS_GBE_QT
 
-#ifdef GBE_QT_5
 #include <QtWidgets>
-#endif
-
-#ifdef GBE_QT_4
-#include <QtGui>
-#endif
-
 #include <QGLWidget>
 #include <QGLFormat>
 
