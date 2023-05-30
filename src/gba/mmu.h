@@ -57,6 +57,20 @@ class AGB_MMU
 		NINTENDO_MP3,
 	};
 
+	//Play-Yan Operational States
+	enum play_yan_states
+	{
+		PLAY_YAN_NOP,
+		PLAY_YAN_PROCESS_CMD,
+		PLAY_YAN_WAKE,
+		PLAY_YAN_PROCESS_VIDEO_THUMBNAILS,
+		PLAY_YAN_START_AUDIO,
+		PLAY_YAN_PROCESS_AUDIO,
+		PLAY_YAN_START_VIDEO,
+		PLAY_YAN_PROCESS_VIDEO,
+		PLAY_YAN_WAIT,
+	};
+
 	backup_types current_save_type;
 
 	std::vector <u8> memory_map;
@@ -199,7 +213,7 @@ class AGB_MMU
 		u8 firmware_addr_count;
 
 		u8 status;
-		u8 op_state;
+		play_yan_states op_state;
 
 		u16 access_mode;
 		u16 access_param;

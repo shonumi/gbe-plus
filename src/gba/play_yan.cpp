@@ -29,7 +29,7 @@ void AGB_MMU::play_yan_reset()
 	play_yan.firmware_addr_count = 0;
 
 	play_yan.status = 0x80;
-	play_yan.op_state = 0;
+	play_yan.op_state = PLAY_YAN_NOP;
 
 	play_yan.access_mode = 0;
 	play_yan.access_param = 0;
@@ -633,7 +633,7 @@ void AGB_MMU::process_play_yan_cmd()
 	//Trigger Game Pak IRQ for Get Filesystem Info command
 	if(play_yan.cmd == 0x200)
 	{
-		play_yan.op_state = 1;
+		play_yan.op_state = PLAY_YAN_PROCESS_CMD;
 		play_yan.irq_delay = 1;
 		play_yan.irq_count = 0;
 		play_yan.delay_reload = 10;
@@ -644,7 +644,7 @@ void AGB_MMU::process_play_yan_cmd()
 	//Trigger Game Pak IRQ for Change Current Directory command
 	if(play_yan.cmd == 0x201)
 	{
-		play_yan.op_state = 1;
+		play_yan.op_state = PLAY_YAN_PROCESS_CMD;
 		play_yan.irq_delay = 1;
 		play_yan.irq_count = 0;
 		play_yan.delay_reload = 10;
@@ -658,7 +658,7 @@ void AGB_MMU::process_play_yan_cmd()
 	//Trigger Game Pak IRQ for video thumbnail data
 	else if(play_yan.cmd == 0x500)
 	{
-		play_yan.op_state = 3;
+		play_yan.op_state = PLAY_YAN_PROCESS_VIDEO_THUMBNAILS;
 		play_yan.irq_delay = 1;
 		play_yan.delay_reload = 10;
 		play_yan.irq_data_ptr = play_yan.video_check_data[0];
@@ -673,7 +673,7 @@ void AGB_MMU::process_play_yan_cmd()
 	//Trigger Game Pak IRQ for ID3 data retrieval
 	else if(play_yan.cmd == 0x600)
 	{
-		play_yan.op_state = 1;
+		play_yan.op_state = PLAY_YAN_PROCESS_CMD;
 		play_yan.irq_delay = 1;
 		play_yan.delay_reload = 10;
 		play_yan.irq_data_ptr = play_yan.music_play_data[0];
@@ -688,7 +688,7 @@ void AGB_MMU::process_play_yan_cmd()
 	//Trigger Game Pak IRQ for playing video
 	else if(play_yan.cmd == 0x700)
 	{
-		play_yan.op_state = 9;
+		play_yan.op_state = PLAY_YAN_START_VIDEO;
 		play_yan.irq_delay = 1;
 		play_yan.delay_reload = 10;
 		play_yan.irq_data_ptr = play_yan.video_play_data[0];
@@ -711,7 +711,7 @@ void AGB_MMU::process_play_yan_cmd()
 	//Trigger Game Pak IRQ for stopping video
 	else if(play_yan.cmd == 0x701)
 	{
-		play_yan.op_state = 1;
+		play_yan.op_state = PLAY_YAN_PROCESS_CMD;
 		play_yan.irq_delay = 1;
 		play_yan.delay_reload = 10;
 		play_yan.irq_data_ptr = play_yan.video_stop_data[0];
@@ -727,7 +727,7 @@ void AGB_MMU::process_play_yan_cmd()
 	//Trigger Game Pak IRQ for playing music
 	else if(play_yan.cmd == 0x800)
 	{
-		play_yan.op_state = 6;
+		play_yan.op_state = PLAY_YAN_START_AUDIO;
 		play_yan.irq_delay = 1;
 		play_yan.delay_reload = 10;
 		play_yan.irq_data_ptr = play_yan.music_play_data[0];
@@ -748,7 +748,7 @@ void AGB_MMU::process_play_yan_cmd()
 	//Trigger Game Pak IRQ for stopping music
 	else if(play_yan.cmd == 0x801)
 	{
-		play_yan.op_state = 1;
+		play_yan.op_state = PLAY_YAN_PROCESS_CMD;
 		play_yan.irq_delay = 1;
 		play_yan.delay_reload = 10;
 		play_yan.irq_data_ptr = play_yan.music_stop_data[0];
@@ -783,7 +783,7 @@ void AGB_MMU::process_play_yan_cmd()
 	//Trigger Game Pak IRQ for booting cartridge/status
 	else if(play_yan.cmd == 0x800000)
 	{
-		play_yan.op_state = 1;
+		play_yan.op_state = PLAY_YAN_PROCESS_CMD;
 		play_yan.irq_delay = 60;
 		play_yan.irq_data_ptr = play_yan.sd_check_data[2];
 		play_yan.irq_len = 2;
@@ -794,7 +794,7 @@ void AGB_MMU::process_play_yan_cmd()
 	//Trigger Play-Yan Micro Game Pak IRQ to open .ini file 
 	else if(play_yan.cmd == 0x3000)
 	{
-		play_yan.op_state = 1;
+		play_yan.op_state = PLAY_YAN_PROCESS_CMD;
 		play_yan.irq_delay = 60;
 		play_yan.irq_data_ptr = play_yan.micro[0];
 		play_yan.irq_len = 1;
@@ -809,7 +809,7 @@ void AGB_MMU::process_play_yan_cmd()
 	//Trigger Play-Yan Micro Game Pak IRQ to read .ini file 
 	else if(play_yan.cmd == 0x3001)
 	{
-		play_yan.op_state = 1;
+		play_yan.op_state = PLAY_YAN_PROCESS_CMD;
 		play_yan.irq_delay = 60;
 		play_yan.irq_data_ptr = play_yan.micro[0];
 		play_yan.irq_len = 2;
@@ -822,7 +822,7 @@ void AGB_MMU::process_play_yan_cmd()
 	//Trigger Play-Yan Micro Game Pak IRQ to close .ini file??? 
 	else if(play_yan.cmd == 0x3003)
 	{
-		play_yan.op_state = 1;
+		play_yan.op_state = PLAY_YAN_PROCESS_CMD;
 		play_yan.irq_delay = 60;
 		play_yan.irq_data_ptr = play_yan.micro[0];
 		play_yan.irq_len = 3;
@@ -842,13 +842,13 @@ void AGB_MMU::process_play_yan_irq()
 	}
 
 	//Process SD card check first and foremost after booting
-	if(!play_yan.op_state)
+	if(play_yan.op_state == PLAY_YAN_NOP)
 	{
-		play_yan.op_state = 1;
+		play_yan.op_state = PLAY_YAN_PROCESS_CMD;
 		play_yan.irq_count = 0;
 	}
 
-	if(play_yan.op_state == 0xFF) { return; }
+	if(play_yan.op_state == PLAY_YAN_WAIT) { return; }
 
 	//Process Play-Yan states
 	//1 = SD card check, 2 = Enter/exit music menu, 3 = Enter/exit video menu,
@@ -863,9 +863,9 @@ void AGB_MMU::process_play_yan_irq()
 	if(play_yan.irq_count == play_yan.irq_len)
 	{
 		//After selecting a music file to play, fire IRQs to process audio
-		if(play_yan.op_state == 0x06)
+		if(play_yan.op_state == PLAY_YAN_START_AUDIO)
 		{
-			play_yan.op_state = 7;
+			play_yan.op_state = PLAY_YAN_PROCESS_AUDIO;
 			play_yan.irq_delay = 1;
 			play_yan.delay_reload = 60;
 			play_yan.irq_data_ptr = play_yan.music_play_data[0];
@@ -875,9 +875,9 @@ void AGB_MMU::process_play_yan_irq()
 		}
 
 		//After selecting a video file to play, fire IRQs to process video
-		else if(play_yan.op_state == 0x09)
+		else if(play_yan.op_state == PLAY_YAN_START_VIDEO)
 		{
-			play_yan.op_state = 8;
+			play_yan.op_state = PLAY_YAN_PROCESS_VIDEO;
 			play_yan.irq_delay = 1;
 			play_yan.delay_reload = 2;
 			play_yan.irq_data_ptr = play_yan.video_play_data[0];
@@ -887,9 +887,9 @@ void AGB_MMU::process_play_yan_irq()
 		}
 
 		//Repeat music IRQs as necessary
-		else if((play_yan.op_state == 0x07) && (play_yan.irq_repeat))
+		else if((play_yan.op_state == PLAY_YAN_PROCESS_AUDIO) && (play_yan.irq_repeat))
 		{
-			play_yan.op_state = 7;
+			play_yan.op_state = PLAY_YAN_PROCESS_AUDIO;
 			play_yan.irq_delay = 1;
 			play_yan.delay_reload = 60;
 			play_yan.irq_data_ptr = play_yan.music_play_data[0];
@@ -908,7 +908,7 @@ void AGB_MMU::process_play_yan_irq()
 
 				if(play_yan.music_play_data[2][6] > play_yan.music_length)
 				{
-					play_yan.op_state = 1;
+					play_yan.op_state = PLAY_YAN_PROCESS_CMD;
 					play_yan.irq_delay = 1;
 					play_yan.delay_reload = 1;
 					play_yan.irq_data_ptr = play_yan.music_stop_data[0];
@@ -921,9 +921,9 @@ void AGB_MMU::process_play_yan_irq()
 		}
 
 		//Repeat video IRQs as necessary
-		else if((play_yan.op_state == 0x08) && (play_yan.irq_repeat))
+		else if((play_yan.op_state == PLAY_YAN_PROCESS_VIDEO) && (play_yan.irq_repeat))
 		{
-			play_yan.op_state = 8;
+			play_yan.op_state = PLAY_YAN_PROCESS_VIDEO;
 			play_yan.irq_delay = 1;
 			play_yan.delay_reload = 1;
 			play_yan.irq_data_ptr = play_yan.video_play_data[0];
@@ -950,7 +950,7 @@ void AGB_MMU::process_play_yan_irq()
 				//Stop video when length is complete
 				if(play_yan.video_progress >= play_yan.video_length)
 				{
-					play_yan.op_state = 1;
+					play_yan.op_state = PLAY_YAN_PROCESS_CMD;
 					play_yan.irq_delay = 1;
 					play_yan.delay_reload = 10;
 					play_yan.irq_data_ptr = play_yan.video_stop_data[0];
@@ -967,7 +967,7 @@ void AGB_MMU::process_play_yan_irq()
 		//Stop IRQs until next trigger condition
 		else
 		{
-			play_yan.op_state = 0xFF;
+			play_yan.op_state = PLAY_YAN_WAIT;
 			play_yan.irq_delay = 0;
 			play_yan.irq_count = 0;
 		}
@@ -1319,7 +1319,7 @@ void AGB_MMU::play_yan_set_ini_file()
 /****** Wakes Play-Yan from GBA sleep mode - Fires Game Pak IRQ ******/
 void AGB_MMU::play_yan_wake()
 {
-	play_yan.op_state = 2;
+	play_yan.op_state = PLAY_YAN_WAKE;
 	play_yan.irq_delay = 60;
 	play_yan.delay_reload = 10;
 	play_yan.irq_data_ptr = play_yan.wake_data;
