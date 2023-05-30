@@ -293,6 +293,20 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 			//Set file data
 			else if(play_yan.cmd == 0x200) { play_yan_set_folder(); }
 
+			//Music position seeking
+			else if((play_yan.cmd == 0x905) && (play_yan.is_music_playing))
+			{
+				//Update trackbar
+				play_yan.music_play_data[2][5] = control_cmd2;
+
+				//Update music progress via IRQ data
+				double result = control_cmd2;
+				result /= 25600;
+				result *= play_yan.music_length;
+
+				play_yan.music_play_data[2][6] = result;
+			}
+
 			//Adjust Play-Yan volume settings
 			if(play_yan.cmd == 0xB00) { play_yan.volume = control_cmd2; }
 
