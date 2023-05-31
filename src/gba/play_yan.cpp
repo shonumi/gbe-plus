@@ -307,6 +307,29 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 				play_yan.music_play_data[2][6] = result;
 			}
 
+			//Video position seeking
+			else if((play_yan.cmd == 0x905) && (play_yan.is_video_playing))
+			{
+				//Advance trackbar and timestamp
+				if(control_cmd2 == 0x01)
+				{
+					play_yan.video_progress += 0x20;
+					play_yan.video_frame_count += 1.0;
+				}
+
+				//Rewind trackbar and timestamp
+				else
+				{
+					play_yan.video_progress -= 0x80;
+					if(play_yan.video_progress >= 0xF0000000) { play_yan.video_progress = 0; }
+
+					play_yan.video_frame_count -= 4.0;
+					if(play_yan.video_frame_count < 0) { play_yan.video_frame_count = 0; }
+				}
+
+				play_yan.video_play_data[1][6] = play_yan.video_progress;
+			}
+
 			//Adjust Play-Yan volume settings
 			if(play_yan.cmd == 0xB00) { play_yan.volume = control_cmd2; }
 
@@ -357,6 +380,29 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 				result *= play_yan.music_length;
 
 				play_yan.music_play_data[2][6] = result;
+			}
+
+			//Video position seeking
+			else if((play_yan.cmd == 0x905) && (play_yan.is_video_playing))
+			{
+				//Advance trackbar and timestamp
+				if(control_cmd2 == 0x01)
+				{
+					play_yan.video_progress += 0x20;
+					play_yan.video_frame_count += 1.0;
+				}
+
+				//Rewind trackbar and timestamp
+				else
+				{
+					play_yan.video_progress -= 0x80;
+					if(play_yan.video_progress >= 0xF0000000) { play_yan.video_progress = 0; }
+
+					play_yan.video_frame_count -= 4.0;
+					if(play_yan.video_frame_count < 0) { play_yan.video_frame_count = 0; }
+				}
+
+				play_yan.video_play_data[1][6] = play_yan.video_progress;
 			}
 
 			//Adjust Play-Yan volume settings
@@ -462,6 +508,12 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 			else if(play_yan.cmd == 0x800)
 			{
 				play_yan_load_audio(play_yan.current_music_file);
+			}
+
+			else
+			{
+				play_yan.video_length = (11 * 0x20 * 30);
+				play_yan.video_current_fps = 1.0;
 			}
 
 			/*
