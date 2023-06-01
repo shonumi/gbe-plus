@@ -167,7 +167,7 @@ Command					| Parameter 1							| Parameter 2
 0x801 - Stop Music Playback		| N/A								| N/A
 0x902 - Pause Music/Video Playback	| N/A								| N/A
 0x904 - Resume Music/Video Playback	| N/A								| N/A
-0x905 - Seek Forwards/Backwards		| Seek Speed (1x, 2x, 3x, 4x?), Min = 1, Shift Left 1 Per Step	| N/A
+0x905 - Seek Forwards/Backwards		| Seek Speed							| N/A
 0x906 - Unknown				| N/A								| N/A
 0xB00 - Adjust Volume			| Volume level, Min = 0x00, Max = 0x38				| N/A
 0xD00 - Adjust Bass Boost		| Bass boost level, Min = 0x00, Max = 0x0F			| N/A
@@ -223,6 +223,8 @@ The 0x600 Grab ID3 Data command uses Parameter 1 as a null-terminated string rep
 The 0x700 Play Video command uses Parameter 3 as a null-terminated string representing the filename of a specific video file to play. Like music, the Play-Yan software internally monitors which video the user has highlighted and passes the filename's string to the hardware. This string likewise has no fixed length. The Play-Yan appears to send additional unknown data after the string.
 
 The 0x800 Play Music File command uses Parameter 1 as a null-terminated string representing the filename of specific music file to play. The Play-Yan software internally keeps track of which song the user has currently highlighted, and it passes the filename's string to the hardware. The string has no fixed length, thus making this an irregular command. The Play-Yan appears to send additional unknown data after the string.
+
+The 0x905 Seek Forwards/Backwards command uses Parameter 1 to indicate the direction to fast forward or rewind audio/video. It operates differently depending on which media is being played. For audio, it represents a new value for the Track Bar Position used for the 0x800 command. To go forward, the Play-Yan's software takes the current value and increments it, then passes it along to the 0x905 command. For video, only two values are used for Parameter 1: 0x01 to go forward and 0xFFFFFFFF to go backwards.
 
 The 0x3000 Check For Key File command uses Parameter 1 as a null-terminated string representing the filename of the "key file", which is a .ini text file containing various settings such as what theme to use, video brightness, and audio volume. This command, as well as all other 0x300x commands, is exclusive to the Play-Yan Micro. The string should have a fixed length, as the software is hardcoded to use "play_yanmicro.ini", however, it can technically be any length.
 
