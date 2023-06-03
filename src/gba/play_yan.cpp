@@ -315,6 +315,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 				{
 					play_yan.video_progress += 0x20;
 					play_yan.video_frame_count += 1.0;
+					if(play_yan.irq_repeat) { play_yan.irq_repeat--; }
 				}
 
 				//Rewind trackbar and timestamp
@@ -325,6 +326,9 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 
 					play_yan.video_frame_count -= 4.0;
 					if(play_yan.video_frame_count < 0) { play_yan.video_frame_count = 0; }
+
+					play_yan.irq_repeat += 4;
+					if(play_yan.irq_repeat > (play_yan.video_length / 0x20)) { play_yan.irq_repeat = (play_yan.video_length / 0x20); }
 				}
 
 				play_yan.video_play_data[1][6] = play_yan.video_progress;
@@ -390,6 +394,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 				{
 					play_yan.video_progress += 0x20;
 					play_yan.video_frame_count += 1.0;
+					if(play_yan.irq_repeat) { play_yan.irq_repeat--; }
 				}
 
 				//Rewind trackbar and timestamp
@@ -400,6 +405,9 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 
 					play_yan.video_frame_count -= 4.0;
 					if(play_yan.video_frame_count < 0) { play_yan.video_frame_count = 0; }
+
+					play_yan.irq_repeat += 4;
+					if(play_yan.irq_repeat > (play_yan.video_length / 0x20)) { play_yan.irq_repeat = (play_yan.video_length / 0x20); }
 				}
 
 				play_yan.video_play_data[1][6] = play_yan.video_progress;
