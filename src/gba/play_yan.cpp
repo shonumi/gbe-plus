@@ -305,6 +305,9 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 				result *= play_yan.music_length;
 
 				play_yan.music_play_data[2][6] = result;
+
+				play_yan.irq_repeat = ((0x6400 - result) / play_yan.tracker_update_size);
+				if((0x6400 - (u32)result) % play_yan.tracker_update_size) { play_yan.irq_repeat++; }
 			}
 
 			//Video position seeking
@@ -384,6 +387,9 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 				result *= play_yan.music_length;
 
 				play_yan.music_play_data[2][6] = result;
+
+				play_yan.irq_repeat = ((0x6400 - result) / play_yan.tracker_update_size);
+				if((0x6400 - (u32)result) % play_yan.tracker_update_size) { play_yan.irq_repeat++; }
 			}
 
 			//Video position seeking

@@ -166,6 +166,7 @@ Command					| Parameter 1							| Parameter 2
 0x800 - Play Music File*		| Music Filename						| N/A
 0x801 - Stop Music Playback		| N/A								| N/A
 0x902 - Pause Music/Video Playback	| N/A								| N/A
+0x903 - Unknown				| N/A								| N/A
 0x904 - Resume Music/Video Playback	| N/A								| N/A
 0x905 - Seek Forwards/Backwards		| Seek Speed							| N/A
 0x906 - Unknown				| N/A								| N/A
