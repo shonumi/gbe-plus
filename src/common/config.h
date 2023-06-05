@@ -56,6 +56,7 @@ enum special_cart_types
 	AGB_JUKEBOX,
 	AGB_PLAY_YAN,
 	AGB_CAMPHO,
+	AGB_GLUCOBOY,
 	NDS_IR_CART,
 };
 

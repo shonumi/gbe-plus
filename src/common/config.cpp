@@ -871,6 +871,9 @@ bool parse_cli_args()
 			//Use Campho Cartridge
 			else if(config::cli_args[x] == "--agb-campho") { config::cart_type = AGB_CAMPHO; }
 
+			//Use Glucoboy Cartridge
+			else if(config::cli_args[x] == "--agb-glucoboy") { config::cart_type = AGB_GLUCOBOY; }
+
 			//Use Auto-Detect for GBA saves
 			else if(config::cli_args[x] == "--save-auto") { config::agb_save_type = AGB_AUTO_DETECT; }
 
