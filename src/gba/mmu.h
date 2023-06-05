@@ -311,6 +311,13 @@ class AGB_MMU
 		std::vector<u32> mapped_bank_pos;
 	} campho;
 
+	//Structure to handle Glucoboy
+	struct gluco
+	{
+		u8 index;
+		std::vector<u16> io_regs;
+	} glucoboy;
+
 	//Structure to handle GPIO reading and writing
 	struct gpio_controller
 	{
@@ -430,6 +437,10 @@ class AGB_MMU
 	void write_campho(u32 address, u8 value);
 	void campho_set_rom_bank(u32 bank, u32 address, bool set_hi_bank);
 	void campho_map_rom_banks();
+
+	void glucoboy_reset();
+	u8 read_glucoboy(u32 address);
+	void write_glucoboy(u32 address, u8 value);
 
 	//GPIO handling functions
 	void process_rtc();

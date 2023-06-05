@@ -19,6 +19,7 @@ set(SRCS
 	am3.cpp
 	play_yan.cpp
 	campho.cpp
+	glucoboy.cpp
 	)
 
 set(HEADERS

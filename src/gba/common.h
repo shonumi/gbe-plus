@@ -229,4 +229,7 @@ const u32 CAM_ROM_CNT = 0x8014000;
 const u32 CAM_ROM_STAT_B = 0xA010000;
 const u32 CAM_ROM_CNT_B = 0xA014000;
 
+/* Glucoboy IO */
+const u32 GLUCO_CNT = 0xE000000;
+
 #endif // GBA_COMMON
