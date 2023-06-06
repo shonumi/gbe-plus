@@ -1748,6 +1748,9 @@ void AGB_LCD::step()
 
 			//Process Play-Yan interrupts
 			if((config::cart_type == AGB_PLAY_YAN) && (mem->play_yan.irq_delay)) { mem->process_play_yan_irq(); }
+
+			//Process Glucoboy interrupts
+			else if((config::cart_type == AGB_GLUCOBOY) && (mem->glucoboy.request_interrupt)) { mem->process_glucoboy_irq(); }
 		}
 
 		//Setup HBlank

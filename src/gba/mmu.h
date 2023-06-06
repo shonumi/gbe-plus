@@ -314,8 +314,10 @@ class AGB_MMU
 	//Structure to handle Glucoboy
 	struct gluco
 	{
-		u8 index;
+		u8 io_index;
+		u8 index_shift;
 		std::vector<u16> io_regs;
+		bool request_interrupt;
 	} glucoboy;
 
 	//Structure to handle GPIO reading and writing
@@ -441,6 +443,7 @@ class AGB_MMU
 	void glucoboy_reset();
 	u8 read_glucoboy(u32 address);
 	void write_glucoboy(u32 address, u8 value);
+	void process_glucoboy_irq();
 
 	//GPIO handling functions
 	void process_rtc();
