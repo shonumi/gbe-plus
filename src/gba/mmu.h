@@ -316,8 +316,9 @@ class AGB_MMU
 	{
 		u8 io_index;
 		u8 index_shift;
-		std::vector<u16> io_regs;
+		std::vector<u32> io_regs;
 		bool request_interrupt;
+		bool reset_shift;
 	} glucoboy;
 
 	//Structure to handle GPIO reading and writing
