@@ -273,6 +273,12 @@ namespace config
 	//Remove vocals command
 	std::string remove_vocals_cmd = "";
 
+	//Glucoboy GRP data
+	u32 glucoboy_daily_grps = 0;
+	u32 glucoboy_bonus_grps = 0;
+	u32 glucoboy_good_days = 0;
+	u32 glucoboy_days_until_bonus = 0;
+
 	//On-screen display settings
 	bool use_osd = false;
 	std::vector <u32> osd_font;
@@ -2771,6 +2777,23 @@ bool parse_ini_file()
 			else { config::remove_vocals_cmd = ""; }
 		}
 
+		//Total time for GBA Jukebox recording
+		else if(ini_item == "#glucoboy_daily_grps")
+		{
+			if((x + 1) < size)
+			{
+				util::from_str(ini_opts[++x], output);
+
+				config::glucoboy_daily_grps = output;
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#glucoboy_daily_grps) \n";
+				return false;
+			}
+		}
+
 		//Recent files
 		else if(ini_item == "#recent_files")
 		{
@@ -3620,6 +3643,14 @@ bool save_ini_file()
 			output_lines[line_pos] = "[#remove_vocals_command" + val + "]";
 		}
 
+		//Daily GRPs for Glucoboy
+		else if(ini_item == "#glucoboy_daily_grps")
+		{
+			line_pos = output_count[x];
+
+			output_lines[line_pos] = "[#glucoboy_daily_grps:" + util::to_str(config::glucoboy_daily_grps) + "]";
+		}
+
 		else if(ini_item == "#recent_files")
 		{
 			line_pos = output_count[x];
@@ -3918,7 +3949,8 @@ bool generate_ini_file()
 	ini_contents += "[#mw_data]\n\n";
 	ini_contents += "[#jukebox_total_time]\n\n";
 	ini_contents += "[#audio_conversion_command]\n\n";
-	ini_contents += "[#remove_vocals_command]\n";
+	ini_contents += "[#remove_vocals_command]\n\n";
+	ini_contents += "[#glucoboy_daily_grps]\n";
 
 	//Save contents to file.
 	std::ofstream file("gbe.ini", std::ios::out);

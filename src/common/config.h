@@ -228,6 +228,11 @@ namespace config
 	extern std::string audio_conversion_cmd;
 	extern std::string remove_vocals_cmd;
 
+	extern u32 glucoboy_daily_grps;
+	extern u32 glucoboy_bonus_grps;
+	extern u32 glucoboy_good_days;
+	extern u32 glucoboy_days_until_bonus;
+
 	extern bool use_osd;
 	extern std::vector <u32> osd_font;
 	extern std::string osd_message;

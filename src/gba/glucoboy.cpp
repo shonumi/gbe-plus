@@ -20,13 +20,17 @@ void AGB_MMU::glucoboy_reset()
 	glucoboy.index_shift = 0;
 	glucoboy.request_interrupt = false;
 	glucoboy.reset_shift = false;
+
+	//Setup GRP data
+	glucoboy.io_regs[0x21] = config::glucoboy_daily_grps;
+	glucoboy.io_regs[0x22] = config::glucoboy_bonus_grps;
+	glucoboy.io_regs[0x23] = config::glucoboy_good_days;
+	glucoboy.io_regs[0x24] = config::glucoboy_days_until_bonus;
 }
 
 /****** Writes data to Glucoboy I/O ******/
 void AGB_MMU::write_glucoboy(u32 address, u8 value)
 {
-	//std::cout<<"GLUCOBOY WRITE -> 0x" << address << " :: 0x" << (u32)value << "\n";
-
 	glucoboy.io_index = value;
 	glucoboy.request_interrupt = true;
 	glucoboy.reset_shift = true;
