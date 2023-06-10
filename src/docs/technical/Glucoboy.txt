@@ -1,0 +1,125 @@
+Gluco Technical Documentation 0.1
+June 9th, 2022
+Shonumi aka D.S. Baxter
+
+
+***************************************************
+1. Introduction
+***************************************************
+
+The Glucoboy is a cartridge for the Game Boy Advance that featured the unique ability to process diabetic testing strips. Released on November 14, 2007 exclusively in Australia, it was designed by inventor Paul Wessel and produced by Guidance Interactive. The goal was to encourage children with juvenile diabetes to regularly check their blood sugar and to keep their levels in check. The Glucoboy would record the player's glucose and award points based on how well it fit within a healthy range. These Glucose Reward Points (GRPs) were used to unlock new minigames and in-game items. It was the first time such a medical was officially licensed for sale on any of Nintendo's platforms.
+
+
+***************************************************
+2. General Hardware Information
+***************************************************
+
+- Comes in an oversized white cartridge with an ovular top-end.
+- Comes with a segmented LCD screen capable of displaying a few digits for glucose levels.
+- Has "M" and "C" buttons on the sides of the LCD screen, which should work similarly to other glucose meters (e.g. FreeStyle Freedom Lite).  
+- Has a slot for accepting blood testing strips at the very top.
+- Uses a coin cell battery, presumably to power the unit's glucose checking functions as well as an internal real-time clock.
+- Has a USB slot on the lower side of the unit.
+- The PCB is split into two main sections: top for glucose checking hardware, bottom for GBA ROM and EEPROM.
+- Top PCB contains a Texas Instruments M430FG437, presumably used to handle glucose checking and managing the RTC.
+
+
+***************************************************
+3. Accessing Glucose Data
+***************************************************
+
+For the most part, the GBA does not directly deal with any of the glucose checking or blood testing. Instead, other components within the Glucoboy handle that and merely present the results, which the GBA can read back like any other value in memory. To that end, the Glucoboy offers only a single, multipurpose 1-byte register mapped to the address 0xE000000, named here as GLUCO_CNT. By reading and writing to GLUCO_CNT, data can be extracted regarding the current GRPs earned from testing.
+
+To access glucose data, an index must first be written to GLUCO_CNT. Different data, such as normal GRPs earned today versus bonus GRPs earned that day as well, are stored at different indices. Once an index has been received by the hardware, the Glucoboy triggers a Game Pak IRQ. Following this, 8-bit or 32-bit data will be returned via GLUCO_CNT, depending on the index. In the case that an index returns 32-bit data, GLUCO_CNT must be read a total of 4 times, once per byte. 32-bit data is stored LSB-first but is always read MSB-first (and adjusted in software to be LSB-first again). Additional Game Pak IRQs will indicate when the next byte is ready to read. Currently, it is unknown if reading one byte of the 32-bit value directly triggers subsequent Game Pak IRQs or if Game Pak IRQs are automatically and periodically generated after writing an index.
+
+Below is the typical proceedure used by the Glucoboy's software:
+
+-----------------------------------------------------------
+32-bit Index
+-----------------------------------------------------------
+WRITE INDEX TO GLUCO_CNT
+	WAIT FOR GAMEPAK IRQ
+
+READ BYTE 3 AT GLUCO_CNT
+	WAIT FOR GAMEPAK IRQ
+READ BYTE 2 AT GLUCO_CNT
+	WAIT FOR GAMEPAK IRQ
+READ BYTE 1 AT GLUCO_CNT
+	WAIT FOR GAMEPAK IRQ
+READ BYTE 0 AT GLUCO_CNT
+-----------------------------------------------------------
+
+
+-----------------------------------------------------------
+8-bit Index
+-----------------------------------------------------------
+WRITE INDEX TO GLUCO_CNT
+	WAIT FOR GAMEPAK IRQ
+
+READ BYTE 0 AT GLUCO_CNT
+-----------------------------------------------------------
+
+Some indices appear to accept multiple input bytes. They appear to be parameters of some sort, although their purpose is not yet known. The Glucoboy only reads glucose data shortly after booting up. Once in-game, it keeps an internal copy of total GRPs accumulated and uses that for unlocking additional content.
+
+
+***************************************************
+4. Index Overview
+***************************************************
+
+Below is a brief list of all known indices and their currently understood functions:
+
+-----------------------------------------------------------
+Index	| Bits	| Description
+-----------------------------------------------------------
+0x20	| 32	| Unknown
+0x21	| 32	| Daily GRPs Earned
+0x22	| 32	| Bonus GRPs Earned
+0x23	| 32	| Current Number of Good Days
+0x24	| 32	| Number of Good Days Until Bonus Rewarded
+0x25	| 32	| Unknown
+0x26	| 32	| Unknown
+0x27	| 32	| Unknown
+0x31	| 8	| Unknown
+0x32	| 8	| Unknown
+0xE0	| 8	| Unknown
+0xE1	| 8	| Unknown
+0xE2	| 8	| Unknown
+-----------------------------------------------------------
+
+A more detailed explanation of known indices follows:
+
+-----------------------------------------------------------------------
+Index 0x21 - Daily GRPs Earned
+-----------------------------------------------------------------------
+
+This represents the amount of GRPs earned on any specific day. It is added to the Total GRPs earned. This value is checked each and every time the Glucoboy boots up, so a constant value of 10, for example, would continually add 10 GRPs every time the game is loaded. In practice, this value was updated after a blood test was performed. The exact amount would be determined by factors such as whether the levels were healthy and whether the test was done in accordance to a regular schedule. The GBA does not seem to have access to the components that calculated GRPs, so it only reads whatever the hardware reports.
+
+
+
+
+
+-----------------------------------------------------------------------
+Index 0x22 - Bonus GRPs Earned
+-----------------------------------------------------------------------
+
+This apparently represents the amount of bonus GRPs earned by maintaining healthy glucose levels over a specific number of days. The Glucoboy would likely update this when Index 0x23 was greater than or equal to Index 0x24. These bonus GRPs are added to the Total GRPs once read. The exact amount of bonus GRPs granted is not known
+
+
+
+
+
+-----------------------------------------------------------------------
+Index 0x23 - Current Number of Good Days
+-----------------------------------------------------------------------
+
+This index represents the number of continuous "good days", i.e. days were the player consistently checked their glucose levels and those same levels were within an acceptable range. Failing to meet those requirements would presumably reset the this value.
+
+
+
+
+
+-----------------------------------------------------------------------
+Index 0x24 - Number of Good Days Until Bonus Rewarded
+-----------------------------------------------------------------------
+
+This index represents the number of remaining "good days" needed until the bonus GRPs would be granted. Logically, this value would decrease by one every 24-hours, so long as the players glucose levels were kept in check regularly. 
