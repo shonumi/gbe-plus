@@ -122,4 +122,54 @@ This index represents the number of continuous "good days", i.e. days were the p
 Index 0x24 - Number of Good Days Until Bonus Rewarded
 -----------------------------------------------------------------------
 
-This index represents the number of remaining "good days" needed until the bonus GRPs would be granted. Logically, this value would decrease by one every 24-hours, so long as the players glucose levels were kept in check regularly. 
+This index represents the number of remaining "good days" needed until the bonus GRPs would be granted. Logically, this value would decrease by one every 24-hours, so long as the players glucose levels were kept in check regularly.
+
+
+
+
+
+-----------------------------------------------------------------------
+Index 0x31 - Unknown
+-----------------------------------------------------------------------
+
+The exact purpose of this index is unknown, however, it seems to act as a flag. Reading any non-zero value causes the Glucoboy to register an error when retrieving GRPs.
+
+
+
+
+
+-----------------------------------------------------------------------
+Index 0x32 - Unknown
+-----------------------------------------------------------------------
+
+The exact purpose of this index is unknown, however, it seems to act as a flag. Reading any non-zero value causes the Glucoboy to register an error when retrieving GRPs.
+
+
+
+
+
+-----------------------------------------------------------------------
+Index 0xE0 - Unknown
+-----------------------------------------------------------------------
+
+The exact purpose of this index is unknown, however, it seems to act as a flag. Reading any non-zero value causes the Glucoboy to register an error when retrieving GRPs.
+
+
+
+
+
+-----------------------------------------------------------------------
+Index 0xE1 - Unknown
+-----------------------------------------------------------------------
+
+This index receives 6 additional bytes as parameters, however, its exact purpose is unknown.
+
+
+
+
+
+-----------------------------------------------------------------------
+Index 0xE2 - Unknown
+-----------------------------------------------------------------------
+
+The exact purpose of this index is unknown, however, it seems to act as a flag. Reading any non-zero value causes the Glucoboy to register an error when retrieving GRPs.
