@@ -4316,7 +4316,7 @@ Offset 		| Description
 		<li class="list_item">Uploads firmware on boot, and can optionally update with the correct files on an SD card.</li>
 		<li class="list_item">Features a slightly larger than normal cartridge shell.</li>
 		<li class="list_item">Has a 3.5mm audio jack to output sound and bypass the GBA&#39;s speakers.</li>
-		<li class="list_item">Could generate video thumbnails and parse some ID3 tags.</li>
+		<li class="list_item">Could generate video thumbnails and parse some ID3 tags (ID3v1 through ID3v2.4).</li>
 		<li class="list_item">Videos used ASF or MP4 containers with G.726 or AAC as audio codecs, respectively.</li>
 		<li class="list_item">Maximum of 30 frames-per-second for video.</li>
 		<li class="list_item">The original version came with 13 &#34;Garage Games&#34; built into the ROM, unlockable with special video files.</li>
@@ -4452,8 +4452,9 @@ Command					| Parameter 1							| Parameter 2
 0x800 - Play Music File*		| Music Filename						| N/A
 0x801 - Stop Music Playback		| N/A								| N/A
 0x902 - Pause Music/Video Playback	| N/A								| N/A
+0x903 - Unknown				| N/A								| N/A
 0x904 - Resume Music/Video Playback	| N/A								| N/A
-0x905 - Seek Forwards/Backwards		| Seek Speed (1x, 2x, 3x, 4x?), Min = 1, Shift Left 1 Per Step	| N/A
+0x905 - Seek Forwards/Backwards		| Seek Speed							| N/A
 0x906 - Unknown				| N/A								| N/A
 0xB00 - Adjust Volume			| Volume level, Min = 0x00, Max = 0x38				| N/A
 0xD00 - Adjust Bass Boost		| Bass boost level, Min = 0x00, Max = 0x0F			| N/A
@@ -4509,6 +4510,8 @@ PY_DATA_PARAM = 0x08
 	<p>The 0x700 Play Video command uses Parameter 3 as a null-terminated string representing the filename of a specific video file to play. Like music, the Play-Yan software internally monitors which video the user has highlighted and passes the filename&#39;s string to the hardware. This string likewise has no fixed length. The Play-Yan appears to send additional unknown data after the string.</p>
 
 	<p>The 0x800 Play Music File command uses Parameter 1 as a null-terminated string representing the filename of specific music file to play. The Play-Yan software internally keeps track of which song the user has currently highlighted, and it passes the filename&#39;s string to the hardware. The string has no fixed length, thus making this an irregular command. The Play-Yan appears to send additional unknown data after the string.</p>
+
+	<p>The 0x905 Seek Forwards/Backwards command uses Parameter 1 to indicate the direction to fast forward or rewind audio/video. It operates differently depending on which media is being played. For audio, it represents a new value for the Track Bar Position used for the 0x800 command. To go forward, the Play-Yan's software takes the current value and increments it, then passes it along to the 0x905 command. For video, only two values are used for Parameter 1: 0x01 to go forward and 0xFFFFFFFF to go backwards.</p>
 
 	<p>The 0x3000 Check For Key File command uses Parameter 1 as a null-terminated string representing the filename of the &#34;key file&#34;, which is a .ini text file containing various settings such as what theme to use, video brightness, and audio volume. This command, as well as all other 0x300x commands, is exclusive to the Play-Yan Micro. The string should have a fixed length, as the software is hardcoded to use &#34;play_yanmicro.ini&#34;, however, it can technically be any length.</p>
 
