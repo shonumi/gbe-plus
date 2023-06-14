@@ -1,0 +1,76 @@
+Campho Advance Technical Documentation 0.1
+June 13th, 2023
+Shonumi aka D.S. Baxter
+
+
+***************************************************
+1. Introduction
+***************************************************
+
+The Campho Advance is a cartridge for the Game Boy Advance that allowed users to make video-based phonecalls. Released in Japan on July 30, 2004, it was sold in limited quanitites by Digital Act. The hardware features a built-in camera that points towards the user's face to capture a live video stream.
+
+
+***************************************************
+2. General Hardware Information
+***************************************************
+
+- Comes in an oversized red and black cartridge with a bulky top-end.
+- Has a camera embedded in the upper center of the cartridge, captures video at ~5 FPS.
+- Camera's native resolution is around 110,000 pixels.
+- Has a RJ-11 phone jack on the side. Transmits and receives data over standard landlines.
+- Has a microphone jack on the side for voice input.
+- Requires constant external power to boot and has a port for an AGS-002 AC Adapter.
+- Not compatible with any model of Nintendo DS; system will fail to boot.
+- Contains some memory used to save contact information.
+- Uses a unique method of mapping ROM data.
+
+
+***************************************************
+3. I/O Registers
+***************************************************
+
+The Campho Advance uses a handful of I/O registers and address ranges mainly for reading ROM data via its unique mapper.
+
+-----------------------------------------------------------
+Address Range                  | I/O Name
+-----------------------------------------------------------
+0x8000000 - 0x8007FFF          | ROM_DATA_1	(ROM Data Stream 1)
+0x8008000 - 0x800FFFF          | ROM_DATA_2	(ROM Data Stream 2)
+0x8010000                      | ROM_STAT	(ROM Status)
+0x8014000                      | ROM_CNT	(ROM Control)
+-----------------------------------------------------------
+
+These I/O registers are also available from Wait State 1 (0xA000000). Currently unknown if they are available from Wait State 2 (0xC000000) as well. All I/O is 16-bit as well.
+
+ROM_DATA_1 and ROM_DATA_2 act as different 16-bits streams to read ROM. Data is pulled from ROM sequentially with each read to these regions, including code fetches requested by the CPU. As such, the internal read pointer automatically advances on its own. ROM_DATA_2 is special as it is primarily used to read the second portion of the bootstrap ROM (BS2). ROM_DATA_1 reads the first part of the bootstrap ROM (BS1) as well as nearly all other data such as Program ROM and Graphics ROM. ROM_DATA_1 can also be used as input for certain parameters when prompting a read command for Graphics ROM.
+
+ROM_STAT acts as a status flag of sorts indicating when certain data on Campho is ready to be read. Used extensively to read Program ROM and prompting a read command for Graphics ROM.
+
+ROM_CNT acts as an overall control register that determines what operations the Campho Advance will execute for reading or writing ROM data.
+
+
+***************************************************
+4. ROM Data Sections
+***************************************************
+
+The Campho Advance has at least 3 different areas of ROM, each with their own method of access. They are also divided by what purpose they serve.
+
+-----------------------------------------------------------
+ROM Name		| Function
+-----------------------------------------------------------
+Bootstrap ROM		| Handles initial program loading
+Program ROM		| Main code for the Campho Advance
+Graphics ROM		| Bitmap graphics for menus
+-----------------------------------------------------------
+
+In terms of how the Campho Advance works, it first loads up bootstrap ROM in two parts. From there, the bootstrap runs and loads the entirety of Program ROM. Once that transfer completes, Program ROM takes over and runs until the GBA shuts down. Its job is to enter/exit menus, receive and send videocalls, and handle everything else the Campho Advance is capable of. It will periodically read large portions of Graphics ROM as needed depending on the menus it enters.
+
+
+***************************************************
+5. Bootstrap ROM
+***************************************************
+
+The bootstrap ROM is available for the CPU to read immediately once the GBA powers on (and provided the Campho Advance also has power supplied to it). This section of ROM is partitioned in 2, named BS1 and BS2. They can be read at ROM_DATA_1 and ROM_DATA_2 respectively. Technically, BS1 contains a valid ROM header and the "Game Boy Advance" logo necessary for the GBA's cartridge check, however, by the time any software outside of the BIOS has a chance to access the Campho Advance, the internal read pointer has moved past this part. There is no known mechanism to reset the read pointer when accessing the bootstrap ROM.
+
+No special proceedure is necessary to read BS1 or BS1. Simply reading ROM_DATA_1 or ROM_DATA_2 is enough. Without the header, BS1 measures in at 72 bytes. BS2 measures 122 bytes in total. The Campho Advance begins in BS1, pulling data via code fetches. BS1's purpose is to load executable code in RAM for BS2 and then jump. Since the Campho Advance's mapper always advances its internal read pointer (regardless of what the CPU's PC register is) the only way for the Campho to run branching code is by copying it to RAM first. BS2's role is to load all of Program ROM into RAM and then jump to execute it.
+
