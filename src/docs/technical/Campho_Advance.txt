@@ -72,5 +72,86 @@ In terms of how the Campho Advance works, it first loads up bootstrap ROM in two
 
 The bootstrap ROM is available for the CPU to read immediately once the GBA powers on (and provided the Campho Advance also has power supplied to it). This section of ROM is partitioned in 2, named BS1 and BS2. They can be read at ROM_DATA_1 and ROM_DATA_2 respectively. Technically, BS1 contains a valid ROM header and the "Game Boy Advance" logo necessary for the GBA's cartridge check, however, by the time any software outside of the BIOS has a chance to access the Campho Advance, the internal read pointer has moved past this part. There is no known mechanism to reset the read pointer when accessing the bootstrap ROM.
 
-No special proceedure is necessary to read BS1 or BS1. Simply reading ROM_DATA_1 or ROM_DATA_2 is enough. Without the header, BS1 measures in at 72 bytes. BS2 measures 122 bytes in total. The Campho Advance begins in BS1, pulling data via code fetches. BS1's purpose is to load executable code in RAM for BS2 and then jump. Since the Campho Advance's mapper always advances its internal read pointer (regardless of what the CPU's PC register is) the only way for the Campho to run branching code is by copying it to RAM first. BS2's role is to load all of Program ROM into RAM and then jump to execute it.
+No special proceedure is necessary to read BS1 or BS2. Simply reading ROM_DATA_1 or ROM_DATA_2 is enough. Without the header, BS1 measures in at 72 bytes. BS2 measures 122 bytes in total. The Campho Advance begins in BS1, pulling data via code fetches. BS1's purpose is to load executable code in RAM for BS2 and then jump. Since the Campho Advance's mapper always advances its internal read pointer (regardless of what the CPU's PC register is) the only way for the Campho Advance to run branching code is by copying it to RAM first. BS2's role is to load all of Program ROM into RAM and then jump to execute it.
 
+Once all of the data for either BS1 or BS2 has been read, the Campho Advance will return garbage data.
+
+
+***************************************************
+6. Program ROM
+***************************************************
+
+Program ROM is the heart of the Campho Advance. It contains all of the code needed to operate the hardware. It measures exactly 64000 bytes, and the Campho Advance breaks that up into separate 4000 byte banks. BS2 is responsible for reading each block, copying them to the GBA's 256KB WRAM, and jumping to the start of Program ROM to begin execution. The following process is used to read each block.
+
+------------------------------------------------------------------------
+//Preps a block for reading
+ROM_CNT = 0xA00A
+
+CHECK_LOOP:
+
+//Empty while loop, run indefinitely until condition is true
+WHILE (ROM_STAT & 0xA00A) NOT EQUAL TO 0xA00A
+
+//Read Block ID and Block Length from ROM Data Stream 1
+ROM_STAT = 0xA00A
+BLOCK_ID = READ 16 BITS FROM [ROM_DATA_1]
+BLOCK_LEN = READ 16 BITS [ROM_DATA_1]
+
+//Read data as long as Block ID is not 0xCD00
+IF BLOCK_ID NOT EQUAL TO 0xCD00
+
+        //Read data for the amount of bytes in the block
+	//Store in 256KB WRAM
+        WHILE BLOCK_LEN NOT EQUAL TO 0x00
+                DATA_VAL = READ 16 BITS FROM [ROM_DATA_1] 
+                [0x2000000 + INDEX] = DATA_VAL
+
+                INDEX = INDEX + 2
+                BLOCK_LEN = BLOCK_LEN - 2
+
+        //Resets stuff to read next block
+	//Yes, *2* subsequent writes ROM_DATA_1, probably to reset Block ID and Length
+        [ROM_DATA_1] = 0x00
+        [ROM_DATA_1] = 0x00
+
+	//Preps a block for reading
+        ROM_CNT = 0xA00A
+
+        GOTO CHECK_LOOP
+------------------------------------------------------------------------
+
+First, ROM_CNT is set to 0xA00A, then the program must wait for ROM_STAT to read back the same value. Afterwards, writing 0xA00A to ROM_STAT will prompt the Campho Advance to begin reading the block. The first 32-bits (broken down into 2 16-bit values) of each block contains metadata about the block's ID and the total number bytes in the block. The block ID has a valid range of 0xCC00 to 0xCC0F. The next block ID after 0xCC0F is 0xCD00, which is a dummy zero-length block that signals the end of Program ROM. It is important to remember that any read from ROM_DATA_1 will grab Program ROM data sequentially, so the Campho Advance uses a constant value of 0x8000000. After all data within a block has been read, the Campho Advance needs to be prepped to read the next one. This involves writing zeroes to ROM_DATA_1 twice and then setting ROM_CNT to 0xA00A once more.
+
+
+***************************************************
+6. Graphics ROM
+***************************************************
+
+Graphics ROM contains various bitmap graphics for the Campho Advance's menus as well as other visual assets such as fonts. Program ROM handles all access to this data by issuing a command first, then reading the relevant data from ROM_DATA_1. All I/O registers use their Wait State 1 mirrors (0xA000000) for Graphics ROM. The proceedure is as follows:
+
+------------------------------------------------------------------------
+//All writes to ROM_DATA_1 are 16-bit
+ROM_STAT = 0x4015
+
+//Read Command
+ROM_DATA_1 = 0x42B7
+
+//Unknown Parameter, always 1 for reads
+ROM_DATA_1 = 0x0001
+
+//32-bit bank
+ROM_DATA_1 = G_ROM_BANK_LO
+ROM_DATA_1 = G_ROM_BANK_HI
+
+//32-bit offset
+ROM_DATA_1 = G_ROM_OFFSET_LO
+ROM_DATA_1 = G_ROM_OFFSET_HI
+
+ROM_CNT = 0x4015
+------------------------------------------------------------------------
+
+G_ROM_BANK refers to the specific 32-bit internal address the Campho Advance assigns portions of Graphics ROM. It is broken down into 2 16-bit components (LO and HI) and written LSB first. G_ROM_OFFSET refers to a 32-bit offset typically used when reading sections of Graphics ROM larger than 4000 bytes. Some larger offsets seem to have unknown significance when reading Graphics ROM. For most ordinary blocks larger than 4000 bytes, however, it addresses the next 4000 bytes in terms of 64-bit units. E.g. for an 8000 byte section of Graphics ROM, the first offset would be 0x00000000 to read the first 4000 byte half. The second offset would now be 0x000001F4 to read the next 4000 byte section.
+
+After issuing these writes, the data can be read at ROM_DATA_1 in 16-bit units. Although Graphics ROM is normally read in 4000 bytes block at maximum, other smaller sizes are frequently read. The first two 16-bit reads will typically return an unknown parameter (possibly a Block ID or some kind of status) followed by the overall length of the block in 64-bit units. Afterwards, the rest of the graphics data in that block is streamed.
+
+Before reading any blocks from Graphics ROM, however, the above command must first be used G_ROM_OFFSET set to a value of 0xFFFFFFFF. This acts as some kind of reset mechanism. No data needs to be read, although ROM_STAT is checked to make sure Graphics ROM is ready for data transfers.
