@@ -238,6 +238,7 @@ void AGB_MMU::campho_map_rom_banks()
 	if(campho.data.size() < 4) { return; }
 
 	u32 header_len = (campho.data[0] << 24) | (campho.data[1] << 16) | (campho.data[2] << 8) | campho.data[3];
+
 	u32 rom_pos = 0;
 	u32 bank_pos = header_len;
 
@@ -247,9 +248,9 @@ void AGB_MMU::campho_map_rom_banks()
 	campho.mapped_bank_pos.clear();
 
 	//Grab bank entries and parse them accordingly
-	for(u32 header_index = 0; header_index < header_len;)
+	for(u32 header_index = 4; header_index < header_len;)
 	{
-		rom_pos = header_index + 4;
+		rom_pos = header_index;
 		if((rom_pos + 12) >= campho.data.size()) { break; }
 
 		u32 bank_id = (campho.data[rom_pos] << 24) | (campho.data[rom_pos+1] << 16) | (campho.data[rom_pos+2] << 8) | campho.data[rom_pos+3];
@@ -262,5 +263,6 @@ void AGB_MMU::campho_map_rom_banks()
 		campho.mapped_bank_pos.push_back(bank_pos);
 
 		bank_pos += bank_len;
+		header_index += 12;
 	}	 
 }
