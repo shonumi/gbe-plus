@@ -547,13 +547,13 @@ u8 AGB_MMU::read_u8(u32 address)
 /****** Read 2 bytes from memory ******/
 u16 AGB_MMU::read_u16(u32 address)
 {
-	return ((read_u8(address+1) << 8) | read_u8(address)); 
+	return (read_u8(address) | (read_u8(address+1) << 8) ); 
 }
 
 /****** Read 4 bytes from memory ******/
 u32 AGB_MMU::read_u32(u32 address)
 {
-	return ((read_u8(address+3) << 24) | (read_u8(address+2) << 16) | (read_u8(address+1) << 8) | read_u8(address));
+	return (read_u8(address) |  (read_u8(address+1) << 8) | (read_u8(address+2) << 16) | (read_u8(address+3) << 24));
 }
 
 /****** Reads 2 bytes from memory - No checks done on the read, used for known memory locations such as registers ******/

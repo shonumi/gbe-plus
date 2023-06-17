@@ -440,6 +440,7 @@ class AGB_MMU
 	void write_campho(u32 address, u8 value);
 	void campho_set_rom_bank(u32 bank, u32 address, bool set_hi_bank);
 	void campho_map_rom_banks();
+	u32 campho_get_bank_by_id(u32 id);
 
 	void glucoboy_reset();
 	u8 read_glucoboy(u32 address);

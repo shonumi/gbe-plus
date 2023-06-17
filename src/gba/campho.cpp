@@ -61,8 +61,10 @@ void AGB_MMU::write_campho(u32 address, u8 value)
 				{
 					campho.block_stat = 0xCC00;
 					campho.bank_state = 1;
-					campho.bank_index_lo = 0;
-					campho_set_rom_bank(0xCC00, 0x00, 0);
+
+					std::cout<<"MMU::Campho Reading PROM Bank 0x" << campho.block_stat << "\n";
+					u32 prom_bank_id = campho_get_bank_by_id(campho.block_stat);
+					campho_set_rom_bank(campho.mapped_bank_id[prom_bank_id], campho.mapped_bank_addr[prom_bank_id], false);
 				}
 
 				//Increment Program ROM bank
@@ -76,6 +78,13 @@ void AGB_MMU::write_campho(u32 address, u8 value)
 					{
 						campho.block_stat = 0xCD00;
 						campho.bank_state = 1;
+					}
+
+					else
+					{
+						std::cout<<"MMU::Campho Reading PROM Bank 0x" << campho.block_stat << "\n";
+						u32 prom_bank_id = campho_get_bank_by_id(campho.block_stat);
+						campho_set_rom_bank(campho.mapped_bank_id[prom_bank_id], campho.mapped_bank_addr[prom_bank_id], false);
 					}
 				}
 			}
@@ -264,5 +273,30 @@ void AGB_MMU::campho_map_rom_banks()
 
 		bank_pos += bank_len;
 		header_index += 12;
-	}	 
+	}
+
+	//Setup initial BS1 and BS2
+	u32 bs1_bank = campho_get_bank_by_id(0x08000000);
+	u32 bs2_bank = campho_get_bank_by_id(0x08008000);
+	
+	if(bs1_bank != 0xFFFFFFFF)
+	{
+		campho_set_rom_bank(campho.mapped_bank_id[bs1_bank], campho.mapped_bank_addr[bs1_bank], false);
+	}
+
+	if(bs2_bank != 0xFFFFFFFF)
+	{
+		campho_set_rom_bank(campho.mapped_bank_id[bs2_bank], campho.mapped_bank_addr[bs2_bank], true);
+	}
+}
+
+/****** Returns the internal ROM bank GBE+ needs - Mapped to the Campho Advance's IDs ******/
+u32 AGB_MMU::campho_get_bank_by_id(u32 id)
+{
+	for(u32 x = 0; x < campho.mapped_bank_id.size(); x++)
+	{
+		if(campho.mapped_bank_id[x] == id) { return x; }
+	}
+
+	return 0xFFFFFFFF;
 }
