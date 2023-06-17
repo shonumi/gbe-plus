@@ -306,7 +306,7 @@ class AGB_MMU
 		u8 bank_state;
 
 		std::vector<u32> mapped_bank_id;
-		std::vector<u32> mapped_bank_addr;
+		std::vector<u32> mapped_bank_index;
 		std::vector<u32> mapped_bank_len;
 		std::vector<u32> mapped_bank_pos;
 	} campho;

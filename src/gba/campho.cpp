@@ -64,7 +64,7 @@ void AGB_MMU::write_campho(u32 address, u8 value)
 
 					std::cout<<"MMU::Campho Reading PROM Bank 0x" << campho.block_stat << "\n";
 					u32 prom_bank_id = campho_get_bank_by_id(campho.block_stat);
-					campho_set_rom_bank(campho.mapped_bank_id[prom_bank_id], campho.mapped_bank_addr[prom_bank_id], false);
+					campho_set_rom_bank(campho.mapped_bank_id[prom_bank_id], campho.mapped_bank_index[prom_bank_id], false);
 				}
 
 				//Increment Program ROM bank
@@ -77,14 +77,13 @@ void AGB_MMU::write_campho(u32 address, u8 value)
 					if(campho.block_stat == 0xCC10)
 					{
 						campho.block_stat = 0xCD00;
-						campho.bank_state = 1;
 					}
 
-					else
+					else if(campho.block_stat < 0xCC10)
 					{
 						std::cout<<"MMU::Campho Reading PROM Bank 0x" << campho.block_stat << "\n";
 						u32 prom_bank_id = campho_get_bank_by_id(campho.block_stat);
-						campho_set_rom_bank(campho.mapped_bank_id[prom_bank_id], campho.mapped_bank_addr[prom_bank_id], false);
+						campho_set_rom_bank(campho.mapped_bank_id[prom_bank_id], campho.mapped_bank_index[prom_bank_id], false);
 					}
 				}
 			}
@@ -112,10 +111,10 @@ u8 AGB_MMU::read_campho(u32 address)
 				}
 
 				//Return LEN LOW on second read
-				//These 16-bit values should be fixed (0xFFA)
+				//These 16-bit values should be fixed (0xFFA), except for last block (zero-length)
 				else if(campho.bank_state == 2)
 				{
-					result = 0xFA;
+					result = (campho.block_stat == 0xCD00) ? 0x00 : 0xFA;
 				}
 			}
 
@@ -136,10 +135,10 @@ u8 AGB_MMU::read_campho(u32 address)
 				}
 
 				//Return LEN HIGH on second read
-				//These 16-bit values should be fixed (0xFFA)
+				//These 16-bit values should be fixed (0xFFA), except for last block (zero-length)
 				else if(campho.bank_state == 2)
 				{
-					result = 0x0F;
+					result = (campho.block_stat == 0xCD00) ? 0x00 : 0x0F;
 					campho.bank_state = 0;
 				}
 			}
@@ -212,7 +211,7 @@ void AGB_MMU::campho_set_rom_bank(u32 bank, u32 address, bool set_hi_bank)
 	for(u32 x = 0; x < campho.mapped_bank_id.size(); x++)
 	{
 		//Match bank ID and base address
-		if((campho.mapped_bank_id[x] == bank) && (campho.mapped_bank_addr[x] == address))
+		if((campho.mapped_bank_id[x] == bank) && (campho.mapped_bank_index[x] == address))
 		{
 			//Set High ROM bank
 			if(set_hi_bank) { campho.bank_index_hi = campho.mapped_bank_pos[x]; }
@@ -240,7 +239,7 @@ void AGB_MMU::campho_map_rom_banks()
 	//BANK ENTRIES			... rest of the header, see below for Bank Entry format
 
 	//BANK ID			4 bytes
-	//BANK BASE ADDRESS		4 bytes
+	//BANK INDEX			4 bytes
 	//BANK LENGTH IN BYTES		4 bytes
 
 	//Grab ROM header length
@@ -252,7 +251,7 @@ void AGB_MMU::campho_map_rom_banks()
 	u32 bank_pos = header_len;
 
 	campho.mapped_bank_id.clear();
-	campho.mapped_bank_addr.clear();
+	campho.mapped_bank_index.clear();
 	campho.mapped_bank_len.clear();
 	campho.mapped_bank_pos.clear();
 
@@ -267,7 +266,7 @@ void AGB_MMU::campho_map_rom_banks()
 		u32 bank_len = (campho.data[rom_pos+8] << 24) | (campho.data[rom_pos+9] << 16) | (campho.data[rom_pos+10] << 8) | campho.data[rom_pos+11];
 
 		campho.mapped_bank_id.push_back(bank_id);
-		campho.mapped_bank_addr.push_back(bank_addr);
+		campho.mapped_bank_index.push_back(bank_addr);
 		campho.mapped_bank_len.push_back(bank_len);
 		campho.mapped_bank_pos.push_back(bank_pos);
 
@@ -281,12 +280,12 @@ void AGB_MMU::campho_map_rom_banks()
 	
 	if(bs1_bank != 0xFFFFFFFF)
 	{
-		campho_set_rom_bank(campho.mapped_bank_id[bs1_bank], campho.mapped_bank_addr[bs1_bank], false);
+		campho_set_rom_bank(campho.mapped_bank_id[bs1_bank], campho.mapped_bank_index[bs1_bank], false);
 	}
 
 	if(bs2_bank != 0xFFFFFFFF)
 	{
-		campho_set_rom_bank(campho.mapped_bank_id[bs2_bank], campho.mapped_bank_addr[bs2_bank], true);
+		campho_set_rom_bank(campho.mapped_bank_id[bs2_bank], campho.mapped_bank_index[bs2_bank], true);
 	}
 }
 
