@@ -27,6 +27,11 @@ void AGB_MMU::campho_reset()
 	campho.bank_state = 0;
 	campho.stream_started = false;
 	campho.last_id = 0xFFFFFFFF;
+
+	campho.video_capture_counter = 0;
+	campho.video_frame_index = 0;
+	campho.video_frame_size = 0;
+	campho.capture_video = false;
 }
 
 /****** Writes data to Campho I/O ******/
@@ -373,4 +378,10 @@ u32 AGB_MMU::campho_get_bank_by_id(u32 id, u32 index)
 	}
 
 	return 0xFFFFFFFF;
+}
+
+/****** Processes regular events such as audio/video capture for the Campho Advance ******/
+void AGB_MMU::process_campho()
+{
+
 }

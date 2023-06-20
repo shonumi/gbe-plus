@@ -1751,6 +1751,9 @@ void AGB_LCD::step()
 
 			//Process Glucoboy interrupts
 			else if((config::cart_type == AGB_GLUCOBOY) && (mem->glucoboy.request_interrupt)) { mem->process_glucoboy_irq(); }
+
+			//Process Campho events (audio/video) 
+			else if(config::cart_type == AGB_CAMPHO) { mem->process_campho(); }
 		}
 
 		//Setup HBlank

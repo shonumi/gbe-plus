@@ -307,6 +307,11 @@ class AGB_MMU
 		u8 bank_state;
 		bool stream_started;
 
+		u8 video_capture_counter;
+		u32 video_frame_index;
+		u32 video_frame_size;
+		bool capture_video;
+
 		std::vector<u32> mapped_bank_id;
 		std::vector<u32> mapped_bank_index;
 		std::vector<u32> mapped_bank_len;
@@ -444,6 +449,7 @@ class AGB_MMU
 	void campho_map_rom_banks();
 	u32 campho_get_bank_by_id(u32 id);
 	u32 campho_get_bank_by_id(u32 id, u32 index);
+	void process_campho();
 
 	void glucoboy_reset();
 	u8 read_glucoboy(u32 address);
