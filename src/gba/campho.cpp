@@ -25,6 +25,8 @@ void AGB_MMU::campho_reset()
 	campho.block_len = 0;
 	campho.block_stat = 0;
 	campho.bank_state = 0;
+	campho.stream_started = false;
+	campho.last_id = 0xFFFFFFFF;
 }
 
 /****** Writes data to Campho I/O ******/
@@ -43,6 +45,10 @@ void AGB_MMU::write_campho(u32 address, u8 value)
 		case CAM_ROM_STAT_B+1:
 			campho.rom_stat &= 0xFF;
 			campho.rom_stat |= (value << 8);
+
+			//Process commands to read Graphics ROM
+			if(campho.rom_stat == 0x4015) { campho.stream_started = true; }
+
 			break;
 
 		//Campho ROM Control
@@ -98,27 +104,47 @@ void AGB_MMU::write_campho(u32 address, u8 value)
 			campho.rom_cnt &= 0xFF;
 			campho.rom_cnt |= (value << 8);
 
-			//Grab Graphics ROM data based on input from stream
-			if((!campho.g_stream.empty()) && (campho.g_stream.size() >= 4))
+			if(campho.rom_cnt == 0x4015)
 			{
-				u32 pos = campho.g_stream.size() - 4;
-				u32 index = (campho.g_stream[pos] | (campho.g_stream[pos+1] << 8) | (campho.g_stream[pos+2] << 16) | (campho.g_stream[pos+3] << 24));
-				u16 param_1 = (campho.g_stream[0] | (campho.g_stream[1] << 8));
-				u16 param_2 = 0;
+				campho.stream_started = false; 
 
-				if(campho.g_stream.size() == 12)
+				//Grab Graphics ROM data based on input from stream
+				if((!campho.g_stream.empty()) && (campho.g_stream.size() >= 4))
 				{
-					param_2 = (campho.g_stream[4] | (campho.g_stream[5] << 8));
-					std::cout<<"Graphics ROM ID -> 0x" << param_2 << "\n";
+					u32 pos = campho.g_stream.size() - 4;
+					u32 index = (campho.g_stream[pos] | (campho.g_stream[pos+1] << 8) | (campho.g_stream[pos+2] << 16) | (campho.g_stream[pos+3] << 24));
+					u16 param_1 = (campho.g_stream[0] | (campho.g_stream[1] << 8));
 
-					//Set new Graphics ROM bank
-					u32 g_bank_id = campho_get_bank_by_id(param_2);
-					campho_set_rom_bank(campho.mapped_bank_id[g_bank_id], campho.mapped_bank_index[g_bank_id], true);
+					if(campho.g_stream.size() == 12)
+					{
+						u32 param_2 = (campho.g_stream[4] | (campho.g_stream[5] << 8) | (campho.g_stream[6] << 16) | (campho.g_stream[7] << 24));
+						campho.last_id = param_2;
+						std::cout<<"Graphics ROM ID -> 0x" << param_2 << "\n";
+
+						//Set new Graphics ROM bank
+						u32 g_bank_id = campho_get_bank_by_id(param_2, index);
+
+						if(g_bank_id != 0xFFFFFFFF)
+						{
+							campho_set_rom_bank(campho.mapped_bank_id[g_bank_id], campho.mapped_bank_index[g_bank_id], true);
+						}
+					}
+
+					else if(campho.g_stream.size() == 6)
+					{
+						//Set new Graphics ROM bank
+						u32 g_bank_id = campho_get_bank_by_id(campho.last_id, index);
+
+						if(g_bank_id != 0xFFFFFFFF)
+						{
+							campho_set_rom_bank(campho.mapped_bank_id[g_bank_id], campho.mapped_bank_index[g_bank_id], true);
+						}
+					}
+
+					std::cout<<"Graphics ROM Index -> 0x" << index << "\n";
 				}
 
-				std::cout<<"Graphics ROM Index -> 0x" << index << "\n";
 				campho.g_stream.clear();
-				SDL_Delay(5000);
 			}
 
 			break;
@@ -126,11 +152,11 @@ void AGB_MMU::write_campho(u32 address, u8 value)
 		//Graphics ROM Stream
 		case CAM_ROM_DATA_HI_B:
 		case CAM_ROM_DATA_HI_B+1:
-			campho.g_stream.push_back(value);
+			if(campho.stream_started) { campho.g_stream.push_back(value); }
 			break;
 	}
 
-	std::cout<<"CAMPHO WRITE 0x" << address << " :: 0x" << (u32)value << "\n";
+	//std::cout<<"CAMPHO WRITE 0x" << address << " :: 0x" << (u32)value << "\n";
 }
 
 /****** Reads data from Campho I/O ******/
@@ -216,7 +242,7 @@ u8 AGB_MMU::read_campho(u32 address)
 			result = read_campho_seq(address);
 	}
 
-	std::cout<<"CAMPHO READ 0x" << address << " :: 0x" << (u32)result << "\n";
+	//std::cout<<"CAMPHO READ 0x" << address << " :: 0x" << (u32)result << "\n";
 	return result;
 }
 
@@ -333,6 +359,17 @@ u32 AGB_MMU::campho_get_bank_by_id(u32 id)
 	for(u32 x = 0; x < campho.mapped_bank_id.size(); x++)
 	{
 		if(campho.mapped_bank_id[x] == id) { return x; }
+	}
+
+	return 0xFFFFFFFF;
+}
+
+/****** Returns the internal ROM bank GBE+ needs - Mapped to the Campho Advance's IDs ******/
+u32 AGB_MMU::campho_get_bank_by_id(u32 id, u32 index)
+{
+	for(u32 x = 0; x < campho.mapped_bank_id.size(); x++)
+	{
+		if((campho.mapped_bank_id[x] == id) && (campho.mapped_bank_index[x] == index)) { return x; }
 	}
 
 	return 0xFFFFFFFF;

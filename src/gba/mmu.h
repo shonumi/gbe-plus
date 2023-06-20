@@ -294,6 +294,7 @@ class AGB_MMU
 	{
 		std::vector<u8> data;
 		std::vector<u8> g_stream;
+		u32 last_id;
 		u32 bank_index_lo;
 		u32 bank_index_hi;
 		u32 bank_id;
@@ -304,6 +305,7 @@ class AGB_MMU
 		u16 block_len;
 		u16 block_stat;
 		u8 bank_state;
+		bool stream_started;
 
 		std::vector<u32> mapped_bank_id;
 		std::vector<u32> mapped_bank_index;
@@ -441,6 +443,7 @@ class AGB_MMU
 	void campho_set_rom_bank(u32 bank, u32 address, bool set_hi_bank);
 	void campho_map_rom_banks();
 	u32 campho_get_bank_by_id(u32 id);
+	u32 campho_get_bank_by_id(u32 id, u32 index);
 
 	void glucoboy_reset();
 	u8 read_glucoboy(u32 address);
