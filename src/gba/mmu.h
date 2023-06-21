@@ -311,6 +311,7 @@ class AGB_MMU
 		u32 video_frame_index;
 		u32 video_frame_size;
 		bool capture_video;
+		bool new_frame;
 
 		std::vector<u32> mapped_bank_id;
 		std::vector<u32> mapped_bank_index;

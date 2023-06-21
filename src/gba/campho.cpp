@@ -32,6 +32,7 @@ void AGB_MMU::campho_reset()
 	campho.video_frame_index = 0;
 	campho.video_frame_size = 0;
 	campho.capture_video = false;
+	campho.new_frame = false;
 }
 
 /****** Writes data to Campho I/O ******/
@@ -144,6 +145,13 @@ void AGB_MMU::write_campho(u32 address, u8 value)
 						{
 							campho_set_rom_bank(campho.mapped_bank_id[g_bank_id], campho.mapped_bank_index[g_bank_id], true);
 						}
+					}
+
+					//Turn on camera?
+					if(index == 0xD740)
+					{
+						campho.capture_video = true;
+						campho.video_frame_size = 176;
 					}
 
 					std::cout<<"Graphics ROM Index -> 0x" << index << "\n";
@@ -383,5 +391,16 @@ u32 AGB_MMU::campho_get_bank_by_id(u32 id, u32 index)
 /****** Processes regular events such as audio/video capture for the Campho Advance ******/
 void AGB_MMU::process_campho()
 {
+	//Update video capture data with new pixels for current frame - Update at ~5FPS
+	if(campho.capture_video)
+	{
+		campho.video_capture_counter++;
 
+		if(campho.video_capture_counter == 12)
+		{
+			campho.new_frame = true;
+			campho.video_frame_index = 0;
+			campho.video_capture_counter = 0;
+		}
+	}
 }
