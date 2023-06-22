@@ -294,6 +294,7 @@ class AGB_MMU
 	{
 		std::vector<u8> data;
 		std::vector<u8> g_stream;
+		std::vector<u8> video_frame;
 		u32 last_id;
 		u32 bank_index_lo;
 		u32 bank_index_hi;
@@ -309,7 +310,7 @@ class AGB_MMU
 
 		u8 video_capture_counter;
 		u32 video_frame_index;
-		u32 video_frame_size;
+		u16 video_frame_size;
 		bool capture_video;
 		bool new_frame;
 

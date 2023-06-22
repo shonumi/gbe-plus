@@ -147,17 +147,32 @@ void AGB_MMU::write_campho(u32 address, u8 value)
 						}
 					}
 
-					//Turn on camera?
-					if(index == 0xD740)
+					//Stop camera?
+					if(index == 0xF740)
+					{
+						campho.capture_video = false;
+					}
+
+					//Turn on camera for large frame?
+					else if(index == 0xD740)
 					{
 						campho.capture_video = true;
-						campho.video_frame_size = 176;
+
+						//Large video frame = 176x144 drawn 12 lines at a time
+						campho.video_frame_size = 176 * 12;
 					}
 
 					std::cout<<"Graphics ROM Index -> 0x" << index << "\n";
 				}
 
 				campho.g_stream.clear();
+			}
+
+			if((campho.rom_cnt == 0xA00A) && (campho.new_frame))
+			{
+				campho.new_frame = false;
+				campho.rom_stat = 0x4015;
+
 			}
 
 			break;
@@ -273,12 +288,23 @@ u8 AGB_MMU::read_campho_seq(u32 address)
 		}
 	}
 
-	//Read High ROM Data Stream
+	//Read High ROM Data Stream or Camera Video Data
 	else
 	{
-		if((campho.bank_index_hi + 1) < campho.data.size())
+		if(campho.new_frame)
 		{
-			result = campho.data[campho.bank_index_hi++];
+			if((campho.video_frame_index + 1) < campho.video_frame.size())
+			{
+				result = campho.video_frame[campho.video_frame_index++];
+			}
+		}
+
+		else
+		{
+			if((campho.bank_index_hi + 1) < campho.data.size())
+			{
+				result = campho.data[campho.bank_index_hi++];
+			}
 		}
 	}
 
@@ -401,6 +427,38 @@ void AGB_MMU::process_campho()
 			campho.new_frame = true;
 			campho.video_frame_index = 0;
 			campho.video_capture_counter = 0;
+			campho.rom_stat = 0xA00A;
+
+			//Setup new frame data
+			campho.video_frame.clear();
+
+			//2-byte metadata, position and size of frame
+			u16 pos = 0xAA0C;
+			pos = ((pos >> 3) | (pos << 13));
+
+			u16 v_size = campho.video_frame_size / 4;
+
+			campho.video_frame.push_back(pos & 0xFF);
+			campho.video_frame.push_back(pos >> 8);
+			campho.video_frame.push_back(v_size & 0xFF);
+			campho.video_frame.push_back(v_size >> 8);
+
+			for(u32 x = 0; x < campho.video_frame_size; x++)
+			{
+				//Dummy data for now
+
+				if((x / 176) & 0x1)
+				{
+					campho.video_frame.push_back(0xFF);
+					campho.video_frame.push_back(0x7F);
+				}
+
+				else
+				{
+					campho.video_frame.push_back(0x23);
+					campho.video_frame.push_back(0x47);
+				}
+			}
 		}
 	}
 }
