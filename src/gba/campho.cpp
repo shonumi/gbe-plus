@@ -420,45 +420,46 @@ void AGB_MMU::process_campho()
 	//Update video capture data with new pixels for current frame - Update at ~5FPS
 	if(campho.capture_video)
 	{
-		campho.video_capture_counter++;
+		campho.new_frame = true;
+		campho.video_frame_index = 0;
+		campho.rom_stat = 0xA00A;
 
-		if(campho.video_capture_counter == 12)
+		//Setup new frame data
+		campho.video_frame.clear();
+
+		//2-byte metadata, position and size of frame
+		u16 pos = 0xAA00 + campho.video_capture_counter;
+		pos = ((pos >> 3) | (pos << 13));
+
+		u16 v_size = campho.video_frame_size / 4;
+
+		campho.video_frame.push_back(pos & 0xFF);
+		campho.video_frame.push_back(pos >> 8);
+		campho.video_frame.push_back(v_size & 0xFF);
+		campho.video_frame.push_back(v_size >> 8);
+
+		for(u32 x = 0; x < campho.video_frame_size; x++)
 		{
-			campho.new_frame = true;
-			campho.video_frame_index = 0;
-			campho.video_capture_counter = 0;
-			campho.rom_stat = 0xA00A;
-
-			//Setup new frame data
-			campho.video_frame.clear();
-
-			//2-byte metadata, position and size of frame
-			u16 pos = 0xAA0C;
-			pos = ((pos >> 3) | (pos << 13));
-
-			u16 v_size = campho.video_frame_size / 4;
-
-			campho.video_frame.push_back(pos & 0xFF);
-			campho.video_frame.push_back(pos >> 8);
-			campho.video_frame.push_back(v_size & 0xFF);
-			campho.video_frame.push_back(v_size >> 8);
-
-			for(u32 x = 0; x < campho.video_frame_size; x++)
+			//Dummy data for now
+			if((x / 176) & 0x1)
 			{
-				//Dummy data for now
+				campho.video_frame.push_back(0xFF);
+				campho.video_frame.push_back(0x7F);
+			}
 
-				if((x / 176) & 0x1)
-				{
-					campho.video_frame.push_back(0xFF);
-					campho.video_frame.push_back(0x7F);
-				}
-
-				else
-				{
-					campho.video_frame.push_back(0x23);
-					campho.video_frame.push_back(0x47);
-				}
+			else
+			{
+				campho.video_frame.push_back(0x23);
+				campho.video_frame.push_back(0x47);
 			}
 		}
+
+		campho.video_capture_counter++;
+
+		if(campho.video_capture_counter == 13)
+		{
+			campho.video_capture_counter = 0;
+		}
 	}
+
 }
