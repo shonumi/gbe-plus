@@ -33,6 +33,7 @@ void AGB_MMU::campho_reset()
 	campho.video_frame_size = 0;
 	campho.capture_video = false;
 	campho.new_frame = false;
+	campho.cam_io_locked = true;
 }
 
 /****** Writes data to Campho I/O ******/
@@ -53,7 +54,11 @@ void AGB_MMU::write_campho(u32 address, u8 value)
 			campho.rom_stat |= (value << 8);
 
 			//Process commands to read Graphics ROM
-			if(campho.rom_stat == 0x4015) { campho.stream_started = true; }
+			if(campho.rom_stat == 0x4015)
+			{
+				campho.stream_started = true;
+				campho.cam_io_locked = true;
+			}
 
 			break;
 
@@ -112,7 +117,8 @@ void AGB_MMU::write_campho(u32 address, u8 value)
 
 			if(campho.rom_cnt == 0x4015)
 			{
-				campho.stream_started = false; 
+				campho.stream_started = false;
+				campho.cam_io_locked = false;
 
 				//Grab Graphics ROM data based on input from stream
 				if((!campho.g_stream.empty()) && (campho.g_stream.size() >= 4))
@@ -418,7 +424,7 @@ u32 AGB_MMU::campho_get_bank_by_id(u32 id, u32 index)
 void AGB_MMU::process_campho()
 {
 	//Update video capture data with new pixels for current frame - Update at ~5FPS
-	if(campho.capture_video)
+	if((campho.capture_video) && (!campho.cam_io_locked))
 	{
 		campho.new_frame = true;
 		campho.video_frame_index = 0;
