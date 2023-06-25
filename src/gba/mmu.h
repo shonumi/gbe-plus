@@ -311,9 +311,11 @@ class AGB_MMU
 		u8 video_capture_counter;
 		u32 video_frame_index;
 		u16 video_frame_size;
+		u8 video_frame_slice;
 		bool capture_video;
 		bool cam_io_locked;
 		bool new_frame;
+		bool is_large_frame;
 
 		std::vector<u32> mapped_bank_id;
 		std::vector<u32> mapped_bank_index;
@@ -452,6 +454,7 @@ class AGB_MMU
 	void campho_map_rom_banks();
 	u32 campho_get_bank_by_id(u32 id);
 	u32 campho_get_bank_by_id(u32 id, u32 index);
+	void campho_set_video_data();
 	void process_campho();
 
 	void glucoboy_reset();
