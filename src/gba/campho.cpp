@@ -178,7 +178,7 @@ void AGB_MMU::write_campho(u32 address, u8 value)
 						campho.capture_video = true;
 						campho.is_large_frame = true;
 
-						//Large video frame = 176x144 drawn 12 lines at a time
+						//Large video frame = 176x144, drawn 12 lines at a time
 						campho.video_frame_size = 176 * 12;
 
 						campho.video_capture_counter = 0;
@@ -193,8 +193,8 @@ void AGB_MMU::write_campho(u32 address, u8 value)
 						campho.capture_video = true;
 						campho.is_large_frame = false;
 
-						//Small video frame = 58x48, drawn 24 lines at a time
-						campho.video_frame_size = 58 * 24;
+						//Small video frame = 58x48, drawn 35 and 13 lines at a time
+						campho.video_frame_size = 58 * 35;
 
 						campho.video_capture_counter = 0;
 						campho.new_frame = false;
@@ -478,6 +478,7 @@ void AGB_MMU::process_campho()
 
 	else { campho.video_capture_counter = 0; }
 
+	//Abort/Finish video rendering midframe if delayed by other I/O like ROM
 	if(campho.last_slice == campho.video_frame_slice)
 	{
 		campho.repeated_slices++;
@@ -501,6 +502,33 @@ void AGB_MMU::process_campho()
 		campho.video_frame_slice = 0;
 		campho.last_slice = 0;
 		campho.rom_stat = 0xA00A;
+
+		//Grab pixel data for captured video frame
+		//Using dummy data for testing
+		u32 capture_size = (campho.is_large_frame) ? (176*144) : (58*48);
+		u8 line_size = (campho.is_large_frame) ? 176 : 58;
+
+		campho.capture_buffer.clear();
+
+		u16 test = 0x4300;
+
+		for(u32 x = 0; x < capture_size; x++)
+		{
+			//Dummy data for now
+			if((x / line_size) & 0x1)
+			{
+				campho.capture_buffer.push_back(0xFF);
+				campho.capture_buffer.push_back(0x7F);
+			}
+
+			else
+			{
+				campho.capture_buffer.push_back(test & 0xFF);
+				campho.capture_buffer.push_back(test >> 0x08);
+			}
+
+			if((x % line_size) == 0) { test += 0x01; }
+		}	
 
 		campho_set_video_data();
 	}
@@ -546,19 +574,17 @@ void AGB_MMU::campho_set_video_data()
 	campho.video_frame.push_back(v_size & 0xFF);
 	campho.video_frame.push_back(v_size >> 8);
 
-	for(u32 x = 0; x < campho.video_frame_size; x++)
-	{
-		//Dummy data for now
-		if((x / line_size) & 0x1)
-		{
-			campho.video_frame.push_back(0xFF);
-			campho.video_frame.push_back(0x7F);
-		}
+	if(!v_size) { return; }
 
-		else
+	u32 line_pos = (campho.video_frame_slice) * 12;
+	if((campho.video_frame_slice != 0)) { line_pos -= campho.video_frame_slice; }
+	line_pos *= (line_size * 2);
+
+	for(u32 x = 0; x < campho.video_frame_size * 2; x++)
+	{
+		if(line_pos < campho.capture_buffer.size())
 		{
-			campho.video_frame.push_back(0x23);
-			campho.video_frame.push_back(0x47);
+			campho.video_frame.push_back(campho.capture_buffer[line_pos++]);
 		}
 	}
 }

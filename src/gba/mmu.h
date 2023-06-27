@@ -295,6 +295,7 @@ class AGB_MMU
 		std::vector<u8> data;
 		std::vector<u8> g_stream;
 		std::vector<u8> video_frame;
+		std::vector<u8> capture_buffer;
 		u32 last_id;
 		u32 bank_index_lo;
 		u32 bank_index_hi;
@@ -312,8 +313,9 @@ class AGB_MMU
 		u32 video_frame_index;
 		u16 video_frame_size;
 		u8 video_frame_slice;
+		u8 last_slice;
+		u8 repeated_slices;
 		bool capture_video;
-		bool cam_io_locked;
 		bool new_frame;
 		bool is_large_frame;
 
