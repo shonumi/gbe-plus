@@ -34,8 +34,10 @@ void AGB_MMU::campho_reset()
 	campho.video_frame_size = 0;
 	campho.capture_video = false;
 	campho.new_frame = false;
-	campho.cam_io_locked = true;
 	campho.is_large_frame = true;
+
+	campho.last_slice = 0;
+	campho.repeated_slices = 0;
 }
 
 /****** Writes data to Campho I/O ******/
@@ -59,8 +61,6 @@ void AGB_MMU::write_campho(u32 address, u8 value)
 			if(campho.rom_stat == 0x4015)
 			{
 				campho.stream_started = true;
-				campho.cam_io_locked = true;
-				campho.new_frame = false;
 			}
 
 			break;
@@ -122,7 +122,6 @@ void AGB_MMU::write_campho(u32 address, u8 value)
 			if(campho.rom_cnt == 0x4015)
 			{
 				campho.stream_started = false;
-				campho.cam_io_locked = false;
 
 				//Grab Graphics ROM data based on input from stream
 				if((!campho.g_stream.empty()) && (campho.g_stream.size() >= 4))
@@ -145,7 +144,10 @@ void AGB_MMU::write_campho(u32 address, u8 value)
 							campho_set_rom_bank(campho.mapped_bank_id[g_bank_id], campho.mapped_bank_index[g_bank_id], true);
 						}
 
-						campho.cam_io_locked = true;
+						campho.video_capture_counter = 0;
+						campho.new_frame = false;
+						campho.video_frame_slice = 0;
+						campho.last_slice = 0;
 					}
 
 					else if(campho.g_stream.size() == 6)
@@ -163,6 +165,11 @@ void AGB_MMU::write_campho(u32 address, u8 value)
 					if(index == 0xF740)
 					{
 						campho.capture_video = false;
+
+						campho.video_capture_counter = 0;
+						campho.new_frame = false;
+						campho.video_frame_slice = 0;
+						campho.last_slice = 0;
 					}
 
 					//Turn on camera for large frame?
@@ -173,6 +180,11 @@ void AGB_MMU::write_campho(u32 address, u8 value)
 
 						//Large video frame = 176x144 drawn 12 lines at a time
 						campho.video_frame_size = 176 * 12;
+
+						campho.video_capture_counter = 0;
+						campho.new_frame = false;
+						campho.video_frame_slice = 0;
+						campho.last_slice = 0;
 					}
 
 					//Turn on camera for small frame?
@@ -183,6 +195,20 @@ void AGB_MMU::write_campho(u32 address, u8 value)
 
 						//Small video frame = 58x48, drawn 24 lines at a time
 						campho.video_frame_size = 58 * 24;
+
+						campho.video_capture_counter = 0;
+						campho.new_frame = false;
+						campho.video_frame_slice = 0;
+						campho.last_slice = 0;
+					}
+
+					//Always end frame rendering
+					else if(index == 0xFF9F)
+					{
+						campho.video_capture_counter = 0;
+						campho.new_frame = false;
+						campho.video_frame_slice = 0;
+						campho.last_slice = 0;
 					}
 
 					std::cout<<"Graphics ROM Index -> 0x" << index << "\n";
@@ -196,6 +222,9 @@ void AGB_MMU::write_campho(u32 address, u8 value)
 			{
 				campho.video_frame_slice++;
 				campho_set_video_data();
+
+				campho.last_slice = campho.video_frame_slice;
+				campho.repeated_slices = 0;
 			}
 
 			break;
@@ -442,14 +471,35 @@ void AGB_MMU::process_campho()
 {
 	campho.video_capture_counter++;
 
-	if(campho.video_capture_counter < 12) { return; }
+	if(campho.video_capture_counter < 12)
+	{
+		return;
+	}
+
 	else { campho.video_capture_counter = 0; }
 
+	if(campho.last_slice == campho.video_frame_slice)
+	{
+		campho.repeated_slices++;
+
+		if(campho.repeated_slices == 2)
+		{
+			campho.rom_stat = 0x4015;
+			campho.last_slice = 0;
+			campho.repeated_slices = 0;
+			campho.video_capture_counter = 0;
+			campho.new_frame = false;
+			campho.video_frame_slice = 0;
+			return;
+		}
+	}
+
 	//Update video capture data with new pixels for current frame - Update at ~5FPS
-	if((campho.capture_video) && (!campho.cam_io_locked) && (!campho.new_frame))
+	if((campho.capture_video) && (!campho.new_frame))
 	{
 		campho.new_frame = true;
 		campho.video_frame_slice = 0;
+		campho.last_slice = 0;
 		campho.rom_stat = 0xA00A;
 
 		campho_set_video_data();
@@ -484,6 +534,7 @@ void AGB_MMU::campho_set_video_data()
 	}
 
 	//Check whether 0xCFFF has been previously sent, end video frame rendering now
+	//Forcing ROM_STAT to 0x4015 signals end all of video frame data from Campho
 	else if(campho.video_frame_slice == slice_limit_end)
 	{
 		campho.rom_stat = 0x4015;
