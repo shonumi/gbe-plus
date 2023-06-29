@@ -334,7 +334,7 @@ u8 AGB_MMU::read_campho_seq(u32 address)
 	//Read Low ROM Data Stream
 	if(address < 0x8008000)
 	{
-		if((campho.bank_index_lo + 1) < campho.data.size())
+		if(campho.bank_index_lo < campho.data.size())
 		{
 			result = campho.data[campho.bank_index_lo++];
 		}
@@ -345,7 +345,7 @@ u8 AGB_MMU::read_campho_seq(u32 address)
 	{
 		if(campho.new_frame)
 		{
-			if((campho.video_frame_index + 1) < campho.video_frame.size())
+			if(campho.video_frame_index < campho.video_frame.size())
 			{
 				result = campho.video_frame[campho.video_frame_index++];
 			}
@@ -353,7 +353,7 @@ u8 AGB_MMU::read_campho_seq(u32 address)
 
 		else
 		{
-			if((campho.bank_index_hi + 1) < campho.data.size())
+			if(campho.bank_index_hi < campho.data.size())
 			{
 				result = campho.data[campho.bank_index_hi++];
 			}
