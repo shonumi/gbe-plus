@@ -576,12 +576,18 @@ void AGB_MMU::campho_set_video_data()
 
 	if(!v_size) { return; }
 
-	u32 line_pos = (campho.video_frame_slice) * 12;
-	if((campho.video_frame_slice != 0)) { line_pos -= campho.video_frame_slice; }
+	u32 line_pos = campho.video_frame_slice;
+	line_pos *= (campho.is_large_frame) ? 12 : 35;
+
+	if(campho.is_large_frame)
+	{
+		if(campho.video_frame_slice != 0) { line_pos -= campho.video_frame_slice; }
+	}
+
 	line_pos *= (line_size * 2);
 
 	for(u32 x = 0; x < campho.video_frame_size * 2; x++)
-	{
+	{	
 		if(line_pos < campho.capture_buffer.size())
 		{
 			campho.video_frame.push_back(campho.capture_buffer[line_pos++]);
