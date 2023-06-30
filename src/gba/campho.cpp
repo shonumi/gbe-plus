@@ -553,6 +553,9 @@ void AGB_MMU::campho_set_video_data()
 	u8 slice_limit_prep = campho.is_large_frame ? 13 : 2;
 	u8 slice_limit_end = campho.is_large_frame ? 14 : 3;
 
+	//Make sure number of bytes to read is a multiple of 4
+	if(v_size & 0x3) { v_size += (4 - (v_size & 0x3)); }
+
 	//Check whether the video frame has been fully rendered
 	//In that case, set position and size to 0xCFFF and 0x00 respectively
 	if(campho.video_frame_slice == slice_limit_prep)
