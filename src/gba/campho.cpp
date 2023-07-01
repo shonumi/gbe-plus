@@ -597,3 +597,54 @@ void AGB_MMU::campho_set_video_data()
 		}
 	}
 }
+
+/****** Converts 24-bit RGB data into 15-bit GBA colors for Campho video buffer ******/
+void AGB_MMU::campho_get_image_data(u8* img_data, u32 width, u32 height)
+{
+	u32 len = width * height;
+	u32 data_index = 0;
+	std::vector <u8> temp_buffer;
+
+	u8 target_width = (campho.is_large_frame) ? 176 : 58;
+	u8 target_height = (campho.is_large_frame) ? 144 : 48;
+
+	//Grab original image data, scale later if necessary
+	for(u32 x = 0; x < len; x++)
+	{
+		u8 r = (img_data[data_index + 2] >> 3);
+		u8 g = (img_data[data_index + 1] >> 3);
+		u8 b = (img_data[data_index] >> 3);
+
+		u16 color = ((b << 10) | (g << 5) | r);
+
+		temp_buffer.push_back(color & 0xFF);
+		temp_buffer.push_back(color >> 0x08);
+
+		data_index += 3;
+	}
+
+	campho.capture_buffer.clear();
+
+	//Calculate X and Y ratio for stretching/shrinking
+	float x_ratio = float(width) / target_width;
+	float y_ratio = float(height) / target_height;
+
+	u32 x_pos = 0;
+	u32 y_pos = 0;
+	u32 pos = 0;
+
+	u32 target_len = target_width * target_height;
+
+	for(u32 x = 0; x < target_len; x++)
+	{
+		u32 x_pos = (x % target_len) * x_ratio;
+		u32 y_pos = (x / target_len) * y_ratio;
+		u32 pos = ((y_pos * width) + x_pos) * 2;
+
+		if(pos < temp_buffer.size())
+		{
+			campho.capture_buffer.push_back(temp_buffer[pos]);
+			campho.capture_buffer.push_back(temp_buffer[pos+1]);
+		}
+	}
+}

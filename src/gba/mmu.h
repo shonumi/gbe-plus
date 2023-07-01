@@ -457,6 +457,7 @@ class AGB_MMU
 	u32 campho_get_bank_by_id(u32 id);
 	u32 campho_get_bank_by_id(u32 id, u32 index);
 	void campho_set_video_data();
+	void campho_get_image_data(u8* img_data, u32 width, u32 height);
 	void process_campho();
 
 	void glucoboy_reset();
