@@ -504,31 +504,15 @@ void AGB_MMU::process_campho()
 		campho.rom_stat = 0xA00A;
 
 		//Grab pixel data for captured video frame
-		//Using dummy data for testing
-		u32 capture_size = (campho.is_large_frame) ? (176*144) : (58*48);
-		u8 line_size = (campho.is_large_frame) ? 176 : 58;
+		//Pull data from BMP file
+		SDL_Surface* source = SDL_LoadBMP("test.bmp");
 
-		campho.capture_buffer.clear();
-
-		u16 test = 0x4300;
-
-		for(u32 x = 0; x < capture_size; x++)
+		if(source != NULL)
 		{
-			//Dummy data for now
-			if((x / line_size) & 0x1)
-			{
-				campho.capture_buffer.push_back(0xFF);
-				campho.capture_buffer.push_back(0x7F);
-			}
-
-			else
-			{
-				campho.capture_buffer.push_back(test & 0xFF);
-				campho.capture_buffer.push_back(test >> 0x08);
-			}
-
-			if((x % line_size) == 0) { test += 0x01; }
-		}	
+			SDL_Surface* temp_bmp = SDL_CreateRGBSurface(SDL_SWSURFACE, source->w, source->h, 32, 0, 0, 0, 0);
+			u8* cam_pixel_data = (u8*)source->pixels;
+			campho_get_image_data(cam_pixel_data, source->w, source->h);	
+		}
 
 		campho_set_video_data();
 	}
@@ -616,6 +600,7 @@ void AGB_MMU::campho_get_image_data(u8* img_data, u32 width, u32 height)
 		u8 b = (img_data[data_index] >> 3);
 
 		u16 color = ((b << 10) | (g << 5) | r);
+		color = ((color >> 3) | (color << 13));
 
 		temp_buffer.push_back(color & 0xFF);
 		temp_buffer.push_back(color >> 0x08);
@@ -637,8 +622,8 @@ void AGB_MMU::campho_get_image_data(u8* img_data, u32 width, u32 height)
 
 	for(u32 x = 0; x < target_len; x++)
 	{
-		u32 x_pos = (x % target_len) * x_ratio;
-		u32 y_pos = (x / target_len) * y_ratio;
+		u32 x_pos = (x % target_width) * x_ratio;
+		u32 y_pos = (x / target_width) * y_ratio;
 		u32 pos = ((y_pos * width) + x_pos) * 2;
 
 		if(pos < temp_buffer.size())
