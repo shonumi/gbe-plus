@@ -81,7 +81,7 @@ Once all of the data for either BS1 or BS2 has been read, the Campho Advance wil
 6. Program ROM
 ***************************************************
 
-Program ROM is the heart of the Campho Advance. It contains all of the code needed to operate the hardware. It measures exactly 64000 bytes, and the Campho Advance breaks that up into separate 4000 byte banks. BS2 is responsible for reading each block, copying them to the GBA's 256KB WRAM, and jumping to the start of Program ROM to begin execution. The following process is used to read each block.
+Program ROM is the heart of the Campho Advance. It contains all of the code needed to operate the hardware. It measures exactly 65440 bytes, and the Campho Advance breaks that up into separate 4090 byte banks. BS2 is responsible for reading each block, copying them to the GBA's 256KB WRAM, and jumping to the start of Program ROM to begin execution. The following process is used to read each block.
 
 ------------------------------------------------------------------------
 //Preps a block for reading
@@ -127,25 +127,25 @@ First, ROM_CNT is set to 0xA00A, then the program must wait for ROM_STAT to read
 6. Graphics ROM
 ***************************************************
 
-Graphics ROM contains various bitmap graphics for the Campho Advance's menus as well as other visual assets such as fonts. Program ROM handles all access to this data by issuing a command first, then reading the relevant data from ROM_DATA_1. All I/O registers use their Wait State 1 mirrors (0xA000000) for Graphics ROM. The proceedure is as follows:
+Graphics ROM contains various bitmap graphics for the Campho Advance's menus as well as other visual assets such as fonts. Program ROM handles all access to this data by issuing a command first, then reading the relevant data from ROM_DATA_2. All I/O registers use their Wait State 1 mirrors (0xA000000) for Graphics ROM. The proceedure is as follows:
 
 ------------------------------------------------------------------------
-//All writes to ROM_DATA_1 are 16-bit
+//All writes to ROM_DATA_2 are 16-bit
 ROM_STAT = 0x4015
 
 //Read Command
-ROM_DATA_1 = 0x42B7
+ROM_DATA_2 = 0x42B7
 
 //Unknown Parameter, always 1 for reads
-ROM_DATA_1 = 0x0001
+ROM_DATA_2 = 0x0001
 
 //32-bit bank
-ROM_DATA_1 = G_ROM_BANK_LO
-ROM_DATA_1 = G_ROM_BANK_HI
+ROM_DATA_2 = G_ROM_BANK_LO
+ROM_DATA_2 = G_ROM_BANK_HI
 
 //32-bit offset
-ROM_DATA_1 = G_ROM_OFFSET_LO
-ROM_DATA_1 = G_ROM_OFFSET_HI
+ROM_DATA_2 = G_ROM_OFFSET_LO
+ROM_DATA_2 = G_ROM_OFFSET_HI
 
 ROM_CNT = 0x4015
 ------------------------------------------------------------------------
@@ -155,3 +155,33 @@ G_ROM_BANK refers to the specific 32-bit internal address the Campho Advance ass
 After issuing these writes, the data can be read at ROM_DATA_1 in 16-bit units. Although Graphics ROM is normally read in 4000 bytes block at maximum, other smaller sizes are frequently read. The first two 16-bit reads will typically return an unknown parameter (possibly a Block ID or some kind of status) followed by the overall length of the block in 64-bit units. Afterwards, the rest of the graphics data in that block is streamed.
 
 Before reading any blocks from Graphics ROM, however, the above command must first be used G_ROM_OFFSET set to a value of 0xFFFFFFFF. This acts as some kind of reset mechanism. No data needs to be read, although ROM_STAT is checked to make sure Graphics ROM is ready for data transfers.
+
+
+***************************************************
+7. Commands
+***************************************************
+
+The Campho Advance can issue a small number of commands to control various bits of hardware outside memory management. The process of sending commands is very similar to reading Graphics ROM. Once again, all I/O registers use their Wait State 1 mirrors (0xA000000). Each command is 32-bits.
+
+------------------------------------------------------------------------
+//All writes to ROM_DATA_2 are 16-bit
+ROM_STAT = 0x4015
+
+ROM_DATA_2 = COMMAND_LO
+ROM_DATA_2 = COMMAND_HI
+
+ROM_CNT = 0x4015
+------------------------------------------------------------------------
+
+Some commands return data for the Campho Advance to read. The meaning of the data is currently unknown, however, it can be read at ROM_DATA_2. Below are a list of known commands:
+
+------------------------------------------------------------------------
+Command		| Description
+------------------------------------------------------------------------
+0xB740		| Starts input data from the camera (small 58x48 frame)
+0xD740		| Starts input data from the camera (large 176x144 frame)
+0xF740		| Halts input data from the camera
+0x54000		| Unknown
+0x1FFE4000	| Unknown
+0x40064000	| Unknown
+------------------------------------------------------------------------
