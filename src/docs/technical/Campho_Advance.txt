@@ -134,25 +134,25 @@ Graphics ROM contains various bitmap graphics for the Campho Advance's menus as 
 ROM_STAT = 0x4015
 
 //Read Command
-ROM_DATA_2 = 0x42B7
+[ROM_DATA_2] = 0x42B7
 
 //Unknown Parameter, always 1 for reads
-ROM_DATA_2 = 0x0001
+[ROM_DATA_2] = 0x0001
 
 //32-bit bank
-ROM_DATA_2 = G_ROM_BANK_LO
-ROM_DATA_2 = G_ROM_BANK_HI
+[ROM_DATA_2] = G_ROM_BANK_LO
+[ROM_DATA_2] = G_ROM_BANK_HI
 
 //32-bit offset
-ROM_DATA_2 = G_ROM_OFFSET_LO
-ROM_DATA_2 = G_ROM_OFFSET_HI
+[ROM_DATA_2] = G_ROM_OFFSET_LO
+[ROM_DATA_2] = G_ROM_OFFSET_HI
 
 ROM_CNT = 0x4015
 ------------------------------------------------------------------------
 
 G_ROM_BANK refers to the specific 32-bit internal address the Campho Advance assigns portions of Graphics ROM. It is broken down into 2 16-bit components (LO and HI) and written LSB first. G_ROM_OFFSET refers to a 32-bit offset typically used when reading sections of Graphics ROM larger than 4000 bytes. Some larger offsets seem to have unknown significance when reading Graphics ROM. For most ordinary blocks larger than 4000 bytes, however, it addresses the next 4000 bytes in terms of 64-bit units. E.g. for an 8000 byte section of Graphics ROM, the first offset would be 0x00000000 to read the first 4000 byte half. The second offset would now be 0x000001F4 to read the next 4000 byte section.
 
-After issuing these writes, the data can be read at ROM_DATA_1 in 16-bit units. Although Graphics ROM is normally read in 4000 bytes block at maximum, other smaller sizes are frequently read. The first two 16-bit reads will typically return an unknown parameter (possibly a Block ID or some kind of status) followed by the overall length of the block in 64-bit units. Afterwards, the rest of the graphics data in that block is streamed.
+After issuing these writes, the data can be read at ROM_DATA_2 in 16-bit units. Although Graphics ROM is normally read in 4000 bytes block at maximum, other smaller sizes are frequently read. The first two 16-bit reads will typically return an unknown parameter (possibly a Block ID or some kind of status) followed by the overall length of the block in 64-bit units. Afterwards, the rest of the graphics data in that block is streamed.
 
 Before reading any blocks from Graphics ROM, however, the above command must first be used G_ROM_OFFSET set to a value of 0xFFFFFFFF. This acts as some kind of reset mechanism. No data needs to be read, although ROM_STAT is checked to make sure Graphics ROM is ready for data transfers.
 
@@ -167,8 +167,8 @@ The Campho Advance can issue a small number of commands to control various bits 
 //All writes to ROM_DATA_2 are 16-bit
 ROM_STAT = 0x4015
 
-ROM_DATA_2 = COMMAND_LO
-ROM_DATA_2 = COMMAND_HI
+[ROM_DATA_2] = COMMAND_LO
+[ROM_DATA_2] = COMMAND_HI
 
 ROM_CNT = 0x4015
 ------------------------------------------------------------------------
@@ -181,7 +181,75 @@ Command		| Description
 0xB740		| Starts input data from the camera (small 58x48 frame)
 0xD740		| Starts input data from the camera (large 176x144 frame)
 0xF740		| Halts input data from the camera
+0xF9FF		| Finishes input frame from camera (and requests another?)
 0x54000		| Unknown
 0x1FFE4000	| Unknown
 0x40064000	| Unknown
 ------------------------------------------------------------------------
+
+
+***************************************************
+8. Camera Capture
+***************************************************
+
+The Campho Advance is capable of capturing video input and displaying those frames in real-time on the GBA. It allows the handheld to access 2 different framebuffers that contain the relevant pixel data. The large one measures at 176x144 pixels on the GBA's screen. The small one measures at 58x48. They have similar aspect ratios, so images from the smaller buffer should roughly look the same as the larger one, albeit with more pixelation. The Campho Advance updates its video framebuffer at approximately 5 FPS (or less depending on when the frame is actually ready). The video input can come from the user's Campho Advance or over a telephone network when receiving a videochat, therefore, network conditions may affect how quickly the hardware can fully process a frame. All I/O registers use their Wait State 1 mirrors (0xA000000) for reading camera pixel data.
+
+Once a relevant command has been issued (see the above section), the Campho Advance will periodically alert the GBA when a new frame is available. Once ROM_STAT returns 0xA00A, a new frame can be read. A value of 0x4015 indicates no activity from the camera. Next, the GBA must read 32-bits of metadata from ROM_DATA_1. The first 16-bits designates Framebuffer Transfer Type (e.g. large frame or small frame) as well as the current "slice" of the framebuffer. The second 16-bits designates the Framebuffer Transfer Size in 32-bit units. The different Framebuffer Transfer Types are listed below:
+
+------------------------------------------------------------------------
+Type	| Description
+------------------------------------------------------------------------
+0xA90-	| Read a slice from the small (58x48) framebuffer
+0xAA0-	| Read a slice from the large (176x144) framebuffer
+0xCFFF	| Signals end of framebuffer reads (dummy data read here)
+------------------------------------------------------------------------
+
+Data for the small or large video capture framebuffers is not read all at once. Instead, data is read in shorter "slices". In the case of the small framebuffer, it is divided into 2 separate slices (58x35 and 58x13). For the large framebuffer, it is divided into 13 slices (176x12 each). The slices are drawn from top to bottom and each slice can be seen as an index that determines where it will get drawn on-screen. For example Slice 0 is drawn at the very top, while Slice 12 (on the large framebuffer) is drawn at the very bottom. The last 8-bits of the 16-bit Framebuffer Transfer Type is the slice number.
+
+Both the Framebuffer Transfer Type and Framebuffer Transfer Size are read by the Campho Advance with some of their bits flipped around. The Campho Advance adjusts these values like so:
+
+OUTPUT_16 = ((INPUT_16 LSL 3) | (INPUT_16 LSR 13))
+
+It should be noted that the pixel data from the camera is also needs this kind of reformatting. After sending the Framebuffer Transfer Type and Framebuffer Transfer Size, the Campho Advance does the following to read slices:
+
+------------------------------------------------------------------------
+//Prep Campho Advance to read pixel data
+ROM_STAT = 0xA00A
+
+[ROM_DATA_1] = 0x0008
+[ROM_DATA_1] = 0x0000
+
+ROM_CNT = 0xA00A
+
+//Grab pixel data at ROM_DATA_1
+WHILE FRAME_TRANSFER_SIZE NOT EQUAL TO ZERO
+	DATA_VAL = READ 16 BITS FROM [ROM_DATA_1]
+
+	//Reformat data and store in WRAM (above 64KB used to execute Program ROM)
+	DATA_VAL = ((DATA LSL 3) | (INPUT_16 LSR 13))
+	[0x2013000 + INDEX] = DATA_VAL
+
+	FRAME_TRANSFER_SIZE = FRAME_TRANSFER_SIZE - 1
+------------------------------------------------------------------------
+
+The large framebuffer requires some special considerations for its slices. For whatever reason, its 13 slices slightly overlaps. The chart below illustrates which slice draws which lines exactly:
+
+-----------------------------------------------------------
+Slice	| Lines Drawn
+-----------------------------------------------------------
+0	| 0   -  11
+1	| 11  -  23
+2	| 22  -  34
+3	| 33  -  45
+4	| 44  -  56
+5	| 55  -  67
+6	| 66  -  78
+7	| 77  -  89
+8	| 88  -  100
+9	| 99  -  111
+10	| 110 -  122
+11	| 121 -  133
+12	| 131 -  143
+-----------------------------------------------------------
+
+Note that the smaller framebuffer does not use anything like this at all. Although it uses 2 separate slices of 35 lines and 13 lines, they don't overlap. All pixels for both framebuffers (once reformatted) are 16-bit RGB555 values, meaning they can be plugged into the GBA's VRAM to draw a bitmap images. Once all pixel data for the camera has been pulled from each slice the Framebuffer Transfer Type changes to 0xCFFF. This signifies the end of readable camera input for a given frame. The Campho Advance then issues the 0xF9FF command to finish camera input and possibly request the next frame. It also writes 0x4015 to ROM_STAT before beginning the entire process all over again. When a new frame is ready, ROM_STAT will automatically read 0xA00A.
