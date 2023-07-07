@@ -264,6 +264,7 @@ class AGB_MMU
 		std::vector<u8> video_thumbnail;
 		std::vector<u8> video_data;
 		u16 thumbnail_addr;
+		u16 thumbnail_index;
 		u32 video_data_addr; 
 
 		u32 music_length;

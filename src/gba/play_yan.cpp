@@ -148,6 +148,7 @@ void AGB_MMU::play_yan_reset()
 
 	play_yan.video_data_addr = 0;
 	play_yan.thumbnail_addr = 0;
+	play_yan.thumbnail_index = 0;
 	play_yan.video_index = 0;
 
 	play_yan.use_bass_boost = false;
@@ -656,13 +657,18 @@ u8 AGB_MMU::read_play_yan(u32 address)
 		if(!play_yan.is_video_playing)
 		{
 			u32 t_addr = play_yan.thumbnail_addr + offset;
+			play_yan.thumbnail_index++;
 
 			if(t_addr < 0x12C0)
 			{
 				result = play_yan.video_thumbnail[t_addr];
 
 				//Update Play-Yan thubnail address if necessary
-				if(offset == 0x1FE) { play_yan.thumbnail_addr += 0x200; }
+				if(play_yan.thumbnail_index == 0x200)
+				{
+					play_yan.thumbnail_addr += 0x200;
+					play_yan.thumbnail_index = 0;
+				}
 			}
 		}
 
@@ -745,6 +751,7 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.irq_len = 4;
 		play_yan.irq_count = 3;
 		play_yan.thumbnail_addr = 0;
+		play_yan.thumbnail_index = 0;
 
 		play_yan.capture_command_stream = true;
 		play_yan.command_stream.clear();
@@ -1166,6 +1173,7 @@ void AGB_MMU::play_yan_set_video_file()
 
 	//Grab files, then folders, in current directory and add them to SD card data
 	util::get_files_in_dir(play_yan.current_dir, ".asf", dir_listing, true, true);
+	util::get_files_in_dir(play_yan.current_dir, ".ASF", dir_listing, true, true);
 
 	//Write filenames and folder names to SD card data
 	for(u32 x = 0; x < dir_listing.size(); x++)
