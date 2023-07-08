@@ -118,23 +118,23 @@ void AGB_MMU::write_campho(u32 address, u8 value)
 			campho.rom_cnt &= 0xFF;
 			campho.rom_cnt |= (value << 8);
 
-			//Graphics ROM + Commands?
+			//Perform certain actions based on data from input stream (load graphics, camera commands, read/write settings)
 			if(campho.rom_cnt == 0x4015)
 			{
 				campho.stream_started = false;
 
-				//Grab Graphics ROM data based on input from stream
+				//Determine action based on stream size
 				if((!campho.g_stream.empty()) && (campho.g_stream.size() >= 4))
 				{
 					u32 pos = campho.g_stream.size() - 4;
 					u32 index = (campho.g_stream[pos] | (campho.g_stream[pos+1] << 8) | (campho.g_stream[pos+2] << 16) | (campho.g_stream[pos+3] << 24));
 					u16 param_1 = (campho.g_stream[0] | (campho.g_stream[1] << 8));
 
-					if(campho.g_stream.size() == 12)
+					//Grab Graphics ROM data
+					if(campho.g_stream.size() == 0x0C)
 					{
 						u32 param_2 = (campho.g_stream[4] | (campho.g_stream[5] << 8) | (campho.g_stream[6] << 16) | (campho.g_stream[7] << 24));
 						campho.last_id = param_2;
-						std::cout<<"Graphics ROM ID -> 0x" << param_2 << "\n";
 
 						//Set new Graphics ROM bank
 						u32 g_bank_id = campho_get_bank_by_id(param_2, index);
@@ -148,70 +148,88 @@ void AGB_MMU::write_campho(u32 address, u8 value)
 						campho.new_frame = false;
 						campho.video_frame_slice = 0;
 						campho.last_slice = 0;
+
+						std::cout<<"Graphics ROM ID -> 0x" << param_2 << "\n";
+						std::cout<<"Graphics ROM Index -> 0x" << index << "\n";
 					}
 
-					else if(campho.g_stream.size() == 6)
+					//Camera commands
+					else if(campho.g_stream.size() == 0x04)
 					{
-						//Set new Graphics ROM bank
-						u32 g_bank_id = campho_get_bank_by_id(campho.last_id, index);
-
-						if(g_bank_id != 0xFFFFFFFF)
+						//Stop camera?
+						if(index == 0xF740)
 						{
-							campho_set_rom_bank(campho.mapped_bank_id[g_bank_id], campho.mapped_bank_index[g_bank_id], true);
+							campho.capture_video = false;
+
+							campho.video_capture_counter = 0;
+							campho.new_frame = false;
+							campho.video_frame_slice = 0;
+							campho.last_slice = 0;
 						}
+
+						//Turn on camera for large frame?
+						else if(index == 0xD740)
+						{
+							campho.capture_video = true;
+							campho.is_large_frame = true;
+
+							//Large video frame = 176x144, drawn 12 lines at a time
+							campho.video_frame_size = 176 * 12;
+
+							campho.video_capture_counter = 0;
+							campho.new_frame = false;
+							campho.video_frame_slice = 0;
+							campho.last_slice = 0;
+						}
+
+						//Turn on camera for small frame?
+						else if(index == 0xB740)
+						{
+							campho.capture_video = true;
+							campho.is_large_frame = false;
+
+							//Small video frame = 58x48, drawn 35 and 13 lines at a time
+							campho.video_frame_size = 58 * 35;
+
+							campho.video_capture_counter = 0;
+							campho.new_frame = false;
+							campho.video_frame_slice = 0;
+							campho.last_slice = 0;
+						}
+
+						//Always end frame rendering
+						else if(index == 0xFF9F)
+						{
+							campho.video_capture_counter = 0;
+							campho.new_frame = false;
+							campho.video_frame_slice = 0;
+							campho.last_slice = 0;
+						}
+
+						else
+						{
+							std::cout<<"Unknown Camera Command Detected\n";
+						} 
+
+						std::cout<<"Camera Command -> 0x" << index << "\n";
 					}
 
-					//Stop camera?
-					if(index == 0xF740)
+					//Campho settings
+					else if(campho.g_stream.size() == 0x06)
 					{
-						campho.capture_video = false;
-
-						campho.video_capture_counter = 0;
-						campho.new_frame = false;
-						campho.video_frame_slice = 0;
-						campho.last_slice = 0;
+						std::cout<<"Campho Settings -> 0x" << index << "\n";
 					}
 
-					//Turn on camera for large frame?
-					else if(index == 0xD740)
+					//Unknown input
+					else if(campho.g_stream.size() == 0x1C)
 					{
-						campho.capture_video = true;
-						campho.is_large_frame = true;
-
-						//Large video frame = 176x144, drawn 12 lines at a time
-						campho.video_frame_size = 176 * 12;
-
-						campho.video_capture_counter = 0;
-						campho.new_frame = false;
-						campho.video_frame_slice = 0;
-						campho.last_slice = 0;
+						std::cout<<"Unknown Input 0x1C\n";
 					}
 
-					//Turn on camera for small frame?
-					else if(index == 0xB740)
+					else
 					{
-						campho.capture_video = true;
-						campho.is_large_frame = false;
-
-						//Small video frame = 58x48, drawn 35 and 13 lines at a time
-						campho.video_frame_size = 58 * 35;
-
-						campho.video_capture_counter = 0;
-						campho.new_frame = false;
-						campho.video_frame_slice = 0;
-						campho.last_slice = 0;
+						std::cout<<"Unknown Campho Input. Size -> 0x" << campho.g_stream.size() << "\n";
 					}
-
-					//Always end frame rendering
-					else if(index == 0xFF9F)
-					{
-						campho.video_capture_counter = 0;
-						campho.new_frame = false;
-						campho.video_frame_slice = 0;
-						campho.last_slice = 0;
-					}
-
-					std::cout<<"Graphics ROM Index -> 0x" << index << "\n";
 				}
 
 				campho.g_stream.clear();
