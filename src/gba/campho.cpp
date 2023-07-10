@@ -217,6 +217,29 @@ void AGB_MMU::write_campho(u32 address, u8 value)
 					//Campho settings
 					else if(campho.g_stream.size() == 0x06)
 					{
+						u16 hi_set = (index & 0xFFFF0000) >> 16;
+						u16 lo_set = (index & 0xFFFF);
+
+						//Speaker settings
+						if(lo_set == 0x4000)
+						{
+							u8 val = 0;
+
+							//Find settings value sent to the Campho
+							for(u32 x = 0; x <= 10; x++)
+							{
+								u32 test = ((x << 14) | x);
+								test += ((test & 0xFFFF0000) >> 16);
+								test &= 0xFFFF;
+
+								if(hi_set == test)
+								{
+									val = x;
+									break;
+								}
+							}
+						}
+
 						std::cout<<"Campho Settings -> 0x" << index << "\n";
 					}
 
