@@ -320,6 +320,8 @@ class AGB_MMU
 		bool new_frame;
 		bool is_large_frame;
 
+		u8 speaker_volume;
+
 		std::vector<u32> mapped_bank_id;
 		std::vector<u32> mapped_bank_index;
 		std::vector<u32> mapped_bank_len;

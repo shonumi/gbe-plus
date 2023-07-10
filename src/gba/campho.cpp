@@ -223,7 +223,7 @@ void AGB_MMU::write_campho(u32 address, u8 value)
 						//Speaker settings
 						if(lo_set == 0x4000)
 						{
-							u8 val = 0;
+							campho.speaker_volume = 0;
 
 							//Find settings value sent to the Campho
 							for(u32 x = 0; x <= 10; x++)
@@ -234,7 +234,7 @@ void AGB_MMU::write_campho(u32 address, u8 value)
 
 								if(hi_set == test)
 								{
-									val = x;
+									campho.speaker_volume = x;
 									break;
 								}
 							}
