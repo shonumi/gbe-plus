@@ -17,6 +17,9 @@ void AGB_MMU::campho_reset()
 	campho.data.clear();
 	campho.g_stream.clear();
 
+	campho.settings_data.clear();
+	campho.settings_data.resize(0x1C, 0x00);
+
 	campho.bank_index_lo = 0;
 	campho.bank_index_hi = 0;
 	campho.bank_id = 0;
@@ -214,7 +217,7 @@ void AGB_MMU::write_campho(u32 address, u8 value)
 						std::cout<<"Camera Command -> 0x" << index << "\n";
 					}
 
-					//Campho settings
+					//Change Campho settings
 					else if(campho.g_stream.size() == 0x06)
 					{
 						u16 hi_set = (index & 0xFFFF0000) >> 16;
@@ -243,10 +246,11 @@ void AGB_MMU::write_campho(u32 address, u8 value)
 						std::cout<<"Campho Settings -> 0x" << index << "\n";
 					}
 
-					//Unknown input
+					//Save Campho settings changes
 					else if(campho.g_stream.size() == 0x1C)
 					{
-						std::cout<<"Unknown Input 0x1C\n";
+						campho.settings_data.clear();
+						for(u32 x = 0; x < 0x1C; x++) { campho.settings_data.push_back(campho.g_stream[x]); }
 					}
 
 					else

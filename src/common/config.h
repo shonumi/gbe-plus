@@ -70,6 +70,7 @@ enum gba_save_types
 	AGB_FLASH128,
 	AGB_DACS_FLASH,
 	AGB_JUKEBOX_CONFIG,
+	AGB_CAMPHO_CONFIG,
 };
 
 namespace config

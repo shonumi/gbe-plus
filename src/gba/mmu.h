@@ -37,6 +37,7 @@ class AGB_MMU
 		SRAM,
 		DACS,
 		JUKEBOX_CONFIG,
+		CAMPHO_CONFIG,
 	};
 
 	//Cartridge GPIO-type enumerations
@@ -321,6 +322,7 @@ class AGB_MMU
 		bool is_large_frame;
 
 		u8 speaker_volume;
+		std::vector <u8> settings_data;
 
 		std::vector<u32> mapped_bank_id;
 		std::vector<u32> mapped_bank_index;

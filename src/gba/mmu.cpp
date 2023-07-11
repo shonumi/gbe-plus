@@ -2375,14 +2375,23 @@ bool AGB_MMU::read_file(std::string filename)
 
 	std::string backup_file = config::save_file;
 
-	//For GBA Jukebox/Music Recorder, only read 1 byte configuration data
+	//For GBA Jukebox/Music Recorder, only read small configuration data
 	//Also forcibly set save type now
 	if(config::cart_type == AGB_JUKEBOX)
 	{
 		std::cout<<"MMU::Jukebox Config Data save type detected\n";
-		config::agb_save_type == AGB_JUKEBOX_CONFIG;
+		config::agb_save_type = AGB_JUKEBOX_CONFIG;
 		current_save_type = JUKEBOX_CONFIG;
 		load_backup(backup_file);
+		return true;
+	}
+
+	//For Campho Advance, only read small configuration data
+	//Also forcibly set save type now
+	else if(config::cart_type == AGB_CAMPHO)
+	{
+		config::agb_save_type = AGB_CAMPHO_CONFIG;
+		current_save_type = CAMPHO_CONFIG;
 		return true;
 	}
 
@@ -2867,7 +2876,7 @@ bool AGB_MMU::save_backup(std::string filename)
 		std::cout<<"MMU::Updated 8M DACS FLASH file " << filename <<  "\n";
 	}
 
-	//Save Jukebox Config data
+	//Save Jukebox config data
 	else if(current_save_type == JUKEBOX_CONFIG)
 	{
 		std::ofstream file(filename.c_str(), std::ios::binary);
@@ -2911,6 +2920,20 @@ bool AGB_MMU::save_backup(std::string filename)
 		std::cout<<"MMU::Wrote save data " << filename <<  "\n";
 	}
 
+	//Save Campho config data
+	else if(current_save_type == CAMPHO_CONFIG)
+	{
+		std::ofstream file(filename.c_str(), std::ios::binary);
+
+		if(!file.is_open()) 
+		{
+			std::cout<<"MMU::" << filename << " save data could not be written. Check file path or permissions. \n";
+			return false;
+		}
+
+		file.write(reinterpret_cast<char*> (&campho.settings_data[0]), 0x1C);
+		file.close();
+	}
 
 	return true;
 }
