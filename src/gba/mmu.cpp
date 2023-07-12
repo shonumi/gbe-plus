@@ -2392,6 +2392,7 @@ bool AGB_MMU::read_file(std::string filename)
 	{
 		config::agb_save_type = AGB_CAMPHO_CONFIG;
 		current_save_type = CAMPHO_CONFIG;
+		load_backup(backup_file);
 		return true;
 	}
 
@@ -2697,12 +2698,12 @@ bool AGB_MMU::load_backup(std::string filename)
 		}
 	}
 
-	//Load Jukebox Config data
+	//Load Jukebox config data
 	else if(current_save_type == JUKEBOX_CONFIG)
 	{
 		if(file_size < 0x10)
 		{
-			std::cout<<"MMU::Warning - Jukebox Config Data save size too small\n";
+			std::cout<<"MMU::Warning - Jukebox config data save size too small\n";
 			file.close();
 			return false;
 		}
@@ -2730,6 +2731,20 @@ bool AGB_MMU::load_backup(std::string filename)
 
 		jukebox.current_file = jukebox.last_music_file;
 		jukebox.io_regs[0x00A0] = jukebox.last_music_file;
+	}
+
+	//Load Campho config data
+	else if(current_save_type == CAMPHO_CONFIG)
+	{
+		if(file_size < 0x1C)
+		{
+			std::cout<<"MMU::Warning - Campho config data save size too small\n";
+			file.close();
+			return false;
+		}
+
+		//Read data from file
+		file.read(reinterpret_cast<char*> (&campho.settings_data[0]), file_size);
 	}
 
 	file.close();
@@ -2933,6 +2948,8 @@ bool AGB_MMU::save_backup(std::string filename)
 
 		file.write(reinterpret_cast<char*> (&campho.settings_data[0]), 0x1C);
 		file.close();
+
+		std::cout<<"MMU::Wrote save data " << filename <<  "\n";
 	}
 
 	return true;
