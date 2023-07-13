@@ -19,6 +19,8 @@ void AGB_MMU::campho_reset()
 
 	campho.settings_data.clear();
 	campho.settings_data.resize(0x1C, 0x00);
+	campho.read_settings = false;
+	campho.settings_index = 0;
 
 	campho.bank_index_lo = 0;
 	campho.bank_index_hi = 0;
@@ -125,6 +127,7 @@ void AGB_MMU::write_campho(u32 address, u8 value)
 			if(campho.rom_cnt == 0x4015)
 			{
 				campho.stream_started = false;
+				campho.read_settings = false;
 
 				//Determine action based on stream size
 				if((!campho.g_stream.empty()) && (campho.g_stream.size() >= 4))
@@ -242,6 +245,10 @@ void AGB_MMU::write_campho(u32 address, u8 value)
 								}
 							}
 						}
+
+						//Allow settings to be read now (until next stream)
+						campho.settings_index = 0;
+						campho.read_settings = true;
 
 						std::cout<<"Campho Settings -> 0x" << index << "\n";
 					}
@@ -393,6 +400,14 @@ u8 AGB_MMU::read_campho_seq(u32 address)
 			if(campho.video_frame_index < campho.video_frame.size())
 			{
 				result = campho.video_frame[campho.video_frame_index++];
+			}
+		}
+
+		else if(campho.read_settings)
+		{
+			if(campho.settings_index < campho.settings_data.size())
+			{
+				result = campho.settings_data[campho.settings_index++];
 			}
 		}
 

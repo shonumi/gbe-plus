@@ -321,8 +321,10 @@ class AGB_MMU
 		bool new_frame;
 		bool is_large_frame;
 
+		u32 settings_index;
 		u8 speaker_volume;
 		std::vector <u8> settings_data;
+		bool read_settings;
 
 		std::vector<u32> mapped_bank_id;
 		std::vector<u32> mapped_bank_index;
