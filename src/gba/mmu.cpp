@@ -2744,7 +2744,7 @@ bool AGB_MMU::load_backup(std::string filename)
 		}
 
 		//Read data from file
-		file.read(reinterpret_cast<char*> (&campho.settings_data[0]), file_size);
+		file.read(reinterpret_cast<char*> (&campho.config_data[0]), file_size);
 	}
 
 	file.close();
@@ -2946,7 +2946,7 @@ bool AGB_MMU::save_backup(std::string filename)
 			return false;
 		}
 
-		file.write(reinterpret_cast<char*> (&campho.settings_data[0]), 0x1C);
+		file.write(reinterpret_cast<char*> (&campho.config_data[0]), 0x1C);
 		file.close();
 
 		std::cout<<"MMU::Wrote save data " << filename <<  "\n";

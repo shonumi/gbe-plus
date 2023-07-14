@@ -321,10 +321,11 @@ class AGB_MMU
 		bool new_frame;
 		bool is_large_frame;
 
-		u32 settings_index;
+		u32 config_index;
 		u8 speaker_volume;
-		std::vector <u8> settings_data;
-		bool read_settings;
+		std::vector <u8> config_data;
+		std::vector <u8> current_config;
+		bool read_config;
 
 		std::vector<u32> mapped_bank_id;
 		std::vector<u32> mapped_bank_index;
@@ -465,6 +466,8 @@ class AGB_MMU
 	u32 campho_get_bank_by_id(u32 id, u32 index);
 	void campho_set_video_data();
 	void campho_get_image_data(u8* img_data, u32 width, u32 height);
+	u16 campho_convert_settings_val(u8 input);
+	u8 campho_find_settings_val(u16 input);
 	void process_campho();
 
 	void glucoboy_reset();

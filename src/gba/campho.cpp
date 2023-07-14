@@ -17,10 +17,11 @@ void AGB_MMU::campho_reset()
 	campho.data.clear();
 	campho.g_stream.clear();
 
-	campho.settings_data.clear();
-	campho.settings_data.resize(0x1C, 0x00);
-	campho.read_settings = false;
-	campho.settings_index = 0;
+	campho.current_config.clear();
+	campho.config_data.clear();
+	campho.config_data.resize(0x1C, 0x00);
+	campho.read_config = false;
+	campho.config_index = 0;
 
 	campho.bank_index_lo = 0;
 	campho.bank_index_hi = 0;
@@ -127,7 +128,7 @@ void AGB_MMU::write_campho(u32 address, u8 value)
 			if(campho.rom_cnt == 0x4015)
 			{
 				campho.stream_started = false;
-				campho.read_settings = false;
+				campho.read_config = false;
 
 				//Determine action based on stream size
 				if((!campho.g_stream.empty()) && (campho.g_stream.size() >= 4))
@@ -223,32 +224,44 @@ void AGB_MMU::write_campho(u32 address, u8 value)
 					//Change Campho settings
 					else if(campho.g_stream.size() == 0x06)
 					{
+						u16 stream_stat = (campho.g_stream[1] << 8) | campho.g_stream[0];
 						u16 hi_set = (index & 0xFFFF0000) >> 16;
 						u16 lo_set = (index & 0xFFFF);
 
-						//Speaker settings
-						if(lo_set == 0x4000)
+						//Read full settings
+						if(stream_stat == 0xB778)
 						{
-							campho.speaker_volume = 0;
+							campho.current_config.clear();
 
-							//Find settings value sent to the Campho
-							for(u32 x = 0; x <= 10; x++)
+							//Set data to read from stream
+							for(u32 x = 0; x < campho.config_data.size(); x++)
 							{
-								u32 test = ((x << 14) | x);
-								test += ((test & 0xFFFF0000) >> 16);
-								test &= 0xFFFF;
-
-								if(hi_set == test)
-								{
-									campho.speaker_volume = x;
-									break;
-								}
+								campho.current_config.push_back(campho.config_data[x]);
 							}
 						}
 
+						//Set speaker settings
+						else if(stream_stat == 0x3742)
+						{
+							campho.speaker_volume = campho_find_settings_val(hi_set);
+							u32 read_data = (campho_convert_settings_val(campho.speaker_volume) << 16) | 0x4000;
+
+							campho.current_config.clear();
+
+							//Set data to read from stream
+							campho.current_config.push_back(0x20);
+							campho.current_config.push_back(0x68);
+							campho.current_config.push_back(read_data);
+							campho.current_config.push_back(read_data >> 8);
+							campho.current_config.push_back(read_data >> 16);
+							campho.current_config.push_back(read_data >> 24);
+							campho.current_config.push_back(0x00);
+							campho.current_config.push_back(0x60);
+						}
+
 						//Allow settings to be read now (until next stream)
-						campho.settings_index = 0;
-						campho.read_settings = true;
+						campho.config_index = 0;
+						campho.read_config = true;
 
 						std::cout<<"Campho Settings -> 0x" << index << "\n";
 					}
@@ -256,8 +269,13 @@ void AGB_MMU::write_campho(u32 address, u8 value)
 					//Save Campho settings changes
 					else if(campho.g_stream.size() == 0x1C)
 					{
-						campho.settings_data.clear();
-						for(u32 x = 0; x < 0x1C; x++) { campho.settings_data.push_back(campho.g_stream[x]); }
+						campho.config_data.clear();
+
+						//16-bit metadata
+						campho.config_data.push_back(0x31);
+						campho.config_data.push_back(0x08);
+
+						for(u32 x = 2; x < 0x1C; x++) { campho.config_data.push_back(campho.g_stream[x]); }
 					}
 
 					else
@@ -392,7 +410,7 @@ u8 AGB_MMU::read_campho_seq(u32 address)
 		}
 	}
 
-	//Read High ROM Data Stream or Camera Video Data
+	//Read High ROM Data Stream, Camera Video Data, or Campho Config Data
 	else
 	{
 		if(campho.new_frame)
@@ -403,11 +421,12 @@ u8 AGB_MMU::read_campho_seq(u32 address)
 			}
 		}
 
-		else if(campho.read_settings)
+		else if(campho.read_config)
 		{
-			if(campho.settings_index < campho.settings_data.size())
+			if(campho.config_index < campho.current_config.size())
 			{
-				result = campho.settings_data[campho.settings_index++];
+				result = campho.current_config[campho.config_index++];
+				std::cout<<"CONFIG -> 0x" << u32(result) << "\n";
 			}
 		}
 
@@ -693,3 +712,28 @@ void AGB_MMU::campho_get_image_data(u8* img_data, u32 width, u32 height)
 		}
 	}
 }
+
+//Finds the regular integer value of the settings the Campho Advance uses
+u8 AGB_MMU::campho_find_settings_val(u16 input)
+{
+	for(u32 x = 0; x <= 10; x++)
+	{
+		u32 test = ((x << 14) | x);
+		test += ((test & 0xFFFF0000) >> 16);
+		test &= 0xFFFF;
+
+		if(input == test) { return x; }
+	}
+
+	return 0;
+}
+
+//Converts a regular integer value into the same format the Campho Advances uses for settings
+u16 AGB_MMU::campho_convert_settings_val(u8 input)
+{
+	u32 result = ((input << 14) | input);
+	result += ((result & 0xFFFF0000) >> 16);
+	result &= 0xFFFF;
+	return result;
+}
+
