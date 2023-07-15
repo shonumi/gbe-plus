@@ -185,7 +185,7 @@ u8 S1C88::add_u8(u8 reg_one, u8 reg_two)
 			reg_one = util::get_bcd_int(reg_one);
 			reg_two = util::get_bcd_int(reg_two);
 
-			result = (reg_one + reg_two) % 100;
+			result = u16(reg_one + reg_two) % 100;
 			c_flag = reg_one + reg_two;
 		}
 
@@ -328,7 +328,7 @@ u8 S1C88::adc_u8(u8 reg_one, u8 reg_two)
 			reg_one = util::get_bcd_int(reg_one);
 			reg_two = util::get_bcd_int(reg_two);
 
-			result = (reg_one + reg_two + carry) % 100;
+			result = u16(reg_one + reg_two + carry) % 100;
 			c_flag = reg_one + reg_two + carry;
 		}
 
@@ -458,7 +458,8 @@ u8 S1C88::sub_u8(u8 reg_one, u8 reg_two)
 			reg_one = util::get_bcd_int(reg_one & 0xF);
 			reg_two = util::get_bcd_int(reg_two & 0xF);
 
-			result = (reg_one - reg_two) % 10;
+			if(reg_one < reg_two) { result = 10 + s16(reg_one - reg_two); }
+			else { result = (reg_one - reg_two) % 10; }
 		}
 
 		//Convert registers into BCD format - Packed
@@ -467,7 +468,8 @@ u8 S1C88::sub_u8(u8 reg_one, u8 reg_two)
 			reg_one = util::get_bcd_int(reg_one);
 			reg_two = util::get_bcd_int(reg_two);
 
-			result = (reg_one - reg_two) % 100;
+			if(reg_one < reg_two) { result = 100 + s16(reg_one - reg_two); }
+			else { result = int(reg_one - reg_two) % 100; }
 		}
 
 		result = util::get_bcd(result);
@@ -589,7 +591,8 @@ u8 S1C88::sbc_u8(u8 reg_one, u8 reg_two)
 			reg_one = util::get_bcd_int(reg_one & 0xF);
 			reg_two = util::get_bcd_int(reg_two & 0xF);
 
-			result = (reg_one - reg_two - carry) % 10;
+			if(reg_one < (reg_two + carry)) { result = 10 + s16(reg_one - reg_two - carry); }
+			else { result = (reg_one - reg_two - carry) % 10; }
 		}
 
 		//Convert registers into BCD format - Packed
@@ -598,7 +601,8 @@ u8 S1C88::sbc_u8(u8 reg_one, u8 reg_two)
 			reg_one = util::get_bcd_int(reg_one);
 			reg_two = util::get_bcd_int(reg_two);
 
-			result = (reg_one - reg_two - carry) % 100;
+			if(reg_one < (reg_two + carry)) { result = 100 + s16(reg_one - reg_two - carry); }
+			else { result = (reg_one - reg_two - carry) % 100; }
 		}
 
 		result = util::get_bcd(result);
@@ -822,7 +826,7 @@ u8 S1C88::neg_u8(u8 reg_one)
 		{
 			reg_one = util::get_bcd_int(reg_one & 0xF);
 
-			result = (0 - reg_one) % 10;
+			result = (10 - reg_one) % 10;
 			o_flag = 0 - reg_one;
 		}
 
@@ -831,7 +835,7 @@ u8 S1C88::neg_u8(u8 reg_one)
 		{
 			reg_one = util::get_bcd_int(reg_one);
 
-			result = (0 - reg_one) % 100;
+			result = int(100 - reg_one) % 100;
 			o_flag = 0 - reg_one;
 		}
 
@@ -6012,6 +6016,8 @@ void S1C88::clock_system()
 			{
 				//Trigger PRC Overflow IRQ
 				mem->update_irq_flags(PRC_OVERFLOW_IRQ);
+
+				std::cout<<"DIV -> 0x" << (u32)controllers.video.lcd_stat.prc_rate_div << "\n";
 
 				frame_counter = 0;
 
