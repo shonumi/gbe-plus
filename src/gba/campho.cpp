@@ -127,164 +127,7 @@ void AGB_MMU::write_campho(u32 address, u8 value)
 			//Perform certain actions based on data from input stream (load graphics, camera commands, read/write settings)
 			if(campho.rom_cnt == 0x4015)
 			{
-				campho.stream_started = false;
-				campho.read_config = false;
-
-				//Determine action based on stream size
-				if((!campho.g_stream.empty()) && (campho.g_stream.size() >= 4))
-				{
-					u32 pos = campho.g_stream.size() - 4;
-					u32 index = (campho.g_stream[pos] | (campho.g_stream[pos+1] << 8) | (campho.g_stream[pos+2] << 16) | (campho.g_stream[pos+3] << 24));
-					u16 param_1 = (campho.g_stream[0] | (campho.g_stream[1] << 8));
-
-					//Grab Graphics ROM data
-					if(campho.g_stream.size() == 0x0C)
-					{
-						u32 param_2 = (campho.g_stream[4] | (campho.g_stream[5] << 8) | (campho.g_stream[6] << 16) | (campho.g_stream[7] << 24));
-						campho.last_id = param_2;
-
-						//Set new Graphics ROM bank
-						u32 g_bank_id = campho_get_bank_by_id(param_2, index);
-
-						if(g_bank_id != 0xFFFFFFFF)
-						{
-							campho_set_rom_bank(campho.mapped_bank_id[g_bank_id], campho.mapped_bank_index[g_bank_id], true);
-						}
-
-						campho.video_capture_counter = 0;
-						campho.new_frame = false;
-						campho.video_frame_slice = 0;
-						campho.last_slice = 0;
-
-						std::cout<<"Graphics ROM ID -> 0x" << param_2 << "\n";
-						std::cout<<"Graphics ROM Index -> 0x" << index << "\n";
-					}
-
-					//Camera commands
-					else if(campho.g_stream.size() == 0x04)
-					{
-						//Stop camera?
-						if(index == 0xF740)
-						{
-							campho.capture_video = false;
-
-							campho.video_capture_counter = 0;
-							campho.new_frame = false;
-							campho.video_frame_slice = 0;
-							campho.last_slice = 0;
-						}
-
-						//Turn on camera for large frame?
-						else if(index == 0xD740)
-						{
-							campho.capture_video = true;
-							campho.is_large_frame = true;
-
-							//Large video frame = 176x144, drawn 12 lines at a time
-							campho.video_frame_size = 176 * 12;
-
-							campho.video_capture_counter = 0;
-							campho.new_frame = false;
-							campho.video_frame_slice = 0;
-							campho.last_slice = 0;
-						}
-
-						//Turn on camera for small frame?
-						else if(index == 0xB740)
-						{
-							campho.capture_video = true;
-							campho.is_large_frame = false;
-
-							//Small video frame = 58x48, drawn 35 and 13 lines at a time
-							campho.video_frame_size = 58 * 35;
-
-							campho.video_capture_counter = 0;
-							campho.new_frame = false;
-							campho.video_frame_slice = 0;
-							campho.last_slice = 0;
-						}
-
-						//Always end frame rendering
-						else if(index == 0xFF9F)
-						{
-							campho.video_capture_counter = 0;
-							campho.new_frame = false;
-							campho.video_frame_slice = 0;
-							campho.last_slice = 0;
-						}
-
-						else
-						{
-							std::cout<<"Unknown Camera Command Detected\n";
-						} 
-
-						std::cout<<"Camera Command -> 0x" << index << "\n";
-					}
-
-					//Change Campho settings
-					else if(campho.g_stream.size() == 0x06)
-					{
-						u16 stream_stat = (campho.g_stream[1] << 8) | campho.g_stream[0];
-						u16 hi_set = (index & 0xFFFF0000) >> 16;
-						u16 lo_set = (index & 0xFFFF);
-
-						//Read full settings
-						if(stream_stat == 0xB778)
-						{
-							campho.current_config.clear();
-
-							//Set data to read from stream
-							for(u32 x = 0; x < campho.config_data.size(); x++)
-							{
-								campho.current_config.push_back(campho.config_data[x]);
-							}
-						}
-
-						//Set speaker settings
-						else if(stream_stat == 0x3742)
-						{
-							campho.speaker_volume = campho_find_settings_val(hi_set);
-							u32 read_data = (campho_convert_settings_val(campho.speaker_volume) << 16) | 0x4000;
-
-							campho.current_config.clear();
-
-							//Set data to read from stream
-							campho.current_config.push_back(0x20);
-							campho.current_config.push_back(0x68);
-							campho.current_config.push_back(read_data);
-							campho.current_config.push_back(read_data >> 8);
-							campho.current_config.push_back(read_data >> 16);
-							campho.current_config.push_back(read_data >> 24);
-							campho.current_config.push_back(0x00);
-							campho.current_config.push_back(0x60);
-						}
-
-						//Allow settings to be read now (until next stream)
-						campho.config_index = 0;
-						campho.read_config = true;
-
-						std::cout<<"Campho Settings -> 0x" << index << "\n";
-					}
-
-					//Save Campho settings changes
-					else if(campho.g_stream.size() == 0x1C)
-					{
-						campho.config_data.clear();
-
-						//16-bit metadata
-						campho.config_data.push_back(0x31);
-						campho.config_data.push_back(0x08);
-
-						for(u32 x = 2; x < 0x1C; x++) { campho.config_data.push_back(campho.g_stream[x]); }
-					}
-
-					else
-					{
-						std::cout<<"Unknown Campho Input. Size -> 0x" << campho.g_stream.size() << "\n";
-					}
-				}
-
-				campho.g_stream.clear();
+				campho_process_input_stream();
 			}
 
 			//Read next part of video camera framebuffer
@@ -413,6 +256,7 @@ u8 AGB_MMU::read_campho_seq(u32 address)
 	//Read High ROM Data Stream, Camera Video Data, or Campho Config Data
 	else
 	{
+		//Camera Video Data
 		if(campho.new_frame)
 		{
 			if(campho.video_frame_index < campho.video_frame.size())
@@ -421,15 +265,16 @@ u8 AGB_MMU::read_campho_seq(u32 address)
 			}
 		}
 
+		//Campho Config Data
 		else if(campho.read_config)
 		{
 			if(campho.config_index < campho.current_config.size())
 			{
 				result = campho.current_config[campho.config_index++];
-				std::cout<<"CONFIG -> 0x" << u32(result) << "\n";
 			}
 		}
 
+		//ROM
 		else
 		{
 			if(campho.bank_index_hi < campho.data.size())
@@ -440,6 +285,158 @@ u8 AGB_MMU::read_campho_seq(u32 address)
 	}
 
 	return result;
+}
+
+/****** Handles processing Campho input stream for commands ******/
+void AGB_MMU::campho_process_input_stream()
+{
+	campho.stream_started = false;
+	campho.read_config = false;
+
+	//Determine action based on stream size
+	if((!campho.g_stream.empty()) && (campho.g_stream.size() >= 4))
+	{
+		u32 pos = campho.g_stream.size() - 4;
+		u32 index = (campho.g_stream[pos] | (campho.g_stream[pos+1] << 8) | (campho.g_stream[pos+2] << 16) | (campho.g_stream[pos+3] << 24));
+		u16 param_1 = (campho.g_stream[0] | (campho.g_stream[1] << 8));
+
+		//Grab Graphics ROM data
+		if(campho.g_stream.size() == 0x0C)
+		{
+			u32 param_2 = (campho.g_stream[4] | (campho.g_stream[5] << 8) | (campho.g_stream[6] << 16) | (campho.g_stream[7] << 24));
+			campho.last_id = param_2;
+
+			//Set new Graphics ROM bank
+			u32 g_bank_id = campho_get_bank_by_id(param_2, index);
+
+			if(g_bank_id != 0xFFFFFFFF)
+			{
+				campho_set_rom_bank(campho.mapped_bank_id[g_bank_id], campho.mapped_bank_index[g_bank_id], true);
+			}
+
+			campho.video_capture_counter = 0;
+			campho.new_frame = false;
+			campho.video_frame_slice = 0;
+			campho.last_slice = 0;
+
+			std::cout<<"Graphics ROM ID -> 0x" << param_2 << "\n";
+			std::cout<<"Graphics ROM Index -> 0x" << index << "\n";
+		}
+
+		//Camera commands
+		else if(campho.g_stream.size() == 0x04)
+		{
+			//Stop camera?
+			if(index == 0xF740)
+			{
+				campho.capture_video = false;
+
+				campho.video_capture_counter = 0;
+				campho.new_frame = false;
+				campho.video_frame_slice = 0;
+				campho.last_slice = 0;
+			}
+
+			//Turn on camera for large frame?
+			else if(index == 0xD740)
+			{
+				campho.capture_video = true;
+				campho.is_large_frame = true;
+
+				//Large video frame = 176x144, drawn 12 lines at a time
+				campho.video_frame_size = 176 * 12;
+
+				campho.video_capture_counter = 0;
+				campho.new_frame = false;
+				campho.video_frame_slice = 0;
+				campho.last_slice = 0;
+			}
+
+			//Turn on camera for small frame?
+			else if(index == 0xB740)
+			{
+				campho.capture_video = true;
+				campho.is_large_frame = false;
+
+				//Small video frame = 58x48, drawn 35 and 13 lines at a time
+				campho.video_frame_size = 58 * 35;
+
+				campho.video_capture_counter = 0;
+				campho.new_frame = false;
+				campho.video_frame_slice = 0;
+				campho.last_slice = 0;
+			}
+
+			//Always end frame rendering
+			else if(index == 0xFF9F)
+			{
+				campho.video_capture_counter = 0;
+				campho.new_frame = false;
+				campho.video_frame_slice = 0;
+				campho.last_slice = 0;
+			}
+
+			else
+			{
+				std::cout<<"Unknown Camera Command Detected\n";
+			} 
+
+			std::cout<<"Camera Command -> 0x" << index << "\n";
+		}
+
+		//Change Campho settings
+		else if(campho.g_stream.size() == 0x06)
+		{
+			u16 stream_stat = (campho.g_stream[1] << 8) | campho.g_stream[0];
+			u16 hi_set = (index & 0xFFFF0000) >> 16;
+			u16 lo_set = (index & 0xFFFF);
+
+			//Read full settings
+			if(stream_stat == 0xB778)
+			{
+				campho.current_config.clear();
+
+				//Set data to read from stream
+				for(u32 x = 0; x < campho.config_data.size(); x++)
+				{
+					campho.current_config.push_back(campho.config_data[x]);
+				}
+			}
+
+			//Set speaker settings
+			else if(stream_stat == 0x3742)
+			{
+				campho.speaker_volume = campho_find_settings_val(hi_set);
+				u32 read_data = (campho_convert_settings_val(campho.speaker_volume) << 16) | 0x4000;
+				campho_make_settings_stream(read_data);
+			}
+
+			//Allow settings to be read now (until next stream)
+			campho.config_index = 0;
+			campho.read_config = true;
+
+			std::cout<<"Campho Settings -> 0x" << index << "\n";
+		}
+
+		//Save Campho settings changes
+		else if(campho.g_stream.size() == 0x1C)
+		{
+			campho.config_data.clear();
+
+			//16-bit metadata
+			campho.config_data.push_back(0x31);
+			campho.config_data.push_back(0x08);
+
+			for(u32 x = 2; x < 0x1C; x++) { campho.config_data.push_back(campho.g_stream[x]); }
+		}
+
+		else
+		{
+			std::cout<<"Unknown Campho Input. Size -> 0x" << campho.g_stream.size() << "\n";
+		}
+	}
+
+	campho.g_stream.clear();
 }
 
 /****** Sets the absolute position within the Campho ROM for a bank's base address ******/
@@ -713,7 +710,7 @@ void AGB_MMU::campho_get_image_data(u8* img_data, u32 width, u32 height)
 	}
 }
 
-//Finds the regular integer value of the settings the Campho Advance uses
+/****** Finds the regular integer value of the settings the Campho Advance uses ******/
 u8 AGB_MMU::campho_find_settings_val(u16 input)
 {
 	for(u32 x = 0; x <= 10; x++)
@@ -728,7 +725,7 @@ u8 AGB_MMU::campho_find_settings_val(u16 input)
 	return 0;
 }
 
-//Converts a regular integer value into the same format the Campho Advances uses for settings
+/****** Converts a regular integer value into the same format the Campho Advances uses for settings ******/
 u16 AGB_MMU::campho_convert_settings_val(u8 input)
 {
 	u32 result = ((input << 14) | input);
@@ -737,3 +734,18 @@ u16 AGB_MMU::campho_convert_settings_val(u8 input)
 	return result;
 }
 
+/****** Makes an 8-byte stream that returns the a current settings value when read by the Campho ******/
+void AGB_MMU::campho_make_settings_stream(u32 input)
+{
+	campho.current_config.clear();
+
+	//Set data to read from stream
+	campho.current_config.push_back(0x20);
+	campho.current_config.push_back(0x68);
+	campho.current_config.push_back(input);
+	campho.current_config.push_back(input >> 8);
+	campho.current_config.push_back(input >> 16);
+	campho.current_config.push_back(input >> 24);
+	campho.current_config.push_back(0x00);
+	campho.current_config.push_back(0x60);
+}
