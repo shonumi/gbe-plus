@@ -581,7 +581,7 @@ void AGB_MMU::process_campho()
 
 		//Grab pixel data for captured video frame
 		//Pull data from BMP file
-		SDL_Surface* source = SDL_LoadBMP("test.bmp");
+		SDL_Surface* source = SDL_LoadBMP(config::external_camera_file.c_str());
 
 		if(source != NULL)
 		{
