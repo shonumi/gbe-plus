@@ -2736,7 +2736,7 @@ bool AGB_MMU::load_backup(std::string filename)
 	//Load Campho config data
 	else if(current_save_type == CAMPHO_CONFIG)
 	{
-		if(file_size < 0x1C)
+		if(file_size < 0x18)
 		{
 			std::cout<<"MMU::Warning - Campho config data save size too small\n";
 			file.close();
@@ -2744,7 +2744,13 @@ bool AGB_MMU::load_backup(std::string filename)
 		}
 
 		//Read data from file
-		file.read(reinterpret_cast<char*> (&campho.config_data[0]), file_size);
+		file.read(reinterpret_cast<char*> (&campho.config_data[4]), file_size);
+
+		//Set the first 4-bytes as metadata for the Campho
+		campho.config_data[0] = 0x31;
+		campho.config_data[1] = 0x08;
+		campho.config_data[2] = 0x03;
+		campho.config_data[3] = 0x00;
 	}
 
 	file.close();
@@ -2946,7 +2952,7 @@ bool AGB_MMU::save_backup(std::string filename)
 			return false;
 		}
 
-		file.write(reinterpret_cast<char*> (&campho.config_data[0]), 0x1C);
+		file.write(reinterpret_cast<char*> (&campho.config_data[4]), 0x18);
 		file.close();
 
 		std::cout<<"MMU::Wrote save data " << filename <<  "\n";

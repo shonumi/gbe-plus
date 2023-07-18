@@ -314,6 +314,11 @@ void AGB_MMU::campho_process_input_stream()
 				campho_set_rom_bank(campho.mapped_bank_id[g_bank_id], campho.mapped_bank_index[g_bank_id], true);
 			}
 
+			else
+			{
+				std::cout<<"Unknown Graphics ID -> 0x" << param_2 << "\n";
+			}
+
 			campho.video_capture_counter = 0;
 			campho.new_frame = false;
 			campho.video_frame_slice = 0;
@@ -423,11 +428,13 @@ void AGB_MMU::campho_process_input_stream()
 		{
 			campho.config_data.clear();
 
-			//16-bit metadata
+			//32-bit metadata
 			campho.config_data.push_back(0x31);
 			campho.config_data.push_back(0x08);
+			campho.config_data.push_back(0x03);
+			campho.config_data.push_back(0x00);
 
-			for(u32 x = 2; x < 0x1C; x++) { campho.config_data.push_back(campho.g_stream[x]); }
+			for(u32 x = 4; x < 0x1C; x++) { campho.config_data.push_back(campho.g_stream[x]); }
 		}
 
 		else
