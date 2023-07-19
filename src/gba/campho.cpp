@@ -420,6 +420,11 @@ void AGB_MMU::campho_process_input_stream()
 			campho.config_index = 0;
 			campho.read_config = true;
 
+			campho.video_capture_counter = 0;
+			campho.new_frame = false;
+			campho.video_frame_slice = 0;
+			campho.last_slice = 0;
+
 			std::cout<<"Campho Settings -> 0x" << index << "\n";
 		}
 
@@ -435,6 +440,15 @@ void AGB_MMU::campho_process_input_stream()
 			campho.config_data.push_back(0x00);
 
 			for(u32 x = 4; x < 0x1C; x++) { campho.config_data.push_back(campho.g_stream[x]); }
+
+			//Allow settings to be read now (until next stream)
+			campho.config_index = 0;
+			campho.read_config = true;
+
+			campho.video_capture_counter = 0;
+			campho.new_frame = false;
+			campho.video_frame_slice = 0;
+			campho.last_slice = 0;
 		}
 
 		else
@@ -619,6 +633,13 @@ void AGB_MMU::campho_set_video_data()
 
 	u8 slice_limit_prep = campho.is_large_frame ? 13 : 2;
 	u8 slice_limit_end = campho.is_large_frame ? 14 : 3;
+
+	//Switch video size from 58*35 to 58*13 for 2nd part of small video frame rendering
+	//Normally okay to do 58*35 twice, except when changing settings (which draws garbage data)
+	if((!campho.is_large_frame) && (campho.video_frame_slice == 1))
+	{
+		v_size = (58 * 13) / 4;
+	}
 
 	//Make sure number of bytes to read is a multiple of 4
 	if(v_size & 0x3) { v_size += (4 - (v_size & 0x3)); }
