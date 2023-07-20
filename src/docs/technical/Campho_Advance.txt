@@ -253,3 +253,93 @@ Slice	| Lines Drawn
 -----------------------------------------------------------
 
 Note that the smaller framebuffer does not use anything like this at all. Although it uses 2 separate slices of 35 lines and 13 lines, they don't overlap. All pixels for both framebuffers (once reformatted) are 16-bit RGB555 values, meaning they can be plugged into the GBA's VRAM to draw a bitmap images. Once all pixel data for the camera has been pulled from each slice the Framebuffer Transfer Type changes to 0xCFFF. This signifies the end of readable camera input for a given frame. The Campho Advance then issues the 0xF9FF command to finish camera input and possibly request the next frame. It also writes 0x4015 to ROM_STAT before beginning the entire process all over again. When a new frame is ready, ROM_STAT will automatically read 0xA00A.
+
+***************************************************
+9. Configuration Data
+***************************************************
+
+The Campho Advance uses 24 bytes to save configuration data for several adjustable settings, such as brightness, contrast, and volume. The Campho Advance can read and write this entire block of memory all at once, or it can access each setting individually. The following process is used to read all 24 bytes; all I/O registers use their Wait State 1 mirrors (0xA000000):
+
+------------------------------------------------------------------------
+//All writes are 16-bit
+ROM_STAT = 0x4015
+
+//Read all settings command
+[ROM_DATA_2] = 0xB778
+
+//32-bit settings parameter -> 0x1FFE4000
+[ROM_DATA_2] = 0x4000
+[ROM_DATA_2] = 0x1FFE
+
+ROM_CNT = 0x4015
+------------------------------------------------------------------------
+
+Afterwards, 28 bytes can be read from ROM_DATA_2. Like Program ROM and Graphics ROM data, the first 32-bits are metadata entries the Campho Advance uses to determine the length to read. The subsequent 24 bytes are the actual settings configuration. To write the entire configuration, the following process is used:
+
+------------------------------------------------------------------------
+//All writes are 16-bit
+ROM_STAT = 0x4015
+
+//Write all settings command
+[ROM_DATA_2] = 0x3778
+
+//Write (Data Length / 8), always 0x03
+[ROM_DATA_2] = 0x0003
+
+//Write configuration data
+[ROM_DATA_2] = CONFIG_DATA_00
+[ROM_DATA_2] = CONFIG_DATA_01
+...
+[ROM_DATA_2] = CONFIG_DATA_11
+
+ROM_CNT = 0x4015
+------------------------------------------------------------------------
+
+The length of the config data is included, so a total of 26 bytes are written to ROM_DATA_2. Since the length never technically changes, it has a constant value of 0x0003. The rest of the configuration data follows after that, written as 12 16-bit values.
+
+The following process below outlines how to write to individual configuration settings:
+
+------------------------------------------------------------------------
+//All writes are 16-bit
+ROM_STAT = 0x4015
+
+//Write to settings ID to change a specific setting
+[ROM_DATA_2] = SETTINGS_ID
+
+//Write configuration data
+[ROM_DATA_2] = SETTINGS_DATA_LO
+[ROM_DATA_2] = SETTINGS_DATA_HI
+
+ROM_CNT = 0x4015
+------------------------------------------------------------------------
+
+Here, only 6 bytes are written: 16-bits for the settings ID and 32-bits for the actual data. The settings ID determines which setting will change. This chart details the known IDs for their settings:
+
+------------------------------------------------------------------------
+ID	| Setting
+------------------------------------------------------------------------
+0x1742	| Microphone Volume
+0x3742	| Speaker Volume
+0x5742	| Video Brightness
+0x7742	| Video Contrast
+------------------------------------------------------------------------
+
+The settings data itself uses a particular format. The lower 16-bits is always 0x4000. The upper 16-bits uses the following values to represent numbers 0 through 10:
+
+------------------------------------------------------------------------
+Number	| 16-bit Value
+------------------------------------------------------------------------
+0	| 0x0000
+1	| 0x4001
+2	| 0x8002
+3	| 0xC003
+4	| 0x0005
+5	| 0x4006
+6	| 0x8007
+7	| 0xC008
+8	| 0x000A
+9	| 0x400B
+10	| 0x800C
+------------------------------------------------------------------------
+
+Once this settings data has been written to the Campho Advance's configuration, the current value can be read back from ROM_DATA_2. Note that like most data read from ROM_DATA_2, the first 32-bits are metadata for the Campho Advance.
