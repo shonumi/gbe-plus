@@ -342,4 +342,18 @@ Number	| 16-bit Value
 10	| 0x800C
 ------------------------------------------------------------------------
 
-Once this settings data has been written to the Campho Advance's configuration, the current value can be read back from ROM_DATA_2. Note that like most data read from ROM_DATA_2, the first 32-bits are metadata for the Campho Advance.
+Once this settings data has been written to the Campho Advance's configuration, the current value can be read back from ROM_DATA_2. Note that like most data read from ROM_DATA_2, the first 32-bits are metadata for the Campho Advance. Below is a layout of the Campho's 24-byte configuration data.
+
+------------------------------------------------------------------------
+Address		| Description
+------------------------------------------------------------------------
+0x00 - 0x01	| Unknown - Always 0xFFFF
+0x02 - 0x03 	| Unknown - Always 0x1FFE
+0x04 - 0x05	| Speaker Volume
+0x06 - 0x07	| Microphone Volume
+0x08 - 0x09	| Video Brightness
+0x0A - 0x0B	| Video Contrast
+0x0C - 0x0D	| Video Image Flip
+0x0E - 0x0F	| Pulse or Tone Dialing
+0x10 - 0x17	| Unkown
+------------------------------------------------------------------------
