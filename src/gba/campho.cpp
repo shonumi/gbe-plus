@@ -408,10 +408,34 @@ void AGB_MMU::campho_process_input_stream()
 				}
 			}
 
-			//Set speaker settings
+			//Set microphone volume
+			else if(stream_stat == 0x1742)
+			{
+				campho.mic_volume = campho_find_settings_val(hi_set);
+				u32 read_data = (campho_convert_settings_val(campho.speaker_volume) << 16) | 0x4000;
+				campho_make_settings_stream(read_data);
+			}
+
+			//Set speaker volume
 			else if(stream_stat == 0x3742)
 			{
 				campho.speaker_volume = campho_find_settings_val(hi_set);
+				u32 read_data = (campho_convert_settings_val(campho.speaker_volume) << 16) | 0x4000;
+				campho_make_settings_stream(read_data);
+			}
+
+			//Set video brightness
+			else if(stream_stat == 0x5742)
+			{
+				campho.video_brightness = campho_find_settings_val(hi_set);
+				u32 read_data = (campho_convert_settings_val(campho.speaker_volume) << 16) | 0x4000;
+				campho_make_settings_stream(read_data);
+			}
+
+			//Set video contrast
+			else if(stream_stat == 0x7742)
+			{
+				campho.video_contrast = campho_find_settings_val(hi_set);
 				u32 read_data = (campho_convert_settings_val(campho.speaker_volume) << 16) | 0x4000;
 				campho_make_settings_stream(read_data);
 			}
@@ -425,7 +449,7 @@ void AGB_MMU::campho_process_input_stream()
 			campho.video_frame_slice = 0;
 			campho.last_slice = 0;
 
-			std::cout<<"Campho Settings -> 0x" << index << "\n";
+			std::cout<<"Campho Settings -> 0x" << index << " :: 0x" << stream_stat << "\n";
 		}
 
 		//Save Campho settings changes
