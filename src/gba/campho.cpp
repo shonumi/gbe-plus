@@ -17,11 +17,11 @@ void AGB_MMU::campho_reset()
 	campho.data.clear();
 	campho.g_stream.clear();
 
-	campho.current_config.clear();
+	campho.out_stream.clear();
 	campho.config_data.clear();
 	campho.config_data.resize(0x1C, 0x00);
-	campho.read_config = false;
-	campho.config_index = 0;
+	campho.read_out_stream = false;
+	campho.out_stream_index = 0;
 
 	campho.bank_index_lo = 0;
 	campho.bank_index_hi = 0;
@@ -265,12 +265,12 @@ u8 AGB_MMU::read_campho_seq(u32 address)
 			}
 		}
 
-		//Campho Config Data
-		else if(campho.read_config)
+		//Misc Campho Data - Config Settings, Command Data, etc
+		else if(campho.read_out_stream)
 		{
-			if(campho.config_index < campho.current_config.size())
+			if(campho.out_stream_index < campho.out_stream.size())
 			{
-				result = campho.current_config[campho.config_index++];
+				result = campho.out_stream[campho.out_stream_index++];
 			}
 		}
 
@@ -291,7 +291,7 @@ u8 AGB_MMU::read_campho_seq(u32 address)
 void AGB_MMU::campho_process_input_stream()
 {
 	campho.stream_started = false;
-	campho.read_config = false;
+	campho.read_out_stream = false;
 
 	//Determine action based on stream size
 	if((!campho.g_stream.empty()) && (campho.g_stream.size() >= 4))
@@ -357,6 +357,19 @@ void AGB_MMU::campho_process_input_stream()
 				campho.last_slice = 0;
 			}
 
+			//Switch to telecom mode??
+			else if(index == 0xD778)
+			{
+				//Campho expects 16-bit status 0x7780
+				campho.out_stream.clear();
+				campho.out_stream.push_back(0x80);
+				campho.out_stream.push_back(0x77);
+
+				//Allow outstream to be read (until next stream)
+				campho.out_stream_index = 0;
+				campho.read_out_stream = true;
+			}
+
 			//Turn on camera for small frame?
 			else if(index == 0xB740)
 			{
@@ -399,12 +412,12 @@ void AGB_MMU::campho_process_input_stream()
 			//Read full settings
 			if(stream_stat == 0xB778)
 			{
-				campho.current_config.clear();
+				campho.out_stream.clear();
 
 				//Set data to read from stream
 				for(u32 x = 0; x < campho.config_data.size(); x++)
 				{
-					campho.current_config.push_back(campho.config_data[x]);
+					campho.out_stream.push_back(campho.config_data[x]);
 				}
 			}
 
@@ -441,8 +454,8 @@ void AGB_MMU::campho_process_input_stream()
 			}
 
 			//Allow settings to be read now (until next stream)
-			campho.config_index = 0;
-			campho.read_config = true;
+			campho.out_stream_index = 0;
+			campho.read_out_stream = true;
 
 			campho.video_capture_counter = 0;
 			campho.new_frame = false;
@@ -466,8 +479,8 @@ void AGB_MMU::campho_process_input_stream()
 			for(u32 x = 4; x < 0x1C; x++) { campho.config_data.push_back(campho.g_stream[x]); }
 
 			//Allow settings to be read now (until next stream)
-			campho.config_index = 0;
-			campho.read_config = true;
+			campho.out_stream_index = 0;
+			campho.read_out_stream = true;
 
 			campho.video_capture_counter = 0;
 			campho.new_frame = false;
@@ -789,15 +802,15 @@ u16 AGB_MMU::campho_convert_settings_val(u8 input)
 /****** Makes an 8-byte stream that returns the a current settings value when read by the Campho ******/
 void AGB_MMU::campho_make_settings_stream(u32 input)
 {
-	campho.current_config.clear();
+	campho.out_stream.clear();
 
 	//Set data to read from stream
-	campho.current_config.push_back(0x20);
-	campho.current_config.push_back(0x68);
-	campho.current_config.push_back(input);
-	campho.current_config.push_back(input >> 8);
-	campho.current_config.push_back(input >> 16);
-	campho.current_config.push_back(input >> 24);
-	campho.current_config.push_back(0x00);
-	campho.current_config.push_back(0x60);
+	campho.out_stream.push_back(0x20);
+	campho.out_stream.push_back(0x68);
+	campho.out_stream.push_back(input);
+	campho.out_stream.push_back(input >> 8);
+	campho.out_stream.push_back(input >> 16);
+	campho.out_stream.push_back(input >> 24);
+	campho.out_stream.push_back(0x00);
+	campho.out_stream.push_back(0x60);
 }

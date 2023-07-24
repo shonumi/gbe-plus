@@ -321,10 +321,10 @@ class AGB_MMU
 		bool new_frame;
 		bool is_large_frame;
 
-		u32 config_index;
+		u32 out_stream_index;
 		std::vector <u8> config_data;
-		std::vector <u8> current_config;
-		bool read_config;
+		std::vector <u8> out_stream;
+		bool read_out_stream;
 
 		u8 speaker_volume;
 		u8 mic_volume;
