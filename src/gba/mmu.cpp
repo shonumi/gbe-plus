@@ -2751,6 +2751,12 @@ bool AGB_MMU::load_backup(std::string filename)
 		campho.config_data[1] = 0x08;
 		campho.config_data[2] = 0x03;
 		campho.config_data[3] = 0x00;
+
+		//Use settings values for Campho structure
+		campho.speaker_volume = campho_find_settings_val((campho.config_data[9] << 8) | campho.config_data[8]);
+		campho.mic_volume = campho_find_settings_val((campho.config_data[11] << 8) | campho.config_data[10]);
+		campho.video_brightness = campho_find_settings_val((campho.config_data[13] << 8) | campho.config_data[12]);
+		campho.video_contrast = campho_find_settings_val((campho.config_data[15] << 8) | campho.config_data[14]);
 	}
 
 	file.close();
