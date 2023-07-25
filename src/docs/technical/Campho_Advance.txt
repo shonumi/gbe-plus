@@ -173,18 +173,16 @@ ROM_STAT = 0x4015
 ROM_CNT = 0x4015
 ------------------------------------------------------------------------
 
-Some commands return data for the Campho Advance to read. The meaning of the data is currently unknown, however, it can be read at ROM_DATA_2. Below are a list of known commands:
+Some commands return data for the Campho Advance to read. The meaning of the data is currently unknown, however, it can be read at ROM_DATA_2. 0xD778 seems to expect a single 16-bit value: 0x7780. Below are a list of known commands:
 
 ------------------------------------------------------------------------
 Command		| Description
 ------------------------------------------------------------------------
 0xB740		| Starts input data from the camera (small 58x48 frame)
 0xD740		| Starts input data from the camera (large 176x144 frame)
+0xD778		| Unknown (telecom status?)
 0xF740		| Halts input data from the camera
 0xF9FF		| Finishes input frame from camera (and requests another?)
-0x54000		| Unknown
-0x1FFE4000	| Unknown
-0x40064000	| Unknown
 ------------------------------------------------------------------------
 
 
