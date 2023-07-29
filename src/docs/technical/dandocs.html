@@ -4972,6 +4972,8 @@ Index	| Bits	| Description
 	<p class="list_item"><a href="#cam_gfx">Graphics ROM</a></p>
 	<p class="list_item"><a href="#cam_cmd">Commands</a></p>
 	<p class="list_item"><a href="#cam_cap">Camera Capture</a></p>
+	<p class="list_item"><a href="#cam_cfg">Configuration Data</a></p>
+	<p class="list_item"><a href="#cam_com">System Compatibility</a></p>
 
 	<a name="cam_gen"></a>
 	<p class="gray_title">[Campho Advance] : General Hardware Information</p>
@@ -5136,9 +5138,6 @@ Command		| Description
 0xD740		| Starts input data from the camera (large 176x144 frame)
 0xF740		| Halts input data from the camera
 0xF9FF		| Finishes input frame from camera (and requests another?)
-0x54000		| Unknown
-0x1FFE4000	| Unknown
-0x40064000	| Unknown
 ------------------------------------------------------------------------</pre>
 
 	<a name="cam_cap"></a>
@@ -5205,6 +5204,116 @@ Slice	| Lines Drawn
 -----------------------------------------------------------</pre>
 
 	<p>Note that the smaller framebuffer does not use anything like this at all. Although it uses 2 separate slices of 35 lines and 13 lines, they don&#39;t overlap. All pixels for both framebuffers (once reformatted) are 16-bit RGB555 values, meaning they can be plugged into the GBA&#39;s VRAM to draw a bitmap images. Once all pixel data for the camera has been pulled from each slice the Framebuffer Transfer Type changes to 0xCFFF. This signifies the end of readable camera input for a given frame. The Campho Advance then issues the 0xF9FF command to finish camera input and possibly request the next frame. It also writes 0x4015 to ROM_STAT before beginning the entire process all over again. When a new frame is ready, ROM_STAT will automatically read 0xA00A.</p>
+
+	<a name="cam_cfg"></a>
+	<p class="gray_title">[Campho Advance] : Configuration Data</p>
+
+	<p>The Campho Advance uses 24 bytes to save configuration data for several adjustable settings, such as brightness, contrast, and volume. The Campho Advance can read and write this entire block of memory all at once, or it can access each setting individually. The following process is used to read all 24 bytes; all I/O registers use their Wait State 1 mirrors (0xA000000):</p>
+
+<pre>------------------------------------------------------------------------
+//All writes are 16-bit
+ROM_STAT = 0x4015
+
+//Read all settings command
+[ROM_DATA_2] = 0xB778
+
+//32-bit settings parameter -> 0x1FFE4000
+[ROM_DATA_2] = 0x4000
+[ROM_DATA_2] = 0x1FFE
+
+ROM_CNT = 0x4015
+------------------------------------------------------------------------</pre>
+
+	<p>Afterwards, 28 bytes can be read from ROM_DATA_2. Like Program ROM and Graphics ROM data, the first 32-bits are metadata entries the Campho Advance uses to determine the length to read. The subsequent 24 bytes are the actual settings configuration. To write the entire configuration, the following process is used:</p>
+
+<pre>------------------------------------------------------------------------
+//All writes are 16-bit
+ROM_STAT = 0x4015
+
+//Write all settings command
+[ROM_DATA_2] = 0x3778
+
+//Write (Data Length / 8), always 0x03
+[ROM_DATA_2] = 0x0003
+
+//Write configuration data
+[ROM_DATA_2] = CONFIG_DATA_00
+[ROM_DATA_2] = CONFIG_DATA_01
+...
+[ROM_DATA_2] = CONFIG_DATA_11
+
+ROM_CNT = 0x4015
+------------------------------------------------------------------------</pre>
+
+	<p>The length of the config data is included, so a total of 26 bytes are written to ROM_DATA_2. Since the length never technically changes, it has a constant value of 0x0003. The rest of the configuration data follows after that, written as 12 16-bit values.</p>
+
+	<p>The following process below outlines how to write to individual configuration settings:</p>
+
+<pre>------------------------------------------------------------------------
+//All writes are 16-bit
+ROM_STAT = 0x4015
+
+//Write to settings ID to change a specific setting
+[ROM_DATA_2] = SETTINGS_ID
+
+//Write configuration data
+[ROM_DATA_2] = SETTINGS_DATA_LO
+[ROM_DATA_2] = SETTINGS_DATA_HI
+
+ROM_CNT = 0x4015
+------------------------------------------------------------------------</pre>
+
+	<p>Here, only 6 bytes are written: 16-bits for the settings ID and 32-bits for the actual data. The settings ID determines which setting will change. This chart details the known IDs for their settings:</p>
+
+<pre>------------------------------------------------------------------------
+ID	| Setting
+------------------------------------------------------------------------
+0x1742	| Microphone Volume
+0x3742	| Speaker Volume
+0x5742	| Video Brightness
+0x7742	| Video Contrast
+------------------------------------------------------------------------</pre>
+
+	<p>The settings data itself uses a particular format. The lower 16-bits is always 0x4000. The upper 16-bits uses the following values to represent numbers 0 through 10:</p>
+
+<pre>------------------------------------------------------------------------
+Number	| 16-bit Value
+------------------------------------------------------------------------
+0	| 0x0000
+1	| 0x4001
+2	| 0x8002
+3	| 0xC003
+4	| 0x0005
+5	| 0x4006
+6	| 0x8007
+7	| 0xC008
+8	| 0x000A
+9	| 0x400B
+10	| 0x800C
+------------------------------------------------------------------------</pre>
+
+	<p>Once this settings data has been written to the Campho Advance&#39;s configuration, the current value can be read back from ROM_DATA_2. Note that like most data read from ROM_DATA_2, the first 32-bits are metadata for the Campho Advance. Below is a layout of the Campho&#39;s 24-byte configuration data.</p>
+
+<pre>------------------------------------------------------------------------
+Address		| Description
+------------------------------------------------------------------------
+0x00 - 0x01	| Unknown - Always 0xFFFF
+0x02 - 0x03 	| Unknown - Always 0x1FFE
+0x04 - 0x05	| Speaker Volume
+0x06 - 0x07	| Microphone Volume
+0x08 - 0x09	| Video Brightness
+0x0A - 0x0B	| Video Contrast
+0x0C - 0x0D	| Video Image Flip
+0x0E - 0x0F	| Pulse or Tone Dialing
+0x10 - 0x17	| Unkown
+------------------------------------------------------------------------</pre>
+
+	<a name="cam_com"></a>
+	<p class="gray_title">[Campho Advance] : System Compatibility</p>
+
+	<p>The Campho Advance is incompatible with any model from the Nintendo DS family. Attempting to boot the original DS or a DS Lite with the Campho Advance in Slot-2 while providing external power generally causes the system to halt with a blank white screen. Whether due to the unique power requirements of the cartridge or the novel way it streams ROM data, the cause of this failure remains unknown.</p>
+
+	<p>In theory, however, the Campho Advance should work with the following Game Boy Advance models: AGB-001 (original GBA), AGS-001 (GBA SP), AGS-101 (GBA SP), OXY-001 (Game Boy Micro), and DOL-17 (Game Boy Player). It must be noted that the Campho Advance was developed and released before the DS launched, so Digital Act likely had no idea it would become incompatible when the next handheld generation came around. A similar situation happened with the Pocket Sonar when the Game Boy Color launched.</p>
 
 
 
