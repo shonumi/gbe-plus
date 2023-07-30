@@ -343,13 +343,18 @@ void main_menu::open_file()
 {
 	SDL_PauseAudio(1);
 
+	std::string next_rom_file = "";
+	std::string next_save_file = "";
+	bool use_next_files = false;
+
 	if(config::cli_args.empty())
 	{
 		QString filename = QFileDialog::getOpenFileName(this, tr("Open"), "", tr("GBx/NDS/MIN/AM3 files (*.gb *.gbc *.gba *.nds *.min *.am3)"));
 		if(filename.isNull()) { SDL_PauseAudio(0); return; }
 
-		config::rom_file = filename.toStdString();
-		config::save_file = util::get_filename_no_ext(config::rom_file) + ".sav";
+		next_rom_file = filename.toStdString();
+		next_save_file = util::get_filename_no_ext(next_rom_file) + ".sav";
+		use_next_files = true;
 	}
 
 	else
@@ -365,6 +370,12 @@ void main_menu::open_file()
 	{
 		main_menu::gbe_plus->shutdown();
 		main_menu::gbe_plus->core_emu::~core_emu();
+	}
+
+	if(use_next_files)
+	{
+		config::rom_file = next_rom_file;
+		config::save_file = next_save_file;
 	}
 
 	config::sdl_render = false;
