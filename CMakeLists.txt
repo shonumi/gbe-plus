@@ -46,6 +46,12 @@ endif()
 
 option(USE_OGL "Enable OpenGL for drawing operations (requires OpenGL)" ON)
 
+option(FAST_FETCH "Enables fast instruction fetching on the GBA without memory checks. Offers a small speedup, on by default. Required to be off for Campho Advance emulation." ON)
+
+if (FAST_FETCH)
+    add_definitions(-DGBE_FAST_FETCH)
+endif()
+
 if (USE_OGL)
     find_package(OpenGL REQUIRED)
     if (OPENGL_FOUND)

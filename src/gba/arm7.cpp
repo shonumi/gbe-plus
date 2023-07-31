@@ -306,6 +306,9 @@ void ARM7::set_spsr(u32 value)
 /****** Fetch ARM instruction ******/
 void ARM7::fetch()
 {
+
+	#ifdef GBE_FAST_FETCH
+
 	//Fetch THUMB instructions
 	if(arm_mode == THUMB)
 	{
@@ -325,6 +328,32 @@ void ARM7::fetch()
 		//Set the operation to perform as UNDEFINED until decoded
 		instruction_operation[pipeline_pointer] = UNDEFINED;
 	}
+
+	#endif
+
+	#ifndef GBE_FAST_FETCH
+
+	//Fetch THUMB instructions
+	if(arm_mode == THUMB)
+	{
+		//Read 16-bit THUMB instruction
+		instruction_pipeline[pipeline_pointer] = mem->read_u16(reg.r15);
+
+		//Set the operation to perform as UNDEFINED until decoded
+		instruction_operation[pipeline_pointer] = UNDEFINED;
+	}
+
+	//Fetch ARM instructions
+	else if(arm_mode == ARM)
+	{
+		//Read 32-bit ARM instruction
+		instruction_pipeline[pipeline_pointer] = mem->read_u32(reg.r15);
+
+		//Set the operation to perform as UNDEFINED until decoded
+		instruction_operation[pipeline_pointer] = UNDEFINED;
+	}
+
+	#endif
 }
 
 /****** Decode ARM instruction ******/
