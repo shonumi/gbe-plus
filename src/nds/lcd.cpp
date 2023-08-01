@@ -1331,7 +1331,7 @@ void NTR_LCD::render_obj_scanline(u32 bg_control)
 	else if(engine_id && !obj_render_length_b) { return; }
 
 	u8 obj_id = 0;
-	u8 pal_id = 0;
+	u16 pal_id = 0;
 	u8 obj_render_length = engine_id ? obj_render_length_b : obj_render_length_a;
 	u16 scanline_pixel_counter = 0;
 	u16 render_width = 0;
