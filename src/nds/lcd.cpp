@@ -1900,7 +1900,7 @@ void NTR_LCD::render_bg_mode_text(u32 bg_control)
 			pal_id = (map_data >> 12) & 0xF;
 			ext_pal_id = (slot << 12) + (pal_id << 8);
 			flip = (map_data >> 10) & 0x3;
-			pal_id <<= 3;
+			pal_id <<= 4;
 
 			//Calculate VRAM address to start pulling up tile data
 			line_offset = (flip & 0x2) ? ((bit_depth >> 3) * inv_lut[current_tile_line]) : ((bit_depth >> 3) * current_tile_line);
