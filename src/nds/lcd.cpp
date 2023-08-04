@@ -2944,6 +2944,10 @@ void NTR_LCD::render_bg_mode_direct(u32 bg_control)
 
 						scanline_buffer_a[scanline_pixel_counter] = 0xFF000000 | (red << 16) | (green << 8) | (blue);
 						render_buffer_a[scanline_pixel_counter] = bg_priority;
+
+						//Line buffer
+						line_buffer[bg_id][scanline_pixel_counter] = scanline_buffer_a[scanline_pixel_counter];
+						line_buffer[bg_id + 4][scanline_pixel_counter] |= 1;
 					}
 
 					else { full_render = false; }
@@ -3069,6 +3073,10 @@ void NTR_LCD::render_bg_mode_direct(u32 bg_control)
 
 						scanline_buffer_b[scanline_pixel_counter] = 0xFF000000 | (red << 16) | (green << 8) | (blue);
 						render_buffer_b[scanline_pixel_counter] = bg_priority;
+
+						//Line buffer
+						line_buffer[bg_id][scanline_pixel_counter] = scanline_buffer_b[scanline_pixel_counter];
+						line_buffer[bg_id + 4][scanline_pixel_counter] |= 1;
 					}
 
 					else { full_render = false; }
