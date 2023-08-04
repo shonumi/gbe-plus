@@ -13,6 +13,7 @@
 
 #include <filesystem>
 #include <cmath>
+#include <algorithm>
 
 /****** MMU Constructor ******/
 NTR_MMU::NTR_MMU() 
@@ -3099,11 +3100,14 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 				{
 					lcd_stat->vram_bank_enable[bank_id] = true;
 
-					//Generate new OBJ Extended Palettes if necessary
+					//Generate new BG & OBJ Extended Palettes if necessary
 					if((bank_id == 5) || (bank_id == 6))
 					{
 						lcd_stat->obj_ext_pal_update_a = true;
-						lcd_stat->obj_ext_pal_update_list_a.resize(0x1000, true);
+						std::fill(lcd_stat->obj_ext_pal_update_list_a.begin(), lcd_stat->obj_ext_pal_update_list_a.end(), true);
+
+						lcd_stat->bg_ext_pal_update_a = true;
+						std::fill(lcd_stat->bg_ext_pal_update_list_a.begin(), lcd_stat->bg_ext_pal_update_list_a.end(), true);
 					}
 
 					else if(bank_id == 8)
