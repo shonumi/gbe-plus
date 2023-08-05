@@ -2860,6 +2860,12 @@ void NTR_LCD::render_bg_mode_direct(u32 bg_control)
 
 		bool full_render = true;
 
+		u8 win_id = 0;
+		bool in_window;
+		bool out_window;
+		bool can_winout = lcd_stat.display_control_a & 0x6000;
+		bool enable = lcd_stat.bg_enable_a[bg_id];
+
 		u16 raw_color = 0;
 		u8 scanline_pixel_counter = 0;
 
@@ -2899,6 +2905,15 @@ void NTR_LCD::render_bg_mode_direct(u32 bg_control)
 		
 		for(int x = 0; x < 256; x++)
 		{
+			//Determine if pixel can be drawn inside or outside an active window
+			win_id = lcd_stat.window_id_a[x];
+
+			if(lcd_stat.window_status_a[x][win_id] && !lcd_stat.window_in_enable_a[bg_id][win_id]) { in_window = false; }
+			else { in_window = true; }
+
+			if(can_winout && !lcd_stat.window_status_a[x][0] && !lcd_stat.window_status_a[x][1] && !lcd_stat.window_out_enable_a[bg_id][0]) { out_window = false; }
+			else { out_window = true; }
+
 			bool render_pixel = true;
 
 			new_x = lcd_stat.bg_affine_a[affine_id].x_pos;
@@ -2947,7 +2962,7 @@ void NTR_LCD::render_bg_mode_direct(u32 bg_control)
 
 						//Line buffer
 						line_buffer[bg_id][scanline_pixel_counter] = scanline_buffer_a[scanline_pixel_counter];
-						line_buffer[bg_id + 4][scanline_pixel_counter] |= 1;
+						if(in_window && out_window && enable) { line_buffer[bg_id + 4][scanline_pixel_counter] |= 1; }
 					}
 
 					else { full_render = false; }
@@ -2989,6 +3004,12 @@ void NTR_LCD::render_bg_mode_direct(u32 bg_control)
 
 		bool full_render = true;
 
+		u8 win_id = 0;
+		bool in_window;
+		bool out_window;
+		bool can_winout = lcd_stat.display_control_b & 0x6000;
+		bool enable = lcd_stat.bg_enable_b[bg_id];
+
 		u16 raw_color = 0;
 		u8 scanline_pixel_counter = 0;
 
@@ -3028,6 +3049,15 @@ void NTR_LCD::render_bg_mode_direct(u32 bg_control)
 		
 		for(int x = 0; x < 256; x++)
 		{
+			//Determine if pixel can be drawn inside or outside an active window
+			win_id = lcd_stat.window_id_b[x];
+
+			if(lcd_stat.window_status_b[x][win_id] && !lcd_stat.window_in_enable_b[bg_id][win_id]) { in_window = false; }
+			else { in_window = true; }
+
+			if(can_winout && !lcd_stat.window_status_b[x][0] && !lcd_stat.window_status_b[x][1] && !lcd_stat.window_out_enable_b[bg_id][0]) { out_window = false; }
+			else { out_window = true; } 
+
 			bool render_pixel = true;
 
 			new_x = lcd_stat.bg_affine_b[affine_id].x_pos;
@@ -3076,7 +3106,7 @@ void NTR_LCD::render_bg_mode_direct(u32 bg_control)
 
 						//Line buffer
 						line_buffer[bg_id][scanline_pixel_counter] = scanline_buffer_b[scanline_pixel_counter];
-						line_buffer[bg_id + 4][scanline_pixel_counter] |= 1;
+						if(in_window && out_window && enable) { line_buffer[bg_id + 4][scanline_pixel_counter] |= 1; }
 					}
 
 					else { full_render = false; }
