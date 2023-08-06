@@ -2105,14 +2105,14 @@ u32 NTR_LCD::blend_texel(u32 color_1)
 			blend_b = (lcd_3D_stat.vertex_color >> 2) & 0x3F;
 			blend_a = lcd_3D_stat.poly_alpha;
 
-			if(poly_a == 63)
+			if(poly_a == 0)
 			{
 				final_color = (blend_a << 24) | (blend_r << 18) | (blend_g << 10) | (blend_b << 2);
 			}
 
-			else if(poly_a == 0)
+			else if(poly_a == 63)
 			{
-				final_color = (blend_a << 24) | (poly_r << 18) | (poly_g << 10) | (poly_b << 2);
+				final_color = 0xFF000000 | (poly_r << 18) | (poly_g << 10) | (poly_b << 2);
 			}
 
 			else
