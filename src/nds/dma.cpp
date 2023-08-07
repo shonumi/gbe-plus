@@ -168,14 +168,28 @@ void NTR_ARM9::nds9_dma(u8 index)
 		}
 	}
 
-	mem->dma[index].control &= ~0x801FFFFF;
-	mem->write_u32(cnt_addr, mem->dma[index].control);
+	mem->dma[index].control &= ~0x1FFFFF;
 
 	//Trigger IRQ
 	if(mem->dma[index].control & 0x40000000) { mem->nds9_if |= irq_mask; }
 
-	mem->dma[index].enable = false;
-	mem->dma[index].started = true;
+	//Repeat DMAs
+	if(mem->dma[index].control & 0x200)
+	{
+		mem->dma[index].control |= 0x80000000;
+		mem->dma[index].enable = true;
+		mem->dma[index].started = false;
+	}
+
+	//End DMAs
+	else
+	{
+		mem->dma[index].control &= ~0x80000000;
+		mem->dma[index].enable = false;
+		mem->dma[index].started = false;
+	}
+
+	mem->write_u32(cnt_addr, mem->dma[index].control);
 
 	switch(dma_mode)
 	{
@@ -263,14 +277,28 @@ void NTR_ARM7::nds7_dma(u8 index)
 		}
 	}
 
-	mem->dma[index].control &= ~0x80003FFF;
-	mem->write_u32(cnt_addr, mem->dma[index].control);
+	mem->dma[index].control &= ~0xFFFF;
 
 	//Trigger IRQ
 	if(mem->dma[index].control & 0x40000000) { mem->nds7_if |= irq_mask; }
 
-	mem->dma[index].enable = false;
-	mem->dma[index].started = true;
+	//Repeat DMAs
+	if(mem->dma[index].control & 0x200)
+	{
+		mem->dma[index].control |= 0x80000000;
+		mem->dma[index].enable = true;
+		mem->dma[index].started = false;
+	}
+
+	//End DMAs
+	else
+	{
+		mem->dma[index].control &= ~0x80000000;
+		mem->dma[index].enable = false;
+		mem->dma[index].started = false;
+	}
+
+	mem->write_u32(cnt_addr, mem->dma[index].control);
 
 	switch(dma_mode)
 	{
