@@ -1513,7 +1513,12 @@ void NTR_LCD::render_obj_scanline(u32 bg_control)
 						}
 
 						//Line buffer
-						if(raw_color && render_obj) { obj_line_buffer[obj[obj_id].bg_priority + 4][scanline_pixel_counter] |= 0x80; }
+						if(raw_color && render_obj)
+						{
+							obj_line_buffer[obj[obj_id].bg_priority + 4][scanline_pixel_counter] |= 0x80;
+							if(obj[obj_id].mode == 1) { obj_line_buffer[obj[obj_id].bg_priority + 4][scanline_pixel_counter] |= 0x40; }
+							else { obj_line_buffer[obj[obj_id].bg_priority + 4][scanline_pixel_counter] |= 0x20; }
+						}
 					}
 
 					//Draw direct bitmap OBJs
@@ -1559,7 +1564,12 @@ void NTR_LCD::render_obj_scanline(u32 bg_control)
 						}
 
 						//Line buffer
-						if((raw_pixel & 0x8000) && render_obj) { obj_line_buffer[obj[obj_id].bg_priority + 4][scanline_pixel_counter] |= 0x80; }
+						if(raw_color && render_obj)
+						{
+							obj_line_buffer[obj[obj_id].bg_priority + 4][scanline_pixel_counter] |= 0x80;
+							if(obj[obj_id].mode == 1) { obj_line_buffer[obj[obj_id].bg_priority + 4][scanline_pixel_counter] |= 0x40; }
+							else { obj_line_buffer[obj[obj_id].bg_priority + 4][scanline_pixel_counter] |= 0x20; }
+						}
 					}
 						
 				}
@@ -3519,6 +3529,8 @@ void NTR_LCD::alpha_blend(u32 bg_control)
 		bool found_target_2 = false;
 		bool is_obj_1 = false;
 		bool is_obj_2 = false;
+		bool obj_semi_1 = false;
+		bool obj_semi_2 = false;
 
 		//Search for 1st target
 		for(int y = 0; y < 4; y++)
@@ -3531,6 +3543,8 @@ void NTR_LCD::alpha_blend(u32 bg_control)
 
 				target_1 = 4;
 				layer_1 = y;
+
+				if((obj_line_buffer[y + 4][x] & 0xE0) == 0xC0) { obj_semi_1 = true; }
 
 				break;
 			}
@@ -3589,6 +3603,8 @@ void NTR_LCD::alpha_blend(u32 bg_control)
 				target_2 = 4;
 				layer_2 = y;
 
+				if((obj_line_buffer[y + 4][x] & 0xE0) == 0xC0) { obj_semi_2 = true; }
+
 				break;
 			}
 
@@ -3639,6 +3655,10 @@ void NTR_LCD::alpha_blend(u32 bg_control)
 
 		bool target_1_enable = (bg_control == NDS_DISPCNT_A) ? lcd_stat.sfx_target_a[target_1][0] : lcd_stat.sfx_target_b[target_1][0];
 		bool target_2_enable = (bg_control == NDS_DISPCNT_A) ? lcd_stat.sfx_target_a[target_2][1] : lcd_stat.sfx_target_b[target_2][1];
+
+		//Force SFX for semi-transparent objects
+		if(obj_semi_1) { target_1_enable = true; }
+		if(obj_semi_2) { target_2_enable = true; }
 
 		//If 1st target is 3D BG0, a separate alpha-blending formula must be used
 		target_3D = ((bg0_is_3D) && (target_1 == 0));
