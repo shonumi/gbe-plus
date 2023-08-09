@@ -3609,7 +3609,7 @@ void NTR_LCD::alpha_blend(u32 bg_control)
 			}
 
 			//If 2nd target is BG, check SFX Targets 0-3 and pull data from ordered layer
-			else if((bg_layer[0] == y) && (line_buffer[bg_render_list[0] + 4][x]) && (layer_1 != bg_render_list[0]))
+			else if((bg_layer[0] == y) && (line_buffer[bg_render_list[0] + 4][x]) && ((layer_1 != bg_render_list[0]) || (obj_semi_1)))
 			{
 				found_target_2 = true;
 
@@ -3619,7 +3619,7 @@ void NTR_LCD::alpha_blend(u32 bg_control)
 				break;
 			}
 
-			else if((bg_layer[1] == y) && (line_buffer[bg_render_list[1] + 4][x]) && (layer_1 != bg_render_list[1]))
+			else if((bg_layer[1] == y) && (line_buffer[bg_render_list[1] + 4][x]) && ((layer_1 != bg_render_list[1]) || (obj_semi_1)))
 			{
 				found_target_2 = true;
 
@@ -3629,7 +3629,7 @@ void NTR_LCD::alpha_blend(u32 bg_control)
 				break;
 			}
 
-			else if((bg_layer[2] == y) && (line_buffer[bg_render_list[2] + 4][x]) && (layer_1 != bg_render_list[2]))
+			else if((bg_layer[2] == y) && (line_buffer[bg_render_list[2] + 4][x]) && ((layer_1 != bg_render_list[2]) || (obj_semi_1)))
 			{
 				found_target_2 = true;
 
@@ -3639,7 +3639,7 @@ void NTR_LCD::alpha_blend(u32 bg_control)
 				break;
 			}
 
-			else if((bg_layer[3] == y) && (line_buffer[bg_render_list[3] + 4][x]) && (layer_1 != bg_render_list[3]))
+			else if((bg_layer[3] == y) && (line_buffer[bg_render_list[3] + 4][x]) && ((layer_1 != bg_render_list[3]) || (obj_semi_1)))
 			{
 				found_target_2 = true;
 
