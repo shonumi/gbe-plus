@@ -5626,7 +5626,7 @@ void NTR_MMU::start_hblank_dma()
 	for(u32 x = 0; x < 4; x++)
 	{
 		//Repeat bits automatically enable DMAs
-		if(dma[x].control & 0x200) { dma[x].enable = true; }
+		if(dma[x].control & 0x2000000) { dma[x].enable = true; }
 
 		u8 dma_type = ((dma[x].control >> 27) & 0x7);
 		if(dma_type == 2) { dma[x].started = true; }

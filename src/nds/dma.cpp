@@ -174,7 +174,7 @@ void NTR_ARM9::nds9_dma(u8 index)
 	if(mem->dma[index].control & 0x40000000) { mem->nds9_if |= irq_mask; }
 
 	//Repeat DMAs
-	if(mem->dma[index].control & 0x200)
+	if(mem->dma[index].control & 0x2000000)
 	{
 		mem->dma[index].control |= 0x80000000;
 		mem->dma[index].enable = true;
@@ -283,7 +283,7 @@ void NTR_ARM7::nds7_dma(u8 index)
 	if(mem->dma[index].control & 0x40000000) { mem->nds7_if |= irq_mask; }
 
 	//Repeat DMAs
-	if(mem->dma[index].control & 0x200)
+	if(mem->dma[index].control & 0x2000000)
 	{
 		mem->dma[index].control |= 0x80000000;
 		mem->dma[index].enable = true;
