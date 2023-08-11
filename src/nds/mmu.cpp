@@ -3120,10 +3120,6 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 					{
 						//MST 0 - LCDC Mode
 						case 0x0:
-
-							//Deallocate VRAM previously mapped to non-LCDC mode addresses 
-							if((lcd_stat->vram_bank_addr[bank_id] >> 20) != 0x68) { deallocate_vram(bank_id, old_mst); }
-
 							switch(bank_id)
 							{
 								case 0x0: lcd_stat->vram_bank_addr[0] = 0x6800000; break;
@@ -3295,7 +3291,13 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 					}
 				}
 
-				else { lcd_stat->vram_bank_enable[bank_id] = false; }
+				else
+				{
+					lcd_stat->vram_bank_enable[bank_id] = false;
+
+					//Deallocate VRAM when disabling a bank 
+					deallocate_vram(bank_id, old_mst);
+				}
 
 				//Check if any banks for Engine A BG are enabled for use
 				bg_vram_bank_enable_a = false;
