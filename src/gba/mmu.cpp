@@ -2320,6 +2320,12 @@ bool AGB_MMU::read_file(std::string filename)
 	std::cout<<"MMU::ROM CRC32: " << std::hex << util::get_crc32(&memory_map[0x8000000], file_size) << "\n";
 	std::cout<<"MMU::" << filename << " loaded successfully. \n";
 
+	//Check if ROM header specifies an NES Classic title, in which case, ROM mirrors need to be setup now
+	if(memory_map[0x80000AC] == 0x46)
+	{
+		std::cout<<"MMU::Classic NES Title Detected\n";
+	}
+
 	//Apply patches to the ROM data
 	if(config::use_patches)
 	{
