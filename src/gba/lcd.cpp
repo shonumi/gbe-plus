@@ -243,6 +243,7 @@ void AGB_LCD::update_oam()
 			obj[x].shape = (attribute >> 14);
 
 			if((obj[x].affine_enable == 0) && (obj[x].type == 1)) { obj[x].visible = false; }
+			else if(obj[x].mode == 3) { obj[x].visible = false; }
 			else { obj[x].visible = true; }
 
 			//Read and parse Attribute 1
