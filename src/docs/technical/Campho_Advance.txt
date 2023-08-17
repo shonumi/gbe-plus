@@ -358,8 +358,84 @@ Address		| Description
 0x10 - 0x17	| Unkown
 ------------------------------------------------------------------------
 
+
 ***************************************************
-10. System Compatibility
+10. Dialing Phone Numbers
+***************************************************
+
+The Campho Advance has a specific command that will dial a phone number entered by the user. Unlike several other commands, this one takes parameters of variable lengths. The process of sending commands, with the parameters appended. All I/O registers use their Wait State 1 mirrors (0xA000000).
+
+------------------------------------------------------------------------
+//All writes to ROM_DATA_2 are 16-bit
+ROM_STAT = 0x4015
+
+[ROM_DATA_2] = 0x3740
+
+[ROM_DATA_2] = NUMBER_OF_DIGITS
+[ROM_DATA_2] = DIGITS_01_AND_02
+[ROM_DATA_2] = DIGITS_03_AND_04
+[ROM_DATA_2] = DIGITS_05_AND_06
+[ROM_DATA_2] = DIGITS_07_AND_08
+[ROM_DATA_2] = DIGITS_09_AND_10
+
+ROM_CNT = 0x4015
+------------------------------------------------------------------------
+
+The Campho Advance can dial numbers of up to 10 digits. The longer the phone number, the more bytes need to be written as parameters. NUMBERS_OF_DIGITS is essentially the length of the phone number. The chart below describes the encoding used:
+
+------------------------------------------------------------------------
+Number	| 16-bit Value
+------------------------------------------------------------------------
+1	| 0x2000
+2	| 0x4000
+3	| 0x6000
+4	| 0x8000
+5	| 0xA000
+6	| 0xC000
+7	| 0xE000
+8	| 0x0001
+9	| 0x2001
+10	| 0x4001
+------------------------------------------------------------------------
+
+The actual digits for the phone number are stored in a 16-bit values in pairs. Odd and even digits have different encodings. Note that the "*" / "#" key appears to be just "." on the Campho Advance.
+
+------------------------------------------------------------------------
+Key (Odd Digits)	| 16-bit Value
+------------------------------------------------------------------------
+.			| 0xC005
+0			| 0x0006
+1			| 0x2006
+2			| 0x4006
+3			| 0x6006
+4			| 0x8006
+5			| 0xA006
+6			| 0xC006
+7			| 0xE006
+8			| 0x0007
+9			| 0x2007
+------------------------------------------------------------------------
+
+------------------------------------------------------------------------
+Key (Even Digits)	| 16-bit Value
+------------------------------------------------------------------------
+.			| 0x05C0
+0			| 0x0600
+1			| 0x0620
+2			| 0x0640
+3			| 0x0660
+4			| 0x0680
+5			| 0x06A0
+6			| 0x06C0
+7			| 0x06E0
+8			| 0x0700
+9			| 0x0720
+------------------------------------------------------------------------
+
+These Odd and Even digits encodings are logically OR'ed together to form a single 16-bit encoding. If an odd digit is the last digit in the phone number, then it remains unchanged 
+
+***************************************************
+11. System Compatibility
 ***************************************************
 
 The Campho Advance is incompatible with any model from the Nintendo DS family. Attempting to boot the original DS or a DS Lite with the Campho Advance in Slot-2 while providing external power generally causes the system to halt with a blank white screen. Whether due to the unique power requirements of the cartridge or the novel way it streams ROM data, the cause of this failure remains unknown.
