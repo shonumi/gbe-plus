@@ -42,6 +42,8 @@ void AGB_MMU::campho_reset()
 	campho.new_frame = false;
 	campho.is_large_frame = true;
 
+	campho.dialed_number = "";
+
 	campho.last_slice = 0;
 	campho.repeated_slices = 0;
 }
@@ -307,6 +309,29 @@ void AGB_MMU::campho_process_input_stream()
 		{
 			u16 number_len = (campho.g_stream[2] | (campho.g_stream[3] << 8));
 			number_len = campho_convert_phone_number_length(number_len);
+			
+			campho.dialed_number = "";
+
+			//Grab dialed number
+			for(u32 x = 0, digit_index = 4; x < number_len; x++)
+			{
+				u16 val = (campho.g_stream[digit_index] | (campho.g_stream[digit_index + 1] << 8));
+
+				//Even Digits
+				if(x & 0x01)
+				{
+					campho.dialed_number += campho_convert_phone_number_even(val & 0x0FF0);
+					digit_index += 2;
+				}
+
+				//Odd Digits
+				else
+				{
+					campho.dialed_number += campho_convert_phone_number_odd(val & 0xF00F);
+				}
+			}
+
+			std::cout<<"Dialed Phone Number: " << campho.dialed_number << "\n";	 
 		}
 
 		//Grab Graphics ROM data
@@ -847,17 +872,47 @@ u8 AGB_MMU::campho_convert_phone_number_length(u16 input)
 }
 
 /****** Converts a 16-bit value used by the Campho for odd digits in a phone number ******/
-u8 AGB_MMU::campho_convert_phone_number_odd(u16 input)
+std::string AGB_MMU::campho_convert_phone_number_odd(u16 input)
 {
-	u8 result = 0;
+	std::string result = "";
+
+	switch(input)
+	{
+		case 0xC005: result = "."; break;
+		case 0x0006: result = "0"; break;
+		case 0x2006: result = "1"; break;
+		case 0x4006: result = "2"; break;
+		case 0x6006: result = "3"; break;
+		case 0x8006: result = "4"; break;
+		case 0xA006: result = "5"; break;
+		case 0xC006: result = "6"; break;
+		case 0xE006: result = "7"; break;
+		case 0x0007: result = "8"; break;
+		case 0x2007: result = "9"; break;
+	}
 
 	return result;
 }
 
 /****** Converts a 16-bit value used by the Campho for even digits in a phone number ******/
-u8 AGB_MMU::campho_convert_phone_number_even(u16 input)
+std::string AGB_MMU::campho_convert_phone_number_even(u16 input)
 {
-	u8 result = 0;
+	std::string result = "";
+
+	switch(input)
+	{
+		case 0x05C0: result = "."; break;
+		case 0x0600: result = "0"; break;
+		case 0x0620: result = "1"; break;
+		case 0x0640: result = "2"; break;
+		case 0x0660: result = "3"; break;
+		case 0x0680: result = "4"; break;
+		case 0x06A0: result = "5"; break;
+		case 0x06C0: result = "6"; break;
+		case 0x06E0: result = "7"; break;
+		case 0x0700: result = "8"; break;
+		case 0x0720: result = "9"; break;
+	}
 
 	return result;
 }
