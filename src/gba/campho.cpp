@@ -293,15 +293,24 @@ void AGB_MMU::campho_process_input_stream()
 	campho.stream_started = false;
 	campho.read_out_stream = false;
 
+	u16 header = (campho.g_stream[0] | (campho.g_stream[1] << 8));
+
 	//Determine action based on stream size
 	if((!campho.g_stream.empty()) && (campho.g_stream.size() >= 4))
 	{
 		u32 pos = campho.g_stream.size() - 4;
 		u32 index = (campho.g_stream[pos] | (campho.g_stream[pos+1] << 8) | (campho.g_stream[pos+2] << 16) | (campho.g_stream[pos+3] << 24));
-		u16 param_1 = (campho.g_stream[0] | (campho.g_stream[1] << 8));
+		u16 param_1 = header;
+
+		//Dial Phone Number
+		if(header == 0x3740)
+		{
+			u16 number_len = (campho.g_stream[2] | (campho.g_stream[3] << 8));
+			number_len = campho_convert_phone_number_length(number_len);
+		}
 
 		//Grab Graphics ROM data
-		if(campho.g_stream.size() == 0x0C)
+		else if(campho.g_stream.size() == 0x0C)
 		{
 			u32 param_2 = (campho.g_stream[4] | (campho.g_stream[5] << 8) | (campho.g_stream[6] << 16) | (campho.g_stream[7] << 24));
 			campho.last_id = param_2;
@@ -813,4 +822,42 @@ void AGB_MMU::campho_make_settings_stream(u32 input)
 	campho.out_stream.push_back(input >> 24);
 	campho.out_stream.push_back(0x00);
 	campho.out_stream.push_back(0x60);
+}
+
+/****** Converts a 16-bit value used by the Campho for number of digits in a phone number ******/
+u8 AGB_MMU::campho_convert_phone_number_length(u16 input)
+{
+	u8 result = 0;
+
+	switch(input)
+	{
+		case 0x2000: result = 1; break;
+		case 0x4000: result = 2; break;
+		case 0x6000: result = 3; break;
+		case 0x8000: result = 4; break;
+		case 0xA000: result = 5; break;
+		case 0xC000: result = 6; break;
+		case 0xE000: result = 7; break;
+		case 0x0001: result = 8; break;
+		case 0x2001: result = 9; break;
+		case 0x4001: result = 10; break;
+	}
+
+	return result;
+}
+
+/****** Converts a 16-bit value used by the Campho for odd digits in a phone number ******/
+u8 AGB_MMU::campho_convert_phone_number_odd(u16 input)
+{
+	u8 result = 0;
+
+	return result;
+}
+
+/****** Converts a 16-bit value used by the Campho for even digits in a phone number ******/
+u8 AGB_MMU::campho_convert_phone_number_even(u16 input)
+{
+	u8 result = 0;
+
+	return result;
 }

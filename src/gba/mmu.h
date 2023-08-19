@@ -471,6 +471,9 @@ class AGB_MMU
 	void campho_set_video_data();
 	void campho_get_image_data(u8* img_data, u32 width, u32 height);
 	u16 campho_convert_settings_val(u8 input);
+	u8 campho_convert_phone_number_length(u16 input);
+	u8 campho_convert_phone_number_odd(u16 input);
+	u8 campho_convert_phone_number_even(u16 input);
 	u8 campho_find_settings_val(u16 input);
 	void campho_make_settings_stream(u32 input);
 	void campho_process_input_stream();
