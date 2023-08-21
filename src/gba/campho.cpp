@@ -20,8 +20,11 @@ void AGB_MMU::campho_reset()
 	campho.out_stream.clear();
 	campho.config_data.clear();
 	campho.config_data.resize(0x1C, 0x00);
+	campho.contact_data.clear();
+	campho.contact_data.resize(0x1C, 0x00);
 	campho.read_out_stream = false;
 	campho.out_stream_index = 0;
+	campho.out_stream_mode = 0;
 
 	campho.bank_index_lo = 0;
 	campho.bank_index_hi = 0;
@@ -449,9 +452,20 @@ void AGB_MMU::campho_process_input_stream()
 				campho.out_stream.clear();
 
 				//Set data to read from stream
-				for(u32 x = 0; x < campho.config_data.size(); x++)
+				if(campho.out_stream_mode == 0)
 				{
-					campho.out_stream.push_back(campho.config_data[x]);
+					for(u32 x = 0; x < campho.config_data.size(); x++)
+					{
+						campho.out_stream.push_back(campho.config_data[x]);
+					}
+				}
+
+				else if(campho.out_stream_mode == 1)
+				{
+					for(u32 x = 0; x < campho.contact_data.size(); x++)
+					{
+						campho.out_stream.push_back(campho.contact_data[x]);
+					}
 				}
 			}
 
@@ -519,6 +533,7 @@ void AGB_MMU::campho_process_input_stream()
 
 				//Allow settings to be read now (until next stream)
 				campho.out_stream_index = 0;
+				campho.out_stream_mode = 0;
 				campho.read_out_stream = true;
 
 				std::cout<<"Campho Config Saved\n";
@@ -527,6 +542,21 @@ void AGB_MMU::campho_process_input_stream()
 			//Save Name + Phone Number
 			else if(sub_header == 0xFFFFFFFF)
 			{
+				campho.contact_data.clear();
+
+				//32-bit metadata
+				campho.contact_data.push_back(0x31);
+				campho.contact_data.push_back(0x08);
+				campho.contact_data.push_back(0x03);
+				campho.contact_data.push_back(0x00);
+
+				for(u32 x = 4; x < 0x1C; x++) { campho.contact_data.push_back(campho.g_stream[x]); }
+
+				//Allow outstream to be read (until next stream)
+				campho.out_stream_index = 0;
+				campho.out_stream_mode = 1;
+				campho.read_out_stream = true;
+
 				std::cout<<"Campho Added Contact\n";
 			}
 
