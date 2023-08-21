@@ -502,19 +502,38 @@ void AGB_MMU::campho_process_input_stream()
 		//Save Campho settings changes
 		else if(campho.g_stream.size() == 0x1C)
 		{
-			campho.config_data.clear();
+			u32 sub_header = (campho.g_stream[4] | (campho.g_stream[5] << 8) | (campho.g_stream[6] << 16) | (campho.g_stream[7] << 24));
 
-			//32-bit metadata
-			campho.config_data.push_back(0x31);
-			campho.config_data.push_back(0x08);
-			campho.config_data.push_back(0x03);
-			campho.config_data.push_back(0x00);
+			//Save configuration settings
+			if(sub_header == 0xFFFF1FFE)
+			{
+				campho.config_data.clear();
 
-			for(u32 x = 4; x < 0x1C; x++) { campho.config_data.push_back(campho.g_stream[x]); }
+				//32-bit metadata
+				campho.config_data.push_back(0x31);
+				campho.config_data.push_back(0x08);
+				campho.config_data.push_back(0x03);
+				campho.config_data.push_back(0x00);
 
-			//Allow settings to be read now (until next stream)
-			campho.out_stream_index = 0;
-			campho.read_out_stream = true;
+				for(u32 x = 4; x < 0x1C; x++) { campho.config_data.push_back(campho.g_stream[x]); }
+
+				//Allow settings to be read now (until next stream)
+				campho.out_stream_index = 0;
+				campho.read_out_stream = true;
+
+				std::cout<<"Campho Config Saved\n";
+			}
+
+			//Save Name + Phone Number
+			else if(sub_header == 0xFFFFFFFF)
+			{
+				std::cout<<"Campho Added Contact\n";
+			}
+
+			else
+			{
+				std::cout<<"Saving unknown settings: 0x" << header << "\n";
+			}
 
 			campho.video_capture_counter = 0;
 			campho.new_frame = false;
