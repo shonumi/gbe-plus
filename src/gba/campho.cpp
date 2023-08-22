@@ -557,6 +557,28 @@ void AGB_MMU::campho_process_input_stream()
 				campho.out_stream_mode = 1;
 				campho.read_out_stream = true;
 
+				std::string contact_number = "";
+
+				//Parse incoming data for contact phone number (last 10 bytes of stream)
+				for(u32 x = 0, digit_index = 18; x < 10; x++)
+				{
+					u16 val = (campho.g_stream[digit_index] | (campho.g_stream[digit_index + 1] << 8));
+
+					//Even Digits
+					if(x & 0x01)
+					{
+						contact_number += campho_convert_phone_number_even(val & 0x0FF0);
+						digit_index += 2;
+					}
+
+					//Odd Digits
+					else
+					{
+						contact_number += campho_convert_phone_number_odd(val & 0xF00F);
+					}
+				}
+
+				std::cout<<"Contact Number: " << contact_number << "\n";
 				std::cout<<"Campho Added Contact\n";
 			}
 
