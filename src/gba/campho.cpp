@@ -584,7 +584,7 @@ void AGB_MMU::campho_process_input_stream()
 
 			else
 			{
-				std::cout<<"Saving unknown settings: 0x" << header << "\n";
+				std::cout<<"Saving unknown settings: 0x" << sub_header << "\n";
 			}
 
 			campho.video_capture_counter = 0;
