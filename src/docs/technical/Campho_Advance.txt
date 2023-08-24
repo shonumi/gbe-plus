@@ -134,7 +134,7 @@ Graphics ROM contains various bitmap graphics for the Campho Advance's menus as 
 ROM_STAT = 0x4015
 
 //Read Command
-[ROM_DATA_2] = 0x42B7
+[ROM_DATA_2] = 0xB742
 
 //Unknown Parameter, always 1 for reads
 [ROM_DATA_2] = 0x0001
@@ -180,6 +180,7 @@ Some commands return data for the Campho Advance to read. The meaning of the dat
 ------------------------------------------------------------------------
 Command		| Description
 ------------------------------------------------------------------------
+0x9740		| Unknown
 0xB740		| Starts input data from the camera (small 58x48 frame)
 0xD740		| Starts input data from the camera (large 176x144 frame)
 0xD778		| Unknown (telecom status?)
@@ -253,6 +254,7 @@ Slice	| Lines Drawn
 -----------------------------------------------------------
 
 Note that the smaller framebuffer does not use anything like this at all. Although it uses 2 separate slices of 35 lines and 13 lines, they don't overlap. All pixels for both framebuffers (once reformatted) are 16-bit RGB555 values, meaning they can be plugged into the GBA's VRAM to draw a bitmap images. Once all pixel data for the camera has been pulled from each slice the Framebuffer Transfer Type changes to 0xCFFF. This signifies the end of readable camera input for a given frame. The Campho Advance then issues the 0xF9FF command to finish camera input and possibly request the next frame. It also writes 0x4015 to ROM_STAT before beginning the entire process all over again. When a new frame is ready, ROM_STAT will automatically read 0xA00A.
+
 
 ***************************************************
 9. Configuration Data
@@ -432,7 +434,7 @@ Key (Even Digits)	| 16-bit Value
 9			| 0x0720
 ------------------------------------------------------------------------
 
-These Odd and Even digits encodings are logically OR'ed together to form a single 16-bit encoding. If an odd digit is the last digit in the phone number, then it remains unchanged 
+These Odd and Even digits encodings are logically OR'ed together to form a single 16-bit encoding. If an odd digit is the last digit in the phone number, then it remains unchanged.
 
 ***************************************************
 11. System Compatibility
