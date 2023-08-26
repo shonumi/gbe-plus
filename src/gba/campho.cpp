@@ -24,7 +24,6 @@ void AGB_MMU::campho_reset()
 	campho.contact_data.resize(0x1C, 0x00);
 	campho.read_out_stream = false;
 	campho.out_stream_index = 0;
-	campho.out_stream_mode = 0;
 
 	campho.bank_index_lo = 0;
 	campho.bank_index_hi = 0;
@@ -446,13 +445,18 @@ void AGB_MMU::campho_process_input_stream()
 			u16 hi_set = (index & 0xFFFF0000) >> 16;
 			u16 lo_set = (index & 0xFFFF);
 
+			for(u32 x = 0; x < campho.g_stream.size(); x++)
+			{
+				std::cout<<"READ ALL STREAM -> 0x" << (u32)campho.g_stream[x] << "\n";
+			}
+
 			//Read full settings
 			if(stream_stat == 0xB778)
 			{
 				campho.out_stream.clear();
 
 				//Set data to read from stream
-				if(campho.out_stream_mode == 0)
+				if(index == 0x1FFE4000)
 				{
 					for(u32 x = 0; x < campho.config_data.size(); x++)
 					{
@@ -460,7 +464,7 @@ void AGB_MMU::campho_process_input_stream()
 					}
 				}
 
-				else if(campho.out_stream_mode == 1)
+				else if(index == 0x4000)
 				{
 					for(u32 x = 0; x < campho.contact_data.size(); x++)
 					{
@@ -533,7 +537,6 @@ void AGB_MMU::campho_process_input_stream()
 
 				//Allow settings to be read now (until next stream)
 				campho.out_stream_index = 0;
-				campho.out_stream_mode = 0;
 				campho.read_out_stream = true;
 
 				std::cout<<"Campho Config Saved\n";
@@ -554,7 +557,6 @@ void AGB_MMU::campho_process_input_stream()
 
 				//Allow outstream to be read (until next stream)
 				campho.out_stream_index = 0;
-				campho.out_stream_mode = 1;
 				campho.read_out_stream = true;
 
 				std::string contact_number = "";

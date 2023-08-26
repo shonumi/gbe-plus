@@ -322,7 +322,6 @@ class AGB_MMU
 		bool is_large_frame;
 
 		u32 out_stream_index;
-		u32 out_stream_mode;
 		std::vector <u8> config_data;
 		std::vector <u8> contact_data;
 		std::vector <u8> out_stream;
