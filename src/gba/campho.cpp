@@ -445,11 +445,6 @@ void AGB_MMU::campho_process_input_stream()
 			u16 hi_set = (index & 0xFFFF0000) >> 16;
 			u16 lo_set = (index & 0xFFFF);
 
-			for(u32 x = 0; x < campho.g_stream.size(); x++)
-			{
-				std::cout<<"READ ALL STREAM -> 0x" << (u32)campho.g_stream[x] << "\n";
-			}
-
 			//Read full settings
 			if(stream_stat == 0xB778)
 			{
