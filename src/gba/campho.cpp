@@ -628,56 +628,102 @@ void AGB_MMU::campho_set_rom_bank(u32 bank, u32 address, bool set_hi_bank)
 /****** Maps various ROM banks for the Campho ******/
 void AGB_MMU::campho_map_rom_banks()
 {
-	//Currently it is unknown how much ROM data needs to be dumped from the Campho Advance
-	//Also, the way the hardware maps data is not entirely understood and it's all over the place
-	//Until more research is done, a basic PROVISIONAL mapper is implemented here
-	//GBE+ will accept a ROM with a header that with the following data (MSB first!):
-
-	//TOTAL HEADER LENGTH		1st 4 bytes
-	//BANK ENTRIES			... rest of the header, see below for Bank Entry format
-
-	//BANK ID			4 bytes
-	//BANK INDEX			4 bytes
-	//BANK LENGTH IN BYTES		4 bytes
-
-	//Grab ROM header length
-	if(campho.data.size() < 4) { return; }
-
-	u32 header_len = (campho.data[0] << 24) | (campho.data[1] << 16) | (campho.data[2] << 8) | campho.data[3];
-
 	u32 rom_pos = 0;
-	u32 bank_pos = header_len;
+	u32 bank_id = 0x01;
+	u32 bank_index = 0x00;
 
 	campho.mapped_bank_id.clear();
 	campho.mapped_bank_index.clear();
 	campho.mapped_bank_len.clear();
 	campho.mapped_bank_pos.clear();
 
-	//Grab bank entries and parse them accordingly
-	for(u32 header_index = 4; header_index < header_len;)
+	//Setup BS1 and BS2
+	campho.mapped_bank_id.push_back(0x08000000);
+	campho.mapped_bank_index.push_back(0x00);
+	campho.mapped_bank_len.push_back(0x48);
+	campho.mapped_bank_pos.push_back(rom_pos);
+	rom_pos += 0x48;
+
+	campho.mapped_bank_id.push_back(0x08008000);
+	campho.mapped_bank_index.push_back(0x00);
+	campho.mapped_bank_len.push_back(0x7C);
+	campho.mapped_bank_pos.push_back(rom_pos);
+	rom_pos += 0x7C;
+
+	//Setup Program ROM
+	for(u32 x = 0; x < 16; x++)
 	{
-		rom_pos = header_index;
-		if((rom_pos + 12) >= campho.data.size()) { break; }
-
-		u32 bank_id = (campho.data[rom_pos] << 24) | (campho.data[rom_pos+1] << 16) | (campho.data[rom_pos+2] << 8) | campho.data[rom_pos+3];
-		u32 bank_addr = (campho.data[rom_pos+4] << 24) | (campho.data[rom_pos+5] << 16) | (campho.data[rom_pos+6] << 8) | campho.data[rom_pos+7];
-		u32 bank_len = (campho.data[rom_pos+8] << 24) | (campho.data[rom_pos+9] << 16) | (campho.data[rom_pos+10] << 8) | campho.data[rom_pos+11];
-
-		campho.mapped_bank_id.push_back(bank_id);
-		campho.mapped_bank_index.push_back(bank_addr);
-		campho.mapped_bank_len.push_back(bank_len);
-		campho.mapped_bank_pos.push_back(bank_pos);
-
-		bank_pos += bank_len;
-		header_index += 12;
+		campho.mapped_bank_id.push_back(0xCC00 + x);
+		campho.mapped_bank_index.push_back(0x00);
+		campho.mapped_bank_len.push_back(0xFFA);
+		campho.mapped_bank_pos.push_back(rom_pos);
+		rom_pos += 0xFFA;
 	}
 
-	//Setup initial BS1 and BS2
+	//Setup Graphics ROM
+	while(bank_id < 0xFFFF)
+	{
+		//Setup 0xFFFFFFFF bank
+		campho.mapped_bank_id.push_back(bank_id);
+		campho.mapped_bank_index.push_back(0xFFFFFFFF);
+		campho.mapped_bank_len.push_back(0x10);
+		campho.mapped_bank_pos.push_back(rom_pos);
+
+		//Read overall length of bank
+		u32 l_index = rom_pos + 0x0C;
+		u32 total_len = ((campho.data[l_index + 3] << 24) | (campho.data[l_index + 2] << 16) | (campho.data[l_index + 1] << 8) | (campho.data[l_index]));
+
+		if(total_len > 0x2000) { total_len = (total_len & 0xFFFF) + (total_len >> 16); }
+
+		rom_pos += 0x10;
+		bank_index = 0x00;
+
+		//Setup all banks under this current ID
+		while(total_len)
+		{
+			l_index = rom_pos + 0x02;
+			u32 current_len = ((campho.data[l_index + 1] << 8) | (campho.data[l_index]));
+			total_len -= current_len;
+			current_len *= 8;
+
+			campho.mapped_bank_id.push_back(bank_id);
+			campho.mapped_bank_index.push_back(bank_index);
+			campho.mapped_bank_len.push_back(current_len);
+			campho.mapped_bank_pos.push_back(rom_pos);
+			
+			//Increment bank index according to the Campho's weird addressing quirks
+			if(bank_index == 0x1F40) { bank_index = 0x2000134; }
+			else { bank_index += 0x1F4; }
+
+			rom_pos += current_len;
+			rom_pos += 4;
+		}
+
+		//Increment bank ID
+		if((bank_id & 0xFF) == 0x27)
+		{
+			bank_id &= 0xFF00;
+			bank_id += 0x2000;
+		}
+
+		else { bank_id++; }
+
+		//Some banks IDs are non-existent, however. In that case, move on to the next valid ID 
+		switch(bank_id)
+		{
+			case 0x2000: bank_id = 0x2001; break;
+			case 0x4000: bank_id = 0x4001; break;
+			case 0x6001: bank_id = 0x6002; break;
+		}
+	}
+
+
+	//Use initial BS1 and BS2 banks
 	u32 bs1_bank = campho_get_bank_by_id(0x08000000);
 	u32 bs2_bank = campho_get_bank_by_id(0x08008000);
 	
 	campho_set_rom_bank(campho.mapped_bank_id[bs1_bank], campho.mapped_bank_index[bs1_bank], false);
-	campho_set_rom_bank(campho.mapped_bank_id[bs2_bank], campho.mapped_bank_index[bs2_bank], true);
+	campho_set_rom_bank(campho.mapped_bank_id[bs2_bank], campho.mapped_bank_index[bs2_bank], true);	
 }
 
 /****** Returns the internal ROM bank GBE+ needs - Mapped to the Campho Advance's IDs ******/
