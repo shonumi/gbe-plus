@@ -87,13 +87,12 @@ void AGB_MMU::write_campho(u32 address, u8 value)
 			campho.rom_cnt |= (value << 8);
 
 			//Detect access to main Program ROM
-			if(campho.rom_cnt == 0xA00A)
+			if((campho.rom_cnt == 0xA00A) && (campho.block_stat < 0xCD00))
 			{
 				//Detect reading of first Program ROM bank
 				if(!campho.block_stat)
 				{
 					campho.block_stat = 0xCC00;
-					campho.bank_state = 1;
 
 					std::cout<<"MMU::Campho Reading PROM Bank 0x" << campho.block_stat << "\n";
 					u32 prom_bank_id = campho_get_bank_by_id(campho.block_stat);
@@ -104,7 +103,6 @@ void AGB_MMU::write_campho(u32 address, u8 value)
 				else
 				{
 					campho.block_stat++;
-					campho.bank_state = 1;
 
 					//Signal end of Program ROM banks
 					if(campho.block_stat == 0xCC10)
@@ -112,12 +110,9 @@ void AGB_MMU::write_campho(u32 address, u8 value)
 						campho.block_stat = 0xCD00;
 					}
 
-					else if(campho.block_stat < 0xCC10)
-					{
-						std::cout<<"MMU::Campho Reading PROM Bank 0x" << campho.block_stat << "\n";
-						u32 prom_bank_id = campho_get_bank_by_id(campho.block_stat);
-						campho_set_rom_bank(campho.mapped_bank_id[prom_bank_id], campho.mapped_bank_index[prom_bank_id], false);
-					}
+					std::cout<<"MMU::Campho Reading PROM Bank 0x" << campho.block_stat << "\n";
+					u32 prom_bank_id = campho_get_bank_by_id(campho.block_stat);
+					campho_set_rom_bank(campho.mapped_bank_id[prom_bank_id], campho.mapped_bank_index[prom_bank_id], false);
 				}
 			}
 
@@ -165,50 +160,10 @@ u8 AGB_MMU::read_campho(u32 address)
 	{
 		//ROM Data Stream
 		case CAM_ROM_DATA_LO:
-			//Read Program ROM
-			if(campho.bank_state)
-			{
-				//Return STAT LOW on first read
-				if(campho.bank_state == 1)
-				{
-					result = (campho.block_stat & 0xFF);
-				}
-
-				//Return LEN LOW on second read
-				//These 16-bit values should be fixed (0xFFA), except for last block (zero-length)
-				else if(campho.bank_state == 2)
-				{
-					result = (campho.block_stat == 0xCD00) ? 0x00 : 0xFA;
-				}
-			}
-
-			//Sequential ROM read
-			else { result = read_campho_seq(address); }
-
-			break;
-
 		case CAM_ROM_DATA_LO+1:
-			//Read Program ROM
-			if(campho.bank_state)
-			{
-				//Return STAT HIGH on first read
-				if(campho.bank_state == 1)
-				{
-					result = ((campho.block_stat >> 8) & 0xFF);
-					campho.bank_state++;
-				}
-
-				//Return LEN HIGH on second read
-				//These 16-bit values should be fixed (0xFFA), except for last block (zero-length)
-				else if(campho.bank_state == 2)
-				{
-					result = (campho.block_stat == 0xCD00) ? 0x00 : 0x0F;
-					campho.bank_state = (campho.block_stat == 0xCD00) ? 0x03 : 0x00;
-				}
-			}
 
 			//Sequential ROM read
-			else { result = read_campho_seq(address); }
+			result = read_campho_seq(address);
 
 			break;
 		
@@ -655,10 +610,16 @@ void AGB_MMU::campho_map_rom_banks()
 	{
 		campho.mapped_bank_id.push_back(0xCC00 + x);
 		campho.mapped_bank_index.push_back(0x00);
-		campho.mapped_bank_len.push_back(0xFFA);
+		campho.mapped_bank_len.push_back(0xFFE);
 		campho.mapped_bank_pos.push_back(rom_pos);
-		rom_pos += 0xFFA;
+		rom_pos += 0xFFE;
 	}
+
+	campho.mapped_bank_id.push_back(0xCD00);
+	campho.mapped_bank_index.push_back(0x00);
+	campho.mapped_bank_len.push_back(0x04);
+	campho.mapped_bank_pos.push_back(rom_pos);
+	rom_pos += 0x04;
 
 	//Setup Graphics ROM
 	while(bank_id < 0xFFFF)
