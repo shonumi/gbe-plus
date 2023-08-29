@@ -700,7 +700,7 @@ void AGB_MMU::campho_map_rom_banks()
 		}
 
 		//Increment bank ID
-		if((bank_id & 0xFF) == 0x27)
+		if((bank_id == 0x6026) || (bank_id == 0x8026) || ((bank_id & 0xFF) == 0x27))
 		{
 			bank_id &= 0xFF00;
 			bank_id += 0x2000;
@@ -713,7 +713,7 @@ void AGB_MMU::campho_map_rom_banks()
 		{
 			case 0x2000: bank_id = 0x2001; break;
 			case 0x4000: bank_id = 0x4001; break;
-			case 0x6001: bank_id = 0x6002; break;
+			case 0xA00B: bank_id = 0xA00C; break;
 		}
 	}
 
