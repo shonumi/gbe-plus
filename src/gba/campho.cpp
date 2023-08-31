@@ -32,7 +32,6 @@ void AGB_MMU::campho_reset()
 	campho.rom_cnt = 0;
 	campho.block_len = 0;
 	campho.block_stat = 0;
-	campho.bank_state = 0;
 	campho.stream_started = false;
 	campho.last_id = 0xFFFFFFFF;
 

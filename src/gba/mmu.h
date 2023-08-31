@@ -308,7 +308,6 @@ class AGB_MMU
 		u16 rom_cnt;
 		u16 block_len;
 		u16 block_stat;
-		u8 bank_state;
 		bool stream_started;
 
 		u8 video_capture_counter;
