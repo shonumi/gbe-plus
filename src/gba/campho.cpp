@@ -157,16 +157,7 @@ u8 AGB_MMU::read_campho(u32 address)
 	u8 result = 0;
 
 	switch(address)
-	{
-		//ROM Data Stream
-		case CAM_ROM_DATA_LO:
-		case CAM_ROM_DATA_LO+1:
-
-			//Sequential ROM read
-			result = read_campho_seq(address);
-
-			break;
-		
+	{	
 		//Campho ROM Status
 		case CAM_ROM_STAT:
 		case CAM_ROM_STAT_B:
