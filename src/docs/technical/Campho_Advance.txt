@@ -209,7 +209,7 @@ Data for the small or large video capture framebuffers is not read all at once. 
 
 Both the Framebuffer Transfer Type and Framebuffer Transfer Size are read by the Campho Advance with some of their bits flipped around. The Campho Advance adjusts these values like so:
 
-OUTPUT_16 = ((INPUT_16 LSL 3) | (INPUT_16 LSR 13))
+OUTPUT_16 = ((INPUT_16 LSL 3) OR (INPUT_16 LSR 13))
 
 It should be noted that the pixel data from the camera is also needs this kind of reformatting. After sending the Framebuffer Transfer Type and Framebuffer Transfer Size, the Campho Advance does the following to read slices:
 
@@ -227,7 +227,7 @@ WHILE FRAME_TRANSFER_SIZE NOT EQUAL TO ZERO
 	DATA_VAL = READ 16 BITS FROM [ROM_DATA_1]
 
 	//Reformat data and store in WRAM (above 64KB used to execute Program ROM)
-	DATA_VAL = ((DATA LSL 3) | (INPUT_16 LSR 13))
+	DATA_VAL = ((DATA LSL 3) OR (INPUT_16 LSR 13))
 	[0x2013000 + INDEX] = DATA_VAL
 
 	FRAME_TRANSFER_SIZE = FRAME_TRANSFER_SIZE - 1
@@ -450,6 +450,12 @@ Key (Even Digits)	| 16-bit Value
 ------------------------------------------------------------------------
 
 These Odd and Even digits encodings are logically OR'ed together to form a single 16-bit encoding. If an odd digit is the last digit in the phone number, then it remains unchanged.
+
+The above values are derived by transforming ASCII values in the following ways:
+
+ODD_DIGIT_16 = (ASCII_VALUE LSL 13) OR (ASCII_VALUE LSR 3)
+EVEN_DIGIT_8 = (ASCII_VALUE LSL 5) OR (ASCII_VALUE LSR 3)
+
 
 ***************************************************
 11. System Compatibility
