@@ -158,6 +158,19 @@ Before reading any blocks from Graphics ROM, however, the above command must fir
 
 When changing from one bank to another, data from the previous bank can still be read. For example, when switching to the offset 0xFFFFFFFF and reading more than 16-bytes, the Campho Advance will then respond with the next data from the old bank as if nothing had changed. Afterwards, when using a different offset for the new bank, new data will appear as expected. In effect, it takes a bit for the hardware to fully switch Graphics ROM banks, therefore it is important to check the length of data being read at this stage. This does not appear to be an issue if it is the first bank the Campho Advance is reading since boot.
 
+There are a total of 314 different banks in Graphics ROM. Typically, there are 40 banks which can be addressed in increments of 0x2000, i.e. valid bank IDs range from 0x0000 - 0x0027, then 0x2000 - 0x2027, then 0x4000 - 0x4027, and etc, with the final addressable bank at 0xE027. However, some banks are either not addressable/non-existent (in the case of an I/O error) or have a length of zero bytes when trying to read them. The invalid banks are listed below:
+
+------------------------------------------------------------------------
+Bank ID	| Error Type
+------------------------------------------------------------------------
+0x0000	| Zero Length
+0x2000	| I/O Error
+0x4000	| I/O Error
+0x6026	| I/O Error
+0x8026	| I/O Error
+0xA00B	| Zero Length
+------------------------------------------------------------------------
+
 
 ***************************************************
 7. Commands
