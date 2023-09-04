@@ -386,8 +386,20 @@ Address		| Description
 0x0E - 0x17	| Contact Phone Number (10 digits max)
 ------------------------------------------------------------------------
 
-The contact's name can be a mixture of katakana, Latin characters, and numbers. The format is currently unknown. The contact's phone number uses the same encoding format as dialing phone numbers. See the section below for more details.
+The contact's phone number uses the same encoding format as dialing phone numbers. See the next section (Dialing Phone Numbers) for more details. The contact's name can be a mixture of katakana, Latin characters, and numbers. That format uses 8-bit values that match uppercase ASCII characters while using a custom character set for katakana. It has some similarities to JIS X 0201 with many modifications. The chart below shows the character maps for katakana:
 
+------------------------------------------------------------------------------------------------------------------------------------
+	| 00	01	02	03	04	05	06	07	08	09	0A	0B	0C	0D	0E	0F
+------------------------------------------------------------------------------------------------------------------------------------
+0xA0 	|	ア	イ	ウ	エ	オ	カ	キ	ク	ケ	コ	サ	シ	ス	セ	ソ	
+0xB0	| タ	チ	ツ	テ	ト	ナ	ニ	ヌ	ネ	ノ	ハ	ヒ	フ	ヘ	ホ	マ
+0xC0	| ミ	ム	メ	モ	ヤ	ユ	ヨ	ラ	リ	ル	レ	ロ	ワ	ヲ	ャ	ュ
+0xD0	| ョ	ァ	ィ	ッ	ン	ゥ	ェ	ォ	ﾞ	ﾟ
+------------------------------------------------------------------------------------------------------------------------------------
+
+Note that 0xDA is used as the SPACE character instead the ASCII value 0x20. All characters use the same transformation at the even digits used for the phone number. Essentially, all 8-bit character values are altered as such when stored on the Campho:
+
+FINAL_VALUE_8 = (CHAR_VALUE LSL 5) OR (CHAR_VALUE LSR 3)
 
 ***************************************************
 10. Dialing Phone Numbers
