@@ -171,6 +171,8 @@ Bank ID	| Error Type
 0xA00B	| Zero Length
 ------------------------------------------------------------------------
 
+To check for I/O errors, the Campho Advance's software will repeatedly check ROM_STAT after using the above proceedure to write G_ROM_BANK and G_ROM_OFFSET. ROM_STAT should change to 0x4015 to signal that the Graphics ROM bank is available to read. However, if the value of ROM_STAT does not change after a certain period of time, this indicates that the Campho Advance hardware could not access the given bank or offset. The Campho's software runs a fairly tight loop for a few thousand iterations before attempting to read Graphics ROM, waiting for ROM_STAT, and if that fails it drops that bank completely.
+
 
 ***************************************************
 7. Commands
