@@ -476,6 +476,7 @@ class AGB_MMU
 	u8 campho_convert_phone_number_length(u16 input);
 	std::string campho_convert_phone_number_odd(u16 input);
 	std::string campho_convert_phone_number_even(u16 input);
+	std::string campho_convert_contact_name();
 	u8 campho_find_settings_val(u16 input);
 	void campho_make_settings_stream(u32 input);
 	void campho_process_input_stream();

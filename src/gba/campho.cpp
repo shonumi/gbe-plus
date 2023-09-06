@@ -499,6 +499,8 @@ void AGB_MMU::campho_process_input_stream()
 				campho.out_stream_index = 0;
 				campho.read_out_stream = true;
 
+
+				std::string contact_name = campho_convert_contact_name();
 				std::string contact_number = "";
 
 				//Parse incoming data for contact phone number (last 10 bytes of stream)
@@ -520,6 +522,7 @@ void AGB_MMU::campho_process_input_stream()
 					}
 				}
 
+				std::cout<<"Contact Name: " << contact_name << "\n";
 				std::cout<<"Contact Number: " << contact_number << "\n";
 				std::cout<<"Campho Added Contact\n";
 			}
@@ -977,6 +980,37 @@ std::string AGB_MMU::campho_convert_phone_number_even(u16 input)
 		case 0x06E0: result = "7"; break;
 		case 0x0700: result = "8"; break;
 		case 0x0720: result = "9"; break;
+	}
+
+	return result;
+}
+
+/****** Converts output data from stream into a Unicode string ******/
+std::string AGB_MMU::campho_convert_contact_name()
+{
+	std::string result = "";
+
+	for(u32 x = 0; x < 10; x += 2)
+	{
+		u16 chr = (campho.g_stream[x + 8] << 8) | campho.g_stream[x + 9];
+		chr = ((chr >> 13) | (chr << 3));
+
+		u8 hi_chr = (chr >> 8);
+		u8 lo_chr = (chr & 0xFF);
+
+		for(u32 y = 0; y < 2; y++)
+		{
+			std::string segment = "";
+			u8 conv_chr = (y == 0) ? hi_chr : lo_chr;
+
+			//Handle ASCII characters
+			if(conv_chr < 0x80) { segment += conv_chr; }
+
+			//Handle custom space character
+			else if(conv_chr == 0xDA) { segment += " "; }
+
+			result += segment;
+		}
 	}
 
 	return result;
