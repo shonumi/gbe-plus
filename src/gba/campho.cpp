@@ -1009,6 +1009,71 @@ std::string AGB_MMU::campho_convert_contact_name()
 			//Handle custom space character
 			else if(conv_chr == 0xDA) { segment += " "; }
 
+			//Handle katakana
+			else if((conv_chr >= 0xA1) && (conv_chr <= 0xD9))
+			{
+				switch(conv_chr)
+				{
+					case 0xA1: segment += "\u30A2"; break;
+					case 0xA2: segment += "\u30A4"; break;
+					case 0xA3: segment += "\u30A6"; break;
+					case 0xA4: segment += "\u30A8"; break;
+					case 0xA5: segment += "\u30AA"; break;
+					case 0xA6: segment += "\u30AB"; break;
+					case 0xA7: segment += "\u30AD"; break;
+					case 0xA8: segment += "\u30AF"; break;
+					case 0xA9: segment += "\u30B1"; break;
+					case 0xAA: segment += "\u30B3"; break;
+					case 0xAB: segment += "\u30B5"; break;
+					case 0xAC: segment += "\u30B7"; break;
+					case 0xAD: segment += "\u30B9"; break;
+					case 0xAE: segment += "\u30BB"; break;
+					case 0xAF: segment += "\u30BD"; break;
+					case 0xB0: segment += "\u30BF"; break;
+					case 0xB1: segment += "\u30C1"; break;
+					case 0xB2: segment += "\u30C4"; break;
+					case 0xB3: segment += "\u30C6"; break;
+					case 0xB4: segment += "\u30C8"; break;
+					case 0xB5: segment += "\u30CA"; break;
+					case 0xB6: segment += "\u30CB"; break;
+					case 0xB7: segment += "\u30CC"; break;
+					case 0xB8: segment += "\u30CD"; break;
+					case 0xB9: segment += "\u30CE"; break;
+					case 0xBA: segment += "\u30CF"; break;
+					case 0xBB: segment += "\u30D2"; break;
+					case 0xBC: segment += "\u30D5"; break;
+					case 0xBD: segment += "\u30D8"; break;
+					case 0xBE: segment += "\u30DB"; break;
+					case 0xBF: segment += "\u30DE"; break;
+					case 0xC0: segment += "\u30DF"; break;
+					case 0xC1: segment += "\u30E0"; break;
+					case 0xC2: segment += "\u30E1"; break;
+					case 0xC3: segment += "\u30E2"; break;
+					case 0xC4: segment += "\u30E4"; break;
+					case 0xC5: segment += "\u30E6"; break;
+					case 0xC6: segment += "\u30E8"; break;
+					case 0xC7: segment += "\u30E9"; break;
+					case 0xC8: segment += "\u30EA"; break;
+					case 0xC9: segment += "\u30EB"; break;
+					case 0xCA: segment += "\u30EC"; break;
+					case 0xCB: segment += "\u30ED"; break;
+					case 0xCC: segment += "\u30EF"; break;
+					case 0xCD: segment += "\u30F2"; break;
+					case 0xCE: segment += "\u30E3"; break;
+					case 0xCF: segment += "\u30E5"; break;
+					case 0xD0: segment += "\u30E7"; break;
+					case 0xD1: segment += "\u30A1"; break;
+					case 0xD2: segment += "\u30A3"; break;
+					case 0xD3: segment += "\u30C3"; break;
+					case 0xD4: segment += "\u30F3"; break;
+					case 0xD5: segment += "\u30A5"; break;
+					case 0xD6: segment += "\u30A7"; break;
+					case 0xD7: segment += "\u30A9"; break;
+					case 0xD8: segment += "\u309B"; break;
+					case 0xD9: segment += "\u309C"; break;
+				}
+			}
+
 			result += segment;
 		}
 	}
