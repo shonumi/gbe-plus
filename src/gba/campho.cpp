@@ -462,6 +462,11 @@ void AGB_MMU::campho_process_input_stream()
 		{
 			u32 sub_header = (campho.g_stream[4] | (campho.g_stream[5] << 8) | (campho.g_stream[6] << 16) | (campho.g_stream[7] << 24));
 
+			for(u32 x = 0; x < 0x1C; x++)
+			{
+				std::cout<<"DATA -> 0x" << (u32)campho.g_stream[x] << "\n";
+			}
+
 			//Save configuration settings
 			if(sub_header == 0xFFFF1FFE)
 			{
@@ -1003,8 +1008,11 @@ std::string AGB_MMU::campho_convert_contact_name()
 			std::string segment = "";
 			u8 conv_chr = (y == 0) ? hi_chr : lo_chr;
 
+			//Terminate string on NULL character
+			if(conv_chr == 0x00) { return result; }
+
 			//Handle ASCII characters
-			if(conv_chr < 0x80) { segment += conv_chr; }
+			else if(conv_chr < 0x80) { segment += conv_chr; }
 
 			//Handle custom space character
 			else if(conv_chr == 0xDA) { segment += " "; }
