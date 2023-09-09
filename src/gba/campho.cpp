@@ -263,18 +263,19 @@ void AGB_MMU::campho_process_input_stream()
 			for(u32 x = 0, digit_index = 4; x < number_len; x++)
 			{
 				u16 val = (campho.g_stream[digit_index] | (campho.g_stream[digit_index + 1] << 8));
+				val = ((val >> 13) | (val << 3));
 
 				//Even Digits
 				if(x & 0x01)
 				{
-					campho.dialed_number += campho_convert_phone_number_even(val & 0x0FF0);
+					campho.dialed_number += ((val >> 8) & 0xFF);
 					digit_index += 2;
 				}
 
 				//Odd Digits
 				else
 				{
-					campho.dialed_number += campho_convert_phone_number_odd(val & 0xF00F);
+					campho.dialed_number += (val & 0xFF);
 				}
 			}
 
