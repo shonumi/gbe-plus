@@ -255,7 +255,8 @@ void AGB_MMU::campho_process_input_stream()
 		if(header == 0x3740)
 		{
 			u16 number_len = (campho.g_stream[2] | (campho.g_stream[3] << 8));
-			number_len = campho_convert_phone_number_length(number_len);
+			number_len = ((number_len >> 13) | (number_len << 3));
+			if(number_len > 10) { number_len = 10; }
 			
 			campho.dialed_number = "";
 
@@ -463,11 +464,6 @@ void AGB_MMU::campho_process_input_stream()
 		{
 			u32 sub_header = (campho.g_stream[4] | (campho.g_stream[5] << 8) | (campho.g_stream[6] << 16) | (campho.g_stream[7] << 24));
 
-			for(u32 x = 0; x < 0x1C; x++)
-			{
-				std::cout<<"DATA -> 0x" << (u32)campho.g_stream[x] << "\n";
-			}
-
 			//Save configuration settings
 			if(sub_header == 0xFFFF1FFE)
 			{
@@ -513,18 +509,19 @@ void AGB_MMU::campho_process_input_stream()
 				for(u32 x = 0, digit_index = 18; x < 10; x++)
 				{
 					u16 val = (campho.g_stream[digit_index] | (campho.g_stream[digit_index + 1] << 8));
+					val = ((val >> 13) | (val << 3));
 
 					//Even Digits
 					if(x & 0x01)
 					{
-						contact_number += campho_convert_phone_number_even(val & 0x0FF0);
+						contact_number += ((val >> 8) & 0xFF);
 						digit_index += 2;
 					}
 
 					//Odd Digits
 					else
 					{
-						contact_number += campho_convert_phone_number_odd(val & 0xF00F);
+						contact_number += (val & 0xFF);
 					}
 				}
 
@@ -921,74 +918,6 @@ void AGB_MMU::campho_make_settings_stream(u32 input)
 	campho.out_stream.push_back(input >> 24);
 	campho.out_stream.push_back(0x00);
 	campho.out_stream.push_back(0x60);
-}
-
-/****** Converts a 16-bit value used by the Campho for number of digits in a phone number ******/
-u8 AGB_MMU::campho_convert_phone_number_length(u16 input)
-{
-	u8 result = 0;
-
-	switch(input)
-	{
-		case 0x2000: result = 1; break;
-		case 0x4000: result = 2; break;
-		case 0x6000: result = 3; break;
-		case 0x8000: result = 4; break;
-		case 0xA000: result = 5; break;
-		case 0xC000: result = 6; break;
-		case 0xE000: result = 7; break;
-		case 0x0001: result = 8; break;
-		case 0x2001: result = 9; break;
-		case 0x4001: result = 10; break;
-	}
-
-	return result;
-}
-
-/****** Converts a 16-bit value used by the Campho for odd digits in a phone number ******/
-std::string AGB_MMU::campho_convert_phone_number_odd(u16 input)
-{
-	std::string result = "";
-
-	switch(input)
-	{
-		case 0xC005: result = "."; break;
-		case 0x0006: result = "0"; break;
-		case 0x2006: result = "1"; break;
-		case 0x4006: result = "2"; break;
-		case 0x6006: result = "3"; break;
-		case 0x8006: result = "4"; break;
-		case 0xA006: result = "5"; break;
-		case 0xC006: result = "6"; break;
-		case 0xE006: result = "7"; break;
-		case 0x0007: result = "8"; break;
-		case 0x2007: result = "9"; break;
-	}
-
-	return result;
-}
-
-/****** Converts a 16-bit value used by the Campho for even digits in a phone number ******/
-std::string AGB_MMU::campho_convert_phone_number_even(u16 input)
-{
-	std::string result = "";
-
-	switch(input)
-	{
-		case 0x05C0: result = "."; break;
-		case 0x0600: result = "0"; break;
-		case 0x0620: result = "1"; break;
-		case 0x0640: result = "2"; break;
-		case 0x0660: result = "3"; break;
-		case 0x0680: result = "4"; break;
-		case 0x06A0: result = "5"; break;
-		case 0x06C0: result = "6"; break;
-		case 0x06E0: result = "7"; break;
-		case 0x0700: result = "8"; break;
-		case 0x0720: result = "9"; break;
-	}
-
-	return result;
 }
 
 /****** Converts output data from stream into a Unicode string ******/
