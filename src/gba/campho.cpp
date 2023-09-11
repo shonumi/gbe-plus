@@ -269,6 +269,9 @@ void AGB_MMU::campho_process_input_stream()
 				//Even Digits
 				if(x & 0x01)
 				{
+					u8 chr_val = ((val >> 8) & 0xFF);
+					if(chr_val == 0) { break; }
+
 					campho.dialed_number += ((val >> 8) & 0xFF);
 					digit_index += 2;
 				}
@@ -276,6 +279,9 @@ void AGB_MMU::campho_process_input_stream()
 				//Odd Digits
 				else
 				{
+					u8 chr_val = (val & 0xFF);
+					if(chr_val == 0) { break; }
+
 					campho.dialed_number += (val & 0xFF);
 				}
 			}
@@ -514,6 +520,9 @@ void AGB_MMU::campho_process_input_stream()
 					//Even Digits
 					if(x & 0x01)
 					{
+						u8 chr_val = ((val >> 8) & 0xFF);
+						if(chr_val == 0) { break; }
+
 						contact_number += ((val >> 8) & 0xFF);
 						digit_index += 2;
 					}
@@ -521,6 +530,9 @@ void AGB_MMU::campho_process_input_stream()
 					//Odd Digits
 					else
 					{
+						u8 chr_val = (val & 0xFF);
+						if(chr_val == 0) { break; }
+
 						contact_number += (val & 0xFF);
 					}
 				}
