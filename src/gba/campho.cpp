@@ -305,7 +305,7 @@ void AGB_MMU::campho_process_input_stream()
 
 			else
 			{
-				std::cout<<"Unknown Graphics ID -> 0x" << param_2 << "\n";
+				std::cout<<"Unknown Graphics ID -> 0x" << param_2 << " :: " << index << "\n";
 			}
 
 			campho.video_capture_counter = 0;
@@ -660,9 +660,7 @@ void AGB_MMU::campho_map_rom_banks()
 			campho.mapped_bank_len.push_back(current_len);
 			campho.mapped_bank_pos.push_back(rom_pos);
 			
-			//Increment bank index according to the Campho's weird addressing quirks
-			if(bank_index == 0x1F40) { bank_index = 0x2000134; }
-			else { bank_index += 0x1F4; }
+			bank_index += 0x1F4;
 
 			rom_pos += current_len;
 			rom_pos += 4;
@@ -709,6 +707,11 @@ u32 AGB_MMU::campho_get_bank_by_id(u32 id)
 /****** Returns the internal ROM bank GBE+ needs - Mapped to the Campho Advance's IDs ******/
 u32 AGB_MMU::campho_get_bank_by_id(u32 id, u32 index)
 {
+	if((index != 0xFFFFFFFF) && (index & 0xF0000000))
+	{
+		index = (index & 0xFFFF) + (index >> 16);
+	}
+
 	for(u32 x = 0; x < campho.mapped_bank_id.size(); x++)
 	{
 		if((campho.mapped_bank_id[x] == id) && (campho.mapped_bank_index[x] == index)) { return x; }
