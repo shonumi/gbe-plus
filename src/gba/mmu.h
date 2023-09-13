@@ -330,6 +330,7 @@ class AGB_MMU
 		u8 mic_volume;
 		u8 video_brightness;
 		u8 video_contrast;
+		bool image_flip;
 
 		std::string dialed_number;
 

@@ -483,6 +483,9 @@ void AGB_MMU::campho_process_input_stream()
 
 				for(u32 x = 4; x < 0x1C; x++) { campho.config_data.push_back(campho.g_stream[x]); }
 
+				//Process Image Flip now. Now dedicated command for this like the others?
+				campho.image_flip = ((campho.g_stream[0x11] << 8) | campho.g_stream[0x10]) ? true : false;
+
 				//Allow settings to be read now (until next stream)
 				campho.out_stream_index = 0;
 				campho.read_out_stream = true;
