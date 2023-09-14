@@ -484,7 +484,10 @@ void AGB_MMU::campho_process_input_stream()
 				for(u32 x = 4; x < 0x1C; x++) { campho.config_data.push_back(campho.g_stream[x]); }
 
 				//Process Image Flip now. Now dedicated command for this like the others?
+				bool old_flag = campho.image_flip;
 				campho.image_flip = ((campho.g_stream[0x11] << 8) | campho.g_stream[0x10]) ? true : false;
+
+				
 
 				//Allow settings to be read now (until next stream)
 				campho.out_stream_index = 0;
@@ -894,6 +897,32 @@ void AGB_MMU::campho_get_image_data(u8* img_data, u32 width, u32 height)
 		{
 			campho.capture_buffer.push_back(temp_buffer[pos]);
 			campho.capture_buffer.push_back(temp_buffer[pos+1]);
+		}
+	}
+
+	//Flip final output if necessary
+	if(campho.image_flip)
+	{
+		for(u32 x = 0; x < campho.capture_buffer.size() / 2;)
+		{
+			u16 current_y = (x / 2) / target_width;
+			u16 current_x = (x / 2) % target_width;
+
+			u8 src_1 = campho.capture_buffer[x];
+			u8 src_2 = campho.capture_buffer[x + 1];
+
+			u32 dst_pos = ((((target_height - 1) - current_y) * target_width) + current_x) * 2;
+
+			u8 dst_1 = campho.capture_buffer[dst_pos];
+			u8 dst_2 = campho.capture_buffer[dst_pos + 1];
+
+			campho.capture_buffer[x] = dst_1;
+			campho.capture_buffer[x + 1] = dst_2;
+
+			campho.capture_buffer[dst_pos] = src_1;
+			campho.capture_buffer[dst_pos + 1] = src_2;
+
+			x += 2;
 		}
 	}
 }
